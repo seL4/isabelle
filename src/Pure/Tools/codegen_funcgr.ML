@@ -314,18 +314,18 @@ fun ensure_consts_term rewrites thy f ct funcgr =
       fold_aterms (fn Const c => cons (CodegenConsts.const_of_cexpr thy c) | _ => I) t []
     fun rhs_conv conv thm =
       let
-        val thm' = (conv o snd o Drule.dest_equals o Thm.cprop_of) thm;
+        val thm' = (conv o Thm.rhs_of) thm;
       in Thm.transitive thm thm' end
     val _ = Sign.no_vars (Sign.pp thy) (Thm.term_of ct);
     val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
     val thm1 = CodegenData.preprocess_cterm ct
       |> fold (rhs_conv o MetaSimplifier.rewrite false o single) (rewrites thy);
-    val ct' = Drule.dest_equals_rhs (Thm.cprop_of thm1);
+    val ct' = Thm.rhs_of thm1;
     val consts = consts_of thy (Thm.term_of ct');
     val funcgr' = ensure_consts rewrites thy consts funcgr;
     val algebra = CodegenData.coregular_algebra thy;
     val (_, thm2) = Thm.varifyT' [] thm1;
-    val thm3 = Thm.reflexive (Drule.dest_equals_rhs (Thm.cprop_of thm2));
+    val thm3 = Thm.reflexive (Thm.rhs_of thm2);
     val typ_funcgr = try (fst o Constgraph.get_node funcgr' o CodegenConsts.const_of_cexpr thy);
     val [thm4] = resort_thms algebra typ_funcgr [thm3];
     val tfrees = Term.add_tfrees (Thm.prop_of thm1) [];
@@ -337,7 +337,7 @@ fun ensure_consts_term rewrites thy f ct funcgr =
       in Thm.instantiate (instmap, []) thm end;
     val thm5 = inst thm2;
     val thm6 = inst thm4;
-    val ct'' = Drule.dest_equals_rhs (Thm.cprop_of thm6);
+    val ct'' = Thm.rhs_of thm6;
     val cs = fold_aterms (fn Const c => cons c | _ => I) (Thm.term_of ct'') [];
     val drop = drop_classes thy tfrees;
     val instdefs = instances_of_consts thy algebra funcgr' cs;

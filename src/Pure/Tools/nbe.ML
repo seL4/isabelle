@@ -179,7 +179,7 @@ fun normalization_conv ct =
       let
         val t = Thm.term_of ct;
         val thm2 = normalization_invoke thy funcgr t;
-        val thm3 = apply_posts thy ((snd o Drule.dest_equals o Thm.cprop_of) thm2);
+        val thm3 = apply_posts thy (Thm.rhs_of thm2);
         val thm23 = drop_classes (Thm.transitive thm2 thm3);
       in
         Thm.transitive thm1 thm23 handle THM _ =>

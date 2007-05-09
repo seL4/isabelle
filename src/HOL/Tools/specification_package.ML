@@ -123,7 +123,7 @@ fun process_spec axiomatic cos alt_props thy =
         val rew_imps = alt_props |>
           map (ObjectLogic.atomize_cterm o Thm.read_cterm thy o rpair Term.propT o snd)
         val props' = rew_imps |>
-          map (HOLogic.dest_Trueprop o term_of o snd o dest_equals o cprop_of)
+          map (HOLogic.dest_Trueprop o term_of o snd o Thm.dest_equals o cprop_of)
 
         fun proc_single prop =
             let

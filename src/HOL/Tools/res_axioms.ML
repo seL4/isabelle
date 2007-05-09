@@ -48,7 +48,7 @@ val rhs_of = #2 o Logic.dest_equals o Thm.prop_of;
 
 (*Populate the abstraction cache with common combinators.*)
 fun seed th net =
-  let val (_,ct) = Thm.dest_abs NONE (Drule.rhs_of th)
+  let val (_,ct) = Thm.dest_abs NONE (Thm.rhs_of th)
       val t = Logic.legacy_varify (term_of ct)
   in  Net.insert_term Thm.eq_thm (t, th) net end;
   
@@ -184,7 +184,7 @@ fun mk_object_eq th = th RS meta_eq_to_obj_eq
 (*Apply a function definition to an argument, beta-reducing the result.*)
 fun beta_comb cf x =
   let val th1 = combination cf (reflexive x)
-      val th2 = beta_conversion false (Drule.rhs_of th1)
+      val th2 = beta_conversion false (Thm.rhs_of th1)
   in  transitive th1 th2  end;
 
 (*Apply a function definition to arguments, beta-reducing along the way.*)
@@ -259,7 +259,7 @@ fun declare_absfuns s th =
                 val _ = if !trace_abs then warning ("Nested lambda: " ^ string_of_cterm cta) else ();
                 val (u'_th,defs) = abstract thy cta
                 val _ = if !trace_abs then warning ("Returned " ^ string_of_thm u'_th) else ();
-                val cu' = Drule.rhs_of u'_th
+                val cu' = Thm.rhs_of u'_th
                 val u' = term_of cu'
                 val abs_v_u = lambda_list (map term_of cvs) u'
                 (*get the formal parameters: ALL variables free in the term*)
@@ -335,7 +335,7 @@ fun assume_absfuns s th =
                 val (cvs,cta) = dest_abs_list ct
                 val (vs,Tvs) = ListPair.unzip (map (dest_Free o term_of) cvs)
                 val (u'_th,defs) = abstract cta
-                val cu' = Drule.rhs_of u'_th
+                val cu' = Thm.rhs_of u'_th
                 val u' = term_of cu'
                 (*Could use Thm.cabs instead of lambda to work at level of cterms*)
                 val abs_v_u = lambda_list (map term_of cvs) (term_of cu')
@@ -396,7 +396,7 @@ fun c_variant_abs_multi (ct0, vars) =
   an existential formula by a use of that function.
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
 fun skolem_of_def def =
-  let val (c,rhs) = Drule.dest_equals (cprop_of (freeze_thm def))
+  let val (c,rhs) = Thm.dest_equals (cprop_of (freeze_thm def))
       val (ch, frees) = c_variant_abs_multi (rhs, [])
       val (chilbert,cabs) = Thm.dest_comb ch
       val {thy,t, ...} = rep_cterm chilbert

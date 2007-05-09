@@ -493,7 +493,7 @@ fun norm_term thy t =
           addsimprocs [quant_simproc thy, eta_expand_simproc thy,eta_contract_simproc thy]
         fun chain f th =
             let
-                val rhs = snd (dest_equals (cprop_of th))
+                val rhs = Thm.rhs_of th
             in
                 transitive th (f rhs)
             end
@@ -585,7 +585,7 @@ fun set_prop thy t =
         val closed_t = Library.foldr (fn (v, body) =>
       let val vT = type_of v in all vT $ (Abs ("x", vT, abstract_over (v, body))) end) (vars, t)
         val rew_th = norm_term thy closed_t
-        val rhs = snd (dest_equals (cprop_of rew_th))
+        val rhs = Thm.rhs_of rew_th
 
         val shuffles = ShuffleData.get thy
         fun process [] = NONE

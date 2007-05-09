@@ -49,7 +49,7 @@ struct
   C ==> #C
 *)
 val init =
-  let val A = #1 (Drule.dest_implies (Thm.cprop_of Drule.protectI))
+  let val A = #1 (Thm.dest_implies (Thm.cprop_of Drule.protectI))
   in fn C => Thm.instantiate ([], [(A, C)]) Drule.protectI end;
 
 (*

@@ -460,7 +460,7 @@ fun decomp_simp thm =
     val {thy, prop, ...} = Thm.rep_thm thm;
     val prems = Logic.strip_imp_prems prop;
     val concl = Drule.strip_imp_concl (Thm.cprop_of thm);
-    val (lhs, rhs) = Drule.dest_equals concl handle TERM _ =>
+    val (lhs, rhs) = Thm.dest_equals concl handle TERM _ =>
       raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm);
     val elhs = Thm.dest_arg (Thm.cprop_of (Thm.eta_conversion lhs));
     val elhs = if term_of elhs aconv term_of lhs then lhs else elhs;  (*share identical copies*)
@@ -578,7 +578,7 @@ fun is_full_cong thm =
 fun add_cong (ss, thm) = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     let
-      val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
+      val (lhs, _) = Thm.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Envir.eta_contract lhs;*)
       val a = the (cong_name (head_of (term_of lhs))) handle Option.Option =>
@@ -828,7 +828,7 @@ fun merge_ss (ss1, ss2) =
 fun check_conv msg ss thm thm' =
   let
     val thm'' = transitive thm (transitive
-      (symmetric (Drule.beta_eta_conversion (Drule.lhs_of thm'))) thm')
+      (symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
   in if msg then trace_thm (fn () => "SUCCEEDED") ss thm' else (); SOME thm'' end
   handle THM _ =>
     let val {thy, prop = _ $ _ $ prop0, ...} = Thm.rep_thm thm in
@@ -890,16 +890,17 @@ fun rewritec (prover, thyt, maxt) ss t =
   let
     val Simpset ({rules, ...}, {congs, procs, termless, ...}) = ss;
     val eta_thm = Thm.eta_conversion t;
-    val eta_t' = Drule.rhs_of eta_thm;
+    val eta_t' = Thm.rhs_of eta_thm;
     val eta_t = term_of eta_t';
     fun rew {thm, name, lhs, elhs, extra, fo, perm} =
       let
         val {thy, prop, maxidx, ...} = rep_thm thm;
         val (rthm, elhs') =
           if maxt = ~1 orelse not extra then (thm, elhs)
-          else (Thm.incr_indexes (maxt+1) thm, Thm.cterm_incr_indexes (maxt+1) elhs);
-        val insts = if fo then Thm.cterm_first_order_match (elhs', eta_t')
-                          else Thm.cterm_match (elhs', eta_t');
+          else (Thm.incr_indexes (maxt + 1) thm, Thm.incr_indexes_cterm (maxt + 1) elhs);
+        val insts =
+          if fo then Thm.first_order_match (elhs', eta_t')
+          else Thm.match (elhs', eta_t');
         val thm' = Thm.instantiate insts (Thm.rename_boundvars lhs eta_t rthm);
         val prop' = Thm.prop_of thm';
         val unconditional = (Logic.count_prems prop' = 0);
@@ -974,10 +975,10 @@ fun rewritec (prover, thyt, maxt) ss t =
 (* conversion to apply a congruence rule to a term *)
 
 fun congc prover ss maxt {thm=cong,lhs=lhs} t =
-  let val rthm = Thm.incr_indexes (maxt+1) cong;
-      val rlhs = fst (Drule.dest_equals (Drule.strip_imp_concl (cprop_of rthm)));
-      val insts = Thm.cterm_match (rlhs, t)
-      (* Pattern.match can raise Pattern.MATCH;
+  let val rthm = Thm.incr_indexes (maxt + 1) cong;
+      val rlhs = fst (Thm.dest_equals (Drule.strip_imp_concl (cprop_of rthm)));
+      val insts = Thm.match (rlhs, t)
+      (* Thm.match can raise Pattern.MATCH;
          is handled when congc is called *)
       val thm' = Thm.instantiate insts (Thm.rename_boundvars (term_of rlhs) (term_of t) rthm);
       val unit = trace_thm (fn () => "Applying congruence rule:") ss thm';
@@ -987,12 +988,12 @@ fun congc prover ss maxt {thm=cong,lhs=lhs} t =
      | SOME thm2 => (case check_conv true ss (Drule.beta_eta_conversion t) thm2 of
           NONE => err ("Congruence proof failed.  Should not have proved", thm2)
         | SOME thm2' =>
-            if op aconv (pairself term_of (dest_equals (cprop_of thm2')))
+            if op aconv (pairself term_of (Thm.dest_equals (cprop_of thm2')))
             then NONE else SOME thm2')
   end;
 
 val (cA, (cB, cC)) =
-  apsnd dest_equals (dest_implies (hd (cprems_of Drule.imp_cong)));
+  apsnd Thm.dest_equals (Thm.dest_implies (hd (cprems_of Drule.imp_cong)));
 
 fun transitive1 NONE NONE = NONE
   | transitive1 (SOME thm1) NONE = SOME thm1
@@ -1009,15 +1010,15 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
           else
           (case subc skel ss t of
              some as SOME thm1 =>
-               (case rewritec (prover, thy, maxidx) ss (Drule.rhs_of thm1) of
+               (case rewritec (prover, thy, maxidx) ss (Thm.rhs_of thm1) of
                   SOME (thm2, skel2) =>
                     transitive2 (transitive thm1 thm2)
-                      (botc skel2 ss (Drule.rhs_of thm2))
+                      (botc skel2 ss (Thm.rhs_of thm2))
                 | NONE => some)
            | NONE =>
                (case rewritec (prover, thy, maxidx) ss t of
                   SOME (thm2, skel2) => transitive2 thm2
-                    (botc skel2 ss (Drule.rhs_of thm2))
+                    (botc skel2 ss (Thm.rhs_of thm2))
                 | NONE => NONE))
 
     and try_botc ss t =
@@ -1045,7 +1046,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
              Const ("==>", _) $ _  => impc t0 ss
            | Abs _ =>
                let val thm = beta_conversion false t0
-               in case subc skel0 ss (Drule.rhs_of thm) of
+               in case subc skel0 ss (Thm.rhs_of thm) of
                     NONE => SOME thm
                   | SOME thm' => SOME (transitive thm thm')
                end
@@ -1077,7 +1078,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
     may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
                           (let
                              val thm = congc (prover ss) ss maxidx cong t0;
-                             val t = the_default t0 (Option.map Drule.rhs_of thm);
+                             val t = the_default t0 (Option.map Thm.rhs_of thm);
                              val (cl, cr) = Thm.dest_comb t
                              val dVar = Var(("", 0), dummyT)
                              val skel =
@@ -1108,14 +1109,14 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
 
     and disch r (prem, eq) =
       let
-        val (lhs, rhs) = Drule.dest_equals (Thm.cprop_of eq);
+        val (lhs, rhs) = Thm.dest_equals (Thm.cprop_of eq);
         val eq' = implies_elim (Thm.instantiate
           ([], [(cA, prem), (cB, lhs), (cC, rhs)]) Drule.imp_cong)
           (implies_intr prem eq)
       in if not r then eq' else
         let
-          val (prem', concl) = dest_implies lhs;
-          val (prem'', _) = dest_implies rhs
+          val (prem', concl) = Thm.dest_implies lhs;
+          val (prem'', _) = Thm.dest_implies rhs
         in transitive (transitive
           (Thm.instantiate ([], [(cA, prem'), (cB, prem), (cC, concl)])
              Drule.swap_prems_eq) eq')
@@ -1129,13 +1130,13 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
           let
             val ss' = add_rrules (rev rrss, rev asms) ss;
             val concl' =
-              Drule.mk_implies (prem, the_default concl (Option.map Drule.rhs_of eq));
+              Drule.mk_implies (prem, the_default concl (Option.map Thm.rhs_of eq));
             val dprem = Option.map (curry (disch false) prem)
           in case rewritec (prover, thy, maxidx) ss' concl' of
               NONE => rebuild prems concl' rrss asms ss (dprem eq)
             | SOME (eq', _) => transitive2 (Library.foldl (disch false o swap)
                   (the (transitive3 (dprem eq) eq'), prems))
-                (mut_impc0 (rev prems) (Drule.rhs_of eq') (rev rrss) (rev asms) ss)
+                (mut_impc0 (rev prems) (Thm.rhs_of eq') (rev rrss) (rev asms) ss)
           end
 
     and mut_impc0 prems concl rrss asms ss =
@@ -1164,7 +1165,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
               (if k = 0 then 0 else k - 1)
           | SOME eqn =>
             let
-              val prem' = Drule.rhs_of eqn;
+              val prem' = Thm.rhs_of eqn;
               val tprems = map term_of prems;
               val i = 1 + Library.foldl Int.max (~1, map (fn p =>
                 find_index (fn q => q aconv p) tprems) (#hyps (rep_thm eqn)));
@@ -1178,9 +1179,9 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
 
      (*legacy code - only for backwards compatibility*)
      and nonmut_impc ct ss =
-       let val (prem, conc) = dest_implies ct;
+       let val (prem, conc) = Thm.dest_implies ct;
            val thm1 = if simprem then botc skel0 ss prem else NONE;
-           val prem1 = the_default prem (Option.map Drule.rhs_of thm1);
+           val prem1 = the_default prem (Option.map Thm.rhs_of thm1);
            val ss1 = if not useprem then ss else add_rrules
              (apsnd single (apfst single (rules_of_prem ss prem1))) ss
        in (case botc skel0 ss1 conc of
@@ -1253,7 +1254,7 @@ fun rewrite _ [] ct = Thm.reflexive ct
 (*Rewrite a theorem*)
 fun simplify _ [] th = th
   | simplify full thms th =
-      Drule.fconv_rule (rewrite_cterm (full, false, false) simple_prover
+      Conv.fconv_rule (rewrite_cterm (full, false, false) simple_prover
         (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms)) th;
 
 val rewrite_rule = simplify true;
@@ -1262,17 +1263,17 @@ val rewrite_rule = simplify true;
 fun rewrite_term thy rules procs =
   Pattern.rewrite_term thy (map decomp_simp' rules) procs;
 
-fun rewrite_thm mode prover ss = Drule.fconv_rule (rewrite_cterm mode prover ss);
+fun rewrite_thm mode prover ss = Conv.fconv_rule (rewrite_cterm mode prover ss);
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
 fun rewrite_goals_rule thms th =
-  Drule.fconv_rule (Drule.goals_conv (K true) (rewrite_cterm (true, true, true) simple_prover
+  Conv.fconv_rule (Conv.goals_conv (K true) (rewrite_cterm (true, true, true) simple_prover
     (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem)*)
 fun rewrite_goal_rule mode prover ss i thm =
   if 0 < i  andalso  i <= nprems_of thm
-  then Drule.fconv_rule (Drule.goals_conv (fn j => j=i) (rewrite_cterm mode prover ss)) thm
+  then Conv.fconv_rule (Conv.goals_conv (fn j => j=i) (rewrite_cterm mode prover ss)) thm
   else raise THM("rewrite_goal_rule", i, [thm]);
 
 
@@ -1320,7 +1321,7 @@ local
 
 fun gen_norm_hhf ss th =
   (if Drule.is_norm_hhf (Thm.prop_of th) then th
-   else Drule.fconv_rule (rewrite_cterm (true, false, false) (K (K NONE)) ss) th)
+   else Conv.fconv_rule (rewrite_cterm (true, false, false) (K (K NONE)) ss) th)
   |> Thm.adjust_maxidx_thm ~1
   |> Drule.gen_all;
 

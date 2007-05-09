@@ -707,7 +707,7 @@ fun apply_preproc thy f [] = []
 
 fun rhs_conv conv thm =
   let
-    val thm' = (conv o snd o Drule.dest_equals o Thm.cprop_of) thm;
+    val thm' = (conv o Thm.rhs_of) thm;
   in Thm.transitive thm thm' end
 
 in
