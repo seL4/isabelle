@@ -113,7 +113,7 @@ fun import_fundef_data t ctxt =
       val inst_morph = lift_morphism thy o Thm.instantiate 
 
       fun match data = 
-          SOME (morph_fundef_data (inst_morph (Thm.cterm_match (cterm_of thy (fst data), ct))) (snd data))
+          SOME (morph_fundef_data (inst_morph (Thm.match (cterm_of thy (fst data), ct))) (snd data))
           handle Pattern.MATCH => NONE
     in 
       get_first match (NetRules.retrieve (FundefData.get ctxt) t)
