@@ -7,12 +7,12 @@
 header {* Notions about functions *}
 
 theory Fun
-imports Set Code_Generator
+imports Set
 begin
 
 constdefs
   fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)"
-  [code func]: "fun_upd f a b == % x. if x=a then b else f x"
+  "fun_upd f a b == % x. if x=a then b else f x"
 
 nonterminals
   updbinds updbind

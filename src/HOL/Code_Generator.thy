@@ -6,7 +6,15 @@ header {* Setup of code generator tools *}
 
 theory Code_Generator
 imports HOL
+uses "~~/src/HOL/Tools/recfun_codegen.ML"
 begin
+
+ML {*
+structure HOL =
+struct
+  val thy = theory "HOL";
+end;
+*}  -- "belongs to theory HOL"
 
 subsection {* SML code generator setup *}
 
@@ -55,6 +63,7 @@ fun eq_codegen thy defs gr dep thyname b t =
 in
 
 Codegen.add_codegen "eq_codegen" eq_codegen
+#> RecfunCodegen.setup
 
 end
 *}
@@ -107,7 +116,7 @@ lemma [code func]:
   shows "(\<not> True) = False"
     and "(\<not> False) = True" by (rule HOL.simp_thms)+
 
-lemmas [code func] = imp_conv_disj
+lemmas [code] = imp_conv_disj
 
 lemmas [code func] = if_True if_False
 
@@ -174,7 +183,7 @@ subsection {* Evaluation oracle *}
 oracle eval_oracle ("term") = {* fn thy => fn t => 
   if CodegenPackage.satisfies thy (HOLogic.dest_Trueprop t) [] 
   then t
-  else HOLogic.Trueprop $ (HOLogic.true_const) (*dummy*)
+  else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
 *}
 
 method_setup eval = {*

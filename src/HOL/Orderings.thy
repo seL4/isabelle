@@ -6,7 +6,7 @@
 header {* Syntactic and abstract orders *}
 
 theory Orderings
-imports HOL
+imports Code_Generator
 begin
 
 subsection {* Order syntax *}
@@ -798,7 +798,7 @@ qed
 
 subsection {* Order on bool *}
 
-instance bool :: linorder 
+instance bool :: order 
   le_bool_def: "P \<le> Q \<equiv> P \<longrightarrow> Q"
   less_bool_def: "P < Q \<equiv> P \<le> Q \<and> P \<noteq> Q"
   by default (auto simp add: le_bool_def less_bool_def)
@@ -892,11 +892,6 @@ subsection {* legacy ML bindings *}
 
 ML {*
 val monoI = @{thm monoI};
-
-structure HOL =
-struct
-  val thy = theory "HOL";
-end;
-*}  -- "belongs to theory HOL"
+*}
 
 end

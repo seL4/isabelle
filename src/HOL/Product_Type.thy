@@ -231,10 +231,10 @@ lemma Pair_inject:
 lemma Pair_eq [iff]: "((a, b) = (a', b')) = (a = a' & b = b')"
   by (blast elim!: Pair_inject)
 
-lemma fst_conv [simp]: "fst (a, b) = a"
+lemma fst_conv [simp, code]: "fst (a, b) = a"
   unfolding fst_def by blast
 
-lemma snd_conv [simp]: "snd (a, b) = b"
+lemma snd_conv [simp, code]: "snd (a, b) = b"
   unfolding snd_def by blast
 
 lemma fst_eqD: "fst (x, y) = a ==> x = a"
@@ -602,18 +602,18 @@ lemma prod_fun_imageE [elim!]:
 definition
   upd_fst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
 where
-  "upd_fst f = prod_fun f id"
+  [code func del]: "upd_fst f = prod_fun f id"
 
 definition
   upd_snd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c"
 where
-  "upd_snd f = prod_fun id f"
+  [code func del]: "upd_snd f = prod_fun id f"
 
-lemma upd_fst_conv [simp, code func]:
+lemma upd_fst_conv [simp, code]:
   "upd_fst f (x, y) = (f x, y)" 
   by (simp add: upd_fst_def)
 
-lemma upd_snd_conv [simp, code func]:
+lemma upd_snd_conv [simp, code]:
   "upd_snd f (x, y) = (x, f y)" 
   by (simp add: upd_snd_def)
 
@@ -776,8 +776,6 @@ lemma
 
 subsection {* Code generator setup *}
 
-lemmas [code func] = fst_conv snd_conv
-
 instance unit :: eq ..
 
 lemma [code func]:
@@ -910,8 +908,7 @@ in
 
   Codegen.add_codegen "let_codegen" let_codegen
   #> Codegen.add_codegen "split_codegen" split_codegen
-  #> CodegenPackage.add_appconst
-       ("Let", CodegenPackage.appgen_let)
+  #> CodegenPackage.add_appconst ("Let", CodegenPackage.appgen_let)
 
 end
 *}

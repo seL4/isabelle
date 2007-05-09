@@ -102,7 +102,7 @@ defs
 
 (** apfst -- can be used in similar type definitions **)
 
-lemma apfst_conv [simp, code func]: "apfst f (a, b) = (f a, b)"
+lemma apfst_conv [simp, code]: "apfst f (a, b) = (f a, b)"
 by (simp add: apfst_def)
 
 
@@ -715,12 +715,12 @@ lemma o2s_empty_eq [simp]: "(o2s xo = {}) = (xo = None)"
 
 constdefs
   option_map :: "('a => 'b) => ('a option => 'b option)"
-  "option_map == %f y. case y of None => None | Some x => Some (f x)"
+  [code func del]: "option_map == %f y. case y of None => None | Some x => Some (f x)"
 
-lemma option_map_None [simp, code func]: "option_map f None = None"
+lemma option_map_None [simp, code]: "option_map f None = None"
   by (simp add: option_map_def)
 
-lemma option_map_Some [simp, code func]: "option_map f (Some x) = Some (f x)"
+lemma option_map_Some [simp, code]: "option_map f (Some x) = Some (f x)"
   by (simp add: option_map_def)
 
 lemma option_map_is_None [iff]:
@@ -742,13 +742,9 @@ lemma option_map_o_sum_case [simp]:
 
 subsubsection {* Code generator setup *}
 
-lemmas [code] = fst_conv snd_conv imp_conv_disj
-
 definition
   is_none :: "'a option \<Rightarrow> bool" where
-  is_none_none [normal post, symmetric]: "is_none x \<longleftrightarrow> x = None"
-
-lemmas [code inline] = is_none_none
+  is_none_none [normal post, symmetric, code inline]: "is_none x \<longleftrightarrow> x = None"
 
 lemma is_none_code [code]:
   shows "is_none None \<longleftrightarrow> True"

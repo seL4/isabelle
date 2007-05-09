@@ -21,7 +21,6 @@ uses
   ("Tools/datatype_case.ML")
   ("Tools/datatype_package.ML")
   ("Tools/datatype_codegen.ML")
-  ("Tools/recfun_codegen.ML")
   ("Tools/primrec_package.ML")
 begin
 
@@ -61,7 +60,7 @@ hide const myinv
 
 text {* Package setup. *}
 
-use "Tools/old_inductive_package.ML"
+ML {* setmp tolerate_legacy_features true use "Tools/old_inductive_package.ML" *}
 setup OldInductivePackage.setup
 
 theorems basic_monos [mono] =
@@ -90,12 +89,12 @@ proof
   then show P ..
 next
   assume "\<And>P\<Colon>bool. P"
-  then show "False" ..
+  then show False ..
 qed
 
 lemma not_eq_False:
   assumes not_eq: "x \<noteq> y"
-  and eq: "x == y"
+  and eq: "x \<equiv> y"
   shows False
   using not_eq eq by auto
 
@@ -106,9 +105,6 @@ lemmas not_eq_quodlibet =
 subsection {* Inductive datatypes and primitive recursion *}
 
 text {* Package setup. *}
-
-use "Tools/recfun_codegen.ML"
-setup RecfunCodegen.setup
 
 use "Tools/datatype_aux.ML"
 use "Tools/datatype_prop.ML"
