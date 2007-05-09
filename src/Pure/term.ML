@@ -151,7 +151,7 @@ sig
   val aT: sort -> typ
   val itselfT: typ -> typ
   val a_itselfT: typ
-  val argument_type_of: term -> typ
+  val argument_type_of: term -> int -> typ
   val head_name_of: term -> string
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
   val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
@@ -357,7 +357,7 @@ fun fastype_of1 (Ts, f$u) =
 fun fastype_of t : typ = fastype_of1 ([],t);
 
 (*Determine the argument type of a function*)
-fun argument_type_of tm =
+fun argument_type_of tm k =
   let
     fun argT i (Type ("fun", [T, U])) = if i = 0 then T else argT (i - 1) U
       | argT _ T = raise TYPE ("argument_type_of", [T], []);
@@ -366,7 +366,7 @@ fun argument_type_of tm =
       | arg i Ts (Abs (_, T, t)) = arg (i - 1) (T :: Ts) t
       | arg i Ts (t $ _) = arg (i + 1) Ts t
       | arg i Ts a = argT i (fastype_of1 (Ts, a));
-  in arg 0 [] tm end;
+  in arg k [] tm end;
 
 
 val list_abs = uncurry (fold_rev (fn (x, T) => fn t => Abs (x, T, t)));
