@@ -121,8 +121,10 @@ sig
   include BASIC_THM
   val dest_ctyp: ctyp -> ctyp list
   val dest_comb: cterm -> cterm * cterm
+  val dest_fun: cterm -> cterm
   val dest_arg: cterm -> cterm
-  val dest_binop: cterm -> cterm * cterm
+  val dest_fun2: cterm -> cterm
+  val dest_arg1: cterm -> cterm
   val dest_abs: string option -> cterm -> cterm * cterm
   val adjust_maxidx_cterm: int -> cterm -> cterm
   val capply: cterm -> cterm -> cterm
@@ -141,9 +143,9 @@ sig
   val compress: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
-  val cterm_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
-  val cterm_first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
-  val cterm_incr_indexes: int -> cterm -> cterm
+  val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
+  val first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
+  val incr_indexes_cterm: int -> cterm -> cterm
   val varifyT: thm -> thm
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
@@ -238,27 +240,37 @@ fun merge_thys0 (Cterm {thy_ref = r1, t = t1, ...}) (Cterm {thy_ref = r2, t = t2
   Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise TERM (msg, [t1, t2]);
 
 
-fun dest_comb (ct as Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
-      let val A = Term.argument_type_of t in
-        (Cterm {t = t, T = A --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
-         Cterm {t = u, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
+(* destructors *)
+
+fun dest_comb (ct as Cterm {t = c $ a, T, thy_ref, maxidx, sorts}) =
+      let val A = Term.argument_type_of c 0 in
+        (Cterm {t = c, T = A --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
+         Cterm {t = a, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
       end
   | dest_comb ct = raise CTERM ("dest_comb", [ct]);
 
-fun dest_arg (ct as Cterm {t = t $ u, T, thy_ref, maxidx, sorts}) =
-      let val A = Term.argument_type_of t in
-         Cterm {t = u, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts}
-      end
+fun dest_fun (ct as Cterm {t = c $ _, T, thy_ref, maxidx, sorts}) =
+      let val A = Term.argument_type_of c 0
+      in Cterm {t = c, T = A --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} end
+  | dest_fun ct = raise CTERM ("dest_fun", [ct]);
+
+fun dest_arg (ct as Cterm {t = c $ a, T = _, thy_ref, maxidx, sorts}) =
+      let val A = Term.argument_type_of c 0
+      in Cterm {t = a, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} end
   | dest_arg ct = raise CTERM ("dest_arg", [ct]);
 
-fun dest_binop (ct as Cterm {t = tm, T = _, thy_ref, maxidx, sorts}) =
-  let fun cterm t T = Cterm {t = t, T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} in
-    (case tm of
-      Const (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
-    |  Free (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
-    |   Var (_, Type ("fun", [A, Type ("fun", [B, _])])) $ a $ b => (cterm a A, cterm b B)
-    | _ => raise CTERM ("dest_binop", [ct]))
-  end;
+
+fun dest_fun2 (Cterm {t = c $ a $ b, T, thy_ref, maxidx, sorts}) =
+      let
+        val A = Term.argument_type_of c 0;
+        val B = Term.argument_type_of c 1;
+      in Cterm {t = c, T = A --> B --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} end
+  | dest_fun2 ct = raise CTERM ("dest_fun2", [ct]);
+
+fun dest_arg1 (Cterm {t = c $ a $ _, T = _, thy_ref, maxidx, sorts}) =
+      let val A = Term.argument_type_of c 0
+      in Cterm {t = a, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} end
+  | dest_arg1 ct = raise CTERM ("dest_arg1", [ct]);
 
 fun dest_abs a (ct as
         Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
@@ -267,6 +279,9 @@ fun dest_abs a (ct as
           Cterm {t = t', T = U, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
       end
   | dest_abs _ ct = raise CTERM ("dest_abs", [ct]);
+
+
+(* constructors *)
 
 fun capply
   (cf as Cterm {t = f, T = Type ("fun", [dty, rty]), maxidx = maxidx1, sorts = sorts1, ...})
@@ -291,6 +306,8 @@ fun cabs
     end;
 
 
+(* indexes *)
+
 fun adjust_maxidx_cterm i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
   if maxidx = i then ct
   else if maxidx < i then
@@ -298,8 +315,18 @@ fun adjust_maxidx_cterm i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
   else
     Cterm {maxidx = Int.max (maxidx_of_term t, i), thy_ref = thy_ref, t = t, T = T, sorts = sorts};
 
-(*Matching of cterms*)
-fun gen_cterm_match match
+fun incr_indexes_cterm i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
+  if i < 0 then raise CTERM ("negative increment", [ct])
+  else if i = 0 then ct
+  else Cterm {thy_ref = thy_ref, t = Logic.incr_indexes ([], i) t,
+    T = Logic.incr_tvar i T, maxidx = maxidx + i, sorts = sorts};
+
+
+(* matching *)
+
+local
+
+fun gen_match match
     (ct1 as Cterm {t = t1, sorts = sorts1, ...},
      ct2 as Cterm {t = t2, sorts = sorts2, maxidx = maxidx2, ...}) =
   let
@@ -316,15 +343,12 @@ fun gen_cterm_match match
       end;
   in (Vartab.fold (cons o mk_cTinst) Tinsts [], Vartab.fold (cons o mk_ctinst) tinsts []) end;
 
-val cterm_match = gen_cterm_match Pattern.match;
-val cterm_first_order_match = gen_cterm_match Pattern.first_order_match;
+in
 
-(*Incrementing indexes*)
-fun cterm_incr_indexes i (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
-  if i < 0 then raise CTERM ("negative increment", [ct])
-  else if i = 0 then ct
-  else Cterm {thy_ref = thy_ref, t = Logic.incr_indexes ([], i) t,
-    T = Logic.incr_tvar i T, maxidx = maxidx + i, sorts = sorts};
+val match = gen_match Pattern.match;
+val first_order_match = gen_match Pattern.first_order_match;
+
+end;
 
 
 
