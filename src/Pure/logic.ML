@@ -45,7 +45,6 @@ sig
   val dest_def: Pretty.pp -> (term -> bool) -> (string -> bool) -> (string -> bool) ->
     term -> (term * term) * term
   val abs_def: term -> term * term
-  val mk_cond_defpair: term list -> term * term -> string * term
   val mk_defpair: term * term -> string * term
   val protectC: term
   val protect: term -> term
@@ -319,13 +318,11 @@ fun abs_def eq =
     val rhs' = Term.list_abs_free (map Term.dest_Free args, rhs);
   in (lhs', rhs') end;
 
-fun mk_cond_defpair As (lhs, rhs) =
+fun mk_defpair (lhs, rhs) =
   (case Term.head_of lhs of
     Const (name, _) =>
-      (NameSpace.base name ^ "_def", list_implies (As, mk_equals (lhs, rhs)))
+      (NameSpace.base name ^ "_def", mk_equals (lhs, rhs))
   | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
-
-fun mk_defpair lhs_rhs = mk_cond_defpair [] lhs_rhs;
 
 
 
