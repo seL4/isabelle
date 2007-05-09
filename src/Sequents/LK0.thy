@@ -24,43 +24,43 @@ consts
 
   True         :: o
   False        :: o
-  "="          :: "['a,'a] => o"     (infixl 50)
+  equal        :: "['a,'a] => o"     (infixl "=" 50)
   Not          :: "o => o"           ("~ _" [40] 40)
-  "&"          :: "[o,o] => o"       (infixr 35)
-  "|"          :: "[o,o] => o"       (infixr 30)
-  "-->"        :: "[o,o] => o"       (infixr 25)
-  "<->"        :: "[o,o] => o"       (infixr 25)
+  conj         :: "[o,o] => o"       (infixr "&" 35)
+  disj         :: "[o,o] => o"       (infixr "|" 30)
+  imp          :: "[o,o] => o"       (infixr "-->" 25)
+  iff          :: "[o,o] => o"       (infixr "<->" 25)
   The          :: "('a => o) => 'a"  (binder "THE " 10)
   All          :: "('a => o) => o"   (binder "ALL " 10)
   Ex           :: "('a => o) => o"   (binder "EX " 10)
 
 syntax
  "@Trueprop"    :: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
-  "_not_equal" :: "['a, 'a] => o"              (infixl "~=" 50)
 
 parse_translation {* [("@Trueprop", two_seq_tr "Trueprop")] *}
 print_translation {* [("Trueprop", two_seq_tr' "@Trueprop")] *}
 
-translations
-  "x ~= y"      == "~ (x = y)"
+abbreviation
+  not_equal  (infixl "~=" 50) where
+  "x ~= y == ~ (x = y)"
 
 syntax (xsymbols)
   Not           :: "o => o"               ("\<not> _" [40] 40)
-  "op &"        :: "[o, o] => o"          (infixr "\<and>" 35)
-  "op |"        :: "[o, o] => o"          (infixr "\<or>" 30)
-  "op -->"      :: "[o, o] => o"          (infixr "\<longrightarrow>" 25)
-  "op <->"      :: "[o, o] => o"          (infixr "\<longleftrightarrow>" 25)
+  conj          :: "[o, o] => o"          (infixr "\<and>" 35)
+  disj          :: "[o, o] => o"          (infixr "\<or>" 30)
+  imp           :: "[o, o] => o"          (infixr "\<longrightarrow>" 25)
+  iff           :: "[o, o] => o"          (infixr "\<longleftrightarrow>" 25)
   All_binder    :: "[idts, o] => o"       ("(3\<forall>_./ _)" [0, 10] 10)
   Ex_binder     :: "[idts, o] => o"       ("(3\<exists>_./ _)" [0, 10] 10)
-  "_not_equal"  :: "['a, 'a] => o"        (infixl "\<noteq>" 50)
+  not_equal     :: "['a, 'a] => o"        (infixl "\<noteq>" 50)
 
 syntax (HTML output)
   Not           :: "o => o"               ("\<not> _" [40] 40)
-  "op &"        :: "[o, o] => o"          (infixr "\<and>" 35)
-  "op |"        :: "[o, o] => o"          (infixr "\<or>" 30)
+  conj          :: "[o, o] => o"          (infixr "\<and>" 35)
+  disj          :: "[o, o] => o"          (infixr "\<or>" 30)
   All_binder    :: "[idts, o] => o"       ("(3\<forall>_./ _)" [0, 10] 10)
   Ex_binder     :: "[idts, o] => o"       ("(3\<exists>_./ _)" [0, 10] 10)
-  "_not_equal"  :: "['a, 'a] => o"        (infixl "\<noteq>" 50)
+  not_equal     :: "['a, 'a] => o"        (infixl "\<noteq>" 50)
 
 local
 

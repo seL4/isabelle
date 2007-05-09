@@ -11,16 +11,16 @@ begin
 consts
   Trueprop       :: "two_seqi"
 
-"><"    ::"[o, o] => o"        (infixr 35)
-"-o"    ::"[o, o] => o"        (infixr 45)
-"o-o"   ::"[o, o] => o"        (infixr 45)
-FShriek ::"o => o"             ("! _" [100] 1000)
-"&&"    ::"[o, o] => o"        (infixr 35)
-"++"    ::"[o, o] => o"        (infixr 35)
-zero    ::"o"                  ("0")
-top     ::"o"                  ("1")
-eye     ::"o"                  ("I")
-aneg    ::"o=>o"               ("~_")
+  tens :: "[o, o] => o"        (infixr "><" 35)
+  limp :: "[o, o] => o"        (infixr "-o" 45)
+  liff :: "[o, o] => o"        (infixr "o-o" 45)
+  FShriek :: "o => o"          ("! _" [100] 1000)
+  lconj :: "[o, o] => o"       (infixr "&&" 35)
+  ldisj :: "[o, o] => o"       (infixr "++" 35)
+  zero :: "o"                  ("0")
+  top :: "o"                   ("1")
+  eye :: "o"                   ("I")
+  aneg :: "o=>o"               ("~_")
 
 
   (* context manipulation *)
