@@ -171,10 +171,10 @@ fun meta_rewrite ctxt =
   MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE))
     (equals_ss addsimps (Rules.get (Context.Proof ctxt)));
 
-val meta_rewrite_rule = Drule.fconv_rule o meta_rewrite;
+val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite;
 
 fun meta_rewrite_tac ctxt i =
-  PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (meta_rewrite ctxt)));
+  PRIMITIVE (Conv.fconv_rule (Conv.goals_conv (equal i) (meta_rewrite ctxt)));
 
 
 (* rewriting with object-level rules *)

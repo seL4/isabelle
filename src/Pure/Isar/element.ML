@@ -456,7 +456,7 @@ fun inst_thm thy (envT, env) th =
       else th |> hyps_rule
        (instantiate_tfrees thy substT #>
         instantiate_frees thy subst #>
-        Drule.fconv_rule (Thm.beta_conversion true))
+        Conv.fconv_rule (Thm.beta_conversion true))
     end;
 
 fun inst_morphism thy envs =

@@ -195,7 +195,7 @@ fun rule_instance thy inst rule =
 
 fun internalize k th =
   th |> Thm.permute_prems 0 k
-  |> Drule.fconv_rule (Drule.concl_conv (Thm.nprems_of th - k) atomize_cterm);
+  |> Conv.fconv_rule (Conv.concl_conv (Thm.nprems_of th - k) atomize_cterm);
 
 
 (* guess rule instantiation -- cannot handle pending goal parameters *)
@@ -310,9 +310,9 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
     | NONE => all_tac)
   end);
 
-fun miniscope_tac p i = PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (Library.equal i)
-    (Drule.forall_conv p (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]))));
+fun miniscope_tac p i = PRIMITIVE (Conv.fconv_rule
+  (Conv.goals_conv (Library.equal i)
+    (Conv.forall_conv p (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]))));
 
 in
 

@@ -434,7 +434,7 @@ fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm (map cprop_of prems)) 
 
 fun pre_cnf_tac i =
 	rtac ccontr i THEN ObjectLogic.atomize_tac i THEN
-		PRIMITIVE (Drule.fconv_rule (Drule.goals_conv (equal i) (Drule.beta_eta_conversion)));
+		PRIMITIVE (Conv.fconv_rule (Conv.goals_conv (equal i) (Drule.beta_eta_conversion)));
 
 (* ------------------------------------------------------------------------- *)
 (* cnfsat_tac: checks if the empty clause "False" occurs among the premises; *)

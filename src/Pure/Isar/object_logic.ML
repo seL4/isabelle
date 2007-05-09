@@ -141,10 +141,10 @@ val _ = Context.add_setup (add_rulify Drule.norm_hhf_eq);
 
 (* atomize *)
 
-fun rewrite_prems_tac rews i = PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (Library.equal i)
-    (Drule.forall_conv ~1
-      (Drule.goals_conv (K true) (MetaSimplifier.rewrite true rews)))));
+fun rewrite_prems_tac rews i = PRIMITIVE (Conv.fconv_rule
+  (Conv.goals_conv (Library.equal i)
+    (Conv.forall_conv ~1
+      (Conv.goals_conv (K true) (MetaSimplifier.rewrite true rews)))));
 
 fun atomize_term thy =
   drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];

@@ -73,8 +73,8 @@ text {* Evaluation *}
 method_setup evaluation = {*
 let
 
-fun evaluation_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-  (Drule.goals_conv (equal i) Codegen.evaluation_conv));
+fun evaluation_tac i = Tactical.PRIMITIVE (Conv.fconv_rule
+  (Conv.goals_conv (equal i) Codegen.evaluation_conv));
 
 in Method.no_args (Method.SIMPLE_METHOD' (evaluation_tac THEN' rtac TrueI)) end
 *} "solve goal by evaluation"
@@ -201,8 +201,8 @@ subsection {* Normalization by evaluation *}
 
 method_setup normalization = {*
 let
-  fun normalization_tac i = Tactical.PRIMITIVE (Drule.fconv_rule
-    (Drule.goals_conv (equal i) (HOLogic.Trueprop_conv
+  fun normalization_tac i = Tactical.PRIMITIVE (Conv.fconv_rule
+    (Conv.goals_conv (equal i) (HOLogic.Trueprop_conv
       NBE.normalization_conv)));
 in
   Method.no_args (Method.SIMPLE_METHOD' (normalization_tac THEN' resolve_tac [TrueI, refl]))

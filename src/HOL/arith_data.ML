@@ -896,8 +896,8 @@ in
         (TRY o REPEAT_ALL_NEW (split_once_tac split_thms))
           THEN_ALL_NEW
             ((fn j => PRIMITIVE
-                        (Drule.fconv_rule
-                          (Drule.goals_conv (equal j) (Drule.beta_eta_conversion))))
+                        (Conv.fconv_rule
+                          (Conv.goals_conv (equal j) (Drule.beta_eta_conversion))))
               THEN'
             (TRY o (etac notE THEN' eq_assume_tac)))
       ) i

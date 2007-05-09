@@ -252,7 +252,8 @@ fun no_vars x = no_args (Thm.rule_attribute (fn ctxt => fn th =>
   let val ((_, [th']), _) = Variable.import_thms true [th] (Context.proof_of ctxt)
   in th' end)) x;
 
-fun eta_long x = no_args (Thm.rule_attribute (K (Drule.fconv_rule Drule.eta_long_conversion))) x;
+fun eta_long x =
+  no_args (Thm.rule_attribute (K (Conv.fconv_rule Drule.eta_long_conversion))) x;
 
 
 (* internal attribute *)

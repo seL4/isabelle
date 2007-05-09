@@ -109,7 +109,7 @@ fun assert_func thm =
     val _ = map (check 0) args;
   in thm end;
 
-val mk_func = assert_func o Drule.fconv_rule Drule.beta_eta_conversion o mk_rew;
+val mk_func = assert_func o Conv.fconv_rule Drule.beta_eta_conversion o mk_rew;
 
 fun head_func thm =
   let
@@ -183,7 +183,7 @@ fun norm_args thms =
   in
     thms
     |> map (expand_eta k)
-    |> map (Drule.fconv_rule Drule.beta_eta_conversion)
+    |> map (Conv.fconv_rule Drule.beta_eta_conversion)
   end;
 
 fun canonical_tvars purify_tvar thm =

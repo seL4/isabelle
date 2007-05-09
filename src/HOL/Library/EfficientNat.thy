@@ -290,7 +290,7 @@ fun remove_suc thy thms =
       let
         val th' =
           Thm.implies_elim
-           (Drule.fconv_rule (Thm.beta_conversion true)
+           (Conv.fconv_rule (Thm.beta_conversion true)
              (Drule.instantiate'
                [SOME (ctyp_of_term ct)] [SOME (Thm.cabs cv ct),
                  SOME (Thm.cabs cv' (rhs_of th)), NONE, SOME cv']
@@ -338,7 +338,7 @@ fun remove_suc_clause thy thms =
         let
           val cert = cterm_of (Thm.theory_of_thm th);
           val th'' = ObjectLogic.rulify (Thm.implies_elim
-            (Drule.fconv_rule (Thm.beta_conversion true)
+            (Conv.fconv_rule (Thm.beta_conversion true)
               (Drule.instantiate' []
                 [SOME (cert (lambda v (Abs ("x", HOLogic.natT,
                    abstract_over (Sucv,
