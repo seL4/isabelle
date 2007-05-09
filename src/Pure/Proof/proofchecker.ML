@@ -27,7 +27,7 @@ fun lookup_thm thy =
   end;
 
 val beta_eta_convert =
-  Drule.fconv_rule Drule.beta_eta_conversion;
+  Conv.fconv_rule Drule.beta_eta_conversion;
 
 fun thm_of_proof thy prf =
   let
@@ -56,7 +56,7 @@ fun thm_of_proof thy prf =
           in thm_of_atom thm Ts end
 
       | thm_of _ _ (PAxm (name, _, SOME Ts)) =
-          thm_of_atom (get_axiom thy name) Ts
+          thm_of_atom (get_axiom_i thy name) Ts
 
       | thm_of _ Hs (PBound i) = List.nth (Hs, i)
 
