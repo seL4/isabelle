@@ -562,4 +562,9 @@ done
 lemma hyperpow_hypnat_of_nat: "\<And>x. x pow hypnat_of_nat n = x ^ n"
 by transfer (rule refl)
 
+lemma of_hypreal_hyperpow:
+  "\<And>x n. of_hypreal (x pow n) =
+   (of_hypreal x::'a::{real_algebra_1,recpower} star) pow n"
+by transfer (rule of_real_power)
+
 end
