@@ -72,7 +72,7 @@ fun get_equations thy defs (s, T) =
      NONE => ([], "")
    | SOME thms => 
        let val thms' = del_redundant thy []
-         (List.filter (fn (thm, _) => is_instance thy T
+         (filter (fn (thm, _) => is_instance thy T
            (snd (const_of (prop_of thm)))) thms)
        in if null thms' then ([], "")
          else (preprocess thy (map fst thms'),
@@ -88,9 +88,9 @@ fun mk_suffix thy defs (s, T) = (case get_defn thy defs s T of
 
 exception EQN of string * typ * string;
 
-fun cycle g (xs, x) =
-  if x mem xs then xs
-  else Library.foldl (cycle g) (x :: xs, List.concat (Graph.all_paths (fst g) (x, x)));
+fun cycle g (xs, x : string) =
+  if member (op =) xs x then xs
+  else Library.foldl (cycle g) (x :: xs, flat (Graph.all_paths (fst g) (x, x)));
 
 fun add_rec_funs thy defs gr dep eqs module =
   let

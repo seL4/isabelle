@@ -926,8 +926,7 @@ val init_lin_arith_data =
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [thm "Suc_leI"],
-    neqE = [@{thm linorder_neqE_nat},
-      get_thm (theory "Ring_and_Field") (Name "linorder_neqE_ordered_idom")],
+    neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_ordered_idom}],
     simpset = HOL_basic_ss
       addsimps [@{thm "add_zero_left"}, @{thm "add_zero_right"},
         @{thm "Zero_not_Suc"}, @{thm "Suc_not_Zero"}, @{thm "le_0_eq"}, @{thm "One_nat_def"},
