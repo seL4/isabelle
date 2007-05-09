@@ -437,10 +437,9 @@ lemma norm_minus_commute:
   fixes a b :: "'a::real_normed_vector"
   shows "norm (a - b) = norm (b - a)"
 proof -
-  have "norm (a - b) = norm (- (a - b))"
-    by (simp only: norm_minus_cancel)
-  also have "\<dots> = norm (b - a)" by simp
-  finally show ?thesis .
+  have "norm (- (b - a)) = norm (b - a)"
+    by (rule norm_minus_cancel)
+  thus ?thesis by simp
 qed
 
 lemma norm_triangle_ineq2:
@@ -449,10 +448,7 @@ lemma norm_triangle_ineq2:
 proof -
   have "norm (a - b + b) \<le> norm (a - b) + norm b"
     by (rule norm_triangle_ineq)
-  also have "(a - b + b) = a"
-    by simp
-  finally show ?thesis
-    by (simp add: compare_rls)
+  thus ?thesis by simp
 qed
 
 lemma norm_triangle_ineq3:
@@ -469,12 +465,19 @@ lemma norm_triangle_ineq4:
   fixes a b :: "'a::real_normed_vector"
   shows "norm (a - b) \<le> norm a + norm b"
 proof -
-  have "norm (a - b) = norm (a + - b)"
-    by (simp only: diff_minus)
-  also have "\<dots> \<le> norm a + norm (- b)"
+  have "norm (a + - b) \<le> norm a + norm (- b)"
     by (rule norm_triangle_ineq)
-  finally show ?thesis
-    by simp
+  thus ?thesis
+    by (simp only: diff_minus norm_minus_cancel)
+qed
+
+lemma norm_diff_ineq:
+  fixes a b :: "'a::real_normed_vector"
+  shows "norm a - norm b \<le> norm (a + b)"
+proof -
+  have "norm a - norm (- b) \<le> norm (a - - b)"
+    by (rule norm_triangle_ineq2)
+  thus ?thesis by simp
 qed
 
 lemma norm_diff_triangle_ineq:
