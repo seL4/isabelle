@@ -79,11 +79,7 @@ definition
 definition
   HComplex :: "[hypreal,hypreal] => hcomplex" where
   "HComplex = *f2* Complex"
-(*
-definition
-  hcpow :: "[hcomplex,hypnat] => hcomplex"  (infixr "hcpow" 80) where
-  "(z::hcomplex) hcpow (n::hypnat) = ( *f2* op ^) z n"
-*)
+
 lemmas hcomplex_defs [transfer_unfold] =
   hRe_def hIm_def iii_def hcnj_def hsgn_def harg_def hcis_def
   hrcis_def hexpi_def HComplex_def
@@ -354,16 +350,6 @@ by transfer (rule complex_mod_triangle_ineq2)
 
 lemma hcmod_diff_ineq [simp]: "!!a b. hcmod(a) - hcmod(b) \<le> hcmod(a + b)"
 by transfer (rule complex_mod_diff_ineq)
-
-
-subsection{*A Few Nonlinear Theorems*}
-
-lemma hcomplex_of_hypreal_hyperpow:
-     "!!x n. hcomplex_of_hypreal (x pow n) = (hcomplex_of_hypreal x) pow n"
-by transfer (rule complex_of_real_pow)
-
-lemma hcmod_hcpow: "!!x n. hcmod(x pow n) = hcmod(x) pow n"
-by transfer (rule complex_mod_complexpow)
 
 
 subsection{*Exponentiation*}

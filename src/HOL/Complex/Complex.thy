@@ -474,17 +474,10 @@ proof
   show "z^(Suc n) = z * (z^n)" by simp
 qed
 
-
-lemma complex_of_real_pow: "complex_of_real (x ^ n) = (complex_of_real x) ^ n"
-by (rule of_real_power)
-
 lemma complex_cnj_pow: "cnj(z ^ n) = cnj(z) ^ n"
 apply (induct_tac "n")
 apply (auto simp add: complex_cnj_mult)
 done
-
-lemma complex_mod_complexpow: "cmod(x ^ n) = cmod(x) ^ n"
-by (rule norm_power)
 
 lemma complexpow_i_squared [simp]: "ii ^ 2 = -(1::complex)"
 by (simp add: i_def complex_one_def numeral_2_eq_2)
@@ -693,7 +686,7 @@ apply (auto simp add: cis_real_of_nat_Suc_mult)
 done
 
 lemma DeMoivre2: "(rcis r a) ^ n = rcis (r ^ n) (real n * a)"
-by (simp add: rcis_def power_mult_distrib DeMoivre complex_of_real_pow)
+by (simp add: rcis_def power_mult_distrib DeMoivre)
 
 lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
 by (simp add: cis_def complex_inverse_complex_split diff_minus)
