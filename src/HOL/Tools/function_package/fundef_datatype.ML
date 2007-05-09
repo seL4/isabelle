@@ -166,7 +166,7 @@ val pat_completeness = Method.SIMPLE_METHOD' pat_complete_tac
 val by_pat_completeness_simp =
     Proof.global_terminal_proof
       (Method.Basic (K pat_completeness),
-       SOME (Method.Source_i (Args.src (("HOL.simp_all", []), Position.none))))
+       SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 val termination_by_lexicographic_order =
     FundefPackage.setup_termination_proof NONE
