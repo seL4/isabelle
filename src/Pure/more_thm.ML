@@ -2,12 +2,20 @@
     ID:         $Id$
     Author:     Makarius
 
-Further operations on type thm, outside the inference kernel.
+Further operations on type ctyp/cterm/thm, outside the inference kernel.
 *)
 
 signature THM =
 sig
   include THM
+  val mk_binop: cterm -> cterm -> cterm -> cterm
+  val dest_binop: cterm -> cterm * cterm
+  val dest_implies: cterm -> cterm * cterm
+  val dest_equals: cterm -> cterm * cterm
+  val dest_equals_lhs: cterm -> cterm
+  val dest_equals_rhs: cterm -> cterm
+  val lhs_of: thm -> cterm
+  val rhs_of: thm -> cterm
   val thm_ord: thm * thm -> order
   val eq_thm: thm * thm -> bool
   val eq_thms: thm list * thm list -> bool
@@ -41,7 +49,36 @@ struct
 
 (** basic operations **)
 
-(* order: ignores theory context! *)
+(* cterm constructors and destructors *)
+
+fun mk_binop c a b = Thm.capply (Thm.capply c a) b;
+fun dest_binop ct = (Thm.dest_arg1 ct, Thm.dest_arg ct);
+
+fun dest_implies ct =
+  (case Thm.term_of ct of
+    Const ("==>", _) $ _ $ _ => dest_binop ct
+  | _ => raise TERM ("dest_implies", [Thm.term_of ct]));
+
+fun dest_equals ct =
+  (case Thm.term_of ct of
+    Const ("==", _) $ _ $ _ => dest_binop ct
+  | _ => raise TERM ("dest_equals", [Thm.term_of ct]));
+
+fun dest_equals_lhs ct =
+  (case Thm.term_of ct of
+    Const ("==", _) $ _ $ _ => Thm.dest_arg1 ct
+  | _ => raise TERM ("dest_equals_lhs", [Thm.term_of ct]));
+
+fun dest_equals_rhs ct =
+  (case Thm.term_of ct of
+    Const ("==", _) $ _ $ _ => Thm.dest_arg ct
+  | _ => raise TERM ("dest_equals_rhs", [Thm.term_of ct]));
+
+val lhs_of = dest_equals_lhs o Thm.cprop_of;
+val rhs_of = dest_equals_rhs o Thm.cprop_of;
+
+
+(* thm order: ignores theory context! *)
 
 fun thm_ord (th1, th2) =
   let
