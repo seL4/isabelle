@@ -11,10 +11,12 @@ consts
   disj :: "[plf,plf] => plf"   (infixr "|" 35)
   impl :: "[plf,plf] => plf"   (infixr ">" 35)
   eq :: "[plf,plf] => plf"   (infixr "=" 35)
-  "@NG" :: "plf => plf"   ("- _ " [50] 55)
   ff    :: "plf"
 
   PL    :: "plf => o"      ("[* / _ / *]" [] 100)
+
+syntax
+  "_NG" :: "plf => plf"   ("- _ " [50] 55)
 
 translations
 
