@@ -103,6 +103,11 @@ lemma hnorm_mult:
   "\<And>x y::'a::real_normed_div_algebra star. hnorm (x * y) = hnorm x * hnorm y"
 by transfer (rule norm_mult)
 
+lemma hnorm_hyperpow:
+  "\<And>(x::'a::{real_normed_div_algebra,recpower} star) n.
+   hnorm (x pow n) = hnorm x pow n"
+by transfer (rule norm_power)
+
 lemma hnorm_one [simp]:
   "hnorm (1\<Colon>'a::real_normed_div_algebra star) = 1"
 by transfer (rule norm_one)
