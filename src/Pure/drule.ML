@@ -12,10 +12,6 @@ signature BASIC_DRULE =
 sig
   val mk_implies: cterm * cterm -> cterm
   val list_implies: cterm list * cterm -> cterm
-  val dest_implies: cterm -> cterm * cterm
-  val dest_equals: cterm -> cterm * cterm
-  val dest_equals_lhs: cterm -> cterm
-  val dest_equals_rhs: cterm -> cterm
   val strip_imp_prems: cterm -> cterm list
   val strip_imp_concl: cterm -> cterm
   val cprems_of: thm -> cterm list
@@ -88,8 +84,6 @@ sig
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
-  val lhs_of: thm -> cterm
-  val rhs_of: thm -> cterm
   val beta_conv: cterm -> cterm -> cterm
   val add_used: thm -> string list -> string list
   val flexflex_unique: thm -> thm
@@ -106,11 +100,6 @@ sig
   val beta_eta_conversion: cterm -> thm
   val eta_long_conversion: cterm -> thm
   val eta_contraction_rule: thm -> thm
-  val forall_conv: int -> (cterm -> thm) -> cterm -> thm
-  val concl_conv: int -> (cterm -> thm) -> cterm -> thm
-  val prems_conv: int -> (int -> cterm -> thm) -> cterm -> thm
-  val goals_conv: (int -> bool) -> (cterm -> thm) -> cterm -> thm
-  val fconv_rule: (cterm -> thm) -> thm -> thm
   val norm_hhf_eq: thm
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
@@ -146,32 +135,9 @@ struct
 
 (** some cterm->cterm operations: faster than calling cterm_of! **)
 
-fun dest_implies ct =
-  (case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => Thm.dest_binop ct
-  | _ => raise TERM ("dest_implies", [Thm.term_of ct]));
-
-fun dest_equals ct =
-  (case Thm.term_of ct of
-    Const ("==", _) $ _ $ _ => Thm.dest_binop ct
-  | _ => raise TERM ("dest_equals", [Thm.term_of ct]));
-
-fun dest_equals_lhs ct =
-  (case Thm.term_of ct of
-    Const ("==", _) $ _ $ _ => #1 (Thm.dest_binop ct)
-  | _ => raise TERM ("dest_equals_lhs", [Thm.term_of ct]));
-
-fun dest_equals_rhs ct =
-  (case Thm.term_of ct of
-    Const ("==", _) $ _ $ _ => Thm.dest_arg ct
-  | _ => raise TERM ("dest_equals_rhs", [Thm.term_of ct]));
-
-val lhs_of = dest_equals_lhs o Thm.cprop_of;
-val rhs_of = dest_equals_rhs o Thm.cprop_of;
-
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems ct =
-  let val (cA, cB) = dest_implies ct
+  let val (cA, cB) = Thm.dest_implies ct
   in cA :: strip_imp_prems cB end
   handle TERM _ => [];
 
@@ -444,7 +410,7 @@ fun freeze_thaw_robust th =
              val insts = map mk_inst vars
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
-                     |> forall_elim_list (map (Thm.cterm_incr_indexes i o #1) insts)
+                     |> forall_elim_list (map (Thm.incr_indexes_cterm i o #1) insts)
          in  (Thm.instantiate ([],insts) fth, thaw)  end
  end;
 
@@ -577,7 +543,7 @@ fun symmetric_fun thm = thm RS symmetric_thm;
 
 fun extensional eq =
   let val eq' =
-    abstract_rule "x" (Thm.dest_arg (fst (dest_equals (cprop_of eq)))) eq
+    abstract_rule "x" (Thm.dest_arg (fst (Thm.dest_equals (cprop_of eq)))) eq
   in equal_elim (eta_conversion (cprop_of eq')) eq' end;
 
 val equals_cong =
@@ -616,7 +582,7 @@ val swap_prems_eq =
 val imp_cong_rule = combination o combination (reflexive implies);
 
 local
-  val dest_eq = dest_equals o cprop_of
+  val dest_eq = Thm.dest_equals o cprop_of
   val rhs_of = snd o dest_eq
 in
 fun beta_eta_conversion t =
@@ -634,52 +600,17 @@ fun eta_contraction_rule th =
 val abs_def =
   let
     fun contract_lhs th =
-      Thm.transitive (Thm.symmetric (beta_eta_conversion (fst (dest_equals (cprop_of th))))) th;
+      Thm.transitive (Thm.symmetric (beta_eta_conversion
+        (fst (Thm.dest_equals (cprop_of th))))) th;
     fun abstract cx th = Thm.abstract_rule
         (case Thm.term_of cx of Var ((x, _), _) => x | Free (x, _) => x | _ => "x") cx th
       handle THM _ => raise THM ("Malformed definitional equation", 0, [th]);
   in
     contract_lhs
-    #> `(snd o strip_comb o fst o dest_equals o cprop_of)
+    #> `(snd o strip_comb o fst o Thm.dest_equals o cprop_of)
     #-> fold_rev abstract
     #> contract_lhs
   end;
-
-(*rewrite B in !!x1 ... xn. B*)
-fun forall_conv 0 cv ct = cv ct
-  | forall_conv n cv ct =
-      (case try Thm.dest_comb ct of
-        NONE => cv ct
-      | SOME (A, B) =>
-          (case (term_of A, term_of B) of
-            (Const ("all", _), Abs (x, _, _)) =>
-              let val (v, B') = Thm.dest_abs (SOME (gensym "all_")) B in
-                Thm.combination (Thm.reflexive A)
-                  (Thm.abstract_rule x v (forall_conv (n - 1) cv B'))
-              end
-          | _ => cv ct));
-
-(*rewrite B in A1 ==> ... ==> An ==> B*)
-fun concl_conv 0 cv ct = cv ct
-  | concl_conv n cv ct =
-      (case try dest_implies ct of
-        NONE => cv ct
-      | SOME (A, B) => imp_cong_rule (reflexive A) (concl_conv (n - 1) cv B));
-
-(*rewrite the A's in A1 ==> ... ==> An ==> B*)
-fun prems_conv 0 _ = reflexive
-  | prems_conv n cv =
-      let
-        fun conv i ct =
-          if i = n + 1 then reflexive ct
-          else
-            (case try dest_implies ct of
-              NONE => reflexive ct
-            | SOME (A, B) => imp_cong_rule (cv i A) (conv (i + 1) B));
-  in conv 1 end;
-
-fun goals_conv pred cv = prems_conv ~1 (fn i => if pred i then cv else reflexive);
-fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
 
 (*** Some useful meta-theorems ***)
