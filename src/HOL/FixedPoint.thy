@@ -14,20 +14,114 @@ begin
 subsection {* Complete lattices *}
 
 class complete_lattice = lattice +
-  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [90] 90)
+  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
   assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
   assumes Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
+begin
+
+definition
+  Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+where
+  "Sup A = \<Sqinter>{b. \<forall>a \<in> A. a \<^loc>\<le> b}"
+
+lemma Sup_upper: "x \<in> A \<Longrightarrow> x \<^loc>\<le> \<Squnion>A"
+  by (auto simp: Sup_def intro: Inf_greatest)
+
+lemma Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<^loc>\<le> z) \<Longrightarrow> \<Squnion>A \<^loc>\<le> z"
+  by (auto simp: Sup_def intro: Inf_lower)
+
+lemma top_greatest [simp]: "x \<^loc>\<le> \<Sqinter>{}"
+  by (rule Inf_greatest) simp
+
+lemma bot_least [simp]: "\<Squnion>{} \<^loc>\<le> x"
+  by (rule Sup_least) simp
+
+lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
+  apply (rule antisym)
+  apply (rule le_infI)
+  apply (rule Inf_lower)
+  apply simp
+  apply (rule Inf_greatest)
+  apply (rule Inf_lower)
+  apply simp
+  apply (rule Inf_greatest)
+  apply (erule insertE)
+  apply (rule le_infI1)
+  apply simp
+  apply (rule le_infI2)
+  apply (erule Inf_lower)
+  done
+
+lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
+  apply (rule antisym)
+  apply (rule Sup_least)
+  apply (erule insertE)
+  apply (rule le_supI1)
+  apply simp
+  apply (rule le_supI2)
+  apply (erule Sup_upper)
+  apply (rule le_supI)
+  apply (rule Sup_upper)
+  apply simp
+  apply (rule Sup_least)
+  apply (rule Sup_upper)
+  apply simp
+  done
+
+lemma Inf_singleton [simp]:
+  "\<Sqinter>{a} = a"
+  by (auto intro: antisym Inf_lower Inf_greatest)
+
+lemma Sup_singleton [simp]:
+  "\<Squnion>{a} = a"
+  by (auto intro: antisym Sup_upper Sup_least)
+
+lemma Inf_insert_simp:
+  "\<Sqinter>insert a A = (if A = {} then a else a \<sqinter> \<Sqinter>A)"
+  by (cases "A = {}") (simp_all, simp add: Inf_insert)
+
+lemma Sup_insert_simp:
+  "\<Squnion>insert a A = (if A = {} then a else a \<squnion> \<Squnion>A)"
+  by (cases "A = {}") (simp_all, simp add: Sup_insert)
+
+lemma Inf_binary:
+  "\<Sqinter>{a, b} = a \<sqinter> b"
+  by (simp add: Inf_insert_simp)
+
+lemma Sup_binary:
+  "\<Squnion>{a, b} = a \<squnion> b"
+  by (simp add: Sup_insert_simp)
+
+end
+
+hide const Sup
 
 definition
   Sup :: "'a\<Colon>complete_lattice set \<Rightarrow> 'a"
 where
-  "Sup A = Inf {b. \<forall>a \<in> A. a \<le> b}"
+  [code func del]: "Sup A = Inf {b. \<forall>a \<in> A. a \<le> b}"
 
-theorem Sup_upper: "(x::'a::complete_lattice) \<in> A \<Longrightarrow> x \<le> Sup A"
-  by (auto simp: Sup_def intro: Inf_greatest)
+lemma complete_lattice_class_Sup:
+  "complete_lattice.Sup (op \<le>) Inf = Sup"
+proof
+  fix A
+  show "complete_lattice.Sup (op \<le>) Inf A = Sup A"
+  by (auto simp add: Sup_def complete_lattice.Sup_def [OF complete_lattice_class.axioms])
+qed
 
-theorem Sup_least: "(\<And>x::'a::complete_lattice. x \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> Sup A \<le> z"
-  by (auto simp: Sup_def intro: Inf_lower)
+lemmas Sup_upper = complete_lattice_class.Sup_upper [unfolded complete_lattice_class_Sup]
+lemmas Sup_least = complete_lattice_class.Sup_least [unfolded complete_lattice_class_Sup]
+
+lemmas top_greatest [simp] = complete_lattice_class.top_greatest
+lemmas bot_least [simp] = complete_lattice_class.bot_least [unfolded complete_lattice_class_Sup]
+lemmas Inf_insert = complete_lattice_class.Inf_insert
+lemmas Sup_insert [code func] = complete_lattice_class.Sup_insert [unfolded complete_lattice_class_Sup]
+lemmas Inf_singleton [simp] = complete_lattice_class.Inf_singleton
+lemmas Sup_singleton [simp, code func] = complete_lattice_class.Sup_singleton [unfolded complete_lattice_class_Sup]
+lemmas Inf_insert_simp = complete_lattice_class.Inf_insert_simp
+lemmas Sup_insert_simp = complete_lattice_class.Sup_insert_simp [unfolded complete_lattice_class_Sup]
+lemmas Inf_binary = complete_lattice_class.Inf_binary
+lemmas Sup_binary = complete_lattice_class.Sup_binary [unfolded complete_lattice_class_Sup]
 
 definition
   SUPR :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> 'b" where
@@ -77,76 +171,11 @@ lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<le> M i"
 lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<le> M i) \<Longrightarrow> u \<le> (INF i:A. M i)"
   by (auto simp add: INFI_def intro: Inf_greatest)
 
-text {* A complete lattice is a lattice *}
-
-
-subsubsection {* Properties *}
-
 lemma mono_inf: "mono f \<Longrightarrow> f (inf A B) <= inf (f A) (f B)"
   by (auto simp add: mono_def)
 
 lemma mono_sup: "mono f \<Longrightarrow> sup (f A) (f B) <= f (sup A B)"
   by (auto simp add: mono_def)
-
-lemma Sup_insert[simp]: "Sup (insert (a::'a::complete_lattice) A) = sup a (Sup A)"
-  apply (rule order_antisym)
-  apply (rule Sup_least)
-  apply (erule insertE)
-  apply (rule le_supI1)
-  apply simp
-  apply (rule le_supI2)
-  apply (erule Sup_upper)
-  apply (rule le_supI)
-  apply (rule Sup_upper)
-  apply simp
-  apply (rule Sup_least)
-  apply (rule Sup_upper)
-  apply simp
-  done
-
-lemma Inf_insert[simp]: "Inf (insert (a::'a::complete_lattice) A) = inf a (Inf A)"
-  apply (rule order_antisym)
-  apply (rule le_infI)
-  apply (rule Inf_lower)
-  apply simp
-  apply (rule Inf_greatest)
-  apply (rule Inf_lower)
-  apply simp
-  apply (rule Inf_greatest)
-  apply (erule insertE)
-  apply (rule le_infI1)
-  apply simp
-  apply (rule le_infI2)
-  apply (erule Inf_lower)
-  done
-
-lemma bot_least[simp]: "Sup{} \<le> (x::'a::complete_lattice)"
-  by (rule Sup_least) simp
-
-lemma top_greatest[simp]: "(x::'a::complete_lattice) \<le> Inf{}"
-  by (rule Inf_greatest) simp
-
-lemma inf_Inf_empty:
-  "inf a (Inf {}) = a"
-proof -
-  have "a \<le> Inf {}" by (rule top_greatest)
-  then show ?thesis by (rule inf_absorb1)
-qed
-
-lemma inf_binary:
-  "Inf {a, b} = inf a b"
-unfolding Inf_insert inf_Inf_empty ..
-
-lemma sup_Sup_empty:
-  "sup a (Sup {}) = a"
-proof -
-  have "Sup {} \<le> a" by (rule bot_least)
-  then show ?thesis by (rule sup_absorb1)
-qed
-
-lemma sup_binary:
-  "Sup {a, b} = sup a b"
-unfolding Sup_insert sup_Sup_empty ..
 
 lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
   by (auto intro: order_antisym SUP_leI le_SUPI)
@@ -244,7 +273,7 @@ definition
   "gfp f = Sup {u. u \<le> f u}"    --{*greatest fixed point*}
 
 
-subsection{*Proof of Knaster-Tarski Theorem using @{term lfp}*}
+subsection{* Proof of Knaster-Tarski Theorem using @{term lfp} *}
 
 text{*@{term "lfp f"} is the least upper bound of 
       the set @{term "{u. f(u) \<le> u}"} *}
@@ -267,7 +296,8 @@ lemma lfp_unfold: "mono f ==> lfp f = f (lfp f)"
 lemma lfp_const: "lfp (\<lambda>x. t) = t"
   by (rule lfp_unfold) (simp add:mono_def)
 
-subsection{*General induction rules for least fixed points*}
+
+subsection {* General induction rules for least fixed points *}
 
 theorem lfp_induct:
   assumes mono: "mono f" and ind: "f (inf (lfp f) P) <= P"
@@ -333,8 +363,7 @@ lemma lfp_mono: "(!!Z. f Z \<le> g Z) ==> lfp f \<le> lfp g"
   by (rule lfp_lowerbound [THEN lfp_greatest], blast intro: order_trans)
 
 
-subsection{*Proof of Knaster-Tarski Theorem using @{term gfp}*}
-
+subsection {* Proof of Knaster-Tarski Theorem using @{term gfp} *}
 
 text{*@{term "gfp f"} is the greatest lower bound of 
       the set @{term "{u. u \<le> f(u)}"} *}
@@ -354,7 +383,8 @@ lemma gfp_lemma3: "mono f ==> f (gfp f) \<le> gfp f"
 lemma gfp_unfold: "mono f ==> gfp f = f (gfp f)"
   by (iprover intro: order_antisym gfp_lemma2 gfp_lemma3)
 
-subsection{*Coinduction rules for greatest fixed points*}
+
+subsection {* Coinduction rules for greatest fixed points *}
 
 text{*weak version*}
 lemma weak_coinduct: "[| a: X;  X \<subseteq> f(X) |] ==> a : gfp(f)"
@@ -392,7 +422,8 @@ lemma coinduct: "[| mono(f); X \<le> f (sup X (gfp f)) |] ==> X \<le> gfp(f)"
 lemma gfp_fun_UnI2: "[| mono(f);  a: gfp(f) |] ==> a: f(X Un gfp(f))"
 by (blast dest: gfp_lemma2 mono_Un)
 
-subsection{*Even Stronger Coinduction Rule, by Martin Coen*}
+
+subsection {* Even Stronger Coinduction Rule, by Martin Coen *}
 
 text{* Weakens the condition @{term "X \<subseteq> f(X)"} to one expressed using both
   @{term lfp} and @{term gfp}*}
