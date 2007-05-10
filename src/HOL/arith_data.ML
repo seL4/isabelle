@@ -744,7 +744,7 @@ in
         val iszero_t2               = Const ("IntDef.iszero", split_type --> HOLogic.boolT) $ t2
         val neg_minus_k             = Const ("IntDef.neg", split_type --> HOLogic.boolT) $
                                         (number_of $
-                                          (Const ("Numeral.uminus",
+                                          (Const ("HOL.uminus",
                                             HOLogic.intT --> HOLogic.intT) $ k'))
         val zero_leq_j              = Const ("Orderings.less_eq",
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ j
