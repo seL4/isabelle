@@ -457,19 +457,14 @@ lemma finite_imp_foldSet: "finite A ==> EX x. foldSet f g z A x"
 
 subsubsection {* Commutative monoids *}
 
+(*FIXME integrate with Orderings.thy/OrderedGroup.thy*)
 locale ACf =
   fixes f :: "'a => 'a => 'a"    (infixl "\<cdot>" 70)
   assumes commute: "x \<cdot> y = y \<cdot> x"
     and assoc: "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)"
+begin
 
-locale ACe = ACf +
-  fixes e :: 'a
-  assumes ident [simp]: "x \<cdot> e = x"
-
-locale ACIf = ACf +
-  assumes idem: "x \<cdot> x = x"
-
-lemma (in ACf) left_commute: "x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
+lemma left_commute: "x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
 proof -
   have "x \<cdot> (y \<cdot> z) = (y \<cdot> z) \<cdot> x" by (simp only: commute)
   also have "... = y \<cdot> (z \<cdot> x)" by (simp only: assoc)
@@ -477,30 +472,38 @@ proof -
   finally show ?thesis .
 qed
 
-lemmas (in ACf) AC = assoc commute left_commute
+lemmas AC = assoc commute left_commute
 
-lemma (in ACe) left_ident [simp]: "e \<cdot> x = x"
+end
+
+locale ACe = ACf +
+  fixes e :: 'a
+  assumes ident [simp]: "x \<cdot> e = x"
+begin
+
+lemma left_ident [simp]: "e \<cdot> x = x"
 proof -
   have "x \<cdot> e = x" by (rule ident)
   thus ?thesis by (subst commute)
 qed
 
-lemma (in ACIf) idem2: "x \<cdot> (x \<cdot> y) = x \<cdot> y"
+end
+
+locale ACIf = ACf +
+  assumes idem: "x \<cdot> x = x"
+begin
+
+lemma idem2: "x \<cdot> (x \<cdot> y) = x \<cdot> y"
 proof -
   have "x \<cdot> (x \<cdot> y) = (x \<cdot> x) \<cdot> y" by(simp add:assoc)
   also have "\<dots> = x \<cdot> y" by(simp add:idem)
   finally show ?thesis .
 qed
 
-lemmas (in ACIf) ACI = AC idem idem2
+lemmas ACI = AC idem idem2
 
-text{* Interpretation of locales: *}
+end
 
-interpretation AC_add: ACe ["op +" "0::'a::comm_monoid_add"]
-  by unfold_locales (auto intro: add_assoc add_commute)
-
-interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
-  by unfold_locales (auto intro: mult_assoc mult_commute)
 
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
@@ -789,6 +792,15 @@ lemma (in ACe) fold_distrib: "finite A \<Longrightarrow>
 apply (erule finite_induct, simp)
 apply (simp add:AC)
 done
+
+
+text{* Interpretation of locales -- see OrderedGroup.thy *}
+
+interpretation AC_add: ACe ["op +" "0::'a::comm_monoid_add"]
+  by unfold_locales (auto intro: add_assoc add_commute)
+
+interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
+  by unfold_locales (auto intro: mult_assoc mult_commute)
 
 
 subsection {* Generalized summation over a set *}
@@ -1657,9 +1669,6 @@ qed
 
 subsubsection {* Cardinality of unions *}
 
-lemma of_nat_id[simp]: "(of_nat n :: nat) = n"
-by(induct n) auto
-
 lemma card_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
@@ -1796,9 +1805,8 @@ constdefs
   "fold1 f A == THE x. fold1Set f A x"
 
 lemma fold1Set_nonempty:
- "fold1Set f A x \<Longrightarrow> A \<noteq> {}"
-by(erule fold1Set.cases, simp_all) 
-
+  "fold1Set f A x \<Longrightarrow> A \<noteq> {}"
+  by(erule fold1Set.cases, simp_all) 
 
 inductive_cases2 empty_fold1SetE [elim!]: "fold1Set f {} x"
 
@@ -1808,7 +1816,7 @@ inductive_cases2 insert_fold1SetE [elim!]: "fold1Set f (insert a X) x"
 lemma fold1Set_sing [iff]: "(fold1Set f {a} b) = (a = b)"
   by (blast intro: foldSet.intros elim: foldSet.cases)
 
-lemma fold1_singleton[simp]: "fold1 f {a} = a"
+lemma fold1_singleton [simp]: "fold1 f {a} = a"
   by (unfold fold1_def) blast
 
 lemma finite_nonempty_imp_fold1Set:
@@ -1914,18 +1922,34 @@ proof -
   qed
 qed
 
+lemma (in ACIf) hom_fold1_commute:
+assumes hom: "!!x y. h(f x y) = f (h x) (h y)"
+and N: "finite N" "N \<noteq> {}" shows "h(fold1 f N) = fold1 f (h ` N)"
+using N proof (induct rule: finite_ne_induct)
+  case singleton thus ?case by simp
+next
+  case (insert n N)
+  then have "h(fold1 f (insert n N)) = h(f n (fold1 f N))" by simp
+  also have "\<dots> = f (h n) (h(fold1 f N))" by(rule hom)
+  also have "h(fold1 f N) = fold1 f (h ` N)" by(rule insert)
+  also have "f (h n) \<dots> = fold1 f (insert (h n) (h ` N))"
+    using insert by(simp)
+  also have "insert (h n) (h ` N) = h ` insert n N" by simp
+  finally show ?case .
+qed
+
 
 text{* Now the recursion rules for definitions: *}
 
-lemma fold1_singleton_def: "g \<equiv> fold1 f \<Longrightarrow> g {a} = a"
+lemma fold1_singleton_def: "g = fold1 f \<Longrightarrow> g {a} = a"
 by(simp add:fold1_singleton)
 
 lemma (in ACf) fold1_insert_def:
-  "\<lbrakk> g \<equiv> fold1 f; finite A; x \<notin> A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g(insert x A) = x \<cdot> (g A)"
+  "\<lbrakk> g = fold1 f; finite A; x \<notin> A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g (insert x A) = x \<cdot> (g A)"
 by(simp add:fold1_insert)
 
 lemma (in ACIf) fold1_insert_idem_def:
-  "\<lbrakk> g \<equiv> fold1 f; finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g(insert x A) = x \<cdot> (g A)"
+  "\<lbrakk> g = fold1 f; finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g (insert x A) = x \<cdot> (g A)"
 by(simp add:fold1_insert_idem)
 
 subsubsection{* Determinacy for @{term fold1Set} *}
@@ -1977,22 +2001,38 @@ declare
   empty_fold1SetE [rule del]  insert_fold1SetE [rule del]
   -- {* No more proofs involve these relations. *}
 
+
 subsubsection{* Semi-Lattices *}
 
-(*FIXME integrate with Orderings.thy/OrderedGroup.thy*)
-locale ACIfSL = ACIf +
-  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
-  and strict_below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
-  assumes below_def: "(x \<sqsubseteq> y) = (x\<cdot>y = x)"
-  defines strict_below_def:  "(x \<sqsubset> y) \<equiv> (x \<sqsubseteq> y \<and> x \<noteq> y)"
+locale ACIfSL = ord + ACIf +
+  assumes below_def: "x \<sqsubseteq> y \<longleftrightarrow> x \<cdot> y = x"
+  and strict_below_def: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
+begin
 
-locale ACIfSLlin = ACIfSL +
-  assumes lin: "x\<cdot>y \<in> {x,y}"
+lemma below_refl [simp]: "x \<^loc>\<le> x"
+  by (simp add: below_def idem)
 
-lemma (in ACIfSL) below_refl[simp]: "x \<sqsubseteq> x"
-by(simp add: below_def idem)
+lemma below_antisym:
+  assumes xy: "x \<^loc>\<le> y" and yx: "y \<^loc>\<le> x"
+  shows "x = y"
+  using xy [unfolded below_def, symmetric]
+    yx [unfolded below_def commute]
+  by (rule trans)
 
-lemma (in ACIfSL) below_f_conv[simp]: "x \<sqsubseteq> y \<cdot> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
+lemma below_trans:
+  assumes xy: "x \<^loc>\<le> y" and yz: "y \<^loc>\<le> z"
+  shows "x \<^loc>\<le> z"
+proof -
+  from xy have x_xy: "x \<cdot> y = x" by (simp add: below_def)
+  from yz have y_yz: "y \<cdot> z = y" by (simp add: below_def)
+  from y_yz have "x \<cdot> y \<cdot> z = x \<cdot> y" by (simp add: assoc)
+  with x_xy have "x \<cdot> y \<cdot> z = x"  by simp
+  moreover from x_xy have "x \<cdot> z = x \<cdot> y \<cdot> z" by simp
+  ultimately have "x \<cdot> z = x" by simp
+  then show ?thesis by (simp add: below_def)
+qed
+
+lemma below_f_conv [simp]: "x \<sqsubseteq> y \<cdot> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
 proof
   assume "x \<sqsubseteq> y \<cdot> z"
   hence xyzx: "x \<cdot> (y \<cdot> z) = x"  by(simp add: below_def)
@@ -2020,7 +2060,17 @@ next
   finally show "x \<sqsubseteq> y \<cdot> z" by(simp_all add: below_def)
 qed
 
-lemma (in ACIfSLlin) above_f_conv:
+end
+
+interpretation ACIfSL < order
+by unfold_locales
+  (simp add: strict_below_def, auto intro: below_refl below_trans below_antisym)
+
+locale ACIfSLlin = ACIfSL +
+  assumes lin: "x\<cdot>y \<in> {x,y}"
+begin
+
+lemma above_f_conv:
  "x \<cdot> y \<sqsubseteq> z = (x \<sqsubseteq> z \<or> y \<sqsubseteq> z)"
 proof
   assume a: "x \<cdot> y \<sqsubseteq> z"
@@ -2047,16 +2097,20 @@ next
   qed
 qed
 
-
-lemma (in ACIfSLlin) strict_below_f_conv[simp]: "x \<sqsubset> y \<cdot> z = (x \<sqsubset> y \<and> x \<sqsubset> z)"
+lemma strict_below_f_conv[simp]: "x \<sqsubset> y \<cdot> z = (x \<sqsubset> y \<and> x \<sqsubset> z)"
 apply(simp add: strict_below_def)
 using lin[of y z] by (auto simp:below_def ACI)
 
-
-lemma (in ACIfSLlin) strict_above_f_conv:
+lemma strict_above_f_conv:
   "x \<cdot> y \<sqsubset> z = (x \<sqsubset> z \<or> y \<sqsubset> z)"
 apply(simp add: strict_below_def above_f_conv)
 using lin[of y z] lin[of x z] by (auto simp:below_def ACI)
+
+end
+
+interpretation ACIfSLlin < linorder
+  by unfold_locales
+    (insert lin [simplified insert_iff], simp add: below_def commute)
 
 
 subsubsection{* Lemmas about @{text fold1} *}
@@ -2129,7 +2183,6 @@ next
   qed
 qed
 
-
 lemma (in ACIfSLlin) fold1_below_iff:
 assumes A: "finite A" "A \<noteq> {}"
 shows "fold1 f A \<sqsubseteq> x = (\<exists>a\<in>A. a \<sqsubseteq> x)"
@@ -2141,7 +2194,6 @@ assumes A: "finite A" "A \<noteq> {}"
 shows "fold1 f A \<sqsubset> x = (\<exists>a\<in>A. a \<sqsubset> x)"
 using A
 by(induct rule:finite_ne_induct)(simp_all add:strict_above_f_conv)
-
 
 lemma (in ACIfSLlin) fold1_antimono:
 assumes "A \<noteq> {}" and "A \<subseteq> B" and "finite B"
@@ -2165,40 +2217,35 @@ next
 qed
 
 
+subsubsection {* Fold1 in lattices with @{const inf} and @{const sup} *}
 
-subsubsection{* Lattices *}
+text{*
+  As an application of @{text fold1} we define infimum
+  and supremum in (not necessarily complete!) lattices
+  over (non-empty) sets by means of @{text fold1}.
+*}
 
-(*FIXME integrate with FixedPoint.thy*)
-locale Lattice = lattice +
-  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
-  and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
-  defines "Inf == fold1 inf"  and "Sup == fold1 sup"
+lemma (in lower_semilattice) ACf_inf: "ACf (op \<sqinter>)"
+  by (blast intro: ACf.intro inf_commute inf_assoc)
 
-locale Distrib_Lattice = distrib_lattice + Lattice
+lemma (in upper_semilattice) ACf_sup: "ACf (op \<squnion>)"
+  by (blast intro: ACf.intro sup_commute sup_assoc)
 
-text{* Lattices are semilattices *}
-
-lemma (in Lattice) ACf_inf: "ACf inf"
-by(blast intro: ACf.intro inf_commute inf_assoc)
-
-lemma (in Lattice) ACf_sup: "ACf sup"
-by(blast intro: ACf.intro sup_commute sup_assoc)
-
-lemma (in Lattice) ACIf_inf: "ACIf inf"
+lemma (in lower_semilattice) ACIf_inf: "ACIf (op \<sqinter>)"
 apply(rule ACIf.intro)
 apply(rule ACf_inf)
 apply(rule ACIf_axioms.intro)
 apply(rule inf_idem)
 done
 
-lemma (in Lattice) ACIf_sup: "ACIf sup"
+lemma (in upper_semilattice) ACIf_sup: "ACIf (op \<squnion>)"
 apply(rule ACIf.intro)
 apply(rule ACf_sup)
 apply(rule ACIf_axioms.intro)
 apply(rule sup_idem)
 done
 
-lemma (in Lattice) ACIfSL_inf: "ACIfSL inf (op \<sqsubseteq>)"
+lemma (in lower_semilattice) ACIfSL_inf: "ACIfSL (op \<^loc>\<le>) (op \<^loc><) (op \<sqinter>)"
 apply(rule ACIfSL.intro)
 apply(rule ACIf.intro)
 apply(rule ACf_inf)
@@ -2208,10 +2255,10 @@ apply(rule iffI)
  apply(blast intro: antisym inf_le1 inf_le2 inf_greatest refl)
 apply(erule subst)
 apply(rule inf_le2)
+apply(rule less_le)
 done
 
-lemma (in Lattice) ACIfSL_sup: "ACIfSL sup (%x y. y \<sqsubseteq> x)"
-(* FIXME: insert ACf_sup and use unfold_locales *)
+lemma (in upper_semilattice) ACIfSL_sup: "ACIfSL (%x y. y \<^loc>\<le> x) (%x y. y \<^loc>< x) (op \<squnion>)"
 apply(rule ACIfSL.intro)
 apply(rule ACIf.intro)
 apply(rule ACf_sup)
@@ -2221,10 +2268,25 @@ apply(rule iffI)
  apply(blast intro: antisym sup_ge1 sup_ge2 sup_least refl)
 apply(erule subst)
 apply(rule sup_ge2)
+apply(simp add: neq_commute less_le)
 done
 
+locale Lattice = lattice -- {* we do not pollute the @{text lattice} clas *}
+begin
 
-subsubsection{* Fold laws in lattices *}
+definition
+  Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
+where
+  "Inf = fold1 (op \<sqinter>)"
+
+definition
+  Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+where
+  "Sup = fold1 (op \<squnion>)"
+
+end
+
+locale Distrib_Lattice = distrib_lattice + Lattice
 
 lemma (in Lattice) Inf_le_Sup[simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Squnion>A"
 apply(unfold Sup_def Inf_def)
@@ -2246,23 +2308,6 @@ lemma (in Lattice) inf_Sup_absorb[simp]:
   "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<sqinter> \<Squnion>A) = a"
 by(simp add:Sup_def inf_absorb1 ACIfSL.fold1_belowI[OF ACIfSL_sup])
 
-
-lemma (in ACIf) hom_fold1_commute:
-assumes hom: "!!x y. h(f x y) = f (h x) (h y)"
-and N: "finite N" "N \<noteq> {}" shows "h(fold1 f N) = fold1 f (h ` N)"
-using N proof (induct rule: finite_ne_induct)
-  case singleton thus ?case by simp
-next
-  case (insert n N)
-  have "h(fold1 f (insert n N)) = h(f n (fold1 f N))" using insert by(simp)
-  also have "\<dots> = f (h n) (h(fold1 f N))" by(rule hom)
-  also have "h(fold1 f N) = fold1 f (h ` N)" by(rule insert)
-  also have "f (h n) \<dots> = fold1 f (insert (h n) (h ` N))"
-    using insert by(simp)
-  also have "insert (h n) (h ` N) = h ` insert n N" by simp
-  finally show ?case .
-qed
-
 lemma (in Distrib_Lattice) sup_Inf1_distrib:
  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<squnion> \<Sqinter>A) = \<Sqinter>{x \<squnion> a|a. a \<in> A}"
 apply(simp add:Inf_def image_def
@@ -2277,7 +2322,7 @@ shows "(\<Sqinter>A \<squnion> \<Sqinter>B) = \<Sqinter>{a \<squnion> b|a b. a \
 using A
 proof (induct rule: finite_ne_induct)
   case singleton thus ?case
-    by(simp add: sup_Inf1_distrib[OF B] fold1_singleton_def[OF Inf_def])
+    by (simp add: sup_Inf1_distrib[OF B] fold1_singleton_def[OF Inf_def])
 next
   case (insert x A)
   have finB: "finite {x \<squnion> b |b. b \<in> B}"
@@ -2290,7 +2335,9 @@ next
   qed
   have ne: "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
   have "\<Sqinter>(insert x A) \<squnion> \<Sqinter>B = (x \<sqinter> \<Sqinter>A) \<squnion> \<Sqinter>B"
-    using insert by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_def])
+    using insert
+    thm ACIf.fold1_insert_idem_def
+ by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_def])
   also have "\<dots> = (x \<squnion> \<Sqinter>B) \<sqinter> (\<Sqinter>A \<squnion> \<Sqinter>B)" by(rule sup_inf_distrib2)
   also have "\<dots> = \<Sqinter>{x \<squnion> b|b. b \<in> B} \<sqinter> \<Sqinter>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
     using insert by(simp add:sup_Inf1_distrib[OF B])
@@ -2344,191 +2391,257 @@ next
   finally show ?case .
 qed
 
+text {*
+  Infimum and supremum in complete lattices may also
+  be characterized by @{const fold1}:
+*}
 
-subsection{*Min and Max*}
+lemma (in complete_lattice) Inf_fold1:
+  assumes fin: "finite A"
+  and nonempty: "A \<noteq> {}"
+  shows "\<Sqinter>A = fold1 (op \<sqinter>) A"
+using fin nonempty 
+by (induct A set: finite)
+  (simp_all add: Inf_insert_simp ACIf.fold1_insert_idem [OF ACIf_inf])
 
-text{* As an application of @{text fold1} we define the minimal and
-maximal element of a (non-empty) set over a linear order. *}
-
-constdefs
-  Min :: "('a::linorder)set => 'a"
-  "Min  ==  fold1 min"
-
-  Max :: "('a::linorder)set => 'a"
-  "Max  ==  fold1 max"
-
-
-text{* Before we can do anything, we need to show that @{text min} and
-@{text max} are ACI and the ordering is linear: *}
-
-interpretation min: ACf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply(rule ACf.intro)
-apply(auto simp:min_def)
-done
-
-interpretation min: ACIf ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply unfold_locales
-apply(auto simp:min_def)
-done
-
-interpretation max: ACf ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply unfold_locales
-apply(auto simp:max_def)
-done
-
-interpretation max: ACIf ["max:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a"]
-apply unfold_locales
-apply(auto simp:max_def)
-done
-
-interpretation min:
-  ACIfSL ["min:: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>" "op <"]
-apply(simp add:order_less_le)
-apply unfold_locales
-apply(auto simp:min_def)
-done
-
-interpretation min:
-  ACIfSLlin ["min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "op \<le>" "op <"]
-apply unfold_locales
-apply(auto simp:min_def)
-done
-
-interpretation max:
-  ACIfSL ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x" "%x y. y<x"]
-apply(simp add:order_less_le eq_sym_conv)
-apply unfold_locales
-apply(auto simp:max_def)
-done
-
-interpretation max:
-  ACIfSLlin ["max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "%x y. y\<le>x" "%x y. y<x"]
-apply unfold_locales
-apply(auto simp:max_def)
-done
-
-interpretation min_max:
-  Lattice ["op \<le>" "op <" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
-apply -
-apply(rule Min_def)
-apply(rule Max_def)
-apply unfold_locales
-done
+lemma (in complete_lattice) Sup_fold1:
+  assumes fin: "finite A"
+  and nonempty: "A \<noteq> {}"
+  shows "\<Squnion>A = fold1 (op \<squnion>) A"
+using fin nonempty 
+by (induct A set: finite)
+  (simp_all add: Sup_insert_simp ACIf.fold1_insert_idem [OF ACIf_sup])
 
 
-interpretation min_max:
-  Distrib_Lattice ["op \<le>" "op <" "min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a" "max" "Min" "Max"]
-  by unfold_locales
+subsubsection {* Fold1 in linear orders with @{const min} and @{const max} *}
 
+text{*
+  As an application of @{text fold1} we define minimum
+  and maximum in (not necessarily complete!) linear orders
+  over (non-empty) sets by means of @{text fold1}.
+*}
 
-text{* Now we instantiate the recursion equations and declare them
-simplification rules: *}
+locale Linorder = linorder -- {* we do not pollute the @{text linorder} clas *}
+begin
 
-(* Making Min or Max a defined parameter of a locale, suitably
-  extending ACIf, could make the following interpretations more automatic. *)
+definition
+  Min :: "'a set \<Rightarrow> 'a"
+where
+  "Min = fold1 min"
 
-lemmas Min_singleton = fold1_singleton_def [OF Min_def]
-lemmas Max_singleton = fold1_singleton_def [OF Max_def]
-lemmas Min_insert = min.fold1_insert_idem_def [OF Min_def]
-lemmas Max_insert = max.fold1_insert_idem_def [OF Max_def]
+definition
+  Max :: "'a set \<Rightarrow> 'a"
+where
+  "Max = fold1 max"
 
-declare Min_singleton [simp]  Max_singleton [simp]
-declare Min_insert [simp]  Max_insert [simp]
+text {* recall: @{term min} and @{term max} behave like @{const inf} and @{const sup} *}
 
+lemma ACIf_min: "ACIf min"
+  by (rule lower_semilattice.ACIf_inf,
+    rule lattice_pred.axioms,
+    rule distrib_lattice_pred.axioms,
+    rule distrib_lattice_min_max)
 
-text{* Now we instantiate some @{text fold1} properties: *}
+lemma ACf_min: "ACf min"
+  by (rule lower_semilattice.ACf_inf,
+    rule lattice_pred.axioms,
+    rule distrib_lattice_pred.axioms,
+    rule distrib_lattice_min_max)
+
+lemma ACIfSL_min: "ACIfSL (op \<^loc>\<le>) (op \<^loc><) min"
+  by (rule lower_semilattice.ACIfSL_inf,
+    rule lattice_pred.axioms,
+    rule distrib_lattice_pred.axioms,
+    rule distrib_lattice_min_max)
+
+lemma ACIfSLlin_min: "ACIfSLlin (op \<^loc>\<le>) (op \<^loc><) min"
+  by (rule ACIfSLlin.intro,
+    rule lower_semilattice.ACIfSL_inf,
+    rule lattice_pred.axioms,
+    rule distrib_lattice_pred.axioms,
+    rule distrib_lattice_min_max)
+    (unfold_locales, simp add: min_def)
+
+lemma ACIf_max: "ACIf max"
+  by (rule upper_semilattice.ACIf_sup,
+    rule lattice_pred.axioms,
+    rule distrib_lattice_pred.axioms,
+    rule distrib_lattice_min_max)
+
+lemma ACf_max: "ACf max"
+  by (rule upper_semilattice.ACf_sup,
+    rule lattice_pred.axioms,
+    rule distrib_lattice_pred.axioms,
+    rule distrib_lattice_min_max)
+
+lemma ACIfSL_max: "ACIfSL (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x) max"
+  by (rule upper_semilattice.ACIfSL_sup,
+    rule lattice_pred.axioms,
+    rule distrib_lattice_pred.axioms,
+    rule distrib_lattice_min_max)
+
+lemma ACIfSLlin_max: "ACIfSLlin (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x) max"
+  by (rule ACIfSLlin.intro,
+    rule upper_semilattice.ACIfSL_sup,
+    rule lattice_pred.axioms,
+    rule distrib_lattice_pred.axioms,
+    rule distrib_lattice_min_max)
+    (unfold_locales, simp add: max_def)
+
+lemmas Min_singleton [simp] = fold1_singleton_def [OF Min_def]
+lemmas Max_singleton [simp] = fold1_singleton_def [OF Max_def]
+lemmas Min_insert [simp] = ACIf.fold1_insert_idem_def [OF ACIf_min Min_def]
+lemmas Max_insert [simp] = ACIf.fold1_insert_idem_def [OF ACIf_max Max_def]
 
 lemma Min_in [simp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Min A \<in> A"
-using min.fold1_in
-by(fastsimp simp: Min_def min_def)
+  using ACf.fold1_in [OF ACf_min]
+  by (fastsimp simp: Min_def min_def)
 
 lemma Max_in [simp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Max A \<in> A"
-using max.fold1_in
-by(fastsimp simp: Max_def max_def)
+  using ACf.fold1_in [OF ACf_max]
+  by (fastsimp simp: Max_def max_def)
 
-lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Min N \<le> Min M"
-  by (simp add: Min_def min.fold1_antimono)
+lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Min N \<^loc>\<le> Min M"
+  by (simp add: Min_def ACIfSLlin.fold1_antimono [OF ACIfSLlin_min])
 
-lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<le> Max N"
-  by (simp add: Max_def max.fold1_antimono)
+lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<^loc>\<le> Max N"
+  by (simp add: Max_def ACIfSLlin.fold1_antimono [OF ACIfSLlin_max])
 
-lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<le> x"
-by(simp add: Min_def min.fold1_belowI)
+lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x"
+  by (simp add: Min_def ACIfSL.fold1_belowI [OF ACIfSL_min])
 
-lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<le> Max A"
-by(simp add: Max_def max.fold1_belowI)
+lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A"
+  by (simp add: Max_def ACIfSL.fold1_belowI [OF ACIfSL_max])
 
-lemma Min_ge_iff[simp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Min A) = (\<forall>a\<in>A. x \<le> a)"
-by(simp add: Min_def min.below_fold1_iff)
+lemma Min_ge_iff [simp]:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<^loc>\<le> a)"
+  by (simp add: Min_def ACIfSL.below_fold1_iff [OF ACIfSL_min])
 
-lemma Max_le_iff[simp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Max A \<le> x) = (\<forall>a\<in>A. a \<le> x)"
-by(simp add: Max_def max.below_fold1_iff)
+lemma Max_le_iff [simp]:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A \<^loc>\<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<^loc>\<le> x)"
+  by (simp add: Max_def ACIfSL.below_fold1_iff [OF ACIfSL_max])
 
-lemma Min_gr_iff[simp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x < Min A) = (\<forall>a\<in>A. x < a)"
-by(simp add: Min_def min.strict_below_fold1_iff)
+lemma Min_gr_iff [simp]:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>< Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<^loc>< a)"
+  by (simp add: Min_def ACIfSLlin.strict_below_fold1_iff [OF ACIfSLlin_min])
 
-lemma Max_less_iff[simp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Max A < x) = (\<forall>a\<in>A. a < x)"
-by(simp add: Max_def max.strict_below_fold1_iff)
-
-lemma Min_le_iff:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Min A \<le> x) = (\<exists>a\<in>A. a \<le> x)"
-by(simp add: Min_def min.fold1_below_iff)
-
-lemma Max_ge_iff:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x \<le> Max A) = (\<exists>a\<in>A. x \<le> a)"
-by(simp add: Max_def max.fold1_below_iff)
+lemma Max_less_iff [simp]:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A \<^loc>< x \<longleftrightarrow> (\<forall>a\<in>A. a \<^loc>< x)"
+  by (simp add: Max_def ACIfSLlin.strict_below_fold1_iff [OF ACIfSLlin_max])
 
 lemma Min_le_iff:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (Min A < x) = (\<exists>a\<in>A. a < x)"
-by(simp add: Min_def min.fold1_strict_below_iff)
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<^loc>\<le> x)"
+  by (simp add: Min_def ACIfSLlin.fold1_below_iff [OF ACIfSLlin_min])
 
 lemma Max_ge_iff:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> (x < Max A) = (\<exists>a\<in>A. x < a)"
-by(simp add: Max_def max.fold1_strict_below_iff)
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<^loc>\<le> a)"
+  by (simp add: Max_def ACIfSLlin.fold1_below_iff [OF ACIfSLlin_max])
+
+lemma Min_less_iff:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<^loc>< x \<longleftrightarrow> (\<exists>a\<in>A. a \<^loc>< x)"
+  by (simp add: Min_def ACIfSLlin.fold1_strict_below_iff [OF ACIfSLlin_min])
+
+lemma Max_gr_iff:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>< Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<^loc>< a)"
+  by (simp add: Max_def ACIfSLlin.fold1_strict_below_iff [OF ACIfSLlin_max])
 
 lemma Min_Un: "\<lbrakk>finite A; A \<noteq> {}; finite B; B \<noteq> {}\<rbrakk>
   \<Longrightarrow> Min (A \<union> B) = min (Min A) (Min B)"
-by(simp add:Min_def min.f.fold1_Un2)
+  by (simp add: Min_def ACIf.fold1_Un2 [OF ACIf_min])
 
 lemma Max_Un: "\<lbrakk>finite A; A \<noteq> {}; finite B; B \<noteq> {}\<rbrakk>
   \<Longrightarrow> Max (A \<union> B) = max (Max A) (Max B)"
-by(simp add:Max_def max.f.fold1_Un2)
-
+  by (simp add: Max_def ACIf.fold1_Un2 [OF ACIf_max])
 
 lemma hom_Min_commute:
- "(!!x y::'a::linorder. h(min x y) = min (h x) (h y::'a))
-  \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h(Min N) = Min(h ` N)"
-  by (simp add: Min_def min.hom_fold1_commute)
+ "(\<And>x y. h (min x y) = min (h x) (h y))
+  \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h (Min N) = Min (h ` N)"
+  by (simp add: Min_def ACIf.hom_fold1_commute [OF ACIf_min])
 
 lemma hom_Max_commute:
- "(!!x y::'a::linorder. h(max x y) = max (h x) (h y::'a))
-  \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h(Max N) = Max(h ` N)"
-  by( simp add: Max_def max.hom_fold1_commute)
+ "(\<And>x y. h (max x y) = max (h x) (h y))
+  \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h (Max N) = Max (h ` N)"
+  by (simp add: Max_def ACIf.hom_fold1_commute [OF ACIf_max])
 
+end
 
-lemma add_Min_commute: fixes k::"'a::{pordered_ab_semigroup_add,linorder}"
- shows "finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> k + Min N = Min {k+m|m. m \<in> N}"
-apply(subgoal_tac "!!x y. k + min x y = min (k + x) (k + y)")
-using hom_Min_commute[of "op + k" N]
-apply simp apply(rule arg_cong[where f = Min]) apply blast
-apply(simp add:min_def linorder_not_le)
-apply(blast intro: antisym order_less_imp_le add_left_mono)
-done
+locale Linorder_ab_semigroup_add = Linorder + pordered_ab_semigroup_add
+begin
 
-lemma add_Max_commute: fixes k::"'a::{pordered_ab_semigroup_add,linorder}"
- shows "finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> k + Max N = Max {k+m|m. m \<in> N}"
-apply(subgoal_tac "!!x y. k + max x y = max (k + x) (k + y)")
-using hom_Max_commute[of "op + k" N]
-apply simp apply(rule arg_cong[where f = Max]) apply blast
-apply(simp add:max_def linorder_not_le)
-apply(blast intro: antisym order_less_imp_le add_left_mono)
-done
+lemma add_Min_commute:
+  fixes k
+  shows "finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> k \<^loc>+ Min N = Min {k \<^loc>+ m | m. m \<in> N}"
+  apply (subgoal_tac "\<And>x y. k \<^loc>+ min x y = min (k \<^loc>+ x) (k \<^loc>+ y)")
+  using hom_Min_commute [of "(op \<^loc>+) k" N]
+  apply simp apply (rule arg_cong [where f = Min]) apply blast
+  apply (simp add: min_def not_le)
+  apply (blast intro: antisym less_imp_le add_left_mono)
+  done
+
+lemma add_Max_commute:
+  fixes k
+  shows "finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> k \<^loc>+ Max N = Max {k \<^loc>+ m | m. m \<in> N}"
+  apply (subgoal_tac "\<And>x y. k \<^loc>+ max x y = max (k \<^loc>+ x) (k \<^loc>+ y)")
+  using hom_Max_commute [of "(op \<^loc>+) k" N]
+  apply simp apply (rule arg_cong [where f = Max]) apply blast
+  apply (simp add: max_def not_le)
+  apply (blast intro: antisym less_imp_le add_left_mono)
+  done
+
+end
+
+definition
+  Min :: "'a set \<Rightarrow> 'a\<Colon>linorder"
+where
+  "Min = fold1 min"
+
+definition
+  Max :: "'a set \<Rightarrow> 'a\<Colon>linorder"
+where
+  "Max = fold1 max"
+
+lemma Linorder_Min:
+  "Linorder.Min (op \<le>) = Min"
+proof
+  fix A :: "'a set"
+  show "Linorder.Min (op \<le>) A = Min A"
+  by (simp add: Min_def Linorder.Min_def [OF Linorder.intro, OF linorder_pred_axioms]
+    linorder_class_min)
+qed
+
+lemma Linorder_Max:
+  "Linorder.Max (op \<le>) = Max"
+proof
+  fix A :: "'a set"
+  show "Linorder.Max (op \<le>) A = Max A"
+  by (simp add: Max_def Linorder.Max_def [OF Linorder.intro, OF linorder_pred_axioms]
+    linorder_class_max)
+qed
+
+interpretation [unfolded linorder_class_min linorder_class_max Linorder_Min Linorder_Max]:
+  Linorder_ab_semigroup_add ["op \<le> \<Colon> 'a\<Colon>{linorder, pordered_ab_semigroup_add} \<Rightarrow> 'a \<Rightarrow> bool" "op <" "op +"]
+  by (rule Linorder_ab_semigroup_add.intro,
+    rule Linorder.intro, rule linorder_pred_axioms, rule pordered_ab_semigroup_add_pred_axioms)
+hide const Min Max
+
+interpretation [unfolded linorder_class_min linorder_class_max Linorder_Min Linorder_Max]:
+  Linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <"]
+  by (rule Linorder.intro, rule linorder_pred_axioms)
+declare Min_singleton [simp]
+declare Max_singleton [simp]
+declare Min_insert [simp]
+declare Max_insert [simp]
+declare Min_in [simp]
+declare Max_in [simp]
+declare Min_le [simp]
+declare Max_ge [simp]
+declare Min_ge_iff [simp]
+declare Max_le_iff [simp]
+declare Min_gr_iff [simp]
+declare Max_less_iff [simp]
+declare Max_less_iff [simp]
 
 
 subsection {* Class @{text finite} *}

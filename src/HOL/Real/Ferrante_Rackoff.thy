@@ -140,6 +140,9 @@ lemma lin_dense_disj:
   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> (P1 y \<or> P2 y))"
   by blast
 
+declare Max_le_iff [simp]
+declare Max_le_iff [simp]
+
 lemma finite_set_intervals:
   assumes px: "P (x::real)" and lx: "l \<le> x" and xu: "x \<le> u" and linS: "l\<in> S" 
   and uinS: "u \<in> S" and fS:"finite S" and lS: "\<forall> x\<in> S. l \<le> x" and Su: "\<forall> x\<in> S. x \<le> u"
@@ -157,16 +160,20 @@ proof-
   hence fxM: "finite ?xM" using fS finite_subset by auto
   from xu uinS have linxM: "u \<in> ?xM" by blast
   hence xMne: "?xM \<noteq> {}" by blast
-  have ax:"?a \<le> x" using Mxne fMx by auto
-  have xb:"x \<le> ?b" using xMne fxM by auto
-  have "?a \<in> ?Mx" using Max_in[OF fMx Mxne] by simp hence ainS: "?a \<in> S" using MxS by blast
-  have "?b \<in> ?xM" using Min_in[OF fxM xMne] by simp hence binS: "?b \<in> S" using xMS by blast
+  have ax: "?a \<le> x" using Mxne fMx by auto
+  have xb: "x \<le> ?b" using xMne fxM by auto
+  have "?a \<in> ?Mx" using Max_in [OF fMx Mxne] by simp
+  hence ainS: "?a \<in> S" using MxS by blast
+  have "?b \<in> ?xM" using Min_in [OF fxM xMne] by simp
+  hence binS: "?b \<in> S" using xMS by blast
   have noy:"\<forall> y. ?a < y \<and> y < ?b \<longrightarrow> y \<notin> S"
   proof(clarsimp)
     fix y   assume ay: "?a < y" and yb: "y < ?b" and yS: "y \<in> S"
     from yS have "y\<in> ?Mx \<or> y\<in> ?xM" by auto
-    moreover {assume "y \<in> ?Mx" hence "y \<le> ?a" using Mxne fMx by auto with ay have "False" by simp}
-    moreover {assume "y \<in> ?xM" hence "y \<ge> ?b" using xMne fxM by auto with yb have "False" by simp}
+    moreover {assume "y \<in> ?Mx" hence "y \<le> ?a" using Mxne fMx by auto
+    with ay have "False" by simp}
+    moreover {assume "y \<in> ?xM" hence "y \<ge> ?b" using xMne fxM by auto
+    with yb have "False" by simp}
     ultimately show "False" by blast
   qed
   from ainS binS noy ax xb px show ?thesis by blast
