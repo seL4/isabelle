@@ -68,20 +68,23 @@ arguments may be given on the LHS.)
 
 *** Pure ***
 
+* code generator: consts in 'consts_code' Isar commands are now referred
+  to by usual term syntax (including optional type annotations).
+
 * code generator: 
-  - Isar "definition"s and primitive instance definitions are added explicitly
-    to the table of defining equations
+  - Isar 'definition's, 'constdef's and primitive instance definitions are added
+    explicitly to the table of defining equations
   - primitive definitions are not used as defining equations by default any longer
   - defining equations are now definitly restricted to meta "==" and object
         equality "="
   - HOL theories have been adopted accordingly
 
 * class_package.ML offers a combination of axclasses and locales to
-achieve Haskell-like type classes in Isabelle. See
+achieve Haskell-like type classes in Isabelle.  See
 HOL/ex/Classpackage.thy for examples.
 
 * Yet another code generator framework allows to generate executable
-code for ML and Haskell (including "class"es). A short usage sketch:
+code for ML and Haskell (including "class"es).  A short usage sketch:
 
     internal compilation:
         code_gen <list of constants (term syntax)> (SML #)

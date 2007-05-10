@@ -140,13 +140,13 @@ types_code
 consts_code
   div_zero ("(raise/ (Fail/ \"Division by zero\"))")
   Fract ("({*erat_of_quotient*} (_) (_))")
-  HOL.zero :: rat ("({*Rat True 0 1*})")
-  HOL.one :: rat ("({*Rat True 1 1*})")
-  HOL.plus :: "rat \<Rightarrow> rat \<Rightarrow> rat" ("({*op + \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat*} (_) (_))")
-  HOL.uminus :: "rat \<Rightarrow> rat" ("({*uminus \<Colon> erat \<Rightarrow> erat*} (_))")
-  HOL.times :: "rat \<Rightarrow> rat \<Rightarrow> rat" ("({*op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat*} (_) (_))")
-  HOL.inverse :: "rat \<Rightarrow> rat" ("({*inverse \<Colon> erat \<Rightarrow> erat*} (_))")
-  Orderings.less_eq :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("({*op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool*} (_) (_))")
-  "op =" :: "rat \<Rightarrow> rat \<Rightarrow> bool" ("({*op = \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool*} (_) (_))")
+  "0 \<Colon> rat" ("({*Rat True 0 1*})")
+  "1 \<Colon> rat" ("({*Rat True 1 1*})")
+  "plus \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" ("({*op + \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat*} (_) (_))")
+  "uminus \<Colon> rat \<Rightarrow> rat" ("({*uminus \<Colon> erat \<Rightarrow> erat*} (_))")
+  "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" ("({*op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat*} (_) (_))")
+  "inverse \<Colon> rat \<Rightarrow> rat" ("({*inverse \<Colon> erat \<Rightarrow> erat*} (_))")
+  "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" ("({*op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool*} (_) (_))")
+  "op = \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" ("({*op = \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool*} (_) (_))")
 
 end

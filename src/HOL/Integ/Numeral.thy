@@ -667,18 +667,17 @@ end
 *}
 
 consts_code
-  "HOL.zero" :: "int"                ("0")
-  "HOL.one" :: "int"                 ("1")
-  "HOL.uminus" :: "int => int"       ("~")
-  "HOL.plus" :: "int => int => int"  ("(_ +/ _)")
-  "HOL.times" :: "int => int => int" ("(_ */ _)")
-  "Orderings.less" :: "int => int => bool" ("(_ </ _)")
-  "Orderings.less_eq" :: "int => int => bool" ("(_ <=/ _)")
-  "neg"                              ("(_ < 0)")
+  "0 :: int"                   ("0")
+  "1 :: int"                   ("1")
+  "uminus :: int => int"       ("~")
+  "op + :: int => int => int"  ("(_ +/ _)")
+  "op * :: int => int => int"  ("(_ */ _)")
+  "op \<le> :: int => int => bool" ("(_ <=/ _)")
+  "op < :: int => int => bool" ("(_ </ _)")
 
 quickcheck_params [default_type = int]
 
-(* setup continues in theory Presburger *)
+(*setup continues in theory Presburger*)
 
 hide (open) const Pls Min B0 B1 succ pred
 

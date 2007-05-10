@@ -35,13 +35,13 @@ sig
     (string * string) list * codegr
   val generate_code_i: theory -> string list -> string -> (string * term) list ->
     (string * string) list * codegr
-  val assoc_consts: (xstring * string option * (term mixfix list *
-    (string * string) list)) list -> theory -> theory
-  val assoc_consts_i: (xstring * typ option * (term mixfix list *
-    (string * string) list)) list -> theory -> theory
-  val assoc_types: (xstring * (typ mixfix list *
-    (string * string) list)) list -> theory -> theory
-  val get_assoc_code: theory -> string -> typ ->
+  val assoc_const: string * (term mixfix list *
+    (string * string) list) -> theory -> theory
+  val assoc_const_i: (string * typ) * (term mixfix list *
+    (string * string) list) -> theory -> theory
+  val assoc_type: xstring * (typ mixfix list *
+    (string * string) list) -> theory -> theory
+  val get_assoc_code: theory -> string * typ ->
     (term mixfix list * (string * string) list) option
   val get_assoc_type: theory -> string ->
     (typ mixfix list * (string * string) list) option
@@ -384,46 +384,34 @@ end; (*local*)
 
 (**** associate constants with target language code ****)
 
-fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn)) =>
+fun gen_assoc_const prep_const (raw_const, syn) thy =
   let
     val {codegens, tycodegens, consts, types, attrs, preprocs, modules, test_params} =
       CodegenData.get thy;
-    val cname = Sign.intern_const thy s;
+    val (cname, T) = prep_const thy raw_const;
   in
-    (case Sign.const_type thy cname of
-       SOME T =>
-         let val T' = (case tyopt of
-                NONE => T
-              | SOME ty =>
-                  let val U = prep_type thy ty
-                  in if Type.raw_instance (U, T) then U
-                    else error ("Illegal type constraint for constant " ^ cname)
-                  end)
-         in
-           if num_args_of (fst syn) > length (binder_types T') then
-             error ("More arguments than in corresponding type of " ^ s)
-           else (case AList.lookup (op =) consts (cname, T') of
-             NONE => CodegenData.put {codegens = codegens,
-               tycodegens = tycodegens,
-               consts = ((cname, T'), syn) :: consts,
-               types = types, attrs = attrs, preprocs = preprocs,
-               modules = modules, test_params = test_params} thy
-           | SOME _ => error ("Constant " ^ cname ^ " already associated with code"))
-         end
-     | _ => error ("Not a constant: " ^ s))
-  end) (thy, xs);
+    if num_args_of (fst syn) > length (binder_types T) then
+      error ("More arguments than in corresponding type of " ^ cname)
+    else case AList.lookup (op =) consts (cname, T) of
+      NONE => CodegenData.put {codegens = codegens,
+        tycodegens = tycodegens,
+        consts = ((cname, T), syn) :: consts,
+        types = types, attrs = attrs, preprocs = preprocs,
+        modules = modules, test_params = test_params} thy
+    | SOME _ => error ("Constant " ^ cname ^ " already associated with code")
+  end;
 
-val assoc_consts_i = gen_assoc_consts (K I);
-val assoc_consts = gen_assoc_consts Sign.read_typ;
+val assoc_const_i = gen_assoc_const (K I);
+val assoc_const = gen_assoc_const CodegenConsts.read_bare_const;
 
 
 (**** associate types with target language types ****)
 
-fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
+fun assoc_type (s, syn) thy =
   let
     val {codegens, tycodegens, consts, types, attrs, preprocs, modules, test_params} =
       CodegenData.get thy;
-    val tc = Sign.intern_type thy s
+    val tc = Sign.intern_type thy s;
   in
     case Symtab.lookup (snd (#types (Type.rep_tsig (Sign.tsig_of thy)))) tc of
       SOME (Type.LogicalType i, _) =>
@@ -436,7 +424,7 @@ fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
             preprocs = preprocs, modules = modules, test_params = test_params} thy
         | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
     | _ => error ("Not a type constructor: " ^ s)
-  end) (thy, xs);
+  end;
 
 fun get_assoc_type thy = AList.lookup (op =) ((#types o CodegenData.get) thy);
 
@@ -581,7 +569,7 @@ val rename_term = hd o rename_terms o single;
 fun is_instance thy T1 T2 =
   Sign.typ_instance thy (T1, Logic.legacy_varifyT T2);
 
-fun get_assoc_code thy s T = Option.map snd (find_first (fn ((s', T'), _) =>
+fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
 
 fun get_aux_code xs = map_filter (fn (m, code) =>
@@ -734,7 +722,7 @@ fun default_codegen thy defs gr dep module brack t =
         in SOME (gr'', mk_app brack (Pretty.str s) ps) end
 
     | Const (s, T) =>
-      (case get_assoc_code thy s T of
+      (case get_assoc_code thy (s, T) of
          SOME (ms, aux) =>
            let val i = num_args_of ms
            in if length ts < i then
@@ -1111,7 +1099,7 @@ fun parse_mixfix rd s =
    | _ => error ("Malformed annotation: " ^ quote s));
 
 val _ = Context.add_setup
-  (assoc_types [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
+  (fold assoc_type [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
      [("term_of",
        "fun term_of_fun_type _ T _ U _ = Free (\"<function>\", T --> U);\n"),
       ("test",
@@ -1139,19 +1127,19 @@ val assoc_typeP =
   OuterSyntax.command "types_code"
   "associate types with target language types" K.thy_decl
     (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
-     (fn xs => Toplevel.theory (fn thy => assoc_types
-       (map (fn ((name, mfx), aux) => (name, (parse_mixfix
-         (Sign.read_typ thy) mfx, aux))) xs) thy)));
+     (fn xs => Toplevel.theory (fn thy => fold (assoc_type o
+       (fn ((name, mfx), aux) => (name, (parse_mixfix
+         (Sign.read_typ thy) mfx, aux)))) xs thy)));
 
 val assoc_constP =
   OuterSyntax.command "consts_code"
   "associate constants with target language code" K.thy_decl
     (Scan.repeat1
-       (P.xname -- (Scan.option (P.$$$ "::" |-- P.typ)) --|
+       (P.term --|
         P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
-     (fn xs => Toplevel.theory (fn thy => assoc_consts
-       (map (fn (((name, optype), mfx), aux) =>
-         (name, optype, (parse_mixfix (Sign.read_term thy) mfx, aux))) xs) thy)));
+     (fn xs => Toplevel.theory (fn thy => fold (assoc_const o 
+       (fn ((const, mfx), aux) =>
+         (const, (parse_mixfix (Sign.read_term thy) mfx, aux)))) xs thy)));
 
 fun parse_code lib =
   Scan.optional (P.$$$ "(" |-- P.enum "," P.xname --| P.$$$ ")") (!mode) --

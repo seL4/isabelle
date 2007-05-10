@@ -343,19 +343,18 @@ and gen_set aG i = gen_set' aG i i;
 subsubsection {* const serializations *}
 
 consts_code
-  "{}"      ("[]")
-  "insert"  ("{*insertl*}")
-  "op Un"   ("{*unionl*}")
-  "op Int"  ("{*intersect*}")
-  "minus" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"
-            ("{*flip subtract*}")
-  "image"   ("{*map_distinct*}")
-  "Union"   ("{*unions*}")
-  "Inter"   ("{*intersects*}")
-  "UNION"   ("{*map_union*}")
-  "INTER"   ("{*map_inter*}")
-  "Ball"    ("{*Blall*}")
-  "Bex"     ("{*Blex*}")
-  "filter_set" ("{*filter*}")
+  "{}" ("{*[]*}")
+  insert ("{*insertl*}")
+  "op \<union>" ("{*unionl*}")
+  "op \<inter>" ("{*intersect*}")
+  "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{* flip subtract *}")
+  image ("{*map_distinct*}")
+  Union ("{*unions*}")
+  Inter ("{*intersects*}")
+  UNION ("{*map_union*}")
+  INTER ("{*map_inter*}")
+  Ball ("{*Blall*}")
+  Bex ("{*Blex*}")
+  filter_set ("{*filter*}")
 
 end

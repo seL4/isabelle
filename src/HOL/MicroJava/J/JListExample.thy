@@ -73,8 +73,8 @@ fun new_addr p none loc hp =
 *}
 
   "arbitrary" ("(raise Match)")
-  "arbitrary" :: "val" ("{* Unit *}")
-  "arbitrary" :: "cname" ("\"\"")
+  "arbitrary :: val" ("{* Unit *}")
+  "arbitrary :: cname" ("\"\"")
 
   "Object" ("\"Object\"")
   "list_name" ("\"list\"")

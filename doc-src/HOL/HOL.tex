@@ -1441,7 +1441,12 @@ by case distinctions, again blowing up the running time.
 If the formula involves explicit quantifiers, \texttt{arith_tac} may take
 super-exponential time and space.
 
-If \texttt{arith_tac} fails, try to find relevant arithmetic results inthe library.  The theories \texttt{Nat} and \texttt{NatArith} containtheorems about {\tt<}, {\tt<=}, \texttt{+}, \texttt{-} and \texttt{*}.Theory \texttt{Divides} contains theorems about \texttt{div} and\texttt{mod}.  Use Proof General's \emph{find} button (or other searchfacilities) to locate them.
+If \texttt{arith_tac} fails, try to find relevant arithmetic results in
+the library.  The theories \texttt{Nat} and \texttt{NatArith} contain
+theorems about {\tt<}, {\tt<=}, \texttt{+}, \texttt{-} and \texttt{*}.
+Theory \texttt{Divides} contains theorems about \texttt{div} and
+\texttt{mod}.  Use Proof General's \emph{find} button (or other search
+facilities) to locate them.
 
 \index{nat@{\textit{nat}} type|)}
 
@@ -2793,11 +2798,13 @@ modespec : '(' ( name * ) ')';
 \begin{rail}
 constscode : 'consts_code' (codespec +);
 
-codespec : name ( '::' type) ? template attachment ?;
+codespec : const template attachment ?;
 
 typescode : 'types_code' (tycodespec +);
 
 tycodespec : name template attachment ?;
+
+const : term;
 
 template: '(' string ')';
 
@@ -2859,8 +2866,8 @@ Constants which have no definitions that
 are immediately executable, may be associated with a piece of ML
 code manually using the \ttindex{consts_code} command
 (see Fig.~\ref{fig:HOL:codegen-configuration}).
-It takes a list whose elements consist of a constant name, together
-with an optional type constraint (to account for overloading), and a
+It takes a list whose elements consist of a constant (given in usual term syntax
+-- an explicit type constraint accounts for overloading), and a
 mixfix template describing the ML code. The latter is very much the
 same as the mixfix templates used when declaring new constants.
 The most notable difference is that terms may be included in the ML

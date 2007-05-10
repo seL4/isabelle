@@ -8,13 +8,14 @@ Convenient data structures for constants.  Auxiliary.
 
 signature CODEGEN_CONSTS =
 sig
-  type const = string * string option (* constant name, possibly instance *)
+  type const = string * string option (*constant name, possibly instance*)
   val const_ord: const * const -> order
   val eq_const: const * const -> bool
   structure Consttab: TABLE
   val const_of_cexpr: theory -> string * typ -> const
   val string_of_typ: theory -> typ -> string
   val string_of_const: theory -> const -> string
+  val read_bare_const: theory -> string -> string * typ
   val read_const: theory -> string -> const
   val read_const_exprs: theory -> (const list -> const list)
     -> string list -> const list
@@ -72,13 +73,15 @@ fun string_of_const thy (c, NONE) = Sign.extern_const thy c
 
 (* reading constants as terms and wildcards pattern *)
 
-fun read_const thy raw_t =
+fun read_bare_const thy raw_t =
   let
     val t = Sign.read_term thy raw_t;
   in case try dest_Const t
-   of SOME c_ty => const_of_cexpr thy c_ty
+   of SOME c_ty => c_ty
     | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
   end;
+
+fun read_const thy = const_of_cexpr thy o read_bare_const thy;
 
 local
 

@@ -285,12 +285,12 @@ fun datatype_codegen thy defs gr dep module brack t = (case strip_comb t of
    (c as Const (s, T), ts) =>
      (case DatatypePackage.datatype_of_case thy s of
         SOME {index, descr, ...} =>
-          if is_some (get_assoc_code thy s T) then NONE else
+          if is_some (get_assoc_code thy (s, T)) then NONE else
           SOME (pretty_case thy defs gr dep module brack
             (#3 (the (AList.lookup op = descr index))) c ts)
       | NONE => case (DatatypePackage.datatype_of_constr thy s, strip_type T) of
         (SOME {index, descr, ...}, (_, U as Type _)) =>
-          if is_some (get_assoc_code thy s T) then NONE else
+          if is_some (get_assoc_code thy (s, T)) then NONE else
           let val SOME args = AList.lookup op =
             (#3 (the (AList.lookup op = descr index))) s
           in
@@ -305,7 +305,7 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
       (case DatatypePackage.get_datatype thy s of
          NONE => NONE
        | SOME {descr, ...} =>
-           if isSome (get_assoc_type thy s) then NONE else
+           if is_some (get_assoc_type thy s) then NONE else
            let
              val (gr', ps) = foldl_map
                (invoke_tycodegen thy defs dep module false) (gr, Ts);

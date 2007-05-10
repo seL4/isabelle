@@ -170,7 +170,7 @@ fun gen_nat i = random_range 0 i;
 *}
 
 consts_code
-  "HOL.zero" :: nat ("0")
+  "0 \<Colon> nat" ("0")
   Suc ("(_ + 1)")
 
 text {*

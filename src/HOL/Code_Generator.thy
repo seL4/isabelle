@@ -39,7 +39,7 @@ consts_code
   "Not"     ("not")
   "op |"    ("(_ orelse/ _)")
   "op &"    ("(_ andalso/ _)")
-  "HOL.If"      ("(if _/ then _/ else _)")
+  "If"      ("(if _/ then _/ else _)")
 
 setup {*
 let

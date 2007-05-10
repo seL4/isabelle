@@ -293,7 +293,7 @@ definition
 
 
 consts_code
-  arbitrary :: "nat \<times> nat" ("{* (0::nat, 0::nat) *}")
+  "arbitrary :: nat \<times> nat" ("{* (0::nat, 0::nat) *}")
 
 definition
   arbitrary_nat_pair :: "nat \<times> nat" where

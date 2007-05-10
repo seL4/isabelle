@@ -333,8 +333,8 @@ text {*
 *}
 
 consts_code
-  arbitrary :: "LT"  ("({* L0 [] [] *})")
-  arbitrary :: "TT"  ("({* T0 A [] [] [] R0 *})")
+  "arbitrary :: LT"  ("({* L0 [] [] *})")
+  "arbitrary :: TT"  ("({* T0 A [] [] [] R0 *})")
 
 code_module Higman
 contains

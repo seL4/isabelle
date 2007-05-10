@@ -151,7 +151,7 @@ fun add_rec_funs thy defs gr dep eqs module =
   end;
 
 fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
-    (Const (p as (s, T)), ts) => (case (get_equations thy defs p, get_assoc_code thy s T) of
+    (Const (p as (s, T)), ts) => (case (get_equations thy defs p, get_assoc_code thy (s, T)) of
        (([], _), _) => NONE
      | (_, SOME _) => NONE
      | ((eqns, thyname), NONE) =>

@@ -617,7 +617,7 @@ fun mk_fun thy defs name eqns dep module module' gr =
 
 fun inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
     (Const ("Collect", Type (_, [_, Type (_, [U])])), [u]) => (case strip_comb u of
-        (Const (s, T), ts) => (case (get_clauses thy s, get_assoc_code thy s T) of
+        (Const (s, T), ts) => (case (get_clauses thy s, get_assoc_code thy (s, T)) of
           (SOME (names, thyname, k, intrs), NONE) =>
             let val (gr', call_p) = mk_ind_call thy defs gr dep module true
               s T (ts @ [Term.dummy_pattern U]) names thyname k intrs
@@ -628,7 +628,7 @@ fun inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
         | _ => NONE)
       | _ => NONE)
   | (Const (s, T), ts) => (case Symtab.lookup (#eqns (CodegenData.get thy)) s of
-      NONE => (case (get_clauses thy s, get_assoc_code thy s T) of
+      NONE => (case (get_clauses thy s, get_assoc_code thy (s, T)) of
         (SOME (names, thyname, k, intrs), NONE) =>
           if length ts < k then NONE else SOME
             (let val (gr', call_p) = mk_ind_call thy defs gr dep module false

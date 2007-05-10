@@ -730,11 +730,13 @@ modespec : '(' ( name * ) ')';
 
 'consts\_code' (codespec +);
 
-codespec : name ( '::' type) ? template attachment ?;
+codespec : const template attachment ?;
 
 'types\_code' (tycodespec +);
 
 tycodespec : name template attachment ?;
+
+const: term;
 
 template: '(' string ')';
 

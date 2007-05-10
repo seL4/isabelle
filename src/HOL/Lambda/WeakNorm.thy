@@ -488,8 +488,8 @@ defined by the rules
 subsection {* Generating executable code *}
 
 consts_code
-  arbitrary :: "'a"       ("(error \"arbitrary\")")
-  arbitrary :: "'a \<Rightarrow> 'b" ("(fn '_ => error \"arbitrary\")")
+  "arbitrary :: 'a"       ("(error \"arbitrary\")")
+  "arbitrary :: 'a \<Rightarrow> 'b" ("(fn '_ => error \"arbitrary\")")
 
 code_module Norm
 contains
