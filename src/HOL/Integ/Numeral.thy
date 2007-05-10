@@ -368,9 +368,28 @@ qed
 
 text {* The premise involving @{term Ints} prevents @{term "a = 1/2"}. *}
 
+lemma Ints_double_eq_0_iff:
+  assumes in_Ints: "a \<in> Ints"
+  shows "(a + a = 0) = (a = (0::'a::ring_char_0))"
+proof -
+  from in_Ints have "a \<in> range of_int" unfolding Ints_def [symmetric] .
+  then obtain z where a: "a = of_int z" ..
+  show ?thesis
+  proof
+    assume "a = 0"
+    thus "a + a = 0" by simp
+  next
+    assume eq: "a + a = 0"
+    hence "of_int (z + z) = (of_int 0 :: 'a)" by (simp add: a)
+    hence "z + z = 0" by (simp only: of_int_eq_iff)
+    hence "z = 0" by (simp only: double_eq_0_iff)
+    thus "a = 0" by (simp add: a)
+  qed
+qed
+
 lemma Ints_odd_nonzero:
   assumes in_Ints: "a \<in> Ints"
-  shows "1 + a + a \<noteq> (0::'a::ordered_idom)"
+  shows "1 + a + a \<noteq> (0::'a::ring_char_0)"
 proof -
   from in_Ints have "a \<in> range of_int" unfolding Ints_def [symmetric] .
   then obtain z where a: "a = of_int z" ..
@@ -389,17 +408,17 @@ lemma Ints_number_of:
 
 lemma iszero_number_of_BIT:
   "iszero (number_of (w BIT x)::'a) = 
-   (x = B0 \<and> iszero (number_of w::'a::{ordered_idom,number_ring}))"
-  by (simp add: iszero_def number_of_eq numeral_simps double_eq_0_iff 
+   (x = B0 \<and> iszero (number_of w::'a::{ring_char_0,number_ring}))"
+  by (simp add: iszero_def number_of_eq numeral_simps Ints_double_eq_0_iff 
     Ints_odd_nonzero Ints_def split: bit.split)
 
 lemma iszero_number_of_0:
-  "iszero (number_of (w BIT B0) :: 'a::{ordered_idom,number_ring}) = 
+  "iszero (number_of (w BIT B0) :: 'a::{ring_char_0,number_ring}) = 
   iszero (number_of w :: 'a)"
   by (simp only: iszero_number_of_BIT simp_thms)
 
 lemma iszero_number_of_1:
-  "~ iszero (number_of (w BIT B1)::'a::{ordered_idom,number_ring})"
+  "~ iszero (number_of (w BIT B1)::'a::{ring_char_0,number_ring})"
   by (simp add: iszero_number_of_BIT) 
 
 

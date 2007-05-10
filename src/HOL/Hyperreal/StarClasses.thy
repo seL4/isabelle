@@ -458,6 +458,9 @@ by (simp add: star_of_int_def)
 lemma star_of_of_int [simp]: "star_of (of_int z) = of_int z"
 by transfer (rule refl)
 
+instance star :: (ring_char_0) ring_char_0
+by (intro_classes, simp only: star_of_int_def star_of_eq of_int_eq_iff)
+
 instance star :: (number_ring) number_ring
 by (intro_classes, simp only: star_number_def star_of_int_def number_of_eq)
 
