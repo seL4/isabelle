@@ -140,9 +140,6 @@ lemma lin_dense_disj:
   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> (P1 y \<or> P2 y))"
   by blast
 
-declare Max_le_iff [simp]
-declare Max_le_iff [simp]
-
 lemma finite_set_intervals:
   assumes px: "P (x::real)" and lx: "l \<le> x" and xu: "x \<le> u" and linS: "l\<in> S" 
   and uinS: "u \<in> S" and fS:"finite S" and lS: "\<forall> x\<in> S. l \<le> x" and Su: "\<forall> x\<in> S. x \<le> u"
