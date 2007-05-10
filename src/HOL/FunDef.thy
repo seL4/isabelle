@@ -6,7 +6,7 @@
 header {* General recursive function definitions *}
 
 theory FunDef
-imports Accessible_Part
+imports Datatype Accessible_Part
 uses
   ("Tools/function_package/sum_tools.ML")
   ("Tools/function_package/fundef_common.ML")
