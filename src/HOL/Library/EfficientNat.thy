@@ -366,7 +366,8 @@ end; (*local*)
 fun lift_obj_eq f thy =
   map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
   #> f thy
-  #> map (fn thm => thm RS @{thm eq_reflection});
+  #> map (fn thm => thm RS @{thm eq_reflection})
+  #> map (Conv.fconv_rule Drule.beta_eta_conversion)
 *}
 
 setup {*
