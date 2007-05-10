@@ -36,7 +36,7 @@ consts_code
   "Trueprop" ("(_)")
   "True"    ("true")
   "False"   ("false")
-  "Not"     ("not")
+  "Not"     ("Bool.not")
   "op |"    ("(_ orelse/ _)")
   "op &"    ("(_ andalso/ _)")
   "If"      ("(if _/ then _/ else _)")
