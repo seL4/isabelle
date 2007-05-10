@@ -659,15 +659,6 @@ lemma hcomplex_hypreal_number_of:
   "hcomplex_of_complex (number_of w) = hcomplex_of_hypreal(number_of w)"
 by transfer (rule complex_number_of [symmetric])
 
-text{*This theorem is necessary because theorems such as
-   @{text iszero_number_of_0} only hold for ordered rings. They cannot
-   be generalized to fields in general because they fail for finite fields.
-   They work for type complex because the reals can be embedded in them.*}
-lemma iszero_hcomplex_number_of [simp]:
-     "iszero (number_of w :: hcomplex) = iszero (number_of w :: real)"
-by (transfer iszero_def, simp)
-
-
 (*
 Goal "z + hcnj z =  
       hcomplex_of_hypreal (2 * hRe(z))"

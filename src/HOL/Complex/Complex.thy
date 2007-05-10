@@ -744,16 +744,6 @@ text{*Collapse applications of @{term complex_of_real} to @{term number_of}*}
 lemma complex_number_of [simp]: "complex_of_real (number_of w) = number_of w"
 by (rule of_real_number_of_eq)
 
-text{*This theorem is necessary because theorems such as
-   @{text iszero_number_of_0} only hold for ordered rings. They cannot
-   be generalized to fields in general because they fail for finite fields.
-   They work for type complex because the reals can be embedded in them.*}
-(* TODO: generalize and move to Real/RealVector.thy *)
-lemma iszero_complex_number_of [simp]:
-     "iszero (number_of w :: complex) = iszero (number_of w :: real)"
-by (simp only: complex_of_real_zero_iff complex_number_of [symmetric] 
-               iszero_def)
-
 lemma complex_number_of_cnj [simp]: "cnj(number_of v :: complex) = number_of v"
 by (simp only: complex_number_of [symmetric] complex_cnj_complex_of_real)
 
