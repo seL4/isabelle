@@ -845,7 +845,7 @@ lemma ln_ge_zero [simp]:
 proof -
   have "0 < x" using x by arith
   hence "exp 0 \<le> exp (ln x)"
-    by (simp add: x exp_ln_iff [symmetric] del: exp_ln_iff)
+    by (simp add: x)
   thus ?thesis by (simp only: exp_le_cancel_iff)
 qed
 
@@ -868,8 +868,7 @@ lemma ln_gt_zero:
   assumes x: "1 < x" shows "0 < ln x"
 proof -
   have "0 < x" using x by arith
-  hence "exp 0 < exp (ln x)"
-    by (simp add: x exp_ln_iff [symmetric] del: exp_ln_iff)
+  hence "exp 0 < exp (ln x)" by (simp add: x)
   thus ?thesis  by (simp only: exp_less_cancel_iff)
 qed
 
