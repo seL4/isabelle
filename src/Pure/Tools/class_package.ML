@@ -33,6 +33,7 @@ sig
   val class_of_locale: theory -> string -> class option
   val add_def_in_class: local_theory -> string
     -> (string * Syntax.mixfix) * ((string * Attrib.src list) * (term * thm)) -> theory -> theory
+  val CLASS_TARGET: bool ref
 
   val print_classes: theory -> unit
   val intro_classes_tac: thm list -> tactic
@@ -97,7 +98,8 @@ fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms other_cons
     val superclasses = map (Sign.certify_class thy) raw_superclasses;
     val consts = (map o apfst o apsnd) (Sign.certify_typ thy) raw_consts;
     fun add_const ((c, ty), syn) =
-      Sign.add_consts_authentic [(c, ty, syn)] #> pair (Sign.full_name thy c, ty);
+      Sign.add_consts_authentic [(c, ty, syn)]
+      #> pair (Sign.full_name thy c, ty);
     fun mk_axioms cs thy =
       raw_dep_axioms thy cs
       |> (map o apsnd o map) (Sign.cert_prop thy)
@@ -106,7 +108,9 @@ fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms other_cons
       Sign.add_const_constraint_i (c, SOME (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
   in
     thy
+    (* |> Theory.add_path name *)
     |> fold_map add_const consts
+    (* ||> Theory.restore_naming thy *)
     |-> (fn cs => mk_axioms cs
     #-> (fn axioms_prop => AxClass.define_class (name, superclasses) (map fst cs @ other_consts) axioms_prop
     #-> (fn class => `(fn thy => AxClass.get_definition thy class)
@@ -624,6 +628,8 @@ fun print_witness wit =
         val tvars = map string_of_tvar (Term.add_tvars t []);
       in term :: tfrees @ tvars end;
   in (map warning (print_term t); map warning (print_term prop)) end;
+
+val CLASS_TARGET = ref true;
 
 fun add_def_in_class lthy class ((c, syn), ((name, atts), (rhs, eq))) thy =
   let
