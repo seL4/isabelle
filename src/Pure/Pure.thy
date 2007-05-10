@@ -94,8 +94,11 @@ lemma conjunction_imp:
   shows "(PROP A && PROP B ==> PROP C) == (PROP A ==> PROP B ==> PROP C)"
 proof
   assume r: "PROP A && PROP B ==> PROP C"
-  assume "PROP A" and "PROP B"
-  show "PROP C" by (rule r) -
+  assume ab: "PROP A" "PROP B"
+  show "PROP C"
+  proof (rule r)
+    from ab show "PROP A && PROP B" .
+  qed
 next
   assume r: "PROP A ==> PROP B ==> PROP C"
   assume conj: "PROP A && PROP B"
