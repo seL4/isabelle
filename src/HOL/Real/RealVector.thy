@@ -245,6 +245,17 @@ lemma of_real_number_of_eq:
   "of_real (number_of w) = (number_of w :: 'a::{number_ring,real_algebra_1})"
 by (simp add: number_of_eq)
 
+text{*Every real algebra has characteristic zero*}
+instance real_algebra_1 < ring_char_0
+proof
+  fix w z :: int
+  assume "of_int w = (of_int z::'a)"
+  hence "of_real (of_int w) = (of_real (of_int z)::'a)"
+    by (simp only: of_real_of_int_eq)
+  thus "w = z"
+    by (simp only: of_real_eq_iff of_int_eq_iff)
+qed
+
 
 subsection {* The Set of Real Numbers *}
 
