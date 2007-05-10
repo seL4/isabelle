@@ -103,7 +103,7 @@ fun assert_func thm =
       | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
       | check n (Const (_, ty)) = if n <> (length o fst o strip_type) ty
           then bad_thm
-            ("Partially applied constant on left hand side of equation"
+            ("Partially applied constant on left hand side of equation\n"
                ^ Display.string_of_thm thm)
           else ();
     val _ = map (check 0) args;

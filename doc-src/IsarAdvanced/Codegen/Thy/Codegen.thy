@@ -81,7 +81,7 @@ text {*
     by Stefan Berghofer \cite{Berghofer-Nipkow:2002}.
     So, for the moment, there are two distinct code generators
     in Isabelle.
-    Also note that while the framework itself is largely
+    Also note that while the framework itself is
     object-logic independent, only @{text HOL} provides a reasonable
     framework setup.    
   \end{warn}
@@ -91,7 +91,8 @@ text {*
 section {* An example: a simple theory of search trees \label{sec:example} *}
 
 text {*
-  When writing executable specifications, it is convenient to use
+  When writing executable specifications using @{text HOL},
+  it is convenient to use
   three existing packages: the datatype package for defining
   datatypes, the function package for (recursive) functions,
   and the class package for overloaded definitions.
@@ -208,7 +209,7 @@ section {* Basics \label{sec:basics} *}
 subsection {* Invoking the code generator *}
 
 text {*
-  Thanks to a reasonable setup of the HOL theories, in
+  Thanks to a reasonable setup of the @{text HOL} theories, in
   most cases code generation proceeds without further ado:
 *}
 
@@ -277,7 +278,7 @@ text {*
   defining equations (the additional stuff displayed
   shall not bother us for the moment).
 
-  The typical HOL tools are already set up in a way that
+  The typical @{text HOL} tools are already set up in a way that
   function definitions introduced by @{text "\<DEFINITION>"},
   @{text "\<FUN>"},
   @{text "\<FUNCTION>"}, @{text "\<PRIMREC>"},
@@ -450,17 +451,18 @@ text {*
 subsection {* Library theories \label{sec:library} *}
 
 text {*
-  The HOL \emph{Main} theory already provides a code generator setup
+  The @{text HOL} @{text Main} theory already provides a code
+  generator setup
   which should be suitable for most applications. Common extensions
-  and modifications are available by certain theories of the HOL
+  and modifications are available by certain theories of the @{text HOL}
   library; beside being useful in applications, they may serve
   as a tutorial for customizing the code generator setup.
 
   \begin{description}
 
-    \item[@{text "Pretty_Int"}] represents HOL integers by big
+    \item[@{text "Pretty_Int"}] represents @{text HOL} integers by big
        integer literals in target languages.
-    \item[@{text "Pretty_Char"}] represents HOL characters by 
+    \item[@{text "Pretty_Char"}] represents @{text HOL} characters by 
        character literals in target languages.
     \item[@{text "Pretty_Char_chr"}] like @{text "Pretty_Char_chr"},
        but also offers treatment of character codes; includes
@@ -474,11 +476,18 @@ text {*
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
        is eliminated;  includes @{text "Pretty_Int"}.
     \item[@{text "MLString"}] provides an additional datatype @{text "mlstring"};
-       in the HOL default setup, strings in HOL are mapped to list
-       of HOL characters in SML; values of type @{text "mlstring"} are
+       in the @{text HOL} default setup, strings in HOL are mapped to list
+       of @{text HOL} characters in SML; values of type @{text "mlstring"} are
        mapped to strings in SML.
 
   \end{description}
+
+  \begin{warn}
+    When importing any of these theories, they should form the last
+    items in an import list.  Since these theories adapt the
+    code generator setup in a non-conservative fashion,
+    strange effects may occur otherwise.
+  \end{warn}
 *}
 
 subsection {* Preprocessing *}

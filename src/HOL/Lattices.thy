@@ -13,8 +13,8 @@ subsection{* Lattices *}
 
 text{*
   This theory of lattices only defines binary sup and inf
-  operations. The extension to (finite) sets is done in theories
-  @{text FixedPoint} and @{text Finite_Set}.
+  operations. The extension to complete lattices is done in theory
+  @{text FixedPoint}.
 *}
 
 class lower_semilattice = order +
@@ -278,17 +278,24 @@ next
 qed
   
 
-subsection {* min/max on linear orders as special case of inf/sup *}
+subsection {* @{const min}/@{const max} on linear orders as
+  special case of @{const inf}/@{const sup} *}
+
+lemma (in linorder) distrib_lattice_min_max:
+  "distrib_lattice_pred (op \<^loc>\<le>) (op \<^loc><) min max"
+proof unfold_locales
+  have aux: "\<And>x y \<Colon> 'a. x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> x \<Longrightarrow> x = y"
+    by (auto simp add: less_le antisym)
+  fix x y z
+  show "max x (min y z) = min (max x y) (max x z)"
+  unfolding min_def max_def
+    by (auto simp add: intro: antisym, unfold not_le,
+      auto intro: less_trans le_less_trans aux)
+qed (auto simp add: min_def max_def not_le less_imp_le)
 
 interpretation min_max:
   distrib_lattice ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" min max]
-apply unfold_locales
-apply (simp add: min_def linorder_not_le order_less_imp_le)
-apply (simp add: min_def linorder_not_le order_less_imp_le)
-apply (simp add: min_def linorder_not_le order_less_imp_le)
-apply (simp add: max_def linorder_not_le order_less_imp_le)
-apply (simp add: max_def linorder_not_le order_less_imp_le)
-unfolding min_def max_def by auto
+  by (rule distrib_lattice_min_max [unfolded linorder_class_min linorder_class_max])
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (rule ext)+ auto

@@ -81,6 +81,8 @@ abbreviation (input)
 notation (input)
   greater_eq  (infix "\<ge>" 50)
 
+hide const min max
+
 definition
   min :: "'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> 'a" where
   "min a b = (if a \<le> b then a else b)"
@@ -89,11 +91,11 @@ definition
   max :: "'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> 'a" where
   "max a b = (if a \<le> b then b else a)"
 
-lemma min_linorder:
+lemma linorder_class_min:
   "ord.min (op \<le> \<Colon> 'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> bool) = min"
   by rule+ (simp add: min_def ord_class.min_def)
 
-lemma max_linorder:
+lemma linorder_class_max:
   "ord.max (op \<le> \<Colon> 'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> bool) = max"
   by rule+ (simp add: max_def ord_class.max_def)
 
@@ -193,6 +195,14 @@ text {* Transitivity rules for calculational reasoning *}
 lemma less_asym': "a \<^loc>< b \<Longrightarrow> b \<^loc>< a \<Longrightarrow> P"
   by (rule less_asym)
 
+
+text {* Reverse order *}
+
+lemma order_reverse:
+  "order_pred (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
+  by unfold_locales
+    (simp add: less_le, auto intro: antisym order_trans)
+
 end
 
 
@@ -252,6 +262,15 @@ lemma leD: "y \<^loc>\<le> x \<Longrightarrow> \<not> x \<^loc>< y"
 lemma not_leE: "\<not> y \<^loc>\<le> x \<Longrightarrow> x \<^loc>< y"
   unfolding not_le .
 
+
+text {* Reverse order *}
+
+lemma linorder_reverse:
+  "linorder_pred (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
+  by unfold_locales
+    (simp add: less_le, auto intro: antisym order_trans simp add: linear)
+
+
 text {* min/max properties *}
 
 lemma min_le_iff_disj:
@@ -288,8 +307,7 @@ lemma split_max:
 
 end
 
-
-subsection {* Name duplicates *}
+subsection {* Name duplicates -- including min/max interpretation *}
 
 lemmas order_less_le = less_le
 lemmas order_eq_refl = order_class.eq_refl
@@ -330,6 +348,15 @@ lemmas leI = linorder_class.leI
 lemmas leD = linorder_class.leD
 lemmas not_leE = linorder_class.not_leE
 
+lemmas min_le_iff_disj = linorder_class.min_le_iff_disj [unfolded linorder_class_min]
+lemmas le_max_iff_disj = linorder_class.le_max_iff_disj [unfolded linorder_class_max]
+lemmas min_less_iff_disj = linorder_class.min_less_iff_disj [unfolded linorder_class_min]
+lemmas less_max_iff_disj = linorder_class.less_max_iff_disj [unfolded linorder_class_max]
+lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj [unfolded linorder_class_min]
+lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj [unfolded linorder_class_max]
+lemmas split_min = linorder_class.split_min [unfolded linorder_class_min]
+lemmas split_max = linorder_class.split_max [unfolded linorder_class_max]
+
 
 subsection {* Reasoning tools setup *}
 
@@ -346,18 +373,18 @@ fun decomp_gen sort thy (Trueprop $ t) =
         T <> HOLogic.natT andalso T <> HOLogic.intT
           andalso T <> HOLogic.realT andalso Sign.of_sort thy (T, sort)
       end;
-    fun dec (Const ("Not", _) $ t) = (case dec t
+    fun dec (Const (@{const_name Not}, _) $ t) = (case dec t
           of NONE => NONE
            | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
-      | dec (Const ("op =",  _) $ t1 $ t2) =
+      | dec (Const (@{const_name "op ="},  _) $ t1 $ t2) =
           if of_sort t1
           then SOME (t1, "=", t2)
           else NONE
-      | dec (Const ("Orderings.less_eq",  _) $ t1 $ t2) =
+      | dec (Const (@{const_name less_eq},  _) $ t1 $ t2) =
           if of_sort t1
           then SOME (t1, "<=", t2)
           else NONE
-      | dec (Const ("Orderings.less",  _) $ t1 $ t2) =
+      | dec (Const (@{const_name less},  _) $ t1 $ t2) =
           if of_sort t1
           then SOME (t1, "<", t2)
           else NONE
@@ -417,7 +444,7 @@ fun prp t thm = (#prop (rep_thm thm) = t);
 
 fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
   let val prems = prems_of_ss ss;
-      val less = Const("Orderings.less",T);
+      val less = Const (@{const_name less}, T);
       val t = HOLogic.mk_Trueprop(le $ s $ r);
   in case find_first (prp t) prems of
        NONE =>
@@ -432,7 +459,7 @@ fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
 
 fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
   let val prems = prems_of_ss ss;
-      val le = Const("Orderings.less_eq",T);
+      val le = Const (@{const_name less_eq}, T);
       val t = HOLogic.mk_Trueprop(le $ r $ s);
   in case find_first (prp t) prems of
        NONE =>
@@ -521,12 +548,12 @@ translations
 
 print_translation {*
 let
-  val All_binder = Syntax.binder_name @{const_syntax "All"};
-  val Ex_binder = Syntax.binder_name @{const_syntax "Ex"};
+  val All_binder = Syntax.binder_name @{const_syntax All};
+  val Ex_binder = Syntax.binder_name @{const_syntax Ex};
   val impl = @{const_syntax "op -->"};
   val conj = @{const_syntax "op &"};
-  val less = @{const_syntax "less"};
-  val less_eq = @{const_syntax "less_eq"};
+  val less = @{const_syntax less};
+  val less_eq = @{const_syntax less_eq};
 
   val trans =
    [((All_binder, impl, less), ("_All_less", "_All_greater")),
@@ -801,7 +828,7 @@ subsection {* Order on bool *}
 instance bool :: order 
   le_bool_def: "P \<le> Q \<equiv> P \<longrightarrow> Q"
   less_bool_def: "P < Q \<equiv> P \<le> Q \<and> P \<noteq> Q"
-  by default (auto simp add: le_bool_def less_bool_def)
+  by intro_classes (auto simp add: le_bool_def less_bool_def)
 
 lemma le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<le> Q"
   by (simp add: le_bool_def)
@@ -853,15 +880,6 @@ lemma Least_equality:
   apply (rule the_equality)
   apply (auto intro!: order_antisym)
   done
-
-lemmas min_le_iff_disj = linorder_class.min_le_iff_disj [unfolded min_linorder]
-lemmas le_max_iff_disj = linorder_class.le_max_iff_disj [unfolded max_linorder]
-lemmas min_less_iff_disj = linorder_class.min_less_iff_disj [unfolded min_linorder]
-lemmas less_max_iff_disj = linorder_class.less_max_iff_disj [unfolded max_linorder]
-lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj [unfolded min_linorder]
-lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj [unfolded max_linorder]
-lemmas split_min = linorder_class.split_min [unfolded min_linorder]
-lemmas split_max = linorder_class.split_max [unfolded max_linorder]
 
 lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
   by (simp add: min_def)

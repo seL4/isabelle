@@ -34,7 +34,7 @@ notation
 instance nat :: "Divides.div"
   mod_def: "m mod n == wfrec (pred_nat^+)
                           (%f j. if j<n | n=0 then j else f (j-n)) m"
-  div_def:   "m div n == wfrec (pred_nat^+)
+  div_def: "m div n == wfrec (pred_nat^+)
                           (%f j. if j<n | n=0 then 0 else Suc (f (j-n))) m" ..
 
 definition

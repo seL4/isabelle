@@ -7,7 +7,6 @@ header {* Map operations implemented on association lists*}
 
 theory AssocList 
 imports Map
-
 begin
 
 text {*
@@ -541,32 +540,20 @@ lemma merge_append: "map_of (xs@ys) = map_of (merge ys xs)"
 subsection {* @{const compose} *}
 (* ******************************************************************************** *)
 
-lemma compose_induct [case_names Nil Cons]: 
-  fixes xs ys
-  assumes Nil: "P [] ys"
-  assumes Cons: "\<And>x xs.
-     (\<And>v. map_of ys (snd x) = Some v \<Longrightarrow> P xs ys)
-     \<Longrightarrow> (map_of ys (snd x) = None \<Longrightarrow> P (delete (fst x) xs) ys)
-     \<Longrightarrow> P (x # xs) ys"
-  shows "P xs ys"
-by (induct xs rule: compose.induct [where ?P="\<lambda>xs zs. P xs ys"])
-  (auto intro: Nil Cons)
 lemma compose_first_None [simp]: 
   assumes "map_of xs k = None" 
   shows "map_of (compose xs ys) k = None"
-using prems
-by (induct xs ys rule: compose_induct) (auto split: option.splits split_if_asm)
+using prems by (induct xs ys rule: compose.induct)
+  (auto split: option.splits split_if_asm)
 
 lemma compose_conv: 
   shows "map_of (compose xs ys) k = (map_of ys \<circ>\<^sub>m map_of xs) k"
-proof (induct xs ys rule: compose_induct)
-  case Nil thus ?case by simp
+proof (induct xs ys rule: compose.induct)
+  case 1 then show ?case by simp
 next
-  case (Cons x xs)
-  show ?case
+  case (2 x xs ys) show ?case
   proof (cases "map_of ys (snd x)")
-    case None
-    with Cons
+    case None with 2
     have hyp: "map_of (compose (delete (fst x) xs) ys) k =
                (map_of ys \<circ>\<^sub>m map_of (delete (fst x) xs)) k"
       by simp
@@ -589,7 +576,7 @@ next
     qed
   next
     case (Some v)
-    with Cons
+    with 2
     have "map_of (compose xs ys) k = (map_of ys \<circ>\<^sub>m map_of xs) k"
       by simp
     with Some show ?thesis
@@ -607,14 +594,14 @@ lemma compose_first_Some [simp]:
 using prems by (simp add: compose_conv)
 
 lemma dom_compose: "fst ` set (compose xs ys) \<subseteq> fst ` set xs"
-proof (induct xs ys rule: compose_induct)
-  case Nil thus ?case by simp
+proof (induct xs ys rule: compose.induct)
+  case 1 thus ?case by simp
 next
-  case (Cons x xs)
+  case (2 x xs ys)
   show ?case
   proof (cases "map_of ys (snd x)")
     case None
-    with Cons.hyps
+    with "2.hyps"
     have "fst ` set (compose (delete (fst x) xs) ys) \<subseteq> fst ` set (delete (fst x) xs)"
       by simp
     also
@@ -625,7 +612,7 @@ next
       by auto
   next
     case (Some v)
-    with Cons.hyps
+    with "2.hyps"
     have "fst ` set (compose xs ys) \<subseteq> fst ` set xs"
       by simp
     with Some show ?thesis
@@ -637,30 +624,30 @@ lemma distinct_compose:
  assumes "distinct (map fst xs)"
  shows "distinct (map fst (compose xs ys))"
 using prems
-proof (induct xs ys rule: compose_induct)
-  case Nil thus ?case by simp
+proof (induct xs ys rule: compose.induct)
+  case 1 thus ?case by simp
 next
-  case (Cons x xs)
+  case (2 x xs ys)
   show ?case
   proof (cases "map_of ys (snd x)")
     case None
-    with Cons show ?thesis by simp
+    with 2 show ?thesis by simp
   next
     case (Some v)
-    with Cons dom_compose [of xs ys] show ?thesis 
+    with 2 dom_compose [of xs ys] show ?thesis 
       by (auto)
   qed
 qed
 
 lemma compose_delete_twist: "(compose (delete k xs) ys) = delete k (compose xs ys)"
-proof (induct xs ys rule: compose_induct)
-  case Nil thus ?case by simp
+proof (induct xs ys rule: compose.induct)
+  case 1 thus ?case by simp
 next
-  case (Cons x xs)
+  case (2 x xs ys)
   show ?case
   proof (cases "map_of ys (snd x)")
     case None
-    with Cons have 
+    with 2 have 
       hyp: "compose (delete k (delete (fst x) xs)) ys =
             delete k (compose (delete (fst x) xs) ys)"
       by simp
@@ -678,14 +665,14 @@ next
     qed
   next
     case (Some v)
-    with Cons have hyp: "compose (delete k xs) ys = delete k (compose xs ys)" by simp
+    with 2 have hyp: "compose (delete k xs) ys = delete k (compose xs ys)" by simp
     with Some show ?thesis
       by simp
   qed
 qed
 
 lemma compose_clearjunk: "compose xs (clearjunk ys) = compose xs ys"
-  by (induct xs ys rule: compose_induct) 
+  by (induct xs ys rule: compose.induct) 
      (auto simp add: map_of_clearjunk split: option.splits)
    
 lemma clearjunk_compose: "clearjunk (compose xs ys) = compose (clearjunk xs) ys"
@@ -695,8 +682,7 @@ lemma clearjunk_compose: "clearjunk (compose xs ys) = compose (clearjunk xs) ys"
    
 lemma compose_empty [simp]:
  "compose xs [] = []"
-  by (induct xs rule: compose_induct [where ys="[]"]) auto
-
+  by (induct xs) (auto simp add: compose_delete_twist)
 
 lemma compose_Some_iff:
   "(map_of (compose xs ys) k = Some v) = 
