@@ -20,7 +20,9 @@ subsection {* Terms in normal form *}
 
 definition
   listall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  [extraction_expand]: "listall P xs \<equiv> (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
+  "listall P xs \<equiv> (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
+
+declare listall_def [extraction_expand]
 
 theorem listall_nil: "listall P []"
   by (simp add: listall_def)
