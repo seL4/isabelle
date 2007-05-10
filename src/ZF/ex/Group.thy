@@ -64,13 +64,13 @@ lemma update_carrier_eq [simp]: "update_carrier(<A,Z>,B) = <B,Z>"
   by (simp add: update_carrier_def)
 
 lemma carrier_update_carrier [simp]: "carrier(update_carrier(M,B)) = B"
-by (simp add: update_carrier_def) 
+  by (simp add: update_carrier_def) 
 
 lemma mult_update_carrier [simp]: "mmult(update_carrier(M,B),x,y) = mmult(M,x,y)"
-by (simp add: update_carrier_def mmult_def) 
+  by (simp add: update_carrier_def mmult_def) 
 
 lemma one_update_carrier [simp]: "one(update_carrier(M,B)) = one(M)"
-by (simp add: update_carrier_def one_def) 
+  by (simp add: update_carrier_def one_def) 
 
 
 lemma (in monoid) inv_unique:
@@ -92,7 +92,7 @@ locale group = monoid +
   assumes inv_ex:
      "\<And>x. x \<in> carrier(G) \<Longrightarrow> \<exists>y \<in> carrier(G). y \<cdot> x = \<one> & x \<cdot> y = \<one>"
 
-lemma (in group) is_group [simp]: "group(G)" .
+lemma (in group) is_group [simp]: "group(G)" by fact
 
 theorem groupI:
   includes struct G
@@ -308,7 +308,7 @@ definition
 lemma DirProdGroup_group:
   includes group G + group H
   shows "group (G \<Otimes> H)"
-by (force intro!: groupI G.m_assoc H.m_assoc G.l_inv H.l_inv
+  by (force intro!: groupI G.m_assoc H.m_assoc G.l_inv H.l_inv
           simp add: DirProdGroup_def)
 
 lemma carrier_DirProdGroup [simp]:
@@ -322,7 +322,7 @@ lemma one_DirProdGroup [simp]:
 lemma mult_DirProdGroup [simp]:
      "[|g \<in> carrier(G); h \<in> carrier(H); g' \<in> carrier(G); h' \<in> carrier(H)|]
       ==> <g, h> \<cdot>\<^bsub>G \<Otimes> H\<^esub> <g', h'> = <g \<cdot>\<^bsub>G\<^esub> g', h \<cdot>\<^bsub>H\<^esub> h'>"
-by (simp add: DirProdGroup_def)
+  by (simp add: DirProdGroup_def)
 
 lemma inv_DirProdGroup [simp]:
   includes group G + group H
@@ -366,7 +366,7 @@ definition
   "G \<cong> H == hom(G,H) \<inter> bij(carrier(G), carrier(H))"
 
 lemma (in group) iso_refl: "id(carrier(G)) \<in> G \<cong> G"
-by (simp add: iso_def hom_def id_type id_bij) 
+  by (simp add: iso_def hom_def id_type id_bij) 
 
 
 lemma (in group) iso_sym:
@@ -380,18 +380,18 @@ done
 
 lemma (in group) iso_trans: 
      "\<lbrakk>h \<in> G \<cong> H; i \<in> H \<cong> I\<rbrakk> \<Longrightarrow> i O h \<in> G \<cong> I"
-by (auto simp add: iso_def hom_compose comp_bij)
+  by (auto simp add: iso_def hom_compose comp_bij)
 
 lemma DirProdGroup_commute_iso:
   includes group G + group H
   shows "(\<lambda><x,y> \<in> carrier(G \<Otimes> H). <y,x>) \<in> (G \<Otimes> H) \<cong> (H \<Otimes> G)"
-by (auto simp add: iso_def hom_def inj_def surj_def bij_def) 
+  by (auto simp add: iso_def hom_def inj_def surj_def bij_def) 
 
 lemma DirProdGroup_assoc_iso:
   includes group G + group H + group I
   shows "(\<lambda><<x,y>,z> \<in> carrier((G \<Otimes> H) \<Otimes> I). <x,<y,z>>)
           \<in> ((G \<Otimes> H) \<Otimes> I) \<cong> (G \<Otimes> (H \<Otimes> I))"
-by (auto intro: lam_type simp add: iso_def hom_def inj_def surj_def bij_def) 
+  by (auto intro: lam_type simp add: iso_def hom_def inj_def surj_def bij_def) 
 
 text{*Basis for homomorphism proofs: we assume two groups @{term G} and
   @term{H}, with a homomorphism @{term h} between them*}
@@ -1003,7 +1003,7 @@ lemma (in subgroup) subgroup_in_rcosets:
   shows "H \<in> rcosets H"
 proof -
   have "H #> \<one> = H"
-    by (rule coset_join2, auto)
+    using _ `subgroup(H, G)` by (rule coset_join2) simp_all
   then show ?thesis
     by (auto simp add: RCOSETS_def intro: sym)
 qed

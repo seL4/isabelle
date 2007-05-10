@@ -187,11 +187,11 @@ proof -
 	  have "f i * g (k-i) = 0"
 	  proof cases
 	    assume "n < i"
-	    show ?thesis by (auto! simp add: ring_simps)
+	    with `bound n f` show ?thesis by (auto simp add: ring_simps)
 	  next
 	    assume "~ (n < i)"
 	    with bound have "m < k-i" by arith
-	    then show ?thesis by (auto! simp add: ring_simps)
+	    with `bound m g` show ?thesis by (auto simp add: ring_simps)
 	  qed
 	}
 	then show "setsum (%i. f i * g (k-i)) {..k} = 0"

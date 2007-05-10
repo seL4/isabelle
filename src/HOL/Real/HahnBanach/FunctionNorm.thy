@@ -266,6 +266,6 @@ proof (rule fn_norm_leastB [folded B_def fn_norm_def])
     qed
     finally show ?thesis .
   qed
-qed (simp_all! add: continuous_def)
+qed (insert `continuous V norm f`, simp_all add: continuous_def)
 
 end

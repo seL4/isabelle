@@ -676,37 +676,37 @@ subsection {* Atomizing meta-level rules *}
 lemma atomize_all [atomize]: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
 proof
   assume "!!x. P(x)"
-  show "ALL x. P(x)" ..
+  then show "ALL x. P(x)" ..
 next
   assume "ALL x. P(x)"
-  thus "!!x. P(x)" ..
+  then show "!!x. P(x)" ..
 qed
 
 lemma atomize_imp [atomize]: "(A ==> B) == Trueprop (A --> B)"
 proof
   assume "A ==> B"
-  thus "A --> B" ..
+  then show "A --> B" ..
 next
   assume "A --> B" and A
-  thus B by (rule mp)
+  then show B by (rule mp)
 qed
 
 lemma atomize_eq [atomize]: "(x == y) == Trueprop (x = y)"
 proof
   assume "x == y"
-  show "x = y" by (unfold prems) (rule refl)
+  show "x = y" unfolding `x == y` by (rule refl)
 next
   assume "x = y"
-  thus "x == y" by (rule eq_reflection)
+  then show "x == y" by (rule eq_reflection)
 qed
 
 lemma atomize_iff [atomize]: "(A == B) == Trueprop (A <-> B)"
 proof
   assume "A == B"
-  show "A <-> B" by (unfold prems) (rule iff_refl)
+  show "A <-> B" unfolding `A == B` by (rule iff_refl)
 next
   assume "A <-> B"
-  thus "A == B" by (rule iff_reflection)
+  then show "A == B" by (rule iff_reflection)
 qed
 
 lemma atomize_conj [atomize]:

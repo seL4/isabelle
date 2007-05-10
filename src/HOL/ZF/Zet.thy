@@ -53,7 +53,7 @@ lemma Inv_f_f_mem:
   shows "Inv A g (g x) \<in> A"
   apply (simp add: Inv_def)
   apply (rule someI2)
-  apply (auto!)
+  using `x \<in> A` apply auto
   done
 
 lemma zet_image_mem:
