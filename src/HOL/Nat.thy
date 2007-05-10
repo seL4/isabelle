@@ -1266,6 +1266,9 @@ primrec
   of_nat_0:   "of_nat 0 = 0"
   of_nat_Suc: "of_nat (Suc m) = of_nat m + 1"
 
+lemma of_nat_id [simp]: "(of_nat n \<Colon> nat) = n"
+  by (induct n) auto
+
 lemma of_nat_1 [simp]: "of_nat 1 = 1"
   by simp
 
@@ -1342,7 +1345,7 @@ instance nat :: distrib_lattice
 
 subsection {* Size function *}
 
-lemma nat_size [simp]: "size (n::nat) = n"
+lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
 
 end
