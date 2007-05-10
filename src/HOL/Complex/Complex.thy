@@ -447,15 +447,6 @@ by (rule order_trans [OF _ norm_ge_zero], simp)
 lemma complex_mod_triangle_ineq2 [simp]: "cmod(b + a) - cmod b \<le> cmod a"
 by (rule ord_le_eq_trans [OF norm_triangle_ineq2], simp)
 
-lemma complex_mod_diff_ineq [simp]: "cmod(a) - cmod(b) \<le> cmod(a + b)"
-(* TODO: generalize *)
-proof -
-  have "cmod a - cmod b = cmod a - cmod (- b)" by simp
-  also have "\<dots> \<le> cmod (a - - b)" by (rule norm_triangle_ineq2)
-  also have "\<dots> = cmod (a + b)" by simp
-  finally show ?thesis .
-qed
-
 lemmas real_sum_squared_expand = power2_sum [where 'a=real]
 
 
@@ -560,9 +551,6 @@ by (simp add: complex_of_real_def i_def diff_minus divide_inverse)
 (* Many of the theorems below need to be moved elsewhere e.g. Transc. Also *)
 (* many of the theorems are not used - so should they be kept?                *)
 (*----------------------------------------------------------------------------*)
-
-lemma complex_of_real_zero_iff: "(complex_of_real y = 0) = (y = 0)"
-by (rule of_real_eq_0_iff)
 
 lemma cos_arg_i_mult_zero_pos:
    "0 < y ==> cos (arg(Complex 0 y)) = 0"
@@ -739,9 +727,7 @@ defs (overloaded)
 instance complex :: number_ring
 by (intro_classes, simp add: complex_number_of_def)
 
-
-text{*Collapse applications of @{term complex_of_real} to @{term number_of}*}
-lemma complex_number_of [simp]: "complex_of_real (number_of w) = number_of w"
+lemma complex_number_of: "complex_of_real (number_of w) = number_of w"
 by (rule of_real_number_of_eq)
 
 lemma complex_number_of_cnj [simp]: "cnj(number_of v :: complex) = number_of v"

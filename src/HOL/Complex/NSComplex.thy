@@ -349,7 +349,7 @@ lemma hcmod_triangle_ineq2 [simp]:
 by transfer (rule complex_mod_triangle_ineq2)
 
 lemma hcmod_diff_ineq [simp]: "!!a b. hcmod(a) - hcmod(b) \<le> hcmod(a + b)"
-by transfer (rule complex_mod_diff_ineq)
+by transfer (rule norm_diff_ineq)
 
 
 subsection{*Exponentiation*}
