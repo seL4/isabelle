@@ -1148,7 +1148,7 @@ lemma setsum_mono3: "finite B ==> A <= B ==>
 done
 
 lemma setsum_right_distrib: 
-  fixes f :: "'a => ('b::semiring_0_cancel)"
+  fixes f :: "'a => ('b::semiring_0)"
   shows "r * setsum f A = setsum (%n. r * f n) A"
 proof (cases "finite A")
   case True
@@ -1163,7 +1163,7 @@ next
 qed
 
 lemma setsum_left_distrib:
-  "setsum f A * (r::'a::semiring_0_cancel) = (\<Sum>n\<in>A. f n * r)"
+  "setsum f A * (r::'a::semiring_0) = (\<Sum>n\<in>A. f n * r)"
 proof (cases "finite A")
   case True
   then show ?thesis
@@ -1270,7 +1270,7 @@ proof (simp add: setsum_cartesian_product)
 qed
 
 lemma setsum_product:
-  fixes f :: "'a => ('b::semiring_0_cancel)"
+  fixes f :: "'a => ('b::semiring_0)"
   shows "setsum f A * setsum g B = (\<Sum>i\<in>A. \<Sum>j\<in>B. f i * g j)"
   by (simp add: setsum_right_distrib setsum_left_distrib) (rule setsum_commute)
 
