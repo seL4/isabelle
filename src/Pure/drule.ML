@@ -97,6 +97,8 @@ sig
   val del_rule: thm -> thm list -> thm list
   val merge_rules: thm list * thm list -> thm list
   val imp_cong_rule: thm -> thm -> thm
+  val fun_cong_rule: cterm -> thm -> thm
+  val arg_cong_rule: thm -> cterm -> thm
   val beta_eta_conversion: cterm -> thm
   val eta_long_conversion: cterm -> thm
   val eta_contraction_rule: thm -> thm
@@ -579,7 +581,10 @@ val swap_prems_eq =
         (implies_elim (implies_elim (assume BAC) (assume B)) (assume A))))))
   end;
 
-val imp_cong_rule = combination o combination (reflexive implies);
+val imp_cong_rule = Thm.combination o Thm.combination (Thm.reflexive implies);
+
+fun arg_cong_rule ct th = Thm.combination (Thm.reflexive ct) th;    (*AP_TERM*)
+fun fun_cong_rule th ct = Thm.combination th (Thm.reflexive ct);    (*AP_THM*)
 
 local
   val dest_eq = Thm.dest_equals o cprop_of
