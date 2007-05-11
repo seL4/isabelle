@@ -5,20 +5,20 @@
 Conversions: primitive equality reasoning.
 *)
 
-infix 1 thenc;
-infix 0 orelsec;
+infix 1 then_conv;
+infix 0 else_conv;
 
 signature CONV =
 sig
   type conv = cterm -> thm
   val no_conv: conv
   val all_conv: conv
-  val thenc: conv * conv -> conv
-  val orelsec: conv * conv -> conv
+  val then_conv: conv * conv -> conv
+  val else_conv: conv * conv -> conv
   val first_conv: conv list -> conv
   val every_conv: conv list -> conv
-  val tryc: conv -> conv
-  val repeatc: conv -> conv
+  val try_conv: conv -> conv
+  val repeat_conv: conv -> conv
   val cache_conv: conv -> conv
   val abs_conv: conv -> conv
   val combination_conv: conv -> conv -> conv
@@ -46,7 +46,7 @@ val all_conv = Thm.reflexive;
 
 val is_refl = op aconv o Logic.dest_equals o Thm.prop_of;
 
-fun (cv1 thenc cv2) ct =
+fun (cv1 then_conv cv2) ct =
   let
     val eq1 = cv1 ct;
     val eq2 = cv2 (Thm.rhs_of eq1);
@@ -56,14 +56,14 @@ fun (cv1 thenc cv2) ct =
     else Thm.transitive eq1 eq2
   end;
 
-fun (cv1 orelsec cv2) ct =
+fun (cv1 else_conv cv2) ct =
   (case try cv1 ct of SOME eq => eq | NONE => cv2 ct);
 
-fun first_conv cvs = fold_rev (curry op orelsec) cvs no_conv;
-fun every_conv cvs = fold_rev (curry op thenc) cvs all_conv;
+fun first_conv cvs = fold_rev (curry op else_conv) cvs no_conv;
+fun every_conv cvs = fold_rev (curry op then_conv) cvs all_conv;
 
-fun tryc cv = cv orelsec all_conv;
-fun repeatc cv ct = tryc (cv thenc repeatc cv) ct;
+fun try_conv cv = cv else_conv all_conv;
+fun repeat_conv cv ct = try_conv (cv then_conv repeat_conv cv) ct;
 
 fun cache_conv cv =
   let
