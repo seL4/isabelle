@@ -97,8 +97,8 @@ sig
   val del_rule: thm -> thm list -> thm list
   val merge_rules: thm list * thm list -> thm list
   val imp_cong_rule: thm -> thm -> thm
-  val fun_cong_rule: cterm -> thm -> thm
-  val arg_cong_rule: thm -> cterm -> thm
+  val arg_cong_rule: cterm -> thm -> thm
+  val fun_cong_rule: thm -> cterm -> thm
   val beta_eta_conversion: cterm -> thm
   val eta_long_conversion: cterm -> thm
   val eta_contraction_rule: thm -> thm
