@@ -72,7 +72,8 @@ fun (f ##>> g) x = x |> f ||>> g;
 fun `f = fn x => (f x, x);
 fun tap f = fn x => (f x; x);
 
-fun flip f x y = f y x
+fun flip f x y = f y x;
+
 
 (* options *)
 
