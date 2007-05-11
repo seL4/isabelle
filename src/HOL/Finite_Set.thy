@@ -2397,20 +2397,14 @@ text {*
 *}
 
 lemma (in complete_lattice) Inf_fold1:
-  assumes fin: "finite A"
-  and nonempty: "A \<noteq> {}"
-  shows "\<Sqinter>A = fold1 (op \<sqinter>) A"
-using fin nonempty 
+  "finite A \<Longrightarrow>  A \<noteq> {} \<Longrightarrow> \<Sqinter>A = fold1 (op \<sqinter>) A"
 by (induct A set: finite)
-  (simp_all add: Inf_insert_simp ACIf.fold1_insert_idem [OF ACIf_inf])
+   (simp_all add: Inf_insert_simp ACIf.fold1_insert_idem [OF ACIf_inf])
 
 lemma (in complete_lattice) Sup_fold1:
-  assumes fin: "finite A"
-  and nonempty: "A \<noteq> {}"
-  shows "\<Squnion>A = fold1 (op \<squnion>) A"
-using fin nonempty 
+"finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Squnion>A = fold1 (op \<squnion>) A"
 by (induct A set: finite)
-  (simp_all add: Sup_insert_simp ACIf.fold1_insert_idem [OF ACIf_sup])
+   (simp_all add: Sup_insert_simp ACIf.fold1_insert_idem [OF ACIf_sup])
 
 
 subsubsection {* Fold1 in linear orders with @{const min} and @{const max} *}
