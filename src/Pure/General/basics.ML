@@ -23,6 +23,7 @@ sig
   val ##>> : ('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd
   val ` : ('b -> 'a) -> 'b -> 'a * 'b
   val tap: ('b -> 'a) -> 'b -> 'b
+  val flip: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 
   (*options*)
   val is_some: 'a option -> bool
@@ -71,6 +72,7 @@ fun (f ##>> g) x = x |> f ||>> g;
 fun `f = fn x => (f x, x);
 fun tap f = fn x => (f x; x);
 
+fun flip f x y = f y x
 
 (* options *)
 
