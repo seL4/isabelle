@@ -2221,6 +2221,10 @@ done
 
 subsubsection {* @{const allpairs} *}
 
+lemma allpairs_conv_concat:
+ "allpairs f xs ys = concat(map (%x. map (f x) ys) xs)"
+by(induct xs) auto
+
 lemma allpairs_append:
  "allpairs f (xs @ ys) zs = allpairs f xs zs @ allpairs f ys zs"
 by(induct xs) auto
