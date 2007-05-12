@@ -32,6 +32,14 @@ qed
 lemma (in additive) diff: "f (x - y) = f x - f y"
 by (simp add: diff_def add minus)
 
+lemma (in additive) setsum: "f (setsum g A) = (\<Sum>x\<in>A. f (g x))"
+apply (cases "finite A")
+apply (induct set: finite)
+apply (simp add: zero)
+apply (simp add: add)
+apply (simp add: zero)
+done
+
 
 subsection {* Real vector spaces *}
 
