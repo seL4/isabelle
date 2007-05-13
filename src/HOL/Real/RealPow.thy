@@ -235,14 +235,4 @@ qed
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
 
-lemma real_num_zero_less_two_pow [simp]: "0 < (2::real) ^ (4*d)"
-by (simp add: zero_less_power)
-
-lemma lemma_realpow_num_two_mono:
-     "x * (4::real)   < y ==> x * (2 ^ 8) < y * (2 ^ 6)"
-apply (subgoal_tac " (2::real) ^ 8 = 4 * (2 ^ 6) ")
-apply (simp (no_asm_simp) add: real_mult_assoc [symmetric])
-apply (auto simp add: realpow_num_eq_if)
-done
-
 end
