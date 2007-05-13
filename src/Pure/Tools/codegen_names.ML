@@ -54,13 +54,10 @@ fun purify_op "0" = "zero"
   | purify_op s =
       let
         fun rep_op "+" = SOME "plus"
-          | rep_op "-" = SOME "minus"
           | rep_op "*" = SOME "times"
-          | rep_op "/" = SOME "divide"
           | rep_op "&" = SOME "and"
           | rep_op "|" = SOME "or"
           | rep_op "=" = SOME "eq"
-          | rep_op "~" = SOME "inv"
           | rep_op "@" = SOME "append"
           | rep_op "{" = SOME "empty"
           | rep_op s = NONE;
