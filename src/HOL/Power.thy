@@ -319,6 +319,11 @@ lemma power_inject_base:
       ==> a = (b::'a::{ordered_semidom,recpower})"
 by (blast intro: power_le_imp_le_base order_antisym order_eq_refl sym)
 
+lemma power_eq_imp_eq_base:
+  fixes a b :: "'a::{ordered_semidom,recpower}"
+  shows "\<lbrakk>a ^ n = b ^ n; 0 \<le> a; 0 \<le> b; 0 < n\<rbrakk> \<Longrightarrow> a = b"
+by (cases n, simp_all, rule power_inject_base)
+
 
 subsection{*Exponentiation for the Natural Numbers*}
 
