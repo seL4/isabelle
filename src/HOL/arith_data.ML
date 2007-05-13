@@ -256,7 +256,7 @@ fun nT (Type ("fun", [N, _])) = (N = HOLogic.natT)
 fun add_atom (t : term) (m : Rat.rat) (p : (term * Rat.rat) list, i : Rat.rat) :
              (term * Rat.rat) list * Rat.rat =
   case AList.lookup (op =) p t of NONE   => ((t, m) :: p, i)
-                                | SOME n => (AList.update (op =) (t, Rat.add (n, m)) p, i);
+                                | SOME n => (AList.update (op =) (t, Rat.add n m) p, i);
 
 exception Zero;
 
@@ -286,11 +286,11 @@ let
   fun demult ((mC as Const ("HOL.times", _)) $ s $ t, m) = (
     (case s of
       Const ("Numeral.number_of", _) $ n =>
-        demult (t, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_numeral n)))
+        demult (t, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
     | Const ("HOL.uminus", _) $ (Const ("Numeral.number_of", _) $ n) =>
-        demult (t, Rat.mult (m, Rat.rat_of_intinf (~(HOLogic.dest_numeral n))))
-    | Const("Suc", _) $ _ =>
-        demult (t, Rat.mult (m, Rat.rat_of_int (number_of_Sucs s)))
+        demult (t, Rat.mult m (Rat.rat_of_int (~(HOLogic.dest_numeral n))))
+    | Const ("Suc", _) $ _ =>
+        demult (t, Rat.mult m (Rat.rat_of_int (HOLogic.dest_nat s)))
     | Const ("HOL.times", _) $ s1 $ s2 =>
         demult (mC $ s1 $ (mC $ s2 $ t), m)
     | Const ("HOL.divide", _) $ numt $ (Const ("Numeral.number_of", _) $ dent) =>
@@ -300,7 +300,7 @@ let
           if den = 0 then
             raise Zero
           else
-            demult (mC $ numt $ t, Rat.mult (m, Rat.inv (Rat.rat_of_intinf den)))
+            demult (mC $ numt $ t, Rat.mult m (Rat.inv (Rat.rat_of_int den)))
         end
     | _ =>
         atomult (mC, s, t, m)
@@ -313,15 +313,15 @@ let
         if den = 0 then
           raise Zero
         else
-          demult (t, Rat.mult (m, Rat.inv (Rat.rat_of_intinf den)))
+          demult (t, Rat.mult m (Rat.inv (Rat.rat_of_int den)))
       end
         handle TERM _ => (SOME atom, m))
-    | demult (Const ("HOL.zero", _), m) = (NONE, Rat.rat_of_int 0)
+    | demult (Const ("HOL.zero", _), m) = (NONE, Rat.zero)
     | demult (Const ("HOL.one", _), m) = (NONE, m)
     | demult (t as Const ("Numeral.number_of", _) $ n, m) =
-        ((NONE, Rat.mult (m, Rat.rat_of_intinf (HOLogic.dest_numeral n)))
-          handle TERM _ => (SOME t,m))
-    | demult (Const ("HOL.uminus", _) $ t, m) = demult(t,Rat.mult(m,Rat.rat_of_int(~1)))
+        ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
+          handle TERM _ => (SOME t, m))
+    | demult (Const ("HOL.uminus", _) $ t, m) = demult (t, Rat.neg m)
     | demult (t as Const f $ x, m) =
         (if f mem inj_consts then SOME x else SOME t, m)
     | demult (atom, m) = (SOME atom, m)
@@ -345,28 +345,28 @@ let
     | poly (Const ("HOL.zero", _), _, pi) =
         pi
     | poly (Const ("HOL.one", _), m, (p, i)) =
-        (p, Rat.add (i, m))
+        (p, Rat.add i m)
     | poly (Const ("Suc", _) $ t, m, (p, i)) =
-        poly (t, m, (p, Rat.add (i, m)))
+        poly (t, m, (p, Rat.add i m))
     | poly (all as Const ("HOL.times", _) $ _ $ _, m, pi as (p, i)) =
         (case demult inj_consts (all, m) of
-           (NONE,   m') => (p, Rat.add (i, m'))
+           (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
     | poly (all as Const ("HOL.divide", _) $ _ $ _, m, pi as (p, i)) =
         (case demult inj_consts (all, m) of
-           (NONE,   m') => (p, Rat.add (i, m'))
+           (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
     | poly (all as Const ("Numeral.number_of", Type(_,[_,T])) $ t, m, pi as (p, i)) =
         (let val k = HOLogic.dest_numeral t
             val k2 = if k < 0 andalso T = HOLogic.natT then 0 else k
-        in (p, Rat.add (i, Rat.mult (m, Rat.rat_of_intinf k2))) end
+        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k2))) end
         handle TERM _ => add_atom all m pi)
     | poly (all as Const f $ x, m, pi) =
         if f mem inj_consts then poly (x, m, pi) else add_atom all m pi
     | poly (all, m, pi) =
         add_atom all m pi
-  val (p, i) = poly (lhs, Rat.rat_of_int 1, ([], Rat.rat_of_int 0))
-  val (q, j) = poly (rhs, Rat.rat_of_int 1, ([], Rat.rat_of_int 0))
+  val (p, i) = poly (lhs, Rat.one, ([], Rat.zero))
+  val (q, j) = poly (rhs, Rat.one, ([], Rat.zero))
 in
   case rel of
     "Orderings.less"    => SOME (p, i, "<", q, j)
