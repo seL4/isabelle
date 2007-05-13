@@ -17,109 +17,84 @@ struct
 exception CRing of string;
 
 (* Zero and One of the commutative ring *)
-fun cring_zero T = Const("HOL.zero",T);
-fun cring_one T = Const("HOL.one",T);
+fun cring_zero T = Const (@{const_name "HOL.zero"}, T);
+fun cring_one T = Const (@{const_name "HOL.one"}, T);
 
 (* reification functions *)
 (* add two polynom expressions *)
-fun polT t = Type ("Commutative_Ring.pol",[t]);
-fun polexT t = Type("Commutative_Ring.polex",[t]);
-val nT = HOLogic.natT;
-fun listT T = Type ("List.list",[T]);
-
-(* Reification of the constructors *)
-(* Nat*)
-val succ = Const("Suc",nT --> nT);
-val zero = Const("HOL.zero",nT);
-val one = Const("HOL.one",nT);
-
-(* Lists *)
-fun reif_list T [] = Const("List.list.Nil",listT T)
-  | reif_list T (x::xs) = Const("List.list.Cons",[T,listT T] ---> listT T)
-                             $x$(reif_list T xs);
+fun polT t = Type ("Commutative_Ring.pol", [t]);
+fun polexT t = Type ("Commutative_Ring.polex", [t]);
 
 (* pol *)
-fun pol_Pc t = Const("Commutative_Ring.pol.Pc",t --> polT t);
-fun pol_Pinj t = Const("Commutative_Ring.pol.Pinj",[nT,polT t] ---> polT t);
-fun pol_PX t = Const("Commutative_Ring.pol.PX",[polT t, nT, polT t] ---> polT t);
+fun pol_Pc t = Const ("Commutative_Ring.pol.Pc", t --> polT t);
+fun pol_Pinj t = Const ("Commutative_Ring.pol.Pinj", HOLogic.natT --> polT t --> polT t);
+fun pol_PX t = Const ("Commutative_Ring.pol.PX", polT t --> HOLogic.natT --> polT t --> polT t);
 
 (* polex *)
-fun polex_add t = Const("Commutative_Ring.polex.Add",[polexT t,polexT t] ---> polexT t);
-fun polex_sub t = Const("Commutative_Ring.polex.Sub",[polexT t,polexT t] ---> polexT t);
-fun polex_mul t = Const("Commutative_Ring.polex.Mul",[polexT t,polexT t] ---> polexT t);
-fun polex_neg t = Const("Commutative_Ring.polex.Neg",polexT t --> polexT t);
-fun polex_pol t = Const("Commutative_Ring.polex.Pol",polT t --> polexT t);
-fun polex_pow t = Const("Commutative_Ring.polex.Pow",[polexT t, nT] ---> polexT t);
-
-(* reification of natural numbers *)
-fun reif_nat n =
-    if n>0 then succ$(reif_nat (n-1))
-    else if n=0 then zero
-    else raise CRing "ring_tac: reif_nat negative n";
+fun polex_add t = Const ("Commutative_Ring.polex.Add", polexT t --> polexT t --> polexT t);
+fun polex_sub t = Const ("Commutative_Ring.polex.Sub", polexT t --> polexT t --> polexT t);
+fun polex_mul t = Const ("Commutative_Ring.polex.Mul", polexT t --> polexT t --> polexT t);
+fun polex_neg t = Const ("Commutative_Ring.polex.Neg", polexT t --> polexT t);
+fun polex_pol t = Const ("Commutative_Ring.polex.Pol", polT t --> polexT t);
+fun polex_pow t = Const ("Commutative_Ring.polex.Pow", polexT t --> HOLogic.natT --> polexT t);
 
 (* reification of polynoms : primitive cring expressions *)
-fun reif_pol T vs t =
-    case t of
-       Free(_,_) =>
-        let val i = find_index_eq t vs
-        in if i = 0
-           then (pol_PX T)$((pol_Pc T)$ (cring_one T))
-                          $one$((pol_Pc T)$(cring_zero T))
-           else (pol_Pinj T)$(reif_nat i)$
-                            ((pol_PX T)$((pol_Pc T)$ (cring_one T))
-                                       $one$
-                                       ((pol_Pc T)$(cring_zero T)))
+fun reif_pol T vs (t as Free _) =
+      let
+        val one = @{term "1::nat"};
+        val i = find_index_eq t vs
+      in if i = 0
+        then pol_PX T $ (pol_Pc T $ cring_one T)
+          $ one $ (pol_Pc T $ cring_zero T)
+        else pol_Pinj T $ HOLogic.mk_nat i
+          $ (pol_PX T $ (pol_Pc T $ cring_one T)
+            $ one $ (pol_Pc T $ cring_zero T))
         end
-      | _ => (pol_Pc T)$ t;
-
+  | reif_pol T vs t = pol_Pc T $ t;
 
 (* reification of polynom expressions *)
-fun reif_polex T vs t =
-    case t of
-        Const("HOL.plus",_)$a$b => (polex_add T)
-                                   $ (reif_polex T vs a)$(reif_polex T vs b)
-      | Const("HOL.minus",_)$a$b => (polex_sub T)
-                                   $ (reif_polex T vs a)$(reif_polex T vs b)
-      | Const("HOL.times",_)$a$b =>  (polex_mul T)
-                                    $ (reif_polex T vs a)$ (reif_polex T vs b)
-      | Const("HOL.uminus",_)$a => (polex_neg T)
-                                   $ (reif_polex T vs a)
-      | (Const("Nat.power",_)$a$n) => (polex_pow T) $ (reif_polex T vs a) $ n
-
-      | _ => (polex_pol T) $ (reif_pol T vs t);
+fun reif_polex T vs (Const (@{const_name "HOL.plus"}, _) $ a $ b) =
+      polex_add T $ reif_polex T vs a $ reif_polex T vs b
+  | reif_polex T vs (Const (@{const_name "HOL.minus"}, _) $ a $ b) =
+      polex_sub T $ reif_polex T vs a $ reif_polex T vs b
+  | reif_polex T vs (Const (@{const_name "HOL.times"}, _) $ a $ b) =
+      polex_mul T $ reif_polex T vs a $ reif_polex T vs b
+  | reif_polex T vs (Const (@{const_name "HOL.uminus"}, _) $ a) =
+      polex_neg T $ reif_polex T vs a
+  | reif_polex T vs (Const (@{const_name "Nat.power"}, _) $ a $ n) =
+      polex_pow T $ reif_polex T vs a $ n
+  | reif_polex T vs t = polex_pol T $ reif_pol T vs t;
 
 (* reification of the equation *)
-val cr_sort = Sign.read_sort (the_context ()) "{comm_ring,recpower}";
-fun reif_eq thy (eq as Const("op =",Type("fun",a::_))$lhs$rhs) =
-    if Sign.of_sort thy (a,cr_sort)
-    then
-        let val fs = term_frees eq
-            val cvs = cterm_of thy (reif_list a fs)
-            val clhs = cterm_of thy (reif_polex a fs lhs)
-            val crhs = cterm_of thy (reif_polex a fs rhs)
-            val ca = ctyp_of thy a
-        in (ca,cvs,clhs, crhs)
-        end
-    else raise CRing "reif_eq: not an equation over comm_ring + recpower"
+val TFree (_, cr_sort) = @{typ "'a :: {comm_ring, recpower}"};
+
+fun reif_eq thy (eq as Const("op =", Type("fun", [T, _])) $ lhs $ rhs) =
+      if Sign.of_sort thy (T, cr_sort) then
+        let
+          val fs = term_frees eq;
+          val cvs = cterm_of thy (HOLogic.mk_list T fs);
+          val clhs = cterm_of thy (reif_polex T fs lhs);
+          val crhs = cterm_of thy (reif_polex T fs rhs);
+          val ca = ctyp_of thy T;
+        in (ca, cvs, clhs, crhs) end
+      else raise CRing ("reif_eq: not an equation over " ^ Sign.string_of_sort thy cr_sort)
   | reif_eq _ _ = raise CRing "reif_eq: not an equation";
 
-(*The cring tactic  *)
+(* The cring tactic *)
 (* Attention: You have to make sure that no t^0 is in the goal!! *)
 (* Use simply rewriting t^0 = 1 *)
 val cring_simps =
-  map thm ["mkPX_def", "mkPinj_def","sub_def", "power_add","even_def","pow_if"] @
-  [sym OF [thm "power_add"]];
-
-val norm_eq = thm "norm_eq"
+  [@{thm mkPX_def}, @{thm mkPinj_def}, @{thm sub_def}, @{thm power_add},
+    @{thm even_def}, @{thm pow_if}, sym OF [@{thm power_add}]];
 
 fun comm_ring_tac ctxt = SUBGOAL (fn (g, i) =>
   let
-    val thy = ProofContext.theory_of ctxt
-    val cring_ss = Simplifier.local_simpset_of ctxt  (* FIXME really the full simpset!? *)
-      addsimps cring_simps
+    val thy = ProofContext.theory_of ctxt;
+    val cring_ss = Simplifier.local_simpset_of ctxt  (*FIXME really the full simpset!?*)
+      addsimps cring_simps;
     val (ca, cvs, clhs, crhs) = reif_eq thy (HOLogic.dest_Trueprop g)
     val norm_eq_th =
-      simplify cring_ss (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] norm_eq)
+      simplify cring_ss (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] @{thm norm_eq})
   in
     cut_rules_tac [norm_eq_th] i
     THEN (simp_tac cring_ss i)

@@ -11,21 +11,19 @@ sig
   exception DIVZERO
   val zero: rat
   val one: rat
-  val rat_of_int: int -> rat
-  val rat_of_intinf: IntInf.int -> rat
-  val rat_of_quotient: IntInf.int * IntInf.int -> rat
-  val quotient_of_rat: rat -> IntInf.int * IntInf.int
+  val two: rat
+  val rat_of_int: Intt.int -> rat
+  val rat_of_quotient: Intt.int * Intt.int -> rat
+  val quotient_of_rat: rat -> Intt.int * Intt.int
   val string_of_rat: rat -> string
   val eq: rat * rat -> bool
-  val le: rat * rat -> bool
-  val lt: rat * rat -> bool
-  val ord: rat * rat -> order
-  val add: rat * rat -> rat
-  val mult: rat * rat -> rat
+  val cmp: rat * rat -> order
+  val le: rat -> rat -> bool
+  val cmp_zero: rat -> order
+  val add: rat -> rat -> rat
+  val mult: rat -> rat -> rat
   val neg: rat -> rat
   val inv: rat -> rat
-  val ge0: rat -> bool
-  val gt0: rat -> bool
   val roundup: rat -> rat
   val rounddown: rat -> rat
 end;
@@ -33,104 +31,95 @@ end;
 structure Rat: RAT =
 struct
 
-(*keep them normalized!*)
-
-datatype rat = Rat of bool * IntInf.int * IntInf.int;
+datatype rat = Rat of bool * Intt.int * Intt.int;
 
 exception DIVZERO;
 
-val zero = Rat (true, IntInf.fromInt 0, IntInf.fromInt 1);
+val zero = Rat (true, Intt.int 0, Intt.int 1);
+val one = Rat (true, Intt.int 1, Intt.int 1);
+val two = Rat (true, Intt.int 2, Intt.int 1);
 
-val one = Rat (true, IntInf.fromInt 1, IntInf.fromInt 1);
-
-fun rat_of_intinf i =
-  if i < IntInf.fromInt 0
-  then Rat (false, ~i, IntInf.fromInt 1)
-  else Rat (true, i, IntInf.fromInt 1);
-
-fun rat_of_int i = rat_of_intinf (IntInf.fromInt i);
+fun rat_of_int i =
+  if i < Intt.int 0
+  then Rat (false, ~i, Intt.int 1)
+  else Rat (true, i, Intt.int 1);
 
 fun norm (a, p, q) =
-  if p = IntInf.fromInt 0 then Rat (true, IntInf.fromInt 0, IntInf.fromInt 1)
+  if p = Intt.int 0 then Rat (true, Intt.int 0, Intt.int 1)
   else
     let
       val absp = abs p
       val m = gcd (absp, q)
-    in Rat(a = (IntInf.fromInt 0 <= p), absp div m, q div m) end;
+    in Rat(a = (Intt.int 0 <= p), absp div m, q div m) end;
 
 fun common (p1, q1, p2, q2) =
   let val q' = lcm (q1, q2)
   in (p1 * (q' div q1), p2 * (q' div q2), q') end
 
 fun rat_of_quotient (p, q) =
-  if q = IntInf.fromInt 0 then raise DIVZERO
-  else norm (IntInf.fromInt 0 <= q, p, abs q);
+  if q = Intt.int 0 then raise DIVZERO
+  else norm (Intt.int 0 <= q, p, abs q);
 
 fun quotient_of_rat (Rat (a, p, q)) = (if a then p else ~p, q);
 
 fun string_of_rat r =
   let val (p, q) = quotient_of_rat r
-  in IntInf.toString p ^ "/" ^ IntInf.toString q end;
+  in Intt.string_of_int p ^ "/" ^ Intt.string_of_int q end;
 
 fun eq (Rat (false, _, _), Rat (true, _, _)) = false
   | eq (Rat (true, _, _), Rat (false, _, _)) = false
   | eq (Rat (_, p1, q1), Rat (_, p2, q2)) = p1 = p2 andalso q1 = q2
 
-fun le (Rat (false, _, _), Rat (true, _, _)) = true
-  | le (Rat (true, _, _), Rat (false, _, _)) = false
-  | le (Rat (a, p1, q1), Rat (_, p2, q2)) =
+fun le (Rat (false, _, _)) (Rat (true, _, _)) = true
+  | le (Rat (true, _, _)) (Rat (false, _, _)) = false
+  | le (Rat (a, p1, q1)) (Rat (_, p2, q2)) =
       let val (r1, r2, _) = common (p1, q1, p2, q2)
       in if a then r1 <= r2 else r2 <= r1 end;
 
-fun lt (Rat (false, _, _), Rat (true, _, _)) = true
-  | lt (Rat (true, _, _), Rat (false, _, _)) = false
-  | lt (Rat (a, p1, q1), Rat (_, p2, q2)) =
+fun cmp (Rat (false, _, _), Rat (true, _, _)) = LESS
+  | cmp (Rat (true, _, _), Rat (false, _, _)) = GREATER
+  | cmp (Rat (a, p1, q1), Rat (_, p2, q2)) =
       let val (r1, r2, _) = common (p1, q1, p2, q2)
-      in if a then r1 < r2 else r2 < r1 end;
+      in if a then Intt.cmp (r1, r2) else Intt.cmp (r2, r1) end;
 
-fun ord (Rat (false, _, _), Rat (true, _, _)) = LESS
-  | ord (Rat (true, _, _), Rat (false, _, _)) = GREATER
-  | ord (Rat (a, p1, q1), Rat (_, p2, q2)) =
-      let val (r1, r2, _) = common (p1, q1, p2, q2)
-      in if a then IntInf.compare (r1, r2) else IntInf.compare (r2, r1) end;
+fun cmp_zero (Rat (false, _, _)) = LESS
+  | cmp_zero (Rat (_, 0, _)) = EQUAL
+  | cmp_zero (Rat (_, _, _)) = GREATER;
 
-fun add (Rat (a1, p1, q1), Rat(a2, p2, q2)) =
+fun add (Rat (a1, p1, q1)) (Rat(a2, p2, q2)) =
   let
     val (r1, r2, den) = common (p1, q1, p2, q2)
     val num = (if a1 then r1 else ~r1) + (if a2 then r2 else ~r2)
   in norm (true, num, den) end;
 
-fun mult (Rat (a1, p1, q1), Rat (a2, p2, q2)) =
+fun mult (Rat (a1, p1, q1)) (Rat (a2, p2, q2)) =
   norm (a1=a2, p1*p2, q1*q2);
 
 fun neg (r as Rat (b, p, q)) =
-  if p = IntInf.fromInt 0 then r
+  if p = Intt.int 0 then r
   else Rat (not b, p, q);
 
 fun inv (Rat (a, p, q)) =
-  if p = IntInf.fromInt 0 then raise DIVZERO
+  if p = Intt.int 0 then raise DIVZERO
   else Rat (a, q, p);
 
-fun ge0 (Rat (a, _, _)) = a;
-fun gt0 (Rat (a, p, _)) = a andalso p > IntInf.fromInt 0;
-
 fun roundup (r as Rat (a, p, q)) =
-  if q = IntInf.fromInt 1 then r
+  if q = Intt.int 1 then r
   else
     let
-      fun round true q = Rat (true, q + IntInf.fromInt 1, IntInf.fromInt 1)
+      fun round true q = Rat (true, q + Intt.int 1, Intt.int 1)
         | round false q =
-            if q = IntInf.fromInt 0
-            then Rat (true, IntInf.fromInt 0, IntInf.fromInt 1)
-            else Rat (false, q, IntInf.fromInt 1);
+            if q = Intt.int 0
+            then Rat (true, Intt.int 0, Intt.int 1)
+            else Rat (false, q, Intt.int 1);
     in round a (p div q) end;
 
 fun rounddown (r as Rat (a, p, q)) =
-  if q = IntInf.fromInt 1 then r
+  if q = Intt.int 1 then r
   else
     let
-      fun round true q = Rat (true, q, IntInf.fromInt 1)
-        | round false q = Rat (false, q + IntInf.fromInt 1, IntInf.fromInt 1)
+      fun round true q = Rat (true, q, Intt.int 1)
+        | round false q = Rat (false, q + Intt.int 1, Intt.int 1)
     in round a (p div q) end;
 
 end;
