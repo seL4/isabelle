@@ -329,9 +329,6 @@ apply (rule zero_le_power2)
 apply (erule real_sqrt_pow2)
 done
 
-lemma real_sqrt_abs_abs [simp]: "(sqrt \<bar>x\<bar>)\<twosuperior> = \<bar>x\<bar>" (* TODO: delete *)
-by simp
-
 lemma sqrt_eqI: "\<lbrakk>r\<twosuperior> = a; 0 \<le> r\<rbrakk> \<Longrightarrow> sqrt a = r"
 unfolding sqrt_def numeral_2_eq_2
 by (erule subst, erule real_root_pos2)
@@ -341,17 +338,6 @@ apply (rule sqrt_eqI)
 apply (rule power2_abs)
 apply (rule abs_ge_zero)
 done
-
-lemma real_pow_sqrt_eq_sqrt_pow: (* TODO: delete *)
-      "0 \<le> x ==> (sqrt x)\<twosuperior> = sqrt(x\<twosuperior>)"
-by simp
-
-lemma real_pow_sqrt_eq_sqrt_abs_pow2: (* TODO: delete *)
-     "0 \<le> x ==> (sqrt x)\<twosuperior> = sqrt(\<bar>x\<bar> ^ 2)" 
-by simp
-
-lemma real_sqrt_pow_abs: "0 \<le> x ==> (sqrt x)\<twosuperior> = \<bar>x\<bar>" (* TODO: delete *)
-by simp
 
 lemma not_real_square_gt_zero [simp]: "(~ (0::real) < x*x) = (x = 0)"
 apply auto
