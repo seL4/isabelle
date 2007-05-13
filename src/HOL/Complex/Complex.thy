@@ -394,7 +394,6 @@ done
 lemma complex_mod_mult: "cmod (x * y) = cmod x * cmod y"
 apply (induct x, induct y)
 apply (simp add: real_sqrt_mult_distrib [symmetric])
-apply (rule_tac f=sqrt in arg_cong)
 apply (simp add: power2_sum power2_diff power_mult_distrib ring_distrib)
 done
 
@@ -618,9 +617,7 @@ by (simp add: rcis_def cis_def sin_cos_squared_add2_mult)
 
 lemma complex_mod_sqrt_Re_mult_cnj: "cmod z = sqrt (Re (z * cnj z))"
 apply (simp add: cmod_def)
-apply (rule real_sqrt_eq_iff [THEN iffD2])
-apply (auto simp add: complex_mult_cnj
-            simp del: of_real_add)
+apply (simp add: complex_mult_cnj del: of_real_add)
 done
 
 lemma complex_Re_cnj [simp]: "Re(cnj z) = Re z"
