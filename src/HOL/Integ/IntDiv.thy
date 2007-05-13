@@ -9,7 +9,6 @@ header{*The Division Operators div and mod; the Divides Relation dvd*}
 
 theory IntDiv
 imports IntArith "../Divides" "../FunDef"
-uses ("IntDiv_setup.ML")
 begin
 
 declare zless_nat_conj [simp]
@@ -245,7 +244,37 @@ by(simp add: zmod_zdiv_equality[symmetric])
 lemma zdiv_zmod_equality2: "((a div b) * b + (a mod b)) + k = (a::int)+k"
 by(simp add: mult_commute zmod_zdiv_equality[symmetric])
 
-use "IntDiv_setup.ML"
+text {* Tool setup *}
+
+ML_setup {*
+local 
+
+structure CancelDivMod = CancelDivModFun(
+struct
+  val div_name = @{const_name "Divides.div"};
+  val mod_name = @{const_name "Divides.mod"};
+  val mk_binop = HOLogic.mk_binop;
+  val mk_sum = Int_Numeral_Simprocs.mk_sum HOLogic.intT;
+  val dest_sum = Int_Numeral_Simprocs.dest_sum;
+  val div_mod_eqs =
+    map mk_meta_eq [@{thm zdiv_zmod_equality},
+      @{thm zdiv_zmod_equality2}];
+  val trans = trans;
+  val prove_eq_sums =
+    let
+      val simps = diff_int_def :: Int_Numeral_Simprocs.add_0s @ zadd_ac
+    in NatArithUtils.prove_conv all_tac (NatArithUtils.simp_all_tac simps) end;
+end)
+
+in
+
+val cancel_zdiv_zmod_proc = NatArithUtils.prep_simproc
+  ("cancel_zdiv_zmod", ["(m::int) + n"], K CancelDivMod.proc)
+
+end;
+
+Addsimprocs [cancel_zdiv_zmod_proc]
+*}
 
 lemma pos_mod_conj : "(0::int) < b ==> 0 \<le> a mod b & a mod b < b"
 apply (cut_tac a = a and b = b in divAlg_correct)
