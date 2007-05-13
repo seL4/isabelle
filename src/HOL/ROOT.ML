@@ -22,6 +22,8 @@ use "~~/src/Provers/induct_method.ML";
 use "~~/src/Provers/classical.ML";
 use "~~/src/Provers/blast.ML";
 use "~~/src/Provers/clasimp.ML";
+use "~~/src/Pure/General/int.ML";
+use "~~/src/Pure/General/rat.ML";
 use "~~/src/Provers/Arith/fast_lin_arith.ML";
 use "~~/src/Provers/Arith/cancel_sums.ML";
 use "~~/src/Provers/Arith/assoc_fold.ML";
