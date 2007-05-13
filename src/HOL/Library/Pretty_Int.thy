@@ -20,6 +20,9 @@ code_type int
   (OCaml "Big'_int.big'_int")
   (Haskell "Integer")
 
+code_instance int :: eq
+  (Haskell -)
+
 setup {*
   fold (fn target => CodegenSerializer.add_pretty_numeral target
     (@{const_name number_of}, @{typ "int \<Rightarrow> int"})
