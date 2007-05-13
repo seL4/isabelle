@@ -71,7 +71,7 @@ inductive2 PRIMREC :: "(nat list => nat) => bool"
     SC: "PRIMREC SC"
   | CONSTANT: "PRIMREC (CONSTANT k)"
   | PROJ: "PRIMREC (PROJ i)"
-  | COMP: "PRIMREC g ==> listsp PRIMREC fs ==> PRIMREC (COMP g fs)"
+  | COMP: "PRIMREC g ==> \<forall>f \<in> set fs. PRIMREC f ==> PRIMREC (COMP g fs)"
   | PREC: "PRIMREC f ==> PRIMREC g ==> PRIMREC (PREC f g)"
 
 
@@ -272,23 +272,20 @@ lemma PROJ_case [rule_format]: "\<forall>i. PROJ i l < ack (0, list_add l)"
 
 text {* @{term COMP} case *}
 
-lemma COMP_map_aux: "listsp (\<lambda>f. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack (kf, list_add l))) fs
+lemma COMP_map_aux: "\<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack (kf, list_add l))
   ==> \<exists>k. \<forall>l. list_add (map (\<lambda>f. f l) fs) < ack (k, list_add l)"
-  apply (erule listsp.induct)
+  apply (induct fs)
   apply (rule_tac x = 0 in exI)
    apply simp
-  apply safe
   apply simp
-  apply (rule exI)
   apply (blast intro: add_less_mono ack_add_bound less_trans)
   done
 
 lemma COMP_case:
   "\<forall>l. g l < ack (kg, list_add l) ==>
-  listsp (\<lambda>f. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack(kf, list_add l))) fs
+  \<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack(kf, list_add l))
   ==> \<exists>k. \<forall>l. COMP g fs  l < ack(k, list_add l)"
   apply (unfold COMP_def)
-  apply (subgoal_tac "listsp PRIMREC fs")
     --{*Now, if meson tolerated map, we could finish with
   @{text "(drule COMP_map_aux, meson ack_less_mono2 ack_nest_bound less_trans)"} *}
   apply (erule COMP_map_aux [THEN exE])
@@ -297,7 +294,6 @@ lemma COMP_case:
   apply (drule spec)+
   apply (erule less_trans)
   apply (blast intro: ack_less_mono2 ack_nest_bound less_trans)
-  apply simp
   done
 
 
