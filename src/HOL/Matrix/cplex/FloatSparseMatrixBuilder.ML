@@ -3,182 +3,96 @@
     Author:     Steven Obua
 *)
 
-structure FloatSparseMatrixBuilder :
+signature FLOAT_SPARSE_MATIRX_BUILDER =
 sig
-    include MATRIX_BUILDER
+  include MATRIX_BUILDER
 
-    structure cplex : CPLEX
+  structure cplex : CPLEX
 
-    type float = IntInf.int*IntInf.int
-    type floatfunc = float -> float
+  type float = Float.float
+  val approx_value : int -> (float -> float) -> string -> term * term
+  val approx_vector : int -> (float -> float) -> vector -> term * term
+  val approx_matrix : int -> (float -> float) -> matrix -> term * term
 
+  val mk_spvec_entry : Intt.int -> float -> term
+  val mk_spmat_entry : Intt.int -> term -> term
+  val spvecT: typ
+  val spmatT: typ
+  
+  val v_elem_at : vector -> int -> string option
+  val m_elem_at : matrix -> int -> vector option
+  val v_only_elem : vector -> int option
+  val v_fold : (int * string -> 'a -> 'a) -> vector -> 'a -> 'a
+  val m_fold : (int * vector -> 'a -> 'a) -> matrix -> 'a -> 'a
 
-    val float2cterm : IntInf.int * IntInf.int -> cterm
+  val transpose_matrix : matrix -> matrix
 
-    val approx_value : int -> floatfunc -> string -> cterm * cterm
-    val approx_vector : int -> floatfunc -> vector -> cterm * cterm
-    val approx_matrix : int -> floatfunc -> matrix -> cterm * cterm
+  val cut_vector : int -> vector -> vector
+  val cut_matrix : vector -> int option -> matrix -> matrix
 
-    val mk_spvec_entry : int -> float -> term
-    val empty_spvec : term
-    val cons_spvec : term -> term -> term
-    val empty_spmat : term
-    val mk_spmat_entry : int -> term -> term
-    val cons_spmat : term -> term -> term
-    val sign_term : term -> cterm
+  (* cplexProg c A b *)
+  val cplexProg : vector -> matrix -> vector -> cplex.cplexProg * (string -> int)
+  (* dual_cplexProg c A b *)
+  val dual_cplexProg : vector -> matrix -> vector -> cplex.cplexProg * (string -> int)
+end;
 
-    val v_elem_at : vector -> int -> string option
-    val m_elem_at : matrix -> int -> vector option
-    val v_only_elem : vector -> int option
-    val v_fold : (int * string -> 'a -> 'a) -> vector -> 'a -> 'a
-    val m_fold : (int * vector -> 'a -> 'a) -> matrix -> 'a -> 'a
-
-    val transpose_matrix : matrix -> matrix
-
-    val cut_vector : int -> vector -> vector
-    val cut_matrix : vector -> (int option) -> matrix -> matrix
-
-    (* cplexProg c A b *)
-    val cplexProg : vector -> matrix -> vector -> (cplex.cplexProg * (string -> int))
-    (* dual_cplexProg c A b *)
-    val dual_cplexProg : vector -> matrix -> vector -> (cplex.cplexProg * (string -> int))
-
-    val real_spmatT : typ
-    val real_spvecT : typ
-end
-=
+structure FloatSparseMatrixBuilder : FLOAT_SPARSE_MATIRX_BUILDER =
 struct
 
-
-structure Inttab = TableFun(type key = int val ord = (rev_order o int_ord));
+type float = Float.float
+structure Inttab = TableFun(type key = int val ord = rev_order o int_ord);
 
 type vector = string Inttab.table
 type matrix = vector Inttab.table
-type float = IntInf.int*IntInf.int
-type floatfunc = float -> float
 
-val th = theory "FloatSparseMatrix"
+val spvec_elemT = HOLogic.mk_prodT (HOLogic.natT, HOLogic.realT);
+val spvecT = HOLogic.listT spvec_elemT;
+val spmat_elemT = HOLogic.mk_prodT (HOLogic.natT, spvecT);
+val spmatT = HOLogic.listT spmat_elemT;
 
-fun readtype s = Sign.intern_type th s
-fun readterm s = Sign.intern_const th s
-
-val ty_list = readtype "list"
-val term_Nil = readterm "Nil"
-val term_Cons = readterm "Cons"
-
-val spvec_elemT = HOLogic.mk_prodT (HOLogic.natT, HOLogic.realT)
-val spvecT = Type (ty_list, [spvec_elemT])
-val spmat_elemT = HOLogic.mk_prodT (HOLogic.natT, spvecT)
-val spmatT = Type (ty_list, [spmat_elemT])
-
-val real_spmatT = spmatT
-val real_spvecT = spvecT
-
-val empty_matrix_const = Const (term_Nil, spmatT)
-val empty_vector_const = Const (term_Nil, spvecT)
-
-val Cons_spvec_const = Const (term_Cons, spvec_elemT --> spvecT --> spvecT)
-val Cons_spmat_const = Const (term_Cons, spmat_elemT --> spmatT --> spmatT)
-
-val float_const = Float.float_const
-
-val zero = IntInf.fromInt 0
-val minus_one = IntInf.fromInt ~1
-val two = IntInf.fromInt 2
-
-val mk_intinf = Float.mk_intinf
-
-val mk_float  = Float.mk_float
-
-fun float2cterm (a,b) = cterm_of th (mk_float (a,b))
-
-fun approx_value_term prec f = Float.approx_float prec (fn (x, y) => (f x, f y))
-
-fun approx_value prec pprt value =
-  let
-    val (flower, fupper) = approx_value_term prec pprt value
-  in
-    (cterm_of th flower, cterm_of th fupper)
-  end
-
-fun sign_term t = cterm_of th t
-
-val empty_spvec = empty_vector_const
-
-val empty_spmat = empty_matrix_const
+fun approx_value prec f =
+  FloatArith.approx_float prec (fn (x, y) => (f x, f y));
 
 fun mk_spvec_entry i f =
-    let
-        val term_i = mk_intinf HOLogic.natT (IntInf.fromInt i)
-        val term_f = mk_float f
-    in
-        HOLogic.mk_prod (term_i, term_f)
-    end
+  HOLogic.mk_prod (HOLogic.mk_number HOLogic.natT i, FloatArith.mk_float f);
 
 fun mk_spmat_entry i e =
-    let
-        val term_i = mk_intinf HOLogic.natT (IntInf.fromInt i)
-    in
-        HOLogic.mk_prod (term_i, e)
-    end
-
-fun cons_spvec h t = Cons_spvec_const $ h $ t
-
-fun cons_spmat h t = Cons_spmat_const $ h $ t
-
-fun approx_vector_term prec pprt vector =
-    let
-        fun app (index, s) (vlower, vupper) =
-            let
-                val (flower, fupper) = approx_value_term prec pprt s
-                val index = mk_intinf HOLogic.natT (IntInf.fromInt index)
-                val elower = HOLogic.mk_prod (index, flower)
-                val eupper = HOLogic.mk_prod (index, fupper)
-            in
-                (Cons_spvec_const $ elower $ vlower,
-                 Cons_spvec_const $ eupper $ vupper)
-            end
-    in
-        Inttab.fold app vector (empty_vector_const, empty_vector_const)
-    end
-
-fun approx_matrix_term prec pprt matrix =
-  let
-    fun app (index, vector) (mlower, mupper) =
-      let
-        val (vlower, vupper) = approx_vector_term prec pprt vector
-        val index = mk_intinf HOLogic.natT (IntInf.fromInt index)
-        val elower = HOLogic.mk_prod (index, vlower)
-        val eupper = HOLogic.mk_prod (index, vupper)
-      in
-        (Cons_spmat_const $ elower $ mlower, Cons_spmat_const $ eupper $ mupper)
-      end
-    val (mlower, mupper) = Inttab.fold app matrix (empty_matrix_const, empty_matrix_const)
-  in Inttab.fold app matrix (empty_matrix_const, empty_matrix_const) end;
+  HOLogic.mk_prod (HOLogic.mk_number HOLogic.natT i, e);
 
 fun approx_vector prec pprt vector =
-    let
-        val (l, u) = approx_vector_term prec pprt vector
-    in
-        (cterm_of th l, cterm_of th u)
-    end
+  let
+    fun app (index, s) (lower, upper) =
+      let
+        val (flower, fupper) = approx_value prec pprt s
+        val index = HOLogic.mk_number HOLogic.natT (Intt.int index)
+        val elower = HOLogic.mk_prod (index, flower)
+        val eupper = HOLogic.mk_prod (index, fupper)
+      in (elower :: lower, eupper :: upper) end;
+  in
+    pairself (HOLogic.mk_list spvecT) (Inttab.fold app vector ([], []))
+  end;
 
-fun approx_matrix prec pprt matrix =
-    let
-        val (l, u) = approx_matrix_term prec pprt matrix
-    in
-        (cterm_of th l, cterm_of th u)
-    end
-
+fun approx_matrix prec pprt vector =
+  let
+    fun app (index, v) (lower, upper) =
+      let
+        val (flower, fupper) = approx_vector prec pprt v
+        val index = HOLogic.mk_number HOLogic.natT (Intt.int index)
+        val elower = HOLogic.mk_prod (index, flower)
+        val eupper = HOLogic.mk_prod (index, fupper)
+      in (elower :: lower, eupper :: upper) end;
+  in
+    pairself (HOLogic.mk_list spmatT) (Inttab.fold app vector ([], []))
+  end;
 
 exception Nat_expected of int;
 
-val zero_interval = approx_value_term 1 I "0"
+val zero_interval = approx_value 1 I "0"
 
 fun set_elem vector index str =
     if index < 0 then
         raise (Nat_expected index)
-    else if (approx_value_term 1 I str) = zero_interval then
+    else if (approx_value 1 I str) = zero_interval then
         vector
     else
         Inttab.update (index, str) vector

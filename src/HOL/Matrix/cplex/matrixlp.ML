@@ -23,13 +23,13 @@ fun inst_real thm =
       ([(certT (TVar (hd (term_tvars (prop_of thm)))), certT HOLogic.realT)], []) thm)
   end
 
-val spm_mult_le_dual_prts_no_let = thm "SparseMatrix.spm_mult_le_dual_prts_no_let"
+val spm_mult_le_dual_prts_no_let = thm "SparseMatrix.spm_mult_le_dual_prts_no_let";
+val cert = cterm_of (Thm.theory_of_thm spm_mult_le_dual_prts_no_let);
 
 fun lp_dual_estimate_prt_primitive (y, (A1, A2), (c1, c2), b, (r1, r2)) =
   let
-    val cert = cterm_of (Thm.theory_of_thm spm_mult_le_dual_prts_no_let)
     val th = inst_real spm_mult_le_dual_prts_no_let
-    fun var s x = (cert (Var ((s,0), FloatSparseMatrixBuilder.real_spmatT)), x)
+    fun var s x = (cert (Var ((s,0), FloatSparseMatrixBuilder.spmatT)), x)
     val th = Thm.instantiate ([], [var "A1" A1, var "A2" A2, var "y" y, var "c1" c1, var "c2" c2,
                                    var "r1" r1, var "r2" r2, var "b" b]) th
   in th end
@@ -38,10 +38,10 @@ fun lp_dual_estimate_prt lptfile prec =
     let
         val certificate =
             let
-                open fspmlp
+                open Fspmlp
                 val l = load lptfile prec false
             in
-                (y l, A l, c l, b l, r12 l)
+                (y l |> cert, A l |> pairself cert, c l |> pairself cert, b l |> cert, r12 l |> pairself  cert)
             end
     in
         lp_dual_estimate_prt_primitive certificate
@@ -55,7 +55,7 @@ fun is_meta_eq th =
         check (concl_of th)
     end
 
-fun prep ths = (Library.filter is_meta_eq ths) @ (map (standard o mk_meta_eq) (Library.filter (not o is_meta_eq) ths))
+fun prep ths = filter is_meta_eq ths @ map (standard o mk_meta_eq) (filter_out is_meta_eq ths)
 
 fun inst_tvar ty thm =
     let
@@ -71,8 +71,8 @@ fun inst_tvars [] thms = thms
 
 val matrix_compute =
     let
-        val spvecT = FloatSparseMatrixBuilder.real_spvecT
-        val spmatT = FloatSparseMatrixBuilder.real_spmatT
+        val spvecT = FloatSparseMatrixBuilder.spvecT
+        val spmatT = FloatSparseMatrixBuilder.spmatT
         val spvecT_elem = HOLogic.mk_prodT (HOLogic.natT, HOLogic.realT)
         val spmatT_elem = HOLogic.mk_prodT (HOLogic.natT, spvecT)
         val case_compute = map thm ["list_case_compute", "list_case_compute_empty", "list_case_compute_cons"]
@@ -86,7 +86,7 @@ val matrix_compute =
             @ (map (inst_tvar HOLogic.realT) (thms "MatrixLP.sparse_row_matrix_arith_simps"))
             @ (thms "MatrixLP.boolarith")
             @ (inst_tvars [HOLogic.natT, HOLogic.realT] [thm "fst_compute", thm "snd_compute"])
-            @ (inst_tvars [HOLogic.natT, FloatSparseMatrixBuilder.real_spvecT] [thm "fst_compute", thm "snd_compute"])
+            @ (inst_tvars [HOLogic.natT, FloatSparseMatrixBuilder.spvecT] [thm "fst_compute", thm "snd_compute"])
             @ (inst_tvars [HOLogic.boolT, spmatT_elem] case_compute)
             @ (inst_tvars [HOLogic.boolT, spvecT_elem] case_compute)
             @ (inst_tvars [HOLogic.boolT, HOLogic.realT] case_compute)

@@ -19,6 +19,9 @@ sig
   val cmp: int * int -> order
   val le: int -> int -> bool
   val cmp_zero: int -> order
+  val min: int -> int -> int
+  val max: int -> int -> int
+  val inc: int -> int
   val add: int -> int -> int
   val sub: int -> int -> int
   val mult: int -> int -> int
@@ -27,6 +30,8 @@ sig
   val mod: int -> int -> int
   val neg: int -> int
   val exp: int -> int
+  val log: int -> int
+  val pow: int -> int -> int (* exponent -> base -> result *)
 end;
 
 structure Intt: INTT =
@@ -34,29 +39,35 @@ struct
 
 open IntInf;
 
-val int = IntInf.fromInt;
+val int = fromInt;
 
 val zero = int 0;
 val one = int 1;
 val two = int 2;
 
-val machine_int = IntInf.toInt;
-val string_of_int = IntInf.toString;
-val int_of_string = IntInf.fromString;
+val machine_int = toInt;
+val string_of_int = toString;
+val int_of_string = fromString;
 
-val eq = op =;
+val eq = op = : int * int -> bool;
 val cmp = compare;
 val le = curry (op <=);
 val cmp_zero = curry cmp zero;
+
+val min = curry min;
+val max = curry max;
+
+val inc = curry (op +) one;
+
 val add = curry (op +);
 val sub = curry (op -);
 val mult = curry ( op * );
 val divmod = curry divMod;
-nonfix div
-val div = curry div;
-nonfix mod
-val mod = curry mod;
-val neg = IntInf.~;
-fun exp n = pow (2, IntInf.toInt n);
+nonfix div val div = curry div;
+nonfix mod val mod = curry mod;
+val neg = ~;
+val pow = fn k => fn l => pow (l, toInt k);
+fun exp k = pow k two;
+val log = int o log2;
 
 end;

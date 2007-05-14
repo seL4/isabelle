@@ -9,25 +9,25 @@ sig
     type vector = FloatSparseMatrixBuilder.vector
     type matrix = FloatSparseMatrixBuilder.matrix
 
-    val y : linprog -> cterm
-    val A : linprog -> cterm * cterm
-    val b : linprog -> cterm
-    val c : linprog -> cterm * cterm
-    val r : linprog -> cterm
-    val r12 : linprog -> cterm * cterm
+    val y : linprog -> term
+    val A : linprog -> term * term
+    val b : linprog -> term
+    val c : linprog -> term * term
+    val r : linprog -> term
+    val r12 : linprog -> term * term
 
     exception Load of string
 
     val load : string -> int -> bool -> linprog
 end
 
-structure fspmlp : FSPMLP =
+structure Fspmlp : FSPMLP =
 struct
 
 type vector = FloatSparseMatrixBuilder.vector
 type matrix = FloatSparseMatrixBuilder.matrix
 
-type linprog = cterm * (cterm * cterm) * cterm * (cterm * cterm) * cterm * (cterm * cterm)
+type linprog = term * (term * term) * term * (term * term) * term * (term * term)
 
 fun y (c1, c2, c3, c4, c5, _) = c1
 fun A (c1, c2, c3, c4, c5, _) = c2
@@ -77,8 +77,8 @@ fun update_sure_bound g (key as (_, btype)) bound =
               | SOME (NONE, f) => (SOME bound, f)
               | SOME (SOME old_bound, f) =>
                 (SOME ((case btype of
-                            UPPER => FloatArith.min
-                          | LOWER => FloatArith.max)
+                            UPPER => Float.min
+                          | LOWER => Float.max)
                            old_bound bound), f)
     in
         VarGraph.update (key, x) g
@@ -125,16 +125,16 @@ fun propagate_sure_bounds safe names g =
         fun calc_sure_bound_from_sources g (key as (_, btype)) =
             let
                 fun mult_upper x (lower, upper) =
-                    if FloatArith.is_negative x then
-                        FloatArith.mul x lower
+                    if Float.cmp_zero x = LESS then
+                        Float.mult x lower
                     else
-                        FloatArith.mul x upper
+                        Float.mult x upper
 
                 fun mult_lower x (lower, upper) =
-                    if FloatArith.is_negative x then
-                        FloatArith.mul x upper
+                    if Float.cmp_zero x = LESS then
+                        Float.mult x upper
                     else
-                        FloatArith.mul x lower
+                        Float.mult x lower
 
                 val mult_btype = case btype of UPPER => mult_upper | LOWER => mult_lower
 
@@ -146,7 +146,7 @@ fun propagate_sure_bounds safe names g =
                               | SOME x =>
                                 (case get_sure_bound g src_key of
                                      NONE => NONE
-                                   | SOME src_sure_bound => SOME (FloatArith.add x (mult_btype src_sure_bound coeff)))
+                                   | SOME src_sure_bound => SOME (Float.add x (mult_btype src_sure_bound coeff)))
                     in
                         case fold add_src_bound sources (SOME row_bound) of
                             NONE => sure_bound
@@ -155,8 +155,8 @@ fun propagate_sure_bounds safe names g =
                                  NONE => new_sure_bound
                                | SOME old_bound =>
                                  SOME (case btype of
-                                           UPPER => FloatArith.min old_bound new_bound
-                                         | LOWER => FloatArith.max old_bound new_bound))
+                                           UPPER => Float.min old_bound new_bound
+                                         | LOWER => Float.max old_bound new_bound))
                     end
             in
                 case VarGraph.lookup g key of
@@ -187,6 +187,15 @@ fun propagate_sure_bounds safe names g =
 
 exception Load of string;
 
+(*val empty_spvec = @ {term "Nil :: (nat * real) list"};
+fun cons_spvec x xs = @ {term "Cons :: nat * real => nat * real => (nat * real) list"} $ x $ xs;
+val empty_spmat = @ {term "Nil :: (nat * (nat * real) list) list"};
+fun cons_spmat x xs = @ {term "Cons :: nat * (nat * real) list => (nat * (nat * real) list) list => (nat * (nat * real) list) list"} $ x $ xs;*)
+val empty_spvec = Bound 0
+fun cons_spvec x xs = Bound 0
+val empty_spmat = Bound 0
+fun cons_spmat x xs = Bound 0
+
 fun calcr safe_propagation xlen names prec A b =
     let
         val empty = Inttab.empty
@@ -198,17 +207,17 @@ fun calcr safe_propagation xlen names prec A b =
 
         fun test_1 (lower, upper) =
             if lower = upper then
-                (if FloatArith.is_equal lower (IntInf.fromInt ~1, FloatArith.izero) then ~1
-                 else if FloatArith.is_equal lower (IntInf.fromInt 1, FloatArith.izero) then 1
+                (if Float.eq (lower, (Intt.int ~1, Intt.zero)) then ~1
+                 else if Float.eq (lower, (Intt.int 1, Intt.zero)) then 1
                  else 0)
             else 0
 
         fun calcr (row_index, a) g =
             let
                 val b =  FloatSparseMatrixBuilder.v_elem_at b row_index
-                val (_, b2) = ExactFloatingPoint.approx_decstr_by_bin prec (case b of NONE => "0" | SOME b => b)
+                val (_, b2) = FloatArith.approx_decstr_by_bin prec (case b of NONE => "0" | SOME b => b)
                 val approx_a = FloatSparseMatrixBuilder.v_fold (fn (i, s) => fn l =>
-                                                                   (i, ExactFloatingPoint.approx_decstr_by_bin prec s)::l) a []
+                                                                   (i, FloatArith.approx_decstr_by_bin prec s)::l) a []
 
                 fun fold_dest_nodes (dest_index, dest_value) g =
                     let
@@ -219,7 +228,7 @@ fun calcr safe_propagation xlen names prec A b =
                         else let
                                 val (dest_key as (_, dest_btype), row_bound) =
                                     if dest_test = ~1 then
-                                        ((dest_index, LOWER), FloatArith.neg b2)
+                                        ((dest_index, LOWER), Float.neg b2)
                                     else
                                         ((dest_index, UPPER), b2)
 
@@ -228,10 +237,10 @@ fun calcr safe_propagation xlen names prec A b =
                                     else
                                         let
                                             val coeff = case dest_btype of
-                                                            UPPER => (FloatArith.neg src_upper, FloatArith.neg src_lower)
+                                                            UPPER => (Float.neg src_upper, Float.neg src_lower)
                                                           | LOWER => src_value
                                         in
-                                            if FloatArith.is_negative src_lower then
+                                            if Float.cmp_zero src_lower = LESS then
                                                 add_edge g (src_index, UPPER) dest_key row_index coeff
                                             else
                                                 add_edge g (src_index, LOWER) dest_key row_index coeff
@@ -248,7 +257,7 @@ fun calcr safe_propagation xlen names prec A b =
                         val atest = test_1 a
                     in
                         if atest = ~1 then
-                            update_sure_bound g (u, LOWER) (FloatArith.neg b2)
+                            update_sure_bound g (u, LOWER) (Float.neg b2)
                         else if atest = 1 then
                             update_sure_bound g (u, UPPER) b2
                         else
@@ -264,28 +273,28 @@ fun calcr safe_propagation xlen names prec A b =
 
         fun add_row_entry m index value =
             let
-                val vec = FloatSparseMatrixBuilder.cons_spvec (FloatSparseMatrixBuilder.mk_spvec_entry 0 value) FloatSparseMatrixBuilder.empty_spvec
+                val vec = cons_spvec (FloatSparseMatrixBuilder.mk_spvec_entry 0 value) empty_spvec
             in
-                FloatSparseMatrixBuilder.cons_spmat (FloatSparseMatrixBuilder.mk_spmat_entry index vec) m
+                cons_spmat (FloatSparseMatrixBuilder.mk_spmat_entry index vec) m
             end
 
         fun abs_estimate i r1 r2 =
             if i = 0 then
-                let val e = FloatSparseMatrixBuilder.empty_spmat in (e, (e, e)) end
+                let val e = empty_spmat in (e, (e, e)) end
             else
                 let
                     val index = xlen-i
                     val (r, (r12_1, r12_2)) = abs_estimate (i-1) r1 r2
                     val b1 = case Inttab.lookup r1 index of NONE => raise (Load ("x-value not bounded from below: "^(names index))) | SOME x => x
                     val b2 = case Inttab.lookup r2 index of NONE => raise (Load ("x-value not bounded from above: "^(names index))) | SOME x => x
-                    val abs_max = FloatArith.max (FloatArith.neg (FloatArith.negative_part b1)) (FloatArith.positive_part b2)
+                    val abs_max = Float.max (Float.neg (Float.negative_part b1)) (Float.positive_part b2)
+                    val i' = Intt.int index
                 in
-                    (add_row_entry r index abs_max, (add_row_entry r12_1 index b1, add_row_entry r12_2 index b2))
+                    (add_row_entry r i' abs_max, (add_row_entry r12_1 i' b1, add_row_entry r12_2 i' b2))
                 end
-        val sign = FloatSparseMatrixBuilder.sign_term
         val (r, (r1, r2)) = abs_estimate xlen r1 r2
     in
-        (sign r, (sign r1, sign r2))
+        (r, (r1, r2))
     end
 
 fun load filename prec safe_propagation =
@@ -304,7 +313,7 @@ fun load filename prec safe_propagation =
         val v = FloatSparseMatrixBuilder.set_vector FloatSparseMatrixBuilder.empty_matrix 0 v
         val b = FloatSparseMatrixBuilder.transpose_matrix (FloatSparseMatrixBuilder.set_vector FloatSparseMatrixBuilder.empty_matrix 0 b)
         val c = FloatSparseMatrixBuilder.set_vector FloatSparseMatrixBuilder.empty_matrix 0 c
-        val (y1, _) = FloatSparseMatrixBuilder.approx_matrix prec FloatArith.positive_part v
+        val (y1, _) = FloatSparseMatrixBuilder.approx_matrix prec Float.positive_part v
         val A = FloatSparseMatrixBuilder.approx_matrix prec id A
         val (_,b2) = FloatSparseMatrixBuilder.approx_matrix prec id b
         val c = FloatSparseMatrixBuilder.approx_matrix prec id c

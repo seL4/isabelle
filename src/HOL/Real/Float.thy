@@ -7,7 +7,7 @@ header {* Floating Point Representation of the Reals *}
 
 theory Float
 imports Real Parity
-uses ("float.ML")
+uses "~~/src/Pure/General/float.ML" ("float_arith.ML")
 begin
 
 definition
@@ -526,6 +526,6 @@ lemmas floatarith[simplified norm_0_1] = float_add float_mult float_minus float_
 (* for use with the compute oracle *)
 lemmas arith = binarith intarith intarithrel natarith powerarith floatarith not_false_eq_true not_true_eq_false
 
-use "float.ML";
+use "float_arith.ML";
 
 end
