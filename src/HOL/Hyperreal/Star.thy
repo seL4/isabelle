@@ -56,7 +56,13 @@ by auto
 lemma STAR_hypreal_of_real_Int: "*s* X Int Reals = hypreal_of_real ` X"
 by (auto simp add: SReal_def)
 
+lemma STAR_star_of_Int: "*s* X Int Standard = star_of ` X"
+by (auto simp add: Standard_def)
+
 lemma lemma_not_hyprealA: "x \<notin> hypreal_of_real ` A ==> \<forall>y \<in> A. x \<noteq> hypreal_of_real y"
+by auto
+
+lemma lemma_not_starA: "x \<notin> star_of ` A ==> \<forall>y \<in> A. x \<noteq> star_of y"
 by auto
 
 lemma lemma_Compl_eq: "- {n. X n = xa} = {n. X n \<noteq> xa}"
