@@ -46,8 +46,8 @@ definition
   "arcsin y = (SOME x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
 
 definition
-  arcos :: "real => real" where
-  "arcos y = (SOME x. 0 \<le> x & x \<le> pi & cos x = y)"
+  arccos :: "real => real" where
+  "arccos y = (SOME x. 0 \<le> x & x \<le> pi & cos x = y)"
 
 definition     
   arctan :: "real => real" where
@@ -1727,44 +1727,44 @@ apply (rule some1_equality)
 apply (rule sin_total, auto)
 done
 
-lemma arcos:
+lemma arccos:
      "[| -1 \<le> y; y \<le> 1 |]  
-      ==> 0 \<le> arcos y & arcos y \<le> pi & cos(arcos y) = y"
-apply (simp add: arcos_def)
+      ==> 0 \<le> arccos y & arccos y \<le> pi & cos(arccos y) = y"
+apply (simp add: arccos_def)
 apply (drule cos_total, assumption)
 apply (fast intro: someI2)
 done
 
-lemma cos_arcos [simp]: "[| -1 \<le> y; y \<le> 1 |] ==> cos(arcos y) = y"
-by (blast dest: arcos)
+lemma cos_arccos [simp]: "[| -1 \<le> y; y \<le> 1 |] ==> cos(arccos y) = y"
+by (blast dest: arccos)
       
-lemma arcos_bounded: "[| -1 \<le> y; y \<le> 1 |] ==> 0 \<le> arcos y & arcos y \<le> pi"
-by (blast dest: arcos)
+lemma arccos_bounded: "[| -1 \<le> y; y \<le> 1 |] ==> 0 \<le> arccos y & arccos y \<le> pi"
+by (blast dest: arccos)
 
-lemma arcos_lbound: "[| -1 \<le> y; y \<le> 1 |] ==> 0 \<le> arcos y"
-by (blast dest: arcos)
+lemma arccos_lbound: "[| -1 \<le> y; y \<le> 1 |] ==> 0 \<le> arccos y"
+by (blast dest: arccos)
 
-lemma arcos_ubound: "[| -1 \<le> y; y \<le> 1 |] ==> arcos y \<le> pi"
-by (blast dest: arcos)
+lemma arccos_ubound: "[| -1 \<le> y; y \<le> 1 |] ==> arccos y \<le> pi"
+by (blast dest: arccos)
 
-lemma arcos_lt_bounded:
+lemma arccos_lt_bounded:
      "[| -1 < y; y < 1 |]  
-      ==> 0 < arcos y & arcos y < pi"
+      ==> 0 < arccos y & arccos y < pi"
 apply (frule order_less_imp_le)
 apply (frule_tac y = y in order_less_imp_le)
-apply (frule arcos_bounded, auto)
-apply (drule_tac y = "arcos y" in order_le_imp_less_or_eq)
+apply (frule arccos_bounded, auto)
+apply (drule_tac y = "arccos y" in order_le_imp_less_or_eq)
 apply (drule_tac [2] y = pi in order_le_imp_less_or_eq, auto)
 apply (drule_tac [!] f = cos in arg_cong, auto)
 done
 
-lemma arcos_cos: "[|0 \<le> x; x \<le> pi |] ==> arcos(cos x) = x"
-apply (simp add: arcos_def)
+lemma arccos_cos: "[|0 \<le> x; x \<le> pi |] ==> arccos(cos x) = x"
+apply (simp add: arccos_def)
 apply (auto intro!: some1_equality cos_total)
 done
 
-lemma arcos_cos2: "[|x \<le> 0; -pi \<le> x |] ==> arcos(cos x) = -x"
-apply (simp add: arcos_def)
+lemma arccos_cos2: "[|x \<le> 0; -pi \<le> x |] ==> arccos(cos x) = -x"
+apply (simp add: arccos_def)
 apply (auto intro!: some1_equality cos_total)
 done
 
@@ -1990,11 +1990,11 @@ apply (cut_tac x = y and y = x in cos_x_y_le_one)
 apply (simp add: real_add_commute)
 done
 
-declare cos_arcos [OF cos_x_y_ge_minus_one cos_x_y_le_one, simp] 
-declare arcos_bounded [OF cos_x_y_ge_minus_one cos_x_y_le_one, simp] 
+declare cos_arccos [OF cos_x_y_ge_minus_one cos_x_y_le_one, simp] 
+declare arccos_bounded [OF cos_x_y_ge_minus_one cos_x_y_le_one, simp] 
 
-declare cos_arcos [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2, simp] 
-declare arcos_bounded [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2, simp] 
+declare cos_arccos [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2, simp] 
+declare arccos_bounded [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2, simp] 
 
 lemma cos_abs_x_y_ge_minus_one [simp]:
      "-1 \<le> \<bar>x\<bar> / sqrt (x * x + y * y)"
@@ -2007,8 +2007,8 @@ apply (auto simp add: divide_const_simps abs_if linorder_neq_iff
             simp del: real_sqrt_gt_0_iff real_sqrt_eq_0_iff)
 done
 
-declare cos_arcos [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one, simp] 
-declare arcos_bounded [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one, simp] 
+declare cos_arccos [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one, simp] 
+declare arccos_bounded [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one, simp] 
 
 lemma minus_pi_less_zero: "-pi < 0"
 by simp
@@ -2016,12 +2016,12 @@ by simp
 declare minus_pi_less_zero [simp]
 declare minus_pi_less_zero [THEN order_less_imp_le, simp]
 
-lemma arcos_ge_minus_pi: "[| -1 \<le> y; y \<le> 1 |] ==> -pi \<le> arcos y"
+lemma arccos_ge_minus_pi: "[| -1 \<le> y; y \<le> 1 |] ==> -pi \<le> arccos y"
 apply (rule real_le_trans)
-apply (rule_tac [2] arcos_lbound, auto)
+apply (rule_tac [2] arccos_lbound, auto)
 done
 
-declare arcos_ge_minus_pi [OF cos_x_y_ge_minus_one cos_x_y_le_one, simp] 
+declare arccos_ge_minus_pi [OF cos_x_y_ge_minus_one cos_x_y_le_one, simp] 
 
 (* How tedious! *)
 lemma lemma_divide_rearrange:
@@ -2095,11 +2095,11 @@ by (simp add: divide_pos_pos sum_squares_gt_zero_iff)
 lemma polar_ex1:
      "[| x \<noteq> 0; 0 < y |] ==> \<exists>r a. x = r * cos a & y = r * sin a"
 apply (rule_tac x = "sqrt (x\<twosuperior> + y\<twosuperior>)" in exI)
-apply (rule_tac x = "arcos (x / sqrt (x * x + y * y))" in exI)
+apply (rule_tac x = "arccos (x / sqrt (x * x + y * y))" in exI)
 apply auto
 apply (drule_tac y2 = y in real_sqrt_sum_squares_gt_zero3 [THEN real_not_refl2, THEN not_sym])
 apply (auto simp add: power2_eq_square)
-apply (simp add: arcos_def)
+apply (simp add: arccos_def)
 apply (cut_tac x1 = x and y1 = y 
        in cos_total [OF cos_x_y_ge_minus_one cos_x_y_le_one])
 apply (rule someI2_ex, blast)
