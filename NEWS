@@ -868,6 +868,12 @@ for linear arithmetic over the reals. The quantifier elimination
 feature is used only for decision, for compatibility with arith. This
 means a goal is either solved or left unchanged, no simplification.
 
+* Hyperreal: Functions root and sqrt are now defined on negative real
+inputs so that root n (- x) = - root n x and sqrt (- x) = - sqrt x.
+Nonnegativity side conditions have been removed from many lemmas, so
+that more subgoals may now be solved by simplification; potential
+INCOMPATIBILITY.
+
 * Real: New axiomatic classes formalize real normed vector spaces and
 algebras, using new overloaded constants scaleR :: real => 'a => 'a
 and norm :: 'a => real.
