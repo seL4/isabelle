@@ -58,7 +58,7 @@ notation (xsymbols)
   divideR (infixl "'/\<^sub>R" 70)
 
 instance real :: scaleR
-  real_scaleR_def: "scaleR a x \<equiv> a * x" ..
+  real_scaleR_def [simp]: "scaleR a x \<equiv> a * x" ..
 
 axclass real_vector < scaleR, ab_group_add
   scaleR_right_distrib: "scaleR a (x + y) = scaleR a x + scaleR a y"
@@ -115,7 +115,7 @@ lemmas scaleR_left_diff_distrib =
 lemmas scaleR_right_diff_distrib =
   additive.diff [OF additive_scaleR_right, standard]
 
-lemma scaleR_eq_0_iff:
+lemma scaleR_eq_0_iff [simp]:
   fixes x :: "'a::real_vector"
   shows "(scaleR a x = 0) = (a = 0 \<or> x = 0)"
 proof cases
@@ -136,8 +136,7 @@ proof -
   assume "scaleR a x = scaleR a y"
   hence "scaleR a (x - y) = 0"
      by (simp add: scaleR_right_diff_distrib)
-  hence "x - y = 0"
-     by (simp add: scaleR_eq_0_iff nonzero)
+  hence "x - y = 0" by (simp add: nonzero)
   thus "x = y" by simp
 qed
 
@@ -149,8 +148,7 @@ proof -
   assume "scaleR a x = scaleR b x"
   hence "scaleR (a - b) x = 0"
      by (simp add: scaleR_left_diff_distrib)
-  hence "a - b = 0"
-     by (simp add: scaleR_eq_0_iff nonzero)
+  hence "a - b = 0" by (simp add: nonzero)
   thus "a = b" by simp
 qed
 
@@ -239,7 +237,7 @@ lemma of_real_eq_id [simp]: "of_real = (id :: real \<Rightarrow> real)"
 proof
   fix r
   show "of_real r = id r"
-    by (simp add: of_real_def real_scaleR_def)
+    by (simp add: of_real_def)
 qed
 
 text{*Collapse nested embeddings*}
@@ -604,25 +602,28 @@ lemma sgn_zero [simp]: "sgn 0 = 0"
 unfolding sgn_def by simp
 
 lemma sgn_zero_iff: "(sgn x = 0) = (x = 0)"
-unfolding sgn_def by (simp add: scaleR_eq_0_iff)
+unfolding sgn_def by simp
 
 lemma sgn_minus: "sgn (- x) = - sgn x"
 unfolding sgn_def by simp
 
+lemma sgn_scaleR: "sgn (scaleR r x) = scaleR (sgn r) (sgn x)"
+unfolding sgn_def by (simp add: norm_scaleR mult_ac)
+
 lemma sgn_one [simp]: "sgn (1::'a::real_normed_algebra_1) = 1"
 unfolding sgn_def by simp
-
-lemma sgn_scaleR: "sgn (scaleR r x) = scaleR (sgn r) (sgn x)"
-unfolding sgn_def
-by (simp add: real_scaleR_def norm_scaleR mult_ac)
 
 lemma sgn_of_real:
   "sgn (of_real r::'a::real_normed_algebra_1) = of_real (sgn r)"
 unfolding of_real_def by (simp only: sgn_scaleR sgn_one)
 
+lemma sgn_mult:
+  fixes x y :: "'a::real_normed_div_algebra"
+  shows "sgn (x * y) = sgn x * sgn y"
+unfolding sgn_def by (simp add: norm_mult mult_commute)
+
 lemma real_sgn_eq: "sgn (x::real) = x / \<bar>x\<bar>"
-unfolding sgn_def real_scaleR_def
-by (simp add: divide_inverse)
+unfolding sgn_def by (simp add: divide_inverse)
 
 lemma real_sgn_pos: "0 < (x::real) \<Longrightarrow> sgn x = 1"
 unfolding real_sgn_eq by simp
@@ -764,7 +765,7 @@ interpretation bounded_bilinear_scaleR:
 apply (rule bounded_bilinear.intro)
 apply (rule scaleR_left_distrib)
 apply (rule scaleR_right_distrib)
-apply (simp add: real_scaleR_def)
+apply simp
 apply (rule scaleR_left_commute)
 apply (rule_tac x="1" in exI)
 apply (simp add: norm_scaleR)
