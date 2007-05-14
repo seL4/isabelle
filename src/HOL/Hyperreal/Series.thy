@@ -550,7 +550,7 @@ apply (rule_tac g = "%n. (norm (f N) / (c ^ N))*c ^ n"
        in summable_comparison_test)
 apply (rule_tac x = N in exI, safe)
 apply (drule le_Suc_ex_iff [THEN iffD1])
-apply (auto simp add: power_add realpow_not_zero)
+apply (auto simp add: power_add field_power_not_zero)
 apply (induct_tac "na", auto)
 apply (rule_tac y = "c * norm (f (N + n))" in order_trans)
 apply (auto intro: mult_right_mono simp add: summable_def)
