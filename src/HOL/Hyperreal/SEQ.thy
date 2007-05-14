@@ -559,27 +559,23 @@ by (drule LIMSEQ_norm, simp)
 
 text{*An unbounded sequence's inverse tends to 0*}
 
-text{* standard proof seems easier *}
 lemma LIMSEQ_inverse_zero:
-      "\<forall>y::real. \<exists>N. \<forall>n \<ge> N. y < f(n) ==> (%n. inverse(f n)) ----> 0"
-apply (simp add: LIMSEQ_def, safe)
-apply (drule_tac x = "inverse r" in spec, safe)
-apply (rule_tac x = N in exI, safe)
-apply (drule spec, auto)
+  "\<forall>r::real. \<exists>N. \<forall>n\<ge>N. r < X n \<Longrightarrow> (\<lambda>n. inverse (X n)) ----> 0"
+apply (rule LIMSEQ_I)
+apply (drule_tac x="inverse r" in spec, safe)
+apply (rule_tac x="N" in exI, safe)
+apply (drule_tac x="n" in spec, safe)
 apply (frule positive_imp_inverse_positive)
-apply (frule order_less_trans, assumption)
-apply (frule_tac a = "f n" in positive_imp_inverse_positive)
-apply (simp add: abs_if) 
-apply (rule_tac t = r in inverse_inverse_eq [THEN subst])
-apply (auto intro: inverse_less_iff_less [THEN iffD2]
-            simp del: inverse_inverse_eq)
+apply (frule (1) less_imp_inverse_less)
+apply (subgoal_tac "0 < X n", simp)
+apply (erule (1) order_less_trans)
 done
 
 text{*The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity*}
 
 lemma LIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----> 0"
 apply (rule LIMSEQ_inverse_zero, safe)
-apply (cut_tac x = y in reals_Archimedean2)
+apply (cut_tac x = r in reals_Archimedean2)
 apply (safe, rule_tac x = n in exI)
 apply (auto simp add: real_of_nat_Suc)
 done
@@ -1045,7 +1041,7 @@ lemma Bseq_realpow: "[| 0 \<le> (x::real); x \<le> 1 |] ==> Bseq (%n. x ^ n)"
 apply (simp add: Bseq_def)
 apply (rule_tac x = 1 in exI)
 apply (simp add: power_abs)
-apply (auto dest: power_mono intro: order_less_imp_le simp add: abs_if)
+apply (auto dest: power_mono)
 done
 
 lemma monoseq_realpow: "[| 0 \<le> x; x \<le> 1 |] ==> monoseq (%n. x ^ n)"
@@ -1115,10 +1111,11 @@ next
 qed
 
 lemma LIMSEQ_power_zero:
-  fixes x :: "'a::{real_normed_div_algebra,recpower}"
+  fixes x :: "'a::{real_normed_algebra_1,recpower}"
   shows "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) ----> 0"
 apply (drule LIMSEQ_realpow_zero [OF norm_ge_zero])
-apply (simp add: norm_power [symmetric] LIMSEQ_norm_zero)
+apply (simp only: LIMSEQ_Zseq_iff, erule Zseq_le)
+apply (simp add: power_abs norm_power_ineq)
 done
 
 lemma LIMSEQ_divide_realpow_zero:
