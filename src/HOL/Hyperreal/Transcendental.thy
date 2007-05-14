@@ -1093,14 +1093,12 @@ done
 
 lemma sin_add: "sin (x + y) = sin x * cos y + cos x * sin y"
 apply (cut_tac x = x and y = y in sin_cos_add)
-apply (auto dest!: real_sum_squares_cancel_a 
-            simp add: numeral_2_eq_2 real_add_eq_0_iff simp del: sin_cos_add)
+apply (simp del: sin_cos_add)
 done
 
 lemma cos_add: "cos (x + y) = cos x * cos y - sin x * sin y"
 apply (cut_tac x = x and y = y in sin_cos_add)
-apply (auto dest!: real_sum_squares_cancel_a
-            simp add: numeral_2_eq_2 real_add_eq_0_iff simp del: sin_cos_add)
+apply (simp del: sin_cos_add)
 done
 
 lemma lemma_DERIV_sin_cos_minus:
@@ -1114,33 +1112,27 @@ lemma sin_cos_minus [simp]:
     "(sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2 = 0"
 apply (cut_tac y = 0 and x = x 
        in lemma_DERIV_sin_cos_minus [THEN DERIV_isconst_all])
-apply (auto simp add: numeral_2_eq_2)
+apply simp
 done
 
 lemma sin_minus [simp]: "sin (-x) = -sin(x)"
 apply (cut_tac x = x in sin_cos_minus)
-apply (auto dest!: real_sum_squares_cancel_a 
-       simp add: numeral_2_eq_2 real_add_eq_0_iff simp del: sin_cos_minus)
+apply (simp del: sin_cos_minus)
 done
 
 lemma cos_minus [simp]: "cos (-x) = cos(x)"
 apply (cut_tac x = x in sin_cos_minus)
-apply (auto dest!: real_sum_squares_cancel_a 
-                   simp add: numeral_2_eq_2 simp del: sin_cos_minus)
+apply (simp del: sin_cos_minus)
 done
 
 lemma sin_diff: "sin (x - y) = sin x * cos y - cos x * sin y"
-apply (simp add: diff_minus)
-apply (simp (no_asm) add: sin_add)
-done
+by (simp add: diff_minus sin_add)
 
 lemma sin_diff2: "sin (x - y) = cos y * sin x - sin y * cos x"
 by (simp add: sin_diff mult_commute)
 
 lemma cos_diff: "cos (x - y) = cos x * cos y + sin x * sin y"
-apply (simp add: diff_minus)
-apply (simp (no_asm) add: cos_add)
-done
+by (simp add: diff_minus cos_add)
 
 lemma cos_diff2: "cos (x - y) = cos y * cos x + sin y * sin x"
 by (simp add: cos_diff mult_commute)
@@ -1151,7 +1143,7 @@ by (cut_tac x = x and y = x in sin_add, auto)
 
 lemma cos_double: "cos(2* x) = ((cos x)\<twosuperior>) - ((sin x)\<twosuperior>)"
 apply (cut_tac x = x and y = x in cos_add)
-apply (auto simp add: numeral_2_eq_2)
+apply (simp add: power2_eq_square)
 done
 
 
@@ -2072,18 +2064,16 @@ lemma sin_x_y_disj:
       |] ==>  sin xa = y / sqrt (x * x + y * y) |  
               sin xa = - y / sqrt (x * x + y * y)"
 apply (drule_tac f = "%x. x\<twosuperior>" in arg_cong)
-apply (frule_tac y = y in real_sum_square_gt_zero)
+apply (subgoal_tac "0 < x * x + y * y")
 apply (simp add: cos_squared_eq)
 apply (subgoal_tac "(sin xa)\<twosuperior> = (y / sqrt (x * x + y * y)) ^ 2")
 apply (rule_tac [2] lemma_cos_sin_eq)
 apply (auto simp add: realpow_two_disj numeral_2_eq_2 simp del: realpow_Suc)
+apply (auto simp add: sum_squares_gt_zero_iff)
 done
 
 lemma lemma_cos_not_eq_zero: "x \<noteq> 0 ==> x / sqrt (x * x + y * y) \<noteq> 0"
-apply (simp add: divide_inverse)
-apply (frule_tac y3 = y in real_sqrt_sum_squares_gt_zero3 [THEN real_not_refl2, THEN not_sym, THEN nonzero_imp_inverse_nonzero])
-apply (auto simp add: power2_eq_square)
-done
+by (simp add: divide_inverse sum_squares_eq_zero_iff)
 
 lemma cos_x_y_disj:
      "[| x \<noteq> 0;  
@@ -2091,18 +2081,16 @@ lemma cos_x_y_disj:
       |] ==>  cos xa = x / sqrt (x * x + y * y) |  
               cos xa = - x / sqrt (x * x + y * y)"
 apply (drule_tac f = "%x. x\<twosuperior>" in arg_cong)
-apply (frule_tac y = y in real_sum_square_gt_zero)
+apply (subgoal_tac "0 < x * x + y * y")
 apply (simp add: sin_squared_eq del: realpow_Suc)
 apply (subgoal_tac "(cos xa)\<twosuperior> = (x / sqrt (x * x + y * y)) ^ 2")
 apply (rule_tac [2] lemma_sin_cos_eq)
 apply (auto simp add: realpow_two_disj numeral_2_eq_2 simp del: realpow_Suc)
+apply (auto simp add: sum_squares_gt_zero_iff)
 done
 
 lemma real_sqrt_divide_less_zero: "0 < y ==> - y / sqrt (x * x + y * y) < 0"
-apply (case_tac "x = 0", auto)
-apply (drule_tac y = y in real_sqrt_sum_squares_gt_zero3)
-apply (auto simp add: zero_less_mult_iff divide_inverse power2_eq_square)
-done
+by (simp add: divide_pos_pos sum_squares_gt_zero_iff)
 
 lemma polar_ex1:
      "[| x \<noteq> 0; 0 < y |] ==> \<exists>r a. x = r * cos a & y = r * sin a"
@@ -2124,7 +2112,7 @@ apply (drule_tac x = x in real_sqrt_divide_less_zero, auto)
 done
 
 lemma real_sum_squares_cancel2a: "x * x = -(y * y) ==> y = (0::real)"
-by (auto intro: real_sum_squares_cancel iff: real_add_eq_0_iff)
+by (simp add: real_add_eq_0_iff [symmetric] sum_squares_eq_zero_iff)
 
 lemma polar_ex2:
      "[| x \<noteq> 0; y < 0 |] ==> \<exists>r a. x = r * cos a & y = r * sin a"
@@ -2174,7 +2162,7 @@ lemma real_sqrt_two_gt_one [simp]: "1 < sqrt 2"
 by simp
 
 lemma lemma_real_divide_sqrt_less: "0 < u ==> u / sqrt 2 < u"
-by (simp add: divide_less_eq mult_compare_simps) 
+by (simp add: divide_less_eq mult_compare_simps)
 
 lemma four_x_squared: 
   fixes x::real
