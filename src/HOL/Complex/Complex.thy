@@ -218,6 +218,12 @@ instance complex :: scaleR ..
 defs (overloaded)
   complex_scaleR_def: "r *# x == Complex r 0 * x"
 
+lemma Re_scaleR [simp]: "Re (scaleR r x) = r * Re x"
+unfolding complex_scaleR_def by (induct x, simp)
+
+lemma Im_scaleR [simp]: "Im (scaleR r x) = r * Im x"
+unfolding complex_scaleR_def by (induct x, simp)
+
 instance complex :: real_field
 proof
   fix a b :: real
@@ -478,29 +484,16 @@ lemma complex_i_not_zero [simp]: "ii \<noteq> 0"
 by (simp add: i_def complex_zero_def)
 
 
-subsection{*The Function @{term sgn}*}
+subsection{*The Functions @{term sgn} and @{term arg}*}
 
-definition
-  (*------------ Argand -------------*)
-
-  sgn :: "complex => complex" where
-  "sgn z = z / complex_of_real(cmod z)"
+text {*------------ Argand -------------*}
 
 definition
   arg :: "complex => real" where
   "arg z = (SOME a. Re(sgn z) = cos a & Im(sgn z) = sin a & -pi < a & a \<le> pi)"
 
-lemma sgn_zero [simp]: "sgn 0 = 0"
-by (simp add: sgn_def)
-
-lemma sgn_one [simp]: "sgn 1 = 1"
-by (simp add: sgn_def)
-
-lemma sgn_minus: "sgn (-z) = - sgn(z)"
-by (simp add: sgn_def)
-
 lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
-by (simp add: sgn_def)
+by (simp add: sgn_def divide_inverse scaleR_conv_of_real mult_commute)
 
 lemma i_mult_eq: "ii * ii = complex_of_real (-1)"
 by (simp add: i_def complex_of_real_def)
@@ -513,23 +506,10 @@ lemma complex_eq_cancel_iff2 [simp]:
 by (simp add: complex_of_real_def)
 
 lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
-proof (induct z)
-  case (Complex x y)
-    have "sqrt (x\<twosuperior> + y\<twosuperior>) * inverse (x\<twosuperior> + y\<twosuperior>) = inverse (sqrt (x\<twosuperior> + y\<twosuperior>))"
-      by (simp add: divide_inverse [symmetric] sqrt_divide_self_eq)
-    thus "Re (sgn (Complex x y)) = Re (Complex x y) /cmod (Complex x y)"
-       by (simp add: sgn_def complex_of_real_def divide_inverse)
-qed
-
+unfolding sgn_def by (simp add: divide_inverse)
 
 lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
-proof (induct z)
-  case (Complex x y)
-    have "sqrt (x\<twosuperior> + y\<twosuperior>) * inverse (x\<twosuperior> + y\<twosuperior>) = inverse (sqrt (x\<twosuperior> + y\<twosuperior>))"
-      by (simp add: divide_inverse [symmetric] sqrt_divide_self_eq)
-    thus "Im (sgn (Complex x y)) = Im (Complex x y) /cmod (Complex x y)"
-       by (simp add: sgn_def complex_of_real_def divide_inverse)
-qed
+unfolding sgn_def by (simp add: divide_inverse)
 
 lemma complex_inverse_complex_split:
      "inverse(complex_of_real x + ii * complex_of_real y) =

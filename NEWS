@@ -887,19 +887,20 @@ reals have been generalized, so they now work over arbitrary vector
 spaces. Type annotations may need to be added in some cases; potential
 INCOMPATIBILITY.
 
-  Infinitesimal  :: ('a::real_normed_vector) star set"
-  HFinite        :: ('a::real_normed_vector) star set"
-  HInfinite      :: ('a::real_normed_vector) star set"
+  Infinitesimal  :: ('a::real_normed_vector) star set
+  HFinite        :: ('a::real_normed_vector) star set
+  HInfinite      :: ('a::real_normed_vector) star set
   approx         :: ('a::real_normed_vector) star => 'a star => bool
   monad          :: ('a::real_normed_vector) star => 'a star set
   galaxy         :: ('a::real_normed_vector) star => 'a star set
-  (NS)LIMSEQ     :: [nat, 'a::real_normed_vector, 'a] => bool
+  (NS)LIMSEQ     :: [nat => 'a::real_normed_vector, 'a] => bool
   (NS)convergent :: (nat => 'a::real_normed_vector) => bool
   (NS)Bseq       :: (nat => 'a::real_normed_vector) => bool
   (NS)Cauchy     :: (nat => 'a::real_normed_vector) => bool
   (NS)LIM        :: ['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool
   is(NS)Cont     :: ['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool
   deriv          :: ['a::real_normed_field => 'a, 'a, 'a] => bool
+  sgn            :: 'a::real_normed_vector => 'a
 
 * Complex: Some complex-specific constants are now abbreviations for
 overloaded ones: complex_of_real = of_real, cmod = norm, hcmod =

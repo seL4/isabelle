@@ -591,6 +591,46 @@ lemma norm_power:
 by (induct n) (simp_all add: power_Suc norm_mult)
 
 
+subsection {* Sign function *}
+
+definition
+  sgn :: "'a::real_normed_vector \<Rightarrow> 'a" where
+  "sgn x = scaleR (inverse (norm x)) x"
+
+lemma norm_sgn: "norm (sgn x) = (if x = 0 then 0 else 1)"
+unfolding sgn_def by (simp add: norm_scaleR)
+
+lemma sgn_zero [simp]: "sgn 0 = 0"
+unfolding sgn_def by simp
+
+lemma sgn_zero_iff: "(sgn x = 0) = (x = 0)"
+unfolding sgn_def by (simp add: scaleR_eq_0_iff)
+
+lemma sgn_minus: "sgn (- x) = - sgn x"
+unfolding sgn_def by simp
+
+lemma sgn_one [simp]: "sgn (1::'a::real_normed_algebra_1) = 1"
+unfolding sgn_def by simp
+
+lemma sgn_scaleR: "sgn (scaleR r x) = scaleR (sgn r) (sgn x)"
+unfolding sgn_def
+by (simp add: real_scaleR_def norm_scaleR mult_ac)
+
+lemma sgn_of_real:
+  "sgn (of_real r::'a::real_normed_algebra_1) = of_real (sgn r)"
+unfolding of_real_def by (simp only: sgn_scaleR sgn_one)
+
+lemma real_sgn_eq: "sgn (x::real) = x / \<bar>x\<bar>"
+unfolding sgn_def real_scaleR_def
+by (simp add: divide_inverse)
+
+lemma real_sgn_pos: "0 < (x::real) \<Longrightarrow> sgn x = 1"
+unfolding real_sgn_eq by simp
+
+lemma real_sgn_neg: "(x::real) < 0 \<Longrightarrow> sgn x = -1"
+unfolding real_sgn_eq by simp
+
+
 subsection {* Bounded Linear and Bilinear Operators *}
 
 locale bounded_linear = additive +
