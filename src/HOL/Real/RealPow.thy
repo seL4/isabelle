@@ -28,9 +28,6 @@ proof
 qed
 
 
-lemma realpow_not_zero: "r \<noteq> (0::real) ==> r ^ n \<noteq> 0"
-  by (rule field_power_not_zero)
-
 lemma realpow_zero_zero: "r ^ n = (0::real) ==> r = 0"
 by simp
 
@@ -59,15 +56,12 @@ lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
 apply (induct "n")
 apply (auto simp add: real_of_nat_Suc)
 apply (subst mult_2)
-apply (rule real_add_less_le_mono)
+apply (rule add_less_le_mono)
 apply (auto simp add: two_realpow_ge_one)
 done
 
 lemma realpow_Suc_le_self: "[| 0 \<le> r; r \<le> (1::real) |] ==> r ^ Suc n \<le> r"
 by (insert power_decreasing [of 1 "Suc n" r], simp)
-
-lemma realpow_Suc_less_one: "[| 0 < r; r < (1::real) |] ==> r ^ Suc n < 1"
-by (rule power_Suc_less_one)
 
 lemma realpow_minus_mult [rule_format]:
      "0 < n --> (x::real) ^ (n - 1) * x = x ^ n" 
@@ -103,19 +97,10 @@ apply (induct "n")
 apply (auto simp add: real_of_nat_mult zero_less_mult_iff)
 done
 
+(* used by AFP Integration theory *)
 lemma realpow_increasing:
      "[|(0::real) \<le> x; 0 \<le> y; x ^ Suc n \<le> y ^ Suc n|] ==> x \<le> y"
   by (rule power_le_imp_le_base)
-
-
-lemma zero_less_realpow_abs_iff [simp]:
-     "(0 < (abs x)^n) = (x \<noteq> (0::real) | n=0)" 
-apply (induct "n")
-apply (auto simp add: zero_less_mult_iff)
-done
-
-lemma zero_le_realpow_abs [simp]: "(0::real) \<le> (abs x)^n"
-by (rule zero_le_power_abs)
 
 
 subsection{*Literal Arithmetic Involving Powers, Type @{typ real}*}

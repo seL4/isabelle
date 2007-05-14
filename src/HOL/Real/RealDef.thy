@@ -72,7 +72,7 @@ defs (overloaded)
 
   real_less_def: "(x < (y::real)) == (x \<le> y & x \<noteq> y)"
 
-  real_abs_def:  "abs (r::real) == (if 0 \<le> r then r else -r)"
+  real_abs_def:  "abs (r::real) == (if r < 0 then - r else r)"
 
 
 
@@ -293,9 +293,6 @@ proof
   show "inverse 0 = (0::real)" by (rule INVERSE_ZERO)
 qed
 
-lemma real_mult_1_right: "z * (1::real) = z"
-  by (rule OrderedGroup.mult_1_right)
-
 
 subsection{*The @{text "\<le>"} Ordering*}
 
@@ -418,11 +415,6 @@ apply (drule real_mult_order, assumption)
 apply (simp add: right_distrib)
 done
 
-text{*lemma for proving @{term "0<(1::real)"}*}
-lemma real_zero_le_one: "0 \<le> (1::real)"
-by (simp add: real_zero_def real_one_def real_le 
-                 preal_self_less_add_left order_less_imp_le)
-
 instance real :: distrib_lattice
   "inf x y \<equiv> min x y"
   "sup x y \<equiv> max x y"
@@ -435,9 +427,8 @@ instance real :: ordered_field
 proof
   fix x y z :: real
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)
-  show "x < y ==> 0 < z ==> z * x < z * y" by (simp add: real_mult_less_mono2)
-  show "\<bar>x\<bar> = (if x < 0 then -x else x)"
-    by (auto dest: order_le_less_trans simp add: real_abs_def linorder_not_le)
+  show "x < y ==> 0 < z ==> z * x < z * y" by (rule real_mult_less_mono2)
+  show "\<bar>x\<bar> = (if x < 0 then -x else x)" by (simp only: real_abs_def)
 qed
 
 text{*The function @{term real_of_preal} requires many proofs, but it seems
@@ -537,13 +528,6 @@ by (auto elim: order_le_imp_less_or_eq [THEN disjE]
 lemma real_less_all_real2: "~ 0 < y ==> \<forall>x. y < real_of_preal x"
 by (blast intro!: real_less_all_preal linorder_not_less [THEN iffD1])
 
-lemma real_add_less_le_mono: "[| w'<w; z'\<le>z |] ==> w' + z' < w + (z::real)"
-  by (rule OrderedGroup.add_less_le_mono)
-
-lemma real_add_le_less_mono:
-     "!!z z'::real. [| w'\<le>w; z'<z |] ==> w' + z' < w + z"
-  by (rule OrderedGroup.add_le_less_mono)
-
 lemma real_le_square [simp]: "(0::real) \<le> x*x"
  by (rule Ring_and_Field.zero_le_square)
 
@@ -572,11 +556,6 @@ done
 
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
 by(simp add:mult_commute)
-
-text{*Only two uses?*}
-lemma real_mult_less_mono':
-     "[| x < y;  r1 < r2;  (0::real) \<le> r1;  0 \<le> x|] ==> r1 * x < r2 * y"
- by (rule Ring_and_Field.mult_strict_mono')
 
 text{*FIXME: delete or at least combine the next two lemmas*}
 lemma real_sum_squares_cancel: "x * x + y * y = 0 ==> x = (0::real)"
