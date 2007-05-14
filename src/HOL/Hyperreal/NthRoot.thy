@@ -474,14 +474,11 @@ done
 
 subsection {* Square Root of Sum of Squares *}
 
-lemma "(sqrt (x\<twosuperior> + y\<twosuperior>))\<twosuperior> = x\<twosuperior> + y\<twosuperior>"
-by simp
-
 lemma real_sqrt_mult_self_sum_ge_zero [simp]: "0 \<le> sqrt(x*x + y*y)"
-by (rule real_sqrt_ge_zero [OF real_mult_self_sum_ge_zero]) 
+by (rule real_sqrt_ge_zero [OF real_mult_self_sum_ge_zero])
 
 lemma real_sqrt_sum_squares_ge_zero [simp]: "0 \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
-by (auto intro!: real_sqrt_ge_zero)
+by simp
 
 lemma real_sqrt_sum_squares_mult_ge_zero [simp]:
      "0 \<le> sqrt ((x\<twosuperior> + y\<twosuperior>)*(xa\<twosuperior> + ya\<twosuperior>))"
@@ -496,12 +493,6 @@ by (rule power2_le_imp_le, simp_all)
 
 lemma real_sqrt_sum_squares_ge2 [simp]: "y \<le> sqrt(x\<twosuperior> + y\<twosuperior>)"
 by (rule power2_le_imp_le, simp_all)
-
-lemma real_sqrt_sos_less_one_iff: "(sqrt (x\<twosuperior> + y\<twosuperior>) < 1) = (x\<twosuperior> + y\<twosuperior> < 1)"
-by (rule real_sqrt_lt_1_iff)
-
-lemma real_sqrt_sos_eq_one_iff: "(sqrt (x\<twosuperior> + y\<twosuperior>) = 1) = (x\<twosuperior> + y\<twosuperior> = 1)"
-by (rule real_sqrt_eq_1_iff)
 
 lemma power2_sum:
   fixes x y :: "'a::{number_ring,recpower}"
