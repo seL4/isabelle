@@ -557,18 +557,6 @@ done
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
 by(simp add:mult_commute)
 
-text{*FIXME: delete or at least combine the next two lemmas*}
-lemma real_sum_squares_cancel: "x * x + y * y = 0 ==> x = (0::real)"
-apply (drule OrderedGroup.equals_zero_I [THEN sym])
-apply (cut_tac x = y in real_le_square) 
-apply (auto, drule order_antisym, auto)
-done
-
-lemma real_sum_squares_cancel2: "x * x + y * y = 0 ==> y = (0::real)"
-apply (rule_tac y = x in real_sum_squares_cancel)
-apply (simp add: add_commute)
-done
-
 lemma real_add_order: "[| 0 < x; 0 < y |] ==> (0::real) < x + y"
 by (rule add_pos_pos)
 
@@ -580,9 +568,6 @@ by (rule inverse_unique [symmetric])
 
 lemma real_inverse_gt_one: "[| (0::real) < x; x < 1 |] ==> 1 < inverse x"
 by (simp add: one_less_inverse_iff)
-
-lemma real_mult_self_sum_ge_zero: "(0::real) \<le> x*x + y*y"
-by (intro add_nonneg_nonneg zero_le_square)
 
 
 subsection{*Embedding the Integers into the Reals*}

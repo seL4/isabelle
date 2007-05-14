@@ -44,15 +44,12 @@ val real_of_preal_le_iff = thm "real_of_preal_le_iff";
 val real_mult_order = thm "real_mult_order";
 val real_add_order = thm "real_add_order";
 val real_le_add_order = thm "real_le_add_order";
-val real_le_square = thm "real_le_square";
 val real_mult_less_mono2 = thm "real_mult_less_mono2";
 
 val real_mult_less_iff1 = thm "real_mult_less_iff1";
 val real_mult_le_cancel_iff1 = thm "real_mult_le_cancel_iff1";
 val real_mult_le_cancel_iff2 = thm "real_mult_le_cancel_iff2";
 val real_mult_less_mono = thm "real_mult_less_mono";
-val real_sum_squares_cancel = thm "real_sum_squares_cancel";
-val real_sum_squares_cancel2 = thm "real_sum_squares_cancel2";
 
 val real_mult_left_cancel = thm"real_mult_left_cancel";
 val real_mult_right_cancel = thm"real_mult_right_cancel";

@@ -187,21 +187,75 @@ lemma sum_power2_gt_zero_iff:
 unfolding power2_eq_square by (rule sum_squares_gt_zero_iff)
 
 
-subsection{*Various Other Theorems*}
+subsection{* Squares of Reals *}
+
+lemma real_two_squares_add_zero_iff [simp]:
+  "(x * x + y * y = 0) = ((x::real) = 0 \<and> y = 0)"
+by (rule sum_squares_eq_zero_iff)
+
+lemma real_sum_squares_cancel: "x * x + y * y = 0 ==> x = (0::real)"
+by simp
+
+lemma real_sum_squares_cancel2: "x * x + y * y = 0 ==> y = (0::real)"
+by simp
+
+lemma real_mult_self_sum_ge_zero: "(0::real) \<le> x*x + y*y"
+by (rule sum_squares_ge_zero)
 
 lemma real_sum_squares_cancel_a: "x * x = -(y * y) ==> x = (0::real) & y=0"
-  apply (auto dest: real_sum_squares_cancel simp add: real_add_eq_0_iff [symmetric])
-  apply (auto dest: real_sum_squares_cancel simp add: add_commute)
-  done
+by (simp add: real_add_eq_0_iff [symmetric])
 
 lemma real_squared_diff_one_factored: "x*x - (1::real) = (x + 1)*(x - 1)"
-by (auto simp add: left_distrib right_distrib real_diff_def)
+by (simp add: left_distrib right_diff_distrib)
 
 lemma real_mult_is_one [simp]: "(x*x = (1::real)) = (x = 1 | x = - 1)"
 apply auto
 apply (drule right_minus_eq [THEN iffD2]) 
 apply (auto simp add: real_squared_diff_one_factored)
 done
+
+lemma real_sum_squares_not_zero: "x ~= 0 ==> x * x + y * y ~= (0::real)"
+by simp
+
+lemma real_sum_squares_not_zero2: "y ~= 0 ==> x * x + y * y ~= (0::real)"
+by simp
+
+lemma realpow_two_sum_zero_iff [simp]:
+     "(x ^ 2 + y ^ 2 = (0::real)) = (x = 0 & y = 0)"
+by (rule sum_power2_eq_zero_iff)
+
+lemma realpow_two_le_add_order [simp]: "(0::real) \<le> u ^ 2 + v ^ 2"
+by (rule sum_power2_ge_zero)
+
+lemma realpow_two_le_add_order2 [simp]: "(0::real) \<le> u ^ 2 + v ^ 2 + w ^ 2"
+by (intro add_nonneg_nonneg zero_le_power2)
+
+lemma real_sum_square_gt_zero: "x ~= 0 ==> (0::real) < x * x + y * y"
+by (simp add: sum_squares_gt_zero_iff)
+
+lemma real_sum_square_gt_zero2: "y ~= 0 ==> (0::real) < x * x + y * y"
+by (simp add: sum_squares_gt_zero_iff)
+
+lemma real_minus_mult_self_le [simp]: "-(u * u) \<le> (x * (x::real))"
+by (rule_tac j = 0 in real_le_trans, auto)
+
+lemma realpow_square_minus_le [simp]: "-(u ^ 2) \<le> (x::real) ^ 2"
+by (auto simp add: power2_eq_square)
+
+(* The following theorem is by Benjamin Porter *)
+lemma real_sq_order:
+  fixes x::real
+  assumes xgt0: "0 \<le> x" and ygt0: "0 \<le> y" and sq: "x^2 \<le> y^2"
+  shows "x \<le> y"
+proof -
+  from sq have "x ^ Suc (Suc 0) \<le> y ^ Suc (Suc 0)"
+    by (simp only: numeral_2_eq_2)
+  thus "x \<le> y" using ygt0
+    by (rule power_le_imp_le_base)
+qed
+
+
+subsection {*Various Other Theorems*}
 
 lemma real_le_add_half_cancel: "(x + y/2 \<le> (y::real)) = (x \<le> y /2)"
 by auto
@@ -229,60 +283,6 @@ by simp
 
 lemma inverse_real_of_nat_ge_zero [simp]: "0 \<le> inverse (real (Suc n))"
 by simp
-
-lemma real_sum_squares_not_zero: "x ~= 0 ==> x * x + y * y ~= (0::real)"
-by (blast dest!: real_sum_squares_cancel)
-
-lemma real_sum_squares_not_zero2: "y ~= 0 ==> x * x + y * y ~= (0::real)"
-by (blast dest!: real_sum_squares_cancel2)
-
-
-subsection {*Various Other Theorems*}
-
-lemma realpow_two_sum_zero_iff [simp]:
-     "(x ^ 2 + y ^ 2 = (0::real)) = (x = 0 & y = 0)"
-apply (auto intro: real_sum_squares_cancel real_sum_squares_cancel2 
-                   simp add: power2_eq_square)
-done
-
-lemma realpow_two_le_add_order [simp]: "(0::real) \<le> u ^ 2 + v ^ 2"
-apply (rule real_le_add_order)
-apply (auto simp add: power2_eq_square)
-done
-
-lemma realpow_two_le_add_order2 [simp]: "(0::real) \<le> u ^ 2 + v ^ 2 + w ^ 2"
-apply (rule real_le_add_order)+
-apply (auto simp add: power2_eq_square)
-done
-
-lemma real_sum_square_gt_zero: "x ~= 0 ==> (0::real) < x * x + y * y"
-apply (cut_tac x = x and y = y in real_mult_self_sum_ge_zero)
-apply (drule real_le_imp_less_or_eq)
-apply (drule_tac y = y in real_sum_squares_not_zero, auto)
-done
-
-lemma real_sum_square_gt_zero2: "y ~= 0 ==> (0::real) < x * x + y * y"
-apply (rule real_add_commute [THEN subst])
-apply (erule real_sum_square_gt_zero)
-done
-
-lemma real_minus_mult_self_le [simp]: "-(u * u) \<le> (x * (x::real))"
-by (rule_tac j = 0 in real_le_trans, auto)
-
-lemma realpow_square_minus_le [simp]: "-(u ^ 2) \<le> (x::real) ^ 2"
-by (auto simp add: power2_eq_square)
-
-(* The following theorem is by Benjamin Porter *)
-lemma real_sq_order:
-  fixes x::real
-  assumes xgt0: "0 \<le> x" and ygt0: "0 \<le> y" and sq: "x^2 \<le> y^2"
-  shows "x \<le> y"
-proof -
-  from sq have "x ^ Suc (Suc 0) \<le> y ^ Suc (Suc 0)"
-    by (simp only: numeral_2_eq_2)
-  thus "x \<le> y" using ygt0
-    by (rule power_le_imp_le_base)
-qed
 
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
