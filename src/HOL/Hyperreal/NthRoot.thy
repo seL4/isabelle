@@ -475,7 +475,7 @@ done
 subsection {* Square Root of Sum of Squares *}
 
 lemma real_sqrt_mult_self_sum_ge_zero [simp]: "0 \<le> sqrt(x*x + y*y)"
-by (rule real_sqrt_ge_zero [OF real_mult_self_sum_ge_zero])
+by (rule real_sqrt_ge_zero [OF sum_squares_ge_zero])
 
 lemma real_sqrt_sum_squares_ge_zero [simp]: "0 \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
 by simp

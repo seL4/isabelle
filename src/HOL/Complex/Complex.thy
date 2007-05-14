@@ -67,8 +67,8 @@ by (simp add: complex_zero_def)
 lemma complex_Im_zero [simp]: "Im 0 = 0"
 by (simp add: complex_zero_def)
 
-lemma complex_zero_iff [simp]: "(Complex x y = 0) = (x = 0 \<and> y = 0)"
-unfolding complex_zero_def by simp
+lemma Complex_eq_0 [simp]: "(Complex x y = 0) = (x = 0 \<and> y = 0)"
+by (simp add: complex_zero_def)
 
 lemma complex_Re_one [simp]: "Re 1 = 1"
 by (simp add: complex_one_def)
@@ -76,10 +76,16 @@ by (simp add: complex_one_def)
 lemma complex_Im_one [simp]: "Im 1 = 0"
 by (simp add: complex_one_def)
 
+lemma Complex_eq_1 [simp]: "(Complex x y = 1) = (x = 1 \<and> y = 0)"
+by (simp add: complex_one_def)
+
 lemma complex_Re_i [simp]: "Re(ii) = 0"
 by (simp add: i_def)
 
 lemma complex_Im_i [simp]: "Im(ii) = 1"
+by (simp add: i_def)
+
+lemma Complex_eq_i [simp]: "(Complex x y = ii) = (x = 0 \<and> y = 1)"
 by (simp add: i_def)
 
 
@@ -156,16 +162,12 @@ by (simp add: complex_mult_def complex_one_def)
 subsection{*Inverse*}
 
 lemma complex_inverse [simp]:
-     "inverse (Complex x y) = Complex (x/(x ^ 2 + y ^ 2)) (-y/(x ^ 2 + y ^ 2))"
+  "inverse (Complex x y) = Complex (x / (x\<twosuperior> + y\<twosuperior>)) (- y / (x\<twosuperior> + y\<twosuperior>))"
 by (simp add: complex_inverse_def)
 
 lemma complex_mult_inv_left: "z \<noteq> (0::complex) ==> inverse(z) * z = 1"
 apply (induct z)
-apply (rename_tac x y)
-apply (auto simp add:
-             complex_one_def complex_zero_def add_divide_distrib [symmetric] 
-             power2_eq_square mult_ac)
-apply (simp_all add: real_sum_squares_not_zero real_sum_squares_not_zero2) 
+apply (simp add: power2_eq_square [symmetric] add_divide_distrib [symmetric])
 done
 
 
@@ -509,17 +511,6 @@ by (simp add: i_def complex_one_def)
 lemma complex_eq_cancel_iff2 [simp]:
      "(Complex x y = complex_of_real xa) = (x = xa & y = 0)"
 by (simp add: complex_of_real_def)
-
-lemma Complex_eq_0 [simp]: "(Complex x y = 0) = (x = 0 & y = 0)"
-by (simp add: complex_zero_def)
-
-lemma Complex_eq_1 [simp]: "(Complex x y = 1) = (x = 1 & y = 0)"
-by (simp add: complex_one_def)
-
-lemma Complex_eq_i [simp]: "(Complex x y = ii) = (x = 0 & y = 1)"
-by (simp add: i_def)
-
-
 
 lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
 proof (induct z)
