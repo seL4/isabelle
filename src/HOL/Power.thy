@@ -202,9 +202,7 @@ qed
 
 lemma zero_le_power_abs [simp]:
      "(0::'a::{ordered_idom,recpower}) \<le> (abs a)^n"
-apply (induct "n")
-apply (auto simp add: zero_le_one zero_le_power)
-done
+by (rule zero_le_power [OF abs_ge_zero])
 
 lemma power_minus: "(-a) ^ n = (- 1)^n * (a::'a::{comm_ring_1,recpower}) ^ n"
 proof -
