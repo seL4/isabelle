@@ -1817,7 +1817,7 @@ done
 lemma tan_sec: "cos x \<noteq> 0 ==> 1 + tan(x) ^ 2 = inverse(cos x) ^ 2"
 apply (rule power_inverse [THEN subst])
 apply (rule_tac c1 = "(cos x)\<twosuperior>" in real_mult_right_cancel [THEN iffD1])
-apply (auto dest: realpow_not_zero 
+apply (auto dest: field_power_not_zero
         simp add: power_mult_distrib left_distrib power_divide tan_def 
                   mult_assoc power_inverse [symmetric] 
         simp del: realpow_Suc)
@@ -1927,7 +1927,7 @@ proof (rule order_trans)
 qed
 
 lemma lemma_real_divide_sqrt_ge_minus_one:
-     "0 < x ==> -1 \<le> x/(sqrt (x * x + y * y))" 
+     "0 < x ==> -1 \<le> x/(sqrt (x * x + y * y))"
 by (simp add: divide_const_simps linorder_not_le [symmetric]
          del: real_sqrt_le_0_iff real_sqrt_ge_0_iff)
 
@@ -2159,14 +2159,10 @@ apply (blast intro: polar_ex1 polar_ex2)+
 done
 
 lemma real_sqrt_ge_abs1 [simp]: "\<bar>x\<bar> \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
-apply (rule_tac n = 1 in realpow_increasing)
-apply (auto simp add: numeral_2_eq_2 [symmetric] power2_abs)
-done
+by (rule power2_le_imp_le, simp_all)
 
 lemma real_sqrt_ge_abs2 [simp]: "\<bar>y\<bar> \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
-apply (rule real_add_commute [THEN subst])
-apply (rule real_sqrt_ge_abs1)
-done
+by (rule power2_le_imp_le, simp_all)
 
 lemma real_sqrt_two_gt_zero [simp]: "0 < sqrt 2"
 by simp
@@ -2192,9 +2188,8 @@ lemma lemma_sqrt_hcomplex_capprox:
      "[| 0 < u; x < u/2; y < u/2; 0 \<le> x; 0 \<le> y |] ==> sqrt (x\<twosuperior> + y\<twosuperior>) < u"
 apply (rule_tac y = "u/sqrt 2" in order_le_less_trans)
 apply (erule_tac [2] lemma_real_divide_sqrt_less)
-apply (rule_tac n = 1 in realpow_increasing)
-apply (auto simp add: real_0_le_divide_iff power_divide numeral_2_eq_2 [symmetric] 
-        simp del: realpow_Suc)
+apply (rule power2_le_imp_le)
+apply (auto simp add: real_0_le_divide_iff power_divide)
 apply (rule_tac t = "u\<twosuperior>" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
 apply (auto simp add: four_x_squared simp del: realpow_Suc intro: power_mono)
