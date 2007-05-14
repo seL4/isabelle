@@ -67,7 +67,7 @@ lemma realpow_Suc_le_self: "[| 0 \<le> r; r \<le> (1::real) |] ==> r ^ Suc n \<l
 by (insert power_decreasing [of 1 "Suc n" r], simp)
 
 lemma realpow_Suc_less_one: "[| 0 < r; r < (1::real) |] ==> r ^ Suc n < 1"
-by (insert power_strict_decreasing [of 0 "Suc n" r], simp)
+by (rule power_Suc_less_one)
 
 lemma realpow_minus_mult [rule_format]:
      "0 < n --> (x::real) ^ (n - 1) * x = x ^ n" 
@@ -115,9 +115,7 @@ apply (auto simp add: zero_less_mult_iff)
 done
 
 lemma zero_le_realpow_abs [simp]: "(0::real) \<le> (abs x)^n"
-apply (induct "n")
-apply (auto simp add: zero_le_mult_iff)
-done
+by (rule zero_le_power_abs)
 
 
 subsection{*Literal Arithmetic Involving Powers, Type @{typ real}*}

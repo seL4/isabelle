@@ -112,13 +112,7 @@ declare equiv_realrel_iff [simp]
 lemma realrel_in_real [simp]: "realrel``{(x,y)}: Real"
 by (simp add: Real_def realrel_def quotient_def, blast)
 
-
-lemma inj_on_Abs_Real: "inj_on Abs_Real Real"
-apply (rule inj_on_inverseI)
-apply (erule Abs_Real_inverse)
-done
-
-declare inj_on_Abs_Real [THEN inj_on_iff, simp]
+declare Abs_Real_inject [simp]
 declare Abs_Real_inverse [simp]
 
 
@@ -298,11 +292,6 @@ instance real :: division_by_zero
 proof
   show "inverse 0 = (0::real)" by (rule INVERSE_ZERO)
 qed
-
-
-(*Pull negations out*)
-declare minus_mult_right [symmetric, simp] 
-        minus_mult_left [symmetric, simp]
 
 lemma real_mult_1_right: "z * (1::real) = z"
   by (rule OrderedGroup.mult_1_right)
@@ -602,26 +591,19 @@ apply (simp add: add_commute)
 done
 
 lemma real_add_order: "[| 0 < x; 0 < y |] ==> (0::real) < x + y"
-by (drule add_strict_mono [of concl: 0 0], assumption, simp)
+by (rule add_pos_pos)
 
 lemma real_le_add_order: "[| 0 \<le> x; 0 \<le> y |] ==> (0::real) \<le> x + y"
-apply (drule order_le_imp_less_or_eq)+
-apply (auto intro: real_add_order order_less_imp_le)
-done
+by (rule add_nonneg_nonneg)
 
 lemma real_inverse_unique: "x*y = (1::real) ==> y = inverse x"
-apply (case_tac "x \<noteq> 0")
-apply (rule_tac c1 = x in real_mult_left_cancel [THEN iffD1], auto)
-done
+by (rule inverse_unique [symmetric])
 
 lemma real_inverse_gt_one: "[| (0::real) < x; x < 1 |] ==> 1 < inverse x"
-by (auto dest: less_imp_inverse_less)
+by (simp add: one_less_inverse_iff)
 
 lemma real_mult_self_sum_ge_zero: "(0::real) \<le> x*x + y*y"
-proof -
-  have "0 + 0 \<le> x*x + y*y" by (blast intro: add_mono zero_le_square)
-  thus ?thesis by simp
-qed
+by (intro add_nonneg_nonneg zero_le_square)
 
 
 subsection{*Embedding the Integers into the Reals*}
@@ -1017,7 +999,7 @@ lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
 by (simp add: abs_if)
 
 lemma abs_real_of_nat_cancel [simp]: "abs (real x) = real (x::nat)"
-by (simp add: real_of_nat_ge_zero)
+by (rule abs_of_nonneg [OF real_of_nat_ge_zero])
 
 lemma abs_add_one_not_less_self [simp]: "~ abs(x) + (1::real) < x"
 by simp
