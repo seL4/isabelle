@@ -33,6 +33,13 @@ used here, which is not necessarily the same as the_context().
 
 * Command 'find_theorems': support "*" wildcard in "name:" criterion.
 
+* Proof General interface: A search form for the "Find Theorems" command is
+now available via C-c C-a C-f.  The old minibuffer interface is available
+via C-c C-a C-m.  Variable proof-find-theorems-command (customizable via
+'Proof-General -> Advanced -> Internals -> Prover Config') controls the
+default behavior of 'ProofGeneral -> Find Theorems' (C-c C-f): set to
+isar-find-theorems-form or isar-find-theorems-minibuffer.
+
 * The ``prems limit'' option (cf. ProofContext.prems_limit) is now -1
 by default, which means that "prems" (and also "fixed variables") are
 suppressed from proof state output.  Note that the ProofGeneral
