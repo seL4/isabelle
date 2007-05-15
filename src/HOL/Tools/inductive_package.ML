@@ -550,7 +550,8 @@ fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
          REPEAT (FIRSTGOAL
            (resolve_tac [conjI, impI] ORELSE' (etac notE THEN' atac))),
          EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [rewrite_rule
-           (inductive_conj_def :: rec_preds_defs) prem, conjI, refl] 1)) prems)]);
+             (inductive_conj_def :: rec_preds_defs @ simp_thms') prem,
+           conjI, refl] 1)) prems)]);
 
     val lemma = SkipProof.prove ctxt'' [] []
       (Logic.mk_implies (ind_concl, mutual_ind_concl)) (fn _ => EVERY
