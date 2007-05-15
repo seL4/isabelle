@@ -1961,50 +1961,50 @@ lemma cos_x_y_ge_minus_one: "-1 \<le> x / sqrt (x * x + y * y)"
 by (simp add: minus_sqrt_le not_neg_sqrt_sumsq divide_const_simps
          del: real_sqrt_gt_0_iff real_sqrt_lt_0_iff)
 
-lemma cos_x_y_ge_minus_one1a [simp]: "-1 \<le> y / sqrt (x * x + y * y)"
+lemma cos_x_y_ge_minus_one1a (*[simp]*): "-1 \<le> y / sqrt (x * x + y * y)"
 by (subst add_commute, simp add: cos_x_y_ge_minus_one)
 
-lemma cos_x_y_le_one [simp]: "x / sqrt (x * x + y * y) \<le> 1" 
+lemma cos_x_y_le_one (*[simp]*): "x / sqrt (x * x + y * y) \<le> 1" 
 by (simp add: divide_le_eq not_sum_squares_lt_zero)
 
-lemma cos_x_y_le_one2 [simp]: "y / sqrt (x * x + y * y) \<le> 1"
+lemma cos_x_y_le_one2 (*[simp]*): "y / sqrt (x * x + y * y) \<le> 1"
 apply (cut_tac x = y and y = x in cos_x_y_le_one)
 apply (simp add: real_add_commute)
 done
 
-lemmas cos_arccos_lemma1 =
-  cos_arccos [OF cos_x_y_ge_minus_one cos_x_y_le_one, simp]
+lemmas cos_arccos_lemma1 = (* used by polar_ex1 *)
+  cos_arccos [OF cos_x_y_ge_minus_one cos_x_y_le_one]
 
 lemmas arccos_bounded_lemma1 =
-  arccos_bounded [OF cos_x_y_ge_minus_one cos_x_y_le_one, simp] 
+  arccos_bounded [OF cos_x_y_ge_minus_one cos_x_y_le_one]
 
 lemmas cos_arccos_lemma2 =
-  cos_arccos [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2, simp] 
+  cos_arccos [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2]
 
 lemmas arccos_bounded_lemma2 =
-  arccos_bounded [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2, simp] 
+  arccos_bounded [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2]
 
-lemma cos_abs_x_y_ge_minus_one [simp]:
+lemma cos_abs_x_y_ge_minus_one (*[simp]*):
      "-1 \<le> \<bar>x\<bar> / sqrt (x * x + y * y)"
 by (auto simp add: divide_const_simps abs_if linorder_not_le [symmetric]
          simp del: real_sqrt_ge_0_iff real_sqrt_le_0_iff)
 
-lemma cos_abs_x_y_le_one [simp]: "\<bar>x\<bar> / sqrt (x * x + y * y) \<le> 1"
+lemma cos_abs_x_y_le_one (*[simp]*): "\<bar>x\<bar> / sqrt (x * x + y * y) \<le> 1"
 apply (insert minus_le_real_sqrt_sumsq [of x y] le_real_sqrt_sumsq [of x y])
 apply (auto simp add: divide_const_simps abs_if linorder_neq_iff
             simp del: real_sqrt_gt_0_iff real_sqrt_eq_0_iff)
 done
 
 lemmas cos_arccos_lemma3 =
-  cos_arccos [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one, simp] 
+  cos_arccos [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one]
 
 lemmas arccos_bounded_lemma3 =
-  arccos_bounded [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one, simp] 
+  arccos_bounded [OF cos_abs_x_y_ge_minus_one cos_abs_x_y_le_one]
 
-lemma minus_pi_less_zero [simp]: "-pi < 0"
+lemma minus_pi_less_zero (*[simp]*): "-pi < 0"
 by simp
 
-lemma minus_pi_le_zero [simp]: "-pi \<le> 0"
+lemma minus_pi_le_zero (*[simp]*): "-pi \<le> 0"
 by simp
 
 lemma arccos_ge_minus_pi: "[| -1 \<le> y; y \<le> 1 |] ==> -pi \<le> arccos y"
@@ -2090,7 +2090,7 @@ apply (rule_tac x = "sqrt (x\<twosuperior> + y\<twosuperior>)" in exI)
 apply (rule_tac x = "arccos (x / sqrt (x * x + y * y))" in exI)
 apply auto
 apply (drule_tac y2 = y in real_sqrt_sum_squares_gt_zero3 [THEN real_not_refl2, THEN not_sym])
-apply (auto simp add: power2_eq_square)
+apply (auto simp add: power2_eq_square cos_arccos_lemma1)
 apply (simp add: arccos_def)
 apply (cut_tac x1 = x and y1 = y 
        in cos_total [OF cos_x_y_ge_minus_one cos_x_y_le_one])
@@ -2110,7 +2110,8 @@ lemma polar_ex2:
      "[| x \<noteq> 0; y < 0 |] ==> \<exists>r a. x = r * cos a & y = r * sin a"
 apply (cut_tac x = 0 and y = x in linorder_less_linear, auto)
 apply (rule_tac x = "sqrt (x\<twosuperior> + y\<twosuperior>)" in exI)
-apply (rule_tac x = "arcsin (y / sqrt (x * x + y * y))" in exI) 
+apply (rule_tac x = "arcsin (y / sqrt (x * x + y * y))" in exI)
+apply (subst sin_arcsin [OF cos_x_y_ge_minus_one1a cos_x_y_le_one2])
 apply (auto dest: real_sum_squares_cancel2a 
             simp add: power2_eq_square real_0_le_add_iff real_add_eq_0_iff)
 apply (unfold arcsin_def)
