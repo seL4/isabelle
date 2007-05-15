@@ -12,6 +12,7 @@ imports
   EfficientNat
   Eval
   ExecutableRat
+  Executable_Real
   ExecutableSet
   FuncSet
   GCD

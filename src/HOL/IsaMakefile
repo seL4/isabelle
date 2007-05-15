@@ -196,6 +196,7 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/SetsAndFunctions.thy Library/BigO.thy Library/Ramsey.thy \
   Library/EfficientNat.thy Library/ExecutableSet.thy Library/ExecutableRat.thy \
+  Library/Executable_Real.thy \
   Library/MLString.thy Library/Infinite_Set.thy \
   Library/FuncSet.thy Library/Library.thy \
   Library/List_Prefix.thy Library/State_Monad.thy Library/Multiset.thy Library/NatPair.thy \
