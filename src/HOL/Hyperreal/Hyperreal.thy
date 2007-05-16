@@ -8,7 +8,7 @@ and mechanization of Nonstandard Real Analysis
 *)
 
 theory Hyperreal
-imports Poly Taylor HLog
+imports Ln Poly Taylor Integration HLog
 begin
 
 end

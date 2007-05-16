@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Nonstandard Extensions of Transcendental Functions*}
 
 theory HTranscendental
-imports Transcendental Integration HSeries HDeriv
+imports Transcendental HSeries HDeriv
 begin
 
 definition
