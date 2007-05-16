@@ -560,27 +560,33 @@ proof -
   have "!! x (y::real). x \<le> 1 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x * y \<le> 1 * y"
     by (rule_tac mult_right_mono,simp_all)
   note est = this[simplified]
-  show ?thesis
-    apply (cut_tac f=sin and n=n and x=x and
-      diff = "%n x. if n mod 4 = 0 then sin(x) else if n mod 4 = 1 then cos(x) else if n mod 4 = 2 then -sin(x) else -cos(x)"
-      in Maclaurin_all_le_objl)
-    apply safe
-    apply simp
+  let ?diff = "\<lambda>(n::nat) x. if n mod 4 = 0 then sin(x) else if n mod 4 = 1 then cos(x) else if n mod 4 = 2 then -sin(x) else -cos(x)"
+  have diff_0: "?diff 0 = sin" by simp
+  have DERIV_diff: "\<forall>m x. DERIV (?diff m) x :> ?diff (Suc m) x"
+    apply (clarify)
     apply (subst (1 2 3) mod_Suc_eq_Suc_mod)
-    apply (cut_tac m=m in mod_exhaust_less_4, safe, simp+)
-    apply (rule DERIV_minus, simp+)
+    apply (cut_tac m=m in mod_exhaust_less_4)
+    apply (safe, simp_all)
+    apply (rule DERIV_minus, simp)
     apply (rule lemma_DERIV_subst, rule DERIV_minus, rule DERIV_cos, simp)
-    apply (erule ssubst)
+    done
+  from Maclaurin_all_le [OF diff_0 DERIV_diff]
+  obtain t where t1: "\<bar>t\<bar> \<le> \<bar>x\<bar>" and
+    t2: "sin x = (\<Sum>m = 0..<n. ?diff m 0 / real (fact m) * x ^ m) +
+      ?diff n t / real (fact n) * x ^ n" by fast
+  have diff_m_0:
+    "\<And>m. ?diff m 0 = (if even m then 0
+         else (- 1) ^ ((m - Suc 0) div 2))"
+    apply (subst even_even_mod_4_iff)
+    apply (cut_tac m=m in mod_exhaust_less_4)
+    apply (elim disjE, simp_all)
+    apply (safe dest!: mod_eqD, simp_all)
+    done
+  show ?thesis
+    apply (subst t2)
     apply (rule sin_bound_lemma)
     apply (rule setsum_cong[OF refl])
-    apply (rule_tac f = "%u. u * (x^xa)" in arg_cong)
-    apply (subst even_even_mod_4_iff)
-    apply (cut_tac m=xa in mod_exhaust_less_4, simp, safe)
-    apply (simp_all add:even_num_iff)
-    apply (drule lemma_even_mod_4_div_2[simplified])
-    apply(simp add: numeral_2_eq_2 divide_inverse)
-    apply (drule lemma_odd_mod_4_div_2)
-    apply (simp add: numeral_2_eq_2 divide_inverse)
+    apply (subst diff_m_0, simp)
     apply (auto intro: mult_right_mono [where b=1, simplified] mult_right_mono
                    simp add: est mult_nonneg_nonneg mult_ac divide_inverse
                           power_abs [symmetric] abs_mult)
