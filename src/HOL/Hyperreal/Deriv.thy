@@ -12,7 +12,7 @@ theory Deriv
 imports Lim
 begin
 
-text{*Standard and Nonstandard Definitions*}
+text{*Standard Definitions*}
 
 definition
   deriv :: "['a::real_normed_field \<Rightarrow> 'a, 'a, 'a] \<Rightarrow> bool"
@@ -37,8 +37,6 @@ primrec
 
 
 subsection {* Derivatives *}
-
-subsubsection {* Purely standard proofs *}
 
 lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --> D)"
 by (simp add: deriv_def)
@@ -326,7 +324,8 @@ lemma DERIV_quotient:
        ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 by (drule (2) DERIV_divide) (simp add: mult_commute power_Suc)
 
-subsubsection {* Differentiability predicate *}
+
+subsection {* Differentiability predicate *}
 
 lemma differentiableD: "f differentiable x ==> \<exists>D. DERIV f x :> D"
 by (simp add: differentiable_def)
@@ -384,6 +383,7 @@ proof -
   hence "\<exists>D. DERIV (\<lambda>x. f x * g x) x :> D" by auto
   thus ?thesis by (fold differentiable_def)
 qed
+
 
 subsection {* Nested Intervals and Bisection *}
 
