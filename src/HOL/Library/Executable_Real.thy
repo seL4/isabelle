@@ -131,7 +131,7 @@ constdefs Nle :: "Num \<Rightarrow> Num \<Rightarrow> bool" (infix "\<le>\<^sub>
   "Nle \<equiv> \<lambda>a b. 0\<ge>\<^sub>N (a -\<^sub>N b)"
 
 
-subsection {* Interpretation of the normalized rats in \<real> *}
+subsection {* Interpretation of the normalized rats in reals *}
 
 definition
   INum:: "Num \<Rightarrow> real"
@@ -480,5 +480,4 @@ end;
 *}
 
 consts_code INum ("")
-
 end
