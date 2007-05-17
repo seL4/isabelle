@@ -10,8 +10,12 @@ theory Unify
 imports Unifier
 begin
 
-text{*
-Substitution and Unification in Higher-Order Logic.
+subsection {* Substitution and Unification in Higher-Order Logic. *}
+
+text {*
+NB: This theory is already quite old.
+You might want to look at the newer Isar formalization of
+unification in HOL/ex/Unification.thy.
 
 Implements Manna and Waldinger's formalization, with Paulson's simplifications,
 and some new simplifications by Slind.
