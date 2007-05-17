@@ -66,7 +66,16 @@ val divmod = curry divMod;
 nonfix div val div = curry div;
 nonfix mod val mod = curry mod;
 val neg = ~;
-val pow = fn k => fn l => pow (l, toInt k);
+
+fun pow k l =
+  let
+    fun pw 0 = 1
+      | pw k = mult l (pw (sub k 1));
+  in if k < zero
+    then error "pow: negative exponent"
+    else pw k
+  end;
+
 fun exp k = pow k two;
 val log = int o log2;
 
