@@ -636,9 +636,9 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy                       
   ex/Reflection.thy ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy		\
   ex/Records.thy ex/Reflected_Presburger.thy ex/Refute_Examples.thy		\
   ex/SAT_Examples.thy ex/svc_oracle.ML ex/SVC_Oracle.thy 			\
-  ex/Sudoku.thy ex/Tarski.thy ex/document/root.bib ex/document/root.tex		\
-  ex/mesontest2.ML ex/mesontest2.thy ex/reflection.ML ex/set.thy		\
-  ex/svc_funcs.ML ex/svc_test.thy Library/Parity.thy Library/GCD.thy
+  ex/Sudoku.thy ex/Tarski.thy ex/Unification.thy ex/document/root.bib		\
+  ex/document/root.tex ex/mesontest2.ML ex/mesontest2.thy ex/reflection.ML 	\
+  ex/set.thy ex/svc_funcs.ML ex/svc_test.thy Library/Parity.thy Library/GCD.thy
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 

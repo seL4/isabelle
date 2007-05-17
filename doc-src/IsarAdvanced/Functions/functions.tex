@@ -1,14 +1,21 @@
 
 %% $Id$
 
-\documentclass[12pt,a4paper,fleqn]{report}
+\documentclass[11pt,a4paper,fleqn]{article}
+\textwidth  15.93cm
+\textheight 24cm
+\oddsidemargin  0.0cm
+\evensidemargin 0.0cm
+\topmargin  0.0cm
+
 \usepackage{latexsym,graphicx}
-\usepackage{listings}
 \usepackage[refpage]{nomencl}
 \usepackage{../../iman,../../extra,../../isar,../../proof}
 \usepackage{Thy/document/isabelle,Thy/document/isabellesym}
 \usepackage{style}
 \usepackage{Thy/document/pdfsetup}
+\usepackage{mathpartir}
+\usepackage{amsthm}
 
 \newcommand{\cmd}[1]{\isacommand{#1}}
 
@@ -45,17 +52,15 @@
 \newcommand{\strong}[1]{{\bfseries #1}}
 \newcommand{\fixme}[1][!]{\strong{FIXME: #1}}
 
-\lstset{basicstyle=\scriptsize\ttfamily, keywordstyle=\itshape, commentstyle=\itshape\sffamily, frame=shadowbox}
-\newcommand{\lstsml}[1]{\lstset{language=ML}\lstinputlisting{#1}}
-\newcommand{\lsthaskell}[1]{\lstset{language=Haskell}\lstinputlisting{#1}}
+\newtheorem{exercise}{Exercise}{\bf}{\itshape}
+%\newtheorem*{thmstar}{Theorem}{\bf}{\itshape}
 
 \hyphenation{Isabelle}
 \hyphenation{Isar}
 
 \isadroptag{theory}
-\title{\includegraphics[scale=0.5]{isabelle_isar}
-  \\[4ex] Defining Recursive Functions in Isabelle/HOL}
-\author{\emph{Alexander Krauss}}
+\title{Defining Recursive Functions in Isabelle/HOL}
+\author{Alexander Krauss}
 
 
 \isabellestyle{tt}
@@ -66,16 +71,19 @@
 
 \begin{abstract}
   This tutorial describes the use of the new \emph{function} package,
-  starting with very simple examples and the proceeding to the more
-  intricate ones. No familiarity with other definition facilities is
-  assumed.
+	which provides general recursive function definitions for Isabelle/HOL.
+	
+
+%  starting with very simple examples and the proceeding to the more
+%  intricate ones.
 \end{abstract}
 
-\thispagestyle{empty}\clearpage
+%\thispagestyle{empty}\clearpage
 
-\pagenumbering{roman}
-\clearfirst
+%\pagenumbering{roman}
+%\clearfirst
 
+\input{intro.tex}
 \input{Thy/document/Functions.tex}
 
 \begingroup
