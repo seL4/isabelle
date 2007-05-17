@@ -956,17 +956,6 @@ proof
     by (simp add: add_diff_inverse less_not_sym)
 qed
 
-lemma zero_induct_lemma: "P k ==> (!!n. P (Suc n) ==> P n) ==> P (k - i)"
-  apply (induct k i rule: diff_induct)
-  apply (simp_all (no_asm))
-  apply iprover
-  done
-
-lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
-  apply (rule diff_self_eq_0 [THEN subst])
-  apply (rule zero_induct_lemma, iprover+)
-  done
-
 lemma diff_cancel: "(k + m) - (k + n) = m - (n::nat)"
   by (induct k) simp_all
 
@@ -1203,6 +1192,47 @@ lemma n_less_m_mult_n: "[| Suc 0 < n; Suc 0 < m |] ==> n<m*n"
 lemma n_less_n_mult_m: "[| Suc 0 < n; Suc 0 < m |] ==> n<n*m"
   by (cases m) auto
 
+text {* Specialized induction principles that work "backwards": *}
+
+lemma inc_induct[consumes 1, case_names base step]:
+  assumes less: "i <= j"
+  assumes base: "P j"
+  assumes step: "!!i. [| i < j; P (Suc i) |] ==> P i"
+  shows "P i"
+  using less
+proof (induct d=="j - i" arbitrary: i)
+  case (0 i)
+  hence "i = j" by simp
+  with base show ?case by simp
+next
+  case (Suc d i)
+  hence "i < j" "P (Suc i)"
+    by simp_all
+  thus "P i" by (rule step)
+qed
+
+lemma strict_inc_induct[consumes 1, case_names base step]:
+  assumes less: "i < j"
+  assumes base: "!!i. j = Suc i ==> P i"
+  assumes step: "!!i. [| i < j; P (Suc i) |] ==> P i"
+  shows "P i"
+  using less
+proof (induct d=="j - i - 1" arbitrary: i)
+  case (0 i)
+  with `i < j` have "j = Suc i" by simp
+  with base show ?case by simp
+next
+  case (Suc d i)
+  hence "i < j" "P (Suc i)"
+    by simp_all
+  thus "P i" by (rule step)
+qed
+
+lemma zero_induct_lemma: "P k ==> (!!n. P (Suc n) ==> P n) ==> P (k - i)"
+  using inc_induct[of "k - i" k P, simplified] by blast
+
+lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
+  using inc_induct[of 0 k P] by blast
 
 text{*Rewriting to pull differences out*}
 
