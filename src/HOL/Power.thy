@@ -147,18 +147,18 @@ apply (auto simp add: power_Suc zero_neq_one [THEN not_sym])
 done
 
 lemma field_power_eq_0_iff [simp]:
-     "(a^n = 0) = (a = (0::'a::{field,recpower}) & 0<n)"
+     "(a^n = 0) = (a = (0::'a::{division_ring,recpower}) & 0<n)"
 apply (induct "n")
 apply (auto simp add: power_Suc field_mult_eq_0_iff zero_neq_one[THEN not_sym])
 done
 
-lemma field_power_not_zero: "a \<noteq> (0::'a::{field,recpower}) ==> a^n \<noteq> 0"
+lemma field_power_not_zero: "a \<noteq> (0::'a::{division_ring,recpower}) ==> a^n \<noteq> 0"
 by force
 
 lemma nonzero_power_inverse:
-  "a \<noteq> 0 ==> inverse ((a::'a::{field,recpower}) ^ n) = (inverse a) ^ n"
+  "a \<noteq> 0 ==> inverse ((a::'a::{division_ring,recpower}) ^ n) = (inverse a) ^ n"
 apply (induct "n")
-apply (auto simp add: power_Suc nonzero_inverse_mult_distrib mult_commute)
+apply (auto simp add: power_Suc nonzero_inverse_mult_distrib power_commutes)
 done
 
 text{*Perhaps these should be simprules.*}
