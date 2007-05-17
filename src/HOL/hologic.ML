@@ -73,6 +73,8 @@ sig
   val Suc_zero: term
   val mk_nat: IntInf.int -> term
   val dest_nat: term -> IntInf.int
+  val class_size: string
+  val size_const: typ -> term
   val bitT: typ
   val B0_const: term
   val B1_const: term
@@ -281,9 +283,9 @@ fun mk_tuple (Type ("*", [T1, T2])) tms =
 
 val natT = Type ("nat", []);
 
-val zero = Const ("HOL.zero", natT);
+val zero = Const ("HOL.zero_class.zero", natT);
 
-fun is_zero (Const ("HOL.zero", _)) = true
+fun is_zero (Const ("HOL.zero_class.zero", _)) = true
   | is_zero _ = false;
 
 fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
@@ -293,12 +295,22 @@ fun dest_Suc (Const ("Suc", _) $ t) = t
 
 val Suc_zero = mk_Suc zero;
 
-fun mk_nat 0 = zero
-  | mk_nat n = mk_Suc (mk_nat (IntInf.- (n, 1)));
+fun mk_nat n =
+  let
+    fun mk 0 = zero
+      | mk n = mk_Suc (mk (IntInf.- (n, 1)));
+  in if IntInf.< (n, 0)
+    then error "mk_nat: negative numeral"
+    else mk n
+  end;
 
-fun dest_nat (Const ("HOL.zero", _)) = 0
+fun dest_nat (Const ("HOL.zero_class.zero", _)) = 0
   | dest_nat (Const ("Suc", _) $ t) = IntInf.+ (dest_nat t, 1)
   | dest_nat t = raise TERM ("dest_nat", [t]);
+
+val class_size = "Nat.size";
+
+fun size_const T = Const ("Nat.size_class.size", T --> natT);
 
 
 (* bit *)
@@ -337,7 +349,7 @@ fun dest_numeral (Const ("Numeral.Pls", _)) = 0
       2 * dest_numeral bs + IntInf.fromInt (dest_bit b)
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
 
-fun number_of_const T = Const ("Numeral.number_of", intT --> T);
+fun number_of_const T = Const ("Numeral.number_class.number_of", intT --> T);
 
 fun add_numerals_of (Const _) =
       I
@@ -351,17 +363,18 @@ fun add_numerals_of (Const _) =
       add_numerals_of t
   | add_numerals_of (t as _ $ _) =
       case strip_comb t
-       of (Const ("Numeral.number_of",
+       of (Const ("Numeral.number_class.number_of",
            Type (_, [_, T])), ts) => fold (cons o rpair T) ts
         | (t', ts) => add_numerals_of t' #> fold add_numerals_of ts;
 
-fun mk_number T 0 = Const ("HOL.zero", T)
-  | mk_number T 1 = Const ("HOL.one", T)
+fun mk_number T 0 = Const ("HOL.zero_class.zero", T)
+  | mk_number T 1 = Const ("HOL.one_class.one", T)
   | mk_number T i = number_of_const T $ mk_numeral i;
 
-fun dest_number (Const ("HOL.zero", T)) = (T, 0)
-  | dest_number (Const ("HOL.one", T)) = (T, 1)
-  | dest_number (Const ("Numeral.number_of", Type ("fun", [_, T])) $ t) = (T, dest_numeral t)
+fun dest_number (Const ("HOL.zero_class.zero", T)) = (T, 0)
+  | dest_number (Const ("HOL.one_class.one", T)) = (T, 1)
+  | dest_number (Const ("Numeral.number_class.number_of", Type ("fun", [_, T])) $ t) =
+      (T, dest_numeral t)
   | dest_number t = raise TERM ("dest_number", [t]);
 
 

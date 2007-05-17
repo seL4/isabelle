@@ -320,7 +320,7 @@ fun list_eq ss (Const(_,eqT) $ lhs $ rhs) =
     fun prove_neq() =
       let
         val Type(_,listT::_) = eqT;
-        val size = Const("Nat.size", listT --> HOLogic.natT);
+        val size = HOLogic.size_const listT;
         val eq_len = HOLogic.mk_eq (size $ lhs, size $ rhs);
         val neq_len = HOLogic.mk_Trueprop (HOLogic.Not $ eq_len);
         val thm = Goal.prove (Simplifier.the_context ss) [] [] neq_len

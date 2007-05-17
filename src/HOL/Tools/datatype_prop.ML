@@ -353,26 +353,26 @@ fun make_splits new_type_names descr sorts thy =
 
 fun make_size descr sorts thy =
   let
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
-    val size_name = "Nat.size";
+    val Const (size_name, _) = HOLogic.size_const dummyT;
     val size_names = replicate (length (hd descr)) size_name @
       map (Sign.intern_const thy) (indexify_names
         (map (fn T => name_of_typ T ^ "_size") (Library.drop (length (hd descr), recTs))));
     val size_consts = map (fn (s, T) =>
       Const (s, T --> HOLogic.natT)) (size_names ~~ recTs);
 
-    fun plus (t1, t2) = Const ("HOL.plus", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
+    fun plus (t1, t2) = Const ("HOL.plus_class.plus", HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
     fun make_size_eqn size_const T (cname, cargs) =
       let
-        val recs = List.filter is_rec_type cargs;
+        val recs = filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val recTs = map (typ_of_dtyp descr' sorts) recs;
         val tnames = make_tnames Ts;
-        val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
-        val ts = map (fn ((r, s), T) => List.nth (size_consts, dest_DtRec r) $
+        val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
+        val ts = map (fn ((r, s), T) => nth size_consts (dest_DtRec r) $
           Free (s, T)) (recs ~~ rec_tnames ~~ recTs);
         val t = if ts = [] then HOLogic.zero else
           foldl1 plus (ts @ [HOLogic.Suc_zero])

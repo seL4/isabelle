@@ -399,14 +399,15 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
-    val size_name = "Nat.size";
+    val Const (size_name, _) = HOLogic.size_const dummyT;
     val size_names = replicate (length (hd descr)) size_name @
       map (Sign.full_name thy1) (DatatypeProp.indexify_names
         (map (fn T => name_of_typ T ^ "_size") (Library.drop (length (hd descr), recTs))));
     val def_names = map (fn s => s ^ "_def") (DatatypeProp.indexify_names
       (map (fn T => name_of_typ T ^ "_size") recTs));
 
-    fun plus (t1, t2) = Const ("HOL.plus", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
+    fun plus (t1, t2) =
+      Const ("HOL.plus_class.plus", HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
     fun make_sizefun (_, cargs) =
       let
@@ -423,11 +424,10 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
     fun instance_size_class tyco thy =
       let
-        val size_sort = ["Nat.size"];
         val n = Sign.arity_number thy tyco;
       in
         thy
-        |> AxClass.prove_arity (tyco, replicate n HOLogic.typeS, size_sort)
+        |> AxClass.prove_arity (tyco, replicate n HOLogic.typeS, [HOLogic.class_size])
              (ClassPackage.intro_classes_tac [])
       end
 

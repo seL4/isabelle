@@ -562,11 +562,10 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     fun instance_size_class tyco thy =
       let
-        val size_sort = ["Nat.size"];
         val n = Sign.arity_number thy tyco;
       in
         thy
-        |> AxClass.prove_arity (tyco, replicate n HOLogic.typeS, size_sort)
+        |> AxClass.prove_arity (tyco, replicate n HOLogic.typeS, [HOLogic.class_size])
              (ClassPackage.intro_classes_tac [])
       end
 
