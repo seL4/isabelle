@@ -24,42 +24,7 @@ lemma index_of_length:
   "(x \<in> set l) = (index_of l x < length l)"
   by (induct l) auto
 
-
 subsection {* Some reasoning tools *}
-
-lemma inc_induct[consumes 1]:
-  assumes less: "i \<le> j"
-  assumes base: "P j"
-  assumes step: "\<And>i. \<lbrakk>i < j; P (Suc i)\<rbrakk> \<Longrightarrow> P i"
-  shows "P i"
-  using less
-proof (induct d\<equiv>"j - i" arbitrary: i)
-  case (0 i)
-  with `i \<le> j` have "i = j" by simp
-  with base show ?case by simp
-next
-  case (Suc d i)
-  hence "i < j" "P (Suc i)"
-    by simp_all
-  thus "P i" by (rule step)
-qed
-
-lemma strict_inc_induct[consumes 1]:
-  assumes less: "i < j"
-  assumes base: "\<And>i. j = Suc i \<Longrightarrow> P i"
-  assumes step: "\<And>i. \<lbrakk>i < j; P (Suc i)\<rbrakk> \<Longrightarrow> P i"
-  shows "P i"
-  using less
-proof (induct d\<equiv>"j - i - 1" arbitrary: i)
-  case (0 i)
-  with `i < j` have "j = Suc i" by simp
-  with base show ?case by simp
-next
-  case (Suc d i)
-  hence "i < j" "P (Suc i)"
-    by simp_all
-  thus "P i" by (rule step)
-qed
 
 lemma three_cases:
   assumes "a1 \<Longrightarrow> thesis"
