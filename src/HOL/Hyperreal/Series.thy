@@ -422,7 +422,7 @@ apply (auto, rotate_tac 2, drule_tac x = n in spec)
 apply (rule_tac y = "\<Sum>k=m..<n. norm (f k)" in order_le_less_trans)
 apply (rule norm_setsum)
 apply (rule_tac y = "setsum g {m..<n}" in order_le_less_trans)
-apply (auto intro: setsum_mono simp add: abs_interval_iff)
+apply (auto intro: setsum_mono simp add: abs_less_iff)
 done
 
 lemma summable_norm_comparison_test:
@@ -456,7 +456,7 @@ lemma summable_le2:
   shows "\<lbrakk>\<forall>n. \<bar>f n\<bar> \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable f \<and> suminf f \<le> suminf g"
 apply (subgoal_tac "summable f")
 apply (auto intro!: summable_le)
-apply (simp add: abs_le_interval_iff)
+apply (simp add: abs_le_iff)
 apply (rule_tac g="g" in summable_comparison_test, simp_all)
 done
 

@@ -423,7 +423,7 @@ lemma reals_Archimedean_6c_int:
      "r < 0 ==> \<exists>n::int. real n \<le> r & r < real (n+1)"
 apply (rule reals_Archimedean_6b_int [of "-r", THEN exE], simp, auto)
 apply (rename_tac n)
-apply (drule real_le_imp_less_or_eq, auto)
+apply (drule order_le_imp_less_or_eq, auto)
 apply (rule_tac x = "- n - 1" in exI)
 apply (rule_tac [2] x = "- n" in exI, auto)
 done
@@ -547,7 +547,7 @@ apply (auto simp add: order_eq_iff int_le_real_less)
 done
 
 lemma floor_mono2: "x \<le> y ==> floor x \<le> floor y"
-by (auto dest: real_le_imp_less_or_eq simp add: floor_mono)
+by (auto dest: order_le_imp_less_or_eq simp add: floor_mono)
 
 lemma lemma_floor2: "real n < real (x::int) + 1 ==> n \<le> x"
 by (auto intro: lemma_floor)

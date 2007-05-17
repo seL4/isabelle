@@ -2206,7 +2206,7 @@ done
 
 lemma real_of_nat_inverse_eq_iff:
      "(u = inverse (real(Suc n))) = (real(Suc n) = inverse u)"
-by (auto simp add: real_of_nat_Suc_gt_zero real_not_refl2 [THEN not_sym])
+by (auto simp add: real_of_nat_Suc_gt_zero less_imp_neq [THEN not_sym])
 
 lemma lemma_finite_omega_set2: "finite {n::nat. u = inverse(real(Suc n))}"
 apply (simp (no_asm_simp) add: real_of_nat_inverse_eq_iff)

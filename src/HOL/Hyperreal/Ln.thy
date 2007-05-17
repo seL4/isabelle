@@ -113,7 +113,7 @@ lemma aux2: "(%n. (x::real) ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
 proof -
   have "(%n. (1 / 2::real)^n) sums (1 / (1 - (1/2)))"
     apply (rule geometric_sums)
-    by (simp add: abs_interval_iff)
+    by (simp add: abs_less_iff)
   also have "(1::real) / (1 - 1/2) = 2"
     by simp
   finally have "(%n. (1 / 2::real)^n) sums 2" .

@@ -343,13 +343,13 @@ by (induct "m", auto)
 lemma Integral_eq_diff_bounds: "a \<le> b ==> Integral(a,b) (%x. 1) (b - a)"
 apply (auto simp add: order_le_less rsum_def Integral_def)
 apply (rule_tac x = "%x. b - a" in exI)
-apply (auto simp add: gauge_def abs_interval_iff tpart_def partition)
+apply (auto simp add: gauge_def abs_less_iff tpart_def partition)
 done
 
 lemma Integral_mult_const: "a \<le> b ==> Integral(a,b) (%x. c)  (c*(b - a))"
 apply (auto simp add: order_le_less rsum_def Integral_def)
 apply (rule_tac x = "%x. b - a" in exI)
-apply (auto simp add: setsum_right_distrib [symmetric] gauge_def abs_interval_iff 
+apply (auto simp add: setsum_right_distrib [symmetric] gauge_def abs_less_iff 
                right_diff_distrib [symmetric] partition tpart_def)
 done
 
@@ -358,7 +358,7 @@ lemma Integral_mult:
 apply (auto simp add: order_le_less 
             dest: Integral_unique [OF order_refl Integral_zero])
 apply (auto simp add: rsum_def Integral_def setsum_right_distrib[symmetric] mult_assoc)
-apply (rule_tac a2 = c in abs_ge_zero [THEN real_le_imp_less_or_eq, THEN disjE])
+apply (rule_tac a2 = c in abs_ge_zero [THEN order_le_imp_less_or_eq, THEN disjE])
  prefer 2 apply force
 apply (drule_tac x = "e/abs c" in spec, auto)
 apply (simp add: zero_less_mult_iff divide_inverse)
@@ -437,7 +437,7 @@ apply (drule_tac x = v in spec, simp add: times_divide_eq)
 apply (drule_tac x = u in spec, auto)
 apply (subgoal_tac "\<bar>f u - f x - f' x * (u - x)\<bar> = \<bar>f x - f u - f' x * (x - u)\<bar>")
 apply (rule order_trans)
-apply (auto simp add: abs_le_interval_iff)
+apply (auto simp add: abs_le_iff)
 apply (simp add: right_diff_distrib)
 done
 

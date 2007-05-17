@@ -725,7 +725,7 @@ subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}
 
 lemma Bseq_isUb:
   "!!(X::nat=>real). Bseq X ==> \<exists>U. isUb (UNIV::real set) {x. \<exists>n. X n = x} U"
-by (auto intro: isUbI setleI simp add: Bseq_def abs_le_interval_iff)
+by (auto intro: isUbI setleI simp add: Bseq_def abs_le_iff)
 
 
 text{* Use completeness of reals (supremum property)

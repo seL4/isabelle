@@ -857,7 +857,7 @@ text{*Lemma about introducing open ball in open interval*}
 lemma lemma_interval_lt:
      "[| a < x;  x < b |]
       ==> \<exists>d::real. 0 < d & (\<forall>y. \<bar>x-y\<bar> < d --> a < y & y < b)"
-apply (simp add: abs_interval_iff)
+apply (simp add: abs_less_iff)
 apply (insert linorder_linear [of "x-a" "b-x"], safe)
 apply (rule_tac x = "x-a" in exI)
 apply (rule_tac [2] x = "b-x" in exI, auto)
@@ -1130,7 +1130,7 @@ proof (rule ccontr)
     moreover
     hence "g(f x') = g (f(x+d))" by simp
     ultimately show False using d inj [of x'] inj [of "x+d"]
-      by (simp add: abs_le_interval_iff)
+      by (simp add: abs_le_iff)
   next
     case ge
     from d cont all [of "x-d"]
@@ -1143,7 +1143,7 @@ proof (rule ccontr)
     moreover
     hence "g(f x') = g (f(x-d))" by simp
     ultimately show False using d inj [of x'] inj [of "x-d"]
-      by (simp add: abs_le_interval_iff)
+      by (simp add: abs_le_iff)
   qed
 qed
 
@@ -1171,7 +1171,7 @@ lemma isCont_inj_range:
   shows "\<exists>e>0. \<forall>y. \<bar>y - f x\<bar> \<le> e --> (\<exists>z. \<bar>z-x\<bar> \<le> d & f z = y)"
 proof -
   have "x-d \<le> x+d" "\<forall>z. x-d \<le> z \<and> z \<le> x+d \<longrightarrow> isCont f z" using cont d
-    by (auto simp add: abs_le_interval_iff)
+    by (auto simp add: abs_le_iff)
   from isCont_Lb_Ub [OF this]
   obtain L M
   where all1 [rule_format]: "\<forall>z. x-d \<le> z \<and> z \<le> x+d \<longrightarrow> L \<le> f z \<and> f z \<le> M"
@@ -1206,7 +1206,7 @@ proof -
       from all2 [OF this]
       obtain z where "x - d \<le> z" "z \<le> x + d" "f z = y" by blast
       thus "\<exists>z. \<bar>z - x\<bar> \<le> d \<and> f z = y"
-        by (force simp add: abs_le_interval_iff)
+        by (force simp add: abs_le_iff)
     qed
   qed
 qed
@@ -1324,7 +1324,7 @@ proof -
     have "?h b - ?h a =
          ((f b)*(g b) - (f a)*(g b) - (g b)*(f b) + (g a)*(f b)) -
           ((f b)*(g a) - (f a)*(g a) - (g b)*(f a) + (g a)*(f a))"
-      by (simp add: mult_ac add_ac real_diff_mult_distrib)
+      by (simp add: mult_ac add_ac right_diff_distrib)
     hence "?h b - ?h a = 0" by auto
   }
   ultimately have "(b - a) * (g'c * (f b - f a) - f'c * (g b - g a)) = 0" by auto

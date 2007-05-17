@@ -70,7 +70,7 @@ apply (auto)
 apply (simp add: mult_assoc [symmetric] positive_imp_inverse_positive)
 apply (rule order_less_imp_le)
 apply (rule_tac z1 = "real (Suc na)" in real_mult_less_iff1 [THEN iffD1])
-apply (auto simp add: real_not_refl2 [THEN not_sym] mult_assoc)
+apply (auto simp add: mult_assoc)
 apply (erule order_less_trans)
 apply (auto simp add: mult_less_cancel_left mult_ac)
 done
@@ -641,7 +641,7 @@ proof -
 qed
 
 lemma exp_ge_add_one_self_aux: "0 \<le> x ==> (1 + x) \<le> exp(x)"
-apply (drule real_le_imp_less_or_eq, auto)
+apply (drule order_le_imp_less_or_eq, auto)
 apply (simp add: exp_def)
 apply (rule real_le_trans)
 apply (rule_tac [2] n = 2 and f = "(%n. inverse (real (fact n)) * x ^ n)" in series_pos_le)
@@ -1012,12 +1012,12 @@ done
 
 lemma sin_ge_minus_one [simp]: "-1 \<le> sin x"
 apply (insert abs_sin_le_one [of x]) 
-apply (simp add: abs_le_interval_iff del: abs_sin_le_one) 
+apply (simp add: abs_le_iff del: abs_sin_le_one) 
 done
 
 lemma sin_le_one [simp]: "sin x \<le> 1"
 apply (insert abs_sin_le_one [of x]) 
-apply (simp add: abs_le_interval_iff del: abs_sin_le_one) 
+apply (simp add: abs_le_iff del: abs_sin_le_one) 
 done
 
 lemma abs_cos_le_one [simp]: "\<bar>cos x\<bar> \<le> 1"
@@ -1030,12 +1030,12 @@ done
 
 lemma cos_ge_minus_one [simp]: "-1 \<le> cos x"
 apply (insert abs_cos_le_one [of x]) 
-apply (simp add: abs_le_interval_iff del: abs_cos_le_one) 
+apply (simp add: abs_le_iff del: abs_cos_le_one) 
 done
 
 lemma cos_le_one [simp]: "cos x \<le> 1"
 apply (insert abs_cos_le_one [of x]) 
-apply (simp add: abs_le_interval_iff del: abs_cos_le_one)
+apply (simp add: abs_le_iff del: abs_cos_le_one)
 done
 
 lemma DERIV_fun_pow: "DERIV g x :> m ==>  
@@ -1268,7 +1268,7 @@ apply (rule real_of_nat_less_iff [THEN iffD2])
 apply (rule fact_less_mono, auto)
 done
 declare cos_two_less_zero [simp]
-declare cos_two_less_zero [THEN real_not_refl2, simp]
+declare cos_two_less_zero [THEN less_imp_neq, simp]
 declare cos_two_less_zero [THEN order_less_imp_le, simp]
 
 lemma cos_is_zero: "EX! x. 0 \<le> x & x \<le> 2 & cos x = 0"
@@ -1299,11 +1299,11 @@ lemma pi_half_gt_zero: "0 < pi / 2"
 apply (rule cos_is_zero [THEN ex1E])
 apply (auto simp add: pi_half)
 apply (rule someI2, blast, safe)
-apply (drule_tac y = xa in real_le_imp_less_or_eq)
+apply (drule_tac y = xa in order_le_imp_less_or_eq)
 apply (safe, simp)
 done
 declare pi_half_gt_zero [simp]
-declare pi_half_gt_zero [THEN real_not_refl2, THEN not_sym, simp]
+declare pi_half_gt_zero [THEN less_imp_neq, THEN not_sym, simp]
 declare pi_half_gt_zero [THEN order_less_imp_le, simp]
 
 lemma pi_half_less_two: "pi / 2 < 2"
@@ -1314,7 +1314,7 @@ apply (drule_tac x = xa in order_le_imp_less_or_eq)
 apply (safe, simp)
 done
 declare pi_half_less_two [simp]
-declare pi_half_less_two [THEN real_not_refl2, simp]
+declare pi_half_less_two [THEN less_imp_neq, simp]
 declare pi_half_less_two [THEN order_less_imp_le, simp]
 
 lemma pi_gt_zero [simp]: "0 < pi"
@@ -1323,7 +1323,7 @@ apply (simp add: );
 done
 
 lemma pi_neq_zero [simp]: "pi \<noteq> 0"
-by (rule pi_gt_zero [THEN real_not_refl2, THEN not_sym])
+by (rule pi_gt_zero [THEN less_imp_neq, THEN not_sym])
 
 lemma pi_not_less_zero [simp]: "~ (pi < 0)"
 apply (insert pi_gt_zero)
@@ -1646,7 +1646,7 @@ apply (auto intro: cos_gt_zero sin_gt_zero2 simp add: mult_commute)
 done
 
 lemma tan_total_pos: "0 \<le> y ==> \<exists>x. 0 \<le> x & x < pi/2 & tan x = y"
-apply (frule real_le_imp_less_or_eq, safe)
+apply (frule order_le_imp_less_or_eq, safe)
  prefer 2 apply force
 apply (drule lemma_tan_total, safe)
 apply (cut_tac f = tan and a = 0 and b = x and y = y in IVT_objl)
@@ -1675,7 +1675,7 @@ apply (auto intro!: DERIV_tan DERIV_isCont exI
 txt{*Now, simulate TRYALL*}
 apply (rule_tac [!] DERIV_tan asm_rl)
 apply (auto dest!: DERIV_unique [OF _ DERIV_tan]
-	    simp add: cos_gt_zero_pi [THEN real_not_refl2, THEN not_sym]) 
+	    simp add: cos_gt_zero_pi [THEN less_imp_neq, THEN not_sym]) 
 done
 
 lemma arcsin_pi:
@@ -2100,7 +2100,7 @@ lemma LIM_fun_gt_zero:
 apply (auto simp add: LIM_def)
 apply (drule_tac x = "l/2" in spec, safe, force)
 apply (rule_tac x = s in exI)
-apply (auto simp only: abs_interval_iff)
+apply (auto simp only: abs_less_iff)
 done
 
 lemma LIM_fun_less_zero:
@@ -2109,7 +2109,7 @@ lemma LIM_fun_less_zero:
 apply (auto simp add: LIM_def)
 apply (drule_tac x = "-l/2" in spec, safe, force)
 apply (rule_tac x = s in exI)
-apply (auto simp only: abs_interval_iff)
+apply (auto simp only: abs_less_iff)
 done
 
 
