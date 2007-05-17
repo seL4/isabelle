@@ -8,29 +8,26 @@ struct
 open Generated;
 (* pseudo reification : term -> intterm *)
 
-fun i_of_term vs t = 
-    case t of
-	Free(xn,xT) => (case AList.lookup (op =) vs t of 
-			   NONE   => error "Variable not found in the list!!"
-			 | SOME n => Var n)
-      | Const("HOL.zero",iT) => Cst 0
-      | Const("HOL.one",iT) => Cst 1
-      | Bound i => Var (nat (IntInf.fromInt i))
-      | Const("HOL.uminus",_)$t' => Neg (i_of_term vs t')
-      | Const ("HOL.plus",_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
-      | Const ("HOL.minus",_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
-      | Const ("HOL.times",_)$t1$t2 => Mult (i_of_term vs t1,i_of_term vs t2)
-      | Const ("Numeral.number_of",_)$t' => Cst (HOLogic.dest_numeral t')
-      | _ => error "i_of_term: unknown term";
-	
+fun i_of_term vs t =  case t of
+    Free(xn,xT) => (case AList.lookup (op =) vs t of 
+        NONE   => error "Variable not found in the list!!"
+      | SOME n => Var n)
+  | Const(@{const_name HOL.zero},iT) => Cst 0
+  | Const(@{const_name HOL.one},iT) => Cst 1
+  | Bound i => Var (nat (IntInf.fromInt i))
+  | Const(@{const_name HOL.uminus},_)$t' => Neg (i_of_term vs t')
+  | Const (@{const_name HOL.plus},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
+  | Const (@{const_name HOL.minus},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
+  | Const (@{const_name HOL.times},_)$t1$t2 => Mult (i_of_term vs t1,i_of_term vs t2)
+  | Const (@{const_name Numeral.number_of},_)$t' => Cst (HOLogic.dest_numeral t')
+  | _ => error "i_of_term: unknown term";
 
 (* pseudo reification : term -> QF *)
-fun qf_of_term vs t = 
-    case t of 
+fun qf_of_term vs t = case t of 
 	Const("True",_) => T
       | Const("False",_) => F
-      | Const("Orderings.less",_)$t1$t2 => Lt (i_of_term vs t1,i_of_term vs t2)
-      | Const("Orderings.less_eq",_)$t1$t2 => Le (i_of_term vs t1,i_of_term vs t2)
+      | Const(@{const_name Orderings.less},_)$t1$t2 => Lt (i_of_term vs t1,i_of_term vs t2)
+      | Const(@{const_name Orderings.less_eq},_)$t1$t2 => Le (i_of_term vs t1,i_of_term vs t2)
       | Const ("Divides.dvd",_)$t1$t2 => 
 	Divides(i_of_term vs t1,i_of_term vs t2)
       | Const("op =",eqT)$t1$t2 => 
@@ -77,25 +74,25 @@ fun term_of_i vs t =
     case t of 
 	Cst i => CooperDec.mk_number i
       | Var n => valOf (myassoc2 vs n)
-      | Neg t' => Const("HOL.uminus",iT --> iT)$(term_of_i vs t')
-      | Add(t1,t2) => Const("HOL.plus",[iT,iT] ---> iT)$
+      | Neg t' => Const(@{const_name HOL.uminus},iT --> iT)$(term_of_i vs t')
+      | Add(t1,t2) => Const(@{const_name HOL.plus},[iT,iT] ---> iT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Sub(t1,t2) => Const("HOL.minus",[iT,iT] ---> iT)$
+      | Sub(t1,t2) => Const(@{const_name HOL.minus},[iT,iT] ---> iT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Mult(t1,t2) => Const("HOL.times",[iT,iT] ---> iT)$
+      | Mult(t1,t2) => Const(@{const_name HOL.times},[iT,iT] ---> iT)$
 			   (term_of_i vs t1)$(term_of_i vs t2);
 
 fun term_of_qf vs t = 
     case t of 
 	T => HOLogic.true_const 
       | F => HOLogic.false_const
-      | Lt(t1,t2) => Const("Orderings.less",[iT,iT] ---> bT)$
+      | Lt(t1,t2) => Const(@{const_name Orderings.less},[iT,iT] ---> bT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Le(t1,t2) => Const("Orderings.less_eq",[iT,iT] ---> bT)$
+      | Le(t1,t2) => Const(@{const_name Orderings.less_eq},[iT,iT] ---> bT)$
 			  (term_of_i vs t1)$(term_of_i vs t2)
-      | Gt(t1,t2) => Const("Orderings.less",[iT,iT] ---> bT)$
+      | Gt(t1,t2) => Const(@{const_name Orderings.less},[iT,iT] ---> bT)$
 			   (term_of_i vs t2)$(term_of_i vs t1)
-      | Ge(t1,t2) => Const("Orderings.less_eq",[iT,iT] ---> bT)$
+      | Ge(t1,t2) => Const(@{const_name Orderings.less_eq},[iT,iT] ---> bT)$
 			  (term_of_i vs t2)$(term_of_i vs t1)
       | Eq(t1,t2) => Const("op =",[iT,iT] ---> bT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)

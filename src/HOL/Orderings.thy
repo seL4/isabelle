@@ -380,11 +380,11 @@ fun decomp_gen sort thy (Trueprop $ t) =
           if of_sort t1
           then SOME (t1, "=", t2)
           else NONE
-      | dec (Const (@{const_name less_eq},  _) $ t1 $ t2) =
+      | dec (Const (@{const_name Orderings.less_eq},  _) $ t1 $ t2) =
           if of_sort t1
           then SOME (t1, "<=", t2)
           else NONE
-      | dec (Const (@{const_name less},  _) $ t1 $ t2) =
+      | dec (Const (@{const_name Orderings.less},  _) $ t1 $ t2) =
           if of_sort t1
           then SOME (t1, "<", t2)
           else NONE

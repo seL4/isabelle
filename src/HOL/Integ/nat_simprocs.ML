@@ -6,10 +6,6 @@
 Simprocs for nat numerals.
 *)
 
-val Let_number_of = thm"Let_number_of";
-val Let_0 = thm"Let_0";
-val Let_1 = thm"Let_1";
-
 structure Nat_Numeral_Simprocs =
 struct
 
@@ -32,7 +28,7 @@ fun find_first_numeral past (t::terms) =
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
 val zero = mk_number 0;
-val mk_plus = HOLogic.mk_binop "HOL.plus";
+val mk_plus = HOLogic.mk_binop @{const_name HOL.plus};
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -43,7 +39,7 @@ fun mk_sum []        = zero
 fun long_mk_sum []        = HOLogic.zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-val dest_plus = HOLogic.dest_bin "HOL.plus" HOLogic.natT;
+val dest_plus = HOLogic.dest_bin @{const_name HOL.plus} HOLogic.natT;
 
 
 (** Other simproc items **)
@@ -56,7 +52,7 @@ val bin_simps =
       diff_nat_number_of, le_number_of_eq_not_less,
       mult_nat_number_of, nat_number_of_mult_left, 
       less_nat_number_of, 
-      Let_number_of, nat_number_of] @
+      @{thm Let_number_of}, nat_number_of] @
      arith_simps @ rel_simps;
 
 fun prep_simproc (name, pats, proc) =
@@ -66,14 +62,14 @@ fun prep_simproc (name, pats, proc) =
 (*** CancelNumerals simprocs ***)
 
 val one = mk_number 1;
-val mk_times = HOLogic.mk_binop "HOL.times";
+val mk_times = HOLogic.mk_binop @{const_name HOL.times};
 
 fun mk_prod [] = one
   | mk_prod [t] = t
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = HOLogic.dest_bin "HOL.times" HOLogic.natT;
+val dest_times = HOLogic.dest_bin @{const_name HOL.times} HOLogic.natT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -109,7 +105,7 @@ fun dest_Suc_sum (Const ("Suc", _) $ t, (k,ts)) = dest_Suc_sum (t, (k+1,ts))
       handle TERM _ => (k, t::ts);
 
 (*Code for testing whether numerals are already used in the goal*)
-fun is_numeral (Const("Numeral.number_of", _) $ w) = true
+fun is_numeral (Const(@{const_name Numeral.number_of}, _) $ w) = true
   | is_numeral _ = false;
 
 fun prod_has_numeral t = exists is_numeral (dest_prod t);
@@ -130,7 +126,7 @@ fun dest_Sucs_sum relaxed t =
 
 (*Simplify 1*n and n*1 to n*)
 val add_0s  = map rename_numerals [add_0, add_0_right];
-val mult_1s = map rename_numerals [thm"nat_mult_1", thm"nat_mult_1_right"];
+val mult_1s = map rename_numerals [@{thm nat_mult_1}, @{thm nat_mult_1_right}];
 
 (*Final simplification: cancel + and *; replace Numeral0 by 0 and Numeral1 by 1*)
 
@@ -185,8 +181,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
-  val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT
   val bal_add1 = nat_less_add_iff1 RS trans
   val bal_add2 = nat_less_add_iff2 RS trans
 );
@@ -194,8 +190,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
-  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT
   val bal_add1 = nat_le_add_iff1 RS trans
   val bal_add2 = nat_le_add_iff2 RS trans
 );
@@ -203,8 +199,8 @@ structure LeCancelNumerals = CancelNumeralsFun
 structure DiffCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "HOL.minus"
-  val dest_bal = HOLogic.dest_bin "HOL.minus" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop @{const_name HOL.minus}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.minus} HOLogic.natT
   val bal_add1 = nat_diff_add_eq1 RS trans
   val bal_add2 = nat_diff_add_eq2 RS trans
 );
@@ -287,8 +283,8 @@ structure CancelNumeralFactorCommon =
 structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "Divides.div"
-  val dest_bal = HOLogic.dest_bin "Divides.div" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.natT
   val cancel = nat_mult_div_cancel1 RS trans
   val neg_exchanges = false
 )
@@ -305,8 +301,8 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
-  val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT
   val cancel = nat_mult_less_cancel1 RS trans
   val neg_exchanges = true
 )
@@ -314,8 +310,8 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
-  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT
   val cancel = nat_mult_le_cancel1 RS trans
   val neg_exchanges = true
 )
@@ -380,24 +376,24 @@ structure EqCancelFactor = ExtractCommonTermFun
 structure LessCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
-  val dest_bal = HOLogic.dest_bin "Orderings.less" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_less_cancel_disj
 );
 
 structure LeCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
-  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_le_cancel_disj
 );
 
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "Divides.div"
-  val dest_bal = HOLogic.dest_bin "Divides.div" HOLogic.natT
+  val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_div_cancel_disj
 );
 
@@ -527,7 +523,7 @@ local
 
 (* reduce contradictory <= to False *)
 val add_rules =
-  [thm "Let_number_of", Let_0, Let_1, nat_0, nat_1,
+  [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1}, nat_0, nat_1,
    add_nat_number_of, diff_nat_number_of, mult_nat_number_of,
    eq_nat_number_of, less_nat_number_of, le_number_of_eq_not_less,
    le_Suc_number_of,le_number_of_Suc,

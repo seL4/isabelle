@@ -62,7 +62,7 @@ fun mk_base_fun_bodys (t : term) (tt : typ) =
     | _ => [(t, tt)]
            
 fun mk_base_fun_header fulltyp (t, typ) =
-    Abs ("x", fulltyp, Const("Nat.size", typ --> HOLogic.natT) $ t)
+    Abs ("x", fulltyp, HOLogic.size_const typ $ t)
          
 fun mk_base_funs (tt: typ) = 
     mk_base_fun_bodys (Bound 0) tt |>
@@ -121,13 +121,13 @@ fun prove (thy: theory) (t: term) =
 fun mk_cell (thy : theory) (vars, prems) (lhs, rhs) = 
     let 
       val goals = mk_goal (vars, prems, lhs, rhs) 
-      val less_thm = goals "Orderings.less" |> prove thy
+      val less_thm = goals "Orderings.ord_class.less" |> prove thy
     in
       if Thm.no_prems less_thm then
         Less (Goal.finish less_thm)
       else
         let
-          val lesseq_thm = goals "Orderings.less_eq" |> prove thy
+          val lesseq_thm = goals "Orderings.ord_class.less_eq" |> prove thy
         in
           if Thm.no_prems lesseq_thm then
             LessEq (Goal.finish lesseq_thm)

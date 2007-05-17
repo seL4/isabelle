@@ -30,7 +30,7 @@ fun mk_sum plus []  = raise Assoc_fail
 (*Separate the literals from the other terms being combined*)
 fun sift_terms plus (t, (lits,others)) =
   (case t of
-    Const("Numeral.number_of", _) $ _ =>       (* FIXME logic dependent *)
+    Const (@{const_name Numeral.number_of}, _) $ _ =>       (* FIXME logic dependent *)
       (t::lits, others)         (*new literal*)
   | (f as Const _) $ x $ y =>
       if f = plus

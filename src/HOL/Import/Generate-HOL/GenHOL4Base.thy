@@ -166,7 +166,7 @@ end_import;
 import_theory prim_rec;
 
 const_maps
-    "<" > "Orderings.less" :: "[nat,nat]=>bool";
+    "<" > Orderings.ord_class.less :: "[nat,nat]=>bool";
 
 end_import;
 
@@ -181,15 +181,15 @@ const_maps
   ">"          > HOL4Compat.nat_gt
   ">="         > HOL4Compat.nat_ge
   FUNPOW       > HOL4Compat.FUNPOW
-  "<="         > "Orderings.less_eq" :: "[nat,nat]=>bool"
-  "+"          > "HOL.plus"       :: "[nat,nat]=>nat"
-  "*"          > "HOL.times"      :: "[nat,nat]=>nat"
-  "-"          > "HOL.minus"      :: "[nat,nat]=>nat"
+  "<="         > Orderings.ord_class.less_eq :: "[nat,nat]=>bool"
+  "+"          > HOL.plus_class.plus       :: "[nat,nat]=>nat"
+  "*"          > HOL.times_class.times      :: "[nat,nat]=>nat"
+  "-"          > HOL.minus_class.minus      :: "[nat,nat]=>nat"
   MIN          > Orderings.min    :: "[nat,nat]=>nat"
   MAX          > Orderings.max    :: "[nat,nat]=>nat"
-  DIV          > "Divides.div" :: "[nat,nat]=>nat"
-  MOD          > "Divides.mod" :: "[nat,nat]=>nat"
-  EXP          > Nat.power        :: "[nat,nat]=>nat";
+  DIV          > Divides.div_class.div :: "[nat,nat]=>nat"
+  MOD          > Divides.div_class.mod :: "[nat,nat]=>nat"
+  EXP          > Nat.power_class.power :: "[nat,nat]=>nat";
 
 end_import;
 

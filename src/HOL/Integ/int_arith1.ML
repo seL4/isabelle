@@ -103,7 +103,7 @@ structure Int_Numeral_Base_Simprocs =
   fun prep_simproc (name, pats, proc) =
     Simplifier.simproc (the_context()) name pats proc;
 
-  fun is_numeral (Const("Numeral.number_of", _) $ w) = true
+  fun is_numeral (Const(@{const_name Numeral.number_of}, _) $ w) = true
     | is_numeral _ = false
 
   fun simplify_meta_eq f_number_of_eq f_eq =
@@ -118,13 +118,13 @@ structure Int_Numeral_Base_Simprocs =
     0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
   fun reorient_proc sg _ (_ $ t $ u) =
     case u of
-	Const("HOL.zero", _) => NONE
-      | Const("HOL.one", _) => NONE
-      | Const("Numeral.number_of", _) $ _ => NONE
+	Const(@{const_name HOL.zero}, _) => NONE
+      | Const(@{const_name HOL.one}, _) => NONE
+      | Const(@{const_name Numeral.number_of}, _) $ _ => NONE
       | _ => SOME (case t of
-		  Const("HOL.zero", _) => meta_zero_reorient
-		| Const("HOL.one", _) => meta_one_reorient
-		| Const("Numeral.number_of", _) $ _ => meta_number_of_reorient)
+		  Const(@{const_name HOL.zero}, _) => meta_zero_reorient
+		| Const(@{const_name HOL.one}, _) => meta_one_reorient
+		| Const(@{const_name Numeral.number_of}, _) $ _ => meta_number_of_reorient)
 
   val reorient_simproc = 
       prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc)
@@ -158,10 +158,10 @@ in
 fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
       (case numterm_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
   | numterm_ord
-     (Const("Numeral.number_of", _) $ v, Const("Numeral.number_of", _) $ w) =
+     (Const(@{const_name Numeral.number_of}, _) $ v, Const(@{const_name Numeral.number_of}, _) $ w) =
      num_ord (HOLogic.dest_numeral v, HOLogic.dest_numeral w)
-  | numterm_ord (Const("Numeral.number_of", _) $ _, _) = LESS
-  | numterm_ord (_, Const("Numeral.number_of", _) $ _) = GREATER
+  | numterm_ord (Const(@{const_name Numeral.number_of}, _) $ _, _) = LESS
+  | numterm_ord (_, Const(@{const_name Numeral.number_of}, _) $ _) = GREATER
   | numterm_ord (t, u) =
       (case int_ord (size_of_term t, size_of_term u) of
         EQUAL =>
@@ -187,11 +187,11 @@ fun find_first_numeral past (t::terms) =
          handle TERM _ => find_first_numeral (t::past) terms)
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
-val mk_plus = HOLogic.mk_binop "HOL.plus";
+val mk_plus = HOLogic.mk_binop @{const_name HOL.plus};
 
 fun mk_minus t = 
   let val T = Term.fastype_of t
-  in Const ("HOL.uminus", T --> T) $ t
+  in Const (@{const_name HOL.uminus}, T --> T) $ t
   end;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
@@ -203,22 +203,22 @@ fun mk_sum T []        = mk_number T 0
 fun long_mk_sum T []        = mk_number T 0
   | long_mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
-val dest_plus = HOLogic.dest_bin "HOL.plus" Term.dummyT;
+val dest_plus = HOLogic.dest_bin @{const_name HOL.plus} Term.dummyT;
 
 (*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const ("HOL.plus", _) $ t $ u, ts) =
+fun dest_summing (pos, Const (@{const_name HOL.plus}, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const ("HOL.minus", _) $ t $ u, ts) =
+  | dest_summing (pos, Const (@{const_name HOL.minus}, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) =
         if pos then t::ts else mk_minus t :: ts;
 
 fun dest_sum t = dest_summing (true, t, []);
 
-val mk_diff = HOLogic.mk_binop "HOL.minus";
-val dest_diff = HOLogic.dest_bin "HOL.minus" Term.dummyT;
+val mk_diff = HOLogic.mk_binop @{const_name HOL.minus};
+val dest_diff = HOLogic.dest_bin @{const_name HOL.minus} Term.dummyT;
 
-val mk_times = HOLogic.mk_binop "HOL.times";
+val mk_times = HOLogic.mk_binop @{const_name HOL.times};
 
 fun mk_prod T = 
   let val one = mk_number T 1
@@ -231,7 +231,7 @@ fun mk_prod T =
 fun long_mk_prod T []        = mk_number T 1
   | long_mk_prod T (t :: ts) = mk_times (t, mk_prod T ts);
 
-val dest_times = HOLogic.dest_bin "HOL.times" Term.dummyT;
+val dest_times = HOLogic.dest_bin @{const_name HOL.times} Term.dummyT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -242,7 +242,7 @@ fun dest_prod t =
 fun mk_coeff (k, t) = mk_times (mk_number (Term.fastype_of t) k, t);
 
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
-fun dest_coeff sign (Const ("HOL.uminus", _) $ t) = dest_coeff (~sign) t
+fun dest_coeff sign (Const (@{const_name HOL.uminus}, _) $ t) = dest_coeff (~sign) t
   | dest_coeff sign t =
     let val ts = sort Term.term_ord (dest_prod t)
         val (n, ts') = find_first_numeral [] ts
@@ -338,8 +338,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
-  val dest_bal = HOLogic.dest_bin "Orderings.less" Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} Term.dummyT
   val bal_add1 = less_add_iff1 RS trans
   val bal_add2 = less_add_iff2 RS trans
 );
@@ -347,8 +347,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
-  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} Term.dummyT
   val bal_add1 = le_add_iff1 RS trans
   val bal_add2 = le_add_iff2 RS trans
 );

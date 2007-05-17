@@ -7,7 +7,7 @@ header {* Integer arithmetic *}
 
 theory IntArith
 imports Numeral "../Wellfounded_Relations"
-uses ("int_arith1.ML")
+uses "~~/src/Provers/Arith/assoc_fold.ML" ("int_arith1.ML")
 begin
 
 text{*Duplicate: can't understand why it's necessary*}
@@ -102,7 +102,6 @@ lemmas min_max_special[simp] =
  min_def[of "1::int" "number_of v", standard, simp]
  max_def[of "number_of u" "1::int", standard, simp]
  min_def[of "number_of u" "1::int", standard, simp]
-
 
 use "int_arith1.ML"
 setup int_arith_setup
@@ -394,7 +393,7 @@ apply (rule iffI)
 done
 
 
-subsection {* Legavy ML bindings *}
+subsection {* Legacy ML bindings *}
 
 ML {*
 val of_int_number_of_eq = @{thm of_int_number_of_eq};

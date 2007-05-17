@@ -63,8 +63,8 @@ structure CancelNumeralFactorCommon =
 structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "Divides.div"
-  val dest_bal = HOLogic.dest_bin "Divides.div" HOLogic.intT
+  val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
   val cancel = int_mult_div_cancel1 RS trans
   val neg_exchanges = false
 )
@@ -73,8 +73,8 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
 structure FieldDivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "HOL.divide"
-  val dest_bal = HOLogic.dest_bin "HOL.divide" Term.dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.divide} Term.dummyT
   val cancel = @{thm mult_divide_cancel_left} RS trans
   val neg_exchanges = false
 )
@@ -102,8 +102,8 @@ structure FieldEqCancelNumeralFactor = CancelNumeralFactorFun
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less"
-  val dest_bal = HOLogic.dest_bin "Orderings.less" Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} Term.dummyT
   val cancel = @{thm mult_less_cancel_left} RS trans
   val neg_exchanges = true
 )
@@ -111,8 +111,8 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel "Orderings.less_eq"
-  val dest_bal = HOLogic.dest_bin "Orderings.less_eq" Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} Term.dummyT
   val cancel = @{thm mult_le_cancel_left} RS trans
   val neg_exchanges = true
 )
@@ -270,8 +270,8 @@ structure EqCancelFactor = ExtractCommonTermFun
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "Divides.div"
-  val dest_bal = HOLogic.dest_bin "Divides.div" HOLogic.intT
+  val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
   val simplify_meta_eq  = cancel_simplify_meta_eq int_mult_div_cancel_disj
 );
 
@@ -295,8 +295,8 @@ structure FieldEqCancelFactor = ExtractCommonTermFun
 structure FieldDivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binop "HOL.divide"
-  val dest_bal = HOLogic.dest_bin "HOL.divide" Term.dummyT
+  val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.divide} Term.dummyT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_divide_cancel_eq_if}
 );
 

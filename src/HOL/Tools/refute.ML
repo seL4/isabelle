@@ -696,13 +696,13 @@ struct
       | Const ("Finite_Set.card", _)    => t
       | Const ("Finite_Set.Finites", _) => t
       | Const ("Finite_Set.finite", _)  => t
-      | Const ("Orderings.less", Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
-      | Const ("HOL.plus", Type ("fun", [Type ("nat", []),
+      | Const (@{const_name HOL.plus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const ("HOL.minus", Type ("fun", [Type ("nat", []),
+      | Const (@{const_name HOL.minus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const ("HOL.times", Type ("fun", [Type ("nat", []),
+      | Const (@{const_name HOL.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
       | Const ("List.op @", _)          => t
       | Const ("Lfp.lfp", _)            => t
@@ -883,16 +883,16 @@ struct
       | Const ("Finite_Set.card", T)    => collect_type_axioms (axs, T)
       | Const ("Finite_Set.Finites", T) => collect_type_axioms (axs, T)
       | Const ("Finite_Set.finite", T)  => collect_type_axioms (axs, T)
-      | Const ("Orderings.less", T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name Orderings.less}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
           collect_type_axioms (axs, T)
-      | Const ("HOL.plus", T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name HOL.plus}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms (axs, T)
-      | Const ("HOL.minus", T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name HOL.minus}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms (axs, T)
-      | Const ("HOL.times", T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name HOL.times}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms (axs, T)
       | Const ("List.op @", T)          => collect_type_axioms (axs, T)
@@ -2608,7 +2608,7 @@ struct
 
   fun Nat_less_interpreter thy model args t =
     case t of
-      Const ("Orderings.less", Type ("fun", [Type ("nat", []),
+      Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
       let
         val (i_nat, _, _) = interpret thy model
@@ -2634,7 +2634,7 @@ struct
 
   fun Nat_plus_interpreter thy model args t =
     case t of
-      Const ("HOL.plus", Type ("fun", [Type ("nat", []),
+      Const (@{const_name HOL.plus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val (i_nat, _, _) = interpret thy model
@@ -2668,7 +2668,7 @@ struct
 
   fun Nat_minus_interpreter thy model args t =
     case t of
-      Const ("HOL.minus", Type ("fun", [Type ("nat", []),
+      Const (@{const_name HOL.minus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val (i_nat, _, _) = interpret thy model
@@ -2699,7 +2699,7 @@ struct
 
   fun Nat_times_interpreter thy model args t =
     case t of
-      Const ("HOL.times", Type ("fun", [Type ("nat", []),
+      Const (@{const_name HOL.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
       let
         val (i_nat, _, _) = interpret thy model

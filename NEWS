@@ -530,6 +530,15 @@ the graph browser tool.
 
 *** HOL ***
 
+* Constant renames due to introduction of canonical name prefixing for
+  class package:
+
+    HOL.abs ~> HOL.minus_class.abs
+    HOL.divide ~> HOL.divide_class.divide
+    Nat.power ~> Nat.power_class.power
+    Nat.size ~> Nat.size_class.size
+    Numeral.number_of ~> Numeral.number_class.number_of
+
 * case expressions and primrec: missing cases now mapped to "undefined"
 instead of "arbitrary"
 
@@ -675,7 +684,7 @@ INCOMPATIBILITY.
 type "'a::size ==> bool"
 
 * Renamed constants "Divides.op div", "Divides.op mod" and "Divides.op
-dvd" to "Divides.div", "Divides.mod" and "Divides.dvd". INCOMPATIBILITY.
+dvd" to "Divides.div_class.div", "Divides.div_class.mod" and "Divides.dvd". INCOMPATIBILITY.
 
 * Added method "lexicographic_order" automatically synthesizes
 termination relations as lexicographic combinations of size measures
@@ -708,7 +717,7 @@ Isar level, use abbreviations instead.
 rarely occuring name references (e.g. ``List.op mem.simps'') require
 renaming (e.g. ``List.memberl.simps'').
 
-* Renamed constants "0" to "HOL.zero" and "1" to "HOL.one".
+* Renamed constants "0" to "HOL.zero_class.zero" and "1" to "HOL.one_class.one".
 INCOMPATIBILITY.
 
 * Added theory Code_Generator providing class 'eq', allowing for code
@@ -737,12 +746,12 @@ compiled to ML first.
 "A = B" (with priority 50).
 
 * Renamed constants in HOL.thy and Orderings.thy:
-    op +   ~> HOL.plus
-    op -   ~> HOL.minus
-    uminus ~> HOL.uminus
-    op *   ~> HOL.times
-    op <   ~> Orderings.less
-    op <=  ~> Orderings.less_eq
+    op +   ~> HOL.plus_class.plus
+    op -   ~> HOL.minus_class.minus
+    uminus ~> HOL.minus_class.uminus
+    op *   ~> HOL.times_class.times
+    op <   ~> Orderings.ord_class.less
+    op <=  ~> Orderings.ord_class.less_eq
 
 Adaptions may be required in the following cases:
 
@@ -763,7 +772,8 @@ INCOMPATIBILITY: rewrite proofs
 
 d) ML code directly refering to constant names
 This in general only affects hand-written proof tactics, simprocs and so on.
-INCOMPATIBILITY: grep your sourcecode and replace names.
+INCOMPATIBILITY: grep your sourcecode and replace names.  Consider use
+of const_name ML antiquotations.
 
 * Relations less (<) and less_eq (<=) are also available on type bool.
 Modified syntax to disallow nesting without explicit parentheses,

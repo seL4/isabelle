@@ -24,10 +24,10 @@ fun uset x fm =
     case fm of
         Const("op &",_)$p$q => (uset x p) union (uset x q)
       | Const("op |",_)$p$q => (uset x p) union (uset x q)
-      | Const("Orderings.less",_)$s$t => if s=x then [t] 
+      | Const(@{const_name Orderings.less},_)$s$t => if s=x then [t] 
                                else if t = x then [s]
                                else []
-      | Const("Orderings.less_eq",_)$s$t => if s=x then [t] 
+      | Const(@{const_name Orderings.less_eq},_)$s$t => if s=x then [t] 
                                else if t = x then [s]
                                else []
       | Const("op =",_)$s$t => if s=x then [t] 
@@ -96,7 +96,7 @@ fun decomp_mpinf sg x (U,CU,uths) fm =
             ([p,q],myfwd (minf_conj,pinf_conj, nmilbnd_conj, npiubnd_conj,lin_dense_conj))      
           | Const("op |",_)$p$q => 
             ([p,q],myfwd (minf_disj,pinf_disj, nmilbnd_disj,npiubnd_disj,lin_dense_disj))
-          | Const("Orderings.less",_)$s$t => 
+          | Const(@{const_name Orderings.less},_)$s$t => 
             if s= x then 
                 let val ct = cterm_of sg t
                     val tinU = nth uths (find_index (fn a => a=t) U)
@@ -127,7 +127,7 @@ fun decomp_mpinf sg x (U,CU,uths) fm =
                     val lindth = instantiate' [] [SOME CU, SOME cfm] lin_dense_fm
                 in ([], myfwd (mith,pith,nmilth,npiuth,lindth))
                 end
-          | Const("Orderings.less_eq",_)$s$t => 
+          | Const(@{const_name Orderings.less_eq},_)$s$t => 
             if s= x then 
                 let val ct = cterm_of sg t
                     val tinU = nth uths (find_index (fn a => a=t) U)
@@ -287,8 +287,8 @@ fun nnfp afnp vs p =
 
 
     (* Normalization of arithmetical expressions *)
-val rzero = Const("HOL.zero",rT);
-val rone = Const("HOL.one",rT);
+val rzero = HOLogic.mk_number rT 0;
+val rone = HOLogic.mk_number rT 1;
 fun mk_real i = HOLogic.mk_number rT i;
 val dest_real = snd o HOLogic.dest_number;
 
@@ -301,18 +301,18 @@ fun provenz thy n =
 
 fun proveprod thy m n = 
     prove_bysimp thy (simpset_of thy) 
-                 (HOLogic.mk_eq(HOLogic.mk_binop "HOL.times" (mk_real m,mk_real n),mk_real (m*n)));
+                 (HOLogic.mk_eq(HOLogic.mk_binop @{const_name HOL.times} (mk_real m,mk_real n),mk_real (m*n)));
 fun proveadd thy m n = 
     prove_bysimp thy (simpset_of thy) 
-                 (HOLogic.mk_eq(HOLogic.mk_binop "HOL.plus" (mk_real m,mk_real n),mk_real (m+n)));
+                 (HOLogic.mk_eq(HOLogic.mk_binop @{const_name HOL.plus} (mk_real m,mk_real n),mk_real (m+n)));
 fun provediv thy m n = 
     let val g = gcd (m,n) 
         val m' = m div g
         val n'= n div g
     in
         (prove_bysimp thy (simpset_of thy) 
-                     (HOLogic.mk_eq(HOLogic.mk_binop "HOL.divide" (mk_real m,mk_real n),
-                                    HOLogic.mk_binop "HOL.divide" 
+                     (HOLogic.mk_eq(HOLogic.mk_binop @{const_name HOL.divide} (mk_real m,mk_real n),
+                                    HOLogic.mk_binop @{const_name HOL.divide} 
                                                      (mk_real m',mk_real n'))),m')
     end;
                  (* Multiplication of a normal term by a constant *)
@@ -321,7 +321,7 @@ val ncmul_cong = thm "ncmul_cong";
 fun decomp_ncmulh thy c t = 
     if c = 0 then ([],fn _ => instantiate' [SOME crT] [SOME (cterm_of thy t)] @{thm mult_zero_left}) else 
     case t of 
-        Const("HOL.plus",_)$(Const("HOL.times",_)$c'$v)$b => 
+        Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c'$v)$b => 
         ([b],FWD (instantiate' [] [NONE, NONE, SOME (cterm_of thy v)] 
                                ((proveprod thy c (dest_real c')) RS ncmul_congh)))
       | _ => ([],fn _ => proveprod thy c (dest_real t));
@@ -353,8 +353,8 @@ fun earlier [] x y = false
 
 fun decomp_naddh thy vs (t,s) = 
     case (t,s) of 
-        (Const("HOL.plus",_)$(ctv as Const("HOL.times",_)$tc$tv)$tr, 
-         Const("HOL.plus",_)$(csv as Const("HOL.times",_)$sc$sv)$sr) =>
+        (Const(@{const_name HOL.plus},_)$(ctv as Const(@{const_name HOL.times},_)$tc$tv)$tr, 
+         Const(@{const_name HOL.plus},_)$(csv as Const(@{const_name HOL.times},_)$sc$sv)$sr) =>
         if tv = sv then 
             let val ntc = dest_real tc
                 val nsc = dest_real sc
@@ -368,9 +368,9 @@ fun decomp_naddh thy vs (t,s) =
         else if earlier vs tv sv 
         then ([(tr,s)],FWD (instantiate' [] [NONE,NONE,NONE,SOME(cterm_of thy ctv)] naddh_cong_ts))
         else ([(t,sr)],FWD (instantiate' [] [NONE,NONE,NONE,SOME(cterm_of thy csv)] naddh_cong_st))
-      | (Const("HOL.plus",_)$(ctv as Const("HOL.times",_)$tc$tv)$tr,_) => 
+      | (Const(@{const_name HOL.plus},_)$(ctv as Const(@{const_name HOL.times},_)$tc$tv)$tr,_) => 
         ([(tr,s)],FWD (instantiate' [] [NONE,NONE,NONE,SOME(cterm_of thy ctv)] naddh_cong_ts))
-      | (_,Const("HOL.plus",_)$(csv as Const("HOL.times",_)$sc$sv)$sr) => 
+      | (_,Const(@{const_name HOL.plus},_)$(csv as Const(@{const_name HOL.times},_)$sc$sv)$sr) => 
         ([(t,sr)],FWD (instantiate' [] [NONE,NONE,NONE,SOME(cterm_of thy csv)] naddh_cong_st))
       | (_,_) => ([], fn _ => proveadd thy (dest_real t) (dest_real s));
 
@@ -429,27 +429,27 @@ val nrefl = thm "nrefl";
 fun decomp_normalizeh thy vs t =
     case t of
         Free _ => ([], fn _ => instantiate' [] [SOME(cterm_of thy t)] normalizeh_var)
-      | Const("HOL.uminus",_)$a => 
+      | Const(@{const_name HOL.uminus},_)$a => 
         ([a], 
          fn [tha] => let val _$(_$_$(_$a'$n')) = prop_of tha
                          in [tha,prove_nneg thy (a',dest_real n')] 
                                 MRS uminus_cong
                          end )
-      | Const("HOL.plus",_)$a$b => 
+      | Const(@{const_name HOL.plus},_)$a$b => 
         ([a,b], 
          fn [tha,thb] => let val _$(_$_$(_$a'$n')) = prop_of tha
                              val _$(_$_$(_$b'$m')) = prop_of thb
                          in [tha,thb,prove_nadd thy vs (a',dest_real n') (b',dest_real m')] 
                                 MRS plus_cong
                          end )
-      | Const("HOL.minus",_)$a$b => 
+      | Const(@{const_name HOL.minus},_)$a$b => 
         ([a,b], 
          fn [tha,thb] => let val _$(_$_$(_$a'$n')) = prop_of tha
                              val _$(_$_$(_$b'$m')) = prop_of thb
                          in [tha,thb,prove_nsub thy vs (a',dest_real n') (b',dest_real m')] 
                                 MRS diff_cong
                          end )
-      | Const("HOL.times",_)$a$b => 
+      | Const(@{const_name HOL.times},_)$a$b => 
         if can dest_real a 
         then ([b], fn [thb] => 
                       let val _$(_$_$(_$b'$m')) = prop_of thb
@@ -461,7 +461,7 @@ fun decomp_normalizeh thy vs t =
                       in [tha, prove_ncmul thy (dest_real b) (a',dest_real m')] MRS mult_cong2
                       end )
         else raise FAILURE "decomp_normalizeh: non linear term"
-      | Const("HOL.divide",_)$a$b => 
+      | Const(@{const_name HOL.divide},_)$a$b => 
         if can dest_real b
         then ([a], fn [tha] => 
                       let val _$(_$_$(_$a'$m')) = prop_of tha
@@ -473,7 +473,7 @@ fun prove_normalizeh thy vs = divide_and_conquer (decomp_normalizeh thy vs);
 fun dest_xth vs th = 
     let val _$(_$_$(_$t$n)) = prop_of th
     in (case t of 
-            Const("HOL.plus",_)$(Const("HOL.times",_)$c$y)$r => 
+            Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$r => 
             if vs = [] then (0,t,dest_real n)
             else if hd vs = y then (dest_real c, r,dest_real n)
             else (0,t,dest_real n)
@@ -482,12 +482,12 @@ fun dest_xth vs th =
 
 fun prove_strictsign thy n = 
     prove_bysimp thy (simpset_of thy) 
-                 (HOLogic.mk_binrel "Orderings.less" 
+                 (HOLogic.mk_binrel @{const_name Orderings.less} 
                                     (if n > 0 then (rzero, mk_real n) else (mk_real n, rzero))); 
 fun prove_fracsign thy (m,n) = 
-    let val mn = HOLogic.mk_binop "HOL.divide" (mk_real m, mk_real n)
+    let val mn = HOLogic.mk_binop @{const_name HOL.divide} (mk_real m, mk_real n)
     in prove_bysimp thy (simpset_of thy) 
-                 (HOLogic.mk_binrel "Orderings.less" 
+                 (HOLogic.mk_binrel @{const_name Orderings.less} 
                                     (if m*n > 0 then (rzero, mn) else (mn, rzero)))
     end; 
 
@@ -495,11 +495,11 @@ fun holbool_of true = HOLogic.true_const
   | holbool_of false = HOLogic.false_const;
 
 fun prove_fracsign_eq thy s (m,n) = 
-    let fun f s = the (AList.lookup (op =) [("Orderings.less", op <),("Orderings.less_eq", op <=),("op =", op =)] s)
+    let fun f s = the (AList.lookup (op =) [(@{const_name Orderings.less}, op <),(@{const_name Orderings.less_eq}, op <=),("op =", op =)] s)
     in 
     prove_bysimp thy (simpset_of thy) (HOLogic.mk_eq
                  (HOLogic.mk_binrel s 
-                                    (HOLogic.mk_binop "HOL.divide" (mk_real m, mk_real n),rzero), 
+                                    (HOLogic.mk_binop @{const_name HOL.divide} (mk_real m, mk_real n),rzero), 
                                     holbool_of (f s (m*n,0))))
     end;
 
@@ -534,11 +534,11 @@ val normalize_not_eq = thm "normalize_not_eq";
 
 fun prove_normalize thy vs at = 
     case at of 
-        Const("Orderings.less",_)$s$t => 
-        let val smtth = prove_normalizeh thy vs (HOLogic.mk_binop "HOL.minus" (s,t))
+        Const(@{const_name Orderings.less},_)$s$t => 
+        let val smtth = prove_normalizeh thy vs (HOLogic.mk_binop @{const_name HOL.minus} (s,t))
             val (cx,r,n) = dest_xth vs smtth
         in if cx = 0 then if can dest_real r 
-                          then [smtth, prove_fracsign_eq thy "Orderings.less" (dest_real r, n)]
+                          then [smtth, prove_fracsign_eq thy @{const_name Orderings.less} (dest_real r, n)]
                                    MRS normalize_ltground_cong
                           else [smtth, prove_strictsign thy n] 
                                    MRS (if n > 0 then normalize_ltnoxpos_cong 
@@ -554,11 +554,11 @@ fun prove_normalize thy vs at =
                                         else normalize_ltxpos_cong)
                 end
         end
-      | Const("Orderings.less_eq",_)$s$t => 
-        let val smtth = prove_normalizeh thy vs (HOLogic.mk_binop "HOL.minus" (s,t))
+      | Const(@{const_name Orderings.less_eq},_)$s$t => 
+        let val smtth = prove_normalizeh thy vs (HOLogic.mk_binop @{const_name HOL.minus} (s,t))
             val (cx,r,n) = dest_xth vs smtth
         in if cx = 0 then if can dest_real r 
-                          then [smtth, prove_fracsign_eq thy "Orderings.less_eq" (dest_real r, n)]
+                          then [smtth, prove_fracsign_eq thy @{const_name Orderings.less_eq} (dest_real r, n)]
                                    MRS normalize_leground_cong
                           else [smtth, prove_strictsign thy n] 
                                    MRS (if n > 0 then normalize_lenoxpos_cong 
@@ -575,7 +575,7 @@ fun prove_normalize thy vs at =
                 end
         end
       | Const("op =",_)$s$t => 
-        let val smtth = prove_normalizeh thy vs (HOLogic.mk_binop "HOL.minus" (s,t))
+        let val smtth = prove_normalizeh thy vs (HOLogic.mk_binop @{const_name HOL.minus} (s,t))
             val (cx,r,n) = dest_xth vs smtth
         in if cx = 0 then if can dest_real r 
                           then [smtth, provenz thy n, 
@@ -593,10 +593,10 @@ fun prove_normalize thy vs at =
                                         else normalize_eqxpos_cong)
                 end
         end
-      | Const("Not",_)$(Const("Orderings.less",T)$s$t) => 
-        (prove_normalize thy vs (Const("Orderings.less_eq",T)$t$s)) RS normalize_not_lt
-      | Const("Not",_)$(Const("Orderings.less_eq",T)$s$t) => 
-        (prove_normalize thy vs (Const("Orderings.less",T)$t$s)) RS normalize_not_le
+      | Const("Not",_)$(Const(@{const_name Orderings.less},T)$s$t) => 
+        (prove_normalize thy vs (Const(@{const_name Orderings.less_eq},T)$t$s)) RS normalize_not_lt
+      | Const("Not",_)$(Const(@{const_name Orderings.less_eq},T)$s$t) => 
+        (prove_normalize thy vs (Const(@{const_name Orderings.less},T)$t$s)) RS normalize_not_le
       | (nt as Const("Not",_))$(Const("op =",T)$s$t) => 
         (prove_normalize thy vs (Const("op =",T)$s$t)) RS qe_Not
       | _ => instantiate' [SOME cbT] [SOME (cterm_of thy at)] refl;

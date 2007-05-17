@@ -25,8 +25,8 @@ ML {*
     | dest_bit (Const ("True", _)) = 1
     | dest_bit t = raise TERM ("dest_bit", [t]);
 
-  fun dest_binary (Const ("HOL.zero", Type ("nat", _))) = 0
-    | dest_binary (Const ("HOL.one", Type ("nat", _))) = 1
+  fun dest_binary (Const (@{const_name HOL.zero}, Type ("nat", _))) = 0
+    | dest_binary (Const (@{const_name HOL.one}, Type ("nat", _))) = 1
     | dest_binary (Const ("Binary.bit", _) $ bs $ b) =
         2 * dest_binary bs + IntInf.fromInt (dest_bit b)
     | dest_binary t = raise TERM ("dest_binary", [t]);

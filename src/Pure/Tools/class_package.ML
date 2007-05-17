@@ -97,22 +97,27 @@ fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms other_cons
   let
     val superclasses = map (Sign.certify_class thy) raw_superclasses;
     val consts = (map o apfst o apsnd) (Sign.certify_typ thy) raw_consts;
+    val prefix = Logic.const_of_class name;
+    fun mk_const_name c = NameSpace.map_base (NameSpace.append prefix)
+      (Sign.full_name thy c);
     fun add_const ((c, ty), syn) =
       Sign.add_consts_authentic [(c, ty, syn)]
-      #> pair (Sign.full_name thy c, ty);
+      #> pair (mk_const_name c, ty);
     fun mk_axioms cs thy =
       raw_dep_axioms thy cs
       |> (map o apsnd o map) (Sign.cert_prop thy)
       |> rpair thy;
     fun add_constraint class (c, ty) =
-      Sign.add_const_constraint_i (c, SOME (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
+      Sign.add_const_constraint_i (c, SOME
+        (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
   in
     thy
-    (* |> Theory.add_path name *)
+    |> Theory.add_path prefix
     |> fold_map add_const consts
-    (* ||> Theory.restore_naming thy *)
+    ||> Theory.restore_naming thy
     |-> (fn cs => mk_axioms cs
-    #-> (fn axioms_prop => AxClass.define_class (name, superclasses) (map fst cs @ other_consts) axioms_prop
+    #-> (fn axioms_prop => AxClass.define_class (name, superclasses)
+           (map fst cs @ other_consts) axioms_prop
     #-> (fn class => `(fn thy => AxClass.get_definition thy class)
     #-> (fn {intro, axioms, ...} => fold (add_constraint class) cs
     #> pair (class, ((intro, (map Thm.prop_of axioms, axioms)), cs))))))

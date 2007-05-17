@@ -22,7 +22,7 @@ const_maps
   "MEM" > "List.op mem"
   "MAP2" > "HOL4Compat.map2"
   "MAP" > "List.map"
-  "LENGTH" > "Nat.size"
+  "LENGTH" > "Nat.size_class.size"
   "LAST" > "List.last"
   "HD" > "List.hd"
   "FRONT" > "List.butlast"

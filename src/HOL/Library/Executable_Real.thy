@@ -474,10 +474,11 @@ fun term_of_real (p, q) =
     val rT = HOLogic.realT;
 in if q = 1
   then HOLogic.mk_number rT p
-  else Const ("HOL.divide", rT --> rT --> rT) $
+  else @{term "op / \<Colon> real \<Rightarrow> real \<Rightarrow> real"} $
     HOLogic.mk_number rT p $ HOLogic.mk_number rT q
 end;
 *}
 
 consts_code INum ("")
+
 end

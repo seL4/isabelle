@@ -8,7 +8,7 @@ header {* Arithmetic on Binary Integers *}
 
 theory Numeral
 imports IntDef
-uses "../Tools/numeral_syntax.ML"
+uses ("../Tools/numeral_syntax.ML")
 begin
 
 subsection {* Binary representation *}
@@ -50,6 +50,7 @@ class number = type + -- {* for numeric types: nat, int, real, \dots *}
 syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
 
+use "../Tools/numeral_syntax.ML"
 setup NumeralSyntax.setup
 
 abbreviation
@@ -648,14 +649,14 @@ fun gen_int i = one_of [~1, 1] * random_range 0 i;
 setup {*
 let
 
-fun number_of_codegen thy defs gr dep module b (Const ("Numeral.number_of", Type ("fun", [_, T])) $ t) =
+fun number_of_codegen thy defs gr dep module b (Const (@{const_name Numeral.number_of}, Type ("fun", [_, T])) $ t) =
       if T = HOLogic.intT then
         (SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, T)),
           (Pretty.str o IntInf.toString o HOLogic.dest_numeral) t) handle TERM _ => NONE)
       else if T = HOLogic.natT then
         SOME (Codegen.invoke_codegen thy defs dep module b (gr,
           Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
-            (Const ("Numeral.number_of", HOLogic.intT --> HOLogic.intT) $ t)))
+            (Const (@{const_name Numeral.number_of}, HOLogic.intT --> HOLogic.intT) $ t)))
       else NONE
   | number_of_codegen _ _ _ _ _ _ _ = NONE;
 
