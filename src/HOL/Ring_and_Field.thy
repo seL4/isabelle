@@ -122,13 +122,19 @@ instance comm_ring_1 \<subseteq> ring_1 ..
 
 instance comm_ring_1 \<subseteq> comm_semiring_1_cancel ..
 
+class ring_no_zero_divisors = ring + no_zero_divisors
+
+class dom = ring_1 + ring_no_zero_divisors
+
 class idom = comm_ring_1 + no_zero_divisors
+
+instance idom \<subseteq> dom ..
 
 class division_ring = ring_1 + inverse +
   assumes left_inverse [simp]:  "a \<noteq> \<^loc>0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
   assumes right_inverse [simp]: "a \<noteq> \<^loc>0 \<Longrightarrow> a \<^loc>* inverse a = \<^loc>1"
 
-instance division_ring \<subseteq> no_zero_divisors
+instance division_ring \<subseteq> dom
 proof
   fix a b :: 'a
   assume a: "a \<noteq> 0" and b: "b \<noteq> 0"
@@ -425,10 +431,13 @@ apply (blast dest: zero_less_mult_pos)
 apply (blast dest: zero_less_mult_pos2)
 done
 
-text{*A field has no "zero divisors", and this theorem holds without the
-      assumption of an ordering.  See @{text field_mult_eq_0_iff} below.*}
-lemma mult_eq_0_iff [simp]: "(a*b = (0::'a::ordered_ring_strict)) = (a = 0 | b = 0)"
-apply (cases "a < 0")
+lemma mult_eq_0_iff [simp]:
+  fixes a b :: "'a::ring_no_zero_divisors"
+  shows "(a * b = 0) = (a = 0 \<or> b = 0)"
+by (cases "a = 0 \<or> b = 0", auto dest: no_zero_divisors)
+
+instance ordered_ring_strict \<subseteq> ring_no_zero_divisors
+apply intro_classes
 apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
 apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono)+
 done
@@ -467,9 +476,6 @@ proof
   have "(0::'a) \<le> 1*1" by (rule zero_le_square)
   thus "(0::'a) < 1" by (simp add: order_le_less) 
 qed
-
-instance ordered_ring_strict \<subseteq> no_zero_divisors 
-by (intro_classes, simp)
 
 instance ordered_idom \<subseteq> idom ..
 
@@ -625,20 +631,24 @@ qed
 
 text{*Cancellation of equalities with a common factor*}
 lemma mult_cancel_right [simp]:
-     "(a*c = b*c) = (c = (0::'a::ordered_ring_strict) | a=b)"
-apply (cut_tac linorder_less_linear [of 0 c])
-apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono
-             simp add: linorder_neq_iff)
-done
+  fixes a b c :: "'a::ring_no_zero_divisors"
+  shows "(a * c = b * c) = (c = 0 \<or> a = b)"
+proof -
+  have "(a * c = b * c) = ((a - b) * c = 0)"
+    by (simp add: left_diff_distrib)
+  thus ?thesis
+    by (simp add: disj_commute)
+qed
 
-text{*These cancellation theorems require an ordering. Versions are proved
-      below that work for fields without an ordering.*}
 lemma mult_cancel_left [simp]:
-     "(c*a = c*b) = (c = (0::'a::ordered_ring_strict) | a=b)"
-apply (cut_tac linorder_less_linear [of 0 c])
-apply (force dest: mult_strict_left_mono_neg mult_strict_left_mono
-             simp add: linorder_neq_iff)
-done
+  fixes a b c :: "'a::ring_no_zero_divisors"
+  shows "(c * a = c * b) = (c = 0 \<or> a = b)"
+proof -
+  have "(c * a = c * b) = (c * (a - b) = 0)"
+    by (simp add: right_diff_distrib)
+  thus ?thesis
+    by simp
+qed
 
 
 subsubsection{*Special Cancellation Simprules for Multiplication*}
@@ -686,22 +696,22 @@ lemma mult_less_cancel_left2:
 by (insert mult_less_cancel_left [of c a 1], simp)
 
 lemma mult_cancel_right1 [simp]:
-fixes c :: "'a :: ordered_idom"
+  fixes c :: "'a :: dom"
   shows "(c = b*c) = (c = 0 | b=1)"
 by (insert mult_cancel_right [of 1 c b], force)
 
 lemma mult_cancel_right2 [simp]:
-fixes c :: "'a :: ordered_idom"
+  fixes c :: "'a :: dom"
   shows "(a*c = c) = (c = 0 | a=1)"
 by (insert mult_cancel_right [of a c 1], simp)
  
 lemma mult_cancel_left1 [simp]:
-fixes c :: "'a :: ordered_idom"
+  fixes c :: "'a :: dom"
   shows "(c = c*b) = (c = 0 | b=1)"
 by (insert mult_cancel_left [of c 1 b], force)
 
 lemma mult_cancel_left2 [simp]:
-fixes c :: "'a :: ordered_idom"
+  fixes c :: "'a :: dom"
   shows "(c*a = c) = (c = 0 | a=1)"
 by (insert mult_cancel_left [of c a 1], simp)
 
@@ -770,15 +780,7 @@ text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
       of an ordering.*}
 lemma field_mult_eq_0_iff [simp]:
   "(a*b = (0::'a::division_ring)) = (a = 0 | b = 0)"
-proof cases
-  assume "a=0" thus ?thesis by simp
-next
-  assume anz [simp]: "a\<noteq>0"
-  { assume "a * b = 0"
-    hence "inverse a * (a * b) = 0" by simp
-    hence "b = 0"  by (simp (no_asm_use) add: mult_assoc [symmetric])}
-  thus ?thesis by force
-qed
+by simp
 
 text{*Cancellation of equalities with a common factor*}
 lemma field_mult_cancel_right_lemma:
@@ -794,27 +796,11 @@ qed
 
 lemma field_mult_cancel_right [simp]:
      "(a*c = b*c) = (c = (0::'a::division_ring) | a=b)"
-proof -
-  have "(a*c = b*c) = (a*c - b*c = 0)"
-    by simp
-  also have "\<dots> = ((a - b)*c = 0)"
-     by (simp only: left_diff_distrib)
-  also have "\<dots> = (c = 0 \<or> a = b)"
-     by (simp add: disj_commute)
-  finally show ?thesis .
-qed
+by simp
 
 lemma field_mult_cancel_left [simp]:
      "(c*a = c*b) = (c = (0::'a::division_ring) | a=b)"
-proof -
-  have "(c*a = c*b) = (c*a - c*b = 0)"
-    by simp
-  also have "\<dots> = (c*(a - b) = 0)"
-     by (simp only: right_diff_distrib)
-  also have "\<dots> = (c = 0 \<or> a = b)"
-     by simp
-  finally show ?thesis .
-qed
+by simp
 
 lemma nonzero_imp_inverse_nonzero:
   "a \<noteq> 0 ==> inverse a \<noteq> (0::'a::division_ring)"
