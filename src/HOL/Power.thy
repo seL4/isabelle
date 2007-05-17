@@ -141,32 +141,33 @@ apply (auto simp add: mult_strict_mono zero_le_power power_Suc
 done
 
 lemma power_eq_0_iff [simp]:
-     "(a^n = 0) = (a = (0::'a::{ordered_idom,recpower}) & 0<n)"
+     "(a^n = 0) = (a = (0::'a::{dom,recpower}) & 0<n)"
 apply (induct "n")
 apply (auto simp add: power_Suc zero_neq_one [THEN not_sym])
 done
 
-lemma field_power_eq_0_iff [simp]:
+lemma field_power_eq_0_iff:
      "(a^n = 0) = (a = (0::'a::{division_ring,recpower}) & 0<n)"
-apply (induct "n")
-apply (auto simp add: power_Suc field_mult_eq_0_iff zero_neq_one[THEN not_sym])
-done
+by simp (* TODO: delete *)
 
-lemma field_power_not_zero: "a \<noteq> (0::'a::{division_ring,recpower}) ==> a^n \<noteq> 0"
+lemma field_power_not_zero: "a \<noteq> (0::'a::{dom,recpower}) ==> a^n \<noteq> 0"
 by force
 
 lemma nonzero_power_inverse:
-  "a \<noteq> 0 ==> inverse ((a::'a::{division_ring,recpower}) ^ n) = (inverse a) ^ n"
+  fixes a :: "'a::{division_ring,recpower}"
+  shows "a \<noteq> 0 ==> inverse (a ^ n) = (inverse a) ^ n"
 apply (induct "n")
 apply (auto simp add: power_Suc nonzero_inverse_mult_distrib power_commutes)
-done
+done (* TODO: reorient or rename to nonzero_inverse_power *)
 
 text{*Perhaps these should be simprules.*}
 lemma power_inverse:
-  "inverse ((a::'a::{field,division_by_zero,recpower}) ^ n) = (inverse a) ^ n"
-apply (induct "n")
-apply (auto simp add: power_Suc inverse_mult_distrib)
-done
+  fixes a :: "'a::{division_ring,division_by_zero,recpower}"
+  shows "inverse (a ^ n) = (inverse a) ^ n"
+apply (cases "a = 0")
+apply (simp add: power_0_left)
+apply (simp add: nonzero_power_inverse)
+done (* TODO: reorient or rename to inverse_power *)
 
 lemma power_one_over: "1 / (a::'a::{field,division_by_zero,recpower})^n = 
     (1 / a)^n"
