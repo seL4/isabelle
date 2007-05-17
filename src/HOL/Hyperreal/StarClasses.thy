@@ -364,6 +364,8 @@ instance star :: (ring) ring ..
 instance star :: (comm_ring) comm_ring ..
 instance star :: (ring_1) ring_1 ..
 instance star :: (comm_ring_1) comm_ring_1 ..
+instance star :: (ring_no_zero_divisors) ring_no_zero_divisors ..
+instance star :: (dom) dom ..
 instance star :: (idom) idom .. 
 
 instance star :: (division_ring) division_ring
