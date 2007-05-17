@@ -45,6 +45,9 @@ sig
   val rm_atpset : unit -> unit
   val rm_clasimp : unit -> unit
   val is_fol_thms : thm list -> bool
+  val tvar_classes_of_terms : term list -> string list
+  val tfree_classes_of_terms : term list -> string list
+  val type_consts_of_terms : theory -> term list -> string list
 end;
 
 structure ResAtp: RES_ATP =
