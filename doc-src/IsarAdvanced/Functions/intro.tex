@@ -1,0 +1,31 @@
+\section{Introduction}
+
+In Isabelle 2007, new facilities for recursive function definitions
+are available.
+
+This document is intended as a tutorial for both inexperienced and
+advanced users, and demonstrates the use of the package with a lot of
+examples.
+
+% Definitional extension
+
+Following the LCF tradition, the package is realized as a definitional
+extension: Recursive definitions are internally transformed into a
+non-recursive form, such that the function can be defined using
+standard definition facilities. Then the recursive specification is
+derived from the primitive definition.  This is a complex task, but it
+is fully automated and mostly transparent to the user. Definitional
+extensions are valuable because they are conservative by construction:
+The new concept of general wellfounded recursion is completely reduced
+to existing principles.
+
+
+
+
+The new \cmd{function} command, and its short form \cmd{fun} will
+replace the traditional \cmd{recdef} command in the future. It solves
+a few of technical issues around \cmd{recdef}, and allows definitions
+which were not previously possible.
+
+
+
