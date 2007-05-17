@@ -200,8 +200,6 @@ class pordered_ab_semigroup_add = order + ab_semigroup_add +
 class pordered_cancel_ab_semigroup_add =
   pordered_ab_semigroup_add + cancel_ab_semigroup_add
 
-instance pordered_cancel_ab_semigroup_add \<subseteq> pordered_ab_semigroup_add ..
-
 class pordered_ab_semigroup_add_imp_le = pordered_cancel_ab_semigroup_add +
   assumes add_le_imp_le_left: "c \<^loc>+ a \<sqsubseteq> c \<^loc>+ b \<Longrightarrow> a \<sqsubseteq> b"
 
