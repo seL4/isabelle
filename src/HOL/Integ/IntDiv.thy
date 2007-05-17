@@ -251,8 +251,8 @@ local
 
 structure CancelDivMod = CancelDivModFun(
 struct
-  val div_name = @{const_name "Divides.div"};
-  val mod_name = @{const_name "Divides.mod"};
+  val div_name = @{const_name Divides.div};
+  val mod_name = @{const_name Divides.mod};
   val mk_binop = HOLogic.mk_binop;
   val mk_sum = Int_Numeral_Simprocs.mk_sum HOLogic.intT;
   val dest_sum = Int_Numeral_Simprocs.dest_sum;

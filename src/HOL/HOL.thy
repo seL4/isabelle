@@ -227,7 +227,7 @@ let
   fun tr' c = (c, fn show_sorts => fn T => fn ts =>
     if T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
     else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
-in map tr' [@{const_syntax "HOL.one"}, @{const_syntax "HOL.zero"}] end;
+in map tr' [@{const_syntax HOL.one}, @{const_syntax HOL.zero}] end;
 *} -- {* show types that are presumably too general *}
 
 
@@ -913,7 +913,7 @@ structure Blast = BlastFun(
 struct
   type claset = Classical.claset
   val equality_name = @{const_name "op ="}
-  val not_name = @{const_name "Not"}
+  val not_name = @{const_name Not}
   val notE = @{thm HOL.notE}
   val ccontr = @{thm HOL.ccontr}
   val contr_tac = Classical.contr_tac

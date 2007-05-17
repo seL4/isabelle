@@ -35,7 +35,7 @@ instance star :: (inverse) inverse
 instance star :: (number) number
   star_number_def:  "number_of b \<equiv> star_of (number_of b)" ..
 
-instance star :: ("Divides.div") "Divides.div"
+instance star :: (Divides.div) Divides.div
   star_div_def:     "(op div) \<equiv> *f2* (op div)"
   star_mod_def:     "(op mod) \<equiv> *f2* (op mod)" ..
 

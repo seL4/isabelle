@@ -8,6 +8,7 @@ header {* The division operators div, mod and the divides relation "dvd" *}
 
 theory Divides
 imports Datatype Power
+uses "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
 
 (*We use the same class for div and mod;
@@ -31,11 +32,11 @@ notation
 notation
   mod (infixl "mod" 70)
 
-instance nat :: "Divides.div"
-  mod_def: "m mod n == wfrec (pred_nat^+)
-                          (%f j. if j<n | n=0 then j else f (j-n)) m"
+instance nat :: Divides.div
   div_def: "m div n == wfrec (pred_nat^+)
-                          (%f j. if j<n | n=0 then 0 else Suc (f (j-n))) m" ..
+                          (%f j. if j<n | n=0 then 0 else Suc (f (j-n))) m"
+  mod_def: "m mod n == wfrec (pred_nat^+)
+                          (%f j. if j<n | n=0 then j else f (j-n)) m" ..
 
 definition
   (*The definition of dvd is polymorphic!*)

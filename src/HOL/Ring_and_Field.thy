@@ -932,16 +932,18 @@ lemma inverse_mult_distrib [simp]:
      "inverse(a*b) = inverse(a) * inverse(b::'a::{field,division_by_zero})"
   proof cases
     assume "a \<noteq> 0 & b \<noteq> 0" 
-    thus ?thesis  by (simp add: nonzero_inverse_mult_distrib mult_commute)
+    thus ?thesis
+      by (simp add: nonzero_inverse_mult_distrib mult_commute)
   next
     assume "~ (a \<noteq> 0 & b \<noteq> 0)" 
-    thus ?thesis  by force
+    thus ?thesis
+      by force
   qed
 
 lemma division_ring_inverse_add:
   "[|(a::'a::division_ring) \<noteq> 0; b \<noteq> 0|]
    ==> inverse a + inverse b = inverse a * (a+b) * inverse b"
-by (simp add: right_distrib left_distrib mult_assoc)
+  by (simp add: right_distrib left_distrib mult_assoc)
 
 lemma division_ring_inverse_diff:
   "[|(a::'a::division_ring) \<noteq> 0; b \<noteq> 0|]
