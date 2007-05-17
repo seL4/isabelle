@@ -128,36 +128,37 @@ class division_ring = ring_1 + inverse +
   assumes left_inverse [simp]:  "a \<noteq> \<^loc>0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
   assumes right_inverse [simp]: "a \<noteq> \<^loc>0 \<Longrightarrow> a \<^loc>* inverse a = \<^loc>1"
 
-class field = comm_ring_1 + inverse +
-  assumes field_left_inverse: "a \<noteq> 0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
-  assumes divide_inverse:     "a \<^loc>/ b = a \<^loc>* inverse b"
-
-lemma field_right_inverse:
-  assumes not0: "a \<noteq> 0"
-  shows "a * inverse (a::'a::field) = 1"
-proof -
-  have "a * inverse a = inverse a * a" by (rule mult_commute)
-  also have "... = 1" using not0 by (rule field_left_inverse)
-  finally show ?thesis .
+instance division_ring \<subseteq> no_zero_divisors
+proof
+  fix a b :: 'a
+  assume a: "a \<noteq> 0" and b: "b \<noteq> 0"
+  show "a * b \<noteq> 0"
+  proof
+    assume ab: "a * b = 0"
+    hence "0 = inverse a * (a * b) * inverse b"
+      by simp
+    also have "\<dots> = (inverse a * a) * (b * inverse b)"
+      by (simp only: mult_assoc)
+    also have "\<dots> = 1"
+      using a b by simp
+    finally show False
+      by simp
+  qed
 qed
+
+class field = comm_ring_1 + inverse +
+  assumes field_inverse:  "a \<noteq> 0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
+  assumes divide_inverse: "a \<^loc>/ b = a \<^loc>* inverse b"
 
 instance field \<subseteq> division_ring
-by (intro_classes, erule field_left_inverse, erule field_right_inverse)
-
-lemma field_mult_eq_0_iff [simp]:
-  "(a*b = (0::'a::division_ring)) = (a = 0 | b = 0)"
-proof cases
-  assume "a=0" thus ?thesis by simp
-next
-  assume anz [simp]: "a\<noteq>0"
-  { assume "a * b = 0"
-    hence "inverse a * (a * b) = 0" by simp
-    hence "b = 0"  by (simp (no_asm_use) add: mult_assoc [symmetric])}
-  thus ?thesis by force
+proof
+  fix a :: 'a
+  assume "a \<noteq> 0"
+  thus "inverse a * a = 1" by (rule field_inverse)
+  thus "a * inverse a = 1" by (simp only: mult_commute)
 qed
 
-instance field \<subseteq> idom
-by (intro_classes, simp)
+instance field \<subseteq> idom ..
 
 class division_by_zero = zero + inverse +
   assumes inverse_zero [simp]: "inverse \<^loc>0 = \<^loc>0"
@@ -202,8 +203,7 @@ class mult_mono = times + zero + ord +
 class pordered_semiring = mult_mono + semiring_0 + pordered_ab_semigroup_add 
 
 class pordered_cancel_semiring = mult_mono + pordered_ab_semigroup_add
-  + semiring + comm_monoid_add + pordered_ab_semigroup_add
-  + cancel_ab_semigroup_add
+  + semiring + comm_monoid_add + cancel_ab_semigroup_add
 
 instance pordered_cancel_semiring \<subseteq> semiring_0_cancel ..
 
