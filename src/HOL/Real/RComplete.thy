@@ -373,11 +373,11 @@ next
   hence "inverse (real (Suc n)) * x < inverse x * x"
     using x_greater_zero by (rule mult_strict_right_mono)
   hence "inverse (real (Suc n)) * x < 1"
-    using x_greater_zero by (simp add: real_mult_inverse_left mult_commute)
+    using x_greater_zero by simp
   hence "real (Suc n) * (inverse (real (Suc n)) * x) < real (Suc n) * 1"
     by (rule mult_strict_left_mono) simp
   hence "x < real (Suc n)"
-    by (simp add: mult_commute ring_eq_simps real_mult_inverse_left)
+    by (simp add: ring_eq_simps)
   thus "\<exists>(n::nat). x < real n" ..
 qed
 
@@ -392,9 +392,9 @@ proof
   hence "y * inverse x * x < real n * x"
     using x_greater_zero by (simp add: mult_strict_right_mono)
   hence "x * inverse x * y < x * real n"
-    by (simp add: mult_commute ring_eq_simps)
+    by (simp add: ring_eq_simps)
   hence "y < real (n::nat) * x"
-    using x_not_zero by (simp add: real_mult_inverse_left ring_eq_simps)
+    using x_not_zero by (simp add: ring_eq_simps)
   thus "\<exists>(n::nat). y < real n * x" ..
 qed
 
