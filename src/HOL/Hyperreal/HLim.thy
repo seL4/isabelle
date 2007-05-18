@@ -8,7 +8,7 @@
 header{* Limits and Continuity (Nonstandard) *}
 
 theory HLim
-imports HSEQ Lim
+imports Star Lim
 begin
 
 text{*Nonstandard Definitions*}
