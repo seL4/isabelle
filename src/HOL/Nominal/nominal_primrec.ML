@@ -116,11 +116,14 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
                 val (x', rs) = (hd rest, tl rest)
                   handle Empty => raise RecError ("not enough arguments\
                    \ in recursive application\nof function " ^ quote fname' ^ " on rhs");
-                val _ = (case eqns of
+                val rs' = (case eqns of
                     (_, (ls', _, rs', _, _)) :: _ =>
-                      if ls = map Free ls' andalso rs = map Free rs' then ()
-                      else raise RecError param_err
-                  | _ => ());
+                      let val (rs1, rs2) = chop (length rs') rs
+                      in
+                        if ls = map Free ls' andalso rs1 = map Free rs' then rs2
+                        else raise RecError param_err
+                      end
+                  | _ => raise RecError ("no equations for " ^ quote fname'));
                 val (x, xs) = strip_comb x'
               in case AList.lookup (op =) subs x
                of NONE =>
@@ -129,7 +132,7 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
                     |-> (fn ts' => pair (list_comb (f, ts')))
                 | SOME (i', y) =>
                     fs
-                    |> fold_map (subst subs) xs
+                    |> fold_map (subst subs) (xs @ rs')
                     ||> process_fun thy descr rec_eqns (i', fnameT')
                     |-> (fn ts' => pair (list_comb (y, ts')))
               end
