@@ -31,7 +31,7 @@ definition
   
 definition
   ln :: "real => real" where
-  "ln x = (SOME u. exp u = x)"
+  "ln x = (THE u. exp u = x)"
 
 definition
   pi :: "real" where
@@ -43,15 +43,15 @@ definition
 
 definition
   arcsin :: "real => real" where
-  "arcsin y = (SOME x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
+  "arcsin y = (THE x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
 
 definition
   arccos :: "real => real" where
-  "arccos y = (SOME x. 0 \<le> x & x \<le> pi & cos x = y)"
+  "arccos y = (THE x. 0 \<le> x & x \<le> pi & cos x = y)"
 
 definition     
   arctan :: "real => real" where
-  "arctan y = (SOME x. -(pi/2) < x & x < pi/2 & tan x = y)"
+  "arctan y = (THE x. -(pi/2) < x & x < pi/2 & tan x = y)"
 
 
 subsection{*Exponential Function*}
@@ -1678,23 +1678,17 @@ apply (auto dest!: DERIV_unique [OF _ DERIV_tan]
 	    simp add: cos_gt_zero_pi [THEN less_imp_neq, THEN not_sym]) 
 done
 
-lemma arcsin_pi:
-     "[| -1 \<le> y; y \<le> 1 |]  
-      ==> -(pi/2) \<le> arcsin y & arcsin y \<le> pi & sin(arcsin y) = y"
-apply (drule sin_total, assumption)
-apply (erule ex1E)
-apply (simp add: arcsin_def)
-apply (rule someI2, blast) 
-apply (force intro: order_trans) 
-done
-
 lemma arcsin:
      "[| -1 \<le> y; y \<le> 1 |]  
       ==> -(pi/2) \<le> arcsin y &  
            arcsin y \<le> pi/2 & sin(arcsin y) = y"
-apply (unfold arcsin_def)
-apply (drule sin_total, assumption)
-apply (fast intro: someI2)
+unfolding arcsin_def by (rule theI' [OF sin_total])
+
+lemma arcsin_pi:
+     "[| -1 \<le> y; y \<le> 1 |]  
+      ==> -(pi/2) \<le> arcsin y & arcsin y \<le> pi & sin(arcsin y) = y"
+apply (drule (1) arcsin)
+apply (force intro: order_trans)
 done
 
 lemma sin_arcsin [simp]: "[| -1 \<le> y; y \<le> 1 |] ==> sin(arcsin y) = y"
@@ -1723,17 +1717,14 @@ done
 
 lemma arcsin_sin: "[|-(pi/2) \<le> x; x \<le> pi/2 |] ==> arcsin(sin x) = x"
 apply (unfold arcsin_def)
-apply (rule some1_equality)
+apply (rule the1_equality)
 apply (rule sin_total, auto)
 done
 
 lemma arccos:
      "[| -1 \<le> y; y \<le> 1 |]  
       ==> 0 \<le> arccos y & arccos y \<le> pi & cos(arccos y) = y"
-apply (simp add: arccos_def)
-apply (drule cos_total, assumption)
-apply (fast intro: someI2)
-done
+unfolding arccos_def by (rule theI' [OF cos_total])
 
 lemma cos_arccos [simp]: "[| -1 \<le> y; y \<le> 1 |] ==> cos(arccos y) = y"
 by (blast dest: arccos)
@@ -1760,20 +1751,17 @@ done
 
 lemma arccos_cos: "[|0 \<le> x; x \<le> pi |] ==> arccos(cos x) = x"
 apply (simp add: arccos_def)
-apply (auto intro!: some1_equality cos_total)
+apply (auto intro!: the1_equality cos_total)
 done
 
 lemma arccos_cos2: "[|x \<le> 0; -pi \<le> x |] ==> arccos(cos x) = -x"
 apply (simp add: arccos_def)
-apply (auto intro!: some1_equality cos_total)
+apply (auto intro!: the1_equality cos_total)
 done
 
 lemma arctan [simp]:
      "- (pi/2) < arctan y  & arctan y < pi/2 & tan (arctan y) = y"
-apply (cut_tac y = y in tan_total)
-apply (simp add: arctan_def)
-apply (fast intro: someI2)
-done
+unfolding arctan_def by (rule theI' [OF tan_total])
 
 lemma tan_arctan: "tan(arctan y) = y"
 by auto
@@ -1790,7 +1778,7 @@ by (auto simp only: arctan)
 lemma arctan_tan: 
       "[|-(pi/2) < x; x < pi/2 |] ==> arctan(tan x) = x"
 apply (unfold arctan_def)
-apply (rule some1_equality)
+apply (rule the1_equality)
 apply (rule tan_total, auto)
 done
 
@@ -1966,8 +1954,7 @@ apply (rule_tac x = "arccos (x / sqrt (x\<twosuperior> + y\<twosuperior>))" in e
 apply (simp add: cos_arccos_lemma1)
 apply (simp add: arccos_def)
 apply (cut_tac x1 = x and y1 = y in cos_total_lemma1)
-apply (rule someI2_ex, blast)
-apply (erule_tac V = "Ex1 ?P" in thin_rl)
+apply (drule theI')
 apply (frule sin_x_y_disj, blast)
 apply (auto)
 apply (drule sin_ge_zero, assumption)
