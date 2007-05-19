@@ -15,7 +15,7 @@ text {*
 
   This is basically a modernized version of a previous formalization
   by Konrad Slind (see: HOL/Subst/Unify.thy), which itself builds on
-  previous work by Paulson and Manna & Waldinger (for details, see
+  previous work by Paulson and Manna @{text "&"} Waldinger (for details, see
   there).
 
   Unlike that formalization, where the proofs of termination and
