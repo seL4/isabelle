@@ -1408,6 +1408,12 @@ lemma mk_left_commute:
 
 lemmas eq_sym_conv = eq_commute
 
+lemma nnf_simps:
+  "(\<not>(P \<and> Q)) = (\<not> P \<or> \<not> Q)" "(\<not> (P \<or> Q)) = (\<not> P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)" 
+  "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not>(P = Q)) = ((P \<and> \<not> Q) \<or> (\<not>P \<and> Q))" 
+  "(\<not> \<not>(P)) = P"
+by blast+
+
 
 subsection {* Basic ML bindings *}
 
@@ -1521,6 +1527,8 @@ val the1_equality = thm "the1_equality"
 val theI = thm "theI"
 val theI' = thm "theI'"
 val True_implies_equals = thm "True_implies_equals";
+val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms @ @{thms "nnf_simps"})
+
 *}
 
 end
