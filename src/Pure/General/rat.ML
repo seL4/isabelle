@@ -19,6 +19,7 @@ sig
   val eq: rat * rat -> bool
   val cmp: rat * rat -> order
   val le: rat -> rat -> bool
+  val lt: rat -> rat -> bool
   val cmp_zero: rat -> order
   val add: rat -> rat -> rat
   val mult: rat -> rat -> rat
@@ -82,6 +83,7 @@ fun cmp (Rat (false, _, _), Rat (true, _, _)) = LESS
       let val (r1, r2, _) = common (p1, q1, p2, q2)
       in if a then Intt.cmp (r1, r2) else Intt.cmp (r2, r1) end;
 
+fun lt a b = cmp (a,b) = LESS;
 fun cmp_zero (Rat (false, _, _)) = LESS
   | cmp_zero (Rat (_, 0, _)) = EQUAL
   | cmp_zero (Rat (_, _, _)) = GREATER;
@@ -123,3 +125,20 @@ fun rounddown (r as Rat (a, p, q)) =
     in round a (p div q) end;
 
 end;
+
+infix 5 +/;
+infix 6 -/;
+infix 4 */;
+infix 3 //;
+infix 9 =/ </ <=/ >/ >=/ <>/;
+
+fun a +/ b = Rat.add a b;
+fun a -/ b = a +/ (Rat.neg b);
+fun a  */ b = Rat.mult a b;
+fun a // b = a */ (Rat.inv b); 
+fun a =/ b = Rat.eq (a,b);
+fun a </ b = Rat.lt a b;
+fun a <=/ b = Rat.le a b;
+fun a >/ b = b </ a;
+fun a >=/ b = b <=/ a;
+fun a <>/ b = not (a =/ b);
