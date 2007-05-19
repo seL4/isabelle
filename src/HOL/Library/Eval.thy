@@ -34,6 +34,9 @@ fun mk_typ_of_def ty =
 end;
 *}
 
+instance int :: typ_of
+  "typ_of T \<equiv> STR ''IntDef.int'' {\<struct>} []" ..
+
 setup {*
 let
   fun mk arities _ thy =
