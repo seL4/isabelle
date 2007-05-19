@@ -23,7 +23,7 @@ consts
   preorder  :: "'a bt => 'a list"
   inorder   :: "'a bt => 'a list"
   postorder :: "'a bt => 'a list"
-  append    :: "'a bt => 'a bt => 'a bt"
+  appnd     :: "'a bt => 'a bt => 'a bt"
 
 primrec
   "n_nodes Lf = 0"
@@ -58,8 +58,8 @@ primrec
   "postorder (Br a t1 t2) = (postorder t1) @ (postorder t2) @ [a]"
 
 primrec
-  "append Lf t = t"
-  "append (Br a t1 t2) t = Br a (append t1 t) (append t2 t)"
+  "appnd Lf t = t"
+  "appnd (Br a t1 t2) t = Br a (appnd t1 t) (appnd t2 t)"
 
 
 text {* \medskip BT simplification *}
@@ -143,29 +143,29 @@ text {*
 *}
 
 lemma append_assoc [simp]:
-     "append (append t1 t2) t3 = append t1 (append t2 t3)"
+     "appnd (appnd t1 t2) t3 = appnd t1 (appnd t2 t3)"
   apply (induct t1)
    apply simp_all
   done
 
-lemma append_Lf2 [simp]: "append t Lf = t"
+lemma append_Lf2 [simp]: "appnd t Lf = t"
   apply (induct t)
    apply simp_all
   done
 
-lemma depth_append [simp]: "depth (append t1 t2) = depth t1 + depth t2"
+lemma depth_append [simp]: "depth (appnd t1 t2) = depth t1 + depth t2"
   apply (induct t1)
    apply (simp_all add: max_add_distrib_left)
   done
 
 lemma n_leaves_append [simp]:
-     "n_leaves (append t1 t2) = n_leaves t1 * n_leaves t2"
+     "n_leaves (appnd t1 t2) = n_leaves t1 * n_leaves t2"
   apply (induct t1)
    apply (simp_all add: left_distrib)
   done
 
 lemma bt_map_append:
-     "bt_map f (append t1 t2) = append (bt_map f t1) (bt_map f t2)"
+     "bt_map f (appnd t1 t2) = appnd (bt_map f t1) (bt_map f t2)"
   apply (induct t1)
    apply simp_all
   done
