@@ -206,7 +206,7 @@ val supports_def = thm "Nominal.supports_def";
 val fresh_def = thm "fresh_def";
 val supp_def = thm "supp_def";
 val rev_simps = thms "rev.simps";
-val app_simps = thms "op @.simps";
+val app_simps = thms "append.simps";
 
 val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
 
@@ -402,7 +402,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 (map (fn ((s, T), x) =>
                     let val perm = Const (s, permT --> T --> T)
                     in HOLogic.mk_eq
-                      (perm $ (Const ("List.op @", permT --> permT --> permT) $
+                      (perm $ (Const ("List.append", permT --> permT --> permT) $
                          pi1 $ pi2) $ Free (x, T),
                        perm $ pi1 $ (perm $ pi2 $ Free (x, T)))
                     end)

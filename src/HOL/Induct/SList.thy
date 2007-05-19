@@ -159,6 +159,10 @@ definition
   map       :: "('a=>'b) => ('a list => 'b list)" where
   "map f xs = list_rec xs [] (%x l r. f(x)#r)"
 
+no_syntax
+  append :: "'a list => 'a list => 'a list" (infixr "@" 65)
+hide const "List.append"
+
 definition
   append    :: "['a list, 'a list] => 'a list"   (infixr "@" 65) where
   "xs@ys = list_rec xs ys (%x l r. x#r)"

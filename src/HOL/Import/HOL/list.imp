@@ -33,7 +33,7 @@ const_maps
   "EXISTS" > "HOL4Compat.list_exists"
   "EVERY" > "List.list_all"
   "CONS" > "List.list.Cons"
-  "APPEND" > "List.op @"
+  "APPEND" > "List.append"
 
 thm_maps
   "list_size_def" > "HOL4Compat.list_size_def"

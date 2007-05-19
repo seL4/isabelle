@@ -235,7 +235,7 @@ const_maps
   REVERSE   > List.rev
   LAST      > List.last
   FRONT     > List.butlast
-  APPEND    > "List.op @"
+  APPEND    > List.append
   FLAT      > List.concat
   LENGTH    > Nat.size
   REPLICATE > List.replicate

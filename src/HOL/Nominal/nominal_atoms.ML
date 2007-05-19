@@ -204,7 +204,7 @@ fun create_nom_typedecls ak_names thy =
           val pi2 = Free ("pi2", mk_permT T);
           val cperm = Const ("Nominal.perm", mk_permT T --> ty --> ty);
           val cnil  = Const ("List.list.Nil", mk_permT T);
-          val cappend = Const ("List.op @",mk_permT T --> mk_permT T --> mk_permT T);
+          val cappend = Const ("List.append",mk_permT T --> mk_permT T --> mk_permT T);
           val cprm_eq = Const ("Nominal.prm_eq",mk_permT T --> mk_permT T --> HOLogic.boolT);
           (* nil axiom *)
           val axiom1 = HOLogic.mk_Trueprop (HOLogic.mk_eq 

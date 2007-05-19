@@ -117,7 +117,7 @@ val const_trans_table =
 		   ("op :", "in"),
 		   ("op Un", "union"),
 		   ("op Int", "inter"),
-		   ("List.op @", "append"),
+		   ("List.append", "append"),
 		   ("ATP_Linkup.fequal", "fequal"),
 		   ("ATP_Linkup.COMBI", "COMBI"),
 		   ("ATP_Linkup.COMBK", "COMBK"),

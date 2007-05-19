@@ -704,7 +704,7 @@ struct
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
       | Const (@{const_name HOL.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const ("List.op @", _)          => t
+      | Const ("List.append", _)          => t
       | Const ("Lfp.lfp", _)            => t
       | Const ("Gfp.gfp", _)            => t
       | Const ("fst", _)                => t
@@ -895,7 +895,7 @@ struct
       | Const (@{const_name HOL.times}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms (axs, T)
-      | Const ("List.op @", T)          => collect_type_axioms (axs, T)
+      | Const ("List.append", T)          => collect_type_axioms (axs, T)
       | Const ("Lfp.lfp", T)            => collect_type_axioms (axs, T)
       | Const ("Gfp.gfp", T)            => collect_type_axioms (axs, T)
       | Const ("fst", T)                => collect_type_axioms (axs, T)
@@ -2727,13 +2727,13 @@ struct
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
-  (* only an optimization: 'op @' could in principle be interpreted with *)
+  (* only an optimization: 'append' could in principle be interpreted with *)
   (* interpreters available already (using its definition), but the code *)
   (* below is more efficient                                             *)
 
   fun List_append_interpreter thy model args t =
     case t of
-      Const ("List.op @", Type ("fun", [Type ("List.list", [T]), Type ("fun",
+      Const ("List.append", Type ("fun", [Type ("List.list", [T]), Type ("fun",
         [Type ("List.list", [_]), Type ("List.list", [_])])])) =>
       let
         val (i_elem, _, _) = interpret thy model
@@ -3215,7 +3215,7 @@ struct
      add_interpreter "Nat_HOL.plus"       Nat_plus_interpreter #>
      add_interpreter "Nat_HOL.minus"      Nat_minus_interpreter #>
      add_interpreter "Nat_HOL.times"      Nat_times_interpreter #>
-     add_interpreter "List.op @" List_append_interpreter #>
+     add_interpreter "List.append" List_append_interpreter #>
      add_interpreter "Lfp.lfp" Lfp_lfp_interpreter #>
      add_interpreter "Gfp.gfp" Gfp_gfp_interpreter #>
      add_interpreter "fst" Product_Type_fst_interpreter #>
