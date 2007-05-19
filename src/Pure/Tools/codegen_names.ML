@@ -49,21 +49,18 @@ val purify_name =
       -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
   in explode #> scan_valids #> space_implode "_" end;
 
-fun purify_op "0" = "zero"
-  | purify_op "1" = "one"
-  | purify_op s =
-      let
-        fun rep_op "+" = SOME "plus"
-          | rep_op "*" = SOME "times"
-          | rep_op "&" = SOME "and"
-          | rep_op "|" = SOME "or"
-          | rep_op "=" = SOME "eq"
-          | rep_op "@" = SOME "append"
-          | rep_op "{" = SOME "empty"
-          | rep_op s = NONE;
-        val scan_valids = Symbol.scanner "Malformed input"
-           (Scan.repeat (Scan.some rep_op || Scan.one Symbol.not_eof));
-      in (explode #> scan_valids #> implode) s end;
+fun purify_op s =
+  let
+    fun rep_op "+" = SOME "plus"
+      | rep_op "*" = SOME "times"
+      | rep_op "&" = SOME "and"
+      | rep_op "|" = SOME "or"
+      | rep_op "=" = SOME "eq"
+      | rep_op "{" = SOME "empty"
+      | rep_op s = NONE;
+    val scan_valids = Symbol.scanner "Malformed input"
+       (Scan.repeat (Scan.some rep_op || Scan.one Symbol.not_eof));
+  in (explode #> scan_valids #> implode) s end;
 
 val purify_lower =
   explode
