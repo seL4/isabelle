@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Intermediate language ("Thin-gol") representing extracted code.
+Intermediate language ("Thin-gol") representing executable code.
 *)
 
 infix 8 `%%;
