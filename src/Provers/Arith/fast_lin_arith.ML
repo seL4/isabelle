@@ -219,7 +219,7 @@ fun choose2 d ((lb, exactl), (ub, exactu)) =
         then if exactl then lb else ratmiddle (lb, ub)
         else if exactu then ub else ratmiddle (lb, ub)
       else (*discrete domain, both bounds must be exact*)
-      if ord = GREATER (*FIXME this is apparently nonsense*)
+      if ord = GREATER
         then let val lb' = Rat.roundup lb in
           if Rat.le lb' ub then lb' else raise NoEx end
         else let val ub' = Rat.rounddown ub in
