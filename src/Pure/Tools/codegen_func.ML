@@ -40,8 +40,9 @@ fun warning_thm f thm = SOME (f thm) handle BAD_THM msg
 fun assert_rew thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val (lhs, rhs) = (Logic.dest_equals o Thm.prop_of) thm
-      handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
+    val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
+      handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm)
+      handle THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
     fun vars_of t = fold_aterms
      (fn Var (v, _) => insert (op =) v
        | Free _ => bad_thm ("Illegal free variable in rewrite theorem\n"
@@ -228,7 +229,7 @@ fun canonical_vars purify_var thm =
 
 fun canonical_absvars purify_var thm =
   let
-    val t = Thm.prop_of thm;
+    val t = Thm.plain_prop_of thm;
     val t' = Term.map_abs_vars purify_var t;
   in Thm.rename_boundvars t t' thm end;
 
