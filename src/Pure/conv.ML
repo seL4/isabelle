@@ -7,10 +7,11 @@ Conversions: primitive equality reasoning.
 
 infix 1 then_conv;
 infix 0 else_conv;
-
+infix aconvc;
 signature CONV =
 sig
   type conv = cterm -> thm
+  val aconvc : cterm * cterm -> bool
   val no_conv: conv
   val all_conv: conv
   val then_conv: conv * conv -> conv
@@ -27,6 +28,7 @@ sig
   val fun_conv: conv -> conv
   val arg1_conv: conv -> conv
   val fun2_conv: conv -> conv
+  val binop_conv: conv -> conv
   val forall_conv: int -> conv -> conv
   val concl_conv: int -> conv -> conv
   val prems_conv: int -> (int -> conv) -> conv
@@ -40,6 +42,8 @@ struct
 (* conversionals *)
 
 type conv = cterm -> thm;
+
+fun s aconvc t = term_of s aconv term_of t;
 
 fun no_conv _ = raise CTERM ("no conversion", []);
 val all_conv = Thm.reflexive;
@@ -100,6 +104,7 @@ fun fun_conv cv = combination_conv cv all_conv;
 val arg1_conv = fun_conv o arg_conv;
 val fun2_conv = fun_conv o fun_conv;
 
+fun binop_conv cv = combination_conv (arg_conv cv) cv;
 
 (* logic *)
 
