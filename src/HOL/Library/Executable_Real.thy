@@ -479,6 +479,7 @@ code_modulename Haskell
   RealDef Real
   Executable_Real Real
 
+(* There is already an implementation in RealDef
 types_code real ("{* int * int *}")
 attach (term_of) {*
 fun term_of_real (p, q) =
@@ -492,5 +493,5 @@ end;
 *}
 
 consts_code INum ("")
-
+*)
 end
