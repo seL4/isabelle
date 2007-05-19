@@ -109,7 +109,7 @@ fun assert_func thm =
     val _ = map (check 0) args;
   in thm end;
 
-val mk_func = assert_func o (*Conv.fconv_rule Drule.beta_eta_conversion o *)mk_rew;
+val mk_func = assert_func o mk_rew;
 
 fun head_func thm =
   let
@@ -161,7 +161,9 @@ fun expand_eta k thm =
     val (vs, _) = get_name rhs l used;
     val vs_refl = map (fn (v, ty) => Thm.reflexive (Thm.cterm_of thy (Var ((v, 0), ty)))) vs;
   in
-    fold (fn refl => fn thm => Thm.combination thm refl) vs_refl thm
+    thm
+    |> fold (fn refl => fn thm => Thm.combination thm refl) vs_refl
+    |> Conv.fconv_rule Drule.beta_eta_conversion
   end;
 
 fun rewrite_func rewrites thm =
