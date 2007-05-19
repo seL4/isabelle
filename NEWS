@@ -892,6 +892,9 @@ and norm :: 'a => real.
 from reals into other types. The overloaded constant Reals :: 'a set
 is now defined as range of_real; potential INCOMPATIBILITY.
 
+* Real: ML code generation is supported now and hence also quickcheck.
+Reals are implemented as arbitrary precision rationals.
+
 * Hyperreal: Several constants that previously worked only for the
 reals have been generalized, so they now work over arbitrary vector
 spaces. Type annotations may need to be added in some cases; potential
