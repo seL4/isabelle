@@ -471,6 +471,8 @@ text {*
        for finite sets using lists.
     \item[@{text "ExecutableRat"}] \label{exec_rat} implements rational
        numbers as triples @{text "(sign, enumerator, denominator)"}.
+    \item[@{text "Executable_Real"}] implements a subset of real numbers,
+       namly those representable by rational numbers.
     \item[@{text "EfficientNat"}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}

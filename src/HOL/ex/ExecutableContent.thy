@@ -14,7 +14,7 @@ imports
   Binomial
   Commutative_Ring
   "~~/src/HOL/ex/Commutative_Ring_Complete"
-(*  Executable_Real *)
+  Executable_Real
   GCD
   List_Prefix
   Nat_Infinity
