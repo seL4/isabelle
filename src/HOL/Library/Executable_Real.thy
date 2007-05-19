@@ -467,6 +467,18 @@ lemma [code, code unfold]:
   "number_of k = real_int (number_of k)"
   by (simp add: real_int_def)
 
+code_modulename SML
+  RealDef Real
+  Executable_Real Real
+
+code_modulename OCaml
+  RealDef Real
+  Executable_Real Real
+
+code_modulename Haskell
+  RealDef Real
+  Executable_Real Real
+
 types_code real ("{* int * int *}")
 attach (term_of) {*
 fun term_of_real (p, q) =

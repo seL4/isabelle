@@ -388,6 +388,10 @@ code_modulename OCaml
   Nat Integer
   EfficientNat Integer
 
+code_modulename Haskell
+  Nat Integer
+  EfficientNat Integer
+
 hide const nat_of_int
 
 end

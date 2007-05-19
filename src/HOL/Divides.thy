@@ -929,10 +929,13 @@ lemma [code inline]:
   by (auto simp add: dvd_nat_def dvd_eq_mod_eq_0 expand_fun_eq)
 
 code_modulename SML
-  Divides Integer
+  Divides Nat
 
 code_modulename OCaml
-  Divides Integer
+  Divides Nat
+
+code_modulename Haskell
+  Divides Nat
 
 hide (open) const divmod dvd_nat
 
