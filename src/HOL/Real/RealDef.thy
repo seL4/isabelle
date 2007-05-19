@@ -971,4 +971,43 @@ by simp
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 by simp
 
+subsection{*Code generation using Isabelle's rats*}
+
+types_code
+  real ("Rat.rat")
+attach (term_of) {*
+fun term_of_real x =
+ let 
+  val rT = HOLogic.realT
+  val (p, q) = Rat.quotient_of_rat x
+ in if q = 1 then HOLogic.mk_number rT p
+    else Const("HOL.divide",[rT,rT] ---> rT) $
+           (HOLogic.mk_number rT p) $ (HOLogic.mk_number rT q)
+end;
+*}
+attach (test) {*
+fun gen_real i =
+let val p = random_range 0 i; val q = random_range 0 i;
+    val r = if q=0 then Rat.rat_of_int i else Rat.rat_of_quotient(p,q)
+in if one_of [true,false] then r else Rat.neg r end;
+*}
+
+consts_code
+  "0 :: real" ("Rat.zero")
+  "1 :: real" ("Rat.one")
+  "uminus :: real \<Rightarrow> real" ("Rat.neg")
+  "op + :: real \<Rightarrow> real \<Rightarrow> real" ("Rat.add")
+  "op * :: real \<Rightarrow> real \<Rightarrow> real" ("Rat.mult")
+  "inverse :: real \<Rightarrow> real" ("Rat.inv")
+  "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool" ("Rat.le")
+  "op < :: real \<Rightarrow> real \<Rightarrow> bool" ("(Rat.ord (_, _) = LESS)")
+  "op = :: real \<Rightarrow> real \<Rightarrow> bool" ("curry Rat.eq")
+  "real :: int \<Rightarrow> real" ("Rat.rat'_of'_int")
+  "real :: nat \<Rightarrow> real" ("(Rat.rat'_of'_int o {*int*})")
+
+
+lemma [code, code unfold]:
+  "number_of k = real (number_of k :: int)"
+  by simp
+
 end
