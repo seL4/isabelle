@@ -91,6 +91,9 @@ definition
   max :: "'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> 'a" where
   "max a b = (if a \<le> b then b else a)"
 
+declare min_def[code unfold, code inline del]
+        max_def[code unfold, code inline del]
+
 lemma linorder_class_min:
   "ord.min (op \<le> \<Colon> 'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> bool) = min"
   by rule+ (simp add: min_def ord_class.min_def)
