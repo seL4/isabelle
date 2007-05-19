@@ -401,12 +401,13 @@ qed
 lemma reals_Archimedean6:
      "0 \<le> r ==> \<exists>(n::nat). real (n - 1) \<le> r & r < real (n)"
 apply (insert reals_Archimedean2 [of r], safe)
-apply (frule_tac P = "%k. r < real k" and k = n and m = "%x. x"
-       in ex_has_least_nat, auto)
+apply (subgoal_tac "\<exists>x::nat. r < real x \<and> (\<forall>y. r < real y \<longrightarrow> x \<le> y)", auto)
 apply (rule_tac x = x in exI)
 apply (case_tac x, simp)
 apply (rename_tac x')
 apply (drule_tac x = x' in spec, simp)
+apply (rule_tac x="LEAST n. r < real n" in exI, safe)
+apply (erule LeastI, erule Least_le)
 done
 
 lemma reals_Archimedean6a: "0 \<le> r ==> \<exists>n. real (n) \<le> r & r < real (Suc n)"

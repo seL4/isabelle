@@ -499,7 +499,7 @@ by (rule isCont_rabs [OF isCont_Id])
 subsection {* Uniform Continuity *}
 
 lemma isUCont_isCont: "isUCont f ==> isCont f x"
-by (simp add: isUCont_def isCont_def LIM_def, meson)
+by (simp add: isUCont_def isCont_def LIM_def, force)
 
 
 subsection {* Relation of LIM and LIMSEQ *}
