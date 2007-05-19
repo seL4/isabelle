@@ -561,7 +561,7 @@ fun gen_class add_locale prep_class prep_param bname
       #> snd
   in
     thy
-    |> add_locale (SOME (bname ^ "_pred")) bname supexpr ((*elems_constrains @*) elems)
+    |> add_locale (SOME "") bname supexpr ((*elems_constrains @*) elems)
     |-> (fn name_locale => ProofContext.theory_result (
       `(fn thy => extract_params thy name_locale)
       #-> (fn (param_names, params) =>

@@ -2432,53 +2432,53 @@ text {* recall: @{term min} and @{term max} behave like @{const inf} and @{const
 
 lemma ACIf_min: "ACIf min"
   by (rule lower_semilattice.ACIf_inf,
-    rule lattice_pred.axioms,
-    rule distrib_lattice_pred.axioms,
+    rule lattice.axioms,
+    rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
 lemma ACf_min: "ACf min"
   by (rule lower_semilattice.ACf_inf,
-    rule lattice_pred.axioms,
-    rule distrib_lattice_pred.axioms,
+    rule lattice.axioms,
+    rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
 lemma ACIfSL_min: "ACIfSL (op \<^loc>\<le>) (op \<^loc><) min"
   by (rule lower_semilattice.ACIfSL_inf,
-    rule lattice_pred.axioms,
-    rule distrib_lattice_pred.axioms,
+    rule lattice.axioms,
+    rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
 lemma ACIfSLlin_min: "ACIfSLlin (op \<^loc>\<le>) (op \<^loc><) min"
   by (rule ACIfSLlin.intro,
     rule lower_semilattice.ACIfSL_inf,
-    rule lattice_pred.axioms,
-    rule distrib_lattice_pred.axioms,
+    rule lattice.axioms,
+    rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
     (unfold_locales, simp add: min_def)
 
 lemma ACIf_max: "ACIf max"
   by (rule upper_semilattice.ACIf_sup,
-    rule lattice_pred.axioms,
-    rule distrib_lattice_pred.axioms,
+    rule lattice.axioms,
+    rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
 lemma ACf_max: "ACf max"
   by (rule upper_semilattice.ACf_sup,
-    rule lattice_pred.axioms,
-    rule distrib_lattice_pred.axioms,
+    rule lattice.axioms,
+    rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
 lemma ACIfSL_max: "ACIfSL (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x) max"
   by (rule upper_semilattice.ACIfSL_sup,
-    rule lattice_pred.axioms,
-    rule distrib_lattice_pred.axioms,
+    rule lattice.axioms,
+    rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
 lemma ACIfSLlin_max: "ACIfSLlin (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x) max"
   by (rule ACIfSLlin.intro,
     rule upper_semilattice.ACIfSL_sup,
-    rule lattice_pred.axioms,
-    rule distrib_lattice_pred.axioms,
+    rule lattice.axioms,
+    rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
     (unfold_locales, simp add: max_def)
 
@@ -2601,7 +2601,7 @@ lemma Linorder_Min:
 proof
   fix A :: "'a set"
   show "Linorder.Min (op \<le>) A = Min A"
-  by (simp add: Min_def Linorder.Min_def [OF Linorder.intro, OF linorder_pred_axioms]
+  by (simp add: Min_def Linorder.Min_def [OF Linorder.intro, OF linorder_axioms]
     linorder_class_min)
 qed
 
@@ -2610,19 +2610,19 @@ lemma Linorder_Max:
 proof
   fix A :: "'a set"
   show "Linorder.Max (op \<le>) A = Max A"
-  by (simp add: Max_def Linorder.Max_def [OF Linorder.intro, OF linorder_pred_axioms]
+  by (simp add: Max_def Linorder.Max_def [OF Linorder.intro, OF linorder_axioms]
     linorder_class_max)
 qed
 
 interpretation [unfolded linorder_class_min linorder_class_max Linorder_Min Linorder_Max]:
   Linorder_ab_semigroup_add ["op \<le> \<Colon> 'a\<Colon>{linorder, pordered_ab_semigroup_add} \<Rightarrow> 'a \<Rightarrow> bool" "op <" "op +"]
   by (rule Linorder_ab_semigroup_add.intro,
-    rule Linorder.intro, rule linorder_pred_axioms, rule pordered_ab_semigroup_add_pred_axioms)
+    rule Linorder.intro, rule linorder_axioms, rule pordered_ab_semigroup_add_axioms)
 hide const Min Max
 
 interpretation [unfolded linorder_class_min linorder_class_max Linorder_Min Linorder_Max]:
   Linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <"]
-  by (rule Linorder.intro, rule linorder_pred_axioms)
+  by (rule Linorder.intro, rule linorder_axioms)
 declare Min_singleton [simp]
 declare Max_singleton [simp]
 declare Min_insert [simp]
@@ -2640,8 +2640,11 @@ declare Max_less_iff [simp]
 
 subsection {* Class @{text finite} *}
 
+setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
 class finite (attach UNIV) = type +
   assumes finite: "finite UNIV"
+setup {* Sign.parent_path *}
+hide const finite
 
 lemma finite_set: "finite (A::'a::finite set)"
   by (rule finite_subset [OF subset_UNIV finite])

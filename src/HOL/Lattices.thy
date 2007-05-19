@@ -282,7 +282,7 @@ subsection {* @{const min}/@{const max} on linear orders as
   special case of @{const inf}/@{const sup} *}
 
 lemma (in linorder) distrib_lattice_min_max:
-  "distrib_lattice_pred (op \<^loc>\<le>) (op \<^loc><) min max"
+  "distrib_lattice (op \<^loc>\<le>) (op \<^loc><) min max"
 proof unfold_locales
   have aux: "\<And>x y \<Colon> 'a. x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> x \<Longrightarrow> x = y"
     by (auto simp add: less_le antisym)

@@ -199,7 +199,7 @@ lemma less_asym': "a \<^loc>< b \<Longrightarrow> b \<^loc>< a \<Longrightarrow>
 text {* Reverse order *}
 
 lemma order_reverse:
-  "order_pred (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
+  "order (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
   by unfold_locales
     (simp add: less_le, auto intro: antisym order_trans)
 
@@ -266,7 +266,7 @@ lemma not_leE: "\<not> y \<^loc>\<le> x \<Longrightarrow> x \<^loc>< y"
 text {* Reverse order *}
 
 lemma linorder_reverse:
-  "linorder_pred (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
+  "linorder (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
   by unfold_locales
     (simp add: less_le, auto intro: antisym order_trans simp add: linear)
 
