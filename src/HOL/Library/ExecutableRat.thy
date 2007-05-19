@@ -10,7 +10,7 @@ imports "~~/src/HOL/Real/Rational" "~~/src/HOL/NumberTheory/IntPrimes"
 begin
 
 text {*
-  Actually \emph{nothing} is proved about the implementation.
+  Actually \emph{nothing} is proved about this implementation.
 *}
 
 subsection {* Representation and operations of executable rationals *}
@@ -111,12 +111,10 @@ code_modulename SML
 code_modulename OCaml
   ExecutableRat Rational
 
+code_modulename Haskell
+  ExecutableRat Rational
 
 subsubsection {* rat as abstype *}
-
-lemma [code func]: -- {* prevents eq constraint *}
-  shows "All = All"
-    and "contents = contents" by rule+
 
 code_const div_zero
   (SML "raise/ Fail/ \"Division by zero\"")

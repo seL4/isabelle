@@ -13,17 +13,18 @@ end =
 struct
 
     (* Some certified types *)
-val cbT = ctyp_of (the_context()) HOLogic.boolT;
-val rT = Type("RealDef.real",[]);
-val crT = ctyp_of (the_context()) (Type("RealDef.real",[]));
-    (* Normalization*)
+val cbT = @{ctyp bool};
+val rT = @{typ RealDef.real};
+val crT = @{ctyp RealDef.real};
+
+(* Normalization*)
 
 
         (* Computation of uset *)
 fun uset x fm = 
     case fm of
-        Const("op &",_)$p$q => (uset x p) union (uset x q)
-      | Const("op |",_)$p$q => (uset x p) union (uset x q)
+        Const("op &",_)$p$q => fold (insert (op =)) (uset x p) (uset x q)
+      | Const("op |",_)$p$q => fold (insert (op =)) (uset x p) (uset x q)
       | Const(@{const_name Orderings.less},_)$s$t => if s=x then [t] 
                                else if t = x then [s]
                                else []
@@ -35,9 +36,12 @@ fun uset x fm =
       | Const("Not",_)$ (Const("op =",_)$s$t) => if s=x then [t] 
                                                  else []
       | _ => [];
-val rsT = Type("set",[rT]);
-fun holrealset [] = Const("{}",rsT)
-  | holrealset (x::xs) = Const("insert",[rT,rsT] ---> rsT)$x$(holrealset xs);
+
+val rsT = @{typ "RealDef.real set"};
+
+fun holrealset [] = @{term "{} :: RealDef.real set"}
+  | holrealset (x::xs) = @{term "insert :: RealDef.real => RealDef.real set => RealDef.real set"}
+      $ x $ holrealset xs;
 fun prove_bysimp thy ss t = Goal.prove (ProofContext.init thy) [] [] 
                        (HOLogic.mk_Trueprop t) (fn _ => simp_tac ss 1);
 
