@@ -488,9 +488,9 @@ lemma sub_path_is_path:
   shows "has_fpath G (p\<langle>i,j\<rangle>)"
   using l
 proof (induct i rule:inc_induct)
-  case 1 show ?case by (auto simp:sub_path_def intro:has_fpath.intros)
+  case base show ?case by (auto simp:sub_path_def intro:has_fpath.intros)
 next
-  case (2 i)
+  case (step i)
   with ipath upt_rec[of i j]
   show ?case
     by (auto simp:sub_path_def has_ipath_def intro:has_fpath.intros)

@@ -592,17 +592,13 @@ lemma has_dfth_unfold:
 
 
 lemma Lemma7a:
-assumes "i \<le> j"
-shows
-  "has_fth p i j m n = 
-  eql (prod (p\<langle>i,j\<rangle>)) m n"
-using prems
+ "i \<le> j \<Longrightarrow> has_fth p i j m n = eql (prod (p\<langle>i,j\<rangle>)) m n"
 proof (induct i arbitrary: m rule:inc_induct)
-  case 1 show ?case
+  case base show ?case
     unfolding has_fth_def is_fthread_def sub_path_def
     by (auto simp:in_grunit one_sedge_def)
 next
-  case (2 i)
+  case (step i)
   note IH = `\<And>m. has_fth p (Suc i) j m n = 
   eql (prod (p\<langle>Suc i,j\<rangle>)) m n`
 
@@ -630,11 +626,11 @@ shows
   dsc (prod (p\<langle>i,j\<rangle>)) m n"
 using prems
 proof (induct i arbitrary: m rule:inc_induct)
-  case 1 show ?case
+  case base show ?case
     unfolding has_desc_fth_def is_desc_fthread_def sub_path_def 
     by (auto simp:in_grunit one_sedge_def)
 next
-  case (2 i)
+  case (step i)
   thus ?case 
     by (simp only:prod_unfold desc_scgcomp desc_fth_single
     has_dfth_unfold fth_single Lemma7a) auto
@@ -1268,9 +1264,9 @@ proof
     from `i < j` `j < k` have "i < k" by auto
     hence "prod (?cp\<langle>i, k\<rangle>) = G"
     proof (induct i rule:strict_inc_induct)
-      case 1 thus ?case by (simp add:sub_path_def)
+      case base thus ?case by (simp add:sub_path_def)
     next
-      case (2 i) thus ?case
+      case (step i) thus ?case
 	by (simp add:sub_path_def upt_rec[of i k] idemp)
     qed
 
