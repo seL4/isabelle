@@ -5,7 +5,9 @@
 
 header {* \isaheader{Example Welltypings}\label{sec:BVExample} *}
 
-theory BVExample imports JVMListExample BVSpecTypeSafe JVM ExecutableSet begin
+theory BVExample
+imports JVMListExample BVSpecTypeSafe JVM ExecutableSet
+begin
 
 text {*
   This theory shows type correctness of the example program in section 
@@ -115,7 +117,7 @@ lemma method_makelist [simp]:
 
 lemma field_val [simp]:
   "field (E, list_name) val_name = Some (list_name, PrimT Integer)"
-  apply (unfold field_def)
+  apply (unfold TypeRel.field_def)
   apply (insert class_list)
   apply (unfold list_class_def)
   apply (drule fields_rec_lemma [OF _ wf_subcls1_E])
@@ -124,7 +126,7 @@ lemma field_val [simp]:
 
 lemma field_next [simp]:
   "field (E, list_name) next_name = Some (list_name, Class list_name)"
-  apply (unfold field_def)
+  apply (unfold TypeRel.field_def)
   apply (insert class_list)
   apply (unfold list_class_def)
   apply (drule fields_rec_lemma [OF _ wf_subcls1_E])

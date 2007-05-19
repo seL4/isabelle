@@ -5,7 +5,9 @@
 
 (* Lemmas for compiler correctness proof *)
 
-theory LemmasComp imports TranslComp begin
+theory LemmasComp
+imports TranslComp
+begin
 
 
 declare split_paired_All [simp del]
@@ -222,7 +224,7 @@ by (simp add: fields_def comp_class_rec)
 
 lemma comp_field: "wfP ((subcls1 G)^--1) \<Longrightarrow> 
   field (comp G,C) = field (G,C)" 
-by (simp add: field_def comp_fields)
+by (simp add: TypeRel.field_def comp_fields)
 
 
 

@@ -1237,7 +1237,7 @@ apply (rule_tac x="Suc (length ST)" in exI)
 apply simp+
 apply (simp only: comp_is_type)
 apply (rule_tac C=cname in fields_is_type)
-apply (simp add: field_def)
+apply (simp add: TypeRel.field_def)
 apply (drule JBasis.table_of_remap_SomeD)+
 apply assumption+
 apply (erule wf_prog_ws_prog)
