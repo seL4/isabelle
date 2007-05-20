@@ -1249,6 +1249,47 @@ proof (simp add: isCont_iff LIM_eq)
   qed
 qed
 
+text {* Derivative of inverse function *}
+
+lemma DERIV_inverse_function:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes der: "DERIV f (g x) :> D"
+  assumes neq: "D \<noteq> 0"
+  assumes e: "0 < e"
+  assumes inj: "\<forall>y. \<bar>y - x\<bar> \<le> e \<longrightarrow> f (g y) = y"
+  assumes cont: "isCont g x"
+  shows "DERIV g x :> inverse D"
+unfolding DERIV_iff2
+proof (rule LIM_equal2 [OF e])
+  fix y
+  assume "y \<noteq> x" and "norm (y - x) < e"
+  thus "(g y - g x) / (y - x) =
+        inverse ((f (g y) - x) / (g y - g x))"
+    by (simp add: inj)
+next
+  have "(\<lambda>z. (f z - f (g x)) / (z - g x)) -- g x --> D"
+    by (rule der [unfolded DERIV_iff2])
+  hence 1: "(\<lambda>z. (f z - x) / (z - g x)) -- g x --> D"
+    using inj e by simp
+  have 2: "\<exists>d>0. \<forall>y. y \<noteq> x \<and> norm (y - x) < d \<longrightarrow> g y \<noteq> g x"
+  proof (safe intro!: exI)
+    show "0 < e" using e .
+  next
+    fix y
+    assume y: "norm (y - x) < e"
+    assume "g y = g x"
+    hence "f (g y) = f (g x)" by simp
+    hence "y = x" using inj y by simp
+    also assume "y \<noteq> x"
+    finally show False by simp
+  qed
+  have "(\<lambda>y. (f (g y) - x) / (g y - g x)) -- x --> D"
+    using cont 1 2 by (rule isCont_LIM_compose2)
+  thus "(\<lambda>y. inverse ((f (g y) - x) / (g y - g x)))
+        -- x --> inverse D"
+    using neq by (rule LIM_inverse)
+qed
+
 theorem GMVT:
   fixes a b :: real
   assumes alb: "a < b"
