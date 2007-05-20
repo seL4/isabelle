@@ -238,6 +238,37 @@ proof (rule LIM_I)
   qed
 qed
 
+lemma LIM_compose2:
+  assumes f: "f -- a --> b"
+  assumes g: "g -- b --> c"
+  assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < d \<longrightarrow> f x \<noteq> b"
+  shows "(\<lambda>x. g (f x)) -- a --> c"
+proof (rule LIM_I)
+  fix r :: real
+  assume r: "0 < r"
+  obtain s where s: "0 < s"
+    and less_r: "\<And>y. \<lbrakk>y \<noteq> b; norm (y - b) < s\<rbrakk> \<Longrightarrow> norm (g y - c) < r"
+    using LIM_D [OF g r] by fast
+  obtain t where t: "0 < t"
+    and less_s: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < t\<rbrakk> \<Longrightarrow> norm (f x - b) < s"
+    using LIM_D [OF f s] by fast
+  obtain d where d: "0 < d"
+    and neq_b: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < d\<rbrakk> \<Longrightarrow> f x \<noteq> b"
+    using inj by fast
+
+  show "\<exists>t>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < t \<longrightarrow> norm (g (f x) - c) < r"
+  proof (safe intro!: exI)
+    show "0 < min d t" using d t by simp
+  next
+    fix x
+    assume "x \<noteq> a" and "norm (x - a) < min d t"
+    hence "f x \<noteq> b" and "norm (f x - b) < s"
+      using neq_b less_s by simp_all
+    thus "norm (g (f x) - c) < r"
+      by (rule less_r)
+  qed
+qed
+
 lemma LIM_o: "\<lbrakk>g -- l --> g l; f -- a --> l\<rbrakk> \<Longrightarrow> (g \<circ> f) -- a --> g l"
 unfolding o_def by (rule LIM_compose)
 
@@ -467,6 +498,13 @@ lemma isCont_inverse:
 lemma isCont_LIM_compose:
   "\<lbrakk>isCont g l; f -- a --> l\<rbrakk> \<Longrightarrow> (\<lambda>x. g (f x)) -- a --> g l"
   unfolding isCont_def by (rule LIM_compose)
+
+lemma isCont_LIM_compose2:
+  assumes f [unfolded isCont_def]: "isCont f a"
+  assumes g: "g -- f a --> l"
+  assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < d \<longrightarrow> f x \<noteq> f a"
+  shows "(\<lambda>x. g (f x)) -- a --> l"
+by (rule LIM_compose2 [OF f g inj])
 
 lemma isCont_o2: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
   unfolding isCont_def by (rule LIM_compose)
