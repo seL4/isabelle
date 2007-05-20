@@ -336,6 +336,11 @@ lemma power2_less_imp_less:
   shows "\<lbrakk>x\<twosuperior> < y\<twosuperior>; 0 \<le> y\<rbrakk> \<Longrightarrow> x < y"
 by (rule power_less_imp_less_base)
 
+lemma power2_eq_imp_eq:
+  fixes x y :: "'a::{ordered_semidom,recpower}"
+  shows "\<lbrakk>x\<twosuperior> = y\<twosuperior>; 0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> x = y"
+unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base, simp)
+
 lemma power_minus1_even: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
 apply (induct "n")
 apply (auto simp add: power_Suc power_add power2_minus)
