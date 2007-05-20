@@ -610,6 +610,15 @@ apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
 apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs diffs_minus)
 done
 
+lemma isCont_exp [simp]: "isCont exp x"
+by (rule DERIV_exp [THEN DERIV_isCont])
+
+lemma isCont_sin [simp]: "isCont sin x"
+by (rule DERIV_sin [THEN DERIV_isCont])
+
+lemma isCont_cos [simp]: "isCont cos x"
+by (rule DERIV_cos [THEN DERIV_isCont])
+
 
 subsection{*Properties of the Exponential Function*}
 
@@ -743,7 +752,7 @@ by (simp add: order_eq_iff)
 
 lemma lemma_exp_total: "1 \<le> y ==> \<exists>x. 0 \<le> x & x \<le> y - 1 & exp(x) = y"
 apply (rule IVT)
-apply (auto intro: DERIV_exp [THEN DERIV_isCont] simp add: le_diff_eq)
+apply (auto intro: isCont_exp simp add: le_diff_eq)
 apply (subgoal_tac "1 + (y - 1) \<le> exp (y - 1)") 
 apply simp 
 apply (rule exp_ge_add_one_self_aux, simp)
@@ -878,6 +887,20 @@ by simp
 
 lemma exp_ln_eq: "exp u = x ==> ln x = u"
 by auto
+
+lemma isCont_ln: "0 < x \<Longrightarrow> isCont ln x"
+apply (subgoal_tac "isCont ln (exp (ln x))", simp)
+apply (rule isCont_inverse_function [where f=exp], simp_all)
+done
+
+lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
+by simp (* TODO: put in Deriv.thy *)
+
+lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
+apply (rule DERIV_inverse_function [where f=exp and a=0 and b="x+1"])
+apply (erule lemma_DERIV_subst [OF DERIV_exp exp_ln])
+apply (simp_all add: abs_if isCont_ln)
+done
 
 
 subsection{*Basic Properties of the Trigonometric Functions*}
@@ -1409,7 +1432,6 @@ by (cut_tac pi_half_less_two, auto)
 lemma cos_gt_zero: "[| 0 < x; x < pi/2 |] ==> 0 < cos x"
 apply (cut_tac pi_less_4)
 apply (cut_tac f = cos and a = 0 and b = x and y = 0 in IVT2_objl, safe, simp_all)
-apply (force intro: DERIV_isCont DERIV_cos)
 apply (cut_tac cos_is_zero, safe)
 apply (rename_tac y z)
 apply (drule_tac x = y in spec)
@@ -1612,6 +1634,9 @@ done
 lemma DERIV_tan [simp]: "cos x \<noteq> 0 ==> DERIV tan x :> inverse((cos x)\<twosuperior>)"
 by (auto dest: lemma_DERIV_tan simp add: tan_def [symmetric])
 
+lemma isCont_tan [simp]: "cos x \<noteq> 0 ==> isCont tan x"
+by (rule DERIV_tan [THEN DERIV_isCont])
+
 lemma LIM_cos_div_sin [simp]: "(%x. cos(x)/sin(x)) -- pi/2 --> 0"
 apply (subgoal_tac "(\<lambda>x. cos x * inverse (sin x)) -- pi * inverse 2 --> 0*1")
 apply (simp add: divide_inverse [symmetric])
@@ -1768,6 +1793,32 @@ apply (simp add: arccos_def)
 apply (auto intro!: the1_equality cos_total)
 done
 
+lemma cos_arcsin: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> cos (arcsin x) = sqrt (1 - x\<twosuperior>)"
+apply (subgoal_tac "x\<twosuperior> \<le> 1")
+apply (rule power_eq_imp_eq_base [where n=2])
+apply (simp add: cos_squared_eq)
+apply (rule cos_ge_zero)
+apply (erule (1) arcsin_lbound)
+apply (erule (1) arcsin_ubound)
+apply simp
+apply simp
+apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> \<le> 1\<twosuperior>", simp)
+apply (rule power_mono, simp, simp)
+done
+
+lemma sin_arccos: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> sin (arccos x) = sqrt (1 - x\<twosuperior>)"
+apply (subgoal_tac "x\<twosuperior> \<le> 1")
+apply (rule power_eq_imp_eq_base [where n=2])
+apply (simp add: sin_squared_eq)
+apply (rule sin_ge_zero)
+apply (erule (1) arccos_lbound)
+apply (erule (1) arccos_ubound)
+apply simp
+apply simp
+apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> \<le> 1\<twosuperior>", simp)
+apply (rule power_mono, simp, simp)
+done
+
 lemma arctan [simp]:
      "- (pi/2) < arctan y  & arctan y < pi/2 & tan (arctan y) = y"
 unfolding arctan_def by (rule theI' [OF tan_total])
@@ -1811,6 +1862,85 @@ apply (auto dest: field_power_not_zero
                   mult_assoc power_inverse [symmetric] 
         simp del: realpow_Suc)
 done
+
+lemma isCont_inverse_function2:
+  fixes f g :: "real \<Rightarrow> real" shows
+  "\<lbrakk>a < x; x < b;
+    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> g (f z) = z;
+    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> isCont f z\<rbrakk>
+   \<Longrightarrow> isCont g (f x)"
+apply (rule isCont_inverse_function
+       [where f=f and d="min (x - a) (b - x)"])
+apply (simp_all add: abs_le_iff)
+done
+
+lemma isCont_arcsin: "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> isCont arcsin x"
+apply (subgoal_tac "isCont arcsin (sin (arcsin x))", simp)
+apply (rule isCont_inverse_function2 [where f=sin])
+apply (erule (1) arcsin_lt_bounded [THEN conjunct1])
+apply (erule (1) arcsin_lt_bounded [THEN conjunct2])
+apply (fast intro: arcsin_sin, simp)
+done
+
+lemma isCont_arccos: "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> isCont arccos x"
+apply (subgoal_tac "isCont arccos (cos (arccos x))", simp)
+apply (rule isCont_inverse_function2 [where f=cos])
+apply (erule (1) arccos_lt_bounded [THEN conjunct1])
+apply (erule (1) arccos_lt_bounded [THEN conjunct2])
+apply (fast intro: arccos_cos, simp)
+done
+
+lemma isCont_arctan: "isCont arctan x"
+apply (rule arctan_lbound [of x, THEN dense, THEN exE], clarify)
+apply (rule arctan_ubound [of x, THEN dense, THEN exE], clarify)
+apply (subgoal_tac "isCont arctan (tan (arctan x))", simp)
+apply (erule (1) isCont_inverse_function2 [where f=tan])
+apply (clarify, rule arctan_tan)
+apply (erule (1) order_less_le_trans)
+apply (erule (1) order_le_less_trans)
+apply (clarify, rule isCont_tan)
+apply (rule less_imp_neq [symmetric])
+apply (rule cos_gt_zero_pi)
+apply (erule (1) order_less_le_trans)
+apply (erule (1) order_le_less_trans)
+done
+
+lemma DERIV_arcsin:
+  "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arcsin x :> inverse (sqrt (1 - x\<twosuperior>))"
+apply (rule DERIV_inverse_function [where f=sin and a="-1" and b="1"])
+apply (rule lemma_DERIV_subst [OF DERIV_sin])
+apply (simp add: cos_arcsin)
+apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> < 1\<twosuperior>", simp)
+apply (rule power_strict_mono, simp, simp, simp)
+apply assumption
+apply assumption
+apply simp
+apply (erule (1) isCont_arcsin)
+done
+
+lemma DERIV_arccos:
+  "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arccos x :> inverse (- sqrt (1 - x\<twosuperior>))"
+apply (rule DERIV_inverse_function [where f=cos and a="-1" and b="1"])
+apply (rule lemma_DERIV_subst [OF DERIV_cos])
+apply (simp add: sin_arccos)
+apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> < 1\<twosuperior>", simp)
+apply (rule power_strict_mono, simp, simp, simp)
+apply assumption
+apply assumption
+apply simp
+apply (erule (1) isCont_arccos)
+done
+
+lemma DERIV_arctan: "DERIV arctan x :> inverse (1 + x\<twosuperior>)"
+apply (rule DERIV_inverse_function [where f=tan and a="x - 1" and b="x + 1"])
+apply (rule lemma_DERIV_subst [OF DERIV_tan])
+apply (rule cos_arctan_not_zero)
+apply (simp add: power_inverse tan_sec [symmetric])
+apply (subgoal_tac "0 < 1 + x\<twosuperior>", simp)
+apply (simp add: add_pos_nonneg)
+apply (simp, simp, simp, rule isCont_arctan)
+done
+
 
 subsection {* More Theorems about Sin and Cos *}
 
@@ -1880,15 +2010,6 @@ apply (best intro!: DERIV_intros intro: DERIV_chain2)+
 apply (simp (no_asm))
 done
 
-lemma isCont_cos [simp]: "isCont cos x"
-by (rule DERIV_cos [THEN DERIV_isCont])
-
-lemma isCont_sin [simp]: "isCont sin x"
-by (rule DERIV_sin [THEN DERIV_isCont])
-
-lemma isCont_exp [simp]: "isCont exp x"
-by (rule DERIV_exp [THEN DERIV_isCont])
-
 lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
 by (auto simp add: sin_zero_iff even_mult_two_ex)
 
@@ -1911,65 +2032,22 @@ done
 lemma cos_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> cos (arccos y) = y"
 by (simp add: abs_le_iff)
 
-lemma cos_total_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> \<exists>!x. 0 \<le> x \<and> x \<le> pi \<and> cos x = y"
-by (simp add: abs_le_iff cos_total)
+lemma sin_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> sin (arccos y) = sqrt (1 - y\<twosuperior>)"
+by (simp add: sin_arccos abs_le_iff)
 
 lemmas cos_arccos_lemma1 = cos_arccos_abs [OF cos_x_y_le_one]
 
-lemmas cos_total_lemma1 = cos_total_abs [OF cos_x_y_le_one]
-
-(* How tedious! *)
-lemma lemma_divide_rearrange:
-     "[| x + (y::real) \<noteq> 0; 1 - z = x/(x + y) |] ==> z = y/(x + y)"
-apply (rule_tac c1 = "x + y" in real_mult_right_cancel [THEN iffD1])
-apply (frule_tac [2] c1 = "x + y" in real_mult_right_cancel [THEN iffD2])
-prefer 2 apply assumption
-apply (rotate_tac [2] 2)
-apply (drule_tac [2] mult_assoc [THEN subst])
-apply (rotate_tac [2] 2)
-apply (frule_tac [2] left_inverse [THEN subst])
-prefer 2 apply assumption
-apply (erule_tac [2] V = "(1 - z) * (x + y) = x / (x + y) * (x + y)" in thin_rl)
-apply (erule_tac [2] V = "1 - z = x / (x + y)" in thin_rl)
-apply (auto simp add: mult_assoc)
-apply (auto simp add: right_distrib left_diff_distrib)
-done
-
-lemma lemma_cos_sin_eq:
-     "[| 0 < x\<twosuperior> + y\<twosuperior>;  
-         1 - (sin xa)\<twosuperior> = (x / sqrt (x\<twosuperior> + y\<twosuperior>))\<twosuperior> |] 
-      ==> (sin xa)\<twosuperior> = (y / sqrt (x\<twosuperior> + y\<twosuperior>))\<twosuperior>"
-by (auto intro: lemma_divide_rearrange simp add: power_divide)
-
-lemma sin_x_y_disj:
-     "[| 0 < y;
-         cos xa = x / sqrt (x\<twosuperior> + y\<twosuperior>)  
-      |] ==>  sin xa = y / sqrt (x\<twosuperior> + y\<twosuperior>) |  
-              sin xa = - y / sqrt (x\<twosuperior> + y\<twosuperior>)"
-apply (drule_tac f = "%x. x\<twosuperior>" in arg_cong)
-apply (subgoal_tac "0 < x\<twosuperior> + y\<twosuperior>")
-apply (simp add: cos_squared_eq)
-apply (subgoal_tac "(sin xa)\<twosuperior> = (y / sqrt (x\<twosuperior> + y\<twosuperior>))\<twosuperior>")
-apply (rule_tac [2] lemma_cos_sin_eq)
-apply (auto simp add: realpow_two_disj numeral_2_eq_2 simp del: realpow_Suc)
-apply (auto simp add: sum_squares_gt_zero_iff)
-done
-
-lemma real_sqrt_divide_less_zero: "0 < y ==> - y / sqrt (x\<twosuperior> + y\<twosuperior>) < 0"
-by (simp add: divide_pos_pos sum_power2_gt_zero_iff)
+lemmas sin_arccos_lemma1 = sin_arccos_abs [OF cos_x_y_le_one]
 
 lemma polar_ex1:
      "0 < y ==> \<exists>r a. x = r * cos a & y = r * sin a"
 apply (rule_tac x = "sqrt (x\<twosuperior> + y\<twosuperior>)" in exI)
 apply (rule_tac x = "arccos (x / sqrt (x\<twosuperior> + y\<twosuperior>))" in exI)
 apply (simp add: cos_arccos_lemma1)
-apply (simp add: arccos_def)
-apply (cut_tac x1 = x and y1 = y in cos_total_lemma1)
-apply (drule theI')
-apply (frule sin_x_y_disj, blast)
-apply (auto)
-apply (drule sin_ge_zero, assumption)
-apply (drule_tac x = x in real_sqrt_divide_less_zero, auto)
+apply (simp add: sin_arccos_lemma1)
+apply (simp add: power_divide)
+apply (simp add: real_sqrt_mult [symmetric])
+apply (simp add: right_diff_distrib)
 done
 
 lemma polar_ex2:
