@@ -11,133 +11,7 @@ theory Transcendental
 imports NthRoot Fact Series EvenOdd Deriv
 begin
 
-definition
-  exp :: "real => real" where
-  "exp x = (\<Sum>n. inverse(real (fact n)) * (x ^ n))"
-
-definition
-  sin :: "real => real" where
-  "sin x = (\<Sum>n. (if even(n) then 0 else
-             ((- 1) ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
- 
-definition
-  diffs :: "(nat => real) => nat => real" where
-  "diffs c = (%n. real (Suc n) * c(Suc n))"
-
-definition
-  cos :: "real => real" where
-  "cos x = (\<Sum>n. (if even(n) then ((- 1) ^ (n div 2))/(real (fact n)) 
-                            else 0) * x ^ n)"
-  
-definition
-  ln :: "real => real" where
-  "ln x = (THE u. exp u = x)"
-
-definition
-  pi :: "real" where
-  "pi = 2 * (@x. 0 \<le> (x::real) & x \<le> 2 & cos x = 0)"
-
-definition
-  tan :: "real => real" where
-  "tan x = (sin x)/(cos x)"
-
-definition
-  arcsin :: "real => real" where
-  "arcsin y = (THE x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
-
-definition
-  arccos :: "real => real" where
-  "arccos y = (THE x. 0 \<le> x & x \<le> pi & cos x = y)"
-
-definition     
-  arctan :: "real => real" where
-  "arctan y = (THE x. -(pi/2) < x & x < pi/2 & tan x = y)"
-
-
-subsection{*Exponential Function*}
-
-lemma summable_exp: "summable (%n. inverse (real (fact n)) * x ^ n)"
-apply (cut_tac 'a = real in zero_less_one [THEN dense], safe)
-apply (cut_tac x = r in reals_Archimedean3, auto)
-apply (drule_tac x = "\<bar>x\<bar>" in spec, safe)
-apply (rule_tac N = n and c = r in ratio_test)
-apply (safe, simp add: abs_mult mult_assoc [symmetric] del: fact_Suc)
-apply (rule mult_right_mono)
-apply (rule_tac b1 = "\<bar>x\<bar>" in mult_commute [THEN ssubst])
-apply (subst fact_Suc)
-apply (subst real_of_nat_mult)
-apply (auto)
-apply (simp add: mult_assoc [symmetric] positive_imp_inverse_positive)
-apply (rule order_less_imp_le)
-apply (rule_tac z1 = "real (Suc na)" in real_mult_less_iff1 [THEN iffD1])
-apply (auto simp add: mult_assoc)
-apply (erule order_less_trans)
-apply (auto simp add: mult_less_cancel_left mult_ac)
-done
-
-lemma summable_sin: 
-     "summable (%n.  
-           (if even n then 0  
-           else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                x ^ n)"
-apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
-apply (rule_tac [2] summable_exp)
-apply (rule_tac x = 0 in exI)
-apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
-done
-
-lemma summable_cos: 
-      "summable (%n.  
-           (if even n then  
-           (- 1) ^ (n div 2)/(real (fact n)) else 0) * x ^ n)"
-apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
-apply (rule_tac [2] summable_exp)
-apply (rule_tac x = 0 in exI)
-apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
-done
-
-lemma lemma_STAR_sin [simp]:
-     "(if even n then 0  
-       else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0"
-by (induct "n", auto)
-
-lemma lemma_STAR_cos [simp]:
-     "0 < n -->  
-      (- 1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
-by (induct "n", auto)
-
-lemma lemma_STAR_cos1 [simp]:
-     "0 < n -->  
-      (-1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
-by (induct "n", auto)
-
-lemma lemma_STAR_cos2 [simp]:
-  "(\<Sum>n=1..<n. if even n then (- 1) ^ (n div 2)/(real (fact n)) *  0 ^ n 
-                         else 0) = 0"
-apply (induct "n")
-apply (case_tac [2] "n", auto)
-done
-
-lemma exp_converges: "(%n. inverse (real (fact n)) * x ^ n) sums exp(x)"
-apply (simp add: exp_def)
-apply (rule summable_exp [THEN summable_sums])
-done
-
-lemma sin_converges: 
-      "(%n. (if even n then 0  
-            else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                 x ^ n) sums sin(x)"
-apply (simp add: sin_def)
-apply (rule summable_sin [THEN summable_sums])
-done
-
-lemma cos_converges: 
-      "(%n. (if even n then  
-           (- 1) ^ (n div 2)/(real (fact n))  
-           else 0) * x ^ n) sums cos(x)"
-apply (simp add: cos_def)
-apply (rule summable_cos [THEN summable_sums])
-done
+subsection{*Properties of Power Series*}
 
 lemma lemma_realpow_diff [rule_format (no_asm)]:
      "p \<le> n --> y ^ (Suc n - p) = ((y::real) ^ (n - p)) * y"
@@ -148,9 +22,6 @@ apply (drule sym)
 apply (simp add: Suc_diff_le mult_commute realpow_Suc [symmetric] 
        del: realpow_Suc)
 done
-
-
-subsection{*Properties of Power Series*}
 
 lemma lemma_realpow_diff_sumr:
      "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ ((Suc n) - p)) =  
@@ -239,7 +110,11 @@ apply (simp add: abs_mult power_abs [symmetric])
 done
 
 
-subsection{*Differentiation of Power Series*}
+subsection{*Term-by-Term Differentiability of Power Series*}
+
+definition
+  diffs :: "(nat => real) => nat => real" where
+  "diffs c = (%n. real (Suc n) * c(Suc n))"
 
 text{*Lemma about distributing negation over it*}
 lemma diffs_minus: "diffs (%n. - c n) = (%n. - diffs c n)"
@@ -273,9 +148,6 @@ apply (drule_tac X="(\<lambda>n. \<Sum>n = 0..<n. diffs c n * x ^ n)" in LIMSEQ_
 apply (auto simp add: lemma_diffs2 [symmetric] diffs_def [symmetric])
 apply (simp add: diffs_def summable_LIMSEQ_zero)
 done
-
-
-subsection{*Term-by-Term Differentiability of Power Series*}
 
 lemma lemma_termdiff1:
   "(\<Sum>p=0..<m. (((z + h) ^ (m - p)) * (z ^ p)) - (z ^ m)) =  
@@ -539,6 +411,116 @@ proof (simp add: deriv_def, rule LIM_zero_cancel)
 qed
 
 
+subsection{*Exponential Function*}
+
+definition
+  exp :: "real => real" where
+  "exp x = (\<Sum>n. inverse(real (fact n)) * (x ^ n))"
+
+definition
+  sin :: "real => real" where
+  "sin x = (\<Sum>n. (if even(n) then 0 else
+             ((- 1) ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
+ 
+definition
+  cos :: "real => real" where
+  "cos x = (\<Sum>n. (if even(n) then ((- 1) ^ (n div 2))/(real (fact n)) 
+                            else 0) * x ^ n)"
+  
+lemma summable_exp: "summable (%n. inverse (real (fact n)) * x ^ n)"
+apply (cut_tac 'a = real in zero_less_one [THEN dense], safe)
+apply (cut_tac x = r in reals_Archimedean3, auto)
+apply (drule_tac x = "\<bar>x\<bar>" in spec, safe)
+apply (rule_tac N = n and c = r in ratio_test)
+apply (safe, simp add: abs_mult mult_assoc [symmetric] del: fact_Suc)
+apply (rule mult_right_mono)
+apply (rule_tac b1 = "\<bar>x\<bar>" in mult_commute [THEN ssubst])
+apply (subst fact_Suc)
+apply (subst real_of_nat_mult)
+apply (auto)
+apply (simp add: mult_assoc [symmetric] positive_imp_inverse_positive)
+apply (rule order_less_imp_le)
+apply (rule_tac z1 = "real (Suc na)" in real_mult_less_iff1 [THEN iffD1])
+apply (auto simp add: mult_assoc)
+apply (erule order_less_trans)
+apply (auto simp add: mult_less_cancel_left mult_ac)
+done
+
+lemma summable_sin: 
+     "summable (%n.  
+           (if even n then 0  
+           else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
+                x ^ n)"
+apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
+apply (rule_tac [2] summable_exp)
+apply (rule_tac x = 0 in exI)
+apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
+done
+
+lemma summable_cos: 
+      "summable (%n.  
+           (if even n then  
+           (- 1) ^ (n div 2)/(real (fact n)) else 0) * x ^ n)"
+apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
+apply (rule_tac [2] summable_exp)
+apply (rule_tac x = 0 in exI)
+apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
+done
+
+lemma lemma_STAR_sin [simp]:
+     "(if even n then 0  
+       else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0"
+by (induct "n", auto)
+
+lemma lemma_STAR_cos [simp]:
+     "0 < n -->  
+      (- 1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
+by (induct "n", auto)
+
+lemma lemma_STAR_cos1 [simp]:
+     "0 < n -->  
+      (-1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
+by (induct "n", auto)
+
+lemma lemma_STAR_cos2 [simp]:
+  "(\<Sum>n=1..<n. if even n then (- 1) ^ (n div 2)/(real (fact n)) *  0 ^ n 
+                         else 0) = 0"
+apply (induct "n")
+apply (case_tac [2] "n", auto)
+done
+
+lemma exp_converges: "(%n. inverse (real (fact n)) * x ^ n) sums exp(x)"
+apply (simp add: exp_def)
+apply (rule summable_exp [THEN summable_sums])
+done
+
+lemma sin_converges: 
+      "(%n. (if even n then 0  
+            else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
+                 x ^ n) sums sin(x)"
+apply (simp add: sin_def)
+apply (rule summable_sin [THEN summable_sums])
+done
+
+lemma cos_converges: 
+      "(%n. (if even n then  
+           (- 1) ^ (n div 2)/(real (fact n))  
+           else 0) * x ^ n) sums cos(x)"
+apply (simp add: cos_def)
+apply (rule summable_cos [THEN summable_sums])
+done
+
+lemma lemma_realpow_diff [rule_format (no_asm)]:
+     "p \<le> n --> y ^ (Suc n - p) = ((y::real) ^ (n - p)) * y"
+apply (induct "n", auto)
+apply (subgoal_tac "p = Suc n")
+apply (simp (no_asm_simp), auto)
+apply (drule sym)
+apply (simp add: Suc_diff_le mult_commute realpow_Suc [symmetric] 
+       del: realpow_Suc)
+done
+
+
 subsection{*Formal Derivatives of Exp, Sin, and Cos Series*} 
 
 lemma exp_fdiffs: 
@@ -780,13 +762,17 @@ done
 
 subsection{*Properties of the Logarithmic Function*}
 
-lemma ln_exp[simp]: "ln(exp x) = x"
+definition
+  ln :: "real => real" where
+  "ln x = (THE u. exp u = x)"
+
+lemma ln_exp [simp]: "ln (exp x) = x"
 by (simp add: ln_def)
 
 lemma exp_ln [simp]: "0 < x \<Longrightarrow> exp (ln x) = x"
 by (auto dest: exp_total)
 
-lemma exp_ln_iff[simp]: "(exp(ln x) = x) = (0 < x)"
+lemma exp_ln_iff [simp]: "(exp (ln x) = x) = (0 < x)"
 apply (auto dest: exp_total)
 apply (erule subst, simp) 
 done
@@ -1148,6 +1134,10 @@ done
 
 
 subsection{*The Constant Pi*}
+
+definition
+  pi :: "real" where
+  "pi = 2 * (@x. 0 \<le> (x::real) & x \<le> 2 & cos x = 0)"
 
 text{*Show that there's a least positive @{term x} with @{term "cos(x) = 0"}; 
    hence define pi.*}
@@ -1548,6 +1538,10 @@ done
 
 subsection{*Tangent*}
 
+definition
+  tan :: "real => real" where
+  "tan x = (sin x)/(cos x)"
+
 lemma tan_zero [simp]: "tan 0 = 0"
 by (simp add: tan_def)
 
@@ -1678,6 +1672,21 @@ apply (auto dest!: DERIV_unique [OF _ DERIV_tan]
 	    simp add: cos_gt_zero_pi [THEN less_imp_neq, THEN not_sym]) 
 done
 
+
+subsection {* Inverse Trigonometric Functions *}
+
+definition
+  arcsin :: "real => real" where
+  "arcsin y = (THE x. -(pi/2) \<le> x & x \<le> pi/2 & sin x = y)"
+
+definition
+  arccos :: "real => real" where
+  "arccos y = (THE x. 0 \<le> x & x \<le> pi & cos x = y)"
+
+definition     
+  arctan :: "real => real" where
+  "arctan y = (THE x. -(pi/2) < x & x < pi/2 & tan x = y)"
+
 lemma arcsin:
      "[| -1 \<le> y; y \<le> 1 |]  
       ==> -(pi/2) \<le> arcsin y &  
@@ -1802,6 +1811,8 @@ apply (auto dest: field_power_not_zero
                   mult_assoc power_inverse [symmetric] 
         simp del: realpow_Suc)
 done
+
+subsection {* More Theorems about Sin and Cos *}
 
 text{*NEEDED??*}
 lemma [simp]:
@@ -2055,6 +2066,8 @@ lemma lemma_DERIV_ln4: "[| 0 < z; DERIV ln z :> l |] ==>  l = 1/z"
 apply (rule_tac t = z in exp_ln_iff [THEN iffD2, THEN subst])
 apply (auto intro: lemma_DERIV_ln3 simp del: exp_ln)
 done
+
+subsection {* Theorems about Limits *}
 
 (* need to rename second isCont_inverse *)
 
