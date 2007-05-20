@@ -2115,36 +2115,6 @@ done
 declare real_sqrt_sum_squares_ge_zero [THEN abs_of_nonneg, simp]
 
 
-subsection{*A Few Theorems Involving Ln, Derivatives, etc.*}
-
-lemma lemma_DERIV_ln:
-     "DERIV ln z :> l ==> DERIV (%x. exp (ln x)) z :> exp (ln z) * l"
-by (erule DERIV_fun_exp)
-
-lemma DERIV_exp_ln_one: "0 < z ==> DERIV (%x. exp (ln x)) z :> 1"
-apply (simp add: deriv_def)
-apply (rule LIM_equal2 [OF _ _ LIM_const], assumption)
-apply simp
-done
-
-lemma lemma_DERIV_ln2:
-     "[| 0 < z; DERIV ln z :> l |] ==>  exp (ln z) * l = 1"
-apply (rule DERIV_unique)
-apply (rule lemma_DERIV_ln)
-apply (rule_tac [2] DERIV_exp_ln_one, auto)
-done
-
-lemma lemma_DERIV_ln3:
-     "[| 0 < z; DERIV ln z :> l |] ==>  l = 1/(exp (ln z))"
-apply (rule_tac c1 = "exp (ln z)" in real_mult_left_cancel [THEN iffD1])
-apply (auto intro: lemma_DERIV_ln2 simp del: exp_ln)
-done
-
-lemma lemma_DERIV_ln4: "[| 0 < z; DERIV ln z :> l |] ==>  l = 1/z"
-apply (rule_tac t = z in exp_ln_iff [THEN iffD2, THEN subst])
-apply (auto intro: lemma_DERIV_ln3 simp del: exp_ln)
-done
-
 subsection {* Theorems about Limits *}
 
 (* need to rename second isCont_inverse *)
