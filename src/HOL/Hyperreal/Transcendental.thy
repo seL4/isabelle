@@ -2064,56 +2064,6 @@ apply (rule_tac x=x in exI, rule_tac x=0 in exI, simp)
 apply (erule polar_ex2)
 done
 
-subsection {* Theorems About Sqrt *}
-
-lemma le_real_sqrt_sumsq [simp]: "x \<le> sqrt (x * x + y * y)"
-by (simp add: power2_eq_square [symmetric])
-
-lemma real_sqrt_sum_squares_eq_cancel: "sqrt(x\<twosuperior> + y\<twosuperior>) = x ==> y = 0"
-by (drule_tac f = "%x. x\<twosuperior>" in arg_cong, simp)
-
-lemma real_sqrt_sum_squares_eq_cancel2: "sqrt(x\<twosuperior> + y\<twosuperior>) = y ==> x = 0"
-by (drule_tac f = "%x. x\<twosuperior>" in arg_cong, simp)
-
-lemma real_sqrt_ge_abs1 [simp]: "\<bar>x\<bar> \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
-by (rule power2_le_imp_le, simp_all)
-
-lemma real_sqrt_ge_abs2 [simp]: "\<bar>y\<bar> \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
-by (rule power2_le_imp_le, simp_all)
-
-lemma real_sqrt_two_gt_zero [simp]: "0 < sqrt 2"
-by simp
-
-lemma real_sqrt_two_ge_zero [simp]: "0 \<le> sqrt 2"
-by simp
-
-lemma real_sqrt_two_gt_one [simp]: "1 < sqrt 2"
-by simp
-
-lemma lemma_real_divide_sqrt_less: "0 < u ==> u / sqrt 2 < u"
-by (simp add: divide_less_eq mult_compare_simps)
-
-lemma four_x_squared: 
-  fixes x::real
-  shows "4 * x\<twosuperior> = (2 * x)\<twosuperior>"
-by (simp add: power2_eq_square)
-
-
-text{*Needed for the infinitely close relation over the nonstandard
-    complex numbers*}
-lemma lemma_sqrt_hcomplex_capprox:
-     "[| 0 < u; x < u/2; y < u/2; 0 \<le> x; 0 \<le> y |] ==> sqrt (x\<twosuperior> + y\<twosuperior>) < u"
-apply (rule_tac y = "u/sqrt 2" in order_le_less_trans)
-apply (erule_tac [2] lemma_real_divide_sqrt_less)
-apply (rule power2_le_imp_le)
-apply (auto simp add: real_0_le_divide_iff power_divide)
-apply (rule_tac t = "u\<twosuperior>" in real_sum_of_halves [THEN subst])
-apply (rule add_mono)
-apply (auto simp add: four_x_squared simp del: realpow_Suc intro: power_mono)
-done
-
-declare real_sqrt_sum_squares_ge_zero [THEN abs_of_nonneg, simp]
-
 
 subsection {* Theorems about Limits *}
 
