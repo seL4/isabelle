@@ -1150,7 +1150,7 @@ subsection{*The Constant Pi*}
 
 definition
   pi :: "real" where
-  "pi = 2 * (@x. 0 \<le> (x::real) & x \<le> 2 & cos x = 0)"
+  "pi = 2 * (THE x. 0 \<le> (x::real) & x \<le> 2 & cos x = 0)"
 
 text{*Show that there's a least positive @{term x} with @{term "cos(x) = 0"}; 
    hence define pi.*}
@@ -1244,7 +1244,7 @@ declare zero_less_power [simp]
 lemma fact_lemma: "real (n::nat) * 4 = real (4 * n)"
 by simp
 
-lemma cos_two_less_zero: "cos (2) < 0"
+lemma cos_two_less_zero [simp]: "cos (2) < 0"
 apply (cut_tac x = 2 in cos_paired)
 apply (drule sums_minus)
 apply (rule neg_less_iff_less [THEN iffD1]) 
@@ -1270,9 +1270,9 @@ apply (rule mult_strict_mono, force)
 apply (rule real_of_nat_less_iff [THEN iffD2])
 apply (rule fact_less_mono, auto)
 done
-declare cos_two_less_zero [simp]
-declare cos_two_less_zero [THEN less_imp_neq, simp]
-declare cos_two_less_zero [THEN order_less_imp_le, simp]
+
+lemmas cos_two_neq_zero [simp] = cos_two_less_zero [THEN less_imp_neq]
+lemmas cos_two_le_zero [simp] = cos_two_less_zero [THEN order_less_imp_le]
 
 lemma cos_is_zero: "EX! x. 0 \<le> x & x \<le> 2 & cos x = 0"
 apply (subgoal_tac "\<exists>x. 0 \<le> x & x \<le> 2 & cos x = 0")
@@ -1290,51 +1290,41 @@ apply (assumption, rule_tac y=y in order_less_le_trans, simp_all)
 apply (drule_tac y1 = y in order_le_less_trans [THEN sin_gt_zero], assumption, simp_all) 
 done
     
-lemma pi_half: "pi/2 = (@x. 0 \<le> x & x \<le> 2 & cos x = 0)"
+lemma pi_half: "pi/2 = (THE x. 0 \<le> x & x \<le> 2 & cos x = 0)"
 by (simp add: pi_def)
 
 lemma cos_pi_half [simp]: "cos (pi / 2) = 0"
-apply (rule cos_is_zero [THEN ex1E])
-apply (auto intro!: someI2 simp add: pi_half)
+by (simp add: pi_half cos_is_zero [THEN theI'])
+
+lemma pi_half_gt_zero [simp]: "0 < pi / 2"
+apply (rule order_le_neq_trans)
+apply (simp add: pi_half cos_is_zero [THEN theI'])
+apply (rule notI, drule arg_cong [where f=cos], simp)
 done
 
-lemma pi_half_gt_zero: "0 < pi / 2"
-apply (rule cos_is_zero [THEN ex1E])
-apply (auto simp add: pi_half)
-apply (rule someI2, blast, safe)
-apply (drule_tac y = xa in order_le_imp_less_or_eq)
-apply (safe, simp)
-done
-declare pi_half_gt_zero [simp]
-declare pi_half_gt_zero [THEN less_imp_neq, THEN not_sym, simp]
-declare pi_half_gt_zero [THEN order_less_imp_le, simp]
+lemmas pi_half_neq_zero [simp] = pi_half_gt_zero [THEN less_imp_neq, symmetric]
+lemmas pi_half_ge_zero [simp] = pi_half_gt_zero [THEN order_less_imp_le]
 
-lemma pi_half_less_two: "pi / 2 < 2"
-apply (rule cos_is_zero [THEN ex1E])
-apply (auto simp add: pi_half)
-apply (rule someI2, blast, safe)
-apply (drule_tac x = xa in order_le_imp_less_or_eq)
-apply (safe, simp)
+lemma pi_half_less_two [simp]: "pi / 2 < 2"
+apply (rule order_le_neq_trans)
+apply (simp add: pi_half cos_is_zero [THEN theI'])
+apply (rule notI, drule arg_cong [where f=cos], simp)
 done
-declare pi_half_less_two [simp]
-declare pi_half_less_two [THEN less_imp_neq, simp]
-declare pi_half_less_two [THEN order_less_imp_le, simp]
+
+lemmas pi_half_neq_two [simp] = pi_half_less_two [THEN less_imp_neq]
+lemmas pi_half_le_two [simp] =  pi_half_less_two [THEN order_less_imp_le]
 
 lemma pi_gt_zero [simp]: "0 < pi"
-apply (insert pi_half_gt_zero) 
-apply (simp add: ); 
-done
+by (insert pi_half_gt_zero, simp)
+
+lemma pi_ge_zero [simp]: "0 \<le> pi"
+by (rule pi_gt_zero [THEN order_less_imp_le])
 
 lemma pi_neq_zero [simp]: "pi \<noteq> 0"
 by (rule pi_gt_zero [THEN less_imp_neq, THEN not_sym])
 
-lemma pi_not_less_zero [simp]: "~ (pi < 0)"
-apply (insert pi_gt_zero)
-apply (blast elim: order_less_asym) 
-done
-
-lemma pi_ge_zero [simp]: "0 \<le> pi"
-by (auto intro: order_less_imp_le)
+lemma pi_not_less_zero [simp]: "\<not> pi < 0"
+by (simp add: linorder_not_less)
 
 lemma minus_pi_half_less_zero [simp]: "-(pi/2) < 0"
 by auto
@@ -1342,7 +1332,7 @@ by auto
 lemma sin_pi_half [simp]: "sin(pi/2) = 1"
 apply (cut_tac x = "pi/2" in sin_cos_squared_add2)
 apply (cut_tac sin_gt_zero [OF pi_half_gt_zero pi_half_less_two])
-apply (auto simp add: numeral_2_eq_2)
+apply (simp add: power2_eq_square)
 done
 
 lemma cos_pi [simp]: "cos pi = -1"
@@ -1353,6 +1343,7 @@ by (cut_tac x = "pi/2" and y = "pi/2" in sin_add, simp)
 
 lemma sin_cos_eq: "sin x = cos (pi/2 - x)"
 by (simp add: diff_minus cos_add)
+declare sin_cos_eq [symmetric, simp]
 
 lemma minus_sin_cos_eq: "-sin x = cos (x + pi/2)"
 by (simp add: cos_add)
@@ -1360,7 +1351,7 @@ declare minus_sin_cos_eq [symmetric, simp]
 
 lemma cos_sin_eq: "cos x = sin (pi/2 - x)"
 by (simp add: diff_minus sin_add)
-declare sin_cos_eq [symmetric, simp] cos_sin_eq [symmetric, simp]
+declare cos_sin_eq [symmetric, simp]
 
 lemma sin_periodic_pi [simp]: "sin (x + pi) = - sin x"
 by (simp add: sin_add)
