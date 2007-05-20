@@ -150,7 +150,12 @@ primrec (unchecked perm_nprod)
 
 (* permutation on characters (used in strings) *)
 defs (unchecked overloaded)
-  perm_char_def: "pi\<bullet>(s::char) \<equiv> s"
+  perm_char_def: "pi\<bullet>(c::char) \<equiv> c"
+
+lemma perm_string:
+  fixes s::"string"
+  shows "pi\<bullet>s = s"
+by (induct s)(auto simp add: perm_char_def)
 
 (* permutation on ints *)
 defs (unchecked overloaded)
@@ -272,8 +277,7 @@ lemma supp_char:
 lemma supp_string:
   fixes s::"string"
   shows "supp (s) = {}"
-apply(induct s)
-apply(auto simp add: supp_char supp_list_nil supp_list_cons)
+apply(simp add: supp_def perm_string)
 done
 
 lemma fresh_set_empty:
