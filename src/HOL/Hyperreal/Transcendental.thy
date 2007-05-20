@@ -510,16 +510,6 @@ apply (simp add: cos_def)
 apply (rule summable_cos [THEN summable_sums])
 done
 
-lemma lemma_realpow_diff [rule_format (no_asm)]:
-     "p \<le> n --> y ^ (Suc n - p) = ((y::real) ^ (n - p)) * y"
-apply (induct "n", auto)
-apply (subgoal_tac "p = Suc n")
-apply (simp (no_asm_simp), auto)
-apply (drule sym)
-apply (simp add: Suc_diff_le mult_commute realpow_Suc [symmetric] 
-       del: realpow_Suc)
-done
-
 
 subsection{*Formal Derivatives of Exp, Sin, and Cos Series*} 
 
@@ -1795,12 +1785,11 @@ done
 
 lemma cos_arcsin: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> cos (arcsin x) = sqrt (1 - x\<twosuperior>)"
 apply (subgoal_tac "x\<twosuperior> \<le> 1")
-apply (rule power_eq_imp_eq_base [where n=2])
+apply (rule power2_eq_imp_eq)
 apply (simp add: cos_squared_eq)
 apply (rule cos_ge_zero)
 apply (erule (1) arcsin_lbound)
 apply (erule (1) arcsin_ubound)
-apply simp
 apply simp
 apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> \<le> 1\<twosuperior>", simp)
 apply (rule power_mono, simp, simp)
@@ -1808,12 +1797,11 @@ done
 
 lemma sin_arccos: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> sin (arccos x) = sqrt (1 - x\<twosuperior>)"
 apply (subgoal_tac "x\<twosuperior> \<le> 1")
-apply (rule power_eq_imp_eq_base [where n=2])
+apply (rule power2_eq_imp_eq)
 apply (simp add: sin_squared_eq)
 apply (rule sin_ge_zero)
 apply (erule (1) arccos_lbound)
 apply (erule (1) arccos_ubound)
-apply simp
 apply simp
 apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> \<le> 1\<twosuperior>", simp)
 apply (rule power_mono, simp, simp)
@@ -1943,6 +1931,81 @@ done
 
 
 subsection {* More Theorems about Sin and Cos *}
+
+lemma cos_45: "cos (pi / 4) = sqrt 2 / 2"
+proof -
+  let ?c = "cos (pi / 4)" and ?s = "sin (pi / 4)"
+  have nonneg: "0 \<le> ?c"
+    by (rule cos_ge_zero, rule order_trans [where y=0], simp_all)
+  have "0 = cos (pi / 4 + pi / 4)"
+    by simp
+  also have "cos (pi / 4 + pi / 4) = ?c\<twosuperior> - ?s\<twosuperior>"
+    by (simp only: cos_add power2_eq_square)
+  also have "\<dots> = 2 * ?c\<twosuperior> - 1"
+    by (simp add: sin_squared_eq)
+  finally have "?c\<twosuperior> = (sqrt 2 / 2)\<twosuperior>"
+    by (simp add: power_divide)
+  thus ?thesis
+    using nonneg by (rule power2_eq_imp_eq) simp
+qed
+
+lemma cos_30: "cos (pi / 6) = sqrt 3 / 2"
+proof -
+  let ?c = "cos (pi / 6)" and ?s = "sin (pi / 6)"
+  have pos_c: "0 < ?c"
+    by (rule cos_gt_zero, simp, simp)
+  have "0 = cos (pi / 6 + pi / 6 + pi / 6)"
+    by (simp only: add_divide_distrib [symmetric], simp)
+  also have "\<dots> = (?c * ?c - ?s * ?s) * ?c - (?s * ?c + ?c * ?s) * ?s"
+    by (simp only: cos_add sin_add)
+  also have "\<dots> = ?c * (?c\<twosuperior> - 3 * ?s\<twosuperior>)"
+    by (simp add: ring_eq_simps power2_eq_square)
+  finally have "?c\<twosuperior> = (sqrt 3 / 2)\<twosuperior>"
+    using pos_c by (simp add: sin_squared_eq power_divide)
+  thus ?thesis
+    using pos_c [THEN order_less_imp_le]
+    by (rule power2_eq_imp_eq) simp
+qed
+
+lemma sin_45: "sin (pi / 4) = sqrt 2 / 2"
+proof -
+  have "sin (pi / 4) = cos (pi / 2 - pi / 4)" by (rule sin_cos_eq)
+  also have "pi / 2 - pi / 4 = pi / 4" by simp
+  also have "cos (pi / 4) = sqrt 2 / 2" by (rule cos_45)
+  finally show ?thesis .
+qed
+
+lemma sin_60: "sin (pi / 3) = sqrt 3 / 2"
+proof -
+  have "sin (pi / 3) = cos (pi / 2 - pi / 3)" by (rule sin_cos_eq)
+  also have "pi / 2 - pi / 3 = pi / 6" by simp
+  also have "cos (pi / 6) = sqrt 3 / 2" by (rule cos_30)
+  finally show ?thesis .
+qed
+
+lemma cos_60: "cos (pi / 3) = 1 / 2"
+apply (rule power2_eq_imp_eq)
+apply (simp add: cos_squared_eq sin_60 power_divide)
+apply (rule cos_ge_zero, rule order_trans [where y=0], simp_all)
+done
+
+lemma sin_30: "sin (pi / 6) = 1 / 2"
+proof -
+  have "sin (pi / 6) = cos (pi / 2 - pi / 6)" by (rule sin_cos_eq)
+  also have "pi / 2 - pi / 6 = pi / 3"
+    by (simp add: diff_divide_distrib [symmetric])
+  also have "cos (pi / 3) = 1 / 2" by (rule cos_60)
+  finally show ?thesis .
+qed
+
+lemma tan_30: "tan (pi / 6) = 1 / sqrt 3"
+unfolding tan_def by (simp add: sin_30 cos_30)
+
+lemma tan_45: "tan (pi / 4) = 1"
+unfolding tan_def by (simp add: sin_45 cos_45)
+
+lemma tan_60: "tan (pi / 3) = sqrt 3"
+unfolding tan_def by (simp add: sin_60 cos_60)
 
 text{*NEEDED??*}
 lemma [simp]:
