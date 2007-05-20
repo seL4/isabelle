@@ -37,6 +37,10 @@ proof -
   thus ?thesis ..
 qed
 
+(* Used by Integration/RealRandVar.thy in AFP *)
+lemma realpow_pos_nth2: "(0::real) < a \<Longrightarrow> \<exists>r>0. r ^ Suc n = a"
+by (blast intro: realpow_pos_nth)
+
 text {* Uniqueness of nth positive root *}
 
 lemma realpow_pos_nth_unique:
