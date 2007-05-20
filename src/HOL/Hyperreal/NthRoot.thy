@@ -79,6 +79,17 @@ lemma real_root_pow_pos2 [simp]: (* TODO: rename *)
   "\<lbrakk>0 < n; 0 \<le> x\<rbrakk> \<Longrightarrow> root n x ^ n = x"
 by (auto simp add: order_le_less real_root_pow_pos)
 
+lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n"
+by (cases n, simp_all)
+
+lemma odd_real_root_pow: "odd n \<Longrightarrow> root n x ^ n = x"
+apply (rule_tac x=0 and y=x in linorder_le_cases)
+apply (erule (1) real_root_pow_pos2 [OF odd_pos])
+apply (subgoal_tac "root n (- x) ^ n = - x")
+apply (simp add: real_root_minus odd_pos)
+apply (simp add: odd_pos)
+done
+
 lemma real_root_ge_zero: "\<lbrakk>0 < n; 0 \<le> x\<rbrakk> \<Longrightarrow> 0 \<le> root n x"
 by (auto simp add: order_le_less real_root_gt_zero)
 
@@ -92,9 +103,21 @@ apply (erule (1) real_root_ge_zero)
 apply (erule zero_le_power)
 done
 
+lemma odd_real_root_power_cancel: "odd n \<Longrightarrow> root n (x ^ n) = x"
+apply (rule_tac x=0 and y=x in linorder_le_cases)
+apply (erule (1) real_root_power_cancel [OF odd_pos])
+apply (subgoal_tac "root n ((- x) ^ n) = - x")
+apply (simp add: real_root_minus odd_pos)
+apply (erule real_root_power_cancel [OF odd_pos], simp)
+done
+
 lemma real_root_pos_unique:
   "\<lbrakk>0 < n; 0 \<le> y; y ^ n = x\<rbrakk> \<Longrightarrow> root n x = y"
 by (erule subst, rule real_root_power_cancel)
+
+lemma odd_real_root_unique:
+  "\<lbrakk>odd n; y ^ n = x\<rbrakk> \<Longrightarrow> root n x = y"
+by (erule subst, rule odd_real_root_power_cancel)
 
 lemma real_root_one [simp]: "0 < n \<Longrightarrow> root n 1 = 1"
 by (simp add: real_root_pos_unique)
@@ -269,6 +292,23 @@ proof (rule DERIV_inverse_function)
     using n x by simp
   show "isCont (root n) x"
     by (rule isCont_real_root)
+qed
+
+lemma DERIV_odd_real_root:
+  assumes n: "odd n"
+  assumes x: "x \<noteq> 0"
+  shows "DERIV (root n) x :> inverse (real n * root n x ^ (n - Suc 0))"
+proof (rule DERIV_inverse_function)
+  show "x - 1 < x" by simp
+  show "x < x + 1" by simp
+  show "\<forall>y. x - 1 < y \<and> y < x + 1 \<longrightarrow> root n y ^ n = y"
+    using n by (simp add: odd_real_root_pow)
+  show "DERIV (\<lambda>x. x ^ n) (root n x) :> real n * root n x ^ (n - Suc 0)"
+    by (rule DERIV_pow)
+  show "real n * root n x ^ (n - Suc 0) \<noteq> 0"
+    using odd_pos [OF n] x by simp
+  show "isCont (root n) x"
+    using odd_pos [OF n] by (rule isCont_real_root)
 qed
 
 subsection {* Square Root *}
