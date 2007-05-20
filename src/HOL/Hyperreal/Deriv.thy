@@ -1255,14 +1255,19 @@ lemma DERIV_inverse_function:
   fixes f g :: "real \<Rightarrow> real"
   assumes der: "DERIV f (g x) :> D"
   assumes neq: "D \<noteq> 0"
-  assumes e: "0 < e"
-  assumes inj: "\<forall>y. \<bar>y - x\<bar> \<le> e \<longrightarrow> f (g y) = y"
+  assumes a: "a < x" and b: "x < b"
+  assumes inj: "\<forall>y. a < y \<and> y < b \<longrightarrow> f (g y) = y"
   assumes cont: "isCont g x"
   shows "DERIV g x :> inverse D"
 unfolding DERIV_iff2
-proof (rule LIM_equal2 [OF e])
+proof (rule LIM_equal2)
+  show "0 < min (x - a) (b - x)"
+    using a b by simp
+next
   fix y
-  assume "y \<noteq> x" and "norm (y - x) < e"
+  assume "norm (y - x) < min (x - a) (b - x)"
+  hence "a < y" and "y < b"
+    by (simp_all add: abs_less_iff)
   thus "(g y - g x) / (y - x) =
         inverse ((f (g y) - x) / (g y - g x))"
     by (simp add: inj)
@@ -1270,16 +1275,19 @@ next
   have "(\<lambda>z. (f z - f (g x)) / (z - g x)) -- g x --> D"
     by (rule der [unfolded DERIV_iff2])
   hence 1: "(\<lambda>z. (f z - x) / (z - g x)) -- g x --> D"
-    using inj e by simp
+    using inj a b by simp
   have 2: "\<exists>d>0. \<forall>y. y \<noteq> x \<and> norm (y - x) < d \<longrightarrow> g y \<noteq> g x"
   proof (safe intro!: exI)
-    show "0 < e" using e .
+    show "0 < min (x - a) (b - x)"
+      using a b by simp
   next
     fix y
-    assume y: "norm (y - x) < e"
+    assume "norm (y - x) < min (x - a) (b - x)"
+    hence y: "a < y" "y < b"
+      by (simp_all add: abs_less_iff)
     assume "g y = g x"
     hence "f (g y) = f (g x)" by simp
-    hence "y = x" using inj y by simp
+    hence "y = x" using inj y a b by simp
     also assume "y \<noteq> x"
     finally show False by simp
   qed

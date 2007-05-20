@@ -259,9 +259,9 @@ lemma DERIV_real_root:
   assumes x: "0 < x"
   shows "DERIV (root n) x :> inverse (real n * root n x ^ (n - Suc 0))"
 proof (rule DERIV_inverse_function)
-  show "0 < x"
-    using x .
-  show "\<forall>y. \<bar>y - x\<bar> \<le> x \<longrightarrow> root n y ^ n = y"
+  show "0 < x" using x .
+  show "x < x + 1" by simp
+  show "\<forall>y. 0 < y \<and> y < x + 1 \<longrightarrow> root n y ^ n = y"
     using n by simp
   show "DERIV (\<lambda>x. x ^ n) (root n x) :> real n * root n x ^ (n - Suc 0)"
     by (rule DERIV_pow)
