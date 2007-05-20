@@ -210,6 +210,67 @@ lemma real_root_power:
   "0 < n \<Longrightarrow> root n (x ^ k) = root n x ^ k"
 by (induct k, simp_all add: real_root_mult)
 
+lemma real_root_abs: "0 < n \<Longrightarrow> root n \<bar>x\<bar> = \<bar>root n x\<bar>"
+by (simp add: abs_if real_root_minus)
+
+text {* Continuity and derivatives *}
+
+lemma isCont_root_pos:
+  assumes n: "0 < n"
+  assumes x: "0 < x"
+  shows "isCont (root n) x"
+proof -
+  have "isCont (root n) (root n x ^ n)"
+  proof (rule isCont_inverse_function [where f="\<lambda>a. a ^ n"])
+    show "0 < root n x" using n x by simp
+    show "\<forall>z. \<bar>z - root n x\<bar> \<le> root n x \<longrightarrow> root n (z ^ n) = z"
+      by (simp add: abs_le_iff real_root_power_cancel n)
+    show "\<forall>z. \<bar>z - root n x\<bar> \<le> root n x \<longrightarrow> isCont (\<lambda>a. a ^ n) z"
+      by (simp add: isCont_power isCont_Id)
+  qed
+  thus ?thesis using n x by simp
+qed
+
+lemma isCont_root_neg:
+  "\<lbrakk>0 < n; x < 0\<rbrakk> \<Longrightarrow> isCont (root n) x"
+apply (subgoal_tac "isCont (\<lambda>x. - root n (- x)) x")
+apply (simp add: real_root_minus)
+apply (rule isCont_o2 [OF isCont_minus [OF isCont_Id]])
+apply (simp add: isCont_minus isCont_root_pos)
+done
+
+lemma isCont_root_zero:
+  "0 < n \<Longrightarrow> isCont (root n) 0"
+unfolding isCont_def
+apply (rule LIM_I)
+apply (rule_tac x="r ^ n" in exI, safe)
+apply (simp add: zero_less_power)
+apply (simp add: real_root_abs [symmetric])
+apply (rule_tac n="n" in power_less_imp_less_base, simp_all)
+done
+
+lemma isCont_real_root: "0 < n \<Longrightarrow> isCont (root n) x"
+apply (rule_tac x=x and y=0 in linorder_cases)
+apply (simp_all add: isCont_root_pos isCont_root_neg isCont_root_zero)
+done
+
+lemma DERIV_real_root:
+  assumes n: "0 < n"
+  assumes x: "0 < x"
+  shows "DERIV (root n) x :> inverse (real n * root n x ^ (n - Suc 0))"
+proof (rule DERIV_inverse_function)
+  show "0 < x"
+    using x .
+  show "\<forall>y. \<bar>y - x\<bar> \<le> x \<longrightarrow> root n y ^ n = y"
+    using n by simp
+  show "DERIV (\<lambda>x. x ^ n) (root n x) :> real n * root n x ^ (n - Suc 0)"
+    by (rule DERIV_pow)
+  show "real n * root n x ^ (n - Suc 0) \<noteq> 0"
+    using n x by simp
+  show "isCont (root n) x"
+    by (rule isCont_real_root)
+qed
+
 subsection {* Square Root *}
 
 definition
@@ -290,6 +351,13 @@ lemmas real_sqrt_lt_1_iff [simp] = real_sqrt_less_iff [where y=1, simplified]
 lemmas real_sqrt_ge_1_iff [simp] = real_sqrt_le_iff [where x=1, simplified]
 lemmas real_sqrt_le_1_iff [simp] = real_sqrt_le_iff [where y=1, simplified]
 lemmas real_sqrt_eq_1_iff [simp] = real_sqrt_eq_iff [where y=1, simplified]
+
+lemma isCont_real_sqrt: "isCont sqrt x"
+unfolding sqrt_def by (rule isCont_real_root [OF pos2])
+
+lemma DERIV_real_sqrt:
+  "0 < x \<Longrightarrow> DERIV sqrt x :> inverse (sqrt x) / 2"
+unfolding sqrt_def by (rule DERIV_real_root [OF pos2, simplified])
 
 lemma not_real_square_gt_zero [simp]: "(~ (0::real) < x*x) = (x = 0)"
 apply auto
