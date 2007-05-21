@@ -7,7 +7,7 @@ Method for termination proofs with lexicographic orderings.
 
 signature LEXICOGRAPHIC_ORDER =
 sig
-  val lexicographic_order : Proof.context -> Method.method
+  val lexicographic_order : thm list -> Proof.context -> Method.method
 
   (* exported for use by size-change termination prototype.
      FIXME: provide a common interface later *)

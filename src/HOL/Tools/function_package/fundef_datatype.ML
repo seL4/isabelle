@@ -170,7 +170,7 @@ val by_pat_completeness_simp =
 
 val termination_by_lexicographic_order =
     FundefPackage.setup_termination_proof NONE
-    #> Proof.global_terminal_proof (Method.Basic LexicographicOrder.lexicographic_order, NONE)
+    #> Proof.global_terminal_proof (Method.Basic (LexicographicOrder.lexicographic_order []), NONE)
 
 val setup =
     Method.add_methods [("pat_completeness", Method.no_args pat_completeness,
