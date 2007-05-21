@@ -28,6 +28,13 @@ by simp
 lemma mult_numeral_1_right: "a * Numeral1 = (a::'a::number_ring)"
 by simp
 
+lemma divide_numeral_1: "a / Numeral1 = (a::'a::{number_ring,field})"
+by simp
+
+lemma inverse_numeral_1:
+  "inverse Numeral1 = (Numeral1::'a::{number_ring,field})"
+by simp
+
 text{*Theorem lists for the cancellation simprocs. The use of binary numerals
 for 0 and 1 reduces the number of special cases.*}
 
