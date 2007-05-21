@@ -11,8 +11,8 @@ begin
 
 subsection {* @{text typ_of} class *}
 
-class typ_of = type +
-  fixes typ_of :: "'a itself \<Rightarrow> typ"
+class typ_of =
+  fixes typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
 
 ML {*
 structure TypOf =
@@ -34,6 +34,12 @@ fun mk_typ_of_def ty =
 end;
 *}
 
+instance itself :: (typ_of) typ_of
+  "typ_of T \<equiv> STR ''itself'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
+
+instance "prop" :: typ_of
+  "typ_of T \<equiv> STR ''prop'' {\<struct>} []" ..
+
 instance int :: typ_of
   "typ_of T \<equiv> STR ''IntDef.int'' {\<struct>} []" ..
 
@@ -54,7 +60,7 @@ in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 subsection {* @{text term_of} class *}
 
 class term_of = typ_of +
-  constrains typ_of :: "'a itself \<Rightarrow> typ"
+  constrains typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
   fixes term_of :: "'a \<Rightarrow> term"
 
 ML {*
@@ -111,6 +117,26 @@ let
       [TermOf.class_term_of] ((K o K o pair) []) mk
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
+
+abbreviation
+  intT :: "typ"
+where
+  "intT \<equiv> STR ''IntDef.int'' {\<struct>} []"
+
+function
+  mk_int :: "int \<Rightarrow> term"
+where
+  "mk_int k = (if k = 0 then STR ''Numeral.Pls'' \<Colon>\<subseteq> intT
+    else if k = -1 then STR ''Numeral.Min'' \<Colon>\<subseteq> intT
+    else let (l, m) = divAlg (k, 2)
+  in STR ''Numeral.Bit'' \<Colon>\<subseteq> intT \<rightarrow> intT \<rightarrow> intT \<bullet> mk_int l \<bullet>
+    (if m = 0 then STR ''Numeral.bit.B0'' \<Colon>\<subseteq> intT else STR ''Numeral.bit.B1'' \<Colon>\<subseteq> intT))"
+by pat_completeness auto
+termination by (relation "measure (nat o abs)") (auto simp add: divAlg_mod_div)
+
+instance int :: term_of
+  "term_of k \<equiv> STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<rightarrow> intT \<bullet> mk_int k" ..
+
 
 text {* Adaption for @{typ ml_string}s *}
 
