@@ -2728,7 +2728,6 @@ consts
   list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
   list_all :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<Rightarrow> bool)"
-  itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
   map_filter :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list"
 
@@ -2764,10 +2763,6 @@ primrec
   "map_filter f P (x#xs) =
      (if P x then f x # map_filter f P xs else map_filter f P xs)"
 
-primrec
-  "itrev [] ys = ys"
-  "itrev (x#xs) ys = itrev xs (x#ys)"
-
 text {*
   Only use @{text mem} for generating executable code.  Otherwise use
   @{prop "x : set xs"} instead --- it is much easier to reason about.
@@ -2780,10 +2775,26 @@ text {*
 
   Efficient emptyness check is implemented by @{const null}.
 
-  The functions @{const itrev}, @{const filtermap} and @{const
-  map_filter} are just there to generate efficient code. Do not use
+  The functions @{const filtermap} and @{const map_filter} are just
+  there to generate efficient code. Do not use
   them for modelling and proving.
 *}
+
+lemma rev_foldl_cons [code]:
+  "rev xs = foldl (\<lambda>xs x. x # xs) [] xs"
+proof (induct xs)
+  case Nil then show ?case by simp
+next
+  case Cons
+  {
+    fix x xs ys
+    have "foldl (\<lambda>xs x. x # xs) ys xs @ [x]
+      = foldl (\<lambda>xs x. x # xs) (ys @ [x]) xs"
+    by (induct xs arbitrary: ys) auto
+  }
+  note aux = this
+  show ?case by (induct xs) (auto simp add: Cons aux)
+qed
 
 lemma mem_iff [normal post]:
   "x mem xs \<longleftrightarrow> x \<in> set xs"
@@ -2831,10 +2842,6 @@ lemma list_ex_length:
   "list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))"
   unfolding list_ex_iff set_conv_nth by auto
 
-lemma itrev [simp]:
-  "itrev xs ys = rev xs @ ys"
-  by (induct xs arbitrary: ys) simp_all
-
 lemma filtermap_conv:
    "filtermap f xs = map (\<lambda>x. the (f x)) (filter (\<lambda>x. f x \<noteq> None) xs)"
   by (induct xs) (simp_all split: option.split) 
@@ -2842,10 +2849,6 @@ lemma filtermap_conv:
 lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
   by (induct xs) auto
-
-lemma rev_code [code func]:
-  "rev xs = itrev xs []"
-  by simp
 
 
 text {* code for bounded quantification over nats *}
