@@ -106,7 +106,8 @@ sig
        searchinfo -> Term.term -> match Seq.seq Seq.seq
     val searchf_lr_unify_valid :
        searchinfo -> Term.term -> match Seq.seq Seq.seq
-
+    val searchf_bt_unify_valid :
+       searchinfo -> Term.term -> match Seq.seq Seq.seq
 
     (* syntax tools *)
     val ith_syntax : Args.T list -> int list * Args.T list
@@ -313,16 +314,34 @@ fun search_lr_valid validf =
           end;
     in Z.lzy_search sf_valid_td_lr end;
 
-(* search all unifications *)
-fun searchf_lr_unify_all (sgn, maxidx, z) lhs =
+(* search from bottom to top, left to right *)
+
+fun search_bt_valid validf =
+    let 
+      fun sf_valid_td_lr z = 
+          let val here = if validf z then [Z.Here z] else [] in
+            case Z.trm z 
+             of _ $ _ => [Z.LookIn (Z.move_down_left z), 
+                          Z.LookIn (Z.move_down_right z)] @ here
+              | Abs _ => [Z.LookIn (Z.move_down_abs z)] @ here
+              | _ => here
+          end;
+    in Z.lzy_search sf_valid_td_lr end;
+
+fun searchf_unify_gen f (sgn, maxidx, z) lhs =
     Seq.map (clean_unify_z sgn maxidx lhs) 
-            (Z.limit_apply search_lr_all z);
+            (Z.limit_apply f z);
+
+(* search all unifications *)
+val searchf_lr_unify_all =
+    searchf_unify_gen search_lr_all;
 
 (* search only for 'valid' unifiers (non abs subterms and non vars) *)
-fun searchf_lr_unify_valid (sgn, maxidx, z) lhs  =
-    Seq.map (clean_unify_z sgn maxidx lhs) 
-            (Z.limit_apply (search_lr_valid valid_match_start) z);
+val searchf_lr_unify_valid = 
+    searchf_unify_gen (search_lr_valid valid_match_start);
 
+val searchf_bt_unify_valid =
+    searchf_unify_gen (search_bt_valid valid_match_start);
 
 (* apply a substitution in the conclusion of the theorem th *)
 (* cfvs are certified free var placeholders for goal params *)
