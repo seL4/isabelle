@@ -1946,7 +1946,7 @@ proof -
   have pos_c: "0 < ?c"
     by (rule cos_gt_zero, simp, simp)
   have "0 = cos (pi / 6 + pi / 6 + pi / 6)"
-    by (simp only: add_divide_distrib [symmetric], simp)
+    by simp
   also have "\<dots> = (?c * ?c - ?s * ?s) * ?c - (?s * ?c + ?c * ?s) * ?s"
     by (simp only: cos_add sin_add)
   also have "\<dots> = ?c * (?c\<twosuperior> - 3 * ?s\<twosuperior>)"
@@ -1983,8 +1983,7 @@ done
 lemma sin_30: "sin (pi / 6) = 1 / 2"
 proof -
   have "sin (pi / 6) = cos (pi / 2 - pi / 6)" by (rule sin_cos_eq)
-  also have "pi / 2 - pi / 6 = pi / 3"
-    by (simp add: diff_divide_distrib [symmetric])
+  also have "pi / 2 - pi / 6 = pi / 3" by simp
   also have "cos (pi / 3) = 1 / 2" by (rule cos_60)
   finally show ?thesis .
 qed
@@ -2030,18 +2029,16 @@ lemma cos_2npi [simp]: "cos (2 * real (n::nat) * pi) = 1"
 by (simp add: cos_double mult_assoc power_add [symmetric] numeral_2_eq_2)
 
 lemma cos_3over2_pi [simp]: "cos (3 / 2 * pi) = 0"
-apply (subgoal_tac "3/2 = (1+1 / 2::real)")
-apply (simp only: left_distrib) 
-apply (auto simp add: cos_add mult_ac)
+apply (subgoal_tac "cos (pi + pi/2) = 0", simp)
+apply (subst cos_add, simp)
 done
 
 lemma sin_2npi [simp]: "sin (2 * real (n::nat) * pi) = 0"
 by (auto simp add: mult_assoc)
 
 lemma sin_3over2_pi [simp]: "sin (3 / 2 * pi) = - 1"
-apply (subgoal_tac "3/2 = (1+1 / 2::real)")
-apply (simp only: left_distrib) 
-apply (auto simp add: sin_add mult_ac)
+apply (subgoal_tac "sin (pi + pi/2) = - 1", simp)
+apply (subst sin_add, simp)
 done
 
 (*NEEDED??*)

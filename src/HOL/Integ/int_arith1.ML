@@ -258,10 +258,40 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
         end
         handle TERM _ => find_first_coeff (t::past) u terms;
 
+(*Fractions as pairs of ints. Can't use Rat.rat because the representation
+  needs to preserve negative values in the denominator.*)
+fun mk_frac (p, q) = if q = 0 then raise Div else (p, q);
+
+(*Don't reduce fractions; sums must be proved by rule add_frac_eq.
+  Fractions are reduced later by the cancel_numeral_factor simproc.*)
+fun add_frac ((p1, q1), (p2, q2)) = (p1 * q2 + p2 * q1, q1 * q2);
+
+val mk_divide = HOLogic.mk_binop @{const_name HOL.divide};
+
+(*Build term (p / q) * t*)
+fun mk_fcoeff ((p, q), t) =
+  let val T = Term.fastype_of t
+  in  mk_times (mk_divide (mk_number T p, mk_number T q), t) end;
+
+(*Express t as a product of a fraction with other sorted terms*)
+fun dest_fcoeff sign (Const (@{const_name HOL.uminus}, _) $ t) = dest_fcoeff (~sign) t
+  | dest_fcoeff sign (Const (@{const_name HOL.divide}, _) $ t $ u) =
+    let val (p, t') = dest_coeff sign t
+        val (q, u') = dest_coeff 1 u
+    in  (mk_frac (p, q), mk_divide (t', u')) end
+  | dest_fcoeff sign t =
+    let val (p, t') = dest_coeff sign t
+        val T = Term.fastype_of t
+    in  (mk_frac (p, 1), mk_divide (t', mk_number T 1)) end;
+
 
 (*Simplify Numeral0+n, n+Numeral0, Numeral1*n, n*Numeral1*)
 val add_0s =  thms "add_0s";
 val mult_1s = thms "mult_1s";
+
+(*Simplify inverse Numeral1, a/Numeral1*)
+val inverse_1s = [@{thm inverse_numeral_1}];
+val divide_1s = [@{thm divide_numeral_1}];
 
 (*To perform binary arithmetic.  The "left" rewriting handles patterns
   created by the Int_Numeral_Base_Simprocs, such as 3 * (5 * x). *)
@@ -281,6 +311,9 @@ val minus_simps = [numeral_m1_eq_minus_1 RS sym, number_of_minus RS sym,
 
 (*To let us treat subtraction as addition*)
 val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus}];
+
+(*To let us treat division as multiplication*)
+val divide_simps = [@{thm divide_inverse}, @{thm inverse_mult_distrib}, @{thm inverse_inverse_eq}];
 
 (*push the unary minus down: - x * y = x * - y *)
 val minus_mult_eq_1_to_2 =
@@ -410,16 +443,54 @@ structure CombineNumeralsData =
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
+(*Version for fields, where coefficients can be fractions*)
+structure FieldCombineNumeralsData =
+  struct
+  type coeff            = IntInf.int * IntInf.int
+  val iszero            = (fn (p, q) => p = 0)
+  val add               = add_frac
+  val mk_sum            = long_mk_sum
+  val dest_sum          = dest_sum
+  val mk_coeff          = mk_fcoeff
+  val dest_coeff        = dest_fcoeff 1
+  val left_distrib      = combine_common_factor RS trans
+  val prove_conv        = Int_Numeral_Base_Simprocs.prove_conv_nohyps
+  val trans_tac         = fn _ => trans_tac
+
+  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
+    inverse_1s @ divide_simps @ diff_simps @ minus_simps @ add_ac
+  val norm_ss2 = num_ss addsimps non_add_simps @ mult_minus_simps
+  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ add_ac @ mult_ac
+  fun norm_tac ss =
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
+    THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
+    THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss3))
+
+  val numeral_simp_ss = HOL_ss addsimps add_0s @ simps @ [@{thm add_frac_eq}]
+  fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
+  val simplify_meta_eq = simplify_meta_eq (add_0s @ mult_1s @ divide_1s)
+  end;
+
+structure FieldCombineNumerals = CombineNumeralsFun(FieldCombineNumeralsData);
+
 val combine_numerals =
   Int_Numeral_Base_Simprocs.prep_simproc
     ("int_combine_numerals", 
      ["(i::'a::number_ring) + j", "(i::'a::number_ring) - j"], 
      K CombineNumerals.proc);
 
+val field_combine_numerals =
+  Int_Numeral_Base_Simprocs.prep_simproc
+    ("field_combine_numerals", 
+     ["(i::'a::{number_ring,field,division_by_zero}) + j",
+      "(i::'a::{number_ring,field,division_by_zero}) - j"], 
+     K FieldCombineNumerals.proc);
+
 end;
 
 Addsimprocs Int_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Int_Numeral_Simprocs.combine_numerals];
+Addsimprocs [Int_Numeral_Simprocs.field_combine_numerals];
 
 (*examples:
 print_depth 22;
