@@ -60,7 +60,7 @@ structure CancelNumeralFactorCommon =
   end
 
 (*Version for integer division*)
-structure DivCancelNumeralFactor = CancelNumeralFactorFun
+structure IntDivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
@@ -70,7 +70,7 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
 )
 
 (*Version for fields*)
-structure FieldDivCancelNumeralFactor = CancelNumeralFactorFun
+structure DivideCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
@@ -79,23 +79,12 @@ structure FieldDivCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = false
 )
 
-(*Version for ordered rings: mult_cancel_left requires an ordering*)
 structure EqCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
   val cancel = @{thm mult_cancel_left} RS trans
-  val neg_exchanges = false
-)
-
-(*Version for (unordered) fields*)
-structure FieldEqCancelNumeralFactor = CancelNumeralFactorFun
- (open CancelNumeralFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_eq
-  val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
-  val cancel = @{thm field_mult_cancel_left} RS trans
   val neg_exchanges = false
 )
 
@@ -117,11 +106,11 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = true
 )
 
-val ring_cancel_numeral_factors =
+val cancel_numeral_factors =
   map Int_Numeral_Base_Simprocs.prep_simproc
    [("ring_eq_cancel_numeral_factor",
-     ["(l::'a::{ordered_idom,number_ring}) * m = n",
-      "(l::'a::{ordered_idom,number_ring}) = m * n"],
+     ["(l::'a::{idom,number_ring}) * m = n",
+      "(l::'a::{idom,number_ring}) = m * n"],
      K EqCancelNumeralFactor.proc),
     ("ring_less_cancel_numeral_factor",
      ["(l::'a::{ordered_idom,number_ring}) * m < n",
@@ -133,25 +122,29 @@ val ring_cancel_numeral_factors =
      K LeCancelNumeralFactor.proc),
     ("int_div_cancel_numeral_factors",
      ["((l::int) * m) div n", "(l::int) div (m * n)"],
-     K DivCancelNumeralFactor.proc)];
+     K IntDivCancelNumeralFactor.proc),
+    ("divide_cancel_numeral_factor",
+     ["((l::'a::{division_by_zero,field,number_ring}) * m) / n",
+      "(l::'a::{division_by_zero,field,number_ring}) / (m * n)",
+      "((number_of v)::'a::{division_by_zero,field,number_ring}) / (number_of w)"],
+     K DivideCancelNumeralFactor.proc)];
 
-
+(* referenced by rat_arith.ML *)
 val field_cancel_numeral_factors =
   map Int_Numeral_Base_Simprocs.prep_simproc
    [("field_eq_cancel_numeral_factor",
      ["(l::'a::{field,number_ring}) * m = n",
       "(l::'a::{field,number_ring}) = m * n"],
-     K FieldEqCancelNumeralFactor.proc),
+     K EqCancelNumeralFactor.proc),
     ("field_cancel_numeral_factor",
      ["((l::'a::{division_by_zero,field,number_ring}) * m) / n",
       "(l::'a::{division_by_zero,field,number_ring}) / (m * n)",
       "((number_of v)::'a::{division_by_zero,field,number_ring}) / (number_of w)"],
-     K FieldDivCancelNumeralFactor.proc)]
+     K DivideCancelNumeralFactor.proc)]
 
 end;
 
-Addsimprocs ring_cancel_numeral_factors;
-Addsimprocs field_cancel_numeral_factors;
+Addsimprocs cancel_numeral_factors;
 
 (*examples:
 print_depth 22;
@@ -255,19 +248,17 @@ structure CancelFactorCommon =
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   end;
 
-(*mult_cancel_left requires an ordered comm_ring_1, such as int. The version in
-  rat_arith.ML works for all fields.*)
+(*mult_cancel_left requires a ring with no zero divisors.*)
 structure EqCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
-  val dest_bal = HOLogic.dest_bin "op =" HOLogic.intT
+  val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_cancel_left}
 );
 
-(*int_mult_div_cancel_disj is for integer division (div). The version in
-  rat_arith.ML works for all fields, using real division (/).*)
-structure DivideCancelFactor = ExtractCommonTermFun
+(*int_mult_div_cancel_disj is for integer division (div).*)
+structure IntDivCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
@@ -275,24 +266,8 @@ structure DivideCancelFactor = ExtractCommonTermFun
   val simplify_meta_eq  = cancel_simplify_meta_eq int_mult_div_cancel_disj
 );
 
-val int_cancel_factor =
-  map Int_Numeral_Base_Simprocs.prep_simproc
-   [("ring_eq_cancel_factor", ["(l::int) * m = n", "(l::int) = m * n"],
-    K EqCancelFactor.proc),
-    ("int_divide_cancel_factor", ["((l::int) * m) div n", "(l::int) div (m*n)"],
-     K DivideCancelFactor.proc)];
-
-(** Versions for all fields, including unordered ones (type complex).*)
-
-structure FieldEqCancelFactor = ExtractCommonTermFun
- (open CancelFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_eq
-  val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm field_mult_cancel_left}
-);
-
-structure FieldDivideCancelFactor = ExtractCommonTermFun
+(*Version for all fields, including unordered ones (type complex).*)
+structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
@@ -302,21 +277,23 @@ structure FieldDivideCancelFactor = ExtractCommonTermFun
 
 (*The number_ring class is necessary because the simprocs refer to the
   binary number 1.  FIXME: probably they could use 1 instead.*)
-val field_cancel_factor =
+val cancel_factors =
   map Int_Numeral_Base_Simprocs.prep_simproc
-   [("field_eq_cancel_factor",
-     ["(l::'a::{field,number_ring}) * m = n",
-      "(l::'a::{field,number_ring}) = m * n"],
-     K FieldEqCancelFactor.proc),
-    ("field_divide_cancel_factor",
+   [("ring_eq_cancel_factor",
+     ["(l::'a::{idom,number_ring}) * m = n",
+      "(l::'a::{idom,number_ring}) = m * n"],
+    K EqCancelFactor.proc),
+    ("int_div_cancel_factor",
+     ["((l::int) * m) div n", "(l::int) div (m * n)"],
+     K IntDivCancelFactor.proc),
+    ("divide_cancel_factor",
      ["((l::'a::{division_by_zero,field,number_ring}) * m) / n",
       "(l::'a::{division_by_zero,field,number_ring}) / (m * n)"],
-     K FieldDivideCancelFactor.proc)];
+     K DivideCancelFactor.proc)];
 
 end;
 
-Addsimprocs int_cancel_factor;
-Addsimprocs field_cancel_factor;
+Addsimprocs cancel_factors;
 
 
 (*examples:
