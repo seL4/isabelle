@@ -19,6 +19,9 @@ fun tac THENL tacs =
  tac THEN
   (EVERY (map  (fn (tac,i) => tac i) (rev tacs ~~ (length tacs downto 1))))
 
+fun SOLVEI t = t THEN_ALL_NEW (fn i => no_tac);
+fun TRY' tac i =  TRY (tac i);
+
 fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
   let
     val thy = theory_of_thm st;
@@ -120,7 +123,13 @@ fun generate_fresh_fun_tac i thm =
 
 (* A substitution tactic, FIXME : change the search function to get the inner occurence of fresh_fun (bottom -> up search ) *)
 
-fun subst_outer_tac ctx = EqSubst.eqsubst_tac' ctx (curry (Seq.flat o (uncurry EqSubst.searchf_lr_unify_valid)));
+val search_fun     = curry (Seq.flat o (uncurry EqSubst.searchf_lr_unify_valid));
+val search_fun_asm = EqSubst.skip_first_asm_occs_search EqSubst.searchf_lr_unify_valid;
+
+fun subst_outer_tac           ctx = EqSubst.eqsubst_tac' ctx search_fun;
+fun subst_outer_asm_tac_aux i ctx = EqSubst.eqsubst_asm_tac' ctx search_fun_asm i;
+
+fun subst_outer_asm_tac ctx th =  curry (curry (FIRST' (map uncurry (map uncurry (map subst_outer_asm_tac_aux (1 upto Thm.nprems_of th)))))) ctx th;
 
 fun fresh_fun_tac i thm = 
   (* Find the variable we instantiate *)
@@ -129,7 +138,9 @@ fun fresh_fun_tac i thm =
     val ctx = Context.init_proof thy;
     val ss = simpset_of thy;
     val abs_fresh = PureThy.get_thms thy (Name "abs_fresh");
+    val fresh_perm_app = PureThy.get_thms thy (Name "fresh_perm_app");
     val ss' = ss addsimps fresh_prod::abs_fresh;
+    val ss'' = ss' addsimps fresh_perm_app;
     val x = hd (tl (term_vars (prop_of exI)));
     val goal = nth (prems_of thm) (i-1);
     val atom_name_opt = get_inner_fresh_fun goal;
@@ -156,12 +167,16 @@ fun fresh_fun_tac i thm =
   let 
     val vars = term_vars (prop_of st);
     val params = Logic.strip_params (nth (prems_of st) (i-1))
-  in
-   (subst_outer_tac ctx fresh_fun_app' i THENL 
-   [rtac pt_name_inst,
-    rtac at_name_inst,
-    (K all_tac),
-    inst_fresh vars params]) st
+    val post_rewrite_tacs =  
+          [rtac pt_name_inst,
+           rtac at_name_inst,
+           TRY' (SOLVEI (NominalPermeq.finite_guess_tac ss'')),
+           inst_fresh vars params THEN'
+           (TRY' (SOLVEI (NominalPermeq.fresh_guess_tac ss''))) THEN'
+           (TRY' (SOLVEI (asm_full_simp_tac ss'')))] 
+  in 
+   ((subst_outer_asm_tac ctx fresh_fun_app' i THENL post_rewrite_tacs) ORELSE 
+    (subst_outer_tac     ctx fresh_fun_app' i THENL post_rewrite_tacs)) st
   end)) thm
   
   end
