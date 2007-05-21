@@ -68,6 +68,10 @@ instance int :: Divides.div
   div_def: "a div b == fst (divAlg (a, b))"
   mod_def: "a mod b == snd (divAlg (a, b))" ..
 
+lemma divAlg_mod_div:
+  "divAlg (p, q) = (p div q, p mod q)"
+  by (auto simp add: div_def mod_def)
+
 text{*
 Here is the division algorithm in ML:
 
