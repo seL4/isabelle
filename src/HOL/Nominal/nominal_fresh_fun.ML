@@ -121,10 +121,10 @@ fun generate_fresh_fun_tac i thm =
   | SOME atom_name  => generate_fresh_tac atom_name i thm               
   end
 
-(* A substitution tactic, FIXME : change the search function to get the inner occurence of fresh_fun (bottom -> up search ) *)
+(* A substitution tactic *)
 
-val search_fun     = curry (Seq.flat o (uncurry EqSubst.searchf_lr_unify_valid));
-val search_fun_asm = EqSubst.skip_first_asm_occs_search EqSubst.searchf_lr_unify_valid;
+val search_fun     = curry (Seq.flat o (uncurry EqSubst.searchf_bt_unify_valid));
+val search_fun_asm = EqSubst.skip_first_asm_occs_search EqSubst.searchf_bt_unify_valid;
 
 fun subst_outer_tac           ctx = EqSubst.eqsubst_tac' ctx search_fun;
 fun subst_outer_asm_tac_aux i ctx = EqSubst.eqsubst_asm_tac' ctx search_fun_asm i;
