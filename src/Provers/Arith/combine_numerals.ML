@@ -19,11 +19,13 @@ It works by (a) massaging the sum to bring the selected terms to the front:
 signature COMBINE_NUMERALS_DATA =
 sig
   (*abstract syntax*)
-  val add: IntInf.int * IntInf.int -> IntInf.int     (*addition (or multiplication) *)
+  eqtype coeff
+  val iszero: coeff -> bool
+  val add: coeff * coeff -> coeff     (*addition (or multiplication) *)
   val mk_sum: typ -> term list -> term
   val dest_sum: term -> term list
-  val mk_coeff: IntInf.int * term -> term
-  val dest_coeff: term -> IntInf.int * term
+  val mk_coeff: coeff * term -> term
+  val dest_coeff: term -> coeff * term
   (*rules*)
   val left_distrib: thm
   (*proof tools*)
@@ -75,7 +77,7 @@ fun proc ss t =
 
     val reshape =  (*Move i*u to the front and put j*u into standard form
                        i + #m + j + k == #m + i + (j + k) *)
-      if m=0 orelse n=0 then   (*trivial, so do nothing*)
+      if Data.iszero m orelse Data.iszero n then   (*trivial, so do nothing*)
         raise TERM("combine_numerals", [])
       else Data.prove_conv [Data.norm_tac ss] ctxt
         (t', Data.mk_sum T ([Data.mk_coeff (m, u), Data.mk_coeff (n, u)] @ terms))
