@@ -29,7 +29,7 @@ sig
   val rounddown: rat -> rat
 end;
 
-structure Rat: RAT =
+structure Rat :> RAT =
 struct
 
 datatype rat = Rat of bool * Intt.int * Intt.int;
@@ -71,19 +71,15 @@ fun eq (Rat (false, _, _), Rat (true, _, _)) = false
   | eq (Rat (true, _, _), Rat (false, _, _)) = false
   | eq (Rat (_, p1, q1), Rat (_, p2, q2)) = p1 = p2 andalso q1 = q2
 
-fun le (Rat (false, _, _)) (Rat (true, _, _)) = true
-  | le (Rat (true, _, _)) (Rat (false, _, _)) = false
-  | le (Rat (a, p1, q1)) (Rat (_, p2, q2)) =
-      let val (r1, r2, _) = common (p1, q1, p2, q2)
-      in if a then r1 <= r2 else r2 <= r1 end;
-
 fun cmp (Rat (false, _, _), Rat (true, _, _)) = LESS
   | cmp (Rat (true, _, _), Rat (false, _, _)) = GREATER
   | cmp (Rat (a, p1, q1), Rat (_, p2, q2)) =
       let val (r1, r2, _) = common (p1, q1, p2, q2)
       in if a then Intt.cmp (r1, r2) else Intt.cmp (r2, r1) end;
 
-fun lt a b = cmp (a,b) = LESS;
+fun le a b = let val order = cmp (a, b) in order = LESS orelse order = EQUAL end;
+fun lt a b = cmp (a, b) = LESS;
+
 fun cmp_zero (Rat (false, _, _)) = LESS
   | cmp_zero (Rat (_, 0, _)) = EQUAL
   | cmp_zero (Rat (_, _, _)) = GREATER;
@@ -126,16 +122,16 @@ fun rounddown (r as Rat (a, p, q)) =
 
 end;
 
-infix 5 +/;
-infix 6 -/;
-infix 4 */;
-infix 3 //;
-infix 9 =/ </ <=/ >/ >=/ <>/;
+infix 6 +/; (*FIXME infix 5?*)
+infix 5 -/;
+infix 7 */;
+infix 8 //; (*FIXME infix 7?*)
+infix 4 =/ </ <=/ >/ >=/ <>/;
 
 fun a +/ b = Rat.add a b;
-fun a -/ b = a +/ (Rat.neg b);
-fun a  */ b = Rat.mult a b;
-fun a // b = a */ (Rat.inv b); 
+fun a -/ b = a +/ Rat.neg b;
+fun a */ b = Rat.mult a b;
+fun a // b = a */ Rat.inv b; 
 fun a =/ b = Rat.eq (a,b);
 fun a </ b = Rat.lt a b;
 fun a <=/ b = Rat.le a b;

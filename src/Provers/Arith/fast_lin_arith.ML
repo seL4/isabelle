@@ -155,10 +155,6 @@ datatype injust = Asm of int
 
 datatype lineq = Lineq of IntInf.int * lineq_type * IntInf.int list * injust;
 
-fun el 0 (h::_) = h
-  | el n (_::t) = el (n - 1) t
-  | el _ _  = sys_error "el";
-
 (* ------------------------------------------------------------------------- *)
 (* Finding a (counter) example from the trace of a failed elimination        *)
 (* ------------------------------------------------------------------------- *)
@@ -181,8 +177,8 @@ fun eval ex v (a:IntInf.int,le,cs:IntInf.int list) =
   let
     val rs = map Rat.rat_of_int cs;
     val rsum = fold2 (Rat.add oo Rat.mult) rs ex Rat.zero;
-  in (Rat.mult (Rat.add (Rat.rat_of_int a) (Rat.neg rsum)) (Rat.inv (el v rs)), le) end;
-(* If el v rs < 0, le should be negated.
+  in (Rat.mult (Rat.add (Rat.rat_of_int a) (Rat.neg rsum)) (Rat.inv (nth rs v)), le) end;
+(* If nth rs v < 0, le should be negated.
    Instead this swap is taken into account in ratrelmin2.
 *)
 
@@ -228,18 +224,20 @@ fun choose2 d ((lb, exactl), (ub, exactu)) =
 
 fun findex1 discr (v, lineqs) ex =
   let
-    val nz = filter (fn (Lineq (_, _, cs, _)) => el v cs <> 0) lineqs;
+    val nz = filter (fn (Lineq (_, _, cs, _)) => nth cs v <> 0) lineqs;
     val ineqs = maps elim_eqns nz;
-    val (ge, le) = List.partition (fn (_,_,cs) => el v cs > 0) ineqs
+    val (ge, le) = List.partition (fn (_,_,cs) => nth cs v > 0) ineqs
     val lb = ratrelmax (map (eval ex v) ge)
     val ub = ratrelmin (map (eval ex v) le)
   in nth_map v (K (choose2 (nth discr v) (lb, ub))) ex end;
 
 fun elim1 v x =
-  map (fn (a,le,bs) => (Rat.add a (Rat.neg (Rat.mult (el v bs) x)), le,
+  map (fn (a,le,bs) => (Rat.add a (Rat.neg (Rat.mult (nth bs v) x)), le,
                         nth_map v (K Rat.zero) bs));
 
-fun single_var v (_,_,cs) = (filter_out (curry (op =) EQUAL o Rat.cmp_zero) cs = [el v cs]);
+fun single_var v (_, _, cs) = case filter_out (curry (op =) EQUAL o Rat.cmp_zero) cs
+ of [x] => x =/ nth cs v
+  | _ => false;
 
 (* The base case:
    all variables occur only with positive or only with negative coefficients *)
@@ -249,14 +247,14 @@ fun pick_vars discr (ineqs,ex) =
      | (_,_,cs) :: _ =>
        let val v = find_index (not o curry (op =) EQUAL o Rat.cmp_zero) cs
            val d = nth discr v;
-           val pos = not (Rat.cmp_zero (el v cs) = LESS);
+           val pos = not (Rat.cmp_zero (nth cs v) = LESS);
            val sv = filter (single_var v) nz;
            val minmax =
              if pos then if d then Rat.roundup o fst o ratrelmax
                          else ratexact true o ratrelmax
                     else if d then Rat.rounddown o fst o ratrelmin
                          else ratexact false o ratrelmin
-           val bnds = map (fn (a,le,bs) => (Rat.mult a (Rat.inv (el v bs)), le)) sv
+           val bnds = map (fn (a,le,bs) => (Rat.mult a (Rat.inv (nth bs v)), le)) sv
            val x = minmax((Rat.zero,if pos then true else false)::bnds)
            val ineqs' = elim1 v x nz
            val ex' = nth_map v (K x) ex
@@ -307,7 +305,7 @@ fun add_ineq (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
 (* ------------------------------------------------------------------------- *)
 
 fun elim_var v (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
-  let val c1 = el v l1 and c2 = el v l2
+  let val c1 = nth l1 v and c2 = nth l2 v
       val m = lcm(abs c1, abs c2)
       val m1 = m div (abs c1) and m2 = m div (abs c2)
       val (n1,n2) =
@@ -384,22 +382,22 @@ fun elim (ineqs, hist) =
          val (SOME(eq as Lineq(_,_,ceq,_)),othereqs) =
                extract_first (fn Lineq(_,_,l,_) => c mem l) eqs
          val v = find_index_eq c ceq
-         val (ioth,roth) = List.partition (fn (Lineq(_,_,l,_)) => el v l = 0)
+         val (ioth,roth) = List.partition (fn (Lineq(_,_,l,_)) => nth l v = 0)
                                      (othereqs @ noneqs)
          val others = map (elim_var v eq) roth @ ioth
      in elim(others,(v,nontriv)::hist) end
   else
   let val lists = map (fn (Lineq(_,_,l,_)) => l) noneqs
-      val numlist = 0 upto (length(hd lists) - 1)
-      val coeffs = map (fn i => map (el i) lists) numlist
+      val numlist = 0 upto (length (hd lists) - 1)
+      val coeffs = map (fn i => map (fn xs => nth xs i) lists) numlist
       val blows = map calc_blowup coeffs
       val iblows = blows ~~ numlist
-      val nziblows = List.filter (fn (i,_) => i<>0) iblows
+      val nziblows = filter_out (fn (i, _) => i = 0) iblows
   in if null nziblows then Failure((~1,nontriv)::hist)
      else
      let val (c,v) = hd(sort (fn (x,y) => int_ord(fst(x),fst(y))) nziblows)
-         val (no,yes) = List.partition (fn (Lineq(_,_,l,_)) => el v l = 0) ineqs
-         val (pos,neg) = List.partition(fn (Lineq(_,_,l,_)) => el v l > 0) yes
+         val (no,yes) = List.partition (fn (Lineq(_,_,l,_)) => nth l v = 0) ineqs
+         val (pos,neg) = List.partition(fn (Lineq(_,_,l,_)) => nth l v > 0) yes
      in elim(no @ allpairs (elim_var v) pos neg, (v,nontriv)::hist) end
   end
   end

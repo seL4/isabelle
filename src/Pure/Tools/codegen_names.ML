@@ -37,7 +37,7 @@ struct
 
 (** purification **)
 
-val purify_name =
+fun purify_name upper_else_lower =
   let
     fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
     val is_junk = not o is_valid andf Symbol.not_eof;
@@ -47,32 +47,20 @@ val purify_name =
         (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
         --| junk))
       -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
-  in explode #> scan_valids #> space_implode "_" end;
-
-fun purify_op "op -->" = "implies"
-  | purify_op "{}" = "empty"
-  | purify_op s =
-      let
-        fun rep_op "+" = SOME "plus"
-          | rep_op "*" = SOME "times"
-          | rep_op "&" = SOME "and"
-          | rep_op "|" = SOME "or"
-          | rep_op "=" = SOME "eq"
-          | rep_op s = NONE;
-        val scan_valids = Symbol.scanner "Malformed input"
-           (Scan.repeat (Scan.some rep_op || Scan.one Symbol.not_eof));
-      in (explode #> scan_valids #> implode) s end;
-
-val purify_lower =
-  explode
-  #> (fn cs => (if forall Symbol.is_ascii_upper cs
-        then map else nth_map 0) Symbol.to_ascii_lower cs)
-  #> implode;
-
-val purify_upper = explode #> nth_map 0 Symbol.to_ascii_upper #> implode;
+    fun upper_lower cs = if upper_else_lower then nth_map 0 Symbol.to_ascii_upper cs
+      else (if forall Symbol.is_ascii_upper cs
+        then map else nth_map 0) Symbol.to_ascii_lower cs;
+  in
+    explode
+    #> scan_valids
+    #> space_implode "_"
+    #> explode
+    #> upper_lower
+    #> implode
+  end;
 
 fun purify_var "" = "x"
-  | purify_var v = (purify_name #> purify_lower) v;
+  | purify_var v = purify_name false v;
 
 fun purify_tvar "" = "'a"
   | purify_tvar v =
@@ -81,7 +69,7 @@ fun purify_tvar "" = "'a"
 fun check_modulename mn =
   let
     val mns = NameSpace.explode mn;
-    val mns' = map purify_upper mns;
+    val mns' = map (purify_name true) mns;
   in
     if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
       ^ "perhaps try " ^ quote (NameSpace.implode mns'))
@@ -187,28 +175,38 @@ fun thyname_of_const thy =
 
 (* naming policies *)
 
-val purify_idf = purify_op #> purify_name;
-val purify_prefix = map (purify_idf #> purify_upper);
-val purify_base = purify_idf #> purify_lower;
-
-val dotify =
+val purify_prefix =
   explode
   (*should disappear as soon as hierarchical theory name spaces are available*)
   #> Symbol.scanner "Malformed name"
       (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.not_eof))
-  #> implode;
+  #> implode
+  #> NameSpace.explode
+  #> map (purify_name true);
 
-fun policy thy get_basename get_thyname name =
+fun purify_base "op =" = "eq"
+  | purify_base "op &" = "and"
+  | purify_base "op |" = "or"
+  | purify_base "op -->" = "implies"
+  | purify_base "{}" = "empty"
+  | purify_base "op :" = "member"
+  | purify_base "op Int" = "intersect"
+  | purify_base "op Un" = "union"
+  | purify_base "*" = "product"
+  | purify_base "+" = "sum"
+  | purify_base s = purify_name false s;
+
+fun default_policy thy get_basename get_thyname name =
   let
-    val prefix = (purify_prefix o NameSpace.explode o dotify o get_thyname thy) name;
+    val prefix = (purify_prefix o get_thyname thy) name;
     val base = (purify_base o get_basename) name;
   in NameSpace.implode (prefix @ [base]) end;
 
-fun class_policy thy = policy thy NameSpace.base thyname_of_class;
-fun classrel_policy thy = policy thy (fn (class1, class2) => 
+fun class_policy thy = default_policy thy NameSpace.base thyname_of_class;
+fun classrel_policy thy = default_policy thy (fn (class1, class2) => 
   NameSpace.base class1 ^ "_" ^ NameSpace.base class2) thyname_of_classrel;
-fun tyco_policy thy = policy thy NameSpace.base thyname_of_tyco;
-fun instance_policy thy = policy thy (fn (class, tyco) => 
+fun tyco_policy thy = default_policy thy NameSpace.base thyname_of_tyco;
+fun instance_policy thy = default_policy thy (fn (class, tyco) => 
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
 fun force_thyname thy (const as (c, opt_tyco)) =
@@ -222,9 +220,9 @@ fun force_thyname thy (const as (c, opt_tyco)) =
 
 fun const_policy thy (const as (c, opt_tyco)) =
   case force_thyname thy const
-   of NONE => policy thy NameSpace.base thyname_of_const c
+   of NONE => default_policy thy NameSpace.base thyname_of_const c
     | SOME thyname => let
-        val prefix = (purify_prefix o NameSpace.explode o dotify) thyname;
+        val prefix = purify_prefix thyname;
         val tycos = the_list opt_tyco;
         val base = map (purify_base o NameSpace.base) (c :: tycos);
       in NameSpace.implode (prefix @ [space_implode "_" base]) end;

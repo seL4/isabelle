@@ -72,26 +72,8 @@ lemma [code func]:
      \<and> list_all2 (op =) tys1 tys2"
   by (auto simp add: list_all2_eq [symmetric])
 
-definition
-  Bound :: "int \<Rightarrow> term"
-where
-  "Bound k = Bnd (nat k)"
+code_datatype Const App Fix
 
-lemma Bnd_Bound [code inline, code func]:
-  "Bnd n = Bound (int n)"
-  unfolding Bound_def by auto
-
-definition
-  Absp :: "vname \<Rightarrow> typ \<Rightarrow> term \<Rightarrow> term"
-where
-  "Absp v ty t = (v, ty) \<mapsto> t"
-
-lemma Abs_Absp [code inline, code func]:
-  "(op \<mapsto>) (v, ty) = Absp v ty"
-  by rule (auto simp add: Absp_def)
-
-code_datatype Const App Fix Absp Bound
-lemmas [code func] = Bnd_Bound Abs_Absp
 lemmas [code func del] = term.recs term.cases term.size
 lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
 
@@ -102,9 +84,7 @@ code_const Type and TFix
   (SML "Term.Type/ (_, _)" and "Term.TFree/ (_, _)")
 
 code_const Const and App and Fix
-  and Absp and Bound
-  (SML "Term.Const/ (_, _)" and "Term.$/ (_, _)" and "Term.Free/ (_, _)"
-    and "Term.Abs/ (_, _, _)" and "!((_); Term.Bound/ (raise Fail \"Bound\"))")
+  (SML "Term.Const/ (_, _)" and "Term.$/ (_, _)" and "Term.Free/ (_, _)")
  
 code_reserved SML Term
 
