@@ -114,20 +114,20 @@ fun mk_goal (vars, prems, lhs, rhs) rel =
                          fold_rev FundefLib.mk_forall vars
     end
     
-fun prove (thy: theory) (t: term) =
+fun prove (thy: theory) solve_tac (t: term) =
     cterm_of thy t |> Goal.init 
-    |> SINGLE (CLASIMPSET auto_tac) |> the
+    |> SINGLE solve_tac |> the
     
-fun mk_cell (thy : theory) (vars, prems) (lhs, rhs) = 
+fun mk_cell (thy : theory) solve_tac (vars, prems) (lhs, rhs) = 
     let 
       val goals = mk_goal (vars, prems, lhs, rhs) 
-      val less_thm = goals "Orderings.ord_class.less" |> prove thy
+      val less_thm = goals "Orderings.ord_class.less" |> prove thy solve_tac
     in
       if Thm.no_prems less_thm then
         Less (Goal.finish less_thm)
       else
         let
-          val lesseq_thm = goals "Orderings.ord_class.less_eq" |> prove thy
+          val lesseq_thm = goals "Orderings.ord_class.less_eq" |> prove thy solve_tac
         in
           if Thm.no_prems lesseq_thm then
             LessEq (Goal.finish lesseq_thm)
@@ -137,13 +137,13 @@ fun mk_cell (thy : theory) (vars, prems) (lhs, rhs) =
         end
     end
     
-fun mk_row (thy: theory) measure_funs (t : term) =
+fun mk_row (thy: theory) solve_tac measure_funs (t : term) =
     let
       val (vars, prems, lhs, rhs, _) = dest_term t
       val lhs_list = map (fn x => x $ lhs) measure_funs
       val rhs_list = map (fn x => x $ rhs) measure_funs
     in
-      map (mk_cell thy (vars, prems)) (lhs_list ~~ rhs_list)
+      map (mk_cell thy solve_tac (vars, prems)) (lhs_list ~~ rhs_list)
     end
     
 fun pr_cell cell = case cell of Less _ => " <  " 
@@ -261,7 +261,7 @@ fun pr_err table thy tl measure_funs =
       
 (* the main function: create table, search table, create relation,
    and prove the subgoals *)  
-fun lexicographic_order_tac ctxt (st: thm) = 
+fun lexicographic_order_tac ctxt solve_tac (st: thm) = 
     let
       val thy = theory_of_thm st
       val premlist = prems_of st
@@ -274,7 +274,7 @@ fun lexicographic_order_tac ctxt (st: thm) =
     val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))
     val measure_funs = mk_all_measure_funs domT
     val _ = writeln "Creating table"
-    val table = map (mk_row thy measure_funs) tl
+    val table = map (mk_row thy solve_tac measure_funs) tl
     val _ = writeln "Searching for lexicographic order"
     (* val _ = pr_table table *)
     val possible_order = search_table table
@@ -299,9 +299,10 @@ fun lexicographic_order_tac ctxt (st: thm) =
     end
 
 (* FIXME goal addressing ?? *)
-val lexicographic_order = Method.SIMPLE_METHOD o (fn ctxt => FundefCommon.apply_termination_rule ctxt 1 
-                                                              THEN lexicographic_order_tac ctxt)
+fun lexicographic_order thms ctxt = Method.SIMPLE_METHOD (FundefCommon.apply_termination_rule ctxt 1 
+                                                         THEN lexicographic_order_tac ctxt (auto_tac (local_clasimpset_of ctxt)))
 
-val setup = Method.add_methods [("lexicographic_order", Method.ctxt_args lexicographic_order, "termination prover for lexicographic orderings")]
+val setup = Method.add_methods [("lexicographic_order", Method.bang_sectioned_args clasimp_modifiers lexicographic_order, 
+                                 "termination prover for lexicographic orderings")]
 
 end
