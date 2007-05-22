@@ -179,15 +179,24 @@ fun make_schematic_type_var (x,i) =
       tvar_prefix ^ (ascii_of_indexname (trim_type_var x,i));
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
 
+(*HACK because SPASS truncates identifiers to 63 characters :-(( *)
+val dfg_format = ref false;
+
+(*32-bit hash,so we expect no collisions unless there are around 65536 long identifiers...*)
+fun controlled_length s =
+  if size s > 60 andalso !dfg_format   
+  then Word.toString (Polyhash.hashw_string(s,0w0))
+  else s;
+
 fun lookup_const c =
     case Symtab.lookup const_trans_table c of
         SOME c' => c'
-      | NONE => ascii_of c;
+      | NONE => controlled_length (ascii_of c);
 
 fun lookup_type_const c = 
     case Symtab.lookup type_const_trans_table c of
         SOME c' => c'
-      | NONE => ascii_of c;
+      | NONE => controlled_length (ascii_of c);
 
 fun make_fixed_const "op =" = "equal"   (*MUST BE "equal" because it's built-in to ATPs*)
   | make_fixed_const c      = const_prefix ^ lookup_const c;
@@ -611,9 +620,12 @@ fun add_clause_funcs (Clause {literals, types_sorts, ...}, funcs) =
        literals
   handle Symtab.DUP a => raise ERROR ("function " ^ a ^ " has multiple arities")
 
+(*This type can be overlooked because it is built-in...*)
+val init_functab = Symtab.update ("tc_itself", 1) Symtab.empty;
+
 fun funcs_of_clauses clauses arity_clauses = 
   Symtab.dest (foldl add_arityClause_funcs 
-                     (foldl add_clause_funcs Symtab.empty clauses)
+                     (foldl add_clause_funcs init_functab clauses)
                      arity_clauses)
 
 
@@ -739,6 +751,7 @@ fun dfg_arity_clause (ArityClause{axiom_name,kind,conclLit,premLits,...}) =
 fun dfg_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) = 
   let 
     val _ = Output.debug (fn () => ("Preparing to write the DFG file " ^ filename))
+    val _ = dfg_format := true
     val conjectures = make_conjecture_clauses thms
     val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
     val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
@@ -825,6 +838,7 @@ fun tptp_classrelClause (ClassrelClause {axiom_name,subclass,superclass,...}) =
 fun tptp_write_file thms filename (ax_tuples,classrel_clauses,arity_clauses) =
   let
     val _ = Output.debug (fn () => ("Preparing to write the TPTP file " ^ filename))
+    val _ = dfg_format := false
     val clss = make_conjecture_clauses thms
     val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp clss)
