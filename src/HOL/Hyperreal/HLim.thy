@@ -106,7 +106,6 @@ lemma NSLIM_const_not_eq:
 apply (simp add: NSLIM_def)
 apply (rule_tac x="star_of a + of_hypreal epsilon" in exI)
 apply (simp add: hypreal_epsilon_not_zero approx_def)
-apply (rule Infinitesimal_hnorm_iff [THEN iffD1], simp)
 done
 
 lemma NSLIM_not_zero:

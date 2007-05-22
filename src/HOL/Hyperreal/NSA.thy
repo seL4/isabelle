@@ -362,6 +362,15 @@ lemma Infinitesimal_hnorm_iff:
   "(hnorm x \<in> Infinitesimal) = (x \<in> Infinitesimal)"
 by (simp add: Infinitesimal_def)
 
+lemma Infinitesimal_hrabs_iff [iff]:
+  "(abs (x::hypreal) \<in> Infinitesimal) = (x \<in> Infinitesimal)"
+by (simp add: abs_if)
+
+lemma Infinitesimal_of_hypreal_iff [simp]:
+  "((of_hypreal x::'a::real_normed_algebra_1 star) \<in> Infinitesimal) =
+   (x \<in> Infinitesimal)"
+by (subst Infinitesimal_hnorm_iff [symmetric], simp)
+
 lemma Infinitesimal_diff:
      "[| x \<in> Infinitesimal;  y \<in> Infinitesimal |] ==> x-y \<in> Infinitesimal"
 by (simp add: diff_def Infinitesimal_add)
@@ -505,10 +514,6 @@ by auto
 
 lemma not_Infinitesimal_not_zero2: "x \<in> HFinite - Infinitesimal ==> x \<noteq> 0"
 by auto
-
-lemma Infinitesimal_hrabs_iff [iff]:
-     "(abs (x::hypreal) \<in> Infinitesimal) = (x \<in> Infinitesimal)"
-by (auto simp add: abs_if)
 
 lemma HFinite_diff_Infinitesimal_hrabs:
   "(x::hypreal) \<in> HFinite - Infinitesimal ==> abs x \<in> HFinite - Infinitesimal"
