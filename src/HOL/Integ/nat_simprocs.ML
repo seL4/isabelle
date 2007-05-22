@@ -235,7 +235,7 @@ val cancel_numerals =
 structure CombineNumeralsData =
   struct
   type coeff            = IntInf.int
-  val iszero            = (fn x => x = 0)
+  val iszero            = (fn x : IntInf.int => x = 0)
   val add               = IntInf.+
   val mk_sum            = (fn T:typ => long_mk_sum)  (*to work for 2*x + 3*x *)
   val dest_sum          = dest_Sucs_sum false

@@ -260,11 +260,11 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 
 (*Fractions as pairs of ints. Can't use Rat.rat because the representation
   needs to preserve negative values in the denominator.*)
-fun mk_frac (p, q) = if q = 0 then raise Div else (p, q);
+fun mk_frac (p, q : IntInf.int) = if q = 0 then raise Div else (p, q);
 
 (*Don't reduce fractions; sums must be proved by rule add_frac_eq.
   Fractions are reduced later by the cancel_numeral_factor simproc.*)
-fun add_frac ((p1, q1), (p2, q2)) = (p1 * q2 + p2 * q1, q1 * q2);
+fun add_frac ((p1 : IntInf.int, q1 : IntInf.int), (p2, q2)) = (p1 * q2 + p2 * q1, q1 * q2);
 
 val mk_divide = HOLogic.mk_binop @{const_name HOL.divide};
 
@@ -417,8 +417,8 @@ val cancel_numerals =
 structure CombineNumeralsData =
   struct
   type coeff            = IntInf.int
-  val iszero            = (fn x => x = 0)
-  val add               = IntInf.+ 
+  val iszero            = (fn x : IntInf.int => x = 0)
+  val add               = IntInf.+
   val mk_sum            = long_mk_sum    (*to work for e.g. 2*x + 3*x *)
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
@@ -447,7 +447,7 @@ structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 structure FieldCombineNumeralsData =
   struct
   type coeff            = IntInf.int * IntInf.int
-  val iszero            = (fn (p, q) => p = 0)
+  val iszero            = (fn (p : IntInf.int, q) => p = 0)
   val add               = add_frac
   val mk_sum            = long_mk_sum
   val dest_sum          = dest_sum

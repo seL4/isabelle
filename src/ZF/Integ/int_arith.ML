@@ -294,7 +294,7 @@ fun prove_conv_nohyps name tacs sg = ArithData.prove_conv name tacs sg [];
 structure CombineNumeralsData =
   struct
   type coeff            = IntInf.int
-  val iszero            = (fn x => x = 0)
+  val iszero            = (fn x : IntInf.int => x = 0)
   val add               = IntInf.+ 
   val mk_sum            = (fn T:typ => long_mk_sum) (*to work for #2*x $+ #3*x *)
   val dest_sum          = dest_sum
@@ -334,7 +334,7 @@ val combine_numerals =
 structure CombineNumeralsProdData =
   struct
   type coeff            = IntInf.int
-  val iszero            = (fn x => x = 0)
+  val iszero            = (fn x : IntInf.int => x = 0)
   val add               = IntInf.*
   val mk_sum            = (fn T:typ => mk_prod)
   val dest_sum          = dest_prod
