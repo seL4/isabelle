@@ -287,6 +287,8 @@ instance ordered_ring_strict \<subseteq> lordered_ring
 
 class pordered_comm_ring = comm_ring + pordered_comm_semiring
 
+instance pordered_comm_ring \<subseteq> pordered_cancel_comm_semiring ..
+
 class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
   (*previously ordered_semiring*)
   assumes zero_less_one [simp]: "\<^loc>0 \<sqsubset> \<^loc>1"
@@ -295,6 +297,8 @@ class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + abs_if + lorde
   (*previously ordered_ring*)
 
 instance ordered_idom \<subseteq> ordered_ring_strict ..
+
+instance ordered_idom \<subseteq> pordered_comm_ring ..
 
 class ordered_field = field + ordered_idom
 
