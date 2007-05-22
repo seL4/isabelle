@@ -160,8 +160,8 @@ lemma LIM_rabs_zero_iff: "(\<lambda>x. \<bar>f x\<bar>) -- a --> (0::real) = f -
 by (fold real_norm_def, rule LIM_norm_zero_iff)
 
 lemma LIM_const_not_eq:
-  fixes a :: "'a::real_normed_div_algebra"
-  shows "k \<noteq> L ==> ~ ((%x. k) -- a --> L)"
+  fixes a :: "'a::real_normed_algebra_1"
+  shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) -- a --> L"
 apply (simp add: LIM_eq)
 apply (rule_tac x="norm (k - L)" in exI, simp, safe)
 apply (rule_tac x="a + of_real (s/2)" in exI, simp add: norm_of_real)
@@ -170,16 +170,16 @@ done
 lemmas LIM_not_zero = LIM_const_not_eq [where L = 0]
 
 lemma LIM_const_eq:
-  fixes a :: "'a::real_normed_div_algebra"
-  shows "(%x. k) -- a --> L ==> k = L"
+  fixes a :: "'a::real_normed_algebra_1"
+  shows "(\<lambda>x. k) -- a --> L \<Longrightarrow> k = L"
 apply (rule ccontr)
 apply (blast dest: LIM_const_not_eq)
 done
 
 lemma LIM_unique:
-  fixes a :: "'a::real_normed_div_algebra"
-  shows "[| f -- a --> L; f -- a --> M |] ==> L = M"
-apply (drule LIM_diff, assumption)
+  fixes a :: "'a::real_normed_algebra_1"
+  shows "\<lbrakk>f -- a --> L; f -- a --> M\<rbrakk> \<Longrightarrow> L = M"
+apply (drule (1) LIM_diff)
 apply (auto dest!: LIM_const_eq)
 done
 

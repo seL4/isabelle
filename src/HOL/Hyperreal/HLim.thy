@@ -101,34 +101,31 @@ apply (auto simp add: diff_minus add_assoc)
 done
 
 lemma NSLIM_const_not_eq:
-  fixes a :: real (*TODO: generalize to real_normed_div_algebra*)
-  shows "k \<noteq> L ==> ~ ((%x. k) -- a --NS> L)"
+  fixes a :: "'a::real_normed_algebra_1"
+  shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) -- a --NS> L"
 apply (simp add: NSLIM_def)
-apply (rule_tac x="star_of a + epsilon" in exI)
-apply (auto intro: Infinitesimal_add_approx_self [THEN approx_sym]
-            simp add: hypreal_epsilon_not_zero)
+apply (rule_tac x="star_of a + of_hypreal epsilon" in exI)
+apply (simp add: hypreal_epsilon_not_zero approx_def)
+apply (rule Infinitesimal_hnorm_iff [THEN iffD1], simp)
 done
 
 lemma NSLIM_not_zero:
-  fixes a :: real
-  shows "k \<noteq> 0 ==> ~ ((%x. k) -- a --NS> 0)"
+  fixes a :: "'a::real_normed_algebra_1"
+  shows "k \<noteq> 0 \<Longrightarrow> \<not> (\<lambda>x. k) -- a --NS> 0"
 by (rule NSLIM_const_not_eq)
 
 lemma NSLIM_const_eq:
-  fixes a :: real
-  shows "(%x. k) -- a --NS> L ==> k = L"
+  fixes a :: "'a::real_normed_algebra_1"
+  shows "(\<lambda>x. k) -- a --NS> L \<Longrightarrow> k = L"
 apply (rule ccontr)
 apply (blast dest: NSLIM_const_not_eq)
 done
 
-text{* can actually be proved more easily by unfolding the definition!*}
 lemma NSLIM_unique:
-  fixes a :: real
-  shows "[| f -- a --NS> L; f -- a --NS> M |] ==> L = M"
-apply (drule NSLIM_minus)
-apply (drule NSLIM_add, assumption)
-apply (auto dest!: NSLIM_const_eq [symmetric])
-apply (simp add: diff_def [symmetric])
+  fixes a :: "'a::real_normed_algebra_1"
+  shows "\<lbrakk>f -- a --NS> L; f -- a --NS> M\<rbrakk> \<Longrightarrow> L = M"
+apply (drule (1) NSLIM_diff)
+apply (auto dest!: NSLIM_const_eq)
 done
 
 lemma NSLIM_mult_zero:
