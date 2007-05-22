@@ -172,7 +172,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML $(SRC)/Pure/General/float.ML	\
   Hyperreal/SEQ.thy Hyperreal/Series.thy Hyperreal/Star.thy			\
   Hyperreal/Taylor.thy Hyperreal/FrechetDeriv.thy Hyperreal/Deriv.thy		\
   Hyperreal/Transcendental.thy Hyperreal/hypreal_arith.ML			\
-  Complex/Complex_Main.thy Complex/CLim.thy Complex/CSeries.thy			\
+  Complex/Complex_Main.thy Complex/CLim.thy					\
   Complex/CStar.thy Complex/Complex.thy Complex/NSCA.thy Complex/NSComplex.thy  \
   Complex/document/root.tex Library/Infinite_Set.thy Library/Parity.thy
 	@cd Complex; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Complex
