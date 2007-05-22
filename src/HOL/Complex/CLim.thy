@@ -57,34 +57,6 @@ by (simp add: LIM_def complex_cnj_diff [symmetric])
 lemma LIM_cnj_iff: "((%x. cnj (f x)) -- a --> cnj L) = (f -- a --> L)"
 by (simp add: LIM_def complex_cnj_diff [symmetric])
 
-(*** NSLIM_not zero and hence LIM_not_zero ***)
-
-lemma NSCLIM_not_zero: "k \<noteq> 0 ==> ~ ((%x::complex. k) -- x --NS> 0)"
-apply (auto simp del: star_of_zero simp add: NSLIM_def)
-apply (rule_tac x = "hcomplex_of_complex x + hcomplex_of_hypreal epsilon" in exI)
-apply (auto intro: Infinitesimal_add_approx_self [THEN approx_sym]
-            simp del: star_of_zero)
-done
-
-(* [| k \<noteq> 0; (%x. k) -- x --NS> 0 |] ==> R *)
-lemmas NSCLIM_not_zeroE = NSCLIM_not_zero [THEN notE, standard]
-
-(*** NSLIM_const hence LIM_const ***)
-
-lemma NSCLIM_const_eq: "(%x::complex. k) -- x --NS> L ==> k = L"
-apply (rule ccontr)
-apply (drule NSLIM_zero)
-apply (rule NSCLIM_not_zeroE [of "k-L"], auto)
-done
-
-(*** NSLIM and hence LIM are unique ***)
-
-lemma NSCLIM_unique: "[| f -- (x::complex) --NS> L; f -- x --NS> M |] ==> L = M"
-apply (drule (1) NSLIM_diff)
-apply (drule NSLIM_minus)
-apply (auto dest!: NSCLIM_const_eq [symmetric])
-done
-
 lemma starfun_norm: "( *f* (\<lambda>x. norm (f x))) = (\<lambda>x. hnorm (( *f* f) x))"
 by transfer (rule refl)
 
