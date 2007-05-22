@@ -33,12 +33,12 @@ ML
 {*
 local
 val deriv_rulesI =
-  [thm "DERIV_Id", thm "DERIV_const", thm "DERIV_cos", thm "DERIV_cmult",
+  [thm "DERIV_ident", thm "DERIV_const", thm "DERIV_cos", thm "DERIV_cmult",
   thm "DERIV_sin", thm "DERIV_exp", thm "DERIV_inverse", thm "DERIV_pow",
   thm "DERIV_add", thm "DERIV_diff", thm "DERIV_mult", thm "DERIV_minus",
   thm "DERIV_inverse_fun", thm "DERIV_quotient", thm "DERIV_fun_pow",
   thm "DERIV_fun_exp", thm "DERIV_fun_sin", thm "DERIV_fun_cos",
-  thm "DERIV_Id", thm "DERIV_const", thm "DERIV_cos"];
+  thm "DERIV_ident", thm "DERIV_const", thm "DERIV_cos"];
 
 val DERIV_chain2 = thm "DERIV_chain2";
 
@@ -251,7 +251,7 @@ apply (subst minus_mult_right)
 apply (rule DERIV_cmult)
 apply (rule lemma_DERIV_subst)
 apply (rule DERIV_chain2 [where g=uminus])
-apply (rule_tac [2] DERIV_minus, rule_tac [2] DERIV_Id)
+apply (rule_tac [2] DERIV_minus, rule_tac [2] DERIV_ident)
 prefer 2 apply force
 apply force
 apply (rule_tac x = "-t" in exI, auto)

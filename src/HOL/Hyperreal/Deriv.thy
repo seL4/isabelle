@@ -47,7 +47,7 @@ by (simp add: deriv_def)
 lemma DERIV_const [simp]: "DERIV (\<lambda>x. k) x :> 0"
 by (simp add: deriv_def)
 
-lemma DERIV_Id [simp]: "DERIV (\<lambda>x. x) x :> 1"
+lemma DERIV_ident [simp]: "DERIV (\<lambda>x. x) x :> 1"
 by (simp add: deriv_def divide_self cong: LIM_cong)
 
 lemma add_diff_add:
@@ -77,7 +77,7 @@ proof (unfold isCont_iff)
   hence "(\<lambda>h. (f(x+h) - f(x)) / h) -- 0 --> D"
     by (rule DERIV_D)
   hence "(\<lambda>h. (f(x+h) - f(x)) / h * h) -- 0 --> D * 0"
-    by (intro LIM_mult LIM_self)
+    by (intro LIM_mult LIM_ident)
   hence "(\<lambda>h. (f(x+h) - f(x)) * (h / h)) -- 0 --> 0"
     by simp
   hence "(\<lambda>h. f(x+h) - f(x)) -- 0 --> 0"
@@ -296,10 +296,10 @@ by (auto dest: DERIV_chain simp add: o_def)
 
 (*derivative of linear multiplication*)
 lemma DERIV_cmult_Id [simp]: "DERIV (op * c) x :> c"
-by (cut_tac c = c and x = x in DERIV_Id [THEN DERIV_cmult], simp)
+by (cut_tac c = c and x = x in DERIV_ident [THEN DERIV_cmult], simp)
 
 lemma DERIV_pow: "DERIV (%x. x ^ n) x :> real n * (x ^ (n - Suc 0))"
-apply (cut_tac DERIV_power [OF DERIV_Id])
+apply (cut_tac DERIV_power [OF DERIV_ident])
 apply (simp add: real_scaleR_def real_of_nat_def)
 done
 
@@ -308,7 +308,7 @@ text{*Power of -1*}
 lemma DERIV_inverse:
   fixes x :: "'a::{real_normed_field,recpower}"
   shows "x \<noteq> 0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ Suc (Suc 0)))"
-by (drule DERIV_inverse' [OF DERIV_Id]) (simp add: power_Suc)
+by (drule DERIV_inverse' [OF DERIV_ident]) (simp add: power_Suc)
 
 text{*Derivative of inverse*}
 lemma DERIV_inverse_fun:
@@ -985,7 +985,7 @@ theorem MVT:
 proof -
   let ?F = "%x. f x - ((f b - f a) / (b-a)) * x"
   have contF: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?F x" using con
-    by (fast intro: isCont_diff isCont_const isCont_mult isCont_Id)
+    by (fast intro: isCont_diff isCont_const isCont_mult isCont_ident)
   have difF: "\<forall>x. a < x \<and> x < b \<longrightarrow> ?F differentiable x"
   proof (clarify)
     fix x::real

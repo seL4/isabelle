@@ -29,7 +29,7 @@ proof -
       using n1 by (rule power_increasing, simp)
     finally show "a \<le> max 1 a ^ n" .
     show "\<forall>r. 0 \<le> r \<and> r \<le> max 1 a \<longrightarrow> isCont (\<lambda>x. x ^ n) r"
-      by (simp add: isCont_power isCont_Id)
+      by (simp add: isCont_power)
   qed
   then obtain r where r: "0 \<le> r \<and> r ^ n = a" by fast
   with n a have "r \<noteq> 0" by (auto simp add: power_0_left)
@@ -253,7 +253,7 @@ proof -
     show "\<forall>z. \<bar>z - root n x\<bar> \<le> root n x \<longrightarrow> root n (z ^ n) = z"
       by (simp add: abs_le_iff real_root_power_cancel n)
     show "\<forall>z. \<bar>z - root n x\<bar> \<le> root n x \<longrightarrow> isCont (\<lambda>a. a ^ n) z"
-      by (simp add: isCont_power isCont_Id)
+      by (simp add: isCont_power)
   qed
   thus ?thesis using n x by simp
 qed
@@ -262,7 +262,7 @@ lemma isCont_root_neg:
   "\<lbrakk>0 < n; x < 0\<rbrakk> \<Longrightarrow> isCont (root n) x"
 apply (subgoal_tac "isCont (\<lambda>x. - root n (- x)) x")
 apply (simp add: real_root_minus)
-apply (rule isCont_o2 [OF isCont_minus [OF isCont_Id]])
+apply (rule isCont_o2 [OF isCont_minus [OF isCont_ident]])
 apply (simp add: isCont_minus isCont_root_pos)
 done
 

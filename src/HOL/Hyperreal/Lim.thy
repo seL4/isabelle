@@ -183,7 +183,7 @@ apply (drule LIM_diff, assumption)
 apply (auto dest!: LIM_const_eq)
 done
 
-lemma LIM_self: "(%x. x) -- a --> a"
+lemma LIM_ident [simp]: "(\<lambda>x. x) -- a --> a"
 by (auto simp add: LIM_def)
 
 text{*Limits are equal for functions equal except at limit point*}
@@ -435,7 +435,7 @@ next
     apply (simp add: LIM_inverse_lemma)
     done
   have "(\<lambda>x. inverse a * x) -- a --> inverse a * a"
-    by (intro LIM_mult LIM_self LIM_const)
+    by (intro LIM_mult LIM_ident LIM_const)
   hence "(\<lambda>x. inverse a * x) -- a --> 1"
     by (simp add: a)
   with 1 have "(\<lambda>x. inverse (inverse a * x)) -- a --> inverse 1"
@@ -464,8 +464,8 @@ by (rule iffI [OF LIM_offset_zero LIM_offset_zero_cancel])
 lemma isCont_iff: "isCont f x = (\<lambda>h. f (x + h)) -- 0 --> f x"
 by (simp add: isCont_def LIM_isCont_iff)
 
-lemma isCont_Id: "isCont (\<lambda>x. x) a"
-  unfolding isCont_def by (rule LIM_self)
+lemma isCont_ident [simp]: "isCont (\<lambda>x. x) a"
+  unfolding isCont_def by (rule LIM_ident)
 
 lemma isCont_const [simp]: "isCont (\<lambda>x. k) a"
   unfolding isCont_def by (rule LIM_const)
@@ -531,7 +531,7 @@ lemma isCont_power:
   unfolding isCont_def by (rule LIM_power)
 
 lemma isCont_abs [simp]: "isCont abs (a::real)"
-by (rule isCont_rabs [OF isCont_Id])
+by (rule isCont_rabs [OF isCont_ident])
 
 
 subsection {* Uniform Continuity *}

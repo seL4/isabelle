@@ -32,7 +32,7 @@ proof -
     assume "m < n & 0 <= t & t <= b - c"
     with DERIV and INTERV have "DERIV (diff m) (t + c) :> diff (Suc m) (t + c)" by auto
     moreover
-    from DERIV_Id and DERIV_const have "DERIV (%x. x + c) t :> 1+0" by (rule DERIV_add)
+    from DERIV_ident and DERIV_const have "DERIV (%x. x + c) t :> 1+0" by (rule DERIV_add)
     ultimately have "DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c) * (1+0)"
       by (rule DERIV_chain2)
     thus "DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c)" by simp
@@ -74,7 +74,7 @@ proof -
     assume "m < n & a-c <= t & t <= 0"
     with DERIV and INTERV have "DERIV (diff m) (t + c) :> diff (Suc m) (t + c)" by auto 
     moreover
-    from DERIV_Id and DERIV_const have "DERIV (%x. x + c) t :> 1+0" by (rule DERIV_add)
+    from DERIV_ident and DERIV_const have "DERIV (%x. x + c) t :> 1+0" by (rule DERIV_add)
     ultimately have "DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c) * (1+0)" by (rule DERIV_chain2)
     thus "DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c)" by simp
   qed

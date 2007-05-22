@@ -637,14 +637,14 @@ done
 lemma DERIV_exp_add_const: "DERIV (%x. exp (x + y)) x :> exp(x + y)"
 proof -
   have "DERIV (exp \<circ> (\<lambda>x. x + y)) x :> exp (x + y) * (1+0)"
-    by (fast intro: DERIV_chain DERIV_add DERIV_exp DERIV_Id DERIV_const) 
+    by (fast intro: DERIV_chain DERIV_add DERIV_exp DERIV_ident DERIV_const) 
   thus ?thesis by (simp add: o_def)
 qed
 
 lemma DERIV_exp_minus [simp]: "DERIV (%x. exp (-x)) x :> - exp(-x)"
 proof -
   have "DERIV (exp \<circ> uminus) x :> exp (- x) * - 1"
-    by (fast intro: DERIV_chain DERIV_minus DERIV_exp DERIV_Id) 
+    by (fast intro: DERIV_chain DERIV_minus DERIV_exp DERIV_ident)
   thus ?thesis by (simp add: o_def)
 qed
 
@@ -1065,7 +1065,7 @@ apply (rule_tac f = cos in DERIV_chain2)
 apply (rule DERIV_cos, auto)
 done
 
-lemmas DERIV_intros = DERIV_Id DERIV_const DERIV_cos DERIV_cmult 
+lemmas DERIV_intros = DERIV_ident DERIV_const DERIV_cos DERIV_cmult 
                     DERIV_sin  DERIV_exp  DERIV_inverse DERIV_pow 
                     DERIV_add  DERIV_diff  DERIV_mult  DERIV_minus 
                     DERIV_inverse_fun DERIV_quotient DERIV_fun_pow 
