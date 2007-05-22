@@ -149,10 +149,10 @@ fun abs_rel_tac (st : thm) =
 
 
 (* very primitive *)
-fun measures_of RD =
+fun measures_of thy RD =
     let
       val domT = range_type (fastype_of (fst (HOLogic.dest_prod (snd (HOLogic.dest_prod RD)))))
-      val measures = LexicographicOrder.mk_base_funs domT
+      val measures = LexicographicOrder.mk_base_funs thy domT
     in
       measures
     end
@@ -311,7 +311,7 @@ fun mk_call_graph (st : thm) =
       val RDs = HOLogic.dest_list RDlist
       val n = length RDs
 
-      val Mss = map measures_of RDs
+      val Mss = map (measures_of thy) RDs
 
       val domT = domain_type (fastype_of (hd (hd Mss)))
 
