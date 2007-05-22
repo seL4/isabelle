@@ -1,6 +1,6 @@
 (*  Title:      ZF/Integ/int_arith.ML
     ID:         $Id$
-    Author:    Larry Paulson
+    Author:     Larry Paulson
     Copyright   2000  University of Cambridge
 
 Simprocs for linear arithmetic.
@@ -293,6 +293,8 @@ fun prove_conv_nohyps name tacs sg = ArithData.prove_conv name tacs sg [];
 
 structure CombineNumeralsData =
   struct
+  type coeff            = IntInf.int
+  val iszero            = (fn x => x = 0)
   val add               = IntInf.+ 
   val mk_sum            = (fn T:typ => long_mk_sum) (*to work for #2*x $+ #3*x *)
   val dest_sum          = dest_sum
@@ -331,6 +333,8 @@ val combine_numerals =
 
 structure CombineNumeralsProdData =
   struct
+  type coeff            = IntInf.int
+  val iszero            = (fn x => x = 0)
   val add               = IntInf.*
   val mk_sum            = (fn T:typ => mk_prod)
   val dest_sum          = dest_prod
@@ -341,7 +345,9 @@ structure CombineNumeralsProdData =
   val prove_conv        = prove_conv_nohyps "int_combine_numerals_prod"
   fun trans_tac _       = ArithData.gen_trans_tac trans
 
-  val norm_ss1 = ZF_ss addsimps mult_1s @ diff_simps @ zminus_simps
+
+
+val norm_ss1 = ZF_ss addsimps mult_1s @ diff_simps @ zminus_simps
   val norm_ss2 = ZF_ss addsimps [zmult_zminus_right RS sym] @
     bin_simps @ zmult_ac @ tc_rules @ intifys
   fun norm_tac ss =
