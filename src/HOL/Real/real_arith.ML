@@ -8,102 +8,21 @@ Simprocs for common factor cancellation & Rational coefficient handling
 Instantiation of the generic linear arithmetic package for type real.
 *)
 
-val real_le_def = thm "real_le_def";
-val real_diff_def = thm "real_diff_def";
-val real_divide_def = thm "real_divide_def";
-
-val realrel_in_real = thm"realrel_in_real";
-val real_add_commute = thm"real_add_commute";
-val real_add_assoc = thm"real_add_assoc";
-val real_add_zero_left = thm"real_add_zero_left";
-
-val real_mult_commute = thm"real_mult_commute";
-val real_mult_assoc = thm"real_mult_assoc";
-val real_mult_1 = thm"real_mult_1";
-val preal_le_linear = thm"preal_le_linear";
-val real_mult_inverse_left = thm"real_mult_inverse_left";
-val real_not_refl2 = thm"real_not_refl2";
-val real_of_preal_add = thm"real_of_preal_add";
-val real_of_preal_mult = thm"real_of_preal_mult";
-val real_of_preal_trichotomy = thm"real_of_preal_trichotomy";
-val real_of_preal_minus_less_zero = thm"real_of_preal_minus_less_zero";
-val real_of_preal_not_minus_gt_zero = thm"real_of_preal_not_minus_gt_zero";
-val real_of_preal_zero_less = thm"real_of_preal_zero_less";
-val real_le_imp_less_or_eq = thm"real_le_imp_less_or_eq";
-val real_le_refl = thm"real_le_refl";
-val real_le_linear = thm"real_le_linear";
-val real_le_trans = thm"real_le_trans";
-val real_less_le = thm"real_less_le";
-val real_less_sum_gt_zero = thm"real_less_sum_gt_zero";
-val real_gt_zero_preal_Ex = thm "real_gt_zero_preal_Ex";
-val real_gt_preal_preal_Ex = thm "real_gt_preal_preal_Ex";
-val real_ge_preal_preal_Ex = thm "real_ge_preal_preal_Ex";
-val real_less_all_preal = thm "real_less_all_preal";
-val real_less_all_real2 = thm "real_less_all_real2";
-val real_of_preal_le_iff = thm "real_of_preal_le_iff";
-val real_mult_order = thm "real_mult_order";
-val real_add_order = thm "real_add_order";
-val real_le_add_order = thm "real_le_add_order";
-val real_mult_less_mono2 = thm "real_mult_less_mono2";
-
-val real_mult_less_iff1 = thm "real_mult_less_iff1";
-val real_mult_le_cancel_iff1 = thm "real_mult_le_cancel_iff1";
-val real_mult_le_cancel_iff2 = thm "real_mult_le_cancel_iff2";
-val real_mult_less_mono = thm "real_mult_less_mono";
-
-val real_mult_left_cancel = thm"real_mult_left_cancel";
-val real_mult_right_cancel = thm"real_mult_right_cancel";
-val real_inverse_unique = thm "real_inverse_unique";
-val real_inverse_gt_one = thm "real_inverse_gt_one";
-
-val real_of_int_zero = thm"real_of_int_zero";
-val real_of_one = thm"real_of_one";
-val real_of_int_add = thm"real_of_int_add";
-val real_of_int_minus = thm"real_of_int_minus";
-val real_of_int_diff = thm"real_of_int_diff";
-val real_of_int_mult = thm"real_of_int_mult";
-val real_of_int_real_of_nat = thm"real_of_int_real_of_nat";
-val real_of_int_inject = thm"real_of_int_inject";
-val real_of_int_less_iff = thm"real_of_int_less_iff";
-val real_of_int_le_iff = thm"real_of_int_le_iff";
-val real_of_nat_zero = thm "real_of_nat_zero";
-val real_of_nat_one = thm "real_of_nat_one";
-val real_of_nat_add = thm "real_of_nat_add";
-val real_of_nat_Suc = thm "real_of_nat_Suc";
-val real_of_nat_less_iff = thm "real_of_nat_less_iff";
-val real_of_nat_le_iff = thm "real_of_nat_le_iff";
-val real_of_nat_ge_zero = thm "real_of_nat_ge_zero";
-val real_of_nat_Suc_gt_zero = thm "real_of_nat_Suc_gt_zero";
-val real_of_nat_mult = thm "real_of_nat_mult";
-val real_of_nat_inject = thm "real_of_nat_inject";
-val real_of_nat_diff = thm "real_of_nat_diff";
-val real_of_nat_zero_iff = thm "real_of_nat_zero_iff";
-val real_of_nat_gt_zero_cancel_iff = thm "real_of_nat_gt_zero_cancel_iff";
-val real_of_nat_le_zero_cancel_iff = thm "real_of_nat_le_zero_cancel_iff";
-val not_real_of_nat_less_zero = thm "not_real_of_nat_less_zero";
-val real_of_nat_ge_zero_cancel_iff = thm "real_of_nat_ge_zero_cancel_iff";
-val real_number_of = thm"real_number_of";
-val real_of_nat_number_of = thm"real_of_nat_number_of";
-val real_of_int_of_nat_eq = thm"real_of_int_of_nat_eq";
-
-
-(****Instantiation of the generic linear arithmetic package****)
-
 local
 
-val simps = [real_of_nat_zero, real_of_nat_Suc, real_of_nat_add, 
-       real_of_nat_mult, real_of_int_zero, real_of_one, real_of_int_add,
-       real_of_int_minus, real_of_int_diff,
-       real_of_int_mult, real_of_int_of_nat_eq,
-       real_of_nat_number_of, real_number_of]
+val simps = [@{thm real_of_nat_zero}, @{thm real_of_nat_Suc}, @{thm real_of_nat_add},
+             @{thm real_of_nat_mult}, @{thm real_of_int_zero}, @{thm real_of_one},
+             @{thm real_of_int_add}, @{thm real_of_int_minus}, @{thm real_of_int_diff},
+             @{thm real_of_int_mult}, @{thm real_of_int_of_nat_eq},
+             @{thm real_of_nat_number_of}, @{thm real_number_of}]
 
-val nat_inj_thms = [real_of_nat_le_iff RS iffD2,
-                    real_of_nat_inject RS iffD2]
+val nat_inj_thms = [@{thm real_of_nat_le_iff} RS iffD2,
+                    @{thm real_of_nat_inject} RS iffD2]
 (* not needed because x < (y::nat) can be rewritten as Suc x <= y:
                     real_of_nat_less_iff RS iffD2 *)
 
-val int_inj_thms = [real_of_int_le_iff RS iffD2,
-                    real_of_int_inject RS iffD2]
+val int_inj_thms = [@{thm real_of_int_le_iff} RS iffD2,
+                    @{thm real_of_int_inject} RS iffD2]
 (* not needed because x < (y::int) can be rewritten as x + 1 <= y:
                     real_of_int_less_iff RS iffD2 *)
 
@@ -123,8 +42,7 @@ val real_arith_setup =
     neqE = neqE,
     simpset = simpset addsimps simps}) #>
   arith_inj_const ("RealDef.real", HOLogic.natT --> HOLogic.realT) #>
-  arith_inj_const ("RealDef.real", HOLogic.intT --> HOLogic.realT) #>
-  (fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_real_arith_simproc]); thy));
+  arith_inj_const ("RealDef.real", HOLogic.intT --> HOLogic.realT)
 
 end;
 
