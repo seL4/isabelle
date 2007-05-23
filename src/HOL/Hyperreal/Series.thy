@@ -440,6 +440,18 @@ apply (rule summable_comparison_test)
 apply (auto)
 done
 
+text{*Summability of geometric series for real algebras*}
+
+lemma complete_algebra_summable_geometric:
+  fixes x :: "'a::{real_normed_algebra_1,banach,recpower}"
+  shows "norm x < 1 \<Longrightarrow> summable (\<lambda>n. x ^ n)"
+proof (rule summable_comparison_test)
+  show "\<exists>N. \<forall>n\<ge>N. norm (x ^ n) \<le> norm x ^ n"
+    by (simp add: norm_power_ineq)
+  show "norm x < 1 \<Longrightarrow> summable (\<lambda>n. norm x ^ n)"
+    by (simp add: summable_geometric)
+qed
+
 text{*Limit comparison property for series (c.f. jrh)*}
 
 lemma summable_le:
