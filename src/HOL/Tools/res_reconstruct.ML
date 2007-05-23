@@ -470,7 +470,7 @@ val encode_newlines = String.translate (fn c => if c = #"\n" then "\t" else str 
 val restore_newlines = String.translate (fn c => if c = #"\t" then "\n" else str c);
 
 fun signal_success probfile toParent ppid msg = 
-  (trace ("\nReporting Success for" ^ probfile ^ "\n" ^ msg);
+  (trace ("\nReporting Success for " ^ probfile ^ "\n" ^ msg);
    TextIO.output (toParent, "Success. " ^ encode_newlines msg ^ "\n");
    TextIO.output (toParent, probfile ^ "\n");
    TextIO.flushOut toParent;
