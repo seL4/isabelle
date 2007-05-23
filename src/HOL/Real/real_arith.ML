@@ -28,11 +28,6 @@ val int_inj_thms = [@{thm real_of_int_le_iff} RS iffD2,
 
 in
 
-val fast_real_arith_simproc =
- Simplifier.simproc (the_context ())
-  "fast_real_arith" ["(m::real) < n","(m::real) <= n", "(m::real) = n"]
-  Fast_Arith.lin_arith_prover;
-
 val real_arith_setup =
   Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,

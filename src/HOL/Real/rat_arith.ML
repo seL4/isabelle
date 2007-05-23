@@ -32,10 +32,6 @@ val int_inj_thms = [@{thm of_int_le_iff} RS iffD2,
 
 in
 
-val fast_rat_arith_simproc = Simplifier.simproc @{theory}
-  "fast_rat_arith" ["(m::rat) < n","(m::rat) <= n", "(m::rat) = n"]
-    Fast_Arith.lin_arith_prover
-
 val ratT = Type ("Rational.rat", [])
 
 val rat_arith_setup =
