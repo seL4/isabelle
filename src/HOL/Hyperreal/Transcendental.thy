@@ -13,51 +13,53 @@ begin
 
 subsection{*Properties of Power Series*}
 
-lemma lemma_realpow_diff [rule_format (no_asm)]:
-     "p \<le> n --> y ^ (Suc n - p) = ((y::real) ^ (n - p)) * y"
-apply (induct "n", auto)
-apply (subgoal_tac "p = Suc n")
-apply (simp (no_asm_simp), auto)
-apply (drule sym)
-apply (simp add: Suc_diff_le mult_commute realpow_Suc [symmetric] 
-       del: realpow_Suc)
-done
+lemma lemma_realpow_diff:
+  fixes y :: "'a::recpower"
+  shows "p \<le> n \<Longrightarrow> y ^ (Suc n - p) = (y ^ (n - p)) * y"
+proof -
+  assume "p \<le> n"
+  hence "Suc n - p = Suc (n - p)" by (rule Suc_diff_le)
+  thus ?thesis by (simp add: power_Suc power_commutes)
+qed
 
 lemma lemma_realpow_diff_sumr:
-     "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ ((Suc n) - p)) =  
-      y * (\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))::real)"
+  fixes y :: "'a::{recpower,comm_semiring_0}" shows
+     "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ (Suc n - p)) =  
+      y * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
 by (auto simp add: setsum_right_distrib lemma_realpow_diff mult_ac
   simp del: setsum_op_ivl_Suc cong: strong_setsum_cong)
 
 lemma lemma_realpow_diff_sumr2:
+  fixes y :: "'a::{recpower,comm_ring}" shows
      "x ^ (Suc n) - y ^ (Suc n) =  
-      (x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * (y ^(n - p))::real)"
-apply (induct "n", simp)
-apply (auto simp del: setsum_op_ivl_Suc)
+      (x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
+apply (induct "n", simp add: power_Suc)
+apply (simp add: power_Suc del: setsum_op_ivl_Suc)
 apply (subst setsum_op_ivl_Suc)
-apply (drule sym)
-apply (auto simp add: lemma_realpow_diff_sumr right_distrib diff_minus mult_ac simp del: setsum_op_ivl_Suc)
+apply (subst lemma_realpow_diff_sumr)
+apply (simp add: right_distrib del: setsum_op_ivl_Suc)
+apply (subst mult_left_commute [where a="x - y"])
+apply (erule subst)
+apply (simp add: power_Suc ring_eq_simps)
 done
 
 lemma lemma_realpow_rev_sumr:
      "(\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))) =  
-      (\<Sum>p=0..<Suc n. (x ^ (n - p)) * (y ^ p)::real)"
-apply (case_tac "x = y")
-apply (auto simp add: mult_commute power_add [symmetric] simp del: setsum_op_ivl_Suc)
-apply (rule_tac c1 = "x - y" in real_mult_left_cancel [THEN iffD1])
-apply (rule_tac [2] minus_minus [THEN subst], simp)
-apply (subst minus_mult_left)
-apply (simp add: lemma_realpow_diff_sumr2 [symmetric] del: setsum_op_ivl_Suc)
+      (\<Sum>p=0..<Suc n. (x ^ (n - p)) * (y ^ p))"
+apply (rule setsum_reindex_cong [where f="\<lambda>i. n - i"])
+apply (rule inj_onI, simp)
+apply auto
+apply (rule_tac x="n - x" in image_eqI, simp, simp)
 done
 
 text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
 x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.*}
 
 lemma powser_insidea:
-  fixes x z :: real
+  fixes x z :: "'a::{real_normed_field,banach,recpower}"
   assumes 1: "summable (\<lambda>n. f n * x ^ n)"
-  assumes 2: "\<bar>z\<bar> < \<bar>x\<bar>"
-  shows "summable (\<lambda>n. \<bar>f n\<bar> * z ^ n)"
+  assumes 2: "norm z < norm x"
+  shows "summable (\<lambda>n. norm (f n * z ^ n))"
 proof -
   from 2 have x_neq_0: "x \<noteq> 0" by clarsimp
   from 1 have "(\<lambda>n. f n * x ^ n) ----> 0"
@@ -68,53 +70,55 @@ proof -
     by (simp add: Cauchy_convergent_iff)
   hence "Bseq (\<lambda>n. f n * x ^ n)"
     by (rule Cauchy_Bseq)
-  then obtain K where 3: "0 < K" and 4: "\<forall>n. \<bar>f n * x ^ n\<bar> \<le> K"
+  then obtain K where 3: "0 < K" and 4: "\<forall>n. norm (f n * x ^ n) \<le> K"
     by (simp add: Bseq_def, safe)
-  have "\<exists>N. \<forall>n\<ge>N. norm (\<bar>f n\<bar> * z ^ n) \<le> K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar>"
+  have "\<exists>N. \<forall>n\<ge>N. norm (norm (f n * z ^ n)) \<le>
+                   K * norm (z ^ n) * inverse (norm (x ^ n))"
   proof (intro exI allI impI)
     fix n::nat assume "0 \<le> n"
-    have "norm (\<bar>f n\<bar> * z ^ n) * \<bar>x ^ n\<bar> = \<bar>f n * x ^ n\<bar> * \<bar>z ^ n\<bar>"
-      by (simp add: abs_mult)
-    also have "\<dots> \<le> K * \<bar>z ^ n\<bar>"
-      by (simp only: mult_right_mono 4 abs_ge_zero)
-    also have "\<dots> = K * \<bar>z ^ n\<bar> * (inverse \<bar>x ^ n\<bar> * \<bar>x ^ n\<bar>)"
+    have "norm (norm (f n * z ^ n)) * norm (x ^ n) =
+          norm (f n * x ^ n) * norm (z ^ n)"
+      by (simp add: norm_mult abs_mult)
+    also have "\<dots> \<le> K * norm (z ^ n)"
+      by (simp only: mult_right_mono 4 norm_ge_zero)
+    also have "\<dots> = K * norm (z ^ n) * (inverse (norm (x ^ n)) * norm (x ^ n))"
       by (simp add: x_neq_0)
-    also have "\<dots> = K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar> * \<bar>x ^ n\<bar>"
+    also have "\<dots> = K * norm (z ^ n) * inverse (norm (x ^ n)) * norm (x ^ n)"
       by (simp only: mult_assoc)
-    finally show "norm (\<bar>f n\<bar> * z ^ n) \<le> K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar>"
+    finally show "norm (norm (f n * z ^ n)) \<le>
+                  K * norm (z ^ n) * inverse (norm (x ^ n))"
       by (simp add: mult_le_cancel_right x_neq_0)
   qed
-  moreover have "summable (\<lambda>n. K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar>)"
+  moreover have "summable (\<lambda>n. K * norm (z ^ n) * inverse (norm (x ^ n)))"
   proof -
-    from 2 have "norm \<bar>z * inverse x\<bar> < 1"
-      by (simp add: abs_mult divide_inverse [symmetric])
-    hence "summable (\<lambda>n. \<bar>z * inverse x\<bar> ^ n)"
+    from 2 have "norm (norm (z * inverse x)) < 1"
+      using x_neq_0
+      by (simp add: nonzero_norm_divide divide_inverse [symmetric])
+    hence "summable (\<lambda>n. norm (z * inverse x) ^ n)"
       by (rule summable_geometric)
-    hence "summable (\<lambda>n. K * \<bar>z * inverse x\<bar> ^ n)"
+    hence "summable (\<lambda>n. K * norm (z * inverse x) ^ n)"
       by (rule summable_mult)
-    thus "summable (\<lambda>n. K * \<bar>z ^ n\<bar> * inverse \<bar>x ^ n\<bar>)"
-      by (simp add: abs_mult power_mult_distrib power_abs
-                    power_inverse mult_assoc)
+    thus "summable (\<lambda>n. K * norm (z ^ n) * inverse (norm (x ^ n)))"
+      using x_neq_0
+      by (simp add: norm_mult nonzero_norm_inverse power_mult_distrib
+                    power_inverse norm_power mult_assoc)
   qed
-  ultimately show "summable (\<lambda>n. \<bar>f n\<bar> * z ^ n)"
+  ultimately show "summable (\<lambda>n. norm (f n * z ^ n))"
     by (rule summable_comparison_test)
 qed
 
 lemma powser_inside:
-  fixes f :: "nat \<Rightarrow> real" shows
-     "[| summable (%n. f(n) * (x ^ n)); \<bar>z\<bar> < \<bar>x\<bar> |]  
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach,recpower}" shows
+     "[| summable (%n. f(n) * (x ^ n)); norm z < norm x |]  
       ==> summable (%n. f(n) * (z ^ n))"
-apply (drule_tac z = "\<bar>z\<bar>" in powser_insidea, simp)
-apply (rule summable_rabs_cancel)
-apply (simp add: abs_mult power_abs [symmetric])
-done
+by (rule powser_insidea [THEN summable_norm_cancel])
 
 
 subsection{*Term-by-Term Differentiability of Power Series*}
 
 definition
-  diffs :: "(nat => real) => nat => real" where
-  "diffs c = (%n. real (Suc n) * c(Suc n))"
+  diffs :: "(nat => 'a::ring_1) => nat => 'a" where
+  "diffs c = (%n. of_nat (Suc n) * c(Suc n))"
 
 text{*Lemma about distributing negation over it*}
 lemma diffs_minus: "diffs (%n. - c n) = (%n. - diffs c n)"
@@ -123,24 +127,24 @@ by (simp add: diffs_def)
 text{*Show that we can shift the terms down one*}
 lemma lemma_diffs:
      "(\<Sum>n=0..<n. (diffs c)(n) * (x ^ n)) =  
-      (\<Sum>n=0..<n. real n * c(n) * (x ^ (n - Suc 0))) +  
-      (real n * c(n) * x ^ (n - Suc 0))"
+      (\<Sum>n=0..<n. of_nat n * c(n) * (x ^ (n - Suc 0))) +  
+      (of_nat n * c(n) * x ^ (n - Suc 0))"
 apply (induct "n")
 apply (auto simp add: mult_assoc add_assoc [symmetric] diffs_def)
 done
 
 lemma lemma_diffs2:
-     "(\<Sum>n=0..<n. real n * c(n) * (x ^ (n - Suc 0))) =  
+     "(\<Sum>n=0..<n. of_nat n * c(n) * (x ^ (n - Suc 0))) =  
       (\<Sum>n=0..<n. (diffs c)(n) * (x ^ n)) -  
-      (real n * c(n) * x ^ (n - Suc 0))"
+      (of_nat n * c(n) * x ^ (n - Suc 0))"
 by (auto simp add: lemma_diffs)
 
 
 lemma diffs_equiv:
      "summable (%n. (diffs c)(n) * (x ^ n)) ==>  
-      (%n. real n * c(n) * (x ^ (n - Suc 0))) sums  
+      (%n. of_nat n * c(n) * (x ^ (n - Suc 0))) sums  
          (\<Sum>n. (diffs c)(n) * (x ^ n))"
-apply (subgoal_tac " (%n. real n * c (n) * (x ^ (n - Suc 0))) ----> 0")
+apply (subgoal_tac " (%n. of_nat n * c (n) * (x ^ (n - Suc 0))) ----> 0")
 apply (rule_tac [2] LIMSEQ_imp_Suc)
 apply (drule summable_sums) 
 apply (auto simp add: sums_def)
@@ -150,8 +154,9 @@ apply (simp add: diffs_def summable_LIMSEQ_zero)
 done
 
 lemma lemma_termdiff1:
+  fixes z :: "'a :: {recpower,comm_ring}" shows
   "(\<Sum>p=0..<m. (((z + h) ^ (m - p)) * (z ^ p)) - (z ^ m)) =  
-   (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p)))::real)"
+   (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p))))"
 by (auto simp add: right_distrib diff_minus power_add [symmetric] mult_ac
   cong: strong_setsum_cong)
 
@@ -161,20 +166,25 @@ by (simp add: less_iff_Suc_add)
 lemma sumdiff: "a + b - (c + d) = a - c + b - (d::real)"
 by arith
 
+lemma sumr_diff_mult_const2:
+  "setsum f {0..<n} - of_nat n * (r::'a::ring_1) = (\<Sum>i = 0..<n. f i - r)"
+by (simp add: setsum_subtractf)
+
 lemma lemma_termdiff2:
+  fixes h :: "'a :: {recpower,field,division_by_zero}"
   assumes h: "h \<noteq> 0" shows
-  "((z + h) ^ n - z ^ n) / h - real n * z ^ (n - Suc 0) =
+  "((z + h) ^ n - z ^ n) / h - of_nat n * z ^ (n - Suc 0) =
    h * (\<Sum>p=0..< n - Suc 0. \<Sum>q=0..< n - Suc 0 - p.
-        (z + h) ^ q * z ^ (n - 2 - q))"
-apply (rule real_mult_left_cancel [OF h, THEN iffD1])
+        (z + h) ^ q * z ^ (n - 2 - q))" (is "?lhs = ?rhs")
+apply (subgoal_tac "h * ?lhs = h * ?rhs", simp add: h)
 apply (simp add: right_diff_distrib diff_divide_distrib h)
 apply (simp add: mult_assoc [symmetric])
 apply (cases "n", simp)
 apply (simp add: lemma_realpow_diff_sumr2 h
                  right_diff_distrib [symmetric] mult_assoc
-            del: realpow_Suc setsum_op_ivl_Suc)
+            del: realpow_Suc setsum_op_ivl_Suc of_nat_Suc)
 apply (subst lemma_realpow_rev_sumr)
-apply (subst sumr_diff_mult_const)
+apply (subst sumr_diff_mult_const2)
 apply simp
 apply (simp only: lemma_termdiff1 setsum_right_distrib)
 apply (rule setsum_cong [OF refl])
@@ -187,174 +197,185 @@ apply (simp add: mult_ac)
 done
 
 lemma real_setsum_nat_ivl_bounded2:
-  "\<lbrakk>\<And>p::nat. p < n \<Longrightarrow> f p \<le> K; 0 \<le> K\<rbrakk>
-   \<Longrightarrow> setsum f {0..<n-k} \<le> real n * K"
-apply (rule order_trans [OF real_setsum_nat_ivl_bounded mult_right_mono])
-apply simp_all
+  fixes K :: "'a::ordered_semidom"
+  assumes f: "\<And>p::nat. p < n \<Longrightarrow> f p \<le> K"
+  assumes K: "0 \<le> K"
+  shows "setsum f {0..<n-k} \<le> of_nat n * K"
+apply (rule order_trans [OF setsum_mono])
+apply (rule f, simp)
+apply (simp add: mult_right_mono K)
 done
 
 lemma lemma_termdiff3:
+  fixes h z :: "'a::{real_normed_field,recpower,division_by_zero}"
   assumes 1: "h \<noteq> 0"
-  assumes 2: "\<bar>z\<bar> \<le> K"
-  assumes 3: "\<bar>z + h\<bar> \<le> K"
-  shows "\<bar>((z + h) ^ n - z ^ n) / h - real n * z ^ (n - Suc 0)\<bar>
-          \<le> real n * real (n - Suc 0) * K ^ (n - 2) * \<bar>h\<bar>"
+  assumes 2: "norm z \<le> K"
+  assumes 3: "norm (z + h) \<le> K"
+  shows "norm (((z + h) ^ n - z ^ n) / h - of_nat n * z ^ (n - Suc 0))
+          \<le> of_nat n * of_nat (n - Suc 0) * K ^ (n - 2) * norm h"
 proof -
-  have "\<bar>((z + h) ^ n - z ^ n) / h - real n * z ^ (n - Suc 0)\<bar> =
-        \<bar>\<Sum>p = 0..<n - Suc 0. \<Sum>q = 0..<n - Suc 0 - p.
-          (z + h) ^ q * z ^ (n - 2 - q)\<bar> * \<bar>h\<bar>"
+  have "norm (((z + h) ^ n - z ^ n) / h - of_nat n * z ^ (n - Suc 0)) =
+        norm (\<Sum>p = 0..<n - Suc 0. \<Sum>q = 0..<n - Suc 0 - p.
+          (z + h) ^ q * z ^ (n - 2 - q)) * norm h"
     apply (subst lemma_termdiff2 [OF 1])
-    apply (subst abs_mult)
+    apply (subst norm_mult)
     apply (rule mult_commute)
     done
-  also have "\<dots> \<le> real n * (real (n - Suc 0) * K ^ (n - 2)) * \<bar>h\<bar>"
-  proof (rule mult_right_mono [OF _ abs_ge_zero])
-    from abs_ge_zero 2 have K: "0 \<le> K" by (rule order_trans)
-    have le_Kn: "\<And>i j n. i + j = n \<Longrightarrow> \<bar>(z + h) ^ i * z ^ j\<bar> \<le> K ^ n"
+  also have "\<dots> \<le> of_nat n * (of_nat (n - Suc 0) * K ^ (n - 2)) * norm h"
+  proof (rule mult_right_mono [OF _ norm_ge_zero])
+    from norm_ge_zero 2 have K: "0 \<le> K" by (rule order_trans)
+    have le_Kn: "\<And>i j n. i + j = n \<Longrightarrow> norm ((z + h) ^ i * z ^ j) \<le> K ^ n"
       apply (erule subst)
-      apply (simp only: abs_mult power_abs power_add)
-      apply (intro mult_mono power_mono 2 3 abs_ge_zero zero_le_power K)
+      apply (simp only: norm_mult norm_power power_add)
+      apply (intro mult_mono power_mono 2 3 norm_ge_zero zero_le_power K)
       done
-    show "\<bar>\<Sum>p = 0..<n - Suc 0. \<Sum>q = 0..<n - Suc 0 - p.
-              (z + h) ^ q * z ^ (n - 2 - q)\<bar>
-          \<le> real n * (real (n - Suc 0) * K ^ (n - 2))"
+    show "norm (\<Sum>p = 0..<n - Suc 0. \<Sum>q = 0..<n - Suc 0 - p.
+              (z + h) ^ q * z ^ (n - 2 - q))
+          \<le> of_nat n * (of_nat (n - Suc 0) * K ^ (n - 2))"
       apply (intro
-         order_trans [OF setsum_abs]
+         order_trans [OF norm_setsum]
          real_setsum_nat_ivl_bounded2
          mult_nonneg_nonneg
-         real_of_nat_ge_zero
+         zero_le_imp_of_nat
          zero_le_power K)
       apply (rule le_Kn, simp)
       done
   qed
-  also have "\<dots> = real n * real (n - Suc 0) * K ^ (n - 2) * \<bar>h\<bar>"
+  also have "\<dots> = of_nat n * of_nat (n - Suc 0) * K ^ (n - 2) * norm h"
     by (simp only: mult_assoc)
   finally show ?thesis .
 qed
 
 lemma lemma_termdiff4:
+  fixes f :: "'a::{real_normed_field,recpower,division_by_zero} \<Rightarrow>
+              'b::real_normed_vector"
   assumes k: "0 < (k::real)"
-  assumes le: "\<And>h. \<lbrakk>h \<noteq> 0; \<bar>h\<bar> < k\<rbrakk> \<Longrightarrow> \<bar>f h\<bar> \<le> K * \<bar>h\<bar>"
+  assumes le: "\<And>h. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (f h) \<le> K * norm h"
   shows "f -- 0 --> 0"
 proof (simp add: LIM_def, safe)
   fix r::real assume r: "0 < r"
   have zero_le_K: "0 \<le> K"
     apply (cut_tac k)
-    apply (cut_tac h="k/2" in le, simp, simp)
-    apply (subgoal_tac "0 \<le> K*k", simp add: zero_le_mult_iff) 
-    apply (force intro: order_trans [of _ "\<bar>f (k / 2)\<bar> * 2"]) 
+    apply (cut_tac h="of_real (k/2)" in le, simp)
+    apply (simp del: of_real_divide)
+    apply (drule order_trans [OF norm_ge_zero])
+    apply (simp add: zero_le_mult_iff)
     done
-  show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> \<bar>x\<bar> < s \<longrightarrow> \<bar>f x\<bar> < r)"
+  show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < s \<longrightarrow> norm (f x) < r)"
   proof (cases)
     assume "K = 0"
-    with k r le have "0 < k \<and> (\<forall>x. x \<noteq> 0 \<and> \<bar>x\<bar> < k \<longrightarrow> \<bar>f x\<bar> < r)"
+    with k r le have "0 < k \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < k \<longrightarrow> norm (f x) < r)"
       by simp
-    thus "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> \<bar>x\<bar> < s \<longrightarrow> \<bar>f x\<bar> < r)" ..
+    thus "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < s \<longrightarrow> norm (f x) < r)" ..
   next
     assume K_neq_zero: "K \<noteq> 0"
     with zero_le_K have K: "0 < K" by simp
-    show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> \<bar>x\<bar> < s \<longrightarrow> \<bar>f x\<bar> < r)"
+    show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < s \<longrightarrow> norm (f x) < r)"
     proof (rule exI, safe)
       from k r K show "0 < min k (r * inverse K / 2)"
         by (simp add: mult_pos_pos positive_imp_inverse_positive)
     next
-      fix x::real
-      assume x1: "x \<noteq> 0" and x2: "\<bar>x\<bar> < min k (r * inverse K / 2)"
-      from x2 have x3: "\<bar>x\<bar> < k" and x4: "\<bar>x\<bar> < r * inverse K / 2"
+      fix x::'a
+      assume x1: "x \<noteq> 0" and x2: "norm x < min k (r * inverse K / 2)"
+      from x2 have x3: "norm x < k" and x4: "norm x < r * inverse K / 2"
         by simp_all
-      from x1 x3 le have "\<bar>f x\<bar> \<le> K * \<bar>x\<bar>" by simp
-      also from x4 K have "K * \<bar>x\<bar> < K * (r * inverse K / 2)"
+      from x1 x3 le have "norm (f x) \<le> K * norm x" by simp
+      also from x4 K have "K * norm x < K * (r * inverse K / 2)"
         by (rule mult_strict_left_mono)
       also have "\<dots> = r / 2"
         using K_neq_zero by simp
       also have "r / 2 < r"
         using r by simp
-      finally show "\<bar>f x\<bar> < r" .
+      finally show "norm (f x) < r" .
     qed
   qed
 qed
 
 lemma lemma_termdiff5:
+  fixes g :: "'a::{recpower,real_normed_field,division_by_zero} \<Rightarrow>
+              nat \<Rightarrow> 'b::banach"
   assumes k: "0 < (k::real)"
   assumes f: "summable f"
-  assumes le: "\<And>h n. \<lbrakk>h \<noteq> 0; \<bar>h\<bar> < k\<rbrakk> \<Longrightarrow> \<bar>g h n\<bar> \<le> f n * \<bar>h\<bar>"
+  assumes le: "\<And>h n. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (g h n) \<le> f n * norm h"
   shows "(\<lambda>h. suminf (g h)) -- 0 --> 0"
 proof (rule lemma_termdiff4 [OF k])
-  fix h assume "h \<noteq> 0" and "\<bar>h\<bar> < k"
-  hence A: "\<forall>n. \<bar>g h n\<bar> \<le> f n * \<bar>h\<bar>"
+  fix h::'a assume "h \<noteq> 0" and "norm h < k"
+  hence A: "\<forall>n. norm (g h n) \<le> f n * norm h"
     by (simp add: le)
-  hence "\<exists>N. \<forall>n\<ge>N. norm \<bar>g h n\<bar> \<le> f n * \<bar>h\<bar>"
+  hence "\<exists>N. \<forall>n\<ge>N. norm (norm (g h n)) \<le> f n * norm h"
     by simp
-  moreover from f have B: "summable (\<lambda>n. f n * \<bar>h\<bar>)"
+  moreover from f have B: "summable (\<lambda>n. f n * norm h)"
     by (rule summable_mult2)
-  ultimately have C: "summable (\<lambda>n. \<bar>g h n\<bar>)"
+  ultimately have C: "summable (\<lambda>n. norm (g h n))"
     by (rule summable_comparison_test)
-  hence "\<bar>suminf (g h)\<bar> \<le> (\<Sum>n. \<bar>g h n\<bar>)"
-    by (rule summable_rabs)
-  also from A C B have "(\<Sum>n. \<bar>g h n\<bar>) \<le> (\<Sum>n. f n * \<bar>h\<bar>)"
+  hence "norm (suminf (g h)) \<le> (\<Sum>n. norm (g h n))"
+    by (rule summable_norm)
+  also from A C B have "(\<Sum>n. norm (g h n)) \<le> (\<Sum>n. f n * norm h)"
     by (rule summable_le)
-  also from f have "(\<Sum>n. f n * \<bar>h\<bar>) = suminf f * \<bar>h\<bar>"
+  also from f have "(\<Sum>n. f n * norm h) = suminf f * norm h"
     by (rule suminf_mult2 [symmetric])
-  finally show "\<bar>suminf (g h)\<bar> \<le> suminf f * \<bar>h\<bar>" .
+  finally show "norm (suminf (g h)) \<le> suminf f * norm h" .
 qed
 
 
 text{* FIXME: Long proofs*}
 
 lemma termdiffs_aux:
+  fixes x :: "'a::{recpower,real_normed_field,division_by_zero,banach}"
   assumes 1: "summable (\<lambda>n. diffs (diffs c) n * K ^ n)"
-  assumes 2: "\<bar>x\<bar> < \<bar>K\<bar>"
+  assumes 2: "norm x < norm K"
   shows "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h
-             - real n * x ^ (n - Suc 0))) -- 0 --> 0"
+             - of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
 proof -
   from dense [OF 2]
-  obtain r where r1: "\<bar>x\<bar> < r" and r2: "r < \<bar>K\<bar>" by fast
-  from abs_ge_zero r1 have r: "0 < r"
+  obtain r where r1: "norm x < r" and r2: "r < norm K" by fast
+  from norm_ge_zero r1 have r: "0 < r"
     by (rule order_le_less_trans)
   hence r_neq_0: "r \<noteq> 0" by simp
   show ?thesis
   proof (rule lemma_termdiff5)
-    show "0 < r - \<bar>x\<bar>" using r1 by simp
+    show "0 < r - norm x" using r1 by simp
   next
-    from r r2 have "\<bar>r\<bar> < \<bar>K\<bar>"
-      by (simp only: abs_of_nonneg order_less_imp_le)
-    with 1 have "summable (\<lambda>n. \<bar>diffs (diffs c) n\<bar> * (r ^ n))"
+    from r r2 have "norm (of_real r::'a) < norm K"
+      by simp
+    with 1 have "summable (\<lambda>n. norm (diffs (diffs c) n * (of_real r ^ n)))"
       by (rule powser_insidea)
-    hence "summable (\<lambda>n. diffs (diffs (\<lambda>n. \<bar>c n\<bar>)) n * r ^ n)"
-      by (simp only: diffs_def abs_mult abs_real_of_nat_cancel)
-    hence "summable (\<lambda>n. real n * diffs (\<lambda>n. \<bar>c n\<bar>) n * r ^ (n - Suc 0))"
+    hence "summable (\<lambda>n. diffs (diffs (\<lambda>n. norm (c n))) n * r ^ n)"
+      using r
+      by (simp add: diffs_def norm_mult norm_power del: of_nat_Suc)
+    hence "summable (\<lambda>n. of_nat n * diffs (\<lambda>n. norm (c n)) n * r ^ (n - Suc 0))"
       by (rule diffs_equiv [THEN sums_summable])
-    also have "(\<lambda>n. real n * diffs (\<lambda>n. \<bar>c n\<bar>) n * r ^ (n - Suc 0))
-      = (\<lambda>n. diffs (%m. real (m - Suc 0) * \<bar>c m\<bar> * inverse r) n * (r ^ n))"
+    also have "(\<lambda>n. of_nat n * diffs (\<lambda>n. norm (c n)) n * r ^ (n - Suc 0))
+      = (\<lambda>n. diffs (%m. of_nat (m - Suc 0) * norm (c m) * inverse r) n * (r ^ n))"
       apply (rule ext)
       apply (simp add: diffs_def)
       apply (case_tac n, simp_all add: r_neq_0)
       done
     finally have "summable 
-      (\<lambda>n. real n * (real (n - Suc 0) * \<bar>c n\<bar> * inverse r) * r ^ (n - Suc 0))"
+      (\<lambda>n. of_nat n * (of_nat (n - Suc 0) * norm (c n) * inverse r) * r ^ (n - Suc 0))"
       by (rule diffs_equiv [THEN sums_summable])
     also have
-      "(\<lambda>n. real n * (real (n - Suc 0) * \<bar>c n\<bar> * inverse r) *
+      "(\<lambda>n. of_nat n * (of_nat (n - Suc 0) * norm (c n) * inverse r) *
            r ^ (n - Suc 0)) =
-       (\<lambda>n. \<bar>c n\<bar> * real n * real (n - Suc 0) * r ^ (n - 2))"
+       (\<lambda>n. norm (c n) * of_nat n * of_nat (n - Suc 0) * r ^ (n - 2))"
       apply (rule ext)
       apply (case_tac "n", simp)
       apply (case_tac "nat", simp)
       apply (simp add: r_neq_0)
       done
     finally show
-      "summable (\<lambda>n. \<bar>c n\<bar> * real n * real (n - Suc 0) * r ^ (n - 2))" .
+      "summable (\<lambda>n. norm (c n) * of_nat n * of_nat (n - Suc 0) * r ^ (n - 2))" .
   next
-    fix h::real and n::nat
+    fix h::'a and n::nat
     assume h: "h \<noteq> 0"
-    assume "\<bar>h\<bar> < r - \<bar>x\<bar>"
-    hence "\<bar>x\<bar> + \<bar>h\<bar> < r" by simp
-    with abs_triangle_ineq have xh: "\<bar>x + h\<bar> < r"
+    assume "norm h < r - norm x"
+    hence "norm x + norm h < r" by simp
+    with norm_triangle_ineq have xh: "norm (x + h) < r"
       by (rule order_le_less_trans)
-    show "\<bar>c n * (((x + h) ^ n - x ^ n) / h - real n * x ^ (n - Suc 0))\<bar>
-          \<le> \<bar>c n\<bar> * real n * real (n - Suc 0) * r ^ (n - 2) * \<bar>h\<bar>"
-      apply (simp only: abs_mult mult_assoc)
-      apply (rule mult_left_mono [OF _ abs_ge_zero])
+    show "norm (c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))
+          \<le> norm (c n) * of_nat n * of_nat (n - Suc 0) * r ^ (n - 2) * norm h"
+      apply (simp only: norm_mult mult_assoc)
+      apply (rule mult_left_mono [OF _ norm_ge_zero])
       apply (simp (no_asm) add: mult_assoc [symmetric])
       apply (rule lemma_termdiff3)
       apply (rule h)
@@ -365,23 +386,24 @@ proof -
 qed
 
 lemma termdiffs:
+  fixes K x :: "'a::{recpower,real_normed_field,division_by_zero,banach}"
   assumes 1: "summable (\<lambda>n. c n * K ^ n)"
   assumes 2: "summable (\<lambda>n. (diffs c) n * K ^ n)"
   assumes 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
-  assumes 4: "\<bar>x\<bar> < \<bar>K\<bar>"
+  assumes 4: "norm x < norm K"
   shows "DERIV (\<lambda>x. \<Sum>n. c n * x ^ n) x :> (\<Sum>n. (diffs c) n * x ^ n)"
 proof (simp add: deriv_def, rule LIM_zero_cancel)
   show "(\<lambda>h. (suminf (\<lambda>n. c n * (x + h) ^ n) - suminf (\<lambda>n. c n * x ^ n)) / h
             - suminf (\<lambda>n. diffs c n * x ^ n)) -- 0 --> 0"
   proof (rule LIM_equal2)
-    show "0 < \<bar>K\<bar> - \<bar>x\<bar>" by (simp add: less_diff_eq 4)
+    show "0 < norm K - norm x" by (simp add: less_diff_eq 4)
   next
-    fix h :: real
+    fix h :: 'a
     assume "h \<noteq> 0"
-    assume "norm (h - 0) < \<bar>K\<bar> - \<bar>x\<bar>"
-    hence "\<bar>x\<bar> + \<bar>h\<bar> < \<bar>K\<bar>" by simp
-    hence 5: "\<bar>x + h\<bar> < \<bar>K\<bar>"
-      by (rule abs_triangle_ineq [THEN order_le_less_trans])
+    assume "norm (h - 0) < norm K - norm x"
+    hence "norm x + norm h < norm K" by simp
+    hence 5: "norm (x + h) < norm K"
+      by (rule norm_triangle_ineq [THEN order_le_less_trans])
     have A: "summable (\<lambda>n. c n * x ^ n)"
       by (rule powser_inside [OF 1 4])
     have B: "summable (\<lambda>n. c n * (x + h) ^ n)"
@@ -390,7 +412,7 @@ proof (simp add: deriv_def, rule LIM_zero_cancel)
       by (rule powser_inside [OF 2 4])
     show "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h
              - (\<Sum>n. diffs c n * x ^ n) = 
-          (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - real n * x ^ (n - Suc 0)))"
+          (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))"
       apply (subst sums_unique [OF diffs_equiv [OF C]])
       apply (subst suminf_diff [OF B A])
       apply (subst suminf_divide [symmetric])
@@ -405,7 +427,7 @@ proof (simp add: deriv_def, rule LIM_zero_cancel)
       done
   next
     show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h -
-               real n * x ^ (n - Suc 0))) -- 0 --> 0"
+               of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
         by (rule termdiffs_aux [OF 3 4])
   qed
 qed
@@ -515,7 +537,8 @@ subsection{*Formal Derivatives of Exp, Sin, and Cos Series*}
 
 lemma exp_fdiffs: 
       "diffs (%n. inverse(real (fact n))) = (%n. inverse(real (fact n)))"
-by (simp add: diffs_def mult_assoc [symmetric] del: mult_Suc)
+by (simp add: diffs_def mult_assoc [symmetric] real_of_nat_def
+         del: mult_Suc of_nat_Suc)
 
 lemma sin_fdiffs: 
       "diffs(%n. if even n then 0  
@@ -524,7 +547,8 @@ lemma sin_fdiffs:
                  (- 1) ^ (n div 2)/(real (fact n))  
               else 0)"
 by (auto intro!: ext 
-         simp add: diffs_def divide_inverse simp del: mult_Suc)
+         simp add: diffs_def divide_inverse real_of_nat_def
+         simp del: mult_Suc of_nat_Suc)
 
 lemma sin_fdiffs2: 
        "diffs(%n. if even n then 0  
@@ -533,7 +557,8 @@ lemma sin_fdiffs2:
                  (- 1) ^ (n div 2)/(real (fact n))  
               else 0)"
 by (auto intro!: ext 
-         simp add: diffs_def divide_inverse simp del: mult_Suc)
+         simp add: diffs_def divide_inverse real_of_nat_def
+         simp del: mult_Suc of_nat_Suc)
 
 lemma cos_fdiffs: 
       "diffs(%n. if even n then  
@@ -541,8 +566,8 @@ lemma cos_fdiffs:
        = (%n. - (if even n then 0  
            else (- 1) ^ ((n - Suc 0)div 2)/(real (fact n))))"
 by (auto intro!: ext 
-         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex
-         simp del: mult_Suc)
+         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def
+         simp del: mult_Suc of_nat_Suc)
 
 
 lemma cos_fdiffs2: 
@@ -551,8 +576,8 @@ lemma cos_fdiffs2:
        = - (if even n then 0  
            else (- 1) ^ ((n - Suc 0)div 2)/(real (fact n)))"
 by (auto intro!: ext 
-         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex
-         simp del: mult_Suc)
+         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def
+         simp del: mult_Suc of_nat_Suc)
 
 text{*Now at last we can get the derivatives of exp, sin and cos*}
 
