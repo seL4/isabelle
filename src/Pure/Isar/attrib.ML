@@ -127,7 +127,7 @@ fun add_attributes raw_attrs thy =
   let
     val new_attrs =
       raw_attrs |> map (fn (name, att, comment) => (name, ((att, comment), stamp ())));
-    fun add attrs = NameSpace.extend_table (Sign.naming_of thy) (attrs, new_attrs)
+    fun add attrs = NameSpace.extend_table (Sign.naming_of thy) new_attrs attrs
       handle Symtab.DUPS dups =>
         error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
   in AttributesData.map add thy end;

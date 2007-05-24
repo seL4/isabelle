@@ -423,7 +423,7 @@ fun add_methods raw_meths thy =
     val new_meths = raw_meths |> map (fn (name, f, comment) =>
       (name, ((f, comment), stamp ())));
 
-    fun add meths = NameSpace.extend_table (Sign.naming_of thy) (meths, new_meths)
+    fun add meths = NameSpace.extend_table (Sign.naming_of thy) new_meths meths
       handle Symtab.DUPS dups =>
         error ("Duplicate declaration of method(s) " ^ commas_quote dups);
   in MethodsData.map add thy end;

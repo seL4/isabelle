@@ -228,7 +228,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
       in
         context
         |> Simprocs.map (fn simprocs =>
-            NameSpace.extend_table naming (simprocs, [(name', simproc')])
+            NameSpace.extend_table naming [(name', simproc')] simprocs
               handle Symtab.DUPS ds => err_dup_simprocs ds)
         |> map_ss (fn ss => ss addsimprocs [simproc'])
       end)

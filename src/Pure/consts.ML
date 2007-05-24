@@ -202,7 +202,7 @@ fun err_dup_consts cs =
 fun err_inconsistent_constraints cs =
   error ("Inconsistent type constraints for constant(s) " ^ commas_quote cs);
 
-fun extend_decls naming decl tab = NameSpace.extend_table naming (tab, [decl])
+fun extend_decls naming decl tab = NameSpace.extend_table naming [decl] tab
   handle Symtab.DUPS cs => err_dup_consts cs;
 
 

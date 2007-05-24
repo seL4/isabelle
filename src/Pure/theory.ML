@@ -181,7 +181,7 @@ local
 fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
     val axms = map (apsnd (Compress.term thy o Logic.varify) o prep_axm thy) raw_axms;
-    val axioms' = NameSpace.extend_table (Sign.naming_of thy) (axioms, axms)
+    val axioms' = NameSpace.extend_table (Sign.naming_of thy) axms axioms
       handle Symtab.DUPS dups => err_dup_axms dups;
   in axioms' end);
 
@@ -306,7 +306,7 @@ end;
 (** add oracle **)
 
 fun add_oracle (bname, oracle) thy = thy |> map_oracles (fn oracles =>
-  NameSpace.extend_table (Sign.naming_of thy) (oracles, [(bname, (oracle, stamp ()))])
+  NameSpace.extend_table (Sign.naming_of thy) [(bname, (oracle, stamp ()))] oracles
     handle Symtab.DUPS dups => err_dup_oras dups);
 
 end;

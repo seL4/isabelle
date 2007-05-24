@@ -53,7 +53,7 @@ sig
     naming -> naming
   type 'a table (*= T * 'a Symtab.table*)
   val empty_table: 'a table
-  val extend_table: naming -> 'a table * (bstring * 'a) list -> 'a table
+  val extend_table: naming -> (bstring * 'a) list -> 'a table -> 'a table
   val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table
   val dest_table: 'a table -> (string * 'a) list
   val extern_table: 'a table -> (xstring * 'a) list
@@ -169,11 +169,8 @@ fun extern space name =
 (* basic operations *)
 
 fun map_space f xname (NameSpace tab) =
-  let val entry' =
-    (case Symtab.lookup tab xname of
-      NONE => f ([], [])
-    | SOME (entry, _) => f entry)
-  in NameSpace (Symtab.update (xname, (entry', stamp ())) tab) end;
+  NameSpace (Symtab.map_default (xname, (([], []), stamp ()))
+    (fn (entry, _) => (f entry, stamp ())) tab);
 
 fun del (name: string) = remove (op =) name;
 fun add name names = name :: del name names;
@@ -270,7 +267,7 @@ type 'a table = T * 'a Symtab.table;
 
 val empty_table = (empty, Symtab.empty);
 
-fun extend_table naming ((space, tab), bentries) =
+fun extend_table naming bentries (space, tab) =
   let val entries = map (apfst (full naming)) bentries
   in (fold (declare naming o #1) entries space, Symtab.extend (tab, entries)) end;
 
