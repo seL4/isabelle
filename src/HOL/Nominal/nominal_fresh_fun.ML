@@ -184,10 +184,8 @@ fun fresh_fun_tac no_asm i thm =
            (TRY' (SOLVEI (NominalPermeq.fresh_guess_tac ss''))) THEN'
            (TRY' (SOLVEI (asm_full_simp_tac ss'')))] 
   in 
-   ((if no_asm then 
-    (subst_inner_asm_tac ctx fresh_fun_app' i THENL post_rewrite_tacs)
-    else 
-     no_tac) 
+   ((if no_asm then no_tac else
+    (subst_inner_asm_tac ctx fresh_fun_app' i THENL post_rewrite_tacs)) 
     ORELSE
     (subst_inner_tac     ctx fresh_fun_app' i THENL post_rewrite_tacs)) st
   end)) thm
