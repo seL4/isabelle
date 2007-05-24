@@ -548,9 +548,9 @@ fun generate thy funcgr targets gen it =
     val cs = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
       (CodegenFuncgr.all funcgr);
     val funcgr' = Funcgr.make thy cs;
-    val qnaming = NameSpace.qualified_names NameSpace.default_naming;
+    val naming = NameSpace.qualified_names NameSpace.default_naming;
     val consttab = Consts.empty
-      |> fold (fn c => Consts.declare qnaming
+      |> fold (fn c => Consts.declare naming
            ((CodegenNames.const thy c, CodegenFuncgr.typ funcgr' c), true))
            (CodegenFuncgr.all funcgr');
     val algbr = (CodegenData.operational_algebra thy, consttab);
