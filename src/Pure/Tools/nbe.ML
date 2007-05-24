@@ -133,17 +133,17 @@ fun eval_term thy funcgr t =
   let
     fun subst_Frees [] = I
       | subst_Frees inst =
-          Term.map_aterms (fn (t as Free(s, _)) => the_default t (AList.lookup (op =) inst s)
-                      | t => t);
+          Term.map_aterms (fn (t as Free (s, _)) => the_default t (AList.lookup (op =) inst s)
+                            | t => t);
     val anno_vars =
       subst_Frees (map (fn (s, T) => (s, Free (s, T))) (Term.add_frees t []))
-      #> subst_Vars  (map (fn (ixn, T) => (ixn, Var(ixn,T))) (Term.add_vars t []))
+      #> subst_Vars (map (fn (ixn, T) => (ixn, Var (ixn, T))) (Term.add_vars t []))
     fun check_tvars t = if null (Term.term_tvars t) then t else
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Sign.string_of_term thy) t);
     val ty = type_of t;
     fun constrain t =
-      singleton (ProofContext.infer_types (ProofContext.init thy)) (TypeInfer.constrain t ty);
+      singleton (ProofContext.infer_types_pats (ProofContext.init thy)) (TypeInfer.constrain t ty);
     val _ = ensure_funs thy funcgr t;
   in
     t
@@ -151,10 +151,12 @@ fun eval_term thy funcgr t =
     |> NBE_Eval.eval thy (!tab)
     |> tracing (fn nt => "Normalized:\n" ^ NBE_Eval.string_of_nterm nt)
     |> NBE_Codegen.nterm_to_term thy
-    |> tracing (fn t =>"Converted back:\n" ^ Display.raw_string_of_term t)
+    |> tracing (fn t => "Converted back:\n" ^ setmp show_types true Display.raw_string_of_term t)
+    |> tracing (fn _ => "Term type:\n" ^ Display.raw_string_of_typ ty)
     |> anno_vars
-    |> tracing (fn t =>"Vars typed:\n" ^ Display.raw_string_of_term t)
+    |> tracing (fn t => "Vars typed:\n" ^ setmp show_types true Display.raw_string_of_term t)
     |> constrain
+    |> tracing (fn t => "Types inferred:\n" ^ setmp show_types true Display.raw_string_of_term t)
     |> check_tvars
   end;
 
