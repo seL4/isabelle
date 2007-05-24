@@ -32,7 +32,7 @@ exception BAD_THM of string;
 fun bad_thm msg = raise BAD_THM msg;
 fun error_thm f thm = f thm handle BAD_THM msg => error msg;
 fun warning_thm f thm = SOME (f thm) handle BAD_THM msg
-  => (warning msg; NONE);
+  => (warning ("code generator: " ^ msg); NONE);
 
 
 (* making rewrite theorems *)
