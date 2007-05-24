@@ -1027,12 +1027,7 @@ lemma real_gt_one_ge_zero_add_less: "[| 1 < x; 0 \<le> y |] ==> 1 < x + (y::real
 by arith
 
 lemma abs_sin_le_one [simp]: "\<bar>sin x\<bar> \<le> 1"
-apply (auto simp add: linorder_not_less [symmetric])
-apply (drule_tac n = "Suc 0" in power_gt1)
-apply (auto simp del: realpow_Suc)
-apply (drule_tac r1 = "cos x" in realpow_two_le [THEN [2] real_gt_one_ge_zero_add_less])
-apply (simp add: numeral_2_eq_2 [symmetric] del: realpow_Suc)
-done
+by (rule power2_le_imp_le, simp_all add: sin_squared_eq)
 
 lemma sin_ge_minus_one [simp]: "-1 \<le> sin x"
 apply (insert abs_sin_le_one [of x]) 
@@ -1045,12 +1040,7 @@ apply (simp add: abs_le_iff del: abs_sin_le_one)
 done
 
 lemma abs_cos_le_one [simp]: "\<bar>cos x\<bar> \<le> 1"
-apply (auto simp add: linorder_not_less [symmetric])
-apply (drule_tac n = "Suc 0" in power_gt1)
-apply (auto simp del: realpow_Suc)
-apply (drule_tac r1 = "sin x" in realpow_two_le [THEN [2] real_gt_one_ge_zero_add_less])
-apply (simp add: numeral_2_eq_2 [symmetric] del: realpow_Suc)
-done
+by (rule power2_le_imp_le, simp_all add: cos_squared_eq)
 
 lemma cos_ge_minus_one [simp]: "-1 \<le> cos x"
 apply (insert abs_cos_le_one [of x]) 
