@@ -526,8 +526,8 @@ lemma eq_number_of_BIT_BIT:
      "((number_of (v BIT x) ::int) = number_of (w BIT y)) =  
       (x=y & (((number_of v) ::int) = number_of w))"
 apply (simp only: number_of_BIT lemma1 lemma2 eq_commute
-               OrderedGroup.add_left_cancel add_assoc OrderedGroup.add_0
-            split add: bit.split) 
+               OrderedGroup.add_left_cancel add_assoc OrderedGroup.add_0_left
+            split add: bit.split)
 apply simp
 done
 

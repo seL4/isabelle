@@ -24,7 +24,7 @@ text {*
   \end{itemize}
 *}
 
-subsection {* Semigroups, Groups *}
+subsection {* Semigroups and Monoids *}
 
 class semigroup_add = plus +
   assumes add_assoc: "(a \<^loc>+ b) \<^loc>+ c = a \<^loc>+ (b \<^loc>+ c)"
@@ -48,8 +48,14 @@ lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::ab_semigroup_mult))"
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
+class monoid_add = zero + semigroup_add +
+  assumes add_0_left [simp]: "\<^loc>0 \<^loc>+ a = a" and add_0_right [simp]: "a \<^loc>+ \<^loc>0 = a"
+
 class comm_monoid_add = zero + ab_semigroup_add +
-  assumes add_0 [simp]: "\<^loc>0 \<^loc>+ a = a"
+  assumes add_0: "\<^loc>0 \<^loc>+ a = a"
+
+instance comm_monoid_add < monoid_add
+by intro_classes (insert comm_monoid_add_class.zero_plus.add_0, simp_all add: add_commute, auto)
 
 class monoid_mult = one + semigroup_mult +
   assumes mult_1_left [simp]: "\<^loc>1 \<^loc>* a  = a"
@@ -80,80 +86,89 @@ next
   then show "b = c" by (rule add_imp_eq)
 qed
 
+lemma add_left_cancel [simp]:
+  "a + b = a + c \<longleftrightarrow> b = (c \<Colon> 'a\<Colon>cancel_semigroup_add)"
+  by (blast dest: add_left_imp_eq)
+
+lemma add_right_cancel [simp]:
+  "b + a = c + a \<longleftrightarrow> b = (c \<Colon> 'a\<Colon>cancel_semigroup_add)"
+  by (blast dest: add_right_imp_eq)
+
+subsection {* Groups *}
+
 class ab_group_add = minus + comm_monoid_add +
+  assumes ab_left_minus: "uminus a \<^loc>+ a = \<^loc>0"
+  assumes ab_diff_minus: "a \<^loc>- b = a \<^loc>+ (uminus b)"
+
+class group_add = minus + monoid_add +
   assumes left_minus [simp]: "uminus a \<^loc>+ a = \<^loc>0"
   assumes diff_minus: "a \<^loc>- b = a \<^loc>+ (uminus b)"
+
+instance ab_group_add < group_add
+by intro_classes (simp_all add: ab_left_minus ab_diff_minus)
 
 instance ab_group_add \<subseteq> cancel_ab_semigroup_add
 proof intro_classes
   fix a b c :: 'a
   assume "a + b = a + c"
   then have "uminus a + a + b = uminus a + a + c" unfolding add_assoc by simp
-  then show "b = c" by simp 
+  then show "b = c" by simp
 qed
 
-lemma add_0_right [simp]: "a + 0 = (a::'a::comm_monoid_add)"
+lemma minus_add_cancel: "-(a::'a::group_add) + (a+b) = b"
+by(simp add:add_assoc[symmetric])
+
+lemma minus_zero[simp]: "-(0::'a::group_add) = 0"
 proof -
-  have "a + 0 = 0 + a" by (simp only: add_commute)
-  also have "... = a" by simp
+  have "-(0::'a::group_add) = - 0 + (0+0)" by(simp only: add_0_right)
+  also have "\<dots> = 0" by(rule minus_add_cancel)
   finally show ?thesis .
 qed
 
-lemmas add_zero_left = add_0
-  and add_zero_right = add_0_right
-
-lemma add_left_cancel [simp]:
-  "a + b = a + c \<longleftrightarrow> b = (c \<Colon> 'a\<Colon>cancel_semigroup_add)"
-  by (blast dest: add_left_imp_eq) 
-
-lemma add_right_cancel [simp]:
-  "b + a = c + a \<longleftrightarrow> b = (c \<Colon> 'a\<Colon>cancel_semigroup_add)"
-  by (blast dest: add_right_imp_eq)
-
-lemma right_minus [simp]: "a + -(a::'a::ab_group_add) = 0"
+lemma minus_minus[simp]: "- (-(a::'a::group_add)) = a"
 proof -
-  have "a + -a = -a + a" by (simp add: add_ac)
-  also have "... = 0" by simp
+  have "-(-a) = -(-a) + (-a + a)" by simp
+  also have "\<dots> = a" by(rule minus_add_cancel)
   finally show ?thesis .
 qed
 
-lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::ab_group_add))"
+lemma right_minus[simp]: "a + - a = (0::'a::group_add)"
+proof -
+  have "a + -a = -(-a) + -a" by simp
+  also have "\<dots> = 0" thm group_add.left_minus by(rule left_minus)
+  finally show ?thesis .
+qed
+
+lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::group_add))"
 proof
-  have "a = a - b + b" by (simp add: diff_minus add_ac)
-  also assume "a - b = 0"
-  finally show "a = b" by simp
+  assume "a - b = 0"
+  have "a = (a - b) + b" by (simp add:diff_minus add_assoc)
+  also have "\<dots> = b" using `a - b = 0` by simp
+  finally show "a = b" .
 next
-  assume "a = b"
-  thus "a - b = 0" by (simp add: diff_minus)
+  assume "a = b" thus "a - b = 0" by (simp add: diff_minus)
 qed
 
-lemma minus_minus [simp]: "- (- (a::'a::ab_group_add)) = a"
-proof (rule add_left_cancel [of "-a", THEN iffD1])
-  show "(-a + -(-a) = -a + a)"
-  by simp
+lemma equals_zero_I: assumes "a+b = 0" shows "-a = (b::'a::group_add)"
+proof -
+  have "- a = -a + (a+b)" using assms by simp
+  also have "\<dots> = b" by(simp add:add_assoc[symmetric])
+  finally show ?thesis .
 qed
 
-lemma equals_zero_I: "a+b = 0 ==> -a = (b::'a::ab_group_add)"
-apply (rule right_minus_eq [THEN iffD1, symmetric])
-apply (simp add: diff_minus add_commute) 
-done
+lemma diff_self[simp]: "(a::'a::group_add) - a = 0"
+by(simp add: diff_minus)
 
-lemma minus_zero [simp]: "- 0 = (0::'a::ab_group_add)"
-by (simp add: equals_zero_I)
-
-lemma diff_self [simp]: "a - (a::'a::ab_group_add) = 0"
-  by (simp add: diff_minus)
-
-lemma diff_0 [simp]: "(0::'a::ab_group_add) - a = -a"
+lemma diff_0 [simp]: "(0::'a::group_add) - a = -a"
 by (simp add: diff_minus)
 
-lemma diff_0_right [simp]: "a - (0::'a::ab_group_add) = a" 
+lemma diff_0_right [simp]: "a - (0::'a::group_add) = a" 
 by (simp add: diff_minus)
 
-lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::ab_group_add)"
+lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::group_add)"
 by (simp add: diff_minus)
 
-lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::ab_group_add))" 
+lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::group_add))" 
 proof 
   assume "- a = - b"
   hence "- (- a) = - (- b)"
@@ -164,21 +179,21 @@ next
   thus "-a = -b" by simp
 qed
 
-lemma neg_equal_0_iff_equal [simp]: "(-a = 0) = (a = (0::'a::ab_group_add))"
+lemma neg_equal_0_iff_equal [simp]: "(-a = 0) = (a = (0::'a::group_add))"
 by (subst neg_equal_iff_equal [symmetric], simp)
 
-lemma neg_0_equal_iff_equal [simp]: "(0 = -a) = (0 = (a::'a::ab_group_add))"
+lemma neg_0_equal_iff_equal [simp]: "(0 = -a) = (0 = (a::'a::group_add))"
 by (subst neg_equal_iff_equal [symmetric], simp)
 
 text{*The next two equations can make the simplifier loop!*}
 
-lemma equation_minus_iff: "(a = - b) = (b = - (a::'a::ab_group_add))"
+lemma equation_minus_iff: "(a = - b) = (b = - (a::'a::group_add))"
 proof -
   have "(- (-a) = - b) = (- a = b)" by (rule neg_equal_iff_equal)
   thus ?thesis by (simp add: eq_commute)
 qed
 
-lemma minus_equation_iff: "(- a = b) = (- (b::'a::ab_group_add) = a)"
+lemma minus_equation_iff: "(- a = b) = (- (b::'a::group_add) = a)"
 proof -
   have "(- a = - (-b)) = (a = -b)" by (rule neg_equal_iff_equal)
   thus ?thesis by (simp add: eq_commute)
@@ -186,7 +201,7 @@ qed
 
 lemma minus_add_distrib [simp]: "- (a + b) = -a + -(b::'a::ab_group_add)"
 apply (rule equals_zero_I)
-apply (simp add: add_ac) 
+apply (simp add: add_ac)
 done
 
 lemma minus_diff_eq [simp]: "- (a - b) = b - (a::'a::ab_group_add)"
@@ -1009,9 +1024,6 @@ by (simp add: diff_minus)
 lemma add_minus_cancel: "(a::'a::ab_group_add) + (-a + b) = b"
 by (simp add: add_assoc[symmetric])
 
-lemma minus_add_cancel: "-(a::'a::ab_group_add) + (a + b) = b"
-by (simp add: add_assoc[symmetric])
-
 lemma  le_add_right_mono: 
   assumes 
   "a <= b + (c::'a::pordered_ab_group_add)"
@@ -1082,7 +1094,7 @@ end;
 
 val cancel_ss = HOL_basic_ss settermless termless_agrp
   addsimprocs [add_ac_proc] addsimps
-  [@{thm add_0}, @{thm add_0_right}, @{thm diff_def},
+  [@{thm add_0_left}, @{thm add_0_right}, @{thm diff_def},
    @{thm minus_add_distrib}, @{thm minus_minus}, @{thm minus_zero},
    @{thm right_minus}, @{thm left_minus}, @{thm add_minus_cancel},
    @{thm minus_add_cancel}];
