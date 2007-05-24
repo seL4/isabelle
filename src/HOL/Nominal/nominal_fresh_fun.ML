@@ -6,8 +6,7 @@ A tactic to generate fresh names.
 A tactic to get rid of the fresh_fun.
 *)
 
-(* First some functions that could be
- in the library *)
+(* First some functions that could be in the library *)
 
 (* A tactical which applies a list of int -> tactic to the corresponding subgoals present after the application of another tactic. 
 T THENL [A,B,C] is equivalent to T THEN (C 3 THEN B 2 THEN A 1) 
@@ -19,7 +18,12 @@ fun tac THENL tacs =
  tac THEN
   (EVERY (map  (fn (tac,i) => tac i) (rev tacs ~~ (length tacs downto 1))))
 
+(* A tactical to test if a tactic completly solve a subgoal *)
+
 fun SOLVEI t = t THEN_ALL_NEW (fn i => no_tac);
+
+(* A version of TRY for int -> tactic *)
+
 fun TRY' tac i =  TRY (tac i);
 
 fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
@@ -121,17 +125,21 @@ fun generate_fresh_fun_tac i thm =
   | SOME atom_name  => generate_fresh_tac atom_name i thm               
   end
 
-(* A substitution tactic *)
+(* Two substitution tactics which looks for the inner most occurence in 
+   one assumption or in the conclusion *)
 
 val search_fun     = curry (Seq.flat o (uncurry EqSubst.searchf_bt_unify_valid));
 val search_fun_asm = EqSubst.skip_first_asm_occs_search EqSubst.searchf_bt_unify_valid;
 
-fun subst_outer_tac           ctx = EqSubst.eqsubst_tac' ctx search_fun;
-fun subst_outer_asm_tac_aux i ctx = EqSubst.eqsubst_asm_tac' ctx search_fun_asm i;
+fun subst_inner_tac           ctx = EqSubst.eqsubst_tac' ctx search_fun;
+fun subst_inner_asm_tac_aux i ctx = EqSubst.eqsubst_asm_tac' ctx search_fun_asm i;
 
-fun subst_outer_asm_tac ctx th =  curry (curry (FIRST' (map uncurry (map uncurry (map subst_outer_asm_tac_aux (1 upto Thm.nprems_of th)))))) ctx th;
+(* A tactic to substitute in the first assumption 
+   which contains an occurence. *)
 
-fun fresh_fun_tac i thm = 
+fun subst_inner_asm_tac ctx th =  curry (curry (FIRST' (map uncurry (map uncurry (map subst_inner_asm_tac_aux (1 upto Thm.nprems_of th)))))) ctx th;
+
+fun fresh_fun_tac no_asm i thm = 
   (* Find the variable we instantiate *)
   let
     val thy = theory_of_thm thm;
@@ -162,11 +170,12 @@ fun fresh_fun_tac i thm =
     | _ => error "fresh_fun_simp: Too many variables, please report."
   end
   in
-  ( (* generate_fresh_tac atom_name i      THEN *) 
-  (fn st =>
+  ((fn st =>
   let 
     val vars = term_vars (prop_of st);
     val params = Logic.strip_params (nth (prems_of st) (i-1))
+    (* The tactics which solve the subgoals generated 
+       by the conditionnal rewrite rule. *)
     val post_rewrite_tacs =  
           [rtac pt_name_inst,
            rtac at_name_inst,
@@ -175,15 +184,26 @@ fun fresh_fun_tac i thm =
            (TRY' (SOLVEI (NominalPermeq.fresh_guess_tac ss''))) THEN'
            (TRY' (SOLVEI (asm_full_simp_tac ss'')))] 
   in 
-   ((subst_outer_asm_tac ctx fresh_fun_app' i THENL post_rewrite_tacs) ORELSE 
-    (subst_outer_tac     ctx fresh_fun_app' i THENL post_rewrite_tacs)) st
+   ((if no_asm then 
+    (subst_inner_asm_tac ctx fresh_fun_app' i THENL post_rewrite_tacs)
+    else 
+     no_tac) 
+    ORELSE
+    (subst_inner_tac     ctx fresh_fun_app' i THENL post_rewrite_tacs)) st
   end)) thm
   
   end
   end
 
+(* syntax for options, given "(no_asm)" will give back true, without
+   gives back false *)
+val options_syntax =
+    (Args.parens (Args.$$$ "no_asm") >> (K true)) ||
+     (Scan.succeed false);
+
 val setup_generate_fresh =
   Method.goal_args_ctxt' Args.tyname (fn ctxt => generate_fresh_tac) 
 
 val setup_fresh_fun_simp =
-  Method.no_args (Method.SIMPLE_METHOD (fresh_fun_tac 1)) 
+  Method.simple_args options_syntax 
+  (fn b => fn _ => Method.SIMPLE_METHOD (fresh_fun_tac b 1))
