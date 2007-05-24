@@ -469,8 +469,11 @@ by (auto simp add: mult_nonneg_nonneg mult_nonpos_nonpos)
 lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> (0::_::pordered_cancel_semiring)" 
 by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
 
-lemma zero_le_square: "(0::'a::ordered_ring_strict) \<le> a*a"
-by (simp add: zero_le_mult_iff linorder_linear) 
+lemma zero_le_square[simp]: "(0::'a::ordered_ring_strict) \<le> a*a"
+by (simp add: zero_le_mult_iff linorder_linear)
+
+lemma not_square_less_zero[simp]: "\<not> (a * a < (0::'a::ordered_ring_strict))"
+by (simp add: not_less)
 
 text{*Proving axiom @{text zero_less_one} makes all @{text ordered_semidom}
       theorems available to members of @{term ordered_idom} *}

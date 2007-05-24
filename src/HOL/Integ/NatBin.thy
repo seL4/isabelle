@@ -298,31 +298,31 @@ lemmas power2_eq_square_number_of =
 declare power2_eq_square_number_of [simp]
 
 
-lemma zero_le_power2: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,recpower})"
-  by (simp add: power2_eq_square zero_le_square)
+lemma zero_le_power2[simp]: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,recpower})"
+  by (simp add: power2_eq_square)
 
-lemma zero_less_power2:
+lemma zero_less_power2[simp]:
      "(0 < a\<twosuperior>) = (a \<noteq> (0::'a::{ordered_idom,recpower}))"
   by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
 
-lemma power2_less_0:
+lemma power2_less_0[simp]:
   fixes a :: "'a::{ordered_idom,recpower}"
   shows "~ (a\<twosuperior> < 0)"
 by (force simp add: power2_eq_square mult_less_0_iff) 
 
-lemma zero_eq_power2:
+lemma zero_eq_power2[simp]:
      "(a\<twosuperior> = 0) = (a = (0::'a::{ordered_idom,recpower}))"
   by (force simp add: power2_eq_square mult_eq_0_iff)
 
-lemma abs_power2:
+lemma abs_power2[simp]:
      "abs(a\<twosuperior>) = (a\<twosuperior>::'a::{ordered_idom,recpower})"
   by (simp add: power2_eq_square abs_mult abs_mult_self)
 
-lemma power2_abs:
+lemma power2_abs[simp]:
      "(abs a)\<twosuperior> = (a\<twosuperior>::'a::{ordered_idom,recpower})"
   by (simp add: power2_eq_square abs_mult_self)
 
-lemma power2_minus:
+lemma power2_minus[simp]:
      "(- a)\<twosuperior> = (a\<twosuperior>::'a::{comm_ring_1,recpower})"
   by (simp add: power2_eq_square)
 
@@ -341,7 +341,7 @@ lemma power2_eq_imp_eq:
   shows "\<lbrakk>x\<twosuperior> = y\<twosuperior>; 0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> x = y"
 unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base, simp)
 
-lemma power_minus1_even: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
+lemma power_minus1_even[simp]: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
 apply (induct "n")
 apply (auto simp add: power_Suc power_add power2_minus)
 done
@@ -356,7 +356,7 @@ lemma power_minus_even [simp]:
      "(-a) ^ (2*n) = (a::'a::{comm_ring_1,recpower}) ^ (2*n)"
 by (simp add: power_minus1_even power_minus [of a]) 
 
-lemma zero_le_even_power':
+lemma zero_le_even_power'[simp]:
      "0 \<le> (a::'a::{ordered_idom,recpower}) ^ (2*n)"
 proof (induct "n")
   case 0
