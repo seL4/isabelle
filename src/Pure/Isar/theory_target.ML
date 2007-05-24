@@ -55,8 +55,8 @@ fun pretty loc ctxt =
 
 fun internal_abbrev prmode ((c, mx), t) =
   (* FIXME really permissive *)
-  LocalTheory.term_syntax (perhaps o try o ProofContext.target_abbrev prmode ((c, mx), t)) #>
-  ProofContext.add_abbrev Syntax.internalM (c, t) #> snd;
+  LocalTheory.term_syntax (perhaps o try o ProofContext.target_abbrev prmode ((c, mx), t))
+  #> ProofContext.add_abbrev Syntax.internalM (c, t) #> snd;
 
 fun consts is_loc some_class depends decls lthy =
   let
@@ -70,12 +70,19 @@ fun consts is_loc some_class depends decls lthy =
         val thy' = Sign.add_consts_authentic [(c, U, mx1)] thy;
       in (((c, mx2), t), thy') end;
 
-    val (abbrs, lthy') = lthy |> LocalTheory.theory_result (fold_map const decls);
+    fun const_class (SOME class) ((c, _), mx) (_, t) =
+          ClassPackage.add_const_in_class class ((c, t), mx)
+      | const_class NONE _ _ = I;
+
+    val (abbrs, lthy') = lthy
+      |> LocalTheory.theory_result (fold_map const decls)
     val defs = map (apsnd (pair ("", []))) abbrs;
   in
     lthy'
     |> is_loc ? fold (internal_abbrev Syntax.default_mode) abbrs
-    |> LocalDefs.add_defs defs |>> map (apsnd snd)
+    |> LocalTheory.raw_theory (fold2 (const_class some_class) decls abbrs)
+    |> LocalDefs.add_defs defs
+    |>> map (apsnd snd)
   end;
 
 
@@ -85,7 +92,7 @@ fun occ_params ctxt ts =
   #1 (ProofContext.inferred_fixes ctxt)
   |> filter (member (op =) (fold (Variable.add_fixed ctxt) ts []));
 
-fun abbrev is_loc some_class  prmode ((raw_c, mx), raw_t) lthy =
+fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
   let
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target = LocalTheory.target_of lthy;
@@ -127,15 +134,16 @@ fun add_def (name, prop) =
 
 in
 
-fun defs loc some_class kind args lthy0 =
+fun defs loc kind args lthy0 =
   let
     fun def ((c, mx), ((name, atts), rhs)) lthy1 =
       let
         val (rhs', rhs_conv) = expand_term lthy0 rhs;
         val xs = Variable.add_fixed (LocalTheory.target_of lthy0) rhs' [];
+        val T = Term.fastype_of rhs;
 
         val ([(lhs, lhs_def)], lthy2) = lthy1
-          |> LocalTheory.consts (member (op =) xs) [((c, Term.fastype_of rhs), mx)];
+          |> LocalTheory.consts (member (op =) xs) [((c, T), mx)];
         val lhs' = #2 (Logic.dest_equals (Thm.prop_of lhs_def));
 
         val name' = Thm.def_name_optional c name;
@@ -145,14 +153,7 @@ fun defs loc some_class kind args lthy0 =
           [(*c == loc.c xs*) lhs_def,
            (*lhs' == rhs'*)  def,
            (*rhs' == rhs*)   Thm.symmetric rhs_conv];
-        val lthy4 = case some_class
-         of SOME class => 
-              lthy3
-              |> LocalTheory.raw_theory
-                (ClassPackage.add_def_in_class lthy3 class
-                  ((c, mx), ((name, atts), (rhs, eq))))
-          | _ => lthy3;
-      in ((lhs, ((name', atts), [([eq], [])])), lthy4) end;
+      in ((lhs, ((name', atts), [([eq], [])])), lthy3) end;
 
     val ((lhss, facts), lthy') = lthy0 |> fold_map def args |>> split_list;
     val (res, lthy'') = lthy' |> LocalTheory.notes kind facts;
@@ -320,7 +321,7 @@ fun begin loc ctxt =
       consts = consts is_loc some_class,
       axioms = axioms,
       abbrev = abbrev is_loc some_class,
-      defs = defs loc some_class,
+      defs = defs loc,
       notes = notes loc,
       type_syntax = type_syntax loc,
       term_syntax = term_syntax loc,

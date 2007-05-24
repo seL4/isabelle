@@ -2602,7 +2602,7 @@ proof
   fix A :: "'a set"
   show "Linorder.Min (op \<le>) A = Min A"
   by (simp add: Min_def Linorder.Min_def [OF Linorder.intro, OF linorder_axioms]
-    linorder_class_min)
+    ord_class.min)
 qed
 
 lemma Linorder_Max:
@@ -2611,16 +2611,16 @@ proof
   fix A :: "'a set"
   show "Linorder.Max (op \<le>) A = Max A"
   by (simp add: Max_def Linorder.Max_def [OF Linorder.intro, OF linorder_axioms]
-    linorder_class_max)
+    ord_class.max)
 qed
 
-interpretation [unfolded linorder_class_min linorder_class_max Linorder_Min Linorder_Max]:
+interpretation [folded ord_class.min ord_class.max, unfolded Linorder_Min Linorder_Max]:
   Linorder_ab_semigroup_add ["op \<le> \<Colon> 'a\<Colon>{linorder, pordered_ab_semigroup_add} \<Rightarrow> 'a \<Rightarrow> bool" "op <" "op +"]
   by (rule Linorder_ab_semigroup_add.intro,
     rule Linorder.intro, rule linorder_axioms, rule pordered_ab_semigroup_add_axioms)
 hide const Min Max
 
-interpretation [unfolded linorder_class_min linorder_class_max Linorder_Min Linorder_Max]:
+interpretation [folded ord_class.min ord_class.max, unfolded Linorder_Min Linorder_Max]:
   Linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <"]
   by (rule Linorder.intro, rule linorder_axioms)
 declare Min_singleton [simp]

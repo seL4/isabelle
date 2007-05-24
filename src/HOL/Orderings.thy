@@ -81,26 +81,8 @@ abbreviation (input)
 notation (input)
   greater_eq  (infix "\<ge>" 50)
 
-hide const min max
-
-definition
-  min :: "'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "min a b = (if a \<le> b then a else b)"
-
-definition
-  max :: "'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "max a b = (if a \<le> b then b else a)"
-
-declare min_def[code unfold, code inline del]
-        max_def[code unfold, code inline del]
-
-lemma linorder_class_min:
-  "ord.min (op \<le> \<Colon> 'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> bool) = min"
-  by rule+ (simp add: min_def ord_class.min_def)
-
-lemma linorder_class_max:
-  "ord.max (op \<le> \<Colon> 'a\<Colon>ord \<Rightarrow> 'a \<Rightarrow> bool) = max"
-  by rule+ (simp add: max_def ord_class.max_def)
+lemmas min_def [code func, code unfold, code inline del] = min_def [folded ord_class.min]
+lemmas max_def [code func, code unfold, code inline del] = max_def [folded ord_class.max]
 
 
 subsection {* Partial orders *}
@@ -351,14 +333,14 @@ lemmas leI = linorder_class.leI
 lemmas leD = linorder_class.leD
 lemmas not_leE = linorder_class.not_leE
 
-lemmas min_le_iff_disj = linorder_class.min_le_iff_disj [unfolded linorder_class_min]
-lemmas le_max_iff_disj = linorder_class.le_max_iff_disj [unfolded linorder_class_max]
-lemmas min_less_iff_disj = linorder_class.min_less_iff_disj [unfolded linorder_class_min]
-lemmas less_max_iff_disj = linorder_class.less_max_iff_disj [unfolded linorder_class_max]
-lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj [unfolded linorder_class_min]
-lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj [unfolded linorder_class_max]
-lemmas split_min = linorder_class.split_min [unfolded linorder_class_min]
-lemmas split_max = linorder_class.split_max [unfolded linorder_class_max]
+lemmas min_le_iff_disj = linorder_class.min_le_iff_disj [folded ord_class.min]
+lemmas le_max_iff_disj = linorder_class.le_max_iff_disj [folded ord_class.max]
+lemmas min_less_iff_disj = linorder_class.min_less_iff_disj [folded ord_class.min]
+lemmas less_max_iff_disj = linorder_class.less_max_iff_disj [folded ord_class.max]
+lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj [folded ord_class.min]
+lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj [folded ord_class.max]
+lemmas split_min = linorder_class.split_min [folded ord_class.min]
+lemmas split_max = linorder_class.split_max [folded ord_class.max]
 
 
 subsection {* Reasoning tools setup *}

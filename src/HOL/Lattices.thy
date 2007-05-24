@@ -295,7 +295,7 @@ qed (auto simp add: min_def max_def not_le less_imp_le)
 
 interpretation min_max:
   distrib_lattice ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" min max]
-  by (rule distrib_lattice_min_max [unfolded linorder_class_min linorder_class_max])
+  by (rule distrib_lattice_min_max [folded ord_class.min ord_class.max])
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (rule ext)+ auto
