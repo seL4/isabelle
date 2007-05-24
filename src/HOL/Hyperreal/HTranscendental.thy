@@ -87,14 +87,14 @@ lemma hypreal_sqrt_sum_squares [simp]:
      "(( *f* sqrt)(x*x + y*y + z*z) @= 0) = (x*x + y*y + z*z @= 0)"
 apply (rule hypreal_sqrt_approx_zero2)
 apply (rule add_nonneg_nonneg)+
-apply (auto simp add: zero_le_square)
+apply (auto)
 done
 
 lemma hypreal_sqrt_sum_squares2 [simp]:
      "(( *f* sqrt)(x*x + y*y) @= 0) = (x*x + y*y @= 0)"
 apply (rule hypreal_sqrt_approx_zero2)
 apply (rule add_nonneg_nonneg)
-apply (auto simp add: zero_le_square)
+apply (auto)
 done
 
 lemma hypreal_sqrt_gt_zero: "!!x. 0 < x ==> 0 < ( *f* sqrt)(x)"
@@ -157,7 +157,7 @@ lemma HFinite_sqrt_sum_squares [simp]:
      "(( *f* sqrt)(x*x + y*y) \<in> HFinite) = (x*x + y*y \<in> HFinite)"
 apply (rule HFinite_hypreal_sqrt_iff)
 apply (rule add_nonneg_nonneg)
-apply (auto simp add: zero_le_square)
+apply (auto)
 done
 
 lemma Infinitesimal_hypreal_sqrt:
@@ -184,7 +184,7 @@ lemma Infinitesimal_sqrt_sum_squares [simp]:
      "(( *f* sqrt)(x*x + y*y) \<in> Infinitesimal) = (x*x + y*y \<in> Infinitesimal)"
 apply (rule Infinitesimal_hypreal_sqrt_iff)
 apply (rule add_nonneg_nonneg)
-apply (auto simp add: zero_le_square)
+apply (auto)
 done
 
 lemma HInfinite_hypreal_sqrt:
@@ -211,7 +211,7 @@ lemma HInfinite_sqrt_sum_squares [simp]:
      "(( *f* sqrt)(x*x + y*y) \<in> HInfinite) = (x*x + y*y \<in> HInfinite)"
 apply (rule HInfinite_hypreal_sqrt_iff)
 apply (rule add_nonneg_nonneg)
-apply (auto simp add: zero_le_square)
+apply (auto)
 done
 
 lemma HFinite_exp [simp]:

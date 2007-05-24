@@ -1723,13 +1723,13 @@ lemma Infinitesimal_square_cancel [simp]:
      "(x::hypreal)*x + y*y \<in> Infinitesimal ==> x*x \<in> Infinitesimal"
 apply (rule Infinitesimal_interval2)
 apply (rule_tac [3] zero_le_square, assumption)
-apply (auto simp add: zero_le_square)
+apply (auto)
 done
 
 lemma HFinite_square_cancel [simp]:
   "(x::hypreal)*x + y*y \<in> HFinite ==> x*x \<in> HFinite"
 apply (rule HFinite_bounded, assumption)
-apply (auto simp add: zero_le_square)
+apply (auto)
 done
 
 lemma Infinitesimal_square_cancel2 [simp]:
@@ -1751,7 +1751,7 @@ lemma Infinitesimal_sum_square_cancel [simp]:
 apply (rule Infinitesimal_interval2, assumption)
 apply (rule_tac [2] zero_le_square, simp)
 apply (insert zero_le_square [of y]) 
-apply (insert zero_le_square [of z], simp)
+apply (insert zero_le_square [of z], simp del:zero_le_square)
 done
 
 lemma HFinite_sum_square_cancel [simp]:
@@ -1759,7 +1759,7 @@ lemma HFinite_sum_square_cancel [simp]:
 apply (rule HFinite_bounded, assumption)
 apply (rule_tac [2] zero_le_square)
 apply (insert zero_le_square [of y]) 
-apply (insert zero_le_square [of z], simp)
+apply (insert zero_le_square [of z], simp del:zero_le_square)
 done
 
 lemma Infinitesimal_sum_square_cancel2 [simp]:

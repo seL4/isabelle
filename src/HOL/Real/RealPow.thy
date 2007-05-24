@@ -149,7 +149,7 @@ qed
 lemma sum_squares_eq_zero_iff:
   fixes x y :: "'a::ordered_ring_strict"
   shows "(x * x + y * y = 0) = (x = 0 \<and> y = 0)"
-by (simp add: sum_nonneg_eq_zero_iff zero_le_square)
+by (simp add: sum_nonneg_eq_zero_iff)
 
 lemma sum_squares_le_zero_iff:
   fixes x y :: "'a::ordered_ring_strict"

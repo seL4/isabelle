@@ -28,6 +28,7 @@ consts
   butlast :: "'a list => 'a list"
   set :: "'a list => 'a set"
   map :: "('a=>'b) => ('a list => 'b list)"
+  listsum ::  "'a list => 'a::monoid_add"
   nth :: "'a list => nat => 'a"    (infixl "!" 100)
   list_update :: "'a list => nat => 'a => 'a list"
   take:: "nat => 'a list => 'a list"
@@ -132,6 +133,10 @@ primrec
 primrec
   "concat([]) = []"
   "concat(x#xs) = x @ concat(xs)"
+
+primrec
+"listsum [] = 0"
+"listsum (x # xs) = x + listsum xs"
 
 primrec
   drop_Nil:"drop n [] = []"
@@ -1417,6 +1422,20 @@ lemma zip_rev:
 "length xs = length ys ==> zip (rev xs) (rev ys) = rev (zip xs ys)"
 by (induct rule:list_induct2, simp_all)
 
+lemma map_zip_map:
+ "map f (zip (map g xs) ys) = map (%(x,y). f(g x, y)) (zip xs ys)"
+apply(induct xs arbitrary:ys) apply simp
+apply(case_tac ys)
+apply simp_all
+done
+
+lemma map_zip_map2:
+ "map f (zip xs (map g ys)) = map (%(x,y). f(x, g y)) (zip xs ys)"
+apply(induct xs arbitrary:ys) apply simp
+apply(case_tac ys)
+apply simp_all
+done
+
 lemma nth_zip [simp]:
 "!!i xs. [| i < length xs; i < length ys|] ==> (zip xs ys)!i = (xs!i, ys!i)"
 apply (induct ys, simp)
@@ -1618,6 +1637,12 @@ by (induct xs) auto
 lemma foldr_append[simp]: "foldr f (xs @ ys) a = foldr f xs (foldr f ys a)"
 by (induct xs) auto
 
+lemma foldr_map: "foldr g (map f xs) a = foldr (g o f) xs a"
+by(induct xs) simp_all
+
+lemma foldl_map: "foldl g a (map f xs) = foldl (%a x. g a (f x)) a xs"
+by(induct xs arbitrary:a) simp_all
+
 lemma foldl_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f a x = g a x |] 
   ==> foldl f a l = foldl g b k"
@@ -1627,6 +1652,19 @@ lemma foldr_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f x a = g x a |] 
   ==> foldr f l a = foldr g k b"
   by (induct k arbitrary: a b l) simp_all
+
+text{* The ``First Duality Theorem'' in Bird \& Wadler: *}
+
+lemma foldl_foldr1_lemma:
+ "foldl op + a xs = a + foldr op + xs (0\<Colon>'a::monoid_add)"
+by (induct xs arbitrary: a) (auto simp:add_assoc)
+
+corollary foldl_foldr1:
+ "foldl op + 0 xs = foldr op + xs (0\<Colon>'a::monoid_add)"
+by (simp add:foldl_foldr1_lemma)
+
+
+text{* The ``Third Duality Theorem'' in Bird \& Wadler: *}
 
 lemma foldr_foldl: "foldr f xs a = foldl (%x y. f y x) a (rev xs)"
 by (induct xs) auto
@@ -1648,6 +1686,37 @@ by (force intro: start_le_sum simp add: in_set_conv_decomp)
 lemma sum_eq_0_conv [iff]:
 "!!m::nat. (foldl (op +) m ns = 0) = (m = 0 \<and> (\<forall>n \<in> set ns. n = 0))"
 by (induct ns) auto
+
+subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
+
+lemma listsum_foldr:
+ "listsum xs = foldr (op +) xs 0"
+by(induct xs) auto
+
+(* for efficient code generation *)
+lemma listsum[code]: "listsum xs = foldl (op +) 0 xs"
+by(simp add:listsum_foldr foldl_foldr1)
+
+text{* Some syntactic sugar for summing a function over a list: *}
+
+syntax
+  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
+syntax (xsymbols)
+  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
+syntax (HTML output)
+  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
+
+translations -- {* Beware of argument permutation! *}
+  "SUM x<-xs. b" == "CONST listsum (map (%x. b) xs)"
+  "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (map (%x. b) xs)"
+
+lemma listsum_0 [simp]: "(\<Sum>x\<leftarrow>xs. 0) = 0"
+by (induct xs) simp_all
+
+text{* For non-Abelian groups @{text xs} needs to be reversed on one side: *}
+lemma uminus_listsum_map:
+ "- listsum (map f xs) = (listsum (map (uminus o f) xs) :: 'a::ab_group_add)"
+by(induct xs) simp_all
 
 
 subsubsection {* @{text upto} *}
@@ -2763,6 +2832,7 @@ primrec
   "map_filter f P (x#xs) =
      (if P x then f x # map_filter f P xs else map_filter f P xs)"
 
+
 text {*
   Only use @{text mem} for generating executable code.  Otherwise use
   @{prop "x : set xs"} instead --- it is much easier to reason about.
@@ -2850,8 +2920,11 @@ lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
   by (induct xs) auto
 
+lemma [code inline]: "listsum (map f xs) = foldl (%n x. n + f x) 0 xs"
+by(simp add:listsum_foldr foldl_map[symmetric] foldl_foldr1)
 
-text {* code for bounded quantification over nats *}
+
+text {* Code for bounded quantification over nats. *}
 
 lemma atMost_upto [code unfold]:
   "{..n} = set [0..n]"

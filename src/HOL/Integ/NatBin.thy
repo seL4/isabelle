@@ -343,7 +343,7 @@ unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base, simp)
 
 lemma power_minus1_even[simp]: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
 apply (induct "n")
-apply (auto simp add: power_Suc power_add power2_minus)
+apply (auto simp add: power_Suc power_add)
 done
 
 lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
@@ -366,7 +366,7 @@ next
     have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
       by (simp add: mult_ac power_add power2_eq_square)
     thus ?case
-      by (simp add: prems zero_le_square zero_le_mult_iff)
+      by (simp add: prems zero_le_mult_iff)
 qed
 
 lemma odd_power_less_zero:
