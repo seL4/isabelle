@@ -22,7 +22,10 @@ begin
 definition
   Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
 where
-  "Sup A = \<Sqinter>{b. \<forall>a \<in> A. a \<^loc>\<le> b}"
+  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<^loc>\<le> b}"
+
+lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<^loc>\<le> a}"
+  unfolding Sup_def by (auto intro: Inf_greatest Inf_lower)
 
 lemma Sup_upper: "x \<in> A \<Longrightarrow> x \<^loc>\<le> \<Squnion>A"
   by (auto simp: Sup_def intro: Inf_greatest)
@@ -35,6 +38,12 @@ lemma top_greatest [simp]: "x \<^loc>\<le> \<Sqinter>{}"
 
 lemma bot_least [simp]: "\<Squnion>{} \<^loc>\<le> x"
   by (rule Sup_least) simp
+
+lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
+  unfolding Sup_def by auto
+
+lemma Sup_Univ: "\<Squnion>UNIV = \<Sqinter>{}"
+  unfolding Inf_Sup by auto
 
 lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   apply (rule antisym)
@@ -94,34 +103,15 @@ lemma Sup_binary:
 
 end
 
-hide const Sup
+lemmas Sup_def = Sup_def [folded complete_lattice_class.Sup]
+lemmas Sup_upper = Sup_upper [folded complete_lattice_class.Sup]
+lemmas Sup_least = Sup_least [folded complete_lattice_class.Sup]
 
-definition
-  Sup :: "'a\<Colon>complete_lattice set \<Rightarrow> 'a"
-where
-  [code func del]: "Sup A = Inf {b. \<forall>a \<in> A. a \<le> b}"
-
-lemma complete_lattice_class_Sup:
-  "complete_lattice.Sup (op \<le>) Inf = Sup"
-proof
-  fix A
-  show "complete_lattice.Sup (op \<le>) Inf A = Sup A"
-  by (auto simp add: Sup_def complete_lattice.Sup_def [OF complete_lattice_class.axioms])
-qed
-
-lemmas Sup_upper = complete_lattice_class.Sup_upper [unfolded complete_lattice_class_Sup]
-lemmas Sup_least = complete_lattice_class.Sup_least [unfolded complete_lattice_class_Sup]
-
-lemmas top_greatest [simp] = complete_lattice_class.top_greatest
-lemmas bot_least [simp] = complete_lattice_class.bot_least [unfolded complete_lattice_class_Sup]
-lemmas Inf_insert = complete_lattice_class.Inf_insert
-lemmas Sup_insert [code func] = complete_lattice_class.Sup_insert [unfolded complete_lattice_class_Sup]
-lemmas Inf_singleton [simp] = complete_lattice_class.Inf_singleton
-lemmas Sup_singleton [simp, code func] = complete_lattice_class.Sup_singleton [unfolded complete_lattice_class_Sup]
-lemmas Inf_insert_simp = complete_lattice_class.Inf_insert_simp
-lemmas Sup_insert_simp = complete_lattice_class.Sup_insert_simp [unfolded complete_lattice_class_Sup]
-lemmas Inf_binary = complete_lattice_class.Inf_binary
-lemmas Sup_binary = complete_lattice_class.Sup_binary [unfolded complete_lattice_class_Sup]
+lemmas bot_least [simp] = bot_least [folded complete_lattice_class.Sup]
+lemmas Sup_insert [code func] = Sup_insert [folded complete_lattice_class.Sup]
+lemmas Sup_singleton [simp, code func] = Sup_singleton [folded complete_lattice_class.Sup]
+lemmas Sup_insert_simp = Sup_insert_simp [folded complete_lattice_class.Sup]
+lemmas Sup_binary = Sup_binary [folded complete_lattice_class.Sup]
 
 definition
   SUPR :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> 'b" where
@@ -208,6 +198,13 @@ theorem Sup_bool_eq: "Sup A \<longleftrightarrow> (\<exists>x\<in>A. x)"
   apply assumption+
   done
 
+lemma Inf_empty_bool [simp]:
+  "Inf {}"
+  unfolding Inf_bool_def by auto
+
+lemma not_Sup_empty_bool [simp]:
+  "\<not> Sup {}"
+  unfolding Sup_def Inf_bool_def by auto
 
 subsubsection {* Functions *}
 
@@ -243,6 +240,19 @@ theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y. \<exists>f\<in>A. y = f x})"
   apply (drule le_funD [OF Sup_upper])
   apply simp
   done
+
+lemma Inf_empty_fun_True:
+  "Inf {} = (\<lambda>_. True)"
+  by rule (auto simp add: Inf_fun_def)
+
+lemma Sup_empty_fun_False:
+  "Sup {} = (\<lambda>_. False)"
+proof
+  fix x
+  have aux: "{y\<Colon>bool. \<exists>f\<Colon>'a \<Rightarrow> bool. y = f x} = {True, False}" by auto
+  show "Sup {} x = False"
+  unfolding Sup_def Inf_fun_def by (auto simp add: aux Inf_binary inf_bool_eq)
+qed 
 
 
 subsubsection {* Sets *}
