@@ -550,6 +550,9 @@ instead of "arbitrary"
 
 * new class "default" with associated constant "default"
 
+* new function listsum :: 'a list => 'a for arbitrary monoids.
+  Special syntax: "SUM x <- xs. f x" (and latex variants)
+
 * Library/List_Comprehension.thy provides Haskell-like input syntax for list
   comprehensions.
 
