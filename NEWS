@@ -550,6 +550,9 @@ instead of "arbitrary"
 
 * new class "default" with associated constant "default"
 
+* Library/List_Comprehension provides Haskell-like input syntax for list
+  comprehensions.
+
 * Library/Pretty_Int.thy: maps HOL numerals on target language integer literals
     when generating code.
 
