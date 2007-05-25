@@ -4,8 +4,8 @@ struct
 structure Code_Generator = 
 struct
 
-type 'a eq = {op_eq : 'a -> 'a -> bool};
-fun op_eq (A_:'a eq) = #op_eq A_;
+type 'a eq = {eq : 'a -> 'a -> bool};
+fun eq (A_:'a eq) = #eq A_;
 
 end; (*struct Code_Generator*)
 
@@ -16,7 +16,7 @@ fun foldr f (x :: xs) a = f x (foldr f xs a)
   | foldr f [] a = a;
 
 fun memberl A_ x (y :: ys) =
-  Code_Generator.op_eq A_ x y orelse memberl A_ x ys
+  Code_Generator.eq A_ x y orelse memberl A_ x ys
   | memberl A_ x [] = false;
 
 end; (*struct List*)
@@ -26,15 +26,15 @@ struct
 
 datatype 'a set = Set of 'a list;
 
-fun opa A_ x (Set xs) = List.memberl A_ x xs;
-
 val empty : 'a set = Set [];
 
 fun insert x (Set xs) = Set (x :: xs);
 
-fun op_Un xs (Set ys) = List.foldr insert ys xs;
+fun uniona xs (Set ys) = List.foldr insert ys xs;
 
-fun union (Set xs) = List.foldr op_Un xs empty;
+fun union (Set xs) = List.foldr uniona xs empty;
+
+fun member A_ x (Set xs) = List.memberl A_ x xs;
 
 end; (*struct Set*)
 

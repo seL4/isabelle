@@ -4,8 +4,8 @@ struct
 structure Code_Generator = 
 struct
 
-type 'a eq = {op_eq : 'a -> 'a -> bool};
-fun op_eq (A_:'a eq) = #op_eq A_;
+type 'a eq = {eq : 'a -> 'a -> bool};
+fun eq (A_:'a eq) = #eq A_;
 
 end; (*struct Code_Generator*)
 
@@ -13,7 +13,7 @@ structure List =
 struct
 
 fun memberl A_ x (y :: ys) =
-  Code_Generator.op_eq A_ x y orelse memberl A_ x ys
+  Code_Generator.eq A_ x y orelse memberl A_ x ys
   | memberl A_ x [] = false;
 
 end; (*struct List*)

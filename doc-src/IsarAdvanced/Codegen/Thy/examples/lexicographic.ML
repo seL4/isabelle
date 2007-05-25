@@ -13,17 +13,17 @@ end; (*struct Orderings*)
 structure Code_Generator = 
 struct
 
-type 'a eq = {op_eq : 'a -> 'a -> bool};
-fun op_eq (A_:'a eq) = #op_eq A_;
+type 'a eq = {eq : 'a -> 'a -> bool};
+fun eq (A_:'a eq) = #eq A_;
 
 end; (*struct Code_Generator*)
 
 structure Codegen = 
 struct
 
-fun less_eq_times (A1_, A2_) B_ (x1, y1) (x2, y2) =
+fun less_eq_product (A1_, A2_) B_ (x1, y1) (x2, y2) =
   Orderings.less A2_ x1 x2 orelse
-    Code_Generator.op_eq A1_ x1 x2 andalso Orderings.less_eq B_ y1 y2;
+    Code_Generator.eq A1_ x1 x2 andalso Orderings.less_eq B_ y1 y2;
 
 end; (*struct Codegen*)
 
