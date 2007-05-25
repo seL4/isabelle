@@ -464,7 +464,7 @@ text {*
        integer literals in target languages.
     \item[@{text "Pretty_Char"}] represents @{text HOL} characters by 
        character literals in target languages.
-    \item[@{text "Pretty_Char_chr"}] like @{text "Pretty_Char_chr"},
+    \item[@{text "Pretty_Char_chr"}] like @{text "Pretty_Char"},
        but also offers treatment of character codes; includes
        @{text "Pretty_Int"}.
     \item[@{text "ExecutableSet"}] allows to generate code
