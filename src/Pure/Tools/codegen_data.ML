@@ -566,7 +566,7 @@ fun assert_func_typ thm =
         else CodegenFunc.bad_thm ("Type\n" ^ CodegenConsts.string_of_typ thy ty
            ^ "\nof defining equation\n"
            ^ string_of_thm thm
-           ^ "\nis incompatible declared function type\n"
+           ^ "\nis incompatible with declared function type\n"
            ^ CodegenConsts.string_of_typ thy ty_decl)
       end;
     fun check_typ (const as (c, _), thm) =
@@ -658,12 +658,12 @@ end; (*local*)
 
 fun add_inline thm thy =
   (map_exec_purge NONE o map_preproc o apfst o apfst)
-    (insert Thm.eq_thm_prop (CodegenFunc.mk_rew thm)) thy;
+    (insert Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
 fun del_inline thm thy =
   (map_exec_purge NONE o map_preproc o apfst o apfst)
-    (remove Thm.eq_thm_prop (CodegenFunc.mk_rew thm)) thy;
+    (remove Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
 fun add_inline_proc (name, f) =
