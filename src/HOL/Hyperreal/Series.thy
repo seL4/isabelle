@@ -573,4 +573,109 @@ apply (rule sums_mult)
 apply (auto intro!: geometric_sums)
 done
 
+subsection {* Cauchy Product Formula *}
+
+(* Proof based on Analysis WebNotes: Chapter 07, Class 41
+http://www.math.unl.edu/~webnotes/classes/class41/prp77.htm *)
+
+lemma setsum_triangle_reindex:
+  fixes n :: nat
+  shows "(\<Sum>(i,j)\<in>{(i,j). i+j < n}. f i j) = (\<Sum>k=0..<n. \<Sum>i=0..k. f i (k - i))"
+proof -
+  have "(\<Sum>(i, j)\<in>{(i, j). i + j < n}. f i j) =
+    (\<Sum>(k, i)\<in>(SIGMA k:{0..<n}. {0..k}). f i (k - i))"
+  proof (rule setsum_reindex_cong)
+    show "inj_on (\<lambda>(k,i). (i, k - i)) (SIGMA k:{0..<n}. {0..k})"
+      by (rule inj_on_inverseI [where g="\<lambda>(i,j). (i+j, i)"], auto)
+    show "{(i,j). i + j < n} = (\<lambda>(k,i). (i, k - i)) ` (SIGMA k:{0..<n}. {0..k})"
+      by (safe, rule_tac x="(a+b,a)" in image_eqI, auto)
+    show "\<And>a. (\<lambda>(k, i). f i (k - i)) a = split f ((\<lambda>(k, i). (i, k - i)) a)"
+      by clarify
+  qed
+  thus ?thesis by (simp add: setsum_Sigma)
+qed
+
+lemma Cauchy_product_sums:
+  fixes a b :: "nat \<Rightarrow> 'a::{real_normed_algebra,banach}"
+  assumes a: "summable (\<lambda>k. norm (a k))"
+  assumes b: "summable (\<lambda>k. norm (b k))"
+  shows "(\<lambda>k. \<Sum>i=0..k. a i * b (k - i)) sums ((\<Sum>k. a k) * (\<Sum>k. b k))"
+proof -
+  let ?S1 = "\<lambda>n::nat. {0..<n} \<times> {0..<n}"
+  let ?S2 = "\<lambda>n::nat. {(i,j). i + j < n}"
+  have S1_mono: "\<And>m n. m \<le> n \<Longrightarrow> ?S1 m \<subseteq> ?S1 n" by auto
+  have S2_le_S1: "\<And>n. ?S2 n \<subseteq> ?S1 n" by auto
+  have S1_le_S2: "\<And>n. ?S1 (n div 2) \<subseteq> ?S2 n" by auto
+  have finite_S1: "\<And>n. finite (?S1 n)" by simp
+  with S2_le_S1 have finite_S2: "\<And>n. finite (?S2 n)" by (rule finite_subset)
+
+  let ?g = "\<lambda>(i,j). a i * b j"
+  let ?f = "\<lambda>(i,j). norm (a i) * norm (b j)"
+  have f_nonneg: "\<And>x. 0 \<le> ?f x"
+    by (auto simp add: mult_nonneg_nonneg)
+  hence norm_setsum_f: "\<And>A. norm (setsum ?f A) = setsum ?f A"
+    unfolding real_norm_def
+    by (simp only: abs_of_nonneg setsum_nonneg [rule_format])
+
+  have "(\<lambda>n. (\<Sum>k=0..<n. a k) * (\<Sum>k=0..<n. b k))
+           ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
+    by (intro LIMSEQ_mult summable_sumr_LIMSEQ_suminf
+        summable_norm_cancel [OF a] summable_norm_cancel [OF b])
+  hence 1: "(\<lambda>n. setsum ?g (?S1 n)) ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
+    by (simp only: setsum_product setsum_Sigma [rule_format]
+                   finite_atLeastLessThan)
+
+  have "(\<lambda>n. (\<Sum>k=0..<n. norm (a k)) * (\<Sum>k=0..<n. norm (b k)))
+       ----> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
+    using a b by (intro LIMSEQ_mult summable_sumr_LIMSEQ_suminf)
+  hence "(\<lambda>n. setsum ?f (?S1 n)) ----> (\<Sum>k. norm (a k)) * (\<Sum>k. norm (b k))"
+    by (simp only: setsum_product setsum_Sigma [rule_format]
+                   finite_atLeastLessThan)
+  hence "convergent (\<lambda>n. setsum ?f (?S1 n))"
+    by (rule convergentI)
+  hence Cauchy: "Cauchy (\<lambda>n. setsum ?f (?S1 n))"
+    by (rule convergent_Cauchy)
+  have "Zseq (\<lambda>n. setsum ?f (?S1 n - ?S2 n))"
+  proof (rule ZseqI, simp only: norm_setsum_f)
+    fix r :: real
+    assume r: "0 < r"
+    from CauchyD [OF Cauchy r] obtain N
+    where "\<forall>m\<ge>N. \<forall>n\<ge>N. norm (setsum ?f (?S1 m) - setsum ?f (?S1 n)) < r" ..
+    hence "\<And>m n. \<lbrakk>N \<le> n; n \<le> m\<rbrakk> \<Longrightarrow> norm (setsum ?f (?S1 m - ?S1 n)) < r"
+      by (simp only: setsum_diff finite_S1 S1_mono)
+    hence N: "\<And>m n. \<lbrakk>N \<le> n; n \<le> m\<rbrakk> \<Longrightarrow> setsum ?f (?S1 m - ?S1 n) < r"
+      by (simp only: norm_setsum_f)
+    show "\<exists>N. \<forall>n\<ge>N. setsum ?f (?S1 n - ?S2 n) < r"
+    proof (intro exI allI impI)
+      fix n assume "2 * N \<le> n"
+      hence n: "N \<le> n div 2" by simp
+      have "setsum ?f (?S1 n - ?S2 n) \<le> setsum ?f (?S1 n - ?S1 (n div 2))"
+        by (intro setsum_mono2 finite_Diff finite_S1 f_nonneg
+                  Diff_mono subset_refl S1_le_S2)
+      also have "\<dots> < r"
+        using n div_le_dividend by (rule N)
+      finally show "setsum ?f (?S1 n - ?S2 n) < r" .
+    qed
+  qed
+  hence "Zseq (\<lambda>n. setsum ?g (?S1 n - ?S2 n))"
+    apply (rule Zseq_le [rule_format])
+    apply (simp only: norm_setsum_f)
+    apply (rule order_trans [OF norm_setsum setsum_mono])
+    apply (auto simp add: norm_mult_ineq)
+    done
+  hence 2: "(\<lambda>n. setsum ?g (?S1 n) - setsum ?g (?S2 n)) ----> 0"
+    by (simp only: LIMSEQ_Zseq_iff setsum_diff finite_S1 S2_le_S1 diff_0_right)
+
+  with 1 have "(\<lambda>n. setsum ?g (?S2 n)) ----> (\<Sum>k. a k) * (\<Sum>k. b k)"
+    by (rule LIMSEQ_diff_approach_zero2)
+  thus ?thesis by (simp only: sums_def setsum_triangle_reindex)
+qed
+
+lemma Cauchy_product:
+  fixes a b :: "nat \<Rightarrow> 'a::{real_normed_algebra,banach}"
+  assumes a: "summable (\<lambda>k. norm (a k))"
+  assumes b: "summable (\<lambda>k. norm (b k))"
+  shows "(\<Sum>k. a k) * (\<Sum>k. b k) = (\<Sum>k. \<Sum>i=0..k. a i * b (k - i))"
+by (rule Cauchy_product_sums [THEN sums_unique])
+
 end
