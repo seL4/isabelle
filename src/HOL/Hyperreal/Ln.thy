@@ -124,7 +124,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma exp_bound: "0 <= x ==> x <= 1 ==> exp x <= 1 + x + x^2"
+lemma exp_bound: "0 <= (x::real) ==> x <= 1 ==> exp x <= 1 + x + x^2"
 proof -
   assume a: "0 <= x"
   assume b: "x <= 1"
@@ -153,7 +153,7 @@ lemma aux3: "(0::real) <= x ==> (1 + x + x^2)/(1 + x^2) <= 1 + x"
   apply (simp add: ring_eq_simps zero_compare_simps)
 done
 
-lemma aux4: "0 <= x ==> x <= 1 ==> exp (x - x^2) <= 1 + x" 
+lemma aux4: "0 <= (x::real) ==> x <= 1 ==> exp (x - x^2) <= 1 + x" 
 proof -
   assume a: "0 <= x" and b: "x <= 1"
   have "exp (x - x^2) = exp x / exp (x^2)"
@@ -294,7 +294,7 @@ proof -
     by (rule order_trans)
 qed
 
-lemma exp_ge_add_one_self [simp]: "1 + x <= exp x"
+lemma exp_ge_add_one_self [simp]: "1 + (x::real) <= exp x"
   apply (case_tac "0 <= x")
   apply (erule exp_ge_add_one_self_aux)
   apply (case_tac "x <= -1")
@@ -415,10 +415,10 @@ proof -
   assume "exp 1 <= x" and "x <= y"
   have a: "0 < x" and b: "0 < y"
     apply (insert prems)
-    apply (subgoal_tac "0 < exp 1")
+    apply (subgoal_tac "0 < exp (1::real)")
     apply arith
     apply auto
-    apply (subgoal_tac "0 < exp 1")
+    apply (subgoal_tac "0 < exp (1::real)")
     apply arith
     apply auto
     done

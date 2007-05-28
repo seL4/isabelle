@@ -245,12 +245,12 @@ apply (rule_tac x="whn" in spec)
 apply (unfold sumhr_app, transfer, simp)
 done
 
-lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) 0 @= 1"
-apply (subgoal_tac "( *f* exp) 0 = 1", simp)
+lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) (0::hypreal) @= 1"
+apply (subgoal_tac "( *f* exp) (0::hypreal) = 1", simp)
 apply (transfer, simp)
 done
 
-lemma STAR_exp_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* exp) x @= 1"
+lemma STAR_exp_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* exp) (x::hypreal) @= 1"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_exp)
 apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
@@ -276,16 +276,16 @@ apply (subst starfunNat_sumr [symmetric])
 apply (rule NSLIMSEQ_D [THEN approx_sym])
 apply (rule LIMSEQ_NSLIMSEQ)
 apply (subst sums_def [symmetric])
-apply (rule exp_converges)
+apply (cut_tac exp_converges [where x=x], simp)
 apply (rule HNatInfinite_whn)
 done
 
-lemma starfun_exp_ge_add_one_self [simp]: "!!x. 0 \<le> x ==> (1 + x) \<le> ( *f* exp) x"
+lemma starfun_exp_ge_add_one_self [simp]: "!!x::hypreal. 0 \<le> x ==> (1 + x) \<le> ( *f* exp) x"
 by transfer (rule exp_ge_add_one_self_aux)
 
 (* exp (oo) is infinite *)
 lemma starfun_exp_HInfinite:
-     "[| x \<in> HInfinite; 0 \<le> x |] ==> ( *f* exp) x \<in> HInfinite"
+     "[| x \<in> HInfinite; 0 \<le> x |] ==> ( *f* exp) (x::hypreal) \<in> HInfinite"
 apply (frule starfun_exp_ge_add_one_self)
 apply (rule HInfinite_ge_HInfinite, assumption)
 apply (rule order_trans [of _ "1+x"], auto) 
@@ -296,14 +296,14 @@ by transfer (rule exp_minus)
 
 (* exp (-oo) is infinitesimal *)
 lemma starfun_exp_Infinitesimal:
-     "[| x \<in> HInfinite; x \<le> 0 |] ==> ( *f* exp) x \<in> Infinitesimal"
+     "[| x \<in> HInfinite; x \<le> 0 |] ==> ( *f* exp) (x::hypreal) \<in> Infinitesimal"
 apply (subgoal_tac "\<exists>y. x = - y")
 apply (rule_tac [2] x = "- x" in exI)
 apply (auto intro!: HInfinite_inverse_Infinitesimal starfun_exp_HInfinite
             simp add: starfun_exp_minus HInfinite_minus_iff)
 done
 
-lemma starfun_exp_gt_one [simp]: "!!x. 0 < x ==> 1 < ( *f* exp) x"
+lemma starfun_exp_gt_one [simp]: "!!x::hypreal. 0 < x ==> 1 < ( *f* exp) x"
 by transfer (rule exp_gt_one)
 
 (* needs derivative of inverse function
@@ -349,13 +349,13 @@ done
 lemma starfun_ln_inverse: "!!x. 0 < x ==> ( *f* ln) (inverse x) = -( *f* ln) x"
 by transfer (rule ln_inverse)
 
-lemma starfun_abs_exp_cancel: "\<And>x. \<bar>( *f* exp) x\<bar> = ( *f* exp) x"
+lemma starfun_abs_exp_cancel: "\<And>x. \<bar>( *f* exp) (x::hypreal)\<bar> = ( *f* exp) x"
 by transfer (rule abs_exp_cancel)
 
-lemma starfun_exp_less_mono: "\<And>x y. x < y \<Longrightarrow> ( *f* exp) x < ( *f* exp) y"
+lemma starfun_exp_less_mono: "\<And>x y::hypreal. x < y \<Longrightarrow> ( *f* exp) x < ( *f* exp) y"
 by transfer (rule exp_less_mono)
 
-lemma starfun_exp_HFinite: "x \<in> HFinite ==> ( *f* exp) x \<in> HFinite"
+lemma starfun_exp_HFinite: "x \<in> HFinite ==> ( *f* exp) (x::hypreal) \<in> HFinite"
 apply (auto simp add: HFinite_def, rename_tac u)
 apply (rule_tac x="( *f* exp) u" in rev_bexI)
 apply (simp add: Reals_eq_Standard)
@@ -364,7 +364,7 @@ apply (simp add: starfun_exp_less_mono)
 done
 
 lemma starfun_exp_add_HFinite_Infinitesimal_approx:
-     "[|x \<in> Infinitesimal; z \<in> HFinite |] ==> ( *f* exp) (z + x) @= ( *f* exp) z"
+     "[|x \<in> Infinitesimal; z \<in> HFinite |] ==> ( *f* exp) (z + x::hypreal) @= ( *f* exp) z"
 apply (simp add: STAR_exp_add)
 apply (frule STAR_exp_Infinitesimal)
 apply (drule approx_mult2)
@@ -380,7 +380,7 @@ apply (simp add: starfun_exp_ln_iff [THEN iffD2] HFinite_HInfinite_iff)
 done
 
 lemma starfun_exp_HInfinite_Infinitesimal_disj:
- "x \<in> HInfinite ==> ( *f* exp) x \<in> HInfinite | ( *f* exp) x \<in> Infinitesimal"
+ "x \<in> HInfinite ==> ( *f* exp) x \<in> HInfinite | ( *f* exp) (x::hypreal) \<in> Infinitesimal"
 apply (insert linorder_linear [of x 0]) 
 apply (auto intro: starfun_exp_HInfinite starfun_exp_Infinitesimal)
 done
