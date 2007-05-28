@@ -924,6 +924,7 @@ INCOMPATIBILITY.
   is(NS)Cont     :: ['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool
   deriv          :: ['a::real_normed_field => 'a, 'a, 'a] => bool
   sgn            :: 'a::real_normed_vector => 'a
+  exp            :: 'a::{recpower,real_normed_field,banach} => 'a
 
 * Complex: Some complex-specific constants are now abbreviations for
 overloaded ones: complex_of_real = of_real, cmod = norm, hcmod =
