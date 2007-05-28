@@ -171,13 +171,15 @@ lemma sumr_diff_mult_const2:
 by (simp add: setsum_subtractf)
 
 lemma lemma_termdiff2:
-  fixes h :: "'a :: {recpower,field,division_by_zero}"
+  fixes h :: "'a :: {recpower,field}"
   assumes h: "h \<noteq> 0" shows
   "((z + h) ^ n - z ^ n) / h - of_nat n * z ^ (n - Suc 0) =
    h * (\<Sum>p=0..< n - Suc 0. \<Sum>q=0..< n - Suc 0 - p.
         (z + h) ^ q * z ^ (n - 2 - q))" (is "?lhs = ?rhs")
 apply (subgoal_tac "h * ?lhs = h * ?rhs", simp add: h)
 apply (simp add: right_diff_distrib diff_divide_distrib h)
+apply (simp only: times_divide_eq_left [symmetric])
+apply (simp add: divide_self [OF h])
 apply (simp add: mult_assoc [symmetric])
 apply (cases "n", simp)
 apply (simp add: lemma_realpow_diff_sumr2 h
@@ -207,7 +209,7 @@ apply (simp add: mult_right_mono K)
 done
 
 lemma lemma_termdiff3:
-  fixes h z :: "'a::{real_normed_field,recpower,division_by_zero}"
+  fixes h z :: "'a::{real_normed_field,recpower}"
   assumes 1: "h \<noteq> 0"
   assumes 2: "norm z \<le> K"
   assumes 3: "norm (z + h) \<le> K"
@@ -247,7 +249,7 @@ proof -
 qed
 
 lemma lemma_termdiff4:
-  fixes f :: "'a::{real_normed_field,recpower,division_by_zero} \<Rightarrow>
+  fixes f :: "'a::{real_normed_field,recpower} \<Rightarrow>
               'b::real_normed_vector"
   assumes k: "0 < (k::real)"
   assumes le: "\<And>h. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (f h) \<le> K * norm h"
@@ -292,7 +294,7 @@ proof (simp add: LIM_def, safe)
 qed
 
 lemma lemma_termdiff5:
-  fixes g :: "'a::{recpower,real_normed_field,division_by_zero} \<Rightarrow>
+  fixes g :: "'a::{recpower,real_normed_field} \<Rightarrow>
               nat \<Rightarrow> 'b::banach"
   assumes k: "0 < (k::real)"
   assumes f: "summable f"
@@ -321,7 +323,7 @@ qed
 text{* FIXME: Long proofs*}
 
 lemma termdiffs_aux:
-  fixes x :: "'a::{recpower,real_normed_field,division_by_zero,banach}"
+  fixes x :: "'a::{recpower,real_normed_field,banach}"
   assumes 1: "summable (\<lambda>n. diffs (diffs c) n * K ^ n)"
   assumes 2: "norm x < norm K"
   shows "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h
@@ -386,7 +388,7 @@ proof -
 qed
 
 lemma termdiffs:
-  fixes K x :: "'a::{recpower,real_normed_field,division_by_zero,banach}"
+  fixes K x :: "'a::{recpower,real_normed_field,banach}"
   assumes 1: "summable (\<lambda>n. c n * K ^ n)"
   assumes 2: "summable (\<lambda>n. (diffs c) n * K ^ n)"
   assumes 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
@@ -512,25 +514,19 @@ apply (case_tac [2] "n", auto)
 done
 
 lemma exp_converges: "(%n. inverse (real (fact n)) * x ^ n) sums exp(x)"
-apply (simp add: exp_def)
-apply (rule summable_exp [THEN summable_sums])
-done
+unfolding exp_def by (rule summable_exp [THEN summable_sums])
 
 lemma sin_converges: 
       "(%n. (if even n then 0  
             else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
                  x ^ n) sums sin(x)"
-apply (simp add: sin_def)
-apply (rule summable_sin [THEN summable_sums])
-done
+unfolding sin_def by (rule summable_sin [THEN summable_sums])
 
 lemma cos_converges: 
       "(%n. (if even n then  
            (- 1) ^ (n div 2)/(real (fact n))  
            else 0) * x ^ n) sums cos(x)"
-apply (simp add: cos_def)
-apply (rule summable_cos [THEN summable_sums])
-done
+unfolding cos_def by (rule summable_cos [THEN summable_sums])
 
 
 subsection{*Formal Derivatives of Exp, Sin, and Cos Series*} 
