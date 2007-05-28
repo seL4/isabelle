@@ -91,29 +91,25 @@ lemma scaleR_left_commute:
   shows "scaleR a (scaleR b x) = scaleR b (scaleR a x)"
 by (simp add: mult_commute)
 
-lemma additive_scaleR_right: "additive (\<lambda>x. scaleR a x::'a::real_vector)"
-by (rule additive.intro, rule scaleR_right_distrib)
-
-lemma additive_scaleR_left: "additive (\<lambda>a. scaleR a x::'a::real_vector)"
+interpretation additive_scaleR_left:
+  additive ["(\<lambda>a. scaleR a x::'a::real_vector)"]
 by (rule additive.intro, rule scaleR_left_distrib)
 
-lemmas scaleR_zero_left [simp] =
-  additive.zero [OF additive_scaleR_left, standard]
+interpretation additive_scaleR_right:
+  additive ["(\<lambda>x. scaleR a x::'a::real_vector)"]
+by (rule additive.intro, rule scaleR_right_distrib)
 
-lemmas scaleR_zero_right [simp] =
-  additive.zero [OF additive_scaleR_right, standard]
+lemmas scaleR_zero_left [simp] = additive_scaleR_left.zero
 
-lemmas scaleR_minus_left [simp] =
-  additive.minus [OF additive_scaleR_left, standard]
+lemmas scaleR_zero_right [simp] = additive_scaleR_right.zero
 
-lemmas scaleR_minus_right [simp] =
-  additive.minus [OF additive_scaleR_right, standard]
+lemmas scaleR_minus_left [simp] = additive_scaleR_left.minus
 
-lemmas scaleR_left_diff_distrib =
-  additive.diff [OF additive_scaleR_left, standard]
+lemmas scaleR_minus_right [simp] = additive_scaleR_right.minus
 
-lemmas scaleR_right_diff_distrib =
-  additive.diff [OF additive_scaleR_right, standard]
+lemmas scaleR_left_diff_distrib = additive_scaleR_left.diff
+
+lemmas scaleR_right_diff_distrib = additive_scaleR_right.diff
 
 lemma scaleR_eq_0_iff [simp]:
   fixes x :: "'a::real_vector"
