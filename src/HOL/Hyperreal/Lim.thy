@@ -539,6 +539,37 @@ subsection {* Uniform Continuity *}
 lemma isUCont_isCont: "isUCont f ==> isCont f x"
 by (simp add: isUCont_def isCont_def LIM_def, force)
 
+lemma isUCont_Cauchy:
+  "\<lbrakk>isUCont f; Cauchy X\<rbrakk> \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
+unfolding isUCont_def
+apply (rule CauchyI)
+apply (drule_tac x=e in spec, safe)
+apply (drule_tac e=s in CauchyD, safe)
+apply (rule_tac x=M in exI, simp)
+done
+
+lemma (in bounded_linear) isUCont: "isUCont f"
+unfolding isUCont_def
+proof (intro allI impI)
+  fix r::real assume r: "0 < r"
+  obtain K where K: "0 < K" and norm_le: "\<And>x. norm (f x) \<le> norm x * K"
+    using pos_bounded by fast
+  show "\<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r"
+  proof (rule exI, safe)
+    from r K show "0 < r / K" by (rule divide_pos_pos)
+  next
+    fix x y :: 'a
+    assume xy: "norm (x - y) < r / K"
+    have "norm (f x - f y) = norm (f (x - y))" by (simp only: diff)
+    also have "\<dots> \<le> norm (x - y) * K" by (rule norm_le)
+    also from K xy have "\<dots> < r" by (simp only: pos_less_divide_eq)
+    finally show "norm (f x - f y) < r" .
+  qed
+qed
+
+lemma (in bounded_linear) Cauchy: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
+by (rule isUCont [THEN isUCont_Cauchy])
+
 
 subsection {* Relation of LIM and LIMSEQ *}
 
