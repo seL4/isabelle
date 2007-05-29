@@ -457,6 +457,47 @@ by (rule ord_le_eq_trans [OF norm_triangle_ineq2], simp)
 lemmas real_sum_squared_expand = power2_sum [where 'a=real]
 
 
+subsection {* Completeness of the Complexes *}
+
+interpretation Re: bounded_linear ["Re"]
+apply (unfold_locales, simp, simp)
+apply (rule_tac x=1 in exI)
+apply (simp add: complex_norm_def)
+done
+
+interpretation Im: bounded_linear ["Im"]
+apply (unfold_locales, simp, simp)
+apply (rule_tac x=1 in exI)
+apply (simp add: complex_norm_def)
+done
+
+lemma LIMSEQ_Complex:
+  "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. Complex (X n) (Y n)) ----> Complex a b"
+apply (rule LIMSEQ_I)
+apply (subgoal_tac "0 < r / sqrt 2")
+apply (drule_tac r="r / sqrt 2" in LIMSEQ_D, safe)
+apply (drule_tac r="r / sqrt 2" in LIMSEQ_D, safe)
+apply (rename_tac M N, rule_tac x="max M N" in exI, safe)
+apply (simp add: complex_diff)
+apply (simp add: real_sqrt_sum_squares_less)
+apply (simp add: divide_pos_pos)
+done
+
+instance complex :: banach
+proof
+  fix X :: "nat \<Rightarrow> complex"
+  assume X: "Cauchy X"
+  from Re.Cauchy [OF X] have 1: "(\<lambda>n. Re (X n)) ----> lim (\<lambda>n. Re (X n))"
+    by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
+  from Im.Cauchy [OF X] have 2: "(\<lambda>n. Im (X n)) ----> lim (\<lambda>n. Im (X n))"
+    by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
+  have "X ----> Complex (lim (\<lambda>n. Re (X n))) (lim (\<lambda>n. Im (X n)))"
+    using LIMSEQ_Complex [OF 1 2] by simp
+  thus "convergent X"
+    by (rule convergentI)
+qed
+
+
 subsection{*Exponentiation*}
 
 primrec
