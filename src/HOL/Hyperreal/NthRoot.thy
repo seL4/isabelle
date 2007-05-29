@@ -536,6 +536,16 @@ apply simp
 apply (simp add: add_increasing)
 done
 
+lemma real_sqrt_sum_squares_less:
+  "\<lbrakk>\<bar>x\<bar> < u / sqrt 2; \<bar>y\<bar> < u / sqrt 2\<rbrakk> \<Longrightarrow> sqrt (x\<twosuperior> + y\<twosuperior>) < u"
+apply (rule power2_less_imp_less, simp)
+apply (drule power_strict_mono [OF _ abs_ge_zero pos2])
+apply (drule power_strict_mono [OF _ abs_ge_zero pos2])
+apply (simp add: power_divide)
+apply (drule order_le_less_trans [OF abs_ge_zero])
+apply (simp add: zero_less_divide_iff)
+done
+
 text{*Needed for the infinitely close relation over the nonstandard
     complex numbers*}
 lemma lemma_sqrt_hcomplex_capprox:
