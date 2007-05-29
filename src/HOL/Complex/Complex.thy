@@ -13,10 +13,10 @@ begin
 
 datatype complex = Complex real real
 
-instance complex :: "{zero, one, plus, times, minus, inverse, power}" ..
-
-consts
+definition
   "ii"    :: complex    ("\<i>")
+where
+  i_def: "ii == Complex 0 1"
 
 consts Re :: "complex => real"
 primrec Re: "Re (Complex x y) = x"
@@ -27,32 +27,32 @@ primrec Im: "Im (Complex x y) = y"
 lemma complex_surj [simp]: "Complex (Re z) (Im z) = z"
   by (induct z) simp
 
-defs (overloaded)
-
+instance complex :: zero
   complex_zero_def:
-  "0 == Complex 0 0"
+  "0 == Complex 0 0" ..
 
+instance complex :: one
   complex_one_def:
-  "1 == Complex 1 0"
+  "1 == Complex 1 0" ..
 
-  i_def: "ii == Complex 0 1"
+instance complex :: plus
+  complex_add_def:
+    "z + w == Complex (Re z + Re w) (Im z + Im w)" ..
 
+instance complex :: minus
   complex_minus_def: "- z == Complex (- Re z) (- Im z)"
+  complex_diff_def:
+    "z - w == z + - (w::complex)" ..
 
+instance complex :: times
+  complex_mult_def:
+    "z * w == Complex (Re z * Re w - Im z * Im w) (Re z * Im w + Im z * Re w)" ..
+
+instance complex :: inverse
   complex_inverse_def:
    "inverse z ==
     Complex (Re z / ((Re z)\<twosuperior> + (Im z)\<twosuperior>)) (- Im z / ((Re z)\<twosuperior> + (Im z)\<twosuperior>))"
-
-  complex_add_def:
-    "z + w == Complex (Re z + Re w) (Im z + Im w)"
-
-  complex_diff_def:
-    "z - w == z + - (w::complex)"
-
-  complex_mult_def:
-    "z * w == Complex (Re z * Re w - Im z * Im w) (Re z * Im w + Im z * Re w)"
-
-  complex_divide_def: "w / (z::complex) == w * inverse z"
+  complex_divide_def: "w / (z::complex) == w * inverse z" ..
 
 
 lemma complex_equality [intro?]: "Re z = Re w ==> Im z = Im w ==> z = w"
@@ -499,6 +499,8 @@ qed
 
 
 subsection{*Exponentiation*}
+
+instance complex :: power ..
 
 primrec
      complexpow_0:   "z ^ 0       = 1"
