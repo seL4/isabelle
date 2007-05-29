@@ -360,15 +360,15 @@ by (rule power_0)
 lemma hcomplexpow_Suc [simp]: "z ^ (Suc n) = (z::hcomplex) * (z ^ n)"
 by (rule power_Suc)
 
-lemma hcomplexpow_i_squared [simp]: "iii ^ 2 = - 1"
-by transfer (rule complexpow_i_squared)
+lemma hcomplexpow_i_squared [simp]: "iii ^ 2 = -1"
+by transfer (rule power2_i)
 
 lemma hcomplex_of_hypreal_pow:
      "!!x. hcomplex_of_hypreal (x ^ n) = (hcomplex_of_hypreal x) ^ n"
 by transfer (rule of_real_power)
 
 lemma hcomplex_hcnj_pow: "!!z. hcnj(z ^ n) = hcnj(z) ^ n"
-by transfer (rule complex_cnj_pow)
+by transfer (rule complex_cnj_power)
 
 lemma hcmod_hcomplexpow: "!!x. hcmod(x ^ n) = hcmod(x) ^ n"
 by transfer (rule norm_power)
@@ -408,7 +408,7 @@ lemma hsgn_eq: "!!z. hsgn z = z / hcomplex_of_hypreal (hcmod z)"
 by transfer (rule sgn_eq)
 
 lemma hcmod_i: "!!x y. hcmod (HComplex x y) = ( *f* sqrt) (x ^ 2 + y ^ 2)"
-by transfer (rule complex_mod)
+by transfer (rule complex_norm)
 
 lemma hcomplex_eq_cancel_iff1 [simp]:
      "(hcomplex_of_hypreal xa = HComplex x y) = (xa = x & y = 0)"
@@ -653,7 +653,7 @@ by transfer (rule refl)
 
 lemma hcomplex_hypreal_number_of: 
   "hcomplex_of_complex (number_of w) = hcomplex_of_hypreal(number_of w)"
-by transfer (rule complex_number_of [symmetric])
+by transfer (rule of_real_number_of_eq [symmetric])
 
 (*
 Goal "z + hcnj z =  
@@ -759,18 +759,18 @@ Addsimps [hcomplex_number_of_eq_cancel_iff3a];
 
 lemma hcomplex_number_of_hcnj [simp]:
      "hcnj (number_of v :: hcomplex) = number_of v"
-by transfer (rule complex_number_of_cnj)
+by transfer (rule complex_cnj_number_of)
 
 lemma hcomplex_number_of_hcmod [simp]: 
       "hcmod(number_of v :: hcomplex) = abs (number_of v :: hypreal)"
-by transfer (rule complex_number_of_cmod)
+by transfer (rule norm_number_of)
 
 lemma hcomplex_number_of_hRe [simp]: 
       "hRe(number_of v :: hcomplex) = number_of v"
-by transfer (rule complex_number_of_Re)
+by transfer (rule complex_Re_number_of)
 
 lemma hcomplex_number_of_hIm [simp]: 
       "hIm(number_of v :: hcomplex) = 0"
-by transfer (rule complex_number_of_Im)
+by transfer (rule complex_Im_number_of)
 
 end
