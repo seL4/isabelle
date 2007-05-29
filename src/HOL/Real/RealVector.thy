@@ -756,6 +756,11 @@ interpretation bounded_linear_mult_right:
   bounded_linear ["(\<lambda>y::'a::real_normed_algebra. x * y)"]
 by (rule bounded_bilinear_mult.bounded_linear_right)
 
+interpretation bounded_linear_divide:
+  bounded_linear ["(\<lambda>x::'a::real_normed_field. x / y)"]
+unfolding divide_inverse
+by (rule bounded_bilinear_mult.bounded_linear_left)
+
 interpretation bounded_bilinear_scaleR:
   bounded_bilinear ["scaleR"]
 apply (rule bounded_bilinear.intro)
