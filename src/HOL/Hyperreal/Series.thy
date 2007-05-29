@@ -147,22 +147,14 @@ apply (rule_tac x = n in exI)
 apply (clarsimp simp add:setsum_diff[symmetric] cong:setsum_ivl_cong)
 done
 
-lemma sums_zero: "(%n. 0) sums 0";
-  apply (unfold sums_def);
-  apply simp;
-  apply (rule LIMSEQ_const);
-done;
+lemma sums_zero: "(\<lambda>n. 0) sums 0"
+unfolding sums_def by (simp add: LIMSEQ_const)
 
-lemma summable_zero: "summable (%n. 0)";
-  apply (rule sums_summable);
-  apply (rule sums_zero);
-done;
+lemma summable_zero: "summable (\<lambda>n. 0)"
+by (rule sums_zero [THEN sums_summable])
 
-lemma suminf_zero: "suminf (%n. 0) = 0";
-  apply (rule sym);
-  apply (rule sums_unique);
-  apply (rule sums_zero);
-done;
+lemma suminf_zero: "suminf (\<lambda>n. 0) = 0"
+by (rule sums_zero [THEN sums_unique, symmetric])
   
 lemma (in bounded_linear) sums:
   "(\<lambda>n. X n) sums a \<Longrightarrow> (\<lambda>n. f (X n)) sums (f a)"
@@ -174,113 +166,81 @@ unfolding summable_def by (auto intro: sums)
 
 lemma (in bounded_linear) suminf:
   "summable (\<lambda>n. X n) \<Longrightarrow> f (\<Sum>n. X n) = (\<Sum>n. f (X n))"
-by (rule summable_sums [THEN sums, THEN sums_unique])
+by (intro sums_unique sums summable_sums)
 
 lemma sums_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "f sums a \<Longrightarrow> (\<lambda>n. c * f n) sums (c * a)"
-by (auto simp add: sums_def setsum_right_distrib [symmetric]
-         intro!: LIMSEQ_mult intro: LIMSEQ_const)
+by (rule bounded_linear_mult_right.sums)
 
 lemma summable_mult:
   fixes c :: "'a::real_normed_algebra"
-  shows "summable f \<Longrightarrow> summable (%n. c * f n)";
-  apply (unfold summable_def);
-  apply (auto intro: sums_mult);
-done;
+  shows "summable f \<Longrightarrow> summable (%n. c * f n)"
+by (rule bounded_linear_mult_right.summable)
 
 lemma suminf_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> suminf (\<lambda>n. c * f n) = c * suminf f";
-  apply (rule sym);
-  apply (rule sums_unique);
-  apply (rule sums_mult);
-  apply (erule summable_sums);
-done;
+by (rule bounded_linear_mult_right.suminf [symmetric])
 
 lemma sums_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "f sums a \<Longrightarrow> (\<lambda>n. f n * c) sums (a * c)"
-by (auto simp add: sums_def setsum_left_distrib [symmetric]
-         intro!: LIMSEQ_mult LIMSEQ_const)
+by (rule bounded_linear_mult_left.sums)
 
 lemma summable_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> summable (\<lambda>n. f n * c)"
-  apply (unfold summable_def)
-  apply (auto intro: sums_mult2)
-done
+by (rule bounded_linear_mult_left.summable)
 
 lemma suminf_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> suminf f * c = (\<Sum>n. f n * c)"
-by (auto intro!: sums_unique sums_mult2 summable_sums)
+by (rule bounded_linear_mult_left.suminf)
 
 lemma sums_divide:
   fixes c :: "'a::real_normed_field"
   shows "f sums a \<Longrightarrow> (\<lambda>n. f n / c) sums (a / c)"
-by (simp add: divide_inverse sums_mult2)
+by (rule bounded_linear_divide.sums)
 
 lemma summable_divide:
   fixes c :: "'a::real_normed_field"
   shows "summable f \<Longrightarrow> summable (\<lambda>n. f n / c)"
-  apply (unfold summable_def);
-  apply (auto intro: sums_divide);
-done;
+by (rule bounded_linear_divide.summable)
 
 lemma suminf_divide:
   fixes c :: "'a::real_normed_field"
   shows "summable f \<Longrightarrow> suminf (\<lambda>n. f n / c) = suminf f / c"
-  apply (rule sym);
-  apply (rule sums_unique);
-  apply (rule sums_divide);
-  apply (erule summable_sums);
-done;
+by (rule bounded_linear_divide.suminf [symmetric])
 
-lemma sums_add: "[| x sums x0; y sums y0 |] ==> (%n. x n + y n) sums (x0+y0)"
-by (auto simp add: sums_def setsum_addf intro: LIMSEQ_add)
+lemma sums_add: "\<lbrakk>X sums a; Y sums b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n + Y n) sums (a + b)"
+unfolding sums_def by (simp add: setsum_addf LIMSEQ_add)
 
-lemma summable_add: "summable f ==> summable g ==> summable (%x. f x + g x)";
-  apply (unfold summable_def);
-  apply clarify;
-  apply (rule exI);
-  apply (erule sums_add);
-  apply assumption;
-done;
+lemma summable_add: "\<lbrakk>summable X; summable Y\<rbrakk> \<Longrightarrow> summable (\<lambda>n. X n + Y n)"
+unfolding summable_def by (auto intro: sums_add)
 
 lemma suminf_add:
-     "[| summable f; summable g |]   
-      ==> suminf f + suminf g  = (\<Sum>n. f n + g n)"
-by (auto intro!: sums_add sums_unique summable_sums)
+  "\<lbrakk>summable X; summable Y\<rbrakk> \<Longrightarrow> suminf X + suminf Y = (\<Sum>n. X n + Y n)"
+by (intro sums_unique sums_add summable_sums)
 
-lemma sums_diff: "[| x sums x0; y sums y0 |] ==> (%n. x n - y n) sums (x0-y0)"
-by (auto simp add: sums_def setsum_subtractf intro: LIMSEQ_diff)
+lemma sums_diff: "\<lbrakk>X sums a; Y sums b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n - Y n) sums (a - b)"
+unfolding sums_def by (simp add: setsum_subtractf LIMSEQ_diff)
 
-lemma summable_diff: "summable f ==> summable g ==> summable (%x. f x - g x)";
-  apply (unfold summable_def);
-  apply clarify;
-  apply (rule exI);
-  apply (erule sums_diff);
-  apply assumption;
-done;
+lemma summable_diff: "\<lbrakk>summable X; summable Y\<rbrakk> \<Longrightarrow> summable (\<lambda>n. X n - Y n)"
+unfolding summable_def by (auto intro: sums_diff)
 
 lemma suminf_diff:
-     "[| summable f; summable g |]   
-      ==> suminf f - suminf g  = (\<Sum>n. f n - g n)"
-by (auto intro!: sums_diff sums_unique summable_sums)
+  "\<lbrakk>summable X; summable Y\<rbrakk> \<Longrightarrow> suminf X - suminf Y = (\<Sum>n. X n - Y n)"
+by (intro sums_unique sums_diff summable_sums)
 
-lemma sums_minus: "f sums s ==> (%x. - f x) sums (- s)";
-  by (simp add: sums_def setsum_negf LIMSEQ_minus);
+lemma sums_minus: "X sums a ==> (\<lambda>n. - X n) sums (- a)"
+unfolding sums_def by (simp add: setsum_negf LIMSEQ_minus)
 
-lemma summable_minus: "summable f ==> summable (%x. - f x)";
-  by (auto simp add: summable_def intro: sums_minus);
+lemma summable_minus: "summable X \<Longrightarrow> summable (\<lambda>n. - X n)"
+unfolding summable_def by (auto intro: sums_minus)
 
-lemma suminf_minus: "summable f ==> suminf (%x. - f x) = - (suminf f)";
-  apply (rule sym);
-  apply (rule sums_unique);
-  apply (rule sums_minus);
-  apply (erule summable_sums);
-done;
+lemma suminf_minus: "summable X \<Longrightarrow> (\<Sum>n. - X n) = - (\<Sum>n. X n)"
+by (intro sums_unique [symmetric] sums_minus summable_sums)
 
 lemma sums_group:
      "[|summable f; 0 < k |] ==> (%n. setsum f {n*k..<n*k+k}) sums (suminf f)"
