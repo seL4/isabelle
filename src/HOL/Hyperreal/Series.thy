@@ -164,6 +164,18 @@ lemma suminf_zero: "suminf (%n. 0) = 0";
   apply (rule sums_zero);
 done;
   
+lemma (in bounded_linear) sums:
+  "(\<lambda>n. X n) sums a \<Longrightarrow> (\<lambda>n. f (X n)) sums (f a)"
+unfolding sums_def by (drule LIMSEQ, simp only: setsum)
+
+lemma (in bounded_linear) summable:
+  "summable (\<lambda>n. X n) \<Longrightarrow> summable (\<lambda>n. f (X n))"
+unfolding summable_def by (auto intro: sums)
+
+lemma (in bounded_linear) suminf:
+  "summable (\<lambda>n. X n) \<Longrightarrow> f (\<Sum>n. X n) = (\<Sum>n. f (X n))"
+by (rule summable_sums [THEN sums, THEN sums_unique])
+
 lemma sums_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "f sums a \<Longrightarrow> (\<lambda>n. c * f n) sums (c * a)"
