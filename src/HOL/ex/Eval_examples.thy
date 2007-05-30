@@ -20,6 +20,9 @@ value (overloaded) "(Suc 2 + 1) * 4"
 value (overloaded) "(Suc 2 + Suc 0) * Suc 3"
 value (overloaded) "[]::nat list"
 value (overloaded) "fst ([]::nat list, Suc 0) = []"
+value (overloaded) "nat 100"
+value (overloaded) "[(nat 100, ())]"
+value (overloaded) "int 10 \<le> 12"
 
 text {* a fancy datatype *}
 
