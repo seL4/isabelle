@@ -133,12 +133,14 @@ fun
 text {*
   \noindent For testing purpose, we define a small example
   using natural numbers @{typ nat} (which are a @{text linorder})
-  as keys and strings values:
+  as keys and list of nats as values:
 *}
 
-fun
-  example :: "nat \<Rightarrow> (nat, string) searchtree" where
-  "example n = update (n, ''bar'') (Leaf 0 ''foo'')"
+definition
+  example :: "(nat, nat list) searchtree"
+where
+  "example = update (Suc (Suc (Suc (Suc 0))), [Suc (Suc 0), Suc (Suc 0)]) (update (Suc (Suc (Suc 0)), [Suc (Suc (Suc 0))])
+    (update (Suc (Suc 0), [Suc (Suc 0)]) (Leaf (Suc 0) [])))"
 
 text {*
   \noindent Then we generate code
@@ -686,10 +688,11 @@ text {*
   In some cases, the automatically derived defining equations
   for equality on a particular type may not be appropriate.
   As example, watch the following datatype representing
-  monomorphic parametric types:
+  monomorphic parametric types (where type constructors
+  are referred to by natural numbers):
 *}
 
-datatype monotype = Mono string "monotype list"
+datatype monotype = Mono nat "monotype list"
 (*<*)
 lemma monotype_eq:
   "Mono tyco1 typargs1 = Mono tyco2 typargs2 \<equiv> 
@@ -699,9 +702,9 @@ lemma monotype_eq:
 text {*
   Then code generation for SML would fail with a message
   that the generated code conains illegal mutual dependencies:
-  the theorem @{thm monotype_eq} already requires the
+  the theorem @{thm monotype_eq [no_vars]} already requires the
   instance @{text "monotype \<Colon> eq"}, which itself requires
-  @{thm monotype_eq};  Haskell has no problem with mutually
+  @{thm monotype_eq [no_vars]};  Haskell has no problem with mutually
   recursive @{text instance} and @{text function} definitions,
   but the SML serializer does not support this.
 
@@ -1295,7 +1298,6 @@ text {*
 
   \medskip
   \begin{tabular}{l}
-  @{text "val name: string"} \\
   @{text "type T"} \\
   @{text "val empty: T"} \\
   @{text "val merge: Pretty.pp \<rightarrow> T * T \<rightarrow> T"} \\
@@ -1303,8 +1305,6 @@ text {*
   \end{tabular}
 
   \begin{description}
-
-  \item @{text name} is a system-wide unique name identifying the data.
 
   \item @{text T} the type of data to store.
 
@@ -1328,15 +1328,12 @@ text {*
 
   \medskip
   \begin{tabular}{l}
-  @{text "init: theory \<rightarrow> theory"} \\
   @{text "get: theory \<rightarrow> T"} \\
   @{text "change: theory \<rightarrow> (T \<rightarrow> T) \<rightarrow> T"} \\
   @{text "change_yield: theory \<rightarrow> (T \<rightarrow> 'a * T) \<rightarrow> 'a * T"}
   \end{tabular}
 
   \begin{description}
-
-  \item @{text init} initialization during theory setup.
 
   \item @{text get} retrieval of the current data.
 
@@ -1362,14 +1359,10 @@ text {*
 
   \medskip
   \begin{tabular}{l}
-  @{text "val name: string"} \\
   @{text "val rewrites: theory \<rightarrow> thm list"}
   \end{tabular}
 
   \begin{description}
-
-  \item @{text name} is a system-wide unique name identifying
-    this particular system of defining equations.
 
   \item @{text rewrites} specifies a set of theory-dependent
     rewrite rules which are added to the preprocessor setup;
