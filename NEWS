@@ -542,6 +542,13 @@ possible incompatibilities when working on ML level.
     Nat.power ~> Nat.power_class.power
     Nat.size ~> Nat.size_class.size
     Numeral.number_of ~> Numeral.number_class.number_of
+    FixedPoint.Inf ~> FixedPoint.complete_lattice_class.Inf
+
+* Rudimentary class target mechanims involves constant renames:
+
+    Orderings.min ~> Orderings.ord_class.min
+    Orderings.max ~> Orderings.ord_class.max
+    FixedPoint.Sup ~> FixedPoint.complete_lattice_class.Sup
 
 * case expressions and primrec: missing cases now mapped to "undefined"
 instead of "arbitrary"
@@ -578,7 +585,7 @@ instead of "arbitrary"
     Instantiation of lattice classes allows explicit definitions
     for "inf" and "sup" operations.
 
-  INCOMPATIBILITY. Theorem renames:
+  INCOMPATIBILITY.  Theorem renames:
 
     meet_left_le            ~> inf_le1
     meet_right_le           ~> inf_le2
