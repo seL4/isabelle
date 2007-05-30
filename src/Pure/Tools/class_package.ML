@@ -179,7 +179,8 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
               | SOME name => name;
             val t' = case mk_typnorm thy_read (ty', ty)
              of NONE => error ("illegal definition for constant " ^
-                  quote c ^ "::" ^ Sign.string_of_typ thy_read ty)
+                  quote (c ^ "::" ^ setmp show_sorts true
+                    (Sign.string_of_typ thy_read) ty))
               | SOME norm => map_types norm t
           in (((class, tyco), ((name, t'), atts)), AList.delete (op =) c cs) end;
       in fold_map read defs cs end;
