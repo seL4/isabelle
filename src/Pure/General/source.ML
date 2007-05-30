@@ -124,7 +124,9 @@ fun drain_stream instream outstream prompt () =
     else
       (TextIO.output (outstream, prompt);
         TextIO.flushOut outstream;
-        (input @ explode (TextIO.inputLine instream), ()))
+        (case TextIO.inputLine instream of
+          SOME line => (input @ explode line, ())
+        | NONE => (input, ())))
   end;
 
 fun of_stream instream outstream =

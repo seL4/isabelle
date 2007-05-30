@@ -291,10 +291,10 @@ fun setup_int_thms thyname thy =
 	    let
 		fun get_facts facts =
 		    case TextIO.inputLine is of
-			"" => (case facts of
+			NONE => (case facts of
 				   i::facts => (valOf (Int.fromString i),map P.protect_factname (rev facts))
 				 | _ => raise ERR "replay_thm" "Bad facts.lst file")
-		      | fact => get_facts ((String.substring(fact,0,String.size fact -1 ))::facts)
+		      | SOME fact => get_facts ((String.substring(fact,0,String.size fact -1 ))::facts)
 	    in
 		get_facts []
 	    end

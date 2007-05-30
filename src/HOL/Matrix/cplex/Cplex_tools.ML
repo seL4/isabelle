@@ -320,8 +320,9 @@ fun load_cplexFile name =
             )
         end
         else
-        let val s = TextIO.inputLine f in
-            if s = "" then NONE else
+          (case TextIO.inputLine f of
+            NONE => NONE
+          | SOME s =>
             let val t = tokenize s in
             if (length t >= 2 andalso
                 snd(hd (tl t)) = ":")
@@ -334,8 +335,7 @@ fun load_cplexFile name =
             else
                 rest := t;
             readToken_helper ()
-            end
-        end
+            end)
 
     fun readToken_helper2 () =
         let val c = readToken_helper () in
@@ -872,9 +872,9 @@ fun load_glpkResult name =
             )
         end
         else
-        let val s = TextIO.inputLine f in
-            if s = "" then NONE else (rest := tokenize s; readToken_helper())
-        end
+        (case TextIO.inputLine f of
+          NONE => NONE
+        | SOME s => (rest := tokenize s; readToken_helper()))
 
     fun is_tt tok ty = (tok <> NONE andalso (fst (the tok)) = ty)
 
@@ -1007,11 +1007,9 @@ fun load_cplexResult name =
             )
         end
         else
-        let
-            val s = TextIO.inputLine f
-        in
-            if s = "" then NONE else (rest := tokenize s; readToken_helper())
-        end
+        (case TextIO.inputLine f of
+          NONE => NONE
+        | SOME s => (rest := tokenize s; readToken_helper()))
 
     fun is_tt tok ty = (tok <> NONE andalso (fst (the tok)) = ty)
 

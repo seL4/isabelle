@@ -1,27 +1,12 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
     ID:         $Id$
 
-Compatibility file for Poly/ML (version 4.0, 4.1, 4.1.x).
+Compatibility file for Poly/ML (version 4.1.x and 4.2.0).
 *)
 
 (** ML system and platform related **)
 
 (* String compatibility *)
-
-structure String =
-struct
-  fun isSuffix s1 s2 =
-    let val n1 = size s1 and n2 = size s2
-    in if n1 = n2 then s1 = s2 else n1 <= n2 andalso String.substring (s2, n2 - n1, n1) = s1 end;
-  open String;
-end;
-
-structure Substring =
-struct
-  open Substring;
-  val full = all;
-end;
-
 
 (*low-level pointer equality*)
 val pointer_eq = Address.wordEq;
@@ -189,7 +174,7 @@ fun system cmd =
 
 (*Convert a process ID to a decimal string (chiefly for tracing)*)
 fun string_of_pid pid = 
-    Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
+  Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
 
 
 (* getenv *)

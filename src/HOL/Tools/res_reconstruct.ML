@@ -8,16 +8,16 @@
 (***************************************************************************)
 signature RES_RECONSTRUCT =
   sig
-    val checkEProofFound: 
-          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
+    val checkEProofFound:
+          TextIO.instream * TextIO.outstream * Posix.Process.pid *
           string * Proof.context * thm * int * string Vector.vector -> bool
-    val checkVampProofFound: 
-          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
+    val checkVampProofFound:
+          TextIO.instream * TextIO.outstream * Posix.Process.pid *
           string * Proof.context * thm * int * string Vector.vector -> bool
-    val checkSpassProofFound:  
-          TextIO.instream * TextIO.outstream * Posix.Process.pid * 
+    val checkSpassProofFound:
+          TextIO.instream * TextIO.outstream * Posix.Process.pid *
           string * Proof.context * thm * int * string Vector.vector -> bool
-    val signal_parent:  
+    val signal_parent:
           TextIO.outstream * Posix.Process.pid * string * string -> unit
 
   end;
@@ -27,7 +27,7 @@ struct
 
 val trace_path = Path.basic "atp_trace";
 
-fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s 
+fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s
               else ();
 
 (*Full proof reconstruction wanted*)
@@ -74,7 +74,7 @@ fun syn_equal (t, NONE) = t
   | syn_equal (t1, SOME (SOME _, t2)) = negate (equate (t1,t2));
 
 (*Literals can involve negation, = and !=.*)
-val literal = $$"~" |-- term >> negate || 
+val literal = $$"~" |-- term >> negate ||
               (term -- Scan.option (Scan.option ($$"!") --| $$"=" -- term) >> syn_equal) ;
 
 val literals = literal -- Scan.repeat ($$"|" |-- literal) >> op:: ;
@@ -86,8 +86,8 @@ val annotations = $$"," |-- term -- Scan.option ($$"," |-- termlist);
 
 (*<cnf_annotated> ::=Êcnf(<name>,<formula_role>,<cnf_formula><annotations>).
   The <name> could be an identifier, but we assume integers.*)
-val tstp_line = (Scan.this_string "cnf" -- $$"(") |-- 
-                integer --| $$"," -- Symbol.scan_id --| $$"," -- 
+val tstp_line = (Scan.this_string "cnf" -- $$"(") |--
+                integer --| $$"," -- Symbol.scan_id --| $$"," --
                 clause -- Scan.option annotations --| $$ ")";
 
 
@@ -121,7 +121,7 @@ fun normalise_s s [] st_ sti =
                         else if check_valid_int sti
                              then (Char.chr (cList2int sti) :: s)
                              else (sti @ (#"_" :: s))
-           in normalise_s s' cs false [] 
+           in normalise_s s' cs false []
            end
       else normalise_s s cs true []
   | normalise_s s (c::cs) true sti =
@@ -147,7 +147,7 @@ fun normalise_string s = normalise_s [] (String.explode s) false [];
 exception STREE of stree;
 
 (*If string s has the prefix s1, return the result of deleting it.*)
-fun strip_prefix s1 s = 
+fun strip_prefix s1 s =
   if String.isPrefix s1 s then SOME (normalise_string (String.extract (s, size s1, NONE)))
   else NONE;
 
@@ -168,17 +168,17 @@ fun make_var (b,T) = Var((b,0),T);
 fun type_of_stree t =
   case t of
       Int _ => raise STREE t
-    | Br (a,ts) => 
+    | Br (a,ts) =>
         let val Ts = map type_of_stree ts
-        in 
+        in
           case strip_prefix ResClause.tconst_prefix a of
               SOME b => Type(invert_type_const b, Ts)
-            | NONE => 
+            | NONE =>
                 if not (null ts) then raise STREE t  (*only tconsts have type arguments*)
-                else 
+                else
                 case strip_prefix ResClause.tfree_prefix a of
                     SOME b => TFree("'" ^ b, HOLogic.typeS)
-                  | NONE => 
+                  | NONE =>
                 case strip_prefix ResClause.tvar_prefix a of
                     SOME b => make_tvar b
                   | NONE => make_tvar a   (*Variable from the ATP, say X1*)
@@ -186,7 +186,7 @@ fun type_of_stree t =
 
 (*Invert the table of translations between Isabelle and ATPs*)
 val const_trans_table_inv =
-      Symtab.update ("fequal", "op =") 
+      Symtab.update ("fequal", "op =")
         (Symtab.make (map swap (Symtab.dest ResClause.const_trans_table)));
 
 fun invert_const c =
@@ -207,11 +207,11 @@ fun term_of_stree args thy t =
       Int _ => raise STREE t
     | Br ("hBOOL",[t]) => term_of_stree [] thy t  (*ignore hBOOL*)
     | Br ("hAPP",[t,u]) => term_of_stree (u::args) thy t
-    | Br (a,ts) => 
+    | Br (a,ts) =>
         case strip_prefix ResClause.const_prefix a of
-            SOME "equal" => 
+            SOME "equal" =>
               list_comb(Const ("op =", HOLogic.typeT), List.map (term_of_stree [] thy) ts)
-          | SOME b => 
+          | SOME b =>
               let val c = invert_const b
                   val nterms = length ts - num_typargs thy c
                   val us = List.map (term_of_stree [] thy) (List.take(ts,nterms) @ args)
@@ -224,17 +224,17 @@ fun term_of_stree args thy t =
                   val opr = (*a Free variable is typically a Skolem function*)
                     case strip_prefix ResClause.fixed_var_prefix a of
                         SOME b => Free(b,T)
-                      | NONE => 
+                      | NONE =>
                     case strip_prefix ResClause.schematic_var_prefix a of
                         SOME b => make_var (b,T)
                       | NONE => make_var (a,T)    (*Variable from the ATP, say X1*)
               in  list_comb (opr, List.map (term_of_stree [] thy) (args@ts))  end;
 
-(*Type class literal applied to a type. Returns triple of polarity, class, type.*)                  
+(*Type class literal applied to a type. Returns triple of polarity, class, type.*)
 fun constraint_of_stree pol (Br("c_Not",[t])) = constraint_of_stree (not pol) t
   | constraint_of_stree pol t = case t of
         Int _ => raise STREE t
-      | Br (a,ts) => 
+      | Br (a,ts) =>
             (case (strip_prefix ResClause.class_prefix a, map type_of_stree ts) of
                  (SOME b, [T]) => (pol, b, T)
                | _ => raise STREE t);
@@ -252,16 +252,16 @@ val nofalses = filter (not o equal HOLogic.false_const);
 
 (*Final treatment of the list of "real" literals from a clause.*)
 fun finish [] = HOLogic.true_const  (*No "real" literals means only type information*)
-  | finish lits = 
+  | finish lits =
       case nofalses lits of
           [] => HOLogic.false_const  (*The empty clause, since we started with real literals*)
         | xs => foldr1 HOLogic.mk_disj (rev xs);
 
 (*Accumulate sort constraints in vt, with "real" literals in lits.*)
 fun lits_of_strees ctxt (vt, lits) [] = (vt, finish lits)
-  | lits_of_strees ctxt (vt, lits) (t::ts) = 
+  | lits_of_strees ctxt (vt, lits) (t::ts) =
       lits_of_strees ctxt (add_constraint (constraint_of_stree true t, vt), lits) ts
-      handle STREE _ => 
+      handle STREE _ =>
       lits_of_strees ctxt (vt, term_of_stree [] (ProofContext.theory_of ctxt) t :: lits) ts;
 
 (*Update TVars/TFrees with detected sort constraints.*)
@@ -279,7 +279,7 @@ fun fix_sorts vt =
 
 (*Interpret a list of syntax trees as a clause, given by "real" literals and sort constraints.
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
-fun clause_of_strees_aux ctxt vt0 ts = 
+fun clause_of_strees_aux ctxt vt0 ts =
   let val (vt, dt) = lits_of_strees ctxt (vt0,[]) ts in
     singleton (ProofContext.infer_types ctxt) (TypeInfer.constrain (fix_sorts vt dt) HOLogic.boolT)
   end;
@@ -315,7 +315,7 @@ fun add_tfree_constraint ((true, cl, TFree(a,_)), vt) = addix ((a,~1),cl) vt
   | add_tfree_constraint (_, vt) = vt;
 
 fun tfree_constraints_of_clauses vt [] = vt
-  | tfree_constraints_of_clauses vt ([lit]::tss) = 
+  | tfree_constraints_of_clauses vt ([lit]::tss) =
       (tfree_constraints_of_clauses (add_tfree_constraint (constraint_of_stree true lit, vt)) tss
        handle STREE _ => (*not a positive type constraint: ignore*)
        tfree_constraints_of_clauses vt tss)
@@ -341,13 +341,13 @@ fun smash_types (Const(a,_)) = Const(a,dummyT)
   | smash_types (f$t) = smash_types f $ smash_types t
   | smash_types t = t;
 
-val sort_lits = sort Term.fast_term_ord o dest_disj o 
+val sort_lits = sort Term.fast_term_ord o dest_disj o
                 smash_types o HOLogic.dest_Trueprop o strip_all_body;
 
 fun permuted_clause t =
   let val lits = sort_lits t
       fun perm [] = NONE
-        | perm (ctm::ctms) = 
+        | perm (ctm::ctms) =
             if forall (op aconv) (ListPair.zip (lits, sort_lits ctm)) then SOME ctm
             else perm ctms
   in perm end;
@@ -364,7 +364,7 @@ fun isar_lines ctxt ctms =
                 SOME u => "assume " ^ lname ^ ": \"" ^ string_of u ^ "\"\n"
               | NONE => "assume? " ^ lname ^ ": \"" ^ string_of t ^ "\"\n")  (*no match!!*)
         | doline have (lname, t, deps) =
-            have_or_show have lname ^ string_of t ^ 
+            have_or_show have lname ^ string_of t ^
             "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
       fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
         | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
@@ -377,14 +377,14 @@ fun eq_types t = t aconv (HOLogic.mk_Trueprop HOLogic.true_const);
 
 fun replace_dep (old:int, new) dep = if dep=old then new else [dep];
 
-fun replace_deps (old:int, new) (lno, t, deps) = 
+fun replace_deps (old:int, new) (lno, t, deps) =
       (lno, t, foldl (op union_int) [] (map (replace_dep (old, new)) deps));
 
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
 fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
       if eq_types t (*must be clsrel/clsarity: type information, so delete refs to it*)
-      then map (replace_deps (lno, [])) lines   
+      then map (replace_deps (lno, [])) lines
       else
        (case take_prefix (notequal t) lines of
            (_,[]) => lines                  (*no repetition of proof line*)
@@ -398,22 +398,22 @@ fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
       else (*FIXME: Doesn't this code risk conflating proofs involving different types??*)
       case take_prefix (notequal t) lines of
          (_,[]) => (lno, t, deps) :: lines  (*no repetition of proof line*)
-       | (pre, (lno',t',deps')::post) => 
+       | (pre, (lno',t',deps')::post) =>
            (lno, t', deps) ::               (*repetition: replace later line by earlier one*)
            (pre @ map (replace_deps (lno', [lno])) post);
 
 (*Recursively delete empty lines (type information) from the proof.*)
 fun add_nonnull_prfline ((lno, t, []), lines) = (*no dependencies, so a conjecture clause*)
      if eq_types t (*must be type information, tfree_tcs, clsrel, clsarity: delete refs to it*)
-     then delete_dep lno lines   
-     else (lno, t, []) :: lines   
+     then delete_dep lno lines
+     else (lno, t, []) :: lines
   | add_nonnull_prfline ((lno, t, deps), lines) = (lno, t, deps) :: lines
 and delete_dep lno lines = foldr add_nonnull_prfline [] (map (replace_deps (lno, [])) lines);
 
 fun bad_free (Free (a,_)) = String.isPrefix "llabs_" a orelse String.isPrefix "sko_" a
   | bad_free _ = false;
 
-(*TVars are forbidden in goals. Also, we don't want lines with <2 dependencies. 
+(*TVars are forbidden in goals. Also, we don't want lines with <2 dependencies.
   To further compress proofs, setting modulus:=n deletes every nth line, and nlines
   counts the number of proof lines processed so far.
   Deleted lines are replaced by their own dependencies. Note that the "add_nonnull_prfline"
@@ -423,7 +423,7 @@ fun add_wanted_prfline ((lno, t, []), (nlines, lines)) =
   | add_wanted_prfline (line, (nlines, [])) = (nlines, [line])   (*final line must be kept*)
   | add_wanted_prfline ((lno, t, deps), (nlines, lines)) =
       if eq_types t orelse not (null (term_tvars t)) orelse
-         length deps < 2 orelse nlines mod !modulus <> 0 orelse 
+         length deps < 2 orelse nlines mod !modulus <> 0 orelse
          exists bad_free (term_frees t)
       then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)
       else (nlines+1, (lno, t, deps) :: lines);
@@ -432,9 +432,9 @@ fun add_wanted_prfline ((lno, t, []), (nlines, lines)) =
 fun stringify_deps thm_names deps_map [] = []
   | stringify_deps thm_names deps_map ((lno, t, deps) :: lines) =
       if lno <= Vector.length thm_names  (*axiom*)
-      then (Vector.sub(thm_names,lno-1), t, []) :: stringify_deps thm_names deps_map lines 
+      then (Vector.sub(thm_names,lno-1), t, []) :: stringify_deps thm_names deps_map lines
       else let val lname = Int.toString (length deps_map)
-               fun fix lno = if lno <= Vector.length thm_names  
+               fun fix lno = if lno <= Vector.length thm_names
                              then SOME(Vector.sub(thm_names,lno-1))
                              else AList.lookup op= deps_map lno;
            in  (lname, t, List.mapPartial fix (distinct (op=) deps)) ::
@@ -448,15 +448,15 @@ fun isar_header [] = proofstart
 
 fun decode_tstp_file cnfs ctxt th sgno thm_names =
   let val tuples = map (dest_tstp o tstp_line o explode) cnfs
-      val nonnull_lines = 
-              foldr add_nonnull_prfline [] 
+      val nonnull_lines =
+              foldr add_nonnull_prfline []
                     (foldr add_prfline [] (decode_tstp_list ctxt tuples))
       val (_,lines) = foldr add_wanted_prfline (0,[]) nonnull_lines
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
       val ccls = map forall_intr_vars ccls
-  in  
+  in
     app (fn th => Output.debug (fn () => string_of_thm th)) ccls;
-    isar_header (map #1 fixes) ^ 
+    isar_header (map #1 fixes) ^
     String.concat (isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines))
   end;
 
@@ -469,17 +469,17 @@ val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c);
 val encode_newlines = String.translate (fn c => if c = #"\n" then "\t" else str c);
 val restore_newlines = String.translate (fn c => if c = #"\t" then "\n" else str c);
 
-fun signal_success probfile toParent ppid msg = 
+fun signal_success probfile toParent ppid msg =
   (trace ("\nReporting Success for " ^ probfile ^ "\n" ^ msg);
    TextIO.output (toParent, "Success. " ^ encode_newlines msg ^ "\n");
    TextIO.output (toParent, probfile ^ "\n");
    TextIO.flushOut toParent;
    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
 
-fun tstp_extract proofextract probfile toParent ppid ctxt th sgno thm_names = 
+fun tstp_extract proofextract probfile toParent ppid ctxt th sgno thm_names =
   let val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-  in  
-    signal_success probfile toParent ppid 
+  in
+    signal_success probfile toParent ppid
       (decode_tstp_file cnfs ctxt th sgno thm_names)
   end;
 
@@ -487,8 +487,8 @@ fun tstp_extract proofextract probfile toParent ppid ctxt th sgno thm_names =
 (**** retrieve the axioms that were used in the proof ****)
 
 (*Get names of axioms used. Axioms are indexed from 1, while the vector is indexed from 0*)
-fun get_axiom_names (thm_names: string vector) step_nums = 
-    let fun is_axiom n = n <= Vector.length thm_names 
+fun get_axiom_names (thm_names: string vector) step_nums =
+    let fun is_axiom n = n <= Vector.length thm_names
         fun index i = Vector.sub(thm_names, i-1)
         val axnums = List.filter is_axiom step_nums
         val axnames = sort_distinct string_ord (map index axnums)
@@ -497,10 +497,10 @@ fun get_axiom_names (thm_names: string vector) step_nums =
 	else axnames
     end
 
- (*String contains multiple lines. We want those of the form 
+ (*String contains multiple lines. We want those of the form
      "253[0:Inp] et cetera..."
   A list consisting of the first number in each line is returned. *)
-fun get_spass_linenums proofstr = 
+fun get_spass_linenums proofstr =
   let val toks = String.tokens (not o Char.isAlphaNum)
       fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
         | inputno _ = NONE
@@ -509,7 +509,7 @@ fun get_spass_linenums proofstr =
 
 fun get_axiom_names_spass proofstr thm_names =
    get_axiom_names thm_names (get_spass_linenums proofstr);
-    
+
 fun not_comma c = c <>  #",";
 
 (*A valid TSTP axiom line has the form  cnf(NNN,axiom,...) where NNN is a positive integer.*)
@@ -520,18 +520,18 @@ fun parse_tstp_line s =
       (*We only allow negated_conjecture because the line number will be removed in
         get_axiom_names above, while suppressing the UNSOUND warning*)
       val ints = if Substring.string rolef mem_string ["axiom","negated_conjecture"]
-                 then Substring.string intf 
-                 else "error" 
+                 then Substring.string intf
+                 else "error"
   in  Int.fromString ints  end
-  handle Fail _ => NONE; 
+  handle Fail _ => NONE;
 
 fun get_axiom_names_tstp proofstr thm_names =
    get_axiom_names thm_names (List.mapPartial parse_tstp_line (split_lines proofstr));
-    
- (*String contains multiple lines. We want those of the form 
+
+ (*String contains multiple lines. We want those of the form
      "*********** [448, input] ***********".
   A list consisting of the first number in each line is returned. *)
-fun get_vamp_linenums proofstr = 
+fun get_vamp_linenums proofstr =
   let val toks = String.tokens (not o Char.isAlphaNum)
       fun inputno [ntok,"input"] = Int.fromString ntok
         | inputno _ = NONE
@@ -540,21 +540,21 @@ fun get_vamp_linenums proofstr =
 
 fun get_axiom_names_vamp proofstr thm_names =
    get_axiom_names thm_names (get_vamp_linenums proofstr);
-    
+
 fun rules_to_metis [] = "metis"
   | rules_to_metis xs = "(metis " ^ space_implode " " xs ^ ")"
 
 
 (*The signal handler in watcher.ML must be able to read the output of this.*)
-fun prover_lemma_list_aux getax proofstr probfile toParent ppid thm_names = 
+fun prover_lemma_list_aux getax proofstr probfile toParent ppid thm_names =
  (trace ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
          " num of clauses is " ^ string_of_int (Vector.length thm_names));
-  signal_success probfile toParent ppid 
+  signal_success probfile toParent ppid
     ("Try this command: \n  apply " ^ rules_to_metis (getax proofstr thm_names))
  )
  handle e => (*FIXME: exn handler is too general!*)
   (trace ("\nprover_lemma_list_aux: In exception handler: " ^ Toplevel.exn_message e);
-   TextIO.output (toParent, "Translation failed for the proof: " ^ 
+   TextIO.output (toParent, "Translation failed for the proof: " ^
                   String.toString proofstr ^ "\n");
    TextIO.output (toParent, probfile);
    TextIO.flushOut toParent;
@@ -570,9 +570,9 @@ val spass_lemma_list = prover_lemma_list_aux get_axiom_names_spass;
 (**** Extracting proofs from an ATP's output ****)
 
 (*Return everything in s that comes before the string t*)
-fun cut_before t s = 
+fun cut_before t s =
   let val (s1,s2) = Substring.position t (Substring.full s)
-  in  if Substring.size s2 = 0 then error "cut_before: string not found" 
+  in  if Substring.size s2 = 0 then error "cut_before: string not found"
       else Substring.string s2
   end;
 
@@ -593,29 +593,28 @@ val end_SPASS = "Formulae used in the proof"
   return value is currently never used!*)
 fun startTransfer endS (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names) =
  let fun transferInput currentString =
-      let val thisLine = TextIO.inputLine fromChild
-      in
-	if thisLine = "" (*end of file?*)
-	then (trace ("\n extraction_failed.  End bracket: " ^ endS ^
-	             "\naccumulated text: " ^ currentString);
-	      false)                    
-	else if String.isPrefix endS thisLine
+      (case TextIO.inputLine fromChild of
+        NONE =>  (*end of file?*)
+	  (trace ("\n extraction_failed.  End bracket: " ^ endS ^
+	          "\naccumulated text: " ^ currentString);
+	   false)
+      | SOME thisLine =>
+	if String.isPrefix endS thisLine
 	then let val proofextract = currentString ^ cut_before endS thisLine
 	         val lemma_list = if endS = end_V8 then vamp_lemma_list
 			  	  else if endS = end_SPASS then spass_lemma_list
 			  	  else e_lemma_list
 	     in
-	       trace ("\nExtracted proof:\n" ^ proofextract); 
+	       trace ("\nExtracted proof:\n" ^ proofextract);
 	       if !full andalso String.isPrefix "cnf(" proofextract
 	       then tstp_extract proofextract probfile toParent ppid ctxt th sgno thm_names
 	       else lemma_list proofextract probfile toParent ppid thm_names;
 	       true
 	     end
-	else transferInput (currentString^thisLine)
-      end
+	else transferInput (currentString^thisLine))
  in
      transferInput ""
- end 
+ end
 
 
 (*The signal handler in watcher.ML must be able to read the output of this.*)
@@ -632,27 +631,23 @@ fun signal_parent (toParent, ppid, msg, probfile) =
 
 (*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
 fun checkVampProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) =
- let val thisLine = TextIO.inputLine fromChild
- in   
-     trace thisLine;
-     if thisLine = "" 
-     then (trace "\nNo proof output seen"; false)
-     else if String.isPrefix start_V8 thisLine
+  (case TextIO.inputLine fromChild of
+    NONE => (trace "\nNo proof output seen"; false)
+  | SOME thisLine =>
+     if String.isPrefix start_V8 thisLine
      then startTransfer end_V8 arg
      else if (String.isPrefix "Satisfiability detected" thisLine) orelse
              (String.isPrefix "Refutation not found" thisLine)
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-     else checkVampProofFound arg
-  end
+     else checkVampProofFound arg);
 
 (*Called from watcher. Returns true if the E process has returned a verdict.*)
-fun checkEProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) = 
- let val thisLine = TextIO.inputLine fromChild  
- in   
-     trace thisLine;
-     if thisLine = "" then (trace "\nNo proof output seen"; false)
-     else if String.isPrefix start_E thisLine
+fun checkEProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) =
+  (case TextIO.inputLine fromChild of
+    NONE => (trace "\nNo proof output seen"; false)
+  | SOME thisLine =>
+     if String.isPrefix start_E thisLine
      then startTransfer end_E arg
      else if String.isPrefix "# Problem is satisfiable" thisLine
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
@@ -660,16 +655,14 @@ fun checkEProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgn
      else if String.isPrefix "# Cannot determine problem status within resource limit" thisLine
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-     else checkEProofFound arg
- end;
+     else checkEProofFound arg);
 
 (*Called from watcher. Returns true if the SPASS process has returned a verdict.*)
-fun checkSpassProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) = 
- let val thisLine = TextIO.inputLine fromChild  
- in    
-     trace thisLine;
-     if thisLine = "" then (trace "\nNo proof output seen"; false)
-     else if String.isPrefix "Here is a proof" thisLine
+fun checkSpassProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) =
+  (case TextIO.inputLine fromChild of
+    NONE => (trace "\nNo proof output seen"; false)
+  | SOME thisLine =>
+     if String.isPrefix "Here is a proof" thisLine
      then startTransfer end_SPASS arg
      else if thisLine = "SPASS beiseite: Completion found.\n"
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
@@ -678,7 +671,6 @@ fun checkSpassProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th,
              thisLine = "SPASS beiseite: Maximal number of loops exceeded.\n"
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
-    else checkSpassProofFound arg
- end
+    else checkSpassProofFound arg);
 
 end;

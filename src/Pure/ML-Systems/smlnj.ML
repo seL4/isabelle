@@ -159,11 +159,7 @@ end;
 structure TextIO =
 struct
   open TextIO;
-
-  fun inputLine is =
-    (case TextIO.inputLine is of
-      SOME str => str
-    | NONE => "")
+  fun inputLine is = TextIO.inputLine is
     handle IO.Io _ => raise Interrupt;
 end;
 
