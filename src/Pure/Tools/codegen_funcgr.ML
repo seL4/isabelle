@@ -24,7 +24,6 @@ sig
   val make: theory -> CodegenConsts.const list -> T
   val make_consts: theory -> CodegenConsts.const list -> CodegenConsts.const list * T
   val make_term: theory -> (T -> (thm -> thm) -> cterm -> thm -> 'a) -> cterm -> 'a * T
-  val init: theory -> theory
 end;
 
 structure CodegenFuncgr = (*signature is added later*)
@@ -348,7 +347,7 @@ end; (*local*)
 
 end; (*struct*)
 
-functor CodegenFuncgrRetrieval (val name: string; val rewrites: theory -> thm list) : CODEGEN_FUNCGR_RETRIEVAL =
+functor CodegenFuncgrRetrieval (val rewrites: theory -> thm list) : CODEGEN_FUNCGR_RETRIEVAL =
 struct
 
 (** code data **)
@@ -357,7 +356,6 @@ type T = CodegenFuncgr.T;
 
 structure Funcgr = CodeDataFun
 (struct
-  val name = name;
   type T = T;
   val empty = CodegenFuncgr.Constgraph.empty;
   fun merge _ _ = CodegenFuncgr.Constgraph.empty;
@@ -375,8 +373,6 @@ fun make_consts thy =
 
 fun make_term thy f =
   Funcgr.change_yield thy o CodegenFuncgr.ensure_consts_term rewrites thy f;
-
-val init = Funcgr.init;
 
 end; (*functor*)
 

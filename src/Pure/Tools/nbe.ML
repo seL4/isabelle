@@ -65,23 +65,17 @@ fun apply_posts thy =
 
 (* theorem store *)
 
-structure Funcgr = CodegenFuncgrRetrieval (
-  val name = "Pure/nbe_thms";
-  val rewrites = the_pres;
-);
+structure Funcgr = CodegenFuncgrRetrieval (val rewrites = the_pres);
 
 (* code store *)
 
 structure NBE_Data = CodeDataFun
 (struct
-  val name = "Pure/mbe";
   type T = NBE_Eval.Univ Symtab.table;
   val empty = Symtab.empty;
   fun merge _ = Symtab.merge (K true);
   fun purge _ _ _ = Symtab.empty;
 end);
-
-val _ = Context.add_setup (Funcgr.init #> NBE_Data.init);
 
 
 (** norm by eval **)

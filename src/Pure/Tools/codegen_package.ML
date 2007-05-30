@@ -60,11 +60,7 @@ structure CodegenPackageData = TheoryDataFun
     (merge_appgens (appgens1, appgens2), merge_abstypes (abstypes1, abstypes2));
 );
 
-structure Funcgr = CodegenFuncgrRetrieval
-(
-  val name = "Pure/codegen_package_thms";
-  fun rewrites thy = [];
-);
+structure Funcgr = CodegenFuncgrRetrieval (fun rewrites thy = []);
 
 fun code_depgr thy [] = Funcgr.make thy []
   | code_depgr thy consts =
@@ -94,7 +90,6 @@ fun code_deps thy consts =
 
 structure Code = CodeDataFun
 (
-  val name = "Pure/codegen_package_code";
   type T = CodegenThingol.code;
   val empty = CodegenThingol.empty_code;
   fun merge _ = CodegenThingol.merge_code;
@@ -111,7 +106,6 @@ structure Code = CodeDataFun
         in Graph.del_nodes dels code end;
 );
 
-val _ = Context.add_setup (Funcgr.init #> Code.init);
 
 
 (* preparing defining equations *)

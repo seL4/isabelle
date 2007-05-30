@@ -295,7 +295,6 @@ structure CodeName = TheoryDataFun
 
 structure ConstName = CodeDataFun
 (
-  val name = "Pure/codegen_names";
   type T = const Consttab.table * (string * string option) Symtab.table;
   val empty = (Consttab.empty, Symtab.empty);
   fun merge _ ((const1, constrev1), (const2, constrev2)) =
@@ -306,7 +305,7 @@ structure ConstName = CodeDataFun
         fold Symtab.delete (map_filter (Consttab.lookup const) cs) constrev);
 );
 
-val _ = Context.add_setup (CodeName.init #> ConstName.init);
+val _ = Context.add_setup (CodeName.init);
 
 
 (* forward lookup with cache update *)

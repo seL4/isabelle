@@ -40,29 +40,47 @@ sig
   val trace: bool ref
 end;
 
+signature CODE_DATA_ARGS =
+sig
+  type T
+  val empty: T
+  val merge: Pretty.pp -> T * T -> T
+  val purge: theory option -> CodegenConsts.const list option -> T -> T
+end;
+
+signature CODE_DATA =
+sig
+  type T
+  val get: theory -> T
+  val change: theory -> (T -> T) -> T
+  val change_yield: theory -> (T -> 'a * T) -> 'a * T
+end;
+
 signature PRIVATE_CODEGEN_DATA =
 sig
   include CODEGEN_DATA
-  type data
-  structure CodeData: THEORY_DATA
-  val declare: string -> Object.T -> (Pretty.pp -> Object.T * Object.T -> Object.T)
+  val declare_data: Object.T -> (Pretty.pp -> Object.T * Object.T -> Object.T)
     -> (theory option -> CodegenConsts.const list option -> Object.T -> Object.T) -> serial
-  val init: serial -> theory -> theory
-  val get: serial -> (Object.T -> 'a) -> data -> 'a
-  val put: serial -> ('a -> Object.T) -> 'a -> data -> data
+  val get_data: serial * ('a -> Object.T) * (Object.T -> 'a)
+    -> theory -> 'a
+  val change_data: serial * ('a -> Object.T) * (Object.T -> 'a)
+    -> theory -> ('a -> 'a) -> 'a
+  val change_yield_data: serial * ('a -> Object.T) * (Object.T -> 'a)
+    -> theory -> ('a -> 'b * 'a) -> 'b * 'a
 end;
 
 structure CodegenData : PRIVATE_CODEGEN_DATA =
 struct
 
-(** diagnostics **)
+(* auxiliary, diagnostics *)
+
+structure Consttab = CodegenConsts.Consttab;
 
 val trace = ref false;
 fun tracing f x = (if !trace then Output.tracing (f x) else (); x);
 
 
-
-(** lazy theorems, certificate theorems **)
+(* lazy theorems, certificate theorems *)
 
 val eval_always = ref false;
 
@@ -106,9 +124,6 @@ fun merge_lthms (r1, r2) =
        of SOME [] => (true, r1)
         | _ => (apsnd (lazy_thms o K)) (merge_thms (Susp.force r1, Susp.force r2));
 
-
-
-(** code theorems **)
 
 (* pairs of (selected, deleted) defining equations *)
 
@@ -159,9 +174,7 @@ fun merge_sdthms ((sels1, dels1), (sels2, dels2)) =
   end;
 
 
-(** data structures **)
-
-structure Consttab = CodegenConsts.Consttab;
+(** exeuctable content **)
 
 datatype preproc = Preproc of {
   inlines: thm list,
@@ -260,54 +273,51 @@ val map_funcs = map_exec o apsnd o map_spec o apfst;
 val map_dtyps = map_exec o apsnd o map_spec o apsnd;
 
 
-(** code data structures **)
+(* data slots dependent on executable content *)
 
 (*private copy avoids potential conflict of table exceptions*)
 structure Datatab = TableFun(type key = int val ord = int_ord);
 
-
-(* data slots *)
-
 local
 
 type kind = {
-  name: string,
   empty: Object.T,
   merge: Pretty.pp -> Object.T * Object.T -> Object.T,
   purge: theory option -> CodegenConsts.const list option -> Object.T -> Object.T
 };
 
 val kinds = ref (Datatab.empty: kind Datatab.table);
+val kind_keys = ref ([]: serial list);
 
-fun invoke meth_name meth_fn k =
-  (case Datatab.lookup (! kinds) k of
-    SOME kind => meth_fn kind |> transform_failure (fn exn =>
-      EXCEPTION (exn, "Code data method " ^ #name kind ^ "." ^ meth_name ^ " failed"))
-  | NONE => sys_error ("Invalid code data identifier " ^ string_of_int k));
-
+fun invoke f k = case Datatab.lookup (! kinds) k
+ of SOME kind => f kind
+  | NONE => sys_error "Invalid code data identifier";
 
 in
 
-fun invoke_name k   = invoke "name" (K o #name) k ();
-fun invoke_empty k  = invoke "empty" (K o #empty) k ();
-fun invoke_merge pp = invoke "merge" (fn kind => #merge kind pp);
-fun invoke_purge thy_opt cs = invoke "purge" (fn kind => #purge kind thy_opt cs);
-
-fun declare name empty merge purge =
+fun declare_data empty merge purge =
   let
     val k = serial ();
-    val kind = {name = name, empty = empty, merge = merge, purge = purge};
-    val _ =
-      if Datatab.exists (equal name o #name o #2) (! kinds) then
-        warning ("Duplicate declaration of code data " ^ quote name)
-      else ();
+    val kind = {empty = empty, merge = merge, purge = purge};
     val _ = change kinds (Datatab.update (k, kind));
+    val _ = change kind_keys (cons k);
   in k end;
+
+fun invoke_empty k = invoke (fn kind => #empty kind) k;
+
+fun invoke_merge_all pp = Datatab.join
+  (invoke (fn kind => #merge kind pp));
+
+fun invoke_purge_all thy_opt cs =
+  fold (fn k => Datatab.map_entry k
+    (invoke (fn kind => #purge kind thy_opt cs) k)) (! kind_keys);
 
 end; (*local*)
 
 
 (* theory store *)
+
+local
 
 type data = Object.T Datatab.table;
 
@@ -320,16 +330,65 @@ structure CodeData = TheoryDataFun
   fun merge pp ((exec1, data1), (exec2, data2)) =
     let
       val (touched, exec) = merge_exec (exec1, exec2);
-      val data1' = Datatab.map' (invoke_purge NONE touched) (! data1);
-      val data2' = Datatab.map' (invoke_purge NONE touched) (! data2);
-      val data = Datatab.join (invoke_merge pp) (data1', data2');
+      val data1' = invoke_purge_all NONE touched (! data1);
+      val data2' = invoke_purge_all NONE touched (! data2);
+      val data = invoke_merge_all pp (data1', data2');
     in (exec, ref data) end;
 );
+
+val _ = Context.add_setup CodeData.init;
+
+fun ch r f = let val x = f (! r) in (r := x; x) end;
+fun thy_data f thy = f ((snd o CodeData.get) thy);
+
+fun get_ensure_init kind data_ref =
+  case Datatab.lookup (! data_ref) kind
+   of SOME x => x
+    | NONE => let val y = invoke_empty kind
+        in (change data_ref (Datatab.update (kind, y)); y) end;
+
+in
+
+(* access to executable content *)
+
+val get_exec = fst o CodeData.get;
+
+fun map_exec_purge touched f thy =
+  CodeData.map (fn (exec, data) => 
+    (f exec, ref (invoke_purge_all (SOME thy) touched (! data)))) thy;
+
+
+(* access to data dependent on abstract executable content *)
+
+fun get_data (kind, _, dest) = thy_data (get_ensure_init kind #> dest);
+
+fun change_data (kind, mk, dest) =
+  let
+    fun chnge data_ref f =
+      let
+        val data = get_ensure_init kind data_ref;
+        val data' = f (dest data);
+      in (change data_ref (Datatab.update (kind, mk data')); data') end;
+  in thy_data chnge end;
+
+fun change_yield_data (kind, mk, dest) =
+  let
+    fun chnge data_ref f =
+      let
+        val data = get_ensure_init kind data_ref;
+        val (x, data') = f (dest data);
+      in (x, (change data_ref (Datatab.update (kind, mk data')); data')) end;
+  in thy_data chnge end;
+
+end; (*local*)
+
+
+(* print executable content *)
 
 fun print_codesetup thy =
   let
     val ctxt = ProofContext.init thy;
-    val (exec, _) = CodeData.get thy;
+    val exec = get_exec thy;
     fun pretty_func (s, lthms) =
       (Pretty.block o Pretty.fbreaks) (
         Pretty.str s :: pretty_sdthms ctxt lthms
@@ -385,25 +444,6 @@ fun print_codesetup thy =
       )
     ]
   end;
-
-fun init k = CodeData.map
-  (fn (exec, data) => (exec, ref (Datatab.update (k, invoke_empty k) (! data))));
-
-fun get k dest data =
-  (case Datatab.lookup data k of
-    SOME x => (dest x handle Match =>
-      error ("Failed to access code data " ^ quote (invoke_name k)))
-  | NONE => error ("Uninitialized code data " ^ quote (invoke_name k)));
-
-fun put k mk x = Datatab.update (k, mk x);
-
-fun map_exec_purge touched f thy =
-  CodeData.map (fn (exec, data) => 
-    (f exec, ref (Datatab.map' (invoke_purge (SOME thy) touched) (! data)))) thy;
-
-val get_exec = fst o CodeData.get;
-
-val _ = Context.add_setup CodeData.init;
 
 
 
@@ -581,6 +621,8 @@ val mk_func_liberal = CodegenFunc.warning_thm
   (assert_func_typ o CodegenFunc.mk_func);
 
 end;
+
+
 
 (** interfaces **)
 
@@ -799,24 +841,6 @@ end; (*struct*)
 
 (** type-safe interfaces for data depedent on executable content **)
 
-signature CODE_DATA_ARGS =
-sig
-  val name: string
-  type T
-  val empty: T
-  val merge: Pretty.pp -> T * T -> T
-  val purge: theory option -> CodegenConsts.const list option -> T -> T
-end;
-
-signature CODE_DATA =
-sig
-  type T
-  val init: theory -> theory
-  val get: theory -> T
-  val change: theory -> (T -> T) -> T
-  val change_yield: theory -> (T -> 'a * T) -> 'a * T
-end;
-
 functor CodeDataFun(Data: CODE_DATA_ARGS): CODE_DATA =
 struct
 
@@ -824,27 +848,15 @@ type T = Data.T;
 exception Data of T;
 fun dest (Data x) = x
 
-val kind = CodegenData.declare Data.name (Data Data.empty)
+val kind = CodegenData.declare_data (Data Data.empty)
   (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)))
   (fn thy_opt => fn cs => fn Data x => Data (Data.purge thy_opt cs x));
 
-val init = CodegenData.init kind;
+val data_op = (kind, Data, dest);
 
-fun get thy = CodegenData.get kind dest ((! o snd o CodegenData.CodeData.get) thy);
-
-fun change thy f =
-  let
-    val data_ref = (snd o CodegenData.CodeData.get) thy;
-    val x = (f o CodegenData.get kind dest o !) data_ref;
-    val data = CodegenData.put kind Data x (! data_ref);
-  in (data_ref := data; x) end;
-
-fun change_yield thy f =
-  let
-    val data_ref = (snd o CodegenData.CodeData.get) thy;
-    val (y, x) = (f o CodegenData.get kind dest o !) data_ref;
-    val data = CodegenData.put kind Data x (! data_ref);
-  in (data_ref := data; (y, x)) end;
+val get = CodegenData.get_data data_op;
+val change = CodegenData.change_data data_op;
+fun change_yield thy = CodegenData.change_yield_data data_op thy;
 
 end;
 
