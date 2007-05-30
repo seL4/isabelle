@@ -241,18 +241,17 @@ theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y. \<exists>f\<in>A. y = f x})"
   apply simp
   done
 
-lemma Inf_empty_fun_True:
-  "Inf {} = (\<lambda>_. True)"
+lemma Inf_empty_fun:
+  "Inf {} = (\<lambda>_. Inf {})"
   by rule (auto simp add: Inf_fun_def)
 
-lemma Sup_empty_fun_False:
-  "Sup {} = (\<lambda>_. False)"
-proof
-  fix x
-  have aux: "{y\<Colon>bool. \<exists>f\<Colon>'a \<Rightarrow> bool. y = f x} = {True, False}" by auto
-  show "Sup {} x = False"
-  unfolding Sup_def Inf_fun_def by (auto simp add: aux Inf_binary inf_bool_eq)
-qed 
+lemma Sup_empty_fun:
+  "Sup {} = (\<lambda>_. Sup {})"
+proof -
+  have aux: "\<And>x. {y. \<exists>f. y = f x} = UNIV" by auto
+  show ?thesis
+  by (auto simp add: Sup_def Inf_fun_def Inf_binary inf_bool_eq aux)
+qed
 
 
 subsubsection {* Sets *}
