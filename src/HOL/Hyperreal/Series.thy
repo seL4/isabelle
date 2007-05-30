@@ -171,47 +171,47 @@ by (intro sums_unique sums summable_sums)
 lemma sums_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "f sums a \<Longrightarrow> (\<lambda>n. c * f n) sums (c * a)"
-by (rule bounded_linear_mult_right.sums)
+by (rule mult_right.sums)
 
 lemma summable_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> summable (%n. c * f n)"
-by (rule bounded_linear_mult_right.summable)
+by (rule mult_right.summable)
 
 lemma suminf_mult:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> suminf (\<lambda>n. c * f n) = c * suminf f";
-by (rule bounded_linear_mult_right.suminf [symmetric])
+by (rule mult_right.suminf [symmetric])
 
 lemma sums_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "f sums a \<Longrightarrow> (\<lambda>n. f n * c) sums (a * c)"
-by (rule bounded_linear_mult_left.sums)
+by (rule mult_left.sums)
 
 lemma summable_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> summable (\<lambda>n. f n * c)"
-by (rule bounded_linear_mult_left.summable)
+by (rule mult_left.summable)
 
 lemma suminf_mult2:
   fixes c :: "'a::real_normed_algebra"
   shows "summable f \<Longrightarrow> suminf f * c = (\<Sum>n. f n * c)"
-by (rule bounded_linear_mult_left.suminf)
+by (rule mult_left.suminf)
 
 lemma sums_divide:
   fixes c :: "'a::real_normed_field"
   shows "f sums a \<Longrightarrow> (\<lambda>n. f n / c) sums (a / c)"
-by (rule bounded_linear_divide.sums)
+by (rule divide.sums)
 
 lemma summable_divide:
   fixes c :: "'a::real_normed_field"
   shows "summable f \<Longrightarrow> summable (\<lambda>n. f n / c)"
-by (rule bounded_linear_divide.summable)
+by (rule divide.summable)
 
 lemma suminf_divide:
   fixes c :: "'a::real_normed_field"
   shows "summable f \<Longrightarrow> suminf (\<lambda>n. f n / c) = suminf f / c"
-by (rule bounded_linear_divide.suminf [symmetric])
+by (rule divide.suminf [symmetric])
 
 lemma sums_add: "\<lbrakk>X sums a; Y sums b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n + Y n) sums (a + b)"
 unfolding sums_def by (simp add: setsum_addf LIMSEQ_add)

@@ -720,7 +720,7 @@ next
     by (simp only: setsum_addf [symmetric] scaleR_left_distrib [symmetric]
               real_of_nat_add [symmetric], simp)
   also have "\<dots> = real (Suc n) *# (\<Sum>i=0..Suc n. S x i * S y (Suc n-i))"
-    by (simp only: additive_scaleR_right.setsum)
+    by (simp only: scaleR_right.setsum)
   finally show
     "S (x + y) (Suc n) = (\<Sum>i=0..Suc n. S x i * S y (Suc n - i))"
     by (simp add: scaleR_cancel_left del: setsum_cl_ivl_Suc)

@@ -197,7 +197,7 @@ proof -
     by (rule Zseq_imp_Zseq)
 qed
 
-lemma (in bounded_bilinear) Zseq_prod:
+lemma (in bounded_bilinear) Zseq:
   assumes X: "Zseq X"
   assumes Y: "Zseq Y"
   shows "Zseq (\<lambda>n. X n ** Y n)"
@@ -277,17 +277,17 @@ proof -
   qed
 qed
 
-lemma (in bounded_bilinear) Zseq_prod_left:
+lemma (in bounded_bilinear) Zseq_left:
   "Zseq X \<Longrightarrow> Zseq (\<lambda>n. X n ** a)"
 by (rule bounded_linear_left [THEN bounded_linear.Zseq])
 
-lemma (in bounded_bilinear) Zseq_prod_right:
+lemma (in bounded_bilinear) Zseq_right:
   "Zseq X \<Longrightarrow> Zseq (\<lambda>n. a ** X n)"
 by (rule bounded_linear_right [THEN bounded_linear.Zseq])
 
-lemmas Zseq_mult = bounded_bilinear_mult.Zseq_prod
-lemmas Zseq_mult_right = bounded_bilinear_mult.Zseq_prod_right
-lemmas Zseq_mult_left = bounded_bilinear_mult.Zseq_prod_left
+lemmas Zseq_mult = mult.Zseq
+lemmas Zseq_mult_right = mult.Zseq_right
+lemmas Zseq_mult_left = mult.Zseq_left
 
 
 subsection {* Limits of Sequences *}
@@ -382,12 +382,12 @@ by (simp only: LIMSEQ_Zseq_iff diff [symmetric] Zseq)
 lemma (in bounded_bilinear) LIMSEQ:
   "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. X n ** Y n) ----> a ** b"
 by (simp only: LIMSEQ_Zseq_iff prod_diff_prod
-               Zseq_add Zseq_prod Zseq_prod_left Zseq_prod_right)
+               Zseq_add Zseq Zseq_left Zseq_right)
 
 lemma LIMSEQ_mult:
   fixes a b :: "'a::real_normed_algebra"
   shows "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
-by (rule bounded_bilinear_mult.LIMSEQ)
+by (rule mult.LIMSEQ)
 
 lemma inverse_diff_inverse:
   "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
@@ -442,7 +442,7 @@ apply (subst LIMSEQ_Zseq_iff)
 apply (simp add: inverse_diff_inverse nonzero_imp_inverse_nonzero)
 apply (rule Zseq_minus)
 apply (rule Zseq_mult_left)
-apply (rule bounded_bilinear_mult.Bseq_prod_Zseq)
+apply (rule mult.Bseq_prod_Zseq)
 apply (erule (1) Bseq_inverse)
 apply (simp add: LIMSEQ_Zseq_iff)
 done

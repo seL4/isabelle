@@ -371,17 +371,17 @@ apply (erule LIM_left_zero)
 apply (erule LIM_right_zero)
 done
 
-lemmas LIM_mult = bounded_bilinear_mult.LIM
+lemmas LIM_mult = mult.LIM
 
-lemmas LIM_mult_zero = bounded_bilinear_mult.LIM_prod_zero
+lemmas LIM_mult_zero = mult.LIM_prod_zero
 
-lemmas LIM_mult_left_zero = bounded_bilinear_mult.LIM_left_zero
+lemmas LIM_mult_left_zero = mult.LIM_left_zero
 
-lemmas LIM_mult_right_zero = bounded_bilinear_mult.LIM_right_zero
+lemmas LIM_mult_right_zero = mult.LIM_right_zero
 
-lemmas LIM_scaleR = bounded_bilinear_scaleR.LIM
+lemmas LIM_scaleR = scaleR.LIM
 
-lemmas LIM_of_real = bounded_linear_of_real.LIM
+lemmas LIM_of_real = of_real.LIM
 
 lemma LIM_power:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{recpower,real_normed_algebra}"
@@ -519,7 +519,7 @@ lemma (in bounded_bilinear) isCont:
   "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x ** g x) a"
   unfolding isCont_def by (rule LIM)
 
-lemmas isCont_scaleR = bounded_bilinear_scaleR.isCont
+lemmas isCont_scaleR = scaleR.isCont
 
 lemma isCont_of_real:
   "isCont f a \<Longrightarrow> isCont (\<lambda>x. of_real (f x)) a"
