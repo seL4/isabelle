@@ -40,17 +40,6 @@ val ord_nat = {less_eq = less_eq_nat, less = less_nat} :
 
 end; (*struct Nat*)
 
-structure List = 
-struct
-
-datatype nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 |
-  Nibble5 | Nibble6 | Nibble7 | Nibble8 | Nibble9 | NibbleA | NibbleB |
-  NibbleC | NibbleD | NibbleE | NibbleF;
-
-datatype char = Char of nibble * nibble;
-
-end; (*struct List*)
-
 structure Codegen = 
 struct
 
@@ -67,16 +56,16 @@ fun update (C1_, C2_) (it, entry) (Branch (t1, key, t2)) =
              then Branch (Leaf (it, entry), it, Leaf (key, vala))
              else Branch (Leaf (key, vala), it, Leaf (it, entry))));
 
-fun example n =
+val example : (Nat.nat, (Nat.nat list)) searchtree =
   update (Nat.eq_nata, Nat.ord_nat)
-    (n, [List.Char (List.Nibble6, List.Nibble2),
-          List.Char (List.Nibble6, List.Nibble1),
-          List.Char (List.Nibble7, List.Nibble2)])
-    (Leaf
-      (Nat.Zero_nat,
-        [List.Char (List.Nibble6, List.Nibble6),
-          List.Char (List.Nibble6, List.NibbleF),
-          List.Char (List.Nibble6, List.NibbleF)]));
+    (Nat.Suc (Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat))),
+      [Nat.Suc (Nat.Suc Nat.Zero_nat), Nat.Suc (Nat.Suc Nat.Zero_nat)])
+    (update (Nat.eq_nata, Nat.ord_nat)
+      (Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat)),
+        [Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat))])
+      (update (Nat.eq_nata, Nat.ord_nat)
+        (Nat.Suc (Nat.Suc Nat.Zero_nat), [Nat.Suc (Nat.Suc Nat.Zero_nat)])
+        (Leaf (Nat.Suc Nat.Zero_nat, []))));
 
 end; (*struct Codegen*)
 

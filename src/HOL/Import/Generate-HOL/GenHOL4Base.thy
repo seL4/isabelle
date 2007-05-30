@@ -185,8 +185,8 @@ const_maps
   "+"          > HOL.plus_class.plus       :: "[nat,nat]=>nat"
   "*"          > HOL.times_class.times      :: "[nat,nat]=>nat"
   "-"          > HOL.minus_class.minus      :: "[nat,nat]=>nat"
-  MIN          > Orderings.min    :: "[nat,nat]=>nat"
-  MAX          > Orderings.max    :: "[nat,nat]=>nat"
+  MIN          > Orderings.ord_class.min    :: "[nat,nat]=>nat"
+  MAX          > Orderings.ord_class.max    :: "[nat,nat]=>nat"
   DIV          > Divides.div_class.div :: "[nat,nat]=>nat"
   MOD          > Divides.div_class.mod :: "[nat,nat]=>nat"
   EXP          > Nat.power_class.power :: "[nat,nat]=>nat";

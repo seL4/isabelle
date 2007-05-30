@@ -161,13 +161,15 @@ When writing executable specifications using \isa{HOL},
 \begin{isamarkuptext}%
 \noindent For testing purpose, we define a small example
   using natural numbers \isa{nat} (which are a \isa{linorder})
-  as keys and strings values:%
+  as keys and list of nats as values:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{fun}\isamarkupfalse%
+\isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ example\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isacharparenleft}nat{\isacharcomma}\ string{\isacharparenright}\ searchtree{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}example\ n\ {\isacharequal}\ update\ {\isacharparenleft}n{\isacharcomma}\ {\isacharprime}{\isacharprime}bar{\isacharprime}{\isacharprime}{\isacharparenright}\ {\isacharparenleft}Leaf\ {\isadigit{0}}\ {\isacharprime}{\isacharprime}foo{\isacharprime}{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}%
+\ \ example\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}nat{\isacharcomma}\ nat\ list{\isacharparenright}\ searchtree{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}example\ {\isacharequal}\ update\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharcomma}\ {\isacharbrackleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharbrackright}{\isacharparenright}\ {\isacharparenleft}update\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isacharcomma}\ {\isacharbrackleft}Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \ \ {\isacharparenleft}update\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ {\isacharbrackleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharbrackright}{\isacharparenright}\ {\isacharparenleft}Leaf\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Then we generate code%
 \end{isamarkuptext}%
@@ -585,7 +587,7 @@ The \isa{HOL} \isa{Main} theory already provides a code
        integer literals in target languages.
     \item[\isa{Pretty{\isacharunderscore}Char}] represents \isa{HOL} characters by 
        character literals in target languages.
-    \item[\isa{Pretty{\isacharunderscore}Char{\isacharunderscore}chr}] like \isa{Pretty{\isacharunderscore}Char{\isacharunderscore}chr},
+    \item[\isa{Pretty{\isacharunderscore}Char{\isacharunderscore}chr}] like \isa{Pretty{\isacharunderscore}Char},
        but also offers treatment of character codes; includes
        \isa{Pretty{\isacharunderscore}Int}.
     \item[\isa{ExecutableSet}] allows to generate code
@@ -918,11 +920,12 @@ In general, code theorems for overloaded constants may have more
   In some cases, the automatically derived defining equations
   for equality on a particular type may not be appropriate.
   As example, watch the following datatype representing
-  monomorphic parametric types:%
+  monomorphic parametric types (where type constructors
+  are referred to by natural numbers):%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ monotype\ {\isacharequal}\ Mono\ string\ {\isachardoublequoteopen}monotype\ list{\isachardoublequoteclose}%
+\ monotype\ {\isacharequal}\ Mono\ nat\ {\isachardoublequoteopen}monotype\ list{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -939,9 +942,9 @@ In general, code theorems for overloaded constants may have more
 \begin{isamarkuptext}%
 Then code generation for SML would fail with a message
   that the generated code conains illegal mutual dependencies:
-  the theorem \isa{Mono\ {\isacharquery}tyco{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharquery}typargs{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ Mono\ {\isacharquery}tyco{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isacharquery}typargs{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isasymequiv}\ {\isacharquery}tyco{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}tyco{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isasymand}\ {\isacharquery}typargs{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}typargs{\isadigit{2}}{\isachardot}{\isadigit{0}}} already requires the
+  the theorem \isa{Mono\ tyco{\isadigit{1}}\ typargs{\isadigit{1}}\ {\isacharequal}\ Mono\ tyco{\isadigit{2}}\ typargs{\isadigit{2}}\ {\isasymequiv}\ tyco{\isadigit{1}}\ {\isacharequal}\ tyco{\isadigit{2}}\ {\isasymand}\ typargs{\isadigit{1}}\ {\isacharequal}\ typargs{\isadigit{2}}} already requires the
   instance \isa{monotype\ {\isasymColon}\ eq}, which itself requires
-  \isa{Mono\ {\isacharquery}tyco{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharquery}typargs{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ Mono\ {\isacharquery}tyco{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isacharquery}typargs{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isasymequiv}\ {\isacharquery}tyco{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}tyco{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isasymand}\ {\isacharquery}typargs{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}typargs{\isadigit{2}}{\isachardot}{\isadigit{0}}};  Haskell has no problem with mutually
+  \isa{Mono\ tyco{\isadigit{1}}\ typargs{\isadigit{1}}\ {\isacharequal}\ Mono\ tyco{\isadigit{2}}\ typargs{\isadigit{2}}\ {\isasymequiv}\ tyco{\isadigit{1}}\ {\isacharequal}\ tyco{\isadigit{2}}\ {\isasymand}\ typargs{\isadigit{1}}\ {\isacharequal}\ typargs{\isadigit{2}}};  Haskell has no problem with mutually
   recursive \isa{instance} and \isa{function} definitions,
   but the SML serializer does not support this.
 
@@ -1823,7 +1826,6 @@ Due to incrementality of code generation, changes in the
 
   \medskip
   \begin{tabular}{l}
-  \isa{val\ name{\isacharcolon}\ string} \\
   \isa{type\ T} \\
   \isa{val\ empty{\isacharcolon}\ T} \\
   \isa{val\ merge{\isacharcolon}\ Pretty{\isachardot}pp\ {\isasymrightarrow}\ T\ {\isacharasterisk}\ T\ {\isasymrightarrow}\ T} \\
@@ -1831,8 +1833,6 @@ Due to incrementality of code generation, changes in the
   \end{tabular}
 
   \begin{description}
-
-  \item \isa{name} is a system-wide unique name identifying the data.
 
   \item \isa{T} the type of data to store.
 
@@ -1856,15 +1856,12 @@ Due to incrementality of code generation, changes in the
 
   \medskip
   \begin{tabular}{l}
-  \isa{init{\isacharcolon}\ theory\ {\isasymrightarrow}\ theory} \\
   \isa{get{\isacharcolon}\ theory\ {\isasymrightarrow}\ T} \\
   \isa{change{\isacharcolon}\ theory\ {\isasymrightarrow}\ {\isacharparenleft}T\ {\isasymrightarrow}\ T{\isacharparenright}\ {\isasymrightarrow}\ T} \\
   \isa{change{\isacharunderscore}yield{\isacharcolon}\ theory\ {\isasymrightarrow}\ {\isacharparenleft}T\ {\isasymrightarrow}\ {\isacharprime}a\ {\isacharasterisk}\ T{\isacharparenright}\ {\isasymrightarrow}\ {\isacharprime}a\ {\isacharasterisk}\ T}
   \end{tabular}
 
   \begin{description}
-
-  \item \isa{init} initialization during theory setup.
 
   \item \isa{get} retrieval of the current data.
 
@@ -1893,14 +1890,10 @@ Out of the executable content of a theory, a normalized
 
   \medskip
   \begin{tabular}{l}
-  \isa{val\ name{\isacharcolon}\ string} \\
   \isa{val\ rewrites{\isacharcolon}\ theory\ {\isasymrightarrow}\ thm\ list}
   \end{tabular}
 
   \begin{description}
-
-  \item \isa{name} is a system-wide unique name identifying
-    this particular system of defining equations.
 
   \item \isa{rewrites} specifies a set of theory-dependent
     rewrite rules which are added to the preprocessor setup;
