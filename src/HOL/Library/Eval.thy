@@ -123,19 +123,24 @@ abbreviation
 where
   "intT \<equiv> STR ''IntDef.int'' {\<struct>} []"
 
+abbreviation
+  bitT :: "typ"
+where
+  "bitT \<equiv> STR ''Numeral.bit'' {\<struct>} []"
+
 function
   mk_int :: "int \<Rightarrow> term"
 where
   "mk_int k = (if k = 0 then STR ''Numeral.Pls'' \<Colon>\<subseteq> intT
     else if k = -1 then STR ''Numeral.Min'' \<Colon>\<subseteq> intT
     else let (l, m) = divAlg (k, 2)
-  in STR ''Numeral.Bit'' \<Colon>\<subseteq> intT \<rightarrow> intT \<rightarrow> intT \<bullet> mk_int l \<bullet>
-    (if m = 0 then STR ''Numeral.bit.B0'' \<Colon>\<subseteq> intT else STR ''Numeral.bit.B1'' \<Colon>\<subseteq> intT))"
+  in STR ''Numeral.Bit'' \<Colon>\<subseteq> intT \<rightarrow> bitT \<rightarrow> intT \<bullet> mk_int l \<bullet>
+    (if m = 0 then STR ''Numeral.bit.B0'' \<Colon>\<subseteq> bitT else STR ''Numeral.bit.B1'' \<Colon>\<subseteq> bitT))"
 by pat_completeness auto
 termination by (relation "measure (nat o abs)") (auto simp add: divAlg_mod_div)
 
 instance int :: term_of
-  "term_of k \<equiv> STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<rightarrow> intT \<bullet> mk_int k" ..
+  "term_of k \<equiv> STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k" ..
 
 
 text {* Adaption for @{typ ml_string}s *}
