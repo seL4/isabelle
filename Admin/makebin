@@ -91,16 +91,6 @@ cd "$TMP"
 "$TAR" xzf "$ARCHIVE_FULL"
 cd "$ISABELLE_NAME"
 
-# FIXME: ugly hack to get proper HOL4 image
-# needs HOL4 proof terms installed in ~/isabelle/proofs
-# desperately needs fix for next release!
-cat > src/HOL/Import/HOL/ROOT.ML <<EOF
-with_path ".." use_thy "HOL4Compat";
-with_path ".." use_thy "HOL4Syntax";
-use_thy "HOL4Prob";
-use_thy "HOL4";
-EOF
-
 perl -pi \
   -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-p 1":;' \
   -e 's:^HOL_USEDIR_OPTIONS=.*$:HOL_USEDIR_OPTIONS="-p 2":;' \
@@ -124,8 +114,6 @@ if [ -n "$DRY_RUN" ]; then
   touch "heaps/$COMPILER/log/HOL.gz"
   touch "heaps/$COMPILER/HOL-Complex"
   touch "heaps/$COMPILER/log/HOL-Complex.gz"
-  touch "heaps/$COMPILER/HOL4"
-  touch "heaps/$COMPILER/log/HOL4.gz"
   touch "heaps/$COMPILER/ZF"
   touch "heaps/$COMPILER/log/ZF.gz"
   mkdir browser_info
@@ -133,7 +121,6 @@ elif [ -n "$DO_LIBRARY" ]; then
   ./build -bait
 else
   ./build -b -m HOL-Complex HOL
-  ./build -b -m HOL4 HOL
   ./build -b ZF
   rm -f "heaps/$COMPILER/Pure" "heaps/$COMPILER/FOL"
 fi
@@ -151,7 +138,7 @@ if [ -n "$DO_LIBRARY" ]; then
     gzip -f "${ISABELLE_NAME}_library.tar"
     cp -f "${ISABELLE_NAME}_library.tar.gz" "$ARCHIVE_DIR"
 else
-  for IMG in HOL HOL-Complex HOL4 ZF
+  for IMG in HOL HOL-Complex ZF
   do
     "$TAR" cf "${IMG}_$PLATFORM.tar" \
       "$ISABELLE_NAME/heaps/$COMPILER/$IMG" \
