@@ -235,14 +235,14 @@ fun no_order_msg table thy tl measure_funs =
             val (_, _, lhs, rhs) = dest_term t 
             val prterm = string_of_cterm o (cterm_of thy)
           in (* also show prems? *)
-               i ^ ") " ^ prterm lhs ^ " '<' " ^ prterm rhs
+               i ^ ") " ^ prterm rhs ^ " ~> " ^ prterm lhs
           end
 
       val gc = map (fn i => chr (i + 96)) (1 upto length table)
       val mc = 1 upto length measure_funs
       val tstr = "   " ^ concat (map (enclose " " " " o string_of_int) mc)
                  :: map2 (fn r => fn i => i ^ ": " ^ concat (map pr_cell r)) table gc
-      val gstr = "Goals:" :: map2 pr_goal tl gc
+      val gstr = "Calls:" :: map2 pr_goal tl gc
       val mstr = "Measures:" :: map2 pr_fun measure_funs mc
       val ustr = "Unfinished subgoals:" :: pr_unprovable_subgoals table
     in
