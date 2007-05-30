@@ -73,10 +73,11 @@ ML_DBASE=""
 ### Compilation options (cf. isatool usedir)
 ###
 
-ISABELLE_USEDIR_OPTIONS="-v true -V outline=/proof,/ML"
+ISABELLE_USEDIR_OPTIONS="-p 1 -v true -V outline=/proof,/ML"
 
 # Specifically for the HOL image
-HOL_USEDIR_OPTIONS="-p 1"
+HOL_USEDIR_OPTIONS=""
+#HOL_USEDIR_OPTIONS="-p 2"
 
 
 ###
@@ -154,9 +155,14 @@ DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
 # The pdf file viewer
-PDF_VIEWER=acroread
-#PDF_VIEWER=xpdf
-#PDF_VIEWER=open  #best for Mac users: will open in default PDF viewer
+if [ $(uname -s) = Darwin ]; then
+  PDF_VIEWER=open
+else
+  PDF_VIEWER=xpdf
+fi
+#PDF_VIEWER=acroread
+#PDF_VIEWER=evince
+
 
 # Printer spool command for PS files
 PRINT_COMMAND=lp
