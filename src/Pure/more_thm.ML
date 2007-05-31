@@ -5,6 +5,8 @@
 Further operations on type ctyp/cterm/thm, outside the inference kernel.
 *)
 
+infix aconvc;
+
 signature THM =
 sig
   include THM
@@ -17,6 +19,7 @@ sig
   val lhs_of: thm -> cterm
   val rhs_of: thm -> cterm
   val thm_ord: thm * thm -> order
+  val aconvc : cterm * cterm -> bool
   val eq_thm: thm * thm -> bool
   val eq_thms: thm list * thm list -> bool
   val eq_thm_thy: thm * thm -> bool
@@ -98,6 +101,8 @@ fun thm_ord (th1, th2) =
 
 
 (* equality *)
+
+val op aconvc = op aconv o pairself Thm.term_of;
 
 fun eq_thm ths =
   Context.joinable (pairself Thm.theory_of_thm ths) andalso
