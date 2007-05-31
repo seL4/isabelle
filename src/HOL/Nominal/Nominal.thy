@@ -2814,8 +2814,8 @@ lemma abs_fun_eq':
   and   b  :: "'x"
   assumes pt: "pt TYPE('a) TYPE('x)"
       and at: "at TYPE('x)"
-  shows "([a].x = [b].y) = ((a=b \<and> x=y)\<or>(a\<noteq>b \<and> [(a,b)]\<bullet>x=y \<and> b\<sharp>x))"
-by (auto simp add: abs_fun_eq[OF pt, OF at] pt_swap_bij[OF pt, OF at] 
+  shows "([a].x = [b].y) = ((a=b \<and> x=y)\<or>(a\<noteq>b \<and> [(b,a)]\<bullet>x=y \<and> b\<sharp>x))"
+by (auto simp add: abs_fun_eq[OF pt, OF at] pt_swap_bij'[OF pt, OF at] 
                    pt_fresh_left[OF pt, OF at] 
                    at_calc[OF at])
 
