@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/fixrec_package.ML
+(*  Title:      HOLCF/Tools/fixrec_package.ML
     ID:         $Id$
     Author:     Amber Telfer and Brian Huffman
 

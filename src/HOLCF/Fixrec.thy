@@ -7,7 +7,7 @@ header "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
 imports Sprod Ssum Up One Tr Fix
-uses ("fixrec_package.ML")
+uses ("Tools/fixrec_package.ML")
 begin
 
 subsection {* Maybe monad type *}
@@ -542,7 +542,7 @@ val branch_def = thm "branch_def";
 
 subsection {* Initializing the fixrec package *}
 
-use "fixrec_package.ML"
+use "Tools/fixrec_package.ML"
 
 hide (open) const return bind fail run
 

@@ -1,8 +1,8 @@
-(*  Title:      HOLCF/domain/extender.ML
+(*  Title:      HOLCF/Tools/domain/domain_extender.ML
     ID:         $Id$
     Author:     David von Oheimb
 
-Theory extender for domain section, including new-style theory syntax.
+Theory extender for domain command, including theory syntax.
 
 ###TODO: 
 

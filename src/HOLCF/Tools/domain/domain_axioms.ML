@@ -1,8 +1,8 @@
-(*  Title:      HOLCF/domain/axioms.ML
+(*  Title:      HOLCF/Tools/domain/domain_axioms.ML
     ID:         $Id$
     Author:     David von Oheimb
 
-Syntax generator for domain section.
+Syntax generator for domain command.
 *)
 
 structure Domain_Axioms = struct

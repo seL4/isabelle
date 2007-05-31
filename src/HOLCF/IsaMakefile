@@ -27,15 +27,15 @@ HOLCF: HOL $(OUT)/HOLCF
 HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
-$(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.thy Cont.thy	\
-  Cprod.thy Discrete.thy Domain.thy Fix.thy Fixrec.thy	\
-  Ffun.thy HOLCF.thy Lift.thy One.thy	\
-  Pcpo.thy Porder.thy ROOT.ML Sprod.thy	\
-  Ssum.thy Tr.thy Pcpodef.thy pcpodef_package.ML	\
-  Up.thy adm_tac.ML cont_consts.ML cont_proc.ML fixrec_package.ML	\
-  domain/axioms.ML domain/extender.ML domain/library.ML			\
-  domain/syntax.ML domain/theorems.ML holcf_logic.ML ex/Stream.thy	\
-  document/root.tex
+$(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.thy Cont.thy Cprod.thy			\
+  Discrete.thy Domain.thy Ffun.thy Fix.thy Fixrec.thy HOLCF.thy Lift.thy	\
+  One.thy Pcpo.thy Pcpodef.thy Porder.thy ROOT.ML Sprod.thy Ssum.thy		\
+  Tools/adm_tac.ML Tools/cont_consts.ML Tools/cont_proc.ML			\
+  Tools/domain/domain_extender.ML Tools/domain/domain_axioms.ML			\
+  Tools/domain/domain_library.ML Tools/domain/domain_syntax.ML			\
+  Tools/domain/domain_theorems.ML Tools/fixrec_package.ML			\
+  Tools/pcpodef_package.ML Tr.thy Up.thy document/root.tex ex/Stream.thy	\
+  holcf_logic.ML
 	@$(ISATOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 
 

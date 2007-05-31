@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/cont_proc.ML
+(*  Title:      HOLCF/Tools/cont_proc.ML
     ID:         $Id$
     Author:     Brian Huffman
 *)

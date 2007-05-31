@@ -1,9 +1,9 @@
-(*  Title:      HOLCF/domain/theorems.ML
+(*  Title:      HOLCF/Tools/domain/domain_theorems.ML
     ID:         $Id$
     Author:     David von Oheimb
                 New proofs/tactics by Brian Huffman
 
-Proof generator for domain section.
+Proof generator for domain command.
 *)
 
 val HOLCF_ss = simpset();

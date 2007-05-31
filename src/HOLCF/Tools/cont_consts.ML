@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/cont_consts.ML
+(*  Title:      HOLCF/Tools/cont_consts.ML
     ID:         $Id$
     Author:     Tobias Mayr, David von Oheimb, and Markus Wenzel
 

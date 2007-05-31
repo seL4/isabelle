@@ -1,8 +1,8 @@
-(*  Title:      HOLCF/domain/library.ML
+(*  Title:      HOLCF/Tools/domain/domain_library.ML
     ID:         $Id$
     Author:     David von Oheimb
 
-Library for domain section.
+Library for domain command.
 *)
 
 

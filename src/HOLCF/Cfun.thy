@@ -9,7 +9,7 @@ header {* The type of continuous functions *}
 
 theory Cfun
 imports Pcpodef
-uses ("cont_proc.ML")
+uses ("Tools/cont_proc.ML")
 begin
 
 defaultsort cpo
@@ -325,7 +325,7 @@ text {* continuity simplification procedure *}
 lemmas cont_lemmas1 =
   cont_const cont_id cont_Rep_CFun2 cont2cont_Rep_CFun cont2cont_LAM
 
-use "cont_proc.ML";
+use "Tools/cont_proc.ML";
 setup ContProc.setup;
 
 (*val cont_tac = (fn i => (resolve_tac cont_lemmas i));*)

@@ -9,13 +9,13 @@ theory HOLCF
 imports Sprod Ssum Up Lift Discrete One Tr Domain Main
 uses
   "holcf_logic.ML"
-  "cont_consts.ML"
-  "domain/library.ML"
-  "domain/syntax.ML"
-  "domain/axioms.ML"
-  "domain/theorems.ML"
-  "domain/extender.ML"
-  "adm_tac.ML"
+  "Tools/cont_consts.ML"
+  "Tools/domain/domain_library.ML"
+  "Tools/domain/domain_syntax.ML"
+  "Tools/domain/domain_axioms.ML"
+  "Tools/domain/domain_theorems.ML"
+  "Tools/domain/domain_extender.ML"
+  "Tools/adm_tac.ML"
 
 begin
 

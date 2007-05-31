@@ -1,8 +1,8 @@
-(*  Title:      HOLCF/domain/syntax.ML
+(*  Title:      HOLCF/Tools/domain/domain_syntax.ML
     ID:         $Id$
     Author:     David von Oheimb
 
-Syntax generator for domain section.
+Syntax generator for domain command.
 *)
 
 structure Domain_Syntax = struct 
