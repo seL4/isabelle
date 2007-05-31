@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/cooper_dec.ML
+(*  Title:      HOL/Tools/Presburger/cooper_dec.ML
     ID:         $Id$
     Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
 

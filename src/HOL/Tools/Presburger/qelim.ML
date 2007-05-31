@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/qelim.ML
+(*  Title:      HOL/Tools/Presburger/qelim.ML
     ID:         $Id$
     Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
 

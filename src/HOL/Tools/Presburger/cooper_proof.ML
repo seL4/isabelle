@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/cooper_proof.ML
+(*  Title:      HOL/Tools/Presburger/cooper_proof.ML
     ID:         $Id$
     Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
 

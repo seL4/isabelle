@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/presburger.ML
+(*  Title:      HOL/Tools/Presburger/presburger.ML
     ID:         $Id$
     Author:     Amine Chaieb and Stefan Berghofer, TU Muenchen
 

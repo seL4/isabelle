@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/Presburger.thy
+(*  Title:      HOL/Presburger.thy
     ID:         $Id$
     Author:     Amine Chaieb, Tobias Nipkow and Stefan Berghofer, TU Muenchen
 
