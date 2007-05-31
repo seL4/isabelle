@@ -5,31 +5,6 @@
 *)
 
 val banner = "First-Order Logic with Natural Deduction";
-
 writeln banner;
 
-use "~~/src/Provers/splitter.ML";
-use "~~/src/Provers/hypsubst.ML";
-use "~~/src/Provers/IsaPlanner/zipper.ML";
-use "~~/src/Provers/IsaPlanner/isand.ML";
-use "~~/src/Provers/IsaPlanner/rw_tools.ML";
-use "~~/src/Provers/IsaPlanner/rw_inst.ML";
-use "~~/src/Provers/eqsubst.ML";
-use "~~/src/Provers/induct_method.ML";
-use "~~/src/Provers/classical.ML";
-use "~~/src/Provers/blast.ML";
-use "~~/src/Provers/clasimp.ML";
-use "~~/src/Provers/quantifier1.ML";
-use "~~/src/Provers/project_rule.ML";
-
 use_thy "FOL";
-
-structure IFOL =
-struct
-  val thy = theory "IFOL";
-end;
-
-structure FOL =
-struct
-  val thy = theory "FOL";
-end;
