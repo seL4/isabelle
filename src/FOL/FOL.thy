@@ -7,7 +7,10 @@ header {* Classical first-order logic *}
 
 theory FOL
 imports IFOL
-uses ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
+uses
+  ("cladata.ML")
+  ("blastdata.ML")
+  ("simpdata.ML")
 begin
 
 
