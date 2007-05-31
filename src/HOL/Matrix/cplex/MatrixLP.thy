@@ -4,7 +4,7 @@
 *)
 
 theory MatrixLP 
-imports Cplex
+imports Cplex "~~/src/Tools/Compute_Oracle/Compute_Oracle"
 uses ("matrixlp.ML")
 begin
 

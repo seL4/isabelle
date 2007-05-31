@@ -9,7 +9,6 @@ use "xml_syntax.ML";
 
 (*derived theory and proof elements*)
 use "invoke.ML";
-(* use "class_package.ML"; see Pure/Isar/ROOT.ML *)
 
 (*code generator, 1st generation*)
 use "../codegen.ML";
@@ -20,12 +19,6 @@ use "codegen_funcgr.ML";
 use "codegen_thingol.ML";
 use "codegen_serializer.ML";
 use "codegen_package.ML";
-
-(*Steven Obua's evaluator*)
-use "am_interpreter.ML";
-use "am_compiler.ML";
-use "am_util.ML";
-use "compute.ML";
 
 (*norm-by-eval*)
 use "nbe_eval.ML";

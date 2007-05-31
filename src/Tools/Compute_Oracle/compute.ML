@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/compute.ML
+(*  Title:      Tools/Compute_Oracle/compute.ML
     ID:         $Id$
     Author:     Steven Obua
 *)
@@ -15,12 +15,11 @@ signature COMPUTE = sig
     val compute : computer -> (int -> string) -> cterm -> term
     val theory_of : computer -> theory
 
-    val rewrite_param : computer -> (int -> string) -> cterm -> thm
-    val rewrite : computer -> cterm -> thm
-
+    val default_naming: int -> string
+    val oracle_fn: theory -> computer * (int -> string) * cterm -> term
 end
 
-structure Compute : COMPUTE = struct
+structure Compute: COMPUTE = struct
 
 exception Make of string;
 
@@ -267,26 +266,13 @@ fun theory_of (Computer (rthy, _)) = Theory.deref rthy
 
 fun default_naming i = "v_" ^ Int.toString i
 
-exception Param of computer * (int -> string) * cterm;
 
-fun rewrite_param r n ct =
-    let val thy = theory_of_cterm ct in
-      invoke_oracle_i thy "Pure.compute" (thy, Param (r, n, ct))
-    end
-
-fun rewrite r ct = rewrite_param r default_naming ct
-
-
-(* theory setup *)
-
-fun compute_oracle (thy, Param (r, naming, ct)) =
+fun oracle_fn thy (r, naming, ct) =
     let
         val _ = Theory.assert_super (theory_of r) thy
         val t' = compute r naming ct
     in
         Logic.mk_equals (term_of ct, t')
     end
-
-val _ = Context.add_setup (Theory.add_oracle ("compute", compute_oracle))
 
 end
