@@ -14,7 +14,7 @@ sig
   val empty: T
   val is_empty: T -> bool
   val merge: T * T -> T
-  val insert: elem * T -> T
+  val insert: elem -> T -> T
   val min: T -> elem        (*exception Empty*)
   val delete_min: T -> T    (*exception Empty*)
 end;
@@ -57,7 +57,7 @@ fun merge (h, Empty) = h
         GREATER => heap x2 a2 (merge (h1, b2))
       | _ => heap x1 a1 (merge (b1, h2)));
 
-fun insert (x, h) = merge (Heap (1, x, Empty, Empty), h);
+fun insert x h = merge (Heap (1, x, Empty, Empty), h);
 
 end;
 
