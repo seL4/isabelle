@@ -162,7 +162,7 @@ DISTIDENT=$DISTIDENT
 DISTBASE=$DISTBASE
 EOF
 
-MOVE=$($FIND Doc \( -type f -a -not -type l -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
+MOVE=$($FIND Doc \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
 rm -rf Doc Tools
