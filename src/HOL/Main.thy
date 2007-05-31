@@ -18,4 +18,6 @@ text {*
 
 setup ResAxioms.setup
 
+ML {* val HOL_proofs = !proofs *}
+
 end
