@@ -421,7 +421,7 @@ Goalw [NSLIM_def] "(%h. ((x powr h) - 1) / h) -- 0 --NS> ln x"
 
 lemma HFinite_sin [simp]:
      "sumhr (0, whn, %n. (if even(n) then 0 else  
-              ((- 1) ^ ((n - 1) div 2))/(real (fact n))) * x ^ n)  
+              (-1 ^ ((n - 1) div 2))/(real (fact n))) * x ^ n)  
               \<in> HFinite"
 unfolding sumhr_app
 apply (simp only: star_zero_def starfun2_star_of)
@@ -447,7 +447,7 @@ done
 
 lemma HFinite_cos [simp]:
      "sumhr (0, whn, %n. (if even(n) then  
-            ((- 1) ^ (n div 2))/(real (fact n)) else  
+            (-1 ^ (n div 2))/(real (fact n)) else  
             0) * x ^ n) \<in> HFinite"
 unfolding sumhr_app
 apply (simp only: star_zero_def starfun2_star_of)

@@ -243,7 +243,7 @@ lemma Maclaurin_minus:
               (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
               diff n t / real (fact n) * h ^ n"
 apply (cut_tac f = "%x. f (-x)"
-        and diff = "%n x. ((- 1) ^ n) * diff n (-x)"
+        and diff = "%n x. (-1 ^ n) * diff n (-x)"
         and h = "-h" and n = n in Maclaurin_objl)
 apply (simp)
 apply safe
@@ -412,7 +412,7 @@ lemma Maclaurin_sin_expansion2:
      "\<exists>t. abs t \<le> abs x &
        sin x =
        (\<Sum>m=0..<n. (if even m then 0
-                       else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
+                       else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
                        x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and x = x
@@ -432,7 +432,7 @@ done
 lemma Maclaurin_sin_expansion:
      "\<exists>t. sin x =
        (\<Sum>m=0..<n. (if even m then 0
-                       else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
+                       else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
                        x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (insert Maclaurin_sin_expansion2 [of x n]) 
@@ -446,7 +446,7 @@ lemma Maclaurin_sin_expansion3:
        \<exists>t. 0 < t & t < x &
        sin x =
        (\<Sum>m=0..<n. (if even m then 0
-                       else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
+                       else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
                        x ^ m)
       + ((sin(t + 1/2 * real(n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin_objl)
@@ -464,7 +464,7 @@ lemma Maclaurin_sin_expansion4:
        \<exists>t. 0 < t & t \<le> x &
        sin x =
        (\<Sum>m=0..<n. (if even m then 0
-                       else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
+                       else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
                        x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin2_objl)
@@ -482,14 +482,14 @@ subsection{*Maclaurin Expansion for Cosine Function*}
 
 lemma sumr_cos_zero_one [simp]:
  "(\<Sum>m=0..<(Suc n).
-     (if even m then (- 1) ^ (m div 2)/(real  (fact m)) else 0) * 0 ^ m) = 1"
+     (if even m then -1 ^ (m div 2)/(real  (fact m)) else 0) * 0 ^ m) = 1"
 by (induct "n", auto)
 
 lemma Maclaurin_cos_expansion:
      "\<exists>t. abs t \<le> abs x &
        cos x =
        (\<Sum>m=0..<n. (if even m
-                       then (- 1) ^ (m div 2)/(real (fact m))
+                       then -1 ^ (m div 2)/(real (fact m))
                        else 0) *
                        x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
@@ -512,7 +512,7 @@ lemma Maclaurin_cos_expansion2:
        \<exists>t. 0 < t & t < x &
        cos x =
        (\<Sum>m=0..<n. (if even m
-                       then (- 1) ^ (m div 2)/(real (fact m))
+                       then -1 ^ (m div 2)/(real (fact m))
                        else 0) *
                        x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
@@ -531,7 +531,7 @@ lemma Maclaurin_minus_cos_expansion:
        \<exists>t. x < t & t < 0 &
        cos x =
        (\<Sum>m=0..<n. (if even m
-                       then (- 1) ^ (m div 2)/(real (fact m))
+                       then -1 ^ (m div 2)/(real (fact m))
                        else 0) *
                        x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / real (fact n)) * x ^ n)"
@@ -554,7 +554,7 @@ lemma sin_bound_lemma:
 by auto
 
 lemma Maclaurin_sin_bound:
-  "abs(sin x - (\<Sum>m=0..<n. (if even m then 0 else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) *
+  "abs(sin x - (\<Sum>m=0..<n. (if even m then 0 else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
   x ^ m))  \<le> inverse(real (fact n)) * \<bar>x\<bar> ^ n"
 proof -
   have "!! x (y::real). x \<le> 1 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x * y \<le> 1 * y"
@@ -576,7 +576,7 @@ proof -
       ?diff n t / real (fact n) * x ^ n" by fast
   have diff_m_0:
     "\<And>m. ?diff m 0 = (if even m then 0
-         else (- 1) ^ ((m - Suc 0) div 2))"
+         else -1 ^ ((m - Suc 0) div 2))"
     apply (subst even_even_mod_4_iff)
     apply (cut_tac m=m in mod_exhaust_less_4)
     apply (elim disjE, simp_all)

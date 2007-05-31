@@ -444,11 +444,11 @@ definition
 definition
   sin :: "real => real" where
   "sin x = (\<Sum>n. (if even(n) then 0 else
-             ((- 1) ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
+             (-1 ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
  
 definition
   cos :: "real => real" where
-  "cos x = (\<Sum>n. (if even(n) then ((- 1) ^ (n div 2))/(real (fact n)) 
+  "cos x = (\<Sum>n. (if even(n) then (-1 ^ (n div 2))/(real (fact n)) 
                             else 0) * x ^ n)"
 
 lemma summable_exp_generic:
@@ -498,7 +498,7 @@ by (insert summable_exp_generic [where x=x], simp)
 lemma summable_sin: 
      "summable (%n.  
            (if even n then 0  
-           else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
+           else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
                 x ^ n)"
 apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
 apply (rule_tac [2] summable_exp)
@@ -509,7 +509,7 @@ done
 lemma summable_cos: 
       "summable (%n.  
            (if even n then  
-           (- 1) ^ (n div 2)/(real (fact n)) else 0) * x ^ n)"
+           -1 ^ (n div 2)/(real (fact n)) else 0) * x ^ n)"
 apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
 apply (rule_tac [2] summable_exp)
 apply (rule_tac x = 0 in exI)
@@ -518,12 +518,12 @@ done
 
 lemma lemma_STAR_sin [simp]:
      "(if even n then 0  
-       else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0"
+       else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0"
 by (induct "n", auto)
 
 lemma lemma_STAR_cos [simp]:
      "0 < n -->  
-      (- 1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
+      -1 ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
 by (induct "n", auto)
 
 lemma lemma_STAR_cos1 [simp]:
@@ -532,7 +532,7 @@ lemma lemma_STAR_cos1 [simp]:
 by (induct "n", auto)
 
 lemma lemma_STAR_cos2 [simp]:
-  "(\<Sum>n=1..<n. if even n then (- 1) ^ (n div 2)/(real (fact n)) *  0 ^ n 
+  "(\<Sum>n=1..<n. if even n then -1 ^ (n div 2)/(real (fact n)) *  0 ^ n 
                          else 0) = 0"
 apply (induct "n")
 apply (case_tac [2] "n", auto)
@@ -543,13 +543,13 @@ unfolding exp_def by (rule summable_exp_generic [THEN summable_sums])
 
 lemma sin_converges: 
       "(%n. (if even n then 0  
-            else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
+            else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
                  x ^ n) sums sin(x)"
 unfolding sin_def by (rule summable_sin [THEN summable_sums])
 
 lemma cos_converges: 
       "(%n. (if even n then  
-           (- 1) ^ (n div 2)/(real (fact n))  
+           -1 ^ (n div 2)/(real (fact n))  
            else 0) * x ^ n) sums cos(x)"
 unfolding cos_def by (rule summable_cos [THEN summable_sums])
 
@@ -566,9 +566,9 @@ by (simp add: diffs_def)
 
 lemma sin_fdiffs: 
       "diffs(%n. if even n then 0  
-           else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n)))  
+           else -1 ^ ((n - Suc 0) div 2)/(real (fact n)))  
        = (%n. if even n then  
-                 (- 1) ^ (n div 2)/(real (fact n))  
+                 -1 ^ (n div 2)/(real (fact n))  
               else 0)"
 by (auto intro!: ext 
          simp add: diffs_def divide_inverse real_of_nat_def
@@ -576,17 +576,17 @@ by (auto intro!: ext
 
 lemma sin_fdiffs2: 
        "diffs(%n. if even n then 0  
-           else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) n  
+           else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) n  
        = (if even n then  
-                 (- 1) ^ (n div 2)/(real (fact n))  
+                 -1 ^ (n div 2)/(real (fact n))  
               else 0)"
 by (simp only: sin_fdiffs)
 
 lemma cos_fdiffs: 
       "diffs(%n. if even n then  
-                 (- 1) ^ (n div 2)/(real (fact n)) else 0)  
+                 -1 ^ (n div 2)/(real (fact n)) else 0)  
        = (%n. - (if even n then 0  
-           else (- 1) ^ ((n - Suc 0)div 2)/(real (fact n))))"
+           else -1 ^ ((n - Suc 0)div 2)/(real (fact n))))"
 by (auto intro!: ext 
          simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def
          simp del: mult_Suc of_nat_Suc)
@@ -594,16 +594,16 @@ by (auto intro!: ext
 
 lemma cos_fdiffs2: 
       "diffs(%n. if even n then  
-                 (- 1) ^ (n div 2)/(real (fact n)) else 0) n 
+                 -1 ^ (n div 2)/(real (fact n)) else 0) n 
        = - (if even n then 0  
-           else (- 1) ^ ((n - Suc 0)div 2)/(real (fact n)))"
+           else -1 ^ ((n - Suc 0)div 2)/(real (fact n)))"
 by (simp only: cos_fdiffs)
 
 text{*Now at last we can get the derivatives of exp, sin and cos*}
 
 lemma lemma_sin_minus:
      "- sin x = (\<Sum>n. - ((if even n then 0 
-                  else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) * x ^ n))"
+                  else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * x ^ n))"
 by (auto intro!: sums_unique sums_minus sin_converges)
 
 lemma lemma_exp_ext: "exp = (\<lambda>x. \<Sum>n. x ^ n /# real (fact n))"
@@ -622,13 +622,13 @@ done
 lemma lemma_sin_ext:
      "sin = (%x. \<Sum>n. 
                    (if even n then 0  
-                       else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
+                       else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
                    x ^ n)"
 by (auto intro!: ext simp add: sin_def)
 
 lemma lemma_cos_ext:
      "cos = (%x. \<Sum>n. 
-                   (if even n then (- 1) ^ (n div 2)/(real (fact n)) else 0) *
+                   (if even n then -1 ^ (n div 2)/(real (fact n)) else 0) *
                    x ^ n)"
 by (auto intro!: ext simp add: cos_def)
 
@@ -1003,7 +1003,7 @@ by (auto intro: series_zero)
 lemma cos_zero [simp]: "cos 0 = 1"
 apply (simp add: cos_def)
 apply (rule sums_unique [symmetric])
-apply (cut_tac n = 1 and f = "(%n. (if even n then (- 1) ^ (n div 2) / (real (fact n)) else 0) * 0 ^ n)" in lemma_series_zero2)
+apply (cut_tac n = 1 and f = "(%n. (if even n then -1 ^ (n div 2) / (real (fact n)) else 0) * 0 ^ n)" in lemma_series_zero2)
 apply auto
 done
 
@@ -1243,12 +1243,12 @@ text{*Show that there's a least positive @{term x} with @{term "cos(x) = 0"};
    hence define pi.*}
 
 lemma sin_paired:
-     "(%n. (- 1) ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) 
+     "(%n. -1 ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) 
       sums  sin x"
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
             (if even k then 0
-             else (- 1) ^ ((k - Suc 0) div 2) / real (fact k)) *
+             else -1 ^ ((k - Suc 0) div 2) / real (fact k)) *
             x ^ k) 
 	sums sin x"
     unfolding sin_def
@@ -1259,8 +1259,8 @@ qed
 lemma sin_gt_zero: "[|0 < x; x < 2 |] ==> 0 < sin x"
 apply (subgoal_tac 
        "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
-              (- 1) ^ k / real (fact (2 * k + 1)) * x ^ (2 * k + 1)) 
-     sums (\<Sum>n. (- 1) ^ n / real (fact (2 * n + 1)) * x ^ (2 * n + 1))")
+              -1 ^ k / real (fact (2 * k + 1)) * x ^ (2 * k + 1)) 
+     sums (\<Sum>n. -1 ^ n / real (fact (2 * n + 1)) * x ^ (2 * n + 1))")
  prefer 2
  apply (rule sin_paired [THEN sums_summable, THEN sums_group], simp) 
 apply (rotate_tac 2)
@@ -1312,10 +1312,10 @@ apply (auto simp add: cos_squared_eq cos_double)
 done
 
 lemma cos_paired:
-     "(%n. (- 1) ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
+     "(%n. -1 ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
 proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
-            (if even k then (- 1) ^ (k div 2) / real (fact k) else 0) *
+            (if even k then -1 ^ (k div 2) / real (fact k) else 0) *
             x ^ k) 
         sums cos x"
     unfolding cos_def
@@ -1334,7 +1334,7 @@ apply (drule sums_minus)
 apply (rule neg_less_iff_less [THEN iffD1]) 
 apply (frule sums_unique, auto)
 apply (rule_tac y =
- "\<Sum>n=0..< Suc(Suc(Suc 0)). - ((- 1) ^ n / (real(fact (2*n))) * 2 ^ (2*n))"
+ "\<Sum>n=0..< Suc(Suc(Suc 0)). - (-1 ^ n / (real(fact (2*n))) * 2 ^ (2*n))"
        in order_less_trans)
 apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc realpow_Suc)
 apply (simp (no_asm) add: mult_assoc del: setsum_op_ivl_Suc)
