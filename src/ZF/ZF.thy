@@ -8,6 +8,8 @@ header{*Zermelo-Fraenkel Set Theory*}
 
 theory ZF imports FOL begin
 
+ML {* reset eta_contract *}
+
 global
 
 typedecl i

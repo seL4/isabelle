@@ -11,8 +11,6 @@ Paulson.
 val banner = "ZF Set Theory (in FOL)";
 writeln banner;
 
-reset eta_contract;
-
 use_thy "Main_ZFC";
 
 Goal "True";  (*leave subgoal package empty*)
