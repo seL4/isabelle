@@ -580,9 +580,7 @@ lemma sin_fdiffs2:
        = (if even n then  
                  (- 1) ^ (n div 2)/(real (fact n))  
               else 0)"
-by (auto intro!: ext 
-         simp add: diffs_def divide_inverse real_of_nat_def
-         simp del: mult_Suc of_nat_Suc)
+by (simp only: sin_fdiffs)
 
 lemma cos_fdiffs: 
       "diffs(%n. if even n then  
@@ -599,9 +597,7 @@ lemma cos_fdiffs2:
                  (- 1) ^ (n div 2)/(real (fact n)) else 0) n 
        = - (if even n then 0  
            else (- 1) ^ ((n - Suc 0)div 2)/(real (fact n)))"
-by (auto intro!: ext 
-         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def
-         simp del: mult_Suc of_nat_Suc)
+by (simp only: cos_fdiffs)
 
 text{*Now at last we can get the derivatives of exp, sin and cos*}
 
@@ -1254,12 +1250,10 @@ proof -
             (if even k then 0
              else (- 1) ^ ((k - Suc 0) div 2) / real (fact k)) *
             x ^ k) 
-	sums
-	(\<Sum>n. (if even n then 0
-		     else (- 1) ^ ((n - Suc 0) div 2) / real (fact n)) *
-	            x ^ n)" 
+	sums sin x"
+    unfolding sin_def
     by (rule sin_converges [THEN sums_summable, THEN sums_group], simp) 
-  thus ?thesis by (simp add: mult_ac sin_def)
+  thus ?thesis by (simp add: mult_ac)
 qed
 
 lemma sin_gt_zero: "[|0 < x; x < 2 |] ==> 0 < sin x"
@@ -1323,11 +1317,10 @@ proof -
   have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
             (if even k then (- 1) ^ (k div 2) / real (fact k) else 0) *
             x ^ k) 
-        sums
-	(\<Sum>n. (if even n then (- 1) ^ (n div 2) / real (fact n) else 0) *
-	      x ^ n)" 
+        sums cos x"
+    unfolding cos_def
     by (rule cos_converges [THEN sums_summable, THEN sums_group], simp) 
-  thus ?thesis by (simp add: mult_ac cos_def)
+  thus ?thesis by (simp add: mult_ac)
 qed
 
 declare zero_less_power [simp]
