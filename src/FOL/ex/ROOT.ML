@@ -15,7 +15,7 @@ time_use_thy "Prolog";
 
 time_use_thy "Intuitionistic";
 
-val thy = IFOL.thy  and  tac = IntPr.fast_tac 1;
+val thy = theory "IFOL"  and  tac = IntPr.fast_tac 1;
 time_use     "prop.ML";
 time_use     "quant.ML";
 
@@ -24,7 +24,7 @@ time_use_thy "Miniscope";
 time_use_thy "Classical";
 time_use_thy "If";
 
-val thy = FOL.thy  and  tac = Cla.fast_tac FOL_cs 1;
+val thy = theory "FOL"  and  tac = Cla.fast_tac FOL_cs 1;
 time_use     "prop.ML";
 time_use     "quant.ML";
 

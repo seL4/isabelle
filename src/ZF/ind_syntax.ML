@@ -125,7 +125,7 @@ fun data_domain co (rec_tms, con_ty_lists) =
     let val rec_hds = map head_of rec_tms
         val dummy = assert_all is_Const rec_hds
           (fn t => "Datatype set not previously declared as constant: " ^
-                   Sign.string_of_term IFOL.thy t);
+                   Sign.string_of_term @{theory IFOL} t);
         val rec_names = (*nat doesn't have to be added*)
 	    "Nat.nat" :: map (#1 o dest_Const) rec_hds
 	val u = if co then quniv else univ
