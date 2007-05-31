@@ -71,10 +71,10 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   $(SRC)/Provers/Arith/combine_numerals.ML					\
   $(SRC)/Provers/Arith/extract_common_term.ML					\
   $(SRC)/Provers/Arith/fast_lin_arith.ML					\
-  $(SRC)/Provers/IsaPlanner/isand.ML						\
-  $(SRC)/Provers/IsaPlanner/rw_inst.ML						\
-  $(SRC)/Provers/IsaPlanner/rw_tools.ML						\
-  $(SRC)/Provers/IsaPlanner/zipper.ML $(SRC)/Provers/blast.ML			\
+  $(SRC)/Tools/IsaPlanner/isand.ML						\
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML						\
+  $(SRC)/Tools/IsaPlanner/rw_tools.ML						\
+  $(SRC)/Tools/IsaPlanner/zipper.ML $(SRC)/Provers/blast.ML			\
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML				\
   $(SRC)/Provers/eqsubst.ML $(SRC)/Provers/hypsubst.ML				\
   $(SRC)/Provers/induct_method.ML $(SRC)/Provers/order.ML			\
@@ -678,8 +678,12 @@ $(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML \
 HOL-Complex-Matrix: HOL-Complex $(OUT)/HOL-Complex-Matrix
 
 $(OUT)/HOL-Complex-Matrix: $(OUT)/HOL-Complex \
-  Matrix/MatrixGeneral.thy Matrix/Matrix.thy Matrix/SparseMatrix.thy Matrix/LP.thy \
-  Matrix/document/root.tex Matrix/ROOT.ML \
+  $(SRC)/Tools/Compute_Oracle/Compute_Oracle.thy \
+  $(SRC)/Tools/Compute_Oracle/am_compiler.ML \
+  $(SRC)/Tools/Compute_Oracle/am_interpreter.ML \
+  $(SRC)/Tools/Compute_Oracle/am_util.ML $(SRC)/Tools/Compute_Oracle/compute.ML \
+  Matrix/MatrixGeneral.thy Matrix/Matrix.thy Matrix/SparseMatrix.thy \
+  Matrix/LP.thy Matrix/document/root.tex Matrix/ROOT.ML \
   Matrix/cplex/Cplex.thy Matrix/cplex/CplexMatrixConverter.ML \
   Matrix/cplex/Cplex_tools.ML Matrix/cplex/FloatSparseMatrix.thy \
   Matrix/cplex/FloatSparseMatrixBuilder.ML Matrix/cplex/fspmlp.ML \
