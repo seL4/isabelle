@@ -9,10 +9,14 @@ generation for Cooper Algorithm
 header {* Presburger Arithmetic: Cooper's Algorithm *}
 
 theory Presburger
-imports NatSimprocs "../SetInterval"
+imports "Integ/NatSimprocs" SetInterval
 uses
-  ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") 
-  ("reflected_presburger.ML") ("reflected_cooper.ML") ("presburger.ML")
+  ("Tools/Presburger/cooper_dec.ML")
+  ("Tools/Presburger/cooper_proof.ML")
+  ("Tools/Presburger/qelim.ML") 
+  ("Tools/Presburger/reflected_presburger.ML")
+  ("Tools/Presburger/reflected_cooper.ML")
+  ("Tools/Presburger/presburger.ML")
 begin
 
 text {* Theorem for unitifying the coeffitients of @{text x} in an existential formula*}
@@ -1047,15 +1051,15 @@ proof -
   show ?thesis by (simp add: 1)
 qed
 
-use "cooper_dec.ML"
-use "reflected_presburger.ML" 
-use "reflected_cooper.ML"
+use "Tools/Presburger/cooper_dec.ML"
+use "Tools/Presburger/reflected_presburger.ML" 
+use "Tools/Presburger/reflected_cooper.ML"
 oracle
   presburger_oracle ("term") = ReflectedCooper.presburger_oracle
 
-use "cooper_proof.ML"
-use "qelim.ML"
-use "presburger.ML"
+use "Tools/Presburger/cooper_proof.ML"
+use "Tools/Presburger/qelim.ML"
+use "Tools/Presburger/presburger.ML"
 
 setup "Presburger.setup"
 

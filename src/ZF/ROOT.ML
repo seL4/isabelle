@@ -13,6 +13,6 @@ writeln banner;
 
 reset eta_contract;
 
-with_path "Integ" use_thy "Main_ZFC";
+use_thy "Main_ZFC";
 
 Goal "True";  (*leave subgoal package empty*)

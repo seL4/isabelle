@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Concrete syntax for generic numerals.  Assumes consts and syntax of
-theory ZF/Integ/Bin.
+theory Bin.
 *)
 
 signature NUMERAL_SYNTAX =

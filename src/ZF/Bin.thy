@@ -1,4 +1,4 @@
-(*  Title:      ZF/ex/Bin.thy
+(*  Title:      ZF/Bin.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge

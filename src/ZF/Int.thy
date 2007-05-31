@@ -1,4 +1,4 @@
-(*  Title:      ZF/Integ/Int.thy
+(*  Title:      ZF/Int.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge

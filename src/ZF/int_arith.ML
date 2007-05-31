@@ -1,4 +1,4 @@
-(*  Title:      ZF/Integ/int_arith.ML
+(*  Title:      ZF/int_arith.ML
     ID:         $Id$
     Author:     Larry Paulson
     Copyright   2000  University of Cambridge
