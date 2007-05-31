@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/int_arith1.ML
+(*  Title:      HOL/int_arith1.ML
     ID:         $Id$
     Authors:    Larry Paulson and Tobias Nipkow
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/Numeral.thy
+(*  Title:      HOL/Numeral.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
@@ -8,7 +8,7 @@ header {* Arithmetic on Binary Integers *}
 
 theory Numeral
 imports IntDef
-uses ("../Tools/numeral_syntax.ML")
+uses ("Tools/numeral_syntax.ML")
 begin
 
 subsection {* Binary representation *}
@@ -16,7 +16,7 @@ subsection {* Binary representation *}
 text {*
   This formalization defines binary arithmetic in terms of the integers
   rather than using a datatype. This avoids multiple representations (leading
-  zeroes, etc.)  See @{text "ZF/Integ/twos-compl.ML"}, function @{text
+  zeroes, etc.)  See @{text "ZF/Tools/twos-compl.ML"}, function @{text
   int_of_binary}, for the numerical interpretation.
 
   The representation expects that @{text "(m mod 2)"} is 0 or 1,
@@ -50,7 +50,7 @@ class number = type + -- {* for numeric types: nat, int, real, \dots *}
 syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
 
-use "../Tools/numeral_syntax.ML"
+use "Tools/numeral_syntax.ML"
 setup NumeralSyntax.setup
 
 abbreviation

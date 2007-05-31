@@ -8,7 +8,7 @@
 header{*The Division Operators div and mod; the Divides Relation dvd*}
 
 theory IntDiv
-imports IntArith "../Divides" "../FunDef"
+imports IntArith Divides FunDef
 begin
 
 declare zless_nat_conj [simp]

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Integ/IntArith.thy
+(*  Title:      HOL/IntArith.thy
     ID:         $Id$
     Authors:    Larry Paulson and Tobias Nipkow
 *)
@@ -6,7 +6,7 @@
 header {* Integer arithmetic *}
 
 theory IntArith
-imports Numeral "../Wellfounded_Relations"
+imports Numeral Wellfounded_Relations
 uses "~~/src/Provers/Arith/assoc_fold.ML" ("int_arith1.ML")
 begin
 
