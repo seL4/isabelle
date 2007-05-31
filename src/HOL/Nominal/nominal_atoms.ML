@@ -671,6 +671,8 @@ fun create_nom_typedecls ak_names thy =
        val abs_fun_pi_ineq     = thm "Nominal.abs_fun_pi_ineq";
        val abs_fun_eq          = thm "Nominal.abs_fun_eq";
        val abs_fun_eq'         = thm "Nominal.abs_fun_eq'";
+       val abs_fun_fresh       = thm "Nominal.abs_fun_fresh";
+       val abs_fun_fresh'      = thm "Nominal.abs_fun_fresh'";
        val dj_perm_forget      = thm "Nominal.dj_perm_forget";
        val dj_pp_forget        = thm "Nominal.dj_perm_perm_forget";
        val fresh_iff           = thm "Nominal.fresh_abs_fun_iff";
@@ -779,6 +781,8 @@ fun create_nom_typedecls ak_names thy =
             thy32 
 	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
             ||>> PureThy.add_thmss [(("alpha'", inst_pt_at [abs_fun_eq']),[])]
+            ||>> PureThy.add_thmss [(("alpha_fresh", inst_pt_at [abs_fun_fresh]),[])]
+            ||>> PureThy.add_thmss [(("alpha_fresh'", inst_pt_at [abs_fun_fresh']),[])]
             ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij] @ inst_pt_at [pt_swap_bij']),[])]
             ||>> PureThy.add_thmss [(("swap_simps", inst_at at_swap_simps),[])]	 
             ||>> PureThy.add_thmss 

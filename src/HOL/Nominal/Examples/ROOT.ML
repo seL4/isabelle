@@ -5,9 +5,9 @@
 Various examples involving nominal datatypes.
 *)
 
+(*use_thy "Class";*)  
 use_thy "CR";
 use_thy "CR_Takahashi";
-(*use_thy "Class";*)
 use_thy "Compile";
 use_thy "Fsub";
 use_thy "Height";

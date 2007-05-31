@@ -15,7 +15,7 @@ theory SOS
   imports "../Nominal"
 begin
 
-atom_decl name 
+atom_decl name
 
 nominal_datatype data = 
     DNat
@@ -314,7 +314,7 @@ proof -
     by auto
   obtain c::"name" where "c\<sharp>(\<Gamma>,x,x',t,t')" by (erule exists_fresh[OF fs_name1])
   then have fs: "c\<sharp>\<Gamma>" "c\<noteq>x" "c\<noteq>x'" "c\<sharp>t" "c\<sharp>t'" by (simp_all add: fresh_atm[symmetric]) 
-  then have b5: "[(x',c)]\<bullet>t'=[(x,c)]\<bullet>t" using b3 fs by (simp add: alpha')
+  then have b5: "[(x',c)]\<bullet>t'=[(x,c)]\<bullet>t" using b3 fs by (simp add: alpha_fresh)
   have "([(x,c)]\<bullet>[(x',c)]\<bullet>((x',T\<^isub>1)#\<Gamma>)) \<turnstile> ([(x,c)]\<bullet>[(x',c)]\<bullet>t') : T\<^isub>2" using b2
     by (simp only: typing_eqvt')
   then have "(x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2" using fs b1 a2 b5 by (perm_simp add: calc_atm)
@@ -336,7 +336,7 @@ proof -
     e1:"[x\<^isub>1].e\<^isub>1=[x\<^isub>1'].e\<^isub>1'" and e2:"[x\<^isub>2].e\<^isub>2=[x\<^isub>2'].e\<^isub>2'"
     by auto
   obtain c::name where f':"c \<sharp> (x\<^isub>1,x\<^isub>1',e\<^isub>1,e\<^isub>1',\<Gamma>)" by (erule exists_fresh[OF fs_name1])
-  have e1':"[(x\<^isub>1,c)]\<bullet>e\<^isub>1 = [(x\<^isub>1',c)]\<bullet>e\<^isub>1'" using e1 f' by (auto simp add: alpha' fresh_prod fresh_atm)
+  have e1':"[(x\<^isub>1,c)]\<bullet>e\<^isub>1 = [(x\<^isub>1',c)]\<bullet>e\<^isub>1'" using e1 f' by (auto simp add: alpha_fresh fresh_prod fresh_atm)
   have "[(x\<^isub>1',c)]\<bullet>((x\<^isub>1',Data \<sigma>\<^isub>1)# \<Gamma>) \<turnstile> [(x\<^isub>1',c)]\<bullet>e\<^isub>1' : T" using h1 typing_eqvt' by blast
   then have x:"(c,Data \<sigma>\<^isub>1)#( [(x\<^isub>1',c)]\<bullet>\<Gamma>) \<turnstile> [(x\<^isub>1',c)]\<bullet>e\<^isub>1': T" using f' 
     by (auto simp add: fresh_atm calc_atm)
@@ -349,7 +349,7 @@ proof -
   then have g1:"(x\<^isub>1, Data \<sigma>\<^isub>1)#\<Gamma> \<turnstile> e\<^isub>1 : T"  using f' by (auto simp add: fresh_atm calc_atm fresh_prod)
     (* The second part of the proof is the same *)
   obtain c::name where f':"c \<sharp> (x\<^isub>2,x\<^isub>2',e\<^isub>2,e\<^isub>2',\<Gamma>)" by (erule exists_fresh[OF fs_name1])
-  have e2':"[(x\<^isub>2,c)]\<bullet>e\<^isub>2 = [(x\<^isub>2',c)]\<bullet>e\<^isub>2'" using e2 f' by (auto simp add: alpha' fresh_prod fresh_atm)
+  have e2':"[(x\<^isub>2,c)]\<bullet>e\<^isub>2 = [(x\<^isub>2',c)]\<bullet>e\<^isub>2'" using e2 f' by (auto simp add: alpha_fresh fresh_prod fresh_atm)
   have "[(x\<^isub>2',c)]\<bullet>((x\<^isub>2',Data \<sigma>\<^isub>2)# \<Gamma>) \<turnstile> [(x\<^isub>2',c)]\<bullet>e\<^isub>2' : T" using h2 typing_eqvt' by blast
   then have x:"(c,Data \<sigma>\<^isub>2)#([(x\<^isub>2',c)]\<bullet>\<Gamma>) \<turnstile> [(x\<^isub>2',c)]\<bullet>e\<^isub>2': T" using f' 
     by (auto simp add: fresh_atm calc_atm)

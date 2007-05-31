@@ -2778,6 +2778,7 @@ proof -
   qed
 qed
 	
+(* alpha equivalence *)
 lemma abs_fun_eq: 
   fixes x  :: "'a"
   and   y  :: "'a"
@@ -2805,7 +2806,21 @@ next
   qed
 qed
 
+(* symmetric version of alpha-equivalence *)
 lemma abs_fun_eq': 
+  fixes x  :: "'a"
+  and   y  :: "'a"
+  and   a  :: "'x"
+  and   b  :: "'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+      and at: "at TYPE('x)"
+  shows "([a].x = [b].y) = ((a=b \<and> x=y)\<or>(a\<noteq>b \<and> [(a,b)]\<bullet>x=y \<and> b\<sharp>x))"
+by (auto simp add: abs_fun_eq[OF pt, OF at] pt_swap_bij[OF pt, OF at] 
+                   pt_fresh_left[OF pt, OF at] 
+                   at_calc[OF at])
+
+(* alpha_equivalence with a fresh name *)
+lemma abs_fun_fresh: 
   fixes x :: "'a"
   and   y :: "'a"
   and   c :: "'x"
@@ -2851,6 +2866,22 @@ next
     finally show ?thesis using ineq fr0 by (simp add: abs_fun_eq[OF pt, OF at])
   qed
 qed
+
+lemma abs_fun_fresh': 
+  fixes x :: "'a"
+  and   y :: "'a"
+  and   c :: "'x"
+  and   a :: "'x"
+  and   b :: "'x"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+      and at: "at TYPE('x)"
+      and as: "[a].x = [b].y"
+      and fr: "c\<noteq>a" "c\<noteq>b" "c\<sharp>x" "c\<sharp>y" 
+  shows "x = [(a,c)]\<bullet>[(b,c)]\<bullet>y"
+using as fr
+apply(drule_tac sym)
+apply(simp add: abs_fun_fresh[OF pt, OF at] pt_swap_bij[OF pt, OF at])
+done
 
 lemma abs_fun_supp_approx:
   fixes x :: "'a"

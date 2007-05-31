@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory Class
-imports "Nominal" 
+imports "../Nominal" 
 begin
 
 section {* Term-Calculus from Urban's PhD *}
@@ -4084,7 +4084,7 @@ lemma alpha_coname:
   assumes a: "[a].M = [b].N" "c\<sharp>(a,b,M,N)"
   shows "M = [(a,c)]\<bullet>[(b,c)]\<bullet>N"
 using a
-apply(auto simp add: alpha' fresh_prod fresh_atm)
+apply(auto simp add: alpha_fresh fresh_prod fresh_atm)
 apply(drule sym)
 apply(perm_simp)
 done 
@@ -4095,7 +4095,7 @@ lemma alpha_name:
   assumes a: "[x].M = [y].N" "z\<sharp>(x,y,M,N)"
   shows "M = [(x,z)]\<bullet>[(y,z)]\<bullet>N"
 using a
-apply(auto simp add: alpha' fresh_prod fresh_atm)
+apply(auto simp add: alpha_fresh fresh_prod fresh_atm)
 apply(drule sym)
 apply(perm_simp)
 done 
@@ -4107,7 +4107,8 @@ lemma alpha_name_coname:
   assumes a: "[x].[b].M = [y].[c].N" "z\<sharp>(x,y,M,N)" "a\<sharp>(b,c,M,N)"
   shows "M = [(x,z)]\<bullet>[(b,a)]\<bullet>[(c,a)]\<bullet>[(y,z)]\<bullet>N"
 using a
-apply(auto simp add: alpha' fresh_prod fresh_atm abs_supp fin_supp abs_fresh abs_perm fresh_left calc_atm)
+apply(auto simp add: alpha_fresh fresh_prod fresh_atm 
+                     abs_supp fin_supp abs_fresh abs_perm fresh_left calc_atm)
 apply(drule sym)
 apply(simp)
 apply(perm_simp)
