@@ -20,8 +20,8 @@ text {*
 
 oracle iff_oracle (int) = {*
   let
-    fun mk_iff 1 = Var (("P", 0), FOLogic.oT)
-      | mk_iff n = FOLogic.iff $ Var (("P", 0), FOLogic.oT) $ mk_iff (n - 1);
+    fun mk_iff 1 = Var (("P", 0), @{typ o})
+      | mk_iff n = FOLogic.iff $ Var (("P", 0), @{typ o}) $ mk_iff (n - 1);
   in
     fn thy => fn n =>
       if n > 0 andalso n mod 2 = 0
@@ -33,20 +33,20 @@ oracle iff_oracle (int) = {*
 
 subsection {* Oracle as low-level rule *}
 
-ML {* iff_oracle (the_context ()) 2 *}
-ML {* iff_oracle (the_context ()) 10 *}
+ML {* iff_oracle @{theory} 2 *}
+ML {* iff_oracle @{theory} 10 *}
 ML {* #der (Thm.rep_thm it) *}
 
 text {* These oracle calls had better fail. *}
 
 ML {*
-  (iff_oracle (the_context ()) 5; error "?")
-    handle Fail _ => tracing "Oracle failed, as expected"
+  (iff_oracle @{theory} 5; error "?")
+    handle Fail _ => warning "Oracle failed, as expected"
 *}
 
 ML {*
-  (iff_oracle (the_context ()) 1; error "?")
-    handle Fail _ => tracing "Oracle failed, as expected"
+  (iff_oracle @{theory} 1; error "?")
+    handle Fail _ => warning "Oracle failed, as expected"
 *}
 
 
