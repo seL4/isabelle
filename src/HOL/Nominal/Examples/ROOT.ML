@@ -16,4 +16,4 @@ use_thy "SN";
 use_thy "Weakening";
 use_thy "Crary";
 use_thy "SOS";
-use_thy "LocalWeakening.thy";
+use_thy "LocalWeakening";
