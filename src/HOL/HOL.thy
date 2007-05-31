@@ -7,7 +7,33 @@ header {* The basis of Higher-Order Logic *}
 
 theory HOL
 imports CPure
-uses ("simpdata.ML") "Tools/res_atpset.ML"
+uses
+  "hologic.ML"
+  "~~/src/Provers/splitter.ML"
+  "~~/src/Provers/hypsubst.ML"
+  "~~/src/Provers/IsaPlanner/zipper.ML"
+  "~~/src/Provers/IsaPlanner/isand.ML"
+  "~~/src/Provers/IsaPlanner/rw_tools.ML"
+  "~~/src/Provers/IsaPlanner/rw_inst.ML"
+  "~~/src/Provers/eqsubst.ML"
+  "~~/src/Provers/induct_method.ML"
+  "~~/src/Provers/classical.ML"
+  "~~/src/Provers/blast.ML"
+  "~~/src/Provers/clasimp.ML"
+  "~~/src/Pure/General/int.ML"
+  "~~/src/Pure/General/rat.ML"
+  "~~/src/Provers/Arith/fast_lin_arith.ML"
+  "~~/src/Provers/Arith/cancel_sums.ML"
+  "~~/src/Provers/quantifier1.ML"
+  "~~/src/Provers/project_rule.ML"
+  "~~/src/Provers/Arith/cancel_numerals.ML"
+  "~~/src/Provers/Arith/combine_numerals.ML"
+  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
+  "~~/src/Provers/Arith/extract_common_term.ML"
+  "~~/src/Provers/quasi.ML"
+  "~~/src/Provers/order.ML"
+  ("simpdata.ML")
+  "Tools/res_atpset.ML"
 begin
 
 subsection {* Primitive logic *}
