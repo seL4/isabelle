@@ -375,18 +375,6 @@ lemma div_mult_mult2 [simp]: "(0::nat) < c ==> (a*c) div (b*c) = a div b"
   done
 
 
-(*Distribution of Factors over Remainders:
-
-Could prove these as in Integ/IntDiv.ML, but we already have
-mod_mult_distrib and mod_mult_distrib2 above!
-
-Goal "(c*a) mod (c*b) = (c::nat) * (a mod b)"
-qed "mod_mult_mult1";
-
-Goal "(a*c) mod (b*c) = (a mod b) * (c::nat)";
-qed "mod_mult_mult2";
- ***)
-
 subsection{*Further Facts about Quotient and Remainder*}
 
 lemma div_1 [simp]: "m div Suc 0 = m"
