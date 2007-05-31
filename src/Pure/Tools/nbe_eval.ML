@@ -56,7 +56,7 @@ fun string_of_nterm(C s) = "(C \"" ^ s ^ "\")"
   | string_of_nterm(AbsN(n,t)) =
       "(Abs " ^ string_of_int n ^ " " ^ string_of_nterm t ^ ")";
 
-fun apps t args = foldr (fn (y,x) => A(x,y)) t args;
+fun apps t args = fold_rev (fn y => fn x => A(x,y)) args t;
 
 (* ------------------------------ The semantical universe --------------------- *)
 

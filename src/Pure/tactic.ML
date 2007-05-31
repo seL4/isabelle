@@ -51,11 +51,11 @@ sig
   val forward_tac       : thm list -> int -> tactic
   val forw_inst_tac     : (string*string)list -> thm -> int -> tactic
   val ftac              : thm -> int ->tactic
-  val insert_tagged_brl : ('a * (bool * thm)) *
-    (('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net) ->
+  val insert_tagged_brl : 'a * (bool * thm) ->
+    ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net ->
       ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
-  val delete_tagged_brl : (bool * thm) *
-    (('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net) ->
+  val delete_tagged_brl : bool * thm ->
+    ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net ->
       ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
   val lessb             : (bool * thm) * (bool * thm) -> bool
   val lift_inst_rule    : thm * int * (string*string)list * thm -> thm
@@ -410,7 +410,7 @@ fun untaglist [] = []
 fun orderlist kbrls = untaglist (sort (int_ord o pairself fst) kbrls);
 
 (*insert one tagged brl into the pair of nets*)
-fun insert_tagged_brl (kbrl as (k, (eres, th)), (inet, enet)) =
+fun insert_tagged_brl (kbrl as (k, (eres, th))) (inet, enet) =
   if eres then
     (case try Thm.major_prem_of th of
       SOME prem => (inet, Net.insert_term (K false) (prem, kbrl) enet)
@@ -419,12 +419,12 @@ fun insert_tagged_brl (kbrl as (k, (eres, th)), (inet, enet)) =
 
 (*build a pair of nets for biresolution*)
 fun build_netpair netpair brls =
-    foldr insert_tagged_brl netpair (taglist 1 brls);
+    fold_rev insert_tagged_brl (taglist 1 brls) netpair;
 
 (*delete one kbrl from the pair of nets*)
 fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
 
-fun delete_tagged_brl (brl as (eres, th), (inet, enet)) =
+fun delete_tagged_brl (brl as (eres, th)) (inet, enet) =
   (if eres then
     (case try Thm.major_prem_of th of
       SOME prem => (inet, Net.delete_term eq_kbrl (prem, ((), brl)) enet)
@@ -458,12 +458,12 @@ val net_bimatch_tac =
 (*** Simpler version for resolve_tac -- only one net, and no hyps ***)
 
 (*insert one tagged rl into the net*)
-fun insert_krl (krl as (k,th), net) =
-    Net.insert_term (K false) (concl_of th, krl) net;
+fun insert_krl (krl as (k,th)) =
+  Net.insert_term (K false) (concl_of th, krl);
 
 (*build a net of rules for resolution*)
 fun build_net rls =
-    foldr insert_krl Net.empty (taglist 1 rls);
+  fold_rev insert_krl (taglist 1 rls) Net.empty;
 
 (*resolution using a net rather than rules; pred supports filt_resolve_tac*)
 fun filt_resolution_from_net_tac match pred net =

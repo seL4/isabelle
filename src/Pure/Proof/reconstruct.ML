@@ -26,19 +26,19 @@ fun message s = if !quiet_mode then () else writeln s;
 fun vars_of t = rev (fold_aterms
   (fn v as Var _ => insert (op =) v | _ => I) t []);
 
-fun forall_intr (t, prop) =
+fun forall_intr t prop =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in all T $ Abs (a, T, abstract_over (t, prop)) end;
 
-fun forall_intr_vfs prop = foldr forall_intr prop
-  (vars_of prop @ sort Term.term_ord (term_frees prop));
+fun forall_intr_vfs prop = fold_rev forall_intr
+  (vars_of prop @ sort Term.term_ord (term_frees prop)) prop;
 
-fun forall_intr_prf (t, prf) =
+fun forall_intr_prf t prf =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, SOME T, prf_abstract_over t prf) end;
 
-fun forall_intr_vfs_prf prop prf = foldr forall_intr_prf prf
-  (vars_of prop @ sort Term.term_ord (term_frees prop));
+fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_prf
+  (vars_of prop @ sort Term.term_ord (term_frees prop)) prf;
 
 fun merge_envs (Envir.Envir {asol=asol1, iTs=iTs1, maxidx=maxidx1})
   (Envir.Envir {asol=asol2, iTs=iTs2, maxidx=maxidx2}) =
@@ -49,7 +49,7 @@ fun merge_envs (Envir.Envir {asol=asol1, iTs=iTs1, maxidx=maxidx1})
 
 (**** generate constraints for proof term ****)
 
-fun mk_var env Ts T = 
+fun mk_var env Ts T =
   let val (env', v) = Envir.genvar "a" (env, rev Ts ---> T)
   in (env', list_comb (v, map Bound (length Ts - 1 downto 0))) end;
 
@@ -74,7 +74,7 @@ fun chaseT (env as Envir.Envir {iTs, ...}) (T as TVar ixnS) =
 fun infer_type thy (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
       (t as Const (s, T)) = if T = dummyT then (case Sign.const_type thy s of
           NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
-        | SOME T => 
+        | SOME T =>
             let val T' = Type.strip_sorts (Logic.incr_tvar (maxidx + 1) T)
             in (Const (s, T'), T', vTs,
               Envir.Envir {maxidx = maxidx + 1, asol = asol, iTs = iTs})
@@ -156,7 +156,7 @@ fun make_constraints_cprf thy env cprf =
 
     fun head_norm (prop, prf, cnstrts, env, vTs) =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);
- 
+
     fun mk_cnstrts env _ Hs vTs (PBound i) = (List.nth (Hs, i), PBound i, [], env, vTs)
       | mk_cnstrts env Ts Hs vTs (Abst (s, opT, cprf)) =
           let
@@ -338,10 +338,10 @@ val prop_of = prop_of' [];
 
 fun expand_proof thy thms prf =
   let
-    fun expand maxidx prfs (AbsP (s, t, prf)) = 
+    fun expand maxidx prfs (AbsP (s, t, prf)) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', AbsP (s, t, prf')) end
-      | expand maxidx prfs (Abst (s, T, prf)) = 
+      | expand maxidx prfs (Abst (s, T, prf)) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', Abst (s, T, prf')) end
       | expand maxidx prfs (prf1 %% prf2) =

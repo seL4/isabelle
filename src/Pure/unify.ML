@@ -280,7 +280,7 @@ fun changed (env, f$_) = changed (env,f)
   Clever would be to re-do just the affected dpairs*)
 fun SIMPL thy (env,dpairs) : Envir.env * dpair list * dpair list =
     let val all as (env',flexflex,flexrigid) =
-      foldr (SIMPL0 thy) (env,[],[]) dpairs;
+      List.foldr (SIMPL0 thy) (env,[],[]) dpairs;
   val dps = flexrigid@flexflex
     in if exists (fn ((_,t,u)) => changed(env',t) orelse changed(env',u)) dps
        then SIMPL thy (env',dps) else all
@@ -471,7 +471,7 @@ fun clean_term banned (env,t) =
   val (Ts,U) = strip_type env T
   and js = length ts - 1  downto 0
   val args = sort (make_ord arg_less)
-    (foldr (change_arg banned) [] (flexargs (js,ts,Ts)))
+    (List.foldr (change_arg banned) [] (flexargs (js,ts,Ts)))
   val ts' = map (#t) args
     in
     if decreasing (length Ts) args then (env, (list_comb(Var(v,T), ts')))
@@ -504,7 +504,7 @@ fun clean_ffpair thy ((rbinder, t, u), (env,tpairs)) =
             then  (bnos, (a,T)::newbinder)  (*needed by both: keep*)
             else  (j::bnos, newbinder);   (*remove*)
       val indices = 0 upto (length rbinder - 1);
-      val (banned,rbin') = foldr add_index ([],[]) (rbinder~~indices);
+      val (banned,rbin') = List.foldr add_index ([],[]) (rbinder~~indices);
       val (env', t') = clean_term banned (env, t);
       val (env'',u') = clean_term banned (env',u)
   in  (ff_assign thy (env'', rbin', t', u'), tpairs)
@@ -558,7 +558,7 @@ fun hounifiers (thy,env, tus : (term*term)list)
     then print_dpairs thy "Enter SIMPL" (env,dpairs)  else ();
     SIMPL thy (env,dpairs))
     in case flexrigid of
-        [] => SOME (foldr (add_ffpair thy) (env',[]) flexflex, reseq)
+        [] => SOME (List.foldr (add_ffpair thy) (env',[]) flexflex, reseq)
       | dp::frigid' =>
     if tdepth > !search_bound then
         (warning "Unification bound exceeded"; Seq.pull reseq)
@@ -607,7 +607,7 @@ fun smash_flexflex1 ((t,u), env) : Envir.env =
 
 (*Smash all flex-flexpairs.  Should allow selection of pairs by a predicate?*)
 fun smash_flexflex (env,tpairs) : Envir.env =
-  foldr smash_flexflex1 env tpairs;
+  List.foldr smash_flexflex1 env tpairs;
 
 (*Returns unifiers with no remaining disagreement pairs*)
 fun smash_unifiers thy tus env =

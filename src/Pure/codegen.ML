@@ -359,7 +359,7 @@ fun add_attribute name att thy =
 fun mk_parser (a, p) = (if a = "" then Scan.succeed "" else Args.$$$ a) |-- p;
 
 val code_attr =
-  Attrib.syntax (Scan.peek (fn context => foldr op || Scan.fail (map mk_parser
+  Attrib.syntax (Scan.peek (fn context => List.foldr op || Scan.fail (map mk_parser
     (#attrs (CodegenData.get (Context.theory_of context))))));
 
 val _ = Context.add_setup
@@ -542,7 +542,7 @@ fun thyname_of_const s thy = (case theory_of_const s thy of
 
 fun rename_terms ts =
   let
-    val names = foldr add_term_names
+    val names = List.foldr add_term_names
       (map (fst o fst) (rev (fold Term.add_vars ts []))) ts;
     val reserved = filter ML_Syntax.is_reserved names;
     val (illegal, alt_names) = split_list (map_filter (fn s =>
@@ -684,7 +684,7 @@ fun eta_expand t ts i =
     val (Ts, _) = strip_type (fastype_of t);
     val j = i - length ts
   in
-    foldr (fn (T, t) => Abs ("x", T, t))
+    List.foldr (fn (T, t) => Abs ("x", T, t))
       (list_comb (t, ts @ map Bound (j-1 downto 0))) (Library.take (j, Ts))
   end;
 
@@ -862,15 +862,15 @@ fun output_code gr module xs =
     if module = "" then
       let
         val modules = distinct (op =) (map (#2 o snd) code);
-        val mod_gr = foldr (uncurry Graph.add_edge_acyclic)
-          (foldr (uncurry (Graph.new_node o rpair ())) Graph.empty modules)
+        val mod_gr = fold_rev Graph.add_edge_acyclic
           (maps (fn (s, (_, module, _)) => map (pair module)
             (filter_out (equal module) (map (#2 o Graph.get_node gr)
-              (Graph.imm_succs gr s)))) code);
+              (Graph.imm_succs gr s)))) code)
+          (fold_rev (Graph.new_node o rpair ()) modules Graph.empty);
         val modules' =
           rev (Graph.all_preds mod_gr (map (#2 o Graph.get_node gr) xs))
       in
-        foldl (fn ((_, (_, module, s)), ms) => add_to_module module s ms)
+        List.foldl (fn ((_, (_, module, s)), ms) => add_to_module module s ms)
           (map (rpair "") modules') code
       end handle Graph.CYCLES (cs :: _) =>
         error ("Cyclic dependency of modules:\n" ^ commas cs ^
@@ -887,7 +887,7 @@ fun gen_generate_code prep_term thy modules module =
     val graphs = get_modules thy;
     val defs = mk_deftab thy;
     val gr = new_node ("<Top>", (NONE, module, ""))
-      (foldl (fn ((gr, (tab1, tab2)), (gr', (tab1', tab2'))) =>
+      (List.foldl (fn ((gr, (tab1, tab2)), (gr', (tab1', tab2'))) =>
         (Graph.merge (fn ((_, module, _), (_, module', _)) =>
            module = module') (gr, gr'),
          (merge_nametabs (tab1, tab1'), merge_nametabs (tab2, tab2')))) emptygr

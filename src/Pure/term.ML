@@ -1112,20 +1112,20 @@ fun add_term_names (Const(a,_), bs) = insert (op =) (NameSpace.base a) bs
   | add_term_names (_, bs) = bs;
 
 (*Accumulates the TVars in a type, suppressing duplicates. *)
-fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars vs Ts
+fun add_typ_tvars(Type(_,Ts),vs) = List.foldr add_typ_tvars vs Ts
   | add_typ_tvars(TFree(_),vs) = vs
   | add_typ_tvars(TVar(v),vs) = insert (op =) v vs;
 
 (*Accumulates the TFrees in a type, suppressing duplicates. *)
-fun add_typ_tfree_names(Type(_,Ts),fs) = foldr add_typ_tfree_names fs Ts
+fun add_typ_tfree_names(Type(_,Ts),fs) = List.foldr add_typ_tfree_names fs Ts
   | add_typ_tfree_names(TFree(f,_),fs) = insert (op =) f fs
   | add_typ_tfree_names(TVar(_),fs) = fs;
 
-fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees fs Ts
+fun add_typ_tfrees(Type(_,Ts),fs) = List.foldr add_typ_tfrees fs Ts
   | add_typ_tfrees(TFree(f),fs) = insert (op =) f fs
   | add_typ_tfrees(TVar(_),fs) = fs;
 
-fun add_typ_varnames(Type(_,Ts),nms) = foldr add_typ_varnames nms Ts
+fun add_typ_varnames(Type(_,Ts),nms) = List.foldr add_typ_varnames nms Ts
   | add_typ_varnames(TFree(nm,_),nms) = insert (op =) nm nms
   | add_typ_varnames(TVar((nm,_),_),nms) = insert (op =) nm nms;
 

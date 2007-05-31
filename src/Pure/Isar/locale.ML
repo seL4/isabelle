@@ -664,7 +664,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map #2 parms'));
 
     fun inst_parms (i, ps) =
-      foldr Term.add_typ_tfrees [] (map_filter snd ps)
+      List.foldr Term.add_typ_tfrees [] (map_filter snd ps)
       |> map_filter (fn (a, S) =>
           let val T = Envir.norm_type unifier' (TVar ((a, i), S))
           in if T = TFree (a, S) then NONE else SOME (a, T) end)
@@ -1707,7 +1707,7 @@ fun def_pred bname parms defs ts norm_ts thy =
     val env = Term.add_term_free_names (body, []);
     val xs = filter (member (op =) env o #1) parms;
     val Ts = map #2 xs;
-    val extraTs = (Term.term_tfrees body \\ foldr Term.add_typ_tfrees [] Ts)
+    val extraTs = (Term.term_tfrees body \\ List.foldr Term.add_typ_tfrees [] Ts)
       |> Library.sort_wrt #1 |> map TFree;
     val predT = map Term.itselfT extraTs ---> Ts ---> bodyT;
 
@@ -1855,8 +1855,8 @@ fun gen_add_locale prep_ctxt prep_expr
         map_filter (fn ((id, Assumed axs), elems) => SOME (id, elems) | _ => NONE);
     val imports = prep_expr thy raw_imports;
 
-    val extraTs = foldr Term.add_term_tfrees [] exts' \\
-      foldr Term.add_typ_tfrees [] (map snd parms);
+    val extraTs = List.foldr Term.add_term_tfrees [] exts' \\
+      List.foldr Term.add_typ_tfrees [] (map snd parms);
     val _ = if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 

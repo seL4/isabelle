@@ -84,7 +84,7 @@ fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
 
 fun merge_rules
   ({next, rs = rs1, net} : rules) ({next = next2, rs = rs2, ...} : rules) =
-  foldr add_rule {next = next, rs = rs1, net = net} (subtract (op =) rs1 rs2);
+  List.foldr add_rule {next = next, rs = rs1, net = net} (subtract (op =) rs1 rs2);
 
 fun condrew thy rules procs =
   let
@@ -136,7 +136,7 @@ fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, SOME T, prf_abstract_over t prf) end;
 
-val mkabs = foldr (fn (v, t) => Abs ("x", fastype_of v, abstract_over (v, t)));
+val mkabs = List.foldr (fn (v, t) => Abs ("x", fastype_of v, abstract_over (v, t)));
 
 fun strip_abs 0 t = t
   | strip_abs n (Abs (_, _, t)) = strip_abs (n-1) t
@@ -145,7 +145,7 @@ fun strip_abs 0 t = t
 fun prf_subst_TVars tye =
   map_proof_terms (subst_TVars tye) (typ_subst_TVars tye);
 
-fun relevant_vars types prop = foldr (fn
+fun relevant_vars types prop = List.foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
         (_, Type (s, _)) => if member (op =) types s then a :: vs else vs
       | _ => vs)
@@ -237,7 +237,7 @@ fun gen_add_realizes_eqns prep_eq eqns thy =
     defs, expand, prep} = ExtractionData.get thy;
   in
     ExtractionData.put
-      {realizes_eqns = foldr add_rule realizes_eqns (map (prep_eq thy) eqns),
+      {realizes_eqns = List.foldr add_rule realizes_eqns (map (prep_eq thy) eqns),
        typeof_eqns = typeof_eqns, types = types, realizers = realizers,
        defs = defs, expand = expand, prep = prep} thy
   end
@@ -255,7 +255,7 @@ fun gen_add_typeof_eqns prep_eq eqns thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, realizers = realizers,
-       typeof_eqns = foldr add_rule typeof_eqns eqns',
+       typeof_eqns = List.foldr add_rule typeof_eqns eqns',
        types = types, defs = defs, expand = expand, prep = prep} thy
   end
 
@@ -324,7 +324,7 @@ fun prep_realizer thy =
         (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $
             (if T = nullT then t else list_comb (t, vars')) $ prop);
-      val r = foldr forall_intr r' (map (get_var_type r') vars);
+      val r = List.foldr forall_intr r' (map (get_var_type r') vars);
       val prf = Reconstruct.reconstruct_proof thy' r (rd s2);
     in (name, (vs, (t, prf))) end
   end;
@@ -474,7 +474,7 @@ fun extract thms thy =
             end
           else (vs', tye)
 
-      in foldr add_args ([], []) (Library.take (n, vars) ~~ Library.take (n, ts)) end;
+      in List.foldr add_args ([], []) (Library.take (n, vars) ~~ Library.take (n, ts)) end;
 
     fun find (vs: string list) = Option.map snd o find_first (curry (gen_eq_set (op =)) vs o fst);
     fun find' s = map snd o List.filter (equal s o fst)
@@ -569,7 +569,7 @@ fun extract thms thy =
                     val (defs'', corr_prf) =
                       corr (d + 1) defs' vs' [] [] [] prf' prf' NONE;
                     val corr_prop = Reconstruct.prop_of corr_prf;
-                    val corr_prf' = foldr forall_intr_prf
+                    val corr_prf' = List.foldr forall_intr_prf
                       (proof_combt
                          (PThm (corr_name name vs', corr_prf, corr_prop,
                              SOME (map TVar (term_tvars corr_prop))), vfs_of corr_prop))
@@ -678,7 +678,7 @@ fun extract thms thy =
                            PAxm (cname ^ "_def", eqn,
                              SOME (map TVar (term_tvars eqn))))) %% corr_prf;
                     val corr_prop = Reconstruct.prop_of corr_prf';
-                    val corr_prf'' = foldr forall_intr_prf
+                    val corr_prf'' = List.foldr forall_intr_prf
                       (proof_combt
                         (PThm (corr_name s vs', corr_prf', corr_prop,
                           SOME (map TVar (term_tvars corr_prop))),  vfs_of corr_prop))

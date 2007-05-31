@@ -594,7 +594,7 @@ fun askids (Askids vs) =
                                     x::_::_ => SOME x  (* String.find? *)
                                   | _ => NONE
         fun subthys_of_thy s =
-            foldl  (fn (NONE,xs) => xs | (SOME x,xs) => insert op= x xs) []
+            List.foldl  (fn (NONE,xs) => xs | (SOME x,xs) => insert op= x xs) []
                    (map thy_prefix (thms_of_thy s))
         fun subthms_of_thy thy =
             (case thy_prefix thy of

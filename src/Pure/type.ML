@@ -264,7 +264,7 @@ fun freeze_thaw_type T =
   let
     val used = add_typ_tfree_names (T, [])
     and tvars = map #1 (add_typ_tvars (T, []));
-    val (alist, _) = foldr new_name ([], used) tvars;
+    val (alist, _) = List.foldr new_name ([], used) tvars;
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
 
 val freeze_type = #1 o freeze_thaw_type;
@@ -273,7 +273,7 @@ fun freeze_thaw t =
   let
     val used = it_term_types add_typ_tfree_names (t, [])
     and tvars = map #1 (it_term_types add_typ_tvars (t, []));
-    val (alist, _) = foldr new_name ([], used) tvars;
+    val (alist, _) = List.foldr new_name ([], used) tvars;
   in
     (case alist of
       [] => (t, fn x => x) (*nothing to do!*)

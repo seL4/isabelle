@@ -1107,7 +1107,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
     and add_rrules (rrss, asms) ss =
       (fold o fold) insert_rrule rrss ss |> add_prems (map_filter I asms)
 
-    and disch r (prem, eq) =
+    and disch r prem eq =
       let
         val (lhs, rhs) = Thm.dest_equals (Thm.cprop_of eq);
         val eq' = implies_elim (Thm.instantiate
@@ -1131,11 +1131,11 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
             val ss' = add_rrules (rev rrss, rev asms) ss;
             val concl' =
               Drule.mk_implies (prem, the_default concl (Option.map Thm.rhs_of eq));
-            val dprem = Option.map (curry (disch false) prem)
+            val dprem = Option.map (disch false prem)
           in case rewritec (prover, thy, maxidx) ss' concl' of
               NONE => rebuild prems concl' rrss asms ss (dprem eq)
-            | SOME (eq', _) => transitive2 (Library.foldl (disch false o swap)
-                  (the (transitive3 (dprem eq) eq'), prems))
+            | SOME (eq', _) => transitive2 (fold (disch false)
+                  prems (the (transitive3 (dprem eq) eq')))
                 (mut_impc0 (rev prems) (Thm.rhs_of eq') (rev rrss) (rev asms) ss)
           end
 
@@ -1149,7 +1149,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
 
     and mut_impc [] concl [] [] prems' rrss' asms' eqns ss changed k =
         transitive1 (Library.foldl (fn (eq2, (eq1, prem)) => transitive1 eq1
-            (Option.map (curry (disch false) prem) eq2)) (NONE, eqns ~~ prems'))
+            (Option.map (disch false prem) eq2)) (NONE, eqns ~~ prems'))
           (if changed > 0 then
              mut_impc (rev prems') concl (rev rrss') (rev asms')
                [] [] [] [] ss ~1 changed
@@ -1171,9 +1171,10 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                 find_index (fn q => q aconv p) tprems) (#hyps (rep_thm eqn)));
               val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
-              (rrs' :: rrss') (asm' :: asms') (SOME (foldr (disch true)
+              (rrs' :: rrss') (asm' :: asms') (SOME (fold_rev (disch true)
+                (Library.take (i, prems))
                 (Drule.imp_cong_rule eqn (reflexive (Drule.list_implies
-                  (Library.drop (i, prems), concl)))) (Library.take (i, prems))) :: eqns)
+                  (Library.drop (i, prems), concl))))) :: eqns)
                   ss (length prems') ~1
             end
 
@@ -1189,7 +1190,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                NONE => NONE
              | SOME thm1' => SOME (Drule.imp_cong_rule thm1' (reflexive conc)))
          | SOME thm2 =>
-           let val thm2' = disch false (prem1, thm2)
+           let val thm2' = disch false prem1 thm2
            in (case thm1 of
                NONE => SOME thm2'
              | SOME thm1' =>

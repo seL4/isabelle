@@ -202,8 +202,8 @@ fun op ORELSE (f, g) x =
 fun op APPEND (f, g) x =
   append (f x) (make (fn () => pull (g x)));
 
-fun EVERY fs = foldr THEN succeed fs;
-fun FIRST fs = foldr ORELSE fail fs;
+fun EVERY fs = fold_rev (curry op THEN) fs succeed;
+fun FIRST fs = fold_rev (curry op ORELSE) fs fail;
 
 fun TRY f = ORELSE (f, succeed);
 

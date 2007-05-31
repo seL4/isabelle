@@ -1150,7 +1150,7 @@ fun unconstrainT
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT' fixed (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...}) =
   let
-    val tfrees = foldr add_term_tfrees fixed hyps;
+    val tfrees = List.foldr add_term_tfrees fixed hyps;
     val prop1 = attach_tpairs tpairs prop;
     val (al, prop2) = Type.varify tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
@@ -1430,7 +1430,7 @@ fun rename_bvs([],_,_,_) = I
 
 (*Function to rename bounds/unknowns in the argument, lifted over B*)
 fun rename_bvars(dpairs, tpairs, B) =
-        rename_bvs(foldr Term.match_bvars [] dpairs, dpairs, tpairs, B);
+        rename_bvs(List.foldr Term.match_bvars [] dpairs, dpairs, tpairs, B);
 
 
 (*** RESOLUTION ***)

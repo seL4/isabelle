@@ -158,9 +158,9 @@ fun lookup (Leaf xs) [] = xs
 
 
 (*Skipping a term in a net.  Recursively skip 2 levels if a combination*)
-fun net_skip (Leaf _, nets) = nets
-  | net_skip (Net{comb,var,atoms}, nets) =
-      foldr net_skip (Symtab.fold (cons o #2) atoms (var::nets)) (net_skip (comb,[]));
+fun net_skip (Leaf _) nets = nets
+  | net_skip (Net{comb,var,atoms}) nets =
+      fold_rev net_skip (net_skip comb []) (Symtab.fold (cons o #2) atoms (var::nets));
 
 
 (** Matching and Unification **)
@@ -175,11 +175,11 @@ fun look1 (atoms, a) nets =
   Abs or Var in object: if "unif", regarded as wildcard,
                                    else matches only a variable in net.
 *)
-fun matching unif t (net,nets) =
+fun matching unif t net nets =
   let fun rands _ (Leaf _, nets) = nets
         | rands t (Net{comb,atoms,...}, nets) =
             case t of
-                f$t => foldr (matching unif t) nets (rands f (comb,[]))
+                f$t => fold_rev (matching unif t) (rands f (comb,[])) nets
               | Const(c,_) => look1 (atoms, c) nets
               | Free(c,_)  => look1 (atoms, c) nets
               | Bound i    => look1 (atoms, Name.bound i) nets
@@ -189,11 +189,11 @@ fun matching unif t (net,nets) =
          Leaf _ => nets
        | Net{var,...} =>
              case head_of t of
-                 Var _ => if unif then net_skip (net,nets)
+                 Var _ => if unif then net_skip net nets
                           else var::nets           (*only matches Var in net*)
   (*If "unif" then a var instantiation in the abstraction could allow
     an eta-reduction, so regard the abstraction as a wildcard.*)
-               | Abs _ => if unif then net_skip (net,nets)
+               | Abs _ => if unif then net_skip net nets
                           else var::nets           (*only a Var can match*)
                | _ => rands t (net, var::nets)  (*var could match also*)
   end;
@@ -202,11 +202,11 @@ fun extract_leaves l = maps (fn Leaf xs => xs) l;
 
 (*return items whose key could match t, WHICH MUST BE BETA-ETA NORMAL*)
 fun match_term net t =
-    extract_leaves (matching false t (net,[]));
+    extract_leaves (matching false t net []);
 
 (*return items whose key could unify with t*)
 fun unify_term net t =
-    extract_leaves (matching true t (net,[]));
+    extract_leaves (matching true t net []);
 
 
 (** operations on nets **)

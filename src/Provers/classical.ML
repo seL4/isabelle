@@ -326,7 +326,7 @@ fun tag_brls k [] = []
 fun tag_brls' _ _ [] = []
   | tag_brls' w k (brl::brls) = ((w, k), brl) :: tag_brls' w (k + 1) brls;
 
-fun insert_tagged_list kbrls netpr = foldr Tactic.insert_tagged_brl netpr kbrls;
+fun insert_tagged_list rls = fold_rev Tactic.insert_tagged_brl rls;
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
@@ -334,7 +334,7 @@ fun insert_tagged_list kbrls netpr = foldr Tactic.insert_tagged_brl netpr kbrls;
 fun insert (nI, nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
 fun insert' w (nI, nE) = insert_tagged_list o tag_brls' w (~(nI + nE)) o joinrules';
 
-fun delete_tagged_list brls netpr = foldr Tactic.delete_tagged_brl netpr brls;
+fun delete_tagged_list rls = fold_rev Tactic.delete_tagged_brl rls;
 fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 

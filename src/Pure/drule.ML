@@ -401,7 +401,7 @@ fun freeze_thaw_robust th =
  let val fth = Thm.freezeT th
      val {prop, tpairs, thy, ...} = rep_thm fth
  in
-   case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
+   case List.foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
          let fun newName (Var(ix,_)) = (ix, gensym (string_of_indexname ix))
@@ -423,13 +423,13 @@ fun freeze_thaw th =
  let val fth = Thm.freezeT th
      val {prop, tpairs, thy, ...} = rep_thm fth
  in
-   case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
+   case List.foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =
                    let val v = Name.variant used (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) = foldr newName ([], Library.foldr add_term_names
+             val (alist, _) = List.foldr newName ([], Library.foldr add_term_names
                (prop :: Thm.terms_of_tpairs tpairs, [])) vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of thy (Var(v,T)),
@@ -810,7 +810,7 @@ local
 in
 fun cterm_instantiate [] th = th
   | cterm_instantiate ctpairs0 th =
-  let val (thy,tye,_) = foldr add_types (Thm.theory_of_thm th, Vartab.empty, 0) ctpairs0
+  let val (thy,tye,_) = List.foldr add_types (Thm.theory_of_thm th, Vartab.empty, 0) ctpairs0
       fun instT(ct,cu) =
         let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
         in (inst ct, inst cu) end
