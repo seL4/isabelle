@@ -1,32 +1,25 @@
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      Pure/IsaPlanner/isand.ML
+(*  Title:      Tools/IsaPlanner/isand.ML
     ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
-                lucas.dixon@ed.ac.uk
-    Updated:    26 Apr 2005
-    Date:       6 Aug 2004
-*)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  DESCRIPTION:
 
-    Natural Deduction tools
+Natural Deduction tools.
 
-    For working with Isabelle theorems in a natural detuction style.
-    ie, not having to deal with meta level quantified varaibles,
-    instead, we work with newly introduced frees, and hide the
-    "all"'s, exporting results from theorems proved with the frees, to
-    solve the all cases of the previous goal. This allows resolution
-    to do proof search normally. 
+For working with Isabelle theorems in a natural detuction style.
+ie, not having to deal with meta level quantified varaibles,
+instead, we work with newly introduced frees, and hide the
+"all"'s, exporting results from theorems proved with the frees, to
+solve the all cases of the previous goal. This allows resolution
+to do proof search normally. 
 
-    Note: A nice idea: allow exporting to solve any subgoal, thus
-    allowing the interleaving of proof, or provide a structure for the
-    ordering of proof, thus allowing proof attempts in parrell, but
-    recording the order to apply things in.
+Note: A nice idea: allow exporting to solve any subgoal, thus
+allowing the interleaving of proof, or provide a structure for the
+ordering of proof, thus allowing proof attempts in parrell, but
+recording the order to apply things in.
 
-    THINK: are we really ok with our varify name w.r.t the prop - do
-    we also need to avoid names in the hidden hyps? What about
-    unification contraints in flex-flex pairs - might they also have
-    extra free vars?
+THINK: are we really ok with our varify name w.r.t the prop - do
+we also need to avoid names in the hidden hyps? What about
+unification contraints in flex-flex pairs - might they also have
+extra free vars?
 *)
 
 signature ISA_ND =

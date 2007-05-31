@@ -1,18 +1,11 @@
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      Pure/IsaPlanner/rw_inst.ML
+(*  Title:      Tools/IsaPlanner/rw_inst.ML
     ID:         $Id$
     Author:     Lucas Dixon, University of Edinburgh
-                lucas.dixon@ed.ac.uk
-    Created:    25 Aug 2004
-*)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  DESCRIPTION:
 
-    rewriting using a conditional meta-equality theorem which supports 
-    schematic variable instantiation.
-
+Rewriting using a conditional meta-equality theorem which supports
+schematic variable instantiation.
 *)   
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
+
 signature RW_INST =
 sig
 

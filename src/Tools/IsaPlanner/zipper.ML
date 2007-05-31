@@ -1,16 +1,9 @@
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      Pure/IsaPlanner/zipper.ML
+(*  Title:      Tools/IsaPlanner/zipper.ML
     ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
-                lucas.dixon@ed.ac.uk
-    Created:    24 Mar 2006
-*)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  DESCRIPTION:
-    A notion roughly based on Huet's Zippers for Isabelle terms.
-*)   
 
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
+A notion roughly based on Huet's Zippers for Isabelle terms.
+*)   
 
 (* abstract term for no more than pattern matching *)
 signature ABSTRACT_TRM = 

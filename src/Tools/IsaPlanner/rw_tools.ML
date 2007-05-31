@@ -1,17 +1,9 @@
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  Title:      Pure/IsaPlanner/rw_tools.ML
+(*  Title:      Tools/IsaPlanner/rw_tools.ML
     ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
-                lucas.dixon@ed.ac.uk
-    Created:    28 May 2004
-*)
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-(*  DESCRIPTION:
 
-    term related tools used for rewriting
-
+Term related tools used for rewriting.
 *)   
-(* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 
 signature RWTOOLS =
 sig
