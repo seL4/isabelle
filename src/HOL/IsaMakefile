@@ -81,10 +81,10 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML			\
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML			\
   $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML				\
   $(SRC)/Provers/trancl.ML $(SRC)/Pure/General/int.ML				\
-  $(SRC)/Pure/General/rat.ML $(SRC)/TFL/casesplit.ML				\
-  $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML $(SRC)/TFL/rules.ML			\
-  $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML			\
-  $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML ATP_Linkup.thy			\
+  $(SRC)/Pure/General/rat.ML Tools/TFL/casesplit.ML				\
+  Tools/TFL/dcterm.ML Tools/TFL/post.ML Tools/TFL/rules.ML			\
+  Tools/TFL/tfl.ML Tools/TFL/thms.ML Tools/TFL/thry.ML				\
+  Tools/TFL/usyntax.ML Tools/TFL/utils.ML ATP_Linkup.thy			\
   Accessible_Part.thy Code_Generator.thy Datatype.thy Divides.thy		\
   Equiv_Relations.thy Extraction.thy Finite_Set.thy FixedPoint.thy		\
   Fun.thy FunDef.thy HOL.thy Hilbert_Choice.thy Inductive.thy			\

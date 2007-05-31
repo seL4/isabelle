@@ -8,15 +8,15 @@ header {* TFL: recursive function definitions *}
 theory Recdef
 imports Wellfounded_Relations FunDef
 uses
-  ("../TFL/casesplit.ML")
-  ("../TFL/utils.ML")
-  ("../TFL/usyntax.ML")
-  ("../TFL/dcterm.ML")
-  ("../TFL/thms.ML")
-  ("../TFL/rules.ML")
-  ("../TFL/thry.ML")
-  ("../TFL/tfl.ML")
-  ("../TFL/post.ML")
+  ("Tools/TFL/casesplit.ML")
+  ("Tools/TFL/utils.ML")
+  ("Tools/TFL/usyntax.ML")
+  ("Tools/TFL/dcterm.ML")
+  ("Tools/TFL/thms.ML")
+  ("Tools/TFL/rules.ML")
+  ("Tools/TFL/thry.ML")
+  ("Tools/TFL/tfl.ML")
+  ("Tools/TFL/post.ML")
   ("Tools/recdef_package.ML")
 begin
 
@@ -44,15 +44,15 @@ lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
 lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
   by blast
 
-use "../TFL/casesplit.ML"
-use "../TFL/utils.ML"
-use "../TFL/usyntax.ML"
-use "../TFL/dcterm.ML"
-use "../TFL/thms.ML"
-use "../TFL/rules.ML"
-use "../TFL/thry.ML"
-use "../TFL/tfl.ML"
-use "../TFL/post.ML"
+use "Tools/TFL/casesplit.ML"
+use "Tools/TFL/utils.ML"
+use "Tools/TFL/usyntax.ML"
+use "Tools/TFL/dcterm.ML"
+use "Tools/TFL/thms.ML"
+use "Tools/TFL/rules.ML"
+use "Tools/TFL/thry.ML"
+use "Tools/TFL/tfl.ML"
+use "Tools/TFL/post.ML"
 use "Tools/recdef_package.ML"
 setup RecdefPackage.setup
 
@@ -63,7 +63,7 @@ lemmas [recdef_simp] =
   same_fst_def
   less_Suc_eq [THEN iffD2]
 
-lemmas [recdef_cong] = 
+lemmas [recdef_cong] =
   if_cong let_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong
 
 lemmas [recdef_wf] =
