@@ -7,7 +7,23 @@ header {* Intuitionistic first-order logic *}
 
 theory IFOL
 imports Pure
-uses ("fologic.ML") ("hypsubstdata.ML") ("intprover.ML")
+uses
+  "~~/src/Provers/splitter.ML"
+  "~~/src/Provers/hypsubst.ML"
+  "~~/src/Provers/IsaPlanner/zipper.ML"
+  "~~/src/Provers/IsaPlanner/isand.ML"
+  "~~/src/Provers/IsaPlanner/rw_tools.ML"
+  "~~/src/Provers/IsaPlanner/rw_inst.ML"
+  "~~/src/Provers/eqsubst.ML"
+  "~~/src/Provers/induct_method.ML"
+  "~~/src/Provers/classical.ML"
+  "~~/src/Provers/blast.ML"
+  "~~/src/Provers/clasimp.ML"
+  "~~/src/Provers/quantifier1.ML"
+  "~~/src/Provers/project_rule.ML"
+  ("fologic.ML")
+  ("hypsubstdata.ML")
+  ("intprover.ML")
 begin
 
 
