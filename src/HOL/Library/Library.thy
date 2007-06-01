@@ -17,7 +17,6 @@ imports
   FuncSet
   GCD
   Infinite_Set
-  List_Comprehension
   MLString
   Multiset
   NatPair
