@@ -310,7 +310,6 @@ lemmas order_less_not_sym = order_class.less_not_sym
 lemmas order_less_asym = order_class.less_asym
 lemmas order_eq_iff = order_class.eq_iff
 lemmas order_antisym_conv = order_class.antisym_conv
-lemmas less_imp_neq = order_class.less_imp_neq
 lemmas order_less_trans = order_class.less_trans
 lemmas order_le_less_trans = order_class.le_less_trans
 lemmas order_less_le_trans = order_class.less_le_trans
@@ -329,9 +328,6 @@ lemmas linorder_neqE = linorder_class.neqE
 lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
 lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
 lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
-lemmas leI = linorder_class.leI
-lemmas leD = linorder_class.leD
-lemmas not_leE = linorder_class.not_leE
 
 lemmas min_le_iff_disj = linorder_class.min_le_iff_disj [folded ord_class.min]
 lemmas le_max_iff_disj = linorder_class.le_max_iff_disj [folded ord_class.max]
