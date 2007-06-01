@@ -13,7 +13,6 @@ sig
                               -> string (* defname *)
                               -> ((string * typ) * mixfix) list
                               -> term list
-                              -> string (* default, unparsed term *)
                               -> local_theory
                               -> ((thm (* goalstate *)
                                    * (thm -> FundefCommon.fundef_result) (* proof continuation *)
@@ -72,50 +71,6 @@ fun mutual_induct_Pnames n =
     if n < 5 then fst (chop n ["P","Q","R","S"])
     else map (fn i => "P" ^ string_of_int i) (1 upto n)
 
-
-fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_all_all b)
-  | open_all_all t = ([], t)
-
-(* Builds a curried clause description in abstracted form *)
-fun split_def ctxt fnames geq arities =
-    let
-      fun input_error msg = cat_lines [msg, ProofContext.string_of_term ctxt geq]
-                            
-      val (qs, imp) = open_all_all geq
-
-      val gs = Logic.strip_imp_prems imp
-      val eq = Logic.strip_imp_concl imp
-
-      val (f_args, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
-      val (head, args) = strip_comb f_args
-
-      val invalid_head_msg = "Head symbol of left hand side must be " ^ plural "" "one out of " fnames ^ commas_quote fnames
-      val fname = fst (dest_Free head)
-          handle TERM _ => error (input_error invalid_head_msg)
-
-      val _ = fname mem fnames orelse error (input_error invalid_head_msg)
-
-      fun add_bvs t is = add_loose_bnos (t, 0, is)
-      val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
-                  |> map (fst o nth (rev qs))
-                
-      val _ = null rvs orelse error (input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
-                                              ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:"))
-
-      val _ = forall (forall_aterms (fn Free (n, _) => not (n mem fnames) | _ => true)) gs orelse
-                     error (input_error "Recursive Calls not allowed in premises")
-
-      val k = length args
-
-      val arities' = case Symtab.lookup arities fname of
-                       NONE => Symtab.update (fname, k) arities
-                     | SOME i => (i = k orelse
-                                  error (input_error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations"));
-                                  arities)
-    in
-      ((fname, qs, gs, args, rhs), arities')
-    end
-    
 fun get_part fname =
     the o find_first (fn (MutualPart {fvar=(n,_), ...}) => n = fname)
                      
@@ -133,7 +88,8 @@ fun mk_prod_abs e (t1, t2) =
 fun analyze_eqs ctxt defname fs eqs =
     let
         val fnames = map fst fs
-        val (fqgars, arities) = fold_map (split_def ctxt fnames) eqs Symtab.empty
+        val fqgars = map split_def eqs
+        val arities = mk_arities fqgars
 
         fun curried_types (fname, fT) =
             let
@@ -325,15 +281,17 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
       fun mk_mpsimp fqgar sum_psimp =
           in_context lthy fqgar (recover_mutual_psimp all_orig_fdefs parts) sum_psimp
           
+      val rew_ss = HOL_basic_ss addsimps all_f_defs
       val mpsimps = map2 mk_mpsimp fqgars psimps
       val mtrsimps = map_option (map2 mk_mpsimp fqgars) trsimps
       val minducts = mutual_induct_rules lthy simple_pinduct all_f_defs m
-      val mtermination = full_simplify (HOL_basic_ss addsimps all_f_defs) termination
+      val mtermination = full_simplify rew_ss termination
+      val mdomintros = map_option (map (full_simplify rew_ss)) domintros
     in
       FundefResult { fs=fs, G=G, R=R,
                      psimps=mpsimps, subset_pinducts=[subset_pinduct], simple_pinducts=minducts,
                      cases=cases, termination=mtermination,
-                     domintros=domintros,
+                     domintros=mdomintros,
                      trsimps=mtrsimps}
     end
       
@@ -351,13 +309,13 @@ fun sort_by_function (Mutual {fqgars, ...}) names xs =
              |> map (snd #> map snd)                     (* and remove the labels afterwards *)
 
 
-fun prepare_fundef_mutual config defname fixes eqss default lthy =
+fun prepare_fundef_mutual config defname fixes eqss lthy =
     let
       val mutual = analyze_eqs lthy defname (map fst fixes) (map Envir.beta_eta_contract eqss)
       val Mutual {fsum_var=(n, T), qglrs, ...} = mutual
           
       val ((fsum, goalstate, cont), lthy') =
-          FundefCore.prepare_fundef config defname (n, T, NoSyn) qglrs default lthy
+          FundefCore.prepare_fundef config defname [((n, T), NoSyn)] qglrs lthy
           
       val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
 

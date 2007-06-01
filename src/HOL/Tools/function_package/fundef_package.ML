@@ -32,7 +32,7 @@ sig
 end
 
 
-structure FundefPackage : FUNDEF_PACKAGE =
+structure FundefPackage (*: FUNDEF_PACKAGE*) =
 struct
 
 open FundefLib
@@ -41,6 +41,67 @@ open FundefCommon
 val note_theorem = LocalTheory.note Thm.theoremK
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
+
+
+(* Check for all sorts of errors in the input *)
+fun check_def ctxt fixes eqs =
+    let
+      val fnames = map (fst o fst) fixes
+                                
+      fun check geq = 
+          let
+            fun input_error msg = cat_lines [msg, ProofContext.string_of_term ctxt geq]
+                                  
+            val fqgar as (fname, qs, gs, args, rhs) = split_def geq
+                                 
+            val _ = fname mem fnames 
+                    orelse error (input_error ("Head symbol of left hand side must be " ^ plural "" "one out of " fnames 
+                                               ^ commas_quote fnames))
+                                            
+            fun add_bvs t is = add_loose_bnos (t, 0, is)
+            val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
+                        |> map (fst o nth (rev qs))
+                      
+            val _ = null rvs orelse error (input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
+                                                        ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:"))
+                                    
+            val _ = forall (forall_aterms (fn Free (n, _) => not (n mem fnames) | _ => true)) gs orelse
+                    error (input_error "Recursive Calls not allowed in premises")
+          in
+            fqgar
+          end
+    in
+      (mk_arities (map check eqs); ())
+      handle ArgumentCount fname => 
+             error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations")
+    end
+
+
+fun mk_catchall fixes arities =
+    let
+      fun mk_eqn ((fname, fT), _) =
+          let 
+            val n = the (Symtab.lookup arities fname)
+            val (argTs, rT) = chop n (binder_types fT)
+                                   |> apsnd (fn Ts => Ts ---> body_type fT) 
+                              
+            val qs = map Free (Name.invent_list [] "a" n ~~ argTs)
+          in
+            HOLogic.mk_eq(list_comb (Free (fname, fT), qs),
+                          Const ("HOL.undefined", rT))
+              |> HOLogic.mk_Trueprop
+              |> fold_rev mk_forall qs
+          end
+    in
+      map mk_eqn fixes
+    end
+
+fun add_catchall fixes spec =
+    let 
+      val catchalls = mk_catchall fixes (mk_arities (map split_def (map (snd o snd) spec)))
+    in
+      spec @ map (pair ("",[]) o pair true) catchalls
+    end
 
 fun burrow_snd f ps = (* ('a list -> 'b list) -> ('c * 'a) list -> ('c * 'b) list *)
     let val (xs, ys) = split_list ps
@@ -107,16 +168,23 @@ fun prep_with_flags prep fixspec eqnss_flags global_flag lthy =
       fun prep_eqn e = the_single (snd (fst (prep [] [e] ctxt')))
                          |> apsnd the_single
 
-      val spec = map prep_eqn eqns
+      val raw_spec = map prep_eqn eqns
                      |> map (apsnd (fn t => fold_rev (mk_forall o Free) (frees_in_term ctxt' t) t)) (* Add quantifiers *)
-                     |> burrow_snd (fn ts => FundefSplit.split_some_equations ctxt' (flags ~~ ts))
+
+      val _ = check_def ctxt' fixes (map snd raw_spec)
+
+      val spec = raw_spec
+                     |> burrow_snd (fn ts => flags ~~ ts)
+                     (*|> (if global_flag then add_catchall fixes else I) *) (* Completion: still disabled *)
+                     |> burrow_snd (FundefSplit.split_some_equations ctxt')
+
     in
       ((fixes, spec), ctxt')
     end
 
 fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
     let
-      val FundefConfig {sequential, default, tailrec, ...} = config
+      val FundefConfig {sequential, ...} = config
 
       val ((fixes, spec), ctxt') = prep_with_flags prep_spec fixspec eqnss_flags sequential lthy
 
@@ -125,7 +193,7 @@ fun gen_add_fundef prep_spec fixspec eqnss_flags config lthy =
       val t_eqns = spec |> map snd |> flat (* flatten external structure *)
 
       val ((goalstate, cont, sort_cont), lthy) =
-          FundefMutual.prepare_fundef_mutual config defname fixes t_eqns default lthy
+          FundefMutual.prepare_fundef_mutual config defname fixes t_eqns lthy
 
       val afterqed = fundef_afterqed config fixes spec defname cont sort_cont
     in

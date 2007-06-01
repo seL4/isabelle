@@ -20,6 +20,40 @@ struct
 open FundefLib
 open FundefCommon
 
+fun check_constr_pattern thy err (Bound _) = ()
+  | check_constr_pattern thy err t =
+    let
+      val (hd, args) = strip_comb t
+    in
+      (((case DatatypePackage.datatype_of_constr thy (fst (dest_Const hd)) of
+           SOME _ => ()
+         | NONE => err t)
+        handle TERM ("dest_Const", _) => err t);
+       map (check_constr_pattern thy err) args; 
+       ())
+    end
+
+
+fun check_pats ctxt geq =
+    let 
+      fun err str = error (cat_lines ["Malformed \"fun\" definition:",
+                                      str,
+                                      ProofContext.string_of_term ctxt geq])
+      val thy = ProofContext.theory_of ctxt
+
+      val (fname, qs, gs, args, rhs) = split_def geq 
+
+      val _ = if not (null gs) then err "Conditional equations not allowed with \"fun\"" else ()
+      val _ = map (check_constr_pattern thy (fn t => err "Not a constructor pattern")) args
+
+                  (* just count occurrences to check linearity *)
+      val _ = if fold (fold_aterms (fn Bound _ => curry (op +) 1 | _ => I)) args 0 < length qs
+              then err "Nonlinear pattern" else ()
+    in
+      ()
+    end
+
+
 fun mk_argvar i T = Free ("_av" ^ (string_of_int i), T)
 fun mk_patvar i T = Free ("_pv" ^ (string_of_int i), T)
 

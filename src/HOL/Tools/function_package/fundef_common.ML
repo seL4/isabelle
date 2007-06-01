@@ -224,6 +224,51 @@ in
   fun fundef_parser default_cfg = config_parser default_cfg -- P.fixes --| P.$$$ "where" -- statements_ow
 end
 
+
+
+(* Common operations on equations *)
+
+fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_all_all b)
+  | open_all_all t = ([], t)
+
+exception MalformedEquation of term
+
+fun split_def geq =
+    let
+      val (qs, imp) = open_all_all geq
+
+      val gs = Logic.strip_imp_prems imp
+      val eq = Logic.strip_imp_concl imp
+
+      val (f_args, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
+          handle TERM _ => raise MalformedEquation geq
+
+      val (head, args) = strip_comb f_args
+
+      val fname = fst (dest_Free head)
+          handle TERM _ => raise MalformedEquation geq
+    in
+      (fname, qs, gs, args, rhs)
+    end
+
+exception ArgumentCount of string
+
+fun mk_arities fqgars =
+    let fun f (fname, _, _, args, _) arities =
+            let val k = length args
+            in
+              case Symtab.lookup arities fname of
+                NONE => Symtab.update (fname, k) arities
+              | SOME i => (if i = k then arities else raise ArgumentCount fname)
+            end
+    in
+      fold f fqgars Symtab.empty
+    end
+
+
+
+
+
 end
 
 (* Common Abbreviations *)

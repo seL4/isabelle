@@ -10,9 +10,8 @@ signature FUNDEF_CORE =
 sig
     val prepare_fundef : FundefCommon.fundef_config
                          -> string (* defname *)
-                         -> (string * typ * mixfix) (* defined symbol *)
+                         -> ((string * typ) * mixfix) list (* defined symbol *)
                          -> ((string * typ) list * term list * term * term) list (* specification *)
-                         -> string (* default_value, not parsed yet *)
                          -> local_theory
 
                          -> (term   (* f *)
@@ -858,9 +857,9 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
     end
 
 
-fun prepare_fundef config defname (fname, fT, mixfix) abstract_qglrs default_str lthy =
+fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
     let
-      val FundefConfig {domintros, tailrec, ...} = config 
+      val FundefConfig {domintros, tailrec, default=default_str, ...} = config 
                                                          
       val fvar = Free (fname, fT)
       val domT = domain_type fT
