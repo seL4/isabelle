@@ -544,7 +544,7 @@ possible incompatibilities when working on ML level.
     Numeral.number_of ~> Numeral.number_class.number_of
     FixedPoint.Inf ~> FixedPoint.complete_lattice_class.Inf
 
-* Rudimentary class target mechanims involves constant renames:
+* Rudimentary class target mechanism involves constant renames:
 
     Orderings.min ~> Orderings.ord_class.min
     Orderings.max ~> Orderings.ord_class.max
