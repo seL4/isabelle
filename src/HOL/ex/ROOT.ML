@@ -39,6 +39,7 @@ time_use_thy "Intuitionistic";
 time_use_thy "Classical";
 time_use_thy "CTL";
 time_use_thy "mesontest2";
+time_use_thy "Arith_Examples";
 time_use_thy "PresburgerEx";
 time_use_thy "Reflected_Presburger";
 time_use_thy "BT";
