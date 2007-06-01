@@ -42,9 +42,12 @@ class semigroup_mult = times +
 
 class ab_semigroup_mult = semigroup_mult +
   assumes mult_commute: "a \<^loc>* b = b \<^loc>* a"
+begin
 
-lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::ab_semigroup_mult))"
-  by (rule mk_left_commute [of "op *", OF mult_assoc mult_commute])
+lemma mult_left_commute: "a \<^loc>* (b \<^loc>* c) = b \<^loc>* (a \<^loc>* c)"
+  by (rule mk_left_commute [of "op \<^loc>*", OF mult_assoc mult_commute])
+
+end
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
