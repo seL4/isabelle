@@ -147,6 +147,12 @@ lemma R_O_Id [simp]: "R O Id = R"
 lemma Id_O_R [simp]: "Id O R = R"
   by fast
 
+lemma rel_comp_empty1[simp]: "{} O R = {}"
+  by blast
+
+lemma rel_comp_empty2[simp]: "R O {} = {}"
+  by blast
+
 lemma O_assoc: "(R O S) O T = R O (S O T)"
   by blast
 
