@@ -29,6 +29,7 @@ sig
   val instance_sort_cmd: string * string -> theory -> Proof.state
   val prove_instance_sort: tactic -> class * sort -> theory -> theory
 
+  val INTERPRET_DEF: bool ref
   val class_of_locale: theory -> string -> class option
   val add_const_in_class: string -> (string * term) * Syntax.mixfix
     -> theory -> theory
@@ -369,7 +370,7 @@ val _ = Context.add_setup (Method.add_methods
 
 fun prove_interpretation tac prfx_atts expr insts thy =
   thy
-  |> Locale.interpretation_i I prfx_atts expr (insts, [])
+  |> Locale.interpretation_i I prfx_atts expr insts
   |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
   |> ProofContext.theory_of;
 
@@ -455,6 +456,14 @@ fun class_intro thy locale class sups =
 
 (* classes and instances *)
 
+fun mk_instT class = Symtab.empty
+  |> Symtab.update (AxClass.param_tyvarname, TFree (AxClass.param_tyvarname, [class]));
+
+fun mk_inst class param_names cs =
+  Symtab.empty
+  |> fold2 (fn v => fn (c, ty) => Symtab.update (v, Const
+       (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty))) param_names cs;
+
 local
 
 fun read_param thy raw_t =
@@ -525,12 +534,6 @@ fun gen_class add_locale prep_class prep_param bname
       name_locale
       |> Locale.global_asms_of thy
       |> map (NameSpace.base o fst o fst) (*FIXME - is finally dropped*);
-    fun mk_instT class = Symtab.empty
-      |> Symtab.update (AxClass.param_tyvarname, TFree (AxClass.param_tyvarname, [class]));
-    fun mk_inst class param_names cs =
-      Symtab.empty
-      |> fold2 (fn v => fn (c, ty) => Symtab.update (v, Const
-           (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty))) param_names cs;
     fun note_intro name_axclass class_intro =
       PureThy.note_thmss_qualified "" ((Logic.const_of_class o NameSpace.base) name_axclass)
         [(("intro", []), [([class_intro], [])])]
@@ -549,10 +552,14 @@ fun gen_class add_locale prep_class prep_param bname
         add_class_data ((name_axclass, sups),
           (name_locale, map (fst o fst) params ~~ map fst consts, v,
             class_intro, axiom_names))
+        (*FIXME: class_data should already contain data relevant
+          for interpretation; use this later for class target*)
+        (*FIXME: general export_fixes which may be parametrized
+          with pieces of an emerging class*)
       #> note_intro name_axclass class_intro
       #> prove_interpretation ((ALLGOALS o ProofContext.fact_tac) ax_axioms)
           ((false, Logic.const_of_class bname), []) (Locale.Locale name_locale)
-          (mk_instT name_axclass, mk_inst name_axclass param_names (map snd supconsts @ consts))
+          ((mk_instT name_axclass, mk_inst name_axclass param_names (map snd supconsts @ consts)), [])
       #> pair name_axclass
       )))))
   end;
@@ -596,6 +603,8 @@ end; (*local*)
 
 (** class target **)
 
+val INTERPRET_DEF = ref false;
+
 fun export_fixes thy class =
   let
     val v = (#v o the_class_data thy) class;
@@ -623,6 +632,17 @@ fun add_const_in_class class ((c, rhs), syn) thy =
     val ty' = Term.fastype_of rhs';
     val def = (c, Logic.mk_equals (Const (mk_name [prfx] c, ty'), rhs'));
     val (syn', _) = fork_mixfix true NONE syn;
+    fun interpret def =
+      let
+        val def' = symmetric def
+        val tac = (ALLGOALS o ProofContext.fact_tac) [def'];
+        val name_locale = (#locale o the_class_data thy) class;
+        val def_eq = (Logic.dest_equals o Thm.prop_of) def';
+        val (params, consts) = split_list (param_map thy [class]);
+      in
+        prove_interpretation tac ((false, prfx), []) (Locale.Locale name_locale)
+          ((mk_instT class, mk_inst class params consts), [def_eq])
+      end;
   in
     thy
     |> Sign.hide_consts_i true [abbr']
@@ -631,7 +651,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
     |> Sign.parent_path
     |> Sign.sticky_prefix prfx
     |> PureThy.add_defs_i false [(def, [])]
-    |> snd
+    |-> (fn [def] => ! INTERPRET_DEF ? interpret def)
     |> Sign.restore_naming thy
   end;
 
