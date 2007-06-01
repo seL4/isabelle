@@ -26,7 +26,9 @@ text {*
   which {\tt fast_arith_tac} currently does not do.)
 *}
 
+(*
 ML {* set trace_arith; *}
+*)
 
 section {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
            @{term HOL.minus}, @{term nat}, @{term Divides.mod},
@@ -100,8 +102,6 @@ oops
 lemma "(i::nat) div 0 = 0"
 oops
 
-ML {* (#splits (ArithTheoryData.get (the_context ()))); *}
-
 lemma "(i::nat) mod (number_of (1::int)) = 0"
 oops
 
@@ -113,7 +113,7 @@ lemma "x < Suc y == x <= y"
 lemma "((x::nat) == z ==> x ~= y) ==> x ~= y | z ~= y"
   by (tactic {* simple_arith_tac 1 *})
 
-section {* Other Examples *}
+section {* Various Other Examples *}
 
 lemma "[| (x::nat) < y; y < z |] ==> x < z"
   by (tactic {* fast_arith_tac 1 *})
@@ -136,7 +136,7 @@ lemma "(x::nat) ~= 0 ==> 0 < x"
 lemma "[| (x::nat) ~= y; x <= y |] ==> x < y"
   by (tactic {* fast_arith_tac 1 *})
 
-lemma "(x::nat) < y \<longrightarrow> P (x - y) \<longrightarrow> P 0"
+lemma "[| (x::nat) < y; P (x - y) |] ==> P 0"
   by (tactic {* simple_arith_tac 1 *})
 
 lemma "(x - y) - (x::nat) = (x - x) - y"
@@ -158,6 +158,8 @@ lemma "[| (i::int) ~= j; (a::nat) ~= b; a < 2; b < 2 |] ==>
   a + b <= nat (max (abs i) (abs j))"
   by (tactic {* fast_arith_tac 1 *})
 
+(*
 ML {* reset trace_arith; *}
+*)
 
 end
