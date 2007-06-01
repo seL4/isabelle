@@ -136,6 +136,19 @@ next
   qed
 qed
 
+lemma wfE_min: 
+  assumes p:"wf R" "x \<in> Q"
+  obtains z where "z \<in> Q" "\<And>y. (y, z) \<in> R \<Longrightarrow> y \<notin> Q"
+  using p
+  unfolding wf_eq_minimal
+  by blast
+
+lemma wfI_min:
+  "(\<And>x Q. x \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q)
+  \<Longrightarrow> wf R"
+  unfolding wf_eq_minimal
+  by blast
+
 lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
 
 text{*Well-foundedness of subsets*}
@@ -241,6 +254,60 @@ apply (case_tac "EX a:A. EX b:A. (b,a) : r")
 apply (erule_tac x="{a. a:A & (EX b:A. (b,a) : r) }" in allE)+
 apply (blast elim!: allE)  
 done
+
+lemma wf_union_merge: 
+  "wf (R \<union> S) = wf (R O R \<union> R O S \<union> S)" (is "wf ?A = wf ?B")
+proof
+  assume "wf ?A"
+  with wf_trancl have wfT: "wf (?A^+)" .
+  moreover have "?B \<subseteq> ?A^+"
+    by  (subst trancl_unfold, subst trancl_unfold) blast
+  ultimately show "wf ?B" by (rule wf_subset)
+next
+  assume "wf ?B"
+
+  show "wf ?A"
+  proof (rule wfI_min)
+    fix Q :: "'a set" and x 
+    assume "x \<in> Q"
+
+    with `wf ?B`
+    obtain z where "z \<in> Q" and "\<And>y. (y, z) \<in> ?B \<Longrightarrow> y \<notin> Q" 
+      by (erule wfE_min)
+    hence A1: "\<And>y. (y, z) \<in> R O R \<Longrightarrow> y \<notin> Q"
+      and A2: "\<And>y. (y, z) \<in> R O S \<Longrightarrow> y \<notin> Q"
+      and A3: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> Q"
+      by auto
+    
+    show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> ?A \<longrightarrow> y \<notin> Q"
+    proof (cases "\<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q")
+      case True
+      with `z \<in> Q` A3 show ?thesis by blast
+    next
+      case False 
+      then obtain z' where "z'\<in>Q" "(z', z) \<in> R" by blast
+
+      have "\<forall>y. (y, z') \<in> ?A \<longrightarrow> y \<notin> Q"
+      proof (intro allI impI)
+        fix y assume "(y, z') \<in> ?A"
+        thus "y \<notin> Q"
+        proof
+          assume "(y, z') \<in> R" 
+          hence "(y, z) \<in> R O R" using `(z', z) \<in> R` ..
+          with A1 show "y \<notin> Q" .
+        next
+          assume "(y, z') \<in> S" 
+          hence "(y, z) \<in> R O S" using  `(z', z) \<in> R` ..
+          with A2 show "y \<notin> Q" .
+        qed
+      qed
+      thus ?thesis ..
+    qed
+  qed
+qed
+
+lemma wf_comp_self: "wf R = wf (R O R)" (* special case *)
+  by (fact wf_union_merge[where S = "{}", simplified])
 
 subsubsection {*acyclic*}
 
