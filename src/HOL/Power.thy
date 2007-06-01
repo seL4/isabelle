@@ -18,37 +18,29 @@ class recpower = monoid_mult + power +
   assumes power_Suc:      "a \<^loc>^ Suc n = a \<^loc>* (a \<^loc>^ n)"
 
 lemma power_0_Suc [simp]: "(0::'a::{recpower,semiring_0}) ^ (Suc n) = 0"
-by (simp add: power_Suc)
+  by (simp add: power_Suc)
 
 text{*It looks plausible as a simprule, but its effect can be strange.*}
 lemma power_0_left: "0^n = (if n=0 then 1 else (0::'a::{recpower,semiring_0}))"
-by (induct "n", auto)
+  by (induct n) simp_all
 
 lemma power_one [simp]: "1^n = (1::'a::recpower)"
-apply (induct "n")
-apply (auto simp add: power_Suc)
-done
+  by (induct n) (simp_all add: power_Suc)
 
 lemma power_one_right [simp]: "(a::'a::recpower) ^ 1 = a"
-by (simp add: power_Suc)
+  by (simp add: power_Suc)
 
 lemma power_commutes: "(a::'a::recpower) ^ n * a = a * a ^ n"
-by (induct "n") (simp_all add:power_Suc mult_assoc)
+  by (induct n) (simp_all add: power_Suc mult_assoc)
 
 lemma power_add: "(a::'a::recpower) ^ (m+n) = (a^m) * (a^n)"
-apply (induct "m")
-apply (simp_all add: power_Suc mult_ac)
-done
+  by (induct m) (simp_all add: power_Suc mult_ac)
 
 lemma power_mult: "(a::'a::recpower) ^ (m*n) = (a^m) ^ n"
-apply (induct "n") 
-apply (simp_all add: power_Suc power_add)
-done
+  by (induct n) (simp_all add: power_Suc power_add)
 
 lemma power_mult_distrib: "((a::'a::{recpower,comm_monoid_mult}) * b) ^ n = (a^n) * (b^n)"
-apply (induct "n")
-apply (auto simp add: power_Suc mult_ac)
-done
+  by (induct n) (simp_all add: power_Suc mult_ac)
 
 lemma zero_less_power:
      "0 < (a::'a::{ordered_semidom,recpower}) ==> 0 < a^n"
