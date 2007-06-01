@@ -61,14 +61,15 @@ time_use_thy "Tarski";
 time_use_thy "SVC_Oracle";
 if_svc_enabled time_use_thy "svc_test";
 
-(* requires zChaff with proof generation to be installed: *)
+(* requires a proof-generating SAT solver (zChaff or MiniSAT) to be *)
+(* installed:                                                       *)
 try time_use_thy "SAT_Examples";
 
-(* requires zChaff (or some other reasonably fast SAT solver) to be installed: *)
+(* requires zChaff (or some other reasonably fast SAT solver) to be *)
+(* installed:                                                       *)
 if getenv "ZCHAFF_HOME" <> "" then
   time_use_thy "Sudoku"
-else
-  ();
+else ();
 
 time_use_thy "Refute_Examples";
 time_use_thy "Quickcheck_Examples";
