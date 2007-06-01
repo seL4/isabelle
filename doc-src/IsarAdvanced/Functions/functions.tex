@@ -62,8 +62,8 @@
 \title{Defining Recursive Functions in Isabelle/HOL}
 \author{Alexander Krauss}
 
-
 \isabellestyle{tt}
+\renewcommand{\isastyletxt}{\isastyletext}% use same formatting for txt and text
 
 \begin{document}
 
@@ -72,10 +72,9 @@
 \begin{abstract}
   This tutorial describes the use of the new \emph{function} package,
 	which provides general recursive function definitions for Isabelle/HOL.
-	
-
-%  starting with very simple examples and the proceeding to the more
-%  intricate ones.
+	We start with very simple examples and then gradually move on to more
+	advanced topics such as manual termination proofs, nested recursion,
+	partiality and congruence rules.
 \end{abstract}
 
 %\thispagestyle{empty}\clearpage
@@ -85,6 +84,7 @@
 
 \input{intro.tex}
 \input{Thy/document/Functions.tex}
+\input{conclusion.tex}
 
 \begingroup
 %\tocentry{\bibname}

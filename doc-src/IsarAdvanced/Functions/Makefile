@@ -13,7 +13,7 @@ include ../Makefile.in
 
 NAME = functions
 
-FILES = $(NAME).tex Thy/document/Functions.tex \
+FILES = $(NAME).tex Thy/document/Functions.tex intro.tex conclusion.tex \
   style.sty ../../iman.sty ../../extra.sty ../../isar.sty \
   ../../manual.bib ../../proof.sty
 

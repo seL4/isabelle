@@ -20,14 +20,12 @@
 %
 \endisadelimtheory
 %
-\isamarkupsection{Function Definition for Dummies%
+\isamarkupsection{Function Definitions for Dummies%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-In most cases, defining a recursive function is just as simple as other definitions:
-
-  Like in functional programming, a function definition consists of a%
+In most cases, defining a recursive function is just as simple as other definitions:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
@@ -39,18 +37,21 @@ In most cases, defining a recursive function is just as simple as other definiti
 \begin{isamarkuptext}%
 The syntax is rather self-explanatory: We introduce a function by
   giving its name, its type and a set of defining recursive
-  equations.%
+  equations. Note that the function is not primitive recursive.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The function always terminates, since its argument gets smaller in
-  every recursive call. Termination is an important requirement, since
-  it prevents inconsistencies: From the "definition" \isa{f{\isacharparenleft}n{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}n{\isacharparenright}\ {\isacharplus}\ {\isadigit{1}}} we could prove \isa{{\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}} by subtracting \isa{f{\isacharparenleft}n{\isacharparenright}} on both sides.
+  every recursive call. 
+  Since HOL is a logic of total functions, termination is a
+  fundamental requirement to prevent inconsistencies\footnote{From the
+  \qt{definition} \isa{f{\isacharparenleft}n{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}n{\isacharparenright}\ {\isacharplus}\ {\isadigit{1}}} we could prove 
+  \isa{{\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}} by subtracting \isa{f{\isacharparenleft}n{\isacharparenright}} on both sides.}.
 
-  Isabelle tries to prove termination automatically when a function is
-  defined. We will later look at cases where this fails and see what to
-  do then.%
+  Isabelle tries to prove termination automatically when a definition
+  is made. In \S\ref{termination}, we will look at cases where this
+  fails and see what to do then.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -63,7 +64,7 @@ The function always terminates, since its argument gets smaller in
   Like in functional programming, we can use pattern matching to
   define functions. At the moment we will only consider \emph{constructor
   patterns}, which only consist of datatype constructors and
-  variables.
+  (linear occurrences of) variables.
 
   If patterns overlap, the order of the equations is taken into
   account. The following function inserts a fixed element between any
@@ -76,7 +77,7 @@ The function always terminates, since its argument gets smaller in
 \ \ {\isachardoublequoteopen}sep\ a\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\ a\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
 {\isacharbar}\ {\isachardoublequoteopen}sep\ a\ xs\ \ \ \ \ \ \ {\isacharequal}\ xs{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-Overlapping patterns are interpreted as "increments" to what is
+Overlapping patterns are interpreted as \qt{increments} to what is
   already there: The second equation is only meant for the cases where
   the first one does not match. Consequently, Isabelle replaces it
   internally by the remaining cases, making the patterns disjoint:%
@@ -99,7 +100,7 @@ The equations from function definitions are automatically used in
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}sep\ {\isacharparenleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isacharbrackleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{0}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{0}}{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}sep\ {\isadigit{0}}\ {\isacharbrackleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{0}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{0}}{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -121,70 +122,68 @@ The equations from function definitions are automatically used in
 %
 \begin{isamarkuptext}%
 Isabelle provides customized induction rules for recursive functions.  
-  See \cite[\S3.5.4]{isa-tutorial}.%
+  See \cite[\S3.5.4]{isa-tutorial}. \fixme{Cases?}
+
+
+  With the \cmd{fun} command, you can define about 80\% of the
+  functions that occur in practice. The rest of this tutorial explains
+  the remaining 20\%.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Full form definitions%
+\isamarkupsection{fun vs.\ function%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Up to now, we were using the \cmd{fun} command, which provides a
+The \cmd{fun} command provides a
   convenient shorthand notation for simple function definitions. In
   this mode, Isabelle tries to solve all the necessary proof obligations
-  automatically. If a proof does not go through, the definition is
+  automatically. If a proof fails, the definition is
   rejected. This can either mean that the definition is indeed faulty,
   or that the default proof procedures are just not smart enough (or
   rather: not designed) to handle the definition.
 
-  By expanding the abbreviated \cmd{fun} to the full \cmd{function}
-  command, the proof obligations become visible and can be analyzed or
-  solved manually.
+  By expanding the abbreviation to the more verbose \cmd{function} command, these proof obligations become visible and can be analyzed or
+  solved manually. The expansion from \cmd{fun} to \cmd{function} is as follows:
 
 \end{isamarkuptext}
 
 
-\fbox{\parbox{\textwidth}{
-\noindent\cmd{fun} \isa{f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}\\%
-\cmd{where}\isanewline%
-\ \ {\it equations}\isanewline%
-\ \ \quad\vdots
-}}
-
-\begin{isamarkuptext}
-\vspace*{1em}
-\noindent abbreviates
-\end{isamarkuptext}
-
-\fbox{\parbox{\textwidth}{
-\noindent\cmd{function} \isa{{\isacharparenleft}}\cmd{sequential}\isa{{\isacharparenright}\ f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}\\%
-\cmd{where}\isanewline%
-\ \ {\it equations}\isanewline%
-\ \ \quad\vdots\\%
+\[\left[\;\begin{minipage}{0.25\textwidth}\vspace{6pt}
+\cmd{fun} \isa{f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}\\%
+\cmd{where}\\%
+\hspace*{2ex}{\it equations}\\%
+\hspace*{2ex}\vdots\vspace*{6pt}
+\end{minipage}\right]
+\quad\equiv\quad
+\left[\;\begin{minipage}{0.45\textwidth}\vspace{6pt}
+\cmd{function} \isa{{\isacharparenleft}}\cmd{sequential}\isa{{\isacharparenright}\ f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}\\%
+\cmd{where}\\%
+\hspace*{2ex}{\it equations}\\%
+\hspace*{2ex}\vdots\\%
 \cmd{by} \isa{pat{\isacharunderscore}completeness\ auto}\\%
-\cmd{termination by} \isa{lexicographic{\isacharunderscore}order}
-}}
+\cmd{termination by} \isa{lexicographic{\isacharunderscore}order}\vspace{6pt}
+\end{minipage}
+\right]\]
 
 \begin{isamarkuptext}
   \vspace*{1em}
-  \noindent Some declarations and proofs have now become explicit:
+  \noindent Some details have now become explicit:
 
   \begin{enumerate}
   \item The \cmd{sequential} option enables the preprocessing of
   pattern overlaps we already saw. Without this option, the equations
   must already be disjoint and complete. The automatic completion only
-  works with datatype patterns.
+  works with constructor patterns.
 
-  \item A function definition now produces a proof obligation which
-  expresses completeness and compatibility of patterns (We talk about
+  \item A function definition produces a proof obligation which
+  expresses completeness and compatibility of patterns (we talk about
   this later). The combination of the methods \isa{pat{\isacharunderscore}completeness} and
   \isa{auto} is used to solve this proof obligation.
 
   \item A termination proof follows the definition, started by the
-  \cmd{termination} command, which sets up the goal. The \isa{lexicographic{\isacharunderscore}order} method can prove termination of a certain
-  class of functions by searching for a suitable lexicographic
-  combination of size measures.
+  \cmd{termination} command. This will be explained in \S\ref{termination}.
  \end{enumerate}
   Whenever a \cmd{fun} command fails, it is usually a good idea to
   expand the syntax to the more verbose \cmd{function} form, to see
@@ -192,7 +191,20 @@ Up to now, we were using the \cmd{fun} command, which provides a
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Proving termination%
+\isamarkupsection{Termination%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\label{termination}
+  The \isa{lexicographic{\isacharunderscore}order} method can prove termination of a
+  certain class of functions by searching for a suitable lexicographic
+  combination of size measures. Of course, not all functions have such
+  a simple termination argument.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{The {\tt relation} method%
 }
 \isamarkuptrue%
 %
@@ -223,8 +235,9 @@ Consider the following function, which sums up natural numbers up to
 \begin{isamarkuptext}%
 \noindent The \isa{lexicographic{\isacharunderscore}order} method fails on this example, because none of the
   arguments decreases in the recursive call.
+  % FIXME: simps and induct only appear after "termination"
 
-  A more general method for termination proofs is to supply a wellfounded
+  The easiest way of doing termination proofs is to supply a wellfounded
   relation on the argument type, and to show that the argument
   decreases in every recursive call. 
 
@@ -245,18 +258,11 @@ Consider the following function, which sums up natural numbers up to
 \endisadelimproof
 %
 \isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\ auto%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\begin{isamarkuptxt}%
 The \cmd{termination} command sets up the termination goal for the
-  specified function \isa{sum}. If the function name is omitted it
+  specified function \isa{sum}. If the function name is omitted, it
   implicitly refers to the last function definition.
 
   The \isa{relation} method takes a relation of
@@ -265,17 +271,36 @@ The \cmd{termination} command sets up the termination goal for the
   these are packed together into a tuple, as it happened in the above
   example.
 
-  The predefined function \isa{measure{\isasymColon}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set} is a very common way of
-  specifying termination relations in terms of a mapping into the
-  natural numbers.
+  The predefined function \isa{measure{\isasymColon}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set} constructs a
+  wellfounded relation from a mapping into the natural numbers (a
+  \emph{measure function}). 
 
   After the invocation of \isa{relation}, we must prove that (a)
   the relation we supplied is wellfounded, and (b) that the arguments
   of recursive calls indeed decrease with respect to the
-  relation. These goals are all solved by the subsequent call to
-  \isa{auto}.
+  relation:
 
-  Let us complicate the function a little, by adding some more
+  \begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ wf\ {\isacharparenleft}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}\ N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}{\isacharparenright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}i\ N{\isachardot}\ {\isasymnot}\ N\ {\isacharless}\ i\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isacharparenleft}Suc\ i{\isacharcomma}\ N{\isacharparenright}{\isacharcomma}\ i{\isacharcomma}\ N{\isacharparenright}\ {\isasymin}\ measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}\ N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}%
+\end{isabelle}
+
+  These goals are all solved by \isa{auto}:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Let us complicate the function a little, by adding some more
   recursive calls:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -327,68 +352,60 @@ When \isa{i} has reached \isa{N}, it starts at zero again
 %
 \endisadelimproof
 %
-\isamarkupsubsection{Manual Termination Proofs%
+\isamarkupsubsection{How \isa{lexicographic{\isacharunderscore}order} works%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \isa{relation} method is often useful, but not
-  necessary. Since termination proofs are just normal Isabelle proofs,
-  they can also be carried out manually:%
+To see how the automatic termination proofs work, let's look at an
+  example where it fails\footnote{For a detailed discussion of the
+  termination prover, see \cite{bulwahnKN07}}:
+
+\end{isamarkuptext}  
+\cmd{fun} \isa{fails\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequote}}\\%
+\cmd{where}\\%
+\hspace*{2ex}\isa{{\isachardoublequote}fails\ a\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ a{\isachardoublequote}}\\%
+|\hspace*{1.5ex}\isa{{\isachardoublequote}fails\ a\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ fails\ {\isacharparenleft}x\ {\isacharplus}\ a{\isacharparenright}\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}{\isachardoublequote}}\\
+\begin{isamarkuptext}
+
+\noindent Isabelle responds with the following error:
+
+\begin{isabelle}
+*** Could not find lexicographic termination order:\newline
+*** \ \ \ \ 1\ \ 2  \newline
+*** a:  N   <= \newline
+*** Calls:\newline
+*** a) \isa{{\isacharparenleft}a{\isacharcomma}\ x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharminus}{\isacharminus}{\isachargreater}{\isachargreater}\ {\isacharparenleft}x\ {\isacharplus}\ a{\isacharcomma}\ x\ {\isacharhash}\ xs{\isacharparenright}}\newline
+*** Measures:\newline
+*** 1) \isa{{\isasymlambda}x{\isachardot}\ size\ {\isacharparenleft}fst\ x{\isacharparenright}}\newline
+*** 2) \isa{{\isasymlambda}x{\isachardot}\ size\ {\isacharparenleft}snd\ x{\isacharparenright}}\newline
+*** Unfinished subgoals:\newline
+*** \isa{{\isasymAnd}a\ x\ xs{\isachardot}}\newline
+*** \quad \isa{{\isacharparenleft}x{\isachardot}\ size\ {\isacharparenleft}fst\ x{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x\ {\isacharplus}\ a{\isacharcomma}\ x\ {\isacharhash}\ xs{\isacharparenright}}\newline
+***  \quad \isa{{\isasymle}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ size\ {\isacharparenleft}fst\ x{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}a{\isacharcomma}\ x\ {\isacharhash}\ xs{\isacharparenright}}\newline
+***  \isa{{\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isacharequal}\ {\isadigit{0}}}\newline
+*** At command "fun".\newline
+\end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{function}\isamarkupfalse%
-\ id\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}id\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}id\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ Suc\ {\isacharparenleft}id\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isacommand{termination}\isamarkupfalse%
-\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
-\ \isanewline
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}wf\ less{\isacharunderscore}than{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-\isanewline
-\isacommand{next}\isamarkupfalse%
-\isanewline
-\ \ \isacommand{fix}\isamarkupfalse%
-\ n\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}n{\isacharcomma}\ Suc\ n{\isacharparenright}\ {\isasymin}\ less{\isacharunderscore}than{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
-\isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
 %
 \begin{isamarkuptext}%
-Of course this is just a trivial example, but manual proofs can
-  sometimes be the only choice if faced with very hard termination problems.%
+The the key to this error message is the matrix at the top. The rows
+  of that matrix correspond to the different recursive calls (In our
+  case, there is just one). The columns are the function's arguments 
+  (expressed through different measure functions, which map the
+  argument tuple to a natural number). 
+
+  The contents of the matrix summarize what is known about argument
+  descents: The second argument has a weak descent (\isa{{\isacharless}{\isacharequal}}) at the
+  recursive call, and for the first argument nothing could be proved,
+  which is expressed by \isa{N}. In general, there are the values
+  \isa{{\isacharless}}, \isa{{\isacharless}{\isacharequal}} and \isa{N}.
+
+  For the failed proof attempts, the unfinished subgoals are also
+  printed. Looking at these will often point us to a missing lemma.
+
+%  As a more real example, here is quicksort:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -398,7 +415,7 @@ Of course this is just a trivial example, but manual proofs can
 %
 \begin{isamarkuptext}%
 If two or more functions call one another mutually, they have to be defined
-  in one step. The simplest example are probably \isa{even} and \isa{odd}:%
+  in one step. Here are \isa{even} and \isa{odd}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
@@ -425,10 +442,10 @@ If two or more functions call one another mutually, they have to be defined
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-To solve the problem of mutual dependencies, Isabelle internally
+To eliminate the mutual dependencies, Isabelle internally
   creates a single function operating on the sum
-  type. Then the original functions are defined as
-  projections. Consequently, termination has to be proved
+  type \isa{nat\ {\isacharplus}\ nat}. Then, \isa{even} and \isa{odd} are
+  defined as projections. Consequently, termination has to be proved
   simultaneously for both functions, by specifying a measure on the
   sum type:%
 \end{isamarkuptext}%
@@ -442,8 +459,7 @@ To solve the problem of mutual dependencies, Isabelle internally
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ case\ x\ of\ Inl\ n\ {\isasymRightarrow}\ n\ {\isacharbar}\ Inr\ n\ {\isasymRightarrow}\ n{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\ \isanewline
-\ \ \ auto%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ case\ x\ of\ Inl\ n\ {\isasymRightarrow}\ n\ {\isacharbar}\ Inr\ n\ {\isasymRightarrow}\ n{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -451,20 +467,26 @@ To solve the problem of mutual dependencies, Isabelle internally
 %
 \endisadelimproof
 %
+\begin{isamarkuptext}%
+We could also have used \isa{lexicographic{\isacharunderscore}order}, which
+  supports mutual recursive termination proofs to a certain extent.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Induction for mutual recursion%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 When functions are mutually recursive, proving properties about them
-  generally requires simultaneous induction. The induction rules
-  generated from the definitions reflect this.
+  generally requires simultaneous induction. The induction rule \isa{even{\isacharunderscore}odd{\isachardot}induct}
+  generated from the above definition reflects this.
 
   Let us prove something about \isa{even} and \isa{odd}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ \isanewline
+\ even{\isacharunderscore}odd{\isacharunderscore}mod{\isadigit{2}}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}even\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ {\isachardoublequoteopen}odd\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}%
 \isadelimproof
@@ -502,11 +524,14 @@ We get four subgoals, which correspond to the clauses in the
 \end{isabelle} 
 
   \noindent These can be handeled by the descision procedure for
-  presburger arithmethic.%
+  arithmethic.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ presburger\isanewline
+\ presburger\ %
+\isamarkupcmt{\fixme{arith}%
+}
+\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ presburger\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -519,15 +544,14 @@ We get four subgoals, which correspond to the clauses in the
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-Even if we were just interested in one of the statements proved by
-  simultaneous induction, the other ones may be necessary to
-  strengthen the induction hypothesis. If we had left out the statement
-  about \isa{odd} (by substituting it with \isa{True}, our
-  proof would have failed:%
+In proofs like this, the simultaneous induction is really essential:
+  Even if we are just interested in one of the results, the other
+  one is necessary to strengthen the induction hypothesis. If we leave
+  out the statement about \isa{odd} (by substituting it with \isa{True}), the same proof fails:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ \isanewline
+\ failed{\isacharunderscore}attempt{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}even\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ {\isachardoublequoteopen}True{\isachardoublequoteclose}\isanewline
 %
@@ -540,7 +564,7 @@ Even if we were just interested in one of the statements proved by
 \ {\isacharparenleft}induct\ n\ rule{\isacharcolon}\ even{\isacharunderscore}odd{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent Now the third subgoal is a dead end, since we have no
-  useful induction hypothesis:
+  useful induction hypothesis available:
 
   \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ even\ {\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\isanewline
@@ -559,11 +583,11 @@ Even if we were just interested in one of the statements proved by
 %
 \endisadelimproof
 %
-\isamarkupsection{More general patterns%
+\isamarkupsection{General pattern matching%
 }
 \isamarkuptrue%
 %
-\isamarkupsubsection{Avoiding pattern splitting%
+\isamarkupsubsection{Avoiding automatic pattern splitting%
 }
 \isamarkuptrue%
 %
@@ -573,9 +597,9 @@ Up to now, we used pattern matching only on datatypes, and the
   they were made disjoint automatically like in the definition of
   \isa{sep} in \S\ref{patmatch}.
 
-  This splitting can significantly increase the number of equations
-  involved, and is not always necessary. The following simple example
-  shows the problem:
+  This automatic splitting can significantly increase the number of
+  equations involved, and this is not always desirable. The following
+  example shows the problem:
   
   Suppose we are modelling incomplete knowledge about the world by a
   three-valued datatype, which has values \isa{T}, \isa{F}
@@ -585,7 +609,7 @@ Up to now, we used pattern matching only on datatypes, and the
 \isacommand{datatype}\isamarkupfalse%
 \ P{\isadigit{3}}\ {\isacharequal}\ T\ {\isacharbar}\ F\ {\isacharbar}\ X%
 \begin{isamarkuptext}%
-Then the conjunction of such values can be defined as follows:%
+\noindent Then the conjunction of such values can be defined as follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
@@ -598,9 +622,9 @@ Then the conjunction of such values can be defined as follows:%
 {\isacharbar}\ {\isachardoublequoteopen}And\ X\ X\ {\isacharequal}\ X{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 This definition is useful, because the equations can directly be used
-  as rules to simplify expressions. But the patterns overlap, e.g.~the
-  expression \isa{And\ T\ T} is matched by the first two
-  equations. By default, Isabelle makes the patterns disjoint by
+  as simplifcation rules rules. But the patterns overlap: For example,
+  the expression \isa{And\ T\ T} is matched by both the first and
+  the second equation. By default, Isabelle makes the patterns disjoint by
   splitting them up, producing instances:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -619,14 +643,14 @@ And\ X\ X\ {\isacharequal}\ X}
   \noindent There are several problems with this:
 
   \begin{enumerate}
-  \item When datatypes have many constructors, there can be an
+  \item If the datatype has many constructors, there can be an
   explosion of equations. For \isa{And}, we get seven instead of
   five equations, which can be tolerated, but this is just a small
   example.
 
-  \item Since splitting makes the equations "less general", they
+  \item Since splitting makes the equations \qt{less general}, they
   do not always match in rewriting. While the term \isa{And\ x\ F}
-  can be simplified to \isa{F} by the original specification, a
+  can be simplified to \isa{F} with the original equations, a
   (manual) case split on \isa{x} is now necessary.
 
   \item The splitting also concerns the induction rule \isa{And{\isachardot}induct}. Instead of five premises it now has seven, which
@@ -636,12 +660,10 @@ And\ X\ X\ {\isacharequal}\ X}
   back which we put in.
   \end{enumerate}
 
-  On the other hand, a definition needs to be consistent and defining
-  both \isa{f\ x\ {\isacharequal}\ True} and \isa{f\ x\ {\isacharequal}\ False} is a bad
-  idea. So if we don't want Isabelle to mangle our definitions, we
-  will have to prove that this is not necessary. By using the full
-  definition form without the \cmd{sequential} option, we get this
-  behaviour:%
+  If we do not want the automatic splitting, we can switch it off by
+  leaving out the \cmd{sequential} option. However, we will have to
+  prove that our pattern matching is consistent\footnote{This prevents
+  us from defining something like \isa{f\ x\ {\isacharequal}\ True} and \isa{f\ x\ {\isacharequal}\ False} simultaneously.}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
@@ -659,7 +681,7 @@ And\ X\ X\ {\isacharequal}\ X}
 \isatagproof
 %
 \begin{isamarkuptxt}%
-Now it is also time to look at the subgoals generated by a
+\noindent Now let's look at the proof obligations generated by a
   function definition. In this case, they are:
 
   \begin{isabelle}%
@@ -675,21 +697,22 @@ Now it is also time to look at the subgoals generated by a
 \ {\isadigit{8}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}pa{\isacharcomma}\ F{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ F\isanewline
 \ {\isadigit{9}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ pa{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ F\isanewline
 \ {\isadigit{1}}{\isadigit{0}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ X%
-\end{isabelle} 
+\end{isabelle}\vspace{-1.2em}\hspace{3cm}\vdots\vspace{1.2em}
 
   The first subgoal expresses the completeness of the patterns. It has
   the form of an elimination rule and states that every \isa{x} of
-  the function's input type must match one of the patterns. It could
+  the function's input type must match at least one of the patterns\footnote{Completeness could
   be equivalently stated as a disjunction of existential statements: 
-\isa{{\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ F{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ x\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}} If the patterns just involve
-  datatypes, we can solve it with the \isa{pat{\isacharunderscore}completeness} method:%
+\isa{{\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ F{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ x\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}}.}. If the patterns just involve
+  datatypes, we can solve it with the \isa{pat{\isacharunderscore}completeness}
+  method:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
 \ pat{\isacharunderscore}completeness%
 \begin{isamarkuptxt}%
 The remaining subgoals express \emph{pattern compatibility}. We do
-  allow that a value is matched by more than one patterns, but in this
+  allow that an input value matches multiple patterns, but in this
   case, the result (i.e.~the right hand sides of the equations) must
   also be equal. For each pair of two patterns, there is one such
   subgoal. Usually this needs injectivity of the constructors, which
@@ -710,9 +733,320 @@ The remaining subgoals express \emph{pattern compatibility}. We do
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+Most of Isabelle's basic types take the form of inductive data types
+  with constructors. However, this is not true for all of them. The
+  integers, for instance, are defined using the usual algebraic
+  quotient construction, thus they are not an \qt{official} datatype.
+
+  Of course, we might want to do pattern matching there, too. So%
 \end{isamarkuptext}%
 \isamarkuptrue%
+\isacommand{function}\isamarkupfalse%
+\ Abs\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}Abs\ {\isacharparenleft}int\ n{\isacharparenright}\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}Abs\ {\isacharparenleft}{\isacharminus}\ int\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}erule\ int{\isacharunderscore}cases{\isacharparenright}\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{termination}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}{\isacharparenright}\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+This kind of matching is again justified by the proof of pattern
+  completeness and compatibility. Here, the existing lemma \isa{int{\isacharunderscore}cases} is used:
+
+  \begin{center}\isa{{\isasymlbrakk}{\isasymAnd}n{\isachardot}\ {\isacharquery}z\ {\isacharequal}\ int\ n\ {\isasymLongrightarrow}\ {\isacharquery}P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isacharquery}z\ {\isacharequal}\ {\isacharminus}\ int\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharquery}P{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P}\hfill(\isa{int{\isacharunderscore}cases})\end{center}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+One well-known instance of non-constructor patterns are the
+  so-called \emph{$n+k$-patterns}, which are a little controversial in
+  the functional programming world. Here is the initial fibonacci
+  example with $n+k$-patterns:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{function}\isamarkupfalse%
+\ fib{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ fib{\isadigit{2}}\ n\ {\isacharplus}\ fib{\isadigit{2}}\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+The proof obligation for pattern completeness states that every natural number is
+  either \isa{{\isadigit{0}}}, \isa{{\isadigit{1}}} or \isa{n\ {\isacharplus}\ {\isadigit{2}}}:
+
+  \begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ {\isasymlbrakk}x\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ x\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ x\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\end{isabelle}
+
+  This is an arithmetic triviality, but unfortunately the
+  \isa{arith} method cannot handle this specific form of an
+  elimination rule. We have to do a case split on \isa{P} first,
+  which can be conveniently done using the \isa{classical} rule. Pattern compatibility and termination are automatic as usual.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ classical{\isacharcomma}\ simp{\isacharcomma}\ arith{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isacommand{termination}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ lexicographic{\isacharunderscore}order%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+We can stretch the notion of pattern matching even more. The
+  following function is not a sensible functional program, but a
+  perfectly valid mathematical definition:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{function}\isamarkupfalse%
+\ ev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}ev\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ n{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}ev\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ n\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ classical{\isacharcomma}\ simp{\isacharparenright}\ arith{\isacharplus}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{termination}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}{\isacharparenright}\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+This general notion of pattern matching gives you the full freedom
+  of mathematical specifications. However, as always, freedom should
+  be used with care:
+
+  If we leave the area of constructor
+  patterns, we have effectively departed from the world of functional
+  programming. This means that it is no longer possible to use the
+  code generator, and expect it to generate ML code for our
+  definitions. Also, such a specification might not work very well together with
+  simplification. Your mileage may vary.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Conditional equations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The function package also supports conditional equations, which are
+  similar to guards in a language like Haskell. Here is Euclid's
+  algorithm written with conditional patterns\footnote{Note that the
+  patterns are also overlapping in the base case}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{function}\isamarkupfalse%
+\ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}gcd\ x\ {\isadigit{0}}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}gcd\ {\isadigit{0}}\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}x\ {\isacharless}\ y\ {\isasymLongrightarrow}\ gcd\ {\isacharparenleft}Suc\ x{\isacharparenright}\ {\isacharparenleft}Suc\ y{\isacharparenright}\ {\isacharequal}\ gcd\ {\isacharparenleft}Suc\ x{\isacharparenright}\ {\isacharparenleft}y\ {\isacharminus}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}{\isasymnot}\ x\ {\isacharless}\ y\ {\isasymLongrightarrow}\ gcd\ {\isacharparenleft}Suc\ x{\isacharparenright}\ {\isacharparenleft}Suc\ y{\isacharparenright}\ {\isacharequal}\ gcd\ {\isacharparenleft}x\ {\isacharminus}\ y{\isacharparenright}\ {\isacharparenleft}Suc\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ classical{\isacharcomma}\ auto{\isacharcomma}\ arith{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{termination}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ lexicographic{\isacharunderscore}order%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+By now, you can probably guess what the proof obligations for the
+  pattern completeness and compatibility look like. 
+
+  Again, functions with conditional patterns are not supported by the
+  code generator.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Pattern matching on strings%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+As strings (as lists of characters) are normal data types, pattern
+  matching on them is possible, but somewhat problematic. Consider the
+  following definition:
+
+\end{isamarkuptext}
+\noindent\cmd{fun} \isa{check\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}string\ {\isasymRightarrow}\ bool{\isachardoublequote}}\\%
+\cmd{where}\\%
+\hspace*{2ex}\isa{{\isachardoublequote}check\ {\isacharparenleft}{\isacharprime}{\isacharprime}good{\isacharprime}{\isacharprime}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequote}}\\%
+\isa{{\isacharbar}\ {\isachardoublequote}check\ s\ {\isacharequal}\ False{\isachardoublequote}}
+\begin{isamarkuptext}
+
+  An invocation of the above \cmd{fun} command does not
+  terminate. What is the problem? Strings are lists of characters, and
+  characters are a data type with a lot of constructors. Splitting the
+  catch-all pattern thus leads to an explosion of cases, which cannot
+  be handled by Isabelle.
+
+  There are two things we can do here. Either we write an explicit
+  \isa{if} on the right hand side, or we can use conditional patterns:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{function}\isamarkupfalse%
+\ check\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}string\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}check\ {\isacharparenleft}{\isacharprime}{\isacharprime}good{\isacharprime}{\isacharprime}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}s\ {\isasymnoteq}\ {\isacharprime}{\isacharprime}good{\isacharprime}{\isacharprime}\ {\isasymLongrightarrow}\ check\ s\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 %
 \isamarkupsection{Partiality%
 }
@@ -720,16 +1054,16 @@ FIXME%
 %
 \begin{isamarkuptext}%
 In HOL, all functions are total. A function \isa{f} applied to
-  \isa{x} always has a value \isa{f\ x}, and there is no notion
+  \isa{x} always has the value \isa{f\ x}, and there is no notion
   of undefinedness. 
   
-  This property of HOL is the reason why we have to do termination
-  proofs when defining functions: The termination proof justifies the
-  definition of the function by wellfounded recursion.
+  This is why we have to do termination
+  proofs when defining functions: The proof justifies that the
+  function can be defined by wellfounded recursion.
 
-  However, the \cmd{function} package still supports partiality. Let's
-  look at the following function which searches for a zero in the
-  function f.%
+  However, the \cmd{function} package does support partiality to a
+  certain extent. Let's look at the following function which looks
+  for a zero of a given function f.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
@@ -765,11 +1099,11 @@ Clearly, any attempt of a termination proof must fail. And without
 \begin{isamarkuptext}%
 The trick is that Isabelle has not only defined the function \isa{findzero}, but also
   a predicate \isa{findzero{\isacharunderscore}dom} that characterizes the values where the function
-  terminates: the \emph{domain} of the function. In Isabelle/HOL, a
-  partial function is just a total function with an additional domain
-  predicate. Like with total functions, we get simplification and
-  induction rules, but they are guarded by the domain conditions and
-  called \isa{psimps} and \isa{pinduct}:%
+  terminates: the \emph{domain} of the function. If we treat a
+  partial function just as a total function with an additional domain
+  predicate, we can derive simplification and
+  induction rules as we do for total functions. They are guarded
+  by domain conditions and are called \isa{psimps} and \isa{pinduct}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{thm}\isamarkupfalse%
@@ -793,15 +1127,14 @@ findzero\ {\isacharquery}f\ {\isacharquery}n\ {\isacharequal}\ {\isacharparenlef
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-As already mentioned, HOL does not support true partiality. All we
-  are doing here is using some tricks to make a total function appear
+Remember that all we
+  are doing here is use some tricks to make a total function appear
   as if it was partial. We can still write the term \isa{findzero\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ {\isadigit{1}}{\isacharparenright}\ {\isadigit{0}}} and like any other term of type \isa{nat} it is equal
   to some natural number, although we might not be able to find out
-  which one (we will discuss this further in \S\ref{default}). The
-  function is \emph{underdefined}.
+  which one. The function is \emph{underdefined}.
 
-  But it is enough defined to prove something about it. We can prove
-  that if \isa{findzero\ f\ n}
+  But it is enough defined to prove something interesting about it. We
+  can prove that if \isa{findzero\ f\ n}
   it terminates, it indeed returns a zero of \isa{f}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -828,10 +1161,10 @@ This gives the following subgoals:
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}f\ n{\isachardot}\ }{\isasymLongrightarrow}\ f\ {\isacharparenleft}findzero\ f\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{0}}%
 \end{isabelle}
 
-  The premise in our lemma was used to satisfy the first premise in
-  the induction rule. However, now we can also use \isa{findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}} as an assumption in the induction step. This
+  The hypothesis in our lemma was used to satisfy the first premise in
+  the induction rule. However, we also get \isa{findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}} as a local assumption in the induction step. This
   allows to unfold \isa{findzero\ f\ n} using the \isa{psimps}
-  rule, and the rest is trivial. Since \isa{psimps} rules carry the
+  rule, and the rest is trivial. Since the \isa{psimps} rules carry the
   \isa{{\isacharbrackleft}simp{\isacharbrackright}} attribute by default, we just need a single step:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -857,7 +1190,7 @@ Proofs about partial functions are often not harder than for total
 \isamarkuptrue%
 %
 \begin{figure}
-\begin{center}
+\hrule\vspace{6pt}
 \begin{minipage}{0.8\textwidth}
 \isabellestyle{it}
 \isastyle\isamarkuptrue
@@ -874,10 +1207,8 @@ Proofs about partial functions are often not harder than for total
 \ \ \isacommand{fix}\isamarkupfalse%
 \ f\ n\ \isacommand{assume}\isamarkupfalse%
 \ dom{\isacharcolon}\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ IH{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharsemicolon}\ x\ {\isasymin}\ {\isacharbraceleft}Suc\ n{\isachardot}{\isachardot}{\isacharless}findzero\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharbraceright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ f\ x\ {\isasymnoteq}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ x{\isacharunderscore}range{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}n{\isachardot}{\isachardot}{\isacharless}findzero\ f\ n{\isacharbraceright}{\isachardoublequoteclose}\isanewline
-\ \ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isakeyword{and}\ IH{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharsemicolon}\ x\ {\isasymin}\ {\isacharbraceleft}Suc\ n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharbraceright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ f\ x\ {\isasymnoteq}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isakeyword{and}\ x{\isacharunderscore}range{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ n{\isacharbraceright}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
@@ -912,7 +1243,7 @@ Proofs about partial functions are often not harder than for total
 \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}Suc\ n{\isachardot}{\isachardot}{\isacharless}findzero\ f\ n{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}Suc\ n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ n{\isacharbraceright}{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
 \ dom\ \isakeyword{and}\ {\isacharbackquoteopen}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}Suc\ n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
@@ -935,7 +1266,7 @@ Proofs about partial functions are often not harder than for total
 \endisadelimproof
 %
 \isamarkupfalse\isabellestyle{tt}
-\end{minipage}\end{center}
+\end{minipage}\vspace{6pt}\hrule
 \caption{A proof about a partial function}\label{findzero_isar}
 \end{figure}
 %
@@ -951,17 +1282,16 @@ Now that we have proved some interesting properties about our
 
   Essentially, we need some introduction rules for \isa{findzero{\isacharunderscore}dom}. The function package can prove such domain
   introduction rules automatically. But since they are not used very
-  often (they are almost never needed if the function is total), they
-  are disabled by default for efficiency reasons. So we have to go
+  often (they are almost never needed if the function is total), this
+  functionality is disabled by default for efficiency reasons. So we have to go
   back and ask for them explicitly by passing the \isa{{\isacharparenleft}domintros{\isacharparenright}} option to the function package:
 
+\vspace{1ex}
 \noindent\cmd{function} \isa{{\isacharparenleft}domintros{\isacharparenright}\ findzero\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}nat\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}}\\%
 \cmd{where}\isanewline%
 \ \ \ldots\\
-\cmd{by} \isa{pat{\isacharunderscore}completeness\ auto}\\%
 
-
-  Now the package has proved an introduction rule for \isa{findzero{\isacharunderscore}dom}:%
+  \noindent Now the package has proved an introduction rule for \isa{findzero{\isacharunderscore}dom}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{thm}\isamarkupfalse%
@@ -982,11 +1312,9 @@ Now that we have proved some interesting properties about our
   \isa{inc{\isacharunderscore}induct}, which allows to do induction from a fixed number
   \qt{downwards}:
 
-  \begin{isabelle}%
-{\isasymlbrakk}{\isacharquery}i\ {\isasymle}\ {\isacharquery}j{\isacharsemicolon}\ {\isacharquery}P\ {\isacharquery}j{\isacharsemicolon}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}i\ {\isacharless}\ {\isacharquery}j{\isacharsemicolon}\ {\isacharquery}P\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ i{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isacharquery}i%
-\end{isabelle}
+  \begin{center}\isa{{\isasymlbrakk}{\isacharquery}i\ {\isasymle}\ {\isacharquery}j{\isacharsemicolon}\ {\isacharquery}P\ {\isacharquery}j{\isacharsemicolon}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}i\ {\isacharless}\ {\isacharquery}j{\isacharsemicolon}\ {\isacharquery}P\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ i{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isacharquery}i}\hfill(\isa{inc{\isacharunderscore}induct})\end{center}
 
-  Fig.~\ref{findzero_term} gives a detailed Isar proof of the fact
+  Figure \ref{findzero_term} gives a detailed Isar proof of the fact
   that \isa{findzero} terminates if there is a zero which is greater
   or equal to \isa{n}. First we derive two useful rules which will
   solve the base case and the step case of the induction. The
@@ -996,14 +1324,13 @@ Now that we have proved some interesting properties about our
 \isamarkuptrue%
 %
 \begin{figure}
-\begin{center}
+\hrule\vspace{6pt}
 \begin{minipage}{0.8\textwidth}
 \isabellestyle{it}
 \isastyle\isamarkuptrue
 \isacommand{lemma}\isamarkupfalse%
 \ findzero{\isacharunderscore}termination{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}x\ {\isachargreater}{\isacharequal}\ n{\isachardoublequoteclose}\ \isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}f\ x\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}x\ {\isasymge}\ n{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}f\ x\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{shows}\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
@@ -1025,14 +1352,12 @@ Now that we have proved some interesting properties about our
 \ {\isacharparenleft}rule\ findzero{\isachardot}domintros{\isacharparenright}\ simp\isanewline
 \isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}x\ {\isasymge}\ n{\isacharbackquoteclose}\isanewline
-\ \ \isacommand{show}\isamarkupfalse%
+\ {\isacharbackquoteopen}x\ {\isasymge}\ n{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
 \ {\isacharquery}thesis\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \ {\isacharparenleft}induct\ rule{\isacharcolon}inc{\isacharunderscore}induct{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}rule\ base{\isacharparenright}\isanewline
 \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
@@ -1040,8 +1365,7 @@ Now that we have proved some interesting properties about our
 \ i\ \isacommand{assume}\isamarkupfalse%
 \ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ Suc\ i{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ i{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ i{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}rule\ step{\isacharparenright}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -1055,7 +1379,7 @@ Now that we have proved some interesting properties about our
 \endisadelimproof
 %
 \isamarkupfalse\isabellestyle{tt}
-\end{minipage}\end{center}
+\end{minipage}\vspace{6pt}\hrule
 \caption{Termination proof for \isa{findzero}}\label{findzero_term}
 \end{figure}
 %
@@ -1088,7 +1412,7 @@ Again, the proof given in Fig.~\ref{findzero_term} has a lot of
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-It is simple to combine the partial correctness result with the
+\noindent It is simple to combine the partial correctness result with the
   termination lemma:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1123,9 +1447,9 @@ Sometimes it is useful to know what the definition of the domain
 findzero{\isacharunderscore}dom\ {\isasymequiv}\ acc\ findzero{\isacharunderscore}rel%
 \end{isabelle}
 
-  The domain predicate is the accessible part of a relation \isa{findzero{\isacharunderscore}rel}, which was also created internally by the function
+  The domain predicate is the \emph{accessible part} of a relation \isa{findzero{\isacharunderscore}rel}, which was also created internally by the function
   package. \isa{findzero{\isacharunderscore}rel} is just a normal
-  inductively defined predicate, so we can inspect its definition by
+  inductive predicate, so we can inspect its definition by
   looking at the introduction rules \isa{findzero{\isacharunderscore}rel{\isachardot}intros}.
   In our case there is just a single rule:
 
@@ -1133,16 +1457,16 @@ findzero{\isacharunderscore}dom\ {\isasymequiv}\ acc\ findzero{\isacharunderscor
 {\isacharquery}f\ {\isacharquery}n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ findzero{\isacharunderscore}rel\ {\isacharparenleft}{\isacharquery}f{\isacharcomma}\ Suc\ {\isacharquery}n{\isacharparenright}\ {\isacharparenleft}{\isacharquery}f{\isacharcomma}\ {\isacharquery}n{\isacharparenright}%
 \end{isabelle}
 
-  The relation \isa{findzero{\isacharunderscore}rel}, expressed as a binary predicate,
+  The predicate \isa{findzero{\isacharunderscore}rel}
   describes the \emph{recursion relation} of the function
   definition. The recursion relation is a binary relation on
   the arguments of the function that relates each argument to its
   recursive calls. In general, there is one introduction rule for each
   recursive call.
 
-  The predicate \isa{findzero{\isacharunderscore}dom} is the \emph{accessible part} of
+  The predicate \isa{findzero{\isacharunderscore}dom} is the accessible part of
   that relation. An argument belongs to the accessible part, if it can
-  be reached in a finite number of steps. 
+  be reached in a finite number of steps (cf.~its definition in \isa{Accessible{\isacharunderscore}Part{\isachardot}thy}).
 
   Since the domain predicate is just an abbreviation, you can use
   lemmas for \isa{acc} and \isa{findzero{\isacharunderscore}rel} directly. Some
@@ -1160,16 +1484,11 @@ The domain predicate is our trick that allows us to model partiality
   in a world of total functions. The downside of this is that we have
   to carry it around all the time. The termination proof above allowed
   us to replace the abstract \isa{findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}} by the more
-  concrete \isa{n\ {\isasymle}\ x\ {\isasymand}\ f\ x\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}b{\isacharparenright}}, but the condition is still
-  there and it won't go away soon. 
-
-  In particular, the domain predicate guard the unfolding of our
+  concrete \isa{n\ {\isasymle}\ x\ {\isasymand}\ f\ x\ {\isacharequal}\ {\isadigit{0}}}, but the condition is still
+  there and can only be discharged for special cases.
+  In particular, the domain predicate guards the unfolding of our
   function, since it is there as a condition in the \isa{psimp}
   rules. 
-
-  On the other hand, we must be happy about the domain predicate,
-  since it guarantees that all this is at all possible without losing
-  consistency. 
 
   Now there is an important special case: We can actually get rid
   of the condition in the simplification rules, \emph{if the function
@@ -1177,17 +1496,28 @@ The domain predicate is our trick that allows us to model partiality
   equations there is a total function satisfying them, even if they
   are non-terminating. 
 
+%  A function is tail recursive, if each call to the function is either
+%  equal
+%
+%  So the outer form of the 
+%
+%if it can be written in the following
+%  form:
+%  {term[display] "f x = (if COND x then BASE x else f (LOOP x))"}
+
+
   The function package internally does the right construction and can
   derive the unconditional simp rules, if we ask it to do so. Luckily,
   our \isa{findzero} function is tail-recursive, so we can just go
   back and add another option to the \cmd{function} command:
 
+\vspace{1ex}
 \noindent\cmd{function} \isa{{\isacharparenleft}domintros{\isacharcomma}\ tailrec{\isacharparenright}\ findzero\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}nat\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}}\\%
 \cmd{where}\isanewline%
 \ \ \ldots\\%
 
   
-  Now, we actually get the unconditional simplification rules, even
+  \noindent Now, we actually get unconditional simplification rules, even
   though the function is partial:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1198,14 +1528,22 @@ The domain predicate is our trick that allows us to model partiality
 findzero\ {\isacharquery}f\ {\isacharquery}n\ {\isacharequal}\ {\isacharparenleft}if\ {\isacharquery}f\ {\isacharquery}n\ {\isacharequal}\ {\isadigit{0}}\ then\ {\isacharquery}n\ else\ findzero\ {\isacharquery}f\ {\isacharparenleft}Suc\ {\isacharquery}n{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
 
-  Of course these would make the simplifier loop, so we better remove
+  \noindent Of course these would make the simplifier loop, so we better remove
   them from the simpset:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{declare}\isamarkupfalse%
 \ findzero{\isachardot}simps{\isacharbrackleft}simp\ del{\isacharbrackright}%
 \begin{isamarkuptext}%
-\fixme{Code generation ???}%
+Getting rid of the domain conditions in the simplification rules is
+  not only useful because it simplifies proofs. It is also required in
+  order to use Isabelle's code generator to generate ML code
+  from a function definition.
+  Since the code generator only works with equations, it cannot be
+  used with \isa{psimp} rules. Thus, in order to generate code for
+  partial functions, they must be defined as a tail recursion.
+  Luckily, many functions have a relatively natural tail recursive
+  definition.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1324,18 +1662,18 @@ We formulate this as a partial correctness lemma with the condition
 As a general strategy, one should prove the statements needed for
   termination as a partial property first. Then they can be used to do
   the termination proof. This also works for less trivial
-  examples. Figure \ref{f91} defines the well-known 91-function by
-  McCarthy \cite{?} and proves its termination.%
+  examples. Figure \ref{f91} defines the 91-function, a well-known
+  challenge problem due to John McCarthy, and proves its termination.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{figure}
-\begin{center}
+\hrule\vspace{6pt}
 \begin{minipage}{0.8\textwidth}
 \isabellestyle{it}
 \isastyle\isamarkuptrue
 \isacommand{function}\isamarkupfalse%
-\ f{\isadigit{9}}{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isacharequal}{\isachargreater}\ nat{\isachardoublequoteclose}\isanewline
+\ f{\isadigit{9}}{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
 \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}f{\isadigit{9}}{\isadigit{1}}\ n\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isacharless}\ n\ then\ n\ {\isacharminus}\ {\isadigit{1}}{\isadigit{0}}\ else\ f{\isadigit{9}}{\isadigit{1}}\ {\isacharparenleft}f{\isadigit{9}}{\isadigit{1}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
@@ -1428,7 +1766,8 @@ As a general strategy, one should prove the statements needed for
 \endisadelimproof
 %
 \isamarkupfalse\isabellestyle{tt}
-\end{minipage}\end{center}
+\end{minipage}
+\vspace{6pt}\hrule
 \caption{McCarthy's 91-function}\label{f91}
 \end{figure}
 %
@@ -1632,89 +1971,12 @@ mapeven\ {\isacharquery}f\ {\isacharparenleft}{\isacharquery}x\ {\isacharhash}\ 
   \end{exercise}
   
   \begin{exercise}
-  What happens if the congruence rule for \isa{If} is
+  Try what happens if the congruence rule for \isa{If} is
   disabled by declaring \isa{if{\isacharunderscore}cong{\isacharbrackleft}fundef{\isacharunderscore}cong\ del{\isacharbrackright}}?
   \end{exercise}
 
   Note that in some cases there is no \qt{best} congruence rule.
-  \fixme%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsection{Appendix: Predefined Congruence Rules%
-}
-\isamarkuptrue%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isamarkupsubsection{Basic Control Structures%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}b\ {\isacharequal}\ {\isacharquery}c}\\\ \mbox{{\isacharquery}c\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isacharequal}\ {\isacharquery}u}\\\ \mbox{{\isasymnot}\ {\isacharquery}c\ {\isasymLongrightarrow}\ {\isacharquery}y\ {\isacharequal}\ {\isacharquery}v}}{\mbox{{\isacharparenleft}if\ {\isacharquery}b\ then\ {\isacharquery}x\ else\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ {\isacharquery}c\ then\ {\isacharquery}u\ else\ {\isacharquery}v{\isacharparenright}}}}
-
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}M\ {\isacharequal}\ {\isacharquery}N}\\\ \mbox{{\isasymAnd}x{\isachardot}\ x\ {\isacharequal}\ {\isacharquery}N\ {\isasymLongrightarrow}\ {\isacharquery}f\ x\ {\isacharequal}\ {\isacharquery}g\ x}}{\mbox{Let\ {\isacharquery}M\ {\isacharquery}f\ {\isacharequal}\ Let\ {\isacharquery}N\ {\isacharquery}g}}}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Data Types%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-For each \cmd{datatype} definition, a congruence rule for the case
-  combinator is registeres automatically. Here are the rules for
-  \isa{nat} and \isa{list}:
-
-\begin{center}\isa{\mbox{}\inferrule{\mbox{{\isacharquery}M\ {\isacharequal}\ {\isacharquery}M{\isacharprime}}\\\ \mbox{{\isacharquery}M{\isacharprime}\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ {\isacharquery}f{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}g{\isadigit{1}}{\isachardot}{\isadigit{0}}}\\\ \mbox{{\isasymAnd}nat{\isachardot}\ {\isacharquery}M{\isacharprime}\ {\isacharequal}\ Suc\ nat\ {\isasymLongrightarrow}\ {\isacharquery}f{\isadigit{2}}{\isachardot}{\isadigit{0}}\ nat\ {\isacharequal}\ {\isacharquery}g{\isadigit{2}}{\isachardot}{\isadigit{0}}\ nat}}{\mbox{nat{\isacharunderscore}case\ {\isacharquery}f{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharquery}f{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isacharquery}M\ {\isacharequal}\ nat{\isacharunderscore}case\ {\isacharquery}g{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharquery}g{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isacharquery}M{\isacharprime}}}}\end{center}
-
-\begin{center}\isa{\mbox{}\inferrule{\mbox{{\isacharquery}M\ {\isacharequal}\ {\isacharquery}M{\isacharprime}}\\\ \mbox{{\isacharquery}M{\isacharprime}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ {\isacharquery}f{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharequal}\ {\isacharquery}g{\isadigit{1}}{\isachardot}{\isadigit{0}}}\\\ \mbox{{\isasymAnd}a\ list{\isachardot}\ {\isacharquery}M{\isacharprime}\ {\isacharequal}\ a\ {\isacharhash}\ list\ {\isasymLongrightarrow}\ {\isacharquery}f{\isadigit{2}}{\isachardot}{\isadigit{0}}\ a\ list\ {\isacharequal}\ {\isacharquery}g{\isadigit{2}}{\isachardot}{\isadigit{0}}\ a\ list}}{\mbox{list{\isacharunderscore}case\ {\isacharquery}f{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharquery}f{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isacharquery}M\ {\isacharequal}\ list{\isacharunderscore}case\ {\isacharquery}g{\isadigit{1}}{\isachardot}{\isadigit{0}}\ {\isacharquery}g{\isadigit{2}}{\isachardot}{\isadigit{0}}\ {\isacharquery}M{\isacharprime}}}}\end{center}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{List combinators%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}xs\ {\isacharequal}\ {\isacharquery}ys}\\\ \mbox{{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ {\isacharquery}ys\ {\isasymLongrightarrow}\ {\isacharquery}f\ x\ {\isacharequal}\ {\isacharquery}g\ x}}{\mbox{map\ {\isacharquery}f\ {\isacharquery}xs\ {\isacharequal}\ map\ {\isacharquery}g\ {\isacharquery}ys}}}
-
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}xs\ {\isacharequal}\ {\isacharquery}ys}\\\ \mbox{{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ {\isacharquery}ys\ {\isasymLongrightarrow}\ {\isacharquery}P\ x\ {\isacharequal}\ {\isacharquery}Q\ x}}{\mbox{filter\ {\isacharquery}P\ {\isacharquery}xs\ {\isacharequal}\ filter\ {\isacharquery}Q\ {\isacharquery}ys}}}
-
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}a\ {\isacharequal}\ {\isacharquery}b}\\\ \mbox{{\isacharquery}l\ {\isacharequal}\ {\isacharquery}k}\\\ \mbox{{\isasymAnd}a\ x{\isachardot}\ x\ {\isasymin}\ set\ {\isacharquery}l\ {\isasymLongrightarrow}\ {\isacharquery}f\ x\ a\ {\isacharequal}\ {\isacharquery}g\ x\ a}}{\mbox{foldr\ {\isacharquery}f\ {\isacharquery}l\ {\isacharquery}a\ {\isacharequal}\ foldr\ {\isacharquery}g\ {\isacharquery}k\ {\isacharquery}b}}}
-
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}a\ {\isacharequal}\ {\isacharquery}b}\\\ \mbox{{\isacharquery}l\ {\isacharequal}\ {\isacharquery}k}\\\ \mbox{{\isasymAnd}a\ x{\isachardot}\ x\ {\isasymin}\ set\ {\isacharquery}l\ {\isasymLongrightarrow}\ {\isacharquery}f\ a\ x\ {\isacharequal}\ {\isacharquery}g\ a\ x}}{\mbox{foldl\ {\isacharquery}f\ {\isacharquery}a\ {\isacharquery}l\ {\isacharequal}\ foldl\ {\isacharquery}g\ {\isacharquery}b\ {\isacharquery}k}}}
-
-Similar: takewhile, dropwhile%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Sets%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}A\ {\isacharequal}\ {\isacharquery}B}\\\ \mbox{{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ {\isacharquery}B\ {\isasymLongrightarrow}\ {\isacharquery}P\ x\ {\isacharequal}\ {\isacharquery}Q\ x}}{\mbox{{\isacharparenleft}{\isasymforall}x{\isasymin}{\isacharquery}A{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}x{\isasymin}{\isacharquery}B{\isachardot}\ {\isacharquery}Q\ x{\isacharparenright}}}}
-
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}A\ {\isacharequal}\ {\isacharquery}B}\\\ \mbox{{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ {\isacharquery}B\ {\isasymLongrightarrow}\ {\isacharquery}P\ x\ {\isacharequal}\ {\isacharquery}Q\ x}}{\mbox{{\isacharparenleft}{\isasymexists}x{\isasymin}{\isacharquery}A{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}x{\isasymin}{\isacharquery}B{\isachardot}\ {\isacharquery}Q\ x{\isacharparenright}}}}
-
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}A\ {\isacharequal}\ {\isacharquery}B}\\\ \mbox{{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ {\isacharquery}B\ {\isasymLongrightarrow}\ {\isacharquery}C\ x\ {\isacharequal}\ {\isacharquery}D\ x}}{\mbox{{\isacharparenleft}{\isasymUnion}\isactrlbsub x{\isasymin}{\isacharquery}A\isactrlesub \ {\isacharquery}C\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymUnion}\isactrlbsub x{\isasymin}{\isacharquery}B\isactrlesub \ {\isacharquery}D\ x{\isacharparenright}}}}
-
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}A\ {\isacharequal}\ {\isacharquery}B}\\\ \mbox{{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ {\isacharquery}B\ {\isasymLongrightarrow}\ {\isacharquery}C\ x\ {\isacharequal}\ {\isacharquery}D\ x}}{\mbox{{\isacharparenleft}{\isasymInter}\isactrlbsub x{\isasymin}{\isacharquery}A\isactrlesub \ {\isacharquery}C\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymInter}\isactrlbsub x{\isasymin}{\isacharquery}B\isactrlesub \ {\isacharquery}D\ x{\isacharparenright}}}}
-
-\isa{\mbox{}\inferrule{\mbox{{\isacharquery}M\ {\isacharequal}\ {\isacharquery}N}\\\ \mbox{{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ {\isacharquery}N\ {\isasymLongrightarrow}\ {\isacharquery}f\ x\ {\isacharequal}\ {\isacharquery}g\ x}}{\mbox{{\isacharquery}f\ {\isacharbackquote}\ {\isacharquery}M\ {\isacharequal}\ {\isacharquery}g\ {\isacharbackquote}\ {\isacharquery}N}}}%
+  \fixme{}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
