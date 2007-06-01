@@ -633,6 +633,8 @@ let
   val result = (Ts, terms)
     |> (* user-defined preprocessing of the subgoal *)
        (if do_pre then LA_Data.pre_decomp sg else Library.single)
+    |> tap (fn subgoals => trace_msg ("Preprocessing yields " ^
+         string_of_int (length subgoals) ^ " subgoal(s) total."))
     |> (* produce the internal encoding of (in-)equalities *)
        map (apsnd (map (fn t => (LA_Data.decomp sg t, LA_Data.domain_is_nat t))))
     |> (* splitting of inequalities *)
@@ -640,7 +642,11 @@ let
     |> maps (fn (Ts, subgoals) => map (pair Ts o map fst) subgoals)
     |> (* numbering of hypotheses, ignoring irrelevant ones *)
        map (apsnd (number_hyps 0))
-in result end;
+in
+  trace_msg ("Splitting of inequalities yields " ^
+    string_of_int (length result) ^ " subgoal(s) total.");
+  result
+end;
 
 fun add_atoms (ats : term list, ((lhs,_,_,rhs,_,_) : LA_Data.decompT, _)) : term list =
     (map fst lhs) union ((map fst rhs) union ats);
