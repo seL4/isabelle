@@ -181,8 +181,9 @@ fun atomize thm = case #prop(rep_thm thm) of
     atomize(thm RS conjunct1) @ atomize(thm RS conjunct2)
   | _ => [thm];
 
-fun neg_prop(TP$(Const("Not",_)$t)) = TP$t
-  | neg_prop(TP$t) = TP $ (Const("Not",HOLogic.boolT-->HOLogic.boolT)$t);
+fun neg_prop ((TP as Const("Trueprop",_)) $ (Const("Not",_) $ t)) = TP $ t
+  | neg_prop ((TP as Const("Trueprop",_)) $ t) = TP $ (HOLogic.Not $t)
+  | neg_prop t = raise TERM ("neg_prop", [t]);
 
 fun is_False thm =
   let val _ $ t = #prop(rep_thm thm)
@@ -401,9 +402,11 @@ fun decomp_typecheck (sg, discrete, inj_consts) (T : typ, xxx) : decompT option 
 fun negate (SOME (x, i, rel, y, j, d)) = SOME (x, i, "~" ^ rel, y, j, d)
   | negate NONE                        = NONE;
 
-fun decomp_negation data (_ $ (Const (rel, T) $ lhs $ rhs)) : decompT option =
+fun decomp_negation data
+  ((Const ("Trueprop", _)) $ (Const (rel, T) $ lhs $ rhs)) : decompT option =
       decomp_typecheck data (T, (rel, lhs, rhs))
-  | decomp_negation data (_ $ (Const ("Not", _) $ (Const (rel, T) $ lhs $ rhs))) =
+  | decomp_negation data ((Const ("Trueprop", _)) $
+  (Const ("Not", _) $ (Const (rel, T) $ lhs $ rhs))) =
       negate (decomp_typecheck data (T, (rel, lhs, rhs)))
   | decomp_negation data _ =
       NONE;
@@ -981,14 +984,14 @@ end;
 in
 
   val simple_arith_tac = FIRST' [fast_arith_tac,
-    ObjectLogic.atomize_tac THEN' raw_arith_tac true];
+    ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac true];
 
   val arith_tac = FIRST' [fast_arith_tac,
-    ObjectLogic.atomize_tac THEN' raw_arith_tac true,
+    ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac true,
     arith_theory_tac];
 
   val silent_arith_tac = FIRST' [fast_arith_tac,
-    ObjectLogic.atomize_tac THEN' raw_arith_tac false,
+    ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac false,
     arith_theory_tac];
 
   fun arith_method prems =

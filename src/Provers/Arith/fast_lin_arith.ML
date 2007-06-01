@@ -42,9 +42,11 @@ mk_Eq(~in) = `in == False'
 mk_Eq(in) = `in == True'
 where `in' is an (in)equality.
 
-neg_prop(t) = neg  if t is wrapped up in Trueprop and
-  neg is the (logically) negated version of t, where the negation
-  of a negative term is the term itself (no double negation!);
+neg_prop(t) = neg  if t is wrapped up in Trueprop and neg is the
+  (logically) negated version of t (again wrapped up in Trueprop),
+  where the negation of a negative term is the term itself (no
+  double negation!); raises TERM ("neg_prop", [t]) if t is not of
+  the form 'Trueprop $ _'
 
 is_nat(parameter-types,t) =  t:nat
 mk_nat_thm(t) = "0 <= t"
@@ -697,6 +699,7 @@ val fast_arith_neq_limit = ref 9;
 fun prove (sg : theory) (params : (string * Term.typ) list) (show_ex : bool)
           (do_pre : bool) (Hs : term list) (concl : term) : injust list option =
   let
+    val _ = trace_msg "prove:"
     (* append the negated conclusion to 'Hs' -- this corresponds to     *)
     (* 'DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i)' at the *)
     (* theorem/tactic level                                             *)
@@ -704,7 +707,6 @@ fun prove (sg : theory) (params : (string * Term.typ) list) (show_ex : bool)
     fun is_neq NONE                 = false
       | is_neq (SOME (_,_,r,_,_,_)) = (r = "~=")
   in
-    trace_msg "prove";
     if count is_neq (map (LA_Data.decomp sg) Hs')
       > !fast_arith_neq_limit then (
       trace_msg ("fast_arith_neq_limit exceeded (current value is " ^
@@ -712,7 +714,12 @@ fun prove (sg : theory) (params : (string * Term.typ) list) (show_ex : bool)
       NONE
     ) else
       refute sg params show_ex do_pre Hs'
-  end;
+  end handle TERM ("neg_prop", _) =>
+    (* since no meta-logic negation is available, we can only fail if   *)
+    (* the conclusion is not of the form 'Trueprop $ _' (simply         *)
+    (* dropping the conclusion doesn't work either, because even        *)
+    (* 'False' does not imply arbitrary 'concl::prop')                  *)
+    (trace_msg "prove failed (cannot negate conclusion)."; NONE);
 
 fun refute_tac ss (i, justs) =
   fn state =>
