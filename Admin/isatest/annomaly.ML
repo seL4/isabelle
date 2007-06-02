@@ -1,4 +1,9 @@
-use "ML-Systems/smlnj.ML";                                      
+(*  Title:      Admin/isatest/annomaly.ML
+    ID:         $Id$
+    Author:     Martin von Gagern <martin@von-gagern.net>
+*)
+
+use "ML-Systems/smlnj.ML";
 
 local
 
@@ -16,12 +21,11 @@ local
 
 in
 
-  fun use_text name p v t = 
-      let val name = case name of "" => "unnamed" | name => name
-	  val arcs = rewrite (OS.Process.getEnv "ISABELLE_HOME",
-			      #arcs (OS.Path.fromString name))
-	  val _    = AnnoMaLy.nameNextStream ("isabelle" :: arcs)
-      in  smlnj_use_text name p v t
-      end
+  fun use_text name p v t =
+    let val name = case name of "" => "unnamed" | name => name
+        val arcs = rewrite (OS.Process.getEnv "ISABELLE_HOME",
+                            #arcs (OS.Path.fromString name))
+        val _    = AnnoMaLy.nameNextStream ("isabelle" :: arcs)
+    in  smlnj_use_text name p v t  end
 
 end;
