@@ -52,6 +52,12 @@ lemma "min (i::nat) j <= max i j"
 lemma "min (i::int) j <= max i j"
   by (tactic {* fast_arith_tac 1 *})
 
+lemma "min (i::nat) j + max i j = i + j"
+  by (tactic {* fast_arith_tac 1 *})
+
+lemma "min (i::int) j + max i j = i + j"
+  by (tactic {* fast_arith_tac 1 *})
+
 lemma "(i::nat) < j ==> min i j < max i j"
   by (tactic {* fast_arith_tac 1 *})
 
@@ -142,6 +148,18 @@ lemma "[| (x::nat) < y; y < z |] ==> x < z"
 lemma "(x::nat) < y & y < z ==> x < z"
   by (tactic {* simple_arith_tac 1 *})
 
+text {* This example involves no arithmetic at all, but is solved by
+  preprocessing (i.e. NNF normalization) alone. *}
+
+lemma "(P::bool) = Q ==> Q = P"
+  by (tactic {* simple_arith_tac 1 *})
+
+lemma "[| P = (x = 0); (~P) = (y = 0) |] ==> min (x::nat) y = 0"
+  by (tactic {* simple_arith_tac 1 *})
+
+lemma "[| P = (x = 0); (~P) = (y = 0) |] ==> max (x::nat) y = x + y"
+  by (tactic {* simple_arith_tac 1 *})
+
 lemma "[| (x::nat) ~= y; a + 2 = b; a < y; y < b; a < x; x < b |] ==> False"
   by (tactic {* fast_arith_tac 1 *})
 
@@ -184,7 +202,8 @@ lemma "(n < m & m < n') | (n < m & m = n') | (n < n' & n' < m) |
 oops
 
 lemma "2 * (x::nat) ~= 1"
-(* FIXME: this is beyond the scope of the decision procedure at the moment? *)
+(* FIXME: this is beyond the scope of the decision procedure at the moment, *)
+(*        because its negation is satisfiable in the rationals?             *)
 (* by (tactic {* fast_arith_tac 1 *}) *)
 oops
 
