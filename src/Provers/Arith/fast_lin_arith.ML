@@ -270,7 +270,7 @@ fun findex0 discr n lineqs =
   in pick_vars discr (rineqs,replicate n Rat.zero) end;
 
 (* ------------------------------------------------------------------------- *)
-(* End of counter example finder. The actual decision procedure starts here. *)
+(* End of counterexample finder. The actual decision procedure starts here.  *)
 (* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
@@ -548,7 +548,7 @@ fun produce_ex sds =
   curry (op ~~) sds
   #> map print_atom
   #> commas
-  #> curry (op ^) "Counter example (possibly spurious):\n";
+  #> curry (op ^) "Counterexample (possibly spurious):\n";
 
 fun trace_ex (sg, params, atoms, discr, n, hist : history) =
   case hist of
@@ -563,7 +563,7 @@ fun trace_ex (sg, params, atoms, discr, n, hist : history) =
           handle NoEx => NONE
     in
       case ex of
-        SOME s => (warning "arith failed - see trace for a counter example"; tracing s)
+        SOME s => (warning "arith failed - see trace for a counterexample"; tracing s)
       | NONE => warning "arith failed"
     end;
 
