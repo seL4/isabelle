@@ -304,7 +304,7 @@ fun refute_tac test prep_tac ref_tac =
               (eresolve_tac [@{thm conjE}, @{thm exE}] 1 ORELSE
                filter_prems_tac test 1 ORELSE
                etac @{thm disjE} 1) THEN
-        ((etac @{thm notE} 1 THEN eq_assume_tac 1) ORELSE
+        (DETERM (etac @{thm notE} 1 THEN eq_assume_tac 1) ORELSE
          ref_tac 1);
   in EVERY'[TRY o filter_prems_tac test,
             REPEAT_DETERM o etac @{thm rev_mp}, prep_tac, rtac @{thm ccontr}, prem_nnf_tac,
