@@ -53,9 +53,26 @@ fun pretty loc ctxt =
 
 (* consts *)
 
+fun target_abbrev prmode ((c, mx), rhs) phi =
+  let
+    val c' = Morphism.name phi c;
+    val rhs' = Morphism.term phi rhs;
+    val arg' = (c', rhs');
+    val eq_heads =
+      (case pairself Term.head_of (rhs, rhs') of
+        (Const (a, _), Const (a', _)) => a = a'
+      | _ => false);
+  in
+    eq_heads ? (Context.mapping_result
+      (Sign.add_abbrev Syntax.internalM arg') (ProofContext.add_abbrev Syntax.internalM arg')
+    #-> (fn (lhs, _) =>
+      Term.equiv_types (rhs, rhs') ?
+        Morphism.form (ProofContext.target_notation prmode [(lhs, mx)])))
+  end;
+
 fun internal_abbrev prmode ((c, mx), t) =
   (* FIXME really permissive *)
-  LocalTheory.term_syntax (perhaps o try o ProofContext.target_abbrev prmode ((c, mx), t))
+  LocalTheory.term_syntax (perhaps o try o target_abbrev prmode ((c, mx), t))
   #> ProofContext.add_abbrev Syntax.internalM (c, t) #> snd;
 
 fun consts is_loc some_class depends decls lthy =
@@ -92,6 +109,18 @@ fun occ_params ctxt ts =
   #1 (ProofContext.inferred_fixes ctxt)
   |> filter (member (op =) (fold (Variable.add_fixed ctxt) ts []));
 
+fun local_abbrev (x, rhs) =
+  Variable.add_fixes [x] #-> (fn [x'] =>
+    let
+      val T = Term.fastype_of rhs;
+      val lhs = Free (x', T);
+    in
+      Variable.declare_term lhs #>
+      Variable.declare_term rhs #>
+      Assumption.add_assms (K (K (I, Envir.expand_term_frees [((x', T), rhs)]))) [] #> snd #>
+      pair (lhs, rhs)
+    end);
+
 fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
   let
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
@@ -112,7 +141,7 @@ fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
     lthy1
     |> LocalTheory.theory (Sign.add_notation prmode [(lhs, mx1)])
     |> is_loc ? internal_abbrev prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
-    |> ProofContext.local_abbrev (c, rhs)
+    |> local_abbrev (c, rhs)
   end;
 
 
