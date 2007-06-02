@@ -159,6 +159,7 @@ sig
   val suffix: string -> string -> string
   val unprefix: string -> string -> string
   val unsuffix: string -> string -> string
+  val plural: 'a -> 'a -> 'b list -> 'a
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
 
@@ -795,6 +796,10 @@ fun unprefix prfx s =
 fun unsuffix sffx s =
   if String.isSuffix sffx s then String.substring (s, 0, size s - size sffx)
   else raise Fail "unsuffix";
+
+(* Ex: "The variable" ^ plural " is" "s are" vs *)
+fun plural sg pl [x] = sg
+  | plural sg pl _ = pl
 
 fun replicate_string 0 _ = ""
   | replicate_string 1 a = a
