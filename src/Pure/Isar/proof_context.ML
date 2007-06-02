@@ -153,9 +153,6 @@ sig
     Context.generic -> Context.generic
   val set_expand_abbrevs: bool -> Proof.context -> Proof.context
   val add_abbrev: string -> bstring * term -> Proof.context -> (term * term) * Proof.context
-  val target_abbrev: Syntax.mode -> (string * mixfix) * term -> morphism ->
-    Context.generic -> Context.generic
-  val local_abbrev: string * term -> Proof.context -> (term * term) * Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
@@ -936,30 +933,6 @@ fun add_abbrev mode (c, raw_t) ctxt =
     |> Variable.declare_term rhs
     |> pair (lhs, rhs)
   end;
-
-fun target_abbrev prmode ((c, mx), rhs) phi =
-  let
-    val c' = Morphism.name phi c;
-    val rhs' = Morphism.term phi rhs;
-    val arg' = (c', rhs');
-  in
-    Context.mapping_result
-      (Sign.add_abbrev Syntax.internalM arg') (add_abbrev Syntax.internalM arg')
-    #-> (fn (lhs, _) =>
-      Term.equiv_types (rhs, rhs') ? Morphism.form (target_notation prmode [(lhs, mx)]))
-  end;
-
-fun local_abbrev (x, rhs) =
-  Variable.add_fixes [x] #-> (fn [x'] =>
-    let
-      val T = Term.fastype_of rhs;
-      val lhs = Free (x', T);
-    in
-      Variable.declare_term lhs #>
-      Variable.declare_term rhs #>
-      Assumption.add_assms (K (K (I, Envir.expand_term_frees [((x', T), rhs)]))) [] #> snd #>
-      pair (lhs, rhs)
-    end);
 
 
 (* fixes *)
