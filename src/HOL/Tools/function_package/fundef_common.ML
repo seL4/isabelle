@@ -276,7 +276,7 @@ fun empty_preproc check _ _ ctxt fixes spec =
 structure Preprocessor = GenericDataFun
 (
   type T = preproc
-  val empty = empty_preproc check_defs
+  val empty : T = empty_preproc check_defs
   val extend = I
   fun merge _ (a, _) = a
 );
