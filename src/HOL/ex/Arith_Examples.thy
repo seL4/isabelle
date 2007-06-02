@@ -94,15 +94,33 @@ lemma "i < j ==> nat (i - j) = 0"
   by (tactic {* fast_arith_tac 1 *})
 
 lemma "(i::nat) mod 0 = i"
+  (* FIXME: need to replace 0 by its numeral representation *)
+  apply (subst nat_numeral_0_eq_0 [symmetric])
+  by (tactic {* fast_arith_tac 1 *})
+
+lemma "(i::nat) mod 1 = 0"
+  (* FIXME: need to replace 1 by its numeral representation *)
+  apply (subst nat_numeral_1_eq_1 [symmetric])
+  by (tactic {* fast_arith_tac 1 *})
+
+lemma "(i::nat) mod 42 <= 41"
+  by (tactic {* fast_arith_tac 1 *})
+
+lemma "(i::int) mod 0 = i"
+  (* FIXME: need to replace 0 by its numeral representation *)
+  apply (subst numeral_0_eq_0 [symmetric])
+  by (tactic {* fast_arith_tac 1 *})
+
+lemma "(i::int) mod 1 = 0"
+  (* FIXME: need to replace 1 by its numeral representation *)
+  apply (subst numeral_1_eq_1 [symmetric])
+  (* FIXME: arith does not know about iszero *)
+  apply (tactic {* LA_Data_Ref.pre_tac 1 *})
 oops
 
-lemma "(i::nat) mod (Suc 0) = 0"
-oops
-
-lemma "(i::nat) div 0 = 0"
-oops
-
-lemma "(i::nat) mod (number_of (1::int)) = 0"
+lemma "(i::int) mod 42 <= 41"
+  (* FIXME: arith does not know about iszero *)
+  apply (tactic {* LA_Data_Ref.pre_tac 1 *})
 oops
 
 section {* Meta-Logic *}
@@ -114,6 +132,9 @@ lemma "((x::nat) == z ==> x ~= y) ==> x ~= y | z ~= y"
   by (tactic {* simple_arith_tac 1 *})
 
 section {* Various Other Examples *}
+
+lemma "(x < Suc y) = (x <= y)"
+  by (tactic {* simple_arith_tac 1 *})
 
 lemma "[| (x::nat) < y; y < z |] ==> x < z"
   by (tactic {* fast_arith_tac 1 *})
@@ -148,11 +169,46 @@ lemma "[| (a::nat) < b; c < d |] ==> (a - b) = (c - d)"
 lemma "((a::nat) - (b - (c - (d - e)))) = (a - (b - (c - (d - e))))"
   by (tactic {* fast_arith_tac 1 *})
 
+lemma "(n < m & m < n') | (n < m & m = n') | (n < n' & n' < m) |
+  (n = n' & n' < m) | (n = m & m < n') |
+  (n' < m & m < n) | (n' < m & m = n) |
+  (n' < n & n < m) | (n' = n & n < m) | (n' = m & m < n) |
+  (m < n & n < n') | (m < n & n' = n) | (m < n' & n' < n) |
+  (m = n & n < n') | (m = n' & n' < n) |
+  (n' = m & m = (n::nat))"
+(* FIXME: this should work in principle, but is extremely slow because     *)
+(*        preprocessing negates the goal and tries to compute its negation *)
+(*        normal form, which creates lots of separate cases for this       *)
+(*        disjunction of conjunctions                                      *)
+(* by (tactic {* simple_arith_tac 1 *}) *)
+oops
+
+lemma "2 * (x::nat) ~= 1"
+(* FIXME: this is beyond the scope of the decision procedure at the moment? *)
+(* by (tactic {* fast_arith_tac 1 *}) *)
+oops
+
+text {* Constants. *}
+
+lemma "(0::nat) < 1"
+  by (tactic {* fast_arith_tac 1 *})
+
+lemma "(0::int) < 1"
+  by (tactic {* fast_arith_tac 1 *})
+
+lemma "(47::nat) + 11 < 08 * 15"
+  by (tactic {* fast_arith_tac 1 *})
+
+lemma "(47::int) + 11 < 08 * 15"
+  by (tactic {* fast_arith_tac 1 *})
+
 text {* Splitting of inequalities of different type. *}
 
 lemma "[| (a::nat) ~= b; (i::int) ~= j; a < 2; b < 2 |] ==>
   a + b <= nat (max (abs i) (abs j))"
   by (tactic {* fast_arith_tac 1 *})
+
+text {* Again, but different order. *}
 
 lemma "[| (i::int) ~= j; (a::nat) ~= b; a < 2; b < 2 |] ==>
   a + b <= nat (max (abs i) (abs j))"
