@@ -9,8 +9,8 @@ theory FunDef
 imports Datatype Accessible_Part
 uses
   ("Tools/function_package/sum_tools.ML")
-  ("Tools/function_package/fundef_common.ML")
   ("Tools/function_package/fundef_lib.ML")
+  ("Tools/function_package/fundef_common.ML")
   ("Tools/function_package/inductive_wrap.ML")
   ("Tools/function_package/context_tree.ML")
   ("Tools/function_package/fundef_core.ML")
@@ -88,8 +88,8 @@ qed
 
 
 use "Tools/function_package/sum_tools.ML"
-use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/fundef_lib.ML"
+use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/inductive_wrap.ML"
 use "Tools/function_package/context_tree.ML"
 use "Tools/function_package/fundef_core.ML"

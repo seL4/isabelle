@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions. 
-Common type definitions and other infrastructure.
+Common definitions and other infrastructure.
 *)
 
 structure FundefCommon =
@@ -153,12 +153,10 @@ fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
     #> store_termination_rule termination
 
 
-
 (* Configuration management *)
 datatype fundef_opt 
   = Sequential
   | Default of string
-  | Preprocessor of string
   | Target of xstring
   | DomIntros
   | Tailrec
@@ -168,63 +166,23 @@ datatype fundef_config
    {
     sequential: bool,
     default: string,
-    preprocessor: string option,
     target: xstring option,
     domintros: bool,
     tailrec: bool
    }
 
-
-val default_config = FundefConfig { sequential=false, default="%x. arbitrary", preprocessor=NONE,
-                                    target=NONE, domintros=false, tailrec=false }
-
-val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", preprocessor=NONE, 
-                                target=NONE, domintros=false, tailrec=false }
-
-fun apply_opt Sequential (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec}) = 
-    FundefConfig {sequential=true, default=default, preprocessor=preprocessor, target=target, domintros=domintros, tailrec=tailrec }
-  | apply_opt (Default d) (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec}) = 
-    FundefConfig {sequential=sequential, default=d, preprocessor=preprocessor, target=target, domintros=domintros, tailrec=tailrec }
-  | apply_opt (Preprocessor p) (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec}) = 
-    FundefConfig {sequential=sequential, default=default, preprocessor=SOME p, target=target, domintros=domintros, tailrec=tailrec }
-  | apply_opt (Target t) (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec }) =
-    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=SOME t, domintros=domintros, tailrec=tailrec }
-  | apply_opt DomIntros (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec }) =
-    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=target, domintros=true,tailrec=tailrec }
-  | apply_opt Tailrec (FundefConfig {sequential, default, preprocessor, target, domintros,tailrec }) =
-    FundefConfig {sequential=sequential, default=default, preprocessor=preprocessor, target=target, domintros=domintros,tailrec=true } 
+fun apply_opt Sequential (FundefConfig {sequential, default, target, domintros,tailrec}) = 
+    FundefConfig {sequential=true, default=default, target=target, domintros=domintros, tailrec=tailrec}
+  | apply_opt (Default d) (FundefConfig {sequential, default, target, domintros,tailrec}) = 
+    FundefConfig {sequential=sequential, default=d, target=target, domintros=domintros, tailrec=tailrec}
+  | apply_opt (Target t) (FundefConfig {sequential, default, target, domintros,tailrec}) =
+    FundefConfig {sequential=sequential, default=default, target=SOME t, domintros=domintros, tailrec=tailrec}
+  | apply_opt DomIntros (FundefConfig {sequential, default, target, domintros,tailrec}) =
+    FundefConfig {sequential=sequential, default=default, target=target, domintros=true,tailrec=tailrec}
+  | apply_opt Tailrec (FundefConfig {sequential, default, target, domintros,tailrec}) =
+    FundefConfig {sequential=sequential, default=default, target=target, domintros=domintros,tailrec=true}
 
 fun target_of (FundefConfig {target, ...}) = target
-
-local 
-  structure P = OuterParse and K = OuterKeyword 
-
-  val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
-                       
-  val option_parser = (P.$$$ "sequential" >> K Sequential)
-                   || ((P.reserved "default" |-- P.term) >> Default)
-                   || (P.reserved "domintros" >> K DomIntros)
-                   || (P.reserved "tailrec" >> K Tailrec)
-                   || ((P.$$$ "in" |-- P.xname) >> Target)
-
-  fun config_parser def = (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 (P.group "option" option_parser)) --| P.$$$ ")") [])
-                          >> (fn opts => fold apply_opt opts def)
-
-  fun pipe_list1 s = P.enum1 "|" s
-
-  val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
-
-  fun pipe_error t = P.!!! (Scan.fail_with (K (cat_lines ["Equations must be separated by " ^ quote "|", quote t])))
-
-  val statement_ow = SpecParse.opt_thm_name ":" -- (P.prop -- Scan.optional (otherwise >> K true) false)
-                     --| Scan.ahead ((P.term :-- pipe_error) || Scan.succeed ("",""))
-
-  val statements_ow = pipe_list1 statement_ow
-in
-  fun fundef_parser default_cfg = config_parser default_cfg -- P.fixes --| P.$$$ "where" -- statements_ow
-end
-
-
 
 (* Common operations on equations *)
 
@@ -266,6 +224,106 @@ fun mk_arities fqgars =
     end
 
 
+(* Check for all sorts of errors in the input *)
+fun check_defs ctxt fixes eqs =
+    let
+      val fnames = map (fst o fst) fixes
+                                
+      fun check geq = 
+          let
+            fun input_error msg = cat_lines [msg, ProofContext.string_of_term ctxt geq]
+                                  
+            val fqgar as (fname, qs, gs, args, rhs) = split_def geq
+                                 
+            val _ = fname mem fnames 
+                    orelse error (input_error ("Head symbol of left hand side must be " ^ plural "" "one out of " fnames 
+                                               ^ commas_quote fnames))
+                                            
+            fun add_bvs t is = add_loose_bnos (t, 0, is)
+            val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
+                        |> map (fst o nth (rev qs))
+                      
+            val _ = null rvs orelse error (input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
+                                                        ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:"))
+                                    
+            val _ = forall (FundefLib.forall_aterms (fn Free (n, _) => not (n mem fnames) | _ => true)) gs 
+                    orelse error (input_error "Recursive Calls not allowed in premises")
+          in
+            fqgar
+          end
+
+      val _ = mk_arities (map check eqs)
+          handle ArgumentCount fname => 
+                 error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations")
+    in
+      ()
+    end
+
+(* Preprocessors *)
+
+type fixes = ((string * typ) * mixfix) list
+type 'a spec = ((bstring * Attrib.src list) * 'a list) list
+type preproc = fundef_config -> bool list -> Proof.context -> fixes -> term spec -> (term list * (thm list -> thm spec))
+
+fun empty_preproc check _ _ ctxt fixes spec =
+    let 
+      val (nas,tss) = split_list spec
+      val _ = check ctxt fixes (flat tss)
+    in
+      (flat tss, curry op ~~ nas o Library.unflat tss)
+    end
+
+structure Preprocessor = GenericDataFun
+(
+  type T = preproc
+  val empty = empty_preproc check_defs
+  val extend = I
+  fun merge _ (a, _) = a
+);
+
+val get_preproc = Preprocessor.get o Context.Proof
+val set_preproc = Preprocessor.map o K
+
+
+
+local 
+  structure P = OuterParse and K = OuterKeyword 
+
+  val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
+                       
+  val option_parser = (P.$$$ "sequential" >> K Sequential)
+                   || ((P.reserved "default" |-- P.term) >> Default)
+                   || (P.reserved "domintros" >> K DomIntros)
+                   || (P.reserved "tailrec" >> K Tailrec)
+                   || ((P.$$$ "in" |-- P.xname) >> Target)
+
+  fun config_parser default = (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 (P.group "option" option_parser)) --| P.$$$ ")") [])
+                              >> (fn opts => fold apply_opt opts default)
+
+  val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
+
+  fun pipe_error t = P.!!! (Scan.fail_with (K (cat_lines ["Equations must be separated by " ^ quote "|", quote t])))
+
+  val statement_ow = SpecParse.opt_thm_name ":" -- (P.prop -- Scan.optional (otherwise >> K true) false)
+                     --| Scan.ahead ((P.term :-- pipe_error) || Scan.succeed ("",""))
+
+  val statements_ow = P.enum1 "|" statement_ow
+
+  val flags_statements = statements_ow
+                         >> (fn sow => (map (snd o snd) sow, map (apsnd fst) sow))
+
+  fun basic_apply_flags ((config, fixes), (flags, statements)) = ((config, fixes), statements)
+in
+  fun fundef_parser default_cfg = (config_parser default_cfg -- P.fixes --| P.$$$ "where" -- flags_statements)
+                                  
+end
+
+
+
+
+
+val default_config = FundefConfig { sequential=false, default="%x. arbitrary", 
+                                    target=NONE, domintros=false, tailrec=false }
 
 
 

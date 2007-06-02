@@ -14,45 +14,45 @@ sig
     val setup : theory -> theory
 end
 
-structure FundefDatatype : FUNDEF_DATATYPE =
+structure FundefDatatype (*: FUNDEF_DATATYPE*) =
 struct
 
 open FundefLib
 open FundefCommon
 
-fun check_constr_pattern thy err (Bound _) = ()
-  | check_constr_pattern thy err t =
-    let
-      val (hd, args) = strip_comb t
-    in
-      (((case DatatypePackage.datatype_of_constr thy (fst (dest_Const hd)) of
-           SOME _ => ()
-         | NONE => err t)
-        handle TERM ("dest_Const", _) => err t);
-       map (check_constr_pattern thy err) args; 
-       ())
-    end
-
 
 fun check_pats ctxt geq =
     let 
-      fun err str = error (cat_lines ["Malformed \"fun\" definition:",
-                                      str,
+      fun err str = error (cat_lines ["Malformed definition:",
+                                      str ^ " not allowed in sequential mode.",
                                       ProofContext.string_of_term ctxt geq])
       val thy = ProofContext.theory_of ctxt
-
+                
+      fun check_constr_pattern (Bound _) = ()
+        | check_constr_pattern t =
+          let
+            val (hd, args) = strip_comb t
+          in
+            (((case DatatypePackage.datatype_of_constr thy (fst (dest_Const hd)) of
+                 SOME _ => ()
+               | NONE => err "Non-constructor pattern")
+              handle TERM ("dest_Const", _) => err "Non-constructor patterns");
+             map check_constr_pattern args; 
+             ())
+          end
+          
       val (fname, qs, gs, args, rhs) = split_def geq 
-
-      val _ = if not (null gs) then err "Conditional equations not allowed with \"fun\"" else ()
-      val _ = map (check_constr_pattern thy (fn t => err "Not a constructor pattern")) args
-
+                                       
+      val _ = if not (null gs) then err "Conditional equations" else ()
+      val _ = map check_constr_pattern args
+                  
                   (* just count occurrences to check linearity *)
       val _ = if fold (fold_aterms (fn Bound _ => curry (op +) 1 | _ => I)) args 0 < length qs
-              then err "Nonlinear pattern" else ()
+              then err "Nonlinear patterns" else ()
     in
       ()
     end
-
+    
 
 fun mk_argvar i T = Free ("_av" ^ (string_of_int i), T)
 fun mk_patvar i T = Free ("_pv" ^ (string_of_int i), T)
@@ -206,27 +206,83 @@ val termination_by_lexicographic_order =
     FundefPackage.setup_termination_proof NONE
     #> Proof.global_terminal_proof (Method.Basic (LexicographicOrder.lexicographic_order []), NONE)
 
+fun mk_catchall fixes arities =
+    let
+      fun mk_eqn ((fname, fT), _) =
+          let 
+            val n = the (Symtab.lookup arities fname)
+            val (argTs, rT) = chop n (binder_types fT)
+                                   |> apsnd (fn Ts => Ts ---> body_type fT) 
+                              
+            val qs = map Free (Name.invent_list [] "a" n ~~ argTs)
+          in
+            HOLogic.mk_eq(list_comb (Free (fname, fT), qs),
+                          Const ("HOL.undefined", rT))
+              |> HOLogic.mk_Trueprop
+              |> fold_rev mk_forall qs
+          end
+    in
+      map mk_eqn fixes
+    end
+
+fun add_catchall fixes spec =
+    let 
+      val catchalls = mk_catchall fixes (mk_arities (map split_def (map snd spec)))
+    in
+      spec @ map (pair true) catchalls
+    end
+
+fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fixes spec =
+    let
+      val enabled = sequential orelse exists I flags
+    in 
+      if enabled then
+        let
+          val flags' = if sequential then map (K true) flags else flags
+
+          val (nas, eqss) = split_list spec
+                            
+          val eqs = map the_single eqss
+                    
+          val spliteqs = eqs
+                           |> tap (check_defs ctxt fixes) (* Standard checks *)
+                           |> tap (map (check_pats ctxt))    (* More checks for sequential mode *)
+                           |> curry op ~~ flags'
+                           |> add_catchall fixes   (* Completion: still disabled *)
+                           |> FundefSplit.split_some_equations ctxt
+
+          fun restore_spec thms =
+              nas ~~ Library.take (length nas, Library.unflat spliteqs thms)
+        in
+          (flat spliteqs, restore_spec)
+        end
+      else
+        FundefCommon.empty_preproc check_defs config flags ctxt fixes spec
+    end
+
 val setup =
-    Method.add_methods [("pat_completeness", Method.no_args pat_completeness,
-      "Completeness prover for datatype patterns")]
+    Method.add_methods [("pat_completeness", Method.no_args pat_completeness, 
+                         "Completeness prover for datatype patterns")]
+    #> Context.theory_map (FundefCommon.set_preproc sequential_preproc)
 
 
+val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", 
+                                target=NONE, domintros=false, tailrec=false }
 
 
 local structure P = OuterParse and K = OuterKeyword in
 
-fun fun_cmd config fixes statements lthy =
+fun fun_cmd config fixes statements flags lthy =
     lthy
-      |> FundefPackage.add_fundef fixes statements config
+      |> FundefPackage.add_fundef fixes statements config flags
       |> by_pat_completeness_simp
       |> termination_by_lexicographic_order
 
-
 val funP =
   OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
-  (fundef_parser FundefCommon.fun_config
-     >> (fn ((config, fixes), statements) =>
-            (Toplevel.local_theory (target_of config) (fun_cmd config fixes statements))));
+  (fundef_parser fun_config
+     >> (fn ((config, fixes), (flags, statements)) =>
+            (Toplevel.local_theory (target_of config) (fun_cmd config fixes statements flags))));
 
 val _ = OuterSyntax.add_parsers [funP];
 end

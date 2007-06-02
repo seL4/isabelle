@@ -10,12 +10,6 @@ Some fairly general functions that should probably go somewhere else...
 
 structure FundefLib = struct
 
-(* ==> library/string *)
-fun plural sg pl [x] = sg
-  | plural sg pl _ = pl
-
-
-
 fun map_option f NONE = NONE 
   | map_option f (SOME x) = SOME (f x);
 
@@ -24,11 +18,6 @@ fun fold_option f NONE y = y
 
 fun fold_map_option f NONE y = (NONE, y)
   | fold_map_option f (SOME x) y = apfst SOME (f x y);
-
-
-
-
-
 
 (* ??? *)
 fun eq_str (s : string, t) = (s = t) (* monomorphic equality on strings *)

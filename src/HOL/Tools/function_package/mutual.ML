@@ -303,7 +303,7 @@ fun store_grouped P x [] = []
                                            
 fun sort_by_function (Mutual {fqgars, ...}) names xs =
     fold_rev (store_grouped (eq_str o apfst fst))  (* fill *)
-             (map name_of_fqgar fqgars ~~ xs)      (* the name-thm pairs *)
+             (map name_of_fqgar (Library.take (length xs, fqgars)) ~~ xs)      (* the name-thm pairs *)
              (map (rpair []) names)                (* in the empty buckets labeled with names *)
              
              |> map (snd #> map snd)                     (* and remove the labels afterwards *)
