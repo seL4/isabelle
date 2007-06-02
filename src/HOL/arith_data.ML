@@ -958,8 +958,9 @@ local
 
 fun raw_arith_tac ex i st =
   (* FIXME: K true should be replaced by a sensible test (perhaps "isSome o
-     decomp sg"?) to speed things up in case there are lots of irrelevant
-     terms involved; elimination of min/max can be optimized:
+     decomp sg"? -- but note that the test is applied to terms already before
+     they are split/normalized) to speed things up in case there are lots of
+     irrelevant terms involved; elimination of min/max can be optimized:
      (max m n + k <= r) = (m+k <= r & n+k <= r)
      (l <= min m n + k) = (l <= m+k & l <= n+k)
   *)
