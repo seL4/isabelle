@@ -256,9 +256,9 @@ syntax
 
 translations
 "[e. p\<leftarrow>xs]" => "map (%p. e) xs"
-"_listcompr e p xs (_lc_gen q ys GT)" =>
- "concat (map (%p. _listcompr e q ys GT) xs)"
-"_listcompr e p xs (_lc_test P GT)" => "_listcompr e p (filter (%p. P) xs) GT"
+"_listcompr e p xs (_lc_gen q ys Q)" =>
+ "concat (map (%p. _listcompr e q ys Q) xs)"
+"_listcompr e p xs (_lc_test P Q)" => "_listcompr e p (filter (%p. P) xs) Q"
 
 (* Some examples:
 term "[(x,y). x \<leftarrow> xs, x<y]"

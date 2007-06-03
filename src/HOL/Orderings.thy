@@ -99,94 +99,94 @@ text {* Reflexivity. *}
 
 lemma eq_refl: "x = y \<Longrightarrow> x \<^loc>\<le> y"
     -- {* This form is useful with the classical reasoner. *}
-  by (erule ssubst) (rule order_refl)
+by (erule ssubst) (rule order_refl)
 
 lemma less_irrefl [iff]: "\<not> x \<^loc>< x"
-  by (simp add: less_le)
+by (simp add: less_le)
 
 lemma le_less: "x \<^loc>\<le> y \<longleftrightarrow> x \<^loc>< y \<or> x = y"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
-  by (simp add: less_le) blast
+by (simp add: less_le) blast
 
 lemma le_imp_less_or_eq: "x \<^loc>\<le> y \<Longrightarrow> x \<^loc>< y \<or> x = y"
-  unfolding less_le by blast
+unfolding less_le by blast
 
 lemma less_imp_le: "x \<^loc>< y \<Longrightarrow> x \<^loc>\<le> y"
-  unfolding less_le by blast
+unfolding less_le by blast
 
 lemma less_imp_neq: "x \<^loc>< y \<Longrightarrow> x \<noteq> y"
-  by (erule contrapos_pn, erule subst, rule less_irrefl)
+by (erule contrapos_pn, erule subst, rule less_irrefl)
 
 
 text {* Useful for simplification, but too risky to include by default. *}
 
 lemma less_imp_not_eq: "x \<^loc>< y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
-  by auto
+by auto
 
 lemma less_imp_not_eq2: "x \<^loc>< y \<Longrightarrow> (y = x) \<longleftrightarrow> False"
-  by auto
+by auto
 
 
 text {* Transitivity rules for calculational reasoning *}
 
 lemma neq_le_trans: "a \<noteq> b \<Longrightarrow> a \<^loc>\<le> b \<Longrightarrow> a \<^loc>< b"
-  by (simp add: less_le)
+by (simp add: less_le)
 
 lemma le_neq_trans: "a \<^loc>\<le> b \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<^loc>< b"
-  by (simp add: less_le)
+by (simp add: less_le)
 
 
 text {* Asymmetry. *}
 
 lemma less_not_sym: "x \<^loc>< y \<Longrightarrow> \<not> (y \<^loc>< x)"
-  by (simp add: less_le antisym)
+by (simp add: less_le antisym)
 
 lemma less_asym: "x \<^loc>< y \<Longrightarrow> (\<not> P \<Longrightarrow> y \<^loc>< x) \<Longrightarrow> P"
-  by (drule less_not_sym, erule contrapos_np) simp
+by (drule less_not_sym, erule contrapos_np) simp
 
 lemma eq_iff: "x = y \<longleftrightarrow> x \<^loc>\<le> y \<and> y \<^loc>\<le> x"
-  by (blast intro: antisym)
+by (blast intro: antisym)
 
 lemma antisym_conv: "y \<^loc>\<le> x \<Longrightarrow> x \<^loc>\<le> y \<longleftrightarrow> x = y"
-  by (blast intro: antisym)
+by (blast intro: antisym)
 
 lemma less_imp_neq: "x \<^loc>< y \<Longrightarrow> x \<noteq> y"
-  by (erule contrapos_pn, erule subst, rule less_irrefl)
+by (erule contrapos_pn, erule subst, rule less_irrefl)
 
 
 text {* Transitivity. *}
 
 lemma less_trans: "x \<^loc>< y \<Longrightarrow> y \<^loc>< z \<Longrightarrow> x \<^loc>< z"
-  by (simp add: less_le) (blast intro: order_trans antisym)
+by (simp add: less_le) (blast intro: order_trans antisym)
 
 lemma le_less_trans: "x \<^loc>\<le> y \<Longrightarrow> y \<^loc>< z \<Longrightarrow> x \<^loc>< z"
-  by (simp add: less_le) (blast intro: order_trans antisym)
+by (simp add: less_le) (blast intro: order_trans antisym)
 
 lemma less_le_trans: "x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> z \<Longrightarrow> x \<^loc>< z"
-  by (simp add: less_le) (blast intro: order_trans antisym)
+by (simp add: less_le) (blast intro: order_trans antisym)
 
 
 text {* Useful for simplification, but too risky to include by default. *}
 
 lemma less_imp_not_less: "x \<^loc>< y \<Longrightarrow> (\<not> y \<^loc>< x) \<longleftrightarrow> True"
-  by (blast elim: less_asym)
+by (blast elim: less_asym)
 
 lemma less_imp_triv: "x \<^loc>< y \<Longrightarrow> (y \<^loc>< x \<longrightarrow> P) \<longleftrightarrow> True"
-  by (blast elim: less_asym)
+by (blast elim: less_asym)
 
 
 text {* Transitivity rules for calculational reasoning *}
 
 lemma less_asym': "a \<^loc>< b \<Longrightarrow> b \<^loc>< a \<Longrightarrow> P"
-  by (rule less_asym)
+by (rule less_asym)
 
 
 text {* Reverse order *}
 
 lemma order_reverse:
   "order (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
-  by unfold_locales
-    (simp add: less_le, auto intro: antisym order_trans)
+by unfold_locales
+   (simp add: less_le, auto intro: antisym order_trans)
 
 end
 
@@ -198,97 +198,103 @@ class linorder = order +
 begin
 
 lemma less_linear: "x \<^loc>< y \<or> x = y \<or> y \<^loc>< x"
-  unfolding less_le using less_le linear by blast 
+unfolding less_le using less_le linear by blast
 
 lemma le_less_linear: "x \<^loc>\<le> y \<or> y \<^loc>< x"
-  by (simp add: le_less less_linear)
+by (simp add: le_less less_linear)
 
 lemma le_cases [case_names le ge]:
   "(x \<^loc>\<le> y \<Longrightarrow> P) \<Longrightarrow> (y \<^loc>\<le> x \<Longrightarrow> P) \<Longrightarrow> P"
-  using linear by blast
+using linear by blast
 
 lemma linorder_cases [case_names less equal greater]:
-    "(x \<^loc>< y \<Longrightarrow> P) \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> (y \<^loc>< x \<Longrightarrow> P) \<Longrightarrow> P"
-  using less_linear by blast
+  "(x \<^loc>< y \<Longrightarrow> P) \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> (y \<^loc>< x \<Longrightarrow> P) \<Longrightarrow> P"
+using less_linear by blast
 
 lemma not_less: "\<not> x \<^loc>< y \<longleftrightarrow> y \<^loc>\<le> x"
-  apply (simp add: less_le)
-  using linear apply (blast intro: antisym)
-  done
+apply (simp add: less_le)
+using linear apply (blast intro: antisym)
+done
+
+lemma not_less_iff_gr_or_eq:
+ "\<not>(x \<^loc>< y) \<longleftrightarrow> (x \<^loc>> y | x = y)"
+apply(simp add:not_less le_less)
+apply blast
+done
 
 lemma not_le: "\<not> x \<^loc>\<le> y \<longleftrightarrow> y \<^loc>< x"
-  apply (simp add: less_le)
-  using linear apply (blast intro: antisym)
-  done
+apply (simp add: less_le)
+using linear apply (blast intro: antisym)
+done
 
 lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x \<^loc>< y \<or> y \<^loc>< x"
-  by (cut_tac x = x and y = y in less_linear, auto)
+by (cut_tac x = x and y = y in less_linear, auto)
 
 lemma neqE: "x \<noteq> y \<Longrightarrow> (x \<^loc>< y \<Longrightarrow> R) \<Longrightarrow> (y \<^loc>< x \<Longrightarrow> R) \<Longrightarrow> R"
-  by (simp add: neq_iff) blast
+by (simp add: neq_iff) blast
 
 lemma antisym_conv1: "\<not> x \<^loc>< y \<Longrightarrow> x \<^loc>\<le> y \<longleftrightarrow> x = y"
-  by (blast intro: antisym dest: not_less [THEN iffD1])
+by (blast intro: antisym dest: not_less [THEN iffD1])
 
 lemma antisym_conv2: "x \<^loc>\<le> y \<Longrightarrow> \<not> x \<^loc>< y \<longleftrightarrow> x = y"
-  by (blast intro: antisym dest: not_less [THEN iffD1])
+by (blast intro: antisym dest: not_less [THEN iffD1])
 
 lemma antisym_conv3: "\<not> y \<^loc>< x \<Longrightarrow> \<not> x \<^loc>< y \<longleftrightarrow> x = y"
-  by (blast intro: antisym dest: not_less [THEN iffD1])
+by (blast intro: antisym dest: not_less [THEN iffD1])
 
 text{*Replacing the old Nat.leI*}
 lemma leI: "\<not> x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> x"
-  unfolding not_less .
+unfolding not_less .
 
 lemma leD: "y \<^loc>\<le> x \<Longrightarrow> \<not> x \<^loc>< y"
-  unfolding not_less .
+unfolding not_less .
 
 (*FIXME inappropriate name (or delete altogether)*)
 lemma not_leE: "\<not> y \<^loc>\<le> x \<Longrightarrow> x \<^loc>< y"
-  unfolding not_le .
+unfolding not_le .
 
 
 text {* Reverse order *}
 
 lemma linorder_reverse:
   "linorder (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
-  by unfold_locales
-    (simp add: less_le, auto intro: antisym order_trans simp add: linear)
+by unfold_locales
+  (simp add: less_le, auto intro: antisym order_trans simp add: linear)
 
 
 text {* min/max properties *}
 
 lemma min_le_iff_disj:
   "min x y \<^loc>\<le> z \<longleftrightarrow> x \<^loc>\<le> z \<or> y \<^loc>\<le> z"
-  unfolding min_def using linear by (auto intro: order_trans)
+unfolding min_def using linear by (auto intro: order_trans)
 
 lemma le_max_iff_disj:
   "z \<^loc>\<le> max x y \<longleftrightarrow> z \<^loc>\<le> x \<or> z \<^loc>\<le> y"
-  unfolding max_def using linear by (auto intro: order_trans)
+unfolding max_def using linear by (auto intro: order_trans)
 
 lemma min_less_iff_disj:
   "min x y \<^loc>< z \<longleftrightarrow> x \<^loc>< z \<or> y \<^loc>< z"
-  unfolding min_def le_less using less_linear by (auto intro: less_trans)
+unfolding min_def le_less using less_linear by (auto intro: less_trans)
 
 lemma less_max_iff_disj:
   "z \<^loc>< max x y \<longleftrightarrow> z \<^loc>< x \<or> z \<^loc>< y"
-  unfolding max_def le_less using less_linear by (auto intro: less_trans)
+unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
 lemma min_less_iff_conj [simp]:
   "z \<^loc>< min x y \<longleftrightarrow> z \<^loc>< x \<and> z \<^loc>< y"
-  unfolding min_def le_less using less_linear by (auto intro: less_trans)
+unfolding min_def le_less using less_linear by (auto intro: less_trans)
 
 lemma max_less_iff_conj [simp]:
   "max x y \<^loc>< z \<longleftrightarrow> x \<^loc>< z \<and> y \<^loc>< z"
-  unfolding max_def le_less using less_linear by (auto intro: less_trans)
+unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
 lemma split_min:
   "P (min i j) \<longleftrightarrow> (i \<^loc>\<le> j \<longrightarrow> P i) \<and> (\<not> i \<^loc>\<le> j \<longrightarrow> P j)"
-  by (simp add: min_def)
+by (simp add: min_def)
 
 lemma split_max:
   "P (max i j) \<longleftrightarrow> (i \<^loc>\<le> j \<longrightarrow> P j) \<and> (\<not> i \<^loc>\<le> j \<longrightarrow> P i)"
-  by (simp add: max_def)
+by (simp add: max_def)
 
 end
 
@@ -564,16 +570,16 @@ in [tr' All_binder, tr' Ex_binder] end
 subsection {* Transitivity reasoning *}
 
 lemma ord_le_eq_trans: "a <= b ==> b = c ==> a <= c"
-  by (rule subst)
+by (rule subst)
 
 lemma ord_eq_le_trans: "a = b ==> b <= c ==> a <= c"
-  by (rule ssubst)
+by (rule ssubst)
 
 lemma ord_less_eq_trans: "a < b ==> b = c ==> a < c"
-  by (rule subst)
+by (rule subst)
 
 lemma ord_eq_less_trans: "a = b ==> b < c ==> a < c"
-  by (rule ssubst)
+by (rule ssubst)
 
 lemma order_less_subst2: "(a::'a::order) < b ==> f b < (c::'c::order) ==>
   (!!x y. x < y ==> f x < f y) ==> f a < c"
@@ -812,16 +818,16 @@ instance bool :: order
   by intro_classes (auto simp add: le_bool_def less_bool_def)
 
 lemma le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<le> Q"
-  by (simp add: le_bool_def)
+by (simp add: le_bool_def)
 
 lemma le_boolI': "P \<longrightarrow> Q \<Longrightarrow> P \<le> Q"
-  by (simp add: le_bool_def)
+by (simp add: le_bool_def)
 
 lemma le_boolE: "P \<le> Q \<Longrightarrow> P \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
-  by (simp add: le_bool_def)
+by (simp add: le_bool_def)
 
 lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
-  by (simp add: le_bool_def)
+by (simp add: le_bool_def)
 
 lemma [code func]:
   "False \<le> b \<longleftrightarrow> True"
@@ -850,41 +856,41 @@ lemma LeastI2_order:
       !!y. P y ==> x <= y;
       !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]
    ==> Q (Least P)"
-  apply (unfold Least_def)
-  apply (rule theI2)
-    apply (blast intro: order_antisym)+
-  done
+apply (unfold Least_def)
+apply (rule theI2)
+  apply (blast intro: order_antisym)+
+done
 
 lemma Least_equality:
-    "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
-  apply (simp add: Least_def)
-  apply (rule the_equality)
-  apply (auto intro!: order_antisym)
-  done
+  "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
+apply (simp add: Least_def)
+apply (rule the_equality)
+apply (auto intro!: order_antisym)
+done
 
 lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
-  by (simp add: min_def)
+by (simp add: min_def)
 
 lemma max_leastL: "(!!x. least <= x) ==> max least x = x"
-  by (simp add: max_def)
+by (simp add: max_def)
 
 lemma min_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> min x least = least"
-  apply (simp add: min_def)
-  apply (blast intro: order_antisym)
-  done
+apply (simp add: min_def)
+apply (blast intro: order_antisym)
+done
 
 lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightarrow> max x least = x"
-  apply (simp add: max_def)
-  apply (blast intro: order_antisym)
-  done
+apply (simp add: max_def)
+apply (blast intro: order_antisym)
+done
 
 lemma min_of_mono:
-    "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
-  by (simp add: min_def)
+  "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
+by (simp add: min_def)
 
 lemma max_of_mono:
-    "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
-  by (simp add: max_def)
+  "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
+by (simp add: max_def)
 
 
 subsection {* legacy ML bindings *}
