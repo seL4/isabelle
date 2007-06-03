@@ -23,7 +23,6 @@ sig
   val ##>> : ('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd
   val ` : ('b -> 'a) -> 'b -> 'a * 'b
   val tap: ('b -> 'a) -> 'b -> 'b
-  val flip: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 
   (*options*)
   val is_some: 'a option -> bool
@@ -40,13 +39,10 @@ sig
 
   (*lists*)
   val cons: 'a -> 'a list -> 'a list
-  val dest: 'a list -> 'a * 'a list
   val append: 'a list -> 'a list -> 'a list
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
-  val unfold: int -> ('b -> 'a * 'b) -> 'b -> 'a list * 'b
-  val unfold_rev: int -> ('b -> 'a * 'b) -> 'b -> 'a list * 'b
 end;
 
 structure Basics: BASICS =
@@ -71,8 +67,6 @@ fun (f ##>> g) x = x |> f ||>> g;
 (*result views*)
 fun `f = fn x => (f x, x);
 fun tap f = fn x => (f x; x);
-
-fun flip f x y = f y x;
 
 
 (* options *)
@@ -112,56 +106,20 @@ fun can f x = is_some (try f x);
 
 fun cons x xs = x :: xs;
 
-fun dest (x :: xs) = (x, xs)
-  | dest [] = raise Empty;
-
 fun append xs ys = xs @ ys;
 
+fun fold _ [] y = y
+  | fold f (x :: xs) y = fold f xs (f x y);
 
-(* fold *)
+fun fold_rev _ [] y = y
+  | fold_rev f (x :: xs) y = f x (fold_rev f xs y);
 
-fun fold f =
-  let
-    fun fld [] y = y
-      | fld (x :: xs) y = fld xs (f x y);
-  in fld end;
-
-fun fold_rev f =
-  let
-    fun fld [] y = y
-      | fld (x :: xs) y = f x (fld xs y);
-  in fld end;
-
-fun fold_map f =
-  let
-    fun fld [] y = ([], y)
-      | fld (x :: xs) y =
-          let
-            val (x', y') = f x y;
-            val (xs', y'') = fld xs y';
-          in (x' :: xs', y'') end;
-  in fld end;
-
-
-(* unfold -- with optional limit *)
-
-fun unfold lim f =
-  let
-    fun unfld 0 ys x = (ys, x)
-      | unfld n ys x =
-          (case try f x of
-            NONE => (ys, x)
-          | SOME (y, x') => unfld (n - 1) (y :: ys) x');
-  in unfld lim [] end;
-
-fun unfold_rev lim f =
-  let
-    fun unfld 0 x = ([], x)
-      | unfld n x =
-          (case try f x of
-            NONE => ([], x)
-          | SOME (y, x') => unfld (n - 1) x' |>> cons y);
-  in unfld lim end;
+fun fold_map _ [] y = ([], y)
+  | fold_map f (x :: xs) y =
+      let
+        val (x', y') = f x y;
+        val (xs', y'') = fold_map f xs y';
+      in (x' :: xs', y'') end;
 
 end;
 
