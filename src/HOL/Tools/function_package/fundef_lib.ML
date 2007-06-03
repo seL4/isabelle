@@ -6,8 +6,6 @@ A package for general recursive function definitions.
 Some fairly general functions that should probably go somewhere else... 
 *)
 
-
-
 structure FundefLib = struct
 
 fun map_option f NONE = NONE 
@@ -19,8 +17,9 @@ fun fold_option f NONE y = y
 fun fold_map_option f NONE y = (NONE, y)
   | fold_map_option f (SOME x) y = apfst SOME (f x y);
 
-(* ??? *)
-fun eq_str (s : string, t) = (s = t) (* monomorphic equality on strings *)
+(* Ex: "The variable" ^ plural " is" "s are" vs *)
+fun plural sg pl [x] = sg
+  | plural sg pl _ = pl
 
 (* ==> logic.ML? *)
 fun mk_forall v t = all (fastype_of v) $ lambda v t
