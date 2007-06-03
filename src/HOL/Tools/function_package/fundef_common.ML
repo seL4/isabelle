@@ -9,6 +9,8 @@ Common definitions and other infrastructure.
 structure FundefCommon =
 struct
 
+local open FundefLib in
+
 (* Profiling *)
 val profile = ref false;
 
@@ -326,7 +328,7 @@ val default_config = FundefConfig { sequential=false, default="%x. arbitrary",
                                     target=NONE, domintros=false, tailrec=false }
 
 
-
+end
 end
 
 (* Common Abbreviations *)
