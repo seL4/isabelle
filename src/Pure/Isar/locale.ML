@@ -124,6 +124,15 @@ end;
 structure Locale: LOCALE =
 struct
 
+(* legacy operations *)
+
+fun gen_merge_lists _ xs [] = xs
+  | gen_merge_lists _ [] ys = ys
+  | gen_merge_lists eq xs ys = xs @ filter_out (member eq xs) ys;
+
+fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
+fun merge_alists xs = gen_merge_lists (eq_fst (op =)) xs;
+
 fun legacy_unvarifyT thm =
   let
     val cT = Thm.ctyp_of (Thm.theory_of_thm thm);
