@@ -29,6 +29,6 @@ fun content (Buffer xs) = implode (rev xs);
 
 fun write path (Buffer xs) = File.write_list path (rev xs);
 
-fun output f (Buffer xs) = Library.seq f (rev xs);
+fun output f (Buffer xs) = List.app f (rev xs);
 
 end;

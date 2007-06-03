@@ -103,7 +103,7 @@ fun generate thy funs =
             (!trace) s);
     val _ = tracing (fn () => "new definitions: " ^ (commas o maps (map fst)) funs) ();
     val _ = tab := NBE_Data.get thy;;
-    val _ = Library.seq (use_code o NBE_Codegen.generate thy
+    val _ = List.app (use_code o NBE_Codegen.generate thy
       (fn s => Symtab.defined (!tab) s)) funs;
   in NBE_Data.change thy (K (!tab)) end;
 

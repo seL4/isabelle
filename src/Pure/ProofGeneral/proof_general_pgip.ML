@@ -625,7 +625,7 @@ fun askids (Askids vs) =
          | (NONE, SOME ObjTheorem) =>
            (* A large query, but not unreasonable. ~5000 results for HOL.*)
            (* Several setids should be allowed, but Eclipse code is currently broken:
-              Library.seq (fn thy => setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy)))
+              List.app (fn thy => setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy)))
                          (ThyInfo.names()) *)
            setids (idtable ObjTheorem NONE (* this one gives ~7000 for HOL *)
                            (maps qualified_thms_of_thy (ThyInfo.names())))
