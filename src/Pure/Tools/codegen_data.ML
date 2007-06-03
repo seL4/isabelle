@@ -211,7 +211,7 @@ fun merge_funcs (thms1, thms2) =
   in (SOME consts, thms) end;
 
 val eq_string = op = : string * string -> bool;
-val eq_co = eq_pair eq_string (eq_list (is_equal o Term.typ_ord));
+val eq_co = op = : (string * typ list) * (string * typ list) -> bool;
 fun eq_dtyp ((vs1, cs1), (vs2, cs2)) = 
   gen_eq_set (eq_pair eq_string (gen_eq_set eq_string)) (vs1, vs2)
     andalso gen_eq_set eq_co (cs1, cs2);

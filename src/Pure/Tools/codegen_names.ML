@@ -232,14 +232,12 @@ fun const_policy thy (const as (c, opt_tyco)) =
 
 type tyco = string;
 type const = string;
-val string_pair_ord = prod_ord fast_string_ord fast_string_ord;
-val eq_string_pair = is_equal o string_pair_ord;
 structure Consttab = CodegenConsts.Consttab;
 
 structure StringPairTab =
   TableFun(
     type key = string * string;
-    val ord = string_pair_ord;
+    val ord = prod_ord fast_string_ord fast_string_ord;
   );
 
 datatype names = Names of {
@@ -256,8 +254,6 @@ val empty_names = Names {
   instance = (StringPairTab.empty, Symtab.empty)
 };
 
-val eq_string = op = : string * string -> bool;
-
 local
   fun mk_names (class, classrel, tyco, instance) =
     Names { class = class, classrel = classrel, tyco = tyco, instance = instance };
@@ -270,10 +266,10 @@ in
     Names { class = (class2, classrev2),
       classrel = (classrel2, classrelrev2), tyco = (tyco2, tycorev2),
       instance = (instance2, instancerev2) }) =
-    mk_names ((Symtab.merge eq_string (class1, class2), Symtab.merge eq_string (classrev1, classrev2)),
-      (StringPairTab.merge eq_string (classrel1, classrel2), Symtab.merge eq_string_pair (classrelrev1, classrelrev2)),
-      (Symtab.merge eq_string (tyco1, tyco2), Symtab.merge eq_string (tycorev1, tycorev2)),
-      (StringPairTab.merge eq_string (instance1, instance2), Symtab.merge eq_string_pair (instancerev1, instancerev2)));
+    mk_names ((Symtab.merge (op =) (class1, class2), Symtab.merge (op =) (classrev1, classrev2)),
+      (StringPairTab.merge (op =) (classrel1, classrel2), Symtab.merge (op =) (classrelrev1, classrelrev2)),
+      (Symtab.merge (op =) (tyco1, tyco2), Symtab.merge (op =) (tycorev1, tycorev2)),
+      (StringPairTab.merge (op =) (instance1, instance2), Symtab.merge (op =) (instancerev1, instancerev2)));
   fun map_class f = map_names
     (fn (class, classrel, tyco, inst) => (f class, classrel, tyco, inst));
   fun map_classrel f = map_names
@@ -297,8 +293,8 @@ structure ConstName = CodeDataFun
 (
   type T = const Consttab.table * (string * string option) Symtab.table;
   val empty = (Consttab.empty, Symtab.empty);
-  fun merge _ ((const1, constrev1), (const2, constrev2)) =
-    (Consttab.merge eq_string (const1, const2),
+  fun merge _ ((const1, constrev1), (const2, constrev2)) : T =
+    (Consttab.merge (op =) (const1, const2),
       Symtab.merge CodegenConsts.eq_const (constrev1, constrev2));
   fun purge _ NONE _ = empty
     | purge _ (SOME cs) (const, constrev) = (fold Consttab.delete_safe cs const,
