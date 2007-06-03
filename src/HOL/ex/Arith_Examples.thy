@@ -3,35 +3,35 @@
     Author: Tjark Weber
 *)
 
-header {* {\tt arith} *}
+header {* Arithmetic *}
 
 theory Arith_Examples imports Main begin
 
 text {*
-  The {\tt arith} tactic is used frequently throughout the Isabelle
+  The @{text arith} method is used frequently throughout the Isabelle
   distribution.  This file merely contains some additional tests and special
   corner cases.  Some rather technical remarks:
 
-  \verb!fast_arith_tac! is a very basic version of the tactic.  It performs no
+  @{ML fast_arith_tac} is a very basic version of the tactic.  It performs no
   meta-to-object-logic conversion, and only some splitting of operators.
-  \verb!simple_arith_tac! performs meta-to-object-logic conversion, full
-  splitting of operators, and NNF normalization of the goal.  The {\tt arith}
-  tactic combines them both, and tries other tactics (e.g.~{\tt presburger})
+  @{ML simple_arith_tac} performs meta-to-object-logic conversion, full
+  splitting of operators, and NNF normalization of the goal.  The @{text arith}
+  method combines them both, and tries other methods (e.g.~@{text presburger})
   as well.  This is the one that you should use in your proofs!
 
-  An {\tt arith}-based simproc is available as well
-  (see \verb!Fast_Arith.lin_arith_prover!),
+  An @{text arith}-based simproc is available as well
+  (see @{ML Fast_Arith.lin_arith_prover}),
   which---for performance reasons---however
-  does even less splitting than \verb!fast_arith_tac! at the moment (namely
+  does even less splitting than @{ML fast_arith_tac} at the moment (namely
   inequalities only).  (On the other hand, it does take apart conjunctions,
-  which \verb!fast_arith_tac! currently does not do.)
+  which @{ML fast_arith_tac} currently does not do.)
 *}
 
 (*
 ML {* set trace_arith; *}
 *)
 
-section {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
+subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
            @{term HOL.minus}, @{term nat}, @{term Divides.mod},
            @{term Divides.div} *}
 
@@ -130,7 +130,8 @@ lemma "(i::int) mod 42 <= 41"
   apply (tactic {* LA_Data_Ref.pre_tac 1 *})
 oops
 
-section {* Meta-Logic *}
+
+subsection {* Meta-Logic *}
 
 lemma "x < Suc y == x <= y"
   by (tactic {* simple_arith_tac 1 *})
@@ -138,7 +139,8 @@ lemma "x < Suc y == x <= y"
 lemma "((x::nat) == z ==> x ~= y) ==> x ~= y | z ~= y"
   by (tactic {* simple_arith_tac 1 *})
 
-section {* Various Other Examples *}
+
+subsection {* Various Other Examples *}
 
 lemma "(x < Suc y) = (x <= y)"
   by (tactic {* simple_arith_tac 1 *})
