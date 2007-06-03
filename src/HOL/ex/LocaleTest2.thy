@@ -19,7 +19,8 @@ ML {* set quick_and_dirty *}    (* allow for thm command in batch mode *)
 ML {* set show_hyps *}
 ML {* set show_sorts *}
 
-section {* Interpretation of Defined Concepts *}
+
+subsection {* Interpretation of Defined Concepts *}
 
 text {* Naming convention for global objects: prefixes D and d *}
 

@@ -80,7 +80,7 @@ definition
 lemmas [simp] = EX_def EG_def AX_def EF_def AF_def AG_def
 
 
-section {* Basic fixed point properties *}
+subsection {* Basic fixed point properties *}
 
 text {*
   First of all, we use the de-Morgan property of fixed points
@@ -187,7 +187,7 @@ lemma AG_I: "q \<subseteq> p \<inter> \<AX> q \<Longrightarrow> q \<subseteq> \<
   by (simp only: AG_gfp) (rule gfp_upperbound)
 
 
-section {* The tree induction principle \label{sec:calc-ctl-tree-induct} *}
+subsection {* The tree induction principle \label{sec:calc-ctl-tree-induct} *}
 
 text {*
   With the most basic facts available, we are now able to establish a
@@ -283,7 +283,7 @@ next
 qed
 
 
-section {* An application of tree induction \label{sec:calc-ctl-commute} *}
+subsection {* An application of tree induction \label{sec:calc-ctl-commute} *}
 
 text {*
   Further interesting properties of CTL expressions may be

@@ -4,9 +4,9 @@
 
 header {* Case study: Unification Algorithm *}
 
-(*<*)theory Unification
+theory Unification
 imports Main
-begin(*>*)
+begin
 
 text {* 
   This is a formalization of a first-order unification
@@ -15,13 +15,14 @@ text {*
 
   This is basically a modernized version of a previous formalization
   by Konrad Slind (see: HOL/Subst/Unify.thy), which itself builds on
-  previous work by Paulson and Manna @{text "&"} Waldinger (for details, see
+  previous work by Paulson and Manna \& Waldinger (for details, see
   there).
 
   Unlike that formalization, where the proofs of termination and
   some partial correctness properties are intertwined, we can prove
   partial correctness and termination separately.
 *}
+
 
 subsection {* Basic definitions *}
 
@@ -61,6 +62,7 @@ text {* Equivalence of substitutions: *}
 definition eqv (infix "=\<^sub>s" 50)
 where
   "s1 =\<^sub>s s2 \<equiv> \<forall>t. t \<triangleleft> s1 = t \<triangleleft> s2" 
+
 
 subsection {* Basic lemmas *}
 
@@ -104,6 +106,7 @@ lemma compose_eqv: "\<lbrakk>\<sigma> =\<^sub>s \<sigma>'; \<theta> =\<^sub>s \<
 
 lemma compose_assoc: "(a \<bullet> b) \<bullet> c =\<^sub>s a \<bullet> (b \<bullet> c)"
   by auto
+
 
 subsection {* Specification: Most general unifiers *}
 
@@ -492,7 +495,6 @@ qed
 
 subsection {* Termination proof *}
 
-
 termination unify
 proof 
   let ?R = "measures [\<lambda>(M,N). card (vars_of M \<union> vars_of N),
@@ -532,23 +534,4 @@ proof
   qed
 qed
 
-
-(*<*)end(*>*)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+end

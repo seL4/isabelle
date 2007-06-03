@@ -7,9 +7,7 @@
 header {* A SAT-based Sudoku Solver *}
 
 theory Sudoku
-
 imports Main
-
 begin
 
 text {*

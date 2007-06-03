@@ -9,7 +9,6 @@
 header {* Examples for the 'refute' command *}
 
 theory Refute_Examples imports Main
-
 begin
 
 refute_params [satsolver="dpll"]
@@ -26,9 +25,9 @@ oops
 
 (******************************************************************************)
 
-section {* Examples and Test Cases *}
+subsection {* Examples and Test Cases *}
 
-subsection {* Propositional logic *}
+subsubsection {* Propositional logic *}
 
 lemma "True"
   refute
@@ -69,7 +68,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Predicate logic *}
+subsubsection {* Predicate logic *}
 
 lemma "P x y z"
   refute
@@ -85,7 +84,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Equality *}
+subsubsection {* Equality *}
 
 lemma "P = True"
   refute
@@ -119,7 +118,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* First-Order Logic *}
+subsubsection {* First-Order Logic *}
 
 lemma "\<exists>x. P x"
   refute
@@ -213,7 +212,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Higher-Order Logic *}
+subsubsection {* Higher-Order Logic *}
 
 lemma "\<exists>P. P"
   refute
@@ -314,7 +313,7 @@ done
 
 (******************************************************************************)
 
-subsection {* Meta-logic *}
+subsubsection {* Meta-logic *}
 
 lemma "!!x. P x"
   refute
@@ -346,7 +345,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Schematic variables *}
+subsubsection {* Schematic variables *}
 
 lemma "?P"
   refute
@@ -360,7 +359,7 @@ done
 
 (******************************************************************************)
 
-subsection {* Abstractions *}
+subsubsection {* Abstractions *}
 
 lemma "(\<lambda>x. x) = (\<lambda>x. y)"
   refute
@@ -377,7 +376,7 @@ done
 
 (******************************************************************************)
 
-subsection {* Sets *}
+subsubsection {* Sets *}
 
 lemma "P (A::'a set)"
   refute
@@ -422,7 +421,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* arbitrary *}
+subsubsection {* arbitrary *}
 
 lemma "arbitrary"
   refute
@@ -442,7 +441,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* The *}
+subsubsection {* The *}
 
 lemma "The P"
   refute
@@ -466,7 +465,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Eps *}
+subsubsection {* Eps *}
 
 lemma "Eps P"
   refute
@@ -491,7 +490,7 @@ done
 
 (******************************************************************************)
 
-subsection {* Subtypes (typedef), typedecl *}
+subsubsection {* Subtypes (typedef), typedecl *}
 
 text {* A completely unspecified non-empty subset of @{typ "'a"}: *}
 
@@ -513,7 +512,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Inductive datatypes *}
+subsubsection {* Inductive datatypes *}
 
 text {* With @{text quick_and_dirty} set, the datatype package does
   not generate certain axioms for recursion operators.  Without these
@@ -521,7 +520,7 @@ text {* With @{text quick_and_dirty} set, the datatype package does
 
 ML {* reset quick_and_dirty *}
 
-subsubsection {* unit *}
+text {* unit *}
 
 lemma "P (x::unit)"
   refute
@@ -543,7 +542,7 @@ lemma "P (case x of () \<Rightarrow> u)"
   refute
 oops
 
-subsubsection {* option *}
+text {* option *}
 
 lemma "P (x::'a option)"
   refute
@@ -569,7 +568,7 @@ lemma "P (case x of None \<Rightarrow> n | Some u \<Rightarrow> s u)"
   refute
 oops
 
-subsubsection {* * *}
+text {* * *}
 
 lemma "P (x::'a*'b)"
   refute
@@ -603,7 +602,7 @@ lemma "P (case x of Pair a b \<Rightarrow> p a b)"
   refute
 oops
 
-subsubsection {* + *}
+text {* + *}
 
 lemma "P (x::'a+'b)"
   refute
@@ -633,7 +632,7 @@ lemma "P (case x of Inl a \<Rightarrow> l a | Inr b \<Rightarrow> r b)"
   refute
 oops
 
-subsubsection {* Non-recursive datatypes *}
+text {* Non-recursive datatypes *}
 
 datatype T1 = A | B
 
@@ -701,7 +700,7 @@ lemma "P (case x of E f \<Rightarrow> e f)"
   refute
 oops
 
-subsubsection {* Recursive datatypes *}
+text {* Recursive datatypes *}
 
 text {* nat *}
 
@@ -783,7 +782,7 @@ lemma "P (case x of Leaf a \<Rightarrow> l a | Node a b \<Rightarrow> n a b)"
   refute
 oops
 
-subsubsection {* Mutually recursive datatypes *}
+text {* Mutually recursive datatypes *}
 
 datatype 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
      and 'a bexp = Equal "'a aexp" "'a aexp"
@@ -824,7 +823,7 @@ lemma "P (case x of Equal a1 a2 \<Rightarrow> equal a1 a2)"
   refute
 oops
 
-subsubsection {* Other datatype examples *}
+text {* Other datatype examples *}
 
 datatype Trie = TR "Trie list"
 
@@ -915,7 +914,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Records *}
+subsubsection {* Records *}
 
 (*TODO: make use of pair types, rather than typedef, for record types*)
 
@@ -936,7 +935,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Inductively defined sets *}
+subsubsection {* Inductively defined sets *}
 
 consts
   arbitrarySet :: "'a set"
@@ -974,7 +973,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Examples involving special functions *}
+subsubsection {* Examples involving special functions *}
 
 lemma "card x = 0"
   refute
@@ -1026,7 +1025,7 @@ oops
 
 (******************************************************************************)
 
-subsection {* Axiomatic type classes and overloading *}
+subsubsection {* Axiomatic type classes and overloading *}
 
 text {* A type class without axioms: *}
 

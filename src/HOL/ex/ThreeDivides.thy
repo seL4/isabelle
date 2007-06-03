@@ -9,7 +9,7 @@ theory ThreeDivides
 imports Main LaTeXsugar
 begin
 
-section {* Abstract *}
+subsection {* Abstract *}
 
 text {*
 The following document presents a proof of the Three Divides N theorem
@@ -27,9 +27,10 @@ therefore $$\forall n\; 3|n \Longleftrightarrow 3|\sum{n_j}$$
 @{text "\<box>"}
 *}
 
-section {* Formal proof *}
 
-subsection {* Miscellaneous summation lemmas *}
+subsection {* Formal proof *}
+
+subsubsection {* Miscellaneous summation lemmas *}
 
 text {* If $a$ divides @{text "A x"} for all x then $a$ divides any
 sum over terms of the form @{text "(A x)*(P x)"} for arbitrary $P$. *}
@@ -48,7 +49,8 @@ next
   thus ?case by simp
 qed
 
-subsection {* Generalised Three Divides *}
+
+subsubsection {* Generalised Three Divides *}
 
 text {* This section solves a generalised form of the three divides
 problem. Here we show that for any sequence of numbers the theorem
@@ -131,14 +133,15 @@ proof
 qed
 
 
-subsection {* Three Divides Natural *}
+subsubsection {* Three Divides Natural *}
 
 text {* This section shows that for all natural numbers we can
 generate a sequence of digits less than ten that represent the decimal
 expansion of the number. We then use the lemma @{text
 "three_div_general"} to prove our final theorem. *}
 
-subsubsection {* Definitions of length and digit sum *}
+
+text {* \medskip Definitions of length and digit sum. *}
 
 text {* This section introduces some functions to calculate the
 required properties of natural numbers. We then proceed to prove some
@@ -215,7 +218,7 @@ next
 qed
 
 
-subsubsection {* Final theorem *}
+text {* \medskip Final theorem. *}
 
 text {* We now combine the general theorem @{text "three_div_general"}
 and existence result of @{text "exp_exists"} to prove our final
@@ -233,6 +236,5 @@ proof (unfold sumdig_def)
   ultimately 
   show "3 dvd n = (3 dvd (\<Sum>x<nlen n. n div 10^x mod 10))" by simp
 qed
-
 
 end
