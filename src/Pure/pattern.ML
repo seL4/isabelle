@@ -151,7 +151,11 @@ fun mknewhnf(env,binders,is,F as (a,_),T,js) =
   in Envir.update (((F, T), mkhnf (binders, is, G, js)), env') end;
 
 
-(* mk_proj_list(is) = [ |is| - k | 1 <= k <= |is| and is[k] >= 0 ] *)
+(*predicate: downto0 (is, n) <=> is = [n, n - 1, ..., 0]*)
+fun downto0 (i :: is, n) = i = n andalso downto0 (is, n - 1)
+  | downto0 ([], n) = n = ~1;
+
+(*mk_proj_list(is) = [ |is| - k | 1 <= k <= |is| and is[k] >= 0 ]*)
 fun mk_proj_list is =
     let fun mk(i::is,j) = if is_some i then j :: mk(is,j-1) else mk(is,j-1)
           | mk([],_)    = []
