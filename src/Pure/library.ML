@@ -21,6 +21,7 @@ sig
   (*functions*)
   val I: 'a -> 'a
   val K: 'a -> 'b -> 'a
+  val flip: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
   val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
   val uncurry: ('a -> 'b -> 'c) -> 'a * 'b -> 'c
   val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
@@ -129,7 +130,6 @@ sig
   val dec: int ref -> int
   val upto: int * int -> int list
   val downto: int * int -> int list
-  val downto0: int list * int -> bool
   val radixpand: int * int -> int list
   val radixstring: int * string * int -> string
   val string_of_int: int -> string
@@ -159,7 +159,6 @@ sig
   val suffix: string -> string -> string
   val unprefix: string -> string -> string
   val unsuffix: string -> string -> string
-  val plural: 'a -> 'a -> 'b list -> 'a
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
 
@@ -193,14 +192,9 @@ sig
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
 
-  (* lists as multisets *)
+  (*lists as multisets*)
   val remove1: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
-  val gen_submultiset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-
-  (*lists as tables -- see also Pure/General/alist.ML*)
-  val gen_merge_lists: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
-  val merge_lists: ''a list -> ''a list -> ''a list
-  val merge_alists: (''a * 'b) list -> (''a * 'b) list -> (''a * 'b) list
+  val submultiset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
 
   (*balanced trees*)
   exception Balance
@@ -256,7 +250,6 @@ sig
   val take: int * 'a list -> 'a list
   val drop: int * 'a list -> 'a list
   val last_elem: 'a list -> 'a
-  val seq: ('a -> unit) -> 'a list -> unit
 end;
 
 structure Library: LIBRARY =
@@ -266,6 +259,7 @@ struct
 
 fun I x = x;
 fun K x = fn _ => x;
+fun flip f x y = f y x;
 fun curry f x y = f (x, y);
 fun uncurry f (x, y) = f x y;
 
@@ -346,7 +340,6 @@ fun eq_pair eqx eqy ((x1, y1), (x2, y2)) = eqx (x1, x2) andalso eqy (y1, y2);
 
 fun swap (x, y) = (y, x);
 
-(*apply function to components*)
 fun apfst f (x, y) = (f x, y);
 fun apsnd f (x, y) = (x, f y);
 fun pairself f (x, y) = (f x, f y);
@@ -457,7 +450,9 @@ fun eq_list eq (list1, list2) =
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
 
-fun chop n xs = unfold_rev n dest xs;
+fun chop 0 xs = ([], xs)
+  | chop _ [] = ([], [])
+  | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
 
 (*take the first n elements from a list*)
 fun take (n, []) = []
@@ -541,10 +536,6 @@ fun burrow f xss = unflat xss (f (flat xss));
 fun fold_burrow f xss s =
   apfst (unflat xss) (f (flat xss) s);
 
-(*like Lisp's MAPC -- seq proc [x1, ..., xn] evaluates
-  (proc x1; ...; proc xn) for side effects*)
-val seq = List.app;
-
 (*separate s [x1, x2, ..., xn]  ===>  [x1, s, x2, s, ..., s, xn]*)
 fun separate s (x :: (xs as _ :: _)) = x :: s :: separate s xs
   | separate _ xs = xs;
@@ -586,12 +577,9 @@ fun map2 _ [] [] = []
   | map2 f (x :: xs) (y :: ys) = f x y :: map2 f xs ys
   | map2 _ _ _ = raise UnequalLengths;
 
-fun fold2 f =
-  let
-    fun fold_aux [] [] z = z
-      | fold_aux (x :: xs) (y :: ys) z = fold_aux xs ys (f x y z)
-      | fold_aux _ _ _ = raise UnequalLengths;
-  in fold_aux end;
+fun fold2 f [] [] z = z
+  | fold2 f (x :: xs) (y :: ys) z = fold2 f xs ys (f x y z)
+  | fold2 f _ _ _ = raise UnequalLengths;
 
 fun zip_options (x :: xs) (SOME y :: ys) = (x, y) :: zip_options xs ys
   | zip_options (_ :: xs) (NONE :: ys) = zip_options xs ys
@@ -625,10 +613,10 @@ fun take_prefix (pred : 'a -> bool)  (xs: 'a list) : 'a list * 'a list =
 
 fun chop_prefix eq ([], ys) = ([], ([], ys))
   | chop_prefix eq (xs, []) = ([], (xs, []))
-  | chop_prefix eq (xs as x::xs', ys as y::ys') =
+  | chop_prefix eq (xs as x :: xs', ys as y :: ys') =
       if eq (x, y) then
         let val (ps', xys'') = chop_prefix eq (xs', ys')
-        in (x::ps', xys'') end
+        in (x :: ps', xys'') end
       else ([], (xs, ys));
 
 (* [x1, ..., xi, ..., xn]  --->  ([x1, ..., xi], [x(i+1), ..., xn])
@@ -646,6 +634,8 @@ fun prefixes xs = [] :: prefixes1 xs;
 
 fun suffixes1 xs = map rev (prefixes1 (rev xs));
 fun suffixes xs = [] :: suffixes1 xs;
+
+
 
 (** integers **)
 
@@ -669,10 +659,6 @@ fun (i upto j) =
 (*make the list [from, from - 1, ..., to]*)
 fun (i downto j) =
   if i < j then [] else i :: (i - 1 downto j);
-
-(*predicate: downto0 (is, n) <=> is = [n, n - 1, ..., 0]*)
-fun downto0 (i :: is, n) = i = n andalso downto0 (is, n - 1)
-  | downto0 ([], n) = n = ~1;
 
 
 (* convert integers to strings *)
@@ -699,8 +685,8 @@ val string_of_int = Int.toString;
 fun signed_string_of_int i =
   if i < 0 then "-" ^ string_of_int (~ i) else string_of_int i;
 
-fun string_of_indexname (a,0) = a
-  | string_of_indexname (a,i) = a ^ "_" ^ Int.toString i;
+fun string_of_indexname (a, 0) = a
+  | string_of_indexname (a, i) = a ^ "_" ^ string_of_int i;
 
 
 (* read integers *)
@@ -797,15 +783,12 @@ fun unsuffix sffx s =
   if String.isSuffix sffx s then String.substring (s, 0, size s - size sffx)
   else raise Fail "unsuffix";
 
-(* Ex: "The variable" ^ plural " is" "s are" vs *)
-fun plural sg pl [x] = sg
-  | plural sg pl _ = pl
-
 fun replicate_string 0 _ = ""
   | replicate_string 1 a = a
   | replicate_string k a =
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
       else replicate_string (k div 2) (a ^ a) ^ a;
+
 
 
 (** lists as sets -- see also Pure/General/ord_list.ML **)
@@ -935,24 +918,15 @@ fun has_duplicates eq =
   in dups end;
 
 
+
 (** lists as multisets **)
 
 fun remove1 _ _ [] = raise Empty
-  | remove1 eq y (x::xs) = if eq(y,x) then xs else x :: remove1 eq y xs;
+  | remove1 eq y (x::xs) = if eq (y, x) then xs else x :: remove1 eq y xs;
 
-fun gen_submultiset _  ([],    _)  = true
-  | gen_submultiset eq (x::xs, ys) =
-      member eq ys x  andalso  gen_submultiset eq (xs, remove1 eq x ys);
+fun submultiset _ ([], _)  = true
+  | submultiset eq (x :: xs, ys) = member eq ys x andalso submultiset eq (xs, remove1 eq x ys);
 
-
-(** association lists -- legacy operations **)
-
-fun gen_merge_lists _ xs [] = xs
-  | gen_merge_lists _ [] ys = ys
-  | gen_merge_lists eq xs ys = xs @ filter_out (member eq xs) ys;
-
-fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
-fun merge_alists xs = gen_merge_lists (eq_fst (op =)) xs;
 
 
 (** balanced trees **)
@@ -1091,6 +1065,7 @@ fun frequency xs =
     fun pick n ((k: int, x) :: xs) =
       if n <= k then x else pick (n - k) xs
   in pick (random_range 1 sum) xs end;
+
 
 
 (** current directory **)
