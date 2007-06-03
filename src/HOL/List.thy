@@ -381,8 +381,8 @@ fun list_eq ss (Const(_,eqT) $ lhs $ rhs) =
           (K (simp_tac (Simplifier.inherit_context ss @{simpset}) 1));
       in SOME (thm RS @{thm neq_if_length_neq}) end
   in
-    if m < n andalso gen_submultiset (op aconv) (ls,rs) orelse
-       n < m andalso gen_submultiset (op aconv) (rs,ls)
+    if m < n andalso submultiset (op aconv) (ls,rs) orelse
+       n < m andalso submultiset (op aconv) (rs,ls)
     then prove_neq() else NONE
   end;
 
