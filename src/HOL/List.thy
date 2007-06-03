@@ -221,10 +221,16 @@ primrec
 
 subsubsection {* List comprehehsion *}
 
-text{* At the moment this theory provides only the input syntax for
-list comprehension: @{text"[x. x \<leftarrow> xs, \<dots>]"} rather than
-\verb![x| x <- xs, ...]! as in Haskell.
+text{* Input syntax for Haskell-like list comprehension
+notation. Typical example: @{text"[(x,y). x \<leftarrow> xs, y \<leftarrow> ys, x \<noteq> y]"}, the list of all pairs of distinct elements from @{text xs} and @{text ys}.
 
+There are a number of differences to Haskell.  The general synatx is
+@{text"[e. p \<leftarrow> xs, \<dots>]"} rather than \verb![x| x <- xs, ...]!. The
+first qualifier must be a generator (@{text"p \<leftarrow> xs"}). Patterns in
+generators can only be tuples (at the moment). Finally, guards are
+translated into filters, which simplifies theorem proving.
+*}
+(*
 The print translation from internal form to list comprehensions would
 be nice. Unfortunately one cannot just turn the translations around
 because in the final equality @{text p} occurs twice on the
@@ -234,17 +240,18 @@ A more substantial extension would be proper theorem proving
 support. For example, it would be nice if
 @{text"set[f x y. x \<leftarrow> xs, y \<leftarrow> ys, P x y]"}
 produced something like
-@{term"{z. EX x: set xs. EX y:set ys. P x y \<and> z = f x y}"}.  *}
+@{term"{z. EX x: set xs. EX y:set ys. P x y \<and> z = f x y}"}.
+*)
 
-nonterminals lc_gentest
+nonterminals lc_qual
 
 syntax
-"_listcompr" :: "'a \<Rightarrow> idt \<Rightarrow> 'b list \<Rightarrow> lc_gentest \<Rightarrow> 'a list" ("[_ . _ \<leftarrow> __")
-"_listcompr" :: "'a \<Rightarrow> idt \<Rightarrow> 'b list \<Rightarrow> lc_gentest \<Rightarrow> 'a list" ("[_ . _ <- __")
-"_lc_end" :: "lc_gentest" ("]")
-"_lc_gen" :: "idt \<Rightarrow> 'a list \<Rightarrow> lc_gentest \<Rightarrow> lc_gentest" (",_ \<leftarrow> __")
-"_lc_gen" :: "idt \<Rightarrow> 'a list \<Rightarrow> lc_gentest \<Rightarrow> lc_gentest" (",_ <- __")
-"_lc_test" :: "bool \<Rightarrow> lc_gentest \<Rightarrow> lc_gentest" (",__")
+"_listcompr" :: "'a \<Rightarrow> pttrn \<Rightarrow> 'b list \<Rightarrow> lc_qual \<Rightarrow> 'a list"  ("[_ . _ \<leftarrow> __")
+"_listcompr" :: "'a \<Rightarrow> pttrn \<Rightarrow> 'b list \<Rightarrow> lc_qual \<Rightarrow> 'a list"  ("[_ . _ <- __")
+"_lc_end" :: "lc_qual" ("]")
+"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual \<Rightarrow> lc_qual" (",_ \<leftarrow> __")
+"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual \<Rightarrow> lc_qual" (",_ <- __")
+"_lc_test" :: "bool \<Rightarrow> lc_qual \<Rightarrow> lc_qual" (",__")
 
 
 translations
