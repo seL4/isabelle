@@ -560,8 +560,9 @@ instead of "arbitrary"
 * new function listsum :: 'a list => 'a for arbitrary monoids.
   Special syntax: "SUM x <- xs. f x" (and latex variants)
 
-* Library/List_Comprehension.thy provides Haskell-like input syntax for list
-  comprehensions.
+* new (input only) syntax for Haskell-like list comprehension, eg
+  [(x,y). x <- xs, y <- ys, x ~= y]
+  For details see List.thy.
 
 * Library/Pretty_Int.thy: maps HOL numerals on target language integer literals
     when generating code.
