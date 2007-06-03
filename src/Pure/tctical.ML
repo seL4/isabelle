@@ -56,7 +56,8 @@ sig
   val SINGLE            : tactic -> thm -> thm option
   val SOMEGOAL          : (int -> tactic) -> tactic
   val strip_context     : term -> (string * typ) list * term list * term
-  val SUBGOAL           : ((term*int) -> tactic) -> int -> tactic
+  val CSUBGOAL          : ((cterm * int) -> tactic) -> int -> tactic
+  val SUBGOAL           : ((term * int) -> tactic) -> int -> tactic
   val suppress_tracing  : bool ref
   val THEN              : tactic * tactic -> tactic
   val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
@@ -196,8 +197,8 @@ fun RANGE [] _ = all_tac
 fun print_tac msg =
     (fn st =>
      (tracing msg;
-      tracing ((Pretty.string_of o Pretty.chunks o 
-                 Display.pretty_goals (! Display.goals_limit)) st); 
+      tracing ((Pretty.string_of o Pretty.chunks o
+                 Display.pretty_goals (! Display.goals_limit)) st);
       Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
@@ -340,10 +341,13 @@ fun TRYALL tac = ALLGOALS (TRY o tac);
 
 
 (*Make a tactic for subgoal i, if there is one.  *)
-fun SUBGOAL goalfun i st =
-  (case try Logic.nth_prem (i, Thm.prop_of st) of
+fun CSUBGOAL goalfun i st =
+  (case SOME (Thm.cprem_of st i) handle THM _ => NONE of
     SOME goal => goalfun (goal, i) st
   | NONE => Seq.empty);
+
+fun SUBGOAL goalfun =
+  CSUBGOAL (fn (goal, i) => goalfun (Thm.term_of goal, i));
 
 (*Returns all states that have changed in subgoal i, counted from the LAST
   subgoal.  For stac, for example.*)
@@ -421,7 +425,7 @@ fun metahyps_split_prem prem =
   in (insts,params,hyps,concl)  end;
 
 fun metahyps_aux_tac tacf (prem,gno) state =
-  let val (insts,params,hyps,concl) = metahyps_split_prem prem 
+  let val (insts,params,hyps,concl) = metahyps_split_prem prem
       val {thy = sign,maxidx,...} = rep_thm state
       val cterm = cterm_of sign
       val chyps = map cterm hyps
@@ -475,8 +479,8 @@ end;
 
 (*Returns the theorem list that METAHYPS would supply to its tactic*)
 fun metahyps_thms i state =
-  let val prem = Logic.nth_prem (i, Thm.prop_of state) 
-      val (insts,params,hyps,concl) = metahyps_split_prem prem 
+  let val prem = Logic.nth_prem (i, Thm.prop_of state)
+      val (insts,params,hyps,concl) = metahyps_split_prem prem
       val cterm = cterm_of (Thm.theory_of_thm state)
   in SOME (map (forall_elim_vars 0 o assume o cterm) hyps) end
   handle TERM ("nth_prem", [A]) => NONE;
@@ -494,7 +498,7 @@ fun print_vars_terms thy (n,thm) =
       | find_vars _ (Free _) = I
       | find_vars _ (Bound _) = I
       | find_vars thy (Abs (_, _, t)) = find_vars thy t
-      | find_vars thy (t1 $ t2) = 
+      | find_vars thy (t1 $ t2) =
           find_vars thy t1 #> find_vars thy t1;
     val prem = Logic.nth_prem (n, Thm.prop_of thm)
     val tms = find_vars thy prem []
@@ -505,9 +509,9 @@ fun print_vars_terms thy (n,thm) =
 in
 
 fun METAHYPS tacf n thm = SUBGOAL (metahyps_aux_tac tacf) n thm
-    handle THM("assume: variables",_,_) => (print_vars_terms (theory_of_thm thm) (n,thm); Seq.empty)
+  handle THM("assume: variables",_,_) => (print_vars_terms (theory_of_thm thm) (n,thm); Seq.empty)
 
-end; (*local*)
+end;
 
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm seq.*)
 fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Seq.empty;
