@@ -318,23 +318,18 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
     val simpset3 = HOL_basic_ss addsplits [abs_split]
     val ct = cterm_of sg (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
-    val pre_thm = Seq.hd (EVERY
+    val pre_thm = Seq.hd ((EVERY o (map TRY)) 
       [simp_tac mod_div_simpset 1, simp_tac simpset0 1,
-       TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1),
-       TRY (simp_tac simpset3 1), TRY (simp_tac presburger_ss 1)]
+       simp_tac simpset1 1, simp_tac simpset2 1,
+       simp_tac simpset3 1, simp_tac presburger_ss 1]
       (trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
     val (th, tac) = case (prop_of pre_thm) of
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
     let val pth =
-          (* If quick_and_dirty then run without proof generation as oracle*)
              if !quick_and_dirty
              then presburger_oracle sg (Pattern.eta_long [] t1)
-(*
-assume (cterm_of sg
-               (HOLogic.mk_Trueprop(HOLogic.mk_eq(t1,CooperDec.integer_qelim (Pattern.eta_long [] t1)))))
-*)
              else tmproof_of_int_qelim sg (Pattern.eta_long [] t1)
     in
           (trace_msg ("calling procedure with term:\n" ^
