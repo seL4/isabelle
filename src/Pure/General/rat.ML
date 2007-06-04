@@ -122,10 +122,10 @@ fun rounddown (r as Rat (a, p, q)) =
 
 end;
 
-infix 5 +/; (*FIXME infix 5?*)
+infix 5 +/; 
 infix 5 -/;
 infix 7 */;
-infix 7 //; (*FIXME infix 7?*)
+infix 7 //; 
 infix 4 =/ </ <=/ >/ >=/ <>/;
 
 fun a +/ b = Rat.add a b;
