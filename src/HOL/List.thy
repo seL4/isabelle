@@ -228,49 +228,61 @@ subsubsection {* List comprehehsion *}
 text{* Input syntax for Haskell-like list comprehension
 notation. Typical example: @{text"[(x,y). x \<leftarrow> xs, y \<leftarrow> ys, x \<noteq> y]"}, the list of all pairs of distinct elements from @{text xs} and @{text ys}.
 
-There are a number of differences to Haskell.  The general synatx is
-@{text"[e. p \<leftarrow> xs, \<dots>]"} rather than \verb![x| x <- xs, ...]!. The
-first qualifier must be a generator (@{text"p \<leftarrow> xs"}). Patterns in
-generators can only be tuples (at the moment). Finally, guards are
-translated into filters, which simplifies theorem proving.
+There are two differences to Haskell.  The general synatx is
+@{text"[e. p \<leftarrow> xs, \<dots>]"} rather than \verb![x| x <- xs, ...]!. Patterns in
+generators can only be tuples (at the moment).
+
+To avoid misunderstandings, the translation is not reversed upon
+output. You can add the inverse translations in your own theory if you
+desire.
+
+Hint: formulae containing complex list comprehensions may become quite
+unreadable after the simplifier has finished with them. It can be
+helpful to introduce definitions for such list comprehensions and
+treat them separately in suitable lemmas.
 *}
 (*
-The print translation from internal form to list comprehensions would
-be nice. Unfortunately one cannot just turn the translations around
-because in the final equality @{text p} occurs twice on the
-right-hand side. Due to this restriction, the translation must be hand-coded.
-
-A more substantial extension would be proper theorem proving
-support. For example, it would be nice if
+Proper theorem proving support would be nice. For example, if
 @{text"set[f x y. x \<leftarrow> xs, y \<leftarrow> ys, P x y]"}
 produced something like
 @{term"{z. EX x: set xs. EX y:set ys. P x y \<and> z = f x y}"}.
 *)
 
-nonterminals lc_qual
+nonterminals lc_qual lc_quals
 
 syntax
-"_listcompr" :: "'a \<Rightarrow> pttrn \<Rightarrow> 'b list \<Rightarrow> lc_qual \<Rightarrow> 'a list"  ("[_ . _ \<leftarrow> __")
-"_listcompr" :: "'a \<Rightarrow> pttrn \<Rightarrow> 'b list \<Rightarrow> lc_qual \<Rightarrow> 'a list"  ("[_ . _ <- __")
-"_lc_end" :: "lc_qual" ("]")
-"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual \<Rightarrow> lc_qual" (",_ \<leftarrow> __")
-"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual \<Rightarrow> lc_qual" (",_ <- __")
-"_lc_test" :: "bool \<Rightarrow> lc_qual \<Rightarrow> lc_qual" (",__")
-
+"_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
+"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ <- _")
+"_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
+"_lc_end" :: "lc_quals" ("]")
+"_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals" (", __")
 
 translations
 "[e. p\<leftarrow>xs]" => "map (%p. e) xs"
-"_listcompr e p xs (_lc_gen q ys Q)" =>
- "concat (map (%p. _listcompr e q ys Q) xs)"
-"_listcompr e p xs (_lc_test P Q)" => "_listcompr e p (filter (%p. P) xs) Q"
+"_listcompr e (_lc_gen p xs) (_lc_quals Q Qs)"
+ => "concat (map (%p. _listcompr e Q Qs) xs)"
+"[e. P]" => "if P then [e] else []"
+"_listcompr e (_lc_test P) (_lc_quals Q Qs)"
+ => "if P then (_listcompr e Q Qs) else []"
 
-(* Some examples:
-term "[(x,y). x \<leftarrow> xs, x<y]"
-term "[(x,y). x \<leftarrow> xs, x<y, z\<leftarrow>zs]"
-term "[(x,y). x \<leftarrow> xs, y \<leftarrow> ys, x<y]"
-term "[(x,y,z). x \<leftarrow> xs, y \<leftarrow> ys, z\<leftarrow> zs]"
-term "[x. x \<leftarrow> xs, x < a, x > b]"
+(*
+term "[(x,y,z). b]"
+term "[(x,y,z). x \<leftarrow> xs]"
+term "[(x,y,z). x<a, x>b]"
+term "[(x,y,z). x<a, x\<leftarrow>xs]"
+term "[(x,y,z). x\<leftarrow>xs, x>b]"
+term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys]"
+term "[(x,y,z). x<a, x>b, x=d]"
+term "[(x,y,z). x<a, x>b, y\<leftarrow>ys]"
+term "[(x,y,z). x<a, x\<leftarrow>xs,y>b]"
+term "[(x,y,z). x<a, x\<leftarrow>xs, y\<leftarrow>ys]"
+term "[(x,y,z). x\<leftarrow>xs, x>b, y<a]"
+term "[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]"
+term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]"
+term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]"
 *)
+
 
 subsubsection {* @{const Nil} and @{const Cons} *}
 
