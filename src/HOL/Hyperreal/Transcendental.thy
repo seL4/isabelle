@@ -726,6 +726,13 @@ lemma exp_add: "exp (x + y) = exp x * exp y"
 unfolding exp_def
 by (simp only: Cauchy_product summable_norm_exp exp_series_add)
 
+lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
+unfolding exp_def
+apply (subst of_real.suminf)
+apply (rule summable_exp_generic)
+apply (simp add: scaleR_conv_of_real)
+done
+
 lemma exp_ge_add_one_self_aux: "0 \<le> (x::real) ==> (1 + x) \<le> exp(x)"
 apply (drule order_le_imp_less_or_eq, auto)
 apply (simp add: exp_def)
