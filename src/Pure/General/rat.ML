@@ -29,7 +29,7 @@ sig
   val rounddown: rat -> rat
 end;
 
-structure Rat :> RAT =
+structure Rat : RAT =
 struct
 
 datatype rat = Rat of bool * Intt.int * Intt.int;
@@ -122,10 +122,10 @@ fun rounddown (r as Rat (a, p, q)) =
 
 end;
 
-infix 6 +/; (*FIXME infix 5?*)
+infix 5 +/; (*FIXME infix 5?*)
 infix 5 -/;
 infix 7 */;
-infix 8 //; (*FIXME infix 7?*)
+infix 7 //; (*FIXME infix 7?*)
 infix 4 =/ </ <=/ >/ >=/ <>/;
 
 fun a +/ b = Rat.add a b;
