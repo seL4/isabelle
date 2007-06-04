@@ -37,6 +37,7 @@ sig
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
   val comp_hhf: thm -> thm -> thm
+  val assume_rule_tac: Proof.context -> int -> tactic
 end;
 
 structure Goal: GOAL =
@@ -235,6 +236,18 @@ fun comp_hhf tha thb =
     ([th], _) => th
   | ([], _) => raise THM ("comp_hhf: no unifiers", 1, [tha, thb])
   | _  => raise THM ("comp_hhf: multiple unifiers", 1, [tha, thb]));
+
+
+(* non-atomic goal assumptions *)
+
+fun assume_rule_tac ctxt = norm_hhf_tac THEN' CSUBGOAL (fn (goal, i) =>
+  let
+    val ((_, goal'), ctxt') = Variable.focus goal ctxt;
+    val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';
+    val Rs = filter_out (Logic.is_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
+    val tacs = Rs |> map (fn R =>
+      Tactic.etac (MetaSimplifier.norm_hhf (Thm.trivial R)) THEN_ALL_NEW assume_tac);
+  in fold_rev (curry op APPEND') tacs (K no_tac) i end);
 
 end;
 
