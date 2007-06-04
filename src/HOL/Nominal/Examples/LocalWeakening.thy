@@ -11,13 +11,16 @@ begin
 
 atom_decl name
 
-(* Curry-style lambda terms in locally nameless *)
-(* representation without any binders           *)
+text {* Curry-style lambda terms in locally nameless 
+        representation without any binders           *}
+
 nominal_datatype llam = 
     lPar "name"
   | lVar "nat"
   | lApp "llam" "llam"
   | lLam "llam"
+
+text {* definition of vsub - at the moment a bit cumbersome *}
 
 lemma llam_cases:
   "(\<exists>a. t = lPar a) \<or> (\<exists>n. t = lVar n) \<or> (\<exists>t1 t2. t = lApp t1 t2) \<or> 
@@ -69,6 +72,8 @@ lemma freshen_eqvt[eqvt]:
   shows "pi\<bullet>(freshen t p) = freshen (pi\<bullet>t) (pi\<bullet>p)"
 by (simp add: vsub_eqvt freshen_def perm_nat_def)
 
+text {* types *}
+
 nominal_datatype ty =
     TVar "nat"
   | TArr "ty" "ty" (infix "\<rightarrow>" 200)
@@ -88,6 +93,7 @@ by (induct T rule: ty.weak_induct)
    (simp_all add: fresh_nat)
 
 text {* valid contexts *}
+
 types cxt = "(name\<times>ty) list"
 
 inductive2
@@ -104,12 +110,14 @@ lemma v2_elim:
 using valid.cases[OF a]
 by (auto)
 
+text {* "weak" typing relation *}
+
 inductive2
-  typing :: "cxt\<Rightarrow>llam\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [80,80,80] 80)
+  typing :: "cxt\<Rightarrow>llam\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60)
 where
-    t_lPar[intro]: "\<lbrakk>valid \<Gamma>; (a,T)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lPar a : T"
+    t_lPar[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lPar x : T"
   | t_lApp[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : T1\<rightarrow>T2; \<Gamma> \<turnstile> t2 : T1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lApp t1 t2 : T2"
-  | t_lLam[intro]: "\<lbrakk>a\<sharp>t; ((a,T1)#\<Gamma>) \<turnstile> (freshen t a) : T2\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lLam t : T1\<rightarrow>T2"
+  | t_lLam[intro]: "\<lbrakk>x\<sharp>t; (x,T1)#\<Gamma> \<turnstile> freshen t x : T2\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lLam t : T1\<rightarrow>T2"
 
 equivariance typing
 
@@ -119,32 +127,34 @@ lemma typing_implies_valid:
 using a
 by (induct) (auto dest: v2_elim)
 
+text {* we explicitly have to say to strengthen over the variable x *}
 nominal_inductive typing
-  avoids t_lLam: a
+  avoids t_lLam: x
   by (auto simp add: fresh_prod dest: v2_elim typing_implies_valid)
   
-(* strong induction principle for typing *)
+text {* strong induction principle for typing *}
 thm typing.strong_induct
+
+text {* sub-contexts *}
 
 abbreviation
   "sub_context" :: "cxt \<Rightarrow> cxt \<Rightarrow> bool" ("_ \<subseteq> _" [60,60] 60) 
 where
   "\<Gamma>1 \<subseteq> \<Gamma>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>1 \<longrightarrow> (x,T)\<in>set \<Gamma>2"
 
-lemma weakening_automatic:
+lemma weakening_almost_automatic:
   assumes a: "\<Gamma>1 \<turnstile> t : T"
   and     b: "\<Gamma>1 \<subseteq> \<Gamma>2"
   and     c: "valid \<Gamma>2"
 shows "\<Gamma>2 \<turnstile> t : T"
 using a b c
 apply(nominal_induct \<Gamma>1 t T avoiding: \<Gamma>2 rule: typing.strong_induct)
-apply(auto)[1]
-apply(auto)[1]
-apply(drule_tac x="(a,T1)#\<Gamma>2" in meta_spec)
+apply(auto)
+apply(drule_tac x="(x,T1)#\<Gamma>2" in meta_spec)
 apply(auto intro!: t_lLam)
 done
 
-lemma weakening:
+lemma weakening_in_more_detail:
   assumes a: "\<Gamma>1 \<turnstile> t : T"
   and     b: "\<Gamma>1 \<subseteq> \<Gamma>2"
   and     c: "valid \<Gamma>2"
@@ -161,14 +171,14 @@ proof(nominal_induct \<Gamma>1 t T avoiding: \<Gamma>2 rule: typing.strong_induc
 next
   case (t_lLam x t T1 \<Gamma>1 T2 \<Gamma>2) (* lambda case *)
   have vc: "x\<sharp>\<Gamma>2" "x\<sharp>t" by fact  (* variable convention *)
-  have ih: "\<lbrakk>(x,T1)#\<Gamma>1 \<subseteq> (x,T1)#\<Gamma>2; valid ((x,T1)#\<Gamma>2)\<rbrakk> \<Longrightarrow>  ((x,T1)#\<Gamma>2) \<turnstile> freshen t x : T2" by fact
+  have ih: "\<lbrakk>(x,T1)#\<Gamma>1 \<subseteq> (x,T1)#\<Gamma>2; valid ((x,T1)#\<Gamma>2)\<rbrakk> \<Longrightarrow> (x,T1)#\<Gamma>2 \<turnstile> freshen t x : T2" by fact
   have "\<Gamma>1 \<subseteq> \<Gamma>2" by fact
   then have "(x,T1)#\<Gamma>1 \<subseteq> (x,T1)#\<Gamma>2" by simp
   moreover
   have "valid \<Gamma>2" by fact
   then have "valid ((x,T1)#\<Gamma>2)" using vc by (simp add: v2)
-  ultimately have "((x,T1)#\<Gamma>2) \<turnstile> freshen t x : T2" using ih by simp
-  with vc show "\<Gamma>2 \<turnstile> lLam t : T1\<rightarrow>T2" by (auto simp add: fresh_prod)
+  ultimately have "(x,T1)#\<Gamma>2 \<turnstile> freshen t x : T2" using ih by simp
+  with vc show "\<Gamma>2 \<turnstile> lLam t : T1\<rightarrow>T2" by auto 
 qed (auto) (* app case *)
 
 end
