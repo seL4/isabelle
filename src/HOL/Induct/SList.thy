@@ -24,7 +24,9 @@ datatype 'a m = Node 'a * ('a m) list
 Tidied by lcp.  Still needs removal of nat_rec.
 *)
 
-theory SList imports Sexp begin
+theory SList
+imports Sexp
+begin
 
 (*Hilbert_Choice is needed for the function "inv"*)
 
@@ -77,12 +79,12 @@ definition
 
 (*Declaring the abstract list constructors*)
 
-no_translations
+(*<*)no_translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
 no_syntax
   Nil :: "'a list"  ("[]")
-  Cons :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "#" 65)
+  Cons :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "#" 65)(*>*)
 
 definition
   Nil       :: "'a list"                               ("[]") where
@@ -159,10 +161,8 @@ definition
   map       :: "('a=>'b) => ('a list => 'b list)" where
   "map f xs = list_rec xs [] (%x l r. f(x)#r)"
 
-no_syntax
-  append :: "'a list => 'a list => 'a list" (infixr "@" 65)
-hide const "List.append"
-
+(*<*)no_syntax
+  "\<^const>List.append" :: "'a list => 'a list => 'a list" (infixr "@" 65)(*>*)
 definition
   append    :: "['a list, 'a list] => 'a list"   (infixr "@" 65) where
   "xs@ys = list_rec xs ys (%x l r. x#r)"
@@ -230,8 +230,6 @@ primrec
   enum_Suc: "enum i (Suc j) = (if i <= j then enum i j @ [j] else [])"
 
 
-no_syntax
-  "@" :: "'a list => 'a list => 'a list"    (infixr 65)
 no_translations
   "[x:xs . P]" == "filter (%x. P) xs"
 

@@ -17,7 +17,6 @@ datatype 'a list =
 subsection{*Basic list processing functions*}
 
 consts
-  append :: "'a list => 'a list => 'a list" (infixr "@" 65)
   filter:: "('a => bool) => 'a list => 'a list"
   concat:: "'a list list => 'a list"
   foldl :: "('b => 'a => 'b) => 'b => 'a list => 'b"
@@ -110,9 +109,14 @@ primrec
   "map f [] = []"
   "map f (x#xs) = f(x)#map f xs"
 
-primrec
-  append_Nil: "[]@ys = ys"
-  append_Cons: "(x#xs)@ys = x#(xs@ys)"
+function (*authentic syntax for append -- revert to primrec
+  as soon as "authentic" primrec is available*)
+  append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65)
+where
+  append_Nil: "[] @ ys = ys"
+  | append_Cons: "(x # xs) @ ys = x # (xs @ ys)"
+by (auto, case_tac a, auto)
+termination by (relation "measure (size o fst)") auto
 
 primrec
   "rev([]) = []"
