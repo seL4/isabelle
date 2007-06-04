@@ -2402,7 +2402,7 @@ by (induct A set: finite)
    (simp_all add: Inf_insert_simp ACIf.fold1_insert_idem [OF ACIf_inf])
 
 lemma (in complete_lattice) Sup_fold1:
-"finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Squnion>A = fold1 (op \<squnion>) A"
+  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Squnion>A = fold1 (op \<squnion>) A"
 by (induct A set: finite)
    (simp_all add: Sup_insert_simp ACIf.fold1_insert_idem [OF ACIf_sup])
 
@@ -2415,7 +2415,7 @@ text{*
   over (non-empty) sets by means of @{text fold1}.
 *}
 
-locale Linorder = linorder -- {* we do not pollute the @{text linorder} clas *}
+locale Linorder = linorder -- {* we do not pollute the @{text linorder} class *}
 begin
 
 definition
@@ -2614,6 +2614,7 @@ proof
     ord_class.max)
 qed
 
+(*FIXME: temporary solution - doesn't work properly*)
 interpretation [folded ord_class.min ord_class.max, unfolded Linorder_Min Linorder_Max]:
   Linorder_ab_semigroup_add ["op \<le> \<Colon> 'a\<Colon>{linorder, pordered_ab_semigroup_add} \<Rightarrow> 'a \<Rightarrow> bool" "op <" "op +"]
   by (rule Linorder_ab_semigroup_add.intro,
