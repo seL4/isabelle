@@ -310,7 +310,7 @@ fun proveadd thy m n =
     prove_bysimp thy (simpset_of thy) 
                  (HOLogic.mk_eq(HOLogic.mk_binop @{const_name HOL.plus} (mk_real m,mk_real n),mk_real (m+n)));
 fun provediv thy m n = 
-    let val g = gcd (m,n) 
+    let val g = Integer.gcd m n
         val m' = m div g
         val n'= n div g
     in
@@ -391,7 +391,7 @@ fun prove_nadd thy vs (t,m) (s,n) =
             val ts = prove_naddh thy vs (t,s)
         in [nm,ts] MRS nadd_cong_same
         end
-    else let val l = lcm (m,n)
+    else let val l = Integer.lcm m n
              val m' = l div m
              val n' = l div n
              val mml = proveprod thy m' m

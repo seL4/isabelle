@@ -7,7 +7,7 @@ Implementation of real numbers as mantisse-exponent pairs.
 
 signature FLOAT =
 sig
-  type float = Intt.int * Intt.int
+  type float = integer * integer
   val zero: float
   val eq: float * float -> bool
   val cmp: float * float -> order
@@ -25,27 +25,27 @@ end;
 structure Float : FLOAT =
 struct
 
-type float = Intt.int * Intt.int;
+type float = integer * integer;
 
-val zero = (Intt.zero, Intt.zero);
+val zero = (Integer.zero, Integer.zero);
 
 fun add (a1, b1) (a2, b2) =
-  if Intt.cmp (b1, b2) = LESS then
-    (Intt.add a1 (Intt.mult a2 (Intt.exp (Intt.sub b2 b1))), b1)
+  if Integer.cmp (b1, b2) = LESS then
+    (a1 +% a2 *% Integer.exp (b2 -% b1), b1)
   else
-    (Intt.add (Intt.mult a1 (Intt.exp (Intt.sub b1 b2))) a2, b2);
+    (a1 *% Integer.exp (b1 -% b2) +% a2, b2);
 
 fun sub (a1, b1) (a2, b2) =
-  if Intt.cmp (b1, b2) = LESS then
-    (Intt.sub a1 (Intt.mult a2 (Intt.exp (Intt.sub b2 b1))), b1)
+  if Integer.cmp (b1, b2) = LESS then
+    (a1 -% a2 *% Integer.exp (b2 -% b1), b1)
   else
-    (Intt.sub (Intt.mult a1 (Intt.exp (Intt.sub b1 b2))) a2, b2);
+    (a1 *% Integer.exp (b1 -% b2) -% a2, b2);
 
-fun neg (a, b) = (Intt.neg a, b);
+fun neg (a, b) = (Integer.neg a, b);
 
-fun mult (a1, b1) (a2, b2) = (Intt.mult a1 a2, Intt.add b1 b2);
+fun mult (a1, b1) (a2, b2) = (a1 *% a2, b1 +% b2);
 
-fun cmp_zero (a, b) = Intt.cmp_zero a;
+fun cmp_zero (a, b) = Integer.cmp_zero a;
 
 fun cmp (r, s) = cmp_zero (sub r s);
 
@@ -54,7 +54,7 @@ fun eq (r, s) = cmp (r, s) = EQUAL;
 fun min r s = case cmp (r, s) of LESS => r | _ => s;
 fun max r s = case cmp (r, s) of LESS => s | _ => r;
 
-fun positive_part (a, b) = (Intt.max Intt.zero a, b);
-fun negative_part (a, b) = (Intt.min Intt.zero a, b);
+fun positive_part (a, b) = (Integer.max Integer.zero a, b);
+fun negative_part (a, b) = (Integer.min Integer.zero a, b);
 
 end;

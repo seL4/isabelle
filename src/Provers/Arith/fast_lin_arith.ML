@@ -308,7 +308,7 @@ fun add_ineq (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
 
 fun elim_var v (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
   let val c1 = nth l1 v and c2 = nth l2 v
-      val m = lcm(abs c1, abs c2)
+      val m = Integer.lcm (abs c1) (abs c2)
       val m1 = m div (abs c1) and m2 = m div (abs c2)
       val (n1,n2) =
         if (c1 >= 0) = (c2 >= 0)
@@ -498,10 +498,10 @@ fun mkthm (sg:theory, ss) (asms:thm list) (just:injust) : thm =
   end
 end;
 
-fun coeff poly atom : IntInf.int =
-  AList.lookup (op =) poly atom |> the_default 0;
+fun coeff poly atom =
+  AList.lookup (op =) poly atom |> the_default Integer.zero;
 
-fun lcms (is : IntInf.int list) : IntInf.int = Library.foldl lcm (1, is);
+fun lcms ks = fold Integer.lcm ks Integer.one;
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s

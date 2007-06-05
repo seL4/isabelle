@@ -14,8 +14,9 @@ sig
   val dest_bal: term -> term * term
   (*rules*)
   val prove_conv: tactic -> tactic -> Proof.context -> term * term -> thm
-  val norm_tac: tactic			(*AC0 etc.*)
-  val multiply_tac: IntInf.int -> tactic	(*apply a ~~ b  ==  k * a ~~ k * b  (for k > 0)*)
+  val norm_tac: tactic (*AC0 etc.*)
+  val multiply_tac: integer -> tactic
+    (*apply a ~~ b  ==  k * a ~~ k * b  (for k > 0)*)
 end;
 
 signature CANCEL_FACTOR =
@@ -26,14 +27,6 @@ end;
 
 functor CancelFactorFun(Data: CANCEL_FACTOR_DATA): CANCEL_FACTOR =
 struct
-
-
-(* greatest common divisor *)
-
-fun gcd (0, n) = n
-  | gcd (m, n) = gcd (n mod m, m);
-
-val gcds = foldl gcd;
 
 
 (* count terms *)
@@ -48,8 +41,8 @@ fun count_terms ts = foldr ins_term (sort Term.term_ord ts, []);
 
 (* divide sum *)
 
-fun div_sum d tks =
-  Data.mk_sum (flat (map (fn (t, k) => replicate (k div d) t) tks));
+fun div_sum d =
+  Data.mk_sum o maps (fn (t, k) => replicate (k div d) t);
 
 
 (* the simplification procedure *)
@@ -64,12 +57,15 @@ fun proc ss t =
       | ts_us =>
           let
             val (tks, uks) = pairself count_terms ts_us;
-            val d = gcds (gcds (0, map snd tks), map snd uks);
+            val d = 0
+              |> fold (Integer.gcd o snd) tks
+              |> fold (Integer.gcd o snd) uks;
+            val d' = Integer.machine_int d;
           in
             if d = 0 orelse d = 1 then NONE
             else SOME
               (Data.prove_conv (Data.multiply_tac d) Data.norm_tac (Simplifier.the_context ss)
-                (t, Data.mk_bal (div_sum d tks, div_sum d uks)))
+                (t, Data.mk_bal (div_sum d' tks, div_sum d' uks)))
           end));
 
 

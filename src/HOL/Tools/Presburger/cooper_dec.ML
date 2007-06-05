@@ -222,7 +222,6 @@ fun posineq fm = case fm of
 (* ------------------------------------------------------------------------- *) 
 (*gcd calculates gcd (a,b) and helps lcm_num calculating lcm (a,b)*) 
  
-(*BEWARE: replaces Library.gcd!! There is also Library.lcm!*)
 fun gcd (a:IntInf.int) b = if a=0 then b else gcd (b mod a) a ; 
 fun lcm_num a b = (abs a*b) div (gcd (abs a) (abs b)); 
  

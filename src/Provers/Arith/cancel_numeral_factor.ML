@@ -57,7 +57,7 @@ fun proc ss t =
     and (m2, t2') = Data.dest_coeff t2
     val d = (*if both are negative, also divide through by ~1*)
       if (m1<0 andalso m2<=0) orelse
-         (m1<=0 andalso m2<0) then ~ (abs(gcd(m1,m2))) else abs (gcd(m1,m2))
+         (m1<=0 andalso m2<0) then ~ (abs (Integer.gcd m1 m2)) else abs (Integer.gcd m1 m2)
     val _ = if d=1 then   (*trivial, so do nothing*)
               raise TERM("cancel_numeral_factor", [])
             else ()

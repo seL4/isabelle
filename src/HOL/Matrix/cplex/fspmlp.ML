@@ -207,8 +207,8 @@ fun calcr safe_propagation xlen names prec A b =
 
         fun test_1 (lower, upper) =
             if lower = upper then
-                (if Float.eq (lower, (Intt.int ~1, Intt.zero)) then ~1
-                 else if Float.eq (lower, (Intt.int 1, Intt.zero)) then 1
+                (if Float.eq (lower, (Integer.int ~1, Integer.zero)) then ~1
+                 else if Float.eq (lower, (Integer.int 1, Integer.zero)) then 1
                  else 0)
             else 0
 
@@ -288,7 +288,7 @@ fun calcr safe_propagation xlen names prec A b =
                     val b1 = case Inttab.lookup r1 index of NONE => raise (Load ("x-value not bounded from below: "^(names index))) | SOME x => x
                     val b2 = case Inttab.lookup r2 index of NONE => raise (Load ("x-value not bounded from above: "^(names index))) | SOME x => x
                     val abs_max = Float.max (Float.neg (Float.negative_part b1)) (Float.positive_part b2)
-                    val i' = Intt.int index
+                    val i' = Integer.int index
                 in
                     (add_row_entry r i' abs_max, (add_row_entry r12_1 i' b1, add_row_entry r12_2 i' b2))
                 end
