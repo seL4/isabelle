@@ -66,24 +66,24 @@ proof
   proof (cases zs rule: rev_cases)
     assume "zs = []"
     with zs have "xs = ys @ [y]" by simp
-    thus ?thesis ..
+    then show ?thesis ..
   next
     fix z zs' assume "zs = zs' @ [z]"
     with zs have "ys = xs @ zs'" by simp
-    hence "xs \<le> ys" ..
-    thus ?thesis ..
+    then have "xs \<le> ys" ..
+    then show ?thesis ..
   qed
 next
   assume "xs = ys @ [y] \<or> xs \<le> ys"
-  thus "xs \<le> ys @ [y]"
+  then show "xs \<le> ys @ [y]"
   proof
     assume "xs = ys @ [y]"
-    thus ?thesis by simp
+    then show ?thesis by simp
   next
     assume "xs \<le> ys"
     then obtain zs where "ys = xs @ zs" ..
-    hence "ys @ [y] = xs @ (zs @ [y])" by simp
-    thus ?thesis ..
+    then have "ys @ [y] = xs @ (zs @ [y])" by simp
+    then show ?thesis ..
   qed
 qed
 
@@ -96,15 +96,15 @@ lemma same_prefix_prefix [simp]: "(xs @ ys \<le> xs @ zs) = (ys \<le> zs)"
 lemma same_prefix_nil [iff]: "(xs @ ys \<le> xs) = (ys = [])"
 proof -
   have "(xs @ ys \<le> xs @ []) = (ys \<le> [])" by (rule same_prefix_prefix)
-  thus ?thesis by simp
+  then show ?thesis by simp
 qed
 
 lemma prefix_prefix [simp]: "xs \<le> ys ==> xs \<le> ys @ zs"
 proof -
   assume "xs \<le> ys"
   then obtain us where "ys = xs @ us" ..
-  hence "ys @ zs = xs @ (us @ zs)" by simp
-  thus ?thesis ..
+  then have "ys @ zs = xs @ (us @ zs)" by simp
+  then show ?thesis ..
 qed
 
 lemma append_prefixD: "xs @ ys \<le> zs \<Longrightarrow> xs \<le> zs"
@@ -178,8 +178,8 @@ theorem parallel_decomp:
   "xs \<parallel> ys ==> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"
 proof (induct xs rule: rev_induct)
   case Nil
-  hence False by auto
-  thus ?case ..
+  then have False by auto
+  then show ?case ..
 next
   case (snoc x xs)
   show ?case
@@ -190,20 +190,20 @@ next
     proof (cases ys')
       assume "ys' = []" with ys have "xs = ys" by simp
       with snoc have "[x] \<parallel> []" by auto
-      hence False by blast
-      thus ?thesis ..
+      then have False by blast
+      then show ?thesis ..
     next
       fix c cs assume ys': "ys' = c # cs"
       with snoc ys have "xs @ [x] \<parallel> xs @ c # cs" by (simp only:)
-      hence "x \<noteq> c" by auto
+      then have "x \<noteq> c" by auto
       moreover have "xs @ [x] = xs @ x # []" by simp
       moreover from ys ys' have "ys = xs @ c # cs" by (simp only:)
       ultimately show ?thesis by blast
     qed
   next
-    assume "ys < xs" hence "ys \<le> xs @ [x]" by (simp add: strict_prefix_def)
+    assume "ys < xs" then have "ys \<le> xs @ [x]" by (simp add: strict_prefix_def)
     with snoc have False by blast
-    thus ?thesis ..
+    then show ?thesis ..
   next
     assume "xs \<parallel> ys"
     with snoc obtain as b bs c cs where neq: "(b::'a) \<noteq> c"
