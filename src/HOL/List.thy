@@ -3031,4 +3031,24 @@ lemma ex_nat_less [code unfold]:
   "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
   by auto
 
+lemma foldl_append_append: "\<And> ss ss'. foldl (op @) (ss@ss') xs = ss@(foldl (op @) ss' xs)"
+by (induct xs, simp_all)
+
+lemma foldl_append_map_set: "\<And> ss. set (foldl (op @) ss (map f xs)) = set ss \<union> UNION (set xs) (\<lambda>x. set (f x))"
+proof(induct xs)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs ss)
+  have "set (foldl op @ ss (map f (x # xs))) = set (foldl op @ (ss @ f x) (map f xs))" by simp
+  also have "\<dots> = set (ss@ f x) \<union> UNION (set xs) (\<lambda>x. set (f x))" using prems  by simp
+  also have "\<dots>= set ss \<union> set (f x) \<union> UNION (set xs) (\<lambda>x. set (f x))" by simp
+  also have "\<dots> = set ss \<union> UNION (set (x#xs)) (\<lambda>x. set (f x))"
+    by (simp add: Un_assoc)
+  finally show ?case by simp
+qed
+
+lemma foldl_append_map_Nil_set: 
+  "set (foldl (op @) [] (map f xs)) = UNION (set xs) (\<lambda>x. set (f x))"
+using foldl_append_map_set[where ss="[]" and xs="xs" and f="f"] by simp
+
 end
