@@ -8,9 +8,17 @@ no_document use_thy "Parity";
 no_document use_thy "GCD";
 
 no_document time_use_thy "Classpackage";
-no_document time_use_thy "Eval_examples";
-no_document time_use_thy "Random";
-no_document time_use_thy "Codegenerator_Rat";
+
+no_document time_use_thy "Eval";
+time_use_thy "Eval_Examples";
+
+no_document time_use_thy "State_Monad";
+no_document time_use_thy "Pretty_Int";
+time_use_thy "Random";
+
+no_document time_use_thy "ExecutableRat";
+no_document time_use_thy "EfficientNat";
+time_use_thy "Codegenerator_Rat";
 no_document time_use_thy "Codegenerator";
 
 time_use_thy "Higher_Order_Logic";
@@ -49,6 +57,8 @@ time_use_thy "MergeSort";
 time_use_thy "Puzzle";
 
 time_use_thy "Lagrange";
+time_use_thy "Groebner_Examples";
+
 time_use_thy "Commutative_RingEx";
 time_use_thy "Commutative_Ring_Complete";
 time_use_thy "Reflection";
