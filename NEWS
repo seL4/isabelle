@@ -738,8 +738,7 @@ renaming (e.g. ``List.memberl.simps'').
 * Renamed constants "0" to "HOL.zero_class.zero" and "1" to "HOL.one_class.one".
 INCOMPATIBILITY.
 
-* Added theory Code_Generator providing class 'eq', allowing for code
-generation with polymorphic equality.
+* Added class "HOL.eq", allowing for code generation with polymorphic equality.
 
 * Numeral syntax: type 'bin' which was a mere type copy of 'int' has
 been abandoned in favour of plain 'int'. INCOMPATIBILITY --
@@ -951,6 +950,8 @@ polymorphic versions (INCOMPATIBILITY):
 
 
 *** ML ***
+
+* Generic arithmetic modules: Tools/integer.ML, Tools/rat.ML, Tools/float.ML
 
 * Context data interfaces (Theory/Proof/GenericDataFun): removed
 name/print, uninitialized data defaults to ad-hoc copy of empty value,

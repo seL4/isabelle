@@ -124,8 +124,6 @@ sig
   val suffixes: 'a list -> 'a list list
 
   (*integers*)
-  val gcd: IntInf.int * IntInf.int -> IntInf.int
-  val lcm: IntInf.int * IntInf.int -> IntInf.int
   val inc: int ref -> int
   val dec: int ref -> int
   val upto: int * int -> int list
@@ -638,13 +636,6 @@ fun suffixes xs = [] :: suffixes1 xs;
 
 
 (** integers **)
-
-fun gcd (x, y) =
-  let fun gxd x y : IntInf.int =
-    if y = IntInf.fromInt 0 then x else gxd y (x mod y)
-  in if x < y then gxd y x else gxd x y end;
-
-fun lcm (x, y) = (x * y) div gcd (x, y);
 
 fun inc i = (i := ! i + 1; ! i);
 fun dec i = (i := ! i - 1; ! i);

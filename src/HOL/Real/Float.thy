@@ -7,7 +7,7 @@ header {* Floating Point Representation of the Reals *}
 
 theory Float
 imports Real Parity
-uses "~~/src/Pure/General/float.ML" ("float_arith.ML")
+uses "~~/src/Tools/float.ML" ("float_arith.ML")
 begin
 
 definition

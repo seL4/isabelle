@@ -5,7 +5,7 @@
 Unbounded integers.
 *)
 
-signature INTT =
+signature INTEGER =
 sig
   type int
   val zero: int
@@ -18,6 +18,7 @@ sig
   val eq: int * int -> bool
   val cmp: int * int -> order
   val le: int -> int -> bool
+  val lt: int -> int -> bool
   val cmp_zero: int -> order
   val min: int -> int -> int
   val max: int -> int -> int
@@ -29,12 +30,15 @@ sig
   val div: int -> int -> int
   val mod: int -> int -> int
   val neg: int -> int
+  val signabs: int -> bool * int
   val exp: int -> int
   val log: int -> int
   val pow: int -> int -> int (* exponent -> base -> result *)
+  val gcd: int -> int -> int
+  val lcm: int -> int -> int
 end;
 
-structure Intt: INTT =
+structure Integer : INTEGER =
 struct
 
 open IntInf;
@@ -52,7 +56,8 @@ val int_of_string = fromString;
 val eq = op = : int * int -> bool;
 val cmp = compare;
 val le = curry (op <=);
-val cmp_zero = curry cmp zero;
+val lt = curry (op <);
+fun cmp_zero k = cmp (k, zero);
 
 val min = curry min;
 val max = curry max;
@@ -67,6 +72,8 @@ nonfix div val div = curry div;
 nonfix mod val mod = curry mod;
 val neg = ~;
 
+fun signabs k = if cmp_zero k = LESS then (false, neg k) else (true, k);
+
 fun pow k l =
   let
     fun pw 0 = 1
@@ -79,4 +86,31 @@ fun pow k l =
 fun exp k = pow k two;
 val log = int o log2;
 
+fun gcd x y =
+  let
+    fun gxd x y = if y = zero then x else gxd y (mod x y)
+  in if lt x y then gxd y x else gxd x y end;
+
+fun lcm x y = div (mult x y) (gcd x y);
+
 end;
+
+type integer = Integer.int;
+
+infix 7 *%;
+infix 6 +% -%; 
+infix 4 =% <% <=% >% >=% <>%;
+
+fun a +% b = Integer.add a b;
+fun a -% b = a +% Integer.neg b;
+fun a *% b = Integer.mult a b;
+fun a =% b = Integer.eq (a, b);
+fun a <% b = Integer.lt a b;
+fun a <=% b = Integer.le a b;
+fun a >% b = b <% a;
+fun a >=% b = b <=% a;
+fun a <>% b = not (a =% b);
+
+structure Intt = Integer; (*FIXME*)
+val gcd = uncurry Integer.gcd; (*FIXME*)
+val lcm = uncurry Integer.lcm; (*FIXME*)
