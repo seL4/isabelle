@@ -99,11 +99,12 @@ fun unordered_pairs [] = []
   | unordered_pairs (x::xs) = map (pair x) (x::xs) @ unordered_pairs xs
 
 
-(* term.ML *)
+(* FIXME cf. Term.exists_subterm *)
 fun forall_aterms P (t $ u) = forall_aterms P t andalso forall_aterms P u
   | forall_aterms P (Abs (_, _, t)) = forall_aterms P t
   | forall_aterms P a = P a
 
+(* FIXME cf. Term.exists_subterm *)
 fun exists_aterm P = not o forall_aterms (not o P)
 
 

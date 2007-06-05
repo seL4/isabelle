@@ -40,12 +40,10 @@ fun eq_data arg = eq_fst eq_key arg;
 
 structure Data = GenericDataFun
 (
-  val name = "HOL/norm";
   type T = (thm * entry) list;
   val empty = [];
   val extend = I;
   fun merge _ = AList.merge eq_key (K true);
-  fun print _ _ = ();
 );
 
 val get = Data.get o Context.Proof;
