@@ -638,7 +638,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy \
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy \
   ex/BT.thy ex/BinEx.thy ex/CTL.thy \
   ex/Chinese.thy ex/Classical.thy ex/Classpackage.thy \
-  ex/Eval_examples.thy ex/Random.thy \
+  ex/Eval_Examples.thy ex/Groebner_Examples.thy ex/Random.thy \
   ex/Codegenerator.thy ex/Codegenerator_Rat.thy \
   ex/Commutative_RingEx.thy ex/Hex_Bin_Examples.thy \
   ex/Commutative_Ring_Complete.thy ex/ExecutableContent.thy \
