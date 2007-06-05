@@ -179,6 +179,66 @@ lemmas real_root_ge_0_iff [simp] = real_root_le_iff [where x=0, simplified]
 lemmas real_root_le_0_iff [simp] = real_root_le_iff [where y=0, simplified]
 lemmas real_root_eq_0_iff [simp] = real_root_eq_iff [where y=0, simplified]
 
+lemma real_root_gt_1_iff [simp]: "0 < n \<Longrightarrow> (1 < root n y) = (1 < y)"
+by (insert real_root_less_iff [where x=1], simp)
+
+lemma real_root_lt_1_iff [simp]: "0 < n \<Longrightarrow> (root n x < 1) = (x < 1)"
+by (insert real_root_less_iff [where y=1], simp)
+
+lemma real_root_ge_1_iff [simp]: "0 < n \<Longrightarrow> (1 \<le> root n y) = (1 \<le> y)"
+by (insert real_root_le_iff [where x=1], simp)
+
+lemma real_root_le_1_iff [simp]: "0 < n \<Longrightarrow> (root n x \<le> 1) = (x \<le> 1)"
+by (insert real_root_le_iff [where y=1], simp)
+
+lemma real_root_eq_1_iff [simp]: "0 < n \<Longrightarrow> (root n x = 1) = (x = 1)"
+by (insert real_root_eq_iff [where y=1], simp)
+
+text {* Roots of roots *}
+
+lemma real_root_Suc_0 [simp]: "root (Suc 0) x = x"
+by (simp add: odd_real_root_unique)
+
+lemma real_root_pos_mult_exp:
+  "\<lbrakk>0 < m; 0 < n; 0 < x\<rbrakk> \<Longrightarrow> root (m * n) x = root m (root n x)"
+by (rule real_root_pos_unique, simp_all add: power_mult)
+
+lemma real_root_mult_exp:
+  "\<lbrakk>0 < m; 0 < n\<rbrakk> \<Longrightarrow> root (m * n) x = root m (root n x)"
+apply (rule linorder_cases [where x=x and y=0])
+apply (subgoal_tac "root (m * n) (- x) = root m (root n (- x))")
+apply (simp add: real_root_minus)
+apply (simp_all add: real_root_pos_mult_exp)
+done
+
+lemma real_root_commute:
+  "\<lbrakk>0 < m; 0 < n\<rbrakk> \<Longrightarrow> root m (root n x) = root n (root m x)"
+by (simp add: real_root_mult_exp [symmetric] mult_commute)
+
+text {* Monotonicity in first argument *}
+
+lemma real_root_strict_decreasing:
+  "\<lbrakk>0 < n; n < N; 1 < x\<rbrakk> \<Longrightarrow> root N x < root n x"
+apply (subgoal_tac "root n (root N x) ^ n < root N (root n x) ^ N", simp)
+apply (simp add: real_root_commute power_strict_increasing
+            del: real_root_pow_pos2)
+done
+
+lemma real_root_strict_increasing:
+  "\<lbrakk>0 < n; n < N; 0 < x; x < 1\<rbrakk> \<Longrightarrow> root n x < root N x"
+apply (subgoal_tac "root N (root n x) ^ N < root n (root N x) ^ n", simp)
+apply (simp add: real_root_commute power_strict_decreasing
+            del: real_root_pow_pos2)
+done
+
+lemma real_root_decreasing:
+  "\<lbrakk>0 < n; n < N; 1 \<le> x\<rbrakk> \<Longrightarrow> root N x \<le> root n x"
+by (auto simp add: order_le_less real_root_strict_decreasing)
+
+lemma real_root_increasing:
+  "\<lbrakk>0 < n; n < N; 0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> root n x \<le> root N x"
+by (auto simp add: order_le_less real_root_strict_increasing)
+
 text {* Roots of multiplication and division *}
 
 lemma real_root_mult_lemma:
