@@ -549,12 +549,8 @@ in
 fun coregular_algebra thy = retrieve_algebra thy (K true) |> snd;
 fun operational_algebra thy =
   let
-    fun add_iff_operational class classes =
-      if (not o null o these o Option.map #params o try (AxClass.get_definition thy)) class
-        orelse (length o gen_inter (op =))
-          ((Sign.certify_sort thy o Sign.super_classes thy) class, classes) >= 2
-      then class :: classes
-      else classes;
+    fun add_iff_operational class =
+      can (AxClass.get_definition thy) class ? cons class;
     val operational_classes = fold add_iff_operational (Sign.all_classes thy) []
   in retrieve_algebra thy (member (op =) operational_classes) end;
 
