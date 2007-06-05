@@ -238,7 +238,7 @@ fun freeze_spec th =
 fun resop nf [prem] = resolve_tac (nf prem) 1;
 
 (*Any need to extend this list with 
-  "HOL.type_class","Code_Generator.eq_class","ProtoPure.term"?*)
+  "HOL.type_class","HOL.eq_class","ProtoPure.term"?*)
 val has_meta_conn = 
     exists_Const (member (op =) ["==", "==>", "all", "prop"] o #1);
 
