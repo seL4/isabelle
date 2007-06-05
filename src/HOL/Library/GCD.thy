@@ -316,4 +316,108 @@ proof -
   with igcd_pos show "?g' = 1" by simp
 qed
 
+text{* LCM *}
+
+definition "lcm = (\<lambda>(m,n). m*n div gcd(m,n))"
+
+definition "ilcm = (\<lambda>i j. int (lcm(nat(abs i),nat(abs j))))"
+
+(* ilcm_dvd12 are needed later *)
+lemma lcm_dvd1: 
+  assumes mpos: " m >0"
+  and npos: "n>0"
+  shows "m dvd (lcm(m,n))"
+proof-
+  have "gcd(m,n) dvd n" by simp
+  then obtain "k" where "n = gcd(m,n) * k" using dvd_def by auto
+  then have "m*n div gcd(m,n) = m*(gcd(m,n)*k) div gcd(m,n)" by (simp add: mult_ac)
+  also have "\<dots> = m*k" using mpos npos gcd_zero by simp
+  finally show ?thesis by (simp add: lcm_def)
+qed
+
+lemma lcm_dvd2: 
+  assumes mpos: " m >0"
+  and npos: "n>0"
+  shows "n dvd (lcm(m,n))"
+proof-
+  have "gcd(m,n) dvd m" by simp
+  then obtain "k" where "m = gcd(m,n) * k" using dvd_def by auto
+  then have "m*n div gcd(m,n) = (gcd(m,n)*k)*n div gcd(m,n)" by (simp add: mult_ac)
+  also have "\<dots> = n*k" using mpos npos gcd_zero by simp
+  finally show ?thesis by (simp add: lcm_def)
+qed
+
+lemma ilcm_dvd1: 
+assumes anz: "a \<noteq> 0" 
+  and bnz: "b \<noteq> 0"
+  shows "a dvd (ilcm a b)"
+proof-
+  let ?na = "nat (abs a)"
+  let ?nb = "nat (abs b)"
+  have nap: "?na >0" using anz by simp
+  have nbp: "?nb >0" using bnz by simp
+  from nap nbp have "?na dvd lcm(?na,?nb)" using lcm_dvd1 by simp
+  thus ?thesis by (simp add: ilcm_def dvd_int_iff)
+qed
+
+
+lemma ilcm_dvd2: 
+assumes anz: "a \<noteq> 0" 
+  and bnz: "b \<noteq> 0"
+  shows "b dvd (ilcm a b)"
+proof-
+  let ?na = "nat (abs a)"
+  let ?nb = "nat (abs b)"
+  have nap: "?na >0" using anz by simp
+  have nbp: "?nb >0" using bnz by simp
+  from nap nbp have "?nb dvd lcm(?na,?nb)" using lcm_dvd2 by simp
+  thus ?thesis by (simp add: ilcm_def dvd_int_iff)
+qed
+
+lemma zdvd_self_abs1: "(d::int) dvd (abs d)"
+by (case_tac "d <0", simp_all)
+
+lemma zdvd_self_abs2: "(abs (d::int)) dvd d"
+by (case_tac "d<0", simp_all)
+
+lemma zdvd_abs1: "((d::int) dvd t) = ((abs d) dvd t)"
+ by (cases "d < 0") simp_all
+
+(* lcm a b is positive for positive a and b *)
+
+lemma lcm_pos: 
+  assumes mpos: "m > 0"
+  and npos: "n>0"
+  shows "lcm (m,n) > 0"
+
+proof(rule ccontr, simp add: lcm_def gcd_zero)
+assume h:"m*n div gcd(m,n) = 0"
+from mpos npos have "gcd (m,n) \<noteq> 0" using gcd_zero by simp
+hence gcdp: "gcd(m,n) > 0" by simp
+with h
+have "m*n < gcd(m,n)"
+  by (cases "m * n < gcd (m, n)") (auto simp add: div_if[OF gcdp, where m="m*n"])
+moreover 
+have "gcd(m,n) dvd m" by simp
+ with mpos dvd_imp_le have t1:"gcd(m,n) \<le> m" by simp
+ with npos have t1:"gcd(m,n)*n \<le> m*n" by simp
+ have "gcd(m,n) \<le> gcd(m,n)*n" using npos by simp
+ with t1 have "gcd(m,n) \<le> m*n" by arith
+ultimately show "False" by simp
+qed
+
+lemma ilcm_pos: 
+  assumes apos: " 0 < a"
+  and bpos: "0 < b" 
+  shows "0 < ilcm  a b"
+proof-
+  let ?na = "nat (abs a)"
+  let ?nb = "nat (abs b)"
+  have nap: "?na >0" using apos by simp
+  have nbp: "?nb >0" using bpos by simp
+  have "0 < lcm (?na,?nb)" by (rule lcm_pos[OF nap nbp])
+  thus ?thesis by (simp add: ilcm_def)
+qed
+
+
 end
