@@ -1384,4 +1384,7 @@ proof -
   with g'cdef f'cdef cint show ?thesis by auto
 qed
 
+lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
+by auto
+
 end

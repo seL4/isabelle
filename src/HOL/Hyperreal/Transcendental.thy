@@ -987,9 +987,6 @@ apply (subgoal_tac "isCont ln (exp (ln x))", simp)
 apply (rule isCont_inverse_function [where f=exp], simp_all)
 done
 
-lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
-by simp (* TODO: put in Deriv.thy *)
-
 lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
 apply (rule DERIV_inverse_function [where f=exp and a=0 and b="x+1"])
 apply (erule lemma_DERIV_subst [OF DERIV_exp exp_ln])
