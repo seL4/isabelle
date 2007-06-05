@@ -225,7 +225,7 @@ fun nat_of_int_of_number_of thy cts =
         |> SOME
       else NONE
   in
-    fold (HOLogic.add_numerals_of o Thm.term_of) cts []
+    fold (HOLogic.add_numerals o Thm.term_of) cts []
     |> map_filter mk_rew
   end;
 *}

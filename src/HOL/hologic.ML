@@ -87,7 +87,7 @@ sig
   val mk_numeral: integer -> term
   val dest_numeral: term -> integer
   val number_of_const: typ -> term
-  val add_numerals_of: term -> (term * typ) list -> (term * typ) list
+  val add_numerals: term -> (term * typ) list -> (term * typ) list
   val mk_number: typ -> integer -> term
   val dest_number: term -> typ * integer
   val realT: typ
@@ -351,21 +351,10 @@ fun dest_numeral (Const ("Numeral.Pls", _)) = 0
 
 fun number_of_const T = Const ("Numeral.number_class.number_of", intT --> T);
 
-fun add_numerals_of (Const _) =
-      I
-  | add_numerals_of (Var _) =
-      I
-  | add_numerals_of (Free _) =
-      I
-  | add_numerals_of (Bound _) =
-      I
-  | add_numerals_of (Abs (_, _, t)) =
-      add_numerals_of t
-  | add_numerals_of (t as _ $ _) =
-      case strip_comb t
-       of (Const ("Numeral.number_class.number_of",
-           Type (_, [_, T])), ts) => fold (cons o rpair T) ts
-        | (t', ts) => add_numerals_of t' #> fold add_numerals_of ts;
+fun add_numerals (Const ("Numeral.number_class.number_of", Type (_, [_, T])) $ t) = cons (t, T)
+  | add_numerals (t $ u) = add_numerals t #> add_numerals u
+  | add_numerals (Abs (_, _, t)) = add_numerals t
+  | add_numerals _ = I;
 
 fun mk_number T 0 = Const ("HOL.zero_class.zero", T)
   | mk_number T 1 = Const ("HOL.one_class.one", T)
