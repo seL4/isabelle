@@ -9,7 +9,7 @@
 header{*Univariate Real Polynomials*}
 
 theory Poly
-imports Transcendental
+imports Deriv
 begin
 
 text{*Application of polynomial as a real function.*}
@@ -48,7 +48,6 @@ primrec
    mulexp_zero:  "mulexp 0 p q = q"
    mulexp_Suc:   "mulexp (Suc n) p q = p *** mulexp n p q"
 
-
 text{*Exponential*}
 consts pexp :: "[real list, nat] => real list"  (infixl "%^" 80)
 primrec
@@ -78,7 +77,8 @@ primrec
                                      then (if (h = 0) then [] else [h])
                                      else (h#(pnormalize p)))"
 
-
+definition "pnormal p = ((pnormalize p = p) \<and> p \<noteq> [])"
+definition "nonconstant p = (pnormal p \<and> (\<forall>x. p \<noteq> [x]))"
 text{*Other definitions*}
 
 definition
@@ -102,7 +102,7 @@ definition
 definition
   degree :: "real list => nat" where
      --{*degree of a polynomial*}
-  "degree p = length (pnormalize p)"
+  "degree p = length (pnormalize p) - 1"
 
 definition
   rsquarefree :: "real list => bool" where
@@ -295,7 +295,6 @@ apply (drule_tac f = "poly p" in MVT, auto)
 apply (rule_tac x = z in exI)
 apply (auto simp add: real_mult_left_cancel poly_DERIV [THEN DERIV_unique])
 done
-
 
 text{*Lemmas for Derivatives*}
 
@@ -1003,15 +1002,37 @@ declare poly_normalize [simp]
 
 text{*The degree of a polynomial.*}
 
-lemma lemma_degree_zero [rule_format]:
-     "list_all (%c. c = 0) p -->  pnormalize p = []"
+lemma lemma_degree_zero:
+     "list_all (%c. c = 0) p \<longleftrightarrow>  pnormalize p = []"
 by (induct "p", auto)
 
-lemma degree_zero: "poly p = poly [] ==> degree p = 0"
+lemma degree_zero: "(poly p = poly []) \<Longrightarrow> (degree p = 0)"
 apply (simp add: degree_def)
 apply (case_tac "pnormalize p = []")
-apply (auto dest: lemma_degree_zero simp add: poly_zero)
+apply (auto simp add: poly_zero lemma_degree_zero )
 done
+
+lemma pnormalize_sing: "(pnormalize [x] = [x]) \<longleftrightarrow> x \<noteq> 0" by simp
+lemma pnormalize_pair: "y \<noteq> 0 \<longleftrightarrow> (pnormalize [x, y] = [x, y])" by simp
+lemma pnormal_cons: "pnormal p \<Longrightarrow> pnormal (c#p)" 
+  unfolding pnormal_def by simp
+lemma pnormal_tail: "p\<noteq>[] \<Longrightarrow> pnormal (c#p) \<Longrightarrow> pnormal p"
+  unfolding pnormal_def 
+  apply (cases "pnormalize p = []", auto)
+  by (cases "c = 0", auto)
+lemma pnormal_last_nonzero: "pnormal p ==> last p \<noteq> 0"
+  apply (induct p, auto simp add: pnormal_def)
+  apply (case_tac "pnormalize p = []", auto)
+  by (case_tac "a=0", auto)
+lemma  pnormal_length: "pnormal p \<Longrightarrow> 0 < length p"
+  unfolding pnormal_def length_greater_0_conv by blast
+lemma pnormal_last_length: "\<lbrakk>0 < length p ; last p \<noteq> 0\<rbrakk> \<Longrightarrow> pnormal p"
+  apply (induct p, auto)
+  apply (case_tac "p = []", auto)
+  apply (simp add: pnormal_def)
+  by (rule pnormal_cons, auto)
+lemma pnormal_id: "pnormal p \<longleftrightarrow> (0 < length p \<and> last p \<noteq> 0)"
+  using pnormal_last_length pnormal_length pnormal_last_nonzero by blast
 
 text{*Tidier versions of finiteness of roots.*}
 
@@ -1032,4 +1053,5 @@ apply (rule abs_triangle_ineq)
 apply (auto intro!: mult_mono simp add: abs_mult)
 done
 
+lemma poly_Sing: "poly [c] x = c" by simp
 end
