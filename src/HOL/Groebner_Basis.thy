@@ -18,7 +18,7 @@ subsection {* Semiring normalization *}
 setup NormalizerData.setup
 
 
-locale semiring =
+locale gb_semiring =
   fixes add mul pwr r0 r1
   assumes add_a:"(add x (add y z) = add (add x y) z)"
     and add_c: "add x y = add y x" and add_0:"add r0 x = x"
@@ -161,11 +161,11 @@ qed
 lemma "axioms" [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules]:
-  "semiring add mul pwr r0 r1" .
+  "gb_semiring add mul pwr r0 r1" .
 
 end
 
-interpretation class_semiring: semiring
+interpretation class_semiring: gb_semiring
     ["op +" "op *" "op ^" "0::'a::{comm_semiring_1, recpower}" "1"]
   by unfold_locales (auto simp add: ring_eq_simps power_Suc)
 
@@ -212,7 +212,7 @@ declaration {*
 *}
 
 
-locale ring = semiring +
+locale gb_ring = gb_semiring +
   fixes sub :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
     and neg :: "'a \<Rightarrow> 'a"
   assumes neg_mul: "neg x = mul (neg r1) x"
@@ -230,12 +230,12 @@ lemma "axioms" [normalizer
   semiring rules: semiring_rules
   ring ops: ring_ops
   ring rules: ring_rules]:
-  "ring add mul pwr r0 r1 sub neg" .
+  "gb_ring add mul pwr r0 r1 sub neg" .
 
 end
 
 
-interpretation class_ring: ring ["op +" "op *" "op ^"
+interpretation class_ring: gb_ring ["op +" "op *" "op ^"
     "0::'a::{comm_semiring_1,recpower,number_ring}" 1 "op -" "uminus"]
   by unfold_locales simp_all
 
@@ -261,7 +261,7 @@ method_setup sring_norm = {*
 
 subsection {* Gröbner Bases *}
 
-locale semiringb = semiring +
+locale semiringb = gb_semiring +
   assumes add_cancel: "add (x::'a) y = add x z \<longleftrightarrow> y = z"
   and add_mul_solve: "add (mul w y) (mul x z) =
     add (mul w z) (mul x y) \<longleftrightarrow> w = x \<or> y = z"
@@ -297,7 +297,7 @@ lemma "axioms" [normalizer
 
 end
 
-locale ringb = semiringb + ring
+locale ringb = semiringb + gb_ring
 begin
 
 declare "axioms" [normalizer del]
@@ -384,7 +384,7 @@ declaration {*
 *}
 
 
-lemmas bool_simps =  simp_thms(1-34)
+lemmas bool_simps = simp_thms(1-34)
 lemma dnf:
     "(P & (Q | R)) = ((P&Q) | (P&R))" "((Q | R) & P) = ((Q&P) | (R&P))"
     "(P \<and> Q) = (Q \<and> P)" "(P \<or> Q) = (Q \<or> P)"
