@@ -191,7 +191,9 @@ $(LOG)/HOL-Complex-ex.gz: $(OUT)/HOL-Complex Library/Primes.thy \
   Complex/ex/ROOT.ML Complex/ex/document/root.tex \
   Complex/ex/BigO_Complex.thy Complex/ex/BinEx.thy \
   Complex/ex/Ferrante_Rackoff_Ex.thy \
-  Complex/ex/NSPrimes.thy Complex/ex/Sqrt.thy Complex/ex/Sqrt_Script.thy
+  Complex/ex/NSPrimes.thy Complex/ex/Sqrt.thy Complex/ex/Sqrt_Script.thy \
+  Complex/ex/MIR.thy Complex/ex/mirtac.ML Complex/ex/mireif.ML \
+  Complex/ex/ReflectedFerrack.thy Complex/ex/linreif.ML Complex/ex/linrtac.ML
 	@cd Complex; $(ISATOOL) usedir $(OUT)/HOL-Complex ex
 
 
