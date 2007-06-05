@@ -6,7 +6,7 @@
 header {*Simprocs for the Naturals*}
 
 theory NatSimprocs
-imports NatBin
+imports Groebner_Basis
 uses "int_factor_simprocs.ML" "nat_simprocs.ML"
 begin
 
