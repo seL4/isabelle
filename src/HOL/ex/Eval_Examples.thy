@@ -4,7 +4,7 @@
 
 header {* Small examples for evaluation mechanisms *}
 
-theory Eval_examples
+theory Eval_Examples
 imports Eval
 begin
 
