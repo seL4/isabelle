@@ -43,6 +43,7 @@ consts
   replicate :: "nat => 'a => 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   allpairs :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
+  partition :: "('a \<Rightarrow> bool) \<Rightarrow>'a list \<Rightarrow> (('a list) \<times> ('a list))"
 
 abbreviation
   upto:: "nat => nat => nat list"  ("(1[_../_])") where
@@ -3050,5 +3051,55 @@ qed
 lemma foldl_append_map_Nil_set: 
   "set (foldl (op @) [] (map f xs)) = UNION (set xs) (\<lambda>x. set (f x))"
 using foldl_append_map_set[where ss="[]" and xs="xs" and f="f"] by simp
+
+primrec
+"partition P [] = ([],[])"
+"partition P (x#xs) = 
+   (let (yes,no) = partition P xs
+    in (if (P x) then ((x#yes),no) else (yes,(x#no))))"
+
+lemma partition_P:
+  "partition P xs = (yes,no) \<Longrightarrow> (\<forall>p\<in> set yes.  P p) \<and> (\<forall>p\<in> set no. \<not> P p)"
+proof(induct xs arbitrary: yes no rule: partition.induct)
+  case (Cons a as yes no)
+  have "\<exists> y n. partition P as = (y,n)" by auto
+  then obtain "y" "n" where yn_def: "partition P as = (y,n)" by blast
+  have "P a \<or> \<not> P a" by simp
+  moreover 
+  {  assume "P a"
+    hence "partition P (a#as) = (a#y,n)" 
+      by (auto simp add: Let_def yn_def)
+    hence "yes = a#y" using prems by auto
+    with prems have ?case by simp
+  }
+  moreover 
+  { assume "\<not> P a"
+    hence "partition P (a#as) = (y,a#n)" 
+      by (auto simp add: Let_def yn_def)
+    hence "no = a#n" using prems by auto
+    with prems have ?case by simp
+  }
+  ultimately show ?case by blast
+qed simp_all
+
+lemma partition_filter1:
+  " fst (partition P xs) = filter P xs "
+by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
+
+lemma partition_filter2:
+  "snd (partition P xs) = filter (Not o P ) xs "
+by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
+
+lemma partition_set: "partition P xs = (yes,no) \<Longrightarrow> set yes \<union> set no = set xs"
+proof-
+  fix yes no
+  assume A: "partition P xs = (yes,no)"
+  have "set xs = {x. x \<in> set xs \<and> P x} \<union> {x. x \<in> set xs \<and> \<not> P x}" by auto
+  also have "\<dots> = set (List.filter P xs) Un (set (List.filter (Not o P) xs))" by auto
+  also have "\<dots> = set (fst (partition P xs)) Un set (snd (partition P xs))"
+    using partition_filter1[where xs="xs" and P="P"] 
+      partition_filter2[where xs="xs" and P="P"] by auto
+  finally show "set yes Un set no = set xs" using A by simp
+qed
 
 end
