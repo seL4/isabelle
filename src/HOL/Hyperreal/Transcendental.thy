@@ -516,22 +516,22 @@ apply (rule_tac x = 0 in exI)
 apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
 done
 
-lemma lemma_STAR_sin [simp]:
+lemma lemma_STAR_sin:
      "(if even n then 0  
        else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0"
 by (induct "n", auto)
 
-lemma lemma_STAR_cos [simp]:
+lemma lemma_STAR_cos:
      "0 < n -->  
       -1 ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
 by (induct "n", auto)
 
-lemma lemma_STAR_cos1 [simp]:
+lemma lemma_STAR_cos1:
      "0 < n -->  
       (-1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
 by (induct "n", auto)
 
-lemma lemma_STAR_cos2 [simp]:
+lemma lemma_STAR_cos2:
   "(\<Sum>n=1..<n. if even n then -1 ^ (n div 2)/(real (fact n)) *  0 ^ n 
                          else 0) = 0"
 apply (induct "n")
@@ -1001,7 +1001,7 @@ subsection{*Basic Properties of the Trigonometric Functions*}
 
 lemma sin_zero [simp]: "sin 0 = 0"
 by (auto intro!: sums_unique [symmetric] LIMSEQ_const 
-         simp add: sin_def sums_def simp del: power_0_left)
+         simp add: sin_def sums_def lemma_STAR_sin)
 
 lemma lemma_series_zero2:
  "(\<forall>m. n \<le> m --> f m = 0) --> f sums setsum f {0..<n}"

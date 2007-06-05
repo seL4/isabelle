@@ -420,7 +420,7 @@ apply (cut_tac f = sin and n = n and x = x
 apply safe
 apply (simp (no_asm))
 apply (simp (no_asm))
-apply (case_tac "n", clarify, simp, simp)
+apply (case_tac "n", clarify, simp, simp add: lemma_STAR_sin)
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
