@@ -1,13 +1,13 @@
 structure ROOT = 
 struct
 
-structure Code_Generator = 
+structure HOL = 
 struct
 
 type 'a eq = {eq : 'a -> 'a -> bool};
 fun eq (A_:'a eq) = #eq A_;
 
-end; (*struct Code_Generator*)
+end; (*struct HOL*)
 
 structure List = 
 struct
@@ -15,8 +15,7 @@ struct
 fun foldr f (x :: xs) a = f x (foldr f xs a)
   | foldr f [] a = a;
 
-fun memberl A_ x (y :: ys) =
-  Code_Generator.eq A_ x y orelse memberl A_ x ys
+fun memberl A_ x (y :: ys) = HOL.eq A_ x y orelse memberl A_ x ys
   | memberl A_ x [] = false;
 
 end; (*struct List*)
