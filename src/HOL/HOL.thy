@@ -10,31 +10,22 @@ imports CPure
 uses
   "~~/src/Tools/integer.ML"
   "hologic.ML"
-  "~~/src/Provers/splitter.ML"
-  "~~/src/Provers/hypsubst.ML"
   "~~/src/Tools/IsaPlanner/zipper.ML"
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
-  "~~/src/Provers/eqsubst.ML"
+  "~~/src/Provers/project_rule.ML"
   "~~/src/Provers/induct_method.ML"
+  "~~/src/Provers/hypsubst.ML"
+  "~~/src/Provers/splitter.ML"
   "~~/src/Provers/classical.ML"
   "~~/src/Provers/blast.ML"
   "~~/src/Provers/clasimp.ML"
-  "~~/src/Tools/rat.ML"
-  "~~/src/Provers/Arith/fast_lin_arith.ML"
-  "~~/src/Provers/Arith/cancel_sums.ML"
+  "~~/src/Provers/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
-  "~~/src/Provers/project_rule.ML"
-  "~~/src/Provers/Arith/cancel_numerals.ML"
-  "~~/src/Provers/Arith/combine_numerals.ML"
-  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
-  "~~/src/Provers/Arith/extract_common_term.ML"
-  "~~/src/Provers/quasi.ML"
-  "~~/src/Provers/order.ML"
   ("simpdata.ML")
-  ("~~/src/HOL/Tools/recfun_codegen.ML")
   "Tools/res_atpset.ML"
+  ("~~/src/HOL/Tools/recfun_codegen.ML")
 begin
 
 subsection {* Primitive logic *}

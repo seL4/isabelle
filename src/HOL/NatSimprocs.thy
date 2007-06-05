@@ -7,7 +7,11 @@ header {*Simprocs for the Naturals*}
 
 theory NatSimprocs
 imports Groebner_Basis
-uses "int_factor_simprocs.ML" "nat_simprocs.ML"
+uses
+  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
+  "~~/src/Provers/Arith/extract_common_term.ML"
+  "int_factor_simprocs.ML"
+  "nat_simprocs.ML"
 begin
 
 setup nat_simprocs_setup

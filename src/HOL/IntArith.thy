@@ -7,7 +7,11 @@ header {* Integer arithmetic *}
 
 theory IntArith
 imports Numeral Wellfounded_Relations
-uses "~~/src/Provers/Arith/assoc_fold.ML" ("int_arith1.ML")
+uses
+  "~~/src/Provers/Arith/assoc_fold.ML"
+  "~~/src/Provers/Arith/cancel_numerals.ML"
+  "~~/src/Provers/Arith/combine_numerals.ML"
+  ("int_arith1.ML")
 begin
 
 text{*Duplicate: can't understand why it's necessary*}

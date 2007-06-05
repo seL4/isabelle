@@ -10,7 +10,11 @@ header {* Natural numbers *}
 
 theory Nat
 imports Wellfounded_Recursion Ring_and_Field
-uses ("arith_data.ML")
+uses
+  "~~/src/Tools/rat.ML"
+  "~~/src/Provers/Arith/fast_lin_arith.ML"
+  "~~/src/Provers/Arith/cancel_sums.ML"
+  ("arith_data.ML")
 begin
 
 subsection {* Type @{text ind} *}

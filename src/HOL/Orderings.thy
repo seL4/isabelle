@@ -7,6 +7,9 @@ header {* Syntactic and abstract orders *}
 
 theory Orderings
 imports HOL
+uses
+  (*"~~/src/Provers/quasi.ML"*)
+  "~~/src/Provers/order.ML"
 begin
 
 subsection {* Order syntax *}
