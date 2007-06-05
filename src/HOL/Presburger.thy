@@ -1,9 +1,6 @@
 (*  Title:      HOL/Presburger.thy
     ID:         $Id$
     Author:     Amine Chaieb, Tobias Nipkow and Stefan Berghofer, TU Muenchen
-
-File containing necessary theorems for the proof
-generation for Cooper Algorithm  
 *)
 
 header {* Presburger Arithmetic: Cooper's Algorithm *}

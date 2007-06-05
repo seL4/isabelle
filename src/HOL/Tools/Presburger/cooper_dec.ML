@@ -2,10 +2,8 @@
     ID:         $Id$
     Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
 
-File containing the implementation of Cooper Algorithm
-decision procedure (intensively inspired from J.Harrison)
-*)
-
+The Cooper Algorithm decision procedure (intensively inspired by
+J. Harrison). *)
 
 signature COOPER_DEC = 
 sig

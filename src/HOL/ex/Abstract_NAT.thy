@@ -3,7 +3,7 @@
     Author:     Makarius
 *)
 
-header {* Abstract Natural Numbers with polymorphic recursion *}
+header {* Abstract Natural Numbers primitive recursion *}
 
 theory Abstract_NAT
 imports Main
