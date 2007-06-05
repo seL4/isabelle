@@ -84,8 +84,9 @@ fun options [] f = f
 
 fun print_antiquotations () =
  [Pretty.big_list "text antiquotation commands:"
-    (map Pretty.str (Symtab.keys (! global_commands))),
-  Pretty.big_list "text antiquotation options:" (map Pretty.str (Symtab.keys (! global_options)))]
+    (map Pretty.str (sort_strings (Symtab.keys (! global_commands)))),
+  Pretty.big_list "text antiquotation options:"
+    (map Pretty.str (sort_strings (Symtab.keys (! global_options))))]
  |> Pretty.chunks |> Pretty.writeln;
 
 end;
