@@ -42,7 +42,7 @@ fun assert_rew thm =
     val thy = Thm.theory_of_thm thm;
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm)
-      handle THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
+          | THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
     fun vars_of t = fold_aterms
      (fn Var (v, _) => insert (op =) v
        | Free _ => bad_thm ("Illegal free variable in rewrite theorem\n"
