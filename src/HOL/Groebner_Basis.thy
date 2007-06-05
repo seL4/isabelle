@@ -259,7 +259,7 @@ method_setup sring_norm = {*
 *} "Semiring_normalizer"
 
 
-subsection {* Gröbner Bases *}
+subsection {* Groebner Bases *}
 
 locale semiringb = gb_semiring +
   assumes add_cancel: "add (x::'a) y = add x z \<longleftrightarrow> y = z"

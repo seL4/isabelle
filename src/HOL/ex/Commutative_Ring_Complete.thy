@@ -70,7 +70,7 @@ next
   from prems show ?thesis by(cases x, auto)
 qed
 
-text {* mkPX conserves normalizedness (_cn) *}
+text {* mkPX conserves normalizedness (@{text "_cn"}) *}
 lemma mkPX_cn: 
   assumes "x \<noteq> 0" and "isnorm P" and "isnorm Q" 
   shows "isnorm (mkPX P x Q)"
