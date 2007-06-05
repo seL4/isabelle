@@ -5,8 +5,8 @@
 
 signature NORMALIZER = 
 sig
- val mk_cnumber : ctyp -> int -> cterm
- val mk_cnumeral : int -> cterm
+ val mk_cnumber : ctyp -> integer -> cterm
+ val mk_cnumeral : integer -> cterm
  val semiring_normalize_conv : Proof.context -> Conv.conv
  val semiring_normalize_tac : Proof.context -> int -> tactic
  val semiring_normalize_wrapper :  NormalizerData.entry -> Conv.conv
@@ -36,9 +36,8 @@ in
 fun mk_cnumeral 0 = pls_const
   | mk_cnumeral ~1 = min_const
   | mk_cnumeral i =
-      let val (q, r) = IntInf.divMod (i, 2)
-      in Thm.capply (Thm.capply bit_const (mk_cnumeral q)) (mk_cbit (IntInf.toInt r)) 
-      end;
+      let val (q, r) = Integer.divmod i 2
+      in Thm.capply (Thm.capply bit_const (mk_cnumeral q)) (mk_cbit (Integer.machine_int r)) end;
 
 fun mk_cnumber cT = 
  let 
