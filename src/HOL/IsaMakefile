@@ -80,9 +80,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   $(SRC)/Provers/induct_method.ML $(SRC)/Provers/order.ML		\
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
   $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML			\
-  $(SRC)/Provers/trancl.ML $(SRC)/Pure/General/int.ML			\
-  $(SRC)/Pure/General/rat.ML Tools/TFL/casesplit.ML			\
-  ATP_Linkup.thy Accessible_Part.thy Code_Generator.thy Datatype.thy	\
+  $(SRC)/Provers/trancl.ML $(SRC)/Tools/integer.ML			\
+  $(SRC)/Tools/rat.ML Tools/TFL/casesplit.ML			\
+  ATP_Linkup.thy Accessible_Part.thy Datatype.thy	\
   Divides.thy Equiv_Relations.thy Extraction.thy Finite_Set.thy		\
   FixedPoint.thy Fun.thy FunDef.thy HOL.thy Hilbert_Choice.thy		\
   Inductive.thy IntArith.thy IntDef.thy IntDiv.thy Lattices.thy List.thy\
@@ -152,7 +152,7 @@ $(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex			\
 
 HOL-Complex: HOL $(OUT)/HOL-Complex
 
-$(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML $(SRC)/Pure/General/float.ML \
+$(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML $(SRC)/Tools/float.ML \
   Library/Zorn.thy							\
   Real/ContNotDenum.thy Real/Ferrante_Rackoff.thy Real/float_arith.ML	\
   Real/Float.thy Real/Lubs.thy Real/PReal.thy Real/RComplete.thy	\

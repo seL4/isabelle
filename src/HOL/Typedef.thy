@@ -13,14 +13,19 @@ uses
   ("Tools/typedef_codegen.ML")
 begin
 
+ML {*
+structure HOL = struct val thy = theory "HOL" end;
+*}  -- "belongs to theory HOL"
+
 locale type_definition =
   fixes Rep and Abs and A
   assumes Rep: "Rep x \<in> A"
     and Rep_inverse: "Abs (Rep x) = x"
     and Abs_inverse: "y \<in> A ==> Rep (Abs y) = y"
   -- {* This will be axiomatized for each typedef! *}
+begin
 
-lemma (in type_definition) Rep_inject:
+lemma Rep_inject:
   "(Rep x = Rep y) = (x = y)"
 proof
   assume "Rep x = Rep y"
@@ -33,7 +38,7 @@ next
   thus "Rep x = Rep y" by (simp only:)
 qed
 
-lemma (in type_definition) Abs_inject:
+lemma Abs_inject:
   assumes x: "x \<in> A" and y: "y \<in> A"
   shows "(Abs x = Abs y) = (x = y)"
 proof
@@ -47,7 +52,7 @@ next
   thus "Abs x = Abs y" by (simp only:)
 qed
 
-lemma (in type_definition) Rep_cases [cases set]:
+lemma Rep_cases [cases set]:
   assumes y: "y \<in> A"
     and hyp: "!!x. y = Rep x ==> P"
   shows P
@@ -56,7 +61,7 @@ proof (rule hyp)
   thus "y = Rep (Abs y)" ..
 qed
 
-lemma (in type_definition) Abs_cases [cases type]:
+lemma Abs_cases [cases type]:
   assumes r: "!!y. x = Abs y ==> y \<in> A ==> P"
   shows P
 proof (rule r)
@@ -65,7 +70,7 @@ proof (rule r)
   show "Rep x \<in> A" by (rule Rep)
 qed
 
-lemma (in type_definition) Rep_induct [induct set]:
+lemma Rep_induct [induct set]:
   assumes y: "y \<in> A"
     and hyp: "!!x. P (Rep x)"
   shows "P y"
@@ -75,7 +80,7 @@ proof -
   finally show "P y" .
 qed
 
-lemma (in type_definition) Abs_induct [induct type]:
+lemma Abs_induct [induct type]:
   assumes r: "!!y. y \<in> A ==> P (Abs y)"
   shows "P x"
 proof -
@@ -84,6 +89,8 @@ proof -
   also have "Abs (Rep x) = x" by (rule Rep_inverse)
   finally show "P x" .
 qed
+
+end
 
 use "Tools/typedef_package.ML"
 use "Tools/typecopy_package.ML"

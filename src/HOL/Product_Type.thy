@@ -7,7 +7,7 @@
 header {* Cartesian products *}
 
 theory Product_Type
-imports Typedef Fun Code_Generator
+imports Typedef Fun
 uses ("Tools/split_rule.ML")
 begin
 

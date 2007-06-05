@@ -6,7 +6,7 @@
 header {* Syntactic and abstract orders *}
 
 theory Orderings
-imports Code_Generator
+imports HOL
 begin
 
 subsection {* Order syntax *}

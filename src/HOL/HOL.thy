@@ -8,6 +8,7 @@ header {* The basis of Higher-Order Logic *}
 theory HOL
 imports CPure
 uses
+  "~~/src/Tools/integer.ML"
   "hologic.ML"
   "~~/src/Provers/splitter.ML"
   "~~/src/Provers/hypsubst.ML"
@@ -20,8 +21,7 @@ uses
   "~~/src/Provers/classical.ML"
   "~~/src/Provers/blast.ML"
   "~~/src/Provers/clasimp.ML"
-  "~~/src/Pure/General/int.ML"
-  "~~/src/Pure/General/rat.ML"
+  "~~/src/Tools/rat.ML"
   "~~/src/Provers/Arith/fast_lin_arith.ML"
   "~~/src/Provers/Arith/cancel_sums.ML"
   "~~/src/Provers/quantifier1.ML"
@@ -33,6 +33,7 @@ uses
   "~~/src/Provers/quasi.ML"
   "~~/src/Provers/order.ML"
   ("simpdata.ML")
+  ("~~/src/HOL/Tools/recfun_codegen.ML")
   "Tools/res_atpset.ML"
 begin
 
@@ -1493,6 +1494,222 @@ val subst = @{thm subst}
 val sym = @{thm sym}
 val trans = @{thm trans}
 *}
+
+
+subsection {* Code generator setup *}
+
+subsubsection {* SML code generator setup *}
+
+use "~~/src/HOL/Tools/recfun_codegen.ML"
+
+types_code
+  "bool"  ("bool")
+attach (term_of) {*
+fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
+*}
+attach (test) {*
+fun gen_bool i = one_of [false, true];
+*}
+  "prop"  ("bool")
+attach (term_of) {*
+fun term_of_prop b =
+  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
+*}
+
+consts_code
+  "Trueprop" ("(_)")
+  "True"    ("true")
+  "False"   ("false")
+  "Not"     ("Bool.not")
+  "op |"    ("(_ orelse/ _)")
+  "op &"    ("(_ andalso/ _)")
+  "If"      ("(if _/ then _/ else _)")
+
+setup {*
+let
+
+fun eq_codegen thy defs gr dep thyname b t =
+    (case strip_comb t of
+       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
+     | (Const ("op =", _), [t, u]) =>
+          let
+            val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
+            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u);
+            val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
+          in
+            SOME (gr''', Codegen.parens
+              (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
+          end
+     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
+         thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
+     | _ => NONE);
+
+in
+
+Codegen.add_codegen "eq_codegen" eq_codegen
+#> RecfunCodegen.setup
+
+end
+*}
+
+text {* Evaluation *}
+
+method_setup evaluation = {*
+let
+
+fun evaluation_tac i = Tactical.PRIMITIVE (Conv.fconv_rule
+  (Conv.goals_conv (equal i) Codegen.evaluation_conv));
+
+in Method.no_args (Method.SIMPLE_METHOD' (evaluation_tac THEN' rtac TrueI)) end
+*} "solve goal by evaluation"
+
+
+subsubsection {* Generic code generator setup *}
+
+text {* operational equality for code generation *}
+
+class eq (attach "op =") = type
+
+
+text {* using built-in Haskell equality *}
+
+code_class eq
+  (Haskell "Eq" where "op =" \<equiv> "(==)")
+
+code_const "op ="
+  (Haskell infixl 4 "==")
+
+
+text {* type bool *}
+
+code_datatype True False
+
+lemma [code func]:
+  shows "(False \<and> x) = False"
+    and "(True \<and> x) = x"
+    and "(x \<and> False) = False"
+    and "(x \<and> True) = x" by simp_all
+
+lemma [code func]:
+  shows "(False \<or> x) = x"
+    and "(True \<or> x) = True"
+    and "(x \<or> False) = x"
+    and "(x \<or> True) = True" by simp_all
+
+lemma [code func]:
+  shows "(\<not> True) = False"
+    and "(\<not> False) = True" by (rule HOL.simp_thms)+
+
+lemmas [code] = imp_conv_disj
+
+lemmas [code func] = if_True if_False
+
+instance bool :: eq ..
+
+lemma [code func]:
+  shows "True = P \<longleftrightarrow> P"
+    and "False = P \<longleftrightarrow> \<not> P"
+    and "P = True \<longleftrightarrow> P"
+    and "P = False \<longleftrightarrow> \<not> P" by simp_all
+
+code_type bool
+  (SML "bool")
+  (OCaml "bool")
+  (Haskell "Bool")
+
+code_instance bool :: eq
+  (Haskell -)
+
+code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const True and False and Not and "op &" and "op |" and If
+  (SML "true" and "false" and "not"
+    and infixl 1 "andalso" and infixl 0 "orelse"
+    and "!(if (_)/ then (_)/ else (_))")
+  (OCaml "true" and "false" and "not"
+    and infixl 4 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else (_))")
+  (Haskell "True" and "False" and "not"
+    and infixl 3 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else (_))")
+
+code_reserved SML
+  bool true false not
+
+code_reserved OCaml
+  bool true false not
+
+
+text {* type prop *}
+
+code_datatype Trueprop "prop"
+
+
+text {* type itself *}
+
+code_datatype "TYPE('a)"
+
+
+text {* code generation for undefined as exception *}
+
+code_const undefined
+  (SML "raise/ Fail/ \"undefined\"")
+  (OCaml "failwith/ \"undefined\"")
+  (Haskell "error/ \"undefined\"")
+
+code_reserved SML Fail
+code_reserved OCaml failwith
+
+
+subsubsection {* Evaluation oracle *}
+
+oracle eval_oracle ("term") = {* fn thy => fn t => 
+  if CodegenPackage.satisfies thy (HOLogic.dest_Trueprop t) [] 
+  then t
+  else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
+*}
+
+method_setup eval = {*
+let
+  fun eval_tac thy = 
+    SUBGOAL (fn (t, i) => rtac (eval_oracle thy t) i)
+in 
+  Method.ctxt_args (fn ctxt => 
+    Method.SIMPLE_METHOD' (eval_tac (ProofContext.theory_of ctxt)))
+end
+*} "solve goal by evaluation"
+
+
+subsubsection {* Normalization by evaluation *}
+
+method_setup normalization = {*
+let
+  fun normalization_tac i = Tactical.PRIMITIVE (Conv.fconv_rule
+    (Conv.goals_conv (equal i) (HOLogic.Trueprop_conv
+      NBE.normalization_conv)));
+in
+  Method.no_args (Method.SIMPLE_METHOD' (normalization_tac THEN' resolve_tac [TrueI, refl]))
+end
+*} "solve goal by normalization"
+
+
+text {* lazy @{const If} *}
+
+definition
+  if_delayed :: "bool \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  [code func del]: "if_delayed b f g = (if b then f True else g False)"
+
+lemma [code func]:
+  shows "if_delayed True f g = f True"
+    and "if_delayed False f g = g False"
+  unfolding if_delayed_def by simp_all
+
+lemma [normal pre, symmetric, normal post]:
+  "(if b then x else y) = if_delayed b (\<lambda>_. x) (\<lambda>_. y)"
+  unfolding if_delayed_def ..
+
+hide (open) const if_delayed
 
 
 subsection {* Legacy tactics and ML bindings *}
