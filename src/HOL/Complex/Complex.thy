@@ -75,7 +75,7 @@ by (simp add: complex_minus_def)
 lemma complex_Im_minus [simp]: "Im (- x) = - Im x"
 by (simp add: complex_minus_def)
 
-lemma complex_diff:
+lemma complex_diff [simp]:
   "Complex a b - Complex c d = Complex (a - c) (b - d)"
 by (simp add: complex_diff_def)
 
@@ -363,7 +363,6 @@ apply (subgoal_tac "0 < r / sqrt 2")
 apply (drule_tac r="r / sqrt 2" in LIMSEQ_D, safe)
 apply (drule_tac r="r / sqrt 2" in LIMSEQ_D, safe)
 apply (rename_tac M N, rule_tac x="max M N" in exI, safe)
-apply (simp add: complex_diff)
 apply (simp add: real_sqrt_sum_squares_less)
 apply (simp add: divide_pos_pos)
 done
