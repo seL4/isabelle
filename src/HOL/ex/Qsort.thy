@@ -16,8 +16,8 @@ consts qsort :: "('a \<Rightarrow> 'a => bool) * 'a list \<Rightarrow> 'a list"
 
 recdef qsort "measure (size o snd)"
     "qsort(le, [])   = []"
-    "qsort(le, x#xs) = qsort(le, [y:xs . ~ le x y]) @ [x] @
-		       qsort(le, [y:xs . le x y])"
+    "qsort(le, x#xs) = qsort(le, [y\<leftarrow>xs . ~ le x y]) @ [x] @
+		       qsort(le, [y\<leftarrow>xs . le x y])"
 (hints recdef_simp: length_filter_le[THEN le_less_trans])
 
 lemma qsort_permutes [simp]:
@@ -43,7 +43,7 @@ consts quickSort :: "('a::linorder) list => 'a list"
 
 recdef quickSort "measure size"
     "quickSort []   = []"
-    "quickSort (x#l) = quickSort [y:l. ~ x\<le>y] @ [x] @ quickSort [y:l. x\<le>y]"
+    "quickSort (x#l) = quickSort [y\<leftarrow>l. ~ x\<le>y] @ [x] @ quickSort [y\<leftarrow>l. x\<le>y]"
 (hints recdef_simp: length_filter_le[THEN le_less_trans])
 
 lemma quickSort_permutes[simp]:

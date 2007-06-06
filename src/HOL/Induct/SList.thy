@@ -231,14 +231,14 @@ primrec
 
 
 no_translations
-  "[x:xs . P]" == "filter (%x. P) xs"
+  "[x\<leftarrow>xs . P]" == "filter (%x. P) xs"
 
 syntax
   (* Special syntax for list_all and filter *)
   "@Alls"       :: "[idt, 'a list, bool] => bool"        ("(2Alls _:_./ _)" 10)
 
 translations
-  "[x:xs. P]" == "CONST filter(%x. P) xs"
+  "[x\<leftarrow>xs. P]" == "CONST filter(%x. P) xs"
   "Alls x:xs. P" == "CONST list_all(%x. P)xs"
 
 
@@ -540,7 +540,7 @@ by (induct_tac "xs" rule: list_induct, simp_all)
 lemma mem_append [simp]: "x mem (xs@ys) = (x mem xs | x mem ys)"
 by (induct_tac "xs" rule: list_induct, simp_all)
 
-lemma mem_filter [simp]: "x mem [x:xs. P x ] = (x mem xs & P(x))"
+lemma mem_filter [simp]: "x mem [x\<leftarrow>xs. P x ] = (x mem xs & P(x))"
 by (induct_tac "xs" rule: list_induct, simp_all)
 
 (** list_all **)

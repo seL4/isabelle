@@ -156,7 +156,7 @@ qed
 
 lemma ub1': includes semilat
 shows "\<lbrakk>\<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
-  \<Longrightarrow> b <=_r map snd [(p', t')\<in>S. p' = a] ++_f y" 
+  \<Longrightarrow> b <=_r map snd [(p', t')\<leftarrow>S. p' = a] ++_f y" 
 proof -
   let "b <=_r ?map ++_f y" = ?thesis
 
@@ -175,7 +175,7 @@ qed
 
 lemma plusplus_empty:  
   "\<forall>s'. (q, s') \<in> set S \<longrightarrow> s' +_f ss ! q = ss ! q \<Longrightarrow>
-   (map snd [(p', t')\<in> S. p' = q] ++_f ss ! q) = ss ! q"
+   (map snd [(p', t') \<leftarrow> S. p' = q] ++_f ss ! q) = ss ! q"
 apply (induct S)
 apply auto 
 done

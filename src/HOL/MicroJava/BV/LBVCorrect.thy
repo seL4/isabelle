@@ -88,7 +88,7 @@ proof (unfold stable_def, clarify)
     also    
     from s2 merge have "\<dots> \<noteq> \<top>" (is "?merge \<noteq> _") by simp
     with cert_in_A step_in_A
-    have "?merge = (map snd [(p',t')\<in>?step pc. p'=pc+1] ++_f (c!(pc+1)))"
+    have "?merge = (map snd [(p',t') \<leftarrow> ?step pc. p'=pc+1] ++_f (c!(pc+1)))"
       by (rule merge_not_top_s) 
     finally
     have "s' <=_r ?s2" using step_in_A cert_in_A True step 

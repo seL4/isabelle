@@ -52,7 +52,7 @@ next
   note length_filter_le [of "\<lambda>p. fst p \<noteq> fst a" al] 
   also have "\<And>n. n \<le> Suc n"
     by simp
-  finally have "length [p\<in>al . fst p \<noteq> fst a] \<le> Suc (length al)" .
+  finally have "length [p\<leftarrow>al . fst p \<noteq> fst a] \<le> Suc (length al)" .
   with Cons show ?case
     by auto
 qed
@@ -189,7 +189,7 @@ lemma distinct_clearjunk [simp]: "distinct (map fst (clearjunk al))"
   by (induct al rule: clearjunk.induct) 
      (simp_all add: dom_clearjunk notin_filter_fst delete_def)
 
-lemma map_of_filter: "k \<noteq> a \<Longrightarrow> map_of [q\<in>ps . fst q \<noteq> a] k = map_of ps k"
+lemma map_of_filter: "k \<noteq> a \<Longrightarrow> map_of [q\<leftarrow>ps . fst q \<noteq> a] k = map_of ps k"
   by (induct ps) auto
 
 lemma map_of_clearjunk: "map_of (clearjunk al) = map_of al"
@@ -204,7 +204,7 @@ proof (induct al rule: clearjunk.induct [case_names Nil Cons])
   case Nil thus ?case by simp
 next
   case (Cons p ps)
-  from Cons have "length (clearjunk [q\<in>ps . fst q \<noteq> fst p]) \<le> length [q\<in>ps . fst q \<noteq> fst p]" 
+  from Cons have "length (clearjunk [q\<leftarrow>ps . fst q \<noteq> fst p]) \<le> length [q\<leftarrow>ps . fst q \<noteq> fst p]" 
     by (simp add: delete_def)
   also have "\<dots> \<le> length ps"
     by simp
@@ -212,7 +212,7 @@ next
     by (simp add: delete_def)
 qed
 
-lemma notin_fst_filter: "a \<notin> fst ` set ps \<Longrightarrow> [q\<in>ps . fst q \<noteq> a] = ps"
+lemma notin_fst_filter: "a \<notin> fst ` set ps \<Longrightarrow> [q\<leftarrow>ps . fst q \<noteq> a] = ps"
   by (induct ps) auto
             
 lemma distinct_clearjunk_id [simp]: "distinct (map fst al) \<Longrightarrow> clearjunk al = al"
@@ -334,7 +334,7 @@ next
 qed
 
 lemma update_filter: 
-  "a\<noteq>k \<Longrightarrow> update k v [q\<in>ps . fst q \<noteq> a] = [q\<in>update k v ps . fst q \<noteq> a]"
+  "a\<noteq>k \<Longrightarrow> update k v [q\<leftarrow>ps . fst q \<noteq> a] = [q\<leftarrow>update k v ps . fst q \<noteq> a]"
   by (induct ps) auto
 
 lemma clearjunk_update: "clearjunk (update k v al) = update k v (clearjunk al)"
@@ -460,7 +460,7 @@ lemma dom_map_ran: "fst ` set (map_ran f al) = fst ` set al"
 lemma distinct_map_ran: "distinct (map fst al) \<Longrightarrow> distinct (map fst (map_ran f al))"
   by (induct al) (auto simp add: dom_map_ran)
 
-lemma map_ran_filter: "map_ran f [p\<in>ps. fst p \<noteq> a] = [p\<in>map_ran f ps. fst p \<noteq> a]"
+lemma map_ran_filter: "map_ran f [p\<leftarrow>ps. fst p \<noteq> a] = [p\<leftarrow>map_ran f ps. fst p \<noteq> a]"
   by (induct ps) auto
 
 lemma clearjunk_map_ran: "clearjunk (map_ran f al) = map_ran f (clearjunk al)"

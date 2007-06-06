@@ -786,11 +786,11 @@ lemma set_eq_iff_multiset_of_remdups_eq:
   done
 
 lemma multiset_of_compl_union [simp]:
-    "multiset_of [x\<in>xs. P x] + multiset_of [x\<in>xs. \<not>P x] = multiset_of xs"
+    "multiset_of [x\<leftarrow>xs. P x] + multiset_of [x\<leftarrow>xs. \<not>P x] = multiset_of xs"
   by (induct xs) (auto simp: union_ac)
 
 lemma count_filter:
-    "count (multiset_of xs) x = length [y \<in> xs. y = x]"
+    "count (multiset_of xs) x = length [y \<leftarrow> xs. y = x]"
   by (induct xs) auto
 
 

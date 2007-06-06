@@ -121,7 +121,7 @@ lemma (in lbv) plusplussup_top [simp, elim]:
 lemma (in semilat) pp_ub1':
   assumes S: "snd`set S \<subseteq> A" 
   assumes y: "y \<in> A" and ab: "(a, b) \<in> set S" 
-  shows "b <=_r map snd [(p', t')\<in>S . p' = a] ++_f y"
+  shows "b <=_r map snd [(p', t') \<leftarrow> S . p' = a] ++_f y"
 proof -
   from S have "\<forall>(x,y) \<in> set S. y \<in> A" by auto
   with semilat y ab show ?thesis by - (rule ub1')
@@ -180,7 +180,7 @@ lemma (in lbv) merge_def:
   "\<And>x. x \<in> A \<Longrightarrow> snd`set ss \<subseteq> A \<Longrightarrow>
   merge c pc ss x = 
   (if \<forall>(pc',s') \<in> set ss. pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc' then
-    map snd [(p',t') \<in> ss. p'=pc+1] ++_f x
+    map snd [(p',t') \<leftarrow> ss. p'=pc+1] ++_f x
   else \<top>)" 
   (is "\<And>x. _ \<Longrightarrow> _ \<Longrightarrow> ?merge ss x = ?if ss x" is "\<And>x. _ \<Longrightarrow> _ \<Longrightarrow> ?P ss x")
 proof (induct ss)
@@ -210,15 +210,15 @@ next
       hence "\<forall>(pc', s')\<in>set ls. pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc'" by auto
       moreover
       from True have 
-        "map snd [(p',t')\<in>ls . p'=pc+1] ++_f ?if' = 
-        (map snd [(p',t')\<in>l#ls . p'=pc+1] ++_f x)"
+        "map snd [(p',t')\<leftarrow>ls . p'=pc+1] ++_f ?if' = 
+        (map snd [(p',t')\<leftarrow>l#ls . p'=pc+1] ++_f x)"
         by simp
       ultimately
       show ?thesis using True by simp
     next
       case False 
       moreover
-      from ls have "set (map snd [(p', t')\<in>ls . p' = Suc pc]) \<subseteq> A" by auto
+      from ls have "set (map snd [(p', t')\<leftarrow>ls . p' = Suc pc]) \<subseteq> A" by auto
       ultimately show ?thesis by auto
     qed
   finally show "?P (l#ls) x" .
@@ -227,7 +227,7 @@ qed
 lemma (in lbv) merge_not_top_s:
   assumes x:  "x \<in> A" and ss: "snd`set ss \<subseteq> A"
   assumes m:  "merge c pc ss x \<noteq> \<top>"
-  shows "merge c pc ss x = (map snd [(p',t') \<in> ss. p'=pc+1] ++_f x)"
+  shows "merge c pc ss x = (map snd [(p',t') \<leftarrow> ss. p'=pc+1] ++_f x)"
 proof -
   from ss m have "\<forall>(pc',s') \<in> set ss. (pc' \<noteq> pc+1 \<longrightarrow> s' <=_r c!pc')" 
     by (rule merge_not_top)
@@ -315,8 +315,8 @@ lemma (in lbv) merge_pres:
   assumes s0: "snd`set ss \<subseteq> A" and x: "x \<in> A"
   shows "merge c pc ss x \<in> A"
 proof -
-  from s0 have "set (map snd [(p', t')\<in>ss . p'=pc+1]) \<subseteq> A" by auto
-  with x  have "(map snd [(p', t')\<in>ss . p'=pc+1] ++_f x) \<in> A"
+  from s0 have "set (map snd [(p', t')\<leftarrow>ss . p'=pc+1]) \<subseteq> A" by auto
+  with x  have "(map snd [(p', t')\<leftarrow>ss . p'=pc+1] ++_f x) \<in> A"
     by (auto intro!: plusplus_closed)
   with s0 x show ?thesis by (simp add: merge_def T_A)
 qed
