@@ -1,5717 +1,1999 @@
-(*  Title:      HOL/ex/PresburgerEx.thy
-    ID:         $Id$
-    Author:     Amine Chaieb, TU Muenchen
-
-A formalization of quantifier elimination for Presburger arithmetic
-based on a generic quantifier elimination algorithm and Cooper's
-method to eliminate on \<exists>. *)
-
-header {* Quantifier elimination for Presburger arithmetic *}
-
 theory Reflected_Presburger
-imports Main GCD
-begin
+  imports GCD Main EfficientNat
+  uses ("coopereif.ML") ("coopertac.ML")
+  begin
 
-(* Shadow syntax for integer terms *)
-datatype intterm =
-    Cst int
-  | Var nat
-  | Neg intterm
-  | Add intterm intterm 
-  | Sub intterm intterm
-  | Mult intterm intterm
+lemma allpairs_set: "set (allpairs Pair xs ys) = {(x,y). x\<in> set xs \<and> y \<in> set ys}"
+by (induct xs) auto
 
-(* interpretation of intterms, takes bound variables and free variables *)
-consts I_intterm :: "int list \<Rightarrow> intterm \<Rightarrow> int"
-primrec 
-"I_intterm ats (Cst b) = b"
-"I_intterm ats (Var n) = (ats!n)"
-"I_intterm ats (Neg it) = -(I_intterm ats it)"
-"I_intterm ats (Add it1 it2) = (I_intterm ats it1) + (I_intterm ats it2)" 
-"I_intterm ats (Sub it1 it2) = (I_intterm ats it1) - (I_intterm ats it2)"
-"I_intterm ats (Mult it1 it2) = (I_intterm ats it1) * (I_intterm ats it2)"
 
-(* Shadow syntax for Presburger formulae *)
-datatype QF = 
-   Lt intterm intterm
-  |Gt intterm intterm
-  |Le intterm intterm
-  |Ge intterm intterm
-  |Eq intterm intterm
-  |Divides intterm intterm
-  |T
-  |F
-  |NOT QF
-  |And QF QF
-  |Or QF QF
-  |Imp QF QF
-  |Equ QF QF
-  |QAll QF
-  |QEx QF
+  (* generate a list from i to j*)
+consts iupt :: "int \<times> int \<Rightarrow> int list"
+recdef iupt "measure (\<lambda> (i,j). nat (j-i +1))" 
+  "iupt (i,j) = (if j <i then [] else (i# iupt(i+1, j)))"
 
-(* Interpretation of Presburger formulae *)
-consts qinterp :: "int list \<Rightarrow> QF \<Rightarrow> bool"
-primrec
-"qinterp ats (Lt it1 it2) = (I_intterm ats it1 < I_intterm ats it2)"
-"qinterp ats (Gt it1 it2) = (I_intterm ats it1 > I_intterm ats it2)"
-"qinterp ats (Le it1 it2) = (I_intterm ats it1 \<le> I_intterm ats it2)"
-"qinterp ats (Ge it1 it2) = (I_intterm ats it1 \<ge> I_intterm ats it2)"
-"qinterp ats (Divides it1 it2) = (I_intterm ats it1 dvd I_intterm ats it2)"
-"qinterp ats (Eq it1 it2) = (I_intterm ats it1 = I_intterm ats it2)"
-"qinterp ats T = True"
-"qinterp ats F = False"
-"qinterp ats (NOT p) = (\<not>(qinterp ats p))"
-"qinterp ats (And p q) = (qinterp ats p \<and> qinterp ats q)"
-"qinterp ats (Or p q) = (qinterp ats p \<or> qinterp ats q)"
-"qinterp ats (Imp p q) = (qinterp ats p \<longrightarrow> qinterp ats q)"
-"qinterp ats (Equ p q) = (qinterp ats p = qinterp ats q)"
-"qinterp ats (QAll p) = (\<forall>x. qinterp (x#ats) p)"
-"qinterp ats (QEx p) = (\<exists>x. qinterp (x#ats) p)"
-
-(* quantifier elimination based on qe, quantifier elimination for an
-   existential formula, with quantifier free body 
-   Since quantifier elimination for one formula is allowed to fail,
-   the result is of type QF option *)
-
-consts lift_bin:: "('a \<Rightarrow> 'a \<Rightarrow> 'b) \<times> 'a option \<times> 'a option \<Rightarrow> 'b option"
-recdef lift_bin "measure (\<lambda>(c,a,b). size a)"
-"lift_bin (c,Some a,Some b) = Some (c a b)"
-"lift_bin (c,x, y)  = None"
-
-lemma lift_bin_Some:
-  assumes ls: "lift_bin (c,x,y) = Some t"
-  shows "(\<exists>a. x = Some a) \<and> (\<exists>b. y = Some b)"
-  using ls 
-  by (cases "x", auto) (cases "y", auto)+
-
-consts lift_un:: "('a \<Rightarrow> 'b) \<Rightarrow> 'a option \<Rightarrow> 'b option"
-primrec
-"lift_un c None = None"
-"lift_un c (Some p) = Some (c p)"
-
-consts lift_qe:: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a option \<Rightarrow> 'b option"
-primrec
-"lift_qe qe None = None"
-"lift_qe qe (Some p) = qe p"
-
-(* generic quantifier elimination *)
-consts qelim :: "(QF \<Rightarrow> QF option) \<times> QF \<Rightarrow> QF option"
-recdef qelim "measure (\<lambda>(qe,p). size p)"
-"qelim (qe, (QAll p)) = lift_un NOT (lift_qe qe (lift_un NOT (qelim (qe ,p))))"
-"qelim (qe, (QEx p)) = lift_qe qe (qelim (qe,p))"
-"qelim (qe, (And p q)) = lift_bin (And, (qelim (qe, p)), (qelim (qe, q)))"
-"qelim (qe, (Or p q)) = lift_bin (Or, (qelim (qe, p)), (qelim (qe, q)))"
-"qelim (qe, (Imp p q)) = lift_bin (Imp, (qelim (qe, p)), (qelim (qe, q)))"
-"qelim (qe, (Equ p q)) = lift_bin (Equ, (qelim (qe, p)), (qelim (qe, q)))"
-"qelim (qe,NOT p) = lift_un NOT (qelim (qe,p))"
-"qelim (qe, p) = Some p"
-
-(* quantifier free-ness *)
-consts isqfree :: "QF \<Rightarrow> bool"
-recdef isqfree "measure size"
-"isqfree (QAll p) = False"
-"isqfree (QEx p) = False"
-"isqfree (And p q) = (isqfree p \<and> isqfree q)"
-"isqfree (Or p q) = (isqfree p \<and> isqfree q)"
-"isqfree (Imp p q) = (isqfree p \<and> isqfree q)"
-"isqfree (Equ p q) = (isqfree p \<and> isqfree q)"
-"isqfree (NOT p) = isqfree p"
-"isqfree p = True"
-
-(* qelim lifts quantifierfreeness*)
-lemma qelim_qfree: 
-  assumes qeqf: "(\<And> q q'. \<lbrakk>isqfree q ; qe q = Some q'\<rbrakk> \<Longrightarrow>  isqfree q')"
-  shows qff:"\<And> p'. qelim (qe, p) = Some p' \<Longrightarrow> isqfree p'"
-  using qeqf
-proof (induct p)
-  case (Lt a b)
-  have "qelim (qe, Lt a b) = Some (Lt a b)" by simp
-  moreover have "qelim (qe,Lt a b) = Some p'" . 
-  ultimately have "p' = Lt a b" by simp
-  moreover have "isqfree (Lt a b)" by simp
-  ultimately 
-  show ?case  by simp
-next  
-  case (Gt a b)
-  have "qelim (qe, Gt a b) = Some (Gt a b)" by simp
-  moreover have "qelim (qe,Gt a b) = Some p'" . 
-  ultimately have "p' = Gt a b" by simp
-  moreover have "isqfree (Gt a b)" by simp
-  ultimately 
-  show ?case  by simp
-next  
-  case (Le a b)
-  have "qelim (qe, Le a b) = Some (Le a b)" by simp
-  moreover have "qelim (qe,Le a b) = Some p'" . 
-  ultimately have "p' = Le a b" by simp
-  moreover have "isqfree (Le a b)" by simp
-  ultimately 
-  show ?case  by simp
-next  
-  case (Ge a b)
-  have "qelim (qe, Ge a b) = Some (Ge a b)" by simp
-  moreover have "qelim (qe,Ge a b) = Some p'" . 
-  ultimately have "p' = Ge a b" by simp
-  moreover have "isqfree (Ge a b)" by simp
-  ultimately 
-  show ?case  by simp
-next  
-  case (Eq a b)
-  have "qelim (qe, Eq a b) = Some (Eq a b)" by simp
-  moreover have "qelim (qe,Eq a b) = Some p'" . 
-  ultimately have "p' = Eq a b" by simp
-  moreover have "isqfree (Eq a b)" by simp
-  ultimately 
-  show ?case  by simp
-next  
-  case (Divides a b)
-  have "qelim (qe, Divides a b) = Some (Divides a b)" by simp
-  moreover have "qelim (qe,Divides a b) = Some p'" . 
-  ultimately have "p' = Divides a b" by simp
-  moreover have "isqfree (Divides a b)" by simp
-  ultimately 
-  show ?case  by simp
-next  
-  case T 
-  have "qelim(qe,T) = Some T" by simp
-  moreover have "qelim(qe,T) = Some p'" .
-  ultimately have "p' = T" by simp
-  moreover have "isqfree T" by simp
-  ultimately show ?case by simp
-next  
-  case F
-  have "qelim(qe,F) = Some F" by simp
-  moreover have "qelim(qe,F) = Some p'" .
-  ultimately have "p' = F" by simp
-  moreover have "isqfree F" by simp
-  ultimately show ?case by simp
-next  
-  case (NOT p)
-  from "NOT.prems" have "\<exists> p1. qelim(qe,p) = Some p1"
-    by  (cases "qelim(qe,p)") simp_all
-  then obtain "p1" where p1_def: "qelim(qe,p) = Some p1" by blast
-  from "NOT.prems" have "\<And>q q'. \<lbrakk>isqfree q; qe q = Some q'\<rbrakk> \<Longrightarrow> isqfree q'" 
-    by blast
-  with "NOT.hyps" p1_def have p1qf: "isqfree p1" by blast
-  then have "p' = NOT p1" using "NOT.prems" p1_def
-    by (cases "qelim(qe,NOT p)") simp_all
-  then show ?case using p1qf by simp
-next  
-  case (And p q) 
-  from "And.prems" have p1q1: "(\<exists>p1. qelim(qe,p) = Some p1) \<and> 
-    (\<exists>q1. qelim(qe,q) = Some q1)" using lift_bin_Some[where c="And"] by simp
-  from p1q1 obtain "p1" and "q1" 
-    where p1_def: "qelim(qe,p) = Some p1" 
-    and q1_def: "qelim(qe,q) = Some q1" by blast
-  from prems have qf1:"isqfree p1"
-    using p1_def by blast
-  from prems have qf2:"isqfree q1"
-    using q1_def by blast
-  from "And.prems" have "qelim(qe,And p q) = Some p'" by blast
-  then have "p' = And p1 q1" using p1_def q1_def by simp
-  then 
-  show ?case using qf1 qf2 by simp
-next  
-  case (Or p q)
-  from "Or.prems" have p1q1: "(\<exists>p1. qelim(qe,p) = Some p1) \<and> 
-    (\<exists>q1. qelim(qe,q) = Some q1)" using lift_bin_Some[where c="Or"] by simp
-  from p1q1 obtain "p1" and "q1" 
-    where p1_def: "qelim(qe,p) = Some p1" 
-    and q1_def: "qelim(qe,q) = Some q1" by blast
-  from prems have qf1:"isqfree p1"
-    using p1_def by blast
-  from prems have qf2:"isqfree q1"
-    using q1_def by blast
-  from "Or.prems" have "qelim(qe,Or p q) = Some p'" by blast
-  then have "p' = Or p1 q1" using p1_def q1_def by simp
-  then 
-  show ?case using qf1 qf2 by simp
-next  
-  case (Imp p q)
-  from "Imp.prems" have p1q1: "(\<exists>p1. qelim(qe,p) = Some p1) \<and> 
-    (\<exists>q1. qelim(qe,q) = Some q1)" using lift_bin_Some[where c="Imp"] by simp
-  from p1q1 obtain "p1" and "q1" 
-    where p1_def: "qelim(qe,p) = Some p1" 
-    and q1_def: "qelim(qe,q) = Some q1" by blast
-  from prems have qf1:"isqfree p1"
-    using p1_def by blast
-  from prems have qf2:"isqfree q1"
-    using q1_def by blast
-  from "Imp.prems" have "qelim(qe,Imp p q) = Some p'" by blast
-  then have "p' = Imp p1 q1" using p1_def q1_def by simp
-  then 
-  show ?case using qf1 qf2 by simp
-next  
-  case (Equ p q)
-  from "Equ.prems" have p1q1: "(\<exists>p1. qelim(qe,p) = Some p1) \<and> 
-    (\<exists>q1. qelim(qe,q) = Some q1)" using lift_bin_Some[where c="Equ"] by simp
-  from p1q1 obtain "p1" and "q1" 
-    where p1_def: "qelim(qe,p) = Some p1" 
-    and q1_def: "qelim(qe,q) = Some q1" by blast
-  from prems have qf1:"isqfree p1"
-    using p1_def by blast
-  from prems have qf2:"isqfree q1"
-    using q1_def by blast
-  from "Equ.prems" have "qelim(qe,Equ p q) = Some p'" by blast
-  then have "p' = Equ p1 q1" using p1_def q1_def by simp
-  then 
-  show ?case using qf1 qf2 by simp
-next 
-  case (QEx p)
-  from "QEx.prems" have "\<exists> p1. qelim(qe,p) = Some p1"
-    by  (cases "qelim(qe,p)") simp_all
-  then obtain "p1" where p1_def: "qelim(qe,p) = Some p1" by blast
-  from "QEx.prems" have "\<And>q q'. \<lbrakk>isqfree q; qe q = Some q'\<rbrakk> \<Longrightarrow> isqfree q'" 
-    by blast
-  with "QEx.hyps" p1_def have p1qf: "isqfree p1" by blast
-  from "QEx.prems" have "qe p1 = Some p'" using p1_def by simp
-  with "QEx.prems" show ?case  using p1qf 
-    by simp
-next 
-  case (QAll p) 
-  from "QAll.prems"
-  have "\<exists> p1. lift_qe qe (lift_un NOT (qelim (qe ,p))) = Some p1" 
-    by (cases "lift_qe qe (lift_un NOT (qelim (qe ,p)))") simp_all
-  then obtain "p1" where 
-    p1_def:"lift_qe qe (lift_un NOT (qelim (qe ,p))) = Some p1" by blast
-  then have "\<exists> p2. lift_un NOT (qelim (qe ,p)) = Some p2"
-    by (cases "qelim (qe ,p)") simp_all
-  then obtain "p2" 
-    where p2_def:"lift_un NOT (qelim (qe ,p)) = Some p2" by blast
-  then have "\<exists> p3. qelim(qe,p) = Some p3" by (cases "qelim(qe,p)") simp_all
-  then obtain "p3" where p3_def: "qelim(qe,p) = Some p3" by blast
-  with prems have qf3: "isqfree p3" by blast
-  have p2_def2: "p2 = NOT p3" using p2_def p3_def by simp
-  then have qf2: "isqfree p2" using qf3 by simp
-  have p1_edf2: "qe p2 = Some p1" using p1_def p2_def by simp
-  with "QAll.prems" have qf1: "isqfree p1" using qf2 by blast
-  from "QAll.prems" have "p' = NOT p1" using p1_def by simp
-  with qf1 show ?case by simp
-qed
-
-(* qelim lifts semantical equivalence *)
-lemma qelim_corr: 
-  assumes qecorr: "(\<And> q q' ats. \<lbrakk>isqfree q ; qe q = Some q'\<rbrakk> \<Longrightarrow>  (qinterp ats (QEx q)) = (qinterp ats q'))"
-  and qeqf: "(\<And> q q'. \<lbrakk>isqfree q ; qe q = Some q'\<rbrakk> \<Longrightarrow>  isqfree q')"
-  shows qff:"\<And> p' ats. qelim (qe, p) = Some p' \<Longrightarrow> (qinterp ats p = qinterp ats p')" (is "\<And> p' ats. ?Qe p p' \<Longrightarrow> (?F ats p = ?F ats p')")
-  using qeqf qecorr
-proof (induct p)
-  case (NOT f)  
-  from "NOT.prems" have "\<exists>f'. ?Qe f f' " by (cases "qelim(qe,f)") simp_all
-  then obtain "f'" where df': "?Qe f f'" by blast
-  with prems have feqf': "?F ats f = ?F ats f'" by blast
-  from "NOT.prems" df' have "p' = NOT f'" by simp
-  with feqf' show ?case by simp
-
-next
-  case (And f g) 
-  from "And.prems" have f1g1: "(\<exists>f1. qelim(qe,f) = Some f1) \<and> 
-    (\<exists>g1. qelim(qe,g) = Some g1)" using lift_bin_Some[where c="And"] by simp
-  from f1g1 obtain "f1" and "g1" 
-    where f1_def: "qelim(qe, f) = Some f1" 
-    and g1_def: "qelim(qe,g) = Some g1" by blast
-  from prems f1_def have feqf1: "?F ats f = ?F ats f1" by blast
-  from prems g1_def have geqg1: "?F ats g = ?F ats g1" by blast
-  from "And.prems" f1_def g1_def have "p' = And f1 g1" by simp
-  with feqf1 geqg1 show ?case by simp
-
-next
-  case (Or f g) 
-  from "Or.prems" have f1g1: "(\<exists>f1. qelim(qe,f) = Some f1) \<and> 
-    (\<exists>g1. qelim(qe,g) = Some g1)" using lift_bin_Some[where c="Or"] by simp
-  from f1g1 obtain "f1" and "g1" 
-    where f1_def: "qelim(qe, f) = Some f1" 
-    and g1_def: "qelim(qe,g) = Some g1" by blast
-  from prems f1_def have feqf1: "?F ats f = ?F ats  f1" by blast
-  from prems g1_def have geqg1: "?F ats g = ?F ats g1" by blast
-  from "Or.prems" f1_def g1_def have "p' = Or f1 g1" by simp
-  with feqf1 geqg1 show ?case by simp
-next
-  case (Imp f g)
-  from "Imp.prems" have f1g1: "(\<exists>f1. qelim(qe,f) = Some f1) \<and> 
-    (\<exists>g1. qelim(qe,g) = Some g1)" using lift_bin_Some[where c="Imp"] by simp
-  from f1g1 obtain "f1" and "g1" 
-    where f1_def: "qelim(qe, f) = Some f1" 
-    and g1_def: "qelim(qe,g) = Some g1" by blast
-  from prems f1_def have feqf1: "?F ats f = ?F ats f1" by blast
-  from prems g1_def have geqg1: "?F ats g = ?F ats g1" by blast
-  from "Imp.prems" f1_def g1_def have "p' = Imp f1 g1" by simp
-  with feqf1 geqg1 show ?case by simp
-next
-  case (Equ f g)
-  from "Equ.prems" have f1g1: "(\<exists>f1. qelim(qe,f) = Some f1) \<and> 
-    (\<exists>g1. qelim(qe,g) = Some g1)" using lift_bin_Some[where c="Equ"] by simp
-  from f1g1 obtain "f1" and "g1" 
-    where f1_def: "qelim(qe, f) = Some f1" 
-    and g1_def: "qelim(qe,g) = Some g1" by blast
-  from prems f1_def have feqf1: "?F ats f = ?F ats f1" by blast
-  from prems g1_def have geqg1: "?F ats g = ?F ats g1" by blast
-  from "Equ.prems" f1_def g1_def have "p' = Equ f1 g1" by simp
-  with feqf1 geqg1 show ?case by simp
-next
-  case (QEx f) 
-    from "QEx.prems" have "\<exists> f1. ?Qe f f1"
-    by  (cases "qelim(qe,f)") simp_all
-  then obtain "f1" where f1_def: "qelim(qe,f) = Some f1" by blast
-  from prems have qf1:"isqfree f1" using qelim_qfree by blast
-  from prems have feqf1: "\<forall> ats. qinterp ats f = qinterp ats f1"
-    using f1_def qf1 by blast
-  then  have "?F ats (QEx f) = ?F ats (QEx f1)" 
-    by simp 
-  from prems have "qelim (qe,QEx f) = Some p'" by blast
-  then  have "\<exists> f'. qe f1 = Some f'" using f1_def by simp
-  then obtain "f'" where fdef': "qe f1 = Some f'" by blast
-  with prems have exf1: "?F ats (QEx f1) = ?F ats f'" using qf1 by blast
-  have fp: "?Qe (QEx f) f'" using f1_def fdef' by simp
-  from prems have "?Qe (QEx f) p'" by blast 
-  then have "p' = f'" using fp by simp
-  then show ?case using feqf1 exf1 by simp
-next
-  case (QAll f)
-  from "QAll.prems"
-  have "\<exists> f0. lift_un NOT (lift_qe qe (lift_un NOT (qelim (qe ,f)))) = 
-    Some f0"
-    by (cases "lift_un NOT (lift_qe qe (lift_un NOT (qelim (qe ,f))))") 
-      simp_all
-  then obtain "f0" 
-    where f0_def: "lift_un NOT (lift_qe qe (lift_un NOT (qelim (qe ,f)))) = 
-    Some f0" by blast
-  then have "\<exists> f1. lift_qe qe (lift_un NOT (qelim (qe ,f))) = Some f1" 
-    by (cases "lift_qe qe (lift_un NOT (qelim (qe ,f)))") simp_all
-  then obtain "f1" where 
-    f1_def:"lift_qe qe (lift_un NOT (qelim (qe ,f))) = Some f1" by blast
-  then have "\<exists> f2. lift_un NOT (qelim (qe ,f)) = Some f2"
-    by (cases "qelim (qe ,f)") simp_all
-  then obtain "f2" 
-    where f2_def:"lift_un NOT (qelim (qe ,f)) = Some f2" by blast
-  then have "\<exists> f3. qelim(qe,f) = Some f3" by (cases "qelim(qe,f)") simp_all
-  then obtain "f3" where f3_def: "qelim(qe,f) = Some f3" by blast
-  from prems have qf3:"isqfree f3" using qelim_qfree by blast
-  from prems have feqf3: "\<forall> ats. qinterp ats f = qinterp ats f3"
-    using f3_def qf3 by blast
-  have f23:"f2 = NOT f3" using f2_def f3_def by simp
-  then have feqf2: "\<forall> ats. qinterp ats f = qinterp ats (NOT f2)"
-    using feqf3 by simp
-  have qf2: "isqfree f2" using f23 qf3 by simp
-  have "qe f2 = Some f1" using f1_def f2_def f23 by simp
-  with prems have exf2eqf1: "?F ats (QEx f2) = ?F ats f1" using qf2 by blast
-  have "f0 = NOT f1" using f0_def f1_def by simp
-  then have f0eqf1: "?F ats f0 = ?F ats (NOT f1)" by simp
-  from prems have "qelim (qe, QAll f) = Some p'" by blast
-  then have f0eqp': "p' = f0" using f0_def by simp
-  have "?F ats (QAll f) = (\<forall>x. ?F (x#ats) f)" by simp
-  also have "\<dots> = (\<not> (\<exists> x. ?F (x#ats) (NOT f)))" by simp
-  also have "\<dots> = (\<not> (\<exists> x. ?F (x#ats) (NOT (NOT f2))))" using feqf2
-    by auto
-  also have "\<dots> = (\<not> (\<exists> x. ?F (x#ats) f2))" by simp
-  also have "\<dots> = (\<not> (?F ats f1))" using exf2eqf1 by simp
-  finally show ?case using f0eqp' f0eqf1 by simp
-qed simp_all
-
-(* Cooper's algorithm *)
-
-
-(* Transform an intform into NNF *)
-consts lgth :: "QF \<Rightarrow> nat"
-       nnf :: "QF \<Rightarrow> QF"    
-primrec
-"lgth (Lt it1 it2) = 1"
-"lgth (Gt it1 it2) = 1"
-"lgth (Le it1 it2) = 1"
-"lgth (Ge it1 it2) = 1"
-"lgth (Eq it1 it2) = 1"
-"lgth (Divides it1 it2) = 1"
-"lgth T = 1"
-"lgth F = 1"
-"lgth (NOT p) = 1 + lgth p"
-"lgth (And p q) = 1 + lgth p + lgth q"
-"lgth (Or p q) = 1 + lgth p + lgth q"
-"lgth (Imp p q) = 1 + lgth p + lgth q"
-"lgth (Equ p q) = 1 + lgth p + lgth q" 
-"lgth (QAll p) = 1 + lgth p" 
-"lgth (QEx p) = 1 + lgth p" 
-
-lemma [simp] :"0 < lgth q"
-apply (induct_tac q)
-apply(auto)
-done
-
-(* NNF *)
-recdef nnf "measure (\<lambda>p. lgth p)"
-  "nnf (Lt it1 it2) = Le (Sub it1 it2) (Cst (- 1))"
-  "nnf (Gt it1 it2) = Le (Sub it2 it1) (Cst (- 1))"
-  "nnf (Le it1 it2) = Le it1 it2 "
-  "nnf (Ge it1 it2) = Le it2 it1"
-  "nnf (Eq it1 it2) = Eq it2 it1"
-  "nnf (Divides d t) = Divides d t"
-  "nnf T = T"
-  "nnf F = F"
-  "nnf (And p q) = And (nnf p) (nnf q)"
-  "nnf (Or p q) = Or (nnf p) (nnf q)"
-  "nnf (Imp p q) = Or (nnf (NOT p)) (nnf q)"
-  "nnf (Equ p q) = Or (And (nnf p) (nnf q)) 
-  (And (nnf (NOT p)) (nnf (NOT q)))"
-  "nnf (NOT (Lt it1 it2)) = (Le it2 it1)"
-  "nnf (NOT (Gt it1 it2))  = (Le it1 it2)"
-  "nnf (NOT (Le it1 it2)) = (Le (Sub it2 it1) (Cst (- 1)))"
-  "nnf (NOT (Ge it1 it2)) = (Le (Sub it1 it2) (Cst (- 1)))"
-  "nnf (NOT (Eq it1 it2)) = (NOT (Eq it1 it2))"
-  "nnf (NOT (Divides d t)) = (NOT (Divides d t))"
-  "nnf (NOT T) = F"
-  "nnf (NOT F) = T"
-  "nnf (NOT (NOT p)) = (nnf p)"
-  "nnf (NOT (And p q)) = (Or (nnf (NOT p)) (nnf (NOT q)))"
-  "nnf (NOT (Or p q)) = (And (nnf (NOT p)) (nnf (NOT q)))"
-  "nnf (NOT (Imp p q)) = (And (nnf p) (nnf (NOT q)))"
-  "nnf (NOT (Equ p q)) = (Or (And (nnf p) (nnf (NOT q))) (And (nnf (NOT p)) (nnf q)))"
-
-consts isnnf :: "QF \<Rightarrow> bool"
-recdef isnnf "measure (\<lambda>p. lgth p)"
-  "isnnf (Le it1 it2) = True"
-  "isnnf (Eq it1 it2) = True"
-  "isnnf (Divides d t) = True"
-  "isnnf T = True"
-  "isnnf F = True"
-  "isnnf (And p q) = (isnnf p \<and> isnnf q)"
-  "isnnf (Or p q) = (isnnf p \<and> isnnf q)"
-  "isnnf (NOT (Divides d t)) = True" 
-  "isnnf (NOT (Eq it1 it2)) = True" 
-  "isnnf p = False"
-
-(* nnf preserves semantics *)
-lemma nnf_corr: "isqfree p \<Longrightarrow> qinterp ats p = qinterp ats (nnf p)"
-by (induct p rule: nnf.induct,simp_all) 
-(arith, arith, arith, arith, arith, arith, arith, arith, arith, blast)
-
-
-(* the result of nnf is in NNF *)
-lemma nnf_isnnf : "isqfree p \<Longrightarrow> isnnf (nnf p)"
-by (induct p rule: nnf.induct, auto)
-
-lemma nnf_isqfree: "isnnf p \<Longrightarrow> isqfree p"
-by (induct p rule: isnnf.induct) auto
-
-(* nnf preserves quantifier freeness *)
-lemma nnf_qfree: "isqfree p \<Longrightarrow> isqfree(nnf p)"
-  using nnf_isqfree nnf_isnnf by simp
-
-(* Linearization and normalization of formulae *)
-(* Definition of linearity of an intterm *)
-
-consts islinintterm :: "intterm \<Rightarrow> bool"
-recdef islinintterm "measure size"
-"islinintterm (Cst i) = True"
-"islinintterm (Add (Mult (Cst i) (Var n)) (Cst i')) = (i \<noteq> 0)"
-"islinintterm (Add (Mult (Cst i) (Var n)) (Add (Mult (Cst i') (Var n')) r)) = ( i \<noteq> 0 \<and> i' \<noteq> 0 \<and> n < n' \<and> islinintterm  (Add (Mult (Cst i') (Var n')) r))"
-"islinintterm i = False"
-
-(* subterms of linear terms are linear *)
-lemma islinintterm_subt:
-  assumes lr: "islinintterm (Add (Mult (Cst i) (Var n)) r)"
-  shows "islinintterm r"
-using lr
-by (induct r rule: islinintterm.induct) auto
-
-(* c \<noteq> 0 for linear term c.n + r*)
-lemma islinintterm_cnz:
-  assumes lr: "islinintterm (Add (Mult (Cst i) (Var n)) r)"
-  shows "i \<noteq> 0"
-using lr
-by (induct r rule: islinintterm.induct) auto
-
-lemma islininttermc0r: "islinintterm (Add (Mult (Cst c) (Var n)) r) \<Longrightarrow> (c \<noteq> 0 \<and> islinintterm r)"
-by (induct r rule: islinintterm.induct, simp_all)
-
-(* An alternative linearity definition *)
-consts islintn :: "(nat \<times> intterm) \<Rightarrow> bool"
-recdef islintn "measure (\<lambda> (n,t). (size t))"
-"islintn (n0, Cst i) = True"
-"islintn (n0, Add (Mult (Cst i) (Var n)) r) = (i \<noteq> 0 \<and> n0 \<le> n \<and> islintn (n+1,r))"
-"islintn (n0, t) = False"
-
-definition
-  islint :: "intterm \<Rightarrow> bool" where
-  "islint t = islintn(0,t)"
-
-(* And the equivalence to the first definition *)
-lemma islinintterm_eq_islint: "islinintterm t = islint t"
-  using islint_def
-by (induct t rule: islinintterm.induct) auto
-
-(* monotony *)
-lemma islintn_mon:
-  assumes lin: "islintn (n,t)"
-  and mgen: "m \<le> n"
-  shows "islintn(m,t)"
-  using lin mgen 
-by (induct t rule: islintn.induct) auto
-
-lemma islintn_subt:
-  assumes lint: "islintn(n,Add (Mult (Cst i) (Var m)) r)"
-  shows "islintn (m+1,r)"
-using lint
-by auto
-
-(* List indexin for n > 0 *)
-lemma nth_pos: "0 < n \<longrightarrow> (x#xs) ! n = (y#xs) ! n"
-using Nat.gr0_conv_Suc 
-by clarsimp 
-
-lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
-using Nat.gr0_conv_Suc
-by clarsimp
-
-lemma intterm_novar0: 
-  assumes lin: "islinintterm (Add (Mult (Cst i) (Var n)) r)"
-  shows "I_intterm (x#ats) r = I_intterm (y#ats) r"
-using lin
-by (induct r rule: islinintterm.induct) (simp_all add: nth_pos2)
-(* a simple version of a general theorem: Interpretation does not depend 
-   on the first variable if it does not occur in the term *)
-
-lemma linterm_novar0:
-  assumes lin: "islintn (n,t)"
-  and npos: "0 < n"
-  shows "I_intterm (x#ats) t = I_intterm (y#ats) t"
-using lin npos
-by (induct n t rule: islintn.induct) (simp_all add: nth_pos2)
-
-(* Periodicity of dvd *)
-lemma dvd_period:
-  assumes advdd: "(a::int) dvd d"
-  shows "(a dvd (x + t)) = (a dvd ((x+ c*d) + t))"
-using advdd  
-proof-
-  from advdd  have "\<forall>x.\<forall>k. (((a::int) dvd (x + t)) = (a dvd
- (x+k*d + t)))" by (rule dvd_modd_pinf)
-  then show ?thesis by simp
-qed
-
-(* lin_ad adds two linear terms*)
-consts lin_add :: "intterm \<times> intterm \<Rightarrow> intterm"
-recdef lin_add "measure (\<lambda>(x,y). ((size x) + (size y)))"
-"lin_add (Add (Mult (Cst c1) (Var n1)) (r1),Add (Mult (Cst c2) (Var n2)) (r2)) =
-  (if n1=n2 then 
-  (let c = Cst (c1 + c2) 
-   in (if c1+c2=0 then lin_add(r1,r2) else Add (Mult c (Var n1)) (lin_add (r1,r2))))
-  else if n1 \<le> n2 then (Add (Mult (Cst c1) (Var n1)) (lin_add (r1,Add (Mult (Cst c2) (Var n2)) (r2)))) 
-  else (Add (Mult (Cst c2) (Var n2)) (lin_add (Add (Mult (Cst c1) (Var n1)) r1,r2))))"
-"lin_add (Add (Mult (Cst c1) (Var n1)) (r1),Cst b) = 
-  (Add (Mult (Cst c1) (Var n1)) (lin_add (r1, Cst b)))"  
-"lin_add (Cst x,Add (Mult (Cst c2) (Var n2)) (r2)) = 
-  Add (Mult (Cst c2) (Var n2)) (lin_add (Cst x,r2))" 
-"lin_add (Cst b1, Cst b2) = Cst (b1+b2)"
-
-lemma lin_add_cst_corr: 
-  assumes blin : "islintn(n0,b)"
-  shows "I_intterm ats (lin_add (Cst a,b)) = (I_intterm ats (Add (Cst a) b))"
-using blin
-by (induct n0 b rule: islintn.induct) auto
-
-lemma lin_add_cst_corr2: 
-  assumes blin : "islintn(n0,b)"
-  shows "I_intterm ats (lin_add (b,Cst a)) = (I_intterm ats (Add b (Cst a)))"
-using blin
-by (induct n0 b rule: islintn.induct) auto
-
-lemma lin_add_corrh: "\<And> n01 n02. \<lbrakk> islintn (n01,a) ; islintn (n02,b)\<rbrakk> 
-  \<Longrightarrow> I_intterm ats (lin_add(a,b)) = I_intterm ats (Add a b)"
-proof(induct a b rule: lin_add.induct)
-  case (58 i n r j m s) 
-  have "(n = m \<and> i+j = 0) \<or> (n = m \<and> i+j \<noteq> 0) \<or> n < m \<or> m < n " by arith
-  moreover
-  {assume "n=m\<and>i+j=0" hence ?case using prems by (auto simp add: sym[OF zadd_zmult_distrib]) }
-  moreover
-  {assume "n=m\<and>i+j\<noteq>0" hence ?case using prems by (auto simp add: Let_def zadd_zmult_distrib)}
-  moreover
-  {assume "n < m" hence ?case using prems by auto }
-  moreover
-  {assume "n > m" hence ?case using prems by auto }
-  ultimately show ?case by blast
-qed (auto simp add: lin_add_cst_corr lin_add_cst_corr2 Let_def)
-
-(* lin_add has the semantics of Add*)
-lemma lin_add_corr:
-  assumes lina: "islinintterm a"
-  and linb: "islinintterm b"
-  shows "I_intterm ats (lin_add (a,b)) = (I_intterm ats (Add a b))"
-using lina linb islinintterm_eq_islint islint_def lin_add_corrh
-by blast
-
-lemma lin_add_cst_lint:
-  assumes lin: "islintn (n0,b)"
-  shows "islintn (n0, lin_add (Cst i, b))"
-using lin
-by (induct n0 b rule: islintn.induct) auto
-
-lemma lin_add_cst_lint2:
-  assumes lin: "islintn (n0,b)"
-  shows "islintn (n0, lin_add (b,Cst i))"
-using lin
-by (induct n0 b rule: islintn.induct) auto
-
-(* lin_add preserves linearity..*)
-lemma lin_add_lint: "\<And> n0 n01 n02. \<lbrakk> islintn (n01,a) ; islintn (n02,b); n0 \<le>  min n01 n02 \<rbrakk> 
-  \<Longrightarrow> islintn (n0, lin_add (a,b))"
-proof (induct a b rule: lin_add.induct)
-  case (58 i n r j m s)
-  have "(n =m \<and> i + j = 0) \<or> (n = m \<and> i+j \<noteq> 0) \<or> n <m \<or> m < n" by arith
-  moreover 
-  { assume "n = m"
-      and  "i+j = 0"
-    hence ?case using "58" islintn_mon[where m = "n01" and n = "Suc m"]
-      islintn_mon[where m = "n02" and n = "Suc m"] by auto }
-  moreover 
-  { assume  "n = m"
-      and "i+j \<noteq> 0"
-    hence ?case using "58" islintn_mon[where m = "n01" and n = "Suc m"]
-      islintn_mon[where m = "n02" and n = "Suc m"] by (auto simp add: Let_def) }
-  moreover
-  { assume "n < m" hence ?case using 58 by force }
-moreover
-  { assume "m < n"
-    hence ?case using 58 
-      apply (auto simp add: Let_def) 
-      apply (erule allE[where x = "Suc m" ] )
-      by (erule allE[where x = "Suc m" ] ) simp }
-  ultimately show ?case by blast
-qed(simp_all add: Let_def lin_add_cst_lint lin_add_cst_lint2)
-
-lemma lin_add_lin:
-  assumes lina: "islinintterm a"
-  and linb: "islinintterm b"
-  shows "islinintterm (lin_add (a,b))"
-using islinintterm_eq_islint islint_def lin_add_lint lina linb by auto
-
-(* lin_mul multiplies a linear term by a constant *)
-consts lin_mul :: "int \<times> intterm \<Rightarrow> intterm"
-recdef lin_mul "measure (\<lambda>(c,t). size t)"
-"lin_mul (c,Cst i) = (Cst (c*i))"
-"lin_mul (c,Add (Mult (Cst c') (Var n)) r)  = 
-  (if c = 0 then (Cst 0) else
-  (Add (Mult (Cst (c*c')) (Var n)) (lin_mul (c,r))))"
-
-lemma zmult_zadd_distrib[simp]: "(a::int) * (b+c) = a*b + a*c"
-proof-
-  have "a*(b+c) = (b+c)*a" by simp
-  moreover have "(b+c)*a = b*a + c*a" by (simp add: zadd_zmult_distrib)
-  ultimately show ?thesis by simp
-qed
-
-(* lin_mul has the semantics of Mult *)
-lemma lin_mul_corr: 
-  assumes lint: "islinintterm  t"
-  shows "I_intterm ats (lin_mul (c,t)) = I_intterm ats (Mult (Cst c) t)"
-using lint
-proof (induct c t rule: lin_mul.induct)
-  case (21 c c' n r)
-  have "islinintterm (Add (Mult (Cst c') (Var n)) r)" .
-  then have "islinintterm r" 
-    by (rule islinintterm_subt[of "c'" "n" "r"])
-  then show ?case  using "21.hyps" "21.prems" by simp
-qed(auto)
-
-(* lin_mul preserves linearity *)
-lemma lin_mul_lin:
-  assumes lint: "islinintterm t"
-  shows "islinintterm (lin_mul(c,t))"
-using lint
-by (induct t rule: islinintterm.induct) auto
-
-lemma lin_mul0:
-  assumes lint: "islinintterm t"
-  shows "lin_mul(0,t) = Cst 0"
-  using lint
-  by (induct t rule: islinintterm.induct) auto
-
-lemma lin_mul_lintn:
-  "\<And> m. islintn(m,t) \<Longrightarrow> islintn(m,lin_mul(l,t))"
-  by (induct l t rule: lin_mul.induct) simp_all
-
-(* lin_neg neagtes a linear term *)
-definition
-  lin_neg :: "intterm \<Rightarrow> intterm" where
-  "lin_neg i = lin_mul ((-1::int),i)"
-
-(* lin_neg has the semantics of Neg *)
-lemma lin_neg_corr:
-  assumes lint: "islinintterm  t"
-  shows "I_intterm ats (lin_neg t) = I_intterm ats (Neg t)"
-  using lint lin_mul_corr
-  by (simp add: lin_neg_def lin_mul_corr)
-
-(* lin_neg preserves linearity *)
-lemma lin_neg_lin:
-  assumes lint: "islinintterm  t"
-  shows "islinintterm (lin_neg t)"
-using lint
-by (simp add: lin_mul_lin lin_neg_def)
-
-(* Some properties about lin_add and lin-neg should be moved above *)
-
-lemma lin_neg_idemp: 
-  assumes lini: "islinintterm i"
-  shows "lin_neg (lin_neg i) = i"
-using lini
-by (induct i rule: islinintterm.induct) (auto simp add: lin_neg_def)
-
-lemma lin_neg_lin_add_distrib:
-  assumes lina : "islinintterm a"
-  and linb :"islinintterm b"
-  shows "lin_neg (lin_add(a,b)) = lin_add (lin_neg a, lin_neg b)"
-using lina linb
-proof (induct a b rule: lin_add.induct)
-  case (58 c1 n1 r1 c2 n2 r2)
-  from prems have lincnr1:"islinintterm (Add (Mult (Cst c1) (Var n1)) r1)" by simp
-  have linr1: "islinintterm r1" by (rule islinintterm_subt[OF lincnr1])
-  from prems have lincnr2: "islinintterm (Add (Mult (Cst c2) (Var n2)) r2)" by simp
-  have linr2: "islinintterm r2" by (rule islinintterm_subt[OF lincnr2])
-  have "n1 = n2 \<or> n1 < n2 \<or> n1 > n2" by arith
-  show ?case using prems linr1 linr2 by (simp_all add: lin_neg_def Let_def)
-next
-  case (59 c n r b) 
-  from prems have lincnr: "islinintterm (Add (Mult (Cst c) (Var n)) r)" by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  show ?case using prems linr by (simp add: lin_neg_def Let_def)
-next
-  case (60 b c n r)
-  from prems have lincnr: "islinintterm (Add (Mult (Cst c) (Var n)) r)" by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  show ?case  using prems linr by (simp add: lin_neg_def Let_def)
-qed (simp_all add: lin_neg_def)
-
-(* linearize tries to linearize a term *)
-consts linearize :: "intterm \<Rightarrow> intterm option"
-recdef linearize "measure (\<lambda>t. size t)"
-"linearize (Cst b) = Some (Cst b)"
-"linearize (Var n) = Some (Add (Mult (Cst 1) (Var n)) (Cst 0))"
-"linearize (Neg i) = lift_un lin_neg (linearize i)"
- "linearize (Add i j) = lift_bin(\<lambda> x. \<lambda> y. lin_add(x,y), linearize i, linearize j)"
-"linearize (Sub i j) = 
-  lift_bin(\<lambda> x. \<lambda> y. lin_add(x,lin_neg y), linearize i, linearize j)"
-"linearize (Mult i j) = 
-  (case linearize i of
-  None \<Rightarrow> None
-  | Some li \<Rightarrow> (case li of 
-     Cst b \<Rightarrow> (case linearize j of
-      None \<Rightarrow> None
-     | (Some lj) \<Rightarrow> Some (lin_mul(b,lj)))
-  | _ \<Rightarrow> (case linearize j of
-      None \<Rightarrow> None
-    | (Some lj) \<Rightarrow> (case lj of 
-        Cst b \<Rightarrow> Some (lin_mul (b,li))
-      | _ \<Rightarrow> None))))"
-
-lemma linearize_linear1:
-  assumes lin: "linearize t \<noteq> None"
-  shows "islinintterm (the (linearize t))"
-using lin
-proof (induct t rule: linearize.induct)
-  case (1 b) show ?case by simp  
-next 
-  case (2 n) show ?case by simp 
-next 
-  case (3 i) show ?case 
-    proof-
-    have "(linearize i = None) \<or> (\<exists>li. linearize i = Some li)" by auto
-    moreover 
-    { assume "linearize i = None" with prems have ?thesis by auto}
-    moreover 
-    { assume lini: "\<exists>li. linearize i = Some li"
-      from lini obtain "li" where  "linearize i = Some li" by blast
-      have linli: "islinintterm li" by (simp!)
-      moreover have "linearize (Neg i) = Some (lin_neg li)" using prems by simp
-      moreover from linli have "islinintterm(lin_neg li)" by (simp add: lin_neg_lin)
-      ultimately have ?thesis by simp
-    }
-    ultimately show ?thesis by blast
-  qed
-next 
-  case (4 i j) show ?case 
-    proof-
-    have "(linearize i = None) \<or> ((\<exists> li. linearize i = Some li) \<and> linearize j = None) \<or> ((\<exists> li. linearize i = Some li) \<and> (\<exists> lj. linearize j = Some lj))" by auto 
-    moreover 
-    {
-      assume nlini: "linearize i = None"
-      from nlini have "linearize (Add i j) = None" 
-	by simp then have ?thesis using prems by auto}
-    moreover 
-    { assume nlinj: "linearize j = None"
-	and lini: "\<exists> li. linearize i = Some li"
-      from nlinj lini have "linearize (Add i j) = None"
-	by auto with prems have ?thesis by auto}
-    moreover 
-    { assume lini: "\<exists>li. linearize i = Some li"
-	and linj: "\<exists>lj. linearize j = Some lj"
-      from lini obtain "li" where  "linearize i = Some li" by blast
-      have linli: "islinintterm li" by (simp!)
-      from linj obtain "lj" where  "linearize j = Some lj" by blast
-      have linlj: "islinintterm lj" by (simp!)
-      moreover from lini linj have "linearize (Add i j) = Some (lin_add (li,lj))" 
-	by (auto!)
-      moreover from linli linlj have "islinintterm(lin_add (li,lj))" by (simp add: lin_add_lin)
-      ultimately have ?thesis by simp  }
-    ultimately show ?thesis by blast
-  qed
-next 
-  case (5 i j)show ?case 
-    proof-
-    have "(linearize i = None) \<or> ((\<exists> li. linearize i = Some li) \<and> linearize j = None) \<or> ((\<exists> li. linearize i = Some li) \<and> (\<exists> lj. linearize j = Some lj))" by auto 
-    moreover 
-    {
-      assume nlini: "linearize i = None"
-      from nlini have "linearize (Sub i j) = None" by simp then have ?thesis by (auto!)
-    }
-    moreover 
-    {
-      assume lini: "\<exists> li. linearize i = Some li"
-	and nlinj: "linearize j = None"
-      from nlinj lini have "linearize (Sub i j) = None" 
-	by auto then have ?thesis by (auto!)
-    }
-    moreover 
-    {
-      assume lini: "\<exists>li. linearize i = Some li"
-	and linj: "\<exists>lj. linearize j = Some lj"
-      from lini obtain "li" where  "linearize i = Some li" by blast
-      have linli: "islinintterm li" by (simp!)
-      from linj obtain "lj" where  "linearize j = Some lj" by blast
-      have linlj: "islinintterm lj" by (simp!)
-      moreover from lini linj have "linearize (Sub i j) = Some (lin_add (li,lin_neg lj))" 
-	by (auto!)
-      moreover from linli linlj have "islinintterm(lin_add (li,lin_neg lj))" by (simp add: lin_add_lin lin_neg_lin)
-      ultimately have ?thesis by simp
-    }
-    ultimately show ?thesis by blast
-  qed
-next
-  case (6 i j)show ?case 
-    proof-
-      have cses: "(linearize i = None) \<or> 
-	((\<exists> li. linearize i = Some li) \<and> linearize j = None) \<or> 
-	((\<exists> li. linearize i = Some li) \<and> (\<exists> bj. linearize j = Some (Cst bj)))
-	\<or> ((\<exists> bi. linearize i = Some (Cst bi)) \<and> (\<exists> lj. linearize j = Some lj))
-	\<or> ((\<exists> li. linearize i = Some li \<and> \<not> (\<exists> bi. li = Cst bi)) \<and> (\<exists> lj. linearize j = Some lj \<and> \<not> (\<exists> bj. lj = Cst bj)))" by auto 
-    moreover 
-    {
-      assume nlini: "linearize i = None"
-      from nlini have "linearize (Mult i j) = None" by (simp)
-      with prems have ?thesis by auto }
-    moreover 
-    {  assume lini: "\<exists> li. linearize i = Some li"
-	and nlinj: "linearize j = None"
-      from lini obtain "li" where "linearize i = Some li" by blast 
-      moreover from nlinj lini have "linearize (Mult i j) = None"
-	using prems
-	by (cases li) (auto)
-      with prems have ?thesis by auto}
-    moreover 
-    { assume lini: "\<exists>li. linearize i = Some li"
-	and linj: "\<exists>bj. linearize j = Some (Cst bj)"
-      from lini obtain "li" where  li_def: "linearize i = Some li" by blast
-      from prems have linli: "islinintterm li" by simp
-      moreover 
-      from linj  obtain "bj" where  bj_def: "linearize j = Some (Cst bj)" by blast
-      have linlj: "islinintterm (Cst bj)" by simp 
-      moreover from lini linj prems 
-      have "linearize (Mult i j) = Some (lin_mul (bj,li))"
-	by (cases li) auto
-      moreover from linli linlj have "islinintterm(lin_mul (bj,li))" by (simp add: lin_mul_lin)
-      ultimately have ?thesis by simp  }
-    moreover 
-    { assume lini: "\<exists>bi. linearize i = Some (Cst bi)"
-	and linj: "\<exists>lj. linearize j = Some lj"
-      from lini obtain "bi" where  "linearize i = Some (Cst bi)" by blast
-      from prems have linli: "islinintterm (Cst bi)" by simp
-      moreover 
-      from linj  obtain "lj" where  "linearize j = Some lj" by blast
-      from prems have linlj: "islinintterm lj" by simp
-      moreover from lini linj prems have "linearize (Mult i j) = Some (lin_mul (bi,lj))" 
-	by simp 
-      moreover from linli linlj have "islinintterm(lin_mul (bi,lj))" by (simp add: lin_mul_lin)
-      ultimately have ?thesis by simp }
-    moreover 
-    { assume linc: "\<exists> li. linearize i = Some li \<and> \<not> (\<exists> bi. li = Cst bi)"
-	and ljnc: "\<exists> lj. linearize j = Some lj \<and> \<not> (\<exists> bj. lj = Cst bj)"
-      from linc obtain "li" where "linearize i = Some li \<and> \<not> (\<exists> bi. li = Cst bi)" by blast
-      moreover 
-      from ljnc obtain "lj" where "linearize j = Some lj \<and> \<not> (\<exists> bj. lj = Cst bj)" by blast
-      ultimately have "linearize (Mult i j) = None"
-	by (cases li, auto) (cases lj, auto)+
-      with prems have ?thesis by simp }
-    ultimately show ?thesis by blast
-  qed
-qed  
-
-(* the result of linearize, when successful, is a linear term*)
-lemma linearize_linear: "\<And> t'. linearize t = Some t' \<Longrightarrow> islinintterm t'"
-proof-
-  fix t'
-  assume lint: "linearize t = Some t'"
-  from lint have lt: "linearize t \<noteq> None" by auto
-  then have "islinintterm (the (linearize t))" by (rule_tac  linearize_linear1[OF lt])
-  with lint show "islinintterm t'" by simp
-qed
-
-lemma linearize_corr1: 
-  assumes lin: "linearize t \<noteq> None"
-  shows "I_intterm ats t = I_intterm ats (the (linearize t))"
-using lin
-proof (induct t rule: linearize.induct)
-  case (3 i) show ?case 
-    proof-
-    have "(linearize i = None) \<or> (\<exists>li. linearize i = Some li)" by auto
-    moreover 
-    {
-      assume "linearize i = None"
-      have ?thesis using prems by simp
-    }
-    moreover 
-    {
-      assume lini: "\<exists>li. linearize i = Some li"
-      from lini have lini2: "linearize i \<noteq> None" by auto
-      from lini obtain "li" where  "linearize i = Some li" by blast
-      from lini2 lini have "islinintterm (the (linearize i))"
-	by (simp add: linearize_linear1[OF lini2])
-      then have linli: "islinintterm li" using prems by simp
-      have ieqli: "I_intterm ats i = I_intterm ats li" using prems by simp
-      moreover have "linearize (Neg i) = Some (lin_neg li)" using prems by simp
-      moreover from ieqli linli have "I_intterm ats (Neg i) = I_intterm ats (lin_neg li)" by (simp add: lin_neg_corr[OF linli])
-      ultimately have ?thesis using prems by (simp add: lin_neg_corr)
-    }
-    ultimately show ?thesis by blast
-  qed
-next 
-  case (4 i j) show ?case 
-    proof-
-    have "(linearize i = None) \<or> ((\<exists> li. linearize i = Some li) \<and> linearize j = None) \<or> ((\<exists> li. linearize i = Some li) \<and> (\<exists> lj. linearize j = Some lj))" by auto 
-    moreover 
-    {
-      assume nlini: "linearize i = None"
-      from nlini have "linearize (Add i j) = None" by simp then have ?thesis using prems by auto
-    }
-    moreover 
-    {
-      assume nlinj: "linearize j = None"
-	and lini: "\<exists> li. linearize i = Some li"
-      from nlinj lini have "linearize (Add i j) = None"	by auto 
-      then have ?thesis using prems by auto
-    }
-    moreover 
-    {
-      assume lini: "\<exists>li. linearize i = Some li"
-	and linj: "\<exists>lj. linearize j = Some lj"
-      from lini have lini2: "linearize i \<noteq> None" by auto
-      from linj have linj2: "linearize j \<noteq> None" by auto
-      from lini obtain "li" where  "linearize i = Some li" by blast
-      from lini2 have "islinintterm (the (linearize i))" by (simp add: linearize_linear1)
-      then have linli: "islinintterm li" using prems by simp
-      from linj obtain "lj" where  "linearize j = Some lj" by blast
-      from linj2 have "islinintterm (the (linearize j))" by (simp add: linearize_linear1)
-      then have linlj: "islinintterm lj" using prems by simp
-      moreover from lini linj have "linearize (Add i j) = Some (lin_add (li,lj))"
-	using prems by simp
-      moreover from linli linlj have "I_intterm ats (lin_add (li,lj)) = I_intterm ats (Add li lj)" by (simp add: lin_add_corr)
-      ultimately have ?thesis using prems by simp
-    }
-    ultimately show ?thesis by blast
-  qed
-next 
-  case (5 i j)show ?case 
-    proof-
-    have "(linearize i = None) \<or> ((\<exists> li. linearize i = Some li) \<and> linearize j = None) \<or> ((\<exists> li. linearize i = Some li) \<and> (\<exists> lj. linearize j = Some lj))" by auto 
-    moreover 
-    {
-      assume nlini: "linearize i = None"
-      from nlini have "linearize (Sub i j) = None" by simp then have ?thesis using prems by auto
-    }
-    moreover 
-    {
-      assume lini: "\<exists> li. linearize i = Some li"
-	and nlinj: "linearize j = None"
-      from nlinj lini have "linearize (Sub i j) = None" 
-	by auto with prems have ?thesis by auto
-    }
-    moreover 
-    {
-      assume lini: "\<exists>li. linearize i = Some li"
-	and linj: "\<exists>lj. linearize j = Some lj"
-      from lini have lini2: "linearize i \<noteq> None" by auto
-      from linj have linj2: "linearize j \<noteq> None" by auto
-      from lini obtain "li" where  "linearize i = Some li" by blast
-      from lini2 have "islinintterm (the (linearize i))" by (simp add: linearize_linear1)
-      with prems have linli: "islinintterm li" by simp
-      from linj obtain "lj" where  "linearize j = Some lj" by blast
-      from linj2 have "islinintterm (the (linearize j))" by (simp add: linearize_linear1)
-      with prems have linlj: "islinintterm lj" by simp
-      moreover from prems have "linearize (Sub i j) = Some (lin_add (li,lin_neg lj))" 
-	by simp
-      moreover from linlj have linnlj:"islinintterm (lin_neg lj)" by (simp add: lin_neg_lin)
-      moreover from linli linnlj have "I_intterm ats (lin_add (li,lin_neg lj)) = I_intterm ats (Add li (lin_neg lj))" by (simp only: lin_add_corr[OF linli linnlj])
-      moreover from linli linlj linnlj have "I_intterm ats (Add li (lin_neg lj)) = I_intterm ats (Sub li lj)" 
-	by (simp add: lin_neg_corr)
-      ultimately have ?thesis using prems by simp    
-    }
-    ultimately show ?thesis by blast
-  qed
-next
-  case (6 i j)show ?case 
-    proof-
-      have cses: "(linearize i = None) \<or> 
-	((\<exists> li. linearize i = Some li) \<and> linearize j = None) \<or> 
-	((\<exists> li. linearize i = Some li) \<and> (\<exists> bj. linearize j = Some (Cst bj)))
-	\<or> ((\<exists> bi. linearize i = Some (Cst bi)) \<and> (\<exists> lj. linearize j = Some lj))
-	\<or> ((\<exists> li. linearize i = Some li \<and> \<not> (\<exists> bi. li = Cst bi)) \<and> (\<exists> lj. linearize j = Some lj \<and> \<not> (\<exists> bj. lj = Cst bj)))" by auto 
-    moreover 
-    {
-      assume nlini: "linearize i = None"
-      from nlini have "linearize (Mult i j) = None" by simp with prems  have ?thesis by auto
-    }
-    moreover 
-    {
-      assume lini: "\<exists> li. linearize i = Some li"
-	and nlinj: "linearize j = None"
-
-      from lini obtain "li" where "linearize i = Some li" by blast 
-      moreover from prems have "linearize (Mult i j) = None" 
-	by (cases li) simp_all
-      with prems have ?thesis by auto
-    }
-    moreover 
-    {
-      assume lini: "\<exists>li. linearize i = Some li"
-	and linj: "\<exists>bj. linearize j = Some (Cst bj)"
-      from lini have lini2: "linearize i \<noteq> None" by auto
-      from linj have linj2: "linearize j \<noteq> None" by auto
-      from lini obtain "li" where  "linearize i = Some li" by blast
-      from lini2 have "islinintterm (the (linearize i))" by (simp add: linearize_linear1)
-      with prems  have linli: "islinintterm li" by simp
-      moreover 
-      from linj  obtain "bj" where  "linearize j = Some (Cst bj)" by blast
-      have linlj: "islinintterm (Cst bj)" by simp
-      moreover from prems have "linearize (Mult i j) = Some (lin_mul (bj,li))"
- 	by (cases li) auto
-      then have lm1: "I_intterm ats (the(linearize (Mult i j))) = I_intterm ats (lin_mul (bj,li))" by simp
-      moreover from linli linlj have "I_intterm ats (lin_mul(bj,li)) = I_intterm ats (Mult li (Cst bj))" by (simp add: lin_mul_corr)
-      with prems 
-      have "I_intterm ats (lin_mul(bj,li)) = I_intterm ats (Mult li (the (linearize j)))" 
-	by auto
-      moreover have "I_intterm ats (Mult li (the (linearize j))) = I_intterm ats (Mult i (the (linearize j)))" using prems  by simp
-      moreover have "I_intterm ats i = I_intterm ats (the (linearize i))"  
-	using lini2 lini "6.hyps" by simp
-	moreover have "I_intterm ats j = I_intterm ats (the (linearize j))"
-	  using prems by (cases li) auto
-      ultimately have ?thesis by auto }
-    moreover 
-    { assume lini: "\<exists>bi. linearize i = Some (Cst bi)"
-	and linj: "\<exists>lj. linearize j = Some lj"
-      from lini have lini2 : "linearize i \<noteq> None" by auto
-      from linj have linj2 : "linearize j \<noteq> None" by auto      
-      from lini obtain "bi" where  "linearize i = Some (Cst bi)" by blast
-      have linli: "islinintterm (Cst bi)" using prems by simp
-      moreover 
-      from linj  obtain "lj" where  "linearize j = Some lj" by blast
-      from linj2 have "islinintterm (the (linearize j))" by (simp add: linearize_linear1) 
-      then have linlj: "islinintterm lj" by (simp!)
-      moreover from linli lini linj have "linearize (Mult i j) = Some (lin_mul (bi,lj))"
-	by (case_tac "li::intterm",auto!)
-      then have lm1: "I_intterm ats (the(linearize (Mult i j))) = I_intterm ats (lin_mul (bi,lj))" by simp
-      moreover from linli linlj have "I_intterm ats (lin_mul(bi,lj)) = I_intterm ats (Mult (Cst bi) lj)" by (simp add: lin_mul_corr)
-      then have "I_intterm ats (lin_mul(bi,lj)) = I_intterm ats (Mult (the (linearize i)) lj)" by (auto!)
-      moreover have "I_intterm ats (Mult (the (linearize i)) lj) = I_intterm ats (Mult (the (linearize i)) j)" using lini lini2  by (simp!)
-      moreover have "I_intterm ats i = I_intterm ats (the (linearize i))"  
-	using lini2 lini "6.hyps" by simp
-	moreover have "I_intterm ats j = I_intterm ats (the (linearize j))"
-	  using linj linj2 lini lini2 linli linlj "6.hyps" by (auto!)
-
-      ultimately have ?thesis by auto }
-    moreover 
-    { assume linc: "\<exists> li. linearize i = Some li \<and> \<not> (\<exists> bi. li = Cst bi)"
-	and ljnc: "\<exists> lj. linearize j = Some lj \<and> \<not> (\<exists> bj. lj = Cst bj)"
-      from linc obtain "li" where "\<exists> li. linearize i = Some li \<and> \<not> (\<exists> bi. li = Cst bi)" by blast
-      moreover 
-      from ljnc obtain "lj" where "\<exists> lj. linearize j = Some lj \<and> \<not> (\<exists> bj. lj = Cst bj)" by blast
-      ultimately have "linearize (Mult i j) = None"
-	apply simp
-	apply (case_tac "linearize i", auto)
-	apply (case_tac a)
-	apply (auto!)
-	by (case_tac "lj",auto)+
-      then have ?thesis by (simp!) }
-    ultimately show ?thesis by blast
-  qed
-qed  simp_all
-
-
-(* linearize, when successful, preserves semantics *)
-lemma linearize_corr: "\<And> t'. linearize t = Some t' \<Longrightarrow> I_intterm ats t = I_intterm ats t' "
-proof-
-  fix t'
-  assume lint: "linearize t = Some t'"
-  show  "I_intterm ats t = I_intterm ats t'"
-  proof-
-    from lint have lt: "linearize t \<noteq> None" by simp 
-    then have "I_intterm ats t = I_intterm ats (the (linearize t))" 
-      by (rule_tac linearize_corr1[OF lt])
-    with lint show ?thesis by simp
-  qed
-qed
-
-(* tries to linearize a formula *)
-consts linform :: "QF \<Rightarrow> QF option"
-primrec
-"linform (Le it1 it2) =  
-  lift_bin(\<lambda>x. \<lambda>y. Le (lin_add(x,lin_neg y)) (Cst 0),linearize it1, linearize it2)"
-"linform (Eq it1 it2) =  
-  lift_bin(\<lambda>x. \<lambda>y. Eq (lin_add(x,lin_neg y)) (Cst 0),linearize it1, linearize it2)"
-"linform (Divides d t) =  
-  (case linearize d of
-    None \<Rightarrow> None
-   | Some ld \<Rightarrow> (case ld of
-          Cst b \<Rightarrow> 
-               (if (b=0) then None
-               else 
-                (case linearize t of 
-                 None \<Rightarrow> None
-               | Some lt \<Rightarrow> Some (Divides ld lt)))
-         | _ \<Rightarrow> None))"
-"linform  T = Some T"
-"linform  F = Some F"
-"linform (NOT p) = lift_un NOT (linform p)"
-"linform (And p q)= lift_bin(\<lambda>f. \<lambda>g. And f g, linform p, linform q)"
-"linform (Or p q) = lift_bin(\<lambda>f. \<lambda>g. Or f g, linform p, linform q)"
-
-(* linearity of formulae *)
-consts islinform :: "QF \<Rightarrow> bool"
-recdef islinform "measure size"
-"islinform (Le it (Cst i)) = (i=0 \<and> islinintterm it )"
-"islinform (Eq it (Cst i)) = (i=0 \<and> islinintterm it)"
-"islinform (Divides (Cst d) t) = (d \<noteq> 0 \<and> islinintterm t)"
-"islinform  T = True"
-"islinform  F = True"
-"islinform (NOT (Divides (Cst d) t)) = (d \<noteq> 0 \<and> islinintterm t)"
-"islinform (NOT (Eq it (Cst i))) = (i=0 \<and> islinintterm it)"
-"islinform (And p q)= ((islinform p) \<and> (islinform q))"
-"islinform (Or p q) = ((islinform p) \<and> (islinform q))"
-"islinform p = False"
-
-(* linform preserves nnf, if successful *)
-lemma linform_nnf: 
-  assumes nnfp: "isnnf p" 
-  shows "\<And> p'. \<lbrakk>linform p = Some p'\<rbrakk> \<Longrightarrow> isnnf p'"
-using nnfp
-proof (induct p rule: isnnf.induct, simp_all)
-  case (goal1 a b p')
-  show ?case 
-    using prems 
-    by (cases "linearize a", auto) (cases "linearize b", auto)
-next 
-  case (goal2 a b p')
-  show ?case 
-    using prems 
-    by (cases "linearize a", auto) (cases "linearize b", auto)
-next 
-  case (goal3 d t p')
-  show ?case 
-    using prems
-    apply (cases "linearize d", auto)
-    apply (case_tac "a",auto)
-    apply (case_tac "int=0",auto)
-    by (cases "linearize t",auto)
-next
-  case (goal4 f g p') show ?case 
-    using prems
-    by (cases "linform f", auto) (cases "linform g", auto)
-next
-  case (goal5 f g p') show ?case 
-    using prems
-    by (cases "linform f", auto) (cases "linform g", auto)
-next
-  case (goal6 d t p') show ?case 
-    using prems
-    apply (cases "linearize d", auto)
-    apply (case_tac "a", auto)
-    apply (case_tac "int = 0",auto)
-    by (cases "linearize t", auto)
-next 
-  case (goal7 a b p')
-  show ?case 
-    using prems 
-    by (cases "linearize a", auto) (cases "linearize b", auto)
-
-
-qed
-
-
-lemma linform_corr: "\<And> lp. \<lbrakk> isnnf p ; linform p = Some lp \<rbrakk> \<Longrightarrow> 
-                     (qinterp ats p = qinterp ats lp)"
-proof (induct p rule: linform.induct)
-  case (Le x y)
-  show ?case
-    using "Le.prems"
-  proof-
-    have "(\<exists> lx ly. linearize x = Some lx \<and> linearize y = Some ly) \<or> 
-      (linearize x = None) \<or> (linearize y = None)"by auto
-    moreover 
-    {
-      assume linxy: "\<exists> lx ly. linearize x = Some lx \<and> linearize y = Some ly"
-      from linxy obtain "lx" "ly" 
-	where lxly:"linearize x = Some lx \<and> linearize y = Some ly" by blast
-      then 
-      have lxeqx: "I_intterm ats x = I_intterm ats lx" 
-	by (simp add: linearize_corr)
-      from lxly have lxlin: "islinintterm lx" 
-	by (auto simp add: linearize_linear)
-      from lxly have lyeqy: "I_intterm ats y = I_intterm ats ly"
-	by (simp add: linearize_corr)
-      from lxly have lylin: "islinintterm ly" 
-	by (auto simp add: linearize_linear)
-      from "prems"
-      have lpeqle: "lp =  (Le (lin_add(lx,lin_neg ly)) (Cst 0))"
-	by auto
-      moreover
-      have lin1: "islinintterm (Cst 1)" by simp
-      then
-      have ?thesis  
-	using lxlin lylin lin1 lin_add_lin lin_neg_lin "prems" lxly lpeqle
-	by (simp add: lin_add_corr lin_neg_corr lxeqx lyeqy)
-      
-    }
-    
-    moreover
-    {
-      assume "linearize x = None"
-      have ?thesis using "prems" by simp
-    }
-    
-    moreover
-    {
-      assume "linearize y = None"
-      then have ?thesis using "prems"
-	by (case_tac "linearize x", auto)
-    }
-    ultimately show ?thesis by blast
-  qed
-  
-next 
-  case (Eq x y)
-  show ?case
-    using "Eq.prems"
-  proof-
-    have "(\<exists> lx ly. linearize x = Some lx \<and> linearize y = Some ly) \<or> 
-      (linearize x = None) \<or> (linearize y = None)"by auto
-    moreover 
-    {
-      assume linxy: "\<exists> lx ly. linearize x = Some lx \<and> linearize y = Some ly"
-      from linxy obtain "lx" "ly" 
-	where lxly:"linearize x = Some lx \<and> linearize y = Some ly" by blast
-      then 
-      have lxeqx: "I_intterm ats x = I_intterm ats lx" 
-	by (simp add: linearize_corr)
-      from lxly have lxlin: "islinintterm lx" 
-	by (auto simp add: linearize_linear)
-      from lxly have lyeqy: "I_intterm ats y = I_intterm ats ly"
-	by (simp add: linearize_corr)
-      from lxly have lylin: "islinintterm ly" 
-	by (auto simp add: linearize_linear)
-      from "prems"
-      have lpeqle: "lp =  (Eq (lin_add(lx,lin_neg ly)) (Cst 0))"
-	by auto
-      moreover
-      have lin1: "islinintterm (Cst 1)" by simp
-      then
-      have ?thesis  
-	using lxlin lylin lin1 lin_add_lin lin_neg_lin "prems" lxly lpeqle
-	by (simp add: lin_add_corr lin_neg_corr lxeqx lyeqy)
-      
-    }
-    
-    moreover
-    {
-      assume "linearize x = None"
-      have ?thesis using "prems" by simp
-    }
-    
-    moreover
-    {
-      assume "linearize y = None"
-      then have ?thesis using "prems"
-	by (case_tac "linearize x", auto)
-    }
-    ultimately show ?thesis by blast
-  qed
-  
-next 
-  case (Divides d t)
-  show ?case
-    using "Divides.prems"
-    apply (case_tac "linearize d",auto)
-    apply (case_tac a, auto)
-    apply (case_tac "int = 0", auto)
-    apply (case_tac "linearize t", auto)
-    apply (simp add: linearize_corr)
-    apply (case_tac a, auto)
-    apply (case_tac "int = 0", auto)
-    by (case_tac "linearize t", auto simp add: linearize_corr)
-next
-  case (NOT f) show ?case
-    using "prems"
-  proof-
-    have "(\<exists> lf. linform f = Some lf) \<or> (linform f = None)" by auto
-    moreover 
-    {
-      assume linf: "\<exists> lf. linform f = Some lf"
-      from prems have "isnnf (NOT f)" by simp
-      then have fnnf: "isnnf f" by (cases f) auto
-      from linf obtain "lf" where lf: "linform f = Some lf" by blast
-      then have "lp = NOT lf" using "prems" by auto
-      with "NOT.prems" "NOT.hyps" lf fnnf
-      have ?case by simp
-    }
-    moreover 
-    {
-      assume "linform f = None"
-      then 
-      have "linform (NOT f) = None" by simp
-      then 
-      have ?thesis  using "NOT.prems" by simp
-    }
-    ultimately show ?thesis by blast
-  qed
-next
-  case (Or f g) 
-  show ?case using "Or.hyps"
-  proof -
-    have "((\<exists> lf. linform f = Some lf ) \<and> (\<exists> lg. linform g = Some lg)) \<or> 
-      (linform f = None) \<or> (linform g = None)" by auto
-    moreover
-    {
-      assume linf: "\<exists> lf. linform f = Some lf"
-	and ling: "\<exists> lg. linform g = Some lg"
-      from linf obtain "lf" where lf: "linform f = Some lf" by blast
-      from ling obtain "lg" where lg: "linform g = Some lg" by blast
-      from lf lg have "linform (Or f g) = Some (Or lf lg)" by simp
-      then have "lp = Or lf lg" using lf lg "prems"  by simp
-      with lf lg "prems" have ?thesis by simp
-    }
-    moreover
-    {
-      assume "linform f = None"
-      then have ?thesis using "Or.prems"  by auto
-    }
-    moreover
-    {
-      assume "linform g = None"
-      then have ?thesis using "Or.prems"  by (case_tac "linform f", auto)
-      
-    }
-    ultimately show ?thesis by blast
-  qed
-next
-  case (And f g) 
-  show ?case using "And.hyps"
-  proof -
-    have "((\<exists> lf. linform f = Some lf ) \<and> (\<exists> lg. linform g = Some lg)) \<or> 
-      (linform f = None) \<or> (linform g = None)" by auto
-    moreover
-    {
-      assume linf: "\<exists> lf. linform f = Some lf"
-	and ling: "\<exists> lg. linform g = Some lg"
-      from linf obtain "lf" where lf: "linform f = Some lf" by blast
-      from ling obtain "lg" where lg: "linform g = Some lg" by blast
-      from lf lg have "linform (And f g) = Some (And lf lg)" by simp
-      then have "lp = And lf lg" using lf lg "prems"  by simp
-      with lf lg "prems" have ?thesis by simp
-    }
-    moreover
-    {
-      assume "linform f = None"
-      then have ?thesis using "And.prems"  by auto
-    }
-    moreover
-    {
-      assume "linform g = None"
-      then have ?thesis using "And.prems"  by (case_tac "linform f", auto)
-      
-    }
-    ultimately show ?thesis by blast
-  qed
-
-qed simp_all
-
-
-(* the result of linform is a linear formula *)
-lemma linform_lin: "\<And> lp. \<lbrakk> isnnf p ; linform p = Some lp\<rbrakk> \<Longrightarrow> islinform lp"
-proof (induct p rule: linform.induct)
-   case (Le x y)
-  have "((\<exists> lx. linearize x = Some lx) \<and> (\<exists> ly. linearize y = Some ly)) \<or> 
-    (linearize x = None) \<or> (linearize y = None) " by clarsimp
-  moreover 
-  {
-    assume linx: "\<exists> lx. linearize x = Some lx"
-      and liny: "\<exists> ly. linearize y = Some ly"
-    from linx obtain "lx" where lx: "linearize x = Some lx" by blast
-    from liny obtain "ly" where ly: "linearize y = Some ly" by blast
-    from lx have lxlin: "islinintterm lx" by (simp add: linearize_linear)
-    from ly have lylin: "islinintterm ly" by (simp add: linearize_linear)    
-    have lin1:"islinintterm (Cst 1)" by simp
-    have lin0: "islinintterm (Cst 0)" by simp
-    from "prems"  have "lp = Le (lin_add(lx,lin_neg ly)) (Cst 0)"
-      by auto
-    with lin0 lin1 lxlin lylin "prems" 
-    have ?case by (simp add: lin_add_lin lin_neg_lin)
-    
-  }
-
-  moreover 
-  {
-    assume "linearize x = None"
-    then have ?case using "prems" by simp
-  }
-  moreover 
-  {
-    assume "linearize y = None"
-    then have ?case using "prems" by (case_tac "linearize x",simp_all)
-  }
-  ultimately show ?case by blast
-next
-   case (Eq x y)
-  have "((\<exists> lx. linearize x = Some lx) \<and> (\<exists> ly. linearize y = Some ly)) \<or> 
-    (linearize x = None) \<or> (linearize y = None) " by clarsimp
-  moreover 
-  {
-    assume linx: "\<exists> lx. linearize x = Some lx"
-      and liny: "\<exists> ly. linearize y = Some ly"
-    from linx obtain "lx" where lx: "linearize x = Some lx" by blast
-    from liny obtain "ly" where ly: "linearize y = Some ly" by blast
-    from lx have lxlin: "islinintterm lx" by (simp add: linearize_linear)
-    from ly have lylin: "islinintterm ly" by (simp add: linearize_linear)    
-    have lin1:"islinintterm (Cst 1)" by simp
-    have lin0: "islinintterm (Cst 0)" by simp
-    from "prems"  have "lp = Eq (lin_add(lx,lin_neg ly)) (Cst 0)"
-      by auto
-    with lin0 lin1 lxlin lylin "prems" 
-    have ?case by (simp add: lin_add_lin lin_neg_lin)
-    
-  }
-
-  moreover 
-  {
-    assume "linearize x = None"
-    then have ?case using "prems" by simp
-  }
-  moreover 
-  {
-    assume "linearize y = None"
-    then have ?case using "prems" by (case_tac "linearize x",simp_all)
-  }
-  ultimately show ?case by blast
-next
-   case (Divides d t)
-   show ?case 
-     using prems
-     apply (case_tac "linearize d", auto)
-     apply (case_tac a, auto)
-     apply (case_tac "int = 0", auto)
-
-     by (case_tac "linearize t",auto simp add: linearize_linear)
-next
-  case (Or f g)
- show ?case using "Or.hyps"
-  proof -
-    have "((\<exists> lf. linform f = Some lf ) \<and> (\<exists> lg. linform g = Some lg)) \<or> 
-      (linform f = None) \<or> (linform g = None)" by auto
-    moreover
-    {
-      assume linf: "\<exists> lf. linform f = Some lf"
-	and ling: "\<exists> lg. linform g = Some lg"
-      from linf obtain "lf" where lf: "linform f = Some lf" by blast
-      from ling obtain "lg" where lg: "linform g = Some lg" by blast
-      from lf lg have "linform (Or f g) = Some (Or lf lg)" by simp
-      then have "lp = Or lf lg" using lf lg "prems"  by simp
-      with lf lg "prems" have ?thesis by simp
-    }
-    moreover
-    {
-      assume "linform f = None"
-      then have ?thesis using "Or.prems"  by auto
-    }
-    moreover
-    {
-      assume "linform g = None"
-      then have ?thesis using "Or.prems"  by (case_tac "linform f", auto)
-      
-    }
-    ultimately show ?thesis by blast
-  qed
-next
-  case (And f g) 
-  show ?case using "And.hyps"
-  proof -
-    have "((\<exists> lf. linform f = Some lf ) \<and> (\<exists> lg. linform g = Some lg)) \<or> 
-      (linform f = None) \<or> (linform g = None)" by auto
-    moreover
-    {
-      assume linf: "\<exists> lf. linform f = Some lf"
-	and ling: "\<exists> lg. linform g = Some lg"
-      from linf obtain "lf" where lf: "linform f = Some lf" by blast
-      from ling obtain "lg" where lg: "linform g = Some lg" by blast
-      from lf lg have "linform (And f g) = Some (And lf lg)" by simp
-      then have "lp = And lf lg" using lf lg "prems"  by simp
-      with lf lg "prems" have ?thesis by simp
-    }
-    moreover
-    {
-      assume "linform f = None"
-      then have ?thesis using "And.prems"  by auto
-    }
-    moreover
-    {
-      assume "linform g = None"
-      then have ?thesis using "And.prems"  by (case_tac "linform f", auto)
-      
-    }
-    ultimately show ?thesis by blast
-  qed
-next
-  case (NOT f) show ?case
-    using "prems"
-  proof-
-    have "(\<exists> lf. linform f = Some lf) \<or> (linform f = None)" by auto
-    moreover 
-    {
-      assume linf: "\<exists> lf. linform f = Some lf"
-      from prems have "isnnf (NOT f)" by simp
-      then have fnnf: "isnnf f" by (cases f) auto
-      from linf obtain "lf" where lf: "linform f = Some lf" by blast
-      then have "lp = NOT lf" using "prems" by auto
-      with "NOT.prems" "NOT.hyps" lf fnnf
-      have ?thesis 
-	using fnnf
-	apply (cases f, auto) 
-	prefer 2
-	apply (case_tac "linearize intterm1",auto)
-	apply (case_tac a, auto)
-	apply (case_tac "int = 0", auto)
-	apply (case_tac "linearize intterm2") 
-	apply (auto simp add: linearize_linear)
-	apply (case_tac "linearize intterm1",auto)
-	by (case_tac "linearize intterm2") 
-      (auto simp add: linearize_linear lin_add_lin lin_neg_lin)
-    }
-    moreover 
-    {
-      assume "linform f = None"
-      then 
-      have "linform (NOT f) = None" by simp
-      then 
-      have ?thesis  using "NOT.prems" by simp
-    }
-    ultimately show ?thesis by blast
-  qed
-qed (simp_all)
-
-
-(* linform, if successful, preserves quantifier freeness *)
-lemma linform_isnnf: "islinform p \<Longrightarrow> isnnf p"
-by (induct p rule: islinform.induct) auto
-
-lemma linform_isqfree: "islinform p \<Longrightarrow> isqfree p"
-using linform_isnnf nnf_isqfree by simp
-
-lemma linform_qfree: "\<And> p'. \<lbrakk> isnnf p ; linform p = Some p'\<rbrakk> \<Longrightarrow> isqfree p'"
-using linform_isqfree linform_lin 
-by simp
-
-(* Definitions and lemmas about gcd and lcm *)
-definition
-  lcm :: "nat \<times> nat \<Rightarrow> nat" where
-  "lcm = (\<lambda>(m,n). m*n div gcd(m,n))"
-
-definition
-  ilcm :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "ilcm = (\<lambda>i.\<lambda>j. int (lcm(nat(abs i),nat(abs j))))"
-
-(* ilcm_dvd12 are needed later *)
-lemma lcm_dvd1: 
-  assumes mpos: " m >0"
-  and npos: "n>0"
-  shows "m dvd (lcm(m,n))"
-proof-
-  have "gcd(m,n) dvd n" by simp
-  then obtain "k" where "n = gcd(m,n) * k" using dvd_def by auto
-  then have "m*n div gcd(m,n) = m*(gcd(m,n)*k) div gcd(m,n)" by (simp add: mult_ac)
-  also have "\<dots> = m*k" using mpos npos gcd_zero by simp
-  finally show ?thesis by (simp add: lcm_def)
-qed
-
-lemma lcm_dvd2: 
-  assumes mpos: " m >0"
-  and npos: "n>0"
-  shows "n dvd (lcm(m,n))"
-proof-
-  have "gcd(m,n) dvd m" by simp
-  then obtain "k" where "m = gcd(m,n) * k" using dvd_def by auto
-  then have "m*n div gcd(m,n) = (gcd(m,n)*k)*n div gcd(m,n)" by (simp add: mult_ac)
-  also have "\<dots> = n*k" using mpos npos gcd_zero by simp
-  finally show ?thesis by (simp add: lcm_def)
-qed
-
-lemma ilcm_dvd1: 
-assumes anz: "a \<noteq> 0" 
-  and bnz: "b \<noteq> 0"
-  shows "a dvd (ilcm a b)"
-proof-
-  let ?na = "nat (abs a)"
-  let ?nb = "nat (abs b)"
-  have nap: "?na >0" using anz by simp
-  have nbp: "?nb >0" using bnz by simp
-  from nap nbp have "?na dvd lcm(?na,?nb)" using lcm_dvd1 by simp
-  thus ?thesis by (simp add: ilcm_def dvd_int_iff)
-qed
-
-
-lemma ilcm_dvd2: 
-assumes anz: "a \<noteq> 0" 
-  and bnz: "b \<noteq> 0"
-  shows "b dvd (ilcm a b)"
-proof-
-  let ?na = "nat (abs a)"
-  let ?nb = "nat (abs b)"
-  have nap: "?na >0" using anz by simp
-  have nbp: "?nb >0" using bnz by simp
-  from nap nbp have "?nb dvd lcm(?na,?nb)" using lcm_dvd2 by simp
-  thus ?thesis by (simp add: ilcm_def dvd_int_iff)
-qed
-
-lemma zdvd_self_abs1: "(d::int) dvd (abs d)"
-by (case_tac "d <0", simp_all)
-
-lemma zdvd_self_abs2: "(abs (d::int)) dvd d"
-by (case_tac "d<0", simp_all)
-
-(* lcm a b is positive for positive a and b *)
-
-lemma lcm_pos: 
-  assumes mpos: "m > 0"
-  and npos: "n>0"
-  shows "lcm (m,n) > 0"
-
-proof(rule ccontr, simp add: lcm_def gcd_zero)
-assume h:"m*n div gcd(m,n) = 0"
-from mpos npos have "gcd (m,n) \<noteq> 0" using gcd_zero by simp
-hence gcdp: "gcd(m,n) > 0" by simp
-with h
-have "m*n < gcd(m,n)"
-  by (cases "m * n < gcd (m, n)") (auto simp add: div_if[OF gcdp, where m="m*n"])
-moreover 
-have "gcd(m,n) dvd m" by simp
- with mpos dvd_imp_le have t1:"gcd(m,n) \<le> m" by simp
- with npos have t1:"gcd(m,n)*n \<le> m*n" by simp
- have "gcd(m,n) \<le> gcd(m,n)*n" using npos by simp
- with t1 have "gcd(m,n) \<le> m*n" by arith
-ultimately show "False" by simp
-qed
-
-lemma ilcm_pos: 
-  assumes apos: " 0 < a"
-  and bpos: "0 < b" 
-  shows "0 < ilcm  a b"
-proof-
-  let ?na = "nat (abs a)"
-  let ?nb = "nat (abs b)"
-  have nap: "?na >0" using apos by simp
-  have nbp: "?nb >0" using bpos by simp
-  have "0 < lcm (?na,?nb)" by (rule lcm_pos[OF nap nbp])
-  thus ?thesis by (simp add: ilcm_def)
-qed
-
-(* fomlcm computes the lcm of all c, where c is the coeffitient of Var 0 *)
-consts formlcm :: "QF \<Rightarrow> int"
-recdef formlcm "measure size"
-"formlcm (Le (Add (Mult (Cst c) (Var 0)) r) (Cst i)) = abs c "
-"formlcm (Eq (Add (Mult (Cst c) (Var 0)) r) (Cst i)) = abs c "
-"formlcm (Divides (Cst d) (Add (Mult (Cst c) (Var 0)) r)) = abs c"
-"formlcm (NOT p) = formlcm p"
-"formlcm (And p q)= ilcm (formlcm p) (formlcm q)"
-"formlcm (Or p q) = ilcm (formlcm p) (formlcm q)"
-"formlcm p = 1"
-
-(* the property that formlcm should fullfill *)
-consts divideallc:: "int \<times> QF \<Rightarrow> bool"
-recdef divideallc "measure (\<lambda>(i,p). size p)"
-"divideallc (l,Le (Add (Mult (Cst c) (Var 0)) r) (Cst i)) = (c dvd l)"
-"divideallc (l,Eq (Add (Mult (Cst c) (Var 0)) r) (Cst i)) = (c dvd l)"
-"divideallc(l,Divides (Cst d) (Add (Mult (Cst c) (Var 0)) r)) = (c dvd l)"
-"divideallc (l,NOT p) = divideallc(l,p)"
-"divideallc (l,And p q) = (divideallc (l,p) \<and> divideallc (l,q))"
-"divideallc (l,Or p q) = (divideallc (l,p) \<and> divideallc (l,q))"
-"divideallc p = True"
-
-(* formlcm retuns a positive integer *)
-lemma formlcm_pos: 
-  assumes linp: "islinform p"
-  shows "0 < formlcm p"
-using linp
-proof (induct p rule: formlcm.induct, simp_all add: ilcm_pos)
-  case (goal1 c r i)
-  have "i=0 \<or> i \<noteq> 0" by simp
-  moreover
-  {
-    assume "i \<noteq> 0" then have ?case using prems by simp
-  }
-  moreover 
-  {
-    assume iz: "i = 0"
-    then have "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-    then have "c\<noteq>0" 
-      using prems
-      by (simp add: islininttermc0r[where c="c" and n="0" and r="r"])
-    then have ?case by simp
-  }
-  ultimately 
-  show ?case by blast
-next 
-  case (goal2 c r i)
-  have "i=0 \<or> i \<noteq> 0" by simp
-  moreover
-  {
-    assume "i \<noteq> 0" then have ?case using prems by simp
-  }
-  moreover 
-  {
-    assume iz: "i = 0"
-    then have "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-    then have "c\<noteq>0" 
-      using prems
-      by (simp add: islininttermc0r[where c="c" and n="0" and r="r"])
-    then have ?case by simp
-  }
-  ultimately 
-  show ?case by blast
-
-next 
-  case (goal3 d c r)
-  show ?case using prems by (simp add: islininttermc0r[where c="c" and n="0" and r="r"])
-next
-  case (goal4 f)
-  show ?case using prems 
-    by (cases f,auto) (case_tac "intterm2", auto,case_tac "intterm1", auto)
-qed
-
-lemma divideallc_mono: "\<And> c. \<lbrakk> divideallc(c,p) ; c dvd d\<rbrakk> \<Longrightarrow> divideallc (d,p)"
-proof (induct d p rule: divideallc.induct, simp_all)
-  case (goal1 l a b) show ?case by ( rule zdvd_trans [where m="a" and n="b" and k="l"])
-next
-  case (goal2 l a b) show ?case by ( rule zdvd_trans [where m="a" and n="b" and k="l"])
-next
- case (goal3 l a b) show ?case by ( rule zdvd_trans [where m="a" and n="b" and k="l"])
-next
-  case (goal4 l f g k)
-  have  "divideallc (l,g)" using prems by clarsimp
-  moreover have "divideallc (l,f)" using prems by clarsimp
-  ultimately
-  show ?case  by simp
-next 
-  case (goal5 l f g k)
-  have  "divideallc (l,g)" using prems by clarsimp
-  moreover have "divideallc (l,f)" using prems by clarsimp
-  ultimately
-  show ?case  by simp
-  
-qed
-
-(* fomlcm retuns a number all coeffitients of Var 0 divide *)
-
-lemma formlcm_divideallc: 
-  assumes linp: "islinform p"
-  shows "divideallc(formlcm p, p)"
-using linp
-proof (induct p rule: formlcm.induct, simp_all add: zdvd_self_abs1)
-  case (goal1 f)
-  show ?case using prems
-    by (cases f,auto) (case_tac "intterm2", auto, case_tac "intterm1",auto)
-next 
-  case (goal2 f g)
-  have "formlcm f >0" using formlcm_pos prems by simp 
-    hence "formlcm f \<noteq> 0" by simp
-  moreover have "formlcm g > 0" using formlcm_pos prems by simp
-  hence "formlcm g \<noteq> 0" by simp
-  ultimately
-  show ?case using prems formlcm_pos
-     by (simp add: ilcm_dvd1 ilcm_dvd2 
-       divideallc_mono[where c="formlcm f" and d="ilcm (formlcm f) (formlcm g)"]  
-       divideallc_mono[where c="formlcm g" and d="ilcm (formlcm f) (formlcm g)"])
-next 
-  case (goal3 f g)
-  have "formlcm f >0" using formlcm_pos prems by simp 
-    hence "formlcm f \<noteq> 0" by simp
-  moreover have "formlcm g > 0" using formlcm_pos prems by simp
-  hence "formlcm g \<noteq> 0" by simp
-  ultimately
-  show ?case using prems 
-    by (simp add: ilcm_dvd1 ilcm_dvd2 
-      divideallc_mono[where c="formlcm f" and d="ilcm (formlcm f) (formlcm g)"]  
-      divideallc_mono[where c="formlcm g" and d="ilcm (formlcm f) (formlcm g)"])
-qed
-
-(* adjustcoeff transforms the formula given an l , look at correctness thm*)
-consts adjustcoeff :: "int \<times> QF \<Rightarrow> QF"
-recdef adjustcoeff "measure (\<lambda>(l,p). size p)"
-"adjustcoeff (l,(Le (Add (Mult (Cst c) (Var 0)) r) (Cst i))) = 
-  (if c\<le>0 then 
-  Le (Add (Mult (Cst -1) (Var 0)) (lin_mul (- (l div c), r))) (Cst (0::int))
-  else
-  Le (Add (Mult (Cst 1) (Var 0)) (lin_mul (l div c, r))) (Cst (0::int)))"
-"adjustcoeff (l,(Eq (Add (Mult (Cst c) (Var 0)) r) (Cst i))) = 
-  (Eq (Add (Mult (Cst 1) (Var 0)) (lin_mul (l div c, r))) (Cst (0::int)))"
-"adjustcoeff (l,Divides (Cst d) (Add (Mult (Cst c) (Var 0)) r)) = 
-  Divides (Cst ((l div c) * d))
-  (Add (Mult (Cst 1) (Var 0)) (lin_mul (l div c, r)))"
-"adjustcoeff (l,NOT (Divides (Cst d) (Add (Mult (Cst c) (Var 0)) r))) = NOT (Divides (Cst ((l div c) * d))
-  (Add (Mult (Cst 1) (Var 0)) (lin_mul (l div c, r))))"
-"adjustcoeff (l,(NOT(Eq (Add (Mult (Cst c) (Var 0)) r) (Cst i)))) = 
-  (NOT(Eq (Add (Mult (Cst 1) (Var 0)) (lin_mul (l div c, r))) (Cst (0::int))))"
-"adjustcoeff (l,And p q) = And (adjustcoeff (l,p)) (adjustcoeff(l,q))"
-"adjustcoeff (l,Or p q) = Or (adjustcoeff (l,p)) (adjustcoeff(l,q))"
-"adjustcoeff (l,p) = p"
-
-
-(* unitycoeff expects a quantifier free formula an transforms it to an equivalent formula where the bound variable occurs only with coeffitient 1  or -1 *)
-definition
-  unitycoeff :: "QF \<Rightarrow> QF" where
-  "unitycoeff p =
-  (let l = formlcm p;
-       p' = adjustcoeff (l,p)
-   in (if l=1 then p' else 
-      (And (Divides (Cst l) (Add (Mult (Cst 1) (Var 0)) (Cst 0))) p')))"
-
-(* what is a unified formula *)
-consts isunified :: "QF \<Rightarrow> bool"
-recdef isunified "measure size"
-"isunified (Le (Add (Mult (Cst i) (Var 0)) r) (Cst z)) = 
-  ((abs i) = 1  \<and> (islinform(Le (Add (Mult (Cst i) (Var 0)) r) (Cst z))))"
-"isunified (Eq (Add (Mult (Cst i) (Var 0)) r) (Cst z)) = 
-  ((abs i) = 1  \<and> (islinform(Le (Add (Mult (Cst i) (Var 0)) r) (Cst z))))"
-"isunified (NOT(Eq (Add (Mult (Cst i) (Var 0)) r) (Cst z))) = 
-  ((abs i) = 1  \<and> (islinform(Le (Add (Mult (Cst i) (Var 0)) r) (Cst z))))"
-"isunified (Divides (Cst d) (Add (Mult (Cst i) (Var 0)) r)) = 
-  ((abs i) = 1 \<and> (islinform(Divides (Cst d) (Add (Mult (Cst i) (Var 0)) r))))"
-"isunified (NOT(Divides (Cst d) (Add (Mult (Cst i) (Var 0)) r))) = 
-  ((abs i) = 1 \<and> (islinform(NOT(Divides (Cst d) (Add (Mult (Cst i) (Var 0)) r)))))"
-"isunified (And p q) = (isunified p \<and> isunified q)"
-"isunified (Or p q) = (isunified p \<and> isunified q)"
-"isunified p = islinform p"
-
-lemma unified_islinform: "isunified p \<Longrightarrow> islinform p"
-by (induct p rule: isunified.induct) auto
-
-lemma adjustcoeff_lenpos: 
-  "0 < n \<Longrightarrow> adjustcoeff (l, Le (Add (Mult (Cst i) (Var n)) r) (Cst c)) =
-    Le (Add (Mult (Cst i) (Var n)) r) (Cst c)"
-by (cases n, auto)
-
-lemma adjustcoeff_eqnpos: 
-  "0 < n \<Longrightarrow> adjustcoeff (l, Eq (Add (Mult (Cst i) (Var n)) r) (Cst c)) =
-    Eq (Add (Mult (Cst i) (Var n)) r) (Cst c)"
-by (cases n, auto)
-
-
-(* Properties of adjustcoeff and unitycoeff *)
-
-(* Some simple lemmas used afterwards *)
-lemma zmult_zle_mono: "(i::int) \<le> j \<Longrightarrow> 0 \<le> k \<Longrightarrow> k * i \<le> k * j"
-  apply (erule order_le_less [THEN iffD1, THEN disjE, of "0::int"])
-  apply (erule order_le_less [THEN iffD1, THEN disjE])
-  apply (rule order_less_imp_le)
-  apply (rule zmult_zless_mono2)
-  apply simp_all
-  done
-
-lemma zmult_zle_mono_eq:
-  assumes kpos: "0 < k"
-  shows "((i::int) \<le> j) = (k*i \<le> k*j)" (is "?P = ?Q")
-proof
-  assume P: ?P
-  from kpos have kge0: "0 \<le> k" by simp
-  show ?Q
-    by (rule zmult_zle_mono[OF P kge0])
-next 
-  assume ?Q
-  then have "k*i - k*j \<le> 0" by simp
-  then have le1: "k*(i-j) \<le> k*0"
-    by (simp add: zdiff_zmult_distrib2)
-  have "i -j \<le> 0" 
-    by (rule mult_left_le_imp_le[OF le1 kpos])
-  then 
-  show ?P by simp
-qed
-  
-
-lemma adjustcoeff_le_corr:
-  assumes lpos: "0 < l"
-  and ipos: "0 < (i::int)"
-  and dvd: "i dvd l"
-  shows "(i*x + r \<le> 0) = (l*x + ((l div i)*r) \<le> 0)"
-proof-
-  from lpos ipos have ilel: "i\<le>l" by (simp add: zdvd_imp_le [OF dvd lpos])
-  from ipos have inz: "i \<noteq> 0" by simp
-  have "i div i\<le> l div i"
-    by (simp add: zdiv_mono1[OF ilel ipos])
-  then have ldivipos:"0 < l div i" 
-    by (simp add: zdiv_self[OF inz])
-  
-  from dvd have "\<exists>i'. i*i' = l" by (auto simp add: dvd_def)
-  then obtain "i'" where ii'eql: "i*i' = l" by blast
-  have "(i * x + r \<le> 0) = (l div i * (i * x + r) \<le> l div i * 0)"
-    by (rule zmult_zle_mono_eq[OF ldivipos, where i="i*x + r" and j="0"])
-  also
-  have "(l div i * (i * x + r) \<le> l div i * 0) = ((l div i * i) * x + ((l div i)*r) \<le> 0)"
-    by (simp add: mult_ac)
-  also have "((l div i * i) * x + ((l div i)*r) \<le> 0) = (l*x + ((l div i)*r) \<le> 0)"
-    using sym[OF ii'eql] inz
-    by (simp add: zmult_ac)
-  finally  
-  show ?thesis
-    by simp
-qed
-
-lemma adjustcoeff_le_corr2:
-  assumes lpos: "0 < l"
-  and ineg: "(i::int) < 0"
-  and dvd: "i dvd l"
-  shows "(i*x + r \<le> 0) = ((-l)*x + ((-(l div i))*r) \<le> 0)"
-proof-
-  from dvd have midvdl: "-i dvd l" by simp
-  from ineg have mipos: "0 < -i" by simp
-  from lpos ineg have milel: "-i\<le>l" by (simp add: zdvd_imp_le [OF midvdl lpos])
-  from ineg have inz: "i \<noteq> 0" by simp
-  have "l div i\<le> -i div i"
-    by (simp add: zdiv_mono1_neg[OF milel ineg])
-  then have "l div i \<le> -1" 
-    apply (simp add: zdiv_zminus1_eq_if[OF inz, where a="i"])
-    by (simp add: zdiv_self[OF inz])
-  then have ldivineg: "l div i < 0" by simp
-  then have mldivipos: "0 < - (l div i)" by simp
-  
-  from dvd have "\<exists>i'. i*i' = l" by (auto simp add: dvd_def)
-  then obtain "i'" where ii'eql: "i*i' = l" by blast
-  have "(i * x + r \<le> 0) = (- (l div i) * (i * x + r) \<le> - (l div i) * 0)"
-    by (rule zmult_zle_mono_eq[OF mldivipos, where i="i*x + r" and j="0"])
-  also
-  have "(- (l div i) * (i * x + r) \<le> - (l div i) * 0) = (-((l div i) * i) * x \<le> (l div i)*r)"
-    by (simp add: mult_ac)
-  also have " (-((l div i) * i) * x \<le> (l div i)*r) = (- (l*x) \<le> (l div i)*r)"
-    using sym[OF ii'eql] inz
-    by (simp add: zmult_ac)
-  finally  
-  show ?thesis
-    by simp
-qed
-
-(* FIXME : Move this theorem above, it simplifies the 2 theorems above : adjustcoeff_le_corr1,2 *)
-lemma dvd_div_pos: 
-  assumes bpos: "0 < (b::int)"
-  and anz: "a\<noteq>0"
-  and dvd: "a dvd b"
-  shows "(b div a)*a = b"
-proof-
-  from anz have "0 < a \<or> a < 0" by arith
-  moreover
-  {
-    assume apos: "0 < a" 
-    from bpos apos have aleb: "a\<le>b" by (simp add: zdvd_imp_le [OF dvd bpos])
-    have "a div a\<le> b div a"
-      by (simp add: zdiv_mono1[OF aleb apos])
-    then have bdivapos:"0 < b div a" 
-      by (simp add: zdiv_self[OF anz])
-    
-    from dvd have "\<exists>a'. a*a' = b" by (auto simp add: dvd_def)
-    then obtain "a'" where aa'eqb: "a*a' = b" by blast
-    then have ?thesis  using anz sym[OF aa'eqb] by simp
-    
-  }
-  moreover
-  {
-    assume aneg: "a < 0"
-    from dvd have midvdb: "-a dvd b" by simp
-    from aneg have mapos: "0 < -a" by simp
-    from bpos aneg have maleb: "-a\<le>b" by (simp add: zdvd_imp_le [OF midvdb bpos])
-    from aneg have anz: "a \<noteq> 0" by simp
-    have "b div a\<le> -a div a"
-      by (simp add: zdiv_mono1_neg[OF maleb aneg])
-    then have "b div a \<le> -1" 
-      apply (simp add: zdiv_zminus1_eq_if[OF anz, where a="a"])
-      by (simp add: zdiv_self[OF anz])
-    then have bdivaneg: "b div a < 0" by simp
-    then have mbdivapos: "0 < - (b div a)" by simp
-    
-    from dvd have "\<exists>a'. a*a' = b" by (auto simp add: dvd_def)
-    then obtain "a'" where aa'eqb: "a*a' = b" by blast
-    then have ?thesis using anz sym[OF aa'eqb] by (simp)
-  }
-  ultimately show ?thesis by blast
-qed
-
-lemma adjustcoeff_eq_corr: 
-  assumes lpos: "(0::int) < l"
-  and inz: "i \<noteq> 0"
-  and dvd: "i dvd l"
-  shows "(i*x + r = 0) = (l*x + ((l div i)*r) = 0)"
-proof-
-  have ldvdii: "(l div i)*i = l" by (rule dvd_div_pos[OF lpos inz dvd])
-  have ldivinz: "l div i \<noteq> 0" using inz ldvdii lpos by auto
-  have "(i*x + r = 0) = ((l div i)*(i*x + r) = (l div i)*0)"
-    using ldivinz by arith
-  also have "\<dots> = (((l div i)*i)*x + (l div i)*r = 0)"
-    by (simp add: zmult_ac)
-  finally show ?thesis using ldvdii by simp
-qed
-
-
-
-(* Correctness theorem for adjustcoeff *)
-lemma adjustcoeff_corr:
-  assumes linp: "islinform p"
-  and alldvd: "divideallc (l,p)"
-  and lpos: "0 < l"
-  shows "qinterp (a#ats) p = qinterp ((a*l)#ats) (adjustcoeff(l, p))"
-using linp alldvd
-proof (induct p rule: islinform.induct,simp_all)
-  case (goal1 t c)
-  from prems have cz: "c=0" by simp
-    then have ?case
-      using prems
-    proof(induct t rule: islinintterm.induct)
-      case (2 i n i') show ?case using prems
-	proof-
-	  from prems have "i\<noteq>0" by simp
-	  then 
-	  have "(n=0 \<and> i < 0) \<or> (n=0 \<and> i > 0) \<or> n\<noteq>0" by arith
-	  moreover 
-	  {
-	    assume "n\<noteq>0" then have ?thesis 
-	      by (simp add: nth_pos2 adjustcoeff_lenpos)
-	  }
-	  moreover
-	  {
-	    assume nz: "n=0"
-	      and ipos: "0 < i"
-	    from prems nz have idvdl: "i dvd l" by simp
-	    have "(i*a + i' \<le> 0) = (l*a+ ((l div i)*i') \<le> 0)" 
-	      by (rule adjustcoeff_le_corr[OF lpos ipos idvdl])
-	    then 
-	    have ?thesis using prems by (simp add: mult_ac)
-	  }
-	  moreover
-	  {
-	    assume nz: "n=0"
-	      and ineg: "i < 0"
-	    from prems nz have idvdl: "i dvd l" by simp
-	    have "(i*a+i' \<le> 0) = (-l*a + (-(l div i) * i') \<le> 0)"
-	      by (rule adjustcoeff_le_corr2[OF lpos ineg idvdl])
-	    then 
-	    have ?thesis using prems
-	      by (simp add: zmult_ac)
-	  }
-	  ultimately show ?thesis by blast
-	qed
-      next
-	case (3 i n i' n' r) show ?case  using prems
-	proof-
-	  from prems 
-	  have lininrp: "islinintterm (Add (Mult (Cst i') (Var n')) r)" 
-	    by simp
-	  then
-	  have "islint (Add (Mult (Cst i') (Var n')) (r))" 
-	    by (simp add: islinintterm_eq_islint)
-	  then have linr: "islintn(Suc n',r)"
-	    by (simp add: islinintterm_subt[OF lininrp] islinintterm_eq_islint islint_def)
-	  from lininrp have linr2: "islinintterm r"
-	    by (simp add: islinintterm_subt[OF lininrp])
-	  from prems have "n < n'" by simp
-	  then have nppos: "0 < n'" by simp
-	  from prems have "i\<noteq>0" by simp
-	  then 
-	  have "(n=0 \<and> i < 0) \<or> (n=0 \<and> i > 0) \<or> n\<noteq>0" by arith
-	  moreover 
-	  {
-	    assume nnz: "n\<noteq>0"
-	    from linr have ?thesis using nppos nnz intterm_novar0[OF lininrp] prems
-	      apply (simp add: adjustcoeff_lenpos linterm_novar0[OF linr, where x="a" and y="a*l"])
-	      by (simp add: nth_pos2)
-	      
-	  }
-	  moreover
-	  {
-	    assume nz: "n=0"
-	      and ipos: "0 < i"
-	    from prems nz have idvdl: "i dvd l" by simp
-	    have "(i * a + (i' * (a # ats) ! n' + I_intterm (a # ats) r) \<le> 0) =
-	      (l * a + l div i * (i' * (a # ats) ! n' + I_intterm (a # ats) r) \<le> 0)"
-	      by (rule adjustcoeff_le_corr[OF lpos ipos idvdl])
-	    then 
-	    have ?thesis using prems linr linr2
-	      by (simp add: mult_ac nth_pos2 lin_mul_corr 
-		linterm_novar0[OF linr, where x="a" and y="a*l"])
-	  }
-	  moreover
-	  {
-	    assume nz: "n=0"
-	      and ineg: "i < 0"
-	    from prems nz have idvdl: "i dvd l" by simp
-	    have "(i * a + (i' * (a # ats) ! n' + I_intterm (a # ats) r) \<le> 0) =
-	      (- l * a + - (l div i) * (i' * (a # ats) ! n' + I_intterm (a # ats) r) \<le> 0)"
-	      by (rule adjustcoeff_le_corr2[OF lpos ineg idvdl, where  x="a" and r="(i'* (a#ats) ! n' + I_intterm (a#ats) r )"])
-	    then 
-	    have ?thesis using prems linr linr2
-	      by (simp add: zmult_ac nth_pos2 lin_mul_corr 
-		linterm_novar0[OF linr, where x="a" and y="a*l"] )
-	  }
-	  ultimately show ?thesis by blast
-	qed	  
-    qed simp_all
-    then show ?case by simp 
-  
-next
-  case (goal2 t c)
-  from prems have cz: "c=0" by simp
-    then have ?case
-      using prems
-    proof(induct t rule: islinintterm.induct)
-      case (2 i n i') show ?case using prems
-	proof-
-	  from prems have inz: "i\<noteq>0" by simp
-	  then 
-	  have "n=0 \<or> n\<noteq>0" by arith
-	  moreover 
-	  {
-	    assume "n\<noteq>0" then have ?thesis 
-	      by (simp add: nth_pos2 adjustcoeff_eqnpos)
-	  }
-	  moreover
-	  {
-	    assume nz: "n=0"
-	    from prems nz have idvdl: "i dvd l" by simp
-	    have "(i*a + i' = 0) = (l*a+ ((l div i)*i') = 0)" 
-	      by (rule adjustcoeff_eq_corr[OF lpos inz idvdl])
-	    then 
-	    have ?thesis using prems by (simp add: mult_ac)
-	  }
-	  ultimately show ?thesis by blast
-	qed
-      next
-	case (3 i n i' n' r) show ?case  using prems
-	proof-
-	  from prems 
-	  have lininrp: "islinintterm (Add (Mult (Cst i') (Var n')) r)" 
-	    by simp
-	  then
-	  have "islint (Add (Mult (Cst i') (Var n')) (r))" 
-	    by (simp add: islinintterm_eq_islint)
-	  then have linr: "islintn(Suc n',r)"
-	    by (simp add: islinintterm_subt[OF lininrp] islinintterm_eq_islint islint_def)
-	  from lininrp have linr2: "islinintterm r"
-	    by (simp add: islinintterm_subt[OF lininrp])
-	  from prems have "n < n'" by simp
-	  then have nppos: "0 < n'" by simp
-	  from prems have "i\<noteq>0" by simp
-	  then 
-	  have "n=0 \<or> n\<noteq>0" by arith
-	  moreover 
-	  {
-	    assume nnz: "n\<noteq>0"
-	    from linr have ?thesis using nppos nnz intterm_novar0[OF lininrp] prems
-	      apply (simp add: adjustcoeff_eqnpos linterm_novar0[OF linr, where x="a" and y="a*l"])
-	      by (simp add: nth_pos2)
-	      
-	  }
-	  moreover
-	  {
-	    assume nz: "n=0"
-	    from prems have inz: "i \<noteq> 0" by auto
-	    from prems nz have idvdl: "i dvd l" by simp
-	    have "(i * a + (i' * (a # ats) ! n' + I_intterm (a # ats) r) = 0) =
-	      (l * a + l div i * (i' * (a # ats) ! n' + I_intterm (a # ats) r) = 0)"
-	      by (rule adjustcoeff_eq_corr[OF lpos inz idvdl])
-	    then 
-	    have ?thesis using prems linr linr2
-	      by (simp add: mult_ac nth_pos2 lin_mul_corr 
-		linterm_novar0[OF linr, where x="a" and y="a*l"])
-	  }
-	  ultimately show ?thesis by blast
-	qed	  
-    qed simp_all
-    then show ?case by simp 
-  
-next
-  case (goal3 d t) show ?case
-    using prems
-    proof (induct t rule: islinintterm.induct)
-      case (2 i n i') 
-      have "n=0 \<or> (\<exists>m. (n = Suc m))" by arith
-      moreover
-      {
-	assume "\<exists>m. n = Suc m"
-	then have ?case using prems  by auto
-      }
-      moreover 
-      {
-	assume nz: "n=0"
-	from prems have inz: "i\<noteq>0" by simp
-	from prems have idvdl: "i dvd l" by simp
-	have ldiviieql: "l div i * i = l" by (rule dvd_div_pos[OF lpos inz idvdl])
-	with lpos have ldivinz: "0 \<noteq> l div i" by auto
-	  
-	then have ?case using prems
-	  apply simp
-	  apply (simp add: 
-	    ac_dvd_eq[OF ldivinz, where m="d" and c="i" and n="a" and t="i'"] 
-	    ldiviieql)
-	  by (simp add: zmult_commute)
-      }
-      ultimately show ?case by blast
-
-    next 
-      case (3 i n i' n' r)
-      from prems 
-      have lininrp: "islinintterm (Add (Mult (Cst i') (Var n')) r)" 
-	by simp
-      then
-      have "islint (Add (Mult (Cst i') (Var n')) (r))" 
-	by (simp add: islinintterm_eq_islint)
-      then have linr: "islintn(Suc n',r)"
-	by (simp add: islinintterm_subt[OF lininrp] islinintterm_eq_islint islint_def)
-      from lininrp have linr2: "islinintterm r"
-	by (simp add: islinintterm_subt[OF lininrp])
-      from prems have "n < n'" by simp
-      then have nppos: "0 < n'" by simp
-      from prems have inz: "i\<noteq>0" by simp
-      
-      have "n=0 \<or> (\<exists>m. (n = Suc m))" by arith
-      moreover
-      {
-	assume "\<exists>m. n = Suc m"
-	then have npos: "0 < n" by arith
-	have ?case using nppos intterm_novar0[OF lininrp] prems
-	  apply (auto simp add: linterm_novar0[OF linr, where x="a" and y="a*l"])
-	  by (simp_all add: nth_pos2)
-      }
-      moreover 
-      {
-	assume nz: "n=0"
-	from prems have idvdl: "i dvd l" by simp
-	have ldiviieql: "l div i * i = l" by (rule dvd_div_pos[OF lpos inz idvdl])
-	with lpos have ldivinz: "0 \<noteq> l div i" by auto
-	  
-	then have ?case using prems linr2 linr
-	  apply (simp add: nth_pos2 lin_mul_corr linterm_novar0)
-	  
-	  apply (simp add: ac_dvd_eq[OF ldivinz, where m="d" and c="i" and n="a" and t="(i' * ats ! (n' - Suc 0) + I_intterm (a # ats) r)"] ldiviieql)
-	  by (simp add: zmult_ac linterm_novar0[OF linr, where x="a" and y="a*l"])
-      }
-      ultimately show ?case by blast
-      
-    qed simp_all
-next
-  case (goal4 d t) show ?case
-    using prems
-    proof (induct t rule: islinintterm.induct)
-      case (2 i n i') 
-      have "n=0 \<or> (\<exists>m. (n = Suc m))" by arith
-      moreover
-      {
-	assume "\<exists>m. n = Suc m"
-	then have ?case using prems  by auto
-      }
-      moreover 
-      {
-	assume nz: "n=0"
-	from prems have inz: "i\<noteq>0" by simp
-	from prems have idvdl: "i dvd l" by simp
-	have ldiviieql: "l div i * i = l" by (rule dvd_div_pos[OF lpos inz idvdl])
-	with lpos have ldivinz: "0 \<noteq> l div i" by auto
-	  
-	then have ?case using prems
-	  apply simp
-	  apply (simp add: 
-	    ac_dvd_eq[OF ldivinz, where m="d" and c="i" and n="a" and t="i'"] 
-	    ldiviieql)
-	  by (simp add: zmult_commute)
-      }
-      ultimately show ?case by blast
-
-    next 
-      case (3 i n i' n' r)
-      from prems 
-      have lininrp: "islinintterm (Add (Mult (Cst i') (Var n')) r)" 
-	by simp
-      then
-      have "islint (Add (Mult (Cst i') (Var n')) (r))" 
-	by (simp add: islinintterm_eq_islint)
-      then have linr: "islintn(Suc n',r)"
-	by (simp add: islinintterm_subt[OF lininrp] islinintterm_eq_islint islint_def)
-      from lininrp have linr2: "islinintterm r"
-	by (simp add: islinintterm_subt[OF lininrp])
-      from prems have "n < n'" by simp
-      then have nppos: "0 < n'" by simp
-      from prems have inz: "i\<noteq>0" by simp
-      
-      have "n=0 \<or> (\<exists>m. (n = Suc m))" by arith
-      moreover
-      {
-	assume "\<exists>m. n = Suc m"
-	then have npos: "0 < n" by arith
-	have ?case using nppos intterm_novar0[OF lininrp] prems
-	  apply (auto simp add: linterm_novar0[OF linr, where x="a" and y="a*l"])
-	  by (simp_all add: nth_pos2)
-      }
-      moreover 
-      {
-	assume nz: "n=0"
-	from prems have idvdl: "i dvd l" by simp
-	have ldiviieql: "l div i * i = l" by (rule dvd_div_pos[OF lpos inz idvdl])
-	with lpos have ldivinz: "0 \<noteq> l div i" by auto
-	  
-	then have ?case using prems linr2 linr
-	  apply (simp add: nth_pos2 lin_mul_corr linterm_novar0)
-	  
-	  apply (simp add: ac_dvd_eq[OF ldivinz, where m="d" and c="i" and n="a" and t="(i' * ats ! (n' - Suc 0) + I_intterm (a # ats) r)"] ldiviieql)
-	  by (simp add: zmult_ac linterm_novar0[OF linr, where x="a" and y="a*l"])
-      }
-      ultimately show ?case by blast
-      
-    qed simp_all
-next
-    case (goal5 t c)
-  from prems have cz: "c=0" by simp
-    then have ?case
-      using prems
-    proof(induct t rule: islinintterm.induct)
-      case (2 i n i') show ?case using prems
-	proof-
-	  from prems have inz: "i\<noteq>0" by simp
-	  then 
-	  have "n=0 \<or> n\<noteq>0" by arith
-	  moreover 
-	  {
-	    assume "n\<noteq>0" then have ?thesis
-	      using prems
-	      by (cases n, simp_all)
-	  }
-	  moreover
-	  {
-	    assume nz: "n=0"
-	    from prems nz have idvdl: "i dvd l" by simp
-	    have "(i*a + i' = 0) = (l*a+ ((l div i)*i') = 0)" 
-	      by (rule adjustcoeff_eq_corr[OF lpos inz idvdl])
-	    then 
-	    have ?thesis using prems by (simp add: mult_ac)
-	  }
-	  ultimately show ?thesis by blast
-	qed
-      next
-	case (3 i n i' n' r) show ?case  using prems
-	proof-
-	  from prems 
-	  have lininrp: "islinintterm (Add (Mult (Cst i') (Var n')) r)" 
-	    by simp
-	  then
-	  have "islint (Add (Mult (Cst i') (Var n')) (r))" 
-	    by (simp add: islinintterm_eq_islint)
-	  then have linr: "islintn(Suc n',r)"
-	    by (simp add: islinintterm_subt[OF lininrp] islinintterm_eq_islint islint_def)
-	  from lininrp have linr2: "islinintterm r"
-	    by (simp add: islinintterm_subt[OF lininrp])
-	  from prems have "n < n'" by simp
-	  then have nppos: "0 < n'" by simp
-	  from prems have "i\<noteq>0" by simp
-	  then 
-	  have "n=0 \<or> n\<noteq>0" by arith
-	  moreover 
-	  {
-	    assume nnz: "n\<noteq>0"
-	    then have ?thesis using prems linr nppos nnz intterm_novar0[OF lininrp]
-	      by (cases n, simp_all)
-	    (simp add: nth_pos2 linterm_novar0[OF linr, where x="a" and y="a*l"])
-	  }
-	  moreover
-	  {
-	    assume nz: "n=0"
-	    from prems have inz: "i \<noteq> 0" by auto
-	    from prems nz have idvdl: "i dvd l" by simp
-	    have "(i * a + (i' * (a # ats) ! n' + I_intterm (a # ats) r) = 0) =
-	      (l * a + l div i * (i' * (a # ats) ! n' + I_intterm (a # ats) r) = 0)"
-	      by (rule adjustcoeff_eq_corr[OF lpos inz idvdl])
-	    then 
-	    have ?thesis using prems linr linr2
-	      by (simp add: mult_ac nth_pos2 lin_mul_corr 
-		linterm_novar0[OF linr, where x="a" and y="a*l"])
-	  }
-	  ultimately show ?thesis by blast
-	qed	  
-    qed simp_all
-    then show ?case by simp 
-  
-qed
-
-(* unitycoeff preserves semantics *)
-lemma unitycoeff_corr:
-  assumes linp: "islinform p"
-  shows "qinterp ats (QEx p) = qinterp ats (QEx (unitycoeff p))"
-proof-
-  
-  have lpos: "0 < formlcm p" by (rule formlcm_pos[OF linp])
-  have dvd : "divideallc (formlcm p, p)" by (rule formlcm_divideallc[OF linp])
-  show ?thesis  using prems lpos dvd 
-  proof (simp add: unitycoeff_def Let_def,case_tac "formlcm p = 1",
-      simp_all add: adjustcoeff_corr)
-    show "(\<exists>x. qinterp (x * formlcm p # ats) (adjustcoeff (formlcm p, p))) =
-      (\<exists>x. formlcm p dvd x \<and>
-      qinterp (x # ats) (adjustcoeff (formlcm p, p)))"
-      (is "(\<exists>x. ?P(x* (formlcm p))) = (\<exists>x. formlcm p dvd x \<and> ?P x)")
-    proof-
-      have "(\<exists>x. ?P(x* (formlcm p))) = (\<exists>x. ?P((formlcm p)*x))"
-	by (simp add: mult_commute)
-      also have "(\<exists>x. ?P((formlcm p)*x)) = (\<exists>x. (formlcm p dvd x) \<and> ?P x)"
-	by (simp add: unity_coeff_ex[where P="?P"])
-      finally show ?thesis by simp
-    qed
-  qed
-qed
-
-(* the resul of adjustcoeff is unified for all l with divideallc (l,p) *)
-lemma adjustcoeff_unified: 
-  assumes linp: "islinform p"
-  and dvdc: "divideallc(l,p)"
-  and lpos: "l > 0"
-  shows "isunified (adjustcoeff(l, p))"
-  using linp dvdc lpos
-  proof(induct l p rule: adjustcoeff.induct,simp_all add: lin_mul_lintn islinintterm_eq_islint islint_def)
-    case (goal1 l d c r)
-    from prems have "c >0 \<or> c < 0" by auto
-    moreover {
-      assume cpos: "c > 0 "
-      from prems have lp: "l > 0" by simp
-      from prems have cdvdl: "c dvd l" by simp
-      have clel: "c \<le> l" by (rule zdvd_imp_le[OF cdvdl lp])
-      have "c div c \<le>  l div c" by (rule zdiv_mono1[OF clel cpos])
-      then have ?case using cpos by (simp add: zdiv_self)      
-    }
-    moreover {
-      assume cneg: "c < 0"
-      
-     have mcpos: "-c > 0" by simp
-      then have mcnz: "-c \<noteq> 0" by simp
-      from prems have mcdvdl: "-c dvd l" 
-	by simp 
-      then have l1:"l mod -c = 0" by (simp add: zdvd_iff_zmod_eq_0)
-      from prems have lp: "l >0" by simp
-      have mclel: "-c \<le> l" by (rule zdvd_imp_le[OF mcdvdl lp])
-      have "l div c = (-l div -c)"  by simp
-      also have "\<dots> = - (l div -c)" using l1
-	by (simp only: zdiv_zminus1_eq_if[OF mcnz, where a="l"]) simp
-      finally have diveq: "l div c = - (l div -c)" by simp
-      
-      have "-c div -c \<le> l div -c" by (rule zdiv_mono1[OF mclel mcpos])
-      then have "0 < l div -c" using cneg
-	by (simp add: zdiv_self)
-      then have ?case using diveq by simp
-    }
-    ultimately  show ?case by blast
-  next
-    case (goal2 l p)    from prems have "c >0 \<or> c < 0" by auto
-    moreover {
-      assume cpos: "c > 0 "
-      from prems have lp: "l > 0" by simp
-      from prems have cdvdl: "c dvd l" by simp
-      have clel: "c \<le> l" by (rule zdvd_imp_le[OF cdvdl lp])
-      have "c div c \<le>  l div c" by (rule zdiv_mono1[OF clel cpos])
-      then have ?case using cpos by (simp add: zdiv_self)      
-    }
-    moreover {
-      assume cneg: "c < 0"
-      
-     have mcpos: "-c > 0" by simp
-      then have mcnz: "-c \<noteq> 0" by simp
-      from prems have mcdvdl: "-c dvd l" 
-	by simp 
-      then have l1:"l mod -c = 0" by (simp add: zdvd_iff_zmod_eq_0)
-      from prems have lp: "l >0" by simp
-      have mclel: "-c \<le> l" by (rule zdvd_imp_le[OF mcdvdl lp])
-      have "l div c = (-l div -c)"  by simp
-      also have "\<dots> = - (l div -c)" using l1
-	by (simp only: zdiv_zminus1_eq_if[OF mcnz, where a="l"]) simp
-      finally have diveq: "l div c = - (l div -c)" by simp
-      
-      have "-c div -c \<le> l div -c" by (rule zdiv_mono1[OF mclel mcpos])
-      then have "0 < l div -c" using cneg
-	by (simp add: zdiv_self)
-      then have ?case using diveq by simp
-    }
-    ultimately  show ?case by blast
-  qed
-
-lemma adjustcoeff_lcm_unified:
-  assumes linp: "islinform p"
-  shows "isunified (adjustcoeff(formlcm p, p))"
-using linp adjustcoeff_unified formlcm_pos formlcm_divideallc
-by simp
-
-(* the result of unitycoeff is unified *)
-lemma unitycoeff_unified:
-  assumes linp: "islinform p"
-  shows "isunified (unitycoeff p)"
-using linp formlcm_pos[OF linp]
-proof (auto simp add: unitycoeff_def Let_def adjustcoeff_lcm_unified)
-  assume f1: "formlcm p = 1"
-  have "isunified (adjustcoeff(formlcm p, p))" 
-    by (rule adjustcoeff_lcm_unified[OF linp])
-  with f1 
-  show "isunified (adjustcoeff(1,p))" by simp
-qed
-
-lemma unified_isnnf: 
-  assumes unifp: "isunified p"
-  shows "isnnf p"
-  using unified_islinform[OF unifp] linform_isnnf
-  by simp
-
-lemma unified_isqfree: "isunified p\<Longrightarrow> isqfree p"
-using unified_islinform linform_isqfree
-by auto
-
-(* Plus/Minus infinity , B and A set definitions *)
-
-consts minusinf :: "QF \<Rightarrow> QF"
-       plusinf  :: "QF \<Rightarrow> QF"
-       aset     :: "QF \<Rightarrow> intterm list"
-       bset     :: "QF \<Rightarrow> intterm list"
-
-recdef minusinf "measure size"
-"minusinf (Le (Add (Mult (Cst c) (Var 0)) r) z) =
-  (if c < 0 then F else T)"
-"minusinf (Eq (Add (Mult (Cst c) (Var 0)) r) z) = F"
-"minusinf (NOT(Eq (Add (Mult (Cst c) (Var 0)) r) z)) = T"
-"minusinf (And p q) = And (minusinf p) (minusinf q)"
-"minusinf (Or p q) = Or (minusinf p) (minusinf q)"
-"minusinf p = p"
-
-recdef plusinf "measure size"
-"plusinf (Le (Add (Mult (Cst c) (Var 0)) r) z) =
-  (if c < 0 then T else F)"
-"plusinf (Eq (Add (Mult (Cst c) (Var 0)) r) z) = F"
-"plusinf (NOT (Eq (Add (Mult (Cst c) (Var 0)) r) z)) = T"
-"plusinf (And p q) = And (plusinf p) (plusinf q)"
-"plusinf (Or p q) = Or (plusinf p) (plusinf q)"
-"plusinf p = p"
-
-recdef bset "measure size"
-"bset (Le (Add (Mult (Cst c) (Var 0)) r) z) = 
- (if c < 0 then [lin_add(r,(Cst -1)), r]
-         else [lin_add(lin_neg r,(Cst -1))])"
-"bset (Eq (Add (Mult (Cst c) (Var 0)) r) z) =  
-  (if c < 0 then [lin_add(r,(Cst -1))]
-         else [lin_add(lin_neg r,(Cst -1))])"
-"bset (NOT(Eq (Add (Mult (Cst c) (Var 0)) r) z)) =  
-  (if c < 0 then [r]
-         else [lin_neg r])"
-"bset (And p q) = (bset p) @ (bset q)"
-"bset (Or p q) = (bset p) @ (bset q)"
-"bset p = []"
-
-recdef aset "measure size"
-"aset (Le (Add (Mult (Cst c) (Var 0)) r) z) = 
-  (if c < 0 then [lin_add (r, Cst 1)]
-         else [lin_add (lin_neg r, Cst 1), lin_neg r])"
-"aset (Eq (Add (Mult (Cst c) (Var 0)) r) z) = 
-  (if c < 0 then [lin_add(r,(Cst 1))]
-       else [lin_add(lin_neg r,(Cst 1))])"
-"aset (NOT(Eq (Add (Mult (Cst c) (Var 0)) r) z)) = 
-  (if c < 0 then [r] 
-      else [lin_neg r])"
-"aset (And p q) = (aset p) @ (aset q)"
-"aset (Or p q) = (aset p) @ (aset q)"
-"aset p = []"
-
-(* divlcm computes \<delta> = lcm d , where d | x +t occurs in p *)
-consts divlcm :: "QF \<Rightarrow> int"
-recdef divlcm "measure size"
-"divlcm (Divides (Cst d) (Add (Mult (Cst c) (Var 0)) r)) = (abs d)"
-"divlcm (NOT p) = divlcm p"
-"divlcm (And p q)= ilcm (divlcm p) (divlcm q)"
-"divlcm (Or p q) = ilcm (divlcm p) (divlcm q)"
-"divlcm p = 1"
-
-(* the preoperty of \<delta> *)
-consts alldivide :: "int \<times> QF \<Rightarrow> bool"
-recdef alldivide "measure (%(d,p). size p)"
-"alldivide (d,(Divides (Cst d') (Add (Mult (Cst c) (Var 0)) r))) = 
-  (d' dvd d)"
-"alldivide (d,(NOT p)) = alldivide (d,p)"
-"alldivide (d,(And p q)) = (alldivide (d,p) \<and> alldivide (d,q))"
-"alldivide (d,(Or p q)) = ((alldivide (d,p)) \<and> (alldivide (d,q)))"
-"alldivide (d,p) = True"
-
-(* alldivide is monotone *)
-lemma alldivide_mono: "\<And> d'. \<lbrakk> alldivide (d,p) ; d dvd d'\<rbrakk> \<Longrightarrow> alldivide (d',p)"
-proof(induct d p rule: alldivide.induct, simp_all add: ilcm_dvd1 ilcm_dvd2)
-  fix "d1" "d2" "d3"
-  assume th1:"d2 dvd (d1::int)"
-    and th2: "d1 dvd d3"
-  show "d2 dvd d3" by (rule zdvd_trans[OF th1 th2])
-qed
-
-(* Some simple lemmas *)
-lemma zdvd_eq_zdvd_abs: " (d::int) dvd d' = (d dvd (abs d')) "
-proof-
-  have "d' < 0 \<or> d' \<ge> 0" by arith
-  moreover
-  {
-    assume dn': "d' < 0"
-    then have "abs d' = - d'" by simp
-    then 
-    have ?thesis by (simp)
-  }
-  moreover 
-  {
-    assume dp': "d' \<ge> 0"
-    then have "abs d' = d'" by simp
-    then have ?thesis  by simp
-  }
-    ultimately show ?thesis by blast
-qed
-
-lemma zdvd_refl_abs: "(d::int) dvd (abs d)"
-proof-
-  have "d dvd d" by simp
-  then show ?thesis by (simp add: iffD1 [OF zdvd_eq_zdvd_abs [where d = "d" and d'="d"]])
-qed
-
-(* \<delta> > 0*)
-lemma divlcm_pos: 
-  assumes 
-  linp: "islinform p"
-  shows "0 < divlcm p"
-using linp
-proof (induct p rule: divlcm.induct,simp_all add: ilcm_pos)
-  case (goal1 f) show ?case 
-    using prems 
-    by (cases f, auto) (case_tac "intterm1", auto)
-qed
-
-lemma nz_le: "(x::int) > 0 \<Longrightarrow> x \<noteq> 0" by auto
-(* divlcm is correct *)
-lemma divlcm_corr:
-  assumes 
-  linp: "islinform p"
-  shows "alldivide (divlcm p,p)"
-  using linp divlcm_pos
-proof (induct p rule: divlcm.induct,simp_all add: zdvd_refl_abs,clarsimp simp add: Nat.gr0_conv_Suc)
-  case (goal1 f)
-  have "islinform f" using prems  
-    by (cases f, auto) (case_tac "intterm2", auto,case_tac "intterm1", auto)
-  then have "alldivide (divlcm f, f)"  using prems by simp
-  moreover have "divlcm (NOT f) = divlcm f" by simp
-  moreover have "alldivide (x,f) = alldivide (x,NOT f)" by simp
-  ultimately show ?case by simp
-next
-  case (goal2 f g)
-  have dvd1: "(divlcm f) dvd (ilcm (divlcm f) (divlcm g))" 
-    using prems by(simp add: ilcm_dvd1 nz_le)
-  have dvd2: "(divlcm g) dvd (ilcm (divlcm f) (divlcm g))" 
-    using prems by (simp add: ilcm_dvd2 nz_le)
-  from dvd1 prems 
-  have "alldivide (ilcm (divlcm f) (divlcm g), f)" 
-    by (simp add: alldivide_mono[where d= "divlcm f" and p="f" and d' ="ilcm (divlcm f) (divlcm g)"])
-  moreover   from dvd2 prems 
-   have "alldivide (ilcm (divlcm f) (divlcm g), g)" 
-    by (simp add: alldivide_mono[where d= "divlcm g" and p="g" and d' ="ilcm (divlcm f) (divlcm g)"])
-  ultimately show ?case by simp
-next
-  case (goal3 f g)
-  have dvd1: "(divlcm f) dvd (ilcm (divlcm f) (divlcm g))" 
-    using prems by (simp add: nz_le ilcm_dvd1)
-  have dvd2: "(divlcm g) dvd (ilcm (divlcm f) (divlcm g))" 
-    using prems by (simp add: nz_le ilcm_dvd2)
-  from dvd1 prems 
-  have "alldivide (ilcm (divlcm f) (divlcm g), f)" 
-    by (simp add: alldivide_mono[where d= "divlcm f" and p="f" and d' ="ilcm (divlcm f) (divlcm g)"])
-  moreover   from dvd2 prems 
-   have "alldivide (ilcm (divlcm f) (divlcm g), g)" 
-    by (simp add: alldivide_mono[where d= "divlcm g" and p="g" and d' ="ilcm (divlcm f) (divlcm g)"])
-  ultimately show ?case by simp
-qed
-
-
-(* Properties of  minusinf and plusinf*)
-
-(* minusinf p and p are the same for minusinfity \<dots> *)
-lemma minusinf_eq: 
-  assumes unifp: "isunified p" 
-  shows "\<exists> z. \<forall> x. x < z \<longrightarrow> (qinterp (x#ats) p = qinterp (x#ats) (minusinf p))"
-using unifp unified_islinform[OF unifp]
-proof (induct p rule: minusinf.induct)
-  case (1 c r z)
-  have "c <0 \<or> 0 \<le> c" by arith
-  moreover 
-  {
-    assume cneg: " c < 0"
-    from prems have z0: "z= Cst 0" 
-      by (cases z,auto)
-    with prems have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" 
-      by simp
-
-    from prems z0 have ?case 
-      proof-
-	show ?thesis
-	  using prems z0
-      apply auto
-      apply (rule exI[where x="I_intterm (a # ats) r"])
-      apply (rule allI)
-      proof-
-	fix x
-	show "x < I_intterm (a # ats) r \<longrightarrow> \<not> - x + I_intterm (x # ats) r \<le> 0"
-	  by (simp add: intterm_novar0[OF lincnr, where x="a" and y="x"])
-      qed
-    qed
-  }
-  moreover
-  {
-    assume cpos: "0 \<le> c"
-    from prems have z0: "z= Cst 0" 
-      by (cases z) auto
-    with prems have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" 
-      by simp
-    
-    from prems z0 have ?case
-      proof-
-	show ?thesis
-	  using prems z0
-      apply auto
-      apply (rule exI[where x="-(I_intterm (a # ats) r)"])
-      apply (rule allI)
-      proof-
-	fix x
-	show "x < - I_intterm (a # ats) r \<longrightarrow> x + I_intterm (x # ats) r \<le> 0"
-	  by (simp add: intterm_novar0[OF lincnr, where x="a" and y="x"])
-      qed
-    qed
-  }
-    
-    ultimately show ?case by blast
-next
-  case (2 c r z)
-  from prems have z0: "z= Cst 0" 
-    by (cases z,auto)
-  with prems have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" 
-    by simp
-  have "c <0 \<or> 0 \<le> c" by arith
-  moreover 
-  {
-    assume cneg: " c < 0"
-    from prems z0 have ?case 
-      proof-
-	show ?thesis
-	  using prems z0
-      apply auto
-      apply (rule exI[where x="I_intterm (a # ats) r"])
-      apply (rule allI)
-      proof-
-	fix x
-	show "x < I_intterm (a # ats) r \<longrightarrow> \<not> - x + I_intterm (x # ats) r = 0"
-	  by (simp add: intterm_novar0[OF lincnr, where x="a" and y="x"])
-      qed
-    qed
-  }
-  moreover
-  {
-    assume cpos: "0 \<le> c"
-    from prems z0 have ?case
-      proof-
-	show ?thesis
-	  using prems z0
-      apply auto
-      apply (rule exI[where x="-(I_intterm (a # ats) r)"])
-      apply (rule allI)
-      proof-
-	fix x
-	show "x < - I_intterm (a # ats) r \<longrightarrow> x + I_intterm (x # ats) r \<noteq> 0"
-	  by (simp add: intterm_novar0[OF lincnr, where x="a" and y="x"])
-      qed
-    qed
-  }
-    
-    ultimately show ?case by blast
-next
-  case (3 c r z)
-  from prems have z0: "z= Cst 0" 
-    by (cases z,auto)
-  with prems have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" 
-    by simp
-  have "c <0 \<or> 0 \<le> c" by arith
-  moreover 
-  {
-    assume cneg: " c < 0"
-    from prems z0 have ?case 
-      proof-
-	show ?thesis
-	  using prems z0
-      apply auto
-      apply (rule exI[where x="I_intterm (a # ats) r"])
-      apply (rule allI)
-      proof-
-	fix x
-	show "x < I_intterm (a # ats) r \<longrightarrow> \<not> - x + I_intterm (x # ats) r = 0"
-	  by (simp add: intterm_novar0[OF lincnr, where x="a" and y="x"])
-      qed
-    qed
-  }
-  moreover
-  {
-    assume cpos: "0 \<le> c"
-    from prems z0 have ?case
-      proof-
-	show ?thesis
-	  using prems z0
-      apply auto
-      apply (rule exI[where x="-(I_intterm (a # ats) r)"])
-      apply (rule allI)
-      proof-
-	fix x
-	show "x < - I_intterm (a # ats) r \<longrightarrow> x + I_intterm (x # ats) r \<noteq> 0"
-	  by (simp add: intterm_novar0[OF lincnr, where x="a" and y="x"])
-      qed
-    qed
-  }
-    
-    ultimately show ?case by blast
-next
-  
-  case (4 f g) 
-  from prems obtain "zf" where 
-    zf:"\<forall>x<zf. qinterp (x # ats) f = qinterp (x # ats) (minusinf f)" by auto
-  from prems obtain "zg" where 
-    zg:"\<forall>x<zg. qinterp (x # ats) g = qinterp (x # ats) (minusinf g)" by auto
-  from zf zg show ?case 
-    apply auto
-    apply (rule exI[where x="min zf zg"])
-    by simp
-  
-next case (5 f g)  
-  from prems obtain "zf" where 
-    zf:"\<forall>x<zf. qinterp (x # ats) f = qinterp (x # ats) (minusinf f)" by auto
-  from prems obtain "zg" where 
-    zg:"\<forall>x<zg. qinterp (x # ats) g = qinterp (x # ats) (minusinf g)" by auto
-  from zf zg show ?case 
-    apply auto
-    apply (rule exI[where x="min zf zg"])
-    by simp
-  
-qed simp_all
-
-(* miusinf p behaves periodically*)
-lemma minusinf_repeats: 
-  assumes alldvd: "alldivide (d,p)"
-  and unity: "isunified p"
-  shows "qinterp (x#ats) (minusinf p) = qinterp ((x + c*d)#ats) (minusinf p)"
-  using alldvd unity unified_islinform[OF unity]
-proof(induct p rule: islinform.induct, simp_all)
-  case (goal1 t a)
-  show ?case
-    using prems
-    apply (cases t, simp_all add: nth_pos2)
-    apply (case_tac "intterm1", simp_all)
-    apply (case_tac "intterm1a",simp_all)
-    by (case_tac "intterm2a",simp_all)
-  (case_tac "nat",simp_all add: nth_pos2 intterm_novar0[where x="x" and y="x+c*d"])
-next 
-  case (goal2 t a)
-  show ?case
-    using prems
-    apply (cases t, simp_all add: nth_pos2)
-    apply (case_tac "intterm1", simp_all)
-    apply (case_tac "intterm1a",simp_all)
-    by (case_tac "intterm2a",simp_all)
-  (case_tac "nat",simp_all add: nth_pos2 intterm_novar0[where x="x" and y="x+c*d"])
-next 
-  case (goal3 a t)
-  show ?case using prems
-
-  proof(induct t rule: islinintterm.induct, simp_all add: nth_pos2)
-    case (goal1 i n i')
-    show ?case
-      using prems
-    proof(cases n, simp_all, case_tac "i=1", simp,
-	simp add: dvd_period[where a="a" and d="d" and x="x" and c="c"])
-      case goal1
-      from prems have "(abs i = 1) \<and> i \<noteq> 1" by auto 
-      then  have im1: "i=-1" by arith
-      then have "(a dvd i*x + i') = (a dvd x + (-i'))" 
-	by (simp add: uminus_dvd_conv'[where d="a" and t="-x +i'"])
-      moreover 
-      from im1 have "(a dvd i*x + (i*(c * d)) + i') = (a dvd (x + c*d - i'))"
-	apply simp
-	apply (simp add: uminus_dvd_conv'[where d="a" and t="-x - c * d + i'"])
-	by (simp add: zadd_ac)
-      ultimately 
-      have eq1:"((a dvd i*x + i') = (a dvd i*x + (i*(c * d)) + i')) = 
-	((a dvd x + (-i'))  = (a dvd (x + c*d - i')))" by simp
-      moreover 
-      have dvd2: "(a dvd x + (-i')) = (a dvd x + c * d + (-i'))"
-	by (rule dvd_period[where a="a" and d="d" and x="x" and c="c"], assumption)
-      ultimately show ?case by simp
-    qed
-  next
-    case (goal2 i n i' n' r)
-    have "n = 0 \<or> 0 < n" by arith
-    moreover 
-    {
-      assume npos: "0 < n"
-      from prems have "n < n'" by simp then have "0 < n'" by simp
-      moreover from prems
-      have linr: "islinintterm (Add (Mult (Cst i') (Var n')) r)" by simp
-      ultimately have ?case 
-	using prems npos
-	by (simp add: nth_pos2 intterm_novar0[OF linr,where x="x" and y="x + c*d"])
-    }
-    moreover 
-    {
-      assume n0: "n=0"
-      from prems have lin2: "islinintterm (Add (Mult (Cst i') (Var n')) r)" by simp
-      from prems have "n < n'" by simp then have npos': "0 < n'" by simp
-      with prems have ?case
-      proof(simp add: intterm_novar0[OF lin2, where x="x" and y="x+c*d"] 
-	  nth_pos2 dvd_period,case_tac "i=1",
-	  simp add: dvd_period[where a="a" and d="d" and x="x" and c="c"], simp)
-	case goal1
-	from prems have "abs i = 1 \<and> i\<noteq>1" by auto
-	then have mi: "i = -1" by arith
-	have "(a dvd -x + (i' * ats ! (n' - Suc 0) + I_intterm ((x + c * d) # ats) r)) = 
-	  (a dvd x + (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r))" 
-	  by (simp add: 
-	    uminus_dvd_conv'[where d="a" and 
-	    t="-x + (i' * ats ! (n' - Suc 0) + I_intterm ((x + c * d) # ats) r)"])
-	also 
-	have "(a dvd x + (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)) = 
-	  (a dvd x +c*d + (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r))"
-	  by (rule dvd_period[where a="a" and d="d" and x="x" and c="c"], assumption)
-	also 
-	have "(a dvd x +c*d + 
-	  (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)) = 
-	  (a dvd -(x +c*d + 
-	  (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)))"
-	  by (rule uminus_dvd_conv'[where d="a" and 
-	    t="x +c*d + (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)"])
-	also
-	have "(a dvd -(x +c*d + 
-	  (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)))
-	  = (a dvd
-          - x - c * d + (i' * ats ! (n' - Suc 0) + I_intterm ((x + c * d) # ats) r))" 
-	  by (auto,simp_all add: zadd_ac)
-	finally show ?case using mi by auto
-      qed
-    }
-    ultimately show ?case by blast
-  qed
-next 
-  case (goal4 a t)
-  show ?case using prems 
-  proof(induct t rule: islinintterm.induct, simp_all,case_tac "n=0",
-      simp_all add: nth_pos2)
-    case (goal1 i n i')
-    show ?case
-      using prems
-    proof(case_tac "i=1", simp,
-	simp add: dvd_period[where a="a" and d="d" and x="x" and c="c"])
-      case goal1
-      from prems have "abs i = 1 \<and> i\<noteq>1" by auto 
-      then have im1: "i=-1" by arith
-      then have "(a dvd i*x + i') = (a dvd x + (-i'))" 
-	by (simp add: uminus_dvd_conv'[where d="a" and t="-x +i'"])
-      moreover 
-      from im1 have "(a dvd i*x + (i*(c * d)) + i') = (a dvd (x + c*d - i'))"
-	apply simp
-	apply (simp add: uminus_dvd_conv'[where d="a" and t="-x - c * d + i'"])
-	by (simp add: zadd_ac)
-      ultimately 
-      have eq1:"((a dvd i*x + i') = (a dvd i*x + (i*(c * d)) + i')) = 
-	((a dvd x + (-i'))  = (a dvd (x + c*d - i')))" by simp
-      moreover 
-      have dvd2: "(a dvd x + (-i')) = (a dvd x + c * d + (-i'))"
-	by (rule dvd_period[where a="a" and d="d" and x="x" and c="c"], assumption)
-      ultimately show ?thesis by simp
-    qed
-  next
-    case (goal2 i n i' n' r)
-    have "n = 0 \<or> 0 < n" by arith
-    moreover 
-    {
-      assume npos: "0 < n"
-      from prems have "n < n'" by simp then have "0 < n'" by simp
-      moreover from prems
-      have linr: "islinintterm (Add (Mult (Cst i') (Var n')) r)" by simp
-      ultimately have ?case 
-	using prems npos
-	by (simp add: nth_pos2 intterm_novar0[OF linr,where x="x" and y="x + c*d"])
-    }
-    moreover 
-    {
-      assume n0: "n=0"
-      from prems have lin2: "islinintterm (Add (Mult (Cst i') (Var n')) r)" by simp
-      from prems have "n < n'" by simp then have npos': "0 < n'" by simp
-      with prems have ?case
-      proof(simp add: intterm_novar0[OF lin2, where x="x" and y="x+c*d"] 
-	  nth_pos2 dvd_period,case_tac "i=1",
-	  simp add: dvd_period[where a="a" and d="d" and x="x" and c="c"], simp)
-	case goal1
-	from prems have "abs i = 1 \<and> i\<noteq>1" by auto
-	then have mi: "i = -1" by arith
-	have "(a dvd -x + (i' * ats ! (n' - Suc 0) + I_intterm ((x + c * d) # ats) r)) = 
-	  (a dvd x + (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r))" 
-	  by (simp add: 
-	    uminus_dvd_conv'[where d="a" and 
-	    t="-x + (i' * ats ! (n' - Suc 0) + I_intterm ((x + c * d) # ats) r)"])
-	also 
-	have "(a dvd x + (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)) = 
-	  (a dvd x +c*d + (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r))"
-	  by (rule dvd_period[where a="a" and d="d" and x="x" and c="c"], assumption)
-	also 
-	have "(a dvd x +c*d + 
-	  (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)) = 
-	  (a dvd -(x +c*d + 
-	  (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)))"
-	  by (rule uminus_dvd_conv'[where d="a" and 
-	    t="x +c*d + (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)"])
-	also
-	have "(a dvd -(x +c*d + 
-	  (-i' * ats ! (n' - Suc 0) - I_intterm ((x + c * d) # ats) r)))
-	  = (a dvd
-          - x - c * d + (i' * ats ! (n' - Suc 0) + I_intterm ((x + c * d) # ats) r))" 
-	  by (auto,simp_all add: zadd_ac)
-	finally show ?case using mi by auto
-      qed
-    }
-    ultimately show ?case by blast
-  qed
-next 
-  case (goal5 t a)
-  show ?case
-    using prems
-    apply (cases t, simp_all add: nth_pos2)
-    apply (case_tac "intterm1", simp_all)
-    apply (case_tac "intterm1a",simp_all)
-    by (case_tac "intterm2a",simp_all)
-  (case_tac "nat",simp_all add: nth_pos2 intterm_novar0[where x="x" and y="x+c*d"])
-qed
-
-lemma minusinf_repeats2:
-  assumes alldvd: "alldivide (d,p)"
-  and unity: "isunified p"
-  shows "\<forall> x k. (qinterp (x#ats) (minusinf p) = qinterp ((x - k*d)#ats) (minusinf p))" 
-  (is "\<forall> x k. ?P x = ?P (x - k*d)")
-proof(rule allI, rule allI)
-  fix x k
-  show "?P x = ?P (x - k*d)"
-  proof-
-    have "?P x = ?P (x + (-k)*d)" by (rule minusinf_repeats[OF alldvd unity])
-    then have "?P x = ?P (x - (k*d))" by simp
-    then show ?thesis by blast 
-  qed
-qed
-
-
-(* existence for minusinf p is existence for p *)
-lemma minusinf_lemma:
-  assumes unifp: "isunified p"
-  and exminf: "\<exists> j \<in> {1 ..d}. qinterp (j#ats) (minusinf p)" (is "\<exists> j \<in> {1 .. d}. ?P1 j")
-  shows "\<exists> x. qinterp (x#ats) p" (is "\<exists> x. ?P x")
-proof-
-  from exminf obtain "j" where P1j: "?P1 j" by blast
-  have ePeqP1: "\<exists>z. \<forall> x. x < z \<longrightarrow> (?P x = ?P1 x)"
-    by (rule minusinf_eq[OF unifp])
-  then obtain "z" where P1eqP : "\<forall> x. x < z \<longrightarrow> (?P x = ?P1 x)" by blast
-  let ?d = "divlcm p"
-  have alldvd: "alldivide (?d,p)" using unified_islinform[OF unifp] divlcm_corr
-    by auto
-  have dpos: "0 < ?d" using unified_islinform[OF unifp] divlcm_pos
-    by simp
-  have P1eqP1 : "\<forall> x k. ?P1 x = ?P1 (x - k*(?d))"
-    by (rule minusinf_repeats2[OF alldvd unifp])
-  let ?w = "j - (abs (j-z) +1)* ?d"
-  show "\<exists> x. ?P x"
-  proof
-    have w: "?w < z" 
-      by (rule decr_lemma[OF dpos])
-    
-    have "?P1 j = ?P1 ?w" using P1eqP1 by blast
-    also have "\<dots> = ?P ?w"  using w P1eqP by blast
-    finally show "?P ?w" using P1j by blast
-  qed
-qed
-
-(* limited search for the withness for minusinf p, due to peridicity *)
-lemma minusinf_disj:
-  assumes unifp: "isunified p"
-  shows "(\<exists> x. qinterp (x#ats) (minusinf p)) = 
-  (\<exists> j \<in> { 1.. divlcm p}. qinterp (j#ats) (minusinf p))" 
-  (is "(\<exists> x. ?P x) = (\<exists> j \<in> { 1.. ?d}. ?P j)")
-proof
-  have linp: "islinform p" by (rule unified_islinform[OF unifp])
-  have dpos: "0 < ?d" by (rule divlcm_pos[OF linp])
-  have alldvd: "alldivide(?d,p)" by (rule divlcm_corr[OF linp])
-  {
-    assume "\<exists> j\<in> {1 .. ?d}. ?P j"
-    then show "\<exists> x. ?P x" using dpos  by auto
-  next
-    assume "\<exists> x. ?P x"
-    then obtain "x" where P: "?P x" by blast
-    have modd: "\<forall>x k. ?P x = ?P (x - k*?d)"
-      by (rule minusinf_repeats2[OF alldvd unifp])
-    
-    have "x mod ?d = x - (x div ?d)*?d"
-      by(simp add:zmod_zdiv_equality mult_ac eq_diff_eq)
-    hence Pmod: "?P x = ?P (x mod ?d)" using modd by simp
-    show "\<exists> j\<in> {1 .. ?d}. ?P j"
-    proof (cases)
-      assume "x mod ?d = 0"
-      hence "?P 0" using P Pmod by simp
-      moreover have "?P 0 = ?P (0 - (-1)*?d)" using modd by blast
-      ultimately have "?P ?d" by simp
-      moreover have "?d \<in> {1 .. ?d}" using dpos 
-	by (simp add:atLeastAtMost_iff)
-      ultimately show "\<exists> j\<in> {1 .. ?d}. ?P j" ..
-    next 
-      assume not0: "x mod ?d \<noteq> 0"
-      have "?P(x mod ?d)" using dpos P Pmod by(simp add:pos_mod_sign pos_mod_bound)
-      moreover have "x mod ?d : {1 .. ?d}"
-      proof -
-	have "0 \<le> x mod ?d" by(rule pos_mod_sign[OF dpos])
-	moreover have "x mod ?d < ?d"  by(rule pos_mod_bound[OF dpos])
-	ultimately show ?thesis using not0 by(simp add:atLeastAtMost_iff)
-      qed
-      ultimately show "\<exists> j\<in> {1 .. ?d}. ?P j" ..
-    qed
-  }
-qed
-
-lemma minusinf_qfree:
-  assumes linp : "islinform p"
-  shows "isqfree (minusinf p)"
-  using linp
- by (induct p rule: minusinf.induct) auto 
-
-(* Properties of bset and a set *)
-
-(* The elements of a bset are linear *) 
-lemma bset_lin:
-  assumes unifp: "isunified p"
-  shows "\<forall> b \<in> set (bset p). islinintterm b"
-using unifp unified_islinform[OF unifp]
-proof (induct p rule: bset.induct, auto)
-  case (goal1 c r z)
-  from prems have "z = Cst 0" by (cases z, simp_all)
-  then have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have "islinintterm (Cst -1)" by simp
-  then show ?case using linr lin_add_lin by simp
-next 
-  case (goal2 c r z)
-  from prems have "z = Cst 0" by (cases z, simp_all)
-  then have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  show ?case by (rule linr)
-next
-  case (goal3 c r z)
-  from prems have "z = Cst 0" by (cases z, simp_all) 
-  then have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have "islinintterm (Cst -1)" by simp
-  then show ?case using linr lin_add_lin lin_neg_lin by simp
-next
-  case (goal4 c r z)
-  from prems have "z = Cst 0" by (cases z, simp_all) 
-  then have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have "islinintterm (Cst -1)" by simp
-  then show ?case using linr lin_add_lin lin_neg_lin by simp
-next
-  case (goal5 c r z)
-  from prems have "z = Cst 0" by (cases z, simp_all) 
-  then have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have "islinintterm (Cst -1)" by simp
-  then show ?case using linr lin_add_lin lin_neg_lin by simp
-next
-  case (goal6 c r z)
-  from prems have "z = Cst 0" by (cases z, simp_all) 
-  then have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have "islinintterm (Cst -1)" by simp
-  then show ?case using linr lin_add_lin lin_neg_lin by simp
-next
-  case (goal7 c r z)
-  from prems have "z = Cst 0" by (cases z, simp_all) 
-  then have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" using prems by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have "islinintterm (Cst -1)" by simp
-  then show ?case using linr lin_add_lin lin_neg_lin by simp
-qed
-
-(* The third lemma in Norrisch's Paper *)
-lemma bset_disj_repeat:
-  assumes unifp: "isunified p"
-  and alldvd: "alldivide (d,p)"
-  and dpos: "0 < d"
-  and nob: "(qinterp (x#ats) q) \<and> \<not>(\<exists>j\<in> {1 .. d}. \<exists> b \<in> set (bset p). (qinterp (((I_intterm (a#ats) b) + j)#ats) q)) \<and>(qinterp (x#ats) p)" 
-  (is "?Q x \<and> \<not>(\<exists> j\<in> {1.. d}. \<exists> b\<in> ?B. ?Q (?I a b + j)) \<and> ?P x") 
-    shows "?P (x -d)"  
-  using unifp nob alldvd unified_islinform[OF unifp]
-proof (induct p rule: islinform.induct,auto)
-  case (goal1 t)
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have "n=0 \<or> n>0" by arith
-    moreover {assume "n>0" then have ?case 
-	using prems
-	by (simp add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="x-d"]) }
-    moreover 
-    {assume nz: "n = 0"
-      from prems have "abs i = 1" by auto 
-      then have "i = -1 \<or> i =1" by arith
-      moreover
-      {
-	assume i1: "i=1"
-	have ?case  using dpos prems  
-	  by (auto simp add: intterm_novar0[OF lininr, where x="x" and y="x - d"])
-      }
-      moreover 
-      {
-	assume im1: "i = -1"
-	have ?case 
-	  using prems 
-	proof(auto simp add: intterm_novar0[OF lininr, where x="x - d" and y="x"], cases)
-	  assume "- x + d +  ?I x r \<le> 0"
-	  then show "- x + d + ?I x r \<le> 0" .
-	next 
-	  assume np: "\<not> - x + d +  ?I x r \<le> 0"
-	  then have ltd:"x - ?I x r \<le> d - 1" by simp 
-	  from prems have "-x + ?I x r \<le> 0" by simp
-	  then have ge0: "x - ?I x r \<ge> 0" 
-	    by simp
-	  from ltd ge0 have "x - ?I x r = 0 \<or> (1 \<le> x - ?I x r \<and> x - ?I x r \<le> d - 1) " by arith
-	  moreover
-	  {
-	    assume "x - ?I x r = 0"
-	    then have xeqr: "x = ?I x r" by simp
-	    from prems have "?Q x" by simp
-	    with xeqr have qr:"?Q (?I x r)" by simp
-	    from prems have lininr: "islinintterm (Add (Mult (Cst i) (Var 0)) r)" by simp
-	    have "islinintterm r" by (rule islinintterm_subt[OF lininr])
-	    from prems 
-	    have "\<forall>j\<in>{1..d}. \<not> ?Q (?I a r + -1 + j)"
-	      using linr by (auto simp add: lin_add_corr)
-	    moreover from dpos have "1 \<in> {1..d}" by simp
-	    ultimately have " \<not> ?Q (?I a r + -1 + 1)" by blast
-	    with dpos linr have "\<not> ?Q (?I x r)"
-	      by (simp add: intterm_novar0[OF lininr, where x="x" and y="a"] lin_add_corr)
-	    with qr have "- x + d + ?I x r \<le> 0" by simp
-	  }
-	  moreover
-	  {
-	    assume gt0: "1 \<le> x - ?I x r \<and> x - ?I x r \<le> d - 1"
-	    then have "\<exists> j\<in> {1 .. d - 1}. x - ?I x r =  j" by simp
-	    then have "\<exists> j\<in> {1 .. d}. x - ?I x r =  j" by auto
-	    then obtain  "j" where con: "1\<le>j \<and> j \<le> d  \<and> x - ?I x r = j" by auto
-	    then have xeqr: "x = ?I x r + j" by auto
-	    with prems have "?Q (?I x r + j)" by simp
-	    with con have qrpj: "\<exists> j\<in> {1 .. d}. ?Q (?I x r + j)" by auto
-	    from prems have "\<forall>j\<in>{1..d}. \<not> ?Q (?I a r + j)" by auto
-	    then have "\<not> (\<exists> j\<in>{1..d}. ?Q (?I x r + j))" 
-	      by (simp add: intterm_novar0[OF lininr, where x="x" and y="a"])
-	    with qrpj prems have "- x + d + ?I x r \<le> 0" by simp 
-	    
-	  }
-	  ultimately show "- x + d + ?I x r \<le> 0" by blast
-	qed
-      }
-      ultimately have ?case by blast
-    }
-    ultimately have ?case by blast
-  }
-  ultimately show ?case by blast
-next  
-  case (goal3 a t)
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have "n=0 \<or> n>0" by arith
-    moreover {assume "n>0" then have ?case using prems 
-	by (simp add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="x-d"]) }
-    moreover {
-      assume nz: "n=0"
-      from prems have "abs i = 1" by auto
-      then have ipm: "i=1 \<or> i = -1" by arith
-      from nz prems have advdixr: "a dvd (i * x) + I_intterm (x # ats) r" 
-	by simp
-      from prems have "a dvd d" by simp
-      then have advdid: "a dvd i*d" using ipm by auto  
-      have ?case
-      using prems ipm 
-      by (auto simp add: intterm_novar0[OF lininr, where x="x-d" and y="x"] dvd_period[OF advdid, where x="i*x" and c="-1"])
-  }
-  ultimately have ?case by blast
-  } ultimately show ?case by blast
-next
-
-  case (goal4 a t)
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-
-    have "n=0 \<or> n>0" by arith
-    moreover {assume "n>0" then have ?case using prems 
-	by (simp add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="x-d"]) }
-    moreover {
-      assume nz: "n=0"
-      from prems have "abs i = 1" by auto
-      then have ipm: "i =1 \<or> i = -1" by arith
-      from nz prems have advdixr: "\<not> (a dvd (i * x) + I_intterm (x # ats) r)" 
-	by simp
-      from prems have "a dvd d" by simp
-      then have advdid: "a dvd i*d" using ipm by auto
-      have ?case
-      using prems ipm 
-      by (auto simp add: intterm_novar0[OF lininr, where x="x-d" and y="x"] dvd_period[OF advdid, where x="i*x" and c="-1"])
-  }
-  ultimately have ?case by blast
-  } ultimately show ?case by blast
-next 
-  case (goal2 t)
-  from prems
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have "n=0 \<or> n>0" by arith
-    moreover {assume "n>0" then have ?case 
-	using prems
-	by (simp add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="x-d"]) }
-    moreover 
-    {assume nz: "n = 0"
-      from prems have "abs i = 1" by auto 
-      then have "i = -1 \<or> i =1" by arith
-      moreover
-      {
-	assume i1: "i=1"
-	with prems have px: "x + ?I x r = 0" by simp
-	then have "x = (- ?I x r - 1) + 1" by simp
-	hence q1: "?Q ((- ?I x r - 1) + 1)" by simp
-	from prems have "\<not> (?Q ((?I a (lin_add(lin_neg r, Cst -1))) + 1))"
-	  by auto
-	hence "\<not> (?Q ((- ?I a r - 1) + 1))" 
-	  using lin_add_corr lin_neg_corr linr lin_neg_lin
-	  by simp
-	hence "\<not> (?Q ((- ?I x r - 1) + 1))" 
-	  using intterm_novar0[OF lininr, where x="x" and y="a"]
-	  by simp
-	with q1 have  ?case by simp
-      }
-      moreover 
-      {
-	assume im1: "i = -1"
-	with prems have px: "-x + ?I x r = 0" by simp
-	then have "x = ?I x r" by simp
-	hence q1: "?Q (?I x r)" by simp
-	from prems have "\<not> (?Q ((?I a (lin_add(r, Cst -1))) + 1))"
-	  by auto
-	hence "\<not> (?Q (?I a r))" 
-	  using lin_add_corr lin_neg_corr linr lin_neg_lin
-	  by simp
-	hence "\<not> (?Q (?I x r ))" 
-	  using intterm_novar0[OF lininr, where x="x" and y="a"]
-	  by simp
-	with q1 have  ?case by simp
-      }
-      ultimately have ?case by blast
-    }
-    ultimately have ?case by blast
-  }
-  ultimately show ?case by blast
-next
-  case (goal5 t)
-  from prems
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have "n=0 \<or> n>0" by arith
-    moreover {assume "n>0" then have ?case 
-	using prems
-	by (simp add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="x-d"]) }
-    moreover 
-    {assume nz: "n = 0"
-      from prems have "abs i = 1" by auto 
-      then have "i = -1 \<or> i =1" by arith
-      moreover
-      {
-	assume i1: "i=1"
-	with prems have px: "x -d + ?I (x-d) r = 0" by simp
-	hence "x = (- ?I x r) + d" 
-	  using intterm_novar0[OF lininr, where x="x" and y="x-d"]
-	  by simp
-	hence q1: "?Q (- ?I x r + d)" by simp
-	from prems have "\<not> (?Q ((?I a (lin_neg r)) + d))"
-	  by auto
-	hence "\<not> (?Q (- ?I a r + d))" 
-	  using lin_neg_corr linr by simp
-	hence "\<not> (?Q ((- ?I x r + d)))" 
-	  using intterm_novar0[OF lininr, where x="x" and y="a"]
-	  by simp
-	with q1 have  ?case by simp
-      }
-      moreover 
-      {
-	assume im1: "i = -1"
-	with prems have px: "- (x -d) + ?I (x - d) r = 0" by simp
-	then have "x = ?I x r + d "
- 	  using intterm_novar0[OF lininr, where x="x" and y="x-d"]
-	  by simp
-	hence q1: "?Q (?I x r + d)" by simp
-	from prems have "\<not> (?Q ((?I a r) + d))"
-	  by auto
-	hence "\<not> (?Q (?I x r + d))" 
-	  using intterm_novar0[OF lininr, where x="x" and y="a"]
-	  by simp
-	with q1 have  ?case by simp
-      }
-      ultimately have ?case by blast
-    }
-    ultimately have ?case by blast
-  }
-  ultimately show ?case by blast
-  
-qed
-  
-lemma bset_disj_repeat2:
-  assumes unifp: "isunified p"
-
-  shows "\<forall> x. \<not>(\<exists>j\<in> {1 .. (divlcm p)}. \<exists> b \<in> set (bset p). 
-  (qinterp (((I_intterm (a#ats) b) + j)#ats) p))  
-  \<longrightarrow> (qinterp (x#ats) p) \<longrightarrow> (qinterp ((x - (divlcm p))#ats) p)" 
-  (is "\<forall> x. \<not>(\<exists> j\<in> {1 .. ?d}. \<exists> b\<in> ?B. ?P (?I a b + j)) \<longrightarrow> ?P x \<longrightarrow> ?P (x - ?d)")
-proof
-  fix x
-  have linp: "islinform p" by (rule unified_islinform[OF unifp])
-  have dpos: "?d > 0" by (rule divlcm_pos[OF linp])
-  have alldvd: "alldivide(?d,p)" by (rule divlcm_corr[OF linp])
-    show "\<not>(\<exists> j\<in> {1 .. ?d}. \<exists> b\<in> ?B. ?P (?I a b + j)) \<longrightarrow> ?P x \<longrightarrow> ?P (x - ?d)"
-    using prems bset_disj_repeat[OF unifp alldvd dpos]
-    by blast
-qed
-
-(* Cooper's theorem in the minusinfinity version *)
-lemma cooper_mi_eq: 
-  assumes unifp : "isunified p"
-  shows "(\<exists> x. qinterp (x#ats) p) = 
-  ((\<exists> j \<in> {1 .. (divlcm p)}. qinterp (j#ats) (minusinf p)) \<or> 
-  (\<exists> j \<in> {1 .. (divlcm p)}. \<exists> b \<in> set (bset p). 
-  qinterp (((I_intterm (a#ats) b) + j)#ats) p))"
-  (is "(\<exists> x. ?P x) = ((\<exists> j\<in> {1 .. ?d}. ?MP j) \<or> (\<exists> j \<in> ?D. \<exists> b\<in> ?B. ?P (?I a b + j)))")
-proof-
-  have linp :"islinform p" by (rule unified_islinform[OF unifp])
-  have dpos: "?d > 0" by (rule divlcm_pos[OF linp])
-  have alldvd: "alldivide(?d,p)" by (rule divlcm_corr[OF linp])
-  have eMPimpeP: "(\<exists>j \<in> ?D. ?MP j) \<longrightarrow> (\<exists>x. ?P x)"
-    by (simp add: minusinf_lemma[OF unifp, where d="?d" and ats="ats"])
-  have ePimpeP: "(\<exists> j \<in> ?D. \<exists> b\<in> ?B. ?P (?I a b + j)) \<longrightarrow> (\<exists> x. ?P x)"
-    by blast
-  have bst_rep: "\<forall> x. \<not> (\<exists> j \<in> ?D. \<exists> b \<in> ?B. ?P (?I a b + j)) \<longrightarrow> ?P x \<longrightarrow> ?P (x - ?d)"
-    by (rule bset_disj_repeat2[OF unifp])
-  have MPrep: "\<forall> x k. ?MP x = ?MP (x- k*?d)"
-    by (rule minusinf_repeats2[OF alldvd unifp])
-  have MPeqP: "\<exists> z. \<forall>  x < z. ?P x = ?MP x"
-    by (rule minusinf_eq[OF unifp])
-  let ?B'= "{?I a b| b. b\<in> ?B}"
-  from bst_rep have bst_rep2: "\<forall>x. \<not> (\<exists>j\<in>?D. \<exists>b\<in> ?B'. ?P (b+j)) \<longrightarrow> ?P x \<longrightarrow> ?P (x - ?d)"
-    by auto
-  show ?thesis 
-  using cpmi_eq[OF dpos MPeqP bst_rep2 MPrep]
-  by auto
-qed
-
-(* A formalized analogy between aset, bset, plusinfinity and minusinfinity *)
-
-consts mirror:: "QF \<Rightarrow> QF"
-recdef mirror "measure size"
-"mirror (Le (Add (Mult (Cst c) (Var 0)) r) z) =
-  (Le (Add (Mult (Cst (- c)) (Var 0)) r) z)"
-"mirror (Eq (Add (Mult (Cst c) (Var 0)) r) z) =
-  (Eq (Add (Mult (Cst (- c)) (Var 0)) r) z)"
-"mirror (Divides (Cst d) (Add (Mult (Cst c) (Var 0)) r)) = 
-  (Divides (Cst d) (Add (Mult (Cst (- c)) (Var 0)) r))"
-"mirror (NOT(Divides (Cst d) (Add (Mult (Cst c) (Var 0)) r))) = 
-  (NOT(Divides (Cst d) (Add (Mult (Cst (- c)) (Var 0)) r)))"
-"mirror (NOT(Eq (Add (Mult (Cst c) (Var 0)) r) z)) =
-  (NOT(Eq (Add (Mult (Cst (- c)) (Var 0)) r) z))"
-"mirror (And p q) = And (mirror p) (mirror q)"
-"mirror (Or p q) = Or (mirror p) (mirror q)"
-"mirror p = p"
-(* mirror preserves unifiedness *)
-
-lemma[simp]: "(abs (i::int) = 1) = (i =1 \<or> i = -1)"  by arith
-lemma mirror_unified:
-  assumes unif: "isunified p"
-  shows "isunified (mirror p)"
-  using unif
-proof (induct p rule: mirror.induct, simp_all)
-  case (goal1 c r z)
-  from prems have zz: "z = Cst 0" by (cases z, simp_all) 
-  then show ?case using prems 
-    by (auto simp add: islinintterm_eq_islint islint_def)
-next 
-  case (goal2 c r z)
-  from prems have zz: "z = Cst 0" by (cases z, simp_all) 
-  then show ?case using prems 
-    by (auto simp add: islinintterm_eq_islint islint_def)
-next
-  case (goal3 d c r) show ?case using prems by (auto simp add: islinintterm_eq_islint islint_def) 
-next 
-  case (goal4 d c r) show ?case using prems  by (auto simp add: islinintterm_eq_islint islint_def)
-next 
- case (goal5 c r z)
-  from prems have zz: "z = Cst 0" by (cases z, simp_all) 
-  then show ?case using prems 
-    by (auto simp add: islinintterm_eq_islint islint_def)
-qed
-
-(* relationship between plusinf and minusinf *)
-lemma plusinf_eq_minusinf_mirror:
-  assumes unifp: "isunified p"
-  shows "(qinterp (x#ats) (plusinf p)) = (qinterp ((- x)#ats) (minusinf (mirror p)))"
-using unifp unified_islinform[OF unifp]
-proof (induct p rule: islinform.induct, simp_all)
-  case (goal1 t z)
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems 
-      by (cases n, auto simp add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="-x"] )}
-  ultimately show ?case by blast
-    
-next
-  case (goal2 t z)
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems 
-      by (cases n, auto simp add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="-x"] )}
-  ultimately show ?case by blast
-next
-  case (goal3 d t)
-  
- from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-
-    have ?case using prems 
-      by (cases n, simp_all add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="-x"] )}
-  ultimately show ?case by blast
-next
-
-  case (goal4 d t)
-  
- from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-
-    have ?case using prems 
-      by (cases n, simp_all add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="-x"] )}
-  ultimately show ?case by blast
-next
-  case (goal5 t z)
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems 
-      by (cases n, auto simp add: nth_pos2 
-	  intterm_novar0[OF lininr, where x="x" and y="-x"] )}
-  ultimately show ?case by blast
-qed
-
-(* relationship between aset abd bset *)
-lemma aset_eq_bset_mirror: 
-  assumes unifp: "isunified p"
-  shows "set (aset p) = set (map lin_neg (bset (mirror p)))"
-using unifp
-proof(induct p rule: mirror.induct)
-  case (1 c r z) 
-  from prems have zz: "z = Cst 0"
-    by (cases z, auto)
-  from prems zz have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have neg1eqm1: "Cst 1 = lin_neg (Cst -1)" by (simp add: lin_neg_def)
-  have negm1eq1: "Cst -1 = lin_neg (Cst 1)" by (simp add: lin_neg_def)
-  show ?case  using prems linr zz apply (auto simp add: lin_neg_lin_add_distrib lin_neg_idemp neg1eqm1)
-    by (simp add: negm1eq1 lin_neg_idemp sym[OF lin_neg_lin_add_distrib] lin_add_lin)
-next
-  case (2 c r z)   from prems have zz: "z = Cst 0"
-    by (cases z, auto)
-  from prems zz have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have neg1eqm1: "Cst 1 = lin_neg (Cst -1)" by (simp add: lin_neg_def)
-  have negm1eq1: "Cst -1 = lin_neg (Cst 1)" by (simp add: lin_neg_def)
-  show ?case  using prems linr zz
-    by (auto simp add: lin_neg_lin_add_distrib lin_neg_idemp neg1eqm1)
-  (simp add: negm1eq1 lin_neg_idemp sym[OF lin_neg_lin_add_distrib] lin_add_lin lin_neg_lin)
-
-next
-  case (5 c r z)  from prems have zz: "z = Cst 0"
-    by (cases z, auto)
-  from prems zz have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have neg1eqm1: "Cst 1 = lin_neg (Cst -1)" by (simp add: lin_neg_def)
-  have negm1eq1: "Cst -1 = lin_neg (Cst 1)" by (simp add: lin_neg_def)
-  show ?case  using prems linr zz
-    by(auto simp add: lin_neg_lin_add_distrib lin_neg_idemp neg1eqm1)
-  
-qed simp_all
-
-(* relationship between aset abd bset 2*)
-lemma aset_eq_bset_mirror2: 
-  assumes unifp: "isunified p"
-  shows "aset p = map lin_neg (bset (mirror p))"
-using unifp
-proof(induct p rule: mirror.induct)
-  case (1 c r z) 
-  from prems have zz: "z = Cst 0"
-    by (cases z, auto)
-  from prems zz have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have neg1eqm1: "Cst 1 = lin_neg (Cst -1)" by (simp add: lin_neg_def)
-  have negm1eq1: "Cst -1 = lin_neg (Cst 1)" by (simp add: lin_neg_def)
-  show ?case  using prems linr zz
-    apply (simp add: lin_neg_lin_add_distrib lin_neg_idemp neg1eqm1)
-    apply (simp add: negm1eq1 lin_neg_idemp sym[OF lin_neg_lin_add_distrib] lin_add_lin)
-    by arith
-next
-  case (2 c r z)   from prems have zz: "z = Cst 0"
-    by (cases z, auto)
-  from prems zz have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have neg1eqm1: "Cst 1 = lin_neg (Cst -1)" by (simp add: lin_neg_def)
-  have negm1eq1: "Cst -1 = lin_neg (Cst 1)" by (simp add: lin_neg_def)
-  show ?case  using prems linr zz
-    by(auto simp add: lin_neg_lin_add_distrib lin_neg_idemp neg1eqm1)
-    (simp add: negm1eq1 lin_neg_idemp sym[OF lin_neg_lin_add_distrib] lin_add_lin lin_neg_lin)
-
-next
-  case (5 c r z)  from prems have zz: "z = Cst 0"
-    by (cases z, auto)
-  from prems zz have lincnr: "islinintterm (Add (Mult (Cst c) (Var 0)) r)" by simp
-  have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  have neg1eqm1: "Cst 1 = lin_neg (Cst -1)" by (simp add: lin_neg_def)
-  have negm1eq1: "Cst -1 = lin_neg (Cst 1)" by (simp add: lin_neg_def)
-  show ?case  using prems linr zz
-    by(auto simp add: lin_neg_lin_add_distrib lin_neg_idemp neg1eqm1)
-  
-qed simp_all
-
-(* mirror preserves divlcm *)
-lemma divlcm_mirror_eq:
-  assumes unifp: "isunified p"
-  shows "divlcm p = divlcm (mirror p)"
-  using unifp
-by (induct p rule: mirror.induct) auto
-
-(* mirror almost preserves semantics *)  
-lemma mirror_interp: 
-  assumes unifp: "isunified p"
-  shows "(qinterp (x#ats) p) = (qinterp ((- x)#ats) (mirror p))" (is "?P x = ?MP (-x)")
-using unifp unified_islinform[OF unifp]
-proof (induct p rule: islinform.induct)
-  case (1 t z)
-  from prems have zz: "z = 0" by simp
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems zz
-      by (cases n) (simp_all add: nth_pos2 
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast
-next
-  case (2 t z)
-  from prems have zz: "z = 0" by simp
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems zz
-      by (cases n) (simp_all add: nth_pos2 
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast
-next
-  case (3 d t) 
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case
-      using prems linr 
-      by (cases n) (simp_all add: nth_pos2
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast
-next
-
-  case (6 d t) 
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case
-      using prems linr 
-      by (cases n) (simp_all add: nth_pos2
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast
-next 
-  case (7 t z)
-  from prems have zz: "z = 0" by simp
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems zz
-      by (cases n) (simp_all add: nth_pos2 
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast 
-qed simp_all
-
-
-lemma mirror_interp2: 
-  assumes unifp: "islinform p"
-  shows "(qinterp (x#ats) p) = (qinterp ((- x)#ats) (mirror p))" (is "?P x = ?MP (-x)")
-using unifp 
-proof (induct p rule: islinform.induct)
-  case (1 t z)
-  from prems have zz: "z = 0" by simp
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems zz
-      by (cases n) (simp_all add: nth_pos2 
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast
-next
-  case (2 t z)
-  from prems have zz: "z = 0" by simp
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems zz
-      by (cases n) (simp_all add: nth_pos2 
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast
-next
-  case (3 d t) 
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case
-      using prems linr 
-      by (cases n) (simp_all add: nth_pos2
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast
-next
-
-  case (6 d t) 
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case
-      using prems linr 
-      by (cases n) (simp_all add: nth_pos2
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast
-next 
-  case (7 t z)
-  from prems have zz: "z = 0" by simp
-  from prems 
-  have lint: "islinintterm t" by simp
-  then have "(\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r) \<or> (\<exists> i. t = Cst i)"
-    by (induct t rule: islinintterm.induct) auto
-  moreover{ assume "\<exists> i. t = Cst i" then have ?case using prems by auto }
-  moreover
-  { assume "\<exists> i n r. t = Add (Mult (Cst i) (Var n) ) r"
-    then obtain "i" "n" "r" where 
-      inr_def: "t = Add (Mult (Cst i) (Var n) ) r" 
-      by blast
-    with lint have lininr: "islinintterm (Add (Mult (Cst i) (Var n) ) r)" 
-      by simp
-    have linr: "islinintterm r" 
-      by (rule islinintterm_subt[OF lininr])
-    have ?case using prems zz
-      by (cases n) (simp_all add: nth_pos2 
-	intterm_novar0[OF lininr, where x="x" and y="-x"])
-  }
-  ultimately show ?case by blast 
-qed simp_all
-
-(* mirror preserves existence *)
-lemma mirror_ex: 
-  assumes unifp: "isunified p"
-  shows "(\<exists> x. (qinterp (x#ats) p)) = (\<exists> y. (qinterp (y#ats) (mirror p)))" 
-  (is "(\<exists> x. ?P x) = (\<exists> y. ?MP y)")
-proof
-  assume "\<exists> x. ?P x"
-  then obtain "x" where px:"?P x" by blast
-  have "?MP (-x)" 
-    using px
-    by(simp add: mirror_interp[OF unifp, where x="x"])
-  then show "\<exists> y. ?MP y" by blast
-next 
-  assume "\<exists> y. ?MP y"
-  then obtain "y" where mpy: "?MP y" by blast
-  have "?P (-y)"
-    using mpy
-    by (simp add: mirror_interp[OF unifp, where x="-y"])
-  then show "\<exists> x. ?P x" by blast
-qed
-
-lemma mirror_ex2: 
-  assumes unifp: "isunified p"
-  shows "qinterp ats (QEx p) = qinterp ats (QEx (mirror p))"
-using mirror_ex[OF unifp] by simp
-
-  
-(* Cooper's theorem in its plusinfinity version *)
-lemma cooper_pi_eq:
-  assumes unifp : "isunified p"
-  shows "(\<exists> x. qinterp (x#ats) p) = 
-  ((\<exists> j \<in> {1 .. (divlcm p)}. qinterp (-j#ats) (plusinf p)) \<or> 
-  (\<exists> j \<in> {1 .. (divlcm p)}. \<exists> b \<in> set (aset p). 
-  qinterp (((I_intterm (a#ats) b) - j)#ats) p))"
-  (is "(\<exists> x. ?P x) = ((\<exists> j\<in> {1 .. ?d}. ?PP (-j)) \<or> (\<exists> j \<in> ?D. \<exists> b\<in> ?A. ?P (?I a b - j)))")
-proof-
-  have unifmp: "isunified (mirror p)" by (rule mirror_unified[OF unifp])
-  have th1: 
-    "(\<exists> j\<in> {1 .. ?d}. ?PP (-j)) = (\<exists> j\<in> {1..?d}.  qinterp (j # ats) (minusinf (mirror p)))"
-    by (simp add: plusinf_eq_minusinf_mirror[OF unifp])
-  have dth: "?d = divlcm (mirror p)"
-    by (rule divlcm_mirror_eq[OF unifp])
-  have "(\<exists> j \<in> ?D. \<exists> b\<in> ?A. ?P (?I a b - j)) = 
-    (\<exists> j\<in> ?D. \<exists> b \<in> set (map lin_neg (bset (mirror p))). ?P (?I a b - j))"
-    by (simp only: aset_eq_bset_mirror[OF unifp])
-  also have "\<dots> = (\<exists> j\<in> ?D. \<exists> b \<in> set (bset (mirror p)). ?P (?I a (lin_neg b) - j))"
-    by simp
-  also have "\<dots> = (\<exists> j\<in> ?D. \<exists> b \<in> set (bset (mirror p)). ?P (-(?I a b + j)))"
-  proof
-    assume "\<exists>j\<in>{1..divlcm p}.
-      \<exists>b\<in>set (bset (mirror p)). qinterp ((I_intterm (a # ats) (lin_neg b) - j) # ats) p"
-    then
-    obtain "j" and "b" where 
-      pbmj: "j\<in> ?D \<and> b\<in> set (bset (mirror p)) \<and> ?P (?I a (lin_neg b) - j)" by blast
-    then have linb: "islinintterm b" 
-      by (auto simp add:bset_lin[OF unifmp])
-    from linb pbmj have "?P (-(?I a b + j))" by (simp add: lin_neg_corr)
-    then show "\<exists> j\<in> ?D. \<exists> b \<in> set (bset (mirror p)). ?P (-(?I a b + j))"
-      using pbmj
-      by auto
-  next 
-    assume "\<exists> j\<in> ?D. \<exists> b \<in> set (bset (mirror p)). ?P (-(?I a b + j))"
-    then obtain "j" and "b" where 
-      pbmj: "j\<in> ?D \<and> b\<in> set (bset (mirror p)) \<and> ?P (-(?I a b + j))"
-      by blast
-    then have linb: "islinintterm b" 
-      by (auto simp add:bset_lin[OF unifmp])
-    from linb pbmj have "?P (?I a (lin_neg b) - j)"  
-      by (simp add: lin_neg_corr)
-    then show "\<exists> j\<in> ?D. \<exists> b \<in> set (bset (mirror p)). ?P (?I a (lin_neg b) - j)"
-      using pbmj by auto
-  qed
-  finally 
-  have bth: "(\<exists> j\<in> ?D. \<exists> b\<in> ?A. ?P (?I a b - j)) =
-    (\<exists>j\<in> ?D. \<exists> b\<in>set (bset (mirror p)). 
-    qinterp ((I_intterm (a # ats) b + j) # ats) (mirror p))"
-    by (simp add: mirror_interp[OF unifp] zadd_ac)
-  from bth dth th1
-  have "(\<exists> x. ?P x) = (\<exists> x. qinterp (x#ats) (mirror p))"
-    by (simp add: mirror_ex[OF unifp])
-  also have "\<dots> = ((\<exists>j\<in>{1..divlcm (mirror p)}. qinterp (j # ats) (minusinf (mirror p))) \<or>
-    (\<exists>j\<in>{1..divlcm (mirror p)}.
-    \<exists>b\<in>set (bset (mirror p)). qinterp ((I_intterm (a # ats) b + j) # ats) (mirror p)))"
-    (is "(\<exists> x. ?MP x) = ((\<exists> j\<in> ?DM. ?MPM j) \<or> (\<exists> j \<in> ?DM. \<exists> b\<in> ?BM. ?MP (?I a b + j)))")
-    by (rule cooper_mi_eq[OF unifmp])
-  also 
-  have "\<dots> = ((\<exists> j\<in> ?D. ?PP (-j)) \<or> (\<exists> j \<in> ?D. \<exists> b\<in> ?BM. ?MP (?I a b + j)))"
-    using bth th1 dth by simp
-  finally  show ?thesis using sym[OF bth] by simp
-qed
-   
-
-(* substitution of a term into a Qfree formula, substitution of Bound 0 by i*)
-
-consts subst_it:: "intterm \<Rightarrow> intterm \<Rightarrow> intterm"
-primrec
-"subst_it i (Cst b) = Cst b"
-"subst_it i (Var n) = (if n = 0 then i else Var n)"
-"subst_it i (Neg it) = Neg (subst_it i it)"
-"subst_it i (Add it1 it2) = Add (subst_it i it1) (subst_it i it2)" 
-"subst_it i (Sub it1 it2) = Sub (subst_it i it1) (subst_it i it2)"
-"subst_it i (Mult it1 it2) = Mult (subst_it i it1) (subst_it i it2)"
-
-
-(* subst_it preserves semantics *)
-lemma subst_it_corr: 
-"I_intterm (a#ats) (subst_it i t) = I_intterm ((I_intterm (a#ats) i)#ats) t"
-by (induct t rule: subst_it.induct, simp_all add: nth_pos2)
-
-consts subst_p:: "intterm \<Rightarrow> QF \<Rightarrow> QF"
-primrec
-"subst_p i (Le it1 it2) = Le (subst_it i it1) (subst_it i it2)"
-"subst_p i (Lt it1 it2) = Lt (subst_it i it1) (subst_it i it2)"
-"subst_p i (Ge it1 it2) = Ge (subst_it i it1) (subst_it i it2)"
-"subst_p i (Gt it1 it2) = Gt (subst_it i it1) (subst_it i it2)"
-"subst_p i (Eq it1 it2) = Eq (subst_it i it1) (subst_it i it2)"
-"subst_p i (Divides d t) = Divides (subst_it i d) (subst_it i t)"
-"subst_p i T = T"
-"subst_p i F = F"
-"subst_p i (And p q) = And (subst_p i p) (subst_p i q)"
-"subst_p i (Or p q) = Or (subst_p i p) (subst_p i q)"
-"subst_p i (Imp p q) = Imp (subst_p i p) (subst_p i q)"
-"subst_p i (Equ p q) = Equ (subst_p i p) (subst_p i q)"
-"subst_p i (NOT p) = (NOT (subst_p i p))"
-
-(* subs_p preserves correctness *)
-lemma subst_p_corr: 
-  assumes qf: "isqfree p" 
-  shows "qinterp (a # ats) (subst_p i p) = qinterp ((I_intterm (a#ats) i)#ats) p "
-  using qf
-by (induct p rule: subst_p.induct) (simp_all add: subst_it_corr)
-
-(* novar0 p is true if the fomula doese not depend on the quantified variable*)
-consts novar0I:: "intterm \<Rightarrow> bool"
-primrec
-"novar0I (Cst i) = True"
-"novar0I (Var n) = (n > 0)"
-"novar0I (Neg a) = (novar0I a)"
-"novar0I (Add a b) = (novar0I a \<and> novar0I b)"
-"novar0I (Sub a b) = (novar0I a \<and> novar0I b)"
-"novar0I (Mult a b) = (novar0I a \<and> novar0I b)"
-
-consts novar0:: "QF \<Rightarrow> bool"
-recdef novar0 "measure size"
-"novar0 (Lt a b) = (novar0I a \<and> novar0I b)"
-"novar0 (Gt a b) = (novar0I a \<and> novar0I b)"
-"novar0 (Le a b) = (novar0I a \<and> novar0I b)"
-"novar0 (Ge a b) = (novar0I a \<and> novar0I b)"
-"novar0 (Eq a b) = (novar0I a \<and> novar0I b)"
-"novar0 (Divides a b) = (novar0I a \<and> novar0I b)"
-"novar0 T = True" 
-"novar0 F = True"
-"novar0 (NOT p) = novar0 p" 
-"novar0 (And p q) = (novar0 p \<and> novar0 q)"
-"novar0 (Or p q)  = (novar0 p \<and> novar0 q)"
-"novar0 (Imp p q) = (novar0 p \<and> novar0 q)"
-"novar0 (Equ p q) = (novar0 p \<and> novar0 q)"
-"novar0 p = False"
-
-(* Interpretation of terms, that doese not depend on Var 0 *)
-lemma I_intterm_novar0:
-  assumes nov0: "novar0I x"
-  shows "I_intterm (a#ats) x = I_intterm (b#ats) x"
-using nov0
-by (induct x) (auto simp add: nth_pos2)
-
-(* substition is meaningless for term independent of Var 0*)
-lemma subst_p_novar0_corr:
-assumes qfp: "isqfree p"
-  and nov0: "novar0I i"
-  shows "qinterp (a#ats) (subst_p i p) = qinterp (I_intterm (b#ats) i#ats) p"
-proof-
-  have "qinterp (a#ats) (subst_p i p) = qinterp (I_intterm (a#ats) i#ats) p"
-    by (rule subst_p_corr[OF qfp])
-  moreover have "I_intterm (a#ats) i#ats = I_intterm (b#ats) i#ats"
-    by (simp add: I_intterm_novar0[OF nov0, where a="a" and b="b"])
-  ultimately show ?thesis by simp
-qed
-
-(* linearity and independence on Var 0*)
-lemma lin_novar0: 
-  assumes linx: "islinintterm x"
-  and nov0: "novar0I x"
-  shows "\<exists> n > 0. islintn(n,x)"
-using linx nov0
-by (induct x rule: islinintterm.induct) auto
-
-lemma lintnpos_novar0:
- assumes  npos: "n > 0"
-  and linx: "islintn(n,x)"
-  shows "novar0I x"
-using npos linx
-by (induct n x rule: islintn.induct) auto
-
-(* lin_add preserves independence on Var 0*)
-lemma lin_add_novar0:
-  assumes nov0a: "novar0I a"
-  and nov0b : "novar0I b"
-  and lina : "islinintterm a"
-  and linb: "islinintterm b"
-  shows "novar0I (lin_add (a,b))"
-proof-
-  have "\<exists> na > 0. islintn(na, a)" by (rule lin_novar0[OF lina nov0a]) 
-  then obtain "na" where na: "na > 0 \<and> islintn(na,a)" by blast
-  have "\<exists> nb > 0. islintn(nb, b)" by (rule lin_novar0[OF linb nov0b]) 
-  then obtain "nb" where nb: "nb > 0 \<and> islintn(nb,b)" by blast
-  from na have napos: "na > 0" by simp
-  from na have linna: "islintn(na,a)" by simp
-  from nb have nbpos: "nb > 0" by simp
-  from nb have linnb: "islintn(nb,b)" by simp
-  have "min na nb \<le> min na nb" by simp
-  then have "islintn (min na nb, lin_add(a,b))" by (simp add: lin_add_lint[OF linna linnb])
-  moreover have "min na nb > 0" using napos nbpos by (simp add: min_def)
-  ultimately show ?thesis by (simp only: lintnpos_novar0)
-qed
-
-(* lin__mul preserves independence on Var 0*)
-lemma lin_mul_novar0:
-  assumes linx: "islinintterm x"
-  and nov0: "novar0I x"
-  shows "novar0I (lin_mul(i,x))"
-  using linx nov0
-proof (induct i x rule: lin_mul.induct, auto)
-  case (goal1 c c' n r)
-  from prems have lincnr: "islinintterm (Add (Mult (Cst c') (Var n)) r)" by simp
-  have "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-  then show ?case using prems by simp
-qed
-    
-(* lin_neg preserves indepenednce on Var 0*)
-lemma lin_neg_novar0:
-  assumes linx: "islinintterm x"
-  and nov0: "novar0I x"
-  shows "novar0I (lin_neg x)"
-by (auto simp add: lin_mul_novar0 linx nov0 lin_neg_def)
-
-(* subterms of linear terms are independent on Var 0*)
-lemma intterm_subt_novar0:
-  assumes lincnr: "islinintterm (Add (Mult (Cst c) (Var n)) r)"
-  shows "novar0I r"
-proof-
-  have cnz: "c \<noteq> 0" by (rule islinintterm_cnz[OF lincnr])
-  have "islintn(0,Add (Mult (Cst c) (Var n)) r)" using lincnr
-    by (simp only: islinintterm_eq_islint islint_def)
-  then have "islintn (n+1,r)" by auto
-  moreover have "n+1 >0 " by arith
-  ultimately show ?thesis 
-    using lintnpos_novar0
-    by auto
-qed
-
-(* decrease the De-Bruijn indices*)
-consts decrvarsI:: "intterm \<Rightarrow> intterm"
-primrec
-"decrvarsI (Cst i) = (Cst i)"
-"decrvarsI (Var n) = (Var (n - 1))"
-"decrvarsI (Neg a) = (Neg (decrvarsI a))"
-"decrvarsI (Add a b) = (Add (decrvarsI a) (decrvarsI b))"
-"decrvarsI (Sub a b) = (Sub (decrvarsI a) (decrvarsI b))"
-"decrvarsI (Mult a b) = (Mult (decrvarsI a) (decrvarsI b))"
-
-(* One can decrease the indics for terms and formulae independent on Var 0*)
-lemma intterm_decrvarsI:
-  assumes nov0: "novar0I t"
-  shows "I_intterm (a#ats) t = I_intterm ats (decrvarsI t)"
-using nov0
-by (induct t) (auto simp add: nth_pos2)
-
-consts decrvars:: "QF \<Rightarrow> QF"
-primrec
-"decrvars (Lt a b) = (Lt (decrvarsI a) (decrvarsI b))"
-"decrvars (Gt a b) = (Gt (decrvarsI a) (decrvarsI b))"
-"decrvars (Le a b) = (Le (decrvarsI a) (decrvarsI b))"
-"decrvars (Ge a b) = (Ge (decrvarsI a) (decrvarsI b))"
-"decrvars (Eq a b) = (Eq (decrvarsI a) (decrvarsI b))"
-"decrvars (Divides a b) = (Divides (decrvarsI a) (decrvarsI b))"
-"decrvars T = T" 
-"decrvars F = F"
-"decrvars (NOT p) = (NOT (decrvars p))" 
-"decrvars (And p q) = (And (decrvars p) (decrvars q))"
-"decrvars (Or p q)  = (Or (decrvars p) (decrvars q))"
-"decrvars (Imp p q) = (Imp (decrvars p) (decrvars q))"
-"decrvars (Equ p q) = (Equ (decrvars p) (decrvars q))"
-
-(* decrvars preserves quantifier freeness*)
-lemma decrvars_qfree: "isqfree p \<Longrightarrow> isqfree (decrvars p)"
-by (induct p rule: isqfree.induct, auto)
-
-lemma novar0_qfree: "novar0 p \<Longrightarrow> isqfree p"
-by (induct p) auto
-
-lemma qinterp_novar0:
-  assumes nov0: "novar0 p"
-  shows "qinterp (a#ats) p = qinterp ats (decrvars p)"
-using nov0
-by(induct p) (simp_all add: intterm_decrvarsI)
-
-(* All elements of bset p doese not depend on Var 0*)
-lemma bset_novar0:
-  assumes unifp: "isunified p"
-  shows "\<forall> b\<in> set (bset p). novar0I b "
-  using unifp
-proof(induct p rule: bset.induct)
-  case (1 c r z) 
-  from prems have zz: "z = Cst 0" by (cases "z", auto) 
-    from prems zz have lincnr: "islinintterm(Add (Mult (Cst c) (Var 0)) r)" by simp
-    have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-    have novar0r: "novar0I r" by (rule intterm_subt_novar0[OF lincnr])
-    from prems zz have "c = 1 \<or> c = -1" by auto
-    moreover 
-    {
-      assume c1: "c=1"
-      have lin1: "islinintterm (Cst 1)" by simp
-      have novar01: "novar0I (Cst 1)" by simp
-      then have ?case 
-	using prems zz novar0r lin1 novar01
-	by (auto simp add: lin_add_novar0 lin_neg_novar0 linr lin_neg_lin)
-    }
-    moreover 
-    {
-      assume c1: "c= -1"
-      have lin1: "islinintterm (Cst -1)" by simp
-      have novar01: "novar0I (Cst -1)" by simp
-      then have ?case 
-	using prems zz novar0r lin1 novar01
-	by (auto simp add: lin_add_novar0 lin_neg_novar0 linr lin_neg_lin)
-    }
-    ultimately show ?case by blast
-next 
-  case (2 c r z) 
-  from prems have zz: "z = Cst 0" by (cases "z", auto) 
-    from prems zz have lincnr: "islinintterm(Add (Mult (Cst c) (Var 0)) r)" by simp
-    have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-    have novar0r: "novar0I r" by (rule intterm_subt_novar0[OF lincnr])
-    from prems zz have "c = 1 \<or> c = -1" by auto
-    moreover 
-    {
-      assume c1: "c=1"
-      have lin1: "islinintterm (Cst 1)" by simp
-      have novar01: "novar0I (Cst 1)" by simp
-      then have ?case 
-	using prems zz novar0r lin1 novar01
-	by (auto simp add: lin_add_novar0 lin_neg_novar0 linr lin_neg_lin)
-    }
-    moreover 
-    {
-      assume c1: "c= -1"
-      have lin1: "islinintterm (Cst -1)" by simp
-      have novar01: "novar0I (Cst -1)" by simp
-      then have ?case 
-	using prems zz novar0r lin1 novar01
-	by (auto simp add: lin_add_novar0 lin_neg_novar0 linr lin_neg_lin)
-    }
-    ultimately show ?case by blast
-next 
-  case (3 c r z) 
-  from prems have zz: "z = Cst 0" by (cases "z", auto) 
-    from prems zz have lincnr: "islinintterm(Add (Mult (Cst c) (Var 0)) r)" by simp
-    have linr: "islinintterm r" by (rule islinintterm_subt[OF lincnr])
-    have novar0r: "novar0I r" by (rule intterm_subt_novar0[OF lincnr])
-    from prems zz have "c = 1 \<or> c = -1" by auto
-    moreover 
-    {
-      assume c1: "c=1"
-      have lin1: "islinintterm (Cst 1)" by simp
-      have novar01: "novar0I (Cst 1)" by simp
-      then have ?case 
-	using prems zz novar0r lin1 novar01
-	by (auto simp add: lin_add_novar0 lin_neg_novar0 linr lin_neg_lin)
-    }
-    moreover 
-    {
-      assume c1: "c= -1"
-      have lin1: "islinintterm (Cst -1)" by simp
-      have novar01: "novar0I (Cst -1)" by simp
-      then have ?case 
-	using prems zz novar0r lin1 novar01
-	by (auto simp add: lin_add_novar0 lin_neg_novar0 linr lin_neg_lin)
-    }
-    ultimately show ?case by blast
-qed auto
-
-(* substitution preserves independence on Var 0*)
-lemma subst_it_novar0:
-  assumes nov0x: "novar0I x"
-  shows "novar0I (subst_it x t)"
-  using nov0x
-  by (induct t) auto
-
-lemma subst_p_novar0:
-  assumes nov0x:"novar0I x"
-  and qfp: "isqfree p"
-  shows "novar0 (subst_p x p)"
-  using nov0x qfp
-  by (induct p rule: novar0.induct) (simp_all add: subst_it_novar0)
-
-(* linearize preserves independence on Var 0 *)
-lemma linearize_novar0: 
-  assumes nov0t: "novar0I t "
-  shows "\<And> t'. linearize t = Some t' \<Longrightarrow> novar0I t'"
-using nov0t
-proof(induct t rule: novar0I.induct)
-  case (Neg a)
-  let ?la = "linearize a"
-  from prems have "\<exists> a'. ?la = Some a'" by (cases ?la, auto)
-  then obtain "a'" where "?la = Some a'" by blast
-  with prems have nv0a':"novar0I a'" by simp
-  have "islinintterm a'" using prems by (simp add: linearize_linear)
-  with nv0a' have "novar0I (lin_neg a')" 
-    by (simp add: lin_neg_novar0)
-  then 
-  show ?case using prems by simp 
-next 
-  case (Add a b) 
-  let ?la = "linearize a"
-  let ?lb = "linearize b"
-  from prems have linab: "linearize (Add a b) = Some t'" by simp
-  then have "\<exists> a'. ?la = Some a'" by (cases ?la) auto
-  then obtain "a'" where "?la = Some a'" by blast
-  with prems have nv0a':"novar0I a'" by simp
-  have lina': "islinintterm a'" using prems by (simp add: linearize_linear)
-  from linab have "\<exists> b'. ?lb = Some b'"
-    by (cases ?la, auto) (cases ?lb, auto)
-  then obtain "b'" where "?lb = Some b'" by blast
-  with prems have nv0b':"novar0I b'" by simp
-  have linb': "islinintterm b'" using prems by (simp add: linearize_linear)
-  then show ?case using prems lina' linb' nv0a' nv0b'
-    by (auto simp add: lin_add_novar0)
-next 
-  case (Sub a b)
-    let ?la = "linearize a"
-  let ?lb = "linearize b"
-  from prems have linab: "linearize (Sub a b) = Some t'" by simp
-  then have "\<exists> a'. ?la = Some a'" by (cases ?la) auto
-  then obtain "a'" where "?la = Some a'" by blast
-  with prems have nv0a':"novar0I a'" by simp
-  have lina': "islinintterm a'" using prems by (simp add: linearize_linear)
-  from linab have "\<exists> b'. ?lb = Some b'"
-    by (cases ?la, auto) (cases ?lb, auto)
-  then obtain "b'" where "?lb = Some b'" by blast
-  with prems have nv0b':"novar0I b'" by simp
-  have linb': "islinintterm b'" using prems by (simp add: linearize_linear)
-  then show ?case using prems lina' linb' nv0a' nv0b'
-    by (auto simp add: lin_add_novar0 lin_neg_novar0 lin_neg_lin)
-next 
-  case (Mult a b)     
-  let ?la = "linearize a"
-  let ?lb = "linearize b"
-  from prems have linab: "linearize (Mult a b) = Some t'" by simp
-  then have "\<exists> a'. ?la = Some a'" by (cases ?la, auto)
-  then obtain "a'" where "?la = Some a'" by blast
-  with prems have nv0a':"novar0I a'" by simp
-  have lina': "islinintterm a'" using prems by (simp add: linearize_linear)
-  from prems linab have "\<exists> b'. ?lb = Some b'"
-    apply (cases ?la, auto)
-    by (cases "a'",auto) (cases ?lb, auto)+
-  then obtain "b'" where "?lb = Some b'" by blast
-  with prems have nv0b':"novar0I b'" by simp
-  have linb': "islinintterm b'" using prems by (simp add: linearize_linear)
-  then show ?case using prems lina' linb' nv0a' nv0b' 
-    by (cases "a'",auto simp add: lin_mul_novar0)
-  (cases "b'",auto simp add: lin_mul_novar0)
-qed auto
-
-
-(* simplification of formulae *)
-consts psimpl :: "QF \<Rightarrow> QF"
-recdef psimpl "measure size"
-"psimpl (Le l r) = 
-  (case (linearize (Sub l r)) of
-   None \<Rightarrow> Le l r
- | Some x \<Rightarrow> (case x of 
-       Cst i \<Rightarrow> (if i \<le> 0 then T else F)
-     | _ \<Rightarrow> (Le x (Cst 0))))"
-"psimpl (Eq l r) = 
-  (case (linearize (Sub l r)) of
-   None \<Rightarrow> Eq l r
- | Some x \<Rightarrow> (case x of 
-       Cst i \<Rightarrow> (if i = 0 then T else F)
-     | _ \<Rightarrow> (Eq x (Cst 0))))"
-
-"psimpl (Divides (Cst d) t) = 
-  (case (linearize t) of
-  None \<Rightarrow> (Divides (Cst d) t)
-  | Some c \<Rightarrow> (case c of
-     Cst i \<Rightarrow> (if d dvd i then T else F)
-   | _ \<Rightarrow>  (Divides (Cst d) c)))"
-
-"psimpl (And p q) = 
-  (let p'= psimpl p
-  in (case p' of 
-       F \<Rightarrow> F
-      |T \<Rightarrow> psimpl q
-      | _ \<Rightarrow> let q' = psimpl q
-             in (case q' of
-                     F \<Rightarrow> F
-                   | T \<Rightarrow> p'
-                   | _ \<Rightarrow> (And p' q'))))"
-
-"psimpl (Or p q) = 
-  (let p'= psimpl p
-  in (case p' of 
-        T \<Rightarrow> T
-      | F \<Rightarrow> psimpl q
-      | _ \<Rightarrow> let q' = psimpl q
-             in (case q' of
-                     T \<Rightarrow> T
-                   | F \<Rightarrow> p'
-                   | _ \<Rightarrow> (Or p' q'))))"
-
-"psimpl (Imp p q) = 
-  (let p'= psimpl p
-  in (case p' of 
-       F \<Rightarrow> T
-      |T \<Rightarrow> psimpl q
-      | NOT p1 \<Rightarrow> let q' = psimpl q
-             in (case q' of
-                     F \<Rightarrow> p1
-                   | T \<Rightarrow> T
-                   | _ \<Rightarrow> (Or p1 q'))
-      | _ \<Rightarrow> let q' = psimpl q
-             in (case q' of
-                     F \<Rightarrow> NOT p'
-                   | T \<Rightarrow> T
-                   | _ \<Rightarrow> (Imp p' q'))))"
-
-"psimpl (Equ p q) = 
-  (let p'= psimpl p ; q' = psimpl q
-  in (case p' of 
-        T \<Rightarrow> q'
-      | F \<Rightarrow> (case q' of
-                  T \<Rightarrow> F
-                | F \<Rightarrow> T
-                | NOT q1 \<Rightarrow> q1
-                | _ \<Rightarrow> NOT q')
-      | NOT p1 \<Rightarrow>  (case q' of
-                  T \<Rightarrow> p'
-                | F \<Rightarrow> p1
-                | NOT q1 \<Rightarrow> (Equ p1 q1)
-                | _ \<Rightarrow> (Equ p' q'))
-      | _ \<Rightarrow> (case q' of
-                  T \<Rightarrow> p'
-                | F \<Rightarrow> NOT p'
-                | _ \<Rightarrow> (Equ p' q'))))"
-
-"psimpl (NOT p) = 
-  (let p' = psimpl p
-  in ( case p' of 
-       F \<Rightarrow> T
-     | T \<Rightarrow> F
-     | NOT p1 \<Rightarrow> p1 
-     | _ \<Rightarrow> (NOT p')))"
-"psimpl p = p"
-
-(* psimpl preserves semantics *)
-lemma psimpl_corr: "qinterp ats p = qinterp ats (psimpl p)"
-proof(induct p rule: psimpl.induct)
-  case (1 l r)
-  have "(\<exists> lx. linearize (Sub l r) = Some lx) \<or> (linearize (Sub l r) = None)" by auto
-  moreover
-  {
-    assume lin: "\<exists> lx. linearize (Sub l r) = Some lx"
-    from lin obtain "lx" where lx: "linearize (Sub l r) = Some lx" by blast
-    from lx have "I_intterm ats (Sub l r) = I_intterm ats lx"
-      by (rule linearize_corr[where t="Sub l r" and t'= "lx"])
-    then have feq: "qinterp ats (Le l r) = qinterp ats (Le lx (Cst 0))" by (simp , arith)
-    from lx have lxlin: "islinintterm lx" by (rule linearize_linear)
-    from lxlin feq have ?case 
-      proof-
-	have "(\<exists> i. lx = Cst i) \<or> (\<not> (\<exists> i. lx = Cst i))" by blast
-	moreover
-	{
-	  assume lxcst: "\<exists> i. lx = Cst i"
-	  from lxcst obtain "i" where lxi: "lx = Cst i" by blast
-	  with feq have "qinterp ats (Le l r) = (i \<le> 0)" by simp
-	  then have ?case using prems by simp
-	}
-	moreover 
-	{
-	  assume "(\<not> (\<exists> i. lx = Cst i))"
-	  then have "(case lx of 
-	    Cst i \<Rightarrow> (if i \<le> 0 then T else F)
-	    | _ \<Rightarrow> (Le lx (Cst 0))) = (Le lx (Cst 0))" 
-	    by (case_tac "lx::intterm", auto)
-	  with prems lxlin feq have ?case by auto
-	}
-	ultimately show ?thesis  by blast
-      qed
-  }
-  moreover
-  {
-    assume "linearize (Sub l r) = None"
-    then have ?case using prems by simp
-  }
-  ultimately show ?case by blast
-  
-next 
-  case (2 l r)
-  have "(\<exists> lx. linearize (Sub l r) = Some lx) \<or> (linearize (Sub l r) = None)" by auto
-  moreover
-  {
-    assume lin: "\<exists> lx. linearize (Sub l r) = Some lx"
-    from lin obtain "lx" where lx: "linearize (Sub l r) = Some lx" by blast
-    from lx have "I_intterm ats (Sub l r) = I_intterm ats lx"
-      by (rule linearize_corr[where t="Sub l r" and t'= "lx"])
-    then have feq: "qinterp ats (Eq l r) = qinterp ats (Eq lx (Cst 0))" by (simp , arith)
-    from lx have lxlin: "islinintterm lx" by (rule linearize_linear)
-    from lxlin feq have ?case 
-      proof-
-	have "(\<exists> i. lx = Cst i) \<or> (\<not> (\<exists> i. lx = Cst i))" by blast
-	moreover
-	{
-	  assume lxcst: "\<exists> i. lx = Cst i"
-	  from lxcst obtain "i" where lxi: "lx = Cst i" by blast
-	  with feq have "qinterp ats (Eq l r) = (i = 0)" by simp
-	  then have ?case using prems by simp
-	}
-	moreover 
-	{
-	  assume "(\<not> (\<exists> i. lx = Cst i))"
-	  then have "(case lx of 
-	    Cst i \<Rightarrow> (if i = 0 then T else F)
-	    | _ \<Rightarrow> (Eq lx (Cst 0))) = (Eq lx (Cst 0))" 
-	    by (case_tac "lx::intterm", auto)
-	  with prems lxlin feq have ?case by auto
-	}
-	ultimately show ?thesis  by blast
-      qed
-  }
-  moreover
-  {
-    assume "linearize (Sub l r) = None"
-    then have ?case using prems by simp
-  }
-  ultimately show ?case by blast
-  
-next 
-    
-  case (3 d t)  
-  have "(\<exists> lt. linearize t = Some lt) \<or> (linearize t = None)" by auto
-  moreover
-  {
-    assume lin: "\<exists> lt. linearize t  = Some lt"
-    from lin obtain "lt" where lt: "linearize t = Some lt" by blast
-    from lt have "I_intterm ats t = I_intterm ats lt"
-      by (rule linearize_corr[where t="t" and t'= "lt"])
-    then have feq: "qinterp ats (Divides (Cst d) t) = qinterp ats (Divides (Cst d) lt)" by (simp)
-    from lt have ltlin: "islinintterm lt" by (rule linearize_linear)
-    from ltlin feq have ?case using prems  apply simp by (case_tac "lt::intterm", simp_all)
-  }
-  moreover
-  {
-    assume "linearize t = None"
-    then have ?case using prems by simp
-  }
-  ultimately show ?case by blast
-  
-next 
-  case (4 f g)
-
-    let ?sf = "psimpl f"
-  let ?sg = "psimpl g"
-  show ?case using prems 
-    by (cases ?sf, simp_all add: Let_def) (cases ?sg, simp_all)+
-next
-  case (5 f g)
-      let ?sf = "psimpl f"
-  let ?sg = "psimpl g"
-  show ?case using prems
-    apply (cases ?sf, simp_all add: Let_def) 
-    apply (cases ?sg, simp_all)
-    apply (cases ?sg, simp_all)
-    apply (cases ?sg, simp_all)
-    apply (cases ?sg, simp_all)
-    apply (cases ?sg, simp_all)
-    apply (cases ?sg, simp_all)
-    apply (cases ?sg, simp_all)
-    apply blast
-    apply (cases ?sg, simp_all)
-    apply (cases ?sg, simp_all)
-     apply (cases ?sg, simp_all)
-   apply blast
-    apply (cases ?sg, simp_all)
-    by (cases ?sg, simp_all) (cases ?sg, simp_all)
-next
-  case (6 f g)
-  let ?sf = "psimpl f"
-  let ?sg = "psimpl g"
-  show ?case using prems 
-    apply(simp add: Let_def)
-    apply(cases ?sf,simp_all)
-    apply (simp_all add: Let_def)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply blast
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    apply(cases ?sg, simp_all)
-    done
-next
-  case (7 f g)
-  let ?sf = "psimpl f"
-  let ?sg = "psimpl g"
-  show ?case 
-    using prems
-    by (cases ?sf, simp_all add: Let_def) (cases ?sg, simp_all)+
-next
-  case (8 f) show ?case 
-    using prems
-    apply (simp add: Let_def)
-    by (case_tac "psimpl f", simp_all)
-qed simp_all
-
-(* psimpl preserves independence on Var 0*)
-lemma psimpl_novar0:
-  assumes nov0p: "novar0 p"
-  shows "novar0 (psimpl p)"
-  using nov0p
-proof (induct p rule: psimpl.induct)
-  case (1 l r)
-  let ?ls = "linearize (Sub l r)"
-  have "?ls = None \<or> (\<exists> x. ?ls = Some x)" by auto
-  moreover
-  {
-    assume "?ls = None" then have ?case using prems by simp
-  }
-  moreover {
-    assume "\<exists> x. ?ls = Some x"
-    then obtain "x" where ls_d: "?ls = Some x" by blast
-    from prems have "novar0I l" by simp
-    moreover from prems have "novar0I r" by simp
-    ultimately have nv0s: "novar0I (Sub l r)" by simp
-    from prems have "novar0I x" 
-      by (simp add: linearize_novar0[OF nv0s, where t'="x"])
-    then have ?case
-      using prems
-      by (cases "x") auto
-  }
-  ultimately show ?case by blast
-next
-  case (2 l r)
-  let ?ls = "linearize (Sub l r)"
-  have "?ls = None \<or> (\<exists> x. ?ls = Some x)" by auto
-  moreover
-  {
-    assume "?ls = None" then have ?case using prems by simp
-  }
-  moreover {
-    assume "\<exists> x. ?ls = Some x"
-    then obtain "x" where ls_d: "?ls = Some x" by blast
-    from prems have "novar0I l" by simp
-    moreover from prems have "novar0I r" by simp
-    ultimately have nv0s: "novar0I (Sub l r)" by simp
-    from prems have "novar0I x" 
-      by (simp add: linearize_novar0[OF nv0s, where t'="x"])
-    then have ?case using prems by (cases "x") auto
-  }
-  ultimately show ?case by blast
-next
-  case (3 d t)
-  let ?lt = "linearize t"
-  have "?lt = None \<or> (\<exists> x. ?lt = Some x)"  by auto
-  moreover 
-  { assume "?lt = None" then have ?case using prems by simp }
-  moreover {
-    assume "\<exists>x. ?lt = Some x"
-    then obtain "x" where x_d: "?lt = Some x" by blast
-    from prems have nv0t: "novar0I t" by simp
-    with x_d have "novar0I x" 
-      by (simp add: linearize_novar0[OF nv0t])
-    with prems have ?case 
-      by (cases "x") simp_all
-  }
-  ultimately show ?case by blast
-next
-  case (4 f g)
-  let ?sf = "psimpl f"
-  let ?sg = "psimpl g"
-  show ?case using prems 
-    by (cases ?sf, simp_all add: Let_def) (cases ?sg,simp_all)+
-next
-  case (5 f g)
-  let ?sf = "psimpl f"
-  let ?sg = "psimpl g"
-  show ?case using prems
-    by (cases ?sf, simp_all add: Let_def) (cases ?sg,simp_all)+
-next
-  case (6 f g)
-  let ?sf = "psimpl f"
-  let ?sg = "psimpl g"
-  show ?case using prems
-    by (cases ?sf, simp_all add: Let_def) (cases ?sg,simp_all)+
-next
-  case (7 f g)
-  let ?sf = "psimpl f"
-  let ?sg = "psimpl g"
-  show ?case using prems
-    by (cases ?sf, simp_all add: Let_def) (cases ?sg,simp_all)+
-next
-  case (8 f)
-  let ?sf = "psimpl f"
-  from prems have nv0sf:"novar0 ?sf" by simp
-  show ?case using prems nv0sf by (cases ?sf, auto simp add: Let_def)
-qed simp_all
-
-(* implements a disj of p applied to all elements of the list*)
-consts explode_disj :: "(intterm list \<times> QF) \<Rightarrow> QF"
-recdef explode_disj "measure (\<lambda>(is,p). length is)"
-"explode_disj ([],p) = F"
-"explode_disj (i#is,p) = 
-  (let pi = psimpl (subst_p i p)
-   in ( case pi of
-        T \<Rightarrow> T 
-       | F \<Rightarrow> explode_disj (is,p)
-       | _ \<Rightarrow> (let r = explode_disj (is,p)
-               in (case r of
-                      T \<Rightarrow> T
-                    | F \<Rightarrow> pi
-                    | _ \<Rightarrow> Or pi r))))"
-
-(* correctness theorem for one iteration of explode_disj *)
-lemma explode_disj_disj: 
-  assumes qfp: "isqfree p"
-  shows "(qinterp (x#xs) (explode_disj(i#is,p))) = 
-  (qinterp (x#xs) (subst_p i p) \<or> (qinterp (x#xs) (explode_disj(is,p))))"
-  using qfp
-proof-
-  let ?pi = "psimpl (subst_p i p)"
-  have pi: "qinterp (x#xs) ?pi = qinterp (x#xs) (subst_p i p)"
-    by (simp add: psimpl_corr[where p="(subst_p i p)"])
-  let ?dp = "explode_disj(is,p)"
-  show ?thesis using pi
-  proof (cases)
-    assume "?pi= T \<or> ?pi = F"
-    then show ?thesis using pi by (case_tac "?pi::QF", auto)
-    
-  next
-    assume notTF: "\<not> (?pi = T \<or> ?pi = F)" 
-    let ?dp = "explode_disj(is,p)"
-    have dp_cases: "explode_disj(i#is,p) = 
-      (case (explode_disj(is,p)) of
-      T \<Rightarrow> T
-      | F \<Rightarrow> psimpl (subst_p i p)
-      | _ \<Rightarrow> Or (psimpl (subst_p i p)) (explode_disj(is,p)))" using notTF
-      by (cases "?pi")
-    (simp_all add: Let_def cong del: QF.weak_case_cong)
-    show ?thesis using pi dp_cases notTF
-    proof(cases)
-      assume "?dp = T \<or> ?dp = F"
-      then show ?thesis 
-	using pi dp_cases
-	by (cases "?dp") auto
-    next
-      assume "\<not> (?dp = T \<or> ?dp = F)"
-      then show ?thesis using pi dp_cases notTF
-	by (cases ?dp) auto 
-    qed
-  qed
-qed
-
-(* correctness theorem for explode_disj *)
-lemma explode_disj_corr: 
-  assumes qfp: "isqfree p"
-  shows "(\<exists> x \<in> set xs. qinterp (a#ats) (subst_p x p)) = 
-  (qinterp (a#ats) (explode_disj(xs,p)))" (is "(\<exists> x \<in> set xs. ?P x) = (?DP a xs )")
-  using qfp
-  proof (induct xs)
-    case Nil show ?case by simp
-  next 
-    case (Cons y ys)
-    have "(\<exists> x \<in> set (y#ys). ?P x) = (?P y \<or> (\<exists> x\<in> set ys. ?P x))"
-      by auto
-    also have "\<dots> = (?P y \<or> ?DP a ys)" using "Cons.hyps" qfp by auto 
-    also have "\<dots> = ?DP a (y#ys)" using explode_disj_disj[OF qfp] by auto
-    finally show ?case by simp
-qed
-
-(* explode_disj preserves independence on Var 0*)
-lemma explode_disj_novar0:
-  assumes nov0xs: "\<forall>x \<in> set xs. novar0I x"
-  and qfp: "isqfree p"
-  shows "novar0 (explode_disj (xs,p))"
-  using nov0xs qfp
-proof (induct xs, auto simp add: Let_def)
-  case (goal1 a as)
-  let ?q = "subst_p a p"
-  let ?qs = "psimpl ?q"
-  have "?qs = T \<or> ?qs = F \<or> (?qs \<noteq> T \<or> ?qs \<noteq> F)" by simp
-  moreover
-  { assume "?qs = T"  then have ?case  by simp }
-  moreover
-  { assume "?qs = F"  then have ?case by simp }
-  moreover
-  {
-    assume qsnTF: "?qs \<noteq> T \<and> ?qs \<noteq> F"
-    let ?r = "explode_disj (as,p)"
-    have nov0qs: "novar0 ?qs"
-      using prems
-      by (auto simp add: psimpl_novar0 subst_p_novar0)
-    have "?r = T \<or> ?r = F \<or> (?r \<noteq> T \<or> ?r \<noteq> F)" by simp
-    moreover
-    { assume "?r = T" then have ?case by (cases ?qs) auto  }
-    moreover
-    { assume "?r = F"  then have ?case  using nov0qs by (cases ?qs, auto)  }
-    moreover
-    { assume "?r \<noteq> T \<and> ?r \<noteq> F"  then have ?case using nov0qs prems qsnTF
-	by (cases ?qs, auto simp add: Let_def) (cases ?r,auto)+
-    }
-    ultimately have ?case by blast
-  }
-  ultimately show ?case by blast
-qed  
-  
-(* Some simple lemmas used for technical reasons *)
-lemma eval_Or_cases: 
-  "qinterp (a#ats) (case f of 
-       T \<Rightarrow> T
-       | F \<Rightarrow> g
-       | _ \<Rightarrow> (case g of 
-                     T \<Rightarrow> T
-                   | F \<Rightarrow> f
-                   | _ \<Rightarrow> Or f g)) = (qinterp (a#ats) f \<or> qinterp (a#ats) g)"
-proof-
-  let ?result = "
-    (case f of 
-    T \<Rightarrow> T
-    | F \<Rightarrow> g
-    | _ \<Rightarrow> (case g of 
-    T \<Rightarrow> T
-    | F \<Rightarrow> f
-    | _ \<Rightarrow> Or f g))"
-  have "f = T \<or> f = F \<or> (f \<noteq> T \<and> f\<noteq> F)" by auto
-  moreover 
-  {
-    assume fT: "f = T"
-    then have ?thesis by auto
-  }
-  moreover 
-  {
-    assume "f=F"
-    then have ?thesis by auto
-  }
-  moreover 
-  {
-    assume fnT: "f\<noteq>T"
-      and fnF: "f\<noteq>F"
-    have "g = T \<or> g = F \<or> (g \<noteq> T \<and> g\<noteq> F)" by auto
-    moreover 
-    {
-      assume "g=T"
-      then have ?thesis using fnT fnF by (cases f, auto)
-    }
-    moreover 
-    {
-      assume "g=F"
-      then have ?thesis using fnT fnF by (cases f, auto)
-    }
-    moreover 
-    {
-      assume gnT: "g\<noteq>T"
-	and gnF: "g\<noteq>F"
-      then have "?result = (case g of 
-        T \<Rightarrow> T
-        | F \<Rightarrow> f
-        | _ \<Rightarrow> Or f g)"
-	using fnT fnF
-	by (cases f, auto)
-      also have "\<dots> = Or f g"
-	using gnT gnF
-	by (cases g, auto)
-      finally have "?result = Or f g" by simp
-      then
-      have  ?thesis by simp
-    }
-    ultimately have ?thesis by blast
-	   
-  }
-  
-  ultimately show ?thesis by blast
-qed
-
-lemma or_case_novar0:
-  assumes fnTF: "f \<noteq> T \<and> f \<noteq> F"
-  and gnTF: "g \<noteq> T \<and> g \<noteq> F"
-  and f0: "novar0 f"
-  and g0: "novar0 g"
-  shows "novar0 
-     (case f of T \<Rightarrow> T | F \<Rightarrow> g
-     | _ \<Rightarrow> (case g of T \<Rightarrow> T | F \<Rightarrow> f | _ \<Rightarrow> Or f g))"
-using fnTF gnTF f0 g0
-by (cases f, auto) (cases g, auto)+
-
-
-(* An implementation of sets trough lists *)
-definition
-  list_insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "list_insert x xs = (if x mem xs then xs else x#xs)"
-
-lemma list_insert_set: "set (list_insert x xs) = set (x#xs)"
-by(induct xs) (auto simp add: list_insert_def)
-
-consts list_union :: "('a list \<times> 'a list) \<Rightarrow> 'a list"
-
-recdef list_union "measure (\<lambda>(xs,ys). length xs)"
-"list_union ([], ys) = ys"
-"list_union (xs, []) = xs"
-"list_union (x#xs,ys) = list_insert x (list_union (xs,ys))"
-
-lemma list_union_set: "set (list_union(xs,ys)) = set (xs@ys)"
-  by(induct xs ys rule: list_union.induct, auto simp add:list_insert_set)
-
-
-consts list_set ::"'a list \<Rightarrow> 'a list"
-primrec 
-  "list_set [] = []"
-  "list_set (x#xs) = list_insert x (list_set xs)"
-
-lemma list_set_set: "set xs = set (list_set xs)"
-by (induct xs) (auto simp add: list_insert_set)
-
-consts iupto :: "int \<times> int \<Rightarrow> int list"
-recdef iupto "measure (\<lambda> (i,j). nat (j - i +1))"
-"iupto(i,j) = (if j<i then [] else (i#(iupto(i+1,j))))"
-
-(* correctness theorem for iupto *)
-lemma iupto_set: "set (iupto(i,j)) = {i .. j}"
-proof(induct rule: iupto.induct)
+lemma iupt_set: "set (iupt(i,j)) = {i .. j}"
+proof(induct rule: iupt.induct)
   case (1 a b)
   show ?case
     using prems by (simp add: simp_from_to)
 qed
 
-consts all_sums :: "int \<times> intterm list \<Rightarrow> intterm list"
-recdef all_sums "measure (\<lambda>(i,is). length is)"
-"all_sums (j,[]) = []"
-"all_sums (j,i#is) = (map (\<lambda>x. lin_add (i,(Cst x))) (iupto(1,j))@(all_sums (j,is)))"
-(* all_sums preserves independence on Var 0*)
-lemma all_sums_novar0:
-  assumes nov0xs: "\<forall> x\<in> set xs. novar0I x"
-  and linxs: "\<forall> x\<in> set xs. islinintterm x "
-  shows "\<forall> x\<in> set (all_sums (d,xs)). novar0I x"
-  using nov0xs linxs
-proof(induct d xs rule: all_sums.induct)
-  case 1 show ?case by simp
-next 
-  case (2 j a as)
-  have lina: "islinintterm a" using "2.prems" by auto
-  have nov0a: "novar0I a" using "2.prems" by auto
-  let ?ys = "map (\<lambda>x. lin_add (a,(Cst x))) (iupto(1,j))"
-  have nov0ys: "\<forall> y\<in> set ?ys. novar0I y"
-  proof-
-    have linx: "\<forall> x \<in> set (iupto(1,j)). islinintterm (Cst x)" by simp
-    have nov0x: "\<forall> x \<in> set (iupto(1,j)). novar0I (Cst x)" by simp
-    with nov0a lina linx have "\<forall> x\<in> set (iupto(1,j)). novar0I (lin_add (a,Cst x))" 
-      by (simp add: lin_add_novar0)
-    then show ?thesis by auto
-  qed
-  from "2.prems"
-  have linas: "\<forall>u\<in>set as. islinintterm u" by auto
-  from "2.prems" have nov0as: "\<forall>u\<in>set as. novar0I u" by auto
-  from "2.hyps" linas nov0as have nov0alls: "\<forall>u\<in>set (all_sums (j, as)). novar0I u" by simp
-  from nov0alls nov0ys have 
-    cs: "(\<forall> u\<in> set (?ys@ (all_sums (j,as))). novar0I u)"
-    by (simp only: sym[OF list_all_iff]) auto
-  
-  have "all_sums(j,a#as) = ?ys@(all_sums(j,as))"
-    by simp
-  then 
-  have "?case = (\<forall> x\<in> set (?ys@ (all_sums (j,as))). novar0I x)"
-    by auto
-  with cs show ?case by blast
+lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
+using Nat.gr0_conv_Suc
+by clarsimp
+
+
+lemma myl: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a \<le> b) = (0 \<le> b - a)" 
+proof(clarify)
+  fix x y ::"'a"
+  have "(x \<le> y) = (x - y \<le> 0)" by (simp only: le_iff_diff_le_0[where a="x" and b="y"])
+  also have "\<dots> = (- (y - x) \<le> 0)" by simp
+  also have "\<dots> = (0 \<le> y - x)" by (simp only: neg_le_0_iff_le[where a="y-x"])
+  finally show "(x \<le> y) = (0 \<le> y - x)" .
 qed
 
-(* correctness theorem for all_sums*)
-lemma all_sums_ex: 
-  "(\<exists> j\<in> {1..d}. \<exists> b\<in> (set xs). P (lin_add(b,Cst j))) = 
-  (\<exists> x\<in> set (all_sums (d,xs)). P x)"
-proof(induct d xs rule: all_sums.induct)
-  case (1 a) show ?case by simp
-next 
-  case (2 a y ys)
-  have "(\<exists> x\<in> set (map (\<lambda>x. lin_add (y,(Cst x))) (iupto(1,a))) . P x) = 
-    (\<exists> j\<in> set (iupto(1,a)). P (lin_add(y,Cst j)))" 
-    by auto
-  also have "\<dots> = (\<exists> j\<in> {1..a}. P (lin_add(y,Cst j)))" 
-    by (simp only : iupto_set)
-  finally
-  have dsj1:"(\<exists>j\<in>{1..a}. P (lin_add (y, Cst j))) = (\<exists>x\<in>set (map (\<lambda>x. lin_add (y, Cst x)) (iupto (1, a))). P x)" by simp
-  
-  from prems have "(\<exists> j\<in> {1..a}. \<exists> b\<in> (set (y#ys)). P (lin_add(b,Cst j))) = 
-    ((\<exists> j\<in> {1..a}. P (lin_add(y,Cst j))) \<or> (\<exists> j\<in> {1..a}. \<exists> b \<in> set ys. P (lin_add(b,Cst j))))" by auto
-  also
-  have " \<dots> = ((\<exists> j\<in> {1..a}. P (lin_add(y,Cst j))) \<or> (\<exists> x\<in> set (all_sums(a, ys)). P x))" using prems by simp
-  also have "\<dots> = ((\<exists>x\<in>set (map (\<lambda>x. lin_add (y, Cst x)) (iupto (1, a))). P x) \<or> (\<exists>x\<in>set (all_sums (a, ys)). P x))" using dsj1 by simp
-  also have "\<dots> = (\<exists> x\<in> (set (map (\<lambda>x. lin_add (y, Cst x)) (iupto (1, a)))) \<union> (set (all_sums(a, ys))). P x)" by blast
-  finally show ?case by simp
+lemma myless: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a < b) = (0 < b - a)" 
+proof(clarify)
+  fix x y ::"'a"
+  have "(x < y) = (x - y < 0)" by (simp only: less_iff_diff_less_0[where a="x" and b="y"])
+  also have "\<dots> = (- (y - x) < 0)" by simp
+  also have "\<dots> = (0 < y - x)" by (simp only: neg_less_0_iff_less[where a="y-x"])
+  finally show "(x < y) = (0 < y - x)" .
 qed
 
-
-
-(* explode_minf (p,B)  assumes that p is unified and B = bset p, it computes the rhs of cooper_mi_eq*)
-
-consts explode_minf :: "(QF \<times> intterm list) \<Rightarrow> QF"
-recdef explode_minf "measure size"
-"explode_minf (q,B) = 
-  (let d = divlcm q;
-       pm = minusinf q;
-        dj1 = explode_disj ((map Cst (iupto (1, d))),pm)
-   in (case dj1 of 
-         T \<Rightarrow> T
-       | F \<Rightarrow> explode_disj (all_sums (d,B),q)
-        | _ \<Rightarrow> (let dj2 = explode_disj (all_sums (d,B),q)
-              in ( case dj2 of 
-                     T \<Rightarrow> T
-                   | F \<Rightarrow> dj1
-                   | _ \<Rightarrow> Or dj1 dj2))))"
-
-(* The result of the rhs of cooper's theorem doese not depend on Var 0*)
-lemma explode_minf_novar0:
-  assumes unifp : "isunified p"
-  and bst: "set (bset p) = set B"
-  shows "novar0 (explode_minf (p,B))"
-proof-
-  let ?d = "divlcm p"
-  let ?pm = "minusinf p"
-  let ?dj1 = "explode_disj (map Cst (iupto(1,?d)),?pm)"
-  
-  have qfpm: "isqfree ?pm"  using unified_islinform[OF unifp] minusinf_qfree by simp
-  have dpos: "?d >0" using unified_islinform[OF unifp] divlcm_pos by simp 
-  have "\<forall> x\<in> set (map Cst (iupto(1,?d))). novar0I x" by auto
-  then have dj1_nov0: "novar0 ?dj1" using qfpm explode_disj_novar0 by simp
-  
-  let ?dj2 = "explode_disj (all_sums (?d,B),p)"
-  have 
-    bstlin: "\<forall>b\<in>set B. islinintterm b"
-    using bset_lin[OF unifp] bst
-    by simp
-  
-  have bstnov0: "\<forall>b\<in>set B. novar0I b"
-    using bst bset_novar0[OF unifp] by simp
-  have allsnov0: "\<forall>x\<in>set (all_sums(?d,B)). novar0I x "
-    by (simp add:all_sums_novar0[OF bstnov0 bstlin] )
-  then have dj2_nov0: "novar0 ?dj2" 
-    using explode_disj_novar0 unified_isqfree[OF unifp] bst by simp
-  have "?dj1 = T \<or> ?dj1 = F \<or> (?dj1 \<noteq> T \<and> ?dj1 \<noteq> F)" by auto
-  moreover
-  { assume "?dj1 = T" then have ?thesis by simp }
-  moreover
-  { assume "?dj1 = F" then have ?thesis using bst dj2_nov0 by (simp add: Let_def)}
-  moreover
-  {
-    assume dj1nFT:"?dj1 \<noteq> T \<and> ?dj1 \<noteq> F"
-    
-    have "?dj2 = T \<or> ?dj2 = F \<or> (?dj2 \<noteq> T \<and> ?dj2 \<noteq> F)" by auto
-    moreover
-    { assume "?dj2 = T" then have ?thesis by (cases ?dj1) simp_all }
-    moreover
-    { assume "?dj2 = F" then have ?thesis using dj1_nov0 bst
-	by (cases ?dj1) (simp_all add: Let_def)}
-    moreover
-    {
-      assume dj2_nTF:"?dj2 \<noteq> T \<and> ?dj2 \<noteq> F"
-      let ?res = "\<lambda>f. \<lambda>g. (case f of T \<Rightarrow> T | F \<Rightarrow> g
-	| _ \<Rightarrow> (case g of T \<Rightarrow> T| F \<Rightarrow> f| _ \<Rightarrow> Or f g))"
-      have expth: "explode_minf (p,B) = ?res ?dj1 ?dj2"
-	by (simp add: Let_def del: iupto.simps split del: split_if
-	  cong del: QF.weak_case_cong)
-      then have ?thesis
-	using prems or_case_novar0 [OF dj1nFT dj2_nTF dj1_nov0 dj2_nov0]
-	by (simp add: Let_def del: iupto.simps cong del: QF.weak_case_cong)
-    }
-    ultimately have ?thesis by blast
-  }
-  ultimately show ?thesis by blast
-qed
-  
-(* explode_minf computes the rhs of cooper's thm*)
-lemma explode_minf_corr:
-  assumes unifp : "isunified p"
-  and bst: "set (bset p) = set B"
-  shows "(\<exists> x . qinterp (x#ats) p) = (qinterp (a#ats) (explode_minf (p,B)))"
-  (is "(\<exists> x. ?P x) = (?EXP a p)")
-proof-
-  let ?d = "divlcm p"
-  let ?pm = "minusinf p"
-  let ?dj1 = "explode_disj (map Cst (iupto(1,?d)),?pm)"
-  have qfpm: "isqfree ?pm"  using unified_islinform[OF unifp] minusinf_qfree by simp 
-  have nnfp: "isnnf p" by (rule unified_isnnf[OF unifp])
-
-  have "(\<exists>j\<in>{1..?d}. qinterp (j # ats) (minusinf p))
-    = (\<exists>j\<in> set (iupto(1,?d)). qinterp (j#ats) (minusinf p))"
-    (is "(\<exists> j\<in> {1..?d}. ?QM j) = \<dots>")
-    by (simp add: sym[OF iupto_set] )
-  also
-  have "\<dots> =(\<exists>j\<in> set (iupto(1,?d)). qinterp ((I_intterm (a#ats) (Cst j))#ats) (minusinf p))"
-    by simp
-  also have 
-    "\<dots> = (\<exists>j\<in> set (map Cst (iupto(1,?d))). qinterp ((I_intterm (a#ats) j)#ats) (minusinf p))" by simp
-  also have 
-    "\<dots> = 
-    (\<exists>j\<in> set (map Cst (iupto(1,?d))). qinterp (a#ats) (subst_p j (minusinf p)))"
-    by (simp add: subst_p_corr[OF qfpm])
-  finally have dj1_thm: 
-    "(\<exists> j\<in> {1..?d}. ?QM j) = (qinterp (a#ats) ?dj1)"
-    by (simp only: explode_disj_corr[OF qfpm])
-  let ?dj2 = "explode_disj (all_sums (?d,B),p)"
-  have 
-    bstlin: "\<forall>b\<in>set B. islinintterm b" 
-    using bst by (simp add: bset_lin[OF unifp])
-  have bstnov0: "\<forall>b\<in>set B. novar0I b" 
-    using bst by (simp add: bset_novar0[OF unifp])
-  have allsnov0: "\<forall>x\<in>set (all_sums(?d,B)). novar0I x "
-    by (simp add:all_sums_novar0[OF bstnov0 bstlin] )
-  have "(\<exists> j\<in> {1..?d}. \<exists> b\<in> set B. ?P (I_intterm (a#ats) b + j)) = 
-   (\<exists> j\<in> {1..?d}. \<exists> b\<in> set B. ?P (I_intterm (a#ats) (lin_add(b,Cst j))))"
-    using bst by (auto simp add: lin_add_corr bset_lin[OF unifp])
-  also have "\<dots> = (\<exists> x \<in> set (all_sums (?d, B)). ?P (I_intterm (a#ats) x))"
-    by (simp add: all_sums_ex[where P="\<lambda> t. ?P (I_intterm (a#ats) t)"])
-  finally 
-  have "(\<exists> j\<in> {1..?d}. \<exists> b\<in> set B. ?P (I_intterm (a#ats) b + j)) = 
-    (\<exists> x \<in> set (all_sums (?d, B)). qinterp (a#ats) (subst_p x p))"
-    using allsnov0 prems linform_isqfree unified_islinform[OF unifp]
-    by (simp add: all_sums_ex subst_p_corr)
-  also have "\<dots> = (qinterp (a#ats) ?dj2)"
-    using linform_isqfree unified_islinform[OF unifp]
-    by (simp add: explode_disj_corr)
-  finally have dj2th: 
-    "(\<exists> j\<in> {1..?d}. \<exists> b\<in> set B. ?P (I_intterm (a#ats) b + j)) =  
-    (qinterp (a#ats) ?dj2)" by simp
-  let ?result = "\<lambda>f. \<lambda>g. 
-    (case f of 
-    T \<Rightarrow> T
-    | F \<Rightarrow> g
-    | _ \<Rightarrow> (case g of 
-    T \<Rightarrow> T
-    | F \<Rightarrow> f
-    | _ \<Rightarrow> Or f g))"
-  have "?EXP a p =  qinterp (a#ats) (?result ?dj1 ?dj2)"
-    by (simp only: explode_minf.simps Let_def)
-  also
-  have "\<dots> = (qinterp (a#ats) ?dj1 \<or> qinterp (a#ats) ?dj2)" 
-    by (rule eval_Or_cases[where f="?dj1" and g="?dj2" and a="a" and ats="ats"])
-  also 
-  have "\<dots> = ((\<exists> j\<in> {1..?d}. ?QM j) \<or> 
-    (\<exists> j\<in> {1..?d}. \<exists> b\<in> set B. ?P (I_intterm (a#ats) b + j)))"
-    by (simp add: dj1_thm dj2th)
-  also
-  have "\<dots> = (\<exists> x. ?P x)"
-    using bst sym[OF cooper_mi_eq[OF unifp]] by simp
-  finally show ?thesis by simp
-qed
-
-
-lemma explode_minf_corr2:
-  assumes unifp : "isunified p"
-  and bst: "set (bset p) = set B"
-  shows "(qinterp ats (QEx p)) = (qinterp ats (decrvars(explode_minf (p,B))))"
-  (is "?P = (?Qe p)")
-proof-
-  have "?P = (\<exists>x. qinterp (x#ats) p)" by simp
-  also have "\<dots>  = (qinterp (a # ats) (explode_minf (p,B)))"
-    using unifp bst explode_minf_corr by simp
-  finally have ex: "?P = (qinterp (a # ats) (explode_minf (p,B)))" .
-  have nv0: "novar0 (explode_minf (p,B))"
-    by (rule explode_minf_novar0[OF unifp])
-  show ?thesis
-    using qinterp_novar0[OF nv0] ex by simp
-qed
-
-(* An implementation of cooper's method for both plus/minus/infinity *)
-
-(* unify the formula *)
-definition unify:: "QF \<Rightarrow> (QF \<times> intterm list)" where
-  "unify p =
-  (let q = unitycoeff p;
-       B = list_set(bset q);
-       A = list_set (aset q)
-  in
-  if (length B \<le> length A)
-             then (q,B)
-             else (mirror q, map lin_neg A))"
-  
-(* unify behaves like unitycoeff *)
-lemma unify_ex:
-  assumes linp: "islinform p"
-  shows "qinterp ats (QEx p) = qinterp ats (QEx (fst (unify p)))"
-proof-
-  have "length (list_set(bset (unitycoeff p))) \<le> length (list_set (aset (unitycoeff p))) \<or> length (list_set(bset (unitycoeff p))) > length (list_set (aset (unitycoeff p)))" by arith
-  moreover
-  {
-    assume "length (list_set(bset (unitycoeff p))) \<le> length (list_set (aset (unitycoeff p)))"
-    then have "fst (unify p) = unitycoeff p" using unify_def by (simp add: Let_def)
-    then have ?thesis using unitycoeff_corr[OF linp]
-      by simp
-  }
-  moreover 
-  {
-    assume "length (list_set(bset (unitycoeff p))) > length (list_set (aset (unitycoeff p)))"
-    then have unif: "fst(unify p) = mirror (unitycoeff p)"
-      using unify_def by (simp add: Let_def)
-    let ?q ="unitycoeff p"
-    have unifq: "isunified ?q" by(rule unitycoeff_unified[OF linp])
-    have linq: "islinform ?q" by (rule unified_islinform[OF unifq])
-    have "qinterp ats (QEx ?q) = qinterp ats (QEx (mirror ?q))" 
-      by (rule mirror_ex2[OF unifq])
-    moreover have "qinterp ats (QEx p) = qinterp ats (QEx ?q)"
-      using unitycoeff_corr linp by simp
-    ultimately have ?thesis using prems unif by simp
-  }
-  ultimately show ?thesis by blast
-qed
-
-(* unify's result is a unified formula *)
-lemma unify_unified: 
-  assumes linp: "islinform p"
-  shows "isunified (fst (unify p))"
-  using linp unitycoeff_unified mirror_unified unify_def unified_islinform
-  by (auto simp add: Let_def)
-
-
-(* unify preserves quantifier-freeness*)
-lemma unify_qfree:
-  assumes linp: "islinform p"
-  shows "isqfree (fst(unify p))"
-  using linp unify_unified unified_isqfree by simp
-
-lemma unify_bst: 
-  assumes linp: " islinform p" 
-  and unif: "unify p = (q,B)"
-  shows "set B = set (bset q)" 
-proof-
-  let ?q = "unitycoeff p"
-  let ?a = "aset ?q"
-  let ?b = "bset ?q"
-  let ?la = "list_set ?a"
-  let ?lb = "list_set ?b"
-  have " length ?lb \<le> length ?la \<or> length ?lb > length ?la" by arith
-  moreover 
-  {
-    assume "length ?lb \<le> length ?la"
-    then
-    have "unify p = (?q,?lb)"using unify_def prems by (simp add: Let_def)
-    then 
-    have ?thesis using prems by (simp add: sym[OF list_set_set])
-  }
-  moreover
-  {    assume "length ?lb > length ?la"
-    have r: "unify p = (mirror ?q,map lin_neg ?la)"using unify_def prems by (simp add: Let_def)
-    have lin: "\<forall> x\<in> set (bset (mirror ?q)). islinintterm x"
-      using bset_lin mirror_unified unitycoeff_unified[OF linp] by auto
-    with r prems aset_eq_bset_mirror lin_neg_idemp unitycoeff_unified linp
-    have "set B = set (map lin_neg (map lin_neg (bset (mirror (unitycoeff p)))))"
-       by (simp add: sym[OF list_set_set])
-     also have "\<dots> = set (map (\<lambda>x. lin_neg (lin_neg x)) (bset (mirror (unitycoeff p))))"
-       by auto
-     also have "\<dots> = set (bset (mirror (unitycoeff p)))"
-       using lin lin_neg_idemp  by (auto simp add: map_idI)
-     finally
-     have ?thesis using r prems aset_eq_bset_mirror lin_neg_idemp unitycoeff_unified linp
-       by (simp add: sym[OF list_set_set])}
-  ultimately show ?thesis by blast
-qed
-
-lemma explode_minf_unify_novar0: 
-  assumes linp: "islinform p"
-  shows "novar0 (explode_minf (unify p))"
-proof-
-  have "\<exists> q B. unify p = (q,B)" by simp
-  then obtain "q" "B" where qB_def: "unify p = (q,B)" by blast
-  have unifq: "isunified q" using unify_unified[OF linp] qB_def by simp
-  have bst: "set B = set (bset q)" using unify_bst linp qB_def by simp
-  from unifq bst explode_minf_novar0 show ?thesis
-    using qB_def by simp
-qed
-
-lemma explode_minf_unify_corr2:
-  assumes linp: "islinform p"
-  shows "qinterp ats (QEx p) = qinterp ats (decrvars(explode_minf(unify p)))"
-proof-
-  have "\<exists> q B. unify p = (q,B)" by simp
-  then obtain "q" "B" where qB_def: "unify p = (q,B)" by blast
-  have unifq: "isunified q" using unify_unified[OF linp] qB_def by simp
-  have bst: "set (bset q) = set B" using unify_bst linp qB_def by simp
-  from explode_minf_corr2[OF unifq bst] unify_ex[OF linp] show ?thesis
-    using qB_def by simp
-qed
-(* An implementation of cooper's method *)
-definition
-  cooper:: "QF \<Rightarrow> QF option" where
-  "cooper p = lift_un (\<lambda>q. decrvars(explode_minf (unify q))) (linform (nnf p))"
-
-(* cooper eliminates quantifiers *)
-lemma cooper_qfree: "(\<And> q q'. \<lbrakk>isqfree q ; cooper q = Some q'\<rbrakk> \<Longrightarrow>  isqfree q')"
-proof-
-  fix "q" "q'"
-  assume qfq: "isqfree q"
-    and qeq: "cooper q = Some q'"
-  from qeq have "\<exists>p. linform (nnf q) = Some p"
-    by (cases "linform (nnf q)") (simp_all add: cooper_def)
-  then obtain "p" where p_def: "linform (nnf q) = Some p" by blast
-  have linp: "islinform p" using p_def linform_lin nnf_isnnf qfq 
-    by auto
-  have nnfq: "isnnf (nnf q)" using nnf_isnnf qfq by simp
-  then have nnfp: "isnnf p" using linform_nnf[OF nnfq] p_def by auto
-  have qfp: "isqfree p" using linp linform_isqfree by simp 
-  have "cooper q = Some (decrvars(explode_minf (unify p)))" using p_def 
-    by (simp add: cooper_def del: explode_minf.simps)
-  then have "q' = decrvars (explode_minf (unify p))" using qeq by simp
-  with linp qfp nnfp  unify_unified unify_qfree unified_islinform 
-  show "isqfree q'"
-    using novar0_qfree explode_minf_unify_novar0 decrvars_qfree
-    by simp
-qed
-
-(* cooper preserves semantics *)
-lemma cooper_corr: "(\<And> q q' ats. \<lbrakk>isqfree q ; cooper q = Some q'\<rbrakk> \<Longrightarrow>  (qinterp ats (QEx q)) = (qinterp ats q'))"  (is "\<And> q q' ats. \<lbrakk> _ ; _ \<rbrakk> \<Longrightarrow> (?P ats (QEx q) = ?P ats q')")
-proof-
-  fix "q" "q'" "ats"
-  assume qfq: "isqfree q"
-    and qeq: "cooper q = Some q'"
-  from qeq have "\<exists>p. linform (nnf q) = Some p"
-    by (cases "linform (nnf q)") (simp_all add: cooper_def)
-  then obtain "p" where p_def: "linform (nnf q) = Some p" by blast
-  have linp: "islinform p" using p_def linform_lin nnf_isnnf qfq by auto
-  have qfp: "isqfree p" using linp linform_isqfree by simp 
-  have nnfq: "isnnf (nnf q)" using nnf_isnnf qfq by simp
-  then have nnfp: "isnnf p" using linform_nnf[OF nnfq] p_def by auto
-  have "\<forall> ats. ?P ats q = ?P ats (nnf q)" using nnf_corr qfq by auto
-  then have qeqp: "\<forall> ats. ?P ats q = ?P ats p"
-    using linform_corr p_def nnf_isnnf qfq
-    by auto
-
-  have "cooper q = Some (decrvars (explode_minf (unify p)))" using p_def 
-    by (simp add: cooper_def del: explode_minf.simps)
-  then have decr: "q' = decrvars(explode_minf (unify p))" using qeq by simp
-  have eqq:"?P ats (QEx q) = ?P ats (QEx p)" using qeqp by auto
-  with decr explode_minf_unify_corr2 unified_islinform unify_unified linp 
-  show "?P ats (QEx q) = ?P ats q'" by simp
-qed  
-
-(* A decision procedure for Presburger Arithmetics *)
-definition
-  pa:: "QF \<Rightarrow> QF option" where
-  "pa p \<equiv> lift_un psimpl (qelim(cooper, p))"
-
-lemma psimpl_qfree: "isqfree p \<Longrightarrow> isqfree (psimpl p)"
-apply(induct p rule: isqfree.induct)
-apply(auto simp add: Let_def)
-apply (simp_all cong del: QF.weak_case_cong add: Let_def)
-apply (case_tac "psimpl p", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl p", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl p", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl p", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-apply (case_tac "psimpl q", auto)
-
-apply (case_tac "psimpl p", auto)
-apply (case_tac "lift_bin (\<lambda>x y. lin_add (x, lin_neg y), linearize y,
-                   linearize z)", auto)
-apply (case_tac "a",auto)
-apply (case_tac "lift_bin (\<lambda>x y. lin_add (x, lin_neg y), linearize ac,
-                   linearize ad)", auto)
-apply (case_tac "a",auto)
-apply (case_tac "ae", auto)
-apply (case_tac "linearize af", auto)
-by (case_tac "a", auto)
-
-(* pa eliminates quantifiers *)
-theorem pa_qfree: "\<And> p'. pa p = Some p' \<Longrightarrow> isqfree p'"
-proof(simp only: pa_def)
-fix "p'"
-assume qep: "lift_un psimpl (qelim (cooper, p)) = Some p'"
-then have "\<exists> q. qelim (cooper, p) = Some q"
-  by (cases "qelim(cooper, p)") auto
-then obtain "q" where q_def: "qelim (cooper, p) = Some q" by blast
-have "\<And>q q'. \<lbrakk>isqfree q; cooper q = Some q'\<rbrakk> \<Longrightarrow> isqfree q'" using cooper_qfree by blast
-with q_def
-have "isqfree q" using qelim_qfree by blast
-then have "isqfree (psimpl q)" using psimpl_qfree
+lemma myeq: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a = b) = (0 = b - a)"
   by auto
-then show "isqfree p'"
-  using prems 
-  by simp
 
+(* Periodicity of dvd *)
+lemma dvd_period:
+  assumes advdd: "(a::int) dvd d"
+  shows "(a dvd (x + t)) = (a dvd ((x+ c*d) + t))"
+  using advdd  
+proof-
+  from advdd  have "\<forall>x.\<forall>k. (((a::int) dvd (x + t)) = (a dvd (x+k*d + t)))" 
+    by (rule dvd_modd_pinf)
+  then show ?thesis by simp
 qed
 
-(* pa preserves semantics *)
-theorem pa_corr: 
-  "\<And> p'. pa p = Some p' \<Longrightarrow> (qinterp ats p = qinterp ats p')"
-proof(simp only: pa_def)
-  fix "p'"
-  assume qep: "lift_un psimpl (qelim(cooper, p)) = Some p'"
- then have "\<exists> q. qelim (cooper, p) = Some q"
-  by (cases "qelim(cooper, p)") auto
-then obtain "q" where q_def: "qelim (cooper, p) = Some q" by blast 
-  have cp1:"\<And>q q' ats. 
-    \<lbrakk>isqfree q; cooper q = Some q'\<rbrakk> \<Longrightarrow> qinterp ats (QEx q) = qinterp ats q'"
-    using cooper_corr by blast
-  moreover have cp2: "\<And>q q'. \<lbrakk>isqfree q; cooper q = Some q'\<rbrakk> \<Longrightarrow> isqfree q'"
-    using cooper_qfree by blast
-  ultimately have "qinterp ats p = qinterp ats q" using qelim_corr qep psimpl_corr q_def
-    by blast
-  then have "qinterp ats p = qinterp ats (psimpl q)" using psimpl_corr q_def
-    by auto
-  then show "qinterp ats p = qinterp ats p'" using prems 
+  (*********************************************************************************)
+  (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
+  (*********************************************************************************)
+
+datatype num = C int | Bound nat | CX int num | Neg num | Add num num| Sub num num 
+  | Mul int num
+
+  (* A size for num to make inductive proofs simpler*)
+consts num_size :: "num \<Rightarrow> nat" 
+primrec 
+  "num_size (C c) = 1"
+  "num_size (Bound n) = 1"
+  "num_size (Neg a) = 1 + num_size a"
+  "num_size (Add a b) = 1 + num_size a + num_size b"
+  "num_size (Sub a b) = 3 + num_size a + num_size b"
+  "num_size (CX c a) = 4 + num_size a"
+  "num_size (Mul c a) = 1 + num_size a"
+
+consts Inum :: "int list \<Rightarrow> num \<Rightarrow> int"
+primrec
+  "Inum bs (C c) = c"
+  "Inum bs (Bound n) = bs!n"
+  "Inum bs (CX c a) = c * (bs!0) + (Inum bs a)"
+  "Inum bs (Neg a) = -(Inum bs a)"
+  "Inum bs (Add a b) = Inum bs a + Inum bs b"
+  "Inum bs (Sub a b) = Inum bs a - Inum bs b"
+  "Inum bs (Mul c a) = c* Inum bs a"
+
+datatype fm  = 
+  T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num| Dvd int num| NDvd int num|
+  NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm 
+  | Closed nat | NClosed nat
+
+
+  (* A size for fm *)
+consts fmsize :: "fm \<Rightarrow> nat"
+recdef fmsize "measure size"
+  "fmsize (NOT p) = 1 + fmsize p"
+  "fmsize (And p q) = 1 + fmsize p + fmsize q"
+  "fmsize (Or p q) = 1 + fmsize p + fmsize q"
+  "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
+  "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
+  "fmsize (E p) = 1 + fmsize p"
+  "fmsize (A p) = 4+ fmsize p"
+  "fmsize (Dvd i t) = 2"
+  "fmsize (NDvd i t) = 2"
+  "fmsize p = 1"
+  (* several lemmas about fmsize *)
+lemma fmsize_pos: "fmsize p > 0"	
+by (induct p rule: fmsize.induct) simp_all
+
+  (* Semantics of formulae (fm) *)
+consts Ifm ::"bool list \<Rightarrow> int list \<Rightarrow> fm \<Rightarrow> bool"
+primrec
+  "Ifm bbs bs T = True"
+  "Ifm bbs bs F = False"
+  "Ifm bbs bs (Lt a) = (Inum bs a < 0)"
+  "Ifm bbs bs (Gt a) = (Inum bs a > 0)"
+  "Ifm bbs bs (Le a) = (Inum bs a \<le> 0)"
+  "Ifm bbs bs (Ge a) = (Inum bs a \<ge> 0)"
+  "Ifm bbs bs (Eq a) = (Inum bs a = 0)"
+  "Ifm bbs bs (NEq a) = (Inum bs a \<noteq> 0)"
+  "Ifm bbs bs (Dvd i b) = (i dvd Inum bs b)"
+  "Ifm bbs bs (NDvd i b) = (\<not>(i dvd Inum bs b))"
+  "Ifm bbs bs (NOT p) = (\<not> (Ifm bbs bs p))"
+  "Ifm bbs bs (And p q) = (Ifm bbs bs p \<and> Ifm bbs bs q)"
+  "Ifm bbs bs (Or p q) = (Ifm bbs bs p \<or> Ifm bbs bs q)"
+  "Ifm bbs bs (Imp p q) = ((Ifm bbs bs p) \<longrightarrow> (Ifm bbs bs q))"
+  "Ifm bbs bs (Iff p q) = (Ifm bbs bs p = Ifm bbs bs q)"
+  "Ifm bbs bs (E p) = (\<exists> x. Ifm bbs (x#bs) p)"
+  "Ifm bbs bs (A p) = (\<forall> x. Ifm bbs (x#bs) p)"
+  "Ifm bbs bs (Closed n) = bbs!n"
+  "Ifm bbs bs (NClosed n) = (\<not> bbs!n)"
+
+lemma "Ifm bbs [] (A(Imp (Gt (Sub (Bound 0) (C 8))) (E(E(Eq(Sub(Add (Mul 3 (Bound 0)) (Mul 5 (Bound 1))) (Bound 2))))))) = P"
+apply simp
+oops
+
+consts prep :: "fm \<Rightarrow> fm"
+recdef prep "measure fmsize"
+  "prep (E T) = T"
+  "prep (E F) = F"
+  "prep (E (Or p q)) = Or (prep (E p)) (prep (E q))"
+  "prep (E (Imp p q)) = Or (prep (E (NOT p))) (prep (E q))"
+  "prep (E (Iff p q)) = Or (prep (E (And p q))) (prep (E (And (NOT p) (NOT q))))" 
+  "prep (E (NOT (And p q))) = Or (prep (E (NOT p))) (prep (E(NOT q)))"
+  "prep (E (NOT (Imp p q))) = prep (E (And p (NOT q)))"
+  "prep (E (NOT (Iff p q))) = Or (prep (E (And p (NOT q)))) (prep (E(And (NOT p) q)))"
+  "prep (E p) = E (prep p)"
+  "prep (A (And p q)) = And (prep (A p)) (prep (A q))"
+  "prep (A p) = prep (NOT (E (NOT p)))"
+  "prep (NOT (NOT p)) = prep p"
+  "prep (NOT (And p q)) = Or (prep (NOT p)) (prep (NOT q))"
+  "prep (NOT (A p)) = prep (E (NOT p))"
+  "prep (NOT (Or p q)) = And (prep (NOT p)) (prep (NOT q))"
+  "prep (NOT (Imp p q)) = And (prep p) (prep (NOT q))"
+  "prep (NOT (Iff p q)) = Or (prep (And p (NOT q))) (prep (And (NOT p) q))"
+  "prep (NOT p) = NOT (prep p)"
+  "prep (Or p q) = Or (prep p) (prep q)"
+  "prep (And p q) = And (prep p) (prep q)"
+  "prep (Imp p q) = prep (Or (NOT p) q)"
+  "prep (Iff p q) = Or (prep (And p q)) (prep (And (NOT p) (NOT q)))"
+  "prep p = p"
+(hints simp add: fmsize_pos)
+lemma prep: "Ifm bbs bs (prep p) = Ifm bbs bs p"
+by (induct p arbitrary: bs rule: prep.induct, auto)
+
+
+  (* Quantifier freeness *)
+consts qfree:: "fm \<Rightarrow> bool"
+recdef qfree "measure size"
+  "qfree (E p) = False"
+  "qfree (A p) = False"
+  "qfree (NOT p) = qfree p" 
+  "qfree (And p q) = (qfree p \<and> qfree q)" 
+  "qfree (Or  p q) = (qfree p \<and> qfree q)" 
+  "qfree (Imp p q) = (qfree p \<and> qfree q)" 
+  "qfree (Iff p q) = (qfree p \<and> qfree q)"
+  "qfree p = True"
+
+  (* Boundedness and substitution *)
+consts 
+  numbound0:: "num \<Rightarrow> bool" (* a num is INDEPENDENT of Bound 0 *)
+  bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *)
+  numsubst0:: "num \<Rightarrow> num \<Rightarrow> num" (* substitute a num into a num for Bound 0 *)
+  subst0:: "num \<Rightarrow> fm \<Rightarrow> fm" (* substitue a num into a formula for Bound 0 *)
+primrec
+  "numbound0 (C c) = True"
+  "numbound0 (Bound n) = (n>0)"
+  "numbound0 (CX i a) = False"
+  "numbound0 (Neg a) = numbound0 a"
+  "numbound0 (Add a b) = (numbound0 a \<and> numbound0 b)"
+  "numbound0 (Sub a b) = (numbound0 a \<and> numbound0 b)" 
+  "numbound0 (Mul i a) = numbound0 a"
+
+lemma numbound0_I:
+  assumes nb: "numbound0 a"
+  shows "Inum (b#bs) a = Inum (b'#bs) a"
+using nb
+by (induct a rule: numbound0.induct) (auto simp add: nth_pos2)
+
+primrec
+  "bound0 T = True"
+  "bound0 F = True"
+  "bound0 (Lt a) = numbound0 a"
+  "bound0 (Le a) = numbound0 a"
+  "bound0 (Gt a) = numbound0 a"
+  "bound0 (Ge a) = numbound0 a"
+  "bound0 (Eq a) = numbound0 a"
+  "bound0 (NEq a) = numbound0 a"
+  "bound0 (Dvd i a) = numbound0 a"
+  "bound0 (NDvd i a) = numbound0 a"
+  "bound0 (NOT p) = bound0 p"
+  "bound0 (And p q) = (bound0 p \<and> bound0 q)"
+  "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
+  "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
+  "bound0 (Iff p q) = (bound0 p \<and> bound0 q)"
+  "bound0 (E p) = False"
+  "bound0 (A p) = False"
+  "bound0 (Closed P) = True"
+  "bound0 (NClosed P) = True"
+lemma bound0_I:
+  assumes bp: "bound0 p"
+  shows "Ifm bbs (b#bs) p = Ifm bbs (b'#bs) p"
+using bp numbound0_I[where b="b" and bs="bs" and b'="b'"]
+by (induct p rule: bound0.induct) (auto simp add: nth_pos2)
+
+primrec
+  "numsubst0 t (C c) = (C c)"
+  "numsubst0 t (Bound n) = (if n=0 then t else Bound n)"
+  "numsubst0 t (CX i a) = Add (Mul i t) (numsubst0 t a)"
+  "numsubst0 t (Neg a) = Neg (numsubst0 t a)"
+  "numsubst0 t (Add a b) = Add (numsubst0 t a) (numsubst0 t b)"
+  "numsubst0 t (Sub a b) = Sub (numsubst0 t a) (numsubst0 t b)" 
+  "numsubst0 t (Mul i a) = Mul i (numsubst0 t a)"
+
+lemma numsubst0_I:
+  shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b#bs) a)#bs) t"
+  by (induct t) (simp_all add: nth_pos2)
+
+lemma numsubst0_I':
+  assumes nb: "numbound0 a"
+  shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b'#bs) a)#bs) t"
+  by (induct t) (simp_all add: nth_pos2 numbound0_I[OF nb, where b="b" and b'="b'"])
+
+
+primrec
+  "subst0 t T = T"
+  "subst0 t F = F"
+  "subst0 t (Lt a) = Lt (numsubst0 t a)"
+  "subst0 t (Le a) = Le (numsubst0 t a)"
+  "subst0 t (Gt a) = Gt (numsubst0 t a)"
+  "subst0 t (Ge a) = Ge (numsubst0 t a)"
+  "subst0 t (Eq a) = Eq (numsubst0 t a)"
+  "subst0 t (NEq a) = NEq (numsubst0 t a)"
+  "subst0 t (Dvd i a) = Dvd i (numsubst0 t a)"
+  "subst0 t (NDvd i a) = NDvd i (numsubst0 t a)"
+  "subst0 t (NOT p) = NOT (subst0 t p)"
+  "subst0 t (And p q) = And (subst0 t p) (subst0 t q)"
+  "subst0 t (Or p q) = Or (subst0 t p) (subst0 t q)"
+  "subst0 t (Imp p q) = Imp (subst0 t p) (subst0 t q)"
+  "subst0 t (Iff p q) = Iff (subst0 t p) (subst0 t q)"
+  "subst0 t (Closed P) = (Closed P)"
+  "subst0 t (NClosed P) = (NClosed P)"
+
+lemma subst0_I: assumes qfp: "qfree p"
+  shows "Ifm bbs (b#bs) (subst0 a p) = Ifm bbs ((Inum (b#bs) a)#bs) p"
+  using qfp numsubst0_I[where b="b" and bs="bs" and a="a"]
+  by (induct p) (simp_all add: nth_pos2 )
+
+
+consts 
+  decrnum:: "num \<Rightarrow> num" 
+  decr :: "fm \<Rightarrow> fm"
+
+recdef decrnum "measure size"
+  "decrnum (Bound n) = Bound (n - 1)"
+  "decrnum (Neg a) = Neg (decrnum a)"
+  "decrnum (Add a b) = Add (decrnum a) (decrnum b)"
+  "decrnum (Sub a b) = Sub (decrnum a) (decrnum b)"
+  "decrnum (Mul c a) = Mul c (decrnum a)"
+  "decrnum a = a"
+
+recdef decr "measure size"
+  "decr (Lt a) = Lt (decrnum a)"
+  "decr (Le a) = Le (decrnum a)"
+  "decr (Gt a) = Gt (decrnum a)"
+  "decr (Ge a) = Ge (decrnum a)"
+  "decr (Eq a) = Eq (decrnum a)"
+  "decr (NEq a) = NEq (decrnum a)"
+  "decr (Dvd i a) = Dvd i (decrnum a)"
+  "decr (NDvd i a) = NDvd i (decrnum a)"
+  "decr (NOT p) = NOT (decr p)" 
+  "decr (And p q) = And (decr p) (decr q)"
+  "decr (Or p q) = Or (decr p) (decr q)"
+  "decr (Imp p q) = Imp (decr p) (decr q)"
+  "decr (Iff p q) = Iff (decr p) (decr q)"
+  "decr p = p"
+
+lemma decrnum: assumes nb: "numbound0 t"
+  shows "Inum (x#bs) t = Inum bs (decrnum t)"
+  using nb by (induct t rule: decrnum.induct, simp_all add: nth_pos2)
+
+lemma decr: assumes nb: "bound0 p"
+  shows "Ifm bbs (x#bs) p = Ifm bbs bs (decr p)"
+  using nb 
+  by (induct p rule: decr.induct, simp_all add: nth_pos2 decrnum)
+
+lemma decr_qf: "bound0 p \<Longrightarrow> qfree (decr p)"
+by (induct p, simp_all)
+
+consts 
+  isatom :: "fm \<Rightarrow> bool" (* test for atomicity *)
+recdef isatom "measure size"
+  "isatom T = True"
+  "isatom F = True"
+  "isatom (Lt a) = True"
+  "isatom (Le a) = True"
+  "isatom (Gt a) = True"
+  "isatom (Ge a) = True"
+  "isatom (Eq a) = True"
+  "isatom (NEq a) = True"
+  "isatom (Dvd i b) = True"
+  "isatom (NDvd i b) = True"
+  "isatom (Closed P) = True"
+  "isatom (NClosed P) = True"
+  "isatom p = False"
+
+lemma numsubst0_numbound0: assumes nb: "numbound0 t"
+  shows "numbound0 (numsubst0 t a)"
+using nb by (induct a rule: numsubst0.induct, auto)
+
+lemma subst0_bound0: assumes qf: "qfree p" and nb: "numbound0 t"
+  shows "bound0 (subst0 t p)"
+using qf numsubst0_numbound0[OF nb] by (induct p  rule: subst0.induct, auto)
+
+lemma bound0_qf: "bound0 p \<Longrightarrow> qfree p"
+by (induct p, simp_all)
+
+
+constdefs djf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm"
+  "djf f p q \<equiv> (if q=T then T else if q=F then f p else 
+  (let fp = f p in case fp of T \<Rightarrow> T | F \<Rightarrow> q | _ \<Rightarrow> Or (f p) q))"
+constdefs evaldjf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm"
+  "evaldjf f ps \<equiv> foldr (djf f) ps F"
+
+lemma djf_Or: "Ifm bbs bs (djf f p q) = Ifm bbs bs (Or (f p) q)"
+by (cases "q=T", simp add: djf_def,cases "q=F",simp add: djf_def) 
+(cases "f p", simp_all add: Let_def djf_def) 
+
+lemma evaldjf_ex: "Ifm bbs bs (evaldjf f ps) = (\<exists> p \<in> set ps. Ifm bbs bs (f p))"
+  by(induct ps, simp_all add: evaldjf_def djf_Or)
+
+lemma evaldjf_bound0: 
+  assumes nb: "\<forall> x\<in> set xs. bound0 (f x)"
+  shows "bound0 (evaldjf f xs)"
+  using nb by (induct xs, auto simp add: evaldjf_def djf_def Let_def) (case_tac "f a", auto) 
+
+lemma evaldjf_qf: 
+  assumes nb: "\<forall> x\<in> set xs. qfree (f x)"
+  shows "qfree (evaldjf f xs)"
+  using nb by (induct xs, auto simp add: evaldjf_def djf_def Let_def) (case_tac "f a", auto) 
+
+consts disjuncts :: "fm \<Rightarrow> fm list"
+recdef disjuncts "measure size"
+  "disjuncts (Or p q) = (disjuncts p) @ (disjuncts q)"
+  "disjuncts F = []"
+  "disjuncts p = [p]"
+
+lemma disjuncts: "(\<exists> q\<in> set (disjuncts p). Ifm bbs bs q) = Ifm bbs bs p"
+by(induct p rule: disjuncts.induct, auto)
+
+lemma disjuncts_nb: "bound0 p \<Longrightarrow> \<forall> q\<in> set (disjuncts p). bound0 q"
+proof-
+  assume nb: "bound0 p"
+  hence "list_all bound0 (disjuncts p)" by (induct p rule:disjuncts.induct,auto)
+  thus ?thesis by (simp only: list_all_iff)
+qed
+
+lemma disjuncts_qf: "qfree p \<Longrightarrow> \<forall> q\<in> set (disjuncts p). qfree q"
+proof-
+  assume qf: "qfree p"
+  hence "list_all qfree (disjuncts p)"
+    by (induct p rule: disjuncts.induct, auto)
+  thus ?thesis by (simp only: list_all_iff)
+qed
+
+constdefs DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
+  "DJ f p \<equiv> evaldjf f (disjuncts p)"
+
+lemma DJ: assumes fdj: "\<forall> p q. f (Or p q) = Or (f p) (f q)"
+  and fF: "f F = F"
+  shows "Ifm bbs bs (DJ f p) = Ifm bbs bs (f p)"
+proof-
+  have "Ifm bbs bs (DJ f p) = (\<exists> q \<in> set (disjuncts p). Ifm bbs bs (f q))"
+    by (simp add: DJ_def evaldjf_ex) 
+  also have "\<dots> = Ifm bbs bs (f p)" using fdj fF by (induct p rule: disjuncts.induct, auto)
+  finally show ?thesis .
+qed
+
+lemma DJ_qf: assumes 
+  fqf: "\<forall> p. qfree p \<longrightarrow> qfree (f p)"
+  shows "\<forall>p. qfree p \<longrightarrow> qfree (DJ f p) "
+proof(clarify)
+  fix  p assume qf: "qfree p"
+  have th: "DJ f p = evaldjf f (disjuncts p)" by (simp add: DJ_def)
+  from disjuncts_qf[OF qf] have "\<forall> q\<in> set (disjuncts p). qfree q" .
+  with fqf have th':"\<forall> q\<in> set (disjuncts p). qfree (f q)" by blast
+  
+  from evaldjf_qf[OF th'] th show "qfree (DJ f p)" by simp
+qed
+
+lemma DJ_qe: assumes qe: "\<forall> bs p. qfree p \<longrightarrow> qfree (qe p) \<and> (Ifm bbs bs (qe p) = Ifm bbs bs (E p))"
+  shows "\<forall> bs p. qfree p \<longrightarrow> qfree (DJ qe p) \<and> (Ifm bbs bs ((DJ qe p)) = Ifm bbs bs (E p))"
+proof(clarify)
+  fix p::fm and bs
+  assume qf: "qfree p"
+  from qe have qth: "\<forall> p. qfree p \<longrightarrow> qfree (qe p)" by blast
+  from DJ_qf[OF qth] qf have qfth:"qfree (DJ qe p)" by auto
+  have "Ifm bbs bs (DJ qe p) = (\<exists> q\<in> set (disjuncts p). Ifm bbs bs (qe q))"
+    by (simp add: DJ_def evaldjf_ex)
+  also have "\<dots> = (\<exists> q \<in> set(disjuncts p). Ifm bbs bs (E q))" using qe disjuncts_qf[OF qf] by auto
+  also have "\<dots> = Ifm bbs bs (E p)" by (induct p rule: disjuncts.induct, auto)
+  finally show "qfree (DJ qe p) \<and> Ifm bbs bs (DJ qe p) = Ifm bbs bs (E p)" using qfth by blast
+qed
+  (* Simplification *)
+
+  (* Algebraic simplifications for nums *)
+consts bnds:: "num \<Rightarrow> nat list"
+  lex_ns:: "nat list \<times> nat list \<Rightarrow> bool"
+recdef bnds "measure size"
+  "bnds (Bound n) = [n]"
+  "bnds (CX c a) = 0#(bnds a)"
+  "bnds (Neg a) = bnds a"
+  "bnds (Add a b) = (bnds a)@(bnds b)"
+  "bnds (Sub a b) = (bnds a)@(bnds b)"
+  "bnds (Mul i a) = bnds a"
+  "bnds a = []"
+recdef lex_ns "measure (\<lambda> (xs,ys). length xs + length ys)"
+  "lex_ns ([], ms) = True"
+  "lex_ns (ns, []) = False"
+  "lex_ns (n#ns, m#ms) = (n<m \<or> ((n = m) \<and> lex_ns (ns,ms))) "
+constdefs lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool"
+  "lex_bnd t s \<equiv> lex_ns (bnds t, bnds s)"
+
+consts simpnum:: "num \<Rightarrow> num"
+  numadd:: "num \<times> num \<Rightarrow> num"
+  nummul:: "num \<Rightarrow> int \<Rightarrow> num"
+  numfloor:: "num \<Rightarrow> num"
+recdef numadd "measure (\<lambda> (t,s). size t + size s)"
+  "numadd (Add (Mul c1 (Bound n1)) r1,Add (Mul c2 (Bound n2)) r2) =
+  (if n1=n2 then 
+  (let c = c1 + c2
+  in (if c=0 then numadd(r1,r2) else Add (Mul c (Bound n1)) (numadd (r1,r2))))
+  else if n1 \<le> n2 then (Add (Mul c1 (Bound n1)) (numadd (r1,Add (Mul c2 (Bound n2)) r2))) 
+  else (Add (Mul c2 (Bound n2)) (numadd (Add (Mul c1 (Bound n1)) r1,r2))))"
+  "numadd (Add (Mul c1 (Bound n1)) r1,t) = Add (Mul c1 (Bound n1)) (numadd (r1, t))"  
+  "numadd (t,Add (Mul c2 (Bound n2)) r2) = Add (Mul c2 (Bound n2)) (numadd (t,r2))" 
+  "numadd (C b1, C b2) = C (b1+b2)"
+  "numadd (a,b) = Add a b"
+
+lemma numadd: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
+apply (induct t s rule: numadd.induct, simp_all add: Let_def)
+apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
+by (case_tac "n1 = n2", simp_all add: ring_eq_simps)
+(simp add: ring_eq_simps(1)[symmetric]) 
+
+lemma numadd_nb: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
+by (induct t s rule: numadd.induct, auto simp add: Let_def)
+
+recdef nummul "measure size"
+  "nummul (C j) = (\<lambda> i. C (i*j))"
+  "nummul (Add a b) = (\<lambda> i. numadd (nummul a i, nummul b i))"
+  "nummul (Mul c t) = (\<lambda> i. nummul t (i*c))"
+  "nummul t = (\<lambda> i. Mul i t)"
+
+lemma nummul: "\<And> i. Inum bs (nummul t i) = Inum bs (Mul i t)"
+by (induct t rule: nummul.induct, auto simp add: ring_eq_simps numadd)
+
+lemma nummul_nb: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummul t i)"
+by (induct t rule: nummul.induct, auto simp add: numadd_nb)
+
+constdefs numneg :: "num \<Rightarrow> num"
+  "numneg t \<equiv> nummul t (- 1)"
+
+constdefs numsub :: "num \<Rightarrow> num \<Rightarrow> num"
+  "numsub s t \<equiv> (if s = t then C 0 else numadd (s,numneg t))"
+
+lemma numneg: "Inum bs (numneg t) = Inum bs (Neg t)"
+using numneg_def nummul by simp
+
+lemma numneg_nb: "numbound0 t \<Longrightarrow> numbound0 (numneg t)"
+using numneg_def nummul_nb by simp
+
+lemma numsub: "Inum bs (numsub a b) = Inum bs (Sub a b)"
+using numneg numadd numsub_def by simp
+
+lemma numsub_nb: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numsub t s)"
+using numsub_def numadd_nb numneg_nb by simp
+
+recdef simpnum "measure size"
+  "simpnum (C j) = C j"
+  "simpnum (Bound n) = Add (Mul 1 (Bound n)) (C 0)"
+  "simpnum (Neg t) = numneg (simpnum t)"
+  "simpnum (Add t s) = numadd (simpnum t,simpnum s)"
+  "simpnum (Sub t s) = numsub (simpnum t) (simpnum s)"
+  "simpnum (Mul i t) = (if i = 0 then (C 0) else nummul (simpnum t) i)"
+  "simpnum t = t"
+
+lemma simpnum_ci: "Inum bs (simpnum t) = Inum bs t"
+by (induct t rule: simpnum.induct, auto simp add: numneg numadd numsub nummul)
+
+lemma simpnum_numbound0: 
+  "numbound0 t \<Longrightarrow> numbound0 (simpnum t)"
+by (induct t rule: simpnum.induct, auto simp add: numadd_nb numsub_nb nummul_nb numneg_nb)
+
+consts not:: "fm \<Rightarrow> fm"
+recdef not "measure size"
+  "not (NOT p) = p"
+  "not T = F"
+  "not F = T"
+  "not p = NOT p"
+lemma not: "Ifm bbs bs (not p) = Ifm bbs bs (NOT p)"
+by (cases p) auto
+lemma not_qf: "qfree p \<Longrightarrow> qfree (not p)"
+by (cases p, auto)
+lemma not_bn: "bound0 p \<Longrightarrow> bound0 (not p)"
+by (cases p, auto)
+
+constdefs conj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+  "conj p q \<equiv> (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else And p q)"
+lemma conj: "Ifm bbs bs (conj p q) = Ifm bbs bs (And p q)"
+by (cases "p=F \<or> q=F",simp_all add: conj_def) (cases p,simp_all)
+
+lemma conj_qf: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (conj p q)"
+using conj_def by auto 
+lemma conj_nb: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (conj p q)"
+using conj_def by auto 
+
+constdefs disj :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+  "disj p q \<equiv> (if (p = T \<or> q=T) then T else if p=F then q else if q=F then p else Or p q)"
+
+lemma disj: "Ifm bbs bs (disj p q) = Ifm bbs bs (Or p q)"
+by (cases "p=T \<or> q=T",simp_all add: disj_def) (cases p,simp_all)
+lemma disj_qf: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (disj p q)"
+using disj_def by auto 
+lemma disj_nb: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (disj p q)"
+using disj_def by auto 
+
+constdefs   imp :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+  "imp p q \<equiv> (if (p = F \<or> q=T) then T else if p=T then q else if q=F then not p else Imp p q)"
+lemma imp: "Ifm bbs bs (imp p q) = Ifm bbs bs (Imp p q)"
+by (cases "p=F \<or> q=T",simp_all add: imp_def,cases p) (simp_all add: not)
+lemma imp_qf: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (imp p q)"
+using imp_def by (cases "p=F \<or> q=T",simp_all add: imp_def,cases p) (simp_all add: not_qf) 
+lemma imp_nb: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (imp p q)"
+using imp_def by (cases "p=F \<or> q=T",simp_all add: imp_def,cases p) simp_all
+
+constdefs   iff :: "fm \<Rightarrow> fm \<Rightarrow> fm"
+  "iff p q \<equiv> (if (p = q) then T else if (p = not q \<or> not p = q) then F else 
+       if p=F then not q else if q=F then not p else if p=T then q else if q=T then p else 
+  Iff p q)"
+lemma iff: "Ifm bbs bs (iff p q) = Ifm bbs bs (Iff p q)"
+  by (unfold iff_def,cases "p=q", simp,cases "p=not q", simp add:not) 
+(cases "not p= q", auto simp add:not)
+lemma iff_qf: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (iff p q)"
+  by (unfold iff_def,cases "p=q", auto simp add: not_qf)
+lemma iff_nb: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (iff p q)"
+using iff_def by (unfold iff_def,cases "p=q", auto simp add: not_bn)
+
+consts simpfm :: "fm \<Rightarrow> fm"
+recdef simpfm "measure fmsize"
+  "simpfm (And p q) = conj (simpfm p) (simpfm q)"
+  "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
+  "simpfm (Imp p q) = imp (simpfm p) (simpfm q)"
+  "simpfm (Iff p q) = iff (simpfm p) (simpfm q)"
+  "simpfm (NOT p) = not (simpfm p)"
+  "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v < 0) then T else F 
+  | _ \<Rightarrow> Lt a')"
+  "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<le> 0)  then T else F | _ \<Rightarrow> Le a')"
+  "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v > 0)  then T else F | _ \<Rightarrow> Gt a')"
+  "simpfm (Ge a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<ge> 0)  then T else F | _ \<Rightarrow> Ge a')"
+  "simpfm (Eq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v = 0)  then T else F | _ \<Rightarrow> Eq a')"
+  "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<noteq> 0)  then T else F | _ \<Rightarrow> NEq a')"
+  "simpfm (Dvd i a) = (if i=0 then simpfm (Eq a)
+             else if (abs i = 1) then T
+             else let a' = simpnum a in case a' of C v \<Rightarrow> if (i dvd v)  then T else F | _ \<Rightarrow> Dvd i a')"
+  "simpfm (NDvd i a) = (if i=0 then simpfm (NEq a) 
+             else if (abs i = 1) then F
+             else let a' = simpnum a in case a' of C v \<Rightarrow> if (\<not>(i dvd v)) then T else F | _ \<Rightarrow> NDvd i a')"
+  "simpfm p = p"
+lemma simpfm: "Ifm bbs bs (simpfm p) = Ifm bbs bs p"
+proof(induct p rule: simpfm.induct)
+  case (6 a) let ?sa = "simpnum a" from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
+  {fix v assume "?sa = C v" hence ?case using sa by simp }
+  moreover {assume "\<not> (\<exists> v. ?sa = C v)" hence ?case using sa 
+      by (cases ?sa, simp_all add: Let_def)}
+  ultimately show ?case by blast
+next
+  case (7 a)  let ?sa = "simpnum a" 
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
+  {fix v assume "?sa = C v" hence ?case using sa by simp }
+  moreover {assume "\<not> (\<exists> v. ?sa = C v)" hence ?case using sa 
+      by (cases ?sa, simp_all add: Let_def)}
+  ultimately show ?case by blast
+next
+  case (8 a)  let ?sa = "simpnum a" 
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
+  {fix v assume "?sa = C v" hence ?case using sa by simp }
+  moreover {assume "\<not> (\<exists> v. ?sa = C v)" hence ?case using sa 
+      by (cases ?sa, simp_all add: Let_def)}
+  ultimately show ?case by blast
+next
+  case (9 a)  let ?sa = "simpnum a" 
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
+  {fix v assume "?sa = C v" hence ?case using sa by simp }
+  moreover {assume "\<not> (\<exists> v. ?sa = C v)" hence ?case using sa 
+      by (cases ?sa, simp_all add: Let_def)}
+  ultimately show ?case by blast
+next
+  case (10 a)  let ?sa = "simpnum a" 
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
+  {fix v assume "?sa = C v" hence ?case using sa by simp }
+  moreover {assume "\<not> (\<exists> v. ?sa = C v)" hence ?case using sa 
+      by (cases ?sa, simp_all add: Let_def)}
+  ultimately show ?case by blast
+next
+  case (11 a)  let ?sa = "simpnum a" 
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
+  {fix v assume "?sa = C v" hence ?case using sa by simp }
+  moreover {assume "\<not> (\<exists> v. ?sa = C v)" hence ?case using sa 
+      by (cases ?sa, simp_all add: Let_def)}
+  ultimately show ?case by blast
+next
+  case (12 i a)  let ?sa = "simpnum a" from simpnum_ci 
+  have sa: "Inum bs ?sa = Inum bs a" by simp
+  have "i=0 \<or> abs i = 1 \<or> (i\<noteq>0 \<and> (abs i \<noteq> 1))" by auto
+  {assume "i=0" hence ?case using "12.hyps" by (simp add: dvd_def Let_def)}
+  moreover 
+  {assume i1: "abs i = 1"
+      from zdvd_1_left[where m = "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
+      have ?case using i1 by (cases "i=0", simp_all add: Let_def) arith}
+  moreover   
+  {assume inz: "i\<noteq>0" and cond: "abs i \<noteq> 1"
+    {fix v assume "?sa = C v" hence ?case using sa[symmetric] inz cond
+	by (cases "abs i = 1", auto) }
+    moreover {assume "\<not> (\<exists> v. ?sa = C v)" 
+      hence "simpfm (Dvd i a) = Dvd i ?sa" using inz cond 
+	by (cases ?sa, auto simp add: Let_def)
+      hence ?case using sa by simp}
+    ultimately have ?case by blast}
+  ultimately show ?case by blast
+next
+  case (13 i a)  let ?sa = "simpnum a" from simpnum_ci 
+  have sa: "Inum bs ?sa = Inum bs a" by simp
+  have "i=0 \<or> abs i = 1 \<or> (i\<noteq>0 \<and> (abs i \<noteq> 1))" by auto
+  {assume "i=0" hence ?case using "13.hyps" by (simp add: dvd_def Let_def)}
+  moreover 
+  {assume i1: "abs i = 1"
+      from zdvd_1_left[where m = "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
+      have ?case using i1 by (cases "i=0", simp_all add: Let_def) arith}
+  moreover   
+  {assume inz: "i\<noteq>0" and cond: "abs i \<noteq> 1"
+    {fix v assume "?sa = C v" hence ?case using sa[symmetric] inz cond
+	by (cases "abs i = 1", auto) }
+    moreover {assume "\<not> (\<exists> v. ?sa = C v)" 
+      hence "simpfm (NDvd i a) = NDvd i ?sa" using inz cond 
+	by (cases ?sa, auto simp add: Let_def)
+      hence ?case using sa by simp}
+    ultimately have ?case by blast}
+  ultimately show ?case by blast
+qed (induct p rule: simpfm.induct, simp_all add: conj disj imp iff not)
+
+lemma simpfm_bound0: "bound0 p \<Longrightarrow> bound0 (simpfm p)"
+proof(induct p rule: simpfm.induct)
+  case (6 a) hence nb: "numbound0 a" by simp
+  hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
+  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+next
+  case (7 a) hence nb: "numbound0 a" by simp
+  hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
+  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+next
+  case (8 a) hence nb: "numbound0 a" by simp
+  hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
+  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+next
+  case (9 a) hence nb: "numbound0 a" by simp
+  hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
+  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+next
+  case (10 a) hence nb: "numbound0 a" by simp
+  hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
+  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+next
+  case (11 a) hence nb: "numbound0 a" by simp
+  hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
+  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+next
+  case (12 i a) hence nb: "numbound0 a" by simp
+  hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
+  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+next
+  case (13 i a) hence nb: "numbound0 a" by simp
+  hence "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
+  thus ?case by (cases "simpnum a", auto simp add: Let_def)
+qed(auto simp add: disj_def imp_def iff_def conj_def not_bn)
+
+lemma simpfm_qf: "qfree p \<Longrightarrow> qfree (simpfm p)"
+by (induct p rule: simpfm.induct, auto simp add: disj_qf imp_qf iff_qf conj_qf not_qf Let_def)
+ (case_tac "simpnum a",auto)+
+
+  (* Generic quantifier elimination *)
+consts qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
+recdef qelim "measure fmsize"
+  "qelim (E p) = (\<lambda> qe. DJ qe (qelim p qe))"
+  "qelim (A p) = (\<lambda> qe. not (qe ((qelim (NOT p) qe))))"
+  "qelim (NOT p) = (\<lambda> qe. not (qelim p qe))"
+  "qelim (And p q) = (\<lambda> qe. conj (qelim p qe) (qelim q qe))" 
+  "qelim (Or  p q) = (\<lambda> qe. disj (qelim p qe) (qelim q qe))" 
+  "qelim (Imp p q) = (\<lambda> qe. imp (qelim p qe) (qelim q qe))"
+  "qelim (Iff p q) = (\<lambda> qe. iff (qelim p qe) (qelim q qe))"
+  "qelim p = (\<lambda> y. simpfm p)"
+
+lemma qelim_ci:
+  assumes qe_inv: "\<forall> bs p. qfree p \<longrightarrow> qfree (qe p) \<and> (Ifm bbs bs (qe p) = Ifm bbs bs (E p))"
+  shows "\<And> bs. qfree (qelim p qe) \<and> (Ifm bbs bs (qelim p qe) = Ifm bbs bs p)"
+using qe_inv DJ_qe[OF qe_inv] 
+by(induct p rule: qelim.induct) 
+(auto simp add: not disj conj iff imp not_qf disj_qf conj_qf imp_qf iff_qf 
+  simpfm simpfm_qf simp del: simpfm.simps)
+
+
+
+    (**********************************************************************************)
+    (*******                             THE \<int>-PART                                 ***)
+    (**********************************************************************************)
+  (* Linearity for fm where Bound 0 ranges over \<int> *)
+consts
+  zsplit0 :: "num \<Rightarrow> int \<times> num" (* splits the bounded from the unbounded part*)
+recdef zsplit0 "measure size"
+  "zsplit0 (C c) = (0,C c)"
+  "zsplit0 (Bound n) = (if n=0 then (1, C 0) else (0,Bound n))"
+  "zsplit0 (CX i a) = (let (i',a') =  zsplit0 a in (i+i', a'))"
+  "zsplit0 (Neg a) = (let (i',a') =  zsplit0 a in (-i', Neg a'))"
+  "zsplit0 (Add a b) = (let (ia,a') =  zsplit0 a ; 
+                            (ib,b') =  zsplit0 b 
+                            in (ia+ib, Add a' b'))"
+  "zsplit0 (Sub a b) = (let (ia,a') =  zsplit0 a ; 
+                            (ib,b') =  zsplit0 b 
+                            in (ia-ib, Sub a' b'))"
+  "zsplit0 (Mul i a) = (let (i',a') =  zsplit0 a in (i*i', Mul i a'))"
+(hints simp add: Let_def)
+
+lemma zsplit0_I:
+  shows "\<And> n a. zsplit0 t = (n,a) \<Longrightarrow> (Inum ((x::int) #bs) (CX n a) = Inum (x #bs) t) \<and> numbound0 a"
+  (is "\<And> n a. ?S t = (n,a) \<Longrightarrow> (?I x (CX n a) = ?I x t) \<and> ?N a")
+proof(induct t rule: zsplit0.induct)
+  case (1 c n a) thus ?case by auto 
+next
+  case (2 m n a) thus ?case by (cases "m=0") auto
+next
+  case (3 i a n a')
+  let ?j = "fst (zsplit0 a)"
+  let ?b = "snd (zsplit0 a)"
+  have abj: "zsplit0 a = (?j,?b)" by simp hence th: "a'=?b \<and> n=i+?j" using prems 
+    by (simp add: Let_def split_def)
+  from abj prems  have th2: "(?I x (CX ?j ?b) = ?I x a) \<and> ?N ?b" by blast
+  from th have "?I x (CX n a') = ?I x (CX (i+?j) ?b)" by simp
+  also from th2 have "\<dots> = ?I x (CX i (CX ?j ?b))" by (simp add: left_distrib)
+  finally have "?I x (CX n a') = ?I  x (CX i a)" using th2 by simp
+  with th2 th show ?case by blast
+next
+  case (4 t n a)
+  let ?nt = "fst (zsplit0 t)"
+  let ?at = "snd (zsplit0 t)"
+  have abj: "zsplit0 t = (?nt,?at)" by simp hence th: "a=Neg ?at \<and> n=-?nt" using prems 
+    by (simp add: Let_def split_def)
+  from abj prems  have th2: "(?I x (CX ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
+  from th2[simplified] th[simplified] show ?case by simp
+next
+  case (5 s t n a)
+  let ?ns = "fst (zsplit0 s)"
+  let ?as = "snd (zsplit0 s)"
+  let ?nt = "fst (zsplit0 t)"
+  let ?at = "snd (zsplit0 t)"
+  have abjs: "zsplit0 s = (?ns,?as)" by simp 
+  moreover have abjt:  "zsplit0 t = (?nt,?at)" by simp 
+  ultimately have th: "a=Add ?as ?at \<and> n=?ns + ?nt" using prems 
+    by (simp add: Let_def split_def)
+  from abjs[symmetric] have bluddy: "\<exists> x y. (x,y) = zsplit0 s" by blast
+  from prems have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CX xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by simp
+  with bluddy abjt have th3: "(?I x (CX ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
+  from abjs prems  have th2: "(?I x (CX ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
+  from th3[simplified] th2[simplified] th[simplified] show ?case 
+    by (simp add: left_distrib)
+next
+  case (6 s t n a)
+  let ?ns = "fst (zsplit0 s)"
+  let ?as = "snd (zsplit0 s)"
+  let ?nt = "fst (zsplit0 t)"
+  let ?at = "snd (zsplit0 t)"
+  have abjs: "zsplit0 s = (?ns,?as)" by simp 
+  moreover have abjt:  "zsplit0 t = (?nt,?at)" by simp 
+  ultimately have th: "a=Sub ?as ?at \<and> n=?ns - ?nt" using prems 
+    by (simp add: Let_def split_def)
+  from abjs[symmetric] have bluddy: "\<exists> x y. (x,y) = zsplit0 s" by blast
+  from prems have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CX xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by simp
+  with bluddy abjt have th3: "(?I x (CX ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
+  from abjs prems  have th2: "(?I x (CX ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
+  from th3[simplified] th2[simplified] th[simplified] show ?case 
+    by (simp add: left_diff_distrib)
+next
+  case (7 i t n a)
+  let ?nt = "fst (zsplit0 t)"
+  let ?at = "snd (zsplit0 t)"
+  have abj: "zsplit0 t = (?nt,?at)" by simp hence th: "a=Mul i ?at \<and> n=i*?nt" using prems 
+    by (simp add: Let_def split_def)
+  from abj prems  have th2: "(?I x (CX ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
+  hence " ?I x (Mul i t) = i * ?I x (CX ?nt ?at)" by simp
+  also have "\<dots> = ?I x (CX (i*?nt) (Mul i ?at))" by (simp add: right_distrib)
+  finally show ?case using th th2 by simp
+qed
+
+consts
+  iszlfm :: "fm \<Rightarrow> bool"   (* Linearity test for fm *)
+  zlfm :: "fm \<Rightarrow> fm"       (* Linearity transformation for fm *)
+recdef iszlfm "measure size"
+  "iszlfm (And p q) = (iszlfm p \<and> iszlfm q)" 
+  "iszlfm (Or p q) = (iszlfm p \<and> iszlfm q)" 
+  "iszlfm (Eq  (CX c e)) = (c>0 \<and> numbound0 e)"
+  "iszlfm (NEq (CX c e)) = (c>0 \<and> numbound0 e)"
+  "iszlfm (Lt  (CX c e)) = (c>0 \<and> numbound0 e)"
+  "iszlfm (Le  (CX c e)) = (c>0 \<and> numbound0 e)"
+  "iszlfm (Gt  (CX c e)) = (c>0 \<and> numbound0 e)"
+  "iszlfm (Ge  (CX c e)) = ( c>0 \<and> numbound0 e)"
+  "iszlfm (Dvd i (CX c e)) = 
+                 (c>0 \<and> i>0 \<and> numbound0 e)"
+  "iszlfm (NDvd i (CX c e))= 
+                 (c>0 \<and> i>0 \<and> numbound0 e)"
+  "iszlfm p = (isatom p \<and> (bound0 p))"
+
+lemma zlin_qfree: "iszlfm p \<Longrightarrow> qfree p"
+  by (induct p rule: iszlfm.induct) auto
+
+
+recdef zlfm "measure fmsize"
+  "zlfm (And p q) = And (zlfm p) (zlfm q)"
+  "zlfm (Or p q) = Or (zlfm p) (zlfm q)"
+  "zlfm (Imp p q) = Or (zlfm (NOT p)) (zlfm q)"
+  "zlfm (Iff p q) = Or (And (zlfm p) (zlfm q)) (And (zlfm (NOT p)) (zlfm (NOT q)))"
+  "zlfm (Lt a) = (let (c,r) = zsplit0 a in 
+     if c=0 then Lt r else 
+     if c>0 then (Lt (CX c r)) else (Gt (CX (- c) (Neg r))))"
+  "zlfm (Le a) = (let (c,r) = zsplit0 a in 
+     if c=0 then Le r else 
+     if c>0 then (Le (CX c r)) else (Ge (CX (- c) (Neg r))))"
+  "zlfm (Gt a) = (let (c,r) = zsplit0 a in 
+     if c=0 then Gt r else 
+     if c>0 then (Gt (CX c r)) else (Lt (CX (- c) (Neg r))))"
+  "zlfm (Ge a) = (let (c,r) = zsplit0 a in 
+     if c=0 then Ge r else 
+     if c>0 then (Ge (CX c r)) else (Le (CX (- c) (Neg r))))"
+  "zlfm (Eq a) = (let (c,r) = zsplit0 a in 
+     if c=0 then Eq r else 
+     if c>0 then (Eq (CX c r)) else (Eq (CX (- c) (Neg r))))"
+  "zlfm (NEq a) = (let (c,r) = zsplit0 a in 
+     if c=0 then NEq r else 
+     if c>0 then (NEq (CX c r)) else (NEq (CX (- c) (Neg r))))"
+  "zlfm (Dvd i a) = (if i=0 then zlfm (Eq a) 
+        else (let (c,r) = zsplit0 a in 
+              if c=0 then (Dvd (abs i) r) else 
+      if c>0 then (Dvd (abs i) (CX c r))
+      else (Dvd (abs i) (CX (- c) (Neg r)))))"
+  "zlfm (NDvd i a) = (if i=0 then zlfm (NEq a) 
+        else (let (c,r) = zsplit0 a in 
+              if c=0 then (NDvd (abs i) r) else 
+      if c>0 then (NDvd (abs i) (CX c r))
+      else (NDvd (abs i) (CX (- c) (Neg r)))))"
+  "zlfm (NOT (And p q)) = Or (zlfm (NOT p)) (zlfm (NOT q))"
+  "zlfm (NOT (Or p q)) = And (zlfm (NOT p)) (zlfm (NOT q))"
+  "zlfm (NOT (Imp p q)) = And (zlfm p) (zlfm (NOT q))"
+  "zlfm (NOT (Iff p q)) = Or (And(zlfm p) (zlfm(NOT q))) (And (zlfm(NOT p)) (zlfm q))"
+  "zlfm (NOT (NOT p)) = zlfm p"
+  "zlfm (NOT T) = F"
+  "zlfm (NOT F) = T"
+  "zlfm (NOT (Lt a)) = zlfm (Ge a)"
+  "zlfm (NOT (Le a)) = zlfm (Gt a)"
+  "zlfm (NOT (Gt a)) = zlfm (Le a)"
+  "zlfm (NOT (Ge a)) = zlfm (Lt a)"
+  "zlfm (NOT (Eq a)) = zlfm (NEq a)"
+  "zlfm (NOT (NEq a)) = zlfm (Eq a)"
+  "zlfm (NOT (Dvd i a)) = zlfm (NDvd i a)"
+  "zlfm (NOT (NDvd i a)) = zlfm (Dvd i a)"
+  "zlfm (NOT (Closed P)) = NClosed P"
+  "zlfm (NOT (NClosed P)) = Closed P"
+  "zlfm p = p" (hints simp add: fmsize_pos)
+
+lemma zlfm_I:
+  assumes qfp: "qfree p"
+  shows "(Ifm bbs (i#bs) (zlfm p) = Ifm bbs (i# bs) p) \<and> iszlfm (zlfm p)"
+  (is "(?I (?l p) = ?I p) \<and> ?L (?l p)")
+using qfp
+proof(induct p rule: zlfm.induct)
+  case (5 a) 
+  let ?c = "fst (zsplit0 a)"
+  let ?r = "snd (zsplit0 a)"
+  have spl: "zsplit0 a = (?c,?r)" by simp
+  from zsplit0_I[OF spl, where x="i" and bs="bs"] 
+  have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  from prems Ia nb  show ?case 
+    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+next
+  case (6 a)  
+  let ?c = "fst (zsplit0 a)"
+  let ?r = "snd (zsplit0 a)"
+  have spl: "zsplit0 a = (?c,?r)" by simp
+  from zsplit0_I[OF spl, where x="i" and bs="bs"] 
+  have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  from prems Ia nb  show ?case 
+    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+next
+  case (7 a)  
+  let ?c = "fst (zsplit0 a)"
+  let ?r = "snd (zsplit0 a)"
+  have spl: "zsplit0 a = (?c,?r)" by simp
+  from zsplit0_I[OF spl, where x="i" and bs="bs"] 
+  have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  from prems Ia nb  show ?case 
+    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+next
+  case (8 a)  
+  let ?c = "fst (zsplit0 a)"
+  let ?r = "snd (zsplit0 a)"
+  have spl: "zsplit0 a = (?c,?r)" by simp
+  from zsplit0_I[OF spl, where x="i" and bs="bs"] 
+  have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  from prems Ia nb  show ?case 
+    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+next
+  case (9 a)  
+  let ?c = "fst (zsplit0 a)"
+  let ?r = "snd (zsplit0 a)"
+  have spl: "zsplit0 a = (?c,?r)" by simp
+  from zsplit0_I[OF spl, where x="i" and bs="bs"] 
+  have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  from prems Ia nb  show ?case 
+    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+next
+  case (10 a)  
+  let ?c = "fst (zsplit0 a)"
+  let ?r = "snd (zsplit0 a)"
+  have spl: "zsplit0 a = (?c,?r)" by simp
+  from zsplit0_I[OF spl, where x="i" and bs="bs"] 
+  have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  from prems Ia nb  show ?case 
+    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+next
+  case (11 j a)  
+  let ?c = "fst (zsplit0 a)"
+  let ?r = "snd (zsplit0 a)"
+  have spl: "zsplit0 a = (?c,?r)" by simp
+  from zsplit0_I[OF spl, where x="i" and bs="bs"] 
+  have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  have "j=0 \<or> (j\<noteq>0 \<and> ?c = 0) \<or> (j\<noteq>0 \<and> ?c >0) \<or> (j\<noteq> 0 \<and> ?c<0)" by arith
+  moreover
+  {assume "j=0" hence z: "zlfm (Dvd j a) = (zlfm (Eq a))" by (simp add: Let_def) 
+    hence ?case using prems by (simp del: zlfm.simps add: zdvd_0_left)}
+  moreover
+  {assume "?c=0" and "j\<noteq>0" hence ?case 
+      using zsplit0_I[OF spl, where x="i" and bs="bs"] zdvd_abs1[where d="j"]
+      by (cases "?r", simp_all add: Let_def split_def)}
+  moreover
+  {assume cp: "?c > 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
+      by (simp add: nb Let_def split_def)
+    hence ?case using Ia cp jnz by (simp add: Let_def split_def 
+	zdvd_abs1[where d="j" and t="(?c*i) + ?N ?r", symmetric])}
+  moreover
+  {assume cn: "?c < 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
+      by (simp add: nb Let_def split_def)
+    hence ?case using Ia cn jnz zdvd_zminus_iff[where m="abs j" and n="?c*i + ?N ?r" ]
+      by (simp add: Let_def split_def 
+      zdvd_abs1[where d="j" and t="(?c*i) + ?N ?r", symmetric])}
+  ultimately show ?case by blast
+next
+  case (12 j a) 
+  let ?c = "fst (zsplit0 a)"
+  let ?r = "snd (zsplit0 a)"
+  have spl: "zsplit0 a = (?c,?r)" by simp
+  from zsplit0_I[OF spl, where x="i" and bs="bs"] 
+  have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  have "j=0 \<or> (j\<noteq>0 \<and> ?c = 0) \<or> (j\<noteq>0 \<and> ?c >0) \<or> (j\<noteq> 0 \<and> ?c<0)" by arith
+  moreover
+  {assume "j=0" hence z: "zlfm (NDvd j a) = (zlfm (NEq a))" by (simp add: Let_def) 
+    hence ?case using prems by (simp del: zlfm.simps add: zdvd_0_left)}
+  moreover
+  {assume "?c=0" and "j\<noteq>0" hence ?case 
+      using zsplit0_I[OF spl, where x="i" and bs="bs"] zdvd_abs1[where d="j"]
+      by (cases "?r", simp_all add: Let_def split_def)}
+  moreover
+  {assume cp: "?c > 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
+      by (simp add: nb Let_def split_def)
+    hence ?case using Ia cp jnz by (simp add: Let_def split_def 
+	zdvd_abs1[where d="j" and t="(?c*i) + ?N ?r", symmetric])}
+  moreover
+  {assume cn: "?c < 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
+      by (simp add: nb Let_def split_def)
+    hence ?case using Ia cn jnz zdvd_zminus_iff[where m="abs j" and n="?c*i + ?N ?r" ]
+      by (simp add: Let_def split_def 
+      zdvd_abs1[where d="j" and t="(?c*i) + ?N ?r", symmetric])}
+  ultimately show ?case by blast
+qed auto
+
+consts 
+  plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*)
+  minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*)
+  \<delta> :: "fm \<Rightarrow> int" (* Compute lcm {d| N\<^isup>?\<^isup> Dvd c*x+t \<in> p}*)
+  d\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* checks if a given l divides all the ds above*)
+
+recdef minusinf "measure size"
+  "minusinf (And p q) = And (minusinf p) (minusinf q)" 
+  "minusinf (Or p q) = Or (minusinf p) (minusinf q)" 
+  "minusinf (Eq  (CX c e)) = F"
+  "minusinf (NEq (CX c e)) = T"
+  "minusinf (Lt  (CX c e)) = T"
+  "minusinf (Le  (CX c e)) = T"
+  "minusinf (Gt  (CX c e)) = F"
+  "minusinf (Ge  (CX c e)) = F"
+  "minusinf p = p"
+
+lemma minusinf_qfree: "qfree p \<Longrightarrow> qfree (minusinf p)"
+  by (induct p rule: minusinf.induct, auto)
+
+recdef plusinf "measure size"
+  "plusinf (And p q) = And (plusinf p) (plusinf q)" 
+  "plusinf (Or p q) = Or (plusinf p) (plusinf q)" 
+  "plusinf (Eq  (CX c e)) = F"
+  "plusinf (NEq (CX c e)) = T"
+  "plusinf (Lt  (CX c e)) = F"
+  "plusinf (Le  (CX c e)) = F"
+  "plusinf (Gt  (CX c e)) = T"
+  "plusinf (Ge  (CX c e)) = T"
+  "plusinf p = p"
+
+recdef \<delta> "measure size"
+  "\<delta> (And p q) = ilcm (\<delta> p) (\<delta> q)" 
+  "\<delta> (Or p q) = ilcm (\<delta> p) (\<delta> q)" 
+  "\<delta> (Dvd i (CX c e)) = i"
+  "\<delta> (NDvd i (CX c e)) = i"
+  "\<delta> p = 1"
+
+recdef d\<delta> "measure size"
+  "d\<delta> (And p q) = (\<lambda> d. d\<delta> p d \<and> d\<delta> q d)" 
+  "d\<delta> (Or p q) = (\<lambda> d. d\<delta> p d \<and> d\<delta> q d)" 
+  "d\<delta> (Dvd i (CX c e)) = (\<lambda> d. i dvd d)"
+  "d\<delta> (NDvd i (CX c e)) = (\<lambda> d. i dvd d)"
+  "d\<delta> p = (\<lambda> d. True)"
+
+lemma delta_mono: 
+  assumes lin: "iszlfm p"
+  and d: "d dvd d'"
+  and ad: "d\<delta> p d"
+  shows "d\<delta> p d'"
+  using lin ad d
+proof(induct p rule: iszlfm.induct)
+  case (9 i c e)  thus ?case using d
+    by (simp add: zdvd_trans[where m="i" and n="d" and k="d'"])
+next
+  case (10 i c e) thus ?case using d
+    by (simp add: zdvd_trans[where m="i" and n="d" and k="d'"])
+qed simp_all
+
+lemma \<delta> : assumes lin:"iszlfm p"
+  shows "d\<delta> p (\<delta> p) \<and> \<delta> p >0"
+using lin
+proof (induct p rule: iszlfm.induct)
+  case (1 p q) 
+  let ?d = "\<delta> (And p q)"
+  from prems ilcm_pos have dp: "?d >0" by simp
+  have d1: "\<delta> p dvd \<delta> (And p q)" using prems ilcm_dvd1 by simp 
+   hence th: "d\<delta> p ?d" using delta_mono prems by auto
+  have "\<delta> q dvd \<delta> (And p q)" using prems ilcm_dvd2 by simp 
+  hence th': "d\<delta> q ?d" using delta_mono prems by auto
+  from th th' dp show ?case by simp 
+next
+  case (2 p q)  
+  let ?d = "\<delta> (And p q)"
+  from prems ilcm_pos have dp: "?d >0" by simp
+  have "\<delta> p dvd \<delta> (And p q)" using prems ilcm_dvd1 by simp hence th: "d\<delta> p ?d" using delta_mono prems by auto
+  have "\<delta> q dvd \<delta> (And p q)" using prems ilcm_dvd2 by simp hence th': "d\<delta> q ?d" using delta_mono prems by auto
+  from th th' dp show ?case by simp 
+qed simp_all
+
+
+consts 
+  a\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm" (* adjusts the coeffitients of a formula *)
+  d\<beta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* tests if all coeffs c of c divide a given l*)
+  \<zeta>  :: "fm \<Rightarrow> int" (* computes the lcm of all coefficients of x*)
+  \<beta> :: "fm \<Rightarrow> num list"
+  \<alpha> :: "fm \<Rightarrow> num list"
+
+recdef a\<beta> "measure size"
+  "a\<beta> (And p q) = (\<lambda> k. And (a\<beta> p k) (a\<beta> q k))" 
+  "a\<beta> (Or p q) = (\<lambda> k. Or (a\<beta> p k) (a\<beta> q k))" 
+  "a\<beta> (Eq  (CX c e)) = (\<lambda> k. Eq (CX 1 (Mul (k div c) e)))"
+  "a\<beta> (NEq (CX c e)) = (\<lambda> k. NEq (CX 1 (Mul (k div c) e)))"
+  "a\<beta> (Lt  (CX c e)) = (\<lambda> k. Lt (CX 1 (Mul (k div c) e)))"
+  "a\<beta> (Le  (CX c e)) = (\<lambda> k. Le (CX 1 (Mul (k div c) e)))"
+  "a\<beta> (Gt  (CX c e)) = (\<lambda> k. Gt (CX 1 (Mul (k div c) e)))"
+  "a\<beta> (Ge  (CX c e)) = (\<lambda> k. Ge (CX 1 (Mul (k div c) e)))"
+  "a\<beta> (Dvd i (CX c e)) =(\<lambda> k. Dvd ((k div c)*i) (CX 1 (Mul (k div c) e)))"
+  "a\<beta> (NDvd i (CX c e))=(\<lambda> k. NDvd ((k div c)*i) (CX 1 (Mul (k div c) e)))"
+  "a\<beta> p = (\<lambda> k. p)"
+
+recdef d\<beta> "measure size"
+  "d\<beta> (And p q) = (\<lambda> k. (d\<beta> p k) \<and> (d\<beta> q k))" 
+  "d\<beta> (Or p q) = (\<lambda> k. (d\<beta> p k) \<and> (d\<beta> q k))" 
+  "d\<beta> (Eq  (CX c e)) = (\<lambda> k. c dvd k)"
+  "d\<beta> (NEq (CX c e)) = (\<lambda> k. c dvd k)"
+  "d\<beta> (Lt  (CX c e)) = (\<lambda> k. c dvd k)"
+  "d\<beta> (Le  (CX c e)) = (\<lambda> k. c dvd k)"
+  "d\<beta> (Gt  (CX c e)) = (\<lambda> k. c dvd k)"
+  "d\<beta> (Ge  (CX c e)) = (\<lambda> k. c dvd k)"
+  "d\<beta> (Dvd i (CX c e)) =(\<lambda> k. c dvd k)"
+  "d\<beta> (NDvd i (CX c e))=(\<lambda> k. c dvd k)"
+  "d\<beta> p = (\<lambda> k. True)"
+
+recdef \<zeta> "measure size"
+  "\<zeta> (And p q) = ilcm (\<zeta> p) (\<zeta> q)" 
+  "\<zeta> (Or p q) = ilcm (\<zeta> p) (\<zeta> q)" 
+  "\<zeta> (Eq  (CX c e)) = c"
+  "\<zeta> (NEq (CX c e)) = c"
+  "\<zeta> (Lt  (CX c e)) = c"
+  "\<zeta> (Le  (CX c e)) = c"
+  "\<zeta> (Gt  (CX c e)) = c"
+  "\<zeta> (Ge  (CX c e)) = c"
+  "\<zeta> (Dvd i (CX c e)) = c"
+  "\<zeta> (NDvd i (CX c e))= c"
+  "\<zeta> p = 1"
+
+recdef \<beta> "measure size"
+  "\<beta> (And p q) = (\<beta> p @ \<beta> q)" 
+  "\<beta> (Or p q) = (\<beta> p @ \<beta> q)" 
+  "\<beta> (Eq  (CX c e)) = [Sub (C -1) e]"
+  "\<beta> (NEq (CX c e)) = [Neg e]"
+  "\<beta> (Lt  (CX c e)) = []"
+  "\<beta> (Le  (CX c e)) = []"
+  "\<beta> (Gt  (CX c e)) = [Neg e]"
+  "\<beta> (Ge  (CX c e)) = [Sub (C -1) e]"
+  "\<beta> p = []"
+
+recdef \<alpha> "measure size"
+  "\<alpha> (And p q) = (\<alpha> p @ \<alpha> q)" 
+  "\<alpha> (Or p q) = (\<alpha> p @ \<alpha> q)" 
+  "\<alpha> (Eq  (CX c e)) = [Add (C -1) e]"
+  "\<alpha> (NEq (CX c e)) = [e]"
+  "\<alpha> (Lt  (CX c e)) = [e]"
+  "\<alpha> (Le  (CX c e)) = [Add (C -1) e]"
+  "\<alpha> (Gt  (CX c e)) = []"
+  "\<alpha> (Ge  (CX c e)) = []"
+  "\<alpha> p = []"
+consts mirror :: "fm \<Rightarrow> fm"
+recdef mirror "measure size"
+  "mirror (And p q) = And (mirror p) (mirror q)" 
+  "mirror (Or p q) = Or (mirror p) (mirror q)" 
+  "mirror (Eq  (CX c e)) = Eq (CX c (Neg e))"
+  "mirror (NEq (CX c e)) = NEq (CX c (Neg e))"
+  "mirror (Lt  (CX c e)) = Gt (CX c (Neg e))"
+  "mirror (Le  (CX c e)) = Ge (CX c (Neg e))"
+  "mirror (Gt  (CX c e)) = Lt (CX c (Neg e))"
+  "mirror (Ge  (CX c e)) = Le (CX c (Neg e))"
+  "mirror (Dvd i (CX c e)) = Dvd i (CX c (Neg e))"
+  "mirror (NDvd i (CX c e)) = NDvd i (CX c (Neg e))"
+  "mirror p = p"
+    (* Lemmas for the correctness of \<sigma>\<rho> *)
+lemma dvd1_eq1: "x >0 \<Longrightarrow> (x::int) dvd 1 = (x = 1)"
+by auto
+
+lemma minusinf_inf:
+  assumes linp: "iszlfm p"
+  and u: "d\<beta> p 1"
+  shows "\<exists> (z::int). \<forall> x < z. Ifm bbs (x#bs) (minusinf p) = Ifm bbs (x#bs) p"
+  (is "?P p" is "\<exists> (z::int). \<forall> x < z. ?I x (?M p) = ?I x p")
+using linp u
+proof (induct p rule: minusinf.induct)
+  case (1 p q) thus ?case 
+    by (auto simp add: dvd1_eq1) (rule_tac x="min z za" in exI,simp)
+next
+  case (2 p q) thus ?case 
+    by (auto simp add: dvd1_eq1) (rule_tac x="min z za" in exI,simp)
+next
+  case (3 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  hence "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
+  proof(clarsimp)
+    fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e = 0"
+    with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
+    show "False" by simp
+  qed
+  thus ?case by auto
+next
+  case (4 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  hence "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
+  proof(clarsimp)
+    fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e = 0"
+    with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
+    show "False" by simp
+  qed
+  thus ?case by auto
+next
+  case (5 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  hence "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e < 0"
+  proof(clarsimp)
+    fix x assume "x < (- Inum (a#bs) e)" 
+    with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
+    show "x + Inum (x#bs) e < 0" by simp
+  qed
+  thus ?case by auto
+next
+  case (6 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  hence "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<le> 0"
+  proof(clarsimp)
+    fix x assume "x < (- Inum (a#bs) e)" 
+    with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
+    show "x + Inum (x#bs) e \<le> 0" by simp
+  qed
+  thus ?case by auto
+next
+  case (7 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  hence "\<forall> x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e > 0)"
+  proof(clarsimp)
+    fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e > 0"
+    with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
+    show "False" by simp
+  qed
+  thus ?case by auto
+next
+  case (8 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  hence "\<forall> x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e \<ge> 0)"
+  proof(clarsimp)
+    fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e \<ge> 0"
+    with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
+    show "False" by simp
+  qed
+  thus ?case by auto
+qed auto
+
+lemma minusinf_repeats:
+  assumes d: "d\<delta> p d" and linp: "iszlfm p"
+  shows "Ifm bbs ((x - k*d)#bs) (minusinf p) = Ifm bbs (x #bs) (minusinf p)"
+using linp d
+proof(induct p rule: iszlfm.induct) 
+  case (9 i c e) hence nbe: "numbound0 e"  and id: "i dvd d" by simp+
+    hence "\<exists> k. d=i*k" by (simp add: dvd_def)
+    then obtain "di" where di_def: "d=i*di" by blast
+    show ?case 
+    proof(simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib, rule iffI)
+      assume 
+	"i dvd c * x - c*(k*d) + Inum (x # bs) e"
+      (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
+      hence "\<exists> (l::int). ?rt = i * l" by (simp add: dvd_def)
+      hence "\<exists> (l::int). c*x+ ?I x e = i*l+c*(k * i*di)" 
+	by (simp add: ring_eq_simps di_def)
+      hence "\<exists> (l::int). c*x+ ?I x e = i*(l + c*k*di)"
+	by (simp add: ring_eq_simps)
+      hence "\<exists> (l::int). c*x+ ?I x e = i*l" by blast
+      thus "i dvd c*x + Inum (x # bs) e" by (simp add: dvd_def) 
+    next
+      assume 
+	"i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc*?rx+?e")
+      hence "\<exists> (l::int). c*x+?e = i*l" by (simp add: dvd_def)
+      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*d)" by simp
+      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*i*di)" by (simp add: di_def)
+      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: ring_eq_simps)
+      hence "\<exists> (l::int). c*x - c * (k*d) +?e = i*l"
+	by blast
+      thus "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
+    qed
+next
+  case (10 i c e)  hence nbe: "numbound0 e"  and id: "i dvd d" by simp+
+    hence "\<exists> k. d=i*k" by (simp add: dvd_def)
+    then obtain "di" where di_def: "d=i*di" by blast
+    show ?case 
+    proof(simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib, rule iffI)
+      assume 
+	"i dvd c * x - c*(k*d) + Inum (x # bs) e"
+      (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
+      hence "\<exists> (l::int). ?rt = i * l" by (simp add: dvd_def)
+      hence "\<exists> (l::int). c*x+ ?I x e = i*l+c*(k * i*di)" 
+	by (simp add: ring_eq_simps di_def)
+      hence "\<exists> (l::int). c*x+ ?I x e = i*(l + c*k*di)"
+	by (simp add: ring_eq_simps)
+      hence "\<exists> (l::int). c*x+ ?I x e = i*l" by blast
+      thus "i dvd c*x + Inum (x # bs) e" by (simp add: dvd_def) 
+    next
+      assume 
+	"i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc*?rx+?e")
+      hence "\<exists> (l::int). c*x+?e = i*l" by (simp add: dvd_def)
+      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*d)" by simp
+      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*i*di)" by (simp add: di_def)
+      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: ring_eq_simps)
+      hence "\<exists> (l::int). c*x - c * (k*d) +?e = i*l"
+	by blast
+      thus "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
+    qed
+qed (auto simp add: nth_pos2 numbound0_I[where bs="bs" and b="x - k*d" and b'="x"])
+
+    (* Is'nt this beautiful?*)
+lemma minusinf_ex:
+  assumes lin: "iszlfm p" and u: "d\<beta> p 1"
+  and exmi: "\<exists> (x::int). Ifm bbs (x#bs) (minusinf p)" (is "\<exists> x. ?P1 x")
+  shows "\<exists> (x::int). Ifm bbs (x#bs) p" (is "\<exists> x. ?P x")
+proof-
+  let ?d = "\<delta> p"
+  from \<delta> [OF lin] have dpos: "?d >0" by simp
+  from \<delta> [OF lin] have alld: "d\<delta> p ?d" by simp
+  from minusinf_repeats[OF alld lin] have th1:"\<forall> x k. ?P1 x = ?P1 (x - (k * ?d))" by simp
+  from minusinf_inf[OF lin u] have th2:"\<exists> z. \<forall> x. x<z \<longrightarrow> (?P x = ?P1 x)" by blast
+  from minusinfinity [OF dpos th1 th2] exmi show ?thesis by blast
+qed
+
+    (*	And This ???*)
+lemma minusinf_bex:
+  assumes lin: "iszlfm p"
+  shows "(\<exists> (x::int). Ifm bbs (x#bs) (minusinf p)) = 
+         (\<exists> (x::int)\<in> {1..\<delta> p}. Ifm bbs (x#bs) (minusinf p))"
+  (is "(\<exists> x. ?P x) = _")
+proof-
+  let ?d = "\<delta> p"
+  from \<delta> [OF lin] have dpos: "?d >0" by simp
+  from \<delta> [OF lin] have alld: "d\<delta> p ?d" by simp
+  from minusinf_repeats[OF alld lin] have th1:"\<forall> x k. ?P x = ?P (x - (k * ?d))" by simp
+  from minf_vee[OF dpos th1] show ?thesis by blast
+qed
+
+
+lemma mirror\<alpha>\<beta>:
+  assumes lp: "iszlfm p"
+  shows "(Inum (i#bs)) ` set (\<alpha> p) = (Inum (i#bs)) ` set (\<beta> (mirror p))"
+using lp
+by (induct p rule: mirror.induct, auto)
+
+lemma mirror: 
+  assumes lp: "iszlfm p"
+  shows "Ifm bbs (x#bs) (mirror p) = Ifm bbs ((- x)#bs) p" 
+using lp
+proof(induct p rule: iszlfm.induct)
+  case (9 j c e) hence nb: "numbound0 e" by simp
+  have "Ifm bbs (x#bs) (mirror (Dvd j (CX c e))) = (j dvd c*x - Inum (x#bs) e)" (is "_ = (j dvd c*x - ?e)") by simp
+    also have "\<dots> = (j dvd (- (c*x - ?e)))"
+    by (simp only: zdvd_zminus_iff)
+  also have "\<dots> = (j dvd (c* (- x)) + ?e)"
+    apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_def zadd_ac zminus_zadd_distrib)
+    by (simp add: ring_eq_simps)
+  also have "\<dots> = Ifm bbs ((- x)#bs) (Dvd j (CX c e))"
+    using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"]
     by simp
+  finally show ?case .
+next
+    case (10 j c e) hence nb: "numbound0 e" by simp
+  have "Ifm bbs (x#bs) (mirror (Dvd j (CX c e))) = (j dvd c*x - Inum (x#bs) e)" (is "_ = (j dvd c*x - ?e)") by simp
+    also have "\<dots> = (j dvd (- (c*x - ?e)))"
+    by (simp only: zdvd_zminus_iff)
+  also have "\<dots> = (j dvd (c* (- x)) + ?e)"
+    apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_def zadd_ac zminus_zadd_distrib)
+    by (simp add: ring_eq_simps)
+  also have "\<dots> = Ifm bbs ((- x)#bs) (Dvd j (CX c e))"
+    using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"]
+    by simp
+  finally show ?case by simp
+qed (auto simp add: numbound0_I[where bs="bs" and b="x" and b'="- x"] nth_pos2)
+
+lemma mirror_l: "iszlfm p \<and> d\<beta> p 1 
+  \<Longrightarrow> iszlfm (mirror p) \<and> d\<beta> (mirror p) 1"
+by (induct p rule: mirror.induct, auto)
+
+lemma mirror_\<delta>: "iszlfm p \<Longrightarrow> \<delta> (mirror p) = \<delta> p"
+by (induct p rule: mirror.induct,auto)
+
+lemma \<beta>_numbound0: assumes lp: "iszlfm p"
+  shows "\<forall> b\<in> set (\<beta> p). numbound0 b"
+  using lp by (induct p rule: \<beta>.induct,auto)
+
+lemma d\<beta>_mono: 
+  assumes linp: "iszlfm p"
+  and dr: "d\<beta> p l"
+  and d: "l dvd l'"
+  shows "d\<beta> p l'"
+using dr linp zdvd_trans[where n="l" and k="l'", simplified d]
+by (induct p rule: iszlfm.induct) simp_all
+
+lemma \<alpha>_l: assumes lp: "iszlfm p"
+  shows "\<forall> b\<in> set (\<alpha> p). numbound0 b"
+using lp
+by(induct p rule: \<alpha>.induct, auto)
+
+lemma \<zeta>: 
+  assumes linp: "iszlfm p"
+  shows "\<zeta> p > 0 \<and> d\<beta> p (\<zeta> p)"
+using linp
+proof(induct p rule: iszlfm.induct)
+  case (1 p q)
+  from prems have dl1: "\<zeta> p dvd ilcm (\<zeta> p) (\<zeta> q)" 
+    by (simp add: ilcm_dvd1[where a="\<zeta> p" and b="\<zeta> q"])
+  from prems have dl2: "\<zeta> q dvd ilcm (\<zeta> p) (\<zeta> q)" 
+    by (simp add: ilcm_dvd2[where a="\<zeta> p" and b="\<zeta> q"])
+  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="ilcm (\<zeta> p) (\<zeta> q)"] 
+    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="ilcm (\<zeta> p) (\<zeta> q)"] 
+    dl1 dl2 show ?case by (auto simp add: ilcm_pos)
+next
+  case (2 p q)
+  from prems have dl1: "\<zeta> p dvd ilcm (\<zeta> p) (\<zeta> q)" 
+    by (simp add: ilcm_dvd1[where a="\<zeta> p" and b="\<zeta> q"])
+  from prems have dl2: "\<zeta> q dvd ilcm (\<zeta> p) (\<zeta> q)" 
+    by (simp add: ilcm_dvd2[where a="\<zeta> p" and b="\<zeta> q"])
+  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="ilcm (\<zeta> p) (\<zeta> q)"] 
+    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="ilcm (\<zeta> p) (\<zeta> q)"] 
+    dl1 dl2 show ?case by (auto simp add: ilcm_pos)
+qed (auto simp add: ilcm_pos)
+
+lemma a\<beta>: assumes linp: "iszlfm p" and d: "d\<beta> p l" and lp: "l > 0"
+  shows "iszlfm (a\<beta> p l) \<and> d\<beta> (a\<beta> p l) 1 \<and> (Ifm bbs (l*x #bs) (a\<beta> p l) = Ifm bbs (x#bs) p)"
+using linp d
+proof (induct p rule: iszlfm.induct)
+  case (5 c e) hence cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp+
+    from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+    from cp have cnz: "c \<noteq> 0" by simp
+    have "c div c\<le> l div c"
+      by (simp add: zdiv_mono1[OF clel cp])
+    then have ldcp:"0 < l div c" 
+      by (simp add: zdiv_self[OF cnz])
+    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
+      by simp
+    hence "(l*x + (l div c) * Inum (x # bs) e < 0) =
+          ((c * (l div c)) * x + (l div c) * Inum (x # bs) e < 0)"
+      by simp
+    also have "\<dots> = ((l div c) * (c*x + Inum (x # bs) e) < (l div c) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (c*x + Inum (x # bs) e < 0)"
+    using mult_less_0_iff [where a="(l div c)" and b="c*x + Inum (x # bs) e"] ldcp by simp
+  finally show ?case using numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"] be  by simp
+next
+  case (6 c e) hence cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp+
+    from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+    from cp have cnz: "c \<noteq> 0" by simp
+    have "c div c\<le> l div c"
+      by (simp add: zdiv_mono1[OF clel cp])
+    then have ldcp:"0 < l div c" 
+      by (simp add: zdiv_self[OF cnz])
+    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
+      by simp
+    hence "(l*x + (l div c) * Inum (x# bs) e \<le> 0) =
+          ((c * (l div c)) * x + (l div c) * Inum (x # bs) e \<le> 0)"
+      by simp
+    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) \<le> ((l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (c*x + Inum (x # bs) e \<le> 0)"
+    using mult_le_0_iff [where a="(l div c)" and b="c*x + Inum (x # bs) e"] ldcp by simp
+  finally show ?case using numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"]  be by simp
+next
+  case (7 c e) hence cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp+
+    from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+    from cp have cnz: "c \<noteq> 0" by simp
+    have "c div c\<le> l div c"
+      by (simp add: zdiv_mono1[OF clel cp])
+    then have ldcp:"0 < l div c" 
+      by (simp add: zdiv_self[OF cnz])
+    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
+      by simp
+    hence "(l*x + (l div c)* Inum (x # bs) e > 0) =
+          ((c * (l div c)) * x + (l div c) * Inum (x # bs) e > 0)"
+      by simp
+    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) > ((l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (c * x + Inum (x # bs) e > 0)"
+    using zero_less_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
+  finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"]  be  by simp
+next
+  case (8 c e) hence cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp+
+    from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+    from cp have cnz: "c \<noteq> 0" by simp
+    have "c div c\<le> l div c"
+      by (simp add: zdiv_mono1[OF clel cp])
+    then have ldcp:"0 < l div c" 
+      by (simp add: zdiv_self[OF cnz])
+    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
+      by simp
+    hence "(l*x + (l div c)* Inum (x # bs) e \<ge> 0) =
+          ((c*(l div c))*x + (l div c)* Inum (x # bs) e \<ge> 0)"
+      by simp
+    also have "\<dots> = ((l div c)*(c*x + Inum (x # bs) e) \<ge> ((l div c)) * 0)" 
+      by (simp add: ring_eq_simps)
+    also have "\<dots> = (c*x + Inum (x # bs) e \<ge> 0)" using ldcp 
+      zero_le_mult_iff [where a="l div c" and b="c*x + Inum (x # bs) e"] by simp
+  finally show ?case using be numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"]  
+    by simp
+next
+  case (3 c e) hence cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp+
+    from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+    from cp have cnz: "c \<noteq> 0" by simp
+    have "c div c\<le> l div c"
+      by (simp add: zdiv_mono1[OF clel cp])
+    then have ldcp:"0 < l div c" 
+      by (simp add: zdiv_self[OF cnz])
+    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
+      by simp
+    hence "(l * x + (l div c) * Inum (x # bs) e = 0) =
+          ((c * (l div c)) * x + (l div c) * Inum (x # bs) e = 0)"
+      by simp
+    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) = ((l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (c * x + Inum (x # bs) e = 0)"
+    using mult_eq_0_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
+  finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"]  be  by simp
+next
+  case (4 c e) hence cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp+
+    from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+    from cp have cnz: "c \<noteq> 0" by simp
+    have "c div c\<le> l div c"
+      by (simp add: zdiv_mono1[OF clel cp])
+    then have ldcp:"0 < l div c" 
+      by (simp add: zdiv_self[OF cnz])
+    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
+      by simp
+    hence "(l * x + (l div c) * Inum (x # bs) e \<noteq> 0) =
+          ((c * (l div c)) * x + (l div c) * Inum (x # bs) e \<noteq> 0)"
+      by simp
+    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) \<noteq> ((l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (c * x + Inum (x # bs) e \<noteq> 0)"
+    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
+  finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"]  be  by simp
+next
+  case (9 j c e) hence cp: "c>0" and be: "numbound0 e" and jp: "j > 0" and d': "c dvd l" by simp+
+    from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+    from cp have cnz: "c \<noteq> 0" by simp
+    have "c div c\<le> l div c"
+      by (simp add: zdiv_mono1[OF clel cp])
+    then have ldcp:"0 < l div c" 
+      by (simp add: zdiv_self[OF cnz])
+    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
+      by simp
+    hence "(\<exists> (k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) = (\<exists> (k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"  by simp
+    also have "\<dots> = (\<exists> (k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e - j * k = 0)"
+    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp by simp
+  also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e = j * k)" by simp
+  finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be  mult_strict_mono[OF ldcp jp ldcp ] by (simp add: dvd_def)
+next
+  case (10 j c e) hence cp: "c>0" and be: "numbound0 e" and jp: "j > 0" and d': "c dvd l" by simp+
+    from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+    from cp have cnz: "c \<noteq> 0" by simp
+    have "c div c\<le> l div c"
+      by (simp add: zdiv_mono1[OF clel cp])
+    then have ldcp:"0 < l div c" 
+      by (simp add: zdiv_self[OF cnz])
+    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
+      by simp
+    hence "(\<exists> (k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) = (\<exists> (k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"  by simp
+    also have "\<dots> = (\<exists> (k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e - j * k = 0)"
+    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp by simp
+  also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e = j * k)" by simp
+  finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be  mult_strict_mono[OF ldcp jp ldcp ] by (simp add: dvd_def)
+qed (simp_all add: nth_pos2 numbound0_I[where bs="bs" and b="(l * x)" and b'="x"])
+
+lemma a\<beta>_ex: assumes linp: "iszlfm p" and d: "d\<beta> p l" and lp: "l>0"
+  shows "(\<exists> x. l dvd x \<and> Ifm bbs (x #bs) (a\<beta> p l)) = (\<exists> (x::int). Ifm bbs (x#bs) p)"
+  (is "(\<exists> x. l dvd x \<and> ?P x) = (\<exists> x. ?P' x)")
+proof-
+  have "(\<exists> x. l dvd x \<and> ?P x) = (\<exists> (x::int). ?P (l*x))"
+    using unity_coeff_ex[where l="l" and P="?P", simplified] by simp
+  also have "\<dots> = (\<exists> (x::int). ?P' x)" using a\<beta>[OF linp d lp] by simp
+  finally show ?thesis  . 
 qed
 
-lemma [code]: "linearize (Mult i j) = 
-  (case linearize i of
-  None \<Rightarrow> None
-  | Some li \<Rightarrow> (case li of 
-     Cst b \<Rightarrow> (case linearize j of
-      None \<Rightarrow> None
-     | (Some lj) \<Rightarrow> Some (lin_mul(b,lj)))
-  | _ \<Rightarrow> (case linearize j of
-      None \<Rightarrow> None
-    | (Some lj) \<Rightarrow> (case lj of 
-        Cst b \<Rightarrow> Some (lin_mul (b,li))
-      | _ \<Rightarrow> None))))"
-by simp
+lemma \<beta>:
+  assumes lp: "iszlfm p"
+  and u: "d\<beta> p 1"
+  and d: "d\<delta> p d"
+  and dp: "d > 0"
+  and nob: "\<not>(\<exists>(j::int) \<in> {1 .. d}. \<exists> b\<in> (Inum (a#bs)) ` set(\<beta> p). x = b + j)"
+  and p: "Ifm bbs (x#bs) p" (is "?P x")
+  shows "?P (x - d)"
+using lp u d dp nob p
+proof(induct p rule: iszlfm.induct)
+  case (5 c e) hence c1: "c=1" and  bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+    with dp p c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] prems
+    show ?case by simp
+next
+  case (6 c e)  hence c1: "c=1" and  bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+    with dp p c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] prems
+    show ?case by simp
+next
+  case (7 c e) hence p: "Ifm bbs (x #bs) (Gt (CX c e))" and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+    let ?e = "Inum (x # bs) e"
+    {assume "(x-d) +?e > 0" hence ?case using c1 
+      numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] by simp}
+    moreover
+    {assume H: "\<not> (x-d) + ?e > 0" 
+      let ?v="Neg e"
+      have vb: "?v \<in> set (\<beta> (Gt (CX c e)))" by simp
+      from prems(11)[simplified simp_thms Inum.simps \<beta>.simps set.simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]] 
+      have nob: "\<not> (\<exists> j\<in> {1 ..d}. x =  - ?e + j)" by auto 
+      from H p have "x + ?e > 0 \<and> x + ?e \<le> d" by (simp add: c1)
+      hence "x + ?e \<ge> 1 \<and> x + ?e \<le> d"  by simp
+      hence "\<exists> (j::int) \<in> {1 .. d}. j = x + ?e" by simp
+      hence "\<exists> (j::int) \<in> {1 .. d}. x = (- ?e + j)" 
+	by (simp add: ring_eq_simps)
+      with nob have ?case by auto}
+    ultimately show ?case by blast
+next
+  case (8 c e) hence p: "Ifm bbs (x #bs) (Ge (CX c e))" and c1: "c=1" and bn:"numbound0 e" 
+    using dvd1_eq1[where x="c"] by simp+
+    let ?e = "Inum (x # bs) e"
+    {assume "(x-d) +?e \<ge> 0" hence ?case using  c1 
+      numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"]
+	by simp}
+    moreover
+    {assume H: "\<not> (x-d) + ?e \<ge> 0" 
+      let ?v="Sub (C -1) e"
+      have vb: "?v \<in> set (\<beta> (Ge (CX c e)))" by simp
+      from prems(11)[simplified simp_thms Inum.simps \<beta>.simps set.simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]] 
+      have nob: "\<not> (\<exists> j\<in> {1 ..d}. x =  - ?e - 1 + j)" by auto 
+      from H p have "x + ?e \<ge> 0 \<and> x + ?e < d" by (simp add: c1)
+      hence "x + ?e +1 \<ge> 1 \<and> x + ?e + 1 \<le> d"  by simp
+      hence "\<exists> (j::int) \<in> {1 .. d}. j = x + ?e + 1" by simp
+      hence "\<exists> (j::int) \<in> {1 .. d}. x= - ?e - 1 + j" by (simp add: ring_eq_simps)
+      with nob have ?case by simp }
+    ultimately show ?case by blast
+next
+  case (3 c e) hence p: "Ifm bbs (x #bs) (Eq (CX c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+    let ?e = "Inum (x # bs) e"
+    let ?v="(Sub (C -1) e)"
+    have vb: "?v \<in> set (\<beta> (Eq (CX c e)))" by simp
+    from p have "x= - ?e" by (simp add: c1) with prems(11) show ?case using dp
+      by simp (erule ballE[where x="1"],
+	simp_all add:ring_eq_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
+next
+  case (4 c e)hence p: "Ifm bbs (x #bs) (NEq (CX c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+    let ?e = "Inum (x # bs) e"
+    let ?v="Neg e"
+    have vb: "?v \<in> set (\<beta> (NEq (CX c e)))" by simp
+    {assume "x - d + Inum (((x -d)) # bs) e \<noteq> 0" 
+      hence ?case by (simp add: c1)}
+    moreover
+    {assume H: "x - d + Inum (((x -d)) # bs) e = 0"
+      hence "x = - Inum (((x -d)) # bs) e + d" by simp
+      hence "x = - Inum (a # bs) e + d"
+	by (simp add: numbound0_I[OF bn,where b="x - d"and b'="a"and bs="bs"])
+       with prems(11) have ?case using dp by simp}
+  ultimately show ?case by blast
+next 
+  case (9 j c e) hence p: "Ifm bbs (x #bs) (Dvd j (CX c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+    let ?e = "Inum (x # bs) e"
+    from prems have id: "j dvd d" by simp
+    from c1 have "?p x = (j dvd (x+ ?e))" by simp
+    also have "\<dots> = (j dvd x - d + ?e)" 
+      using dvd_period[OF id, where x="x" and c="-1" and t="?e"] by simp
+    finally show ?case 
+      using numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] c1 p by simp
+next
+  case (10 j c e) hence p: "Ifm bbs (x #bs) (NDvd j (CX c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+    let ?e = "Inum (x # bs) e"
+    from prems have id: "j dvd d" by simp
+    from c1 have "?p x = (\<not> j dvd (x+ ?e))" by simp
+    also have "\<dots> = (\<not> j dvd x - d + ?e)" 
+      using dvd_period[OF id, where x="x" and c="-1" and t="?e"] by simp
+    finally show ?case using numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] c1 p by simp
+qed (auto simp add: numbound0_I[where bs="bs" and b="(x - d)" and b'="x"] nth_pos2)
 
-lemma [code]: "psimpl (And p q) = 
-  (let p'= psimpl p
-  in (case p' of 
-       F \<Rightarrow> F
-      |T \<Rightarrow> psimpl q
-      | _ \<Rightarrow> let q' = psimpl q
-             in (case q' of
-                     F \<Rightarrow> F
-                   | T \<Rightarrow> p'
-                   | _ \<Rightarrow> (And p' q'))))"
+lemma \<beta>':   
+  assumes lp: "iszlfm p"
+  and u: "d\<beta> p 1"
+  and d: "d\<delta> p d"
+  and dp: "d > 0"
+  shows "\<forall> x. \<not>(\<exists>(j::int) \<in> {1 .. d}. \<exists> b\<in> set(\<beta> p). Ifm bbs ((Inum (a#bs) b + j) #bs) p) \<longrightarrow> Ifm bbs (x#bs) p \<longrightarrow> Ifm bbs ((x - d)#bs) p" (is "\<forall> x. ?b \<longrightarrow> ?P x \<longrightarrow> ?P (x - d)")
+proof(clarify)
+  fix x 
+  assume nb:"?b" and px: "?P x" 
+  hence nb2: "\<not>(\<exists>(j::int) \<in> {1 .. d}. \<exists> b\<in> (Inum (a#bs)) ` set(\<beta> p). x = b + j)"
+    by auto
+  from  \<beta>[OF lp u d dp nb2 px] show "?P (x -d )" .
+qed
 
-by simp
+theorem cp_thm:
+  assumes lp: "iszlfm p"
+  and u: "d\<beta> p 1"
+  and d: "d\<delta> p d"
+  and dp: "d > 0"
+  shows "(\<exists> (x::int). Ifm bbs (x #bs) p) = (\<exists> j\<in> {1.. d}. Ifm bbs (j #bs) (minusinf p) \<or> (\<exists> b \<in> set (\<beta> p). Ifm bbs ((Inum (i#bs) b + j) #bs) p))"
+  (is "(\<exists> (x::int). ?P (x)) = (\<exists> j\<in> ?D. ?M j \<or> (\<exists> b\<in> ?B. ?P (?I b + j)))")
+proof-
+  from minusinf_inf[OF lp u] 
+  have th: "\<exists>(z::int). \<forall>x<z. ?P (x) = ?M x" by blast
+  let ?B' = "{?I b | b. b\<in> ?B}"
+  have BB': "(\<exists>j\<in>?D. \<exists>b\<in> ?B. ?P (?I b +j)) = (\<exists> j \<in> ?D. \<exists> b \<in> ?B'. ?P (b + j))" by auto
+  hence th2: "\<forall> x. \<not> (\<exists> j \<in> ?D. \<exists> b \<in> ?B'. ?P ((b + j))) \<longrightarrow> ?P (x) \<longrightarrow> ?P ((x - d))" 
+    using \<beta>'[OF lp u d dp, where a="i" and bbs = "bbs"] by blast
+  from minusinf_repeats[OF d lp]
+  have th3: "\<forall> x k. ?M x = ?M (x-k*d)" by simp
+  from cpmi_eq[OF dp th th2 th3] BB' show ?thesis by blast
+qed
 
-lemma [code]: "psimpl (Or p q) = 
-  (let p'= psimpl p
-  in (case p' of 
-        T \<Rightarrow> T
-      | F \<Rightarrow> psimpl q
-      | _ \<Rightarrow> let q' = psimpl q
-             in (case q' of
-                     T \<Rightarrow> T
-                   | F \<Rightarrow> p'
-                   | _ \<Rightarrow> (Or p' q'))))"
+    (* Implement the right hand sides of Cooper's theorem and Ferrante and Rackoff. *)
+lemma mirror_ex: 
+  assumes lp: "iszlfm p"
+  shows "(\<exists> x. Ifm bbs (x#bs) (mirror p)) = (\<exists> x. Ifm bbs (x#bs) p)"
+  (is "(\<exists> x. ?I x ?mp) = (\<exists> x. ?I x p)")
+proof(auto)
+  fix x assume "?I x ?mp" hence "?I (- x) p" using mirror[OF lp] by blast
+  thus "\<exists> x. ?I x p" by blast
+next
+  fix x assume "?I x p" hence "?I (- x) ?mp" 
+    using mirror[OF lp, where x="- x", symmetric] by auto
+  thus "\<exists> x. ?I x ?mp" by blast
+qed
+  
+  
+lemma cp_thm': 
+  assumes lp: "iszlfm p"
+  and up: "d\<beta> p 1" and dd: "d\<delta> p d" and dp: "d > 0"
+  shows "(\<exists> x. Ifm bbs (x#bs) p) = ((\<exists> j\<in> {1 .. d}. Ifm bbs (j#bs) (minusinf p)) \<or> (\<exists> j\<in> {1.. d}. \<exists> b\<in> (Inum (i#bs)) ` set (\<beta> p). Ifm bbs ((b+j)#bs) p))"
+  using cp_thm[OF lp up dd dp,where i="i"] by auto
 
-by simp
+constdefs unit:: "fm \<Rightarrow> fm \<times> num list \<times> int"
+  "unit p \<equiv> (let p' = zlfm p ; l = \<zeta> p' ; q = And (Dvd l (CX 1 (C 0))) (a\<beta> p' l); d = \<delta> q;
+             B = remdups (map simpnum (\<beta> q)) ; a = remdups (map simpnum (\<alpha> q))
+             in if length B \<le> length a then (q,B,d) else (mirror q, a,d))"
 
-lemma [code]: "psimpl (Imp p q) = 
-  (let p'= psimpl p
-  in (case p' of 
-       F \<Rightarrow> T
-      |T \<Rightarrow> psimpl q
-      | NOT p1 \<Rightarrow> let q' = psimpl q
-             in (case q' of
-                     F \<Rightarrow> p1
-                   | T \<Rightarrow> T
-                   | _ \<Rightarrow> (Or p1 q'))
-      | _ \<Rightarrow> let q' = psimpl q
-             in (case q' of
-                     F \<Rightarrow> NOT p'
-                   | T \<Rightarrow> T
-                   | _ \<Rightarrow> (Imp p' q'))))"
-by simp
+lemma unit: assumes qf: "qfree p"
+  shows "\<And> q B d. unit p = (q,B,d) \<Longrightarrow> ((\<exists> x. Ifm bbs (x#bs) p) = (\<exists> x. Ifm bbs (x#bs) q)) \<and> (Inum (i#bs)) ` set B = (Inum (i#bs)) ` set (\<beta> q) \<and> d\<beta> q 1 \<and> d\<delta> q d \<and> d >0 \<and> iszlfm q \<and> (\<forall> b\<in> set B. numbound0 b)"
+proof-
+  fix q B d 
+  assume qBd: "unit p = (q,B,d)"
+  let ?thes = "((\<exists> x. Ifm bbs (x#bs) p) = (\<exists> x. Ifm bbs (x#bs) q)) \<and>
+    Inum (i#bs) ` set B = Inum (i#bs) ` set (\<beta> q) \<and>
+    d\<beta> q 1 \<and> d\<delta> q d \<and> 0 < d \<and> iszlfm q \<and> (\<forall> b\<in> set B. numbound0 b)"
+  let ?I = "\<lambda> x p. Ifm bbs (x#bs) p"
+  let ?p' = "zlfm p"
+  let ?l = "\<zeta> ?p'"
+  let ?q = "And (Dvd ?l (CX 1 (C 0))) (a\<beta> ?p' ?l)"
+  let ?d = "\<delta> ?q"
+  let ?B = "set (\<beta> ?q)"
+  let ?B'= "remdups (map simpnum (\<beta> ?q))"
+  let ?A = "set (\<alpha> ?q)"
+  let ?A'= "remdups (map simpnum (\<alpha> ?q))"
+  from conjunct1[OF zlfm_I[OF qf, where bs="bs"]] 
+  have pp': "\<forall> i. ?I i ?p' = ?I i p" by auto
+  from conjunct2[OF zlfm_I[OF qf, where bs="bs" and i="i"]]
+  have lp': "iszlfm ?p'" . 
+  from lp' \<zeta>[where p="?p'"] have lp: "?l >0" and dl: "d\<beta> ?p' ?l" by auto
+  from a\<beta>_ex[where p="?p'" and l="?l" and bs="bs", OF lp' dl lp] pp'
+  have pq_ex:"(\<exists> (x::int). ?I x p) = (\<exists> x. ?I x ?q)" by simp 
+  from lp' lp a\<beta>[OF lp' dl lp] have lq:"iszlfm ?q" and uq: "d\<beta> ?q 1"  by auto
+  from \<delta>[OF lq] have dp:"?d >0" and dd: "d\<delta> ?q ?d" by blast+
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  have "?N ` set ?B' = ((?N o simpnum) ` ?B)" by auto 
+  also have "\<dots> = ?N ` ?B" using simpnum_ci[where bs="i#bs"] by auto
+  finally have BB': "?N ` set ?B' = ?N ` ?B" .
+  have "?N ` set ?A' = ((?N o simpnum) ` ?A)" by auto 
+  also have "\<dots> = ?N ` ?A" using simpnum_ci[where bs="i#bs"] by auto
+  finally have AA': "?N ` set ?A' = ?N ` ?A" .
+  from \<beta>_numbound0[OF lq] have B_nb:"\<forall> b\<in> set ?B'. numbound0 b"
+    by (simp add: simpnum_numbound0)
+  from \<alpha>_l[OF lq] have A_nb: "\<forall> b\<in> set ?A'. numbound0 b"
+    by (simp add: simpnum_numbound0)
+    {assume "length ?B' \<le> length ?A'"
+    hence q:"q=?q" and "B = ?B'" and d:"d = ?d"
+      using qBd by (auto simp add: Let_def unit_def)
+    with BB' B_nb have b: "?N ` (set B) = ?N ` set (\<beta> q)" 
+      and bn: "\<forall>b\<in> set B. numbound0 b" by simp+ 
+  with pq_ex dp uq dd lq q d have ?thes by simp}
+  moreover 
+  {assume "\<not> (length ?B' \<le> length ?A')"
+    hence q:"q=mirror ?q" and "B = ?A'" and d:"d = ?d"
+      using qBd by (auto simp add: Let_def unit_def)
+    with AA' mirror\<alpha>\<beta>[OF lq] A_nb have b:"?N ` (set B) = ?N ` set (\<beta> q)" 
+      and bn: "\<forall>b\<in> set B. numbound0 b" by simp+
+    from mirror_ex[OF lq] pq_ex q 
+    have pqm_eq:"(\<exists> (x::int). ?I x p) = (\<exists> (x::int). ?I x q)" by simp
+    from lq uq q mirror_l[where p="?q"]
+    have lq': "iszlfm q" and uq: "d\<beta> q 1" by auto
+    from \<delta>[OF lq'] mirror_\<delta>[OF lq] q d have dq:"d\<delta> q d " by auto
+    from pqm_eq b bn uq lq' dp dq q dp d have ?thes by simp
+  }
+  ultimately show ?thes by blast
+qed
+    (* Cooper's Algorithm *)
 
-declare zdvd_iff_zmod_eq_0 [code]
+constdefs cooper :: "fm \<Rightarrow> fm"
+  "cooper p \<equiv> 
+  (let (q,B,d) = unit p; js = iupt (1,d);
+       mq = simpfm (minusinf q);
+       md = evaldjf (\<lambda> j. simpfm (subst0 (C j) mq)) js
+   in if md = T then T else
+    (let qd = evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) q)) 
+                               (allpairs Pair B js)
+     in decr (disj md qd)))"
+lemma cooper: assumes qf: "qfree p"
+  shows "((\<exists> x. Ifm bbs (x#bs) p) = (Ifm bbs bs (cooper p))) \<and> qfree (cooper p)" 
+  (is "(?lhs = ?rhs) \<and> _")
+proof-
 
-(*
-generate_code ("presburger.ML") test = "pa"
-use "rcooper.ML"
-oracle rpresburger_oracle ("term") = RCooper.rpresburger_oracle
-use "rpresbtac.ML"
-setup RPresburger.setup
-*)
+  let ?I = "\<lambda> x p. Ifm bbs (x#bs) p"
+  let ?q = "fst (unit p)"
+  let ?B = "fst (snd(unit p))"
+  let ?d = "snd (snd (unit p))"
+  let ?js = "iupt (1,?d)"
+  let ?mq = "minusinf ?q"
+  let ?smq = "simpfm ?mq"
+  let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
+  let ?N = "\<lambda> t. Inum (i#bs) t"
+  let ?qd = "evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) (allpairs Pair ?B ?js)"
+  have qbf:"unit p = (?q,?B,?d)" by simp
+  from unit[OF qf qbf] have pq_ex: "(\<exists>(x::int). ?I x p) = (\<exists> (x::int). ?I x ?q)" and 
+    B:"?N ` set ?B = ?N ` set (\<beta> ?q)" and 
+    uq:"d\<beta> ?q 1" and dd: "d\<delta> ?q ?d" and dp: "?d > 0" and 
+    lq: "iszlfm ?q" and 
+    Bn: "\<forall> b\<in> set ?B. numbound0 b" by auto
+  from zlin_qfree[OF lq] have qfq: "qfree ?q" .
+  from simpfm_qf[OF minusinf_qfree[OF qfq]] have qfmq: "qfree ?smq".
+  have jsnb: "\<forall> j \<in> set ?js. numbound0 (C j)" by simp
+  hence "\<forall> j\<in> set ?js. bound0 (subst0 (C j) ?smq)" 
+    by (auto simp only: subst0_bound0[OF qfmq])
+  hence th: "\<forall> j\<in> set ?js. bound0 (simpfm (subst0 (C j) ?smq))"
+    by (auto simp add: simpfm_bound0)
+  from evaldjf_bound0[OF th] have mdb: "bound0 ?md" by simp 
+  from Bn jsnb have "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). numbound0 (Add b (C j))"
+    by (simp add: allpairs_set)
+  hence "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). bound0 (subst0 (Add b (C j)) ?q)"
+    using subst0_bound0[OF qfq] by blast
+  hence "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). bound0 (simpfm (subst0 (Add b (C j)) ?q))"
+    using simpfm_bound0  by blast
+  hence th': "\<forall> x \<in> set (allpairs Pair ?B ?js). bound0 ((\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) x)"
+    by auto 
+  from evaldjf_bound0 [OF th'] have qdb: "bound0 ?qd" by simp
+  from mdb qdb 
+  have mdqdb: "bound0 (disj ?md ?qd)" by (simp only: disj_def, cases "?md=T \<or> ?qd=T", simp_all)
+  from trans [OF pq_ex cp_thm'[OF lq uq dd dp,where i="i"]] B
+  have "?lhs = (\<exists> j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists> b\<in> ?N ` set ?B. Ifm bbs ((b+ j)#bs) ?q))" by auto
+  also have "\<dots> = (\<exists> j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists> b\<in> set ?B. Ifm bbs ((?N b+ j)#bs) ?q))" by simp
+  also have "\<dots> = ((\<exists> j\<in> {1.. ?d}. ?I j ?mq ) \<or> (\<exists> j\<in> {1.. ?d}. \<exists> b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))" by (simp only: Inum.simps) blast
+  also have "\<dots> = ((\<exists> j\<in> {1.. ?d}. ?I j ?smq ) \<or> (\<exists> j\<in> {1.. ?d}. \<exists> b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))" by (simp add: simpfm) 
+  also have "\<dots> = ((\<exists> j\<in> set ?js. (\<lambda> j. ?I i (simpfm (subst0 (C j) ?smq))) j) \<or> (\<exists> j\<in> set ?js. \<exists> b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))"
+    by (simp only: simpfm subst0_I[OF qfmq] iupt_set) auto
+  also have "\<dots> = (?I i (evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js) \<or> (\<exists> j\<in> set ?js. \<exists> b\<in> set ?B. ?I i (subst0 (Add b (C j)) ?q)))" 
+   by (simp only: evaldjf_ex subst0_I[OF qfq])
+ also have "\<dots>= (?I i ?md \<or> (\<exists> (b,j) \<in> set (allpairs Pair ?B ?js). (\<lambda> (b,j). ?I i (simpfm (subst0 (Add b (C j)) ?q))) (b,j)))"
+   by (simp only: simpfm allpairs_set) blast
+ also have "\<dots> = (?I i ?md \<or> (?I i (evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) (allpairs Pair ?B ?js))))"
+   by (simp only: evaldjf_ex[where bs="i#bs" and f="\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)" and ps="allpairs Pair ?B ?js"]) (auto simp add: split_def) 
+ finally have mdqd: "?lhs = (?I i ?md \<or> ?I i ?qd)" by simp  
+  also have "\<dots> = (?I i (disj ?md ?qd))" by (simp add: disj)
+  also have "\<dots> = (Ifm bbs bs (decr (disj ?md ?qd)))" by (simp only: decr [OF mdqdb]) 
+  finally have mdqd2: "?lhs = (Ifm bbs bs (decr (disj ?md ?qd)))" . 
+  {assume mdT: "?md = T"
+    hence cT:"cooper p = T" 
+      by (simp only: cooper_def unit_def split_def Let_def if_True) simp
+    from mdT have lhs:"?lhs" using mdqd by simp 
+    from mdT have "?rhs" by (simp add: cooper_def unit_def split_def)
+    with lhs cT have ?thesis by simp }
+  moreover
+  {assume mdT: "?md \<noteq> T" hence "cooper p = decr (disj ?md ?qd)" 
+      by (simp only: cooper_def unit_def split_def Let_def if_False) 
+    with mdqd2 decr_qf[OF mdqdb] have ?thesis by simp }
+  ultimately show ?thesis by blast
+qed
+
+constdefs pa:: "fm \<Rightarrow> fm"
+  "pa \<equiv> (\<lambda> p. qelim (prep p) cooper)"
+
+theorem mirqe: "(Ifm bbs bs (pa p) = Ifm bbs bs p) \<and> qfree (pa p)"
+  using qelim_ci cooper prep by (auto simp add: pa_def)
+
+declare zdvd_iff_zmod_eq_0 [code] 
+code_module GeneratedCooper
+file "generated_cooper.ML"
+contains pa = "pa"
+test = "%x . pa (E(A(Imp (Ge (Sub (Bound 0) (Bound 1))) (E(E(Eq(Sub(Add(Mul 3 (Bound 1)) (Mul 5 (Bound 0))) (Bound 2))))))))"
+
+ML{* use "generated_cooper.ML"; 
+     GeneratedCooper.test (); *}
+use "coopereif.ML"
+oracle linzqe_oracle ("term") = Coopereif.cooper_oracle
+use"coopertac.ML"
+setup "LinZTac.setup"
+
+  (* Tests *)
+lemma "\<exists> (j::int). \<forall> x\<ge>j. (\<exists> a b. x = 3*a+5*b)"
+by cooper
+
+lemma "ALL (x::int) >=8. EX i j. 5*i + 3*j = x" by cooper
+theorem "(\<forall>(y::int). 3 dvd y) ==> \<forall>(x::int). b < x --> a \<le> x"
+  by cooper
+
+theorem "!! (y::int) (z::int) (n::int). 3 dvd z ==> 2 dvd (y::int) ==>
+  (\<exists>(x::int).  2*x =  y) & (\<exists>(k::int). 3*k = z)"
+  by cooper
+
+theorem "!! (y::int) (z::int) n. Suc(n::nat) < 6 ==>  3 dvd z ==>
+  2 dvd (y::int) ==> (\<exists>(x::int).  2*x =  y) & (\<exists>(k::int). 3*k = z)"
+  by cooper
+
+theorem "\<forall>(x::nat). \<exists>(y::nat). (0::nat) \<le> 5 --> y = 5 + x "
+  by cooper
+
+lemma "ALL (x::int) >=8. EX i j. 5*i + 3*j = x" by cooper 
+lemma "ALL (y::int) (z::int) (n::int). 3 dvd z --> 2 dvd (y::int) --> (EX (x::int).  2*x =  y) & (EX (k::int). 3*k = z)" by cooper
+lemma "ALL(x::int) y. x < y --> 2 * x + 1 < 2 * y" by cooper
+lemma "ALL(x::int) y. 2 * x + 1 ~= 2 * y" by cooper
+lemma "EX(x::int) y. 0 < x  & 0 <= y  & 3 * x - 5 * y = 1" by cooper
+lemma "~ (EX(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)" by cooper
+lemma "ALL(x::int). (2 dvd x) --> (EX(y::int). x = 2*y)" by cooper
+lemma "ALL(x::int). (2 dvd x) --> (EX(y::int). x = 2*y)" by cooper
+lemma "ALL(x::int). (2 dvd x) = (EX(y::int). x = 2*y)" by cooper
+lemma "ALL(x::int). ((2 dvd x) = (ALL(y::int). x ~= 2*y + 1))" by cooper
+lemma "~ (ALL(x::int). ((2 dvd x) = (ALL(y::int). x ~= 2*y+1) | (EX(q::int) (u::int) i. 3*i + 2*q - u < 17) --> 0 < x | ((~ 3 dvd x) &(x + 8 = 0))))" by cooper
+lemma "~ (ALL(i::int). 4 <= i --> (EX x y. 0 <= x & 0 <= y & 3 * x + 5 * y = i))" 
+  by cooper
+lemma "EX j. ALL (x::int) >= j. EX i j. 5*i + 3*j = x" by cooper
+
+theorem "(\<forall>(y::int). 3 dvd y) ==> \<forall>(x::int). b < x --> a \<le> x"
+  by cooper
+
+theorem "!! (y::int) (z::int) (n::int). 3 dvd z ==> 2 dvd (y::int) ==>
+  (\<exists>(x::int).  2*x =  y) & (\<exists>(k::int). 3*k = z)"
+  by cooper
+
+theorem "!! (y::int) (z::int) n. Suc(n::nat) < 6 ==>  3 dvd z ==>
+  2 dvd (y::int) ==> (\<exists>(x::int).  2*x =  y) & (\<exists>(k::int). 3*k = z)"
+  by cooper
+
+theorem "\<forall>(x::nat). \<exists>(y::nat). (0::nat) \<le> 5 --> y = 5 + x "
+  by cooper
+
+theorem "\<forall>(x::nat). \<exists>(y::nat). y = 5 + x | x div 6 + 1= 2"
+  by cooper
+
+theorem "\<exists>(x::int). 0 < x"
+  by cooper
+
+theorem "\<forall>(x::int) y. x < y --> 2 * x + 1 < 2 * y"
+  by cooper
+ 
+theorem "\<forall>(x::int) y. 2 * x + 1 \<noteq> 2 * y"
+  by cooper
+ 
+theorem "\<exists>(x::int) y. 0 < x  & 0 \<le> y  & 3 * x - 5 * y = 1"
+  by cooper
+
+theorem "~ (\<exists>(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)"
+  by cooper
+
+theorem "~ (\<exists>(x::int). False)"
+  by cooper
+
+theorem "\<forall>(x::int). (2 dvd x) --> (\<exists>(y::int). x = 2*y)"
+  by cooper 
+
+theorem "\<forall>(x::int). (2 dvd x) --> (\<exists>(y::int). x = 2*y)"
+  by cooper 
+
+theorem "\<forall>(x::int). (2 dvd x) = (\<exists>(y::int). x = 2*y)"
+  by cooper 
+
+theorem "\<forall>(x::int). ((2 dvd x) = (\<forall>(y::int). x \<noteq> 2*y + 1))"
+  by cooper 
+
+theorem "~ (\<forall>(x::int). 
+            ((2 dvd x) = (\<forall>(y::int). x \<noteq> 2*y+1) | 
+             (\<exists>(q::int) (u::int) i. 3*i + 2*q - u < 17)
+             --> 0 < x | ((~ 3 dvd x) &(x + 8 = 0))))"
+  by cooper
+ 
+theorem "~ (\<forall>(i::int). 4 \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i))"
+  by cooper
+
+theorem "\<forall>(i::int). 8 \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i)"
+  by cooper
+
+theorem "\<exists>(j::int). \<forall>i. j \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i)"
+  by cooper
+
+theorem "~ (\<forall>j (i::int). j \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i))"
+  by cooper
+
+theorem "(\<exists>m::nat. n = 2 * m) --> (n + 1) div 2 = n div 2"
+  by cooper
 
 end
