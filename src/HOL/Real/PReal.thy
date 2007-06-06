@@ -1128,6 +1128,16 @@ lemmas preal_cancels =
     preal_add_le_cancel_right preal_add_le_cancel_left
     preal_add_left_cancel_iff preal_add_right_cancel_iff
 
+instance preal :: ordered_cancel_ab_semigroup_add
+proof
+  fix a b c :: preal
+  show "a + b + c = a + (b + c)" by (rule preal_add_assoc)
+  show "a + b = b + a" by (rule preal_add_commute)
+  show "a + b = a + c \<Longrightarrow> b = c" by (rule preal_add_left_cancel)
+  show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
+    by (simp only: preal_add_le_cancel_left)
+qed
+
 
 subsection{*Completeness of type @{typ preal}*}
 
