@@ -1405,7 +1405,7 @@ lemma setprod_eq_1_iff [simp]:
   by (induct set: finite) auto
 
 lemma setprod_zero:
-     "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1_cancel) ==> setprod f A = 0"
+     "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1) ==> setprod f A = 0"
   apply (induct set: finite, force, clarsimp)
   apply (erule disjE, auto)
   done
@@ -1429,24 +1429,24 @@ lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_idom) < f x)
   done
 
 lemma setprod_nonzero [rule_format]:
-    "(ALL x y. (x::'a::comm_semiring_1_cancel) * y = 0 --> x = 0 | y = 0) ==>
+    "(ALL x y. (x::'a::comm_semiring_1) * y = 0 --> x = 0 | y = 0) ==>
       finite A ==> (ALL x: A. f x \<noteq> (0::'a)) --> setprod f A \<noteq> 0"
   apply (erule finite_induct, auto)
   done
 
 lemma setprod_zero_eq:
-    "(ALL x y. (x::'a::comm_semiring_1_cancel) * y = 0 --> x = 0 | y = 0) ==>
+    "(ALL x y. (x::'a::comm_semiring_1) * y = 0 --> x = 0 | y = 0) ==>
      finite A ==> (setprod f A = (0::'a)) = (EX x: A. f x = 0)"
   apply (insert setprod_zero [of A f] setprod_nonzero [of A f], blast)
   done
 
 lemma setprod_nonzero_field:
-    "finite A ==> (ALL x: A. f x \<noteq> (0::'a::field)) ==> setprod f A \<noteq> 0"
+    "finite A ==> (ALL x: A. f x \<noteq> (0::'a::idom)) ==> setprod f A \<noteq> 0"
   apply (rule setprod_nonzero, auto)
   done
 
 lemma setprod_zero_eq_field:
-    "finite A ==> (setprod f A = (0::'a::field)) = (EX x: A. f x = 0)"
+    "finite A ==> (setprod f A = (0::'a::idom)) = (EX x: A. f x = 0)"
   apply (rule setprod_zero_eq, auto)
   done
 
@@ -1657,7 +1657,7 @@ lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{recpower, comm_
   done
 
 lemma setsum_bounded:
-  assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{comm_semiring_1_cancel, pordered_ab_semigroup_add})"
+  assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{semiring_1, pordered_ab_semigroup_add})"
   shows "setsum f A \<le> of_nat(card A) * K"
 proof (cases "finite A")
   case True

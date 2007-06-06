@@ -750,7 +750,7 @@ lemma geometric_sum:
 subsection {* The formula for arithmetic sums *}
 
 lemma gauss_sum:
-  "((1::'a::comm_semiring_1_cancel) + 1)*(\<Sum>i\<in>{1..n}. of_nat i) =
+  "((1::'a::comm_semiring_1) + 1)*(\<Sum>i\<in>{1..n}. of_nat i) =
    of_nat n*((of_nat n)+1)"
 proof (induct n)
   case 0
@@ -761,7 +761,7 @@ next
 qed
 
 theorem arith_series_general:
-  "((1::'a::comm_semiring_1_cancel) + 1) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
+  "((1::'a::comm_semiring_1) + 1) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
   of_nat n * (a + (a + of_nat(n - 1)*d))"
 proof cases
   assume ngt1: "n > 1"

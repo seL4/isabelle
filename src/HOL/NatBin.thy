@@ -274,13 +274,13 @@ text{*We cannot refer to the number @{term 2} in @{text Ring_and_Field.thy}.
 We cannot prove general results about the numeral @{term "-1"}, so we have to
 use @{term "- 1"} instead.*}
 
-lemma power2_eq_square: "(a::'a::{comm_semiring_1_cancel,recpower})\<twosuperior> = a * a"
+lemma power2_eq_square: "(a::'a::recpower)\<twosuperior> = a * a"
   by (simp add: numeral_2_eq_2 Power.power_Suc)
 
-lemma zero_power2 [simp]: "(0::'a::{comm_semiring_1_cancel,recpower})\<twosuperior> = 0"
+lemma zero_power2 [simp]: "(0::'a::{semiring_1,recpower})\<twosuperior> = 0"
   by (simp add: power2_eq_square)
 
-lemma one_power2 [simp]: "(1::'a::{comm_semiring_1_cancel,recpower})\<twosuperior> = 1"
+lemma one_power2 [simp]: "(1::'a::{semiring_1,recpower})\<twosuperior> = 1"
   by (simp add: power2_eq_square)
 
 lemma power3_eq_cube: "(x::'a::recpower) ^ 3 = x * x * x"
