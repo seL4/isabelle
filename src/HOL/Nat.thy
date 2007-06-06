@@ -1292,9 +1292,9 @@ val diff_Suc_diff_eq2 = thm "diff_Suc_diff_eq2";
 
 
 subsection{*Embedding of the Naturals into any
-  @{text semiring_1_cancel}: @{term of_nat}*}
+  @{text semiring_1}: @{term of_nat}*}
 
-consts of_nat :: "nat => 'a::semiring_1_cancel"
+consts of_nat :: "nat => 'a::semiring_1"
 
 primrec
   of_nat_0:   "of_nat 0 = 0"
@@ -1353,7 +1353,7 @@ lemma of_nat_0_le_iff [simp]: "(0::'a::ordered_semidom) \<le> of_nat n"
 lemma of_nat_le_0_iff [simp]: "(of_nat m \<le> (0::'a::ordered_semidom)) = (m = 0)"
   by (rule of_nat_le_iff [of _ 0, simplified])
 
-text{*The ordering on the @{text semiring_1_cancel} is necessary
+text{*The ordering on the @{text semiring_1} is necessary
 to exclude the possibility of a finite field, which indeed wraps back to
 zero.*}
 lemma of_nat_eq_iff [simp]:

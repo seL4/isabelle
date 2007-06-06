@@ -521,7 +521,7 @@ where
   [code inline]: "neg Z \<longleftrightarrow> Z < 0"
 
 definition (*for simplifying equalities*)
-  iszero :: "'a\<Colon>comm_semiring_1_cancel \<Rightarrow> bool"
+  iszero :: "'a\<Colon>semiring_1 \<Rightarrow> bool"
 where
   "iszero z \<longleftrightarrow> z = 0"
 
@@ -561,7 +561,7 @@ by (simp add: linorder_not_less neg_def)
 subsection{*The Set of Natural Numbers*}
 
 constdefs
-  Nats  :: "'a::semiring_1_cancel set"
+  Nats  :: "'a::semiring_1 set"
   "Nats == range of_nat"
 
 notation (xsymbols)
