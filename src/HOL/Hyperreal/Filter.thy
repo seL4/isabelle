@@ -402,4 +402,6 @@ qed
 
 lemmas freeultrafilter_Ex = UFT.freeultrafilter_ex
 
+hide (open) const filter
+
 end
