@@ -42,8 +42,8 @@ consts
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  allpairs :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
   partition :: "('a \<Rightarrow> bool) \<Rightarrow>'a list \<Rightarrow> (('a list) \<times> ('a list))"
+  allpairs :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
 
 abbreviation
   upto:: "nat => nat => nat list"  ("(1[_../_])") where
@@ -57,7 +57,7 @@ syntax
   "@list" :: "args => 'a list"    ("[(_)]")
 
   -- {* Special syntax for filter *}
-  "@filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_:_./ _])")
+  "@filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_<-_./ _])")
 
   -- {* list update *}
   "_lupdbind":: "['a, 'a] => lupdbind"    ("(2_ :=/ _)")
@@ -68,16 +68,16 @@ syntax
 translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
-  "[x:xs . P]"== "filter (%x. P) xs"
+  "[x<-xs . P]"== "filter (%x. P) xs"
 
   "_LUpdate xs (_lupdbinds b bs)"== "_LUpdate (_LUpdate xs b) bs"
   "xs[i:=x]" == "list_update xs i x"
 
 
 syntax (xsymbols)
-  "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<in>_ ./ _])")
+  "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
 syntax (HTML output)
-  "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<in>_ ./ _])")
+  "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
 
 
 text {*
@@ -253,19 +253,24 @@ nonterminals lc_qual lc_quals
 
 syntax
 "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
-"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
 "_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ <- _")
 "_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
 "_lc_end" :: "lc_quals" ("]")
 "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals" (", __")
 
 translations
-"[e. p\<leftarrow>xs]" => "map (%p. e) xs"
+"[e. p<-xs]" => "map (%p. e) xs"
 "_listcompr e (_lc_gen p xs) (_lc_quals Q Qs)"
  => "concat (map (%p. _listcompr e Q Qs) xs)"
 "[e. P]" => "if P then [e] else []"
 "_listcompr e (_lc_test P) (_lc_quals Q Qs)"
  => "if P then (_listcompr e Q Qs) else []"
+
+syntax (xsymbols)
+"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+syntax (HTML output)
+"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+
 
 (*
 term "[(x,y,z). b]"
@@ -2270,8 +2275,8 @@ apply simp
 done
 
 lemma sublist_shift_lemma:
-     "map fst [p:zip xs [i..<i + length xs] . snd p : A] =
-      map fst [p:zip xs [0..<length xs] . snd p + i : A]"
+     "map fst [p<-zip xs [i..<i + length xs] . snd p : A] =
+      map fst [p<-zip xs [0..<length xs] . snd p + i : A]"
 by (induct xs rule: rev_induct) (simp_all add: add_commute)
 
 lemma sublist_append:
@@ -2353,7 +2358,6 @@ apply(case_tac ys)
  apply auto
 done
 
-
 subsubsection {* @{const allpairs} *}
 
 lemma allpairs_conv_concat:
@@ -2363,9 +2367,6 @@ by(induct xs) auto
 lemma allpairs_append:
  "allpairs f (xs @ ys) zs = allpairs f xs zs @ allpairs f ys zs"
 by(induct xs) auto
-
-
-subsubsection{*Sets of Lists*}
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
 
