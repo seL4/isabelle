@@ -99,7 +99,7 @@ fun nonlazy_rec args   = map vname (List.filter is_nonlazy_rec args);
 
 (* ----- qualified names of HOLCF constants ----- *)
 
-val lessN      = "Porder.<<"
+val lessN      = @{const_name Porder.sq_le};
 val UU_N       = "Pcpo.UU";
 val admN       = "Adm.adm";
 val compactN   = "Adm.compact";

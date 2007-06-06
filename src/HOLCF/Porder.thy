@@ -11,19 +11,17 @@ begin
 
 subsection {* Type class for partial orders *}
 
-	-- {* introduce a (syntactic) class for the constant @{text "<<"} *}
-axclass sq_ord < type
+class sq_ord = type +
+  fixes sq_le :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
-	-- {* characteristic constant @{text "<<"} for po *}
-consts
-  "<<"          :: "['a,'a::sq_ord] => bool"        (infixl "<<" 55)
+notation
+  sq_le (infixl "<<" 55)
 
-syntax (xsymbols)
-  "<<"       :: "['a,'a::sq_ord] => bool"        (infixl "\<sqsubseteq>" 55)
+notation (xsymbols)
+  sq_le (infixl "\<sqsubseteq>" 55)
 
 axclass po < sq_ord
-        -- {* class axioms: *}
-  refl_less [iff]: "x \<sqsubseteq> x"        
+  refl_less [iff]: "x \<sqsubseteq> x"
   antisym_less:    "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> x = y"    
   trans_less:      "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
 

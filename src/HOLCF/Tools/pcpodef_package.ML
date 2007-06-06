@@ -87,7 +87,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
 
     val (Rep_name, Abs_name) = the_default ("Rep_" ^ name, "Abs_" ^ name) opt_morphs;
     val RepC = Const (full Rep_name, newT --> oldT);
-    fun lessC T = Const ("Porder.<<", T --> T --> HOLogic.boolT);
+    fun lessC T = Const (@{const_name Porder.sq_le}, T --> T --> HOLogic.boolT);
     val less_def = ("less_" ^ name ^ "_def", Logic.mk_equals (lessC newT,
       Abs ("x", newT, Abs ("y", newT, lessC oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0)))));
 
