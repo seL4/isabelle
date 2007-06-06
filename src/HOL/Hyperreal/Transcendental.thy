@@ -659,13 +659,17 @@ by (rule DERIV_cos [THEN DERIV_isCont])
 
 subsection{*Properties of the Exponential Function*}
 
-lemma exp_zero [simp]: "exp 0 = 1"
+lemma powser_zero:
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_algebra_1,recpower}"
+  shows "(\<Sum>n. f n * 0 ^ n) = f 0"
 proof -
-  have "(\<Sum>n = 0..<1. (0::'a) ^ n /# real (fact n)) =
-        (\<Sum>n. 0 ^ n /# real (fact n))"
+  have "(\<Sum>n = 0..<1. f n * 0 ^ n) = (\<Sum>n. f n * 0 ^ n)"
     by (rule sums_unique [OF series_zero], simp add: power_0_left)
-  thus ?thesis by (simp add: exp_def)
+  thus ?thesis by simp
 qed
+
+lemma exp_zero [simp]: "exp 0 = 1"
+unfolding exp_def by (simp add: scaleR_conv_of_real powser_zero)
 
 lemma setsum_head2:
   "m \<le> n \<Longrightarrow> setsum f {m..n} = f m + setsum f {Suc m..n}"
@@ -997,19 +1001,10 @@ done
 subsection{*Basic Properties of the Trigonometric Functions*}
 
 lemma sin_zero [simp]: "sin 0 = 0"
-by (auto intro!: sums_unique [symmetric] LIMSEQ_const 
-         simp add: sin_def sums_def lemma_STAR_sin)
-
-lemma lemma_series_zero2:
- "(\<forall>m. n \<le> m --> f m = 0) --> f sums setsum f {0..<n}"
-by (auto intro: series_zero)
+unfolding sin_def by (simp add: powser_zero)
 
 lemma cos_zero [simp]: "cos 0 = 1"
-apply (simp add: cos_def)
-apply (rule sums_unique [symmetric])
-apply (cut_tac n = 1 and f = "(%n. (if even n then -1 ^ (n div 2) / (real (fact n)) else 0) * 0 ^ n)" in lemma_series_zero2)
-apply auto
-done
+unfolding cos_def by (simp add: powser_zero)
 
 lemma DERIV_sin_sin_mult [simp]:
      "DERIV (%x. sin(x)*sin(x)) x :> cos(x) * sin(x) + cos(x) * sin(x)"
