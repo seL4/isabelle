@@ -248,12 +248,11 @@ by (simp add: number_of_eq)
 text{*Every real algebra has characteristic zero*}
 instance real_algebra_1 < ring_char_0
 proof
-  fix w z :: int
-  assume "of_int w = (of_int z::'a)"
-  hence "of_real (of_int w) = (of_real (of_int z)::'a)"
-    by (simp only: of_real_of_int_eq)
-  thus "w = z"
-    by (simp only: of_real_eq_iff of_int_eq_iff)
+  fix m n :: nat
+  have "(of_real (of_nat m) = (of_real (of_nat n)::'a)) = (m = n)"
+    by (simp only: of_real_eq_iff of_nat_eq_iff)
+  thus "(of_nat m = (of_nat n::'a)) = (m = n)"
+    by (simp only: of_real_of_nat_eq)
 qed
 
 

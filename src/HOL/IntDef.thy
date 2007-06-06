@@ -669,16 +669,17 @@ lemmas of_int_less_0_iff [simp] = of_int_less_iff [of _ 0, simplified]
 
 text{*Class for unital rings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}
-axclass ring_char_0 < ring_1
-  of_int_inject: "of_int w = of_int z ==> w = z"
+axclass ring_char_0 < ring_1, semiring_char_0
 
 lemma of_int_eq_iff [simp]:
      "(of_int w = (of_int z::'a::ring_char_0)) = (w = z)"
-by (safe elim!: of_int_inject)
+apply (cases w, cases z, simp add: of_int)
+apply (simp only: diff_eq_eq diff_add_eq eq_diff_eq)
+apply (simp only: of_nat_add [symmetric] of_nat_eq_iff)
+done
 
 text{*Every @{text ordered_idom} has characteristic zero.*}
-instance ordered_idom < ring_char_0
-by intro_classes (simp add: order_eq_iff)
+instance ordered_idom < ring_char_0 ..
 
 text{*Special cases where either operand is zero*}
 lemmas of_int_0_eq_iff [simp] = of_int_eq_iff [of 0, simplified]

@@ -1353,17 +1353,19 @@ lemma of_nat_0_le_iff [simp]: "(0::'a::ordered_semidom) \<le> of_nat n"
 lemma of_nat_le_0_iff [simp]: "(of_nat m \<le> (0::'a::ordered_semidom)) = (m = 0)"
   by (rule of_nat_le_iff [of _ 0, simplified])
 
-text{*The ordering on the @{text semiring_1} is necessary
-to exclude the possibility of a finite field, which indeed wraps back to
-zero.*}
-lemma of_nat_eq_iff [simp]:
-    "(of_nat m = (of_nat n::'a::ordered_semidom)) = (m = n)"
-  by (simp add: order_eq_iff)
+text{*Class for unital semirings with characteristic zero.
+ Includes non-ordered rings like the complex numbers.*}
+axclass semiring_char_0 < semiring_1
+  of_nat_eq_iff [simp]: "(of_nat m = of_nat n) = (m = n)"
+
+text{*Every @{text ordered_semidom} has characteristic zero.*}
+instance ordered_semidom < semiring_char_0
+by intro_classes (simp add: order_eq_iff)
 
 text{*Special cases where either operand is zero*}
-lemma of_nat_0_eq_iff [simp]: "((0::'a::ordered_semidom) = of_nat n) = (0 = n)"
+lemma of_nat_0_eq_iff [simp]: "((0::'a::semiring_char_0) = of_nat n) = (0 = n)"
   by (rule of_nat_eq_iff [of 0, simplified])
-lemma of_nat_eq_0_iff [simp]: "(of_nat m = (0::'a::ordered_semidom)) = (m = 0)"
+lemma of_nat_eq_0_iff [simp]: "(of_nat m = (0::'a::semiring_char_0)) = (m = 0)"
   by (rule of_nat_eq_iff [of _ 0, simplified])
 
 lemma of_nat_diff [simp]:
