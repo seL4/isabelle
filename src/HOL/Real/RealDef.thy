@@ -27,7 +27,7 @@ definition
   (** these don't use the overloaded "real" function: users don't see them **)
 
   real_of_preal :: "preal => real" where
-  "real_of_preal m = Abs_Real(realrel``{(m + preal_of_rat 1, preal_of_rat 1)})"
+  "real_of_preal m = Abs_Real(realrel``{(m + 1, 1)})"
 
 consts
    (*overloaded constant for injecting other types into "real"*)
@@ -149,7 +149,7 @@ qed
 lemma real_minus: "- Abs_Real(realrel``{(x,y)}) = Abs_Real(realrel `` {(y,x)})"
 proof -
   have "(\<lambda>(x,y). {Abs_Real (realrel``{(y,x)})}) respects realrel"
-    by (simp add: congruent_def preal_add_commute) 
+    by (simp add: congruent_def add_commute) 
   thus ?thesis
     by (simp add: real_minus_def UN_equiv_class [OF equiv_realrel])
 qed
@@ -177,8 +177,8 @@ lemma real_mult_congruent2_lemma:
           x * x1 + y * y1 + (x * y2 + y * x2) =
           x * x2 + y * y2 + (x * y1 + y * x1)"
 apply (simp add: add_left_commute add_assoc [symmetric])
-apply (simp add: preal_add_assoc preal_add_mult_distrib2 [symmetric])
-apply (simp add: preal_add_commute)
+apply (simp add: add_assoc right_distrib [symmetric])
+apply (simp add: add_commute)
 done
 
 lemma real_mult_congruent2:
@@ -187,7 +187,7 @@ lemma real_mult_congruent2:
           { Abs_Real (realrel``{(x1*x2 + y1*y2, x1*y2+y1*x2)}) }) p2) p1)
      respects2 realrel"
 apply (rule congruent2_commuteI [OF equiv_realrel], clarify)
-apply (simp add: preal_mult_commute preal_add_commute)
+apply (simp add: mult_commute add_commute)
 apply (auto simp add: real_mult_congruent2_lemma)
 done
 
@@ -198,23 +198,22 @@ by (simp add: real_mult_def UN_UN_split_split_eq
          UN_equiv_class2 [OF equiv_realrel equiv_realrel real_mult_congruent2])
 
 lemma real_mult_commute: "(z::real) * w = w * z"
-by (cases z, cases w, simp add: real_mult preal_add_ac preal_mult_ac)
+by (cases z, cases w, simp add: real_mult add_ac mult_ac)
 
 lemma real_mult_assoc: "((z1::real) * z2) * z3 = z1 * (z2 * z3)"
 apply (cases z1, cases z2, cases z3)
-apply (simp add: real_mult preal_add_mult_distrib2 preal_add_ac preal_mult_ac)
+apply (simp add: real_mult right_distrib add_ac mult_ac)
 done
 
 lemma real_mult_1: "(1::real) * z = z"
 apply (cases z)
-apply (simp add: real_mult real_one_def preal_add_mult_distrib2
-                 preal_mult_1_right preal_mult_ac preal_add_ac)
+apply (simp add: real_mult real_one_def right_distrib
+                  mult_1_right mult_ac add_ac)
 done
 
 lemma real_add_mult_distrib: "((z1::real) + z2) * w = (z1 * w) + (z2 * w)"
 apply (cases z1, cases z2, cases w)
-apply (simp add: real_add real_mult preal_add_mult_distrib2 
-                 preal_add_ac preal_mult_ac)
+apply (simp add: real_add real_mult right_distrib add_ac mult_ac)
 done
 
 text{*one and zero are distinct*}
@@ -223,7 +222,7 @@ proof -
   have "(1::preal) < 1 + 1"
     by (simp add: preal_self_less_add_left)
   thus ?thesis
-    by (simp add: real_zero_def real_one_def preal_add_right_cancel_iff)
+    by (simp add: real_zero_def real_one_def)
 qed
 
 instance real :: comm_ring_1
@@ -239,7 +238,7 @@ qed
 subsection {* Inverse and Division *}
 
 lemma real_zero_iff: "Abs_Real (realrel `` {(x, x)}) = 0"
-by (simp add: real_zero_def preal_add_commute)
+by (simp add: real_zero_def add_commute)
 
 text{*Instead of using an existential quantifier and constructing the inverse
 within the proof, we could define the inverse explicitly.*}
@@ -254,9 +253,8 @@ apply (rule_tac
 apply (rule_tac [2]
         x = "Abs_Real (realrel``{(inverse (D) + 1, 1)})" 
        in exI)
-apply (auto simp add: real_mult preal_mult_1_right
-              preal_add_mult_distrib2 preal_add_mult_distrib preal_mult_1
-              preal_mult_inverse_right preal_add_ac preal_mult_ac)
+apply (auto simp add: real_mult ring_distrib
+              preal_mult_inverse_right add_ac mult_ac)
 done
 
 lemma real_mult_inverse_left: "x \<noteq> 0 ==> inverse(x)*x = (1::real)"
@@ -302,9 +300,9 @@ lemma preal_eq_le_imp_le:
   assumes eq: "a+b = c+d" and le: "c \<le> a"
   shows "b \<le> (d::preal)"
 proof -
-  have "c+d \<le> a+d" by (simp add: prems preal_cancels)
+  have "c+d \<le> a+d" by (simp add: prems)
   hence "a+b \<le> a+d" by (simp add: prems)
-  thus "b \<le> d" by (simp add: preal_cancels)
+  thus "b \<le> d" by simp
 qed
 
 lemma real_le_lemma:
@@ -314,16 +312,15 @@ lemma real_le_lemma:
   shows "x1 + y2 \<le> x2 + (y1::preal)"
 proof -
   have "(x1+v1) + (u2+y2) = (u1+y1) + (x2+v2)" by (simp add: prems)
-  hence "(x1+y2) + (u2+v1) = (x2+y1) + (u1+v2)" by (simp add: preal_add_ac)
-  also have "... \<le> (x2+y1) + (u2+v1)"
-         by (simp add: prems preal_add_le_cancel_left)
-  finally show ?thesis by (simp add: preal_add_le_cancel_right)
-qed						 
+  hence "(x1+y2) + (u2+v1) = (x2+y1) + (u1+v2)" by (simp add: add_ac)
+  also have "... \<le> (x2+y1) + (u2+v1)" by (simp add: prems)
+  finally show ?thesis by simp
+qed
 
 lemma real_le: 
      "(Abs_Real(realrel``{(x1,y1)}) \<le> Abs_Real(realrel``{(x2,y2)})) =  
       (x1 + y2 \<le> x2 + y1)"
-apply (simp add: real_le_def) 
+apply (simp add: real_le_def)
 apply (auto intro: real_le_lemma)
 done
 
@@ -336,19 +333,17 @@ lemma real_trans_lemma:
       and "x2 + v2 = u2 + y2"
   shows "x + v' \<le> u' + (y::preal)"
 proof -
-  have "(x+v') + (u+v) = (x+v) + (u+v')" by (simp add: preal_add_ac)
-  also have "... \<le> (u+y) + (u+v')" 
-    by (simp add: preal_add_le_cancel_right prems) 
-  also have "... \<le> (u+y) + (u'+v)" 
-    by (simp add: preal_add_le_cancel_left prems) 
-  also have "... = (u'+y) + (u+v)"  by (simp add: preal_add_ac)
-  finally show ?thesis by (simp add: preal_add_le_cancel_right)
+  have "(x+v') + (u+v) = (x+v) + (u+v')" by (simp add: add_ac)
+  also have "... \<le> (u+y) + (u+v')" by (simp add: prems)
+  also have "... \<le> (u+y) + (u'+v)" by (simp add: prems)
+  also have "... = (u'+y) + (u+v)"  by (simp add: add_ac)
+  finally show ?thesis by simp
 qed
 
 lemma real_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::real)"
 apply (cases i, cases j, cases k)
 apply (simp add: real_le)
-apply (blast intro: real_trans_lemma) 
+apply (blast intro: real_trans_lemma)
 done
 
 (* Axiom 'order_less_le' of class 'order': *)
@@ -362,8 +357,8 @@ proof qed
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma real_le_linear: "(z::real) \<le> w | w \<le> z"
-apply (cases z, cases w) 
-apply (auto simp add: real_le real_zero_def preal_add_ac preal_cancels)
+apply (cases z, cases w)
+apply (auto simp add: real_le real_zero_def add_ac)
 done
 
 
@@ -374,8 +369,8 @@ instance real :: linorder
 lemma real_le_eq_diff: "(x \<le> y) = (x-y \<le> (0::real))"
 apply (cases x, cases y) 
 apply (auto simp add: real_le real_zero_def real_diff_def real_add real_minus
-                      preal_add_ac)
-apply (simp_all add: preal_add_assoc [symmetric] preal_cancels)
+                      add_ac)
+apply (simp_all add: add_assoc [symmetric])
 done
 
 lemma real_add_left_mono: 
@@ -400,8 +395,8 @@ apply (simp add: linorder_not_le [where 'a = real, symmetric]
                   real_zero_def real_le real_mult)
   --{*Reduce to the (simpler) @{text "\<le>"} relation *}
 apply (auto dest!: less_add_left_Ex
-     simp add: preal_add_ac preal_mult_ac 
-          preal_add_mult_distrib2 preal_cancels preal_self_less_add_left)
+     simp add: add_ac mult_ac
+          right_distrib preal_self_less_add_left)
 done
 
 lemma real_mult_less_mono2: "[| (0::real) < z; x < y |] ==> z * x < z * y"
@@ -433,36 +428,32 @@ positive reals.*}
 
 lemma real_of_preal_add:
      "real_of_preal ((x::preal) + y) = real_of_preal x + real_of_preal y"
-by (simp add: real_of_preal_def real_add preal_add_mult_distrib preal_mult_1 
-              preal_add_ac)
+by (simp add: real_of_preal_def real_add left_distrib add_ac)
 
 lemma real_of_preal_mult:
      "real_of_preal ((x::preal) * y) = real_of_preal x* real_of_preal y"
-by (simp add: real_of_preal_def real_mult preal_add_mult_distrib2
-              preal_mult_1 preal_mult_1_right preal_add_ac preal_mult_ac)
+by (simp add: real_of_preal_def real_mult right_distrib add_ac mult_ac)
 
 
 text{*Gleason prop 9-4.4 p 127*}
 lemma real_of_preal_trichotomy:
       "\<exists>m. (x::real) = real_of_preal m | x = 0 | x = -(real_of_preal m)"
 apply (simp add: real_of_preal_def real_zero_def, cases x)
-apply (auto simp add: real_minus preal_add_ac)
+apply (auto simp add: real_minus add_ac)
 apply (cut_tac x = x and y = y in linorder_less_linear)
-apply (auto dest!: less_add_left_Ex simp add: preal_add_assoc [symmetric])
+apply (auto dest!: less_add_left_Ex simp add: add_assoc [symmetric])
 done
 
 lemma real_of_preal_leD:
       "real_of_preal m1 \<le> real_of_preal m2 ==> m1 \<le> m2"
-by (simp add: real_of_preal_def real_le preal_cancels)
+by (simp add: real_of_preal_def real_le)
 
 lemma real_of_preal_lessI: "m1 < m2 ==> real_of_preal m1 < real_of_preal m2"
 by (auto simp add: real_of_preal_leD linorder_not_le [symmetric])
 
 lemma real_of_preal_lessD:
       "real_of_preal m1 < real_of_preal m2 ==> m1 < m2"
-by (simp add: real_of_preal_def real_le linorder_not_le [symmetric] 
-              preal_cancels) 
-
+by (simp add: real_of_preal_def real_le linorder_not_le [symmetric])
 
 lemma real_of_preal_less_iff [simp]:
      "(real_of_preal m1 < real_of_preal m2) = (m1 < m2)"
@@ -470,15 +461,14 @@ by (blast intro: real_of_preal_lessI real_of_preal_lessD)
 
 lemma real_of_preal_le_iff:
      "(real_of_preal m1 \<le> real_of_preal m2) = (m1 \<le> m2)"
-by (simp add: linorder_not_less [symmetric]) 
+by (simp add: linorder_not_less [symmetric])
 
 lemma real_of_preal_zero_less: "0 < real_of_preal m"
-apply (auto simp add: real_zero_def real_of_preal_def real_less_def real_le_def
-            preal_add_ac preal_cancels)
-apply (simp_all add: preal_add_assoc [symmetric] preal_cancels)
-apply (blast intro: preal_self_less_add_left order_less_imp_le)
-apply (insert preal_not_eq_self [of "preal_of_rat 1" m]) 
-apply (simp add: preal_add_ac) 
+apply (insert preal_self_less_add_left [of 1 m])
+apply (auto simp add: real_zero_def real_of_preal_def
+                      real_less_def real_le_def add_ac)
+apply (rule_tac x="m + 1" in exI, rule_tac x="1" in exI)
+apply (simp add: add_ac)
 done
 
 lemma real_of_preal_minus_less_zero: "- real_of_preal m < 0"
