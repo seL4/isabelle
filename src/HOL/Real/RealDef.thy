@@ -483,14 +483,6 @@ qed
 
 subsection{*Theorems About the Ordering*}
 
-text{*obsolete but used a lot*}
-
-lemma real_not_refl2: "x < y ==> x \<noteq> (y::real)"
-by blast 
-
-lemma real_le_imp_less_or_eq: "!!(x::real). x \<le> y ==> x < y | x = y"
-by (simp add: order_le_less)
-
 lemma real_gt_zero_preal_Ex: "(0 < x) = (\<exists>y. x = real_of_preal y)"
 apply (auto simp add: real_of_preal_zero_less)
 apply (cut_tac x = x in real_of_preal_trichotomy)
@@ -514,9 +506,6 @@ by (auto elim: order_le_imp_less_or_eq [THEN disjE]
 lemma real_less_all_real2: "~ 0 < y ==> \<forall>x. y < real_of_preal x"
 by (blast intro!: real_less_all_preal linorder_not_less [THEN iffD1])
 
-lemma real_le_square [simp]: "(0::real) \<le> x*x"
- by (rule Ring_and_Field.zero_le_square)
-
 
 subsection{*More Lemmas*}
 
@@ -526,34 +515,24 @@ by auto
 lemma real_mult_right_cancel: "(c::real) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
 by auto
 
-text{*The precondition could be weakened to @{term "0\<le>x"}*}
-lemma real_mult_less_mono:
-     "[| u<v;  x<y;  (0::real) < v;  0 < x |] ==> u*x < v* y"
- by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
-
 lemma real_mult_less_iff1 [simp]: "(0::real) < z ==> (x*z < y*z) = (x < y)"
   by (force elim: order_less_asym
             simp add: Ring_and_Field.mult_less_cancel_right)
 
 lemma real_mult_le_cancel_iff1 [simp]: "(0::real) < z ==> (x*z \<le> y*z) = (x\<le>y)"
 apply (simp add: mult_le_cancel_right)
-apply (blast intro: elim: order_less_asym) 
+apply (blast intro: elim: order_less_asym)
 done
 
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
 by(simp add:mult_commute)
 
-lemma real_add_order: "[| 0 < x; 0 < y |] ==> (0::real) < x + y"
-by (rule add_pos_pos)
-
+(* FIXME: redundant, but used by Integration/Integral.thy in AFP *)
 lemma real_le_add_order: "[| 0 \<le> x; 0 \<le> y |] ==> (0::real) \<le> x + y"
 by (rule add_nonneg_nonneg)
 
-lemma real_inverse_unique: "x*y = (1::real) ==> y = inverse x"
-by (rule inverse_unique [symmetric])
-
 lemma real_inverse_gt_one: "[| (0::real) < x; x < 1 |] ==> 1 < inverse x"
-by (simp add: one_less_inverse_iff)
+by (simp add: one_less_inverse_iff) (* TODO: generalize/move *)
 
 
 subsection{*Embedding the Integers into the Reals*}
@@ -872,18 +851,6 @@ use "real_arith.ML"
 setup real_arith_setup
 
 
-lemma real_diff_mult_distrib:
-  fixes a::real
-  shows "a * (b - c) = a * b - a * c" 
-proof -
-  have "a * (b - c) = a * (b + -c)" by simp
-  also have "\<dots> = (b + -c) * a" by simp
-  also have "\<dots> = b*a + (-c)*a" by (rule real_add_mult_distrib)
-  also have "\<dots> = a*b - a*c" by simp
-  finally show ?thesis .
-qed
-
-
 subsection{* Simprules combining x+y and 0: ARE THEY NEEDED?*}
 
 text{*Needed in this non-standard form by Hyperreal/Transcendental*}
@@ -939,9 +906,7 @@ subsection{*Absolute Value Function for the Reals*}
 lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
 by (simp add: abs_if)
 
-lemma abs_interval_iff: "(abs x < r) = (-r < x & x < (r::real))"
-by (force simp add: Ring_and_Field.abs_less_iff)
-
+(* FIXME: redundant, but used by Integration/RealRandVar.thy in AFP *)
 lemma abs_le_interval_iff: "(abs x \<le> r) = (-r\<le>x & x\<le>(r::real))"
 by (force simp add: OrderedGroup.abs_le_iff)
 
