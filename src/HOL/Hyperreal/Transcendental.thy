@@ -1075,7 +1075,7 @@ apply (auto simp add: numeral_2_eq_2)
 done
 
 lemma sin_cos_squared_add2 [simp]: "((cos x)\<twosuperior>) + ((sin x)\<twosuperior>) = 1"
-apply (subst real_add_commute)
+apply (subst add_commute)
 apply (simp (no_asm) del: realpow_Suc)
 done
 
@@ -1547,7 +1547,7 @@ apply (simp del: minus_sin_cos_eq [symmetric])
 apply (cut_tac y="-y" in cos_total, simp) apply simp 
 apply (erule ex1E)
 apply (rule_tac a = "x - (pi/2)" in ex1I)
-apply (simp (no_asm) add: real_add_assoc)
+apply (simp (no_asm) add: add_assoc)
 apply (rotate_tac 3)
 apply (drule_tac x = "xa + pi/2" in spec, safe, simp_all) 
 done

@@ -403,7 +403,7 @@ apply (case_tac "p", simp)
 apply (cut_tac h = aa and t = list and a = a in poly_linear_rem, safe)
 apply (case_tac "q", auto)
 apply (drule_tac x = "[]" in spec, simp)
-apply (auto simp add: poly_add poly_cmult real_add_assoc)
+apply (auto simp add: poly_add poly_cmult add_assoc)
 apply (drule_tac x = "aa#lista" in spec, auto)
 done
 
