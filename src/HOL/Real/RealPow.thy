@@ -28,32 +28,6 @@ proof
 qed
 
 
-(*lemma realpow_zero_zero: "r ^ n = (0::real) ==> r = 0"
-by simp
-
-lemma realpow_two: "(r::real)^ (Suc (Suc 0)) = r * r"
-by simp
-
-text{*Legacy: weaker version of the theorem @{text power_strict_mono}*}
-lemma realpow_less:
-     "[|(0::real) < x; x < y; 0 < n|] ==> x ^ n < y ^ n"
-thm power_strict_mono
-apply (rule power_strict_mono, auto) 
-done *)
-
-(* declare [simp del]: zero_le_power
-
-lemma realpow_two_le [simp]: "(0::real) \<le> r^ Suc (Suc 0)"
-by (simp)
-
-
-lemma abs_realpow_two [simp]: "abs((x::real)^Suc (Suc 0)) = x^Suc (Suc 0)"
-by (simp)
-
-lemma realpow_two_abs [simp]: "abs(x::real)^Suc (Suc 0) = x^Suc (Suc 0)"
-by (simp)
-
-*)
 lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
 by (rule power_increasing[of 0 n "2::real", simplified])
 
