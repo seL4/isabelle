@@ -37,12 +37,10 @@ consts
 defs (overloaded)
 
   real_zero_def:
-  "0 == Abs_Real(realrel``{(preal_of_rat 1, preal_of_rat 1)})"
+  "0 == Abs_Real(realrel``{(1, 1)})"
 
   real_one_def:
-  "1 == Abs_Real(realrel``
-               {(preal_of_rat 1 + preal_of_rat 1,
-		 preal_of_rat 1)})"
+  "1 == Abs_Real(realrel``{(1 + 1, 1)})"
 
   real_minus_def:
   "- r ==  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
@@ -61,7 +59,7 @@ defs (overloaded)
 		 { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })"
 
   real_inverse_def:
-  "inverse (R::real) == (SOME S. (R = 0 & S = 0) | S * R = 1)"
+  "inverse (R::real) == (THE S. (R = 0 & S = 0) | S * R = 1)"
 
   real_divide_def:
   "R / (S::real) == R * inverse S"
@@ -75,21 +73,20 @@ defs (overloaded)
   real_abs_def:  "abs (r::real) == (if r < 0 then - r else r)"
 
 
-
-subsection{*Proving that realrel is an equivalence relation*}
+subsection {* Equivalence relation over positive reals *}
 
 lemma preal_trans_lemma:
   assumes "x + y1 = x1 + y"
       and "x + y2 = x2 + y"
   shows "x1 + y2 = x2 + (y1::preal)"
 proof -
-  have "(x1 + y2) + x = (x + y2) + x1" by (simp add: preal_add_ac) 
+  have "(x1 + y2) + x = (x + y2) + x1" by (simp add: add_ac)
   also have "... = (x2 + y) + x1"  by (simp add: prems)
-  also have "... = x2 + (x1 + y)"  by (simp add: preal_add_ac)
+  also have "... = x2 + (x1 + y)"  by (simp add: add_ac)
   also have "... = x2 + (x + y1)"  by (simp add: prems)
-  also have "... = (x2 + y1) + x"  by (simp add: preal_add_ac)
+  also have "... = (x2 + y1) + x"  by (simp add: add_ac)
   finally have "(x1 + y2) + x = (x2 + y1) + x" .
-  thus ?thesis by (simp add: preal_add_right_cancel_iff) 
+  thus ?thesis by (rule add_right_imp_eq)
 qed
 
 
@@ -126,15 +123,15 @@ apply (auto simp add: Rep_Real_inverse)
 done
 
 
-subsection{*Congruence property for addition*}
+subsection {* Addition and Subtraction *}
 
 lemma real_add_congruent2_lemma:
      "[|a + ba = aa + b; ab + bc = ac + bb|]
       ==> a + ab + (ba + bc) = aa + ac + (b + (bb::preal))"
-apply (simp add: preal_add_assoc) 
-apply (rule preal_add_left_commute [of ab, THEN ssubst])
-apply (simp add: preal_add_assoc [symmetric])
-apply (simp add: preal_add_ac)
+apply (simp add: add_assoc)
+apply (rule add_left_commute [of ab, THEN ssubst])
+apply (simp add: add_assoc [symmetric])
+apply (simp add: add_ac)
 done
 
 lemma real_add:
@@ -149,23 +146,6 @@ proof -
                   UN_equiv_class2 [OF equiv_realrel equiv_realrel])
 qed
 
-lemma real_add_commute: "(z::real) + w = w + z"
-by (cases z, cases w, simp add: real_add preal_add_ac)
-
-lemma real_add_assoc: "((z1::real) + z2) + z3 = z1 + (z2 + z3)"
-by (cases z1, cases z2, cases z3, simp add: real_add preal_add_assoc)
-
-lemma real_add_zero_left: "(0::real) + z = z"
-by (cases z, simp add: real_add real_zero_def preal_add_ac)
-
-instance real :: comm_monoid_add
-  by (intro_classes,
-      (assumption | 
-       rule real_add_commute real_add_assoc real_add_zero_left)+)
-
-
-subsection{*Additive Inverse on real*}
-
 lemma real_minus: "- Abs_Real(realrel``{(x,y)}) = Abs_Real(realrel `` {(y,x)})"
 proof -
   have "(\<lambda>(x,y). {Abs_Real (realrel``{(y,x)})}) respects realrel"
@@ -174,17 +154,29 @@ proof -
     by (simp add: real_minus_def UN_equiv_class [OF equiv_realrel])
 qed
 
-lemma real_add_minus_left: "(-z) + z = (0::real)"
-by (cases z, simp add: real_minus real_add real_zero_def preal_add_commute)
+instance real :: ab_group_add
+proof
+  fix x y z :: real
+  show "(x + y) + z = x + (y + z)"
+    by (cases x, cases y, cases z, simp add: real_add add_assoc)
+  show "x + y = y + x"
+    by (cases x, cases y, simp add: real_add add_commute)
+  show "0 + x = x"
+    by (cases x, simp add: real_add real_zero_def add_ac)
+  show "- x + x = 0"
+    by (cases x, simp add: real_minus real_add real_zero_def add_commute)
+  show "x - y = x + - y"
+    by (simp add: real_diff_def)
+qed
 
 
-subsection{*Congruence property for multiplication*}
+subsection {* Multiplication *}
 
 lemma real_mult_congruent2_lemma:
      "!!(x1::preal). [| x1 + y2 = x2 + y1 |] ==>
           x * x1 + y * y1 + (x * y2 + y * x2) =
           x * x2 + y * y2 + (x * y1 + y * x1)"
-apply (simp add: preal_add_left_commute preal_add_assoc [symmetric])
+apply (simp add: add_left_commute add_assoc [symmetric])
 apply (simp add: preal_add_assoc preal_add_mult_distrib2 [symmetric])
 apply (simp add: preal_add_commute)
 done
@@ -228,13 +220,23 @@ done
 text{*one and zero are distinct*}
 lemma real_zero_not_eq_one: "0 \<noteq> (1::real)"
 proof -
-  have "preal_of_rat 1 < preal_of_rat 1 + preal_of_rat 1"
-    by (simp add: preal_self_less_add_left) 
+  have "(1::preal) < 1 + 1"
+    by (simp add: preal_self_less_add_left)
   thus ?thesis
     by (simp add: real_zero_def real_one_def preal_add_right_cancel_iff)
 qed
 
-subsection{*existence of inverse*}
+instance real :: comm_ring_1
+proof
+  fix x y z :: real
+  show "(x * y) * z = x * (y * z)" by (rule real_mult_assoc)
+  show "x * y = y * x" by (rule real_mult_commute)
+  show "1 * x = x" by (rule real_mult_1)
+  show "(x + y) * z = x * z + y * z" by (rule real_add_mult_distrib)
+  show "0 \<noteq> (1::real)" by (rule real_zero_not_eq_one)
+qed
+
+subsection {* Inverse and Division *}
 
 lemma real_zero_iff: "Abs_Real (realrel `` {(x, x)}) = 0"
 by (simp add: real_zero_def preal_add_commute)
@@ -247,12 +249,10 @@ apply (simp add: real_zero_def real_one_def, cases x)
 apply (cut_tac x = xa and y = y in linorder_less_linear)
 apply (auto dest!: less_add_left_Ex simp add: real_zero_iff)
 apply (rule_tac
-        x = "Abs_Real (realrel `` { (preal_of_rat 1, 
-                            inverse (D) + preal_of_rat 1)}) " 
+        x = "Abs_Real (realrel``{(1, inverse (D) + 1)})"
        in exI)
 apply (rule_tac [2]
-        x = "Abs_Real (realrel `` { (inverse (D) + preal_of_rat 1,
-                   preal_of_rat 1)})" 
+        x = "Abs_Real (realrel``{(inverse (D) + 1, 1)})" 
        in exI)
 apply (auto simp add: real_mult preal_mult_1_right
               preal_add_mult_distrib2 preal_add_mult_distrib preal_mult_1
@@ -261,8 +261,11 @@ done
 
 lemma real_mult_inverse_left: "x \<noteq> 0 ==> inverse(x)*x = (1::real)"
 apply (simp add: real_inverse_def)
-apply (frule real_mult_inverse_left_ex, safe)
-apply (rule someI2, auto)
+apply (drule real_mult_inverse_left_ex, safe)
+apply (rule theI, assumption, rename_tac z)
+apply (subgoal_tac "(z * x) * y = z * (x * y)")
+apply (simp add: mult_commute)
+apply (rule mult_assoc)
 done
 
 
@@ -271,13 +274,6 @@ subsection{*The Real Numbers form a Field*}
 instance real :: field
 proof
   fix x y z :: real
-  show "- x + x = 0" by (rule real_add_minus_left)
-  show "x - y = x + (-y)" by (simp add: real_diff_def)
-  show "(x * y) * z = x * (y * z)" by (rule real_mult_assoc)
-  show "x * y = y * x" by (rule real_mult_commute)
-  show "1 * x = x" by (rule real_mult_1)
-  show "(x + y) * z = x * z + y * z" by (simp add: real_add_mult_distrib)
-  show "0 \<noteq> (1::real)" by (rule real_zero_not_eq_one)
   show "x \<noteq> 0 ==> inverse x * x = 1" by (rule real_mult_inverse_left)
   show "x / y = x * inverse y" by (simp add: real_divide_def)
 qed

@@ -53,7 +53,7 @@ qed
 typedef preal = "{A. cut A}"
   by (blast intro: cut_of_rat [OF zero_less_one])
 
-instance preal :: "{ord, plus, minus, times, inverse}" ..
+instance preal :: "{ord, plus, minus, times, inverse, one}" ..
 
 definition
   preal_of_rat :: "rat => preal" where
@@ -99,6 +99,9 @@ defs (overloaded)
 
   preal_inverse_def:
     "inverse R == Abs_preal (inverse_set (Rep_preal R))"
+
+  preal_one_def:
+    "1 == preal_of_rat 1"
 
 
 text{*Reduces equality on abstractions to equality on representatives*}
@@ -334,11 +337,15 @@ apply (simp add: preal_add_def mem_add_set Rep_preal)
 apply (force simp add: add_set_def add_ac)
 done
 
+instance preal :: ab_semigroup_add
+proof
+  fix a b c :: preal
+  show "(a + b) + c = a + (b + c)" by (rule preal_add_assoc)
+  show "a + b = b + a" by (rule preal_add_commute)
+qed
+
 lemma preal_add_left_commute: "x + (y + z) = y + ((x + z)::preal)"
-  apply (rule mk_left_commute [of "op +"])
-  apply (rule preal_add_assoc)
-  apply (rule preal_add_commute)
-  done
+by (rule add_left_commute)
 
 text{* Positive Real addition is an AC operator *}
 lemmas preal_add_ac = preal_add_assoc preal_add_commute preal_add_left_commute
@@ -465,11 +472,15 @@ apply (simp add: preal_mult_def mem_mult_set Rep_preal)
 apply (force simp add: mult_set_def mult_ac)
 done
 
+instance preal :: ab_semigroup_mult
+proof
+  fix a b c :: preal
+  show "(a * b) * c = a * (b * c)" by (rule preal_mult_assoc)
+  show "a * b = b * a" by (rule preal_mult_commute)
+qed
+
 lemma preal_mult_left_commute: "x * (y * z) = y * ((x * z)::preal)"
-  apply (rule mk_left_commute [of "op *"])
-  apply (rule preal_mult_assoc)
-  apply (rule preal_mult_commute)
-  done
+by (rule mult_left_commute)
 
 
 text{* Positive Real multiplication is an AC operator *}
@@ -479,7 +490,8 @@ lemmas preal_mult_ac =
 
 text{* Positive real 1 is the multiplicative identity element *}
 
-lemma preal_mult_1: "(preal_of_rat 1) * z = z"
+lemma preal_mult_1: "(1::preal) * z = z"
+unfolding preal_one_def
 proof (induct z)
   fix A :: "rat set"
   assume A: "A \<in> preal"
@@ -525,11 +537,11 @@ proof (induct z)
                   rat_mem_preal A)
 qed
 
+instance preal :: comm_monoid_mult
+by intro_classes (rule preal_mult_1)
 
-lemma preal_mult_1_right: "z * (preal_of_rat 1) = z"
-apply (rule preal_mult_commute [THEN subst])
-apply (rule preal_mult_1)
-done
+lemma preal_mult_1_right: "z * (1::preal) = z"
+by (rule mult_1_right)
 
 
 subsection{*Distribution of Multiplication across Addition*}
@@ -595,6 +607,9 @@ done
 
 lemma preal_add_mult_distrib: "(((x::preal) + y) * w) = (x * w) + (y * w)"
 by (simp add: preal_mult_commute preal_add_mult_distrib2)
+
+instance preal :: comm_semiring
+by intro_classes (rule preal_add_mult_distrib)
 
 
 subsection{*Existence of Inverse, a Positive Real*}
@@ -875,12 +890,13 @@ apply (simp add: zero_less_mult_iff preal_imp_pos [OF Rep_preal])
 apply (blast intro: inverse_mult_subset_lemma) 
 done
 
-lemma preal_mult_inverse: "inverse R * R = (preal_of_rat 1)"
+lemma preal_mult_inverse: "inverse R * R = (1::preal)"
+unfolding preal_one_def
 apply (rule Rep_preal_inject [THEN iffD1])
 apply (rule equalityI [OF inverse_mult_subset subset_inverse_mult]) 
 done
 
-lemma preal_mult_inverse_right: "R * inverse R = (preal_of_rat 1)"
+lemma preal_mult_inverse_right: "R * inverse R = (1::preal)"
 apply (rule preal_mult_commute [THEN subst])
 apply (rule preal_mult_inverse)
 done
@@ -1131,11 +1147,8 @@ lemmas preal_cancels =
 instance preal :: ordered_cancel_ab_semigroup_add
 proof
   fix a b c :: preal
-  show "a + b + c = a + (b + c)" by (rule preal_add_assoc)
-  show "a + b = b + a" by (rule preal_add_commute)
   show "a + b = a + c \<Longrightarrow> b = c" by (rule preal_add_left_cancel)
-  show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    by (simp only: preal_add_le_cancel_left)
+  show "a \<le> b \<Longrightarrow> c + a \<le> c + b" by (simp only: preal_add_le_cancel_left)
 qed
 
 
