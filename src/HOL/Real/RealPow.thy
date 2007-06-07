@@ -28,7 +28,7 @@ proof
 qed
 
 
-lemma realpow_zero_zero: "r ^ n = (0::real) ==> r = 0"
+(*lemma realpow_zero_zero: "r ^ n = (0::real) ==> r = 0"
 by simp
 
 lemma realpow_two: "(r::real)^ (Suc (Suc 0)) = r * r"
@@ -37,20 +37,25 @@ by simp
 text{*Legacy: weaker version of the theorem @{text power_strict_mono}*}
 lemma realpow_less:
      "[|(0::real) < x; x < y; 0 < n|] ==> x ^ n < y ^ n"
+thm power_strict_mono
 apply (rule power_strict_mono, auto) 
-done
+done *)
+
+(* declare [simp del]: zero_le_power
 
 lemma realpow_two_le [simp]: "(0::real) \<le> r^ Suc (Suc 0)"
 by (simp)
 
+
 lemma abs_realpow_two [simp]: "abs((x::real)^Suc (Suc 0)) = x^Suc (Suc 0)"
-by (simp add: abs_mult)
+by (simp)
 
 lemma realpow_two_abs [simp]: "abs(x::real)^Suc (Suc 0) = x^Suc (Suc 0)"
-by (simp add: power_abs [symmetric] del: realpow_Suc)
+by (simp)
 
+*)
 lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
-by (insert power_increasing [of 0 n "2::real"], simp)
+by (rule power_increasing[of 0 n "2::real", simplified])
 
 lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
 apply (induct "n")
@@ -70,7 +75,7 @@ done
 
 lemma realpow_two_mult_inverse [simp]:
      "r \<noteq> 0 ==> r * inverse r ^Suc (Suc 0) = inverse (r::real)"
-by (simp add: realpow_two real_mult_assoc [symmetric])
+by (simp add:  real_mult_assoc [symmetric])
 
 lemma realpow_two_minus [simp]: "(-x)^Suc (Suc 0) = (x::real)^Suc (Suc 0)"
 by simp
