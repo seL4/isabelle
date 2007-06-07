@@ -41,7 +41,7 @@ apply (rule power_strict_mono, auto)
 done
 
 lemma realpow_two_le [simp]: "(0::real) \<le> r^ Suc (Suc 0)"
-by (simp add: real_le_square)
+by (simp)
 
 lemma abs_realpow_two [simp]: "abs((x::real)^Suc (Suc 0)) = x^Suc (Suc 0)"
 by (simp add: abs_mult)
