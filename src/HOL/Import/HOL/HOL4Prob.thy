@@ -291,10 +291,10 @@ lemma MAP_MEM: "ALL (f::'a::type => 'b::type) (l::'a::type list) x::'b::type.
 lemma MEM_NIL_MAP_CONS: "ALL (x::'a::type) l::'a::type list list. ~ [] mem map (op # x) l"
   by (import prob_extra MEM_NIL_MAP_CONS)
 
-lemma FILTER_TRUE: "ALL l::'a::type list. [x::'a::type:l. True] = l"
+lemma FILTER_TRUE: "ALL l::'a::type list. [x::'a::type<-l. True] = l"
   by (import prob_extra FILTER_TRUE)
 
-lemma FILTER_FALSE: "ALL l::'a::type list. [x::'a::type:l. False] = []"
+lemma FILTER_FALSE: "ALL l::'a::type list. [x::'a::type<-l. False] = []"
   by (import prob_extra FILTER_FALSE)
 
 lemma FILTER_MEM: "ALL (P::'a::type => bool) (x::'a::type) l::'a::type list.
@@ -305,7 +305,7 @@ lemma MEM_FILTER: "ALL (P::'a::type => bool) (l::'a::type list) x::'a::type.
    x mem filter P l --> x mem l"
   by (import prob_extra MEM_FILTER)
 
-lemma FILTER_OUT_ELT: "ALL (x::'a::type) l::'a::type list. x mem l | [y::'a::type:l. y ~= x] = l"
+lemma FILTER_OUT_ELT: "ALL (x::'a::type) l::'a::type list. x mem l | [y::'a::type<-l. y ~= x] = l"
   by (import prob_extra FILTER_OUT_ELT)
 
 lemma IS_PREFIX_NIL: "ALL x::'a::type list. IS_PREFIX x [] & IS_PREFIX [] x = (x = [])"
@@ -1769,8 +1769,8 @@ lemma ALG_COVER_UNIV: "alg_cover [[]] = K []"
 
 lemma MAP_CONS_TL_FILTER: "ALL (l::bool list list) b::bool.
    ~ [] mem l -->
-   map (op # b) (map tl [x::bool list:l. hd x = b]) =
-   [x::bool list:l. hd x = b]"
+   map (op # b) (map tl [x::bool list<-l. hd x = b]) =
+   [x::bool list<-l. hd x = b]"
   by (import prob_indep MAP_CONS_TL_FILTER)
 
 lemma ALG_COVER_SET_CASES_THM: "ALL l::bool list list.

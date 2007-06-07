@@ -5528,7 +5528,7 @@ lemma IS_EL_FOLDL_MAP: "ALL (x::'a::type) xa::'a::type list.
   by (import rich_list IS_EL_FOLDL_MAP)
 
 lemma FILTER_FILTER: "ALL (P::'a::type => bool) (Q::'a::type => bool) l::'a::type list.
-   filter P (filter Q l) = [x::'a::type:l. P x & Q x]"
+   filter P (filter Q l) = [x::'a::type<-l. P x & Q x]"
   by (import rich_list FILTER_FILTER)
 
 lemma FCOMM_FOLDR_FLAT: "ALL (g::'a::type => 'a::type => 'a::type)
