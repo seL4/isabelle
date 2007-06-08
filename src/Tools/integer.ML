@@ -7,7 +7,7 @@ Unbounded integers.
 
 signature INTEGER =
 sig
-  type int
+  eqtype int
   val zero: int
   val one: int
   val two: int
@@ -98,11 +98,11 @@ end;
 type integer = Integer.int;
 
 infix 7 *%;
-infix 6 +% -%; 
+infix 6 +% -%;
 infix 4 =% <% <=% >% >=% <>%;
 
 fun a +% b = Integer.add a b;
-fun a -% b = a +% Integer.neg b;
+fun a -% b = Integer.sub a b;
 fun a *% b = Integer.mult a b;
 fun a =% b = Integer.eq (a, b);
 fun a <% b = Integer.lt a b;
@@ -111,6 +111,5 @@ fun a >% b = b <% a;
 fun a >=% b = b <=% a;
 fun a <>% b = not (a =% b);
 
-structure Intt = Integer; (*FIXME*)
 val gcd = uncurry Integer.gcd; (*FIXME*)
 val lcm = uncurry Integer.lcm; (*FIXME*)
