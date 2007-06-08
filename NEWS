@@ -530,6 +530,16 @@ the graph browser tool.
 
 *** HOL ***
 
+* Method "algebra" solves polynomial equations over (semi)rings using
+  Groebner bases. The (semi)ring structure is defined by locales and
+  the tool setup depends on that generic context. Installing the
+  method for a specific type involves instantiating the locale and
+  possibly adding declarations for computation on the coefficients.
+  The method is already instantiated for natural numbers and for the
+  axiomatic class of idoms with numerals.  See also the paper by
+  Chaieb and Wenzel at CALCULEMUS 2007 for the general principles
+  underlying this architecture of context-aware proof-tools.
+
 * constant "List.op @" now named "List.append".  Use ML antiquotations
 @{const_name List.append} or @{term " ... @ ... "} to circumvent
 possible incompatibilities when working on ML level.
