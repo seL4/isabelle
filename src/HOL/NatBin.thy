@@ -617,34 +617,36 @@ declare power_nat_number_of_number_of [simp]
 
 
 
-text{*For the integers*}
+text{*For arbitrary rings*}
 
-lemma zpower_number_of_even:
-  "(z::int) ^ number_of (w BIT bit.B0) = (let w = z ^ (number_of w) in w * w)"
+lemma power_number_of_even:
+  fixes z :: "'a::{number_ring,recpower}"
+  shows "z ^ number_of (w BIT bit.B0) = (let w = z ^ (number_of w) in w * w)"
 unfolding Let_def nat_number_of_def number_of_BIT bit.cases
 apply (rule_tac x = "number_of w" in spec, clarify)
 apply (case_tac " (0::int) <= x")
 apply (auto simp add: nat_mult_distrib power_even_eq power2_eq_square)
 done
 
-lemma zpower_number_of_odd:
-  "(z::int) ^ number_of (w BIT bit.B1) = (if (0::int) <= number_of w                    
+lemma power_number_of_odd:
+  fixes z :: "'a::{number_ring,recpower}"
+  shows "z ^ number_of (w BIT bit.B1) = (if (0::int) <= number_of w
      then (let w = z ^ (number_of w) in z * w * w) else 1)"
 unfolding Let_def nat_number_of_def number_of_BIT bit.cases
 apply (rule_tac x = "number_of w" in spec, auto)
 apply (simp only: nat_add_distrib nat_mult_distrib)
 apply simp
-apply (auto simp add: nat_add_distrib nat_mult_distrib power_even_eq power2_eq_square neg_nat)
+apply (auto simp add: nat_add_distrib nat_mult_distrib power_even_eq power2_eq_square neg_nat power_Suc)
 done
 
-lemmas zpower_number_of_even_number_of =
-    zpower_number_of_even [of "number_of v", standard]
-declare zpower_number_of_even_number_of [simp]
+lemmas zpower_number_of_even = power_number_of_even [where 'a=int]
+lemmas zpower_number_of_odd = power_number_of_odd [where 'a=int]
 
-lemmas zpower_number_of_odd_number_of =
-    zpower_number_of_odd [of "number_of v", standard]
-declare zpower_number_of_odd_number_of [simp]
+lemmas power_number_of_even_number_of [simp] =
+    power_number_of_even [of "number_of v", standard]
 
+lemmas power_number_of_odd_number_of [simp] =
+    power_number_of_odd [of "number_of v", standard]
 
 
 
@@ -709,7 +711,7 @@ lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (simp add: Let_def)
 
 lemma power_m1_even: "(-1) ^ (2*n) = (1::'a::{number_ring,recpower})"
-by (simp add: power_mult); 
+by (simp add: power_mult power_Suc); 
 
 lemma power_m1_odd: "(-1) ^ Suc(2*n) = (-1::'a::{number_ring,recpower})"
 by (simp add: power_mult power_Suc); 
