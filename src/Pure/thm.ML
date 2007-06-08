@@ -1505,7 +1505,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
                        (fn f => fn der => f (Pt.norm_proof' env der))
                      else
                        curry op oo (Pt.norm_proof' env))
-                    (Pt.bicompose_proof flatten Bs oldAs As A n)) rder' sder,
+                    (Pt.bicompose_proof flatten Bs oldAs As A n (nlift+1))) rder' sder,
                  tags = [],
                  maxidx = maxidx,
                  shyps = may_insert_env_sorts thy env (Sorts.union rshyps sshyps),

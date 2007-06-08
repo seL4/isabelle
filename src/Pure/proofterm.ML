@@ -81,7 +81,7 @@ sig
   val lift_proof : term -> int -> term -> proof -> proof
   val assumption_proof : term list -> term -> int -> proof -> proof
   val bicompose_proof : bool -> term list -> term list -> term list -> term option ->
-    int -> proof -> proof -> proof
+    int -> int -> proof -> proof -> proof
   val equality_axms : (string * term) list
   val reflexive_axm : proof
   val symmetric_axm : proof
@@ -717,13 +717,18 @@ fun lift_proof Bi inc prop prf =
 
 (***** proof by assumption *****)
 
-fun mk_asm_prf (Const ("==>", _) $ A $ B) i = AbsP ("H", NONE (*A*), mk_asm_prf B (i+1))
-  | mk_asm_prf (Const ("all", _) $ Abs (a, T, t)) i = Abst (a, NONE (*T*), mk_asm_prf t i)
-  | mk_asm_prf _ i = PBound i;
+fun mk_asm_prf t i m =
+  let
+    fun imp_prf _ i 0 = PBound i
+      | imp_prf (Const ("==>", _) $ A $ B) i m = AbsP ("H", NONE (*A*), imp_prf B (i+1) (m-1))
+      | imp_prf _ i _ = PBound i;
+    fun all_prf (Const ("all", _) $ Abs (a, T, t)) = Abst (a, NONE (*T*), all_prf t)
+      | all_prf t = imp_prf t (~i) m
+  in all_prf t end;
 
 fun assumption_proof Bs Bi n prf =
   mk_AbsP (length Bs, proof_combP (prf,
-    map PBound (length Bs - 1 downto 0) @ [mk_asm_prf Bi (~n)]));
+    map PBound (length Bs - 1 downto 0) @ [mk_asm_prf Bi n ~1]));
 
 
 (***** Composition of object rule with proof state *****)
@@ -735,14 +740,14 @@ fun flatten_params_proof i j n (Const ("==>", _) $ A $ B, k) =
   | flatten_params_proof i j n (_, k) = proof_combP (proof_combt (PBound (k+i),
       map Bound (j-1 downto 0)), map PBound (remove (op =) (i-n) (i-1 downto 0)));
 
-fun bicompose_proof flatten Bs oldAs newAs A n rprf sprf =
+fun bicompose_proof flatten Bs oldAs newAs A n m rprf sprf =
   let
     val la = length newAs;
     val lb = length Bs;
   in
     mk_AbsP (lb+la, proof_combP (sprf,
       map PBound (lb + la - 1 downto la)) %%
-        proof_combP (rprf, (if n>0 then [mk_asm_prf (the A) (~n)] else []) @
+        proof_combP (rprf, (if n>0 then [mk_asm_prf (the A) n m] else []) @
           map (if flatten then flatten_params_proof 0 0 n else PBound o snd)
             (oldAs ~~ (la - 1 downto 0))))
   end;
