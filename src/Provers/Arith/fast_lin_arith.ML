@@ -499,9 +499,9 @@ fun mkthm (sg:theory, ss) (asms:thm list) (just:injust) : thm =
 end;
 
 fun coeff poly atom =
-  AList.lookup (op =) poly atom |> the_default Integer.zero;
+  AList.lookup (op =) poly atom |> the_default (0: integer);
 
-fun lcms ks = fold Integer.lcm ks Integer.one;
+fun lcms ks = fold Integer.lcm ks 1;
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s

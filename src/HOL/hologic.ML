@@ -295,17 +295,14 @@ fun dest_Suc (Const ("Suc", _) $ t) = t
 
 val Suc_zero = mk_Suc zero;
 
-fun mk_nat n =
+fun mk_nat (n: integer) =
   let
     fun mk 0 = zero
-      | mk n = mk_Suc (mk (n -% 1));
-  in if n < 0
-    then error "mk_nat: negative numeral"
-    else mk n
-  end;
+      | mk n = mk_Suc (mk (n - 1));
+  in if n < 0 then raise TERM ("mk_nat: negative numeral", []) else mk n end;
 
-fun dest_nat (Const ("HOL.zero_class.zero", _)) = Integer.zero
-  | dest_nat (Const ("Suc", _) $ t) = Integer.inc (dest_nat t)
+fun dest_nat (Const ("HOL.zero_class.zero", _)) = (0: integer)
+  | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
 val class_size = "Nat.size";
@@ -346,7 +343,7 @@ fun mk_numeral 0 = pls_const
 fun dest_numeral (Const ("Numeral.Pls", _)) = 0
   | dest_numeral (Const ("Numeral.Min", _)) = ~1
   | dest_numeral (Const ("Numeral.Bit", _) $ bs $ b) =
-      2 *% dest_numeral bs +% Integer.int (dest_bit b)
+      2 * dest_numeral bs + Integer.int (dest_bit b)
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
 
 fun number_of_const T = Const ("Numeral.number_class.number_of", intT --> T);

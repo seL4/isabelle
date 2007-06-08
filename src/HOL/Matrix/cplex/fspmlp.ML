@@ -207,8 +207,8 @@ fun calcr safe_propagation xlen names prec A b =
 
         fun test_1 (lower, upper) =
             if lower = upper then
-                (if Float.eq (lower, (Integer.int ~1, Integer.zero)) then ~1
-                 else if Float.eq (lower, (Integer.int 1, Integer.zero)) then 1
+                (if Float.eq (lower, (~1, 0)) then ~1
+                 else if Float.eq (lower, (1, 0)) then 1
                  else 0)
             else 0
 

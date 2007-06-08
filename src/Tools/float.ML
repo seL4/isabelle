@@ -27,7 +27,7 @@ struct
 
 type float = integer * integer;
 
-val zero = (Integer.zero, Integer.zero);
+val zero: float = (0, 0);
 
 fun add (a1, b1) (a2, b2) =
   if Integer.cmp (b1, b2) = LESS then
@@ -54,7 +54,7 @@ fun eq (r, s) = cmp (r, s) = EQUAL;
 fun min r s = case cmp (r, s) of LESS => r | _ => s;
 fun max r s = case cmp (r, s) of LESS => s | _ => r;
 
-fun positive_part (a, b) = (Integer.max Integer.zero a, b);
-fun negative_part (a, b) = (Integer.min Integer.zero a, b);
+fun positive_part (a, b) = (Integer.max 0 a, b);
+fun negative_part (a, b) = (Integer.min 0 a, b);
 
 end;
