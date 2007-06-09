@@ -28,10 +28,10 @@ where
   [code func del]: "int m = Abs_Integ (intrel `` {(m, 0)})"
 
 instance int :: zero
-  Zero_int_def: "0 \<equiv> int 0" ..
+  Zero_int_def: "0 \<equiv> Abs_Integ (intrel `` {(0, 0)})" ..
 
 instance int :: one
-  One_int_def: "1 \<equiv> int 1" ..
+  One_int_def: "1 \<equiv> Abs_Integ (intrel `` {(1, 0)})" ..
 
 instance int :: plus
   add_int_def: "z + w \<equiv> Abs_Integ
@@ -88,15 +88,6 @@ apply (auto simp add: Integ_def quotient_def)
 done
 
 
-subsubsection{*@{term int}: Embedding the Naturals into the Integers*}
-
-lemma inj_int: "inj int"
-by (simp add: inj_on_def int_def)
-
-lemma int_int_eq [iff]: "(int m = int n) = (m = n)"
-by (fast elim!: inj_int [THEN injD])
-
-
 subsubsection{*Integer Unary Negation*}
 
 lemma minus: "- Abs_Integ(intrel``{(x,y)}) = Abs_Integ(intrel `` {(y,x)})"
@@ -111,7 +102,7 @@ lemma zminus_zminus: "- (- z) = (z::int)"
   by (cases z) (simp add: minus)
 
 lemma zminus_0: "- 0 = (0::int)"
-  by (simp add: int_def Zero_int_def minus)
+  by (simp add: Zero_int_def minus)
 
 
 subsection{*Integer Addition*}
@@ -148,15 +139,9 @@ lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
 
 lemmas zmult_ac = OrderedGroup.mult_ac
 
-lemma zadd_int: "(int m) + (int n) = int (m + n)"
-  by (simp add: int_def add)
-
-lemma zadd_int_left: "(int m) + (int n + z) = int (m + n) + z"
-  by (simp add: zadd_int zadd_assoc [symmetric])
-
 (*also for the instance declaration int :: comm_monoid_add*)
 lemma zadd_0: "(0::int) + z = z"
-apply (simp add: Zero_int_def int_def)
+apply (simp add: Zero_int_def)
 apply (cases z, simp add: add)
 done
 
@@ -164,7 +149,7 @@ lemma zadd_0_right: "z + (0::int) = z"
 by (rule trans [OF zadd_commute zadd_0])
 
 lemma zadd_zminus_inverse2: "(- z) + z = (0::int)"
-by (cases z, simp add: int_def Zero_int_def minus add)
+by (cases z, simp add: Zero_int_def minus add)
 
 
 subsection{*Integer Multiplication*}
@@ -214,14 +199,9 @@ lemmas int_distrib =
   zadd_zmult_distrib zadd_zmult_distrib2
   zdiff_zmult_distrib zdiff_zmult_distrib2
 
-lemma int_mult: "int (m * n) = (int m) * (int n)"
-by (simp add: int_def mult)
-
-text{*Compatibility binding*}
-lemmas zmult_int = int_mult [symmetric]
 
 lemma zmult_1: "(1::int) * z = z"
-by (cases z, simp add: One_int_def int_def mult)
+by (cases z, simp add: One_int_def mult)
 
 lemma zmult_1_right: "z * (1::int) = z"
 by (rule trans [OF zmult_commute zmult_1])
@@ -240,8 +220,7 @@ proof
   show "i * j = j * i" by (rule zmult_commute)
   show "1 * i = i" by (rule zmult_1) 
   show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
-  show "0 \<noteq> (1::int)"
-    by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
+  show "0 \<noteq> (1::int)" by (simp add: Zero_int_def One_int_def)
 qed
 
 
@@ -250,6 +229,10 @@ subsection{*The @{text "\<le>"} Ordering*}
 lemma le:
   "(Abs_Integ(intrel``{(x,y)}) \<le> Abs_Integ(intrel``{(u,v)})) = (x+v \<le> u+y)"
 by (force simp add: le_int_def)
+
+lemma less:
+  "(Abs_Integ(intrel``{(x,y)}) < Abs_Integ(intrel``{(u,v)})) = (x+v < u+y)"
+by (simp add: less_int_def le order_less_le)
 
 lemma zle_refl: "w \<le> (w::int)"
 by (cases w, simp add: le)
@@ -274,81 +257,60 @@ instance int :: linorder
 lemmas zless_linear = linorder_less_linear [where 'a = int]
 
 
-lemma int_eq_0_conv [simp]: "(int n = 0) = (n = 0)"
-by (simp add: Zero_int_def)
-
-lemma zless_int [simp]: "(int m < int n) = (m<n)"
-by (simp add: le add int_def linorder_not_le [symmetric]) 
-
-lemma int_less_0_conv [simp]: "~ (int k < 0)"
-by (simp add: Zero_int_def)
-
-lemma zero_less_int_conv [simp]: "(0 < int n) = (0 < n)"
-by (simp add: Zero_int_def)
-
 lemma int_0_less_1: "0 < (1::int)"
-by (simp only: Zero_int_def One_int_def One_nat_def zless_int)
+by (simp add: Zero_int_def One_int_def less)
 
 lemma int_0_neq_1 [simp]: "0 \<noteq> (1::int)"
-by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
-
-lemma zle_int [simp]: "(int m \<le> int n) = (m\<le>n)"
-by (simp add: linorder_not_less [symmetric])
-
-lemma zero_zle_int [simp]: "(0 \<le> int n)"
-by (simp add: Zero_int_def)
-
-lemma int_le_0_conv [simp]: "(int n \<le> 0) = (n = 0)"
-by (simp add: Zero_int_def)
-
-lemma int_0 [simp]: "int 0 = (0::int)"
-by (simp add: Zero_int_def)
-
-lemma int_1 [simp]: "int 1 = 1"
-by (simp add: One_int_def)
-
-lemma int_Suc0_eq_1: "int (Suc 0) = 1"
-by (simp add: One_int_def One_nat_def)
-
-lemma int_Suc: "int (Suc m) = 1 + (int m)"
-by (simp add: One_int_def zadd_int)
+by (rule int_0_less_1 [THEN less_imp_neq])
 
 
 subsection{*Monotonicity results*}
 
+instance int :: pordered_cancel_ab_semigroup_add
+proof
+  fix a b c :: int
+  show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
+    by (cases a, cases b, cases c, simp add: le add)
+qed
+
 lemma zadd_left_mono: "i \<le> j ==> k + i \<le> k + (j::int)"
-by (cases i, cases j, cases k, simp add: le add)
+by (rule add_left_mono)
 
 lemma zadd_strict_right_mono: "i < j ==> i + k < j + (k::int)"
-apply (cases i, cases j, cases k)
-apply (simp add: linorder_not_le [where 'a = int, symmetric]
-                 linorder_not_le [where 'a = nat]  le add)
-done
+by (rule add_strict_right_mono)
 
 lemma zadd_zless_mono: "[| w'<w; z'\<le>z |] ==> w' + z' < w + (z::int)"
-by (rule order_less_le_trans [OF zadd_strict_right_mono zadd_left_mono])
+by (rule add_less_le_mono)
 
 
 subsection{*Strict Monotonicity of Multiplication*}
 
 text{*strict, in 1st argument; proof is by induction on k>0*}
 lemma zmult_zless_mono2_lemma:
-     "i<j ==> 0<k ==> int k * i < int k * j"
+     "(i::int)<j ==> 0<k ==> of_nat k * i < of_nat k * j"
 apply (induct "k", simp)
-apply (simp add: int_Suc)
+apply (simp add: left_distrib)
 apply (case_tac "k=0")
-apply (simp_all add: zadd_zmult_distrib int_Suc0_eq_1 order_le_less)
-apply (simp add: zadd_zless_mono int_Suc0_eq_1 order_le_less)
+apply (simp_all add: add_strict_mono)
 done
 
-lemma zero_le_imp_eq_int: "0 \<le> k ==> \<exists>n. k = int n"
+lemma int_of_nat_def: "of_nat m = Abs_Integ (intrel `` {(m, 0)})"
+by (induct m, simp_all add: Zero_int_def One_int_def add)
+
+lemma zero_le_imp_eq_int: "(0::int) \<le> k ==> \<exists>n. k = of_nat n"
 apply (cases k)
-apply (auto simp add: le add int_def Zero_int_def)
+apply (auto simp add: le add int_of_nat_def Zero_int_def)
+apply (rule_tac x="x-y" in exI, simp)
+done
+
+lemma zero_less_imp_eq_int: "(0::int) < k ==> \<exists>n>0. k = of_nat n"
+apply (cases k)
+apply (simp add: less int_of_nat_def Zero_int_def)
 apply (rule_tac x="x-y" in exI, simp)
 done
 
 lemma zmult_zless_mono2: "[| i<j;  (0::int) < k |] ==> k*i < k*j"
-apply (frule order_less_imp_le [THEN zero_le_imp_eq_int])
+apply (drule zero_less_imp_eq_int)
 apply (auto simp add: zmult_zless_mono2_lemma)
 done
 
@@ -361,21 +323,75 @@ instance int :: distrib_lattice
   by intro_classes
     (auto simp add: inf_int_def sup_int_def min_max.sup_inf_distrib1)
 
-text{*The integers form an ordered @{text comm_ring_1}*}
+text{*The integers form an ordered integral domain*}
 instance int :: ordered_idom
 proof
   fix i j k :: int
-  show "i \<le> j ==> k + i \<le> k + j" by (rule zadd_left_mono)
   show "i < j ==> 0 < k ==> k * i < k * j" by (rule zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)
 qed
 
 lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
 apply (cases w, cases z) 
-apply (simp add: linorder_not_le [symmetric] le int_def add One_int_def)
+apply (simp add: less le add One_int_def)
 done
 
-subsection{*Magnitide of an Integer, as a Natural Number: @{term nat}*}
+
+subsection{*@{term int}: Embedding the Naturals into the Integers*}
+
+lemma inj_int: "inj int"
+by (simp add: inj_on_def int_def)
+
+lemma int_int_eq [iff]: "(int m = int n) = (m = n)"
+by (fast elim!: inj_int [THEN injD])
+
+lemma zadd_int: "(int m) + (int n) = int (m + n)"
+  by (simp add: int_def add)
+
+lemma zadd_int_left: "(int m) + (int n + z) = int (m + n) + z"
+  by (simp add: zadd_int zadd_assoc [symmetric])
+
+lemma int_mult: "int (m * n) = (int m) * (int n)"
+by (simp add: int_def mult)
+
+text{*Compatibility binding*}
+lemmas zmult_int = int_mult [symmetric]
+
+lemma int_eq_0_conv [simp]: "(int n = 0) = (n = 0)"
+by (simp add: Zero_int_def [folded int_def])
+
+lemma zless_int [simp]: "(int m < int n) = (m<n)"
+by (simp add: le add int_def linorder_not_le [symmetric]) 
+
+lemma int_less_0_conv [simp]: "~ (int k < 0)"
+by (simp add: Zero_int_def [folded int_def])
+
+lemma zero_less_int_conv [simp]: "(0 < int n) = (0 < n)"
+by (simp add: Zero_int_def [folded int_def])
+
+lemma zle_int [simp]: "(int m \<le> int n) = (m\<le>n)"
+by (simp add: linorder_not_less [symmetric])
+
+lemma zero_zle_int [simp]: "(0 \<le> int n)"
+by (simp add: Zero_int_def [folded int_def])
+
+lemma int_le_0_conv [simp]: "(int n \<le> 0) = (n = 0)"
+by (simp add: Zero_int_def [folded int_def])
+
+lemma int_0 [simp]: "int 0 = (0::int)"
+by (simp add: Zero_int_def [folded int_def])
+
+lemma int_1 [simp]: "int 1 = 1"
+by (simp add: One_int_def [folded int_def])
+
+lemma int_Suc0_eq_1: "int (Suc 0) = 1"
+by (simp add: One_int_def [folded int_def])
+
+lemma int_Suc: "int (Suc m) = 1 + (int m)"
+by (simp add: One_int_def [folded int_def] zadd_int)
+
+
+subsection{*Magnitude of an Integer, as a Natural Number: @{term nat}*}
 
 definition
   nat :: "int \<Rightarrow> nat"
@@ -394,7 +410,7 @@ lemma nat_int [simp]: "nat(int n) = n"
 by (simp add: nat int_def) 
 
 lemma nat_zero [simp]: "nat 0 = 0"
-by (simp only: Zero_int_def nat_int)
+by (simp only: Zero_int_def [folded int_def] nat_int)
 
 lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
 by (cases z, simp add: nat le int_def Zero_int_def)
@@ -688,7 +704,7 @@ lemmas of_int_eq_0_iff [simp] = of_int_eq_iff [of _ 0, simplified]
 lemma of_int_eq_id [simp]: "of_int = (id :: int => int)"
 proof
   fix z
-  show "of_int z = id z"  
+  show "of_int z = id z"
     by (cases z)
       (simp add: of_int add minus int_eq_of_nat [symmetric] int_def diff_minus)
 qed
