@@ -31,7 +31,7 @@ Removed top_sg, prin, printyp, pprint_term/typ altogether, because
 these tend to cause confusion about the actual goal (!) context being
 used here, which is not necessarily the same as the_context().
 
-* Command 'find_theorems': support "*" wildcard in "name:" criterion.
+* Command 'find_theorems': supports "*" wildcard in "name:" criterion.
 
 * Proof General interface: A search form for the "Find Theorems" command is
 now available via C-c C-a C-f.  The old minibuffer interface is available
@@ -573,6 +573,10 @@ instead of "arbitrary"
 * new (input only) syntax for Haskell-like list comprehension, eg
   [(x,y). x <- xs, y <- ys, x ~= y]
   For details see List.thy.
+
+* The special syntax for function "filter" has changed from [x : xs. P] to
+  [x <- xs. P] to avoid an ambiguity caused by list comprehension syntax,
+  and for uniformity. INCOMPATIBILITY
 
 * Library/Pretty_Int.thy: maps HOL numerals on target language integer literals
     when generating code.
