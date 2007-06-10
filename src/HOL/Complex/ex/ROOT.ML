@@ -22,5 +22,9 @@ no_document use_thy "NatPair";
 use_thy "DenumRat";
 
 use_thy "Ferrante_Rackoff_Ex";
-use_thy "MIR";
-use_thy "ReflectedFerrack";
+
+if String.isPrefix "smlnj" ml_system then ()  (* FIXME tmp *)
+else use_thy "MIR";
+
+if String.isPrefix "smlnj" ml_system then ()  (* FIXME tmp *)
+else use_thy "ReflectedFerrack";
