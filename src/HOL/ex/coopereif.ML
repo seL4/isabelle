@@ -17,7 +17,7 @@ fun i_of_term vs t =
 			 | SOME n => Bound n)
       | @{term "0::int"} => C 0
       | @{term "1::int"} => C 1
-      | Term.Bound i => Bound (nat (IntInf.fromInt i))
+      | Term.Bound i => Bound (nat i)
       | Const(@{const_name "HOL.uminus"},_)$t' => Neg (i_of_term vs t')
       | Const(@{const_name "HOL.plus"},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
       | Const(@{const_name "HOL.minus"},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
@@ -79,8 +79,8 @@ fun start_vs t =
 let
  val fs = term_frees t
  val ps = term_bools [] t
-in (fs ~~ (map (nat o IntInf.fromInt) (0 upto  (length fs - 1))),
-    ps ~~ (map (nat o IntInf.fromInt) (0 upto  (length ps - 1))))
+in (fs ~~ (map nat (0 upto  (length fs - 1))),
+    ps ~~ (map nat (0 upto  (length ps - 1))))
 end ;
 
 val iT = HOLogic.intT;

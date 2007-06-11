@@ -28,7 +28,7 @@ fun num_of_term vs t =
       | Const("RealDef.real",_)$ @{term "1::int"} => C 1
       | @{term "0::real"} => C 0
       | @{term "1::real"} => C 1
-      | Term.Bound i => Bound (nat (IntInf.fromInt i))
+      | Term.Bound i => Bound (nat i)
       | Const(@{const_name "HOL.uminus"},_)$t' => Neg (num_of_term vs t')
       | Const (@{const_name "HOL.plus"},_)$t1$t2 => Add (num_of_term vs t1,num_of_term vs t2)
       | Const (@{const_name "HOL.minus"},_)$t1$t2 => Sub (num_of_term vs t1,num_of_term vs t2)
@@ -72,7 +72,7 @@ fun zip [] [] = []
 
 fun start_vs t =
     let val fs = term_frees t
-    in zip fs (map (nat o IntInf.fromInt) (0 upto  (length fs - 1)))
+    in zip fs (map nat (0 upto  (length fs - 1)))
     end ;
 
 (* transform num and fm back to terms *)

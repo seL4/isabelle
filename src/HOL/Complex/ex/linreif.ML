@@ -26,7 +26,7 @@ fun num_of_term vs t =
       | Const("RealDef.real",_)$ @{term "1::int"} => C 1
       | @{term "0::real"} => C 0
       | @{term "0::real"} => C 1
-      | Term.Bound i => Bound (nat (IntInf.fromInt i))
+      | Term.Bound i => Bound (nat i)
       | Const(@{const_name "HOL.uminus"},_)$t' => Neg (num_of_term vs t')
       | Const (@{const_name "HOL.plus"},_)$t1$t2 => Add (num_of_term vs t1,num_of_term vs t2)
       | Const (@{const_name "HOL.minus"},_)$t1$t2 => Sub (num_of_term vs t1,num_of_term vs t2)
@@ -55,9 +55,9 @@ fun fm_of_term vs t =
       | Const("op -->",_)$t1$t2 => Imp(fm_of_term vs t1,fm_of_term vs t2)
       | Const("Not",_)$t' => NOT(fm_of_term vs t')
       | Const("Ex",_)$Term.Abs(xn,xT,p) => 
-	E(fm_of_term (map (fn(v,n) => (v,Suc n)) vs) p)
+	E(fm_of_term (map (fn(v,n) => (v,1+ n)) vs) p)
       | Const("All",_)$Term.Abs(xn,xT,p) => 
-	A(fm_of_term (map (fn(v,n) => (v,Suc n)) vs) p)
+	A(fm_of_term (map (fn(v,n) => (v,1+ n)) vs) p)
       | _ => error ("fm_of_term : unknown term!" ^ (Display.raw_string_of_term t));
 
 fun zip [] [] = []
@@ -66,7 +66,7 @@ fun zip [] [] = []
 
 fun start_vs t =
     let val fs = term_frees t
-    in zip fs (map (nat o IntInf.fromInt) (0 upto  (length fs - 1)))
+    in zip fs (map nat (0 upto  (length fs - 1)))
     end ;
 
 (* transform num and fm back to terms *)
