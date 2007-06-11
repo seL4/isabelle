@@ -250,6 +250,9 @@ val nnf_nim = thm "nnf_nim";
 val nnf_neq = thm "nnf_neq";
 val nnf_ndj = thm "nnf_ndj";
 
+fun negate (Const ("Not",_) $ p) = p 
+    |negate p = (HOLogic.Not $ p); 
+
 fun decomp_cnnf lfnp P = 
     case P of 
         Const ("op &",_) $ p $q => ([p,q] , FWD qe_conjI )
@@ -260,7 +263,7 @@ fun decomp_cnnf lfnp P =
         then 
             (case (p,q) of 
                  (A as (Const ("op &",_) $ r $ s),B as (Const ("op &",_) $ r1 $ t)) =>
-                 if r1 = CooperDec.negate r 
+                 if r1 = negate r 
                  then  ([r,HOLogic.Not$s,r1,HOLogic.Not$t],
                         fn [th1_1,th1_2,th2_1,th2_2] => 
                            [[th1_1,th1_1] MRS qe_conjI,[th2_1,th2_2] MRS qe_conjI] MRS nnf_sdj)
@@ -613,6 +616,12 @@ val qe_ex_nconj = thm "qe_ex_nconj";
 val qe_ALL = thm "qe_ALL";
 val ex_eq_cong = thm "ex_eq_cong";
 
+fun get_terms th = 
+let 
+  val (_$(Const("op =",Type ("fun",[Type ("bool", []),_])) $ A $ B )) = 
+   prop_of th 
+in (A,B) end;
+
 fun decomp_genqelim thy afnp nfnp qfnp (P,vs) = 
     case P of
         (Const("op &",_)$A$B) => ([(A,vs),(B,vs)], fn [th1,th2] => [th1,th2] MRS qe_conjI)
@@ -626,9 +635,9 @@ fun decomp_genqelim thy afnp nfnp qfnp (P,vs) =
             val x= Free(xn1,xT)
         in ([(p1,x::vs)],
             fn [th1_1] => 
-               let val th2 = [th1_1,nfnp (x::vs) (snd (CooperProof.qe_get_terms th1_1))] MRS trans
+               let val th2 = [th1_1,nfnp (x::vs) (snd (get_terms th1_1))] MRS trans
                    val eth1 = (forall_intr (cterm_of thy (Free(xn1,xT))) th2) COMP  ex_eq_cong
-                   val th3 = qfnp (snd(CooperProof.qe_get_terms eth1))
+                   val th3 = qfnp (snd(get_terms eth1))
                in [eth1,th3] MRS trans
                end )
         end
