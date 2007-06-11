@@ -95,10 +95,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Tools/Groebner_Basis/groebner.ML Tools/Groebner_Basis/misc.ML		\
   Tools/Groebner_Basis/normalizer.ML					\
   Tools/Groebner_Basis/normalizer_data.ML				\
-  Tools/Presburger/cooper_dec.ML Tools/Presburger/cooper_proof.ML	\
-  Tools/Presburger/presburger.ML Tools/Presburger/qelim.ML		\
-  Tools/Presburger/reflected_cooper.ML					\
-  Tools/Presburger/reflected_presburger.ML Tools/TFL/dcterm.ML		\
+  Tools/Presburger/cooper.ML Tools/Presburger/presburger.ML 		\
+  Tools/Presburger/qelim.ML Tools/Presburger/generated_cooper.ML 	\
+  Tools/Presburger/cooper_data.ML Tools/TFL/dcterm.ML		\
   Tools/TFL/post.ML Tools/TFL/rules.ML Tools/TFL/tfl.ML			\
   Tools/TFL/thms.ML Tools/TFL/thry.ML Tools/TFL/usyntax.ML		\
   Tools/TFL/utils.ML Tools/cnf_funcs.ML Tools/datatype_abs_proofs.ML	\
