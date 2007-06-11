@@ -1,367 +1,198 @@
 (*  Title:      HOL/Tools/Presburger/presburger.ML
     ID:         $Id$
-    Author:     Amine Chaieb and Stefan Berghofer, TU Muenchen
-
-Tactic for solving arithmetical Goals in Presburger Arithmetic.
-
-This version of presburger deals with occurences of functional symbols
-in the subgoal and abstract over them to try to prove the more general
-formula. It then resolves with the subgoal. To enable this feature
-call the procedure with the parameter abs.
+    Author:     Amine Chaieb, TU Muenchen
 *)
 
 signature PRESBURGER =
-sig
- val presburger_tac : bool -> bool -> int -> tactic
- val setup : theory -> theory
- val trace : bool ref
+ sig
+  val cooper_tac: bool -> Proof.context -> int -> Tactical.tactic
 end;
 
-structure Presburger: PRESBURGER =
+structure Presburger : PRESBURGER = 
 struct
 
-val trace = ref false;
-fun trace_msg s = if !trace then tracing s else ();
+open Conv;
+val comp_ss = HOL_ss addsimps @{thms "Groebner_Basis.comp_arith"};
 
-(*-----------------------------------------------------------------*)
-(*cooper_pp: provefunction for the one-existance quantifier elimination*)
-(* Here still only one problem : The proof for the arithmetical transformations done on the dvd atomic formulae*)
-(*-----------------------------------------------------------------*)
+fun strip_imp_cprems ct = 
+ case term_of ct of 
+  Const ("==>", _) $ _ $ _ => Thm.dest_arg1 ct :: strip_imp_cprems (Thm.dest_arg ct)
+| _ => [];
 
+val cprems_of = strip_imp_cprems o cprop_of;
 
-val presburger_ss = simpset ();
-val binarith = map thm
-  ["Pls_0_eq", "Min_1_eq",
- "pred_Pls","pred_Min","pred_1","pred_0",
-  "succ_Pls", "succ_Min", "succ_1", "succ_0",
-  "add_Pls", "add_Min", "add_BIT_0", "add_BIT_10",
-  "add_BIT_11", "minus_Pls", "minus_Min", "minus_1",
-  "minus_0", "mult_Pls", "mult_Min", "mult_num1", "mult_num0",
-  "add_Pls_right", "add_Min_right"];
- val intarithrel =
-     (map thm ["int_eq_number_of_eq","int_neg_number_of_BIT",
-                "int_le_number_of_eq","int_iszero_number_of_0",
-                "int_less_number_of_eq_neg"]) @
-     (map (fn s => thm s RS thm "lift_bool")
-          ["int_iszero_number_of_Pls","int_iszero_number_of_1",
-           "int_neg_number_of_Min"])@
-     (map (fn s => thm s RS thm "nlift_bool")
-          ["int_nonzero_number_of_Min","int_not_neg_number_of_Pls"]);
+fun strip_objimp ct = 
+ case term_of ct of 
+  Const ("op -->", _) $ _ $ _ => Thm.dest_arg1 ct :: strip_objimp (Thm.dest_arg ct)
+| _ => [ct];
 
-val intarith = map thm ["int_number_of_add_sym", "int_number_of_minus_sym",
-                        "int_number_of_diff_sym", "int_number_of_mult_sym"];
-val natarith = map thm ["add_nat_number_of", "diff_nat_number_of",
-                        "mult_nat_number_of", "eq_nat_number_of",
-                        "less_nat_number_of"]
-val powerarith =
-    (map thm ["nat_number_of", "zpower_number_of_even",
-              "zpower_Pls", "zpower_Min"]) @
-    [(MetaSimplifier.simplify true [thm "zero_eq_Numeral0_nring",
-                           thm "one_eq_Numeral1_nring"]
-  (thm "zpower_number_of_odd"))]
+fun strip_objall ct = 
+ case term_of ct of 
+  Const ("All", _) $ Abs (xn,xT,p) => 
+   let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
+   in apfst (cons (a,v)) (strip_objall t')
+   end
+| _ => ([],ct);
 
-val comp_arith = binarith @ intarith @ intarithrel @ natarith
-            @ powerarith @[thm"not_false_eq_true", thm "not_true_eq_false"];
+fun thin_prems_tac P i st = 
+ case try (nth (cprems_of st)) (i - 1) of
+    NONE => no_tac st
+  | SOME p' => 
+    let
+     val (qvs, p) = strip_objall (Thm.dest_arg p')
+     val (ps, c) = split_last (strip_objimp p)
+     val qs = filter P ps
+     val q = if P c then c else @{cterm "False"}
+     val ng = fold_rev (fn (a,v) => fn t => Thm.capply a (Thm.cabs v t)) qvs 
+         (fold_rev (fn p => fn q => Thm.capply (Thm.capply @{cterm "op -->"} p) q) qs q)
+     val g = Thm.capply (Thm.capply @{cterm "op ==>"} (Thm.capply @{cterm "Trueprop"} ng)) p'
+     val ntac = (case qs of [] => q aconvc @{cterm "False"}
+                         | _ => false)
+    in 
+    if ntac then no_tac st
+      else rtac (Goal.prove_raw [] g (K (blast_tac HOL_cs 1))) i st 
+    end;
 
-fun cooper_pp sg (fm as e$Abs(xn,xT,p)) =
-  let val (xn1,p1) = Syntax.variant_abs (xn,xT,p)
-  in (CooperProof.cooper_prv sg (Free (xn1, xT)) p1) end;
+local
+ fun ty cts t = 
+ if not (typ_of (ctyp_of_term t) mem [HOLogic.intT, HOLogic.natT]) then false 
+    else case term_of t of 
+      c$_$_ => not (member (op aconv) cts c)
+    | c$_ => not (member (op aconv) cts c)
+    | c => not (member (op aconv) cts c)
+    | _ => true
 
-fun mnnf_pp sg fm = CooperProof.proof_of_cnnf sg fm
-  (CooperProof.proof_of_evalc sg);
+ val term_constants =
+  let fun h acc t = case t of
+    Const _ => [t]
+  | a$b => h (h acc a) b
+  | Abs (_,_,t) => h acc t
+  | _ => acc
+ in h [] end;
+in 
+fun is_relevant ctxt ct = 
+  gen_subset (op aconv) (term_constants (term_of ct) , snd (Cooper_Data.get ctxt))
+ andalso forall (fn Free (_,T) => T = HOLogic.intT) (term_frees (term_of ct))
+ andalso forall (fn Var (_,T) => T = HOLogic.intT) (term_vars (term_of ct));
 
-fun tmproof_of_int_qelim sg fm =
-  Qelim.tproof_of_mlift_qelim sg CooperDec.is_arith_rel
-    (CooperProof.proof_of_linform sg) (mnnf_pp sg) (cooper_pp sg) fm;
-
-
-(* Theorems to be used in this tactic*)
-
-val zdvd_int = thm "zdvd_int";
-val zdiff_int_split = thm "zdiff_int_split";
-val all_nat = thm "all_nat";
-val ex_nat = thm "ex_nat";
-val number_of1 = thm "number_of1";
-val number_of2 = thm "number_of2";
-val split_zdiv = thm "split_zdiv";
-val split_zmod = thm "split_zmod";
-val mod_div_equality' = thm "mod_div_equality'";
-val split_div' = thm "split_div'";
-val Suc_plus1 = thm "Suc_plus1";
-val imp_le_cong = thm "imp_le_cong";
-val conj_le_cong = thm "conj_le_cong";
-val nat_mod_add_eq = mod_add1_eq RS sym;
-val nat_mod_add_left_eq = mod_add_left_eq RS sym;
-val nat_mod_add_right_eq = mod_add_right_eq RS sym;
-val int_mod_add_eq = @{thm zmod_zadd1_eq} RS sym;
-val int_mod_add_left_eq = @{thm zmod_zadd_left_eq} RS sym;
-val int_mod_add_right_eq = @{thm zmod_zadd_right_eq} RS sym;
-val nat_div_add_eq = @{thm div_add1_eq} RS sym;
-val int_div_add_eq = @{thm zdiv_zadd1_eq} RS sym;
-val ZDIVISION_BY_ZERO_MOD = @{thm DIVISION_BY_ZERO} RS conjunct2;
-val ZDIVISION_BY_ZERO_DIV = @{thm DIVISION_BY_ZERO} RS conjunct1;
-
-
-(* extract all the constants in a term*)
-fun add_term_typed_consts (Const (c, T), cs) = insert (op =) (c, T) cs
-  | add_term_typed_consts (t $ u, cs) =
-      add_term_typed_consts (t, add_term_typed_consts (u, cs))
-  | add_term_typed_consts (Abs (_, _, t), cs) = add_term_typed_consts (t, cs)
-  | add_term_typed_consts (_, cs) = cs;
-
-fun term_typed_consts t = add_term_typed_consts(t,[]);
-
-(* Some Types*)
-val bT = HOLogic.boolT;
-val bitT = HOLogic.bitT;
-val iT = HOLogic.intT;
-val nT = HOLogic.natT;
-
-(* Allowed Consts in formulae for presburger tactic*)
-
-val allowed_consts =
-  [("All", (iT --> bT) --> bT),
-   ("Ex", (iT --> bT) --> bT),
-   ("All", (nT --> bT) --> bT),
-   ("Ex", (nT --> bT) --> bT),
-
-   ("op &", bT --> bT --> bT),
-   ("op |", bT --> bT --> bT),
-   ("op -->", bT --> bT --> bT),
-   ("op =", bT --> bT --> bT),
-   ("Not", bT --> bT),
-
-   (@{const_name Orderings.less_eq}, iT --> iT --> bT),
-   ("op =", iT --> iT --> bT),
-   (@{const_name Orderings.less}, iT --> iT --> bT),
-   (@{const_name Divides.dvd}, iT --> iT --> bT),
-   (@{const_name Divides.div}, iT --> iT --> iT),
-   (@{const_name Divides.mod}, iT --> iT --> iT),
-   (@{const_name HOL.plus}, iT --> iT --> iT),
-   (@{const_name HOL.minus}, iT --> iT --> iT),
-   (@{const_name HOL.times}, iT --> iT --> iT),
-   (@{const_name HOL.abs}, iT --> iT),
-   (@{const_name HOL.uminus}, iT --> iT),
-   (@{const_name Orderings.max}, iT --> iT --> iT),
-   (@{const_name Orderings.min}, iT --> iT --> iT),
-
-   (@{const_name Orderings.less_eq}, nT --> nT --> bT),
-   ("op =", nT --> nT --> bT),
-   (@{const_name Orderings.less}, nT --> nT --> bT),
-   (@{const_name Divides.dvd}, nT --> nT --> bT),
-   (@{const_name Divides.div}, nT --> nT --> nT),
-   (@{const_name Divides.mod}, nT --> nT --> nT),
-   (@{const_name HOL.plus}, nT --> nT --> nT),
-   (@{const_name HOL.minus}, nT --> nT --> nT),
-   (@{const_name HOL.times}, nT --> nT --> nT),
-   (@{const_name Suc}, nT --> nT),
-   (@{const_name Orderings.max}, nT --> nT --> nT),
-   (@{const_name Orderings.min}, nT --> nT --> nT),
-
-   (@{const_name Numeral.bit.B0}, bitT),
-   (@{const_name Numeral.bit.B1}, bitT),
-   (@{const_name Numeral.Bit}, iT --> bitT --> iT),
-   (@{const_name Numeral.Pls}, iT),
-   (@{const_name Numeral.Min}, iT),
-   (@{const_name Numeral.number_of}, iT --> iT),
-   (@{const_name Numeral.number_of}, iT --> nT),
-   (@{const_name HOL.zero}, nT),
-   (@{const_name HOL.zero}, iT),
-   (@{const_name HOL.one}, nT),
-   (@{const_name HOL.one}, iT),
-   (@{const_name False}, bT),
-   (@{const_name True}, bT)];
-
-(* Preparation of the formula to be sent to the Integer quantifier *)
-(* elimination procedure                                           *)
-(* Transforms meta implications and meta quantifiers to object     *)
-(* implications and object quantifiers                             *)
-
-
-(*==================================*)
-(* Abstracting on subterms  ========*)
-(*==================================*)
-(* Returns occurences of terms that are function application of type int or nat*)
-
-fun getfuncs fm = case strip_comb fm of
-    (Free (_, T), ts as _ :: _) =>
-      if body_type T mem [iT, nT]
-         andalso not (ts = []) andalso forall (null o loose_bnos) ts
-      then [fm]
-      else Library.foldl op union ([], map getfuncs ts)
-  | (Var (_, T), ts as _ :: _) =>
-      if body_type T mem [iT, nT]
-         andalso not (ts = []) andalso forall (null o loose_bnos) ts then [fm]
-      else Library.foldl op union ([], map getfuncs ts)
-  | (Const (s, T), ts) =>
-      if (s, T) mem allowed_consts orelse not (body_type T mem [iT, nT])
-      then Library.foldl op union ([], map getfuncs ts)
-      else [fm]
-  | (Abs (s, T, t), _) => getfuncs t
-  | _ => [];
-
-
-fun abstract_pres sg fm =
-  foldr (fn (t, u) =>
-      let val T = fastype_of t
-      in all T $ Abs ("x", T, abstract_over (t, u)) end)
-         fm (getfuncs fm);
-
-
-
-(* hasfuncs_on_bounds dont care of the type of the functions applied!
- It returns true if there is a subterm coresponding to the application of
- a function on a bounded variable.
-
- Function applications are allowed only for well predefined functions a
- consts*)
-
-fun has_free_funcs fm  = case strip_comb fm of
-    (Free (_, T), ts as _ :: _) =>
-      if (body_type T mem [iT,nT]) andalso (not (T mem [iT,nT]))
-      then true
-      else exists (fn x => x) (map has_free_funcs ts)
-  | (Var (_, T), ts as _ :: _) =>
-      if (body_type T mem [iT,nT]) andalso not (T mem [iT,nT])
-      then true
-      else exists (fn x => x) (map has_free_funcs ts)
-  | (Const (s, T), ts) =>  exists (fn x => x) (map has_free_funcs ts)
-  | (Abs (s, T, t), _) => has_free_funcs t
-  |_ => false;
-
-
-(*returns true if the formula is relevant for presburger arithmetic tactic
-The constants occuring in term t should be a subset of the allowed_consts
- There also should be no occurences of application of functions on bounded
- variables. Whenever this function will be used, it will be ensured that t
- will not contain subterms with function symbols that could have been
- abstracted over.*)
-
-fun relevant ps t = (term_typed_consts t) subset allowed_consts andalso
-  map (fn i => snd (List.nth (ps, i))) (loose_bnos t) @
-  map (snd o dest_Free) (term_frees t) @ map (snd o dest_Var) (term_vars t)
-  subset [iT, nT]
-  andalso not (has_free_funcs t);
-
-
-fun prepare_for_presburger sg q fm =
-  let
-    val ps = Logic.strip_params fm
-    val hs = map HOLogic.dest_Trueprop (Logic.strip_assums_hyp fm)
-    val c = HOLogic.dest_Trueprop (Logic.strip_assums_concl fm)
-    val _ = if relevant (rev ps) c then ()
-               else  (trace_msg ("Conclusion is not a presburger term:\n" ^
-             Sign.string_of_term sg c); raise CooperDec.COOPER)
-    fun mk_all ((s, T), (P,n)) =
-      if 0 mem loose_bnos P then
-        (HOLogic.all_const T $ Abs (s, T, P), n)
-      else (incr_boundvars ~1 P, n-1)
-    fun mk_all2 (v, t) = HOLogic.all_const (fastype_of v) $ lambda v t;
-    val (rhs,irhs) = List.partition (relevant (rev ps)) hs
-    val np = length ps
-    val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
-      (foldr HOLogic.mk_imp c rhs, np) ps
-    val (vs, _) = List.partition (fn t => q orelse (type_of t) = nT)
-      (term_frees fm' @ term_vars fm');
-    val fm2 = foldr mk_all2 fm' vs
-  in (fm2, np + length vs, length rhs) end;
-
-(*Object quantifier to meta --*)
-fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
-
-(* object implication to meta---*)
-fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
-
-(* the presburger tactic*)
-
-(* Parameters : q = flag for quantify ofer free variables ;
-                a = flag for abstracting over function occurences
-                i = subgoal  *)
-
-fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
-  let
-    val g = List.nth (prems_of st, i - 1)
-    val sg = Thm.theory_of_thm st
-    (* The Abstraction step *)
-    val g' = if a then abstract_pres sg g else g
-    (* Transform the term*)
-    val (t,np,nh) = prepare_for_presburger sg q g'
-    (* Some simpsets for dealing with mod div abs and nat*)
-    val mod_div_simpset = Simplifier.theory_context sg HOL_basic_ss
-                        addsimps [refl,nat_mod_add_eq, nat_mod_add_left_eq,
-                                  nat_mod_add_right_eq, int_mod_add_eq,
-                                  int_mod_add_right_eq, int_mod_add_left_eq,
-                                  nat_div_add_eq, int_div_add_eq,
-                                  mod_self, @{thm zmod_self},
-                                  DIVISION_BY_ZERO_MOD,DIVISION_BY_ZERO_DIV,
-                                  ZDIVISION_BY_ZERO_MOD,ZDIVISION_BY_ZERO_DIV,
-                                  @{thm zdiv_zero}, @{thm zmod_zero}, div_0,mod_0,
-                                  @{thm zdiv_1}, @{thm zmod_1}, @{thm div_1}, @{thm mod_1},
-                                  Suc_plus1]
-                        addsimps add_ac
-                        addsimprocs [cancel_div_mod_proc]
-    val simpset0 = HOL_basic_ss
-      addsimps [@{thm mod_div_equality'}, @{thm Suc_plus1}]
-      addsimps comp_arith
-      addsplits [split_zdiv, split_zmod, split_div', @{thm split_min}, @{thm split_max}]
-    (* Simp rules for changing (n::int) to int n *)
-    val simpset1 = HOL_basic_ss
-      addsimps [nat_number_of_def, zdvd_int] @ map (fn r => r RS sym)
-        [int_int_eq, zle_int, zless_int, zadd_int, zmult_int]
-      addsplits [zdiff_int_split]
-    (*simp rules for elimination of int n*)
-
-    val simpset2 = HOL_basic_ss
-      addsimps [nat_0_le, all_nat, ex_nat, number_of1, number_of2, int_0, int_1]
-      addcongs [conj_le_cong, imp_le_cong]
-    (* simp rules for elimination of abs *)
-    val simpset3 = HOL_basic_ss addsplits [abs_split]
-    val ct = cterm_of sg (HOLogic.mk_Trueprop t)
-    (* Theorem for the nat --> int transformation *)
-    val pre_thm = Seq.hd ((EVERY o (map TRY)) 
-      [simp_tac mod_div_simpset 1, simp_tac simpset0 1,
-       simp_tac simpset1 1, simp_tac simpset2 1,
-       simp_tac simpset3 1, simp_tac presburger_ss 1]
-      (trivial ct))
-    fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
-    (* The result of the quantifier elimination *)
-    val (th, tac) = case (prop_of pre_thm) of
-        Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
-    let val pth =
-             if !quick_and_dirty
-             then presburger_oracle sg (Pattern.eta_long [] t1)
-             else tmproof_of_int_qelim sg (Pattern.eta_long [] t1)
-    in
-          (trace_msg ("calling procedure with term:\n" ^
-             Sign.string_of_term sg t1);
-           ((pth RS iffD2) RS pre_thm,
-            assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
-    end
-      | _ => (pre_thm, assm_tac i)
-  in (rtac (((mp_step nh) o (spec_step np)) th) i
-      THEN tac) st
-  end handle Subscript => no_tac st | CooperDec.COOPER => no_tac st);
-
-val presburger_meth =
- let val parse_flag =
-         Args.$$$ "no_quantify" >> K (apfst (K false))
-      || Args.$$$ "no_abs" >> K (apsnd (K false));
- in
-   Method.simple_args
-     (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-      curry (Library.foldl op |>) (true, true))
-     (fn (q,a) => K (Method.SIMPLE_METHOD' (presburger_tac q a)))
-  end;
-
-val presburger_arith_tac = mk_arith_tactic "presburger" (fn i => fn st =>
-  (warning "Trying full Presburger arithmetic ...";
-   presburger_tac true true i st));
-
-val setup =
-  Method.add_method ("presburger", presburger_meth,
-    "decision procedure for Presburger arithmetic") #>
-  arith_tactic_add presburger_arith_tac;
-
+fun int_nat_terms ctxt ct =
+ let 
+  val cts = snd (Cooper_Data.get ctxt)
+  fun h acc t = if ty cts t then insert (op aconvc) t acc else
+   case (term_of t) of
+    _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
+  | Abs(_,_,_) => Thm.dest_abs NONE t ||> h acc |> uncurry (remove (op aconvc))
+  | _ => acc
+ in h [] ct end
 end;
 
-val presburger_tac = Presburger.presburger_tac true true;
+fun generalize_tac ctxt f i st = 
+ case try (nth (cprems_of st)) (i - 1) of
+    NONE => all_tac st
+  | SOME p => 
+   let 
+   fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
+   fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
+   val ts = f p
+   val p' = fold_rev gen ts p
+ in Seq.of_list [implies_intr p' (implies_elim st (fold forall_elim ts (assume p')))]
+ end;
+
+local
+val ss1 = comp_ss
+  addsimps simp_thms @ [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}] 
+      @ map (fn r => r RS sym) 
+        [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
+         @{thm "zmult_int"}]
+    addsplits [@{thm "zdiff_int_split"}]
+
+val ss2 = HOL_basic_ss
+  addsimps [@{thm "nat_0_le"}, @{thm "int_nat_number_of"},
+            @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
+            @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_plus1"}]
+  addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
+val div_mod_ss = HOL_basic_ss addsimps simp_thms 
+  @ map (symmetric o mk_meta_eq) 
+    [@{thm "dvd_eq_mod_eq_0"}, @{thm "zdvd_iff_zmod_eq_0"}, mod_add1_eq, 
+     mod_add_left_eq, mod_add_right_eq, 
+     @{thm "zmod_zadd1_eq"}, @{thm "zmod_zadd_left_eq"}, 
+     @{thm "zmod_zadd_right_eq"}, @{thm "div_add1_eq"}, @{thm "zdiv_zadd1_eq"}]
+  @ [@{thm "mod_self"}, @{thm "zmod_self"}, @{thm "DIVISION_BY_ZERO_MOD"}, 
+     @{thm "DIVISION_BY_ZERO_DIV"}, @{thm "DIVISION_BY_ZERO"} RS conjunct1, 
+     @{thm "DIVISION_BY_ZERO"} RS conjunct2, @{thm "zdiv_zero"}, @{thm "zmod_zero"}, 
+     @{thm "div_0"}, @{thm "mod_0"}, @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, 
+     @{thm "mod_1"}, @{thm "Suc_plus1"}]
+  @ add_ac
+ addsimprocs [cancel_div_mod_proc]
+ val splits_ss = comp_ss addsimps [@{thm "mod_div_equality'"}] addsplits 
+     [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
+      @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}]
+in
+fun nat_to_int_tac ctxt i = 
+  simp_tac (Simplifier.context ctxt ss1) i THEN 
+  simp_tac (Simplifier.context ctxt ss2) i THEN 
+  TRY (simp_tac (Simplifier.context ctxt comp_ss) i);
+
+fun div_mod_tac  ctxt i = simp_tac (Simplifier.context ctxt div_mod_ss) i;
+fun splits_tac ctxt i = simp_tac (Simplifier.context ctxt splits_ss) i;
+end;
+
+
+fun eta_conv ct = 
+  let val {thy, t, ...} = rep_cterm ct
+      val ct' = cterm_of thy (Pattern.eta_long [] t)
+  in (symmetric o eta_conversion) ct'
+  end;
+
+fun eta_beta_tac i st = case try (nth (cprems_of st)) (i - 1) of
+   NONE => no_tac st
+ | SOME p => 
+   let
+    val eq = (eta_conv then_conv Thm.beta_conversion true) p
+    val p' = Thm.rhs_of eq
+    val th = implies_intr p' (equal_elim (symmetric eq) (assume p'))
+   in rtac th i st
+   end;
+
+
+
+fun core_cooper_tac ctxt i st = 
+ case try (nth (cprems_of st)) (i - 1) of
+   NONE => all_tac st
+ | SOME p => 
+   let 
+    val cpth = 
+       if !quick_and_dirty 
+       then linzqe_oracle (ProofContext.theory_of ctxt) 
+             (Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p))))
+       else arg_conv (Cooper.cooper_conv ctxt) p
+    val p' = Thm.rhs_of cpth
+    val th = implies_intr p' (equal_elim (symmetric cpth) (assume p'))
+   in rtac th i st end
+   handle Cooper.COOPER _ => no_tac st;
+
+fun nogoal_tac i st = case try (nth (cprems_of st)) (i - 1) of
+   NONE => no_tac st
+ | SOME _ => all_tac st
+
+fun finish_tac q i st = case try (nth (cprems_of st)) (i - 1) of
+   NONE => all_tac st
+ | SOME _ => (if q then I else TRY) (rtac TrueI i) st
+
+fun cooper_tac q ctxt i = 
+nogoal_tac i 
+THEN (EVERY o (map TRY))
+ [ObjectLogic.full_atomize_tac i,
+  eta_beta_tac i,
+  simp_tac (fst (Cooper_Data.get ctxt)) i,
+  generalize_tac ctxt (int_nat_terms ctxt) i,
+  ObjectLogic.full_atomize_tac i,
+  div_mod_tac ctxt i,
+  splits_tac ctxt i,
+  simp_tac (fst (Cooper_Data.get ctxt)) i,
+  eta_beta_tac i,
+  nat_to_int_tac ctxt i, 
+  thin_prems_tac (is_relevant ctxt) i]
+THEN core_cooper_tac ctxt i THEN finish_tac q i;
+
+end;
