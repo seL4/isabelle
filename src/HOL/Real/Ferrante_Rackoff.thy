@@ -484,6 +484,59 @@ lemma normalize_not_le: "t < (s::real) = P \<Longrightarrow> (\<not> s\<le>t) = 
 lemma normalize_not_eq: "\<lbrakk> t = (s::real) = P ; (~P) = P' \<rbrakk> \<Longrightarrow> (s\<noteq>t) = P'"  by auto
 lemma ex_eq_cong: "(!! x. A x = B x) \<Longrightarrow> ((\<exists>x. A x) = (\<exists> x. B x))"  by blast
 
+lemma qe_Not: "P = Q ==> (~P) = (~Q)"
+by blast
+
+lemma qe_ALL: "(EX x. ~P x) = R ==> (ALL x. P x) = (~R)"
+by blast
+
+lemma qe_conjI: "P1 = P2 ==> Q1 = Q2 ==> (P1 & Q1) = (P2 & Q2)"
+by blast
+
+lemma qe_disjI: "P1 = P2 ==> Q1 = Q2 ==> (P1 | Q1) = (P2 | Q2)"
+by blast
+
+lemma qe_impI: "P1 = P2 ==> Q1 = Q2 ==> (P1 --> Q1) = (P2 --> Q2)"
+by blast
+
+lemma qe_eqI: "P1 = P2 ==> Q1 = Q2 ==> (P1 = Q1) = (P2 = Q2)"
+by blast
+lemma qe_exI: "(!!x::int. A x = B x) ==> (EX (x::int). A(x)) = (EX (x::int). B(x))"
+  by iprover
+
+lemma qe_ALLI: "(!!x::int. A x = B x) ==> (ALL (x::int). A(x)) = (ALL (x::int). B(x))"
+  by iprover
+
+lemma nnf_im: "((~P) = P1) ==> (Q=Q1) ==> ((P --> Q) = (P1 | Q1))"
+by blast
+
+lemma nnf_eq: "((P & Q) = (P1 & Q1)) ==> (((~P) & (~Q)) = (P2 & Q2)) ==> ((P = Q) = ((P1 & Q1)|(P2 & Q2)))"
+by blast
+
+lemma nnf_nn: "(P = Q) ==> ((~~P) = Q)"
+  by blast
+lemma nnf_ncj: "((~P) = P1) ==> ((~Q) = Q1) ==> ((~(P & Q)) = (P1 | Q1))"
+by blast
+
+lemma nnf_ndj: "((~P) = P1) ==> ((~Q) = Q1) ==> ((~(P | Q)) = (P1 & Q1))"
+by blast
+lemma nnf_nim: "(P = P1) ==> ((~Q) = Q1) ==> ((~(P --> Q)) = (P1 & Q1))"
+by blast
+lemma nnf_neq: "((P & (~Q)) = (P1 & Q1)) ==> (((~P) & Q) = (P2 & Q2)) ==> ((~(P = Q)) = ((P1 & Q1)|(P2 & Q2)))"
+by blast
+lemma nnf_sdj: "((A & (~B)) = (A1 & B1)) ==> ((C & (~D)) = (C1 & D1)) ==> (A = (~C)) ==> ((~((A & B) | (C & D))) = ((A1 & B1) | (C1 & D1)))"
+by blast
+lemma qe_ex_conj: "(EX (x::int). A x) = R
+		==> (EX (x::int). P x) = (Q & (EX x::int. A x))
+		==> (EX (x::int). P x) = (Q & R)"
+by blast
+
+lemma qe_ex_nconj: "(EX (x::int). P x) = (True & Q)
+		==> (EX (x::int). P x) = Q"
+by blast
+
+
+
 use "ferrante_rackoff_proof.ML"
 use "ferrante_rackoff.ML"
 setup "Ferrante_Rackoff.setup"
