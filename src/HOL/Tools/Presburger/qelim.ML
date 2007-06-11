@@ -8,9 +8,6 @@ and proof generation for multiple quantified formulae.
 
 signature QELIM =
  sig
- val tproof_of_mlift_qelim: theory -> (term -> bool) ->
-   (string list -> term -> thm) -> (term -> thm) ->
-   (term -> thm) -> term -> thm
  val standard_qelim_conv: (cterm list -> cterm -> thm) ->
    (cterm list -> Conv.conv) -> (cterm list -> cterm -> thm) -> cterm -> thm
  val gen_qelim_conv: Conv.conv -> Conv.conv -> Conv.conv ->
@@ -21,50 +18,7 @@ end;
 
 structure Qelim : QELIM =
 struct
-open CooperDec;
-open CooperProof;
 open Conv;
-
-val cboolT = ctyp_of HOL.thy HOLogic.boolT;
-
-(* List of the theorems to be used in the following*)
-
-val qe_ex_conj = thm "qe_ex_conj";
-val qe_ex_nconj = thm "qe_ex_nconj";
-val qe_ALL = thm "qe_ALL";
-
-
-(*============= Compact version =====*)
-
-
-fun decomp_qe is_at afnp nfnp qfnp sg P = 
-   if is_at P then ([], fn [] => afnp [] P) else 
-   case P of
-   (Const("op &",_)$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_conjI)
-   |(Const("op |",_)$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_disjI)
-   |(Const("op -->",_)$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_impI)
-   |(Const("op =", Type ("fun",[Type ("bool", []),_]))$A$B) => ([A,B], fn [th1,th2] => [th1,th2] MRS qe_eqI)
-   |(Const("Not",_)$p) => ([p],fn [th] => th RS qe_Not)
-   |(Const("Ex",_)$Abs(xn,xT,p)) => 
-      let val (xn1,p1) = Syntax.variant_abs(xn,xT,p) 
-      in ([p1],
-        fn [th1_1] => 
-          let val th2 = [th1_1,nfnp (snd (qe_get_terms th1_1))] MRS trans
-              val eth1 = (forall_intr (cterm_of sg (Free(xn1,xT))) th2) COMP  qe_exI
-              val th3 = qfnp (snd(qe_get_terms eth1))
-          in [eth1,th3] MRS trans
-          end )
-      end
-
-   |(Const("All",_)$Abs(xn,xT,p)) => ([(HOLogic.exists_const xT)$Abs(xn,xT,HOLogic.Not $ p)], fn [th] => th RS qe_ALL)
-   | _ => ([],fn [] => instantiate' [SOME (ctyp_of sg (type_of P))] [SOME (cterm_of sg P)] refl);
- 
-
-fun tproof_of_mlift_qelim sg isat afnp nfnp qfnp p = 
-   let val th1 = thm_of sg (decomp_qe isat afnp nfnp qfnp sg) p
-       val th2 = nfnp (snd (qe_get_terms th1))
-    in [th1,th2] MRS trans
-    end;
 
 val is_refl = op aconv o Logic.dest_equals o Thm.prop_of;
 
