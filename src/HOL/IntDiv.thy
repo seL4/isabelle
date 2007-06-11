@@ -1238,9 +1238,11 @@ theorem ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat
   apply simp
   done
 
-theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
-  apply (simp only: dvd_def ex_nat int_int_eq [symmetric] zmult_int [symmetric]
-    nat_0_le cong add: conj_cong)
+theorem zdvd_int_of_nat: "(x dvd y) = (int_of_nat x dvd int_of_nat y)"
+  unfolding dvd_def
+  apply (rule_tac s="\<exists>k. int_of_nat y = int_of_nat x * int_of_nat k" in trans)
+  apply (simp only: of_nat_mult [symmetric] of_nat_eq_iff)
+  apply (simp add: ex_nat cong add: conj_cong)
   apply (rule iffI)
   apply iprover
   apply (erule exE)
@@ -1250,10 +1252,13 @@ theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
   apply (case_tac "0 \<le> k")
   apply iprover
   apply (simp add: linorder_not_le)
-  apply (drule mult_strict_left_mono_neg [OF iffD2 [OF zero_less_int_conv]])
+  apply (drule mult_strict_left_mono_neg [OF iffD2 [OF of_nat_0_less_iff]])
   apply assumption
   apply (simp add: mult_ac)
   done
+
+theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
+  unfolding int_eq_of_nat by (rule zdvd_int_of_nat)
 
 lemma zdvd1_eq[simp]: "(x::int) dvd 1 = ( \<bar>x\<bar> = 1)"
 proof
@@ -1275,31 +1280,40 @@ next
   from zdvd_mult_cancel[OF H2 mp] show "\<bar>n\<bar> = 1" by (simp only: zdvd1_eq)
 qed
 
-lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
+lemma int_of_nat_dvd_iff: "(int_of_nat m dvd z) = (m dvd nat (abs z))"
   apply (auto simp add: dvd_def nat_abs_mult_distrib)
-  apply (auto simp add: nat_eq_iff abs_if split add: split_if_asm)
-   apply (rule_tac x = "-(int k)" in exI)
-  apply (auto simp add: int_mult)
+  apply (auto simp add: nat_eq_iff' abs_if split add: split_if_asm)
+   apply (rule_tac x = "-(int_of_nat k)" in exI)
+  apply auto
+  done
+
+lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
+  unfolding int_eq_of_nat by (rule int_of_nat_dvd_iff)
+
+lemma dvd_int_of_nat_iff: "(z dvd int_of_nat m) = (nat (abs z) dvd m)"
+  apply (auto simp add: dvd_def abs_if)
+    apply (rule_tac [3] x = "nat k" in exI)
+    apply (rule_tac [2] x = "-(int_of_nat k)" in exI)
+    apply (rule_tac x = "nat (-k)" in exI)
+    apply (cut_tac [3] m = m and 'a=int in of_nat_less_0_iff)
+    apply (cut_tac m = m and 'a=int in of_nat_less_0_iff)
+    apply (auto simp add: zero_le_mult_iff mult_less_0_iff
+      nat_mult_distrib [symmetric] nat_eq_iff2')
   done
 
 lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
-  apply (auto simp add: dvd_def abs_if int_mult)
-    apply (rule_tac [3] x = "nat k" in exI)
-    apply (rule_tac [2] x = "-(int k)" in exI)
-    apply (rule_tac x = "nat (-k)" in exI)
-    apply (cut_tac [3] k = m in int_less_0_conv)
-    apply (cut_tac k = m in int_less_0_conv)
-    apply (auto simp add: zero_le_mult_iff mult_less_0_iff
-      nat_mult_distrib [symmetric] nat_eq_iff2)
+  unfolding int_eq_of_nat by (rule dvd_int_of_nat_iff)
+
+lemma nat_dvd_iff': "(nat z dvd m) = (if 0 \<le> z then (z dvd int_of_nat m) else m = 0)"
+  apply (auto simp add: dvd_def)
+  apply (rule_tac x = "nat k" in exI)
+  apply (cut_tac m = m and 'a=int in of_nat_less_0_iff)
+  apply (auto simp add: zero_le_mult_iff mult_less_0_iff
+    nat_mult_distrib [symmetric] nat_eq_iff2')
   done
 
 lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)"
-  apply (auto simp add: dvd_def int_mult)
-  apply (rule_tac x = "nat k" in exI)
-  apply (cut_tac k = m in int_less_0_conv)
-  apply (auto simp add: zero_le_mult_iff mult_less_0_iff
-    nat_mult_distrib [symmetric] nat_eq_iff2)
-  done
+  unfolding int_eq_of_nat by (rule nat_dvd_iff')
 
 lemma zminus_dvd_iff [iff]: "(-z dvd w) = (z dvd (w::int))"
   apply (auto simp add: dvd_def)
@@ -1368,20 +1382,28 @@ lemma int_power: "int (m^n) = (int m) ^ n"
 text{*Compatibility binding*}
 lemmas zpower_int = int_power [symmetric]
 
-lemma zdiv_int: "int (a div b) = (int a) div (int b)"
+lemma int_of_nat_div:
+  "int_of_nat (a div b) = (int_of_nat a) div (int_of_nat b)"
 apply (subst split_div, auto)
 apply (subst split_zdiv, auto)
-apply (rule_tac a="int (b * i) + int j" and b="int b" and r="int j" and r'=ja in IntDiv.unique_quotient)
-apply (auto simp add: IntDiv.quorem_def int_eq_of_nat)
+apply (rule_tac a="int_of_nat (b * i) + int_of_nat j" and b="int_of_nat b" and r="int_of_nat j" and r'=ja in IntDiv.unique_quotient)
+apply (auto simp add: IntDiv.quorem_def)
+done
+
+lemma zdiv_int: "int (a div b) = (int a) div (int b)"
+  unfolding int_eq_of_nat by (rule int_of_nat_div)
+
+lemma int_of_nat_mod:
+  "int_of_nat (a mod b) = (int_of_nat a) mod (int_of_nat b)"
+apply (subst split_mod, auto)
+apply (subst split_zmod, auto)
+apply (rule_tac a="int_of_nat (b * i) + int_of_nat j" and b="int_of_nat b" and q="int_of_nat i" and q'=ia 
+       in unique_remainder)
+apply (auto simp add: IntDiv.quorem_def)
 done
 
 lemma zmod_int: "int (a mod b) = (int a) mod (int b)"
-apply (subst split_mod, auto)
-apply (subst split_zmod, auto)
-apply (rule_tac a="int (b * i) + int j" and b="int b" and q="int i" and q'=ia 
-       in unique_remainder)
-apply (auto simp add: IntDiv.quorem_def int_eq_of_nat)
-done
+  unfolding int_eq_of_nat by (rule int_of_nat_mod)
 
 text{*Suggested by Matthias Daum*}
 lemma int_power_div_base:
