@@ -125,6 +125,7 @@ instance comm_ring_1 \<subseteq> comm_semiring_1_cancel ..
 class ring_no_zero_divisors = ring + no_zero_divisors
 
 class dom = ring_1 + ring_no_zero_divisors
+hide const dom
 
 class idom = comm_ring_1 + no_zero_divisors
 
