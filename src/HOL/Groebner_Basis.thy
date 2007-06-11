@@ -209,7 +209,7 @@ declaration {*
           handle TERM _ => error "ring_dest_const")),
     mk_const = fn phi => fn cT => fn x =>
       Thm.cterm_of (Thm.theory_of_ctyp cT) (HOLogic.mk_number (typ_of cT) (int_of_rat x)),
-    conv = fn phi => numeral_conv}
+    conv = fn phi => K numeral_conv}
 *}
 
 
@@ -250,7 +250,7 @@ declaration {*
           handle TERM _ => error "ring_dest_const")),
     mk_const = fn phi => fn cT => fn x =>
       Thm.cterm_of (Thm.theory_of_ctyp cT) (HOLogic.mk_number (typ_of cT) (int_of_rat x)),
-    conv = fn phi => numeral_conv}
+    conv = fn phi => K numeral_conv}
 *}
 
 use "Tools/Groebner_Basis/normalizer.ML"
@@ -362,7 +362,7 @@ declaration {*
           handle TERM _ => error "ring_dest_const")),
     mk_const = fn phi => fn cT => fn x =>
       Thm.cterm_of (Thm.theory_of_ctyp cT) (HOLogic.mk_number (typ_of cT) (int_of_rat x)),
-    conv = fn phi => numeral_conv}
+    conv = fn phi => K numeral_conv}
 *}
 
 
@@ -397,7 +397,7 @@ declaration {*
           handle TERM _ => error "ring_dest_const")),
     mk_const = fn phi => fn cT => fn x =>
       Thm.cterm_of (Thm.theory_of_ctyp cT) (HOLogic.mk_number (typ_of cT) (int_of_rat x)),
-    conv = fn phi => numeral_conv}
+    conv = fn phi => K numeral_conv}
 *}
 
 locale fieldgb = ringb + gb_field
@@ -437,8 +437,16 @@ lemma PFalse:
 use "Tools/Groebner_Basis/groebner.ML"
 
 ML {*
-  fun algebra_tac ctxt i = ObjectLogic.full_atomize_tac i THEN (fn st =>
-  rtac (Groebner.ring_conv ctxt (Thm.dest_arg (nth (cprems_of st) (i - 1)))) i st);
+  fun algebra_tac ctxt i = ObjectLogic.full_atomize_tac i 
+  THEN (fn st =>
+   case try (nth (cprems_of st)) (i - 1) of
+    NONE => no_tac st
+  | SOME p => let val th = Groebner.ring_conv ctxt (Thm.dest_arg p)
+              in rtac th i st end
+              handle TERM _ => no_tac st
+              handle THM _ => no_tac st
+              handle ERROR _ => no_tac st
+              handle CTERM _ => no_tac st);
 *}
 
 method_setup algebra = {*

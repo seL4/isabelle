@@ -9,7 +9,7 @@ sig
  val mk_cnumeral : integer -> cterm
  val semiring_normalize_conv : Proof.context -> Conv.conv
  val semiring_normalize_tac : Proof.context -> int -> tactic
- val semiring_normalize_wrapper :  NormalizerData.entry -> Conv.conv
+ val semiring_normalize_wrapper :  Proof.context -> NormalizerData.entry -> Conv.conv
  val semiring_normalizers_conv :
      cterm list -> cterm list * thm list -> cterm list * thm list ->
      (cterm -> bool) * Conv.conv * Conv.conv * Conv.conv -> (cterm -> Thm.cterm -> bool) ->
@@ -622,7 +622,7 @@ val nat_arith = @{thms "nat_arith"};
 val nat_exp_ss = HOL_basic_ss addsimps (nat_number @ nat_arith @ arith_simps @ rel_simps)
                               addsimps [Let_def, if_False, if_True, add_0, add_Suc];
 
-fun semiring_normalize_wrapper ({vars, semiring, ring, idom}, 
+fun semiring_normalize_wrapper ctxt ({vars, semiring, ring, idom}, 
                                      {conv, dest_const, mk_const, is_const}) =
   let
     fun ord t u = Term.term_ord (term_of t, term_of u) = LESS
@@ -631,15 +631,15 @@ fun semiring_normalize_wrapper ({vars, semiring, ring, idom},
       arg_conv (Simplifier.rewrite nat_exp_ss)
       then_conv Simplifier.rewrite
         (HOL_basic_ss addsimps [nth (snd semiring) 31, nth (snd semiring) 34])
-      then_conv conv
-    val dat = (is_const, conv, conv, pow_conv)
+      then_conv conv ctxt
+    val dat = (is_const, conv ctxt, conv ctxt, pow_conv)
     val {main, ...} = semiring_normalizers_conv vars semiring ring dat ord
   in main end;
 
 fun semiring_normalize_conv ctxt tm =
   (case NormalizerData.match ctxt tm of
     NONE => reflexive tm
-  | SOME res => semiring_normalize_wrapper res tm);
+  | SOME res => semiring_normalize_wrapper ctxt res tm);
 
 
 fun semiring_normalize_tac ctxt = SUBGOAL (fn (goal, i) =>

@@ -16,7 +16,7 @@ sig
   val funs: thm -> {is_const: morphism -> cterm -> bool,
     dest_const: morphism -> cterm -> Rat.rat,
     mk_const: morphism -> ctyp -> Rat.rat -> cterm,
-    conv: morphism -> cterm -> thm} -> morphism -> Context.generic -> Context.generic
+    conv: morphism -> Proof.context -> cterm -> thm} -> morphism -> Context.generic -> Context.generic
   val setup: theory -> theory
 end;
 
@@ -33,7 +33,7 @@ type entry =
  {is_const: cterm -> bool,
   dest_const: cterm -> Rat.rat,
   mk_const: ctyp -> Rat.rat -> cterm,
-  conv: cterm -> thm};
+  conv: Proof.context -> cterm -> thm};
 
 val eq_key = Thm.eq_thm;
 fun eq_data arg = eq_fst eq_key arg;

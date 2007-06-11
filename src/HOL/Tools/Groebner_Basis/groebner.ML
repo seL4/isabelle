@@ -739,7 +739,7 @@ fun ring_conv ctxt form =
         NONE => reflexive form
       | SOME (res as (theory, {is_const, dest_const, mk_const, conv = ring_eq_conv})) =>
         fst (ring_and_ideal_conv theory
-          dest_const (mk_const (Thm.ctyp_of_term tm)) ring_eq_conv
-          (semiring_normalize_wrapper res)) form));
+          dest_const (mk_const (Thm.ctyp_of_term tm)) (ring_eq_conv ctxt)
+          (semiring_normalize_wrapper ctxt res)) form));
 
 end;
