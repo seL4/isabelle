@@ -260,6 +260,22 @@ method_setup sring_norm = {*
 *} "Semiring_normalizer"
 
 
+locale gb_field = gb_ring +
+  fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    and inverse:: "'a \<Rightarrow> 'a"
+  assumes divide: "divide x y = mul x (inverse y)"
+     and inverse: "inverse x = divide r1 x"
+begin
+
+lemma "axioms" [normalizer
+  semiring ops: semiring_ops
+  semiring rules: semiring_rules
+  ring ops: ring_ops
+  ring rules: ring_rules]:
+  "gb_field add mul pwr r0 r1 sub neg divide inverse" .
+
+end
+
 subsection {* Groebner Bases *}
 
 locale semiringb = gb_semiring +
@@ -384,6 +400,21 @@ declaration {*
     conv = fn phi => numeral_conv}
 *}
 
+locale fieldgb = ringb + gb_field
+begin
+
+declare "axioms" [normalizer del]
+
+lemma "axioms" [normalizer
+  semiring ops: semiring_ops
+  semiring rules: semiring_rules
+  ring ops: ring_ops
+  ring rules: ring_rules
+  idom rules: noteq_reduce add_scale_eq_noteq]:
+  "fieldgb add mul pwr r0 r1 sub neg divide inverse" by unfold_locales
+end
+
+
 
 lemmas bool_simps = simp_thms(1-34)
 lemma dnf:
@@ -413,5 +444,7 @@ ML {*
 method_setup algebra = {*
   Method.ctxt_args (Method.SIMPLE_METHOD' o algebra_tac)
 *} ""
+
+
 
 end

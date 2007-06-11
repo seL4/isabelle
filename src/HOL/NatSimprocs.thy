@@ -392,4 +392,209 @@ val divide_minus1 = @{thm divide_minus1};
 val minus1_divide = @{thm minus1_divide};
 *}
 
+section{* Installing Groebner Bases for Fields *}
+
+
+interpretation class_fieldgb: 
+  fieldgb["op +" "op *" "op ^" "0::'a::{field,recpower,number_ring}" "1" "op -" "uminus" "op /" "inverse"] apply (unfold_locales) by (simp_all add: divide_inverse)
+
+lemma divide_Numeral1: "(x::'a::{field,number_ring}) / Numeral1 = x" by simp
+lemma divide_Numeral0: "(x::'a::{field,number_ring, division_by_zero}) / Numeral0 = 0" 
+  by simp
+lemma mult_frac_frac: "((x::'a::{field,division_by_zero}) / y) * (z / w) = (x*z) / (y*w)" 
+  by simp
+lemma mult_frac_num: "((x::'a::{field, division_by_zero}) / y) * z  = (x*z) / y" 
+  by simp
+lemma mult_num_frac: "((x::'a::{field, division_by_zero}) / y) * z  = (x*z) / y" 
+  by simp
+
+lemma Numeral1_eq1_nat: "(1::nat) = Numeral1" by simp
+
+lemma add_frac_num: "y\<noteq> 0 \<Longrightarrow> (x::'a::{field, division_by_zero}) / y + z = (x + z*y) / y" 
+  by (simp add: add_divide_distrib)
+lemma add_num_frac: "y\<noteq> 0 \<Longrightarrow> z + (x::'a::{field, division_by_zero}) / y = (x + z*y) / y" 
+  by (simp add: add_divide_distrib)
+
+declaration{*
+let
+ val zr = @{cpat "0"}
+ val zT = ctyp_of_term zr
+ val geq = @{cpat "op ="}
+ val eqT = Thm.dest_ctyp (ctyp_of_term geq) |> hd
+ val add_frac_eq = mk_meta_eq @{thm "add_frac_eq"} 
+ val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
+ val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
+
+ fun prove_nz ss T t = 
+    let 
+      val z = instantiate_cterm ([(zT,T)],[]) zr 
+      val eq = instantiate_cterm ([(eqT,T)],[]) geq
+      val th = Simplifier.rewrite (ss addsimps simp_thms) 
+           (Thm.capply @{cterm "Trueprop"} (Thm.capply @{cterm "Not"} 
+                  (Thm.capply (Thm.capply eq t) z)))
+    in equal_elim (symmetric th) TrueI
+    end
+
+ fun proc phi ss ct = 
+  let 
+    val ((x,y),(w,z)) = 
+         (Thm.dest_binop #> (fn (a,b) => (Thm.dest_binop a, Thm.dest_binop b))) ct
+    val _ = map (HOLogic.dest_number o term_of) [x,y,z,w] 
+    val T = ctyp_of_term x
+    val [y_nz, z_nz] = map (prove_nz ss T) [y, z]
+    val th = instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
+  in SOME (implies_elim (implies_elim th y_nz) z_nz)
+  end
+  handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
+
+ fun proc2 phi ss ct = 
+  let 
+    val (l,r) = Thm.dest_binop ct
+    val T = ctyp_of_term l
+  in (case (term_of l, term_of r) of
+      (Const(@{const_name "HOL.divide"},_)$_$_, _) => 
+        let val (x,y) = Thm.dest_binop l val z = r
+            val _ = map (HOLogic.dest_number o term_of) [x,y,z]
+            val ynz = prove_nz ss T y
+        in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
+        end
+     | (_, Const (@{const_name "HOL.divide"},_)$_$_) => 
+        let val (x,y) = Thm.dest_binop r val z = l
+            val _ = map (HOLogic.dest_number o term_of) [x,y,z]
+            val ynz = prove_nz ss T y
+        in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
+        end
+     | _ => NONE)
+  end
+  handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
+
+ fun is_number (Const(@{const_name "HOL.divide"},_)$a$b) = is_number a andalso is_number b
+   | is_number t = can HOLogic.dest_number t
+
+ val is_number = is_number o term_of
+
+ fun proc3 phi ss ct =
+  (case term_of ct of
+    Const(@{const_name "Orderings.less"},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ => 
+      let 
+        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
+        val _ = map is_number [a,b,c]
+        val T = ctyp_of_term c
+        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
+      in SOME (mk_meta_eq th) end
+  | Const(@{const_name "Orderings.less_eq"},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ => 
+      let 
+        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
+        val _ = map is_number [a,b,c]
+        val T = ctyp_of_term c
+        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
+      in SOME (mk_meta_eq th) end
+  | Const("op =",_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ => 
+      let 
+        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
+        val _ = map is_number [a,b,c]
+        val T = ctyp_of_term c
+        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
+      in SOME (mk_meta_eq th) end
+  | Const(@{const_name "Orderings.less"},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) => 
+    let 
+      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
+        val _ = map is_number [a,b,c]
+        val T = ctyp_of_term c
+        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
+      in SOME (mk_meta_eq th) end
+  | Const(@{const_name "Orderings.less_eq"},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) => 
+    let 
+      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
+        val _ = map is_number [a,b,c]
+        val T = ctyp_of_term c
+        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
+      in SOME (mk_meta_eq th) end
+  | Const("op =",_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) => 
+    let 
+      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
+        val _ = map is_number [a,b,c]
+        val T = ctyp_of_term c
+        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "eq_divide_eq"}
+      in SOME (mk_meta_eq th) end
+  | _ => NONE)
+  handle TERM _ => NONE | CTERM _ => NONE | THM _ => NONE
+
+val add_frac_frac_simproc = 
+       make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + (?w::?'a::field)/?z"}], 
+                     name = "add_frac_frac_simproc",
+                     proc = proc, identifier = []}
+
+val add_frac_num_simproc = 
+       make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + ?z"}, @{cpat "?z + (?x::?'a::field)/?y"}], 
+                     name = "add_frac_num_simproc",
+                     proc = proc2, identifier = []}
+
+val ord_frac_simproc = 
+  make_simproc 
+    {lhss = [@{cpat "(?a::(?'a::{field, ord}))/?b < ?c"}, 
+             @{cpat "(?a::(?'a::{field, ord}))/?b \<le> ?c"}, 
+             @{cpat "?c < (?a::(?'a::{field, ord}))/?b"}, 
+             @{cpat "?c \<le> (?a::(?'a::{field, ord}))/?b"},
+             @{cpat "?c = ((?a::(?'a::{field, ord}))/?b)"},
+             @{cpat "((?a::(?'a::{field, ord}))/ ?b) = ?c"}],
+             name = "ord_frac_simproc", proc = proc3, identifier = []}
+
+val nat_arith = map thm ["add_nat_number_of", "diff_nat_number_of", 
+               "mult_nat_number_of", "eq_nat_number_of", "less_nat_number_of"]
+
+val comp_arith = (map thm ["Let_def", "if_False", "if_True", "add_0", 
+                 "add_Suc", "add_number_of_left", "mult_number_of_left", 
+                 "Suc_eq_add_numeral_1"])@
+                 (map (fn s => thm s RS sym) ["numeral_1_eq_1", "numeral_0_eq_0"])
+                 @ arith_simps@ nat_arith @ rel_simps 
+val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"}, 
+           @{thm "divide_Numeral1"}, 
+           @{thm "Ring_and_Field.divide_zero"}, @{thm "divide_Numeral0"},
+           @{thm "divide_divide_eq_left"}, @{thm "mult_frac_frac"},
+           @{thm "mult_num_frac"}, @{thm "mult_frac_num"}, 
+           @{thm "mult_frac_frac"}, @{thm "times_divide_eq_right"}, 
+           @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},
+           @{thm "diff_def"}, @{thm "minus_divide_left"}, 
+           @{thm "Numeral1_eq1_nat"}, @{thm "add_divide_distrib"} RS sym]
+
+val ss = HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"} 
+                 addsimps ths addsimps comp_arith addsimps simp_thms
+                 addsimprocs field_cancel_numeral_factors
+                 addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
+                              ord_frac_simproc]
+                 addcongs [@{thm "if_weak_cong"}]
+
+val comp_conv = Simplifier.rewrite ss
+
+fun numeral_is_const ct = 
+  case term_of ct of 
+   Const (@{const_name "HOL.divide"},_) $ a $ b => 
+     can HOLogic.dest_number a andalso can HOLogic.dest_number b
+ | t => can HOLogic.dest_number t
+
+fun dest_const ct = case term_of ct of
+   Const (@{const_name "HOL.divide"},_) $ a $ b=>
+    Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
+ | t => Rat.rat_of_int (snd (HOLogic.dest_number t))
+
+fun mk_const phi cT x = 
+ let val (a, b) = Rat.quotient_of_rat x
+ in if b = 1 then Normalizer.mk_cnumber cT a
+    else Thm.capply 
+         (Thm.capply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"}) 
+                     (Normalizer.mk_cnumber cT a))
+         (Normalizer.mk_cnumber cT b)
+  end
+
+in 
+ NormalizerData.funs @{thm class_fieldgb.axioms}
+   {is_const = K numeral_is_const,
+    dest_const = K dest_const,
+    mk_const = mk_const,
+    conv = K comp_conv}
+end
+
+*}
+
 end
