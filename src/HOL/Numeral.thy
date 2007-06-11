@@ -457,14 +457,14 @@ qed
 
 lemma odd_less_0:
   "(1 + z + z < 0) = (z < (0::int))";
-proof (cases z rule: int_cases)
+proof (cases z rule: int_cases')
   case (nonneg n)
   thus ?thesis by (simp add: linorder_not_less add_assoc add_increasing
                              le_imp_0_less [THEN order_less_imp_le])  
 next
   case (neg n)
-  thus ?thesis by (simp del: int_Suc
-    add: int_Suc0_eq_1 [symmetric] zadd_int compare_rls)
+  thus ?thesis by (simp del: of_nat_Suc of_nat_add
+    add: compare_rls of_nat_1 [symmetric] of_nat_add [symmetric])
 qed
 
 text {* The premise involving @{term Ints} prevents @{term "a = 1/2"}. *}

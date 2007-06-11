@@ -1327,10 +1327,10 @@ lemma dvd_zminus_iff [iff]: "(z dvd -w) = (z dvd (w::int))"
   done
 
 lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
-  apply (rule_tac z=n in int_cases)
-  apply (auto simp add: dvd_int_iff) 
-  apply (rule_tac z=z in int_cases) 
-  apply (auto simp add: dvd_imp_le) 
+  apply (rule_tac z=n in int_cases')
+  apply (auto simp add: dvd_int_of_nat_iff)
+  apply (rule_tac z=z in int_cases')
+  apply (auto simp add: dvd_imp_le)
   done
 
 

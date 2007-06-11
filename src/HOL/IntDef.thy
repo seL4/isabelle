@@ -416,7 +416,7 @@ by (cases z, cases z',
 lemma nat_zminus_int_of_nat [simp]: "nat (- (int_of_nat n)) = 0"
 by (simp add: int_of_nat_def minus nat Zero_int_def) 
 
-lemma zless_nat_eq_int_zless: "(m < nat z) = (int_of_nat m < z)"
+lemma zless_nat_eq_int_zless': "(m < nat z) = (int_of_nat m < z)"
 by (cases z, simp add: nat less int_of_nat_def, arith)
 
 
@@ -779,7 +779,7 @@ apply (auto simp add: le minus Zero_int_def int_of_nat_def order_less_le)
 apply (rule_tac x="y - Suc x" in exI, arith)
 done
 
-theorem int_cases':
+theorem int_cases' [case_names nonneg neg]:
      "[|!! n. z = int_of_nat n ==> P;  !! n. z =  - (int_of_nat (Suc n)) ==> P |] ==> P"
 apply (cases "z < 0", blast dest!: negD')
 apply (simp add: linorder_not_less del: of_nat_Suc)
@@ -954,37 +954,30 @@ proof
 qed
 
 lemma of_int_int_eq [simp]: "of_int (int n) = of_nat n"
-by (simp add: int_eq_of_nat)
+unfolding int_eq_of_nat by (rule of_int_of_nat_eq)
 
 lemma int_setsum: "int (setsum f A) = (\<Sum>x\<in>A. int(f x))"
-  by (simp add: int_eq_of_nat of_nat_setsum)
+unfolding int_eq_of_nat by (rule of_nat_setsum)
 
 lemma int_setprod: "int (setprod f A) = (\<Prod>x\<in>A. int(f x))"
-  by (simp add: int_eq_of_nat of_nat_setprod)
+unfolding int_eq_of_nat by (rule of_nat_setprod)
 
 text{*Now we replace the case analysis rule by a more conventional one:
 whether an integer is negative or not.*}
 
 lemma zless_iff_Suc_zadd:
     "(w < z) = (\<exists>n. z = w + int(Suc n))"
-apply (cases z, cases w)
-apply (auto simp add: le add int_def linorder_not_le [symmetric]) 
-apply (rename_tac a b c d) 
-apply (rule_tac x="a+d - Suc(c+b)" in exI) 
-apply arith
-done
+unfolding int_eq_of_nat by (rule zless_iff_Suc_zadd')
 
 lemma negD: "x<0 ==> \<exists>n. x = - (int (Suc n))"
-apply (cases x)
-apply (auto simp add: le minus Zero_int_def int_def order_less_le) 
-apply (rule_tac x="y - Suc x" in exI, arith)
-done
+unfolding int_eq_of_nat by (rule negD')
 
 theorem int_cases [cases type: int, case_names nonneg neg]:
      "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
-apply (cases "z < 0", blast dest!: negD)
+unfolding int_eq_of_nat
+apply (cases "z < 0", blast dest!: negD')
 apply (simp add: linorder_not_less)
-apply (blast dest: nat_0_le [THEN sym])
+apply (blast dest: nat_0_le' [THEN sym])
 done
 
 theorem int_induct [induct type: int, case_names nonneg neg]:
