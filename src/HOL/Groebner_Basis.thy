@@ -11,6 +11,7 @@ uses
   "Tools/Groebner_Basis/misc.ML"
   "Tools/Groebner_Basis/normalizer_data.ML"
   ("Tools/Groebner_Basis/normalizer.ML")
+  ("Tools/Groebner_Basis/groebner.ML")
 begin
 
 subsection {* Semiring normalization *}
