@@ -46,6 +46,9 @@ lemma "(x::int)^3  - x^2  - 5*x - 3 = 0 \<longleftrightarrow> (x = 3 \<or> x = -
 theorem "x* (x\<twosuperior> - x  - 5) - 3 = (0::int) \<longleftrightarrow> (x = 3 \<or> x = -1)"
   by algebra
 
+lemma fixes x::"'a::{idom,recpower,number_ring}"
+shows "x^2*y = x^2 & x*y^2 = y^2 \<longleftrightarrow>  x=1 & y=1 | x=0 & y=0"
+by algebra
 
 subsection {* Lemmas for Lagrange's theorem *}
 
