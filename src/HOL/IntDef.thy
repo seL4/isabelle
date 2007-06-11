@@ -447,7 +447,7 @@ lemma negative_eq_positive' [simp]:
   "(- int_of_nat n = int_of_nat m) = (n = 0 & m = 0)"
 by (force simp add: order_eq_iff [of "- int_of_nat n"] int_zle_neg')
 
-lemma zle_iff_zadd: "(w \<le> z) = (\<exists>n. z = w + int_of_nat n)"
+lemma zle_iff_zadd': "(w \<le> z) = (\<exists>n. z = w + int_of_nat n)"
 proof (cases w, cases z, simp add: le add int_of_nat_def)
   fix a b c d
   assume "w = Abs_Integ (intrel `` {(a,b)})" "z = Abs_Integ (intrel `` {(c,d)})"
@@ -779,14 +779,14 @@ apply (auto simp add: le minus Zero_int_def int_of_nat_def order_less_le)
 apply (rule_tac x="y - Suc x" in exI, arith)
 done
 
-theorem int_cases' [case_names nonneg neg]:
+theorem int_cases' [cases type: int, case_names nonneg neg]:
      "[|!! n. z = int_of_nat n ==> P;  !! n. z =  - (int_of_nat (Suc n)) ==> P |] ==> P"
 apply (cases "z < 0", blast dest!: negD')
 apply (simp add: linorder_not_less del: of_nat_Suc)
 apply (blast dest: nat_0_le' [THEN sym])
 done
 
-theorem int_induct':
+theorem int_induct' [induct type: int, case_names nonneg neg]:
      "[|!! n. P (int_of_nat n);  !!n. P (- (int_of_nat (Suc n))) |] ==> P z"
   by (cases z rule: int_cases') auto
 
@@ -799,7 +799,7 @@ apply (simp add: int_of_nat_def diff_def minus add)
 done
 
 lemma of_nat_nat: "0 \<le> z ==> of_nat (nat z) = of_int z"
-by (cases z, simp add: nat le of_int Zero_int_def)
+by (cases z rule: eq_Abs_Integ, simp add: nat le of_int Zero_int_def)
 
 lemmas zless_le = less_int_def [THEN meta_eq_to_obj_eq]
 
@@ -811,147 +811,129 @@ definition
 where
   [code func del]: "int m = Abs_Integ (intrel `` {(m, 0)})"
 
+text{*Agreement with the specific embedding for the integers*}
+lemma int_eq_of_nat: "int = (of_nat :: nat => int)"
+by (simp add: expand_fun_eq int_of_nat_def int_def)
+
 lemma inj_int: "inj int"
 by (simp add: inj_on_def int_def)
 
 lemma int_int_eq [iff]: "(int m = int n) = (m = n)"
-by (fast elim!: inj_int [THEN injD])
+unfolding int_eq_of_nat by (rule of_nat_eq_iff)
 
 lemma zadd_int: "(int m) + (int n) = int (m + n)"
-  by (simp add: int_def add)
+unfolding int_eq_of_nat by (rule of_nat_add [symmetric])
 
 lemma zadd_int_left: "(int m) + (int n + z) = int (m + n) + z"
-  by (simp add: zadd_int zadd_assoc [symmetric])
+unfolding int_eq_of_nat by simp
 
 lemma int_mult: "int (m * n) = (int m) * (int n)"
-by (simp add: int_def mult)
+unfolding int_eq_of_nat by (rule of_nat_mult)
 
 text{*Compatibility binding*}
 lemmas zmult_int = int_mult [symmetric]
 
 lemma int_eq_0_conv [simp]: "(int n = 0) = (n = 0)"
-by (simp add: Zero_int_def [folded int_def])
+unfolding int_eq_of_nat by (rule of_nat_eq_0_iff)
 
 lemma zless_int [simp]: "(int m < int n) = (m<n)"
-by (simp add: le add int_def linorder_not_le [symmetric]) 
+unfolding int_eq_of_nat by (rule of_nat_less_iff)
 
 lemma int_less_0_conv [simp]: "~ (int k < 0)"
-by (simp add: Zero_int_def [folded int_def])
+unfolding int_eq_of_nat by (rule of_nat_less_0_iff)
 
 lemma zero_less_int_conv [simp]: "(0 < int n) = (0 < n)"
-by (simp add: Zero_int_def [folded int_def])
+unfolding int_eq_of_nat by (rule of_nat_0_less_iff)
 
 lemma zle_int [simp]: "(int m \<le> int n) = (m\<le>n)"
-by (simp add: linorder_not_less [symmetric])
+unfolding int_eq_of_nat by (rule of_nat_le_iff)
 
 lemma zero_zle_int [simp]: "(0 \<le> int n)"
-by (simp add: Zero_int_def [folded int_def])
+unfolding int_eq_of_nat by (rule of_nat_0_le_iff)
 
 lemma int_le_0_conv [simp]: "(int n \<le> 0) = (n = 0)"
-by (simp add: Zero_int_def [folded int_def])
+unfolding int_eq_of_nat by (rule of_nat_le_0_iff)
 
 lemma int_0 [simp]: "int 0 = (0::int)"
-by (simp add: Zero_int_def [folded int_def])
+unfolding int_eq_of_nat by (rule of_nat_0)
 
 lemma int_1 [simp]: "int 1 = 1"
-by (simp add: One_int_def [folded int_def])
+unfolding int_eq_of_nat by (rule of_nat_1)
 
 lemma int_Suc0_eq_1: "int (Suc 0) = 1"
-by (simp add: One_int_def [folded int_def])
+unfolding int_eq_of_nat by simp
 
 lemma int_Suc: "int (Suc m) = 1 + (int m)"
-by (simp add: One_int_def [folded int_def] zadd_int)
+unfolding int_eq_of_nat by simp
 
 lemma nat_int [simp]: "nat(int n) = n"
-by (simp add: nat int_def) 
+unfolding int_eq_of_nat by (rule nat_int_of_nat)
 
 lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
-by (cases z, simp add: nat le int_def Zero_int_def)
+unfolding int_eq_of_nat by (rule int_of_nat_nat_eq)
 
 corollary nat_0_le: "0 \<le> z ==> int (nat z) = z"
-by simp
+unfolding int_eq_of_nat by (rule nat_0_le')
 
 lemma nonneg_eq_int: "[| 0 \<le> z;  !!m. z = int m ==> P |] ==> P"
-by (blast dest: nat_0_le sym)
+unfolding int_eq_of_nat by (blast elim: nonneg_eq_int_of_nat)
 
 lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = int m else m=0)"
-by (cases w, simp add: nat le int_def Zero_int_def, arith)
+unfolding int_eq_of_nat by (rule nat_eq_iff')
 
 corollary nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = int m else m=0)"
-by (simp only: eq_commute [of m] nat_eq_iff) 
+unfolding int_eq_of_nat by (rule nat_eq_iff2')
 
 lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < int m)"
-apply (cases w)
-apply (simp add: nat le int_def Zero_int_def linorder_not_le [symmetric], arith)
-done
+unfolding int_eq_of_nat by (rule nat_less_iff')
 
 lemma int_eq_iff: "(int m = z) = (m = nat z & 0 \<le> z)"
-by (auto simp add: nat_eq_iff2)
+unfolding int_eq_of_nat by (rule int_of_nat_eq_iff)
 
 lemma nat_zminus_int [simp]: "nat (- (int n)) = 0"
-by (simp add: int_def minus nat Zero_int_def) 
+unfolding int_eq_of_nat by (rule nat_zminus_int_of_nat)
 
 lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
-by (cases z, simp add: nat le int_def  linorder_not_le [symmetric], arith)
+unfolding int_eq_of_nat by (rule zless_nat_eq_int_zless')
 
 lemma negative_zless_0: "- (int (Suc n)) < 0"
-by (simp add: order_less_le)
+unfolding int_eq_of_nat by (rule negative_zless_0')
 
 lemma negative_zless [iff]: "- (int (Suc n)) < int m"
-by (rule negative_zless_0 [THEN order_less_le_trans], simp)
+unfolding int_eq_of_nat by (rule negative_zless')
 
 lemma negative_zle_0: "- int n \<le> 0"
-by (simp add: minus_le_iff)
+unfolding int_eq_of_nat by (rule negative_zle_0')
 
 lemma negative_zle [iff]: "- int n \<le> int m"
-by (rule order_trans [OF negative_zle_0 zero_zle_int])
+unfolding int_eq_of_nat by (rule negative_zle')
 
 lemma not_zle_0_negative [simp]: "~ (0 \<le> - (int (Suc n)))"
-by (subst le_minus_iff, simp)
+unfolding int_eq_of_nat by (rule not_zle_0_negative')
 
 lemma int_zle_neg: "(int n \<le> - int m) = (n = 0 & m = 0)"
-by (simp add: int_def le minus Zero_int_def) 
+unfolding int_eq_of_nat by (rule int_zle_neg')
 
 lemma not_int_zless_negative [simp]: "~ (int n < - int m)"
-by (simp add: linorder_not_less)
+unfolding int_eq_of_nat by (rule not_int_zless_negative')
 
 lemma negative_eq_positive [simp]: "(- int n = int m) = (n = 0 & m = 0)"
-by (force simp add: order_eq_iff [of "- int n"] int_zle_neg)
+unfolding int_eq_of_nat by (rule negative_eq_positive')
 
 lemma zle_iff_zadd: "(w \<le> z) = (\<exists>n. z = w + int n)"
-proof (cases w, cases z, simp add: le add int_def)
-  fix a b c d
-  assume "w = Abs_Integ (intrel `` {(a,b)})" "z = Abs_Integ (intrel `` {(c,d)})"
-  show "(a+d \<le> c+b) = (\<exists>n. c+b = a+n+d)"
-  proof
-    assume "a + d \<le> c + b" 
-    thus "\<exists>n. c + b = a + n + d" 
-      by (auto intro!: exI [where x="c+b - (a+d)"])
-  next    
-    assume "\<exists>n. c + b = a + n + d" 
-    then obtain n where "c + b = a + n + d" ..
-    thus "a + d \<le> c + b" by arith
-  qed
-qed
+unfolding int_eq_of_nat by (rule zle_iff_zadd')
 
 lemma abs_int_eq [simp]: "abs (int m) = int m"
-by (simp add: abs_if)
+unfolding int_eq_of_nat by (rule abs_of_nat)
 
 lemma not_neg_int [simp]: "~ neg(int n)"
-by (simp add: neg_def)
+unfolding int_eq_of_nat by (rule not_neg_int_of_nat)
 
 lemma neg_zminus_int [simp]: "neg(- (int (Suc n)))"
-by (simp add: neg_def neg_less_0_iff_less)
+unfolding int_eq_of_nat by (rule neg_zminus_int_of_nat)
 
 lemma not_neg_nat: "~ neg z ==> int (nat z) = z"
-by (simp add: linorder_not_less neg_def)
-
-text{*Agreement with the specific embedding for the integers*}
-lemma int_eq_of_nat: "int = (of_nat :: nat => int)"
-proof
-  fix n
-  show "int n = of_nat n"  by (induct n, simp_all add: int_Suc add_ac)
-qed
+unfolding int_eq_of_nat by (rule not_neg_nat')
 
 lemma of_int_int_eq [simp]: "of_int (int n) = of_nat n"
 unfolding int_eq_of_nat by (rule of_int_of_nat_eq)
