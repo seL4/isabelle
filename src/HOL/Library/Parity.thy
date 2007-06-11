@@ -20,7 +20,7 @@ instance int :: even_odd
   even_def: "even x \<equiv> x mod 2 = 0" ..
 
 instance nat :: even_odd
-  even_nat_def: "even x \<equiv> even (int x)" ..
+  even_nat_def: "even x \<equiv> even (int_of_nat x)" ..
 
 
 subsection {* Even and odd are mutually exclusive *}
@@ -135,7 +135,7 @@ lemma pos_int_even_equiv_nat_even: "0 \<le> x ==> even x = even (nat x)"
   by (simp add: even_nat_def)
 
 lemma even_nat_product: "even((x::nat) * y) = (even x | even y)"
-  by (simp add: even_nat_def int_mult)
+  by (simp add: even_nat_def)
 
 lemma even_nat_sum: "even ((x::nat) + y) =
     ((even x & even y) | (odd x & odd y))"
@@ -143,16 +143,16 @@ lemma even_nat_sum: "even ((x::nat) + y) =
 
 lemma even_nat_difference:
     "even ((x::nat) - y) = (x < y | (even x & even y) | (odd x & odd y))"
-  apply (auto simp add: even_nat_def zdiff_int [symmetric])
-  apply (case_tac "x < y", auto simp add: zdiff_int [symmetric])
-  apply (case_tac "x < y", auto simp add: zdiff_int [symmetric])
+  apply (auto simp add: even_nat_def)
+  apply (case_tac "x < y", auto)
+  apply (case_tac "x < y", auto)
   done
 
 lemma even_nat_Suc: "even (Suc x) = odd x"
   by (simp add: even_nat_def)
 
 lemma even_nat_power: "even ((x::nat)^y) = (even x & 0 < y)"
-  by (simp add: even_nat_def int_power)
+  by (simp add: even_nat_def of_nat_power)
 
 lemma even_nat_zero: "even (0::nat)"
   by (simp add: even_nat_def)

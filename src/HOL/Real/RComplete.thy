@@ -480,36 +480,34 @@ done
 lemma floor_real_of_nat_zero [simp]: "floor (real (0::nat)) = 0"
 by auto
 
-lemma floor_real_of_nat [simp]: "floor (real (n::nat)) = int n"
+lemma floor_real_of_nat [simp]: "floor (real (n::nat)) = int_of_nat n"
 apply (simp only: floor_def)
 apply (rule Least_equality)
-apply (drule_tac [2] real_of_int_real_of_nat [THEN ssubst])
+apply (drule_tac [2] real_of_int_of_nat_eq [THEN ssubst])
 apply (drule_tac [2] real_of_int_less_iff [THEN iffD1])
-apply (simp_all add: real_of_int_real_of_nat)
+apply simp_all
 done
 
-lemma floor_minus_real_of_nat [simp]: "floor (- real (n::nat)) = - int n"
+lemma floor_minus_real_of_nat [simp]: "floor (- real (n::nat)) = - int_of_nat n"
 apply (simp only: floor_def)
 apply (rule Least_equality)
-apply (drule_tac [2] real_of_int_real_of_nat [THEN ssubst])
+apply (drule_tac [2] real_of_int_of_nat_eq [THEN ssubst])
 apply (drule_tac [2] real_of_int_minus [THEN sym, THEN subst])
 apply (drule_tac [2] real_of_int_less_iff [THEN iffD1])
-apply (simp_all add: real_of_int_real_of_nat)
+apply simp_all
 done
 
 lemma floor_real_of_int [simp]: "floor (real (n::int)) = n"
 apply (simp only: floor_def)
 apply (rule Least_equality)
-apply (drule_tac [2] real_of_int_real_of_nat [THEN ssubst])
-apply (drule_tac [2] real_of_int_less_iff [THEN iffD1], auto)
+apply auto
 done
 
 lemma floor_minus_real_of_int [simp]: "floor (- real (n::int)) = - n"
 apply (simp only: floor_def)
 apply (rule Least_equality)
 apply (drule_tac [2] real_of_int_minus [THEN sym, THEN subst])
-apply (drule_tac [2] real_of_int_real_of_nat [THEN ssubst])
-apply (drule_tac [2] real_of_int_less_iff [THEN iffD1], auto)
+apply auto
 done
 
 lemma real_lb_ub_int: " \<exists>n::int. real n \<le> r & r < real (n+1)"
@@ -755,7 +753,7 @@ done
 lemma ceiling_zero [simp]: "ceiling 0 = 0"
 by (simp add: ceiling_def)
 
-lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int n"
+lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int_of_nat n"
 by (simp add: ceiling_def)
 
 lemma ceiling_real_of_nat_zero [simp]: "ceiling (real (0::nat)) = 0"
@@ -1045,9 +1043,9 @@ done
 
 lemma natfloor_add [simp]: "0 <= x ==> natfloor (x + real a) = natfloor x + a"
   apply (unfold natfloor_def)
-  apply (subgoal_tac "real a = real (int a)")
+  apply (subgoal_tac "real a = real (int_of_nat a)")
   apply (erule ssubst)
-  apply (simp add: nat_add_distrib)
+  apply (simp add: nat_add_distrib del: real_of_int_of_nat_eq)
   apply simp
 done
 
@@ -1067,9 +1065,9 @@ done
 lemma natfloor_subtract [simp]: "real a <= x ==>
     natfloor(x - real a) = natfloor x - a"
   apply (unfold natfloor_def)
-  apply (subgoal_tac "real a = real (int a)")
+  apply (subgoal_tac "real a = real (int_of_nat a)")
   apply (erule ssubst)
-  apply simp
+  apply (simp del: real_of_int_of_nat_eq)
   apply simp
 done
 
@@ -1178,9 +1176,9 @@ done
 lemma natceiling_add [simp]: "0 <= x ==>
     natceiling (x + real a) = natceiling x + a"
   apply (unfold natceiling_def)
-  apply (subgoal_tac "real a = real (int a)")
+  apply (subgoal_tac "real a = real (int_of_nat a)")
   apply (erule ssubst)
-  apply simp
+  apply (simp del: real_of_int_of_nat_eq)
   apply (subst nat_add_distrib)
   apply (subgoal_tac "0 = ceiling 0")
   apply (erule ssubst)
@@ -1204,9 +1202,9 @@ done
 lemma natceiling_subtract [simp]: "real a <= x ==>
     natceiling(x - real a) = natceiling x - a"
   apply (unfold natceiling_def)
-  apply (subgoal_tac "real a = real (int a)")
+  apply (subgoal_tac "real a = real (int_of_nat a)")
   apply (erule ssubst)
-  apply simp
+  apply (simp del: real_of_int_of_nat_eq)
   apply simp
 done
 
