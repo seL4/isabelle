@@ -178,7 +178,9 @@ next
   have "valid \<Gamma>2" by fact
   then have "valid ((x,T1)#\<Gamma>2)" using vc by (simp add: v2)
   ultimately have "(x,T1)#\<Gamma>2 \<turnstile> freshen t x : T2" using ih by simp
-  with vc show "\<Gamma>2 \<turnstile> lLam t : T1\<rightarrow>T2" by auto 
-qed (auto) (* app case *)
+  with vc show "\<Gamma>2 \<turnstile> lLam t : T1\<rightarrow>T2" by auto
+next 
+  case t_lApp thus ?case by auto
+qed
 
 end

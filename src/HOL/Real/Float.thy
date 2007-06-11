@@ -293,7 +293,7 @@ done
 ML {* simp_depth_limit := 2 *}
 recdef norm_float "measure (% (a,b). nat (abs a))"
   "norm_float (a,b) = (if (a \<noteq> 0) & (even a) then norm_float (a div 2, b+1) else (if a=0 then (0,0) else (a,b)))"
-(hints simp: terminating_norm_float)
+(hints simp: even_def terminating_norm_float)
 ML {* simp_depth_limit := 1000 *}
 
 lemma norm_float: "float x = float (norm_float x)"

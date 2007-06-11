@@ -197,7 +197,14 @@ lemma x_sol_lin_aux:
      apply (rule_tac [3] zdvd_zmult2)
      apply (rule_tac [4] zdvd_zmult)
      apply (rule_tac [!] funprod_zdvd)
-          apply arith+
+     apply arith
+     apply arith
+     apply arith
+     apply arith
+     apply arith
+     apply arith
+     apply arith
+     apply arith
   done
 
 lemma x_sol_lin:

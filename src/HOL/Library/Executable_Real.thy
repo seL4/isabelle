@@ -24,6 +24,7 @@ constdefs normNum :: "Num \<Rightarrow> Num"
   "normNum \<equiv> \<lambda>(a,b). (if a=0 \<or> b = 0 then (0,0) else 
   (let g = igcd a b 
    in if b > 0 then (a div g, b div g) else (- (a div g), - (b div g))))"
+
 lemma normNum_isnormNum[simp]: "isnormNum (normNum x)"
 proof-
   have " \<exists> a b. x = (a,b)" by auto
@@ -57,7 +58,7 @@ proof-
 	from gpos have th: "?g \<ge> 0" by arith
 	from mult_nonneg_nonneg[OF th b'] zdvd_mult_div_cancel[OF gdvd(2)]
 	have False using b by simp }
-      hence b': "?b' < 0" by arith
+      hence b': "?b' < 0" by (auto simp add: linorder_not_le[symmetric])
       from anz bnz nz' b b' gp1 have ?thesis 
 	by (simp add: isnormNum_def normNum_def Let_def split_def fst_conv snd_conv)}
     ultimately have ?thesis by blast

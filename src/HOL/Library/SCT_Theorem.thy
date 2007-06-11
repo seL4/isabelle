@@ -1023,14 +1023,16 @@ qed
 lemma repeated_edge:
   assumes "\<And>i. i > n \<Longrightarrow> dsc (snd (p i)) k k"
   shows "is_desc_thread (\<lambda>i. k) p"
-  using prems
+proof-
+  have th: "\<forall> m. \<exists>na>m. n < na" by arith
+  show ?thesis using prems
   unfolding is_desc_thread_def 
   apply (auto)
   apply (rule_tac x="Suc n" in exI, auto)
   apply (rule INF_mono[where P="\<lambda>i. n < i"])
   apply (simp only:INF_nat)
-  by auto arith
-
+  by (auto simp add: th)
+qed
 
 lemma fin_from_inf:
   assumes "is_thread n \<theta> p"

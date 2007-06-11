@@ -149,7 +149,7 @@ proof -  -- {* completeness is more difficult here \dots *}
     with divmod have "x = 2 * (x div 2) + 1" by simp
     with c2 show "P" .
   qed
-qed presburger+ -- {* solve compatibility with presburger *}
+qed presburger+ -- {* solve compatibility with presburger *} 
 termination by lexicographic_order
 
 thm ev.simps

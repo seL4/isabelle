@@ -46,13 +46,16 @@ lemma myeq: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a = b) = (0 = 
   by auto
 
 (* Periodicity of dvd *)
+
 lemma dvd_period:
   assumes advdd: "(a::int) dvd d"
   shows "(a dvd (x + t)) = (a dvd ((x+ c*d) + t))"
   using advdd  
 proof-
-  from advdd  have "\<forall>x.\<forall>k. (((a::int) dvd (x + t)) = (a dvd (x+k*d + t)))" 
-    by (rule dvd_modd_pinf)
+  {fix x k
+    from inf_period(3)[OF advdd, rule_format, where x=x and k="-k"]  
+    have " ((a::int) dvd (x + t)) = (a dvd (x+k*d + t))" by simp}
+  hence "\<forall>x.\<forall>k. ((a::int) dvd (x + t)) = (a dvd (x+k*d + t))"  by simp
   then show ?thesis by simp
 qed
 
@@ -637,7 +640,8 @@ next
   moreover 
   {assume i1: "abs i = 1"
       from zdvd_1_left[where m = "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
-      have ?case using i1 by (cases "i=0", simp_all add: Let_def) arith}
+      have ?case using i1 apply (cases "i=0", simp_all add: Let_def) 
+	by (cases "i > 0", simp_all)}
   moreover   
   {assume inz: "i\<noteq>0" and cond: "abs i \<noteq> 1"
     {fix v assume "?sa = C v" hence ?case using sa[symmetric] inz cond
@@ -656,7 +660,8 @@ next
   moreover 
   {assume i1: "abs i = 1"
       from zdvd_1_left[where m = "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
-      have ?case using i1 by (cases "i=0", simp_all add: Let_def) arith}
+      have ?case using i1 apply (cases "i=0", simp_all add: Let_def)
+      apply (cases "i > 0", simp_all) done}
   moreover   
   {assume inz: "i\<noteq>0" and cond: "abs i \<noteq> 1"
     {fix v assume "?sa = C v" hence ?case using sa[symmetric] inz cond
@@ -727,12 +732,6 @@ using qe_inv DJ_qe[OF qe_inv]
 by(induct p rule: qelim.induct) 
 (auto simp add: not disj conj iff imp not_qf disj_qf conj_qf imp_qf iff_qf 
   simpfm simpfm_qf simp del: simpfm.simps)
-
-
-
-    (**********************************************************************************)
-    (*******                             THE \<int>-PART                                 ***)
-    (**********************************************************************************)
   (* Linearity for fm where Bound 0 ranges over \<int> *)
 consts
   zsplit0 :: "num \<Rightarrow> int \<times> num" (* splits the bounded from the unbounded part*)
@@ -1335,7 +1334,7 @@ proof-
   from \<delta> [OF lin] have dpos: "?d >0" by simp
   from \<delta> [OF lin] have alld: "d\<delta> p ?d" by simp
   from minusinf_repeats[OF alld lin] have th1:"\<forall> x k. ?P x = ?P (x - (k * ?d))" by simp
-  from minf_vee[OF dpos th1] show ?thesis by blast
+  from periodic_finite_ex[OF dpos th1] show ?thesis by blast
 qed
 
 
@@ -1690,6 +1689,27 @@ proof(clarify)
     by auto
   from  \<beta>[OF lp u d dp nb2 px] show "?P (x -d )" .
 qed
+lemma cpmi_eq: "0 < D \<Longrightarrow> (EX z::int. ALL x. x < z --> (P x = P1 x))
+==> ALL x.~(EX (j::int) : {1..D}. EX (b::int) : B. P(b+j)) --> P (x) --> P (x - D) 
+==> (ALL (x::int). ALL (k::int). ((P1 x)= (P1 (x-k*D))))
+==> (EX (x::int). P(x)) = ((EX (j::int) : {1..D} . (P1(j))) | (EX (j::int) : {1..D}. EX (b::int) : B. P (b+j)))"
+apply(rule iffI)
+prefer 2
+apply(drule minusinfinity)
+apply assumption+
+apply(fastsimp)
+apply clarsimp
+apply(subgoal_tac "!!k. 0<=k \<Longrightarrow> !x. P x \<longrightarrow> P (x - k*D)")
+apply(frule_tac x = x and z=z in decr_lemma)
+apply(subgoal_tac "P1(x - (\<bar>x - z\<bar> + 1) * D)")
+prefer 2
+apply(subgoal_tac "0 <= (\<bar>x - z\<bar> + 1)")
+prefer 2 apply arith
+ apply fastsimp
+apply(drule (1)  periodic_finite_ex)
+apply blast
+apply(blast dest:decr_mult_lemma)
+done
 
 theorem cp_thm:
   assumes lp: "iszlfm p"
@@ -1880,8 +1900,8 @@ constdefs pa:: "fm \<Rightarrow> fm"
 
 theorem mirqe: "(Ifm bbs bs (pa p) = Ifm bbs bs p) \<and> qfree (pa p)"
   using qelim_ci cooper prep by (auto simp add: pa_def)
+declare zdvd_iff_zmod_eq_0 [code]
 
-declare zdvd_iff_zmod_eq_0 [code] 
 code_module GeneratedCooper
 file "generated_cooper.ML"
 contains pa = "pa"

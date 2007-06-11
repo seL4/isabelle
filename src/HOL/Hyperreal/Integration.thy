@@ -766,7 +766,9 @@ apply (rotate_tac 5)
 apply (drule_tac x = "na + n" in spec, safe)
 apply (rule_tac y="D (na + n)" in order_trans)
 apply (case_tac "na = 0", auto)
-apply (erule partition_lt_gen [THEN order_less_imp_le], arith+)
+apply (erule partition_lt_gen [THEN order_less_imp_le])
+apply arith
+apply arith
 done
 
 lemma rsum_add: "rsum (D, p) (%x. f x + g x) =  rsum (D, p) f + rsum(D, p) g"

@@ -45,10 +45,10 @@ lemma zpower_zdvd_prop2:
 
 lemma div_prop1: "[| 0 < z; (x::int) < y * z |] ==> x div z < y"
 proof -
-  assume "0 < z"
-  then have "(x div z) * z \<le> (x div z) * z + x mod z"
-    by arith
-  also have "... = x"
+  assume "0 < z" then have modth: "x mod z \<ge> 0" by simp
+  have "(x div z) * z \<le> (x div z) * z" by simp
+  then have "(x div z) * z \<le> (x div z) * z + x mod z" using modth by arith 
+  also have "\<dots> = x"
     by (auto simp add: zmod_zdiv_equality [symmetric] zmult_ac)
   also assume  "x < y * z"
   finally show ?thesis

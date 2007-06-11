@@ -522,7 +522,8 @@ done
 lemma pc_succs_shift: "pc'\<in>set (succs i (pc'' + n))
  \<Longrightarrow> ((pc' - n) \<in>set (succs i pc''))"
 apply (induct i)
-apply (arith|simp)+
+apply simp_all
+apply arith
 done
 
 
@@ -530,7 +531,8 @@ lemma pc_succs_le: "\<lbrakk> pc' \<in> set (succs i (pc'' + n));
   \<forall> b. ((i = (Goto b) \<or> i=(Ifcmpeq b)) \<longrightarrow> 0 \<le> (int pc'' + b)) \<rbrakk> 
   \<Longrightarrow> n \<le> pc'"
 apply (induct i)
-apply (arith|simp)+
+apply simp_all
+apply arith
 done
 
 

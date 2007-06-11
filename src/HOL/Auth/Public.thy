@@ -62,7 +62,8 @@ specification (publicKey)
    apply (rule exI [of _ 
        "%b A. 2 * agent_case 0 (\<lambda>n. n + 2) 1 A + keymode_case 0 1 b"])
    apply (auto simp add: inj_on_def split: agent.split keymode.split)
-   apply presburger+
+   apply presburger
+   apply presburger
    done                       
 
 

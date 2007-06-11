@@ -67,13 +67,16 @@ lemma fib_Cassini_int:
  "int (fib (Suc (Suc n)) * fib n) =
   (if n mod 2 = 0 then int (fib (Suc n) * fib (Suc n)) - 1
    else int (fib (Suc n) * fib (Suc n)) + 1)"
-  apply (induct n rule: fib.induct)
-    apply (simp add: fib.Suc_Suc)
-   apply (simp add: fib.Suc_Suc mod_Suc)
-  apply (simp add: fib.Suc_Suc add_mult_distrib add_mult_distrib2
+proof(induct n rule: fib.induct)
+  case 1 thus ?case by (simp add: fib.Suc_Suc)
+next
+  case 2 thus ?case by (simp add: fib.Suc_Suc mod_Suc)
+next 
+  case (3 x) 
+  have th: "Suc 0 \<noteq> x mod 2 \<longrightarrow> x mod 2 = 0" by presburger
+  with prems show ?case by (simp add: fib.Suc_Suc add_mult_distrib add_mult_distrib2
                    mod_Suc zmult_int [symmetric])
-  apply (presburger (no_abs))
-  done
+qed
 
 text{*We now obtain a version for the natural numbers via the coercion 
    function @{term int}.*}

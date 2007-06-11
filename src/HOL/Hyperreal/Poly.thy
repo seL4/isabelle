@@ -496,7 +496,9 @@ apply (rename_tac N P a)
 apply (rule_tac x = "abs a + abs (j N) + 1" in exI)
 apply safe
 apply (drule_tac x = x in spec, safe) 
-apply (drule_tac x = "j n" in spec, arith+)
+apply (drule_tac x = "j n" in spec)
+apply arith
+apply arith
 done
 
 lemma poly_roots_finite: "(poly p \<noteq> poly []) =

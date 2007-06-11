@@ -601,18 +601,25 @@ proof -
     ultimately have "False" using u by arith
   }
   note lemma_nat2Nat = this
+  have th:"\<And>x y. \<not> (x < y \<and> (\<forall>(m\<Colon>nat). y \<noteq> x + m))" by presburger
+  have th': "\<And>x y. \<not> (x \<noteq> y \<and> (\<not> x < y) \<and> (\<forall>(m\<Colon>nat). x \<noteq> y + m))" by presburger
   show ?thesis
     apply (auto simp add: inj_on_def)
     apply (case_tac "x = y")
     apply auto
     apply (case_tac "x < y")
     apply (case_tac "? m. y = x + m & 0 < m")
-    apply (auto intro: lemma_nat2Nat, arith)
+    apply (auto intro: lemma_nat2Nat)
     apply (case_tac "y < x")
     apply (case_tac "? m. x = y + m & 0 < m")
-    apply auto
+    apply simp
+    apply simp
+    using th apply blast
+    apply (case_tac "? m. x = y + m")
+    apply (auto intro: lemma_nat2Nat)
     apply (drule sym)
-    apply (auto intro: lemma_nat2Nat, arith)
+    using lemma_nat2Nat apply blast
+    using th' apply blast    
     done
 qed
 

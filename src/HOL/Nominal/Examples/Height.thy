@@ -47,8 +47,8 @@ text{* the next lemma is needed in the Var-case of the theorem *}
 
 lemma height_ge_one: 
   shows "1 \<le> (height e)"
-by (nominal_induct e rule: lam.induct) 
-   (simp | arith)+
+apply (nominal_induct e rule: lam.induct) 
+by simp_all
 
 text {* unlike the proplem suggested by Wang, however, the 
         theorem is here formulated  entirely by using 

@@ -862,32 +862,36 @@ lemma singleton_matrix_zero[simp]: "singleton_matrix j i 0 = 0"
   by (simp add: singleton_matrix_def zero_matrix_def)
 
 lemma nrows_singleton[simp]: "nrows(singleton_matrix j i e) = (if e = 0 then 0 else Suc j)"
+proof-
+have th: "\<not> (\<forall>m. m \<le> j)" "\<exists>n. \<not> n \<le> i" by arith+
+from th show ?thesis 
 apply (auto)
 apply (rule le_anti_sym)
 apply (subst nrows_le)
 apply (simp add: singleton_matrix_def, auto)
 apply (subst RepAbs_matrix)
-apply (simp, arith)
-apply (simp, arith)
-apply (simp)
+apply auto
 apply (simp add: Suc_le_eq)
 apply (rule not_leE)
 apply (subst nrows_le)
 by simp
+qed
 
 lemma ncols_singleton[simp]: "ncols(singleton_matrix j i e) = (if e = 0 then 0 else Suc i)"
+proof-
+have th: "\<not> (\<forall>m. m \<le> j)" "\<exists>n. \<not> n \<le> i" by arith+
+from th show ?thesis 
 apply (auto)
 apply (rule le_anti_sym)
 apply (subst ncols_le)
 apply (simp add: singleton_matrix_def, auto)
 apply (subst RepAbs_matrix)
-apply (simp, arith)
-apply (simp, arith)
-apply (simp)
+apply auto
 apply (simp add: Suc_le_eq)
 apply (rule not_leE)
 apply (subst ncols_le)
 by simp
+qed
 
 lemma combine_singleton: "f 0 0 = 0 \<Longrightarrow> combine_matrix f (singleton_matrix j i a) (singleton_matrix j i b) = singleton_matrix j i (f a b)"
 apply (simp add: singleton_matrix_def combine_matrix_def combine_infmatrix_def)
