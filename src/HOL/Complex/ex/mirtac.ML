@@ -28,13 +28,6 @@ val nT = HOLogic.natT;
              @{thm "diff_def"}, @{thm "minus_divide_left"}]
 val comp_ths = ths @ comp_arith @ simp_thms 
 
-val powerarith = 
-    (map thm ["nat_number_of", "zpower_number_of_even", 
-	      "zpower_Pls", "zpower_Min"]) @ 
-    [thm "zpower_number_of_odd"]
-
-val comp_arith = comp_ths @ powerarith @[thm"not_false_eq_true", thm "not_true_eq_false"];
-
 
 val zdvd_int = @{thm "zdvd_int"};
 val zdiff_int_split = @{thm "zdiff_int_split"};
@@ -108,7 +101,7 @@ fun mir_tac ctxt q i =
 			addsimprocs [cancel_div_mod_proc]
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]
-      addsimps comp_arith
+      addsimps comp_ths
       addsplits [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss

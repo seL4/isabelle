@@ -25,28 +25,7 @@ val binarith = map thm ["Pls_0_eq", "Min_1_eq", "pred_Pls", "pred_Min","pred_1",
   "mult_Pls", "mult_Min", "mult_1", "mult_0", 
   "add_Pls_right", "add_Min_right"];
 
-val intarithrel = 
-  map thm ["int_eq_number_of_eq", "int_neg_number_of_BIT", "int_le_number_of_eq",
-    "int_iszero_number_of_0", "int_less_number_of_eq_neg"]
-  @ map (fn s => thm s RS thm "lift_bool") ["int_iszero_number_of_Pls",
-    "int_iszero_number_of_1", "int_neg_number_of_Min"]
-  @ map (fn s => thm s RS thm "nlift_bool") ["int_nonzero_number_of_Min",
-    "int_not_neg_number_of_Pls"];
- 
-val intarith = map thm ["int_number_of_add_sym", "int_number_of_minus_sym",
-  "int_number_of_diff_sym", "int_number_of_mult_sym"];
-
-val natarith = map thm ["add_nat_number_of", "diff_nat_number_of",
-  "mult_nat_number_of", "eq_nat_number_of", "less_nat_number_of"];
-
-val powerarith =
-  map thm ["nat_number_of", "zpower_number_of_even",
-  "zpower_Pls", "zpower_Min"]
-  @ [MetaSimplifier.simplify true [thm "zero_eq_Numeral0_nring", thm "one_eq_Numeral1_nring"]
-    (thm "zpower_number_of_odd")]
-
-val comp_arith = binarith @ intarith @ intarithrel @ natarith 
-  @ powerarith @ [thm "not_false_eq_true", thm "not_true_eq_false"];
+val comp_arith = binarith @ arith_simps @ simp_thms
 
 fun prepare_for_linr q fm = 
   let
