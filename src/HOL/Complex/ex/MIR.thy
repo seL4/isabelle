@@ -98,8 +98,10 @@ lemma dvd_period:
   shows "(a dvd (x + t)) = (a dvd ((x+ c*d) + t))"
   using advdd  
 proof-
-  from advdd  have "\<forall>x.\<forall>k. (((a::int) dvd (x + t)) = (a dvd (x+k*d + t)))" 
-    by (rule dvd_modd_pinf)
+  {fix x k
+    from inf_period(3)[OF advdd, rule_format, where x=x and k="-k"]  
+    have " ((a::int) dvd (x + t)) = (a dvd (x+k*d + t))" by simp}
+  hence "\<forall>x.\<forall>k. ((a::int) dvd (x + t)) = (a dvd (x+k*d + t))"  by simp
   then show ?thesis by simp
 qed
 
@@ -1550,11 +1552,8 @@ by(induct p rule: qelim.induct)
 (auto simp del: simpfm.simps)
 
 
-
-    (**********************************************************************************)
-    (*******                             THE \<int>-PART                                 ***)
-    (**********************************************************************************)
-  (* Linearity for fm where Bound 0 ranges over \<int> *)
+text {* The @{text "\<int>"} Part *}
+text{* Linearity for fm where Bound 0 ranges over @{text "\<int>"} *}
 consts
   zsplit0 :: "num \<Rightarrow> int \<times> num" (* splits the bounded from the unbounded part*)
 recdef zsplit0 "measure num_size"
@@ -2060,11 +2059,16 @@ next
   ultimately show ?case by blast
 qed auto
 
+text{* plusinf : Virtual substitution of @{text "+\<infinity>"}
+       minusinf: Virtual substitution of @{text "-\<infinity>"}
+       @{text "\<delta>"} Compute lcm @{text "d| Dvd d  c*x+t \<in> p"}
+       @{text "d\<delta>"} checks if a given l divides all the ds above*}
+
 consts 
-  plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*)
-  minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*)
-  \<delta> :: "fm \<Rightarrow> int" (* Compute lcm {d| N\<^isup>?\<^isup> Dvd c*x+t \<in> p}*)
-  d\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* checks if a given l divides all the ds above*)
+  plusinf:: "fm \<Rightarrow> fm" 
+  minusinf:: "fm \<Rightarrow> fm"
+  \<delta> :: "fm \<Rightarrow> int" 
+  d\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool"
 
 recdef minusinf "measure size"
   "minusinf (And p q) = conj (minusinf p) (minusinf q)" 
@@ -2317,7 +2321,6 @@ next
     qed
 qed (auto simp add: nth_pos2 numbound0_I[where bs="bs" and b="real(x - k*d)" and b'="real x"] simp del: real_of_int_mult real_of_int_diff)
 
-    (* Is'nt this beautiful?*)
 lemma minusinf_ex:
   assumes lin: "iszlfm p (real (a::int) #bs)"
   and exmi: "\<exists> (x::int). Ifm (real x#bs) (minusinf p)" (is "\<exists> x. ?P1 x")
@@ -2331,7 +2334,6 @@ proof-
   from minusinfinity [OF dpos th1 th2] exmi show ?thesis by blast
 qed
 
-    (*	And This ???*)
 lemma minusinf_bex:
   assumes lin: "iszlfm p (real (a::int) #bs)"
   shows "(\<exists> (x::int). Ifm (real x#bs) (minusinf p)) = 
@@ -2342,10 +2344,9 @@ proof-
   from \<delta> [OF lin] have dpos: "?d >0" by simp
   from \<delta> [OF lin] have alld: "d\<delta> p ?d" by simp
   from minusinf_repeats[OF alld lin] have th1:"\<forall> x k. ?P x = ?P (x - (k * ?d))" by simp
-  from minf_vee[OF dpos th1] show ?thesis by blast
+  from periodic_finite_ex[OF dpos th1] show ?thesis by blast
 qed
 
-    (* Lemmas for the correctness of \<sigma>\<rho> *)
 lemma dvd1_eq1: "x >0 \<Longrightarrow> (x::int) dvd 1 = (x = 1)" by auto
 
 consts 
@@ -2831,6 +2832,29 @@ lemma \<beta>_int: assumes lp: "iszlfm p bs"
   shows "\<forall> b\<in> set (\<beta> p). isint b bs"
 using lp by (induct p rule: iszlfm.induct) (auto simp add: isint_neg isint_sub)
 
+lemma cpmi_eq: "0 < D \<Longrightarrow> (EX z::int. ALL x. x < z --> (P x = P1 x))
+==> ALL x.~(EX (j::int) : {1..D}. EX (b::int) : B. P(b+j)) --> P (x) --> P (x - D) 
+==> (ALL (x::int). ALL (k::int). ((P1 x)= (P1 (x-k*D))))
+==> (EX (x::int). P(x)) = ((EX (j::int) : {1..D} . (P1(j))) | (EX (j::int) : {1..D}. EX (b::int) : B. P (b+j)))"
+apply(rule iffI)
+prefer 2
+apply(drule minusinfinity)
+apply assumption+
+apply(fastsimp)
+apply clarsimp
+apply(subgoal_tac "!!k. 0<=k \<Longrightarrow> !x. P x \<longrightarrow> P (x - k*D)")
+apply(frule_tac x = x and z=z in decr_lemma)
+apply(subgoal_tac "P1(x - (\<bar>x - z\<bar> + 1) * D)")
+prefer 2
+apply(subgoal_tac "0 <= (\<bar>x - z\<bar> + 1)")
+prefer 2 apply arith
+ apply fastsimp
+apply(drule (1)  periodic_finite_ex)
+apply blast
+apply(blast dest:decr_mult_lemma)
+done
+
+
 theorem cp_thm:
   assumes lp: "iszlfm p (a #bs)"
   and u: "d\<beta> p 1"
@@ -2861,8 +2885,8 @@ qed
 
 
 consts 
-  \<rho> :: "fm \<Rightarrow> (num \<times> int) list" (* Compute the Reddy/Loveland Bset*)
-  \<sigma>\<rho>:: "fm \<Rightarrow> num \<times> int \<Rightarrow> fm" (* Performs the modified substitution of Reddy/Loveland*)
+  \<rho> :: "fm \<Rightarrow> (num \<times> int) list" (* Compute the Reddy and Loveland Bset*)
+  \<sigma>\<rho>:: "fm \<Rightarrow> num \<times> int \<Rightarrow> fm" (* Performs the modified substitution of Reddy and Loveland*)
   \<alpha>\<rho> :: "fm \<Rightarrow> (num\<times>int) list"
   a\<rho> :: "fm \<Rightarrow> int \<Rightarrow> fm"
 recdef \<rho> "measure size"
@@ -3476,14 +3500,9 @@ lemma mirror_\<alpha>\<rho>:   assumes lp: "iszlfm p (a#bs)"
 using lp
 by (induct p rule: mirror.induct, simp_all add: split_def image_Un )
   
+text {* The @{text "\<real>"} part*}
 
-
-    (********************************************************************)
-    (***                     THE \<real>-PART                               ***)
-    (********************************************************************)
-
-
-  (* Linearity for fm where Bound 0 ranges over \<real> *)
+text{* Linearity for fm where Bound 0 ranges over @{text "\<real>"}*}
 consts
   isrlfm :: "fm \<Rightarrow> bool"   (* Linearity test for fm *)
 recdef isrlfm "measure size"
@@ -3506,8 +3525,6 @@ constdefs fp :: "fm \<Rightarrow> int \<Rightarrow> num \<Rightarrow> int \<Righ
                         (Gt (CN 0 (-n) (Add (Neg s) (Add (Floor s) (C (j + 1)))))))))"
 
   (* splits the bounded from the unbounded part*)
-  (* FIXME: Abscence of simplification of formulae and numeral-terms 
-    here is also a problem!!!!! Redundancy!!!!!*)
 consts rsplit0 :: "num \<Rightarrow> (fm \<times> int \<times> num) list" 
 recdef rsplit0 "measure num_size"
   "rsplit0 (Bound 0) = [(T,1,C 0)]"
@@ -4994,9 +5011,7 @@ next
   ultimately show "?E" by blast
 qed
 
-    (********************************************************************)
-    (***                     THE OVERALL-PART                         ***)
-    (********************************************************************)
+text{* The overall Part *}
 
 lemma real_ex_int_real01:
   shows "(\<exists> (x::real). P x) = (\<exists> (i::int) (u::real). 0\<le> u \<and> u< 1 \<and> P (real i + u))"
@@ -5067,8 +5082,6 @@ proof-
 qed
 
     (* Implement the right hand sides of Cooper's theorem and Ferrante and Rackoff. *)
-  (* NOTE THAT THIS ONLY HOLDS IN THE CONTEXT OF THE MIXED THEORY!!! MAY BE SHOULD ALSO IMPLEMENT FERRANTE AND RACKOFF TO MAKE IT AVAILABLE AS SAND ALONE!!!! *)
-  (* SINCE x is constrained to be between 0 and 1, plusinf and minusinf will always evaluate to False !!!!! *)
 
 constdefs ferrack01:: "fm \<Rightarrow> fm"
   "ferrack01 p \<equiv> (let p' = rlfm(And (And (Ge(CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))) p);

@@ -5,7 +5,7 @@
 header {* Quatifier elimination for R(0,1,+,<) *}
 
 theory ReflectedFerrack
-  imports GCD Real 
+  imports GCD Real EfficientNat
   uses ("linreif.ML") ("linrtac.ML")
 begin
 
@@ -1759,7 +1759,7 @@ primrec
 lemma allpairs_set: "set (allpairs xs ys) = {(x,y). x\<in> set xs \<and> y \<in> set ys}"
 by (induct xs) auto
 
-    (* Implement the right hand sides of Cooper's theorem and Ferrante and Rackoff. *)
+    (* Implement the right hand side of Ferrante and Rackoff's Theorem. *)
 constdefs ferrack:: "fm \<Rightarrow> fm"
   "ferrack p \<equiv> (let p' = rlfm (simpfm p); mp = minusinf p'; pp = plusinf p'
                 in if (mp = T \<or> pp = T) then T else 
