@@ -5,7 +5,13 @@
 
 header {* Some examples for Presburger Arithmetic *}
 
-theory PresburgerEx imports Main begin
+theory PresburgerEx imports Presburger begin
+
+lemma "\<And>m n ja ia. \<lbrakk>\<not> m \<le> j; \<not> n \<le> i; e \<noteq> 0; Suc j \<le> ja\<rbrakk> \<Longrightarrow> \<exists>m. \<forall>ja ia. m \<le> ja \<longrightarrow> (if j = ja \<and> i = ia then e else 0) = 0" by presburger
+lemma "(0::nat) < emBits mod 8 \<Longrightarrow> 8 + emBits div 8 * 8 - emBits = 8 - emBits mod 8" 
+by presburger
+lemma "(0::nat) < emBits mod 8 \<Longrightarrow> 8 + emBits div 8 * 8 - emBits = 8 - emBits mod 8" 
+by presburger
 
 theorem "(\<forall>(y::int). 3 dvd y) ==> \<forall>(x::int). b < x --> a \<le> x"
   by presburger
@@ -41,14 +47,14 @@ theorem "~ (\<exists>(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)"
   by presburger
 
 theorem "\<forall>(x::int). b < x --> a \<le> x"
-  apply (presburger (no_quantify))
+  apply (presburger elim)
   oops
 
 theorem "~ (\<exists>(x::int). False)"
   by presburger
 
 theorem "\<forall>(x::int). (a::int) < 3 * x --> b < 3 * x"
-  apply (presburger (no_quantify))
+  apply (presburger elim)
   oops
 
 theorem "\<forall>(x::int). (2 dvd x) --> (\<exists>(y::int). x = 2*y)"
