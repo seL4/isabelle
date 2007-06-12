@@ -54,7 +54,7 @@ sig
   val tactic: string -> Proof.context -> method
   type src
   datatype text =
-    Basic of (Proof.context -> method) |
+    Basic of (Proof.context -> method) * Position.T |
     Source of src |
     Source_i of src |
     Then of text list |
@@ -68,7 +68,7 @@ sig
   val this_text: text
   val done_text: text
   val sorry_text: bool -> text
-  val finish_text: text option * bool -> text
+  val finish_text: text option * bool -> Position.T -> text
   exception METHOD_FAIL of (string * Position.T) * exn
   val method: theory -> src -> Proof.context -> method
   val method_i: theory -> src -> Proof.context -> method
@@ -215,29 +215,31 @@ fun fact [] ctxt = SIMPLE_METHOD' (ProofContext.some_fact_tac ctxt)
 
 local
 
-fun asm_tac ths =
-  fold_rev (curry op APPEND')
-    (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths) (K no_tac);
-
 fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
   if cond (Logic.strip_assums_concl prop)
   then Tactic.rtac rule i else no_tac);
 
-fun assm_tac ctxt =
+fun assm_tac warn_tac ctxt =
   assume_tac APPEND'
-  asm_tac (Assumption.prems_of ctxt) APPEND'
+  Goal.assume_rule_tac ctxt APPEND'
+  (CHANGED o solve_tac (Assumption.prems_of ctxt) THEN' K warn_tac) APPEND'
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
 
-fun assumption_tac ctxt [] = assm_tac ctxt
-  | assumption_tac _ [fact] = asm_tac [fact]
-  | assumption_tac _ _ = K no_tac;
+fun legacy_tac ctxt st =
+  (legacy_feature ("implicit use of prems at end of proof" ^ ContextPosition.str_of ctxt);
+    all_tac st);
 
 in
 
-fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
+fun assumption ctxt = METHOD (HEADGOAL o
+  (fn [] => assm_tac all_tac ctxt
+    | [fact] => solve_tac [fact]
+    | _ => K no_tac));
+
 fun close immed ctxt = METHOD (K
-  (FILTER Thm.no_prems ((if immed then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac)));
+  (FILTER Thm.no_prems
+    ((if immed then ALLGOALS (assm_tac (legacy_tac ctxt) ctxt) else all_tac) THEN flexflex_tac)));
 
 end;
 
@@ -356,7 +358,7 @@ fun tactic txt ctxt = METHOD (fn facts =>
 type src = Args.src;
 
 datatype text =
-  Basic of (Proof.context -> method) |
+  Basic of (Proof.context -> method) * Position.T |
   Source of src |
   Source_i of src |
   Then of text list |
@@ -365,15 +367,15 @@ datatype text =
   Repeat1 of text |
   SelectGoals of int * text;
 
-val primitive_text = Basic o K o SIMPLE_METHOD o PRIMITIVE;
-val succeed_text = Basic (K succeed);
+fun primitive_text r = Basic (K (SIMPLE_METHOD (PRIMITIVE r)), Position.none);
+val succeed_text = Basic (K succeed, Position.none);
 val default_text = Source (Args.src (("default", []), Position.none));
-val this_text = Basic (K this);
-val done_text = Basic (K (SIMPLE_METHOD all_tac));
-val sorry_text = Basic o cheating;
+val this_text = Basic (K this, Position.none);
+val done_text = Basic (K (SIMPLE_METHOD all_tac), Position.none);
+fun sorry_text int = Basic (cheating int, Position.none);
 
-fun finish_text (NONE, immed) = Basic (close immed)
-  | finish_text (SOME txt, immed) = Then [txt, Basic (close immed)];
+fun finish_text (NONE, immed) pos = Basic (close immed, pos)
+  | finish_text (SOME txt, immed) pos = Then [txt, Basic (close immed, pos)];
 
 
 (* method definitions *)
