@@ -64,7 +64,7 @@ fun del ts = Thm.declaration_attribute (fn th => fn context =>
      (ss delsimps [th], Library.subtract (op aconv) ts' ts ))) 
 
 (* concrete syntax *)
-
+local
 fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 
 val constsN = "consts";
@@ -74,10 +74,11 @@ val terms = thms >> map (term_of o Drule.dest_term);
 
 fun optional scan = Scan.optional scan [];
 
-
+in
 fun att_syntax src = src |> Attrib.syntax
  ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
-  optional (keyword constsN |-- terms) >> add);
+  optional (keyword constsN |-- terms) >> add)
+end;
 
 
 (* theory setup *)
