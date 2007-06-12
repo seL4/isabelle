@@ -64,7 +64,7 @@ lemma
     sq (x1*y2 + x2*y1 + x3*y4 - x4*y3)  +
     sq (x1*y3 - x2*y4 + x3*y1 + x4*y2)  +
     sq (x1*y4 + x2*y3 - x3*y2 + x4*y1)"
-  unfolding sq_def by algebra
+  by (algebra add: sq_def)
 
 lemma
   fixes p1 :: "'a::{idom,recpower,number_ring}"
@@ -79,7 +79,7 @@ lemma
       sq (p1*u2 + q1*t2 - r1*w2 + s1*v2 - t1*q2 + u1*p2 - v1*s2 + w1*r2) +
       sq (p1*v2 + q1*w2 + r1*t2 - s1*u2 - t1*r2 + u1*s2 + v1*p2 - w1*q2) +
       sq (p1*w2 - q1*v2 + r1*u2 + s1*t2 - t1*s2 - u1*r2 + v1*q2 + w1*p2)"
-  unfolding sq_def by algebra
+  by (algebra add: sq_def)
 
 
 subsection {* Colinearity is invariant by rotation *}
@@ -94,7 +94,7 @@ lemma collinear_inv_rotation:
   assumes "collinear (Ax, Ay) (Bx, By) (Cx, Cy)" and "c\<twosuperior> + s\<twosuperior> = 1"
   shows "collinear (Ax * c - Ay * s, Ay * c + Ax * s)
     (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
-  using assms unfolding collinear_def split_def fst_conv snd_conv
-  by algebra
+  using assms 
+  by (algebra add: collinear_def split_def fst_conv snd_conv)
 
 end
