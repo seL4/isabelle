@@ -475,4 +475,71 @@ instance rat :: number_ring
 use "rat_arith.ML"
 setup rat_arith_setup
 
+
+subsection {* Embedding from Rationals to other Fields *}
+
+axclass field_char_0 < field, ring_char_0
+
+instance ordered_field < field_char_0 ..
+
+definition
+  of_rat :: "rat \<Rightarrow> 'a::field_char_0"
+where
+  "of_rat q = contents (\<Union>(a,b) \<in> Rep_Rat q. {of_int a / of_int b})"
+
+lemma of_rat_congruent:
+  "(\<lambda>(a, b). {of_int a / of_int b::'a::field_char_0}) respects ratrel"
+apply (rule congruent.intro)
+apply (clarsimp simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
+apply (simp only: of_int_mult [symmetric])
+done
+
+lemma of_rat_rat:
+  "b \<noteq> 0 \<Longrightarrow> of_rat (Fract a b) = of_int a / of_int b"
+unfolding Fract_def of_rat_def
+by (simp add: UN_ratrel of_rat_congruent)
+
+lemma of_rat_0 [simp]: "of_rat 0 = 0"
+by (simp add: Zero_rat_def of_rat_rat)
+
+lemma of_rat_1 [simp]: "of_rat 1 = 1"
+by (simp add: One_rat_def of_rat_rat)
+
+lemma of_rat_add: "of_rat (a + b) = of_rat a + of_rat b"
+by (induct a, induct b, simp add: add_rat of_rat_rat add_frac_eq)
+
+lemma of_rat_mult: "of_rat (a * b) = of_rat a * of_rat b"
+apply (induct a, induct b, simp add: mult_rat of_rat_rat)
+apply (simp add: divide_inverse nonzero_inverse_mult_distrib mult_ac)
+done
+
+lemma nonzero_inverse_divide:
+  fixes a b :: "'a::field"
+  shows "\<lbrakk>a \<noteq> 0; b \<noteq> 0\<rbrakk> \<Longrightarrow> inverse (a / b) = b / a"
+apply (simp add: divide_inverse)
+apply (simp add: nonzero_inverse_mult_distrib nonzero_imp_inverse_nonzero)
+apply (simp add: nonzero_inverse_inverse_eq)
+done
+
+lemma nonzero_of_rat_inverse:
+  "a \<noteq> 0 \<Longrightarrow> of_rat (inverse a) = inverse (of_rat a)"
+apply (induct a)
+apply (simp add: Zero_rat_def inverse_rat eq_rat of_rat_rat)
+apply (simp add: nonzero_inverse_divide)
+done
+
+lemma of_rat_inverse:
+  "(of_rat (inverse a)::'a::{field_char_0,division_by_zero}) =
+   inverse (of_rat a)"
+by (cases "a = 0", simp_all add: nonzero_of_rat_inverse)
+
+lemma nonzero_of_rat_divide:
+  "b \<noteq> 0 \<Longrightarrow> of_rat (a / b) = of_rat a / of_rat b"
+by (simp add: divide_inverse of_rat_mult nonzero_of_rat_inverse)
+
+lemma of_rat_divide:
+  "(of_rat (a / b)::'a::{field_char_0,division_by_zero})
+   = of_rat a / of_rat b"
+by (cases "b = 0", simp_all add: nonzero_of_rat_divide)
+
 end
