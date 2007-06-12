@@ -50,7 +50,7 @@ fun thin_prems_tac P i st =
                          | _ => false)
     in 
     if ntac then no_tac st
-      else rtac (Goal.prove_raw [] g (K (blast_tac HOL_cs 1))) i st 
+      else rtac (Goal.prove_internal [] g (K (blast_tac HOL_cs 1))) i st 
     end;
 
 local

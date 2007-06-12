@@ -406,7 +406,7 @@ fun skolem_of_def def =
       val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
       and conc =  c_mkTrueprop (Drule.beta_conv cabs (Drule.list_comb(c,frees)));
       fun tacf [prem] = rewrite_goals_tac [def] THEN rtac (prem RS someI_ex) 1
-  in  Goal.prove_raw [ex_tm] conc tacf
+  in  Goal.prove_internal [ex_tm] conc tacf
        |> forall_intr_list frees
        |> forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
        |> Thm.varifyT
