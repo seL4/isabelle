@@ -475,7 +475,8 @@ fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mes
     val is_declared = is_some (def_type (x, ~1));
     val res =
       if is_free andalso not is_internal then (no_skolem false x; sko)
-      else ((no_skolem false x; ()) handle ERROR msg => legacy_feature msg;
+      else ((no_skolem false x; ()) handle ERROR msg =>
+          legacy_feature (msg ^ ContextPosition.str_of ctxt);
         if is_internal andalso is_declared then SOME x else NONE);
   in if is_some res then res else if is_declared then SOME x else NONE end;
 
