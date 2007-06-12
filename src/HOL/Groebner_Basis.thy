@@ -4,7 +4,6 @@
 *)
 
 header {* Semiring normalization and Groebner Bases *}
-
 theory Groebner_Basis
 imports NatBin
 uses
@@ -13,6 +12,8 @@ uses
   ("Tools/Groebner_Basis/normalizer.ML")
   ("Tools/Groebner_Basis/groebner.ML")
 begin
+
+
 
 subsection {* Semiring normalization *}
 
@@ -436,23 +437,22 @@ lemma PFalse:
 
 use "Tools/Groebner_Basis/groebner.ML"
 
-ML {*
-  fun algebra_tac ctxt i = ObjectLogic.full_atomize_tac i 
-  THEN (fn st =>
-   case try (nth (cprems_of st)) (i - 1) of
-    NONE => no_tac st
-  | SOME p => let val th = Groebner.ring_conv ctxt (Thm.dest_arg p)
-              in rtac th i st end
-              handle TERM _ => no_tac st
-              handle THM _ => no_tac st
-              handle ERROR _ => no_tac st
-              handle CTERM _ => no_tac st);
-*}
+method_setup algebra =
+{* 
+let
+ fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
+ val addN = "add"
+ val delN = "del"
+ val any_keyword = keyword addN || keyword delN
+ val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+in
+fn src => Method.syntax 
+    ((Scan.optional (keyword addN |-- thms) []) -- 
+    (Scan.optional (keyword delN |-- thms) [])) src 
+ #> (fn ((add_ths, del_ths), ctxt) => 
+       Method.SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
+end
 
-method_setup algebra = {*
-  Method.ctxt_args (Method.SIMPLE_METHOD' o algebra_tac)
 *} ""
-
-
 
 end
