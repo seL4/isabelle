@@ -38,8 +38,8 @@ sig
   val thy_ord: theory * theory -> order
   val subthy: theory * theory -> bool
   val joinable: theory * theory -> bool
-  val merge: theory * theory -> theory                     (*exception TERM*)
-  val merge_refs: theory_ref * theory_ref -> theory_ref    (*exception TERM*)
+  val merge: theory * theory -> theory
+  val merge_refs: theory_ref * theory_ref -> theory_ref
   val self_ref: theory -> theory_ref
   val deref: theory_ref -> theory
   val copy_thy: theory -> theory
@@ -227,17 +227,16 @@ fun pretty_abbrev_thy thy =
 val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
 
 
-(* consistency *)    (*exception TERM*)
+(* consistency *)
 
 fun check_thy thy =
-  if is_stale thy then
-    raise TERM ("Stale theory encountered:\n" ^ string_of_thy thy, [])
+  if is_stale thy then error ("Stale theory encountered:\n" ^ string_of_thy thy)
   else thy;
 
 fun check_ins id ids =
   if draft_id id orelse Inttab.defined ids (#1 id) then ids
   else if Inttab.exists (equal (#2 id) o #2) ids then
-    raise TERM ("Different versions of theory component " ^ quote (#2 id), [])
+    error ("Different versions of theory component " ^ quote (#2 id))
   else Inttab.update id ids;
 
 fun check_insert intermediate id (ids, iids) =
@@ -278,15 +277,15 @@ val self_ref = TheoryRef o the_self o check_thy;
 fun deref (TheoryRef (ref thy)) = thy;
 
 
-(* trivial merge *)    (*exception TERM*)
+(* trivial merge *)
 
 fun merge (thy1, thy2) =
   if eq_thy (thy1, thy2) then thy1
   else if proper_subthy (thy2, thy1) then thy1
   else if proper_subthy (thy1, thy2) then thy2
   else (check_merge thy1 thy2;
-    raise TERM (cat_lines ["Attempt to perform non-trivial merge of theories:",
-      str_of_thy thy1, str_of_thy thy2], []));
+    error (cat_lines ["Attempt to perform non-trivial merge of theories:",
+      str_of_thy thy1, str_of_thy thy2]));
 
 fun merge_refs (ref1, ref2) =
   if ref1 = ref2 then ref1
