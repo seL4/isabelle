@@ -306,7 +306,7 @@ val refine_witness =
   Proof.refine (Method.Basic (K (Method.RAW_METHOD
     (K (ALLGOALS
       (PRECISE_CONJUNCTS ~1 (ALLGOALS
-        (PRECISE_CONJUNCTS ~1 (TRYALL (Tactic.rtac Drule.protectI))))))))));
+        (PRECISE_CONJUNCTS ~1 (TRYALL (Tactic.rtac Drule.protectI)))))))), Position.none));
 
 fun pretty_witness ctxt witn =
   let val prt_term = Pretty.quote o ProofContext.pretty_term ctxt in

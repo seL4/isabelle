@@ -371,13 +371,13 @@ val _ = Context.add_setup (Method.add_methods
 fun prove_interpretation tac prfx_atts expr insts thy =
   thy
   |> Locale.interpretation_i I prfx_atts expr insts
-  |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
+  |> Proof.global_terminal_proof (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
   |> ProofContext.theory_of;
 
 fun prove_interpretation_in tac after_qed (name, expr) thy =
   thy
   |> Locale.interpretation_in_locale (ProofContext.theory after_qed) (name, expr)
-  |> Proof.global_terminal_proof (Method.Basic (fn _ => Method.SIMPLE_METHOD tac), NONE)
+  |> Proof.global_terminal_proof (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
   |> ProofContext.theory_of;
 
 fun instance_sort' do_proof (class, sort) theory =

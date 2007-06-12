@@ -14,7 +14,7 @@ sig
     val setup : theory -> theory
 end
 
-structure FundefDatatype (*: FUNDEF_DATATYPE*) =
+structure FundefDatatype: FUNDEF_DATATYPE =
 struct
 
 open FundefLib
@@ -199,12 +199,13 @@ val pat_completeness = Method.SIMPLE_METHOD' pat_complete_tac
 
 val by_pat_completeness_simp =
     Proof.global_terminal_proof
-      (Method.Basic (K pat_completeness),
+      (Method.Basic (K pat_completeness, Position.none),
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 val termination_by_lexicographic_order =
     FundefPackage.setup_termination_proof NONE
-    #> Proof.global_terminal_proof (Method.Basic (LexicographicOrder.lexicographic_order []), NONE)
+    #> Proof.global_terminal_proof
+      (Method.Basic (LexicographicOrder.lexicographic_order [], Position.none), NONE)
 
 fun mk_catchall fixes arities =
     let

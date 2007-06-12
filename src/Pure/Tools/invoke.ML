@@ -93,7 +93,8 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
       "invoke" NONE after_qed propp
     |> Element.refine_witness
     |> Seq.hd
-    |> Proof.refine (Method.Basic (K (Method.METHOD (K (HEADGOAL (RANGE (map rtac inst_rules)))))))
+    |> Proof.refine (Method.Basic (K (Method.METHOD (K (HEADGOAL (RANGE (map rtac inst_rules))))),
+      Position.none))
     |> Seq.hd
   end;
 

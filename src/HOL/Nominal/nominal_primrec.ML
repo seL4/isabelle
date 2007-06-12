@@ -372,9 +372,9 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
            |> Theory.parent_path
          end))
       [goals] |>
-    Proof.apply (Method.Basic (fn ctxt => Method.RAW_METHOD (fn ths =>
+    Proof.apply (Method.Basic (fn _ => Method.RAW_METHOD (fn _ =>
       rewrite_goals_tac (map snd defs_thms') THEN
-      compose_tac (false, rule, length rule_prems) 1))) |>
+      compose_tac (false, rule, length rule_prems) 1), Position.none)) |>
     Seq.hd
   end;
 
