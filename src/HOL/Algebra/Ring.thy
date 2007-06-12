@@ -249,8 +249,11 @@ lemma (in abelian_monoid) finsum_closed [simp]:
   fixes A
   assumes fin: "finite A" and f: "f \<in> A -> carrier G" 
   shows "finsum G f A \<in> carrier G"
-  by (rule comm_monoid.finprod_closed [OF a_comm_monoid,
+  apply (rule comm_monoid.finprod_closed [OF a_comm_monoid,
     folded finsum_def, simplified monoid_record_simps])
+   apply (rule fin)
+  apply (rule f)
+  done
 
 lemma (in abelian_monoid) finsum_Un_Int:
   "[| finite A; finite B; g \<in> A -> carrier G; g \<in> B -> carrier G |] ==>
@@ -359,7 +362,7 @@ lemma (in ring) is_monoid:
 
 lemma (in ring) is_ring:
   "ring R"
-  .
+  by fact
 
 lemmas ring_record_simps = monoid_record_simps ring.simps
 
@@ -370,34 +373,34 @@ lemma cringI:
     and l_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
   shows "cring R"
-  proof (intro cring.intro ring.intro)
-    show "ring_axioms R"
+proof (intro cring.intro ring.intro)
+  show "ring_axioms R"
     -- {* Right-distributivity follows from left-distributivity and
           commutativity. *}
-    proof (rule ring_axioms.intro)
-      fix x y z
-      assume R: "x \<in> carrier R" "y \<in> carrier R" "z \<in> carrier R"
-      note [simp]= comm_monoid.axioms [OF comm_monoid]
-        abelian_group.axioms [OF abelian_group]
-        abelian_monoid.a_closed
+  proof (rule ring_axioms.intro)
+    fix x y z
+    assume R: "x \<in> carrier R" "y \<in> carrier R" "z \<in> carrier R"
+    note [simp] = comm_monoid.axioms [OF comm_monoid]
+      abelian_group.axioms [OF abelian_group]
+      abelian_monoid.a_closed
         
-      from R have "z \<otimes> (x \<oplus> y) = (x \<oplus> y) \<otimes> z"
-        by (simp add: comm_monoid.m_comm [OF comm_monoid.intro])
-      also from R have "... = x \<otimes> z \<oplus> y \<otimes> z" by (simp add: l_distr)
-      also from R have "... = z \<otimes> x \<oplus> z \<otimes> y"
-        by (simp add: comm_monoid.m_comm [OF comm_monoid.intro])
-      finally show "z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y" .
-    qed
-  qed (auto intro: cring.intro
-      abelian_group.axioms comm_monoid.axioms ring_axioms.intro prems)
+    from R have "z \<otimes> (x \<oplus> y) = (x \<oplus> y) \<otimes> z"
+      by (simp add: comm_monoid.m_comm [OF comm_monoid.intro])
+    also from R have "... = x \<otimes> z \<oplus> y \<otimes> z" by (simp add: l_distr)
+    also from R have "... = z \<otimes> x \<oplus> z \<otimes> y"
+      by (simp add: comm_monoid.m_comm [OF comm_monoid.intro])
+    finally show "z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y" .
+  qed (rule l_distr)
+qed (auto intro: cring.intro
+  abelian_group.axioms comm_monoid.axioms ring_axioms.intro prems)
 
 lemma (in cring) is_comm_monoid:
   "comm_monoid R"
   by (auto intro!: comm_monoidI m_assoc m_comm)
 
 lemma (in cring) is_cring:
-  "cring R"
-  .
+  "cring R" by fact
+
 
 subsubsection {* Normaliser for Rings *}
 
@@ -647,7 +650,7 @@ next
     have "b = \<zero>" .
     thus "a = \<zero> \<or> b = \<zero>" by simp
   qed
-qed
+qed (rule field_Units)
 
 text {* Another variant to show that something is a field *}
 lemma (in cring) cring_fieldI2:

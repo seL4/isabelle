@@ -25,7 +25,7 @@ done
 
 lemma (in ideal) is_ideal:
   "ideal I R"
-by -
+by fact
 
 lemma idealI:
   includes ring
@@ -50,7 +50,7 @@ locale principalideal = ideal +
 
 lemma (in principalideal) is_principalideal:
   shows "principalideal I R"
-by -
+by fact
 
 lemma principalidealI:
   includes ideal
@@ -85,7 +85,7 @@ locale primeideal = ideal + cring +
 
 lemma (in primeideal) is_primeideal:
  shows "primeideal I R"
-by -
+by fact
 
 lemma primeidealI:
   includes ideal
@@ -166,7 +166,7 @@ qed
 lemma (in ideal) Icarr:
   assumes iI: "i \<in> I"
   shows "i \<in> carrier R"
-by (rule a_Hcarr)
+using iI by (rule a_Hcarr)
 
 
 subsection {* Intersection of Ideals *}
@@ -361,7 +361,7 @@ lemma (in ring) Idl_subset_ideal:
   shows "(Idl H \<subseteq> I) = (H \<subseteq> I)"
 proof
   assume a: "Idl H \<subseteq> I"
-  have "H \<subseteq> Idl H" by (rule genideal_self)
+  from Hcarr have "H \<subseteq> Idl H" by (rule genideal_self)
   from this and a
       show "H \<subseteq> I" by simp
 next
@@ -504,8 +504,11 @@ lemma (in ring) cgenideal_minimal:
   assumes aJ: "a \<in> J"
   shows "PIdl a \<subseteq> J"
 unfolding cgenideal_def
-by (rule, clarify, rule I_l_closed)
-
+apply rule
+apply clarify
+using aJ
+apply (erule I_l_closed)
+done
 
 lemma (in cring) cgenideal_eq_genideal:
   assumes icarr: "i \<in> carrier R"

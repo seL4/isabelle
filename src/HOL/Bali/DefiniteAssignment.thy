@@ -349,10 +349,10 @@ proof -
       by (cases binop) (simp_all)
   next
     case (Cond c e1 e2 b)
-    have hyp_c:  "\<And> b. ?Const b c \<Longrightarrow> ?Ass b c" .
-    have hyp_e1: "\<And> b. ?Const b e1 \<Longrightarrow> ?Ass b e1" .
-    have hyp_e2: "\<And> b. ?Const b e2 \<Longrightarrow> ?Ass b e2" .
-    have const: "constVal (c ? e1 : e2) = Some (Bool b)" .
+    note hyp_c = `\<And> b. ?Const b c \<Longrightarrow> ?Ass b c`
+    note hyp_e1 = `\<And> b. ?Const b e1 \<Longrightarrow> ?Ass b e1`
+    note hyp_e2 = `\<And> b. ?Const b e2 \<Longrightarrow> ?Ass b e2`
+    note const = `constVal (c ? e1 : e2) = Some (Bool b)`
     then obtain bv where bv: "constVal c = Some bv"
       by simp
     hence emptyC: "assignsE c = {}" by (rule assignsE_const_simp)
@@ -397,10 +397,10 @@ proof -
       by (cases binop) (simp_all)
   next
     case (Cond c e1 e2 b)
-    have hyp_c:  "\<And> b. ?Const b c \<Longrightarrow> ?Ass b c" .
-    have hyp_e1: "\<And> b. ?Const b e1 \<Longrightarrow> ?Ass b e1" .
-    have hyp_e2: "\<And> b. ?Const b e2 \<Longrightarrow> ?Ass b e2" .
-    have const: "constVal (c ? e1 : e2) = Some (Bool b)" .
+    note hyp_c = `\<And> b. ?Const b c \<Longrightarrow> ?Ass b c`
+    note hyp_e1 = `\<And> b. ?Const b e1 \<Longrightarrow> ?Ass b e1`
+    note hyp_e2 = `\<And> b. ?Const b e2 \<Longrightarrow> ?Ass b e2`
+    note const = `constVal (c ? e1 : e2) = Some (Bool b)`
     then obtain bv where bv: "constVal c = Some bv"
       by simp
     show ?case
@@ -958,8 +958,8 @@ proof -
     case (Cast T e)
     have "E\<turnstile>e\<Colon>- (PrimT Boolean)"
     proof -
-      have "E\<turnstile>(Cast T e)\<Colon>- (PrimT Boolean)" .
-      then obtain Te where "E\<turnstile>e\<Colon>-Te"
+      from `E\<turnstile>(Cast T e)\<Colon>- (PrimT Boolean)`
+      obtain Te where "E\<turnstile>e\<Colon>-Te"
                            "prg E\<turnstile>Te\<preceq>? PrimT Boolean"
 	by cases simp
       thus ?thesis
@@ -988,10 +988,10 @@ proof -
       by - (cases binop, auto simp add: assignsE_const_simp)
   next
     case (Cond c e1 e2)
-    have hyp_c: "?Boolean c \<Longrightarrow> ?Incl c" .
-    have hyp_e1: "?Boolean e1 \<Longrightarrow> ?Incl e1" .
-    have hyp_e2: "?Boolean e2 \<Longrightarrow> ?Incl e2" .
-    have wt: "E\<turnstile>(c ? e1 : e2)\<Colon>-PrimT Boolean" .
+    note hyp_c = `?Boolean c \<Longrightarrow> ?Incl c`
+    note hyp_e1 = `?Boolean e1 \<Longrightarrow> ?Incl e1`
+    note hyp_e2 = `?Boolean e2 \<Longrightarrow> ?Incl e2`
+    note wt = `E\<turnstile>(c ? e1 : e2)\<Colon>-PrimT Boolean`
     then obtain
       boolean_c:  "E\<turnstile>c\<Colon>-PrimT Boolean" and
       boolean_e1: "E\<turnstile>e1\<Colon>-PrimT Boolean" and
@@ -1049,9 +1049,9 @@ lemma range_inter_ts_subseteq':
   by (auto simp add: range_inter_ts_def)
 
 lemma da_monotone: 
-      assumes      da: "Env\<turnstile> B  \<guillemotright>t\<guillemotright> A"   and
-        subseteq_B_B': "B \<subseteq> B'"          and
-                  da': "Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'" 
+  assumes da: "Env\<turnstile> B  \<guillemotright>t\<guillemotright> A" and
+    "B \<subseteq> B'" and
+    da': "Env\<turnstile> B' \<guillemotright>t\<guillemotright> A'" 
   shows "(nrm A \<subseteq> nrm A') \<and> (\<forall> l. (brk A l \<subseteq> brk A' l))"
 proof -
   from da
@@ -1068,10 +1068,10 @@ proof -
     show ?case by cases simp
   next
     case (Lab Env B c C A l B' A')
-    have A: "nrm A = nrm C \<inter> brk C l" "brk A = rmlab l (brk C)" .
-    have "PROP ?Hyp Env B \<langle>c\<rangle> C" .
+    note A = `nrm A = nrm C \<inter> brk C l` `brk A = rmlab l (brk C)`
+    note `PROP ?Hyp Env B \<langle>c\<rangle> C`
     moreover
-    have "B \<subseteq> B'" .
+    note `B \<subseteq> B'`
     moreover
     obtain C'
       where "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
@@ -1094,40 +1094,40 @@ proof -
       by simp
   next
     case (Comp Env B c1 C1 c2 C2 A B' A')
-    have A: "nrm A = nrm C2" "brk A = brk C1 \<Rightarrow>\<inter>  brk C2" .
-    have "Env\<turnstile> B' \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A'" .
-    then obtain  C1' C2'
+    note A = `nrm A = nrm C2` `brk A = brk C1 \<Rightarrow>\<inter>  brk C2`
+    from `Env\<turnstile> B' \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A'`
+    obtain  C1' C2'
       where da_c1: "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
             da_c2: "Env\<turnstile> nrm C1' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"  and
             A': "nrm A' = nrm C2'" "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'"
       by (rule da_elim_cases) auto
-    have "PROP ?Hyp Env B \<langle>c1\<rangle> C1" .
-    moreover have "B \<subseteq> B'" .
+    note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
+    moreover note `B \<subseteq> B'`
     moreover note da_c1
     ultimately have C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
-      by (auto)
-    have "PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle> C2" .
+      by auto
+    note `PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle> C2`
     with da_c2 C1' 
     have C2': "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
-      by (auto)
+      by auto
     with A A' C1'
     show ?case
       by auto
   next
     case (If Env B e E c1 C1 c2 C2 A B' A')
-    have A: "nrm A = nrm C1 \<inter> nrm C2" "brk A = brk C1 \<Rightarrow>\<inter>  brk C2" .
-    have "Env\<turnstile> B' \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A'" .
-    then obtain C1' C2'
+    note A = `nrm A = nrm C1 \<inter> nrm C2` `brk A = brk C1 \<Rightarrow>\<inter>  brk C2`
+    from `Env\<turnstile> B' \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A'`
+    obtain C1' C2'
       where da_c1: "Env\<turnstile> B' \<union> assigns_if True e \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
             da_c2: "Env\<turnstile> B' \<union> assigns_if False e \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
                A': "nrm A' = nrm C1' \<inter> nrm C2'" "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'"
       by (rule da_elim_cases) auto
-    have "PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c1\<rangle> C1" .
-    moreover have B': "B \<subseteq> B'" .
+    note `PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c1\<rangle> C1`
+    moreover note B' = `B \<subseteq> B'`
     moreover note da_c1 
     ultimately obtain C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
       by blast
-    have "PROP ?Hyp Env (B \<union> assigns_if False e) \<langle>c2\<rangle> C2" .
+    note `PROP ?Hyp Env (B \<union> assigns_if False e) \<langle>c2\<rangle> C2`
     with da_c2 B'
     obtain C2': "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
       by blast
@@ -1136,17 +1136,16 @@ proof -
       by auto
   next
     case (Loop Env B e E c C A l B' A')
-    have A: "nrm A = nrm C \<inter> (B \<union> assigns_if False e)"
-            "brk A = brk C" .
-    have "Env\<turnstile> B' \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A'" .
-    then obtain C'
+    note A = `nrm A = nrm C \<inter> (B \<union> assigns_if False e)` `brk A = brk C`
+    from `Env\<turnstile> B' \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A'`
+    obtain C'
       where 
        da_c': "Env\<turnstile> B' \<union> assigns_if True e \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and
           A': "nrm A' = nrm C' \<inter> (B' \<union> assigns_if False e)"
               "brk A' = brk C'" 
       by (rule da_elim_cases) auto
-    have "PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c\<rangle> C" .
-    moreover have B': "B \<subseteq> B'" .
+    note `PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c\<rangle> C`
+    moreover note B' = `B \<subseteq> B'`
     moreover note da_c'
     ultimately obtain C': "nrm C \<subseteq> nrm C'" "(\<forall>l. brk C l \<subseteq> brk C' l)"
       by blast
@@ -1177,23 +1176,22 @@ proof -
     case Throw thus ?case by -  (erule da_elim_cases, auto)
   next
     case (Try Env B c1 C1 vn C c2 C2 A B' A')
-    have A: "nrm A = nrm C1 \<inter> nrm C2"
-            "brk A = brk C1 \<Rightarrow>\<inter>  brk C2" .
-    have "Env\<turnstile> B' \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A'" .
-    then obtain C1' C2'
+    note A = `nrm A = nrm C1 \<inter> nrm C2` `brk A = brk C1 \<Rightarrow>\<inter>  brk C2`
+    from `Env\<turnstile> B' \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A'`
+    obtain C1' C2'
       where da_c1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
             da_c2': "Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile> B' \<union> {VName vn} 
                       \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
             A': "nrm A' = nrm C1' \<inter> nrm C2'"
                 "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'" 
       by (rule da_elim_cases) auto
-    have "PROP ?Hyp Env B \<langle>c1\<rangle> C1" .
-    moreover have B': "B \<subseteq> B'" .
+    note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
+    moreover note B' = `B \<subseteq> B'`
     moreover note da_c1'
     ultimately obtain C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
       by blast
-    have "PROP ?Hyp (Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>)
-                    (B \<union> {VName vn}) \<langle>c2\<rangle> C2" .
+    note `PROP ?Hyp (Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>)
+                    (B \<union> {VName vn}) \<langle>c2\<rangle> C2`
     with B' da_c2'
     obtain "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
       by blast
@@ -1202,21 +1200,21 @@ proof -
       by auto
   next
     case (Fin Env B c1 C1 c2 C2 A B' A')
-    have A: "nrm A = nrm C1 \<union> nrm C2"
-            "brk A = (brk C1 \<Rightarrow>\<union>\<^sub>\<forall> nrm C2) \<Rightarrow>\<inter> (brk C2)" .
-    have "Env\<turnstile> B' \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A'" .
-    then obtain C1' C2'
+    note A = `nrm A = nrm C1 \<union> nrm C2`
+      `brk A = (brk C1 \<Rightarrow>\<union>\<^sub>\<forall> nrm C2) \<Rightarrow>\<inter> (brk C2)`
+    from `Env\<turnstile> B' \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A'`
+    obtain C1' C2'
       where  da_c1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
              da_c2': "Env\<turnstile> B' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
              A':  "nrm A' = nrm C1' \<union> nrm C2'"
                   "brk A' = (brk C1' \<Rightarrow>\<union>\<^sub>\<forall> nrm C2') \<Rightarrow>\<inter> (brk C2')"
       by (rule da_elim_cases) auto
-    have "PROP ?Hyp Env B \<langle>c1\<rangle> C1" .
-    moreover have B': "B \<subseteq> B'" .
+    note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
+    moreover note B' = `B \<subseteq> B'`
     moreover note da_c1'
     ultimately obtain C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
       by blast
-    have hyp_c2: "PROP ?Hyp Env B \<langle>c2\<rangle> C2" .
+    note hyp_c2 = `PROP ?Hyp Env B \<langle>c2\<rangle> C2`
     from da_c2' B' 
      obtain "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
        by - (drule hyp_c2,auto)
@@ -1239,17 +1237,17 @@ proof -
      case UnOp thus ?case by -  (erule da_elim_cases, auto)
    next
      case (CondAnd Env B e1 E1 e2 E2 A B' A')
-     have A: "nrm A = B \<union>
+     note A = `nrm A = B \<union>
                        assigns_if True (BinOp CondAnd e1 e2) \<inter>
-                       assigns_if False (BinOp CondAnd e1 e2)"
-             "brk A = (\<lambda>l. UNIV)" .
-     have "Env\<turnstile> B' \<guillemotright>\<langle>BinOp CondAnd e1 e2\<rangle>\<guillemotright> A'" .
-     then obtain  A': "nrm A' = B' \<union>
+                       assigns_if False (BinOp CondAnd e1 e2)`
+             `brk A = (\<lambda>l. UNIV)`
+     from `Env\<turnstile> B' \<guillemotright>\<langle>BinOp CondAnd e1 e2\<rangle>\<guillemotright> A'`
+     obtain  A': "nrm A' = B' \<union>
                                  assigns_if True (BinOp CondAnd e1 e2) \<inter>
                                  assigns_if False (BinOp CondAnd e1 e2)"
                       "brk A' = (\<lambda>l. UNIV)" 
        by (rule da_elim_cases) auto
-     have B': "B \<subseteq> B'" .
+     note B' = `B \<subseteq> B'`
      with A A' show ?case 
        by auto 
    next
@@ -1268,13 +1266,13 @@ proof -
      case Ass thus ?case by -  (erule da_elim_cases, auto)
    next
      case (CondBool Env c e1 e2 B C E1 E2 A B' A')
-     have A: "nrm A = B \<union> 
+     note A = `nrm A = B \<union> 
                         assigns_if True (c ? e1 : e2) \<inter> 
-                        assigns_if False (c ? e1 : e2)"
-             "brk A = (\<lambda>l. UNIV)" .
-     have "Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)" .
+                        assigns_if False (c ? e1 : e2)`
+             `brk A = (\<lambda>l. UNIV)`
+     note `Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)`
      moreover
-     have "Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'" .
+     note `Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'`
      ultimately
      obtain A': "nrm A' = B' \<union> 
                                   assigns_if True (c ? e1 : e2) \<inter> 
@@ -1282,16 +1280,15 @@ proof -
                      "brk A' = (\<lambda>l. UNIV)"
        by - (erule da_elim_cases,auto simp add: inj_term_simps) 
        (* inj_term_simps needed to handle wt (defined without \<langle>\<rangle>) *)
-     have B': "B \<subseteq> B'" .
+     note B' = `B \<subseteq> B'`
      with A A' show ?case 
        by auto 
    next
      case (Cond Env c e1 e2 B C E1 E2 A B' A')  
-     have A: "nrm A = nrm E1 \<inter> nrm E2"
-             "brk A = (\<lambda>l. UNIV)" .
-     have not_bool: "\<not> Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)" .
-     have "Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'" .
-     then obtain E1' E2'
+     note A = `nrm A = nrm E1 \<inter> nrm E2` `brk A = (\<lambda>l. UNIV)`
+     note not_bool = `\<not> Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)`
+     from `Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'`
+     obtain E1' E2'
        where da_e1': "Env\<turnstile> B' \<union> assigns_if True c \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'" and
              da_e2': "Env\<turnstile> B' \<union> assigns_if False c \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'" and
                  A': "nrm A' = nrm E1' \<inter> nrm E2'"
@@ -1299,12 +1296,12 @@ proof -
        using not_bool
        by  - (erule da_elim_cases, auto simp add: inj_term_simps)
        (* inj_term_simps needed to handle wt (defined without \<langle>\<rangle>) *)
-     have "PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle> E1" .
-     moreover have B': "B \<subseteq> B'" .
+     note `PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle> E1`
+     moreover note B' = `B \<subseteq> B'`
      moreover note da_e1'
      ultimately obtain E1': "nrm E1 \<subseteq> nrm E1'" "(\<forall>l. brk E1 l \<subseteq> brk E1' l)"
-      by blast
-     have "PROP ?Hyp Env (B \<union> assigns_if False c) \<langle>e2\<rangle> E2" .
+       by blast
+     note `PROP ?Hyp Env (B \<union> assigns_if False c) \<langle>e2\<rangle> E2`
      with B' da_e2'
      obtain "nrm E2 \<subseteq> nrm E2'" "(\<forall>l. brk E2 l \<subseteq> brk E2' l)"
        by blast
@@ -1330,12 +1327,11 @@ proof -
   next
     case Cons thus ?case by -  (erule da_elim_cases, auto)
   qed
-qed
+qed (rule da', rule `B \<subseteq> B'`)
   
 lemma da_weaken:     
-      assumes            da: "Env\<turnstile> B \<guillemotright>t\<guillemotright> A" and
-              subseteq_B_B': "B \<subseteq> B'" 
-        shows "\<exists> A'. Env \<turnstile> B' \<guillemotright>t\<guillemotright> A'"
+  assumes da: "Env\<turnstile> B \<guillemotright>t\<guillemotright> A" and "B \<subseteq> B'" 
+  shows "\<exists> A'. Env \<turnstile> B' \<guillemotright>t\<guillemotright> A'"
 proof -
   note assigned.select_convs [Pure.intro]
   from da  
@@ -1346,9 +1342,9 @@ proof -
     case Expr thus ?case by (iprover intro: da.Expr)
   next
     case (Lab Env B c C A l B')  
-    have "PROP ?Hyp Env B \<langle>c\<rangle>" .
+    note `PROP ?Hyp Env B \<langle>c\<rangle>`
     moreover
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     ultimately obtain C' where "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
       by iprover
     then obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>Break l\<bullet> c\<rangle>\<guillemotright> A'"
@@ -1356,10 +1352,10 @@ proof -
     thus ?case ..
   next
     case (Comp Env B c1 C1 c2 C2 A B')
-    have da_c1: "Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1" .
-    have "PROP ?Hyp Env B \<langle>c1\<rangle>" .
+    note da_c1 = `Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1`
+    note `PROP ?Hyp Env B \<langle>c1\<rangle>`
     moreover
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     ultimately obtain C1' where da_c1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
       by iprover
     with da_c1 B'
@@ -1367,7 +1363,7 @@ proof -
       "nrm C1 \<subseteq> nrm C1'"
       by (rule da_monotone [elim_format]) simp
     moreover
-    have "PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle>" .
+    note `PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle>`
     ultimately obtain C2' where "Env\<turnstile> nrm C1' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
       by iprover
     with da_c1' obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A'"
@@ -1375,7 +1371,7 @@ proof -
     thus ?case ..
   next
     case (If Env B e E c1 C1 c2 C2 A B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain  E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule If.hyps)
@@ -1409,8 +1405,8 @@ proof -
     thus ?case ..
   next  
     case (Loop Env B e E c C A l B')
-    have B': "B \<subseteq> B'" .
-    obtain  E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
+    note B' = `B \<subseteq> B'`
+    obtain E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Loop.hyps)
       with B'  
@@ -1433,7 +1429,7 @@ proof -
     thus ?case ..
   next
     case (Jmp jump B A Env B') 
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     with Jmp.hyps have "jump = Ret \<longrightarrow> Result \<in> B' "
       by auto
     moreover
@@ -1452,7 +1448,7 @@ proof -
     case Throw thus ?case by (iprover intro: da.Throw )
   next
     case (Try Env B c1 C1 vn C c2 C2 A B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain C1' where "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
     proof -
       have "PROP ?Hyp Env B \<langle>c1\<rangle>" by (rule Try.hyps)
@@ -1477,7 +1473,7 @@ proof -
     thus ?case ..
   next
     case (Fin Env B c1 C1 c2 C2 A B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain C1' where C1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
     proof -
       have "PROP ?Hyp Env B \<langle>c1\<rangle>" by (rule Fin.hyps)
@@ -1511,11 +1507,11 @@ proof -
     case UnOp thus ?case by (iprover intro: da.UnOp)
   next
     case (CondAnd Env B e1 E1 e2 E2 A B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain E1' where "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule CondAnd.hyps)
-      with B'  
+      with B'
       show ?thesis using that by iprover
     qed
     moreover
@@ -1533,7 +1529,7 @@ proof -
     thus ?case ..
   next
     case (CondOr Env B e1 E1 e2 E2 A B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain E1' where "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule CondOr.hyps)
@@ -1555,11 +1551,11 @@ proof -
     thus ?case ..
   next
     case (BinOp Env B e1 E1 e2 A binop B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain E1' where E1': "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule BinOp.hyps)
-      with B'  
+      with B'
       show ?thesis using that by iprover
     qed
     moreover
@@ -1579,22 +1575,22 @@ proof -
     thus ?case ..
   next
     case (Super B Env B')
-    have B': "B \<subseteq> B'" .
-    with Super.hyps have "This \<in> B' "
+    note B' = `B \<subseteq> B'`
+    with Super.hyps have "This \<in> B'"
       by auto
     thus ?case by (iprover intro: da.Super)
   next
     case (AccLVar vn B A Env B')
-    have "vn \<in> B" .
+    note `vn \<in> B`
     moreover
-    have "B \<subseteq> B'" .
+    note `B \<subseteq> B'`
     ultimately have "vn \<in> B'" by auto
     thus ?case by (iprover intro: da.AccLVar)
   next
     case Acc thus ?case by (iprover intro: da.Acc)
   next 
     case (AssLVar Env B e E A vn B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     then obtain E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
       by (rule AssLVar.hyps [elim_format]) iprover
     then obtain A' where  
@@ -1603,8 +1599,8 @@ proof -
     thus ?case ..
   next
     case (Ass v Env B V e A B') 
-    have B': "B \<subseteq> B'" .
-    have "\<forall>vn. v \<noteq> LVar vn".
+    note B' = `B \<subseteq> B'`
+    note `\<forall>vn. v \<noteq> LVar vn`
     moreover
     obtain V' where V': "Env\<turnstile> B' \<guillemotright>\<langle>v\<rangle>\<guillemotright> V'"
     proof -
@@ -1629,8 +1625,8 @@ proof -
     thus ?case ..
   next
     case (CondBool Env c e1 e2 B C E1 E2 A B')
-    have B': "B \<subseteq> B'" .
-    have "Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)" .
+    note B' = `B \<subseteq> B'`
+    note `Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)`
     moreover obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
     proof -
       have "PROP ?Hyp Env B \<langle>c\<rangle>" by (rule CondBool.hyps)
@@ -1665,8 +1661,8 @@ proof -
     thus ?case ..
   next
     case (Cond Env c e1 e2 B C E1 E2 A B')
-    have B': "B \<subseteq> B'" .
-    have "\<not> Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)" .
+    note B' = `B \<subseteq> B'`
+    note `\<not> Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)`
     moreover obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
     proof -
       have "PROP ?Hyp Env B \<langle>c\<rangle>" by (rule Cond.hyps)
@@ -1701,7 +1697,7 @@ proof -
     thus ?case ..
   next
     case (Call Env B e E args A accC statT mode mn pTs B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain E' where E': "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Call.hyps)
@@ -1727,7 +1723,7 @@ proof -
     case Methd thus ?case by (iprover intro: da.Methd)
   next
     case (Body Env B c C A D B')  
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and nrm_C': "nrm C \<subseteq> nrm C'"
     proof -
       have "Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C" by (rule Body.hyps)
@@ -1741,10 +1737,10 @@ proof -
       with da_c that show ?thesis by iprover
     qed
     moreover 
-    have "Result \<in> nrm C" .
+    note `Result \<in> nrm C`
     with nrm_C' have "Result \<in> nrm C'"
       by blast
-    moreover have "jumpNestingOkS {Ret} c" .
+    moreover note `jumpNestingOkS {Ret} c`
     ultimately obtain A' where
       "Env\<turnstile> B' \<guillemotright>\<langle>Body D c\<rangle>\<guillemotright> A'"
       by (iprover intro: da.Body)
@@ -1755,11 +1751,11 @@ proof -
     case FVar thus ?case by (iprover intro: da.FVar)
   next
     case (AVar Env B e1 E1 e2 A B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain E1' where E1': "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule AVar.hyps)
-      with B'  
+      with B'
       show ?thesis using that by iprover
     qed
     moreover
@@ -1781,7 +1777,7 @@ proof -
     case Nil thus ?case by (iprover intro: da.Nil)
   next
     case (Cons Env B e E es A B')
-    have B': "B \<subseteq> B'" .
+    note B' = `B \<subseteq> B'`
     obtain E' where E': "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Cons.hyps)
@@ -1804,7 +1800,7 @@ proof -
       by (iprover intro: da.Cons)
     thus ?case ..
   qed
-qed
+qed (rule `B \<subseteq> B'`)
 
 (* Remarks about the proof style:
 

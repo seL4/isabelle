@@ -265,7 +265,7 @@ proof (unfold sup_def)
 	  assume "z \<in> {x}"  (* FIXME "z = x"; declare specific elim rule for "insert x {}" (!?) *)
           with y L show ?thesis by blast
 	qed
-      qed (rule Upper_closed [THEN subsetD])
+      qed (rule Upper_closed [THEN subsetD, OF y])
     next
       from L show "insert x A \<subseteq> carrier L" by simp
       from least_s show "s \<in> carrier L" by simp
@@ -307,13 +307,13 @@ proof (unfold sup_def)
             assume "z \<in> {x}"
             with y L show ?thesis by blast
           qed
-        qed (rule Upper_closed [THEN subsetD])
+        qed (rule Upper_closed [THEN subsetD, OF y])
       next
         from L show "insert x A \<subseteq> carrier L" by simp
         from least_s show "s \<in> carrier L" by simp
       qed
-    qed
-  qed
+    qed (rule least_l)
+  qed (rule P)
 qed
 
 lemma (in lattice) finite_sup_least:
@@ -375,12 +375,12 @@ qed
 
 lemma (in lattice) join_le:
   assumes sub: "x \<sqsubseteq> z"  "y \<sqsubseteq> z"
-    and L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
+    and x: "x \<in> carrier L" and y: "y \<in> carrier L" and z: "z \<in> carrier L"
   shows "x \<squnion> y \<sqsubseteq> z"
-proof (rule joinI)
+proof (rule joinI [OF _ x y])
   fix s
   assume "least L s (Upper L {x, y})"
-  with sub L show "s \<sqsubseteq> z" by (fast elim: least_le intro: Upper_memI)
+  with sub z show "s \<sqsubseteq> z" by (fast elim: least_le intro: Upper_memI)
 qed
 
 lemma (in lattice) join_assoc_lemma:
@@ -491,7 +491,7 @@ proof (unfold inf_def)
           assume "z \<in> {x}"
           with y L show ?thesis by blast
 	qed
-      qed (rule Lower_closed [THEN subsetD])
+      qed (rule Lower_closed [THEN subsetD, OF y])
     next
       from L show "insert x A \<subseteq> carrier L" by simp
       from greatest_i show "i \<in> carrier L" by simp
@@ -533,13 +533,13 @@ proof (unfold inf_def)
             assume "z \<in> {x}"
             with y L show ?thesis by blast
 	  qed
-        qed (rule Lower_closed [THEN subsetD])
+        qed (rule Lower_closed [THEN subsetD, OF y])
       next
         from L show "insert x A \<subseteq> carrier L" by simp
         from greatest_i show "i \<in> carrier L" by simp
       qed
-    qed
-  qed
+    qed (rule greatest_g)
+  qed (rule P)
 qed
 
 lemma (in lattice) finite_inf_greatest:
@@ -603,12 +603,12 @@ qed
 
 lemma (in lattice) meet_le:
   assumes sub: "z \<sqsubseteq> x"  "z \<sqsubseteq> y"
-    and L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
+    and x: "x \<in> carrier L" and y: "y \<in> carrier L" and z: "z \<in> carrier L"
   shows "z \<sqsubseteq> x \<sqinter> y"
-proof (rule meetI)
+proof (rule meetI [OF _ x y])
   fix i
   assume "greatest L i (Lower L {x, y})"
-  with sub L show "z \<sqsubseteq> i" by (fast elim: greatest_le intro: Lower_memI)
+  with sub z show "z \<sqsubseteq> i" by (fast elim: greatest_le intro: Lower_memI)
 qed
 
 lemma (in lattice) meet_assoc_lemma:

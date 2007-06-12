@@ -439,11 +439,11 @@ lemma deg_aboveI:
 by (unfold deg_def) (fast intro: Least_le)
 
 lemma deg_aboveD:
-  assumes prem: "deg p < m" shows "coeff p m = 0"
+  assumes "deg p < m" shows "coeff p m = 0"
 proof -
   obtain n where "bound n (coeff p)" by (rule bound_coeff_obtain)
   then have "bound (deg p) (coeff p)" by (unfold deg_def, rule LeastI)
-  then show "coeff p m = 0" by (rule boundD)
+  then show "coeff p m = 0" using `deg p < m` by (rule boundD)
 qed
 
 lemma deg_belowI:
@@ -470,7 +470,7 @@ proof -
     then have "EX m. deg p - 1 < m & coeff p m ~= 0"
       by (unfold bound_def) fast
     then have "EX m. deg p <= m & coeff p m ~= 0" by (simp add: deg minus)
-    then show ?thesis by auto 
+    then show ?thesis by (auto intro: that)
   qed
   with deg_belowI have "deg p = m" by fastsimp
   with m_coeff show ?thesis by simp

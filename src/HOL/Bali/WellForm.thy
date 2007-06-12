@@ -1992,11 +1992,11 @@ proof -
     show "?thesis m d" 
     proof (cases "?newMethods")
       case None
-      from None clsC nObj ws m declC hyp  
-      show "?thesis" by (auto simp add: methd_rec)
+      from None clsC nObj ws m declC
+      show "?thesis" by (auto simp add: methd_rec) (rule hyp)
     next
       case Some
-      from Some clsC nObj ws m declC hyp  
+      from Some clsC nObj ws m declC
       show "?thesis" 
 	by (auto simp add: methd_rec
                      dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
@@ -2665,7 +2665,7 @@ proof -
       with neq show ?thesis 
 	by (contradiction)
     next
-      case Subcls show ?thesis .
+      case Subcls then show ?thesis .
     qed 
     moreover
     from stat_acc wf 
@@ -2920,8 +2920,8 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate m C)
-    have "G \<turnstile> m in C permits_acc_from accC" and "accmodi m = Private" .
-    then show ?case
+    from `G \<turnstile> m in C permits_acc_from accC` and `accmodi m = Private`
+    show ?case
       by (simp add: permits_acc_def)
   next
     case Overriding
@@ -2985,8 +2985,8 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate f C)
-    have "G \<turnstile> f in C permits_acc_from accC" and "accmodi f = Package" .
-    then show ?case
+    from `G \<turnstile> f in C permits_acc_from accC` and `accmodi f = Package`
+    show ?case
       by (simp add: permits_acc_def)
   next
     case Overriding
@@ -3009,7 +3009,7 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate f C)
-    have "G \<turnstile> f in C permits_acc_from accC" .
+    note `G \<turnstile> f in C permits_acc_from accC`
     moreover 
     assume "accmodi f = Protected" and  "is_field f" and "\<not> is_static f" and
            "pid (declclass f) \<noteq> pid accC"
@@ -3036,14 +3036,14 @@ proof -
     case (Immediate f C)
     assume "accmodi f = Protected" and  "is_field f" and "is_static f" and
            "pid (declclass f) \<noteq> pid accC"
-    moreover 
-    have "G \<turnstile> f in C permits_acc_from accC" .
+    moreover
+    note `G \<turnstile> f in C permits_acc_from accC`
     ultimately
     have "G\<turnstile> accC \<preceq>\<^sub>C declclass f"
       by (auto simp add: permits_acc_def)
     moreover
-    have "G \<turnstile> f member_in C" .
-    then have "G\<turnstile>C \<preceq>\<^sub>C declclass f"
+    from `G \<turnstile> f member_in C`
+    have "G\<turnstile>C \<preceq>\<^sub>C declclass f"
       by (rule member_in_class_relation)
     ultimately show ?case
       by blast

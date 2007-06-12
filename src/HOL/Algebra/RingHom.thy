@@ -34,7 +34,7 @@ done
 lemma (in ring_hom_ring) is_ring_hom_ring:
   includes struct R + struct S
   shows "ring_hom_ring R S h"
-by -
+by fact
 
 lemma ring_hom_ringI:
   includes ring R + ring S
@@ -51,9 +51,13 @@ done
 
 lemma ring_hom_ringI2:
   includes ring R + ring S
-  assumes "h \<in> ring_hom R S"
+  assumes h: "h \<in> ring_hom R S"
   shows "ring_hom_ring R S h"
-by (intro ring_hom_ring.intro ring_hom_ring_axioms.intro)
+apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro)
+apply (rule R.is_ring)
+apply (rule S.is_ring)
+apply (rule h)
+done
 
 lemma ring_hom_ringI3:
   includes abelian_group_hom R S + ring R + ring S 

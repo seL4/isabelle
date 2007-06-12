@@ -306,7 +306,7 @@ proof (rule up_eqI)
     next
       case (Suc k)
       then have "k <= n" by arith
-      then have "?eq k" by (rule Suc)
+      from this R have "?eq k" by (rule Suc)
       with R show ?case
         by (simp cong: finsum_cong
              add: Suc_diff_le Pi_def l_distr r_distr m_assoc)
@@ -633,14 +633,14 @@ qed
 *)
 
 lemma (in UP_cring) deg_aboveD:
-  "[| deg R p < m; p \<in> carrier P |] ==> coeff P p m = \<zero>"
+  assumes "deg R p < m" and "p \<in> carrier P"
+  shows "coeff P p m = \<zero>"
 proof -
-  assume R: "p \<in> carrier P" and "deg R p < m"
-  from R obtain n where "bound \<zero> n (coeff P p)"
+  from `p \<in> carrier P` obtain n where "bound \<zero> n (coeff P p)"
     by (auto simp add: UP_def P_def)
   then have "bound \<zero> (deg R p) (coeff P p)"
     by (auto simp: deg_def P_def dest: LeastI)
-  then show ?thesis ..
+  from this and `deg R p < m` show ?thesis ..
 qed
 
 lemma (in UP_cring) deg_belowI:
@@ -672,7 +672,7 @@ proof -
     then have "EX m. deg R p - 1 < m & coeff P p m ~= \<zero>"
       by (unfold bound_def) fast
     then have "EX m. deg R p <= m & coeff P p m ~= \<zero>" by (simp add: deg minus)
-    then show ?thesis by auto
+    then show ?thesis by (auto intro: that)
   qed
   with deg_belowI R have "deg R p = m" by fastsimp
   with m_coeff show ?thesis by simp
@@ -689,7 +689,7 @@ proof -
     with nonzero show ?thesis by contradiction
   qed
   then obtain m where coeff: "coeff P p m ~= \<zero>" ..
-  then have "m <= deg R p" by (rule deg_belowI)
+  from this and R have "m <= deg R p" by (rule deg_belowI)
   then have "m = 0" by (simp add: deg)
   with coeff show ?thesis by simp
 qed
@@ -773,7 +773,7 @@ lemma (in UP_domain) deg_smult [simp]:
   shows "deg R (a \<odot>\<^bsub>P\<^esub> p) = (if a = \<zero> then 0 else deg R p)"
 proof (rule le_anti_sym)
   show "deg R (a \<odot>\<^bsub>P\<^esub> p) <= (if a = \<zero> then 0 else deg R p)"
-    by (rule deg_smult_ring)
+    using R by (rule deg_smult_ring)
 next
   show "(if a = \<zero> then 0 else deg R p) <= deg R (a \<odot>\<^bsub>P\<^esub> p)"
   proof (cases "a = \<zero>")
@@ -805,7 +805,7 @@ lemma (in UP_domain) deg_mult [simp]:
   deg R (p \<otimes>\<^bsub>P\<^esub> q) = deg R p + deg R q"
 proof (rule le_anti_sym)
   assume "p \<in> carrier P" " q \<in> carrier P"
-  show "deg R (p \<otimes>\<^bsub>P\<^esub> q) <= deg R p + deg R q" by (rule deg_mult_cring)
+  then show "deg R (p \<otimes>\<^bsub>P\<^esub> q) <= deg R p + deg R q" by (rule deg_mult_cring)
 next
   let ?s = "(%i. coeff P p i \<otimes> coeff P q (deg R p + deg R q - i))"
   assume R: "p \<in> carrier P" "q \<in> carrier P" and nz: "p ~= \<zero>\<^bsub>P\<^esub>" "q ~= \<zero>\<^bsub>P\<^esub>"
@@ -884,7 +884,7 @@ proof -
   also have "... = finsum P ?s {..deg R p}"
     by (simp cong: P.finsum_cong add: P.finsum_Un_disjoint ivl_disj_int_one
       deg_aboveD R Pi_def)
-  also have "... = p" by (rule up_repr)
+  also have "... = p" using R by (rule up_repr)
   finally show ?thesis .
 qed
 
@@ -1301,6 +1301,7 @@ lemma UP_pre_univ_propI:
     and "cring S"
     and "h \<in> ring_hom R S"
   shows "UP_pre_univ_prop R S h"
+  using assms
   by (auto intro!: UP_pre_univ_prop.intro ring_hom_cring.intro
     ring_hom_cring_axioms.intro UP_cring.intro)
 

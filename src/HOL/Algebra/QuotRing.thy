@@ -247,23 +247,23 @@ proof (rule ccontr, simp)
   assume "\<zero>\<^bsub>R Quot I\<^esub> = \<one>\<^bsub>R Quot I\<^esub>"
   hence II1: "I = I +> \<one>" by (simp add: FactRing_def)
   from a_rcos_self[OF one_closed]
-      have "\<one> \<in> I" by (simp add: II1[symmetric])
+  have "\<one> \<in> I" by (simp add: II1[symmetric])
   hence "I = carrier R" by (rule one_imp_carrier)
   from this and I_notcarr
-      show "False" by simp
+  show "False" by simp
 next
   --{* Existence of Inverse *}
   fix a
   assume IanI: "I +> a \<noteq> I"
-     and acarr: "a \<in> carrier R"
+    and acarr: "a \<in> carrier R"
 
   --{* Helper ideal @{text "J"} *}
   def J \<equiv> "(carrier R #> a) <+> I :: 'a set"
   have idealJ: "ideal J R"
-      apply (unfold J_def, rule add_ideals)
-      apply (simp only: cgenideal_eq_rcos[symmetric], rule cgenideal_ideal, rule acarr)
-      apply (rule is_ideal)
-      done
+    apply (unfold J_def, rule add_ideals)
+     apply (simp only: cgenideal_eq_rcos[symmetric], rule cgenideal_ideal, rule acarr)
+    apply (rule is_ideal)
+    done
 
   --{* Showing @{term "J"} not smaller than @{term "I"} *}
   have IinJ: "I \<subseteq> J"
@@ -275,7 +275,7 @@ next
     have "x = \<zero> \<otimes> a \<oplus> x" by algebra
 
     from Zcarr and xI and this
-        show "\<exists>xa\<in>carrier R. \<exists>k\<in>I. x = xa \<otimes> a \<oplus> k" by fast
+    show "\<exists>xa\<in>carrier R. \<exists>k\<in>I. x = xa \<otimes> a \<oplus> k" by fast
   qed
 
   --{* Showing @{term "J \<noteq> I"} *}
@@ -284,57 +284,58 @@ next
     assume "a \<in> I"
     hence "I +> a = I" by (rule a_rcos_const)
     from this and IanI
-        show "False" by simp
+    show "False" by simp
   qed
 
   have aJ: "a \<in> J"
   proof (simp add: J_def r_coset_def set_add_defs)
     from acarr
-        have "a = \<one> \<otimes> a \<oplus> \<zero>" by algebra
+    have "a = \<one> \<otimes> a \<oplus> \<zero>" by algebra
     from one_closed and additive_subgroup.zero_closed[OF is_additive_subgroup] and this
-        show "\<exists>x\<in>carrier R. \<exists>k\<in>I. a = x \<otimes> a \<oplus> k" by fast
+    show "\<exists>x\<in>carrier R. \<exists>k\<in>I. a = x \<otimes> a \<oplus> k" by fast
   qed
 
   from aJ and anI
-      have JnI: "J \<noteq> I" by fast
+  have JnI: "J \<noteq> I" by fast
 
   --{* Deducing @{term "J = carrier R"} because @{term "I"} is maximal *}
   from idealJ and IinJ
-      have "J = I \<or> J = carrier R"
+  have "J = I \<or> J = carrier R"
   proof (rule I_maximal, unfold J_def)
     have "carrier R #> a \<subseteq> carrier R"
-	  by (rule r_coset_subset_G) fast
+      using subset_refl acarr
+      by (rule r_coset_subset_G)
     from this and a_subset
-        show "carrier R #> a <+> I \<subseteq> carrier R" by (rule set_add_closed)
+    show "carrier R #> a <+> I \<subseteq> carrier R" by (rule set_add_closed)
   qed
 
   from this and JnI
-      have Jcarr: "J = carrier R" by simp
+  have Jcarr: "J = carrier R" by simp
 
   --{* Calculating an inverse for @{term "a"} *}
   from one_closed[folded Jcarr]
-      have "\<exists>r\<in>carrier R. \<exists>i\<in>I. \<one> = r \<otimes> a \<oplus> i"
-      by (simp add: J_def r_coset_def set_add_defs)
+  have "\<exists>r\<in>carrier R. \<exists>i\<in>I. \<one> = r \<otimes> a \<oplus> i"
+    by (simp add: J_def r_coset_def set_add_defs)
   from this
-     obtain r i
-       where rcarr: "r \<in> carrier R"
-       and iI: "i \<in> I"
-       and one: "\<one> = r \<otimes> a \<oplus> i"
-     by fast
+  obtain r i
+    where rcarr: "r \<in> carrier R"
+      and iI: "i \<in> I"
+      and one: "\<one> = r \<otimes> a \<oplus> i"
+    by fast
   from one and rcarr and acarr and iI[THEN a_Hcarr]
-      have rai1: "a \<otimes> r = \<ominus>i \<oplus> \<one>" by algebra
+  have rai1: "a \<otimes> r = \<ominus>i \<oplus> \<one>" by algebra
 
   --{* Lifting to cosets *}
   from iI
-      have "\<ominus>i \<oplus> \<one> \<in> I +> \<one>"
-      by (intro a_rcosI, simp, intro a_subset, simp)
+  have "\<ominus>i \<oplus> \<one> \<in> I +> \<one>"
+    by (intro a_rcosI, simp, intro a_subset, simp)
   from this and rai1
-      have "a \<otimes> r \<in> I +> \<one>" by simp
+  have "a \<otimes> r \<in> I +> \<one>" by simp
   from this have "I +> \<one> = I +> a \<otimes> r"
-      by (rule a_repr_independence, simp) (rule a_subgroup)
+    by (rule a_repr_independence, simp) (rule a_subgroup)
 
   from rcarr and this[symmetric]
-      show "\<exists>r\<in>carrier R. I +> a \<otimes> r = I +> \<one>" by fast
+  show "\<exists>r\<in>carrier R. I +> a \<otimes> r = I +> \<one>" by fast
 qed
 
 end

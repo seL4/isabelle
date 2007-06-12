@@ -107,13 +107,17 @@ apply (blast intro: sym l_one subgroup.subset [THEN subsetD]
                     subgroup.one_closed)
 done
 
-text {* Opposite of @{thm [locale=group,source] "repr_independence"} *}
+text (in group) {* Opposite of @{thm [source] "repr_independence"} *}
 lemma (in group) repr_independenceD:
   includes subgroup H G
   assumes ycarr: "y \<in> carrier G"
       and repr:  "H #> x = H #> y"
   shows "y \<in> H #> x"
-  by (subst repr, intro rcos_self)
+  apply (subst repr)
+  apply (intro rcos_self)
+   apply (rule ycarr)
+   apply (rule is_subgroup)
+  done
 
 text {* Elements of a right coset are in the carrier *}
 lemma (in subgroup) elemrcos_carrier:
@@ -819,8 +823,8 @@ lemma (in subgroup) subgroup_in_rcosets:
   includes group G
   shows "H \<in> rcosets H"
 proof -
-  have "H #> \<one> = H"
-    by (rule coset_join2, auto)
+  from _ `subgroup H G` have "H #> \<one> = H"
+    by (rule coset_join2) auto
   then show ?thesis
     by (auto simp add: RCOSETS_def)
 qed

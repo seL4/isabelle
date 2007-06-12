@@ -263,9 +263,9 @@ lemmas (in ACeD) AC = assoc commute left_commute
 
 lemma (in ACeD) left_ident [simp]: "x \<in> D ==> e \<cdot> x = x"
 proof -
-  assume D: "x \<in> D"
-  have "x \<cdot> e = x" by (rule ident)
-  with D show ?thesis by (simp add: commute)
+  assume "x \<in> D"
+  then have "x \<cdot> e = x" by (rule ident)
+  with `x \<in> D` show ?thesis by (simp add: commute)
 qed
 
 lemma (in ACeD) foldD_Un_Int:
@@ -424,9 +424,9 @@ proof -
       then have "finprod G f A = finprod G f (insert x B)" by simp
       also from insert have "... = f x \<otimes> finprod G f B"
       proof (intro finprod_insert)
-	show "finite B" .
+	show "finite B" by fact
       next
-	show "x ~: B" .
+	show "x ~: B" by fact
       next
 	assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
 	  "g \<in> insert x B \<rightarrow> carrier G"

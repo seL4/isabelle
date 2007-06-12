@@ -195,7 +195,7 @@ locale group = monoid +
   assumes Units: "carrier G <= Units G"
 
 
-lemma (in group) is_group: "group G" .
+lemma (in group) is_group: "group G" by fact
 
 theorem groupI:
   fixes G (structure)
@@ -383,7 +383,7 @@ locale subgroup =
     and m_inv_closed [intro,simp]: "x \<in> H \<Longrightarrow> inv x \<in> H"
 
 lemma (in subgroup) is_subgroup:
-  "subgroup H G" .
+  "subgroup H G" by fact
 
 declare (in subgroup) group.intro [intro]
 
@@ -694,7 +694,7 @@ lemma (in group) subgroup_self:
 
 lemma (in group) subgroup_imp_group:
   "subgroup H G ==> group (G(| carrier := H |))"
-  by (rule subgroup.subgroup_is_group)
+  by (erule subgroup.subgroup_is_group) (rule `group G`)
 
 lemma (in group) is_monoid [intro, simp]:
   "monoid G"

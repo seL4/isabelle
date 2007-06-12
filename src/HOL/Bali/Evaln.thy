@@ -410,7 +410,7 @@ lemma evaln_eval:
 using evaln 
 proof (induct)
   case (Loop s0 e n b s1 c s2 l s3)
-  have "G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1".
+  note `G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1`
   moreover
   have "if the_Bool b
         then (G\<turnstile>s1 \<midarrow>c\<rightarrow> s2) \<and> 
@@ -420,16 +420,16 @@ proof (induct)
   ultimately show ?case by (rule eval.Loop)
 next
   case (Try s0 c1 n s1 s2 C vn c2 s3)
-  have "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1".
+  note `G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1`
   moreover
-  have "G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2".
+  note `G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2`
   moreover
   have "if G,s2\<turnstile>catch C then G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<rightarrow> s3 else s3 = s2"
     using Try.hyps by simp
   ultimately show ?case by (rule eval.Try)
 next
   case (Init C c s0 s3 n s1 s2)
-  have "the (class G C) = c".
+  note `the (class G C) = c`
   moreover
   have "if inited C (globs s0) 
            then s3 = Norm s0
@@ -600,7 +600,7 @@ next
     "G\<turnstile>Norm s0 \<midarrow>c1\<midarrow>n1\<rightarrow> s1"
     by (iprover)
   moreover 
-  have sxalloc: "G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2" .
+  note sxalloc = `G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2`
   moreover
   from Try.hyps obtain n2 where
     "if G,s2\<turnstile>catch catchC then G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<midarrow>n2\<rightarrow> s3 else s3 = s2"
@@ -616,9 +616,9 @@ next
     "G\<turnstile>Norm s1 \<midarrow>c2\<midarrow>n2\<rightarrow> s2"
     by iprover
   moreover
-  have s3: "s3 = (if \<exists>err. x1 = Some (Error err) 
-                     then (x1, s1)
-                     else abupd (abrupt_if (x1 \<noteq> None) x1) s2)" .
+  note s3 = `s3 = (if \<exists>err. x1 = Some (Error err) 
+                   then (x1, s1)
+                   else abupd (abrupt_if (x1 \<noteq> None) x1) s2)`
   ultimately 
   have 
     "G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<midarrow>max n1 n2\<rightarrow> s3"
@@ -626,7 +626,7 @@ next
   then show ?case ..
 next
   case (Init C c s0 s3 s1 s2)
-  have     cls: "the (class G C) = c" .
+  note cls = `the (class G C) = c`
   moreover from Init.hyps obtain n where
       "if inited C (globs s0) then s3 = Norm s0
        else (G\<turnstile>Norm (init_class_obj G C s0)
@@ -653,7 +653,7 @@ next
     "G\<turnstile>s1 \<midarrow>e-\<succ>i\<midarrow>n2\<rightarrow> s2"      
     by (iprover)
   moreover
-  have "G\<turnstile>abupd (check_neg i) s2 \<midarrow>halloc Arr T (the_Intg i)\<succ>a\<rightarrow> s3" .
+  note `G\<turnstile>abupd (check_neg i) s2 \<midarrow>halloc Arr T (the_Intg i)\<succ>a\<rightarrow> s3`
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>New T[e]-\<succ>Addr a\<midarrow>max n1 n2\<rightarrow> s3"
     by (blast intro: evaln.NewA dest: evaln_max2)
@@ -664,7 +664,7 @@ next
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
     by (iprover)
   moreover 
-  have "s2 = abupd (raise_if (\<not> G,snd s1\<turnstile>v fits castT) ClassCast) s1" .
+  note `s2 = abupd (raise_if (\<not> G,snd s1\<turnstile>v fits castT) ClassCast) s1`
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>Cast castT e-\<succ>v\<midarrow>n\<rightarrow> s2"
     by (rule evaln.Cast)
@@ -675,7 +675,7 @@ next
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
     by (iprover)
   moreover 
-  have "b = (v \<noteq> Null \<and> G,snd s1\<turnstile>v fits RefT T)" .
+  note `b = (v \<noteq> Null \<and> G,snd s1\<turnstile>v fits RefT T)`
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>e InstOf T-\<succ>Bool b\<midarrow>n\<rightarrow> s1"
     by (rule evaln.Inst)
@@ -745,12 +745,12 @@ next
     "G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<midarrow>n2\<rightarrow> s2"
     by iprover
   moreover
-  have "invDeclC = invocation_declclass G mode (store s2) a' statT 
-                       \<lparr>name=mn,parTs=pTs'\<rparr>" .
+  note `invDeclC = invocation_declclass G mode (store s2) a' statT 
+                       \<lparr>name=mn,parTs=pTs'\<rparr>`
   moreover
-  have "s3 = init_lvars G invDeclC \<lparr>name=mn,parTs=pTs'\<rparr> mode a' vs s2" .
+  note `s3 = init_lvars G invDeclC \<lparr>name=mn,parTs=pTs'\<rparr> mode a' vs s2`
   moreover
-  have "s3'=check_method_access G accC' statT mode \<lparr>name=mn,parTs=pTs'\<rparr> a' s3".
+  note `s3'=check_method_access G accC' statT mode \<lparr>name=mn,parTs=pTs'\<rparr> a' s3`
   moreover 
   from Call.hyps
   obtain m where 
@@ -776,10 +776,10 @@ next
     evaln_c: "G\<turnstile>s1 \<midarrow>c\<midarrow>n2\<rightarrow> s2"
     by (iprover)
   moreover
-  have "s3 = (if \<exists>l. fst s2 = Some (Jump (Break l)) \<or> 
+  note `s3 = (if \<exists>l. fst s2 = Some (Jump (Break l)) \<or> 
                      fst s2 = Some (Jump (Cont l))
-                 then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 
-                 else s2)".
+              then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 
+              else s2)`
   ultimately
   have
      "G\<turnstile>Norm s0 \<midarrow>Body D c-\<succ>the (locals (store s2) Result)\<midarrow>max n1 n2
@@ -799,8 +799,8 @@ next
     "G\<turnstile>s1 \<midarrow>e-\<succ>a\<midarrow>n2\<rightarrow> s2"
     by iprover
   moreover
-  have "s3 = check_field_access G accC statDeclC fn stat a s2'" 
-       "(v, s2') = fvar statDeclC stat fn a s2" .
+  note `s3 = check_field_access G accC statDeclC fn stat a s2'`
+    and `(v, s2') = fvar statDeclC stat fn a s2`
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>{accC,statDeclC,stat}e..fn=\<succ>v\<midarrow>max n1 n2\<rightarrow> s3"
     by (iprover intro: evaln.FVar dest: evaln_max2)
@@ -812,7 +812,7 @@ next
     "G\<turnstile>s1 \<midarrow>e2-\<succ>i\<midarrow>n2\<rightarrow> s2"      
     by iprover
   moreover 
-  have "(v, s2') = avar G i a s2" .
+  note `(v, s2') = avar G i a s2`
   ultimately 
   have "G\<turnstile>Norm s0 \<midarrow>e1.[e2]=\<succ>v\<midarrow>max n1 n2\<rightarrow> s2'"
     by (blast intro!: evaln.AVar dest: evaln_max2)
