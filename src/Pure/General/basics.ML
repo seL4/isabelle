@@ -94,8 +94,6 @@ fun perhaps f x = the_default x (f x);
 
 (* partiality *)
 
-exception Interrupt = Interrupt;   (*signals intruding execution :-[*)
-
 fun try f x = SOME (f x)
   handle Interrupt => raise Interrupt | _ => NONE;
 
