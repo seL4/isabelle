@@ -8,7 +8,6 @@ Abstract syntax operations of the Pure meta-logic.
 
 signature LOGIC =
 sig
-  val is_atomic: term -> bool
   val dest_all: term -> typ * term
   val mk_equals: term * term -> term
   val dest_equals: term -> term * term
@@ -87,11 +86,6 @@ struct
 
 
 (*** Abstract syntax operations on the meta-connectives ***)
-
-fun is_atomic (Const ("==>", _) $ _ $ _) = false
-  | is_atomic (Const ("all", _) $ _) = false
-  | is_atomic _ = true;
-
 
 (** all **)
 
