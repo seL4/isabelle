@@ -1,6 +1,6 @@
 structure GeneratedCooper =
 struct
-
+nonfix oo;
 fun nat i = if i < 0 then 0 else i;
 
 val one_def0 : int = (0 + 1);
