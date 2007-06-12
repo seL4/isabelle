@@ -13,7 +13,7 @@ structure Cooper: COOPER =
 struct
 open Conv;
 open Normalizer;
-
+structure Integertab = TableFun(type key = integer val ord = Integer.cmp);
 exception COOPER of string * exn;
 val simp_thms_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms);
 
@@ -179,10 +179,10 @@ fun linear_cmul 0 tm =  zero
   | linear_cmul n tm = 
     case tm of  
       Const("HOL.plus_class.plus",_)$a$b => addC$(linear_cmul n a)$(linear_cmul n b)
-    | Const ("HOL.times_class.times",_)$c$x => mulC$(numeral1 ((curry op *) n) c)$x
+    | Const ("HOL.times_class.times",_)$c$x => mulC$(numeral1 (Integer.mult n) c)$x
     | Const("HOL.minus_class.minus",_)$a$b => subC$(linear_cmul n a)$(linear_cmul n b)
     | (m as Const("HOL.minus_class.uminus",_))$a => m$(linear_cmul n a)
-    | _ =>  numeral1 ((curry op *) n) tm;
+    | _ =>  numeral1 (Integer.mult n) tm;
 fun earlier [] x y = false 
 	| earlier (h::t) x y = 
     if h aconv y then false else if h aconv x then true else earlier t x y; 
@@ -192,7 +192,7 @@ fun linear_add vars tm1 tm2 =
 	 (Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c1$x1)$r1,
     Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c2$x2)$r2) => 
    if x1 = x2 then 
-     let val c = numeral2 (curry op +) c1 c2
+     let val c = numeral2 Integer.add c1 c2
 	   in if c = zero then linear_add vars r1  r2  
 	      else addC$(mulC$c$x1)$(linear_add vars  r1 r2)
      end 
@@ -202,7 +202,7 @@ fun linear_add vars tm1 tm2 =
     	  addC$(mulC$c1$x1)$(linear_add vars r1 tm2)
  | (_, Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c2$x2)$r2) => 
       	  addC$(mulC$c2$x2)$(linear_add vars tm1 r2) 
- | (_,_) => numeral2 (curry op +) tm1 tm2;
+ | (_,_) => numeral2 Integer.add tm1 tm2;
  
 fun linear_neg tm = linear_cmul ~1 tm; 
 fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2); 
@@ -295,7 +295,7 @@ fun unify ctxt q =
  let
   val (e,(cx,p)) = q |> Thm.dest_comb ||> Thm.dest_abs NONE
   val x = term_of cx 
-  val ins = insert (op = : int*int -> bool)
+  val ins = insert (op = : integer*integer -> bool)
   fun h (acc,dacc) t = 
    case (term_of t) of
     Const(s,_)$(Const("HOL.times_class.times",_)$c$y)$ _ => 
@@ -326,10 +326,10 @@ fun unify ctxt q =
            (Thm.capply (Thm.capply @{cterm "op = :: int => _"} (mk_cnumber @{ctyp "int"} x)) 
            @{cterm "0::int"})))
    in equal_elim (Thm.symmetric th) TrueI end;
-  val notz = let val tab = fold Inttab.update 
-                               (ds ~~ (map (fn x => nzprop (l div x)) ds)) Inttab.empty 
+  val notz = let val tab = fold Integertab.update 
+                               (ds ~~ (map (fn x => nzprop (Integer.div l x)) ds)) Integertab.empty 
             in 
-             (fn ct => (valOf (Inttab.lookup tab (ct |> term_of |> dest_numeral)) 
+             (fn ct => (valOf (Integertab.lookup tab (ct |> term_of |> dest_numeral)) 
                 handle Option => (writeln "noz: Theorems-Table contains no entry for"; 
                                     print_cterm ct ; raise Option)))
            end
@@ -340,14 +340,14 @@ fun unify ctxt q =
   | Const("Not",_)$_ => arg_conv unit_conv t
   | Const(s,_)$(Const("HOL.times_class.times",_)$c$y)$ _ => 
     if x=y andalso s mem ["op =", "Orderings.ord_class.less", "Orderings.ord_class.less_eq"] 
-    then cv (l div (dest_numeral c)) t else Thm.reflexive t
+    then cv (Integer.div l (dest_numeral c)) t else Thm.reflexive t
   | Const(s,_)$_$(Const("HOL.times_class.times",_)$c$y) => 
     if x=y andalso s mem ["Orderings.ord_class.less", "Orderings.ord_class.less_eq"] 
-    then cv (l div (dest_numeral c)) t else Thm.reflexive t
+    then cv (Integer.div l (dest_numeral c)) t else Thm.reflexive t
   | Const("Divides.dvd",_)$d$(r as (Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c$y)$_)) => 
     if x=y then 
       let 
-       val k = l div (dest_numeral c)
+       val k = Integer.div l (dest_numeral c)
        val kt = HOLogic.mk_number iT k
        val th1 = inst' [Thm.dest_arg1 t, Thm.dest_arg t] 
              ((Thm.dest_arg t |> funpow 2 Thm.dest_arg1 |> notz) RS zdvd_mono)
@@ -383,7 +383,7 @@ val [A_tm,B_tm] = map (fn th => cprop_of th |> funpow 2 Thm.dest_arg |> Thm.dest
 
 val D_tm = @{cpat "?D::int"};
 
-val int_eq = (op =):int*int -> bool;
+val int_eq = (op =):integer*integer -> bool;
 fun cooperex_conv ctxt vs q = 
 let 
 
@@ -416,9 +416,9 @@ let
       (Thm.capply @{cterm Trueprop} 
            (Thm.capply (Thm.capply dvdc (mk_cnumber @{ctyp "int"} x)) cd))
    in equal_elim (Thm.symmetric th) TrueI end;
- val dvd = let val tab = fold Inttab.update
-                               (ds ~~ (map divprop ds)) Inttab.empty in 
-           (fn ct => (valOf (Inttab.lookup tab (term_of ct |> dest_numeral)) 
+ val dvd = let val tab = fold Integertab.update
+                               (ds ~~ (map divprop ds)) Integertab.empty in 
+           (fn ct => (valOf (Integertab.lookup tab (term_of ct |> dest_numeral)) 
                     handle Option => (writeln "dvd: Theorems-Table contains no entry for"; 
                                       print_cterm ct ; raise Option)))
            end
@@ -549,11 +549,11 @@ fun i_of_term vs t =
       | Const(@{const_name "HOL.plus"},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
       | Const(@{const_name "HOL.minus"},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
       | Const(@{const_name "HOL.times"},_)$t1$t2 => 
-	     (Mul (HOLogic.dest_number t1 |> snd,i_of_term vs t2)
+	     (Mul (HOLogic.dest_number t1 |> snd |> Integer.machine_int,i_of_term vs t2)
         handle TERM _ => 
-           (Mul (HOLogic.dest_number t2 |> snd,i_of_term vs t1)
+           (Mul (HOLogic.dest_number t2 |> snd |> Integer.machine_int,i_of_term vs t1)
             handle TERM _ => cooper "i_of_term: Unsupported kind of multiplication"))
-      | _ => (C (HOLogic.dest_number t |> snd) 
+      | _ => (C (HOLogic.dest_number t |> snd |> Integer.machine_int) 
                handle TERM _ => cooper "i_of_term: unknown term");
 	
 fun qf_of_term ps vs t = 
@@ -563,7 +563,7 @@ fun qf_of_term ps vs t =
       | Const(@{const_name "Orderings.less"},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
       | Const(@{const_name "Orderings.less_eq"},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
       | Const(@{const_name "Divides.dvd"},_)$t1$t2 => 
-	(Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "qf_of_term: unsupported dvd")
+	(Dvd(HOLogic.dest_number t1 |> snd |> Integer.machine_int, i_of_term vs t2) handle _ => cooper "qf_of_term: unsupported dvd")
       | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
       | @{term "op = :: bool => _ "}$t1$t2 => Iff(qf_of_term ps vs t1,qf_of_term ps vs t2)
       | Const("op &",_)$t1$t2 => And(qf_of_term ps vs t1,qf_of_term ps vs t2)
@@ -619,14 +619,14 @@ fun myassoc2 l v =
 
 fun term_of_i vs t =
     case t of 
-	C i => HOLogic.mk_number HOLogic.intT i
+	C i => HOLogic.mk_number HOLogic.intT (Integer.int i)
       | Bound n => valOf (myassoc2 vs n)
       | Neg t' => @{term "uminus :: int => _"}$(term_of_i vs t')
       | Add(t1,t2) => @{term "op +:: int => _"}$ (term_of_i vs t1)$(term_of_i vs t2)
       | Sub(t1,t2) => Const(@{const_name "HOL.minus"},[iT,iT] ---> iT)$
 			   (term_of_i vs t1)$(term_of_i vs t2)
       | Mul(i,t2) => Const(@{const_name "HOL.times"},[iT,iT] ---> iT)$
-			   (HOLogic.mk_number HOLogic.intT i)$(term_of_i vs t2)
+			   (HOLogic.mk_number HOLogic.intT (Integer.int i))$(term_of_i vs t2)
       | CX(i,t')=> term_of_i vs (Add(Mul (i,Bound (nat 0)),t'));
 
 fun term_of_qf ps vs t = 
@@ -640,7 +640,7 @@ fun term_of_qf ps vs t =
  | Eq t' => @{term "op = :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
  | NEq t' => term_of_qf ps vs (NOT(Eq t'))
  | Dvd(i,t') => @{term "op dvd :: int => _ "}$ 
-                 (HOLogic.mk_number HOLogic.intT i)$(term_of_i vs t')
+                 (HOLogic.mk_number HOLogic.intT (Integer.int i))$(term_of_i vs t')
  | NDvd(i,t')=> term_of_qf ps vs (NOT(Dvd(i,t')))
  | NOT t' => HOLogic.Not$(term_of_qf ps vs t')
  | And(t1,t2) => HOLogic.conj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
