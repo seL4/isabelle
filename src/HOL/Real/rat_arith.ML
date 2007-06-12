@@ -17,7 +17,8 @@ val simps = [@{thm order_less_irrefl}, @{thm neg_less_iff_less}, @{thm True_impl
              @{thm divide_1}, @{thm divide_zero_left},
              @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
              @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
-             of_int_0, of_int_1, @{thm of_int_add}, @{thm of_int_minus}, @{thm of_int_diff},
+             @{thm of_int_0}, @{thm of_int_1}, @{thm of_int_add},
+             @{thm of_int_minus}, @{thm of_int_diff},
              @{thm of_int_mult}, @{thm of_int_of_nat_eq}]
 
 val nat_inj_thms = [@{thm of_nat_le_iff} RS iffD2,
