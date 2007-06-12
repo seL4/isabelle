@@ -179,10 +179,10 @@ fun linear_cmul 0 tm =  zero
   | linear_cmul n tm = 
     case tm of  
       Const("HOL.plus_class.plus",_)$a$b => addC$(linear_cmul n a)$(linear_cmul n b)
-    | Const ("HOL.times_class.times",_)$c$x => mulC$(numeral1 ((curry (op *)) n) c)$x
+    | Const ("HOL.times_class.times",_)$c$x => mulC$(numeral1 ((curry op *) n) c)$x
     | Const("HOL.minus_class.minus",_)$a$b => subC$(linear_cmul n a)$(linear_cmul n b)
     | (m as Const("HOL.minus_class.uminus",_))$a => m$(linear_cmul n a)
-    | _ =>  numeral1 ((curry (op *)) n) tm;
+    | _ =>  numeral1 ((curry op *) n) tm;
 fun earlier [] x y = false 
 	| earlier (h::t) x y = 
     if h aconv y then false else if h aconv x then true else earlier t x y; 
@@ -192,7 +192,7 @@ fun linear_add vars tm1 tm2 =
 	 (Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c1$x1)$r1,
     Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c2$x2)$r2) => 
    if x1 = x2 then 
-     let val c = numeral2 (curry (op +)) c1 c2
+     let val c = numeral2 (curry op +) c1 c2
 	   in if c = zero then linear_add vars r1  r2  
 	      else addC$(mulC$c$x1)$(linear_add vars  r1 r2)
      end 
@@ -202,7 +202,7 @@ fun linear_add vars tm1 tm2 =
     	  addC$(mulC$c1$x1)$(linear_add vars r1 tm2)
  | (_, Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c2$x2)$r2) => 
       	  addC$(mulC$c2$x2)$(linear_add vars tm1 r2) 
- | (_,_) => numeral2 (curry (op +)) tm1 tm2;
+ | (_,_) => numeral2 (curry op +) tm1 tm2;
  
 fun linear_neg tm = linear_cmul ~1 tm; 
 fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2); 
