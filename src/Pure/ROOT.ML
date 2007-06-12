@@ -28,6 +28,7 @@ use "General/pretty.ML";
 use "sorts.ML";
 use "type.ML";
 use "context.ML";
+use "context_position.ML";
 use "compress.ML";
 use "type_infer.ML";
 
