@@ -21,7 +21,7 @@ sig
   val finish: thm -> thm
   val norm_result: thm -> thm
   val close_result: thm -> thm
-  val prove_raw: cterm list -> cterm -> (thm list -> tactic) -> thm
+  val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
   val prove: Proof.context -> string list -> term list -> term ->
@@ -103,9 +103,9 @@ val close_result =
 
 (** tactical theorem proving **)
 
-(* prove_raw -- no checks, no normalization of result! *)
+(* prove_internal -- minimal checks, no normalization of result! *)
 
-fun prove_raw casms cprop tac =
+fun prove_internal casms cprop tac =
   (case SINGLE (tac (map Assumption.assume casms)) (init cprop) of
     SOME th => Drule.implies_intr_list casms (finish th)
   | NONE => error "Tactic failed.");
@@ -240,11 +240,15 @@ fun comp_hhf tha thb =
 
 (* non-atomic goal assumptions *)
 
+fun non_atomic (Const ("==>", _) $ _ $ _) = true
+  | non_atomic (Const ("all", _) $ _) = true
+  | non_atomic _ = false;
+
 fun assume_rule_tac ctxt = norm_hhf_tac THEN' CSUBGOAL (fn (goal, i) =>
   let
     val ((_, goal'), ctxt') = Variable.focus goal ctxt;
     val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';
-    val Rs = filter_out (Logic.is_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
+    val Rs = filter (non_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
     val tacs = Rs |> map (fn R =>
       Tactic.etac (MetaSimplifier.norm_hhf (Thm.trivial R)) THEN_ALL_NEW assume_tac);
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
