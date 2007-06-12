@@ -12,6 +12,7 @@ sig
     Conv.conv ->  Conv.conv ->
     Conv.conv * (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list)
     val ring_conv : Proof.context -> cterm -> thm
+    val algebra_tac: thm list -> thm list -> Proof.context -> int -> tactic
 end
 
 structure Groebner: GROEBNER =
@@ -275,8 +276,8 @@ fun mergesort ord l =
 
 
 fun grobner_basis basis pairs =
-  (writeln (Int.toString(length basis)^" basis elements and "^
-               Int.toString(length pairs)^" critical pairs");
+  ((* writeln (Int.toString(length basis)^" basis elements and "^
+               Int.toString(length pairs)^" critical pairs"); *)
   case pairs of
     [] => basis
   | (l,(p1,p2))::opairs =>
@@ -652,7 +653,7 @@ fun refute tm =
        val th2 = funpow (Integer.machine_int deg) (idom_rule o conji th1) neq_01
       in (vars,l,cert,th2)
       end)
-    val _ = writeln ("Translating certificate to HOL inferences")
+(*    val _ = writeln ("Translating certificate to HOL inferences") *)
     val cert_pos = map (fn (i,p) => (i,filter (fn (c,m) => c >/ rat_0) p)) cert
     val cert_neg = map (fn (i,p) => (i,map (fn (c,m) => (minus_rat c,m))
                                             (filter (fn (c,m) => c </ rat_0) p))) cert
@@ -741,5 +742,17 @@ fun ring_conv ctxt form =
         fst (ring_and_ideal_conv theory
           dest_const (mk_const (Thm.ctyp_of_term tm)) (ring_eq_conv ctxt)
           (semiring_normalize_wrapper ctxt res)) form));
+
+fun algebra_tac add_ths del_ths ctxt i = ObjectLogic.full_atomize_tac i 
+  THEN (simp_tac (fst (NormalizerData.get ctxt) delsimps del_ths addsimps add_ths) i)
+  THEN (fn st =>
+   case try (nth (cprems_of st)) (i - 1) of
+    NONE => no_tac st
+  | SOME p => let val th = ring_conv ctxt (Thm.dest_arg p)
+              in rtac th i st end
+              handle TERM _ => no_tac st
+                   | THM _ => no_tac st
+                   | ERROR _ => no_tac st
+                   | CTERM _ => no_tac st);
 
 end;
