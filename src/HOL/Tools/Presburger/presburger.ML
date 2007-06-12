@@ -5,7 +5,7 @@
 
 signature PRESBURGER =
  sig
-  val cooper_tac: bool -> Proof.context -> int -> Tactical.tactic
+  val cooper_tac: bool -> thm list -> thm list -> Proof.context -> int -> Tactical.tactic
 end;
 
 structure Presburger : PRESBURGER = 
@@ -179,20 +179,23 @@ fun finish_tac q i st = case try (nth (cprems_of st)) (i - 1) of
    NONE => all_tac st
  | SOME _ => (if q then I else TRY) (rtac TrueI i) st
 
-fun cooper_tac q ctxt i = 
+fun cooper_tac elim add_ths del_ths = fn ctxt => fn i => 
+let val ss = fst (Cooper_Data.get ctxt) delsimps del_ths addsimps add_ths
+in
 nogoal_tac i 
 THEN (EVERY o (map TRY))
  [ObjectLogic.full_atomize_tac i,
   eta_beta_tac i,
-  simp_tac (fst (Cooper_Data.get ctxt)) i,
+  simp_tac ss  i,
   generalize_tac ctxt (int_nat_terms ctxt) i,
   ObjectLogic.full_atomize_tac i,
   div_mod_tac ctxt i,
   splits_tac ctxt i,
-  simp_tac (fst (Cooper_Data.get ctxt)) i,
+  simp_tac ss i,
   eta_beta_tac i,
   nat_to_int_tac ctxt i, 
   thin_prems_tac (is_relevant ctxt) i]
-THEN core_cooper_tac ctxt i THEN finish_tac q i;
+THEN core_cooper_tac ctxt i THEN finish_tac elim i
+end;
 
 end;
