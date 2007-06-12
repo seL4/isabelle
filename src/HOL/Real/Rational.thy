@@ -508,24 +508,21 @@ by (simp add: One_rat_def of_rat_rat)
 lemma of_rat_add: "of_rat (a + b) = of_rat a + of_rat b"
 by (induct a, induct b, simp add: add_rat of_rat_rat add_frac_eq)
 
+lemma of_rat_minus: "of_rat (- a) = - of_rat a"
+by (induct a, simp add: minus_rat of_rat_rat)
+
+lemma of_rat_diff: "of_rat (a - b) = of_rat a - of_rat b"
+by (simp only: diff_minus of_rat_add of_rat_minus)
+
 lemma of_rat_mult: "of_rat (a * b) = of_rat a * of_rat b"
 apply (induct a, induct b, simp add: mult_rat of_rat_rat)
 apply (simp add: divide_inverse nonzero_inverse_mult_distrib mult_ac)
 done
 
-lemma nonzero_inverse_divide:
-  fixes a b :: "'a::field"
-  shows "\<lbrakk>a \<noteq> 0; b \<noteq> 0\<rbrakk> \<Longrightarrow> inverse (a / b) = b / a"
-apply (simp add: divide_inverse)
-apply (simp add: nonzero_inverse_mult_distrib nonzero_imp_inverse_nonzero)
-apply (simp add: nonzero_inverse_inverse_eq)
-done
-
 lemma nonzero_of_rat_inverse:
   "a \<noteq> 0 \<Longrightarrow> of_rat (inverse a) = inverse (of_rat a)"
-apply (induct a)
-apply (simp add: Zero_rat_def inverse_rat eq_rat of_rat_rat)
-apply (simp add: nonzero_inverse_divide)
+apply (rule inverse_unique [symmetric])
+apply (simp add: of_rat_mult [symmetric])
 done
 
 lemma of_rat_inverse:
@@ -541,5 +538,37 @@ lemma of_rat_divide:
   "(of_rat (a / b)::'a::{field_char_0,division_by_zero})
    = of_rat a / of_rat b"
 by (cases "b = 0", simp_all add: nonzero_of_rat_divide)
+
+lemma of_rat_power:
+  "(of_rat (a ^ n)::'a::{field_char_0,recpower}) = of_rat a ^ n"
+by (induct n) (simp_all add: of_rat_mult power_Suc)
+
+lemma of_rat_eq_iff [simp]: "(of_rat a = of_rat b) = (a = b)"
+apply (induct a, induct b)
+apply (simp add: of_rat_rat eq_rat)
+apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
+apply (simp only: of_int_mult [symmetric] of_int_eq_iff)
+done
+
+lemmas of_rat_eq_0_iff [simp] = of_rat_eq_iff [of _ 0, simplified]
+
+lemma of_rat_eq_id [simp]: "of_rat = (id :: rat \<Rightarrow> rat)"
+proof
+  fix a
+  show "of_rat a = id a"
+  by (induct a)
+     (simp add: of_rat_rat divide_rat Fract_of_int_eq [symmetric])
+qed
+
+text{*Collapse nested embeddings*}
+lemma of_rat_of_nat_eq [simp]: "of_rat (of_nat n) = of_nat n"
+by (induct n) (simp_all add: of_rat_add)
+
+lemma of_rat_of_int_eq [simp]: "of_rat (of_int z) = of_int z"
+by (cases z rule: int_diff_cases', simp add: of_rat_diff)
+
+lemma of_rat_number_of_eq [simp]:
+  "of_rat (number_of w) = (number_of w :: 'a::{number_ring,field_char_0})"
+by (simp add: number_of_eq)
 
 end
