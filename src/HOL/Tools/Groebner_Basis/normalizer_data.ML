@@ -8,7 +8,7 @@ Ring normalization data.
 signature NORMALIZER_DATA =
 sig
   type entry
-  val get: Proof.context -> (thm * entry) list
+  val get: Proof.context -> simpset * ((thm * entry) list)
   val match: Proof.context -> cterm -> entry option
   val del: attribute
   val add: {semiring: cterm list * thm list, ring: cterm list * thm list, idom: thm list}
@@ -40,10 +40,11 @@ fun eq_data arg = eq_fst eq_key arg;
 
 structure Data = GenericDataFun
 (
-  type T = (thm * entry) list;
-  val empty = [];
+  type T = simpset * ((thm * entry) list);
+  val empty = (HOL_basic_ss, []);
   val extend = I;
-  fun merge _ = AList.merge eq_key (K true);
+  fun merge _ ((ss, e), (ss', e')) = (merge_ss (ss, ss'), 
+                                      AList.merge eq_key (K true) (e,e'));
 );
 
 val get = Data.get o Context.Proof;
@@ -77,7 +78,7 @@ fun match ctxt tm =
     fun match_struct (_,
         entry as ({semiring = (sr_ops, _), ring = (r_ops, _), ...}, _): entry) =
       get_first (match_inst entry) (sr_ops @ r_ops);
-  in get_first match_struct (get ctxt) end;
+  in get_first match_struct (snd (get ctxt)) end;
 
 
 (* logical content *)
@@ -88,9 +89,14 @@ val idomN = "idom";
 
 fun undefined _ = raise Match;
 
-fun del_data key = remove eq_data (key, []);
+fun del_data key = apsnd (remove eq_data (key, []));
 
 val del = Thm.declaration_attribute (Data.map o del_data);
+val add_ss = Thm.declaration_attribute 
+   (fn th => Data.map (fn (ss,data) => (ss addsimps [th], data)));
+
+val del_ss = Thm.declaration_attribute 
+   (fn th => Data.map (fn (ss,data) => (ss delsimps [th], data)));
 
 fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom} =
   Thm.declaration_attribute (fn key => fn context => context |> Data.map
@@ -132,15 +138,16 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom} =
       val ring = (r_ops, r_rules');
     in
       del_data key #>
-      cons (key, ({vars = vars, semiring = semiring, ring = ring, idom = idom},
-        {is_const = undefined, dest_const = undefined, mk_const = undefined,
-          conv = undefined}))
+      apsnd (cons (key, ({vars = vars, semiring = semiring, ring = ring, idom = idom},
+             {is_const = undefined, dest_const = undefined, mk_const = undefined,
+             conv = undefined})))
     end);
 
 
 (* extra-logical functions *)
 
-fun funs raw_key {is_const, dest_const, mk_const, conv} phi = Data.map (fn data =>
+fun funs raw_key {is_const, dest_const, mk_const, conv} phi = 
+ (Data.map o apsnd) (fn data =>
   let
     val key = Morphism.thm phi raw_key;
     val _ = AList.defined eq_key data key orelse
@@ -193,6 +200,8 @@ end;
 (* theory setup *)
 
 val setup =
-  Attrib.add_attributes [("normalizer", att_syntax, "semiring normalizer data")];
+  Attrib.add_attributes 
+     [("normalizer", att_syntax, "semiring normalizer data"),
+      ("algebra", Attrib.add_del_args add_ss del_ss, "Pre-simplification for algebra")];
 
 end;
