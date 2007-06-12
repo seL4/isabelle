@@ -17,7 +17,7 @@ sig
   val redo: 'a T -> 'a T
   val apply': 'a -> ('a -> 'a) -> 'a T -> 'a T
   val apply: ('a -> 'a) -> 'a T -> 'a T
-  val map: ('a -> 'a) -> 'a T -> 'a T
+  val map_current: ('a -> 'a) -> 'a T -> 'a T
 end;
 
 structure History: HISTORY =
@@ -55,6 +55,6 @@ fun apply' x' f (History (x, (lim, len, undo_list, _))) =
 
 fun apply f hist = apply' (current hist) f hist;
 
-fun map f (History (x, hist)) = History (f x, hist);
+fun map_current f (History (x, hist)) = History (f x, hist);
 
 end;
