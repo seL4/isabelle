@@ -358,8 +358,15 @@ fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
 val stale_theory = ERROR "Stale theory encountered after succesful execution!";
 
-fun map_theory f = History.map
+fun map_theory f = History.map_current
   (fn Theory (gthy, _) => Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, NONE)
+    | node => node);
+
+fun context_position pos = History.map_current
+  (fn Theory (Context.Proof lthy, ctxt) =>
+        Theory (Context.Proof (ContextPosition.put pos lthy), ctxt)
+    | Proof (prf, x) =>
+        Proof (ProofHistory.map_current (Proof.map_context (ContextPosition.put pos)) prf, x)
     | node => node);
 
 fun return (result, NONE) = result
@@ -367,7 +374,7 @@ fun return (result, NONE) = result
 
 in
 
-fun transaction hist f (node, term) =
+fun transaction hist pos f (node, term) =
   let
     val cont_node = map_theory Theory.checkpoint node;
     val back_node = map_theory Theory.copy cont_node;
@@ -377,9 +384,11 @@ fun transaction hist f (node, term) =
 
     val (result, err) =
       cont_node
+      |> context_position pos
       |> (f
-          |> (if hist then History.apply' (History.current back_node) else History.map)
+          |> (if hist then History.apply' (History.current back_node) else History.map_current)
           |> controlled_execution)
+      |> context_position Position.none
       |> normal_state
       handle exn => error_state cont_node exn;
   in
@@ -421,33 +430,33 @@ local
 
 fun keep_state int f = controlled_execution (fn x => tap (f int) x);
 
-fun apply_tr int (Init (f, term)) (state as Toplevel _) =
+fun apply_tr int _ (Init (f, term)) (state as Toplevel _) =
       let val node = Theory (Context.Theory (f int), NONE)
       in safe_exit state; State (History.init (undo_limit int) node, term) end
-  | apply_tr int (InitEmpty f) state =
+  | apply_tr int _ (InitEmpty f) state =
       (keep_state int (K f) state; safe_exit state; toplevel)
-  | apply_tr _ Exit (State (node, term)) =
+  | apply_tr _ _ Exit (State (node, term)) =
       (the_global_theory (History.current node); Toplevel (SOME (node, term)))
-  | apply_tr _ UndoExit (Toplevel (SOME state_info)) = State state_info
-  | apply_tr _ Kill (State (node, (_, kill))) =
+  | apply_tr _ _ UndoExit (Toplevel (SOME state_info)) = State state_info
+  | apply_tr _ _ Kill (State (node, (_, kill))) =
       (kill (the_global_theory (History.current node)); toplevel)
-  | apply_tr _ (History f) (State (node, term)) = State (f node, term)
-  | apply_tr int (Keep f) state = keep_state int f state
-  | apply_tr int (Transaction (hist, f)) (State state) =
-      transaction hist (fn x => f int x) state
-  | apply_tr _ _ _ = raise UNDEF;
+  | apply_tr _ _ (History f) (State (node, term)) = State (f node, term)
+  | apply_tr int _ (Keep f) state = keep_state int f state
+  | apply_tr int pos (Transaction (hist, f)) (State state) =
+      transaction hist pos (fn x => f int x) state
+  | apply_tr _ _ _ _ = raise UNDEF;
 
-fun apply_union _ [] state = raise FAILURE (state, UNDEF)
-  | apply_union int (tr :: trs) state =
-      apply_tr int tr state
-        handle UNDEF => apply_union int trs state
-          | FAILURE (alt_state, UNDEF) => apply_union int trs alt_state
+fun apply_union _ _ [] state = raise FAILURE (state, UNDEF)
+  | apply_union int pos (tr :: trs) state =
+      apply_tr int pos tr state
+        handle UNDEF => apply_union int pos trs state
+          | FAILURE (alt_state, UNDEF) => apply_union int pos trs alt_state
           | exn as FAILURE _ => raise exn
           | exn => raise FAILURE (state, exn);
 
 in
 
-fun apply_trans int trs state = (apply_union int trs state, NONE)
+fun apply_trans int pos trs state = (apply_union int pos trs state, NONE)
   handle FAILURE (alt_state, exn) => (alt_state, SOME exn) | exn => (state, SOME exn);
 
 end;
@@ -660,7 +669,7 @@ fun skip_proof_to_theory p = map_current (fn _ =>
 
 local
 
-fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
+fun app int (tr as Transition {trans, pos, int_only, print, no_timing, ...}) state =
   let
     val _ =
       if not int andalso int_only then warning (command_msg "Interactive-only " tr)
@@ -670,7 +679,7 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
     fun do_profiling f x = profile (! profiling) f x;
 
     val (result, opt_exn) =
-       state |> (apply_trans int trans
+       state |> (apply_trans int pos trans
         |> (if ! profiling > 0 then do_profiling else I)
         |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
     val _ =
