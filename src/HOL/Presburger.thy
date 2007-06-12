@@ -433,16 +433,28 @@ setup {*
   arith_tactic_add 
     (mk_arith_tactic "presburger" (fn i => fn st =>
        (warning "Trying Presburger arithmetic ...";   
-    Presburger.cooper_tac true ((ProofContext.init o theory_of_thm) st) i st)))
+    Presburger.cooper_tac true [] [] ((ProofContext.init o theory_of_thm) st) i st)))
   (* FIXME!!!!!!! get the right context!!*)	
 *}
-method_setup presburger = {* Method.simple_args (Scan.optional (Args.$$$ "elim" >> K false) true)  
-  (fn q => fn ctxt =>  Method.SIMPLE_METHOD' (Presburger.cooper_tac q ctxt))*} ""
-(*
+
 method_setup presburger = {*
-  Method.ctxt_args (Method.SIMPLE_METHOD' o (Presburger.cooper_tac true))
+let
+ fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
+ fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
+ val addN = "add"
+ val delN = "del"
+ val elimN = "elim"
+ val any_keyword = keyword addN || keyword delN || simple_keyword elimN
+ val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+in
+  fn src => Method.syntax 
+   ((Scan.optional (simple_keyword elimN >> K false) true) -- 
+    (Scan.optional (keyword addN |-- thms) []) -- 
+    (Scan.optional (keyword delN |-- thms) [])) src 
+  #> (fn (((elim, add_ths), del_ths),ctxt) => 
+         Method.SIMPLE_METHOD' (Presburger.cooper_tac elim add_ths del_ths ctxt))
+end
 *} ""
-*)
 
 subsection {* Code generator setup *}
 text {*
