@@ -564,7 +564,7 @@ next
       from eval wt da conf_s0 wf
       have "s3\<Colon>\<preceq>(G, L)"
 	by (rule evaln_type_sound [elim_format]) simp
-      ultimately show ?thesis using Q by simp
+      ultimately show ?thesis using Q R by simp
     qed
   qed
 next
@@ -612,8 +612,8 @@ next
 	  from eval_e1  wt_e1 da_e1 wf True
 	  have "nrm E1 \<subseteq> dom (locals (store s1))"
 	    by (cases rule: da_good_approx_evalnE) iprover
-	  with da_e2 show ?thesis
-	    by (rule da_weakenE)
+	  with da_e2 show thesis
+	    by (rule da_weakenE) (rule that)
 	qed
 	with valid_e2 Q' valid_A conf_s1 eval_e2 wt_e2 
 	show ?thesis
@@ -633,7 +633,7 @@ next
   qed
 next
   case (NewC A P C Q)
-  have valid_init: "G,A|\<Turnstile>\<Colon>{ {Normal P} .Init C. {Alloc G (CInst C) Q} }".
+  note valid_init = `G,A|\<Turnstile>\<Colon>{ {Normal P} .Init C. {Alloc G (CInst C) Q} }`
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} NewC C-\<succ> {Q} }"
   proof (rule valid_expr_NormalI)
     fix n s0 L accC T E v s2 Y Z
@@ -728,8 +728,8 @@ next
 	from eval_init 
 	have "dom (locals (store s0)) \<subseteq> dom (locals (store s1))"
 	  by (rule dom_locals_evaln_mono_elim)
-	with da_e show ?thesis
-	  by (rule da_weakenE)
+	with da_e show thesis
+	  by (rule da_weakenE) (rule that)
       qed
       with valid_e Q valid_A conf_s1 eval_e wt_e
       have "(\<lambda>Val:i:. abupd (check_neg i) .; 
@@ -746,9 +746,9 @@ next
   qed
 next
   case (Cast A P e T Q)
-  have valid_e: "G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> 
+  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> 
                  {\<lambda>Val:v:. \<lambda>s.. abupd (raise_if (\<not> G,s\<turnstile>v fits T) ClassCast) .;
-                  Q\<leftarrow>In1 v} }" .
+                  Q\<leftarrow>In1 v} }`
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} Cast T e-\<succ> {Q} }"
   proof (rule valid_expr_NormalI)
     fix n s0 L accC castT E v s2 Y Z
@@ -1060,8 +1060,8 @@ next
 	    from eval_var wt_var da_var wf True
 	    have "nrm V \<subseteq>  dom (locals (store s1))"
 	      by (cases rule: da_good_approx_evalnE) iprover
-	    with da_e show ?thesis
-	      by (rule da_weakenE) 
+	    with da_e show thesis
+	      by (rule da_weakenE) (rule that)
 	  qed
 	  note ve=validE [OF valid_e,OF Q' valid_A conf_s1 eval_e wt_e da_e']
 	  show ?thesis
@@ -1101,8 +1101,8 @@ next
 	    from eval_var
 	    have "dom (locals (store s0)) \<subseteq> dom (locals (store (s1)))"
 	      by (rule dom_locals_evaln_mono_elim)
-	    with da_e show ?thesis
-	      by (rule da_weakenE)
+	    with da_e show thesis
+	      by (rule da_weakenE) (rule that)
 	  qed
 	  note ve=validE [OF valid_e,OF Q' valid_A conf_s1 eval_e wt_e da_e']
 	  show ?thesis
@@ -1296,8 +1296,8 @@ next
 	  from evaln_e wt_e da_e wf True
 	  have "nrm C \<subseteq>  dom (locals (store s1))"
 	    by (cases rule: da_good_approx_evalnE) iprover
-	  with da_args show ?thesis
-	    by (rule da_weakenE) 
+	  with da_args show thesis
+	    by (rule da_weakenE) (rule that)
 	qed
 	with valid_args Q valid_A conf_s1 evaln_args wt_args 
 	obtain "(R a) \<lfloor>vs\<rfloor>\<^sub>l s2 Z" "s2\<Colon>\<preceq>(G,L)" 
@@ -1364,7 +1364,7 @@ next
 	      by (cases s2) (auto simp add: init_lvars_def2 split: split_if_asm)
 	    moreover
 	    obtain abr2 str2 where s2: "s2=(abr2,str2)"
-	      by (cases s2) simp
+	      by (cases s2)
 	    from s3 s2 conf_s2 have "(abrupt s3,str2)\<Colon>\<preceq>(G, L)"
 	      by (auto simp add: init_lvars_def2 split: split_if_asm)
 	    ultimately show ?thesis
@@ -1401,8 +1401,8 @@ next
 	  from evaln_e wt_e da_e wf normal_s1
 	  have "nrm C \<subseteq>  dom (locals (store s1))"
 	    by (cases rule: da_good_approx_evalnE) iprover
-	  with da_args show ?thesis
-	    by (rule da_weakenE) 
+	  with da_args show thesis
+	    by (rule da_weakenE) (rule that)
 	qed
 	from evaln_args
 	have eval_args: "G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<rightarrow> s2"
@@ -1583,9 +1583,9 @@ next
 	      using da
 	      by (iprover intro: da.Body assigned.select_convs)
 	    from _ this [simplified]
-	    show ?thesis
+	    show thesis
 	      by (rule da.Methd [simplified,elim_format])
-	         (auto intro: dynM')
+	         (auto intro: dynM' that)
 	  qed
 	  from valid_methd R' valid_A conf_s3' evaln_methd wt_methd da_methd
 	  have "(set_lvars l .; S) \<lfloor>v\<rfloor>\<^sub>e s4 Z"
@@ -1599,9 +1599,9 @@ next
   qed
 next
   case (Methd A P Q ms)
-  have valid_body: "G,A \<union> {{P} Methd-\<succ> {Q} | ms}|\<Turnstile>\<Colon>{{P} body G-\<succ> {Q} | ms}".
+  note valid_body = `G,A \<union> {{P} Methd-\<succ> {Q} | ms}|\<Turnstile>\<Colon>{{P} body G-\<succ> {Q} | ms}`
   show "G,A|\<Turnstile>\<Colon>{{P} Methd-\<succ> {Q} | ms}"
-    by (rule Methd_sound)
+    by (rule Methd_sound) (rule Methd.hyps)
 next
   case (Body A P D Q c R)
   note valid_init = `G,A|\<Turnstile>\<Colon>{ {Normal P} .Init D. {Q} }`
@@ -1646,7 +1646,7 @@ next
 	from eval_init 
 	have "(dom (locals (store s0))) \<subseteq> (dom (locals (store s1)))"
 	  by (rule dom_locals_evaln_mono_elim)
-	with da_c show ?thesis by (rule da_weakenE)
+	with da_c show thesis by (rule da_weakenE) (rule that)
       qed
       from valid_init P valid_A conf_s0 eval_init wt_init da_init
       obtain Q: "Q \<diamondsuit> s1 Z" and conf_s1: "s1\<Colon>\<preceq>(G,L)"
@@ -1697,7 +1697,7 @@ next
   qed
 next
   case (Cons A P e Q es R)
-  have valid_e: "G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q} }".
+  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q} }`
   have valid_es: "\<And> v. G,A|\<Turnstile>\<Colon>{ {Q\<leftarrow>\<lfloor>v\<rfloor>\<^sub>e} es\<doteq>\<succ> {\<lambda>Vals:vs:. R\<leftarrow>\<lfloor>(v # vs)\<rfloor>\<^sub>l} }"
     using Cons.hyps by simp
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} e # es\<doteq>\<succ> {R} }"
@@ -1739,8 +1739,8 @@ next
 	  from eval_e wt_e da_e wf True
 	  have "nrm E1 \<subseteq> dom (locals (store s1))"
 	    by (cases rule: da_good_approx_evalnE) iprover
-	  with da_es show ?thesis
-	    by (rule da_weakenE)
+	  with da_es show thesis
+	    by (rule da_weakenE) (rule that)
 	qed
 	from valid_es Q' valid_A conf_s1 eval_es wt_es da_es'
 	show ?thesis
@@ -1884,8 +1884,8 @@ next
 	  from eval_c1 wt_c1 da_c1 wf True
 	  have "nrm C1 \<subseteq> dom (locals (store s1))"
 	    by (cases rule: da_good_approx_evalnE) iprover
-	  with da_c2 show ?thesis
-	    by (rule da_weakenE)
+	  with da_c2 show thesis
+	    by (rule da_weakenE) (rule that)
 	qed
 	with valid_c2 Q valid_A conf_s1 eval_c2 wt_c2 
 	show ?thesis
@@ -2091,8 +2091,8 @@ next
 		  have "dom (locals (store ((Norm s0')::state)))
                            \<union> assigns_if True e \<subseteq> dom (locals (store s1'))"
 		    by (rule Un_least)
-		  with da_c show ?thesis
-		    by (rule da_weakenE)
+		  with da_c show thesis
+		    by (rule da_weakenE) (rule that)
 		qed
 		with valid_c P'' valid_A conf_s1' eval_c wt_c
 		obtain "(abupd (absorb (Cont l)) .; P) \<diamondsuit> s2' Z" and 
@@ -2173,10 +2173,10 @@ next
 	  qed
 	next
 	  case (Abrupt abr s t' n' Y' T E)
-	  have t': "t' = \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s".
-	  have conf: "(Some abr, s)\<Colon>\<preceq>(G, L)".
-	  have P: "P Y' (Some abr, s) Z".
-	  have valid_A: "\<forall>t\<in>A. G\<Turnstile>n'\<Colon>t". 
+	  note t' = `t' = \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s`
+	  note conf = `(Some abr, s)\<Colon>\<preceq>(G, L)`
+	  note P = `P Y' (Some abr, s) Z`
+	  note valid_A = `\<forall>t\<in>A. G\<Turnstile>n'\<Colon>t`
 	  show "(P'\<leftarrow>=False\<down>=\<diamondsuit>) (arbitrary3 t') (Some abr, s) Z"
 	  proof -
 	    have eval_e: 
@@ -2188,7 +2188,7 @@ next
 	    with t' show ?thesis
 	      by auto
 	  qed
-	qed (simp_all)
+	qed simp_all
       } note generalized=this
       from eval _ valid_A P conf_s0 wt da
       have "(P'\<leftarrow>=False\<down>=\<diamondsuit>) \<diamondsuit> s3 Z"
@@ -2388,8 +2388,8 @@ next
               ultimately show ?thesis
 		by (rule Un_least)
             qed
-	    with da_c2 show ?thesis
-	      by (rule da_weakenE)
+	    with da_c2 show thesis
+	      by (rule da_weakenE) (rule that)
 	  qed
 	  from Q eval_c2 True 
 	  have "(Q \<and>. (\<lambda>s. G,s\<turnstile>catch C) ;. new_xcpt_var vn) 
@@ -2466,8 +2466,8 @@ next
 	hence "dom (locals (store s0)) 
                  \<subseteq> dom (locals (store ((Norm s1)::state)))"
 	  by simp
-	with da_c2 show ?thesis
-	  by (rule da_weakenE)
+	with da_c2 show thesis
+	  by (rule da_weakenE) (rule that)
       qed
       from valid_c2 Q' valid_A conf_Norm_s1 eval_c2 wt_c2 da_c2'
       have "(abupd (abrupt_if (abr1 \<noteq> None) abr1) .; R) \<diamondsuit> s2 Z"

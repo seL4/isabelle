@@ -937,7 +937,7 @@ proof (rule MGFn_free_wt_da_NormalConformI [rule_format],clarsimp)
                \<rightarrow> abupd (abrupt_if (\<exists>y. abrupt s1 = Some y) (abrupt s1)) s2"
       proof -
 	obtain abr1 str1 where s1: "s1=(abr1,str1)"
-	  by (cases s1) simp
+	  by (cases s1)
 	with eval_c1 eval_c2 obtain
 	  eval_c1': "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (abr1,str1)" and
 	  eval_c2': "G\<turnstile>Norm str1 \<midarrow>c2\<rightarrow> s2"
@@ -1072,14 +1072,13 @@ proof (induct rule: full_nat_induct)
 	done
     next
       case (FVar accC statDeclC stat e fn)
-      have "G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}".
-      from MGFn_Init [OF hyp] this wf 
+      from MGFn_Init [OF hyp] and `G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}` and wf
       show ?case
 	by (rule MGFn_FVar)
     next
       case (AVar e1 e2)
-      have mgf_e1: "G,A\<turnstile>{=:n} \<langle>e1\<rangle>\<^sub>e\<succ> {G\<rightarrow>}".
-      have mgf_e2: "G,A\<turnstile>{=:n} \<langle>e2\<rangle>\<^sub>e\<succ> {G\<rightarrow>}".
+      note mgf_e1 = `G,A\<turnstile>{=:n} \<langle>e1\<rangle>\<^sub>e\<succ> {G\<rightarrow>}`
+      note mgf_e2 = `G,A\<turnstile>{=:n} \<langle>e2\<rangle>\<^sub>e\<succ> {G\<rightarrow>}`
       show "G,A\<turnstile>{=:n} \<langle>e1.[e2]\<rangle>\<^sub>v\<succ> {G\<rightarrow>}"
 	apply (rule MGFn_NormalI)
 	apply (rule ax_derivs.AVar)
@@ -1222,8 +1221,8 @@ proof (induct rule: full_nat_induct)
 	done
     next
       case (Call accC statT mode e mn pTs' ps)
-      have mgf_e:  "G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}".
-      have mgf_ps: "G,A\<turnstile>{=:n} \<langle>ps\<rangle>\<^sub>l\<succ> {G\<rightarrow>}".
+      note mgf_e = `G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}`
+      note mgf_ps = `G,A\<turnstile>{=:n} \<langle>ps\<rangle>\<^sub>l\<succ> {G\<rightarrow>}`
       from mgf_methds mgf_e mgf_ps wf
       show "G,A\<turnstile>{=:n} \<langle>{accC,statT,mode}e\<cdot>mn({pTs'}ps)\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
 	by (rule MGFn_Call)
@@ -1234,7 +1233,7 @@ proof (induct rule: full_nat_induct)
 	by simp
     next
       case (Body D c)
-      have mgf_c: "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}" .
+      note mgf_c = `G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}`
       from wf MGFn_Init [OF hyp] mgf_c
       show "G,A\<turnstile>{=:n} \<langle>Body D c\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
 	by (rule MGFn_Body)
@@ -1302,8 +1301,8 @@ proof (induct rule: full_nat_induct)
 	done
     next
       case (Loop l e c)
-      have mgf_e: "G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}".
-      have mgf_c: "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}".
+      note mgf_e = `G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}`
+      note mgf_c = `G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}`
       from mgf_e mgf_c wf
       show "G,A\<turnstile>{=:n} \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
 	by (rule MGFn_Loop)
@@ -1339,8 +1338,8 @@ proof (induct rule: full_nat_induct)
 	done
     next
       case (Fin c1 c2)
-      have mgf_c1: "G,A\<turnstile>{=:n} \<langle>c1\<rangle>\<^sub>s\<succ> {G\<rightarrow>}".
-      have mgf_c2: "G,A\<turnstile>{=:n} \<langle>c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}".
+      note mgf_c1 = `G,A\<turnstile>{=:n} \<langle>c1\<rangle>\<^sub>s\<succ> {G\<rightarrow>}`
+      note mgf_c2 = `G,A\<turnstile>{=:n} \<langle>c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}`
       from wf mgf_c1 mgf_c2
       show "G,A\<turnstile>{=:n} \<langle>c1 Finally c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
 	by (rule MGFn_Fin)
