@@ -54,8 +54,6 @@ lemmas [code func del] = Zero_int_def One_int_def add_int_def
 
 subsection{*Construction of the Integers*}
 
-subsubsection{*Preliminary Lemmas about the Equivalence Relation*}
-
 lemma intrel_iff [simp]: "(((x,y),(u,v)) \<in> intrel) = (x+v = u+y)"
 by (simp add: intrel_def)
 
@@ -83,7 +81,7 @@ apply (auto simp add: Integ_def quotient_def)
 done
 
 
-subsubsection{*Integer Unary Negation*}
+subsection{*Arithmetic Operations*}
 
 lemma minus: "- Abs_Integ(intrel``{(x,y)}) = Abs_Integ(intrel `` {(y,x)})"
 proof -
@@ -92,15 +90,6 @@ proof -
   thus ?thesis
     by (simp add: minus_int_def UN_equiv_class [OF equiv_intrel])
 qed
-
-lemma zminus_zminus: "- (- z) = (z::int)"
-  by (cases z) (simp add: minus)
-
-lemma zminus_0: "- 0 = (0::int)"
-  by (simp add: Zero_int_def minus)
-
-
-subsection{*Integer Addition*}
 
 lemma add:
      "Abs_Integ (intrel``{(x,y)}) + Abs_Integ (intrel``{(u,v)}) =
@@ -113,41 +102,6 @@ proof -
     by (simp add: add_int_def UN_UN_split_split_eq
                   UN_equiv_class2 [OF equiv_intrel equiv_intrel])
 qed
-
-lemma zminus_zadd_distrib: "- (z + w) = (- z) + (- w::int)"
-  by (cases z, cases w) (simp add: minus add)
-
-lemma zadd_commute: "(z::int) + w = w + z"
-  by (cases z, cases w) (simp add: add_ac add)
-
-lemma zadd_assoc: "((z1::int) + z2) + z3 = z1 + (z2 + z3)"
-  by (cases z1, cases z2, cases z3) (simp add: add add_assoc)
-
-(*For AC rewriting*)
-lemma zadd_left_commute: "x + (y + z) = y + ((x + z)  ::int)"
-  apply (rule mk_left_commute [of "op +"])
-  apply (rule zadd_assoc)
-  apply (rule zadd_commute)
-  done
-
-lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
-
-lemmas zmult_ac = OrderedGroup.mult_ac
-
-(*also for the instance declaration int :: comm_monoid_add*)
-lemma zadd_0: "(0::int) + z = z"
-apply (simp add: Zero_int_def)
-apply (cases z, simp add: add)
-done
-
-lemma zadd_0_right: "z + (0::int) = z"
-by (rule trans [OF zadd_commute zadd_0])
-
-lemma zadd_zminus_inverse2: "(- z) + z = (0::int)"
-by (cases z, simp add: Zero_int_def minus add)
-
-
-subsection{*Integer Multiplication*}
 
 text{*Congruence property for multiplication*}
 lemma mult_congruent2:
@@ -162,60 +116,36 @@ apply (simp add: mult_ac)
 apply (simp add: add_mult_distrib [symmetric])
 done
 
-
 lemma mult:
      "Abs_Integ((intrel``{(x,y)})) * Abs_Integ((intrel``{(u,v)})) =
       Abs_Integ(intrel `` {(x*u + y*v, x*v + y*u)})"
 by (simp add: mult_int_def UN_UN_split_split_eq mult_congruent2
               UN_equiv_class2 [OF equiv_intrel equiv_intrel])
 
-lemma zmult_zminus: "(- z) * w = - (z * (w::int))"
-by (cases z, cases w, simp add: minus mult add_ac)
-
-lemma zmult_commute: "(z::int) * w = w * z"
-by (cases z, cases w, simp add: mult add_ac mult_ac)
-
-lemma zmult_assoc: "((z1::int) * z2) * z3 = z1 * (z2 * z3)"
-by (cases z1, cases z2, cases z3, simp add: mult add_mult_distrib2 mult_ac)
-
-lemma zadd_zmult_distrib: "((z1::int) + z2) * w = (z1 * w) + (z2 * w)"
-by (cases z1, cases z2, cases w, simp add: add mult add_mult_distrib2 mult_ac)
-
-lemma zadd_zmult_distrib2: "(w::int) * (z1 + z2) = (w * z1) + (w * z2)"
-by (simp add: zmult_commute [of w] zadd_zmult_distrib)
-
-lemma zdiff_zmult_distrib: "((z1::int) - z2) * w = (z1 * w) - (z2 * w)"
-by (simp add: diff_int_def zadd_zmult_distrib zmult_zminus)
-
-lemma zdiff_zmult_distrib2: "(w::int) * (z1 - z2) = (w * z1) - (w * z2)"
-by (simp add: zmult_commute [of w] zdiff_zmult_distrib)
-
-lemmas int_distrib =
-  zadd_zmult_distrib zadd_zmult_distrib2
-  zdiff_zmult_distrib zdiff_zmult_distrib2
-
-
-lemma zmult_1: "(1::int) * z = z"
-by (cases z, simp add: One_int_def mult)
-
-lemma zmult_1_right: "z * (1::int) = z"
-by (rule trans [OF zmult_commute zmult_1])
-
-
 text{*The integers form a @{text comm_ring_1}*}
 instance int :: comm_ring_1
 proof
   fix i j k :: int
-  show "(i + j) + k = i + (j + k)" by (simp add: zadd_assoc)
-  show "i + j = j + i" by (simp add: zadd_commute)
-  show "0 + i = i" by (rule zadd_0)
-  show "- i + i = 0" by (rule zadd_zminus_inverse2)
-  show "i - j = i + (-j)" by (simp add: diff_int_def)
-  show "(i * j) * k = i * (j * k)" by (rule zmult_assoc)
-  show "i * j = j * i" by (rule zmult_commute)
-  show "1 * i = i" by (rule zmult_1) 
-  show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
-  show "0 \<noteq> (1::int)" by (simp add: Zero_int_def One_int_def)
+  show "(i + j) + k = i + (j + k)"
+    by (cases i, cases j, cases k) (simp add: add add_assoc)
+  show "i + j = j + i" 
+    by (cases i, cases j) (simp add: add_ac add)
+  show "0 + i = i"
+    by (cases i) (simp add: Zero_int_def add)
+  show "- i + i = 0"
+    by (cases i) (simp add: Zero_int_def minus add)
+  show "i - j = i + - j"
+    by (simp add: diff_int_def)
+  show "(i * j) * k = i * (j * k)"
+    by (cases i, cases j, cases k) (simp add: mult ring_eq_simps)
+  show "i * j = j * i"
+    by (cases i, cases j) (simp add: mult ring_eq_simps)
+  show "1 * i = i"
+    by (cases i) (simp add: One_int_def mult)
+  show "(i + j) * k = i * k + j * k"
+    by (cases i, cases j, cases k) (simp add: add mult ring_eq_simps)
+  show "0 \<noteq> (1::int)"
+    by (simp add: Zero_int_def One_int_def)
 qed
 
 abbreviation
@@ -237,73 +167,46 @@ lemma less:
   "(Abs_Integ(intrel``{(x,y)}) < Abs_Integ(intrel``{(u,v)})) = (x+v < u+y)"
 by (simp add: less_int_def le order_less_le)
 
-lemma zle_refl: "w \<le> (w::int)"
-by (cases w, simp add: le)
-
-lemma zle_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::int)"
-by (cases i, cases j, cases k, simp add: le)
-
-lemma zle_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::int)"
-by (cases w, cases z, simp add: le)
-
-instance int :: order
-  by intro_classes
-    (assumption |
-      rule zle_refl zle_trans zle_anti_sym less_int_def [THEN meta_eq_to_obj_eq])+
-
-lemma zle_linear: "(z::int) \<le> w \<or> w \<le> z"
-by (cases z, cases w) (simp add: le linorder_linear)
-
 instance int :: linorder
-  by intro_classes (rule zle_linear)
-
-lemmas zless_linear = linorder_less_linear [where 'a = int]
-
-
-lemma int_0_less_1: "0 < (1::int)"
-by (simp add: Zero_int_def One_int_def less)
-
-lemma int_0_neq_1 [simp]: "0 \<noteq> (1::int)"
-by (rule int_0_less_1 [THEN less_imp_neq])
-
-
-subsection{*Monotonicity results*}
+proof
+  fix i j k :: int
+  show "(i < j) = (i \<le> j \<and> i \<noteq> j)"
+    by (simp add: less_int_def)
+  show "i \<le> i"
+    by (cases i) (simp add: le)
+  show "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> i \<le> k"
+    by (cases i, cases j, cases k) (simp add: le)
+  show "i \<le> j \<Longrightarrow> j \<le> i \<Longrightarrow> i = j"
+    by (cases i, cases j) (simp add: le)
+  show "i \<le> j \<or> j \<le> i"
+    by (cases i, cases j) (simp add: le linorder_linear)
+qed
 
 instance int :: pordered_cancel_ab_semigroup_add
 proof
-  fix a b c :: int
-  show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    by (cases a, cases b, cases c, simp add: le add)
+  fix i j k :: int
+  show "i \<le> j \<Longrightarrow> k + i \<le> k + j"
+    by (cases i, cases j, cases k) (simp add: le add)
 qed
 
-lemma zadd_left_mono: "i \<le> j ==> k + i \<le> k + (j::int)"
-by (rule add_left_mono)
-
-lemma zadd_strict_right_mono: "i < j ==> i + k < j + (k::int)"
-by (rule add_strict_right_mono)
-
-lemma zadd_zless_mono: "[| w'<w; z'\<le>z |] ==> w' + z' < w + (z::int)"
-by (rule add_less_le_mono)
-
-
-subsection{*Strict Monotonicity of Multiplication*}
+text{*Strict Monotonicity of Multiplication*}
 
 text{*strict, in 1st argument; proof is by induction on k>0*}
 lemma zmult_zless_mono2_lemma:
-     "(i::int)<j ==> 0<k ==> of_nat k * i < of_nat k * j"
+     "(i::int)<j ==> 0<k ==> int k * i < int k * j"
 apply (induct "k", simp)
 apply (simp add: left_distrib)
 apply (case_tac "k=0")
 apply (simp_all add: add_strict_mono)
 done
 
-lemma zero_le_imp_eq_int: "(0::int) \<le> k ==> \<exists>n. k = of_nat n"
+lemma zero_le_imp_eq_int: "(0::int) \<le> k ==> \<exists>n. k = int n"
 apply (cases k)
 apply (auto simp add: le add int_def Zero_int_def)
 apply (rule_tac x="x-y" in exI, simp)
 done
 
-lemma zero_less_imp_eq_int: "(0::int) < k ==> \<exists>n>0. k = of_nat n"
+lemma zero_less_imp_eq_int: "(0::int) < k ==> \<exists>n>0. k = int n"
 apply (cases k)
 apply (simp add: less int_def Zero_int_def)
 apply (rule_tac x="x-y" in exI, simp)
@@ -327,8 +230,10 @@ text{*The integers form an ordered integral domain*}
 instance int :: ordered_idom
 proof
   fix i j k :: int
-  show "i < j ==> 0 < k ==> k * i < k * j" by (rule zmult_zless_mono2)
-  show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)
+  show "i < j \<Longrightarrow> 0 < k \<Longrightarrow> k * i < k * j"
+    by (rule zmult_zless_mono2)
+  show "\<bar>i\<bar> = (if i < 0 then -i else i)"
+    by (simp only: zabs_def)
 qed
 
 lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
@@ -447,20 +352,24 @@ lemma negative_eq_positive [simp]: "(- int n = int m) = (n = 0 & m = 0)"
 by (force simp add: order_eq_iff [of "- int n"] int_zle_neg)
 
 lemma zle_iff_zadd: "(w \<le> z) = (\<exists>n. z = w + int n)"
-proof (cases w, cases z, simp add: le add int_def)
-  fix a b c d
-  assume "w = Abs_Integ (intrel `` {(a,b)})" "z = Abs_Integ (intrel `` {(c,d)})"
-  show "(a+d \<le> c+b) = (\<exists>n. c+b = a+n+d)"
-  proof
-    assume "a + d \<le> c + b" 
-    thus "\<exists>n. c + b = a + n + d" 
-      by (auto intro!: exI [where x="c+b - (a+d)"])
-  next    
-    assume "\<exists>n. c + b = a + n + d" 
-    then obtain n where "c + b = a + n + d" ..
-    thus "a + d \<le> c + b" by arith
-  qed
+proof -
+  have "(w \<le> z) = (0 \<le> z - w)"
+    by (simp only: le_diff_eq add_0_left)
+  also have "\<dots> = (\<exists>n. z - w = int n)"
+    by (auto elim: zero_le_imp_eq_int)
+  also have "\<dots> = (\<exists>n. z = w + int n)"
+    by (simp only: group_eq_simps)
+  finally show ?thesis .
 qed
+
+lemma zadd_int_left: "(int m) + (int n + z) = int (m + n) + z"
+by simp
+
+lemma int_Suc: "int (Suc m) = 1 + (int m)"
+by simp
+
+lemma int_Suc0_eq_1: "int (Suc 0) = 1"
+by simp
 
 lemma abs_of_nat [simp]: "\<bar>of_nat n::'a::ordered_idom\<bar> = of_nat n"
 by (rule  of_nat_0_le_iff [THEN abs_of_nonneg]) (* belongs in Nat.thy *)
@@ -498,7 +407,7 @@ lemma not_neg_eq_ge_0: "(~neg x) = (0 \<le> x)"
 by (simp add: neg_def linorder_not_less)
 
 
-subsection{*To simplify inequalities when Numeral1 can get simplified to 1*}
+text{*To simplify inequalities when Numeral1 can get simplified to 1*}
 
 lemma not_neg_0: "~ neg 0"
 by (simp add: One_int_def neg_def)
@@ -647,6 +556,9 @@ proof
       (simp add: of_int add minus int_def diff_minus)
 qed
 
+lemma of_nat_nat: "0 \<le> z ==> of_nat (nat z) = of_int z"
+by (cases z rule: eq_Abs_Integ, simp add: nat le of_int Zero_int_def)
+
 
 subsection{*The Set of Integers*}
 
@@ -766,7 +678,7 @@ whether an integer is negative or not.*}
 lemma zless_iff_Suc_zadd:
     "(w < z) = (\<exists>n. z = w + int (Suc n))"
 apply (cases z, cases w)
-apply (auto simp add: le add int_def linorder_not_le [symmetric]) 
+apply (auto simp add: less add int_def)
 apply (rename_tac a b c d) 
 apply (rule_tac x="a+d - Suc(c+b)" in exI) 
 apply arith
@@ -785,7 +697,7 @@ apply (simp add: linorder_not_less del: of_nat_Suc)
 apply (blast dest: nat_0_le [THEN sym])
 done
 
-theorem int_induct'[induct type: int, case_names nonneg neg]:
+theorem int_induct [induct type: int, case_names nonneg neg]:
      "[|!! n. P (int n);  !!n. P (- (int (Suc n))) |] ==> P z"
   by (cases z rule: int_cases) auto
 
@@ -797,20 +709,47 @@ apply (rule_tac m=x and n=y in prem)
 apply (simp add: int_def diff_def minus add)
 done
 
-lemma of_nat_nat: "0 \<le> z ==> of_nat (nat z) = of_int z"
-by (cases z rule: eq_Abs_Integ, simp add: nat le of_int Zero_int_def)
-
 
 subsection {* Legacy theorems *}
 
-lemma zadd_int_left: "(int m) + (int n + z) = int (m + n) + z"
-by simp
+lemmas zminus_zminus = minus_minus [where 'a=int]
+lemmas zminus_0 = minus_zero [where 'a=int]
+lemmas zminus_zadd_distrib = minus_add_distrib [where 'a=int]
+lemmas zadd_commute = add_commute [where 'a=int]
+lemmas zadd_assoc = add_assoc [where 'a=int]
+lemmas zadd_left_commute = add_left_commute [where 'a=int]
+lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
+lemmas zmult_ac = OrderedGroup.mult_ac
+lemmas zadd_0 = OrderedGroup.add_0_left [where 'a=int]
+lemmas zadd_0_right = OrderedGroup.add_0_left [where 'a=int]
+lemmas zadd_zminus_inverse2 = left_minus [where 'a=int]
+lemmas zmult_zminus = mult_minus_left [where 'a=int]
+lemmas zmult_commute = mult_commute [where 'a=int]
+lemmas zmult_assoc = mult_assoc [where 'a=int]
+lemmas zadd_zmult_distrib = left_distrib [where 'a=int]
+lemmas zadd_zmult_distrib2 = right_distrib [where 'a=int]
+lemmas zdiff_zmult_distrib = left_diff_distrib [where 'a=int]
+lemmas zdiff_zmult_distrib2 = right_diff_distrib [where 'a=int]
 
-lemma int_Suc: "int (Suc m) = 1 + (int m)"
-by simp
+lemmas int_distrib =
+  zadd_zmult_distrib zadd_zmult_distrib2
+  zdiff_zmult_distrib zdiff_zmult_distrib2
 
-lemma int_Suc0_eq_1: "int (Suc 0) = 1"
-by simp
+lemmas zmult_1 = mult_1_left [where 'a=int]
+lemmas zmult_1_right = mult_1_right [where 'a=int]
+
+lemmas zle_refl = order_refl [where 'a=int]
+lemmas zle_trans = order_trans [where 'a=int]
+lemmas zle_anti_sym = order_antisym [where 'a=int]
+lemmas zle_linear = linorder_linear [where 'a=int]
+lemmas zless_linear = linorder_less_linear [where 'a = int]
+
+lemmas zadd_left_mono = add_left_mono [where 'a=int]
+lemmas zadd_strict_right_mono = add_strict_right_mono [where 'a=int]
+lemmas zadd_zless_mono = add_less_le_mono [where 'a=int]
+
+lemmas int_0_less_1 = zero_less_one [where 'a=int]
+lemmas int_0_neq_1 = zero_neq_one [where 'a=int]
 
 lemmas inj_int = inj_of_nat [where 'a=int]
 lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
