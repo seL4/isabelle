@@ -154,6 +154,21 @@ LHS means that more general c('a * 'b) will be disallowed on any RHS.
 Command 'print_theory' outputs the normalized system of recursive
 equations, see section "definitions".
 
+* Isar: method "assumption" (and implicit closing of subproofs) now
+takes simple non-atomic goal assumptions into account: after applying
+an assumption as a rule the resulting subgoals are solved by atomic
+assumption steps.  This is particularly useful to finish 'obtain'
+goals, such as "!!x. (!!x. P x ==> thesis) ==> P x ==> thesis",
+without referring to the original premise "!!x. P x ==> thesis" in the
+Isar proof context.  POTENTIAL INCOMPATIBILITY: method "assumption" is
+more permissive.
+
+* Isar: implicit use of prems from the Isar proof context is
+considered a legacy feature.  Common applications like ``have A .''
+may be replaced by ``have A by fact'' or ``note `A`''.  In general,
+referencing facts explicitly here improves readability and
+maintainability of proof texts.
+
 * Isar: improper proof element 'guess' is like 'obtain', but derives
 the obtained context from the course of reasoning!  For example:
 
