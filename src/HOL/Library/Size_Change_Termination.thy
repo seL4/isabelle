@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""
+header ""   (* FIXME proper header *)
 
 theory Size_Change_Termination
 imports SCT_Theorem SCT_Interpretation SCT_Implementation 

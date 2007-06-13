@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""
+header ""   (* FIXME proper header *)
 
 theory SCT_Interpretation
 imports Main SCT_Misc SCT_Definition
