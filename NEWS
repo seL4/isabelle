@@ -546,6 +546,12 @@ the graph browser tool.
 
 *** HOL ***
 
+* IntDef: The constant "int :: nat => int" has been removed; now
+  "int" is an abbreviation for "of_nat :: nat => int". Potential
+  INCOMPATIBILITY due to differences in default simp rules:
+  - "int (Suc m)" simplifies to "int m + 1" instead of "1 + int m"
+  - "int (m * n)" simplifies to "int m * int n"
+
 * Method "algebra" solves polynomial equations over (semi)rings using
   Groebner bases. The (semi)ring structure is defined by locales and
   the tool setup depends on that generic context. Installing the
