@@ -343,6 +343,7 @@ where
                    \<Longrightarrow>  \<Gamma> \<turnstile> App (Lam [x]. s\<^isub>1) s\<^isub>2 \<equiv> t\<^isub>1[x::=t\<^isub>2] : T\<^isub>2"
 | Q_Ext[intro]:   "\<lbrakk>x\<sharp>(\<Gamma>,s,t); (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2\<rbrakk> 
                    \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T\<^isub>1 \<rightarrow> T\<^isub>2"
+| Q_Unit[intro]:  "\<lbrakk>\<Gamma> \<turnstile> s : TUnit; \<Gamma> \<turnstile> t: TUnit\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : TUnit"
 
 equivariance def_equiv
 
@@ -931,6 +932,9 @@ next
   }
   moreover have "valid \<Gamma>'" using h2 by auto
   ultimately show "\<Gamma>' \<turnstile> \<theta><s> is \<theta>'<t> : T\<^isub>1\<rightarrow>T\<^isub>2" by auto
+next
+  case (Q_Unit \<Gamma> s t \<Gamma>' \<theta> \<theta>')  
+  then show "\<Gamma>' \<turnstile> \<theta><s> is \<theta>'<t> : TUnit" by auto
 qed
 
 
