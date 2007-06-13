@@ -96,11 +96,12 @@ lemma h'_lf:
   includes vectorspace E
   shows "linearform H' h'"
 proof
+  note E = `vectorspace E`
   have H': "vectorspace H'"
   proof (unfold H'_def)
-    have "x0 \<in> E" .
-    then have "lin x0 \<unlhd> E" ..
-    with HE show "vectorspace (H + lin x0)" ..
+    from `x0 \<in> E`
+    have "lin x0 \<unlhd> E" ..
+    with HE show "vectorspace (H + lin x0)" using E ..
   qed
   {
     fix x1 x2 assume x1: "x1 \<in> H'" and x2: "x2 \<in> H'"
@@ -114,7 +115,7 @@ proof
           and x2_rep: "x2 = y2 + a2 \<cdot> x0" and y2: "y2 \<in> H"
         by (unfold H'_def sum_def lin_def) blast
 
-      have ya: "y1 + y2 = y \<and> a1 + a2 = a" using _ HE _ y x0
+      have ya: "y1 + y2 = y \<and> a1 + a2 = a" using E HE _ y x0
       proof (rule decomp_H') txt_raw {* \label{decomp-H-use} *}
         from HE y1 y2 show "y1 + y2 \<in> H"
           by (rule subspace.add_closed)
@@ -126,7 +127,7 @@ proof
         finally show "(y1 + y2) + (a1 + a2) \<cdot> x0 = y + a \<cdot> x0" .
       qed
 
-      from h'_def x1x2 _ HE y x0
+      from h'_def x1x2 E HE y x0
       have "h' (x1 + x2) = h y + a * xi"
         by (rule h'_definite)
       also have "\<dots> = h (y1 + y2) + (a1 + a2) * xi"
@@ -135,10 +136,10 @@ proof
         by simp
       also have "\<dots> + (a1 + a2) * xi = (h y1 + a1 * xi) + (h y2 + a2 * xi)"
         by (simp add: left_distrib)
-      also from h'_def x1_rep _ HE y1 x0
+      also from h'_def x1_rep E HE y1 x0
       have "h y1 + a1 * xi = h' x1"
         by (rule h'_definite [symmetric])
-      also from h'_def x2_rep _ HE y2 x0
+      also from h'_def x2_rep E HE y2 x0
       have "h y2 + a2 * xi = h' x2"
         by (rule h'_definite [symmetric])
       finally show ?thesis .
@@ -154,7 +155,7 @@ proof
           and x1_rep: "x1 = y1 + a1 \<cdot> x0" and y1: "y1 \<in> H"
         by (unfold H'_def sum_def lin_def) blast
 
-      have ya: "c \<cdot> y1 = y \<and> c * a1 = a" using _ HE _ y x0
+      have ya: "c \<cdot> y1 = y \<and> c * a1 = a" using E HE _ y x0
       proof (rule decomp_H')
         from HE y1 show "c \<cdot> y1 \<in> H"
           by (rule subspace.mult_closed)
@@ -166,7 +167,7 @@ proof
         finally show "c \<cdot> y1 + (c * a1) \<cdot> x0 = y + a \<cdot> x0" .
       qed
 
-      from h'_def cx1_rep _ HE y x0 have "h' (c \<cdot> x1) = h y + a * xi"
+      from h'_def cx1_rep E HE y x0 have "h' (c \<cdot> x1) = h y + a * xi"
         by (rule h'_definite)
       also have "\<dots> = h (c \<cdot> y1) + (c * a1) * xi"
         by (simp only: ya)
@@ -174,7 +175,7 @@ proof
         by simp
       also have "\<dots> + (c * a1) * xi = c * (h y1 + a1 * xi)"
         by (simp only: right_distrib)
-      also from h'_def x1_rep _ HE y1 x0 have "h y1 + a1 * xi = h' x1"
+      also from h'_def x1_rep E HE y1 x0 have "h y1 + a1 * xi = h' x1"
         by (rule h'_definite [symmetric])
       finally show ?thesis .
     qed
@@ -195,6 +196,8 @@ lemma h'_norm_pres:
     and a': "\<forall>y \<in> H. - p (y + x0) - h y \<le> xi \<and> xi \<le> p (y + x0) - h y"
   shows "\<forall>x \<in> H'. h' x \<le> p x"
 proof
+  note E = `vectorspace E`
+  note HE = `subspace H E`
   fix x assume x': "x \<in> H'"
   show "h' x \<le> p x"
   proof -
@@ -206,7 +209,7 @@ proof
     from y have y': "y \<in> E" ..
     from y have ay: "inverse a \<cdot> y \<in> H" by simp
 
-    from h'_def x_rep _ _ y x0 have "h' x = h y + a * xi"
+    from h'_def x_rep E HE y x0 have "h' x = h y + a * xi"
       by (rule h'_definite)
     also have "\<dots> \<le> p (y + a \<cdot> x0)"
     proof (rule linorder_cases)

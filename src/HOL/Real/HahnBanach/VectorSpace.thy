@@ -89,7 +89,7 @@ lemma (in vectorspace) zero [iff]: "0 \<in> V"
 proof -
   from non_empty obtain x where x: "x \<in> V" by blast
   then have "0 = x - x" by (rule diff_self [symmetric])
-  also from x have "... \<in> V" by (rule diff_closed)
+  also from x x have "... \<in> V" by (rule diff_closed)
   finally show ?thesis .
 qed
 
@@ -116,7 +116,7 @@ proof -
   assume x: "x \<in> V"
   have " (a - b) \<cdot> x = (a + - b) \<cdot> x"
     by (simp add: real_diff_def)
-  also have "... = a \<cdot> x + (- b) \<cdot> x"
+  also from x have "... = a \<cdot> x + (- b) \<cdot> x"
     by (rule add_mult_distrib2)
   also from x have "... = a \<cdot> x + - (b \<cdot> x)"
     by (simp add: negate_eq1 mult_assoc2)
@@ -138,7 +138,7 @@ proof -
   assume x: "x \<in> V"
   have "0 \<cdot> x = (1 - 1) \<cdot> x" by simp
   also have "... = (1 + - 1) \<cdot> x" by simp
-  also have "... =  1 \<cdot> x + (- 1) \<cdot> x"
+  also from x have "... =  1 \<cdot> x + (- 1) \<cdot> x"
     by (rule add_mult_distrib2)
   also from x have "... = x + (- 1) \<cdot> x" by simp
   also from x have "... = x + - x" by (simp add: negate_eq2a)
@@ -260,11 +260,11 @@ proof (rule classical)
   assume a: "a \<noteq> 0"
   assume x: "x \<in> V"  "x \<noteq> 0" and ax: "a \<cdot> x = 0"
   from x a have "x = (inverse a * a) \<cdot> x" by simp
-  also have "... = inverse a \<cdot> (a \<cdot> x)" by (rule mult_assoc)
+  also from `x \<in> V` have "... = inverse a \<cdot> (a \<cdot> x)" by (rule mult_assoc)
   also from ax have "... = inverse a \<cdot> 0" by simp
   also have "... = 0" by simp
   finally have "x = 0" .
-  thus "a = 0" by contradiction
+  with `x \<noteq> 0` show "a = 0" by contradiction
 qed
 
 lemma (in vectorspace) mult_left_cancel:
@@ -360,7 +360,7 @@ proof -
     and eq: "a + b = c + d"
   then have "- c + (a + b) = - c + (c + d)"
     by (simp add: add_left_cancel)
-  also have "... = d" by (rule minus_add_cancel)
+  also have "... = d" using `c \<in> V` `d \<in> V` by (rule minus_add_cancel)
   finally have eq: "- c + (a + b) = d" .
   from vs have "a - c = (- c + (a + b)) + - b"
     by (simp add: add_ac diff_eq1)

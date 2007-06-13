@@ -62,8 +62,9 @@ theorem HahnBanach:
 proof -
   def M \<equiv> "norm_pres_extensions E p F f"
   hence M: "M = \<dots>" by (simp only:)
-  have E: "vectorspace E" .
-  have F: "vectorspace F" ..
+  note E = `vectorspace E`
+  then have F: "vectorspace F" ..
+  note FE = `F \<unlhd> E`
   {
     fix c assume cM: "c \<in> chain M" and ex: "\<exists>x. x \<in> c"
     have "\<Union>c \<in> M"
@@ -80,9 +81,9 @@ proof -
       qed
       moreover from M cM a have "linearform ?H ?h"
         by (rule sup_lf)
-      moreover from a M cM ex have "?H \<unlhd> E"
+      moreover from a M cM ex FE E have "?H \<unlhd> E"
         by (rule sup_subE)
-      moreover from a M cM ex have "F \<unlhd> ?H"
+      moreover from a M cM ex FE have "F \<unlhd> ?H"
         by (rule sup_supF)
       moreover from a M cM ex have "graph F f \<subseteq> graph ?H ?h"
         by (rule sup_ext)
@@ -102,14 +103,14 @@ proof -
       -- {* We show that @{text M} is non-empty: *}
     show "graph F f \<in> M"
     proof (unfold M_def, rule norm_pres_extensionI2)
-      show "linearform F f" .
-      show "F \<unlhd> E" .
+      show "linearform F f" by fact
+      show "F \<unlhd> E" by fact
       from F show "F \<unlhd> F" by (rule vectorspace.subspace_refl)
       show "graph F f \<subseteq> graph F f" ..
-      show "\<forall>x\<in>F. f x \<le> p x" .
+      show "\<forall>x\<in>F. f x \<le> p x" by fact
     qed
   qed
-  then obtain g where gM: "g \<in> M" and "\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x"
+  then obtain g where gM: "g \<in> M" and gx: "\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x"
     by blast
   from gM [unfolded M_def] obtain H h where
       g_rep: "g = graph H h"
@@ -120,7 +121,7 @@ proof -
       -- {* @{text g} is a norm-preserving extension of @{text f}, in other words: *}
       -- {* @{text g} is the graph of some linear form @{text h} defined on a subspace @{text H} of @{text E}, *}
       -- {* and @{text h} is an extension of @{text f} that is again bounded by @{text p}. \skp *}
-  from HE have H: "vectorspace H"
+  from HE E have H: "vectorspace H"
     by (rule subspace.vectorspace)
 
   have HE_eq: "H = E"
@@ -139,7 +140,7 @@ proof -
         proof
           assume "x' = 0"
           with H have "x' \<in> H" by (simp only: vectorspace.zero)
-          then show False by contradiction
+          with `x' \<notin> H` show False by contradiction
         qed
       qed
 
@@ -147,12 +148,12 @@ proof -
         -- {* Define @{text H'} as the direct sum of @{text H} and the linear closure of @{text x'}. \skp *}
       have HH': "H \<unlhd> H'"
       proof (unfold H'_def)
-        have "vectorspace (lin x')" ..
+        from x'E have "vectorspace (lin x')" ..
         with H show "H \<unlhd> H + lin x'" ..
       qed
 
       obtain xi where
-        "\<forall>y \<in> H. - p (y + x') - h y \<le> xi
+        xi: "\<forall>y \<in> H. - p (y + x') - h y \<le> xi
           \<and> xi \<le> p (y + x') - h y"
         -- {* Pick a real number @{text \<xi>} that fulfills certain inequations; this will *}
         -- {* be used to establish that @{text h'} is a norm-preserving extension of @{text h}.
@@ -178,7 +179,7 @@ proof -
           finally have "h v - h u \<le> p (v + x') + p (u + x')" .
           then show "- p (u + x') - h u \<le> p (v + x') - h v" by simp
         qed
-        then show ?thesis ..
+        then show thesis by (blast intro: that)
       qed
 
       def h' \<equiv> "\<lambda>x. let (y, a) =
@@ -193,8 +194,8 @@ proof -
           have  "graph H h \<subseteq> graph H' h'"
           proof (rule graph_extI)
             fix t assume t: "t \<in> H"
-            have "(SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, 0)"
-              by (rule decomp_H'_H)
+            from E HE t have "(SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, 0)"
+	      using `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` by (rule decomp_H'_H)
             with h'_def show "h t = h' t" by (simp add: Let_def)
           next
             from HH' show "H \<subseteq> H'" ..
@@ -216,7 +217,7 @@ proof -
             hence "(x', h' x') \<in> graph H' h'" ..
             with eq have "(x', h' x') \<in> graph H h" by (simp only:)
             hence "x' \<in> H" ..
-            thus False by contradiction
+            with `x' \<notin> H` show False by contradiction
           qed
           with g_rep show ?thesis by simp
         qed
@@ -226,15 +227,17 @@ proof -
       proof (unfold M_def)
         show "graph H' h' \<in> norm_pres_extensions E p F f"
         proof (rule norm_pres_extensionI2)
-          show "linearform H' h'" by (rule h'_lf)
+          show "linearform H' h'"
+	    using h'_def H'_def HE linearform `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` E
+	    by (rule h'_lf)
           show "H' \<unlhd> E"
-          proof (unfold H'_def, rule)
-            show "H \<unlhd> E" .
-            show "vectorspace E" .
+	  unfolding H'_def
+          proof
+            show "H \<unlhd> E" by fact
+            show "vectorspace E" by fact
             from x'E show "lin x' \<unlhd> E" ..
           qed
-          have "F \<unlhd> H" .
-          from H this HH' show FH': "F \<unlhd> H'"
+          from H `F \<unlhd> H` HH' show FH': "F \<unlhd> H'"
             by (rule vectorspace.subspace_trans)
           show "graph F f \<subseteq> graph H' h'"
           proof (rule graph_extI)
@@ -245,9 +248,12 @@ proof -
               by (simp add: Let_def)
             also have "(x, 0) =
                 (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)"
+	    using E HE
             proof (rule decomp_H'_H [symmetric])
               from FH x show "x \<in> H" ..
               from x' show "x' \<noteq> 0" .
+	      show "x' \<notin> H" by fact
+	      show "x' \<in> E" by fact
             qed
             also have
               "(let (y, a) = (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)
@@ -256,14 +262,17 @@ proof -
           next
             from FH' show "F \<subseteq> H'" ..
           qed
-          show "\<forall>x \<in> H'. h' x \<le> p x" by (rule h'_norm_pres)
+          show "\<forall>x \<in> H'. h' x \<le> p x"
+	    using h'_def H'_def `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` E HE
+	      `seminorm E p` linearform and hp xi
+	    by (rule h'_norm_pres)
         qed
       qed
       ultimately show ?thesis ..
     qed
     hence "\<not> (\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x)" by simp
       -- {* So the graph @{text g} of @{text h} cannot be maximal. Contradiction! \skp *}
-    then show "H = E" by contradiction
+    with gx show "H = E" by contradiction
   qed
 
   from HE_eq and linearform have "linearform E h"
@@ -303,19 +312,24 @@ theorem abs_HahnBanach:
     \<and> (\<forall>x \<in> F. g x = f x)
     \<and> (\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x)"
 proof -
-  have "\<exists>g. linearform E g \<and> (\<forall>x \<in> F. g x = f x)
-    \<and> (\<forall>x \<in> E. g x \<le> p x)"
+  note E = `vectorspace E`
+  note FE = `subspace F E`
+  note sn = `seminorm E p`
+  note lf = `linearform F f`
+  have "\<exists>g. linearform E g \<and> (\<forall>x \<in> F. g x = f x) \<and> (\<forall>x \<in> E. g x \<le> p x)"
+  using E FE sn lf
   proof (rule HahnBanach)
     show "\<forall>x \<in> F. f x \<le> p x"
-      by (rule abs_ineq_iff [THEN iffD1])
+      using FE E sn lf and fp by (rule abs_ineq_iff [THEN iffD1])
   qed
-  then obtain g where * : "linearform E g"  "\<forall>x \<in> F. g x = f x"
-      and "\<forall>x \<in> E. g x \<le> p x" by blast
+  then obtain g where lg: "linearform E g" and *: "\<forall>x \<in> F. g x = f x"
+      and **: "\<forall>x \<in> E. g x \<le> p x" by blast
   have "\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x"
+  using _ E sn lg **
   proof (rule abs_ineq_iff [THEN iffD2])
     show "E \<unlhd> E" ..
   qed
-  with * show ?thesis by blast
+  with lg * show ?thesis by blast
 qed
 
 
@@ -336,14 +350,14 @@ theorem norm_HahnBanach:
 proof -
   have E: "vectorspace E" by unfold_locales
   have E_norm: "normed_vectorspace E norm" by rule unfold_locales
-  have FE: "F \<unlhd> E" .
+  note FE = `F \<unlhd> E`
   have F: "vectorspace F" by rule unfold_locales
-  have linearform: "linearform F f" .
+  note linearform = `linearform F f`
   have F_norm: "normed_vectorspace F norm"
-    by (rule subspace_normed_vs)
+    using FE E_norm by (rule subspace_normed_vs)
   have ge_zero: "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
     by (rule normed_vectorspace.fn_norm_ge_zero
-      [OF F_norm (* continuous.intro*), folded B_def fn_norm_def])
+      [OF F_norm `continuous F norm f`, folded B_def fn_norm_def])
   txt {* We define a function @{text p} on @{text E} as follows:
     @{text "p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"} *}
   def p \<equiv> "\<lambda>x. \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
@@ -390,6 +404,7 @@ proof -
   have "\<forall>x \<in> F. \<bar>f x\<bar> \<le> p x"
   proof
     fix x assume "x \<in> F"
+    from this and `continuous F norm f`
     show "\<bar>f x\<bar> \<le> p x"
       by (unfold p_def) (rule normed_vectorspace.fn_norm_le_cong
         [OF F_norm, folded B_def fn_norm_def])
@@ -452,7 +467,7 @@ proof -
       show "\<forall>x \<in> F. \<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
       proof
 	fix x assume x: "x \<in> F"
-	from a have "g x = f x" ..
+	from a x have "g x = f x" ..
 	hence "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
 	also from g_cont
 	have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
@@ -465,7 +480,7 @@ proof -
 	using g_cont
 	by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
     next
-      show "continuous F norm f" .
+      show "continuous F norm f" by fact
     qed
   qed
   with linearformE a g_cont show ?thesis by blast

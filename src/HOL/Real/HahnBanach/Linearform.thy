@@ -36,7 +36,7 @@ proof -
   assume x: "x \<in> V" and y: "y \<in> V"
   hence "x - y = x + - y" by (rule diff_eq1)
   also have "f ... = f x + f (- y)" by (rule add) (simp_all add: x y)
-  also from _ y have "f (- y) = - f y" by (rule neg)
+  also have "f (- y) = - f y" using `vectorspace V` y by (rule neg)
   finally show ?thesis by simp
 qed
 
@@ -47,7 +47,7 @@ lemma (in linearform) zero [iff]:
   shows "f 0 = 0"
 proof -
   have "f 0 = f (0 - 0)" by simp
-  also have "\<dots> = f 0 - f 0" by (rule diff) simp_all
+  also have "\<dots> = f 0 - f 0" using `vectorspace V` by (rule diff) simp_all
   also have "\<dots> = 0" by simp
   finally show ?thesis .
 qed

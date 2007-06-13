@@ -126,13 +126,13 @@ proof -
     @{text x} and @{text y} are contained in the greater
     one. \label{cases1}*}
 
-  from cM have "graph H'' h'' \<subseteq> graph H' h' \<or> graph H' h' \<subseteq> graph H'' h''"
+  from cM c'' c' have "graph H'' h'' \<subseteq> graph H' h' \<or> graph H' h' \<subseteq> graph H'' h''"
     (is "?case1 \<or> ?case2") ..
   then show ?thesis
   proof
     assume ?case1
-    have "(x, h x) \<in> graph H'' h''" .
-    also have "... \<subseteq> graph H' h'" .
+    have "(x, h x) \<in> graph H'' h''" by fact
+    also have "... \<subseteq> graph H' h'" by fact
     finally have xh:"(x, h x) \<in> graph H' h'" .
     then have "x \<in> H'" ..
     moreover from y_hy have "y \<in> H'" ..
@@ -143,8 +143,8 @@ proof -
     assume ?case2
     from x_hx have "x \<in> H''" ..
     moreover {
-      from y_hy have "(y, h y) \<in> graph H' h'" .
-      also have "\<dots> \<subseteq> graph H'' h''" .
+      have "(y, h y) \<in> graph H' h'" by (rule y_hy)
+      also have "\<dots> \<subseteq> graph H'' h''" by fact
       finally have "(y, h y) \<in> graph H'' h''" .
     } then have "y \<in> H''" ..
     moreover from cM u and c'' have "graph H'' h'' \<subseteq> graph H h"
@@ -402,7 +402,7 @@ lemma abs_ineq_iff:
   includes subspace H E + vectorspace E + seminorm E p + linearform H h
   shows "(\<forall>x \<in> H. \<bar>h x\<bar> \<le> p x) = (\<forall>x \<in> H. h x \<le> p x)" (is "?L = ?R")
 proof
-  have H: "vectorspace H" ..
+  have H: "vectorspace H" using `vectorspace E` ..
   {
     assume l: ?L
     show ?R
@@ -419,12 +419,13 @@ proof
       fix x assume x: "x \<in> H"
       show "\<And>a b :: real. - a \<le> b \<Longrightarrow> b \<le> a \<Longrightarrow> \<bar>b\<bar> \<le> a"
         by arith
-      have "linearform H h" .
-      from this H x have "- h x = h (- x)" by (rule linearform.neg [symmetric])
+      from `linearform H h` and H x
+      have "- h x = h (- x)" by (rule linearform.neg [symmetric])
       also
       from H x have "- x \<in> H" by (rule vectorspace.neg_closed)
       with r have "h (- x) \<le> p (- x)" ..
       also have "\<dots> = p x"
+	using `seminorm E p` `vectorspace E`
       proof (rule seminorm.minus)
         from x show "x \<in> E" ..
       qed

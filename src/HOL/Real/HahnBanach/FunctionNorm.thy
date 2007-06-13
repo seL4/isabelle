@@ -30,7 +30,7 @@ lemma continuousI [intro]:
   assumes r: "\<And>x. x \<in> V \<Longrightarrow> \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"
   shows "continuous V norm f"
 proof
-  show "linearform V f" .
+  show "linearform V f" by fact
   from r have "\<exists>c. \<forall>x\<in>V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" by blast
   then show "continuous_axioms V norm f" ..
 qed
@@ -138,7 +138,7 @@ proof -
           note y_rep
           also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
           proof (rule mult_right_mono)
-            from c show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
+            from c x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
             from gt have "0 < inverse \<parallel>x\<parallel>" 
               by (rule positive_imp_inverse_positive)
             thus "0 \<le> inverse \<parallel>x\<parallel>" by (rule order_less_imp_le)
@@ -164,7 +164,8 @@ lemma (in normed_vectorspace) fn_norm_ub [iff?]:
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works)
+    unfolding B_def fn_norm_def
+    using `continuous V norm f` by (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
@@ -174,7 +175,8 @@ lemma (in normed_vectorspace) fn_norm_leastB:
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
 proof -
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works)
+    unfolding B_def fn_norm_def
+    using `continuous V norm f` by (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
@@ -188,7 +190,8 @@ proof -
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works)
+    unfolding B_def fn_norm_def
+    using `continuous V norm f` by (rule fn_norm_works)
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
 qed
@@ -210,8 +213,9 @@ proof cases
   also have "f 0 = 0" by rule unfold_locales
   also have "\<bar>\<dots>\<bar> = 0" by simp
   also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
-      by (unfold B_def fn_norm_def) (rule fn_norm_ge_zero)
-    have "0 \<le> norm x" ..
+    unfolding B_def fn_norm_def
+    using `continuous V norm f` by (rule fn_norm_ge_zero)
+  from x have "0 \<le> norm x" ..
   with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
   finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
 next
@@ -223,8 +227,8 @@ next
     from x show "0 \<le> \<parallel>x\<parallel>" ..
     from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
       by (auto simp add: B_def real_divide_def)
-    then show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
-      by (unfold B_def fn_norm_def) (rule fn_norm_ub)
+    with `continuous V norm f` show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
+      unfolding B_def fn_norm_def by (rule fn_norm_ub)
   qed
   finally show ?thesis .
 qed
@@ -255,7 +259,7 @@ proof (rule fn_norm_leastB [folded B_def fn_norm_def])
     note b_rep
     also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
     proof (rule mult_right_mono)
-      have "0 < \<parallel>x\<parallel>" ..
+      have "0 < \<parallel>x\<parallel>" using x x_neq ..
       then show "0 \<le> inverse \<parallel>x\<parallel>" by simp
       from ineq and x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
     qed

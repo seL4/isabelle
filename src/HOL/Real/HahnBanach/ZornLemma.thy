@@ -48,6 +48,7 @@ proof (rule Zorn_Lemma2)
         show "\<Union>c \<in> S"
         proof (rule r)
           from c show "\<exists>x. x \<in> c" by fast
+	  show "c \<in> chain S" by fact
         qed
       qed
     qed

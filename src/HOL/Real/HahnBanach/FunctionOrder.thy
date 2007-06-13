@@ -82,13 +82,13 @@ lemma graph_domain_funct:
   assumes uniq: "\<And>x y z. (x, y) \<in> g \<Longrightarrow> (x, z) \<in> g \<Longrightarrow> z = y"
   shows "graph (domain g) (funct g) = g"
 proof (unfold domain_def funct_def graph_def, auto)  (* FIXME !? *)
-  fix a b assume "(a, b) \<in> g"
-  show "(a, SOME y. (a, y) \<in> g) \<in> g" by (rule someI2)
-  show "\<exists>y. (a, y) \<in> g" ..
-  show "b = (SOME y. (a, y) \<in> g)"
+  fix a b assume g: "(a, b) \<in> g"
+  from g show "(a, SOME y. (a, y) \<in> g) \<in> g" by (rule someI2)
+  from g show "\<exists>y. (a, y) \<in> g" ..
+  from g show "b = (SOME y. (a, y) \<in> g)"
   proof (rule some_equality [symmetric])
     fix y assume "(a, y) \<in> g"
-    show "y = b" by (rule uniq)
+    with g show "y = b" by (rule uniq)
   qed
 qed
 

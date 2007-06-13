@@ -58,7 +58,7 @@ proof -
   have "U \<noteq> {}" by (rule U_V.non_empty)
   then obtain x where x: "x \<in> U" by blast
   hence "x \<in> V" .. hence "0 = x - x" by simp
-  also have "... \<in> U" by (rule U_V.diff_closed)
+  also from `vectorspace V` x x have "... \<in> U" by (rule U_V.diff_closed)
   finally show ?thesis .
 qed
 
@@ -198,8 +198,14 @@ qed
 text {* Any linear closure is a vector space. *}
 
 lemma (in vectorspace) lin_vectorspace [intro]:
-    "x \<in> V \<Longrightarrow> vectorspace (lin x)"
-  by (rule subspace.vectorspace) (rule lin_subspace)
+  assumes "x \<in> V"
+  shows "vectorspace (lin x)"
+proof -
+  from `x \<in> V` have "subspace (lin x) V"
+    by (rule lin_subspace)
+  from this and `vectorspace V` show ?thesis
+    by (rule subspace.vectorspace)
+qed
 
 
 subsection {* Sum of two vectorspaces *}
@@ -253,19 +259,17 @@ lemma sum_subspace [intro?]:
 proof
   have "0 \<in> U + V"
   proof
-    show "0 \<in> U" ..
-    show "0 \<in> V" ..
+    show "0 \<in> U" using `vectorspace E` ..
+    show "0 \<in> V" using `vectorspace E` ..
     show "(0::'a) = 0 + 0" by simp
   qed
   thus "U + V \<noteq> {}" by blast
   show "U + V \<subseteq> E"
   proof
     fix x assume "x \<in> U + V"
-    then obtain u v where x: "x = u + v" and
-      u: "u \<in> U" and v: "v \<in> V" ..
-    have "U \<unlhd> E" . with u have "u \<in> E" ..
-    moreover have "V \<unlhd> E" . with v have "v \<in> E" ..
-    ultimately show "x \<in> E" using x by simp
+    then obtain u v where "x = u + v" and
+      "u \<in> U" and "v \<in> V" ..
+    then show "x \<in> E" by simp
   qed
   fix x y assume x: "x \<in> U + V" and y: "y \<in> U + V"
   show "x + y \<in> U + V"
@@ -314,8 +318,10 @@ lemma decomp:
     and sum: "u1 + v1 = u2 + v2"
   shows "u1 = u2 \<and> v1 = v2"
 proof
-  have U: "vectorspace U" by (rule subspace.vectorspace)
-  have V: "vectorspace V" by (rule subspace.vectorspace)
+  have U: "vectorspace U"
+    using `subspace U E` `vectorspace E` by (rule subspace.vectorspace)
+  have V: "vectorspace V"
+    using `subspace V E` `vectorspace E` by (rule subspace.vectorspace)
   from u1 u2 v1 v2 and sum have eq: "u1 - u2 = v2 - v1"
     by (simp add: add_diff_swap)
   from u1 u2 have u: "u1 - u2 \<in> U"
@@ -327,15 +333,15 @@ proof
 
   show "u1 = u2"
   proof (rule add_minus_eq)
-    show "u1 \<in> E" ..
-    show "u2 \<in> E" ..
-    from u u' and direct show "u1 - u2 = 0" by force
+    from u1 show "u1 \<in> E" ..
+    from u2 show "u2 \<in> E" ..
+    from u u' and direct show "u1 - u2 = 0" by blast
   qed
   show "v1 = v2"
   proof (rule add_minus_eq [symmetric])
-    show "v1 \<in> E" ..
-    show "v2 \<in> E" ..
-    from v v' and direct show "v2 - v1 = 0" by force
+    from v1 show "v1 \<in> E" ..
+    from v2 show "v2 \<in> E" ..
+    from v v' and direct show "v2 - v1 = 0" by blast
   qed
 qed
 
@@ -375,19 +381,19 @@ proof
           from x have "x \<in> H" ..
           with xx' have "inverse a \<cdot> a \<cdot> x' \<in> H" by simp
           with a and x' have "x' \<in> H" by (simp add: mult_assoc2)
-          thus ?thesis by contradiction
+          with `x' \<notin> H` show ?thesis by contradiction
         qed
         thus "x \<in> {0}" ..
       qed
       show "{0} \<subseteq> H \<inter> lin x'"
       proof -
-        have "0 \<in> H" ..
-        moreover have "0 \<in> lin x'" ..
+        have "0 \<in> H" using `vectorspace E` ..
+        moreover have "0 \<in> lin x'" using `x' \<in> E` ..
         ultimately show ?thesis by blast
       qed
     qed
-    show "lin x' \<unlhd> E" ..
-  qed
+    show "lin x' \<unlhd> E" using `x' \<in> E` ..
+  qed (rule `vectorspace E`, rule `subspace H E`, rule y1, rule y2, rule eq)
   thus "y1 = y2" ..
   from c have "a1 \<cdot> x' = a2 \<cdot> x'" ..
   with x' show "a1 = a2" by (simp add: mult_right_cancel)
@@ -412,7 +418,7 @@ proof (rule, simp_all only: split_paired_all split_conv)
   proof (rule decomp_H')
     from ya x' show "y + a \<cdot> x' = t + 0 \<cdot> x'" by simp
     from ya show "y \<in> H" ..
-  qed
+  qed (rule `vectorspace E`, rule `subspace H E`, rule t, (rule x')+)
   with t x' show "(y, a) = (y + a \<cdot> x', 0)" by simp
 qed
 
@@ -450,7 +456,7 @@ proof -
         from xq show "fst q \<in> H" ..
         from xp and xq show "fst p + snd p \<cdot> x' = fst q + snd q \<cdot> x'"
           by simp
-      qed
+      qed (rule `vectorspace E`, rule `subspace H E`, (rule x')+)
       thus ?thesis by (cases p, cases q) simp
     qed
   qed
