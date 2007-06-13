@@ -264,7 +264,7 @@ proof -
     by (auto simp add: zEven_def zOdd_def)
   then have aux_1: "2 * ((p - 1) div 2) = (p - 1)"
     by (auto simp add: even_div_2_prop2)
-  then have "1 < (p - 1)"
+  with `2 < p` have "1 < (p - 1)"
     by auto
   then have " 1 < (2 * ((p - 1) div 2))"
     by (auto simp add: aux_1)

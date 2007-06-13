@@ -366,7 +366,7 @@ theorem evalc_equiv_evalc1:
   "\<langle>c, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s'\<rangle>"
 proof
   assume "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'"
-  show "\<langle>c, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s'\<rangle>" by (rule evalc_imp_evalc1)
+  then show "\<langle>c, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s'\<rangle>" by (rule evalc_imp_evalc1)
 next
   assume "\<langle>c, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s'\<rangle>"
   then obtain n where "\<langle>c, s\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s'\<rangle>" by (blast dest: rtrancl_imp_rel_pow)
@@ -460,7 +460,7 @@ lemma whileFalse1 [intro]:
 proof -
   assume "\<not>b s"
   have "\<langle>?w, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>\<IF> b \<THEN> c;?w \<ELSE> \<SKIP>, s\<rangle>" ..
-  also have "\<langle>\<IF> b \<THEN> c;?w \<ELSE> \<SKIP>, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>\<SKIP>, s\<rangle>" ..
+  also from `\<not>b s` have "\<langle>\<IF> b \<THEN> c;?w \<ELSE> \<SKIP>, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>\<SKIP>, s\<rangle>" ..
   also have "\<langle>\<SKIP>, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s\<rangle>" ..
   finally show "\<langle>?w, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s\<rangle>" ..
 qed
@@ -471,7 +471,7 @@ lemma whileTrue1 [intro]:
 proof -
   assume "b s"
   have "\<langle>?w, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>\<IF> b \<THEN> c;?w \<ELSE> \<SKIP>, s\<rangle>" ..
-  also have "\<langle>\<IF> b \<THEN> c;?w \<ELSE> \<SKIP>, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c;?w, s\<rangle>" ..
+  also from `b s` have "\<langle>\<IF> b \<THEN> c;?w \<ELSE> \<SKIP>, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c;?w, s\<rangle>" ..
   finally show "\<langle>?w, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>c;?w,s\<rangle>" ..
 qed
 

@@ -30,7 +30,7 @@ next
     thus ?case by iprover
   next
     assume "r \<noteq> b"
-    hence "r < b" by (simp add: order_less_le)
+    with `r \<le> b` have "r < b" by (simp add: order_less_le)
     with I have "Suc a = Suc b * q + (Suc r) \<and> (Suc r) \<le> b" by simp
     thus ?case by iprover
   qed

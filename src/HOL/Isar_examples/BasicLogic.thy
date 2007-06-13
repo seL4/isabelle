@@ -45,8 +45,8 @@ proof
       assume A
       show C
       proof (rule mp)
-        show "B --> C" by (rule mp)
-        show B by (rule mp)
+        show "B --> C" by (rule mp) assumption+
+        show B by (rule mp) assumption+
       qed
     qed
   qed
@@ -65,7 +65,7 @@ text {*
 lemma "A --> A"
 proof
   assume A
-  show A .
+  show A by assumption
 qed
 
 text {*
@@ -117,7 +117,7 @@ text {*
 lemma "A --> B --> A"
 proof (intro impI)
   assume A
-  show A .
+  show A by assumption
 qed
 
 text {*
@@ -162,8 +162,8 @@ proof
   assume "A & B"
   show "B & A"
   proof
-    show B by (rule conjunct2)
-    show A by (rule conjunct1)
+    show B by (rule conjunct2) assumption
+    show A by (rule conjunct1) assumption
   qed
 qed
 
@@ -171,10 +171,9 @@ text {*
   Above, the @{text "conjunct_1/2"} projection rules had to be named
   explicitly, since the goals @{text B} and @{text A} did not provide
   any structural clue.  This may be avoided using \isacommand{from} to
-  focus on @{text prems} (i.e.\ the @{text "A \<and> B"} assumption) as the
-  current facts, enabling the use of double-dot proofs.  Note that
-  \isacommand{from} already does forward-chaining, involving the
-  \name{conjE} rule here.
+  focus on the @{text "A \<and> B"} assumption as the current facts,
+  enabling the use of double-dot proofs.  Note that \isacommand{from}
+  already does forward-chaining, involving the \name{conjE} rule here.
 *}
 
 lemma "A & B --> B & A"
@@ -182,8 +181,8 @@ proof
   assume "A & B"
   show "B & A"
   proof
-    from prems show B ..
-    from prems show A ..
+    from `A & B` show B ..
+    from `A & B` show A ..
   qed
 qed
 
@@ -202,8 +201,8 @@ proof
   assume "A & B"
   then show "B & A"
   proof                    -- {* rule @{text conjE} of @{text "A \<and> B"} *}
-    assume A B
-    show ?thesis ..       -- {* rule @{text conjI} of @{text "B \<and> A"} *}
+    assume B A
+    then show ?thesis ..   -- {* rule @{text conjI} of @{text "B \<and> A"} *}
   qed
 qed
 
@@ -215,10 +214,10 @@ text {*
 
 lemma "A & B --> B & A"
 proof
-  assume ab: "A & B"
-  from ab have a: A ..
-  from ab have b: B ..
-  from b a show "B & A" ..
+  assume "A & B"
+  from `A & B` have A ..
+  from `A & B` have B ..
+  from `B` `A` show "B & A" ..
 qed
 
 text {*
@@ -230,12 +229,12 @@ text {*
 lemma "A & B --> B & A"
 proof -
   {
-    assume ab: "A & B"
-    from ab have a: A ..
-    from ab have b: B ..
-    from b a have "B & A" ..
+    assume "A & B"
+    from `A & B` have A ..
+    from `A & B` have B ..
+    from `B` `A` have "B & A" ..
   }
-  thus ?thesis ..         -- {* rule \name{impI} *}
+  then show ?thesis ..         -- {* rule \name{impI} *}
 qed
 
 text {*
@@ -258,19 +257,16 @@ text {*
 text {*
   For our example the most appropriate way of reasoning is probably
   the middle one, with conjunction introduction done after
-  elimination.  This reads even more concisely using
-  \isacommand{thus}, which abbreviates
-  \isacommand{then}~\isacommand{show}.\footnote{In the same vein,
-  \isacommand{hence} abbreviates \isacommand{then}~\isacommand{have}.}
+  elimination.
 *}
 
 lemma "A & B --> B & A"
 proof
   assume "A & B"
-  thus "B & A"
+  then show "B & A"
   proof
-    assume A B
-    show ?thesis ..
+    assume B A
+    then show ?thesis ..
   qed
 qed
 
@@ -294,13 +290,13 @@ text {*
 lemma "P | P --> P"
 proof
   assume "P | P"
-  thus P
+  then show P
   proof                    -- {*
     rule @{text disjE}: \smash{$\infer{C}{A \disj B & \infer*{C}{[A]} & \infer*{C}{[B]}}$}
   *}
-    assume P show P .
+    assume P show P by assumption
   next
-    assume P show P .
+    assume P show P by assumption
   qed
 qed
 
@@ -331,11 +327,11 @@ text {*
 lemma "P | P --> P"
 proof
   assume "P | P"
-  thus P
+  then show P
   proof
     assume P
-    show P .
-    show P .
+    show P by assumption
+    show P by assumption
   qed
 qed
 
@@ -349,7 +345,7 @@ text {*
 lemma "P | P --> P"
 proof
   assume "P | P"
-  thus P ..
+  then show P ..
 qed
 
 
@@ -372,13 +368,13 @@ text {*
 lemma "(EX x. P (f x)) --> (EX y. P y)"
 proof
   assume "EX x. P (f x)"
-  thus "EX y. P y"
+  then show "EX y. P y"
   proof (rule exE)             -- {*
     rule \name{exE}: \smash{$\infer{B}{\ex x A(x) & \infer*{B}{[A(x)]_x}}$}
   *}
     fix a
     assume "P (f a)" (is "P ?witness")
-    show ?thesis by (rule exI [of P ?witness])
+    then show ?thesis by (rule exI [of P ?witness])
   qed
 qed
 
@@ -394,11 +390,11 @@ text {*
 lemma "(EX x. P (f x)) --> (EX y. P y)"
 proof
   assume "EX x. P (f x)"
-  thus "EX y. P y"
+  then show "EX y. P y"
   proof
     fix a
     assume "P (f a)"
-    show ?thesis ..
+    then show ?thesis ..
   qed
 qed
 
@@ -413,7 +409,7 @@ lemma "(EX x. P (f x)) --> (EX y. P y)"
 proof
   assume "EX x. P (f x)"
   then obtain a where "P (f a)" ..
-  thus "EX y. P y" ..
+  then show "EX y. P y" ..
 qed
 
 text {*
@@ -443,18 +439,9 @@ proof -
   assume r: "A ==> B ==> C"
   show C
   proof (rule r)
-    show A by (rule conjunct1)
-    show B by (rule conjunct2)
+    show A by (rule conjunct1) assumption
+    show B by (rule conjunct2) assumption
   qed
 qed
-
-text {*
-  Note that classic Isabelle handles higher rules in a slightly
-  different way.  The tactic script as given in \cite{isabelle-intro}
-  for the same example of \name{conjE} depends on the primitive
-  \texttt{goal} command to decompose the rule into premises and
-  conclusion.  The actual result would then emerge by discharging of
-  the context at \texttt{qed} time.
-*}
 
 end

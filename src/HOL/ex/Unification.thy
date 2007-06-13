@@ -461,7 +461,7 @@ next
     by (rule acc_downward) (rule unify_rel.intros)
   hence no_new_vars: 
     "\<And>t. vars_of (t \<triangleleft> \<theta>1) \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of t"
-    by (rule unify_vars)
+    by (rule unify_vars) (rule `unify M M' = Some \<theta>1`)
 
   from ih2 show ?case 
   proof 

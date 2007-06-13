@@ -58,7 +58,7 @@ axioms
 theorem sym [sym]: "x = y \<Longrightarrow> y = x"
 proof -
   assume "x = y"
-  thus "y = x" by (rule subst) (rule refl)
+  then show "y = x" by (rule subst) (rule refl)
 qed
 
 lemma [trans]: "x = y \<Longrightarrow> P y \<Longrightarrow> P x"
@@ -110,7 +110,7 @@ abbreviation
 theorem falseE [elim]: "\<bottom> \<Longrightarrow> A"
 proof (unfold false_def)
   assume "\<forall>A. A"
-  thus A ..
+  then show A ..
 qed
 
 theorem trueI [intro]: \<top>
@@ -121,7 +121,7 @@ qed
 theorem notI [intro]: "(A \<Longrightarrow> \<bottom>) \<Longrightarrow> \<not> A"
 proof (unfold not_def)
   assume "A \<Longrightarrow> \<bottom>"
-  thus "A \<longrightarrow> \<bottom>" ..
+  then show "A \<longrightarrow> \<bottom>" ..
 qed
 
 theorem notE [elim]: "\<not> A \<Longrightarrow> A \<Longrightarrow> B"
@@ -129,7 +129,7 @@ proof (unfold not_def)
   assume "A \<longrightarrow> \<bottom>"
   also assume A
   finally have \<bottom> ..
-  thus B ..
+  then show B ..
 qed
 
 lemma notE': "A \<Longrightarrow> \<not> A \<Longrightarrow> B"
@@ -145,8 +145,8 @@ proof (unfold conj_def)
     fix C show "(A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> C"
     proof
       assume "A \<longrightarrow> B \<longrightarrow> C"
-      also have A .
-      also have B .
+      also note `A`
+      also note `B`
       finally show C .
     qed
   qed
@@ -161,7 +161,7 @@ proof (unfold conj_def)
     also have "A \<longrightarrow> B \<longrightarrow> A"
     proof
       assume A
-      thus "B \<longrightarrow> A" ..
+      then show "B \<longrightarrow> A" ..
     qed
     finally have A .
   } moreover {
@@ -182,9 +182,9 @@ proof (unfold disj_def)
     fix C show "(A \<longrightarrow> C) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> C"
     proof
       assume "A \<longrightarrow> C"
-      also have A .
+      also note `A`
       finally have C .
-      thus "(B \<longrightarrow> C) \<longrightarrow> C" ..
+      then show "(B \<longrightarrow> C) \<longrightarrow> C" ..
     qed
   qed
 qed
@@ -199,7 +199,7 @@ proof (unfold disj_def)
       show "(B \<longrightarrow> C) \<longrightarrow> C"
       proof
         assume "B \<longrightarrow> C"
-        also have B .
+        also note `B`
         finally show C .
       qed
     qed
@@ -213,11 +213,11 @@ proof (unfold disj_def)
   from c have "(A \<longrightarrow> C) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> C" ..
   also have "A \<longrightarrow> C"
   proof
-    assume A thus C by (rule r1)
+    assume A then show C by (rule r1)
   qed
   also have "B \<longrightarrow> C"
   proof
-    assume B thus C by (rule r2)
+    assume B then show C by (rule r2)
   qed
   finally show C .
 qed
@@ -230,8 +230,8 @@ proof (unfold Ex_def)
     fix C show "(\<forall>x. P x \<longrightarrow> C) \<longrightarrow> C"
     proof
       assume "\<forall>x. P x \<longrightarrow> C"
-      hence "P a \<longrightarrow> C" ..
-      also have "P a" .
+      then have "P a \<longrightarrow> C" ..
+      also note `P a`
       finally show C .
     qed
   qed
@@ -247,7 +247,7 @@ proof (unfold Ex_def)
     fix x show "P x \<longrightarrow> C"
     proof
       assume "P x"
-      thus C by (rule r)
+      then show C by (rule r)
     qed
   qed
   finally show C .
@@ -269,7 +269,7 @@ proof
     have "A \<longrightarrow> B"
     proof
       assume A
-      thus B by (rule contradiction)
+      with `\<not> A` show B by (rule contradiction)
     qed
     with a show A ..
   qed
@@ -282,7 +282,7 @@ proof -
   show A
   proof (rule classical)
     assume "\<not> A"
-    thus ?thesis by (rule contradiction)
+    with `\<not> \<not> A` show ?thesis by (rule contradiction)
   qed
 qed
 
@@ -294,11 +294,11 @@ proof (rule double_negation)
     assume "\<not> (A \<or> \<not> A)"
     have "\<not> A"
     proof
-      assume A hence "A \<or> \<not> A" ..
-      thus \<bottom> by (rule contradiction)
+      assume A then have "A \<or> \<not> A" ..
+      with `\<not> (A \<or> \<not> A)` show \<bottom> by (rule contradiction)
     qed
-    hence "A \<or> \<not> A" ..
-    thus \<bottom> by (rule contradiction)
+    then have "A \<or> \<not> A" ..
+    with `\<not> (A \<or> \<not> A)` show \<bottom> by (rule contradiction)
   qed
 qed
 
@@ -309,10 +309,10 @@ proof -
   from tertium_non_datur show C
   proof
     assume A
-    thus ?thesis by (rule r1)
+    then show ?thesis by (rule r1)
   next
     assume "\<not> A"
-    thus ?thesis by (rule r2)
+    then show ?thesis by (rule r2)
   qed
 qed
 
@@ -321,9 +321,9 @@ proof -
   assume r: "\<not> A \<Longrightarrow> A"
   show A
   proof (rule classical_cases)
-    assume A thus A .
+    assume A then show A .
   next
-    assume "\<not> A" thus A by (rule r)
+    assume "\<not> A" then show A by (rule r)
   qed
 qed
 

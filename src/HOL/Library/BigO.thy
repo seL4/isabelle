@@ -282,7 +282,7 @@ proof -
     apply (subst func_diff)
     apply (rule bigo_abs)
     done
-  also have "... <= O(h)"
+  also from a have "... <= O(h)"
     by (rule bigo_elt_subset)
   finally show "(%x. abs (f x) - abs (g x)) : O(h)".
 qed

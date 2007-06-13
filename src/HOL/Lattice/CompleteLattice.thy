@@ -22,8 +22,8 @@ axclass complete_lattice \<subseteq> partial_order
 theorem ex_Sup: "\<exists>sup::'a::complete_lattice. is_Sup A sup"
 proof -
   from ex_Inf obtain sup where "is_Inf {b. \<forall>a\<in>A. a \<sqsubseteq> b} sup" by blast
-  hence "is_Sup A sup" by (rule Inf_Sup)
-  thus ?thesis ..
+  then have "is_Sup A sup" by (rule Inf_Sup)
+  then show ?thesis ..
 qed
 
 text {*
@@ -50,8 +50,8 @@ text {*
 lemma Meet_equality [elim?]: "is_Inf A inf \<Longrightarrow> \<Sqinter>A = inf"
 proof (unfold Meet_def)
   assume "is_Inf A inf"
-  thus "(THE inf. is_Inf A inf) = inf"
-    by (rule the_equality) (rule is_Inf_uniq)
+  then show "(THE inf. is_Inf A inf) = inf"
+    by (rule the_equality) (rule is_Inf_uniq [OF _ `is_Inf A inf`])
 qed
 
 lemma MeetI [intro?]:
@@ -63,8 +63,8 @@ lemma MeetI [intro?]:
 lemma Join_equality [elim?]: "is_Sup A sup \<Longrightarrow> \<Squnion>A = sup"
 proof (unfold Join_def)
   assume "is_Sup A sup"
-  thus "(THE sup. is_Sup A sup) = sup"
-    by (rule the_equality) (rule is_Sup_uniq)
+  then show "(THE sup. is_Sup A sup) = sup"
+    by (rule the_equality) (rule is_Sup_uniq [OF _ `is_Sup A sup`])
 qed
 
 lemma JoinI [intro?]:
@@ -82,7 +82,8 @@ text {*
 lemma is_Inf_Meet [intro?]: "is_Inf A (\<Sqinter>A)"
 proof (unfold Meet_def)
   from ex_Inf obtain inf where "is_Inf A inf" ..
-  thus "is_Inf A (THE inf. is_Inf A inf)" by (rule theI) (rule is_Inf_uniq)
+  then show "is_Inf A (THE inf. is_Inf A inf)"
+    by (rule theI) (rule is_Inf_uniq [OF _ `is_Inf A inf`])
 qed
 
 lemma Meet_greatest [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> x \<sqsubseteq> a) \<Longrightarrow> x \<sqsubseteq> \<Sqinter>A"
@@ -95,7 +96,8 @@ lemma Meet_lower [intro?]: "a \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq
 lemma is_Sup_Join [intro?]: "is_Sup A (\<Squnion>A)"
 proof (unfold Join_def)
   from ex_Sup obtain sup where "is_Sup A sup" ..
-  thus "is_Sup A (THE sup. is_Sup A sup)" by (rule theI) (rule is_Sup_uniq)
+  then show "is_Sup A (THE sup. is_Sup A sup)"
+    by (rule theI) (rule is_Sup_uniq [OF _ `is_Sup A sup`])
 qed
 
 lemma Join_least [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> a \<sqsubseteq> x) \<Longrightarrow> \<Squnion>A \<sqsubseteq> x"
@@ -122,15 +124,15 @@ proof
   have ge: "f ?a \<sqsubseteq> ?a"
   proof
     fix x assume x: "x \<in> ?H"
-    hence "?a \<sqsubseteq> x" ..
-    hence "f ?a \<sqsubseteq> f x" by (rule mono)
+    then have "?a \<sqsubseteq> x" ..
+    then have "f ?a \<sqsubseteq> f x" by (rule mono)
     also from x have "... \<sqsubseteq> x" ..
     finally show "f ?a \<sqsubseteq> x" .
   qed
   also have "?a \<sqsubseteq> f ?a"
   proof
     from ge have "f (f ?a) \<sqsubseteq> f ?a" by (rule mono)
-    thus "f ?a \<in> ?H" ..
+    then show "f ?a \<in> ?H" ..
   qed
   finally show "f ?a = ?a" .
 qed
@@ -153,7 +155,7 @@ definition
 lemma bottom_least [intro?]: "\<bottom> \<sqsubseteq> x"
 proof (unfold bottom_def)
   have "x \<in> UNIV" ..
-  thus "\<Sqinter>UNIV \<sqsubseteq> x" ..
+  then show "\<Sqinter>UNIV \<sqsubseteq> x" ..
 qed
 
 lemma bottomI [intro?]: "(\<And>a. x \<sqsubseteq> a) \<Longrightarrow> \<bottom> = x"
@@ -161,7 +163,7 @@ proof (unfold bottom_def)
   assume "\<And>a. x \<sqsubseteq> a"
   show "\<Sqinter>UNIV = x"
   proof
-    fix a show "x \<sqsubseteq> a" .
+    fix a show "x \<sqsubseteq> a" by fact
   next
     fix b :: "'a::complete_lattice"
     assume b: "\<forall>a \<in> UNIV. b \<sqsubseteq> a"
@@ -173,7 +175,7 @@ qed
 lemma top_greatest [intro?]: "x \<sqsubseteq> \<top>"
 proof (unfold top_def)
   have "x \<in> UNIV" ..
-  thus "x \<sqsubseteq> \<Squnion>UNIV" ..
+  then show "x \<sqsubseteq> \<Squnion>UNIV" ..
 qed
 
 lemma topI [intro?]: "(\<And>a. a \<sqsubseteq> x) \<Longrightarrow> \<top> = x"
@@ -181,7 +183,7 @@ proof (unfold top_def)
   assume "\<And>a. a \<sqsubseteq> x"
   show "\<Squnion>UNIV = x"
   proof
-    fix a show "a \<sqsubseteq> x" .
+    fix a show "a \<sqsubseteq> x" by fact
   next
     fix b :: "'a::complete_lattice"
     assume b: "\<forall>a \<in> UNIV. a \<sqsubseteq> b"
@@ -204,8 +206,8 @@ proof
   show "\<exists>inf'. is_Inf A' inf'"
   proof -
     have "\<exists>sup. is_Sup (undual ` A') sup" by (rule ex_Sup)
-    hence "\<exists>sup. is_Inf (dual ` undual ` A') (dual sup)" by (simp only: dual_Inf)
-    thus ?thesis by (simp add: dual_ex [symmetric] image_compose [symmetric])
+    then have "\<exists>sup. is_Inf (dual ` undual ` A') (dual sup)" by (simp only: dual_Inf)
+    then show ?thesis by (simp add: dual_ex [symmetric] image_compose [symmetric])
   qed
 qed
 
@@ -217,15 +219,15 @@ text {*
 theorem dual_Meet [intro?]: "dual (\<Sqinter>A) = \<Squnion>(dual ` A)"
 proof -
   from is_Inf_Meet have "is_Sup (dual ` A) (dual (\<Sqinter>A))" ..
-  hence "\<Squnion>(dual ` A) = dual (\<Sqinter>A)" ..
-  thus ?thesis ..
+  then have "\<Squnion>(dual ` A) = dual (\<Sqinter>A)" ..
+  then show ?thesis ..
 qed
 
 theorem dual_Join [intro?]: "dual (\<Squnion>A) = \<Sqinter>(dual ` A)"
 proof -
   from is_Sup_Join have "is_Inf (dual ` A) (dual (\<Squnion>A))" ..
-  hence "\<Sqinter>(dual ` A) = dual (\<Squnion>A)" ..
-  thus ?thesis ..
+  then have "\<Sqinter>(dual ` A) = dual (\<Squnion>A)" ..
+  then show ?thesis ..
 qed
 
 text {*
@@ -237,10 +239,10 @@ proof -
   have "\<top> = dual \<bottom>"
   proof
     fix a' have "\<bottom> \<sqsubseteq> undual a'" ..
-    hence "dual (undual a') \<sqsubseteq> dual \<bottom>" ..
-    thus "a' \<sqsubseteq> dual \<bottom>" by simp
+    then have "dual (undual a') \<sqsubseteq> dual \<bottom>" ..
+    then show "a' \<sqsubseteq> dual \<bottom>" by simp
   qed
-  thus ?thesis ..
+  then show ?thesis ..
 qed
 
 theorem dual_top [intro?]: "dual \<top> = \<bottom>"
@@ -248,10 +250,10 @@ proof -
   have "\<bottom> = dual \<top>"
   proof
     fix a' have "undual a' \<sqsubseteq> \<top>" ..
-    hence "dual \<top> \<sqsubseteq> dual (undual a')" ..
-    thus "dual \<top> \<sqsubseteq> a'" by simp
+    then have "dual \<top> \<sqsubseteq> dual (undual a')" ..
+    then show "dual \<top> \<sqsubseteq> a'" by simp
   qed
-  thus ?thesis ..
+  then show ?thesis ..
 qed
 
 
@@ -267,13 +269,13 @@ text {*
 lemma is_inf_binary: "is_inf x y (\<Sqinter>{x, y})"
 proof -
   have "is_Inf {x, y} (\<Sqinter>{x, y})" ..
-  thus ?thesis by (simp only: is_Inf_binary)
+  then show ?thesis by (simp only: is_Inf_binary)
 qed
 
 lemma is_sup_binary: "is_sup x y (\<Squnion>{x, y})"
 proof -
   have "is_Sup {x, y} (\<Squnion>{x, y})" ..
-  thus ?thesis by (simp only: is_Sup_binary)
+  then show ?thesis by (simp only: is_Sup_binary)
 qed
 
 instance complete_lattice \<subseteq> lattice
@@ -302,16 +304,16 @@ proof (rule Meet_greatest)
   fix a assume "a \<in> A"
   also assume "A \<subseteq> B"
   finally have "a \<in> B" .
-  thus "\<Sqinter>B \<sqsubseteq> a" ..
+  then show "\<Sqinter>B \<sqsubseteq> a" ..
 qed
 
 theorem Join_subset_mono: "A \<subseteq> B \<Longrightarrow> \<Squnion>A \<sqsubseteq> \<Squnion>B"
 proof -
   assume "A \<subseteq> B"
-  hence "dual ` A \<subseteq> dual ` B" by blast
-  hence "\<Sqinter>(dual ` B) \<sqsubseteq> \<Sqinter>(dual ` A)" by (rule Meet_subset_antimono)
-  hence "dual (\<Squnion>B) \<sqsubseteq> dual (\<Squnion>A)" by (simp only: dual_Join)
-  thus ?thesis by (simp only: dual_leq)
+  then have "dual ` A \<subseteq> dual ` B" by blast
+  then have "\<Sqinter>(dual ` B) \<sqsubseteq> \<Sqinter>(dual ` A)" by (rule Meet_subset_antimono)
+  then have "dual (\<Squnion>B) \<sqsubseteq> dual (\<Squnion>A)" by (simp only: dual_Join)
+  then show ?thesis by (simp only: dual_leq)
 qed
 
 text {*
@@ -321,7 +323,7 @@ text {*
 theorem Meet_Un: "\<Sqinter>(A \<union> B) = \<Sqinter>A \<sqinter> \<Sqinter>B"
 proof
   fix a assume "a \<in> A \<union> B"
-  thus "\<Sqinter>A \<sqinter> \<Sqinter>B \<sqsubseteq> a"
+  then show "\<Sqinter>A \<sqinter> \<Sqinter>B \<sqsubseteq> a"
   proof
     assume a: "a \<in> A"
     have "\<Sqinter>A \<sqinter> \<Sqinter>B \<sqsubseteq> \<Sqinter>A" ..
@@ -340,13 +342,13 @@ next
     show "b \<sqsubseteq> \<Sqinter>A"
     proof
       fix a assume "a \<in> A"
-      hence "a \<in>  A \<union> B" ..
+      then have "a \<in>  A \<union> B" ..
       with b show "b \<sqsubseteq> a" ..
     qed
     show "b \<sqsubseteq> \<Sqinter>B"
     proof
       fix a assume "a \<in> B"
-      hence "a \<in>  A \<union> B" ..
+      then have "a \<in>  A \<union> B" ..
       with b show "b \<sqsubseteq> a" ..
     qed
   qed
@@ -370,11 +372,11 @@ text {*
 theorem Meet_singleton: "\<Sqinter>{x} = x"
 proof
   fix a assume "a \<in> {x}"
-  hence "a = x" by simp
-  thus "x \<sqsubseteq> a" by (simp only: leq_refl)
+  then have "a = x" by simp
+  then show "x \<sqsubseteq> a" by (simp only: leq_refl)
 next
   fix b assume "\<forall>a \<in> {x}. b \<sqsubseteq> a"
-  thus "b \<sqsubseteq> x" by simp
+  then show "b \<sqsubseteq> x" by simp
 qed
 
 theorem Join_singleton: "\<Squnion>{x} = x"
@@ -392,12 +394,12 @@ theorem Meet_empty: "\<Sqinter>{} = \<Squnion>UNIV"
 proof
   fix a :: "'a::complete_lattice"
   assume "a \<in> {}"
-  hence False by simp
-  thus "\<Squnion>UNIV \<sqsubseteq> a" ..
+  then have False by simp
+  then show "\<Squnion>UNIV \<sqsubseteq> a" ..
 next
   fix b :: "'a::complete_lattice"
   have "b \<in> UNIV" ..
-  thus "b \<sqsubseteq> \<Squnion>UNIV" ..
+  then show "b \<sqsubseteq> \<Squnion>UNIV" ..
 qed
 
 theorem Join_empty: "\<Squnion>{} = \<Sqinter>UNIV"

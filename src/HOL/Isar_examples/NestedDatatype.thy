@@ -44,12 +44,14 @@ proof -
     fix a show "?P (Var a)" by simp
   next
     fix b ts assume "?Q ts"
-    thus "?P (App b ts)" by (simp add: o_def)
+    then show "?P (App b ts)"
+      by (simp only: subst.simps)
   next
     show "?Q []" by simp
   next
     fix t ts
-    assume "?P t" "?Q ts" thus "?Q (t # ts)" by simp
+    assume "?P t" "?Q ts" then show "?Q (t # ts)"
+      by (simp only: subst.simps)
   qed
 qed
 
@@ -64,12 +66,12 @@ proof (induct t)
   fix a show "P (Var a)" by (rule var)
 next
   fix b t ts assume "list_all P ts"
-  thus "P (App b ts)" by (rule app)
+  then show "P (App b ts)" by (rule app)
 next
   show "list_all P []" by simp
 next
   fix t ts assume "P t" "list_all P ts"
-  thus "list_all P (t # ts)" by simp
+  then show "list_all P (t # ts)" by simp
 qed
 
 lemma
@@ -79,7 +81,7 @@ proof (induct t rule: term_induct')
   show ?case by (simp add: o_def)
 next
   case (App b ts)
-  thus ?case by (induct ts) simp_all
+  then show ?case by (induct ts) simp_all
 qed
 
 end

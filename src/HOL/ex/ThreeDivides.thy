@@ -77,7 +77,7 @@ next
   let ?thr = "(3::nat)"
   have "?thr dvd 9" by simp
   moreover
-  have "?thr dvd (10*(10^n - 1))" by (rule dvd_mult)
+  have "?thr dvd (10*(10^n - 1))" by (rule dvd_mult) (rule Suc)
   hence "?thr dvd (10^(n+1) - 10)" by (simp add: nat_distrib)
   ultimately
   have"?thr dvd ((10^(n+1) - 10) + 9)"

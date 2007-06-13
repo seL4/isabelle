@@ -43,12 +43,12 @@ proof -
     show "(a Un t) Un u : ?T"
     proof -
       have "a Un (t Un u) : ?T"
+	using `a : A`
       proof (rule tiling.Un)
-        show "a : A" .
         from `(a Un t) Int u = {}` have "t Int u = {}" by blast
         then show "t Un u: ?T" by (rule Un)
-        have "a <= - t" .
-        with `(a Un t) Int u = {}` show "a <= - (t Un u)" by blast
+        from `a <= - t` and `(a Un t) Int u = {}`
+	show "a <= - (t Un u)" by blast
       qed
       also have "a Un (t Un u) = (a Un t) Un u"
         by (simp only: Un_assoc)
@@ -201,7 +201,7 @@ proof induct
   show "?F {}" by (rule finite.emptyI)
   fix a t assume "?F t"
   assume "a : domino" then have "?F a" by (rule domino_finite)
-  then show "?F (a Un t)" by (rule finite_UnI)
+  from this and `?F t` show "?F (a Un t)" by (rule finite_UnI)
 qed
 
 lemma tiling_domino_01:
@@ -223,14 +223,17 @@ next
     have "?e (a Un t) b = ?e a b Un ?e t b" by (rule evnodd_Un)
     also obtain i j where e: "?e a b = {(i, j)}"
     proof -
+      from `a \<in> domino` and `b < 2`
       have "EX i j. ?e a b = {(i, j)}" by (rule domino_singleton)
       then show ?thesis by (blast intro: that)
     qed
     also have "... Un ?e t b = insert (i, j) (?e t b)" by simp
     also have "card ... = Suc (card (?e t b))"
     proof (rule card_insert_disjoint)
-      show "finite (?e t b)"
-        by (rule evnodd_finite, rule tiling_domino_finite)
+      from `t \<in> tiling domino` have "finite t"
+	by (rule tiling_domino_finite)
+      then show "finite (?e t b)"
+        by (rule evnodd_finite)
       from e have "(i, j) : ?e a b" by simp
       with at show "(i, j) ~: ?e t b" by (blast dest: evnoddD)
     qed

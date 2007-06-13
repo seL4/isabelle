@@ -242,7 +242,7 @@ proof (unfold pick_def)
   proof (rule someI2)
     show "\<lfloor>a\<rfloor> = \<lfloor>a\<rfloor>" ..
     fix x assume "\<lfloor>a\<rfloor> = \<lfloor>x\<rfloor>"
-    then have "a \<sim> x" ..
+    from this and a have "a \<sim> x" ..
     then show "x \<sim> a" ..
   qed
 qed

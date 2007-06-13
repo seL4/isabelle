@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""
+header ""   (* FIXME proper header *)
 
 theory Graphs
 imports Main SCT_Misc Kleene_Algebras ExecutableSet
@@ -56,8 +56,8 @@ declare grcomp.simps[code del]
 lemma graph_ext:
   assumes "\<And>n e n'. has_edge G n e n' = has_edge H n e n'"
   shows "G = H"
-  using prems
-  by (cases G, cases H, auto simp:split_paired_all has_edge_def)
+  using assms
+  by (cases G, cases H) (auto simp:split_paired_all has_edge_def)
 
 
 instance graph :: (type, type) "{comm_monoid_add}"
@@ -219,7 +219,7 @@ qed
 lemma graph_leqI:
   assumes "\<And>n e n'. has_edge G n e n' \<Longrightarrow> has_edge H n e n'"
   shows "G \<le> H"
-  using prems
+  using assms
   unfolding graph_leq_def has_edge_def
   by auto
 
@@ -229,18 +229,18 @@ lemma in_graph_plusE:
   assumes "has_edge G n e n' \<Longrightarrow> P"
   assumes "has_edge H n e n' \<Longrightarrow> P"
   shows P
-  using prems
+  using assms
   by (auto simp: in_grplus)
 
 lemma 
   assumes "x \<in> S k"
   shows "x \<in> (\<Union>k. S k)"
-  using prems by blast
+  using assms by blast
 
 lemma graph_union_least:
   assumes "\<And>n. Graph (G n) \<le> C"
   shows "Graph (\<Union>n. G n) \<le> C"
-  using prems unfolding graph_leq_def
+  using assms unfolding graph_leq_def
   by auto
 
 lemma Sup_graph_eq:
@@ -333,15 +333,15 @@ where
 lemma endnode_nth:
   assumes "length (snd p) = Suc k"
   shows "end_node p = snd (snd (path_nth p k))"
-  using prems unfolding end_node_def path_nth_def
+  using assms unfolding end_node_def path_nth_def
   by auto
 
 lemma path_nth_graph:
   assumes "k < length (snd p)"
   assumes "has_fpath G p"
   shows "(\<lambda>(n,e,n'). has_edge G n e n') (path_nth p k)"
-  using prems
-proof (induct k arbitrary:p)
+using assms
+proof (induct k arbitrary: p)
   case 0 thus ?case 
     unfolding path_nth_def by (auto elim:has_fpath.cases)
 next
@@ -364,7 +364,7 @@ qed
 lemma path_nth_connected:
   assumes "Suc k < length (snd p)"
   shows "fst (path_nth p (Suc k)) = snd (snd (path_nth p k))"
-  using prems
+  using assms
   unfolding path_nth_def
   by auto
 
@@ -399,9 +399,9 @@ proof -
     hence "fst (path_nth p (Suc i mod ?l)) = fst (path_nth p 0)" 
       by (simp add: mod_Suc)
     also from fst_p0 have "\<dots> = fst p" .
-    also have "\<dots> = end_node p" .
+    also have "\<dots> = end_node p" by assumption
     also have "\<dots> = snd (snd (path_nth p ?k))" 
-      by (auto simp:endnode_nth wrap)
+      by (auto simp: endnode_nth wrap)
     finally show ?thesis .
   qed
 qed
@@ -411,17 +411,21 @@ lemma path_loop_graph:
   and loop: "fst p = end_node p"
   and nonempty: "0 < length (snd p)" (is "0 < ?l")
   shows "has_ipath G (omega p)"
-proof (auto simp:has_ipath_def)
-  fix i 
-  from `0 < ?l` have "i mod ?l < ?l" (is "?k < ?l")
-    by simp
-  with path_nth_graph 
-  have pk_G: "(\<lambda>(n,e,n'). has_edge G n e n') (path_nth p ?k)" .
+proof -
+  {
+    fix i 
+    from `0 < ?l` have "i mod ?l < ?l" (is "?k < ?l")
+      by simp
+    from this and `has_fpath G p`
+    have pk_G: "(\<lambda>(n,e,n'). has_edge G n e n') (path_nth p ?k)"
+      by (rule path_nth_graph)
 
-  from path_loop_connect[OF loop nonempty] pk_G
-  show "has_edge G (fst (omega p i)) (snd (omega p i)) (fst (omega p (Suc i)))"
-    unfolding path_loop_def has_edge_def split_def
-    by simp
+    from path_loop_connect[OF loop nonempty] pk_G
+    have "has_edge G (fst (omega p i)) (snd (omega p i)) (fst (omega p (Suc i)))"
+      unfolding path_loop_def has_edge_def split_def
+      by simp
+  }
+  then show ?thesis by (auto simp:has_ipath_def)
 qed
 
 definition prod :: "('n, 'e::monoid_mult) fpath \<Rightarrow> 'e"
@@ -514,7 +518,7 @@ lemma foldr_map: "foldr f (map g xs) = foldr (f o g) xs"
 lemma upto_append[simp]:
   assumes "i \<le> j" "j \<le> k"
   shows "[ i ..< j ] @ [j ..< k] = [i ..< k]"
-  using prems and upt_add_eq_append[of i j "k - j"]
+  using assms and upt_add_eq_append[of i j "k - j"]
   by simp
 
 lemma foldr_monoid: "foldr (op *) xs 1 * foldr (op *) ys 1
@@ -525,7 +529,7 @@ lemma sub_path_prod:
   assumes "i < j"
   assumes "j < k"
   shows "prod (p\<langle>i,k\<rangle>) = prod (p\<langle>i,j\<rangle>) * prod (p\<langle>j,k\<rangle>)"
-  using prems
+  using assms
   unfolding prod_def sub_path_def
   by (simp add:map_compose[symmetric] comp_def)
    (simp only:foldr_monoid map_append[symmetric] upto_append)
@@ -535,7 +539,7 @@ lemma path_acgpow_aux:
   assumes "length es = l"
   assumes "has_fpath G (n,es)"
   shows "has_edge (G ^ l) n (prod (n,es)) (end_node (n,es))"
-using prems
+using assms
 proof (induct l arbitrary:n es)
   case 0 thus ?case
     by (simp add:in_grunit end_node_def) 
@@ -679,7 +683,7 @@ lemma prod_unfold:
 
 lemma sub_path_loop:
   assumes "0 < k"
-  assumes k:"k = length (snd loop)"
+  assumes k: "k = length (snd loop)"
   assumes loop: "fst loop = end_node loop"
   shows "(omega loop)\<langle>k * i,k * Suc i\<rangle> = loop" (is "?\<omega> = loop")
 proof (rule prod_eqI)
@@ -698,14 +702,17 @@ proof (rule prod_eqI)
       = snd (snd (path_nth loop (i mod k)))"
       unfolding k
       apply (rule path_loop_connect[OF loop])
-      by (insert prems, auto)
+      using `0 < k` and k
+      apply auto
+      done
 
     from `j < k` 
     show "snd ?\<omega> ! j = snd loop ! j"
       unfolding sub_path_def
       apply (simp add:path_loop_def split_def add_ac)
       apply (simp add:a k[symmetric])
-      by (simp add:path_nth_def)
+      apply (simp add:path_nth_def)
+      done
   qed
 qed
 

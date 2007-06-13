@@ -146,16 +146,18 @@ theorem prop2:
   assumes ab: "a \<noteq> b" and bar: "bar xs"
   shows "\<And>ys zs. bar ys \<Longrightarrow> T a xs zs \<Longrightarrow> T b ys zs \<Longrightarrow> bar zs" using bar
 proof induct
-  fix xs zs assume "good xs" and "T a xs zs"
-  show "bar zs" by (rule bar1) (rule lemma3)
+  fix xs zs assume "T a xs zs" and "good xs"
+  hence "good zs" by (rule lemma3)
+  then show "bar zs" by (rule bar1)
 next
   fix xs ys
   assume I: "\<And>w ys zs. bar ys \<Longrightarrow> T a (w # xs) zs \<Longrightarrow> T b ys zs \<Longrightarrow> bar zs"
   assume "bar ys"
   thus "\<And>zs. T a xs zs \<Longrightarrow> T b ys zs \<Longrightarrow> bar zs"
   proof induct
-    fix ys zs assume "good ys" and "T b ys zs"
-    show "bar zs" by (rule bar1) (rule lemma3)
+    fix ys zs assume "T b ys zs" and "good ys"
+    then have "good zs" by (rule lemma3)
+    then show "bar zs" by (rule bar1)
   next
     fix ys zs assume I': "\<And>w zs. T a xs zs \<Longrightarrow> T b (w # ys) zs \<Longrightarrow> bar zs"
     and ys: "\<And>w. bar (w # ys)" and Ta: "T a xs zs" and Tb: "T b ys zs"
@@ -189,8 +191,9 @@ theorem prop3:
   shows "\<And>zs. xs \<noteq> [] \<Longrightarrow> R a xs zs \<Longrightarrow> bar zs" using bar
 proof induct
   fix xs zs
-  assume "good xs" and "R a xs zs"
-  show "bar zs" by (rule bar1) (rule lemma2)
+  assume "R a xs zs" and "good xs"
+  then have "good zs" by (rule lemma2)
+  then show "bar zs" by (rule bar1)
 next
   fix xs zs
   assume I: "\<And>w zs. w # xs \<noteq> [] \<Longrightarrow> R a (w # xs) zs \<Longrightarrow> bar zs"
@@ -299,7 +302,7 @@ proof induct
   thus ?case by iprover
 next
   case (bar2 ws)
-  have "is_prefix (f (length ws) # ws) f" by simp
+  from bar2.prems have "is_prefix (f (length ws) # ws) f" by simp
   thus ?case by (iprover intro: bar2)
 qed
 

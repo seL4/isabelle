@@ -3,9 +3,9 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""
+header ""   (* FIXME proper header *)
 
-theory SCT_Misc
+theory SCT_Misc   (* FIXME proper name *)
 imports Main
 begin
 
@@ -95,11 +95,13 @@ definition
   "section_of s n = (LEAST i. n < s (Suc i))"
 
 lemma section_help:
-  assumes [intro, simp]: "increasing s"
+  assumes "increasing s"
   shows "\<exists>i. n < s (Suc i)" 
 proof -
-  from increasing_inc have "n \<le> s n" .
-  also from increasing_strict have "\<dots> < s (Suc n)" by simp
+  have "n \<le> s n"
+    using `increasing s` by (rule increasing_inc)
+  also have "\<dots> < s (Suc n)"
+    using `increasing s` increasing_strict by simp
   finally show ?thesis ..
 qed
 
@@ -107,7 +109,7 @@ lemma section_of2:
   assumes "increasing s"
   shows "n < s (Suc (section_of s n))"
   unfolding section_of_def
-  by (rule LeastI_ex) (rule section_help)
+  by (rule LeastI_ex) (rule section_help [OF `increasing s`])
 
 lemma section_of1:
   assumes [simp, intro]: "increasing s"

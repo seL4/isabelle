@@ -21,16 +21,16 @@ text {*
 
 theorem "((A --> B) --> A) --> A"
 proof
-  assume aba: "(A --> B) --> A"
+  assume "(A --> B) --> A"
   show A
   proof (rule classical)
     assume "~ A"
     have "A --> B"
     proof
       assume A
-      thus B by contradiction
+      with `~ A` show B by contradiction
     qed
-    with aba show A ..
+    with `(A --> B) --> A` show A ..
   qed
 qed
 
@@ -52,17 +52,17 @@ text {*
 
 theorem "((A --> B) --> A) --> A"
 proof
-  assume aba: "(A --> B) --> A"
+  assume "(A --> B) --> A"
   show A
   proof (rule classical)
     presume "A --> B"
-    with aba show A ..
+    with `(A --> B) --> A` show A ..
   next
     assume "~ A"
     show "A --> B"
     proof
       assume A
-      thus B by contradiction
+      with `~ A` show B by contradiction
     qed
   qed
 qed

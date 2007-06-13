@@ -450,7 +450,7 @@ proof
       proof (elim exE disjE conjE)
         fix M assume "?R M M0" and N: "N = M + {#a#}"
         from acc_hyp have "?R M M0 --> ?W (M + {#a#})" ..
-        then have "?W (M + {#a#})" ..
+        from this and `?R M M0` have "?W (M + {#a#})" ..
         then show "?W N" by (simp only: N)
       next
         fix K
@@ -487,23 +487,23 @@ proof
     from wf have "\<forall>M \<triangleright> ?W. ?W (M + {#a#})"
     proof induct
       fix a
-      assume "!!b. r b a ==> \<forall>M \<triangleright> ?W. ?W (M + {#b#})"
+      assume r: "!!b. r b a ==> \<forall>M \<triangleright> ?W. ?W (M + {#b#})"
       show "\<forall>M \<triangleright> ?W. ?W (M + {#a#})"
       proof
         fix M assume "?W M"
         then show "?W (M + {#a#})"
-          by (rule acc_induct) (rule tedious_reasoning)
+          by (rule acc_induct) (rule tedious_reasoning [OF _ r])
       qed
     qed
-    then show "?W (M + {#a#})" ..
+    from this and `?W M` show "?W (M + {#a#})" ..
   qed
 qed
 
 theorem wf_mult1: "wfP r ==> wfP (mult1 r)"
-  by (rule acc_wfI, rule all_accessible)
+  by (rule acc_wfI) (rule all_accessible)
 
 theorem wf_mult: "wfP r ==> wfP (mult r)"
-  by (unfold mult_def, rule wfP_trancl, rule wf_mult1)
+  unfolding mult_def by (rule wfP_trancl) (rule wf_mult1)
 
 
 subsubsection {* Closure-free presentation *}
@@ -511,7 +511,7 @@ subsubsection {* Closure-free presentation *}
 (*Badly needed: a linear arithmetic procedure for multisets*)
 
 lemma diff_union_single_conv: "a :# J ==> I + J - {#a#} = I + (J - {#a#})"
-by (simp add: multiset_eq_conv_count_eq)
+  by (simp add: multiset_eq_conv_count_eq)
 
 text {* One direction. *}
 
@@ -548,7 +548,7 @@ lemma mult_implies_one_step:
   done
 
 lemma elem_imp_eq_diff_union: "a :# M ==> M = M - {#a#} + {#a#}"
-by (simp add: multiset_eq_conv_count_eq)
+  by (simp add: multiset_eq_conv_count_eq)
 
 lemma size_eq_Suc_imp_eq_union: "size M = Suc n ==> \<exists>a N. M = N + {#a#}"
   apply (erule size_eq_Suc_imp_elem [THEN exE])
@@ -588,8 +588,7 @@ lemma one_step_implies_mult_aux:
 lemma one_step_implies_mult:
   "J \<noteq> {#} ==> \<forall>k \<in> set_of K. \<exists>j \<in> set_of J. r k j
     ==> mult r (I + K) (I + J)"
-  apply (insert one_step_implies_mult_aux, blast)
-  done
+  using one_step_implies_mult_aux by blast
 
 
 subsubsection {* Partial-order properties *}
@@ -609,9 +608,7 @@ text {*
 
 lemma mult_irrefl_aux:
     "finite A ==> (\<forall>x \<in> A. \<exists>y \<in> A. x < (y::'a::order)) \<Longrightarrow> A = {}"
-  apply (induct rule: finite_induct)
-   apply (auto intro: order_less_trans)
-  done
+  by (induct rule: finite_induct) (auto intro: order_less_trans)
 
 lemma mult_less_not_refl: "\<not> M < (M::'a::order multiset)"
   apply (unfold less_multiset_def, auto)
@@ -621,15 +618,13 @@ lemma mult_less_not_refl: "\<not> M < (M::'a::order multiset)"
   done
 
 lemma mult_less_irrefl [elim!]: "M < (M::'a::order multiset) ==> R"
-by (insert mult_less_not_refl, fast)
+  using insert mult_less_not_refl by fast
 
 
 text {* Transitivity. *}
 
 theorem mult_less_trans: "K < M ==> M < N ==> K < (N::'a::order multiset)"
-  apply (unfold less_multiset_def mult_def)
-  apply (blast intro: trancl_trans')
-  done
+  unfolding less_multiset_def mult_def by (blast intro: trancl_trans')
 
 text {* Asymmetry. *}
 

@@ -111,9 +111,10 @@ theorem lemma5:
    (\<exists>q. is_path r q i j i) \<and> (\<exists>q'. is_path r q' i i k)"
 proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)+)
   fix xs
-  assume "list_all (\<lambda>x. x < Suc i) xs"
-  assume "is_path' r j xs k"
-  assume "\<not> list_all (\<lambda>x. x < i) xs"
+  assume asms:
+    "list_all (\<lambda>x. x < Suc i) xs"
+    "is_path' r j xs k"
+    "\<not> list_all (\<lambda>x. x < i) xs"
   show "(\<exists>ys. list_all (\<lambda>x. x < i) ys \<and> is_path' r j ys i) \<and>
     (\<exists>ys. list_all (\<lambda>x. x < i) ys \<and> is_path' r i ys k)"
   proof
@@ -182,7 +183,7 @@ proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)
       	qed
       qed
     qed
-  qed
+  qed (rule asms)+
 qed
 
 theorem lemma5':

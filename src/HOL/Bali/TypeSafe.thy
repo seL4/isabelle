@@ -2680,8 +2680,8 @@ proof -
     qed
   next
     case (Super s L accC T A)
-    have conf_s: "Norm s\<Colon>\<preceq>(G, L)" .
-    have     wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l Super\<Colon>T" .
+    note conf_s = `Norm s\<Colon>\<preceq>(G, L)`
+    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l Super\<Colon>T`
     then obtain C c where
              C: "L This = Some (Class C)" and
        neq_Obj: "C\<noteq>Object" and
@@ -3426,10 +3426,10 @@ proof -
       have "\<And> j. abrupt s2 = Some (Jump j) \<Longrightarrow> j=Ret"
 	by (rule jumpNestingOk_evalE) (auto intro: jmpOk simp add: s1_no_jmp)
       moreover 
-      have "s3 =
+      note `s3 =
                 (if \<exists>l. abrupt s2 = Some (Jump (Break l)) \<or> 
                         abrupt s2 = Some (Jump (Cont l))
-                 then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 else s2)" .
+                 then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 else s2)`
       ultimately show ?thesis
 	by force
     qed
@@ -3649,8 +3649,8 @@ proof -
 	from eval_e1 wt_e1 da_e1 wf True
 	have "nrm E1 \<subseteq> dom (locals (store s1))"
 	  by (cases rule: da_good_approxE') iprover
-	with da_e2 show ?thesis
-	  by (rule da_weakenE)
+	with da_e2 show thesis
+	  by (rule da_weakenE) (rule that)
       qed
       with conf_s1 wt_e2
       obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and error_free_s2: "error_free s2"

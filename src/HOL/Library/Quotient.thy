@@ -31,27 +31,27 @@ class equiv = eqv +
 
 lemma equiv_not_sym [sym]: "\<not> (x \<sim> y) ==> \<not> (y \<sim> (x::'a::equiv))"
 proof -
-  assume "\<not> (x \<sim> y)" thus "\<not> (y \<sim> x)"
+  assume "\<not> (x \<sim> y)" then show "\<not> (y \<sim> x)"
     by (rule contrapos_nn) (rule equiv_sym)
 qed
 
 lemma not_equiv_trans1 [trans]: "\<not> (x \<sim> y) ==> y \<sim> z ==> \<not> (x \<sim> (z::'a::equiv))"
 proof -
-  assume "\<not> (x \<sim> y)" and yz: "y \<sim> z"
+  assume "\<not> (x \<sim> y)" and "y \<sim> z"
   show "\<not> (x \<sim> z)"
   proof
     assume "x \<sim> z"
-    also from yz have "z \<sim> y" ..
+    also from `y \<sim> z` have "z \<sim> y" ..
     finally have "x \<sim> y" .
-    thus False by contradiction
+    with `\<not> (x \<sim> y)` show False by contradiction
   qed
 qed
 
 lemma not_equiv_trans2 [trans]: "x \<sim> y ==> \<not> (y \<sim> z) ==> \<not> (x \<sim> (z::'a::equiv))"
 proof -
-  assume "\<not> (y \<sim> z)" hence "\<not> (z \<sim> y)" ..
-  also assume "x \<sim> y" hence "y \<sim> x" ..
-  finally have "\<not> (z \<sim> x)" . thus "(\<not> x \<sim> z)" ..
+  assume "\<not> (y \<sim> z)" then have "\<not> (z \<sim> y)" ..
+  also assume "x \<sim> y" then have "y \<sim> x" ..
+  finally have "\<not> (z \<sim> x)" . then show "(\<not> x \<sim> z)" ..
 qed
 
 text {*
@@ -80,9 +80,9 @@ definition
 theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"
 proof (cases A)
   fix R assume R: "A = Abs_quot R"
-  assume "R \<in> quot" hence "\<exists>a. R = {x. a \<sim> x}" by blast
+  assume "R \<in> quot" then have "\<exists>a. R = {x. a \<sim> x}" by blast
   with R have "\<exists>a. A = Abs_quot {x. a \<sim> x}" by blast
-  thus ?thesis unfolding class_def .
+  then show ?thesis unfolding class_def .
 qed
 
 lemma quot_cases [cases type: quot]: "(!!a. A = \<lfloor>a\<rfloor> ==> C) ==> C"
@@ -105,8 +105,8 @@ proof
       by (simp only: class_def Abs_quot_inject quotI)
     moreover have "a \<sim> a" ..
     ultimately have "a \<in> {x. b \<sim> x}" by blast
-    hence "b \<sim> a" by blast
-    thus ?thesis ..
+    then have "b \<sim> a" by blast
+    then show ?thesis ..
   qed
 next
   assume ab: "a \<sim> b"
@@ -125,7 +125,7 @@ next
         finally show "a \<sim> x" .
       qed
     qed
-    thus ?thesis by (simp only: class_def)
+    then show ?thesis by (simp only: class_def)
   qed
 qed
 
@@ -142,15 +142,15 @@ proof (unfold pick_def)
   proof (rule someI2)
     show "\<lfloor>a\<rfloor> = \<lfloor>a\<rfloor>" ..
     fix x assume "\<lfloor>a\<rfloor> = \<lfloor>x\<rfloor>"
-    hence "a \<sim> x" .. thus "x \<sim> a" ..
+    then have "a \<sim> x" .. then show "x \<sim> a" ..
   qed
 qed
 
 theorem pick_inverse [intro]: "\<lfloor>pick A\<rfloor> = A"
 proof (cases A)
   fix a assume a: "A = \<lfloor>a\<rfloor>"
-  hence "pick A \<sim> a" by (simp only: pick_equiv)
-  hence "\<lfloor>pick A\<rfloor> = \<lfloor>a\<rfloor>" ..
+  then have "pick A \<sim> a" by (simp only: pick_equiv)
+  then have "\<lfloor>pick A\<rfloor> = \<lfloor>a\<rfloor>" ..
   with a show ?thesis by simp
 qed
 
@@ -175,7 +175,7 @@ proof -
     moreover
     show "\<lfloor>pick \<lfloor>b\<rfloor>\<rfloor> = \<lfloor>b\<rfloor>" ..
     moreover
-    show "P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor>" .
+    show "P \<lfloor>a\<rfloor> \<lfloor>b\<rfloor>" by (rule P)
     ultimately show "P \<lfloor>pick \<lfloor>a\<rfloor>\<rfloor> \<lfloor>pick \<lfloor>b\<rfloor>\<rfloor>" by (simp only:)
   qed
   finally show ?thesis .

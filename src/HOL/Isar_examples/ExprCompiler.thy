@@ -121,11 +121,14 @@ next
   case (Cons x xs)
   show ?case
   proof (induct x)
-    case Const show ?case by simp
+    case Const
+    from Cons show ?case by simp
   next
-    case Load show ?case by simp
+    case Load
+    from Cons show ?case by simp
   next
-    case Apply show ?case by simp
+    case Apply
+    from Cons show ?case by simp
   qed
 qed
 
@@ -139,7 +142,7 @@ proof -
   next
     case Binop then show ?case by (simp add: exec_append)
   qed
-  thus ?thesis by (simp add: execute_def)
+  then show ?thesis by (simp add: execute_def)
 qed
 
 

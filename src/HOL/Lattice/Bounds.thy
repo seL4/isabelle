@@ -147,7 +147,7 @@ proof -
     from sup show "is_inf (dual x) (dual y) (dual sup)" ..
     from sup' show "is_inf (dual x) (dual y) (dual sup')" ..
   qed
-  thus "sup = sup'" ..
+  then show "sup = sup'" ..
 qed
 
 theorem is_Inf_uniq: "is_Inf A inf \<Longrightarrow> is_Inf A inf' \<Longrightarrow> inf = inf'"
@@ -159,12 +159,12 @@ proof -
     from inf' show "inf \<sqsubseteq> inf'"
     proof (rule is_Inf_greatest)
       fix x assume "x \<in> A"
-      from inf show "inf \<sqsubseteq> x" ..
+      with inf show "inf \<sqsubseteq> x" ..
     qed
     from inf show "inf' \<sqsubseteq> inf"
     proof (rule is_Inf_greatest)
       fix x assume "x \<in> A"
-      from inf' show "inf' \<sqsubseteq> x" ..
+      with inf' show "inf' \<sqsubseteq> x" ..
     qed
   qed
 qed
@@ -177,7 +177,7 @@ proof -
     from sup show "is_Inf (dual ` A) (dual sup)" ..
     from sup' show "is_Inf (dual ` A) (dual sup')" ..
   qed
-  thus "sup = sup'" ..
+  then show "sup = sup'" ..
 qed
 
 
@@ -193,8 +193,8 @@ proof -
   show ?thesis
   proof
     show "x \<sqsubseteq> x" ..
-    show "x \<sqsubseteq> y" .
-    fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> y" show "z \<sqsubseteq> x" .
+    show "x \<sqsubseteq> y" by assumption
+    fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> y" show "z \<sqsubseteq> x" by assumption
   qed
 qed
 
@@ -203,10 +203,10 @@ proof -
   assume "x \<sqsubseteq> y"
   show ?thesis
   proof
-    show "x \<sqsubseteq> y" .
+    show "x \<sqsubseteq> y" by assumption
     show "y \<sqsubseteq> y" ..
     fix z assume "x \<sqsubseteq> z" and "y \<sqsubseteq> z"
-    show "y \<sqsubseteq> z" .
+    show "y \<sqsubseteq> z" by assumption
   qed
 qed
 
@@ -233,8 +233,8 @@ proof -
       from is_Inf show "z \<sqsubseteq> inf"
       proof (rule is_Inf_greatest)
         fix a assume "a \<in> ?A"
-        hence "a = x \<or> a = y" by blast
-        thus "z \<sqsubseteq> a"
+        then have "a = x \<or> a = y" by blast
+        then show "z \<sqsubseteq> a"
         proof
           assume "a = x"
           with zx show ?thesis by simp
@@ -249,8 +249,8 @@ proof -
     show "is_Inf {x, y} inf"
     proof
       fix a assume "a \<in> ?A"
-      hence "a = x \<or> a = y" by blast
-      thus "inf \<sqsubseteq> a"
+      then have "a = x \<or> a = y" by blast
+      then show "inf \<sqsubseteq> a"
       proof
         assume "a = x"
         also from is_inf have "inf \<sqsubseteq> x" ..
@@ -304,12 +304,12 @@ proof -
     from is_Inf show "x \<sqsubseteq> sup"
     proof (rule is_Inf_greatest)
       fix y assume "y \<in> ?B"
-      hence "\<forall>a \<in> A. a \<sqsubseteq> y" ..
+      then have "\<forall>a \<in> A. a \<sqsubseteq> y" ..
       from this x show "x \<sqsubseteq> y" ..
     qed
   next
     fix z assume "\<forall>x \<in> A. x \<sqsubseteq> z"
-    hence "z \<in> ?B" ..
+    then have "z \<in> ?B" ..
     with is_Inf show "sup \<sqsubseteq> z" ..
   qed
 qed
@@ -317,14 +317,14 @@ qed
 theorem Sup_Inf: "is_Sup {b. \<forall>a \<in> A. b \<sqsubseteq> a} inf \<Longrightarrow> is_Inf A inf"
 proof -
   assume "is_Sup {b. \<forall>a \<in> A. b \<sqsubseteq> a} inf"
-  hence "is_Inf (dual ` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b}) (dual inf)"
+  then have "is_Inf (dual ` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b}) (dual inf)"
     by (simp only: dual_Inf dual_leq)
   also have "dual ` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b} = {b'. \<forall>a' \<in> dual ` A. a' \<sqsubseteq> b'}"
     by (auto iff: dual_ball dual_Collect simp add: image_Collect)  (* FIXME !? *)
   finally have "is_Inf \<dots> (dual inf)" .
-  hence "is_Sup (dual ` A) (dual inf)"
+  then have "is_Sup (dual ` A) (dual inf)"
     by (rule Inf_Sup)
-  thus ?thesis ..
+  then show ?thesis ..
 qed
 
 end

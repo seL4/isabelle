@@ -405,7 +405,7 @@ proof (induct set: has_type)
   then have "map ($ s) a |- Var n :: map ($ s) a ! n"
     by (rule has_type.Var)
   also have "map ($ s) a ! n = $ s (a ! n)"
-    by (rule nth_map)
+    by (rule nth_map) (rule Var)
   also have "map ($ s) a = $ s a"
     by (simp only: app_subst_list)
   finally show ?case .

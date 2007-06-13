@@ -34,15 +34,15 @@ proof
   proof
     assume "?S : range f"
     then obtain y where "?S = f y" ..
-    thus False
+    then show False
     proof (rule equalityCE)
       assume "y : f y"
-      assume "y : ?S" hence "y ~: f y" ..
-      thus ?thesis by contradiction
+      assume "y : ?S" then have "y ~: f y" ..
+      with `y : f y` show ?thesis by contradiction
     next
       assume "y ~: ?S"
-      assume "y ~: f y" hence "y : ?S" ..
-      thus ?thesis by contradiction
+      assume "y ~: f y" then have "y : ?S" ..
+      with `y ~: ?S` show ?thesis by contradiction
     qed
   qed
 qed

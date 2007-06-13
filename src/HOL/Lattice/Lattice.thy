@@ -43,8 +43,8 @@ text {*
 lemma meet_equality [elim?]: "is_inf x y inf \<Longrightarrow> x \<sqinter> y = inf"
 proof (unfold meet_def)
   assume "is_inf x y inf"
-  thus "(THE inf. is_inf x y inf) = inf"
-    by (rule the_equality) (rule is_inf_uniq)
+  then show "(THE inf. is_inf x y inf) = inf"
+    by (rule the_equality) (rule is_inf_uniq [OF _ `is_inf x y inf`])
 qed
 
 lemma meetI [intro?]:
@@ -54,8 +54,8 @@ lemma meetI [intro?]:
 lemma join_equality [elim?]: "is_sup x y sup \<Longrightarrow> x \<squnion> y = sup"
 proof (unfold join_def)
   assume "is_sup x y sup"
-  thus "(THE sup. is_sup x y sup) = sup"
-    by (rule the_equality) (rule is_sup_uniq)
+  then show "(THE sup. is_sup x y sup) = sup"
+    by (rule the_equality) (rule is_sup_uniq [OF _ `is_sup x y sup`])
 qed
 
 lemma joinI [intro?]: "x \<sqsubseteq> sup \<Longrightarrow> y \<sqsubseteq> sup \<Longrightarrow>
@@ -71,7 +71,8 @@ text {*
 lemma is_inf_meet [intro?]: "is_inf x y (x \<sqinter> y)"
 proof (unfold meet_def)
   from ex_inf obtain inf where "is_inf x y inf" ..
-  thus "is_inf x y (THE inf. is_inf x y inf)" by (rule theI) (rule is_inf_uniq)
+  then show "is_inf x y (THE inf. is_inf x y inf)"
+    by (rule theI) (rule is_inf_uniq [OF _ `is_inf x y inf`])
 qed
 
 lemma meet_greatest [intro?]: "z \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> y \<Longrightarrow> z \<sqsubseteq> x \<sqinter> y"
@@ -87,7 +88,8 @@ lemma meet_lower2 [intro?]: "x \<sqinter> y \<sqsubseteq> y"
 lemma is_sup_join [intro?]: "is_sup x y (x \<squnion> y)"
 proof (unfold join_def)
   from ex_sup obtain sup where "is_sup x y sup" ..
-  thus "is_sup x y (THE sup. is_sup x y sup)" by (rule theI) (rule is_sup_uniq)
+  then show "is_sup x y (THE sup. is_sup x y sup)"
+    by (rule theI) (rule is_sup_uniq [OF _ `is_sup x y sup`])
 qed
 
 lemma join_least [intro?]: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<squnion> y \<sqsubseteq> z"
@@ -115,16 +117,16 @@ proof
   show "\<exists>inf'. is_inf x' y' inf'"
   proof -
     have "\<exists>sup. is_sup (undual x') (undual y') sup" by (rule ex_sup)
-    hence "\<exists>sup. is_inf (dual (undual x')) (dual (undual y')) (dual sup)"
+    then have "\<exists>sup. is_inf (dual (undual x')) (dual (undual y')) (dual sup)"
       by (simp only: dual_inf)
-    thus ?thesis by (simp add: dual_ex [symmetric])
+    then show ?thesis by (simp add: dual_ex [symmetric])
   qed
   show "\<exists>sup'. is_sup x' y' sup'"
   proof -
     have "\<exists>inf. is_inf (undual x') (undual y') inf" by (rule ex_inf)
-    hence "\<exists>inf. is_sup (dual (undual x')) (dual (undual y')) (dual inf)"
+    then have "\<exists>inf. is_sup (dual (undual x')) (dual (undual y')) (dual inf)"
       by (simp only: dual_sup)
-    thus ?thesis by (simp add: dual_ex [symmetric])
+    then show ?thesis by (simp add: dual_ex [symmetric])
   qed
 qed
 
@@ -136,15 +138,15 @@ text {*
 theorem dual_meet [intro?]: "dual (x \<sqinter> y) = dual x \<squnion> dual y"
 proof -
   from is_inf_meet have "is_sup (dual x) (dual y) (dual (x \<sqinter> y))" ..
-  hence "dual x \<squnion> dual y = dual (x \<sqinter> y)" ..
-  thus ?thesis ..
+  then have "dual x \<squnion> dual y = dual (x \<sqinter> y)" ..
+  then show ?thesis ..
 qed
 
 theorem dual_join [intro?]: "dual (x \<squnion> y) = dual x \<sqinter> dual y"
 proof -
   from is_sup_join have "is_inf (dual x) (dual y) (dual (x \<squnion> y))" ..
-  hence "dual x \<sqinter> dual y = dual (x \<squnion> y)" ..
-  thus ?thesis ..
+  then have "dual x \<sqinter> dual y = dual (x \<squnion> y)" ..
+  then show ?thesis ..
 qed
 
 
@@ -179,7 +181,7 @@ proof
   proof
     show "w \<sqsubseteq> x"
     proof -
-      have "w \<sqsubseteq> x \<sqinter> y" .
+      have "w \<sqsubseteq> x \<sqinter> y" by fact
       also have "\<dots> \<sqsubseteq> x" ..
       finally show ?thesis .
     qed
@@ -187,11 +189,11 @@ proof
     proof
       show "w \<sqsubseteq> y"
       proof -
-        have "w \<sqsubseteq> x \<sqinter> y" .
+        have "w \<sqsubseteq> x \<sqinter> y" by fact
         also have "\<dots> \<sqsubseteq> y" ..
         finally show ?thesis .
       qed
-      show "w \<sqsubseteq> z" .
+      show "w \<sqsubseteq> z" by fact
     qed
   qed
 qed
@@ -211,8 +213,8 @@ theorem meet_commute: "x \<sqinter> y = y \<sqinter> x"
 proof
   show "y \<sqinter> x \<sqsubseteq> x" ..
   show "y \<sqinter> x \<sqsubseteq> y" ..
-  fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> y"
-  show "z \<sqsubseteq> y \<sqinter> x" ..
+  fix z assume "z \<sqsubseteq> y" and "z \<sqsubseteq> x"
+  then show "z \<sqsubseteq> y \<sqinter> x" ..
 qed
 
 theorem join_commute: "x \<squnion> y = y \<squnion> x"
@@ -230,16 +232,16 @@ proof
   show "x \<sqsubseteq> x" ..
   show "x \<sqsubseteq> x \<squnion> y" ..
   fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> x \<squnion> y"
-  show "z \<sqsubseteq> x" .
+  show "z \<sqsubseteq> x" by assumption
 qed
 
 theorem join_meet_absorb: "x \<squnion> (x \<sqinter> y) = x"
 proof -
   have "dual x \<sqinter> (dual x \<squnion> dual y) = dual x"
     by (rule meet_join_absorb)
-  hence "dual (x \<squnion> (x \<sqinter> y)) = dual x"
+  then have "dual (x \<squnion> (x \<sqinter> y)) = dual x"
     by (simp only: dual_meet dual_join)
-  thus ?thesis ..
+  then show ?thesis ..
 qed
 
 text {*
@@ -258,9 +260,9 @@ theorem join_idem: "x \<squnion> x = x"
 proof -
   have "dual x \<sqinter> dual x = dual x"
     by (rule meet_idem)
-  hence "dual (x \<squnion> x) = dual x"
+  then have "dual (x \<squnion> x) = dual x"
     by (simp only: dual_join)
-  thus ?thesis ..
+  then show ?thesis ..
 qed
 
 text {*
@@ -271,14 +273,15 @@ theorem meet_related [elim?]: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> 
 proof
   assume "x \<sqsubseteq> y"
   show "x \<sqsubseteq> x" ..
-  show "x \<sqsubseteq> y" .
-  fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> y" show "z \<sqsubseteq> x" .
+  show "x \<sqsubseteq> y" by fact
+  fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> y"
+  show "z \<sqsubseteq> x" by fact
 qed
 
 theorem join_related [elim?]: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
 proof -
-  assume "x \<sqsubseteq> y" hence "dual y \<sqsubseteq> dual x" ..
-  hence "dual y \<sqinter> dual x = dual y" by (rule meet_related)
+  assume "x \<sqsubseteq> y" then have "dual y \<sqsubseteq> dual x" ..
+  then have "dual y \<sqinter> dual x = dual y" by (rule meet_related)
   also have "dual y \<sqinter> dual x = dual (y \<squnion> x)" by (simp only: dual_join)
   also have "y \<squnion> x = x \<squnion> y" by (rule join_commute)
   finally show ?thesis ..
@@ -295,8 +298,8 @@ text {*
 theorem meet_connection: "(x \<sqsubseteq> y) = (x \<sqinter> y = x)"
 proof
   assume "x \<sqsubseteq> y"
-  hence "is_inf x y x" ..
-  thus "x \<sqinter> y = x" ..
+  then have "is_inf x y x" ..
+  then show "x \<sqinter> y = x" ..
 next
   have "x \<sqinter> y \<sqsubseteq> y" ..
   also assume "x \<sqinter> y = x"
@@ -306,8 +309,8 @@ qed
 theorem join_connection: "(x \<sqsubseteq> y) = (x \<squnion> y = y)"
 proof
   assume "x \<sqsubseteq> y"
-  hence "is_sup x y y" ..
-  thus "x \<squnion> y = y" ..
+  then have "is_sup x y y" ..
+  then show "x \<squnion> y = y" ..
 next
   have "x \<sqsubseteq> x \<squnion> y" ..
   also assume "x \<squnion> y = y"
@@ -555,27 +558,27 @@ proof -
     assume "a \<sqsubseteq> c" have "a \<sqinter> b \<sqsubseteq> c \<sqinter> b"
     proof
       have "a \<sqinter> b \<sqsubseteq> a" ..
-      also have "\<dots> \<sqsubseteq> c" .
+      also have "\<dots> \<sqsubseteq> c" by fact
       finally show "a \<sqinter> b \<sqsubseteq> c" .
       show "a \<sqinter> b \<sqsubseteq> b" ..
     qed
   } note this [elim?]
-  assume "x \<sqsubseteq> z" hence "x \<sqinter> y \<sqsubseteq> z \<sqinter> y" ..
+  assume "x \<sqsubseteq> z" then have "x \<sqinter> y \<sqsubseteq> z \<sqinter> y" ..
   also have "\<dots> = y \<sqinter> z" by (rule meet_commute)
-  also assume "y \<sqsubseteq> w" hence "y \<sqinter> z \<sqsubseteq> w \<sqinter> z" ..
+  also assume "y \<sqsubseteq> w" then have "y \<sqinter> z \<sqsubseteq> w \<sqinter> z" ..
   also have "\<dots> = z \<sqinter> w" by (rule meet_commute)
   finally show ?thesis .
 qed
 
 theorem join_mono: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> w \<Longrightarrow> x \<squnion> y \<sqsubseteq> z \<squnion> w"
 proof -
-  assume "x \<sqsubseteq> z" hence "dual z \<sqsubseteq> dual x" ..
-  moreover assume "y \<sqsubseteq> w" hence "dual w \<sqsubseteq> dual y" ..
+  assume "x \<sqsubseteq> z" then have "dual z \<sqsubseteq> dual x" ..
+  moreover assume "y \<sqsubseteq> w" then have "dual w \<sqsubseteq> dual y" ..
   ultimately have "dual z \<sqinter> dual w \<sqsubseteq> dual x \<sqinter> dual y"
     by (rule meet_mono)
-  hence "dual (z \<squnion> w) \<sqsubseteq> dual (x \<squnion> y)"
+  then have "dual (z \<squnion> w) \<sqsubseteq> dual (x \<squnion> y)"
     by (simp only: dual_join)
-  thus ?thesis ..
+  then show ?thesis ..
 qed
 
 text {*
@@ -590,8 +593,8 @@ theorem meet_semimorph:
 proof
   assume morph: "\<And>x y. f (x \<sqinter> y) \<sqsubseteq> f x \<sqinter> f y"
   fix x y :: "'a::lattice"
-  assume "x \<sqsubseteq> y" hence "x \<sqinter> y = x" ..
-  hence "x = x \<sqinter> y" ..
+  assume "x \<sqsubseteq> y" then have "x \<sqinter> y = x" ..
+  then have "x = x \<sqinter> y" ..
   also have "f \<dots> \<sqsubseteq> f x \<sqinter> f y" by (rule morph)
   also have "\<dots> \<sqsubseteq> f y" ..
   finally show "f x \<sqsubseteq> f y" .
@@ -602,8 +605,8 @@ next
     fix x y
     show "f (x \<sqinter> y) \<sqsubseteq> f x \<sqinter> f y"
     proof
-      have "x \<sqinter> y \<sqsubseteq> x" .. thus "f (x \<sqinter> y) \<sqsubseteq> f x" by (rule mono)
-      have "x \<sqinter> y \<sqsubseteq> y" .. thus "f (x \<sqinter> y) \<sqsubseteq> f y" by (rule mono)
+      have "x \<sqinter> y \<sqsubseteq> x" .. then show "f (x \<sqinter> y) \<sqsubseteq> f x" by (rule mono)
+      have "x \<sqinter> y \<sqsubseteq> y" .. then show "f (x \<sqinter> y) \<sqsubseteq> f y" by (rule mono)
     qed
   qed
 qed

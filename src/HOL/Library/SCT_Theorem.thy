@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""
+header ""   (* FIXME proper header *)
 
 theory SCT_Theorem
 imports Main Ramsey SCT_Misc SCT_Definition
@@ -795,10 +795,9 @@ proof (intro exI conjI)
       unfolding is_desc_fthread_def
       by auto
 
-    have "i < s (Suc ?k)" by (rule section_of2)
-    also have "\<dots> \<le> s j" 
-      by (rule increasing_weak[of s], assumption)
-    (insert `?k < j`, arith)
+    have "i < s (Suc ?k)" by (rule section_of2) simp
+    also have "\<dots> \<le> s j"
+      by (rule increasing_weak [of s], assumption) (insert `?k < j`, arith)
     also note `\<dots> \<le> l`
     finally have "i < l" .
     with desc
@@ -925,10 +924,10 @@ proof
       {
 	fix x assume r: "x \<in> section s ?L"
 	
-	have e1: "max (s (Suc i)) n < s (Suc ?K)" by (rule section_of2)
+	have e1: "max (s (Suc i)) n < s (Suc ?K)" by (rule section_of2) simp
         note `s (Suc ?K) < j`
         also have "j < s (Suc ?L)"
-          by (rule section_of2)
+          by (rule section_of2) simp
         finally have "Suc ?K \<le> ?L"
           by (simp add:increasing_bij)          
 	with increasing_weak have "s (Suc ?K) \<le> s ?L" by simp
@@ -1074,12 +1073,12 @@ definition
   "set2list = inv set"
 
 lemma finite_set2list: 
-  assumes [intro]: "finite S" 
+  assumes "finite S" 
   shows "set (set2list S) = S"
   unfolding set2list_def 
 proof (rule f_inv_f)
-  from finite_list
-  have "\<exists>l. set l = S" .
+  from `finite S` have "\<exists>l. set l = S"
+    by (rule finite_list)
   thus "S \<in> range set"
     unfolding image_def
     by auto
@@ -1307,7 +1306,7 @@ next
       by (simp only:split_conv, rule a, auto)
 
     obtain n H m where
-      G_struct: "G = (n, H, m)" by (cases G) simp
+      G_struct: "G = (n, H, m)" by (cases G)
 
     let ?s = "enumerate S"
     let ?q = "contract ?s p"
@@ -1381,7 +1380,7 @@ lemma LJA_apply:
 proof -
   from fin obtain P where b: "bounded_acg P A"
     unfolding finite_acg_def ..
-  show ?thesis using LJA_Theorem4[OF b]
+  show ?thesis using LJA_Theorem4[OF b] and `SCT' A`
     by simp
 qed
 

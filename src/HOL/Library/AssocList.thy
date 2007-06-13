@@ -19,7 +19,7 @@ text {*
 fun
   delete :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
-  "delete k [] = []"
+    "delete k [] = []"
   | "delete k (p#ps) = (if fst p = k then delete k ps else p # delete k ps)"
 
 fun
@@ -79,27 +79,25 @@ termination by lexicographic_order
 fun
   restrict :: "'key set \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
-  "restrict A [] = []"
+    "restrict A [] = []"
   | "restrict A (p#ps) = (if fst p \<in> A then p#restrict A ps else restrict A ps)"
 
 fun
   map_ran :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
-  "map_ran f [] = []"
+    "map_ran f [] = []"
   | "map_ran f (p#ps) = (fst p, f (fst p) (snd p)) # map_ran f ps"
 
 fun
   clearjunk  :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
-  "clearjunk [] = []"  
+    "clearjunk [] = []"  
   | "clearjunk (p#ps) = p # clearjunk (delete (fst p) ps)"
 
 lemmas [simp del] = compose_hint
 
 
-(* ******************************************************************************** *)
 subsection {* Lookup *}
-(* ******************************************************************************** *)
 
 lemma lookup_simps [code func]: 
   "map_of [] k = None"
@@ -107,9 +105,7 @@ lemma lookup_simps [code func]:
   by simp_all
 
 
-(* ******************************************************************************** *)
 subsection {* @{const delete} *}
-(* ******************************************************************************** *)
 
 lemma delete_def:
   "delete k xs = filter (\<lambda>p. fst p \<noteq> k) xs"
@@ -140,7 +136,7 @@ lemma dom_delete_subset: "fst ` set (delete k al) \<subseteq> fst ` set al"
 lemma distinct_delete:
   assumes "distinct (map fst al)" 
   shows "distinct (map fst (delete k al))"
-using prems
+using assms
 proof (induct al)
   case Nil thus ?case by simp
 next
@@ -152,7 +148,7 @@ next
   show ?case
   proof (cases "fst a = k")
     case True
-    from True dist_al show ?thesis by simp
+    with Cons dist_al show ?thesis by simp
   next
     case False
     from dist_al
@@ -171,9 +167,8 @@ lemma delete_twist: "delete x (delete y al) = delete y (delete x al)"
 lemma clearjunk_delete: "clearjunk (delete x al) = delete x (clearjunk al)"
   by (induct al rule: clearjunk.induct) (auto simp add: delete_idem delete_twist)
 
-(* ******************************************************************************** *)
+
 subsection {* @{const clearjunk} *}
-(* ******************************************************************************** *)
 
 lemma insert_fst_filter: 
   "insert a(fst ` {x \<in> set ps. fst x \<noteq> a}) = insert a (fst ` set ps)"
@@ -221,9 +216,8 @@ lemma distinct_clearjunk_id [simp]: "distinct (map fst al) \<Longrightarrow> cle
 lemma clearjunk_idem: "clearjunk (clearjunk al) = clearjunk al"
   by simp
 
-(* ******************************************************************************** *)
+
 subsection {* @{const dom} and @{term "ran"} *}
-(* ******************************************************************************** *)
 
 lemma dom_map_of': "fst ` set al = dom (map_of al)"
   by (induct al) auto
@@ -295,9 +289,8 @@ proof -
   finally show ?thesis .
 qed
    
-(* ******************************************************************************** *)
+
 subsection {* @{const update} *}
-(* ******************************************************************************** *)
 
 lemma update_conv: "map_of (update k v al) k' = ((map_of al)(k\<mapsto>v)) k'"
   by (induct al) auto
@@ -311,7 +304,7 @@ lemma dom_update: "fst ` set (update k v al) = {k} \<union> fst ` set al"
 lemma distinct_update:
   assumes "distinct (map fst al)" 
   shows "distinct (map fst (update k v al))"
-using prems
+using assms
 proof (induct al)
   case Nil thus ?case by simp
 next
@@ -374,9 +367,7 @@ lemma image_update[simp]: "x \<notin> A \<Longrightarrow> map_of (update x y al)
   by (simp add: update_conv' image_map_upd)
 
 
-(* ******************************************************************************** *)
 subsection {* @{const updates} *}
-(* ******************************************************************************** *)
 
 lemma updates_conv: "map_of (updates ks vs al) k = ((map_of al)(ks[\<mapsto>]vs)) k"
 proof (induct ks arbitrary: vs al)
@@ -401,7 +392,7 @@ lemma updates_conv': "map_of (updates ks vs al) = ((map_of al)(ks[\<mapsto>]vs))
 lemma distinct_updates:
   assumes "distinct (map fst al)"
   shows "distinct (map fst (updates ks vs al))"
-  using prems
+  using assms
   by (induct ks arbitrary: vs al)
    (auto simp add: distinct_update split: list.splits)
 
@@ -447,9 +438,8 @@ lemma updates_append2_drop[simp]:
   "size xs = size ys \<Longrightarrow> updates xs (ys@zs) al = updates xs ys al"
   by (induct xs arbitrary: ys al) (auto split: list.splits)
 
-(* ******************************************************************************** *)
+
 subsection {* @{const map_ran} *}
-(* ******************************************************************************** *)
 
 lemma map_ran_conv: "map_of (map_ran f al) k = option_map (f k) (map_of al k)"
   by (induct al) auto
@@ -466,9 +456,8 @@ lemma map_ran_filter: "map_ran f [p\<leftarrow>ps. fst p \<noteq> a] = [p\<lefta
 lemma clearjunk_map_ran: "clearjunk (map_ran f al) = map_ran f (clearjunk al)"
   by (induct al rule: clearjunk.induct) (auto simp add: delete_def map_ran_filter)
 
-(* ******************************************************************************** *)
+
 subsection {* @{const merge} *}
-(* ******************************************************************************** *)
 
 lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
   by (induct ys arbitrary: xs) (auto simp add: dom_update)
@@ -476,7 +465,7 @@ lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
 lemma distinct_merge:
   assumes "distinct (map fst xs)"
   shows "distinct (map fst (merge xs ys))"
-  using prems
+  using assms
 by (induct ys arbitrary: xs) (auto simp add: dom_merge distinct_update)
 
 lemma clearjunk_merge:
@@ -536,14 +525,13 @@ lemma merge_updatess[simp]:
 lemma merge_append: "map_of (xs@ys) = map_of (merge ys xs)"
   by (simp add: merge_conv')
 
-(* ******************************************************************************** *)
+
 subsection {* @{const compose} *}
-(* ******************************************************************************** *)
 
 lemma compose_first_None [simp]: 
   assumes "map_of xs k = None" 
   shows "map_of (compose xs ys) k = None"
-using prems by (induct xs ys rule: compose.induct)
+using assms by (induct xs ys rule: compose.induct)
   (auto split: option.splits split_if_asm)
 
 lemma compose_conv: 
@@ -591,7 +579,7 @@ lemma compose_conv':
 lemma compose_first_Some [simp]:
   assumes "map_of xs k = Some v" 
   shows "map_of (compose xs ys) k = map_of ys v"
-using prems by (simp add: compose_conv)
+using assms by (simp add: compose_conv)
 
 lemma dom_compose: "fst ` set (compose xs ys) \<subseteq> fst ` set xs"
 proof (induct xs ys rule: compose.induct)
@@ -623,7 +611,7 @@ qed
 lemma distinct_compose:
  assumes "distinct (map fst xs)"
  shows "distinct (map fst (compose xs ys))"
-using prems
+using assms
 proof (induct xs ys rule: compose.induct)
   case 1 thus ?case by simp
 next
@@ -695,9 +683,7 @@ lemma map_comp_None_iff:
   by (simp add: compose_conv map_comp_None_iff)
 
 
-(* ******************************************************************************** *)
 subsection {* @{const restrict} *}
-(* ******************************************************************************** *)
 
 lemma restrict_def:
   "restrict A = filter (\<lambda>p. fst p \<in> A)"
