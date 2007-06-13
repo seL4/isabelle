@@ -573,10 +573,11 @@ val add_rules =
      @{thm mult_zero_left}, @{thm mult_zero_right}, @{thm mult_num1}, @{thm mult_1_right},
      @{thm minus_mult_left} RS sym, @{thm minus_mult_right} RS sym,
      @{thm minus_add_distrib}, @{thm minus_minus}, @{thm mult_assoc},
-     of_nat_0, of_nat_1, of_nat_Suc, of_nat_add, of_nat_mult,
-     of_int_0, of_int_1, of_int_add, of_int_mult, int_eq_of_nat]
+     @{thm of_nat_0}, @{thm of_nat_1}, @{thm of_nat_Suc}, @{thm of_nat_add},
+     @{thm of_nat_mult}, @{thm of_int_0}, @{thm of_int_1}, @{thm of_int_add},
+     @{thm of_int_mult}]
 
-val nat_inj_thms = [zle_int RS iffD2, int_int_eq RS iffD2]
+val nat_inj_thms = [@{thm zle_int} RS iffD2, @{thm int_int_eq} RS iffD2]
 
 val Int_Numeral_Base_Simprocs = assoc_fold_simproc
   :: Int_Numeral_Simprocs.combine_numerals
@@ -595,7 +596,6 @@ val int_arith_setup =
                       addsimprocs Int_Numeral_Base_Simprocs
                       addcongs [if_weak_cong]}) #>
   arith_inj_const ("Nat.of_nat", HOLogic.natT --> HOLogic.intT) #>
-  arith_inj_const ("IntDef.int", HOLogic.natT --> HOLogic.intT) #>
   arith_discrete "IntDef.int"
 
 end;

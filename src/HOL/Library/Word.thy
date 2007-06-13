@@ -989,12 +989,12 @@ proof (rule bit_list_induct [of _ w],simp_all)
 next
   fix xs
   assume ind: "bv_to_int (norm_signed xs) = bv_to_int xs"
-  show "bv_to_int (norm_signed (\<one>#xs)) = -1 - int (bv_to_nat (bv_not xs))"
+  show "bv_to_int (norm_signed (\<one>#xs)) = - int (bv_to_nat (bv_not xs)) + -1"
   proof (rule bit_list_cases [of xs],simp_all)
     fix ys
     assume [simp]: "xs = \<one>#ys"
     from ind
-    show "bv_to_int (norm_signed (\<one>#ys)) = -1 - int (bv_to_nat (bv_not ys))"
+    show "bv_to_int (norm_signed (\<one>#ys)) = - int (bv_to_nat (bv_not ys)) + -1"
       by simp
   qed
 qed
@@ -1007,11 +1007,11 @@ proof (rule bit_list_cases [of w],simp_all)
     by (simp add: int_nat_two_exp)
 next
   fix bs
-  have "-1 - int (bv_to_nat (bv_not bs)) \<le> 0"
+  have "- int (bv_to_nat (bv_not bs)) + -1 \<le> 0"
     by simp
   also have "... < 2 ^ length bs"
     by (induct bs,simp_all)
-  finally show "-1 - int (bv_to_nat (bv_not bs)) < 2 ^ length bs"
+  finally show "- int (bv_to_nat (bv_not bs)) + -1 < 2 ^ length bs"
     .
 qed
 
@@ -1027,7 +1027,7 @@ proof (rule bit_list_cases [of w],simp_all)
 next
   fix bs
   from bv_to_nat_upper_range [of "bv_not bs"]
-  show "- (2 ^ length bs) \<le> -1 - int (bv_to_nat (bv_not bs))"
+  show "- (2 ^ length bs) \<le> - int (bv_to_nat (bv_not bs)) + -1"
     by (simp add: int_nat_two_exp)
 qed
 

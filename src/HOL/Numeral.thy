@@ -457,7 +457,7 @@ qed
 
 lemma odd_less_0:
   "(1 + z + z < 0) = (z < (0::int))";
-proof (cases z rule: int_cases')
+proof (cases z rule: int_cases)
   case (nonneg n)
   thus ?thesis by (simp add: linorder_not_less add_assoc add_increasing
                              le_imp_0_less [THEN order_less_imp_le])  
@@ -593,7 +593,7 @@ lemma [code]:
   "int_aux i (Suc n) = int_aux (i + 1) n" -- {* tail recursive *}
   by (simp add: int_aux_def)+
 
-lemma [code]:
+lemma [code unfold]:
   "int n = int_aux 0 n"
   by (simp add: int_aux_def)
 

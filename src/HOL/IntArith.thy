@@ -196,25 +196,6 @@ text{*This simplifies expressions of the form @{term "int n = z"} where
       z is an integer literal.*}
 lemmas int_eq_iff_number_of [simp] = int_eq_iff [of _ "number_of v", standard]
 
-lemmas int_of_nat_eq_iff_number_of [simp] =
-  int_of_nat_eq_iff [of _ "number_of v", standard]
-
-lemma split_nat':
-  "P(nat(i::int)) = ((\<forall>n. i = int_of_nat n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
-  (is "?P = (?L & ?R)")
-proof (cases "i < 0")
-  case True thus ?thesis by simp
-next
-  case False
-  have "?P = ?L"
-  proof
-    assume ?P thus ?L using False by clarsimp
-  next
-    assume ?L thus ?P using False by simp
-  qed
-  with False show ?thesis by simp
-qed
-
 lemma split_nat [arith_split]:
   "P(nat(i::int)) = ((\<forall>n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
   (is "?P = (?L & ?R)")
@@ -231,10 +212,6 @@ next
   with False show ?thesis by simp
 qed
 
-
-(*Analogous to zadd_int*)
-lemma zdiff_int: "n \<le> m ==> int m - int n = int (m-n)" 
-by (induct m n rule: diff_induct, simp_all)
 
 lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
 apply (cases "0 \<le> z'")

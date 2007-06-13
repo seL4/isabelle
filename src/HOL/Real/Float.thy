@@ -35,7 +35,8 @@ proof -
     apply (auto, induct_tac n)
     apply (simp_all add: pow2_def)
     apply (rule_tac m1="2" and n1="nat (2 + int na)" in ssubst[OF realpow_num_eq_if])
-    by (auto simp add: h)
+    apply (auto simp add: h)
+    by (simp add: add_commute)
   show ?thesis
   proof (induct a)
     case (1 n)
@@ -45,7 +46,7 @@ proof -
     show ?case
       apply (auto)
       apply (subst pow2_neg[of "- int n"])
-      apply (subst pow2_neg[of "-1 - int n"])
+      apply (subst pow2_neg[of "- int n + -1"])
       apply (auto simp add: g pos)
       done
   qed

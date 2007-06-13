@@ -565,7 +565,7 @@ lemma of_rat_of_nat_eq [simp]: "of_rat (of_nat n) = of_nat n"
 by (induct n) (simp_all add: of_rat_add)
 
 lemma of_rat_of_int_eq [simp]: "of_rat (of_int z) = of_int z"
-by (cases z rule: int_diff_cases', simp add: of_rat_diff)
+by (cases z rule: int_diff_cases, simp add: of_rat_diff)
 
 lemma of_rat_number_of_eq [simp]:
   "of_rat (number_of w) = (number_of w :: 'a::{number_ring,field_char_0})"

@@ -58,14 +58,14 @@ lemma nat_div_distrib: "(0::int) <= z ==> nat (z div z') = nat z div nat z'"
 apply (case_tac "0 <= z'")
 apply (auto simp add: div_nonneg_neg_le0 DIVISION_BY_ZERO_DIV)
 apply (case_tac "z' = 0", simp add: DIVISION_BY_ZERO)
-apply (auto elim!: nonneg_eq_int_of_nat)
+apply (auto elim!: nonneg_eq_int)
 apply (rename_tac m m')
-apply (subgoal_tac "0 <= int_of_nat m div int_of_nat m'")
+apply (subgoal_tac "0 <= int m div int m'")
  prefer 2 apply (simp add: nat_numeral_0_eq_0 pos_imp_zdiv_nonneg_iff) 
 apply (rule of_nat_eq_iff [where 'a=int, THEN iffD1], simp)
-apply (rule_tac r = "int_of_nat (m mod m') " in quorem_div)
+apply (rule_tac r = "int (m mod m') " in quorem_div)
  prefer 2 apply force
-apply (simp add: nat_less_iff' [symmetric] quorem_def nat_numeral_0_eq_0
+apply (simp add: nat_less_iff [symmetric] quorem_def nat_numeral_0_eq_0
                  of_nat_add [symmetric] of_nat_mult [symmetric]
             del: of_nat_add of_nat_mult)
 done
@@ -74,14 +74,14 @@ done
 lemma nat_mod_distrib:
      "[| (0::int) <= z;  0 <= z' |] ==> nat (z mod z') = nat z mod nat z'"
 apply (case_tac "z' = 0", simp add: DIVISION_BY_ZERO)
-apply (auto elim!: nonneg_eq_int_of_nat)
+apply (auto elim!: nonneg_eq_int)
 apply (rename_tac m m')
-apply (subgoal_tac "0 <= int_of_nat m mod int_of_nat m'")
- prefer 2 apply (simp add: nat_less_iff nat_numeral_0_eq_0 pos_mod_sign) 
-apply (rule of_nat_eq_iff [where 'a=int, THEN iffD1], simp)
-apply (rule_tac q = "int_of_nat (m div m') " in quorem_mod)
+apply (subgoal_tac "0 <= int m mod int m'")
+ prefer 2 apply (simp add: nat_less_iff nat_numeral_0_eq_0 pos_mod_sign)
+apply (rule int_int_eq [THEN iffD1], simp)
+apply (rule_tac q = "int (m div m') " in quorem_mod)
  prefer 2 apply force
-apply (simp add: nat_less_iff' [symmetric] quorem_def nat_numeral_0_eq_0
+apply (simp add: nat_less_iff [symmetric] quorem_def nat_numeral_0_eq_0
                  of_nat_add [symmetric] of_nat_mult [symmetric]
             del: of_nat_add of_nat_mult)
 done
@@ -97,14 +97,7 @@ subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
 
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma int_nat_number_of [simp]:
-     "int (number_of v :: nat) =  
-         (if neg (number_of v :: int) then 0  
-          else (number_of v :: int))"
-by (simp del: nat_number_of
-	 add: neg_nat nat_number_of_def not_neg_nat add_assoc)
-
-lemma int_of_nat_number_of [simp]:
-     "int_of_nat (number_of v) =  
+     "int (number_of v) =  
          (if neg (number_of v :: int) then 0  
           else (number_of v :: int))"
 by (simp del: nat_number_of
@@ -519,9 +512,6 @@ lemma le_Suc_number_of [simp]:
          if neg pv then False else n <= nat pv)"
 by (simp add: Let_def less_number_of_Suc linorder_not_less [symmetric])
 
-
-(* Push int(.) inwards: *)
-declare zadd_int [symmetric, simp]
 
 lemma lemma1: "(m+m = n+n) = (m = (n::int))"
 by auto

@@ -31,6 +31,19 @@ definition
   nat_of_int :: "int \<Rightarrow> nat" where
   "k \<ge> 0 \<Longrightarrow> nat_of_int k = nat k"
 
+definition
+  int' :: "nat \<Rightarrow> int" where
+  "int' n = of_nat n"
+
+lemma int'_Suc [simp]: "int' (Suc n) = 1 + int' n"
+unfolding int'_def by simp
+
+lemma int'_add: "int' (m + n) = int' m + int' n"
+unfolding int'_def by (rule of_nat_add)
+
+lemma int'_mult: "int' (m * n) = int' m * int' n"
+unfolding int'_def by (rule of_nat_mult)
+
 lemma nat_of_int_of_number_of:
   fixes k
   assumes "k \<ge> 0"
@@ -44,8 +57,11 @@ lemma nat_of_int_of_number_of_aux:
   using prems unfolding Pls_def by simp
 
 lemma nat_of_int_int:
-  "nat_of_int (int n) = n"
-  using zero_zle_int nat_of_int_def by simp
+  "nat_of_int (int' n) = n"
+  using nat_of_int_def int'_def by simp
+
+lemma eq_nat_of_int: "int' n = x \<Longrightarrow> n = nat_of_int x"
+by (erule subst, simp only: nat_of_int_int)
 
 text {*
   Case analysis on natural numbers is rephrased using a conditional
@@ -66,10 +82,10 @@ proof -
 qed
 
 lemma [code inline]:
-  "nat_case = (\<lambda>f g n. if n = 0 then f else g (nat_of_int (int n - 1)))"
+  "nat_case = (\<lambda>f g n. if n = 0 then f else g (nat_of_int (int' n - 1)))"
 proof (rule ext)+
   fix f g n
-  show "nat_case f g n = (if n = 0 then f else g (nat_of_int (int n - 1)))"
+  show "nat_case f g n = (if n = 0 then f else g (nat_of_int (int' n - 1)))"
   by (cases n) (simp_all add: nat_of_int_int)
 qed
 
@@ -82,43 +98,33 @@ lemma [code func]: "0 = nat_of_int 0"
   by (simp add: nat_of_int_def)
 lemma [code func, code inline]:  "1 = nat_of_int 1"
   by (simp add: nat_of_int_def)
-lemma [code func]: "Suc n = nat_of_int (int n + 1)"
-  by (simp add: nat_of_int_def)
-lemma [code]: "m + n = nat (int m + int n)"
-  by arith
-lemma [code func, code inline]: "m + n = nat_of_int (int m + int n)"
-  by (simp add: nat_of_int_def)
-lemma [code, code inline]: "m - n = nat (int m - int n)"
-  by arith
-lemma [code]: "m * n = nat (int m * int n)"
-  unfolding zmult_int by simp
-lemma [code func, code inline]: "m * n = nat_of_int (int m * int n)"
-proof -
-  have "int (m * n) = int m * int n"
-    by (induct m) (simp_all add: zadd_zmult_distrib)
-  then have "m * n = nat (int m * int n)" by auto
-  also have "\<dots> = nat_of_int (int m * int n)"
-  proof -
-    have "int m \<ge> 0" and "int n \<ge> 0" by auto
-    have "int m * int n \<ge> 0" by (rule split_mult_pos_le) auto
-    with nat_of_int_def show ?thesis by auto
-  qed
-  finally show ?thesis .
-qed  
-lemma [code]: "m div n = nat (int m div int n)"
-  unfolding zdiv_int [symmetric] by simp
+lemma [code func]: "Suc n = nat_of_int (int' n + 1)"
+  by (simp add: eq_nat_of_int)
+lemma [code]: "m + n = nat (int' m + int' n)"
+  by (simp add: int'_def nat_eq_iff2)
+lemma [code func, code inline]: "m + n = nat_of_int (int' m + int' n)"
+  by (simp add: eq_nat_of_int int'_add)
+lemma [code, code inline]: "m - n = nat (int' m - int' n)"
+  by (simp add: int'_def nat_eq_iff2)
+lemma [code]: "m * n = nat (int' m * int' n)"
+  unfolding int'_def
+  by (simp add: of_nat_mult [symmetric] del: of_nat_mult)
+lemma [code func, code inline]: "m * n = nat_of_int (int' m * int' n)"
+  by (simp add: eq_nat_of_int int'_mult)
+lemma [code]: "m div n = nat (int' m div int' n)"
+  unfolding int'_def zdiv_int [symmetric] by simp
 lemma [code func]: "m div n = fst (Divides.divmod m n)"
   unfolding divmod_def by simp
-lemma [code]: "m mod n = nat (int m mod int n)"
-  unfolding zmod_int [symmetric] by simp
+lemma [code]: "m mod n = nat (int' m mod int' n)"
+  unfolding int'_def zmod_int [symmetric] by simp
 lemma [code func]: "m mod n = snd (Divides.divmod m n)"
   unfolding divmod_def by simp
-lemma [code, code inline]: "(m < n) \<longleftrightarrow> (int m < int n)"
-  by simp
-lemma [code func, code inline]: "(m \<le> n) \<longleftrightarrow> (int m \<le> int n)"
-  by simp
-lemma [code func, code inline]: "m = n \<longleftrightarrow> int m = int n"
-  by simp
+lemma [code, code inline]: "(m < n) \<longleftrightarrow> (int' m < int' n)"
+  unfolding int'_def by simp
+lemma [code func, code inline]: "(m \<le> n) \<longleftrightarrow> (int' m \<le> int' n)"
+  unfolding int'_def by simp
+lemma [code func, code inline]: "m = n \<longleftrightarrow> int' m = int' n"
+  unfolding int'_def by simp
 lemma [code func]: "nat k = (if k < 0 then 0 else nat_of_int k)"
 proof (cases "k < 0")
   case True then show ?thesis by simp
@@ -126,26 +132,27 @@ next
   case False then show ?thesis by (simp add: nat_of_int_def)
 qed
 lemma [code func]:
-  "int_aux i n = (if int n = 0 then i else int_aux (i + 1) (nat_of_int (int n - 1)))"
+  "int_aux i n = (if int' n = 0 then i else int_aux (i + 1) (nat_of_int (int' n - 1)))"
 proof -
-  have "0 < n \<Longrightarrow> int n = 1 + int (nat_of_int (int n - 1))"
+  have "0 < n \<Longrightarrow> int' n = 1 + int' (nat_of_int (int' n - 1))"
   proof -
     assume prem: "n > 0"
-    then have "int n - 1 \<ge> 0" by auto
-    then have "nat_of_int (int n - 1) = nat (int n - 1)" by (simp add: nat_of_int_def)
-    with prem show "int n = 1 + int (nat_of_int (int n - 1))" by simp
+    then have "int' n - 1 \<ge> 0" unfolding int'_def by auto
+    then have "nat_of_int (int' n - 1) = nat (int' n - 1)" by (simp add: nat_of_int_def)
+    with prem show "int' n = 1 + int' (nat_of_int (int' n - 1))" unfolding int'_def by simp
   qed
-  then show ?thesis unfolding int_aux_def by simp
+  then show ?thesis unfolding int_aux_def int'_def by simp
 qed
 
 lemma div_nat_code [code func]:
-  "m div k = nat_of_int (fst (divAlg (int m, int k)))"
-  unfolding div_def [symmetric] zdiv_int [symmetric] nat_of_int_int ..
+  "m div k = nat_of_int (fst (divAlg (int' m, int' k)))"
+  unfolding div_def [symmetric] int'_def zdiv_int [symmetric]
+  unfolding int'_def [symmetric] nat_of_int_int ..
 
 lemma mod_nat_code [code func]:
-  "m mod k = nat_of_int (snd (divAlg (int m, int k)))"
-  unfolding mod_def [symmetric] zmod_int [symmetric] nat_of_int_int ..
-
+  "m mod k = nat_of_int (snd (divAlg (int' m, int' k)))"
+  unfolding mod_def [symmetric] int'_def zmod_int [symmetric]
+  unfolding int'_def [symmetric] nat_of_int_int ..
 
 subsection {* Code generator setup for basic functions *}
 
@@ -185,13 +192,13 @@ text {*
 *}
 
 consts_code
-  int ("(_)")
+  int' ("(_)")
   nat ("\<module>nat")
 attach {*
 fun nat i = if i < 0 then 0 else i;
 *}
 
-code_const int
+code_const int'
   (SML "_")
   (OCaml "_")
   (Haskell "_")
@@ -392,6 +399,6 @@ code_modulename Haskell
   Nat Integer
   EfficientNat Integer
 
-hide const nat_of_int
+hide const nat_of_int int'
 
 end
