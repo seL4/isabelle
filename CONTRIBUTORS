@@ -1,3 +1,8 @@
+For the purposes of the license agreement in the file COPYRIGHT, a 
+'contributor' is anybody who is listed in this file (CONTRIBUTORS) or 
+who is listed as an author in one of the source files of this Isabelle
+distribution.
+
 
 Contributions to Isabelle 2007
 ------------------------------
@@ -30,7 +35,7 @@ Contributions to Isabelle 2007
   arithmetic.
 
 * February 2006: Benjamin Porter, NICTA
-  HOL and HOL-Complex: generalied mean value theorem, continuum is
+  HOL and HOL-Complex: generalised mean value theorem, continuum is
   not denumerable, harmonic and arithmetic series, and denumerability
   of rationals.
 
