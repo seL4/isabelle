@@ -16,8 +16,8 @@ structure Cooper_Data : COOPER_DATA =
 struct
 
 type entry = simpset* (term list);
-val start_ss = HOL_ss addsimps @{thms "Groebner_Basis.comp_arith"}
-               addcongs [if_weak_cong, @{thm "let_weak_cong"}];
+val start_ss = HOL_ss (* addsimps @{thms "Groebner_Basis.comp_arith"}
+               addcongs [if_weak_cong, @{thm "let_weak_cong"}];*)
 val allowed_consts = 
   [@{term "op + :: int => _"}, @{term "op + :: nat => _"}, 
    @{term "op - :: int => _"}, @{term "op - :: nat => _"}, 
