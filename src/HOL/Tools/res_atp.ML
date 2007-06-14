@@ -691,15 +691,9 @@ fun unwanted t =
   likely to lead to unsound proofs.*)
 fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
 
-fun tptp_writer logic goals filename (axioms,classrels,arities) user_lemmas =
-    if is_fol_logic logic
-    then ResClause.tptp_write_file goals filename (axioms, classrels, arities)
-    else ResHolClause.tptp_write_file goals filename (axioms, classrels, arities) user_lemmas;
+fun tptp_writer logic = ResHolClause.tptp_write_file (logic=FOL);
 
-fun dfg_writer logic goals filename (axioms,classrels,arities) user_lemmas =
-    if is_fol_logic logic
-    then ResClause.dfg_write_file goals filename (axioms, classrels, arities)
-    else ResHolClause.dfg_write_file goals filename (axioms, classrels, arities) user_lemmas;
+fun dfg_writer logic = ResHolClause.dfg_write_file (logic=FOL);
 
 (*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
@@ -819,7 +813,7 @@ fun write_problem_files probfile (ctxt,th)  =
                                          get_neg_subgoals gls (n+1)
       val goal_cls = get_neg_subgoals goals 1
       val logic = case !linkup_logic_mode of
-                Auto => problem_logic_goals (map ((map prop_of)) goal_cls)
+                Auto => problem_logic_goals (map (map prop_of) goal_cls)
               | Fol => FOL
               | Hol => HOL
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
