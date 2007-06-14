@@ -68,13 +68,13 @@ B} contains one more @{term b} than @{term a}.
 *}
 
 lemma correctness:
-  "(w \<in> S \<longrightarrow> size[x\<in>w. x=a] = size[x\<in>w. x=b])     \<and>
-   (w \<in> A \<longrightarrow> size[x\<in>w. x=a] = size[x\<in>w. x=b] + 1) \<and>
-   (w \<in> B \<longrightarrow> size[x\<in>w. x=b] = size[x\<in>w. x=a] + 1)"
+  "(w \<in> S \<longrightarrow> size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b])     \<and>
+   (w \<in> A \<longrightarrow> size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b] + 1) \<and>
+   (w \<in> B \<longrightarrow> size[x\<leftarrow>w. x=b] = size[x\<leftarrow>w. x=a] + 1)"
 
 txt{*\noindent
 These propositions are expressed with the help of the predefined @{term
-filter} function on lists, which has the convenient syntax @{text"[x\<in>xs. P
+filter} function on lists, which has the convenient syntax @{text"[x\<leftarrow>xs. P
 x]"}, the list of all elements @{term x} in @{term xs} such that @{prop"P x"}
 holds. Remember that on lists @{text size} and @{text length} are synonymous.
 
@@ -116,8 +116,8 @@ roles of @{term a}'s and @{term b}'s interchanged.
 *}
 
 lemma step1: "\<forall>i < size w.
-  \<bar>(int(size[x\<in>take (i+1) w. P x])-int(size[x\<in>take (i+1) w. \<not>P x]))
-   - (int(size[x\<in>take i w. P x])-int(size[x\<in>take i w. \<not>P x]))\<bar> \<le> 1"
+  \<bar>(int(size[x\<leftarrow>take (i+1) w. P x])-int(size[x\<leftarrow>take (i+1) w. \<not>P x]))
+   - (int(size[x\<leftarrow>take i w. P x])-int(size[x\<leftarrow>take i w. \<not>P x]))\<bar> \<le> 1"
 
 txt{*\noindent
 The lemma is a bit hard to read because of the coercion function
@@ -141,8 +141,8 @@ Finally we come to the above-mentioned lemma about cutting in half a word with t
 *}
 
 lemma part1:
- "size[x\<in>w. P x] = size[x\<in>w. \<not>P x]+2 \<Longrightarrow>
-  \<exists>i\<le>size w. size[x\<in>take i w. P x] = size[x\<in>take i w. \<not>P x]+1"
+ "size[x\<leftarrow>w. P x] = size[x\<leftarrow>w. \<not>P x]+2 \<Longrightarrow>
+  \<exists>i\<le>size w. size[x\<leftarrow>take i w. P x] = size[x\<leftarrow>take i w. \<not>P x]+1"
 
 txt{*\noindent
 This is proved by @{text force} with the help of the intermediate value theorem,
@@ -161,10 +161,10 @@ An easy lemma deals with the suffix @{term"drop i w"}:
 
 
 lemma part2:
-  "\<lbrakk>size[x\<in>take i w @ drop i w. P x] =
-    size[x\<in>take i w @ drop i w. \<not>P x]+2;
-    size[x\<in>take i w. P x] = size[x\<in>take i w. \<not>P x]+1\<rbrakk>
-   \<Longrightarrow> size[x\<in>drop i w. P x] = size[x\<in>drop i w. \<not>P x]+1"
+  "\<lbrakk>size[x\<leftarrow>take i w @ drop i w. P x] =
+    size[x\<leftarrow>take i w @ drop i w. \<not>P x]+2;
+    size[x\<leftarrow>take i w. P x] = size[x\<leftarrow>take i w. \<not>P x]+1\<rbrakk>
+   \<Longrightarrow> size[x\<leftarrow>drop i w. P x] = size[x\<leftarrow>drop i w. \<not>P x]+1"
 by(simp del: append_take_drop_id)
 
 text{*\noindent
@@ -191,9 +191,9 @@ for @{term A} and @{term B}:
 *}
 
 theorem completeness:
-  "(size[x\<in>w. x=a] = size[x\<in>w. x=b]     \<longrightarrow> w \<in> S) \<and>
-   (size[x\<in>w. x=a] = size[x\<in>w. x=b] + 1 \<longrightarrow> w \<in> A) \<and>
-   (size[x\<in>w. x=b] = size[x\<in>w. x=a] + 1 \<longrightarrow> w \<in> B)"
+  "(size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b]     \<longrightarrow> w \<in> S) \<and>
+   (size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b] + 1 \<longrightarrow> w \<in> A) \<and>
+   (size[x\<leftarrow>w. x=b] = size[x\<leftarrow>w. x=a] + 1 \<longrightarrow> w \<in> B)"
 
 txt{*\noindent
 The proof is by induction on @{term w}. Structural induction would fail here
@@ -237,9 +237,9 @@ apply(rule conjI)
  apply(clarify)
 txt{*\noindent
 This yields an index @{prop"i \<le> length v"} such that
-@{prop[display]"length [x\<in>take i v . x = a] = length [x\<in>take i v . x = b] + 1"}
+@{prop[display]"length [x\<leftarrow>take i v . x = a] = length [x\<leftarrow>take i v . x = b] + 1"}
 With the help of @{thm[source]part2} it follows that
-@{prop[display]"length [x\<in>drop i v . x = a] = length [x\<in>drop i v . x = b] + 1"}
+@{prop[display]"length [x\<leftarrow>drop i v . x = a] = length [x\<leftarrow>drop i v . x = b] + 1"}
 *}
 
  apply(drule part2[of "\<lambda>x. x=a", simplified])

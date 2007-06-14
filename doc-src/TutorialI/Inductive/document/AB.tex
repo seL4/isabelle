@@ -103,9 +103,9 @@ induction, so is the proof: we show at the same time that all words in
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
 \ correctness{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isacharparenleft}w\ {\isasymin}\ S\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}{\isacharparenright}\ \ \ \ \ {\isasymand}\isanewline
-\ \ \ {\isacharparenleft}w\ {\isasymin}\ A\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ {\isacharparenleft}w\ {\isasymin}\ B\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}%
+\ \ {\isachardoublequoteopen}{\isacharparenleft}w\ {\isasymin}\ S\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}{\isacharparenright}\ \ \ \ \ {\isasymand}\isanewline
+\ \ \ {\isacharparenleft}w\ {\isasymin}\ A\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ {\isacharparenleft}w\ {\isasymin}\ B\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -114,7 +114,7 @@ induction, so is the proof: we show at the same time that all words in
 %
 \begin{isamarkuptxt}%
 \noindent
-These propositions are expressed with the help of the predefined \isa{filter} function on lists, which has the convenient syntax \isa{{\isacharbrackleft}x{\isasymin}xs{\isachardot}\ P\ x{\isacharbrackright}}, the list of all elements \isa{x} in \isa{xs} such that \isa{P\ x}
+These propositions are expressed with the help of the predefined \isa{filter} function on lists, which has the convenient syntax \isa{{\isacharbrackleft}x{\isasymleftarrow}xs{\isachardot}\ P\ x{\isacharbrackright}}, the list of all elements \isa{x} in \isa{xs} such that \isa{P\ x}
 holds. Remember that on lists \isa{size} and \isa{length} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:%
@@ -166,8 +166,8 @@ roles of \isa{a}'s and \isa{b}'s interchanged.%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
 \ step{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}i\ {\isacharless}\ size\ w{\isachardot}\isanewline
-\ \ {\isasymbar}{\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ {\isacharminus}\ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isasymbar}\ {\isasymle}\ {\isadigit{1}}{\isachardoublequoteclose}%
+\ \ {\isasymbar}{\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymleftarrow}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymleftarrow}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ {\isacharminus}\ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymleftarrow}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymleftarrow}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isasymbar}\ {\isasymle}\ {\isadigit{1}}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -207,8 +207,8 @@ Finally we come to the above-mentioned lemma about cutting in half a word with t
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
 \ part{\isadigit{1}}{\isacharcolon}\isanewline
-\ {\isachardoublequoteopen}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}\ {\isasymLongrightarrow}\isanewline
-\ \ {\isasymexists}i{\isasymle}size\ w{\isachardot}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequoteclose}%
+\ {\isachardoublequoteopen}size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}\ {\isasymLongrightarrow}\isanewline
+\ \ {\isasymexists}i{\isasymle}size\ w{\isachardot}\ size{\isacharbrackleft}x{\isasymleftarrow}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -242,10 +242,10 @@ An easy lemma deals with the suffix \isa{drop\ i\ w}:%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
 \ part{\isadigit{2}}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymlbrakk}size{\isacharbrackleft}x{\isasymin}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\isanewline
-\ \ \ \ size{\isacharbrackleft}x{\isasymin}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}{\isacharsemicolon}\isanewline
-\ \ \ \ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isasymrbrakk}\isanewline
-\ \ \ {\isasymLongrightarrow}\ size{\isacharbrackleft}x{\isasymin}drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}size{\isacharbrackleft}x{\isasymleftarrow}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\isanewline
+\ \ \ \ size{\isacharbrackleft}x{\isasymleftarrow}take\ i\ w\ {\isacharat}\ drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}{\isacharsemicolon}\isanewline
+\ \ \ \ size{\isacharbrackleft}x{\isasymleftarrow}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isasymrbrakk}\isanewline
+\ \ \ {\isasymLongrightarrow}\ size{\isacharbrackleft}x{\isasymleftarrow}drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -290,9 +290,9 @@ for \isa{A} and \isa{B}:%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
 \ completeness{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ \ \ \ \ {\isasymlongrightarrow}\ w\ {\isasymin}\ S{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ A{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ B{\isacharparenright}{\isachardoublequoteclose}%
+\ \ {\isachardoublequoteopen}{\isacharparenleft}size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ \ \ \ \ {\isasymlongrightarrow}\ w\ {\isasymin}\ S{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ A{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ {\isacharparenleft}size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymleftarrow}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymlongrightarrow}\ w\ {\isasymin}\ B{\isacharparenright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -329,7 +329,8 @@ on whether \isa{w} is empty or not.%
 Simplification disposes of the base case and leaves only a conjunction
 of two step cases to be proved:
 if \isa{w\ {\isacharequal}\ a\ {\isacharhash}\ v} and \begin{isabelle}%
-\ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{2}}%
+\ \ \ \ \ length\ {\isacharparenleft}if\ x\ {\isacharequal}\ a\ then\ {\isacharbrackleft}x\ {\isasymin}\ v{\isacharbrackright}\ else\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
+\isaindent{\ \ \ \ \ }length\ {\isacharparenleft}if\ x\ {\isacharequal}\ b\ then\ {\isacharbrackleft}x\ {\isasymin}\ v{\isacharbrackright}\ else\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharplus}\ {\isadigit{2}}%
 \end{isabelle} then
 \isa{b\ {\isacharhash}\ v\ {\isasymin}\ A}, and similarly for \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v}.
 We only consider the first case in detail.
@@ -350,11 +351,11 @@ After breaking the conjunction up into two cases, we can apply
 \noindent
 This yields an index \isa{i\ {\isasymle}\ length\ v} such that
 \begin{isabelle}%
-\ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
+\ \ \ \ \ length\ {\isacharbrackleft}x{\isasymleftarrow}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymleftarrow}take\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
 \end{isabelle}
 With the help of \isa{part{\isadigit{2}}} it follows that
 \begin{isabelle}%
-\ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
+\ \ \ \ \ length\ {\isacharbrackleft}x{\isasymleftarrow}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymleftarrow}drop\ i\ v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
