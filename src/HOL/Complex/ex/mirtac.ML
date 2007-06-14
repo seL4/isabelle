@@ -105,14 +105,16 @@ fun mir_tac ctxt q i =
       addsplits [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
-      addsimps [nat_number_of_def, zdvd_int] @ map (fn r => r RS sym)
-        [int_int_eq, zle_int, zless_int, zadd_int, zmult_int]
-      addsplits [zdiff_int_split]
+      addsimps [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}] @ map (fn r => r RS sym)
+        [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
+         @{thm "zmult_int"}]
+      addsplits [@{thm "zdiff_int_split"}]
     (*simp rules for elimination of int n*)
 
     val simpset2 = HOL_basic_ss
-      addsimps [nat_0_le, all_nat, ex_nat, number_of1, number_of2, int_0, int_1]
-      addcongs [conj_le_cong, imp_le_cong]
+      addsimps [@{thm "nat_0_le"}, @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
+                @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}]
+      addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
     (* simp rules for elimination of abs *)
     val ct = cterm_of sg (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
