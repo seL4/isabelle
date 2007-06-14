@@ -1,3 +1,4 @@
+
 (*  Title:      HOL/Tools/Presburger/presburger.ML
     ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
@@ -64,7 +65,7 @@ local
 
  val term_constants =
   let fun h acc t = case t of
-    Const _ => [t]
+    Const _ => insert (op aconv) t acc
   | a$b => h (h acc a) b
   | Abs (_,_,t) => h acc t
   | _ => acc
@@ -93,7 +94,7 @@ fun generalize_tac ctxt f i st =
    let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
    fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
-   val ts = f p
+   val ts = sort (fn (a,b) => Term.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
  in Seq.of_list [implies_intr p' (implies_elim st (fold forall_elim ts (assume p')))]
  end;
@@ -179,7 +180,7 @@ fun finish_tac q i st = case try (nth (cprems_of st)) (i - 1) of
    NONE => all_tac st
  | SOME _ => (if q then I else TRY) (rtac TrueI i) st
 
-fun cooper_tac elim add_ths del_ths = fn ctxt => fn i => 
+fun cooper_tac elim add_ths del_ths ctxt i = 
 let val ss = fst (Cooper_Data.get ctxt) delsimps del_ths addsimps add_ths
 in
 nogoal_tac i 
