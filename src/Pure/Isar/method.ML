@@ -219,27 +219,27 @@ fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
   if cond (Logic.strip_assums_concl prop)
   then Tactic.rtac rule i else no_tac);
 
-fun assm_tac warn_tac ctxt =
+fun legacy_tac ctxt st =
+  (legacy_feature ("implicit use of prems in assumption proof" ^ ContextPosition.str_of ctxt);
+    all_tac st);
+
+fun assm_tac ctxt =
   assume_tac APPEND'
   Goal.assume_rule_tac ctxt APPEND'
-  (CHANGED o solve_tac (Assumption.prems_of ctxt) THEN' K warn_tac) APPEND'
+  (CHANGED o solve_tac (Assumption.prems_of ctxt) THEN' K (legacy_tac ctxt)) APPEND'
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
-
-fun legacy_tac ctxt st =
-  (legacy_feature ("implicit use of prems at end of proof" ^ ContextPosition.str_of ctxt);
-    all_tac st);
 
 in
 
 fun assumption ctxt = METHOD (HEADGOAL o
-  (fn [] => assm_tac all_tac ctxt
+  (fn [] => assm_tac ctxt
     | [fact] => solve_tac [fact]
     | _ => K no_tac));
 
 fun close immed ctxt = METHOD (K
   (FILTER Thm.no_prems
-    ((if immed then ALLGOALS (assm_tac (legacy_tac ctxt) ctxt) else all_tac) THEN flexflex_tac)));
+    ((if immed then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac)));
 
 end;
 
