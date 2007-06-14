@@ -408,6 +408,30 @@ lemma int_eq_number_of_eq:
   "(((number_of v)::int) = (number_of w)) = iszero ((number_of (v + (uminus w)))::int)"
   by simp
 
+lemma mod_eq0_dvd_iff[presburger]: "(m::nat) mod n = 0 \<longleftrightarrow> n dvd m"
+unfolding dvd_eq_mod_eq_0[symmetric] ..
+
+lemma zmod_eq0_zdvd_iff[presburger]: "(m::int) mod n = 0 \<longleftrightarrow> n dvd m"
+unfolding zdvd_iff_zmod_eq_0[symmetric] ..
+declare mod_1[presburger]
+declare mod_0[presburger]
+declare zmod_1[presburger]
+declare zmod_zero[presburger]
+declare zmod_self[presburger]
+declare mod_self[presburger]
+declare DIVISION_BY_ZERO_MOD[presburger]
+declare nat_mod_div_trivial[presburger]
+declare div_mod_equality2[presburger]
+declare div_mod_equality[presburger]
+declare mod_div_equality2[presburger]
+declare mod_div_equality[presburger]
+declare mod_mult_self1[presburger]
+declare mod_mult_self2[presburger]
+declare zdiv_zmod_equality2[presburger]
+declare zdiv_zmod_equality[presburger]
+declare mod2_Suc_Suc[presburger]
+lemma [presburger]: "(a::int) div 0 = 0" and [presburger]: "a mod 0 = a"
+using IntDiv.DIVISION_BY_ZERO by blast+
 
 use "Tools/Presburger/cooper.ML"
 oracle linzqe_oracle ("term") = Coopereif.cooper_oracle
@@ -441,6 +465,12 @@ in
 end
 *} ""
 
+lemma [presburger]: "m mod 2 = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger]: "m mod 2 = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger]: "m mod (Suc (Suc 0)) = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
+
 subsection {* Code generator setup *}
 text {*
   Presburger arithmetic is convenient to prove some
@@ -448,68 +478,68 @@ text {*
 *}
 
 lemma eq_Pls_Pls:
-  "Numeral.Pls = Numeral.Pls \<longleftrightarrow> True" by rule+
+  "Numeral.Pls = Numeral.Pls \<longleftrightarrow> True" by presburger
 
 lemma eq_Pls_Min:
   "Numeral.Pls = Numeral.Min \<longleftrightarrow> False"
-  unfolding Pls_def Min_def by auto
+  unfolding Pls_def Min_def by presburger
 
 lemma eq_Pls_Bit0:
   "Numeral.Pls = Numeral.Bit k bit.B0 \<longleftrightarrow> Numeral.Pls = k"
-  unfolding Pls_def Bit_def bit.cases by auto
+  unfolding Pls_def Bit_def bit.cases by presburger
 
 lemma eq_Pls_Bit1:
   "Numeral.Pls = Numeral.Bit k bit.B1 \<longleftrightarrow> False"
-  unfolding Pls_def Bit_def bit.cases by arith
+  unfolding Pls_def Bit_def bit.cases by presburger
 
 lemma eq_Min_Pls:
   "Numeral.Min = Numeral.Pls \<longleftrightarrow> False"
-  unfolding Pls_def Min_def by auto
+  unfolding Pls_def Min_def by presburger
 
 lemma eq_Min_Min:
-  "Numeral.Min = Numeral.Min \<longleftrightarrow> True" by rule+
+  "Numeral.Min = Numeral.Min \<longleftrightarrow> True" by presburger
 
 lemma eq_Min_Bit0:
   "Numeral.Min = Numeral.Bit k bit.B0 \<longleftrightarrow> False"
-  unfolding Min_def Bit_def bit.cases by arith
+  unfolding Min_def Bit_def bit.cases by presburger
 
 lemma eq_Min_Bit1:
   "Numeral.Min = Numeral.Bit k bit.B1 \<longleftrightarrow> Numeral.Min = k"
-  unfolding Min_def Bit_def bit.cases by auto
+  unfolding Min_def Bit_def bit.cases by presburger
 
 lemma eq_Bit0_Pls:
   "Numeral.Bit k bit.B0 = Numeral.Pls \<longleftrightarrow> Numeral.Pls = k"
-  unfolding Pls_def Bit_def bit.cases by auto
+  unfolding Pls_def Bit_def bit.cases by presburger
 
 lemma eq_Bit1_Pls:
   "Numeral.Bit k bit.B1 = Numeral.Pls \<longleftrightarrow> False"
-  unfolding Pls_def Bit_def bit.cases by arith
+  unfolding Pls_def Bit_def bit.cases  by presburger
 
 lemma eq_Bit0_Min:
   "Numeral.Bit k bit.B0 = Numeral.Min \<longleftrightarrow> False"
-  unfolding Min_def Bit_def bit.cases by arith
+  unfolding Min_def Bit_def bit.cases  by presburger
 
 lemma eq_Bit1_Min:
   "(Numeral.Bit k bit.B1) = Numeral.Min \<longleftrightarrow> Numeral.Min = k"
-  unfolding Min_def Bit_def bit.cases by auto
+  unfolding Min_def Bit_def bit.cases  by presburger
 
 lemma eq_Bit_Bit:
   "Numeral.Bit k1 v1 = Numeral.Bit k2 v2 \<longleftrightarrow>
-    v1 = v2 \<and> k1 = k2"
+    v1 = v2 \<and> k1 = k2" 
   unfolding Bit_def
   apply (cases v1)
   apply (cases v2)
   apply auto
-  apply arith
+  apply presburger
   apply (cases v2)
   apply auto
-  apply arith
+  apply presburger
   apply (cases v2)
   apply auto
 done
 
 lemma eq_number_of:
-  "(number_of k \<Colon> int) = number_of l \<longleftrightarrow> k = l"
+  "(number_of k \<Colon> int) = number_of l \<longleftrightarrow> k = l" 
   unfolding number_of_is_id ..
 
 
@@ -518,7 +548,7 @@ lemma less_eq_Pls_Pls:
 
 lemma less_eq_Pls_Min:
   "Numeral.Pls \<le> Numeral.Min \<longleftrightarrow> False"
-  unfolding Pls_def Min_def by auto
+  unfolding Pls_def Min_def by presburger
 
 lemma less_eq_Pls_Bit:
   "Numeral.Pls \<le> Numeral.Bit k v \<longleftrightarrow> Numeral.Pls \<le> k"
@@ -526,7 +556,7 @@ lemma less_eq_Pls_Bit:
 
 lemma less_eq_Min_Pls:
   "Numeral.Min \<le> Numeral.Pls \<longleftrightarrow> True"
-  unfolding Pls_def Min_def by auto
+  unfolding Pls_def Min_def by presburger
 
 lemma less_eq_Min_Min:
   "Numeral.Min \<le> Numeral.Min \<longleftrightarrow> True" by rule+
@@ -569,11 +599,11 @@ lemma less_eq_number_of:
 
 
 lemma less_Pls_Pls:
-  "Numeral.Pls < Numeral.Pls \<longleftrightarrow> False" by auto
+  "Numeral.Pls < Numeral.Pls \<longleftrightarrow> False" by presburger 
 
 lemma less_Pls_Min:
   "Numeral.Pls < Numeral.Min \<longleftrightarrow> False"
-  unfolding Pls_def Min_def by auto
+  unfolding Pls_def Min_def  by presburger 
 
 lemma less_Pls_Bit0:
   "Numeral.Pls < Numeral.Bit k bit.B0 \<longleftrightarrow> Numeral.Pls < k"
@@ -585,10 +615,10 @@ lemma less_Pls_Bit1:
 
 lemma less_Min_Pls:
   "Numeral.Min < Numeral.Pls \<longleftrightarrow> True"
-  unfolding Pls_def Min_def by auto
+  unfolding Pls_def Min_def by presburger 
 
 lemma less_Min_Min:
-  "Numeral.Min < Numeral.Min \<longleftrightarrow> False" by auto
+  "Numeral.Min < Numeral.Min \<longleftrightarrow> False"  by presburger 
 
 lemma less_Min_Bit:
   "Numeral.Min < Numeral.Bit k v \<longleftrightarrow> Numeral.Min < k"
@@ -616,7 +646,7 @@ lemma less_Bit1_Bit:
 
 lemma less_Bit0_Bit1:
   "Numeral.Bit k1 bit.B0 < Numeral.Bit k2 bit.B1 \<longleftrightarrow> k1 \<le> k2"
-  unfolding Bit_def bit.cases by auto
+  unfolding Bit_def bit.cases  by arith
 
 lemma less_number_of:
   "(number_of k \<Colon> int) < number_of l \<longleftrightarrow> k < l"
