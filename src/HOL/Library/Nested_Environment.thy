@@ -103,7 +103,7 @@ text {*
 theorem lookup_append_none:
   assumes "lookup env xs = None"
   shows "lookup env (xs @ ys) = None"
-  using prems
+  using assms
 proof (induct xs arbitrary: env)
   case Nil
   then have False by simp
@@ -140,7 +140,7 @@ qed
 theorem lookup_append_some:
   assumes "lookup env xs = Some e"
   shows "lookup env (xs @ ys) = lookup e ys"
-  using prems
+  using assms
 proof (induct xs arbitrary: env e)
   case Nil
   then have "env = e" by simp
@@ -190,7 +190,7 @@ theorem lookup_some_append:
   assumes "lookup env (xs @ ys) = Some e"
   shows "\<exists>e. lookup env xs = Some e"
 proof -
-  from prems have "lookup env (xs @ ys) \<noteq> None" by simp
+  from assms have "lookup env (xs @ ys) \<noteq> None" by simp
   then have "lookup env xs \<noteq> None"
     by (rule contrapos_nn) (simp only: lookup_append_none)
   then show ?thesis by (simp)
@@ -208,7 +208,7 @@ theorem lookup_some_upper:
     lookup env xs = Some (Env b' es') \<and>
     es' y = Some env' \<and>
     lookup env' ys = Some e"
-  using prems
+  using assms
 proof (induct xs arbitrary: env e)
   case Nil
   from Nil.prems have "lookup env (y # ys) = Some e"
@@ -328,7 +328,7 @@ text {*
 theorem lookup_update_some:
   assumes "lookup env xs = Some e"
   shows "lookup (update xs (Some env') env) xs = Some env'"
-  using prems
+  using assms
 proof (induct xs arbitrary: env e)
   case Nil
   then have "env = e" by simp
@@ -377,7 +377,7 @@ text {*
 theorem update_append_none:
   assumes "lookup env xs = None"
   shows "update (xs @ y # ys) opt env = env"
-  using prems
+  using assms
 proof (induct xs arbitrary: env)
   case Nil
   then have False by simp
@@ -420,7 +420,7 @@ qed
 theorem update_append_some:
   assumes "lookup env xs = Some e"
   shows "lookup (update (xs @ y # ys) opt env) xs = Some (update (y # ys) opt e)"
-  using prems
+  using assms
 proof (induct xs arbitrary: env e)
   case Nil
   then have "env = e" by simp

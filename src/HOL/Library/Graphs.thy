@@ -399,7 +399,7 @@ proof -
     hence "fst (path_nth p (Suc i mod ?l)) = fst (path_nth p 0)" 
       by (simp add: mod_Suc)
     also from fst_p0 have "\<dots> = fst p" .
-    also have "\<dots> = end_node p" by assumption
+    also have "\<dots> = end_node p" by fact
     also have "\<dots> = snd (snd (path_nth p ?k))" 
       by (auto simp: endnode_nth wrap)
     finally show ?thesis .

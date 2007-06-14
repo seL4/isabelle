@@ -74,7 +74,7 @@ where
 lemma some_rd:
   assumes "mk_rel rds x y"
   shows "\<exists>rd\<in>set rds. in_cdesc rd x y"
-  using prems
+  using assms
   by (induct rds) (auto simp:in_cdesc_def)
 
 (* from a value sequence, get a sequence of rds *)
@@ -125,19 +125,19 @@ where
 
 
 lemma decr_in_cdesc:
-  assumes	"in_cdesc RD1 y x"
+  assumes "in_cdesc RD1 y x"
   assumes "in_cdesc RD2 z y"
   assumes "decr RD1 RD2 m1 m2"
   shows "m2 y < m1 x"
-  using prems
+  using assms
   by (cases RD1, cases RD2, auto simp:decr_def)
 
 lemma decreq_in_cdesc:
-  assumes	"in_cdesc RD1 y x"
+  assumes "in_cdesc RD1 y x"
   assumes "in_cdesc RD2 z y"
   assumes "decreq RD1 RD2 m1 m2"
   shows "m2 y \<le> m1 x"
-  using prems
+  using assms
   by (cases RD1, cases RD2, auto simp:decreq_def)
 
 
@@ -208,7 +208,7 @@ lemma approx_less:
   assumes "stepP c1 c2 (ms1 i) (ms2 j) (op <)"
   assumes "approx (Graph Es) c1 c2 ms1 ms2"
   shows "approx (Graph (insert (i, \<down>, j) Es)) c1 c2 ms1 ms2"
-  using prems
+  using assms
   unfolding approx_def has_edge_def dest_graph.simps decr_def
   by auto
 
@@ -216,7 +216,7 @@ lemma approx_leq:
   assumes "stepP c1 c2 (ms1 i) (ms2 j) (op \<le>)"
   assumes "approx (Graph Es) c1 c2 ms1 ms2"
   shows "approx (Graph (insert (i, \<Down>, j) Es)) c1 c2 ms1 ms2"
-  using prems
+  using assms
   unfolding approx_def has_edge_def dest_graph.simps decreq_def
   by auto
 
@@ -276,7 +276,7 @@ lemma step_witness:
   assumes "in_cdesc RD1 y x"
   assumes "in_cdesc RD2 z y"
   shows "\<not> no_step RD1 RD2"
-  using prems
+  using assms
   by (cases RD1, cases RD2) (auto simp:no_step_def)
 
 

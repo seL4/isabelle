@@ -100,8 +100,7 @@ lemma le_SUPI':
   fixes l :: "'a :: complete_lattice"
   assumes "l \<le> M i"
   shows "l \<le> (SUP i. M i)"
-  using prems
-  by (rule order_trans) (rule le_SUPI [OF UNIV_I])
+  using assms by (rule order_trans) (rule le_SUPI [OF UNIV_I])
 
 lemma zero_minimum[simp]: "(0::'a::pre_kleene) \<le> x"
   unfolding order_def by simp
@@ -428,7 +427,7 @@ lemma mk_tcl_correctness:
   fixes A X :: "'a :: {kleene}"
   assumes "mk_tcl_dom (A, X)"
   shows "mk_tcl A X = X * star A"
-  using prems
+  using assms
   by induct (auto simp:mk_tcl_lemma1 mk_tcl_lemma2)
 
 lemma graph_implies_dom: "mk_tcl_graph x y \<Longrightarrow> mk_tcl_dom x"
@@ -446,7 +445,7 @@ lemma mk_tcl_correctness2:
   fixes A X :: "'a :: {kleene}"
   assumes "mk_tcl A A \<noteq> 0"
   shows "mk_tcl A A = tcl A"
-  using prems mk_tcl_default mk_tcl_correctness
+  using assms mk_tcl_default mk_tcl_correctness
   unfolding tcl_def 
   by (auto simp:star_commute)
 

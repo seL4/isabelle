@@ -797,7 +797,7 @@ proof (intro exI conjI)
 
     have "i < s (Suc ?k)" by (rule section_of2) simp
     also have "\<dots> \<le> s j"
-      by (rule increasing_weak [of s], assumption) (insert `?k < j`, arith)
+      by (rule increasing_weak [OF `increasing s`]) (insert `?k < j`, arith)
     also note `\<dots> \<le> l`
     finally have "i < l" .
     with desc

@@ -591,7 +591,7 @@ theorem transitions_type_safe:
   assumes "root =xs\<Rightarrow> root'"
     and "\<exists>att dir. root = Env att dir"
   shows "\<exists>att dir. root' = Env att dir"
-  using transition_type_safe and prems
+  using transition_type_safe and assms
 proof (rule transitions_invariant)
   show "\<forall>x \<in> set xs. True" by blast
 qed

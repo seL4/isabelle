@@ -13,7 +13,7 @@ text {* Conversions between nibbles and natural numbers in [0..15]. *}
 
 fun
   nat_of_nibble :: "nibble \<Rightarrow> nat" where
-  "nat_of_nibble Nibble0 = 0"
+    "nat_of_nibble Nibble0 = 0"
   | "nat_of_nibble Nibble1 = 1"
   | "nat_of_nibble Nibble2 = 2"
   | "nat_of_nibble Nibble3 = 3"
@@ -83,7 +83,8 @@ lemma nibble_of_nat_of_nibble: "nibble_of_nat (nat_of_nibble n) = n"
 
 lemma nat_of_nibble_of_nat: "nat_of_nibble (nibble_of_nat n) = n mod 16"
 proof -
-  have nibble_nat_enum: "n mod 16 \<in> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}"
+  have nibble_nat_enum:
+    "n mod 16 \<in> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}"
   proof -
     have set_unfold: "\<And>n. {0..Suc n} = insert (Suc n) {0..n}" by auto
     have "(n\<Colon>nat) mod 16 \<in> {0..Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc
@@ -111,8 +112,7 @@ lemma nat_of_nibble_div_16: "nat_of_nibble n div 16 = 0"
 text {* Conversion between chars and nats. *}
 
 definition
-  nibble_pair_of_nat :: "nat \<Rightarrow> nibble \<times> nibble"
-where
+  nibble_pair_of_nat :: "nat \<Rightarrow> nibble \<times> nibble" where
   "nibble_pair_of_nat n = (nibble_of_nat (n div 16), nibble_of_nat (n mod 16))"
 
 lemma nibble_of_pair [code func]:
@@ -146,7 +146,7 @@ proof -
   proof -
     fix m k n :: nat
     show "(k * n + m) mod n = m mod n"
-    by (simp only: mod_mult_self1 [symmetric, of m n k] add_commute)
+      by (simp only: mod_mult_self1 [symmetric, of m n k] add_commute)
   qed
   from mod_div_decomp [of n 256] obtain k l where n: "n = k * 256 + l"
     and k: "k = n div 256" and l: "l = n mod 256" by blast
@@ -163,28 +163,31 @@ proof -
   have aux4: "(k * 256 + l) mod 16 = l mod 16"
     unfolding 256 mult_assoc [symmetric] mod_mult_self3 ..
   show ?thesis
-  by (simp add: nat_of_char.simps char_of_nat_def nibble_of_pair nat_of_nibble_of_nat mod_mult_distrib
-    n aux3 mod_mult_self3 l_256 aux4 mod_add1_eq [of "256 * k"] l_div_256)
+    by (simp add: nat_of_char.simps char_of_nat_def nibble_of_pair
+      nat_of_nibble_of_nat mod_mult_distrib
+      n aux3 mod_mult_self3 l_256 aux4 mod_add1_eq [of "256 * k"] l_div_256)
 qed
 
 lemma nibble_pair_of_nat_char:
   "nibble_pair_of_nat (nat_of_char (Char n m)) = (n, m)"
 proof -
   have nat_of_nibble_256:
-    "\<And>n m. (nat_of_nibble n * 16 + nat_of_nibble m) mod 256 = nat_of_nibble n * 16 + nat_of_nibble m"
+    "\<And>n m. (nat_of_nibble n * 16 + nat_of_nibble m) mod 256 =
+      nat_of_nibble n * 16 + nat_of_nibble m"
   proof -
     fix n m
     have nat_of_nibble_less_eq_15: "\<And>n. nat_of_nibble n \<le> 15"
-    using Suc_leI [OF nat_of_nibble_less_16] by (auto simp add: nat_number)
-    have less_eq_240: "nat_of_nibble n * 16 \<le> 240" using nat_of_nibble_less_eq_15 by auto
+      using Suc_leI [OF nat_of_nibble_less_16] by (auto simp add: nat_number)
+    have less_eq_240: "nat_of_nibble n * 16 \<le> 240"
+      using nat_of_nibble_less_eq_15 by auto
     have "nat_of_nibble n * 16 + nat_of_nibble m \<le> 240 + 15"
-    by (rule add_le_mono [of _ 240 _ 15]) (auto intro: nat_of_nibble_less_eq_15 less_eq_240)
+      by (rule add_le_mono [of _ 240 _ 15]) (auto intro: nat_of_nibble_less_eq_15 less_eq_240)
     then have "nat_of_nibble n * 16 + nat_of_nibble m < 256" (is "?rhs < _") by auto
     then show "?rhs mod 256 = ?rhs" by auto
   qed
   show ?thesis
-  unfolding nibble_pair_of_nat_def Char_char_of_nat nat_of_char_of_nat nat_of_nibble_256
-  by (simp add: add_commute nat_of_nibble_div_16 nibble_of_nat_norm nibble_of_nat_of_nibble)
+    unfolding nibble_pair_of_nat_def Char_char_of_nat nat_of_char_of_nat nat_of_nibble_256
+    by (simp add: add_commute nat_of_nibble_div_16 nibble_of_nat_norm nibble_of_nat_of_nibble)
 qed
 
 

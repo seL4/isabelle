@@ -88,9 +88,9 @@ lemma no_bad_graphs_ucl:
   assumes "A \<le> B"
   assumes "no_bad_graphs B"
   shows "no_bad_graphs A"
-using prems
-unfolding no_bad_graphs_def has_edge_def graph_leq_def 
-by blast
+  using assms
+  unfolding no_bad_graphs_def has_edge_def graph_leq_def 
+  by blast
 
 
 

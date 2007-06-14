@@ -26,7 +26,7 @@ lemma prefixI [intro?]: "ys = xs @ zs ==> xs \<le> ys"
 lemma prefixE [elim?]:
   assumes "xs \<le> ys"
   obtains zs where "ys = xs @ zs"
-  using prems unfolding prefix_def by blast
+  using assms unfolding prefix_def by blast
 
 lemma strict_prefixI' [intro?]: "ys = xs @ z # zs ==> xs < ys"
   unfolding strict_prefix_def prefix_def by blast
@@ -47,7 +47,7 @@ lemma strict_prefixE [elim?]:
   fixes xs ys :: "'a list"
   assumes "xs < ys"
   obtains "xs \<le> ys" and "xs \<noteq> ys"
-  using prems unfolding strict_prefix_def by blast
+  using assms unfolding strict_prefix_def by blast
 
 
 subsection {* Basic properties of prefixes *}
@@ -168,7 +168,7 @@ lemma parallelI [intro]: "\<not> xs \<le> ys ==> \<not> ys \<le> xs ==> xs \<par
 lemma parallelE [elim]:
   assumes "xs \<parallel> ys"
   obtains "\<not> xs \<le> ys \<and> \<not> ys \<le> xs"
-  using prems unfolding parallel_def by blast
+  using assms unfolding parallel_def by blast
 
 theorem prefix_cases:
   obtains "xs \<le> ys" | "ys < xs" | "xs \<parallel> ys"
@@ -227,7 +227,7 @@ lemma postfixI [intro?]: "xs = zs @ ys ==> xs >>= ys"
 lemma postfixE [elim?]:
   assumes "xs >>= ys"
   obtains zs where "xs = zs @ ys"
-  using prems unfolding postfix_def by blast
+  using assms unfolding postfix_def by blast
 
 lemma postfix_refl [iff]: "xs >>= xs"
   by (auto simp add: postfix_def)

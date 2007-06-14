@@ -32,7 +32,7 @@ lemma three_cases:
   assumes "a3 \<Longrightarrow> thesis"
   assumes "\<And>R. \<lbrakk>a1 \<Longrightarrow> R; a2 \<Longrightarrow> R; a3 \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
   shows "thesis"
-  using prems
+  using assms
   by auto
 
 
@@ -44,32 +44,34 @@ types
 
 subsubsection {* Increasing sequences *}
 
-definition increasing :: "(nat \<Rightarrow> nat) \<Rightarrow> bool"
-where
+definition
+  increasing :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
   "increasing s = (\<forall>i j. i < j \<longrightarrow> s i < s j)"
 
 lemma increasing_strict:
   assumes "increasing s"
   assumes "i < j"
   shows "s i < s j"
-  using prems
+  using assms
   unfolding increasing_def by simp
 
 lemma increasing_weak:
   assumes "increasing s"
   assumes "i \<le> j"
   shows "s i \<le> s j"
-  using prems increasing_strict[of s i j]
-  by (cases "i<j") auto
+  using assms increasing_strict[of s i j]
+  by (cases "i < j") auto
 
 lemma increasing_inc:
-  assumes [simp]: "increasing s"
+  assumes "increasing s"
   shows "n \<le> s n"
 proof (induct n)
+  case 0 then show ?case by simp
+next
   case (Suc n)
-  with increasing_strict[of s n "Suc n"]
+  with increasing_strict [OF `increasing s`, of n "Suc n"]
   show ?case by auto
-qed auto
+qed
 
 lemma increasing_bij:
   assumes [simp]: "increasing s"
@@ -162,10 +164,10 @@ proof (rule classical)
 qed 
   
 lemma in_section_of: 
-  assumes [simp, intro]: "increasing s"
+  assumes "increasing s"
   assumes "s i \<le> k"
   shows "k \<in> section s (section_of s k)"
-  using prems
+  using assms
   by (auto intro:section_of1 section_of2)
 
 end

@@ -346,7 +346,7 @@ qed
 lemma inf_img_fin_domE:
   assumes "finite (f`A)" and "infinite A"
   obtains y where "y \<in> f`A" and "infinite (f -` {y})"
-  using prems by (blast dest: inf_img_fin_dom)
+  using assms by (blast dest: inf_img_fin_dom)
 
 
 subsection "Infinitely Many and Almost All"

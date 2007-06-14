@@ -185,7 +185,7 @@ theorem quot_function:
   assumes "!!X Y. f X Y == g (pick X) (pick Y)"
     and "!!x x' y y'. \<lfloor>x\<rfloor> = \<lfloor>x'\<rfloor> ==> \<lfloor>y\<rfloor> = \<lfloor>y'\<rfloor> ==> g x y = g x' y'"
   shows "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
-  using prems and TrueI
+  using assms and TrueI
   by (rule quot_cond_function)
 
 theorem quot_function':

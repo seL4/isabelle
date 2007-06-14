@@ -73,22 +73,19 @@ qed
 theorem nat2_to_nat_inj: "inj nat2_to_nat"
 proof -
   {
-    fix u v x y assume "nat2_to_nat (u,v) = nat2_to_nat (x,y)"
+    fix u v x y
+    assume eq1: "nat2_to_nat (u,v) = nat2_to_nat (x,y)"
     then have "u+v \<le> x+y" by (rule nat2_to_nat_help)
-    also from prems [symmetric] have "x+y \<le> u+v"
+    also from eq1 [symmetric] have "x+y \<le> u+v"
       by (rule nat2_to_nat_help)
-    finally have eq: "u+v = x+y" .
-    with prems have ux: "u=x"
+    finally have eq2: "u+v = x+y" .
+    with eq1 have ux: "u=x"
       by (simp add: nat2_to_nat_def Let_def)
-    with eq have vy: "v=y"
-      by simp
-    with ux have "(u,v) = (x,y)"
-      by simp
+    with eq2 have vy: "v=y" by simp
+    with ux have "(u,v) = (x,y)" by simp
   }
-  then have "\<And>x y. nat2_to_nat x = nat2_to_nat y \<Longrightarrow> x=y"
-    by fast
-  then show ?thesis
-    by (unfold inj_on_def) simp
+  then have "\<And>x y. nat2_to_nat x = nat2_to_nat y \<Longrightarrow> x=y" by fast
+  then show ?thesis unfolding inj_on_def by simp
 qed
 
 end

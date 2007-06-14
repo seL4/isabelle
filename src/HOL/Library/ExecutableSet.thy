@@ -56,10 +56,9 @@ definition
   insertl :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "insertl x xs = (if member xs x then xs else x#xs)"
 
-lemma
-  [code target: List]: "member [] y \<longleftrightarrow> False"
+lemma [code target: List]: "member [] y \<longleftrightarrow> False"
   and [code target: List]: "member (x#xs) y \<longleftrightarrow> y = x \<or> member xs y"
-unfolding member_def by (induct xs) simp_all
+  unfolding member_def by (induct xs) simp_all
 
 fun
   drop_first :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -201,7 +200,7 @@ lemma iso_subtract:
   fixes ys
   assumes distnct: "distinct ys"
   shows "set (subtract' ys xs) = set ys - set xs"
-  and "distinct (subtract' ys xs)"
+    and "distinct (subtract' ys xs)"
   unfolding subtract'_def flip_def subtract_def
   using distnct by (induct xs arbitrary: ys) auto
 
@@ -211,7 +210,8 @@ lemma iso_map_distinct:
 
 lemma iso_unions:
   "set (unions xss) = \<Union> set (map set xss)"
-unfolding unions_def proof (induct xss)
+  unfolding unions_def
+proof (induct xss)
   case Nil show ?case by simp
 next
   case (Cons xs xss) thus ?case by (induct xs) (simp_all add: iso_insert)

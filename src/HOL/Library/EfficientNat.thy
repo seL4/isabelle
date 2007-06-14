@@ -48,13 +48,13 @@ lemma nat_of_int_of_number_of:
   fixes k
   assumes "k \<ge> 0"
   shows "number_of k = nat_of_int (number_of k)"
-  unfolding nat_of_int_def [OF prems] nat_number_of_def number_of_is_id ..
+  unfolding nat_of_int_def [OF assms] nat_number_of_def number_of_is_id ..
 
 lemma nat_of_int_of_number_of_aux:
   fixes k
   assumes "Numeral.Pls \<le> k \<equiv> True"
   shows "k \<ge> 0"
-  using prems unfolding Pls_def by simp
+  using assms unfolding Pls_def by simp
 
 lemma nat_of_int_int:
   "nat_of_int (int' n) = n"

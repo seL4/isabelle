@@ -13,32 +13,36 @@ instance nibble :: linorder
   nibble_less_eq_def: "n \<le> m \<equiv> nat_of_nibble n \<le> nat_of_nibble m"
   nibble_less_def: "n < m \<equiv> nat_of_nibble n < nat_of_nibble m"
 proof
-  fix n :: nibble show "n \<le> n" unfolding nibble_less_eq_def nibble_less_def by auto
+  fix n :: nibble
+  show "n \<le> n" unfolding nibble_less_eq_def nibble_less_def by auto
 next
   fix n m q :: nibble
   assume "n \<le> m"
-  and "m \<le> q"
+    and "m \<le> q"
   then show "n \<le> q" unfolding nibble_less_eq_def nibble_less_def by auto
 next
   fix n m :: nibble
   assume "n \<le> m"
-  and "m \<le> n"
-  then show "n = m" unfolding nibble_less_eq_def nibble_less_def by (auto simp add: nat_of_nibble_eq)
+    and "m \<le> n"
+  then show "n = m"
+    unfolding nibble_less_eq_def nibble_less_def
+    by (auto simp add: nat_of_nibble_eq)
 next
   fix n m :: nibble
   show "n < m \<longleftrightarrow> n \<le> m \<and> n \<noteq> m"
-  unfolding nibble_less_eq_def nibble_less_def less_le by (auto simp add: nat_of_nibble_eq)
+    unfolding nibble_less_eq_def nibble_less_def less_le
+    by (auto simp add: nat_of_nibble_eq)
 next
   fix n m :: nibble
   show "n \<le> m \<or> m \<le> n"
-  unfolding nibble_less_eq_def by auto
+    unfolding nibble_less_eq_def by auto
 qed
 
 instance nibble :: distrib_lattice
-  "inf \<equiv> min"
-  "sup \<equiv> max"
-  by default
-    (auto simp add: inf_nibble_def sup_nibble_def min_max.sup_inf_distrib1)
+    "inf \<equiv> min"
+    "sup \<equiv> max"
+  by default (auto simp add:
+    inf_nibble_def sup_nibble_def min_max.sup_inf_distrib1)
 
 instance char :: linorder
   char_less_eq_def: "c1 \<le> c2 \<equiv> case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
@@ -50,10 +54,10 @@ instance char :: linorder
 lemmas [code func del] = char_less_eq_def char_less_def
 
 instance char :: distrib_lattice
-  "inf \<equiv> min"
-  "sup \<equiv> max"
-  by default
-    (auto simp add: inf_char_def sup_char_def min_max.sup_inf_distrib1)
+    "inf \<equiv> min"
+    "sup \<equiv> max"
+  by default (auto simp add:
+    inf_char_def sup_char_def min_max.sup_inf_distrib1)
 
 lemma [simp, code func]:
   shows char_less_eq_simp: "Char n1 m1 \<le> Char n2 m2 \<longleftrightarrow> n1 < n2 \<or> n1 = n2 \<and> m1 \<le> m2"
