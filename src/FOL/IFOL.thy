@@ -319,27 +319,23 @@ lemma iff_trans: "[| P <-> Q;  Q<-> R |] ==> P <-> R"
 ***)
 
 lemma ex1I:
-  assumes "P(a)"
-    and "!!x. P(x) ==> x=a"
-  shows "EX! x. P(x)"
+  "P(a) \<Longrightarrow> (!!x. P(x) ==> x=a) \<Longrightarrow> EX! x. P(x)"
   apply (unfold ex1_def)
-  apply (assumption | rule assms exI conjI allI impI)+
+  apply (assumption | rule exI conjI allI impI)+
   done
 
 (*Sometimes easier to use: the premises have no shared variables.  Safe!*)
 lemma ex_ex1I:
-  assumes ex: "EX x. P(x)"
-    and eq: "!!x y. [| P(x); P(y) |] ==> x=y"
-  shows "EX! x. P(x)"
-  apply (rule ex [THEN exE])
-  apply (assumption | rule ex1I eq)+
+  "EX x. P(x) \<Longrightarrow> (!!x y. [| P(x); P(y) |] ==> x=y) \<Longrightarrow> EX! x. P(x)"
+  apply (erule exE)
+  apply (rule ex1I)
+   apply assumption
+  apply assumption
   done
 
 lemma ex1E:
-  assumes ex1: "EX! x. P(x)"
-    and r: "!!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R"
-  shows R
-  apply (insert ex1, unfold ex1_def)
+  "EX! x. P(x) \<Longrightarrow> (!!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R) \<Longrightarrow> R"
+  apply (unfold ex1_def)
   apply (assumption | erule exE conjE)+
   done
 
@@ -572,11 +568,11 @@ lemma imp_impE:
 (*Simplifies the implication.  Classical version is stronger. 
   Still UNSAFE since ~P must be provable -- backtracking needed.  *)
 lemma not_impE:
-  assumes major: "~P --> S"
-    and r1: "P ==> False"
-    and r2: "S ==> R"
-  shows R
-  apply (assumption | rule notI impI major [THEN mp] r1 r2)+
+  "~P --> S \<Longrightarrow> (P ==> False) \<Longrightarrow> (S ==> R) \<Longrightarrow> R"
+  apply (drule mp)
+   apply (rule notI)
+   apply assumption
+  apply assumption
   done
 
 (*Simplifies the implication.   UNSAFE.  *)
@@ -595,7 +591,7 @@ lemma all_impE:
     and r1: "!!x. P(x)"
     and r2: "S ==> R"
   shows R
-  apply (assumption | rule allI impI major [THEN mp] r1 r2)+
+  apply (rule allI impI major [THEN mp] r1 r2)+
   done
 
 (*Unsafe: (EX x.P(x))-->S  is equivalent to  ALL x.P(x)-->S.  *)
@@ -609,10 +605,8 @@ lemma ex_impE:
 (*** Courtesy of Krzysztof Grabczewski ***)
 
 lemma disj_imp_disj:
-  assumes major: "P|Q"
-    and "P==>R" and "Q==>S"
-  shows "R|S"
-  apply (rule disjE [OF major])
+  "P|Q \<Longrightarrow> (P==>R) \<Longrightarrow> (Q==>S) \<Longrightarrow> R|S"
+  apply (erule disjE)
   apply (rule disjI1) apply assumption
   apply (rule disjI2) apply assumption
   done

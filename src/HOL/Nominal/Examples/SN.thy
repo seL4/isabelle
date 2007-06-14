@@ -374,7 +374,7 @@ proof -
   proof (induct a rule: acc.induct)
     case (accI x)
     note accI' = accI
-    have "acc r b" .
+    have "acc r b" by fact
     thus ?case
     proof (induct b rule: acc.induct)
       case (accI y)
@@ -501,7 +501,7 @@ proof(nominal_induct  avoiding: \<theta> rule: typing.strong_induct)
   case (t3 a \<Gamma> \<sigma> t \<tau> \<theta>) --"lambda case"
   have ih: "\<And>\<theta>. \<theta> closes ((a,\<sigma>)#\<Gamma>) \<Longrightarrow> \<theta><t> \<in> RED \<tau>" by fact
   have \<theta>_cond: "\<theta> closes \<Gamma>" by fact
-  have fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" by fact
+  have fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" by fact+
   from ih have "\<forall>s\<in>RED \<sigma>. ((a,s)#\<theta>)<t> \<in> RED \<tau>" 
     using fresh \<theta>_cond fresh_context by simp
   then have "\<forall>s\<in>RED \<sigma>. \<theta><t>[a::=s] \<in> RED \<tau>" 

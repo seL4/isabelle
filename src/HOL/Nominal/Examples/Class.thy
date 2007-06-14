@@ -5878,7 +5878,7 @@ proof(nominal_induct M avoiding: x a y rule: trm.induct)
   qed
 next
   case (Cut b M z N x a y)
-  have fs: "b\<sharp>x" "b\<sharp>a" "b\<sharp>y" "b\<sharp>N" "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "z\<sharp>M" by fact
+  have fs: "b\<sharp>x" "b\<sharp>a" "b\<sharp>y" "b\<sharp>N" "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "z\<sharp>M" by fact+
   have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* N[x\<turnstile>n>y]" by fact
   show "(Cut <b>.M (z).N){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (Cut <b>.M (z).N)[x\<turnstile>n>y]"
@@ -5900,14 +5900,14 @@ next
   qed
 next
   case (NotR z M b x a y)
-  have fs: "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "z\<sharp>b" by fact
+  have fs: "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "z\<sharp>b" by fact+
   have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   have "(NotR (z).M b){x:=<a>.Ax y a} = NotR (z).(M{x:=<a>.Ax y a}) b" using fs by simp
   also have "\<dots> \<longrightarrow>\<^isub>a* NotR (z).(M[x\<turnstile>n>y]) b" using ih by (auto intro: a_star_congs)
   finally show "(NotR (z).M b){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (NotR (z).M b)[x\<turnstile>n>y]" using fs by simp
 next
   case (NotL b M z x a y)  
-  have fs: "b\<sharp>x" "b\<sharp>a" "b\<sharp>y" "b\<sharp>z" by fact
+  have fs: "b\<sharp>x" "b\<sharp>a" "b\<sharp>y" "b\<sharp>z" by fact+
   have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   show "(NotL <b>.M z){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (NotL <b>.M z)[x\<turnstile>n>y]"
   proof(cases "z=x")
@@ -5939,7 +5939,7 @@ next
   qed
 next
   case (AndR c M d N e x a y)
-  have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "d\<sharp>x" "d\<sharp>a" "d\<sharp>y" "d\<noteq>c" "c\<sharp>N" "c\<sharp>e" "d\<sharp>M" "d\<sharp>e" by fact
+  have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "d\<sharp>x" "d\<sharp>a" "d\<sharp>y" "d\<noteq>c" "c\<sharp>N" "c\<sharp>e" "d\<sharp>M" "d\<sharp>e" by fact+
   have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* N[x\<turnstile>n>y]" by fact
   have "(AndR <c>.M <d>.N e){x:=<a>.Ax y a} = AndR <c>.(M{x:=<a>.Ax y a}) <d>.(N{x:=<a>.Ax y a}) e"
@@ -5949,7 +5949,7 @@ next
     using fs by simp
 next
   case (AndL1 u M v x a y)
-  have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "u\<sharp>v" by fact
+  have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "u\<sharp>v" by fact+
   have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   show "(AndL1 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndL1 (u).M v)[x\<turnstile>n>y]"
   proof(cases "v=x")
@@ -5983,7 +5983,7 @@ next
   qed
 next
   case (AndL2 u M v x a y)
-  have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "u\<sharp>v" by fact
+  have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "u\<sharp>v" by fact+
   have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   show "(AndL2 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndL2 (u).M v)[x\<turnstile>n>y]"
   proof(cases "v=x")
@@ -6017,21 +6017,21 @@ next
   qed
 next
   case (OrR1 c M d  x a y)
-  have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "c\<sharp>d" by fact
+  have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "c\<sharp>d" by fact+
   have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   have "(OrR1 <c>.M d){x:=<a>.Ax y a} = OrR1 <c>.(M{x:=<a>.Ax y a}) d" using fs by (simp add: fresh_atm)
   also have "\<dots> \<longrightarrow>\<^isub>a* OrR1 <c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
   finally show "(OrR1 <c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (OrR1 <c>.M d)[x\<turnstile>n>y]" using fs by simp
 next
   case (OrR2 c M d  x a y)
-  have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "c\<sharp>d" by fact
+  have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "c\<sharp>d" by fact+
   have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   have "(OrR2 <c>.M d){x:=<a>.Ax y a} = OrR2 <c>.(M{x:=<a>.Ax y a}) d" using fs by (simp add: fresh_atm)
   also have "\<dots> \<longrightarrow>\<^isub>a* OrR2 <c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
   finally show "(OrR2 <c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (OrR2 <c>.M d)[x\<turnstile>n>y]" using fs by simp
 next
   case (OrL u M v N z x a y)
-  have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "v\<sharp>x" "v\<sharp>a" "v\<sharp>y" "v\<noteq>u" "u\<sharp>N" "u\<sharp>z" "v\<sharp>M" "v\<sharp>z" by fact
+  have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "v\<sharp>x" "v\<sharp>a" "v\<sharp>y" "v\<noteq>u" "u\<sharp>N" "u\<sharp>z" "v\<sharp>M" "v\<sharp>z" by fact+
   have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* N[x\<turnstile>n>y]" by fact
   show "(OrL (u).M (v).N z){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (OrL (u).M (v).N z)[x\<turnstile>n>y]"
@@ -6070,7 +6070,7 @@ next
   qed
 next
   case (ImpR z c M d x a y)
-  have fs: "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "z\<sharp>d" "c\<sharp>d" by fact
+  have fs: "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "z\<sharp>d" "c\<sharp>d" by fact+
   have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   have "(ImpR (z).<c>.M d){x:=<a>.Ax y a} = ImpR (z).<c>.(M{x:=<a>.Ax y a}) d" using fs by simp
   also have "\<dots> \<longrightarrow>\<^isub>a* ImpR (z).<c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
@@ -6135,7 +6135,7 @@ proof(nominal_induct M avoiding: b a x rule: trm.induct)
   qed
 next
   case (Cut c M z N b a x)
-  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>N" "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "z\<sharp>M" by fact
+  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>N" "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "z\<sharp>M" by fact+
   have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* N[b\<turnstile>c>a]" by fact
   show "(Cut <c>.M (z).N){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (Cut <c>.M (z).N)[b\<turnstile>c>a]"
@@ -6157,7 +6157,7 @@ next
   qed
 next
   case (NotR z M c b a x)
-  have fs: "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "z\<sharp>c" by fact
+  have fs: "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "z\<sharp>c" by fact+
   have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   show "(NotR (z).M c){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (NotR (z).M c)[b\<turnstile>c>a]"
   proof (cases "c=b")
@@ -6190,14 +6190,14 @@ next
   qed
 next
   case (NotL c M z b a x)  
-  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>z" by fact
+  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>z" by fact+
   have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   have "(NotL <c>.M z){b:=(x).Ax x a} = NotL <c>.(M{b:=(x).Ax x a}) z" using fs by simp
   also have "\<dots> \<longrightarrow>\<^isub>a* NotL <c>.(M[b\<turnstile>c>a]) z" using ih by (auto intro: a_star_congs)
   finally show "(NotL <c>.M z){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (NotL <c>.M z)[b\<turnstile>c>a]" using fs by simp
 next
   case (AndR c M d N e b a x)
-  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "d\<sharp>b" "d\<sharp>a" "d\<sharp>x" "d\<noteq>c" "c\<sharp>N" "c\<sharp>e" "d\<sharp>M" "d\<sharp>e" by fact
+  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "d\<sharp>b" "d\<sharp>a" "d\<sharp>x" "d\<noteq>c" "c\<sharp>N" "c\<sharp>e" "d\<sharp>M" "d\<sharp>e" by fact+
   have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* N[b\<turnstile>c>a]" by fact
   show "(AndR <c>.M <d>.N e){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (AndR <c>.M <d>.N e)[b\<turnstile>c>a]"
@@ -6235,21 +6235,21 @@ next
   qed
 next
   case (AndL1 u M v b a x)
-  have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "u\<sharp>v" by fact
+  have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "u\<sharp>v" by fact+
   have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   have "(AndL1 (u).M v){b:=(x).Ax x a} = AndL1 (u).(M{b:=(x).Ax x a}) v" using fs by simp
   also have "\<dots> \<longrightarrow>\<^isub>a* AndL1 (u).(M[b\<turnstile>c>a]) v" using ih by (auto intro: a_star_congs)
   finally show "(AndL1 (u).M v){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (AndL1 (u).M v)[b\<turnstile>c>a]" using fs by simp
 next
   case (AndL2 u M v b a x)
-  have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "u\<sharp>v" by fact
+  have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "u\<sharp>v" by fact+
   have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   have "(AndL2 (u).M v){b:=(x).Ax x a} = AndL2 (u).(M{b:=(x).Ax x a}) v" using fs by simp
   also have "\<dots> \<longrightarrow>\<^isub>a* AndL2 (u).(M[b\<turnstile>c>a]) v" using ih by (auto intro: a_star_congs)
   finally show "(AndL2 (u).M v){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (AndL2 (u).M v)[b\<turnstile>c>a]" using fs by simp
 next
   case (OrR1 c M d  b a x)
-  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>d" by fact
+  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>d" by fact+
   have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   show "(OrR1 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrR1 <c>.M d)[b\<turnstile>c>a]"
   proof(cases "d=b")
@@ -6283,7 +6283,7 @@ next
   qed
 next
   case (OrR2 c M d  b a x)
-  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>d" by fact
+  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>d" by fact+
   have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   show "(OrR2 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrR2 <c>.M d)[b\<turnstile>c>a]"
   proof(cases "d=b")
@@ -6317,7 +6317,7 @@ next
   qed
 next
   case (OrL u M v N z b a x)
-  have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "v\<sharp>b" "v\<sharp>a" "v\<sharp>x" "v\<noteq>u" "u\<sharp>N" "u\<sharp>z" "v\<sharp>M" "v\<sharp>z" by fact
+  have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "v\<sharp>b" "v\<sharp>a" "v\<sharp>x" "v\<noteq>u" "u\<sharp>N" "u\<sharp>z" "v\<sharp>M" "v\<sharp>z" by fact+
   have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* N[b\<turnstile>c>a]" by fact
   have "(OrL (u).M (v).N z){b:=(x).Ax x a} = OrL (u).(M{b:=(x).Ax x a}) (v).(N{b:=(x).Ax x a}) z" 
@@ -6326,7 +6326,7 @@ next
   finally show "(OrL (u).M (v).N z){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrL (u).M (v).N z)[b\<turnstile>c>a]" using fs by simp
 next
   case (ImpR z c M d b a x)
-  have fs: "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "z\<sharp>d" "c\<sharp>d" by fact
+  have fs: "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "z\<sharp>d" "c\<sharp>d" by fact+
   have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   show "(ImpR (z).<c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (ImpR (z).<c>.M d)[b\<turnstile>c>a]"
   proof(cases "b=d")
@@ -6360,7 +6360,7 @@ next
   qed
 next
   case (ImpL c M u N v b a x)
-  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "c\<sharp>N" "c\<sharp>v" "u\<sharp>M" "u\<sharp>v" by fact
+  have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "c\<sharp>N" "c\<sharp>v" "u\<sharp>M" "u\<sharp>v" by fact+
   have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
   have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* N[b\<turnstile>c>a]" by fact
   have "(ImpL <c>.M (u).N v){b:=(x).Ax x a} = ImpL <c>.(M{b:=(x).Ax x a}) (u).(N{b:=(x).Ax x a}) v" 
@@ -7124,7 +7124,7 @@ lemma subst_subst1:
 using a
 proof(nominal_induct M avoiding: x a P b y Q rule: trm.induct)
   case (Ax z c)
-  have fs: "a\<sharp>(Q,b)" "x\<sharp>(y,P,Q)" "b\<sharp>Q" "y\<sharp>P" by fact
+  have fs: "a\<sharp>(Q,b)" "x\<sharp>(y,P,Q)" "b\<sharp>Q" "y\<sharp>P" by fact+
   { assume asm: "z=x \<and> c=b"
     have "(Ax x b){x:=<a>.P}{b:=(y).Q} = (Cut <a>.P (x).Ax x b){b:=(y).Q}" using fs by simp
     also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (y).Q"
@@ -10052,7 +10052,7 @@ proof -
   proof (induct a rule: SNa.induct)
     case (SNaI x)
     note SNa' = this
-    have "SNa b" .
+    have "SNa b" by fact
     thus ?case
     proof (induct b rule: SNa.induct)
       case (SNaI y)

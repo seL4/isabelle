@@ -193,8 +193,8 @@ proof -
   show ?thesis
   proof
     show "x \<sqsubseteq> x" ..
-    show "x \<sqsubseteq> y" by assumption
-    fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> y" show "z \<sqsubseteq> x" by assumption
+    show "x \<sqsubseteq> y" by fact
+    fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> y" show "z \<sqsubseteq> x" by fact
   qed
 qed
 
@@ -203,10 +203,10 @@ proof -
   assume "x \<sqsubseteq> y"
   show ?thesis
   proof
-    show "x \<sqsubseteq> y" by assumption
+    show "x \<sqsubseteq> y" by fact
     show "y \<sqsubseteq> y" ..
     fix z assume "x \<sqsubseteq> z" and "y \<sqsubseteq> z"
-    show "y \<sqsubseteq> z" by assumption
+    show "y \<sqsubseteq> z" by fact
   qed
 qed
 

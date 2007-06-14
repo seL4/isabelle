@@ -22,7 +22,7 @@ text {*
 lemma I: "A --> A"
 proof
   assume A
-  show A by assumption
+  show A by fact
 qed
 
 lemma K: "A --> B --> A"
@@ -30,7 +30,7 @@ proof
   assume A
   show "B --> A"
   proof
-    show A by assumption
+    show A by fact
   qed
 qed
 
@@ -45,8 +45,8 @@ proof
       assume A
       show C
       proof (rule mp)
-        show "B --> C" by (rule mp) assumption+
-        show B by (rule mp) assumption+
+        show "B --> C" by (rule mp) fact+
+        show B by (rule mp) fact+
       qed
     qed
   qed
@@ -65,7 +65,7 @@ text {*
 lemma "A --> A"
 proof
   assume A
-  show A by assumption
+  show A by fact+
 qed
 
 text {*
@@ -117,7 +117,7 @@ text {*
 lemma "A --> B --> A"
 proof (intro impI)
   assume A
-  show A by assumption
+  show A by fact
 qed
 
 text {*
@@ -162,8 +162,8 @@ proof
   assume "A & B"
   show "B & A"
   proof
-    show B by (rule conjunct2) assumption
-    show A by (rule conjunct1) assumption
+    show B by (rule conjunct2) fact
+    show A by (rule conjunct1) fact
   qed
 qed
 
@@ -294,9 +294,9 @@ proof
   proof                    -- {*
     rule @{text disjE}: \smash{$\infer{C}{A \disj B & \infer*{C}{[A]} & \infer*{C}{[B]}}$}
   *}
-    assume P show P by assumption
+    assume P show P by fact
   next
-    assume P show P by assumption
+    assume P show P by fact
   qed
 qed
 
@@ -330,8 +330,8 @@ proof
   then show P
   proof
     assume P
-    show P by assumption
-    show P by assumption
+    show P by fact
+    show P by fact
   qed
 qed
 
@@ -439,8 +439,8 @@ proof -
   assume r: "A ==> B ==> C"
   show C
   proof (rule r)
-    show A by (rule conjunct1) assumption
-    show B by (rule conjunct2) assumption
+    show A by (rule conjunct1) fact
+    show B by (rule conjunct2) fact
   qed
 qed
 

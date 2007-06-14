@@ -24,7 +24,7 @@ next
   ultimately show "(App M1 M2)[x::=P] = (App M1 M2)" by simp
 next
   case (Lam z M)
-  have vc: "z\<sharp>x" "z\<sharp>P" by fact
+  have vc: "z\<sharp>x" "z\<sharp>P" by fact+
   have ih: "x\<sharp>M \<Longrightarrow>  M[x::=P] = M" by fact
   have asm: "x\<sharp>Lam [z].M" by fact
   then have "x\<sharp>M" using vc by (simp add: fresh_atm abs_fresh)
@@ -46,7 +46,7 @@ lemma fresh_fact:
 using asms
 proof (nominal_induct N avoiding: z y L rule: lam.induct)
   case (Var u)
-  have "z\<sharp>(Var u)" "z\<sharp>L" by fact
+  have "z\<sharp>(Var u)" "z\<sharp>L" by fact+
   thus "z\<sharp>((Var u)[y::=L])" by simp
 next
   case (App N1 N2)
@@ -54,11 +54,11 @@ next
   moreover
   have ih2: "\<lbrakk>z\<sharp>N2; z\<sharp>L\<rbrakk> \<Longrightarrow> z\<sharp>N2[y::=L]" by fact
   moreover 
-  have "z\<sharp>App N1 N2" "z\<sharp>L" by fact
+  have "z\<sharp>App N1 N2" "z\<sharp>L" by fact+
   ultimately show "z\<sharp>((App N1 N2)[y::=L])" by simp 
 next
   case (Lam u N1)
-  have vc: "u\<sharp>z" "u\<sharp>y" "u\<sharp>L" by fact 
+  have vc: "u\<sharp>z" "u\<sharp>y" "u\<sharp>L" by fact+
   have "z\<sharp>Lam [u].N1" by fact
   hence "z\<sharp>N1" using vc by (simp add: abs_fresh fresh_atm)
   moreover
@@ -123,7 +123,7 @@ next
   have ih: "\<lbrakk>x\<noteq>y; x\<sharp>L\<rbrakk> \<Longrightarrow> M1[x::=N][y::=L] = M1[y::=L][x::=N[y::=L]]" by fact
   have "x\<noteq>y" by fact
   have "x\<sharp>L" by fact
-  have fs: "z\<sharp>x" "z\<sharp>y" "z\<sharp>N" "z\<sharp>L" by fact
+  have fs: "z\<sharp>x" "z\<sharp>y" "z\<sharp>N" "z\<sharp>L" by fact+
   hence "z\<sharp>N[y::=L]" by (simp add: fresh_fact)
   show "(Lam [z].M1)[x::=N][y::=L] = (Lam [z].M1)[y::=L][x::=N[y::=L]]" (is "?LHS=?RHS") 
   proof - 
@@ -334,7 +334,7 @@ lemma one_subst_aux:
 using a
 proof (nominal_induct M avoiding: x N N' rule: lam.induct)
   case (Var y) 
-  show "Var y[x::=N] \<longrightarrow>\<^isub>1 Var y[x::=N']" by (cases "x=y", auto)
+  thus "Var y[x::=N] \<longrightarrow>\<^isub>1 Var y[x::=N']" by (cases "x=y") auto
 next
   case (App P Q) (* application case - third line *)
   thus "(App P Q)[x::=N] \<longrightarrow>\<^isub>1  (App P Q)[x::=N']" using o2 by simp
@@ -367,7 +367,7 @@ next
   thus ?case by simp
 next
   case (o4 a N1 N2 M1 M2 N N' x)
-  have vc: "a\<sharp>N" "a\<sharp>N'" "a\<sharp>x" "a\<sharp>N1" "a\<sharp>N2" by fact
+  have vc: "a\<sharp>N" "a\<sharp>N'" "a\<sharp>x" "a\<sharp>N1" "a\<sharp>N2" by fact+
   have asm: "N\<longrightarrow>\<^isub>1N'" by fact
   show ?case
   proof -
@@ -401,7 +401,7 @@ proof (nominal_induct avoiding: M1 M2 rule: One.strong_induct)
   thus "\<exists>M3. M\<longrightarrow>\<^isub>1M3 \<and>  M2\<longrightarrow>\<^isub>1M3" by blast
 next
   case (o4 x Q Q' P P') (* case 2 --- a beta-reduction occurs*)
-  have vc: "x\<sharp>Q" "x\<sharp>Q'" by fact
+  have vc: "x\<sharp>Q" "x\<sharp>Q'" by fact+
   have i1: "\<And>M2. Q \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. Q'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
   have i2: "\<And>M2. P \<longrightarrow>\<^isub>1M2 \<Longrightarrow> (\<exists>M3. P'\<longrightarrow>\<^isub>1M3 \<and> M2\<longrightarrow>\<^isub>1M3)" by fact
   have "App (Lam [x].P) Q \<longrightarrow>\<^isub>1 M2" by fact
@@ -559,8 +559,8 @@ next
   case o3 thus ?case by (blast intro!: one_lam_cong)
 next 
   case (o4 a s1 s2 t1 t2)
-  have vc: "a\<sharp>s1" "a\<sharp>s2" by fact
-  have a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" and a2: "s1\<longrightarrow>\<^isub>\<beta>\<^sup>*s2" by fact
+  have vc: "a\<sharp>s1" "a\<sharp>s2" by fact+
+  have a1: "t1\<longrightarrow>\<^isub>\<beta>\<^sup>*t2" and a2: "s1\<longrightarrow>\<^isub>\<beta>\<^sup>*s2" by fact+
   have c1: "(App (Lam [a].t2) s2) \<longrightarrow>\<^isub>\<beta> (t2 [a::= s2])" using vc by (simp add: b4)
   from a1 a2 have c2: "App (Lam [a].t1 ) s1 \<longrightarrow>\<^isub>\<beta>\<^sup>* App (Lam [a].t2 ) s2" 
     by (blast intro!: one_app_cong one_lam_cong)

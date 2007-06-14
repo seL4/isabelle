@@ -599,7 +599,7 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
       hence rh_drv: "\<Gamma> \<turnstile> Top <: T" by simp
       hence T_inst: "T = Top" by (simp add: S_TopE)
       have "\<turnstile> \<Gamma> ok" 
-	and "S closed_in \<Gamma>" by fact
+	and "S closed_in \<Gamma>" by fact+
       hence "\<Gamma> \<turnstile> S <: Top" by (simp add: subtype_of.S_Top)
       thus "\<Gamma> \<turnstile> S <: T" using T_inst by simp
     next
@@ -724,13 +724,13 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
   { --{* The transitivity proof is now by the auxiliary lemma. *}
     case 1 
     have  "\<Gamma> \<turnstile> S <: Q" 
-      and "\<Gamma> \<turnstile> Q <: T" by fact
+      and "\<Gamma> \<turnstile> Q <: T" by fact+
     thus "\<Gamma> \<turnstile> S <: T" by (rule transitivity_aux) 
   next 
     --{* The narrowing proof proceeds by an induction over @{term "(\<Delta>@[(X,Q)]@\<Gamma>) \<turnstile> M <: N"}. *}
     case 2
     have  "(\<Delta>@[(X,Q)]@\<Gamma>) \<turnstile> M <: N" --{* left-hand derivation *}
-      and "\<Gamma> \<turnstile> P<:Q" by fact --{* right-hand derivation *}
+      and "\<Gamma> \<turnstile> P<:Q" by fact+ --{* right-hand derivation *}
     thus "(\<Delta>@[(X,P)]@\<Gamma>) \<turnstile> M <: N" 
     proof (nominal_induct \<Gamma>\<equiv>"\<Delta>@[(X,Q)]@\<Gamma>" M N avoiding: \<Delta> \<Gamma> X rule: subtype_of.strong_induct) 
       case (S_Top _ S \<Delta> \<Gamma> X)

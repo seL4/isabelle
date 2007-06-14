@@ -1715,7 +1715,7 @@ lemma pt_perm_compose:
   and     at: "at TYPE('x)"
   shows "pi2\<bullet>(pi1\<bullet>x) = (pi2\<bullet>pi1)\<bullet>(pi2\<bullet>x)" 
 proof -
-  have "(pi2@pi1) \<triangleq> ((pi2\<bullet>pi1)@pi2)" by (rule at_ds8)
+  have "(pi2@pi1) \<triangleq> ((pi2\<bullet>pi1)@pi2)" by (rule at_ds8 [OF at])
   hence "(pi2@pi1)\<bullet>x = ((pi2\<bullet>pi1)@pi2)\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis by (simp add: pt2[OF pt])
 qed
@@ -2543,7 +2543,7 @@ lemma fresh_fun_equiv_ineq:
 proof -
   have ptd: "pt TYPE('y) TYPE('y)" by (simp add: at_pt_inst[OF at']) 
   have ptc: "pt TYPE('y\<Rightarrow>'a) TYPE('x)" by (simp add: pt_fun_inst[OF ptb, OF pta, OF at]) 
-  have cpc: "cp TYPE('y\<Rightarrow>'a) TYPE ('x) TYPE ('y)" by (rule cp_fun_inst[OF cpb,OF cpa])
+  have cpc: "cp TYPE('y\<Rightarrow>'a) TYPE ('x) TYPE ('y)" by (rule cp_fun_inst[OF cpb cpa ptb at])
   have f2: "finite ((supp (pi\<bullet>h))::'y set)"
   proof -
     from f1 have "finite (pi\<bullet>((supp h)::'y set))"
@@ -3077,7 +3077,7 @@ lemma pt_perm_compose_aux:
   and     at: "at TYPE('x)"
   shows "pi2\<bullet>(pi1\<bullet>x) = perm_aux (pi2\<bullet>pi1) (pi2\<bullet>x)" 
 proof -
-  have "(pi2@pi1) \<triangleq> ((pi2\<bullet>pi1)@pi2)" by (rule at_ds8)
+  have "(pi2@pi1) \<triangleq> ((pi2\<bullet>pi1)@pi2)" by (rule at_ds8[OF at])
   hence "(pi2@pi1)\<bullet>x = ((pi2\<bullet>pi1)@pi2)\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis by (simp add: pt2[OF pt] perm_aux_def)
 qed  

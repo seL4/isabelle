@@ -232,7 +232,7 @@ proof
   show "x \<sqsubseteq> x" ..
   show "x \<sqsubseteq> x \<squnion> y" ..
   fix z assume "z \<sqsubseteq> x" and "z \<sqsubseteq> x \<squnion> y"
-  show "z \<sqsubseteq> x" by assumption
+  show "z \<sqsubseteq> x" by fact
 qed
 
 theorem join_meet_absorb: "x \<squnion> (x \<sqinter> y) = x"

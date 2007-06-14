@@ -64,7 +64,7 @@ next
   case (Lam y e1)
   hence ih: "height (e1[x::=e']) \<le> (((height e1) - 1) + (height e'))" by simp
   moreover
-  have vc: "y\<sharp>x" "y\<sharp>e'" by fact (* usual variable convention *)
+  have vc: "y\<sharp>x" "y\<sharp>e'" by fact+ (* usual variable convention *)
   ultimately show "height ((Lam [y].e1)[x::=e']) \<le> height (Lam [y].e1) - 1 + height e'" by simp
 next    
   case (App e1 e2)
@@ -74,4 +74,3 @@ next
 qed
 
 end
-

@@ -327,7 +327,7 @@ lemma t_Case_elim[elim]:
                   and "(x\<^isub>1, Data \<sigma>\<^isub>1)#\<Gamma> \<turnstile> e\<^isub>1 : T" 
                   and "(x\<^isub>2, Data \<sigma>\<^isub>2)#\<Gamma> \<turnstile> e\<^isub>2 : T"
 proof -
-  have f:"x\<^isub>1\<sharp>\<Gamma>" "x\<^isub>2\<sharp>\<Gamma>" by fact
+  have f:"x\<^isub>1\<sharp>\<Gamma>" "x\<^isub>2\<sharp>\<Gamma>" by fact+
   have "\<Gamma> \<turnstile> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 : T" by fact
   then obtain \<sigma>\<^isub>1 \<sigma>\<^isub>2 x\<^isub>1' x\<^isub>2' e\<^isub>1' e\<^isub>2' where 
     h:"\<Gamma> \<turnstile> e : Data (DSum \<sigma>\<^isub>1 \<sigma>\<^isub>2)" and 
@@ -382,8 +382,8 @@ next
   then have ih\<^isub>1: "valid ((x\<^isub>1,Data S\<^isub>1)#\<Gamma>\<^isub>2) \<Longrightarrow> (x\<^isub>1,Data S\<^isub>1)#\<Gamma>\<^isub>2 \<turnstile> e\<^isub>1 : T" 
        and  ih\<^isub>2: "valid ((x\<^isub>2,Data S\<^isub>2)#\<Gamma>\<^isub>2) \<Longrightarrow> (x\<^isub>2,Data S\<^isub>2)#\<Gamma>\<^isub>2 \<turnstile> e\<^isub>2 : T" 
        and  ih\<^isub>3: "\<Gamma>\<^isub>2 \<turnstile> e : Data (DSum S\<^isub>1 S\<^isub>2)" by auto 
-  have fs\<^isub>1: "x\<^isub>1\<sharp>\<Gamma>\<^isub>2" "x\<^isub>1\<sharp>e" "x\<^isub>1\<sharp>e\<^isub>2" "x\<^isub>1\<sharp>x\<^isub>2" by fact
-  have fs\<^isub>2: "x\<^isub>2\<sharp>\<Gamma>\<^isub>2" "x\<^isub>2\<sharp>e" "x\<^isub>2\<sharp>e\<^isub>1" "x\<^isub>2\<sharp>x\<^isub>1" by fact
+  have fs\<^isub>1: "x\<^isub>1\<sharp>\<Gamma>\<^isub>2" "x\<^isub>1\<sharp>e" "x\<^isub>1\<sharp>e\<^isub>2" "x\<^isub>1\<sharp>x\<^isub>2" by fact+
+  have fs\<^isub>2: "x\<^isub>2\<sharp>\<Gamma>\<^isub>2" "x\<^isub>2\<sharp>e" "x\<^isub>2\<sharp>e\<^isub>1" "x\<^isub>2\<sharp>x\<^isub>1" by fact+
   have "valid \<Gamma>\<^isub>2" by fact
   then have "valid ((x\<^isub>1,Data S\<^isub>1)#\<Gamma>\<^isub>2)" and "valid ((x\<^isub>2,Data S\<^isub>2)#\<Gamma>\<^isub>2)" using fs\<^isub>1 fs\<^isub>2 by auto
   then have "(x\<^isub>1, Data S\<^isub>1)#\<Gamma>\<^isub>2 \<turnstile> e\<^isub>1 : T" and "(x\<^isub>2, Data S\<^isub>2)#\<Gamma>\<^isub>2 \<turnstile> e\<^isub>2 : T" using ih\<^isub>1 ih\<^isub>2 by simp_all
@@ -439,7 +439,7 @@ proof (nominal_induct e avoiding: \<Gamma> e' x arbitrary: T rule: trm.induct)
   qed
 next
   case (Lam y t \<Gamma> e' x T)
-  have vc: "y\<sharp>\<Gamma>" "y\<sharp>x" "y\<sharp>e'"  by fact
+  have vc: "y\<sharp>\<Gamma>" "y\<sharp>x" "y\<sharp>e'"  by fact+
   have pr1: "\<Gamma> \<turnstile> e' : T'" by fact
   have pr2: "(x,T')#\<Gamma> \<turnstile> Lam [y].t : T" by fact
   then obtain T\<^isub>1 T\<^isub>2 where pr2': "(y,T\<^isub>1)#(x,T')#\<Gamma> \<turnstile> t : T\<^isub>2" and eq: "T = T\<^isub>1\<rightarrow>T\<^isub>2" 
@@ -455,7 +455,7 @@ next
 next
   case (Case t\<^isub>1 x\<^isub>1 t\<^isub>2 x\<^isub>2 t3 \<Gamma> e' x T)
   have vc: "x\<^isub>1\<sharp>\<Gamma>" "x\<^isub>1\<sharp>e'" "x\<^isub>1\<sharp>x""x\<^isub>1\<sharp>t\<^isub>1" "x\<^isub>1\<sharp>t3" "x\<^isub>2\<sharp>\<Gamma>" 
-           "x\<^isub>2\<sharp>e'" "x\<^isub>2\<sharp>x"  "x\<^isub>2\<sharp>t\<^isub>1" "x\<^isub>2\<sharp>t\<^isub>2" "x\<^isub>2\<noteq>x\<^isub>1" by fact
+           "x\<^isub>2\<sharp>e'" "x\<^isub>2\<sharp>x"  "x\<^isub>2\<sharp>t\<^isub>1" "x\<^isub>2\<sharp>t\<^isub>2" "x\<^isub>2\<noteq>x\<^isub>1" by fact+
   have as1: "\<Gamma> \<turnstile> e' : T'" by fact
   have as2: "(x,T')#\<Gamma> \<turnstile> Case t\<^isub>1 of inl x\<^isub>1 \<rightarrow> t\<^isub>2 | inr x\<^isub>2 \<rightarrow> t3 : T" by fact
   then obtain S\<^isub>1 S\<^isub>2 where 
@@ -463,10 +463,10 @@ next
     h2:"(x\<^isub>1,Data S\<^isub>1)#(x,T')#\<Gamma> \<turnstile> t\<^isub>2 : T" and
     h3:"(x\<^isub>2,Data S\<^isub>2)#(x,T')#\<Gamma> \<turnstile> t3 : T"
     using vc by (auto simp add: fresh_list_cons)
-  have ih1: "\<lbrakk>(x,T')#\<Gamma> \<turnstile> t\<^isub>1 : T; \<Gamma> \<turnstile> e' : T'\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> t\<^isub>1[x::=e'] : T" 
+  have ih1: "\<lbrakk>(x,T')#\<Gamma> \<turnstile> t\<^isub>1 : Data (DSum S\<^isub>1 S\<^isub>2); \<Gamma> \<turnstile> e' : T'\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> t\<^isub>1[x::=e'] : Data (DSum S\<^isub>1 S\<^isub>2)"
   and  ih2: "\<lbrakk>(x,T')#(x\<^isub>1,Data S\<^isub>1)#\<Gamma> \<turnstile> t\<^isub>2:T; (x\<^isub>1,Data S\<^isub>1)#\<Gamma> \<turnstile> e':T'\<rbrakk> \<Longrightarrow> (x\<^isub>1,Data S\<^isub>1)#\<Gamma> \<turnstile> t\<^isub>2[x::=e']:T" 
   and  ih3: "\<lbrakk>(x,T')#(x\<^isub>2,Data S\<^isub>2)#\<Gamma> \<turnstile> t3:T; (x\<^isub>2,Data S\<^isub>2)#\<Gamma> \<turnstile> e':T'\<rbrakk> \<Longrightarrow> (x\<^isub>2,Data S\<^isub>2)#\<Gamma> \<turnstile> t3[x::=e']:T"
-    by fact
+    by fact+
   from h2 have h2': "(x,T')#(x\<^isub>1,Data S\<^isub>1)#\<Gamma> \<turnstile> t\<^isub>2 : T" by (rule context_exchange)
   from h3 have h3': "(x,T')#(x\<^isub>2,Data S\<^isub>2)#\<Gamma> \<turnstile> t3 : T" by (rule context_exchange)
   have "\<Gamma> \<turnstile> t\<^isub>1[x::=e'] : Data (DSum S\<^isub>1 S\<^isub>2)" using h1 ih1 as1 by simp
@@ -663,7 +663,7 @@ proof (nominal_induct avoiding: \<Gamma> arbitrary: T rule: big.strong_induct)
   thus "\<Gamma> \<turnstile> e' : T" using ih3 by simp
 next
   case (b_CaseL x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' \<Gamma>)
-  have vc: "x\<^isub>1\<sharp>\<Gamma>" "x\<^isub>2\<sharp>\<Gamma>" by fact
+  have vc: "x\<^isub>1\<sharp>\<Gamma>" "x\<^isub>2\<sharp>\<Gamma>" by fact+
   have "\<Gamma> \<turnstile> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 : T" by fact 
   then obtain S\<^isub>1 S\<^isub>2 e\<^isub>1' e\<^isub>2' where 
     a1: "\<Gamma> \<turnstile> e : Data (DSum S\<^isub>1 S\<^isub>2)" and 
@@ -694,7 +694,7 @@ next
   have ih2:"\<And>t. e\<^isub>2 \<Down> t \<Longrightarrow> e\<^isub>2' = t" by fact
   have ih3: "\<And>t. e\<^isub>1'[x::=e\<^isub>2'] \<Down> t \<Longrightarrow> e' = t" by fact
   have app: "App e\<^isub>1 e\<^isub>2 \<Down> t\<^isub>2" by fact
-  have vc: "x\<sharp>e\<^isub>1" "x\<sharp>e\<^isub>2" by fact
+  have vc: "x\<sharp>e\<^isub>1" "x\<sharp>e\<^isub>2" by fact+
   then have "x \<sharp> App e\<^isub>1 e\<^isub>2" by auto
   then have vc': "x\<sharp>t\<^isub>2" using fresh_preserved app by blast
   from vc vc' obtain f\<^isub>1 f\<^isub>2 where x1: "e\<^isub>1 \<Down> Lam [x]. f\<^isub>1" and x2: "e\<^isub>2 \<Down> f\<^isub>2" and x3: "f\<^isub>1[x::=f\<^isub>2] \<Down> t\<^isub>2"
@@ -708,7 +708,7 @@ next
   thus ?case using ih3 by simp
 next
   case (b_CaseL  x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' t\<^isub>2)
-  have fs: "x\<^isub>1\<sharp>e" "x\<^isub>1\<sharp>t\<^isub>2" "x\<^isub>2\<sharp>e" "x\<^isub>2\<sharp>t\<^isub>2" by fact 
+  have fs: "x\<^isub>1\<sharp>e" "x\<^isub>1\<sharp>t\<^isub>2" "x\<^isub>2\<sharp>e" "x\<^isub>2\<sharp>t\<^isub>2" by fact+
   have ih1:"\<And>t. e \<Down> t \<Longrightarrow> InL e' = t" by fact 
   have ih2:"\<And>t. e\<^isub>1[x\<^isub>1::=e'] \<Down> t \<Longrightarrow> e'' = t" by fact
   have ha: "\<not>(\<exists>t. e \<Down> InR t)" using ih1 by force
@@ -720,7 +720,7 @@ next
   then show "e'' = t\<^isub>2" using ih2 by simp
 next 
   case (b_CaseR x\<^isub>1 e e\<^isub>2 e'' x\<^isub>2 e\<^isub>1 e' t\<^isub>2 )
-  have fs: "x\<^isub>1\<sharp>e" "x\<^isub>1\<sharp>t\<^isub>2" "x\<^isub>2\<sharp>e" "x\<^isub>2\<sharp>t\<^isub>2" by fact 
+  have fs: "x\<^isub>1\<sharp>e" "x\<^isub>1\<sharp>t\<^isub>2" "x\<^isub>2\<sharp>e" "x\<^isub>2\<sharp>t\<^isub>2" by fact+
   have ih1: "\<And>t. e \<Down> t \<Longrightarrow> InR e' = t" by fact
   have ih2: "\<And>t. e\<^isub>2[x\<^isub>2::=e'] \<Down> t \<Longrightarrow> e'' = t" by fact
   have ha: "\<not>(\<exists>t. e \<Down> InL t)" using ih1 by force
@@ -997,7 +997,7 @@ next
   have ih:"\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e> \<Down> v \<and> v \<in> V T" by fact
   have as\<^isub>1: "\<theta> Vcloses \<Gamma>" by fact
   have as\<^isub>2: "\<Gamma> \<turnstile> Lam [x].e : T" by fact
-  have fs: "x\<sharp>\<Gamma>" "x\<sharp>\<theta>" by fact
+  have fs: "x\<sharp>\<Gamma>" "x\<sharp>\<theta>" by fact+
   from as\<^isub>2 fs obtain T\<^isub>1 T\<^isub>2 
     where "(i)": "(x,T\<^isub>1)#\<Gamma> \<turnstile> e:T\<^isub>2" and "(ii)": "T = T\<^isub>1 \<rightarrow> T\<^isub>2" by auto
   from "(i)" have "(iii)": "valid ((x,T\<^isub>1)#\<Gamma>)" by (simp add: typing_implies_valid)
@@ -1016,7 +1016,7 @@ next
 next
   case (Case t' n\<^isub>1 t\<^isub>1 n\<^isub>2 t\<^isub>2 \<Gamma> \<theta> T)
   have f: "n\<^isub>1\<sharp>\<Gamma>" "n\<^isub>1\<sharp>\<theta>" "n\<^isub>2\<sharp>\<Gamma>" "n\<^isub>2\<sharp>\<theta>" "n\<^isub>2\<noteq>n\<^isub>1" "n\<^isub>1\<sharp>t'"
-  "n\<^isub>1\<sharp>t\<^isub>2" "n\<^isub>2\<sharp>t'" "n\<^isub>2\<sharp>t\<^isub>1" by fact
+  "n\<^isub>1\<sharp>t\<^isub>2" "n\<^isub>2\<sharp>t'" "n\<^isub>2\<sharp>t\<^isub>1" by fact+
   have h:"\<theta> Vcloses \<Gamma>" by fact
   have th:"\<Gamma> \<turnstile> Case t' of inl n\<^isub>1 \<rightarrow> t\<^isub>1 | inr n\<^isub>2 \<rightarrow> t\<^isub>2 : T" by fact
   then obtain S\<^isub>1 S\<^isub>2 where 
