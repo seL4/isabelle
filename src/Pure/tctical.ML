@@ -480,8 +480,8 @@ end;
 (*Returns the theorem list that METAHYPS would supply to its tactic*)
 fun metahyps_thms i state =
   let val prem = Logic.nth_prem (i, Thm.prop_of state)
-      val (insts,params,hyps,concl) = metahyps_split_prem prem
-      val cterm = cterm_of (Thm.theory_of_thm state)
+      and cterm = cterm_of (Thm.theory_of_thm state)
+      val (_,_,hyps,_) = metahyps_split_prem prem
   in SOME (map (forall_elim_vars 0 o assume o cterm) hyps) end
   handle TERM ("nth_prem", [A]) => NONE;
 
