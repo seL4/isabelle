@@ -99,7 +99,7 @@ proof
       then have "f (- u) \<subseteq> - u" by auto
       then have "lfp f \<subseteq> - u" by (rule lfp_lowerbound)
       from l and this have "x \<notin> u" by auto
-      then show False by contradiction
+      with `x \<in> u` show False by contradiction
     qed
   qed
   show "- gfp (\<lambda>s. - f (- s)) \<subseteq> lfp f"

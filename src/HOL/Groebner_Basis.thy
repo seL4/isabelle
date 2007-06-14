@@ -163,7 +163,7 @@ qed
 lemma "axioms" [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules]:
-  "gb_semiring add mul pwr r0 r1" .
+  "gb_semiring add mul pwr r0 r1" by fact
 
 end
 
@@ -232,7 +232,7 @@ lemma "axioms" [normalizer
   semiring rules: semiring_rules
   ring ops: ring_ops
   ring rules: ring_rules]:
-  "gb_ring add mul pwr r0 r1 sub neg" .
+  "gb_ring add mul pwr r0 r1 sub neg" by fact
 
 end
 
@@ -273,7 +273,7 @@ lemma "axioms" [normalizer
   semiring rules: semiring_rules
   ring ops: ring_ops
   ring rules: ring_rules]:
-  "gb_field add mul pwr r0 r1 sub neg divide inverse" .
+  "gb_field add mul pwr r0 r1 sub neg divide inverse" by fact
 
 end
 
@@ -311,7 +311,7 @@ lemma "axioms" [normalizer
   semiring ops: semiring_ops
   semiring rules: semiring_rules
   idom rules: noteq_reduce add_scale_eq_noteq]:
-  "semiringb add mul pwr r0 r1" .
+  "semiringb add mul pwr r0 r1" by fact
 
 end
 
@@ -326,7 +326,7 @@ lemma "axioms" [normalizer
   ring ops: ring_ops
   ring rules: ring_rules
   idom rules: noteq_reduce add_scale_eq_noteq]:
-  "ringb add mul pwr r0 r1 sub neg" .
+  "ringb add mul pwr r0 r1 sub neg" by fact
 
 end
 

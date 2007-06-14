@@ -339,7 +339,7 @@ lemma le_imp_0_less:
   assumes le: "0 \<le> z"
   shows "(0::int) < 1 + z"
 proof -
-  have "0 \<le> z" .
+  have "0 \<le> z" by fact
   also have "... < z + 1" by (rule less_add_one) 
   also have "... = 1 + z" by (simp add: add_ac)
   finally show "0 < 1 + z" .

@@ -437,7 +437,7 @@ proof (unfold mult_set_def, clarify)
       show "z = (z/y)*y"
 	by (simp add: divide_inverse mult_commute [of y] mult_assoc
 		      order_less_imp_not_eq2)
-      show "y \<in> B" .
+      show "y \<in> B" by fact
     qed
   next
     show "z/y \<in> A"
@@ -527,7 +527,7 @@ proof (induct z)
           show "x = (x/v)*v"
 	    by (simp add: divide_inverse mult_assoc vpos
                           order_less_imp_not_eq2)
-          show "v \<in> A" .
+          show "v \<in> A" by fact
         qed
       qed
     qed
@@ -1280,8 +1280,8 @@ proof -
     by (simp add: mult_ac)
   also have "... = x/y" using zpos
     by (simp add: divide_inverse)
-  also have "... < z"
-    by (simp add: pos_divide_less_eq [OF ypos] mult_commute) 
+  also from xless have "... < z"
+    by (simp add: pos_divide_less_eq [OF ypos] mult_commute)
   finally show ?thesis .
 qed
 

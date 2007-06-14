@@ -259,7 +259,7 @@ lemma (in lower_semilattice) inf_unique:
   and greatest: "\<And>x y z. x \<^loc>\<le> y \<Longrightarrow> x \<^loc>\<le> z \<Longrightarrow> x \<^loc>\<le> y \<triangle> z"
   shows "x \<sqinter> y = x \<triangle> y"
 proof (rule antisym)
-  show "x \<triangle> y \<^loc>\<le> x \<sqinter> y" by (rule le_infI) (rule le1 le2)
+  show "x \<triangle> y \<^loc>\<le> x \<sqinter> y" by (rule le_infI) (rule le1, rule le2)
 next
   have leI: "\<And>x y z. x \<^loc>\<le> y \<Longrightarrow> x \<^loc>\<le> z \<Longrightarrow> x \<^loc>\<le> y \<triangle> z" by (blast intro: greatest)
   show "x \<sqinter> y \<^loc>\<le> x \<triangle> y" by (rule leI) simp_all
@@ -271,7 +271,7 @@ lemma (in upper_semilattice) sup_unique:
   and least: "\<And>x y z. y \<^loc>\<le> x \<Longrightarrow> z \<^loc>\<le> x \<Longrightarrow> y \<nabla> z \<^loc>\<le> x"
   shows "x \<squnion> y = x \<nabla> y"
 proof (rule antisym)
-  show "x \<squnion> y \<^loc>\<le> x \<nabla> y" by (rule le_supI) (rule ge1 ge2)
+  show "x \<squnion> y \<^loc>\<le> x \<nabla> y" by (rule le_supI) (rule ge1, rule ge2)
 next
   have leI: "\<And>x y z. x \<^loc>\<le> z \<Longrightarrow> y \<^loc>\<le> z \<Longrightarrow> x \<nabla> y \<^loc>\<le> z" by (blast intro: least)
   show "x \<nabla> y \<^loc>\<le> x \<squnion> y" by (rule leI) simp_all

@@ -170,6 +170,7 @@ instance field \<subseteq> idom ..
 class division_by_zero = zero + inverse +
   assumes inverse_zero [simp]: "inverse \<^loc>0 = \<^loc>0"
 
+
 subsection {* Distribution rules *}
 
 theorems ring_distrib = right_distrib left_distrib
@@ -343,6 +344,7 @@ apply (simp add: diff_minus left_distrib add_ac)
 apply (simp add: compare_rls minus_mult_left [symmetric]) 
 done
 
+
 subsection {* Ordering Rules for Multiplication *}
 
 lemma mult_left_le_imp_le:
@@ -385,6 +387,7 @@ apply (drule mult_right_mono [of _ _ "-c"])
 apply (simp)
 apply (simp_all add: minus_mult_right [symmetric]) 
 done
+
 
 subsection{* Products of Signs *}
 
@@ -501,6 +504,7 @@ by (simp add: linorder_not_le)
 lemma not_one_less_zero [simp]: "~ (1::'a::ordered_semidom) < 0"
 by (simp add: linorder_not_less) 
 
+
 subsection{*More Monotonicity*}
 
 text{*Strict monotonicity in both arguments*}
@@ -558,6 +562,7 @@ lemma mult_le_less_imp_less: "(a::'a::ordered_semiring_strict) <= b ==>
   apply (erule mult_right_mono)
   apply simp
 done
+
 
 subsection{*Cancellation Laws for Relationships With a Common Factor*}
 
@@ -621,7 +626,7 @@ lemma mult_less_imp_less_left:
 proof (rule ccontr)
   assume "~ a < b"
   hence "b \<le> a" by (simp add: linorder_not_less)
-  hence "c*b \<le> c*a" by (rule mult_left_mono)
+  hence "c*b \<le> c*a" using nonneg by (rule mult_left_mono)
   with this and less show False 
     by (simp add: linorder_not_less [symmetric])
 qed
@@ -632,7 +637,7 @@ lemma mult_less_imp_less_right:
 proof (rule ccontr)
   assume "~ a < b"
   hence "b \<le> a" by (simp add: linorder_not_less)
-  hence "b*c \<le> a*c" by (rule mult_right_mono)
+  hence "b*c \<le> a*c" using nonneg by (rule mult_right_mono)
   with this and less show False 
     by (simp add: linorder_not_less [symmetric])
 qed  
@@ -746,6 +751,7 @@ lemmas ring_eq_simps =
   add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
   diff_eq_eq eq_diff_eq *)
     
+
 subsection {* Fields *}
 
 lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = 1) = (a = (b::'a::field))"
@@ -968,6 +974,7 @@ lemma inverse_divide [simp]:
       "inverse (a/b) = b / (a::'a::{field,division_by_zero})"
   by (simp add: divide_inverse mult_commute)
 
+
 subsection {* Calculations with fractions *}
 
 lemma nonzero_mult_divide_cancel_left:
@@ -1037,6 +1044,7 @@ lemma add_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
   apply (erule nonzero_mult_divide_cancel_right [THEN sym])
   apply assumption
 done
+
 
 subsubsection{*Special Cancellation Simprules for Division*}
 
@@ -1136,6 +1144,7 @@ lemma diff_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
   apply simp_all
 done
 
+
 subsection {* Ordered Fields *}
 
 lemma positive_imp_inverse_positive: 
@@ -1171,15 +1180,15 @@ lemma inverse_le_imp_le:
   qed
 
 lemma inverse_positive_imp_positive:
-      assumes inv_gt_0: "0 < inverse a"
-          and [simp]:   "a \<noteq> 0"
-        shows "0 < (a::'a::ordered_field)"
-  proof -
+  assumes inv_gt_0: "0 < inverse a"
+    and nz: "a \<noteq> 0"
+  shows "0 < (a::'a::ordered_field)"
+proof -
   have "0 < inverse (inverse a)"
-    by (rule positive_imp_inverse_positive)
+    using inv_gt_0 by (rule positive_imp_inverse_positive)
   thus "0 < a"
-    by (simp add: nonzero_inverse_inverse_eq)
-  qed
+    using nz by (simp add: nonzero_inverse_inverse_eq)
+qed
 
 lemma inverse_positive_iff_positive [simp]:
       "(0 < inverse a) = (0 < (a::'a::{ordered_field,division_by_zero}))"
@@ -1188,15 +1197,15 @@ apply (blast intro: inverse_positive_imp_positive positive_imp_inverse_positive)
 done
 
 lemma inverse_negative_imp_negative:
-      assumes inv_less_0: "inverse a < 0"
-          and [simp]:   "a \<noteq> 0"
-        shows "a < (0::'a::ordered_field)"
-  proof -
+  assumes inv_less_0: "inverse a < 0"
+    and nz:  "a \<noteq> 0"
+  shows "a < (0::'a::ordered_field)"
+proof -
   have "inverse (inverse a) < 0"
-    by (rule negative_imp_inverse_negative)
+    using inv_less_0 by (rule negative_imp_inverse_negative)
   thus "a < 0"
-    by (simp add: nonzero_inverse_inverse_eq)
-  qed
+    using nz by (simp add: nonzero_inverse_inverse_eq)
+qed
 
 lemma inverse_negative_iff_negative [simp]:
       "(inverse a < 0) = (a < (0::'a::{ordered_field,division_by_zero}))"
@@ -1333,6 +1342,7 @@ by (simp add: linorder_not_le [symmetric] one_le_inverse_iff)
 lemma inverse_le_1_iff:
    "(inverse x \<le> 1) = (x \<le> 0 | 1 \<le> (x::'a::{ordered_field,division_by_zero}))"
 by (simp add: linorder_not_less [symmetric] one_less_inverse_iff) 
+
 
 subsection{*Simplification of Inequalities Involving Literal Divisors*}
 
@@ -1500,6 +1510,7 @@ lemma frac_eq_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
   apply (erule nonzero_divide_eq_eq) 
 done
 
+
 subsection{*Division and Signs*}
 
 lemma zero_less_divide_iff:
@@ -1578,6 +1589,7 @@ lemma divide_nonpos_neg: "(x::'a::ordered_field) <= 0 ==> y < 0 ==>
   apply simp
 done
 
+
 subsection{*Cancellation Laws for Division*}
 
 lemma divide_cancel_right [simp]:
@@ -1591,6 +1603,7 @@ lemma divide_cancel_left [simp]:
 apply (cases "c=0", simp) 
 apply (simp add: divide_inverse field_mult_cancel_left) 
 done
+
 
 subsection {* Division and the Number One *}
 
@@ -1628,6 +1641,7 @@ declare zero_less_divide_1_iff [simp]
 declare divide_less_0_1_iff [simp]
 declare zero_le_divide_1_iff [simp]
 declare divide_le_0_1_iff [simp]
+
 
 subsection {* Ordering Rules for Division *}
 
@@ -1706,6 +1720,7 @@ lemma divide_less_eq_1:
   shows "(b / a < 1) = ((0 < a & b < a) | (a < 0 & a < b) | a=0)"
 by (auto simp add: divide_less_eq)
 
+
 subsection{*Conditional Simplification Rules: No Case Splits*}
 
 lemma le_divide_eq_1_pos [simp]:
@@ -1757,6 +1772,7 @@ lemma divide_eq_eq_1 [simp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "(b/a = 1) = ((a \<noteq> 0 & a = b))"
 by (auto simp add: divide_eq_eq)
+
 
 subsection {* Reasoning about inequalities with division *}
 
@@ -1822,6 +1838,7 @@ text{*It's not obvious whether these should be simprules or not.
   seem to need them.*}
 
 declare times_divide_eq [simp]
+
 
 subsection {* Ordered Fields are Dense *}
 
@@ -1995,6 +2012,7 @@ lemma abs_div_pos: "(0::'a::{division_by_zero,ordered_field}) < y ==>
   apply (simp add: order_less_imp_le);
 done;
 
+
 subsection {* Bounds of products via negative and positive Part *}
 
 lemma mult_le_prts:
@@ -2062,6 +2080,7 @@ proof -
     by (simp only: minus_le_iff)
   then show ?thesis by simp
 qed
+
 
 subsection {* Theorems for proof tools *}
 

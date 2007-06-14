@@ -85,7 +85,7 @@ lemma closed_not_empty:
 lemma closed_mem:
   assumes "a \<le> c" and "c \<le> b"
   shows "c \<in> closed_int a b"
-  by (unfold closed_int_def) auto
+  using assms unfolding closed_int_def by auto
 
 lemma closed_subset:
   assumes ac: "a \<le> b"  "c \<le> d" 

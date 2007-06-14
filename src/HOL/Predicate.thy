@@ -34,11 +34,11 @@ lemma split_set: "(!!S. PROP P S) == (!!S. PROP P (Collect S))"
 proof
   fix S
   assume "!!S. PROP P S"
-  show "PROP P (Collect S)" .
+  then show "PROP P (Collect S)" .
 next
   fix S
   assume "!!S. PROP P (Collect S)"
-  have "PROP P {x. x : S}" .
+  then have "PROP P {x. x : S}" .
   thus "PROP P S" by simp
 qed
 
@@ -46,11 +46,11 @@ lemma split_predicate: "(!!S. PROP P S) == (!!S. PROP P (member S))"
 proof
   fix S
   assume "!!S. PROP P S"
-  show "PROP P (member S)" .
+  then show "PROP P (member S)" .
 next
   fix S
   assume "!!S. PROP P (member S)"
-  have "PROP P (member {x. S x})" .
+  then have "PROP P (member {x. S x})" .
   thus "PROP P S" by simp
 qed
 
@@ -96,11 +96,11 @@ lemma split_set2: "(!!S. PROP P S) == (!!S. PROP P (Collect2 S))"
 proof
   fix S
   assume "!!S. PROP P S"
-  show "PROP P (Collect2 S)" .
+  then show "PROP P (Collect2 S)" .
 next
   fix S
   assume "!!S. PROP P (Collect2 S)"
-  have "PROP P (Collect2 (member2 S))" .
+  then have "PROP P (Collect2 (member2 S))" .
   thus "PROP P S" by simp
 qed
 
@@ -108,11 +108,11 @@ lemma split_predicate2: "(!!S. PROP P S) == (!!S. PROP P (member2 S))"
 proof
   fix S
   assume "!!S. PROP P S"
-  show "PROP P (member2 S)" .
+  then show "PROP P (member2 S)" .
 next
   fix S
   assume "!!S. PROP P (member2 S)"
-  have "PROP P (member2 (Collect2 S))" .
+  then have "PROP P (member2 (Collect2 S))" .
   thus "PROP P S" by simp
 qed
 

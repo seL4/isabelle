@@ -35,7 +35,7 @@ proof -
   assume "finite F"
   thus "P F"
   proof induct
-    show "P {}" .
+    show "P {}" by fact
     fix x F assume F: "finite F" and P: "P F"
     show "P (insert x F)"
     proof cases
@@ -61,30 +61,35 @@ next
   case (insert x F)
   show ?case
   proof cases
-    assume "F = {}" thus ?thesis using insert(4) by simp
+    assume "F = {}"
+    thus ?thesis using `P {x}` by simp
   next
-    assume "F \<noteq> {}" thus ?thesis using insert by blast
+    assume "F \<noteq> {}"
+    thus ?thesis using insert by blast
   qed
 qed
 
 lemma finite_subset_induct [consumes 2, case_names empty insert]:
-  "finite F ==> F \<subseteq> A ==>
-    P {} ==> (!!a F. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)) ==>
-    P F"
+  assumes "finite F" and "F \<subseteq> A"
+    and empty: "P {}"
+    and insert: "!!a F. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
+  shows "P F"
 proof -
-  assume "P {}" and insert:
-    "!!a F. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
-  assume "finite F"
-  thus "F \<subseteq> A ==> P F"
+  from `finite F` and `F \<subseteq> A`
+  show ?thesis
   proof induct
-    show "P {}" .
-    fix x F assume "finite F" and "x \<notin> F"
-      and P: "F \<subseteq> A ==> P F" and i: "insert x F \<subseteq> A"
+    show "P {}" by fact
+  next
+    fix x F
+    assume "finite F" and "x \<notin> F" and
+      P: "F \<subseteq> A ==> P F" and i: "insert x F \<subseteq> A"
     show "P (insert x F)"
     proof (rule insert)
       from i show "x \<in> A" by blast
       from i have "F \<subseteq> A" by blast
       with P show "P F" .
+      show "finite F" by fact
+      show "x \<notin> F" by fact
     qed
   qed
 qed
@@ -102,7 +107,7 @@ proof induct
   qed
 next
   case (insert a A)
-  have notinA: "a \<notin> A" .
+  have notinA: "a \<notin> A" by fact
   from insert.hyps obtain n f
     where "A = f ` {i::nat. i < n}" "inj_on f {i. i < n}" by blast
   hence "insert a A = f(n:=a) ` {i. i < Suc n}"
@@ -151,17 +156,17 @@ proof -
     thus ?case by simp
   next
     case (insert x F A)
-    have A: "A \<subseteq> insert x F" and r: "A - {x} \<subseteq> F ==> finite (A - {x})" .
+    have A: "A \<subseteq> insert x F" and r: "A - {x} \<subseteq> F ==> finite (A - {x})" by fact+
     show "finite A"
     proof cases
       assume x: "x \<in> A"
       with A have "A - {x} \<subseteq> F" by (simp add: subset_insert_iff)
       with r have "finite (A - {x})" .
       hence "finite (insert x (A - {x}))" ..
-      also have "insert x (A - {x}) = A" by (rule insert_Diff)
+      also have "insert x (A - {x}) = A" using x by (rule insert_Diff)
       finally show ?thesis .
     next
-      show "A \<subseteq> F ==> ?thesis" .
+      show "A \<subseteq> F ==> ?thesis" by fact
       assume "x \<notin> A"
       with A show "A \<subseteq> F" by (simp add: subset_insert_iff)
     qed
@@ -188,35 +193,37 @@ lemma finite_Union[simp, intro]:
 by (induct rule:finite_induct) simp_all
 
 lemma finite_empty_induct:
-  "finite A ==>
-  P A ==> (!!a A. finite A ==> a:A ==> P A ==> P (A - {a})) ==> P {}"
+  assumes "finite A"
+    and "P A"
+    and "!!a A. finite A ==> a:A ==> P A ==> P (A - {a})"
+  shows "P {}"
 proof -
-  assume "finite A"
-    and "P A" and "!!a A. finite A ==> a:A ==> P A ==> P (A - {a})"
   have "P (A - A)"
   proof -
-    fix c b :: "'a set"
-    presume c: "finite c" and b: "finite b"
-      and P1: "P b" and P2: "!!x y. finite y ==> x \<in> y ==> P y ==> P (y - {x})"
-    from c show "c \<subseteq> b ==> P (b - c)"
-    proof induct
-      case empty
-      from P1 show ?case by simp
-    next
-      case (insert x F)
-      have "P (b - F - {x})"
-      proof (rule P2)
-        from _ b show "finite (b - F)" by (rule finite_subset) blast
-        from insert show "x \<in> b - F" by simp
-        from insert show "P (b - F)" by simp
+    {
+      fix c b :: "'a set"
+      assume c: "finite c" and b: "finite b"
+	and P1: "P b" and P2: "!!x y. finite y ==> x \<in> y ==> P y ==> P (y - {x})"
+      have "c \<subseteq> b ==> P (b - c)"
+	using c
+      proof induct
+	case empty
+	from P1 show ?case by simp
+      next
+	case (insert x F)
+	have "P (b - F - {x})"
+	proof (rule P2)
+          from _ b show "finite (b - F)" by (rule finite_subset) blast
+          from insert show "x \<in> b - F" by simp
+          from insert show "P (b - F)" by simp
+	qed
+	also have "b - F - {x} = b - insert x F" by (rule Diff_insert [symmetric])
+	finally show ?case .
       qed
-      also have "b - F - {x} = b - insert x F" by (rule Diff_insert [symmetric])
-      finally show ?case .
-    qed
-  next
-    show "A \<subseteq> A" ..
+    }
+    then show ?thesis by this (simp_all add: assms)
   qed
-  thus "P {}" by simp
+  then show ?thesis by simp
 qed
 
 lemma finite_Diff [simp]: "finite B ==> finite (B - Ba)"
@@ -526,7 +533,7 @@ proof (cases n)
   case 0 thus ?thesis using aA by auto
 next
   case (Suc m)
-  have nSuc: "n = Suc m" . 
+  have nSuc: "n = Suc m" by fact
   have mlessn: "m<n" by (simp add: nSuc)
   from aA obtain k where hkeq: "h k = a" and klessn: "k<n" by (blast elim!: equalityE)
   let ?hm = "swap k m h"
@@ -557,9 +564,9 @@ proof (induct n rule: less_induct)
   case (less n)
     have IH: "!!m h A x x'. 
                \<lbrakk>m<n; A = h ` {i. i<m}; inj_on h {i. i<m}; 
-                foldSet f g z A x; foldSet f g z A x'\<rbrakk> \<Longrightarrow> x' = x" .
+                foldSet f g z A x; foldSet f g z A x'\<rbrakk> \<Longrightarrow> x' = x" by fact
     have Afoldx: "foldSet f g z A x" and Afoldx': "foldSet f g z A x'"
-     and A: "A = h`{i. i<n}" and injh: "inj_on h {i. i<n}" .
+     and A: "A = h`{i. i<n}" and injh: "inj_on h {i. i<n}" by fact+
     show ?case
     proof (rule foldSet.cases [OF Afoldx])
       assume "A = {}" and "x = z"

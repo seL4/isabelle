@@ -200,8 +200,8 @@ proof
     have "P(x mod d)" using dpos P Pmod by(simp add:pos_mod_sign pos_mod_bound)
     moreover have "x mod d : {1..d}"
     proof -
-      have "0 \<le> x mod d" by(rule pos_mod_sign)
-      moreover have "x mod d < d" by(rule pos_mod_bound)
+      from dpos have "0 \<le> x mod d" by(rule pos_mod_sign)
+      moreover from dpos have "x mod d < d" by(rule pos_mod_bound)
       ultimately show ?thesis using not0 by(simp add:atLeastAtMost_iff)
     qed
     ultimately show ?RHS ..
@@ -243,7 +243,7 @@ next
 qed
 
 lemma  minusinfinity:
-  assumes "0 < d" and
+  assumes dpos: "0 < d" and
     P1eqP1: "ALL x k. P1 x = P1(x - k*d)" and ePeqP1: "EX z::int. ALL x. x < z \<longrightarrow> (P x = P1 x)"
   shows "(EX x. P1 x) \<longrightarrow> (EX x. P x)"
 proof
@@ -251,7 +251,7 @@ proof
   then obtain x where P1: "P1 x" ..
   from ePeqP1 obtain z where P1eqP: "ALL x. x < z \<longrightarrow> (P x = P1 x)" ..
   let ?w = "x - (abs(x-z)+1) * d"
-  have w: "?w < z" by(rule decr_lemma)
+  from dpos have w: "?w < z" by(rule decr_lemma)
   have "P1 x = P1 ?w" using P1eqP1 by blast
   also have "\<dots> = P(?w)" using w P1eqP by blast
   finally have "P ?w" using P1 by blast
@@ -289,7 +289,7 @@ qed
 subsection {* The @{text "+\<infinity>"} Version*}
 
 lemma  plusinfinity:
-  assumes "(0::int) < d" and
+  assumes dpos: "(0::int) < d" and
     P1eqP1: "\<forall>x k. P' x = P'(x - k*d)" and ePeqP1: "\<exists> z. \<forall> x>z. P x = P' x"
   shows "(\<exists> x. P' x) \<longrightarrow> (\<exists> x. P x)"
 proof
@@ -299,7 +299,7 @@ proof
   let ?w' = "x + (abs(x-z)+1) * d"
   let ?w = "x - (-(abs(x-z) + 1))*d"
   have ww'[simp]: "?w = ?w'" by (simp add: ring_eq_simps)
-  have w: "?w > z" by(simp only: ww', rule incr_lemma)
+  from dpos have w: "?w > z" by(simp only: ww' incr_lemma)
   hence "P' x = P' ?w" using P1eqP1 by blast
   also have "\<dots> = P(?w)" using w P1eqP by blast
   finally have "P ?w" using P1 by blast

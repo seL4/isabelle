@@ -59,16 +59,16 @@ proof (rule exI, rule allI)
     then obtain py where y_is_py: "y = real_of_preal py"
       by (auto simp add: real_gt_zero_preal_Ex)
 
-    obtain a where a_in_P: "a \<in> P" using not_empty_P ..
-    have a_pos: "0 < a" using positive_P ..
+    obtain a where "a \<in> P" using not_empty_P ..
+    with positive_P have a_pos: "0 < a" ..
     then obtain pa where "a = real_of_preal pa"
       by (auto simp add: real_gt_zero_preal_Ex)
-    hence "pa \<in> ?pP" using a_in_P by auto
+    hence "pa \<in> ?pP" using `a \<in> P` by auto
     hence pP_not_empty: "?pP \<noteq> {}" by auto
 
     obtain sup where sup: "\<forall>x \<in> P. x < sup"
       using upper_bound_Ex ..
-    hence  "a < sup" ..
+    from this and `a \<in> P` have "a < sup" ..
     hence "0 < sup" using a_pos by arith
     then obtain possup where "sup = real_of_preal possup"
       by (auto simp add: real_gt_zero_preal_Ex)
@@ -521,9 +521,9 @@ lemma lemma_floor:
   assumes a1: "real m \<le> r" and a2: "r < real n + 1"
   shows "m \<le> (n::int)"
 proof -
-  have "real m < real n + 1" by (rule order_le_less_trans)
-  also have "... = real(n+1)" by simp
-  finally have "m < n+1" by (simp only: real_of_int_less_iff)
+  have "real m < real n + 1" using a1 a2 by (rule order_le_less_trans)
+  also have "... = real (n + 1)" by simp
+  finally have "m < n + 1" by (simp only: real_of_int_less_iff)
   thus ?thesis by arith
 qed
 

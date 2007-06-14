@@ -768,7 +768,7 @@ subsubsection {* Atomizing meta-level connectives *}
 lemma atomize_all [atomize]: "(!!x. P x) == Trueprop (ALL x. P x)"
 proof
   assume "!!x. P x"
-  show "ALL x. P x" by (rule allI)
+  then show "ALL x. P x" ..
 next
   assume "ALL x. P x"
   thus "!!x. P x" by (rule allE)
@@ -1219,11 +1219,11 @@ setup {*
 
 lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
 proof
-  assume prem: "True \<Longrightarrow> PROP P"
-  from prem [OF TrueI] show "PROP P" . 
+  assume "True \<Longrightarrow> PROP P"
+  from this [OF TrueI] show "PROP P" .
 next
   assume "PROP P"
-  show "PROP P" .
+  then show "PROP P" .
 qed
 
 lemma ex_simps:

@@ -89,7 +89,7 @@ proof
   then show P ..
 next
   assume "\<And>P\<Colon>bool. P"
-  then show False ..
+  then show False .
 qed
 
 lemma not_eq_False:

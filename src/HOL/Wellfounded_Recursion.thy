@@ -301,7 +301,7 @@ next
           with A2 show "y \<notin> Q" .
         qed
       qed
-      thus ?thesis ..
+      with `z' \<in> Q` show ?thesis ..
     qed
   qed
 qed

@@ -377,10 +377,10 @@ by (simp add: diff_minus, rule min_add_distrib_left)
 subsection {* Ordering Rules for Unary Minus *}
 
 lemma le_imp_neg_le:
-      assumes "a \<le> (b::'a::{pordered_ab_semigroup_add_imp_le, ab_group_add})" shows "-b \<le> -a"
+  assumes "a \<le> (b::'a::{pordered_ab_semigroup_add_imp_le, ab_group_add})" shows "-b \<le> -a"
 proof -
   have "-a+a \<le> -a+b"
-    by (rule add_left_mono) 
+    using `a \<le> b` by (rule add_left_mono) 
   hence "0 \<le> -a+b"
     by simp
   hence "0 + (-b) \<le> (-a + b) + (-b)"

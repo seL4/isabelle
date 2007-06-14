@@ -1139,12 +1139,12 @@ proof -
        (auto simp:index_less)
   then obtain T i
     where inf: "infinite T"
-    and "i < length l"
+    and i: "i < length l"
     and d: "\<And>x y. \<lbrakk>x \<in> T; y\<in>T; x \<noteq> y\<rbrakk>
     \<Longrightarrow> index_of l (f (set2pair {x, y})) = i"
     by auto
 
-  have  "l ! i \<in> S" unfolding S
+  have "l ! i \<in> S" unfolding S using i
     by (rule nth_mem)
   moreover
   have "\<And>x y. x \<in> T \<Longrightarrow> y\<in>T \<Longrightarrow> x < y

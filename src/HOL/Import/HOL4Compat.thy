@@ -157,7 +157,7 @@ next
     fix k
     show "!q. q + k = m \<longrightarrow> P q"
     proof (induct k,simp_all)
-      show "P m" .
+      show "P m" by fact
     next
       fix k
       assume ind: "!q. q + k = m \<longrightarrow> P q"
@@ -406,7 +406,7 @@ proof
   assume allt: "!t. P t \<longrightarrow> (!h. P (h # t))"
   show "P l"
   proof (induct l)
-    show "P []" .
+    show "P []" by fact
   next
     fix h t
     assume "P t"
