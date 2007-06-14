@@ -42,7 +42,6 @@ consts
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  partition :: "('a \<Rightarrow> bool) \<Rightarrow>'a list \<Rightarrow> (('a list) \<times> ('a list))"
   allpairs :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
 
 abbreviation
@@ -224,7 +223,7 @@ primrec
 "allpairs f [] ys = []"
 "allpairs f (x # xs) ys = map (f x) ys @ allpairs f xs ys"
 
-subsubsection {* List comprehehsion *}
+subsubsection {* List comprehension *}
 
 text{* Input syntax for Haskell-like list comprehension
 notation. Typical example: @{text"[(x,y). x \<leftarrow> xs, y \<leftarrow> ys, x \<noteq> y]"}, the list of all pairs of distinct elements from @{text xs} and @{text ys}.
@@ -896,7 +895,7 @@ next
     hence eq: "?S' = insert 0 (Suc ` ?S)"
       by(auto simp add: nth_Cons image_def split:nat.split elim:lessE)
     have "length (filter p (x # xs)) = Suc(card ?S)"
-      using Cons by simp
+      using Cons `p x` by simp
     also have "\<dots> = Suc(card(Suc ` ?S))" using fin
       by (simp add: card_image inj_Suc)
     also have "\<dots> = card ?S'" using eq fin
@@ -907,7 +906,7 @@ next
     hence eq: "?S' = Suc ` ?S"
       by(auto simp add: nth_Cons image_def split:nat.split elim:lessE)
     have "length (filter p (x # xs)) = card ?S"
-      using Cons by simp
+      using Cons `\<not> p x` by simp
     also have "\<dots> = card(Suc ` ?S)" using fin
       by (simp add: card_image inj_Suc)
     also have "\<dots> = card ?S'" using eq fin
@@ -3053,54 +3052,61 @@ lemma foldl_append_map_Nil_set:
   "set (foldl (op @) [] (map f xs)) = UNION (set xs) (\<lambda>x. set (f x))"
 using foldl_append_map_set[where ss="[]" and xs="xs" and f="f"] by simp
 
+
+subsubsection {* List partitioning *}
+
+consts
+  partition :: "('a \<Rightarrow> bool) \<Rightarrow>'a list \<Rightarrow> 'a list \<times> 'a list"
 primrec
-"partition P [] = ([],[])"
-"partition P (x#xs) = 
-   (let (yes,no) = partition P xs
-    in (if (P x) then ((x#yes),no) else (yes,(x#no))))"
+  "partition P [] = ([], [])"
+  "partition P (x # xs) = 
+      (let (yes, no) = partition P xs
+      in if P x then (x # yes, no) else (yes, x # no))"
 
 lemma partition_P:
-  "partition P xs = (yes,no) \<Longrightarrow> (\<forall>p\<in> set yes.  P p) \<and> (\<forall>p\<in> set no. \<not> P p)"
-proof(induct xs arbitrary: yes no rule: partition.induct)
-  case (Cons a as yes no)
-  have "\<exists> y n. partition P as = (y,n)" by auto
-  then obtain "y" "n" where yn_def: "partition P as = (y,n)" by blast
-  have "P a \<or> \<not> P a" by simp
-  moreover 
-  {  assume "P a"
-    hence "partition P (a#as) = (a#y,n)" 
-      by (auto simp add: Let_def yn_def)
-    hence "yes = a#y" using prems by auto
-    with prems have ?case by simp
-  }
-  moreover 
-  { assume "\<not> P a"
-    hence "partition P (a#as) = (y,a#n)" 
-      by (auto simp add: Let_def yn_def)
-    hence "no = a#n" using prems by auto
-    with prems have ?case by simp
-  }
-  ultimately show ?case by blast
-qed simp_all
+  "partition P xs = (yes, no) \<Longrightarrow> (\<forall>p\<in> set yes.  P p) \<and> (\<forall>p\<in> set no. \<not> P p)"
+proof (induct xs arbitrary: yes no rule: partition.induct)
+  case Nil then show ?case by simp
+next
+  case (Cons a as)
+  let ?p = "partition P as"
+  let ?p' = "partition P (a # as)"
+  note prem = `?p' = (yes, no)`
+  show ?case
+  proof (cases "P a")
+    case True
+    with prem have yes: "yes = a # fst ?p" and no: "no = snd ?p"
+      by (simp_all add: Let_def split_def)
+    have "(\<forall>p\<in> set (fst ?p).  P p) \<and> (\<forall>p\<in> set no. \<not> P p)"
+      by (rule Cons.hyps) (simp add: yes no)
+    with True yes show ?thesis by simp
+  next
+    case False
+    with prem have yes: "yes = fst ?p" and no: "no = a # snd ?p"
+      by (simp_all add: Let_def split_def)
+    have "(\<forall>p\<in> set yes.  P p) \<and> (\<forall>p\<in> set (snd ?p). \<not> P p)"
+      by (rule Cons.hyps) (simp add: yes no)
+    with False no show ?thesis by simp
+  qed
+qed
 
 lemma partition_filter1:
-  " fst (partition P xs) = filter P xs "
-by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
+    "fst (partition P xs) = filter P xs"
+  by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
 
 lemma partition_filter2:
-  "snd (partition P xs) = filter (Not o P ) xs "
-by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
+    "snd (partition P xs) = filter (Not o P) xs"
+  by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
 
-lemma partition_set: "partition P xs = (yes,no) \<Longrightarrow> set yes \<union> set no = set xs"
-proof-
-  fix yes no
-  assume A: "partition P xs = (yes,no)"
-  have "set xs = {x. x \<in> set xs \<and> P x} \<union> {x. x \<in> set xs \<and> \<not> P x}" by auto
-  also have "\<dots> = set (List.filter P xs) Un (set (List.filter (Not o P) xs))" by auto
-  also have "\<dots> = set (fst (partition P xs)) Un set (snd (partition P xs))"
-    using partition_filter1[where xs="xs" and P="P"] 
-      partition_filter2[where xs="xs" and P="P"] by auto
-  finally show "set yes Un set no = set xs" using A by simp
+lemma partition_set:
+  assumes "partition P xs = (yes, no)"
+  shows "set yes \<union> set no = set xs"
+proof -
+  have "set xs = {x. x \<in> set xs \<and> P x} \<union> {x. x \<in> set xs \<and> \<not> P x}" by blast
+  also have "\<dots> = set (List.filter P xs) Un (set (List.filter (Not o P) xs))" by simp
+  also have "\<dots> = set (fst (partition P xs)) \<union> set (snd (partition P xs))"
+    using partition_filter1 [of P xs] partition_filter2 [of P xs] by simp
+  finally show "set yes Un set no = set xs" using assms by simp
 qed
 
 end
