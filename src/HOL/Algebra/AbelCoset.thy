@@ -712,7 +712,7 @@ lemma (in abelian_subgroup) a_repr_independenceD:
       and repr:  "H +> x = H +> y"
   shows "y \<in> H +> x"
 by (rule group.repr_independenceD [OF a_group a_subgroup,
-    folded a_r_coset_def, simplified monoid_record_simps])
+    folded a_r_coset_def, simplified monoid_record_simps]) (rule ycarr, rule repr)
 
 
 subsection {* Lemmas for the Set of Right Cosets *}
@@ -731,7 +731,7 @@ lemma (in abelian_monoid) set_add_closed:
       and Bcarr: "B \<subseteq> carrier G"
   shows "A <+> B \<subseteq> carrier G"
 by (rule monoid.set_mult_closed [OF a_monoid,
-    folded set_add_def, simplified monoid_record_simps])
+    folded set_add_def, simplified monoid_record_simps]) (rule Acarr, rule Bcarr)
 
 lemma (in abelian_group) add_additive_subgroups:
   assumes subH: "additive_subgroup H G"

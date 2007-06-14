@@ -67,7 +67,7 @@ locale maximalideal = ideal +
 
 lemma (in maximalideal) is_maximalideal:
  shows "maximalideal I R"
-by -
+by fact
 
 lemma maximalidealI:
   includes ideal
@@ -673,17 +673,9 @@ qed
 lemma (in ideal) primeidealCE:
   includes cring
   assumes notprime: "\<not> primeideal I R"
-    and elim1: "carrier R = I \<Longrightarrow> P"
-    and elim2: "(\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I) \<Longrightarrow> P"
-  shows "P"
-proof -
-  from notprime
-  have "carrier R = I \<or> (\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I)"
-      by (intro primeidealCD)
-  thus "P"
-      apply (rule disjE)
-      by (erule elim1, erule elim2)
-qed
+  obtains "carrier R = I"
+    | "\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I"
+  using primeidealCD [OF R.is_cring notprime] by blast
 
 text {* If @{text "{\<zero>}"} is a prime ideal of a commutative ring, the ring is a domain *}
 lemma (in cring) zeroprimeideal_domainI:
@@ -790,21 +782,21 @@ proof -
       by fast
   def J \<equiv> "{x\<in>carrier R. a \<otimes> x \<in> I}"
 
-  from acarr
-      have idealJ: "ideal J R" by (unfold J_def, intro helper_max_prime)
+  from R.is_cring and acarr
+  have idealJ: "ideal J R" unfolding J_def by (rule helper_max_prime)
 
   have IsubJ: "I \<subseteq> J"
   proof
     fix x
     assume xI: "x \<in> I"
     from this and acarr
-        have "a \<otimes> x \<in> I" by (intro I_l_closed)
+    have "a \<otimes> x \<in> I" by (intro I_l_closed)
     from xI[THEN a_Hcarr] this
-        show "x \<in> J" by (unfold J_def, fast)
+    show "x \<in> J" unfolding J_def by fast
   qed
 
   from abI and acarr bcarr
-      have "b \<in> J" by (unfold J_def, fast)
+      have "b \<in> J" unfolding J_def by fast
   from bnI and this
       have JnI: "J \<noteq> I" by fast
   from acarr
@@ -812,7 +804,7 @@ proof -
   from this and anI
       have "a \<otimes> \<one> \<notin> I" by simp
   from one_closed and this
-      have "\<one> \<notin> J" by (unfold J_def, fast)
+      have "\<one> \<notin> J" unfolding J_def by fast
   hence Jncarr: "J \<noteq> carrier R" by fast
 
   interpret ideal ["J" "R"] by (rule idealJ)
