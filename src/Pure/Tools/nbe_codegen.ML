@@ -74,11 +74,11 @@ val tab_lookup = S.app "NBE.lookup";
 val tab_update = S.app "NBE.update";
 
 fun mk_nbeFUN(nm,e) =
-  S.app Eval_Fun (S.tup [S.abs(S.list [MLvname nm])e,S.list [],"1",
+  S.app Eval_Fun (S.tup [S.abs(S.list [MLvname nm])e,S.list [],"1" (*,
       S.abs(S.tup [])(S.Let 
         [S.Val (MLintern "var") (S.app Eval_new_name (S.tup [])),
          S.Val (MLvname nm) (S.app Eval_BVar (S.tup [(MLintern "var"), S.list []]))]
-	(S.app Eval_AbsN(S.tup[MLintern "var",(S.app Eval_to_term e)])))]);
+	(S.app Eval_AbsN(S.tup[MLintern "var",(S.app Eval_to_term e)])))*)]);
 
 fun take_last n xs = rev (Library.take(n, rev xs));
 fun drop_last n xs = rev (Library.drop(n, rev xs));
@@ -87,10 +87,9 @@ fun selfcall nm ar args =
 	if (ar <= length args) then 
 	  S.nbe_apps (S.app (MLname nm) (S.list (take_last ar args)))
 	             (drop_last ar args)
-        else S.app Eval_Fun (S.tup [MLname nm,S.list args,
+        else S.app Eval_Fun (S.tup [MLname nm,S.list args(*,
 	           string_of_int(ar - (length args)),
-		   S.abs (S.tup []) (S.app Eval_C
-	(S.quote nm))]);
+		   S.abs (S.tup []) (S.app Eval_C (S.quote nm))*)]);
 
 fun mk_rexpr defined names ar =
   let

@@ -23,7 +23,7 @@ sig
       Constr of string*(Univ list)       (*named constructors*)
     | Var of string*(Univ list)          (*free variables*)
     | BVar of int*(Univ list)            (*bound named variables*)
-    | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm)
+    | Fun of (Univ list -> Univ) * (Univ list) * int
                                          (*functions*);
 
   val eval: theory -> Univ Symtab.table -> term -> nterm
@@ -87,12 +87,7 @@ datatype Univ =
     Constr of string*(Univ list)       (* Named Constructors *)
   | Var of string*(Univ list)          (* Free variables *)
   | BVar of int*(Univ list)         (* Bound named variables *)
-  | Fun of (Univ list -> Univ) * (Univ list) * int * (unit -> nterm);
-
-fun to_term (Constr(name, args))    = apps (C name) (map to_term args)
-  | to_term (Var   (name, args))    = apps (V name) (map to_term args)
-  | to_term (BVar  (name, args))    = apps (B name) (map to_term args)
-  | to_term (Fun(_,args,_,name_thunk)) = apps (name_thunk ()) (map to_term args);
+  | Fun of (Univ list -> Univ) * (Univ list) * int;
 
 (*
    A typical operation, why functions might be good for, is
@@ -100,14 +95,14 @@ fun to_term (Constr(name, args))    = apps (C name) (map to_term args)
    reasonably we applied in a semantical way.
 *)
 
-fun apply (Fun(f,xs,1,name))  x = f (x::xs)
-  | apply (Fun(f,xs,n,name))  x = Fun(f,x::xs,n-1,name)
+fun apply (Fun(f,xs,1))  x = f (x::xs)
+  | apply (Fun(f,xs,n))  x = Fun(f,x::xs,n-1)
   | apply (Constr(name,args)) x = Constr(name,x::args)
   | apply (Var(name,args))    x = Var(name,x::args)
   | apply (BVar(name,args))   x = BVar(name,x::args);
 
 fun mk_Fun(name,v,0) = (name,v [])
-  | mk_Fun(name,v,n) = (name,Fun(v,[],n, fn () => C name));
+  | mk_Fun(name,v,n) = (name,Fun(v,[],n));
 
 
 (* ------------------ evaluation with greetings to Tarski ------------------ *)
@@ -117,8 +112,7 @@ fun prep_term thy (Const c) = Const (CodegenNames.const thy
   | prep_term thy (Free v_ty) = Free v_ty
   | prep_term thy (s $ t) = prep_term thy s $ prep_term thy t
   | prep_term thy (Abs (raw_v, ty, raw_t)) =
-      let
-        val (v, t) = Syntax.variant_abs (raw_v, ty, raw_t);
+      let val (v,t) = Syntax.variant_abs (raw_v, ty, raw_t);
       in Abs (v, ty, prep_term thy t) end;
 
 
@@ -126,6 +120,13 @@ fun prep_term thy (Const c) = Const (CodegenNames.const thy
 
 val counter = ref 0;
 fun new_name () = (counter := !counter +1; !counter);
+
+fun to_term (Constr(name, args))    = apps (C name) (map to_term args)
+  | to_term (Var   (name, args))    = apps (V name) (map to_term args)
+  | to_term (BVar  (name, args))    = apps (B name) (map to_term args)
+  | to_term (F as Fun _) =
+      let val var = new_name()
+      in AbsN(var, to_term (apply F (BVar(var,[])))) end;
 
 
 (* greetings to Tarski *)
@@ -139,9 +140,7 @@ fun eval thy tab t =
       | evl vars (s $ t) =
           apply (evl vars s) (evl vars t)
       | evl vars (Abs (v, _, t)) =
-          Fun (fn [x] => evl (AList.update (op =) (v, x) vars) t, [], 1,
-            fn () => let val var = new_name() in
-              AbsN (var, to_term (evl (AList.update (op =) (v, BVar (var, [])) vars) t)) end)
+          Fun (fn [x] => evl (AList.update (op =) (v, x) vars) t, [], 1)
   in (counter := 0; to_term (evl [] (prep_term thy t))) end;
 
 end;
