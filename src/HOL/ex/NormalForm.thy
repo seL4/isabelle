@@ -116,4 +116,10 @@ normal_form "(f o g) x"
 normal_form "(f o id) x"
 normal_form "\<lambda>x. x"
 
+(* Church numerals: *)
+
+normal_form "(%m n f x. m f (n f x)) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+normal_form "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+normal_form "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+
 end
