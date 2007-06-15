@@ -742,7 +742,7 @@ lemma geometric_sum:
   apply (induct "n", auto)
   apply (rule_tac c = "x - 1" in field_mult_cancel_right_lemma)
   apply (auto simp add: mult_assoc left_distrib)
-  apply (simp add: times_divide_eq_right [symmetric] divide_self)
+  apply (simp add: times_divide_eq_right [symmetric])
   apply (simp add: right_distrib diff_minus mult_commute power_Suc)
   done
 

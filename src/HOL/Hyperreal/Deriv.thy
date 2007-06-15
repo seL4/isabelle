@@ -48,7 +48,7 @@ lemma DERIV_const [simp]: "DERIV (\<lambda>x. k) x :> 0"
 by (simp add: deriv_def)
 
 lemma DERIV_ident [simp]: "DERIV (\<lambda>x. x) x :> 1"
-by (simp add: deriv_def divide_self cong: LIM_cong)
+by (simp add: deriv_def cong: LIM_cong)
 
 lemma add_diff_add:
   fixes a b c d :: "'a::ab_group_add"
@@ -81,7 +81,7 @@ proof (unfold isCont_iff)
   hence "(\<lambda>h. (f(x+h) - f(x)) * (h / h)) -- 0 --> 0"
     by simp
   hence "(\<lambda>h. f(x+h) - f(x)) -- 0 --> 0"
-    by (simp cong: LIM_cong add: divide_self)
+    by (simp cong: LIM_cong)
   thus "(\<lambda>h. f(x+h)) -- 0 --> f(x)"
     by (simp add: LIM_def)
 qed
@@ -232,7 +232,7 @@ lemma nonzero_mult_divide_cancel_right:
 proof -
   assume b: "b \<noteq> 0"
   have "a * b / b = a * (b / b)" by simp
-  also have "\<dots> = a" by (simp add: divide_self b)
+  also have "\<dots> = a" by (simp add: b)
   finally show "a * b / b = a" .
 qed
 

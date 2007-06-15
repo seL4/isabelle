@@ -338,7 +338,7 @@ done
 
 text{*Differentiation of natural number powers*}
 lemma NSDERIV_Id [simp]: "NSDERIV (%x. x) x :> 1"
-by (simp add: NSDERIV_NSLIM_iff NSLIM_def divide_self del: divide_self_if)
+by (simp add: NSDERIV_NSLIM_iff NSLIM_def del: divide_self_if)
 
 lemma NSDERIV_cmult_Id [simp]: "NSDERIV (op * c) x :> c"
 by (cut_tac c = c and x = x in NSDERIV_Id [THEN NSDERIV_cmult], simp)

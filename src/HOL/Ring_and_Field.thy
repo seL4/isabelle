@@ -770,7 +770,7 @@ qed
 lemma nonzero_inverse_eq_divide: "a \<noteq> 0 ==> inverse (a::'a::field) = 1/a"
 by (simp add: divide_inverse)
 
-lemma divide_self: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
+lemma divide_self[simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
   by (simp add: divide_inverse)
 
 lemma divide_zero [simp]: "a / 0 = (0::'a::{field,division_by_zero})"
@@ -1008,12 +1008,6 @@ apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_cancel_right)
 done
 
-(*For ExtractCommonTerm*)
-lemma mult_divide_cancel_eq_if:
-     "(c*a) / (c*b) = 
-      (if c=0 then 0 else a / (b::'a::{field,division_by_zero}))"
-  by (simp add: mult_divide_cancel_left)
-
 lemma divide_1 [simp]: "a/1 = (a::'a::field)"
   by (simp add: divide_inverse)
 
@@ -1052,6 +1046,7 @@ lemma mult_divide_cancel_left_if [simp]:
   fixes c :: "'a :: {field,division_by_zero}"
   shows "(c*a) / (c*b) = (if c=0 then 0 else a/b)"
 by (simp add: mult_divide_cancel_left)
+(* also used at ML level *)
 
 lemma mult_divide_cancel_right_if [simp]:
   fixes c :: "'a :: {field,division_by_zero}"

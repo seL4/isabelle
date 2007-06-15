@@ -480,7 +480,7 @@ lemma field_fderiv_def:
  apply (simp cong: LIM_cong add: nonzero_norm_divide [symmetric])
  apply (subst diff_divide_distrib)
  apply (subst times_divide_eq_left [symmetric])
- apply (simp cong: LIM_cong add: divide_self)
+ apply (simp cong: LIM_cong)
  apply (simp add: LIM_norm_zero_iff LIM_zero_iff)
 done
 
