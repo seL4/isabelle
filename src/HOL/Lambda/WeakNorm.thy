@@ -575,6 +575,10 @@ setup {*
   CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
 *}
 
+definition
+  int :: "nat \<Rightarrow> int" where
+  "int \<equiv> of_nat"
+
 code_gen type_NF nat int in SML
 
 ML {*
@@ -584,7 +588,7 @@ structure Lambda = ROOT.Lambda;
 structure Nat = ROOT.Nat;
 
 val nat_of_int = ROOT.Integer.nat o IntInf.fromInt;
-val int_of_nat = IntInf.toInt o ROOT.Integer.int;
+val int_of_nat = IntInf.toInt o ROOT.WeakNorm.int;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       Type.Fun (dBtype_of_typ T, dBtype_of_typ U)
