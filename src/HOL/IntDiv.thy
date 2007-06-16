@@ -834,11 +834,16 @@ apply (case_tac "b = 0", simp)
 apply (auto simp add: linorder_neq_iff zdiv_zmult_zmult1_aux1 zdiv_zmult_zmult1_aux2)
 done
 
+lemma zdiv_zmult_zmult1_if[simp]:
+  "(k*m) div (k*n) = (if k = (0::int) then 0 else m div n)"
+by (simp add:zdiv_zmult_zmult1)
+
+(*
 lemma zdiv_zmult_zmult2: "c \<noteq> (0::int) ==> (a*c) div (b*c) = a div b"
 apply (drule zdiv_zmult_zmult1)
 apply (auto simp add: mult_commute)
 done
-
+*)
 
 
 subsection{*Distribution of Factors over mod*}

@@ -21,19 +21,6 @@ and d = gcd(m,m') and n=m/d and n'=m'/d.
 
 val rel_number_of = [eq_number_of_eq, less_number_of_eq_neg, le_number_of_eq];
 
-(** Factor cancellation theorems for integer division (div, not /) **)
-
-Goal "!!k::int. k~=0 ==> (k*m) div (k*n) = (m div n)";
-by (stac @{thm zdiv_zmult_zmult1} 1);
-by Auto_tac;
-qed "int_mult_div_cancel1";
-
-(*For ExtractCommonTermFun, cancelling common factors*)
-Goal "(k*m) div (k*n) = (if k = (0::int) then 0 else m div n)";
-by (simp_tac (simpset() addsimps [int_mult_div_cancel1]) 1);
-qed "int_mult_div_cancel_disj";
-
-
 local
   open Int_Numeral_Simprocs
 in
@@ -65,7 +52,7 @@ structure IntDivCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
-  val cancel = int_mult_div_cancel1 RS trans
+  val cancel = @{thm zdiv_zmult_zmult1} RS trans
   val neg_exchanges = false
 )
 
@@ -234,8 +221,6 @@ val simplify_one = Int_Numeral_Simprocs.simplify_meta_eq
 fun cancel_simplify_meta_eq cancel_th ss th =
     simplify_one ss (([th, cancel_th]) MRS trans);
 
-(*At present, long_mk_prod creates Numeral1, so this requires the axclass
-  number_ring*)
 structure CancelFactorCommon =
   struct
   val mk_sum            = long_mk_prod
@@ -257,13 +242,13 @@ structure EqCancelFactor = ExtractCommonTermFun
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_cancel_left}
 );
 
-(*int_mult_div_cancel_disj is for integer division (div).*)
+(*zdiv_zmult_zmult1_if is for integer division (div).*)
 structure IntDivCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
-  val simplify_meta_eq  = cancel_simplify_meta_eq int_mult_div_cancel_disj
+  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zdiv_zmult_zmult1_if}
 );
 
 (*Version for all fields, including unordered ones (type complex).*)
@@ -275,8 +260,6 @@ structure DivideCancelFactor = ExtractCommonTermFun
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_divide_cancel_left_if}
 );
 
-(*The number_ring class is necessary because the simprocs refer to the
-  binary number 1.  FIXME: probably they could use 1 instead.*)
 val cancel_factors =
   map Int_Numeral_Base_Simprocs.prep_simproc
    [("ring_eq_cancel_factor",
