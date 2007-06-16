@@ -191,8 +191,7 @@ val mk_plus = HOLogic.mk_binop @{const_name HOL.plus};
 
 fun mk_minus t = 
   let val T = Term.fastype_of t
-  in Const (@{const_name HOL.uminus}, T --> T) $ t
-  end;
+  in Const (@{const_name HOL.uminus}, T --> T) $ t end;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum T []        = mk_number T 0
@@ -220,22 +219,28 @@ val dest_diff = HOLogic.dest_bin @{const_name HOL.minus} Term.dummyT;
 
 val mk_times = HOLogic.mk_binop @{const_name HOL.times};
 
+fun one_of T = Const(@{const_name HOL.one},T);
+
+(* build product with trailing 1 rather than Numeral 1 in order to avoid the
+   unnecessary restriction to type class number_ring
+   which is not required for cancellation of common factors in divisions.
+*)
 fun mk_prod T = 
-  let val one = mk_number T 1
+  let val one = one_of T
   fun mk [] = one
     | mk [t] = t
     | mk (t :: ts) = if t = one then mk ts else mk_times (t, mk ts)
   in mk end;
 
 (*This version ALWAYS includes a trailing one*)
-fun long_mk_prod T []        = mk_number T 1
+fun long_mk_prod T []        = one_of T
   | long_mk_prod T (t :: ts) = mk_times (t, mk_prod T ts);
 
 val dest_times = HOLogic.dest_bin @{const_name HOL.times} Term.dummyT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
-      in  dest_prod t @ dest_prod u  end
+      in dest_prod t @ dest_prod u end
       handle TERM _ => [t];
 
 (*DON'T do the obvious simplifications; that would create special cases*)
@@ -253,8 +258,8 @@ fun dest_coeff sign (Const (@{const_name HOL.uminus}, _) $ t) = dest_coeff (~sig
 fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
   | find_first_coeff past u (t::terms) =
         let val (n,u') = dest_coeff 1 t
-        in  if u aconv u' then (n, rev past @ terms)
-                          else find_first_coeff (t::past) u terms
+        in if u aconv u' then (n, rev past @ terms)
+                         else find_first_coeff (t::past) u terms
         end
         handle TERM _ => find_first_coeff (t::past) u terms;
 
@@ -271,23 +276,23 @@ val mk_divide = HOLogic.mk_binop @{const_name HOL.divide};
 (*Build term (p / q) * t*)
 fun mk_fcoeff ((p, q), t) =
   let val T = Term.fastype_of t
-  in  mk_times (mk_divide (mk_number T p, mk_number T q), t) end;
+  in mk_times (mk_divide (mk_number T p, mk_number T q), t) end;
 
 (*Express t as a product of a fraction with other sorted terms*)
 fun dest_fcoeff sign (Const (@{const_name HOL.uminus}, _) $ t) = dest_fcoeff (~sign) t
   | dest_fcoeff sign (Const (@{const_name HOL.divide}, _) $ t $ u) =
     let val (p, t') = dest_coeff sign t
         val (q, u') = dest_coeff 1 u
-    in  (mk_frac (p, q), mk_divide (t', u')) end
+    in (mk_frac (p, q), mk_divide (t', u')) end
   | dest_fcoeff sign t =
     let val (p, t') = dest_coeff sign t
         val T = Term.fastype_of t
-    in  (mk_frac (p, 1), mk_divide (t', mk_number T 1)) end;
+    in (mk_frac (p, 1), mk_divide (t', one_of T)) end;
 
 
-(*Simplify Numeral0+n, n+Numeral0, Numeral1*n, n*Numeral1*)
+(*Simplify Numeral0+n, n+Numeral0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
 val add_0s =  thms "add_0s";
-val mult_1s = thms "mult_1s";
+val mult_1s = thms "mult_1s" @ [thm"mult_1_left", thm"mult_1_right", thm"divide_1"];
 
 (*Simplify inverse Numeral1, a/Numeral1*)
 val inverse_1s = [@{thm inverse_numeral_1}];

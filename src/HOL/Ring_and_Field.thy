@@ -1042,13 +1042,14 @@ done
 
 subsubsection{*Special Cancellation Simprules for Division*}
 
-lemma mult_divide_cancel_left_if [simp]:
+(* FIXME need not be a simp-rule once "divide_cancel_factor" has been fixed *)
+lemma mult_divide_cancel_left_if[simp]:
   fixes c :: "'a :: {field,division_by_zero}"
   shows "(c*a) / (c*b) = (if c=0 then 0 else a/b)"
 by (simp add: mult_divide_cancel_left)
-(* also used at ML level *)
 
-lemma mult_divide_cancel_right_if [simp]:
+(* Not needed anymore because now subsumed by simproc "divide_cancel_factor"
+lemma mult_divide_cancel_right_if:
   fixes c :: "'a :: {field,division_by_zero}"
   shows "(a*c) / (b*c) = (if c=0 then 0 else a/b)"
 by (simp add: mult_divide_cancel_right)
@@ -1092,7 +1093,7 @@ lemma times_divide_self_left [simp]:
   fixes a :: "'a :: {field,division_by_zero}"
   shows "(b/a) * a = (if a=0 then 0 else b)"
 by (simp add: times_divide_eq_left)
-
+*)
 
 subsection {* Division and Unary Minus *}
 

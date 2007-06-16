@@ -280,15 +280,15 @@ structure DivideCancelFactor = ExtractCommonTermFun
 val cancel_factors =
   map Int_Numeral_Base_Simprocs.prep_simproc
    [("ring_eq_cancel_factor",
-     ["(l::'a::{idom,number_ring}) * m = n",
-      "(l::'a::{idom,number_ring}) = m * n"],
+     ["(l::'a::{idom}) * m = n",
+      "(l::'a::{idom}) = m * n"],
     K EqCancelFactor.proc),
     ("int_div_cancel_factor",
      ["((l::int) * m) div n", "(l::int) div (m * n)"],
      K IntDivCancelFactor.proc),
     ("divide_cancel_factor",
-     ["((l::'a::{division_by_zero,field,number_ring}) * m) / n",
-      "(l::'a::{division_by_zero,field,number_ring}) / (m * n)"],
+     ["((l::'a::{division_by_zero,field}) * m) / n",
+      "(l::'a::{division_by_zero,field}) / (m * n)"],
      K DivideCancelFactor.proc)];
 
 end;
