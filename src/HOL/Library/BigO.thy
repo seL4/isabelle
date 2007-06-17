@@ -698,11 +698,7 @@ lemma bigo_useful_const_mult: "(c::'a::ordered_field) ~= 0 ==>
   apply (subgoal_tac "f = (%x. 1 / c) * ((%x. c) * f)")
   apply (erule ssubst)
   apply (erule set_times_intro2)
-  apply (simp add: func_times) 
-  apply (rule ext)
-  apply (subst times_divide_eq_left [symmetric])
-  apply (subst divide_self)
-  apply (assumption, simp)
+  apply (simp add: func_times)
   done
 
 lemma bigo_fix: "(%x. f ((x::nat) + 1)) =o O(%x. h(x + 1)) ==> f 0 = 0 ==>

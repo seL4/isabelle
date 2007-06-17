@@ -1469,13 +1469,7 @@ lemma setprod_Un: "finite A ==> finite B ==> (ALL x: A Int B. f x \<noteq> 0) ==
 lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
     (setprod f (A - {a}) :: 'a :: {field}) =
       (if a:A then setprod f A / f a else setprod f A)"
-  apply (erule finite_induct)
-   apply (auto simp add: insert_Diff_if)
-  apply (subgoal_tac "f a * setprod f F / f a = setprod f F * f a / f a")
-  apply (erule ssubst)
-  apply (subst times_divide_eq_right [THEN sym])
-  apply (auto simp add: mult_ac times_divide_eq_right)
-  done
+by (erule finite_induct) (auto simp add: insert_Diff_if)
 
 lemma setprod_inversef: "finite A ==>
     ALL x: A. f x \<noteq> (0::'a::{field,division_by_zero}) ==>

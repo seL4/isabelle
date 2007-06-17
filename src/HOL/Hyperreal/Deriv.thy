@@ -236,8 +236,7 @@ proof
   show "\<exists>g. (\<forall>z. f z - f x = g z * (z-x)) \<and> isCont g x \<and> g x = l"
   proof (intro exI conjI)
     let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
-    show "\<forall>z. f z - f x = ?g z * (z-x)"
-      by (simp add: nonzero_mult_divide_cancel_right')
+    show "\<forall>z. f z - f x = ?g z * (z-x)" by simp
     show "isCont ?g x" using der
       by (simp add: isCont_iff DERIV_iff diff_minus
                cong: LIM_equal [rule_format])
@@ -248,8 +247,7 @@ next
   then obtain g where
     "(\<forall>z. f z - f x = g z * (z-x))" and "isCont g x" and "g x = l" by blast
   thus "(DERIV f x :> l)"
-     by (auto simp add: isCont_iff DERIV_iff nonzero_mult_divide_cancel_right'
-              cong: LIM_cong)
+     by (auto simp add: isCont_iff DERIV_iff cong: LIM_cong)
 qed
 
 lemma DERIV_chain':

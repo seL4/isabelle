@@ -977,7 +977,11 @@ lemma inverse_divide [simp]:
 
 subsection {* Calculations with fractions *}
 
-lemma nonzero_mult_divide_cancel_left:
+text{* There is a whole bunch of simp-rules just for class @{text
+field} but none for class @{text field} and @{text nonzero_divides}
+because the latter are covered by a simproc. *}
+
+lemma nonzero_mult_divide_mult_cancel_left[simp]:
   assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" 
     shows "(c*a)/(c*b) = a/(b::'a::field)"
 proof -
@@ -992,21 +996,22 @@ proof -
     by (simp add: divide_inverse)
 qed
 
-lemma mult_divide_cancel_left:
+lemma mult_divide_mult_cancel_left:
      "c\<noteq>0 ==> (c*a) / (c*b) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b = 0")
-apply (simp_all add: nonzero_mult_divide_cancel_left)
+apply (simp_all add: nonzero_mult_divide_mult_cancel_left)
 done
 
-lemma nonzero_mult_divide_cancel_right:
+lemma nonzero_mult_divide_mult_cancel_right:
      "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (b*c) = a/(b::'a::field)"
-by (simp add: mult_commute [of _ c] nonzero_mult_divide_cancel_left) 
+by (simp add: mult_commute [of _ c] nonzero_mult_divide_mult_cancel_left) 
 
-lemma mult_divide_cancel_right:
+lemma mult_divide_mult_cancel_right:
      "c\<noteq>0 ==> (a*c) / (b*c) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b = 0")
-apply (simp_all add: nonzero_mult_divide_cancel_right)
+apply (simp_all add: nonzero_mult_divide_mult_cancel_right)
 done
+
 lemma divide_1 [simp]: "a/1 = (a::'a::field)"
   by (simp add: divide_inverse)
 
@@ -1032,39 +1037,46 @@ lemma add_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
   apply (erule ssubst)
   apply (rule add_divide_distrib [THEN sym])
   apply (subst mult_commute)
-  apply (erule nonzero_mult_divide_cancel_left [THEN sym])
+  apply (erule nonzero_mult_divide_mult_cancel_left [THEN sym])
   apply assumption
-  apply (erule nonzero_mult_divide_cancel_right [THEN sym])
+  apply (erule nonzero_mult_divide_mult_cancel_right [THEN sym])
   apply assumption
 done
 
 
-lemma nonzero_mult_divide_cancel_right':
-  "b \<noteq> 0 \<Longrightarrow> a * b / b = (a::'a::field)"
-proof -
-  assume b: "b \<noteq> 0"
-  have "a * b / b = a * (b / b)" by (simp add: times_divide_eq_right)
-  also have "\<dots> = a" by (simp add: divide_self b)
-  finally show "a * b / b = a" .
-qed
-
-lemma nonzero_mult_divide_cancel_left':
-  "a \<noteq> 0 \<Longrightarrow> a * b / a = (b::'a::field)"
-proof -
-  assume b: "a \<noteq> 0"
-  have "a * b / a = b * a / a" by (simp add: mult_commute)
-  also have "\<dots> = b * (a / a)" by (simp add: times_divide_eq_right)
-  also have "\<dots> = b" by (simp add: divide_self b)
-  finally show "a * b / a = b" .
-qed
-
 subsubsection{*Special Cancellation Simprules for Division*}
 
-(* FIXME need not be a simp-rule once "divide_cancel_factor" has been fixed *)
-lemma mult_divide_cancel_left_if[simp]:
+lemma mult_divide_mult_cancel_left_if[simp]:
   fixes c :: "'a :: {field,division_by_zero}"
   shows "(c*a) / (c*b) = (if c=0 then 0 else a/b)"
-by (simp add: mult_divide_cancel_left)
+by (simp add: mult_divide_mult_cancel_left)
+
+lemma nonzero_mult_divide_cancel_right[simp]:
+  "b \<noteq> 0 \<Longrightarrow> a * b / b = (a::'a::field)"
+using nonzero_mult_divide_mult_cancel_right[of 1 b a] by simp
+
+lemma nonzero_mult_divide_cancel_left[simp]:
+  "a \<noteq> 0 \<Longrightarrow> a * b / a = (b::'a::field)"
+using nonzero_mult_divide_mult_cancel_left[of 1 a b] by simp
+
+
+lemma nonzero_divide_mult_cancel_right[simp]:
+  "\<lbrakk> a\<noteq>0; b\<noteq>0 \<rbrakk> \<Longrightarrow> b / (a * b) = 1/(a::'a::field)"
+using nonzero_mult_divide_mult_cancel_right[of a b 1] by simp
+
+lemma nonzero_divide_mult_cancel_left[simp]:
+  "\<lbrakk> a\<noteq>0; b\<noteq>0 \<rbrakk> \<Longrightarrow> a / (a * b) = 1/(b::'a::field)"
+using nonzero_mult_divide_mult_cancel_left[of b a 1] by simp
+
+
+lemma nonzero_mult_divide_mult_cancel_left2[simp]:
+     "[|b\<noteq>0; c\<noteq>0|] ==> (c*a) / (b*c) = a/(b::'a::field)"
+using nonzero_mult_divide_mult_cancel_left[of b c a] by(simp add:mult_ac)
+
+lemma nonzero_mult_divide_mult_cancel_right2[simp]:
+     "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (c*b) = a/(b::'a::field)"
+using nonzero_mult_divide_mult_cancel_right[of b c a] by(simp add:mult_ac)
+
 
 (* Not needed anymore because now subsumed by simproc "divide_cancel_factor"
 lemma mult_divide_cancel_right_if:
@@ -1112,6 +1124,7 @@ lemma times_divide_self_left [simp]:
   shows "(b/a) * a = (if a=0 then 0 else b)"
 by (simp add: times_divide_eq_left)
 *)
+
 
 subsection {* Division and Unary Minus *}
 

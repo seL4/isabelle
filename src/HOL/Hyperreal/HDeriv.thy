@@ -358,13 +358,13 @@ apply (simp add: inverse_add nonzero_inverse_mult_distrib [symmetric] power_Suc
             del: inverse_mult_distrib inverse_minus_eq
                  minus_mult_left [symmetric] minus_mult_right [symmetric])
 apply (subst mult_commute, simp add: nonzero_mult_divide_cancel_right)
-apply (simp (no_asm_simp) add: mult_assoc [symmetric] right_distrib
+apply (simp (no_asm_simp) add: mult_assoc [symmetric] left_distrib
             del: minus_mult_left [symmetric] minus_mult_right [symmetric])
 apply (rule_tac y = "inverse (- (star_of x * star_of x))" in approx_trans)
 apply (rule inverse_add_Infinitesimal_approx2)
 apply (auto dest!: hypreal_of_real_HFinite_diff_Infinitesimal
             simp add: inverse_minus_eq [symmetric] HFinite_minus_iff)
-apply (rule Infinitesimal_HFinite_mult2, auto)
+apply (rule Infinitesimal_HFinite_mult, auto)
 done
 
 subsubsection {* Equivalence of NS and Standard definitions *}

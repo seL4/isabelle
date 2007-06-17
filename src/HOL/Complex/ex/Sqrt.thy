@@ -44,8 +44,7 @@ proof -
   have "\<bar>x\<bar> = real ?k / real ?l"
   proof -
     from gcd have "real ?k / real ?l =
-        real (?gcd * ?k) / real (?gcd * ?l)"
-      by (simp add: mult_divide_cancel_left)
+        real (?gcd * ?k) / real (?gcd * ?l)" by simp
     also from gcd_k and gcd_l have "\<dots> = real m / real n" by simp
     also from x_rat have "\<dots> = \<bar>x\<bar>" ..
     finally show ?thesis ..

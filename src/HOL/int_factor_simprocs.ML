@@ -62,7 +62,7 @@ structure DivideCancelNumeralFactor = CancelNumeralFactorFun
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.divide} Term.dummyT
-  val cancel = @{thm mult_divide_cancel_left} RS trans
+  val cancel = @{thm mult_divide_mult_cancel_left} RS trans
   val neg_exchanges = false
 )
 
@@ -257,7 +257,7 @@ structure DivideCancelFactor = ExtractCommonTermFun
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.divide} Term.dummyT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_divide_cancel_left_if}
+  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_divide_mult_cancel_left_if}
 );
 
 val cancel_factors =

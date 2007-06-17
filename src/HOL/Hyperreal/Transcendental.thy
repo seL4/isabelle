@@ -178,8 +178,6 @@ lemma lemma_termdiff2:
         (z + h) ^ q * z ^ (n - 2 - q))" (is "?lhs = ?rhs")
 apply (subgoal_tac "h * ?lhs = h * ?rhs", simp add: h)
 apply (simp add: right_diff_distrib diff_divide_distrib h)
-apply (simp only: times_divide_eq_left [symmetric])
-apply (simp add: divide_self [OF h])
 apply (simp add: mult_assoc [symmetric])
 apply (cases "n", simp)
 apply (simp add: lemma_realpow_diff_sumr2 h
