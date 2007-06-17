@@ -739,7 +739,7 @@ lemmas zmult_1 = mult_1_left [where 'a=int]
 lemmas zmult_1_right = mult_1_right [where 'a=int]
 
 lemmas zle_refl = order_refl [where 'a=int]
-lemmas zle_trans = order_trans [where 'a=int]
+lemmas zle_trans = order_trans [where 'a=int and x="?i" and y="?j" and z="?k"]
 lemmas zle_anti_sym = order_antisym [where 'a=int]
 lemmas zle_linear = linorder_linear [where 'a=int]
 lemmas zless_linear = linorder_less_linear [where 'a = int]
