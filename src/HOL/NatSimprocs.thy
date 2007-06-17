@@ -561,20 +561,25 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "diff_def"}, @{thm "minus_divide_left"}, 
            @{thm "Numeral1_eq1_nat"}, @{thm "add_divide_distrib"} RS sym]
 
-
-fun comp_conv ctxt = Simplifier.rewrite  
+local
+open Conv
+in
+fun comp_conv ctxt = (Simplifier.rewrite  
 (HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"} 
               addsimps ths addsimps comp_arith addsimps simp_thms
               addsimprocs field_cancel_numeral_factors
                addsimprocs [add_frac_frac_simproc ctxt, add_frac_num_simproc ctxt,
                             ord_frac_simproc]
-                addcongs [@{thm "if_weak_cong"}])
-
+                addcongs [@{thm "if_weak_cong"}]))
+then_conv (Simplifier.rewrite (HOL_basic_ss addsimps
+  [@{thm numeral_1_eq_1},@{thm numeral_0_eq_0}] @ @{thms numerals(1-2)}))
+end
 
 fun numeral_is_const ct = 
   case term_of ct of 
    Const (@{const_name "HOL.divide"},_) $ a $ b => 
-     can HOLogic.dest_number a andalso can HOLogic.dest_number b
+     numeral_is_const (Thm.dest_arg1 ct) andalso numeral_is_const (Thm.dest_arg ct)
+ | Const (@{const_name "HOL.uminus"},_)$t => numeral_is_const (Thm.dest_arg ct)
  | t => can HOLogic.dest_number t
 
 fun dest_const ct = case term_of ct of
