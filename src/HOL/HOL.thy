@@ -1061,6 +1061,7 @@ lemma not_all: "(~ (! x. P(x))) = (? x.~P(x))" by blast
 lemma imp_all: "((! x. P x) --> Q) = (? x. P x --> Q)" by blast
 lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by iprover
 lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by iprover
+lemma all_not_ex: "(ALL x. P x) = (~ (EX x. ~ P x ))" by blast
 
 lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by iprover
 lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by iprover
