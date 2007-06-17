@@ -520,7 +520,7 @@ local
  fun conv ctxt p = 
   let val _ = () (* my_term := p *)
   in
-   Qelim.gen_qelim_conv pcv postcv pcv (cons o term_of) 
+   Qelim.gen_qelim_conv ctxt pcv postcv pcv (cons o term_of) 
       (term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt) 
       (cooperex_conv ctxt) p 
   end
@@ -552,9 +552,9 @@ fun i_of_term vs t =
 	     (Mul (HOLogic.dest_number t1 |> snd |> Integer.machine_int,i_of_term vs t2)
         handle TERM _ => 
            (Mul (HOLogic.dest_number t2 |> snd |> Integer.machine_int,i_of_term vs t1)
-            handle TERM _ => cooper "i_of_term: Unsupported kind of multiplication"))
+            handle TERM _ => cooper "Reification: Unsupported kind of multiplication"))
       | _ => (C (HOLogic.dest_number t |> snd |> Integer.machine_int) 
-               handle TERM _ => cooper "i_of_term: unknown term");
+               handle TERM _ => cooper "Reification: unknown term");
 	
 fun qf_of_term ps vs t = 
     case t of 
@@ -563,7 +563,7 @@ fun qf_of_term ps vs t =
       | Const(@{const_name "Orderings.less"},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
       | Const(@{const_name "Orderings.less_eq"},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
       | Const(@{const_name "Divides.dvd"},_)$t1$t2 => 
-	(Dvd(HOLogic.dest_number t1 |> snd |> Integer.machine_int, i_of_term vs t2) handle _ => cooper "qf_of_term: unsupported dvd")
+	(Dvd(HOLogic.dest_number t1 |> snd |> Integer.machine_int, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")
       | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
       | @{term "op = :: bool => _ "}$t1$t2 => Iff(qf_of_term ps vs t1,qf_of_term ps vs t2)
       | Const("op &",_)$t1$t2 => And(qf_of_term ps vs t1,qf_of_term ps vs t2)
@@ -581,7 +581,7 @@ fun qf_of_term ps vs t =
          in A (qf_of_term ps vs' p')
          end
       | _ =>(case AList.lookup (op aconv) ps t of 
-               NONE => cooper "qf_of_term ps : unknown term!"
+               NONE => cooper "Reification: unknown term!"
              | SOME n => Closed n);
 
 local
