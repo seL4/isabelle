@@ -1007,7 +1007,6 @@ lemma mult_divide_cancel_right:
 apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_cancel_right)
 done
-
 lemma divide_1 [simp]: "a/1 = (a::'a::field)"
   by (simp add: divide_inverse)
 
@@ -1039,6 +1038,25 @@ lemma add_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
   apply assumption
 done
 
+
+lemma nonzero_mult_divide_cancel_right':
+  "b \<noteq> 0 \<Longrightarrow> a * b / b = (a::'a::field)"
+proof -
+  assume b: "b \<noteq> 0"
+  have "a * b / b = a * (b / b)" by (simp add: times_divide_eq_right)
+  also have "\<dots> = a" by (simp add: divide_self b)
+  finally show "a * b / b = a" .
+qed
+
+lemma nonzero_mult_divide_cancel_left':
+  "a \<noteq> 0 \<Longrightarrow> a * b / a = (b::'a::field)"
+proof -
+  assume b: "a \<noteq> 0"
+  have "a * b / a = b * a / a" by (simp add: mult_commute)
+  also have "\<dots> = b * (a / a)" by (simp add: times_divide_eq_right)
+  also have "\<dots> = b" by (simp add: divide_self b)
+  finally show "a * b / a = b" .
+qed
 
 subsubsection{*Special Cancellation Simprules for Division*}
 
@@ -1217,6 +1235,23 @@ lemma inverse_nonpositive_iff_nonpositive [simp]:
       "(inverse a \<le> 0) = (a \<le> (0::'a::{ordered_field,division_by_zero}))"
 by (simp add: linorder_not_less [symmetric])
 
+lemma ordered_field_no_lb: "\<forall> x. \<exists>y. y < (x::'a::ordered_field)"
+proof
+  fix x::'a
+  have m1: "- (1::'a) < 0" by simp
+  from add_strict_right_mono[OF m1, where c=x] 
+  have "(- 1) + x < x" by simp
+  thus "\<exists>y. y < x" by blast
+qed
+
+lemma ordered_field_no_ub: "\<forall> x. \<exists>y. y > (x::'a::ordered_field)"
+proof
+  fix x::'a
+  have m1: " (1::'a) > 0" by simp
+  from add_strict_right_mono[OF m1, where c=x] 
+  have "1 + x > x" by simp
+  thus "\<exists>y. y > x" by blast
+qed
 
 subsection{*Anti-Monotonicity of @{term inverse}*}
 
