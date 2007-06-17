@@ -8,11 +8,13 @@ sig
  val mk_cnumber : ctyp -> integer -> cterm
  val mk_cnumeral : integer -> cterm
  val semiring_normalize_conv : Proof.context -> Conv.conv
+ val semiring_normalize_ord_conv : Proof.context -> (cterm -> cterm -> bool) -> Conv.conv
  val semiring_normalize_tac : Proof.context -> int -> tactic
  val semiring_normalize_wrapper :  Proof.context -> NormalizerData.entry -> Conv.conv
+ val semiring_normalize_ord_wrapper :  Proof.context -> NormalizerData.entry -> (cterm -> cterm -> bool) -> Conv.conv
  val semiring_normalizers_conv :
      cterm list -> cterm list * thm list -> cterm list * thm list ->
-     (cterm -> bool) * Conv.conv * Conv.conv * Conv.conv -> (cterm -> Thm.cterm -> bool) ->
+     (cterm -> bool) * Conv.conv * Conv.conv * Conv.conv -> (cterm -> cterm -> bool) ->
        {add: Conv.conv, mul: Conv.conv, neg: Conv.conv, main: Conv.conv, 
         pow: Conv.conv, sub: Conv.conv}
 end
@@ -579,8 +581,8 @@ val polynomial_sub_conv = fn tm =>
 (* Conversion from HOL term.                                                 *)
 
 fun polynomial_conv tm =
- if not(is_comb tm) orelse is_semiring_constant tm
- then reflexive tm
+ if is_semiring_constant tm then semiring_add_conv tm
+ else if not(is_comb tm) then reflexive tm
  else
   let val (lopr,r) = Thm.dest_comb tm
   in if lopr aconvc neg_tm then
@@ -622,11 +624,10 @@ val nat_arith = @{thms "nat_arith"};
 val nat_exp_ss = HOL_basic_ss addsimps (nat_number @ nat_arith @ arith_simps @ rel_simps)
                               addsimps [Let_def, if_False, if_True, add_0, add_Suc];
 
-fun semiring_normalize_wrapper ctxt ({vars, semiring, ring, idom}, 
-                                     {conv, dest_const, mk_const, is_const}) =
+fun simple_cterm_ord t u = Term.term_ord (term_of t, term_of u) = LESS;
+fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, idom}, 
+                                     {conv, dest_const, mk_const, is_const}) ord =
   let
-    fun ord t u = Term.term_ord (term_of t, term_of u) = LESS
-
     val pow_conv =
       arg_conv (Simplifier.rewrite nat_exp_ss)
       then_conv Simplifier.rewrite
@@ -636,11 +637,16 @@ fun semiring_normalize_wrapper ctxt ({vars, semiring, ring, idom},
     val {main, ...} = semiring_normalizers_conv vars semiring ring dat ord
   in main end;
 
-fun semiring_normalize_conv ctxt tm =
+fun semiring_normalize_wrapper ctxt data = 
+  semiring_normalize_ord_wrapper ctxt data simple_cterm_ord;
+
+fun semiring_normalize_ord_conv ctxt ord tm =
   (case NormalizerData.match ctxt tm of
     NONE => reflexive tm
-  | SOME res => semiring_normalize_wrapper ctxt res tm);
+  | SOME res => semiring_normalize_ord_wrapper ctxt res ord tm);
+ 
 
+fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt simple_cterm_ord;
 
 fun semiring_normalize_tac ctxt = SUBGOAL (fn (goal, i) =>
   rtac (semiring_normalize_conv ctxt
