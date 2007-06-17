@@ -373,9 +373,6 @@ lemma zdvd_mono: assumes not0: "(k::int) \<noteq> 0"
 shows "((m::int) dvd t) \<equiv> (k*m dvd k*t)" 
   using not0 by (simp add: dvd_def)
 
-lemma all_not_ex: "(ALL x. P x) = (~ (EX x. ~ P x ))"
-by blast
-
 lemma uminus_dvd_conv: "(d dvd (t::int)) \<equiv> (-d dvd t)" "(d dvd (t::int)) \<equiv> (d dvd -t)"
   by simp_all
 text {* \bigskip Theorems for transforming predicates on nat to predicates on @{text int}*}
@@ -599,7 +596,7 @@ lemma less_eq_number_of:
 
 
 lemma less_Pls_Pls:
-  "Numeral.Pls < Numeral.Pls \<longleftrightarrow> False" by presburger 
+  "Numeral.Pls < Numeral.Pls \<longleftrightarrow> False" by simp 
 
 lemma less_Pls_Min:
   "Numeral.Pls < Numeral.Min \<longleftrightarrow> False"
@@ -618,7 +615,7 @@ lemma less_Min_Pls:
   unfolding Pls_def Min_def by presburger 
 
 lemma less_Min_Min:
-  "Numeral.Min < Numeral.Min \<longleftrightarrow> False"  by presburger 
+  "Numeral.Min < Numeral.Min \<longleftrightarrow> False"  by simp
 
 lemma less_Min_Bit:
   "Numeral.Min < Numeral.Bit k v \<longleftrightarrow> Numeral.Min < k"
