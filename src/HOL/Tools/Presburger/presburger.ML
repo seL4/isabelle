@@ -35,8 +35,12 @@ fun strip_objall ct =
    end
 | _ => ([],ct);
 
-fun thin_prems_tac P i st = 
- case try (nth (cprems_of st)) (i - 1) of
+local
+  val all_maxscope_ss = 
+     HOL_basic_ss addsimps map (fn th => th RS sym) @{thms "all_simps"}
+in
+fun thin_prems_tac P i =  simp_tac all_maxscope_ss i THEN
+  (fn st => case try (nth (cprems_of st)) (i - 1) of
     NONE => no_tac st
   | SOME p' => 
     let
@@ -52,7 +56,8 @@ fun thin_prems_tac P i st =
     in 
     if ntac then no_tac st
       else rtac (Goal.prove_internal [] g (K (blast_tac HOL_cs 1))) i st 
-    end;
+    end)
+end;
 
 local
  fun ty cts t = 
@@ -139,17 +144,11 @@ fun splits_tac ctxt i = simp_tac (Simplifier.context ctxt splits_ss) i;
 end;
 
 
-fun eta_conv ct = 
-  let val {thy, t, ...} = rep_cterm ct
-      val ct' = cterm_of thy (Pattern.eta_long [] t)
-  in (symmetric o eta_conversion) ct'
-  end;
-
-fun eta_beta_tac i st = case try (nth (cprems_of st)) (i - 1) of
+fun eta_beta_tac ctxt i st = case try (nth (cprems_of st)) (i - 1) of
    NONE => no_tac st
  | SOME p => 
    let
-    val eq = (eta_conv then_conv Thm.beta_conversion true) p
+    val eq = (eta_conv (ProofContext.theory_of ctxt) then_conv Thm.beta_conversion true) p
     val p' = Thm.rhs_of eq
     val th = implies_intr p' (equal_elim (symmetric eq) (assume p'))
    in rtac th i st
@@ -186,14 +185,14 @@ in
 nogoal_tac i 
 THEN (EVERY o (map TRY))
  [ObjectLogic.full_atomize_tac i,
-  eta_beta_tac i,
+  eta_beta_tac ctxt i,
   simp_tac ss  i,
   generalize_tac ctxt (int_nat_terms ctxt) i,
   ObjectLogic.full_atomize_tac i,
   div_mod_tac ctxt i,
   splits_tac ctxt i,
   simp_tac ss i,
-  eta_beta_tac i,
+  eta_beta_tac ctxt i,
   nat_to_int_tac ctxt i, 
   thin_prems_tac (is_relevant ctxt) i]
 THEN core_cooper_tac ctxt i THEN finish_tac elim i
