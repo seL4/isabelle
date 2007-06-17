@@ -32,7 +32,9 @@ sig
   val concl_conv: int -> conv -> conv
   val prems_conv: int -> (int -> conv) -> conv
   val goals_conv: (int -> bool) -> conv -> conv
+  val eta_conv: theory -> conv 
   val fconv_rule: conv -> thm -> thm
+  val is_refl: thm -> bool
 end;
 
 structure Conv: CONV =
@@ -140,6 +142,12 @@ fun prems_conv 0 _ = all_conv
   in conv 1 end;
 
 fun goals_conv pred cv = prems_conv ~1 (fn i => if pred i then cv else all_conv);
-fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
+fun eta_conv thy ct = 
+  let val {t, ...} = rep_cterm ct
+      val ct' = cterm_of thy (Pattern.eta_long [] t)
+  in (symmetric o eta_conversion) ct'
+  end;
+
+fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 end;
