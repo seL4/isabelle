@@ -227,15 +227,6 @@ by (cases "n", simp, simp add: DERIV_power_Suc f)
 (* Caratheodory formulation of derivative at a point: standard proof        *)
 (* ------------------------------------------------------------------------ *)
 
-lemma nonzero_mult_divide_cancel_right:
-  "b \<noteq> 0 \<Longrightarrow> a * b / b = (a::'a::field)"
-proof -
-  assume b: "b \<noteq> 0"
-  have "a * b / b = a * (b / b)" by simp
-  also have "\<dots> = a" by (simp add: b)
-  finally show "a * b / b = a" .
-qed
-
 lemma CARAT_DERIV:
      "(DERIV f x :> l) =
       (\<exists>g. (\<forall>z. f z - f x = g z * (z-x)) & isCont g x & g x = l)"
@@ -246,7 +237,7 @@ proof
   proof (intro exI conjI)
     let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
     show "\<forall>z. f z - f x = ?g z * (z-x)"
-      by (simp add: nonzero_mult_divide_cancel_right)
+      by (simp add: nonzero_mult_divide_cancel_right')
     show "isCont ?g x" using der
       by (simp add: isCont_iff DERIV_iff diff_minus
                cong: LIM_equal [rule_format])
@@ -257,7 +248,7 @@ next
   then obtain g where
     "(\<forall>z. f z - f x = g z * (z-x))" and "isCont g x" and "g x = l" by blast
   thus "(DERIV f x :> l)"
-     by (auto simp add: isCont_iff DERIV_iff nonzero_mult_divide_cancel_right
+     by (auto simp add: isCont_iff DERIV_iff nonzero_mult_divide_cancel_right'
               cong: LIM_cong)
 qed
 
