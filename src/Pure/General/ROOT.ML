@@ -8,6 +8,7 @@ use "stack.ML";
 use "ord_list.ML";
 use "alist.ML";
 use "table.ML";
+use "balanced_tree.ML";
 use "output.ML";
 use "graph.ML";
 use "heap.ML";
