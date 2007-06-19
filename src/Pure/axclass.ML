@@ -263,6 +263,20 @@ fun prove_arity raw_arity tac thy =
 
 (** class definitions **)
 
+fun split_defined n eq =
+  let
+    val intro =
+      (eq RS Drule.equal_elim_rule2)
+      |> Conjunction.curry_balanced n
+      |> n = 0 ? Thm.eq_assumption 1;
+    val dests =
+      if n = 0 then []
+      else
+        (eq RS Drule.equal_elim_rule1)
+        |> BalancedTree.dest (fn th =>
+          (th RS Conjunction.conjunctionD1, th RS Conjunction.conjunctionD2)) n;
+  in (intro, dests) end;
+
 fun define_class (bclass, raw_super) params raw_specs thy =
   let
     val ctxt = ProofContext.init thy;
@@ -297,14 +311,14 @@ fun define_class (bclass, raw_super) params raw_specs thy =
 
     val conjs = map (curry Logic.mk_inclass (Term.aT [])) super @ flat axiomss;
     val class_eq =
-      Logic.mk_equals (Logic.mk_inclass (Term.aT [], class), Logic.mk_conjunction_list conjs);
+      Logic.mk_equals (Logic.mk_inclass (Term.aT [], class), Logic.mk_conjunction_balanced conjs);
 
     val ([def], def_thy) =
       thy
       |> Sign.primitive_class (bclass, super)
       |> PureThy.add_defs_i false [((Thm.def_name bconst, class_eq), [])];
     val (raw_intro, (raw_classrel, raw_axioms)) =
-      (Conjunction.split_defined (length conjs) def) ||> chop (length super);
+      split_defined (length conjs) def ||> chop (length super);
 
 
     (* facts *)
