@@ -119,6 +119,7 @@ sig
   val term_rule: theory -> (thm -> thm) -> term -> term
   val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
+  val with_subgoal: int -> (thm -> thm) -> thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
   val incr_indexes: thm -> thm -> thm
@@ -443,6 +444,7 @@ fun freeze_thaw th =
 
 (*Rotates a rule's premises to the left by k*)
 val rotate_prems = permute_prems 0;
+fun with_subgoal i f = rotate_prems (i - 1) #> f #> rotate_prems (1 - i);
 
 (* permute prems, where the i-th position in the argument list (counting from 0)
    gives the position within the original thm to be transferred to position i.
