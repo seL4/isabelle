@@ -350,7 +350,7 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
 
     val rule_prems = cprems @ flat cpremss;
     val rule = implies_intr_list rule_prems
-      (foldr1 (uncurry Conjunction.intr) (map mk_eqn (rec_rewrites' ~~ asmss)));
+      (Conjunction.intr_balanced (map mk_eqn (rec_rewrites' ~~ asmss)));
 
     val goals = map (fn ((cargs, _, _), (_, eqn)) =>
       (list_all_free (cargs, eqn), [])) (rec_rewrites' ~~ eqns);

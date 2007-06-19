@@ -468,11 +468,22 @@ fun conclude_goal state goal propss =
     val _ = null extra_hyps orelse
       error ("Additional hypotheses:\n" ^ cat_lines (map string_of_term extra_hyps));
 
-    val (results, th) = `(Conjunction.elim_precise (map length propss)) (Goal.conclude goal)
-      handle THM _ => error ("Lost goal structure:\n" ^ string_of_thm goal);
-    val _ = Unify.matches_list thy (flat propss) (map Thm.prop_of (flat results)) orelse
+    fun lost_structure () = error ("Lost goal structure:\n" ^ string_of_thm goal);
+
+    val th = Goal.conclude goal handle THM _ => lost_structure ();
+    val goal_propss = filter_out null propss;
+    val results =
+      Conjunction.elim_balanced (length goal_propss) th
+      |> map2 Conjunction.elim_balanced (map length goal_propss)
+      handle THM _ => lost_structure ();
+    val _ = Unify.matches_list thy (flat goal_propss) (map Thm.prop_of (flat results)) orelse
       error ("Proved a different theorem:\n" ^ string_of_thm th);
-  in results end;
+
+    fun recover_result ([] :: pss) thss = [] :: recover_result pss thss
+      | recover_result (_ :: pss) (ths :: thss) = ths :: recover_result pss thss
+      | recover_result [] [] = []
+      | recover_result _ _ = lost_structure ();
+  in recover_result propss results end;
 
 
 
@@ -758,6 +769,7 @@ in
 fun generic_goal prepp kind before_qed after_qed raw_propp state =
   let
     val thy = theory_of state;
+    val cert = Thm.cterm_of thy;
     val chaining = can assert_chain state;
 
     val ((propss, after_ctxt), goal_state) =
@@ -773,7 +785,9 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     val (vars, _) = implicit_vars (dest_Var o Logic.dest_term) Term.add_vars props';
 
     val propss' = map (Logic.mk_term o Var) vars :: propss;
-    val goal = Goal.init (Thm.cterm_of thy (Logic.mk_conjunction_list2 propss'));
+    val goal_propss = filter_out null propss';
+    val goal = Goal.init (cert
+      (Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)));
     val after_qed' = after_qed |>> (fn after_local =>
       fn results => map_context after_ctxt #> after_local results);
   in
@@ -787,7 +801,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     |> open_block
     |> put_goal NONE
     |> enter_backward
-    |> not (null vars) ? refine_terms (length propss')
+    |> not (null vars) ? refine_terms (length goal_propss)
     |> null props ? (refine (Method.Basic (Method.assumption, Position.none)) #> Seq.hd)
   end;
 

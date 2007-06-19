@@ -214,7 +214,7 @@ struct
   (* A registration is indexed by parameter instantiation.  Its components are:
      - parameters and prefix
        (if the Boolean flag is set, only accesses containing the prefix are generated,
-        otherwise the prefix may be omitted when accessing theorems etc.) 
+        otherwise the prefix may be omitted when accessing theorems etc.)
      - theorems (actually witnesses) instantiating locale assumptions
      - theorems (equations, actually witnesses) interpreting derived concepts
        and indexed by lhs
@@ -656,10 +656,10 @@ fun unify_parms ctxt fixed_parms raw_parmss =
 
     fun unify T U envir = Sign.typ_unify thy (U, T) envir
       handle Type.TUNIFY =>
-        let 
+        let
           val T' = Envir.norm_type (fst envir) T;
           val U' = Envir.norm_type (fst envir) U;
-          val prt = Sign.string_of_typ thy; 
+          val prt = Sign.string_of_typ thy;
         in
           raise TYPE ("unify_parms: failed to unify types " ^
             prt U' ^ " and " ^ prt T', [U', T'], [])
@@ -1660,7 +1660,7 @@ fun add_decls add loc decl =
       (axiom, imports, elems, params, lparams, add (decl, stamp ()) decls, regs, intros))) #>
   add_thmss loc Thm.internalK [(("", [Attrib.internal (decl_attrib decl)]), [([dummy_thm], [])])];
 
-in  
+in
 
 val add_type_syntax = add_decls (apfst o cons);
 val add_term_syntax = add_decls (apsnd o cons);
@@ -1687,7 +1687,7 @@ val axiomsN = "axioms";
 
 fun atomize_spec thy ts =
   let
-    val t = Logic.mk_conjunction_list ts;
+    val t = Logic.mk_conjunction_balanced ts;
     val body = ObjectLogic.atomize_term thy t;
     val bodyT = Term.fastype_of body;
   in
@@ -1737,12 +1737,13 @@ fun def_pred bname parms defs ts norm_ts thy =
     val intro = Goal.prove_global defs_thy [] norm_ts statement (fn _ =>
       MetaSimplifier.rewrite_goals_tac [pred_def] THEN
       Tactic.compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
-      Tactic.compose_tac (false, Conjunction.intr_list (map (Thm.assume o cert) norm_ts), 0) 1);
+      Tactic.compose_tac (false,
+        Conjunction.intr_balanced (map (Thm.assume o cert) norm_ts), 0) 1);
 
     val conjuncts =
       (Drule.equal_elim_rule2 OF [body_eq,
         MetaSimplifier.rewrite_rule [pred_def] (Thm.assume (cert statement))])
-      |> Conjunction.elim_precise [length ts] |> hd;
+      |> Conjunction.elim_balanced (length ts);
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       Element.prove_witness defs_ctxt t
        (MetaSimplifier.rewrite_goals_tac defs THEN
@@ -2353,7 +2354,7 @@ fun gen_interpretation prep_registration after_qed (prfx, raw_atts) raw_expr raw
       #> after_qed;
   in
     thy
-    |> ProofContext.init 
+    |> ProofContext.init
     |> Proof.theorem_i NONE after_qed' (prep_propp propss)
     |> Element.refine_witness
     |> Seq.hd

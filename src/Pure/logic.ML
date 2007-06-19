@@ -19,12 +19,14 @@ sig
   val strip_prems: int * term list * term -> term list * term
   val count_prems: term -> int
   val nth_prem: int * term -> term
+  val true_prop: term
   val conjunction: term
   val mk_conjunction: term * term -> term
   val mk_conjunction_list: term list -> term
-  val mk_conjunction_list2: term list list -> term
+  val mk_conjunction_balanced: term list -> term
   val dest_conjunction: term -> term * term
   val dest_conjunction_list: term -> term list
+  val dest_conjunction_balanced: int -> term -> term list
   val dest_conjunctions: term -> term list
   val strip_horn: term -> term list * term
   val mk_type: typ -> term
@@ -145,20 +147,24 @@ fun nth_prem (1, Const ("==>", _) $ A $ _) = A
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
 
+
 (** conjunction **)
 
+val true_prop = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0));
 val conjunction = Const ("ProtoPure.conjunction", propT --> propT --> propT);
+
 
 (*A && B*)
 fun mk_conjunction (A, B) = conjunction $ A $ B;
 
 (*A && B && C -- improper*)
-fun mk_conjunction_list [] = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0))
+fun mk_conjunction_list [] = true_prop
   | mk_conjunction_list ts = foldr1 mk_conjunction ts;
 
-(*(A1 && B1 && C1) && (A2 && B2 && C2 && D2) && A3 && B3 -- improper*)
-fun mk_conjunction_list2 tss =
-  mk_conjunction_list (map mk_conjunction_list (filter_out null tss));
+(*(A && B) && (C && D) -- balanced*)
+fun mk_conjunction_balanced [] = true_prop
+  | mk_conjunction_balanced ts = BalancedTree.make mk_conjunction ts;
+
 
 (*A && B*)
 fun dest_conjunction (Const ("ProtoPure.conjunction", _) $ A $ B) = (A, B)
@@ -169,6 +175,10 @@ fun dest_conjunction_list t =
   (case try dest_conjunction t of
     NONE => [t]
   | SOME (A, B) => A :: dest_conjunction_list B);
+
+(*(A && B) && (C && D) -- balanced*)
+fun dest_conjunction_balanced 0 _ = []
+  | dest_conjunction_balanced n t = BalancedTree.dest dest_conjunction n t;
 
 (*((A && B) && C) && D && E -- flat*)
 fun dest_conjunctions t =

@@ -238,9 +238,9 @@ fun norm_varnames purify_tvar purify_var thms =
     fun burrow_thms f [] = []
       | burrow_thms f thms =
           thms
-          |> Conjunction.intr_list
+          |> Conjunction.intr_balanced
           |> f
-          |> Conjunction.elim_list;
+          |> Conjunction.elim_balanced (length thms)
   in
     thms
     |> burrow_thms (canonical_tvars purify_tvar)

@@ -8,8 +8,8 @@ Goals in tactical theorem proving.
 signature BASIC_GOAL =
 sig
   val SELECT_GOAL: tactic -> int -> tactic
-  val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
+  val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
 end;
 
 signature GOAL =
@@ -29,8 +29,9 @@ sig
   val prove_global: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
   val retrofit: int -> int -> thm -> thm -> thm Seq.seq
-  val precise_conjunction_tac: int -> int -> tactic
   val conjunction_tac: int -> tactic
+  val precise_conjunction_tac: int -> int -> tactic
+  val recover_conjunction_tac: tactic
   val asm_rewrite_goal_tac: bool * bool * bool -> (simpset -> tactic) -> simpset -> int -> tactic
   val rewrite_goal_tac: thm list -> int -> tactic
   val norm_hhf_tac: int -> tactic
@@ -132,12 +133,12 @@ fun prove_multi ctxt xs asms props tac =
       |> fold Variable.declare_internal (asms @ props)
       |> Assumption.add_assumes casms;
 
-    val goal = init (Conjunction.mk_conjunction_list cprops);
+    val goal = init (Conjunction.mk_conjunction_balanced cprops);
     val res =
       (case SINGLE (tac {prems = prems, context = ctxt'}) goal of
         NONE => err "Tactic failed."
       | SOME res => res);
-    val [results] = Conjunction.elim_precise [length props] (finish res)
+    val results = Conjunction.elim_balanced (length props) (finish res)
       handle THM (msg, _, _) => err msg;
     val _ = Unify.matches_list thy (map Thm.term_of cprops) (map Thm.prop_of results)
       orelse err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res));
@@ -165,12 +166,13 @@ fun prove_global thy xs asms prop tac =
 fun extract i n st =
   (if i < 1 orelse n < 1 orelse i + n - 1 > Thm.nprems_of st then Seq.empty
    else if n = 1 then Seq.single (Thm.cprem_of st i)
-   else Seq.single (foldr1 Conjunction.mk_conjunction (map (Thm.cprem_of st) (i upto i + n - 1))))
+   else
+     Seq.single (Conjunction.mk_conjunction_balanced (map (Thm.cprem_of st) (i upto i + n - 1))))
   |> Seq.map (Thm.adjust_maxidx_cterm ~1 #> init);
 
 fun retrofit i n st' st =
   (if n = 1 then st
-   else st |> Drule.rotate_prems (i - 1) |> Conjunction.uncurry n |> Drule.rotate_prems (1 - i))
+   else st |> Drule.with_subgoal i (Conjunction.uncurry_balanced n))
   |> Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i;
 
 fun SELECT_GOAL tac i st =
@@ -180,48 +182,31 @@ fun SELECT_GOAL tac i st =
 
 (* multiple goals *)
 
-local
+fun precise_conjunction_tac 0 i = eq_assume_tac i
+  | precise_conjunction_tac 1 i = SUBGOAL (K all_tac) i
+  | precise_conjunction_tac n i = PRIMITIVE (Drule.with_subgoal i (Conjunction.curry_balanced n));
 
-fun conj_intrs n =
-  let
-    val cert = Thm.cterm_of ProtoPure.thy;
-    val names = Name.invents Name.context "A" n;
-    val As = map (fn name => cert (Free (name, propT))) names;
-  in
-    Thm.generalize ([], names) 0
-      (Drule.implies_intr_list As (Conjunction.intr_list (map Thm.assume As)))
-  end;
+val adhoc_conjunction_tac = REPEAT_ALL_NEW
+  (SUBGOAL (fn (goal, i) =>
+    if can Logic.dest_conjunction goal then rtac Conjunction.conjunctionI i
+    else no_tac));
 
-fun count_conjs A =
-  (case try Logic.dest_conjunction A of
-    NONE => 1
-  | SOME (_, B) => count_conjs B + 1);
+val conjunction_tac = SUBGOAL (fn (goal, i) =>
+  precise_conjunction_tac (length (Logic.dest_conjunctions goal)) i ORELSE
+  TRY (adhoc_conjunction_tac i));
 
-in
-
-val precise_conjunction_tac =
-  let
-    fun tac 0 i = eq_assume_tac i
-      | tac 1 i = SUBGOAL (K all_tac) i
-      | tac 2 i = rtac Conjunction.conjunctionI i
-      | tac n i = rtac (conj_intrs n) i;
-  in TRY oo tac end;
-
-val conjunction_tac = TRY o REPEAT_ALL_NEW (SUBGOAL (fn (goal, i) =>
-  let val n = count_conjs goal
-  in if n < 2 then no_tac else precise_conjunction_tac n i end));
+val recover_conjunction_tac = PRIMITIVE (fn th =>
+  Conjunction.uncurry_balanced (Thm.nprems_of th) th);
 
 fun PRECISE_CONJUNCTS n tac =
   SELECT_GOAL (precise_conjunction_tac n 1
     THEN tac
-    THEN PRIMITIVE (Conjunction.uncurry ~1));
+    THEN recover_conjunction_tac);
 
 fun CONJUNCTS tac =
   SELECT_GOAL (conjunction_tac 1
     THEN tac
-    THEN PRIMITIVE (Conjunction.uncurry ~1));
-
-end;
+    THEN recover_conjunction_tac);
 
 
 (* rewriting *)
