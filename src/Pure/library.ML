@@ -4,7 +4,7 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Basic library: functions, options, pairs, booleans, lists, integers,
-strings, lists as sets, balanced trees, orders, current directory, misc.
+strings, lists as sets, orders, current directory, misc.
 
 See also General/basics.ML for the most fundamental concepts.
 *)
@@ -193,12 +193,6 @@ sig
   (*lists as multisets*)
   val remove1: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
   val submultiset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-
-  (*balanced trees*)
-  exception Balance
-  val fold_bal: ('a * 'a -> 'a) -> 'a list -> 'a
-  val access_bal: ('a -> 'a) * ('a -> 'a) * 'a -> int -> int -> 'a
-  val accesses_bal: ('a -> 'a) * ('a -> 'a) * 'a -> int -> 'a list
 
   (*orders*)
   val is_equal: order -> bool
@@ -917,39 +911,6 @@ fun remove1 _ _ [] = raise Empty
 
 fun submultiset _ ([], _)  = true
   | submultiset eq (x :: xs, ys) = member eq ys x andalso submultiset eq (xs, remove1 eq x ys);
-
-
-
-(** balanced trees **)
-
-exception Balance;      (*indicates non-positive argument to balancing fun*)
-
-(*balanced folding; avoids deep nesting*)
-fun fold_bal f [x] = x
-  | fold_bal f [] = raise Balance
-  | fold_bal f xs =
-      let val (ps, qs) = chop (length xs div 2) xs
-      in  f (fold_bal f ps, fold_bal f qs)  end;
-
-(*construct something of the form f(...g(...(x)...)) for balanced access*)
-fun access_bal (f, g, x) n i =
-  let fun acc n i =     (*1<=i<=n*)
-          if n=1 then x else
-          let val n2 = n div 2
-          in  if i<=n2 then f (acc n2 i)
-                       else g (acc (n-n2) (i-n2))
-          end
-  in  if 1<=i andalso i<=n then acc n i else raise Balance  end;
-
-(*construct ALL such accesses; could try harder to share recursive calls!*)
-fun accesses_bal (f, g, x) n =
-  let fun acc n =
-          if n=1 then [x] else
-          let val n2 = n div 2
-              val acc2 = acc n2
-          in  if n-n2=n2 then map f acc2 @ map g acc2
-                         else map f acc2 @ map g (acc (n-n2)) end
-  in  if 1<=n then acc n else raise Balance  end;
 
 
 
