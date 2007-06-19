@@ -680,7 +680,7 @@ fun app int (tr as Transition {trans, pos, int_only, print, no_timing, ...}) sta
 
     val (result, opt_exn) =
        state |> (apply_trans int pos trans
-        |> (if ! profiling > 0 then do_profiling andalso not no_timing else I)
+        |> (if ! profiling > 0 andalso not no_timing then do_profiling else I)
         |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
     val _ =
       if int andalso not (! quiet) andalso exists (member (op =) print) ("" :: ! print_mode)
