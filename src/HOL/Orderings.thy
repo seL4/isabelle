@@ -742,7 +742,7 @@ lemma xt1:
   "(x::'a::order) >= y ==> y >= z ==> x >= z"
   "(x::'a::order) > y ==> y >= z ==> x > z"
   "(x::'a::order) >= y ==> y > z ==> x > z"
-  "(a::'a::order) > b ==> b > a ==> ?P"
+  "(a::'a::order) > b ==> b > a ==> P"
   "(x::'a::order) > y ==> y > z ==> x > z"
   "(a::'a::order) >= b ==> a ~= b ==> a > b"
   "(a::'a::order) ~= b ==> a >= b ==> a > b"
