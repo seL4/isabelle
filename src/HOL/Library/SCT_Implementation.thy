@@ -3,10 +3,10 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""   (* FIXME proper header *)
+header {* Implemtation of the SCT criterion *}
 
 theory SCT_Implementation
-imports ExecutableSet SCT_Definition
+imports ExecutableSet SCT_Definition SCT_Theorem
 begin
 
 fun edges_match :: "('n \<times> 'e \<times> 'n) \<times> ('n \<times> 'e \<times> 'n) \<Rightarrow> bool"
@@ -23,29 +23,101 @@ lemma grcomp_code [code]:
   "grcomp (Graph G) (Graph H) = Graph (connect_edges ` { x \<in> G\<times>H. edges_match x })"
   by (rule graph_ext) (auto simp:graph_mult_def has_edge_def image_def)
 
-definition test_SCT :: "acg \<Rightarrow> bool"
+
+lemma mk_tcl_finite_terminates:
+  fixes A :: "'a acg"
+  assumes fA: "finite_acg A" 
+  shows "mk_tcl_dom (A, A)"
+proof -
+  from fA have fin_tcl: "finite_acg (tcl A)"
+    by (simp add:finite_tcl)
+
+  hence "finite (dest_graph (tcl A))"
+    unfolding finite_acg_def finite_graph_def ..
+
+  let ?count = "\<lambda>G. card (dest_graph G)"
+  let ?N = "?count (tcl A)"
+  let ?m = "\<lambda>X. ?N - (?count X)"
+
+  let ?P = "\<lambda>X. mk_tcl_dom (A, X)"
+  
+  {
+    fix X
+    assume "X \<le> tcl A"
+    then
+    have "mk_tcl_dom (A, X)"
+    proof (induct X rule:measure_induct_rule[of ?m])
+      case (less X)
+      show ?case
+      proof (cases "X * A \<le> X")
+        case True 
+        with mk_tcl.domintros show ?thesis by auto
+      next
+        case False
+        then have l: "X < X + X * A"
+          unfolding graph_less_def graph_leq_def graph_plus_def
+          by auto
+
+        from `X \<le> tcl A` 
+        have "X * A \<le> tcl A * A" by (simp add:mult_mono)
+        also have "\<dots> \<le> A + tcl A * A" by simp
+        also have "\<dots> = tcl A" by (simp add:tcl_unfold_right[symmetric])
+        finally have "X * A \<le> tcl A" .
+        with `X \<le> tcl A` 
+        have "X + X * A \<le> tcl A + tcl A"
+          by (rule add_mono)
+        hence less_tcl: "X + X * A \<le> tcl A" by simp 
+        hence "X < tcl A"
+          using l `X \<le> tcl A` by auto
+
+        from less_tcl fin_tcl
+        have "finite_acg (X + X * A)" by (rule finite_acg_subset)
+        hence "finite (dest_graph (X + X * A))" 
+          unfolding finite_acg_def finite_graph_def ..
+        
+        hence X: "?count X < ?count (X + X * A)"
+          using l[simplified graph_less_def graph_leq_def]
+          by (rule psubset_card_mono)
+        
+        have "?count X < ?N" 
+          apply (rule psubset_card_mono)
+          by fact (rule `X < tcl A`[simplified graph_less_def])
+        
+        with X have "?m (X + X * A) < ?m X" by arith
+        
+        from  less.hyps this less_tcl
+        have "mk_tcl_dom (A, X + X * A)" .
+        with mk_tcl.domintros show ?thesis .
+      qed
+    qed
+  }
+  from this less_tcl show ?thesis .
+qed
+
+
+lemma mk_tcl_finite_tcl:
+  fixes A :: "'a acg"
+  assumes fA: "finite_acg A"
+  shows "mk_tcl A A = tcl A"
+  using mk_tcl_finite_terminates[OF fA]
+  by (simp only: tcl_def mk_tcl_correctness star_commute)
+
+definition test_SCT :: "nat acg \<Rightarrow> bool"
 where
   "test_SCT \<A> = 
   (let \<T> = mk_tcl \<A> \<A>
-    in (\<T> \<noteq> 0 \<and>
-       (\<forall>(n,G,m)\<in>dest_graph \<T>. 
+    in (\<forall>(n,G,m)\<in>dest_graph \<T>. 
           n \<noteq> m \<or> G * G \<noteq> G \<or> 
-         (\<exists>(p::nat,e,q)\<in>dest_graph G. p = q \<and> e = LESS))))"
+         (\<exists>(p::nat,e,q)\<in>dest_graph G. p = q \<and> e = LESS)))"
 
 
 lemma SCT'_exec:
-  assumes a: "test_SCT \<A>"
-  shows "SCT' \<A>"
-proof -
-  from mk_tcl_correctness2 a 
-  have "mk_tcl \<A> \<A> = tcl \<A>" 
-    unfolding test_SCT_def Let_def by auto
-  
-  with a
-  show ?thesis
-    unfolding SCT'_def no_bad_graphs_def test_SCT_def Let_def has_edge_def
-    by auto
-qed
+  assumes fin: "finite_acg A"
+  shows "SCT' A = test_SCT A"
+  using mk_tcl_finite_tcl[OF fin]
+  unfolding test_SCT_def Let_def 
+  unfolding SCT'_def no_bad_graphs_def has_edge_def
+  by force
 
 code_modulename SML
   Implementation Graphs
@@ -75,7 +147,7 @@ lemma SCT'_empty: "SCT' (Graph {})"
 subsection {* Witness checking *}
 
 
-definition test_SCT_witness :: "acg \<Rightarrow> acg \<Rightarrow> bool"
+definition test_SCT_witness :: "nat acg \<Rightarrow> nat acg \<Rightarrow> bool"
 where
   "test_SCT_witness A T = 
   (A \<le> T \<and> A * T \<le> T \<and>

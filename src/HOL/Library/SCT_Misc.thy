@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""   (* FIXME proper header *)
+header {* Miscellaneous Tools for Size-Change Termination *}
 
 theory SCT_Misc   (* FIXME proper name *)
 imports Main

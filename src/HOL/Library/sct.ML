@@ -18,8 +18,8 @@ fun matrix [] ys = []
 
 fun map_matrix f xss = map (map f) xss
 
-val scgT = @{typ scg}
-val acgT = @{typ acg}
+val scgT = @{typ "nat scg"}
+val acgT = @{typ "nat acg"}
 
 fun edgeT nT eT = HOLogic.mk_prodT (nT, HOLogic.mk_prodT (eT, nT))
 fun graphT nT eT = Type ("Graphs.graph", [nT, eT])

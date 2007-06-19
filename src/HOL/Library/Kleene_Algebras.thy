@@ -382,15 +382,29 @@ subsection {* Transitive Closure *}
 definition 
   "tcl (x::'a::kleene) = star x * x"
 
-
 lemma tcl_zero: 
   "tcl (0::'a::kleene) = 0"
   unfolding tcl_def by simp
 
+lemma tcl_unfold_right: "tcl a = a + tcl a * a"
+proof -
+  from star_unfold_right[of a]
+  have "a * (1 + star a * a) = a * star a" by simp
+  from this[simplified right_distrib, simplified]
+  show ?thesis
+    by (simp add:tcl_def star_commute mult_ac)
+qed
+
+lemma less_tcl: "a \<le> tcl a"
+proof -
+  have "a \<le> a + tcl a * a" by simp
+  also have "\<dots> = tcl a" by (rule tcl_unfold_right[symmetric])
+  finally show ?thesis .
+qed
 
 subsection {* Naive Algorithm to generate the transitive closure *}
 
-function (default "\<lambda>x. 0", tailrec)
+function (default "\<lambda>x. 0", tailrec, domintros)
   mk_tcl :: "('a::{plus,times,ord,zero}) \<Rightarrow> 'a \<Rightarrow> 'a"
 where
   "mk_tcl A X = (if X * A \<le> X then X else mk_tcl A (X + X * A))"

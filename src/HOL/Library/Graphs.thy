@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""   (* FIXME proper header *)
+header {* General Graphs as Sets *}
 
 theory Graphs
 imports Main SCT_Misc Kleene_Algebras ExecutableSet
@@ -215,14 +215,12 @@ proof
     unfolding graph_pow_def by simp_all
 qed
 
-
 lemma graph_leqI:
   assumes "\<And>n e n'. has_edge G n e n' \<Longrightarrow> has_edge H n e n'"
   shows "G \<le> H"
   using assms
   unfolding graph_leq_def has_edge_def
   by auto
-
 
 lemma in_graph_plusE:
   assumes "has_edge (G + H) n e n'"
@@ -231,6 +229,13 @@ lemma in_graph_plusE:
   shows P
   using assms
   by (auto simp: in_grplus)
+
+lemma in_graph_compE:
+  assumes GH: "has_edge (G * H) n e n'"
+  obtains e1 k e2 
+  where "has_edge G n e1 k" "has_edge H k e2 n'" "e = e1 * e2"
+  using GH
+  by (auto simp: in_grcomp)
 
 lemma 
   assumes "x \<in> S k"

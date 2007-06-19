@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""   (* FIXME proper header *)
+header {* Examples for Size-Change Termination *}
 
 theory SCT_Examples
 imports Size_Change_Termination
@@ -23,9 +23,8 @@ termination
   apply (tactic "Sct.abs_rel_tac") (* Build call descriptors *)
   apply (rule ext, rule ext, simp) (* Show that they are correct *)
   apply (tactic "Sct.mk_call_graph") (* Build control graph *)
-  apply (rule LJA_apply)                 (* Apply main theorem *)
-  apply (simp add:finite_acg_ins finite_acg_empty) (* show finiteness *)
-  apply (rule SCT'_exec)
+  apply (rule SCT_Main)                 (* Apply main theorem *)
+  apply (simp add:finite_acg_simps) (* show finiteness *)
   by eval (* Evaluate to true *)
 
 function p :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -41,10 +40,9 @@ termination
   apply (tactic "Sct.abs_rel_tac") 
   apply (rule ext, rule ext, simp) 
   apply (tactic "Sct.mk_call_graph")
-  apply (rule LJA_apply)            
-  apply (simp add:finite_acg_ins finite_acg_empty) 
-  apply (rule SCT'_exec)
-  by eval
+  apply (rule SCT_Main)
+  apply (simp add:finite_acg_ins finite_acg_empty finite_graph_def) (* show finiteness *)
+  by eval 
 
 function foo :: "bool \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -60,10 +58,10 @@ termination
   apply (tactic "Sct.abs_rel_tac") 
   apply (rule ext, rule ext, simp) 
   apply (tactic "Sct.mk_call_graph")
-  apply (rule LJA_apply)            
-  apply (simp add:finite_acg_ins finite_acg_empty) 
-  apply (rule SCT'_exec)
-  by eval
+  apply (rule SCT_Main)
+  apply (simp add:finite_acg_ins finite_acg_empty finite_graph_def) (* show finiteness *)
+  by eval 
+
 
 function (sequential) 
   bar :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -78,8 +76,8 @@ termination
   apply (tactic "Sct.abs_rel_tac") 
   apply (rule ext, rule ext, simp) 
   apply (tactic "Sct.mk_call_graph")
-  apply (rule LJA_apply)            
-  apply (simp add:finite_acg_ins finite_acg_empty) 
-  by (rule SCT'_empty)
+  apply (rule SCT_Main)
+  apply (simp add:finite_acg_ins finite_acg_empty finite_graph_def) (* show finiteness *)
+  by (simp only:sctTest_simps cong: sctTest_congs)
 
 end

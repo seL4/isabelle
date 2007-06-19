@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""   (* FIXME proper header *)
+header {* The Size-Change Principle (Definition) *}
 
 theory SCT_Definition
 imports Graphs Infinite_Set
@@ -32,7 +32,10 @@ qed
 
 lemma sedge_UNIV:
   "UNIV = { LESS, LEQ }"
-  by auto (case_tac x, auto) (*FIXME*)
+proof (intro equalityI subsetI)
+  fix x show "x \<in> { LESS, LEQ }"
+    by (cases x) auto
+qed auto
 
 instance sedge :: finite
 proof
@@ -43,8 +46,8 @@ qed
 lemmas [code func] = sedge_UNIV
 
 
-types scg = "(nat, sedge) graph"
-types acg = "(nat, scg) graph"
+types 'a scg = "('a, sedge) graph"
+types 'a acg = "('a, 'a scg) graph"
 
 
 subsection {* Size-Change Termination *}
@@ -59,46 +62,46 @@ abbreviation (input)
   "eq G i j \<equiv> has_edge G i LEQ j"
 
 abbreviation
-  eql :: "scg \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
+  eql :: "'a scg \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
 ("_ \<turnstile> _ \<leadsto> _")
 where
   "eql G i j \<equiv> has_edge G i LESS j \<or> has_edge G i LEQ j"
 
 
-abbreviation (input) descat :: "(nat, scg) ipath \<Rightarrow> nat sequence \<Rightarrow> nat \<Rightarrow> bool"
+abbreviation (input) descat :: "('a, 'a scg) ipath \<Rightarrow> 'a sequence \<Rightarrow> nat \<Rightarrow> bool"
 where
   "descat p \<theta> i \<equiv> has_edge (snd (p i)) (\<theta> i) LESS (\<theta> (Suc i))"
 
-abbreviation (input) eqat :: "(nat, scg) ipath \<Rightarrow> nat sequence \<Rightarrow> nat \<Rightarrow> bool"
+abbreviation (input) eqat :: "('a, 'a scg) ipath \<Rightarrow> 'a sequence \<Rightarrow> nat \<Rightarrow> bool"
 where
   "eqat p \<theta> i \<equiv> has_edge (snd (p i)) (\<theta> i) LEQ (\<theta> (Suc i))"
 
 
-abbreviation eqlat :: "(nat, scg) ipath \<Rightarrow> nat sequence \<Rightarrow> nat \<Rightarrow> bool"
+abbreviation (input) eqlat :: "('a, 'a scg) ipath \<Rightarrow> 'a sequence \<Rightarrow> nat \<Rightarrow> bool"
 where
   "eqlat p \<theta> i \<equiv> (has_edge (snd (p i)) (\<theta> i) LESS (\<theta> (Suc i))
                   \<or> has_edge (snd (p i)) (\<theta> i) LEQ (\<theta> (Suc i)))"
 
 
-definition is_desc_thread :: "nat sequence \<Rightarrow> (nat, scg) ipath \<Rightarrow> bool"
+definition is_desc_thread :: "'a sequence \<Rightarrow> ('a, 'a scg) ipath \<Rightarrow> bool"
 where
   "is_desc_thread \<theta> p = ((\<exists>n.\<forall>i\<ge>n. eqlat p \<theta> i) \<and> (\<exists>\<^sub>\<infinity>i. descat p \<theta> i))" 
 
-definition SCT :: "acg \<Rightarrow> bool"
+definition SCT :: "'a acg \<Rightarrow> bool"
 where
   "SCT \<A> = 
   (\<forall>p. has_ipath \<A> p \<longrightarrow> (\<exists>\<theta>. is_desc_thread \<theta> p))"
 
 
 
-definition no_bad_graphs :: "acg \<Rightarrow> bool"
+definition no_bad_graphs :: "'a acg \<Rightarrow> bool"
 where
   "no_bad_graphs A = 
   (\<forall>n G. has_edge A n G n \<and> G * G = G
   \<longrightarrow> (\<exists>p. has_edge G p LESS p))"
 
 
-definition SCT' :: "acg \<Rightarrow> bool"
+definition SCT' :: "'a acg \<Rightarrow> bool"
 where
   "SCT' A = no_bad_graphs (tcl A)"
 

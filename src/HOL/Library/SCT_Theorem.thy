@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""   (* FIXME proper header *)
+header "Proof of the Size-Change Principle"
 
 theory SCT_Theorem
 imports Main Ramsey SCT_Misc SCT_Definition
@@ -11,17 +11,17 @@ begin
 
 subsection {* The size change criterion SCT *}
 
-definition is_thread :: "nat \<Rightarrow> nat sequence \<Rightarrow> (nat, scg) ipath \<Rightarrow> bool"
+definition is_thread :: "nat \<Rightarrow> 'a sequence \<Rightarrow> ('a, 'a scg) ipath \<Rightarrow> bool"
 where
   "is_thread n \<theta> p = (\<forall>i\<ge>n. eqlat p \<theta> i)"
 
 definition is_fthread :: 
-  "nat sequence \<Rightarrow> (nat, scg) ipath \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
+  "'a sequence \<Rightarrow> ('a, 'a scg) ipath \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
 where
   "is_fthread \<theta> mp i j = (\<forall>k\<in>{i..<j}. eqlat mp \<theta> k)"
 
 definition is_desc_fthread ::
-  "nat sequence \<Rightarrow> (nat, scg) ipath \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
+  "'a sequence \<Rightarrow> ('a, 'a scg) ipath \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
 where
   "is_desc_fthread \<theta> mp i j = 
   (is_fthread \<theta> mp i j \<and>
@@ -36,163 +36,7 @@ definition
   (\<exists>\<theta>. is_desc_fthread \<theta> p i j \<and> \<theta> i = n \<and> \<theta> j = m)"
 
 
-subsection {* Bounded graphs and threads *}
-
-definition 
-  "bounded_scg (P::nat) (G::scg) = 
-  (\<forall>p e p'. has_edge G p e p' \<longrightarrow> p < P \<and> p' < P)"
-
-definition
-  "bounded_acg P ACG = 
-  (\<forall>n G n'. has_edge ACG n G n' \<longrightarrow> n < P \<and> n' < P \<and> bounded_scg P G)"
-  
-definition
-  "bounded_mp P mp = (\<forall>i. bounded_scg P (snd (mp i)))"
-
-definition (* = finite (range \<theta>) *)
-  "bounded_th (P::nat) n \<theta> = (\<forall>i>n. \<theta> i < P)"
-
-definition 
-  "finite_scg (G::scg) = (\<exists>P. bounded_scg P G)"
-
-definition
-  "finite_acg (A::acg) = (\<exists>P. bounded_acg P A)"
-
-lemma "finite (insert x A) = finite A"
-by simp
-
-
-lemma finite_scg_finite[simp]: "finite_scg (Graph G) = finite G"
-proof
-  assume "finite_scg (Graph G)"
-  thm bounded_scg_def
-  
-  then obtain P where bounded: "bounded_scg P (Graph G)" 
-    by (auto simp:finite_scg_def)
-
-  show "finite G"
-  proof (rule finite_subset)
-    from bounded 
-    show "G \<subseteq> {0 .. P - 1} \<times> { LESS, LEQ } \<times> { 0 .. P - 1}"
-      apply (auto simp:bounded_scg_def has_edge_def)
-      apply force
-      apply (case_tac "aa", auto)
-      apply force
-      done
-
-    show "finite \<dots>"
-      by (auto intro: finite_cartesian_product finite_atLeastAtMost)
-  qed
-next
-  assume "finite G"
-  thus "finite_scg (Graph G)"
-  proof induct
-    show "finite_scg (Graph {})"
-      unfolding finite_scg_def bounded_scg_def has_edge_def by auto
-  next
-    fix x G 
-    assume "finite G" "x \<notin> G" "finite_scg (Graph G)"
-    then obtain P
-      where bG: "bounded_scg P (Graph G)" 
-      by (auto simp:finite_scg_def)
-    
-    obtain p e p' where x: "x = (p, e, p')" by (cases x, auto)
-    
-    let ?Q = "max P (max (Suc p) (Suc p'))"
-    have "P \<le> ?Q" "Suc p \<le> ?Q" "Suc p' \<le> ?Q" by auto
-    with bG
-    have "bounded_scg ?Q (Graph (insert x G))" 
-      unfolding x bounded_scg_def has_edge_def
-      apply simp
-      apply (intro allI, elim allE)
-      by auto
-    thus "finite_scg (Graph (insert x G))"
-      by (auto simp:finite_scg_def)
-  qed
-qed
-
-lemma finite_acg_empty:
-  "finite_acg (Graph {})"
-unfolding finite_acg_def bounded_acg_def has_edge_def
-by auto
-
-lemma bounded_scg_up: "bounded_scg P G \<Longrightarrow> P \<le> Q \<Longrightarrow> bounded_scg Q G"
-  unfolding bounded_scg_def
-  by force
-
-lemma bounded_up: "bounded_acg P G \<Longrightarrow> P \<le> Q \<Longrightarrow> bounded_acg Q G"
-  unfolding bounded_acg_def 
-  apply auto
-  apply force+
-  apply (rule bounded_scg_up)
-  by auto
-
-lemma bacg_insert:
-  assumes "bounded_acg P (Graph A)"
-  assumes "n < P" "m < P" "bounded_scg P G"
-  shows "bounded_acg P (Graph (insert (n, G, m) A))"
-  using prems
-  unfolding bounded_acg_def has_edge_def 
-  by auto
-
-lemma finite_acg_ins:
-  "finite_acg (Graph (insert (n,G,m) A)) = 
-  (finite_scg G \<and> finite_acg (Graph A))" (is "?A = (?B \<and> ?C)")
-proof
-  assume "?A"
-  thus "?B \<and> ?C"
-    unfolding finite_acg_def bounded_acg_def finite_scg_def has_edge_def
-    by auto
-next
-  assume "?B \<and> ?C"
-  thus ?A
-  proof
-    assume "?B" "?C"
-
-    from `?C`
-    obtain P where bA: "bounded_acg P (Graph A)" by (auto simp:finite_acg_def)
-    from `?B` 
-    obtain P' where bG: "bounded_scg P' G" by (auto simp:finite_scg_def)
-
-    let ?Q = "max (max P P') (max (Suc n) (Suc m))"
-    have "P \<le> ?Q" "n < ?Q" "m < ?Q" by auto
-    have "bounded_acg ?Q (Graph (insert (n, G, m) A))"
-      apply (rule bacg_insert)
-      apply (rule bounded_up)
-      apply (rule bA)
-      apply auto
-      apply (rule bounded_scg_up)
-      apply (rule bG)
-      by auto
-    thus "finite_acg (Graph (insert (n, G, m) A))"
-      by (auto simp:finite_acg_def)
-  qed
-qed
-
-
-lemma bounded_mpath:
-  assumes "has_ipath acg mp"
-  and "bounded_acg P acg"
-  shows "bounded_mp P mp"
-  using prems
-  unfolding bounded_acg_def bounded_mp_def has_ipath_def
-  by blast
-
-lemma bounded_th: 
-  assumes th: "is_thread n \<theta> mp"
-  and mp: "bounded_mp P mp"
-  shows "bounded_th P n \<theta>"
-  unfolding bounded_th_def
-proof (intro allI impI)
-  fix i assume "n < i"
-  
-  from mp have "bounded_scg P (snd (mp i))" unfolding bounded_mp_def ..
-  moreover
-  from th `n < i` have "eqlat mp \<theta> i" unfolding is_thread_def by auto
-  ultimately
-  show "\<theta> i < P" unfolding bounded_scg_def by auto
-qed
-
+subsection {* Everything is finite *}
 
 lemma finite_range:
   fixes f :: "nat \<Rightarrow> 'a"
@@ -216,117 +60,345 @@ proof (rule classical)
   with neq[of "f m" m] show ?thesis by blast
 qed
 
-
-lemma bounded_th_infinite_visit:
-  fixes \<theta> :: "nat sequence"
-  assumes b: "bounded_th P n \<theta>"
-  shows "\<exists>p. \<exists>\<^sub>\<infinity>i. \<theta> i = p" 
+lemma finite_range_ignore_prefix:
+  fixes f :: "nat \<Rightarrow> 'a"
+  assumes fA: "finite A"
+  assumes inA: "\<forall>x\<ge>n. f x \<in> A"
+  shows "finite (range f)"
 proof -
-  have split: "range \<theta> = (\<theta> ` {0 .. n}) \<union> (\<theta> ` {i. n < i})"
+  have a: "UNIV = {0 ..< (n::nat)} \<union> { x. n \<le> x }" by auto
+  have b: "range f = f ` {0 ..< n} \<union> f ` { x. n \<le> x }" 
     (is "\<dots> = ?A \<union> ?B")
-    unfolding image_Un[symmetric] by auto
-
-  have "finite ?A" by (rule finite_imageI) auto
+    by (unfold a) (simp add:image_Un)
+  
+  have "finite ?A" by (rule finite_imageI) simp
   moreover
-  have "finite ?B"
-  proof (rule finite_subset)
-    from b
-    show "?B \<subseteq> { 0 ..< P }"
-      unfolding bounded_th_def
-      by auto
-    show "finite \<dots>" by auto
-  qed
-
-  ultimately have "finite (range \<theta>)"
-    unfolding split by auto
-
-  with finite_range show ?thesis .
+  from inA have "?B \<subseteq> A" by auto
+  from this fA have "finite ?B" by (rule finite_subset)
+  ultimately show ?thesis using b by simp
 qed
 
 
-lemma bounded_scgcomp:
-  "bounded_scg P A 
-  \<Longrightarrow> bounded_scg P B 
-  \<Longrightarrow> bounded_scg P (A * B)"
-  unfolding bounded_scg_def
-  by (auto simp:in_grcomp)
-
-lemma bounded_acgcomp:
-  "bounded_acg P A 
-  \<Longrightarrow> bounded_acg P B 
-  \<Longrightarrow> bounded_acg P (A * B)"
-  unfolding bounded_acg_def
-  by (auto simp:in_grcomp intro!:bounded_scgcomp) 
-
-lemma bounded_acgpow:
-  "bounded_acg P A
-  \<Longrightarrow> bounded_acg P (A ^ (Suc n))"
-  by (induct n, simp add:power_Suc) 
-   (subst power_Suc, blast intro:bounded_acgcomp)
-
-lemma bounded_plus:
-  assumes b: "bounded_acg P acg"
-  shows "bounded_acg P (tcl acg)"
-  unfolding bounded_acg_def
-proof (intro allI impI conjI)
-  fix n G m
-  assume "tcl acg \<turnstile> n \<leadsto>\<^bsup>G\<^esup> m"
-  then obtain i where "0 < i" and i: "acg ^ i \<turnstile> n \<leadsto>\<^bsup>G\<^esup> m"
-    unfolding in_tcl by auto (* FIXME: Disambiguate \<turnstile> Grammar *)
-  from b have "bounded_acg P (acg ^ (Suc (i - 1)))"
-    by (rule bounded_acgpow)
-  with `0 < i` have "bounded_acg P (acg ^ i)" by simp
-  with i
-  show "n < P" "m < P" "bounded_scg P G"
-    unfolding bounded_acg_def
-    by auto
-qed
 
 
-lemma bounded_scg_def':
-  "bounded_scg P G = (\<forall>(p,e,p')\<in>dest_graph G. p < P \<and> p' < P)"
-  unfolding bounded_scg_def has_edge_def
+definition 
+  "finite_graph G = finite (dest_graph G)"
+definition 
+  "all_finite G = (\<forall>n H m. has_edge G n H m \<longrightarrow> finite_graph H)"
+definition
+  "finite_acg A = (finite_graph A \<and> all_finite A)"
+definition 
+  "nodes G = fst ` dest_graph G \<union> snd ` snd ` dest_graph G"
+definition 
+  "edges G = fst ` snd ` dest_graph G"
+definition 
+  "smallnodes G = \<Union>(nodes ` edges G)"
+
+lemma thread_image_nodes:
+  assumes th: "is_thread n \<theta> p"
+  shows "\<forall>i\<ge>n. \<theta> i \<in> nodes (snd (p i))"
+using prems
+unfolding is_thread_def has_edge_def nodes_def
+by force
+
+lemma finite_nodes: "finite_graph G \<Longrightarrow> finite (nodes G)"
+  unfolding finite_graph_def nodes_def
   by auto
 
+lemma nodes_subgraph: "A \<le> B \<Longrightarrow> nodes A \<subseteq> nodes B"
+  unfolding graph_leq_def nodes_def
+  by auto
 
-lemma finite_bounded_scg: "finite { G. bounded_scg P G }"
+lemma finite_edges: "finite_graph G \<Longrightarrow> finite (edges G)"
+  unfolding finite_graph_def edges_def
+  by auto
+
+lemma edges_sum[simp]: "edges (A + B) = edges A \<union> edges B"
+  unfolding edges_def graph_plus_def
+  by auto
+
+lemma nodes_sum[simp]: "nodes (A + B) = nodes A \<union> nodes B"
+  unfolding nodes_def graph_plus_def
+  by auto
+
+lemma finite_acg_subset:
+  "A \<le> B \<Longrightarrow> finite_acg B \<Longrightarrow> finite_acg A"
+  unfolding finite_acg_def finite_graph_def all_finite_def
+  has_edge_def graph_leq_def
+  by (auto elim:finite_subset)
+
+lemma scg_finite: 
+  fixes G :: "'a scg"
+  assumes fin: "finite (nodes G)"
+  shows "finite_graph G"
+  unfolding finite_graph_def
 proof (rule finite_subset)
-  show "{G. bounded_scg P G} \<subseteq> 
-    Graph ` (Pow ({0 .. P - 1} \<times> UNIV \<times> {0 .. P - 1}))"
-  proof (rule, simp)
-    fix G 
-    
-    assume b: "bounded_scg P G"
+  show "dest_graph G \<subseteq> nodes G \<times> UNIV \<times> nodes G" (is "_ \<subseteq> ?P")
+    unfolding nodes_def
+    by force
+  show "finite ?P"
+    by (intro finite_cartesian_product fin finite)
+qed
 
-    show "G \<in> Graph ` Pow ({0..P - Suc 0} \<times> UNIV \<times> {0..P - Suc 0})"
-    proof (cases G)
-      fix G' assume [simp]: "G = Graph G'"
-      
-      from b show ?thesis
-        by (auto simp:bounded_scg_def' image_def)
+lemma smallnodes_sum[simp]: 
+  "smallnodes (A + B) = smallnodes A \<union> smallnodes B"
+  unfolding smallnodes_def 
+  by auto
+
+lemma in_smallnodes:
+  fixes A :: "'a acg"
+  assumes e: "has_edge A x G y"
+  shows "nodes G \<subseteq> smallnodes A"
+proof -
+  have "fst (snd (x, G, y)) \<in> fst ` snd  ` dest_graph A"
+    unfolding has_edge_def
+    by (rule imageI)+ (rule e[unfolded has_edge_def])
+  then have "G \<in> edges A" 
+    unfolding edges_def by simp
+  thus ?thesis
+    unfolding smallnodes_def
+    by blast
+qed
+
+lemma finite_smallnodes:
+  assumes fA: "finite_acg A"
+  shows "finite (smallnodes A)"
+  unfolding smallnodes_def edges_def
+proof 
+  from fA
+  show "finite (nodes ` fst ` snd ` dest_graph A)"
+    unfolding finite_acg_def finite_graph_def
+    by simp
+  
+  fix M assume "M \<in> nodes ` fst ` snd ` dest_graph A"
+  then obtain n G m  
+    where M: "M = nodes G" and nGm: "(n,G,m) \<in> dest_graph A"
+    by auto
+  
+  from fA
+  have "all_finite A" unfolding finite_acg_def by simp
+  with nGm have "finite_graph G" 
+    unfolding all_finite_def has_edge_def by auto
+  with finite_nodes 
+  show "finite M" 
+    unfolding finite_graph_def M .
+qed
+
+lemma nodes_tcl:
+  "nodes (tcl A) = nodes A"
+proof
+  show "nodes A \<subseteq> nodes (tcl A)"
+    apply (rule nodes_subgraph)
+    by (subst tcl_unfold_right) simp
+
+  show "nodes (tcl A) \<subseteq> nodes A"
+  proof 
+    fix x assume "x \<in> nodes (tcl A)"
+    then obtain z G y
+      where z: "z \<in> dest_graph (tcl A)"
+      and dis: "z = (x, G, y) \<or> z = (y, G, x)"
+      unfolding nodes_def
+      by auto force+
+
+    from dis
+    show "x \<in> nodes A"
+    proof
+      assume "z = (x, G, y)"
+      with z have "has_edge (tcl A) x G y" unfolding has_edge_def by simp
+      then obtain n where "n > 0 " and An: "has_edge (A ^ n) x G y"
+        unfolding in_tcl by auto
+      then obtain n' where "n = Suc n'" by (cases n, auto)
+      hence "A ^ n = A * A ^ n'" by (simp add:power_Suc)
+      with An obtain e k 
+        where "has_edge A x e k" by (auto simp:in_grcomp)
+      thus "x \<in> nodes A" unfolding has_edge_def nodes_def 
+        by force
+    next
+      assume "z = (y, G, x)"
+      with z have "has_edge (tcl A) y G x" unfolding has_edge_def by simp
+      then obtain n where "n > 0 " and An: "has_edge (A ^ n) y G x"
+        unfolding in_tcl by auto
+      then obtain n' where "n = Suc n'" by (cases n, auto)
+      hence "A ^ n = A ^ n' * A" by (simp add:power_Suc power_commutes)
+      with An obtain e k 
+        where "has_edge A k e x" by (auto simp:in_grcomp)
+      thus "x \<in> nodes A" unfolding has_edge_def nodes_def 
+        by force
     qed
   qed
-
-  show "finite \<dots>"
-    apply (rule finite_imageI)
-    apply (unfold finite_Pow_iff)
-    by (intro finite_cartesian_product finite_atLeastAtMost 
-      finite_class.finite)
 qed
 
-lemma bounded_finite:
-  assumes bounded: "bounded_acg P A"
-  shows "finite (dest_graph A)"
-proof (rule finite_subset)
+lemma smallnodes_tcl: 
+  fixes A :: "'a acg"
+  shows "smallnodes (tcl A) = smallnodes A"
+proof (intro equalityI subsetI)
+  fix n assume "n \<in> smallnodes (tcl A)"
+  then obtain x G y where edge: "has_edge (tcl A) x G y" 
+    and "n \<in> nodes G"
+    unfolding smallnodes_def edges_def has_edge_def 
+    by auto
   
-  from bounded
-  show "dest_graph A \<subseteq> {0 .. P - 1} \<times> { G. bounded_scg P G } \<times> { 0 .. P - 1}"
-    by (auto simp:bounded_acg_def has_edge_def) force+
+  from `n \<in> nodes G`
+  have "n \<in> fst ` dest_graph G \<or> n \<in> snd ` snd ` dest_graph G"
+    (is "?A \<or> ?B")
+    unfolding nodes_def by blast
+  thus "n \<in> smallnodes A"
+  proof
+    assume ?A
+    then obtain m e where A: "has_edge G n e m"
+      unfolding has_edge_def by auto
 
-  show "finite \<dots>"
-    by (intro finite_cartesian_product finite_atLeastAtMost finite_bounded_scg)
+    have "tcl A = A * star A"
+      unfolding tcl_def
+      by (simp add: star_commute[of A A A, simplified])
+
+    with edge
+    have "has_edge (A * star A) x G y" by simp
+    then obtain H H' z
+      where AH: "has_edge A x H z" and G: "G = H * H'"
+      by (auto simp:in_grcomp)
+    from A
+    obtain m' e' where "has_edge H n e' m'"
+      by (auto simp:G in_grcomp)
+    hence "n \<in> nodes H" unfolding nodes_def has_edge_def 
+      by force
+    with in_smallnodes[OF AH] show "n \<in> smallnodes A" ..
+  next
+    assume ?B
+    then obtain m e where B: "has_edge G m e n"
+      unfolding has_edge_def by auto
+
+    with edge
+    have "has_edge (star A * A) x G y" by (simp add:tcl_def)
+    then obtain H H' z
+      where AH': "has_edge A z H' y" and G: "G = H * H'"
+      by (auto simp:in_grcomp)
+    from B
+    obtain m' e' where "has_edge H' m' e' n"
+      by (auto simp:G in_grcomp)
+    hence "n \<in> nodes H'" unfolding nodes_def has_edge_def 
+      by force
+    with in_smallnodes[OF AH'] show "n \<in> smallnodes A" ..
+  qed
+next
+  fix x assume "x \<in> smallnodes A"
+  then show "x \<in> smallnodes (tcl A)"
+    by (subst tcl_unfold_right) simp
 qed
 
+lemma finite_nodegraphs:
+  assumes F: "finite F"
+  shows "finite { G::'a scg. nodes G \<subseteq> F }" (is "finite ?P")
+proof (rule finite_subset)
+  show "?P \<subseteq> Graph ` (Pow (F \<times> UNIV \<times> F))" (is "?P \<subseteq> ?Q")
+  proof
+    fix x assume xP: "x \<in> ?P"
+    obtain S where x[simp]: "x = Graph S"
+      by (cases x) auto
+    from xP
+    show "x \<in> ?Q"
+      apply (simp add:nodes_def)
+      apply (rule imageI)
+      apply (rule PowI)
+      apply force
+      done
+  qed
+  show "finite ?Q"
+    by (auto intro:finite_imageI finite_cartesian_product F finite)
+qed
+
+lemma finite_graphI:
+  fixes A :: "'a acg"
+  assumes fin: "finite (nodes A)" "finite (smallnodes A)"
+  shows "finite_graph A"
+proof -
+  obtain S where A[simp]: "A = Graph S"
+    by (cases A) auto
+
+  have "finite S" 
+  proof (rule finite_subset)
+    show "S \<subseteq> nodes A \<times> { G::'a scg. nodes G \<subseteq> smallnodes A } \<times> nodes A"
+      (is "S \<subseteq> ?T")
+    proof
+      fix x assume xS: "x \<in> S"
+      obtain a b c where x[simp]: "x = (a, b, c)"
+        by (cases x) auto
+
+      then have edg: "has_edge A a b c"
+        unfolding has_edge_def using xS
+        by simp
+
+      hence "a \<in> nodes A" "c \<in> nodes A"
+        unfolding nodes_def has_edge_def by force+
+      moreover
+      from edg have "nodes b \<subseteq> smallnodes A" by (rule in_smallnodes)
+      hence "b \<in> { G :: 'a scg. nodes G \<subseteq> smallnodes A }" by simp
+      ultimately show "x \<in> ?T" by simp
+    qed
+
+    show "finite ?T"
+      by (intro finite_cartesian_product fin finite_nodegraphs)
+  qed
+  thus ?thesis
+    unfolding finite_graph_def by simp
+qed
+
+
+lemma smallnodes_allfinite:
+  fixes A :: "'a acg"
+  assumes fin: "finite (smallnodes A)"
+  shows "all_finite A"
+  unfolding all_finite_def
+proof (intro allI impI)
+  fix n H m assume "has_edge A n H m"
+  then have "nodes H \<subseteq> smallnodes A"
+    by (rule in_smallnodes)
+  then have "finite (nodes H)" 
+    by (rule finite_subset) (rule fin)
+  thus "finite_graph H" by (rule scg_finite)
+qed
+
+lemma finite_tcl: 
+  fixes A :: "'a acg"
+  shows "finite_acg (tcl A) \<longleftrightarrow> finite_acg A"
+proof
+  assume f: "finite_acg A"
+  from f have g: "finite_graph A" and "all_finite A"
+    unfolding finite_acg_def by auto
+
+  from g have "finite (nodes A)" by (rule finite_nodes)
+  then have "finite (nodes (tcl A))" unfolding nodes_tcl .
+  moreover
+  from f have "finite (smallnodes A)" by (rule finite_smallnodes)
+  then have fs: "finite (smallnodes (tcl A))" unfolding smallnodes_tcl .
+  ultimately
+  have "finite_graph (tcl A)" by (rule finite_graphI)
+
+  moreover from fs have "all_finite (tcl A)"
+    by (rule smallnodes_allfinite)
+  ultimately show "finite_acg (tcl A)" unfolding finite_acg_def ..
+next
+  assume a: "finite_acg (tcl A)"
+  have "A \<le> tcl A" by (rule less_tcl)
+  thus "finite_acg A" using a
+    by (rule finite_acg_subset)
+qed
+
+lemma finite_acg_empty: "finite_acg (Graph {})"
+  unfolding finite_acg_def finite_graph_def all_finite_def
+  has_edge_def
+  by simp
+
+lemma finite_acg_ins: 
+  assumes fA: "finite_acg (Graph A)"
+  assumes fG: "finite G"
+  shows "finite_acg (Graph (insert (a, Graph G, b) A))" 
+  using fA fG
+  unfolding finite_acg_def finite_graph_def all_finite_def
+  has_edge_def
+  by auto
+
+lemmas finite_acg_simps = finite_acg_empty finite_acg_ins finite_graph_def
 
 subsection {* Contraction and more *}
 
@@ -750,8 +822,6 @@ proof
   with krng show "\<exists>k\<in>section s i. descat p (connect s \<theta>s) k" ..
 qed
 
-
-
 lemma mk_inf_thread:
   assumes [simp]: "increasing s"
   assumes fths: "\<And>i. i > n \<Longrightarrow> is_fthread \<theta> p (s i) (s (Suc i))"
@@ -779,8 +849,9 @@ lemma mk_inf_desc_thread:
   unfolding is_desc_thread_def 
 proof (intro exI conjI)
 
-  from mk_inf_thread[of s n] is_thread_def fths
-  show "\<forall>i\<ge>s (Suc n). eqlat p \<theta> i" by simp
+  from mk_inf_thread[of s n \<theta> p] fths
+  show "\<forall>i\<ge>s (Suc n). eqlat p \<theta> i" 
+    by (fold is_thread_def) simp
 
   show "\<exists>\<^sub>\<infinity>l. descat p \<theta> l"
     unfolding INF_nat
@@ -1169,40 +1240,41 @@ qed
 
 subsection {* Main Result *}
 
+
 theorem LJA_Theorem4: 
-  assumes "bounded_acg P \<A>"
-  shows "SCT \<A> \<longleftrightarrow> SCT' \<A>"
+  assumes "finite_acg A"
+  shows "SCT A \<longleftrightarrow> SCT' A"
 proof
-  assume "SCT \<A>"
+  assume "SCT A"
   
-  show "SCT' \<A>"
+  show "SCT' A"
   proof (rule classical)
-    assume "\<not> SCT' \<A>"
+    assume "\<not> SCT' A"
     
     then obtain n G
-      where in_closure: "(tcl \<A>) \<turnstile> n \<leadsto>\<^bsup>G\<^esup> n"
+      where in_closure: "(tcl A) \<turnstile> n \<leadsto>\<^bsup>G\<^esup> n"
       and idemp: "G * G = G"
       and no_strict_arc: "\<forall>p. \<not>(G \<turnstile> p \<leadsto>\<^bsup>\<down>\<^esup> p)"
       unfolding SCT'_def no_bad_graphs_def by auto
     
     from in_closure obtain k
-      where k_pow: "\<A> ^ k \<turnstile> n \<leadsto>\<^bsup>G\<^esup> n"
+      where k_pow: "A ^ k \<turnstile> n \<leadsto>\<^bsup>G\<^esup> n"
       and "0 < k"
       unfolding in_tcl by auto
 	
     from power_induces_path k_pow
     obtain loop where loop_props:
-      "has_fpath \<A> loop"
+      "has_fpath A loop"
       "n = fst loop" "n = end_node loop"
       "G = prod loop" "k = length (snd loop)" . 
 
     with `0 < k` and path_loop_graph
-    have "has_ipath \<A> (omega loop)" by blast
-    with `SCT \<A>` 
+    have "has_ipath A (omega loop)" by blast
+    with `SCT A` 
     have thread: "\<exists>\<theta>. is_desc_thread \<theta> (omega loop)" by (auto simp:SCT_def)
 
     let ?s = "\<lambda>i. k * i"
-    let ?cp = "\<lambda>i. (n, G)"
+    let ?cp = "\<lambda>i::nat. (n, G)"
 
     from loop_props have "fst loop = end_node loop" by auto
     with `0 < k` `k = length (snd loop)`
@@ -1226,19 +1298,20 @@ proof
       unfolding is_desc_thread_def is_thread_def 
       by auto
 
-    have "bounded_th P n \<theta>" 
-    proof -
-      from `bounded_acg P \<A>`
-      have "bounded_acg P (tcl \<A>)" by (rule bounded_plus)
-      with in_closure have "bounded_scg P G"
-        unfolding bounded_acg_def by simp
-      hence "bounded_mp P ?cp"
-        unfolding bounded_mp_def by simp
-      with thr bounded_th 
-      show ?thesis by auto
+    have "finite (range \<theta>)"
+    proof (rule finite_range_ignore_prefix)
+      
+      from `finite_acg A`
+      have "finite_acg (tcl A)" by (simp add:finite_tcl)
+      with in_closure have "finite_graph G" 
+        unfolding finite_acg_def all_finite_def by blast
+      thus "finite (nodes G)" by (rule finite_nodes)
+
+      from thread_image_nodes[OF thr]
+      show "\<forall>i\<ge>n. \<theta> i \<in> nodes G" by simp
     qed
-    with bounded_th_infinite_visit
-    obtain p where inf_visit: "\<exists>\<^sub>\<infinity>i. \<theta> i = p" by blast
+    with finite_range
+    obtain p where inf_visit: "\<exists>\<^sub>\<infinity>i. \<theta> i = p" by auto
 
     then obtain i where "n < i" "\<theta> i = p" 
       by (auto simp:INF_nat)
@@ -1252,7 +1325,9 @@ proof
     from inf_visit obtain k where "j < k" "\<theta> k = p"
       by (auto simp:INF_nat)
 
-    from `i < j` `j < k` `n < i` thr fin_from_inf `descat ?cp \<theta> j`
+    from `i < j` `j < k` `n < i` thr 
+      fin_from_inf[of n \<theta> ?cp]
+      `descat ?cp \<theta> j`
     have "is_desc_fthread \<theta> ?cp i k"
       unfolding is_desc_fthread_def
       by auto
@@ -1271,38 +1346,39 @@ proof
 	by (simp add:sub_path_def upt_rec[of i k] idemp)
     qed
 
-    with `i < j` `j < k` dfth Lemma7b
+    with `i < j` `j < k` dfth Lemma7b[of i k ?cp p p]
     have "dsc G p p" by auto
     with no_strict_arc have False by auto
     thus ?thesis ..
   qed
 next
-  assume "SCT' \<A>"
+  assume "SCT' A"
 
-  show "SCT \<A>"
+  show "SCT A"
   proof (rule classical)
-    assume "\<not> SCT \<A>"
+    assume "\<not> SCT A"
 
     with SCT_def
     obtain p 
-      where ipath: "has_ipath \<A> p"
+      where ipath: "has_ipath A p"
       and no_desc_th: "\<not> (\<exists>\<theta>. is_desc_thread \<theta> p)"
-      by auto
+      by blast
 
-    from `bounded_acg P \<A>`
-    have "finite (dest_graph (tcl \<A>))" (is "finite ?AG")
-      by (intro bounded_finite bounded_plus)
+    from `finite_acg A`
+    have "finite_acg (tcl A)" by (simp add: finite_tcl)
+    hence "finite (dest_graph (tcl A))" (is "finite ?AG")
+      by (simp add: finite_acg_def finite_graph_def)
 
     from pdesc_acgplus[OF ipath]
-    have a: "\<And>x y. x<y \<Longrightarrow> pdesc p\<langle>x,y\<rangle> \<in> dest_graph (tcl \<A>)"
+    have a: "\<And>x y. x<y \<Longrightarrow> pdesc p\<langle>x,y\<rangle> \<in> dest_graph (tcl A)"
       unfolding has_edge_def .
       
     obtain S G
-      where "infinite S" "G \<in> dest_graph (tcl \<A>)" 
+      where "infinite S" "G \<in> dest_graph (tcl A)" 
       and all_G: "\<And>x y. \<lbrakk> x \<in> S; y \<in> S; x < y\<rbrakk> \<Longrightarrow> 
       pdesc (p\<langle>x,y\<rangle>) = G"
       apply (rule RamseyNatpairs[of ?AG "\<lambda>(x,y). pdesc p\<langle>x, y\<rangle>"])
-      apply (rule `finite (dest_graph (tcl \<A>))`)
+      apply (rule `finite ?AG`)
       by (simp only:split_conv, rule a, auto)
 
     obtain n H m where
@@ -1318,14 +1394,14 @@ next
     note increasing_bij[OF this, simp]
       
     from ipath_contract inc ipath
-    have "has_ipath (tcl \<A>) ?q" .
+    have "has_ipath (tcl A) ?q" .
 
     from all_G G_struct 
     have all_H: "\<And>i. (snd (?q i)) = H"
 	  unfolding contract_def 
       by simp
     
-    have loop: "(tcl \<A>) \<turnstile> n \<leadsto>\<^bsup>H\<^esup> n"
+    have loop: "(tcl A) \<turnstile> n \<leadsto>\<^bsup>H\<^esup> n"
       and idemp: "H * H = H"
     proof - 
       let ?i = "?s 0" and ?j = "?s (Suc 0)" and ?k = "?s (Suc (Suc 0))"
@@ -1345,8 +1421,8 @@ next
 		by auto
 			
       hence "m = n" by simp
-      thus "tcl \<A> \<turnstile> n \<leadsto>\<^bsup>H\<^esup> n"
-		using G_struct `G \<in> dest_graph (tcl \<A>)`
+      thus "tcl A \<turnstile> n \<leadsto>\<^bsup>H\<^esup> n"
+		using G_struct `G \<in> dest_graph (tcl A)`
 		by (simp add:has_edge_def)
 	  
       from sub_path_prod[of ?i ?j ?k p]      
@@ -1355,7 +1431,7 @@ next
     qed
     moreover have "\<And>k. \<not>dsc H k k"
     proof
-      fix k :: nat assume "dsc H k k"
+      fix k :: 'a assume "dsc H k k"
       
       with all_H repeated_edge
       have "\<exists>\<theta>. is_desc_thread \<theta> ?q" by fast
@@ -1366,22 +1442,10 @@ next
     qed
     ultimately 
     have False
-      using `SCT' \<A>`[unfolded SCT'_def no_bad_graphs_def]
+      using `SCT' A`[unfolded SCT'_def no_bad_graphs_def]
       by blast
     thus ?thesis ..
   qed
-qed
-
-
-lemma LJA_apply:
-  assumes fin: "finite_acg A"
-  assumes "SCT' A"
-  shows "SCT A"
-proof -
-  from fin obtain P where b: "bounded_acg P A"
-    unfolding finite_acg_def ..
-  show ?thesis using LJA_Theorem4[OF b] and `SCT' A`
-    by simp
 qed
 
 end

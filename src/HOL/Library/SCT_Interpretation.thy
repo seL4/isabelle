@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""   (* FIXME proper header *)
+header {* Applying SCT to function definitions *}
 
 theory SCT_Interpretation
 imports Main SCT_Misc SCT_Definition
@@ -92,10 +92,7 @@ proof -
 qed
 
 
-
-types ('q, 'a) interpr = "('a, 'q) cdesc \<times> (nat \<Rightarrow> 'a \<Rightarrow> nat)"
 types 'a measures = "nat \<Rightarrow> 'a \<Rightarrow> nat"
-
 
 fun stepP :: "('a, 'q) cdesc \<Rightarrow> ('a, 'q) cdesc \<Rightarrow> 
   ('a \<Rightarrow> nat) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> bool"
@@ -188,7 +185,7 @@ qed
 
 
 definition
-  approx :: "scg \<Rightarrow> ('a, 'q) cdesc \<Rightarrow> ('a, 'q) cdesc 
+  approx :: "nat scg \<Rightarrow> ('a, 'q) cdesc \<Rightarrow> ('a, 'q) cdesc 
   \<Rightarrow> 'a measures \<Rightarrow> 'a measures \<Rightarrow> bool"
   where
   "approx G C C' M M'
@@ -240,7 +237,7 @@ lemma no_stepI:
 by (cases c1, cases c2) (auto simp: no_step_def)
 
 definition
-  sound_int :: "acg \<Rightarrow> ('a, 'q) cdesc list 
+  sound_int :: "nat acg \<Rightarrow> ('a, 'q) cdesc list 
   \<Rightarrow> 'a measures list \<Rightarrow> bool"
 where
   "sound_int \<A> RDs M =

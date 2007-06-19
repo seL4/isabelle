@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""   (* FIXME proper header *)
+header "Size-Change Termination"
 
 theory Size_Change_Termination
 imports SCT_Theorem SCT_Interpretation SCT_Implementation 
@@ -101,5 +101,11 @@ lemmas sctTest_simps =
 
 lemmas sctTest_congs = 
   if_weak_cong let_weak_cong setbcomp_cong
+
+
+lemma SCT_Main:
+  "finite_acg A \<Longrightarrow> test_SCT A \<Longrightarrow> SCT A"
+  using LJA_Theorem4 SCT'_exec
+  by auto
 
 end
