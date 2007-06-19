@@ -65,7 +65,7 @@ struct
 
   fun mk_new ([],[]) = Const("True",FOLogic.oT)
     | mk_new (largs,rargs) =
-        fold_bal FOLogic.mk_conj
+        BalancedTree.make FOLogic.mk_conj
                  (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
 
  val datatype_ss = @{simpset};

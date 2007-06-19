@@ -680,7 +680,7 @@ fun cond_declare_consts declare_consts cs paramTs cnames =
 fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
       params paramTs cTs cnames =
   let
-    val sumT = fold_bal (fn (T, U) => Type ("+", [T, U])) cTs;
+    val sumT = BalancedTree.make (fn (T, U) => Type ("+", [T, U])) cTs;
     val setT = HOLogic.mk_setT sumT;
 
     val fp_name = if coind then gfp_name else lfp_name;

@@ -114,7 +114,7 @@ let
         val exfrees = term_frees intr \\ rec_params
         val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
     in foldr FOLogic.mk_exists
-             (fold_bal FOLogic.mk_conj (zeq::prems)) exfrees
+             (BalancedTree.make FOLogic.mk_conj (zeq::prems)) exfrees
     end;
 
   (*The Part(A,h) terms -- compose injections to make h*)
@@ -122,16 +122,16 @@ let
     | mk_Part h         = Part_const $ Free(X',iT) $ Abs(w',iT,h);
 
   (*Access to balanced disjoint sums via injections*)
-  val parts =
-      map mk_Part (accesses_bal (fn t => Su.inl $ t, fn t => Su.inr $ t, Bound 0)
-                                (length rec_tms));
+  val parts = map mk_Part
+    (BalancedTree.accesses {left = fn t => Su.inl $ t, right = fn t => Su.inr $ t, init = Bound 0}
+      (length rec_tms));
 
   (*replace each set by the corresponding Part(A,h)*)
   val part_intrs = map (subst_free (rec_tms ~~ parts) o fp_part) intr_tms;
 
   val fp_abs = absfree(X', iT,
                    mk_Collect(z', dom_sum,
-                              fold_bal FOLogic.mk_disj part_intrs));
+                              BalancedTree.make FOLogic.mk_disj part_intrs));
 
   val fp_rhs = Fp.oper $ dom_sum $ fp_abs
 
@@ -237,10 +237,8 @@ let
      DEPTH_SOLVE (swap_res_tac (SigmaI::subsetI::type_intrs) 1)];
 
   (*combines disjI1 and disjI2 to get the corresponding nested disjunct...*)
-  val mk_disj_rls =
-      let fun f rl = rl RS disjI1
-          and g rl = rl RS disjI2
-      in  accesses_bal(f, g, asm_rl)  end;
+  val mk_disj_rls = BalancedTree.accesses
+    {left = fn rl => rl RS disjI1, right = fn rl => rl RS disjI2, init = asm_rl};
 
   val intrs =
     (intr_tms, map intro_tacsf (mk_disj_rls (length intr_tms)))
@@ -398,10 +396,10 @@ let
            (Ind_Syntax.mk_all_imp
             (big_rec_tm,
              Abs("z", Ind_Syntax.iT,
-                 fold_bal FOLogic.mk_conj
+                 BalancedTree.make FOLogic.mk_conj
                  (ListPair.map mk_rec_imp (rec_tms, preds)))))
      and mutual_induct_concl =
-      FOLogic.mk_Trueprop(fold_bal FOLogic.mk_conj qconcls);
+      FOLogic.mk_Trueprop(BalancedTree.make FOLogic.mk_conj qconcls);
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln ("induct_concl = " ^

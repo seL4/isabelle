@@ -78,7 +78,8 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   fun mk_tuple [] = Const("0",iT)
     | mk_tuple args = foldr1 (fn (t1, t2) => Pr.pair $ t1 $ t2) args;
 
-  fun mk_inject n k u = access_bal (fn t => Su.inl $ t, fn t => Su.inr $ t, u) n k;
+  fun mk_inject n k u = BalancedTree.access
+    {left = fn t => Su.inl $ t, right = fn t => Su.inr $ t, init = u} n k;
 
   val npart = length rec_names;  (*number of mutually recursive parts*)
 
@@ -106,7 +107,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                 CP.ap_split (foldr1 CP.mk_prod (map (#2 o dest_Free) args))
                             Ind_Syntax.iT
                             free
-    in  fold_bal (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_f case_list)  end;
+    in  BalancedTree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_f case_list)  end;
 
   (** Generating function variables for the case definition
       Non-identifiers (e.g. infixes) get a name of the form f_op_nnn. **)
@@ -141,7 +142,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val case_tm = list_comb (case_const, case_args);
 
   val case_def = Logic.mk_defpair
-           (case_tm, fold_bal (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_case case_lists));
+    (case_tm, BalancedTree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_case case_lists));
 
 
   (** Generating function variables for the recursor definition
