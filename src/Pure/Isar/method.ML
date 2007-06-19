@@ -343,11 +343,14 @@ end;
 val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic);
 fun set_tactic f = tactic_ref := f;
 
-fun tactic txt ctxt = METHOD (fn facts =>
- (ML_Context.use_mltext
-   ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic =\n"
-     ^ txt ^ "\nin Method.set_tactic tactic end") false (SOME (Context.Proof ctxt));
-  ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt) facts));
+fun ml_tactic txt ctxt facts =
+  (ML_Context.use_mltext
+    ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic =\n"
+      ^ txt ^ "\nin Method.set_tactic tactic end") false (SOME (Context.Proof ctxt));
+    ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt) facts);
+
+fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
+fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);
 
 
 
@@ -569,7 +572,8 @@ val _ = Context.add_setup (add_methods
     "rename parameters of goal"),
   ("rotate_tac", goal_args (Scan.optional Args.int 1) Tactic.rotate_tac,
     "rotate assumptions of goal"),
-  ("tactic", simple_args Args.name tactic, "ML tactic as proof method")]);
+  ("tactic", simple_args Args.name tactic, "ML tactic as proof method"),
+  ("raw_tactic", simple_args Args.name raw_tactic, "ML tactic as raw proof method")]);
 
 
 (* outer parser *)
