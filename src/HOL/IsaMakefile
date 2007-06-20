@@ -118,13 +118,13 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Tools/function_package/pattern_split.ML				\
   Tools/function_package/sum_tools.ML Tools/inductive_codegen.ML	\
   Tools/inductive_package.ML Tools/inductive_realizer.ML Tools/meson.ML	\
-  Tools/numeral_syntax.ML Tools/old_inductive_package.ML		\
-  Tools/polyhash.ML Tools/primrec_package.ML Tools/prop_logic.ML	\
-  Tools/recdef_package.ML Tools/recfun_codegen.ML			\
-  Tools/record_package.ML Tools/refute.ML Tools/refute_isar.ML		\
-  Tools/res_atp.ML Tools/res_atp_methods.ML Tools/res_atp_provers.ML	\
-  Tools/res_atpset.ML Tools/res_axioms.ML Tools/res_clause.ML		\
-  Tools/res_hol_clause.ML Tools/res_reconstruct.ML			\
+  Tools/metis_tools.ML Tools/numeral_syntax.ML 				\
+  Tools/old_inductive_package.ML Tools/polyhash.ML 			\
+  Tools/primrec_package.ML Tools/prop_logic.ML Tools/recdef_package.ML	\
+  Tools/recfun_codegen.ML Tools/record_package.ML Tools/refute.ML	\
+  Tools/refute_isar.ML Tools/res_atp.ML Tools/res_atp_methods.ML	\
+  Tools/res_atp_provers.ML Tools/res_atpset.ML Tools/res_axioms.ML	\
+  Tools/res_clause.ML Tools/res_hol_clause.ML Tools/res_reconstruct.ML	\
   Tools/rewrite_hol_proof.ML Tools/sat_funcs.ML Tools/sat_solver.ML	\
   Tools/specification_package.ML Tools/split_rule.ML			\
   Tools/string_syntax.ML Tools/typecopy_package.ML			\
