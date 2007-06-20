@@ -14,8 +14,8 @@ sig
   val init_pgip_channel: (string -> unit) -> unit
   val process_pgip: string -> unit
 
-  (* Yet more message functions... *)
-  val nonfatal_error : string -> unit     (* recoverable error *)
+  (* More message functions... *)
+  val nonfatal_error : string -> unit     (* recoverable (batch) error: carry on scripting *)
   val log_msg : string -> unit            (* for internal log messages *)
   val error_with_pos : PgipTypes.fatality -> Position.T -> string -> unit
 
@@ -466,9 +466,10 @@ fun use_thy_or_ml_file file =
    These are programmed uniformly for extensibility. *)
 
 fun askpgip (Askpgip vs) =
-    issue_pgip
-        (Usespgip { version = PgipIsabelle.isabelle_pgip_version_supported,
-                    pgipelems = PgipIsabelle.accepted_inputs })
+    (issue_pgip
+         (Usespgip { version = PgipIsabelle.isabelle_pgip_version_supported,
+                     pgipelems = PgipIsabelle.accepted_inputs });
+     send_pgip_config())
 
 fun askpgml (Askpgml vs) =
     issue_pgip
@@ -531,11 +532,6 @@ fun set_proverflag_thmdeps b =
     (show_theorem_dependencies := b;
      proofs := (if b then 1 else 2))
 
-fun startquiet vs = set_proverflag_quiet true;            (* TO BE REMOVED *)
-fun stopquiet vs =  set_proverflag_quiet false;           (* TO BE REMOVED *)
-fun pgmlsymbolson vs = set_proverflag_pgmlsymbols true;   (* TO BE REMOVED *)
-fun pgmlsymbolsoff vs = set_proverflag_pgmlsymbols false; (* TO BE REMOVED *)
-
 fun setproverflag (Setproverflag vs) =
     let 
         val flagname = #flagname vs
@@ -545,7 +541,8 @@ fun setproverflag (Setproverflag vs) =
              "quiet"            => set_proverflag_quiet value
            | "pgmlsymbols"      => set_proverflag_pgmlsymbols value
            | "metainfo:thmdeps" => set_proverflag_thmdeps value 
-           | _ => log_msg ("Unrecognised prover control flag: " ^ (quote flagname) ^ " ignored."))
+           | _ => log_msg ("Unrecognised prover control flag: " ^ 
+			   (quote flagname) ^ " ignored."))
     end 
 
 
@@ -950,16 +947,12 @@ fun process_input inp = case inp
   | Pgip.Setpref _          => setpref inp
   | Pgip.Proverinit _       => proverinit inp
   | Pgip.Proverexit _       => proverexit inp
-  | Pgip.Startquiet _       => startquiet inp
-  | Pgip.Stopquiet _        => stopquiet inp
-  | Pgip.Pgmlsymbolson _    => pgmlsymbolson inp
-  | Pgip.Pgmlsymbolsoff _   => pgmlsymbolsoff inp
   | Pgip.Setproverflag _    => setproverflag inp
   | Pgip.Dostep _           => dostep inp
   | Pgip.Undostep _         => undostep inp
   | Pgip.Redostep _         => redostep inp
-  | Pgip.Forget _           => error "<forget> not implemented"
-  | Pgip.Restoregoal _      => error "<restoregoal> not implemented"
+  | Pgip.Forget _           => error "<forget> not implemented by Isabelle"
+  | Pgip.Restoregoal _      => error "<restoregoal> not implemented by Isabelle"
   | Pgip.Abortgoal _        => abortgoal inp
   | Pgip.Askids _           => askids inp
   | Pgip.Askrefs _          => askrefs inp
