@@ -18,6 +18,8 @@ lemma meta_mp:
   shows "PROP Q"
     by (rule `PROP P ==> PROP Q` [OF `PROP P`])
 
+lemmas meta_impE = meta_mp [elim_format]
+
 lemma meta_spec:
   assumes "!!x. PROP P(x)"
   shows "PROP P(x)"
