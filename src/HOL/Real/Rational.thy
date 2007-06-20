@@ -443,25 +443,17 @@ apply (insert add_rat [of concl: m n 1 1])
 apply (simp add: one_rat  [symmetric])
 done
 
+lemma of_nat_rat: "of_nat k = Fract (of_nat k) 1"
+by (induct k) (simp_all add: zero_rat one_rat add_rat)
+
+lemma of_int_rat: "of_int k = Fract k 1"
+by (cases k rule: int_diff_cases, simp add: of_nat_rat diff_rat)
+
 lemma Fract_of_nat_eq: "Fract (of_nat k) 1 = of_nat k"
-apply (induct k)
-apply (simp add: zero_rat)
-apply (simp add: Fract_add_one)
-done
+by (rule of_nat_rat [symmetric])
 
 lemma Fract_of_int_eq: "Fract k 1 = of_int k"
-proof (cases k rule: int_cases)
-  case (nonneg n)
-    thus ?thesis by (simp add: int_eq_of_nat Fract_of_nat_eq)
-next
-  case (neg n)
-    hence "Fract k 1 = - (Fract (of_nat (Suc n)) 1)"
-      by (simp only: minus_rat int_eq_of_nat)
-    also have "... =  - (of_nat (Suc n))"
-      by (simp only: Fract_of_nat_eq)
-    finally show ?thesis
-      by (simp add: only: prems int_eq_of_nat of_int_minus of_int_of_nat_eq)
-qed
+by (rule of_int_rat [symmetric])
 
 
 subsection {* Numerals and Arithmetic *}
