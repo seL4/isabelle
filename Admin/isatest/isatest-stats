@@ -20,6 +20,7 @@ SESSIONS="\
   HOL-HoareParallel \
   HOL-Lambda \
   HOL-MicroJava \
+  HOL-Nominal-Examples \
   HOL-NumberTheory \
   HOL-SET-Protocol \
   HOL-UNITY \
