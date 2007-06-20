@@ -36,7 +36,7 @@ fun transpose ([]::_) = []
 
 (** Matrix cell datatype **)
 
-datatype cell = Less of thm | LessEq of thm | None of thm | False of thm;
+datatype cell = Less of thm | LessEq of (thm * thm) | None of (thm * thm) | False of thm;
          
 fun is_Less (Less _) = true
   | is_Less _ = false
@@ -45,14 +45,14 @@ fun is_LessEq (LessEq _) = true
   | is_LessEq _ = false
                                                             
 fun thm_of_cell (Less thm) = thm 
-  | thm_of_cell (LessEq thm) = thm 
+  | thm_of_cell (LessEq (thm, _)) = thm 
   | thm_of_cell (False thm) = thm 
-  | thm_of_cell (None thm) = thm 
+  | thm_of_cell (None (thm, _)) = thm 
                   
-fun pr_cell (Less _ ) = " <  "
-  | pr_cell (LessEq _) = " <= " 
-  | pr_cell (None _) = " N  "
-  | pr_cell (False _) = " F  "
+fun pr_cell (Less _ ) = " < "
+  | pr_cell (LessEq _) = " <=" 
+  | pr_cell (None _) = " ? "
+  | pr_cell (False _) = " F "
 
 
 (** Generating Measure Functions **)
@@ -139,10 +139,10 @@ fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun =
           val lesseq_thm = goals "Orderings.ord_class.less_eq" |> prove thy solve_tac
         in
           if Thm.no_prems lesseq_thm then
-            LessEq (Goal.finish lesseq_thm)
+            LessEq (Goal.finish lesseq_thm, less_thm)
           else 
             if prems_of lesseq_thm = [HOLogic.Trueprop $ HOLogic.false_const] then False lesseq_thm
-            else None lesseq_thm
+            else None (lesseq_thm, less_thm)
         end
     end
 
@@ -211,7 +211,7 @@ fun nsearch_table table = bfs_search_table [([], table)]
 fun prove_row (Less less_thm :: _) =
     (rtac @{thm "measures_less"} 1)
     THEN PRIMITIVE (flip implies_elim less_thm)
-  | prove_row (LessEq lesseq_thm :: tail) =
+  | prove_row (LessEq (lesseq_thm, _) :: tail) =
     (rtac @{thm "measures_lesseq"} 1)
     THEN PRIMITIVE (flip implies_elim lesseq_thm)
     THEN prove_row tail
@@ -222,10 +222,28 @@ fun prove_row (Less less_thm :: _) =
 
 fun pr_table table = writeln (cat_lines (map (fn r => concat (map pr_cell r)) table))
        
+fun my_pr_goals st  =
+    Display.pretty_goals_aux (Sign.pp (Thm.theory_of_thm st)) "" (true, false) (Thm.nprems_of st) st
+     |> Pretty.chunks
+     |> Pretty.string_of
+
+fun row_index i = chr (i + 97)
+fun col_index j = string_of_int (j + 1)
+
+fun pr_unprovable_cell ((i,j), Less _) = ""
+  | pr_unprovable_cell ((i,j), LessEq (_, st)) = "(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ my_pr_goals st
+  | pr_unprovable_cell ((i,j), None (st_less, st_leq)) = 
+    "(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ my_pr_goals st_less
+    ^ "\n(" ^ row_index i ^ ", " ^ col_index j ^ ", <=):\n" ^ my_pr_goals st_leq
+  | pr_unprovable_cell ((i,j), False st) = 
+    "(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ my_pr_goals st
+
 fun pr_unprovable_subgoals table =
-    filter_out (fn x => is_Less x orelse is_LessEq x) (flat table)
-    |> map ((fn th => Pretty.string_of (Pretty.chunks (Display.pretty_goals (Thm.nprems_of th) th))) o thm_of_cell)
-    
+    table
+     |> map_index (fn (i,cs) => map_index (fn (j,x) => ((i,j), x)) cs)
+     |> flat
+     |> map pr_unprovable_cell
+
 fun no_order_msg table thy tl measure_funs =  
     let 
       fun pr_fun t i = string_of_int i ^ ") " ^ string_of_cterm (cterm_of thy t)
@@ -240,13 +258,13 @@ fun no_order_msg table thy tl measure_funs =
 
       val gc = map (fn i => chr (i + 96)) (1 upto length table)
       val mc = 1 upto length measure_funs
-      val tstr = "   " ^ concat (map (enclose " " " " o string_of_int) mc)
+      val tstr = "Result matrix:" ::  "   " ^ concat (map (enclose " " " " o string_of_int) mc)
                  :: map2 (fn r => fn i => i ^ ": " ^ concat (map pr_cell r)) table gc
-      val gstr = "Calls:" :: map2 pr_goal tl gc
-      val mstr = "Measures:" :: map2 pr_fun measure_funs mc
+      val gstr = "Calls:" :: map2 (prefix "  " oo pr_goal) tl gc
+      val mstr = "Measures:" :: map2 (prefix "  " oo pr_fun) measure_funs mc
       val ustr = "Unfinished subgoals:" :: pr_unprovable_subgoals table
     in
-      cat_lines ("Could not find lexicographic termination order:" :: tstr @ gstr @ mstr @ ustr)
+      cat_lines (ustr @ gstr @ mstr @ tstr @ ["", "Could not find lexicographic termination order."])
     end
       
 (** The Main Function **)
