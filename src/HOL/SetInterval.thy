@@ -756,7 +756,7 @@ proof (induct n)
   show ?case by simp
 next
   case (Suc n)
-  then show ?case by (simp add: right_distrib add_assoc mult_ac)
+  then show ?case by (simp add: ring_eq_simps)
 qed
 
 theorem arith_series_general:
@@ -779,7 +779,7 @@ proof cases
   also from ngt1 
   have "(1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..n - 1}. ?I i) = ((1+1)*?n*a + d*?I (n - 1)*?I n)"
     by (simp only: mult_ac gauss_sum [of "n - 1"])
-       (simp add:  mult_ac of_nat_Suc [symmetric])
+       (simp add:  mult_ac trans [OF add_commute of_nat_Suc [symmetric]])
   finally show ?thesis by (simp add: mult_ac add_ac right_distrib)
 next
   assume "\<not>(n > 1)"

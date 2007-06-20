@@ -205,14 +205,14 @@ done
 lemma DERIV_power_Suc:
   fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,recpower}"
   assumes f: "DERIV f x :> D"
-  shows "DERIV (\<lambda>x. f x ^ Suc n) x :> (of_nat n + 1) * (D * f x ^ n)"
+  shows "DERIV (\<lambda>x. f x ^ Suc n) x :> (1 + of_nat n) * (D * f x ^ n)"
 proof (induct n)
 case 0
   show ?case by (simp add: power_Suc f)
 case (Suc k)
   from DERIV_mult' [OF f Suc] show ?case
     apply (simp only: of_nat_Suc left_distrib mult_1_left)
-    apply (simp only: power_Suc right_distrib mult_ac)
+    apply (simp only: power_Suc right_distrib mult_ac add_ac)
     done
 qed
 

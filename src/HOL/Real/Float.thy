@@ -35,8 +35,7 @@ proof -
     apply (auto, induct_tac n)
     apply (simp_all add: pow2_def)
     apply (rule_tac m1="2" and n1="nat (2 + int na)" in ssubst[OF realpow_num_eq_if])
-    apply (auto simp add: h)
-    by (simp add: add_commute)
+    by (auto simp add: h)
   show ?thesis
   proof (induct a)
     case (1 n)
@@ -46,7 +45,7 @@ proof -
     show ?case
       apply (auto)
       apply (subst pow2_neg[of "- int n"])
-      apply (subst pow2_neg[of "- int n + -1"])
+      apply (subst pow2_neg[of "-1 - int n"])
       apply (auto simp add: g pos)
       done
   qed
@@ -269,18 +268,10 @@ consts
   norm_float :: "int*int \<Rightarrow> int*int"
 
 lemma int_div_zdiv: "int (a div b) = (int a) div (int b)"
-apply (subst split_div, auto)
-apply (subst split_zdiv, auto)
-apply (rule_tac a="int (b * i) + int j" and b="int b" and r="int j" and r'=ja in IntDiv.unique_quotient)
-apply (auto simp add: IntDiv.quorem_def int_eq_of_nat)
-done
+by (rule zdiv_int)
 
 lemma int_mod_zmod: "int (a mod b) = (int a) mod (int b)"
-apply (subst split_mod, auto)
-apply (subst split_zmod, auto)
-apply (rule_tac a="int (b * i) + int j" and b="int b" and q="int i" and q'=ia in IntDiv.unique_remainder)
-apply (auto simp add: IntDiv.quorem_def int_eq_of_nat)
-done
+by (rule zmod_int)
 
 lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> abs((a::int) div 2) < abs a"
 by arith

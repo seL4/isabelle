@@ -365,9 +365,6 @@ qed
 lemma zadd_int_left: "(int m) + (int n + z) = int (m + n) + z"
 by simp
 
-lemma int_Suc: "int (Suc m) = 1 + (int m)"
-by simp
-
 lemma int_Suc0_eq_1: "int (Suc 0) = 1"
 by simp
 
@@ -506,7 +503,7 @@ by (simp add: diff_minus)
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
 apply (cases w, cases z)
 apply (simp add: compare_rls of_int left_diff_distrib right_diff_distrib
-                 mult add_ac)
+                 mult add_ac of_nat_mult)
 done
 
 lemma of_int_le_iff [simp]:
@@ -645,7 +642,7 @@ lemma of_int_setsum: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
 
 lemma of_nat_setprod: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
   apply (cases "finite A")
-  apply (erule finite_induct, auto)
+  apply (erule finite_induct, auto simp add: of_nat_mult)
   done
 
 lemma of_int_setprod: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
@@ -712,41 +709,41 @@ done
 
 subsection {* Legacy theorems *}
 
-lemmas zminus_zminus = minus_minus [where 'a=int]
+lemmas zminus_zminus = minus_minus [of "?z::int"]
 lemmas zminus_0 = minus_zero [where 'a=int]
-lemmas zminus_zadd_distrib = minus_add_distrib [where 'a=int]
-lemmas zadd_commute = add_commute [where 'a=int]
-lemmas zadd_assoc = add_assoc [where 'a=int]
-lemmas zadd_left_commute = add_left_commute [where 'a=int]
+lemmas zminus_zadd_distrib = minus_add_distrib [of "?z::int" "?w"]
+lemmas zadd_commute = add_commute [of "?z::int" "?w"]
+lemmas zadd_assoc = add_assoc [of "?z1.0::int" "?z2.0" "?z3.0"]
+lemmas zadd_left_commute = add_left_commute [of "?x::int" "?y" "?z"]
 lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
 lemmas zmult_ac = OrderedGroup.mult_ac
-lemmas zadd_0 = OrderedGroup.add_0_left [where 'a=int]
-lemmas zadd_0_right = OrderedGroup.add_0_left [where 'a=int]
-lemmas zadd_zminus_inverse2 = left_minus [where 'a=int]
-lemmas zmult_zminus = mult_minus_left [where 'a=int]
-lemmas zmult_commute = mult_commute [where 'a=int]
-lemmas zmult_assoc = mult_assoc [where 'a=int]
-lemmas zadd_zmult_distrib = left_distrib [where 'a=int]
-lemmas zadd_zmult_distrib2 = right_distrib [where 'a=int]
-lemmas zdiff_zmult_distrib = left_diff_distrib [where 'a=int]
-lemmas zdiff_zmult_distrib2 = right_diff_distrib [where 'a=int]
+lemmas zadd_0 = OrderedGroup.add_0_left [of "?z::int"]
+lemmas zadd_0_right = OrderedGroup.add_0_left [of "?z::int"]
+lemmas zadd_zminus_inverse2 = left_minus [of "?z::int"]
+lemmas zmult_zminus = mult_minus_left [of "?z::int" "?w"]
+lemmas zmult_commute = mult_commute [of "?z::int" "?w"]
+lemmas zmult_assoc = mult_assoc [of "?z1.0::int" "?z2.0" "?z3.0"]
+lemmas zadd_zmult_distrib = left_distrib [of "?z1.0::int" "?z2.0" "?w"]
+lemmas zadd_zmult_distrib2 = right_distrib [of "?w::int" "?z1.0" "?z2.0"]
+lemmas zdiff_zmult_distrib = left_diff_distrib [of "?z1.0::int" "?z2.0" "?w"]
+lemmas zdiff_zmult_distrib2 = right_diff_distrib [of "?w::int" "?z1.0" "?z2.0"]
 
 lemmas int_distrib =
   zadd_zmult_distrib zadd_zmult_distrib2
   zdiff_zmult_distrib zdiff_zmult_distrib2
 
-lemmas zmult_1 = mult_1_left [where 'a=int]
-lemmas zmult_1_right = mult_1_right [where 'a=int]
+lemmas zmult_1 = mult_1_left [of "?z::int"]
+lemmas zmult_1_right = mult_1_right [of "?z::int"]
 
-lemmas zle_refl = order_refl [where 'a=int]
+lemmas zle_refl = order_refl [of "?w::int"]
 lemmas zle_trans = order_trans [where 'a=int and x="?i" and y="?j" and z="?k"]
-lemmas zle_anti_sym = order_antisym [where 'a=int]
-lemmas zle_linear = linorder_linear [where 'a=int]
+lemmas zle_anti_sym = order_antisym [of "?z::int" "?w"]
+lemmas zle_linear = linorder_linear [of "?z::int" "?w"]
 lemmas zless_linear = linorder_less_linear [where 'a = int]
 
-lemmas zadd_left_mono = add_left_mono [where 'a=int]
-lemmas zadd_strict_right_mono = add_strict_right_mono [where 'a=int]
-lemmas zadd_zless_mono = add_less_le_mono [where 'a=int]
+lemmas zadd_left_mono = add_left_mono [of "?i::int" "?j" "?k"]
+lemmas zadd_strict_right_mono = add_strict_right_mono [of "?i::int" "?j" "?k"]
+lemmas zadd_zless_mono = add_less_le_mono [of "?w'::int" "?w" "?z'" "?z"]
 
 lemmas int_0_less_1 = zero_less_one [where 'a=int]
 lemmas int_0_neq_1 = zero_neq_one [where 'a=int]
@@ -756,16 +753,17 @@ lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
 lemmas zadd_int = of_nat_add [where 'a=int, symmetric]
 lemmas int_mult = of_nat_mult [where 'a=int]
 lemmas zmult_int = of_nat_mult [where 'a=int, symmetric]
-lemmas int_eq_0_conv = of_nat_eq_0_iff [where 'a=int]
+lemmas int_eq_0_conv = of_nat_eq_0_iff [where 'a=int and m="?n"]
 lemmas zless_int = of_nat_less_iff [where 'a=int]
-lemmas int_less_0_conv = of_nat_less_0_iff [where 'a=int]
+lemmas int_less_0_conv = of_nat_less_0_iff [where 'a=int and m="?k"]
 lemmas zero_less_int_conv = of_nat_0_less_iff [where 'a=int]
 lemmas zle_int = of_nat_le_iff [where 'a=int]
 lemmas zero_zle_int = of_nat_0_le_iff [where 'a=int]
-lemmas int_le_0_conv = of_nat_le_0_iff [where 'a=int]
+lemmas int_le_0_conv = of_nat_le_0_iff [where 'a=int and m="?n"]
 lemmas int_0 = of_nat_0 [where ?'a_1.0=int]
 lemmas int_1 = of_nat_1 [where 'a=int]
-lemmas abs_int_eq = abs_of_nat [where 'a=int]
+lemmas int_Suc = of_nat_Suc [where ?'a_1.0=int]
+lemmas abs_int_eq = abs_of_nat [where 'a=int and n="?m"]
 lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas int_setsum = of_nat_setsum [where 'a=int]
 lemmas int_setprod = of_nat_setprod [where 'a=int]

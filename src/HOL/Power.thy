@@ -333,7 +333,7 @@ qed
 
 lemma of_nat_power:
   "of_nat (m ^ n) = (of_nat m::'a::{semiring_1,recpower}) ^ n"
-by (induct n, simp_all add: power_Suc)
+by (induct n, simp_all add: power_Suc of_nat_mult)
 
 lemma nat_one_le_power [simp]: "1 \<le> i ==> Suc 0 \<le> i^n"
 by (insert one_le_power [of i n], simp)

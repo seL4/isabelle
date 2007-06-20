@@ -1298,7 +1298,7 @@ consts of_nat :: "nat => 'a::semiring_1"
 
 primrec
   of_nat_0:   "of_nat 0 = 0"
-  of_nat_Suc: "of_nat (Suc m) = of_nat m + 1"
+  of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
 
 lemma of_nat_id [simp]: "(of_nat n \<Colon> nat) = n"
   by (induct n) auto
@@ -1309,19 +1309,20 @@ lemma of_nat_1 [simp]: "of_nat 1 = 1"
 lemma of_nat_add [simp]: "of_nat (m+n) = of_nat m + of_nat n"
   by (induct m) (simp_all add: add_ac)
 
-lemma of_nat_mult [simp]: "of_nat (m*n) = of_nat m * of_nat n"
+lemma of_nat_mult: "of_nat (m*n) = of_nat m * of_nat n"
   by (induct m) (simp_all add: add_ac left_distrib)
 
 lemma zero_le_imp_of_nat: "0 \<le> (of_nat m::'a::ordered_semidom)"
   apply (induct m, simp_all)
   apply (erule order_trans)
+  apply (rule ord_le_eq_trans [OF _ add_commute])
   apply (rule less_add_one [THEN order_less_imp_le])
   done
 
 lemma less_imp_of_nat_less:
     "m < n ==> of_nat m < (of_nat n::'a::ordered_semidom)"
   apply (induct m n rule: diff_induct, simp_all)
-  apply (insert add_le_less_mono [OF zero_le_imp_of_nat zero_less_one], force)
+  apply (insert add_less_le_mono [OF zero_less_one zero_le_imp_of_nat], force)
   done
 
 lemma of_nat_less_imp_less:

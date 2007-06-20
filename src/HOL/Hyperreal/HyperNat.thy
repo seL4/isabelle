@@ -374,7 +374,7 @@ by transfer (rule of_nat_0)
 lemma of_hypnat_1 [simp]: "of_hypnat 1 = 1"
 by transfer (rule of_nat_1)
 
-lemma of_hypnat_hSuc: "\<And>m. of_hypnat (hSuc m) = of_hypnat m + 1"
+lemma of_hypnat_hSuc: "\<And>m. of_hypnat (hSuc m) = 1 + of_hypnat m"
 by transfer (rule of_nat_Suc)
 
 lemma of_hypnat_add [simp]:

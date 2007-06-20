@@ -712,7 +712,7 @@ lemma real_of_nat_Suc_gt_zero: "0 < real (Suc n)"
 by (simp add: real_of_nat_def del: of_nat_Suc)
 
 lemma real_of_nat_mult [simp]: "real (m * n) = real (m::nat) * real n"
-by (simp add: real_of_nat_def)
+by (simp add: real_of_nat_def of_nat_mult)
 
 lemma real_of_nat_setsum [simp]: "real ((SUM x:A. f x)::nat) = 
     (SUM x:A. real(f x))"

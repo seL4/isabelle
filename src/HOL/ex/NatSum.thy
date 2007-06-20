@@ -106,7 +106,7 @@ lemma of_nat_sum_of_fourth_powers:
   "30 * of_nat (\<Sum>i=0..<m. i * i * i * i) =
     of_nat m * (of_nat m - 1) * (of_nat (2 * m) - 1) *
     (of_nat (3 * m * m) - of_nat (3 * m) - (1::int))"
-  by (induct m) simp_all
+  by (induct m) (simp_all add: of_nat_mult)
 
 
 text {*

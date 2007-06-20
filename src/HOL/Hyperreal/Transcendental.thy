@@ -556,7 +556,7 @@ subsection{*Formal Derivatives of Exp, Sin, and Cos Series*}
 
 lemma exp_fdiffs: 
       "diffs (%n. inverse(real (fact n))) = (%n. inverse(real (fact n)))"
-by (simp add: diffs_def mult_assoc [symmetric] real_of_nat_def
+by (simp add: diffs_def mult_assoc [symmetric] real_of_nat_def of_nat_mult
          del: mult_Suc of_nat_Suc)
 
 lemma diffs_of_real: "diffs (\<lambda>n. of_real (f n)) = (\<lambda>n. of_real (diffs f n))"
@@ -569,7 +569,7 @@ lemma sin_fdiffs:
                  -1 ^ (n div 2)/(real (fact n))  
               else 0)"
 by (auto intro!: ext 
-         simp add: diffs_def divide_inverse real_of_nat_def
+         simp add: diffs_def divide_inverse real_of_nat_def of_nat_mult
          simp del: mult_Suc of_nat_Suc)
 
 lemma sin_fdiffs2: 
@@ -586,7 +586,7 @@ lemma cos_fdiffs:
        = (%n. - (if even n then 0  
            else -1 ^ ((n - Suc 0)div 2)/(real (fact n))))"
 by (auto intro!: ext 
-         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def
+         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def of_nat_mult
          simp del: mult_Suc of_nat_Suc)
 
 
