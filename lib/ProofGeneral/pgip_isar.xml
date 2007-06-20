@@ -1,3 +1,4 @@
+
 <!-- Title:      Pure/pgip_isar.xml
      ID:         $Id$
      Author:     David Aspinall, University of Edinburgh
@@ -16,7 +17,7 @@ STATUS: incomplete and experimental.
 
 <displayconfig>
 
-  <welcomemsg>Welcome to Isabelle/Isar 2005.</welcomemsg>
+  <welcomemsg>Welcome to Isabelle/Isar 2007.</welcomemsg>
 
   <!-- Icon for Isabelle interface -->
   <icon>
@@ -84,27 +85,44 @@ STATUS: incomplete and experimental.
 	   descr="Reference Manual for Isabelle"
            url="http://isabelle.in.tum.de/dist/Isabelle/doc/ref.pdf"
   >ref</helpdoc>
-  <helpdoc name="Isabelle System manual"
-	   descr="System Manual: interfaces, output, building logics."
+  <helpdoc 
+           name="Isabelle System manual"
+           descr="System Manual: interfaces, output, building logics."
            url="http://isabelle.in.tum.de/dist/Isabelle/doc/system.pdf"
   >system</helpdoc>
-  
+
+  <!-- Example lexicalstructure element.  This is incomplete and the
+   keywords need to be filled dynamically -->
+  <lexicalstructure>
+    <keyword word="begin"><shorthelp>Begin theory or proof</shorthelp></keyword>
+    <keyword word="end"><shorthelp>End theory or proof</shorthelp></keyword>
+    <stringdelimiter>"</stringdelimiter>
+    <commentdelimiter start="(*" end="*)"/>
+    <commentdelimiter start="--"/>
+    <identifiersyntax initialchars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		      allowedchars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012345689_'"/>
+  </lexicalstructure>
  
+
   <!-- objtypes -->
+
   <objtype name="toplevel" descr="top-level context (PGIP internal)">
-  <contains objtype="theory"/>
+    <contains objtype="theory"/>
   </objtype>
+
   <objtype name="theory" descr="Isabelle theory">
-  <contains objtype="theorem"/>
-  <contains objtype="theory"/>
+    <contains objtype="theorem"/>
+    <contains objtype="theory"/>
   </objtype>
+
   <objtype name="theorem" descr="Isabelle theorem">
+    <contains objtype="theorem-proof"/>
     <hasprefs prefcategory="Theorem attributes">
       <haspref name="thm-kind" descr="Theorem kind">
 	<pgipchoice>
-	  <pgipconst name="Theorem">theorem</pgipconst>
-	  <pgipconst name="Lemma">lemma</pgipconst>
-	  <pgipconst name="Corollary">corollary</pgipconst>
+	  <pgipconst name="theorem" descr="Theorem"/>
+	  <pgipconst name="lemma" descr="Lemma"/>
+	  <pgipconst name="corollary" descr="Corollary"/>
 	</pgipchoice>
       </haspref>
       <haspref name="thm-simp" descr="Include in simplifier set">
@@ -120,6 +138,8 @@ STATUS: incomplete and experimental.
 	<pgipbool/>
       </haspref>
     </hasprefs>
+  </objtype>
+  <objtype name="theorem-proof" descr="Isabelle proof">
   </objtype>
   <objtype name="term"      descr="Isabelle term">
     <icon>
@@ -148,13 +168,37 @@ STATUS: incomplete and experimental.
     <contains objtype="theorem"/>
   </objtype>
 <!-- possible objtypes not yet supported:
-  <objtype name="oopsgoal"  descr="Abandoned proof"></objtype>
-  <objtype name="sorrygoal" descr="Postponed proof"></objtype>
-  <objtype name="proof"	    descr="Completed proof"></objtype>
   <objtype name="method"    descr="Isar method or proof step"></objtype>
 -->
 
   <!-- object operations -->
+
+  <opn name="theory" descr="make a theory">
+    <opsrc name="name">identifier</opsrc>
+    <opsrc name="imports" listwithsep=" ">theory</opsrc>
+    <optrg>theory</optrg>
+    <opcmd>theory %name imports %imports begin
+
+end</opcmd>
+  </opn>
+
+  <opn name="open lemma">
+    <inputform>
+      <field name="name"><pgipstring/><prompt>Input a name:</prompt></field>
+      <field name="term"><pgipstring/><prompt>Input a term:</prompt></field>
+      <field name="attributes">
+	<pgipchoice>
+	<pgipconst name="" descr="none"></pgipconst>
+	<pgipconst name="[simp]" descr="use in global simplifier context"></pgipconst>
+	</pgipchoice>
+	<prompt>Attributes:</prompt></field>
+    </inputform>
+    <opsrc></opsrc>
+    <opcmd>lemma %attributes %name : "%term"
+sorry
+</opcmd>
+  </opn>
+
 
   <opn name="add to simpset">
     <opsrc>theorem</opsrc>
@@ -168,8 +212,9 @@ STATUS: incomplete and experimental.
     <opcmd>declare %1 [simp del]</opcmd>
   </opn>
 
-  <opn name="instantiatevar">
-    <opsrc>theorem term</opsrc>
+  <opn name="instantiate" descr="instantiate variable in theorem">
+    <opsrc>theorem</opsrc>
+    <opsrc>term</opsrc>
     <optrg>theorem</optrg>
     <opcmd>%1 [OF %2]</opcmd>
   </opn>
@@ -203,20 +248,7 @@ STATUS: incomplete and experimental.
 
   <!-- introduce new goal -->
   <!-- [FIXME: ideally need to generalise substitution for options? in pgipchoice] -->
-  <opn name="openlemma">
-    <inputform>
-      <field name="name"><pgipstring/><prompt>Input a name:</prompt></field>
-      <field name="term"><pgipstring/><prompt>Input a term:</prompt></field>
-      <field name="attributes">
-	<pgipchoice>
-	<pgipconst name="none"></pgipconst>
-	<pgipconst name="use in global simplifier context">[simp]</pgipconst>
-	</pgipchoice>
-	<prompt>Attributes:</prompt></field>
-    </inputform>
-    <opsrc></opsrc>
-    <opcmd>lemma %attributes %name : "%term"</opcmd>
-  </opn>
+
 
 </displayconfig>
 

@@ -2,7 +2,7 @@
 # RELAX NG Schema for PGIP, the Proof General Interface Protocol                   
 # 
 # Authors:  David Aspinall, LFCS, University of Edinburgh       
-#           Christoph Lueth, University of Bremen       
+#           Christoph Lüth, University of Bremen       
 #
 # Version: $Id$    
 # 
@@ -25,6 +25,21 @@
 #  6. Prover Control
 #  7. Proof script markup and proof control
 #
+#
+# ===============================================================================
+#
+# Note on datatypes.  (see e.g. http://books.xmlschemata.org/relaxng):
+#
+#  token  : any string possibly with spaces, but spaces are normalised/collapsed
+#	    (i.e. tokenised).  Same as XML Schema xs:token
+#  string : any string, whitespaces preserved.  Same as XML Schema xs:string
+#	    (NB: attributes are normalised by XML 1.0 parsers so
+#	     spaces/newlines must be quoted)
+#  text	  : text nodes/mixed content (whitespace may be lost in mixed content)
+#
+# So: attributes should usually be tokens or more restrictive; (sometimes: strings for printing)
+#     element contents may be string (preserving whitespace), token (tokenising), 
+#       or text (which may contain further nodes).
 
 # ==============================================================================
 # 0. Prelude
@@ -32,24 +47,24 @@
 
 include "pgml.rnc"                           # include PGML grammar
 
-name_attr = attribute name { text }          # names are user-level textual identifiers
-thyname_attr = attribute thyname { text }    # names for theories (special case of name)
-thmname_attr = attribute thmname { text }    # names for theorems (special case of name)
+name_attr = attribute name { token }         # names are user-level textual identifiers (space-collapsed)
+thyname_attr = attribute thyname { token }   # names for theories (special case of name)
+thmname_attr = attribute thmname { token }   # names for theorems (special case of name)
 
 datetime_attr = 
    attribute datetime { xsd:dateTime }       # CCYY-MM-DDHH:MM:SS plus timezone info
 url_attr  = attribute url { xsd:anyURI }     # URLs  (often as "file:///localfilename.extn")
-dir_attr  = attribute dir { text }           # Unix-style directory name (no final slash)
+dir_attr  = attribute dir { string }         # Unix-style directory name (no final slash)
 
 systemdata_attr  = 
-            attribute systemdata { text }?   # system-specific data (useful for "stateless" RPC)
+            attribute systemdata { token }?   # system-specific data (useful for "stateless" RPC)
 
+objname = token	     # an identifier name (convention: any characters except semi-colon)
+objnames = token     # sequence of names in an attribute: semi-colon separated
 
-objname = string
-termobjname = string                         # (User-level) object names, semi-colon terminated
-objnames = string                            # A sequence of objnames
-
-#termobjname  = xsd:string { pattern = "[^;]+;" }  # unfortunately these declarations don't 
+#objnames = string                            # A sequence of objnames
+#termobjname  = string { pattern = "[^;]+;" }  # unfortunately these declarations don't 
+#objnames = objname | (termobjname, objname)
 #objnames = objname+                               #  work with the RNC->DTD tool trang
 
 
@@ -61,6 +76,7 @@ start = pgip                                 # Single message
       | pgips                                # A log of messages between components
       | displayconfig                        # displayconfig as a standalone element
       | pgipconfig                           # pgipconfig as a standalone element
+      | pgipdoc                              # A proof script document 
 
 pgip = element pgip {                        #  A PGIP packet contains:
    pgip_attrs,                               #   - attributes with header information;
@@ -72,15 +88,15 @@ pgip = element pgip {                        #  A PGIP packet contains:
 pgips = element pgips { pgip+ }
 
 pgip_attrs =
- attribute tag { text }?,                   # message tag, e.g. name of origin component (diagnostic)
- attribute id { text },                     # (unique) session id of this component 
- attribute destid { text }?,                # session id of destination component
+ attribute tag { token }?,                  # message tag, e.g. name of origin component (diagnostic)
+ attribute id { token },                    # (unique) session id of this component 
+ attribute destid { token }?,               # session id of destination component
  attribute class { pgip_class },            # general categorization of message
- attribute refid { text }?,                 # component id this message responds to (usually destid)
+ attribute refid { token }?,                # component id this message responds to (usually destid)
  attribute refseq { xsd:positiveInteger }?, # message sequence this message responds to
  attribute seq { xsd:positiveInteger }      # sequence number of this message
 
-pgip_class = "pg"      # message sent TO proof general broker
+pgip_class = "pg"      # message sent TO proof general broker (e.g. FROM proof assistant).
            | "pa"      # message sent TO the proof assistant/other component
            | "pd"      # message sent TO display/front-end components
 
@@ -128,12 +144,13 @@ componentspec =
       componentid_attr,         # Unique identifier for component class
       componentname_attr,       # Textual name of component class
       componenttype,            # Type of component: prover, display, auxiliary
-      systemattrs,              # System attributes for connecting to component
+      startupattrs,		# Describing startup behaviour
+      systemattrs,              # System attributes for component
       componentconnect          # How to connect to component
    }
 
 componentid_attr   = attribute componentid   { token }
-componentname_attr = attribute componentname { text }
+componentname_attr = attribute componentname { token }
 
 componenttype = element componenttype {
      provercomponent 
@@ -151,30 +168,36 @@ componentconnect =
    componentsubprocess | componentsocket | connectbyproxy
 
 componentsubprocess = 
-   element syscommand { text }
+   element syscommand { string }
 componentsocket = 
-   (element host { text }, element port { text })
+   (element host { token }, element port { xsd:positiveInteger })
 connectbyproxy = 
-   (element proxy { attribute host { text }    # Host to connect to
+   (element proxy { attribute host { token }    # Host to connect to
 		  , attribute connect { 
                            "rsh" | "ssh" # Launch proxy via RSH or SSH, needs
 			                 # authentication 
                          | "server"  # connect to running proxy on given port
                          }?
-                  , attribute user { text } ? # user to connect as with RSH/SSH
-		  , attribute port { text } ? # port to connect to running proxy
+                  , attribute user { token } ? # user to connect as with RSH/SSH
+                  , attribute path { token } ? # path of pgipkit on remote
+		  , attribute port { xsd:positiveInteger } ? # port to connect to running proxy
 		  , componentconnect
 		  })
 
-systemattrs = (
-   attribute timeout { xsd:integer }?,  # timeout for communications
-   attribute sync { xsd:boolean }?,     # whether to wait for ready
-   attribute startup {		# what to do on broker startup:
+# Attributes describing when to start the component.
+startupattrs =
+  attribute startup {		# what to do on broker startup:
              "boot"   |		# always start this component (default with displays)
              "manual" |		# start manually (default with provers)
-             "ignore"		# never start this
+             "ignore"		# never start this component
              }?
-   )
+
+# System attributes describing behaviour of component. 
+systemattrs = (
+    attribute timeout { xsd:integer }?  # timeout for communications
+  , attribute sync { xsd:boolean }?     # whether to wait for ready
+  , attribute nestedgoals { xsd:boolean}? # Does prover allow nested goals?
+  )
 
 # Control commands from display to broker
 brokercontrol = 
@@ -210,19 +233,18 @@ brokerstatus  = element brokerstatus
                        { knownprovers, runningprovers, brokerinformation }
 
 knownprover   = element knownprover   { componentid_attr, provername }
-runningprover = element runningprover { proverid_attr, provername }
+runningprover = element runningprover { componentid_attr, proverid_attr, provername }
 
 knownprovers   = element knownprovers { knownprover* }
 runningprovers = element runningprovers { runningprover* }
-brokerinformation = element brokerinformation { text }
+brokerinformation = element brokerinformation { string }
 
 proveravailmsg  = element proveravailable { provername_attr,
                                             componentid_attr }
-newprovermsg    = element proverstarted { provername_attr, 
-		                          proverid_attr }
-                  # QUESTION: do we want  componentid_attr 
-                  # here as well, and do we want to be able to run multiple
-                  # copies of the same prover? 
+newprovermsg    = element proverstarted { proverid_attr
+					, componentid_attr
+		                        , provername_attr
+		                        }
 proverstatemsg = element proverstate { 
                        proverid_attr, provername_attr,
                        attribute proverstate {proverstate} } 
@@ -253,13 +275,13 @@ dispfilecmd =
 
 dispfilemsg =
     newfile			# announce creation of new file (in response to load/open)
-  | filestatus			#announce change in status of file in broker
+  | filestatus			# announce change in status of file in broker
 
 # unique identifier of loaded files
-srcid_attr = attribute srcid { text }
+srcid_attr = attribute srcid { token }
 
 loadparsefile = element loadparsefile { url_attr, proverid_attr }
-newfilewith   = element newfilewith   { url_attr, proverid_attr, text }
+newfilewith   = element newfilewith   { url_attr, proverid_attr, string }
 dispopenfile  = element dispopenfile { url_attr,
                                        proverid_attr,
                                        attribute overwrite { xsd:boolean }?}
@@ -268,15 +290,17 @@ savefile      = element savefile { srcid_attr,
 discardfile   = element discardfile { srcid_attr }
 
 newfile       = element newfile  { proverid_attr, srcid_attr, url_attr }
-filestatus    = element filestatus  { proverid_attr, srcid_attr, newstatus_attr, 
+filestatus    = element filestatus  { proverid_attr, srcid_attr, newstatus_attr, url_attr?,
 				      datetime_attr} 
 
 newstatus_attr = attribute newstatus { "saved" | "changed" | "discarded" }
 
 dispobjcmd =
     setobjstate			# request of change of state 
-  | editobj			# request edit operation of opbjects
+  | editobj			# request edit operation of objects
   | createobj			# request creation of new objects
+# Suggested May 06: probably add re-load flags instead 
+#  | reloadobjs                  # request relisting of all objects
   | inputcmd		        # process the command (generated by an input event)
   | interruptprover		# send interrupt or kill signal to prover
 
@@ -295,14 +319,16 @@ newobj = element newobj {
             objtype_attr ?,
             attribute objparent { objid }?,
             attribute objstate { objstate },
+	    # FIXME: would like to include metainfo here
+            # as (properscriptcmd, metainfo*) | unparseable
             (properscriptcmd | unparseable) }
 
 replaceobjs = element replaceobjs {
 	                srcid_attr,
 	                attribute replacedfrom { objid }? ,
 			attribute replacedto { objid }?,
-                        delobj*,
-                        newobj+ }
+                        delobj*,    # actually, either of delobj or 
+                        newobj* }   # newobj can be empty but not both.
 
 delobj = element delobj   { proverid_attr, srcid_attr, objid_attr }
 
@@ -316,12 +342,15 @@ setobjstate = element setobjstate
 editobj = element editobj { srcid_attr ?,
 	                    attribute editfrom { objid }?,
                             attribute editto   { objid }?,
-                            text }
+                            string }
 createobj = element createobj { srcid_attr ?, 
                                 attribute objposition { objid }?, 
-                                text}
+                                string }
 
-inputcmd       = element inputcmd { improper_attr, text }
+# Suggested May 06: probably add re-load flags instead 
+# reloadobjs = element reloadobjs { srcid_attr }
+
+inputcmd       = element inputcmd { improper_attr, string }
 improper_attr  = attribute improper { xsd:boolean }
 
 interruptprover = element interruptprover 
@@ -330,7 +359,7 @@ interruptprover = element interruptprover
 interruptlevel_attr  = attribute interruptlevel { "interrupt" | "stop" | "kill" }
 
 objid_attr = attribute objid { objid } 
-objid      = text 
+objid      = token 
 
 objstate = 
   ( "unparseable" | "parsed" | "being_processed" | "processed" | "outdated" )
@@ -350,8 +379,8 @@ proverconfig =
 
 
 
-prefcat_attr = attribute prefcategory { text}   # e.g. "expert", "internal", etc.
-                                                # could be used for tabs in dialog
+prefcat_attr = attribute prefcategory { token }   # e.g. "expert", "internal", etc.
+                                                      # could be used for tabs in dialog
 
 askpgip   = element askpgip   { empty }
 askpgml   = element askpgml   { empty }
@@ -382,7 +411,7 @@ kitconfig =
   | menudel			# remove a menu entry
 
 # version reporting
-version_attr  = attribute version { text }
+version_attr  = attribute version { token }
 usespgml = element usespgml  { version_attr }
 usespgip = element usespgip  { version_attr 
 	                     , activecompspec
@@ -395,6 +424,7 @@ usespgip = element usespgip  { version_attr
 activecompspec =  ( componentid_attr?   # unique identifier of component class
 	          , componentname_attr? # Textual name of this component (overrides initial spec)
 		  , componenttype?      # Type of component
+		  , systemattrs         # system attributes
 		  , acceptedpgipelems?  # list of accepted elements
 		  )
 
@@ -403,37 +433,56 @@ acceptedpgipelems = element acceptedpgipelems { singlepgipelem* }
 
 singlepgipelem    = element pgipelem { 
    attribute async { xsd:boolean }?,  # true if this command supported asynchronously (deflt false)
-   text }                             # (otherwise part of ready/sync stream)
+				      # (otherwise part of usual ready/sync stream)
+   attribute attributes { text }?,    # comma-separated list of supported optional attribute names
+				      # useful for: times attribute
+   text }                             # the unadorned name of the PGIP element (*not* an element)
 
 # PGML configuration
 pgmlconfig = element pgmlconfig { pgmlconfigure+ }
 
 # Types for config settings: corresponding data values should conform to canonical
-# representation for corresponding XML Schema 1.0 Datatypes.  (This representation is verbose
-# but helps for error checking later)
+# representation for corresponding XML Schema 1.0 Datatypes.  
 #
 # In detail:
+#  pgipnull   = empty
 #  pgipbool   = xsd:boolean = true | false
 #  pgipint    = xsd:integer = (-)?(0-9)+     (canonical: no leading zeroes)
-#  pgipstring = xsd:string  =  <any character sequence>
+#  pgipstring = string  =  <any non-empty character sequence>
 #  pgipchoice = cf xs:choice  = type1 | type2 | ... | typen
 
-pgiptype   = pgipbool | pgipint | pgipstring | pgipchoice | pgipconst
-pgipbool   = element pgipbool { empty }
+pgiptype   = pgipnull | pgipbool | pgipint | pgipstring | pgipchoice | pgipconst
 
-pgipint    = element pgipint  { min_attr?, max_attr?, empty }
+pgipnull   = element pgipnull { descr_attr?, empty }
+pgipbool   = element pgipbool { descr_attr?, empty }
+pgipint    = element pgipint  { min_attr?, max_attr?, descr_attr?, empty }
 min_attr   = attribute min { xsd:integer }
 max_attr   = attribute max { xsd:integer }
-pgipstring = element pgipstring { empty }
+pgipstring = element pgipstring { descr_attr?, empty }
+pgipconst  = element pgipconst { name_attr, descr_attr? } 
+      # FIXME: Temporary fix because Isabelle does it wrong -- should be empty }
 pgipchoice = element pgipchoice { pgiptype+ }
-pgipconst  = element pgipconst { name_attr?, text }
 
-pgipvalue  = text
+# Notes on pgipchoice:
+# 1. Choices must not be nested (i.e. must not contain other choices)
+# 2. The description attributes for pgipbool, pgipint, pgipstring and pgipconst
+#    are for use with pgipchoice: they can be used as a user-visible label
+#    when representing the choice to the user (e.g. in a pull-down menu).
+# 3. A pgipchoice should have an unambiguous representation as a string. That means
+#    all constants in the choice must have different names, and a choice must not
+#    contain more than one each of pgipint, pgipstring and pgipbool.
+
+pgipvalue  = string
 
 icon  = element icon { xsd:base64Binary }  # image data for an icon
 
-default_attr = attribute default { text }
-descr_attr   = attribute descr { text }
+# The default value of a preference as a string (using the unambiguous
+# conversion to string mentioned above). A string value will always be quoted
+# to distinguish it from constants or integers.
+default_attr = attribute default { token }
+
+# Description of a choice.  If multi-line, first line is short tip.
+descr_attr   = attribute descr { string }
 
 # icons for preference recommended size: 32x32 
 # top level preferences: may be used in dialog for preference setting
@@ -445,12 +494,14 @@ haspref = element haspref  {
    pgiptype
 }
 
+
+
 hasprefs = element hasprefs { prefcat_attr?, haspref* }
 
 prefval = element prefval { name_attr, pgipvalue } 
 
 # menu items (incomplete, FIXME)
-path_attr = attribute path { text }
+path_attr = attribute path { token }
 
 menuadd  = element menuadd  { path_attr?, name_attr?, opn_attr? }
 menudel  = element menudel  { path_attr?, name_attr? }
@@ -463,23 +514,51 @@ opn_attr = attribute operation { token }
 # objects, types, and operations for building proof commands.
 
 # NB: the following object types have a fixed interpretation 
-# in PGIP:  "comment", "theorem", "theory", "file" 
+# in PGIP:
+#        "identifier":   an identifier in the identifier syntax
+#           "comment":   an arbitrary sequence of characters
+#	    "theorem":   a theorem name or text
+#	    "theory" :   a theory name or text
+#	    "file" :     a file name
 
 displayconfig =
   element displayconfig { 
      welcomemsg?, icon?, helpdoc*, lexicalstructure*,
      objtype*, opn* }
 
-objtype = element objtype { name_attr, descr_attr?, icon?, hasprefs?, contains* }
+objtype = element objtype { name_attr, descr_attr?, icon?,  contains*, hasprefs?  }
 
 objtype_attr = attribute objtype { token }           # the name of an objtype
 contains = element contains { objtype_attr, empty }  #  a container for other objtypes
 
-opn   = element opn { name_attr, inputform?, opsrc, optrg, opcmd, improper_attr? }
+opn = element opn { 
+   name_attr, 
+   descr_attr?,
+   inputform?,	  # FIXME: can maybe remove this?
+   opsrc*,	  # FIXME: incompat change wanted: have list of source elts, not spaces
+   optrg, 
+   opcmd, 
+   improper_attr? }
 
-opsrc = element opsrc { list { token* } }  # source types: a space separated list
-optrg = element optrg { token }?           # single target type, empty for proof command
-opcmd = element opcmd { text }             # prover command, with printf-style "%1"-args
+opsrc = 
+   element opsrc {	  
+      name_attr?,         # %name as an alternative to %number
+      selnumber_attr?,    # explicit number for %number, the nth item selected
+      prompt_attr?,	  # prompt in form or tooltip in template
+      listwithsep_attr?,  # list of args of this type with given separator
+      list { token* } }   # source types: a space separated list
+			  # FIXME incompat change wanted: just have one source here
+			  # FIXME: need to add optional pgiptype
+
+listwithsep_attr =  attribute listwithsep { token }
+selnumber_attr =    attribute selnumber { xsd:positiveInteger }
+prompt_attr =       attribute prompt { string }
+
+optrg = 
+   element optrg { token }?           # single target type, empty for proof command
+opcmd = 
+   element opcmd { string }           # prover command, with printf-style "%1"-args
+					   #  (whitespace preserved here: literal text)
 
 # interactive operations - require some input
 inputform = element inputform { field+ }  
@@ -489,7 +568,7 @@ inputform = element inputform { field+ }
 
 field = element field { 
    name_attr, pgiptype,
-   element prompt { text }
+   element prompt { string }
 }
 
 # identifier tables: these list known items of particular objtype.
@@ -500,16 +579,14 @@ setids  = element setids { idtable* }   # (with an empty idtable, clear table)
 addids  = element addids { idtable* }
 delids  = element delids { idtable* }
 
-# give value of some identifier (response to showid)
+# give value of some identifier (response to showid; same values returned)
 idvalue = element idvalue               
-   {  name_attr, objtype_attr, pgmltext }
+   {  thyname_attr?, name_attr, objtype_attr, pgmltext }
 
 idtable    = element idtable { context_attr?, objtype_attr, identifier* }
 identifier = element identifier { token }
 
 context_attr = attribute context { token } # parent identifier (context) 
-
-instance_attr = attribute instance { text }
 
 # prover information: 
 # name, instance (e.g. in case of major parameter of invocation);
@@ -521,14 +598,16 @@ proverinfo = element proverinfo
 ## moving there.  
       welcomemsg?, icon?, helpdoc*, lexicalstructure* }
 
-welcomemsg = element welcomemsg { text }
+instance_attr = attribute instance { token }
+
+welcomemsg = element welcomemsg { string }
 
 # helpdoc: advertise availability of some documentation, given a canonical
 # name, textual description, and URL or viewdoc argument.
 # 
-helpdoc = element helpdoc { name_attr, descr_attr, url_attr?, text } # text is arg to "viewdoc"
+helpdoc = element helpdoc { name_attr, descr_attr, url_attr?, token } # token string is arg to "viewdoc"
 
-filenameextns_attr = attribute filenameextns { objnames }
+filenameextns_attr = attribute filenameextns { xsd:NMTOKENS } # space-separated extensions sans "."
 
 # lexical structure of proof texts
 lexicalstructure = 
@@ -541,29 +620,29 @@ lexicalstructure =
    }
 
 keyword = element keyword {
-   attribute word { text },
+   attribute word { token },
    shorthelp?,
    longhelp? }
 
-shorthelp = element shorthelp { text }   # one-line (tooltip style) help 
-longhelp  = element longhelp { text }    # multi-line help
+shorthelp = element shorthelp { string }   # one-line (tooltip style) help 
+longhelp  = element longhelp { string }    # multi-line help
 
-stringdelimiter = element stringdelimiter { text }  # should be a single char
+stringdelimiter = element stringdelimiter { token }  # should be a single char
 
 # The escape character is used to escape strings and other special characters - in most languages it is \
-escapecharacter = element escapecharacter { text }  # should be a single char
+escapecharacter = element escapecharacter { token }  # should be a single char
 
 commentdelimiter = element commentdelimiter { 
-   attribute start { text },
-   attribute end { text }?,
+   attribute start { token },
+   attribute end { token }?,
    empty
   }
 
 
 # syntax for ids: id = initial allowed*  or id = allowed+ if initial empty
 identifiersyntax = element identifiersyntax { 
-   attribute initialchars { text }?,
-   attribute allowedchars { text }
+   attribute initialchars { token }?,
+   attribute allowedchars { token }
 }
 
 # ==============================================================================
@@ -577,21 +656,28 @@ provercontrol =
  | stopquiet			# turn on normal proof state & message displays
  | pgmlsymbolson		# activate use of symbols in PGML output (input always understood)
  | pgmlsymbolsoff		# deactivate use of symbols in PGML output
+ | setproverflag		# set/clear a standard control flag (supersedes above)
 
 proverinit     = element proverinit { empty }  
 proverexit     = element proverexit { empty }
-startquiet     = element startquiet { empty }  
-stopquiet      = element stopquiet  { empty }  
-pgmlsymbolson  = element pgmlsymbolson { empty }
-pgmlsymbolsoff = element pgmlsymbolsoff { empty }
+startquiet     = element startquiet { empty }      # DEPRECATED 
+stopquiet      = element stopquiet  { empty }      # DEPRECATED 
+pgmlsymbolson  = element pgmlsymbolson { empty }   # DEPRECATED
+pgmlsymbolsoff = element pgmlsymbolsoff { empty }  # DEPRECATED
 
+setproverflag  = element setproverflag { flagname_attr, 
+					 attribute value { xsd:boolean } }
+flagname_attr  = 
+   attribute flagname { "quiet" 
+		      | "pgmlsymbols" 
+		      | "metainfo:thmdeps" 
+		      }
 
 # General prover output/responses
 
-# Nearly all prover output has an optional proverid attribute, except for the one which is 
-# never seen by any display. This is set by the Broker to indicate the originating or referring
-# prover. 
-# Displays rendering these messages can rely on this attribute being set.
+# Prover output has an otional proverid_attribute. This is set by the broker when relaying 
+# prover output to displays. When producing output, provers can and should not set this
+# attribute. 
 
 proveroutput =
    ready			# prover is ready for input
@@ -606,8 +692,8 @@ proveroutput =
 ready = element ready { empty }
 
 displayarea = "status"		# a status line
-	    | "message"		# the message area (e.g. response buffer)
-            | "display"		# the main display area (e.g. goals buffer)
+	    | "message"		# the message area (e.g. response buffer, perhaps swapped into view)
+            | "display"		# the main display area (e.g. goals buffer, usually persistent)
 	    | token		# prover-specified window name
 
 cleardisplay = 
@@ -627,22 +713,30 @@ messagecategory =		# attribution of message
 
 normalresponse =                           
   element normalresponse { 
-    proverid_attr?,
+    proverid_attr?,				    # if no proverid, assume message is from broker
     attribute area { displayarea },
     attribute messagecategory { messagecategory }?, # optional extra category (e.g. tracing/debug)
-    attribute urgent { "y" }?,                      # indication that message must be displayed
+    attribute urgent { xsd:boolean }?,              # message should be brought to users attention
     pgmltext 
 }
 
 ## Error messages:  these are different from ordinary messages in that
-##		    they indicate an error condition in the prover, with a notion
-##		    of fatality and (optionally) a location.  The interface may collect these
-##		    messages in a log, display in a modal dialog, or in the specified
-##		    display area if one is specified.
+## they indicate an error condition in the prover, with a notion
+## of fatality and (optionally) a location.  The interface may collect these
+## messages in a log, display in a modal dialog, or in the specified
+## display area if one is given
+## 
+## Error responses are also taken to indicate failure of a command to be processed, but only in
+## the special case of a response with fatality "fatal".  If any errorresponse with
+## fatality=fatal is sent before <ready/>, the PGIP command which triggered the message is
+## considered to have failed.  If the command is a scripting command, it will not be added to
+## the successfully processed part of the document.  A "nonfatal" error also indicates some
+## serious problem with the sent command, but it is not considered to have failed.  This is the
+## ordinary response for
 
 errorresponse = 
    element errorresponse { 
-     proverid_attr?,
+     proverid_attr?,				   #  ... as above ...
      attribute area { displayarea }?,
      attribute fatality { fatality },
      location_attrs,
@@ -650,41 +744,44 @@ errorresponse =
   }
 
 fatality =	  # degree of error conditions:
-   "nonfatal"     #  - warning message (interface should show message)
- | "fatal"        #  - error message (interface must show message)
+   "info"	  #  - info message
+ | "warning"      #  - warning message
+ | "nonfatal"     #  - error message, recovered and state updated
+ | "fatal"        #  - error message, command has failed
  | "panic"        #  - shutdown condition, component exits (interface may show message)
- | "log"          #  - log message (interface must not show message, write to broker log file)
- | "debug"        #  - debug message (interface may show message, write to broker log file)
-		   ## FIXME da: wondering if this is more appropriate than normal/internal above
-
+ | "log"          #  - system-level log message (interface does not show message; written to log file)
+ | "debug"        #  - system-level debug message (interface may show message; written to log file)
 
 # attributes describing a file location (for error messages, etc)
 location_attrs = 
-     attribute location_descr    { text }?,
+     attribute location_descr    { string }?,
      attribute location_url      { xsd:anyURI }?,
      attribute locationline      { xsd:positiveInteger }?,
      attribute locationcolumn    { xsd:positiveInteger }?,
-     attribute locationcharacter { xsd:positiveInteger }?
+     attribute locationcharacter { xsd:positiveInteger }?,
+     attribute locationlength    { xsd:positiveInteger }?
 
-scriptinsert = element scriptinsert { proverid_attr?, metavarid_attr?, text }
+# instruction to insert some literal text into the document
+scriptinsert = element scriptinsert { proverid_attr?, metavarid_attr?, string }
 
 
 # metainformation is an extensible place to put system-specific information
 
-value = element value { name_attr?, text }   # generic value holder
+value = element value { name_attr?, text }        # generic value holder [ deprecated: use metainfo ]
+metainfo = element metainfo { name_attr?, text }  # generic info holder
 
 metainforesponse = 
    element metainforesponse { 
       proverid_attr?,
-      attribute infotype { text },      # categorization of data
-      value* }                          # data values
+      attribute infotype { token },      # categorization of data
+      (value | metainfo)* }              # data values/text
 
 
 # ==============================================================================
 # 7. Proof script markup and proof control 
 # ==============================================================================
 
-# properproofcmds are purely markup on native proof script text
+# properproofcmds are purely markup on native proof script (plain) text
 properproofcmd =
     opengoal        # open a goal in ambient context
   | proofstep       # a specific proof command (perhaps configured via opcmd) 
@@ -692,10 +789,11 @@ properproofcmd =
   | giveupgoal      # close current open proof, retaining attempt in script (Isar oops)
   | postponegoal    # close current open proof, record as proof obl'n  (Isar sorry)  
   | comment         # a proof script comment; text probably ignored by prover 
+  | doccomment      # a proof script document comment; text maybe processed by prover 
   | whitespace      # a whitespace comment; text ignored by prover
   | spuriouscmd     # command ignored for undo, e.g. "print x", could be pruned from script
   | badcmd          # a command which should not be stored in the script (e.g. an improperproofcmd)
-  | litcomment      # a literate comment (never passed to prover)
+  | litcomment      # a PGIP literate comment (never passed to prover)
   | pragma	    # a document generating instruction (never passed to prover)
 
 # improperproofcmds are commands which are never stored in the script
@@ -707,18 +805,22 @@ improperproofcmd =
   | forget        # forget a theorem (or named target), outdating dependent theorems
   | restoregoal   # re-open previously postponed proof, outdating dependent theorems
 
-opengoal     = element opengoal     { display_attr?, thmname_attr?, text } # FIXME: add objprefval
-proofstep    = element proofstep    { display_attr?, name_attr?, objtype_attr?, text }
-closegoal    = element closegoal    { display_attr?, text }
-giveupgoal   = element giveupgoal   { display_attr?, text }
-postponegoal = element postponegoal { display_attr?, text }
-comment      = element comment      { display_attr?, text }
-whitespace   = element whitespace   { display_attr?, text }
+# In future we may allow input to contain markup; for now it is treated uniformly as plain text.
+
+opengoal     = element opengoal     { display_attr?, thmname_attr?, string } # FIXME: add objprefval
+proofstep    = element proofstep    { display_attr?, name_attr?, objtype_attr?, string }
+closegoal    = element closegoal    { display_attr?, string }
+giveupgoal   = element giveupgoal   { display_attr?, string }
+postponegoal = element postponegoal { display_attr?, string }
+comment      = element comment      { display_attr?, string }
+doccomment   = element doccomment   { display_attr?, string }
+whitespace   = element whitespace   { display_attr?, string }
 
 display_attr = attribute nodisplay { xsd:boolean }  # whether to display in documentation
 
-spuriouscmd  = element spuriouscmd { text }
-badcmd       = element badcmd { text }
+spuriouscmd  = element spuriouscmd { string }  # no semantic effect (e.g. print)
+badcmd       = element badcmd { string }       # illegal in script (e.g. undo)
+nonscripting = element nonscripting { string } # non-scripting text (different doc type)
 
 litcomment  = element litcomment { format_attr?, (text | directive)* }
 directive   = element directive { (proofctxt,pgml) }
@@ -728,16 +830,18 @@ pragma       = showhidecode | setformat
 showhidecode = element showcode { attribute show { xsd:boolean } }
 setformat    = element setformat { format_attr }
 
-dostep       = element dostep { text }
-undostep     = element undostep { empty }
-redostep     = element redostep { empty }
+dostep       = element dostep { string }
+undostep     = element undostep { times_attr? }
+redostep     = element redostep { times_attr? }
 abortgoal    = element abortgoal { empty }
 forget       = element forget { thyname_attr?, name_attr?, objtype_attr? }
 restoregoal  = element restoregoal { thmname_attr }
 
+times_attr   = attribute times { xsd:positiveInteger }
+
 # empty objprefval element is used for object prefs in script markup 
 objprefval = element objprefval { name_attr, val_attr, empty }
-val_attr   = attribute value { text }
+val_attr   = attribute value { token }
 
 
 
@@ -745,10 +849,14 @@ val_attr   = attribute value { text }
 # =======================================================
 # Inspecting the proof context, etc.
 
+# NB: ids/refs/parent: work in progress, liable to change.
+
 proofctxt =
-    askids         # please tell me about identifiers (given objtype in a theory)
-  | showid         # print value of an object
-  | askguise       # please tell me about the current state of the prover
+    askids         # tell me about identifiers (given objtype in a theory)
+  | askrefs        # tell me about dependencies (references) of an identifier
+#  | askparent      # tell me the container for some identifier
+  | showid         # print the value of some object
+  | askguise       # tell me about the current state of the prover
   | parsescript    # parse a raw proof script into proofcmds
   | showproofstate # (re)display proof state (empty if outside a proof)
   | showctxt       # show proof context
@@ -761,15 +869,45 @@ askids = element askids  { thyname_attr?, objtype_attr? }
 	# This is because otherwise the list is enormous.
 	# Perhaps we should make thyname_attr obligatory? 
 	# With a blank entry (i.e. thyname="") allowed for listing theories, or for when 
-	# you really do want to see everything.
+	# you really do want to see everything (could be a shell-style glob)
+
+
+# askids:    container -> identifiers contained within
+# askparent: identifier + type + context -> container
+# askrers:   identifier + type + context -> identifiers which are referenced 
+#
+askrefs = element askrefs { url_attr?, thyname_attr?, objtype_attr?, name_attr? }
+# TODO: maybe include guises here as indication of reference point.  
+# setrefs in reply to askrefs only really needs identifiers, but it's nice to
+# support voluntary information too.
+setrefs = element setrefs { url_attr?, thyname_attr?, objtype_attr?, name_attr?, idtable*, fileurl* }
+fileurl = element fileurl { url_attr }
+# telldeps = element telldeps { thyname_attr?, objtype_attr, name_attr?, identifier* }
+# Idea: for a theory dependency we return a single file (URL), the containing file.
+#       for a file dependency we return urls of parent files,
+#       for theorem dependency we return theory
+#       for term dependency we return definition (point in file)
+
 
 showid = element showid  { thyname_attr?, objtype_attr, name_attr }
 
 askguise = element askguise { empty }
 
+showproofstate = element showproofstate { empty }
+showctxt       = element showctxt { empty }
+searchtheorems = element searchtheorems { string }
+setlinewidth   = element setlinewidth { xsd:positiveInteger }
+viewdoc        = element viewdoc { token }
+
 
 # =======================================================
-# Parsing proof scripts
+# Proof script documents and parsing proof scripts
+
+# A PGIP document is a sequence of script commands, each of which
+# may have meta information attached.
+properscriptcmdmetainfo = properscriptcmd, metainfo*
+pgipdoc = element pgipdoc { properscriptcmdmetainfo* }
+
 
 # NB: parsing needs only be supported for "proper" proof commands,
 # which may appear in proof texts.  The groupdelimiters are purely
@@ -782,29 +920,38 @@ askguise = element askguise { empty }
 # (and system data attribute) that was passed in.
 
 parsescript = element parsescript
-                 { location_attrs, systemdata_attr, text }
+                 { location_attrs, systemdata_attr, string }
        
 parseresult = element parseresult { location_attrs, systemdata_attr,
 				    singleparseresult* }
 
-singleparseresult  = properscriptcmd | unparseable | errorresponse
+# Really we'd like parsing to return properscriptcmdmetainfo as a single
+# result (and similarly for newobj).  
+# Unfortunately, although this is an XML-transparent extension, it
+# messes up the Haskell schema-fixed code rather extensively, so for
+# now we just treat metainfo at the same level as the other results,
+# although it should only appear following a properscriptcmd.
 
-unparseable = element unparseable { text }
+singleparseresult  = properscriptcmd | metainfo | unparseable | errorresponse
+
+unparseable = element unparseable { string }
 properscriptcmd = properproofcmd | properfilecmd | groupdelimiter
 
 
+
+
 groupdelimiter = openblock | closeblock
-openblock  = element openblock { metavarid_attr? }
+openblock  = element openblock { 
+   name_attr?, objtype_attr?, 
+   metavarid_attr?, positionid_attr?,
+   fold_attr?, indent_attr? }
 closeblock = element closeblock { empty }
 
 # 
-metavarid_attr = attribute metavarid { token }
-
-showproofstate = element showproofstate { empty }
-showctxt       = element showctxt { empty }
-searchtheorems = element searchtheorems { text }
-setlinewidth   = element setlinewidth { xsd:positiveInteger }
-viewdoc        = element viewdoc { text }
+metavarid_attr  = attribute metavarid { token }
+positionid_attr = attribute positionid { token }
+fold_attr       = attribute fold { xsd:boolean }
+indent_attr     = attribute indent { xsd:integer }
 
 
 # =======================================================
@@ -821,10 +968,11 @@ improperfilecmd =
   | redoitem	    # redo last step (or named item) in theory construction (optionally supported)
   | aborttheory     # abort currently open theory
   | retracttheory   # retract a named theory
-  | openfile        # lock a file for constructing a proof text 
-  | closefile       # unlock a file, suggesting it has been processed
+  | openfile        # signal a file is being opened for constructing a proof text interactively
+  | closefile       # close the currently open file, suggesting it has been processed
   | abortfile       # unlock a file, suggesting it hasn't been processed
-  | loadfile        # load a file possibly containing theory definition(s)
+  | loadfile        # load (i.e. process directly) a file possibly containing theory definition(s)
+  | retractfile     # retract a given file (including all contained theories) 
   | changecwd       # change prover's working directory (or load path) for files
   | systemcmd       # system (other) command, parsed internally
 
@@ -833,13 +981,13 @@ fileinfomsg =
  | informfileretracted    # prover informs interface a particular file is outdated
  | informguise		  # prover informs interface about current state
 
-opentheory    = element opentheory    { thyname_attr, parentnames_attr?, text }
-closetheory   = element closetheory   { text }
-theoryitem    = element theoryitem    { name_attr?, objtype_attr?, text } # FIXME: add objprefval
+opentheory    = element opentheory    { thyname_attr, parentnames_attr?, string }
+closetheory   = element closetheory   { string }
+theoryitem    = element theoryitem    { name_attr?, objtype_attr?, string } # FIXME: add objprefval
 
-doitem        = element doitem        { text } 
-undoitem      = element undoitem      { name_attr?, objtype_attr? } 
-redoitem      = element redoitem      { name_attr?, objtype_attr? } 
+doitem        = element doitem        { string } 
+undoitem      = element undoitem      { name_attr?, objtype_attr?, times_attr? } 
+redoitem      = element redoitem      { name_attr?, objtype_attr?, times_attr? } 
 aborttheory   = element aborttheory   { empty }
 retracttheory = element retracttheory { thyname_attr }
 
@@ -854,15 +1002,26 @@ openfile      = element openfile  { url_attr }	    # notify begin reading from g
 closefile     = element closefile { empty }	    # notify currently open file is complete
 abortfile     = element abortfile { empty }	    # notify currently open file is discarded
 loadfile      = element loadfile  { url_attr }	    # ask prover to read file directly
-changecwd     = element changecwd { dir_attr }	    # ask prover to change current working dir
+retractfile   = element retractfile { url_attr }    # ask prover to retract file
+changecwd     = element changecwd { url_attr }	    # ask prover to change current working dir
 
 # this one not yet implemented, but would be handy.  Perhaps could be 
 # locatethy/locatefile instead.
 #locateobj     = element locateobj { name_attr, objtype_attr } # ask prover for file defining obj
 
-informfileloaded    = element informfileloaded    { url_attr }  # prover indicates a processed file
-informfileretracted = element informfileretracted { url_attr }  # prover indicates an undone file
+informfileloaded    = element informfileloaded    { completed_attr?, 
+						    url_attr }  # prover indicates a processed file
+informfileretracted = element informfileretracted { completed_attr?, 
+						    url_attr }  # prover indicates an undone file
+informfileoutdated = element informfileoutdated { completed_attr?, 
+						    url_attr }  # prover indicates an outdated file
+
 informfilelocation  = element informfilelocation  { url_attr }  # response to locateobj
+
+completed_attr = attribute completed { xsd:boolean }  # false if not completed (absent=>true)
+						      # (the prover is requesting a lock)
+
+
 
 informguise = 
    element informguise {
@@ -873,24 +1032,24 @@ informguise =
 
 proofpos_attr = attribute proofpos { xsd:nonNegativeInteger }
 
-systemcmd     = element systemcmd     { text }		# "shell escape", arbitrary prover command!
+systemcmd     = element systemcmd     { string }	# "shell escape", arbitrary prover command!
 
 # ==============================================================================
-# 8. Internal messages-- only used between communicating brokers.
+# 8. Internal messages: only used between communicating brokers.
 # ==============================================================================
 internalmsg  = launchcomp | stopcomp | registercomp | compstatus
 
 launchcomp   = element launchcomponent { componentspec }
 	               # request to start an instance of this component remotely
-stopcomp     = element stopcomponent { attribute sessionid { string } }
+stopcomp     = element stopcomponent { attribute sessionid { token } }
                        # request to stop component with this session id remotely
 
 registercomp = element registercomponent { activecompspec } 
                        # component has been started successfully
 compstatus   = element componentstatus { componentstatus_attr    # status
 	                               , componentid_attr?       # component id (for failure)
-	                               , element text { text }?  # user-visible error message
-				       , element info { text }?  # Additional info for log files.
+	                               , element text { string }?  # user-visible error message
+				       , element info { string }?  # Additional info for log files.
 				       }	
                        # component status: failed to start, or exited
 
