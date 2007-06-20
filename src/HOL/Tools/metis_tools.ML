@@ -1,6 +1,8 @@
 (*  Title:      HOL/Tools/metis_tools.ML
     Author:     Kong W. Susanto and Lawrence C. Paulson, CU Computer Laboratory
     Copyright   Cambridge University 2007
+
+HOL setup for the Metis prover (version 2.0 from 2007).
 *)
 
 signature METIS_TOOLS =
