@@ -77,12 +77,23 @@ val Envir.Envir {asol = tenv0, iTs = tyenv0, ...} = Envir.empty 0
 fun first_order_resolve thA thB =
   let val thy = theory_of_thm thA
       val tmA = concl_of thA
-      fun match pat = Pattern.first_order_match thy (pat,tmA) (tyenv0,tenv0)
       val Const("==>",_) $ tmB $ _ = prop_of thB
-      val (tyenv,tenv) = match tmB
+      val (tyenv,tenv) = Pattern.first_order_match thy (tmB,tmA) (tyenv0,tenv0)
       val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
   in  thA RS (cterm_instantiate ct_pairs thB)  end
   handle _ => raise THM ("first_order_resolve", 0, [thA,thB]);
+
+fun flexflex_first_order th = 
+  case (tpairs_of th) of
+      [] => th
+    | pairs =>
+	let val thy = theory_of_thm th
+	    val (tyenv,tenv) = 
+	          foldl (uncurry (Pattern.first_order_match thy)) (tyenv0,tenv0) pairs
+	    val t_pairs = map term_pair_of (Vartab.dest tenv)
+	    val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
+	in  th'  end
+	handle THM _ => th;
 
 (*raises exception if no rules apply -- unlike RL*)
 fun tryres (th, rls) = 
