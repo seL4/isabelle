@@ -126,6 +126,16 @@ apply (simp add: o_def expand_fun_eq)
 apply (blast intro: inj_on_inverseI inv_f_f)
 done
 
+lemma inv_o_cancel[simp]: "inj f ==> inv f o f = id"
+by (simp add: inj_iff)
+
+lemma o_inv_o_cancel[simp]: "inj f ==> g o inv f o f = g"
+by (simp add: o_assoc[symmetric])
+
+lemma inv_image_cancel[simp]:
+  "inj f ==> inv f ` f ` S = S"
+by (simp add: image_compose[symmetric])
+ 
 lemma inj_imp_surj_inv: "inj f ==> surj (inv f)"
 by (blast intro: surjI inv_f_f)
 
