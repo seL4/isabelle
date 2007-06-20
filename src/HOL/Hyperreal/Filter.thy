@@ -183,7 +183,7 @@ qed
 lemma (in ultrafilter) max_filter:
 assumes G: "filter G" and sub: "F \<subseteq> G" shows "F = G"
 proof
-  show "F \<subseteq> G" .
+  show "F \<subseteq> G" using sub .
   show "G \<subseteq> F"
   proof
     fix A assume A: "A \<in> G"
@@ -225,7 +225,7 @@ shows "filter {A:: 'a set. finite (- A)}" (is "filter ?F")
 proof (rule filter.intro)
   show "UNIV \<in> ?F" by simp
 next
-  show "{} \<notin> ?F" by simp
+  show "{} \<notin> ?F" using inf by simp
 next
   fix u v assume "u \<in> ?F" and "v \<in> ?F"
   thus "u \<inter> v \<in> ?F" by simp
@@ -313,18 +313,18 @@ proof -
 qed
 
 lemma (in UFT) Union_chain_filter:
-assumes "c \<in> chain superfrechet" and "c \<noteq> {}"
+assumes chain: "c \<in> chain superfrechet" and nonempty: "c \<noteq> {}"
 shows "filter (\<Union>c)"
 proof (rule filter.intro)
-  show "UNIV \<in> \<Union>c" by (rule Union_chain_UNIV)
+  show "UNIV \<in> \<Union>c" using chain nonempty by (rule Union_chain_UNIV)
 next
-  show "{} \<notin> \<Union>c" by (rule Union_chain_empty)
+  show "{} \<notin> \<Union>c" using chain by (rule Union_chain_empty)
 next
   fix u v assume "u \<in> \<Union>c" and "v \<in> \<Union>c"
-  show "u \<inter> v \<in> \<Union>c" by (rule Union_chain_Int)
+  with chain show "u \<inter> v \<in> \<Union>c" by (rule Union_chain_Int)
 next
   fix u v assume "u \<in> \<Union>c" and "u \<subseteq> v"
-  show "v \<in> \<Union>c" by (rule Union_chain_subset)
+  with chain show "v \<in> \<Union>c" by (rule Union_chain_subset)
 qed
 
 lemma (in UFT) lemma_mem_chain_frechet_subset:

@@ -511,7 +511,7 @@ lemma not_P_Bolzano_bisect:
       and le:   "a \<le> b"
   shows "~ P(fst(Bolzano_bisect P a b n), snd(Bolzano_bisect P a b n))"
 proof (induct n)
-  case 0 thus ?case by simp
+  case 0 show ?case using notP by simp
  next
   case (Suc n)
   thus ?case
@@ -755,7 +755,7 @@ proof -
     by auto
   thus ?thesis
   proof (intro exI conjI strip)
-    show "0<s" .
+    show "0<s" using s .
     fix h::real
     assume "0 < h" "h < s"
     with all [of h] show "f x < f (x+h)"
@@ -785,7 +785,7 @@ proof -
     by auto
   thus ?thesis
   proof (intro exI conjI strip)
-    show "0<s" .
+    show "0<s" using s .
     fix h::real
     assume "0 < h" "h < s"
     with all [of "-h"] show "f x < f (x-h)"
@@ -807,7 +807,7 @@ lemma DERIV_local_max:
       and le:  "\<forall>y. \<bar>x-y\<bar> < d --> f(y) \<le> f(x)"
   shows "l = 0"
 proof (cases rule: linorder_cases [of l 0])
-  case equal show ?thesis .
+  case equal thus ?thesis .
 next
   case less
   from DERIV_left_dec [OF der less]
@@ -995,8 +995,8 @@ proof -
     by (rule DERIV_add [OF der])
   show ?thesis
   proof (intro exI conjI)
-    show "a < z" .
-    show "z < b" .
+    show "a < z" using az .
+    show "z < b" using zb .
     show "f b - f a = (b - a) * ((f b - f a)/(b-a))" by (simp)
     show "DERIV f z :> ((f b - f a)/(b-a))"  using derF by simp
   qed
@@ -1186,7 +1186,7 @@ proof -
   obtain e where e: "0 < e" "e < f x - L" "e < M - f x" by auto
   thus ?thesis
   proof (intro exI conjI)
-    show "0<e" .
+    show "0<e" using e(1) .
     show "\<forall>y. \<bar>y - f x\<bar> \<le> e \<longrightarrow> (\<exists>z. \<bar>z - x\<bar> \<le> d \<and> f z = y)"
     proof (intro strip)
       fix y::real
@@ -1226,7 +1226,7 @@ proof (simp add: isCont_iff LIM_eq)
           by blast
     show "\<exists>s>0. \<forall>z. z\<noteq>0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>g(f x + z) - g(f x)\<bar> < r"
     proof (intro exI conjI)
-      show "0<e'" .
+      show "0<e'" using e' .
       show "\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < e' \<longrightarrow> \<bar>g (f x + z) - g (f x)\<bar> < r"
       proof (intro strip)
         fix z::real
@@ -1337,16 +1337,16 @@ proof -
   from cdef have "DERIV ?h c :> l" by auto
   moreover
   {
-    from g'cdef have "DERIV (\<lambda>x. (f b - f a) * g x) c :> g'c * (f b - f a)"
+    have "DERIV (\<lambda>x. (f b - f a) * g x) c :> g'c * (f b - f a)"
       apply (insert DERIV_const [where k="f b - f a"])
       apply (drule meta_spec [of _ c])
-      apply (drule DERIV_mult [where f="(\<lambda>x. f b - f a)" and g=g])
-      by simp_all
-    moreover from f'cdef have "DERIV (\<lambda>x. (g b - g a) * f x) c :> f'c * (g b - g a)"
+      apply (drule DERIV_mult [OF _ g'cdef])
+      by simp
+    moreover have "DERIV (\<lambda>x. (g b - g a) * f x) c :> f'c * (g b - g a)"
       apply (insert DERIV_const [where k="g b - g a"])
       apply (drule meta_spec [of _ c])
-      apply (drule DERIV_mult [where f="(\<lambda>x. g b - g a)" and g=f])
-      by simp_all
+      apply (drule DERIV_mult [OF _ f'cdef])
+      by simp
     ultimately have "DERIV ?h c :>  g'c * (f b - f a) - f'c * (g b - g a)"
       by (simp add: DERIV_diff)
   }

@@ -823,7 +823,7 @@ lemma exp_less_mono:
   fixes x y :: real
   assumes xy: "x < y" shows "exp x < exp y"
 proof -
-  have "1 < exp (y + - x)"
+  from xy have "1 < exp (y + - x)"
     by (rule real_less_sum_gt_zero [THEN exp_gt_one])
   hence "exp x * inverse (exp x) < exp y * inverse (exp x)"
     by (auto simp add: exp_add exp_minus)

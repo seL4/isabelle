@@ -648,6 +648,7 @@ lemma Cauchy_product:
   assumes a: "summable (\<lambda>k. norm (a k))"
   assumes b: "summable (\<lambda>k. norm (b k))"
   shows "(\<Sum>k. a k) * (\<Sum>k. b k) = (\<Sum>k. \<Sum>i=0..k. a i * b (k - i))"
+using a b
 by (rule Cauchy_product_sums [THEN sums_unique])
 
 end

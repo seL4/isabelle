@@ -619,7 +619,7 @@ proof (rule ccontr)
       fix e::real
       assume "0 < e"
         (* choose no such that inverse (real (Suc n)) < e *)
-      have "\<exists>no. inverse (real (Suc no)) < e" by (rule reals_Archimedean)
+      then have "\<exists>no. inverse (real (Suc no)) < e" by (rule reals_Archimedean)
       then obtain m where nodef: "inverse (real (Suc m)) < e" by auto
       show "\<exists>no. \<forall>n. no \<le> n --> \<bar>?F n - a\<bar> < e"
       proof (intro exI allI impI)
@@ -628,7 +628,7 @@ proof (rule ccontr)
         have "\<bar>?F n - a\<bar> < inverse (real (Suc n))"
           by (rule F2)
         also have "inverse (real (Suc n)) \<le> inverse (real (Suc m))"
-          by auto
+          using mlen by auto
         also from nodef have
           "inverse (real (Suc m)) < e" .
         finally show "\<bar>?F n - a\<bar> < e" .
@@ -664,10 +664,10 @@ lemma LIMSEQ_SEQ_conv:
    (X -- a --> L)"
 proof
   assume "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
-  show "X -- a --> L" by (rule LIMSEQ_SEQ_conv2)
+  thus "X -- a --> L" by (rule LIMSEQ_SEQ_conv2)
 next
   assume "(X -- a --> L)"
-  show "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L" by (rule LIMSEQ_SEQ_conv1)
+  thus "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L" by (rule LIMSEQ_SEQ_conv1)
 qed
 
 end

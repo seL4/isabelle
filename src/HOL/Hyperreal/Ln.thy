@@ -92,7 +92,7 @@ next
       apply (subst inverse_nonnegative_iff_nonnegative)
       apply (rule real_of_nat_fact_ge_zero)
       apply (rule zero_le_power)
-      apply assumption
+      apply (rule a)
       done
     also have "... = 1 / 2 * (inverse (real (fact (n + 2))) * x ^ (n + 2))"
       by simp
@@ -321,9 +321,9 @@ done
 lemma abs_ln_one_plus_x_minus_x_bound_nonneg:
     "0 <= x ==> x <= 1 ==> abs(ln (1 + x) - x) <= x^2"
 proof -
-  assume "0 <= x"
+  assume x: "0 <= x"
   assume "x <= 1"
-  have "ln (1 + x) <= x"
+  from x have "ln (1 + x) <= x"
     by (rule ln_add_one_self_le_self)
   then have "ln (1 + x) - x <= 0" 
     by simp

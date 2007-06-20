@@ -355,7 +355,7 @@ proof (rule DERIV_inverse_function)
   show "real n * root n x ^ (n - Suc 0) \<noteq> 0"
     using n x by simp
   show "isCont (root n) x"
-    by (rule isCont_real_root)
+    using n by (rule isCont_real_root)
 qed
 
 lemma DERIV_odd_real_root:
