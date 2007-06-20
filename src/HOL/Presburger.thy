@@ -3,6 +3,8 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
+header {* Decision Procedure for Presburger Arithmetic *}
+
 theory Presburger
 imports NatSimprocs SetInterval
   uses "Tools/Presburger/cooper_data" "Tools/Presburger/qelim" 
@@ -12,7 +14,7 @@ imports NatSimprocs SetInterval
 begin
 setup {* Cooper_Data.setup*}
 
-section{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
+subsection{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
 
 lemma minf:
   "\<lbrakk>\<exists>(z ::'a::linorder).\<forall>x<z. P x = P' x; \<exists>z.\<forall>x<z. Q x = Q' x\<rbrakk> 
@@ -175,9 +177,9 @@ next
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (\<not>d dvd x+t) \<longrightarrow> (\<not>d dvd (x + D) + t)" by auto
 qed blast
 
-section{* Cooper's Theorem @{text "-\<infinity>"} and @{text "+\<infinity>"} Version *}
+subsection{* Cooper's Theorem @{text "-\<infinity>"} and @{text "+\<infinity>"} Version *}
 
-subsection{* First some trivial facts about periodic sets or predicates *}
+subsubsection{* First some trivial facts about periodic sets or predicates *}
 lemma periodic_finite_ex:
   assumes dpos: "(0::int) < d" and modd: "ALL x k. P x = P(x - k*d)"
   shows "(EX x. P x) = (EX j : {1..d}. P j)"
@@ -208,7 +210,7 @@ proof
   qed
 qed auto
 
-subsection{* The @{text "-\<infinity>"} Version*}
+subsubsection{* The @{text "-\<infinity>"} Version*}
 
 lemma decr_lemma: "0 < (d::int) \<Longrightarrow> x - (abs(x-z)+1) * d < z"
 by(induct rule: int_gr_induct,simp_all add:int_distrib)
@@ -286,7 +288,7 @@ proof-
  ultimately show ?thesis by blast
 qed
 
-subsection {* The @{text "+\<infinity>"} Version*}
+subsubsection {* The @{text "+\<infinity>"} Version*}
 
 lemma  plusinfinity:
   assumes dpos: "(0::int) < d" and
