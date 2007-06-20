@@ -19,10 +19,6 @@ sig
     (* prover control *)
     | Proverinit     of { }
     | Proverexit     of { }
-    | Startquiet     of { }
-    | Stopquiet      of { } 
-    | Pgmlsymbolson  of { } 
-    | Pgmlsymbolsoff of { }
     | Setproverflag  of { flagname:string, value: bool }
     (* improper proof commands: control proof state *)
     | Dostep         of { text: string }
@@ -88,10 +84,6 @@ datatype pgipinput =
        (* prover control *)
        | Proverinit 	of { }
        | Proverexit 	of { }
-       | Startquiet 	of { }
-       | Stopquiet	of { } 
-       | Pgmlsymbolson  of { } 
-       | Pgmlsymbolsoff of { }
        | Setproverflag  of { flagname:string, value: bool }
        (* improper proof commands: control proof state *)
        | Dostep		of { text: string }
@@ -186,10 +178,6 @@ SOME
    (* provercontrol *)
    | "proverinit"     => Proverinit { }
    | "proverexit"     => Proverexit { }
-   | "startquiet"     => Startquiet { }
-   | "stopquiet"      => Stopquiet { }
-   | "pgmlsymbolson"  => Pgmlsymbolson { }
-   | "pgmlsymbolsoff" => Pgmlsymbolsoff { }
    | "setproverflag"  => Setproverflag { flagname = flagname_attr attrs,
 					 value = read_pgipbool (value_attr attrs) }
    (* improperproofcmd: improper commands not in script *)

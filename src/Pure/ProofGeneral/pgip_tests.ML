@@ -80,10 +80,12 @@ in
 val _ = asseqi "<askpgip/>" (SOME (Askpgip()));
 val _ = asseqi "<askpgml/>" (SOME (Askpgml()));
 val _ = asseqi "<askconfig/>" (SOME (Askconfig()));
+(* FIXME: new tests:
 val _ = asseqi "<pgmlsymbolson/>" (SOME (Pgmlsymbolson()));
 val _ = asseqi "<pgmlsymbolsoff/>" (SOME (Pgmlsymbolsoff()));
 val _ = asseqi "<startquiet/>" (SOME (Startquiet()));
 val _ = asseqi "<stopquiet/>" (SOME (Stopquiet()));
+*)
 val _ = asseqi "<askrefs thyname='foo' objtype='theory'/>" (SOME (Askrefs {url=NONE, thyname=SOME "foo",
 									  objtype=SOME ObjTheory,name=NONE}));
 val _ = asseqi "<otherelt/>" NONE;
