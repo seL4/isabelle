@@ -365,10 +365,10 @@ fun implies_intr_hyps th =
   This step can lose information.*)
 fun flexflex_unique th =
   if null (tpairs_of th) then th else
-    case Seq.chop 2 (flexflex_rule th) of
-      ([th],_) => th
-    | ([],_)   => raise THM("flexflex_unique: impossible constraints", 0, [th])
-    |      _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
+    case distinct Thm.eq_thm (Seq.list_of (flexflex_rule th)) of
+      [th] => th
+    | []   => raise THM("flexflex_unique: impossible constraints", 0, [th])
+    |  _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
 
 fun close_derivation thm =
   if Thm.get_name thm = "" then Thm.put_name "" thm
