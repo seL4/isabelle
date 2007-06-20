@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# make-metis - turn original Metis files into Isabelle ML source.
+#
+# Structure declarations etc. are made local by wrapping into a
+# collective structure Metis.  Signature and functor definitions are
+# global!
+
+THIS=$(cd "$(dirname "$0")"; echo $PWD)
+
+(
+  cat <<EOF
+(******************************************************************)
+(* GENERATED FILE -- DO NOT EDIT -- GENERATED FILE -- DO NOT EDIT *)
+(* GENERATED FILE -- DO NOT EDIT -- GENERATED FILE -- DO NOT EDIT *)
+(* GENERATED FILE -- DO NOT EDIT -- GENERATED FILE -- DO NOT EDIT *)
+(******************************************************************)
+
+print_depth 0;
+
+structure Metis = struct end;
+EOF
+
+  for FILE in $(cat "$THIS/src/FILES")
+  do
+    echo
+    echo "(**** Original file: $FILE ****)"
+    echo
+    if [ "$(basename "$FILE" .sig)" != "$FILE" ]
+    then
+      echo -e "$FILE (global)" >&2
+      "$THIS/scripts/mlpp" -c isabelle "src/$FILE" | \
+      perl -p -e 's/\b([A-Za-z]+\.[A-Za-z]+)/Metis.\1/g;' -e 's/\bfrag\b/Metis.frag/;'
+    elif fgrep -q functor "src/$FILE"
+    then
+      "$THIS/scripts/mlpp" -c isabelle "src/$FILE" | \
+      perl -p -e 's/ union / op union /g;' -e 's/ subset / op subset /g;'
+    else
+      echo -e "$FILE (local)" >&2
+      echo "structure Metis = struct open Metis"
+      cat < "metis-env"
+      "$THIS/scripts/mlpp" -c isabelle "src/$FILE"
+      echo "end;"
+    fi
+  done
+
+  echo "print_depth 10;"
+
+) > metis.ML

@@ -1,0 +1,297 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2006 Joe Hurd, All Rights Reserved
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h $opt_c $opt_r);
+
+getopts('hc:r:');
+
+if ($opt_h or scalar @ARGV == 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+if (!$opt_c) { die "mlpp: you must specify the SML compiler\n"; }
+if ($opt_c ne "mosml" && $opt_c ne "mlton" && $opt_c ne "isabelle") {
+    die "mlpp: the SML compiler must be one of {mosml,mlton,isabelle}.\n";
+}
+
+# Autoflush STDIN
+$|++;
+
+sub unquotify {
+    if (scalar @_ == 0) { return; }
+
+    my $pre = "[";
+
+    for my $quote (@_) {
+        my $nl = chomp $quote;
+        my @qs = split (/\^(\w+)/, $quote);
+        my @ps = ();
+
+        for (my $s = 0; 0 < scalar @qs; $s = 1 - $s) {
+            my $q = shift @qs;
+            if ($s == 0) {
+                $q =~ s/\\/\\\\/g;
+                $q =~ s/\"/\\\"/g;
+                push @ps, "QUOTE \"$q\"" unless ($q eq "");
+            }
+            elsif ($s == 1) {
+                push @ps, "ANTIQUOTE $q";
+            }
+            else { die; }
+        }
+
+        if (0 < $nl) {
+            if (0 < scalar @ps) {
+                my $p = pop @ps;
+                if ($p =~ /QUOTE \"(.*)\"/) { push @ps, "QUOTE \"$1\\n\""; }
+                else { push @ps, $p; push @ps, "QUOTE \"\\n\""; }
+            }
+            else { push @ps, "QUOTE \"\\n\""; }
+        }
+        else {
+            (0 < scalar @ps) or die;
+        }
+
+        print STDOUT ($pre . join (", ", @ps));
+        $pre = ",\n";
+    }
+
+    print STDOUT "]";
+}
+
+sub print_normal {
+    (scalar @_ == 1) or die;
+    my $text = shift @_;
+
+    if ($opt_c eq "mosml") {
+        $text =~ s/PP\.ppstream/ppstream/g;
+        $text =~ s/TextIO\.inputLine/TextIO_inputLine/g;
+    }
+
+    print STDOUT $text;
+}
+
+sub process_file {
+    (scalar @_ == 1) or die;
+    my $filename = shift @_;
+    my $line_num = 0;
+
+    if ($opt_c eq "mlton") {
+        print STDOUT "(*#line 0.0 \"$filename\"*)\n";
+    }
+
+    open my $INPUT, "$filename";
+
+    my $state = "normal";
+    my $comment = 0;
+    my $revealed_comment = 0;
+    my @quotes = ();
+
+    while (my $line = <$INPUT>) {
+        (chomp ($line) == 1)
+            or warn "no terminating newline in $filename\nline = '$line'\n";
+
+        while (1) {
+            if ($state eq "quote") {
+                if ($line =~ /(.*?)\`(.*)$/) {
+                    push @quotes, $1;
+                    $line = $2;
+                    unquotify @quotes;
+                    @quotes = ();
+                    $state = "normal";
+                }
+                else {
+                    push @quotes, "$line\n";
+                    last;
+                }
+            }
+            elsif ($state eq "comment") {
+                if ($line =~ /^(.*?)(\(\*|\*\))(.*)$/) {
+                    my $leadup = $1;
+                    my $pat = $2;
+                    $line = $3;
+                    print STDOUT $leadup;
+
+                    if ($pat eq "(*") {
+                        print STDOUT $pat;
+                        ++$comment;
+                    }
+                    elsif ($pat eq "*)") {
+                        print STDOUT $pat;
+                        --$comment;
+                        if ($comment == 0) { $state = "normal"; }
+                    }
+                    else {
+                        die;
+                    }
+                }
+                else {
+                    print STDOUT "$line\n";
+                    last;
+                }
+            }
+            elsif ($state eq "dquote") {
+                if ($line =~ /^(.*?)\"(.*)$/) {
+                    my $leadup = $1;
+                    $line = $2;
+                    print STDOUT ($leadup . "\"");
+
+                    if ($leadup =~ /(\\+)$/ && ((length $1) % 2 == 1)) {
+                        # This is an escaped double quote
+                    }
+                    else {
+                        $state = "normal";
+                    }
+                }
+                else {
+                    die "EOL inside \" quote\n";
+                }
+            }
+            elsif ($state eq "normal") {
+                if ($line =~ /^ *use *\"([^"]+)\" *; *$/) {
+                    my $use_filename = $1;
+                    if ($use_filename !~ /^\// && $filename =~ /^(.*)\//) {
+                        $use_filename = $1 . '/' . $use_filename;
+                    }
+                    process_file ($use_filename);
+                    if ($opt_c eq "mlton") {
+                        print STDOUT "(*#line $line_num.0 \"$filename\"*)\n";
+                    }
+                    print STDOUT "\n";
+                    last;
+                }
+                elsif ($line =~ /^(.*?)(\`|\(\*|\*\)|\")(.*)$/) {
+                    my $leadup = $1;
+                    my $pat = $2;
+                    $line = $3;
+                    print_normal $leadup;
+                    
+                    if ($pat eq "`") {
+                        $state = "quote";
+                    }
+                    elsif ($pat eq "(*") {
+                        my $is_revealed = 0;
+                        if ($line =~ /^([[:alnum:]_-]+)/) {
+                            my $rev = $1;
+                            if ($rev eq $opt_c ||
+                                ($opt_r && $rev =~ /^$opt_r$/)) {
+                                my $rev_len = length $rev;
+                                $line = substr $line, $rev_len;
+                                ++$revealed_comment;
+                                $is_revealed = 1;
+                            }
+                        }
+                        if (!$is_revealed) {
+                            print STDOUT $pat;
+                            $state = "comment";
+                            ++$comment;
+                        }
+                    }
+                    elsif ($pat eq "*)") {
+                        if ($revealed_comment == 0) {
+                            die "Too many comment closers.\n"
+                        }
+                        --$revealed_comment;
+                    }
+                    elsif ($pat eq "\"") {
+                        print STDOUT $pat;
+                        $state = "dquote";
+                    }
+                    else {
+                        die;
+                    }
+                }
+                else {
+                    print_normal "$line\n";
+                    last;
+                }
+            }
+            else {
+                die;
+            }
+        }
+
+        ++$line_num;
+    }
+
+    if ($state eq "quote") {
+        die "EOF inside \` quote\n";
+    }
+    elsif ($state eq "dquote") {
+        die "EOF inside \" quote\n";
+    }
+    elsif ($state eq "comment") {
+        die "EOF inside comment\n";
+    }
+    else {
+        ($state eq "normal") or die;
+    }
+
+    close $INPUT;
+}
+
+while (0 < scalar @ARGV) {
+    my $filename = shift @ARGV;
+    process_file $filename;
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+mlpp - preprocesses SML files for compilation
+
+=head1 SYNOPSIS
+
+mlpp [-h] [-c compiler] [-r TAG] sml-file ... > preprocessed-sml-file
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=item B<-c compiler>
+
+Select the SML compiler that will be used.
+
+=item B<-r TAG-REGEX>
+
+Remove all comment brackets tagged like this: (*TAG revealed-code *)
+where the TAG-REGEX matches the TAG.
+
+=back
+
+=head1 DESCRIPTION
+
+Concatenates the input list of SML source files into a single file
+ready to be compiled, by expanding quotations and antiquotations, and
+concatenating into a single file.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut
