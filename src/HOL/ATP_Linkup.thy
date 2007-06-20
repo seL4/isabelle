@@ -19,6 +19,8 @@ uses
   ("Tools/res_atp.ML")
   ("Tools/res_atp_provers.ML")
   ("Tools/res_atp_methods.ML")
+  "~~/src/Tools/Metis/metis.ML"
+  ("Tools/metis_tools.ML")
 begin
 
 constdefs
@@ -102,5 +104,11 @@ oracle spass_oracle ("string * int") = {* ResAtpProvers.spass_o *}
 
 use "Tools/res_atp_methods.ML"
 setup ResAtpMethods.ResAtps_setup
+
+
+subsection {* The Metis prover *}
+
+use "Tools/metis_tools.ML"
+setup MetisTools.setup
 
 end
