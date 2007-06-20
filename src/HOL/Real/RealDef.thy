@@ -739,7 +739,7 @@ lemma real_of_nat_zero_iff [iff]: "(real (n::nat) = 0) = (n = 0)"
 by (simp add: real_of_nat_def)
 
 lemma real_of_nat_diff: "n \<le> m ==> real (m - n) = real (m::nat) - real n"
-by (simp add: add: real_of_nat_def) 
+by (simp add: add: real_of_nat_def of_nat_diff)
 
 lemma real_of_nat_gt_zero_cancel_iff [simp]: "(0 < real (n::nat)) = (0 < n)"
 by (simp add: add: real_of_nat_def) 

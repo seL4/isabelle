@@ -389,7 +389,7 @@ lemma ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat x
 
 lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"
-  by (case_tac "y \<le> x", simp_all)
+  by (case_tac "y \<le> x", simp_all add: zdiff_int)
 
 lemma number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (n BIT b)" by simp
 lemma number_of2: "(0::int) <= Numeral0" by simp

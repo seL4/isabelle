@@ -105,7 +105,7 @@ lemma [code]: "m + n = nat (int' m + int' n)"
 lemma [code func, code inline]: "m + n = nat_of_int (int' m + int' n)"
   by (simp add: eq_nat_of_int int'_add)
 lemma [code, code inline]: "m - n = nat (int' m - int' n)"
-  by (simp add: int'_def nat_eq_iff2)
+  by (simp add: int'_def nat_eq_iff2 of_nat_diff)
 lemma [code]: "m * n = nat (int' m * int' n)"
   unfolding int'_def
   by (simp add: of_nat_mult [symmetric] del: of_nat_mult)

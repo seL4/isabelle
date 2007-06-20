@@ -143,9 +143,9 @@ lemma even_nat_sum: "even ((x::nat) + y) =
 
 lemma even_nat_difference:
     "even ((x::nat) - y) = (x < y | (even x & even y) | (odd x & odd y))"
-  apply (auto simp add: even_nat_def)
-  apply (case_tac "x < y", auto)
-  apply (case_tac "x < y", auto)
+  apply (auto simp add: even_nat_def zdiff_int [symmetric])
+  apply (case_tac "x < y", auto simp add: zdiff_int [symmetric])
+  apply (case_tac "x < y", auto simp add: zdiff_int [symmetric])
   done
 
 lemma even_nat_Suc: "even (Suc x) = odd x"

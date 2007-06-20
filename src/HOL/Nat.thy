@@ -1372,7 +1372,7 @@ lemma of_nat_eq_0_iff [simp]: "(of_nat m = (0::'a::semiring_char_0)) = (m = 0)"
 lemma inj_of_nat: "inj (of_nat :: nat \<Rightarrow> 'a::semiring_char_0)"
   by (simp add: inj_on_def)
 
-lemma of_nat_diff [simp]:
+lemma of_nat_diff:
     "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::ring_1)"
   by (simp del: of_nat_add
     add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)

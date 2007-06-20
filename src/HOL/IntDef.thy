@@ -554,7 +554,8 @@ proof
 qed
 
 lemma of_nat_nat: "0 \<le> z ==> of_nat (nat z) = of_int z"
-by (cases z rule: eq_Abs_Integ, simp add: nat le of_int Zero_int_def)
+by (cases z rule: eq_Abs_Integ)
+   (simp add: nat le of_int Zero_int_def of_nat_diff)
 
 
 subsection{*The Set of Integers*}
