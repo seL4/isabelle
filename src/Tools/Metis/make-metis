@@ -40,7 +40,7 @@ EOF
     else
       echo -e "$FILE (local)" >&2
       echo "structure Metis = struct open Metis"
-      cat < "metis-env"
+      cat < "metis-env.ML"
       "$THIS/scripts/mlpp" -c isabelle "src/$FILE"
       echo "end;"
     fi
