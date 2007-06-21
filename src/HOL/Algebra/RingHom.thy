@@ -46,7 +46,10 @@ lemma ring_hom_ringI:
   shows "ring_hom_ring R S h"
 apply unfold_locales
 apply (unfold ring_hom_def, safe)
-   apply (simp add: hom_closed Pi_def, assumption+)
+   apply (simp add: hom_closed Pi_def)
+  apply (erule (1) compatible_mult)
+ apply (erule (1) compatible_add)
+apply (rule compatible_one)
 done
 
 lemma ring_hom_ringI2:
@@ -67,13 +70,16 @@ lemma ring_hom_ringI3:
 apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro, assumption+)
 apply (insert group_hom.homh[OF a_group_hom])
 apply (unfold hom_def ring_hom_def, simp)
-apply (safe, assumption+)
+apply safe
+apply (erule (1) compatible_mult)
+apply (rule compatible_one)
 done
 
 lemma ring_hom_cringI:
   includes ring_hom_ring R S h + cring R + cring S
   shows "ring_hom_cring R S h"
-by (intro ring_hom_cring.intro ring_hom_cring_axioms.intro, assumption+, rule homh)
+  by (intro ring_hom_cring.intro ring_hom_cring_axioms.intro)
+    (rule R.is_cring, rule S.is_cring, rule homh)
 
 
 subsection {* The kernel of a ring homomorphism *}

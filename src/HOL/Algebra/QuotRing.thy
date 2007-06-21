@@ -4,17 +4,17 @@
   Author:    Stephan Hohe
 *)
 
+header {* Quotient Rings *}
+
 theory QuotRing
 imports RingHom
 begin
 
-
-section {* Quotient Rings *}
-
 subsection {* Multiplication on Cosets *}
 
 constdefs (structure R)
-  rcoset_mult :: "[('a, _) ring_scheme, 'a set, 'a set, 'a set] \<Rightarrow> 'a set"   ("[mod _:] _ \<Otimes>\<index> _" [81,81,81] 80)
+  rcoset_mult :: "[('a, _) ring_scheme, 'a set, 'a set, 'a set] \<Rightarrow> 'a set"
+    ("[mod _:] _ \<Otimes>\<index> _" [81,81,81] 80)
   "rcoset_mult R I A B \<equiv> \<Union>a\<in>A. \<Union>b\<in>B. I +> (a \<otimes> b)"
 
 
@@ -171,8 +171,9 @@ lemma (in ideal) rcos_ring_hom_cring:
   shows "ring_hom_cring R (R Quot I) (op +> I)"
 apply (rule ring_hom_cringI)
   apply (rule rcos_ring_hom_ring)
- apply assumption
-apply (rule quotient_is_cring, assumption)
+ apply (rule R.is_cring)
+apply (rule quotient_is_cring)
+apply (rule R.is_cring)
 done
 
 

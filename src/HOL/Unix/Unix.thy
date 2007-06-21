@@ -570,7 +570,7 @@ lemma transitions_invariant:
   using trans
 proof induct
   case nil
-  show ?case by assumption
+  show ?case by (rule nil.prems)
 next
   case (cons root x root' xs root'')
   note P = `\<forall>x \<in> set (x # xs). P x`

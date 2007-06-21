@@ -138,10 +138,13 @@ lemma (in subgroup) rcos_const:
   assumes hH: "h \<in> H"
   shows "H #> h = H"
   apply (unfold r_coset_def)
-  apply rule apply rule
-  apply clarsimp
-  apply (intro subgroup.m_closed)
-  apply assumption+
+  apply rule
+   apply rule
+   apply clarsimp
+   apply (intro subgroup.m_closed)
+     apply (rule is_subgroup)
+    apply assumption
+   apply (rule hH)
   apply rule
   apply simp
 proof -

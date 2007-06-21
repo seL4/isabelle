@@ -700,12 +700,14 @@ proof -
 qed
 
 lemma (in abelian_subgroup) a_repr_independence':
-  assumes "y \<in> H +> x"
-      and "x \<in> carrier G"
+  assumes y: "y \<in> H +> x"
+      and xcarr: "x \<in> carrier G"
   shows "H +> x = H +> y"
-apply (rule a_repr_independence, assumption+)
-apply (rule a_subgroup)
-done
+  apply (rule a_repr_independence)
+    apply (rule y)
+   apply (rule xcarr)
+  apply (rule a_subgroup)
+  done
 
 lemma (in abelian_subgroup) a_repr_independenceD:
   assumes ycarr: "y \<in> carrier G"

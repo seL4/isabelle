@@ -257,7 +257,9 @@ proof (unfold sup_def)
 	proof
           have y': "y \<in> Upper L A"
             apply (rule subsetD [where A = "Upper L (insert x A)"])
-            apply (rule Upper_antimono) apply clarify apply assumption
+             apply (rule Upper_antimono)
+	     apply blast
+	    apply (rule y)
             done
           assume "z = a"
           with y' least_a show ?thesis by (fast dest: least_le)
@@ -299,7 +301,9 @@ proof (unfold sup_def)
           proof
             have y': "y \<in> Upper L A"
 	      apply (rule subsetD [where A = "Upper L (insert x A)"])
-	      apply (rule Upper_antimono) apply clarify apply assumption
+	      apply (rule Upper_antimono)
+	       apply blast
+	      apply (rule y)
 	      done
             assume "z = a"
             with y' least_a show ?thesis by (fast dest: least_le)
@@ -483,7 +487,9 @@ proof (unfold inf_def)
 	proof
           have y': "y \<in> Lower L A"
             apply (rule subsetD [where A = "Lower L (insert x A)"])
-            apply (rule Lower_antimono) apply clarify apply assumption
+            apply (rule Lower_antimono)
+	     apply blast
+	    apply (rule y)
             done
           assume "z = a"
           with y' greatest_a show ?thesis by (fast dest: greatest_le)
@@ -525,7 +531,9 @@ proof (unfold inf_def)
           proof
             have y': "y \<in> Lower L A"
 	      apply (rule subsetD [where A = "Lower L (insert x A)"])
-	      apply (rule Lower_antimono) apply clarify apply assumption
+	      apply (rule Lower_antimono)
+	       apply blast
+	      apply (rule y)
 	      done
             assume "z = a"
             with y' greatest_a show ?thesis by (fast dest: greatest_le)
@@ -699,7 +707,7 @@ proof intro_locales
       ultimately show ?thesis by blast
     qed
   qed
-qed (assumption | rule total_order_axioms.intro)+
+qed (rule total total_order_axioms.intro)+
 
 
 subsection {* Complete lattices *}
@@ -721,7 +729,7 @@ lemma (in partial_order) complete_latticeI:
 proof intro_locales
   show "lattice_axioms L"
     by (rule lattice_axioms.intro) (blast intro: sup_exists inf_exists)+
-qed (assumption | rule complete_lattice_axioms.intro)+
+qed (rule complete_lattice_axioms.intro sup_exists inf_exists | assumption)+
 
 constdefs (structure L)
   top :: "_ => 'a" ("\<top>\<index>")
