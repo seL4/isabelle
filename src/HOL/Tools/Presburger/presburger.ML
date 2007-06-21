@@ -77,13 +77,13 @@ local
  in h [] end;
 in 
 fun is_relevant ctxt ct = 
-  gen_subset (op aconv) (term_constants (term_of ct) , snd (Cooper_Data.get ctxt))
+  gen_subset (op aconv) (term_constants (term_of ct) , snd (CooperData.get ctxt))
  andalso forall (fn Free (_,T) => T = HOLogic.intT) (term_frees (term_of ct))
  andalso forall (fn Var (_,T) => T = HOLogic.intT) (term_vars (term_of ct));
 
 fun int_nat_terms ctxt ct =
  let 
-  val cts = snd (Cooper_Data.get ctxt)
+  val cts = snd (CooperData.get ctxt)
   fun h acc t = if ty cts t then insert (op aconvc) t acc else
    case (term_of t) of
     _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
@@ -180,7 +180,7 @@ fun finish_tac q i st = case try (nth (cprems_of st)) (i - 1) of
  | SOME _ => (if q then I else TRY) (rtac TrueI i) st
 
 fun cooper_tac elim add_ths del_ths ctxt i = 
-let val ss = fst (Cooper_Data.get ctxt) delsimps del_ths addsimps add_ths
+let val ss = fst (CooperData.get ctxt) delsimps del_ths addsimps add_ths
 in
 nogoal_tac i 
 THEN (EVERY o (map TRY))

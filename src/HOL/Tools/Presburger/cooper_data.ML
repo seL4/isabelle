@@ -12,10 +12,10 @@ sig
   val setup: theory -> theory
 end;
 
-structure Cooper_Data : COOPER_DATA =
+structure CooperData : COOPER_DATA =
 struct
 
-type entry = simpset* (term list);
+type entry = simpset * (term list);
 val start_ss = HOL_ss (* addsimps @{thms "Groebner_Basis.comp_arith"}
                addcongs [if_weak_cong, @{thm "let_weak_cong"}];*)
 val allowed_consts = 
@@ -46,24 +46,26 @@ val allowed_consts =
 
 structure Data = GenericDataFun
 (
-  val name = "Cooper-Data";
-  type T = simpset * (term list)
-   val empty = (start_ss, allowed_consts);
-  fun extend (ss,ts) = (MetaSimplifier.inherit_context empty_ss ss, ts);
-  fun merge _ ((ss1,ts1), (ss2,ts2)) = (merge_ss (ss1,ss2), 
-                                      Library.merge (op aconv) (ts1,ts2)));
+  type T = simpset * (term list);
+  val empty = (start_ss, allowed_consts);
+  fun extend (ss, ts) = (MetaSimplifier.inherit_context empty_ss ss, ts);
+  fun merge _ ((ss1, ts1), (ss2, ts2)) =
+    (merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
+);
 
 val get = Data.get o Context.Proof;
 
 fun add ts = Thm.declaration_attribute (fn th => fn context => 
   context |> Data.map (fn (ss,ts') => 
-     (ss addsimps [th], Library.merge (op aconv) (ts',ts) ))) 
+     (ss addsimps [th], merge (op aconv) (ts',ts) ))) 
 
 fun del ts = Thm.declaration_attribute (fn th => fn context => 
   context |> Data.map (fn (ss,ts') => 
-     (ss delsimps [th], Library.subtract (op aconv) ts' ts ))) 
+     (ss delsimps [th], subtract (op aconv) ts' ts ))) 
+
 
 (* concrete syntax *)
+
 local
 fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 
@@ -82,6 +84,8 @@ end;
 
 
 (* theory setup *)
- val setup =
+
+val setup =
   Attrib.add_attributes [("presburger", att_syntax, "Cooper data")];
+
 end;
