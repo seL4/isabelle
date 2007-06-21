@@ -27,6 +27,7 @@ test: \
   HOL-Isar_examples \
   HOL-Lambda \
   HOL-Lattice \
+  HOL-MetisExamples \
   HOL-MicroJava \
   HOL-Modelcheck \
   HOL-NanoJava \
@@ -388,6 +389,18 @@ $(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy \
   HoareParallel/RG_Tran.thy HoareParallel/ROOT.ML		   \
   HoareParallel/document/root.tex HoareParallel/document/root.bib
 	@$(ISATOOL) usedir -g true $(OUT)/HOL HoareParallel
+
+
+## HOL-MetisExamples
+
+HOL-MetisExamples: HOL $(LOG)/HOL-MetisExamples.gz
+
+$(LOG)/HOL-MetisExamples.gz: $(OUT)/HOL \
+  MetisExamples/ROOT.ML \
+  MetisExamples/Abstraction.thy MetisExamples/BigO.thy MetisExamples/BT.thy \
+  MetisExamples/Message.thy MetisExamples/Tarski.thy MetisExamples/TransClosure.thy \
+  MetisExamples/set.thy
+	@$(ISATOOL) usedir -g true $(OUT)/HOL MetisExamples
 
 
 ## HOL-Algebra

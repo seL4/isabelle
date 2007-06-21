@@ -10,6 +10,12 @@ Contributions to Isabelle 2007
 * June 2007: Amine Chaieb, TUM
   Semiring normalization and Groebner Bases
 
+* June 2007: Joe Hurd, Oxford
+  Metis theorem-prover
+
+* 2006/2007: Kong W. Susanto, Cambridge
+  HOL: Metis prover integration.
+
 * 2006/2007: Florian Haftmann, TUM
   Pure: generic code generator framework.
   Pure: class package.
