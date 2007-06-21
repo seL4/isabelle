@@ -2,6 +2,6 @@
 (* $Id$ *)
 
 theory Real
-imports ContNotDenum Ferrante_Rackoff RealVector
+imports ContNotDenum RealVector
 begin
 end

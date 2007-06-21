@@ -21,8 +21,6 @@ use_thy "HarmonicSeries";
 no_document use_thy "NatPair";
 use_thy "DenumRat";
 
-use_thy "Ferrante_Rackoff_Ex";
-
 if String.isPrefix "smlnj" ml_system then ()  (* FIXME tmp *)
 else use_thy "MIR";
 

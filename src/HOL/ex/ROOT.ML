@@ -48,6 +48,7 @@ time_use_thy "Classical";
 time_use_thy "CTL";
 time_use_thy "mesontest2";
 time_use_thy "Arith_Examples";
+time_use_thy "Dense_Linear_Order_Ex";
 time_use_thy "PresburgerEx";
 if String.isPrefix "smlnj" ml_system then ()  (* FIXME tmp *)
 else time_use_thy "Reflected_Presburger";
