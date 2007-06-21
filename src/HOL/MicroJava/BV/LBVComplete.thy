@@ -346,7 +346,7 @@ next
   with s_phi pc phi_pc have wt_s_phi: "wtc c pc s <=_r wtc c pc (\<phi>!pc)" by (rule wtc_mono)
   with wt_phi have wt_s: "wtc c pc s \<noteq> \<top>" by simp
   moreover
-  assume s: "s \<noteq> \<top>" 
+  assume s': "s \<noteq> \<top>" 
   ultimately
   have "ls = [] \<Longrightarrow> ?wtl (i#ls) pc s \<noteq> \<top>" by simp
   moreover {
@@ -357,23 +357,23 @@ next
     moreover
     from cert suc_pc have "c!pc \<in> A" "c!(pc+1) \<in> A" 
       by (auto simp add: cert_ok_def)
-    with pres have "wtc c pc s \<in> A" by (rule wtc_pres)
+    from pres this s pc have "wtc c pc s \<in> A" by (rule wtc_pres)
     ultimately
     have "?wtl ls (Suc pc) (wtc c pc s) \<noteq> \<top>" using IH wt_s by blast
-    with s wt_s have "?wtl (i#ls) pc s \<noteq> \<top>" by simp 
+    with s' wt_s have "?wtl (i#ls) pc s \<noteq> \<top>" by simp
   }
   ultimately show "?wtl (i#ls) pc s \<noteq> \<top>" by (cases ls) blast+
 qed
 
   
 theorem (in lbvc) wtl_complete:
-  assumes "wt_step r \<top> step \<phi>"
-  assumes "s <=_r \<phi>!0" and "s \<in> A" and "s \<noteq> \<top>" and "length ins = length phi"
+  assumes wt: "wt_step r \<top> step \<phi>"
+    and s: "s <=_r \<phi>!0" "s \<in> A" "s \<noteq> \<top>"
+    and len: "length ins = length phi"
   shows "wtl ins c 0 s \<noteq> \<top>"
-proof -  
-  have "0+length ins = length phi" by simp
-  thus ?thesis by - (rule wt_step_wtl_lemma)
+proof -
+  from len have "0+length ins = length phi" by simp
+  from wt this s show ?thesis by (rule wt_step_wtl_lemma)
 qed
-
 
 end

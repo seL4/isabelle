@@ -291,7 +291,7 @@ proof (cases s1, cases s2)
   
   note [simp] = eff_def
 
-  hence "G \<turnstile> (Some s1) <=' (Some s2)" by simp
+  with G have "G \<turnstile> (Some s1) <=' (Some s2)" by simp
   from this app2
   have app1: "app i G m rT pc et (Some s1)" by (rule app_mono)
 
@@ -439,4 +439,3 @@ qed
 lemmas [iff del] = not_Err_eq
 
 end
-

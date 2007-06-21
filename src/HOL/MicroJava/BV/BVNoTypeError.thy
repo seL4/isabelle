@@ -159,8 +159,8 @@ next
   obtain apTs where
     "ST = (rev apTs) @ ys" and "length apTs = length fpTs"
   proof -
-    have "ST = rev (rev xs) @ ys" by simp
-    with xs show ?thesis by - (rule that, assumption, simp)
+    from xs(1) have "ST = rev (rev xs) @ ys" by simp
+    then show thesis by (rule that) (simp add: xs(2))
   qed
   moreover
   from l xs obtain X ST' where "ys = X#ST'" by (auto simp add: neq_Nil_conv)
@@ -244,7 +244,7 @@ proof -
       phi:    "Phi C sig ! pc = Some (ST,LT)" and
       frame:  "correct_frame G hp (ST,LT) maxl ins (stk,loc,C,sig,pc)" and
       frames: "correct_frames G hp Phi rT sig frs'"
-      by (auto simp add: correct_state_def)
+      by (auto simp add: correct_state_def) (rule that)
 
     from frame obtain
       stk: "approx_stk G hp stk ST" and
@@ -427,15 +427,18 @@ theorem no_type_errors:
 
 corollary no_type_errors_initial:
   fixes G ("\<Gamma>") and Phi ("\<Phi>")
-  assumes "wt_jvm_prog \<Gamma> \<Phi>"  
-  assumes "is_class \<Gamma> C" "method (\<Gamma>,C) (m,[]) = Some (C, b)" "m \<noteq> init"
+  assumes wt: "wt_jvm_prog \<Gamma> \<Phi>"  
+  assumes is_class: "is_class \<Gamma> C"
+    and method: "method (\<Gamma>,C) (m,[]) = Some (C, b)"
+    and m: "m \<noteq> init"
   defines start: "s \<equiv> start_state \<Gamma> C m"
 
-  assumes "\<Gamma> \<turnstile> (Normal s) -jvmd\<rightarrow> t" 
+  assumes s: "\<Gamma> \<turnstile> (Normal s) -jvmd\<rightarrow> t" 
   shows "t \<noteq> TypeError"
 proof -
-  have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" by (unfold start, rule BV_correct_initial)
-  thus ?thesis by - (rule no_type_errors)
+  from wt is_class method have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
+    unfolding start by (rule BV_correct_initial)
+  from wt this s show ?thesis by (rule no_type_errors)
 qed
 
 text {*
@@ -445,20 +448,27 @@ text {*
 *} 
 corollary welltyped_commutes:
   fixes G ("\<Gamma>") and Phi ("\<Phi>")
-  assumes "wt_jvm_prog \<Gamma> \<Phi>" and "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" 
+  assumes wt: "wt_jvm_prog \<Gamma> \<Phi>" and *: "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" 
   shows "\<Gamma> \<turnstile> (Normal s) -jvmd\<rightarrow> (Normal t) = \<Gamma> \<turnstile> s -jvm\<rightarrow> t"
-  by rule (erule defensive_imp_aggressive,rule welltyped_aggressive_imp_defensive)
-
+  apply rule
+   apply (erule defensive_imp_aggressive, rule welltyped_aggressive_imp_defensive)
+    apply (rule wt)
+   apply (rule *)
+  apply assumption
+  done
 
 corollary welltyped_initial_commutes:
   fixes G ("\<Gamma>") and Phi ("\<Phi>")
-  assumes "wt_jvm_prog \<Gamma> \<Phi>"  
-  assumes "is_class \<Gamma> C" "method (\<Gamma>,C) (m,[]) = Some (C, b)" "m \<noteq> init"
+  assumes wt: "wt_jvm_prog \<Gamma> \<Phi>"  
+  assumes is_class: "is_class \<Gamma> C"
+    and method: "method (\<Gamma>,C) (m,[]) = Some (C, b)"
+    and m: "m \<noteq> init"
   defines start: "s \<equiv> start_state \<Gamma> C m"
   shows "\<Gamma> \<turnstile> (Normal s) -jvmd\<rightarrow> (Normal t) = \<Gamma> \<turnstile> s -jvm\<rightarrow> t"
 proof -
-  have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" by (unfold start, rule BV_correct_initial)
-  thus ?thesis by  - (rule welltyped_commutes)
+  from wt is_class method have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
+    unfolding start by (rule BV_correct_initial)
+  with wt show ?thesis by (rule welltyped_commutes)
 qed
  
 end  

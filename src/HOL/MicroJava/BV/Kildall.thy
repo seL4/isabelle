@@ -58,15 +58,15 @@ proof (induct ps)
   assume l:  "p < length ss"
   assume "?steptype (p'#ps')"
   then obtain a b where
-    p': "p'=(a,b)" and ab: "a<n" "b\<in>A" and "?steptype ps'"
-    by (cases p', auto)
+    p': "p'=(a,b)" and ab: "a<n" "b\<in>A" and ps': "?steptype ps'"
+    by (cases p') auto
   assume "\<And>ss. p< length ss \<Longrightarrow> ss \<in> list n A \<Longrightarrow> ?steptype ps' \<Longrightarrow> ?P ss ps'"
-  hence IH: "\<And>ss. ss \<in> list n A \<Longrightarrow> p < length ss \<Longrightarrow> ?P ss ps'" .
+  from this [OF _ _ ps'] have IH: "\<And>ss. ss \<in> list n A \<Longrightarrow> p < length ss \<Longrightarrow> ?P ss ps'" .
 
   from ss ab
   have "ss[a := b +_f ss!a] \<in> list n A" by (simp add: closedD)
   moreover
-  from calculation
+  from calculation l
   have "p < length (ss[a := b +_f ss!a])" by simp
   ultimately
   have "?P (ss[a := b +_f ss!a]) ps'" by (rule IH)
@@ -254,7 +254,7 @@ apply assumption
  apply (cases "q \<in> w")
   apply simp
   apply (rule ub1')
-     apply assumption
+     apply (rule semilat)
     apply clarify
     apply (rule pres_typeD)
        apply assumption
@@ -447,7 +447,9 @@ apply (unfold kildall_def)
 apply(case_tac "iter f step ss0 (unstables r step ss0)")
 apply(simp)
 apply (rule iter_properties)
-by (simp_all add: unstables_def stable_def)
+apply (simp_all add: unstables_def stable_def)
+apply (rule semilat)
+done
 
 
 lemma is_bcv_kildall: includes semilat

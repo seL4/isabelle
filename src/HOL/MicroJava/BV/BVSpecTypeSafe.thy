@@ -572,7 +572,7 @@ proof -
       show ?thesis by (rule that)
     qed (insert xp', auto) -- "the other instructions don't generate exceptions"
 
-    from state' meth hp_ok "class" frames phi_pc' frame' 
+    from state' meth hp_ok "class" frames phi_pc' frame' prehp
     have ?thesis by (unfold correct_state_def) simp
   }
   ultimately
@@ -830,7 +830,7 @@ proof -
     is_class_C: "is_class G C" and
     frame:   "correct_frame G hp s maxl ins (stk, loc, C, sig, pc)" and
     frames:  "correct_frames G hp phi rT sig frs"
-    by (clarsimp simp add: correct_state_def iff del: not_None_eq)
+    by (auto iff del: not_None_eq simp add: correct_state_def)
 
   from ins wti phi_pc
   obtain apTs X ST LT D' rT body where 
@@ -972,8 +972,15 @@ proof -
   qed
 
   from state'_val heap_ok mD'' ins method phi_pc s X' l mX
-       frames s' LT0 c_f is_class_C stk' oX_Addr frame prealloc
-  show ?thesis by (simp add: correct_state_def) (intro exI conjI, blast)
+       frames s' LT0 c_f is_class_C stk' oX_Addr frame prealloc and l
+  show ?thesis
+    apply (simp add: correct_state_def)
+    apply (intro exI conjI)
+       apply blast
+      apply (rule l)
+     apply (rule mX)
+    apply (rule mD)
+    done
 qed
 
 lemmas [simp del] = map_append

@@ -170,7 +170,7 @@ proof(nominal_induct \<Gamma>1 t T avoiding: \<Gamma>2 rule: typing.strong_induc
   ultimately show "\<Gamma>2 \<turnstile> lPar x : T" by auto
 next
   case (t_lLam x t T1 \<Gamma>1 T2 \<Gamma>2) (* lambda case *)
-  have vc: "x\<sharp>\<Gamma>2" "x\<sharp>t" by fact  (* variable convention *)
+  have vc: "x\<sharp>\<Gamma>2" "x\<sharp>t" by fact+  (* variable convention *)
   have ih: "\<lbrakk>(x,T1)#\<Gamma>1 \<subseteq> (x,T1)#\<Gamma>2; valid ((x,T1)#\<Gamma>2)\<rbrakk> \<Longrightarrow> (x,T1)#\<Gamma>2 \<turnstile> freshen t x : T2" by fact
   have "\<Gamma>1 \<subseteq> \<Gamma>2" by fact
   then have "(x,T1)#\<Gamma>1 \<subseteq> (x,T1)#\<Gamma>2" by simp

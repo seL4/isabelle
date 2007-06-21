@@ -397,13 +397,13 @@ done
 
 (*Simplify the parameter of a unary type operator.*)
 lemma subst_eqtyparg:
-  assumes "a=c : A"
-    and "!!z. z:A ==> B(z) type"
+  assumes 1: "a=c : A"
+    and 2: "!!z. z:A ==> B(z) type"
   shows "B(a)=B(c)"
 apply (rule subst_typeL)
 apply (rule_tac [2] refl_type)
-apply (rule prems)
-apply assumption
+apply (rule 1)
+apply (erule 2)
 done
 
 (*Simplification rules for Constructive Type Theory*)

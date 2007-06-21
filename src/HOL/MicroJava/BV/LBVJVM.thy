@@ -89,7 +89,7 @@ proof -
   let ?A    = "states G mxs mxr"
 
   have "semilat (JVMType.sl G mxs mxr)" 
-    by (rule semilat_JVM_slI, rule wf_prog_ws_prog)
+    by (rule semilat_JVM_slI, rule wf_prog_ws_prog, rule wf)
   hence "semilat (?A, ?r, ?f)" by (unfold sl_triple_conv)
   moreover
   have "top ?r Err"  by (simp add: JVM_le_unfold)
@@ -110,7 +110,7 @@ proof -
   have "cert_ok cert (length ins) Err (OK None) ?A" 
     by (unfold wt_lbv_def) (auto dest: check_certD)
   moreover
-  have "pres_type ?step (length ins) ?A" by (rule exec_pres_type)
+  from wf have "pres_type ?step (length ins) ?A" by (rule exec_pres_type)
   moreover
   let ?start = "OK (Some ([],(OK (Class C))#(map OK pTs)@(replicate mxl Err)))"
   from lbv
@@ -221,7 +221,7 @@ proof -
     by (simp (asm_lr) add: wt_method_def2)
   
   have "semilat (JVMType.sl G mxs ?mxr)" 
-    by (rule semilat_JVM_slI, rule wf_prog_ws_prog)
+    by (rule semilat_JVM_slI) (rule wf_prog_ws_prog [OF wf])
   hence "semilat (?A, ?r, ?f)" by (unfold sl_triple_conv)
   moreover
   have "top ?r Err"  by (simp add: JVM_le_unfold)
@@ -242,7 +242,7 @@ proof -
     by (rule wf_prog_ws_prog [THEN exec_mono])
   hence "mono ?r ?step (length ?phi) ?A" by (simp add: length)
   moreover
-  have "pres_type ?step (length ins) ?A" by (rule exec_pres_type)
+  from wf have "pres_type ?step (length ins) ?A" by (rule exec_pres_type)
   hence "pres_type ?step (length ?phi) ?A" by (simp add: length)
   moreover
   from ck_types

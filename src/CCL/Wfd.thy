@@ -340,7 +340,11 @@ lemma hyprcall2T:
   apply (rule 3)
     apply (rule 1 [symmetric])
   apply (rule rcall2T)
-      apply assumption+
+      apply (rule 2)
+     apply assumption
+    apply (rule 4)
+   apply (rule 5)
+  apply (rule 6)
   done
 
 lemma hyprcall3T:
@@ -355,7 +359,12 @@ lemma hyprcall3T:
   apply (rule 3)
    apply (rule 1 [symmetric])
   apply (rule rcall3T)
-  apply assumption+
+       apply (rule 2)
+      apply assumption
+     apply (rule 4)
+    apply (rule 5)
+   apply (rule 6)
+  apply (rule 7)
   done
 
 lemmas hyprcallTs = hyprcallT hyprcall2T hyprcall3T

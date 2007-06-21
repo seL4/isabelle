@@ -6077,7 +6077,7 @@ next
   finally show "(ImpR (z).<c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (ImpR (z).<c>.M d)[x\<turnstile>n>y]" using fs by simp
 next
   case (ImpL c M u N v x a y)
-  have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "c\<sharp>N" "c\<sharp>v" "u\<sharp>M" "u\<sharp>v" by fact
+  have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "c\<sharp>N" "c\<sharp>v" "u\<sharp>M" "u\<sharp>v" by fact+
   have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
   have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* N[x\<turnstile>n>y]" by fact
   show "(ImpL <c>.M (u).N v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (ImpL <c>.M (u).N v)[x\<turnstile>n>y]"

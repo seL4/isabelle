@@ -181,9 +181,10 @@ lemma id_apply: "f = lam x. x ==> f`t = t"
   done
 
 lemma term_ind:
-  assumes "P(bot)" "P(true)" "P(false)"
-    "!!x y.[| P(x);  P(y) |] ==> P(<x,y>)"
-    "!!u.(!!x. P(u(x))) ==> P(lam x. u(x))"  "INCL(P)"
+  assumes 1: "P(bot)" and 2: "P(true)" and 3: "P(false)"
+    and 4: "!!x y.[| P(x);  P(y) |] ==> P(<x,y>)"
+    and 5: "!!u.(!!x. P(u(x))) ==> P(lam x. u(x))"
+    and 6: "INCL(P)"
   shows "P(t)"
   apply (rule reachability [THEN id_apply, THEN subst])
   apply (rule_tac x = t in spec)
@@ -191,12 +192,12 @@ lemma term_ind:
     apply (unfold idgen_def)
     apply (rule allI)
     apply (subst applyBbot)
-    apply assumption
+    apply (rule 1)
    apply (rule allI)
    apply (rule applyB [THEN ssubst])
     apply (rule_tac t = "xa" in term_case)
        apply simp_all
-       apply (fast intro: prems INCL_subst all_INCL)+
+       apply (fast intro: assms INCL_subst all_INCL)+
   done
 
 end
