@@ -150,8 +150,8 @@ theorem newman:
   using wf
 proof induct
   case (less x b c)
-  have xc: "R\<^sup>*\<^sup>* x c" .
-  have xb: "R\<^sup>*\<^sup>* x b" . thus ?case
+  have xc: "R\<^sup>*\<^sup>* x c" by fact
+  have xb: "R\<^sup>*\<^sup>* x b" by fact thus ?case
   proof (rule converse_rtranclE')
     assume "x = b"
     with xc have "R\<^sup>*\<^sup>* b c" by simp
@@ -203,8 +203,8 @@ proof induct
   case (less x b c)
   note IH = `\<And>y b c. \<lbrakk>R\<inverse>\<inverse> y x; R\<^sup>*\<^sup>* y b; R\<^sup>*\<^sup>* y c\<rbrakk>
                      \<Longrightarrow> \<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* c d`
-  have xc: "R\<^sup>*\<^sup>* x c" .
-  have xb: "R\<^sup>*\<^sup>* x b" .
+  have xc: "R\<^sup>*\<^sup>* x c" by fact
+  have xb: "R\<^sup>*\<^sup>* x b" by fact
   thus ?case
   proof (rule converse_rtranclE')
     assume "x = b"

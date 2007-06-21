@@ -95,7 +95,7 @@ proof-
     have "?app ss2" by (blast dest: trans_r lesub_step_typeD)
     moreover {
       from ss1 have map1: "set (?map ss1) \<subseteq> A" by auto
-      with x have "?sum ss1 \<in> A" by (auto intro!: plusplus_closed)
+      with x have "?sum ss1 \<in> A" by (auto intro!: plusplus_closed semilat)
       with sum have "?s1 \<in> A" by simp
       moreover    
       have mapD: "\<And>x ss. x \<in> set (?map ss) \<Longrightarrow> \<exists>p. (p,x) \<in> set ss \<and> p=pc+1" by auto
@@ -133,9 +133,9 @@ lemma (in lbvc) wti_mono:
   assumes s2:   "s2 \<in> A"
   shows "wti c pc s2 <=_r wti c pc s1" (is "?s2' <=_r ?s1'")
 proof -
-  from mono s2 have "step pc s2 <=|r| step pc s1" by - (rule monoD)
+  from mono pc s2 less have "step pc s2 <=|r| step pc s1" by (rule monoD)
   moreover
-  from pc cert have "c!Suc pc \<in> A" by - (rule cert_okD3)
+  from cert B_A pc have "c!Suc pc \<in> A" by (rule cert_okD3)
   moreover 
   from pres s1 pc
   have "snd`set (step pc s1) \<subseteq> A" by (rule pres_typeD2)
@@ -154,7 +154,7 @@ lemma (in lbvc) wtc_mono:
   shows "wtc c pc s2 <=_r wtc c pc s1" (is "?s2' <=_r ?s1'")
 proof (cases "c!pc = \<bottom>")
   case True 
-  moreover have "wti c pc s2 <=_r wti c pc s1" by (rule wti_mono)
+  moreover from less pc s1 s2 have "wti c pc s2 <=_r wti c pc s1" by (rule wti_mono)
   ultimately show ?thesis by (simp add: wtc)
 next
   case False
@@ -187,12 +187,12 @@ proof -
   from stable 
   have less: "\<forall>(q,s')\<in>set ?step. s' <=_r \<phi>!q" by (simp add: stable_def)
   
-  from cert pc 
-  have cert_suc: "c!Suc pc \<in> A" by - (rule cert_okD3)
+  from cert B_A pc 
+  have cert_suc: "c!Suc pc \<in> A" by (rule cert_okD3)
   moreover  
   from phi pc have "\<phi>!pc \<in> A" by simp
-  with pres pc 
-  have stepA: "snd`set ?step \<subseteq> A" by - (rule pres_typeD2)  
+  from pres this pc 
+  have stepA: "snd`set ?step \<subseteq> A" by (rule pres_typeD2) 
   ultimately
   have "merge c pc ?step (c!Suc pc) =
     (if \<forall>(pc',s')\<in>set ?step. pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc'
@@ -255,7 +255,7 @@ proof -
   have less: "\<forall>(q,s')\<in>set ?step. s' <=_r \<phi>!q" by (simp add: stable_def)
    
   from suc_pc have pc: "pc < length \<phi>" by simp
-  with cert have cert_suc: "c!Suc pc \<in> A" by - (rule cert_okD3)
+  with cert B_A have cert_suc: "c!Suc pc \<in> A" by (rule cert_okD3)
   moreover  
   from phi pc have "\<phi>!pc \<in> A" by simp
   with pres pc have stepA: "snd`set ?step \<subseteq> A" by - (rule pres_typeD2)
@@ -287,7 +287,7 @@ lemma (in lbvc) stable_wtc:
   assumes pc:      "pc < length \<phi>"
   shows "wtc c pc (\<phi>!pc) \<noteq> \<top>"
 proof -
-  have wti: "wti c pc (\<phi>!pc) \<noteq> \<top>" by (rule stable_wti)   
+  from stable pc have wti: "wti c pc (\<phi>!pc) \<noteq> \<top>" by (rule stable_wti)
   show ?thesis
   proof (cases "c!pc = \<bottom>")
     case True with wti show ?thesis by (simp add: wtc)
@@ -304,17 +304,18 @@ lemma (in lbvc) wtc_less:
   shows "wtc c pc (\<phi>!pc) <=_r \<phi>!Suc pc" (is "?wtc <=_r _")
 proof (cases "c!pc = \<bottom>")
   case True
-  moreover have "wti c pc (\<phi>!pc) <=_r \<phi>!Suc pc" by (rule wti_less)
+  moreover from stable suc_pc have "wti c pc (\<phi>!pc) <=_r \<phi>!Suc pc"
+    by (rule wti_less)
   ultimately show ?thesis by (simp add: wtc)
 next
   case False
   from suc_pc have pc: "pc < length \<phi>" by simp
-  hence "?wtc \<noteq> \<top>" by - (rule stable_wtc)
+  with stable have "?wtc \<noteq> \<top>" by (rule stable_wtc)
   with False have "?wtc = wti c pc (c!pc)" 
     by (unfold wtc) (simp split: split_if_asm)
   also from pc False have "c!pc = \<phi>!pc" .. 
   finally have "?wtc = wti c pc (\<phi>!pc)" .
-  also have "wti c pc (\<phi>!pc) <=_r \<phi>!Suc pc" by (rule wti_less)
+  also from stable suc_pc have "wti c pc (\<phi>!pc) <=_r \<phi>!Suc pc" by (rule wti_less)
   finally show ?thesis .
 qed
 
@@ -338,16 +339,11 @@ next
 
   from pc_l obtain pc: "pc < length \<phi>" by simp
   with wt_step have stable: "stable r step \<phi> pc" by (simp add: wt_step_def)
-  moreover
+  from this pc have wt_phi: "wtc c pc (\<phi>!pc) \<noteq> \<top>" by (rule stable_wtc)
   assume s_phi: "s <=_r \<phi>!pc"
-  ultimately 
-  have wt_phi: "wtc c pc (\<phi>!pc) \<noteq> \<top>" by - (rule stable_wtc)
-
   from phi pc have phi_pc: "\<phi>!pc \<in> A" by simp
-  moreover 
   assume s: "s \<in> A"
-  ultimately
-  have wt_s_phi: "wtc c pc s <=_r wtc c pc (\<phi>!pc)" using s_phi by - (rule wtc_mono)
+  with s_phi pc phi_pc have wt_s_phi: "wtc c pc s <=_r wtc c pc (\<phi>!pc)" by (rule wtc_mono)
   with wt_phi have wt_s: "wtc c pc s \<noteq> \<top>" by simp
   moreover
   assume s: "s \<noteq> \<top>" 

@@ -200,7 +200,7 @@ lemma (in reflection) Closed_Unbounded_ClEx:
       ==> Closed_Unbounded(ClEx(P))"
 apply (unfold ClEx_eq FF_def F0_def M_def) 
 apply (rule ex_reflection.ZF_Closed_Unbounded_ClEx [of Mset _ _ Cl])
-apply (rule ex_reflection.intro, assumption)
+apply (rule ex_reflection.intro, rule reflection_axioms)
 apply (blast intro: ex_reflection_axioms.intro)
 done
 

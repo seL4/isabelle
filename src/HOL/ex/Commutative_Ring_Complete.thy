@@ -150,7 +150,7 @@ next
     then obtain d where X:"x=Suc (Suc d)" ..
     from prems have NR:"isnorm R" "isnorm P2" by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with prems have "isnorm (Pinj (x - 1) P2)" by(cases P2, auto)
-    with prems NR have "isnorm (R \<oplus> Pinj (x - 1) P2)" "isnorm (PX Q2 y R)" by simp assumption
+    with prems NR have "isnorm (R \<oplus> Pinj (x - 1) P2)" "isnorm (PX Q2 y R)" by simp fact
     with X have ?case by (simp add: norm_PXtrans[of Q2 y _]) }
   ultimately show ?case by blast
 next
@@ -168,7 +168,7 @@ next
     then obtain d where X:"x=Suc (Suc d)" ..
     from prems have NR:"isnorm R" "isnorm P2" by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
     with prems have "isnorm (Pinj (x - 1) P2)" by(cases P2, auto)
-    with prems NR have "isnorm (R \<oplus> Pinj (x - 1) P2)" "isnorm (PX Q2 y R)" by simp assumption
+    with prems NR have "isnorm (R \<oplus> Pinj (x - 1) P2)" "isnorm (PX Q2 y R)" by simp fact
     with X have ?case by (simp add: norm_PXtrans[of Q2 y _]) }
   ultimately show ?case by blast
 next

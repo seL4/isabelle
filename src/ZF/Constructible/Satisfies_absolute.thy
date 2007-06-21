@@ -485,7 +485,7 @@ theorem (in M_satisfies) Formula_Rec_M:
 			 satisfies_c(A), satisfies_is_c(M,A), 
 			 satisfies_d(A), satisfies_is_d(M,A))"
   apply (rule Formula_Rec.intro)
-   apply (rule M_satisfies.axioms) apply assumption
+   apply (rule M_satisfies.axioms, rule M_satisfies_axioms)
   apply (erule Formula_Rec_axioms_M) 
   done
 

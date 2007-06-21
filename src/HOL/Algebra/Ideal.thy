@@ -542,7 +542,7 @@ lemma (in cring) cgenideal_is_principalideal:
   assumes icarr: "i \<in> carrier R"
   shows "principalideal (PIdl i) R"
 apply (rule principalidealI)
-apply (rule cgenideal_ideal, assumption)
+apply (rule cgenideal_ideal [OF icarr])
 proof -
   from icarr
       have "PIdl i = Idl {i}" by (rule cgenideal_eq_genideal)
@@ -559,7 +559,7 @@ lemma (in ring) union_genideal:
   shows "Idl (I \<union> J) = I <+> J"
 apply rule
  apply (rule ring.genideal_minimal)
-   apply assumption
+   apply (rule R.is_ring)
   apply (rule add_ideals[OF idealI idealJ])
  apply (rule)
  apply (simp add: set_add_defs) apply (elim disjE) defer 1 defer 1
@@ -675,8 +675,11 @@ proof (rule ccontr, clarsimp)
      and "\<forall>a. a \<in> carrier R \<longrightarrow> (\<forall>b. a \<otimes> b \<in> I \<longrightarrow> b \<in> carrier R \<longrightarrow> a \<in> I \<or> b \<in> I)"
   hence I_prime: "\<And> a b. \<lbrakk>a \<in> carrier R; b \<in> carrier R; a \<otimes> b \<in> I\<rbrakk> \<Longrightarrow> a \<in> I \<or> b \<in> I" by simp
   have "primeideal I R"
-      apply (rule primeideal.intro, assumption+)
-      by (rule primeideal_axioms.intro, rule InR, erule I_prime)
+      apply (rule primeideal.intro [OF is_ideal is_cring])
+      apply (rule primeideal_axioms.intro)
+       apply (rule InR)
+      apply (erule (2) I_prime)
+      done
   from this and notprime
       show "False" by simp
 qed
@@ -692,7 +695,7 @@ text {* If @{text "{\<zero>}"} is a prime ideal of a commutative ring, the ring 
 lemma (in cring) zeroprimeideal_domainI:
   assumes pi: "primeideal {\<zero>} R"
   shows "domain R"
-apply (rule domain.intro, assumption+)
+apply (rule domain.intro, rule is_cring)
 apply (rule domain_axioms.intro)
 proof (rule ccontr, simp)
   interpret primeideal ["{\<zero>}" "R"] by (rule pi)
@@ -779,7 +782,8 @@ lemma (in cring) maximalideal_is_prime:
   shows "primeideal I R"
 apply (rule ccontr)
 apply (rule primeidealCE)
-  apply assumption+
+   apply (rule is_cring)
+  apply assumption
  apply (simp add: I_notcarr)
 proof -
   assume "\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I"

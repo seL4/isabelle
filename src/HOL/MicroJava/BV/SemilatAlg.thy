@@ -69,9 +69,9 @@ proof (induct x)
   fix y x xs
   assume y: "y \<in> A" and xs: "set (x#xs) \<subseteq> A"
   assume IH: "\<And>y. \<lbrakk> set xs \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> xs ++_f y \<in> A"
-  from xs obtain x: "x \<in> A" and "set xs \<subseteq> A" by simp
+  from xs obtain x: "x \<in> A" and xs': "set xs \<subseteq> A" by simp
   from x y have "(x +_f y) \<in> A" ..
-  with xs have "xs ++_f (x +_f y) \<in> A" by - (rule IH)
+  with xs' have "xs ++_f (x +_f y) \<in> A" by (rule IH)
   thus "(x#xs) ++_f y \<in> A" by simp
 qed
 
@@ -85,7 +85,7 @@ proof (induct x)
   assume "set (a#l) \<subseteq> A"
   then obtain a: "a \<in> A" and x: "set l \<subseteq> A" by simp
   assume "\<And>y. \<lbrakk>set l \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r l ++_f y"
-  hence IH: "\<And>y. y \<in> A \<Longrightarrow> y <=_r l ++_f y" .
+  hence IH: "\<And>y. y \<in> A \<Longrightarrow> y <=_r l ++_f y" using x .
 
   from a y have "y <=_r a +_f y" ..
   also from a y have "a +_f y \<in> A" ..
@@ -107,7 +107,7 @@ proof (induct ls)
 
   assume 
     "\<And>y. \<lbrakk>set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
-  hence IH: "\<And>y. x \<in> set ls \<Longrightarrow> y \<in> A \<Longrightarrow> x <=_r ls ++_f y" .
+  hence IH: "\<And>y. x \<in> set ls \<Longrightarrow> y \<in> A \<Longrightarrow> x <=_r ls ++_f y" using ls .
 
   assume "x \<in> set (s#ls)"
   then obtain xls: "x = s \<or> x \<in> set ls" by simp
@@ -132,7 +132,7 @@ qed
 
 
 lemma (in semilat) pp_lub:
-  assumes "z \<in> A"
+  assumes z: "z \<in> A"
   shows 
   "\<And>y. y \<in> A \<Longrightarrow> set xs \<subseteq> A \<Longrightarrow> \<forall>x \<in> set xs. x <=_r z \<Longrightarrow> y <=_r z \<Longrightarrow> xs ++_f y <=_r z"
 proof (induct xs)
@@ -141,8 +141,8 @@ next
   fix y l ls assume y: "y \<in> A" and "set (l#ls) \<subseteq> A"
   then obtain l: "l \<in> A" and ls: "set ls \<subseteq> A" by auto
   assume "\<forall>x \<in> set (l#ls). x <=_r z"
-  then obtain "l <=_r z" and lsz: "\<forall>x \<in> set ls. x <=_r z" by auto
-  assume "y <=_r z" have "l +_f y <=_r z" ..  
+  then obtain lz: "l <=_r z" and lsz: "\<forall>x \<in> set ls. x <=_r z" by auto
+  assume "y <=_r z" with lz have "l +_f y <=_r z" using l y z ..
   moreover
   from l y have "l +_f y \<in> A" ..
   moreover
@@ -171,14 +171,10 @@ proof -
   show ?thesis by - (rule pp_ub1)
 qed
     
- 
 
 lemma plusplus_empty:  
   "\<forall>s'. (q, s') \<in> set S \<longrightarrow> s' +_f ss ! q = ss ! q \<Longrightarrow>
    (map snd [(p', t') \<leftarrow> S. p' = q] ++_f ss ! q) = ss ! q"
-apply (induct S)
-apply auto 
-done
-
+  by (induct S) auto 
 
 end

@@ -105,7 +105,7 @@ lemma lem:
   apply clarify
   apply (erule disjE)
    apply clarify
-   apply (rule prems)
+   apply (rule assms)
    apply clarify
    apply (erule allE, erule impE)
     prefer 2
@@ -116,7 +116,7 @@ lemma lem:
    apply (rule elem_le_sum)
    apply force
   apply clarify
-  apply (rule prems)
+  apply (rule assms)
    apply (erule allE, erule impE)
     prefer 2
     apply (erule allE, erule mp, rule refl)
@@ -140,7 +140,7 @@ theorem Apps_dB_induct:
   apply (rule_tac t = t in lem)
     prefer 3
     apply (rule refl)
-   apply (assumption | rule prems)+
+    using assms apply iprover+
   done
 
 end

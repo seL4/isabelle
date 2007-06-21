@@ -8,7 +8,6 @@ theory RingHom
 imports Ideal
 begin
 
-
 section {* Homomorphisms of Non-Commutative Rings *}
 
 text {* Lifting existing lemmas in a @{text ring_hom_ring} locale *}
@@ -67,7 +66,7 @@ lemma ring_hom_ringI3:
   assumes compatible_mult: "!!x y. [| x : carrier R; y : carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
       and compatible_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "ring_hom_ring R S h"
-apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro, assumption+)
+apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro, rule R.is_ring, rule S.is_ring)
 apply (insert group_hom.homh[OF a_group_hom])
 apply (unfold hom_def ring_hom_def, simp)
 apply safe

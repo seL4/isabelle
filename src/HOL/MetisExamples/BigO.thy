@@ -848,7 +848,7 @@ proof -
     apply (rule bigo_abs)
     done
   also have "... <= O(h)"
-    by (rule bigo_elt_subset)
+    using a by (rule bigo_elt_subset)
   finally show "(%x. abs (f x) - abs (g x)) : O(h)".
 qed
 

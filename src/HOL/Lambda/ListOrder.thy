@@ -68,7 +68,7 @@ lemma Cons_step1E [elim!]:
     and "!!y. ys = y # xs \<Longrightarrow> r y x \<Longrightarrow> R"
     and "!!zs. ys = x # zs \<Longrightarrow> step1 r zs xs \<Longrightarrow> R"
   shows R
-  using prems
+  using assms
   apply (cases ys)
    apply (simp add: step1_def)
   apply blast

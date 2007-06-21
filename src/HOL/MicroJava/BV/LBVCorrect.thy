@@ -57,20 +57,20 @@ proof (unfold stable_def, clarify)
   
   from bounded pc step have pc': "pc' < length ins" by (rule boundedD)
 
-  have tkpc: "wtl (take pc ins) c 0 s0 \<noteq> \<top>" (is "?s1 \<noteq> _") by (rule wtl_take)
-  have s2: "wtl (take (pc+1) ins) c 0 s0 \<noteq> \<top>" (is "?s2 \<noteq> _") by (rule wtl_take)
+  from wtl have tkpc: "wtl (take pc ins) c 0 s0 \<noteq> \<top>" (is "?s1 \<noteq> _") by (rule wtl_take)
+  from wtl have s2: "wtl (take (pc+1) ins) c 0 s0 \<noteq> \<top>" (is "?s2 \<noteq> _") by (rule wtl_take)
   
   from wtl pc have wt_s1: "wtc c pc ?s1 \<noteq> \<top>" by (rule wtl_all)
 
   have c_Some: "\<forall>pc t. pc < length ins \<longrightarrow> c!pc \<noteq> \<bottom> \<longrightarrow> \<phi>!pc = c!pc" 
     by (simp add: phi_def)
-  have c_None: "c!pc = \<bottom> \<Longrightarrow> \<phi>!pc = ?s1" ..
+  from pc have c_None: "c!pc = \<bottom> \<Longrightarrow> \<phi>!pc = ?s1" ..
 
   from wt_s1 pc c_None c_Some
   have inst: "wtc c pc ?s1  = wti c pc (\<phi>!pc)"
     by (simp add: wtc split: split_if_asm)
 
-  have "?s1 \<in> A" by (rule wtl_pres) 
+  from pres cert s0 wtl pc have "?s1 \<in> A" by (rule wtl_pres)
   with pc c_Some cert c_None
   have "\<phi>!pc \<in> A" by (cases "c!pc = \<bottom>") (auto dest: cert_okD1)
   with pc pres
@@ -145,7 +145,7 @@ proof -
     then obtain pc where pc: "pc < length \<phi>" and x: "\<phi>!pc = x"
       by (simp add: that [of "length xs"] nth_append)
     
-    from wtl s0 pc 
+    from pres cert wtl s0 pc
     have "wtl (take pc ins) c 0 s0 \<in> A" by (auto intro!: wtl_pres)
     moreover
     from pc have "pc < length ins" by simp
@@ -173,7 +173,7 @@ next
   case False
   with 0 have "phi!0 = c!0" ..
   moreover 
-  have "wtl (take 1 ins) c 0 s0 \<noteq> \<top>"  by (rule wtl_take)
+  from wtl have "wtl (take 1 ins) c 0 s0 \<noteq> \<top>"  by (rule wtl_take)
   with 0 False 
   have "s0 <=_r c!0" by (auto simp add: neq_Nil_conv wtc split: split_if_asm)
   ultimately
@@ -182,38 +182,38 @@ qed
 
 
 theorem (in lbvs) wtl_sound:
-  assumes "wtl ins c 0 s0 \<noteq> \<top>" 
-  assumes "s0 \<in> A" 
+  assumes wtl: "wtl ins c 0 s0 \<noteq> \<top>" 
+  assumes s0: "s0 \<in> A" 
   shows "\<exists>ts. wt_step r \<top> step ts"
 proof -
   have "wt_step r \<top> step \<phi>"
   proof (unfold wt_step_def, intro strip conjI)
     fix pc assume "pc < length \<phi>"
-    then obtain "pc < length ins" by simp
-    show "\<phi>!pc \<noteq> \<top>" by (rule phi_not_top)
-    show "stable r step \<phi> pc" by (rule wtl_stable)
+    then have pc: "pc < length ins" by simp
+    with wtl show "\<phi>!pc \<noteq> \<top>" by (rule phi_not_top)
+    from wtl s0 pc show "stable r step \<phi> pc" by (rule wtl_stable)
   qed
   thus ?thesis ..
 qed
 
 
 theorem (in lbvs) wtl_sound_strong:
-  assumes "wtl ins c 0 s0 \<noteq> \<top>" 
-  assumes "s0 \<in> A" 
-  assumes "0 < length ins"
+  assumes wtl: "wtl ins c 0 s0 \<noteq> \<top>" 
+  assumes s0: "s0 \<in> A" 
+  assumes nz: "0 < length ins"
   shows "\<exists>ts \<in> list (length ins) A. wt_step r \<top> step ts \<and> s0 <=_r ts!0"
 proof -
-  have "\<phi> \<in> list (length ins) A" by (rule phi_in_A)
+  from wtl s0 have "\<phi> \<in> list (length ins) A" by (rule phi_in_A)
   moreover
   have "wt_step r \<top> step \<phi>"
   proof (unfold wt_step_def, intro strip conjI)
     fix pc assume "pc < length \<phi>"
-    then obtain "pc < length ins" by simp
-    show "\<phi>!pc \<noteq> \<top>" by (rule phi_not_top)
-    show "stable r step \<phi> pc" by (rule wtl_stable)
+    then have pc: "pc < length ins" by simp
+    with wtl show "\<phi>!pc \<noteq> \<top>" by (rule phi_not_top)
+    from wtl s0 pc show "stable r step \<phi> pc" by (rule wtl_stable)
   qed
   moreover
-  have "s0 <=_r \<phi>!0" by (rule phi0)
+  from wtl nz have "s0 <=_r \<phi>!0" by (rule phi0)
   ultimately
   show ?thesis by fast
 qed

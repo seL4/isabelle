@@ -193,7 +193,7 @@ proof (induct as rule: rev_induct)
   thus ?case ..
 next
   case (snoc b bs Us)
-  have "e\<langle>i:T\<rangle> \<tturnstile> bs  @ [b] : Us" .
+  have "e\<langle>i:T\<rangle> \<tturnstile> bs  @ [b] : Us" by fact
   then obtain Vs W where Us: "Us = Vs @ [W]"
     and bs: "e\<langle>i:T\<rangle> \<tturnstile> bs : Vs" and bT: "e\<langle>i:T\<rangle> \<turnstile> b : W"
     by (rule types_snocE)
@@ -209,7 +209,7 @@ next
     by iprover
   from bsNF [of 0] have "listall NF (map f bs')"
     by (rule App_NF_D)
-  moreover have "NF (f b')" by (rule f_NF)
+  moreover have "NF (f b')" using bNF by (rule f_NF)
   ultimately have "listall NF (map f (bs' @ [b']))"
     by simp
   hence "\<And>j. NF (Var j \<degree>\<degree> map f (bs' @ [b']))" by (rule NF.App)
@@ -253,7 +253,7 @@ proof (induct U)
 	next
 	  case (Cons a as)
           with argsT obtain T'' Ts where Us: "Us = T'' # Ts"
-	    by (cases Us) (rule FalseE, simp+)
+	    by (cases Us) (rule FalseE, simp+, erule that)
 	  from varT and Us have varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
 	    by simp
           from varT eq have T: "T = T'' \<Rightarrow> Ts \<Rrightarrow> T'" by cases auto
@@ -287,6 +287,7 @@ proof (induct U)
 	    qed
 	    with ured show "e\<langle>0:T''\<rangle> \<turnstile> u' : Ts \<Rrightarrow> T'" by (rule subject_reduction')
 	    from ared aT show "e \<turnstile> a' : T''" by (rule subject_reduction')
+	    show "NF a'" by fact
 	  qed
 	  then obtain ua where uared: "u'[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" and uaNF: "NF ua"
 	    by iprover
@@ -297,7 +298,7 @@ proof (induct U)
 	  also note uared
 	  finally have "(lift u 0 \<degree> Var 0)[a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" .
 	  hence uared': "u \<degree> a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" by simp
-	  from T have "\<exists>r. (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r \<and> NF r"
+	  from T asNF _ uaNF have "\<exists>r. (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r \<and> NF r"
 	  proof (rule MI2)
 	    have "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as : T'"
 	    proof (rule list_app_typeI)
@@ -349,8 +350,8 @@ proof (induct U)
       case (Abs r e_ T'_ u_ i_)
       assume absT: "e\<langle>i:T\<rangle> \<turnstile> Abs r : T'"
       then obtain R S where "e\<langle>0:R\<rangle>\<langle>Suc i:T\<rangle>  \<turnstile> r : S" by (rule abs_typeE) simp
-      moreover have "NF (lift u 0)" by (rule lift_NF)
-      moreover have "e\<langle>0:R\<rangle> \<turnstile> lift u 0 : T" by (rule lift_type)
+      moreover have "NF (lift u 0)" using `NF u` by (rule lift_NF)
+      moreover have "e\<langle>0:R\<rangle> \<turnstile> lift u 0 : T" using uT by (rule lift_type)
       ultimately have "\<exists>t'. r[lift u 0/Suc i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'" by (rule Abs)
       thus "\<exists>t'. Abs r[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'"
 	by simp (iprover intro: rtrancl_beta_Abs NF.Abs)
@@ -377,7 +378,7 @@ lemma rtyping_imp_typing: "e \<turnstile>\<^sub>R t : T \<Longrightarrow> e \<tu
 
 theorem type_NF:
   assumes "e \<turnstile>\<^sub>R t : T"
-  shows "\<exists>t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'" using prems
+  shows "\<exists>t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'" using assms
 proof induct
   case Var
   show ?case by (iprover intro: Var_NF)
@@ -387,11 +388,11 @@ next
 next
   case (App e s T U t)
   from App obtain s' t' where
-    sred: "s \<rightarrow>\<^sub>\<beta>\<^sup>* s'" and sNF: "NF s'"
+    sred: "s \<rightarrow>\<^sub>\<beta>\<^sup>* s'" and "NF s'"
     and tred: "t \<rightarrow>\<^sub>\<beta>\<^sup>* t'" and tNF: "NF t'" by iprover
   have "\<exists>u. (Var 0 \<degree> lift t' 0)[s'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* u \<and> NF u"
   proof (rule subst_type_NF)
-    have "NF (lift t' 0)" by (rule lift_NF)
+    have "NF (lift t' 0)" using tNF by (rule lift_NF)
     hence "listall NF [lift t' 0]" by (rule listall_cons) (rule listall_nil)
     hence "NF (Var 0 \<degree>\<degree> [lift t' 0])" by (rule NF.App)
     thus "NF (Var 0 \<degree> lift t' 0)" by simp
@@ -400,12 +401,13 @@ next
       show "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 : T \<Rightarrow> U"
       	by (rule typing.Var) simp
       from tred have "e \<turnstile> t' : T"
-      	by (rule subject_reduction') (rule rtyping_imp_typing)
+      	by (rule subject_reduction') (rule rtyping_imp_typing, rule App.hyps)
       thus "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> lift t' 0 : T"
       	by (rule lift_type)
     qed
     from sred show "e \<turnstile> s' : T \<Rightarrow> U"
-      by (rule subject_reduction') (rule rtyping_imp_typing)
+      by (rule subject_reduction') (rule rtyping_imp_typing, rule App.hyps)
+    show "NF s'" by fact
   qed
   then obtain u where ured: "s' \<degree> t' \<rightarrow>\<^sub>\<beta>\<^sup>* u" and unf: "NF u" by simp iprover
   from sred tred have "s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t'" by (rule rtrancl_beta_App)

@@ -137,7 +137,7 @@ proof (induct M)
   case 0 show ?case by simp
 next
   case (Suc M)
-  have ant: "0 < Suc M" .
+  have ant: "0 < Suc M" by fact
   {
     have suc: "?LHS (Suc M) = ?RHS (Suc M)"
     proof cases -- "show that LHS = c and RHS = c, and thus LHS = RHS"

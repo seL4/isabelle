@@ -356,10 +356,10 @@ lemma type_induct [induct type]:
   shows "P T"
 proof (induct T)
   case Atom
-  show ?case by (rule prems) simp_all
+  show ?case by (rule assms) simp_all
 next
   case Fun
-  show ?case by (rule prems) (insert Fun, simp_all)
+  show ?case by (rule assms) (insert Fun, simp_all)
 qed
 
 end

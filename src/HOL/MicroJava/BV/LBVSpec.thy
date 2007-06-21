@@ -108,7 +108,7 @@ lemma (in lbv) sup_top [simp, elim]:
   shows "x +_f \<top> = \<top>"
 proof -
   from top have "x +_f \<top> <=_r \<top>" ..
-  moreover from x have "\<top> <=_r x +_f \<top>" ..
+  moreover from x T_A have "\<top> <=_r x +_f \<top>" ..
   ultimately show ?thesis ..
 qed
   
@@ -163,15 +163,15 @@ next
   assume "?set (l#ls)" then obtain set: "snd`set ls \<subseteq> A" by simp
   assume merge: "?merge (l#ls) x" 
   moreover
-  obtain pc' s' where [simp]: "l = (pc',s')" by (cases l)
+  obtain pc' s' where l: "l = (pc',s')" by (cases l)
   ultimately
-  obtain x' where "?merge ls x'" by simp 
-  assume "\<And>x. ?set ls \<Longrightarrow> ?merge ls x \<Longrightarrow> ?P ls" hence "?P ls" .
+  obtain x' where merge': "?merge ls x'" by simp 
+  assume "\<And>x. ?set ls \<Longrightarrow> ?merge ls x \<Longrightarrow> ?P ls" hence "?P ls" using set merge' .
   moreover
   from merge set
-  have "pc' \<noteq> pc+1 \<longrightarrow> s' <=_r (c!pc')" by (simp split: split_if_asm)
+  have "pc' \<noteq> pc+1 \<longrightarrow> s' <=_r (c!pc')" by (simp add: l split: split_if_asm)
   ultimately
-  show "?P (l#ls)" by simp
+  show "?P (l#ls)" by (simp add: l)
 qed
 
 
@@ -191,7 +191,7 @@ next
   assume "snd`set (l#ls) \<subseteq> A"
   then obtain l: "snd l \<in> A" and ls: "snd`set ls \<subseteq> A" by auto
   assume "\<And>x. x \<in> A \<Longrightarrow> snd`set ls \<subseteq> A \<Longrightarrow> ?P ls x" 
-  hence IH: "\<And>x. x \<in> A \<Longrightarrow> ?P ls x" .
+  hence IH: "\<And>x. x \<in> A \<Longrightarrow> ?P ls x" using ls by iprover
   obtain pc' s' where [simp]: "l = (pc',s')" by (cases l)
   hence "?merge (l#ls) x = ?merge ls 
     (if pc'=pc+1 then s' +_f x else if s' <=_r c!pc' then x else \<top>)"
@@ -201,7 +201,7 @@ next
   proof -
     from l have "s' \<in> A" by simp
     with x have "s' +_f x \<in> A" by simp
-    with x have "?if' \<in> A" by auto
+    with x T_A have "?if' \<in> A" by auto
     hence "?P ls ?if'" by (rule IH) thus ?thesis by simp
   qed
   also have "\<dots> = ?if (l#ls) x"
@@ -317,7 +317,7 @@ lemma (in lbv) merge_pres:
 proof -
   from s0 have "set (map snd [(p', t')\<leftarrow>ss . p'=pc+1]) \<subseteq> A" by auto
   with x  have "(map snd [(p', t')\<leftarrow>ss . p'=pc+1] ++_f x) \<in> A"
-    by (auto intro!: plusplus_closed)
+    by (auto intro!: plusplus_closed semilat)
   with s0 x show ?thesis by (simp add: merge_def T_A)
 qed
   
@@ -339,13 +339,13 @@ qed
 
 
 lemma (in lbv) wtc_pres:
-  assumes "pres_type step n A"
-  assumes "c!pc \<in> A" and "c!(pc+1) \<in> A"
-  assumes "s \<in> A" and "pc < n"
+  assumes pres: "pres_type step n A"
+  assumes cert: "c!pc \<in> A" and cert': "c!(pc+1) \<in> A"
+  assumes s: "s \<in> A" and pc: "pc < n"
   shows "wtc c pc s \<in> A"
 proof -
-  have "wti c pc s \<in> A" ..
-  moreover have "wti c pc (c!pc) \<in> A" ..
+  have "wti c pc s \<in> A" using pres cert' s pc ..
+  moreover have "wti c pc (c!pc) \<in> A" using pres cert' cert pc ..
   ultimately show ?thesis using T_A by (simp add: wtc) 
 qed
 
@@ -360,22 +360,21 @@ lemma (in lbv) wtl_pres:
 proof (induct pc)
   from s show "?wtl 0 \<in> A" by simp
 next
-  fix n assume "Suc n < length is"
-  then obtain n: "n < length is" by simp  
-  assume "n < length is \<Longrightarrow> ?wtl n \<in> A"
-  hence "?wtl n \<in> A" .
-  moreover
-  from cert have "c!n \<in> A" by (rule cert_okD1)
-  moreover
-  have n1: "n+1 < length is" by simp
-  with cert have "c!(n+1) \<in> A" by (rule cert_okD1)
-  ultimately
-  have "wtc c n (?wtl n) \<in> A" by - (rule wtc_pres)
+  fix n assume IH: "Suc n < length is"
+  then have n: "n < length is" by simp  
+  from IH have n1: "n+1 < length is" by simp
+  assume prem: "n < length is \<Longrightarrow> ?wtl n \<in> A"
+  have "wtc c n (?wtl n) \<in> A"
+  using pres _ _ _ n
+  proof (rule wtc_pres)
+    from prem n show "?wtl n \<in> A" .
+    from cert n show "c!n \<in> A" by (rule cert_okD1)
+    from cert n1 show "c!(n+1) \<in> A" by (rule cert_okD1)
+  qed
   also
   from all n have "?wtl n \<noteq> \<top>" by - (rule wtl_take)
   with n1 have "wtc c n (?wtl n) = ?wtl (n+1)" by (rule wtl_Suc [symmetric])
   finally  show "?wtl (Suc n) \<in> A" by simp
 qed
-
 
 end

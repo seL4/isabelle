@@ -3699,9 +3699,9 @@ lemma rsplit0_complete:
   shows "\<exists> (p,n,s) \<in> set (rsplit0 t). Ifm (x#bs) p" (is "\<exists> (p,n,s) \<in> ?SS t. ?I p")
 proof(induct t rule: rsplit0.induct)
   case (2 a b) 
-  from prems have "\<exists> (pa,na,sa) \<in> ?SS a. ?I pa" by simp
+  from prems have "\<exists> (pa,na,sa) \<in> ?SS a. ?I pa" by auto
   then obtain "pa" "na" "sa" where pa: "(pa,na,sa)\<in> ?SS a \<and> ?I pa" by blast
-  from prems have "\<exists> (pb,nb,sb) \<in> ?SS b. ?I pb" by simp
+  from prems have "\<exists> (pb,nb,sb) \<in> ?SS b. ?I pb" by auto
   then obtain "pb" "nb" "sb" where pb: "(pb,nb,sb)\<in> ?SS b \<and> ?I pb" by blast
   from pa pb have th: "((pa,na,sa),(pb,nb,sb)) \<in> set (allpairs Pair (rsplit0 a) (rsplit0 b))"
     by (auto simp add: allpairs_set)
@@ -3763,7 +3763,7 @@ next
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s).  {?f(p,n,s) j| j. j\<in> {n .. 0}})))"    by blast
-  from prems have "\<exists> (p,n,s) \<in> ?SS a. ?I p" by simp
+  from prems have "\<exists> (p,n,s) \<in> ?SS a. ?I p" by auto
   then obtain "p" "n" "s" where pns: "(p,n,s) \<in> ?SS a \<and> ?I p" by blast
   let ?N = "\<lambda> t. Inum (x#bs) t"
   from rsplit0_cs[rule_format] pns have ans:"(?N a = ?N (CN 0 n s)) \<and> numbound0 s \<and> isrlfm p"
@@ -3824,9 +3824,9 @@ next
     then obtain "j" where j_def: "j\<in> {n .. 0} \<and> ?I (?p (p,n,s) j)" by blast
     hence "\<exists>x \<in> {?p (p,n,s) j |j. n\<le> j \<and> j \<le> 0 }. ?I x" by auto
     hence ?case using pns 
-      by (simp only: FS,simp add: bex_Un) 
+      by (simp only: FS,simp add: bex_Un)
     (rule disjI2, rule disjI2,rule exI [where x="p"],
-      rule exI [where x="n"],rule exI [where x="s"],simp_all add: np)
+      rule exI [where x="n"],rule exI [where x="s"],simp_all add: nn)
   }
   ultimately show ?case by blast
 qed (auto simp add: Let_def split_def)

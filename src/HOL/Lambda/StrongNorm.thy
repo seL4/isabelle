@@ -136,7 +136,7 @@ proof (induct U)
           proof (rule MI2)
             from T have "IT ((lift u 0 \<degree> Var 0)[a[u/i]/0])"
             proof (rule MI1)
-              have "IT (lift u 0)" by (rule lift_IT)
+              have "IT (lift u 0)" by (rule lift_IT [OF uIT])
               thus "IT (lift u 0 \<degree> Var 0)" by (rule app_Var_IT)
               show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 \<degree> Var 0 : Ts \<Rrightarrow> T'"
               proof (rule typing.App)
@@ -230,13 +230,13 @@ proof (induct U)
         with T have "e\<langle>i:T\<rangle> \<turnstile> r[a/0] \<degree>\<degree> as : T'"
           by (rule subject_reduction)
         hence "IT ((r[a/0] \<degree>\<degree> as)[u/i])"
-          by (rule SI1)
+	  using uIT uT by (rule SI1)
         thus "IT (r[lift u 0/Suc i][a[u/i]/0] \<degree>\<degree> map (\<lambda>t. t[u/i]) as)"
           by (simp del: subst_map add: subst_subst subst_map [symmetric])
         from T obtain U where "e\<langle>i:T\<rangle> \<turnstile> Abs r \<degree> a : U"
           by (rule list_app_typeE) fast
         then obtain T'' where "e\<langle>i:T\<rangle> \<turnstile> a : T''" by cases simp_all
-        thus "IT (a[u/i])" by (rule SI2)
+        thus "IT (a[u/i])" using uIT uT by (rule SI2)
       qed
       thus "IT ((Abs r \<degree> a \<degree>\<degree> as)[u/i])" by simp
     }
@@ -249,18 +249,18 @@ subsection {* Well-typed terms are strongly normalizing *}
 lemma type_implies_IT:
   assumes "e \<turnstile> t : T"
   shows "IT t"
-  using prems
+  using assms
 proof induct
   case Var
   show ?case by (rule Var_IT)
 next
   case Abs
-  show ?case by (rule IT.Lambda)
+  show ?case by (rule IT.Lambda) (rule Abs)
 next
   case (App e s T U t)
   have "IT ((Var 0 \<degree> lift t 0)[s/0])"
   proof (rule subst_type_IT)
-    have "IT (lift t 0)" by (rule lift_IT)
+    have "IT (lift t 0)" using `IT t` by (rule lift_IT)
     hence "listsp IT [lift t 0]" by (rule listsp.Cons) (rule listsp.Nil)
     hence "IT (Var 0 \<degree>\<degree> [lift t 0])" by (rule IT.Var)
     also have "Var 0 \<degree>\<degree> [lift t 0] = Var 0 \<degree> lift t 0" by simp
@@ -268,9 +268,11 @@ next
     have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 : T \<Rightarrow> U"
       by (rule typing.Var) simp
     moreover have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> lift t 0 : T"
-      by (rule lift_type)
+      by (rule lift_type) (rule App.hyps)
     ultimately show "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 \<degree> lift t 0 : U"
       by (rule typing.App)
+    show "IT s" by fact
+    show "e \<turnstile> s : T \<Rightarrow> U" by fact
   qed
   thus ?case by simp
 qed

@@ -233,9 +233,9 @@ proof -
   next
     fix n l ls
     assume "?list (l#ls) n"
-    then obtain n' where n: "n = Suc n'" "l \<in> A" and "ls@b \<in> list n' A" by fastsimp
+    then obtain n' where n: "n = Suc n'" "l \<in> A" and list_n': "ls@b \<in> list n' A" by fastsimp
     assume "\<And>n. ls @ b \<in> list n A \<Longrightarrow> \<exists>n1 n2. n = n1 + n2 \<and> ls \<in> list n1 A \<and> b \<in> list n2 A"
-    hence "\<exists>n1 n2. n' = n1 + n2 \<and> ls \<in> list n1 A \<and> b \<in> list n2 A" .
+    hence "\<exists>n1 n2. n' = n1 + n2 \<and> ls \<in> list n1 A \<and> b \<in> list n2 A" by this (rule list_n')
     then obtain n1 n2 where "n' = n1 + n2" "ls \<in> list n1 A" "b \<in> list n2 A" by fast
     with n have "?P (l#ls) n (n1+1) n2" by simp
     thus "\<exists>n1 n2. ?P (l#ls) n n1 n2" by fastsimp

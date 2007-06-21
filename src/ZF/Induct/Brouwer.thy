@@ -32,10 +32,12 @@ lemma brouwer_induct2 [consumes 1, case_names Zero Suc Lim]:
   -- {* A nicer induction rule than the standard one. *}
   using b
   apply induct
-    apply (assumption | rule cases)+
-     apply (fast elim: fun_weaken_type)
-    apply (fast dest: apply_type)
-    done
+    apply (rule cases(1))
+   apply (erule (1) cases(2))
+  apply (rule cases(3))
+   apply (fast elim: fun_weaken_type)
+  apply (fast dest: apply_type)
+  done
 
 
 subsection {* The Martin-Löf wellordering type *}
