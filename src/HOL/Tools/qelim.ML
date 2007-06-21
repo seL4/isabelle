@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Presburger/qelim.ML
+(*
     ID:         $Id$
     Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
 
@@ -7,17 +7,17 @@ and proof generation for multiple quantified formulae.
 *)
 
 signature QELIM =
- sig
+sig
  val standard_qelim_conv: Proof.context -> (cterm list -> cterm -> thm) ->
    (cterm list -> Conv.conv) -> (cterm list -> cterm -> thm) -> cterm -> thm
  val gen_qelim_conv: Proof.context -> Conv.conv -> Conv.conv -> Conv.conv ->
    (cterm -> 'a -> 'a) -> 'a -> ('a -> cterm -> thm) ->
    ('a -> Conv.conv) -> ('a -> cterm -> thm) -> Conv.conv
-
 end;
 
 structure Qelim : QELIM =
 struct
+
 open Conv;
 
 local
