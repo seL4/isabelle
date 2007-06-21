@@ -14,7 +14,6 @@ uses
 begin
 
 
-
 subsection {* Semiring normalization *}
 
 setup NormalizerData.setup
@@ -258,7 +257,7 @@ use "Tools/Groebner_Basis/normalizer.ML"
 
 method_setup sring_norm = {*
   Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' (Normalizer.semiring_normalize_tac ctxt))
-*} "Semiring_normalizer"
+*} "semiring normalizer"
 
 
 locale gb_field = gb_ring +
@@ -276,6 +275,7 @@ lemma "axioms" [normalizer
   "gb_field add mul pwr r0 r1 sub neg divide inverse" by fact
 
 end
+
 
 subsection {* Groebner Bases *}
 
@@ -366,7 +366,6 @@ declaration {*
     conv = fn phi => K numeral_conv}
 *}
 
-
 interpretation natgb: semiringb
   ["op +" "op *" "op ^" "0::nat" "1"]
 proof (unfold_locales, simp add: ring_eq_simps power_Suc)
@@ -416,7 +415,6 @@ lemma "axioms" [normalizer
 end
 
 
-
 lemmas bool_simps = simp_thms(1-34)
 lemma dnf:
     "(P & (Q | R)) = ((P&Q) | (P&R))" "((Q | R) & P) = ((Q&P) | (R&P))"
@@ -438,7 +436,7 @@ lemma PFalse:
 use "Tools/Groebner_Basis/groebner.ML"
 
 method_setup algebra =
-{* 
+{*
 let
  fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
  val addN = "add"
@@ -452,7 +450,6 @@ fn src => Method.syntax
  #> (fn ((add_ths, del_ths), ctxt) => 
        Method.SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
 end
-
-*} ""
+*} "solve polynomial equations over (semi)rings using Groebner bases"
 
 end
