@@ -286,19 +286,21 @@ declare trm.inject [simp add]
 declare ty.inject  [simp add]
 declare data.inject [simp add]
 
-inductive_cases2 t_Lam_inv_auto[elim]: "\<Gamma> \<turnstile> Lam [x].t : T"
-inductive_cases2 t_Var_inv_auto[elim]: "\<Gamma> \<turnstile> Var x : T"
-inductive_cases2 t_App_inv_auto[elim]: "\<Gamma> \<turnstile> App x y : T"
-inductive_cases2 t_Const_inv_auto[elim]: "\<Gamma> \<turnstile> Const n : T"
-inductive_cases2 t_Fst_inv_auto[elim]: "\<Gamma> \<turnstile> Fst x : T"
-inductive_cases2 t_Snd_inv_auto[elim]: "\<Gamma> \<turnstile> Snd x : T"
-inductive_cases2 t_InL_inv_auto[elim]: "\<Gamma> \<turnstile> InL x : T"
-inductive_cases2 t_InL_inv_auto'[elim]: "\<Gamma> \<turnstile> InL x : Data (DSum T\<^isub>1 T2)"
-inductive_cases2 t_InR_inv_auto[elim]: "\<Gamma> \<turnstile> InR x : T"
-inductive_cases2 t_InR_inv_auto'[elim]: "\<Gamma> \<turnstile> InR x : Data (DSum T\<^isub>1 T2)"
-inductive_cases2 t_Pr_inv_auto[elim]:  "\<Gamma> \<turnstile> Pr x y : T"
-inductive_cases2 t_Pr_inv_auto'[elim]: "\<Gamma> \<turnstile> Pr e\<^isub>1 e\<^isub>2 : Data (DProd \<sigma>1 \<sigma>\<^isub>2)"
-inductive_cases2 t_Case_inv_auto[elim]: "\<Gamma> \<turnstile> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 : T"
+
+inductive_cases2 typing_inv_auto[elim]: 
+  "\<Gamma> \<turnstile> Lam [x].t : T"
+  "\<Gamma> \<turnstile> Var x : T"
+  "\<Gamma> \<turnstile> App x y : T"
+  "\<Gamma> \<turnstile> Const n : T"
+  "\<Gamma> \<turnstile> Fst x : T"
+  "\<Gamma> \<turnstile> Snd x : T"
+  "\<Gamma> \<turnstile> InL x : T"
+  "\<Gamma> \<turnstile> InL x : Data (DSum T\<^isub>1 T2)"
+  "\<Gamma> \<turnstile> InR x : T"
+  "\<Gamma> \<turnstile> InR x : Data (DSum T\<^isub>1 T2)"
+  "\<Gamma> \<turnstile> Pr x y : T"
+  "\<Gamma> \<turnstile> Pr e\<^isub>1 e\<^isub>2 : Data (DProd \<sigma>1 \<sigma>\<^isub>2)"
+  "\<Gamma> \<turnstile> Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 : T"
 
 declare trm.inject [simp del]
 declare ty.inject [simp del]
@@ -528,15 +530,16 @@ declare trm.inject  [simp add]
 declare ty.inject  [simp add]
 declare data.inject [simp add]
 
-inductive_cases2 b_App_inv_auto[elim]: "App e\<^isub>1 e\<^isub>2 \<Down> t" 
-inductive_cases2 b_Case_inv_auto[elim]: "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> t"
-inductive_cases2 b_Lam_inv_auto[elim]: "Lam[x].t \<Down> t"
-inductive_cases2 b_Const_inv_auto[elim]: "Const n \<Down> t"
-inductive_cases2 b_Fst_inv_auto[elim]: "Fst e \<Down> t"
-inductive_cases2 b_Snd_inv_auto[elim]: "Snd e \<Down> t"
-inductive_cases2 b_InL_inv_auto[elim]: "InL e \<Down> t"
-inductive_cases2 b_InR_inv_auto[elim]: "InR e \<Down> t"
-inductive_cases2 b_Pr_inv_auto[elim]: "Pr e\<^isub>1 e\<^isub>2 \<Down> t"
+inductive_cases2 b_inv_auto[elim]: 
+  "App e\<^isub>1 e\<^isub>2 \<Down> t" 
+  "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> t"
+  "Lam[x].t \<Down> t"
+  "Const n \<Down> t"
+  "Fst e \<Down> t"
+  "Snd e \<Down> t"
+  "InL e \<Down> t"
+  "InR e \<Down> t"
+  "Pr e\<^isub>1 e\<^isub>2 \<Down> t"
 
 declare trm.inject  [simp del]
 declare ty.inject  [simp del]
@@ -547,7 +550,7 @@ lemma b_App_elim[elim]:
   obtains f\<^isub>1 and f\<^isub>2 where "e\<^isub>1 \<Down> Lam [x]. f\<^isub>1" "e\<^isub>2 \<Down> f\<^isub>2" "f\<^isub>1[x::=f\<^isub>2] \<Down> e'"
   using assms
   apply -
-  apply(erule b_App_inv_auto)
+  apply(erule b_inv_auto)
   apply(drule_tac pi="[(xa,x)]" in big.eqvt)
   apply(drule_tac pi="[(xa,x)]" in big.eqvt)
   apply(drule_tac pi="[(xa,x)]" in big.eqvt)
@@ -561,7 +564,7 @@ lemma  b_CaseL_elim[elim]:
   obtains e' where "e \<Down> InL e'" and "e\<^isub>1[x\<^isub>1::=e'] \<Down> e''"
   using assms 
   apply -
-  apply(rule b_Case_inv_auto)
+  apply(rule b_inv_auto(2))
   apply(auto)
   apply(simp add: alpha)
   apply(auto)
@@ -590,7 +593,7 @@ lemma b_CaseR_elim[elim]:
   obtains e' where "e \<Down> InR e'" and "e\<^isub>2[x\<^isub>2::=e'] \<Down> e''"
   using assms 
   apply -
-  apply(rule b_Case_inv_auto)
+  apply(rule b_inv_auto(2))
   apply(auto)
   apply(simp add: alpha)
   apply(auto)
@@ -625,16 +628,17 @@ declare trm.inject  [simp add]
 declare ty.inject  [simp add]
 declare data.inject [simp add]
 
-inductive_cases2 v_Const_inv_auto[elim]: "val (Const n)"
-inductive_cases2 v_Pr_inv_auto[elim]: "val (Pr e\<^isub>1 e\<^isub>2)"
-inductive_cases2 v_InL_inv_auto[elim]: "val (InL e)"
-inductive_cases2 v_InR_inv_auto[elim]: "val (InR e)"
-inductive_cases2 v_Fst_inv_auto[elim]: "val (Fst e)"
-inductive_cases2 v_Snd_inv_auto[elim]: "val (Snd e)"
-inductive_cases2 v_Case_inv_auto[elim]: "val (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2)"
-inductive_cases2 v_Var_inv_auto[elim]: "val (Var x)"
-inductive_cases2 v_Lam_inv_auto[elim]: "val (Lam [x].e)"
-inductive_cases2 v_App_inv_auto[elim]: "val (App e\<^isub>1 e\<^isub>2)"
+inductive_cases2 v_inv_auto[elim]: 
+  "val (Const n)"
+  "val (Pr e\<^isub>1 e\<^isub>2)"
+  "val (InL e)"
+  "val (InR e)"
+  "val (Fst e)"
+  "val (Snd e)"
+  "val (Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2)"
+  "val (Var x)"
+  "val (Lam [x].e)"
+  "val (App e\<^isub>1 e\<^isub>2)"
 
 declare trm.inject  [simp del]
 declare ty.inject  [simp del]

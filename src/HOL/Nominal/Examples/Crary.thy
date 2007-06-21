@@ -319,12 +319,13 @@ lemma typing_implies_valid:
 declare trm.inject [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases2 t_Lam_elim_auto[elim]: "\<Gamma> \<turnstile> Lam [x].t : T"
-inductive_cases2 t_Var_elim_auto[elim]: "\<Gamma> \<turnstile> Var x : T"
-inductive_cases2 t_App_elim_auto[elim]: "\<Gamma> \<turnstile> App x y : T"
-inductive_cases2 t_Const_elim_auto[elim]: "\<Gamma> \<turnstile> Const n : T"
-inductive_cases2 t_Unit_elim_auto[elim]: "\<Gamma> \<turnstile> Unit : TUnit"
-inductive_cases2 t_Unit_elim_auto'[elim]: "\<Gamma> \<turnstile> s : TUnit"
+inductive_cases2 t_inv_auto[elim]: 
+  "\<Gamma> \<turnstile> Lam [x].t : T"
+  "\<Gamma> \<turnstile> Var x : T"
+  "\<Gamma> \<turnstile> App x y : T"
+  "\<Gamma> \<turnstile> Const n : T"
+  "\<Gamma> \<turnstile> Unit : TUnit"
+  "\<Gamma> \<turnstile> s : TUnit"
 
 declare trm.inject [simp del]
 declare ty.inject [simp del]
@@ -366,15 +367,16 @@ where
 declare trm.inject  [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases2 whr_Gen[elim]: "t \<leadsto> t'"
-inductive_cases2 whr_Lam[elim]: "Lam [x].t \<leadsto> t'"
-inductive_cases2 whr_App_Lam[elim]: "App (Lam [x].t12) t2 \<leadsto> t"
-inductive_cases2 whr_Var[elim]: "Var x \<leadsto> t"
-inductive_cases2 whr_Const[elim]: "Const n \<leadsto> t"
-inductive_cases2 whr_App[elim]: "App p q \<leadsto> t"
-inductive_cases2 whr_Const_Right[elim]: "t \<leadsto> Const n"
-inductive_cases2 whr_Var_Right[elim]: "t \<leadsto> Var x"
-inductive_cases2 whr_App_Right[elim]: "t \<leadsto> App p q"
+inductive_cases2 whr_inv_auto[elim]: 
+  "t \<leadsto> t'"
+  "Lam [x].t \<leadsto> t'"
+  "App (Lam [x].t12) t2 \<leadsto> t"
+  "Var x \<leadsto> t"
+  "Const n \<leadsto> t"
+  "App p q \<leadsto> t"
+  "t \<leadsto> Const n"
+  "t \<leadsto> Var x"
+  "t \<leadsto> App p q"
 
 declare trm.inject  [simp del]
 declare ty.inject  [simp del]
@@ -421,12 +423,12 @@ lemma red_unicity :
   shows "a=b"
   using a b
 apply (induct arbitrary: b)
-apply (erule whr_App_Lam)
+apply (erule whr_inv_auto(3))
 apply (clarify)
 apply (rule subst_fun_eq)
 apply (simp)
 apply (force)
-apply (erule whr_App)
+apply (erule whr_inv_auto(6))
 apply (blast)+
 done
 
@@ -468,23 +470,24 @@ nominal_inductive alg_equiv
 declare trm.inject [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases2 alg_equiv_Base_inv_auto[elim]: "\<Gamma> \<turnstile> s\<Leftrightarrow>t : TBase"
-inductive_cases2 alg_equiv_Arrow_inv_auto[elim]: "\<Gamma> \<turnstile> s\<Leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
+inductive_cases2 alg_equiv_inv_auto[elim]: 
+  "\<Gamma> \<turnstile> s\<Leftrightarrow>t : TBase"
+  "\<Gamma> \<turnstile> s\<Leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
 
-inductive_cases2 alg_path_equiv_Base_inv_auto[elim]: "\<Gamma> \<turnstile> s\<leftrightarrow>t : TBase"
-inductive_cases2 alg_path_equiv_Unit_inv_auto[elim]: "\<Gamma> \<turnstile> s\<leftrightarrow>t : TUnit"
-inductive_cases2 alg_path_equiv_Arrow_inv_auto[elim]: "\<Gamma> \<turnstile> s\<leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
-
-inductive_cases2 alg_path_equiv_Var_left_inv_auto[elim]: "\<Gamma> \<turnstile> Var x \<leftrightarrow> t : T"
-inductive_cases2 alg_path_equiv_Var_left_inv_auto'[elim]: "\<Gamma> \<turnstile> Var x \<leftrightarrow> t : T'"
-inductive_cases2 alg_path_equiv_Var_right_inv_auto[elim]: "\<Gamma> \<turnstile> s \<leftrightarrow> Var x : T"
-inductive_cases2 alg_path_equiv_Var_right_inv_auto'[elim]: "\<Gamma> \<turnstile> s \<leftrightarrow> Var x : T'"
-inductive_cases2 alg_path_equiv_Const_left_inv_auto[elim]: "\<Gamma> \<turnstile> Const n \<leftrightarrow> t : T"
-inductive_cases2 alg_path_equiv_Const_right_inv_auto[elim]: "\<Gamma> \<turnstile> s \<leftrightarrow> Const n : T"
-inductive_cases2 alg_path_equiv_App_left_inv_auto[elim]: "\<Gamma> \<turnstile> App p s \<leftrightarrow> t : T"
-inductive_cases2 alg_path_equiv_App_right_inv_auto[elim]: "\<Gamma> \<turnstile> s \<leftrightarrow> App q t : T"
-inductive_cases2 alg_path_equiv_Lam_left_inv_auto[elim]: "\<Gamma> \<turnstile> Lam[x].s \<leftrightarrow> t : T"
-inductive_cases2 alg_path_equiv_Lam_right_inv_auto[elim]: "\<Gamma> \<turnstile> t \<leftrightarrow> Lam[x].s : T"
+inductive_cases2 alg_path_equiv_inv_auto[elim]: 
+  "\<Gamma> \<turnstile> s\<leftrightarrow>t : TBase"
+  "\<Gamma> \<turnstile> s\<leftrightarrow>t : TUnit"
+  "\<Gamma> \<turnstile> s\<leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
+  "\<Gamma> \<turnstile> Var x \<leftrightarrow> t : T"
+  "\<Gamma> \<turnstile> Var x \<leftrightarrow> t : T'"
+  "\<Gamma> \<turnstile> s \<leftrightarrow> Var x : T"
+  "\<Gamma> \<turnstile> s \<leftrightarrow> Var x : T'"
+  "\<Gamma> \<turnstile> Const n \<leftrightarrow> t : T"
+  "\<Gamma> \<turnstile> s \<leftrightarrow> Const n : T"
+  "\<Gamma> \<turnstile> App p s \<leftrightarrow> t : T"
+  "\<Gamma> \<turnstile> s \<leftrightarrow> App q t : T"
+  "\<Gamma> \<turnstile> Lam[x].s \<leftrightarrow> t : T"
+  "\<Gamma> \<turnstile> t \<leftrightarrow> Lam[x].s : T"
 
 declare trm.inject [simp del]
 declare ty.inject [simp del]
