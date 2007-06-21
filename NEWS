@@ -548,11 +548,12 @@ the graph browser tool.
   It generates calls to the "metis" method if successful. These can be pasted into the proof.
   Users do not have to wait for the automatic provers to return.
 
-* IntDef: The constant "int :: nat => int" has been removed; now
-  "int" is an abbreviation for "of_nat :: nat => int". Potential
-  INCOMPATIBILITY due to differences in default simp rules:
-  - "int (Suc m)" simplifies to "int m + 1" instead of "1 + int m"
-  - "int (m * n)" simplifies to "int m * int n"
+* IntDef: The constant "int :: nat => int" has been removed; now "int"
+  is an abbreviation for "of_nat :: nat => int". The simplification rules
+  for "of_nat" have been changed to work like "int" did previously.
+  (potential INCOMPATIBILITY)
+  - "of_nat (Suc m)" simplifies to "1 + of_nat m" instead of "of_nat m + 1"
+  - of_nat_diff and of_nat_mult are no longer default simp rules
 
 * Method "algebra" solves polynomial equations over (semi)rings using
   Groebner bases. The (semi)ring structure is defined by locales and
