@@ -24,9 +24,9 @@ val split_div' = thm "split_div'";
 val Suc_plus1 = thm "Suc_plus1";
 val imp_le_cong = thm "imp_le_cong";
 val conj_le_cong = thm "conj_le_cong";
-val nat_mod_add_eq = mod_add1_eq RS sym;
-val nat_mod_add_left_eq = mod_add_left_eq RS sym;
-val nat_mod_add_right_eq = mod_add_right_eq RS sym;
+val nat_mod_add_eq = @{thm mod_add1_eq} RS sym;
+val nat_mod_add_left_eq = @{thm mod_add_left_eq} RS sym;
+val nat_mod_add_right_eq = @{thm mod_add_right_eq} RS sym;
 val int_mod_add_eq = @{thm "zmod_zadd1_eq"} RS sym;
 val int_mod_add_left_eq = @{thm "zmod_zadd_left_eq"} RS sym;
 val int_mod_add_right_eq = @{thm "zmod_zadd_right_eq"} RS sym;
@@ -77,8 +77,8 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_tac i THEN (fn st =>
 				  nat_mod_add_right_eq, int_mod_add_eq, 
 				  int_mod_add_right_eq, int_mod_add_left_eq,
 				  nat_div_add_eq, int_div_add_eq,
-				  mod_self, @{thm "zmod_self"},
-				  DIVISION_BY_ZERO_MOD,DIVISION_BY_ZERO_DIV,
+				  @{thm mod_self}, @{thm "zmod_self"},
+				  @{thm DIVISION_BY_ZERO_MOD}, @{thm DIVISION_BY_ZERO_DIV},
 				  ZDIVISION_BY_ZERO_MOD,ZDIVISION_BY_ZERO_DIV,
 				  @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
 				  @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, @{thm "mod_1"},
