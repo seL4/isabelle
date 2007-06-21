@@ -3,6 +3,8 @@
    Author:     Amine Chaieb, TU Muenchen
 *)
 
+header {* Decision Procedure for Presburger Arithmetic *}
+
 theory Presburger
 imports Arith_Tools SetInterval
 uses
@@ -11,8 +13,6 @@ uses
   ("Tools/Qelim/cooper.ML")
   ("Tools/Qelim/presburger.ML")
 begin
-
-subsection {* Decision Procedure for Presburger Arithmetic *}
 
 setup CooperData.setup
 
@@ -62,7 +62,7 @@ by simp_all
   (clarsimp simp add: dvd_def, rule iffI, clarsimp,rule_tac x = "kb - ka*k" in exI,
     simp add: ring_eq_simps, clarsimp,rule_tac x = "kb + ka*k" in exI,simp add: ring_eq_simps)+
 
-section{* The A and B sets *}
+subsection{* The A and B sets *}
 lemma bset:
   "\<lbrakk>\<forall>x.(\<forall>j \<in> {1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> P x \<longrightarrow> P(x - D) ;
      \<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> Q x \<longrightarrow> Q(x - D)\<rbrakk> \<Longrightarrow> 
