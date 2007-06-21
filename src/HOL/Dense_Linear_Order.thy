@@ -9,9 +9,9 @@ header {* Dense linear order witout endpoints
 theory Dense_Linear_Order
 imports Finite_Set
 uses
-  "Tools/qelim.ML"
-  "Tools/Ferrante_Rackoff/ferrante_rackoff_data.ML"
-  ("Tools/Ferrante_Rackoff/ferrante_rackoff.ML")
+  "Tools/Qelim/qelim.ML"
+  "Tools/Qelim/ferrante_rackoff_data.ML"
+  ("Tools/Qelim/ferrante_rackoff.ML")
 begin
 
 setup Ferrante_Rackoff_Data.setup
@@ -415,7 +415,7 @@ end
 
 end
 
-use "Tools/Ferrante_Rackoff/ferrante_rackoff.ML"
+use "Tools/Qelim/ferrante_rackoff.ML"
 
 method_setup dlo = {*
   Method.ctxt_args (Method.SIMPLE_METHOD' o FerranteRackoff.dlo_tac)
