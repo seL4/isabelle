@@ -7,7 +7,7 @@
 header {* A Basis for Building the Theory of Lists *}
 
 theory PreList
-imports Wellfounded_Relations Arith_Tools Relation_Power SAT
+imports Wellfounded_Relations Presburger Relation_Power SAT
   FunDef Recdef Extraction
 begin
 
