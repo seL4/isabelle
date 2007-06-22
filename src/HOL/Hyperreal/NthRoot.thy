@@ -631,12 +631,4 @@ lemmas real_sqrt_eq_zero_cancel_iff = real_sqrt_eq_0_iff
 lemma real_root_pos: "0 < x \<Longrightarrow> root (Suc n) (x ^ (Suc n)) = x"
 by (rule real_root_power_cancel [OF zero_less_Suc order_less_imp_le])
 
-(* FIXME: the stronger version of real_root_less_iff
- breaks CauchysMeanTheorem.list_gmean_gt_iff from AFP. *)
-
-declare real_root_less_iff [simp del]
-lemma real_root_less_iff_nonneg [simp]:
-  "\<lbrakk>0 < n; 0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> (root n x < root n y) = (x < y)"
-by (rule real_root_less_iff)
-
 end
