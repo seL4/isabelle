@@ -48,7 +48,7 @@ structure Data = GenericDataFun
 (
   type T = simpset * (term list);
   val empty = (start_ss, allowed_consts);
-  fun extend (ss, ts) = (MetaSimplifier.inherit_context empty_ss ss, ts);
+  val extend  = I;
   fun merge _ ((ss1, ts1), (ss2, ts2)) =
     (merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
 );
