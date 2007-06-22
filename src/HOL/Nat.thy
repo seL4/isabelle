@@ -957,7 +957,7 @@ lemma less_imp_add_positive:
   shows "\<exists>k::nat. 0 < k & i + k = j"
 proof
   from assms show "0 < j - i & i + (j - i) = j"
-    by (simp add: add_diff_inverse less_not_sym)
+    by (simp add: order_less_imp_le)
 qed
 
 lemma diff_cancel: "(k + m) - (k + n) = m - (n::nat)"
