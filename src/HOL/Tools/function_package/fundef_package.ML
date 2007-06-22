@@ -190,6 +190,76 @@ val setup_case_cong_hook =
     DatatypeHooks.add case_cong_hook
     #> (fn thy => case_cong_hook (Symtab.keys (DatatypePackage.get_datatypes thy)) thy)
 
+(* ad-hoc method to convert elimination-style goals to existential statements *)
+
+fun insert_int_goal thy subg st =
+    let
+      val goal = hd (prems_of st)
+      val (ps, imp) = dest_all_all goal
+      val cps = map (cterm_of thy) ps
+
+      val imp_subg = fold (fn p => fn t => betapply (t,p)) ps subg
+      val new_subg = implies $ imp_subg $ imp
+                      |> fold_rev mk_forall ps
+                      |> cterm_of thy 
+                      |> assume 
+
+      val sg2 = imp_subg
+                 |> fold_rev mk_forall ps
+                 |> cterm_of thy 
+                 |> assume
+
+      val t' = new_subg
+                |> fold forall_elim cps
+                |> flip implies_elim (fold forall_elim cps sg2)
+                |> fold_rev forall_intr cps
+
+      val st' = implies_elim st t'
+                 |> implies_intr (cprop_of sg2)
+                 |> implies_intr (cprop_of new_subg)
+    in
+      Seq.single st'
+    end
+
+fun mk_cases_statement thy t =
+    let
+      fun mk_clause t = 
+          let 
+            val (qs, imp) = dest_all_all t
+          in 
+            Logic.strip_imp_prems imp
+             |> map (ObjectLogic.atomize_term thy)
+             |> foldr1 HOLogic.mk_conj
+             |> fold_rev (fn Free (v,T) => fn t => HOLogic.mk_exists (v,T,t)) qs
+          end
+
+      val (ps, imp) = dest_all_all t
+    in 
+      Logic.strip_imp_prems imp
+       |> map mk_clause
+       |> foldr1 HOLogic.mk_disj
+       |> HOLogic.mk_Trueprop
+       |> fold_rev lambda ps
+    end
+
+fun elim_to_cases1 ctxt st =
+    let
+      val thy = theory_of_thm st
+      val [subg] = prems_of st
+      val cex = mk_cases_statement thy subg
+    in
+      (insert_int_goal thy cex
+       THEN REPEAT_ALL_NEW (Tactic.ematch_tac [disjE, exE, conjE]) 1
+       THEN REPEAT (Goal.assume_rule_tac ctxt 1)
+    (*   THEN REPEAT (etac thin_rl 1)*)) st
+    end
+
+fun elim_to_cases_tac ctxt = SELECT_GOAL (elim_to_cases1 ctxt)
+
+val elim_to_cases_setup = Method.add_methods
+  [("elim_to_cases", Method.ctxt_args (Method.SIMPLE_METHOD' o elim_to_cases_tac),
+    "convert elimination-style goal to a disjunction of existentials")]
+
 (* setup *)
 
 val setup =
@@ -198,6 +268,7 @@ val setup =
       "declaration of congruence rule for function definitions")]
   #> setup_case_cong_hook
   #> FundefRelation.setup
+  #> elim_to_cases_setup
 
 val get_congs = FundefCommon.get_fundef_congs o Context.Theory
 
