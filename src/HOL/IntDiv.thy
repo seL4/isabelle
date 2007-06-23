@@ -1210,7 +1210,7 @@ lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
   done
 lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
   using zmod_zdiv_equality[where a="m" and b="n"]
-  by (simp add: ring_eq_simps)
+  by (simp add: ring_simps)
 
 lemma zdvd_mult_div_cancel:"(n::int) dvd m \<Longrightarrow> n * (m div n) = m"
 apply (subgoal_tac "m mod n = 0")

@@ -64,7 +64,7 @@ lemma cci_correct: "bv_to_nat (carry_chain_inc as c) = bv_to_nat as + bitval c"
   apply (induct as)
    apply (cases c, simp_all add: Let_def bv_to_nat_dist_append)
   apply (simp add: half_adder_correct bv_to_nat_helper' [OF cci_nonnull]
-    ring_distrib bv_to_nat_helper)
+    ring_distribs bv_to_nat_helper)
   done
 
 consts
@@ -107,7 +107,7 @@ next
       apply (simp add: Let_def)
       apply (subst bv_to_nat_dist_append)
       apply (simp add: full_adder_correct bv_to_nat_helper' [OF cca_nonnull]
-        ring_distrib bv_to_nat_helper cca_length)
+        ring_distribs bv_to_nat_helper cca_length)
       done
   qed
 qed

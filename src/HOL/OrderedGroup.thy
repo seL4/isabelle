@@ -171,6 +171,9 @@ by (simp add: diff_minus)
 lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::group_add)"
 by (simp add: diff_minus)
 
+lemma uminus_add_conv_diff: "-a + b = b - (a::'a::ab_group_add)"
+by(simp add:diff_minus add_commute)
+
 lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::group_add))" 
 proof 
   assume "- a = - b"
@@ -1036,21 +1039,18 @@ lemma  le_add_right_mono:
   apply (simp_all add: prems)
   done
 
-lemmas group_eq_simps =
+lemmas group_simps =
   mult_ac
   add_ac
   add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-  diff_eq_eq eq_diff_eq
+  diff_eq_eq eq_diff_eq  diff_minus[symmetric] uminus_add_conv_diff
+  diff_less_eq less_diff_eq diff_le_eq le_diff_eq
 
 lemma estimate_by_abs:
 "a + b <= (c::'a::lordered_ab_group_abs) \<Longrightarrow> a <= c + abs b" 
 proof -
-  assume 1: "a+b <= c"
-  have 2: "a <= c+(-b)"
-    apply (insert 1)
-    apply (drule_tac add_right_mono[where c="-b"])
-    apply (simp add: group_eq_simps)
-    done
+  assume "a+b <= c"
+  hence 2: "a <= c+(-b)" by (simp add: group_simps)
   have 3: "(-b) <= abs b" by (rule abs_ge_minus_self)
   show ?thesis by (rule le_add_right_mono[OF 2 3])
 qed

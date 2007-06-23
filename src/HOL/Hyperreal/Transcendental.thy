@@ -40,7 +40,7 @@ apply (subst lemma_realpow_diff_sumr)
 apply (simp add: right_distrib del: setsum_op_ivl_Suc)
 apply (subst mult_left_commute [where a="x - y"])
 apply (erule subst)
-apply (simp add: power_Suc ring_eq_simps)
+apply (simp add: power_Suc ring_simps)
 done
 
 lemma lemma_realpow_rev_sumr:
@@ -423,7 +423,7 @@ proof (simp add: deriv_def, rule LIM_zero_cancel)
       apply (rule sums_summable [OF diffs_equiv [OF C]])
       apply (rule_tac f="suminf" in arg_cong)
       apply (rule ext)
-      apply (simp add: ring_eq_simps)
+      apply (simp add: ring_simps)
       done
   next
     show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h -
@@ -2031,7 +2031,7 @@ proof -
   also have "\<dots> = (?c * ?c - ?s * ?s) * ?c - (?s * ?c + ?c * ?s) * ?s"
     by (simp only: cos_add sin_add)
   also have "\<dots> = ?c * (?c\<twosuperior> - 3 * ?s\<twosuperior>)"
-    by (simp add: ring_eq_simps power2_eq_square)
+    by (simp add: ring_simps power2_eq_square)
   finally have "?c\<twosuperior> = (sqrt 3 / 2)\<twosuperior>"
     using pos_c by (simp add: sin_squared_eq power_divide)
   thus ?thesis

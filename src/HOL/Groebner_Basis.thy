@@ -168,7 +168,7 @@ end
 
 interpretation class_semiring: gb_semiring
     ["op +" "op *" "op ^" "0::'a::{comm_semiring_1, recpower}" "1"]
-  by unfold_locales (auto simp add: ring_eq_simps power_Suc)
+  by unfold_locales (auto simp add: ring_simps power_Suc)
 
 lemmas nat_arith =
   add_nat_number_of diff_nat_number_of mult_nat_number_of eq_nat_number_of less_nat_number_of
@@ -341,13 +341,13 @@ qed
 
 interpretation class_ringb: ringb
   ["op +" "op *" "op ^" "0::'a::{idom,recpower,number_ring}" "1" "op -" "uminus"]
-proof(unfold_locales, simp add: ring_eq_simps power_Suc, auto)
+proof(unfold_locales, simp add: ring_simps power_Suc, auto)
   fix w x y z ::"'a::{idom,recpower,number_ring}"
   assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
   hence ynz': "y - z \<noteq> 0" by simp
   from p have "w * y + x* z - w*z - x*y = 0" by simp
-  hence "w* (y - z) - x * (y - z) = 0" by (simp add: ring_eq_simps)
-  hence "(y - z) * (w - x) = 0" by (simp add: ring_eq_simps)
+  hence "w* (y - z) - x * (y - z) = 0" by (simp add: ring_simps)
+  hence "(y - z) * (w - x) = 0" by (simp add: ring_simps)
   with  no_zero_divirors_neq0 [OF ynz']
   have "w - x = 0" by blast
   thus "w = x"  by simp
@@ -368,20 +368,20 @@ declaration {*
 
 interpretation natgb: semiringb
   ["op +" "op *" "op ^" "0::nat" "1"]
-proof (unfold_locales, simp add: ring_eq_simps power_Suc)
+proof (unfold_locales, simp add: ring_simps power_Suc)
   fix w x y z ::"nat"
   { assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
     hence "y < z \<or> y > z" by arith
     moreover {
       assume lt:"y <z" hence "\<exists>k. z = y + k \<and> k > 0" by (rule_tac x="z - y" in exI, auto)
       then obtain k where kp: "k>0" and yz:"z = y + k" by blast
-      from p have "(w * y + x *y) + x*k = (w * y + x*y) + w*k" by (simp add: yz ring_eq_simps)
+      from p have "(w * y + x *y) + x*k = (w * y + x*y) + w*k" by (simp add: yz ring_simps)
       hence "x*k = w*k" by simp
       hence "w = x" using kp by (simp add: mult_cancel2) }
     moreover {
       assume lt: "y >z" hence "\<exists>k. y = z + k \<and> k>0" by (rule_tac x="y - z" in exI, auto)
       then obtain k where kp: "k>0" and yz:"y = z + k" by blast
-      from p have "(w * z + x *z) + w*k = (w * z + x*z) + x*k" by (simp add: yz ring_eq_simps)
+      from p have "(w * z + x *z) + w*k = (w * z + x*z) + x*k" by (simp add: yz ring_simps)
       hence "w*k = x*k" by simp
       hence "w = x" using kp by (simp add: mult_cancel2)}
     ultimately have "w=x" by blast }

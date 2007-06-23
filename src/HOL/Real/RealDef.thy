@@ -253,8 +253,7 @@ apply (rule_tac
 apply (rule_tac [2]
         x = "Abs_Real (realrel``{(inverse (D) + 1, 1)})" 
        in exI)
-apply (auto simp add: real_mult ring_distrib
-              preal_mult_inverse_right add_ac mult_ac)
+apply (auto simp add: real_mult preal_mult_inverse_right ring_simps)
 done
 
 lemma real_mult_inverse_left: "x \<noteq> 0 ==> inverse(x)*x = (1::real)"
@@ -632,7 +631,7 @@ proof -
   then have "real x / real d = ... / real d"
     by simp
   then show ?thesis
-    by (auto simp add: add_divide_distrib ring_eq_simps prems)
+    by (auto simp add: add_divide_distrib ring_simps prems)
 qed
 
 lemma real_of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
@@ -776,7 +775,7 @@ proof -
   then have "real x / real d = \<dots> / real d"
     by simp
   then show ?thesis
-    by (auto simp add: add_divide_distrib ring_eq_simps prems)
+    by (auto simp add: add_divide_distrib ring_simps prems)
 qed
 
 lemma real_of_nat_div: "0 < (d::nat) ==> d dvd n ==>

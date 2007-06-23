@@ -392,7 +392,7 @@ by (rule mult.LIMSEQ)
 lemma inverse_diff_inverse:
   "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
    \<Longrightarrow> inverse a - inverse b = - (inverse a * (a - b) * inverse b)"
-by (simp add: right_diff_distrib left_diff_distrib mult_assoc)
+by (simp add: ring_simps)
 
 lemma Bseq_inverse_lemma:
   fixes x :: "'a::real_normed_div_algebra"
@@ -1065,7 +1065,7 @@ prefer 2
 apply (erule mult_left_mono)
 apply (rule add_increasing [OF x], simp)
 apply (simp add: real_of_nat_Suc)
-apply (simp add: ring_distrib)
+apply (simp add: ring_distribs)
 apply (simp add: mult_nonneg_nonneg x)
 done
 

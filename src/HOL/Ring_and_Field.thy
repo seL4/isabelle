@@ -1,6 +1,6 @@
 (*  Title:   HOL/Ring_and_Field.thy
     ID:      $Id$
-    Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, and Markus Wenzel,
+    Author:  Gertrud Bauer, Steven Obua, Tobias Nipkow, Lawrence C Paulson, and Markus Wenzel,
              with contributions by Jeremy Avigad
 *)
 
@@ -173,8 +173,6 @@ class division_by_zero = zero + inverse +
 
 subsection {* Distribution rules *}
 
-theorems ring_distrib = right_distrib left_distrib
-
 text{*For the @{text combine_numerals} simproc*}
 lemma combine_common_factor:
      "a*e + (b*e + c) = (a+b)*e + (c::'a::semiring)"
@@ -203,6 +201,15 @@ by (simp add: right_distrib diff_minus
 lemma left_diff_distrib: "(a - b) * c = a * c - b * (c::'a::ring)"
 by (simp add: left_distrib diff_minus 
               minus_mult_left [symmetric] minus_mult_right [symmetric]) 
+
+lemmas ring_distribs =
+  right_distrib left_distrib left_diff_distrib right_diff_distrib
+
+text{*This list of rewrites simplifies ring terms by multiplying
+everything out and bringing sums and products into a canonical form
+(by ordered rewriting). As a result it decides ring equalities but
+also helps with inequalities. *}
+lemmas ring_simps = group_simps ring_distribs
 
 class mult_mono = times + zero + ord +
   assumes mult_left_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> c \<^loc>* a \<sqsubseteq> c \<^loc>* b"
@@ -308,81 +315,68 @@ lemmas linorder_neqE_ordered_idom =
  linorder_neqE[where 'a = "?'b::ordered_idom"]
 
 lemma eq_add_iff1:
-     "(a*e + c = b*e + d) = ((a-b)*e + c = (d::'a::ring))"
-apply (simp add: diff_minus left_distrib)
-apply (simp add: diff_minus left_distrib add_ac)
-apply (simp add: compare_rls minus_mult_left [symmetric])
-done
+  "(a*e + c = b*e + d) = ((a-b)*e + c = (d::'a::ring))"
+by (simp add: ring_simps)
 
 lemma eq_add_iff2:
-     "(a*e + c = b*e + d) = (c = (b-a)*e + (d::'a::ring))"
-apply (simp add: diff_minus left_distrib add_ac)
-apply (simp add: compare_rls minus_mult_left [symmetric]) 
-done
+  "(a*e + c = b*e + d) = (c = (b-a)*e + (d::'a::ring))"
+by (simp add: ring_simps)
 
 lemma less_add_iff1:
-     "(a*e + c < b*e + d) = ((a-b)*e + c < (d::'a::pordered_ring))"
-apply (simp add: diff_minus left_distrib add_ac)
-apply (simp add: compare_rls minus_mult_left [symmetric]) 
-done
+  "(a*e + c < b*e + d) = ((a-b)*e + c < (d::'a::pordered_ring))"
+by (simp add: ring_simps)
 
 lemma less_add_iff2:
-     "(a*e + c < b*e + d) = (c < (b-a)*e + (d::'a::pordered_ring))"
-apply (simp add: diff_minus left_distrib add_ac)
-apply (simp add: compare_rls minus_mult_left [symmetric]) 
-done
+  "(a*e + c < b*e + d) = (c < (b-a)*e + (d::'a::pordered_ring))"
+by (simp add: ring_simps)
 
 lemma le_add_iff1:
-     "(a*e + c \<le> b*e + d) = ((a-b)*e + c \<le> (d::'a::pordered_ring))"
-apply (simp add: diff_minus left_distrib add_ac)
-apply (simp add: compare_rls minus_mult_left [symmetric]) 
-done
+  "(a*e + c \<le> b*e + d) = ((a-b)*e + c \<le> (d::'a::pordered_ring))"
+by (simp add: ring_simps)
 
 lemma le_add_iff2:
-     "(a*e + c \<le> b*e + d) = (c \<le> (b-a)*e + (d::'a::pordered_ring))"
-apply (simp add: diff_minus left_distrib add_ac)
-apply (simp add: compare_rls minus_mult_left [symmetric]) 
-done
+  "(a*e + c \<le> b*e + d) = (c \<le> (b-a)*e + (d::'a::pordered_ring))"
+by (simp add: ring_simps)
 
 
 subsection {* Ordering Rules for Multiplication *}
 
 lemma mult_left_le_imp_le:
-     "[|c*a \<le> c*b; 0 < c|] ==> a \<le> (b::'a::ordered_semiring_strict)"
-  by (force simp add: mult_strict_left_mono linorder_not_less [symmetric])
+  "[|c*a \<le> c*b; 0 < c|] ==> a \<le> (b::'a::ordered_semiring_strict)"
+by (force simp add: mult_strict_left_mono linorder_not_less [symmetric])
  
 lemma mult_right_le_imp_le:
-     "[|a*c \<le> b*c; 0 < c|] ==> a \<le> (b::'a::ordered_semiring_strict)"
-  by (force simp add: mult_strict_right_mono linorder_not_less [symmetric])
+  "[|a*c \<le> b*c; 0 < c|] ==> a \<le> (b::'a::ordered_semiring_strict)"
+by (force simp add: mult_strict_right_mono linorder_not_less [symmetric])
 
 lemma mult_left_less_imp_less:
-     "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::ordered_semiring_strict)"
-  by (force simp add: mult_left_mono linorder_not_le [symmetric])
+  "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::ordered_semiring_strict)"
+by (force simp add: mult_left_mono linorder_not_le [symmetric])
  
 lemma mult_right_less_imp_less:
-     "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring_strict)"
-  by (force simp add: mult_right_mono linorder_not_le [symmetric])
+  "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring_strict)"
+by (force simp add: mult_right_mono linorder_not_le [symmetric])
 
 lemma mult_strict_left_mono_neg:
-     "[|b < a; c < 0|] ==> c * a < c * (b::'a::ordered_ring_strict)"
+  "[|b < a; c < 0|] ==> c * a < c * (b::'a::ordered_ring_strict)"
 apply (drule mult_strict_left_mono [of _ _ "-c"])
 apply (simp_all add: minus_mult_left [symmetric]) 
 done
 
 lemma mult_left_mono_neg:
-     "[|b \<le> a; c \<le> 0|] ==> c * a \<le>  c * (b::'a::pordered_ring)"
+  "[|b \<le> a; c \<le> 0|] ==> c * a \<le>  c * (b::'a::pordered_ring)"
 apply (drule mult_left_mono [of _ _ "-c"])
 apply (simp_all add: minus_mult_left [symmetric]) 
 done
 
 lemma mult_strict_right_mono_neg:
-     "[|b < a; c < 0|] ==> a * c < b * (c::'a::ordered_ring_strict)"
+  "[|b < a; c < 0|] ==> a * c < b * (c::'a::ordered_ring_strict)"
 apply (drule mult_strict_right_mono [of _ _ "-c"])
 apply (simp_all add: minus_mult_right [symmetric]) 
 done
 
 lemma mult_right_mono_neg:
-     "[|b \<le> a; c \<le> 0|] ==> a * c \<le>  (b::'a::pordered_ring) * c"
+  "[|b \<le> a; c \<le> 0|] ==> a * c \<le>  (b::'a::pordered_ring) * c"
 apply (drule mult_right_mono [of _ _ "-c"])
 apply (simp)
 apply (simp_all add: minus_mult_right [symmetric]) 
@@ -648,7 +642,7 @@ lemma mult_cancel_right [simp]:
   shows "(a * c = b * c) = (c = 0 \<or> a = b)"
 proof -
   have "(a * c = b * c) = ((a - b) * c = 0)"
-    by (simp add: left_diff_distrib)
+    by (simp add: ring_distribs)
   thus ?thesis
     by (simp add: disj_commute)
 qed
@@ -658,7 +652,7 @@ lemma mult_cancel_left [simp]:
   shows "(c * a = c * b) = (c = 0 \<or> a = b)"
 proof -
   have "(c * a = c * b) = (c * (a - b) = 0)"
-    by (simp add: right_diff_distrib)
+    by (simp add: ring_distribs)
   thus ?thesis
     by simp
 qed
@@ -742,16 +736,6 @@ lemmas mult_compare_simps =
     mult_cancel_left1 mult_cancel_left2
 
 
-text{*This list of rewrites decides ring equalities by ordered rewriting.*}
-lemmas ring_eq_simps =  
-(*  mult_ac*)
-  left_distrib right_distrib left_diff_distrib right_diff_distrib
-  group_eq_simps
-(*  add_ac
-  add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-  diff_eq_eq eq_diff_eq *)
-    
-
 subsection {* Fields *}
 
 lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = 1) = (a = (b::'a::field))"
@@ -787,7 +771,7 @@ lemma inverse_eq_divide: "inverse (a::'a::field) = 1/a"
 by (simp add: divide_inverse)
 
 lemma add_divide_distrib: "(a+b)/(c::'a::field) = a/c + b/c"
-by (simp add: divide_inverse left_distrib) 
+by (simp add: divide_inverse ring_distribs) 
 
 
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
@@ -957,22 +941,22 @@ lemma inverse_mult_distrib [simp]:
 lemma division_ring_inverse_add:
   "[|(a::'a::division_ring) \<noteq> 0; b \<noteq> 0|]
    ==> inverse a + inverse b = inverse a * (a+b) * inverse b"
-  by (simp add: right_distrib left_distrib mult_assoc)
+by (simp add: ring_simps)
 
 lemma division_ring_inverse_diff:
   "[|(a::'a::division_ring) \<noteq> 0; b \<noteq> 0|]
    ==> inverse a - inverse b = inverse a * (b-a) * inverse b"
-by (simp add: right_diff_distrib left_diff_distrib mult_assoc)
+by (simp add: ring_simps)
 
 text{*There is no slick version using division by zero.*}
 lemma inverse_add:
-     "[|a \<noteq> 0;  b \<noteq> 0|]
-      ==> inverse a + inverse b = (a+b) * inverse a * inverse (b::'a::field)"
+  "[|a \<noteq> 0;  b \<noteq> 0|]
+   ==> inverse a + inverse b = (a+b) * inverse a * inverse (b::'a::field)"
 by (simp add: division_ring_inverse_add mult_ac)
 
 lemma inverse_divide [simp]:
-      "inverse (a/b) = b / (a::'a::{field,division_by_zero})"
-  by (simp add: divide_inverse mult_commute)
+  "inverse (a/b) = b / (a::'a::{field,division_by_zero})"
+by (simp add: divide_inverse mult_commute)
 
 
 subsection {* Calculations with fractions *}
@@ -982,8 +966,7 @@ field} but none for class @{text field} and @{text nonzero_divides}
 because the latter are covered by a simproc. *}
 
 lemma nonzero_mult_divide_mult_cancel_left[simp]:
-  assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" 
-    shows "(c*a)/(c*b) = a/(b::'a::field)"
+assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" shows "(c*a)/(c*b) = a/(b::'a::field)"
 proof -
   have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
     by (simp add: field_mult_eq_0_iff divide_inverse 
@@ -997,23 +980,23 @@ proof -
 qed
 
 lemma mult_divide_mult_cancel_left:
-     "c\<noteq>0 ==> (c*a) / (c*b) = a / (b::'a::{field,division_by_zero})"
+  "c\<noteq>0 ==> (c*a) / (c*b) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_mult_cancel_left)
 done
 
 lemma nonzero_mult_divide_mult_cancel_right:
-     "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (b*c) = a/(b::'a::field)"
+  "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (b*c) = a/(b::'a::field)"
 by (simp add: mult_commute [of _ c] nonzero_mult_divide_mult_cancel_left) 
 
 lemma mult_divide_mult_cancel_right:
-     "c\<noteq>0 ==> (a*c) / (b*c) = a / (b::'a::{field,division_by_zero})"
+  "c\<noteq>0 ==> (a*c) / (b*c) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_mult_cancel_right)
 done
 
 lemma divide_1 [simp]: "a/1 = (a::'a::field)"
-  by (simp add: divide_inverse)
+by (simp add: divide_inverse)
 
 lemma times_divide_eq_right: "a * (b/c) = (a*b) / (c::'a::field)"
 by (simp add: divide_inverse mult_assoc)
@@ -1022,33 +1005,33 @@ lemma times_divide_eq_left: "(b/c) * a = (b*a) / (c::'a::field)"
 by (simp add: divide_inverse mult_ac)
 
 lemma divide_divide_eq_right [simp]:
-     "a / (b/c) = (a*c) / (b::'a::{field,division_by_zero})"
+  "a / (b/c) = (a*c) / (b::'a::{field,division_by_zero})"
 by (simp add: divide_inverse mult_ac)
 
 lemma divide_divide_eq_left [simp]:
-     "(a / b) / (c::'a::{field,division_by_zero}) = a / (b*c)"
+  "(a / b) / (c::'a::{field,division_by_zero}) = a / (b*c)"
 by (simp add: divide_inverse mult_assoc)
 
 lemma add_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
     x / y + w / z = (x * z + w * y) / (y * z)"
-  apply (subgoal_tac "x / y = (x * z) / (y * z)")
-  apply (erule ssubst)
-  apply (subgoal_tac "w / z = (w * y) / (y * z)")
-  apply (erule ssubst)
-  apply (rule add_divide_distrib [THEN sym])
-  apply (subst mult_commute)
-  apply (erule nonzero_mult_divide_mult_cancel_left [THEN sym])
-  apply assumption
-  apply (erule nonzero_mult_divide_mult_cancel_right [THEN sym])
-  apply assumption
+apply (subgoal_tac "x / y = (x * z) / (y * z)")
+apply (erule ssubst)
+apply (subgoal_tac "w / z = (w * y) / (y * z)")
+apply (erule ssubst)
+apply (rule add_divide_distrib [THEN sym])
+apply (subst mult_commute)
+apply (erule nonzero_mult_divide_mult_cancel_left [THEN sym])
+apply assumption
+apply (erule nonzero_mult_divide_mult_cancel_right [THEN sym])
+apply assumption
 done
 
 
 subsubsection{*Special Cancellation Simprules for Division*}
 
 lemma mult_divide_mult_cancel_left_if[simp]:
-  fixes c :: "'a :: {field,division_by_zero}"
-  shows "(c*a) / (c*b) = (if c=0 then 0 else a/b)"
+fixes c :: "'a :: {field,division_by_zero}"
+shows "(c*a) / (c*b) = (if c=0 then 0 else a/b)"
 by (simp add: mult_divide_mult_cancel_left)
 
 lemma nonzero_mult_divide_cancel_right[simp]:
@@ -1070,60 +1053,12 @@ using nonzero_mult_divide_mult_cancel_left[of b a 1] by simp
 
 
 lemma nonzero_mult_divide_mult_cancel_left2[simp]:
-     "[|b\<noteq>0; c\<noteq>0|] ==> (c*a) / (b*c) = a/(b::'a::field)"
+  "[|b\<noteq>0; c\<noteq>0|] ==> (c*a) / (b*c) = a/(b::'a::field)"
 using nonzero_mult_divide_mult_cancel_left[of b c a] by(simp add:mult_ac)
 
 lemma nonzero_mult_divide_mult_cancel_right2[simp]:
-     "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (c*b) = a/(b::'a::field)"
+  "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (c*b) = a/(b::'a::field)"
 using nonzero_mult_divide_mult_cancel_right[of b c a] by(simp add:mult_ac)
-
-
-(* Not needed anymore because now subsumed by simproc "divide_cancel_factor"
-lemma mult_divide_cancel_right_if:
-  fixes c :: "'a :: {field,division_by_zero}"
-  shows "(a*c) / (b*c) = (if c=0 then 0 else a/b)"
-by (simp add: mult_divide_cancel_right)
-
-lemma mult_divide_cancel_left_if1 [simp]:
-  fixes c :: "'a :: {field,division_by_zero}"
-  shows "c / (c*b) = (if c=0 then 0 else 1/b)"
-apply (insert mult_divide_cancel_left_if [of c 1 b]) 
-apply (simp del: mult_divide_cancel_left_if)
-done
-
-lemma mult_divide_cancel_left_if2 [simp]:
-  fixes c :: "'a :: {field,division_by_zero}"
-  shows "(c*a) / c = (if c=0 then 0 else a)" 
-apply (insert mult_divide_cancel_left_if [of c a 1]) 
-apply (simp del: mult_divide_cancel_left_if)
-done
-
-lemma mult_divide_cancel_right_if1 [simp]:
-  fixes c :: "'a :: {field,division_by_zero}"
-  shows "c / (b*c) = (if c=0 then 0 else 1/b)"
-apply (insert mult_divide_cancel_right_if [of 1 c b]) 
-apply (simp del: mult_divide_cancel_right_if)
-done
-
-lemma mult_divide_cancel_right_if2 [simp]:
-  fixes c :: "'a :: {field,division_by_zero}"
-  shows "(a*c) / c = (if c=0 then 0 else a)" 
-apply (insert mult_divide_cancel_right_if [of a c 1]) 
-apply (simp del: mult_divide_cancel_right_if)
-done
-
-text{*Two lemmas for cancelling the denominator*}
-
-lemma times_divide_self_right [simp]: 
-  fixes a :: "'a :: {field,division_by_zero}"
-  shows "a * (b/a) = (if a=0 then 0 else b)"
-by (simp add: times_divide_eq_right)
-
-lemma times_divide_self_left [simp]: 
-  fixes a :: "'a :: {field,division_by_zero}"
-  shows "(b/a) * a = (if a=0 then 0 else b)"
-by (simp add: times_divide_eq_left)
-*)
 
 
 subsection {* Division and Unary Minus *}
@@ -1155,7 +1090,7 @@ lemmas mult_minus_right = minus_mult_right [symmetric]
 declare mult_minus_left [simp]   mult_minus_right [simp]
 
 lemma minus_divide_divide [simp]:
-     "(-a)/(-b) = a / (b::'a::{field,division_by_zero})"
+  "(-a)/(-b) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b=0", simp) 
 apply (simp add: nonzero_minus_divide_divide) 
 done
@@ -1165,10 +1100,10 @@ by (simp add: diff_minus add_divide_distrib)
 
 lemma diff_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
     x / y - w / z = (x * z - w * y) / (y * z)"
-  apply (subst diff_def)+
-  apply (subst minus_divide_left)
-  apply (subst add_frac_eq)
-  apply simp_all
+apply (subst diff_def)+
+apply (subst minus_divide_left)
+apply (subst add_frac_eq)
+apply simp_all
 done
 
 
@@ -1897,10 +1832,10 @@ lemma zero_less_two: "0 < (1+1::'a::ordered_semidom)"
   by (blast intro: order_less_trans zero_less_one less_add_one) 
 
 lemma less_half_sum: "a < b ==> a < (a+b) / (1+1::'a::ordered_field)"
-by (simp add: zero_less_two pos_less_divide_eq right_distrib) 
+by (simp add: zero_less_two pos_less_divide_eq ring_distribs) 
 
 lemma gt_half_sum: "a < b ==> (a+b)/(1+1::'a::ordered_field) < b"
-by (simp add: zero_less_two pos_divide_less_eq right_distrib) 
+by (simp add: zero_less_two pos_divide_less_eq ring_distribs) 
 
 lemma dense: "a < b ==> \<exists>r::'a::ordered_field. a < r & r < b"
 by (blast intro!: less_half_sum gt_half_sum)
@@ -1909,21 +1844,21 @@ by (blast intro!: less_half_sum gt_half_sum)
 subsection {* Absolute Value *}
 
 lemma abs_one [simp]: "abs 1 = (1::'a::ordered_idom)"
-  by (simp add: abs_if zero_less_one [THEN order_less_not_sym]) 
+by (simp add: abs_if zero_less_one [THEN order_less_not_sym])
 
 lemma abs_le_mult: "abs (a * b) \<le> (abs a) * (abs (b::'a::lordered_ring))" 
 proof -
   let ?x = "pprt a * pprt b - pprt a * nprt b - nprt a * pprt b + nprt a * nprt b"
   let ?y = "pprt a * pprt b + pprt a * nprt b + nprt a * pprt b + nprt a * nprt b"
   have a: "(abs a) * (abs b) = ?x"
-    by (simp only: abs_prts[of a] abs_prts[of b] ring_eq_simps)
+    by (simp only: abs_prts[of a] abs_prts[of b] ring_simps)
   {
     fix u v :: 'a
     have bh: "\<lbrakk>u = a; v = b\<rbrakk> \<Longrightarrow> 
               u * v = pprt a * pprt b + pprt a * nprt b + 
                       nprt a * pprt b + nprt a * nprt b"
       apply (subst prts[of u], subst prts[of v])
-      apply (simp add: left_distrib right_distrib add_ac) 
+      apply (simp add: ring_simps) 
       done
   }
   note b = this[OF refl[of a] refl[of b]]
@@ -1974,7 +1909,7 @@ proof -
       apply (simp_all add: mulprts abs_prts)
       apply (insert prems)
       apply (auto simp add: 
-	ring_eq_simps 
+	ring_simps 
 	iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
 	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id])
 	apply(drule (1) mult_nonneg_nonpos[of a b], simp)
@@ -1986,7 +1921,7 @@ proof -
     then show ?thesis
       apply (simp_all add: mulprts abs_prts)
       apply (insert prems)
-      apply (auto simp add: ring_eq_simps)
+      apply (auto simp add: ring_simps)
       apply(drule (1) mult_nonneg_nonneg[of a b],simp)
       apply(drule (1) mult_nonpos_nonpos[of a b],simp)
       done
@@ -2073,7 +2008,7 @@ proof -
     apply simp
     done
   then have "a * b = pprt a * pprt b + pprt a * nprt b + nprt a * pprt b + nprt a * nprt b"
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   moreover have "pprt a * pprt b <= pprt a2 * pprt b2"
     by (simp_all add: prems mult_mono)
   moreover have "pprt a * nprt b <= pprt a1 * nprt b2"

@@ -443,7 +443,7 @@ proof -
           bitval x * 2 ^ length xs * 2 ^ length l2 + bv_to_nat xs * 2 ^ length l2"
           by simp
         also have "... = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
-          by (simp add: ring_distrib)
+          by (simp add: ring_distribs)
         finally show ?thesis .
       qed
     qed

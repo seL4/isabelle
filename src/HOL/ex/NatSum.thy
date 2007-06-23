@@ -15,8 +15,7 @@ text {*
 *}
 
 lemmas [simp] =
-  left_distrib right_distrib
-  left_diff_distrib right_diff_distrib --{*for true subtraction*}
+  ring_distribs
   diff_mult_distrib diff_mult_distrib2 --{*for type nat*}
 
 text {*

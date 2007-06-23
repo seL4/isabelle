@@ -150,7 +150,7 @@ qed
 lemma aux3: "(0::real) <= x ==> (1 + x + x^2)/(1 + x^2) <= 1 + x"
   apply (subst pos_divide_le_eq)
   apply (simp add: zero_compare_simps)
-  apply (simp add: ring_eq_simps zero_compare_simps)
+  apply (simp add: ring_simps zero_compare_simps)
 done
 
 lemma aux4: "0 <= (x::real) ==> x <= 1 ==> exp (x - x^2) <= 1 + x" 
@@ -199,7 +199,7 @@ lemma ln_one_minus_pos_upper_bound: "0 <= x ==> x < 1 ==> ln (1 - x) <= - x"
 proof -
   assume a: "0 <= (x::real)" and b: "x < 1"
   have "(1 - x) * (1 + x + x^2) = (1 - x^3)"
-    by (simp add: ring_eq_simps power2_eq_square power3_eq_cube)
+    by (simp add: ring_simps power2_eq_square power3_eq_cube)
   also have "... <= 1"
     by (auto intro: zero_le_power simp add: a)
   finally have "(1 - x) * (1 + x + x ^ 2) <= 1" .
@@ -283,12 +283,9 @@ proof -
   have e: "-x - 2 * x^2 <= - x / (1 - x)"
     apply (rule mult_imp_le_div_pos)
     apply (insert prems, force)
-    apply (auto simp add: ring_eq_simps power2_eq_square)
-    apply (subgoal_tac "- (x * x) + x * (x * (x * 2)) = x^2 * (2 * x - 1)")
-    apply (erule ssubst)
-    apply (rule mult_nonneg_nonpos)
-    apply auto
-    apply (auto simp add: ring_eq_simps power2_eq_square)
+    apply (auto simp add: ring_simps power2_eq_square)
+    apply(insert mult_right_le_one_le[of "x*x" "2*x"])
+    apply (simp)
     done
   from e d show "- x - 2 * x^2 <= ln (1 - x)"
     by (rule order_trans)
@@ -404,7 +401,7 @@ lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
   apply simp
   apply (subst ln_div [THEN sym])
   apply arith
-  apply (auto simp add: ring_eq_simps add_frac_eq frac_eq_eq 
+  apply (auto simp add: ring_simps add_frac_eq frac_eq_eq 
     add_divide_distrib power2_eq_square)
   apply (rule mult_pos_pos, assumption)+
   apply assumption
@@ -423,7 +420,7 @@ proof -
     apply auto
     done
   have "x * ln y - x * ln x = x * (ln y - ln x)"
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   also have "... = x * ln(y / x)"
     apply (subst ln_div)
     apply (rule b, rule a, rule refl)

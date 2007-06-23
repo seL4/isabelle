@@ -45,9 +45,9 @@ next
   case (lprod_list ah at bh bt a b) 
   from prems have transR: "transP R" by auto
   have as: "multiset_of (ah @ a # at) = multiset_of (ah @ at) + {#a#}" (is "_ = ?ma + _")
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   have bs: "multiset_of (bh @ b # bt) = multiset_of (bh @ bt) + {#b#}" (is "_ = ?mb + _")
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   from prems have "mult R ?ma ?mb"
     by auto
   with mult_implies_one_step[OF transR] have 
@@ -66,7 +66,7 @@ next
     then show ?thesis
       apply (simp only: as bs)
       apply (simp only: decomposed True)
-      apply (simp add: ring_eq_simps)
+      apply (simp add: ring_simps)
       done
   next
     case False
@@ -78,7 +78,7 @@ next
     then show ?thesis
       apply (simp only: as bs)
       apply (simp only: decomposed)
-      apply (simp add: ring_eq_simps)
+      apply (simp add: ring_simps)
       done
   qed
 qed

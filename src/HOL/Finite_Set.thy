@@ -970,12 +970,12 @@ lemma setsum_eq_0_iff [simp]:
 lemma setsum_Un_nat: "finite A ==> finite B ==>
     (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
   -- {* For the natural numbers, we have subtraction. *}
-  by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
+  by (subst setsum_Un_Int [symmetric], auto simp add: ring_simps)
 
 lemma setsum_Un: "finite A ==> finite B ==>
     (setsum f (A Un B) :: 'a :: ab_group_add) =
       setsum f A + setsum f B - setsum f (A Int B)"
-  by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
+  by (subst setsum_Un_Int [symmetric], auto simp add: ring_simps)
 
 lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
     (if a:A then setsum f A - f a else setsum f A)"
@@ -1649,7 +1649,7 @@ by (auto dest!: card_eq_SucD, blast)
 lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"
 apply (cases "finite A")
 apply (erule finite_induct)
-apply (auto simp add: ring_distrib add_ac)
+apply (auto simp add: ring_simps)
 done
 
 lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{recpower, comm_monoid_mult})) = y^(card A)"

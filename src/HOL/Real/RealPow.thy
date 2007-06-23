@@ -57,7 +57,7 @@ by simp
 lemma realpow_two_diff:
      "(x::real)^Suc (Suc 0) - y^Suc (Suc 0) = (x - y) * (x + y)"
 apply (unfold real_diff_def)
-apply (simp add: right_distrib left_distrib mult_ac)
+apply (simp add: ring_simps)
 done
 
 lemma realpow_two_disj:

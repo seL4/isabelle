@@ -39,7 +39,7 @@ proof -
   show ?thesis
   proof (induct a)
     case (1 n)
-    from pos show ?case by (simp add: ring_eq_simps)
+    from pos show ?case by (simp add: ring_simps)
   next
     case (2 n)
     show ?case
@@ -60,7 +60,7 @@ proof (induct b)
     show ?case by simp
   next
     case (Suc m)
-    show ?case by (auto simp add: ring_eq_simps pow2_add1 prems)
+    show ?case by (auto simp add: ring_simps pow2_add1 prems)
   qed
 next
   case (2 n)
@@ -73,7 +73,7 @@ next
       apply (subst pow2_neg[of "-1"])
       apply (simp)
       apply (insert pow2_add1[of "-a"])
-      apply (simp add: ring_eq_simps)
+      apply (simp add: ring_simps)
       apply (subst pow2_neg[of "-a"])
       apply (simp)
       done
@@ -84,7 +84,7 @@ next
       apply (auto)
       apply (subst pow2_neg[of "a + (-2 - int m)"])
       apply (subst pow2_neg[of "-2 - int m"])
-      apply (auto simp add: ring_eq_simps)
+      apply (auto simp add: ring_simps)
       apply (subst a)
       apply (subst b)
       apply (simp only: pow2_add1)
@@ -92,13 +92,13 @@ next
       apply (subst pow2_neg[of "int m + 1"])
       apply auto
       apply (insert prems)
-      apply (auto simp add: ring_eq_simps)
+      apply (auto simp add: ring_simps)
       done
   qed
 qed
 
 lemma "float (a, e) + float (b, e) = float (a + b, e)"
-by (simp add: float_def ring_eq_simps)
+by (simp add: float_def ring_simps)
 
 definition
   int_of_real :: "real \<Rightarrow> int" where
@@ -255,7 +255,7 @@ qed
 
 lemma float_transfer_even: "even a \<Longrightarrow> float (a, b) = float (a div 2, b+1)"
   apply (subst float_transfer[where a="a" and b="b" and c="-1", simplified])
-  apply (simp_all add: pow2_def even_def real_is_int_def ring_eq_simps)
+  apply (simp_all add: pow2_def even_def real_is_int_def ring_simps)
   apply (auto)
 proof -
   fix q::int
@@ -324,7 +324,7 @@ lemma float_add:
   "float (a1, e1) + float (a2, e2) =
   (if e1<=e2 then float (a1+a2*2^(nat(e2-e1)), e1)
   else float (a1*2^(nat (e1-e2))+a2, e2))"
-  apply (simp add: float_def ring_eq_simps)
+  apply (simp add: float_def ring_simps)
   apply (auto simp add: pow2_int[symmetric] pow2_add[symmetric])
   done
 

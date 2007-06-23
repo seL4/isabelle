@@ -714,11 +714,11 @@ proof(induct t rule: reducecoeffh.induct)
 next
   case (2 n c t)  hence gd: "g dvd c" by simp
   from gp have gnz: "g \<noteq> 0" by simp
-  from prems show ?case by (simp add: real_of_int_div[OF gnz gd] ring_eq_simps)
+  from prems show ?case by (simp add: real_of_int_div[OF gnz gd] ring_simps)
 next
   case (3 c s t)  hence gd: "g dvd c" by simp
   from gp have gnz: "g \<noteq> 0" by simp
-  from prems show ?case by (simp add: real_of_int_div[OF gnz gd] ring_eq_simps) 
+  from prems show ?case by (simp add: real_of_int_div[OF gnz gd] ring_simps) 
 qed (auto simp add: numgcd_def gp)
 consts ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool"
 recdef ismaxcoeff "measure size"
@@ -855,13 +855,13 @@ recdef numadd "measure (\<lambda> (t,s). size t + size s)"
 
 lemma numadd[simp]: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
 apply (induct t s rule: numadd.induct, simp_all add: Let_def)
-apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
-apply (case_tac "n1 = n2", simp_all add: ring_eq_simps)
-apply (simp only: ring_eq_simps(1)[symmetric]) 
-apply simp
+ apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
+  apply (case_tac "n1 = n2", simp_all add: ring_simps)
+  apply (simp only: left_distrib[symmetric])
+ apply simp
 apply (case_tac "lex_bnd t1 t2", simp_all)
-apply (case_tac "c1+c2 = 0")
-by (case_tac "t1 = t2", simp_all add: ring_eq_simps left_distrib[symmetric] real_of_int_mult[symmetric] real_of_int_add[symmetric]del: real_of_int_mult real_of_int_add left_distrib)
+ apply (case_tac "c1+c2 = 0")
+  by (case_tac "t1 = t2", simp_all add: ring_simps left_distrib[symmetric] real_of_int_mult[symmetric] real_of_int_add[symmetric]del: real_of_int_mult real_of_int_add left_distrib)
 
 lemma numadd_nb[simp]: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
 by (induct t s rule: numadd.induct, auto simp add: Let_def)
@@ -874,7 +874,7 @@ recdef nummul "measure size"
   "nummul t = (\<lambda> i. Mul i t)"
 
 lemma nummul[simp]: "\<And> i. Inum bs (nummul t i) = Inum bs (Mul i t)"
-by (induct t rule: nummul.induct, auto simp add: ring_eq_simps)
+by (induct t rule: nummul.induct, auto simp add: ring_simps)
 
 lemma nummul_nb[simp]: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummul t i)"
 by (induct t rule: nummul.induct, auto)
@@ -934,7 +934,7 @@ next
   with prems(1) have b:"Inum bs (Add ?bv ?bi) = Inum bs b" and bii: "isint ?bi bs" by blast+
   from prems(2) have tibi: "ti = CF c a ?bi" by (simp add: Let_def split_def)
   from prems(2) b[symmetric] bii show ?case by (auto simp add: Let_def split_def isint_Floor isint_add isint_Mul isint_CF)
-qed (auto simp add: Let_def isint_iff isint_Floor isint_add isint_Mul split_def ring_eq_simps)
+qed (auto simp add: Let_def isint_iff isint_Floor isint_add isint_Mul split_def ring_simps)
 
 lemma split_int_nb: "numbound0 t \<Longrightarrow> numbound0 (fst (split_int t)) \<and> numbound0 (snd (split_int t)) "
 by (induct t rule: split_int.induct, auto simp add: Let_def split_def)
@@ -1771,7 +1771,7 @@ proof-
   have th: "(real a + b >0) = (real (-a) + (-b)< 0)" by arith
   show ?thesis using myless[rule_format, where b="real (floor b)"] 
     by (simp only:th split_int_less_real'[where a="-a" and b="-b"]) 
-    (simp add: ring_eq_simps diff_def[symmetric],arith)
+    (simp add: ring_simps diff_def[symmetric],arith)
 qed
 
 lemma split_int_le_real: 
@@ -1798,7 +1798,7 @@ lemma split_int_ge_real':
 proof- 
   have th: "(real a + b \<ge>0) = (real (-a) + (-b) \<le> 0)" by arith
   show ?thesis by (simp only: th split_int_le_real'[where a="-a" and b="-b"])
-    (simp add: ring_eq_simps diff_def[symmetric],arith)
+    (simp add: ring_simps diff_def[symmetric],arith)
 qed
 
 lemma split_int_eq_real: "(real (a::int) = b) = ( a = floor b \<and> b = real (floor b))" (is "?l = ?r")
@@ -2276,9 +2276,9 @@ proof(induct p rule: iszlfm.induct)
       (is "?ri rdvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri rdvd ?rt")
       hence "\<exists> (l::int). ?rt = ?ri * (real l)" by (simp add: rdvd_def)
       hence "\<exists> (l::int). ?rc*?rx+ ?I x e = ?ri*(real l)+?rc*(?rk * (real i) * (real di))" 
-	by (simp add: ring_eq_simps di_def)
+	by (simp add: ring_simps di_def)
       hence "\<exists> (l::int). ?rc*?rx+ ?I x e = ?ri*(real (l + c*k*di))"
-	by (simp add: ring_eq_simps)
+	by (simp add: ring_simps)
       hence "\<exists> (l::int). ?rc*?rx+ ?I x e = ?ri* (real l)" by blast
       thus "real i rdvd real c * real x + Inum (real x # bs) e" using rdvd_def by simp
     next
@@ -2287,7 +2287,7 @@ proof(induct p rule: iszlfm.induct)
       hence "\<exists> (l::int). ?rc*?rx+?e = ?ri * (real l)" by (simp add: rdvd_def)
       hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real l) - real c * (real k * real d)" by simp
       hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real l) - real c * (real k * real i * real di)" by (simp add: di_def)
-      hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real (l - c*k*di))" by (simp add: ring_eq_simps)
+      hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real (l - c*k*di))" by (simp add: ring_simps)
       hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real l)"
 	by blast
       thus "real i rdvd real c * real x - real c * (real k * real d) + Inum (real x # bs) e" using rdvd_def by simp
@@ -2303,9 +2303,9 @@ next
       (is "?ri rdvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri rdvd ?rt")
       hence "\<exists> (l::int). ?rt = ?ri * (real l)" by (simp add: rdvd_def)
       hence "\<exists> (l::int). ?rc*?rx+ ?I x e = ?ri*(real l)+?rc*(?rk * (real i) * (real di))" 
-	by (simp add: ring_eq_simps di_def)
+	by (simp add: ring_simps di_def)
       hence "\<exists> (l::int). ?rc*?rx+ ?I x e = ?ri*(real (l + c*k*di))"
-	by (simp add: ring_eq_simps)
+	by (simp add: ring_simps)
       hence "\<exists> (l::int). ?rc*?rx+ ?I x e = ?ri* (real l)" by blast
       thus "real i rdvd real c * real x + Inum (real x # bs) e" using rdvd_def by simp
     next
@@ -2314,7 +2314,7 @@ next
       hence "\<exists> (l::int). ?rc*?rx+?e = ?ri * (real l)" by (simp add: rdvd_def)
       hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real l) - real c * (real k * real d)" by simp
       hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real l) - real c * (real k * real i * real di)" by (simp add: di_def)
-      hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real (l - c*k*di))" by (simp add: ring_eq_simps)
+      hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real (l - c*k*di))" by (simp add: ring_simps)
       hence "\<exists> (l::int). ?rc*?rx - real c * (real k * real d) +?e = ?ri * (real l)"
 	by blast
       thus "real i rdvd real c * real x - real c * (real k * real d) + Inum (real x # bs) e" using rdvd_def by simp
@@ -2446,7 +2446,7 @@ proof(induct p rule: iszlfm.induct)
        (real j rdvd - (real c * real x - Inum (real x # bs) e))"
     by (simp only: rdvd_minus[symmetric])
   from prems show  ?case
-    by (simp add: ring_eq_simps th[simplified ring_eq_simps diff_def]
+    by (simp add: ring_simps th[simplified ring_simps]
       numbound0_I[where bs="bs" and b'="real x" and b="- real x"])
 next
     case (10 j c e)
@@ -2454,7 +2454,7 @@ next
        (real j rdvd - (real c * real x - Inum (real x # bs) e))"
     by (simp only: rdvd_minus[symmetric])
   from prems show  ?case
-    by (simp add: ring_eq_simps th[simplified ring_eq_simps diff_def]
+    by (simp add: ring_simps th[simplified ring_simps]
       numbound0_I[where bs="bs" and b'="real x" and b="- real x"])
 qed (auto simp add: numbound0_I[where bs="bs" and b="real x" and b'="- real x"] nth_pos2)
 
@@ -2540,7 +2540,7 @@ proof (induct p rule: iszlfm.induct)
     hence "(real l * real x + real (l div c) * Inum (real x # bs) e < (0\<Colon>real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e < 0)"
       by simp
-    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) < (real (l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) < (real (l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (real c * real x + Inum (real x # bs) e < 0)"
     using mult_less_0_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="real (l * x)" and b'="real x" and bs="bs"] be  isint_Mul[OF ei] by simp
@@ -2558,7 +2558,7 @@ next
     hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<le> (0\<Colon>real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e \<le> 0)"
       by simp
-    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<le> (real (l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<le> (real (l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (real c * real x + Inum (real x # bs) e \<le> 0)"
     using mult_le_0_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="real (l * x)" and b'="real x" and bs="bs"]  be  isint_Mul[OF ei] by simp
@@ -2576,7 +2576,7 @@ next
     hence "(real l * real x + real (l div c) * Inum (real x # bs) e > (0\<Colon>real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e > 0)"
       by simp
-    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) > (real (l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) > (real (l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (real c * real x + Inum (real x # bs) e > 0)"
     using zero_less_mult_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="real (l * x)" and b'="real x" and bs="bs"]  be  isint_Mul[OF ei] by simp
@@ -2594,7 +2594,7 @@ next
     hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<ge> (0\<Colon>real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e \<ge> 0)"
       by simp
-    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<ge> (real (l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<ge> (real (l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (real c * real x + Inum (real x # bs) e \<ge> 0)"
     using zero_le_mult_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="real (l * x)" and b'="real x" and bs="bs"]  be  isint_Mul[OF ei] by simp
@@ -2612,7 +2612,7 @@ next
     hence "(real l * real x + real (l div c) * Inum (real x # bs) e = (0\<Colon>real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e = 0)"
       by simp
-    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) = (real (l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) = (real (l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (real c * real x + Inum (real x # bs) e = 0)"
     using mult_eq_0_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="real (l * x)" and b'="real x" and bs="bs"]  be  isint_Mul[OF ei] by simp
@@ -2630,7 +2630,7 @@ next
     hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<noteq> (0\<Colon>real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e \<noteq> 0)"
       by simp
-    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<noteq> (real (l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<noteq> (real (l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (real c * real x + Inum (real x # bs) e \<noteq> 0)"
     using zero_le_mult_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="real (l * x)" and b'="real x" and bs="bs"]  be  isint_Mul[OF ei] by simp
@@ -2646,7 +2646,7 @@ next
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(\<exists> (k::int). real l * real x + real (l div c) * Inum (real x # bs) e = (real (l div c) * real j) * real k) = (\<exists> (k::int). real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e = (real (l div c) * real j) * real k)"  by simp
-    also have "\<dots> = (\<exists> (k::int). real (l div c) * (real c * real x + Inum (real x # bs) e - real j * real k) = real (l div c)*0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (\<exists> (k::int). real (l div c) * (real c * real x + Inum (real x # bs) e - real j * real k) = real (l div c)*0)" by (simp add: ring_simps)
     also have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e - real j * real k = 0)"
     using zero_le_mult_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e - real j * real k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e = real j * real k)" by simp
@@ -2663,7 +2663,7 @@ next
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(\<exists> (k::int). real l * real x + real (l div c) * Inum (real x # bs) e = (real (l div c) * real j) * real k) = (\<exists> (k::int). real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e = (real (l div c) * real j) * real k)"  by simp
-    also have "\<dots> = (\<exists> (k::int). real (l div c) * (real c * real x + Inum (real x # bs) e - real j * real k) = real (l div c)*0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (\<exists> (k::int). real (l div c) * (real c * real x + Inum (real x # bs) e - real j * real k) = real (l div c)*0)" by (simp add: ring_simps)
     also have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e - real j * real k = 0)"
     using zero_le_mult_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e - real j * real k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e = real j * real k)" by simp
@@ -2718,7 +2718,7 @@ next
       hence "x + floor ?e \<ge> 1 \<and> x + floor ?e \<le> d"  by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. j = x + floor ?e" by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. real x = real (- floor ?e + j)" 
-	by (simp only: real_of_int_inject) (simp add: ring_eq_simps)
+	by (simp only: real_of_int_inject) (simp add: ring_simps)
       hence "\<exists> (j::int) \<in> {1 .. d}. real x = - ?e + real j" 
 	by (simp add: ie[simplified isint_iff])
       with nob have ?case by auto}
@@ -2743,7 +2743,7 @@ next
 	using ie by simp
       hence "x + floor ?e +1 \<ge> 1 \<and> x + floor ?e + 1 \<le> d"  by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. j = x + floor ?e + 1" by simp
-      hence "\<exists> (j::int) \<in> {1 .. d}. x= - floor ?e - 1 + j" by (simp add: ring_eq_simps)
+      hence "\<exists> (j::int) \<in> {1 .. d}. x= - floor ?e - 1 + j" by (simp add: ring_simps)
       hence "\<exists> (j::int) \<in> {1 .. d}. real x= real (- floor ?e - 1 + j)" 
 	by (simp only: real_of_int_inject)
       hence "\<exists> (j::int) \<in> {1 .. d}. real x= - ?e - 1 + real j" 
@@ -2758,7 +2758,7 @@ next
     have vb: "?v \<in> set (\<beta> (Eq (CN 0 c e)))" by simp
     from p have "real x= - ?e" by (simp add: c1) with prems(11) show ?case using dp
       by simp (erule ballE[where x="1"],
-	simp_all add:ring_eq_simps numbound0_I[OF bn,where b="real x"and b'="a"and bs="bs"])
+	simp_all add:ring_simps numbound0_I[OF bn,where b="real x"and b'="a"and bs="bs"])
 next
   case (4 c e)hence p: "Ifm (real x #bs) (NEq (CN 0 c e))" (is "?p x") and c1: "c=1" 
     and bn:"numbound0 e" and ie1: "isint e (a #bs)" using dvd1_eq1[where x="c"] by simp+
@@ -2982,7 +2982,7 @@ proof(induct p rule: \<sigma>\<rho>.induct)
       from prems have "?I (real x) (?s (Eq (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k = 0)"
 	using real_of_int_div[OF knz kdt]
 	  numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
-	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_eq_simps)
+	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_simps)
       also have "\<dots> = (?I ?tk (Eq (CN 0 c e)))" using nonzero_eq_divide_eq[OF knz', where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric] real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
 	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
 	by (simp add: ti)
@@ -3004,7 +3004,7 @@ next
       from prems have "?I (real x) (?s (NEq (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k \<noteq> 0)"
 	using real_of_int_div[OF knz kdt]
 	  numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
-	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_eq_simps)
+	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_simps)
       also have "\<dots> = (?I ?tk (NEq (CN 0 c e)))" using nonzero_eq_divide_eq[OF knz', where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric] real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
 	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
 	by (simp add: ti)
@@ -3026,7 +3026,7 @@ next
       from prems have "?I (real x) (?s (Lt (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k < 0)"
 	using real_of_int_div[OF knz kdt]
 	  numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
-	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_eq_simps)
+	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_simps)
       also have "\<dots> = (?I ?tk (Lt (CN 0 c e)))" using pos_less_divide_eq[OF kpos, where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric] real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
 	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
 	by (simp add: ti)
@@ -3048,7 +3048,7 @@ next
       from prems have "?I (real x) (?s (Le (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k \<le> 0)"
 	using real_of_int_div[OF knz kdt]
 	  numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
-	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_eq_simps)
+	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_simps)
       also have "\<dots> = (?I ?tk (Le (CN 0 c e)))" using pos_le_divide_eq[OF kpos, where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric] real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
 	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
 	by (simp add: ti)
@@ -3070,7 +3070,7 @@ next
       from prems have "?I (real x) (?s (Gt (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k > 0)"
 	using real_of_int_div[OF knz kdt]
 	  numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
-	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_eq_simps)
+	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_simps)
       also have "\<dots> = (?I ?tk (Gt (CN 0 c e)))" using pos_divide_less_eq[OF kpos, where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric] real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
 	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
 	by (simp add: ti)
@@ -3092,7 +3092,7 @@ next
       from prems have "?I (real x) (?s (Ge (CN 0 c e))) = ((real c * (?N (real x) t / real k) + ?N (real x) e)* real k \<ge> 0)"
 	using real_of_int_div[OF knz kdt]
 	  numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
-	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_eq_simps)
+	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_simps)
       also have "\<dots> = (?I ?tk (Ge (CN 0 c e)))" using pos_divide_le_eq[OF kpos, where a="real c * (?N (real x) t / real k) + ?N (real x) e" and b="0", symmetric] real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
 	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
 	by (simp add: ti)
@@ -3113,7 +3113,7 @@ next
       from prems have "?I (real x) (?s (Dvd i (CN 0 c e))) = (real i * real k rdvd (real c * (?N (real x) t / real k) + ?N (real x) e)* real k)"
 	using real_of_int_div[OF knz kdt]
 	  numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
-	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_eq_simps)
+	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_simps)
       also have "\<dots> = (?I ?tk (Dvd i (CN 0 c e)))" using rdvd_mult[OF knz, where n="i"] real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
 	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
 	by (simp add: ti)
@@ -3134,7 +3134,7 @@ next
       from prems have "?I (real x) (?s (NDvd i (CN 0 c e))) = (\<not> (real i * real k rdvd (real c * (?N (real x) t / real k) + ?N (real x) e)* real k))"
 	using real_of_int_div[OF knz kdt]
 	  numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
-	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_eq_simps)
+	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"] by (simp add: ti ring_simps)
       also have "\<dots> = (?I ?tk (NDvd i (CN 0 c e)))" using rdvd_mult[OF knz, where n="i"] real_of_int_div[OF knz kdt] numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real x"]
 	  numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real x"]
 	by (simp add: ti)
@@ -3153,7 +3153,7 @@ proof(induct p rule: a\<rho>.induct)
   from kp have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
     {assume kdc: "k dvd c" from prems have  ?case using real_of_int_div[OF knz kdc] by simp } 
     moreover 
-    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] nonzero_eq_divide_eq[OF knz', where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_eq_simps)}
+    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] nonzero_eq_divide_eq[OF knz', where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_simps)}
     ultimately show ?case by blast 
 next
   case (4 c e)   
@@ -3161,7 +3161,7 @@ next
   from kp have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
     {assume kdc: "k dvd c" from prems have  ?case using real_of_int_div[OF knz kdc] by simp } 
     moreover 
-    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] nonzero_eq_divide_eq[OF knz', where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_eq_simps)}
+    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] nonzero_eq_divide_eq[OF knz', where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_simps)}
     ultimately show ?case by blast 
 next
   case (5 c e)   
@@ -3169,7 +3169,7 @@ next
   from kp have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
     {assume kdc: "k dvd c" from prems have  ?case using real_of_int_div[OF knz kdc] by simp } 
     moreover 
-    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] pos_less_divide_eq[OF kp, where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_eq_simps)}
+    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] pos_less_divide_eq[OF kp, where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_simps)}
     ultimately show ?case by blast 
 next
   case (6 c e)    
@@ -3177,7 +3177,7 @@ next
   from kp have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
     {assume kdc: "k dvd c" from prems have  ?case using real_of_int_div[OF knz kdc] by simp } 
     moreover 
-    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] pos_le_divide_eq[OF kp, where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_eq_simps)}
+    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] pos_le_divide_eq[OF kp, where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_simps)}
     ultimately show ?case by blast 
 next
   case (7 c e)    
@@ -3185,7 +3185,7 @@ next
   from kp have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
     {assume kdc: "k dvd c" from prems have  ?case using real_of_int_div[OF knz kdc] by simp } 
     moreover 
-    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] pos_divide_less_eq[OF kp, where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_eq_simps)}
+    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] pos_divide_less_eq[OF kp, where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_simps)}
     ultimately show ?case by blast 
 next
   case (8 c e)    
@@ -3193,7 +3193,7 @@ next
   from kp have knz: "k\<noteq>0" by simp hence knz': "real k \<noteq> 0" by simp
     {assume kdc: "k dvd c" from prems have  ?case using real_of_int_div[OF knz kdc] by simp } 
     moreover 
-    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] pos_divide_le_eq[OF kp, where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_eq_simps)}
+    {assume nkdc: "\<not> k dvd c" hence ?case using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] pos_divide_le_eq[OF kp, where b="0" and a="real c * real x + Inum (real x # bs) e", symmetric] by (simp add: ring_simps)}
     ultimately show ?case by blast 
 next
   case (9 i c e)
@@ -3205,7 +3205,7 @@ next
     hence "Ifm (real (x*k)#bs) (a\<rho> (Dvd i (CN 0 c e)) k) = 
       (real i * real k rdvd (real c * real x + Inum (real x#bs) e) * real k)" 
       using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] 
-      by (simp add: ring_eq_simps)
+      by (simp add: ring_simps)
     also have "\<dots> = (Ifm (real x#bs) (Dvd i (CN 0 c e)))" by (simp add: rdvd_mult[OF knz, where n="i"])
     finally have ?case . }
   ultimately show ?case by blast 
@@ -3219,7 +3219,7 @@ next
     hence "Ifm (real (x*k)#bs) (a\<rho> (NDvd i (CN 0 c e)) k) = 
       (\<not> (real i * real k rdvd (real c * real x + Inum (real x#bs) e) * real k))" 
       using numbound0_I[OF nb, where bs="bs" and b="real (x*k)" and b'="real x"] 
-      by (simp add: ring_eq_simps)
+      by (simp add: ring_simps)
     also have "\<dots> = (Ifm (real x#bs) (NDvd i (CN 0 c e)))" by (simp add: rdvd_mult[OF knz, where n="i"])
     finally have ?case . }
   ultimately show ?case by blast 
@@ -3232,7 +3232,7 @@ lemma a\<rho>_ex:
 proof-
   have "(\<exists> x. ?D x \<and> ?P' x) = (\<exists> x. k dvd x \<and> ?P' x)" using int_rdvd_iff by simp
   also have "\<dots> = (\<exists>x. ?P' (x*k))" using unity_coeff_ex[where P="?P'" and l="k", simplified]
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   also have "\<dots> = (\<exists> x. ?P x)" using a\<rho> iszlfm_gen[OF lp] kp by auto
   finally show ?thesis .
 qed
@@ -3296,7 +3296,7 @@ next
     by simp+
   {assume "real (c*i) \<noteq> - ?N i e + real (c*d)"
     with numbound0_I[OF nb, where bs="bs" and b="real i - real d" and b'="real i"]
-    have ?case by (simp add: ring_eq_simps)}
+    have ?case by (simp add: ring_simps)}
   moreover
   {assume pi: "real (c*i) = - ?N i e + real (c*d)"
     from mult_strict_left_mono[OF dp cp] have d: "(c*d) \<in> {1 .. c*d}" by simp
@@ -3308,27 +3308,27 @@ next
     real_of_int_mult]
   show ?case using prems dp 
     by (simp add: add: numbound0_I[where bs="bs" and b="real i - real d" and b'="real i"] 
-      ring_eq_simps)
+      ring_simps)
 next
   case (6 c e)  hence cp: "c > 0" by simp
   from prems mult_strict_left_mono[OF dp cp, simplified real_of_int_less_iff[symmetric] 
     real_of_int_mult]
   show ?case using prems dp 
     by (simp add: add: numbound0_I[where bs="bs" and b="real i - real d" and b'="real i"] 
-      ring_eq_simps)
+      ring_simps)
 next
   case (7 c e) hence cp: "c >0" and nb: "numbound0 e" and ei: "isint e (real i#bs)"
     and nob: "\<forall> j\<in> {1 .. c*d}. real (c*i) \<noteq> - ?N i e + real j"
     and pi: "real (c*i) + ?N i e > 0" and cp': "real c >0"
     by simp+
   let ?fe = "floor (?N i e)"
-  from pi cp have th:"(real i +?N i e / real c)*real c > 0" by (simp add: ring_eq_simps)
+  from pi cp have th:"(real i +?N i e / real c)*real c > 0" by (simp add: ring_simps)
   from pi ei[simplified isint_iff] have "real (c*i + ?fe) > real (0::int)" by simp
   hence pi': "c*i + ?fe > 0" by (simp only: real_of_int_less_iff[symmetric])
   have "real (c*i) + ?N i e > real (c*d) \<or> real (c*i) + ?N i e \<le> real (c*d)" by auto
   moreover
   {assume "real (c*i) + ?N i e > real (c*d)" hence ?case
-      by (simp add: ring_eq_simps 
+      by (simp add: ring_simps 
 	numbound0_I[OF nb,where bs="bs" and b="real i - real d" and b'="real i"])} 
   moreover 
   {assume H:"real (c*i) + ?N i e \<le> real (c*d)"
@@ -3336,7 +3336,7 @@ next
     hence pid: "c*i + ?fe \<le> c*d" by (simp only: real_of_int_le_iff)
     with pi' have "\<exists> j1\<in> {1 .. c*d}. c*i + ?fe = j1" by auto
     hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) = - ?N i e + real j1" 
-      by (simp only: diff_def[symmetric] real_of_int_mult real_of_int_add real_of_int_inject[symmetric] ei[simplified isint_iff] ring_eq_simps)
+      by (simp only: diff_def[symmetric] real_of_int_mult real_of_int_add real_of_int_inject[symmetric] ei[simplified isint_iff] ring_simps)
     with nob  have ?case by blast }
   ultimately show ?case by blast
 next
@@ -3345,13 +3345,13 @@ next
     and pi: "real (c*i) + ?N i e \<ge> 0" and cp': "real c >0"
     by simp+
   let ?fe = "floor (?N i e)"
-  from pi cp have th:"(real i +?N i e / real c)*real c \<ge> 0" by (simp add: ring_eq_simps)
+  from pi cp have th:"(real i +?N i e / real c)*real c \<ge> 0" by (simp add: ring_simps)
   from pi ei[simplified isint_iff] have "real (c*i + ?fe) \<ge> real (0::int)" by simp
   hence pi': "c*i + 1 + ?fe \<ge> 1" by (simp only: real_of_int_le_iff[symmetric])
   have "real (c*i) + ?N i e \<ge> real (c*d) \<or> real (c*i) + ?N i e < real (c*d)" by auto
   moreover
   {assume "real (c*i) + ?N i e \<ge> real (c*d)" hence ?case
-      by (simp add: ring_eq_simps 
+      by (simp add: ring_simps 
 	numbound0_I[OF nb,where bs="bs" and b="real i - real d" and b'="real i"])} 
   moreover 
   {assume H:"real (c*i) + ?N i e < real (c*d)"
@@ -3359,9 +3359,9 @@ next
     hence pid: "c*i + 1 + ?fe \<le> c*d" by (simp only: real_of_int_le_iff)
     with pi' have "\<exists> j1\<in> {1 .. c*d}. c*i + 1+ ?fe = j1" by auto
     hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) + 1= - ?N i e + real j1"
-      by (simp only: diff_def[symmetric] real_of_int_mult real_of_int_add real_of_int_inject[symmetric] ei[simplified isint_iff] ring_eq_simps real_of_one) 
+      by (simp only: diff_def[symmetric] real_of_int_mult real_of_int_add real_of_int_inject[symmetric] ei[simplified isint_iff] ring_simps real_of_one) 
     hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) = (- ?N i e + real j1) - 1"
-      by (simp only: ring_eq_simps diff_def[symmetric])
+      by (simp only: ring_simps diff_def[symmetric])
         hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) = - 1 - ?N i e + real j1"
 	  by (simp only: add_ac diff_def)
     with nob  have ?case by blast }
@@ -3382,10 +3382,10 @@ next
       using int_rdvd_iff[where i="j" and t="(c*i - c*d + floor ?e)",symmetric, simplified]
       ie by simp
     also have "\<dots> = (real j rdvd real (c*(i - d)) + ?e)" 
-      using ie by (simp add:ring_eq_simps)
+      using ie by (simp add:ring_simps)
     finally show ?case 
       using numbound0_I[OF bn,where b="real i - real d" and b'="real i" and bs="bs"] p 
-      by (simp add: ring_eq_simps)
+      by (simp add: ring_simps)
 next
   case (10 j c e)   hence p: "\<not> (real j rdvd real (c*i) + ?N i e)" (is "?p x") and cp: "c > 0" and bn:"numbound0 e"  by simp+
     let ?e = "Inum (real i # bs) e"
@@ -3402,10 +3402,10 @@ next
       using int_rdvd_iff[where i="j" and t="(c*i - c*d + floor ?e)",symmetric, simplified]
       ie by simp
     also have "\<dots> = Not (real j rdvd real (c*(i - d)) + ?e)" 
-      using ie by (simp add:ring_eq_simps)
+      using ie by (simp add:ring_simps)
     finally show ?case 
       using numbound0_I[OF bn,where b="real i - real d" and b'="real i" and bs="bs"] p 
-      by (simp add: ring_eq_simps)
+      by (simp add: ring_simps)
 qed(auto simp add: numbound0_I[where bs="bs" and b="real i - real d" and b'="real i"] nth_pos2)
 
 lemma \<sigma>_nb: assumes lp: "iszlfm p (a#bs)" and nb: "numbound0 t"
@@ -3648,7 +3648,7 @@ proof(induct t rule: rsplit0.induct)
 	from H 
 	have "?I (?p (p',n',s') j) \<longrightarrow> 
 	  (((?N ?nxs \<ge> real ?l) \<and> (?N ?nxs < real (?l + 1))) \<and> (?N a = ?N ?nxs ))" 
-	  by (simp add: fp_def np ring_eq_simps numsub numadd numfloor)
+	  by (simp add: fp_def np ring_simps numsub numadd numfloor)
 	also have "\<dots> \<longrightarrow> ((floor (?N ?nxs) = ?l) \<and> (?N a = ?N ?nxs ))"
 	  using floor_int_eq[where x="?N ?nxs" and n="?l"] by simp
 	moreover
@@ -3674,7 +3674,7 @@ proof(induct t rule: rsplit0.induct)
 	from H 
 	have "?I (?p (p',n',s') j) \<longrightarrow> 
 	  (((?N ?nxs \<ge> real ?l) \<and> (?N ?nxs < real (?l + 1))) \<and> (?N a = ?N ?nxs ))" 
-	  by (simp add: np fp_def ring_eq_simps numneg numfloor numadd numsub)
+	  by (simp add: np fp_def ring_simps numneg numfloor numadd numsub)
 	also have "\<dots> \<longrightarrow> ((floor (?N ?nxs) = ?l) \<and> (?N a = ?N ?nxs ))"
 	  using floor_int_eq[where x="?N ?nxs" and n="?l"] by simp
 	moreover
@@ -3686,7 +3686,7 @@ proof(induct t rule: rsplit0.induct)
     qed
 next
   case (3 a b) thus ?case by auto 
-qed (auto simp add: Let_def allpairs_set split_def ring_eq_simps conj_rl)
+qed (auto simp add: Let_def allpairs_set split_def ring_simps conj_rl)
 
 lemma real_in_int_intervals: 
   assumes xb: "real m \<le> x \<and> x < real ((n::int) + 1)"
@@ -3790,7 +3790,7 @@ next
     hence "\<exists> j\<in> {0 .. n}. 0 \<le> real n *x + ?N s - ?N (Floor s) - real j \<and> real n *x + ?N s - ?N (Floor s) - real (j+1) < 0"
       by(simp only: myl[rule_format, where b="real n * x + Inum (x # bs) s - Inum (x # bs) (Floor s)"] less_iff_diff_less_0[where a="real n *x + ?N s - ?N (Floor s)"]) 
     hence "\<exists> j\<in> {0.. n}. ?I (?p (p,n,s) j)"
-      using pns by (simp add: fp_def np ring_eq_simps numsub numadd)
+      using pns by (simp add: fp_def np ring_simps numsub numadd)
     then obtain "j" where j_def: "j\<in> {0 .. n} \<and> ?I (?p (p,n,s) j)" by blast
     hence "\<exists>x \<in> {?p (p,n,s) j |j. 0\<le> j \<and> j \<le> n }. ?I x" by auto
     hence ?case using pns 
@@ -3808,7 +3808,7 @@ next
       have "real n *x + ?N s \<ge> real n + ?N s" by simp 
       moreover from real_of_int_floor_le[where r="?N s"]  have "real n + ?N s \<ge> real n + ?N (Floor s)" by simp
       ultimately have "real n *x + ?N s \<ge> ?N (Floor s) + real n" 
-	by (simp only: ring_eq_simps)}
+	by (simp only: ring_simps)}
     ultimately have "?N (Floor s) + real n \<le> real n *x + ?N s\<and> real n *x + ?N s < ?N (Floor s) + real (1::int)" by simp
     hence th: "real n \<le> real n *x + ?N s - ?N (Floor s) \<and> real n *x + ?N s - ?N (Floor s) < real (1::int)" by simp
     have th1: "\<forall> (a::real). (- a > 0) = (a < 0)" by auto
@@ -3911,7 +3911,7 @@ proof(clarify)
   fix a n s
   assume H: "?N a = ?N (CN 0 n s)"
   show "?I (lt n s) = ?I (Lt a)" using H by (cases "n=0", (simp add: lt_def))
-  (cases "n > 0", simp_all add: lt_def ring_eq_simps myless[rule_format, where b="0"])
+  (cases "n > 0", simp_all add: lt_def ring_simps myless[rule_format, where b="0"])
 qed
 
 lemma lt_l: "isrlfm (rsplit lt a)"
@@ -3923,7 +3923,7 @@ proof(clarify)
   fix a n s
   assume H: "?N a = ?N (CN 0 n s)"
   show "?I (le n s) = ?I (Le a)" using H by (cases "n=0", (simp add: le_def))
-  (cases "n > 0", simp_all add: le_def ring_eq_simps myl[rule_format, where b="0"])
+  (cases "n > 0", simp_all add: le_def ring_simps myl[rule_format, where b="0"])
 qed
 
 lemma le_l: "isrlfm (rsplit le a)"
@@ -3935,7 +3935,7 @@ proof(clarify)
   fix a n s
   assume H: "?N a = ?N (CN 0 n s)"
   show "?I (gt n s) = ?I (Gt a)" using H by (cases "n=0", (simp add: gt_def))
-  (cases "n > 0", simp_all add: gt_def ring_eq_simps myless[rule_format, where b="0"])
+  (cases "n > 0", simp_all add: gt_def ring_simps myless[rule_format, where b="0"])
 qed
 lemma gt_l: "isrlfm (rsplit gt a)"
   by (rule rsplit_l[where f="gt" and a="a"], auto simp add: gt_def) 
@@ -3946,7 +3946,7 @@ proof(clarify)
   fix a n s 
   assume H: "?N a = ?N (CN 0 n s)"
   show "?I (ge n s) = ?I (Ge a)" using H by (cases "n=0", (simp add: ge_def))
-  (cases "n > 0", simp_all add: ge_def ring_eq_simps myl[rule_format, where b="0"])
+  (cases "n > 0", simp_all add: ge_def ring_simps myl[rule_format, where b="0"])
 qed
 lemma ge_l: "isrlfm (rsplit ge a)"
   by (rule rsplit_l[where f="ge" and a="a"], auto simp add: ge_def) 
@@ -3956,7 +3956,7 @@ lemma eq_mono: "\<forall> a n s. Inum (x#bs) a = Inum (x#bs) (CN 0 n s) \<and> n
 proof(clarify)
   fix a n s 
   assume H: "?N a = ?N (CN 0 n s)"
-  show "?I (eq n s) = ?I (Eq a)" using H by (auto simp add: eq_def ring_eq_simps)
+  show "?I (eq n s) = ?I (Eq a)" using H by (auto simp add: eq_def ring_simps)
 qed
 lemma eq_l: "isrlfm (rsplit eq a)"
   by (rule rsplit_l[where f="eq" and a="a"], auto simp add: eq_def) 
@@ -3966,7 +3966,7 @@ lemma neq_mono: "\<forall> a n s. Inum (x#bs) a = Inum (x#bs) (CN 0 n s) \<and> 
 proof(clarify)
   fix a n s bs
   assume H: "?N a = ?N (CN 0 n s)"
-  show "?I (neq n s) = ?I (NEq a)" using H by (auto simp add: neq_def ring_eq_simps)
+  show "?I (neq n s) = ?I (NEq a)" using H by (auto simp add: neq_def ring_simps)
 qed
 
 lemma neq_l: "isrlfm (rsplit neq a)"
@@ -4010,10 +4010,10 @@ proof-
   also have "\<dots> = (?DE \<and> ?a \<ge> 0 \<and> ?a < n)" by(simp only: small_le[OF ss0 ss1] small_lt[OF ss0 ss1])
   also have "\<dots> = (?DE \<and> (\<exists> j\<in> {0 .. (n - 1)}. ?a = j))" by simp
   also have "\<dots> = (?DE \<and> (\<exists> j\<in> {0 .. (n - 1)}. real (\<lfloor>real n * u - s\<rfloor>) = real j - real \<lfloor>s\<rfloor> ))"
-    by (simp only: ring_eq_simps real_of_int_diff[symmetric] real_of_int_inject del: real_of_int_diff)
+    by (simp only: ring_simps real_of_int_diff[symmetric] real_of_int_inject del: real_of_int_diff)
   also have "\<dots> = ((\<exists> j\<in> {0 .. (n - 1)}. real n * u - s = real j - real \<lfloor>s\<rfloor> \<and> real i rdvd real n * u - s))" using int_rdvd_iff[where i="i" and t="\<lfloor>real n * u - s\<rfloor>"]
     by (auto cong: conj_cong)
-  also have "\<dots> = ?rhs" by(simp cong: conj_cong) (simp add: ring_eq_simps )
+  also have "\<dots> = ?rhs" by(simp cong: conj_cong) (simp add: ring_simps )
   finally show ?thesis .
 qed
 
@@ -4029,7 +4029,7 @@ proof-
   from foldr_disj_map[where xs="iupt(0,n - 1)" and bs="x#bs" and f="?f"]
   have "Ifm (x#bs) (DVDJ i n s) = (\<exists> j\<in> {0 .. (n - 1)}. Ifm (x#bs) (?f j))" 
     by (simp add: iupt_set np DVDJ_def del: iupt.simps)
-  also have "\<dots> = (\<exists> j\<in> {0 .. (n - 1)}. real n * x = (- ?s) - real (floor (- ?s)) + real j \<and> real i rdvd real (j - floor (- ?s)))" by (simp add: ring_eq_simps diff_def[symmetric])
+  also have "\<dots> = (\<exists> j\<in> {0 .. (n - 1)}. real n * x = (- ?s) - real (floor (- ?s)) + real j \<and> real i rdvd real (j - floor (- ?s)))" by (simp add: ring_simps diff_def[symmetric])
   also from rdvd01_cs[OF xp x1 np, where i="i" and s="-?s"] 
   have "\<dots> = (real i rdvd real n * x - (-?s))" by simp
   finally show ?thesis by simp
@@ -4044,7 +4044,7 @@ proof-
   from foldr_conj_map[where xs="iupt(0,n - 1)" and bs="x#bs" and f="?f"]
   have "Ifm (x#bs) (NDVDJ i n s) = (\<forall> j\<in> {0 .. (n - 1)}. Ifm (x#bs) (?f j))" 
     by (simp add: iupt_set np NDVDJ_def del: iupt.simps)
-  also have "\<dots> = (\<not> (\<exists> j\<in> {0 .. (n - 1)}. real n * x = (- ?s) - real (floor (- ?s)) + real j \<and> real i rdvd real (j - floor (- ?s))))" by (simp add: ring_eq_simps diff_def[symmetric])
+  also have "\<dots> = (\<not> (\<exists> j\<in> {0 .. (n - 1)}. real n * x = (- ?s) - real (floor (- ?s)) + real j \<and> real i rdvd real (j - floor (- ?s))))" by (simp add: ring_simps diff_def[symmetric])
   also from rdvd01_cs[OF xp x1 np, where i="i" and s="-?s"] 
   have "\<dots> = (\<not> (real i rdvd real n * x - (-?s)))" by simp
   finally show ?thesis by simp
@@ -4630,40 +4630,40 @@ proof(induct p rule: \<upsilon>.induct)
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) < 0)"
     by (simp only: pos_less_divide_eq[OF np, where a="real c *(?t/?n) + (?N x e)" 
-      and b="0", simplified divide_zero_left]) (simp only: ring_eq_simps)
+      and b="0", simplified divide_zero_left]) (simp only: ring_simps)
   also have "\<dots> = (real c *?t + ?n* (?N x e) < 0)"
     using np by simp 
-  finally show ?case using nbt nb by (simp add: ring_eq_simps)
+  finally show ?case using nbt nb by (simp add: ring_simps)
 next
   case (6 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
   have "?I ?u (Le (CN 0 c e)) = (real c *(?t/?n) + (?N x e) \<le> 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) \<le> 0)"
     by (simp only: pos_le_divide_eq[OF np, where a="real c *(?t/?n) + (?N x e)" 
-      and b="0", simplified divide_zero_left]) (simp only: ring_eq_simps)
+      and b="0", simplified divide_zero_left]) (simp only: ring_simps)
   also have "\<dots> = (real c *?t + ?n* (?N x e) \<le> 0)"
     using np by simp 
-  finally show ?case using nbt nb by (simp add: ring_eq_simps)
+  finally show ?case using nbt nb by (simp add: ring_simps)
 next
   case (7 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
   have "?I ?u (Gt (CN 0 c e)) = (real c *(?t/?n) + (?N x e) > 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) > 0)"
     by (simp only: pos_divide_less_eq[OF np, where a="real c *(?t/?n) + (?N x e)" 
-      and b="0", simplified divide_zero_left]) (simp only: ring_eq_simps)
+      and b="0", simplified divide_zero_left]) (simp only: ring_simps)
   also have "\<dots> = (real c *?t + ?n* (?N x e) > 0)"
     using np by simp 
-  finally show ?case using nbt nb by (simp add: ring_eq_simps)
+  finally show ?case using nbt nb by (simp add: ring_simps)
 next
   case (8 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
   have "?I ?u (Ge (CN 0 c e)) = (real c *(?t/?n) + (?N x e) \<ge> 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) \<ge> 0)"
     by (simp only: pos_divide_le_eq[OF np, where a="real c *(?t/?n) + (?N x e)" 
-      and b="0", simplified divide_zero_left]) (simp only: ring_eq_simps)
+      and b="0", simplified divide_zero_left]) (simp only: ring_simps)
   also have "\<dots> = (real c *?t + ?n* (?N x e) \<ge> 0)"
     using np by simp 
-  finally show ?case using nbt nb by (simp add: ring_eq_simps)
+  finally show ?case using nbt nb by (simp add: ring_simps)
 next
   case (3 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
   from np have np: "real n \<noteq> 0" by simp
@@ -4671,10 +4671,10 @@ next
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) = 0)"
     by (simp only: nonzero_eq_divide_eq[OF np, where a="real c *(?t/?n) + (?N x e)" 
-      and b="0", simplified divide_zero_left]) (simp only: ring_eq_simps)
+      and b="0", simplified divide_zero_left]) (simp only: ring_simps)
   also have "\<dots> = (real c *?t + ?n* (?N x e) = 0)"
     using np by simp 
-  finally show ?case using nbt nb by (simp add: ring_eq_simps)
+  finally show ?case using nbt nb by (simp add: ring_simps)
 next
   case (4 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
   from np have np: "real n \<noteq> 0" by simp
@@ -4682,10 +4682,10 @@ next
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) \<noteq> 0)"
     by (simp only: nonzero_eq_divide_eq[OF np, where a="real c *(?t/?n) + (?N x e)" 
-      and b="0", simplified divide_zero_left]) (simp only: ring_eq_simps)
+      and b="0", simplified divide_zero_left]) (simp only: ring_simps)
   also have "\<dots> = (real c *?t + ?n* (?N x e) \<noteq> 0)"
     using np by simp 
-  finally show ?case using nbt nb by (simp add: ring_eq_simps)
+  finally show ?case using nbt nb by (simp add: ring_simps)
 qed(simp_all add: nbt numbound0_I[where bs ="bs" and b="(Inum (x#bs) t)/ real n" and b'="x"] nth_pos2)
 
 lemma \<Upsilon>_l:
@@ -4736,7 +4736,7 @@ lemma lin_dense:
 using lp px noS
 proof (induct p rule: isrlfm.induct)
   case (5 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
-    from prems have "x * real c + ?N x e < 0" by (simp add: ring_eq_simps)
+    from prems have "x * real c + ?N x e < 0" by (simp add: ring_simps)
     hence pxc: "x < (- ?N x e) / real c" 
       by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="-?N x e"])
     from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
@@ -4745,7 +4745,7 @@ proof (induct p rule: isrlfm.induct)
     moreover {assume y: "y < (-?N x e)/ real c"
       hence "y * real c < - ?N x e"
 	by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-      hence "real c * y + ?N x e < 0" by (simp add: ring_eq_simps)
+      hence "real c * y + ?N x e < 0" by (simp add: ring_simps)
       hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
     moreover {assume y: "y > (- ?N x e) / real c" 
       with yu have eu: "u > (- ?N x e) / real c" by auto
@@ -4755,7 +4755,7 @@ proof (induct p rule: isrlfm.induct)
     ultimately show ?case by blast
 next
   case (6 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp +
-    from prems have "x * real c + ?N x e \<le> 0" by (simp add: ring_eq_simps)
+    from prems have "x * real c + ?N x e \<le> 0" by (simp add: ring_simps)
     hence pxc: "x \<le> (- ?N x e) / real c" 
       by (simp only: pos_le_divide_eq[OF cp, where a="x" and b="-?N x e"])
     from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
@@ -4764,7 +4764,7 @@ next
     moreover {assume y: "y < (-?N x e)/ real c"
       hence "y * real c < - ?N x e"
 	by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-      hence "real c * y + ?N x e < 0" by (simp add: ring_eq_simps)
+      hence "real c * y + ?N x e < 0" by (simp add: ring_simps)
       hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
     moreover {assume y: "y > (- ?N x e) / real c" 
       with yu have eu: "u > (- ?N x e) / real c" by auto
@@ -4774,7 +4774,7 @@ next
     ultimately show ?case by blast
 next
   case (7 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
-    from prems have "x * real c + ?N x e > 0" by (simp add: ring_eq_simps)
+    from prems have "x * real c + ?N x e > 0" by (simp add: ring_simps)
     hence pxc: "x > (- ?N x e) / real c" 
       by (simp only: pos_divide_less_eq[OF cp, where a="x" and b="-?N x e"])
     from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
@@ -4783,7 +4783,7 @@ next
     moreover {assume y: "y > (-?N x e)/ real c"
       hence "y * real c > - ?N x e"
 	by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-      hence "real c * y + ?N x e > 0" by (simp add: ring_eq_simps)
+      hence "real c * y + ?N x e > 0" by (simp add: ring_simps)
       hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
     moreover {assume y: "y < (- ?N x e) / real c" 
       with ly have eu: "l < (- ?N x e) / real c" by auto
@@ -4793,7 +4793,7 @@ next
     ultimately show ?case by blast
 next
   case (8 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
-    from prems have "x * real c + ?N x e \<ge> 0" by (simp add: ring_eq_simps)
+    from prems have "x * real c + ?N x e \<ge> 0" by (simp add: ring_simps)
     hence pxc: "x \<ge> (- ?N x e) / real c" 
       by (simp only: pos_divide_le_eq[OF cp, where a="x" and b="-?N x e"])
     from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
@@ -4802,7 +4802,7 @@ next
     moreover {assume y: "y > (-?N x e)/ real c"
       hence "y * real c > - ?N x e"
 	by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-      hence "real c * y + ?N x e > 0" by (simp add: ring_eq_simps)
+      hence "real c * y + ?N x e > 0" by (simp add: ring_simps)
       hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
     moreover {assume y: "y < (- ?N x e) / real c" 
       with ly have eu: "l < (- ?N x e) / real c" by auto
@@ -4813,7 +4813,7 @@ next
 next
   case (3 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
     from cp have cnz: "real c \<noteq> 0" by simp
-    from prems have "x * real c + ?N x e = 0" by (simp add: ring_eq_simps)
+    from prems have "x * real c + ?N x e = 0" by (simp add: ring_simps)
     hence pxc: "x = (- ?N x e) / real c" 
       by (simp only: nonzero_eq_divide_eq[OF cnz, where a="x" and b="-?N x e"])
     from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
@@ -4826,9 +4826,9 @@ next
     with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
     hence "y* real c \<noteq> -?N x e"      
       by (simp only: nonzero_eq_divide_eq[OF cnz, where a="y" and b="-?N x e"]) simp
-    hence "y* real c + ?N x e \<noteq> 0" by (simp add: ring_eq_simps)
+    hence "y* real c + ?N x e \<noteq> 0" by (simp add: ring_simps)
     thus ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] 
-      by (simp add: ring_eq_simps)
+      by (simp add: ring_simps)
 qed (auto simp add: nth_pos2 numbound0_I[where bs="bs" and b="y" and b'="x"])
 
 lemma finite_set_intervals:
@@ -4991,7 +4991,7 @@ proof
 	by (simp add: mult_commute)
       from tnb snb have st_nb: "numbound0 ?st" by simp
       have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-	using mnp mp np by (simp add: ring_eq_simps add_divide_distrib)
+	using mnp mp np by (simp add: ring_simps add_divide_distrib)
       from \<upsilon>_I[OF lp mnp st_nb, where x="x" and bs="bs"] 
       have "?I x (\<upsilon> p (?st,2*n*m)) = ?I ((?N t / real n + ?N s / real m) /2) p" by (simp only: st[symmetric])}
     with rinf_\<Upsilon>[OF lp nmi npi px] have "?F" by blast hence "?D" by blast}
@@ -5060,7 +5060,7 @@ recdef exsplit "measure size"
 
 lemma exsplitnum: 
   "Inum (x#y#bs) (exsplitnum t) = Inum ((x+y) #bs) t"
-  by(induct t rule: exsplitnum.induct) (simp_all add: ring_eq_simps)
+  by(induct t rule: exsplitnum.induct) (simp_all add: ring_simps)
 
 lemma exsplit: 
   assumes qfp: "qfree p"
@@ -5151,14 +5151,14 @@ proof(auto)
   from Ul th have mnz: "m \<noteq> 0" by auto
   from Ul th have  nnz: "n \<noteq> 0" by auto  
   have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-   using mnz nnz by (simp add: ring_eq_simps add_divide_distrib)
+   using mnz nnz by (simp add: ring_simps add_divide_distrib)
  
   thus "(real m *  Inum (x # bs) t + real n * Inum (x # bs) s) /
        (2 * real n * real m)
        \<in> (\<lambda>((t, n), s, m).
              (Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2) `
          (set U \<times> set U)"using mnz nnz th  
-    apply (auto simp add: th add_divide_distrib ring_eq_simps split_def image_def)
+    apply (auto simp add: th add_divide_distrib ring_simps split_def image_def)
     by (rule_tac x="(s,m)" in bexI,simp_all) 
   (rule_tac x="(t,n)" in bexI,simp_all)
 next
@@ -5169,7 +5169,7 @@ next
   from Ul smU have mnz: "m \<noteq> 0" by auto
   from Ul tnU have  nnz: "n \<noteq> 0" by auto  
   have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-   using mnz nnz by (simp add: ring_eq_simps add_divide_distrib)
+   using mnz nnz by (simp add: ring_simps add_divide_distrib)
  let ?P = "\<lambda> (t',n') (s',m'). (Inum (x # bs) t / real n + Inum (x # bs) s / real m)/2 = (Inum (x # bs) t' / real n' + Inum (x # bs) s' / real m')/2"
  have Pc:"\<forall> a b. ?P a b = ?P b a"
    by auto
@@ -5182,7 +5182,7 @@ next
  from ts'_U Up have mnz': "m' \<noteq> 0" and nnz': "n'\<noteq> 0" by auto
  let ?st' = "Add (Mul m' t') (Mul n' s')"
    have st': "(?N t' / real n' + ?N s' / real m')/2 = ?N ?st' / real (2*n'*m')"
-   using mnz' nnz' by (simp add: ring_eq_simps add_divide_distrib)
+   using mnz' nnz' by (simp add: ring_simps add_divide_distrib)
  from Pts' have 
    "(Inum (x # bs) t / real n + Inum (x # bs) s / real m)/2 = (Inum (x # bs) t' / real n' + Inum (x # bs) s' / real m')/2" by simp
  also have "\<dots> = ((\<lambda>(t, n). Inum (x # bs) t / real n) ((\<lambda>((t, n), s, m). (Add (Mul m t) (Mul n s), 2 * n * m)) ((t',n'),(s',m'))))" by (simp add: st')
@@ -5212,7 +5212,7 @@ proof
       by (simp add: mult_commute real_of_int_mult[symmetric] del: real_of_int_mult)
     from tnb snb have stnb: "numbound0 ?st" by simp
   have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-   using mp np by (simp add: ring_eq_simps add_divide_distrib)
+   using mp np by (simp add: ring_simps add_divide_distrib)
   from tnU smU UU' have "?g ((t,n),(s,m)) \<in> ?f ` U'" by blast
   hence "\<exists> (t',n') \<in> U'. ?g ((t,n),(s,m)) = ?f (t',n')"
     by auto (rule_tac x="(a,b)" in bexI, auto)
@@ -5240,7 +5240,7 @@ next
       by (simp add: mult_commute real_of_int_mult[symmetric] del: real_of_int_mult)
     from tnb snb have stnb: "numbound0 ?st" by simp
   have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-   using mp np by (simp add: ring_eq_simps add_divide_distrib)
+   using mp np by (simp add: ring_simps add_divide_distrib)
   from U' tnU' have tnb': "numbound0 t'" and np': "real n' > 0" by auto
   from \<upsilon>_I[OF lp np' tnb', where bs="bs" and x="x",simplified th[simplified split_def fst_conv snd_conv] st] Pt'
   have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real (2 * n * m) # bs) p" by simp

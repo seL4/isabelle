@@ -153,7 +153,7 @@ instance complex :: field
 proof
   fix x y z :: complex
   show "(x * y) * z = x * (y * z)"
-    by (simp add: expand_complex_eq ring_eq_simps)
+    by (simp add: expand_complex_eq ring_simps)
   show "x * y = y * x"
     by (simp add: expand_complex_eq mult_commute add_commute)
   show "1 * x = x"
@@ -161,7 +161,7 @@ proof
   show "0 \<noteq> (1::complex)"
     by (simp add: expand_complex_eq)
   show "(x + y) * z = x * z + y * z"
-    by (simp add: expand_complex_eq ring_eq_simps)
+    by (simp add: expand_complex_eq ring_simps)
   show "x / y = x * inverse y"
     by (simp only: complex_divide_def)
   show "x \<noteq> 0 \<Longrightarrow> inverse x * x = 1"
@@ -251,9 +251,9 @@ proof
   show "scaleR 1 x = x"
     by (simp add: expand_complex_eq)
   show "scaleR a x * y = scaleR a (x * y)"
-    by (simp add: expand_complex_eq ring_eq_simps)
+    by (simp add: expand_complex_eq ring_simps)
   show "x * scaleR a y = scaleR a (x * y)"
-    by (simp add: expand_complex_eq ring_eq_simps)
+    by (simp add: expand_complex_eq ring_simps)
 qed
 
 
@@ -319,7 +319,7 @@ proof
        (simp add: power_mult_distrib right_distrib [symmetric] real_sqrt_mult)
   show "norm (x * y) = norm x * norm y"
     by (induct x, induct y)
-       (simp add: real_sqrt_mult [symmetric] power2_eq_square ring_eq_simps)
+       (simp add: real_sqrt_mult [symmetric] power2_eq_square ring_simps)
 qed
 
 lemma cmod_unit_one [simp]: "cmod (Complex (cos a) (sin a)) = 1"

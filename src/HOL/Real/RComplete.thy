@@ -377,7 +377,7 @@ next
   hence "real (Suc n) * (inverse (real (Suc n)) * x) < real (Suc n) * 1"
     by (rule mult_strict_left_mono) simp
   hence "x < real (Suc n)"
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   thus "\<exists>(n::nat). x < real n" ..
 qed
 
@@ -392,9 +392,9 @@ proof
   hence "y * inverse x * x < real n * x"
     using x_greater_zero by (simp add: mult_strict_right_mono)
   hence "x * inverse x * y < x * real n"
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   hence "y < real (n::nat) * x"
-    using x_not_zero by (simp add: ring_eq_simps)
+    using x_not_zero by (simp add: ring_simps)
   thus "\<exists>(n::nat). y < real n * x" ..
 qed
 
@@ -1226,7 +1226,7 @@ proof -
     by simp
   also have "... = real((natfloor x) div y) + real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y"
-    by (auto simp add: ring_distrib ring_eq_simps add_divide_distrib
+    by (auto simp add: ring_simps add_divide_distrib
       diff_divide_distrib prems)
   finally have "natfloor (x / real y) = natfloor(...)" by simp
   also have "... = natfloor(real((natfloor x) mod y) /

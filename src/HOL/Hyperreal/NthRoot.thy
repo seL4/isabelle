@@ -571,12 +571,12 @@ by (simp add: power2_eq_square [symmetric])
 lemma power2_sum:
   fixes x y :: "'a::{number_ring,recpower}"
   shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
-by (simp add: left_distrib right_distrib power2_eq_square)
+by (simp add: ring_distribs power2_eq_square)
 
 lemma power2_diff:
   fixes x y :: "'a::{number_ring,recpower}"
   shows "(x - y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> - 2 * x * y"
-by (simp add: left_diff_distrib right_diff_distrib power2_eq_square)
+by (simp add: ring_distribs power2_eq_square)
 
 lemma real_sqrt_sum_squares_triangle_ineq:
   "sqrt ((a + c)\<twosuperior> + (b + d)\<twosuperior>) \<le> sqrt (a\<twosuperior> + b\<twosuperior>) + sqrt (c\<twosuperior> + d\<twosuperior>)"
@@ -586,7 +586,7 @@ apply (simp only: mult_assoc right_distrib [symmetric])
 apply (rule mult_left_mono)
 apply (rule power2_le_imp_le)
 apply (simp add: power2_sum power_mult_distrib)
-apply (simp add: ring_distrib)
+apply (simp add: ring_distribs)
 apply (subgoal_tac "0 \<le> b\<twosuperior> * c\<twosuperior> + a\<twosuperior> * d\<twosuperior> - 2 * (a * c) * (b * d)", simp)
 apply (rule_tac b="(a * d - b * c)\<twosuperior>" in ord_le_eq_trans)
 apply (rule zero_le_power2)

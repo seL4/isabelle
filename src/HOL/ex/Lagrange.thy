@@ -16,37 +16,31 @@ rings.
 The enterprising reader might consider proving all of Lagrange's
 theorem.  *}
 
-definition
-  sq :: "'a::times => 'a" where
-  "sq x == x*x"
+definition sq :: "'a::times => 'a" where "sq x == x*x"
 
 text {* The following lemma essentially shows that every natural
 number is the sum of four squares, provided all prime numbers are.
 However, this is an abstract theorem about commutative rings.  It has,
 a priori, nothing to do with nat. *}
 
+(* These two simprocs are even less efficient than ordered rewriting
+   and kill the second example: *)
 ML_setup {*
   Delsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
 *}
 
-lemma Lagrange_lemma:
-  fixes x1 :: "'a::comm_ring"
-  shows
+lemma Lagrange_lemma: fixes x1 :: "'a::comm_ring" shows
   "(sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) =
-    sq (x1*y1 - x2*y2 - x3*y3 - x4*y4)  +
-    sq (x1*y2 + x2*y1 + x3*y4 - x4*y3)  +
-    sq (x1*y3 - x2*y4 + x3*y1 + x4*y2)  +
-    sq (x1*y4 + x2*y3 - x3*y2 + x4*y1)"
-  by (simp add: sq_def ring_eq_simps)
+   sq (x1*y1 - x2*y2 - x3*y3 - x4*y4)  +
+   sq (x1*y2 + x2*y1 + x3*y4 - x4*y3)  +
+   sq (x1*y3 - x2*y4 + x3*y1 + x4*y2)  +
+   sq (x1*y4 + x2*y3 - x3*y2 + x4*y1)"
+by (simp add: sq_def ring_simps)
 
 
-text {*
-  A challenge by John Harrison. Takes about 17s on a 1.6GHz machine.
-*}
+text {* A challenge by John Harrison. Takes about 17s on a 1.6GHz machine. *}
 
-lemma
-  fixes p1 :: "'a::comm_ring"
-  shows
+lemma fixes p1 :: "'a::comm_ring" shows
   "(sq p1 + sq q1 + sq r1 + sq s1 + sq t1 + sq u1 + sq v1 + sq w1) * 
    (sq p2 + sq q2 + sq r2 + sq s2 + sq t2 + sq u2 + sq v2 + sq w2) 
     = sq (p1*p2 - q1*q2 - r1*r2 - s1*s2 - t1*t2 - u1*u2 - v1*v2 - w1*w2) + 
@@ -57,6 +51,6 @@ lemma
       sq (p1*u2 + q1*t2 - r1*w2 + s1*v2 - t1*q2 + u1*p2 - v1*s2 + w1*r2) +
       sq (p1*v2 + q1*w2 + r1*t2 - s1*u2 - t1*r2 + u1*s2 + v1*p2 - w1*q2) +
       sq (p1*w2 - q1*v2 + r1*u2 + s1*t2 - t1*s2 - u1*r2 + v1*q2 + w1*p2)"
-  by (simp add: sq_def ring_eq_simps)
+by (simp add: sq_def ring_simps)
 
 end

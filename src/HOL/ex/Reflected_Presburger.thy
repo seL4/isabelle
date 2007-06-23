@@ -1,7 +1,7 @@
 theory Reflected_Presburger
-  imports GCD Main EfficientNat
-  uses ("coopereif.ML") ("coopertac.ML")
-  begin
+imports GCD Main EfficientNat
+uses ("coopereif.ML") ("coopertac.ML")
+begin
 
 lemma allpairs_set: "set (allpairs Pair xs ys) = {(x,y). x\<in> set xs \<and> y \<in> set ys}"
 by (induct xs) auto
@@ -463,8 +463,10 @@ recdef numadd "measure (\<lambda> (t,s). size t + size s)"
 lemma numadd: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
 apply (induct t s rule: numadd.induct, simp_all add: Let_def)
 apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
-by (case_tac "n1 = n2", simp_all add: ring_eq_simps)
-(simp add: ring_eq_simps(1)[symmetric]) 
+ apply (case_tac "n1 = n2")
+  apply(simp_all add: ring_simps)
+apply(simp add: left_distrib[symmetric])
+done
 
 lemma numadd_nb: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
 by (induct t s rule: numadd.induct, auto simp add: Let_def)
@@ -476,7 +478,7 @@ recdef nummul "measure size"
   "nummul t = (\<lambda> i. Mul i t)"
 
 lemma nummul: "\<And> i. Inum bs (nummul t i) = Inum bs (Mul i t)"
-by (induct t rule: nummul.induct, auto simp add: ring_eq_simps numadd)
+by (induct t rule: nummul.induct, auto simp add: ring_simps numadd)
 
 lemma nummul_nb: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummul t i)"
 by (induct t rule: nummul.induct, auto simp add: numadd_nb)
@@ -907,7 +909,7 @@ proof(induct p rule: zlfm.induct)
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
   from prems Ia nb  show ?case 
-    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+    by (auto simp add: Let_def split_def ring_simps) (cases "?r",auto)
 next
   case (6 a)  
   let ?c = "fst (zsplit0 a)"
@@ -917,7 +919,7 @@ next
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
   from prems Ia nb  show ?case 
-    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+    by (auto simp add: Let_def split_def ring_simps) (cases "?r",auto)
 next
   case (7 a)  
   let ?c = "fst (zsplit0 a)"
@@ -927,7 +929,7 @@ next
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
   from prems Ia nb  show ?case 
-    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+    by (auto simp add: Let_def split_def ring_simps) (cases "?r",auto)
 next
   case (8 a)  
   let ?c = "fst (zsplit0 a)"
@@ -937,7 +939,7 @@ next
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
   from prems Ia nb  show ?case 
-    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+    by (auto simp add: Let_def split_def ring_simps) (cases "?r",auto)
 next
   case (9 a)  
   let ?c = "fst (zsplit0 a)"
@@ -947,7 +949,7 @@ next
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
   from prems Ia nb  show ?case 
-    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+    by (auto simp add: Let_def split_def ring_simps) (cases "?r",auto)
 next
   case (10 a)  
   let ?c = "fst (zsplit0 a)"
@@ -957,7 +959,7 @@ next
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CX ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
   from prems Ia nb  show ?case 
-    by (auto simp add: Let_def split_def ring_eq_simps) (cases "?r",auto)
+    by (auto simp add: Let_def split_def ring_simps) (cases "?r",auto)
 next
   case (11 j a)  
   let ?c = "fst (zsplit0 a)"
@@ -1264,9 +1266,9 @@ proof(induct p rule: iszlfm.induct)
       (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
       hence "\<exists> (l::int). ?rt = i * l" by (simp add: dvd_def)
       hence "\<exists> (l::int). c*x+ ?I x e = i*l+c*(k * i*di)" 
-	by (simp add: ring_eq_simps di_def)
+	by (simp add: ring_simps di_def)
       hence "\<exists> (l::int). c*x+ ?I x e = i*(l + c*k*di)"
-	by (simp add: ring_eq_simps)
+	by (simp add: ring_simps)
       hence "\<exists> (l::int). c*x+ ?I x e = i*l" by blast
       thus "i dvd c*x + Inum (x # bs) e" by (simp add: dvd_def) 
     next
@@ -1275,7 +1277,7 @@ proof(induct p rule: iszlfm.induct)
       hence "\<exists> (l::int). c*x+?e = i*l" by (simp add: dvd_def)
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*d)" by simp
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*i*di)" by (simp add: di_def)
-      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: ring_eq_simps)
+      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: ring_simps)
       hence "\<exists> (l::int). c*x - c * (k*d) +?e = i*l"
 	by blast
       thus "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
@@ -1291,9 +1293,9 @@ next
       (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
       hence "\<exists> (l::int). ?rt = i * l" by (simp add: dvd_def)
       hence "\<exists> (l::int). c*x+ ?I x e = i*l+c*(k * i*di)" 
-	by (simp add: ring_eq_simps di_def)
+	by (simp add: ring_simps di_def)
       hence "\<exists> (l::int). c*x+ ?I x e = i*(l + c*k*di)"
-	by (simp add: ring_eq_simps)
+	by (simp add: ring_simps)
       hence "\<exists> (l::int). c*x+ ?I x e = i*l" by blast
       thus "i dvd c*x + Inum (x # bs) e" by (simp add: dvd_def) 
     next
@@ -1302,7 +1304,7 @@ next
       hence "\<exists> (l::int). c*x+?e = i*l" by (simp add: dvd_def)
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*d)" by simp
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*i*di)" by (simp add: di_def)
-      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: ring_eq_simps)
+      hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: ring_simps)
       hence "\<exists> (l::int). c*x - c * (k*d) +?e = i*l"
 	by blast
       thus "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
@@ -1355,7 +1357,7 @@ proof(induct p rule: iszlfm.induct)
     by (simp only: zdvd_zminus_iff)
   also have "\<dots> = (j dvd (c* (- x)) + ?e)"
     apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_def zadd_ac zminus_zadd_distrib)
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   also have "\<dots> = Ifm bbs ((- x)#bs) (Dvd j (CX c e))"
     using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"]
     by simp
@@ -1367,7 +1369,7 @@ next
     by (simp only: zdvd_zminus_iff)
   also have "\<dots> = (j dvd (c* (- x)) + ?e)"
     apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_def zadd_ac zminus_zadd_distrib)
-    by (simp add: ring_eq_simps)
+    by (simp add: ring_simps)
   also have "\<dots> = Ifm bbs ((- x)#bs) (Dvd j (CX c e))"
     using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"]
     by simp
@@ -1439,7 +1441,7 @@ proof (induct p rule: iszlfm.induct)
     hence "(l*x + (l div c) * Inum (x # bs) e < 0) =
           ((c * (l div c)) * x + (l div c) * Inum (x # bs) e < 0)"
       by simp
-    also have "\<dots> = ((l div c) * (c*x + Inum (x # bs) e) < (l div c) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = ((l div c) * (c*x + Inum (x # bs) e) < (l div c) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (c*x + Inum (x # bs) e < 0)"
     using mult_less_0_iff [where a="(l div c)" and b="c*x + Inum (x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"] be  by simp
@@ -1457,7 +1459,7 @@ next
     hence "(l*x + (l div c) * Inum (x# bs) e \<le> 0) =
           ((c * (l div c)) * x + (l div c) * Inum (x # bs) e \<le> 0)"
       by simp
-    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) \<le> ((l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) \<le> ((l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (c*x + Inum (x # bs) e \<le> 0)"
     using mult_le_0_iff [where a="(l div c)" and b="c*x + Inum (x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"]  be by simp
@@ -1475,7 +1477,7 @@ next
     hence "(l*x + (l div c)* Inum (x # bs) e > 0) =
           ((c * (l div c)) * x + (l div c) * Inum (x # bs) e > 0)"
       by simp
-    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) > ((l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) > ((l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (c * x + Inum (x # bs) e > 0)"
     using zero_less_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"]  be  by simp
@@ -1494,7 +1496,7 @@ next
           ((c*(l div c))*x + (l div c)* Inum (x # bs) e \<ge> 0)"
       by simp
     also have "\<dots> = ((l div c)*(c*x + Inum (x # bs) e) \<ge> ((l div c)) * 0)" 
-      by (simp add: ring_eq_simps)
+      by (simp add: ring_simps)
     also have "\<dots> = (c*x + Inum (x # bs) e \<ge> 0)" using ldcp 
       zero_le_mult_iff [where a="l div c" and b="c*x + Inum (x # bs) e"] by simp
   finally show ?case using be numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"]  
@@ -1513,7 +1515,7 @@ next
     hence "(l * x + (l div c) * Inum (x # bs) e = 0) =
           ((c * (l div c)) * x + (l div c) * Inum (x # bs) e = 0)"
       by simp
-    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) = ((l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) = ((l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (c * x + Inum (x # bs) e = 0)"
     using mult_eq_0_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"]  be  by simp
@@ -1531,7 +1533,7 @@ next
     hence "(l * x + (l div c) * Inum (x # bs) e \<noteq> 0) =
           ((c * (l div c)) * x + (l div c) * Inum (x # bs) e \<noteq> 0)"
       by simp
-    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) \<noteq> ((l div c)) * 0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) \<noteq> ((l div c)) * 0)" by (simp add: ring_simps)
     also have "\<dots> = (c * x + Inum (x # bs) e \<noteq> 0)"
     using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
   finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"]  be  by simp
@@ -1547,7 +1549,7 @@ next
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(\<exists> (k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) = (\<exists> (k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"  by simp
-    also have "\<dots> = (\<exists> (k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (\<exists> (k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: ring_simps)
     also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e - j * k = 0)"
     using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e = j * k)" by simp
@@ -1564,7 +1566,7 @@ next
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(\<exists> (k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) = (\<exists> (k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"  by simp
-    also have "\<dots> = (\<exists> (k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: ring_eq_simps)
+    also have "\<dots> = (\<exists> (k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: ring_simps)
     also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e - j * k = 0)"
     using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e = j * k)" by simp
@@ -1613,7 +1615,7 @@ next
       hence "x + ?e \<ge> 1 \<and> x + ?e \<le> d"  by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. j = x + ?e" by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. x = (- ?e + j)" 
-	by (simp add: ring_eq_simps)
+	by (simp add: ring_simps)
       with nob have ?case by auto}
     ultimately show ?case by blast
 next
@@ -1632,7 +1634,7 @@ next
       from H p have "x + ?e \<ge> 0 \<and> x + ?e < d" by (simp add: c1)
       hence "x + ?e +1 \<ge> 1 \<and> x + ?e + 1 \<le> d"  by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. j = x + ?e + 1" by simp
-      hence "\<exists> (j::int) \<in> {1 .. d}. x= - ?e - 1 + j" by (simp add: ring_eq_simps)
+      hence "\<exists> (j::int) \<in> {1 .. d}. x= - ?e - 1 + j" by (simp add: ring_simps)
       with nob have ?case by simp }
     ultimately show ?case by blast
 next
@@ -1642,7 +1644,7 @@ next
     have vb: "?v \<in> set (\<beta> (Eq (CX c e)))" by simp
     from p have "x= - ?e" by (simp add: c1) with prems(11) show ?case using dp
       by simp (erule ballE[where x="1"],
-	simp_all add:ring_eq_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
+	simp_all add:ring_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
 next
   case (4 c e)hence p: "Ifm bbs (x #bs) (NEq (CX c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
     let ?e = "Inum (x # bs) e"

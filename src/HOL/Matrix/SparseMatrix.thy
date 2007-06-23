@@ -282,7 +282,7 @@ proof -
     apply (rule conjI)
     apply (intro strip)
     apply (frule_tac as=brr in sorted_spvec_cons1)
-    apply (simp add: ring_eq_simps sparse_row_matrix_cons)
+    apply (simp add: ring_simps sparse_row_matrix_cons)
     apply (simplesubst Rep_matrix_zero_imp_mult_zero) 
     apply (simp)
     apply (intro strip)
@@ -304,7 +304,7 @@ proof -
     
     apply (intro strip | rule conjI)+
     apply (frule_tac as=arr in sorted_spvec_cons1)
-    apply (simp add: ring_eq_simps)
+    apply (simp add: ring_simps)
     apply (subst Rep_matrix_zero_imp_mult_zero)
     apply (simp)
     apply (rule disjI2)
@@ -318,7 +318,7 @@ proof -
     apply (simp_all)
     apply (frule_tac as=arr in sorted_spvec_cons1)
     apply (frule_tac as=brr in sorted_spvec_cons1)
-    apply (simp add: sparse_row_matrix_cons ring_eq_simps sparse_row_vector_addmult_spvec)
+    apply (simp add: sparse_row_matrix_cons ring_simps sparse_row_vector_addmult_spvec)
     apply (rule_tac B1 = "sparse_row_matrix brr" in ssubst[OF Rep_matrix_zero_imp_mult_zero])
     apply (auto)
     apply (rule sorted_sparse_row_matrix_zero)
@@ -368,7 +368,7 @@ primrec
 lemma sparse_row_mult_spmat[rule_format]: 
   "sorted_spmat A \<longrightarrow> sorted_spvec B \<longrightarrow> sparse_row_matrix (mult_spmat A B) = (sparse_row_matrix A) * (sparse_row_matrix B)"
   apply (induct A)
-  apply (auto simp add: sparse_row_matrix_cons sparse_row_mult_spvec_spmat ring_eq_simps move_matrix_mult)
+  apply (auto simp add: sparse_row_matrix_cons sparse_row_mult_spvec_spmat ring_simps move_matrix_mult)
   done
 
 lemma sorted_spvec_mult_spmat[rule_format]:
@@ -1146,8 +1146,8 @@ lemma spm_mult_le_dual_prts:
   add_spmat (mult_spmat (nprt_spmat s2) (pprt_spmat r1), mult_spmat (nprt_spmat s1) (nprt_spmat r1)))))))"
   apply (simp add: Let_def)
   apply (insert prems)
-  apply (simp add: sparse_row_matrix_op_simps ring_eq_simps)  
-  apply (rule mult_le_dual_prts[where A=A, simplified Let_def ring_eq_simps])
+  apply (simp add: sparse_row_matrix_op_simps ring_simps)  
+  apply (rule mult_le_dual_prts[where A=A, simplified Let_def ring_simps])
   apply (auto)
   done
 

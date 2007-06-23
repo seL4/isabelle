@@ -103,7 +103,7 @@ lemma bigo_plus_self_subset [intro]:
   apply (auto simp add: bigo_alt_def set_plus)
   apply (rule_tac x = "c + ca" in exI)
   apply auto
-  apply (simp add: ring_distrib func_plus)
+  apply (simp add: ring_distribs func_plus)
   apply (rule order_trans)
   apply (rule abs_triangle_ineq)
   apply (rule add_mono)
@@ -134,7 +134,7 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
   apply (simp)
   apply (subgoal_tac "c * abs (f xa + g xa) <= c * (abs (f xa) + abs (g xa))")
   apply (erule order_trans)
-  apply (simp add: ring_distrib)
+  apply (simp add: ring_distribs)
   apply (rule mult_left_mono)
   apply assumption
   apply (simp add: order_less_le)
@@ -155,7 +155,7 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
   apply (simp)
   apply (subgoal_tac "c * abs (f xa + g xa) <= c * (abs (f xa) + abs (g xa))")
   apply (erule order_trans)
-  apply (simp add: ring_distrib)
+  apply (simp add: ring_distribs)
   apply (rule mult_left_mono)
   apply (simp add: order_less_le)
   apply (simp add: order_less_le)
@@ -192,7 +192,7 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply clarify
   apply (drule_tac x = "xa" in spec)+
   apply (subgoal_tac "0 <= f xa + g xa")
-  apply (simp add: ring_distrib)
+  apply (simp add: ring_distribs)
   apply (subgoal_tac "abs(a xa + b xa) <= abs(a xa) + abs(b xa)")
   apply (subgoal_tac "abs(a xa) + abs(b xa) <= 
       max c ca * f xa + max c ca * g xa")
@@ -349,7 +349,7 @@ lemma bigo_mult4 [intro]:"f : k +o O(h) ==> g * f : (g * k) +o O(g * h)"
   apply (drule set_plus_imp_minus)
   apply (rule set_minus_imp_plus)
   apply (drule bigo_mult3 [where g = g and j = g])
-  apply (auto simp add: ring_eq_simps mult_ac)
+  apply (auto simp add: ring_simps)
   done
 
 lemma bigo_mult5: "ALL x. f x ~= 0 ==>

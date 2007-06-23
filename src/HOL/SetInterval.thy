@@ -756,7 +756,7 @@ proof (induct n)
   show ?case by simp
 next
   case (Suc n)
-  then show ?case by (simp add: ring_eq_simps)
+  then show ?case by (simp add: ring_simps)
 qed
 
 theorem arith_series_general:

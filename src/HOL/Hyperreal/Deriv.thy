@@ -89,7 +89,7 @@ qed
 lemma DERIV_mult_lemma:
   fixes a b c d :: "'a::real_field"
   shows "(a * b - c * d) / h = a * ((b - d) / h) + ((a - c) / h) * d"
-by (simp add: diff_minus add_divide_distrib [symmetric] ring_distrib)
+by (simp add: diff_minus add_divide_distrib [symmetric] ring_distribs)
 
 lemma DERIV_mult':
   assumes f: "DERIV f x :> D"
@@ -147,7 +147,7 @@ by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff)
 lemma inverse_diff_inverse:
   "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
    \<Longrightarrow> inverse a - inverse b = - (inverse a * (a - b) * inverse b)"
-by (simp add: right_diff_distrib left_diff_distrib mult_assoc)
+by (simp add: ring_simps)
 
 lemma DERIV_inverse_lemma:
   "\<lbrakk>a \<noteq> 0; b \<noteq> (0::'a::real_normed_field)\<rbrakk>
@@ -198,7 +198,7 @@ apply (erule subst)
 apply (unfold divide_inverse)
 apply (erule DERIV_mult')
 apply (erule (1) DERIV_inverse')
-apply (simp add: left_diff_distrib nonzero_inverse_mult_distrib)
+apply (simp add: ring_distribs nonzero_inverse_mult_distrib)
 apply (simp add: mult_ac)
 done
 
@@ -211,7 +211,7 @@ case 0
   show ?case by (simp add: power_Suc f)
 case (Suc k)
   from DERIV_mult' [OF f Suc] show ?case
-    apply (simp only: of_nat_Suc left_distrib mult_1_left)
+    apply (simp only: of_nat_Suc ring_distribs mult_1_left)
     apply (simp only: power_Suc right_distrib mult_ac add_ac)
     done
 qed
@@ -1050,7 +1050,7 @@ lemma DERIV_const_ratio_const:
 apply (rule linorder_cases [of a b], auto)
 apply (drule_tac [!] f = f in MVT)
 apply (auto dest: DERIV_isCont DERIV_unique simp add: differentiable_def)
-apply (auto dest: DERIV_unique simp add: left_distrib diff_minus)
+apply (auto dest: DERIV_unique simp add: ring_distribs diff_minus)
 done
 
 lemma DERIV_const_ratio_const2:

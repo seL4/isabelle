@@ -137,13 +137,13 @@ proof
   show "i - j = i + - j"
     by (simp add: diff_int_def)
   show "(i * j) * k = i * (j * k)"
-    by (cases i, cases j, cases k) (simp add: mult ring_eq_simps)
+    by (cases i, cases j, cases k) (simp add: mult ring_simps)
   show "i * j = j * i"
-    by (cases i, cases j) (simp add: mult ring_eq_simps)
+    by (cases i, cases j) (simp add: mult ring_simps)
   show "1 * i = i"
     by (cases i) (simp add: One_int_def mult)
   show "(i + j) * k = i * k + j * k"
-    by (cases i, cases j, cases k) (simp add: add mult ring_eq_simps)
+    by (cases i, cases j, cases k) (simp add: add mult ring_simps)
   show "0 \<noteq> (1::int)"
     by (simp add: Zero_int_def One_int_def)
 qed
@@ -358,7 +358,7 @@ proof -
   also have "\<dots> = (\<exists>n. z - w = int n)"
     by (auto elim: zero_le_imp_eq_int)
   also have "\<dots> = (\<exists>n. z = w + int n)"
-    by (simp only: group_eq_simps)
+    by (simp only: group_simps)
   finally show ?thesis .
 qed
 

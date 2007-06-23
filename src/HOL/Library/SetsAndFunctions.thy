@@ -88,7 +88,7 @@ instance "fun" :: (type,comm_monoid_mult)comm_monoid_mult
 instance "fun" :: (type,comm_ring_1)comm_ring_1
   apply default
    apply (auto simp add: func_plus func_times func_minus func_diff ext
-     func_one func_zero ring_eq_simps)
+     func_one func_zero ring_simps)
   apply (drule fun_cong)
   apply simp
   done
@@ -328,21 +328,21 @@ lemma set_one_times [simp]: "(1::'a::comm_monoid_mult) *o C = C"
 
 lemma set_times_plus_distrib: "(a::'a::semiring) *o (b +o C)=
     (a * b) +o (a *o C)"
-  by (auto simp add: elt_set_plus_def elt_set_times_def ring_distrib)
+  by (auto simp add: elt_set_plus_def elt_set_times_def ring_distribs)
 
 lemma set_times_plus_distrib2: "(a::'a::semiring) *o (B + C) =
     (a *o B) + (a *o C)"
-  apply (auto simp add: set_plus elt_set_times_def ring_distrib)
+  apply (auto simp add: set_plus elt_set_times_def ring_distribs)
    apply blast
   apply (rule_tac x = "b + bb" in exI)
-  apply (auto simp add: ring_distrib)
+  apply (auto simp add: ring_distribs)
   done
 
 lemma set_times_plus_distrib3: "((a::'a::semiring) +o C) * D <=
     a *o D + C * D"
   apply (auto intro!: subsetI simp add:
     elt_set_plus_def elt_set_times_def set_times
-    set_plus ring_distrib)
+    set_plus ring_distribs)
   apply auto
   done
 
