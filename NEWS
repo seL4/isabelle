@@ -603,6 +603,9 @@ instead of "arbitrary"
   [x <- xs. P] to avoid an ambiguity caused by list comprehension syntax,
   and for uniformity. INCOMPATIBILITY
 
+* The lemma collections ring_eq_simps, group_eq_simps and ring_distrib
+  have been improved and renamed to ring_simps, group_simps and ring_distribs.
+
 * Library/Pretty_Int.thy: maps HOL numerals on target language integer literals
     when generating code.
 
