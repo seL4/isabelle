@@ -75,6 +75,7 @@ sig
   val rotate_tac: int -> int -> tactic
   val defer_tac: int -> tactic
   val filter_prems_tac: (term -> bool) -> int -> tactic
+  val eta_long_tac: int -> tactic
 end;
 
 signature TACTIC =
@@ -558,6 +559,10 @@ fun filter_prems_tac p =
             NONE => no_tac | SOME tac => tac n
        end)
   end;
+
+(*eta long beta normal form*)
+fun eta_long_tac i =
+  PRIMITIVE (Conv.fconv_rule (Conv.goals_conv (fn j => i = j) Thm.eta_long_conversion));
 
 end;
 
