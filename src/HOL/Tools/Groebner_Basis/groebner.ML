@@ -8,9 +8,9 @@ sig
   val ring_and_ideal_conv :
     {idom: thm list, ring: cterm list * thm list, vars: cterm list,
      semiring: Thm.cterm list * thm list} ->
-    (Thm.cterm -> Rat.rat) -> (Rat.rat -> Thm.cterm) ->
-    Conv.conv ->  Conv.conv ->
-    Conv.conv * (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list)
+    (cterm -> Rat.rat) -> (Rat.rat -> cterm) ->
+    conv ->  conv ->
+    conv * (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list)
     val ring_conv : Proof.context -> cterm -> thm
     val algebra_tac: thm list -> thm list -> Proof.context -> int -> tactic
 end
@@ -19,16 +19,6 @@ structure Groebner: GROEBNER =
 struct
 open Normalizer;
 open Misc;
-
-     (* FIXME :: Already present in Tools/Presburger/qelim.ML but is much more general!! *)
-fun cterm_frees ct =
- let fun h acc t =
-   case (term_of t) of
-    _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
-  | Abs(_,_,_) => Thm.dest_abs NONE t ||> h acc |> uncurry (remove (op aconvc))
-  | Free _ => insert (op aconvc) t acc
-  | _ => acc
- in h [] ct end;
 
 fun assocd x al d = case AList.lookup (op =) al x of SOME y => y | NONE => d;
 val rat_0 = Rat.zero;
@@ -680,7 +670,7 @@ fun ring tm =
  let
   fun mk_forall x p =
       mk_comb (Drule.cterm_rule (instantiate' [SOME (ctyp_of_term x)] []) @{cpat "All:: (?'a => bool) => _"}) (Thm.cabs x p)
-  val avs = cterm_frees tm
+  val avs = Thm.add_cterm_frees tm []
   val P' = fold mk_forall avs tm
   val th1 = initial_conv(mk_neg P')
   val (evs,bod) = strip_exists(concl th1) in
