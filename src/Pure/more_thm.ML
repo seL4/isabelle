@@ -10,6 +10,8 @@ infix aconvc;
 signature THM =
 sig
   include THM
+  val aconvc : cterm * cterm -> bool
+  val add_cterm_frees: cterm -> cterm list -> cterm list
   val mk_binop: cterm -> cterm -> cterm -> cterm
   val dest_binop: cterm -> cterm * cterm
   val dest_implies: cterm -> cterm * cterm
@@ -19,7 +21,6 @@ sig
   val lhs_of: thm -> cterm
   val rhs_of: thm -> cterm
   val thm_ord: thm * thm -> order
-  val aconvc : cterm * cterm -> bool
   val eq_thm: thm * thm -> bool
   val eq_thms: thm list * thm list -> bool
   val eq_thm_thy: thm * thm -> bool
@@ -51,6 +52,17 @@ structure Thm: THM =
 struct
 
 (** basic operations **)
+
+(* collecting cterms *)
+
+val op aconvc = op aconv o pairself Thm.term_of;
+
+fun add_cterm_frees ct =
+  let
+    val cert = Thm.cterm_of (Thm.theory_of_cterm ct);
+    val t = Thm.term_of ct;
+  in Term.fold_aterms (fn v as Free _ => insert (op aconvc) (cert v) | _ => I) t end;
+
 
 (* cterm constructors and destructors *)
 
@@ -101,8 +113,6 @@ fun thm_ord (th1, th2) =
 
 
 (* equality *)
-
-val op aconvc = op aconv o pairself Thm.term_of;
 
 fun eq_thm ths =
   Context.joinable (pairself Thm.theory_of_thm ths) andalso
