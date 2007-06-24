@@ -36,12 +36,7 @@ lemma aux1: assumes a: "0 <= x" and b: "x <= 1"
 proof (induct n)
   show "inverse (real (fact (0 + 2))) * x ^ (0 + 2) <= 
       x ^ 2 / 2 * (1 / 2) ^ 0"
-    apply (simp add: power2_eq_square)
-    apply (subgoal_tac "real (Suc (Suc 0)) = 2")
-    apply (erule ssubst)
-    apply simp
-    apply simp
-    done
+    by (simp add: real_of_nat_Suc power2_eq_square)
 next
   fix n
   assume c: "inverse (real (fact (n + 2))) * x ^ (n + 2)
@@ -147,12 +142,6 @@ proof -
     by auto
 qed
 
-lemma aux3: "(0::real) <= x ==> (1 + x + x^2)/(1 + x^2) <= 1 + x"
-  apply (subst pos_divide_le_eq)
-  apply (simp add: zero_compare_simps)
-  apply (simp add: ring_simps zero_compare_simps)
-done
-
 lemma aux4: "0 <= (x::real) ==> x <= 1 ==> exp (x - x^2) <= 1 + x" 
 proof -
   assume a: "0 <= x" and b: "x <= 1"
@@ -175,7 +164,7 @@ proof -
     apply auto
     done
   also from a have "... <= 1 + x"
-    by (rule aux3)
+    by(simp add:field_simps zero_compare_simps)
   finally show ?thesis .
 qed
 
@@ -245,18 +234,7 @@ proof -
       by (insert a, auto)
     finally show ?thesis .
   qed
-  also have " 1 / (1 - x) = 1 + x / (1 - x)"
-  proof -
-    have "1 / (1 - x) = (1 - x + x) / (1 - x)"
-      by auto
-    also have "... = (1 - x) / (1 - x) + x / (1 - x)"
-      by (rule add_divide_distrib)
-    also have "... = 1 + x / (1-x)"
-      apply (subst add_right_cancel)
-      apply (insert a, simp)
-      done
-    finally show ?thesis .
-  qed
+  also have " 1 / (1 - x) = 1 + x / (1 - x)" using a by(simp add:field_simps)
   finally show ?thesis .
 qed
 
@@ -280,13 +258,10 @@ proof -
   also have "- (x / (1 - x)) = -x / (1 - x)"
     by auto
   finally have d: "- x / (1 - x) <= ln (1 - x)" .
-  have e: "-x - 2 * x^2 <= - x / (1 - x)"
-    apply (rule mult_imp_le_div_pos)
-    apply (insert prems, force)
-    apply (auto simp add: ring_simps power2_eq_square)
-    apply(insert mult_right_le_one_le[of "x*x" "2*x"])
-    apply (simp)
-    done
+  have "0 < 1 - x" using prems by simp
+  hence e: "-x - 2 * x^2 <= - x / (1 - x)"
+    using mult_right_le_one_le[of "x*x" "2*x"] prems
+    by(simp add:field_simps power2_eq_square)
   from e d show "- x - 2 * x^2 <= ln (1 - x)"
     by (rule order_trans)
 qed
@@ -427,21 +402,15 @@ proof -
     done
   also have "y / x = (x + (y - x)) / x"
     by simp
-  also have "... = 1 + (y - x) / x"
-    apply (simp only: add_divide_distrib)
-    apply (simp add: prems)
-    apply (insert a, arith)
-    done
+  also have "... = 1 + (y - x) / x" using a prems by(simp add:field_simps)
   also have "x * ln(1 + (y - x) / x) <= x * ((y - x) / x)"
     apply (rule mult_left_mono)
     apply (rule ln_add_one_self_le_self)
     apply (rule divide_nonneg_pos)
     apply (insert prems a, simp_all) 
     done
-  also have "... = y - x"
-    by (insert a, simp)
-  also have "... = (y - x) * ln (exp 1)"
-    by simp
+  also have "... = y - x" using a by simp
+  also have "... = (y - x) * ln (exp 1)" by simp
   also have "... <= (y - x) * ln x"
     apply (rule mult_left_mono)
     apply (subst ln_le_cancel_iff)
@@ -454,18 +423,9 @@ proof -
     by (rule left_diff_distrib)
   finally have "x * ln y <= y * ln x"
     by arith
-  then have "ln y <= (y * ln x) / x"
-    apply (subst pos_le_divide_eq)
-    apply (rule a)
-    apply (simp add: mult_ac)
-    done
-  also have "... = y * (ln x / x)"
-    by simp
-  finally show ?thesis 
-    apply (subst pos_divide_le_eq)
-    apply (rule b)
-    apply (simp add: mult_ac)
-    done
+  then have "ln y <= (y * ln x) / x" using a by(simp add:field_simps)
+  also have "... = y * (ln x / x)"  by simp
+  finally show ?thesis using b by(simp add:field_simps)
 qed
 
 end

@@ -773,12 +773,13 @@ by (simp add: divide_inverse)
 lemma add_divide_distrib: "(a+b)/(c::'a::field) = a/c + b/c"
 by (simp add: divide_inverse ring_distribs) 
 
-
+(* what ordering?? this is a straight instance of mult_eq_0_iff
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
       of an ordering.*}
 lemma field_mult_eq_0_iff [simp]:
   "(a*b = (0::'a::division_ring)) = (a = 0 | b = 0)"
 by simp
+*)
 
 text{*Cancellation of equalities with a common factor*}
 lemma field_mult_cancel_right_lemma:
@@ -915,7 +916,7 @@ lemma nonzero_inverse_mult_distrib:
       shows "inverse(a*b) = inverse(b) * inverse(a::'a::division_ring)"
   proof -
   have "inverse(a*b) * (a * b) * inverse(b) = inverse(b)" 
-    by (simp add: field_mult_eq_0_iff anz bnz)
+    by (simp add: anz bnz)
   hence "inverse(a*b) * a = inverse(b)" 
     by (simp add: mult_assoc bnz)
   hence "inverse(a*b) * a * inverse(a) = inverse(b) * inverse(a)" 
@@ -969,8 +970,7 @@ lemma nonzero_mult_divide_mult_cancel_left[simp]:
 assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" shows "(c*a)/(c*b) = a/(b::'a::field)"
 proof -
   have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
-    by (simp add: field_mult_eq_0_iff divide_inverse 
-                  nonzero_inverse_mult_distrib)
+    by (simp add: divide_inverse nonzero_inverse_mult_distrib)
   also have "... =  a * inverse b * (inverse c * c)"
     by (simp only: mult_ac)
   also have "... =  a * inverse b"
@@ -1003,6 +1003,8 @@ by (simp add: divide_inverse mult_assoc)
 
 lemma times_divide_eq_left: "(b/c) * a = (b*a) / (c::'a::field)"
 by (simp add: divide_inverse mult_ac)
+
+lemmas times_divide_eq = times_divide_eq_right times_divide_eq_left
 
 lemma divide_divide_eq_right [simp]:
   "a / (b/c) = (a*c) / (b::'a::{field,division_by_zero})"
@@ -1098,53 +1100,120 @@ done
 lemma diff_divide_distrib: "(a-b)/(c::'a::field) = a/c - b/c"
 by (simp add: diff_minus add_divide_distrib) 
 
+lemma add_divide_eq_iff:
+  "(z::'a::field) \<noteq> 0 \<Longrightarrow> x + y/z = (z*x + y)/z"
+by(simp add:add_divide_distrib nonzero_mult_divide_cancel_left)
+
+lemma divide_add_eq_iff:
+  "(z::'a::field) \<noteq> 0 \<Longrightarrow> x/z + y = (x + z*y)/z"
+by(simp add:add_divide_distrib nonzero_mult_divide_cancel_left)
+
+lemma diff_divide_eq_iff:
+  "(z::'a::field) \<noteq> 0 \<Longrightarrow> x - y/z = (z*x - y)/z"
+by(simp add:diff_divide_distrib nonzero_mult_divide_cancel_left)
+
+lemma divide_diff_eq_iff:
+  "(z::'a::field) \<noteq> 0 \<Longrightarrow> x/z - y = (x - z*y)/z"
+by(simp add:diff_divide_distrib nonzero_mult_divide_cancel_left)
+
+lemma nonzero_eq_divide_eq: "c\<noteq>0 ==> ((a::'a::field) = b/c) = (a*c = b)"
+proof -
+  assume [simp]: "c\<noteq>0"
+  have "(a = b/c) = (a*c = (b/c)*c)"
+    by (simp add: field_mult_cancel_right)
+  also have "... = (a*c = b)"
+    by (simp add: divide_inverse mult_assoc)
+  finally show ?thesis .
+qed
+
+lemma nonzero_divide_eq_eq: "c\<noteq>0 ==> (b/c = (a::'a::field)) = (b = a*c)"
+proof -
+  assume [simp]: "c\<noteq>0"
+  have "(b/c = a) = ((b/c)*c = a*c)"
+    by (simp add: field_mult_cancel_right)
+  also have "... = (b = a*c)"
+    by (simp add: divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma eq_divide_eq:
+  "((a::'a::{field,division_by_zero}) = b/c) = (if c\<noteq>0 then a*c = b else a=0)"
+by (simp add: nonzero_eq_divide_eq) 
+
+lemma divide_eq_eq:
+  "(b/c = (a::'a::{field,division_by_zero})) = (if c\<noteq>0 then b = a*c else a=0)"
+by (force simp add: nonzero_divide_eq_eq) 
+
+lemma divide_eq_imp: "(c::'a::{division_by_zero,field}) ~= 0 ==>
+    b = a * c ==> b / c = a"
+  by (subst divide_eq_eq, simp)
+
+lemma eq_divide_imp: "(c::'a::{division_by_zero,field}) ~= 0 ==>
+    a * c = b ==> a = b / c"
+  by (subst eq_divide_eq, simp)
+
+
+lemmas field_eq_simps = ring_simps
+  (* pull / out*)
+  add_divide_eq_iff divide_add_eq_iff
+  diff_divide_eq_iff divide_diff_eq_iff
+  (* multiply eqn *)
+  nonzero_eq_divide_eq nonzero_divide_eq_eq
+(* is added later:
+  times_divide_eq_left times_divide_eq_right
+*)
+
+text{*An example:*}
+lemma fixes a b c d e f :: "'a::field"
+shows "\<lbrakk>a\<noteq>b; c\<noteq>d; e\<noteq>f \<rbrakk> \<Longrightarrow> ((a-b)*(c-d)*(e-f))/((c-d)*(e-f)*(a-b)) = 1"
+apply(subgoal_tac "(c-d)*(e-f)*(a-b) \<noteq> 0")
+ apply(simp add:field_eq_simps)
+apply(simp)
+done
+
+
 lemma diff_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
     x / y - w / z = (x * z - w * y) / (y * z)"
-apply (subst diff_def)+
-apply (subst minus_divide_left)
-apply (subst add_frac_eq)
-apply simp_all
-done
+by (simp add:field_eq_simps times_divide_eq)
+
+lemma frac_eq_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
+    (x / y = w / z) = (x * z = w * y)"
+by (simp add:field_eq_simps times_divide_eq)
 
 
 subsection {* Ordered Fields *}
 
 lemma positive_imp_inverse_positive: 
-      assumes a_gt_0: "0 < a"  shows "0 < inverse (a::'a::ordered_field)"
-  proof -
+assumes a_gt_0: "0 < a"  shows "0 < inverse (a::'a::ordered_field)"
+proof -
   have "0 < a * inverse a" 
     by (simp add: a_gt_0 [THEN order_less_imp_not_eq2] zero_less_one)
   thus "0 < inverse a" 
     by (simp add: a_gt_0 [THEN order_less_not_sym] zero_less_mult_iff)
-  qed
+qed
 
 lemma negative_imp_inverse_negative:
-     "a < 0 ==> inverse a < (0::'a::ordered_field)"
-  by (insert positive_imp_inverse_positive [of "-a"], 
-      simp add: nonzero_inverse_minus_eq order_less_imp_not_eq) 
+  "a < 0 ==> inverse a < (0::'a::ordered_field)"
+by (insert positive_imp_inverse_positive [of "-a"], 
+    simp add: nonzero_inverse_minus_eq order_less_imp_not_eq)
 
 lemma inverse_le_imp_le:
-      assumes invle: "inverse a \<le> inverse b"
-	  and apos:  "0 < a"
-	 shows "b \<le> (a::'a::ordered_field)"
-  proof (rule classical)
+assumes invle: "inverse a \<le> inverse b" and apos:  "0 < a"
+shows "b \<le> (a::'a::ordered_field)"
+proof (rule classical)
   assume "~ b \<le> a"
-  hence "a < b"
-    by (simp add: linorder_not_le)
-  hence bpos: "0 < b"
-    by (blast intro: apos order_less_trans)
+  hence "a < b"  by (simp add: linorder_not_le)
+  hence bpos: "0 < b"  by (blast intro: apos order_less_trans)
   hence "a * inverse a \<le> a * inverse b"
     by (simp add: apos invle order_less_imp_le mult_left_mono)
   hence "(a * inverse a) * b \<le> (a * inverse b) * b"
     by (simp add: bpos order_less_imp_le mult_right_mono)
-  thus "b \<le> a"
-    by (simp add: mult_assoc apos bpos order_less_imp_not_eq2)
-  qed
+  thus "b \<le> a"  by (simp add: mult_assoc apos bpos order_less_imp_not_eq2)
+qed
 
 lemma inverse_positive_imp_positive:
-  assumes inv_gt_0: "0 < inverse a"
-    and nz: "a \<noteq> 0"
-  shows "0 < (a::'a::ordered_field)"
+assumes inv_gt_0: "0 < inverse a" and nz: "a \<noteq> 0"
+shows "0 < (a::'a::ordered_field)"
 proof -
   have "0 < inverse (inverse a)"
     using inv_gt_0 by (rule positive_imp_inverse_positive)
@@ -1153,34 +1222,32 @@ proof -
 qed
 
 lemma inverse_positive_iff_positive [simp]:
-      "(0 < inverse a) = (0 < (a::'a::{ordered_field,division_by_zero}))"
+  "(0 < inverse a) = (0 < (a::'a::{ordered_field,division_by_zero}))"
 apply (cases "a = 0", simp)
 apply (blast intro: inverse_positive_imp_positive positive_imp_inverse_positive)
 done
 
 lemma inverse_negative_imp_negative:
-  assumes inv_less_0: "inverse a < 0"
-    and nz:  "a \<noteq> 0"
-  shows "a < (0::'a::ordered_field)"
+assumes inv_less_0: "inverse a < 0" and nz:  "a \<noteq> 0"
+shows "a < (0::'a::ordered_field)"
 proof -
   have "inverse (inverse a) < 0"
     using inv_less_0 by (rule negative_imp_inverse_negative)
-  thus "a < 0"
-    using nz by (simp add: nonzero_inverse_inverse_eq)
+  thus "a < 0" using nz by (simp add: nonzero_inverse_inverse_eq)
 qed
 
 lemma inverse_negative_iff_negative [simp]:
-      "(inverse a < 0) = (a < (0::'a::{ordered_field,division_by_zero}))"
+  "(inverse a < 0) = (a < (0::'a::{ordered_field,division_by_zero}))"
 apply (cases "a = 0", simp)
 apply (blast intro: inverse_negative_imp_negative negative_imp_inverse_negative)
 done
 
 lemma inverse_nonnegative_iff_nonnegative [simp]:
-      "(0 \<le> inverse a) = (0 \<le> (a::'a::{ordered_field,division_by_zero}))"
+  "(0 \<le> inverse a) = (0 \<le> (a::'a::{ordered_field,division_by_zero}))"
 by (simp add: linorder_not_less [symmetric])
 
 lemma inverse_nonpositive_iff_nonpositive [simp]:
-      "(inverse a \<le> 0) = (a \<le> (0::'a::{ordered_field,division_by_zero}))"
+  "(inverse a \<le> 0) = (a \<le> (0::'a::{ordered_field,division_by_zero}))"
 by (simp add: linorder_not_less [symmetric])
 
 lemma ordered_field_no_lb: "\<forall> x. \<exists>y. y < (x::'a::ordered_field)"
@@ -1204,10 +1271,9 @@ qed
 subsection{*Anti-Monotonicity of @{term inverse}*}
 
 lemma less_imp_inverse_less:
-      assumes less: "a < b"
-	  and apos:  "0 < a"
-	shows "inverse b < inverse (a::'a::ordered_field)"
-  proof (rule ccontr)
+assumes less: "a < b" and apos:  "0 < a"
+shows "inverse b < inverse (a::'a::ordered_field)"
+proof (rule ccontr)
   assume "~ inverse b < inverse a"
   hence "inverse a \<le> inverse b"
     by (simp add: linorder_not_less)
@@ -1215,81 +1281,78 @@ lemma less_imp_inverse_less:
     by (simp add: linorder_not_less inverse_le_imp_le [OF _ apos])
   thus False
     by (rule notE [OF _ less])
-  qed
+qed
 
 lemma inverse_less_imp_less:
-   "[|inverse a < inverse b; 0 < a|] ==> b < (a::'a::ordered_field)"
+  "[|inverse a < inverse b; 0 < a|] ==> b < (a::'a::ordered_field)"
 apply (simp add: order_less_le [of "inverse a"] order_less_le [of "b"])
 apply (force dest!: inverse_le_imp_le nonzero_inverse_eq_imp_eq) 
 done
 
 text{*Both premises are essential. Consider -1 and 1.*}
 lemma inverse_less_iff_less [simp]:
-     "[|0 < a; 0 < b|] 
-      ==> (inverse a < inverse b) = (b < (a::'a::ordered_field))"
+  "[|0 < a; 0 < b|] ==> (inverse a < inverse b) = (b < (a::'a::ordered_field))"
 by (blast intro: less_imp_inverse_less dest: inverse_less_imp_less) 
 
 lemma le_imp_inverse_le:
-   "[|a \<le> b; 0 < a|] ==> inverse b \<le> inverse (a::'a::ordered_field)"
-  by (force simp add: order_le_less less_imp_inverse_less)
+  "[|a \<le> b; 0 < a|] ==> inverse b \<le> inverse (a::'a::ordered_field)"
+by (force simp add: order_le_less less_imp_inverse_less)
 
 lemma inverse_le_iff_le [simp]:
-     "[|0 < a; 0 < b|] 
-      ==> (inverse a \<le> inverse b) = (b \<le> (a::'a::ordered_field))"
+ "[|0 < a; 0 < b|] ==> (inverse a \<le> inverse b) = (b \<le> (a::'a::ordered_field))"
 by (blast intro: le_imp_inverse_le dest: inverse_le_imp_le) 
 
 
 text{*These results refer to both operands being negative.  The opposite-sign
 case is trivial, since inverse preserves signs.*}
 lemma inverse_le_imp_le_neg:
-   "[|inverse a \<le> inverse b; b < 0|] ==> b \<le> (a::'a::ordered_field)"
-  apply (rule classical) 
-  apply (subgoal_tac "a < 0") 
-   prefer 2 apply (force simp add: linorder_not_le intro: order_less_trans) 
-  apply (insert inverse_le_imp_le [of "-b" "-a"])
-  apply (simp add: order_less_imp_not_eq nonzero_inverse_minus_eq) 
-  done
+  "[|inverse a \<le> inverse b; b < 0|] ==> b \<le> (a::'a::ordered_field)"
+apply (rule classical) 
+apply (subgoal_tac "a < 0") 
+ prefer 2 apply (force simp add: linorder_not_le intro: order_less_trans) 
+apply (insert inverse_le_imp_le [of "-b" "-a"])
+apply (simp add: order_less_imp_not_eq nonzero_inverse_minus_eq) 
+done
 
 lemma less_imp_inverse_less_neg:
    "[|a < b; b < 0|] ==> inverse b < inverse (a::'a::ordered_field)"
-  apply (subgoal_tac "a < 0") 
-   prefer 2 apply (blast intro: order_less_trans) 
-  apply (insert less_imp_inverse_less [of "-b" "-a"])
-  apply (simp add: order_less_imp_not_eq nonzero_inverse_minus_eq) 
-  done
+apply (subgoal_tac "a < 0") 
+ prefer 2 apply (blast intro: order_less_trans) 
+apply (insert less_imp_inverse_less [of "-b" "-a"])
+apply (simp add: order_less_imp_not_eq nonzero_inverse_minus_eq) 
+done
 
 lemma inverse_less_imp_less_neg:
    "[|inverse a < inverse b; b < 0|] ==> b < (a::'a::ordered_field)"
-  apply (rule classical) 
-  apply (subgoal_tac "a < 0") 
-   prefer 2
-   apply (force simp add: linorder_not_less intro: order_le_less_trans) 
-  apply (insert inverse_less_imp_less [of "-b" "-a"])
-  apply (simp add: order_less_imp_not_eq nonzero_inverse_minus_eq) 
-  done
+apply (rule classical) 
+apply (subgoal_tac "a < 0") 
+ prefer 2
+ apply (force simp add: linorder_not_less intro: order_le_less_trans) 
+apply (insert inverse_less_imp_less [of "-b" "-a"])
+apply (simp add: order_less_imp_not_eq nonzero_inverse_minus_eq) 
+done
 
 lemma inverse_less_iff_less_neg [simp]:
-     "[|a < 0; b < 0|] 
-      ==> (inverse a < inverse b) = (b < (a::'a::ordered_field))"
-  apply (insert inverse_less_iff_less [of "-b" "-a"])
-  apply (simp del: inverse_less_iff_less 
-	      add: order_less_imp_not_eq nonzero_inverse_minus_eq) 
-  done
+  "[|a < 0; b < 0|] ==> (inverse a < inverse b) = (b < (a::'a::ordered_field))"
+apply (insert inverse_less_iff_less [of "-b" "-a"])
+apply (simp del: inverse_less_iff_less 
+            add: order_less_imp_not_eq nonzero_inverse_minus_eq)
+done
 
 lemma le_imp_inverse_le_neg:
-   "[|a \<le> b; b < 0|] ==> inverse b \<le> inverse (a::'a::ordered_field)"
-  by (force simp add: order_le_less less_imp_inverse_less_neg)
+  "[|a \<le> b; b < 0|] ==> inverse b \<le> inverse (a::'a::ordered_field)"
+by (force simp add: order_le_less less_imp_inverse_less_neg)
 
 lemma inverse_le_iff_le_neg [simp]:
-     "[|a < 0; b < 0|] 
-      ==> (inverse a \<le> inverse b) = (b \<le> (a::'a::ordered_field))"
+ "[|a < 0; b < 0|] ==> (inverse a \<le> inverse b) = (b \<le> (a::'a::ordered_field))"
 by (blast intro: le_imp_inverse_le_neg dest: inverse_le_imp_le_neg) 
 
 
 subsection{*Inverses and the Number One*}
 
 lemma one_less_inverse_iff:
-    "(1 < inverse x) = (0 < x & x < (1::'a::{ordered_field,division_by_zero}))"proof cases
+  "(1 < inverse x) = (0 < x & x < (1::'a::{ordered_field,division_by_zero}))"
+proof cases
   assume "0 < x"
     with inverse_less_iff_less [OF zero_less_one, of x]
     show ?thesis by simp
@@ -1306,20 +1369,20 @@ next
 qed
 
 lemma inverse_eq_1_iff [simp]:
-    "(inverse x = 1) = (x = (1::'a::{field,division_by_zero}))"
+  "(inverse x = 1) = (x = (1::'a::{field,division_by_zero}))"
 by (insert inverse_eq_iff_eq [of x 1], simp) 
 
 lemma one_le_inverse_iff:
-   "(1 \<le> inverse x) = (0 < x & x \<le> (1::'a::{ordered_field,division_by_zero}))"
+  "(1 \<le> inverse x) = (0 < x & x \<le> (1::'a::{ordered_field,division_by_zero}))"
 by (force simp add: order_le_less one_less_inverse_iff zero_less_one 
                     eq_commute [of 1]) 
 
 lemma inverse_less_1_iff:
-   "(inverse x < 1) = (x \<le> 0 | 1 < (x::'a::{ordered_field,division_by_zero}))"
+  "(inverse x < 1) = (x \<le> 0 | 1 < (x::'a::{ordered_field,division_by_zero}))"
 by (simp add: linorder_not_le [symmetric] one_le_inverse_iff) 
 
 lemma inverse_le_1_iff:
-   "(inverse x \<le> 1) = (x \<le> 0 | 1 \<le> (x::'a::{ordered_field,division_by_zero}))"
+  "(inverse x \<le> 1) = (x \<le> 0 | 1 \<le> (x::'a::{ordered_field,division_by_zero}))"
 by (simp add: linorder_not_less [symmetric] one_less_inverse_iff) 
 
 
@@ -1445,49 +1508,41 @@ apply (cases "c=0", simp)
 apply (force simp add: pos_divide_less_eq neg_divide_less_eq linorder_neq_iff) 
 done
 
-lemma nonzero_eq_divide_eq: "c\<noteq>0 ==> ((a::'a::field) = b/c) = (a*c = b)"
-proof -
-  assume [simp]: "c\<noteq>0"
-  have "(a = b/c) = (a*c = (b/c)*c)"
-    by (simp add: field_mult_cancel_right)
-  also have "... = (a*c = b)"
-    by (simp add: divide_inverse mult_assoc) 
-  finally show ?thesis .
-qed
 
-lemma eq_divide_eq:
-  "((a::'a::{field,division_by_zero}) = b/c) = (if c\<noteq>0 then a*c = b else a=0)"
-by (simp add: nonzero_eq_divide_eq) 
+subsection{*Field simplification*}
 
-lemma nonzero_divide_eq_eq: "c\<noteq>0 ==> (b/c = (a::'a::field)) = (b = a*c)"
-proof -
-  assume [simp]: "c\<noteq>0"
-  have "(b/c = a) = ((b/c)*c = a*c)"
-    by (simp add: field_mult_cancel_right)
-  also have "... = (b = a*c)"
-    by (simp add: divide_inverse mult_assoc) 
-  finally show ?thesis .
-qed
+text{* Lemmas @{text field_simps} multiply with denominators in
+in(equations) if they can be proved to be non-zero (for equations) or
+positive/negative (for inequations). *}
 
-lemma divide_eq_eq:
-  "(b/c = (a::'a::{field,division_by_zero})) = (if c\<noteq>0 then b = a*c else a=0)"
-by (force simp add: nonzero_divide_eq_eq) 
+lemmas field_simps = field_eq_simps
+  (* multiply ineqn *)
+  pos_divide_less_eq neg_divide_less_eq
+  pos_less_divide_eq neg_less_divide_eq
+  pos_divide_le_eq neg_divide_le_eq
+  pos_le_divide_eq neg_le_divide_eq
 
-lemma divide_eq_imp: "(c::'a::{division_by_zero,field}) ~= 0 ==>
-    b = a * c ==> b / c = a"
-  by (subst divide_eq_eq, simp)
+text{* Lemmas @{text sign_simps} is a first attempt to automate proofs
+of positivity/negativity needed for field_simps. Have not added @{text
+sign_simps} to @{text field_simps} because the former can lead to case
+explosions. *}
 
-lemma eq_divide_imp: "(c::'a::{division_by_zero,field}) ~= 0 ==>
-    a * c = b ==> a = b / c"
-  by (subst eq_divide_eq, simp)
+lemmas sign_simps = group_simps
+  zero_less_mult_iff  mult_less_0_iff
 
-lemma frac_eq_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
-    (x / y = w / z) = (x * z = w * y)"
-  apply (subst nonzero_eq_divide_eq)
-  apply assumption
-  apply (subst times_divide_eq_left)
-  apply (erule nonzero_divide_eq_eq) 
+(* Only works once linear arithmetic is installed:
+text{*An example:*}
+lemma fixes a b c d e f :: "'a::ordered_field"
+shows "\<lbrakk>a>b; c<d; e<f; 0 < u \<rbrakk> \<Longrightarrow>
+ ((a-b)*(c-d)*(e-f))/((c-d)*(e-f)*(a-b)) <
+ ((e-f)*(a-b)*(c-d))/((e-f)*(a-b)*(c-d)) + u"
+apply(subgoal_tac "(c-d)*(e-f)*(a-b) > 0")
+ prefer 2 apply(simp add:sign_simps)
+apply(subgoal_tac "(c-d)*(e-f)*(a-b)*u > 0")
+ prefer 2 apply(simp add:sign_simps)
+apply(simp add:field_simps)
 done
+*)
 
 
 subsection{*Division and Signs*}
@@ -1513,74 +1568,54 @@ by (simp add: divide_inverse mult_le_0_iff)
 
 lemma divide_eq_0_iff [simp]:
      "(a/b = 0) = (a=0 | b=(0::'a::{field,division_by_zero}))"
-by (simp add: divide_inverse field_mult_eq_0_iff)
+by (simp add: divide_inverse)
 
-lemma divide_pos_pos: "0 < (x::'a::ordered_field) ==> 
-    0 < y ==> 0 < x / y"
-  apply (subst pos_less_divide_eq)
-  apply assumption
-  apply simp
-done
+lemma divide_pos_pos:
+  "0 < (x::'a::ordered_field) ==> 0 < y ==> 0 < x / y"
+by(simp add:field_simps)
 
-lemma divide_nonneg_pos: "0 <= (x::'a::ordered_field) ==> 0 < y ==> 
-    0 <= x / y"
-  apply (subst pos_le_divide_eq)
-  apply assumption
-  apply simp
-done
 
-lemma divide_neg_pos: "(x::'a::ordered_field) < 0 ==> 0 < y ==> x / y < 0"
-  apply (subst pos_divide_less_eq)
-  apply assumption
-  apply simp
-done
+lemma divide_nonneg_pos:
+  "0 <= (x::'a::ordered_field) ==> 0 < y ==> 0 <= x / y"
+by(simp add:field_simps)
 
-lemma divide_nonpos_pos: "(x::'a::ordered_field) <= 0 ==> 
-    0 < y ==> x / y <= 0"
-  apply (subst pos_divide_le_eq)
-  apply assumption
-  apply simp
-done
+lemma divide_neg_pos:
+  "(x::'a::ordered_field) < 0 ==> 0 < y ==> x / y < 0"
+by(simp add:field_simps)
 
-lemma divide_pos_neg: "0 < (x::'a::ordered_field) ==> y < 0 ==> x / y < 0"
-  apply (subst neg_divide_less_eq)
-  apply assumption
-  apply simp
-done
+lemma divide_nonpos_pos:
+  "(x::'a::ordered_field) <= 0 ==> 0 < y ==> x / y <= 0"
+by(simp add:field_simps)
 
-lemma divide_nonneg_neg: "0 <= (x::'a::ordered_field) ==> 
-    y < 0 ==> x / y <= 0"
-  apply (subst neg_divide_le_eq)
-  apply assumption
-  apply simp
-done
+lemma divide_pos_neg:
+  "0 < (x::'a::ordered_field) ==> y < 0 ==> x / y < 0"
+by(simp add:field_simps)
 
-lemma divide_neg_neg: "(x::'a::ordered_field) < 0 ==> y < 0 ==> 0 < x / y"
-  apply (subst neg_less_divide_eq)
-  apply assumption
-  apply simp
-done
+lemma divide_nonneg_neg:
+  "0 <= (x::'a::ordered_field) ==> y < 0 ==> x / y <= 0" 
+by(simp add:field_simps)
 
-lemma divide_nonpos_neg: "(x::'a::ordered_field) <= 0 ==> y < 0 ==> 
-    0 <= x / y"
-  apply (subst neg_le_divide_eq)
-  apply assumption
-  apply simp
-done
+lemma divide_neg_neg:
+  "(x::'a::ordered_field) < 0 ==> y < 0 ==> 0 < x / y"
+by(simp add:field_simps)
+
+lemma divide_nonpos_neg:
+  "(x::'a::ordered_field) <= 0 ==> y < 0 ==> 0 <= x / y"
+by(simp add:field_simps)
 
 
 subsection{*Cancellation Laws for Division*}
 
 lemma divide_cancel_right [simp]:
      "(a/c = b/c) = (c = 0 | a = (b::'a::{field,division_by_zero}))"
-apply (cases "c=0", simp) 
-apply (simp add: divide_inverse field_mult_cancel_right) 
+apply (cases "c=0", simp)
+apply (simp add: divide_inverse field_mult_cancel_right)
 done
 
 lemma divide_cancel_left [simp]:
      "(c/a = c/b) = (c = 0 | a = (b::'a::{field,division_by_zero}))" 
-apply (cases "c=0", simp) 
-apply (simp add: divide_inverse field_mult_cancel_left) 
+apply (cases "c=0", simp)
+apply (simp add: divide_inverse field_mult_cancel_left)
 done
 
 
@@ -1589,25 +1624,25 @@ subsection {* Division and the Number One *}
 text{*Simplify expressions equated with 1*}
 lemma divide_eq_1_iff [simp]:
      "(a/b = 1) = (b \<noteq> 0 & a = (b::'a::{field,division_by_zero}))"
-apply (cases "b=0", simp) 
-apply (simp add: right_inverse_eq) 
+apply (cases "b=0", simp)
+apply (simp add: right_inverse_eq)
 done
 
 lemma one_eq_divide_iff [simp]:
      "(1 = a/b) = (b \<noteq> 0 & a = (b::'a::{field,division_by_zero}))"
-by (simp add: eq_commute [of 1])  
+by (simp add: eq_commute [of 1])
 
 lemma zero_eq_1_divide_iff [simp]:
      "((0::'a::{ordered_field,division_by_zero}) = 1/a) = (a = 0)"
-apply (cases "a=0", simp) 
-apply (auto simp add: nonzero_eq_divide_eq) 
+apply (cases "a=0", simp)
+apply (auto simp add: nonzero_eq_divide_eq)
 done
 
 lemma one_divide_eq_0_iff [simp]:
      "(1/a = (0::'a::{ordered_field,division_by_zero})) = (a = 0)"
-apply (cases "a=0", simp) 
-apply (insert zero_neq_one [THEN not_sym]) 
-apply (auto simp add: nonzero_divide_eq_eq) 
+apply (cases "a=0", simp)
+apply (insert zero_neq_one [THEN not_sym])
+apply (auto simp add: nonzero_divide_eq_eq)
 done
 
 text{*Simplify expressions such as @{text "0 < 1/x"} to @{text "0 < x"}*}
@@ -1627,40 +1662,33 @@ subsection {* Ordering Rules for Division *}
 lemma divide_strict_right_mono:
      "[|a < b; 0 < c|] ==> a / c < b / (c::'a::ordered_field)"
 by (simp add: order_less_imp_not_eq2 divide_inverse mult_strict_right_mono 
-              positive_imp_inverse_positive) 
+              positive_imp_inverse_positive)
 
 lemma divide_right_mono:
      "[|a \<le> b; 0 \<le> c|] ==> a/c \<le> b/(c::'a::{ordered_field,division_by_zero})"
-  by (force simp add: divide_strict_right_mono order_le_less) 
+by (force simp add: divide_strict_right_mono order_le_less)
 
 lemma divide_right_mono_neg: "(a::'a::{division_by_zero,ordered_field}) <= b 
     ==> c <= 0 ==> b / c <= a / c"
-  apply (drule divide_right_mono [of _ _ "- c"])
-  apply auto
+apply (drule divide_right_mono [of _ _ "- c"])
+apply auto
 done
 
 lemma divide_strict_right_mono_neg:
      "[|b < a; c < 0|] ==> a / c < b / (c::'a::ordered_field)"
-apply (drule divide_strict_right_mono [of _ _ "-c"], simp) 
-apply (simp add: order_less_imp_not_eq nonzero_minus_divide_right [symmetric]) 
+apply (drule divide_strict_right_mono [of _ _ "-c"], simp)
+apply (simp add: order_less_imp_not_eq nonzero_minus_divide_right [symmetric])
 done
 
 text{*The last premise ensures that @{term a} and @{term b} 
       have the same sign*}
 lemma divide_strict_left_mono:
-       "[|b < a; 0 < c; 0 < a*b|] ==> c / a < c / (b::'a::ordered_field)"
-by (force simp add: zero_less_mult_iff divide_inverse mult_strict_left_mono 
-      order_less_imp_not_eq order_less_imp_not_eq2  
-      less_imp_inverse_less less_imp_inverse_less_neg) 
+  "[|b < a; 0 < c; 0 < a*b|] ==> c / a < c / (b::'a::ordered_field)"
+by(auto simp: field_simps times_divide_eq zero_less_mult_iff mult_strict_right_mono)
 
 lemma divide_left_mono:
-     "[|b \<le> a; 0 \<le> c; 0 < a*b|] ==> c / a \<le> c / (b::'a::ordered_field)"
-  apply (subgoal_tac "a \<noteq> 0 & b \<noteq> 0") 
-   prefer 2 
-   apply (force simp add: zero_less_mult_iff order_less_imp_not_eq) 
-  apply (cases "c=0", simp add: divide_inverse)
-  apply (force simp add: divide_strict_left_mono order_le_less) 
-  done
+  "[|b \<le> a; 0 \<le> c; 0 < a*b|] ==> c / a \<le> c / (b::'a::ordered_field)"
+by(auto simp: field_simps times_divide_eq zero_less_mult_iff mult_right_mono)
 
 lemma divide_left_mono_neg: "(a::'a::{division_by_zero,ordered_field}) <= b 
     ==> c <= 0 ==> 0 < a * b ==> c / a <= c / b"
@@ -1669,13 +1697,9 @@ lemma divide_left_mono_neg: "(a::'a::{division_by_zero,ordered_field}) <= b
 done
 
 lemma divide_strict_left_mono_neg:
-     "[|a < b; c < 0; 0 < a*b|] ==> c / a < c / (b::'a::ordered_field)"
-  apply (subgoal_tac "a \<noteq> 0 & b \<noteq> 0") 
-   prefer 2 
-   apply (force simp add: zero_less_mult_iff order_less_imp_not_eq) 
-  apply (drule divide_strict_left_mono [of _ _ "-c"]) 
-   apply (simp_all add: mult_commute nonzero_minus_divide_left [symmetric]) 
-  done
+  "[|a < b; c < 0; 0 < a*b|] ==> c / a < c / (b::'a::ordered_field)"
+by(auto simp: field_simps times_divide_eq zero_less_mult_iff mult_strict_right_mono_neg)
+
 
 text{*Simplify quotients that are compared with the value 1.*}
 
@@ -1768,16 +1792,16 @@ lemma mult_imp_div_pos_le: "0 < (y::'a::ordered_field) ==> x <= z * y ==>
   by (subst pos_divide_le_eq, assumption+);
 
 lemma mult_imp_le_div_pos: "0 < (y::'a::ordered_field) ==> z * y <= x ==>
-    z <= x / y";
-  by (subst pos_le_divide_eq, assumption+)
+    z <= x / y"
+by(simp add:field_simps)
 
 lemma mult_imp_div_pos_less: "0 < (y::'a::ordered_field) ==> x < z * y ==>
     x / y < z"
-  by (subst pos_divide_less_eq, assumption+)
+by(simp add:field_simps)
 
 lemma mult_imp_less_div_pos: "0 < (y::'a::ordered_field) ==> z * y < x ==>
     z < x / y"
-  by (subst pos_less_divide_eq, assumption+)
+by(simp add:field_simps)
 
 lemma frac_le: "(0::'a::ordered_field) <= x ==> 
     x <= y ==> 0 < w ==> w <= z  ==> x / z <= y / w"
@@ -1809,8 +1833,6 @@ lemma frac_less2: "(0::'a::ordered_field) < x ==>
   apply simp_all
 done
 
-lemmas times_divide_eq = times_divide_eq_right times_divide_eq_left
-
 text{*It's not obvious whether these should be simprules or not. 
   Their effect is to gather terms into one big fraction, like
   a*b*c / x*y*z. The rationale for that is unclear, but many proofs 
@@ -1824,18 +1846,18 @@ subsection {* Ordered Fields are Dense *}
 lemma less_add_one: "a < (a+1::'a::ordered_semidom)"
 proof -
   have "a+0 < (a+1::'a::ordered_semidom)"
-    by (blast intro: zero_less_one add_strict_left_mono) 
+    by (blast intro: zero_less_one add_strict_left_mono)
   thus ?thesis by simp
 qed
 
 lemma zero_less_two: "0 < (1+1::'a::ordered_semidom)"
-  by (blast intro: order_less_trans zero_less_one less_add_one) 
+by (blast intro: order_less_trans zero_less_one less_add_one)
 
 lemma less_half_sum: "a < b ==> a < (a+b) / (1+1::'a::ordered_field)"
-by (simp add: zero_less_two pos_less_divide_eq ring_distribs) 
+by (simp add: field_simps zero_less_two)
 
 lemma gt_half_sum: "a < b ==> (a+b)/(1+1::'a::ordered_field) < b"
-by (simp add: zero_less_two pos_divide_less_eq ring_distribs) 
+by (simp add: field_simps zero_less_two)
 
 lemma dense: "a < b ==> \<exists>r::'a::ordered_field. a < r & r < b"
 by (blast intro!: less_half_sum gt_half_sum)

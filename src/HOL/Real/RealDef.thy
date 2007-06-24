@@ -526,10 +526,6 @@ done
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
 by(simp add:mult_commute)
 
-(* FIXME: redundant, but used by Integration/Integral.thy in AFP *)
-lemma real_le_add_order: "[| 0 \<le> x; 0 \<le> y |] ==> (0::real) \<le> x + y"
-by (rule add_nonneg_nonneg)
-
 lemma real_inverse_gt_one: "[| (0::real) < x; x < 1 |] ==> 1 < inverse x"
 by (simp add: one_less_inverse_iff) (* TODO: generalize/move *)
 

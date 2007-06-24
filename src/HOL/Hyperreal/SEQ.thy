@@ -904,8 +904,7 @@ proof (rule CauchyI)
     have "norm (X m - X n) = norm ((X m - a) - (X n - a))" by simp
     also have "\<dots> \<le> norm (X m - a) + norm (X n - a)"
       by (rule norm_triangle_ineq4)
-    also from m n have "\<dots> < e/2 + e/2" by (rule add_strict_mono)
-    also have "e/2 + e/2 = e" by simp
+    also from m n have "\<dots> < e" by(simp add:field_simps)
     finally show "norm (X m - X n) < e" .
   qed
 qed
@@ -988,22 +987,17 @@ proof (rule LIMSEQ_I)
 
   from N have "\<forall>n\<ge>N. X N - r/2 < X n" by fast
   hence "X N - r/2 \<in> S" by (rule mem_S)
-  hence "X N - r/2 \<le> x" using x isLub_isUb isUbD by fast
-  hence 1: "X N + r/2 \<le> x + r" by simp
+  hence 1: "X N - r/2 \<le> x" using x isLub_isUb isUbD by fast
 
   from N have "\<forall>n\<ge>N. X n < X N + r/2" by fast
   hence "isUb UNIV S (X N + r/2)" by (rule bound_isUb)
-  hence "x \<le> X N + r/2" using x isLub_le_isUb by fast
-  hence 2: "x - r \<le> X N - r/2" by simp
+  hence 2: "x \<le> X N + r/2" using x isLub_le_isUb by fast
 
   show "\<exists>N. \<forall>n\<ge>N. norm (X n - x) < r"
   proof (intro exI allI impI)
     fix n assume n: "N \<le> n"
-    from N n have 3: "X n < X N + r/2" by simp
-    from N n have 4: "X N - r/2 < X n" by simp
-    show "norm (X n - x) < r"
-      using order_less_le_trans [OF 3 1]
-            order_le_less_trans [OF 2 4]
+    from N n have "X n < X N + r/2" and "X N - r/2 < X n" by simp+
+    thus "norm (X n - x) < r" using 1 2
       by (simp add: real_abs_diff_less_iff)
   qed
 qed
