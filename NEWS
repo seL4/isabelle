@@ -605,7 +605,7 @@ instead of "arbitrary"
 
 * New lemma collection field_simps (an extension of ring_simps)
   for manipulating (in)equations involving division. Multiplies
-  with all denominators which can be proved to be non-zero (in equations)
+  with all denominators that can be proved to be non-zero (in equations)
   or positive/negative (in inequations).
 
 * Lemma collections ring_eq_simps, group_eq_simps and ring_distrib
