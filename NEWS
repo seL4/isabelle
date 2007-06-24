@@ -603,17 +603,22 @@ instead of "arbitrary"
   [x <- xs. P] to avoid an ambiguity caused by list comprehension syntax,
   and for uniformity. INCOMPATIBILITY
 
-* The lemma collections ring_eq_simps, group_eq_simps and ring_distrib
+* New lemma collection field_simps (an extension of ring_simps)
+  for manipulating (in)equations involving division. Multiplies
+  with all denominators which can be proved to be non-zero (in equations)
+  or positive/negative (in inequations).
+
+* Lemma collections ring_eq_simps, group_eq_simps and ring_distrib
   have been improved and renamed to ring_simps, group_simps and ring_distribs.
 
 * Library/Pretty_Int.thy: maps HOL numerals on target language integer literals
-    when generating code.
+  when generating code.
 
 * Library/Pretty_Char.thy: maps HOL characters on target language character literals
-    when generating code.
+  when generating code.
 
 * Library/Commutative_Ring.thy: switched from recdef to function package;
-    constants add, mul, pow now curried.  Infix syntax for algebraic operations.
+  constants add, mul, pow now curried.  Infix syntax for algebraic operations.
 
 * Some steps towards more uniform lattice theory development in HOL.
 
