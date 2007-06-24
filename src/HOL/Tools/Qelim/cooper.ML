@@ -5,7 +5,7 @@
 
 signature COOPER =
  sig
-  val cooper_conv : Proof.context -> Conv.conv
+  val cooper_conv : Proof.context -> conv
   exception COOPER of string * exn
 end;
 
@@ -17,9 +17,7 @@ structure Integertab = TableFun(type key = integer val ord = Integer.cmp);
 exception COOPER of string * exn;
 val simp_thms_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms);
 
-fun C f x y = f y x;
-
-val FWD = C (fold (C implies_elim));
+val FWD = Drule.implies_elim_list;
 
 val true_tm = @{cterm "True"};
 val false_tm = @{cterm "False"};
