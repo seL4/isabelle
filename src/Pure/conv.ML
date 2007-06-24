@@ -8,11 +8,13 @@ Conversions: primitive equality reasoning.
 infix 1 then_conv;
 infix 0 else_conv;
 
+type conv = cterm -> thm;
+
 signature CONV =
 sig
-  type conv = cterm -> thm
   val no_conv: conv
   val all_conv: conv
+  val is_refl: thm -> bool
   val then_conv: conv * conv -> conv
   val else_conv: conv * conv -> conv
   val first_conv: conv list -> conv
@@ -32,9 +34,7 @@ sig
   val concl_conv: int -> conv -> conv
   val prems_conv: int -> (int -> conv) -> conv
   val goals_conv: (int -> bool) -> conv -> conv
-  val eta_conv: theory -> conv 
   val fconv_rule: conv -> thm -> thm
-  val is_refl: thm -> bool
 end;
 
 structure Conv: CONV =
@@ -143,11 +143,6 @@ fun prems_conv 0 _ = all_conv
 
 fun goals_conv pred cv = prems_conv ~1 (fn i => if pred i then cv else all_conv);
 
-fun eta_conv thy ct = 
-  let val {t, ...} = rep_cterm ct
-      val ct' = cterm_of thy (Pattern.eta_long [] t)
-  in (symmetric o eta_conversion) ct'
-  end;
-
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
+
 end;
