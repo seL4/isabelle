@@ -204,17 +204,6 @@ val grab_atom_bop =
    in h (bounds + 1) b' end;
 in h end;
 
-local
-fun cterm_frees ct = 
- let fun h acc t = 
-   case (term_of t) of 
-    _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
-  | Abs(_,_,_) => Thm.dest_abs NONE t ||> h acc |> uncurry (remove (op aconvc))
-  | Free _ => insert (op aconvc) t acc
-  | _ => acc
- in h [] ct end;
-in
-
 fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset}) tm = 
  let 
    val ss = simpset
@@ -223,19 +212,18 @@ fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset}) tm =
               @ [not_all,@{thm "all_not_ex"}, ex_disj_distrib], ss))
     val postcv = Simplifier.rewrite ss
     val nnf = K (nnf_conv then_conv postcv)
-    val qe_conv = Qelim.gen_qelim_conv ctxt pcv postcv pcv cons (cterm_frees tm) 
+    val qe_conv = Qelim.gen_qelim_conv ctxt pcv postcv pcv cons (Thm.add_cterm_frees tm []) 
                   (isolate_conv ctxt) nnf
                   (fn vs => ferrack_conv (thy,{isolate_conv = isolate_conv ctxt, 
                                                whatis = whatis, simpset = simpset}) vs
                    then_conv postcv)
- in (Simplifier.rewrite ss then_conv qe_conv) tm
- end
+ in (Simplifier.rewrite ss then_conv qe_conv) tm end;
 
 fun ferrackqe_conv ctxt tm = 
  case Ferrante_Rackoff_Data.match ctxt (grab_atom_bop 0 tm) of
   NONE => error "ferrackqe_conv : no corresponding instance in context!"
 | SOME res => raw_ferrack_qe_conv ctxt res tm
-end;
+
 
 fun core_ferrack_tac ctxt res i st =
  let val p = nth (cprems_of st) (i - 1)
