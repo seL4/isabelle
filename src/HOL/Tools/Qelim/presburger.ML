@@ -148,7 +148,7 @@ fun eta_beta_tac ctxt i st = case try (nth (cprems_of st)) (i - 1) of
    NONE => no_tac st
  | SOME p => 
    let
-    val eq = (eta_conv (ProofContext.theory_of ctxt) then_conv Thm.beta_conversion true) p
+    val eq = (Thm.eta_long_conversion then_conv Thm.beta_conversion true) p
     val p' = Thm.rhs_of eq
     val th = implies_intr p' (equal_elim (symmetric eq) (assume p'))
    in rtac th i st
