@@ -334,6 +334,9 @@ by (induct xs) auto
 lemma length_greater_0_conv [iff]: "(0 < length xs) = (xs \<noteq> [])"
 by (induct xs) auto
 
+lemma length_pos_if_in_set: "x : set xs \<Longrightarrow> length xs > 0"
+by auto
+
 lemma length_Suc_conv:
 "(length xs = Suc n) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
 by (induct xs) auto
@@ -2052,6 +2055,12 @@ lemma remove1_append:
   (if x \<in> set xs then remove1 x xs @ ys else xs @ remove1 x ys)"
 by (induct xs) auto
 
+lemma in_set_remove1[simp]:
+  "a \<noteq> b \<Longrightarrow> a : set(remove1 b xs) = (a : set xs)"
+apply (induct xs)
+apply auto
+done
+
 lemma set_remove1_subset: "set(remove1 x xs) <= set xs"
 apply(induct xs)
  apply simp
@@ -2064,6 +2073,12 @@ apply(induct xs)
  apply simp
 apply simp
 apply blast
+done
+
+lemma length_remove1:
+  "length(remove1 x xs) = (if x : set xs then length xs - 1 else length xs)"
+apply (induct xs)
+ apply (auto dest!:length_pos_if_in_set)
 done
 
 lemma remove1_filter_not[simp]:
