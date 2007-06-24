@@ -16,7 +16,8 @@ sig
   val funs: thm -> {is_const: morphism -> cterm -> bool,
     dest_const: morphism -> cterm -> Rat.rat,
     mk_const: morphism -> ctyp -> Rat.rat -> cterm,
-    conv: morphism -> Proof.context -> cterm -> thm} -> morphism -> Context.generic -> Context.generic
+    conv: morphism -> Proof.context -> cterm -> thm} ->
+      morphism -> Context.generic -> Context.generic
   val setup: theory -> theory
 end;
 

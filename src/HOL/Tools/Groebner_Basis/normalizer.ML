@@ -7,16 +7,16 @@ signature NORMALIZER =
 sig
  val mk_cnumber : ctyp -> integer -> cterm
  val mk_cnumeral : integer -> cterm
- val semiring_normalize_conv : Proof.context -> Conv.conv
- val semiring_normalize_ord_conv : Proof.context -> (cterm -> cterm -> bool) -> Conv.conv
+ val semiring_normalize_conv : Proof.context -> conv
+ val semiring_normalize_ord_conv : Proof.context -> (cterm -> cterm -> bool) -> conv
  val semiring_normalize_tac : Proof.context -> int -> tactic
- val semiring_normalize_wrapper :  Proof.context -> NormalizerData.entry -> Conv.conv
- val semiring_normalize_ord_wrapper :  Proof.context -> NormalizerData.entry -> (cterm -> cterm -> bool) -> Conv.conv
+ val semiring_normalize_wrapper :  Proof.context -> NormalizerData.entry -> conv
+ val semiring_normalize_ord_wrapper :  Proof.context -> NormalizerData.entry ->
+   (cterm -> cterm -> bool) -> conv
  val semiring_normalizers_conv :
      cterm list -> cterm list * thm list -> cterm list * thm list ->
-     (cterm -> bool) * Conv.conv * Conv.conv * Conv.conv -> (cterm -> cterm -> bool) ->
-       {add: Conv.conv, mul: Conv.conv, neg: Conv.conv, main: Conv.conv, 
-        pow: Conv.conv, sub: Conv.conv}
+     (cterm -> bool) * conv * conv * conv -> (cterm -> cterm -> bool) ->
+       {add: conv, mul: conv, neg: conv, main: conv, pow: conv, sub: conv}
 end
 
 structure Normalizer: NORMALIZER = 
