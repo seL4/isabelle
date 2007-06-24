@@ -1523,7 +1523,7 @@ lemmas field_simps = field_eq_simps
   pos_le_divide_eq neg_le_divide_eq
 
 text{* Lemmas @{text sign_simps} is a first attempt to automate proofs
-of positivity/negativity needed for field_simps. Have not added @{text
+of positivity/negativity needed for @{text field_simps}. Have not added @{text
 sign_simps} to @{text field_simps} because the former can lead to case
 explosions. *}
 
