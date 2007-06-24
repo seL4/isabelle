@@ -90,6 +90,7 @@ signature BASIC_THM =
   val transitive: thm -> thm -> thm
   val beta_conversion: bool -> cterm -> thm
   val eta_conversion: cterm -> thm
+  val eta_long_conversion: cterm -> thm
   val abstract_rule: string -> cterm -> thm -> thm
   val combination: thm -> thm -> thm
   val equal_intr: thm -> thm -> thm
@@ -812,6 +813,16 @@ fun eta_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
     hyps = [],
     tpairs = [],
     prop = Logic.mk_equals (t, Envir.eta_contract t)};
+
+fun eta_long_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
+  Thm {thy_ref = thy_ref,
+    der = Pt.infer_derivs' I (false, Pt.reflexive),
+    tags = [],
+    maxidx = maxidx,
+    shyps = sorts,
+    hyps = [],
+    tpairs = [],
+    prop = Logic.mk_equals (t, Pattern.eta_long [] t)};
 
 (*The abstraction rule.  The Free or Var x must not be free in the hypotheses.
   The bound variable will be named "a" (since x will be something like x320)
