@@ -369,7 +369,7 @@ val kill_proof = kill_proof_notify (K ());
 val undo_theory = Toplevel.history (fn hist =>
   if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
 
-val undo = Toplevel.kill o undos_proof 1 o undo_theory o Toplevel.undo_exit;
+val undo = Toplevel.kill o undo_theory o Toplevel.undo_exit o undos_proof 1;
 
 fun cannot_undo "end" = undo   (*ProofGeneral legacy*)
   | cannot_undo txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
