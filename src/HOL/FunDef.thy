@@ -8,7 +8,6 @@ header {* General recursive function definitions *}
 theory FunDef
 imports Datatype Accessible_Part
 uses
-  ("Tools/function_package/sum_tools.ML")
   ("Tools/function_package/fundef_lib.ML")
   ("Tools/function_package/fundef_common.ML")
   ("Tools/function_package/inductive_wrap.ML")
@@ -86,8 +85,6 @@ proof -
     by (rule THE_default_none)
 qed
 
-
-use "Tools/function_package/sum_tools.ML"
 use "Tools/function_package/fundef_lib.ML"
 use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/inductive_wrap.ML"

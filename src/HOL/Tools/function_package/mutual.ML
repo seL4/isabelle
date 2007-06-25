@@ -31,6 +31,36 @@ open FundefCommon
 (* Theory dependencies *)
 val sum_case_rules = thms "Sum_Type.sum_cases"
 val split_apply = thm "Product_Type.split"
+val projl_inl = thm "Sum_Type.Projl_Inl"
+val projr_inr = thm "Sum_Type.Projr_Inr"
+
+
+(* Sum types *)
+fun mk_sumT LT RT = Type ("+", [LT, RT])
+fun mk_sumcase TL TR T l r = Const (@{const_name "Sum_Type.sum_case"}, (TL --> T) --> (TR --> T) --> mk_sumT TL TR --> T) $ l $ r
+
+val App = curry op $
+
+fun mk_inj ST n i = 
+    BalancedTree.access 
+    { init = (ST, I : term -> term),
+      left = (fn (T as Type ("+", [LT, RT]), inj) => (LT, App (Const (@{const_name "Inl"}, LT --> T)) o inj)),
+      right =(fn (T as Type ("+", [LT, RT]), inj) => (RT, App (Const (@{const_name "Inr"}, RT --> T)) o inj))} n i 
+    |> snd
+
+fun mk_proj ST n i = 
+    BalancedTree.access 
+    { init = (ST, I : term -> term),
+      left = (fn (T as Type ("+", [LT, RT]), proj) => (LT, proj o App (Const (@{const_name "Projl"}, T --> LT)))),
+      right =(fn (T as Type ("+", [LT, RT]), proj) => (RT, proj o App (Const (@{const_name "Projr"}, T --> RT))))} n i
+    |> snd
+
+fun mk_sumcases T fs =
+      BalancedTree.make (fn ((f, fT), (g, gT)) => (mk_sumcase fT gT T f g, mk_sumT fT gT)) 
+                        (map (fn f => (f, domain_type (fastype_of f))) fs)
+      |> fst
+
+
 
 type qgar = string * (string * typ) list * term list * term list * term
 
@@ -39,10 +69,10 @@ fun name_of_fqgar ((f, _, _, _, _): qgar) = f
 datatype mutual_part =
   MutualPart of 
    {
+    i : int,
+    i' : int,
     fvar : string * typ,
     cargTs: typ list,
-    pthA: SumTools.sum_path,
-    pthR: SumTools.sum_path,
     f_def: term,
 
     f: term option,
@@ -53,12 +83,12 @@ datatype mutual_part =
 datatype mutual_info =
   Mutual of 
    { 
+    n : int,
+    n' : int,
     fsum_var : string * typ,
 
     ST: typ,
     RST: typ,
-    streeA: SumTools.sum_tree,
-    streeR: SumTools.sum_tree,
 
     parts: mutual_part list,
     fqgars: qgar list,
@@ -87,6 +117,7 @@ fun mk_prod_abs e (t1, t2) =
 
 fun analyze_eqs ctxt defname fs eqs =
     let
+      val num = length fs
         val fnames = map fst fs
         val fqgars = map split_def eqs
         val arities = mk_arities fqgars
@@ -102,40 +133,44 @@ fun analyze_eqs ctxt defname fs eqs =
         val (caTss, resultTs) = split_list (map curried_types fs)
         val argTs = map (foldr1 HOLogic.mk_prodT) caTss
 
-        val (RST,streeR, pthsR) = SumTools.mk_tree_distinct resultTs
-        val (ST, streeA, pthsA) = SumTools.mk_tree argTs
+        val dresultTs = distinct (Type.eq_type Vartab.empty) resultTs
+        val n' = length dresultTs
+
+        val RST = BalancedTree.make (uncurry mk_sumT) dresultTs
+        val ST = BalancedTree.make (uncurry mk_sumT) argTs
 
         val fsum_type = ST --> RST
 
         val ([fsum_var_name], _) = Variable.add_fixes [ defname ^ "_sum" ] ctxt
         val fsum_var = (fsum_var_name, fsum_type)
 
-        fun define (fvar as (n, T)) caTs pthA pthR =
+        fun define (fvar as (n, T)) caTs resultT i =
             let
-                val vars = map_index (fn (i,T) => Free ("x" ^ string_of_int i, T)) caTs (* FIXME: Bind xs properly *)
+                val vars = map_index (fn (j,T) => Free ("x" ^ string_of_int j, T)) caTs (* FIXME: Bind xs properly *)
+                val i' = find_index (fn Ta => Type.eq_type Vartab.empty (Ta, resultT)) dresultTs + 1 
 
-                val f_exp = SumTools.mk_proj streeR pthR (Free fsum_var $ SumTools.mk_inj streeA pthA (foldr1 HOLogic.mk_prod vars))
+                val f_exp = mk_proj RST n' i' (Free fsum_var $ mk_inj ST num i (foldr1 HOLogic.mk_prod vars))
                 val def = Term.abstract_over (Free fsum_var, fold_rev lambda vars f_exp)
 
                 val rew = (n, fold_rev lambda vars f_exp)
             in
-                (MutualPart {fvar=fvar,cargTs=caTs,pthA=pthA,pthR=pthR,f_def=def,f=NONE,f_defthm=NONE}, rew)
+                (MutualPart {i=i, i'=i', fvar=fvar,cargTs=caTs,f_def=def,f=NONE,f_defthm=NONE}, rew)
             end
             
-        val (parts, rews) = split_list (map4 define fs caTss pthsA pthsR)
+        val (parts, rews) = split_list (map4 define fs caTss resultTs (1 upto num))
 
         fun convert_eqs (f, qs, gs, args, rhs) =
             let
-              val MutualPart {pthA, pthR, ...} = get_part f parts
+              val MutualPart {i, i', ...} = get_part f parts
             in
-              (qs, gs, SumTools.mk_inj streeA pthA (foldr1 (mk_prod_abs qs) args),
-               SumTools.mk_inj streeR pthR (replace_frees rews rhs)
-                               |> Envir.norm_term (Envir.empty 0))
+              (qs, gs, mk_inj ST num i (foldr1 (mk_prod_abs qs) args),
+               mk_inj RST n' i' (replace_frees rews rhs)
+                               |> Envir.beta_norm)
             end
 
         val qglrs = map convert_eqs fqgars
     in
-        Mutual {fsum_var=fsum_var, ST=ST, RST=RST, streeA=streeA, streeR=streeR,
+        Mutual {n=num, n'=n', fsum_var=fsum_var, ST=ST, RST=RST, 
                 parts=parts, fqgars=fqgars, qglrs=qglrs, fsum=NONE}
     end
 
@@ -144,22 +179,22 @@ fun analyze_eqs ctxt defname fs eqs =
 
 fun define_projections fixes mutual fsum lthy =
     let
-      fun def ((MutualPart {fvar=(fname, fT), cargTs, pthA, pthR, f_def, ...}), (_, mixfix)) lthy =
+      fun def ((MutualPart {i=i, i'=i', fvar=(fname, fT), cargTs, f_def, ...}), (_, mixfix)) lthy =
           let
             val ((f, (_, f_defthm)), lthy') =
               LocalTheory.def Thm.internalK ((fname, mixfix),
                                             ((fname ^ "_def", []), Term.subst_bound (fsum, f_def)))
                               lthy
           in
-            (MutualPart {fvar=(fname, fT), cargTs=cargTs, pthA=pthA, pthR=pthR, f_def=f_def,
+            (MutualPart {i=i, i'=i', fvar=(fname, fT), cargTs=cargTs, f_def=f_def,
                          f=SOME f, f_defthm=SOME f_defthm },
              lthy')
           end
           
-      val Mutual { fsum_var, ST, RST, streeA, streeR, parts, fqgars, qglrs, ... } = mutual
+      val Mutual { n, n', fsum_var, ST, RST, parts, fqgars, qglrs, ... } = mutual
       val (parts', lthy') = fold_map def (parts ~~ fixes) lthy
     in
-      (Mutual { fsum_var=fsum_var, ST=ST, RST=RST, streeA=streeA, streeR=streeR, parts=parts',
+      (Mutual { n=n, n'=n', fsum_var=fsum_var, ST=ST, RST=RST, parts=parts',
                 fqgars=fqgars, qglrs=qglrs, fsum=SOME fsum },
        lthy')
     end
@@ -184,7 +219,7 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
       val ags = map (assume o cterm_of thy) gs
 
       val import = fold forall_elim cqs
-                   #> fold implies_elim_swp ags
+                   #> fold (flip implies_elim) ags
 
       val export = fold_rev (implies_intr o cprop_of) ags
                    #> fold_rev forall_intr_rename (oqnames ~~ cqs)
@@ -194,7 +229,7 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
 
 fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs) import (export : thm -> thm) sum_psimp_eq =
     let
-      val (MutualPart {f=SOME f, f_defthm=SOME f_def, pthR, ...}) = get_part fname parts
+      val (MutualPart {f=SOME f, f_defthm=SOME f_def, ...}) = get_part fname parts
 
       val psimp = import sum_psimp_eq
       val (simp, restore_cond) = case cprems_of psimp of
@@ -206,7 +241,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs) impo
                  (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))
                  (fn _ => SIMPSET (unfold_tac all_orig_fdefs)
                           THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1
-                          THEN SIMPSET' (fn ss => simp_tac (ss addsimps [SumTools.projl_inl, SumTools.projr_inr])) 1)
+                          THEN SIMPSET' (fn ss => simp_tac (ss addsimps [projl_inl, projr_inr])) 1)
         |> restore_cond 
         |> export
     end
@@ -223,9 +258,9 @@ fun mk_applied_form ctxt caTs thm =
            |> fold_rev forall_intr xs
            |> forall_elim_vars 0
     end
-    
 
-fun mutual_induct_rules lthy induct all_f_defs (Mutual {RST, parts, streeA, ...}) =
+
+fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, RST, parts, ...}) =
     let
       val cert = cterm_of (ProofContext.theory_of lthy)
       val newPs = map2 (fn Pname => fn MutualPart {cargTs, ...} => 
@@ -242,26 +277,25 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {RST, parts, streeA, ...}
           end
           
       val Ps = map2 mk_P parts newPs
-      val case_exp = SumTools.mk_sumcases streeA HOLogic.boolT Ps
+      val case_exp = mk_sumcases HOLogic.boolT Ps
                      
       val induct_inst =
           forall_elim (cert case_exp) induct
                       |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
                       |> full_simplify (HOL_basic_ss addsimps all_f_defs)
           
-      fun mk_proj rule (MutualPart {cargTs, pthA, ...}) =
+      fun project rule (MutualPart {cargTs, i, ...}) =
           let
-            val afs = map_index (fn (i,T) => Free ("a" ^ string_of_int i, T)) cargTs
-            val inj = SumTools.mk_inj streeA pthA (foldr1 HOLogic.mk_prod afs)
+            val afs = map_index (fn (j,T) => Free ("a" ^ string_of_int j, T)) cargTs
+            val inj = mk_inj ST n i (foldr1 HOLogic.mk_prod afs)
           in
             rule
               |> forall_elim (cert inj)
               |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
               |> fold_rev (forall_intr o cert) (afs @ newPs)
           end
-          
     in
-      map (mk_proj induct_inst) parts
+      map (project induct_inst) parts
     end
     
 
@@ -295,7 +329,6 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
                      trsimps=mtrsimps}
     end
       
-
 (* puts an object in the "right bucket" *)
 fun store_grouped P x [] = []
   | store_grouped P x ((l, xs)::bs) =
