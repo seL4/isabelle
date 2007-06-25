@@ -244,9 +244,6 @@ Requires a field, or else an ordered ring
 @{thm[display] mult_eq_0_iff[no_vars]}
 \rulename{mult_eq_0_iff}
 
-@{thm[display] field_mult_eq_0_iff[no_vars]}
-\rulename{field_mult_eq_0_iff}
-
 @{thm[display] mult_cancel_right[no_vars]}
 \rulename{mult_cancel_right}
 
