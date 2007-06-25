@@ -1681,6 +1681,21 @@ The following theorems have been eliminated or modified
   mult_neg           now named mult_neg_neg
   mult_neg_le        now named mult_nonpos_nonpos
 
+* The following lemmas in Ring_and_Field have been added to the simplifier:
+     
+     zero_le_square
+     not_square_less_zero 
+
+  The following lemmas have been deleted from Real/RealPow:
+  
+     realpow_zero_zero
+     realpow_two
+     realpow_less
+     zero_le_power
+     realpow_two_le
+     abs_realpow_two
+     realpow_two_abs     
+
 * Theory Parity: added rules for simplifying exponents.
 
 * Theory List:
