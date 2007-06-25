@@ -1,12 +1,11 @@
-
 (*  Title:      HOL/Tools/Presburger/presburger.ML
     ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 *)
 
 signature PRESBURGER =
- sig
-  val cooper_tac: bool -> thm list -> thm list -> Proof.context -> int -> Tactical.tactic
+sig
+  val cooper_tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
 end;
 
 structure Presburger : PRESBURGER = 
@@ -15,17 +14,12 @@ struct
 open Conv;
 val comp_ss = HOL_ss addsimps @{thms "Groebner_Basis.comp_arith"};
 
-fun strip_imp_cprems ct = 
- case term_of ct of 
-  Const ("==>", _) $ _ $ _ => Thm.dest_arg1 ct :: strip_imp_cprems (Thm.dest_arg ct)
-| _ => [];
-
-val cprems_of = strip_imp_cprems o cprop_of;
-
-fun strip_objimp ct = 
- case term_of ct of 
-  Const ("op -->", _) $ _ $ _ => Thm.dest_arg1 ct :: strip_objimp (Thm.dest_arg ct)
-| _ => [ct];
+fun strip_objimp ct =
+  (case Thm.term_of ct of
+    Const ("op -->", _) $ _ $ _ =>
+      let val (A, B) = Thm.dest_binop ct
+      in A :: strip_objimp B end
+  | _ => [ct]);
 
 fun strip_objall ct = 
  case term_of ct of 
@@ -39,10 +33,8 @@ local
   val all_maxscope_ss = 
      HOL_basic_ss addsimps map (fn th => th RS sym) @{thms "all_simps"}
 in
-fun thin_prems_tac P i =  simp_tac all_maxscope_ss i THEN
-  (fn st => case try (nth (cprems_of st)) (i - 1) of
-    NONE => no_tac st
-  | SOME p' => 
+fun thin_prems_tac P = simp_tac all_maxscope_ss THEN'
+  CSUBGOAL (fn (p', i) =>
     let
      val (qvs, p) = strip_objall (Thm.dest_arg p')
      val (ps, c) = split_last (strip_objimp p)
@@ -54,8 +46,8 @@ fun thin_prems_tac P i =  simp_tac all_maxscope_ss i THEN
      val ntac = (case qs of [] => q aconvc @{cterm "False"}
                          | _ => false)
     in 
-    if ntac then no_tac st
-      else rtac (Goal.prove_internal [] g (K (blast_tac HOL_cs 1))) i st 
+    if ntac then no_tac
+      else rtac (Goal.prove_internal [] g (K (blast_tac HOL_cs 1))) i
     end)
 end;
 
@@ -66,7 +58,6 @@ local
       c$_$_ => not (member (op aconv) cts c)
     | c$_ => not (member (op aconv) cts c)
     | c => not (member (op aconv) cts c)
-    | _ => true
 
  val term_constants =
   let fun h acc t = case t of
@@ -92,17 +83,13 @@ fun int_nat_terms ctxt ct =
  in h [] ct end
 end;
 
-fun generalize_tac ctxt f i st = 
- case try (nth (cprems_of st)) (i - 1) of
-    NONE => all_tac st
-  | SOME p => 
-   let 
+fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
+ let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
    fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
    val ts = sort (fn (a,b) => Term.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
- in Seq.of_list [implies_intr p' (implies_elim st (fold forall_elim ts (assume p')))]
- end;
+ in implies_intr p' (implies_elim st (fold forall_elim ts (assume p'))) end));
 
 local
 val ss1 = comp_ss
@@ -134,32 +121,17 @@ val div_mod_ss = HOL_basic_ss addsimps simp_thms
      [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
       @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}]
 in
-fun nat_to_int_tac ctxt i = 
-  simp_tac (Simplifier.context ctxt ss1) i THEN 
-  simp_tac (Simplifier.context ctxt ss2) i THEN 
-  TRY (simp_tac (Simplifier.context ctxt comp_ss) i);
+fun nat_to_int_tac ctxt = 
+  simp_tac (Simplifier.context ctxt ss1) THEN_ALL_NEW
+  simp_tac (Simplifier.context ctxt ss2) THEN_ALL_NEW
+  simp_tac (Simplifier.context ctxt comp_ss);
 
-fun div_mod_tac  ctxt i = simp_tac (Simplifier.context ctxt div_mod_ss) i;
+fun div_mod_tac ctxt i = simp_tac (Simplifier.context ctxt div_mod_ss) i;
 fun splits_tac ctxt i = simp_tac (Simplifier.context ctxt splits_ss) i;
 end;
 
 
-fun eta_beta_tac ctxt i st = case try (nth (cprems_of st)) (i - 1) of
-   NONE => no_tac st
- | SOME p => 
-   let
-    val eq = (Thm.eta_long_conversion then_conv Thm.beta_conversion true) p
-    val p' = Thm.rhs_of eq
-    val th = implies_intr p' (equal_elim (symmetric eq) (assume p'))
-   in rtac th i st
-   end;
-
-
-
-fun core_cooper_tac ctxt i st = 
- case try (nth (cprems_of st)) (i - 1) of
-   NONE => all_tac st
- | SOME p => 
+fun core_cooper_tac ctxt = CSUBGOAL (fn (p, i) =>
    let 
     val cpth = 
        if !quick_and_dirty 
@@ -168,34 +140,28 @@ fun core_cooper_tac ctxt i st =
        else arg_conv (Cooper.cooper_conv ctxt) p
     val p' = Thm.rhs_of cpth
     val th = implies_intr p' (equal_elim (symmetric cpth) (assume p'))
-   in rtac th i st end
-   handle Cooper.COOPER _ => no_tac st;
+   in rtac th i end
+   handle Cooper.COOPER _ => no_tac);
 
-fun nogoal_tac i st = case try (nth (cprems_of st)) (i - 1) of
-   NONE => no_tac st
- | SOME _ => all_tac st
+fun finish_tac q = SUBGOAL (fn (_, i) =>
+  (if q then I else TRY) (rtac TrueI i));
 
-fun finish_tac q i st = case try (nth (cprems_of st)) (i - 1) of
-   NONE => all_tac st
- | SOME _ => (if q then I else TRY) (rtac TrueI i) st
-
-fun cooper_tac elim add_ths del_ths ctxt i = 
+fun cooper_tac elim add_ths del_ths ctxt =
 let val ss = fst (CooperData.get ctxt) delsimps del_ths addsimps add_ths
 in
-nogoal_tac i 
-THEN (EVERY o (map TRY))
- [ObjectLogic.full_atomize_tac i,
-  eta_beta_tac ctxt i,
-  simp_tac ss  i,
-  generalize_tac ctxt (int_nat_terms ctxt) i,
-  ObjectLogic.full_atomize_tac i,
-  div_mod_tac ctxt i,
-  splits_tac ctxt i,
-  simp_tac ss i,
-  eta_beta_tac ctxt i,
-  nat_to_int_tac ctxt i, 
-  thin_prems_tac (is_relevant ctxt) i]
-THEN core_cooper_tac ctxt i THEN finish_tac elim i
+  ObjectLogic.full_atomize_tac
+  THEN_ALL_NEW eta_long_tac
+  THEN_ALL_NEW simp_tac ss
+  THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
+  THEN_ALL_NEW ObjectLogic.full_atomize_tac
+  THEN_ALL_NEW div_mod_tac ctxt
+  THEN_ALL_NEW splits_tac ctxt
+  THEN_ALL_NEW simp_tac ss
+  THEN_ALL_NEW eta_long_tac
+  THEN_ALL_NEW nat_to_int_tac ctxt
+  THEN_ALL_NEW (TRY o thin_prems_tac (is_relevant ctxt))
+  THEN_ALL_NEW core_cooper_tac ctxt
+  THEN_ALL_NEW finish_tac elim
 end;
 
 end;
