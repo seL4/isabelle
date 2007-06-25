@@ -780,7 +780,7 @@ lemma field_mult_eq_0_iff [simp]:
   "(a*b = (0::'a::division_ring)) = (a = 0 | b = 0)"
 by simp
 *)
-
+(* subsumed by mult_cancel lemmas on ring_no_zero_divisors
 text{*Cancellation of equalities with a common factor*}
 lemma field_mult_cancel_right_lemma:
       assumes cnz: "c \<noteq> (0::'a::division_ring)"
@@ -800,7 +800,7 @@ by simp
 lemma field_mult_cancel_left [simp]:
      "(c*a = c*b) = (c = (0::'a::division_ring) | a=b)"
 by simp
-
+*)
 lemma nonzero_imp_inverse_nonzero:
   "a \<noteq> 0 ==> inverse a \<noteq> (0::'a::division_ring)"
 proof
@@ -837,7 +837,7 @@ proof -
   have "-a * inverse (- a) = -a * - inverse a"
     by simp
   thus ?thesis 
-    by (simp only: field_mult_cancel_left, simp)
+    by (simp only: mult_cancel_left, simp)
 qed
 
 lemma inverse_minus_eq [simp]:
@@ -1119,20 +1119,16 @@ by(simp add:diff_divide_distrib nonzero_mult_divide_cancel_left)
 lemma nonzero_eq_divide_eq: "c\<noteq>0 ==> ((a::'a::field) = b/c) = (a*c = b)"
 proof -
   assume [simp]: "c\<noteq>0"
-  have "(a = b/c) = (a*c = (b/c)*c)"
-    by (simp add: field_mult_cancel_right)
-  also have "... = (a*c = b)"
-    by (simp add: divide_inverse mult_assoc)
+  have "(a = b/c) = (a*c = (b/c)*c)" by simp
+  also have "... = (a*c = b)" by (simp add: divide_inverse mult_assoc)
   finally show ?thesis .
 qed
 
 lemma nonzero_divide_eq_eq: "c\<noteq>0 ==> (b/c = (a::'a::field)) = (b = a*c)"
 proof -
   assume [simp]: "c\<noteq>0"
-  have "(b/c = a) = ((b/c)*c = a*c)"
-    by (simp add: field_mult_cancel_right)
-  also have "... = (b = a*c)"
-    by (simp add: divide_inverse mult_assoc) 
+  have "(b/c = a) = ((b/c)*c = a*c)"  by simp
+  also have "... = (b = a*c)"  by (simp add: divide_inverse mult_assoc) 
   finally show ?thesis .
 qed
 
@@ -1609,13 +1605,13 @@ subsection{*Cancellation Laws for Division*}
 lemma divide_cancel_right [simp]:
      "(a/c = b/c) = (c = 0 | a = (b::'a::{field,division_by_zero}))"
 apply (cases "c=0", simp)
-apply (simp add: divide_inverse field_mult_cancel_right)
+apply (simp add: divide_inverse)
 done
 
 lemma divide_cancel_left [simp]:
      "(c/a = c/b) = (c = 0 | a = (b::'a::{field,division_by_zero}))" 
 apply (cases "c=0", simp)
-apply (simp add: divide_inverse field_mult_cancel_left)
+apply (simp add: divide_inverse)
 done
 
 
