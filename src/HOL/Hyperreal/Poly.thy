@@ -870,7 +870,7 @@ apply (simp del: pmult_Cons pexp_Suc, safe)
 apply (rule_tac x = "inverse (real (Suc n)) %* (qa +++ -- (pderiv q))" in exI)
 apply (subgoal_tac "poly ([-a, 1] %^ n *** q) = poly ([-a, 1] %^ n *** ([-a, 1] *** (inverse (real (Suc n)) %* (qa +++ -- (pderiv q))))) ")
 apply (drule poly_mult_left_cancel [THEN iffD1], simp)
-apply (simp add: fun_eq poly_mult poly_add poly_cmult poly_minus del: pmult_Cons mult_cancel_left field_mult_cancel_left, safe)
+apply (simp add: fun_eq poly_mult poly_add poly_cmult poly_minus del: pmult_Cons mult_cancel_left, safe)
 apply (rule_tac c1 = "real (Suc n)" in real_mult_left_cancel [THEN iffD1])
 apply (simp (no_asm))
 apply (subgoal_tac "real (Suc n) * (poly ([- a, 1] %^ n) xa * poly q xa) =
