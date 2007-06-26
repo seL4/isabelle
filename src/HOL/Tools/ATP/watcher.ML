@@ -191,10 +191,10 @@ fun pollParentInput (fromParentIOD, fromParentStr, toParentStr) =
 
 (*get the number of the subgoal from the filename: the last digit string*)
 fun number_from_filename s =
-  case String.tokens (not o Char.isDigit) s of
-      [] => (trace ("\nWatcher could not read subgoal nunber! " ^ s);
-             error "")
-    | numbers => valOf (Int.fromString (List.last numbers));
+  let val numbers = "xxx" :: String.tokens (not o Char.isDigit) s 
+  in  valOf (Int.fromString (List.last numbers))  end
+  handle Option => (trace ("\nWatcher could not read subgoal nunber! " ^ s);
+                    error ("Watcher could not read subgoal nunber! " ^ s));
 
 (*Call ATP.  Settings should be a list of strings  ["-t 300", "-m 100000"],
   which we convert below to ["-t", "300", "-m", "100000"] using String.tokens.
