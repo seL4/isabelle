@@ -56,11 +56,11 @@ text {* \medskip Chess boards *}
 
 lemma Sigma_Suc1 [simp]:
      "lessThan (Suc n) \<times> B = ({n} \<times> B) \<union> ((lessThan n) \<times> B)"
-  by (auto simp add: lessThan_def)
+  by auto
 
 lemma Sigma_Suc2 [simp]:
      "A \<times> lessThan (Suc n) = (A \<times> {n}) \<union> (A \<times> (lessThan n))"
-  by (auto simp add: lessThan_def)
+  by auto
 
 lemma sing_Times_lemma: "({i} \<times> {n}) \<union> ({i} \<times> {m}) = {(i, m), (i, n)}"
   by auto
