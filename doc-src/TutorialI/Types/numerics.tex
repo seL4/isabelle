@@ -419,26 +419,23 @@ type~\isa{nat}. All abstract properties involving division require a field.
 Obviously, all properties involving orderings required an ordered
 structure.
 
-The following two theorems are less obvious. Although they
-mention no ordering, they require an ordered ring. However, if we have a 
-field, then an ordering is no longer required.
+The class \tcdx{ring_no_zero_divisors} of rings without zero divisors satisfies a number of natural cancellation laws, the first of which characterizes this class:
 \begin{isabelle}
 (a\ *\ b\ =\ (0::'a))\ =\ (a\ =\ (0::'a)\ \isasymor \ b\ =\ (0::'a))
 \rulename{mult_eq_0_iff}\isanewline
 (a\ *\ c\ =\ b\ *\ c)\ =\ (c\ =\ (0::'a)\ \isasymor \ a\ =\ b)
 \rulename{mult_cancel_right}
 \end{isabelle}
-Theorems \isa{field_mult_eq_0_iff} and \isa{field_mult_cancel_right}
-express the same properties, only for fields.
 \begin{pgnote}
 Setting the flag \pgmenu{Isabelle} $>$ \pgmenu{Settings} $>$
 \pgmenu{Show Sorts} will display the type classes of all type variables.
 \end{pgnote}
 \noindent
-Here is how the theorem \isa{field_mult_cancel_right} appears with the flag set.
+Here is how the theorem \isa{mult_cancel_left} appears with the flag set.
 \begin{isabelle}
-((a::'a::field)\ *\ (c::'a::field)\ =\ (b::'a::field)\ *\ c)\ =\isanewline
-(c\ =\ (0::'a::field)\ \isasymor \ a\ =\ b)
+((c::'a::ring_no_zero_divisors)\ *\ (a::'a::ring_no_zero_divisors) =\isanewline
+\ c\ *\ (b::'a::ring_no_zero_divisors))\ =\isanewline
+(c\ =\ (0::'a::ring_no_zero_divisors)\ \isasymor\ a\ =\ b)
 \end{isabelle}
 
 

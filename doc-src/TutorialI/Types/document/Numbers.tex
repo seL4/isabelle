@@ -543,9 +543,9 @@ Requires a field, or else an ordered ring
 \rulename{mult_cancel_right}
 
 \begin{isabelle}%
-{\isacharparenleft}a\ {\isacharasterisk}\ c\ {\isacharequal}\ b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
+{\isacharparenleft}c\ {\isacharasterisk}\ a\ {\isacharequal}\ c\ {\isacharasterisk}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
 \end{isabelle}
-\rulename{field_mult_cancel_right}%
+\rulename{mult_cancel_left}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -567,11 +567,11 @@ Requires a field, or else an ordered ring
 effect of show sorts on the above
 
 \begin{isabelle}%
-{\isacharparenleft}{\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isasymColon}division{\isacharunderscore}ring{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}c{\isasymColon}{\isacharprime}a{\isasymColon}division{\isacharunderscore}ring{\isacharparenright}\ {\isacharequal}\isanewline
-\isaindent{{\isacharparenleft}}{\isacharparenleft}b{\isasymColon}{\isacharprime}a{\isasymColon}division{\isacharunderscore}ring{\isacharparenright}\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\isanewline
-{\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isasymColon}division{\isacharunderscore}ring{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
+{\isacharparenleft}{\isacharparenleft}c{\isasymColon}{\isacharprime}a{\isasymColon}ring{\isacharunderscore}no{\isacharunderscore}zero{\isacharunderscore}divisors{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isasymColon}ring{\isacharunderscore}no{\isacharunderscore}zero{\isacharunderscore}divisors{\isacharparenright}\ {\isacharequal}\isanewline
+\isaindent{{\isacharparenleft}}c\ {\isacharasterisk}\ {\isacharparenleft}b{\isasymColon}{\isacharprime}a{\isasymColon}ring{\isacharunderscore}no{\isacharunderscore}zero{\isacharunderscore}divisors{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
+{\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isasymColon}ring{\isacharunderscore}no{\isacharunderscore}zero{\isacharunderscore}divisors{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
 \end{isabelle}
-\rulename{field_mult_cancel_right}%
+\rulename{mult_cancel_left}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
