@@ -246,18 +246,12 @@ Requires a field, or else an ordered ring
 
 @{thm[display] mult_cancel_right[no_vars]}
 \rulename{mult_cancel_right}
-
-@{thm[display] field_mult_cancel_right[no_vars]}
-\rulename{field_mult_cancel_right}
 *}
 
 ML{*set show_sorts*}
 
 text{*
 effect of show sorts on the above
-
-@{thm[display] field_mult_cancel_right[no_vars]}
-\rulename{field_mult_cancel_right}
 *}
 
 ML{*reset show_sorts*}
