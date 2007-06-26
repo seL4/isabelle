@@ -329,10 +329,7 @@ text{*Problem 49  NOT PROVED AUTOMATICALLY.
   the type constraint ensures that x,y,z have the same type as a,b,u. *}
 lemma "(\<exists>x y::'a. \<forall>z. z=x | z=y) & P(a) & P(b) & (~a=b)
                 --> (\<forall>u::'a. P(u))"
-apply safe
-apply (rule_tac x = a in allE, assumption)
-apply (rule_tac x = b in allE, assumption, fast)  --{*blast's treatment of equality can't do it*}
-done
+by metis
 
 text{*Problem 50.  (What has this to do with equality?) *}
 lemma "(\<forall>x. P a x | (\<forall>y. P x y)) --> (\<exists>x. \<forall>y. P x y)"
@@ -807,8 +804,7 @@ lemma
 proof -
   from a b d have "\<forall>x. T(i x x)" by blast
   from a b c d have "\<forall>x. T(i x (n(n x)))" --{*Problem 66*}
-    by meson
-      --{*SLOW: 18s on griffon. 208346 inferences, depth 23 *}
+    by metis
   from a b c d have "\<forall>x. T(i (n(n x)) x)" --{*Problem 67*}
     by meson
       --{*4.9s on griffon. 51061 inferences, depth 21 *}
@@ -819,126 +815,5 @@ oops
 text{*Problem 71, as found in TPTP (SYN007+1.005)*}
 lemma "p1 = (p2 = (p3 = (p4 = (p5 = (p1 = (p2 = (p3 = (p4 = p5))))))))"
 by blast
-
-
-subsection{*Examples of proof reconstruction*}
-
-text{*A manual resolution proof of problem 19.*}
-lemma "\<exists>x. \<forall>y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))"
-proof (neg_clausify)
-  fix x
-  assume P: "\<And>U. P U" 
-     and Q: "\<And>U. ~ Q U"
-     and PQ: "~ P x | Q x"
-  have 1: "\<And>U. Q x"
-    by (meson P PQ)
-  show "False"
-    by (meson Q 1)
-qed
-
-
-text{*A lengthy proof of a significant theorem: @{text singleton_example_1}*}
-
-text{*Full single-step proof*}
-lemma "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-proof (neg_clausify)
-  fix S :: "'a set set"
-  assume 1: "\<And>Z. ~ (S \<subseteq> {Z})"
-     and 2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
-  have 10: "!!U V. U \<notin> S | V \<notin> S | ~ V \<subseteq> U | V = U"
-    by (meson equalityI 2) 
-  have 11: "!!U V. U \<notin> S | V \<notin> S | V = U"
-    by (meson 10 2) 
-  have 13: "!!U V. U \<notin> S | S \<subseteq> V | U = sko_Set_XsubsetI_1_ S V"
-    by (meson subsetI 11)
-  have 14: "!!U V. S \<subseteq> U | S \<subseteq> V | sko_Set_XsubsetI_1_ S U = sko_Set_XsubsetI_1_ S V"
-    by (meson subsetI 13)
-  have 29: "!!U V. S \<subseteq> U |  sko_Set_XsubsetI_1_ S U = sko_Set_XsubsetI_1_ S {V}"
-    by (meson 1 14)
-  have 58: "!!U V. sko_Set_XsubsetI_1_ S {U} = sko_Set_XsubsetI_1_ S {V}"
-    by (meson 1 29)
-    (*hacked here while we wait for Metis: !!U V complicates proofs.*)
-  have 82: "sko_Set_XsubsetI_1_ S {U} \<notin> {V} | S \<subseteq> {V}"
-    apply (insert 58 [of U V], erule ssubst)
-    by (meson 58 subsetI)
-  have 85: "sko_Set_XsubsetI_1_ S {U} \<notin> {V}"
-    by (meson 1 82)
-  show False
-    by (meson insertI1 85)
-qed
-
-text{*Partially condensed proof*}
-lemma singleton_example_1:
-     "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-proof (neg_clausify)
-  fix S :: "'a set set"
-  assume 1: "\<And>Z. ~ (S \<subseteq> {Z})"
-     and 2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
-  have 13: "!!U V. U \<notin> S | S \<subseteq> V | U = sko_Set_XsubsetI_1_ S V"
-    by (meson subsetI equalityI 2)
-  have 58: "!!U V. sko_Set_XsubsetI_1_ S {U} = sko_Set_XsubsetI_1_ S {V}"
-    by (meson 1 subsetI 13)
-    (*hacked here while we wait for Metis: !!U V complicates proofs.*)
-  have 82: "sko_Set_XsubsetI_1_ S {U} \<notin> {V} | S \<subseteq> {V}"
-    apply (insert 58 [of U V], erule ssubst)
-    by (meson 58 subsetI)
-  show False
-    by (meson insertI1 1 82)
-qed
-
-(**Not working: needs Metis
-text{*More condensed proof*}
-lemma "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-proof (neg_clausify)
-  fix S :: "'a set set"
-  assume 1: "\<And>Z. ~ (S \<subseteq> {Z})"
-     and 2: "\<And>X Y. X \<notin> S | Y \<notin> S | X \<subseteq> Y"
-  have 58: "!!U V. sko_Set_XsubsetI_1_ S {U} = sko_Set_XsubsetI_1_ S {V}"
-    by (meson 1 subsetI_0 equalityI 2)
-  show False
-    by (iprover intro: subsetI_1 insertI1 1 58 elim: ssubst)  
-qed
-***)
-
-(*These are based on the following SPASS proof:
-
-Here is a proof with depth 6, length 15 :
-1[0:Inp] ||  -> c_in(U,c_insert(U,V,W),W)*.
-2[0:Inp] ||  -> c_lessequals(U,V,tc_set(W)) c_in(c_Main_OsubsetI__1(U,V,W),U,W)*
-.
-3[0:Inp] || c_in(c_Main_OsubsetI__1(U,V,W),V,W)* -> c_lessequals(U,V,tc_set(W)).
-
-4[0:Inp] || c_lessequals(U,V,tc_set(W))* c_lessequals(V,U,tc_set(W))* -> equal(U
-,V).
-
-5[0:Inp] || c_lessequals(v_S,c_insert(U,c_emptyset,tc_set(t_a)),tc_set(tc_set(t_
-a)))* -> .
-
-6[0:Inp] || c_in(U,v_S,tc_set(t_a)) c_in(V,v_S,tc_set(t_a)) -> c_lessequals(U,V,
-tc_set(t_a))*.
-10[0:Res:6.2,4.1] || c_in(U,v_S,tc_set(t_a)) c_in(V,v_S,tc_set(t_a)) c_lessequal
-s(V,U,tc_set(t_a))* -> equal(V,U).
-11[0:MRR:10.2,6.2] || c_in(U,v_S,tc_set(t_a))*+ c_in(V,v_S,tc_set(t_a))* -> equa
-l(V,U)*.
-13[0:Res:2.1,11.0] || c_in(U,v_S,tc_set(t_a))*+ -> c_lessequals(v_S,V,tc_set(tc_set(t_a)))* equal(U,c_Main_OsubsetI__1(v_S,V,tc_set(t_a)))*.
-
-14[0:Res:2.1,13.0] ||  -> c_lessequals(v_S,U,tc_set(tc_set(t_a)))* c_lessequals(
-v_S,V,tc_set(tc_set(t_a)))* equal(c_Main_OsubsetI__1(v_S,U,tc_set(t_a)),c_Main_OsubsetI__1(v_S,V,tc_set(t_a)))*.
-
-29[0:Res:14.1,5.0] ||  -> c_lessequals(v_S,U,tc_set(tc_set(t_a)))* equal(c_Main_
-OsubsetI__1(v_S,U,tc_set(t_a)),c_Main_OsubsetI__1(v_S,c_insert(V,c_emptyset,tc_s
-et(t_a)),tc_set(t_a)))*.
-58[0:Res:29.0,5.0] ||  -> equal(c_Main_OsubsetI__1(v_S,c_insert(U,c_emptyset,tc_
-set(t_a)),tc_set(t_a)),c_Main_OsubsetI__1(v_S,c_insert(V,c_emptyset,tc_set(t_a))
-,tc_set(t_a)))*.
-
-82[0:SpL:58.0,3.0] || c_in(c_Main_OsubsetI__1(v_S,c_insert(U,c_emptyset,tc_set(t_a)),tc_set(t_a)),c_insert(V,c_emptyset,tc_set(t_a)),tc_set(t_a))* -> c_lessequals(v_S,c_insert(V,c_emptyset,tc_set(t_a)),tc_set(tc_set(t_a))).
-
-85[0:MRR:82.1,5.0] || c_in(c_Main_OsubsetI__1(v_S,c_insert(U,c_emptyset,tc_set(t
-_a)),tc_set(t_a)),c_insert(V,c_emptyset,tc_set(t_a)),tc_set(t_a))* -> .
-
-86[0:UnC:85.0,1.0] ||  -> .
-Formulae used in the proof :
-*)
 
 end
