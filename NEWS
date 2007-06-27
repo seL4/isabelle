@@ -610,6 +610,9 @@ instead of "arbitrary"
 
 * Lemma collections ring_eq_simps, group_eq_simps and ring_distrib
   have been improved and renamed to ring_simps, group_simps and ring_distribs.
+  Removed lemmas field_xyz in Ring_and_Field
+  because they were subsumed by lemmas xyz.
+INCOMPATIBILITY.
 
 * Library/Pretty_Int.thy: maps HOL numerals on target language integer literals
   when generating code.
