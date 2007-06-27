@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Resolution :> Resolution =

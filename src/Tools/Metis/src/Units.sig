@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Units =

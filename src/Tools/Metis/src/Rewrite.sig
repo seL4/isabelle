@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Rewrite =

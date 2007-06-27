@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MLTON SPECIFIC FUNCTIONS                                                  *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Portable :> Portable =

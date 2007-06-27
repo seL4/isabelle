@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SUPPORT FOR LAZY EVALUATION                                               *)
-(* Copyright (c) 2007 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* Copyright (c) 2007 Joe Hurd, distributed under the BSD License      *)
 (* ========================================================================= *)
 
 signature Lazy =

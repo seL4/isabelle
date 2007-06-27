@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* RANDOM FINITE MODELS                                                      *)
-(* Copyright (c) 2003-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2003-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Model :> Model =

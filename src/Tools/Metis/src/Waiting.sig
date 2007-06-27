@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE WAITING SET OF CLAUSES                                                *)
-(* Copyright (c) 2002-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Waiting =

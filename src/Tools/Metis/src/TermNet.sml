@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure TermNet :> TermNet =

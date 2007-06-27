@@ -13,7 +13,7 @@ structure Metis = struct end;
 
 (* ========================================================================= *)
 (* ML SPECIFIC FUNCTIONS                                                     *)
-(* Copyright (c) 2001-2004 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Portable =
@@ -1032,7 +1032,7 @@ end;
 
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
-(* Copyright (c) 2001-2005 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2005 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Useful =
@@ -1345,7 +1345,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
-(* Copyright (c) 2001-2004 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Useful :> Useful =
@@ -2040,7 +2040,7 @@ end;
 
 (* ========================================================================= *)
 (* SUPPORT FOR LAZY EVALUATION                                               *)
-(* Copyright (c) 2007 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* Copyright (c) 2007 Joe Hurd, distributed under the BSD License      *)
 (* ========================================================================= *)
 
 signature Lazy =
@@ -2066,7 +2066,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* SUPPORT FOR LAZY EVALUATION                                               *)
-(* Copyright (c) 2007 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* Copyright (c) 2007 Joe Hurd, distributed under the BSD License      *)
 (* ========================================================================= *)
 
 structure Lazy :> Lazy =
@@ -2103,7 +2103,7 @@ end;
 
 (* ========================================================================= *)
 (* ORDERED TYPES                                                             *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Ordered =
@@ -2145,7 +2145,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* ORDERED TYPES                                                             *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure IntOrdered =
@@ -2159,7 +2159,7 @@ end;
 
 (* ========================================================================= *)
 (* FINITE SETS                                                               *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Set =
@@ -2281,7 +2281,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FINITE SETS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure RandomSet :> Set =
@@ -2898,7 +2898,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FINITE SETS                                                               *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Set = RandomSet;
@@ -2908,7 +2908,7 @@ end;
 
 (* ========================================================================= *)
 (* FINITE SETS WITH A FIXED ELEMENT TYPE                                     *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature ElementSet =
@@ -3024,7 +3024,7 @@ end
 
 (* ========================================================================= *)
 (* FINITE SETS WITH A FIXED ELEMENT TYPE                                     *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 functor ElementSet (Key : Ordered) :> ElementSet where type element = Key.t =
@@ -3150,7 +3150,7 @@ ElementSet (StringOrdered);
 
 (* ========================================================================= *)
 (* FINITE MAPS                                                               *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Map =
@@ -3262,7 +3262,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FINITE MAPS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure RandomMap :> Map =
@@ -3893,7 +3893,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FINITE MAPS                                                               *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Map = RandomMap;
@@ -3903,7 +3903,7 @@ end;
 
 (* ========================================================================= *)
 (* FINITE MAPS WITH A FIXED KEY TYPE                                         *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature KeyMap =
@@ -4009,7 +4009,7 @@ end
 
 (* ========================================================================= *)
 (* FINITE MAPS WITH A FIXED KEY TYPE                                         *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 functor KeyMap (Key : Ordered) :> KeyMap where type key = Key.t =
@@ -4127,7 +4127,7 @@ KeyMap (StringOrdered);
 
 (* ========================================================================= *)
 (* PRESERVING SHARING OF ML VALUES                                           *)
-(* Copyright (c) 2005-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2005-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Sharing =
@@ -4173,7 +4173,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* PRESERVING SHARING OF ML VALUES                                           *)
-(* Copyright (c) 2005-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2005-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Sharing :> Sharing =
@@ -4256,7 +4256,7 @@ end;
 
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Stream =
@@ -4357,7 +4357,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Stream :> Stream =
@@ -4563,7 +4563,7 @@ end;
 
 (* ========================================================================= *)
 (* A HEAP DATATYPE FOR ML                                                    *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Heap =
@@ -4603,7 +4603,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* A HEAP DATATYPE FOR ML                                                    *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Heap :> Heap =
@@ -4684,7 +4684,7 @@ end;
 
 (* ========================================================================= *)
 (* PARSING AND PRETTY PRINTING                                               *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Parser =
@@ -4837,7 +4837,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* PARSER COMBINATORS                                                        *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Parser :> Parser =
@@ -5237,7 +5237,7 @@ end;
 
 (* ========================================================================= *)
 (* PROCESSING COMMAND LINE OPTIONS                                           *)
-(* Copyright (c) 2003-2004 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2003-2004 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Options =
@@ -5339,7 +5339,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* PROCESSING COMMAND LINE OPTIONS                                           *)
-(* Copyright (c) 2003-2004 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2003-2004 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Options :> Options =
@@ -5597,7 +5597,7 @@ end;
 
 (* ========================================================================= *)
 (* NAMES                                                                     *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Name =
@@ -5621,7 +5621,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* NAMES                                                                     *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Name :> Name =
@@ -5710,7 +5710,7 @@ end;
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC TERMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Term =
@@ -5896,7 +5896,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC TERMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Term :> Term =
@@ -6560,7 +6560,7 @@ end;
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC SUBSTITUTIONS                                           *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Subst =
@@ -6668,7 +6668,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC SUBSTITUTIONS                                           *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Subst :> Subst =
@@ -6880,7 +6880,7 @@ end;
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC ATOMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Atom =
@@ -7026,7 +7026,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC ATOMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Atom :> Atom =
@@ -7275,7 +7275,7 @@ end;
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Formula =
@@ -7463,7 +7463,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Formula :> Formula =
@@ -7982,7 +7982,7 @@ end;
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC LITERALS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Literal =
@@ -8154,7 +8154,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC LITERALS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Literal :> Literal =
@@ -8431,7 +8431,7 @@ end;
 
 (* ========================================================================= *)
 (* A LOGICAL KERNEL FOR FIRST ORDER CLAUSES                                  *)
-(* Copyright (c) 2001-2004 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Thm =
@@ -8588,7 +8588,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* A LOGICAL KERNEL FOR FIRST ORDER CLAUSES                                  *)
-(* Copyright (c) 2001-2004 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Thm :> Thm =
@@ -8815,7 +8815,7 @@ end;
 
 (* ========================================================================= *)
 (* PROOFS IN FIRST ORDER LOGIC                                               *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Proof =
@@ -8873,7 +8873,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* PROOFS IN FIRST ORDER LOGIC                                               *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Proof :> Proof =
@@ -9256,7 +9256,7 @@ end;
 
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Rule =
@@ -9535,7 +9535,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Rule :> Rule =
@@ -10302,7 +10302,7 @@ end;
 
 (* ========================================================================= *)
 (* NORMALIZING FORMULAS                                                      *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Normalize =
@@ -10332,7 +10332,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* NORMALIZING FORMULAS                                                      *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Normalize :> Normalize =
@@ -11398,7 +11398,7 @@ end;
 
 (* ========================================================================= *)
 (* RANDOM FINITE MODELS                                                      *)
-(* Copyright (c) 2003-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2003-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Model =
@@ -11501,7 +11501,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* RANDOM FINITE MODELS                                                      *)
-(* Copyright (c) 2003-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2003-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Model :> Model =
@@ -12104,7 +12104,7 @@ end;
 
 (* ========================================================================= *)
 (* SOME SAMPLE PROBLEMS TO TEST PROOF PROCEDURES                             *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Problem =
@@ -12170,7 +12170,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* SOME SAMPLE PROBLEMS TO TEST PROOF PROCEDURES                             *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Problem :> Problem =
@@ -12359,7 +12359,7 @@ end;
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature TermNet =
@@ -12418,7 +12418,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure TermNet :> TermNet =
@@ -12840,7 +12840,7 @@ end;
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC ATOMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature AtomNet =
@@ -12897,7 +12897,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC ATOMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure AtomNet :> AtomNet =
@@ -12960,7 +12960,7 @@ end;
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC LITERALS           *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature LiteralNet =
@@ -13019,7 +13019,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC LITERALS           *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure LiteralNet :> LiteralNet =
@@ -13097,7 +13097,7 @@ end;
 
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Subsume =
@@ -13157,7 +13157,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Subsume :> Subsume =
@@ -13495,7 +13495,7 @@ end;
 
 (* ========================================================================= *)
 (* THE KNUTH-BENDIX TERM ORDERING                                            *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature KnuthBendixOrder =
@@ -13526,7 +13526,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* KNUTH-BENDIX TERM ORDERING CONSTRAINTS                                    *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure KnuthBendixOrder :> KnuthBendixOrder =
@@ -13781,7 +13781,7 @@ end;
 
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Rewrite =
@@ -13877,7 +13877,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Rewrite :> Rewrite =
@@ -14533,7 +14533,7 @@ end;
 
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Units =
@@ -14591,7 +14591,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Units :> Units =
@@ -14701,7 +14701,7 @@ end;
 
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Clause =
@@ -14815,7 +14815,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002-2004 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2004 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Clause :> Clause =
@@ -15168,7 +15168,7 @@ end;
 
 (* ========================================================================= *)
 (* THE ACTIVE SET OF CLAUSES                                                 *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Active =
@@ -15227,7 +15227,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* THE ACTIVE SET OF CLAUSES                                                 *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Active :> Active =
@@ -16034,7 +16034,7 @@ end;
 
 (* ========================================================================= *)
 (* THE WAITING SET OF CLAUSES                                                *)
-(* Copyright (c) 2002-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Waiting =
@@ -16091,7 +16091,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* THE WAITING SET OF CLAUSES                                                *)
-(* Copyright (c) 2002-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Waiting :> Waiting =
@@ -16272,7 +16272,7 @@ end;
 
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Resolution =
@@ -16330,7 +16330,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Resolution :> Resolution =
@@ -16432,7 +16432,7 @@ end;
 
 (* ========================================================================= *)
 (* INTERFACE TO TPTP PROBLEM FILES                                           *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Tptp =
@@ -16520,7 +16520,7 @@ val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
 (* INTERFACE TO TPTP PROBLEM FILES                                           *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 structure Tptp :> Tptp =

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PRESERVING SHARING OF ML VALUES                                           *)
-(* Copyright (c) 2005-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2005-2006 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Sharing =
