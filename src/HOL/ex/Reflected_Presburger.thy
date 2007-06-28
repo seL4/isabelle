@@ -1,5 +1,5 @@
 theory Reflected_Presburger
-imports GCD Main EfficientNat
+imports GCD EfficientNat
 uses ("coopereif.ML") ("coopertac.ML")
 begin
 
@@ -1902,18 +1902,21 @@ constdefs pa:: "fm \<Rightarrow> fm"
 
 theorem mirqe: "(Ifm bbs bs (pa p) = Ifm bbs bs p) \<and> qfree (pa p)"
   using qelim_ci cooper prep by (auto simp add: pa_def)
-declare zdvd_iff_zmod_eq_0 [code]
 
-code_module GeneratedCooper
-file "generated_cooper.ML"
-contains pa = "pa"
-test = "%x . pa (E(A(Imp (Ge (Sub (Bound 0) (Bound 1))) (E(E(Eq(Sub(Add(Mul 3 (Bound 1)) (Mul 5 (Bound 0))) (Bound 2))))))))"
+definition
+  cooper_test :: "unit \<Rightarrow> fm"
+where
+  "cooper_test u = pa (E (A (Imp (Ge (Sub (Bound 0) (Bound 1)))
+    (E (E (Eq (Sub (Add (Mul 3 (Bound 1)) (Mul 5 (Bound 0)))
+      (Bound 2))))))))"
 
-ML{* use "generated_cooper.ML"; 
-     GeneratedCooper.test (); *}
+code_gen pa cooper_test in SML
+
+ML {* structure GeneratedCooper = struct open ROOT end *}
+ML {* GeneratedCooper.Reflected_Presburger.cooper_test () *}
 use "coopereif.ML"
 oracle linzqe_oracle ("term") = Coopereif.cooper_oracle
-use"coopertac.ML"
+use "coopertac.ML"
 setup "LinZTac.setup"
 
   (* Tests *)

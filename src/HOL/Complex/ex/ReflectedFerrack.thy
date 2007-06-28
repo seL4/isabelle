@@ -482,7 +482,7 @@ recdef numgcdh "measure size"
   "numgcdh (C i) = (\<lambda>g. igcd i g)"
   "numgcdh (CN n c t) = (\<lambda>g. igcd c (numgcdh t g))"
   "numgcdh t = (\<lambda>g. 1)"
-defs numgcd_def: "numgcd t \<equiv> numgcdh t (maxcoeff t)"
+defs numgcd_def [code func]: "numgcd t \<equiv> numgcdh t (maxcoeff t)"
 
 recdef reducecoeffh "measure size"
   "reducecoeffh (C i) = (\<lambda> g. C (i div g))"
@@ -1008,26 +1008,41 @@ proof (induct t rule: rsplit0.induct)
 qed(auto simp add: Let_def split_def ring_simps , simp add: right_distrib[symmetric])
 
     (* Linearize a formula*)
-consts 
+definition
   lt :: "int \<Rightarrow> num \<Rightarrow> fm"
-  le :: "int \<Rightarrow> num \<Rightarrow> fm"
-  gt :: "int \<Rightarrow> num \<Rightarrow> fm"
-  ge :: "int \<Rightarrow> num \<Rightarrow> fm"
-  eq :: "int \<Rightarrow> num \<Rightarrow> fm"
-  neq :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  "lt c t = (if c = 0 then (Lt t) else if c > 0 then (Lt (CN 0 c t)) 
+    else (Gt (CN 0 (-c) (Neg t))))"
 
-defs lt_def: "lt c t \<equiv> (if c = 0 then (Lt t) else if c > 0 then (Lt (CN 0 c t)) 
-                        else (Gt (CN 0 (-c) (Neg t))))"
-defs le_def: "le c t \<equiv> (if c = 0 then (Le t) else if c > 0 then (Le (CN 0 c t)) 
-                        else (Ge (CN 0 (-c) (Neg t))))"
-defs gt_def: "gt c t \<equiv> (if c = 0 then (Gt t) else if c > 0 then (Gt (CN 0 c t)) 
-                        else (Lt (CN 0 (-c) (Neg t))))"
-defs ge_def: "ge c t \<equiv> (if c = 0 then (Ge t) else if c > 0 then (Ge (CN 0 c t)) 
-                        else (Le (CN 0 (-c) (Neg t))))"
-defs eq_def: "eq c t \<equiv> (if c = 0 then (Eq t) else if c > 0 then (Eq (CN 0 c t)) 
-                        else (Eq (CN 0 (-c) (Neg t))))"
-defs neq_def: "neq c t \<equiv> (if c = 0 then (NEq t) else if c > 0 then (NEq (CN 0 c t)) 
-                        else (NEq (CN 0 (-c) (Neg t))))"
+definition
+  le :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  "le c t = (if c = 0 then (Le t) else if c > 0 then (Le (CN 0 c t)) 
+    else (Ge (CN 0 (-c) (Neg t))))"
+
+definition
+  gt :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  "gt c t = (if c = 0 then (Gt t) else if c > 0 then (Gt (CN 0 c t)) 
+    else (Lt (CN 0 (-c) (Neg t))))"
+
+definition
+  ge :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  "ge c t = (if c = 0 then (Ge t) else if c > 0 then (Ge (CN 0 c t)) 
+    else (Le (CN 0 (-c) (Neg t))))"
+
+definition
+  eq :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  "eq c t = (if c = 0 then (Eq t) else if c > 0 then (Eq (CN 0 c t)) 
+    else (Eq (CN 0 (-c) (Neg t))))"
+
+definition
+  neq :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  "neq c t = (if c = 0 then (NEq t) else if c > 0 then (NEq (CN 0 c t)) 
+    else (NEq (CN 0 (-c) (Neg t))))"
 
 lemma lt: "numnoabs t \<Longrightarrow> Ifm bs (split lt (rsplit0 t)) = Ifm bs (Lt t) \<and> isrlfm (split lt (rsplit0 t))"
 using rsplit0[where bs = "bs" and t="t"]
@@ -1972,17 +1987,26 @@ theorem linrqe: "(Ifm bs (linrqe p) = Ifm bs p) \<and> qfree (linrqe p)"
 using ferrack qelim_ci prep
 unfolding linrqe_def by auto
 
-code_module Ferrack
-file "generated_ferrack.ML"
-contains linrqe = "linrqe"
-test = "%x . linrqe (A(A(Imp (Lt(Sub (Bound 1) (Bound 0))) (E(Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
+definition
+  ferrack_test :: "unit \<Rightarrow> fm"
+where
+  "ferrack_test u = linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
+    (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
 
-ML{* use "generated_ferrack.ML"*}
-ML "Ferrack.test ()"
+code_gen linrqe ferrack_test in SML
 
+ML {* structure Ferrack = struct open ROOT end *}
+
+(*code_module Ferrack
+  contains
+    linrqe = linrqe
+    test = ferrack_test*)
+
+ML {* Ferrack.ReflectedFerrack.ferrack_test () *}
+
+code_gen linrqe ferrack_test in SML file "~~/../../gen_code/ferrack.ML"
 use "linreif.ML"
 oracle linr_oracle ("term") = ReflectedFerrack.linrqe_oracle
-
 use"linrtac.ML"
 setup "LinrTac.setup"
 
