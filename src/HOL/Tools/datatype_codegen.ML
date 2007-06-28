@@ -11,8 +11,6 @@ sig
   val get_eq_datatype: theory -> string -> thm list
   val dest_case_expr: theory -> term
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option
-  val add_datatype_case_const: string -> theory -> theory
-  val add_datatype_case_defs: string -> theory -> theory
 
   type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
     -> theory -> theory
@@ -408,19 +406,6 @@ fun get_eq_datatype thy dtco =
 
 end;
 
-fun add_datatype_case_const dtco thy =
-  let
-    val {case_name, index, descr, ...} = DatatypePackage.the_datatype thy dtco;
-  in
-    CodegenPackage.add_appconst (case_name, CodegenPackage.appgen_case dest_case_expr) thy
-  end;
-
-fun add_datatype_case_defs dtco thy =
-  let
-    val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
-  in
-    fold_rev (CodegenData.add_func true) case_rewrites thy
-  end;
 
 
 (** codetypes for code 2nd generation **)
@@ -595,6 +580,20 @@ fun eq_hook specs =
 
 
 (** theory setup **)
+
+fun add_datatype_case_const dtco thy =
+  let
+    val {case_name, index, descr, ...} = DatatypePackage.the_datatype thy dtco;
+  in
+    CodegenPackage.add_appconst (case_name, CodegenPackage.appgen_case dest_case_expr) thy
+  end;
+
+fun add_datatype_case_defs dtco thy =
+  let
+    val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
+  in
+    fold_rev (CodegenData.add_func true) case_rewrites thy
+  end;
 
 val setup = 
   add_codegen "datatype" datatype_codegen

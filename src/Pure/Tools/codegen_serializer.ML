@@ -266,14 +266,14 @@ val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 val dest_name =
   apfst NameSpace.implode o split_last o fst o split_last o NameSpace.explode;
 
-fun mk_modl_name_tab empty_names prefix module_alias code =
+fun mk_modl_name_tab init_names prefix module_alias code =
   let
     fun nsp_map f = NameSpace.explode #> map f #> NameSpace.implode;
     fun mk_alias name =
      case module_alias name
       of SOME name' => name'
        | NONE => nsp_map (fn name => (the_single o fst)
-            (Name.variants [name] empty_names)) name;
+            (Name.variants [name] init_names)) name;
     fun mk_prefix name =
       case prefix
        of SOME prefix => NameSpace.append prefix name
@@ -297,7 +297,7 @@ datatype ml_def =
         * ((class * (string * (string * dict list list))) list
       * (string * iterm) list));
 
-fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons ml_def =
+fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
   let
     val pr_label_classrel = translate_string (fn "." => "__" | c => c) o NameSpace.qualifier;
     val pr_label_classop = NameSpace.base o NameSpace.qualifier;
@@ -432,7 +432,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
                       (fn c => if (is_some o const_syntax) c
                         then NONE else (SOME o NameSpace.base o deresolv) c)
                         ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
-                    val vars = keyword_vars
+                    val vars = init_syms
                       |> CodegenNames.intro_vars consts
                       |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                            (insert (op =)) ts []);
@@ -539,7 +539,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons 
                   (fn c => if (is_some o const_syntax) c
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     (CodegenThingol.fold_constnames (insert (op =)) t []);
-                val vars = CodegenNames.intro_vars consts keyword_vars;
+                val vars = CodegenNames.intro_vars consts init_syms;
               in
                 concat [
                   (str o pr_label_classop) classop,
@@ -570,7 +570,7 @@ fun pr_sml_modl name content =
     str ("end; (*struct " ^ name ^ "*)")
   ]);
 
-fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_cons ml_def =
+fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
   let
     fun pr_dicts fxy ds =
       let
@@ -685,7 +685,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_con
                   (fn c => if (is_some o const_syntax) c
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
-                val vars = keyword_vars
+                val vars = init_syms
                   |> CodegenNames.intro_vars consts
                   |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
@@ -700,7 +700,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_con
                       (fn c => if (is_some o const_syntax) c
                         then NONE else (SOME o NameSpace.base o deresolv) c)
                         ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
-                    val vars = keyword_vars
+                    val vars = init_syms
                       |> CodegenNames.intro_vars consts
                       |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                           (insert (op =)) ts []);
@@ -726,7 +726,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_con
                       (fn c => if (is_some o const_syntax) c
                         then NONE else (SOME o NameSpace.base o deresolv) c)
                         ((fold o CodegenThingol.fold_constnames) (insert (op =)) (map snd eqs) []);
-                    val vars = keyword_vars
+                    val vars = init_syms
                       |> CodegenNames.intro_vars consts;
                     val dummy_parms = (map str o fish_parms vars o map fst) eqs;
                   in
@@ -824,7 +824,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name keyword_vars deresolv is_con
                   (fn c => if (is_some o const_syntax) c
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     (CodegenThingol.fold_constnames (insert (op =)) t []);
-                val vars = CodegenNames.intro_vars consts keyword_vars;
+                val vars = CodegenNames.intro_vars consts init_syms;
               in
                 concat [
                   (str o deresolv) classop,
@@ -860,7 +860,7 @@ fun pr_ocaml_modl name content =
 val code_width = ref 80;
 fun code_output p = Pretty.setmp_margin (!code_width) Pretty.output p ^ "\n";
 
-fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module_alias module_prolog
+fun seri_ml pr_def pr_modl output labelled_name reserved_syms module_alias module_prolog
   (_ : string -> class_syntax option) tyco_syntax const_syntax code =
   let
     val is_cons = fn node => case CodegenThingol.get_def code node
@@ -869,11 +869,11 @@ fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module
     datatype node =
         Def of string * ml_def option
       | Module of string * ((Name.context * Name.context) * node Graph.T);
-    val empty_names = reserved_ml |> fold Name.declare reserved_user;
-    val empty_module = ((empty_names, empty_names), Graph.empty);
+    val init_names = Name.make_context reserved_syms;
+    val init_module = ((init_names, init_names), Graph.empty);
     fun map_node [] f = f
       | map_node (m::ms) f =
-          Graph.default_node (m, Module (m, empty_module))
+          Graph.default_node (m, Module (m, init_module))
           #> Graph.map_node m (fn (Module (dmodlname, (nsp, nodes))) => Module (dmodlname, (nsp, map_node ms f nodes)));
     fun map_nsp_yield [] f (nsp, nodes) =
           let
@@ -883,14 +883,14 @@ fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module
           let
             val (x, nodes') =
               nodes
-              |> Graph.default_node (m, Module (m, empty_module))
+              |> Graph.default_node (m, Module (m, init_module))
               |> Graph.map_node_yield m (fn Module (dmodlname, nsp_nodes) => 
                   let
                     val (x, nsp_nodes') = map_nsp_yield ms f nsp_nodes
                   in (x, Module (dmodlname, nsp_nodes')) end)
           in (x, (nsp, nodes')) end;
-    val init_vars = CodegenNames.make_vars (ML_Syntax.reserved_names @ reserved_user);
-    val name_modl = mk_modl_name_tab empty_names NONE module_alias code;
+    val init_syms = CodegenNames.make_vars reserved_syms;
+    val name_modl = mk_modl_name_tab init_names NONE module_alias code;
     fun name_def upper name nsp =
       let
         val (_, base) = dest_name name;
@@ -994,7 +994,7 @@ fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module
           add_group mk_inst defs
       | group_defs defs = error ("Illegal mutual dependencies: " ^ (commas o map (labelled_name o fst)) defs)
     val (_, nodes) =
-      empty_module
+      init_module
       |> fold group_defs (map (AList.make (Graph.get_node code))
           (rev (Graph.strong_conn code)))
     fun deresolver prefix name = 
@@ -1017,7 +1017,7 @@ fun seri_ml pr_def pr_modl reserved_ml output labelled_name reserved_user module
     fun pr_node prefix (Def (_, NONE)) =
           NONE
       | pr_node prefix (Def (_, SOME def)) =
-          SOME (pr_def tyco_syntax const_syntax labelled_name init_vars (deresolver prefix) is_cons def)
+          SOME (pr_def tyco_syntax const_syntax labelled_name init_syms (deresolver prefix) is_cons def)
       | pr_node prefix (Module (dmodlname, (_, nodes))) =
           SOME (pr_modl dmodlname (the_prolog (NameSpace.implode (prefix @ [dmodlname]))
             @ separate (str "") ((map_filter (pr_node (prefix @ [dmodlname]) o Graph.get_node nodes)
@@ -1034,16 +1034,8 @@ fun isar_seri_sml file =
       | SOME file => File.write (Path.explode file) o code_output;
   in
     parse_args (Scan.succeed ())
-    #> (fn () => seri_ml pr_sml pr_sml_modl ML_Syntax.reserved output)
+    #> (fn () => seri_ml pr_sml pr_sml_modl output)
   end;
-
-val reserved_ocaml = Name.make_context ["and", "as", "assert", "begin", "class",
-  "constraint", "do", "done", "downto", "else", "end", "exception",
-  "external", "false", "for", "fun", "function", "functor", "if",
-  "in", "include", "inherit", "initializer", "lazy", "let", "match", "method",
-  "module", "mutable", "new", "object", "of", "open", "or", "private", "rec",
-  "sig", "struct", "then", "to", "true", "try", "type", "val",
-  "virtual", "when", "while", "with", "mod"];
 
 fun isar_seri_ocaml file =
   let
@@ -1055,7 +1047,7 @@ fun isar_seri_ocaml file =
     val output_diag = writeln o code_output;
   in
     parse_args (Scan.succeed ())
-    #> (fn () => seri_ml pr_ocaml pr_ocaml_modl reserved_ocaml output)
+    #> (fn () => seri_ml pr_ocaml pr_ocaml_modl output)
   end;
 
 
@@ -1072,7 +1064,7 @@ val pr_bind_haskell = gen_pr_bind pr_bind';
 
 in
 
-fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars deresolv_here deresolv deriving_show def =
+fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms deresolv_here deresolv deriving_show def =
   let
     fun class_name class = case class_syntax class
      of NONE => deresolv class
@@ -1161,14 +1153,14 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
     and pr_bind fxy = pr_bind_haskell pr_term fxy;
     fun pr_def (name, CodegenThingol.Fun (eqs, (vs, ty))) =
           let
-            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) init_syms;
             fun pr_eq (ts, t) =
               let
                 val consts = map_filter
                   (fn c => if (is_some o const_syntax) c
                     then NONE else (SOME o NameSpace.base o deresolv) c)
                     ((fold o CodegenThingol.fold_constnames) (insert (op =)) (t :: ts) []);
-                val vars = keyword_vars
+                val vars = init_syms
                   |> CodegenNames.intro_vars consts
                   |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                        (insert (op =)) ts []);
@@ -1193,7 +1185,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
           end
       | pr_def (name, CodegenThingol.Datatype (vs, [])) =
           let
-            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) init_syms;
           in
             semicolon [
               str "data",
@@ -1202,7 +1194,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
           end
       | pr_def (name, CodegenThingol.Datatype (vs, [(co, [ty])])) =
           let
-            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) init_syms;
           in
             semicolon (
               str "newtype"
@@ -1215,7 +1207,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
           end
       | pr_def (name, CodegenThingol.Datatype (vs, co :: cos)) =
           let
-            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) init_syms;
             fun pr_co (co, tys) =
               concat (
                 (str o deresolv_here) co
@@ -1233,7 +1225,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
           end
       | pr_def (name, CodegenThingol.Class (superclasss, (v, classops))) =
           let
-            val tyvars = CodegenNames.intro_vars [v] keyword_vars;
+            val tyvars = CodegenNames.intro_vars [v] init_syms;
             fun pr_classop (classop, ty) =
               semicolon [
                 (str o classop_name name) classop,
@@ -1253,14 +1245,14 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name keyword_vars 
           end
       | pr_def (_, CodegenThingol.Classinst ((class, (tyco, vs)), (_, classop_defs))) =
           let
-            val tyvars = CodegenNames.intro_vars (map fst vs) keyword_vars;
+            val tyvars = CodegenNames.intro_vars (map fst vs) init_syms;
             fun pr_instdef (classop, t) =
                 let
                   val consts = map_filter
                     (fn c => if (is_some o const_syntax) c
                       then NONE else (SOME o NameSpace.base o deresolv) c)
                       (CodegenThingol.fold_constnames (insert (op =)) t []);
-                  val vars = keyword_vars
+                  val vars = init_syms
                     |> CodegenNames.intro_vars consts;
                 in
                   semicolon [
@@ -1304,18 +1296,12 @@ fun pretty_haskell_monad c_mbind c_kbind =
 
 end; (*local*)
 
-val reserved_haskell = [
-  "hiding", "deriving", "where", "case", "of", "infix", "infixl", "infixr",
-  "import", "default", "forall", "let", "in", "class", "qualified", "data",
-  "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
-];
-
-fun seri_haskell module_prefix destination string_classes labelled_name reserved_user module_alias module_prolog
+fun seri_haskell module_prefix destination string_classes labelled_name reserved_syms module_alias module_prolog
   class_syntax tyco_syntax const_syntax code =
   let
     val _ = Option.map File.check destination;
-    val empty_names = Name.make_context (reserved_haskell @ reserved_user);
-    val name_modl = mk_modl_name_tab empty_names module_prefix module_alias code;
+    val init_names = Name.make_context reserved_syms;
+    val name_modl = mk_modl_name_tab init_names module_prefix module_alias code;
     fun add_def (name, (def, deps)) =
       let
         val (modl, base) = dest_name name;
@@ -1349,7 +1335,7 @@ fun seri_haskell module_prefix destination string_classes labelled_name reserved
                 cons (name, ((NameSpace.append modlname' base', base'), NONE))
             | _ => cons (name, ((NameSpace.append modlname' base', base'), SOME def));
       in
-        Symtab.map_default (modlname', ([], ([], (empty_names, empty_names))))
+        Symtab.map_default (modlname', ([], ([], (init_names, init_names))))
               (apfst (fold (insert (op = : string * string -> bool)) deps))
         #> `(fn code => add_name ((snd o snd o the o Symtab.lookup code) modlname'))
         #-> (fn (base', names) =>
@@ -1359,7 +1345,7 @@ fun seri_haskell module_prefix destination string_classes labelled_name reserved
     val code' =
       fold add_def (AList.make (fn name => (Graph.get_node code name, Graph.imm_succs code name))
         (Graph.strong_conn code |> flat)) Symtab.empty;
-    val init_vars = CodegenNames.make_vars (reserved_haskell @ reserved_user);
+    val init_syms = CodegenNames.make_vars reserved_syms;
     fun deresolv name =
       (fst o fst o the o AList.lookup (op =) ((fst o snd o the
         o Symtab.lookup code') ((name_modl o fst o dest_name) name))) name
@@ -1380,7 +1366,7 @@ fun seri_haskell module_prefix destination string_classes labelled_name reserved
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
-    fun seri_def qualified = pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_vars
+    fun seri_def qualified = pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
       deresolv_here (if qualified then deresolv else deresolv_here)
       (if string_classes then deriving_show else K false);
     fun write_module (SOME destination) modlname =
@@ -1445,7 +1431,7 @@ fun isar_seri_haskell file =
 
 fun seri_diagnosis labelled_name _ _ _ _ _ code =
   let
-    val init_vars = CodegenNames.make_vars reserved_haskell;
+    val init_names = CodegenNames.make_vars [];
     fun pr_fun "fun" = SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
           brackify_infix (1, R) fxy [
             pr_typ (INFX (1, X)) ty1,
@@ -1453,7 +1439,7 @@ fun seri_diagnosis labelled_name _ _ _ _ _ code =
             pr_typ (INFX (1, R)) ty2
           ])
       | pr_fun _ = NONE
-    val pr = pr_haskell (K NONE) pr_fun (K NONE) labelled_name init_vars I I (K false);
+    val pr = pr_haskell (K NONE) pr_fun (K NONE) labelled_name init_names I I (K false);
   in
     []
     |> Graph.fold (fn (name, (def, _)) => case try pr (name, def) of SOME p => cons p | NONE => I) code
@@ -1616,7 +1602,7 @@ fun eval_term thy labelled_name code ((ref_name, reff), t) args =
     val val_name' = "ROOT.eval.EVAL";
     val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
     val data = (the o Symtab.lookup (CodegenSerializerData.get thy)) "SML"
-    val reserved = the_reserved data;
+    val reserved_syms = the_reserved data;
     val { alias, prolog } = the_syntax_modl data;
     val { class, inst, tyco, const } = the_syntax_expr data;
     fun eval p = (
@@ -1637,7 +1623,7 @@ fun eval_term thy labelled_name code ((ref_name, reff), t) args =
     |> CodegenThingol.project_code
         (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const)
           (SOME [val_name])
-    |> seri_ml pr_sml pr_sml_modl ML_Syntax.reserved I (labelled_name thy) reserved
+    |> seri_ml pr_sml pr_sml_modl I (labelled_name thy) reserved_syms
         (Symtab.lookup alias) (Symtab.lookup prolog)
         (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
     |> eval
@@ -1913,7 +1899,11 @@ fun gen_add_haskell_monad prep_const c_run c_mbind c_kbind thy =
   end;
 
 fun add_reserved target =
-  map_reserveds target o insert (op =);
+  let
+    fun add sym syms = if member (op =) syms sym
+      then error ("Reserved symbol " ^ quote sym ^ " already declared")
+      else insert (op =) sym syms
+  in map_reserveds target o add end;
 
 fun add_modl_alias target =
   map_syntax_modls target o apfst o Symtab.update o apsnd CodegenNames.check_modulename;
@@ -2111,6 +2101,7 @@ val _ = OuterSyntax.add_keywords [infixK, infixlK, infixrK];
 val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_constP,
   code_reservedP, code_modulenameP, code_moduleprologP, code_monadP];
 
+
 (*including serializer defaults*)
 val _ = Context.add_setup (
   add_syntax_tyco "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
@@ -2131,9 +2122,23 @@ val _ = Context.add_setup (
         str "->",
         pr_typ (INFX (1, R)) ty2
       ]))
-  (*IntInt resp. Big_int are added later when code extraction for numerals is set up*)
-  #> fold (add_reserved "SML") ["o" (*dictionary projections use it already*),
-      "div", "mod" (*infixes*)]
+  #> fold (add_reserved "SML") ML_Syntax.reserved_names
+  #> fold (add_reserved "SML")
+      ["o" (*dictionary projections use it already*), "div", "mod" (*standard infixes*)]
+  #> fold (add_reserved "OCaml") [
+      "and", "as", "assert", "begin", "class",
+      "constraint", "do", "done", "downto", "else", "end", "exception",
+      "external", "false", "for", "fun", "function", "functor", "if",
+      "in", "include", "inherit", "initializer", "lazy", "let", "match", "method",
+      "module", "mutable", "new", "object", "of", "open", "or", "private", "rec",
+      "sig", "struct", "then", "to", "true", "try", "type", "val",
+      "virtual", "when", "while", "with", "mod"
+    ]
+  #> fold (add_reserved "Haskell") [
+      "hiding", "deriving", "where", "case", "of", "infix", "infixl", "infixr",
+      "import", "default", "forall", "let", "in", "class", "qualified", "data",
+      "newtype", "instance", "if", "then", "else", "type", "as", "do", "module"
+    ]
   #> fold (add_reserved "Haskell") [
       "Prelude", "Main", "Bool", "Maybe", "Either", "Ordering", "Char", "String", "Int",
       "Integer", "Float", "Double", "Rational", "IO", "Eq", "Ord", "Enum", "Bounded",
@@ -2142,7 +2147,7 @@ val _ = Context.add_setup (
       "BlockedOnDeadMVar", "Deadlock", "Denormal", "DivideByZero", "DotNetException", "DynException",
       "Dynamic", "EOF", "EQ", "EmptyRec", "ErrorCall", "ExitException", "ExitFailure",
       "ExitSuccess", "False", "GT", "HeapOverflow",
-      "IO", "IOError", "IOException", "IllegalOperation",
+      "IOError", "IOException", "IllegalOperation",
       "IndexOutOfBounds", "Just", "Key", "LT", "Left", "LossOfPrecision", "NoMethodError",
       "NoSuchThing", "NonTermination", "Nothing", "Obj", "OtherError", "Overflow",
       "PatternMatchFail", "PermissionDenied", "ProtocolError", "RecConError", "RecSelError",
