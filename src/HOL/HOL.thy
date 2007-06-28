@@ -1630,7 +1630,7 @@ code_reserved SML
   bool true false not
 
 code_reserved OCaml
-  bool true false not
+  bool not
 
 
 text {* type prop *}
