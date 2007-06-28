@@ -43,6 +43,8 @@ struct
 
 open IntInf;
 
+type integer = int;
+
 val int = fromInt;
 
 val zero = int 0;
@@ -110,6 +112,3 @@ fun a <=% b = Integer.le a b;
 fun a >% b = b <% a;
 fun a >=% b = b <=% a;
 fun a <>% b = not (a =% b);
-
-val gcd = uncurry Integer.gcd; (*FIXME*)
-val lcm = uncurry Integer.lcm; (*FIXME*)
