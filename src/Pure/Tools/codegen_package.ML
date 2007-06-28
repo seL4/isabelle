@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Code generator extraction kernel. Code generator Isar setup.
+Code generator translation kernel.  Code generator Isar setup.
 *)
 
 signature CODEGEN_PACKAGE =
@@ -12,12 +12,13 @@ sig
   val satisfies: theory -> term -> string list -> bool;
   val codegen_command: theory -> string -> unit;
 
+  (*axiomatic interfaces*)
   type appgen;
   val add_appconst: string * appgen -> theory -> theory;
+  val appgen_let: appgen;
   val appgen_case: (theory -> term
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option)
     -> appgen;
-  val appgen_let: appgen;
 
   val timing: bool ref;
 end;
@@ -30,7 +31,7 @@ val tracing = CodegenThingol.tracing;
 val succeed = CodegenThingol.succeed;
 val fail = CodegenThingol.fail;
 
-(** code extraction **)
+(** code translation **)
 
 (* theory data *)
 
@@ -119,7 +120,7 @@ fun prep_eqs thy (thms as thm :: _) =
   in (ty, thms') end;
 
 
-(* extraction kernel *)
+(* translation kernel *)
 
 fun check_strict (false, _) has_seri x =
       false
@@ -394,7 +395,7 @@ and select_appgen thy algbr funcgr strct ((c, ty), ts) trns =
         |> appgen_default thy algbr funcgr strct ((c, ty), ts);
 
 
-(* entrance points into extraction kernel *)
+(* entrance points into translation kernel *)
 
 fun ensure_def_const' thy algbr funcgr strct c trns =
   ensure_def_const thy algbr funcgr strct c trns
@@ -419,7 +420,7 @@ fun exprgen_term' thy algbr funcgr strct t trns =
 
 
 (* parametrized application generators, for instantiation in object logic *)
-(* (axiomatic extensions of extraction kernel *)
+(* (axiomatic extensions of translation kernel) *)
 
 fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
   let
@@ -440,11 +441,7 @@ fun appgen_let thy algbr funcgr strct (app as (_, [st, ct])) trns =
   trns
   |> exprgen_term thy algbr funcgr strct ct
   ||>> exprgen_term thy algbr funcgr strct st
-  |-> (fn ((v, ty) `|-> be, se) =>
-            pair (ICase ((se, ty), case be
-              of ICase ((IVar w, _), ds) => if v = w then ds else [(IVar v, be)]
-               | _ => [(IVar v, be)]
-            ))
+  |-> (fn ((v, ty) `|-> be, se) => pair (CodegenThingol.collapse_let (((v, ty), se), be))
         | _ => appgen_default thy algbr funcgr strct app);
 
 fun add_appconst (c, appgen) thy =

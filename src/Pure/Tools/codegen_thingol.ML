@@ -50,6 +50,7 @@ sig
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
   val unfold_const_app: iterm ->
     ((string * (dict list list * itype list)) * iterm list) option;
+  val collapse_let: ((vname * itype) * iterm) * iterm -> iterm;
   val eta_expand: (string * (dict list list * itype list)) * iterm list -> int -> iterm;
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
@@ -223,6 +224,18 @@ fun fold_unbound_varnames f =
       | add vs (ICase ((td, _), bs)) =
           add vs td #> fold (fn (p, t) => add vs p #> add vs t) bs;
   in add [] end;
+
+fun collapse_let (((v, ty), se), be as ICase ((IVar w, _), ds)) =
+      let
+        fun exists_v t = fold_unbound_varnames (fn w => fn b =>
+          b orelse v = w) t false;
+      in if v = w andalso forall (fn (t1, t2) =>
+        exists_v t1 orelse not (exists_v t2)) ds
+        then ICase ((se, ty), ds)
+        else ICase ((se, ty), [(IVar v, be)])
+      end
+  | collapse_let (((v, ty), se), be) =
+      ICase ((se, ty), [(IVar v, be)])
 
 fun eta_expand (c as (_, (_, tys)), ts) k =
   let
