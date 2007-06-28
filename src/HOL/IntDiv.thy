@@ -1062,13 +1062,21 @@ by (simp add: linorder_not_le [symmetric] neg_imp_zdiv_nonneg_iff)
 subsection {* The Divides Relation *}
 
 lemma zdvd_iff_zmod_eq_0: "(m dvd n) = (n mod m = (0::int))"
-by(simp add:dvd_def zmod_eq_0_iff)
+  by (simp add: dvd_def zmod_eq_0_iff)
+
+definition
+  dvd_int :: "int \<Rightarrow> int \<Rightarrow> bool"
+where
+  "dvd_int = op dvd"
+
+lemmas [code inline] = dvd_int_def [symmetric]
+lemmas [code, folded dvd_int_def, code func] = zdvd_iff_zmod_eq_0
 
 lemmas zdvd_iff_zmod_eq_0_number_of [simp] =
   zdvd_iff_zmod_eq_0 [of "number_of x" "number_of y", standard]
 
 lemma zdvd_0_right [iff]: "(m::int) dvd 0"
-by (simp add: dvd_def)
+  by (simp add: dvd_def)
 
 lemma zdvd_0_left [iff]: "(0 dvd (m::int)) = (m = 0)"
   by (simp add: dvd_def)
@@ -1077,10 +1085,10 @@ lemma zdvd_1_left [iff]: "1 dvd (m::int)"
   by (simp add: dvd_def)
 
 lemma zdvd_refl [simp]: "m dvd (m::int)"
-by (auto simp add: dvd_def intro: zmult_1_right [symmetric])
+  by (auto simp add: dvd_def intro: zmult_1_right [symmetric])
 
 lemma zdvd_trans: "m dvd n ==> n dvd k ==> m dvd (k::int)"
-by (auto simp add: dvd_def intro: mult_assoc)
+  by (auto simp add: dvd_def intro: mult_assoc)
 
 lemma zdvd_zminus_iff: "(m dvd -n) = (m dvd (n::int))"
   apply (simp add: dvd_def, auto)
