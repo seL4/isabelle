@@ -311,7 +311,7 @@ fun unify ctxt q =
   | Const("Not",_)$_ => h (acc,dacc) (Thm.dest_arg t)
   | _ => (acc, dacc)
   val (cs,ds) = h ([],[]) p
-  val l = fold (curry lcm) (cs union ds) 1
+  val l = fold Integer.lcm (cs union ds) 1
   fun cv k ct = 
     let val (tm as b$s$t) = term_of ct 
     in ((HOLogic.eq_const bT)$tm$(b$(linear_cmul k s)$(linear_cmul k t))
@@ -404,7 +404,7 @@ let
   | NDvd (d,s) => (bacc,aacc,insert int_eq (term_of d|> dest_numeral) dacc)
   | _ => (bacc, aacc, dacc)
  val (b0,a0,ds) = h p ([],[],[])
- val d = fold (curry lcm) ds 1
+ val d = fold Integer.lcm ds 1
  val cd = mk_cnumber @{ctyp "int"} d
  val dt = term_of cd
  fun divprop x = 
