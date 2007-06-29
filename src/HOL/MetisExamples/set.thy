@@ -11,10 +11,11 @@ begin
 
 lemma "EX x X. ALL y. EX z Z. (~P(y,y) | P(x,x) | ~S(z,x)) &
                (S(x,y) | ~S(y,z) | Q(Z,Z))  &
-               (Q(X,y) | ~Q(y,Z) | S(X,X))";
-by metis;
+               (Q(X,y) | ~Q(y,Z) | S(X,X))"
+by metis
+(*??But metis can't prove the single-step version...*)
 
-(*??Single-step reconstruction fails due to "assume?"*)
+
 
 lemma "P(n::nat) ==> ~P(0) ==> n ~= 0"
 by metis
@@ -220,11 +221,11 @@ lemma fixedpoint:
 proof (neg_clausify)
 fix x xa
 assume 0: "f (g x) = x"
-assume 1: "\<And>mes_oip. mes_oip = x \<or> f (g mes_oip) \<noteq> mes_oip"
-assume 2: "\<And>mes_oio. g (f (xa mes_oio)) = xa mes_oio \<or> g (f mes_oio) \<noteq> mes_oio"
-assume 3: "\<And>mes_oio. g (f mes_oio) \<noteq> mes_oio \<or> xa mes_oio \<noteq> mes_oio"
+assume 1: "\<And>A. A = x \<or> f (g A) \<noteq> A"
+assume 2: "\<And>A. g (f (xa A)) = xa A \<or> g (f A) \<noteq> A"
+assume 3: "\<And>A. g (f A) \<noteq> A \<or> xa A \<noteq> A"
 have 4: "\<And>X1. g (f X1) \<noteq> X1 \<or> g x \<noteq> X1"
-  by (metis 3 2 1 2)
+  by (metis 3 1 2)
 show "False"
   by (metis 4 0)
 qed

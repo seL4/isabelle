@@ -683,70 +683,30 @@ lemma "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> f : O(g)"
 (*Version 2: single-step proof*)
 proof (neg_clausify)
 fix x
-assume 0: "\<And>mes_mb9\<Colon>'a.
-   (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) mes_mb9
-   \<le> (c\<Colon>'b\<Colon>ordered_idom) * (g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) mes_mb9"
-assume 1: "\<And>mes_mb8\<Colon>'b\<Colon>ordered_idom.
-   \<not> (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) mes_mb8)
-     \<le> mes_mb8 * \<bar>(g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x mes_mb8)\<bar>"
-have 2: "\<And>X3\<Colon>'a.
-   (c\<Colon>'b\<Colon>ordered_idom) * (g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) X3 =
-   (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) X3 \<or>
-   \<not> c * g X3 \<le> f X3"
-  by (metis Lattices.min_max.less_eq_less_inf.antisym_intro 0)
-have 3: "\<And>X3\<Colon>'b\<Colon>ordered_idom.
-   \<not> (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) \<bar>X3\<bar>)
-     \<le> \<bar>X3 * (g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>X3\<bar>)\<bar>"
-  by (metis 1 Ring_and_Field.abs_mult)
-have 4: "\<And>X3\<Colon>'b\<Colon>ordered_idom. (1\<Colon>'b\<Colon>ordered_idom) * X3 = X3"
-  by (metis Ring_and_Field.mult_cancel_left2 Finite_Set.AC_mult.f.commute)
-have 5: "\<And>X3\<Colon>'b\<Colon>ordered_idom. X3 * (1\<Colon>'b\<Colon>ordered_idom) = X3"
-  by (metis Ring_and_Field.mult_cancel_right2 Finite_Set.AC_mult.f.commute)
-have 6: "\<And>X3\<Colon>'b\<Colon>ordered_idom. \<bar>X3\<bar> * \<bar>X3\<bar> = X3 * X3"
-  by (metis Ring_and_Field.abs_mult_self Finite_Set.AC_mult.f.commute)
-have 7: "\<And>X3\<Colon>'b\<Colon>ordered_idom. (0\<Colon>'b\<Colon>ordered_idom) \<le> X3 * X3"
-  by (metis Ring_and_Field.zero_le_square Finite_Set.AC_mult.f.commute)
-have 8: "(0\<Colon>'b\<Colon>ordered_idom) \<le> (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis 7 Ring_and_Field.mult_cancel_left2)
-have 9: "\<And>X3\<Colon>'b\<Colon>ordered_idom. X3 * X3 = \<bar>X3 * X3\<bar>"
-  by (metis Ring_and_Field.abs_mult 6)
-have 10: "\<bar>1\<Colon>'b\<Colon>ordered_idom\<bar> = (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis 9 4)
-have 11: "\<And>X3\<Colon>'b\<Colon>ordered_idom. \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar> * \<bar>1\<Colon>'b\<Colon>ordered_idom\<bar>"
-  by (metis Ring_and_Field.abs_mult OrderedGroup.abs_idempotent 5)
-have 12: "\<And>X3\<Colon>'b\<Colon>ordered_idom. \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar>"
-  by (metis 11 10 5)
-have 13: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom.
-   X3 * (1\<Colon>'b\<Colon>ordered_idom) \<le> X1 \<or>
-   \<not> \<bar>X3\<bar> \<le> X1 \<or> \<not> (0\<Colon>'b\<Colon>ordered_idom) \<le> (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis OrderedGroup.abs_le_D1 Ring_and_Field.abs_mult_pos 5)
-have 14: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom.
-   X3 \<le> X1 \<or> \<not> \<bar>X3\<bar> \<le> X1 \<or> \<not> (0\<Colon>'b\<Colon>ordered_idom) \<le> (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis 13 5)
-have 15: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. X3 \<le> X1 \<or> \<not> \<bar>X3\<bar> \<le> X1"
-  by (metis 14 8)
-have 16: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. X3 \<le> X1 \<or> X1 \<le> \<bar>X3\<bar>"
-  by (metis 15 Orderings.linorder_class.less_eq_less.linear)
-have 17: "\<And>X3\<Colon>'b\<Colon>ordered_idom.
-   X3 * (g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) \<bar>X3\<bar>)
-   \<le> (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>X3\<bar>)"
-  by (metis 3 16)
-have 18: "(c\<Colon>'b\<Colon>ordered_idom) *
-(g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) \<bar>c\<bar>) =
-(f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>c\<bar>)"
-  by (metis 2 17)
-have 19: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. \<bar>X3 * X1\<bar> \<le> \<bar>\<bar>X3\<bar>\<bar> * \<bar>\<bar>X1\<bar>\<bar>"
-  by (metis 15 Ring_and_Field.abs_le_mult Ring_and_Field.abs_mult)
-have 20: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. \<bar>X3 * X1\<bar> \<le> \<bar>X3\<bar> * \<bar>X1\<bar>"
-  by (metis 19 12 12)
-have 21: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. X3 * X1 \<le> \<bar>X3\<bar> * \<bar>X1\<bar>"
-  by (metis 15 20)
-have 22: "(f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom)
- ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) \<bar>c\<Colon>'b\<Colon>ordered_idom\<bar>)
-\<le> \<bar>c\<bar> * \<bar>(g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>c\<bar>)\<bar>"
-  by (metis 21 18)
-show 23: "False"
-  by (metis 22 1)
+assume 0: "\<And>A\<Colon>'a\<Colon>type.
+   (f\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) A
+   \<le> (c\<Colon>'b\<Colon>ordered_idom) * (g\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) A"
+assume 1: "\<And>A\<Colon>'b\<Colon>ordered_idom.
+   \<not> (f\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a\<Colon>type) A)
+     \<le> A * \<bar>(g\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) (x A)\<bar>"
+have 2: "\<And>X2\<Colon>'a\<Colon>type.
+   \<not> (c\<Colon>'b\<Colon>ordered_idom) * (g\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) X2
+     < (f\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) X2"
+  by (metis 0 linorder_not_le)
+have 3: "\<And>X2\<Colon>'b\<Colon>ordered_idom.
+   \<not> (f\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a\<Colon>type) \<bar>X2\<bar>)
+     \<le> \<bar>X2 * (g\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>X2\<bar>)\<bar>"
+  by (metis abs_mult 1)
+have 4: "\<And>X2\<Colon>'b\<Colon>ordered_idom.
+   \<bar>X2 * (g\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a\<Colon>type) \<bar>X2\<bar>)\<bar>
+   < (f\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>X2\<bar>)"
+  by (metis 3 linorder_not_less)
+have 5: "\<And>X2\<Colon>'b\<Colon>ordered_idom.
+   X2 * (g\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a\<Colon>type) \<bar>X2\<bar>)
+   < (f\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>X2\<bar>)"
+  by (metis abs_less_iff 4)
+show "False"
+  by (metis 2 5)
 qed
 
 
@@ -1131,16 +1091,16 @@ lemma bigo_const3: "(c::'a::ordered_field) ~= 0 ==> (%x. 1) : O(%x. c)"
 apply (simp add: bigo_def)
 proof (neg_clausify)
 assume 0: "(c\<Colon>'a\<Colon>ordered_field) \<noteq> (0\<Colon>'a\<Colon>ordered_field)"
-assume 1: "\<And>mes_md\<Colon>'a\<Colon>ordered_field. \<not> (1\<Colon>'a\<Colon>ordered_field) \<le> mes_md * \<bar>c\<Colon>'a\<Colon>ordered_field\<bar>"
+assume 1: "\<And>A\<Colon>'a\<Colon>ordered_field. \<not> (1\<Colon>'a\<Colon>ordered_field) \<le> A * \<bar>c\<Colon>'a\<Colon>ordered_field\<bar>"
 have 2: "(0\<Colon>'a\<Colon>ordered_field) = \<bar>c\<Colon>'a\<Colon>ordered_field\<bar> \<or>
 \<not> (1\<Colon>'a\<Colon>ordered_field) \<le> (1\<Colon>'a\<Colon>ordered_field)"
   by (metis 1 field_inverse)
 have 3: "\<bar>c\<Colon>'a\<Colon>ordered_field\<bar> = (0\<Colon>'a\<Colon>ordered_field)"
-  by (metis 2 order_refl)
+  by (metis linorder_neq_iff linorder_antisym_conv1 2)
 have 4: "(0\<Colon>'a\<Colon>ordered_field) = (c\<Colon>'a\<Colon>ordered_field)"
-  by (metis OrderedGroup.abs_eq_0 3)
-show 5: "False"
-  by (metis 4 0)
+  by (metis 3 abs_eq_0)
+show "False"
+  by (metis 0 4)
 qed
 
 lemma bigo_const4: "(c::'a::ordered_field) ~= 0 ==> O(%x. 1) <= O(%x. c)"

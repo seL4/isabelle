@@ -75,19 +75,13 @@ assume 0: "(a, b) \<in> Sigma A (llabs_subgoal_1 f)"
 assume 1: "\<And>f x. llabs_subgoal_1 f x = Collect (COMBB (op = x) f)"
 assume 2: "a \<notin> A \<or> a \<noteq> f b"
 have 3: "a \<in> A"
-  by (metis SigmaD1 0)
-have 4: "b \<in> llabs_subgoal_1 f a"
-  by (metis SigmaD2 0)
-have 5: "\<And>X1 X2. X2 -` {X1} = llabs_subgoal_1 X2 X1"
-  by (metis 1 vimage_Collect_eq singleton_conv2)
-have 6: "\<And>X1 X2 X3. X1 X2 = X3 \<or> X2 \<notin> llabs_subgoal_1 X1 X3"
-  by (metis vimage_singleton_eq 5)
-have 7: "f b \<noteq> a"
-  by (metis 2 3)
-have 8: "f b = a"
-  by (metis 6 4)
+  by (metis member2_def SigmaD1 0)
+have 4: "f b \<noteq> a"
+  by (metis 3 2)
+have 5: "f b = a"
+  by (metis Domain_Id Compl_UNIV_eq singleton_conv2 vimage_Collect_eq 1 vimage_singleton_eq SigmaD2 member2_def 0)
 show "False"
-  by (metis 8 7)
+  by (metis 5 4)
 qed finish_clausify
 
 

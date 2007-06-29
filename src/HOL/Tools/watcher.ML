@@ -283,14 +283,10 @@ fun setupWatcher (ctxt, th, thm_names_list) =
 		    (trace "\nReceived Kill command";
 		     killChildren procList; keepWatching [])
 		| SOME cmds => (*  deal with commands from Isabelle process *)
-		    if length procList < 40 then    (* Execute locally  *)
 		      let val _ = trace("\nCommands from parent: " ^
 					Int.toString(length cmds))
 			  val newProcList' = checkc toParentStr (execCmds cmds procList)
 		      in trace "\nCommands executed"; keepWatching newProcList' end
-		    else  (* Execute remotely [FIXME: NOT REALLY]  *)
-		      let val newProcList' = checkc toParentStr (execCmds cmds procList)
-		      in keepWatching newProcList' end
 		| NONE => (* No new input from Isabelle *)
 		    (trace "\nNothing from parent...";
 		     keepWatching(checkc toParentStr procList)))
@@ -352,6 +348,13 @@ fun string_of_subgoal th i =
 
 fun prems_string_of th = space_implode "\n" (map string_of_cterm (cprems_of th))
 
+fun read_proof probfile =
+  let val p = ResReconstruct.txt_path probfile
+      val _ = trace("\nReading proof from file " ^ Path.implode p)
+      val msg = File.read p 
+      val _ = trace("\nProof:\n" ^ msg)
+  in  if !Output.debugging then () else File.rm p;  msg  end;
+
 fun createWatcher (ctxt, th, thm_names_list) =
  let val {pid=childpid, instr=childin, outstr=childout} = setupWatcher (ctxt,th,thm_names_list)
      fun decr_watched() =
@@ -363,8 +366,10 @@ fun createWatcher (ctxt, th, thm_names_list) =
 	    else ())
      fun proofHandler _ =
        let val _ = trace("\nIn signal handler for pid " ^ string_of_pid childpid)
-           val outcome = ResReconstruct.restore_newlines (the_default "" (TextIO.inputLine childin))
-	   val probfile = the_default "" (TextIO.inputLine childin)
+           val outcome  = valOf (TextIO.inputLine childin)
+                          handle Option => error "watcher: \"outcome\" line is missing"
+	   val probfile = valOf (TextIO.inputLine childin)
+                          handle Option => error "watcher: \"probfile\" line is missing"
 	   val sgno = number_from_filename probfile
 	   val text = string_of_subgoal th sgno
 	   fun report s = priority ("Subgoal " ^ Int.toString sgno ^ ": " ^ s);
@@ -380,7 +385,7 @@ fun createWatcher (ctxt, th, thm_names_list) =
 	       decr_watched())
 	(* print out a list of rules used from clasimpset*)
 	 else if String.isPrefix "Success" outcome
-	 then (report (outcome ^ text);
+	 then (report (read_proof probfile ^ "\n" ^ text);
 	       decr_watched())
 	  (* if proof translation failed *)
 	 else if String.isPrefix "Translation failed" outcome

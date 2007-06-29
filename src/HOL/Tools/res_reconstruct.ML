@@ -228,7 +228,7 @@ fun term_of_stree args thy t =
                     case strip_prefix ResClause.schematic_var_prefix a of
                         SOME b => make_var (b,T)
                       | NONE => make_var (a,T)    (*Variable from the ATP, say X1*)
-              in  list_comb (opr, List.map (term_of_stree [] thy) (args@ts))  end;
+              in  list_comb (opr, List.map (term_of_stree [] thy) (ts@args))  end;
 
 (*Type class literal applied to a type. Returns triple of polarity, class, type.*)
 fun constraint_of_stree pol (Br("c_Not",[t])) = constraint_of_stree (not pol) t
@@ -279,20 +279,17 @@ fun fix_sorts vt =
 
 (*Interpret a list of syntax trees as a clause, given by "real" literals and sort constraints.
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
-fun clause_of_strees_aux ctxt vt0 ts =
+fun clause_of_strees ctxt vt0 ts =
   let val (vt, dt) = lits_of_strees ctxt (vt0,[]) ts in
     singleton (ProofContext.infer_types ctxt) (TypeInfer.constrain (fix_sorts vt dt) HOLogic.boolT)
   end;
 
-(*Quantification over a list of Vars. FUXNE: for term.ML??*)
+(*Quantification over a list of Vars. FIXME: for term.ML??*)
 fun list_all_var ([], t: term) = t
   | list_all_var ((v as Var(ix,T)) :: vars, t) =
       (all T) $ Abs(string_of_indexname ix, T, abstract_over (v, list_all_var (vars,t)));
 
 fun gen_all_vars t = list_all_var (term_vars t, t);
-
-fun clause_of_strees thy vt0 ts =
-  gen_all_vars (HOLogic.mk_Trueprop (clause_of_strees_aux thy vt0 ts));
 
 fun ints_of_stree_aux (Int n, ns) = n::ns
   | ints_of_stree_aux (Br(_,ts), ns) = foldl ints_of_stree_aux ns ts;
@@ -334,22 +331,62 @@ fun dest_disj_aux (Const ("op |", _) $ t $ t') disjs = dest_disj_aux t (dest_dis
 
 fun dest_disj t = dest_disj_aux t [];
 
-(*Remove types from a term, to eliminate the randomness of type inference*)
-fun smash_types (Const(a,_)) = Const(a,dummyT)
-  | smash_types (Free(a,_)) = Free(a,dummyT)
-  | smash_types (Var(a,_)) = Var(a,dummyT)
-  | smash_types (f$t) = smash_types f $ smash_types t
-  | smash_types t = t;
+(** Finding a matching assumption. The literals may be permuted, and variable names
+    may disagree. We have to try all combinations of literals (quadratic!) and 
+    match up the variable names consistently. **)
 
-val sort_lits = sort Term.fast_term_ord o dest_disj o
-                smash_types o HOLogic.dest_Trueprop o strip_all_body;
+fun strip_alls_aux n (Const("all",_)$Abs(a,T,t))  =  
+      strip_alls_aux (n+1) (subst_bound (Var ((a,n), T), t))
+  | strip_alls_aux _ t  =  t;
+
+val strip_alls = strip_alls_aux 0;
+
+exception MATCH_LITERAL;
+
+(*Ignore types: they are not to be trusted...*)
+fun match_literal (t1$u1) (t2$u2) env =
+      match_literal t1 t2 (match_literal u1 u2 env)
+  | match_literal (Abs (_,_,t1)) (Abs (_,_,t2)) env = 
+      match_literal t1 t2 env
+  | match_literal (Bound i1) (Bound i2) env = 
+      if i1=i2 then env else raise MATCH_LITERAL
+  | match_literal (Const(a1,_)) (Const(a2,_)) env = 
+      if a1=a2 then env else raise MATCH_LITERAL
+  | match_literal (Free(a1,_)) (Free(a2,_)) env = 
+      if a1=a2 then env else raise MATCH_LITERAL
+  | match_literal (Var(ix1,_)) (Var(ix2,_)) env = insert (op =) (ix1,ix2) env
+  | match_literal _ _ env = raise MATCH_LITERAL;
+
+(*Checking that all variable associations are unique. The list env contains no
+  repetitions, but does it contain say (x,y) and (y,y)? *)
+fun good env = 
+  let val (xs,ys) = ListPair.unzip env
+  in  not (has_duplicates (op=) xs orelse has_duplicates (op=) ys)  end;
+
+(*Match one list of literals against another, ignoring types and the order of
+  literals. Sorting is unreliable because we don't have types or variable names.*)
+fun matches_aux _ [] [] = true
+  | matches_aux env (lit::lits) ts =
+      let fun match1 us [] = false
+            | match1 us (t::ts) =
+                let val env' = match_literal lit t env
+                in  (good env' andalso matches_aux env' lits (us@ts)) orelse 
+                    match1 (t::us) ts  
+                end
+                handle MATCH_LITERAL => match1 (t::us) ts
+      in  match1 [] ts  end; 
+
+(*Is this length test useful?*)
+fun matches (lits1,lits2) = 
+  length lits1 = length lits2  andalso  
+  matches_aux [] (map Envir.eta_contract lits1) (map Envir.eta_contract lits2);
 
 fun permuted_clause t =
-  let val lits = sort_lits t
+  let val lits = dest_disj t
       fun perm [] = NONE
         | perm (ctm::ctms) =
-            if forall (op aconv) (ListPair.zip (lits, sort_lits ctm)) then SOME ctm
-            else perm ctms
+            if matches (lits, dest_disj (HOLogic.dest_Trueprop (strip_alls ctm)))
+            then SOME ctm else perm ctms
   in perm end;
 
 fun have_or_show "show " lname = "show \""
@@ -364,7 +401,7 @@ fun isar_lines ctxt ctms =
                 SOME u => "assume " ^ lname ^ ": \"" ^ string_of u ^ "\"\n"
               | NONE => "assume? " ^ lname ^ ": \"" ^ string_of t ^ "\"\n")  (*no match!!*)
         | doline have (lname, t, deps) =
-            have_or_show have lname ^ string_of t ^
+            have_or_show have lname ^ string_of (gen_all_vars (HOLogic.mk_Trueprop t)) ^
             "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
       fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
         | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
@@ -373,7 +410,7 @@ fun isar_lines ctxt ctms =
 fun notequal t (_,t',_) = not (t aconv t');
 
 (*No "real" literals means only type information*)
-fun eq_types t = t aconv (HOLogic.mk_Trueprop HOLogic.true_const);
+fun eq_types t = t aconv HOLogic.true_const;
 
 fun replace_dep (old:int, new) dep = if dep=old then new else [dep];
 
@@ -465,16 +502,18 @@ val lines = String.tokens (equal #"\n");
 
 val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c);
 
-(*The output to the watcher must be a SINGLE line...clearly \t must not be used.*)
-val encode_newlines = String.translate (fn c => if c = #"\n" then "\t" else str c);
-val restore_newlines = String.translate (fn c => if c = #"\t" then "\n" else str c);
+val txt_path = Path.ext "txt" o Path.explode o nospaces;
 
 fun signal_success probfile toParent ppid msg =
-  (trace ("\nReporting Success for " ^ probfile ^ "\n" ^ msg);
-   TextIO.output (toParent, "Success. " ^ encode_newlines msg ^ "\n");
-   TextIO.output (toParent, probfile ^ "\n");
-   TextIO.flushOut toParent;
-   Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2));
+  let val _ = trace ("\nReporting Success for " ^ probfile ^ "\n" ^ msg)
+  in
+    (*We write the proof to a file because sending very long lines may fail...*)
+    File.write (txt_path probfile) msg;
+    TextIO.output (toParent, "Success.\n");
+    TextIO.output (toParent, probfile ^ "\n");
+    TextIO.flushOut toParent;
+    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2)
+  end;
 
 fun tstp_extract proofextract probfile toParent ppid ctxt th sgno thm_names =
   let val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
