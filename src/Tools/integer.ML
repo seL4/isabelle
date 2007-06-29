@@ -16,10 +16,12 @@ sig
   val string_of_int: int -> string
   val int_of_string: string -> int option
   val eq: int * int -> bool
-  val cmp: int * int -> order
+  val ord: int * int -> order
   val le: int -> int -> bool
   val lt: int -> int -> bool
-  val cmp_zero: int -> order
+  val signabs: int -> order * int
+  val sign: int -> order
+  val abs: int -> int
   val min: int -> int -> int
   val max: int -> int -> int
   val inc: int -> int
@@ -30,7 +32,6 @@ sig
   val div: int -> int -> int
   val mod: int -> int -> int
   val neg: int -> int
-  val signabs: int -> bool * int
   val exp: int -> int
   val log: int -> int
   val pow: int -> int -> int (* exponent -> base -> result *)
@@ -43,8 +44,6 @@ struct
 
 open IntInf;
 
-type integer = int;
-
 val int = fromInt;
 
 val zero = int 0;
@@ -56,10 +55,12 @@ val string_of_int = toString;
 val int_of_string = fromString;
 
 val eq = op = : int * int -> bool;
-val cmp = compare;
+val ord = compare;
 val le = curry (op <=);
 val lt = curry (op <);
-fun cmp_zero k = cmp (k, zero);
+
+fun sign k = ord (k, zero);
+fun signabs k = (ord (k, zero), abs k);
 
 val min = curry min;
 val max = curry max;
@@ -74,15 +75,18 @@ nonfix div val div = curry div;
 nonfix mod val mod = curry mod;
 val neg = ~;
 
-fun signabs k = if cmp_zero k = LESS then (false, neg k) else (true, k);
-
 fun pow k l =
   let
-    fun pw 0 = 1
-      | pw k = mult l (pw (sub k 1));
+    fun pw 0 _ = 1
+      | pw 1 l = l
+      | pw k l =
+          let
+            val (k', r) = divmod k 2;
+            val l' = pw k' (mult l l);
+          in if r = 0 then l' else mult l' l end;
   in if k < zero
     then error "pow: negative exponent"
-    else pw k
+    else pw k l
   end;
 
 fun exp k = pow k two;

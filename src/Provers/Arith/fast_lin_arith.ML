@@ -185,13 +185,13 @@ fun eval ex v (a:IntInf.int,le,cs:IntInf.int list) =
 *)
 
 fun ratrelmin2 (x as (r, ler), y as (s, les)) =
-  case Rat.cmp (r, s)
+  case Rat.ord (r, s)
    of EQUAL => (r, (not ler) andalso (not les))
     | LESS => x
     | GREATER => y;
 
 fun ratrelmax2 (x as (r, ler), y as (s, les)) =
-  case Rat.cmp (r, s)
+  case Rat.ord (r, s)
    of EQUAL => (r, ler andalso les)
     | LESS => y
     | GREATER => x;
@@ -209,7 +209,7 @@ fun ratexact up (r, exact) =
 fun ratmiddle (r, s) = Rat.mult (Rat.add r s) (Rat.inv Rat.two);
 
 fun choose2 d ((lb, exactl), (ub, exactu)) =
-  let val ord = Rat.cmp_zero lb in
+  let val ord = Rat.sign lb in
   if (ord = LESS orelse exactl) andalso (ord = GREATER orelse exactu)
     then Rat.zero
     else if not d then
@@ -237,19 +237,19 @@ fun elim1 v x =
   map (fn (a,le,bs) => (Rat.add a (Rat.neg (Rat.mult (nth bs v) x)), le,
                         nth_map v (K Rat.zero) bs));
 
-fun single_var v (_, _, cs) = case filter_out (curry (op =) EQUAL o Rat.cmp_zero) cs
+fun single_var v (_, _, cs) = case filter_out (curry (op =) EQUAL o Rat.sign) cs
  of [x] => x =/ nth cs v
   | _ => false;
 
 (* The base case:
    all variables occur only with positive or only with negative coefficients *)
 fun pick_vars discr (ineqs,ex) =
-  let val nz = filter_out (fn (_,_,cs) => forall (curry (op =) EQUAL o Rat.cmp_zero) cs) ineqs
+  let val nz = filter_out (fn (_,_,cs) => forall (curry (op =) EQUAL o Rat.sign) cs) ineqs
   in case nz of [] => ex
      | (_,_,cs) :: _ =>
-       let val v = find_index (not o curry (op =) EQUAL o Rat.cmp_zero) cs
+       let val v = find_index (not o curry (op =) EQUAL o Rat.sign) cs
            val d = nth discr v;
-           val pos = not (Rat.cmp_zero (nth cs v) = LESS);
+           val pos = not (Rat.sign (nth cs v) = LESS);
            val sv = filter (single_var v) nz;
            val minmax =
              if pos then if d then Rat.roundup o fst o ratrelmax

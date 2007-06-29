@@ -1,6 +1,6 @@
 (*  Title:      Pure/General/rat.ML
     ID:         $Id$
-    Author:     Tobias Nipkow, TU Muenchen
+    Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
 
 Canonical implementation of exact rational numbers.
 *)
@@ -17,113 +17,90 @@ sig
   val quotient_of_rat: rat -> integer * integer
   val string_of_rat: rat -> string
   val eq: rat * rat -> bool
-  val cmp: rat * rat -> order
+  val ord: rat * rat -> order
   val le: rat -> rat -> bool
   val lt: rat -> rat -> bool
-  val cmp_zero: rat -> order
+  val signabs: rat -> order * rat
+  val sign: rat -> order
+  val abs: rat -> rat
   val add: rat -> rat -> rat
   val mult: rat -> rat -> rat
   val neg: rat -> rat
   val inv: rat -> rat
-  val roundup: rat -> rat
   val rounddown: rat -> rat
+  val roundup: rat -> rat
 end;
 
 structure Rat : RAT =
 struct
 
-datatype rat = Rat of bool * integer * integer;
+fun common (p1, q1) (p2, q2) =
+  let
+    val m = Integer.lcm q1 q2;
+  in ((Integer.mult p1 (Integer.div m q1), Integer.mult p2 (Integer.div m q2)), m) end;
+
+datatype rat = Rat of integer * integer; (* nominator, denominator (positive!) *)
 
 exception DIVZERO;
 
-val zero = Rat (true, 0, 1);
-val one = Rat (true, 1, 1);
-val two = Rat (true, 2, 1);
-
-fun rat_of_int i =
-  let
-    val (a, p) = Integer.signabs i
-  in Rat (a, p, 1) end;
-
-fun norm (a, p, q) =
-  if p = 0 then Rat (true, 0, 1)
-  else
-    let
-      val (b, absp) = Integer.signabs p;
-      val m = Integer.gcd absp q;
-    in Rat (a = b, absp div m, q div m) end;
-
-fun common (p1, q1, p2, q2) =
-  let
-    val q' = Integer.lcm q1 q2;
-  in (p1 * (q' div q1), p2 * (q' div q2), q') end
-
 fun rat_of_quotient (p, q) =
   let
-    val (a, absq) = Integer.signabs q;
-  in
-    if absq = 0 then raise DIVZERO
-    else norm (a, p, absq)
-  end;
+    val m = Integer.gcd (Integer.abs p) q
+  in Rat (Integer.div p m, Integer.div q m) end handle Div => raise DIVZERO;
 
-fun quotient_of_rat (Rat (a, p, q)) = (if a then p else ~ p, q);
+fun quotient_of_rat (Rat r) = r;
 
-fun string_of_rat r =
+fun rat_of_int i = Rat (i, 1);
+
+val zero = rat_of_int 0;
+val one = rat_of_int 1;
+val two = rat_of_int 2;
+
+fun string_of_rat (Rat (p, q)) =
+  Integer.string_of_int p ^ "/" ^ Integer.string_of_int q;
+
+fun eq (Rat (p1, q1), Rat (p2, q2)) = (p1 = p2 andalso q1 = q2);
+
+fun ord (Rat (p1, q1), Rat (p2, q2)) = case (Integer.sign p1, Integer.sign p2)
+ of (LESS, EQUAL) => LESS
+  | (LESS, GREATER) => LESS
+  | (EQUAL, LESS) => GREATER
+  | (EQUAL, EQUAL) => EQUAL
+  | (EQUAL, GREATER) => LESS
+  | (GREATER, LESS) => GREATER
+  | (GREATER, EQUAL) => GREATER
+  | _ => Integer.ord (fst (common (p1, q1) (p2, q2)));
+
+fun le a b = not (ord (a, b) = GREATER);
+fun lt a b = (ord (a, b) = LESS);
+
+fun sign (Rat (p, _)) = Integer.sign p;
+
+fun abs (Rat (p, q)) = Rat (Integer.abs p, q);
+
+fun signabs (Rat (p, q)) =
   let
-    val (p, q) = quotient_of_rat r;
-  in Integer.string_of_int p ^ "/" ^ Integer.string_of_int q end;
+    val (s, p') = Integer.signabs p;
+  in (s, Rat (p', q)) end;
 
-fun eq (Rat (false, _, _), Rat (true, _, _)) = false
-  | eq (Rat (true, _, _), Rat (false, _, _)) = false
-  | eq (Rat (_, p1, q1), Rat (_, p2, q2)) = p1 = p2 andalso q1 = q2;
-
-fun cmp (Rat (false, _, _), Rat (true, _, _)) = LESS
-  | cmp (Rat (true, _, _), Rat (false, _, _)) = GREATER
-  | cmp (Rat (a, p1, q1), Rat (_, p2, q2)) =
-      let val (r1, r2, _) = common (p1, q1, p2, q2)
-      in if a then Integer.cmp (r1, r2) else Integer.cmp (r2, r1) end;
-
-fun le a b = let val order = cmp (a, b) in order = LESS orelse order = EQUAL end;
-fun lt a b = (cmp (a, b) = LESS);
-
-fun cmp_zero (Rat (false, _, _)) = LESS
-  | cmp_zero (Rat (_, 0, _)) = EQUAL
-  | cmp_zero (Rat (_, _, _)) = GREATER;
-
-fun add (Rat (a1, p1, q1)) (Rat(a2, p2, q2)) =
+fun add (Rat (p1, q1)) (Rat (p2, q2)) =
   let
-    val (r1, r2, den) = common (p1, q1, p2, q2);
-    val num = (if a1 then r1 else ~ r1)
-      + (if a2 then r2 else ~ r2);
-  in norm (true, num, den) end;
+    val ((m1, m2), n) = common (p1, q1) (p2, q2);
+  in rat_of_quotient (Integer.add m1 m2, n) end;
 
-fun mult (Rat (a1, p1, q1)) (Rat (a2, p2, q2)) =
-  norm (a1 = a2, p1 * p2, q1 * q2);
+fun mult (Rat (p1, q1)) (Rat (p2, q2)) =
+  rat_of_quotient (Integer.mult p1 p2, Integer.mult q1 q2);
 
-fun neg (r as Rat (b, p, q)) =
-  if p = 0 then r
-  else Rat (not b, p, q);
+fun neg (Rat (p, q)) = Rat (Integer.neg p, q);
 
-fun inv (Rat (a, p, q)) =
-  if q = 0 then raise DIVZERO
-  else Rat (a, q, p);
+fun inv (Rat (p, 0)) = raise DIVZERO
+  | inv (Rat (p, q)) = Rat (q, p);
 
-fun roundup (r as Rat (a, p, q)) =
-  if q = 1 then r
-  else
-    let
-      fun round true q = Rat (true, q + 1, 1)
-        | round false q =
-            Rat (q = 0, 0, 1);
-    in round a (p div q) end;
+fun rounddown (Rat (p, q)) = Rat (Integer.div p q, 1);
 
-fun rounddown (r as Rat (a, p, q)) =
-  if q = 1 then r
-  else
-    let
-      fun round true q = Rat (true, q, 1)
-        | round false q = Rat (false, q + 1, 1)
-    in round a (p div q) end;
+fun roundup (Rat (p, q)) = case Integer.divmod p q
+ of (m, 0) => Rat (m, 1)
+  | (m, _) => Rat (m + 1, 1);
 
 end;
 

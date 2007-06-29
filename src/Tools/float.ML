@@ -10,8 +10,8 @@ sig
   type float = integer * integer
   val zero: float
   val eq: float * float -> bool
-  val cmp: float * float -> order
-  val cmp_zero: float -> order
+  val ord: float * float -> order
+  val sign: float -> order
   val min: float -> float -> float
   val max: float -> float -> float
   val add: float -> float -> float
@@ -30,13 +30,13 @@ type float = integer * integer;
 val zero: float = (0, 0);
 
 fun add (a1, b1) (a2, b2) =
-  if Integer.cmp (b1, b2) = LESS then
+  if Integer.ord (b1, b2) = LESS then
     (a1 +% a2 *% Integer.exp (b2 -% b1), b1)
   else
     (a1 *% Integer.exp (b1 -% b2) +% a2, b2);
 
 fun sub (a1, b1) (a2, b2) =
-  if Integer.cmp (b1, b2) = LESS then
+  if Integer.ord (b1, b2) = LESS then
     (a1 -% a2 *% Integer.exp (b2 -% b1), b1)
   else
     (a1 *% Integer.exp (b1 -% b2) -% a2, b2);
@@ -45,14 +45,14 @@ fun neg (a, b) = (Integer.neg a, b);
 
 fun mult (a1, b1) (a2, b2) = (a1 *% a2, b1 +% b2);
 
-fun cmp_zero (a, b) = Integer.cmp_zero a;
+fun sign (a, b) = Integer.sign a;
 
-fun cmp (r, s) = cmp_zero (sub r s);
+fun ord (r, s) = sign (sub r s);
 
-fun eq (r, s) = cmp (r, s) = EQUAL;
+fun eq (r, s) = ord (r, s) = EQUAL;
 
-fun min r s = case cmp (r, s) of LESS => r | _ => s;
-fun max r s = case cmp (r, s) of LESS => s | _ => r;
+fun min r s = case ord (r, s) of LESS => r | _ => s;
+fun max r s = case ord (r, s) of LESS => s | _ => r;
 
 fun positive_part (a, b) = (Integer.max 0 a, b);
 fun negative_part (a, b) = (Integer.min 0 a, b);

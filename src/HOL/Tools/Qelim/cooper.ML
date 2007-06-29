@@ -13,7 +13,7 @@ structure Cooper: COOPER =
 struct
 open Conv;
 open Normalizer;
-structure Integertab = TableFun(type key = integer val ord = Integer.cmp);
+structure Integertab = TableFun(type key = Integer.int val ord = Integer.ord);
 exception COOPER of string * exn;
 val simp_thms_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms);
 

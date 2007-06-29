@@ -125,13 +125,13 @@ fun propagate_sure_bounds safe names g =
         fun calc_sure_bound_from_sources g (key as (_, btype)) =
             let
                 fun mult_upper x (lower, upper) =
-                    if Float.cmp_zero x = LESS then
+                    if Float.sign x = LESS then
                         Float.mult x lower
                     else
                         Float.mult x upper
 
                 fun mult_lower x (lower, upper) =
-                    if Float.cmp_zero x = LESS then
+                    if Float.sign x = LESS then
                         Float.mult x upper
                     else
                         Float.mult x lower
@@ -240,7 +240,7 @@ fun calcr safe_propagation xlen names prec A b =
                                                             UPPER => (Float.neg src_upper, Float.neg src_lower)
                                                           | LOWER => src_value
                                         in
-                                            if Float.cmp_zero src_lower = LESS then
+                                            if Float.sign src_lower = LESS then
                                                 add_edge g (src_index, UPPER) dest_key row_index coeff
                                             else
                                                 add_edge g (src_index, LOWER) dest_key row_index coeff
