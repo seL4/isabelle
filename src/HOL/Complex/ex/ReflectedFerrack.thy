@@ -2004,7 +2004,6 @@ ML {* structure Ferrack = struct open ROOT end *}
 
 ML {* Ferrack.ReflectedFerrack.ferrack_test () *}
 
-code_gen linrqe ferrack_test in SML file "~~/../../gen_code/ferrack.ML"
 use "linreif.ML"
 oracle linr_oracle ("term") = ReflectedFerrack.linrqe_oracle
 use"linrtac.ML"
