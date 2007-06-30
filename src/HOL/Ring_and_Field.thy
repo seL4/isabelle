@@ -224,19 +224,23 @@ instance pordered_cancel_semiring \<subseteq> semiring_0_cancel ..
 
 instance pordered_cancel_semiring \<subseteq> pordered_semiring .. 
 
+class ordered_semiring = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add + mult_mono
+
+instance ordered_semiring \<subseteq> pordered_cancel_semiring ..
+
 class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add +
   assumes mult_strict_left_mono: "a \<sqsubset> b \<Longrightarrow> \<^loc>0 \<sqsubset> c \<Longrightarrow> c \<^loc>* a \<sqsubset> c \<^loc>* b"
   assumes mult_strict_right_mono: "a \<sqsubset> b \<Longrightarrow> \<^loc>0 \<sqsubset> c \<Longrightarrow> a \<^loc>* c \<sqsubset> b \<^loc>* c"
 
 instance ordered_semiring_strict \<subseteq> semiring_0_cancel ..
 
-instance ordered_semiring_strict \<subseteq> pordered_cancel_semiring
-apply intro_classes
-apply (cases "a < b & 0 < c")
-apply (auto simp add: mult_strict_left_mono order_less_le)
-apply (auto simp add: mult_strict_left_mono order_le_less)
-apply (simp add: mult_strict_right_mono)
-done
+instance ordered_semiring_strict \<subseteq> ordered_semiring
+  apply (intro_classes)
+  apply (cases "a < b & 0 < c")
+  apply (auto simp add: mult_strict_left_mono order_less_le)
+  apply (auto simp add: mult_strict_left_mono order_le_less)
+  apply (simp add: mult_strict_right_mono)
+  done
 
 class mult_mono1 = times + zero + ord +
   assumes mult_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> c \<^loc>* a \<sqsubseteq> c \<^loc>* b"
@@ -289,10 +293,18 @@ instance lordered_ring \<subseteq> lordered_ab_group_join ..
 class abs_if = minus + ord + zero +
   assumes abs_if: "abs a = (if a \<sqsubset> 0 then (uminus a) else a)"
 
-class ordered_ring_strict = ring + ordered_semiring_strict + abs_if + lordered_ab_group
+(* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.
+   Basically, ordered_ring + no_zero_divisors = ordered_ring_strict.
+ *)
+class ordered_ring = ring + ordered_semiring + lordered_ab_group + abs_if
 
-instance ordered_ring_strict \<subseteq> lordered_ring
-  by intro_classes (simp add: abs_if sup_eq_if)
+instance ordered_ring \<subseteq> lordered_ring 
+  apply (intro_classes)
+  by (simp add: abs_if sup_eq_if)
+
+class ordered_ring_strict = ring + ordered_semiring_strict + lordered_ab_group + abs_if
+
+instance ordered_ring_strict \<subseteq> ordered_ring ..
 
 class pordered_comm_ring = comm_ring + pordered_comm_semiring
 
@@ -302,7 +314,7 @@ class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
   (*previously ordered_semiring*)
   assumes zero_less_one [simp]: "\<^loc>0 \<sqsubset> \<^loc>1"
 
-class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + abs_if + lordered_ab_group
+class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + lordered_ab_group + abs_if
   (*previously ordered_ring*)
 
 instance ordered_idom \<subseteq> ordered_ring_strict ..
@@ -350,11 +362,11 @@ lemma mult_right_le_imp_le:
 by (force simp add: mult_strict_right_mono linorder_not_less [symmetric])
 
 lemma mult_left_less_imp_less:
-  "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::ordered_semiring_strict)"
+  "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
 by (force simp add: mult_left_mono linorder_not_le [symmetric])
  
 lemma mult_right_less_imp_less:
-  "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring_strict)"
+  "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
 by (force simp add: mult_right_mono linorder_not_le [symmetric])
 
 lemma mult_strict_left_mono_neg:
