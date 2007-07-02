@@ -518,12 +518,13 @@ local
  fun conv ctxt p = 
   let val _ = () (* my_term := p *)
   in
-   Qelim.gen_qelim_conv ctxt pcv postcv pcv (cons o term_of) 
+   Qelim.gen_qelim_conv pcv postcv pcv (cons o term_of) 
       (term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt) 
       (cooperex_conv ctxt) p 
   end
   handle  CTERM s => raise COOPER ("Cooper Failed", CTERM s)
         | THM s => raise COOPER ("Cooper Failed", THM s) 
+        | TYPE s => raise COOPER ("Cooper Failed", TYPE s) 
 in val cooper_conv = conv 
 end;
 end;
