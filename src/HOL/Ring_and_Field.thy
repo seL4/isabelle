@@ -308,6 +308,8 @@ instance ordered_ring_strict \<subseteq> ordered_ring ..
 
 class pordered_comm_ring = comm_ring + pordered_comm_semiring
 
+instance pordered_comm_ring \<subseteq> pordered_ring ..
+
 instance pordered_comm_ring \<subseteq> pordered_cancel_comm_semiring ..
 
 class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
