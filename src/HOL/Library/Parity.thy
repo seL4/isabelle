@@ -17,25 +17,20 @@ abbreviation
   "odd x \<equiv> \<not> even x"
 
 instance int :: even_odd
-  even_def: "even x \<equiv> x mod 2 = 0" ..
+  even_def[presburger]: "even x \<equiv> x mod 2 = 0" ..
 
 instance nat :: even_odd
-  even_nat_def: "even x \<equiv> even (int x)" ..
+  even_nat_def[presburger]: "even x \<equiv> even (int x)" ..
 
 
 subsection {* Even and odd are mutually exclusive *}
 
 lemma int_pos_lt_two_imp_zero_or_one:
     "0 <= x ==> (x::int) < 2 ==> x = 0 | x = 1"
-  by auto
+  by presburger
 
-lemma neq_one_mod_two [simp]: "((x::int) mod 2 ~= 0) = (x mod 2 = 1)"
-proof -
-  have "x mod 2 = 0 | x mod 2 = 1"
-    by (rule int_pos_lt_two_imp_zero_or_one) auto
-  then show ?thesis by force
-qed
-
+lemma neq_one_mod_two [simp, presburger]: 
+  "((x::int) mod 2 ~= 0) = (x mod 2 = 1)" by presburger
 
 subsection {* Behavior under integer arithmetic operations *}
 
@@ -48,58 +43,53 @@ lemma anything_times_even: "even (y::int) ==> even (x * y)"
 lemma odd_times_odd: "odd (x::int) ==> odd y ==> odd (x * y)"
   by (simp add: even_def zmod_zmult1_eq)
 
-lemma even_product: "even((x::int) * y) = (even x | even y)"
+lemma even_product[presburger]: "even((x::int) * y) = (even x | even y)"
   apply (auto simp add: even_times_anything anything_times_even)
   apply (rule ccontr)
   apply (auto simp add: odd_times_odd)
   done
 
 lemma even_plus_even: "even (x::int) ==> even y ==> even (x + y)"
-  by (simp add: even_def zmod_zadd1_eq)
+  by presburger
 
 lemma even_plus_odd: "even (x::int) ==> odd y ==> odd (x + y)"
-  by (simp add: even_def zmod_zadd1_eq)
+  by presburger
 
 lemma odd_plus_even: "odd (x::int) ==> even y ==> odd (x + y)"
-  by (simp add: even_def zmod_zadd1_eq)
+  by presburger
 
-lemma odd_plus_odd: "odd (x::int) ==> odd y ==> even (x + y)"
-  by (simp add: even_def zmod_zadd1_eq)
+lemma odd_plus_odd: "odd (x::int) ==> odd y ==> even (x + y)" by presburger
 
-lemma even_sum: "even ((x::int) + y) = ((even x & even y) | (odd x & odd y))"
-  apply (auto intro: even_plus_even odd_plus_odd)
-  apply (rule ccontr, simp add: even_plus_odd)
-  apply (rule ccontr, simp add: odd_plus_even)
-  done
+lemma even_sum[presburger]: "even ((x::int) + y) = ((even x & even y) | (odd x & odd y))"
+  by presburger
 
-lemma even_neg: "even (-(x::int)) = even x"
-  by (auto simp add: even_def zmod_zminus1_eq_if)
+lemma even_neg[presburger]: "even (-(x::int)) = even x" by presburger
 
 lemma even_difference:
-    "even ((x::int) - y) = ((even x & even y) | (odd x & odd y))"
-  by (simp only: diff_minus even_sum even_neg)
+    "even ((x::int) - y) = ((even x & even y) | (odd x & odd y))" by presburger
 
 lemma even_pow_gt_zero:
     "even (x::int) ==> 0 < n ==> even (x^n)"
   by (induct n) (auto simp add: even_product)
 
-lemma odd_pow: "odd x ==> odd((x::int)^n)"
-  apply (induct n)
-   apply (simp add: even_def)
-  apply (simp add: even_product)
+lemma odd_pow_iff[presburger]: "odd ((x::int) ^ n) \<longleftrightarrow> (n = 0 \<or> odd x)"
+  apply (induct n, simp_all)
+  apply presburger
+  apply (case_tac n, auto)
+  apply (simp_all add: even_product)
   done
 
-lemma even_power: "even ((x::int)^n) = (even x & 0 < n)"
+lemma odd_pow: "odd x ==> odd((x::int)^n)" by (simp add: odd_pow_iff)
+
+lemma even_power[presburger]: "even ((x::int)^n) = (even x & 0 < n)"
   apply (auto simp add: even_pow_gt_zero)
   apply (erule contrapos_pp, erule odd_pow)
   apply (erule contrapos_pp, simp add: even_def)
   done
 
-lemma even_zero: "even (0::int)"
-  by (simp add: even_def)
+lemma even_zero[presburger]: "even (0::int)" by presburger
 
-lemma odd_one: "odd (1::int)"
-  by (simp add: even_def)
+lemma odd_one[presburger]: "odd (1::int)" by presburger
 
 lemmas even_odd_simps [simp] = even_def[of "number_of v",standard] even_zero
   odd_one even_product even_sum even_neg even_difference even_power
@@ -107,55 +97,37 @@ lemmas even_odd_simps [simp] = even_def[of "number_of v",standard] even_zero
 
 subsection {* Equivalent definitions *}
 
-lemma two_times_even_div_two: "even (x::int) ==> 2 * (x div 2) = x"
-  by (auto simp add: even_def)
+lemma two_times_even_div_two: "even (x::int) ==> 2 * (x div 2) = x" 
+  by presburger
 
 lemma two_times_odd_div_two_plus_one: "odd (x::int) ==>
-    2 * (x div 2) + 1 = x"
-  apply (insert zmod_zdiv_equality [of x 2, symmetric])
-  apply (simp add: even_def)
-  done
+    2 * (x div 2) + 1 = x" by presburger
 
-lemma even_equiv_def: "even (x::int) = (EX y. x = 2 * y)"
-  apply auto
-  apply (rule exI)
-  apply (erule two_times_even_div_two [symmetric])
-  done
+lemma even_equiv_def: "even (x::int) = (EX y. x = 2 * y)" by presburger
 
-lemma odd_equiv_def: "odd (x::int) = (EX y. x = 2 * y + 1)"
-  apply auto
-  apply (rule exI)
-  apply (erule two_times_odd_div_two_plus_one [symmetric])
-  done
-
+lemma odd_equiv_def: "odd (x::int) = (EX y. x = 2 * y + 1)" by presburger
 
 subsection {* even and odd for nats *}
 
 lemma pos_int_even_equiv_nat_even: "0 \<le> x ==> even x = even (nat x)"
   by (simp add: even_nat_def)
 
-lemma even_nat_product: "even((x::nat) * y) = (even x | even y)"
+lemma even_nat_product[presburger]: "even((x::nat) * y) = (even x | even y)"
   by (simp add: even_nat_def int_mult)
 
-lemma even_nat_sum: "even ((x::nat) + y) =
-    ((even x & even y) | (odd x & odd y))"
-  by (unfold even_nat_def, simp)
+lemma even_nat_sum[presburger]: "even ((x::nat) + y) =
+    ((even x & even y) | (odd x & odd y))" by presburger
 
-lemma even_nat_difference:
+lemma even_nat_difference[presburger]:
     "even ((x::nat) - y) = (x < y | (even x & even y) | (odd x & odd y))"
-  apply (auto simp add: even_nat_def zdiff_int [symmetric])
-  apply (case_tac "x < y", auto simp add: zdiff_int [symmetric])
-  apply (case_tac "x < y", auto simp add: zdiff_int [symmetric])
-  done
+by presburger
 
-lemma even_nat_Suc: "even (Suc x) = odd x"
-  by (simp add: even_nat_def)
+lemma even_nat_Suc[presburger]: "even (Suc x) = odd x" by presburger
 
-lemma even_nat_power: "even ((x::nat)^y) = (even x & 0 < y)"
+lemma even_nat_power[presburger]: "even ((x::nat)^y) = (even x & 0 < y)"
   by (simp add: even_nat_def int_power)
 
-lemma even_nat_zero: "even (0::nat)"
-  by (simp add: even_nat_def)
+lemma even_nat_zero[presburger]: "even (0::nat)" by presburger
 
 lemmas even_odd_nat_simps [simp] = even_nat_def[of "number_of v",standard]
   even_nat_zero even_nat_Suc even_nat_product even_nat_sum even_nat_power
@@ -164,62 +136,31 @@ lemmas even_odd_nat_simps [simp] = even_nat_def[of "number_of v",standard]
 subsection {* Equivalent definitions *}
 
 lemma nat_lt_two_imp_zero_or_one: "(x::nat) < Suc (Suc 0) ==>
-    x = 0 | x = Suc 0"
-  by auto
+    x = 0 | x = Suc 0" by presburger
 
 lemma even_nat_mod_two_eq_zero: "even (x::nat) ==> x mod (Suc (Suc 0)) = 0"
-  apply (insert mod_div_equality [of x "Suc (Suc 0)", symmetric])
-  apply (drule subst, assumption)
-  apply (subgoal_tac "x mod Suc (Suc 0) = 0 | x mod Suc (Suc 0) = Suc 0")
-  apply force
-  apply (subgoal_tac "0 < Suc (Suc 0)")
-  apply (frule mod_less_divisor [of "Suc (Suc 0)" x])
-  apply (erule nat_lt_two_imp_zero_or_one, auto)
-  done
+  by presburger
 
 lemma odd_nat_mod_two_eq_one: "odd (x::nat) ==> x mod (Suc (Suc 0)) = Suc 0"
-  apply (insert mod_div_equality [of x "Suc (Suc 0)", symmetric])
-  apply (drule subst, assumption)
-  apply (subgoal_tac "x mod Suc (Suc 0) = 0 | x mod Suc (Suc 0) = Suc 0")
-  apply force
-  apply (subgoal_tac "0 < Suc (Suc 0)")
-  apply (frule mod_less_divisor [of "Suc (Suc 0)" x])
-  apply (erule nat_lt_two_imp_zero_or_one, auto)
-  done
+by presburger
 
 lemma even_nat_equiv_def: "even (x::nat) = (x mod Suc (Suc 0) = 0)"
-  apply (rule iffI)
-  apply (erule even_nat_mod_two_eq_zero)
-  apply (insert odd_nat_mod_two_eq_one [of x], auto)
-  done
+  by presburger
 
 lemma odd_nat_equiv_def: "odd (x::nat) = (x mod Suc (Suc 0) = Suc 0)"
-  apply (auto simp add: even_nat_equiv_def)
-  apply (subgoal_tac "x mod (Suc (Suc 0)) < Suc (Suc 0)")
-  apply (frule nat_lt_two_imp_zero_or_one, auto)
-  done
+  by presburger
 
 lemma even_nat_div_two_times_two: "even (x::nat) ==>
-    Suc (Suc 0) * (x div Suc (Suc 0)) = x"
-  apply (insert mod_div_equality [of x "Suc (Suc 0)", symmetric])
-  apply (drule even_nat_mod_two_eq_zero, simp)
-  done
+    Suc (Suc 0) * (x div Suc (Suc 0)) = x" by presburger
 
 lemma odd_nat_div_two_times_two_plus_one: "odd (x::nat) ==>
-    Suc( Suc (Suc 0) * (x div Suc (Suc 0))) = x"
-  apply (insert mod_div_equality [of x "Suc (Suc 0)", symmetric])
-  apply (drule odd_nat_mod_two_eq_one, simp)
-  done
+    Suc( Suc (Suc 0) * (x div Suc (Suc 0))) = x" by presburger
 
 lemma even_nat_equiv_def2: "even (x::nat) = (EX y. x = Suc (Suc 0) * y)"
-  apply (rule iffI, rule exI)
-  apply (erule even_nat_div_two_times_two [symmetric], auto)
-  done
+  by presburger
 
 lemma odd_nat_equiv_def2: "odd (x::nat) = (EX y. x = Suc(Suc (Suc 0) * y))"
-  apply (rule iffI, rule exI)
-  apply (erule odd_nat_div_two_times_two_plus_one [symmetric], auto)
-  done
+  by presburger
 
 subsection {* Parity and powers *}
 
@@ -289,7 +230,7 @@ lemma zero_le_odd_power: "odd n ==>
   apply (rule zero_le_square)+
   done
 
-lemma zero_le_power_eq: "(0 <= (x::'a::{recpower,ordered_idom}) ^ n) =
+lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{recpower,ordered_idom}) ^ n) =
     (even n | (odd n & 0 <= x))"
   apply auto
   apply (subst zero_le_odd_power [symmetric])
@@ -299,7 +240,7 @@ lemma zero_le_power_eq: "(0 <= (x::'a::{recpower,ordered_idom}) ^ n) =
   apply assumption+
   done
 
-lemma zero_less_power_eq: "(0 < (x::'a::{recpower,ordered_idom}) ^ n) =
+lemma zero_less_power_eq[presburger]: "(0 < (x::'a::{recpower,ordered_idom}) ^ n) =
     (n = 0 | (even n & x ~= 0) | (odd n & 0 < x))"
   apply (rule iffI)
   apply clarsimp
@@ -328,14 +269,14 @@ lemma zero_less_power_eq: "(0 < (x::'a::{recpower,ordered_idom}) ^ n) =
   apply (erule order_less_imp_le)
   done
 
-lemma power_less_zero_eq: "((x::'a::{recpower,ordered_idom}) ^ n < 0) =
-    (odd n & x < 0)"
+lemma power_less_zero_eq[presburger]: "((x::'a::{recpower,ordered_idom}) ^ n < 0) =
+    (odd n & x < 0)" 
   apply (subst linorder_not_le [symmetric])+
   apply (subst zero_le_power_eq)
   apply auto
   done
 
-lemma power_le_zero_eq: "((x::'a::{recpower,ordered_idom}) ^ n <= 0) =
+lemma power_le_zero_eq[presburger]: "((x::'a::{recpower,ordered_idom}) ^ n <= 0) =
     (n ~= 0 & ((odd n & x <= 0) | (even n & x = 0)))"
   apply (subst linorder_not_less [symmetric])+
   apply (subst zero_less_power_eq)
@@ -348,7 +289,7 @@ lemma power_even_abs: "even n ==>
   apply (simp add: zero_le_even_power)
   done
 
-lemma zero_less_power_nat_eq: "(0 < (x::nat) ^ n) = (n = 0 | 0 < x)"
+lemma zero_less_power_nat_eq[presburger]: "(0 < (x::nat) ^ n) = (n = 0 | 0 < x)"
   by (induct n) auto
 
 lemma power_minus_even [simp]: "even n ==>
@@ -395,7 +336,7 @@ lemma even_power_le_0_imp_0:
     "a ^ (2*k) \<le> (0::'a::{ordered_idom,recpower}) ==> a=0"
   by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff power_Suc)
 
-lemma zero_le_power_iff:
+lemma zero_le_power_iff[presburger]:
   "(0 \<le> a^n) = (0 \<le> (a::'a::{ordered_idom,recpower}) | even n)"
 proof cases
   assume even: "even n"
@@ -414,33 +355,24 @@ qed
 
 subsection {* Miscellaneous *}
 
-lemma even_plus_one_div_two: "even (x::int) ==> (x + 1) div 2 = x div 2"
-  apply (subst zdiv_zadd1_eq)
-  apply (simp add: even_def)
-  done
-
-lemma odd_plus_one_div_two: "odd (x::int) ==> (x + 1) div 2 = x div 2 + 1"
-  apply (subst zdiv_zadd1_eq)
-  apply (simp add: even_def)
-  done
+lemma [presburger]:"(x + 1) div 2 = x div 2 \<longleftrightarrow> even (x::int)" by presburger
+lemma [presburger]: "(x + 1) div 2 = x div 2 + 1 \<longleftrightarrow> odd (x::int)" by presburger
+lemma even_plus_one_div_two: "even (x::int) ==> (x + 1) div 2 = x div 2"  by presburger
+lemma odd_plus_one_div_two: "odd (x::int) ==> (x + 1) div 2 = x div 2 + 1" by presburger
 
 lemma div_Suc: "Suc a div c = a div c + Suc 0 div c +
-    (a mod c + Suc 0 mod c) div c"
+    (a mod c + Suc 0 mod c) div c" 
   apply (subgoal_tac "Suc a = a + Suc 0")
   apply (erule ssubst)
   apply (rule div_add1_eq, simp)
   done
 
+lemma [presburger]: "(Suc x) div Suc (Suc 0) = x div Suc (Suc 0) \<longleftrightarrow> even x" by presburger
+lemma [presburger]: "(Suc x) div Suc (Suc 0) = x div Suc (Suc 0) \<longleftrightarrow> even x" by presburger
 lemma even_nat_plus_one_div_two: "even (x::nat) ==>
-    (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)"
-  apply (subst div_Suc)
-  apply (simp add: even_nat_equiv_def)
-  done
+    (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)" by presburger
 
 lemma odd_nat_plus_one_div_two: "odd (x::nat) ==>
-    (Suc x) div Suc (Suc 0) = Suc (x div Suc (Suc 0))"
-  apply (subst div_Suc)
-  apply (simp add: odd_nat_equiv_def)
-  done
+    (Suc x) div Suc (Suc 0) = Suc (x div Suc (Suc 0))" by presburger
 
 end
