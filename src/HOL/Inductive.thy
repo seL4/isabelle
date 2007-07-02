@@ -129,4 +129,27 @@ setup InductiveCodegen.setup
 
 use "Tools/primrec_package.ML"
 
+text{* Lambda-abstractions with pattern matching: *}
+
+syntax
+  "_fun_syntax":: "cases_syn => 'a => 'b"               ("(%_)" 10)
+syntax (xsymbols)
+  "_fun_syntax":: "cases_syn => 'a => 'b"               ("(\<lambda>_)" 10)
+
+ML{*
+local
+fun fun_tr ctxt [cs] =
+  let val ft = DatatypeCase.case_tr DatatypePackage.datatype_of_constr ctxt
+                 [Bound 0,cs]
+  in Abs("", dummyT, ft) end;
+in
+val trfun_setup =
+  Theory.add_advanced_trfuns ([],
+    [("_fun_syntax", fun_tr)],
+    [], []);
+end
+*}
+
+setup trfun_setup
+
 end
