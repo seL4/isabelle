@@ -8,10 +8,10 @@ formulae.
 
 signature QELIM =
 sig
- val gen_qelim_conv: Proof.context -> conv -> conv -> conv ->
+ val gen_qelim_conv: conv -> conv -> conv ->
    (cterm -> 'a -> 'a) -> 'a -> ('a -> cterm -> thm) ->
    ('a -> conv) -> ('a -> cterm -> thm) -> conv
- val standard_qelim_conv: Proof.context -> (cterm list -> cterm -> thm) ->
+ val standard_qelim_conv: (cterm list -> cterm -> thm) ->
    (cterm list -> conv) -> (cterm list -> cterm -> thm) -> cterm -> thm
 end;
 
@@ -25,9 +25,8 @@ open Conv;
 
 val all_not_ex = mk_meta_eq @{thm "all_not_ex"};
 
-fun gen_qelim_conv ctxt precv postcv simpex_conv ins env atcv ncv qcv =
+fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
  let
-  val thy = ProofContext.theory_of ctxt
   fun conv env p =
    case (term_of p) of
     Const(s,T)$_$_ => if domain_type T = HOLogic.boolT
@@ -63,7 +62,7 @@ val pcv = Simplifier.rewrite
                  (HOL_basic_ss addsimps (simp_thms @ ex_simps @ all_simps)
                      @ [@{thm "all_not_ex"}, not_all, ex_disj_distrib]);
 
-fun standard_qelim_conv ctxt atcv ncv qcv p =
-  gen_qelim_conv ctxt pcv pcv pcv cons (Thm.add_cterm_frees p []) atcv ncv qcv p;
+fun standard_qelim_conv atcv ncv qcv p =
+  gen_qelim_conv pcv pcv pcv cons (Thm.add_cterm_frees p []) atcv ncv qcv p;
 
 end;

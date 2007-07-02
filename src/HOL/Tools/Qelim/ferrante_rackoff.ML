@@ -212,7 +212,7 @@ fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset}) tm =
               @ [not_all,@{thm "all_not_ex"}, ex_disj_distrib], ss))
     val postcv = Simplifier.rewrite ss
     val nnf = K (nnf_conv then_conv postcv)
-    val qe_conv = Qelim.gen_qelim_conv ctxt pcv postcv pcv cons (Thm.add_cterm_frees tm []) 
+    val qe_conv = Qelim.gen_qelim_conv pcv postcv pcv cons (Thm.add_cterm_frees tm []) 
                   (isolate_conv ctxt) nnf
                   (fn vs => ferrack_conv (thy,{isolate_conv = isolate_conv ctxt, 
                                                whatis = whatis, simpset = simpset}) vs
