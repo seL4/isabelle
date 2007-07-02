@@ -385,13 +385,14 @@ Isabelle/HOL organises its numeric theories using axiomatic type classes.
 Hundreds of basic properties are proved in the theory \isa{Ring_and_Field}.
 These lemmas are available (as simprules if they were declared as such)
 for all numeric types satisfying the necessary axioms. The theory defines
-the following type classes:
+dozens of type classes, such as the following:
 \begin{itemize}
 \item 
 \tcdx{semiring} and \tcdx{ordered_semiring}: a \emph{semiring}
-provides the operators \isa{+} and~\isa{*}, which are commutative and
-associative, with the usual distributive law and with \isa{0} and~\isa{1}
-as their respective identities. An \emph{ordered semiring} is also linearly
+provides the associative operators \isa{+} and~\isa{*}, with \isa{0} and~\isa{1}
+as their respective identities. The operators enjoy the usual distributive law,
+and addition (\isa{+}) is also commutative.
+An \emph{ordered semiring} is also linearly
 ordered, with addition and multiplication respecting the ordering. Type \isa{nat} is an ordered semiring.
 \item 
 \tcdx{ring} and \tcdx{ordered_ring}: a \emph{ring} extends a semiring
@@ -409,12 +410,12 @@ However, the basic properties of fields are derived without assuming
 division by zero.
 \end{itemize}
 
-Theory \thydx{Ring_and_Field} proves over 250 lemmas, each of which
+Hundreds of basic lemmas are proved, each of which
 holds for all types in the corresponding type class. In most
-cases, it is obvious whether a property is valid for a particular type. All
-abstract properties involving subtraction require a ring, and therefore do
-not hold for type \isa{nat}, although we have theorems such as
-\isa{diff_mult_distrib} proved specifically about subtraction on
+cases, it is obvious whether a property is valid for a particular type. No
+abstract properties involving subtraction hold for type \isa{nat};
+instead, theorems such as
+\isa{diff_mult_distrib} are proved specifically about subtraction on
 type~\isa{nat}. All abstract properties involving division require a field.
 Obviously, all properties involving orderings required an ordered
 structure.
