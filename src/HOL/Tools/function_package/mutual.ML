@@ -34,6 +34,9 @@ val split_apply = thm "Product_Type.split"
 val projl_inl = thm "Sum_Type.Projl_Inl"
 val projr_inr = thm "Sum_Type.Projr_Inr"
 
+(* top-down access in balanced tree *)
+fun access_top_down {left, right, init} len i =
+    BalancedTree.access {left = (fn f => f o left), right = (fn f => f o right), init = I} len i init
 
 (* Sum types *)
 fun mk_sumT LT RT = Type ("+", [LT, RT])
@@ -42,17 +45,17 @@ fun mk_sumcase TL TR T l r = Const (@{const_name "Sum_Type.sum_case"}, (TL --> T
 val App = curry op $
 
 fun mk_inj ST n i = 
-    BalancedTree.access 
+    access_top_down 
     { init = (ST, I : term -> term),
-      left = (fn (T as Type ("+", [LT, RT]), inj) => (LT, App (Const (@{const_name "Inl"}, LT --> T)) o inj)),
-      right =(fn (T as Type ("+", [LT, RT]), inj) => (RT, App (Const (@{const_name "Inr"}, RT --> T)) o inj))} n i 
+      left = (fn (T as Type ("+", [LT, RT]), inj) => (LT, inj o App (Const (@{const_name "Inl"}, LT --> T)))),
+      right =(fn (T as Type ("+", [LT, RT]), inj) => (RT, inj o App (Const (@{const_name "Inr"}, RT --> T))))} n i 
     |> snd
 
 fun mk_proj ST n i = 
-    BalancedTree.access 
+    access_top_down 
     { init = (ST, I : term -> term),
-      left = (fn (T as Type ("+", [LT, RT]), proj) => (LT, proj o App (Const (@{const_name "Projl"}, T --> LT)))),
-      right =(fn (T as Type ("+", [LT, RT]), proj) => (RT, proj o App (Const (@{const_name "Projr"}, T --> RT))))} n i
+      left = (fn (T as Type ("+", [LT, RT]), proj) => (LT, App (Const (@{const_name "Projl"}, T --> LT)) o proj)),
+      right =(fn (T as Type ("+", [LT, RT]), proj) => (RT, App (Const (@{const_name "Projr"}, T --> RT)) o proj))} n i
     |> snd
 
 fun mk_sumcases T fs =
