@@ -133,7 +133,7 @@ apply (auto simp add: mult_strict_mono zero_le_power power_Suc
 done
 
 lemma power_eq_0_iff [simp]:
-     "(a^n = 0) = (a = (0::'a::{dom,recpower}) & 0<n)"
+     "(a^n = 0) = (a = (0::'a::{ring_1_no_zero_divisors,recpower}) & 0<n)"
 apply (induct "n")
 apply (auto simp add: power_Suc zero_neq_one [THEN not_sym])
 done
@@ -142,7 +142,7 @@ lemma field_power_eq_0_iff:
      "(a^n = 0) = (a = (0::'a::{division_ring,recpower}) & 0<n)"
 by simp (* TODO: delete *)
 
-lemma field_power_not_zero: "a \<noteq> (0::'a::{dom,recpower}) ==> a^n \<noteq> 0"
+lemma field_power_not_zero: "a \<noteq> (0::'a::{ring_1_no_zero_divisors,recpower}) ==> a^n \<noteq> 0"
 by force
 
 lemma nonzero_power_inverse:

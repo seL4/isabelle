@@ -124,18 +124,17 @@ instance comm_ring_1 \<subseteq> comm_semiring_1_cancel ..
 
 class ring_no_zero_divisors = ring + no_zero_divisors
 
-class dom = ring_1 + ring_no_zero_divisors
-hide const dom
+class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors
 
 class idom = comm_ring_1 + no_zero_divisors
 
-instance idom \<subseteq> dom ..
+instance idom \<subseteq> ring_1_no_zero_divisors ..
 
 class division_ring = ring_1 + inverse +
   assumes left_inverse [simp]:  "a \<noteq> \<^loc>0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
   assumes right_inverse [simp]: "a \<noteq> \<^loc>0 \<Longrightarrow> a \<^loc>* inverse a = \<^loc>1"
 
-instance division_ring \<subseteq> dom
+instance division_ring \<subseteq> ring_1_no_zero_divisors
 proof
   fix a b :: 'a
   assume a: "a \<noteq> 0" and b: "b \<noteq> 0"
@@ -717,22 +716,22 @@ lemma mult_less_cancel_left2:
 by (insert mult_less_cancel_left [of c a 1], simp)
 
 lemma mult_cancel_right1 [simp]:
-  fixes c :: "'a :: dom"
+  fixes c :: "'a :: ring_1_no_zero_divisors"
   shows "(c = b*c) = (c = 0 | b=1)"
 by (insert mult_cancel_right [of 1 c b], force)
 
 lemma mult_cancel_right2 [simp]:
-  fixes c :: "'a :: dom"
+  fixes c :: "'a :: ring_1_no_zero_divisors"
   shows "(a*c = c) = (c = 0 | a=1)"
 by (insert mult_cancel_right [of a c 1], simp)
  
 lemma mult_cancel_left1 [simp]:
-  fixes c :: "'a :: dom"
+  fixes c :: "'a :: ring_1_no_zero_divisors"
   shows "(c = c*b) = (c = 0 | b=1)"
 by (insert mult_cancel_left [of c 1 b], force)
 
 lemma mult_cancel_left2 [simp]:
-  fixes c :: "'a :: dom"
+  fixes c :: "'a :: ring_1_no_zero_divisors"
   shows "(c*a = c) = (c = 0 | a=1)"
 by (insert mult_cancel_left [of c a 1], simp)
 
