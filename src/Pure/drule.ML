@@ -443,7 +443,9 @@ fun freeze_thaw th =
  end;
 
 (*Rotates a rule's premises to the left by k*)
-val rotate_prems = permute_prems 0;
+fun rotate_prems 0 = I
+  | rotate_prems k = permute_prems 0 k;
+
 fun with_subgoal i f = rotate_prems (i - 1) #> f #> rotate_prems (1 - i);
 
 (* permute prems, where the i-th position in the argument list (counting from 0)
@@ -585,8 +587,8 @@ val swap_prems_eq =
 
 val imp_cong_rule = Thm.combination o Thm.combination (Thm.reflexive implies);
 
-fun arg_cong_rule ct th = Thm.combination (Thm.reflexive ct) th;    (*AP_TERM*)
-fun fun_cong_rule th ct = Thm.combination th (Thm.reflexive ct);    (*AP_THM*)
+fun arg_cong_rule ct th = Thm.combination (Thm.reflexive ct) th;    (*AP_TERM in LCF/HOL*)
+fun fun_cong_rule th ct = Thm.combination th (Thm.reflexive ct);    (*AP_THM in LCF/HOL*)
 
 local
   val dest_eq = Thm.dest_equals o cprop_of
