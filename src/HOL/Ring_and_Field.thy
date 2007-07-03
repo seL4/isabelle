@@ -234,12 +234,16 @@ class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_s
 instance ordered_semiring_strict \<subseteq> semiring_0_cancel ..
 
 instance ordered_semiring_strict \<subseteq> ordered_semiring
-  apply (intro_classes)
-  apply (cases "a < b & 0 < c")
-  apply (auto simp add: mult_strict_left_mono order_less_le)
-  apply (auto simp add: mult_strict_left_mono order_le_less)
-  apply (simp add: mult_strict_right_mono)
-  done
+proof
+  fix a b c :: 'a
+  assume A: "a \<le> b" "0 \<le> c"
+  from A show "c * a \<le> c * b"
+    unfolding order_le_less
+    using mult_strict_left_mono by auto
+  from A show "a * c \<le> b * c"
+    unfolding order_le_less
+    using mult_strict_right_mono by auto
+qed
 
 class mult_mono1 = times + zero + ord +
   assumes mult_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> c \<^loc>* a \<sqsubseteq> c \<^loc>* b"
@@ -258,26 +262,29 @@ class ordered_comm_semiring_strict = comm_semiring_0 + ordered_cancel_ab_semigro
 instance pordered_comm_semiring \<subseteq> pordered_semiring
 proof
   fix a b c :: 'a
-  assume A: "a <= b" "0 <= c"
-  with mult_mono show "c * a <= c * b" .
-
-  from mult_commute have "a * c = c * a" ..
-  also from mult_mono A have "\<dots> <= c * b" .
-  also from mult_commute have "c * b = b * c" ..
-  finally show "a * c <= b * c" .
+  assume "a \<le> b" "0 \<le> c"
+  thus "c * a \<le> c * b" by (rule mult_mono)
+  thus "a * c \<le> b * c" by (simp only: mult_commute)
 qed
 
 instance pordered_cancel_comm_semiring \<subseteq> pordered_cancel_semiring ..
 
 instance ordered_comm_semiring_strict \<subseteq> ordered_semiring_strict
-by (intro_classes, insert mult_strict_mono, simp_all add: mult_commute, blast+)
+proof
+  fix a b c :: 'a
+  assume "a < b" "0 < c"
+  thus "c * a < c * b" by (rule mult_strict_mono)
+  thus "a * c < b * c" by (simp only: mult_commute)
+qed
 
 instance ordered_comm_semiring_strict \<subseteq> pordered_cancel_comm_semiring
-apply (intro_classes)
-apply (cases "a < b & 0 < c")
-apply (auto simp add: mult_strict_left_mono order_less_le)
-apply (auto simp add: mult_strict_left_mono order_le_less)
-done
+proof
+  fix a b c :: 'a
+  assume "a \<le> b" "0 \<le> c"
+  thus "c * a \<le> c * b"
+    unfolding order_le_less
+    using mult_strict_mono by auto
+qed
 
 class pordered_ring = ring + pordered_cancel_semiring 
 
@@ -297,9 +304,12 @@ class abs_if = minus + ord + zero +
  *)
 class ordered_ring = ring + ordered_semiring + lordered_ab_group + abs_if
 
-instance ordered_ring \<subseteq> lordered_ring 
-  apply (intro_classes)
-  by (simp add: abs_if sup_eq_if)
+instance ordered_ring \<subseteq> lordered_ring
+proof
+  fix x :: 'a
+  show "\<bar>x\<bar> = sup x (- x)"
+    by (simp only: abs_if sup_eq_if)
+qed
 
 class ordered_ring_strict = ring + ordered_semiring_strict + lordered_ab_group + abs_if
 
