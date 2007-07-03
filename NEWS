@@ -541,12 +541,14 @@ the graph browser tool.
 
 *** HOL ***
 
-* Method "metis" proves goals by applying the Metis general-purpose resolution prover.
-  Examples are in the directory MetisExamples.
+* Method "metis" proves goals by applying the Metis general-purpose
+resolution prover.  Examples are in the directory MetisExamples.  See
+also http://gilith.com/software/metis/
   
-* Command "sledgehammer" invokes external automatic theorem provers as background processes.
-  It generates calls to the "metis" method if successful. These can be pasted into the proof.
-  Users do not have to wait for the automatic provers to return.
+* Command 'sledgehammer' invokes external automatic theorem provers as
+background processes.  It generates calls to the "metis" method if
+successful. These can be pasted into the proof.  Users do not have to
+wait for the automatic provers to return.
 
 * IntDef: The constant "int :: nat => int" has been removed; now "int"
   is an abbreviation for "of_nat :: nat => int". The simplification rules
