@@ -546,7 +546,7 @@ fun gen_constrains_tac(cs,ss) i =
                                    constrains_imp_Constrains] 1),
               rtac constrainsI 1,
               (* Three subgoals *)
-              Goal.rewrite_goal_tac [st_set_def] 3,
+              rewrite_goal_tac [st_set_def] 3,
               REPEAT (Force_tac 2),
               full_simp_tac (ss addsimps !program_defs_ref) 1,
               ALLGOALS (clarify_tac cs),
