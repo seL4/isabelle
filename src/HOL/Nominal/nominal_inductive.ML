@@ -243,8 +243,8 @@ fun prove_strong_ind s avoids thy =
                    let
                      val th' = gprems1 MRS
                        Thm.instantiate (Thm.first_order_match
-                         (Conjunction.mk_conjunction_list (cprems_of th),
-                          Conjunction.mk_conjunction_list (map cprop_of gprems1))) th;
+                         (Conjunction.mk_conjunction_balanced (cprems_of th),
+                          Conjunction.mk_conjunction_balanced (map cprop_of gprems1))) th;
                      val (bop, lhs, rhs) = (case concl_of th' of
                          _ $ (fresh $ lhs $ rhs) =>
                            (fn t => fn u => fresh $ t $ u, lhs, rhs)
