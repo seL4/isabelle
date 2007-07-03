@@ -18,7 +18,11 @@ sig
   val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
-  val Trueprop_conv: (cterm -> thm) -> cterm -> thm
+  val dest_cTrueprop: cterm -> cterm
+  val Trueprop_conv: conv -> conv
+  val conj_intr: thm -> thm -> thm
+  val conj_elim: thm -> thm * thm
+  val conj_elims: thm -> thm list
   val conj: term
   val disj: term
   val imp: term
@@ -137,16 +141,38 @@ fun mk_Trueprop P = Trueprop $ P;
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
-fun Trueprop_conv conv ct = (case term_of ct of
-    Const ("Trueprop", _) $ _ =>
-      let val (ct1, ct2) = Thm.dest_comb ct
-      in Thm.combination (Thm.reflexive ct1) (conv ct2) end
-  | _ => raise TERM ("Trueprop_conv", []));
+fun dest_cTrueprop ct =
+  if can dest_Trueprop (Thm.term_of ct) then Thm.dest_arg ct
+  else raise CTERM ("cdest_Trueprop", [ct]);
 
-val conj = Const ("op &", [boolT, boolT] ---> boolT)
-and disj = Const ("op |", [boolT, boolT] ---> boolT)
-and imp = Const ("op -->", [boolT, boolT] ---> boolT)
-and Not = Const ("Not", boolT --> boolT);
+fun Trueprop_conv conv ct =
+  if can dest_Trueprop (Thm.term_of ct) then Conv.arg_conv conv ct
+  else raise CTERM ("Trueprop_conv", [ct]);
+
+fun conj_intr thP thQ =
+  let
+    val (P, Q) = pairself (dest_cTrueprop o Thm.cprop_of) (thP, thQ)
+      handle CTERM (msg, _) => raise THM (msg, 0, [thP, thQ]);
+    val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
+  in Drule.implies_elim_list (inst @{thm conjI}) [thP, thQ] end;
+
+fun conj_elim thPQ =
+  let
+    val (P, Q) = Thm.dest_binop (dest_cTrueprop (Thm.cprop_of thPQ))
+      handle CTERM (msg, _) => raise THM (msg, 0, [thPQ]);
+    val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
+    val thP = Thm.implies_elim (inst @{thm conjunct1}) thPQ;
+    val thQ = Thm.implies_elim (inst @{thm conjunct2}) thPQ;
+  in (thP, thQ) end;
+
+fun conj_elims th =
+  let val (th1, th2) = conj_elim th
+  in conj_elims th1 @ conj_elims th2 end handle THM _ => [th];
+
+val conj = @{term "op &"}
+and disj = @{term "op |"}
+and imp = @{term "op -->"}
+and Not = @{term "Not"};
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
