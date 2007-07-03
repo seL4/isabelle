@@ -69,7 +69,6 @@ val solver = ref "zchaff_with_proofs";  (* see HOL/Tools/sat_solver.ML for possi
 
 val counter = ref 0;
 
-(* Thm.thm *)
 val resolution_thm =  (* "[| ?P ==> False; ~ ?P ==> False |] ==> False" *)
 	let
 		val cterm = cterm_of (the_context ())
@@ -79,7 +78,6 @@ val resolution_thm =  (* "[| ?P ==> False; ~ ?P ==> False |] ==> False" *)
 		Thm.instantiate ([], [(cterm Q, cterm False)]) case_split_thm
 	end;
 
-(* Thm.cterm *)
 val cP = cterm_of (theory_of_thm resolution_thm) (Var (("P", 0), HOLogic.boolT));
 
 (* ------------------------------------------------------------------------- *)
@@ -322,7 +320,7 @@ let
 	val nontrivial_clauses = filter (not o cnf.clause_is_trivial o HOLogic.dest_Trueprop o Thm.term_of) clauses''
 	(* sort clauses according to the term order -- an optimization,       *)
 	(* useful because forming the union of hypotheses, as done by         *)
-	(* Conjunction.intr_list and foldr Thm.weaken below, is quadratic for *)
+	(* Conjunction.intr_balanced and fold Thm.weaken below, is quadratic for *)
 	(* terms sorted in descending order, while only linear for terms      *)
 	(* sorted in ascending order                                          *)
 	val sorted_clauses = sort (Term.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
@@ -346,7 +344,7 @@ let
 		(* 'fold Thm.weaken (rev sorted_clauses)' is linear, while 'fold    *)
 		(* Thm.weaken sorted_clauses' would be quadratic, since we sorted   *)
 		(* clauses in ascending order (which is linear for                  *)
-		(* 'Conjunction.intr_list', used below)                             *)
+		(* 'Conjunction.intr_balanced', used below)                         *)
 		fold Thm.weaken (rev sorted_clauses) False_thm
 	end
 in
@@ -364,12 +362,12 @@ in
 				(* optimization: convert the given clauses to "[c_1 && ... && c_n] |- c_i";  *)
 				(*               this avoids accumulation of hypotheses during resolution    *)
 				(* [c_1, ..., c_n] |- c_1 && ... && c_n *)
-				val clauses_thm = Conjunction.intr_list (map Thm.assume sorted_clauses)
+				val clauses_thm = Conjunction.intr_balanced (map Thm.assume sorted_clauses)
 				(* [c_1 && ... && c_n] |- c_1 && ... && c_n *)
 				val cnf_cterm = cprop_of clauses_thm
 				val cnf_thm   = Thm.assume cnf_cterm
 				(* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
-				val cnf_clauses = Conjunction.elim_list cnf_thm
+				val cnf_clauses = Conjunction.elim_balanced (length sorted_clauses) cnf_thm
 				(* initialize the clause array with the given clauses *)
 				val max_idx    = valOf (Inttab.max_key clause_table)
 				val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
@@ -414,8 +412,6 @@ end;
 (*      or "True"                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-(* int -> Tactical.tactic *)
-
 fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm (map cprop_of prems)) 1) i;
 
 (* ------------------------------------------------------------------------- *)
@@ -430,11 +426,10 @@ fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm (map cprop_of prems)) 
 (*      subgoal                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-(* int -> Tactical.tactic *)
-
-fun pre_cnf_tac i =
-	rtac ccontr i THEN ObjectLogic.atomize_tac i THEN
-		PRIMITIVE (Conv.fconv_rule (Conv.goals_conv (equal i) (Drule.beta_eta_conversion)));
+val pre_cnf_tac =
+        rtac ccontr THEN'
+        ObjectLogic.atomize_tac THEN'
+        CONVERSION Drule.beta_eta_conversion;
 
 (* ------------------------------------------------------------------------- *)
 (* cnfsat_tac: checks if the empty clause "False" occurs among the premises; *)
@@ -442,8 +437,6 @@ fun pre_cnf_tac i =
 (*      becomes a separate premise), then applies 'rawsat_tac' to solve the  *)
 (*      subgoal                                                              *)
 (* ------------------------------------------------------------------------- *)
-
-(* int -> Tactical.tactic *)
 
 fun cnfsat_tac i =
 	(etac FalseE i) ORELSE (REPEAT_DETERM (etac conjE i) THEN rawsat_tac i);
@@ -455,8 +448,6 @@ fun cnfsat_tac i =
 (*      then applies 'rawsat_tac' to solve the subgoal                       *)
 (* ------------------------------------------------------------------------- *)
 
-(* int -> Tactical.tactic *)
-
 fun cnfxsat_tac i =
 	(etac FalseE i) ORELSE
 		(REPEAT_DETERM (etac conjE i ORELSE etac exE i) THEN rawsat_tac i);
@@ -467,8 +458,6 @@ fun cnfxsat_tac i =
 (*      an exponential blowup.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-(* int -> Tactical.tactic *)
-
 fun sat_tac i =
 	pre_cnf_tac i THEN cnf.cnf_rewrite_tac i THEN cnfsat_tac i;
 
@@ -478,9 +467,7 @@ fun sat_tac i =
 (*      introducing new literals.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-(* int -> Tactical.tactic *)
-
 fun satx_tac i =
 	pre_cnf_tac i THEN cnf.cnfx_rewrite_tac i THEN cnfxsat_tac i;
 
-end;  (* of structure SATFunc *)
+end;
