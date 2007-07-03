@@ -4,7 +4,6 @@
 *)
 
 header {* Examples for generic reflection and reification *}
-
 theory ReflectionEx
 imports Reflection
 begin
@@ -26,6 +25,25 @@ The method reflection uses @{text reify} and has a very similar signature: @{tex
 text{* Example 1 : Propositional formulae and NNF.*}
 text{* The type @{text fm} represents simple propositional formulae: *}
 
+datatype form = TrueF | FalseF | Less nat nat |
+                And form form | Or form form | Neg form | ExQ form
+
+fun interp :: "('a::ord) list \<Rightarrow> form \<Rightarrow> bool" where
+"interp e TrueF = True" |
+"interp e FalseF = False" |
+"interp e (Less i j) = (e!i < e!j)" |
+"interp e (And f1 f2) = (interp e f1 & interp e f2)" |
+"interp e (Or f1 f2) = (interp e f1 | interp e f2)" |
+"interp e (Neg f) = (~ interp e f)" |
+"interp e (ExQ f) = (EX x. interp (x#e) f)"
+
+lemmas interp_reify_eqs = interp.simps[where ?'b = int]
+declare interp_reify_eqs(1)[reify add: interp_reify_eqs]
+
+lemma "EX x::int. y < x & x < z"
+  apply reify
+oops
+
 datatype fm = And fm fm | Or fm fm | Imp fm fm | Iff fm fm | NOT fm | At nat
 
 consts Ifm :: "bool list \<Rightarrow> fm \<Rightarrow> bool"
@@ -37,6 +55,20 @@ primrec
   "Ifm vs (Iff p q) = (Ifm vs p = Ifm vs q)"
   "Ifm vs (NOT p) = (\<not> (Ifm vs p))"
 
+lemma "Q \<longrightarrow> (D & F & ((~ D) & (~ F)))"
+apply (reify Ifm.simps)
+oops
+
+  text{* Method @{text reify} maps a bool to an fm. For this it needs the 
+  semantics of fm, i.e.\ the rewrite rules in @{text Ifm.simps}. *}
+
+
+  (* You can also just pick up a subterm to reify \<dots> *)
+lemma "Q \<longrightarrow> (D & F & ((~ D) & (~ F)))"
+apply (reify Ifm.simps ("((~ D) & (~ F))"))
+oops
+
+  text{* Let's perform NNF. This is a version that tends to generate disjunctions *}
 consts fmsize :: "fm \<Rightarrow> nat"
 primrec
   "fmsize (At n) = 1"
@@ -46,20 +78,6 @@ primrec
   "fmsize (Imp p q) = 2 + fmsize p + fmsize q"
   "fmsize (Iff p q) = 2 + 2* fmsize p + 2* fmsize q"
 
-
-
-  text{* Method @{text reify} maps a bool to an fm. For this it needs the 
-  semantics of fm, i.e.\ the rewrite rules in @{text Ifm.simps}. *}
-lemma "Q \<longrightarrow> (D & F & ((~ D) & (~ F)))"
-apply (reify Ifm.simps)
-oops
-
-  (* You can also just pick up a subterm to reify \<dots> *)
-lemma "Q \<longrightarrow> (D & F & ((~ D) & (~ F)))"
-apply (reify Ifm.simps ("((~ D) & (~ F))"))
-oops
-
-  text{* Let's perform NNF. This is a version that tends to generate disjunctions *}
 consts nnf :: "fm \<Rightarrow> fm"
 recdef nnf "measure fmsize"
   "nnf (At n) = At n"
@@ -384,9 +402,8 @@ primrec
 
 lemmas eqs = Isgn.simps Iprod.simps
 
-lemma "(x::int)^4 * y * z * y^2 * z^23 > 0"
+lemma "(x::'a::{ordered_idom, recpower})^4 * y * z * y^2 * z^23 > 0"
   apply (reify eqs)
   oops
-
 
 end
