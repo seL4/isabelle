@@ -20,6 +20,7 @@ sig
   val print_rules: Proof.context -> unit
   val defn_add: attribute
   val defn_del: attribute
+  val meta_rewrite_conv: Proof.context -> conv
   val meta_rewrite_rule: Proof.context -> thm -> thm
   val unfold: Proof.context -> thm list -> thm -> thm
   val unfold_goals: Proof.context -> thm list -> thm -> thm
@@ -167,14 +168,11 @@ val equals_ss =
   MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
     addeqcongs [Drule.equals_cong];    (*protect meta-level equality*)
 
-fun meta_rewrite ctxt =
+fun meta_rewrite_conv ctxt =
   MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE))
     (equals_ss addsimps (Rules.get (Context.Proof ctxt)));
 
-val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite;
-
-fun meta_rewrite_tac ctxt i =
-  PRIMITIVE (Conv.fconv_rule (Conv.goals_conv (equal i) (meta_rewrite ctxt)));
+val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite_conv;
 
 
 (* rewriting with object-level rules *)
@@ -194,7 +192,7 @@ fun derived_def ctxt conditional prop =
   let
     val ((c, T), rhs) = prop
       |> Thm.cterm_of (ProofContext.theory_of ctxt)
-      |> meta_rewrite ctxt
+      |> meta_rewrite_conv ctxt
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt);
@@ -204,8 +202,8 @@ fun derived_def ctxt conditional prop =
           if Variable.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop [];
       in
         Goal.prove ctxt' frees [] prop (K (ALLGOALS
-          (meta_rewrite_tac ctxt' THEN'
-            Goal.rewrite_goal_tac [def] THEN'
+          (CONVERSION (meta_rewrite_conv ctxt') THEN'
+            MetaSimplifier.rewrite_goal_tac [def] THEN'
             resolve_tac [Drule.reflexive_thm])))
         handle ERROR msg => cat_error msg "Failed to prove definitional specification."
       end;
