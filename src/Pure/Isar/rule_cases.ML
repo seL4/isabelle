@@ -189,7 +189,7 @@ local
 
 fun unfold_prems n defs th =
   if null defs then th
-  else Conv.fconv_rule (Conv.goals_conv (fn i => i <= n) (MetaSimplifier.rewrite true defs)) th;
+  else Conv.fconv_rule (Conv.prems_conv n (K (MetaSimplifier.rewrite true defs))) th;
 
 fun unfold_prems_concls defs th =
   if null defs orelse not (can Logic.dest_conjunction (Thm.concl_of th)) then th
