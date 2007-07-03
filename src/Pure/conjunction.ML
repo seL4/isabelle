@@ -9,7 +9,6 @@ signature CONJUNCTION =
 sig
   val conjunction: cterm
   val mk_conjunction: cterm * cterm -> cterm
-  val mk_conjunction_list: cterm list -> cterm
   val mk_conjunction_balanced: cterm list -> cterm
   val dest_conjunction: cterm -> cterm * cterm
   val cong: thm -> thm -> thm
@@ -18,10 +17,8 @@ sig
   val conjunctionD2: thm
   val conjunctionI: thm
   val intr: thm -> thm -> thm
-  val intr_list: thm list -> thm
   val intr_balanced: thm list -> thm
   val elim: thm -> thm * thm
-  val elim_list: thm -> thm list
   val elim_balanced: int -> thm -> thm list
   val curry_balanced: int -> thm -> thm
   val uncurry_balanced: int -> thm -> thm
@@ -39,9 +36,6 @@ val true_prop = cert Logic.true_prop;
 val conjunction = cert Logic.conjunction;
 
 fun mk_conjunction (A, B) = Thm.capply (Thm.capply conjunction A) B;
-
-fun mk_conjunction_list [] = true_prop
-  | mk_conjunction_list ts = foldr1 mk_conjunction ts;
 
 fun mk_conjunction_balanced [] = true_prop
   | mk_conjunction_balanced ts = BalancedTree.make mk_conjunction ts;
@@ -114,17 +108,10 @@ fun elim th =
 end;
 
 
-(* multiple conjuncts *)
-
-fun intr_list [] = asm_rl
-  | intr_list ths = foldr1 (uncurry intr) ths;
+(* balanced conjuncts *)
 
 fun intr_balanced [] = asm_rl
   | intr_balanced ths = BalancedTree.make (uncurry intr) ths;
-
-fun elim_list th =   (* FIXME improper!? rename to "elims" *)
-  let val (th1, th2) = elim th
-  in elim_list th1 @ elim_list th2 end handle THM _ => [th];
 
 fun elim_balanced 0 _ = []
   | elim_balanced n th = BalancedTree.dest elim n th;
