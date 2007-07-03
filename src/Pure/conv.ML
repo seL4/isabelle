@@ -33,8 +33,8 @@ sig
   val forall_conv: int -> conv -> conv
   val concl_conv: int -> conv -> conv
   val prems_conv: int -> (int -> conv) -> conv
-  val goals_conv: (int -> bool) -> conv -> conv
   val fconv_rule: conv -> thm -> thm
+  val goal_conv_rule: conv -> int -> thm -> thm
 end;
 
 structure Conv: CONV =
@@ -141,8 +141,11 @@ fun prems_conv 0 _ = all_conv
             | SOME (A, B) => Drule.imp_cong_rule (cv i A) (conv (i + 1) B));
   in conv 1 end;
 
-fun goals_conv pred cv = prems_conv ~1 (fn i => if pred i then cv else all_conv);
+fun fconv_rule cv th = Thm.equal_elim (cv (Thm.cprop_of th)) th;  (*FCONV_RULE in LCF*)
 
-fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
+fun goal_conv_rule cv i = Drule.with_subgoal i (fn th =>
+  (case try (Thm.dest_implies o Thm.cprop_of) th of
+    NONE => raise THM ("goal_conv_rule", i, [th])
+  | SOME (A, B) => Thm.equal_elim (Drule.imp_cong_rule (cv A) (all_conv B)) th));
 
 end;
