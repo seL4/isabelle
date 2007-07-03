@@ -8,6 +8,8 @@ header {* The datatype of finite lists *}
 theory List
 imports PreList
 uses "Tools/string_syntax.ML"
+  ("Tools/function_package/lexicographic_order.ML")
+  ("Tools/function_package/fundef_datatype.ML")
 begin
 
 datatype 'a list =
