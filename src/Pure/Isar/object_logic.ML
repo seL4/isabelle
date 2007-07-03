@@ -141,10 +141,8 @@ val _ = Context.add_setup (add_rulify Drule.norm_hhf_eq);
 
 (* atomize *)
 
-fun rewrite_prems_tac rews i = PRIMITIVE (Conv.fconv_rule
-  (Conv.goals_conv (Library.equal i)
-    (Conv.forall_conv ~1
-      (Conv.goals_conv (K true) (MetaSimplifier.rewrite true rews)))));
+fun rewrite_prems_tac rews =
+  CONVERSION (Conv.forall_conv ~1 (Conv.prems_conv ~1 (K (MetaSimplifier.rewrite true rews))));
 
 fun atomize_term thy =
   drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];
@@ -158,7 +156,7 @@ fun atomize_tac i st =
   else all_tac st;
 
 fun full_atomize_tac i st =
-  Goal.rewrite_goal_tac (get_atomize (Thm.theory_of_thm st)) i st;
+  MetaSimplifier.rewrite_goal_tac (get_atomize (Thm.theory_of_thm st)) i st;
 
 fun atomize_goal i st =
   (case Seq.pull (atomize_tac i st) of NONE => st | SOME (st', _) => st');
@@ -167,7 +165,7 @@ fun atomize_goal i st =
 (* rulify *)
 
 fun rulify_term thy = MetaSimplifier.rewrite_term thy (get_rulify thy) [];
-fun rulify_tac i st = Goal.rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
+fun rulify_tac i st = MetaSimplifier.rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
 
 fun gen_rulify full thm =
   MetaSimplifier.simplify full (get_rulify (Thm.theory_of_thm thm)) thm
