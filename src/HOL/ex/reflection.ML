@@ -12,8 +12,12 @@ signature REFLECTION = sig
     -> thm list -> term option -> int -> tactic
 end;
 
-structure Reflection : REFLECTION
+structure Reflection(* : REFLECTION *)
 = struct
+
+val my_term = ref @{term "STUPPID"};
+val my_eqs = ref ([]: thm list);
+val my_ctxt = ref @{context};
 
 val ext2 = thm "ext2";
 val nth_Cons_0 = thm "nth_Cons_0";
@@ -151,6 +155,7 @@ fun decomp_genreif da cgns (t,ctxt) =
   end;
           (* looks for the atoms equation and instantiates it with the right number *)
 
+
 fun mk_decompatom eqs (t,ctxt) =
  let 
   val tT = fastype_of t
@@ -163,75 +168,54 @@ fun mk_decompatom eqs (t,ctxt) =
 			AList.defined Type.could_unify (!bds) (domain_type ty)) rhs 
 	  andalso Type.could_unify (fastype_of rhs, tT)
    end
-  fun get_nth t = 
+  fun get_nths t acc = 
    case t of
-     Const("List.nth",_)$vs$n => (t,vs,n)
-   | t1$t2 => (get_nth t1 handle REIF "get_nth" => get_nth t2)
-   | Abs(_,_,t') => get_nth t'
-   | _ => raise REIF "get_nth"
-  val ([xn,vsn],ctxt') = Variable.variant_fixes ["x","vs"] ctxt
-  val thy = ProofContext.theory_of ctxt'
-  val cert = cterm_of thy
-  fun tryeqs [] = raise REIF "Can not find the atoms equation"
+     Const("List.nth",_)$vs$n => insert (fn ((a,_),(b,_)) => a aconv b) (t,(vs,n)) acc
+   | t1$t2 => get_nths t1 (get_nths t2 acc)
+   | Abs(_,_,t') => get_nths t'  acc
+   | _ => acc
+
+
+  fun tryeqs [] = error "Can not find the atoms equation"
     | tryeqs (eq::eqs) = ((
       let 
-       val rhs = eq |> prop_of |> HOLogic.dest_Trueprop 
-			  |> HOLogic.dest_eq |> snd
-       val (nt,vs,n) = get_nth rhs
-       val ntT = fastype_of nt
-       val ntlT = HOLogic.listT ntT
-       val (bsT,asT) = the (AList.lookup (op =) (!bds) ntlT) 
-       val x = Var ((xn,0),ntT)
-       val rhs_P = subst_free [(nt,x)] rhs
-       val (_, tmenv) = Pattern.match 
-			    thy (rhs_P, t)
-			    (Envir.type_env (Envir.empty 0),Term.Vartab.empty)
-       val tml = Vartab.dest tmenv
-       val SOME (_,t') = AList.lookup (op =) tml (xn,0)
-       val cvs = 
-	   cert (fold_rev (fn x => fn xs => Const("List.list.Cons", ntT --> ntlT --> ntlT)$x$xs)
-		       bsT (Free (vsn, ntlT)))
+        val rhs = eq |> prop_of |> HOLogic.dest_Trueprop  |> HOLogic.dest_eq |> snd
+ val nths = get_nths rhs []
+ val (vss,ns) = fold_rev (fn (_,(vs,n)) => fn (vss,ns) => (insert (op aconv) vs vss, insert (op aconv) n ns)) nths ([],[]) 
+ val (vsns, ctxt') = Variable.variant_fixes (replicate (length vss) "vs") ctxt
+ val (xns, ctxt'') = Variable.variant_fixes (replicate (length nths) "x") ctxt' 
+  val thy = ProofContext.theory_of ctxt''
+  val cert = cterm_of thy
+ val vsns_map = vss ~~ vsns
+ val xns_map = (fst (split_list nths)) ~~ xns
+        val subst = map (fn (nt, xn) => (nt, Var ((xn,0), fastype_of nt))) xns_map
+        val rhs_P = subst_free subst rhs
+        val (_, tmenv) = Pattern.match 
+	    thy (rhs_P, t)
+	   (Envir.type_env (Envir.empty 0),Term.Vartab.empty)
+        val tml = Vartab.dest tmenv
+        val t's = map (fn xn => snd (valOf (AList.lookup (op =) tml (xn,0)))) xns
+        val subst_ns = map (fn (Const _ $ vs $ n, Var (xn0,T)) => (cert n, snd (valOf (AList.lookup (op =) tml xn0)) |> (index_of #> IntInf.fromInt #> HOLogic.mk_nat #> cert))) subst
+        val subst_vs = 
+         let 
+           fun h (Const _ $ (vs as Var (vsn,lT)) $ n, Var (xn0,T)) = 
+            let 
+             val (bsT,asT) = the (AList.lookup (op =) (!bds) lT)
+             val vsn = valOf (AList.lookup (op =) vsns_map vs)
+             val cvs = 
+	       cert (fold_rev (fn x => fn xs => Const("List.list.Cons", T --> lT --> lT)$x$xs) bsT (Free (vsn, lT)))
+
+         in (cert vs, cvs) end
+        in map h subst end
        val cts = map (fn ((vn,vi),(tT,t)) => (cert(Var ((vn,vi),tT)), cert t)) 
-		     (AList.delete (op =) (xn,0) tml)
-       val th = (instantiate 
-		     ([],
-		      [(cert vs, cvs),(cert n, t' |> index_of |> IntInf.fromInt |> HOLogic.mk_nat |> cert)]
-		      @cts) eq) RS sym
-      in hd (Variable.export ctxt' ctxt [th])
-      end)
+         (fold (AList.delete (fn (((a: string),_),(b,_)) => a = b)) (map (fn n => (n,0)) xns) tml)
+
+       val th = (instantiate ([],subst_ns@subst_vs@cts)  eq) RS sym
+     in  hd (Variable.export ctxt'' ctxt [th]) end)
 	  handle MATCH => tryeqs eqs)
  in ([], fn _ => tryeqs (filter isat eqs))
  end;
 
-(* 
-fun mk_decompatom eqs (t,ctxt) =
- let 
-  val tT = fastype_of t
-  val tlT = HOLogic.listT tT
-  val (bsT,asT) = (the (AList.lookup (op =) (!bds) tlT) 
-		   handle Option => error "mk_decompatom: Type not found in the env.")
-  fun isateq (_$_$(Const("List.nth",_)$vs$_)) = (fastype_of vs = tlT)
-    | isateq _ = false
- in case List.find (isateq o HOLogic.dest_Trueprop o prop_of) eqs of
-     NONE => raise REIF "Can not find the atoms equation"
-   | SOME th =>
-     ([],
-      fn ths =>
-        let 
-         val ([x], ctxt') = Variable.variant_fixes ["vs"] ctxt
-	 val cert = cterm_of (ProofContext.theory_of ctxt')
-         val (Const("List.nth",_)$(vs as Var((vsn,vsi),_))$n) = 
-             (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th
-         val cvs = 
-	     cert (foldr (fn (x,xs) => Const("List.list.Cons", tT --> tlT --> tlT)$x$xs) 
-			 (Free(x,tlT)) bsT)
-	 val th' = (instantiate ([],
-				 [(cert vs, cvs), 
-				  (cert n, cert  (HOLogic.mk_nat(index_of t)))]) th)
-		       RS sym
-        in hd (Variable.export ctxt' ctxt [th']) end)
- end;
-*)
   (* Generic reification procedure: *)
   (* creates all needed cong rules and then just uses the theorem synthesis *)
 
@@ -263,6 +247,9 @@ fun mk_congs ctxt raw_eqs =
 
 fun genreif ctxt raw_eqs t =
  let 
+    val _ = my_eqs := raw_eqs
+    val _ = my_term := t
+    val my_ctxt = ctxt
   val _ = bds := []
   val congs = mk_congs ctxt raw_eqs
   val th = divide_and_conquer (decomp_genreif (mk_decompatom raw_eqs) congs) (t,ctxt)
@@ -308,5 +295,4 @@ fun gen_reflection_tac ctxt conv (corr_thm :: raw_eqs) to i = (fn st =>
   in rtac th i st end);
 
 fun reflection_tac ctxt = gen_reflection_tac ctxt NBE.normalization_conv;
-
 end
