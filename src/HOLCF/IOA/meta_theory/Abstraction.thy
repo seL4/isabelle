@@ -7,6 +7,7 @@ header {* Abstraction Theory -- tailored for I/O automata *}
 
 theory Abstraction
 imports LiveIOA
+uses ("ioa_package.ML")
 begin
 
 defaultsort type
@@ -638,5 +639,7 @@ fun abstraction_tac i =
         ss addsimps [state_strengthening_def, state_weakening_def]))) i
 end
 *}
+
+use "ioa_package.ML"
 
 end
