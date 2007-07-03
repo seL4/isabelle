@@ -9,7 +9,7 @@ theory HOL
 imports CPure
 uses
   "~~/src/Tools/integer.ML"
-  "hologic.ML"
+  ("hologic.ML")
   "~~/src/Tools/IsaPlanner/zipper.ML"
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
@@ -434,7 +434,7 @@ subsubsection {*Implication*}
 lemma impE:
   assumes "P-->Q" "P" "Q ==> R"
   shows "R"
-by (iprover intro: prems mp)
+by (iprover intro: assms mp)
 
 (* Reduces Q to P-->Q, allowing substitution in P. *)
 lemma rev_mp: "[| P;  P --> Q |] ==> Q"
@@ -511,8 +511,8 @@ apply (rule major [THEN conjunct2])
 done
 
 lemma context_conjI:
-  assumes prems: "P" "P ==> Q" shows "P & Q"
-by (iprover intro: conjI prems)
+  assumes "P" "P ==> Q" shows "P & Q"
+by (iprover intro: conjI assms)
 
 
 subsubsection {*Disjunction*}
@@ -577,9 +577,9 @@ by (iprover intro: classical p1 p2 notE)
 subsubsection {*Unique existence*}
 
 lemma ex1I:
-  assumes prems: "P a" "!!x. P(x) ==> x=a"
+  assumes "P a" "!!x. P(x) ==> x=a"
   shows "EX! x. P(x)"
-by (unfold Ex1_def, iprover intro: prems exI conjI allI impI)
+by (unfold Ex1_def, iprover intro: assms exI conjI allI impI)
 
 text{*Sometimes easier to use: the premises have no shared variables.  Safe!*}
 lemma ex_ex1I:
@@ -621,7 +621,7 @@ done
 lemma theI:
   assumes "P a" and "!!x. P x ==> x=a"
   shows "P (THE x. P x)"
-by (iprover intro: prems the_equality [THEN ssubst])
+by (iprover intro: assms the_equality [THEN ssubst])
 
 lemma theI': "EX! x. P x ==> P (THE x. P x)"
 apply (erule ex1E)
@@ -635,7 +635,7 @@ done
 lemma theI2:
   assumes "P a" "!!x. P x ==> x=a" "!!x. P x ==> Q x"
   shows "Q (THE x. P x)"
-by (iprover intro: prems theI)
+by (iprover intro: assms theI)
 
 lemma the1_equality [elim?]: "[| EX!x. P x; P a |] ==> (THE x. P x) = a"
 apply (rule the_equality)
@@ -662,7 +662,7 @@ subsubsection {*Classical intro rules for disjunction and existential quantifier
 lemma disjCI:
   assumes "~Q ==> P" shows "P|Q"
 apply (rule classical)
-apply (iprover intro: prems disjI1 disjI2 notI elim: notE)
+apply (iprover intro: assms disjI1 disjI2 notI elim: notE)
 done
 
 lemma excluded_middle: "~P | P"
@@ -715,7 +715,7 @@ lemma exCI:
   assumes "ALL x. ~P(x) ==> P(a)"
   shows "EX x. P(x)"
 apply (rule ccontr)
-apply (iprover intro: prems exI allI notI notE [of "\<exists>x. P x"])
+apply (iprover intro: assms exI allI notI notE [of "\<exists>x. P x"])
 done
 
 
@@ -762,6 +762,8 @@ lemmas [trans] = trans
   and [sym] = sym not_sym
   and [Pure.elim?] = iffD1 iffD2 impE
 
+use "hologic.ML"
+
 
 subsubsection {* Atomizing meta-level connectives *}
 
@@ -771,7 +773,7 @@ proof
   then show "ALL x. P x" ..
 next
   assume "ALL x. P x"
-  thus "!!x. P x" by (rule allE)
+  then show "!!x. P x" by (rule allE)
 qed
 
 lemma atomize_imp [atomize]: "(A ==> B) == Trueprop (A --> B)"
@@ -780,7 +782,7 @@ proof
   show "A --> B" by (rule impI) (rule r)
 next
   assume "A --> B" and A
-  thus B by (rule mp)
+  then show B by (rule mp)
 qed
 
 lemma atomize_not: "(A ==> False) == Trueprop (~A)"
@@ -789,16 +791,16 @@ proof
   show "~A" by (rule notI) (rule r)
 next
   assume "~A" and A
-  thus False by (rule notE)
+  then show False by (rule notE)
 qed
 
 lemma atomize_eq [atomize]: "(x == y) == Trueprop (x = y)"
 proof
   assume "x == y"
-  show "x = y" by (unfold prems) (rule refl)
+  show "x = y" by (unfold `x == y`) (rule refl)
 next
   assume "x = y"
-  thus "x == y" by (rule eq_reflection)
+  then show "x == y" by (rule eq_reflection)
 qed
 
 lemma atomize_conj [atomize]:
@@ -1173,13 +1175,13 @@ proof (unfold simp_implies_def, rule equal_intr_rule)
   and P': "PROP P'"
   from PP' [symmetric] and P' have "PROP P"
     by (rule equal_elim_rule1)
-  hence "PROP Q" by (rule PQ)
+  then have "PROP Q" by (rule PQ)
   with P'QQ' [OF P'] show "PROP Q'" by (rule equal_elim_rule1)
 next
   assume P'Q': "PROP P' \<Longrightarrow> PROP Q'"
   and P: "PROP P"
   from PP' and P have P': "PROP P'" by (rule equal_elim_rule1)
-  hence "PROP Q'" by (rule P'Q')
+  then have "PROP Q'" by (rule P'Q')
   with P'QQ' [OF P', symmetric] show "PROP Q"
     by (rule equal_elim_rule1)
 qed
@@ -1187,17 +1189,17 @@ qed
 lemma uncurry:
   assumes "P \<longrightarrow> Q \<longrightarrow> R"
   shows "P \<and> Q \<longrightarrow> R"
-  using prems by blast
+  using assms by blast
 
 lemma iff_allI:
   assumes "\<And>x. P x = Q x"
   shows "(\<forall>x. P x) = (\<forall>x. Q x)"
-  using prems by blast
+  using assms by blast
 
 lemma iff_exI:
   assumes "\<And>x. P x = Q x"
   shows "(\<exists>x. P x) = (\<exists>x. Q x)"
-  using prems by blast
+  using assms by blast
 
 lemma all_comm:
   "(\<forall>x y. P x y) = (\<forall>y x. P x y)"
@@ -1288,26 +1290,26 @@ lemma if_cong:
       and "c \<Longrightarrow> x = u"
       and "\<not> c \<Longrightarrow> y = v"
   shows "(if b then x else y) = (if c then u else v)"
-  unfolding if_def using prems by simp
+  unfolding if_def using assms by simp
 
 text {* Prevents simplification of x and y:
   faster and allows the execution of functional programs. *}
 lemma if_weak_cong [cong]:
   assumes "b = c"
   shows "(if b then x else y) = (if c then x else y)"
-  using prems by (rule arg_cong)
+  using assms by (rule arg_cong)
 
 text {* Prevents simplification of t: much faster *}
 lemma let_weak_cong:
   assumes "a = b"
   shows "(let x = a in t x) = (let x = b in t x)"
-  using prems by (rule arg_cong)
+  using assms by (rule arg_cong)
 
 text {* To tidy up the result of a simproc.  Only the RHS will be simplified. *}
 lemma eq_cong2:
   assumes "u = u'"
   shows "(t \<equiv> u) \<equiv> (t \<equiv> u')"
-  using prems by simp
+  using assms by simp
 
 lemma if_distrib:
   "f (if c then x else y) = (if c then f x else f y)"
@@ -1318,7 +1320,7 @@ text {* This lemma restricts the effect of the rewrite rule u=v to the left-hand
 lemma restrict_to_left:
   assumes "x = y"
   shows "(x = z) = (y = z)"
-  using prems by simp
+  using assms by simp
 
 
 subsubsection {* Generic cases and induction *}
