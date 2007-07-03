@@ -10,67 +10,66 @@ infix 1 THEN THEN' THEN_ALL_NEW;
 infix 0 ORELSE APPEND INTLEAVE ORELSE' APPEND' INTLEAVE';
 infix 0 THEN_ELSE;
 
-
 signature TACTICAL =
 sig
-  type tactic  (* = thm -> thm Seq.seq*)
-  val all_tac           : tactic
-  val ALLGOALS          : (int -> tactic) -> tactic
-  val APPEND            : tactic * tactic -> tactic
-  val APPEND'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val CHANGED           : tactic -> tactic
-  val CHANGED_PROP      : tactic -> tactic
-  val CHANGED_GOAL      : (int -> tactic) -> int -> tactic
-  val COND              : (thm -> bool) -> tactic -> tactic -> tactic
-  val DETERM            : tactic -> tactic
-  val EVERY             : tactic list -> tactic
-  val EVERY'            : ('a -> tactic) list -> 'a -> tactic
-  val EVERY1            : (int -> tactic) list -> tactic
-  val FILTER            : (thm -> bool) -> tactic -> tactic
-  val FIRST             : tactic list -> tactic
-  val FIRST'            : ('a -> tactic) list -> 'a -> tactic
-  val FIRST1            : (int -> tactic) list -> tactic
-  val FIRSTGOAL         : (int -> tactic) -> tactic
-  val INTLEAVE          : tactic * tactic -> tactic
-  val INTLEAVE'         : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val METAHYPS          : (thm list -> tactic) -> int -> tactic
-  val metahyps_thms     : int -> thm -> thm list option
-  val no_tac            : tactic
-  val ORELSE            : tactic * tactic -> tactic
-  val ORELSE'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val pause_tac         : tactic
-  val print_tac         : string -> tactic
-  val PRIMITIVE         : (thm -> thm) -> tactic
-  val PRIMSEQ           : (thm -> thm Seq.seq) -> tactic
-  val RANGE             : (int -> tactic) list -> int -> tactic
-  val REPEAT            : tactic -> tactic
-  val REPEAT1           : tactic -> tactic
-  val REPEAT_FIRST      : (int -> tactic) -> tactic
-  val REPEAT_SOME       : (int -> tactic) -> tactic
-  val REPEAT_DETERM_N   : int -> tactic -> tactic
-  val REPEAT_DETERM     : tactic -> tactic
-  val REPEAT_DETERM1    : tactic -> tactic
-  val REPEAT_DETERM_FIRST: (int -> tactic) -> tactic
+  type tactic = thm -> thm Seq.seq
+  val THEN: tactic * tactic -> tactic
+  val ORELSE: tactic * tactic -> tactic
+  val APPEND: tactic * tactic -> tactic
+  val INTLEAVE: tactic * tactic -> tactic
+  val THEN_ELSE: tactic * (tactic*tactic) -> tactic
+  val THEN': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val ORELSE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val APPEND': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val INTLEAVE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val all_tac: tactic
+  val no_tac: tactic
+  val DETERM: tactic -> tactic
+  val COND: (thm -> bool) -> tactic -> tactic -> tactic
+  val TRY: tactic -> tactic
+  val EVERY: tactic list -> tactic
+  val EVERY': ('a -> tactic) list -> 'a -> tactic
+  val EVERY1: (int -> tactic) list -> tactic
+  val FIRST: tactic list -> tactic
+  val FIRST': ('a -> tactic) list -> 'a -> tactic
+  val FIRST1: (int -> tactic) list -> tactic
+  val RANGE: (int -> tactic) list -> int -> tactic
+  val print_tac: string -> tactic
+  val pause_tac: tactic
+  val trace_REPEAT: bool ref
+  val suppress_tracing: bool ref
+  val tracify: bool ref -> tactic -> tactic
+  val traced_tac: (thm -> (thm * thm Seq.seq) option) -> tactic
+  val DETERM_UNTIL: (thm -> bool) -> tactic -> tactic
+  val REPEAT_DETERM_N: int -> tactic -> tactic
+  val REPEAT_DETERM: tactic -> tactic
+  val REPEAT: tactic -> tactic
+  val REPEAT_DETERM1: tactic -> tactic
+  val REPEAT1: tactic -> tactic
+  val FILTER: (thm -> bool) -> tactic -> tactic
+  val CHANGED: tactic -> tactic
+  val CHANGED_PROP: tactic -> tactic
+  val ALLGOALS: (int -> tactic) -> tactic
+  val SOMEGOAL: (int -> tactic) -> tactic
+  val FIRSTGOAL: (int -> tactic) -> tactic
+  val REPEAT_SOME: (int -> tactic) -> tactic
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
-  val DETERM_UNTIL      : (thm -> bool) -> tactic -> tactic
-  val SINGLE            : tactic -> thm -> thm option
-  val SOMEGOAL          : (int -> tactic) -> tactic
-  val strip_context     : term -> (string * typ) list * term list * term
-  val CSUBGOAL          : ((cterm * int) -> tactic) -> int -> tactic
-  val SUBGOAL           : ((term * int) -> tactic) -> int -> tactic
-  val suppress_tracing  : bool ref
-  val THEN              : tactic * tactic -> tactic
-  val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val THEN_ALL_NEW      : (int -> tactic) * (int -> tactic) -> int -> tactic
-  val REPEAT_ALL_NEW    : (int -> tactic) -> int -> tactic
-  val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
-  val traced_tac        : (thm -> (thm * thm Seq.seq) option) -> tactic
-  val tracify           : bool ref -> tactic -> tactic
-  val trace_REPEAT      : bool ref
-  val TRY               : tactic -> tactic
-  val TRYALL            : (int -> tactic) -> tactic
+  val REPEAT_FIRST: (int -> tactic) -> tactic
+  val REPEAT_DETERM_FIRST: (int -> tactic) -> tactic
+  val TRYALL: (int -> tactic) -> tactic
+  val CSUBGOAL: ((cterm * int) -> tactic) -> int -> tactic
+  val SUBGOAL: ((term * int) -> tactic) -> int -> tactic
+  val CHANGED_GOAL: (int -> tactic) -> int -> tactic
+  val THEN_ALL_NEW: (int -> tactic) * (int -> tactic) -> int -> tactic
+  val REPEAT_ALL_NEW: (int -> tactic) -> int -> tactic
+  val strip_context: term -> (string * typ) list * term list * term
+  val metahyps_thms: int -> thm -> thm list option
+  val METAHYPS: (thm list -> tactic) -> int -> tactic
+  val PRIMSEQ: (thm -> thm Seq.seq) -> tactic
+  val PRIMITIVE: (thm -> thm) -> tactic
+  val SINGLE: tactic -> thm -> thm option
+  val CONVERSION: conv -> int -> tactic
 end;
-
 
 structure Tactical : TACTICAL =
 struct
@@ -519,8 +518,12 @@ fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Seq.empty;
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm.*)
 fun PRIMITIVE thmfun = PRIMSEQ (Seq.single o thmfun);
 
-(* Inverse (more or less) of PRIMITIVE *)
+(*Inverse (more or less) of PRIMITIVE*)
 fun SINGLE tacf = Option.map fst o Seq.pull o tacf
+
+(*Conversions as tactics*)
+fun CONVERSION cv i st = Seq.single (Conv.goal_conv_rule cv i st)
+  handle THM _ => Seq.empty | CTERM _ => Seq.empty;
 
 end;
 
