@@ -21,7 +21,8 @@ end
 
 structure Normalizer: NORMALIZER = 
 struct
-open Misc;
+
+open Conv Misc;
 
 local
  val pls_const = @{cterm "Numeral.Pls"}

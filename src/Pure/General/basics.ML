@@ -81,13 +81,13 @@ fun the (SOME x) = x
   | the NONE = raise Option;
 
 fun these (SOME x) = x
-  | these _ = [];
+  | these NONE = [];
 
 fun the_list (SOME x) = [x]
-  | the_list _ = []
+  | the_list NONE = []
 
 fun the_default x (SOME y) = y
-  | the_default x _ = x;
+  | the_default x NONE = x;
 
 fun perhaps f x = the_default x (f x);
 
