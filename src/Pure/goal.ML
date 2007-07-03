@@ -32,8 +32,6 @@ sig
   val conjunction_tac: int -> tactic
   val precise_conjunction_tac: int -> int -> tactic
   val recover_conjunction_tac: tactic
-  val asm_rewrite_goal_tac: bool * bool * bool -> (simpset -> tactic) -> simpset -> int -> tactic
-  val rewrite_goal_tac: thm list -> int -> tactic
   val norm_hhf_tac: int -> tactic
   val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
@@ -209,27 +207,13 @@ fun CONJUNCTS tac =
     THEN recover_conjunction_tac);
 
 
-(* rewriting *)
-
-(*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
-fun asm_rewrite_goal_tac mode prover_tac ss =
-  SELECT_GOAL
-    (PRIMITIVE (MetaSimplifier.rewrite_goal_rule mode (SINGLE o prover_tac) ss 1));
-
-fun rewrite_goal_tac rews =
-  let val ss = MetaSimplifier.empty_ss addsimps rews in
-    fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
-      (MetaSimplifier.theory_context (Thm.theory_of_thm st) ss) i st
-  end;
-
-
 (* hhf normal form *)
 
 val norm_hhf_tac =
   rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
   THEN' SUBGOAL (fn (t, i) =>
     if Drule.is_norm_hhf t then all_tac
-    else rewrite_goal_tac [Drule.norm_hhf_eq] i);
+    else MetaSimplifier.rewrite_goal_tac [Drule.norm_hhf_eq] i);
 
 fun compose_hhf tha i thb =
   Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of thb i) tha, 0) i thb;

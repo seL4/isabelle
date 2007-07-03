@@ -81,6 +81,7 @@ sig
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_goals_tac: thm list -> tactic
   val rewrite_tac: thm list -> tactic
+  val rewrite_goal_tac: thm list -> int -> tactic
   val rewtac: thm -> tactic
   val prune_params_tac: tactic
   val fold_rule: thm list -> thm -> thm
@@ -113,6 +114,8 @@ sig
     (simpset -> thm -> thm option) -> simpset -> thm -> thm
   val rewrite_goal_rule: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> int -> thm -> thm
+  val asm_rewrite_goal_tac: bool * bool * bool ->
+    (simpset -> tactic) -> simpset -> int -> tactic
   val norm_hhf: thm -> thm
   val norm_hhf_protect: thm -> thm
   val rewrite: bool -> thm list -> cterm -> thm
@@ -1266,26 +1269,36 @@ fun rewrite_term thy rules procs =
 
 fun rewrite_thm mode prover ss = Conv.fconv_rule (rewrite_cterm mode prover ss);
 
-(*Rewrite the subgoals of a proof state (represented by a theorem) *)
+(*Rewrite the subgoals of a proof state (represented by a theorem)*)
 fun rewrite_goals_rule thms th =
-  Conv.fconv_rule (Conv.goals_conv (K true) (rewrite_cterm (true, true, true) simple_prover
-    (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
+  Conv.fconv_rule (Conv.prems_conv ~1 (K (rewrite_cterm (true, true, true) simple_prover
+    (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms)))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem)*)
 fun rewrite_goal_rule mode prover ss i thm =
-  if 0 < i  andalso  i <= nprems_of thm
-  then Conv.fconv_rule (Conv.goals_conv (fn j => j=i) (rewrite_cterm mode prover ss)) thm
-  else raise THM("rewrite_goal_rule", i, [thm]);
+  if 0 < i andalso i <= Thm.nprems_of thm
+  then Conv.goal_conv_rule (rewrite_cterm mode prover ss) i thm
+  else raise THM ("rewrite_goal_rule", i, [thm]);
 
 
 (** meta-rewriting tactics **)
 
 (*Rewrite throughout proof state. *)
-fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
+fun rewrite_tac defs = PRIMITIVE (rewrite_rule defs);
 
 (*Rewrite subgoals only, not main goal. *)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
+
+(*Rewrite subgoal i only.*)
+fun asm_rewrite_goal_tac mode prover_tac ss i =
+  PRIMITIVE (rewrite_goal_rule mode (SINGLE o prover_tac) ss i);
+
+fun rewrite_goal_tac rews =
+  let val ss = empty_ss addsimps rews in
+    fn i => fn st => asm_rewrite_goal_tac (true, false, false) (K no_tac)
+      (theory_context (Thm.theory_of_thm st) ss) i st
+  end;
 
 (*Prunes all redundant parameters from the proof state by rewriting.
   DOES NOT rewrite main goal, where quantification over an unused bound
