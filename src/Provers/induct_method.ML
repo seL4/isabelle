@@ -162,10 +162,10 @@ fun atomize_term thy =
 
 val atomize_cterm = MetaSimplifier.rewrite true Data.atomize;
 
-val atomize_tac = Goal.rewrite_goal_tac Data.atomize;
+val atomize_tac = Simplifier.rewrite_goal_tac Data.atomize;
 
 val inner_atomize_tac =
-  Goal.rewrite_goal_tac (map Thm.symmetric conjunction_congs) THEN' atomize_tac;
+  Simplifier.rewrite_goal_tac (map Thm.symmetric conjunction_congs) THEN' atomize_tac;
 
 
 (* rulify *)
@@ -182,10 +182,10 @@ fun rulified_term thm =
   in (thy, Logic.list_implies (map rulify As, rulify B)) end;
 
 val rulify_tac =
-  Goal.rewrite_goal_tac (Data.rulify @ conjunction_congs) THEN'
-  Goal.rewrite_goal_tac Data.rulify_fallback THEN'
+  Simplifier.rewrite_goal_tac (Data.rulify @ conjunction_congs) THEN'
+  Simplifier.rewrite_goal_tac Data.rulify_fallback THEN'
   Goal.conjunction_tac THEN_ALL_NEW
-  (Goal.rewrite_goal_tac [conjunction_imp] THEN' Goal.norm_hhf_tac);
+  (Simplifier.rewrite_goal_tac [conjunction_imp] THEN' Goal.norm_hhf_tac);
 
 
 (* prepare rule *)
@@ -310,9 +310,8 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
     | NONE => all_tac)
   end);
 
-fun miniscope_tac p i = PRIMITIVE (Conv.fconv_rule
-  (Conv.goals_conv (Library.equal i)
-    (Conv.forall_conv p (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]))));
+fun miniscope_tac p =
+  CONVERSION (Conv.forall_conv p (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]));
 
 in
 
