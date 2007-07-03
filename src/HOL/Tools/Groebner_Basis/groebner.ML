@@ -17,10 +17,9 @@ end
 
 structure Groebner: GROEBNER =
 struct
-open Normalizer;
-open Misc;
 
-fun assocd x al d = case AList.lookup (op =) al x of SOME y => y | NONE => d;
+open Conv Misc Normalizer;
+
 val rat_0 = Rat.zero;
 val rat_1 = Rat.one;
 val minus_rat = Rat.neg;
@@ -331,8 +330,6 @@ fun grobner_refute pols =
 (* In principle this is very inefficient: in a heavily shared proof it may   *)
 (* make the same calculation many times. Could put in a cache or something.  *)
 (* ------------------------------------------------------------------------- *)
-fun assoc x l = snd(find (fn p => fst p = x) l);
-
 fun resolve_proof vars prf =
   case prf of
     Start(~1) => []
@@ -345,9 +342,9 @@ fun resolve_proof vars prf =
             val lis2 = resolve_proof vars lin2
             val dom = distinct (op =) ((map fst lis1) union (map fst lis2))
         in
-            map (fn n => let val a = ((assoc n lis1) handle _ => [])  (* FIXME *)
-                             val b = ((assoc n lis2) handle _ => []) in  (* FIXME *)
-                             (n,grob_add a b) end) dom end;
+            map (fn n => let val a = these (AList.lookup (op =) lis1 n)
+                             val b = these (AList.lookup (op =) lis2 n)
+                         in (n,grob_add a b) end) dom end;
 
 (* ------------------------------------------------------------------------- *)
 (* Run the procedure and produce Weak Nullstellensatz certificate.           *)
@@ -387,18 +384,6 @@ fun grobner_strong vars pols pol =
         val cert' = map (fn (c,q) => (c-1,transform_polynomial q))
                         (filter (fn (k,_) => k <> 0) cert) in
         (d,l,cert') end;
-
-fun string_of_pol vars pol =
-    foldl (fn ((c,m),s) => ((Rat.string_of_rat c)
-                            ^ "*(" ^
-                            (snd (foldl
-                                      (fn (e,(i,s)) =>
-                                          (i+ 1,
-                                           (nth vars i
-                                                     |>cterm_of (the_context())  (* FIXME *)
-                                                     |> string_of_cterm)^ "^"
-                                           ^ (Int.toString e) ^" * " ^ s)) (0,"0") m))
-                            ^ ") + ") ^ s) "" pol;
 
 
 (* ------------------------------------------------------------------------- *)
@@ -457,7 +442,7 @@ val mk_object_eq = fn th => th COMP meta_eq_to_obj_eq;
 val bool_simps = @{thms "bool_simps"};
 val nnf_simps = @{thms "nnf_simps"};
 val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps bool_simps addsimps nnf_simps)
-val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps (@{thms "weak_dnf_simps"}));
+val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms "weak_dnf_simps"});
 val initial_conv =
     Simplifier.rewrite
      (HOL_basic_ss addsimps nnf_simps
@@ -468,7 +453,7 @@ val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 val cTrp = @{cterm "Trueprop"};
 val cConj = @{cterm "op &"};
 val (cNot,false_tm) = (@{cterm "Not"}, @{cterm "False"});
-val ASSUME = mk_comb cTrp #> assume;
+val assume_Trueprop = mk_comb cTrp #> assume;
 val list_mk_conj = list_mk_binop cConj;
 val conjs = list_dest_binop cConj;
 val mk_neg = mk_comb cNot;
@@ -607,15 +592,15 @@ fun neq_rule n th = [prove_nz n, th] MRS neq_thm;
 fun mk_add th1 = combination(Drule.arg_cong_rule ring_add_tm th1);
 
 fun refute tm =
- if tm aconvc false_tm then ASSUME tm else
+ if tm aconvc false_tm then assume_Trueprop tm else
   let
-   val (nths0,eths0) = List.partition (is_neg o concl) (conjuncts(ASSUME tm))
+   val (nths0,eths0) = List.partition (is_neg o concl) (HOLogic.conj_elims (assume_Trueprop tm))
    val  nths = filter (is_eq o Thm.dest_arg o concl) nths0
    val eths = filter (is_eq o concl) eths0
   in
    if null eths then
     let
-      val th1 = end_itlist (fn th1 => fn th2 => idom_rule(conji th1 th2)) nths
+      val th1 = end_itlist (fn th1 => fn th2 => idom_rule(HOLogic.conj_intr th1 th2)) nths
       val th2 = Conv.fconv_rule
                 ((arg_conv #> arg_conv)
                      (binop_conv ring_normalize_conv)) th1
@@ -635,12 +620,12 @@ fun refute tm =
       end
      else
       let
-       val nth = end_itlist (fn th1 => fn th2 => idom_rule(conji th1 th2)) nths
+       val nth = end_itlist (fn th1 => fn th2 => idom_rule(HOLogic.conj_intr th1 th2)) nths
        val (vars,pol::pols) =
           grobify_equations(list_mk_conj(Thm.dest_arg(concl nth)::map concl eths))
        val (deg,l,cert) = grobner_strong vars pols pol
        val th1 = Conv.fconv_rule((arg_conv o arg_conv)(binop_conv ring_normalize_conv)) nth
-       val th2 = funpow (Integer.machine_int deg) (idom_rule o conji th1) neq_01
+       val th2 = funpow (Integer.machine_int deg) (idom_rule o HOLogic.conj_intr th1) neq_01
       in (vars,l,cert,th2)
       end)
 (*    val _ = writeln ("Translating certificate to HOL inferences") *)
@@ -656,7 +641,7 @@ fun refute tm =
               (nth eths (Integer.machine_int i) |> mk_meta_eq)) pols)
     val th1 = thm_fn herts_pos
     val th2 = thm_fn herts_neg
-    val th3 = conji(mk_add (symmetric th1) th2 |> mk_object_eq) noteqth
+    val th3 = HOLogic.conj_intr(mk_add (symmetric th1) th2 |> mk_object_eq) noteqth
     val th4 = Conv.fconv_rule ((arg_conv o arg_conv o binop_conv) ring_normalize_conv)
                                (neq_rule l th3)
     val (l,r) = dest_eq(Thm.dest_arg(concl th4))
@@ -696,7 +681,7 @@ fun ideal tms tm ord =
   val pols = map (grobify_term vars) tms
   val pol = grobify_term vars tm
   val cert = grobner_ideal vars pols pol
- in map (fn n => let val p = assocd n cert [] in holify_polynomial vars p end)
+ in map (fn n => these (AList.lookup (op =) cert n) |> holify_polynomial vars)
         (map Integer.int (0 upto (length pols - 1)))
  end
 in (ring,ideal)
@@ -733,7 +718,7 @@ fun ring_conv ctxt form =
           dest_const (mk_const (Thm.ctyp_of_term tm)) (ring_eq_conv ctxt)
           (semiring_normalize_wrapper ctxt res)) form));
 
-fun algebra_tac add_ths del_ths ctxt i = ObjectLogic.full_atomize_tac i 
+fun algebra_tac add_ths del_ths ctxt i = ObjectLogic.full_atomize_tac i
   THEN (simp_tac (fst (NormalizerData.get ctxt) delsimps del_ths addsimps add_ths) i)
   THEN (fn st =>
    case try (nth (cprems_of st)) (i - 1) of
@@ -742,7 +727,7 @@ fun algebra_tac add_ths del_ths ctxt i = ObjectLogic.full_atomize_tac i
               in rtac th i st end
               handle TERM _ => no_tac st
                    | THM _ => no_tac st
-                   | ERROR _ => no_tac st
+                   | ERROR _ => no_tac st    (* FIXME !? *)
                    | CTERM _ => no_tac st);
 
 end;
