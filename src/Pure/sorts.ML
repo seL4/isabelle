@@ -136,7 +136,7 @@ fun class_le algebra (c1, c2) = c1 = c2 orelse class_less algebra (c1, c2);
 (* sort relations *)
 
 fun sort_le algebra (S1, S2) =
-  forall (fn c2 => exists (fn c1 => class_le algebra (c1, c2)) S1) S2;
+  S1 = S2 orelse forall (fn c2 => exists (fn c1 => class_le algebra (c1, c2)) S1) S2;
 
 fun sorts_le algebra (Ss1, Ss2) =
   ListPair.all (sort_le algebra) (Ss1, Ss2);
