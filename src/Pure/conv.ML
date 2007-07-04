@@ -32,9 +32,9 @@ sig
   val binop_conv: conv -> conv
   val forall_conv: int -> conv -> conv
   val concl_conv: int -> conv -> conv
-  val prems_conv: int -> (int -> conv) -> conv
+  val prems_conv: int -> conv -> conv
   val fconv_rule: conv -> thm -> thm
-  val goal_conv_rule: conv -> int -> thm -> thm
+  val gconv_rule: conv -> int -> thm -> thm
 end;
 
 structure Conv: CONV =
@@ -60,7 +60,11 @@ fun (cv1 then_conv cv2) ct =
   end;
 
 fun (cv1 else_conv cv2) ct =
-  (case try cv1 ct of SOME eq => eq | NONE => cv2 ct);
+  (cv1 ct
+    handle THM _ => cv2 ct
+      | CTERM _ => cv2 ct
+      | TERM _ => cv2 ct
+      | TYPE _ => cv2 ct);
 
 fun first_conv cvs = fold_rev (curry op else_conv) cvs no_conv;
 fun every_conv cvs = fold_rev (curry op then_conv) cvs all_conv;
@@ -138,14 +142,14 @@ fun prems_conv 0 _ = all_conv
           else
             (case try Thm.dest_implies ct of
               NONE => all_conv ct
-            | SOME (A, B) => Drule.imp_cong_rule (cv i A) (conv (i + 1) B));
+            | SOME (A, B) => Drule.imp_cong_rule (cv A) (conv (i + 1) B));
   in conv 1 end;
 
 fun fconv_rule cv th = Thm.equal_elim (cv (Thm.cprop_of th)) th;  (*FCONV_RULE in LCF*)
 
-fun goal_conv_rule cv i = Drule.with_subgoal i (fn th =>
+fun gconv_rule cv i = Drule.with_subgoal i (fn th =>
   (case try (Thm.dest_implies o Thm.cprop_of) th of
-    NONE => raise THM ("goal_conv_rule", i, [th])
-  | SOME (A, B) => Thm.equal_elim (Drule.imp_cong_rule (cv A) (all_conv B)) th));
+    SOME (A, B) => Thm.equal_elim (Drule.imp_cong_rule (cv A) (all_conv B)) th
+  | NONE => raise THM ("gconv_rule", i, [th])));
 
 end;
