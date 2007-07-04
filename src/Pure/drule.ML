@@ -98,6 +98,7 @@ sig
   val merge_rules: thm list * thm list -> thm list
   val imp_cong_rule: thm -> thm -> thm
   val arg_cong_rule: cterm -> thm -> thm
+  val binop_cong_rule: cterm -> thm -> thm -> thm
   val fun_cong_rule: thm -> cterm -> thm
   val beta_eta_conversion: cterm -> thm
   val eta_long_conversion: cterm -> thm
@@ -589,6 +590,7 @@ val imp_cong_rule = Thm.combination o Thm.combination (Thm.reflexive implies);
 
 fun arg_cong_rule ct th = Thm.combination (Thm.reflexive ct) th;    (*AP_TERM in LCF/HOL*)
 fun fun_cong_rule th ct = Thm.combination th (Thm.reflexive ct);    (*AP_THM in LCF/HOL*)
+fun binop_cong_rule ct th1 th2 = Thm.combination (arg_cong_rule ct th1) th2;
 
 local
   val dest_eq = Thm.dest_equals o cprop_of
