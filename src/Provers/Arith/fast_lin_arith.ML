@@ -499,7 +499,7 @@ fun mkthm (sg:theory, ss) (asms:thm list) (just:injust) : thm =
 end;
 
 fun coeff poly atom =
-  AList.lookup (op =) poly atom |> the_default (0: integer);
+  AList.lookup (op aconv) poly atom |> the_default (0: integer);
 
 fun lcms ks = fold Integer.lcm ks 1;
 

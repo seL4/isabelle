@@ -54,7 +54,7 @@ structure AttributesData = TheoryDataFun
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ tables = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUPS dups =>
+  fun merge _ tables : T = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUPS dups =>
     error ("Attempt to merge different versions of attribute(s) " ^ commas_quote dups);
 );
 

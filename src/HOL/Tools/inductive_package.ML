@@ -194,7 +194,7 @@ fun find_arg T x [] = sys_error "find_arg"
   | find_arg T x ((p as (_, (SOME _, _))) :: ps) =
       apsnd (cons p) (find_arg T x ps)
   | find_arg T x ((p as (U, (NONE, y))) :: ps) =
-      if T = U then (y, (U, (SOME x, y)) :: ps)
+      if (T: typ) = U then (y, (U, (SOME x, y)) :: ps)
       else apsnd (cons p) (find_arg T x ps);
 
 fun make_args Ts xs =

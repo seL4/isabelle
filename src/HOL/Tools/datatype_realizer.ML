@@ -97,7 +97,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
  
     fun mk_proj j [] t = t
       | mk_proj j (i :: is) t = if null is then t else
-          if j = i then HOLogic.mk_fst t
+          if (j: int) = i then HOLogic.mk_fst t
           else mk_proj j is (HOLogic.mk_snd t);
 
     val tnames = DatatypeProp.make_tnames recTs;

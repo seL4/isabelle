@@ -644,7 +644,7 @@ let
 	  val yi = getIndex y ntc 
 	  
 	  fun lookup k [] =  raise Cannot
-	  |   lookup k ((h,l)::us) = if k = h then l else lookup k us;	  
+	  |   lookup k ((h: int,l)::us) = if k = h then l else lookup k us;	  
 	  
 	  fun rev_completeComponentPath y' = 
 	   let val edge = lookup (getIndex y' ntc) predlist
@@ -974,7 +974,7 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
                     - it is a <= edge and no parallel < edge was found earlier
                     - it is a < edge
                  *)
-          	 fun insert (h,l) [] = [(h,l)]
+          	 fun insert (h: int,l) [] = [(h,l)]
 		 |   insert (h,l) ((k',l')::es) = if h = k' then (
 		     case l of (Less (_, _, _)) => (h,l)::es
 		     | _  => (case l' of (Less (_, _, _)) => (h,l')::es

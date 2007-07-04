@@ -236,7 +236,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
   end;
 
 fun add_dummy name dname (x as (_, (vs, s, mfx, cs))) =
-  if name = s then (true, (vs, s, mfx, (dname, [HOLogic.unitT], NoSyn) :: cs))
+  if (name: string) = s then (true, (vs, s, mfx, (dname, [HOLogic.unitT], NoSyn) :: cs))
   else x;
 
 fun add_dummies f [] _ thy =
