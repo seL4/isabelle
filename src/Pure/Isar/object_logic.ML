@@ -14,6 +14,7 @@ sig
   val drop_judgment: theory -> term -> term
   val fixed_judgment: theory -> string -> term
   val ensure_propT: theory -> term -> term
+  val dest_judgment: cterm -> cterm
   val judgment_conv: conv -> conv
   val is_elim: thm -> bool
   val declare_atomize: attribute
@@ -46,7 +47,7 @@ structure ObjectLogicData = TheoryDataFun
   val extend = I;
 
   fun merge_judgment (SOME x, SOME y) =
-        if x = y then SOME x else error "Attempt to merge different object-logics"
+        if (x: string) = y then SOME x else error "Attempt to merge different object-logics"
     | merge_judgment (j1, j2) = if is_some j1 then j1 else j2;
 
   fun merge _ ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
@@ -110,6 +111,11 @@ fun ensure_propT thy t =
   let val T = Term.fastype_of t
   in if T = propT then t else Const (judgment_name thy, T --> propT) $ t end;
 
+fun dest_judgment ct =
+  if is_judgment (Thm.theory_of_cterm ct) (Thm.term_of ct)
+  then Thm.dest_arg ct
+  else raise CTERM ("dest_judgment", [ct]);
+
 fun judgment_conv cv ct =
   if is_judgment (Thm.theory_of_cterm ct) (Thm.term_of ct)
   then Conv.arg_conv cv ct
@@ -148,7 +154,7 @@ val _ = Context.add_setup (add_rulify Drule.norm_hhf_eq);
 (* atomize *)
 
 fun rewrite_prems_tac rews =
-  CONVERSION (Conv.forall_conv ~1 (Conv.prems_conv ~1 (K (MetaSimplifier.rewrite true rews))));
+  CONVERSION (Conv.forall_conv ~1 (Conv.prems_conv ~1 (MetaSimplifier.rewrite true rews)));
 
 fun atomize_term thy =
   drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];
