@@ -8,7 +8,9 @@ header {* Arithmetic on Binary Integers *}
 
 theory Numeral
 imports IntDef
-uses ("Tools/numeral_syntax.ML")
+uses
+  ("Tools/numeral.ML")
+  ("Tools/numeral_syntax.ML")
 begin
 
 subsection {* Binary representation *}
@@ -46,6 +48,8 @@ definition
 
 class number = type + -- {* for numeric types: nat, int, real, \dots *}
   fixes number_of :: "int \<Rightarrow> 'a"
+
+use "Tools/numeral.ML"
 
 syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
