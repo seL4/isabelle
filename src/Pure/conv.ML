@@ -76,11 +76,11 @@ fun cache_conv cv =
   let
     val cache = ref Termtab.empty;
     fun conv ct =
-      (case Termtab.lookup (! cache) (term_of ct) of
+      (case Termtab.lookup (! cache) (Thm.term_of ct) of
         SOME th => th
       | NONE =>
           let val th = cv ct
-          in change cache (Termtab.update (term_of ct, th)); th end);
+          in change cache (Termtab.update (Thm.term_of ct, th)); th end);
  in conv end;
 
 
@@ -90,7 +90,7 @@ fun cache_conv cv =
 (* lambda terms *)
 
 fun abs_conv cv ct =
-  (case term_of ct of
+  (case Thm.term_of ct of
     Abs (x, _, _) =>
       let val (v, ct') = Thm.dest_abs (SOME (gensym "abs_")) ct
       in Thm.abstract_rule x v (cv ct') end
@@ -118,7 +118,7 @@ fun forall_conv 0 cv ct = cv ct
       (case try Thm.dest_comb ct of
         NONE => cv ct
       | SOME (A, B) =>
-          (case (term_of A, term_of B) of
+          (case (Thm.term_of A, Thm.term_of B) of
             (Const ("all", _), Abs (x, _, _)) =>
               let val (v, B') = Thm.dest_abs (SOME (gensym "all_")) B in
                 Thm.combination (all_conv A)
