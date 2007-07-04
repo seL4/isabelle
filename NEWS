@@ -551,11 +551,11 @@ successful. These can be pasted into the proof.  Users do not have to
 wait for the automatic provers to return.
 
 * Case-expressions allow arbitrary constructor-patterns (including "_") and
-  takes their order into account, like in functional programming.
+  take their order into account, like in functional programming.
   Internally, this is translated into nested case-expressions; missing cases
   are added and mapped to the predefined constant "undefined". In complicated
   cases printing may no longer show the original input but the internal
-  form. Lambda-abstraction allows the same form of pattern matching:
+  form. Lambda-abstractions allow the same form of pattern matching:
   "% pat1 => e1 | ..." is an abbreviation for
   "%x. case x of pat1 => e1 | ..." where x is a new variable.
 
