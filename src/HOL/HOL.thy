@@ -1674,7 +1674,8 @@ subsubsection {* Normalization by evaluation *}
 
 method_setup normalization = {*
   Method.no_args (Method.SIMPLE_METHOD'
-    (CONVERSION (HOLogic.Trueprop_conv NBE.normalization_conv) THEN' resolve_tac [TrueI, refl]))
+    (CONVERSION (ObjectLogic.judgment_conv NBE.normalization_conv)
+      THEN' resolve_tac [TrueI, refl]))
 *} "solve goal by normalization"
 
 

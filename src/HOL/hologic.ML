@@ -19,7 +19,6 @@ sig
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
   val dest_cTrueprop: cterm -> cterm
-  val Trueprop_conv: conv -> conv
   val conj_intr: thm -> thm -> thm
   val conj_elim: thm -> thm * thm
   val conj_elims: thm -> thm list
@@ -144,10 +143,6 @@ fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
 fun dest_cTrueprop ct =
   if can dest_Trueprop (Thm.term_of ct) then Thm.dest_arg ct
   else raise CTERM ("cdest_Trueprop", [ct]);
-
-fun Trueprop_conv conv ct =
-  if can dest_Trueprop (Thm.term_of ct) then Conv.arg_conv conv ct
-  else raise CTERM ("Trueprop_conv", [ct]);
 
 fun conj_intr thP thQ =
   let

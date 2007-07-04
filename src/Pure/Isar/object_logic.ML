@@ -14,6 +14,7 @@ sig
   val drop_judgment: theory -> term -> term
   val fixed_judgment: theory -> string -> term
   val ensure_propT: theory -> term -> term
+  val judgment_conv: conv -> conv
   val is_elim: thm -> bool
   val declare_atomize: attribute
   val declare_rulify: attribute
@@ -80,7 +81,7 @@ val add_judgment_i = gen_add_judgment Sign.add_consts_i;
 end;
 
 
-(* term operations *)
+(* judgments *)
 
 fun judgment_name thy =
   (case ObjectLogicData.get thy of
@@ -108,6 +109,11 @@ fun fixed_judgment thy x =
 fun ensure_propT thy t =
   let val T = Term.fastype_of t
   in if T = propT then t else Const (judgment_name thy, T --> propT) $ t end;
+
+fun judgment_conv cv ct =
+  if is_judgment (Thm.theory_of_cterm ct) (Thm.term_of ct)
+  then Conv.arg_conv cv ct
+  else raise CTERM ("judgment_conv", [ct]);
 
 
 (* elimination rules *)
