@@ -85,8 +85,8 @@ fun destruct_floatstr isDigit isExp number =
 exception Floating_point of string;
 
 val ln2_10 = Math.ln 10.0 / Math.ln 2.0;
-val exp5 = Integer.pow 5;
-val exp10 = Integer.pow 10;
+fun exp5 x = Integer.pow x 5;
+fun exp10 x = Integer.pow x 10;
 
 fun find_most_significant q r =
   let
