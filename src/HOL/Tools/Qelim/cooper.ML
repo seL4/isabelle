@@ -12,7 +12,6 @@ end;
 structure Cooper: COOPER =
 struct
 open Conv;
-open Normalizer;
 structure Integertab = TableFun(type key = Integer.int val ord = Integer.ord);
 exception COOPER of string * exn;
 val simp_thms_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms);
@@ -321,8 +320,8 @@ fun unify ctxt q =
     val th = 
      Simplifier.rewrite lin_ss 
       (Thm.capply @{cterm Trueprop} (Thm.capply @{cterm "Not"} 
-           (Thm.capply (Thm.capply @{cterm "op = :: int => _"} (mk_cnumber @{ctyp "int"} x)) 
-           @{cterm "0::int"})))
+         (Thm.capply (Thm.capply @{cterm "op = :: int => _"} (Numeral.mk_cnumber @{ctyp "int"} x)) 
+         @{cterm "0::int"})))
    in equal_elim (Thm.symmetric th) TrueI end;
   val notz = let val tab = fold Integertab.update 
                                (ds ~~ (map (fn x => nzprop (Integer.div l x)) ds)) Integertab.empty 
@@ -358,7 +357,7 @@ fun unify ctxt q =
     else Thm.reflexive t
   | _ => Thm.reflexive t
   val uth = unit_conv p
-  val clt =  mk_cnumber @{ctyp "int"} l
+  val clt = Numeral.mk_cnumber @{ctyp "int"} l
   val ltx = Thm.capply (Thm.capply cmulC clt) cx
   val th = Drule.arg_cong_rule e (Thm.abstract_rule (fst (dest_Free x )) cx uth)
   val th' = inst' [Thm.cabs ltx (Thm.rhs_of uth), clt] unity_coeff_ex
@@ -405,14 +404,14 @@ let
   | _ => (bacc, aacc, dacc)
  val (b0,a0,ds) = h p ([],[],[])
  val d = fold Integer.lcm ds 1
- val cd = mk_cnumber @{ctyp "int"} d
+ val cd = Numeral.mk_cnumber @{ctyp "int"} d
  val dt = term_of cd
  fun divprop x = 
    let 
     val th = 
      Simplifier.rewrite lin_ss 
       (Thm.capply @{cterm Trueprop} 
-           (Thm.capply (Thm.capply dvdc (mk_cnumber @{ctyp "int"} x)) cd))
+           (Thm.capply (Thm.capply dvdc (Numeral.mk_cnumber @{ctyp "int"} x)) cd))
    in equal_elim (Thm.symmetric th) TrueI end;
  val dvd = let val tab = fold Integertab.update
                                (ds ~~ (map divprop ds)) Integertab.empty in 
@@ -613,7 +612,7 @@ val bT = HOLogic.boolT;
 fun myassoc2 l v =
     case l of
 	[] => NONE
-      | (x,v')::xs => if v = v' then SOME x
+      | (x,v': int)::xs => if v = v' then SOME x
 		      else myassoc2 xs v;
 
 fun term_of_i vs t =
