@@ -591,11 +591,11 @@ fun dest_const ct = case term_of ct of
 
 fun mk_const phi cT x =
  let val (a, b) = Rat.quotient_of_rat x
- in if b = 1 then Normalizer.mk_cnumber cT a
+ in if b = 1 then Numeral.mk_cnumber cT a
     else Thm.capply
          (Thm.capply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
-                     (Normalizer.mk_cnumber cT a))
-         (Normalizer.mk_cnumber cT b)
+                     (Numeral.mk_cnumber cT a))
+         (Numeral.mk_cnumber cT b)
   end
 
 in
@@ -723,11 +723,11 @@ fun dest_frac ct = case term_of ct of
 
 fun mk_frac phi cT x =
  let val (a, b) = Rat.quotient_of_rat x
- in if b = 1 then Normalizer.mk_cnumber cT a
+ in if b = 1 then Numeral.mk_cnumber cT a
     else Thm.capply
          (Thm.capply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
-                     (Normalizer.mk_cnumber cT a))
-         (Normalizer.mk_cnumber cT b)
+                     (Numeral.mk_cnumber cT a))
+         (Numeral.mk_cnumber cT b)
  end
 
 fun whatis x ct = case term_of ct of
