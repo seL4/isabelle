@@ -5,8 +5,6 @@
 
 signature NORMALIZER = 
 sig
- val mk_cnumber : ctyp -> integer -> cterm
- val mk_cnumeral : integer -> cterm
  val semiring_normalize_conv : Proof.context -> conv
  val semiring_normalize_ord_conv : Proof.context -> (cterm -> cterm -> bool) -> conv
  val semiring_normalize_tac : Proof.context -> int -> tactic
@@ -24,35 +22,6 @@ struct
 
 open Conv Misc;
 
-local
- val pls_const = @{cterm "Numeral.Pls"}
-   and min_const = @{cterm "Numeral.Min"}
-   and bit_const = @{cterm "Numeral.Bit"}
-   and zero = @{cpat "0"}
-   and one = @{cpat "1"}
- fun mk_cbit 0 = @{cterm "Numeral.bit.B0"}
-  | mk_cbit 1 = @{cterm "Numeral.bit.B1"}
-  | mk_cbit _ = raise CTERM ("mk_cbit", []);
-
-in
-
-fun mk_cnumeral 0 = pls_const
-  | mk_cnumeral ~1 = min_const
-  | mk_cnumeral i =
-      let val (q, r) = Integer.divmod i 2
-      in Thm.capply (Thm.capply bit_const (mk_cnumeral q)) (mk_cbit (Integer.machine_int r)) end;
-
-fun mk_cnumber cT = 
- let 
-  val [nb_of, z, on] = 
-    map (Drule.cterm_rule (instantiate' [SOME cT] [])) [@{cpat "number_of"}, zero, one]
-  fun h 0 = z
-    | h 1 = on
-    | h x = Thm.capply nb_of (mk_cnumeral x)
- in h end;
-end;
-
-
 (* Very basic stuff for terms *)
 val dest_numeral = term_of #> HOLogic.dest_number #> snd;
 val is_numeral = can dest_numeral;
@@ -61,7 +30,7 @@ val numeral01_conv = Simplifier.rewrite
                          (HOL_basic_ss addsimps [numeral_1_eq_1, numeral_0_eq_0]);
 val zero1_numeral_conv = 
  Simplifier.rewrite (HOL_basic_ss addsimps [numeral_1_eq_1 RS sym, numeral_0_eq_0 RS sym]);
-val zerone_conv = fn cv => zero1_numeral_conv then_conv cv then_conv numeral01_conv;
+fun zerone_conv cv = zero1_numeral_conv then_conv cv then_conv numeral01_conv;
 val natarith = [@{thm "add_nat_number_of"}, @{thm "diff_nat_number_of"},
                 @{thm "mult_nat_number_of"}, @{thm "eq_nat_number_of"}, 
                 @{thm "less_nat_number_of"}];
@@ -531,10 +500,9 @@ val polynomial_mul_conv =
 
 (* Power of polynomial (optimized for the monomial and trivial cases).       *)
 
-val Succ = @{cterm "Suc"};
-val num_conv = fn n =>
-        nat_add_conv (Thm.capply (Succ) (mk_cnumber @{ctyp "nat"} ((dest_numeral n) - 1)))
-                     |> Thm.symmetric;
+fun num_conv n =
+  nat_add_conv (Thm.capply @{cterm Suc} (Numeral.mk_cnumber @{ctyp nat} (dest_numeral n - 1)))
+  |> Thm.symmetric;
 
 
 val polynomial_pow_conv =
@@ -559,8 +527,7 @@ val polynomial_pow_conv =
 
 (* Negation.                                                                 *)
 
-val polynomial_neg_conv =
- fn tm =>
+fun polynomial_neg_conv tm =
    let val (l,r) = Thm.dest_comb tm in
         if not (l aconvc neg_tm) then raise CTERM ("polynomial_neg_conv",[tm]) else
         let val th1 = inst_thm [(cx',r)] neg_mul
@@ -571,7 +538,7 @@ val polynomial_neg_conv =
 
 
 (* Subtraction.                                                              *)
-val polynomial_sub_conv = fn tm =>
+fun polynomial_sub_conv tm =
   let val (l,r) = dest_sub tm
       val th1 = inst_thm [(cx',l),(cy',r)] sub_add
       val (tm1,tm2) = Thm.dest_comb(concl th1)
