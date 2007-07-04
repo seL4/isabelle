@@ -8,7 +8,7 @@ Ring normalization data.
 signature NORMALIZER_DATA =
 sig
   type entry
-  val get: Proof.context -> simpset * ((thm * entry) list)
+  val get: Proof.context -> simpset * (thm * entry) list
   val match: Proof.context -> cterm -> entry option
   val del: attribute
   val add: {semiring: cterm list * thm list, ring: cterm list * thm list, idom: thm list}
@@ -41,11 +41,11 @@ fun eq_data arg = eq_fst eq_key arg;
 
 structure Data = GenericDataFun
 (
-  type T = simpset * ((thm * entry) list);
+  type T = simpset * (thm * entry) list;
   val empty = (HOL_basic_ss, []);
   val extend = I;
-  fun merge _ ((ss, e), (ss', e')) = (merge_ss (ss, ss'), 
-                                      AList.merge eq_key (K true) (e,e'));
+  fun merge _ ((ss, e), (ss', e')) =
+    (merge_ss (ss, ss'), AList.merge eq_key (K true) (e, e'));
 );
 
 val get = Data.get o Context.Proof;
@@ -134,7 +134,6 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom} =
       val (cp, cq) = rule 26 |> Thm.lhs_of |> Thm.dest_binop |> pairself Thm.dest_arg;
 
       val vars = [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry];
-      val _ = map print_thm sr_rules';
       val semiring = (sr_ops, sr_rules');
       val ring = (r_ops, r_rules');
     in
