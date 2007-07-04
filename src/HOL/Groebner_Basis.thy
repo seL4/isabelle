@@ -185,32 +185,38 @@ lemmas comp_arith = Let_def arith_simps nat_arith rel_simps if_False
 lemmas semiring_norm = comp_arith
 
 ML {*
-  fun numeral_is_const ct =
-    can HOLogic.dest_number (Thm.term_of ct);
+local
 
-  val numeral_conv =
-    Conv.then_conv (Simplifier.rewrite (HOL_basic_ss addsimps @{thms semiring_norm}),
-   Simplifier.rewrite (HOL_basic_ss addsimps
-  [@{thm numeral_1_eq_1},@{thm numeral_0_eq_0}] @ @{thms numerals(1-2)}));
-*}
+open Conv;
 
-ML {*
-  fun int_of_rat x =
-    (case Rat.quotient_of_rat x of (i, 1) => i
-    | _ => error "int_of_rat: bad int")
-*}
+fun numeral_is_const ct =
+  can HOLogic.dest_number (Thm.term_of ct);
 
-declaration {*
-  NormalizerData.funs @{thm class_semiring.axioms}
+fun int_of_rat x =
+  (case Rat.quotient_of_rat x of (i, 1) => i
+  | _ => error "int_of_rat: bad int");
+
+val numeral_conv =
+  Simplifier.rewrite (HOL_basic_ss addsimps @{thms semiring_norm}) then_conv
+  Simplifier.rewrite (HOL_basic_ss addsimps
+    (@{thms numeral_1_eq_1} @ @{thms numeral_0_eq_0} @ @{thms numerals(1-2)}));
+
+in
+
+fun normalizer_funs key =
+  NormalizerData.funs key
    {is_const = fn phi => numeral_is_const,
     dest_const = fn phi => fn ct =>
       Rat.rat_of_int (snd
         (HOLogic.dest_number (Thm.term_of ct)
           handle TERM _ => error "ring_dest_const")),
-    mk_const = fn phi => fn cT => fn x =>
-      Thm.cterm_of (Thm.theory_of_ctyp cT) (HOLogic.mk_number (typ_of cT) (int_of_rat x)),
+    mk_const = fn phi => fn cT => fn x => Numeral.mk_cnumber cT (int_of_rat x),
     conv = fn phi => K numeral_conv}
+
+end
 *}
+
+declaration {* normalizer_funs @{thm class_semiring.axioms} *}
 
 
 locale gb_ring = gb_semiring +
@@ -241,17 +247,7 @@ interpretation class_ring: gb_ring ["op +" "op *" "op ^"
   by unfold_locales simp_all
 
 
-declaration {*
-  NormalizerData.funs @{thm class_ring.axioms}
-   {is_const = fn phi => numeral_is_const,
-    dest_const = fn phi => fn ct =>
-      Rat.rat_of_int (snd
-        (HOLogic.dest_number (Thm.term_of ct)
-          handle TERM _ => error "ring_dest_const")),
-    mk_const = fn phi => fn cT => fn x =>
-      Thm.cterm_of (Thm.theory_of_ctyp cT) (HOLogic.mk_number (typ_of cT) (int_of_rat x)),
-    conv = fn phi => K numeral_conv}
-*}
+declaration {* normalizer_funs @{thm class_ring.axioms} *}
 
 use "Tools/Groebner_Basis/normalizer.ML"
 
@@ -354,17 +350,7 @@ proof(unfold_locales, simp add: ring_simps power_Suc, auto)
 qed
 
 
-declaration {*
-  NormalizerData.funs @{thm class_ringb.axioms}
-   {is_const = fn phi => numeral_is_const,
-    dest_const = fn phi => fn ct =>
-      Rat.rat_of_int (snd
-        (HOLogic.dest_number (Thm.term_of ct)
-          handle TERM _ => error "ring_dest_const")),
-    mk_const = fn phi => fn cT => fn x =>
-      Thm.cterm_of (Thm.theory_of_ctyp cT) (HOLogic.mk_number (typ_of cT) (int_of_rat x)),
-    conv = fn phi => K numeral_conv}
-*}
+declaration {* normalizer_funs @{thm class_ringb.axioms} *}
 
 interpretation natgb: semiringb
   ["op +" "op *" "op ^" "0::nat" "1"]
@@ -388,17 +374,7 @@ proof (unfold_locales, simp add: ring_simps power_Suc)
   thus "(w * y + x * z = w * z + x * y) = (w = x \<or> y = z)" by auto
 qed
 
-declaration {*
-  NormalizerData.funs @{thm natgb.axioms}
-   {is_const = fn phi => numeral_is_const,
-    dest_const = fn phi => fn ct =>
-      Rat.rat_of_int (snd
-        (HOLogic.dest_number (Thm.term_of ct)
-          handle TERM _ => error "ring_dest_const")),
-    mk_const = fn phi => fn cT => fn x =>
-      Thm.cterm_of (Thm.theory_of_ctyp cT) (HOLogic.mk_number (typ_of cT) (int_of_rat x)),
-    conv = fn phi => K numeral_conv}
-*}
+declaration {* normalizer_funs @{thm natgb.axioms} *}
 
 locale fieldgb = ringb + gb_field
 begin
@@ -448,7 +424,7 @@ fn src => Method.syntax
     ((Scan.optional (keyword addN |-- thms) []) -- 
     (Scan.optional (keyword delN |-- thms) [])) src 
  #> (fn ((add_ths, del_ths), ctxt) => 
-       Method.SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
+       Method.SIMPLE_METHOD' (Groebner.ring_tac add_ths del_ths ctxt))
 end
 *} "solve polynomial equations over (semi)rings using Groebner bases"
 
