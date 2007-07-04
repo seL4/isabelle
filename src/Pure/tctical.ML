@@ -522,7 +522,7 @@ fun PRIMITIVE thmfun = PRIMSEQ (Seq.single o thmfun);
 fun SINGLE tacf = Option.map fst o Seq.pull o tacf
 
 (*Conversions as tactics*)
-fun CONVERSION cv i st = Seq.single (Conv.goal_conv_rule cv i st)
+fun CONVERSION cv i st = Seq.single (Conv.gconv_rule cv i st)
   handle THM _ => Seq.empty
     | CTERM _ => Seq.empty
     | TERM _ => Seq.empty

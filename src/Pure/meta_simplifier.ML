@@ -1271,13 +1271,13 @@ fun rewrite_thm mode prover ss = Conv.fconv_rule (rewrite_cterm mode prover ss);
 
 (*Rewrite the subgoals of a proof state (represented by a theorem)*)
 fun rewrite_goals_rule thms th =
-  Conv.fconv_rule (Conv.prems_conv ~1 (K (rewrite_cterm (true, true, true) simple_prover
-    (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms)))) th;
+  Conv.fconv_rule (Conv.prems_conv ~1 (rewrite_cterm (true, true, true) simple_prover
+    (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem)*)
 fun rewrite_goal_rule mode prover ss i thm =
   if 0 < i andalso i <= Thm.nprems_of thm
-  then Conv.goal_conv_rule (rewrite_cterm mode prover ss) i thm
+  then Conv.gconv_rule (rewrite_cterm mode prover ss) i thm
   else raise THM ("rewrite_goal_rule", i, [thm]);
 
 
