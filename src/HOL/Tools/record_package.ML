@@ -513,7 +513,7 @@ fun add_parents thy NONE parents = parents
 
 fun decode_type thy t =
   let
-    fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS thy);
+    fun get_sort xs n = AList.lookup (op =) xs (n: indexname) |> the_default (Sign.defaultS thy);
     val map_sort = Sign.intern_sort thy;
   in
     Syntax.typ_of_term (get_sort (Syntax.term_sorts map_sort t)) map_sort t
@@ -739,8 +739,6 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
       (* tm is term representation of a (nested) field type. We first reconstruct the      *)
       (* type from tm so that we can continue on the type level rather then the term level.*)
 
-      fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS thy);
-
       (* WORKAROUND:
        * If a record type occurs in an error message of type inference there
        * may be some internal frees donoted by ??:
@@ -787,7 +785,6 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
 fun record_type_tr' sep mark record record_scheme ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
-    fun get_sort xs n = AList.lookup (op =) xs n |> the_default (Sign.defaultS thy);
 
     val T = decode_type thy t;
     val varifyT = varifyT (Term.maxidx_of_typ T);
