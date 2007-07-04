@@ -11,8 +11,7 @@ sig
     (cterm -> Rat.rat) -> (Rat.rat -> cterm) ->
     conv ->  conv ->
     conv * (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list)
-    val ring_conv : Proof.context -> cterm -> thm
-    val algebra_tac: thm list -> thm list -> Proof.context -> int -> tactic
+    val ring_tac: thm list -> thm list -> Proof.context -> int -> tactic
 end
 
 structure Groebner: GROEBNER =
@@ -196,7 +195,7 @@ fun spoly cm ph1 ph2 =
 (* Make a polynomial monic.                                                  *)
 
 fun monic (pol,hist) =
-  if pol = [] then (pol,hist) else
+  if null pol then (pol,hist) else
   let val (c',m') = hd pol in
   (map (fn (c,m) => (c//c',m)) pol,
    Mmul((rat_1 // c',map (K 0) m'),hist)) end;
@@ -222,7 +221,7 @@ fun forall2 p l1 l2 =
   | _ => false;
 
 fun poly_eq p1 p2 =
-  forall2 (fn (c1,m1) => fn (c2,m2) => c1 =/ c2 andalso m1 = m2) p1 p2;
+  forall2 (fn (c1,m1) => fn (c2,m2) => c1 =/ c2 andalso (m1: integer list) = m2) p1 p2;
 
 fun memx ((p1,h1),(p2,h2)) ppairs =
   not (exists (fn ((q1,_),(q2,_)) => poly_eq p1 q1 andalso poly_eq p2 q2) ppairs);
@@ -260,7 +259,7 @@ fun mergesort ord l =
  | (l,[]) => mergepairs [] l
  | (l,[s1]) => mergepairs (s1::l) []
  | (l,(s1::s2::ss)) => mergepairs ((merge ord s1 s2)::l) ss
- in if l = []  then []  else mergepairs [] (map (fn x => [x]) l)
+ in if null l  then []  else mergepairs [] (map (fn x => [x]) l)
  end;
 
 
@@ -271,7 +270,7 @@ fun grobner_basis basis pairs =
     [] => basis
   | (l,(p1,p2))::opairs =>
         let val (sph as (sp,hist)) = monic (reduce basis (spoly l p1 p2))
-        in if sp = [] orelse criterion2 basis (l,(p1,p2)) opairs
+        in if null sp orelse criterion2 basis (l,(p1,p2)) opairs
            then grobner_basis basis opairs
            else if constant_poly sp then grobner_basis (sph::basis) []
            else let val rawcps = map (fn p => (mlcm (hd(fst p)) (hd sp),align(p,sph)))
@@ -292,7 +291,7 @@ fun grobner_interreduce rpols ipols =
   case ipols of
     [] => map monic (rev rpols)
   | p::ps => let val p' = reduce (rpols @ ps) p in
-             if fst p' = [] then grobner_interreduce rpols ps
+             if null (fst p') then grobner_interreduce rpols ps
              else grobner_interreduce (p'::rpols) ps end;
 
 (* ------------------------------------------------------------------------- *)
@@ -302,7 +301,7 @@ fun grobner_interreduce rpols ipols =
 fun grobner pols =
     let val npols = map2 (fn p => fn n => (p,Start n)) pols
           (map Integer.int (0 upto (length pols - 1)))
-        val phists = filter (fn (p,_) => p <> []) npols
+        val phists = filter (fn (p,_) => not (null p)) npols
         val bas = grobner_interreduce [] (map monic phists)
         val prs0 = product bas bas
         val prs1 = filter (fn ((x,_),(y,_)) => poly_lt x y) prs0
@@ -361,7 +360,7 @@ fun grobner_weak vars pols =
 
 fun grobner_ideal vars pols pol =
   let val (pol',h) = reduce (grobner pols) (grob_neg pol,Start(~1)) in
-  if pol <> [] then error "grobner_ideal: not in the ideal" else
+  if not (null pol) then error "grobner_ideal: not in the ideal" else
   resolve_proof vars h end;
 
 (* ------------------------------------------------------------------------- *)
@@ -574,13 +573,13 @@ fun grobify_equations tm =
 
 val holify_polynomial =
  let fun holify_varpow (v,n) =
-  if n = 1 then v else ring_mk_pow v (mk_cnumber @{ctyp "nat"} n)  (* FIXME *)
+  if n = 1 then v else ring_mk_pow v (Numeral.mk_cnumber @{ctyp "nat"} n)  (* FIXME *)
  fun holify_monomial vars (c,m) =
   let val xps = map holify_varpow (filter (fn (_,n) => n <> (0: integer)) (vars ~~ m))
    in end_itlist ring_mk_mul (mk_const c :: xps)
   end
  fun holify_polynomial vars p =
-     if p = [] then mk_const (rat_0)
+     if null p then mk_const (rat_0)
      else end_itlist ring_mk_add (map (holify_monomial vars) p)
  in holify_polynomial
  end ;
@@ -707,7 +706,7 @@ and find_body bounds b =
   let val (_, b') = Thm.dest_abs (SOME (Name.bound bounds)) b
   in find_term (bounds + 1) b' end;
 
-fun ring_conv ctxt form =
+fun ring_solve ctxt form =
   (case try (find_term 0 (* FIXME !? *)) form of
     NONE => reflexive form
   | SOME tm =>
@@ -718,16 +717,13 @@ fun ring_conv ctxt form =
           dest_const (mk_const (Thm.ctyp_of_term tm)) (ring_eq_conv ctxt)
           (semiring_normalize_wrapper ctxt res)) form));
 
-fun algebra_tac add_ths del_ths ctxt i = ObjectLogic.full_atomize_tac i
-  THEN (simp_tac (fst (NormalizerData.get ctxt) delsimps del_ths addsimps add_ths) i)
-  THEN (fn st =>
-   case try (nth (cprems_of st)) (i - 1) of
-    NONE => no_tac st
-  | SOME p => let val th = ring_conv ctxt (Thm.dest_arg p)
-              in rtac th i st end
-              handle TERM _ => no_tac st
-                   | THM _ => no_tac st
-                   | ERROR _ => no_tac st    (* FIXME !? *)
-                   | CTERM _ => no_tac st);
+fun ring_tac add_ths del_ths ctxt =
+  ObjectLogic.full_atomize_tac
+  THEN' simp_tac (fst (NormalizerData.get ctxt) delsimps del_ths addsimps add_ths)
+  THEN' CSUBGOAL (fn (p, i) =>
+    rtac (ring_solve ctxt (ObjectLogic.dest_judgment p)) i
+      handle TERM _ => no_tac
+        | CTERM _ => no_tac
+        | THM _ => no_tac);
 
 end;
