@@ -679,16 +679,9 @@ apply            (fast intro: ax_derivs.weaken)
 apply           (rule ax_derivs.conseq, intro strip, tactic "smp_tac 3 1",clarify, tactic "smp_tac 1 1",rule exI, rule exI, erule (1) conjI) 
 (* 37 subgoals *)
 prefer 18 (* Methd *)
-apply (rule ax_derivs.Methd, drule spec, erule mp, fast)
-apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) (thms "ax_derivs.intros")) 
-                     THEN_ALL_NEW Blast_tac) *})
-apply (erule ax_derivs.Call)
-apply   clarify 
-apply   blast
-
-apply   (rule allI)+ 
-apply   (drule spec)+
-apply   blast
+apply (rule ax_derivs.Methd, drule spec, erule mp, fast) 
+apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) (thms "ax_derivs.intros"))) *})
+apply auto
 done
 
 lemma ax_thin_insert: "G,(A::'a triple set)\<turnstile>(t::'a triple) \<Longrightarrow> G,insert x A\<turnstile>t"
