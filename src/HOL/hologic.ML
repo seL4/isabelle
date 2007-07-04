@@ -18,7 +18,6 @@ sig
   val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
-  val dest_cTrueprop: cterm -> cterm
   val conj_intr: thm -> thm -> thm
   val conj_elim: thm -> thm * thm
   val conj_elims: thm -> thm list
@@ -140,20 +139,16 @@ fun mk_Trueprop P = Trueprop $ P;
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
-fun dest_cTrueprop ct =
-  if can dest_Trueprop (Thm.term_of ct) then Thm.dest_arg ct
-  else raise CTERM ("cdest_Trueprop", [ct]);
-
 fun conj_intr thP thQ =
   let
-    val (P, Q) = pairself (dest_cTrueprop o Thm.cprop_of) (thP, thQ)
+    val (P, Q) = pairself (ObjectLogic.dest_judgment o Thm.cprop_of) (thP, thQ)
       handle CTERM (msg, _) => raise THM (msg, 0, [thP, thQ]);
     val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
   in Drule.implies_elim_list (inst @{thm conjI}) [thP, thQ] end;
 
 fun conj_elim thPQ =
   let
-    val (P, Q) = Thm.dest_binop (dest_cTrueprop (Thm.cprop_of thPQ))
+    val (P, Q) = Thm.dest_binop (ObjectLogic.dest_judgment (Thm.cprop_of thPQ))
       handle CTERM (msg, _) => raise THM (msg, 0, [thPQ]);
     val inst = Thm.instantiate ([], [(@{cpat "?P::bool"}, P), (@{cpat "?Q::bool"}, Q)]);
     val thP = Thm.implies_elim (inst @{thm conjunct1}) thPQ;
@@ -320,7 +315,7 @@ fun mk_nat (n: integer) =
   let
     fun mk 0 = zero
       | mk n = mk_Suc (mk (n - 1));
-  in if n < 0 then raise TERM ("mk_nat: negative numeral", []) else mk n end;
+  in if n < 0 then raise TERM ("mk_nat: negative number", []) else mk n end;
 
 fun dest_nat (Const ("HOL.zero_class.zero", _)) = (0: integer)
   | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
