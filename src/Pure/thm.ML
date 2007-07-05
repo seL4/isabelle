@@ -35,11 +35,12 @@ signature BASIC_THM =
   val cterm_of: theory -> term -> cterm
   val ctyp_of_term: cterm -> ctyp
 
-  type tag              (* = string * string list *)
+  type tag = string * string list
 
   (*meta theorems*)
   type thm
-  type attribute     (* = Context.generic * thm -> Context.generic * thm *)
+  type conv = cterm -> thm
+  type attribute = Context.generic * thm -> Context.generic * thm
   val rep_thm: thm ->
    {thy: theory,
     der: bool * Proofterm.proof,
@@ -88,9 +89,9 @@ signature BASIC_THM =
   val reflexive: cterm -> thm
   val symmetric: thm -> thm
   val transitive: thm -> thm -> thm
-  val beta_conversion: bool -> cterm -> thm
-  val eta_conversion: cterm -> thm
-  val eta_long_conversion: cterm -> thm
+  val beta_conversion: bool -> conv
+  val eta_conversion: conv
+  val eta_long_conversion: conv
   val abstract_rule: string -> cterm -> thm -> thm
   val combination: thm -> thm -> thm
   val equal_intr: thm -> thm -> thm
@@ -238,7 +239,7 @@ fun cterm_of thy tm =
   in Cterm {thy_ref = Theory.self_ref thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 
 fun merge_thys0 (Cterm {thy_ref = r1, t = t1, ...}) (Cterm {thy_ref = r2, t = t2, ...}) =
-  Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise TERM (msg, [t1, t2]);
+  Theory.merge_refs (r1, r2);
 
 
 (* destructors *)
@@ -368,6 +369,8 @@ abstype thm = Thm of
   prop: term}                  (*conclusion*)
 with
 
+type conv = cterm -> thm;
+
 (*attributes subsume any kind of rules or context modifiers*)
 type attribute = Context.generic * thm -> Context.generic * thm;
 
@@ -409,10 +412,10 @@ val union_hyps = OrdList.union Term.fast_term_ord;
 (* merge theories of cterms/thms; raise exception if incompatible *)
 
 fun merge_thys1 (Cterm {thy_ref = r1, ...}) (th as Thm {thy_ref = r2, ...}) =
-  Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise THM (msg, 0, [th]);
+  Theory.merge_refs (r1, r2);
 
 fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}) =
-  Theory.merge_refs (r1, r2) handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
+  Theory.merge_refs (r1, r2);
 
 
 (* basic components *)
