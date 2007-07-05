@@ -125,11 +125,6 @@ local
 		[D.Theoryitem {text=str,
 			       name=SOME (nameparse "theoryitem" ty nameP toks),
 			       objtype=SOME ty}]
-	    val plain_item = 
-		[D.Theoryitem {text=str,name=NONE,objtype=NONE}]
-	    val doccomment = 
-		[D.Doccomment {text=str}]
-
             val opt_overloaded = P.opt_keyword "overloaded";
 
             val thmnameP = (* see isar_syn.ML/theoremsP *)
@@ -146,10 +141,11 @@ local
                and even if we did, we'd have to mess around here a whole lot more first
                to pick out the terms from the syntax. *)
 
-            if member (op =) plain_items name then plain_item
+            if member (op =) plain_items name then 
+		[D.Theoryitem {text=str,name=NONE,objtype=NONE}]
             else case name of
-                     "text"      => doccomment
-                   | "text_raw"  => doccomment
+                     "text"      => [D.Doccomment {text=str}]
+                   | "text_raw"  => [D.Doccomment {text=str}]
                    | "typedecl"  => named_item (P.type_args |-- P.name) T.ObjType
                    | "types"     => named_item (P.type_args |-- P.name) T.ObjType
                    | "classes"   => named_item P.name I.ObjClass
@@ -164,7 +160,7 @@ local
 		   (* FIXME: locale needs to introduce a block *)
                    | "locale"    => named_item ((P.opt_keyword "open" >> not) |-- P.name) I.ObjLocale
                    | _ => (parse_warning ("Unrecognized thy-decl command: " ^ name); 
-			   plain_item)
+			   [D.Theoryitem {text=str,name=NONE,objtype=NONE}])
         end
 
     fun xmls_of_thy_goal (name,toks,str) =
@@ -277,14 +273,15 @@ fun xmls_pre_cmd [] = ([],[])
              (P.short_ident || P.long_ident || P.sym_ident || P.string || P.number || P.verbatim) >> op^)
              -- (spaceP || Scan.succeed "") >> op^
         val (prewhs,rest1) = take_prefix (not o OuterLex.is_proper) (toks@sync)
-        (* NB: this collapses  doccomment,(doccomment|whitespace)* to a single doccomment *)
+        (* NB: this collapses  doclitcomment,(doclitcomment|whitespace)* to a single doclitcomment *)
         val (_,rest2) = (Scan.bulk (P.$$$ "--" |-- text_with_whs) >> implode || Scan.succeed "") rest1
         val (postwhs,rest3) = take_prefix (not o OuterLex.is_proper) rest2
     in
         ((markup_comment_whs prewhs) @
          (if (length rest2 = length rest1)  then []
           else 
-	      [D.Doccomment 
+	      (* These comments are "literate", but *not* counted for undo. So classify as ordinary comment. *)
+	      [D.Comment 
 		   {text= implode
                           (map OuterLex.unparse (Library.take (length rest1 - length rest2, rest1)))}]
               @
