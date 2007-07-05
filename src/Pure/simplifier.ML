@@ -55,11 +55,11 @@ sig
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
-  val          rewrite: simpset -> cterm -> thm
-  val      asm_rewrite: simpset -> cterm -> thm
-  val     full_rewrite: simpset -> cterm -> thm
-  val   asm_lr_rewrite: simpset -> cterm -> thm
-  val asm_full_rewrite: simpset -> cterm -> thm
+  val          rewrite: simpset -> conv
+  val      asm_rewrite: simpset -> conv
+  val     full_rewrite: simpset -> conv
+  val   asm_lr_rewrite: simpset -> conv
+  val asm_full_rewrite: simpset -> conv
   val get_simpset: theory -> simpset
   val print_local_simpset: Proof.context -> unit
   val get_local_simpset: Proof.context -> simpset

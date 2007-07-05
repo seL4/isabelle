@@ -107,8 +107,7 @@ sig
   val debug_bounds: bool ref
   val set_reorient: (theory -> term list -> term -> term -> bool) -> simpset -> simpset
   val set_solvers: solver list -> simpset -> simpset
-  val rewrite_cterm: bool * bool * bool ->
-    (simpset -> thm -> thm option) -> simpset -> cterm -> thm
+  val rewrite_cterm: bool * bool * bool -> (simpset -> thm -> thm option) -> simpset -> conv
   val rewrite_term: theory -> thm list -> (term -> term option) list -> term -> term
   val rewrite_thm: bool * bool * bool ->
     (simpset -> thm -> thm option) -> simpset -> thm -> thm
@@ -118,7 +117,7 @@ sig
     (simpset -> tactic) -> simpset -> int -> tactic
   val norm_hhf: thm -> thm
   val norm_hhf_protect: thm -> thm
-  val rewrite: bool -> thm list -> cterm -> thm
+  val rewrite: bool -> thm list -> conv
   val simplify: bool -> thm list -> thm -> thm
 end;
 
@@ -1256,11 +1255,7 @@ fun rewrite _ [] ct = Thm.reflexive ct
         (theory_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
 
 (*Rewrite a theorem*)
-fun simplify _ [] th = th
-  | simplify full thms th =
-      Conv.fconv_rule (rewrite_cterm (full, false, false) simple_prover
-        (theory_context (Thm.theory_of_thm th) empty_ss addsimps thms)) th;
-
+fun simplify full thms = Conv.fconv_rule (rewrite full thms);
 val rewrite_rule = simplify true;
 
 (*simple term rewriting -- no proof*)
