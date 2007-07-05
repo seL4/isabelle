@@ -63,7 +63,7 @@ sig
   val strip_assums_hyp: term -> term list
   val strip_assums_concl: term -> term
   val strip_params: term -> (string * typ) list
-  val has_meta_prems: term -> int -> bool
+  val has_meta_prems: term -> bool
   val flatten_params: int -> term -> term
   val auto_rename: bool ref
   val set_rename_prefix: string -> unit
@@ -448,18 +448,17 @@ fun strip_params (Const("==>", _) $ H $ B) = strip_params B
   | strip_params (Const("all",_)$Abs(a,T,t)) = (a,T) :: strip_params t
   | strip_params B = [];
 
-(*test for meta connectives in prems of a 'subgoal'*)
-fun has_meta_prems prop i =
+(*test for nested meta connectives in prems*)
+val has_meta_prems =
   let
-    fun is_meta (Const ("==>", _) $ _ $ _) = true
-      | is_meta (Const ("==", _) $ _ $ _) = true
+    fun is_meta (Const ("==", _) $ _ $ _) = true
+      | is_meta (Const ("==>", _) $ _ $ _) = true
       | is_meta (Const ("all", _) $ _) = true
       | is_meta _ = false;
-  in
-    (case strip_prems (i, [], prop) of
-      (B :: _, _) => exists is_meta (strip_assums_hyp B)
-    | _ => false) handle TERM _ => false
-  end;
+    fun ex_meta (Const ("==>", _) $ A $ B) = is_meta A orelse ex_meta B
+      | ex_meta (Const ("all", _) $ Abs (_, _, B)) = ex_meta B
+      | ex_meta _ = false;
+  in ex_meta end;
 
 (*Removes the parameters from a subgoal and renumber bvars in hypotheses,
     where j is the total number of parameters (precomputed)
