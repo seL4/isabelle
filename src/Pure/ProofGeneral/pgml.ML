@@ -37,7 +37,7 @@ sig
 
     datatype pgmldoc =
 	     Pgml of { version: string option, systemid: string option, 
-		       content: pgmlterm list }
+		       content: pgmlterm }
 
     val pgmlterm_to_xml : pgmlterm -> XML.tree
 
@@ -78,7 +78,7 @@ struct
 
     datatype pgmldoc =
 	     Pgml of { version: string option, systemid: string option, 
-		       content: pgmlterm list }
+		       content: pgmlterm }
 
     fun pgmlorient_to_string HOVOrient = "hov"
       | pgmlorient_to_string HOrient = "h"
@@ -138,5 +138,5 @@ struct
 
     fun pgmldoc_to_xml (Pgml {version,systemid,content}) = 
 	XML.Elem("pgml",opt_attr "version" version  @ opt_attr "systemid" systemid,
-		 map pgmlterm_to_xml content)
+		 [pgmlterm_to_xml content])
 end
