@@ -475,8 +475,8 @@ fun cases f _ (Theory thy) = f thy
 fun mapping f g = cases (Theory o f) (Proof o g);
 fun mapping_result f g = cases (apsnd Theory o f) (apsnd Proof o g);
 
-val the_theory = cases I (fn _ => raise Fail "Ill-typed context: theory expected");
-val the_proof = cases (fn _ => raise Fail "Ill-typed context: proof expected") I;
+val the_theory = cases I (fn _ => error "Ill-typed context: theory expected");
+val the_proof = cases (fn _ => error "Ill-typed context: proof expected") I;
 
 fun map_theory f = Theory o f o the_theory;
 fun map_proof f = Proof o f o the_proof;
