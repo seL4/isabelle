@@ -9,6 +9,7 @@ signature PGIP_ISABELLE =
 sig
     val isabelle_pgml_version_supported : string
     val isabelle_pgip_version_supported : string
+    val systemid : string
     val accepted_inputs : (string * bool * (string list)) list 
 
     val location_of_position : Position.T -> PgipTypes.location
@@ -30,8 +31,9 @@ end
 structure PgipIsabelle : PGIP_ISABELLE =
 struct
 
-val isabelle_pgml_version_supported = "1.0";
+val isabelle_pgml_version_supported = "2.0";
 val isabelle_pgip_version_supported = "2.0"
+val systemid = "Isabelle"
 
 (** Accepted commands **)
 
