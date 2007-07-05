@@ -8,13 +8,10 @@ Conversions: primitive equality reasoning.
 infix 1 then_conv;
 infix 0 else_conv;
 
-type conv = cterm -> thm;
-
 signature CONV =
 sig
   val no_conv: conv
   val all_conv: conv
-  val is_refl: thm -> bool
   val then_conv: conv * conv -> conv
   val else_conv: conv * conv -> conv
   val first_conv: conv list -> conv
@@ -42,20 +39,16 @@ struct
 
 (* conversionals *)
 
-type conv = cterm -> thm;
-
 fun no_conv _ = raise CTERM ("no conversion", []);
 val all_conv = Thm.reflexive;
-
-val is_refl = op aconv o Logic.dest_equals o Thm.prop_of;
 
 fun (cv1 then_conv cv2) ct =
   let
     val eq1 = cv1 ct;
     val eq2 = cv2 (Thm.rhs_of eq1);
   in
-    if is_refl eq1 then eq2
-    else if is_refl eq2 then eq1
+    if Thm.is_reflexive eq1 then eq2
+    else if Thm.is_reflexive eq2 then eq1
     else Thm.transitive eq1 eq2
   end;
 
@@ -92,8 +85,10 @@ fun cache_conv cv =
 fun abs_conv cv ct =
   (case Thm.term_of ct of
     Abs (x, _, _) =>
-      let val (v, ct') = Thm.dest_abs (SOME (gensym "abs_")) ct
-      in Thm.abstract_rule x v (cv ct') end
+      let
+        val (v, ct') = Thm.dest_abs (SOME (gensym "abs_")) ct;
+        val eq = cv ct';
+      in if Thm.is_reflexive eq then all_conv ct else Thm.abstract_rule x v eq end
   | _ => raise CTERM ("abs_conv", [ct]));
 
 fun combination_conv cv1 cv2 ct =
@@ -113,18 +108,10 @@ fun binop_conv cv = combination_conv (arg_conv cv) cv;
 (* logic *)
 
 (*rewrite B in !!x1 ... xn. B*)
-fun forall_conv 0 cv ct = cv ct
-  | forall_conv n cv ct =
-      (case try Thm.dest_comb ct of
-        NONE => cv ct
-      | SOME (A, B) =>
-          (case (Thm.term_of A, Thm.term_of B) of
-            (Const ("all", _), Abs (x, _, _)) =>
-              let val (v, B') = Thm.dest_abs (SOME (gensym "all_")) B in
-                Thm.combination (all_conv A)
-                  (Thm.abstract_rule x v (forall_conv (n - 1) cv B'))
-              end
-          | _ => cv ct));
+fun forall_conv n cv ct =
+  if n <> 0 andalso can Logic.dest_all (Thm.term_of ct)
+  then arg_conv (abs_conv (forall_conv (n - 1) cv)) ct
+  else cv ct;
 
 (*rewrite B in A1 ==> ... ==> An ==> B*)
 fun concl_conv 0 cv ct = cv ct
@@ -134,22 +121,30 @@ fun concl_conv 0 cv ct = cv ct
       | SOME (A, B) => Drule.imp_cong_rule (all_conv A) (concl_conv (n - 1) cv B));
 
 (*rewrite the A's in A1 ==> ... ==> An ==> B*)
-fun prems_conv 0 _ = all_conv
-  | prems_conv n cv =
-      let
-        fun conv i ct =
-          if i = n + 1 then all_conv ct
-          else
-            (case try Thm.dest_implies ct of
-              NONE => all_conv ct
-            | SOME (A, B) => Drule.imp_cong_rule (cv A) (conv (i + 1) B));
-  in conv 1 end;
+fun prems_conv 0 _ ct = all_conv ct
+  | prems_conv n cv ct =
+      (case try Thm.dest_implies ct of
+        NONE => all_conv ct
+      | SOME (A, B) => Drule.imp_cong_rule (cv A) (prems_conv (n - 1) cv B));
 
-fun fconv_rule cv th = Thm.equal_elim (cv (Thm.cprop_of th)) th;  (*FCONV_RULE in LCF*)
 
-fun gconv_rule cv i = Drule.with_subgoal i (fn th =>
-  (case try (Thm.dest_implies o Thm.cprop_of) th of
-    SOME (A, B) => Thm.equal_elim (Drule.imp_cong_rule (cv A) (all_conv B)) th
-  | NONE => raise THM ("gconv_rule", i, [th])));
+(* conversions as rules *)
+
+(*forward conversion, cf. FCONV_RULE in LCF*)
+fun fconv_rule cv th =
+  let val eq = cv (Thm.cprop_of th) in
+    if Thm.is_reflexive eq then th
+    else Thm.equal_elim eq th
+  end;
+
+(*goal conversion*)
+fun gconv_rule cv i th =
+  (case try (Thm.cprem_of th) i of
+    SOME ct =>
+      let val eq = cv ct in
+        if Thm.is_reflexive eq then th
+        else Drule.with_subgoal i (fconv_rule (arg1_conv (K eq))) th
+      end
+  | NONE => raise THM ("gconv_rule", i, [th]));
 
 end;
