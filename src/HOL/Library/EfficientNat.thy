@@ -336,7 +336,7 @@ fun remove_suc_clause thy thms =
       | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)
       | find_var _ = NONE;
     fun find_thm th =
-      let val th' = ObjectLogic.atomize_thm th
+      let val th' = Conv.fconv_rule ObjectLogic.atomize th
       in Option.map (pair (th, th')) (find_var (prop_of th')) end
   in
     case get_first find_thm thms of

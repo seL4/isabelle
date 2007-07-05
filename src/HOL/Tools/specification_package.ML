@@ -121,7 +121,7 @@ fun process_spec axiomatic cos alt_props thy =
           | myfoldr f [] = error "SpecificationPackage.process_spec internal error"
 
         val rew_imps = alt_props |>
-          map (ObjectLogic.atomize_cterm o Thm.read_cterm thy o rpair Term.propT o snd)
+          map (ObjectLogic.atomize o Thm.read_cterm thy o rpair Term.propT o snd)
         val props' = rew_imps |>
           map (HOLogic.dest_Trueprop o term_of o snd o Thm.dest_equals o cprop_of)
 

@@ -1692,7 +1692,7 @@ fun atomize_spec thy ts =
     val bodyT = Term.fastype_of body;
   in
     if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
-    else (body, bodyT, ObjectLogic.atomize_cterm (Thm.cterm_of thy t))
+    else (body, bodyT, ObjectLogic.atomize (Thm.cterm_of thy t))
   end;
 
 fun aprop_tr' n c = (c, fn args =>

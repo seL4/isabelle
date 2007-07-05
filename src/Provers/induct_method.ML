@@ -363,7 +363,7 @@ fun induct_tac ctxt is_open def_insts arbitrary taking opt_rule facts =
     val cert = Thm.cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
-    val atomized_defs = map (map ObjectLogic.atomize_thm) defs;
+    val atomized_defs = map (map (Conv.fconv_rule ObjectLogic.atomize)) defs;
 
     fun inst_rule (concls, r) =
       (if null insts then `RuleCases.get r

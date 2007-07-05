@@ -88,7 +88,7 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
     val cert = Thm.cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map InductMethod.add_defs def_insts ctxt |>> split_list;
-    val atomized_defs = map (map ObjectLogic.atomize_thm) defs;
+    val atomized_defs = map (map (Conv.fconv_rule ObjectLogic.atomize)) defs;
 
     val finish_rule =
       split_all_tuples
