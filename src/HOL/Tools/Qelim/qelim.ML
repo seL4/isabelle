@@ -42,7 +42,7 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
                    |> Drule.arg_cong_rule e
      val th' = simpex_conv (Thm.rhs_of th)
      val (l,r) = Thm.dest_equals (cprop_of th')
-    in if is_refl th' then Thm.transitive th (qcv env (Thm.rhs_of th))
+    in if Thm.is_reflexive th' then Thm.transitive th (qcv env (Thm.rhs_of th))
        else Thm.transitive (Thm.transitive th th') (conv env r) end
   | Const("Ex",_)$ _ => (Thm.eta_long_conversion then_conv conv env) p
   | Const("All",_)$_ =>
