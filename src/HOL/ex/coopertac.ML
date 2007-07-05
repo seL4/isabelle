@@ -65,7 +65,7 @@ fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
 fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
-fun linz_tac ctxt q i = ObjectLogic.atomize_tac i THEN (fn st =>
+fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)
     val thy = ProofContext.theory_of ctxt

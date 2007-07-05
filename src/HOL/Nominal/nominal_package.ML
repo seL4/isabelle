@@ -1083,7 +1083,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn prems => EVERY
         [rtac indrule_lemma' 1,
-         (DatatypeAux.indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
+         (DatatypeAux.indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms' 1),
             simp_tac (HOL_basic_ss addsimps [symmetric r]) 1,

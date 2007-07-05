@@ -122,7 +122,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
       (fn prems =>
          [rewrite_goals_tac (map mk_meta_eq [fst_conv, snd_conv]),
           rtac (cterm_instantiate inst induction) 1,
-          ALLGOALS ObjectLogic.atomize_tac,
+          ALLGOALS ObjectLogic.atomize_prems_tac,
           rewrite_goals_tac (o_def :: map mk_meta_eq rec_rewrites),
           REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
             REPEAT (etac allE i) THEN atac i)) 1)]);

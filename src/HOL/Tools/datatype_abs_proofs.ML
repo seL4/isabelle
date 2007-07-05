@@ -215,7 +215,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         val induct' = cterm_instantiate ((map cert induct_Ps) ~~
           (map cert insts)) induct;
         val (tac, _) = Library.foldl mk_unique_tac
-          (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_tac) 1
+          (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
               THEN rewtac (mk_meta_eq choice_eq), rec_intrs),
             descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
 

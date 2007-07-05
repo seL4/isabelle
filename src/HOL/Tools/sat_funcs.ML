@@ -428,7 +428,7 @@ fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm (map cprop_of prems)) 
 
 val pre_cnf_tac =
         rtac ccontr THEN'
-        ObjectLogic.atomize_tac THEN'
+        ObjectLogic.atomize_prems_tac THEN'
         CONVERSION Drule.beta_eta_conversion;
 
 (* ------------------------------------------------------------------------- *)

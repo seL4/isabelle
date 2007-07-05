@@ -73,7 +73,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
 fun linr_tac ctxt q i = 
-    (ObjectLogic.atomize_tac i) 
+    (ObjectLogic.atomize_prems_tac i) 
 	THEN (REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}] i))
 	THEN (fn st =>
   let

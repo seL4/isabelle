@@ -9,7 +9,7 @@ struct
   
 (* convert the negated 1st subgoal into CNF, write to file and call an ATP oracle *)
 fun res_atp_tac dfg res_atp_oracle mode timeLimit ctxt user_thms n thm =
-    (EVERY' [rtac ccontr,ObjectLogic.atomize_tac, skolemize_tac, 
+    (EVERY' [rtac ccontr, ObjectLogic.atomize_prems_tac, skolemize_tac,
 		  METAHYPS(fn negs =>
 			      HEADGOAL(Tactic.rtac 
 					   (res_atp_oracle (ProofContext.theory_of ctxt) 

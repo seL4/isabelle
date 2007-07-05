@@ -196,7 +196,7 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (LocalDefs.fold_tac ctxt th
 
 (* atomize rule statements *)
 
-fun atomize false = SIMPLE_METHOD' (CHANGED_PROP o ObjectLogic.atomize_tac)
+fun atomize false = SIMPLE_METHOD' (CHANGED_PROP o ObjectLogic.atomize_prems_tac)
   | atomize true = RAW_METHOD (K (HEADGOAL (CHANGED_PROP o ObjectLogic.full_atomize_tac)));
 
 
@@ -525,7 +525,7 @@ val iprover_meth =
   bang_sectioned_args' iprover_modifiers (Scan.lift (Scan.option Args.nat))
     (fn n => fn prems => fn ctxt => METHOD (fn facts =>
       HEADGOAL (insert_tac (prems @ facts) THEN'
-      ObjectLogic.atomize_tac THEN' iprover_tac ctxt n)));
+      ObjectLogic.atomize_prems_tac THEN' iprover_tac ctxt n)));
 
 end;
 

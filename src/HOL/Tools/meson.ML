@@ -556,7 +556,7 @@ fun skolemize_prems_tac prems =
   Function mkcl converts theorems to clauses.*)
 fun MESON mkcl cltac i st = 
   SELECT_GOAL
-    (EVERY [ObjectLogic.atomize_tac 1,
+    (EVERY [ObjectLogic.atomize_prems_tac 1,
             rtac ccontr 1,
 	    METAHYPS (fn negs =>
 		      EVERY1 [skolemize_prems_tac negs,
