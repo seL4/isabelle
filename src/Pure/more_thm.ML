@@ -21,6 +21,7 @@ sig
   val lhs_of: thm -> cterm
   val rhs_of: thm -> cterm
   val thm_ord: thm * thm -> order
+  val is_reflexive: thm -> bool
   val eq_thm: thm * thm -> bool
   val eq_thms: thm list * thm list -> bool
   val eq_thm_thy: thm * thm -> bool
@@ -113,6 +114,9 @@ fun thm_ord (th1, th2) =
 
 
 (* equality *)
+
+fun is_reflexive th = op aconv (Logic.dest_equals (Thm.prop_of th))
+  handle TERM _ => false;
 
 fun eq_thm ths =
   Context.joinable (pairself Thm.theory_of_thm ths) andalso
