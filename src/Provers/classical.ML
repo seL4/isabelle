@@ -198,6 +198,8 @@ fun classical_rule rule =
     in if Thm.equiv_thm (rule, rule'') then rule else rule'' end
   else rule;
 
+(*flatten nested meta connectives in prems*)
+val flat_rule = Conv.fconv_rule (Conv.prems_conv ~1 ObjectLogic.atomize_prems);
 
 
 (*** Useful tactics for classical reasoning ***)
@@ -364,8 +366,9 @@ fun addSI w th
          (warning ("Ignoring duplicate safe introduction (intro!)\n" ^ string_of_thm th);
           cs)
   else
-  let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-          List.partition Thm.no_prems [th]
+  let val th' = flat_rule th
+      val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
+          List.partition Thm.no_prems [th']
       val nI = length safeIs + 1
       and nE = length safeEs
   in warn_dup th cs;
@@ -392,7 +395,7 @@ fun addSE w th
     	error("Ill-formed elimination rule\n" ^ string_of_thm th)
   else
   let
-      val th' = classical_rule th
+      val th' = classical_rule (flat_rule th)
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
           List.partition (fn rl => nprems_of rl=1) [th']
       val nI = length safeIs
@@ -431,12 +434,13 @@ fun addI w th
          (warning ("Ignoring duplicate introduction (intro)\n" ^ string_of_thm th);
           cs)
   else
-  let val nI = length hazIs + 1
+  let val th' = flat_rule th
+      val nI = length hazIs + 1
       and nE = length hazEs
   in warn_dup th cs;
      CS{hazIs   = th::hazIs,
-        haz_netpair = insert (nI,nE) ([th], []) haz_netpair,
-        dup_netpair = insert (nI,nE) (map dup_intr [th], []) dup_netpair,
+        haz_netpair = insert (nI,nE) ([th'], []) haz_netpair,
+        dup_netpair = insert (nI,nE) (map dup_intr [th'], []) dup_netpair,
         safeIs  = safeIs,
         safeEs  = safeEs,
         hazEs   = hazEs,
@@ -459,7 +463,7 @@ fun addE w th
     	error("Ill-formed elimination rule\n" ^ string_of_thm th)
   else
   let
-      val th' = classical_rule th
+      val th' = classical_rule (flat_rule th)
       val nI = length hazIs
       and nE = length hazEs + 1
   in warn_dup th cs;
@@ -491,7 +495,8 @@ fun delSI th
           (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                     safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm safeIs th then
-   let val (safe0_rls, safep_rls) = List.partition Thm.no_prems [th]
+   let val th' = flat_rule th
+       val (safe0_rls, safep_rls) = List.partition Thm.no_prems [th']
    in CS{safe0_netpair = delete (safe0_rls, []) safe0_netpair,
          safep_netpair = delete (safep_rls, []) safep_netpair,
          safeIs = rem_thm th safeIs,
@@ -511,7 +516,7 @@ fun delSE th
                     safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if mem_thm safeEs th then
     let
-      val th' = classical_rule th
+      val th' = classical_rule (flat_rule th)
       val (safe0_rls, safep_rls) = List.partition (fn rl => nprems_of rl=1) [th']
     in CS{safe0_netpair = delete ([], safe0_rls) safe0_netpair,
          safep_netpair = delete ([], safep_rls) safep_netpair,
@@ -532,8 +537,9 @@ fun delI th
          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm hazIs th then
-     CS{haz_netpair = delete ([th], []) haz_netpair,
-        dup_netpair = delete ([dup_intr th], []) dup_netpair,
+    let val th' = flat_rule th
+    in CS{haz_netpair = delete ([th'], []) haz_netpair,
+        dup_netpair = delete ([dup_intr th'], []) dup_netpair,
         safeIs  = safeIs,
         safeEs  = safeEs,
         hazIs   = rem_thm th hazIs,
@@ -543,6 +549,7 @@ fun delI th
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
         xtra_netpair = delete' ([th], []) xtra_netpair}
+    end
  else cs
  handle THM("RSN: no unifiers",_,_) => (*from dup_intr*)
         error ("Ill-formed introduction rule\n" ^ string_of_thm th);
@@ -551,9 +558,9 @@ fun delI th
 fun delE th
          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  let val th' = classical_rule th in
-    if mem_thm hazEs th then
-     CS{haz_netpair = delete ([], [th']) haz_netpair,
+ if mem_thm hazEs th then
+   let val th' = classical_rule (flat_rule th)
+   in CS{haz_netpair = delete ([], [th']) haz_netpair,
         dup_netpair = delete ([], [dup_elim th']) dup_netpair,
         safeIs  = safeIs,
         safeEs  = safeEs,
@@ -564,9 +571,8 @@ fun delE th
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
         xtra_netpair = delete' ([], [th]) xtra_netpair}
-     else cs
-   end;
-
+   end
+ else cs;
 
 (*Delete ALL occurrences of "th" in the claset (perhaps from several lists)*)
 fun delrule th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
@@ -745,24 +751,24 @@ fun slow_step_tac cs i = safe_tac cs ORELSE appWrappers cs
 
 (*Dumb but fast*)
 fun fast_tac cs =
-  ObjectLogic.atomize_tac THEN' SELECT_GOAL (DEPTH_SOLVE (step_tac cs 1));
+  ObjectLogic.atomize_prems_tac THEN' SELECT_GOAL (DEPTH_SOLVE (step_tac cs 1));
 
 (*Slower but smarter than fast_tac*)
 fun best_tac cs =
-  ObjectLogic.atomize_tac THEN'
+  ObjectLogic.atomize_prems_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (step_tac cs 1));
 
 (*even a bit smarter than best_tac*)
 fun first_best_tac cs =
-  ObjectLogic.atomize_tac THEN'
+  ObjectLogic.atomize_prems_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (FIRSTGOAL (step_tac cs)));
 
 fun slow_tac cs =
-  ObjectLogic.atomize_tac THEN'
+  ObjectLogic.atomize_prems_tac THEN'
   SELECT_GOAL (DEPTH_SOLVE (slow_step_tac cs 1));
 
 fun slow_best_tac cs =
-  ObjectLogic.atomize_tac THEN'
+  ObjectLogic.atomize_prems_tac THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
 
 
@@ -770,13 +776,13 @@ fun slow_best_tac cs =
 val weight_ASTAR = ref 5;
 
 fun astar_tac cs =
-  ObjectLogic.atomize_tac THEN'
+  ObjectLogic.atomize_prems_tac THEN'
   SELECT_GOAL
     (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + !weight_ASTAR * lev)
       (step_tac cs 1));
 
 fun slow_astar_tac cs =
-  ObjectLogic.atomize_tac THEN'
+  ObjectLogic.atomize_prems_tac THEN'
   SELECT_GOAL
     (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + !weight_ASTAR * lev)
       (slow_step_tac cs 1));
