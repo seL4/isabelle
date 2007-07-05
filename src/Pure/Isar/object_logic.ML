@@ -20,11 +20,10 @@ sig
   val declare_atomize: attribute
   val declare_rulify: attribute
   val atomize_term: theory -> term -> term
-  val atomize_cterm: cterm -> thm
-  val atomize_thm: thm -> thm
-  val atomize_tac: int -> tactic
+  val atomize: conv
+  val atomize_prems: conv
+  val atomize_prems_tac: int -> tactic
   val full_atomize_tac: int -> tactic
-  val atomize_goal: int -> thm -> thm
   val rulify_term: theory -> term -> term
   val rulify_tac: int -> tactic
   val rulify: thm -> thm
@@ -153,25 +152,19 @@ val _ = Context.add_setup (add_rulify Drule.norm_hhf_eq);
 
 (* atomize *)
 
-fun rewrite_prems_tac rews =
-  CONVERSION (Conv.forall_conv ~1 (Conv.prems_conv ~1 (MetaSimplifier.rewrite true rews)));
-
 fun atomize_term thy =
   drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];
 
-fun atomize_cterm ct = MetaSimplifier.rewrite true (get_atomize (Thm.theory_of_cterm ct)) ct;
-fun atomize_thm th = rewrite_rule (get_atomize (Thm.theory_of_thm th)) th;
+fun atomize ct =
+  MetaSimplifier.rewrite true (get_atomize (Thm.theory_of_cterm ct)) ct;
 
-fun atomize_tac i st =
-  if Logic.has_meta_prems (Thm.prop_of st) i then
-    (rewrite_prems_tac (get_atomize (Thm.theory_of_thm st)) i) st
-  else all_tac st;
+fun atomize_prems ct =
+  if Logic.has_meta_prems (Thm.term_of ct) then
+    Conv.forall_conv ~1 (Conv.prems_conv ~1 atomize) ct
+  else Conv.all_conv ct;
 
-fun full_atomize_tac i st =
-  MetaSimplifier.rewrite_goal_tac (get_atomize (Thm.theory_of_thm st)) i st;
-
-fun atomize_goal i st =
-  (case Seq.pull (atomize_tac i st) of NONE => st | SOME (st', _) => st');
+val atomize_prems_tac = CONVERSION atomize_prems;
+val full_atomize_tac = CONVERSION atomize;
 
 
 (* rulify *)
