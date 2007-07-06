@@ -9,8 +9,8 @@ signature REIFY_DATA =
 sig
   type entry
   val get: Proof.context -> entry
-  val del: thm list -> attribute
-  val add: thm list -> attribute 
+  val del: attribute
+  val add: attribute 
   val setup: theory -> theory
 end;
 
@@ -28,13 +28,14 @@ structure Data = GenericDataFun
 
 val get = Data.get o Context.Proof;
 
-fun add ths = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (fn x => merge Thm.eq_thm (x,ths)))
+val add = Thm.declaration_attribute (fn th => fn context => 
+  context |> Data.map (Drule.add_rule th ))
 
-fun del ths = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (fn x => subtract Thm.eq_thm x ths))
+val del = Thm.declaration_attribute (fn th => fn context => 
+  context |> Data.map (Drule.del_rule th ))
 
 (* concrete syntax *)
+(*
 local
 fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 
@@ -52,9 +53,9 @@ fun att_syntax src = src |> Attrib.syntax
  ((Scan.lift (Args.$$$ "del") |-- thms) >> del ||
   optional (keyword addN |-- thms) >> add)
 end;
-
+*)
 
 (* theory setup *)
  val setup =
-  Attrib.add_attributes [("reify", att_syntax, "Reify data")];
+  Attrib.add_attributes [("reify", Attrib.add_del_args add del, "Reify data")];
 end;
