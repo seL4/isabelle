@@ -26,23 +26,21 @@ Pure: $(OUT)/Pure$(ML_SUFFIX)
 $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   General/basics.ML General/balanced_tree.ML General/buffer.ML General/file.ML	\
   General/graph.ML General/heap.ML General/history.ML General/ml_syntax.ML	\
-  General/name_space.ML General/ord_list.ML General/output.ML General/path.ML	\
-  General/position.ML General/pretty.ML General/scan.ML		                \
+  General/markup.ML General/name_space.ML General/ord_list.ML General/output.ML	\
+  General/path.ML General/position.ML General/pretty.ML General/scan.ML         \
   General/secure.ML General/seq.ML General/source.ML General/stack.ML		\
   General/susp.ML General/symbol.ML General/table.ML General/url.ML		\
-  General/xml.ML Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML			\
-  Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML Isar/constdefs.ML	\
-  Isar/context_rules.ML Isar/element.ML Isar/find_theorems.ML			\
-  Isar/induct_attrib.ML Isar/isar_cmd.ML 			                \
-  Isar/isar_syn.ML Isar/local_defs.ML Isar/local_syntax.ML			\
-  Isar/local_theory.ML Isar/locale.ML Isar/method.ML Isar/net_rules.ML		\
-  Isar/object_logic.ML Isar/obtain.ML Isar/outer_keyword.ML			\
-  Isar/outer_lex.ML Isar/outer_parse.ML Isar/outer_syntax.ML			\
-  Isar/proof.ML Isar/proof_context.ML Isar/proof_display.ML			\
-  Isar/proof_history.ML Isar/rule_cases.ML Isar/rule_insts.ML			\
-  Isar/session.ML Isar/skip_proof.ML Isar/spec_parse.ML Isar/specification.ML	\
-  Isar/theory_target.ML Isar/toplevel.ML ML-Systems/alice.ML 			\
-  ML-Systems/polyml-4.1.3.ML ML-Systems/polyml-4.1.4.ML 			\
+  Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML	\
+  Isar/calculation.ML Isar/constdefs.ML Isar/context_rules.ML Isar/element.ML	\
+  Isar/find_theorems.ML Isar/induct_attrib.ML Isar/isar_cmd.ML Isar/isar_syn.ML	\
+  Isar/local_defs.ML Isar/local_syntax.ML Isar/local_theory.ML Isar/locale.ML	\
+  Isar/method.ML Isar/net_rules.ML Isar/object_logic.ML Isar/obtain.ML		\
+  Isar/outer_keyword.ML Isar/outer_lex.ML Isar/outer_parse.ML			\
+  Isar/outer_syntax.ML Isar/proof.ML Isar/proof_context.ML			\
+  Isar/proof_display.ML Isar/proof_history.ML Isar/rule_cases.ML		\
+  Isar/rule_insts.ML Isar/session.ML Isar/skip_proof.ML Isar/spec_parse.ML	\
+  Isar/specification.ML Isar/theory_target.ML Isar/toplevel.ML			\
+  ML-Systems/alice.ML ML-Systems/polyml-4.1.3.ML ML-Systems/polyml-4.1.4.ML	\
   ML-Systems/polyml-5.0.ML ML-Systems/polyml-interrupt-timeout.ML		\
   ML-Systems/polyml-old-basis.ML ML-Systems/polyml-posix.ML 			\
   ML-Systems/polyml.ML ML-Systems/poplogml.ML ML-Systems/smlnj.ML		\
@@ -62,14 +60,14 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   Tools/codegen_consts.ML Tools/codegen_data.ML Tools/codegen_func.ML 		\
   Tools/codegen_funcgr.ML Tools/codegen_names.ML Tools/codegen_package.ML 	\
   Tools/codegen_serializer.ML Tools/codegen_thingol.ML Tools/invoke.ML		\
-  Tools/nbe.ML Tools/nbe_codegen.ML Tools/nbe_eval.ML Tools/xml_syntax.ML 	\
-  assumption.ML axclass.ML codegen.ML compress.ML conjunction.ML consts.ML 	\
-  context.ML context_position.ML conv.ML defs.ML display.ML drule.ML		\
-  envir.ML fact_index.ML goal.ML install_pp.ML library.ML logic.ML		\
-  meta_simplifier.ML more_thm.ML morphism.ML name.ML net.ML old_goals.ML	\
-  pattern.ML proofterm.ML pure_thy.ML search.ML sign.ML simplifier.ML sorts.ML	\
-  subgoal.ML tactic.ML tctical.ML term.ML term_subst.ML theory.ML thm.ML	\
-  type.ML type_infer.ML unify.ML variable.ML
+  Tools/nbe.ML Tools/nbe_codegen.ML Tools/nbe_eval.ML Tools/xml.ML 		\
+  Tools/xml_syntax.ML assumption.ML axclass.ML codegen.ML compress.ML		\
+  conjunction.ML consts.ML context.ML context_position.ML conv.ML defs.ML	\
+  display.ML drule.ML envir.ML fact_index.ML goal.ML install_pp.ML library.ML 	\
+  logic.ML meta_simplifier.ML more_thm.ML morphism.ML name.ML net.ML 		\
+  old_goals.ML pattern.ML proofterm.ML pure_thy.ML search.ML sign.ML 		\
+  simplifier.ML sorts.ML subgoal.ML tactic.ML tctical.ML term.ML term_subst.ML	\
+  theory.ML thm.ML type.ML type_infer.ML unify.ML variable.ML
 	@./mk
 
 
