@@ -37,15 +37,15 @@ apply (erule exE | erule conjE)+
 *)
 by satx
 
-lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q) \<Longrightarrow>
-  (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
+lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)
+  \<Longrightarrow> (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
 (*
 apply (tactic {* cnf.cnf_rewrite_tac 1 *})
 *)
 by sat
 
-lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q) \<Longrightarrow>
-  (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
+lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)
+  \<Longrightarrow> (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
 (*
 apply (tactic {* cnf.cnfx_rewrite_tac 1 *})
 apply (erule exE | erule conjE)+
@@ -82,7 +82,8 @@ by sat
 ML {* reset sat.trace_sat; *}
 ML {* reset quick_and_dirty; *}
 
-method_setup rawsat = {* Method.no_args (Method.SIMPLE_METHOD' sat.rawsat_tac) *}
+method_setup rawsat =
+  {* Method.no_args (Method.SIMPLE_METHOD' sat.rawsat_tac) *}
   "SAT solver (no preprocessing)"
 
 (* ML {* Toplevel.profiling := 1; *} *)
@@ -513,15 +514,21 @@ by sat
 by rawsat  -- {* this is without CNF conversion *}
 
 (* Old sequent clause representation ("[c_i, p, ~q, \<dots>] \<turnstile> False"):
-   sat, zchaff_with_proofs: 8705 resolution steps in +++ User 1.154  All 1.189 secs
-   sat, minisat_with_proofs: 40790 resolution steps in +++ User 3.762  All 3.806 secs
+   sat, zchaff_with_proofs: 8705 resolution steps in
+                            +++ User 1.154  All 1.189 secs
+   sat, minisat_with_proofs: 40790 resolution steps in
+                             +++ User 3.762  All 3.806 secs
 
-   rawsat, zchaff_with_proofs: 8705 resolution steps in +++ User 0.731  All 0.751 secs
-   rawsat, minisat_with_proofs: 40790 resolution steps in +++ User 3.514  All 3.550 secs
+   rawsat, zchaff_with_proofs: 8705 resolution steps in
+                               +++ User 0.731  All 0.751 secs
+   rawsat, minisat_with_proofs: 40790 resolution steps in
+                                +++ User 3.514  All 3.550 secs
 
    CNF clause representation ("[c_1 && \<dots> && c_n, p, ~q, \<dots>] \<turnstile> False"):
-   rawsat, zchaff_with_proofs: 8705 resolution steps in +++ User 0.653  All 0.670 secs
-   rawsat, minisat_with_proofs: 40790 resolution steps in +++ User 1.860  All 1.886 secs
+   rawsat, zchaff_with_proofs: 8705 resolution steps in
+                               +++ User 0.653  All 0.670 secs
+   rawsat, minisat_with_proofs: 40790 resolution steps in
+                                +++ User 1.860  All 1.886 secs
 
    (as of 2006-08-30, on a 2.5 GHz Pentium 4)
 *)
