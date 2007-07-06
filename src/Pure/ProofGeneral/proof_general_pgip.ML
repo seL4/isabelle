@@ -50,13 +50,15 @@ fun pgml_sym s =
 
 fun pgml_output str =
   let val syms = Symbol.explode str
-  in (implode (map pgml_sym syms), real (Symbol.length syms)) end;
+  in (implode (map pgml_sym syms), Symbol.length syms) end;
+
+fun pgml_markup (name, props) = ("", "");  (* FIXME *)
 
 in
 
 fun setup_proofgeneral_output () =
-  Output.add_mode proof_generalN
-    (pgml_output, K pgml_output, Symbol.default_indent, Symbol.encode_raw);
+  (Output.add_mode proof_generalN pgml_output Symbol.encode_raw;
+   Pretty.add_mode proof_generalN Pretty.default_indent pgml_markup);
 
 end;
 
@@ -76,7 +78,7 @@ val skolem_tag = "skolem"
 fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
 
 fun tagit kind x =
-  (xml_atom kind x, real (Symbol.length (Symbol.explode x)));
+  (xml_atom kind x, Symbol.length (Symbol.explode x));
 
 fun free_or_skolem x =
   (case try Name.dest_skolem x of

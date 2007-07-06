@@ -37,14 +37,14 @@ fun xsym_output "\\" = "\\\\"
 fun xsymbols_output s =
   if print_mode_active Symbol.xsymbolsN andalso exists_string (equal "\\") s then
     let val syms = Symbol.explode s
-    in (implode (map xsym_output syms), real (Symbol.length syms)) end
-  else Symbol.default_output s;
+    in (implode (map xsym_output syms), Symbol.length syms) end
+  else Output.default_output s;
 
 in
 
 fun setup_xsymbols_output () =
-  Output.add_mode Symbol.xsymbolsN
-    (xsymbols_output, K xsymbols_output, Symbol.default_indent, Symbol.encode_raw);
+  (Output.add_mode Symbol.xsymbolsN xsymbols_output Symbol.encode_raw;
+   Pretty.add_mode Symbol.xsymbolsN Pretty.default_indent Pretty.default_markup);
 
 end;
 
@@ -65,7 +65,7 @@ val skolem_tag = ("skolem", fn () => special "357");
 fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
 
 fun tagit (kind, bg_tag) x =
-  (bg_tag () ^ x ^ end_tag (), real (Symbol.length (Symbol.explode x)));
+  (bg_tag () ^ x ^ end_tag (), Symbol.length (Symbol.explode x));
 
 fun free_or_skolem x =
   (case try Name.dest_skolem x of

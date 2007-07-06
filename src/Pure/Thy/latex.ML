@@ -165,14 +165,17 @@ val modes = [latexN, Symbol.xsymbolsN];
 
 fun latex_output str =
   let val syms = Symbol.explode str
-  in (output_symbols syms, real (Symbol.length syms)) end;
+  in (output_symbols syms, Symbol.length syms) end;
 
-fun latex_keyword cmd =
-  apfst (enclose (if cmd then "\\isacommand{" else "\\isakeyword{") "}") o latex_output;
+fun latex_markup (s, _) =
+  if s = Markup.keywordN then ("\\isakeyword{", "}")
+  else if s = Markup.commandN then ("\\isacommand{", "}")
+  else ("", "");
 
-fun latex_indent "" = ""
-  | latex_indent s = enclose "\\isaindent{" "}" s;
+fun latex_indent "" _ = ""
+  | latex_indent s _ = enclose "\\isaindent{" "}" s;
 
-val _ = Output.add_mode latexN (latex_output, latex_keyword, latex_indent o #1, Symbol.encode_raw);
+val _ = Output.add_mode latexN latex_output Symbol.encode_raw;
+val _ = Pretty.add_mode latexN latex_indent latex_markup;
 
 end;
