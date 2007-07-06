@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: Cumulative reports for Poly/ML profiling output.
+
+THIS=$(cd $(dirname "$0"); echo "$PWD")
+
+SRC="$1"
+DST="$2"
+
+mkdir -p "$DST"
+
+for FILE in "$SRC"/*
+do
+  echo "$FILE"
+  NAME="$(basename "$FILE" .gz)"
+  gzip -dc "$FILE" | "$THIS/profiling_report" > "$DST/$NAME"
+done
