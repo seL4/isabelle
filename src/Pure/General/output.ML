@@ -24,12 +24,12 @@ end;
 signature OUTPUT =
 sig
   include BASIC_OUTPUT
-  val output_width: string -> string * real
+  val default_output: string -> string * int
+  val default_escape: string -> string
+  val add_mode: string -> (string -> string * int) -> (string -> string) -> unit
+  val output_width: string -> string * int
   val output: string -> string
-  val keyword_width: bool -> string -> string * real
-  val keyword: bool -> string -> string
-  val indent: string * int -> string
-  val raw: string -> string
+  val escape: string -> string
   val std_output: string -> unit
   val std_error: string -> unit
   val immediate_output: string -> unit
@@ -49,41 +49,30 @@ sig
   val debug: (unit -> string) -> unit
   val error_msg: string -> unit
   val ml_output: (string -> unit) * (string -> unit)
-  val add_mode: string ->
-    (string -> string * real) * (bool -> string -> string * real) *
-    (string * int -> string) * (string -> string) -> unit
   val accumulated_time: unit -> unit
 end;
 
 structure Output: OUTPUT =
 struct
 
-(** output functions **)
+(** print modes **)
 
-type mode_fns =
- {output: string -> string * real,
-  keyword: bool -> string -> string * real,
-  indent: string * int -> string,
-  raw: string -> string};
+fun default_output s = (s, size s);
+fun default_escape (s: string) = s;
 
-val modes = ref (Symtab.empty: mode_fns Symtab.table);
-
-fun lookup_mode name = Symtab.lookup (! modes) name;
-
-exception MISSING_DEFAULT_OUTPUT;
-
-fun get_mode () =
-  (case Library.get_first lookup_mode (! print_mode) of SOME p => p
-  | NONE =>
-      (case lookup_mode "" of SOME p => p
-      | NONE => raise MISSING_DEFAULT_OUTPUT));  (*sys_error would require output again!*)
+local
+  val default = {output = default_output, escape = default_escape};
+  val modes = ref (Symtab.make [("", default)]);
+in
+  fun add_mode name output escape =
+    change modes (Symtab.update_new (name, {output = output, escape = escape}));
+  fun get_mode () =
+    the_default default (Library.get_first (Symtab.lookup (! modes)) (! print_mode));
+end;
 
 fun output_width x = #output (get_mode ()) x;
 val output = #1 o output_width;
-fun keyword_width b x = #keyword (get_mode ()) b x;
-val keyword = #1 oo keyword_width;
-fun indent x = #indent (get_mode ()) x;
-fun raw x = #raw (get_mode ()) x;
+fun escape x = #escape (get_mode ()) x;
 
 
 
@@ -138,15 +127,6 @@ fun toplevel_errors f x =
   else f x;
 
 fun ML_errors f = setmp do_toplevel_errors true (toplevel_errors f);
-
-
-(* add_mode *)
-
-fun add_mode name (output, keyword, indent, raw) =
- (if is_none (lookup_mode name) then ()
-  else warning ("Redeclaration of symbol print mode: " ^ quote name);
-  change modes (Symtab.update (name,
-    {output = output, keyword = keyword, indent = indent, raw = raw})));
 
 
 
