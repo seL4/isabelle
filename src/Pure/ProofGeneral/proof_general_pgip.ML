@@ -244,11 +244,20 @@ local
 
 fun statedisplay prts =
     let
-        val display = Pretty.output (Pretty.chunks prts)
-        (* TODO: add extra PGML markup for allow proof state navigation *)
-        val statedisplay = XML.Elem("statedisplay",[], [XML.Rawtext display])
+        val display = Pretty.chunks prts
+	val pgml = Pgml.Pgml 
+   { version=SOME PgipIsabelle.isabelle_pgml_version_supported, 
+     systemid=SOME PgipIsabelle.systemid,
+     content = Pgml.Subterm 
+		   { kind=SOME "statedisplay",
+		     param=NONE,place=NONE,name=NONE,decoration=NONE,
+		     action=NONE,pos=NONE,xref=NONE,
+		     content=[Pgml.Atoms { kind = NONE,
+					  content = [Pgml.Str  (Pretty.output display)] }] }
+			     (* [PgmlIsabelle.pgml_of_prettyT display] *) }
+ 	            (* TODO: PGML markup for proof state navigation *)
     in
-        issue_pgip (Proofstate {pgml=[XML.Elem("pgml",[],[statedisplay])]})
+        issue_pgip (Proofstate {pgml=pgml})
     end
 
 fun print_current_goals n m st =

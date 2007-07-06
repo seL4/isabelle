@@ -21,7 +21,7 @@ sig
     | Informfileloaded    of { url: PgipTypes.pgipurl, completed: bool }
     | Informfileoutdated  of { url: PgipTypes.pgipurl, completed: bool }
     | Informfileretracted of { url: PgipTypes.pgipurl, completed: bool }
-    | Proofstate          of { pgml: XML.content }
+    | Proofstate          of { pgml: Pgml.pgmldoc }
     | Metainforesponse    of { attrs: XML.attributes, 
                                content: XML.content }
     | Lexicalstructure    of { content: XML.content }
@@ -81,7 +81,7 @@ datatype pgipoutput =
        | Informfileloaded    of { url: Path.T, completed: bool }
        | Informfileoutdated  of { url: Path.T, completed: bool }
        | Informfileretracted of { url: Path.T, completed: bool }
-       | Proofstate          of { pgml: XML.content }
+       | Proofstate          of { pgml: Pgml.pgmldoc }
        | Metainforesponse    of { attrs: XML.attributes, content: XML.content }
        | Lexicalstructure    of { content: XML.content }
        | Proverinfo          of { name: string, version: string, instance: string,
@@ -194,7 +194,7 @@ fun proofstate (Proofstate vs) =
     let
         val pgml = #pgml vs
     in
-        XML.Elem("proofstate", [], pgml)
+        XML.Elem("proofstate", [], [Pgml.pgmldoc_to_xml pgml])
     end
 
 fun metainforesponse (Metainforesponse vs) =

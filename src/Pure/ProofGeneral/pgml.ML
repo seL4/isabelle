@@ -101,8 +101,10 @@ struct
       | pgmlaction_to_string Button = "button"
       | pgmlaction_to_string Menu = "menu"
 
-    fun atom_to_xml (Sym {name,content}) = XML.Elem("sym",attr name name,[XML.Text content])
-      | atom_to_xml (Str str) = XML.Text str
+    (* NOTE: we assume strings are already XML escaped here, for convenience in Isabelle; 
+       would be better not to *)
+    fun atom_to_xml (Sym {name,content}) = XML.Elem("sym",attr name name,[XML.Rawtext content])
+      | atom_to_xml (Str str) = XML.Rawtext str 
 						    
     fun pgmlterm_to_xml (Atoms {kind, content}) = 
 	XML.Elem("atom",opt_attr "kind" kind, map atom_to_xml content)
