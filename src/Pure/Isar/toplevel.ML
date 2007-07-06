@@ -239,8 +239,9 @@ fun pretty_state prf_only state =
         (if end_state = "" then [] else [Pretty.str end_state]))
   end;
 
-val print_state_context = Pretty.writelns o pretty_state_context;
-fun print_state_default prf_only state = Pretty.writelns (pretty_state prf_only state);
+val print_state_context = Pretty.writeln o Pretty.chunks o pretty_state_context;
+fun print_state_default prf_only state =
+  Pretty.writeln (Pretty.chunks (pretty_state prf_only state));
 
 val print_state_fn = ref print_state_default;
 fun print_state prf_only state = ! print_state_fn prf_only state;
