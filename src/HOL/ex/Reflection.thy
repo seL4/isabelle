@@ -17,7 +17,6 @@ lemma ext2: "(\<forall>x. f x = g x) \<Longrightarrow> f = g"
   by (blast intro: ext)
 
 use "reflection.ML"
-ML{* Reify_Data.get @{context}*}
 
 method_setup reify = {*
   fn src =>
