@@ -251,6 +251,11 @@ ML"set use_neq_simproc"
 
 declare Rep_multiset_inject [symmetric, simp del]
 
+instance multiset :: (type) cancel_ab_semigroup_add
+proof
+  fix a b c :: "'a multiset"
+  show "a + b = a + c \<Longrightarrow> b = c" by simp
+qed
 
 subsubsection {* Intersection *}
 
@@ -719,6 +724,10 @@ qed
 lemma union_upper2: "B <= A + (B::'a::order multiset)"
   by (subst union_commute) (rule union_upper1)
 
+instance multiset :: (order) pordered_ab_semigroup_add
+apply intro_classes
+apply(erule union_le_mono[OF mult_le_refl])
+done
 
 subsection {* Link with lists *}
 
@@ -792,51 +801,69 @@ lemma count_filter:
 subsection {* Pointwise ordering induced by count *}
 
 definition
-  mset_le :: "['a multiset, 'a multiset] \<Rightarrow> bool"  ("_ \<le># _"  [50,51] 50) where
-  "(xs \<le># ys) = (\<forall>a. count xs a \<le> count ys a)"
+mset_le :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<le>#" 50) where
+"(A \<le># B) = (\<forall>a. count A a \<le> count B a)"
+definition
+mset_less :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "<#" 50) where
+"(A <# B) = (A \<le># B \<and> A \<noteq> B)"
 
-lemma mset_le_refl[simp]: "xs \<le># xs"
+lemma mset_le_refl[simp]: "A \<le># A"
   unfolding mset_le_def by auto
 
-lemma mset_le_trans: "\<lbrakk> xs \<le># ys; ys \<le># zs \<rbrakk> \<Longrightarrow> xs \<le># zs"
+lemma mset_le_trans: "\<lbrakk> A \<le># B; B \<le># C \<rbrakk> \<Longrightarrow> A \<le># C"
   unfolding mset_le_def by (fast intro: order_trans)
 
-lemma mset_le_antisym: "\<lbrakk> xs\<le># ys; ys \<le># xs\<rbrakk> \<Longrightarrow> xs = ys"
+lemma mset_le_antisym: "\<lbrakk> A \<le># B; B \<le># A \<rbrakk> \<Longrightarrow> A = B"
   apply (unfold mset_le_def)
   apply (rule multiset_eq_conv_count_eq[THEN iffD2])
   apply (blast intro: order_antisym)
   done
 
 lemma mset_le_exists_conv:
-  "(xs \<le># ys) = (\<exists>zs. ys = xs + zs)"
-  apply (unfold mset_le_def, rule iffI, rule_tac x = "ys - xs" in exI)
+  "(A \<le># B) = (\<exists>C. B = A + C)"
+  apply (unfold mset_le_def, rule iffI, rule_tac x = "B - A" in exI)
   apply (auto intro: multiset_eq_conv_count_eq [THEN iffD2])
   done
 
-lemma mset_le_mono_add_right_cancel[simp]: "(xs + zs \<le># ys + zs) = (xs \<le># ys)"
+lemma mset_le_mono_add_right_cancel[simp]: "(A + C \<le># B + C) = (A \<le># B)"
   unfolding mset_le_def by auto
 
-lemma mset_le_mono_add_left_cancel[simp]: "(zs + xs \<le># zs + ys) = (xs \<le># ys)"
+lemma mset_le_mono_add_left_cancel[simp]: "(C + A \<le># C + B) = (A \<le># B)"
   unfolding mset_le_def by auto
 
-lemma mset_le_mono_add: "\<lbrakk> xs \<le># ys; vs \<le># ws \<rbrakk> \<Longrightarrow> xs + vs \<le># ys + ws"
+lemma mset_le_mono_add: "\<lbrakk> A \<le># B; C \<le># D \<rbrakk> \<Longrightarrow> A + C \<le># B + D"
   apply (unfold mset_le_def)
   apply auto
   apply (erule_tac x=a in allE)+
   apply auto
   done
 
-lemma mset_le_add_left[simp]: "xs \<le># xs + ys"
+lemma mset_le_add_left[simp]: "A \<le># A + B"
   unfolding mset_le_def by auto
 
-lemma mset_le_add_right[simp]: "ys \<le># xs + ys"
+lemma mset_le_add_right[simp]: "B \<le># A + B"
   unfolding mset_le_def by auto
 
-lemma multiset_of_remdups_le: "multiset_of (remdups x) \<le># multiset_of x"
-  apply (induct x)
-   apply auto
-  apply (rule mset_le_trans)
-   apply auto
-  done
+lemma multiset_of_remdups_le: "multiset_of (remdups xs) \<le># multiset_of xs"
+apply (induct xs)
+ apply auto
+apply (rule mset_le_trans)
+ apply auto
+done
+
+interpretation mset_order: order["op \<le>#" "op <#"]
+by(auto intro: order.intro mset_le_refl mset_le_antisym mset_le_trans
+        simp:mset_less_def)
+
+interpretation mset_order_cancel_semigroup:
+  pordered_cancel_ab_semigroup_add["op +" "op \<le>#" "op <#"]
+apply(unfold_locales)
+apply(erule mset_le_mono_add[OF mset_le_refl])
+done
+
+interpretation mset_order_semigroup_cancel:
+  pordered_ab_semigroup_add_imp_le["op +" "op \<le>#" "op <#"]
+by (unfold_locales) simp
+
 
 end
