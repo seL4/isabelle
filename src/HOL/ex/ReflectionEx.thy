@@ -37,12 +37,12 @@ fun interp :: "('a::ord) list \<Rightarrow> form \<Rightarrow> bool" where
 "interp e (Neg f) = (~ interp e f)" |
 "interp e (ExQ f) = (EX x. interp (x#e) f)"
 
-lemmas interp_reify_eqs = interp.simps[where ?'b = int]
-declare interp_reify_eqs(1)[reify add: interp_reify_eqs]
+lemmas interp_reify_eqs = interp.simps
+declare interp_reify_eqs[reify]
 
-lemma "EX x::int. y < x & x < z"
-  apply reify
-oops
+lemma "EX x. x < y & x < z"
+  apply (reify )
+  oops
 
 datatype fm = And fm fm | Or fm fm | Imp fm fm | Iff fm fm | NOT fm | At nat
 
