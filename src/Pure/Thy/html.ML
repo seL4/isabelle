@@ -7,12 +7,11 @@ HTML presentation elements.
 
 signature HTML =
 sig
-  val output: string -> string
-  val output_width: string -> string * real
-  type text (* = string *)
+  type text = string
   val plain: string -> text
   val name: string -> text
   val keyword: string -> text
+  val command: string -> text
   val file_name: string -> text
   val file_path: Url.T -> text
   val href_name: string -> text -> text
@@ -56,158 +55,158 @@ fun html_mode f x = setmp print_mode (htmlN :: ! print_mode) f x;
 
 local
   val html_syms = Symtab.make
-   [("\\<spacespace>", (2.0, "&nbsp;&nbsp;")),
-    ("\\<exclamdown>", (1.0, "&iexcl;")),
-    ("\\<cent>", (1.0, "&cent;")),
-    ("\\<pounds>", (1.0, "&pound;")),
-    ("\\<currency>", (1.0, "&curren;")),
-    ("\\<yen>", (1.0, "&yen;")),
-    ("\\<bar>", (1.0, "&brvbar;")),
-    ("\\<section>", (1.0, "&sect;")),
-    ("\\<dieresis>", (1.0, "&uml;")),
-    ("\\<copyright>", (1.0, "&copy;")),
-    ("\\<ordfeminine>", (1.0, "&ordf;")),
-    ("\\<guillemotleft>", (1.0, "&laquo;")),
-    ("\\<not>", (1.0, "&not;")),
-    ("\\<hyphen>", (1.0, "&shy;")),
-    ("\\<registered>", (1.0, "&reg;")),
-    ("\\<inverse>", (1.0, "&macr;")),
-    ("\\<degree>", (1.0, "&deg;")),
-    ("\\<plusminus>", (1.0, "&plusmn;")),
-    ("\\<twosuperior>", (1.0, "&sup2;")),
-    ("\\<threesuperior>", (1.0, "&sup3;")),
-    ("\\<acute>", (1.0, "&acute;")),
-    ("\\<paragraph>", (1.0, "&para;")),
-    ("\\<cdot>", (1.0, "&middot;")),
-    ("\\<cedilla>", (1.0, "&cedil;")),
-    ("\\<onesuperior>", (1.0, "&sup1;")),
-    ("\\<ordmasculine>", (1.0, "&ordm;")),
-    ("\\<guillemotright>", (1.0, "&raquo;")),
-    ("\\<onequarter>", (1.0, "&frac14;")),
-    ("\\<onehalf>", (1.0, "&frac12;")),
-    ("\\<threequarters>", (1.0, "&frac34;")),
-    ("\\<questiondown>", (1.0, "&iquest;")),
-    ("\\<times>", (1.0, "&times;")),
-    ("\\<div>", (1.0, "&divide;")),
-    ("\\<circ>", (1.0, "o")),
-    ("\\<Alpha>", (1.0, "&Alpha;")),
-    ("\\<Beta>", (1.0, "&Beta;")),
-    ("\\<Gamma>", (1.0, "&Gamma;")),
-    ("\\<Delta>", (1.0, "&Delta;")),
-    ("\\<Epsilon>", (1.0, "&Epsilon;")),
-    ("\\<Zeta>", (1.0, "&Zeta;")),
-    ("\\<Eta>", (1.0, "&Eta;")),
-    ("\\<Theta>", (1.0, "&Theta;")),
-    ("\\<Iota>", (1.0, "&Iota;")),
-    ("\\<Kappa>", (1.0, "&Kappa;")),
-    ("\\<Lambda>", (1.0, "&Lambda;")),
-    ("\\<Mu>", (1.0, "&Mu;")),
-    ("\\<Nu>", (1.0, "&Nu;")),
-    ("\\<Xi>", (1.0, "&Xi;")),
-    ("\\<Omicron>", (1.0, "&Omicron;")),
-    ("\\<Pi>", (1.0, "&Pi;")),
-    ("\\<Rho>", (1.0, "&Rho;")),
-    ("\\<Sigma>", (1.0, "&Sigma;")),
-    ("\\<Tau>", (1.0, "&Tau;")),
-    ("\\<Upsilon>", (1.0, "&Upsilon;")),
-    ("\\<Phi>", (1.0, "&Phi;")),
-    ("\\<Chi>", (1.0, "&Chi;")),
-    ("\\<Psi>", (1.0, "&Psi;")),
-    ("\\<Omega>", (1.0, "&Omega;")),
-    ("\\<alpha>", (1.0, "&alpha;")),
-    ("\\<beta>", (1.0, "&beta;")),
-    ("\\<gamma>", (1.0, "&gamma;")),
-    ("\\<delta>", (1.0, "&delta;")),
-    ("\\<epsilon>", (1.0, "&epsilon;")),
-    ("\\<zeta>", (1.0, "&zeta;")),
-    ("\\<eta>", (1.0, "&eta;")),
-    ("\\<theta>", (1.0, "&thetasym;")),
-    ("\\<iota>", (1.0, "&iota;")),
-    ("\\<kappa>", (1.0, "&kappa;")),
-    ("\\<lambda>", (1.0, "&lambda;")),
-    ("\\<mu>", (1.0, "&mu;")),
-    ("\\<nu>", (1.0, "&nu;")),
-    ("\\<xi>", (1.0, "&xi;")),
-    ("\\<omicron>", (1.0, "&omicron;")),
-    ("\\<pi>", (1.0, "&pi;")),
-    ("\\<rho>", (1.0, "&rho;")),
-    ("\\<sigma>", (1.0, "&sigma;")),
-    ("\\<tau>", (1.0, "&tau;")),
-    ("\\<upsilon>", (1.0, "&upsilon;")),
-    ("\\<phi>", (1.0, "&phi;")),
-    ("\\<chi>", (1.0, "&chi;")),
-    ("\\<psi>", (1.0, "&psi;")),
-    ("\\<omega>", (1.0, "&omega;")),
-    ("\\<bullet>", (1.0, "&bull;")),
-    ("\\<dots>", (1.0, "&hellip;")),
-    ("\\<Re>", (1.0, "&real;")),
-    ("\\<Im>", (1.0, "&image;")),
-    ("\\<wp>", (1.0, "&weierp;")),
-    ("\\<forall>", (1.0, "&forall;")),
-    ("\\<partial>", (1.0, "&part;")),
-    ("\\<exists>", (1.0, "&exist;")),
-    ("\\<emptyset>", (1.0, "&empty;")),
-    ("\\<nabla>", (1.0, "&nabla;")),
-    ("\\<in>", (1.0, "&isin;")),
-    ("\\<notin>", (1.0, "&notin;")),
-    ("\\<Prod>", (1.0, "&prod;")),
-    ("\\<Sum>", (1.0, "&sum;")),
-    ("\\<star>", (1.0, "&lowast;")),
-    ("\\<propto>", (1.0, "&prop;")),
-    ("\\<infinity>", (1.0, "&infin;")),
-    ("\\<angle>", (1.0, "&ang;")),
-    ("\\<and>", (1.0, "&and;")),
-    ("\\<or>", (1.0, "&or;")),
-    ("\\<inter>", (1.0, "&cap;")),
-    ("\\<union>", (1.0, "&cup;")),
-    ("\\<sim>", (1.0, "&sim;")),
-    ("\\<cong>", (1.0, "&cong;")),
-    ("\\<approx>", (1.0, "&asymp;")),
-    ("\\<noteq>", (1.0, "&ne;")),
-    ("\\<equiv>", (1.0, "&equiv;")),
-    ("\\<le>", (1.0, "&le;")),
-    ("\\<ge>", (1.0, "&ge;")),
-    ("\\<subset>", (1.0, "&sub;")),
-    ("\\<supset>", (1.0, "&sup;")),
-    ("\\<subseteq>", (1.0, "&sube;")),
-    ("\\<supseteq>", (1.0, "&supe;")),
-    ("\\<oplus>", (1.0, "&oplus;")),
-    ("\\<otimes>", (1.0, "&otimes;")),
-    ("\\<bottom>", (1.0, "&perp;")),
-    ("\\<lceil>", (1.0, "&lceil;")),
-    ("\\<rceil>", (1.0, "&rceil;")),
-    ("\\<lfloor>", (1.0, "&lfloor;")),
-    ("\\<rfloor>", (1.0, "&rfloor;")),
-    ("\\<langle>", (1.0, "&lang;")),
-    ("\\<rangle>", (1.0, "&rang;")),
-    ("\\<lozenge>", (1.0, "&loz;")),
-    ("\\<spadesuit>", (1.0, "&spades;")),
-    ("\\<clubsuit>", (1.0, "&clubs;")),
-    ("\\<heartsuit>", (1.0, "&hearts;")),
-    ("\\<diamondsuit>", (1.0, "&diams;")),
-    ("\\<lbrakk>", (2.0, "[|")),
-    ("\\<rbrakk>", (2.0, "|]")),
-    ("\\<Longrightarrow>", (3.0, "==&gt;")),
-    ("\\<Rightarrow>", (2.0, "=&gt;")),
-    ("\\<And>", (2.0, "!!")),
-    ("\\<Colon>", (2.0, "::")),
-    ("\\<lparr>", (2.0, "(|")),
-    ("\\<rparr>", (2.0, "|)),")),
-    ("\\<longleftrightarrow>", (3.0, "&lt;-&gt;")),
-    ("\\<longrightarrow>", (3.0, "--&gt;")),
-    ("\\<rightarrow>", (2.0, "-&gt;")),
-    ("\\<^bsub>", (0.0, "<sub>")),
-    ("\\<^esub>", (0.0, "</sub>")),
-    ("\\<^bsup>", (0.0, "<sup>")),
-    ("\\<^esup>", (0.0, "</sup>"))];
+   [("\\<spacespace>", (2, "&nbsp;&nbsp;")),
+    ("\\<exclamdown>", (1, "&iexcl;")),
+    ("\\<cent>", (1, "&cent;")),
+    ("\\<pounds>", (1, "&pound;")),
+    ("\\<currency>", (1, "&curren;")),
+    ("\\<yen>", (1, "&yen;")),
+    ("\\<bar>", (1, "&brvbar;")),
+    ("\\<section>", (1, "&sect;")),
+    ("\\<dieresis>", (1, "&uml;")),
+    ("\\<copyright>", (1, "&copy;")),
+    ("\\<ordfeminine>", (1, "&ordf;")),
+    ("\\<guillemotleft>", (1, "&laquo;")),
+    ("\\<not>", (1, "&not;")),
+    ("\\<hyphen>", (1, "&shy;")),
+    ("\\<registered>", (1, "&reg;")),
+    ("\\<inverse>", (1, "&macr;")),
+    ("\\<degree>", (1, "&deg;")),
+    ("\\<plusminus>", (1, "&plusmn;")),
+    ("\\<twosuperior>", (1, "&sup2;")),
+    ("\\<threesuperior>", (1, "&sup3;")),
+    ("\\<acute>", (1, "&acute;")),
+    ("\\<paragraph>", (1, "&para;")),
+    ("\\<cdot>", (1, "&middot;")),
+    ("\\<cedilla>", (1, "&cedil;")),
+    ("\\<onesuperior>", (1, "&sup1;")),
+    ("\\<ordmasculine>", (1, "&ordm;")),
+    ("\\<guillemotright>", (1, "&raquo;")),
+    ("\\<onequarter>", (1, "&frac14;")),
+    ("\\<onehalf>", (1, "&frac12;")),
+    ("\\<threequarters>", (1, "&frac34;")),
+    ("\\<questiondown>", (1, "&iquest;")),
+    ("\\<times>", (1, "&times;")),
+    ("\\<div>", (1, "&divide;")),
+    ("\\<circ>", (1, "o")),
+    ("\\<Alpha>", (1, "&Alpha;")),
+    ("\\<Beta>", (1, "&Beta;")),
+    ("\\<Gamma>", (1, "&Gamma;")),
+    ("\\<Delta>", (1, "&Delta;")),
+    ("\\<Epsilon>", (1, "&Epsilon;")),
+    ("\\<Zeta>", (1, "&Zeta;")),
+    ("\\<Eta>", (1, "&Eta;")),
+    ("\\<Theta>", (1, "&Theta;")),
+    ("\\<Iota>", (1, "&Iota;")),
+    ("\\<Kappa>", (1, "&Kappa;")),
+    ("\\<Lambda>", (1, "&Lambda;")),
+    ("\\<Mu>", (1, "&Mu;")),
+    ("\\<Nu>", (1, "&Nu;")),
+    ("\\<Xi>", (1, "&Xi;")),
+    ("\\<Omicron>", (1, "&Omicron;")),
+    ("\\<Pi>", (1, "&Pi;")),
+    ("\\<Rho>", (1, "&Rho;")),
+    ("\\<Sigma>", (1, "&Sigma;")),
+    ("\\<Tau>", (1, "&Tau;")),
+    ("\\<Upsilon>", (1, "&Upsilon;")),
+    ("\\<Phi>", (1, "&Phi;")),
+    ("\\<Chi>", (1, "&Chi;")),
+    ("\\<Psi>", (1, "&Psi;")),
+    ("\\<Omega>", (1, "&Omega;")),
+    ("\\<alpha>", (1, "&alpha;")),
+    ("\\<beta>", (1, "&beta;")),
+    ("\\<gamma>", (1, "&gamma;")),
+    ("\\<delta>", (1, "&delta;")),
+    ("\\<epsilon>", (1, "&epsilon;")),
+    ("\\<zeta>", (1, "&zeta;")),
+    ("\\<eta>", (1, "&eta;")),
+    ("\\<theta>", (1, "&thetasym;")),
+    ("\\<iota>", (1, "&iota;")),
+    ("\\<kappa>", (1, "&kappa;")),
+    ("\\<lambda>", (1, "&lambda;")),
+    ("\\<mu>", (1, "&mu;")),
+    ("\\<nu>", (1, "&nu;")),
+    ("\\<xi>", (1, "&xi;")),
+    ("\\<omicron>", (1, "&omicron;")),
+    ("\\<pi>", (1, "&pi;")),
+    ("\\<rho>", (1, "&rho;")),
+    ("\\<sigma>", (1, "&sigma;")),
+    ("\\<tau>", (1, "&tau;")),
+    ("\\<upsilon>", (1, "&upsilon;")),
+    ("\\<phi>", (1, "&phi;")),
+    ("\\<chi>", (1, "&chi;")),
+    ("\\<psi>", (1, "&psi;")),
+    ("\\<omega>", (1, "&omega;")),
+    ("\\<bullet>", (1, "&bull;")),
+    ("\\<dots>", (1, "&hellip;")),
+    ("\\<Re>", (1, "&real;")),
+    ("\\<Im>", (1, "&image;")),
+    ("\\<wp>", (1, "&weierp;")),
+    ("\\<forall>", (1, "&forall;")),
+    ("\\<partial>", (1, "&part;")),
+    ("\\<exists>", (1, "&exist;")),
+    ("\\<emptyset>", (1, "&empty;")),
+    ("\\<nabla>", (1, "&nabla;")),
+    ("\\<in>", (1, "&isin;")),
+    ("\\<notin>", (1, "&notin;")),
+    ("\\<Prod>", (1, "&prod;")),
+    ("\\<Sum>", (1, "&sum;")),
+    ("\\<star>", (1, "&lowast;")),
+    ("\\<propto>", (1, "&prop;")),
+    ("\\<infinity>", (1, "&infin;")),
+    ("\\<angle>", (1, "&ang;")),
+    ("\\<and>", (1, "&and;")),
+    ("\\<or>", (1, "&or;")),
+    ("\\<inter>", (1, "&cap;")),
+    ("\\<union>", (1, "&cup;")),
+    ("\\<sim>", (1, "&sim;")),
+    ("\\<cong>", (1, "&cong;")),
+    ("\\<approx>", (1, "&asymp;")),
+    ("\\<noteq>", (1, "&ne;")),
+    ("\\<equiv>", (1, "&equiv;")),
+    ("\\<le>", (1, "&le;")),
+    ("\\<ge>", (1, "&ge;")),
+    ("\\<subset>", (1, "&sub;")),
+    ("\\<supset>", (1, "&sup;")),
+    ("\\<subseteq>", (1, "&sube;")),
+    ("\\<supseteq>", (1, "&supe;")),
+    ("\\<oplus>", (1, "&oplus;")),
+    ("\\<otimes>", (1, "&otimes;")),
+    ("\\<bottom>", (1, "&perp;")),
+    ("\\<lceil>", (1, "&lceil;")),
+    ("\\<rceil>", (1, "&rceil;")),
+    ("\\<lfloor>", (1, "&lfloor;")),
+    ("\\<rfloor>", (1, "&rfloor;")),
+    ("\\<langle>", (1, "&lang;")),
+    ("\\<rangle>", (1, "&rang;")),
+    ("\\<lozenge>", (1, "&loz;")),
+    ("\\<spadesuit>", (1, "&spades;")),
+    ("\\<clubsuit>", (1, "&clubs;")),
+    ("\\<heartsuit>", (1, "&hearts;")),
+    ("\\<diamondsuit>", (1, "&diams;")),
+    ("\\<lbrakk>", (2, "[|")),
+    ("\\<rbrakk>", (2, "|]")),
+    ("\\<Longrightarrow>", (3, "==&gt;")),
+    ("\\<Rightarrow>", (2, "=&gt;")),
+    ("\\<And>", (2, "!!")),
+    ("\\<Colon>", (2, "::")),
+    ("\\<lparr>", (2, "(|")),
+    ("\\<rparr>", (2, "|)),")),
+    ("\\<longleftrightarrow>", (3, "&lt;-&gt;")),
+    ("\\<longrightarrow>", (3, "--&gt;")),
+    ("\\<rightarrow>", (2, "-&gt;")),
+    ("\\<^bsub>", (0, "<sub>")),
+    ("\\<^esub>", (0, "</sub>")),
+    ("\\<^bsup>", (0, "<sup>")),
+    ("\\<^esup>", (0, "</sup>"))];
 
   val escape = fn "<" => "&lt;" | ">" => "&gt;" | "&" => "&amp;" | c => c;
 
   fun output_sym s =
-    if Symbol.is_raw s then (1.0, Symbol.decode_raw s)
+    if Symbol.is_raw s then (1, Symbol.decode_raw s)
     else
       (case Symtab.lookup html_syms s of SOME x => x
-      | NONE => (real (size s), translate_string escape s));
+      | NONE => (size s, translate_string escape s));
 
   fun output_sub s = apsnd (enclose "<sub>" "</sub>") (output_sym s);
   fun output_sup s = apsnd (enclose "<sup>" "</sup>") (output_sym s);
@@ -224,10 +223,10 @@ in
 
 fun output_width str =
   if not (exists_string (fn s => s = "\\" orelse s = "<" orelse s = ">" orelse s = "&") str)
-  then Symbol.default_output str
+  then Output.default_output str
   else
     let val (syms, width) = fold_map (fn (w, s) => fn width => (s, w + width))
-      (output_syms (Symbol.explode str)) 0.0
+      (output_syms (Symbol.explode str)) 0
     in (implode syms, width) end;
 
 val output = #1 o output_width;
@@ -236,18 +235,33 @@ val output_symbols = map #2 o output_syms;
 end;
 
 
-(* token translations *)
+(* markup and token translations *)
 
-fun style s =
-  apfst (enclose ("<span class=" ^ Library.quote s ^ ">") "</span>") o output_width;
+fun span s = ("<span class=" ^ Library.quote s ^ ">", "</span>");
+
+fun style s = apfst (span s |-> enclose) o output_width;
+
+fun free_or_skolem x =
+  (case try Name.dest_skolem x of
+    NONE => style "free" x
+  | SOME x' => style "skolem" x');
+
+fun var_or_skolem s =
+  (case Syntax.read_variable s of
+    SOME (x, i) =>
+      (case try Name.dest_skolem x of
+        NONE => style "var" s
+      | SOME x' => style "skolem"
+          (setmp show_question_marks true Term.string_of_vname (x', i)))
+  | NONE => style "var" s);
 
 val html_trans =
  [("class", style "tclass"),
   ("tfree", style "tfree"),
   ("tvar",  style "tvar"),
-  ("free",  style "free"),
+  ("free",  free_or_skolem),
   ("bound", style "bound"),
-  ("var",   style "var"),
+  ("var",   var_or_skolem),
   ("xstr",  style "xstr")];
 
 val _ = Context.add_setup (Sign.add_mode_tokentrfuns htmlN html_trans);
@@ -264,7 +278,7 @@ type text = string;
 val plain = output;
 val name = enclose "<span class=\"name\">" "</span>" o output;
 val keyword = enclose "<span class=\"keyword\">" "</span>" o output;
-val keyword_width = apfst (enclose "<span class=\"keyword\">" "</span>") o output_width;
+val command = enclose "<span class=\"command\">" "</span>" o output;
 val file_name = enclose "<span class=\"filename\">" "</span>" o output;
 val file_path = file_name o Url.implode;
 
@@ -377,7 +391,7 @@ local
 
   fun theory up A =
     begin_document ("Theory " ^ A) ^ "\n" ^ up_link up ^
-    keyword "theory" ^ " " ^ name A;
+    command "theory" ^ " " ^ name A;
 
   fun imports Bs =
     keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs);
@@ -422,7 +436,7 @@ fun thm_name "" = ""
 
 in
 
-fun result ctxt k (a, ths) = para (cat_lines ((keyword k ^ thm_name a) :: map (thm ctxt) ths));
+fun result ctxt k (a, ths) = para (cat_lines ((command k ^ thm_name a) :: map (thm ctxt) ths));
 
 fun results _ _ [] = ""
   | results ctxt k (res :: ress) = cat_lines (result ctxt k res :: map (result ctxt "and") ress);
@@ -440,7 +454,7 @@ fun subsubsection heading = "\n\n<h4>" ^ plain heading ^ "</h4>\n";
 
 (* mode output *)
 
-val _ = Output.add_mode htmlN
-  (output_width, K keyword_width, Symbol.default_indent, Symbol.encode_raw);
+val _ = Output.add_mode htmlN output_width Symbol.encode_raw;
+val _ = Pretty.add_mode htmlN Pretty.default_indent (span o #1);
 
 end;
