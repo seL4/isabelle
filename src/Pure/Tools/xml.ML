@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/xml.ML
+(*  Title:      Pure/Tools/xml.ML
     ID:         $Id$
     Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
 
@@ -17,8 +17,8 @@ sig
   (* tree functions *)
   datatype tree =
       Elem of string * attributes * tree list
-    | Text of string    (* native string, subject to XML.text on output *)
-    | Rawtext of string (* XML string: output directly, not parsed      *)
+    | Text of string    (*native string, subject to XML.text on output*)
+    | Rawtext of string (*XML string: output directly, not parsed*)
   type content = tree list
   type element = string * attributes * content
   val string_of_tree: tree -> string
@@ -57,11 +57,11 @@ fun encode "<" = "&lt;"
 
 fun encode_charref c = "&#" ^ Int.toString (ord c) ^ ";"
 
-val text = Library.translate_string encode
+val text = Library.translate_string encode;
 
 val text_charref = translate_string encode_charref;
 
-val cdata = enclose "<![CDATA[" "]]>\n"
+val cdata = enclose "<![CDATA[" "]]>\n";
 
 
 (* elements *)
@@ -76,19 +76,18 @@ fun element name atts cs =
 
 
 
-
 (** explicit XML trees **)
 
-type attributes = (string * string) list
+type attributes = (string * string) list;
 
 datatype tree =
     Elem of string * attributes * tree list
   | Text of string
   | Rawtext of string;
 
-type content = tree list
+type content = tree list;
 
-type element = string * attributes * content
+type element = string * attributes * content;
 
 fun buffer_of_tree tree =
   let

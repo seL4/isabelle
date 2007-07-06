@@ -4,7 +4,8 @@
 Miscellaneous tools and packages for Pure Isabelle.
 *)
 
-(*XML syntax for terms and types*)
+(*basic XML support*)
+use "xml.ML";
 use "xml_syntax.ML";
 
 (*derived theory and proof elements*)
