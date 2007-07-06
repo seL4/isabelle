@@ -6,6 +6,7 @@ body { background-color: #FFFFFF; }
 .tfree  { color: purple; }
 .tvar   { color: purple; }
 .free   { color: blue; }
+.skolem { color: brown; }
 .bound  { color: green; }
 .var    { color: blue; }
 .xstr   { color: brown; }
@@ -13,6 +14,7 @@ body { background-color: #FFFFFF; }
 
 .name     { font-style: italic; }
 .keyword  { font-weight: bold; }
+.command  { font-weight: bold; }
 .filename { font-family: fixed; }
 
 .head     { background-color: #FFFFFF; }
