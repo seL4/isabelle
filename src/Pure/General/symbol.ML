@@ -9,7 +9,7 @@ signature SYMBOL =
 sig
   type symbol
   val space: symbol
-  val spaces: int -> symbol
+  val spaces: int -> string
   val is_char: symbol -> bool
   val is_symbolic: symbol -> bool
   val is_printable: symbol -> bool
@@ -58,12 +58,7 @@ sig
   val bump_init: string -> string
   val bump_string: string -> string
   val length: symbol list -> int
-  val default_output: string -> string * real
-  val default_keyword: bool -> string -> string * real
-  val default_indent: string * int -> string
-  val default_raw: string -> string
   val xsymbolsN: string
-  val symbol_output: string -> string * real
 end;
 
 structure Symbol: SYMBOL =
@@ -190,7 +185,7 @@ fun beginning n cs =
 
 (*raw encoding avoids looping errors!*)
 fun malformed_symbol s =
-  "Malformed symbolic character specification: " ^ quote (Output.raw s);
+  "Malformed symbolic character specification: " ^ quote (Output.escape s);
 
 
 (* decode_raw *)
@@ -493,19 +488,7 @@ fun bump_string str =
 
 
 
-(** print modes **)
-
-(* default *)
-
-fun default_output s = (s, real (size s));
-fun default_keyword (_: bool) = default_output;
-fun default_indent (_: string, k) = spaces k;
-fun default_raw (s: string) = s;
-
-val _ = Output.add_mode "" (default_output, default_keyword, default_indent, default_raw);
-
-
-(* xsymbols *)
+(** xsymbols **)
 
 val xsymbolsN = "xsymbols";
 
@@ -517,15 +500,6 @@ fun sym_len s =
   else 1;
 
 fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;
-
-fun symbol_output str =
-  if chars_only str then default_output str
-  else
-    let
-      fun out s = if is_raw s then decode_raw s else s;
-      val syms = sym_explode str;
-    in (implode (map out syms), real (sym_length syms)) end;
-
 
 (*final declarations of this structure!*)
 val length = sym_length;
