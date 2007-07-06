@@ -29,13 +29,14 @@ use "General/source.ML";
 use "General/file.ML";     (* used directly *)
 use "General/buffer.ML";
 use "General/symbol.ML";
-use "General/xml.ML";      (* used directly *)
 use "General/url.ML";      (* used directly *)
+use "Tools/xml.ML";        (* used directly *)
 
 
 (* Our code *)
 
 use "ProofGeneral/pgip_types.ML";
+use "ProofGeneral/pgml.ML";
 use "ProofGeneral/pgip_markup.ML";
 use "ProofGeneral/pgip_input.ML";
 use "ProofGeneral/pgip_output.ML";
