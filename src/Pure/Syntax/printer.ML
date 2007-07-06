@@ -31,10 +31,10 @@ sig
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: (string -> xstring) -> Proof.context -> bool -> prtabs
     -> (string -> (Proof.context -> Ast.ast list -> Ast.ast) list)
-    -> (string -> (string -> string * real) option) -> Ast.ast -> Pretty.T
+    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T
   val pretty_typ_ast: Proof.context -> bool -> prtabs
     -> (string -> (Proof.context -> Ast.ast list -> Ast.ast) list)
-    -> (string -> (string -> string * real) option) -> Ast.ast -> Pretty.T
+    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T
 end;
 
 structure Printer: PRINTER =

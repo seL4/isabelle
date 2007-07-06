@@ -14,8 +14,8 @@ sig
   val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
   val mk_trfun: string * 'a -> string * ('a * stamp)
   val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
-  val tokentrans_mode: string -> (string * (string -> string * real)) list ->
-    (string * string * (string -> string * real)) list
+  val tokentrans_mode: string -> (string * (string -> string * int)) list ->
+    (string * string * (string -> string * int)) list
   val standard_token_classes: string list
 end;
 
@@ -49,7 +49,7 @@ sig
         (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
-      token_translation: (string * string * (string -> string * real)) list}
+      token_translation: (string * string * (string -> string * int)) list}
   val mfix_delims: string -> string list
   val mfix_args: string -> int
   val escape_mfix: string -> string
@@ -59,14 +59,14 @@ sig
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list
-    -> (string * string * (string -> string * real)) list
+    -> (string * string * (string -> string * int)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext: mfix list -> string list ->
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list
-    -> (string * string * (string -> string * real)) list
+    -> (string * string * (string -> string * int)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_const_names: string list -> syn_ext
   val syn_ext_rules: (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
@@ -80,7 +80,7 @@ sig
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
-  val syn_ext_tokentrfuns: (string * string * (string -> string * real)) list -> syn_ext
+  val syn_ext_tokentrfuns: (string * string * (string -> string * int)) list -> syn_ext
   val standard_token_markers: string list
   val pure_ext: syn_ext
 end;
@@ -343,7 +343,7 @@ datatype syn_ext =
       (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list,
     print_rules: (Ast.ast * Ast.ast) list,
     print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
-    token_translation: (string * string * (string -> string * real)) list};
+    token_translation: (string * string * (string -> string * int)) list};
 
 
 (* syn_ext *)
