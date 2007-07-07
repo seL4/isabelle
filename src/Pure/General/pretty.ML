@@ -42,6 +42,7 @@ sig
   val keyword: string -> T
   val command: string -> T
   val strs: string list -> T
+  val markup_chunks: Markup.T -> T list -> T
   val chunks: T list -> T
   val chunks2: T list -> T
   val block_enclose: T * T -> T list -> T
@@ -254,7 +255,10 @@ fun keyword name = markup (Markup.keyword name) [str name];
 fun command name = markup (Markup.command name) [str name];
 
 val strs = block o breaks o map str;
-fun chunks prts = blk (0, fbreaks prts);
+
+fun markup_chunks m prts = markup m (fbreaks prts);
+val chunks = markup_chunks Markup.none;
+
 fun chunks2 prts = blk (0, flat (Library.separate [fbrk, fbrk] (map single prts)));
 fun block_enclose (p1, p2) ps = chunks [(block  o fbreaks) (p1 :: ps), p2];
 
