@@ -28,14 +28,14 @@ text{* The type @{text fm} represents simple propositional formulae: *}
 datatype form = TrueF | FalseF | Less nat nat |
                 And form form | Or form form | Neg form | ExQ form
 
-fun interp :: "('a::ord) list \<Rightarrow> form \<Rightarrow> bool" where
-"interp e TrueF = True" |
-"interp e FalseF = False" |
-"interp e (Less i j) = (e!i < e!j)" |
-"interp e (And f1 f2) = (interp e f1 & interp e f2)" |
-"interp e (Or f1 f2) = (interp e f1 | interp e f2)" |
-"interp e (Neg f) = (~ interp e f)" |
-"interp e (ExQ f) = (EX x. interp (x#e) f)"
+fun interp :: "form \<Rightarrow> ('a::ord) list \<Rightarrow> bool" where
+"interp TrueF e = True" |
+"interp FalseF e = False" |
+"interp (Less i j) e = (e!i < e!j)" |
+"interp (And f1 f2) e = (interp f1 e & interp f2 e)" |
+"interp (Or f1 f2) e = (interp f1 e | interp f2 e)" |
+"interp (Neg f) e = (~ interp f e)" |
+"interp (ExQ f) e = (EX x. interp f (x#e))"
 
 lemmas interp_reify_eqs = interp.simps
 declare interp_reify_eqs[reify]
@@ -46,14 +46,14 @@ lemma "EX x. x < y & x < z"
 
 datatype fm = And fm fm | Or fm fm | Imp fm fm | Iff fm fm | NOT fm | At nat
 
-consts Ifm :: "bool list \<Rightarrow> fm \<Rightarrow> bool"
+consts Ifm :: "fm \<Rightarrow> bool list \<Rightarrow> bool"
 primrec
-  "Ifm vs (At n) = vs!n"
-  "Ifm bs (And p q) = (Ifm bs p \<and> Ifm bs q)"
-  "Ifm vs (Or p q) = (Ifm vs p \<or> Ifm vs q)"
-  "Ifm vs (Imp p q) = (Ifm vs p \<longrightarrow> Ifm vs q)"
-  "Ifm vs (Iff p q) = (Ifm vs p = Ifm vs q)"
-  "Ifm vs (NOT p) = (\<not> (Ifm vs p))"
+  "Ifm (At n) vs = vs!n"
+  "Ifm (And p q) vs = (Ifm p vs \<and> Ifm q vs)"
+  "Ifm (Or p q) vs = (Ifm p vs \<or> Ifm q vs)"
+  "Ifm (Imp p q) vs = (Ifm p vs \<longrightarrow> Ifm q vs)"
+  "Ifm (Iff p q) vs = (Ifm p vs = Ifm q vs)"
+  "Ifm (NOT p) vs = (\<not> (Ifm p vs))"
 
 lemma "Q \<longrightarrow> (D & F & ((~ D) & (~ F)))"
 apply (reify Ifm.simps)
@@ -93,7 +93,7 @@ recdef nnf "measure fmsize"
   "nnf (NOT p) = NOT p"
 
   text{* The correctness theorem of nnf: it preserves the semantics of fm *}
-lemma nnf: "Ifm vs (nnf p) = Ifm vs p"
+lemma nnf: "Ifm (nnf p) vs = Ifm p vs"
   by (induct p rule: nnf.induct) auto
 
   text{* Now let's perform NNF using our @{term nnf} function defined above. First to the whole subgoal. *}
@@ -122,13 +122,13 @@ primrec
   "num_size (CN n c a) = 4 + num_size a "
 
   text{* The semantics of num *}
-consts Inum:: "nat list \<Rightarrow> num \<Rightarrow> nat"
+consts Inum:: "num \<Rightarrow> nat list \<Rightarrow> nat"
 primrec 
-  Inum_C  : "Inum vs (C i) = i"
-  Inum_Var: "Inum vs (Var n) = vs!n"
-  Inum_Add: "Inum vs (Add s t) = Inum vs s + Inum vs t"
-  Inum_Mul: "Inum vs (Mul c t) = c * Inum vs t"
-  Inum_CN : "Inum vs (CN n c t) = c*(vs!n) + Inum vs t"
+  Inum_C  : "Inum (C i) vs = i"
+  Inum_Var: "Inum (Var n) vs = vs!n"
+  Inum_Add: "Inum (Add s t) vs = Inum s vs + Inum t vs "
+  Inum_Mul: "Inum (Mul c t) vs = c * Inum t vs "
+  Inum_CN : "Inum (CN n c t) vs = c*(vs!n) + Inum t vs "
 
   text{* Let's reify some nat expressions \<dots> *}
 lemma "4 * (2*x + (y::nat)) + f a \<noteq> 0"
@@ -142,7 +142,7 @@ lemma "4 * (2*x + (y::nat)) \<noteq> 0"
 oops
 text{* Better, but it still reifies @{term x} to @{term "C x"}. Note that the reification depends on the order of the equations. The problem is that the right hand side of @{thm Inum_C} matches any term of type nat, which makes things bad. We want only numerals to match\<dots> So let's specialize @{text Inum_C} with numerals.*}
 
-lemma Inum_number: "Inum vs (C (number_of t)) = number_of t" by simp
+lemma Inum_number: "Inum (C (number_of t)) vs = number_of t" by simp
 lemmas Inum_eqs = Inum_Var Inum_Add Inum_Mul Inum_CN Inum_number
 
   text{* Second attempt *}
@@ -156,7 +156,7 @@ lemma "1 * (2* x + (y::nat) + 0 + 1) \<noteq> 0"
 oops
   text{* Oh!! 0 is not a variable \<dots> Oh! 0 is not a number_of .. thing. The same for 1. So let's add those equations too *}
 
-lemma Inum_01: "Inum vs (C 0) = 0" "Inum vs (C 1) = 1" "Inum vs (C(Suc n)) = Suc n"
+lemma Inum_01: "Inum (C 0) vs = 0" "Inum (C 1) vs = 1" "Inum (C(Suc n)) vs = Suc n"
   by simp+
 
 lemmas Inum_eqs'= Inum_eqs Inum_01
@@ -179,7 +179,7 @@ recdef lin_add "measure (\<lambda>(x,y). ((size x) + (size y)))"
   "lin_add (t,CN n2 c2 r2) = CN n2 c2 (lin_add (t,r2))" 
   "lin_add (C b1, C b2) = C (b1+b2)"
   "lin_add (a,b) = Add a b"
-lemma lin_add: "Inum bs (lin_add (t,s)) = Inum bs (Add t s)"
+lemma lin_add: "Inum (lin_add (t,s)) bs = Inum (Add t s) bs"
 apply (induct t s rule: lin_add.induct, simp_all add: Let_def)
 apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
 by (case_tac "n1 = n2", simp_all add: ring_simps)
@@ -190,7 +190,7 @@ recdef lin_mul "measure size "
   "lin_mul (CN n c a) = (\<lambda> i. if i=0 then (C 0) else CN n (i*c) (lin_mul a i))"
   "lin_mul t = (\<lambda> i. Mul i t)"
 
-lemma lin_mul: "Inum bs (lin_mul t i) = Inum bs (Mul i t)"
+lemma lin_mul: "Inum (lin_mul t i) bs = Inum (Mul i t) bs"
 by (induct t arbitrary: i rule: lin_mul.induct, auto simp add: ring_simps)
 
 consts linum:: "num \<Rightarrow> num"
@@ -201,7 +201,7 @@ recdef linum "measure num_size"
   "linum (Mul c t) = lin_mul (linum t) c"
   "linum (CN n c t) = lin_add (linum (Mul c (Var n)),linum t)"
 
-lemma linum : "Inum vs (linum t) = Inum vs t"
+lemma linum : "Inum (linum t) bs = Inum t bs"
 by (induct t rule: linum.induct, simp_all add: lin_mul lin_add)
 
   text{* Now we can use linum to simplify nat terms using reflection *}
@@ -226,26 +226,26 @@ recdef linaformsize "measure size"
   "linaformsize (Disj p q) = 1 + linaformsize p + linaformsize q"
 
 
-consts aform :: "nat list => aform => bool"
+consts aform :: "aform => nat list => bool"
 primrec
-  "aform vs T = True"
-  "aform vs F = False"
-  "aform vs (Lt a b) = (Inum vs a < Inum vs b)"
-  "aform vs (Eq a b) = (Inum vs a = Inum vs b)"
-  "aform vs (Ge a b) = (Inum vs a \<ge> Inum vs b)"
-  "aform vs (NEq a b) = (Inum vs a \<noteq> Inum vs b)"
-  "aform vs (NEG p) = (\<not> (aform vs p))"
-  "aform vs (Conj p q) = (aform vs p \<and> aform vs q)"
-  "aform vs (Disj p q) = (aform vs p \<or> aform vs q)"
+  "aform T vs = True"
+  "aform F vs = False"
+  "aform (Lt a b) vs = (Inum a vs < Inum b vs)"
+  "aform (Eq a b) vs = (Inum a vs = Inum b vs)"
+  "aform (Ge a b) vs = (Inum a vs \<ge> Inum b vs)"
+  "aform (NEq a b) vs = (Inum a vs \<noteq> Inum b vs)"
+  "aform (NEG p) vs = (\<not> (aform p vs))"
+  "aform (Conj p q) vs = (aform p vs \<and> aform q vs)"
+  "aform (Disj p q) vs = (aform p vs \<or> aform q vs)"
 
   text{* Let's reify and do reflection *}
 lemma "(3::nat)*x + t < 0 \<and> (2 * x + y \<noteq> 17)"
-(* apply (reify Inum_eqs' aform.simps) *)
+ apply (reify Inum_eqs' aform.simps) 
 oops
 
 text{* Note that reification handles several interpretations at the same time*}
 lemma "(3::nat)*x + t < 0 & x*x + t*x + 3 + 1 = z*t*4*z | x + x + 1 < 0"
-(* apply (reflection linum Inum_eqs' aform.simps ("x + x + 1")) *)
+ apply (reflection linum Inum_eqs' aform.simps ("x + x + 1")) 
 oops
 
   text{* For reflection we now define a simple transformation on aform: NNF + linum on atoms *}
@@ -268,11 +268,11 @@ recdef linaform "measure linaformsize"
   "linaform (NEG (Disj p q)) = Conj (linaform (NEG p)) (linaform (NEG q))"
   "linaform p = p"
 
-lemma linaform: "aform vs (linaform p) = aform vs p"
+lemma linaform: "aform (linaform p) vs = aform p vs"
   by (induct p rule: linaform.induct, auto simp add: linum)
 
 lemma "(((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0)))) + (Suc (Suc (Suc 0))) * ((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0))))< 0) \<and> (Suc 0  + Suc 0< 0)"
-(*   apply (reflection linaform Inum_eqs' aform.simps)  *)
+   apply (reflection linaform Inum_eqs' aform.simps)  
 oops
 
 text{* We now give an example where Interpretaions have 0 or more than only one envornement of different types and show that automatic reification also deals with binding *}
@@ -288,31 +288,31 @@ apply (reify Irb.simps)
 oops
 
 datatype rint = IC int| IVar nat | IAdd rint rint | IMult rint rint | INeg rint | ISub rint rint
-consts Irint :: "int list \<Rightarrow> rint \<Rightarrow> int"
+consts Irint :: "rint \<Rightarrow> int list \<Rightarrow> int"
 primrec
-Irint_Var: "Irint vs (IVar n) = vs!n"
-Irint_Neg: "Irint vs (INeg t) = - Irint vs t"
-Irint_Add: "Irint vs (IAdd s t) = Irint vs s + Irint vs t"
-Irint_Sub: "Irint vs (ISub s t) = Irint vs s - Irint vs t"
-Irint_Mult: "Irint vs (IMult s t) = Irint vs s * Irint vs t"
-Irint_C: "Irint vs (IC i) = i"
-lemma Irint_C0: "Irint vs (IC 0) = 0"
+Irint_Var: "Irint (IVar n) vs = vs!n"
+Irint_Neg: "Irint (INeg t) vs = - Irint t vs"
+Irint_Add: "Irint (IAdd s t) vs = Irint s vs + Irint t vs"
+Irint_Sub: "Irint (ISub s t) vs = Irint s vs - Irint t vs"
+Irint_Mult: "Irint (IMult s t) vs = Irint s vs * Irint t vs"
+Irint_C: "Irint (IC i) vs = i"
+lemma Irint_C0: "Irint (IC 0) vs = 0"
   by simp
-lemma Irint_C1: "Irint vs (IC 1) = 1"
+lemma Irint_C1: "Irint (IC 1) vs = 1"
   by simp
-lemma Irint_Cnumberof: "Irint vs (IC (number_of x)) = number_of x"
+lemma Irint_Cnumberof: "Irint (IC (number_of x)) vs = number_of x"
   by simp
 lemmas Irint_simps = Irint_Var Irint_Neg Irint_Add Irint_Sub Irint_Mult Irint_C0 Irint_C1 Irint_Cnumberof 
 lemma "(3::int) * x + y*y - 9 + (- z) = 0"
   apply (reify Irint_simps ("(3::int) * x + y*y - 9 + (- z)"))
   oops
 datatype rlist = LVar nat| LEmpty| LCons rint rlist | LAppend rlist rlist
-consts Irlist :: "int list \<Rightarrow> (int list) list \<Rightarrow> rlist \<Rightarrow> (int list)"
+consts Irlist :: "rlist \<Rightarrow> int list \<Rightarrow> (int list) list \<Rightarrow> (int list)"
 primrec
-  "Irlist is vs (LEmpty) = []"
-  "Irlist is vs (LVar n) = vs!n"
-  "Irlist is vs (LCons i t) = ((Irint is i)#(Irlist is vs t))"
-  "Irlist is vs (LAppend s t) = (Irlist is vs s) @ (Irlist is vs t)"
+  "Irlist (LEmpty) is vs = []"
+  "Irlist (LVar n) is vs = vs!n"
+  "Irlist (LCons i t) is vs = ((Irint i is)#(Irlist t is vs))"
+  "Irlist (LAppend s t) is vs = (Irlist s is vs) @ (Irlist t is vs)"
 lemma "[(1::int)] = []"
   apply (reify Irlist.simps Irint_simps ("[1]:: int list"))
   oops
@@ -322,21 +322,21 @@ lemma "([(3::int) * x + y*y - 9 + (- z)] @ []) @ xs = [y*y - z - 9 + (3::int) * 
   oops
 
 datatype rnat = NC nat| NVar nat| NSuc rnat | NAdd rnat rnat | NMult rnat rnat | NNeg rnat | NSub rnat rnat | Nlgth rlist
-consts Irnat :: "int list \<Rightarrow> (int list) list \<Rightarrow> nat list \<Rightarrow> rnat \<Rightarrow> nat"
+consts Irnat :: "rnat \<Rightarrow> int list \<Rightarrow> (int list) list \<Rightarrow> nat list \<Rightarrow> nat"
 primrec
-Irnat_Suc: "Irnat is ls vs (NSuc t) = Suc (Irnat is ls vs t)"
-Irnat_Var: "Irnat is ls vs (NVar n) = vs!n"
-Irnat_Neg: "Irnat is ls vs (NNeg t) = - Irnat is ls vs t"
-Irnat_Add: "Irnat is ls vs (NAdd s t) = Irnat is ls vs s + Irnat is ls vs t"
-Irnat_Sub: "Irnat is ls vs (NSub s t) = Irnat is ls vs s - Irnat is ls vs t"
-Irnat_Mult: "Irnat is ls vs (NMult s t) = Irnat is ls vs s * Irnat is ls vs t"
-Irnat_lgth: "Irnat is ls vs (Nlgth rxs) = length (Irlist is ls rxs)"
-Irnat_C: "Irnat is ls vs (NC i) = i"
-lemma Irnat_C0: "Irnat is ls vs (NC 0) = 0"
+Irnat_Suc: "Irnat (NSuc t) is ls vs = Suc (Irnat t is ls vs)"
+Irnat_Var: "Irnat (NVar n) is ls vs = vs!n"
+Irnat_Neg: "Irnat (NNeg t) is ls vs = - Irnat t is ls vs"
+Irnat_Add: "Irnat (NAdd s t) is ls vs = Irnat s is ls vs + Irnat t is ls vs"
+Irnat_Sub: "Irnat (NSub s t) is ls vs = Irnat s is ls vs - Irnat t is ls vs"
+Irnat_Mult: "Irnat (NMult s t) is ls vs = Irnat s is ls vs * Irnat t is ls vs"
+Irnat_lgth: "Irnat (Nlgth rxs) is ls vs = length (Irlist rxs is ls)"
+Irnat_C: "Irnat (NC i) is ls vs = i"
+lemma Irnat_C0: "Irnat (NC 0) is ls vs = 0"
 by simp
-lemma Irnat_C1: "Irnat is ls vs (NC 1) = 1"
+lemma Irnat_C1: "Irnat (NC 1) is ls vs = 1"
 by simp
-lemma Irnat_Cnumberof: "Irnat is ls vs (NC (number_of x)) = number_of x"
+lemma Irnat_Cnumberof: "Irnat (NC (number_of x)) is ls vs = number_of x"
 by simp
 lemmas Irnat_simps = Irnat_Suc Irnat_Var Irnat_Neg Irnat_Add Irnat_Sub Irnat_Mult Irnat_lgth
   Irnat_C0 Irnat_C1 Irnat_Cnumberof
@@ -348,26 +348,27 @@ datatype rifm = RT | RF | RVar nat
   |RAnd rifm rifm | ROr rifm rifm | RImp rifm rifm| RIff rifm rifm
   | RNEX rifm | RIEX rifm| RLEX rifm | RNALL rifm | RIALL rifm| RLALL rifm
   | RBEX rifm | RBALL rifm
-consts Irifm :: "bool list \<Rightarrow> int list \<Rightarrow> (int list) list \<Rightarrow> nat list \<Rightarrow> rifm \<Rightarrow> bool"
+
+consts Irifm :: "rifm \<Rightarrow> bool list \<Rightarrow> int list \<Rightarrow> (int list) list \<Rightarrow> nat list \<Rightarrow> bool"
 primrec
-"Irifm ps is ls ns RT = True"
-"Irifm ps is ls ns RF = False"
-  "Irifm ps is ls ns (RVar n) = ps!n"
-"Irifm ps is ls ns (RNLT s t) = (Irnat is ls ns s < Irnat is ls ns t)"
-"Irifm ps is ls ns (RNILT s t) = (int (Irnat is ls ns s) < Irint is t)"
-"Irifm ps is ls ns (RNEQ s t) = (Irnat is ls ns s = Irnat is ls ns t)"
-"Irifm ps is ls ns (RAnd p q) = (Irifm ps is ls ns p \<and> Irifm ps is ls ns q)"
-"Irifm ps is ls ns (ROr p q) = (Irifm ps is ls ns p \<or> Irifm ps is ls ns q)"
-"Irifm ps is ls ns (RImp p q) = (Irifm ps is ls ns p \<longrightarrow> Irifm ps is ls ns q)"
-"Irifm ps is ls ns (RIff p q) = (Irifm ps is ls ns p = Irifm ps is ls ns q)"
-"Irifm ps is ls ns (RNEX p) =  (\<exists>x. Irifm ps is ls (x#ns) p)"
-"Irifm ps is ls ns (RIEX p) =  (\<exists>x. Irifm ps (x#is) ls ns p)"
-"Irifm ps is ls ns (RLEX p) =  (\<exists>x. Irifm ps is (x#ls) ns p)"
-"Irifm ps is ls ns (RBEX p) =  (\<exists>x. Irifm (x#ps) is ls ns p)"
-"Irifm ps is ls ns (RNALL p) = (\<forall>x. Irifm ps is ls (x#ns) p)"
-"Irifm ps is ls ns (RIALL p) = (\<forall>x. Irifm ps (x#is) ls ns p)"
-"Irifm ps is ls ns (RLALL p) = (\<forall>x. Irifm ps is (x#ls) ns p)"
-"Irifm ps is ls ns (RBALL p) = (\<forall>x. Irifm (x#ps) is ls ns p)"
+"Irifm RT ps is ls ns = True"
+"Irifm RF ps is ls ns = False"
+"Irifm (RVar n) ps is ls ns = ps!n"
+"Irifm (RNLT s t) ps is ls ns = (Irnat s is ls ns < Irnat t is ls ns)"
+"Irifm (RNILT s t) ps is ls ns = (int (Irnat s is ls ns) < Irint t is)"
+"Irifm (RNEQ s t) ps is ls ns = (Irnat s is ls ns = Irnat t is ls ns)"
+"Irifm (RAnd p q) ps is ls ns = (Irifm p ps is ls ns \<and> Irifm q ps is ls ns)"
+"Irifm (ROr p q) ps is ls ns = (Irifm p ps is ls ns \<or> Irifm q ps is ls ns)"
+"Irifm (RImp p q) ps is ls ns = (Irifm p ps is ls ns \<longrightarrow> Irifm q ps is ls ns)"
+"Irifm (RIff p q) ps is ls ns = (Irifm p ps is ls ns = Irifm q ps is ls ns)"
+"Irifm (RNEX p) ps is ls ns =  (\<exists>x. Irifm p ps is ls (x#ns))"
+"Irifm (RIEX p) ps is ls ns =  (\<exists>x. Irifm p ps (x#is) ls ns)"
+"Irifm (RLEX p) ps is ls ns =  (\<exists>x. Irifm p ps is (x#ls) ns)"
+"Irifm (RBEX p) ps is ls ns =  (\<exists>x. Irifm p (x#ps) is ls ns)"
+"Irifm (RNALL p) ps is ls ns = (\<forall>x. Irifm p ps is ls (x#ns))"
+"Irifm (RIALL p) ps is ls ns = (\<forall>x. Irifm p ps (x#is) ls ns)"
+"Irifm (RLALL p) ps is ls ns = (\<forall>x. Irifm p ps is (x#ls) ns)"
+"Irifm (RBALL p) ps is ls ns = (\<forall>x. Irifm p (x#ps) is ls ns)"
 
 lemma " \<forall>x. \<exists>n. ((Suc n) * length (([(3::int) * x + (f t)*y - 9 + (- z)] @ []) @ xs) = length xs) \<and> m < 5*n - length (xs @ [2,3,4,x*z + 8 - y]) \<longrightarrow> (\<exists>p. \<forall>q. p \<and> q \<longrightarrow> r)"
   apply (reify Irifm.simps Irnat_simps Irlist.simps Irint_simps)
@@ -377,28 +378,28 @@ oops
   (* An example for equations containing type variables *)	
 datatype prod = Zero | One | Var nat | Mul prod prod 
   | Pw prod nat | PNM nat nat prod
-consts Iprod :: "('a::{ordered_idom,recpower}) list \<Rightarrow> prod \<Rightarrow> 'a" 
+consts Iprod :: " prod \<Rightarrow> ('a::{ordered_idom,recpower}) list \<Rightarrow>'a" 
 primrec
-  "Iprod vs Zero = 0"
-  "Iprod vs One = 1"
-  "Iprod vs (Var n) = vs!n"
-  "Iprod vs (Mul a b) = (Iprod vs a * Iprod vs b)"
-  "Iprod vs (Pw a n) = ((Iprod vs a) ^ n)"
-  "Iprod vs (PNM n k t) = (vs ! n)^k * Iprod vs t"
+  "Iprod Zero vs = 0"
+  "Iprod One vs = 1"
+  "Iprod (Var n) vs = vs!n"
+  "Iprod (Mul a b) vs = (Iprod a vs * Iprod b vs)"
+  "Iprod (Pw a n) vs = ((Iprod a vs) ^ n)"
+  "Iprod (PNM n k t) vs = (vs ! n)^k * Iprod t vs"
 consts prodmul:: "prod \<times> prod \<Rightarrow> prod"
 datatype sgn = Pos prod | Neg prod | ZeroEq prod | NZeroEq prod | Tr | F 
   | Or sgn sgn | And sgn sgn
 
-consts Isgn :: "('a::{ordered_idom, recpower}) list \<Rightarrow> sgn \<Rightarrow> bool"
+consts Isgn :: " sgn \<Rightarrow> ('a::{ordered_idom, recpower}) list \<Rightarrow>bool"
 primrec 
-  "Isgn vs Tr = True"
-  "Isgn vs F = False"
-  "Isgn vs (ZeroEq t) = (Iprod vs t = 0)"
-  "Isgn vs (NZeroEq t) = (Iprod vs t \<noteq> 0)"
-  "Isgn vs (Pos t) = (Iprod vs t > 0)"
-  "Isgn vs (Neg t) = (Iprod vs t < 0)"
-  "Isgn vs (And p q) = (Isgn vs p \<and> Isgn vs q)"
-  "Isgn vs (Or p q) = (Isgn vs p \<or> Isgn vs q)"
+  "Isgn Tr vs = True"
+  "Isgn F vs = False"
+  "Isgn (ZeroEq t) vs = (Iprod t vs = 0)"
+  "Isgn (NZeroEq t) vs = (Iprod t vs \<noteq> 0)"
+  "Isgn (Pos t) vs = (Iprod t vs > 0)"
+  "Isgn (Neg t) vs = (Iprod t vs < 0)"
+  "Isgn (And p q) vs = (Isgn p vs \<and> Isgn q vs)"
+  "Isgn (Or p q) vs = (Isgn p vs \<or> Isgn q vs)"
 
 lemmas eqs = Isgn.simps Iprod.simps
 

@@ -12,7 +12,7 @@ signature REFLECTION = sig
     -> thm list -> term option -> int -> tactic
 end;
 
-structure Reflection : REFLECTION 
+structure Reflection  : REFLECTION 
 = struct
 
 val ext2 = thm "ext2";
@@ -228,13 +228,13 @@ end;
   (* Generic reification procedure: *)
   (* creates all needed cong rules and then just uses the theorem synthesis *)
 
-fun mk_congs ctxt raw_eqs = 
- let 
+  fun mk_congs ctxt raw_eqs = 
+ let
   val fs = fold_rev (fn eq =>
 		     insert (op =) (eq |> prop_of |> HOLogic.dest_Trueprop 
 			 |> HOLogic.dest_eq |> fst |> strip_comb 
 			 |> fst)) raw_eqs []
-  val tys = fold_rev (fn f => fn ts => (f |> fastype_of |> binder_types |> split_last |> fst) 
+  val tys = fold_rev (fn f => fn ts => (f |> fastype_of |> binder_types |> tl) 
 				    union ts) fs []
   val _ = bds := AList.make (fn _ => ([],[])) tys
   val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt
@@ -242,41 +242,41 @@ fun mk_congs ctxt raw_eqs =
   val cert = cterm_of thy
   val vstys = map (fn (t,v) => (t,SOME (cert (Free(v,t))))) 
 		  (tys ~~ vs)
-  fun insteq eq ts = 
-   let val itms = map (fn t => t|> (AList.lookup (op =) vstys) |> the) ts
-   in instantiate' [] itms eq
+  val is_Var = can dest_Var
+  fun insteq eq vs = 
+   let
+     val subst = map (fn (v as Var(n,t)) => (cert v, (valOf o valOf) (AList.lookup (op =) vstys t)))  
+  (filter is_Var vs)
+   in Thm.instantiate ([],subst) eq
    end
   val eqs = map (fn eq => eq |> prop_of |> HOLogic.dest_Trueprop 
-			     |> HOLogic.dest_eq |> fst |> strip_comb |> fst |> fastype_of 
-			     |> binder_types |> split_last |> fst 
+			     |> HOLogic.dest_eq |> fst |> strip_comb |> snd |> tl
 			     |> (insteq eq)) raw_eqs
   val (ps,congs) = split_list (map (mk_congeq ctxt' fs) eqs)
- in  ps ~~ (Variable.export ctxt' ctxt congs)
- end;
+in ps ~~ (Variable.export ctxt' ctxt congs)
+end
 
 fun genreif ctxt raw_eqs t =
  let 
-  val _ = bds := []
-  val congs = mk_congs ctxt raw_eqs
+  val congs = mk_congs ctxt raw_eqs 
   val th = divide_and_conquer (decomp_genreif (mk_decompatom raw_eqs) congs) (t,ctxt)
-  val tys = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
-	       |> strip_comb |> fst |> fastype_of |> strip_type |> fst
-	       |> split_last |> fst
+  fun is_listVar (Var (_,t)) = can dest_listT t
+       | is_listVar _ = false
+  val vars = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
+	       |> strip_comb |> snd |> filter is_listVar
   val cert = cterm_of (ProofContext.theory_of ctxt)
-  val cvs = map (fn t => t |> (AList.lookup Type.could_unify (!bds)) |> the |> snd 
-			   |> HOLogic.mk_list (dest_listT t) |> cert |> SOME)
-		tys
-  val th' = (instantiate' [] cvs (th RS sym)) RS sym
+  val cvs = map (fn (v as Var(n,t)) => (cert v, the (AList.lookup Type.could_unify (!bds) t) |> snd |> HOLogic.mk_list (dest_listT t) |> cert)) vars
+  val th' = instantiate ([], cvs) th
   val t' = (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th'
-  val th'' = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
+  val th'' = Goal.prove @{context} [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
 			(fn _ => Simp_tac 1)
   val _ = bds := []
- in FWD trans [th'',th']
- end;
+in FWD trans [th'',th']
+end
 
 fun genreflect ctxt conv corr_thm raw_eqs t =
     let val th = FWD trans [genreif ctxt raw_eqs t, corr_thm RS sym]
-        val ft = (snd o Thm.dest_comb o snd o Thm.dest_comb o snd o Thm.dest_comb o cprop_of) th
+        val ft = (Thm.dest_arg1 o Thm.dest_arg o Thm.dest_arg o cprop_of) th
         val rth = conv ft
     in simplify (HOL_basic_ss addsimps raw_eqs addsimps [nth_Cons_0, nth_Cons_Suc])
                 (simplify (HOL_basic_ss addsimps [rth]) th)
