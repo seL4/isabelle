@@ -40,13 +40,9 @@ sig
   val pretty_ctyp: ctyp -> Pretty.T
   val pretty_cterm: cterm -> Pretty.T
   val pretty_full_theory: bool -> theory -> Pretty.T list
-  val pretty_goals_aux: Pretty.pp -> string -> bool * bool -> int -> thm -> Pretty.T list
+  val pretty_goals_aux: Pretty.pp -> Markup.T -> bool * bool -> int -> thm -> Pretty.T list
   val pretty_goals: int -> thm -> Pretty.T list
   val print_goals: int -> thm -> unit
-  val current_goals_markers: (string * string * string) ref
-  val pretty_current_goals: int -> int -> thm -> Pretty.T list
-  val print_current_goals_default: int -> int -> thm -> unit
-  val print_current_goals_fn: (int -> int -> thm -> unit) ref
 end;
 
 structure Display: DISPLAY =
@@ -293,7 +289,7 @@ fun varsT_of t = rev (sort_idxs (Term.fold_types add_varsT t []));
 
 in
 
-fun pretty_goals_aux pp begin_goal (msg, main) maxgoals state =
+fun pretty_goals_aux pp markup (msg, main) maxgoals state =
   let
     fun prt_atoms prt prtT (X, xs) = Pretty.block
       [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
@@ -313,8 +309,8 @@ fun pretty_goals_aux pp begin_goal (msg, main) maxgoals state =
     fun pretty_list _ _ [] = []
       | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
 
-    fun pretty_subgoal (n, A) = Pretty.blk (0,
-     [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), Pretty.term pp A]);
+    fun pretty_subgoal (n, A) = Pretty.markup markup
+      [Pretty.str (" " ^ string_of_int n ^ ". "), Pretty.term pp A];
     fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
 
     val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair pp);
@@ -347,37 +343,13 @@ fun pretty_goals_aux pp begin_goal (msg, main) maxgoals state =
    (! show_types orelse ! show_sorts orelse ! show_all_types, ! show_sorts)
   end;
 
-fun pretty_goals_marker bg n th =
-  pretty_goals_aux (Sign.pp (Thm.theory_of_thm th)) bg (true, true) n th;
+fun pretty_goals n th =
+  pretty_goals_aux (Sign.pp (Thm.theory_of_thm th)) Markup.none (true, true) n th;
 
-val pretty_goals = pretty_goals_marker "";
-val print_goals = (Pretty.writeln o Pretty.chunks) oo pretty_goals_marker "";
+val print_goals = (Pretty.writeln o Pretty.chunks) oo pretty_goals;
 
 end;
 
-
-(* print_current_goals *)
-
-val current_goals_markers = ref ("", "", "");
-
-fun pretty_current_goals n m th =
-  let
-    val ref (begin_state, end_state, begin_goal) = current_goals_markers;
-    val ngoals = nprems_of th;
-  in
-    (if begin_state = "" then [] else [Pretty.str begin_state]) @
-    [Pretty.str ("Level " ^ string_of_int n ^
-      (if ngoals > 0 then " (" ^ string_of_int ngoals ^ " subgoal" ^
-        (if ngoals <> 1 then "s" else "") ^ ")"
-      else ""))] @
-    pretty_goals_marker begin_goal m th @
-    (if end_state = "" then [] else [Pretty.str end_state])
-  end;
-
-fun print_current_goals_default n m th =
-  Pretty.writeln (Pretty.chunks (pretty_current_goals n m th));
-
-val print_current_goals_fn = ref print_current_goals_default;
 
 end;
 
