@@ -43,8 +43,7 @@ fun xsymbols_output s =
 in
 
 fun setup_xsymbols_output () =
-  (Output.add_mode Symbol.xsymbolsN xsymbols_output Symbol.encode_raw;
-   Pretty.add_mode Symbol.xsymbolsN Pretty.default_indent Pretty.default_markup);
+  Output.add_mode Symbol.xsymbolsN xsymbols_output Symbol.encode_raw;
 
 end;
 
@@ -97,6 +96,21 @@ val _ = Context.add_setup (Theory.add_tokentrfuns proof_general_trans);
 end;
 
 
+(* common markup *)
+
+fun proof_general_markup (name, props) =
+  (if name = Markup.promptN then ("", special "372")
+    else if name = Markup.no_stateN orelse name = Markup.stateN
+    then (special "366" ^ "\n", "\n" ^ special "367")
+    else ("", ""))
+  |> (name <> Markup.promptN andalso print_mode_active "test_markup") ?
+    (fn (bg, en) =>
+      (bg ^ enclose "<" ">" (space_implode " " (name :: map XML.attribute props)),
+        enclose "</" ">" name ^ en));
+
+val _ = Pretty.add_mode proof_generalN Pretty.default_indent proof_general_markup;
+
+
 (* messages and notification *)
 
 fun decorate bg en prfx =
@@ -126,30 +140,6 @@ fun tell_file_loaded path =
 
 fun tell_file_retracted path =
   emacs_notify ("Proof General, you can unlock the file " ^ quote (File.platform_path path));
-
-
-(* theory / proof state output *)
-
-local
-
-fun tmp_markers f =
-  setmp Display.current_goals_markers (special "366", special "367", "") f ();
-
-fun print_current_goals n m st =
-  tmp_markers (fn () => Display.print_current_goals_default n m st);
-
-fun print_state b st =
-  tmp_markers (fn () => Toplevel.print_state_default b st);
-
-in
-
-fun setup_state () =
- (Display.print_current_goals_fn := print_current_goals;
-  Toplevel.print_state_fn := print_state;
-  Toplevel.prompt_state_fn :=
-    (fn s => suffix (special "372") (Toplevel.prompt_state_default s)));
-
-end;
 
 
 (* theory loader actions *)
@@ -282,7 +272,6 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           setup_xsymbols_output ();
           setup_messages ();
           ProofGeneralPgip.init_pgip_channel (! Output.priority_fn);
-          setup_state ();
           setup_thy_loader ();
           setup_present_hook ();
           set initialized);

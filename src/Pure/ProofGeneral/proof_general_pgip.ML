@@ -28,10 +28,13 @@ struct
 open Pgip;
 
 
-(* print mode *)
+(** print mode **)
 
 val proof_generalN = "ProofGeneral";
 val pgmlsymbols_flag = ref true;
+
+
+(* symbol output *)
 
 local
 
@@ -52,13 +55,10 @@ fun pgml_output str =
   let val syms = Symbol.explode str
   in (implode (map pgml_sym syms), Symbol.length syms) end;
 
-fun pgml_markup (name, props) = ("", "");  (* FIXME *)
-
 in
 
 fun setup_proofgeneral_output () =
-  (Output.add_mode proof_generalN pgml_output Symbol.encode_raw;
-   Pretty.add_mode proof_generalN Pretty.default_indent pgml_markup);
+  Output.add_mode proof_generalN pgml_output Symbol.encode_raw;
 
 end;
 
@@ -110,7 +110,7 @@ val _ = Context.add_setup (Theory.add_tokentrfuns proof_general_trans);
 end;
 
 
-(** assembling and issuing PGIP packets **)
+(* assembling and issuing PGIP packets *)
 
 val pgip_refid  = ref NONE: string option ref;
 val pgip_refseq = ref NONE: int option ref;
@@ -143,6 +143,9 @@ fun matching_pgip_id id = (id = !pgip_id)
 val output_xml_fn = ref Output.writeln_default
 fun output_xml s = (!output_xml_fn) (XML.string_of_tree s);  (* TODO: string buffer *)
 
+val output_pgips =
+  XML.string_of_tree o PgipOutput.output o assemble_pgips o map PgipOutput.output;
+
 fun issue_pgip_rawtext str =
     output_xml (PgipOutput.output (assemble_pgips [XML.Rawtext str]))
 
@@ -153,6 +156,7 @@ fun issue_pgip pgipop =
     output_xml (PgipOutput.output (assemble_pgips [PgipOutput.output pgipop]));
 
 end;
+
 
 
 (** messages and notification **)
@@ -239,44 +243,40 @@ fun tell_file_retracted completed path =
                                      completed=completed})
 
 
-
-(** theory / proof state output **)
+(* common markup *)
 
 local
 
-fun statedisplay prts =
-    let
-        val display = Pretty.chunks prts
-	val pgml = Pgml.Pgml 
-   { version=SOME PgipIsabelle.isabelle_pgml_version_supported, 
-     systemid=SOME PgipIsabelle.systemid,
-     content = Pgml.Subterm 
-		   { kind=SOME "statedisplay",
-		     param=NONE,place=NONE,name=NONE,decoration=NONE,
-		     action=NONE,pos=NONE,xref=NONE,
-		     content=[Pgml.Atoms { kind = NONE,
-					  content = [Pgml.Str  (Pretty.output display)] }] }
+val no_text = chr 0;
+
+fun split_markup text =
+  (case space_explode no_text text of
+    [bg, en] => (bg, en)
+  | _ => (panic ("Failed to split XML markup:\n" ^ text); ("", "")));
+
+fun statedisplay_markup () =
+  let
+    val pgml = Pgml.Pgml
+                 { version=SOME PgipIsabelle.isabelle_pgml_version_supported, 
+                   systemid=SOME PgipIsabelle.systemid,
+                   content = Pgml.Subterm
+		               { kind=SOME "statedisplay",
+		                 param=NONE,place=NONE,name=NONE,decoration=NONE,
+		                 action=NONE,pos=NONE,xref=NONE,
+		                 content=[Pgml.Atoms { kind = NONE,
+					               content = [Pgml.Str no_text] }] }
 			     (* [PgmlIsabelle.pgml_of_prettyT display] *) }
  	            (* TODO: PGML markup for proof state navigation *)
-    in
-        issue_pgip (Proofstate {pgml=pgml})
-    end
+  in split_markup (output_pgips [Proofstate {pgml=pgml}]) end;
 
-fun print_current_goals n m st =
-  case (Display.pretty_current_goals n m st) of
-   [] => tell_clear_goals()
- | prts => statedisplay prts
-
-fun print_state b st =
-  case (Toplevel.pretty_state b st) of
-   [] => tell_clear_goals()
-  | prts => statedisplay prts
+fun proof_general_markup (name, props) =
+  (if name = Markup.no_stateN then (output_pgips [Cleardisplay {area=Display}], "")
+    else if name = Markup.stateN then statedisplay_markup ()
+    else ("", ""));
 
 in
 
-fun setup_state () =
-  (Display.print_current_goals_fn := print_current_goals;
-   Toplevel.print_state_fn := print_state);
+val _ = Pretty.add_mode proof_generalN Pretty.default_indent proof_general_markup;
 
 end;
 
@@ -1115,7 +1115,6 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
           setup_preferences_tweak ();
           setup_proofgeneral_output ();
           setup_messages ();
-          setup_state ();
           setup_thy_loader ();
           setup_present_hook ();
           init_pgip_session_id ();
