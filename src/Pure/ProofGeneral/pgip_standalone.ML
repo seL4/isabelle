@@ -15,6 +15,8 @@
 
 use "General/basics.ML";
 use "library.ML";
+use "General/alist.ML";
+use "General/markup.ML";
 use "General/position.ML";
 use "General/path.ML";     (* used directly *)
 use "General/table.ML";
