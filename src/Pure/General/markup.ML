@@ -8,83 +8,74 @@ Common markup elements.
 signature MARKUP =
 sig
   type property = string * string
-  type T = string * property list
-  val none: T
-  val property: string * string -> T -> T
   val nameN: string
   val pos_lineN: string
   val pos_nameN: string
-  val classN: string
-  val class: string -> T
-  val tyconN: string
-  val tycon: string -> T
-  val constN: string
-  val const: string -> T
-  val axiomN: string
-  val axiom: string -> T
-  val sortN: string
-  val sort: T
-  val typN: string
-  val typ: T
-  val termN: string
-  val term: T
-  val keywordN: string
-  val keyword: string -> T
-  val commandN: string
-  val command: string -> T
+  type T = string * property list
+  val none: T
+  val classN: string val class: string -> T
+  val tyconN: string val tycon: string -> T
+  val constN: string val const: string -> T
+  val axiomN: string val axiom: string -> T
+  val sortN: string val sort: T
+  val typN: string val typ: T
+  val termN: string val term: T
+  val keywordN: string val keyword: string -> T
+  val commandN: string val command: string -> T
+  val promptN: string val prompt: T
+  val stateN: string val state: T
+  val no_stateN: string val no_state: T
+  val subgoalN: string val subgoal: T
 end;
 
 structure Markup: MARKUP =
 struct
 
-type property = string * string;
-type T = string * property list;
-
-val none = ("", []);
-
-
 (* properties *)
 
-fun property x (name, xs) : T = (name, x :: xs);
+type property = string * string;
 
 val nameN = "name";
 val pos_lineN = "pos_line";
 val pos_nameN = "pos_name";
 
 
+(* markup *)
+
+type T = string * property list;
+
+val none = ("", []);
+
+fun markup kind = (kind, (kind, []));
+fun markup_name kind = (kind, fn name => (kind, [(nameN, name)]): T);
+
+
 (* logical entities *)
 
-val classN = "class";
-fun class name = (classN, [(nameN, name)]);
-
-val tyconN = "tycon";
-fun tycon name = (tyconN, [(nameN, name)]);
-
-val constN = "const";
-fun const name = (constN, [(nameN, name)]);
-
-val axiomN = "axiom";
-fun axiom name = (axiomN, [(nameN, name)]);
+val (classN, class) = markup_name "class";
+val (tyconN, tycon) = markup_name "tycon";
+val (constN, const) = markup_name "const";
+val (axiomN, axiom) = markup_name "axiom";
 
 
 (* inner syntax *)
 
-val sortN = "sort";
-val sort = (sortN, []);
-
-val typN = "typ";
-val typ = (typN, []);
-
-val termN = "term";
-val term = (termN, []);
+val (sortN, sort) = markup "sort";
+val (typN, typ) = markup "typ";
+val (termN, term) = markup "term";
 
 
 (* outer syntax *)
 
-val keywordN = "keyword";
-fun keyword name = (keywordN, [(nameN, name)]);
+val (keywordN, keyword) = markup_name "keyword";
+val (commandN, command) = markup_name "command";
 
-val commandN = "command";
-fun command name = (commandN, [(nameN, name)]);
+
+(* toplevel *)
+
+val (promptN, prompt) = markup "prompt";
+val (stateN, state) = markup "state";
+val (no_stateN, no_state) = markup "no_state";
+val (subgoalN, subgoal) = markup "subgoal";
 
 end;
