@@ -31,10 +31,10 @@ sig
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: (string -> xstring) -> Proof.context -> bool -> prtabs
     -> (string -> (Proof.context -> Ast.ast list -> Ast.ast) list)
-    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T
+    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T list
   val pretty_typ_ast: Proof.context -> bool -> prtabs
     -> (string -> (Proof.context -> Ast.ast list -> Ast.ast) list)
-    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T
+    -> (string -> (string -> string * int) option) -> Ast.ast -> Pretty.T list
 end;
 
 structure Printer: PRINTER =
@@ -188,6 +188,7 @@ datatype symb =
   Arg of int |
   TypArg of int |
   String of string |
+  Space of string |
   Break of int |
   Block of int * symb list;
 
@@ -202,19 +203,16 @@ fun mode_tabs prtabs modes = map_filter (AList.lookup (op =) prtabs) (modes @ ["
 fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = NONE
   | xprod_to_fmt (SynExt.XProd (_, xsymbs, const, pri)) =
       let
-        fun cons_str s (String s' :: syms) = String (s ^ s') :: syms
-          | cons_str s syms = String s :: syms;
-
         fun arg (s, p) =
           (if s = "type" then TypArg else Arg)
           (if Lexicon.is_terminal s then SynExt.max_pri else p);
 
         fun xsyms_to_syms (SynExt.Delim s :: xsyms) =
-              apfst (cons_str s) (xsyms_to_syms xsyms)
+              apfst (cons (String s)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (SynExt.Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (SynExt.Space s :: xsyms) =
-              apfst (cons_str s) (xsyms_to_syms xsyms)
+              apfst (cons (Space s)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (SynExt.Bg i :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
@@ -230,6 +228,7 @@ fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = NONE
         fun nargs (Arg _ :: syms) = nargs syms + 1
           | nargs (TypArg _ :: syms) = nargs syms + 1
           | nargs (String _ :: syms) = nargs syms
+          | nargs (Space _ :: syms) = nargs syms
           | nargs (Break _ :: syms) = nargs syms
           | nargs (Block (_, bsyms) :: syms) = nargs syms + nargs bsyms
           | nargs [] = 0;
@@ -267,6 +266,8 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
+fun const_markup c = Pretty.markup (Markup.const c) o single;
+
 fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
   let
     val trans = apply_trans ctxt "print ast translation";
@@ -283,44 +284,47 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
       else if curried then SynTrans.applC_ast_tr'
       else SynTrans.appl_ast_tr';
 
-    fun synT ([], args) = ([], args)
-      | synT (Arg p :: symbs, t :: args) =
-          let val (Ts, args') = synT (symbs, args);
+    fun synT _ ([], args) = ([], args)
+      | synT markup (Arg p :: symbs, t :: args) =
+          let val (Ts, args') = synT markup (symbs, args);
           in (astT (t, p) @ Ts, args') end
-      | synT (TypArg p :: symbs, t :: args) =
+      | synT markup (TypArg p :: symbs, t :: args) =
           let
-            val (Ts, args') = synT (symbs, args);
+            val (Ts, args') = synT markup (symbs, args);
           in
             if type_mode then (astT (t, p) @ Ts, args')
             else (pretty I ctxt tabs trf tokentrf true curried t p @ Ts, args')
           end
-      | synT (String s :: symbs, args) =
-          let val (Ts, args') = synT (symbs, args);
+      | synT markup (String s :: symbs, args) =
+          let val (Ts, args') = synT markup (symbs, args);
+          in (markup (Pretty.str s) :: Ts, args') end
+      | synT markup (Space s :: symbs, args) =
+          let val (Ts, args') = synT markup (symbs, args);
           in (Pretty.str s :: Ts, args') end
-      | synT (Block (i, bsymbs) :: symbs, args) =
+      | synT markup (Block (i, bsymbs) :: symbs, args) =
           let
-            val (bTs, args') = synT (bsymbs, args);
-            val (Ts, args'') = synT (symbs, args');
+            val (bTs, args') = synT markup (bsymbs, args);
+            val (Ts, args'') = synT markup (symbs, args');
             val T =
               if i < 0 then Pretty.unbreakable (Pretty.block bTs)
               else Pretty.blk (i, bTs);
           in (T :: Ts, args'') end
-      | synT (Break i :: symbs, args) =
+      | synT markup (Break i :: symbs, args) =
           let
-            val (Ts, args') = synT (symbs, args);
+            val (Ts, args') = synT markup (symbs, args);
             val T = if i < 0 then Pretty.fbrk else Pretty.brk i;
           in (T :: Ts, args') end
-      | synT (_ :: _, []) = sys_error "synT"
+      | synT _ (_ :: _, []) = sys_error "synT"
 
-    and parT (pr, args, p, p': int) = #1 (synT
+    and parT markup (pr, args, p, p': int) = #1 (synT markup
           (if p > p' orelse
             (! show_brackets andalso p' <> SynExt.max_pri andalso not (is_chain pr))
-            then [Block (1, String "(" :: pr @ [String ")"])]
+            then [Block (1, Space "(" :: pr @ [Space ")"])]
             else pr, args))
 
     and atomT a =
       (case try (unprefix Lexicon.constN) a of
-        SOME c => Pretty.str (extern_const c)
+        SOME c => const_markup c (Pretty.str (extern_const c))
       | NONE =>
           (case try (unprefix Lexicon.fixedN) a of
             SOME x =>
@@ -340,12 +344,14 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
     and combT (tup as (c, a, args, p)) =
       let
         val nargs = length args;
+        val markup = const_markup (unprefix Lexicon.constN a)
+          handle Fail _ => I;
 
         (*find matching table entry, or print as prefix / postfix*)
         fun prnt ([], []) = prefixT tup
           | prnt ([], tb :: tbs) = prnt (Symtab.lookup_list tb a, tbs)
           | prnt ((pr, n, p') :: prnps, tbs) =
-              if nargs = n then parT (pr, args, p, p')
+              if nargs = n then parT markup (pr, args, p, p')
               else if nargs > n andalso not type_mode then
                 astT (appT (splitT n ([c], args)), p)
               else prnt (prnps, tbs);
@@ -367,14 +373,14 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
 (* pretty_term_ast *)
 
 fun pretty_term_ast extern_const ctxt curried prtabs trf tokentrf ast =
-  Pretty.blk (0, pretty extern_const ctxt (mode_tabs prtabs (! print_mode))
-    trf tokentrf false curried ast 0);
+  pretty extern_const ctxt (mode_tabs prtabs (! print_mode))
+    trf tokentrf false curried ast 0;
 
 
 (* pretty_typ_ast *)
 
 fun pretty_typ_ast ctxt _ prtabs trf tokentrf ast =
-  Pretty.blk (0, pretty I ctxt (mode_tabs prtabs (! print_mode))
-    trf tokentrf true false ast 0);
+  pretty I ctxt (mode_tabs prtabs (! print_mode))
+    trf tokentrf true false ast 0;
 
 end;
