@@ -8,8 +8,8 @@ context elements, goals, refinements, and facts.
 
 signature PROOF =
 sig
-  type context (*= Context.proof*)
-  type method (*= Method.method*)
+  type context = Context.proof
+  type method = Method.method
   type state
   val init: context -> state
   val level: state -> int
@@ -321,7 +321,6 @@ fun pretty_facts _ _ NONE = []
 fun pretty_state nr state =
   let
     val {context, facts, mode, goal = _} = current state;
-    val ref (_, _, bg) = Display.current_goals_markers;
 
     fun levels_up 0 = ""
       | levels_up 1 = "1 level up"
@@ -340,7 +339,8 @@ fun pretty_state nr state =
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Pretty.str ("goal" ^
             description [levels_up (i div 2), subgoals (Thm.nprems_of goal)] ^ ":")] @
-          pretty_goals_local ctxt bg (true, ! show_main_goal) (! Display.goals_limit) goal
+          pretty_goals_local ctxt Markup.subgoal
+            (true, ! show_main_goal) (! Display.goals_limit) goal
       | prt_goal NONE = [];
 
     val prt_ctxt =
@@ -360,7 +360,7 @@ fun pretty_state nr state =
 
 fun pretty_goals main state =
   let val (ctxt, (_, goal)) = get_goal state
-  in pretty_goals_local ctxt "" (false, main) (! Display.goals_limit) goal end;
+  in pretty_goals_local ctxt Markup.none (false, main) (! Display.goals_limit) goal end;
 
 
 
@@ -461,8 +461,8 @@ fun conclude_goal state goal propss =
 
     val ngoals = Thm.nprems_of goal;
     val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks
-        (pretty_goals_local ctxt "" (true, ! show_main_goal) (! Display.goals_limit) goal @
-          [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")])));
+      (pretty_goals_local ctxt Markup.none (true, ! show_main_goal) (! Display.goals_limit) goal @
+        [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")])));
 
     val extra_hyps = Assumption.extra_hyps ctxt goal;
     val _ = null extra_hyps orelse
