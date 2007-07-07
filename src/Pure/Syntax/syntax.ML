@@ -511,19 +511,22 @@ end;
 
 (** pretty terms, typs, sorts **)
 
-fun pretty_t t_to_ast prt_t ctxt (syn as Syntax (tabs, _)) curried t =
+fun pretty_t t_to_ast prt_t markup ctxt (syn as Syntax (tabs, _)) curried t =
   let
     val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
     val ast = t_to_ast ctxt (lookup_tr' print_trtab) t;
   in
-    prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
+    Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
       (lookup_tokentr tokentrtab (! print_mode))
-      (Ast.normalize_ast (Symtab.lookup_list print_ruletab) ast)
+      (Ast.normalize_ast (Symtab.lookup_list print_ruletab) ast))
   end;
 
-val pretty_term = pretty_t Printer.term_to_ast o Printer.pretty_term_ast;
-fun pretty_typ ctxt syn = pretty_t Printer.typ_to_ast Printer.pretty_typ_ast ctxt syn false;
-fun pretty_sort ctxt syn = pretty_t Printer.sort_to_ast Printer.pretty_typ_ast ctxt syn false;
+fun pretty_term extern =
+  pretty_t Printer.term_to_ast (Printer.pretty_term_ast extern) Markup.term;
+fun pretty_typ ctxt syn =
+  pretty_t Printer.typ_to_ast Printer.pretty_typ_ast Markup.typ ctxt syn false;
+fun pretty_sort ctxt syn =
+  pretty_t Printer.sort_to_ast Printer.pretty_typ_ast Markup.sort ctxt syn false;
 
 
 
