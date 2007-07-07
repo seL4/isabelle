@@ -46,7 +46,7 @@ type T = string * property list;
 
 val none = ("", []);
 
-fun markup kind = (kind, (kind, []));
+fun markup kind = (kind, (kind, []): T);
 fun markup_name kind = (kind, fn name => (kind, [(nameN, name)]): T);
 
 
