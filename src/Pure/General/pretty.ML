@@ -130,6 +130,12 @@ fun newline {tx, ind, pos, nl} : text =
   pos = 0,
   nl = nl + 1};
 
+fun control s {tx, ind, pos: int, nl} : text =
+ {tx = Buffer.add s tx,
+  ind = ind,
+  pos = pos,
+  nl = nl};
+
 fun string (s, len) {tx, ind, pos: int, nl} : text =
  {tx = Buffer.add s tx,
   ind = Buffer.add s ind,
@@ -192,9 +198,9 @@ fun format ([], _, _) text = text
               else (set_indent pos'', pos'');
             val (bg, en) = if markup = Markup.none then ("", "") else mode_markup markup;
             val btext: text = text
-              |> string (bg, 0)
+              |> control bg
               |> format (bes, block', breakdist (es, after))
-              |> string (en, 0);
+              |> control en;
             (*if this block was broken then force the next break*)
             val es' = if nl < #nl btext then forcenext es else es;
           in format (es', block, after) btext end
