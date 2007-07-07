@@ -14,8 +14,6 @@ sig
   val premises: unit -> thm list
   val prove_goal: theory -> string -> (thm list -> tactic list) -> thm
   val prove_goalw: theory -> thm list -> string -> (thm list -> tactic list) -> thm
-  val disable_pr: unit -> unit
-  val enable_pr: unit -> unit
   val topthm: unit -> thm
   val result: unit -> thm
   val uresult: unit -> thm
@@ -271,15 +269,20 @@ fun pop [] = error"Cannot go back past the beginning of the proof!"
   | pop (pair::pairs) = (pair,pairs);
 
 
-(* Print a level of the goal stack -- subject to quiet mode *)
-
-val quiet = ref false;
-fun disable_pr () = quiet := true;
-fun enable_pr () = quiet := false;
+(* Print a level of the goal stack *)
 
 fun print_top ((th, _), pairs) =
-  if ! quiet then ()
-  else ! Display.print_current_goals_fn (length pairs) (! goals_limit) th;
+  let
+    val n = length pairs;
+    val m = (! goals_limit);
+    val ngoals = nprems_of th;
+  in
+    [Pretty.str ("Level " ^ string_of_int n ^
+      (if ngoals > 0 then " (" ^ string_of_int ngoals ^ " subgoal" ^
+        (if ngoals <> 1 then "s" else "") ^ ")"
+      else ""))] @
+    Display.pretty_goals m th
+  end |> Pretty.chunks |> Pretty.writeln;
 
 (*Printing can raise exceptions, so the assignment occurs last.
   Can do   setstate[(st,Seq.empty)]  to set st as the state.  *)
@@ -334,8 +337,8 @@ fun chop_level n (pair,pairs) =
   end;
 
 (*Print the given level of the proof; prlev ~1 prints previous level*)
-fun prlev n = (enable_pr (); apply_fun (print_top o pop o (chop_level n)));
-fun pr () = (enable_pr (); apply_fun print_top);
+fun prlev n = apply_fun (print_top o pop o (chop_level n));
+fun pr () = apply_fun print_top;
 
 (*Set goals_limit and print again*)
 fun prlim n = (goals_limit:=n; pr());
