@@ -13,6 +13,7 @@ sig
   val text_charref: string -> string
   val cdata: string -> string
   type attributes = (string * string) list
+  val attribute: string * string -> string
   val element: string -> attributes -> string list -> string
   (* tree functions *)
   datatype tree =
