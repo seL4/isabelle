@@ -214,12 +214,11 @@ end;
 val consumes_tagN = "consumes";
 
 fun lookup_consumes th =
-  let fun err () = raise THM ("Malformed 'consumes' tag of theorem", 0, [th]) in
-    (case AList.lookup (op =) (Thm.get_tags th) (consumes_tagN) of
-      NONE => NONE
-    | SOME [s] => (case Syntax.read_nat s of SOME n => SOME n | _ => err ())
-    | _ => err ())
-  end;
+  (case AList.lookup (op =) (Thm.get_tags th) (consumes_tagN) of
+    NONE => NONE
+  | SOME s =>
+      (case Syntax.read_nat s of SOME n => SOME n
+      | _ => raise THM ("Malformed 'consumes' tag of theorem", 0, [th])));
 
 fun get_consumes th = the_default 0 (lookup_consumes th);
 
@@ -227,7 +226,7 @@ fun put_consumes NONE th = th
   | put_consumes (SOME n) th = th
       |> PureThy.untag_rule consumes_tagN
       |> PureThy.tag_rule
-        (consumes_tagN, [Library.string_of_int (if n < 0 then Thm.nprems_of th + n else n)]);
+        (consumes_tagN, Library.string_of_int (if n < 0 then Thm.nprems_of th + n else n));
 
 fun add_consumes k th = put_consumes (SOME (k + get_consumes th)) th;
 
@@ -242,14 +241,19 @@ fun consumes_default n x =
 
 (** case names **)
 
+val implode_args = space_implode ";";
+val explode_args = space_explode ";";
+
 val case_names_tagN = "case_names";
 
 fun add_case_names NONE = I
   | add_case_names (SOME names) =
       PureThy.untag_rule case_names_tagN
-      #> PureThy.tag_rule (case_names_tagN, names);
+      #> PureThy.tag_rule (case_names_tagN, implode_args names);
 
-fun lookup_case_names th = AList.lookup (op =) (Thm.get_tags th) case_names_tagN;
+fun lookup_case_names th =
+  AList.lookup (op =) (Thm.get_tags th) case_names_tagN
+  |> Option.map explode_args;
 
 val save_case_names = add_case_names o lookup_case_names;
 val name = add_case_names o SOME;
@@ -261,22 +265,23 @@ fun case_names ss = Thm.rule_attribute (K (name ss));
 
 val case_concl_tagN = "case_conclusion";
 
-fun is_case_concl name ((a, b :: _): tag) = (a = case_concl_tagN andalso b = name)
-  | is_case_concl _ _ = false;
+fun get_case_concl name (a, b) =
+  if a = case_concl_tagN then
+    (case explode_args b of c :: cs => if c = name then SOME cs else NONE)
+  else NONE;
 
 fun add_case_concl (name, cs) = Thm.map_tags (fn tags =>
-  filter_out (is_case_concl name) tags @ [(case_concl_tagN, name :: cs)]);
+  filter_out (is_some o get_case_concl name) tags @
+    [(case_concl_tagN, implode_args (name :: cs))]);
 
 fun get_case_concls th name =
-  (case find_first (is_case_concl name) (Thm.get_tags th) of
-    SOME (_, _ :: cs) => cs
-  | _ => []);
+  these (get_first (get_case_concl name) (Thm.get_tags th));
 
 fun save_case_concls th =
   let val concls = Thm.get_tags th |> map_filter
-    (fn (a, b :: cs) =>
-      if a = case_concl_tagN then SOME (b, cs) else NONE
-    | _ => NONE)
+    (fn (a, b) =>
+      if a = case_concl_tagN then (case explode_args b of c :: cs => SOME (c, cs) | _ => NONE)
+      else NONE)
   in fold add_case_concl concls end;
 
 fun case_conclusion concl = Thm.rule_attribute (fn _ => add_case_concl concl);

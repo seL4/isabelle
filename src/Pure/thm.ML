@@ -35,8 +35,6 @@ signature BASIC_THM =
   val cterm_of: theory -> term -> cterm
   val ctyp_of_term: cterm -> ctyp
 
-  type tag = string * string list
-
   (*meta theorems*)
   type thm
   type conv = cterm -> thm
@@ -44,7 +42,7 @@ signature BASIC_THM =
   val rep_thm: thm ->
    {thy: theory,
     der: bool * Proofterm.proof,
-    tags: tag list,
+    tags: Markup.property list,
     maxidx: int,
     shyps: sort list,
     hyps: term list,
@@ -53,7 +51,7 @@ signature BASIC_THM =
   val crep_thm: thm ->
    {thy: theory,
     der: bool * Proofterm.proof,
-    tags: tag list,
+    tags: Markup.property list,
     maxidx: int,
     shyps: sort list,
     hyps: cterm list,
@@ -140,8 +138,8 @@ sig
   val full_prop_of: thm -> term
   val get_name: thm -> string
   val put_name: string -> thm -> thm
-  val get_tags: thm -> tag list
-  val map_tags: (tag list -> tag list) -> thm -> thm
+  val get_tags: thm -> Markup.property list
+  val map_tags: (Markup.property list -> Markup.property list) -> thm -> thm
   val compress: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
@@ -356,12 +354,10 @@ end;
 
 (*** Meta theorems ***)
 
-type tag = string * string list;
-
 abstype thm = Thm of
  {thy_ref: theory_ref,         (*dynamic reference to theory*)
   der: bool * Pt.proof,        (*derivation*)
-  tags: tag list,              (*additional annotations/comments*)
+  tags: Markup.property list,  (*additional annotations/comments*)
   maxidx: int,                 (*maximum index of any Var or TVar*)
   shyps: sort list,            (*sort hypotheses as ordered list*)
   hyps: term list,             (*hypotheses as ordered list*)

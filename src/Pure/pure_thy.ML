@@ -27,9 +27,9 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
-  val tag_rule: tag -> thm -> thm
+  val tag_rule: Markup.property -> thm -> thm
   val untag_rule: string -> thm -> thm
-  val tag: tag -> attribute
+  val tag: Markup.property -> attribute
   val untag: string -> attribute
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
@@ -39,7 +39,7 @@ sig
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
   val kind_internal: attribute
-  val has_internal: tag list -> bool
+  val has_internal: Markup.property list -> bool
   val is_internal: thm -> bool
   val string_of_thmref: thmref -> string
   val get_thm_closure: theory -> thmref -> thm
@@ -112,36 +112,28 @@ fun untag_rule s = Thm.map_tags (filter_out (fn (s', _) => s = s'));
 fun tag tg x = Thm.rule_attribute (K (tag_rule tg)) x;
 fun untag s x = Thm.rule_attribute (K (untag_rule s)) x;
 
-fun simple_tag name x = tag (name, []) x;
-
 
 (* unofficial theorem names *)
 
-fun the_name_hint thm =
-  (case AList.lookup (op =) (Thm.get_tags thm) "name" of
-    SOME (k :: _) => k
-  | _ => raise Option);
+fun the_name_hint thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.nameN);
 
 val has_name_hint = can the_name_hint;
 val get_name_hint = the_default "??.unknown" o try the_name_hint;
 
-fun put_name_hint name = untag_rule "name" #> tag_rule ("name", [name]);
+fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name);
 
 
 (* theorem kinds *)
 
-fun the_kind thm =
-  (case AList.lookup (op =) (Thm.get_tags thm) "kind" of
-    SOME (k :: _) => k
-  | _ => raise Option);
+fun the_kind thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.kindN);
 
 val has_kind = can the_kind;
 val get_kind = the_default "??.unknown" o try the_kind;
 
-fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
+fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
 fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
 fun kind_internal x = kind Thm.internalK x;
-fun has_internal tags = exists (fn ("kind", [k]) => k = Thm.internalK | _ => false) tags;
+fun has_internal tags = exists (fn tg => tg = (Markup.kindN, Thm.internalK)) tags;
 val is_internal = has_internal o Thm.get_tags;
 
 

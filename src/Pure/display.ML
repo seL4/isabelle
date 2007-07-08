@@ -62,7 +62,7 @@ val goals_limit = ref 10;       (*max number of goals to print*)
 val show_hyps = ref false;      (*false: print meta-hypotheses as dots*)
 val show_tags = ref false;      (*false: suppress tags*)
 
-fun pretty_tag (name, args) = Pretty.strs (name :: map Library.quote args);
+fun pretty_tag (name, arg) = Pretty.strs [name, Library.quote arg];
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
 fun pretty_flexpair pp (t, u) = Pretty.block
