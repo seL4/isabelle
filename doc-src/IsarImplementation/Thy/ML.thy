@@ -264,7 +264,7 @@ subsection {* Association lists *}
 
 text {*
   \begin{mldecls}
-  @{index_ML_exc AList.DUP} \\
+  @{index_ML_exn AList.DUP} \\
   @{index_ML AList.lookup: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> 'c option"} \\
   @{index_ML AList.defined: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> bool"} \\
   @{index_ML AList.update: "('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list"} \\
@@ -302,31 +302,27 @@ subsection {* Tables *}
 
 text {*
   \begin{mldecls}
-  @{index_ML_type Symtab.key} \\
   @{index_ML_type "'a Symtab.table"} \\
-  @{index_ML_exc Symtab.DUP: Symtab.key} \\
-  @{index_ML_exc Symtab.DUPS: "Symtab.key list"} \\
-  @{index_ML_exc Symtab.SAME} \\
-  @{index_ML_exc Symtab.UNDEF: Symtab.key} \\
+  @{index_ML_exn Symtab.DUP: string} \\
+  @{index_ML_exn Symtab.SAME} \\
+  @{index_ML_exn Symtab.UNDEF: string} \\
   @{index_ML Symtab.empty: "'a Symtab.table"} \\
-  @{index_ML Symtab.dest: "'a Symtab.table -> (Symtab.key * 'a) list"} \\
-  @{index_ML Symtab.keys: "'a Symtab.table -> Symtab.key list"} \\
-  @{index_ML Symtab.lookup: "'a Symtab.table -> Symtab.key -> 'a option"} \\
-  @{index_ML Symtab.defined: "'a Symtab.table -> Symtab.key -> bool"} \\
-  @{index_ML Symtab.update: "(Symtab.key * 'a) -> 'a Symtab.table -> 'a Symtab.table"} \\
-  @{index_ML Symtab.default: "Symtab.key * 'a -> 'a Symtab.table -> 'a Symtab.table"} \\
-  @{index_ML Symtab.delete: "Symtab.key
+  @{index_ML Symtab.lookup: "'a Symtab.table -> string -> 'a option"} \\
+  @{index_ML Symtab.defined: "'a Symtab.table -> string -> bool"} \\
+  @{index_ML Symtab.update: "(string * 'a) -> 'a Symtab.table -> 'a Symtab.table"} \\
+  @{index_ML Symtab.default: "string * 'a -> 'a Symtab.table -> 'a Symtab.table"} \\
+  @{index_ML Symtab.delete: "string
     -> 'a Symtab.table -> 'a Symtab.table (*exception Symtab.UNDEF*)"} \\
-  @{index_ML Symtab.map_entry: "Symtab.key -> ('a -> 'a)
+  @{index_ML Symtab.map_entry: "string -> ('a -> 'a)
     -> 'a Symtab.table -> 'a Symtab.table"} \\
-  @{index_ML Symtab.map_default: "(Symtab.key * 'a) -> ('a -> 'a)
+  @{index_ML Symtab.map_default: "(string * 'a) -> ('a -> 'a)
     -> 'a Symtab.table -> 'a Symtab.table"} \\
-  @{index_ML Symtab.join: "(Symtab.key -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*)
+  @{index_ML Symtab.join: "(string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*)
     -> 'a Symtab.table * 'a Symtab.table
-    -> 'a Symtab.table (*exception Symtab.DUPS*)"} \\
+    -> 'a Symtab.table (*exception Symtab.DUP*)"} \\
   @{index_ML Symtab.merge: "('a * 'a -> bool)
     -> 'a Symtab.table * 'a Symtab.table
-    -> 'a Symtab.table (*exception Symtab.DUPS*)"}
+    -> 'a Symtab.table (*exception Symtab.DUP*)"}
   \end{mldecls}
 *}
 
@@ -343,6 +339,7 @@ text {*
 
   Most table functions correspond to those of association lists.
 *}
+
 
 chapter {* Cookbook *}
 
