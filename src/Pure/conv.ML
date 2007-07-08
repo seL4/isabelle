@@ -86,7 +86,7 @@ fun abs_conv cv ct =
   (case Thm.term_of ct of
     Abs (x, _, _) =>
       let
-        val (v, ct') = Thm.dest_abs (SOME (gensym "abs_")) ct;
+        val (v, ct') = Thm.dest_abs (SOME (gensym "gensym_abs_")) ct;
         val eq = cv ct';
       in if Thm.is_reflexive eq then all_conv ct else Thm.abstract_rule x v eq end
   | _ => raise CTERM ("abs_conv", [ct]));
