@@ -93,17 +93,17 @@ recdef nnf "measure fmsize"
   "nnf (NOT p) = NOT p"
 
   text{* The correctness theorem of nnf: it preserves the semantics of fm *}
-lemma nnf: "Ifm (nnf p) vs = Ifm p vs"
+lemma nnf[reflection]: "Ifm (nnf p) vs = Ifm p vs"
   by (induct p rule: nnf.induct) auto
 
   text{* Now let's perform NNF using our @{term nnf} function defined above. First to the whole subgoal. *}
 lemma "(\<not> (A = B)) \<and> (B \<longrightarrow> (A \<noteq> (B | C \<and> (B \<longrightarrow> A | D)))) \<longrightarrow> A \<or> B \<and> D"
-apply (reflection nnf Ifm.simps)
+apply (reflection Ifm.simps)
 oops
 
   text{* Now we specify on which subterm it should be applied*}
 lemma "(\<not> (A = B)) \<and> (B \<longrightarrow> (A \<noteq> (B | C \<and> (B \<longrightarrow> A | D)))) \<longrightarrow> A \<or> B \<and> D"
-apply (reflection nnf Ifm.simps ("(B | C \<and> (B \<longrightarrow> A | D))"))
+apply (reflection Ifm.simps only: "(B | C \<and> (B \<longrightarrow> A | D))")
 oops
 
 
@@ -130,17 +130,18 @@ primrec
   Inum_Mul: "Inum (Mul c t) vs = c * Inum t vs "
   Inum_CN : "Inum (CN n c t) vs = c*(vs!n) + Inum t vs "
 
+
   text{* Let's reify some nat expressions \<dots> *}
 lemma "4 * (2*x + (y::nat)) + f a \<noteq> 0"
   apply (reify Inum.simps ("4 * (2*x + (y::nat)) + f a"))
 oops
-text{* We're in a bad situation!! The term above has been recongnized as a constant, which is correct but does not correspond to our intuition of the constructor C. It should encapsulate constants, i.e. numbers, i.e. numerals.*}
+text{* We're in a bad situation!! x, y and f a have been recongnized as a constants, which is correct but does not correspond to our intuition of the constructor C. It should encapsulate constants, i.e. numbers, i.e. numerals.*}
 
   text{* So let's leave the Inum_C equation at the end and see what happens \<dots>*}
 lemma "4 * (2*x + (y::nat)) \<noteq> 0"
   apply (reify Inum_Var Inum_Add Inum_Mul Inum_CN Inum_C ("4 * (2*x + (y::nat))"))
 oops
-text{* Better, but it still reifies @{term x} to @{term "C x"}. Note that the reification depends on the order of the equations. The problem is that the right hand side of @{thm Inum_C} matches any term of type nat, which makes things bad. We want only numerals to match\<dots> So let's specialize @{text Inum_C} with numerals.*}
+text{* Hmmm let's specialize @{text Inum_C} with numerals.*}
 
 lemma Inum_number: "Inum (C (number_of t)) vs = number_of t" by simp
 lemmas Inum_eqs = Inum_Var Inum_Add Inum_Mul Inum_CN Inum_number
@@ -201,12 +202,12 @@ recdef linum "measure num_size"
   "linum (Mul c t) = lin_mul (linum t) c"
   "linum (CN n c t) = lin_add (linum (Mul c (Var n)),linum t)"
 
-lemma linum : "Inum (linum t) bs = Inum t bs"
+lemma linum[reflection] : "Inum (linum t) bs = Inum t bs"
 by (induct t rule: linum.induct, simp_all add: lin_mul lin_add)
 
   text{* Now we can use linum to simplify nat terms using reflection *}
 lemma "(Suc (Suc 1)) * (x + (Suc 1)*y) = 3*x + 6*y"
-(* apply (reflection linum Inum_eqs' ("(Suc (Suc 1)) * (x + (Suc 1)*y)")) *)
+ apply (reflection Inum_eqs' only: "(Suc (Suc 1)) * (x + (Suc 1)*y)") 
 oops
 
   text{* Let's lift this to formulae and see what happens *}
@@ -245,7 +246,7 @@ oops
 
 text{* Note that reification handles several interpretations at the same time*}
 lemma "(3::nat)*x + t < 0 & x*x + t*x + 3 + 1 = z*t*4*z | x + x + 1 < 0"
- apply (reflection linum Inum_eqs' aform.simps ("x + x + 1")) 
+ apply (reflection Inum_eqs' aform.simps only:"x + x + 1") 
 oops
 
   text{* For reflection we now define a simple transformation on aform: NNF + linum on atoms *}
@@ -272,20 +273,26 @@ lemma linaform: "aform (linaform p) vs = aform p vs"
   by (induct p rule: linaform.induct, auto simp add: linum)
 
 lemma "(((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0)))) + (Suc (Suc (Suc 0))) * ((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0))))< 0) \<and> (Suc 0  + Suc 0< 0)"
-   apply (reflection linaform Inum_eqs' aform.simps)  
+   apply (reflection Inum_eqs' aform.simps rules: linaform)  
+oops
+
+declare linaform[reflection]
+lemma "(((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0)))) + (Suc (Suc (Suc 0))) * ((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0))))< 0) \<and> (Suc 0  + Suc 0< 0)"
+   apply (reflection Inum_eqs' aform.simps)
 oops
 
 text{* We now give an example where Interpretaions have 0 or more than only one envornement of different types and show that automatic reification also deals with binding *}
 datatype rb = BC bool| BAnd rb rb | BOr rb rb
 consts Irb :: "rb \<Rightarrow> bool"
 primrec
+  "Irb (BC p) = p"
   "Irb (BAnd s t) = (Irb s \<and> Irb t)"
   "Irb (BOr s t) = (Irb s \<or> Irb t)"
-  "Irb (BC p) = p"
 
 lemma "A \<and> (B \<or> D \<and> B) \<and> A \<and> (B \<or> D \<and> B) \<or> A \<and> (B \<or> D \<and> B) \<or> A \<and> (B \<or> D \<and> B)"
 apply (reify Irb.simps)
 oops
+
 
 datatype rint = IC int| IVar nat | IAdd rint rint | IMult rint rint | INeg rint | ISub rint rint
 consts Irint :: "rint \<Rightarrow> int list \<Rightarrow> int"
