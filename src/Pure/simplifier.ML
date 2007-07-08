@@ -167,8 +167,7 @@ val cong_del = attrib (op delcongs);
 
 (** named simprocs **)
 
-fun err_dup_simprocs ds =
-  error ("Duplicate simproc(s): " ^ commas_quote ds);
+fun err_dup_simproc name = error ("Duplicate simproc: " ^ quote name);
 
 
 (* data *)
@@ -179,7 +178,7 @@ structure Simprocs = GenericDataFun
   val empty = NameSpace.empty_table;
   val extend = I;
   fun merge _ simprocs = NameSpace.merge_tables eq_simproc simprocs
-    handle Symtab.DUPS ds => err_dup_simprocs ds;
+    handle Symtab.DUP dup => err_dup_simproc dup;
 );
 
 
@@ -229,7 +228,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
         context
         |> Simprocs.map (fn simprocs =>
             NameSpace.extend_table naming [(name', simproc')] simprocs
-              handle Symtab.DUPS ds => err_dup_simprocs ds)
+              handle Symtab.DUP dup => err_dup_simproc dup)
         |> map_ss (fn ss => ss addsimprocs [simproc'])
       end)
   end;

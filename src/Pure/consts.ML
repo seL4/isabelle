@@ -196,14 +196,14 @@ fun instance consts (c, Ts) =
 
 (** build consts **)
 
-fun err_dup_consts cs =
-  error ("Duplicate declaration of constant(s) " ^ commas_quote cs);
+fun err_dup_const c =
+  error ("Duplicate declaration of constant " ^ quote c);
 
-fun err_inconsistent_constraints cs =
-  error ("Inconsistent type constraints for constant(s) " ^ commas_quote cs);
+fun err_inconsistent_constraints c =
+  error ("Inconsistent type constraints for constant " ^ quote c);
 
 fun extend_decls naming decl tab = NameSpace.extend_table naming [decl] tab
-  handle Symtab.DUPS cs => err_dup_consts cs;
+  handle Symtab.DUP c => err_dup_const c;
 
 
 (* name space *)
@@ -303,9 +303,9 @@ fun merge
       rev_abbrevs = rev_abbrevs2, do_expand = do_expand2}, _)) =
   let
     val decls' = NameSpace.merge_tables (eq_snd (op =)) (decls1, decls2)
-      handle Symtab.DUPS cs => err_dup_consts cs;
+      handle Symtab.DUP c => err_dup_const c;
     val constraints' = Symtab.merge (op =) (constraints1, constraints2)
-      handle Symtab.DUPS cs => err_inconsistent_constraints cs;
+      handle Symtab.DUP c => err_inconsistent_constraints c;
     val rev_abbrevs' = (rev_abbrevs1, rev_abbrevs2) |> Symtab.join
       (K (Library.merge (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u')));
     val do_expand' = do_expand1 orelse do_expand2;

@@ -183,8 +183,7 @@ fun certify_sort classes = norm_sort classes o map (certify_class classes);
 
 (* classes *)
 
-fun err_dup_classes cs =
-  error ("Duplicate declaration of class(es): " ^ commas_quote cs);
+fun err_dup_class c = error ("Duplicate declaration of class: " ^ quote c);
 
 fun err_cyclic_classes pp css =
   error (cat_lines (map (fn cs =>
@@ -193,7 +192,7 @@ fun err_cyclic_classes pp css =
 fun add_class pp (c, cs) = map_classes (fn classes =>
   let
     val classes' = classes |> Graph.new_node (c, serial ())
-      handle Graph.DUP dup => err_dup_classes [dup];
+      handle Graph.DUP dup => err_dup_class dup;
     val classes'' = classes' |> fold Graph.add_edge_trans_acyclic (map (pair c) cs)
       handle Graph.CYCLES css => err_cyclic_classes pp css;
   in classes'' end);
@@ -274,7 +273,7 @@ fun merge_algebra pp
     Algebra {classes = classes2, arities = arities2}) =
   let
     val classes' = Graph.merge_trans_acyclic (op =) (classes1, classes2)
-      handle Graph.DUPS cs => err_dup_classes cs
+      handle Graph.DUP c => err_dup_class c
           | Graph.CYCLES css => err_cyclic_classes pp css;
     val algebra0 = make_algebra (classes', Symtab.empty);
     val arities' = Symtab.empty

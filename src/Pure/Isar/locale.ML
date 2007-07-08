@@ -623,8 +623,8 @@ fun param_types ps = map_filter (fn (_, NONE) => NONE | (x, SOME T) => SOME (x, 
 
 
 fun merge_syntax ctxt ids ss = Symtab.merge (op = : mixfix * mixfix -> bool) ss
-  handle Symtab.DUPS xs => err_in_locale ctxt
-    ("Conflicting syntax for parameter(s): " ^ commas_quote xs) (map fst ids);
+  handle Symtab.DUP x => err_in_locale ctxt
+    ("Conflicting syntax for parameter: " ^ quote x) (map fst ids);
 
 
 (* Distinction of assumed vs. derived identifiers.
@@ -722,8 +722,8 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
 
     fun merge_syn expr syn1 syn2 =
         Symtab.merge (op = : mixfix * mixfix -> bool) (syn1, syn2)
-        handle Symtab.DUPS xs => err_in_expr ctxt
-          ("Conflicting syntax for parameter(s): " ^ commas_quote xs) expr;
+        handle Symtab.DUP x => err_in_expr ctxt
+          ("Conflicting syntax for parameter: " ^ quote x) expr;
 
     fun params_of (expr as Locale name) =
           let
@@ -1063,8 +1063,8 @@ fun flatten (ctxt, _) ((ids, syn), Elem (Fixes fixes)) = let
         ((ids',
          merge_syntax ctxt ids'
            (syn, Symtab.make (map (fn fx => (#1 fx, #3 fx)) fixes))
-           handle Symtab.DUPS xs => err_in_locale ctxt
-             ("Conflicting syntax for parameters: " ^ commas_quote xs)
+           handle Symtab.DUP x => err_in_locale ctxt
+             ("Conflicting syntax for parameter: " ^ quote x)
              (map #1 ids')),
          [((("", map (rpair NONE o #1) fixes), Assumed []), Ext (Fixes fixes))])
       end
@@ -2062,9 +2062,9 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note attrib std put_reg add_wit ad
          val eqns' = case get_reg thy_ctxt'' id
            of NONE => eqns
             | SOME (_, _, eqns') => Termtab.join (fn t => fn (_, e) => e) (eqns, eqns')
-(*                handle Termtab.DUPS ts =>
-                  error (implode ("Conflicting equations for terms" ::
-                    map (quote o ProofContext.string_of_term ctxt) ts))
+(*                handle Termtab.DUP t =>
+                  error (implode ("Conflicting equations for term " ::
+                    quote (ProofContext.string_of_term ctxt t)))
 *)
        in ((id, eqns'), eqns') end;
     val all_eqns = fold_map add_eqns all_elemss Termtab.empty |> fst

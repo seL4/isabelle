@@ -98,16 +98,16 @@ struct
 
 fun lookup_tr tab c = Option.map fst (Symtab.lookup tab c);
 
-fun err_dup_trfuns name cs =
-  error ("More than one " ^ name ^ " for " ^ commas_quote cs);
+fun err_dup_trfun name c =
+  error ("More than one " ^ name ^ " for " ^ quote c);
 
 fun remove_trtab trfuns = fold (Symtab.remove SynExt.eq_trfun) trfuns;
 
 fun extend_trtab name trfuns tab = Symtab.extend (remove_trtab trfuns tab, trfuns)
-  handle Symtab.DUPS cs => err_dup_trfuns name cs;
+  handle Symtab.DUP c => err_dup_trfun name c;
 
 fun merge_trtabs name tab1 tab2 = Symtab.merge SynExt.eq_trfun (tab1, tab2)
-  handle Symtab.DUPS cs => err_dup_trfuns name cs;
+  handle Symtab.DUP c => err_dup_trfun name c;
 
 
 (* print (ast) translations *)

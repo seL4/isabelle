@@ -17,7 +17,6 @@ sig
   type key
   type 'a table
   exception DUP of key
-  exception DUPS of key list
   exception SAME
   exception UNDEF of key
   val empty: 'a table
@@ -39,11 +38,11 @@ sig
   val default: key * 'a -> 'a table -> 'a table
   val map_entry: key -> ('a -> 'a) -> 'a table -> 'a table
   val map_default: (key * 'a) -> ('a -> 'a) -> 'a table -> 'a table
-  val make: (key * 'a) list -> 'a table                                (*exception DUPS*)
-  val extend: 'a table * (key * 'a) list -> 'a table                   (*exception DUPS*)
+  val make: (key * 'a) list -> 'a table                                (*exception DUP*)
+  val extend: 'a table * (key * 'a) list -> 'a table                   (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
-    'a table * 'a table -> 'a table                                    (*exception DUPS*)
-  val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUPS*)
+    'a table * 'a table -> 'a table                                    (*exception DUP*)
+  val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUP*)
   val delete: key -> 'a table -> 'a table                              (*exception UNDEF*)
   val delete_safe: key -> 'a table -> 'a table
   val member: ('b * 'a -> bool) -> 'a table -> key * 'b -> bool
@@ -56,7 +55,7 @@ sig
   val make_list: (key * 'a) list -> 'a list table
   val dest_list: 'a list table -> (key * 'a) list
   val merge_list: ('a * 'a -> bool) ->
-    'a list table * 'a list table -> 'a list table                     (*exception DUPS*)
+    'a list table * 'a list table -> 'a list table                     (*exception DUP*)
 end;
 
 functor TableFun(Key: KEY): TABLE =
@@ -73,7 +72,6 @@ datatype 'a table =
   Branch3 of 'a table * (key * 'a) * 'a table * (key * 'a) * 'a table;
 
 exception DUP of key;
-exception DUPS of key list;
 
 
 (* empty *)
@@ -350,23 +348,13 @@ fun remove eq (key, x) tab =
 
 (* simultaneous modifications *)
 
-fun reject_dups (tab, []) = tab
-  | reject_dups (_, dups) = raise DUPS (rev dups);
-
-fun extend (table, args) =
-  let
-    fun add (key, x) (tab, dups) =
-      (update_new (key, x) tab, dups) handle DUP dup => (tab, dup :: dups);
-  in reject_dups (fold add args (table, [])) end;
+fun extend (table, args) = fold update_new args table;
 
 fun make entries = extend (empty, entries);
 
 fun join f (table1, table2) =
-  let
-    fun add (key, y) (tab, dups) =
-      let val tab' = modify key (fn NONE => y | SOME x => f key (x, y)) tab
-      in (tab', dups) end handle DUP dup => (tab, dup :: dups);
-  in reject_dups (fold_table add table2 (table1, [])) end;
+  let fun add (key, y) tab = modify key (fn NONE => y | SOME x => f key (x, y)) tab;
+  in fold_table add table2 table1 end;
 
 fun merge eq = join (fn key => fn xy => if eq xy then raise SAME else raise DUP key);
 

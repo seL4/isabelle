@@ -10,7 +10,6 @@ sig
   type key
   type 'a T
   exception DUP of key
-  exception DUPS of key list
   exception SAME
   exception UNDEF of key
   val empty: 'a T
@@ -36,9 +35,9 @@ sig
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T
   val del_edge: key * key -> 'a T -> 'a T
-  val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUPS*)
+  val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
-    'a T * 'a T -> 'a T                                               (*exception DUPS*)
+    'a T * 'a T -> 'a T                                               (*exception DUP*)
   val irreducible_paths: 'a T -> key * key -> key list list
   val all_paths: 'a T -> key * key -> key list list
   exception CYCLES of key list list
@@ -78,7 +77,6 @@ fun insert_keys x tab = Table.insert (K true) (x, ()) (tab: keys);
 datatype 'a T = Graph of ('a * (key list * key list)) Table.table;
 
 exception DUP = Table.DUP;
-exception DUPS = Table.DUPS;
 exception UNDEF = Table.UNDEF;
 exception SAME = Table.SAME;
 

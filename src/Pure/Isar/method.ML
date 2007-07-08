@@ -389,8 +389,8 @@ structure MethodsData = TheoryDataFun
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ tables : T = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUPS dups =>
-    error ("Attempt to merge different versions of method(s) " ^ commas_quote dups);
+  fun merge _ tables : T = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUP dup =>
+    error ("Attempt to merge different versions of method " ^ quote dup);
 );
 
 fun print_methods thy =
@@ -430,8 +430,7 @@ fun add_methods raw_meths thy =
       (name, ((f, comment), stamp ())));
 
     fun add meths = NameSpace.extend_table (Sign.naming_of thy) new_meths meths
-      handle Symtab.DUPS dups =>
-        error ("Duplicate declaration of method(s) " ^ commas_quote dups);
+      handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup);
   in MethodsData.map add thy end;
 
 val add_method = add_methods o Library.single;

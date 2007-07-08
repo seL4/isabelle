@@ -18,8 +18,8 @@ struct
 
 (* style data *)
 
-fun err_dup_styles names =
-  error ("Duplicate declaration of antiquote style(s): " ^ commas_quote names);
+fun err_dup_style name =
+  error ("Duplicate declaration of antiquote style: " ^ quote name);
 
 structure StyleData = TheoryDataFun
 (
@@ -28,7 +28,7 @@ structure StyleData = TheoryDataFun
   val copy = I;
   val extend = I;
   fun merge _ tabs : T = Symtab.merge (eq_snd (op =)) tabs
-    handle Symtab.DUPS dups => err_dup_styles dups;
+    handle Symtab.DUP dup => err_dup_style dup;
 );
 
 fun print_styles thy =
@@ -44,7 +44,7 @@ fun the_style thy name =
 
 fun add_style name style thy =
   StyleData.map (Symtab.update_new (name, (style, stamp ()))) thy
-    handle Symtab.DUP _ => err_dup_styles [name];
+    handle Symtab.DUP _ => err_dup_style name;
 
 
 (* predefined styles *)

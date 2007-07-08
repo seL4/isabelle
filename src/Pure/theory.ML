@@ -96,8 +96,8 @@ datatype thy = Thy of
 fun make_thy (axioms, defs, oracles) =
   Thy {axioms = axioms, defs = defs, oracles = oracles};
 
-fun err_dup_axms dups = error ("Duplicate axiom(s): " ^ commas_quote dups);
-fun err_dup_oras dups = error ("Duplicate oracle(s): " ^ commas_quote dups);
+fun err_dup_axm dup = error ("Duplicate axiom: " ^ quote dup);
+fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
 
 structure ThyData = TheoryDataFun
 (
@@ -115,7 +115,7 @@ structure ThyData = TheoryDataFun
       val axioms = NameSpace.empty_table;
       val defs = Defs.merge pp (defs1, defs2);
       val oracles = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
-        handle Symtab.DUPS dups => err_dup_oras dups;
+        handle Symtab.DUP dup => err_dup_ora dup;
     in make_thy (axioms, defs, oracles) end;
 );
 
@@ -182,7 +182,7 @@ fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
     val axms = map (apsnd (Compress.term thy o Logic.varify) o prep_axm thy) raw_axms;
     val axioms' = NameSpace.extend_table (Sign.naming_of thy) axms axioms
-      handle Symtab.DUPS dups => err_dup_axms dups;
+      handle Symtab.DUP dup => err_dup_axm dup;
   in axioms' end);
 
 in
@@ -307,7 +307,7 @@ end;
 
 fun add_oracle (bname, oracle) thy = thy |> map_oracles (fn oracles =>
   NameSpace.extend_table (Sign.naming_of thy) [(bname, (oracle, stamp ()))] oracles
-    handle Symtab.DUPS dups => err_dup_oras dups);
+    handle Symtab.DUP dup => err_dup_ora dup);
 
 end;
 

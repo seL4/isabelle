@@ -570,7 +570,7 @@ fun add_nonterminals naming = map_types o fold (new_decl naming) o map (rpair No
 
 fun merge_types (types1, types2) =
   NameSpace.merge_tables (Library.eq_snd (op = : serial * serial -> bool)) (types1, types2)
-    handle Symtab.DUPS (d :: _) => err_in_decls d (the_decl types1 d) (the_decl types2 d);
+    handle Symtab.DUP d => err_in_decls d (the_decl types1 d) (the_decl types2 d);
 
 end;
 

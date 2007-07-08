@@ -894,7 +894,7 @@ fun gen_generate_code prep_term thy modules module =
            (map (fn s => case Symtab.lookup graphs s of
                 NONE => error ("Undefined code module: " ^ s)
               | SOME gr => gr) modules))
-      handle Graph.DUPS ks => error ("Duplicate code for " ^ commas ks);
+      handle Graph.DUP k => error ("Duplicate code for " ^ k);
     fun expand (t as Abs _) = t
       | expand t = (case fastype_of t of
           Type ("fun", [T, U]) => Abs ("x", T, t $ Bound 0) | _ => t);

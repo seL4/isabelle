@@ -54,8 +54,8 @@ structure AttributesData = TheoryDataFun
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ tables : T = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUPS dups =>
-    error ("Attempt to merge different versions of attribute(s) " ^ commas_quote dups);
+  fun merge _ tables : T = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUP dup =>
+    error ("Attempt to merge different versions of attribute " ^ quote dup);
 );
 
 fun print_attributes thy =
@@ -128,8 +128,7 @@ fun add_attributes raw_attrs thy =
     val new_attrs =
       raw_attrs |> map (fn (name, att, comment) => (name, ((att, comment), stamp ())));
     fun add attrs = NameSpace.extend_table (Sign.naming_of thy) new_attrs attrs
-      handle Symtab.DUPS dups =>
-        error ("Duplicate declaration of attributes(s) " ^ commas_quote dups);
+      handle Symtab.DUP dup => error ("Duplicate declaration of attributes " ^ quote dup);
   in AttributesData.map add thy end;
 
 
@@ -138,7 +137,7 @@ fun add_attributes raw_attrs thy =
 
 (* tags *)
 
-fun tag x = Scan.lift (Args.name -- Scan.repeat Args.name) x;
+fun tag x = Scan.lift (Args.name -- Args.name) x;
 
 
 (* theorems *)
