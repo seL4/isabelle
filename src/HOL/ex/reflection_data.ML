@@ -7,7 +7,7 @@ Data for the reification and  reflection Methods
 
 signature REIFY_DATA =
 sig
-  type entry
+  type entry = (thm list) * (thm list)
   val get: Proof.context -> entry
   val del: attribute
   val add: attribute 
@@ -17,22 +17,29 @@ end;
 structure Reify_Data : REIFY_DATA =
 struct
 
-type entry = thm list;
+type entry = (thm list) * (thm list);
+fun appair f (x,y) = (f x, f y);
 
 structure Data = GenericDataFun
 ( val name = "Reify-Data";
-  type T = thm list
-  val empty = [];
+  type T = entry
+  val empty = ([],[]);
   val extend = I
-  fun merge _ = Library.merge Thm.eq_thm);
+  fun merge _ = appair (Library.merge Thm.eq_thm));
 
 val get = Data.get o Context.Proof;
 
 val add = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (Drule.add_rule th ))
+  context |> Data.map (apfst (Drule.add_rule th )))
 
 val del = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (Drule.del_rule th ))
+  context |> Data.map (apfst(Drule.del_rule th )))
+
+val radd = Thm.declaration_attribute (fn th => fn context => 
+  context |> Data.map (apsnd(Drule.add_rule th )))
+
+val rdel = Thm.declaration_attribute (fn th => fn context => 
+  context |> Data.map (apsnd(Drule.del_rule th )))
 
 (* concrete syntax *)
 (*
@@ -57,5 +64,6 @@ end;
 
 (* theory setup *)
  val setup =
-  Attrib.add_attributes [("reify", Attrib.add_del_args add del, "Reify data")];
+  Attrib.add_attributes [("reify", Attrib.add_del_args add del, "Reify data"),
+                         ("reflection", Attrib.add_del_args radd rdel, "Reflection data")];
 end;
