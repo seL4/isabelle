@@ -268,7 +268,7 @@ fun genreif ctxt raw_eqs t =
   val cvs = map (fn (v as Var(n,t)) => (cert v, the (AList.lookup Type.could_unify (!bds) t) |> snd |> HOLogic.mk_list (dest_listT t) |> cert)) vars
   val th' = instantiate ([], cvs) th
   val t' = (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th'
-  val th'' = Goal.prove @{context} [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
+  val th'' = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
 			(fn _ => Simp_tac 1)
   val _ = bds := []
 in FWD trans [th'',th']
