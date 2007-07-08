@@ -7,12 +7,12 @@ A trial for automatical reification.
 
 signature REFLECTION = sig
   val genreify_tac: Proof.context -> thm list -> term option -> int -> tactic
-  val reflection_tac: Proof.context -> thm list -> term option -> int -> tactic
+  val reflection_tac: Proof.context -> thm list -> thm list -> term option -> int -> tactic
   val gen_reflection_tac: Proof.context -> (cterm -> thm)
-    -> thm list -> term option -> int -> tactic
+    -> thm list -> thm list -> term option -> int -> tactic
 end;
 
-structure Reflection  : REFLECTION 
+structure Reflection : REFLECTION
 = struct
 
 val ext2 = thm "ext2";
@@ -149,7 +149,8 @@ fun decomp_genreif da cgns (t,ctxt) =
     end)
       handle MATCH => decomp_genreif da congs (t,ctxt)))
   end;
-          (* looks for the atoms equation and instantiates it with the right number *)
+
+ (* looks for the atoms equation and instantiates it with the right number *)
 
 
 fun mk_decompatom eqs (t,ctxt) =
@@ -256,9 +257,24 @@ end;
 in ps ~~ (Variable.export ctxt' ctxt congs)
 end
 
+fun partition P [] = ([],[])
+  | partition P (x::xs) = 
+     let val (yes,no) = partition P xs
+     in if P x then (x::yes,no) else (yes, x::no) end
+
+fun rearrange congs = 
+let 
+ fun P (_, th) = 
+  let val @{term "Trueprop"}$(Const ("op =",_) $l$_) = concl_of th
+  in can dest_Var l end
+ val (yes,no) = partition P congs 
+ in no @ yes end
+
+
+
 fun genreif ctxt raw_eqs t =
  let 
-  val congs = mk_congs ctxt raw_eqs 
+  val congs = rearrange (mk_congs ctxt raw_eqs)
   val th = divide_and_conquer (decomp_genreif (mk_decompatom raw_eqs) congs) (t,ctxt)
   fun is_listVar (Var (_,t)) = can dest_listT t
        | is_listVar _ = false
@@ -274,13 +290,19 @@ fun genreif ctxt raw_eqs t =
 in FWD trans [th'',th']
 end
 
-fun genreflect ctxt conv corr_thm raw_eqs t =
-    let val th = FWD trans [genreif ctxt raw_eqs t, corr_thm RS sym]
-        val ft = (Thm.dest_arg1 o Thm.dest_arg o Thm.dest_arg o cprop_of) th
-        val rth = conv ft
-    in simplify (HOL_basic_ss addsimps raw_eqs addsimps [nth_Cons_0, nth_Cons_Suc])
-                (simplify (HOL_basic_ss addsimps [rth]) th)
-    end
+
+fun genreflect ctxt conv corr_thms raw_eqs t =
+let 
+  val reifth = genreif ctxt raw_eqs t
+  fun trytrans [] = error "No suitable correctness theorem found"
+    | trytrans (th::ths) = 
+         (FWD trans [reifth, th RS sym] handle THM _ => trytrans ths)
+  val th = trytrans corr_thms
+  val ft = (Thm.dest_arg1 o Thm.dest_arg o Thm.dest_arg o cprop_of) th
+  val rth = conv ft
+in simplify (HOL_basic_ss addsimps raw_eqs addsimps [nth_Cons_0, nth_Cons_Suc])
+           (simplify (HOL_basic_ss addsimps [rth]) th)
+end
 
 fun genreify_tac ctxt eqs to i = (fn st =>
   let
@@ -292,11 +314,11 @@ fun genreify_tac ctxt eqs to i = (fn st =>
 
     (* Reflection calls reification and uses the correctness *)
         (* theorem assumed to be the dead of the list *)
-fun gen_reflection_tac ctxt conv (corr_thm :: raw_eqs) to i = (fn st =>
+fun gen_reflection_tac ctxt conv corr_thms raw_eqs to i = (fn st =>
   let
     val P = HOLogic.dest_Trueprop (nth (prems_of st) (i - 1));
     val t = the_default P to;
-    val th = genreflect ctxt conv corr_thm raw_eqs t
+    val th = genreflect ctxt conv corr_thms raw_eqs t
       RS ssubst;
   in rtac th i st end);
 
