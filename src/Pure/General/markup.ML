@@ -13,6 +13,10 @@ sig
   val pos_nameN: string
   type T = string * property list
   val none: T
+  val indentN: string
+  val blockN: string val block: int -> T
+  val breakN: string val break: int -> T
+  val fbreakN: string val fbreak: T
   val classN: string val class: string -> T
   val tyconN: string val tycon: string -> T
   val constN: string val const: string -> T
@@ -48,6 +52,18 @@ val none = ("", []);
 
 fun markup kind = (kind, (kind, []): T);
 fun markup_name kind = (kind, fn name => (kind, [(nameN, name)]): T);
+fun markup_int kind prop = (kind, fn i => (kind, [(prop, string_of_int i)]): T);
+
+
+(* pretty printing *)
+
+val indentN = "indent";
+val (blockN, block) = markup_int "block" indentN;
+
+val widthN = "width";
+val (breakN, break) = markup_int "break" widthN;
+
+val (fbreakN, fbreak) = markup "fbreak";
 
 
 (* logical entities *)
