@@ -430,31 +430,27 @@ Association lists can be seens as an extension of set-like lists:
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{Symtab.key}\verb|type Symtab.key| \\
   \indexmltype{'a Symtab.table}\verb|type 'a Symtab.table| \\
-  \indexmlexception{Symtab.DUP}\verb|exception Symtab.DUP of Symtab.key| \\
-  \indexmlexception{Symtab.DUPS}\verb|exception Symtab.DUPS of Symtab.key list| \\
+  \indexmlexception{Symtab.DUP}\verb|exception Symtab.DUP of string| \\
   \indexmlexception{Symtab.SAME}\verb|exception Symtab.SAME| \\
-  \indexmlexception{Symtab.UNDEF}\verb|exception Symtab.UNDEF of Symtab.key| \\
+  \indexmlexception{Symtab.UNDEF}\verb|exception Symtab.UNDEF of string| \\
   \indexml{Symtab.empty}\verb|Symtab.empty: 'a Symtab.table| \\
-  \indexml{Symtab.dest}\verb|Symtab.dest: 'a Symtab.table -> (Symtab.key * 'a) list| \\
-  \indexml{Symtab.keys}\verb|Symtab.keys: 'a Symtab.table -> Symtab.key list| \\
-  \indexml{Symtab.lookup}\verb|Symtab.lookup: 'a Symtab.table -> Symtab.key -> 'a option| \\
-  \indexml{Symtab.defined}\verb|Symtab.defined: 'a Symtab.table -> Symtab.key -> bool| \\
-  \indexml{Symtab.update}\verb|Symtab.update: (Symtab.key * 'a) -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.default}\verb|Symtab.default: Symtab.key * 'a -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.delete}\verb|Symtab.delete: Symtab.key|\isasep\isanewline%
+  \indexml{Symtab.lookup}\verb|Symtab.lookup: 'a Symtab.table -> string -> 'a option| \\
+  \indexml{Symtab.defined}\verb|Symtab.defined: 'a Symtab.table -> string -> bool| \\
+  \indexml{Symtab.update}\verb|Symtab.update: (string * 'a) -> 'a Symtab.table -> 'a Symtab.table| \\
+  \indexml{Symtab.default}\verb|Symtab.default: string * 'a -> 'a Symtab.table -> 'a Symtab.table| \\
+  \indexml{Symtab.delete}\verb|Symtab.delete: string|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table (*exception Symtab.UNDEF*)| \\
-  \indexml{Symtab.map-entry}\verb|Symtab.map_entry: Symtab.key -> ('a -> 'a)|\isasep\isanewline%
+  \indexml{Symtab.map-entry}\verb|Symtab.map_entry: string -> ('a -> 'a)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.map-default}\verb|Symtab.map_default: (Symtab.key * 'a) -> ('a -> 'a)|\isasep\isanewline%
+  \indexml{Symtab.map-default}\verb|Symtab.map_default: (string * 'a) -> ('a -> 'a)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.join}\verb|Symtab.join: (Symtab.key -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*)|\isasep\isanewline%
+  \indexml{Symtab.join}\verb|Symtab.join: (string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table * 'a Symtab.table|\isasep\isanewline%
-\verb|    -> 'a Symtab.table (*exception Symtab.DUPS*)| \\
+\verb|    -> 'a Symtab.table (*exception Symtab.DUP*)| \\
   \indexml{Symtab.merge}\verb|Symtab.merge: ('a * 'a -> bool)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table * 'a Symtab.table|\isasep\isanewline%
-\verb|    -> 'a Symtab.table (*exception Symtab.DUPS*)|
+\verb|    -> 'a Symtab.table (*exception Symtab.DUP*)|
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
