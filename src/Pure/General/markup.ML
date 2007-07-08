@@ -8,10 +8,11 @@ Common markup elements.
 signature MARKUP =
 sig
   type property = string * string
+  type T = string * property list
   val nameN: string
+  val kindN: string
   val pos_lineN: string
   val pos_nameN: string
-  type T = string * property list
   val none: T
   val indentN: string
   val blockN: string val block: int -> T
@@ -35,23 +36,20 @@ end;
 structure Markup: MARKUP =
 struct
 
-(* properties *)
+(* basic markup *)
 
 type property = string * string;
-
-val nameN = "name";
-val pos_lineN = "pos_line";
-val pos_nameN = "pos_name";
-
-
-(* markup *)
-
 type T = string * property list;
 
 val none = ("", []);
 
+val nameN = "name";
+val kindN = "kind";
+val pos_lineN = "pos_line";
+val pos_nameN = "pos_name";
+
 fun markup kind = (kind, (kind, []): T);
-fun markup_name kind = (kind, fn name => (kind, [(nameN, name)]): T);
+fun markup_string kind prop = (kind, fn s => (kind, [(prop, s)]): T);
 fun markup_int kind prop = (kind, fn i => (kind, [(prop, string_of_int i)]): T);
 
 
@@ -68,10 +66,10 @@ val (fbreakN, fbreak) = markup "fbreak";
 
 (* logical entities *)
 
-val (classN, class) = markup_name "class";
-val (tyconN, tycon) = markup_name "tycon";
-val (constN, const) = markup_name "const";
-val (axiomN, axiom) = markup_name "axiom";
+val (classN, class) = markup_string "class" nameN;
+val (tyconN, tycon) = markup_string "tycon" nameN;
+val (constN, const) = markup_string "const" nameN;
+val (axiomN, axiom) = markup_string "axiom" nameN;
 
 
 (* inner syntax *)
@@ -83,8 +81,8 @@ val (termN, term) = markup "term";
 
 (* outer syntax *)
 
-val (keywordN, keyword) = markup_name "keyword";
-val (commandN, command) = markup_name "command";
+val (keywordN, keyword) = markup_string "keyword" nameN;
+val (commandN, command) = markup_string "command" nameN;
 
 
 (* toplevel *)
