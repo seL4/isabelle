@@ -17,8 +17,8 @@ fun ml_val (txt1, "") = "fn _ => (" ^ txt1 ^ ");"
 fun ml_type (txt1, "") = "val _ = NONE : (" ^ txt1 ^ ") option;"
   | ml_type (txt1, txt2) = "val _ = [NONE : (" ^ txt1 ^ ") option, NONE : (" ^ txt2 ^ ") option];";
 
-fun ml_exc (txt1, "") = "fn _ => (" ^ txt1 ^ ": exn);"
-  | ml_exc (txt1, txt2) = "fn _ => (" ^ txt1 ^ ": " ^ txt2 ^ " -> exn);";
+fun ml_exn (txt1, "") = "fn _ => (" ^ txt1 ^ ": exn);"
+  | ml_exn (txt1, txt2) = "fn _ => (" ^ txt1 ^ ": " ^ txt2 ^ " -> exn);";
 
 fun ml_structure (txt, _) = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
 
@@ -57,7 +57,7 @@ in
 val _ = O.add_commands
  [("index_ML", arguments (index_ml "" ml_val)),
   ("index_ML_type", arguments (index_ml "type" ml_type)),
-  ("index_ML_exc", arguments (index_ml "exception" ml_exc)),
+  ("index_ML_exn", arguments (index_ml "exception" ml_exn)),
   ("index_ML_structure", arguments (index_ml "structure" ml_structure)),
   ("index_ML_functor", arguments (index_ml "functor" ml_functor)),
   ("ML_functor", O.args (Scan.lift Args.name) output_verbatim),
