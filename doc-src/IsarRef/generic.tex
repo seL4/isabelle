@@ -832,7 +832,7 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
 \end{matharray}
 
 \begin{rail}
-  'tagged' (nameref+)
+  'tagged' nameref
   ;
   'untagged' name
   ;
@@ -844,11 +844,11 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
 
 \begin{descr}
 
-\item [$tagged~name~args$ and $untagged~name$] add and remove $tags$ of some
+\item [$tagged~name~arg$ and $untagged~name$] add and remove $tags$ of some
   theorem.  Tags may be any list of strings that serve as comment for some
   tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
-  result).  The first string is considered the tag name, the rest its
-  arguments.  Note that untag removes any tags of the same name.
+  result).  The first string is considered the tag name, the second its
+  argument.  Note that $untagged$ removes any tags of the same name.
 
 \item [$THEN~a$ and $COMP~a$] compose rules by resolution.  $THEN$ resolves
   with the first premise of $a$ (an alternative position may be also
