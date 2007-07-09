@@ -9,7 +9,7 @@ signature OUTER_LEX =
 sig
   datatype token_kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-    Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed | EOF
+    Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed of string | EOF
   eqtype token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
@@ -39,7 +39,7 @@ sig
   val scan_string: Position.T * Symbol.symbol list -> string * (Position.T * Symbol.symbol list)
   val scan: (Scan.lexicon * Scan.lexicon) ->
     Position.T * Symbol.symbol list -> token * (Position.T * Symbol.symbol list)
-  val source: bool -> (unit -> (Scan.lexicon * Scan.lexicon)) ->
+  val source: bool option -> (unit -> (Scan.lexicon * Scan.lexicon)) ->
     Position.T -> (Symbol.symbol, 'a) Source.source ->
     (token, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   val source_proper: (token, 'a) Source.source ->
@@ -57,7 +57,7 @@ struct
 
 datatype token_kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-  Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed | EOF;
+  Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed of string | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
 
@@ -77,20 +77,11 @@ val str_of_kind =
   | Space => "white space"
   | Comment => "comment text"
   | Sync => "sync marker"
-  | Malformed => "bad input"
+  | Malformed _ => "bad input"
   | EOF => "end-of-file";
 
 
 (* control tokens *)
-
-fun not_sync (Token (_, (Sync, _))) = false
-  | not_sync _ = true;
-
-val malformed = Token (Position.none, (Malformed, ""));
-fun malformed_of xs = Token (Position.none, (Malformed, implode xs));
-
-
-(* eof token *)
 
 val eof = Token (Position.none, (EOF, ""));
 
@@ -99,6 +90,10 @@ fun is_eof (Token (_, (EOF, _))) = true
 
 val stopper = (eof, is_eof);
 val not_eof = not o is_eof;
+
+
+fun not_sync (Token (_, (Sync, _))) = false
+  | not_sync _ = true;
 
 
 (* get position *)
@@ -136,10 +131,10 @@ fun is_end_ignore (Token (_, (Comment, ">"))) = true
 
 (* blanks and newlines -- space tokens obey lines *)
 
-fun is_blank (Token (_, (Space, s))) = not (String.isSuffix "\n" s)
+fun is_blank (Token (_, (Space, x))) = not (String.isSuffix "\n" x)
   | is_blank _ = false;
 
-fun is_newline (Token (_, (Space, s))) = String.isSuffix "\n" s
+fun is_newline (Token (_, (Space, x))) = String.isSuffix "\n" x
   | is_newline _ = false;
 
 
@@ -271,6 +266,25 @@ val scan_comment =
         (Scan.pass 0 (Scan.repeat scan_cmt >> implode) --| keep_line ($$ "*" -- $$ ")")));
 
 
+(* scan malformed symbols *)
+
+local
+
+val scan_mal =
+  scan_blank ||
+  keep_line (Scan.one (fn s =>
+    s <> Symbol.end_malformed andalso Symbol.not_sync s andalso Symbol.not_eof s));
+
+in
+
+val scan_malformed =
+  keep_line ($$ Symbol.malformed) |--
+    change_prompt (Scan.repeat scan_mal >> (Output.escape o implode))
+      --| keep_line (Scan.option ($$ Symbol.end_malformed));
+
+end;
+
+
 (* scan token *)
 
 fun scan (lex1, lex2) =
@@ -285,6 +299,7 @@ fun scan (lex1, lex2) =
         scan_verbatim >> token Verbatim ||
         scan_space >> token Space ||
         scan_comment >> token Comment ||
+        scan_malformed >> token (Malformed "Malformed symbolic character.") ||
         keep_line (Scan.one Symbol.is_sync >> sync) ||
         keep_line (Scan.max token_leq
           (Scan.max token_leq
@@ -303,12 +318,22 @@ fun scan (lex1, lex2) =
 
 (* token sources *)
 
+local
+
 val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
-fun recover xs = (keep_line (Scan.many is_junk) >> (fn ts => [malformed_of ts])) xs;
+
+fun recover interactive msg x =
+  (if interactive then Output.error_msg msg else ();
+    (Scan.state :-- (fn pos => keep_line (Scan.many is_junk)
+      >> (fn xs => [Token (pos, (Malformed msg, implode xs))])) >> #2) x);
+
+in
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
-    (if do_recover then SOME recover else NONE) src;
+    (Option.map recover do_recover) src;
+
+end;
 
 fun source_proper src = src |> Source.filter is_proper;
 
