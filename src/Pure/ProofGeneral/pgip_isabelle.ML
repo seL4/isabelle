@@ -72,33 +72,20 @@ val accepted_inputs =
 end
 
 
-(* Now we have to parse strings constructed elsewhere in Isabelle, which is silly!
-   This is another case where Isabelle should use structured types
-   from the ground up to help its interfaces, instead of just plain
-   strings.
-*)
-fun unquote s = case explode s of 
-		    "\""::xs => (case (rev xs) of
-				    "\""::_ => SOME (String.substring(s,1,(String.size s) - 2))
-			         | _ => NONE)
-		  | _ => NONE
-
 fun location_of_position pos = 
     let val line = Position.line_of pos
 	val (url,descr) = 
-	    (case Position.name_of pos of
-		 NONE => (NONE,NONE)
-	       | SOME possiblyfile => 
-		 (case unquote possiblyfile of
-		      SOME fname => let val path = (Path.explode fname) in
-					case ThyLoad.check_file NONE path of
-					    SOME _ => (SOME (PgipTypes.pgipurl_of_path path), NONE)
-					  | NONE => (NONE,SOME fname)
-				    end
-		    | _ => (NONE,SOME possiblyfile)))
-    in 
+	    (case Position.file_of pos of
+	       NONE => (NONE, NONE)
+	     | SOME fname => 
+	       let val path = Path.explode fname in
+		 case ThyLoad.check_file NONE path of
+		   SOME _ => (SOME (PgipTypes.pgipurl_of_path path), NONE)
+		 | NONE => (NONE, SOME fname)
+	       end);
+    in
 	{ descr=descr, url=url, line=line, column=NONE, char=NONE, length=NONE }
-    end 
+    end
 
 
 val [ObjTheoryBody,
