@@ -252,19 +252,20 @@ fun drain def_prmpt get stopper scan ((state, xs), src) =
 
 fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
   let
-    val drain_with = drain def_prmpt get stopper;
+    val draining = drain def_prmpt get stopper;
+    val (xs, s) = get def_prmpt src;
+    val inp = ((state, xs), s);
     val ((ys, (state', xs')), src') =
-      (case (get def_prmpt src, opt_recover) of
-        (([], s), _) => (([], (state, [])), s)
-      | ((xs, s), NONE) => drain_with (error scanner) ((state, xs), s)
-      | ((xs, s), SOME (interactive, recover)) =>
-          let val inp = ((state, xs), s) in
-            drain_with (catch scanner) inp handle FAIL msg =>
+      if null xs then (([], (state, [])), s)
+      else
+        (case opt_recover of
+          NONE => draining (error scanner) inp
+        | SOME (interactive, recover) =>
+            (draining (catch scanner) inp handle FAIL msg =>
               let val err = the_default "Syntax error." msg in
                 if interactive then Output.error_msg err else ();
-                drain_with (unless (lift (one (#2 stopper))) (recover err)) inp
-              end
-          end);
+                draining (unless (lift (one (#2 stopper))) (recover err)) inp
+              end));
   in (ys, (state', unget (xs', src'))) end;
 
 fun source def_prmpt get unget stopper scan opt_recover =
