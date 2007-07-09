@@ -227,7 +227,8 @@ fun declare (Naming (_, (_, accs))) name space =
   else
     let
       val names = explode_name name;
-      val _ = (null names orelse exists (fn s => s = "") names) andalso
+      val _ = (null names orelse exists (fn s => s = "") names
+          orelse exists_string (fn s => s = "\"") name) andalso
         error ("Bad name declaration " ^ quote name);
     in fold (add_name name) (map implode_name (accs names)) space end;
 
