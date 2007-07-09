@@ -68,10 +68,11 @@ sig
   val error: ('a -> 'b) -> 'a -> 'b
   val source': string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
     'b * ('b -> bool) -> ('d * 'b list -> 'e list * ('d * 'b list)) ->
-    (string -> 'd * 'b list -> 'e list * ('d * 'b list)) option -> 'd * 'a -> 'e list * ('d * 'c)
+    (bool * (string -> 'd * 'b list -> 'e list * ('d * 'b list))) option ->
+    'd * 'a -> 'e list * ('d * 'c)
   val source: string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
     'b * ('b -> bool) -> ('b list -> 'd list * 'b list) ->
-    (string -> 'b list -> 'd list * 'b list) option -> 'a -> 'd list * 'c
+    (bool * (string -> 'b list -> 'd list * 'b list)) option -> 'a -> 'd list * 'c
   val single: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val bulk: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
@@ -252,21 +253,23 @@ fun drain def_prmpt get stopper scan ((state, xs), src) =
 fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
   let
     val drain_with = drain def_prmpt get stopper;
-
-    fun drain_loop recover inp =
-      drain_with (catch scanner) inp handle FAIL msg =>
-        (drain_with (recover (the_default "Syntax error." msg)) inp);
-
     val ((ys, (state', xs')), src') =
       (case (get def_prmpt src, opt_recover) of
         (([], s), _) => (([], (state, [])), s)
       | ((xs, s), NONE) => drain_with (error scanner) ((state, xs), s)
-      | ((xs, s), SOME r) => drain_loop (unless (lift (one (#2 stopper))) o r) ((state, xs), s));
+      | ((xs, s), SOME (interactive, recover)) =>
+          let val inp = ((state, xs), s) in
+            drain_with (catch scanner) inp handle FAIL msg =>
+              let val err = the_default "Syntax error." msg in
+                if interactive then Output.error_msg err else ();
+                drain_with (unless (lift (one (#2 stopper))) (recover err)) inp
+              end
+          end);
   in (ys, (state', unget (xs', src'))) end;
 
 fun source def_prmpt get unget stopper scan opt_recover =
   unlift (source' def_prmpt get unget stopper (lift scan)
-    (Option.map (fn r => lift o r) opt_recover));
+    (Option.map (fn (int, r) => (int, lift o r)) opt_recover));
 
 fun single scan = scan >> (fn x => [x]);
 fun bulk scan = scan -- repeat (permissive scan) >> (op ::);

@@ -322,16 +322,14 @@ local
 
 val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
 
-fun recover interactive msg x =
-  (if interactive then Output.error_msg msg else ();
-    (Scan.state :-- (fn pos => keep_line (Scan.many is_junk)
-      >> (fn xs => [Token (pos, (Malformed msg, implode xs))])) >> #2) x);
+fun recover msg = Scan.state :-- (fn pos =>
+  keep_line (Scan.many is_junk) >> (fn xs => [Token (pos, (Malformed msg, implode xs))])) >> #2;
 
 in
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
-    (Option.map recover do_recover) src;
+    (Option.map (rpair recover) do_recover) src;
 
 end;
 

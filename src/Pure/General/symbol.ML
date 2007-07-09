@@ -428,7 +428,8 @@ val recover =
 in
 
 fun source do_recover src =
-  Source.source stopper (Scan.bulk scan) (if do_recover then SOME (K recover) else NONE) src;
+  Source.source stopper (Scan.bulk scan)
+    (if do_recover then SOME (false, K recover) else NONE) src;
 
 end;
 

@@ -192,18 +192,17 @@ fun toplevel_source term do_trace do_recover cmd src =
   let
     val no_terminator =
       Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
-    fun recover interactive msg x =
-      (if interactive then Output.error_msg msg else ();
-        (Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [NONE]) x);
+    fun recover int =
+      (int, fn _ => Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [NONE]);
   in
     src
     |> T.source_proper
     |> Source.source T.stopper
       (Scan.bulk (P.$$$ "--" -- P.!!! P.text >> K NONE || P.not_eof >> SOME))
-      (Option.map recover do_recover)
+        (Option.map recover do_recover)
     |> Source.map_filter I
     |> Source.source T.stopper (Scan.bulk (fn xs => P.!!! (command term do_trace (cmd ())) xs))
-      (Option.map recover do_recover)
+        (Option.map recover do_recover)
     |> Source.map_filter I
   end;
 
