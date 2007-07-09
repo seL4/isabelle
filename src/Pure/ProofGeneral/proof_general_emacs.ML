@@ -117,7 +117,7 @@ fun decorate bg en prfx =
   Output.writeln_default o enclose bg en o prefix_lines prfx;
 
 fun setup_messages () =
- (Output.writeln_fn := (fn s => decorate "" "" "" s);
+ (Output.writeln_fn := Output.writeln_default;
   Output.priority_fn := (fn s => decorate (special "360") (special "361") "" s);
   Output.tracing_fn := (fn s => decorate (special "360" ^ special "375") (special "361") "" s);
   Output.debug_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
