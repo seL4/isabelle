@@ -447,7 +447,7 @@ fun setup_preferences_tweak() =
 
 fun isarcmd s =
     s |> OuterSyntax.scan |> OuterSyntax.read
-      (*|> map (Toplevel.position (Position.name "PGIP message") o #3)*)
+      (*|> map (Toplevel.position Position.none o #3)*)
       |> map #3
       |> Toplevel.>>>;
 
