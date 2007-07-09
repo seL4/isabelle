@@ -69,7 +69,7 @@ fun approx_vector prec pprt vector =
         val eupper = HOLogic.mk_prod (index, fupper)
       in (elower :: lower, eupper :: upper) end;
   in
-    pairself (HOLogic.mk_list spvecT) (Inttab.fold app vector ([], []))
+    pairself (HOLogic.mk_list spvec_elemT) (Inttab.fold app vector ([], []))
   end;
 
 fun approx_matrix prec pprt vector =
@@ -82,7 +82,7 @@ fun approx_matrix prec pprt vector =
         val eupper = HOLogic.mk_prod (index, fupper)
       in (elower :: lower, eupper :: upper) end;
   in
-    pairself (HOLogic.mk_list spmatT) (Inttab.fold app vector ([], []))
+    pairself (HOLogic.mk_list spmat_elemT) (Inttab.fold app vector ([], []))
   end;
 
 exception Nat_expected of int;

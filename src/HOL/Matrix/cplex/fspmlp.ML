@@ -187,14 +187,10 @@ fun propagate_sure_bounds safe names g =
 
 exception Load of string;
 
-(*val empty_spvec = @ {term "Nil :: (nat * real) list"};
-fun cons_spvec x xs = @ {term "Cons :: nat * real => nat * real => (nat * real) list"} $ x $ xs;
-val empty_spmat = @ {term "Nil :: (nat * (nat * real) list) list"};
-fun cons_spmat x xs = @ {term "Cons :: nat * (nat * real) list => (nat * (nat * real) list) list => (nat * (nat * real) list) list"} $ x $ xs;*)
-val empty_spvec = Bound 0
-fun cons_spvec x xs = Bound 0
-val empty_spmat = Bound 0
-fun cons_spmat x xs = Bound 0
+val empty_spvec = @{term "Nil :: real spvec"};
+fun cons_spvec x xs = @{term "Cons :: nat * real => real spvec => real spvec"} $ x $ xs;
+val empty_spmat = @{term "Nil :: real spmat"};
+fun cons_spmat x xs = @{term "Cons :: nat * real spvec => real spmat => real spmat"} $ x $ xs;
 
 fun calcr safe_propagation xlen names prec A b =
     let
@@ -267,9 +263,10 @@ fun calcr safe_propagation xlen names prec A b =
             end
 
         val g = FloatSparseMatrixBuilder.m_fold calcr A VarGraph.empty
+
         val g = propagate_sure_bounds safe_propagation names g
 
-        val (r1, r2) = split_graph g
+	val (r1, r2) = split_graph g
 
         fun add_row_entry m index value =
             let
@@ -292,7 +289,9 @@ fun calcr safe_propagation xlen names prec A b =
                 in
                     (add_row_entry r i' abs_max, (add_row_entry r12_1 i' b1, add_row_entry r12_2 i' b2))
                 end
+
         val (r, (r1, r2)) = abs_estimate xlen r1 r2
+
     in
         (r, (r1, r2))
     end
@@ -302,7 +301,7 @@ fun load filename prec safe_propagation =
         val prog = Cplex.load_cplexFile filename
         val prog = Cplex.elim_nonfree_bounds prog
         val prog = Cplex.relax_strict_ineqs prog
-        val (maximize, c, A, b, (xlen, names, _)) = CplexFloatSparseMatrixConverter.convert_prog prog
+        val (maximize, c, A, b, (xlen, names, _)) = CplexFloatSparseMatrixConverter.convert_prog prog			    
         val (r, (r1, r2)) = calcr safe_propagation xlen names prec A b
         val _ = if maximize then () else raise Load "sorry, cannot handle minimization problems"
         val (dualprog, indexof) = FloatSparseMatrixBuilder.dual_cplexProg c A b

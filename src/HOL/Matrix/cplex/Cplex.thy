@@ -4,7 +4,7 @@
 *)
 
 theory Cplex 
-imports FloatSparseMatrix
+imports FloatSparseMatrix "~~/src/HOL/Tools/ComputeNumeral"
 uses "Cplex_tools.ML" "CplexMatrixConverter.ML" "FloatSparseMatrixBuilder.ML" "fspmlp.ML"
 begin
 

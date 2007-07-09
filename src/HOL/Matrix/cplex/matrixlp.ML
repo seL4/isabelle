@@ -23,12 +23,15 @@ fun inst_real thm =
       ([(certT (TVar (hd (term_tvars (prop_of thm)))), certT HOLogic.realT)], []) thm)
   end
 
-val spm_mult_le_dual_prts_no_let = thm "SparseMatrix.spm_mult_le_dual_prts_no_let";
-val cert = cterm_of (Thm.theory_of_thm spm_mult_le_dual_prts_no_let);
+local
+
+val cert =  cterm_of @{theory "Cplex"}
+
+in
 
 fun lp_dual_estimate_prt_primitive (y, (A1, A2), (c1, c2), b, (r1, r2)) =
   let
-    val th = inst_real spm_mult_le_dual_prts_no_let
+    val th = inst_real @{thm "SparseMatrix.spm_mult_le_dual_prts_no_let"}
     fun var s x = (cert (Var ((s,0), FloatSparseMatrixBuilder.spmatT)), x)
     val th = Thm.instantiate ([], [var "A1" A1, var "A2" A2, var "y" y, var "c1" c1, var "c2" c2,
                                    var "r1" r1, var "r2" r2, var "b" b]) th
@@ -41,21 +44,15 @@ fun lp_dual_estimate_prt lptfile prec =
                 open Fspmlp
                 val l = load lptfile prec false
             in
-                (y l |> cert, A l |> pairself cert, c l |> pairself cert, b l |> cert, r12 l |> pairself  cert)
+                (y l |> cert, A l |> pairself cert, c l |> pairself cert, b l |> cert, r12 l |> pairself cert)
             end
     in
         lp_dual_estimate_prt_primitive certificate
     end
 
-fun is_meta_eq th =
-    let
-        fun check ((Const ("==", _)) $ _ $ _) = true
-          | check _ = false
-    in
-        check (concl_of th)
-    end
+end
 
-fun prep ths = filter is_meta_eq ths @ map (standard o mk_meta_eq) (filter_out is_meta_eq ths)
+fun prep ths = ComputeHOL.prep_thms ths
 
 fun inst_tvar ty thm =
     let
@@ -69,38 +66,27 @@ fun inst_tvar ty thm =
 fun inst_tvars [] thms = thms
   | inst_tvars (ty::tys) thms = inst_tvars tys (map (inst_tvar ty) thms)
 
-val matrix_compute =
-    let
-        val spvecT = FloatSparseMatrixBuilder.spvecT
-        val spmatT = FloatSparseMatrixBuilder.spmatT
-        val spvecT_elem = HOLogic.mk_prodT (HOLogic.natT, HOLogic.realT)
-        val spmatT_elem = HOLogic.mk_prodT (HOLogic.natT, spvecT)
-        val case_compute = map thm ["list_case_compute", "list_case_compute_empty", "list_case_compute_cons"]
-        val ths =
-            prep (
-            (inst_tvars [HOLogic.intT, HOLogic.natT] (thms "Let_compute"))
-            @ (inst_tvars [HOLogic.intT, HOLogic.intT] (thms "Let_compute"))
-            @ (map (fn t => inst_tvar t (thm "If_True")) [HOLogic.intT, HOLogic.natT, HOLogic.realT, spvecT, spmatT, HOLogic.boolT])
-            @ (map (fn t => inst_tvar t (thm "If_False")) [HOLogic.intT, HOLogic.natT, HOLogic.realT, spvecT, spmatT, HOLogic.boolT])
-            @ (thms "MatrixLP.float_arith")
-            @ (map (inst_tvar HOLogic.realT) (thms "MatrixLP.sparse_row_matrix_arith_simps"))
-            @ (thms "MatrixLP.boolarith")
-            @ (inst_tvars [HOLogic.natT, HOLogic.realT] [thm "fst_compute", thm "snd_compute"])
-            @ (inst_tvars [HOLogic.natT, FloatSparseMatrixBuilder.spvecT] [thm "fst_compute", thm "snd_compute"])
-            @ (inst_tvars [HOLogic.boolT, spmatT_elem] case_compute)
-            @ (inst_tvars [HOLogic.boolT, spvecT_elem] case_compute)
-            @ (inst_tvars [HOLogic.boolT, HOLogic.realT] case_compute)
-            @ (inst_tvars [spvecT] (thms "MatrixLP.sorted_sp_simps"))
-            @ (inst_tvars [HOLogic.realT] (thms "MatrixLP.sorted_sp_simps"))
-            @ [thm "zero_eq_Numeral0_nat", thm "one_eq_Numeral1_nat"]
-            @ (inst_tvars [HOLogic.intT] [thm "zero_eq_Numeral0_nring", thm "one_eq_Numeral1_nring"])
-            @ (inst_tvars [HOLogic.realT] [thm "zero_eq_Numeral0_nring", thm "one_eq_Numeral1_nring"]))
+local
+    val matrix_lemmas = [
+	"ComputeHOL.compute_list_case",
+	"ComputeHOL.compute_let",
+        "ComputeHOL.compute_if",
+        "Float.arith",
+        "SparseMatrix.sparse_row_matrix_arith_simps",
+        "ComputeHOL.compute_bool",
+        "ComputeHOL.compute_pair", 
+	"SparseMatrix.sorted_sp_simps",
+        "ComputeNumeral.number_norm",
+	"ComputeNumeral.natnorm"]
+    fun get_thms n = ComputeHOL.prep_thms (PureThy.get_thms @{theory "Cplex"} (Name n))
+    val ths = List.concat (map get_thms matrix_lemmas)
+    val computer = PCompute.make Compute.SML @{theory "Cplex"} ths []
+in
 
-        val c = Compute.basic_make (the_context ()) ths
-    in
-        Compute.rewrite c
-    end
+fun matrix_compute c = hd (PCompute.rewrite computer [c])
 
+end
+        
 fun matrix_simplify th =
     let
         val simp_th = matrix_compute (cprop_of th)
