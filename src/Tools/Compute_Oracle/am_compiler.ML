@@ -1,4 +1,4 @@
-(*  Title:      Tools/Compute_Oracle/am_compiler.ML
+(*  Title:      Pure/Tools/am_compiler.ML
     ID:         $Id$
     Author:     Steven Obua
 *)
@@ -7,10 +7,7 @@ signature COMPILING_AM =
 sig
   include ABSTRACT_MACHINE
 
-  datatype closure = CVar of int | CConst of int
-    | CApp of closure * closure | CAbs of closure | Closure of (closure list) * closure
-
-  val set_compiled_rewriter : (term -> closure) -> unit
+  val set_compiled_rewriter : (term -> term) -> unit
   val list_nth : 'a list * int -> 'a
   val list_map : ('a -> 'b) -> 'a list -> 'b list
 end
@@ -20,39 +17,14 @@ structure AM_Compiler : COMPILING_AM = struct
 val list_nth = List.nth;
 val list_map = map;
 
-datatype term = Var of int | Const of int | App of term * term | Abs of term
+open AbstractMachine;
 
-datatype pattern = PVar | PConst of int * (pattern list)
-
-datatype closure = CVar of int | CConst of int
-	         | CApp of closure * closure | CAbs of closure
-                 | Closure of (closure list) * closure
-
-val compiled_rewriter = ref (NONE:(term -> closure)Option.option)
+val compiled_rewriter = ref (NONE:(term -> term)Option.option)
 
 fun set_compiled_rewriter r = (compiled_rewriter := SOME r)
 
 type program = (term -> term)
 
-datatype stack = SEmpty | SAppL of closure * stack | SAppR of closure * stack | SAbs of stack
-
-exception Compile of string;
-exception Run of string;
-
-fun clos_of_term (Var x) = CVar x
-  | clos_of_term (Const c) = CConst c
-  | clos_of_term (App (u, v)) = CApp (clos_of_term u, clos_of_term v)
-  | clos_of_term (Abs u) = CAbs (clos_of_term u)
-
-fun term_of_clos (CVar x) = Var x
-  | term_of_clos (CConst c) = Const c
-  | term_of_clos (CApp (u, v)) = App (term_of_clos u, term_of_clos v)
-  | term_of_clos (CAbs u) = Abs (term_of_clos u)
-  | term_of_clos (Closure (e, u)) =
-      raise (Run "internal error: closure in normalized term found")
-
-fun strip_closure args (CApp (a,b)) = strip_closure (b::args) a
-  | strip_closure args x = (x, args)
 
 (*Returns true iff at most 0 .. (free-1) occur unbound. therefore
   check_freevars 0 t iff t is closed*)
@@ -103,7 +75,7 @@ fun print_rule (p, t) =
             else "Closure ([], "^term^")"
 			   
     in
-	"lookup stack "^pattern^" = weak stack ("^term^")"
+	"  | weak_reduce (false, stack, "^pattern^") = Continue (false, stack, "^term^")"
     end
 
 fun constants_of PVar = []
@@ -116,7 +88,6 @@ fun constants_of_term (Var _) = []
     
 fun load_rules sname name prog = 
     let
-        (* FIXME consider using more readable/efficient Buffer.empty |> fold Buffer.add etc. *)
 	val buffer = ref ""
 	fun write s = (buffer := (!buffer)^s)
 	fun writeln s = (write s; write "\n")
@@ -126,50 +97,62 @@ fun load_rules sname name prog =
 	val _ = writelist [
 		"structure "^name^" = struct",
 		"",
-		"datatype term = App of term * term | Abs of term | Var of int | Const of int | Closure of term list * term"]
+		"datatype term = Dummy | App of term * term | Abs of term | Var of int | Const of int | Closure of term list * term"]
 	val constants = distinct (op =) (maps (fn (p, r) => ((constants_of p)@(constants_of_term r))) prog)
 	val _ = map (fn x => write (" | c"^(str x))) constants
 	val _ = writelist [
 		"",
 		"datatype stack = SEmpty | SAppL of term * stack | SAppR of term * stack | SAbs of stack",
-		""]
-	val _ = (case prog of
-		    r::rs => (writeln ("fun "^(print_rule r)); 
-			      map (fn r => writeln("  | "^(print_rule r))) rs; 
-			      writeln ("  | lookup stack clos = weak_last stack clos"); ())								
-		  | [] => (writeln "fun lookup stack clos = weak_last stack clos"))
-	val _ = writelist [
-		"and weak stack (Closure (e, App (a, b))) = weak (SAppL (Closure (e, b), stack)) (Closure (e, a))",
-		"  | weak (SAppL (b, stack)) (Closure (e, Abs m)) =  weak stack (Closure (b::e, m))",
-		"  | weak stack (clos as Closure (_, Abs _)) = weak_last stack clos",
-		"  | weak stack (Closure (e, Var n)) = weak stack ("^sname^".list_nth (e, n) handle _ => (Var (n-(length e))))",
-		"  | weak stack (Closure (e, c)) = weak stack c",
-		"  | weak stack clos = lookup stack clos",
-		"and weak_last (SAppR (a, stack)) b = weak stack (App(a, b))",
-		"  | weak_last (SAppL (b, stack)) a = weak (SAppR (a, stack)) b",
-		"  | weak_last stack c = (stack, c)",
 		"",
-		"fun lift n (v as Var m) = if m < n then v else Var (m+1)",
-		"  | lift n (Abs t) = Abs (lift (n+1) t)",
-		"  | lift n (App (a,b)) = App (lift n a, lift n b)",
-		"  | lift n (Closure (e, a)) = Closure (lift_env n e, lift (n+(length e)) a)",
-		"  | lift n c = c",
-		"and lift_env n e = map (lift n) e",
+		"type state = bool * stack * term",
 		"",
-		"fun strong stack (Closure (e, Abs m)) = ",
+		"datatype loopstate = Continue of state | Stop of stack * term",
+		"",
+		"fun proj_C (Continue s) = s",
+		"  | proj_C _ = raise Match",
+		"",
+		"fun proj_S (Stop s) = s",
+		"  | proj_S _ = raise Match",
+		"",
+		"fun cont (Continue _) = true",
+		"  | cont _ = false",
+		"",
+		"fun do_reduction reduce p =",
 		"    let",
-		"      val (stack', wnf) = weak SEmpty (Closure ((Var 0)::(lift_env 0 e), m))",
+		"       val s = ref (Continue p)",
+		"       val _ = while cont (!s) do (s := reduce (proj_C (!s)))",
+		"   in",
+		"       proj_S (!s)",
+		"   end",
+		""]
+
+	val _ = writelist [
+		"fun weak_reduce (false, stack, Closure (e, App (a, b))) = Continue (false, SAppL (Closure (e, b), stack), Closure (e, a))",
+		"  | weak_reduce (false, SAppL (b, stack), Closure (e, Abs m)) = Continue (false, stack, Closure (b::e, m))",
+		"  | weak_reduce (false, stack, c as Closure (e, Abs m)) = Continue (true, stack, c)",
+		"  | weak_reduce (false, stack, Closure (e, Var n)) = Continue (false, stack, case "^sname^".list_nth (e, n) of Dummy => Var n | r => r)",
+		"  | weak_reduce (false, stack, Closure (e, c)) = Continue (false, stack, c)"]
+	val _ = writelist (map print_rule prog)
+        val _ = writelist [
+		"  | weak_reduce (false, stack, clos) = Continue (true, stack, clos)",
+		"  | weak_reduce (true, SAppR (a, stack), b) = Continue (false, stack, App (a,b))",
+		"  | weak_reduce (true, s as (SAppL (b, stack)), a) = Continue (false, SAppR (a, stack), b)",
+		"  | weak_reduce (true, stack, c) = Stop (stack, c)",
+		"",
+		"fun strong_reduce (false, stack, Closure (e, Abs m)) =",
+		"    let",
+		"        val (stack', wnf) = do_reduction weak_reduce (false, SEmpty, Closure (Dummy::e, m))",
 		"    in",
-		"      case stack' of",
-		"           SEmpty => strong (SAbs stack) wnf",
-		"         | _ => raise ("^sname^".Run \"internal error in strong: weak failed\")",
-		"    end",
-		"  | strong stack (clos as (App (u, v))) = strong (SAppL (v, stack)) u",
-		"  | strong stack clos = strong_last stack clos",
-		"and strong_last (SAbs stack) m = strong stack (Abs m)",
-		"  | strong_last (SAppL (b, stack)) a = strong (SAppR (a, stack)) b",
-		"  | strong_last (SAppR (a, stack)) b = strong_last stack (App (a, b))",
-		"  | strong_last stack clos = (stack, clos)",
+		"        case stack' of",
+		"            SEmpty => Continue (false, SAbs stack, wnf)",
+		"          | _ => raise ("^sname^".Run \"internal error in strong: weak failed\")",
+		"    end",		
+		"  | strong_reduce (false, stack, clos as (App (u, v))) = Continue (false, SAppL (v, stack), u)",
+		"  | strong_reduce (false, stack, clos) = Continue (true, stack, clos)",
+		"  | strong_reduce (true, SAbs stack, m) = Continue (false, stack, Abs m)",
+		"  | strong_reduce (true, SAppL (b, stack), a) = Continue (false, SAppR (a, stack), b)",
+		"  | strong_reduce (true, SAppR (a, stack), b) = Continue (true, stack, App (a, b))",
+		"  | strong_reduce (true, stack, clos) = Stop (stack, clos)",
 		""]
 	
 	val ic = "(case c of "^(implode (map (fn c => (str c)^" => c"^(str c)^" | ") constants))^" _ => Const c)"						  	
@@ -180,23 +163,24 @@ fun load_rules sname name prog =
 		"  | importTerm ("^sname^".Abs m) = Abs (importTerm m)",
 		""]
 
-	fun ec c = "  | exportTerm c"^(str c)^" = "^sname^".CConst "^(str c)
+	fun ec c = "  | exportTerm c"^(str c)^" = "^sname^".Const "^(str c)
 	val _ = writelist [
-		"fun exportTerm (Var x) = "^sname^".CVar x",
-		"  | exportTerm (Const c) = "^sname^".CConst c",
-		"  | exportTerm (App (a,b)) = "^sname^".CApp (exportTerm a, exportTerm b)",
-		"  | exportTerm (Abs m) = "^sname^".CAbs (exportTerm m)",
-		"  | exportTerm (Closure (closlist, clos)) = "^sname^".Closure ("^sname^".list_map exportTerm closlist, exportTerm clos)"]
+		"fun exportTerm (Var x) = "^sname^".Var x",
+		"  | exportTerm (Const c) = "^sname^".Const c",
+		"  | exportTerm (App (a,b)) = "^sname^".App (exportTerm a, exportTerm b)",
+		"  | exportTerm (Abs m) = "^sname^".Abs (exportTerm m)",
+		"  | exportTerm (Closure (closlist, clos)) = raise ("^sname^".Run \"internal error, cannot export Closure\")",
+		"  | exportTerm Dummy = raise ("^sname^".Run \"internal error, cannot export Dummy\")"]
 	val _ = writelist (map ec constants)
 		
 	val _ = writelist [
 		"",
 		"fun rewrite t = ",
 		"    let",
-		"      val (stack, wnf) = weak SEmpty (Closure ([], importTerm t))",
+		"      val (stack, wnf) = do_reduction weak_reduce (false, SEmpty, Closure ([], importTerm t))",
 		"    in",
 		"      case stack of ",
-		"           SEmpty => (case strong SEmpty wnf of",
+		"           SEmpty => (case do_reduction strong_reduce (false, SEmpty, wnf) of",
 		"                          (SEmpty, snf) => exportTerm snf",
 		"                        | _ => raise ("^sname^".Run \"internal error in rewrite: strong failed\"))",
 		"         | _ => (raise ("^sname^".Run \"internal error in rewrite: weak failed\"))",
@@ -206,33 +190,29 @@ fun load_rules sname name prog =
 		"",
 		"end;"]
 
-	val _ = 
-	    let
-		(*val fout = TextIO.openOut "gen_code.ML"
-		val _ = TextIO.output (fout, !buffer)
-		val _  = TextIO.closeOut fout*)
-	    in
-		()
-	    end
     in
 	compiled_rewriter := NONE;	
 	use_text "" Output.ml_output false (!buffer);
 	case !compiled_rewriter of 
 	    NONE => raise (Compile "cannot communicate with compiled function")
-	  | SOME r => (compiled_rewriter := NONE; fn t => term_of_clos (r t))
+	  | SOME r => (compiled_rewriter := NONE; r)
     end	
 
 fun compile eqs = 
     let
+	val _ = if exists (fn (a,b,c) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
+	val eqs = map (fn (a,b,c) => (b,c)) eqs
+	fun check (p, r) = if check_freevars (count_patternvars p) r then () else raise Compile ("unbound variables in rule") 
 	val _ = map (fn (p, r) => 
-                  (check_freevars (count_patternvars p) r; 
-                   case p of PVar => raise (Compile "pattern reduces to a variable") | _ => ())) eqs
+                  (check (p, r); 
+                   case p of PVar => raise (Compile "pattern is just a variable") | _ => ())) eqs
     in
 	load_rules "AM_Compiler" "AM_compiled_code" eqs
     end	
 
 fun run prog t = (prog t)
+
+fun discard p = ()
 			 	  
 end
 
-structure AbstractMachine = AM_Compiler
