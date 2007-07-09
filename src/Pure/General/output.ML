@@ -7,6 +7,7 @@ Output channels and timing messages.
 
 signature BASIC_OUTPUT =
 sig
+  type output = string
   val writeln: string -> unit
   val priority: string -> unit
   val tracing: string -> unit
@@ -24,22 +25,22 @@ end;
 signature OUTPUT =
 sig
   include BASIC_OUTPUT
-  val default_output: string -> string * int
-  val default_escape: string -> string
-  val add_mode: string -> (string -> string * int) -> (string -> string) -> unit
-  val output_width: string -> string * int
-  val output: string -> string
-  val escape: string -> string
-  val std_output: string -> unit
-  val std_error: string -> unit
+  val default_output: string -> output * int
+  val default_escape: output -> string
+  val add_mode: string -> (string -> output * int) -> (output -> string) -> unit
+  val output_width: string -> output * int
+  val output: string -> output
+  val escape: output -> string
+  val std_output: output -> unit
+  val std_error: output -> unit
   val immediate_output: string -> unit
-  val writeln_default: string -> unit
-  val writeln_fn: (string -> unit) ref
-  val priority_fn: (string -> unit) ref
-  val tracing_fn: (string -> unit) ref
-  val warning_fn: (string -> unit) ref
-  val error_fn: (string -> unit) ref
-  val debug_fn: (string -> unit) ref
+  val writeln_default: output -> unit
+  val writeln_fn: (output -> unit) ref
+  val priority_fn: (output -> unit) ref
+  val tracing_fn: (output -> unit) ref
+  val warning_fn: (output -> unit) ref
+  val error_fn: (output -> unit) ref
+  val debug_fn: (output -> unit) ref
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   exception TOPLEVEL_ERROR
@@ -57,8 +58,10 @@ struct
 
 (** print modes **)
 
+type output = string;  (*raw system output*)
+
 fun default_output s = (s, size s);
-fun default_escape (s: string) = s;
+fun default_escape (s: output) = s;
 
 local
   val default = {output = default_output, escape = default_escape};

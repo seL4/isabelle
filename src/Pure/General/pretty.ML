@@ -20,17 +20,17 @@ The stored length of a block is used in breakdist (to treat each inner block as
 a unit for breaking).
 *)
 
-type pprint_args = (string -> unit) * (int -> unit) * (int -> unit) *
+type pprint_args = (output -> unit) * (int -> unit) * (int -> unit) *
   (unit -> unit) * (unit -> unit);
 
 signature PRETTY =
 sig
-  val default_indent: string -> int -> string
-  val default_markup: Markup.T -> string * string
-  val mode_markup: Markup.T -> string * string
-  val add_mode: string -> (string -> int -> string) -> (Markup.T -> string * string) -> unit
+  val default_indent: string -> int -> output
+  val default_markup: Markup.T -> output * output
+  val mode_markup: Markup.T -> output * output
+  val add_mode: string -> (string -> int -> output) -> (Markup.T -> output * output) -> unit
   type T
-  val raw_str: string * int -> T
+  val raw_str: output * int -> T
   val str: string -> T
   val brk: int -> T
   val fbrk: T
@@ -63,7 +63,7 @@ sig
   val pprint: T -> pprint_args -> unit
   val symbolicN: string
   val output_buffer: T -> Buffer.T
-  val output: T -> string
+  val output: T -> output
   val string_of: T -> string
   val str_of: T -> string
   val writeln: T -> unit
@@ -118,7 +118,7 @@ val add_indent = Buffer.add o output_spaces;
 
 datatype T =
   Block of Markup.T * T list * int * int |  (*markup, body, indentation, length*)
-  String of string * int |                  (*text, length*)
+  String of output * int |                  (*text, length*)
   Break of bool * int;                      (*mandatory flag, width if not taken*)
 
 fun length (Block (_, _, _, len)) = len

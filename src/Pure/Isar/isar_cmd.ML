@@ -184,7 +184,7 @@ fun typed_print_translation (a, txt) =
   |> Context.theory_map;
 
 val token_translation =
-  ML_Context.use_let "val token_translation: (string * string * (string -> string * real)) list"
+  ML_Context.use_let "val token_translation: (string * string * (string -> output * int)) list"
     "Context.map_theory (Sign.add_tokentrfuns token_translation)"
   #> Context.theory_map;
 
