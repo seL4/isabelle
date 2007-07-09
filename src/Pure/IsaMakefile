@@ -8,7 +8,7 @@
 
 default: Pure
 images: Pure
-test: RAW RAW-ProofGeneral
+test: RAW
 all: images test
 
 
@@ -82,19 +82,8 @@ $(OUT)/RAW: ML-Systems/alice.ML ML-Systems/polyml-4.1.3.ML 			\
   ML-Systems/smlnj.ML
 	@./mk -r
 
-RAW-ProofGeneral: RAW $(LOG)/RAW-ProofGeneral.gz
-
-$(LOG)/RAW-ProofGeneral.gz: $(OUT)/RAW ProofGeneral/pgip_standalone.ML		\
-  ProofGeneral/parsing.ML ProofGeneral/pgip_input.ML				\
-  ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML                     \
-  ProofGeneral/pgip.ML ProofGeneral/pgip_output.ML ProofGeneral/pgip_tests.ML	\
-  ProofGeneral/pgip_types.ML ProofGeneral/preferences.ML			\
-  ProofGeneral/proof_general_pgip.ML ProofGeneral/proof_general_emacs.ML
-	@./mk -R ProofGeneral/pgip_standalone.ML
-
 
 ## clean
 
 clean:
-	@rm -f $(OUT)/Pure$(ML_SUFFIX) $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz \
-	$(LOG)/RAW-ProofGeneral.gz
+	@rm -f $(OUT)/Pure$(ML_SUFFIX) $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz
