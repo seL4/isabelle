@@ -60,21 +60,18 @@ sig
   val trace': ('a * 'b list -> 'c * ('d * 'e list)) -> 'a * 'b list ->
     ('c * 'b list) * ('d * 'e list)
   val trace: ('a list -> 'b * 'c list) -> 'a list -> ('b * 'a list) * 'c list
-  val try: ('a -> 'b) -> 'a -> 'b
-  val force: ('a -> 'b) -> 'a -> 'b
   val prompt: string -> ('a -> 'b) -> 'a -> 'b
   val finite': 'a * ('a -> bool) -> ('b * 'a list -> 'c * ('d * 'a list))
     -> 'b * 'a list -> 'c * ('d * 'a list)
   val finite: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b * 'a list
   val read: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b option
-  val catch: ('a -> 'b) -> 'a -> 'b
   val error: ('a -> 'b) -> 'a -> 'b
   val source': string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
     'b * ('b -> bool) -> ('d * 'b list -> 'e list * ('d * 'b list)) ->
-    ('d * 'b list -> 'e list * ('d * 'b list)) option -> 'd * 'a -> 'e list * ('d * 'c)
+    (string -> 'd * 'b list -> 'e list * ('d * 'b list)) option -> 'd * 'a -> 'e list * ('d * 'c)
   val source: string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
     'b * ('b -> bool) -> ('b list -> 'd list * 'b list) ->
-    ('b list -> 'd list * 'b list) option -> 'a -> 'd list * 'c
+    (string -> 'b list -> 'd list * 'b list) option -> 'a -> 'd list * 'c
   val single: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val bulk: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
@@ -213,8 +210,8 @@ fun trace scan = unlift (trace' (lift scan));
 (* exception handling *)
 
 fun !! err scan xs = scan xs handle FAIL msg => raise ABORT (err (xs, msg));
-fun try scan xs = scan xs handle MORE _ => raise FAIL NONE | ABORT _ => raise FAIL NONE;
-fun force scan xs = scan xs handle MORE _ => raise FAIL NONE;
+fun permissive scan xs = scan xs handle MORE _ => raise FAIL NONE | ABORT _ => raise FAIL NONE;
+fun strict scan xs = scan xs handle MORE _ => raise FAIL NONE;
 fun prompt str scan xs = scan xs handle MORE NONE => raise MORE (SOME str);
 fun catch scan xs = scan xs handle ABORT msg => raise FAIL (SOME msg);
 fun error scan xs = scan xs handle ABORT msg => Library.error msg;
@@ -233,7 +230,7 @@ fun finite' (stopper, is_stopper) scan (state, input) =
   in
     if exists is_stopper input then
       raise ABORT "Stopper may not occur in input of finite scan!"
-    else (force scan --| lift stop) (state, input @ [stopper])
+    else (strict scan --| lift stop) (state, input @ [stopper])
   end;
 
 fun finite stopper scan = unlift (finite' stopper (lift scan));
@@ -258,20 +255,21 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
 
     fun drain_loop recover inp =
       drain_with (catch scanner) inp handle FAIL msg =>
-        (Output.error_msg (the_default "Syntax error." msg); drain_with recover inp);
+        (drain_with (recover (the_default "Syntax error." msg)) inp);
 
     val ((ys, (state', xs')), src') =
       (case (get def_prmpt src, opt_recover) of
         (([], s), _) => (([], (state, [])), s)
       | ((xs, s), NONE) => drain_with (error scanner) ((state, xs), s)
-      | ((xs, s), SOME r) => drain_loop (unless (lift (one (#2 stopper))) r) ((state, xs), s));
+      | ((xs, s), SOME r) => drain_loop (unless (lift (one (#2 stopper))) o r) ((state, xs), s));
   in (ys, (state', unget (xs', src'))) end;
 
 fun source def_prmpt get unget stopper scan opt_recover =
-  unlift (source' def_prmpt get unget stopper (lift scan) (Option.map lift opt_recover));
+  unlift (source' def_prmpt get unget stopper (lift scan)
+    (Option.map (fn r => lift o r) opt_recover));
 
 fun single scan = scan >> (fn x => [x]);
-fun bulk scan = scan -- repeat (try scan) >> (op ::);
+fun bulk scan = scan -- repeat (permissive scan) >> (op ::);
 
 
 
