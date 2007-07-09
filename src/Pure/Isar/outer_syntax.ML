@@ -42,7 +42,7 @@ sig
   val check_text: string * Position.T -> Toplevel.node option -> unit
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
-  val isar: bool -> bool -> unit Toplevel.isar
+  val isar: bool -> unit Toplevel.isar
   val scan: string -> OuterLex.token list
   val read: OuterLex.token list -> (string * OuterLex.token list * Toplevel.transition) list
 end;
@@ -192,28 +192,29 @@ fun toplevel_source term do_trace do_recover cmd src =
   let
     val no_terminator =
       Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
-    fun recover x = (Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [NONE]) x;
+    fun recover interactive msg x =
+      (if interactive then Output.error_msg msg else ();
+        (Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [NONE]) x);
   in
     src
     |> T.source_proper
     |> Source.source T.stopper
       (Scan.bulk (P.$$$ "--" -- P.!!! P.text >> K NONE || P.not_eof >> SOME))
-      (if do_recover then SOME recover else NONE)
+      (Option.map recover do_recover)
     |> Source.map_filter I
     |> Source.source T.stopper (Scan.bulk (fn xs => P.!!! (command term do_trace (cmd ())) xs))
-      (if do_recover then SOME recover else NONE)
+      (Option.map recover do_recover)
     |> Source.map_filter I
   end;
 
 
 (* interactive source of toplevel transformers *)
 
-fun isar term no_pos =
+fun isar term =
   Source.tty
   |> Symbol.source true
-  |> T.source true get_lexicons
-    (if no_pos then Position.none else Position.line_name 1 "stdin")
-  |> toplevel_source term false true get_parser;
+  |> T.source (SOME true) get_lexicons Position.none
+  |> toplevel_source term false (SOME true) get_parser;
 
 
 (* scan text *)
@@ -221,7 +222,7 @@ fun isar term no_pos =
 fun scan str =
   Source.of_string str
   |> Symbol.source false
-  |> T.source true get_lexicons Position.none
+  |> T.source (SOME false) get_lexicons Position.none
   |> Source.exhaust;
 
 
@@ -229,7 +230,7 @@ fun scan str =
 
 fun read toks =
   Source.of_list toks
-  |> toplevel_source false true true get_parser
+  |> toplevel_source false true (SOME false) get_parser
   |> Source.exhaust
   |> map (fn tr => (Toplevel.name_of tr, the (Toplevel.source_of tr), tr));
 
@@ -247,7 +248,7 @@ fun check_text s state = (ThyOutput.eval_antiquote (#1 (get_lexicons ())) state 
 fun deps_thy name ml path =
   let
     val src = Source.of_string (File.read path);
-    val pos = Path.position path;
+    val pos = Position.path path;
     val (name', parents, files) = ThyHeader.read (src, pos);
     val ml_path = ThyLoad.ml_path name;
     val ml_file = if ml andalso is_some (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
@@ -281,10 +282,10 @@ fun run_thy name path =
     val _ = Present.verbatim_source name (fn () => Source.exhaust (Symbol.source false text));
     val toks = text
       |> Symbol.source false
-      |> T.source false (K (get_lexicons ())) (Path.position path)
+      |> T.source NONE (K (get_lexicons ())) (Position.path path)
       |> Source.exhausted;
     val trs = toks
-      |> toplevel_source false false false (K (get_parser ()))
+      |> toplevel_source false false NONE (K (get_parser ()))
       |> Source.exhaust;
   in
     ThyOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
@@ -312,14 +313,14 @@ end;
 
 (* main loop *)
 
-fun gen_loop term no_pos =
+fun gen_loop term =
  (ML_Context.set_context NONE;
-  Toplevel.loop (isar term no_pos));
+  Toplevel.loop (isar term));
 
-fun gen_main term no_pos =
+fun gen_main term =
  (Toplevel.init_state ();
   writeln (Session.welcome ());
-  gen_loop term no_pos);
+  gen_loop term);
 
 structure Isar =
 struct
@@ -334,10 +335,10 @@ struct
     #2 (Proof.get_goal (Toplevel.proof_of (state ())))
       handle Toplevel.UNDEF => error "No goal present";
 
-  fun main () = gen_main false false;
-  fun loop () = gen_loop false false;
-  fun sync_main () = gen_main true true;
-  fun sync_loop () = gen_loop true true;
+  fun main () = gen_main false;
+  fun loop () = gen_loop false;
+  fun sync_main () = gen_main true;
+  fun sync_loop () = gen_loop true;
   val toplevel = Toplevel.program;
 end;
 
