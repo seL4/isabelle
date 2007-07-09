@@ -21,6 +21,7 @@ sig
   val is_sync: symbol -> bool
   val not_sync: symbol -> bool
   val malformed: symbol
+  val end_malformed: symbol
   val is_ascii: symbol -> bool
   val is_ascii_letter: symbol -> bool
   val is_hex_letter: symbol -> bool
@@ -48,11 +49,9 @@ sig
   val beginning: int -> symbol list -> string
   val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
   val scan_id: string list -> string * string list
-  val scan: string list -> symbol * string list
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
-  val chars_only: string -> bool
   val escape: string -> string
   val strip_blanks: string -> string
   val bump_init: string -> string
@@ -113,7 +112,11 @@ val sync = "\\<^sync>";
 fun is_sync s = s = sync;
 fun not_sync s = s <> sync;
 
-val malformed = "\\<^malformed>";
+val malformed = "[[";
+val end_malformed = "]]";
+
+fun malformed_msg s =  (*Output.escape avoids looping errors*)
+  "Malformed symbolic character: " ^ quote (Output.escape s);
 
 
 (* ascii symbols *)
@@ -156,7 +159,8 @@ fun raw_chr c =
 
 fun encode_raw str =
   let
-    val raw1 = enclose "\\<^raw:" ">" o implode;
+    val raw0 = enclose "\\<^raw:" ">";
+    val raw1 = raw0 o implode;
     val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
 
     fun encode cs = enc (Library.take_prefix raw_chr cs)
@@ -166,7 +170,7 @@ fun encode_raw str =
       | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
   in
     if exists_string (not o raw_chr) str then implode (encode (explode str))
-    else enclose "\\<^raw:" ">" str
+    else raw0 str
   end;
 
 
@@ -183,10 +187,6 @@ fun beginning n cs =
       |> implode) ^ dots
   end;
 
-(*raw encoding avoids looping errors!*)
-fun malformed_symbol s =
-  "Malformed symbolic character specification: " ^ quote (Output.escape s);
-
 
 (* decode_raw *)
 
@@ -194,7 +194,7 @@ fun is_raw s =
   String.isPrefix "\\<^raw" s andalso String.isSuffix ">" s;
 
 fun decode_raw s =
-  if not (is_raw s) then error (malformed_symbol s)
+  if not (is_raw s) then error (malformed_msg s)
   else if String.isPrefix "\\<^raw:" s then String.substring (s, 7, size s - 8)
   else chr (#1 (Library.read_int (explode (String.substring (s, 6, size s - 7)))));
 
@@ -208,7 +208,7 @@ fun decode s =
   else if is_raw s then Raw (decode_raw s)
   else if String.isPrefix "\\<^" s then Ctrl (String.substring (s, 3, size s - 4))
   else if String.isPrefix "\\<" s then Sym (String.substring (s, 2, size s - 3))
-  else error (malformed_symbol s);
+  else error (malformed_msg s);
 
 
 (* standard symbol kinds *)
@@ -395,12 +395,14 @@ fun scanner msg scan chs =
     | (_, rest) => error (message (rest, NONE)))
   end;
 
-
-(* scan *)
-
 val scan_id = Scan.one is_letter ^^ (Scan.many is_letdig >> implode);
 
+
+(* source *)
+
 local
+
+fun is_plain s = s <> "\^M" andalso s <> "\\" andalso not_eof s;
 
 val scan_encoded_newline =
   $$ "\^M" -- $$ "\n" >> K "\n" ||
@@ -411,41 +413,44 @@ val scan_raw =
   Scan.this_string "raw:" ^^ (Scan.many raw_chr >> implode) ||
   Scan.this_string "raw" ^^ (Scan.many1 is_ascii_digit >> implode);
 
-in
-
 val scan =
+  Scan.one is_plain ||
   scan_encoded_newline ||
   (($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
-    !! (fn (cs, _) => malformed_symbol (quote (beginning 10 ("\\" :: "<" :: cs))))
+    !! (fn (cs, _) => malformed_msg (beginning 10 ("\\" :: "<" :: cs)))
       (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">")) ||
   Scan.one not_eof;
+
+val recover =
+  Scan.many (fn s => not (is_blank s) andalso s <> "\"" andalso not_eof s)
+    >> (fn ss => malformed :: ss @ [end_malformed]);
+
+in
+
+fun source do_recover src =
+  Source.source stopper (Scan.bulk scan) (if do_recover then SOME (K recover) else NONE) src;
 
 end;
 
 
-(* source *)
-
-val recover =
-  Scan.many (fn s => not (is_blank s) andalso s <> "\"" andalso not_eof s) >> K [malformed];
-
-fun source do_recover src =
-  Source.source stopper (Scan.bulk scan) (if do_recover then SOME recover else NONE) src;
-
-
 (* explode *)
+
+local
 
 fun no_explode [] = true
   | no_explode ("\\" :: "<" :: _) = false
   | no_explode ("\^M" :: _) = false
   | no_explode (_ :: cs) = no_explode cs;
 
+in
+
 fun sym_explode str =
   let val chs = explode str in
     if no_explode chs then chs
-    else the (Scan.read stopper (Scan.repeat scan) chs)
+    else Source.exhaust (source false (Source.of_list chs))
   end;
 
-val chars_only = not o exists_string (fn s => s = "\\");
+end;
 
 
 (* escape *)
