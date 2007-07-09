@@ -753,7 +753,9 @@ fun warn_secure () =
   in if secure then warning "Cannot exit to ML in secure mode" else (); secure end;
 
 fun raw_loop src =
-  let val prompt = Source.default_prompt |> (Pretty.mode_markup Markup.prompt |-> enclose) in
+  let val prompt =
+    Output.escape (Source.default_prompt |> (Pretty.mode_markup Markup.prompt |-> enclose))
+  in
     (case get_interrupt (Source.set_prompt prompt src) of
       NONE => (writeln "\nInterrupt."; raw_loop src)
     | SOME NONE => if warn_secure () then quit () else ()

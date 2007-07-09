@@ -122,7 +122,7 @@ fun drain_stream instream outstream prompt () =
   let val input = slurp_input instream in
     if exists (fn c => c = "\n") input then (input, ())
     else
-      (TextIO.output (outstream, prompt);
+      (TextIO.output (outstream, Output.output prompt);
         TextIO.flushOut outstream;
         (case TextIO.inputLine instream of
           SOME line => (input @ explode line, ())
