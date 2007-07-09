@@ -11,9 +11,11 @@ sig
   type T = string * property list
   val nameN: string
   val kindN: string
-  val pos_lineN: string
-  val pos_nameN: string
   val none: T
+  val properties: (string * string) list -> T -> T
+  val lineN: string
+  val fileN: string
+  val positionN: string val position: T
   val indentN: string
   val blockN: string val block: int -> T
   val breakN: string val break: int -> T
@@ -43,14 +45,23 @@ type T = string * property list;
 
 val none = ("", []);
 
+fun properties more_props ((elem, props): T) =
+  (elem, fold_rev (AList.update (op =)) more_props props);
+
 val nameN = "name";
 val kindN = "kind";
-val pos_lineN = "pos_line";
-val pos_nameN = "pos_name";
 
-fun markup kind = (kind, (kind, []): T);
-fun markup_string kind prop = (kind, fn s => (kind, [(prop, s)]): T);
-fun markup_int kind prop = (kind, fn i => (kind, [(prop, string_of_int i)]): T);
+fun markup elem = (elem, (elem, []): T);
+fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
+fun markup_int elem prop = (elem, fn i => (elem, [(prop, string_of_int i)]): T);
+
+
+(* position *)
+
+val lineN = "line";
+val fileN = "file";
+
+val (positionN, position) = markup "position";
 
 
 (* pretty printing *)
