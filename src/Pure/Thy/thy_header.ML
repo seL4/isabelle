@@ -53,7 +53,7 @@ fun read (src, pos) =
   let val res =
     src
     |> Symbol.source false
-    |> T.source false (fn () => (header_lexicon, Scan.empty_lexicon)) pos
+    |> T.source NONE (fn () => (header_lexicon, Scan.empty_lexicon)) pos
     |> T.source_proper
     |> Source.source T.stopper (Scan.single (Scan.error header)) NONE
     |> Source.get_single;

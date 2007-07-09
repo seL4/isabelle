@@ -86,7 +86,7 @@ fun scan_arguments lex antiq (s, pos) =
     val res =
       Source.of_string s
       |> Symbol.source false
-      |> T.source false (K (lex, Scan.empty_lexicon)) pos
+      |> T.source NONE (K (lex, Scan.empty_lexicon)) pos
       |> T.source_proper
       |> Source.source T.stopper (Scan.error (Scan.bulk antiq)) NONE
       |> Source.exhaust;
