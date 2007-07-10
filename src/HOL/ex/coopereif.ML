@@ -9,7 +9,6 @@ structure Coopereif =
 struct
 
 open GeneratedCooper;
-open Reflected_Presburger;
 
 fun i_of_term vs t = case t
  of Free(xn,xT) => (case AList.lookup (op aconv) vs t
@@ -17,7 +16,7 @@ fun i_of_term vs t = case t
     | SOME n => Bound n)
     | @{term "0::int"} => C 0
     | @{term "1::int"} => C 1
-    | Term.Bound i => Bound (Integer.nat i)
+    | Term.Bound i => Bound (nat i)
     | Const(@{const_name "HOL.uminus"},_)$t' => Neg (i_of_term vs t')
     | Const(@{const_name "HOL.plus"},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
     | Const(@{const_name "HOL.minus"},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
@@ -43,12 +42,12 @@ fun qf_of_term ps vs t = case t
       | Const("Not",_)$t' => Nota(qf_of_term ps vs t')
       | Const("Ex",_)$Abs(xn,xT,p) => 
          let val (xn',p') = variant_abs (xn,xT,p)
-             val vs' = (Free (xn',xT), Integer.nat 0) :: (map (fn(v,n) => (v,1 + n)) vs)
+             val vs' = (Free (xn',xT), nat 0) :: (map (fn(v,n) => (v,1 + n)) vs)
          in E (qf_of_term ps vs' p')
          end
       | Const("All",_)$Abs(xn,xT,p) => 
          let val (xn',p') = variant_abs (xn,xT,p)
-             val vs' = (Free (xn',xT), Integer.nat 0) :: (map (fn(v,n) => (v,1 + n)) vs)
+             val vs' = (Free (xn',xT), nat 0) :: (map (fn(v,n) => (v,1 + n)) vs)
          in A (qf_of_term ps vs' p')
          end
       | _ =>(case AList.lookup (op aconv) ps t of 
@@ -78,8 +77,8 @@ fun start_vs t =
     val fs = term_frees t
     val ps = term_bools [] t
   in
-    (fs ~~ (map Integer.nat (0 upto  (length fs - 1))),
-      ps ~~ (map Integer.nat (0 upto  (length ps - 1))))
+    (fs ~~ (map nat (0 upto  (length fs - 1))),
+      ps ~~ (map nat (0 upto  (length ps - 1))))
   end;
 
 fun term_of_i vs t = case t
@@ -91,7 +90,7 @@ fun term_of_i vs t = case t
       term_of_i vs t1 $ term_of_i vs t2
   | Mul (i, t2) => Const (@{const_name "HOL.times"}, HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $
       HOLogic.mk_number HOLogic.intT i $ term_of_i vs t2
-  | Cx (i, t') => term_of_i vs (Add (Mul (i, Bound (Integer.nat 0)), t'));
+  | Cx (i, t') => term_of_i vs (Add (Mul (i, Bound (nat 0)), t'));
 
 fun term_of_qf ps vs t = case t
  of T => HOLogic.true_const 
