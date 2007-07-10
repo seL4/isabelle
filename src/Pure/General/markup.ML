@@ -25,16 +25,37 @@ sig
   val tyconN: string val tycon: string -> T
   val constN: string val const: string -> T
   val axiomN: string val axiom: string -> T
+  val tfreeN: string val tfree: T
+  val tvarN: string val tvar: T
+  val freeN: string val free: T
+  val skolemN: string val skolem: T
+  val boundN: string val bound: T
+  val varN: string val var: T
+  val numN: string val num: T
+  val xnumN: string val xnum: T
+  val xstrN: string val xstr: T
   val sortN: string val sort: T
   val typN: string val typ: T
   val termN: string val term: T
   val keywordN: string val keyword: string -> T
   val commandN: string val command: string -> T
+  val identN: string val ident: T
+  val stringN: string val string: T
+  val altstringN: string val altstring: T
+  val verbatimN: string val verbatim: T
+  val spaceN: string val space: T
+  val commentN: string val comment: T
+  val controlN: string val control: T
+  val malformedN: string val malformed: T
+  val whitespaceN: string val whitespace: T
+  val junkN: string val junk: T
+  val commandspanN: string val commandspan: string -> T
   val promptN: string val prompt: T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
   val default_output: T -> output * output
   val output: T -> output * output
+  val enclose: T -> output -> output
   val add_mode: string -> (T -> output * output) -> unit
 end;
 
@@ -88,6 +109,16 @@ val (axiomN, axiom) = markup_string "axiom" nameN;
 
 (* inner syntax *)
 
+val (tfreeN, tfree) = markup "tfree";
+val (tvarN, tvar) = markup "tvar";
+val (freeN, free) = markup "free";
+val (skolemN, skolem) = markup "skolem";
+val (boundN, bound) = markup "bound";
+val (varN, var) = markup "var";
+val (numN, num) = markup "num";
+val (xnumN, xnum) = markup "xnum";
+val (xstrN, xstr) = markup "xstr";
+
 val (sortN, sort) = markup "sort";
 val (typN, typ) = markup "typ";
 val (termN, term) = markup "term";
@@ -97,6 +128,19 @@ val (termN, term) = markup "term";
 
 val (keywordN, keyword) = markup_string "keyword" nameN;
 val (commandN, command) = markup_string "command" nameN;
+
+val (identN, ident) = markup "ident";
+val (stringN, string) = markup "string";
+val (altstringN, altstring) = markup "altstring";
+val (verbatimN, verbatim) = markup "verbatim";
+val (spaceN, space) = markup "space";
+val (commentN, comment) = markup "comment";
+val (controlN, control) = markup "control";
+val (malformedN, malformed) = markup "malformed";
+
+val (whitespaceN, whitespace) = markup "whitespace";
+val (junkN, junk) = markup "junk";
+val (commandspanN, commandspan) = markup_string "commandspan" nameN;
 
 
 (* toplevel *)
@@ -123,5 +167,7 @@ end;
 fun output m =
   if m = none then ("", "")
   else #output (get_mode ()) m;
+
+val enclose = output #-> Library.enclose;
 
 end;
