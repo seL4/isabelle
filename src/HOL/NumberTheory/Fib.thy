@@ -114,9 +114,25 @@ lemma gcd_fib_diff: "m \<le> n ==> gcd (fib m, fib (n - m)) = gcd (fib m, fib n)
   by (simp add: gcd_fib_add [symmetric, of _ "n-m"]) 
 
 lemma gcd_fib_mod: "0 < m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
-  apply (induct n rule: nat_less_induct)
-  apply (simp add: mod_if gcd_fib_diff mod_geq)
-  done
+proof (induct n rule: less_induct)
+  case (less n)
+  from less.prems have pos_m: "0 < m" .
+  show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
+  proof (cases "m < n")
+    case True note m_n = True
+    then have m_n': "m \<le> n" by auto
+    with pos_m have pos_n: "0 < n" by auto
+    with pos_m m_n have diff: "n - m < n" by auto
+    have "gcd (fib m, fib (n mod m)) = gcd (fib m, fib ((n - m) mod m))"
+    by (simp add: mod_if [of n]) (insert m_n, auto)
+    also have "\<dots> = gcd (fib m, fib (n - m))" by (simp add: less.hyps diff pos_m)
+    also have "\<dots> = gcd (fib m, fib n)" by (simp add: gcd_fib_diff m_n')
+    finally show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)" .
+  next
+    case False then show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
+    by (cases "m = n") auto
+  qed
+qed
 
 lemma fib_gcd: "fib (gcd (m, n)) = gcd (fib m, fib n)"  -- {* Law 6.111 *}
   apply (induct m n rule: gcd_induct)
