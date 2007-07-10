@@ -31,6 +31,7 @@ sig
   val output_width: string -> output * int
   val output: string -> output
   val escape: output -> string
+  val escape_malformed: string -> string
   val std_output: output -> unit
   val std_error: output -> unit
   val immediate_output: string -> unit
@@ -75,7 +76,9 @@ end;
 
 fun output_width x = #output (get_mode ()) x;
 val output = #1 o output_width;
+
 fun escape x = #escape (get_mode ()) x;
+val escape_malformed = escape o translate_string output;
 
 
 
