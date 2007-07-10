@@ -17,6 +17,7 @@ sig
   val fileN: string
   val positionN: string val position: T
   val indentN: string
+  val widthN: string
   val blockN: string val block: int -> T
   val breakN: string val break: int -> T
   val fbreakN: string val fbreak: T
