@@ -29,10 +29,10 @@ lemma Rep_inject:
   "(Rep x = Rep y) = (x = y)"
 proof
   assume "Rep x = Rep y"
-  hence "Abs (Rep x) = Abs (Rep y)" by (simp only:)
-  also have "Abs (Rep x) = x" by (rule Rep_inverse)
-  also have "Abs (Rep y) = y" by (rule Rep_inverse)
-  finally show "x = y" .
+  then have "Abs (Rep x) = Abs (Rep y)" by (simp only:)
+  moreover have "Abs (Rep x) = x" by (rule Rep_inverse)
+  moreover have "Abs (Rep y) = y" by (rule Rep_inverse)
+  ultimately show "x = y" by simp
 next
   assume "x = y"
   thus "Rep x = Rep y" by (simp only:)
@@ -43,10 +43,10 @@ lemma Abs_inject:
   shows "(Abs x = Abs y) = (x = y)"
 proof
   assume "Abs x = Abs y"
-  hence "Rep (Abs x) = Rep (Abs y)" by (simp only:)
-  also from x have "Rep (Abs x) = x" by (rule Abs_inverse)
-  also from y have "Rep (Abs y) = y" by (rule Abs_inverse)
-  finally show "x = y" .
+  then have "Rep (Abs x) = Rep (Abs y)" by (simp only:)
+  moreover from x have "Rep (Abs x) = x" by (rule Abs_inverse)
+  moreover from y have "Rep (Abs y) = y" by (rule Abs_inverse)
+  ultimately show "x = y" by simp
 next
   assume "x = y"
   thus "Abs x = Abs y" by (simp only:)
@@ -76,8 +76,8 @@ lemma Rep_induct [induct set]:
   shows "P y"
 proof -
   have "P (Rep (Abs y))" by (rule hyp)
-  also from y have "Rep (Abs y) = y" by (rule Abs_inverse)
-  finally show "P y" .
+  moreover from y have "Rep (Abs y) = y" by (rule Abs_inverse)
+  ultimately show "P y" by simp
 qed
 
 lemma Abs_induct [induct type]:
@@ -85,9 +85,9 @@ lemma Abs_induct [induct type]:
   shows "P x"
 proof -
   have "Rep x \<in> A" by (rule Rep)
-  hence "P (Abs (Rep x))" by (rule r)
-  also have "Abs (Rep x) = x" by (rule Rep_inverse)
-  finally show "P x" .
+  then have "P (Abs (Rep x))" by (rule r)
+  moreover have "Abs (Rep x) = x" by (rule Rep_inverse)
+  ultimately show "P x" by simp
 qed
 
 lemma Rep_range:
