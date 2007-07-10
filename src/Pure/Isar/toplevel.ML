@@ -213,16 +213,14 @@ fun print_state_context state =
   |> Pretty.chunks |> Pretty.writeln;
 
 fun print_state prf_only state =
-  let val prts =
-    (case try node_of state of
-      NONE => []
-    | SOME (Theory (gthy, _)) => if prf_only then [] else pretty_context gthy
-    | SOME (Proof (prf, _)) =>
-        Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf)
-    | SOME (SkipProof (h, _)) =>
-        [Pretty.str ("skipped proof: depth " ^ string_of_int (History.current h))])
-  in Pretty.markup_chunks (if null prts then Markup.no_state else Markup.state) prts end
-  |> Pretty.writeln;
+  (case try node_of state of
+    NONE => []
+  | SOME (Theory (gthy, _)) => if prf_only then [] else pretty_context gthy
+  | SOME (Proof (prf, _)) =>
+      Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf)
+  | SOME (SkipProof (h, _)) =>
+      [Pretty.str ("skipped proof: depth " ^ string_of_int (History.current h))])
+  |> Pretty.markup_chunks Markup.state |> Pretty.writeln;
 
 
 
@@ -754,7 +752,7 @@ fun warn_secure () =
 
 fun raw_loop src =
   let val prompt =
-    Output.escape (Source.default_prompt |> (Pretty.mode_markup Markup.prompt |-> enclose))
+    Output.escape ((Markup.output Markup.prompt |-> enclose) Source.default_prompt)
   in
     (case get_interrupt (Source.set_prompt prompt src) of
       NONE => (writeln "\nInterrupt."; raw_loop src)
