@@ -25,7 +25,6 @@ use "name.ML";
 use "term.ML";
 use "term_subst.ML";
 use "General/pretty.ML";
-use "General/position.ML";
 use "sorts.ML";
 use "type.ML";
 use "context.ML";

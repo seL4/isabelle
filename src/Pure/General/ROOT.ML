@@ -21,6 +21,7 @@ use "name_space.ML";
 use "seq.ML";
 use "susp.ML";
 use "path.ML";
+use "position.ML";
 use "url.ML";
 use "file.ML";
 use "buffer.ML";
