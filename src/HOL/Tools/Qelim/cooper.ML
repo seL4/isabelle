@@ -535,55 +535,53 @@ end;
 structure Coopereif =
 struct
 
-open GeneratedCooper.Reflected_Presburger;
+open GeneratedCooper;
 
-fun cooper s = raise Cooper.COOPER ("Cooper Oracle Failed", ERROR s);
-fun i_of_term vs t = 
-    case t of
-	Free(xn,xT) => (case AList.lookup (op aconv) vs t of 
-			   NONE   => cooper "Variable not found in the list!!"
-			 | SOME n => Bound n)
-      | @{term "0::int"} => C 0
-      | @{term "1::int"} => C 1
-      | Term.Bound i => Bound i
-      | Const(@{const_name "HOL.uminus"},_)$t' => Neg (i_of_term vs t')
-      | Const(@{const_name "HOL.plus"},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
-      | Const(@{const_name "HOL.minus"},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
-      | Const(@{const_name "HOL.times"},_)$t1$t2 => 
-	     (Mul (HOLogic.dest_number t1 |> snd |> Integer.machine_int,i_of_term vs t2)
-        handle TERM _ => 
-           (Mul (HOLogic.dest_number t2 |> snd |> Integer.machine_int,i_of_term vs t1)
-            handle TERM _ => cooper "Reification: Unsupported kind of multiplication"))
-      | _ => (C (HOLogic.dest_number t |> snd |> Integer.machine_int) 
-               handle TERM _ => cooper "Reification: unknown term");
-	
-fun qf_of_term ps vs t = 
-    case t of 
-	Const("True",_) => T
-      | Const("False",_) => F
-      | Const(@{const_name "Orderings.less"},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
-      | Const(@{const_name "Orderings.less_eq"},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
-      | Const(@{const_name Divides.dvd},_)$t1$t2 => 
-	(Dvd(HOLogic.dest_number t1 |> snd |> Integer.machine_int, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")
-      | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
-      | @{term "op = :: bool => _ "}$t1$t2 => Iffa(qf_of_term ps vs t1,qf_of_term ps vs t2)
-      | Const("op &",_)$t1$t2 => And(qf_of_term ps vs t1,qf_of_term ps vs t2)
-      | Const("op |",_)$t1$t2 => Or(qf_of_term ps vs t1,qf_of_term ps vs t2)
-      | Const("op -->",_)$t1$t2 => Impa(qf_of_term ps vs t1,qf_of_term ps vs t2)
-      | Const("Not",_)$t' => Nota(qf_of_term ps vs t')
-      | Const("Ex",_)$Abs(xn,xT,p) => 
-         let val (xn',p') = variant_abs (xn,xT,p)
-             val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
-         in E (qf_of_term ps vs' p')
-         end
-      | Const("All",_)$Abs(xn,xT,p) => 
-         let val (xn',p') = variant_abs (xn,xT,p)
-             val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
-         in A (qf_of_term ps vs' p')
-         end
-      | _ =>(case AList.lookup (op aconv) ps t of 
-               NONE => cooper "Reification: unknown term!"
-             | SOME n => Closed n);
+fun cooper s = raise Cooper.COOPER ("Cooper oracle failed", ERROR s);
+fun i_of_term vs t = case t
+ of Free (xn, xT) => (case AList.lookup (op aconv) vs t
+     of NONE   => cooper "Variable not found in the list!"
+      | SOME n => Bound n)
+  | @{term "0::int"} => C 0
+  | @{term "1::int"} => C 1
+  | Term.Bound i => Bound (Integer.int i)
+  | Const(@{const_name HOL.uminus},_)$t' => Neg (i_of_term vs t')
+  | Const(@{const_name HOL.plus},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
+  | Const(@{const_name HOL.minus},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
+  | Const(@{const_name HOL.times},_)$t1$t2 => 
+     (Mul (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
+    handle TERM _ => 
+       (Mul (HOLogic.dest_number t2 |> snd, i_of_term vs t1)
+        handle TERM _ => cooper "Reification: Unsupported kind of multiplication"))
+  | _ => (C (HOLogic.dest_number t |> snd) 
+           handle TERM _ => cooper "Reification: unknown term");
+
+fun qf_of_term ps vs t =  case t
+ of Const("True",_) => T
+  | Const("False",_) => F
+  | Const(@{const_name Orderings.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
+  | Const(@{const_name Orderings.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
+  | Const(@{const_name Divides.dvd},_)$t1$t2 => 
+      (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")
+  | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
+  | @{term "op = :: bool => _ "}$t1$t2 => Iffa(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op &",_)$t1$t2 => And(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op |",_)$t1$t2 => Or(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op -->",_)$t1$t2 => Impa(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("Not",_)$t' => Nota(qf_of_term ps vs t')
+  | Const("Ex",_)$Abs(xn,xT,p) => 
+     let val (xn',p') = variant_abs (xn,xT,p)
+         val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
+     in E (qf_of_term ps vs' p')
+     end
+  | Const("All",_)$Abs(xn,xT,p) => 
+     let val (xn',p') = variant_abs (xn,xT,p)
+         val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
+     in A (qf_of_term ps vs' p')
+     end
+  | _ =>(case AList.lookup (op aconv) ps t of 
+           NONE => cooper "Reification: unknown term!"
+         | SOME n => Closed n);
 
 local
  val ops = [@{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
@@ -602,33 +600,21 @@ case t of
   | _ => if ty t orelse t mem ops then acc else insert (op aconv) t acc
 end;
  
-
-fun start_vs t =
-let
- val fs = term_frees t
- val ps = term_bools [] t
-in (fs ~~ (0 upto  (length fs - 1)), ps ~~ (0 upto  (length ps - 1)))
-end ;
-
-val iT = HOLogic.intT;
-val bT = HOLogic.boolT;
 fun myassoc2 l v =
     case l of
 	[] => NONE
       | (x,v')::xs => if v = v' then SOME x
 		      else myassoc2 xs v;
 
-fun term_of_i vs t =
-    case t of 
-	C i => HOLogic.mk_number HOLogic.intT (Integer.int i)
-      | Bound n => valOf (myassoc2 vs n)
-      | Neg t' => @{term "uminus :: int => _"}$(term_of_i vs t')
-      | Add(t1,t2) => @{term "op +:: int => _"}$ (term_of_i vs t1)$(term_of_i vs t2)
-      | Sub(t1,t2) => Const(@{const_name "HOL.minus"},[iT,iT] ---> iT)$
-			   (term_of_i vs t1)$(term_of_i vs t2)
-      | Mul(i,t2) => Const(@{const_name "HOL.times"},[iT,iT] ---> iT)$
-			   (HOLogic.mk_number HOLogic.intT (Integer.int i))$(term_of_i vs t2)
-      | Cx(i,t')=> term_of_i vs (Add(Mul (i, Bound 0),t'));
+fun term_of_i vs t = case t
+ of C i => HOLogic.mk_number HOLogic.intT i
+  | Bound n => the (myassoc2 vs n)
+  | Neg t' => @{term "uminus :: int => _"} $ term_of_i vs t'
+  | Add (t1, t2) => @{term "op + :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
+  | Sub (t1, t2) => @{term "op - :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
+  | Mul (i, t2) => @{term "op * :: int => _"} $
+      HOLogic.mk_number HOLogic.intT i $ term_of_i vs t2
+  | Cx (i, t') => term_of_i vs (Add (Mul (i, Bound 0), t'));
 
 fun term_of_qf ps vs t = 
  case t of 
@@ -639,24 +625,26 @@ fun term_of_qf ps vs t =
  | Gt t' => @{term "op < :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
  | Ge t' => @{term "op <= :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
  | Eq t' => @{term "op = :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
- | NEq t' => term_of_qf ps vs (Nota(Eq t'))
- | Dvd(i,t') => @{term "op dvd :: int => _ "}$ 
-                 (HOLogic.mk_number HOLogic.intT (Integer.int i))$(term_of_i vs t')
+ | NEq t' => term_of_qf ps vs (Nota (Eq t'))
+ | Dvd(i,t') => @{term "op dvd :: int => _ "} $ 
+    HOLogic.mk_number HOLogic.intT i $ term_of_i vs t'
  | NDvd(i,t')=> term_of_qf ps vs (Nota(Dvd(i,t')))
  | Nota t' => HOLogic.Not$(term_of_qf ps vs t')
  | And(t1,t2) => HOLogic.conj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
  | Or(t1,t2) => HOLogic.disj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
  | Impa(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Iffa(t1,t2) => (HOLogic.eq_const bT)$(term_of_qf ps vs t1)$ (term_of_qf ps vs t2)
- | Closed n => valOf (myassoc2 ps n)
+ | Iffa(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
+ | Closed n => the (myassoc2 ps n)
  | NClosed n => term_of_qf ps vs (Nota (Closed n))
  | _ => cooper "If this is raised, Isabelle/HOL or generate_code is inconsistent!";
 
-(* The oracle *)
 fun cooper_oracle thy t = 
-    let val (vs,ps) = start_vs t
-    in (equals propT) $ (HOLogic.mk_Trueprop t) $ 
-            (HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t))))
-    end;
+  let
+    val (vs, ps) = pairself (map_index (swap o apfst Integer.int))
+      (term_frees t, term_bools [] t);
+  in
+    equals propT $ HOLogic.mk_Trueprop t $
+      HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t)))
+  end;
 
 end;
