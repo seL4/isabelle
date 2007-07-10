@@ -208,7 +208,7 @@ end_import;
 import_theory divides;
 
 const_maps
-    divides > "Divides.dvd" :: "[nat,nat]=>bool";
+  divides > Divides.times_class.dvd :: "[nat,nat]=>bool";
 
 end_import;
 
