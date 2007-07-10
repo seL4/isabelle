@@ -17,6 +17,7 @@ sig
   val not_eof: token -> bool
   val position_of: token -> Position.T
   val pos_of: token -> string
+  val kind_of: token -> token_kind
   val is_kind: token_kind -> token -> bool
   val keyword_with: (string -> bool) -> token -> bool
   val ident_with: (string -> bool) -> token -> bool
@@ -39,7 +40,7 @@ sig
   val scan_string: Position.T * Symbol.symbol list -> string * (Position.T * Symbol.symbol list)
   val scan: (Scan.lexicon * Scan.lexicon) ->
     Position.T * Symbol.symbol list -> token * (Position.T * Symbol.symbol list)
-  val source: bool option -> (unit -> (Scan.lexicon * Scan.lexicon)) ->
+  val source: bool option -> (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source ->
     (token, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   val source_proper: (token, 'a) Source.source ->
@@ -104,6 +105,8 @@ val pos_of = Position.str_of o position_of;
 
 (* kind of token *)
 
+fun kind_of (Token (_, (k, _))) = k;
+
 fun is_kind k (Token (_, (k', _))) = k = k';
 
 fun keyword_with pred (Token (_, (Keyword, x))) = pred x
@@ -154,6 +157,7 @@ fun unparse (Token (_, (kind, x))) =
   | AltString => x |> enclose "`" "`" o escape "`"
   | Verbatim => x |> enclose "{*" "*}"
   | Comment => x |> enclose "(*" "*)"
+  | Malformed _ => Output.escape (implode (map Output.output (explode x)))
   | _ => x);
 
 fun val_of (Token (_, (_, x))) = x;
