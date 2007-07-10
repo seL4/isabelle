@@ -18,8 +18,8 @@ sig
   (* tree functions *)
   datatype tree =
       Elem of string * attributes * tree list
-    | Text of string    (*native string, subject to XML.text on output*)
-    | Rawtext of string (*XML string: output directly, not parsed*)
+    | Text of string
+    | Output of output
   type content = tree list
   type element = string * attributes * content
   val string_of_tree: tree -> string
@@ -84,7 +84,7 @@ type attributes = (string * string) list;
 datatype tree =
     Elem of string * attributes * tree list
   | Text of string
-  | Rawtext of string;
+  | Output of output;
 
 type content = tree list;
 
@@ -105,7 +105,7 @@ fun buffer_of_tree tree =
             |> Buffer.add "</" |> Buffer.add name |> Buffer.add ">"
         end
       | string_of (Text s) buf = Buffer.add (text s) buf
-      | string_of (Rawtext s) buf = Buffer.add s buf;
+      | string_of (Output s) buf = Buffer.add s buf;
   in string_of tree Buffer.empty end;
 
 val string_of_tree = Buffer.content o buffer_of_tree;

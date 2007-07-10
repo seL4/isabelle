@@ -147,7 +147,7 @@ val output_pgips =
   XML.string_of_tree o PgipOutput.output o assemble_pgips o map PgipOutput.output;
 
 fun issue_pgip_rawtext str =
-    output_xml (PgipOutput.output (assemble_pgips [XML.Rawtext str]))
+    output_xml (PgipOutput.output (assemble_pgips [XML.Output str]))
 
 fun issue_pgips pgipops =
     output_xml (PgipOutput.output (assemble_pgips (map PgipOutput.output pgipops)));
@@ -173,7 +173,7 @@ in
     (* Normal responses are messages for the user *)
     fun normalmsg area cat urgent s =
         let
-            val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
+            val content = XML.Elem("pgmltext",[],[XML.Output s])
             val pgip = Normalresponse {area=area,messagecategory=cat,
                                        urgent=urgent,content=[content] }
         in
@@ -183,7 +183,7 @@ in
     (* Error responses are error messages for the user, or system-level messages *)
     fun errormsg fatality s =
         let
-              val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
+              val content = XML.Elem("pgmltext",[],[XML.Output s])
               val pgip = Errorresponse {area=NONE,fatality=fatality,
                                         content=[content],
                                         location=NONE}
@@ -194,7 +194,7 @@ in
     (* Error responses with useful locations *)
     fun error_with_pos fatality pos s =
         let
-              val content = XML.Elem("pgmltext",[],[XML.Rawtext s])
+              val content = XML.Elem("pgmltext",[],[XML.Output s])
               val pgip = Errorresponse {area=NONE,fatality=fatality,
                                         content=[content],
                                         location=SOME (PgipIsabelle.location_of_position pos)}
@@ -716,7 +716,7 @@ fun showid (Showid vs) =
         fun idvalue strings =
             issue_pgip (Idvalue { thyname=thyname, objtype=objtype, name=name, 
                                   text=[XML.Elem("pgmltext",[],
-                                                 map XML.Rawtext strings)] })
+                                                 map XML.Output strings)] })
 
         fun string_of_thm th = Output.output
                                (Pretty.string_of
@@ -997,7 +997,7 @@ fun process_pgip_element pgipxml =
                               (XML.string_of_tree xml))
            | SOME inp => (process_input inp)) (* errors later; packet discarded *)
       | XML.Text t => ignored_text_warning t
-      | XML.Rawtext t => ignored_text_warning t
+      | XML.Output t => ignored_text_warning t
 and ignored_text_warning t =
     if size (Symbol.strip_blanks t) > 0 then
            warning ("Ignored text in PGIP packet: \n" ^ t)
