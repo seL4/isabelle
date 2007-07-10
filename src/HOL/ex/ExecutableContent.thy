@@ -9,11 +9,11 @@ theory ExecutableContent
 imports
   Main
   Eval
-  Records
+  "~~/src/HOL/ex/Records"
   AssocList
   Binomial
   Commutative_Ring
-  Commutative_Ring_Complete
+  "~~/src/HOL/ex/Commutative_Ring_Complete"
   Executable_Real
   GCD
   List_Prefix
