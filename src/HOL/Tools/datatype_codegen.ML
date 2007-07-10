@@ -453,14 +453,14 @@ local
   fun constrain_op_eq_thms thy thms =
     let
       fun add_eq (Const ("op =", ty)) =
-            fold (insert (eq_fst (op =)))
-              (Term.add_tvarsT ty [])
+            fold (insert (eq_fst (op =))) (Term.add_tvarsT ty [])
         | add_eq _ =
             I
       val eqs = fold (fold_aterms add_eq o Thm.prop_of) thms [];
       val instT = map (fn (v_i, sort) =>
         (Thm.ctyp_of thy (TVar (v_i, sort)),
-           Thm.ctyp_of thy (TVar (v_i, Sorts.inter_sort (Sign.classes_of thy) (sort, [HOLogic.class_eq]))))) eqs;
+           Thm.ctyp_of thy (TVar (v_i, Sorts.inter_sort (Sign.classes_of thy)
+             (sort, [HOLogic.class_eq]))))) eqs;
     in
       thms
       |> map (Thm.instantiate (instT, []))
