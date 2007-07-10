@@ -32,7 +32,7 @@ body { background-color: #FFFFFF; }
 .string         { color: #008B00; }
 .altstring      { color: #8B8B00; }
 .verbatim       { color: #00008B; }
-.comment        { color: #00008B; }
+.comment        { color: #8B0000; }
 .control        { background-color: #FF6A6A; font-weight: bold; }
 .malformed      { background-color: #FF6A6A; font-weight: bold; }
 
