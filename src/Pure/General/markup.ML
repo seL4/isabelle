@@ -9,16 +9,16 @@ signature MARKUP =
 sig
   type property = string * string
   type T = string * property list
-  val nameN: string
-  val kindN: string
   val none: T
   val properties: (string * string) list -> T -> T
+  val nameN: string
+  val kindN: string
   val lineN: string
   val fileN: string
   val positionN: string val position: T
   val indentN: string
-  val widthN: string
   val blockN: string val block: int -> T
+  val widthN: string
   val breakN: string val break: int -> T
   val fbreakN: string val fbreak: T
   val classN: string val class: string -> T
@@ -32,8 +32,10 @@ sig
   val commandN: string val command: string -> T
   val promptN: string val prompt: T
   val stateN: string val state: T
-  val no_stateN: string val no_state: T
   val subgoalN: string val subgoal: T
+  val default_output: T -> output * output
+  val output: T -> output * output
+  val add_mode: string -> (T -> output * output) -> unit
 end;
 
 structure Markup: MARKUP =
@@ -101,7 +103,25 @@ val (commandN, command) = markup_string "command" nameN;
 
 val (promptN, prompt) = markup "prompt";
 val (stateN, state) = markup "state";
-val (no_stateN, no_state) = markup "no_state";
 val (subgoalN, subgoal) = markup "subgoal";
+
+
+(* print mode operations *)
+
+fun default_output (_: T) = ("", "");
+
+local
+  val default = {output = default_output};
+  val modes = ref (Symtab.make [("", default)]);
+in
+  fun add_mode name output =
+    change modes (Symtab.update_new (name, {output = output}));
+  fun get_mode () =
+    the_default default (Library.get_first (Symtab.lookup (! modes)) (! print_mode));
+end;
+
+fun output m =
+  if m = none then ("", "")
+  else #output (get_mode ()) m;
 
 end;
