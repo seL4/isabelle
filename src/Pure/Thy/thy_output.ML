@@ -344,7 +344,7 @@ fun present_thy lex default_tags is_markup trs src =
       >> (fn txt => (NONE, (MarkupToken ("cmt", txt), ("", d)))));
 
     val other = Scan.peek (fn d =>
-       Scan.one T.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
+       P.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
 
     val token =
       ignored ||
