@@ -6,7 +6,7 @@
 header {* Predicates *}
 
 theory Predicate
-imports Inductive
+imports Inductive Relation
 begin
 
 subsection {* Converting between predicates and sets *}
