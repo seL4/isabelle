@@ -267,10 +267,8 @@ fun (f ooo g) x y z = f (g x y z);
 fun (f oooo g) x y z w = f (g x y z w);
 
 (*function exponentiation: f(...(f x)...) with n applications of f*)
-fun funpow n f x =
-  let fun rep (0, x) = x
-        | rep (n, x) = rep (n - 1, f x)
-  in rep (n, x) end;
+fun funpow 0 _ x = x
+  | funpow n f x = funpow (n - 1) f (f x);
 
 
 (* exceptions *)
@@ -750,7 +748,7 @@ fun untabify chs =
       | untab pos ("\n" :: xs) ys = untab 0 xs ("\n" :: ys)
       | untab pos ("\t" :: xs) ys =
           let val d = tab_width - (pos mod tab_width)
-          in untab (pos + d) xs (replicate d " " @ ys) end
+          in untab (pos + d) xs (funpow d (cons " ") ys) end
       | untab pos (c :: xs) ys = untab (pos + 1) xs (c :: ys);
   in
     if not (exists (fn c => c = "\t") chs) then chs
