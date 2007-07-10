@@ -100,15 +100,14 @@ end;
 
 fun proof_general_markup (name, props) =
   (if name = Markup.promptN then ("", special "372")
-    else if name = Markup.no_stateN orelse name = Markup.stateN
-    then (special "366" ^ "\n", "\n" ^ special "367")
+    else if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
     else ("", ""))
   |> (name <> Markup.promptN andalso print_mode_active "test_markup") ?
     (fn (bg, en) =>
       (bg ^ enclose "<" ">" (space_implode " " (name :: map XML.attribute props)),
         enclose "</" ">" name ^ en));
 
-val _ = Pretty.add_mode proof_generalN Pretty.default_indent proof_general_markup;
+val _ = Markup.add_mode proof_generalN proof_general_markup;
 
 
 (* messages and notification *)

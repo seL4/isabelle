@@ -270,13 +270,12 @@ fun statedisplay_markup () =
   in split_markup (output_pgips [Proofstate {pgml=pgml}]) end;
 
 fun proof_general_markup (name, props) =
-  (if name = Markup.no_stateN then (output_pgips [Cleardisplay {area=Display}], "")
-    else if name = Markup.stateN then statedisplay_markup ()
+  (if name = Markup.stateN then statedisplay_markup ()
     else ("", ""));
 
 in
 
-val _ = Pretty.add_mode proof_generalN Pretty.default_indent proof_general_markup;
+val _ = Markup.add_mode proof_generalN proof_general_markup;
 
 end;
 
