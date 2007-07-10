@@ -26,6 +26,7 @@ sig
   include BASIC_OUTER_SYNTAX
   type token
   type parser
+  val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val command: string -> string -> OuterKeyword.T ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T ->
