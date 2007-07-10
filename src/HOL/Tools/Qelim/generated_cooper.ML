@@ -7,25 +7,10 @@ This file is generated from HOL/ex/Reflected_Presburger.thy.  DO NOT EDIT.
 structure GeneratedCooper = 
 struct
 
-structure Product_Type = 
-struct
-
-fun fst (y, b) = y;
-
-fun snd (a, y) = y;
-
-end; (*struct Product_Type*)
-
-structure Integer = 
-struct
+type 'a eq = {eq : 'a -> 'a -> bool};
+fun eq (A_:'a eq) = #eq A_;
 
 datatype bit = B0 | B1;
-
-fun suc n = (IntInf.+ (n, (1 : IntInf.int)));
-
-val zero_nat : IntInf.int = (0 : IntInf.int);
-
-fun nat k = (if IntInf.< (k, (0 : IntInf.int)) then zero_nat else k);
 
 fun adjust b =
   (fn a as (q, r) =>
@@ -58,90 +43,102 @@ val divAlg : IntInf.int * IntInf.int -> IntInf.int * IntInf.int =
       else (if IntInf.< ((0 : IntInf.int), b) then negDivAlg aa b
              else negateSnd (posDivAlg (IntInf.~ aa) (IntInf.~ b)))));
 
+fun snd (a, y) = y;
+
+fun mod_nat m k = (snd (divAlg (m, k)));
+
+val zero_nat : IntInf.int = (0 : IntInf.int);
+
+fun gcd (m, n) =
+  (if ((n : IntInf.int) = zero_nat) then m else gcd (n, mod_nat m n));
+
+fun fst (y, b) = y;
+
+fun div_nat m k = (fst (divAlg (m, k)));
+
+val lcm : IntInf.int * IntInf.int -> IntInf.int =
+  (fn a as (m, n) => div_nat (IntInf.* (m, n)) (gcd (m, n)));
+
+fun suc n = (IntInf.+ (n, (1 : IntInf.int)));
+
 fun abs_int i = (if IntInf.< (i, (0 : IntInf.int)) then IntInf.~ i else i);
 
-fun div_int a b = Product_Type.fst (divAlg (a, b));
-
-fun mod_int a b = Product_Type.snd (divAlg (a, b));
-
-fun dvd_int m n = (((mod_int n m) : IntInf.int) = (0 : IntInf.int));
-
-fun eq_bit B0 B0 = true
-  | eq_bit B1 B1 = true
-  | eq_bit B0 B1 = false
-  | eq_bit B1 B0 = false;
+fun nat k = (if IntInf.< (k, (0 : IntInf.int)) then zero_nat else k);
 
 fun int_aux i n =
   (if ((n : IntInf.int) = (0 : IntInf.int)) then i
     else int_aux (IntInf.+ (i, (1 : IntInf.int)))
            (IntInf.- (n, (1 : IntInf.int))));
 
-end; (*struct Integer*)
-
-structure Nat = 
-struct
-
-fun div_nat m k = (Product_Type.fst (Integer.divAlg (m, k)));
-
-fun mod_nat m k = (Product_Type.snd (Integer.divAlg (m, k)));
-
-end; (*struct Nat*)
-
-structure GCD = 
-struct
-
-fun gcd (m, n) =
-  (if ((n : IntInf.int) = Integer.zero_nat) then m
-    else gcd (n, Nat.mod_nat m n));
-
-val lcm : IntInf.int * IntInf.int -> IntInf.int =
-  (fn a as (m, n) => Nat.div_nat (IntInf.* (m, n)) (gcd (m, n)));
-
 val ilcm : IntInf.int -> IntInf.int -> IntInf.int =
   (fn i => fn j =>
-    Integer.int_aux (0 : IntInf.int)
-      (lcm (Integer.nat (Integer.abs_int i), Integer.nat (Integer.abs_int j))));
+    int_aux (0 : IntInf.int) (lcm (nat (abs_int i), nat (abs_int j))));
 
-end; (*struct GCD*)
-
-structure HOL = 
-struct
-
-type 'a eq = {eq : 'a -> 'a -> bool};
-fun eq (A_:'a eq) = #eq A_;
-
-end; (*struct HOL*)
-
-structure List = 
-struct
+type 'a zero = {zero : 'a};
+fun zero (A_:'a zero) = #zero A_;
 
 fun map f (x :: xs) = f x :: map f xs
   | map f [] = [];
 
+type 'a times = {times : 'a -> 'a -> 'a};
+fun times (A_:'a times) = #times A_;
+
 fun foldr f (x :: xs) a = f x (foldr f xs a)
   | foldr f [] y = y;
+
+type 'a diva = {div : 'a -> 'a -> 'a, mod : 'a -> 'a -> 'a};
+fun diva (A_:'a diva) = #div A_;
+fun moda (A_:'a diva) = #mod A_;
+
+type 'a dvd_mod =
+  {Divides__dvd_mod_div : 'a diva, Divides__dvd_mod_times : 'a times,
+    Divides__dvd_mod_zero : 'a zero};
+fun dvd_mod_div (A_:'a dvd_mod) = #Divides__dvd_mod_div A_;
+fun dvd_mod_times (A_:'a dvd_mod) = #Divides__dvd_mod_times A_;
+fun dvd_mod_zero (A_:'a dvd_mod) = #Divides__dvd_mod_zero A_;
+
+fun dvd (A1_, A2_) x y =
+  eq A2_ (moda (dvd_mod_div A1_) y x) (zero (dvd_mod_zero A1_));
 
 fun append (x :: xs) ys = x :: append xs ys
   | append [] y = y;
 
-fun memberl A_ x (y :: ys) = HOL.eq A_ x y orelse memberl A_ x ys
+fun memberl A_ x (y :: ys) = eq A_ x y orelse memberl A_ x ys
   | memberl A_ x [] = false;
 
 fun remdups A_ (x :: xs) =
   (if memberl A_ x xs then remdups A_ xs else x :: remdups A_ xs)
   | remdups A_ [] = [];
 
+fun mod_int a b = snd (divAlg (a, b));
+
+fun div_int a b = fst (divAlg (a, b));
+
+val div_inta = {div = div_int, mod = mod_int} : IntInf.int diva;
+
 fun allpairs f (x :: xs) ys = append (map (f x) ys) (allpairs f xs ys)
   | allpairs f [] ys = [];
 
-fun size_list (a :: lista) =
-  (IntInf.+ ((size_list lista), (Integer.suc Integer.zero_nat)))
-  | size_list [] = Integer.zero_nat;
+val eq_int = {eq = (fn a => fn b => ((a : IntInf.int) = b))} : IntInf.int eq;
 
-end; (*struct List*)
+val zero_int : IntInf.int = (0 : IntInf.int);
 
-structure Reflected_Presburger = 
-struct
+val zero_inta = {zero = zero_int} : IntInf.int zero;
+
+fun size_list (a :: lista) = (IntInf.+ ((size_list lista), (suc zero_nat)))
+  | size_list [] = zero_nat;
+
+fun eq_bit B0 B0 = true
+  | eq_bit B1 B1 = true
+  | eq_bit B0 B1 = false
+  | eq_bit B1 B0 = false;
+
+val times_int = {times = (fn a => fn b => IntInf.* (a, b))} : IntInf.int times;
+
+val dvd_mod_int =
+  {Divides__dvd_mod_div = div_inta, Divides__dvd_mod_times = times_int,
+    Divides__dvd_mod_zero = zero_inta}
+  : IntInf.int dvd_mod;
 
 datatype num = C of IntInf.int | Bound of IntInf.int | Cx of IntInf.int * num |
   Neg of num | Add of num * num | Sub of num * num | Mul of IntInf.int * num;
@@ -169,7 +166,7 @@ fun disjuncts (NClosed aq) = [NClosed aq]
   | disjuncts (Lt u) = [Lt u]
   | disjuncts T = [T]
   | disjuncts F = []
-  | disjuncts (Or (p, q)) = List.append (disjuncts p) (disjuncts q);
+  | disjuncts (Or (p, q)) = append (disjuncts p) (disjuncts q);
 
 fun eq_num (C int) (C int') = ((int : IntInf.int) = int')
   | eq_num (Bound nat) (Bound nat') = ((nat : IntInf.int) = nat')
@@ -608,7 +605,7 @@ fun djf f p q =
                    | A fm => Or (f p, q) | Closed nat => Or (f p, q)
                    | NClosed nat => Or (f p, q))));
 
-fun evaldjf f ps = List.foldr (djf f) ps F;
+fun evaldjf f ps = foldr (djf f) ps F;
 
 fun dj f p = evaldjf f (disjuncts p);
 
@@ -645,7 +642,7 @@ fun zsplit0 (Mul (i, a)) =
       (IntInf.+ (i, i'), aa)
     end
   | zsplit0 (Bound n) =
-    (if ((n : IntInf.int) = Integer.zero_nat)
+    (if ((n : IntInf.int) = zero_nat)
       then ((1 : IntInf.int), C (0 : IntInf.int))
       else ((0 : IntInf.int), Bound n))
   | zsplit0 (C c) = ((0 : IntInf.int), C c);
@@ -681,22 +678,20 @@ fun zlfm (NClosed ar) = NClosed ar
       else let
              val (c, r) = zsplit0 a;
            in
-             (if ((c : IntInf.int) = (0 : IntInf.int))
-               then NDvd (Integer.abs_int i, r)
+             (if ((c : IntInf.int) = (0 : IntInf.int)) then NDvd (abs_int i, r)
                else (if IntInf.< ((0 : IntInf.int), c)
-                      then NDvd (Integer.abs_int i, Cx (c, r))
-                      else NDvd (Integer.abs_int i, Cx (IntInf.~ c, Neg r))))
+                      then NDvd (abs_int i, Cx (c, r))
+                      else NDvd (abs_int i, Cx (IntInf.~ c, Neg r))))
            end)
   | zlfm (Dvd (i, a)) =
     (if ((i : IntInf.int) = (0 : IntInf.int)) then zlfm (Eq a)
       else let
              val (c, r) = zsplit0 a;
            in
-             (if ((c : IntInf.int) = (0 : IntInf.int))
-               then Dvd (Integer.abs_int i, r)
+             (if ((c : IntInf.int) = (0 : IntInf.int)) then Dvd (abs_int i, r)
                else (if IntInf.< ((0 : IntInf.int), c)
-                      then Dvd (Integer.abs_int i, Cx (c, r))
-                      else Dvd (Integer.abs_int i, Cx (IntInf.~ c, Neg r))))
+                      then Dvd (abs_int i, Cx (c, r))
+                      else Dvd (abs_int i, Cx (IntInf.~ c, Neg r))))
            end)
   | zlfm (NEq a) =
     let
@@ -817,8 +812,8 @@ fun zeta (NClosed aq) = (1 : IntInf.int)
   | zeta (Lt (Cx (y, e))) = y
   | zeta (NEq (Cx (y, e))) = y
   | zeta (Eq (Cx (y, e))) = y
-  | zeta (Or (p, q)) = GCD.ilcm (zeta p) (zeta q)
-  | zeta (And (p, q)) = GCD.ilcm (zeta p) (zeta q);
+  | zeta (Or (p, q)) = ilcm (zeta p) (zeta q)
+  | zeta (And (p, q)) = ilcm (zeta p) (zeta q);
 
 fun a_beta (NClosed aq) = (fn k => NClosed aq)
   | a_beta (Closed ap) = (fn k => Closed ap)
@@ -879,24 +874,24 @@ fun a_beta (NClosed aq) = (fn k => NClosed aq)
   | a_beta T = (fn k => T)
   | a_beta (NDvd (i, Cx (c, e))) =
     (fn k =>
-      NDvd (IntInf.* (Integer.div_int k c, i),
-             Cx ((1 : IntInf.int), Mul (Integer.div_int k c, e))))
+      NDvd (IntInf.* (div_int k c, i),
+             Cx ((1 : IntInf.int), Mul (div_int k c, e))))
   | a_beta (Dvd (i, Cx (c, e))) =
     (fn k =>
-      Dvd (IntInf.* (Integer.div_int k c, i),
-            Cx ((1 : IntInf.int), Mul (Integer.div_int k c, e))))
+      Dvd (IntInf.* (div_int k c, i),
+            Cx ((1 : IntInf.int), Mul (div_int k c, e))))
   | a_beta (Ge (Cx (c, e))) =
-    (fn k => Ge (Cx ((1 : IntInf.int), Mul (Integer.div_int k c, e))))
+    (fn k => Ge (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
   | a_beta (Gt (Cx (c, e))) =
-    (fn k => Gt (Cx ((1 : IntInf.int), Mul (Integer.div_int k c, e))))
+    (fn k => Gt (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
   | a_beta (Le (Cx (c, e))) =
-    (fn k => Le (Cx ((1 : IntInf.int), Mul (Integer.div_int k c, e))))
+    (fn k => Le (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
   | a_beta (Lt (Cx (c, e))) =
-    (fn k => Lt (Cx ((1 : IntInf.int), Mul (Integer.div_int k c, e))))
+    (fn k => Lt (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
   | a_beta (NEq (Cx (c, e))) =
-    (fn k => NEq (Cx ((1 : IntInf.int), Mul (Integer.div_int k c, e))))
+    (fn k => NEq (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
   | a_beta (Eq (Cx (c, e))) =
-    (fn k => Eq (Cx ((1 : IntInf.int), Mul (Integer.div_int k c, e))))
+    (fn k => Eq (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
   | a_beta (Or (p, q)) = (fn k => Or (a_beta p k, a_beta q k))
   | a_beta (And (p, q)) = (fn k => And (a_beta p k, a_beta q k));
 
@@ -929,8 +924,8 @@ fun delta (NClosed aq) = (1 : IntInf.int)
   | delta T = (1 : IntInf.int)
   | delta (NDvd (y, Cx (c, e))) = y
   | delta (Dvd (y, Cx (c, e))) = y
-  | delta (Or (p, q)) = GCD.ilcm (delta p) (delta q)
-  | delta (And (p, q)) = GCD.ilcm (delta p) (delta q);
+  | delta (Or (p, q)) = ilcm (delta p) (delta q)
+  | delta (And (p, q)) = ilcm (delta p) (delta q);
 
 fun beta (NClosed aq) = []
   | beta (Closed ap) = []
@@ -985,8 +980,8 @@ fun beta (NClosed aq) = []
   | beta (Lt (Cx (c, e))) = []
   | beta (NEq (Cx (c, e))) = [Neg e]
   | beta (Eq (Cx (c, e))) = [Sub (C (~1 : IntInf.int), e)]
-  | beta (Or (p, q)) = List.append (beta p) (beta q)
-  | beta (And (p, q)) = List.append (beta p) (beta q);
+  | beta (Or (p, q)) = append (beta p) (beta q)
+  | beta (And (p, q)) = append (beta p) (beta q);
 
 fun alpha (NClosed aq) = []
   | alpha (Closed ap) = []
@@ -1041,8 +1036,8 @@ fun alpha (NClosed aq) = []
   | alpha (Lt (Cx (c, e))) = [e]
   | alpha (NEq (Cx (c, e))) = [e]
   | alpha (Eq (Cx (c, e))) = [Add (C (~1 : IntInf.int), e)]
-  | alpha (Or (p, q)) = List.append (alpha p) (alpha q)
-  | alpha (And (p, q)) = List.append (alpha p) (alpha q);
+  | alpha (Or (p, q)) = append (alpha p) (alpha q)
+  | alpha (And (p, q)) = append (alpha p) (alpha q);
 
 fun numadd (Mul (ar, asa), Mul (aza, azb)) = Add (Mul (ar, asa), Mul (aza, azb))
   | numadd (Mul (ar, asa), Sub (ayy, ayz)) = Add (Mul (ar, asa), Sub (ayy, ayz))
@@ -1768,7 +1763,7 @@ fun simpnum (Cx (v, va)) = Cx (v, va)
     Add (Mul ((1 : IntInf.int), Bound n), C (0 : IntInf.int))
   | simpnum (C j) = C j;
 
-val eq_numa = {eq = eq_num} : num HOL.eq;
+val eq_numa = {eq = eq_num} : num eq;
 
 fun mirror (NClosed aq) = NClosed aq
   | mirror (Closed ap) = Closed ap
@@ -1845,10 +1840,10 @@ fun unita p =
     val q =
       And (Dvd (l, Cx ((1 : IntInf.int), C (0 : IntInf.int))), a_beta p' l);
     val d = delta q;
-    val b = List.remdups eq_numa (List.map simpnum (beta q));
-    val a = List.remdups eq_numa (List.map simpnum (alpha q));
+    val b = remdups eq_numa (map simpnum (beta q));
+    val a = remdups eq_numa (map simpnum (alpha q));
   in
-    (if IntInf.<= ((List.size_list b), (List.size_list a)) then (q, (b, d))
+    (if IntInf.<= ((size_list b), (size_list a)) then (q, (b, d))
       else (mirror q, (a, d)))
   end;
 
@@ -1918,7 +1913,7 @@ fun numsubst0 t (Mul (i, a)) = Mul (i, numsubst0 t a)
   | numsubst0 t (Neg a) = Neg (numsubst0 t a)
   | numsubst0 t (Cx (i, a)) = Add (Mul (i, t), numsubst0 t a)
   | numsubst0 t (Bound n) =
-    (if ((n : IntInf.int) = Integer.zero_nat) then t else Bound n)
+    (if ((n : IntInf.int) = zero_nat) then t else Bound n)
   | numsubst0 t (C c) = C c;
 
 fun subst0 t (NClosed p) = NClosed p
@@ -1989,12 +1984,13 @@ fun simpfm (NClosed v) = NClosed v
   | simpfm T = T
   | simpfm (NDvd (i, a)) =
     (if ((i : IntInf.int) = (0 : IntInf.int)) then simpfm (NEq a)
-      else (if (((Integer.abs_int i) : IntInf.int) = (1 : IntInf.int)) then F
+      else (if (((abs_int i) : IntInf.int) = (1 : IntInf.int)) then F
              else let
                     val a' = simpnum a;
                   in
                     (case a'
-                       of C v => (if not (Integer.dvd_int i v) then T else F)
+                       of C v =>
+                         (if not (dvd (dvd_mod_int, eq_int) i v) then T else F)
                        | Bound nat => NDvd (i, a')
                        | Cx (int, num) => NDvd (i, a') | Neg num => NDvd (i, a')
                        | Add (num1, num2) => NDvd (i, a')
@@ -2003,11 +1999,13 @@ fun simpfm (NClosed v) = NClosed v
                   end))
   | simpfm (Dvd (i, a)) =
     (if ((i : IntInf.int) = (0 : IntInf.int)) then simpfm (Eq a)
-      else (if (((Integer.abs_int i) : IntInf.int) = (1 : IntInf.int)) then T
+      else (if (((abs_int i) : IntInf.int) = (1 : IntInf.int)) then T
              else let
                     val a' = simpnum a;
                   in
-                    (case a' of C v => (if Integer.dvd_int i v then T else F)
+                    (case a'
+                       of C v =>
+                         (if dvd (dvd_mod_int, eq_int) i v then T else F)
                        | Bound nat => Dvd (i, a') | Cx (int, num) => Dvd (i, a')
                        | Neg num => Dvd (i, a')
                        | Add (num1, num2) => Dvd (i, a')
@@ -2082,7 +2080,7 @@ fun decrnum (Cx (w, x)) = Cx (w, x)
   | decrnum (Sub (a, b)) = Sub (decrnum a, decrnum b)
   | decrnum (Add (a, b)) = Add (decrnum a, decrnum b)
   | decrnum (Neg a) = Neg (decrnum a)
-  | decrnum (Bound n) = Bound (Integer.nat (IntInf.- (n, (1 : IntInf.int))));
+  | decrnum (Bound n) = Bound (nat (IntInf.- (n, (1 : IntInf.int))));
 
 fun decr (NClosed ar) = NClosed ar
   | decr (Closed aq) = Closed aq
@@ -2116,7 +2114,7 @@ fun cooper p =
       else let
              val qd =
                evaldjf (fn aa as (ba, j) => simpfm (subst0 (Add (ba, C j)) q))
-                 (List.allpairs (fn aa => fn ba => (aa, ba)) b js);
+                 (allpairs (fn aa => fn ba => (aa, ba)) b js);
            in
              decr (disj md qd)
            end)
@@ -2239,6 +2237,4 @@ fun qelim (NClosed aq) = (fn y => simpfm (NClosed aq))
 
 val pa : fm -> fm = (fn p => qelim (prep p) cooper);
 
-end; (*struct Reflected_Presburger*)
-
-end; (*struct ROOT*)
+end; (*struct GeneratedCooper*)
