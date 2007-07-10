@@ -5,6 +5,8 @@
 #
 # DESCRIPTION: Update standard keyword files.
 
+cd "$(isatool getenv -b ISABELLE_HOME)"/etc
+
 isabelle -qe 'ProofGeneral.write_keywords "";' IOA
 isabelle -qe 'ProofGeneral.write_keywords "HOL-Nominal";' HOL-Nominal
 isabelle -qe 'ProofGeneral.write_keywords "ZF";' ZF
