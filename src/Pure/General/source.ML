@@ -136,24 +136,38 @@ val tty = of_stream TextIO.stdIn TextIO.stdOut;
 
 
 
-(** compose sources **)
-
-fun drain_source source stopper scan recover prompt src =
-  source prompt get_prompt unget stopper scan recover src;
-
+(** cascade sources **)
 
 (* state-based *)
 
+fun drain_source' stopper scan opt_recover prompt (state, src) =
+  let
+    val drain = Scan.drain prompt get_prompt stopper;
+    val (xs, s) = get_prompt prompt src;
+    val inp = ((state, xs), s);
+    val ((ys, (state', xs')), src') =
+      if null xs then (([], (state, [])), s)
+      else
+        (case opt_recover of
+          NONE => drain (Scan.error scan) inp
+        | SOME (interactive, recover) =>
+            (drain (Scan.catch scan) inp handle Fail msg =>
+              (if interactive then Output.error_msg msg else ();
+                drain (Scan.unless (Scan.lift (Scan.one (#2 stopper))) (recover msg)) inp)));
+  in (ys, (state', unget (xs', src'))) end;
+
 fun source' init_state stopper scan recover src =
-  make_source [] (init_state, src) default_prompt
-    (drain_source Scan.source' stopper scan recover);
+  make_source [] (init_state, src) default_prompt (drain_source' stopper scan recover);
 
 
 (* non state-based *)
 
+fun drain_source stopper scan opt_recover prompt =
+  Scan.unlift (drain_source' stopper (Scan.lift scan)
+    (Option.map (fn (int, r) => (int, Scan.lift o r)) opt_recover) prompt);
+
 fun source stopper scan recover src =
-  make_source [] src default_prompt
-    (drain_source Scan.source stopper scan recover);
+  make_source [] src default_prompt (drain_source stopper scan recover);
 
 
 end;
