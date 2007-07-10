@@ -14,23 +14,8 @@ begin
 (*We use the same class for div and mod;
   moreover, dvd is defined whenever multiplication is*)
 class div = type +
-  fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-begin
-
-notation
-  div (infixl "\<^loc>div" 70)
-
-notation
-  mod (infixl "\<^loc>mod" 70)
-
-end
-
-notation
-  div (infixl "div" 70)
-
-notation
-  mod (infixl "mod" 70)
+  fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>div" 70)
+  fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>mod" 70)
 
 instance nat :: Divides.div
   div_def: "m div n == wfrec (pred_nat^+)
@@ -38,10 +23,15 @@ instance nat :: Divides.div
   mod_def: "m mod n == wfrec (pred_nat^+)
                           (%f j. if j<n | n=0 then j else f (j-n)) m" ..
 
-definition
-  (*The definition of dvd is polymorphic!*)
-  dvd  :: "'a::times \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50) where
-  dvd_def: "m dvd n \<longleftrightarrow> (\<exists>k. n = m*k)"
+definition (in times)
+  dvd  :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<^loc>dvd" 50)
+where
+  "m \<^loc>dvd n \<longleftrightarrow> (\<exists>k. n = m \<^loc>* k)"
+lemmas dvd_def = dvd_def [folded times_class.dvd]
+
+class dvd_mod = times + div + zero + -- {* for code generation *}
+  assumes dvd_def_mod: "times.dvd (op \<^loc>*) x y \<longleftrightarrow> y \<^loc>mod x = \<^loc>0"
+lemmas dvd_def_mod [code func] = dvd_def_mod [folded times_class.dvd]
 
 definition
   quorem :: "(nat*nat) * (nat*nat) => bool" where
@@ -511,6 +501,11 @@ lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
   unfolding dvd_def
   by (force dest: mult_eq_self_implies_10 simp add: mult_assoc mult_eq_1_iff)
 
+text {* @{term "op dvd"} is a partial order *}
+
+interpretation dvd: order ["op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> m \<noteq> n"]
+  by unfold_locales (auto intro: dvd_trans dvd_anti_sym)
+
 lemma dvd_add: "[| k dvd m; k dvd n |] ==> k dvd (m+n :: nat)"
   unfolding dvd_def
   by (blast intro: add_mult_distrib2 [symmetric])
@@ -885,6 +880,8 @@ proof -
 qed
 
 
+
+
 subsection {* Code generation for div, mod and dvd on nat *}
 
 definition [code func del]:
@@ -907,14 +904,8 @@ lemma div_divmod [code]: "m div n = fst (divmod m n)"
 lemma mod_divmod [code]: "m mod n = snd (divmod m n)"
   unfolding divmod_def by simp
 
-definition
-  dvd_nat :: "nat \<Rightarrow> nat \<Rightarrow> bool"
-where
-  "dvd_nat m n \<longleftrightarrow> n mod m = (0 \<Colon> nat)"
-
-lemma [code inline]:
-  "op dvd = dvd_nat"
-  by (auto simp add: dvd_nat_def dvd_eq_mod_eq_0 expand_fun_eq)
+instance nat :: dvd_mod
+  by default (simp add: times_class.dvd [symmetric] dvd_eq_mod_eq_0)
 
 code_modulename SML
   Divides Nat
@@ -925,153 +916,6 @@ code_modulename OCaml
 code_modulename Haskell
   Divides Nat
 
-hide (open) const divmod dvd_nat
+hide (open) const divmod
 
-subsection {* Legacy bindings *}
-
-ML
-{*
-val div_def = thm "div_def"
-val mod_def = thm "mod_def"
-val dvd_def = thm "dvd_def"
-val quorem_def = thm "quorem_def"
-
-val wf_less_trans = thm "wf_less_trans";
-val mod_eq = thm "mod_eq";
-val div_eq = thm "div_eq";
-val DIVISION_BY_ZERO_DIV = thm "DIVISION_BY_ZERO_DIV";
-val DIVISION_BY_ZERO_MOD = thm "DIVISION_BY_ZERO_MOD";
-val mod_less = thm "mod_less";
-val mod_geq = thm "mod_geq";
-val le_mod_geq = thm "le_mod_geq";
-val mod_if = thm "mod_if";
-val mod_1 = thm "mod_1";
-val mod_self = thm "mod_self";
-val mod_add_self2 = thm "mod_add_self2";
-val mod_add_self1 = thm "mod_add_self1";
-val mod_mult_self1 = thm "mod_mult_self1";
-val mod_mult_self2 = thm "mod_mult_self2";
-val mod_mult_distrib = thm "mod_mult_distrib";
-val mod_mult_distrib2 = thm "mod_mult_distrib2";
-val mod_mult_self_is_0 = thm "mod_mult_self_is_0";
-val mod_mult_self1_is_0 = thm "mod_mult_self1_is_0";
-val div_less = thm "div_less";
-val div_geq = thm "div_geq";
-val le_div_geq = thm "le_div_geq";
-val div_if = thm "div_if";
-val mod_div_equality = thm "mod_div_equality";
-val mod_div_equality2 = thm "mod_div_equality2";
-val div_mod_equality = thm "div_mod_equality";
-val div_mod_equality2 = thm "div_mod_equality2";
-val mult_div_cancel = thm "mult_div_cancel";
-val mod_less_divisor = thm "mod_less_divisor";
-val div_mult_self_is_m = thm "div_mult_self_is_m";
-val div_mult_self1_is_m = thm "div_mult_self1_is_m";
-val unique_quotient_lemma = thm "unique_quotient_lemma";
-val unique_quotient = thm "unique_quotient";
-val unique_remainder = thm "unique_remainder";
-val div_0 = thm "div_0";
-val mod_0 = thm "mod_0";
-val div_mult1_eq = thm "div_mult1_eq";
-val mod_mult1_eq = thm "mod_mult1_eq";
-val mod_mult1_eq' = thm "mod_mult1_eq'";
-val mod_mult_distrib_mod = thm "mod_mult_distrib_mod";
-val div_add1_eq = thm "div_add1_eq";
-val mod_add1_eq = thm "mod_add1_eq";
-val mod_add_left_eq = thm "mod_add_left_eq";
- val mod_add_right_eq = thm "mod_add_right_eq";
-val mod_lemma = thm "mod_lemma";
-val div_mult2_eq = thm "div_mult2_eq";
-val mod_mult2_eq = thm "mod_mult2_eq";
-val div_mult_mult_lemma = thm "div_mult_mult_lemma";
-val div_mult_mult1 = thm "div_mult_mult1";
-val div_mult_mult2 = thm "div_mult_mult2";
-val div_1 = thm "div_1";
-val div_self = thm "div_self";
-val div_add_self2 = thm "div_add_self2";
-val div_add_self1 = thm "div_add_self1";
-val div_mult_self1 = thm "div_mult_self1";
-val div_mult_self2 = thm "div_mult_self2";
-val div_le_mono = thm "div_le_mono";
-val div_le_mono2 = thm "div_le_mono2";
-val div_le_dividend = thm "div_le_dividend";
-val div_less_dividend = thm "div_less_dividend";
-val mod_Suc = thm "mod_Suc";
-val dvdI = thm "dvdI";
-val dvdE = thm "dvdE";
-val dvd_0_right = thm "dvd_0_right";
-val dvd_0_left = thm "dvd_0_left";
-val dvd_0_left_iff = thm "dvd_0_left_iff";
-val dvd_1_left = thm "dvd_1_left";
-val dvd_1_iff_1 = thm "dvd_1_iff_1";
-val dvd_refl = thm "dvd_refl";
-val dvd_trans = thm "dvd_trans";
-val dvd_anti_sym = thm "dvd_anti_sym";
-val dvd_add = thm "dvd_add";
-val dvd_diff = thm "dvd_diff";
-val dvd_diffD = thm "dvd_diffD";
-val dvd_diffD1 = thm "dvd_diffD1";
-val dvd_mult = thm "dvd_mult";
-val dvd_mult2 = thm "dvd_mult2";
-val dvd_reduce = thm "dvd_reduce";
-val dvd_mod = thm "dvd_mod";
-val dvd_mod_imp_dvd = thm "dvd_mod_imp_dvd";
-val dvd_mod_iff = thm "dvd_mod_iff";
-val dvd_mult_cancel = thm "dvd_mult_cancel";
-val dvd_mult_cancel1 = thm "dvd_mult_cancel1";
-val dvd_mult_cancel2 = thm "dvd_mult_cancel2";
-val mult_dvd_mono = thm "mult_dvd_mono";
-val dvd_mult_left = thm "dvd_mult_left";
-val dvd_mult_right = thm "dvd_mult_right";
-val dvd_imp_le = thm "dvd_imp_le";
-val dvd_eq_mod_eq_0 = thm "dvd_eq_mod_eq_0";
-val dvd_mult_div_cancel = thm "dvd_mult_div_cancel";
-val mod_eq_0_iff = thm "mod_eq_0_iff";
-val mod_eqD = thm "mod_eqD";
-*}
-
-(*
-lemma split_div:
-assumes m: "m \<noteq> 0"
-shows "P(n div m :: nat) = (!i. !j<m. n = m*i + j \<longrightarrow> P i)"
-       (is "?P = ?Q")
-proof
-  assume P: ?P
-  show ?Q
-  proof (intro allI impI)
-    fix i j
-    assume n: "n = m*i + j" and j: "j < m"
-    show "P i"
-    proof (cases)
-      assume "i = 0"
-      with n j P show "P i" by simp
-    next
-      assume "i \<noteq> 0"
-      with n j P show "P i" by (simp add:add_ac div_mult_self1)
-    qed
-  qed
-next
-  assume Q: ?Q
-  from m Q[THEN spec,of "n div m",THEN spec, of "n mod m"]
-  show ?P by simp
-qed
-
-lemma split_mod:
-assumes m: "m \<noteq> 0"
-shows "P(n mod m :: nat) = (!i. !j<m. n = m*i + j \<longrightarrow> P j)"
-       (is "?P = ?Q")
-proof
-  assume P: ?P
-  show ?Q
-  proof (intro allI impI)
-    fix i j
-    assume "n = m*i + j" "j < m"
-    thus "P j" using m P by(simp add:add_ac mult_ac)
-  qed
-next
-  assume Q: ?Q
-  from m Q[THEN spec,of "n div m",THEN spec, of "n mod m"]
-  show ?P by simp
-qed
-*)
 end

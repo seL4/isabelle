@@ -1064,13 +1064,8 @@ subsection {* The Divides Relation *}
 lemma zdvd_iff_zmod_eq_0: "(m dvd n) = (n mod m = (0::int))"
   by (simp add: dvd_def zmod_eq_0_iff)
 
-definition
-  dvd_int :: "int \<Rightarrow> int \<Rightarrow> bool"
-where
-  "dvd_int = op dvd"
-
-lemmas [code inline] = dvd_int_def [symmetric]
-lemmas [code, folded dvd_int_def, code func] = zdvd_iff_zmod_eq_0
+instance int :: dvd_mod
+  by default (simp add: times_class.dvd [symmetric] zdvd_iff_zmod_eq_0)
 
 lemmas zdvd_iff_zmod_eq_0_number_of [simp] =
   zdvd_iff_zmod_eq_0 [of "number_of x" "number_of y", standard]
