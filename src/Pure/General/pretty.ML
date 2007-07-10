@@ -26,9 +26,7 @@ type pprint_args = (output -> unit) * (int -> unit) * (int -> unit) *
 signature PRETTY =
 sig
   val default_indent: string -> int -> output
-  val default_markup: Markup.T -> output * output
-  val mode_markup: Markup.T -> output * output
-  val add_mode: string -> (string -> int -> output) -> (Markup.T -> output * output) -> unit
+  val add_mode: string -> (string -> int -> output) -> unit
   type T
   val raw_str: output * int -> T
   val str: string -> T
@@ -87,27 +85,18 @@ struct
 (** print mode operations **)
 
 fun default_indent (_: string) = Symbol.spaces;
-fun default_markup (_: Markup.T) = ("", "");
 
 local
-  val default = {indent = default_indent, markup = default_markup};
+  val default = {indent = default_indent};
   val modes = ref (Symtab.make [("", default)]);
 in
-  fun add_mode name indent markup =
-    change modes (Symtab.update_new (name, {indent = indent, markup = markup}));
+  fun add_mode name indent =
+    change modes (Symtab.update_new (name, {indent = indent}));
   fun get_mode () =
     the_default default (Library.get_first (Symtab.lookup (! modes)) (! print_mode));
 end;
 
 fun mode_indent x y = #indent (get_mode ()) x y;
-
-fun mode_markup m =
-  if m = Markup.none then ("", "")
-  else #markup (get_mode ()) m;
-
-fun add_markup m add =
-  let val (bg, en) = mode_markup m
-  in Buffer.add bg #> add #> Buffer.add en end;
 
 val output_spaces = Output.output o Symbol.spaces;
 val add_indent = Buffer.add o output_spaces;
@@ -281,7 +270,7 @@ fun format ([], _, _) text = text
             val block' =
               if pos' < emergencypos then (ind |> add_indent indent, pos')
               else (add_indent pos'' Buffer.empty, pos'');
-            val (bg, en) = mode_markup markup;
+            val (bg, en) = Markup.output markup;
             val btext: text = text
               |> control bg
               |> format (bes, block', breakdist (es, after))
@@ -309,6 +298,10 @@ end;
 
 
 (* special output *)
+
+fun add_markup m add =
+  let val (bg, en) = Markup.output m
+  in Buffer.add bg #> add #> Buffer.add en end;
 
 (*symbolic markup -- no formatting*)
 fun symbolic prt =
