@@ -3,61 +3,17 @@ imports GCD EfficientNat
 uses ("coopereif.ML") ("coopertac.ML")
 begin
 
-lemma allpairs_set: "set (allpairs Pair xs ys) = {(x,y). x\<in> set xs \<and> y \<in> set ys}"
-by (induct xs) auto
+function
+  iupt :: "int \<Rightarrow> int \<Rightarrow> int list"
+where
+  "iupt i j = (if j < i then [] else i # iupt (i+1) j)"
+by pat_completeness auto
+termination by (relation "measure (\<lambda> (i, j). nat (j-i+1))") auto
 
-
-  (* generate a list from i to j*)
-consts iupt :: "int \<times> int \<Rightarrow> int list"
-recdef iupt "measure (\<lambda> (i,j). nat (j-i +1))" 
-  "iupt (i,j) = (if j <i then [] else (i# iupt(i+1, j)))"
-
-lemma iupt_set: "set (iupt(i,j)) = {i .. j}"
-proof(induct rule: iupt.induct)
-  case (1 a b)
-  show ?case
-    using prems by (simp add: simp_from_to)
-qed
-
-lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
-using Nat.gr0_conv_Suc
-by clarsimp
-
-
-lemma myl: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a \<le> b) = (0 \<le> b - a)" 
-proof(clarify)
-  fix x y ::"'a"
-  have "(x \<le> y) = (x - y \<le> 0)" by (simp only: le_iff_diff_le_0[where a="x" and b="y"])
-  also have "\<dots> = (- (y - x) \<le> 0)" by simp
-  also have "\<dots> = (0 \<le> y - x)" by (simp only: neg_le_0_iff_le[where a="y-x"])
-  finally show "(x \<le> y) = (0 \<le> y - x)" .
-qed
-
-lemma myless: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a < b) = (0 < b - a)" 
-proof(clarify)
-  fix x y ::"'a"
-  have "(x < y) = (x - y < 0)" by (simp only: less_iff_diff_less_0[where a="x" and b="y"])
-  also have "\<dots> = (- (y - x) < 0)" by simp
-  also have "\<dots> = (0 < y - x)" by (simp only: neg_less_0_iff_less[where a="y-x"])
-  finally show "(x < y) = (0 < y - x)" .
-qed
-
-lemma myeq: "\<forall> (a::'a::{pordered_ab_group_add}) (b::'a). (a = b) = (0 = b - a)"
-  by auto
+lemma iupt_set: "set (iupt i j) = {i..j}"
+  by (induct rule: iupt.induct) (simp add: simp_from_to)
 
 (* Periodicity of dvd *)
-
-lemma dvd_period:
-  assumes advdd: "(a::int) dvd d"
-  shows "(a dvd (x + t)) = (a dvd ((x+ c*d) + t))"
-  using advdd  
-proof-
-  {fix x k
-    from inf_period(3)[OF advdd, rule_format, where x=x and k="-k"]  
-    have " ((a::int) dvd (x + t)) = (a dvd (x+k*d + t))" by simp}
-  hence "\<forall>x.\<forall>k. ((a::int) dvd (x + t)) = (a dvd (x+k*d + t))"  by simp
-  then show ?thesis by simp
-qed
 
   (*********************************************************************************)
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
@@ -198,7 +154,7 @@ lemma numbound0_I:
   assumes nb: "numbound0 a"
   shows "Inum (b#bs) a = Inum (b'#bs) a"
 using nb
-by (induct a rule: numbound0.induct) (auto simp add: nth_pos2)
+by (induct a rule: numbound0.induct) (auto simp add: gr0_conv_Suc)
 
 primrec
   "bound0 T = True"
@@ -224,7 +180,7 @@ lemma bound0_I:
   assumes bp: "bound0 p"
   shows "Ifm bbs (b#bs) p = Ifm bbs (b'#bs) p"
 using bp numbound0_I[where b="b" and bs="bs" and b'="b'"]
-by (induct p rule: bound0.induct) (auto simp add: nth_pos2)
+by (induct p rule: bound0.induct) (auto simp add: gr0_conv_Suc)
 
 primrec
   "numsubst0 t (C c) = (C c)"
@@ -237,12 +193,12 @@ primrec
 
 lemma numsubst0_I:
   shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b#bs) a)#bs) t"
-  by (induct t) (simp_all add: nth_pos2)
+  by (induct t) (auto simp add: gr0_conv_Suc)
 
 lemma numsubst0_I':
   assumes nb: "numbound0 a"
   shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b'#bs) a)#bs) t"
-  by (induct t) (simp_all add: nth_pos2 numbound0_I[OF nb, where b="b" and b'="b'"])
+  by (induct t) (auto simp add: gr0_conv_Suc numbound0_I[OF nb, where b="b" and b'="b'"])
 
 
 primrec
@@ -267,7 +223,7 @@ primrec
 lemma subst0_I: assumes qfp: "qfree p"
   shows "Ifm bbs (b#bs) (subst0 a p) = Ifm bbs ((Inum (b#bs) a)#bs) p"
   using qfp numsubst0_I[where b="b" and bs="bs" and a="a"]
-  by (induct p) (simp_all add: nth_pos2 )
+  by (induct p) (simp_all add: gr0_conv_Suc)
 
 
 consts 
@@ -300,12 +256,12 @@ recdef decr "measure size"
 
 lemma decrnum: assumes nb: "numbound0 t"
   shows "Inum (x#bs) t = Inum bs (decrnum t)"
-  using nb by (induct t rule: decrnum.induct, simp_all add: nth_pos2)
+  using nb by (induct t rule: decrnum.induct, auto simp add: gr0_conv_Suc)
 
 lemma decr: assumes nb: "bound0 p"
   shows "Ifm bbs (x#bs) p = Ifm bbs bs (decr p)"
   using nb 
-  by (induct p rule: decr.induct, simp_all add: nth_pos2 decrnum)
+  by (induct p rule: decr.induct, simp_all add: gr0_conv_Suc decrnum)
 
 lemma decr_qf: "bound0 p \<Longrightarrow> qfree (decr p)"
 by (induct p, simp_all)
@@ -444,10 +400,8 @@ recdef lex_ns "measure (\<lambda> (xs,ys). length xs + length ys)"
 constdefs lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool"
   "lex_bnd t s \<equiv> lex_ns (bnds t, bnds s)"
 
-consts simpnum:: "num \<Rightarrow> num"
+consts
   numadd:: "num \<times> num \<Rightarrow> num"
-  nummul:: "num \<Rightarrow> int \<Rightarrow> num"
-  numfloor:: "num \<Rightarrow> num"
 recdef numadd "measure (\<lambda> (t,s). size t + size s)"
   "numadd (Add (Mul c1 (Bound n1)) r1,Add (Mul c2 (Bound n2)) r2) =
   (if n1=n2 then 
@@ -460,6 +414,25 @@ recdef numadd "measure (\<lambda> (t,s). size t + size s)"
   "numadd (C b1, C b2) = C (b1+b2)"
   "numadd (a,b) = Add a b"
 
+(*function (sequential)
+  numadd :: "num \<Rightarrow> num \<Rightarrow> num"
+where
+  "numadd (Add (Mul c1 (Bound n1)) r1) (Add (Mul c2 (Bound n2)) r2) =
+      (if n1 = n2 then (let c = c1 + c2
+      in (if c = 0 then numadd r1 r2 else
+        Add (Mul c (Bound n1)) (numadd r1 r2)))
+      else if n1 \<le> n2 then
+        Add (Mul c1 (Bound n1)) (numadd r1 (Add (Mul c2 (Bound n2)) r2))
+      else
+        Add (Mul c2 (Bound n2)) (numadd (Add (Mul c1 (Bound n1)) r1) r2))"
+  | "numadd (Add (Mul c1 (Bound n1)) r1) t =
+      Add (Mul c1 (Bound n1)) (numadd r1 t)"  
+  | "numadd t (Add (Mul c2 (Bound n2)) r2) =
+      Add (Mul c2 (Bound n2)) (numadd t r2)" 
+  | "numadd (C b1) (C b2) = C (b1 + b2)"
+  | "numadd a b = Add a b"
+apply pat_completeness apply auto*)
+  
 lemma numadd: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
 apply (induct t s rule: numadd.induct, simp_all add: Let_def)
 apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
@@ -471,23 +444,25 @@ done
 lemma numadd_nb: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
 by (induct t s rule: numadd.induct, auto simp add: Let_def)
 
-recdef nummul "measure size"
-  "nummul (C j) = (\<lambda> i. C (i*j))"
-  "nummul (Add a b) = (\<lambda> i. numadd (nummul a i, nummul b i))"
-  "nummul (Mul c t) = (\<lambda> i. nummul t (i*c))"
-  "nummul t = (\<lambda> i. Mul i t)"
+fun
+  nummul :: "int \<Rightarrow> num \<Rightarrow> num"
+where
+  "nummul i (C j) = C (i * j)"
+  | "nummul i (Add a b) = numadd (nummul i a, nummul i b)"
+  | "nummul i (Mul c t) = nummul (i * c) t"
+  | "nummul i t = Mul i t"
 
-lemma nummul: "\<And> i. Inum bs (nummul t i) = Inum bs (Mul i t)"
+lemma nummul: "\<And> i. Inum bs (nummul i t) = Inum bs (Mul i t)"
 by (induct t rule: nummul.induct, auto simp add: ring_simps numadd)
 
-lemma nummul_nb: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummul t i)"
+lemma nummul_nb: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummul i t)"
 by (induct t rule: nummul.induct, auto simp add: numadd_nb)
 
 constdefs numneg :: "num \<Rightarrow> num"
-  "numneg t \<equiv> nummul t (- 1)"
+  "numneg t \<equiv> nummul (- 1) t"
 
 constdefs numsub :: "num \<Rightarrow> num \<Rightarrow> num"
-  "numsub s t \<equiv> (if s = t then C 0 else numadd (s,numneg t))"
+  "numsub s t \<equiv> (if s = t then C 0 else numadd (s, numneg t))"
 
 lemma numneg: "Inum bs (numneg t) = Inum bs (Neg t)"
 using numneg_def nummul by simp
@@ -501,14 +476,16 @@ using numneg numadd numsub_def by simp
 lemma numsub_nb: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numsub t s)"
 using numsub_def numadd_nb numneg_nb by simp
 
-recdef simpnum "measure size"
+fun
+  simpnum :: "num \<Rightarrow> num"
+where
   "simpnum (C j) = C j"
-  "simpnum (Bound n) = Add (Mul 1 (Bound n)) (C 0)"
-  "simpnum (Neg t) = numneg (simpnum t)"
-  "simpnum (Add t s) = numadd (simpnum t,simpnum s)"
-  "simpnum (Sub t s) = numsub (simpnum t) (simpnum s)"
-  "simpnum (Mul i t) = (if i = 0 then (C 0) else nummul (simpnum t) i)"
-  "simpnum t = t"
+  | "simpnum (Bound n) = Add (Mul 1 (Bound n)) (C 0)"
+  | "simpnum (Neg t) = numneg (simpnum t)"
+  | "simpnum (Add t s) = numadd (simpnum t, simpnum s)"
+  | "simpnum (Sub t s) = numsub (simpnum t) (simpnum s)"
+  | "simpnum (Mul i t) = (if i = 0 then C 0 else nummul i (simpnum t))"
+  | "simpnum t = t"
 
 lemma simpnum_ci: "Inum bs (simpnum t) = Inum bs t"
 by (induct t rule: simpnum.induct, auto simp add: numneg numadd numsub nummul)
@@ -517,12 +494,13 @@ lemma simpnum_numbound0:
   "numbound0 t \<Longrightarrow> numbound0 (simpnum t)"
 by (induct t rule: simpnum.induct, auto simp add: numadd_nb numsub_nb nummul_nb numneg_nb)
 
-consts not:: "fm \<Rightarrow> fm"
-recdef not "measure size"
+fun
+  not :: "fm \<Rightarrow> fm"
+where
   "not (NOT p) = p"
-  "not T = F"
-  "not F = T"
-  "not p = NOT p"
+  | "not T = F"
+  | "not F = T"
+  | "not p = NOT p"
 lemma not: "Ifm bbs bs (not p) = Ifm bbs bs (NOT p)"
 by (cases p) auto
 lemma not_qf: "qfree p \<Longrightarrow> qfree (not p)"
@@ -571,27 +549,31 @@ lemma iff_qf: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (iff 
 lemma iff_nb: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (iff p q)"
 using iff_def by (unfold iff_def,cases "p=q", auto simp add: not_bn)
 
-consts simpfm :: "fm \<Rightarrow> fm"
-recdef simpfm "measure fmsize"
+function (sequential)
+  simpfm :: "fm \<Rightarrow> fm"
+where
   "simpfm (And p q) = conj (simpfm p) (simpfm q)"
-  "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
-  "simpfm (Imp p q) = imp (simpfm p) (simpfm q)"
-  "simpfm (Iff p q) = iff (simpfm p) (simpfm q)"
-  "simpfm (NOT p) = not (simpfm p)"
-  "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v < 0) then T else F 
-  | _ \<Rightarrow> Lt a')"
-  "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<le> 0)  then T else F | _ \<Rightarrow> Le a')"
-  "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v > 0)  then T else F | _ \<Rightarrow> Gt a')"
-  "simpfm (Ge a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<ge> 0)  then T else F | _ \<Rightarrow> Ge a')"
-  "simpfm (Eq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v = 0)  then T else F | _ \<Rightarrow> Eq a')"
-  "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<noteq> 0)  then T else F | _ \<Rightarrow> NEq a')"
-  "simpfm (Dvd i a) = (if i=0 then simpfm (Eq a)
+  | "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
+  | "simpfm (Imp p q) = imp (simpfm p) (simpfm q)"
+  | "simpfm (Iff p q) = iff (simpfm p) (simpfm q)"
+  | "simpfm (NOT p) = not (simpfm p)"
+  | "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v < 0) then T else F 
+      | _ \<Rightarrow> Lt a')"
+  | "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<le> 0)  then T else F | _ \<Rightarrow> Le a')"
+  | "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v > 0)  then T else F | _ \<Rightarrow> Gt a')"
+  | "simpfm (Ge a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<ge> 0)  then T else F | _ \<Rightarrow> Ge a')"
+  | "simpfm (Eq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v = 0)  then T else F | _ \<Rightarrow> Eq a')"
+  | "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<noteq> 0)  then T else F | _ \<Rightarrow> NEq a')"
+  | "simpfm (Dvd i a) = (if i=0 then simpfm (Eq a)
              else if (abs i = 1) then T
              else let a' = simpnum a in case a' of C v \<Rightarrow> if (i dvd v)  then T else F | _ \<Rightarrow> Dvd i a')"
-  "simpfm (NDvd i a) = (if i=0 then simpfm (NEq a) 
+  | "simpfm (NDvd i a) = (if i=0 then simpfm (NEq a) 
              else if (abs i = 1) then F
              else let a' = simpnum a in case a' of C v \<Rightarrow> if (\<not>(i dvd v)) then T else F | _ \<Rightarrow> NDvd i a')"
-  "simpfm p = p"
+  | "simpfm p = p"
+by pat_completeness auto
+termination by (relation "measure fmsize") auto
+
 lemma simpfm: "Ifm bbs bs (simpfm p) = Ifm bbs bs p"
 proof(induct p rule: simpfm.induct)
   case (6 a) let ?sa = "simpnum a" from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
@@ -727,6 +709,20 @@ recdef qelim "measure fmsize"
   "qelim (Iff p q) = (\<lambda> qe. iff (qelim p qe) (qelim q qe))"
   "qelim p = (\<lambda> y. simpfm p)"
 
+(*function (sequential)
+  qelim :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
+where
+  "qelim qe (E p) = DJ qe (qelim qe p)"
+  | "qelim qe (A p) = not (qe ((qelim qe (NOT p))))"
+  | "qelim qe (NOT p) = not (qelim qe p)"
+  | "qelim qe (And p q) = conj (qelim qe p) (qelim qe q)" 
+  | "qelim qe (Or  p q) = disj (qelim qe p) (qelim qe q)" 
+  | "qelim qe (Imp p q) = imp (qelim qe p) (qelim qe q)"
+  | "qelim qe (Iff p q) = iff (qelim qe p) (qelim qe q)"
+  | "qelim qe p = simpfm p"
+by pat_completeness auto
+termination by (relation "measure (fmsize o snd)") auto*)
+
 lemma qelim_ci:
   assumes qe_inv: "\<forall> bs p. qfree p \<longrightarrow> qfree (qe p) \<and> (Ifm bbs bs (qe p) = Ifm bbs bs (E p))"
   shows "\<And> bs. qfree (qelim p qe) \<and> (Ifm bbs bs (qelim p qe) = Ifm bbs bs p)"
@@ -735,21 +731,21 @@ by(induct p rule: qelim.induct)
 (auto simp add: not disj conj iff imp not_qf disj_qf conj_qf imp_qf iff_qf 
   simpfm simpfm_qf simp del: simpfm.simps)
   (* Linearity for fm where Bound 0 ranges over \<int> *)
-consts
+
+fun
   zsplit0 :: "num \<Rightarrow> int \<times> num" (* splits the bounded from the unbounded part*)
-recdef zsplit0 "measure size"
+where
   "zsplit0 (C c) = (0,C c)"
-  "zsplit0 (Bound n) = (if n=0 then (1, C 0) else (0,Bound n))"
-  "zsplit0 (CX i a) = (let (i',a') =  zsplit0 a in (i+i', a'))"
-  "zsplit0 (Neg a) = (let (i',a') =  zsplit0 a in (-i', Neg a'))"
-  "zsplit0 (Add a b) = (let (ia,a') =  zsplit0 a ; 
+  | "zsplit0 (Bound n) = (if n=0 then (1, C 0) else (0,Bound n))"
+  | "zsplit0 (CX i a) = (let (i',a') =  zsplit0 a in (i+i', a'))"
+  | "zsplit0 (Neg a) = (let (i',a') =  zsplit0 a in (-i', Neg a'))"
+  | "zsplit0 (Add a b) = (let (ia,a') =  zsplit0 a ; 
                             (ib,b') =  zsplit0 b 
                             in (ia+ib, Add a' b'))"
-  "zsplit0 (Sub a b) = (let (ia,a') =  zsplit0 a ; 
+  | "zsplit0 (Sub a b) = (let (ia,a') =  zsplit0 a ; 
                             (ib,b') =  zsplit0 b 
                             in (ia-ib, Sub a' b'))"
-  "zsplit0 (Mul i a) = (let (i',a') =  zsplit0 a in (i*i', Mul i a'))"
-(hints simp add: Let_def)
+  | "zsplit0 (Mul i a) = (let (i',a') =  zsplit0 a in (i*i', Mul i a'))"
 
 lemma zsplit0_I:
   shows "\<And> n a. zsplit0 t = (n,a) \<Longrightarrow> (Inum ((x::int) #bs) (CX n a) = Inum (x #bs) t) \<and> numbound0 a"
@@ -788,7 +784,7 @@ next
   ultimately have th: "a=Add ?as ?at \<and> n=?ns + ?nt" using prems 
     by (simp add: Let_def split_def)
   from abjs[symmetric] have bluddy: "\<exists> x y. (x,y) = zsplit0 s" by blast
-  from prems have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CX xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by simp
+  from prems have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CX xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by auto
   with bluddy abjt have th3: "(?I x (CX ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
   from abjs prems  have th2: "(?I x (CX ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
   from th3[simplified] th2[simplified] th[simplified] show ?case 
@@ -804,7 +800,7 @@ next
   ultimately have th: "a=Sub ?as ?at \<and> n=?ns - ?nt" using prems 
     by (simp add: Let_def split_def)
   from abjs[symmetric] have bluddy: "\<exists> x y. (x,y) = zsplit0 s" by blast
-  from prems have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CX xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by simp
+  from prems have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CX xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by auto
   with bluddy abjt have th3: "(?I x (CX ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
   from abjs prems  have th2: "(?I x (CX ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
   from th3[simplified] th2[simplified] th[simplified] show ?case 
@@ -823,7 +819,6 @@ qed
 
 consts
   iszlfm :: "fm \<Rightarrow> bool"   (* Linearity test for fm *)
-  zlfm :: "fm \<Rightarrow> fm"       (* Linearity transformation for fm *)
 recdef iszlfm "measure size"
   "iszlfm (And p q) = (iszlfm p \<and> iszlfm q)" 
   "iszlfm (Or p q) = (iszlfm p \<and> iszlfm q)" 
@@ -842,7 +837,8 @@ recdef iszlfm "measure size"
 lemma zlin_qfree: "iszlfm p \<Longrightarrow> qfree p"
   by (induct p rule: iszlfm.induct) auto
 
-
+consts
+  zlfm :: "fm \<Rightarrow> fm"       (* Linearity transformation for fm *)
 recdef zlfm "measure fmsize"
   "zlfm (And p q) = And (zlfm p) (zlfm q)"
   "zlfm (Or p q) = Or (zlfm p) (zlfm q)"
@@ -1309,7 +1305,7 @@ next
 	by blast
       thus "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
     qed
-qed (auto simp add: nth_pos2 numbound0_I[where bs="bs" and b="x - k*d" and b'="x"])
+qed (auto simp add: gr0_conv_Suc numbound0_I[where bs="bs" and b="x - k*d" and b'="x"])
 
     (* Is'nt this beautiful?*)
 lemma minusinf_ex:
@@ -1374,7 +1370,7 @@ next
     using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"]
     by simp
   finally show ?case by simp
-qed (auto simp add: numbound0_I[where bs="bs" and b="x" and b'="- x"] nth_pos2)
+qed (auto simp add: numbound0_I[where bs="bs" and b="x" and b'="- x"] gr0_conv_Suc)
 
 lemma mirror_l: "iszlfm p \<and> d\<beta> p 1 
   \<Longrightarrow> iszlfm (mirror p) \<and> d\<beta> (mirror p) 1"
@@ -1571,7 +1567,7 @@ next
     using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e = j * k)" by simp
   finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be  mult_strict_mono[OF ldcp jp ldcp ] by (simp add: dvd_def)
-qed (simp_all add: nth_pos2 numbound0_I[where bs="bs" and b="(l * x)" and b'="x"])
+qed (auto simp add: gr0_conv_Suc numbound0_I[where bs="bs" and b="(l * x)" and b'="x"])
 
 lemma a\<beta>_ex: assumes linp: "iszlfm p" and d: "d\<beta> p l" and lp: "l>0"
   shows "(\<exists> x. l dvd x \<and> Ifm bbs (x #bs) (a\<beta> p l)) = (\<exists> (x::int). Ifm bbs (x#bs) p)"
@@ -1665,7 +1661,7 @@ next
     from prems have id: "j dvd d" by simp
     from c1 have "?p x = (j dvd (x+ ?e))" by simp
     also have "\<dots> = (j dvd x - d + ?e)" 
-      using dvd_period[OF id, where x="x" and c="-1" and t="?e"] by simp
+      using zdvd_period[OF id, where x="x" and c="-1" and t="?e"] by simp
     finally show ?case 
       using numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] c1 p by simp
 next
@@ -1674,9 +1670,9 @@ next
     from prems have id: "j dvd d" by simp
     from c1 have "?p x = (\<not> j dvd (x+ ?e))" by simp
     also have "\<dots> = (\<not> j dvd x - d + ?e)" 
-      using dvd_period[OF id, where x="x" and c="-1" and t="?e"] by simp
+      using zdvd_period[OF id, where x="x" and c="-1" and t="?e"] by simp
     finally show ?case using numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] c1 p by simp
-qed (auto simp add: numbound0_I[where bs="bs" and b="(x - d)" and b'="x"] nth_pos2)
+qed (auto simp add: numbound0_I[where bs="bs" and b="(x - d)" and b'="x"] gr0_conv_Suc)
 
 lemma \<beta>':   
   assumes lp: "iszlfm p"
@@ -1820,7 +1816,7 @@ qed
 
 constdefs cooper :: "fm \<Rightarrow> fm"
   "cooper p \<equiv> 
-  (let (q,B,d) = unit p; js = iupt (1,d);
+  (let (q,B,d) = unit p; js = iupt 1 d;
        mq = simpfm (minusinf q);
        md = evaldjf (\<lambda> j. simpfm (subst0 (C j) mq)) js
    in if md = T then T else
@@ -1836,7 +1832,7 @@ proof-
   let ?q = "fst (unit p)"
   let ?B = "fst (snd(unit p))"
   let ?d = "snd (snd (unit p))"
-  let ?js = "iupt (1,?d)"
+  let ?js = "iupt 1 ?d"
   let ?mq = "minusinf ?q"
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
@@ -1857,7 +1853,7 @@ proof-
     by (auto simp add: simpfm_bound0)
   from evaldjf_bound0[OF th] have mdb: "bound0 ?md" by simp 
   from Bn jsnb have "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). numbound0 (Add b (C j))"
-    by (simp add: allpairs_set)
+    by simp
   hence "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). bound0 (subst0 (Add b (C j)) ?q)"
     using subst0_bound0[OF qfq] by blast
   hence "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). bound0 (simpfm (subst0 (Add b (C j)) ?q))"
@@ -1877,9 +1873,9 @@ proof-
   also have "\<dots> = (?I i (evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js) \<or> (\<exists> j\<in> set ?js. \<exists> b\<in> set ?B. ?I i (subst0 (Add b (C j)) ?q)))" 
    by (simp only: evaldjf_ex subst0_I[OF qfq])
  also have "\<dots>= (?I i ?md \<or> (\<exists> (b,j) \<in> set (allpairs Pair ?B ?js). (\<lambda> (b,j). ?I i (simpfm (subst0 (Add b (C j)) ?q))) (b,j)))"
-   by (simp only: simpfm allpairs_set) blast
+   by (simp only: simpfm set_allpairs) blast
  also have "\<dots> = (?I i ?md \<or> (?I i (evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) (allpairs Pair ?B ?js))))"
-   by (simp only: evaldjf_ex[where bs="i#bs" and f="\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)" and ps="allpairs Pair ?B ?js"]) (auto simp add: split_def) 
+   by (simp only: evaldjf_ex[where bs="i#bs" and f="\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)" and ps="allpairs Pair ?B ?js"]) (auto simp add: split_def)
  finally have mdqd: "?lhs = (?I i ?md \<or> ?I i ?qd)" by simp  
   also have "\<dots> = (?I i (disj ?md ?qd))" by (simp add: disj)
   also have "\<dots> = (Ifm bbs bs (decr (disj ?md ?qd)))" by (simp only: decr [OF mdqdb]) 
@@ -1910,10 +1906,10 @@ where
     (E (E (Eq (Sub (Add (Mul 3 (Bound 1)) (Mul 5 (Bound 0)))
       (Bound 2))))))))"
 
-code_gen pa cooper_test in SML
+code_gen pa cooper_test in SML to GeneratedCooper
+(*code_reserved SML oo code_gen pa in SML to GeneratedCooper file "~~/src/HOL/Tools/Qelim/raw_generated_cooper.ML"*)
 
-ML {* structure GeneratedCooper = struct open ROOT end *}
-ML {* GeneratedCooper.Reflected_Presburger.cooper_test () *}
+ML {* GeneratedCooper.cooper_test () *}
 use "coopereif.ML"
 oracle linzqe_oracle ("term") = Coopereif.cooper_oracle
 use "coopertac.ML"
