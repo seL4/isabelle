@@ -11,6 +11,7 @@ theory IntDef
 imports Equiv_Relations Nat
 begin
 
+
 text {* the equivalence relation underlying the integers *}
 
 definition
@@ -622,52 +623,6 @@ lemma Ints_induct [case_names of_int, induct set: Ints]:
   by (rule Ints_cases) auto
 
 
-(* int (Suc n) = 1 + int n *)
-
-
-
-subsection{*More Properties of @{term setsum} and  @{term setprod}*}
-
-text{*By Jeremy Avigad*}
-
-
-lemma of_nat_setsum: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
-  apply (cases "finite A")
-  apply (erule finite_induct, auto)
-  done
-
-lemma of_int_setsum: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
-  apply (cases "finite A")
-  apply (erule finite_induct, auto)
-  done
-
-lemma of_nat_setprod: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
-  apply (cases "finite A")
-  apply (erule finite_induct, auto simp add: of_nat_mult)
-  done
-
-lemma of_int_setprod: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
-  apply (cases "finite A")
-  apply (erule finite_induct, auto)
-  done
-
-lemma setprod_nonzero_nat:
-    "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::nat)) ==> setprod f A \<noteq> 0"
-  by (rule setprod_nonzero, auto)
-
-lemma setprod_zero_eq_nat:
-    "finite A ==> (setprod f A = (0::nat)) = (\<exists>x \<in> A. f x = 0)"
-  by (rule setprod_zero_eq, auto)
-
-lemma setprod_nonzero_int:
-    "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::int)) ==> setprod f A \<noteq> 0"
-  by (rule setprod_nonzero, auto)
-
-lemma setprod_zero_eq_int:
-    "finite A ==> (setprod f A = (0::int)) = (\<exists>x \<in> A. f x = 0)"
-  by (rule setprod_zero_eq, auto)
-
-
 subsection {* Further properties *}
 
 text{*Now we replace the case analysis rule by a more conventional one:
@@ -766,8 +721,6 @@ lemmas int_1 = of_nat_1 [where 'a=int]
 lemmas int_Suc = of_nat_Suc [where ?'a_1.0=int]
 lemmas abs_int_eq = abs_of_nat [where 'a=int and n="?m"]
 lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
-lemmas int_setsum = of_nat_setsum [where 'a=int]
-lemmas int_setprod = of_nat_setprod [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
 lemmas zless_le = less_int_def [THEN meta_eq_to_obj_eq]
 lemmas int_eq_of_nat = TrueI

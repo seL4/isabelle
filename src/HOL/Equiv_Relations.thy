@@ -6,7 +6,7 @@
 header {* Equivalence Relations in Higher-Order Set Theory *}
 
 theory Equiv_Relations
-imports Relation Finite_Set
+imports Relation
 begin
 
 subsection {* Equivalence relations *}
@@ -292,83 +292,4 @@ lemma congruent2_commuteI:
          erule equivA [THEN equiv_type, THEN subsetD, THEN SigmaE2])+
   done
 
-
-subsection {* Cardinality results *}
-
-text {*Suggested by Florian Kammüller*}
-
-lemma finite_quotient: "finite A ==> r \<subseteq> A \<times> A ==> finite (A//r)"
-  -- {* recall @{thm equiv_type} *}
-  apply (rule finite_subset)
-   apply (erule_tac [2] finite_Pow_iff [THEN iffD2])
-  apply (unfold quotient_def)
-  apply blast
-  done
-
-lemma finite_equiv_class:
-  "finite A ==> r \<subseteq> A \<times> A ==> X \<in> A//r ==> finite X"
-  apply (unfold quotient_def)
-  apply (rule finite_subset)
-   prefer 2 apply assumption
-  apply blast
-  done
-
-lemma equiv_imp_dvd_card:
-  "finite A ==> equiv A r ==> \<forall>X \<in> A//r. k dvd card X
-    ==> k dvd card A"
-  apply (rule Union_quotient [THEN subst])
-   apply assumption
-  apply (rule dvd_partition)
-     prefer 3 apply (blast dest: quotient_disj)
-    apply (simp_all add: Union_quotient equiv_type)
-  done
-
-lemma card_quotient_disjoint:
- "\<lbrakk> finite A; inj_on (\<lambda>x. {x} // r) A \<rbrakk> \<Longrightarrow> card(A//r) = card A"
-apply(simp add:quotient_def)
-apply(subst card_UN_disjoint)
-   apply assumption
-  apply simp
- apply(fastsimp simp add:inj_on_def)
-apply (simp add:setsum_constant)
-done
-(*
-ML
-{*
-val UN_UN_split_split_eq = thm "UN_UN_split_split_eq";
-val UN_constant_eq = thm "UN_constant_eq";
-val UN_equiv_class = thm "UN_equiv_class";
-val UN_equiv_class2 = thm "UN_equiv_class2";
-val UN_equiv_class_inject = thm "UN_equiv_class_inject";
-val UN_equiv_class_type = thm "UN_equiv_class_type";
-val UN_equiv_class_type2 = thm "UN_equiv_class_type2";
-val Union_quotient = thm "Union_quotient";
-val comp_equivI = thm "comp_equivI";
-val congruent2I = thm "congruent2I";
-val congruent2_commuteI = thm "congruent2_commuteI";
-val congruent2_def = thm "congruent2_def";
-val congruent2_implies_congruent = thm "congruent2_implies_congruent";
-val congruent2_implies_congruent_UN = thm "congruent2_implies_congruent_UN";
-val congruent_def = thm "congruent_def";
-val eq_equiv_class = thm "eq_equiv_class";
-val eq_equiv_class_iff = thm "eq_equiv_class_iff";
-val equiv_class_eq = thm "equiv_class_eq";
-val equiv_class_eq_iff = thm "equiv_class_eq_iff";
-val equiv_class_nondisjoint = thm "equiv_class_nondisjoint";
-val equiv_class_self = thm "equiv_class_self";
-val equiv_comp_eq = thm "equiv_comp_eq";
-val equiv_def = thm "equiv_def";
-val equiv_imp_dvd_card = thm "equiv_imp_dvd_card";
-val equiv_type = thm "equiv_type";
-val finite_equiv_class = thm "finite_equiv_class";
-val finite_quotient = thm "finite_quotient";
-val quotientE = thm "quotientE";
-val quotientI = thm "quotientI";
-val quotient_def = thm "quotient_def";
-val quotient_disj = thm "quotient_disj";
-val refl_comp_subset = thm "refl_comp_subset";
-val subset_equiv_class = thm "subset_equiv_class";
-val sym_trans_comp_subset = thm "sym_trans_comp_subset";
-*}
-*)
 end
