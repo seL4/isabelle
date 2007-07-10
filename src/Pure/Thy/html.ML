@@ -455,6 +455,6 @@ fun subsubsection heading = "\n\n<h4>" ^ plain heading ^ "</h4>\n";
 (* mode output *)
 
 val _ = Output.add_mode htmlN output_width Symbol.encode_raw;
-val _ = Pretty.add_mode htmlN Pretty.default_indent (span o #1);
+val _ = Markup.add_mode htmlN (span o #1);
 
 end;

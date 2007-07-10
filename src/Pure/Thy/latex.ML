@@ -176,6 +176,7 @@ fun latex_indent "" _ = ""
   | latex_indent s _ = enclose "\\isaindent{" "}" s;
 
 val _ = Output.add_mode latexN latex_output Symbol.encode_raw;
-val _ = Pretty.add_mode latexN latex_indent latex_markup;
+val _ = Markup.add_mode latexN latex_markup;
+val _ = Pretty.add_mode latexN latex_indent;
 
 end;
