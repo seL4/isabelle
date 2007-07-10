@@ -385,14 +385,17 @@ setup {*
 *}
 (*>*)
 
+
 subsection {* Module names *}
 
 code_modulename SML
   Nat Integer
+  Divides Integer
   EfficientNat Integer
 
 code_modulename OCaml
   Nat Integer
+  Divides Integer
   EfficientNat Integer
 
 code_modulename Haskell
