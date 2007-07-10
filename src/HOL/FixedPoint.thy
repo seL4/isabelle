@@ -8,7 +8,7 @@
 header {* Fixed Points and the Knaster-Tarski Theorem*}
 
 theory FixedPoint
-imports Product_Type
+imports Fun
 begin
 
 subsection {* Complete lattices *}
@@ -330,9 +330,6 @@ lemma lfp_induct_set:
   by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
     (auto simp: inf_set_eq intro: indhyp)
 
-text {* Version of induction for binary relations *}
-lemmas lfp_induct2 =  lfp_induct_set [of "(a, b)", split_format (complete)]
-
 lemma lfp_ordinal_induct: 
   assumes mono: "mono f"
   shows "[| !!S. P S ==> P(f S); !!M. !S:M. P S ==> P(Union M) |] 
@@ -496,7 +493,6 @@ val lfp_lowerbound = thm "lfp_lowerbound";
 val lfp_greatest = thm "lfp_greatest";
 val lfp_unfold = thm "lfp_unfold";
 val lfp_induct = thm "lfp_induct";
-val lfp_induct2 = thm "lfp_induct2";
 val lfp_ordinal_induct = thm "lfp_ordinal_induct";
 val def_lfp_unfold = thm "def_lfp_unfold";
 val def_lfp_induct = thm "def_lfp_induct";
