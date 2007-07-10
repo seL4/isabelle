@@ -65,7 +65,8 @@ fun print (Pos (SOME n, NONE)) = "(line " ^ string_of_int n ^ ")"
   | print (Pos (SOME n, SOME s)) = "(line " ^ string_of_int n ^ " of " ^ quote s ^ ")";
 
 fun str_of (Pos (NONE, NONE)) = ""
-  | str_of pos = " " ^ Pretty.string_of (Pretty.markup
-        (Markup.properties (properties_of pos) Markup.position) [Pretty.str (print pos)]);
+  | str_of pos = " " ^
+      (Markup.output (Markup.properties (properties_of pos) Markup.position) |-> enclose)
+        (print pos);
 
 end;
