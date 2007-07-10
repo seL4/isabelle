@@ -7,6 +7,7 @@ HTML presentation elements.
 
 signature HTML =
 sig
+  val html_mode: ('a -> 'b) -> 'a -> 'b
   type text = string
   val plain: string -> text
   val name: string -> text
@@ -22,6 +23,8 @@ sig
   val preform: text -> text
   val verbatim: string -> text
   val with_charset: string -> ('a -> 'b) -> 'a -> 'b
+  val begin_document: string -> text
+  val end_document: text
   val begin_index: Url.T * string -> Url.T * string -> (Url.T * string) list -> Url.T -> text
   val end_index: text
   val applet_pages: string -> Url.T * string -> (string * string) list
