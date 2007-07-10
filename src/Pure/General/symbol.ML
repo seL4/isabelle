@@ -115,8 +115,8 @@ fun not_sync s = s <> sync;
 val malformed = "[[";
 val end_malformed = "]]";
 
-fun malformed_msg s =  (*Output.escape avoids looping errors*)
-  "Malformed symbolic character: " ^ quote (Output.escape s);
+fun malformed_msg s =
+  "Malformed symbolic character: " ^ quote (Output.escape_malformed s);
 
 
 (* ascii symbols *)
