@@ -72,11 +72,13 @@ sig
   val empty_code: code;
   val get_def: code -> string -> def;
   val merge_code: code * code -> code;
-  val project_code: string list (*hidden*) -> string list option (*selected*)
+  val project_code: bool (*delete empty funs*)
+    -> string list (*hidden*) -> string list option (*selected*)
     -> code -> code;
+  val empty_funs: code -> string list;
   val add_eval_def: string (*bind name*) * iterm -> code -> code;
 
-  val ensure_def: (string -> string) -> (transact -> def * code) -> bool -> string
+  val ensure_def: (string -> string) -> (transact -> def * code) -> string
     -> string -> transact -> transact;
   val succeed: 'a -> transact -> 'a * code;
   val fail: string -> transact -> 'a * code;
@@ -262,7 +264,6 @@ datatype def =
   | Classinst of (class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
       * (string * iterm) list);
-val eq_def = (op =) : def * def -> bool;
 
 type code = def Graph.T;
 type transact = Graph.key option * code;
@@ -277,43 +278,44 @@ val get_def = Graph.get_node;
 
 fun ensure_bot name = Graph.default_node (name, Bot);
 
-fun add_def_incr strict (name, Bot) code =
+fun add_def_incr (name, Bot) code =
       (case the_default Bot (try (get_def code) name)
-       of Bot => if strict then error "Attempted to add Bot to code"
-            else Graph.map_node name (K Bot) code
+       of Bot => error "Attempted to add Bot to code"
         | _ => code)
-  | add_def_incr _ (name, def) code =
+  | add_def_incr (name, def) code =
       (case try (get_def code) name
        of NONE => Graph.new_node (name, def) code
         | SOME Bot => Graph.map_node name (K def) code
-        | SOME def' => if eq_def (def, def')
-            then code
-            else error ("Tried to overwrite definition " ^ quote name));
+        | SOME _ => error ("Tried to overwrite definition " ^ quote name));
 
 fun add_dep (dep as (name1, name2)) =
   if name1 = name2 then I else Graph.add_edge dep;
 
-val merge_code = Graph.join (fn _ => fn def12 => if eq_def def12 then fst def12 else Bot);
+val merge_code : code * code -> code = Graph.merge (K true);
 
-fun project_code hidden raw_selected code =
+fun project_code delete_empty_funs hidden raw_selected code =
   let
-    fun is_bot name = case get_def code name
-     of Bot => true
+    fun is_empty_fun name = case get_def code name
+     of Fun ([], _) => true
       | _ => false;
     val names = subtract (op =) hidden (Graph.keys code);
-    val deleted = Graph.all_preds code (filter is_bot names);
+    val deleted = Graph.all_preds code (filter is_empty_fun names);
     val selected = case raw_selected
      of NONE => names |> subtract (op =) deleted 
       | SOME sel => sel
-          |> subtract (op =) deleted
+          |> delete_empty_funs ? subtract (op =) deleted
           |> subtract (op =) hidden
           |> Graph.all_succs code
-          |> subtract (op =) deleted
+          |> delete_empty_funs ? subtract (op =) deleted
           |> subtract (op =) hidden;
   in
     code
     |> Graph.subgraph (member (op =) selected)
   end;
+
+fun empty_funs code =
+  Graph.fold (fn (name, (Fun ([], _), _)) => cons name
+               | _ => I) code [];
 
 fun check_samemodule names =
   fold (fn name =>
@@ -366,19 +368,19 @@ fun check_prep_def code Bot =
 fun postprocess_def (name, Datatype (_, constrs)) =
       tap (fn _ => check_samemodule (name :: map fst constrs))
       #> fold (fn (co, _) =>
-        add_def_incr true (co, Datatypecons name)
+        add_def_incr (co, Datatypecons name)
         #> add_dep (co, name)
         #> add_dep (name, co)
       ) constrs
   | postprocess_def (name, Class (classrels, (_, classops))) =
       tap (fn _ => check_samemodule (name :: map fst classops @ map snd classrels))
       #> fold (fn (f, _) =>
-        add_def_incr true (f, Classop name)
+        add_def_incr (f, Classop name)
         #> add_dep (f, name)
         #> add_dep (name, f)
       ) classops
       #> fold (fn (superclass, classrel) =>
-        add_def_incr true (classrel, Classrel (name, superclass))
+        add_def_incr (classrel, Classrel (name, superclass))
         #> add_dep (classrel, name)
         #> add_dep (name, classrel)
       ) classrels
@@ -388,12 +390,11 @@ fun postprocess_def (name, Datatype (_, constrs)) =
 
 (* transaction protocol *)
 
-fun ensure_def labelled_name defgen strict msg name (dep, code) =
+fun ensure_def labelled_name defgen msg name (dep, code) =
   let
     val msg' = (case dep
      of NONE => msg
-      | SOME dep => msg ^ ", required for " ^ labelled_name dep)
-      ^ (if strict then " (strict)" else " (non-strict)");
+      | SOME dep => msg ^ ", required for " ^ labelled_name dep);
     fun add_dp NONE = I
       | add_dp (SOME dep) =
           tracing (fn _ => "adding dependency " ^ labelled_name dep
@@ -402,24 +403,19 @@ fun ensure_def labelled_name defgen strict msg name (dep, code) =
     fun prep_def def code =
       (check_prep_def code def, code);
     fun invoke_generator name defgen code =
-      defgen (SOME name, code)
-        handle FAIL msgs =>
-          if strict then raise FAIL (msg' :: msgs)
-          else (Bot, code);
-  in
-    code
-    |> (if can (get_def code) name
-        then
-          add_dp dep
-        else
+      defgen (SOME name, code) handle FAIL msgs => raise FAIL (msg' :: msgs);
+    fun add_def false =
           ensure_bot name
           #> add_dp dep
           #> invoke_generator name defgen
           #-> (fn def => prep_def def)
-          #-> (fn def =>
-             add_def_incr strict (name, def)
-          #> postprocess_def (name, def)
-       ))
+          #-> (fn def => add_def_incr (name, def)
+          #> postprocess_def (name, def))
+      | add_def true =
+          add_dp dep;
+  in
+    code
+    |> add_def (can (get_def code) name)
     |> pair dep
   end;
 

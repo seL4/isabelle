@@ -31,11 +31,9 @@ sig
 
   type serializer;
   val add_serializer: string * serializer -> theory -> theory;
-  val get_serializer: theory -> string -> string option -> Args.T list -> (theory -> string -> string)
-    -> string list option -> CodegenThingol.code -> unit;
+  val get_serializer: theory -> string -> bool -> string option -> string option -> Args.T list
+    -> (theory -> string -> string) -> string list option -> CodegenThingol.code -> unit;
   val assert_serializer: theory -> string -> string;
-
-  val const_has_serialization: theory -> string list -> string -> bool;
 
   val eval_verbose: bool ref;
   val eval_term: theory -> (theory -> string -> string) -> CodegenThingol.code
@@ -860,9 +858,10 @@ fun pr_ocaml_modl name content =
 val code_width = ref 80;
 fun code_output p = Pretty.setmp_margin (!code_width) Pretty.output p ^ "\n";
 
-fun seri_ml pr_def pr_modl output labelled_name reserved_syms module_alias module_prolog
+fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_alias module_prolog
   (_ : string -> class_syntax option) tyco_syntax const_syntax code =
   let
+    val module_alias = if is_some module then K module else raw_module_alias;
     val is_cons = fn node => case CodegenThingol.get_def code node
      of CodegenThingol.Datatypecons _ => true
       | _ => false;
@@ -1022,22 +1021,27 @@ fun seri_ml pr_def pr_modl output labelled_name reserved_syms module_alias modul
           SOME (pr_modl dmodlname (the_prolog (NameSpace.implode (prefix @ [dmodlname]))
             @ separate (str "") ((map_filter (pr_node (prefix @ [dmodlname]) o Graph.get_node nodes)
                 o rev o flat o Graph.strong_conn) nodes)));
-    val p = pr_modl "ROOT" (the_prolog "" @ separate (str "") ((map_filter
+    val mk_frame = if is_some module
+      then Pretty.chunks
+      else pr_modl "ROOT"
+    val p = mk_frame (the_prolog "" @ separate (str "") ((map_filter
       (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes))
   in output p end;
 
-fun isar_seri_sml file =
+val eval_verbose = ref false;
+
+fun isar_seri_sml module file =
   let
     val output = case file
-     of NONE => use_text "generated code" Output.ml_output false o code_output
+     of NONE => use_text "generated code" Output.ml_output (!eval_verbose) o code_output
       | SOME "-" => writeln o code_output
       | SOME file => File.write (Path.explode file) o code_output;
   in
     parse_args (Scan.succeed ())
-    #> (fn () => seri_ml pr_sml pr_sml_modl output)
+    #> (fn () => seri_ml pr_sml pr_sml_modl module output)
   end;
 
-fun isar_seri_ocaml file =
+fun isar_seri_ocaml module file =
   let
     val output = case file
      of NONE => error "OCaml: no internal compilation"
@@ -1047,7 +1051,7 @@ fun isar_seri_ocaml file =
     val output_diag = writeln o code_output;
   in
     parse_args (Scan.succeed ())
-    #> (fn () => seri_ml pr_ocaml pr_ocaml_modl output)
+    #> (fn () => seri_ml pr_ocaml pr_ocaml_modl module output)
   end;
 
 
@@ -1296,10 +1300,11 @@ fun pretty_haskell_monad c_mbind c_kbind =
 
 end; (*local*)
 
-fun seri_haskell module_prefix destination string_classes labelled_name reserved_syms module_alias module_prolog
-  class_syntax tyco_syntax const_syntax code =
+fun seri_haskell module_prefix module destination string_classes labelled_name
+  reserved_syms raw_module_alias module_prolog class_syntax tyco_syntax const_syntax code =
   let
     val _ = Option.map File.check destination;
+    val module_alias = if is_some module then K module else raw_module_alias;
     val init_names = Name.make_context reserved_syms;
     val name_modl = mk_modl_name_tab init_names module_prefix module_alias code;
     fun add_def (name, (def, deps)) =
@@ -1413,7 +1418,7 @@ fun seri_haskell module_prefix destination string_classes labelled_name reserved
       end;
   in Symtab.fold (fn modl => fn () => seri_module modl) code' () end;
 
-fun isar_seri_haskell file =
+fun isar_seri_haskell module file =
   let
     val destination = case file
      of NONE => error ("Haskell: no internal compilation")
@@ -1423,13 +1428,13 @@ fun isar_seri_haskell file =
     parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
       -- Scan.optional (Args.$$$ "string_classes" >> K true) false
       >> (fn (module_prefix, string_classes) =>
-        seri_haskell module_prefix destination string_classes))
+        seri_haskell module_prefix module destination string_classes))
   end;
 
 
 (** diagnosis serializer **)
 
-fun seri_diagnosis labelled_name _ _ _ _ _ code =
+fun seri_diagnosis labelled_name _ _ _ _ _ _ code =
   let
     val init_names = CodegenNames.make_vars [];
     fun pr_fun "fun" = SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
@@ -1490,6 +1495,7 @@ fun merge_syntax_modl (SyntaxModl { alias = alias1, prolog = prolog1 },
 
 type serializer =
   string option
+  -> string option
   -> Args.T list
   -> (string -> string)
   -> string list
@@ -1577,7 +1583,7 @@ val _ = Context.add_setup (
   #> add_serializer (target_diag, (fn _ => fn _ => fn _ => seri_diagnosis))
 );
 
-fun get_serializer thy target file args labelled_name = fn cs =>
+fun get_serializer thy target permissive module file args labelled_name = fn cs =>
   let
     val data = case Symtab.lookup (CodegenSerializerData.get thy) target
      of SOME data => data
@@ -1587,31 +1593,29 @@ fun get_serializer thy target file args labelled_name = fn cs =>
     val { alias, prolog } = the_syntax_modl data;
     val { class, inst, tyco, const } = the_syntax_expr data;
     val project = if target = target_diag then I
-      else CodegenThingol.project_code
+      else CodegenThingol.project_code permissive
         (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const) cs;
+    fun check_empty_funs code = case CodegenThingol.empty_funs code
+     of [] => code
+      | names => error ("No defining equations for " ^ commas (map (labelled_name thy) names));
   in
-    project #> seri file args (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
+    project
+    #> check_empty_funs
+    #> seri module file args (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
       (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 
-val eval_verbose = ref false;
-
 fun eval_term thy labelled_name code ((ref_name, reff), t) args =
   let
-    val val_name = "eval.EVAL.EVAL";
-    val val_name' = "ROOT.eval.EVAL";
+    val val_name = "Isabelle_Eval.EVAL.EVAL";
+    val val_name' = "Isabelle_Eval.EVAL";
     val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
-    val data = (the o Symtab.lookup (CodegenSerializerData.get thy)) "SML"
-    val reserved_syms = the_reserved data;
-    val { alias, prolog } = the_syntax_modl data;
-    val { class, inst, tyco, const } = the_syntax_expr data;
-    fun eval p = (
+    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [] labelled_name;
+    fun eval code = (
       reff := NONE;
-      if !eval_verbose then Pretty.writeln p else ();
+      seri (SOME [val_name]) code;
       use_text "generated code for evaluation" Output.ml_output (!eval_verbose)
-        ((Pretty.output o Pretty.chunks) [p,
-          str ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name'_args ^ "))")
-        ]);
+        ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name'_args ^ "))");
       case !reff
        of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
             ^ " (reference probably has been shadowed)")
@@ -1620,20 +1624,9 @@ fun eval_term thy labelled_name code ((ref_name, reff), t) args =
   in
     code
     |> CodegenThingol.add_eval_def (val_name, t)
-    |> CodegenThingol.project_code
-        (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const)
-          (SOME [val_name])
-    |> seri_ml pr_sml pr_sml_modl I (labelled_name thy) reserved_syms
-        (Symtab.lookup alias) (Symtab.lookup prolog)
-        (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
     |> eval
   end;
 
-fun const_has_serialization thy targets name =
-  forall (
-    is_some o (fn tab => Symtab.lookup tab name) o #const o the_syntax_expr o the
-      o Symtab.lookup (CodegenSerializerData.get thy)
-  ) targets;
 
 
 (** optional pretty serialization **)

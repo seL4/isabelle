@@ -18,7 +18,7 @@ sig
   val read_bare_const: theory -> string -> string * typ
   val read_const: theory -> string -> const
   val read_const_exprs: theory -> (const list -> const list)
-    -> string list -> const list
+    -> string list -> bool * const list
 
   val co_of_const: theory -> const
     -> string * ((string * sort) list * (string * typ list))
@@ -120,8 +120,10 @@ fun read_const_expr thy "*" = ([], consts_of thy NONE)
 
 in
 
-fun read_const_exprs thy select =
-  (op @) o apsnd select o pairself flat o split_list o map (read_const_expr thy);
+fun read_const_exprs thy select exprs =
+  case (pairself flat o split_list o map (read_const_expr thy)) exprs
+   of (consts, []) => (false, consts)
+    | (consts, consts') => (true, consts @ select consts');
 
 end; (*local*)
 

@@ -37,7 +37,6 @@ val fail = CodegenThingol.fail;
 
 type appgen = theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
   -> CodegenFuncgr.T
-  -> bool * string list option
   -> (string * typ) * term list -> CodegenThingol.transact -> iterm * CodegenThingol.transact;
 
 type appgens = (int * (appgen * stamp)) Symtab.table;
@@ -108,26 +107,7 @@ structure Code = CodeDataFun
 );
 
 
-
-(* preparing defining equations *)
-
-fun prep_eqs thy (thms as thm :: _) =
-  let
-    val ty = (Logic.unvarifyT o snd o CodegenFunc.head_func) thm;
-    val thms' = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
-      then thms
-      else map (CodegenFunc.expand_eta 1) thms;
-  in (ty, thms') end;
-
-
 (* translation kernel *)
-
-fun check_strict (false, _) has_seri x =
-      false
-  | check_strict (_, SOME targets) has_seri x =
-      not (has_seri targets x)
-  | check_strict (true, _) has_seri x =
-      true;
 
 fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o CodegenPackageData.get) thy) tyco
  of SOME ty => SOME ((map_atyps (fn TFree (n, _) => nth tys (the (Int.fromString n)))) ty)
@@ -135,7 +115,7 @@ fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o CodegenPackag
 
 fun ensure_def thy = CodegenThingol.ensure_def (CodegenNames.labelled_name thy);
 
-fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr strct class =
+fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr class =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
     val (v, cs) = AxClass.params_of_class thy class;
@@ -143,32 +123,31 @@ fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr strct class =
     val classrels' = map (curry (CodegenNames.classrel thy) class) superclasses;
     val classops' = map (CodegenNames.const thy o CodegenConsts.const_of_cexpr thy) cs;
     val defgen_class =
-      fold_map (ensure_def_class thy algbr funcgr strct) superclasses
-      ##>> (fold_map (exprgen_type thy algbr funcgr strct) o map snd) cs
+      fold_map (ensure_def_class thy algbr funcgr) superclasses
+      ##>> (fold_map (exprgen_type thy algbr funcgr) o map snd) cs
       #-> (fn (superclasses, classoptyps) => succeed
         (CodegenThingol.Class (superclasses ~~ classrels', (unprefix "'" v, classops' ~~ classoptyps))))
   in
     tracing (fn _ => "generating class " ^ quote class)
-    #> ensure_def thy defgen_class true
-        ("generating class " ^ quote class) class'
+    #> ensure_def thy defgen_class ("generating class " ^ quote class) class'
     #> pair class'
   end
-and ensure_def_classrel thy algbr funcgr strct (subclass, superclass) =
-  ensure_def_class thy algbr funcgr strct subclass
+and ensure_def_classrel thy algbr funcgr (subclass, superclass) =
+  ensure_def_class thy algbr funcgr subclass
   #>> (fn _ => CodegenNames.classrel thy (subclass, superclass))
-and ensure_def_tyco thy algbr funcgr strct "fun" trns =
+and ensure_def_tyco thy algbr funcgr "fun" trns =
       trns
       |> pair "fun"
-  | ensure_def_tyco thy algbr funcgr strct tyco trns =
+  | ensure_def_tyco thy algbr funcgr tyco trns =
       let
         fun defgen_datatype trns =
           let
             val (vs, cos) = CodegenData.get_datatype thy tyco;
           in
             trns
-            |> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs
+            |> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
             ||>> fold_map (fn (c, tys) =>
-              fold_map (exprgen_type thy algbr funcgr strct) tys
+              fold_map (exprgen_type thy algbr funcgr) tys
               #-> (fn tys' =>
                 pair ((CodegenNames.const thy o CodegenConsts.const_of_cexpr thy)
                   (c, tys ---> Type (tyco, map TFree vs)), tys'))) cos
@@ -178,33 +157,32 @@ and ensure_def_tyco thy algbr funcgr strct "fun" trns =
       in
         trns
         |> tracing (fn _ => "generating type constructor " ^ quote tyco)
-        |> ensure_def thy defgen_datatype true
-            ("generating type constructor " ^ quote tyco) tyco'
+        |> ensure_def thy defgen_datatype ("generating type constructor " ^ quote tyco) tyco'
         |> pair tyco'
       end
-and exprgen_tyvar_sort thy (algbr as ((proj_sort, _), _)) funcgr strct (v, sort) trns =
+and exprgen_tyvar_sort thy (algbr as ((proj_sort, _), _)) funcgr (v, sort) trns =
   trns
-  |> fold_map (ensure_def_class thy algbr funcgr strct) (proj_sort sort)
+  |> fold_map (ensure_def_class thy algbr funcgr) (proj_sort sort)
   |>> (fn sort => (unprefix "'" v, sort))
-and exprgen_type thy algbr funcgr strct (TFree vs) trns =
+and exprgen_type thy algbr funcgr (TFree vs) trns =
       trns
-      |> exprgen_tyvar_sort thy algbr funcgr strct vs
+      |> exprgen_tyvar_sort thy algbr funcgr vs
       |>> (fn (v, sort) => ITyVar v)
-  | exprgen_type thy algbr funcgr strct (Type (tyco, tys)) trns =
+  | exprgen_type thy algbr funcgr (Type (tyco, tys)) trns =
       case get_abstype thy (tyco, tys)
        of SOME ty =>
             trns
-            |> exprgen_type thy algbr funcgr strct ty
+            |> exprgen_type thy algbr funcgr ty
         | NONE =>
             trns
-            |> ensure_def_tyco thy algbr funcgr strct tyco
-            ||>> fold_map (exprgen_type thy algbr funcgr strct) tys
+            |> ensure_def_tyco thy algbr funcgr tyco
+            ||>> fold_map (exprgen_type thy algbr funcgr) tys
             |>> (fn (tyco, tys) => tyco `%% tys);
 
 exception CONSTRAIN of (string * typ) * typ;
 val timing = ref false;
 
-fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty_ctxt, sort_decl) =
+fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr (ty_ctxt, sort_decl) =
   let
     val pp = Sign.pp thy;
     datatype typarg =
@@ -225,16 +203,16 @@ fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr strct (ty
        type_variable = type_variable}
       (ty_ctxt, proj_sort sort_decl);
     fun mk_dict (Global (inst, yss)) =
-          ensure_def_inst thy algbr funcgr strct inst
+          ensure_def_inst thy algbr funcgr inst
           ##>> (fold_map o fold_map) mk_dict yss
           #>> (fn (inst, dss) => DictConst (inst, dss))
       | mk_dict (Local (classrels, (v, (k, sort)))) =
-          fold_map (ensure_def_classrel thy algbr funcgr strct) classrels
+          fold_map (ensure_def_classrel thy algbr funcgr) classrels
           #>> (fn classrels => DictVar (classrels, (unprefix "'" v, (k, length sort))))
   in
     fold_map mk_dict typargs
   end
-and exprgen_dict_parms thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) =
+and exprgen_dict_parms thy (algbr as (_, consts)) funcgr (c, ty_ctxt) =
   let
     val c' = CodegenConsts.const_of_cexpr thy (c, ty_ctxt)
     val idf = CodegenNames.const thy c';
@@ -242,9 +220,9 @@ and exprgen_dict_parms thy (algbr as (_, consts)) funcgr strct (c, ty_ctxt) =
     val (tys, tys_decl) = pairself (curry (Consts.typargs consts) idf) (ty_ctxt, ty_decl);
     val sorts = map (snd o dest_TVar) tys_decl;
   in
-    fold_map (exprgen_dicts thy algbr funcgr strct) (tys ~~ sorts)
+    fold_map (exprgen_dicts thy algbr funcgr) (tys ~~ sorts)
   end
-and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr strct (class, tyco) trns =
+and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) trns =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
     val (var, classops) = try (AxClass.params_of_class thy) class |> the_default ("'a", [])
@@ -252,20 +230,20 @@ and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr strct (class, tyco) 
     val arity_typ = Type (tyco, map TFree vs);
     fun gen_superarity superclass trns =
       trns
-      |> ensure_def_class thy algbr funcgr strct superclass
-      ||>> ensure_def_classrel thy algbr funcgr strct (class, superclass)
-      ||>> exprgen_dicts thy algbr funcgr strct (arity_typ, [superclass])
+      |> ensure_def_class thy algbr funcgr superclass
+      ||>> ensure_def_classrel thy algbr funcgr (class, superclass)
+      ||>> exprgen_dicts thy algbr funcgr (arity_typ, [superclass])
       |>> (fn ((superclass, classrel), [DictConst (inst, dss)]) =>
             (superclass, (classrel, (inst, dss))));
     fun gen_classop_def (classop as (c, ty)) trns =
       trns
-      |> ensure_def_const thy algbr funcgr strct (CodegenConsts.const_of_cexpr thy classop)
-      ||>> exprgen_term thy algbr funcgr strct (Const (c, map_type_tfree (K arity_typ) ty));
+      |> ensure_def_const thy algbr funcgr (CodegenConsts.const_of_cexpr thy classop)
+      ||>> exprgen_term thy algbr funcgr (Const (c, map_type_tfree (K arity_typ) ty));
     fun defgen_inst trns =
       trns
-      |> ensure_def_class thy algbr funcgr strct class
-      ||>> ensure_def_tyco thy algbr funcgr strct tyco
-      ||>> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs
+      |> ensure_def_class thy algbr funcgr class
+      ||>> ensure_def_tyco thy algbr funcgr tyco
+      ||>> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
       ||>> fold_map gen_superarity superclasses
       ||>> fold_map gen_classop_def classops
       |-> (fn ((((class, tyco), arity), superarities), classops) =>
@@ -274,99 +252,95 @@ and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr strct (class, tyco) 
   in
     trns
     |> tracing (fn _ => "generating instance " ^ quote class ^ " / " ^ quote tyco)
-    |> ensure_def thy defgen_inst true ("generating instance " ^ quote class ^ " / " ^ quote tyco) inst
+    |> ensure_def thy defgen_inst ("generating instance " ^ quote class ^ " / " ^ quote tyco) inst
     |> pair inst
   end
-and ensure_def_const thy (algbr as (_, consts)) funcgr strct (const as (c, opt_tyco)) trns =
+and ensure_def_const thy (algbr as (_, consts)) funcgr (const as (c, opt_tyco)) trns =
   let
     val c' = CodegenNames.const thy const;
     fun defgen_datatypecons trns =
       trns
-      |> ensure_def_tyco thy algbr funcgr strct
+      |> ensure_def_tyco thy algbr funcgr
           ((the o CodegenData.get_datatype_of_constr thy) const)
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_classop trns =
       trns
-      |> ensure_def_class thy algbr funcgr strct ((the o AxClass.class_of_param thy) c)
+      |> ensure_def_class thy algbr funcgr ((the o AxClass.class_of_param thy) c)
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_fun trns =
-      case CodegenFuncgr.funcs funcgr
-        (perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) const)
-       of thms as _ :: _ =>
-            let
-              val (ty, eq_thms) = prep_eqs thy thms;
-              val timeap = if !timing then Output.timeap_msg ("time for " ^ c')
-                else I;
-              val msg = cat_lines ("generating code for theorems " :: map string_of_thm eq_thms);
-              val vs = (map dest_TFree o Consts.typargs consts) (c', ty);
-              val dest_eqthm =
-                apfst (snd o strip_comb) o Logic.dest_equals o Logic.unvarify o prop_of;
-              fun exprgen_eq (args, rhs) trns =
-                trns
-                |> fold_map (exprgen_term thy algbr funcgr strct) args
-                ||>> exprgen_term thy algbr funcgr strct rhs;
-            in
-              trns
-              |> CodegenThingol.message msg (fn trns => trns
-              |> timeap (fold_map (exprgen_eq o dest_eqthm) eq_thms)
-              ||>> fold_map (exprgen_tyvar_sort thy algbr funcgr strct) vs
-              ||>> exprgen_type thy algbr funcgr strct ty
-              |-> (fn ((eqs, vs), ty) => succeed (CodegenThingol.Fun (eqs, (vs, ty)))))
-            end
-        | [] =>
-              trns
-              |> fail ("No defining equations found for "
-                   ^ (quote o CodegenConsts.string_of_const thy) const);
+      let
+        val const' = perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) const;
+        val raw_thms = CodegenFuncgr.funcs funcgr const';
+        val ty = (Logic.unvarifyT o CodegenFuncgr.typ funcgr) const';
+        val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
+          then raw_thms
+          else map (CodegenFunc.expand_eta 1) raw_thms;
+        val timeap = if !timing then Output.timeap_msg ("time for " ^ c')
+          else I;
+        val msg = cat_lines ("generating code for theorems " :: map string_of_thm thms);
+        val vs = (map dest_TFree o Consts.typargs consts) (c', ty);
+        val dest_eqthm =
+          apfst (snd o strip_comb) o Logic.dest_equals o Logic.unvarify o prop_of;
+        fun exprgen_eq (args, rhs) trns =
+          trns
+          |> fold_map (exprgen_term thy algbr funcgr) args
+          ||>> exprgen_term thy algbr funcgr rhs;
+      in
+        trns
+        |> CodegenThingol.message msg (fn trns => trns
+        |> timeap (fold_map (exprgen_eq o dest_eqthm) thms)
+        ||>> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
+        ||>> exprgen_type thy algbr funcgr ty
+        |-> (fn ((eqs, vs), ty) => succeed (CodegenThingol.Fun (eqs, (vs, ty)))))
+      end;
     val defgen = if (is_some o CodegenData.get_datatype_of_constr thy) const
       then defgen_datatypecons
       else if is_some opt_tyco
         orelse (not o is_some o AxClass.class_of_param thy) c
       then defgen_fun
       else defgen_classop
-    val strict = check_strict strct (CodegenSerializer.const_has_serialization thy) c';
   in
     trns
     |> tracing (fn _ => "generating constant "
         ^ (quote o CodegenConsts.string_of_const thy) const)
-    |> ensure_def thy defgen strict ("generating constant "
-         ^ CodegenConsts.string_of_const thy const) c'
+    |> ensure_def thy defgen ("generating constant " ^ CodegenConsts.string_of_const thy const) c'
     |> pair c'
   end
-and exprgen_term thy algbr funcgr strct (Const (c, ty)) trns =
+and exprgen_term thy algbr funcgr (Const (c, ty)) trns =
       trns
-      |> select_appgen thy algbr funcgr strct ((c, ty), [])
-  | exprgen_term thy algbr funcgr strct (Free (v, ty)) trns =
+      |> select_appgen thy algbr funcgr ((c, ty), [])
+  | exprgen_term thy algbr funcgr (Free (v, ty)) trns =
       trns
-      |> exprgen_type thy algbr funcgr strct ty
+      |> exprgen_type thy algbr funcgr ty
       |>> (fn _ => IVar v)
-  | exprgen_term thy algbr funcgr strct (Abs (raw_v, ty, raw_t)) trns =
+  | exprgen_term thy algbr funcgr (Abs (raw_v, ty, raw_t)) trns =
       let
         val (v, t) = Syntax.variant_abs (raw_v, ty, raw_t);
       in
         trns
-        |> exprgen_type thy algbr funcgr strct ty
-        ||>> exprgen_term thy algbr funcgr strct t
+        |> exprgen_type thy algbr funcgr ty
+        ||>> exprgen_term thy algbr funcgr t
         |>> (fn (ty, t) => (v, ty) `|-> t)
       end
-  | exprgen_term thy algbr funcgr strct (t as _ $ _) trns =
+  | exprgen_term thy algbr funcgr (t as _ $ _) trns =
       case strip_comb t
        of (Const (c, ty), ts) =>
             trns
-            |> select_appgen thy algbr funcgr strct ((c, ty), ts)
+            |> select_appgen thy algbr funcgr ((c, ty), ts)
         | (t', ts) =>
             trns
-            |> exprgen_term thy algbr funcgr strct t'
-            ||>> fold_map (exprgen_term thy algbr funcgr strct) ts
+            |> exprgen_term thy algbr funcgr t'
+            ||>> fold_map (exprgen_term thy algbr funcgr) ts
             |>> (fn (t, ts) => t `$$ ts)
-and appgen_default thy algbr funcgr strct ((c, ty), ts) trns =
+and appgen_default thy algbr funcgr ((c, ty), ts) trns =
   trns
-  |> ensure_def_const thy algbr funcgr strct (CodegenConsts.const_of_cexpr thy (c, ty))
-  ||>> fold_map (exprgen_type thy algbr funcgr strct) ((fst o Term.strip_type) ty)
-  ||>> exprgen_type thy algbr funcgr strct ((snd o Term.strip_type) ty)
-  ||>> exprgen_dict_parms thy algbr funcgr strct (c, ty)
-  ||>> fold_map (exprgen_term thy algbr funcgr strct) ts
+  |> ensure_def_const thy algbr funcgr (CodegenConsts.const_of_cexpr thy (c, ty))
+  ||>> fold_map (exprgen_type thy algbr funcgr) ((fst o Term.strip_type) ty)
+  ||>> exprgen_type thy algbr funcgr ((snd o Term.strip_type) ty)
+  ||>> exprgen_dict_parms thy algbr funcgr (c, ty)
+  ||>> fold_map (exprgen_term thy algbr funcgr) ts
   |>> (fn ((((c, tys), ty), iss), ts) => IConst (c, (iss, tys)) `$$ ts)
-and select_appgen thy algbr funcgr strct ((c, ty), ts) trns =
+and select_appgen thy algbr funcgr ((c, ty), ts) trns =
   case Symtab.lookup (fst (CodegenPackageData.get thy)) c
    of SOME (i, (appgen, _)) =>
         if length ts < i then
@@ -378,40 +352,40 @@ and select_appgen thy algbr funcgr strct ((c, ty), ts) trns =
             val vs = Name.names ctxt "a" tys;
           in
             trns
-            |> fold_map (exprgen_type thy algbr funcgr strct) tys
-            ||>> appgen thy algbr funcgr strct ((c, ty), ts @ map Free vs)
+            |> fold_map (exprgen_type thy algbr funcgr) tys
+            ||>> appgen thy algbr funcgr ((c, ty), ts @ map Free vs)
             |>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|--> t)
           end
         else if length ts > i then
           trns
-          |> appgen thy algbr funcgr strct ((c, ty), Library.take (i, ts))
-          ||>> fold_map (exprgen_term thy algbr funcgr strct) (Library.drop (i, ts))
+          |> appgen thy algbr funcgr ((c, ty), Library.take (i, ts))
+          ||>> fold_map (exprgen_term thy algbr funcgr) (Library.drop (i, ts))
           |>> (fn (t, ts) => t `$$ ts)
         else
           trns
-          |> appgen thy algbr funcgr strct ((c, ty), ts)
+          |> appgen thy algbr funcgr ((c, ty), ts)
     | NONE =>
         trns
-        |> appgen_default thy algbr funcgr strct ((c, ty), ts);
+        |> appgen_default thy algbr funcgr ((c, ty), ts);
 
 
 (* entrance points into translation kernel *)
 
-fun ensure_def_const' thy algbr funcgr strct c trns =
-  ensure_def_const thy algbr funcgr strct c trns
+fun ensure_def_const' thy algbr funcgr c trns =
+  ensure_def_const thy algbr funcgr c trns
   handle CONSTRAIN ((c, ty), ty_decl) => error (
     "Constant " ^ c ^ " with most general type\n"
     ^ CodegenConsts.string_of_typ thy ty
     ^ "\noccurs with type\n"
     ^ CodegenConsts.string_of_typ thy ty_decl);
 
-fun perhaps_def_const thy algbr funcgr strct c trns =
-  case try (ensure_def_const thy algbr funcgr strct c) trns
+fun perhaps_def_const thy algbr funcgr c trns =
+  case try (ensure_def_const thy algbr funcgr c) trns
    of SOME (c, trns) => (SOME c, trns)
     | NONE => (NONE, trns);
 
-fun exprgen_term' thy algbr funcgr strct t trns =
-  exprgen_term thy algbr funcgr strct t trns
+fun exprgen_term' thy algbr funcgr t trns =
+  exprgen_term thy algbr funcgr t trns
   handle CONSTRAIN ((c, ty), ty_decl) => error ("In term " ^ (quote o Sign.string_of_term thy) t
     ^ ",\nconstant " ^ c ^ " with most general type\n"
     ^ CodegenConsts.string_of_typ thy ty
@@ -422,27 +396,27 @@ fun exprgen_term' thy algbr funcgr strct t trns =
 (* parametrized application generators, for instantiation in object logic *)
 (* (axiomatic extensions of translation kernel) *)
 
-fun appgen_case dest_case_expr thy algbr funcgr strct (app as (c_ty, ts)) trns =
+fun appgen_case dest_case_expr thy algbr funcgr (app as (c_ty, ts)) trns =
   let
     val SOME ([], ((st, sty), ds)) = dest_case_expr thy (list_comb (Const c_ty, ts));
     fun clausegen (dt, bt) trns =
       trns
-      |> exprgen_term thy algbr funcgr strct dt
-      ||>> exprgen_term thy algbr funcgr strct bt;
+      |> exprgen_term thy algbr funcgr dt
+      ||>> exprgen_term thy algbr funcgr bt;
   in
     trns
-    |> exprgen_term thy algbr funcgr strct st
-    ||>> exprgen_type thy algbr funcgr strct sty
+    |> exprgen_term thy algbr funcgr st
+    ||>> exprgen_type thy algbr funcgr sty
     ||>> fold_map clausegen ds
     |>> (fn ((se, sty), ds) => ICase ((se, sty), ds))
   end;
 
-fun appgen_let thy algbr funcgr strct (app as (_, [st, ct])) trns =
+fun appgen_let thy algbr funcgr (app as (_, [st, ct])) trns =
   trns
-  |> exprgen_term thy algbr funcgr strct ct
-  ||>> exprgen_term thy algbr funcgr strct st
+  |> exprgen_term thy algbr funcgr ct
+  ||>> exprgen_term thy algbr funcgr st
   |-> (fn ((v, ty) `|-> be, se) => pair (CodegenThingol.collapse_let (((v, ty), se), be))
-        | _ => appgen_default thy algbr funcgr strct app);
+        | _ => appgen_default thy algbr funcgr app);
 
 fun add_appconst (c, appgen) thy =
   let
@@ -534,7 +508,7 @@ end; (*local*)
 
 (* generic generation combinators *)
 
-fun generate thy funcgr targets gen it =
+fun generate thy funcgr gen it =
   let
     val cs = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
       (CodegenFuncgr.all funcgr);
@@ -546,8 +520,8 @@ fun generate thy funcgr targets gen it =
            (CodegenFuncgr.all funcgr');
     val algbr = (CodegenData.operational_algebra thy, consttab);
   in   
-    Code.change_yield thy (CodegenThingol.start_transact (gen thy algbr funcgr'
-        (true, targets) it))
+    Code.change_yield thy
+      (CodegenThingol.start_transact (gen thy algbr funcgr' it))
     |> fst
   end;
 
@@ -556,7 +530,7 @@ fun codegen_term thy t =
     val ct = Thm.cterm_of thy t;
     val (ct', funcgr) = Funcgr.make_term thy (K (K K)) ct;
     val t' = Thm.term_of ct';
-  in generate thy funcgr (SOME []) exprgen_term' t' end;
+  in generate thy funcgr exprgen_term' t' end;
 
 fun raw_eval_term thy (ref_spec, t) args =
   let
@@ -575,10 +549,10 @@ fun eval_term thy t = raw_eval_term thy t [];
 fun satisfies thy t witnesses = raw_eval_term thy
   (("CodegenPackage.satisfies_ref", satisfies_ref), t) witnesses;
 
-fun filter_generatable thy targets consts =
+fun filter_generatable thy consts =
   let
     val (consts', funcgr) = Funcgr.make_consts thy consts;
-    val consts'' = generate thy funcgr targets (fold_map oooo perhaps_def_const) consts';
+    val consts'' = generate thy funcgr (fold_map ooo perhaps_def_const) consts';
     val consts''' = map_filter (fn (const, SOME _) => SOME const | (_, NONE) => NONE)
       (consts' ~~ consts'');
   in consts''' end;
@@ -593,39 +567,36 @@ and K = OuterKeyword
 
 fun code raw_cs seris thy =
   let
-    val seris' = map (fn ((target, file), args) =>
-      (target, SOME (CodegenSerializer.get_serializer thy target file args
-        CodegenNames.labelled_name))) seris;
-    val targets = case map fst seris' of [] => NONE | xs => SOME xs;
-    val cs = CodegenConsts.read_const_exprs thy
-      (filter_generatable thy targets) raw_cs;
-    fun generate' thy = case cs
-     of [] => []
-      | _ =>
-          generate thy (Funcgr.make thy cs) targets
-            (fold_map oooo ensure_def_const') cs;
-    fun serialize' [] code seri =
-          seri NONE code 
-      | serialize' cs code seri =
-          seri (SOME cs) code;
-    val cs = generate' thy;
+    val (perm1, cs) = CodegenConsts.read_const_exprs thy
+      (filter_generatable thy) raw_cs;
+    val (perm2, cs') = case generate thy (Funcgr.make thy cs) (fold_map ooo ensure_def_const') cs
+     of [] => (true, NONE)
+      | cs => (false, SOME cs);
     val code = Code.get thy;
+    val seris' = map (fn (((target, module), file), args) =>
+      CodegenSerializer.get_serializer thy target (perm1 orelse perm2) module file args
+        CodegenNames.labelled_name cs') seris;
   in
-    (map (serialize' cs code) (map_filter snd seris'); ())
+    (map (fn f => f code) seris' : unit list; ())
   end;
 
 fun code_thms_cmd thy =
-  code_thms thy o CodegenConsts.read_const_exprs thy (fst o Funcgr.make_consts thy);
+  code_thms thy o snd o CodegenConsts.read_const_exprs thy (fst o Funcgr.make_consts thy);
 
 fun code_deps_cmd thy =
-  code_deps thy o CodegenConsts.read_const_exprs thy (fst o Funcgr.make_consts thy);
+  code_deps thy o snd o CodegenConsts.read_const_exprs thy (fst o Funcgr.make_consts thy);
+
+val (inK, toK, fileK) = ("in", "to", "file");
 
 val code_exprP =
   (Scan.repeat P.term
-  -- Scan.repeat (P.$$$ "in" |-- P.name
-     -- Scan.option (P.$$$ "file" |-- P.name)
+  -- Scan.repeat (P.$$$ inK |-- P.name
+     -- Scan.option (P.$$$ toK |-- P.name)
+     -- Scan.option (P.$$$ fileK |-- P.name)
      -- Scan.optional (P.$$$ "(" |-- P.arguments --| P.$$$ ")") []
   ) >> (fn (raw_cs, seris) => code raw_cs seris));
+
+val _ = OuterSyntax.add_keywords [inK, toK, fileK];
 
 val (codeK, code_abstypeK, code_axiomsK, code_thmsK, code_depsK) =
   ("code_gen", "code_abstype", "code_axioms", "code_thms", "code_deps");
