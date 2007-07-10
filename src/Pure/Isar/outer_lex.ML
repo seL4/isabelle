@@ -8,8 +8,8 @@ Outer lexical syntax for Isabelle/Isar.
 signature OUTER_LEX =
 sig
   datatype token_kind =
-    Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-    Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed of string | EOF
+    Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar | Nat |
+    String | AltString | Verbatim | Space | Comment | Sync | Malformed | Error of string | EOF
   eqtype token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
@@ -21,7 +21,6 @@ sig
   val is_kind: token_kind -> token -> bool
   val keyword_with: (string -> bool) -> token -> bool
   val ident_with: (string -> bool) -> token -> bool
-  val name_of: token -> string
   val is_proper: token -> bool
   val is_semicolon: token -> bool
   val is_comment: token -> bool
@@ -30,6 +29,7 @@ sig
   val is_blank: token -> bool
   val is_newline: token -> bool
   val unparse: token -> string
+  val name_of: token -> string
   val val_of: token -> string
   val is_sid: string -> bool
   val !!! : string -> (Position.T * 'a -> 'b) -> Position.T * 'a -> 'b
@@ -57,8 +57,8 @@ struct
 (* datatype token *)
 
 datatype token_kind =
-  Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-  Nat | String | AltString | Verbatim | Space | Comment | Sync | Malformed of string | EOF;
+  Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar | Nat |
+  String | AltString | Verbatim | Space | Comment | Sync | Malformed | Error of string | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
 
@@ -78,7 +78,8 @@ val str_of_kind =
   | Space => "white space"
   | Comment => "comment text"
   | Sync => "sync marker"
-  | Malformed _ => "bad input"
+  | Malformed => "malformed symbolic character"
+  | Error _ => "bad input"
   | EOF => "end-of-file";
 
 
@@ -143,11 +144,6 @@ fun is_newline (Token (_, (Space, x))) = String.isSuffix "\n" x
 
 (* token content *)
 
-fun name_of (tok as Token (_, (k, x))) =
-  if is_semicolon tok then "terminator"
-  else if x = "" then str_of_kind k
-  else str_of_kind k ^ " " ^ quote x;
-
 fun escape q =
   implode o map (fn s => if s = q orelse s = "\\" then "\\" ^ s else s) o Symbol.explode;
 
@@ -157,8 +153,17 @@ fun unparse (Token (_, (kind, x))) =
   | AltString => x |> enclose "`" "`" o escape "`"
   | Verbatim => x |> enclose "{*" "*}"
   | Comment => x |> enclose "(*" "*)"
-  | Malformed _ => Output.escape (implode (map Output.output (explode x)))
+  | Sync => ""
+  | Malformed => Output.escape_malformed x
+  | EOF => ""
   | _ => x);
+
+fun name_of tok =
+  if is_semicolon tok then "terminator"
+  else
+    (case unparse tok of
+      "" => str_of_kind (kind_of tok)
+    | s => str_of_kind (kind_of tok) ^ " " ^ s);
 
 fun val_of (Token (_, (_, x))) = x;
 
@@ -283,7 +288,7 @@ in
 
 val scan_malformed =
   keep_line ($$ Symbol.malformed) |--
-    change_prompt (Scan.repeat scan_mal >> (Output.escape o implode))
+    change_prompt (Scan.repeat scan_mal >> implode)
       --| keep_line (Scan.option ($$ Symbol.end_malformed));
 
 end;
@@ -303,7 +308,7 @@ fun scan (lex1, lex2) =
         scan_verbatim >> token Verbatim ||
         scan_space >> token Space ||
         scan_comment >> token Comment ||
-        scan_malformed >> token (Malformed "Malformed symbolic character.") ||
+        scan_malformed >> token Malformed ||
         keep_line (Scan.one Symbol.is_sync >> sync) ||
         keep_line (Scan.max token_leq
           (Scan.max token_leq
@@ -327,7 +332,7 @@ local
 val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
 
 fun recover msg = Scan.state :-- (fn pos =>
-  keep_line (Scan.many is_junk) >> (fn xs => [Token (pos, (Malformed msg, implode xs))])) >> #2;
+  keep_line (Scan.many is_junk) >> (fn xs => [Token (pos, (Error msg, implode xs))])) >> #2;
 
 in
 
