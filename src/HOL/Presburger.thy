@@ -473,6 +473,21 @@ lemma [presburger]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> \<not> 2 
 lemma [presburger]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 
 
+lemma zdvd_period:
+  fixes a d :: int
+  assumes advdd: "a dvd d"
+  shows "a dvd (x + t) \<longleftrightarrow> a dvd ((x + c * d) + t)"
+proof-
+  {
+    fix x k
+    from inf_period(3) [OF advdd, rule_format, where x=x and k="-k"]  
+    have "a dvd (x + t) \<longleftrightarrow> a dvd (x + k * d + t)" by simp
+  }
+  hence "\<forall>x.\<forall>k. ((a::int) dvd (x + t)) = (a dvd (x+k*d + t))"  by simp
+  then show ?thesis by simp
+qed
+
+
 subsection {* Code generator setup *}
 
 text {*
