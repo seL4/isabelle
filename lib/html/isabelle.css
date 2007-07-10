@@ -27,5 +27,14 @@ body { background-color: #FFFFFF; }
 .theories { background-color: #F0F0F0; padding: 10px; }
 .sessions { background-color: #F0F0F0; padding: 10px; }
 
+.junk           { background-color: #FF6A6A; font-weight: bold; }
+
+.string         { color: #008B00; }
+.altstring      { color: #8B8B00; }
+.verbatim       { color: #00008B; }
+.comment        { color: #00008B; }
+.control        { background-color: #FF6A6A; font-weight: bold; }
+.malformed      { background-color: #FF6A6A; font-weight: bold; }
+
 /* hide hr for this style */
 hr { height: 0px; border: 0px; }
