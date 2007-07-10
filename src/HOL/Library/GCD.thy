@@ -11,42 +11,63 @@ imports Main
 begin
 
 text {*
-  See \cite{davenport92}.
-  \bigskip
+  See \cite{davenport92}. \bigskip
 *}
 
-consts
-  gcd  :: "nat \<times> nat => nat"  -- {* Euclid's algorithm *}
-
-recdef gcd  "measure ((\<lambda>(m, n). n) :: nat \<times> nat => nat)"
-  "gcd (m, n) = (if n = 0 then m else gcd (n, m mod n))"
+subsection {* Specification of GCD on nats *}
 
 definition
-  is_gcd :: "nat => nat => nat => bool" where -- {* @{term gcd} as a relation *}
-  "is_gcd p m n = (p dvd m \<and> p dvd n \<and>
-    (\<forall>d. d dvd m \<and> d dvd n --> d dvd p))"
+  is_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where -- {* @{term gcd} as a relation *}
+  "is_gcd p m n \<longleftrightarrow> p dvd m \<and> p dvd n \<and>
+    (\<forall>d. d dvd m \<longrightarrow> d dvd n \<longrightarrow> d dvd p)"
 
+text {* Uniqueness *}
+
+lemma is_gcd_unique: "is_gcd m a b \<Longrightarrow> is_gcd n a b \<Longrightarrow> m = n"
+  by (simp add: is_gcd_def) (blast intro: dvd_anti_sym)
+
+text {* Connection to divides relation *}
+
+lemma is_gcd_dvd: "is_gcd m a b \<Longrightarrow> k dvd a \<Longrightarrow> k dvd b \<Longrightarrow> k dvd m"
+  by (auto simp add: is_gcd_def)
+
+text {* Commutativity *}
+
+lemma is_gcd_commute: "is_gcd k m n = is_gcd k n m"
+  by (auto simp add: is_gcd_def)
+
+
+subsection {* GCD on nat by Euclid's algorithm *}
+
+fun
+  gcd  :: "nat \<times> nat => nat"
+where
+  "gcd (m, n) = (if n = 0 then m else gcd (n, m mod n))"
 
 lemma gcd_induct:
-  "(!!m. P m 0) ==>
-    (!!m n. 0 < n ==> P n (m mod n) ==> P m n)
-  ==> P (m::nat) (n::nat)"
-  apply (induct m n rule: gcd.induct)
-  apply (case_tac "n = 0")
-   apply simp_all
-  done
-
+  fixes m n :: nat
+  assumes "\<And>m. P m 0"
+    and "\<And>m n. 0 < n \<Longrightarrow> P n (m mod n) \<Longrightarrow> P m n"
+  shows "P m n"
+apply (rule gcd.induct [of "split P" "(m, n)", unfolded Product_Type.split])
+apply (case_tac "n = 0")
+apply simp_all
+using assms apply simp_all
+done
 
 lemma gcd_0 [simp]: "gcd (m, 0) = m"
   by simp
 
-lemma gcd_non_0: "0 < n ==> gcd (m, n) = gcd (n, m mod n)"
+lemma gcd_0_left [simp]: "gcd (0, m) = m"
+  by simp
+
+lemma gcd_non_0: "n > 0 \<Longrightarrow> gcd (m, n) = gcd (n, m mod n)"
+  by simp
+
+lemma gcd_1 [simp]: "gcd (m, Suc 0) = 1"
   by simp
 
 declare gcd.simps [simp del]
-
-lemma gcd_1 [simp]: "gcd (m, Suc 0) = 1"
-  by (simp add: gcd_non_0)
 
 text {*
   \medskip @{term "gcd (m, n)"} divides @{text m} and @{text n}.  The
@@ -66,45 +87,24 @@ text {*
   @{term n} then @{term k} divides @{term "gcd (m, n)"}.
 *}
 
-lemma gcd_greatest: "k dvd m ==> k dvd n ==> k dvd gcd (m, n)"
+lemma gcd_greatest: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd gcd (m, n)"
   by (induct m n rule: gcd_induct) (simp_all add: gcd_non_0 dvd_mod)
-
-lemma gcd_greatest_iff [iff]: "(k dvd gcd (m, n)) = (k dvd m \<and> k dvd n)"
-  by (blast intro!: gcd_greatest intro: dvd_trans)
-
-lemma gcd_zero: "(gcd (m, n) = 0) = (m = 0 \<and> n = 0)"
-  by (simp only: dvd_0_left_iff [symmetric] gcd_greatest_iff)
-
 
 text {*
   \medskip Function gcd yields the Greatest Common Divisor.
 *}
 
 lemma is_gcd: "is_gcd (gcd (m, n)) m n"
-  apply (simp add: is_gcd_def gcd_greatest)
-  done
-
-text {*
-  \medskip Uniqueness of GCDs.
-*}
-
-lemma is_gcd_unique: "is_gcd m a b ==> is_gcd n a b ==> m = n"
-  apply (simp add: is_gcd_def)
-  apply (blast intro: dvd_anti_sym)
-  done
-
-lemma is_gcd_dvd: "is_gcd m a b ==> k dvd a ==> k dvd b ==> k dvd m"
-  apply (auto simp add: is_gcd_def)
-  done
+  by (simp add: is_gcd_def gcd_greatest)
 
 
-text {*
-  \medskip Commutativity
-*}
+subsection {* Derived laws for GCD *}
 
-lemma is_gcd_commute: "is_gcd k m n = is_gcd k n m"
-  apply (auto simp add: is_gcd_def)
-  done
+lemma gcd_greatest_iff [iff]: "k dvd gcd (m, n) \<longleftrightarrow> k dvd m \<and> k dvd n"
+  by (blast intro!: gcd_greatest intro: dvd_trans)
+
+lemma gcd_zero: "gcd (m, n) = 0 \<longleftrightarrow> m = 0 \<and> n = 0"
+  by (simp only: dvd_0_left_iff [symmetric] gcd_greatest_iff)
 
 lemma gcd_commute: "gcd (m, n) = gcd (n, m)"
   apply (rule is_gcd_unique)
@@ -120,14 +120,8 @@ lemma gcd_assoc: "gcd (gcd (k, m), n) = gcd (k, gcd (m, n))"
   apply (blast intro: dvd_trans)
   done
 
-lemma gcd_0_left [simp]: "gcd (0, m) = m"
-  apply (simp add: gcd_commute [of 0])
-  done
-
 lemma gcd_1_left [simp]: "gcd (Suc 0, m) = 1"
-  apply (simp add: gcd_commute [of "Suc 0"])
-  done
-
+  by (simp add: gcd_commute)
 
 text {*
   \medskip Multiplication laws
@@ -195,6 +189,8 @@ lemma gcd_add2' [simp]: "gcd (m, n + m) = gcd (m, n)"
 lemma gcd_add_mult: "gcd (m, k * m + n) = gcd (m, n)"
   by (induct k) (simp_all add: add_assoc)
 
+lemma gcd_dvd_prod: "gcd (m, n) dvd m * n"
+  using mult_dvd_mono [of 1] by auto
 
 text {*
   \medskip Division by gcd yields rrelatively primes.
@@ -223,10 +219,115 @@ proof -
   with dvd_mult_cancel1 [OF gp] show "?g' = 1" by simp
 qed
 
+subsection {* LCM defined by GCD *}
 
-text {*
-  \medskip Gcd on integers.
-*}
+definition
+  lcm :: "nat \<times> nat \<Rightarrow> nat"
+where
+  "lcm = (\<lambda>(m, n). m * n div gcd (m, n))"
+
+lemma lcm_def:
+  "lcm (m, n) = m * n div gcd (m, n)"
+  unfolding lcm_def by simp
+
+lemma prod_gcd_lcm:
+  "m * n = gcd (m, n) * lcm (m, n)"
+  unfolding lcm_def by (simp add: dvd_mult_div_cancel [OF gcd_dvd_prod])
+
+lemma lcm_0 [simp]: "lcm (m, 0) = 0"
+  unfolding lcm_def by simp
+
+lemma lcm_1 [simp]: "lcm (m, 1) = m"
+  unfolding lcm_def by simp
+
+lemma lcm_0_left [simp]: "lcm (0, n) = 0"
+  unfolding lcm_def by simp
+
+lemma lcm_1_left [simp]: "lcm (1, m) = m"
+  unfolding lcm_def by simp
+
+lemma dvd_pos:
+  fixes n m :: nat
+  assumes "n > 0" and "m dvd n"
+  shows "m > 0"
+using assms by (cases m) auto
+
+lemma lcm_lowest:
+  assumes "m dvd k" and "n dvd k"
+  shows "lcm (m, n) dvd k"
+proof (cases k)
+  case 0 then show ?thesis by auto
+next
+  case (Suc _) then have pos_k: "k > 0" by auto
+  from assms dvd_pos [OF this] have pos_mn: "m > 0" "n > 0" by auto
+  with gcd_zero [of m n] have pos_gcd: "gcd (m, n) > 0" by simp
+  from assms obtain p where k_m: "k = m * p" using dvd_def by blast
+  from assms obtain q where k_n: "k = n * q" using dvd_def by blast
+  from pos_k k_m have pos_p: "p > 0" by auto
+  from pos_k k_n have pos_q: "q > 0" by auto
+  have "k * k * gcd (q, p) = k * gcd (k * q, k * p)"
+    by (simp add: mult_ac gcd_mult_distrib2)
+  also have "\<dots> = k * gcd (m * p * q, n * q * p)"
+    by (simp add: k_m [symmetric] k_n [symmetric])
+  also have "\<dots> = k * p * q * gcd (m, n)"
+    by (simp add: mult_ac gcd_mult_distrib2)
+  finally have "(m * p) * (n * q) * gcd (q, p) = k * p * q * gcd (m, n)"
+    by (simp only: k_m [symmetric] k_n [symmetric])
+  then have "p * q * m * n * gcd (q, p) = p * q * k * gcd (m, n)"
+    by (simp add: mult_ac)
+  with pos_p pos_q have "m * n * gcd (q, p) = k * gcd (m, n)"
+    by simp
+  with prod_gcd_lcm [of m n]
+  have "lcm (m, n) * gcd (q, p) * gcd (m, n) = k * gcd (m, n)"
+    by (simp add: mult_ac)
+  with pos_gcd have "lcm (m, n) * gcd (q, p) = k" by simp
+  then show ?thesis using dvd_def by auto
+qed
+
+lemma lcm_dvd1 [iff]:
+  "m dvd lcm (m, n)"
+proof (cases m)
+  case 0 then show ?thesis by simp
+next
+  case (Suc _)
+  then have mpos: "m > 0" by simp
+  show ?thesis
+  proof (cases n)
+    case 0 then show ?thesis by simp
+  next
+    case (Suc _)
+    then have npos: "n > 0" by simp
+    have "gcd (m, n) dvd n" by simp
+    then obtain k where "n = gcd (m, n) * k" using dvd_def by auto
+    then have "m * n div gcd (m, n) = m * (gcd (m, n) * k) div gcd (m, n)" by (simp add: mult_ac)
+    also have "\<dots> = m * k" using mpos npos gcd_zero by simp
+    finally show ?thesis by (simp add: lcm_def)
+  qed
+qed
+
+lemma lcm_dvd2 [iff]: 
+  "n dvd lcm (m, n)"
+proof (cases n)
+  case 0 then show ?thesis by simp
+next
+  case (Suc _)
+  then have npos: "n > 0" by simp
+  show ?thesis
+  proof (cases m)
+    case 0 then show ?thesis by simp
+  next
+    case (Suc _)
+    then have mpos: "m > 0" by simp
+    have "gcd (m, n) dvd m" by simp
+    then obtain k where "m = gcd (m, n) * k" using dvd_def by auto
+    then have "m * n div gcd (m, n) = (gcd (m, n) * k) * n div gcd (m, n)" by (simp add: mult_ac)
+    also have "\<dots> = n * k" using mpos npos gcd_zero by simp
+    finally show ?thesis by (simp add: lcm_def)
+  qed
+qed
+
+
+subsection {* GCD and LCM on integers *}
 
 definition
   igcd :: "int \<Rightarrow> int \<Rightarrow> int" where
@@ -316,37 +417,9 @@ proof -
   with igcd_pos show "?g' = 1" by simp
 qed
 
-text{* LCM *}
-
-definition "lcm = (\<lambda>(m,n). m*n div gcd(m,n))"
-
 definition "ilcm = (\<lambda>i j. int (lcm(nat(abs i),nat(abs j))))"
 
 (* ilcm_dvd12 are needed later *)
-lemma lcm_dvd1: 
-  assumes mpos: " m >0"
-  and npos: "n>0"
-  shows "m dvd (lcm(m,n))"
-proof-
-  have "gcd(m,n) dvd n" by simp
-  then obtain "k" where "n = gcd(m,n) * k" using dvd_def by auto
-  then have "m*n div gcd(m,n) = m*(gcd(m,n)*k) div gcd(m,n)" by (simp add: mult_ac)
-  also have "\<dots> = m*k" using mpos npos gcd_zero by simp
-  finally show ?thesis by (simp add: lcm_def)
-qed
-
-lemma lcm_dvd2: 
-  assumes mpos: " m >0"
-  and npos: "n>0"
-  shows "n dvd (lcm(m,n))"
-proof-
-  have "gcd(m,n) dvd m" by simp
-  then obtain "k" where "m = gcd(m,n) * k" using dvd_def by auto
-  then have "m*n div gcd(m,n) = (gcd(m,n)*k)*n div gcd(m,n)" by (simp add: mult_ac)
-  also have "\<dots> = n*k" using mpos npos gcd_zero by simp
-  finally show ?thesis by (simp add: lcm_def)
-qed
-
 lemma ilcm_dvd1: 
 assumes anz: "a \<noteq> 0" 
   and bnz: "b \<noteq> 0"
@@ -359,7 +432,6 @@ proof-
   from nap nbp have "?na dvd lcm(?na,?nb)" using lcm_dvd1 by simp
   thus ?thesis by (simp add: ilcm_def dvd_int_iff)
 qed
-
 
 lemma ilcm_dvd2: 
 assumes anz: "a \<noteq> 0" 
@@ -389,7 +461,6 @@ lemma lcm_pos:
   assumes mpos: "m > 0"
   and npos: "n>0"
   shows "lcm (m,n) > 0"
-
 proof(rule ccontr, simp add: lcm_def gcd_zero)
 assume h:"m*n div gcd(m,n) = 0"
 from mpos npos have "gcd (m,n) \<noteq> 0" using gcd_zero by simp
@@ -418,6 +489,5 @@ proof-
   have "0 < lcm (?na,?nb)" by (rule lcm_pos[OF nap nbp])
   thus ?thesis by (simp add: ilcm_def)
 qed
-
 
 end
