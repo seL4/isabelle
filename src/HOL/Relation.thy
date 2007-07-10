@@ -7,7 +7,7 @@
 header {* Relations *}
 
 theory Relation
-imports Product_Type
+imports Product_Type FixedPoint
 begin
 
 subsection {* Definitions *}
@@ -528,5 +528,11 @@ lemma trans_inv_image: "trans r ==> trans (inv_image r f)"
   apply (simp (no_asm))
   apply blast
   done
+
+
+subsection {* Version of @{text lfp_induct} for binary relations *}
+
+lemmas lfp_induct2 = 
+  lfp_induct_set [of "(a, b)", split_format (complete)]
 
 end
