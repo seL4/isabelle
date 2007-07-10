@@ -251,6 +251,7 @@
     "recursor_eqns"
     "shows"
     "structure"
+    "to"
     "type_elims"
     "type_intros"
     "unchecked"
