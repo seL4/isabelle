@@ -1489,7 +1489,7 @@ fun map_syntax_modl f (SyntaxModl { alias, prolog }) =
 fun merge_syntax_modl (SyntaxModl { alias = alias1, prolog = prolog1 },
     SyntaxModl { alias = alias2, prolog = prolog2 }) =
   mk_syntax_modl (
-    Symtab.merge (op =) (alias1, alias2),
+    Symtab.merge (K true) (alias1, alias2),
     Symtab.merge (op =) (prolog1, prolog2)
   );
 
