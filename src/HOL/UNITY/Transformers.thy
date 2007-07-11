@@ -159,17 +159,16 @@ done
 
 subsection{*Defining the Weakest Ensures Set*}
 
-consts
+inductive_set
   wens_set :: "['a program, 'a set] => 'a set set"
-
-inductive "wens_set F B"
- intros 
+  for F :: "'a program" and B :: "'a set"
+where
 
   Basis: "B \<in> wens_set F B"
 
-  Wens:  "[|X \<in> wens_set F B; act \<in> Acts F|] ==> wens F act X \<in> wens_set F B"
+| Wens:  "[|X \<in> wens_set F B; act \<in> Acts F|] ==> wens F act X \<in> wens_set F B"
 
-  Union: "W \<noteq> {} ==> \<forall>U \<in> W. U \<in> wens_set F B ==> \<Union>W \<in> wens_set F B"
+| Union: "W \<noteq> {} ==> \<forall>U \<in> W. U \<in> wens_set F B ==> \<Union>W \<in> wens_set F B"
 
 lemma wens_set_imp_co: "A \<in> wens_set F B ==> F \<in> (A-B) co A"
 apply (erule wens_set.induct) 

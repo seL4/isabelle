@@ -401,7 +401,7 @@ done
 
 theorem relcl_latticeof_eq:
      "[|refl UNIV r; trans r|] ==> relcl (latticeof r) = r"
-by (simp add: relcl_def cl_latticeof, blast)
+by (simp add: relcl_def cl_latticeof)
 
 
 subsubsection {*Decoupling Theorems*}

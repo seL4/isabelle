@@ -381,18 +381,12 @@ datatype
 
 text {* Type inference rules. *}
 
-consts
-  has_type :: "(typ list \<times> expr \<times> typ) set"
-
-abbreviation
-  has_type_rel  ("((_) |-/ (_) :: (_))" [60, 0, 60] 60) where
-  "a |- e :: t == (a, e, t) \<in> has_type"
-
-inductive has_type
-  intros
+inductive
+  has_type :: "typ list \<Rightarrow> expr \<Rightarrow> typ \<Rightarrow> bool"  ("((_) |-/ (_) :: (_))" [60, 0, 60] 60)
+  where
     Var: "n < length a \<Longrightarrow> a |- Var n :: a ! n"
-    Abs: "t1#a |- e :: t2 \<Longrightarrow> a |- Abs e :: t1 -> t2"
-    App: "a |- e1 :: t2 -> t1 \<Longrightarrow> a |- e2 :: t2
+  | Abs: "t1#a |- e :: t2 \<Longrightarrow> a |- Abs e :: t1 -> t2"
+  | App: "a |- e1 :: t2 -> t1 \<Longrightarrow> a |- e2 :: t2
       \<Longrightarrow> a |- App e1 e2 :: t1"
 
 
@@ -400,7 +394,7 @@ text {* Type assigment is closed wrt.\ substitution. *}
 
 lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t"
 proof (induct set: has_type)
-  case (Var a n)
+  case (Var n a)
   then have "n < length (map ($ s) a)" by simp
   then have "map ($ s) a |- Var n :: map ($ s) a ! n"
     by (rule has_type.Var)
@@ -410,7 +404,7 @@ proof (induct set: has_type)
     by (simp only: app_subst_list)
   finally show ?case .
 next
-  case (Abs a e t1 t2)
+  case (Abs t1 a e t2)
   then have "$ s t1 # map ($ s) a |- e :: $ s t2"
     by (simp add: app_subst_list)
   then have "map ($ s) a |- Abs e :: $ s t1 -> $ s t2"

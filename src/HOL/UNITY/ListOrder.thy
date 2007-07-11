@@ -17,17 +17,16 @@ header {*The Prefix Ordering on Lists*}
 
 theory ListOrder imports Main begin
 
-consts
+inductive_set
   genPrefix :: "('a * 'a)set => ('a list * 'a list)set"
-
-inductive "genPrefix(r)"
- intros
+  for r :: "('a * 'a)set"
+ where
    Nil:     "([],[]) : genPrefix(r)"
 
-   prepend: "[| (xs,ys) : genPrefix(r);  (x,y) : r |] ==>
+ | prepend: "[| (xs,ys) : genPrefix(r);  (x,y) : r |] ==>
 	     (x#xs, y#ys) : genPrefix(r)"
 
-   append:  "(xs,ys) : genPrefix(r) ==> (xs, ys@zs) : genPrefix(r)"
+ | append:  "(xs,ys) : genPrefix(r) ==> (xs, ys@zs) : genPrefix(r)"
 
 instance list :: (type)ord ..
 
@@ -45,14 +44,13 @@ constdefs
   Ge :: "(nat*nat) set"
     "Ge == {(x,y). y <= x}"
 
-syntax
-  pfixLe :: "[nat list, nat list] => bool"          (infixl "pfixLe" 50)
-  pfixGe :: "[nat list, nat list] => bool"          (infixl "pfixGe" 50)
+abbreviation
+  pfixLe :: "[nat list, nat list] => bool"  (infixl "pfixLe" 50)  where
+  "xs pfixLe ys == (xs,ys) : genPrefix Le"
 
-translations
-  "xs pfixLe ys" == "(xs,ys) : genPrefix Le"
-
-  "xs pfixGe ys" == "(xs,ys) : genPrefix Ge"
+abbreviation
+  pfixGe :: "[nat list, nat list] => bool"  (infixl "pfixGe" 50)  where
+  "xs pfixGe ys == (xs,ys) : genPrefix Ge"
 
 
 subsection{*preliminary lemmas*}

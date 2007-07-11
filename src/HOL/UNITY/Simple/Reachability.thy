@@ -16,15 +16,14 @@ record state =
   reach :: "vertex => bool"
   nmsg  :: "edge => nat"
 
-consts REACHABLE :: "edge set"
-       root :: "vertex"
+consts root :: "vertex"
        E :: "edge set"
        V :: "vertex set"
 
-inductive "REACHABLE"
-  intros
-   base: "v \<in> V ==> ((v,v) \<in> REACHABLE)"
-   step: "((u,v) \<in> REACHABLE) & (v,w) \<in> E ==> ((u,w) \<in> REACHABLE)"
+inductive_set REACHABLE :: "edge set"
+  where
+    base: "v \<in> V ==> ((v,v) \<in> REACHABLE)"
+  | step: "((u,v) \<in> REACHABLE) & (v,w) \<in> E ==> ((u,w) \<in> REACHABLE)"
 
 constdefs
   reachable :: "vertex => state set"

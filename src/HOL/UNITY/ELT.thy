@@ -26,20 +26,17 @@ header{*Progress Under Allowable Sets*}
 
 theory ELT imports Project begin
 
-consts
-
+inductive_set
   (*LEADS-TO constant for the inductive definition*)
   elt :: "['a set set, 'a program] => ('a set * 'a set) set"
-
-
-inductive "elt CC F"
- intros 
+  for CC :: "'a set set" and F :: "'a program"
+ where
 
    Basis:  "[| F : A ensures B;  A-B : (insert {} CC) |] ==> (A,B) : elt CC F"
 
-   Trans:  "[| (A,B) : elt CC F;  (B,C) : elt CC F |] ==> (A,C) : elt CC F"
+ | Trans:  "[| (A,B) : elt CC F;  (B,C) : elt CC F |] ==> (A,C) : elt CC F"
 
-   Union:  "ALL A: S. (A,B) : elt CC F ==> (Union S, B) : elt CC F"
+ | Union:  "ALL A: S. (A,B) : elt CC F ==> (Union S, B) : elt CC F"
 
 
 constdefs

@@ -46,20 +46,17 @@ constdefs
     "A ensures B == (A-B co A \<union> B) \<inter> transient (A-B)"
 
 
-consts
-
+inductive_set
   leads :: "'a program => ('a set * 'a set) set"
     --{*LEADS-TO constant for the inductive definition*}
-
-
-inductive "leads F"
-  intros 
+  for F :: "'a program"
+  where
 
     Basis:  "F \<in> A ensures B ==> (A,B) \<in> leads F"
 
-    Trans:  "[| (A,B) \<in> leads F;  (B,C) \<in> leads F |] ==> (A,C) \<in> leads F"
+  | Trans:  "[| (A,B) \<in> leads F;  (B,C) \<in> leads F |] ==> (A,C) \<in> leads F"
 
-    Union:  "\<forall>A \<in> S. (A,B) \<in> leads F ==> (Union S, B) \<in> leads F"
+  | Union:  "\<forall>A \<in> S. (A,B) \<in> leads F ==> (Union S, B) \<in> leads F"
 
 
 constdefs

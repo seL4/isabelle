@@ -10,27 +10,27 @@ header{*Weak Safety*}
 
 theory Constrains imports UNITY begin
 
-consts traces :: "['a set, ('a * 'a)set set] => ('a * 'a list) set"
-
   (*Initial states and program => (final state, reversed trace to it)...
     Arguments MUST be curried in an inductive definition*)
 
-inductive "traces init acts"  
-  intros 
+inductive_set
+  traces :: "['a set, ('a * 'a)set set] => ('a * 'a list) set"
+  for init :: "'a set" and acts :: "('a * 'a)set set"
+  where
          (*Initial trace is empty*)
     Init:  "s \<in> init ==> (s,[]) \<in> traces init acts"
 
-    Acts:  "[| act: acts;  (s,evs) \<in> traces init acts;  (s,s'): act |]
+  | Acts:  "[| act: acts;  (s,evs) \<in> traces init acts;  (s,s'): act |]
 	    ==> (s', s#evs) \<in> traces init acts"
 
 
-consts reachable :: "'a program => 'a set"
-
-inductive "reachable F"
-  intros 
+inductive_set
+  reachable :: "'a program => 'a set"
+  for F :: "'a program"
+  where
     Init:  "s \<in> Init F ==> s \<in> reachable F"
 
-    Acts:  "[| act: Acts F;  s \<in> reachable F;  (s,s'): act |]
+  | Acts:  "[| act: Acts F;  s \<in> reachable F;  (s,s'): act |]
 	    ==> s' \<in> reachable F"
 
 constdefs
