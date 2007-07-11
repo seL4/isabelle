@@ -8,6 +8,7 @@ Package for defining functions on datatypes by primitive recursion.
 signature PRIMREC_PACKAGE =
 sig
   val quiet_mode: bool ref
+  val unify_consts: theory -> term list -> term list -> term list * term list
   val add_primrec: string -> ((bstring * string) * Attrib.src list) list
     -> theory -> thm list * theory
   val add_primrec_unchecked: string -> ((bstring * string) * Attrib.src list) list
@@ -39,6 +40,29 @@ fun primrec_eq_err thy s eq =
 
 val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
+
+
+(*the following code ensures that each recursive set always has the
+  same type in all introduction rules*)
+fun unify_consts thy cs intr_ts =
+  (let
+    val add_term_consts_2 = fold_aterms (fn Const c => insert (op =) c | _ => I);
+    fun varify (t, (i, ts)) =
+      let val t' = map_types (Logic.incr_tvar (i + 1)) (snd (Type.varify [] t))
+      in (maxidx_of_term t', t'::ts) end;
+    val (i, cs') = foldr varify (~1, []) cs;
+    val (i', intr_ts') = foldr varify (i, []) intr_ts;
+    val rec_consts = fold add_term_consts_2 cs' [];
+    val intr_consts = fold add_term_consts_2 intr_ts' [];
+    fun unify (cname, cT) =
+      let val consts = map snd (filter (fn (c, _) => c = cname) intr_consts)
+      in fold (Sign.typ_unify thy) ((replicate (length consts) cT) ~~ consts) end;
+    val (env, _) = fold unify rec_consts (Vartab.empty, i');
+    val subst = Type.freeze o map_types (Envir.norm_type env)
+
+  in (map subst cs', map subst intr_ts')
+  end) handle Type.TUNIFY =>
+    (warning "Occurrences of recursive constant have non-unifiable types"; (cs, intr_ts));
 
 
 (* preprocessing of equations *)
@@ -290,7 +314,7 @@ fun gen_primrec note def alt_name eqns thy =
       handle ERROR msg => cat_error msg ("The error(s) above occurred for " ^ s)) strings;
     val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop eq)))
       handle TERM _ => primrec_eq_err thy "not a proper equation" eq) eqn_ts;
-    val (_, eqn_ts') = OldInductivePackage.unify_consts thy rec_ts eqn_ts
+    val (_, eqn_ts') = unify_consts thy rec_ts eqn_ts
   in
     gen_primrec_i note def alt_name (names ~~ eqn_ts' ~~ atts) thy
   end;
