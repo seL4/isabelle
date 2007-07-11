@@ -388,7 +388,7 @@ fun gen_primrec note def alt_name invs fctxt eqns thy =
     val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq
       (HOLogic.dest_Trueprop (Logic.strip_imp_concl eq))))
       handle TERM _ => primrec_eq_err thy "not a proper equation" eq) eqn_ts;
-    val (_, eqn_ts') = OldInductivePackage.unify_consts thy rec_ts eqn_ts
+    val (_, eqn_ts') = PrimrecPackage.unify_consts thy rec_ts eqn_ts
   in
     gen_primrec_i note def alt_name
       (Option.map (map (readt dummyT)) invs)
