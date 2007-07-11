@@ -85,6 +85,14 @@ proof -
     by (rule THE_default_none)
 qed
 
+definition in_rel_def[simp]:
+  "in_rel R x y == (x, y) \<in> R"
+
+lemma wf_in_rel:
+  "wf R \<Longrightarrow> wfP (in_rel R)"
+  by (simp add: wfP_def)
+
+
 use "Tools/function_package/fundef_lib.ML"
 use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/inductive_wrap.ML"
