@@ -69,22 +69,15 @@ local
 val token_kind_markup =
  fn T.Command   => (Markup.commandN, [])
   | T.Keyword   => (Markup.keywordN, [])
-  | T.Ident     => Markup.ident
-  | T.LongIdent => Markup.ident
-  | T.SymIdent  => Markup.ident
-  | T.Var       => Markup.ident
-  | T.TypeIdent => Markup.ident
-  | T.TypeVar   => Markup.ident
-  | T.Nat       => Markup.ident
   | T.String    => Markup.string
   | T.AltString => Markup.altstring
   | T.Verbatim  => Markup.verbatim
-  | T.Space     => Markup.space
   | T.Comment   => Markup.comment
   | T.Sync      => Markup.control
   | T.Malformed => Markup.malformed
   | T.Error _   => Markup.malformed
-  | T.EOF       => Markup.control;
+  | T.EOF       => Markup.control
+  | _           => Markup.none;
 
 fun present_token tok =
   Markup.enclose (token_kind_markup (T.kind_of tok)) (Output.output (T.unparse tok));
