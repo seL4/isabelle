@@ -379,7 +379,7 @@ local
 val ten = ord "0" + 10;
 val a = ord "a";
 val A = ord "A";
-val _ = a > A orelse error "Bad ASCII";
+val _ = a > A orelse sys_error "Bad ASCII";
 
 fun remap_hex c =
   let val x = ord c in
