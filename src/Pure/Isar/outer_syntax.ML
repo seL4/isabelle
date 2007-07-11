@@ -27,6 +27,7 @@ sig
   type token
   type parser
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
+  val command_keyword: string -> OuterKeyword.T option
   val command: string -> string -> OuterKeyword.T ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T ->
@@ -133,10 +134,9 @@ fun get_lexicons () = ! global_lexicons;
 fun get_parsers () = ! global_parsers;
 fun get_parser () = Option.map (#2 o #1) o Symtab.lookup (get_parsers ());
 
-fun command_tags name =
-  (case Symtab.lookup (get_parsers ()) name of
-    SOME (((_, k), _), _) => OuterKeyword.tags_of k
-  | NONE => []);
+fun command_keyword name =
+  Option.map (fn (((_, k), _), _) => k) (Symtab.lookup (get_parsers ()) name);
+fun command_tags name = these ((Option.map OuterKeyword.tags_of) (command_keyword name));
 
 fun is_markup kind name = (AList.lookup (op =) (! global_markups) name = SOME kind);
 
@@ -249,14 +249,14 @@ fun deps_thy name ml path =
   let
     val src = Source.of_string (File.read path);
     val pos = Position.path path;
-    val (name', parents, files) = ThyHeader.read (src, pos);
+    val (name', imports, uses) = ThyHeader.read (src, pos);
     val ml_path = ThyLoad.ml_path name;
     val ml_file = if ml andalso is_some (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
   in
     if name <> name' then
       error ("Filename " ^ quote (Path.implode path) ^
         " does not agree with theory name " ^ quote name')
-    else (parents, map (Path.explode o #1) files @ ml_file)
+    else (imports, map (Path.explode o #1) uses @ ml_file)
   end;
 
 
