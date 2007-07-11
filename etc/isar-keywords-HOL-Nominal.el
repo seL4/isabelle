@@ -55,7 +55,7 @@
     "code_thms"
     "code_type"
     "coinductive"
-    "coinductive2"
+    "coinductive_set"
     "commit"
     "constdefs"
     "consts"
@@ -96,9 +96,8 @@
     "hence"
     "hide"
     "inductive"
-    "inductive2"
     "inductive_cases"
-    "inductive_cases2"
+    "inductive_set"
     "init_toplevel"
     "instance"
     "interpret"
@@ -261,7 +260,6 @@
     "infixl"
     "infixr"
     "inject"
-    "intros"
     "invariant"
     "is"
     "monos"
@@ -404,7 +402,7 @@
     "code_reserved"
     "code_type"
     "coinductive"
-    "coinductive2"
+    "coinductive_set"
     "constdefs"
     "consts"
     "consts_code"
@@ -423,7 +421,7 @@
     "global"
     "hide"
     "inductive"
-    "inductive2"
+    "inductive_set"
     "judgment"
     "lemmas"
     "local"
@@ -462,8 +460,7 @@
 
 (defconst isar-keywords-theory-script
   '("declare"
-    "inductive_cases"
-    "inductive_cases2"))
+    "inductive_cases"))
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
