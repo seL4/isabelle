@@ -38,17 +38,27 @@ lemma List_case_NIL [simp]: "List_case c h NIL = c"
 
 subsection {* Corecursive lists *}
 
-consts
+coinductive_set
   LList  :: "'a Datatype.item set \<Rightarrow> 'a Datatype.item set"
-
-coinductive "LList A"
-  intros
+  for A :: "'a Datatype.item set"
+  where
     NIL [intro]:  "NIL \<in> LList A"
-    CONS [intro]: "a \<in> A \<Longrightarrow> M \<in> LList A \<Longrightarrow> CONS a M \<in> LList A"
+  | CONS [intro]: "a \<in> A \<Longrightarrow> M \<in> LList A \<Longrightarrow> CONS a M \<in> LList A"
 
-lemma LList_mono: "A \<subseteq> B \<Longrightarrow> LList A \<subseteq> LList B"
+lemma LList_mono:
+  assumes subset: "A \<subseteq> B"
+  shows "LList A \<subseteq> LList B"
     -- {* This justifies using @{text LList} in other recursive type definitions. *}
-  unfolding LList.defs by (blast intro!: gfp_mono)
+proof
+  fix x
+  assume "x \<in> LList A"
+  then show "x \<in> LList B"
+  proof coinduct
+    case LList
+    then show ?case using subset
+      by cases blast+
+  qed
+qed
 
 consts
   LList_corec_aux :: "nat \<Rightarrow> ('a \<Rightarrow> ('b Datatype.item \<times> 'a) option) \<Rightarrow>
@@ -92,7 +102,7 @@ qed
 
 lemma LList_corec_type: "LList_corec a f \<in> LList UNIV"
 proof -
-  have "LList_corec a f \<in> {LList_corec a f | a. True}" by blast
+  have "\<exists>x. LList_corec a f = LList_corec x f" by blast
   then show ?thesis
   proof coinduct
     case (LList L)
@@ -185,7 +195,7 @@ proof (cases l)
     with Abs_llist have "l = LNil" by (simp add: LNil_def)
     with LNil show ?thesis .
   next
-    case (CONS K a)
+    case (CONS a K)
     then have "K \<in> llist" by (blast intro: llistI)
     then obtain l' where "K = Rep_llist l'" by cases
     with CONS and Abs_llist obtain x where "l = LCons x l'"
@@ -228,7 +238,7 @@ lemma LList_corec_type2:
   (is "?corec a \<in> _")
 proof (unfold llist_def)
   let "LList_corec a ?g" = "?corec a"
-  have "?corec a \<in> {?corec x | x. True}" by blast
+  have "\<exists>x. ?corec a = ?corec x" by blast
   then show "?corec a \<in> LList (range Datatype.Leaf)"
   proof coinduct
     case (LList L)
@@ -282,14 +292,13 @@ qed
 
 subsection {* Equality as greatest fixed-point -- the bisimulation principle *}
 
-consts
+coinductive_set
   EqLList :: "('a Datatype.item \<times> 'a Datatype.item) set \<Rightarrow>
     ('a Datatype.item \<times> 'a Datatype.item) set"
-
-coinductive "EqLList r"
-  intros
+  for r :: "('a Datatype.item \<times> 'a Datatype.item) set"
+  where
     EqNIL: "(NIL, NIL) \<in> EqLList r"
-    EqCONS: "(a, b) \<in> r \<Longrightarrow> (M, N) \<in> EqLList r \<Longrightarrow>
+  | EqCONS: "(a, b) \<in> r \<Longrightarrow> (M, N) \<in> EqLList r \<Longrightarrow>
       (CONS a M, CONS b N) \<in> EqLList r"
 
 lemma EqLList_unfold:
@@ -310,10 +319,10 @@ lemma EqLList_implies_ntrunc_equality:
   done
 
 lemma Domain_EqLList: "Domain (EqLList (diag A)) \<subseteq> LList A"
-  apply (simp add: LList.defs NIL_def CONS_def)
-  apply (rule gfp_upperbound)
-  apply (subst EqLList_unfold)
-  apply auto
+  apply (rule subsetI)
+  apply (erule LList.coinduct)
+  apply (subst (asm) EqLList_unfold)
+  apply (auto simp add: NIL_def CONS_def)
   done
 
 lemma EqLList_diag: "EqLList (diag A) = diag (LList A)"
@@ -328,23 +337,23 @@ proof
        assumption)
     apply (erule DomainI [THEN Domain_EqLList [THEN subsetD]])
     done
-  show "?rhs \<subseteq> ?lhs"
-  proof
-    fix p assume "p \<in> diag (LList A)"
-    then show "p \<in> EqLList (diag A)"
+  {
+    fix M N assume "(M, N) \<in> diag (LList A)"
+    then have "(M, N) \<in> EqLList (diag A)"
     proof coinduct
-      case (EqLList q)
-      then obtain L where L: "L \<in> LList A" and q: "q = (L, L)" ..
+      case (EqLList M N)
+      then obtain L where L: "L \<in> LList A" and MN: "M = L" "N = L" by blast
       from L show ?case
       proof cases
-        case NIL with q have ?EqNIL by simp
+        case NIL with MN have ?EqNIL by simp
         then show ?thesis ..
       next
-        case CONS with q have ?EqCONS by (simp add: diagI)
+        case CONS with MN have ?EqCONS by (simp add: diagI)
         then show ?thesis ..
       qed
     qed
-  qed
+  }
+  then show "?rhs \<subseteq> ?lhs" by auto
 qed
 
 lemma EqLList_diag_iff [iff]: "(p \<in> EqLList (diag A)) = (p \<in> diag (LList A))"
@@ -359,11 +368,11 @@ text {*
 lemma LList_equalityI
   [consumes 1, case_names EqLList, case_conclusion EqLList EqNIL EqCONS]:
   assumes r: "(M, N) \<in> r"
-    and step: "\<And>p. p \<in> r \<Longrightarrow>
-      p = (NIL, NIL) \<or>
-        (\<exists>M N a b.
-          p = (CONS a M, CONS b N) \<and> (a, b) \<in> diag A \<and>
-            (M, N) \<in> r \<union> EqLList (diag A))"
+    and step: "\<And>M N. (M, N) \<in> r \<Longrightarrow>
+      M = NIL \<and> N = NIL \<or>
+        (\<exists>a b M' N'.
+          M = CONS a M' \<and> N = CONS b N' \<and> (a, b) \<in> diag A \<and>
+            ((M', N') \<in> r \<or> (M', N') \<in> EqLList (diag A)))"
   shows "M = N"
 proof -
   from r have "(M, N) \<in> EqLList (diag A)"
@@ -391,39 +400,39 @@ proof -
   have "(f M, g M) \<in> ?bisim" using M by blast
   then show ?thesis
   proof (coinduct taking: A rule: LList_equalityI)
-    case (EqLList q)
-    then obtain L where q: "q = (f L, g L)" and L: "L \<in> LList A" by blast
+    case (EqLList M N)
+    then obtain L where MN: "M = f L" "N = g L" and L: "L \<in> LList A" by blast
     from L show ?case
     proof (cases L)
       case NIL
-      with fun_NIL and q have "q \<in> diag (LList A)" by auto
-      then have "q \<in> EqLList (diag A)" ..
+      with fun_NIL and MN have "(M, N) \<in> diag (LList A)" by auto
+      then have "(M, N) \<in> EqLList (diag A)" ..
       then show ?thesis by cases simp_all
     next
-      case (CONS K a)
+      case (CONS a K)
       from fun_CONS and `a \<in> A` `K \<in> LList A`
       have "?fun_CONS a K" (is "?NIL \<or> ?CONS") .
       then show ?thesis
       proof
         assume ?NIL
-        with q CONS have "q \<in> diag (LList A)" by auto
-        then have "q \<in> EqLList (diag A)" ..
+        with MN CONS have "(M, N) \<in> diag (LList A)" by auto
+        then have "(M, N) \<in> EqLList (diag A)" ..
         then show ?thesis by cases simp_all
       next
         assume ?CONS
-        with CONS obtain a b M N where
-            fg: "(f L, g L) = (CONS a M, CONS b N)"
+        with CONS obtain a b M' N' where
+            fg: "(f L, g L) = (CONS a M', CONS b N')"
           and ab: "(a, b) \<in> diag A"
-          and MN: "(M, N) \<in> ?bisim \<union> diag (LList A)"
+          and M'N': "(M', N') \<in> ?bisim \<union> diag (LList A)"
           by blast
-        from MN show ?thesis
+        from M'N' show ?thesis
         proof
-          assume "(M, N) \<in> ?bisim"
-          with q fg ab show ?thesis by simp
+          assume "(M', N') \<in> ?bisim"
+          with MN fg ab show ?thesis by simp
         next
-          assume "(M, N) \<in> diag (LList A)"
-          then have "(M, N) \<in> EqLList (diag A)" ..
-          with q fg ab show ?thesis by simp
+          assume "(M', N') \<in> diag (LList A)"
+          then have "(M', N') \<in> EqLList (diag A)" ..
+          with MN fg ab show ?thesis by simp
         qed
       qed
     qed
@@ -446,18 +455,18 @@ proof -
   have "(h x, h' x) \<in> {(h u, h' u) | u. True}" by blast
   then show "h x = h' x"
   proof (coinduct rule: LList_equalityI [where A = UNIV])
-    case (EqLList q)
-    then obtain x where q: "q = (h x, h' x)" by blast
+    case (EqLList M N)
+    then obtain x where MN: "M = h x" "N = h' x" by blast
     show ?case
     proof (cases "f x")
       case None
-      with h h' q have ?EqNIL by simp
+      with h h' MN have ?EqNIL by simp
       then show ?thesis ..
     next
       case (Some p)
-      with h h' q have "q =
-          (CONS (fst p) (h (snd p)), CONS (fst p) (h' (snd p)))"
-        by (simp split: prod.split)
+      with h h' MN have "M = CONS (fst p) (h (snd p))"
+	and "N = CONS (fst p) (h' (snd p))"
+        by (simp_all split: prod.split)
       then have ?EqCONS by (auto iff: diag_iff)
       then show ?thesis ..
     qed
@@ -481,18 +490,18 @@ proof -
     by blast
   then have "M = N"
   proof (coinduct rule: LList_equalityI [where A = UNIV])
-    case (EqLList q)
+    case (EqLList M N)
     then obtain l1 l2 where
-        q: "q = (Rep_llist l1, Rep_llist l2)" and r: "(l1, l2) \<in> r"
+        MN: "M = Rep_llist l1" "N = Rep_llist l2" and r: "(l1, l2) \<in> r"
       by auto
     from step [OF r] show ?case
     proof
       assume "?EqLNil (l1, l2)"
-      with q have ?EqNIL by (simp add: Rep_llist_LNil)
+      with MN have ?EqNIL by (simp add: Rep_llist_LNil)
       then show ?thesis ..
     next
       assume "?EqLCons (l1, l2)"
-      with q have ?EqCONS
+      with MN have ?EqCONS
         by (force simp add: Rep_llist_LCons EqLList_diag intro: Rep_llist_UNIV)
       then show ?thesis ..
     qed
@@ -546,7 +555,7 @@ lemma Lconst_type:
   assumes "M \<in> A"
   shows "Lconst M \<in> LList A"
 proof -
-  have "Lconst M \<in> {Lconst M}" by simp
+  have "Lconst M \<in> {Lconst (id M)}" by simp
   then show ?thesis
   proof coinduct
     case (LList N)
@@ -617,16 +626,16 @@ proof -
   then show ?thesis
   proof (coinduct taking: "range (\<lambda>N :: 'a Datatype.item. N)"
       rule: LList_equalityI)
-    case (EqLList q)
-    then obtain N where q: "q = (?lhs N, ?rhs N)" and N: "N \<in> LList A" by blast
+    case (EqLList L M)
+    then obtain N where LM: "L = ?lhs N" "M = ?rhs N" and N: "N \<in> LList A" by blast
     from N show ?case
     proof cases
       case NIL
-      with q have ?EqNIL by simp
+      with LM have ?EqNIL by simp
       then show ?thesis ..
     next
       case CONS
-      with q have ?EqCONS by auto
+      with LM have ?EqCONS by auto
       then show ?thesis ..
     qed
   qed
@@ -640,16 +649,16 @@ proof -
   then show ?thesis
   proof (coinduct taking: "range (\<lambda>N :: 'a Datatype.item. N)"
       rule: LList_equalityI)
-    case (EqLList q)
-    then obtain N where q: "q = (?lmap N, N)" and N: "N \<in> LList A" by blast
+    case (EqLList L M)
+    then obtain N where LM: "L = ?lmap N" "M = N" and N: "N \<in> LList A" by blast
     from N show ?case
     proof cases
       case NIL
-      with q have ?EqNIL by simp
+      with LM have ?EqNIL by simp
       then show ?thesis ..
     next
       case CONS
-      with q have ?EqCONS by auto
+      with LM have ?EqCONS by auto
       then show ?thesis ..
     qed
   qed

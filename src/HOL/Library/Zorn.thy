@@ -33,12 +33,12 @@ definition
     (if c \<notin> chain S | c \<in> maxchain S
     then c else SOME c'. c' \<in> super S c)"
 
-consts
+inductive_set
   TFin :: "'a set set => 'a set set set"
-inductive "TFin S"
-  intros
+  for S :: "'a set set"
+  where
     succI:        "x \<in> TFin S ==> succ S x \<in> TFin S"
-    Pow_UnionI:   "Y \<in> Pow(TFin S) ==> Union(Y) \<in> TFin S"
+  | Pow_UnionI:   "Y \<in> Pow(TFin S) ==> Union(Y) \<in> TFin S"
   monos          Pow_mono
 
 

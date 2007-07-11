@@ -92,26 +92,26 @@ KeyCryptNonce_Cons:
 
 subsection{*Formal protocol definition *}
 
-consts  set_cr  :: "event list set"
-inductive set_cr
- intros
+inductive_set
+  set_cr :: "event list set"
+where
 
   Nil:    --{*Initial trace is empty*}
 	  "[] \<in> set_cr"
 
-  Fake:    --{*The spy MAY say anything he CAN say.*}
+| Fake:    --{*The spy MAY say anything he CAN say.*}
 	   "[| evsf \<in> set_cr; X \<in> synth (analz (knows Spy evsf)) |]
 	    ==> Says Spy B X  # evsf \<in> set_cr"
 
-  Reception: --{*If A sends a message X to B, then B might receive it*}
+| Reception: --{*If A sends a message X to B, then B might receive it*}
 	     "[| evsr \<in> set_cr; Says A B X \<in> set evsr |]
               ==> Gets B X  # evsr \<in> set_cr"
 
-  SET_CR1: --{*CardCInitReq: C initiates a run, sending a nonce to CCA*}
+| SET_CR1: --{*CardCInitReq: C initiates a run, sending a nonce to CCA*}
 	     "[| evs1 \<in> set_cr;  C = Cardholder k;  Nonce NC1 \<notin> used evs1 |]
 	      ==> Says C (CA i) {|Agent C, Nonce NC1|} # evs1 \<in> set_cr"
 
-  SET_CR2: --{*CardCInitRes: CA responds sending NC1 and its certificates*}
+| SET_CR2: --{*CardCInitRes: CA responds sending NC1 and its certificates*}
 	     "[| evs2 \<in> set_cr;
 		 Gets (CA i) {|Agent C, Nonce NC1|} \<in> set evs2 |]
 	      ==> Says (CA i) C
@@ -120,7 +120,7 @@ inductive set_cr
 			 cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
 		    # evs2 \<in> set_cr"
 
-  SET_CR3:
+| SET_CR3:
    --{*RegFormReq: C sends his PAN and a new nonce to CA.
    C verifies that
     - nonce received is the same as that sent;
@@ -144,7 +144,7 @@ inductive set_cr
        # Notes C {|Key KC1, Agent (CA i)|}
        # evs3 \<in> set_cr"
 
-  SET_CR4:
+| SET_CR4:
     --{*RegFormRes:
     CA responds sending NC2 back with a new nonce NCA, after checking that
      - the digital envelope is correctly encrypted by @{term "pubEK (CA i)"}
@@ -160,7 +160,7 @@ inductive set_cr
 	    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
        # evs4 \<in> set_cr"
 
-  SET_CR5:
+| SET_CR5:
    --{*CertReq: C sends his PAN, a new nonce, its proposed public signature key
        and its half of the secret value to CA.
        We now assume that C has a fixed key pair, and he submits (pubSK C).
@@ -196,7 +196,7 @@ inductive set_cr
    which is just @{term "Crypt K (sign SK X)"}.
 *}
 
-SET_CR6:
+| SET_CR6:
 "[| evs6 \<in> set_cr;
     Nonce NonceCCA \<notin> used evs6;
     KC2 \<in> symKeys;  KC3 \<in> symKeys;  cardSK \<notin> symKeys;

@@ -8,19 +8,13 @@ theory Permutation
 imports Multiset
 begin
 
-consts
-  perm :: "('a list * 'a list) set"
-
-abbreviation
-  perm_rel :: "'a list => 'a list => bool"  ("_ <~~> _"  [50, 50] 50) where
-  "x <~~> y == (x, y) \<in> perm"
-
-inductive perm
-  intros
+inductive
+  perm :: "'a list => 'a list => bool"  ("_ <~~> _"  [50, 50] 50)
+  where
     Nil  [intro!]: "[] <~~> []"
-    swap [intro!]: "y # x # l <~~> x # y # l"
-    Cons [intro!]: "xs <~~> ys ==> z # xs <~~> z # ys"
-    trans [intro]: "xs <~~> ys ==> ys <~~> zs ==> xs <~~> zs"
+  | swap [intro!]: "y # x # l <~~> x # y # l"
+  | Cons [intro!]: "xs <~~> ys ==> z # xs <~~> z # ys"
+  | trans [intro]: "xs <~~> ys ==> ys <~~> zs ==> xs <~~> zs"
 
 lemma perm_refl [iff]: "l <~~> l"
   by (induct l) auto

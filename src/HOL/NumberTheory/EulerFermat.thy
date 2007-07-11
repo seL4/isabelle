@@ -17,13 +17,12 @@ text {*
 
 subsection {* Definitions and lemmas *}
 
-consts
+inductive_set
   RsetR :: "int => int set set"
-
-inductive "RsetR m"
-  intros
+  for m :: int
+  where
     empty [simp]: "{} \<in> RsetR m"
-    insert: "A \<in> RsetR m ==> zgcd (a, m) = 1 ==>
+  | insert: "A \<in> RsetR m ==> zgcd (a, m) = 1 ==>
       \<forall>a'. a' \<in> A --> \<not> zcong a a' m ==> insert a A \<in> RsetR m"
 
 consts

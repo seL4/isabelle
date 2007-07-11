@@ -13,30 +13,30 @@ text{*Copmpared with Cardholder Reigstration, @{text KeyCryptKey} is not
   encryption keys (@{term "priEK C"}). *}
 
 
-consts  set_mr  :: "event list set"
-inductive set_mr
- intros
+inductive_set
+  set_mr :: "event list set"
+where
 
   Nil:    --{*Initial trace is empty*}
 	   "[] \<in> set_mr"
 
 
-  Fake:    --{*The spy MAY say anything he CAN say.*}
+| Fake:    --{*The spy MAY say anything he CAN say.*}
 	   "[| evsf \<in> set_mr; X \<in> synth (analz (knows Spy evsf)) |]
 	    ==> Says Spy B X  # evsf \<in> set_mr"
 	
 
-  Reception: --{*If A sends a message X to B, then B might receive it*}
+| Reception: --{*If A sends a message X to B, then B might receive it*}
 	     "[| evsr \<in> set_mr; Says A B X \<in> set evsr |]
               ==> Gets B X  # evsr \<in> set_mr"
 
 
-  SET_MR1: --{*RegFormReq: M requires a registration form to a CA*}
+| SET_MR1: --{*RegFormReq: M requires a registration form to a CA*}
  	   "[| evs1 \<in> set_mr; M = Merchant k; Nonce NM1 \<notin> used evs1 |]
             ==> Says M (CA i) {|Agent M, Nonce NM1|} # evs1 \<in> set_mr"
 
 
-  SET_MR2: --{*RegFormRes: CA replies with the registration form and the 
+| SET_MR2: --{*RegFormRes: CA replies with the registration form and the 
                certificates for her keys*}
   "[| evs2 \<in> set_mr; Nonce NCA \<notin> used evs2;
       Gets (CA i) {|Agent M, Nonce NM1|} \<in> set evs2 |]
@@ -45,7 +45,7 @@ inductive set_mr
                        cert (CA i) (pubSK (CA i)) onlySig (priSK RCA) |}
 	 # evs2 \<in> set_mr"
 
-  SET_MR3:
+| SET_MR3:
          --{*CertReq: M submits the key pair to be certified.  The Notes
              event allows KM1 to be lost if M is compromised. Piero remarks
              that the agent mentioned inside the signature is not verified to
@@ -66,7 +66,7 @@ inductive set_mr
 	 # Notes M {|Key KM1, Agent (CA i)|}
 	 # evs3 \<in> set_mr"
 
-  SET_MR4:
+| SET_MR4:
          --{*CertRes: CA issues the certificates for merSK and merEK,
              while checking never to have certified the m even
              separately. NOTE: In Cardholder Registration the

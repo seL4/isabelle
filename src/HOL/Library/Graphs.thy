@@ -321,7 +321,7 @@ subsection {* Finite Paths *}
 
 types ('n, 'e) fpath = "('n \<times> ('e \<times> 'n) list)"
 
-inductive2  has_fpath :: "('n, 'e) graph \<Rightarrow> ('n, 'e) fpath \<Rightarrow> bool" 
+inductive  has_fpath :: "('n, 'e) graph \<Rightarrow> ('n, 'e) fpath \<Rightarrow> bool" 
   for G :: "('n, 'e) graph"
 where
   has_fpath_empty: "has_fpath G (n, [])"

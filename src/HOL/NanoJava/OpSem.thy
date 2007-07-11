@@ -8,61 +8,51 @@ header "Operational Evaluation Semantics"
 
 theory OpSem imports State begin
 
-consts
- exec :: "(state \<times> stmt       \<times> nat \<times> state) set"
- eval :: "(state \<times> expr \<times> val \<times> nat \<times> state) set"
-syntax (xsymbols)
- exec :: "[state,stmt,    nat,state] => bool" ("_ -_-_\<rightarrow> _"  [98,90,   65,98] 89)
- eval :: "[state,expr,val,nat,state] => bool" ("_ -_\<succ>_-_\<rightarrow> _"[98,95,99,65,98] 89)
-syntax
- exec :: "[state,stmt,    nat,state] => bool" ("_ -_-_-> _"  [98,90,   65,98]89)
- eval :: "[state,expr,val,nat,state] => bool" ("_ -_>_-_-> _"[98,95,99,65,98]89)
-translations
- "s -c  -n-> s'" == "(s, c,    n, s') \<in> exec"
- "s -e>v-n-> s'" == "(s, e, v, n, s') \<in> eval"
+inductive
+  exec :: "[state,stmt,    nat,state] => bool" ("_ -_-_\<rightarrow> _"  [98,90,   65,98] 89)
+  and eval :: "[state,expr,val,nat,state] => bool" ("_ -_\<succ>_-_\<rightarrow> _"[98,95,99,65,98] 89)
+where
+  Skip: "   s -Skip-n\<rightarrow> s"
 
-inductive exec eval intros
-  Skip: "   s -Skip-n-> s"
+| Comp: "[| s0 -c1-n\<rightarrow> s1; s1 -c2-n\<rightarrow> s2 |] ==>
+            s0 -c1;; c2-n\<rightarrow> s2"
 
-  Comp: "[| s0 -c1-n-> s1; s1 -c2-n-> s2 |] ==>
-            s0 -c1;; c2-n-> s2"
+| Cond: "[| s0 -e\<succ>v-n\<rightarrow> s1; s1 -(if v\<noteq>Null then c1 else c2)-n\<rightarrow> s2 |] ==>
+            s0 -If(e) c1 Else c2-n\<rightarrow> s2"
 
-  Cond: "[| s0 -e>v-n-> s1; s1 -(if v\<noteq>Null then c1 else c2)-n-> s2 |] ==>
-            s0 -If(e) c1 Else c2-n-> s2"
+| LoopF:"   s0<x> = Null ==>
+            s0 -While(x) c-n\<rightarrow> s0"
+| LoopT:"[| s0<x> \<noteq> Null; s0 -c-n\<rightarrow> s1; s1 -While(x) c-n\<rightarrow> s2 |] ==>
+            s0 -While(x) c-n\<rightarrow> s2"
 
-  LoopF:"   s0<x> = Null ==>
-            s0 -While(x) c-n-> s0"
-  LoopT:"[| s0<x> \<noteq> Null; s0 -c-n-> s1; s1 -While(x) c-n-> s2 |] ==>
-            s0 -While(x) c-n-> s2"
+| LAcc: "   s -LAcc x\<succ>s<x>-n\<rightarrow> s"
 
-  LAcc: "   s -LAcc x>s<x>-n-> s"
+| LAss: "   s -e\<succ>v-n\<rightarrow> s' ==>
+            s -x:==e-n\<rightarrow> lupd(x\<mapsto>v) s'"
 
-  LAss: "   s -e>v-n-> s' ==>
-            s -x:==e-n-> lupd(x\<mapsto>v) s'"
+| FAcc: "   s -e\<succ>Addr a-n\<rightarrow> s' ==>
+            s -e..f\<succ>get_field s' a f-n\<rightarrow> s'"
 
-  FAcc: "   s -e>Addr a-n-> s' ==>
-            s -e..f>get_field s' a f-n-> s'"
+| FAss: "[| s0 -e1\<succ>Addr a-n\<rightarrow> s1;  s1 -e2\<succ>v-n\<rightarrow> s2 |] ==>
+            s0 -e1..f:==e2-n\<rightarrow> upd_obj a f v s2"
 
-  FAss: "[| s0 -e1>Addr a-n-> s1;  s1 -e2>v-n-> s2 |] ==>
-            s0 -e1..f:==e2-n-> upd_obj a f v s2"
+| NewC: "   new_Addr s = Addr a ==>
+            s -new C\<succ>Addr a-n\<rightarrow> new_obj a C s"
 
-  NewC: "   new_Addr s = Addr a ==>
-            s -new C>Addr a-n-> new_obj a C s"
-
-  Cast: "[| s -e>v-n-> s';
+| Cast: "[| s -e\<succ>v-n\<rightarrow> s';
             case v of Null => True | Addr a => obj_class s' a \<preceq>C C |] ==>
-            s -Cast C e>v-n-> s'"
+            s -Cast C e\<succ>v-n\<rightarrow> s'"
 
-  Call: "[| s0 -e1>a-n-> s1; s1 -e2>p-n-> s2; 
-            lupd(This\<mapsto>a)(lupd(Par\<mapsto>p)(del_locs s2)) -Meth (C,m)-n-> s3
-     |] ==> s0 -{C}e1..m(e2)>s3<Res>-n-> set_locs s2 s3"
+| Call: "[| s0 -e1\<succ>a-n\<rightarrow> s1; s1 -e2\<succ>p-n\<rightarrow> s2; 
+            lupd(This\<mapsto>a)(lupd(Par\<mapsto>p)(del_locs s2)) -Meth (C,m)-n\<rightarrow> s3
+     |] ==> s0 -{C}e1..m(e2)\<succ>s3<Res>-n\<rightarrow> set_locs s2 s3"
 
-  Meth: "[| s<This> = Addr a; D = obj_class s a; D\<preceq>C C;
-            init_locs D m s -Impl (D,m)-n-> s' |] ==>
-            s -Meth (C,m)-n-> s'"
+| Meth: "[| s<This> = Addr a; D = obj_class s a; D\<preceq>C C;
+            init_locs D m s -Impl (D,m)-n\<rightarrow> s' |] ==>
+            s -Meth (C,m)-n\<rightarrow> s'"
 
-  Impl: "   s -body Cm-    n-> s' ==>
-            s -Impl Cm-Suc n-> s'"
+| Impl: "   s -body Cm-    n\<rightarrow> s' ==>
+            s -Impl Cm-Suc n\<rightarrow> s'"
 
 
 inductive_cases exec_elim_cases':

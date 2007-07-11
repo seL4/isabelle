@@ -3048,10 +3048,9 @@ lemma fresh_abs_fun_iff_ineq:
 
 section {* abstraction type for the parsing in nominal datatype *}
 (*==============================================================*)
-consts
-  "ABS_set" :: "('x\<Rightarrow>('a noption)) set"
-inductive ABS_set
-  intros
+
+inductive_set ABS_set :: "('x\<Rightarrow>('a noption)) set"
+  where
   ABS_in: "(abs_fun a x)\<in>ABS_set"
 
 typedef (ABS) ('x,'a) ABS = "ABS_set::('x\<Rightarrow>('a noption)) set"

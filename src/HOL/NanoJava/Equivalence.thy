@@ -12,17 +12,17 @@ subsection "Validity"
 
 constdefs
   valid   :: "[assn,stmt, assn] => bool"  ("|= {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
- "|=  {P} c {Q} \<equiv> \<forall>s   t. P s --> (\<exists>n. s -c  -n-> t) --> Q   t"
+ "|=  {P} c {Q} \<equiv> \<forall>s   t. P s --> (\<exists>n. s -c  -n\<rightarrow> t) --> Q   t"
 
  evalid   :: "[assn,expr,vassn] => bool" ("|=e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60)
- "|=e {P} e {Q} \<equiv> \<forall>s v t. P s --> (\<exists>n. s -e>v-n-> t) --> Q v t"
+ "|=e {P} e {Q} \<equiv> \<forall>s v t. P s --> (\<exists>n. s -e\<succ>v-n\<rightarrow> t) --> Q v t"
 
 
  nvalid   :: "[nat, triple    ] => bool" ("|=_: _"  [61,61] 60)
- "|=n:  t \<equiv> let (P,c,Q) = t in \<forall>s   t. s -c  -n-> t --> P s --> Q   t"
+ "|=n:  t \<equiv> let (P,c,Q) = t in \<forall>s   t. s -c  -n\<rightarrow> t --> P s --> Q   t"
 
 envalid   :: "[nat,etriple    ] => bool" ("|=_:e _" [61,61] 60)
- "|=n:e t \<equiv> let (P,e,Q) = t in \<forall>s v t. s -e>v-n-> t --> P s --> Q v t"
+ "|=n:e t \<equiv> let (P,e,Q) = t in \<forall>s v t. s -e\<succ>v-n\<rightarrow> t --> P s --> Q v t"
 
   nvalids :: "[nat,       triple set] => bool" ("||=_: _" [61,61] 60)
  "||=n: T \<equiv> \<forall>t\<in>T. |=n: t"
@@ -108,8 +108,8 @@ apply (tactic "split_all_tac 1", rename_tac P e Q)
 apply (rule hoare_ehoare.induct)
 (*18*)
 apply (tactic {* ALLGOALS (REPEAT o dresolve_tac [thm "all_conjunct2", thm "all3_conjunct2"]) *})
-apply (tactic {* ALLGOALS (REPEAT o thin_tac "?x :  hoare") *})
-apply (tactic {* ALLGOALS (REPEAT o thin_tac "?x : ehoare") *})
+apply (tactic {* ALLGOALS (REPEAT o thin_tac "hoare ?x ?y") *})
+apply (tactic {* ALLGOALS (REPEAT o thin_tac "ehoare ?x ?y") *})
 apply (simp_all only: cnvalid1_eq cenvalid_def2)
                  apply fast
                 apply fast
@@ -161,9 +161,9 @@ done
 subsection "(Relative) Completeness"
 
 constdefs MGT    :: "stmt => state =>  triple"
-         "MGT  c Z \<equiv> (\<lambda>s. Z = s, c, \<lambda>  t. \<exists>n. Z -c-  n-> t)"
+         "MGT  c Z \<equiv> (\<lambda>s. Z = s, c, \<lambda>  t. \<exists>n. Z -c-  n\<rightarrow> t)"
           MGTe   :: "expr => state => etriple"
-         "MGTe e Z \<equiv> (\<lambda>s. Z = s, e, \<lambda>v t. \<exists>n. Z -e>v-n-> t)"
+         "MGTe e Z \<equiv> (\<lambda>s. Z = s, e, \<lambda>v t. \<exists>n. Z -e\<succ>v-n\<rightarrow> t)"
 syntax (xsymbols)
          MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
 syntax (HTML output)

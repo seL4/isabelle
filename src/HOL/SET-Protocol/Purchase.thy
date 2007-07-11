@@ -57,24 +57,23 @@ consts
     PANSecret :: "nat => nat"
      --{*Maps Cardholders to PANSecrets.*}
 
-    set_pur  :: "event list set"
-
-inductive set_pur
- intros
+inductive_set
+  set_pur :: "event list set"
+where
 
   Nil:   --{*Initial trace is empty*}
 	 "[] \<in> set_pur"
 
-  Fake:  --{*The spy MAY say anything he CAN say.*}
+| Fake:  --{*The spy MAY say anything he CAN say.*}
 	 "[| evsf \<in> set_pur;  X \<in> synth(analz(knows Spy evsf)) |]
 	  ==> Says Spy B X  # evsf \<in> set_pur"
 
 
-  Reception: --{*If A sends a message X to B, then B might receive it*}
+| Reception: --{*If A sends a message X to B, then B might receive it*}
 	     "[| evsr \<in> set_pur;  Says A B X \<in> set evsr |]
 	      ==> Gets B X  # evsr \<in> set_pur"
 
-  Start: 
+| Start: 
       --{*Added start event which is out-of-band for SET: the Cardholder and
 	  the merchant agree on the amounts and uses @{text LID_M} as an
           identifier.
@@ -91,7 +90,7 @@ inductive set_pur
        # Notes M {|Number LID_M, Agent P, Transaction|}
        # evsStart \<in> set_pur"
 
-  PInitReq:
+| PInitReq:
      --{*Purchase initialization, page 72 of Formal Protocol Desc.*}
    "[|evsPIReq \<in> set_pur;
       Transaction = {|Agent M, Agent C, Number OrderDesc, Number PurchAmt|};
@@ -100,7 +99,7 @@ inductive set_pur
       Notes C {|Number LID_M, Transaction |} \<in> set evsPIReq |]
     ==> Says C M {|Number LID_M, Nonce Chall_C|} # evsPIReq \<in> set_pur"
 
-  PInitRes:
+| PInitRes:
      --{*Merchant replies with his own label XID and the encryption
 	 key certificate of his chosen Payment Gateway. Page 74 of Formal
          Protocol Desc. We use @{text LID_M} to identify Cardholder*}
@@ -118,7 +117,7 @@ inductive set_pur
 			 cert P (pubEK P) onlyEnc (priSK RCA)|})
           # evsPIRes \<in> set_pur"
 
-  PReqUns:
+| PReqUns:
       --{*UNSIGNED Purchase request (CardSecret = 0).
 	Page 79 of Formal Protocol Desc.
 	Merchant never sees the amount in clear. This holds of the real
@@ -126,7 +125,8 @@ inductive set_pur
 	Hash{|Number XID, Nonce (CardSecret k)|} from PIHead because
 	the CardSecret is 0 and because AuthReq treated the unsigned case
 	very differently from the signed one anyway.*}
-   "[|evsPReqU \<in> set_pur;
+   "!!Chall_C Chall_M OrderDesc P PurchAmt XID evsPReqU.
+    [|evsPReqU \<in> set_pur;
       C = Cardholder k; CardSecret k = 0;
       Key KC1 \<notin> used evsPReqU;  KC1 \<in> symKeys;
       Transaction = {|Agent M, Agent C, Number OrderDesc, Number PurchAmt|};
@@ -146,14 +146,17 @@ inductive set_pur
 	  # Notes C {|Key KC1, Agent M|}
 	  # evsPReqU \<in> set_pur"
 
-  PReqS:
+| PReqS:
       --{*SIGNED Purchase request.  Page 77 of Formal Protocol Desc.
           We could specify the equation
 	  @{term "PIReqSigned = {| PIDualSigned, OIDualSigned |}"}, since the
 	  Formal Desc. gives PIHead the same format in the unsigned case.
 	  However, there's little point, as P treats the signed and 
           unsigned cases differently.*}
-   "[|evsPReqS \<in> set_pur;
+   "!!C Chall_C Chall_M EKj HOD KC2 LID_M M OIData
+      OIDualSigned OrderDesc P PANData PIData PIDualSigned
+      PIHead PurchAmt Transaction XID evsPReqS k.
+    [|evsPReqS \<in> set_pur;
       C = Cardholder k;
       CardSecret k \<noteq> 0;  Key KC2 \<notin> used evsPReqS;  KC2 \<in> symKeys;
       Transaction = {|Agent M, Agent C, Number OrderDesc, Number PurchAmt|};
@@ -179,7 +182,7 @@ inductive set_pur
 
   --{*Authorization Request.  Page 92 of Formal Protocol Desc.
     Sent in response to Purchase Request.*}
-  AuthReq:
+| AuthReq:
    "[| evsAReq \<in> set_pur;
        Key KM \<notin> used evsAReq;  KM \<in> symKeys;
        Transaction = {|Agent M, Agent C, Number OrderDesc, Number PurchAmt|};
@@ -208,7 +211,7 @@ inductive set_pur
     full protocol is [CapToken], [AcqCardMsg], [AuthToken]:
     optional items for split shipments, recurring payments, etc.*}
 
-  AuthResUns:
+| AuthResUns:
     --{*Authorization Response, UNSIGNED*}
    "[| evsAResU \<in> set_pur;
        C = Cardholder k; M = Merchant i;
@@ -225,7 +228,7 @@ inductive set_pur
 	      authCode)
        # evsAResU \<in> set_pur"
 
-  AuthResS:
+| AuthResS:
     --{*Authorization Response, SIGNED*}
    "[| evsAResS \<in> set_pur;
        C = Cardholder k;
@@ -247,7 +250,7 @@ inductive set_pur
 	      authCode)
        # evsAResS \<in> set_pur"
 
-  PRes:
+| PRes:
     --{*Purchase response.*}
    "[| evsPRes \<in> set_pur;  KP \<in> symKeys;  M = Merchant i;
        Transaction = {|Agent M, Agent C, Number OrderDesc, Number PurchAmt|};

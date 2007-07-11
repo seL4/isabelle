@@ -9,22 +9,18 @@ header "Type relations"
 theory TypeRel imports Decl begin
 
 consts
-  widen   :: "(ty    \<times> ty   ) set"  --{* widening *}
   subcls1 :: "(cname \<times> cname) set"  --{* subclass *}
 
 syntax (xsymbols)
-  widen   :: "[ty   , ty   ] => bool" ("_ \<preceq> _"    [71,71] 70)
   subcls1 :: "[cname, cname] => bool" ("_ \<prec>C1 _"  [71,71] 70)
   subcls  :: "[cname, cname] => bool" ("_ \<preceq>C _"   [71,71] 70)
 syntax
-  widen   :: "[ty   , ty   ] => bool" ("_ <= _"   [71,71] 70)
   subcls1 :: "[cname, cname] => bool" ("_ <=C1 _" [71,71] 70)
   subcls  :: "[cname, cname] => bool" ("_ <=C _"  [71,71] 70)
 
 translations
   "C \<prec>C1 D" == "(C,D) \<in> subcls1"
   "C \<preceq>C  D" == "(C,D) \<in> subcls1^*"
-  "S \<preceq>   T" == "(S,T) \<in> widen"
 
 consts
   method :: "cname => (mname \<rightharpoonup> methd)"
@@ -38,10 +34,12 @@ defs
  subcls1_def: "subcls1 \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c. class C = Some c \<and> super c=D)}"
 
 text{* Widening, viz. method invocation conversion *}
-inductive widen intros 
-  refl   [intro!, simp]:           "T \<preceq> T"
-  subcls         : "C\<preceq>C D \<Longrightarrow> Class C \<preceq> Class D"
-  null   [intro!]:                "NT \<preceq> R"
+inductive
+  widen :: "ty => ty => bool"  ("_ \<preceq> _" [71,71] 70)
+where
+  refl [intro!, simp]: "T \<preceq> T"
+| subcls: "C\<preceq>C D \<Longrightarrow> Class C \<preceq> Class D"
+| null [intro!]: "NT \<preceq> R"
 
 lemma subcls1D: 
   "C\<prec>C1D \<Longrightarrow> C \<noteq> Object \<and> (\<exists>c. class C = Some c \<and> super c=D)"

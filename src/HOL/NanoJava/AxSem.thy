@@ -18,116 +18,102 @@ translations
   "triple" \<leftharpoondown> (type)"assn \<times> stmt \<times>  assn"
  "etriple" \<leftharpoondown> (type)"assn \<times> expr \<times> vassn"
 
-consts   hoare   :: "(triple set \<times>  triple set) set"
-consts  ehoare   :: "(triple set \<times> etriple    ) set"
-syntax (xsymbols)
- "@hoare"  :: "[triple set,  triple set    ] => bool" ("_ |\<turnstile>/ _" [61,61]    60)
- "@hoare1" :: "[triple set,  assn,stmt,assn] => bool" 
-                                   ("_ \<turnstile>/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3]60)
-"@ehoare"  :: "[triple set,  etriple       ] => bool" ("_ |\<turnstile>\<^sub>e/ _"[61,61]60)
-"@ehoare1" :: "[triple set,  assn,expr,vassn]=> bool"
-                                  ("_ \<turnstile>\<^sub>e/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3]60)
-syntax
- "@hoare"  :: "[triple set,  triple set    ] => bool" ("_ ||-/ _" [61,61] 60)
- "@hoare1" :: "[triple set,  assn,stmt,assn] => bool" 
-                                  ("_ |-/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3] 60)
-"@ehoare"  :: "[triple set,  etriple       ] => bool" ("_ ||-e/ _"[61,61] 60)
-"@ehoare1" :: "[triple set,  assn,expr,vassn]=> bool"
-                                 ("_ |-e/ ({(1_)}/ (_)/ {(1_)})" [61,3,90,3] 60)
-
-translations "A |\<turnstile> C"        \<rightleftharpoons> "(A,C) \<in> hoare"
-             "A  \<turnstile> {P}c{Q}"  \<rightleftharpoons> "A |\<turnstile> {(P,c,Q)}"
-             "A |\<turnstile>\<^sub>e t"       \<rightleftharpoons> "(A,t) \<in> ehoare"
-             "A |\<turnstile>\<^sub>e (P,e,Q)" \<rightleftharpoons> "(A,P,e,Q) \<in> ehoare" (* shouldn't be necessary *)
-             "A  \<turnstile>\<^sub>e {P}e{Q}" \<rightleftharpoons> "A |\<turnstile>\<^sub>e (P,e,Q)"
-
 
 subsection "Hoare Logic Rules"
 
-inductive hoare ehoare
-intros
+inductive
+ hoare :: "[triple set, triple set] => bool"  ("_ |\<turnstile>/ _" [61, 61] 60)
+ and ehoare :: "[triple set, etriple] => bool"  ("_ |\<turnstile>\<^sub>e/ _" [61, 61] 60)
+ and hoare1 :: "[triple set, assn,stmt,assn] => bool" 
+   ("_ \<turnstile>/ ({(1_)}/ (_)/ {(1_)})" [61, 3, 90, 3] 60)
+ and ehoare1 :: "[triple set, assn,expr,vassn]=> bool"
+   ("_ \<turnstile>\<^sub>e/ ({(1_)}/ (_)/ {(1_)})" [61, 3, 90, 3] 60)
+where
 
-  Skip:  "A |- {P} Skip {P}"
+  "A  \<turnstile> {P}c{Q} \<equiv> A |\<turnstile> {(P,c,Q)}"
+| "A  \<turnstile>\<^sub>e {P}e{Q} \<equiv> A |\<turnstile>\<^sub>e (P,e,Q)"
 
-  Comp: "[| A |- {P} c1 {Q}; A |- {Q} c2 {R} |] ==> A |- {P} c1;;c2 {R}"
+| Skip:  "A \<turnstile> {P} Skip {P}"
 
-  Cond: "[| A |-e {P} e {Q}; 
-            \<forall>v. A |- {Q v} (if v \<noteq> Null then c1 else c2) {R} |] ==>
-            A |- {P} If(e) c1 Else c2 {R}"
+| Comp: "[| A \<turnstile> {P} c1 {Q}; A \<turnstile> {Q} c2 {R} |] ==> A \<turnstile> {P} c1;;c2 {R}"
 
-  Loop: "A |- {\<lambda>s. P s \<and> s<x> \<noteq> Null} c {P} ==>
-         A |- {P} While(x) c {\<lambda>s. P s \<and> s<x> = Null}"
+| Cond: "[| A \<turnstile>\<^sub>e {P} e {Q}; 
+            \<forall>v. A \<turnstile> {Q v} (if v \<noteq> Null then c1 else c2) {R} |] ==>
+            A \<turnstile> {P} If(e) c1 Else c2 {R}"
 
-  LAcc: "A |-e {\<lambda>s. P (s<x>) s} LAcc x {P}"
+| Loop: "A \<turnstile> {\<lambda>s. P s \<and> s<x> \<noteq> Null} c {P} ==>
+         A \<turnstile> {P} While(x) c {\<lambda>s. P s \<and> s<x> = Null}"
 
-  LAss: "A |-e {P} e {\<lambda>v s.  Q (lupd(x\<mapsto>v) s)} ==>
-         A |-  {P} x:==e {Q}"
+| LAcc: "A \<turnstile>\<^sub>e {\<lambda>s. P (s<x>) s} LAcc x {P}"
 
-  FAcc: "A |-e {P} e {\<lambda>v s. \<forall>a. v=Addr a --> Q (get_field s a f) s} ==>
-         A |-e {P} e..f {Q}"
+| LAss: "A \<turnstile>\<^sub>e {P} e {\<lambda>v s.  Q (lupd(x\<mapsto>v) s)} ==>
+         A \<turnstile>  {P} x:==e {Q}"
 
-  FAss: "[| A |-e {P} e1 {\<lambda>v s. \<forall>a. v=Addr a --> Q a s};
-        \<forall>a. A |-e {Q a} e2 {\<lambda>v s. R (upd_obj a f v s)} |] ==>
-            A |-  {P} e1..f:==e2 {R}"
+| FAcc: "A \<turnstile>\<^sub>e {P} e {\<lambda>v s. \<forall>a. v=Addr a --> Q (get_field s a f) s} ==>
+         A \<turnstile>\<^sub>e {P} e..f {Q}"
 
-  NewC: "A |-e {\<lambda>s. \<forall>a. new_Addr s = Addr a --> P (Addr a) (new_obj a C s)}
+| FAss: "[| A \<turnstile>\<^sub>e {P} e1 {\<lambda>v s. \<forall>a. v=Addr a --> Q a s};
+        \<forall>a. A \<turnstile>\<^sub>e {Q a} e2 {\<lambda>v s. R (upd_obj a f v s)} |] ==>
+            A \<turnstile>  {P} e1..f:==e2 {R}"
+
+| NewC: "A \<turnstile>\<^sub>e {\<lambda>s. \<forall>a. new_Addr s = Addr a --> P (Addr a) (new_obj a C s)}
                 new C {P}"
 
-  Cast: "A |-e {P} e {\<lambda>v s. (case v of Null => True 
+| Cast: "A \<turnstile>\<^sub>e {P} e {\<lambda>v s. (case v of Null => True 
                                  | Addr a => obj_class s a <=C C) --> Q v s} ==>
-         A |-e {P} Cast C e {Q}"
+         A \<turnstile>\<^sub>e {P} Cast C e {Q}"
 
-  Call: "[| A |-e {P} e1 {Q}; \<forall>a. A |-e {Q a} e2 {R a};
-    \<forall>a p ls. A |- {\<lambda>s'. \<exists>s. R a p s \<and> ls = s \<and> 
+| Call: "[| A \<turnstile>\<^sub>e {P} e1 {Q}; \<forall>a. A \<turnstile>\<^sub>e {Q a} e2 {R a};
+    \<forall>a p ls. A \<turnstile> {\<lambda>s'. \<exists>s. R a p s \<and> ls = s \<and> 
                     s' = lupd(This\<mapsto>a)(lupd(Par\<mapsto>p)(del_locs s))}
                   Meth (C,m) {\<lambda>s. S (s<Res>) (set_locs ls s)} |] ==>
-             A |-e {P} {C}e1..m(e2) {S}"
+             A \<turnstile>\<^sub>e {P} {C}e1..m(e2) {S}"
 
-  Meth: "\<forall>D. A |- {\<lambda>s'. \<exists>s a. s<This> = Addr a \<and> D = obj_class s a \<and> D <=C C \<and> 
+| Meth: "\<forall>D. A \<turnstile> {\<lambda>s'. \<exists>s a. s<This> = Addr a \<and> D = obj_class s a \<and> D <=C C \<and> 
                         P s \<and> s' = init_locs D m s}
                   Impl (D,m) {Q} ==>
-             A |- {P} Meth (C,m) {Q}"
+             A \<turnstile> {P} Meth (C,m) {Q}"
 
   --{* @{text "\<Union>Z"} instead of @{text "\<forall>Z"} in the conclusion and\\
        Z restricted to type state due to limitations of the inductive package *}
-  Impl: "\<forall>Z::state. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) ||- 
+| Impl: "\<forall>Z::state. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) |\<turnstile> 
                             (\<lambda>Cm. (P Z Cm, body Cm, Q Z Cm))`Ms ==>
-                      A ||- (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms"
+                      A |\<turnstile> (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms"
 
 --{* structural rules *}
 
-  Asm:  "   a \<in> A ==> A ||- {a}"
+| Asm:  "   a \<in> A ==> A |\<turnstile> {a}"
 
-  ConjI: " \<forall>c \<in> C. A ||- {c} ==> A ||- C"
+| ConjI: " \<forall>c \<in> C. A |\<turnstile> {c} ==> A |\<turnstile> C"
 
-  ConjE: "[|A ||- C; c \<in> C |] ==> A ||- {c}"
+| ConjE: "[|A |\<turnstile> C; c \<in> C |] ==> A |\<turnstile> {c}"
 
   --{* Z restricted to type state due to limitations of the inductive package *}
-  Conseq:"[| \<forall>Z::state. A |- {P' Z} c {Q' Z};
+| Conseq:"[| \<forall>Z::state. A \<turnstile> {P' Z} c {Q' Z};
              \<forall>s t. (\<forall>Z. P' Z s --> Q' Z t) --> (P s --> Q t) |] ==>
-            A |- {P} c {Q }"
+            A \<turnstile> {P} c {Q }"
 
   --{* Z restricted to type state due to limitations of the inductive package *}
- eConseq:"[| \<forall>Z::state. A |-e {P' Z} e {Q' Z};
+| eConseq:"[| \<forall>Z::state. A \<turnstile>\<^sub>e {P' Z} e {Q' Z};
              \<forall>s v t. (\<forall>Z. P' Z s --> Q' Z v t) --> (P s --> Q v t) |] ==>
-            A |-e {P} e {Q }"
+            A \<turnstile>\<^sub>e {P} e {Q }"
 
 
 subsection "Fully polymorphic variants, required for Example only"
 
 axioms
 
-  Conseq:"[| \<forall>Z. A |- {P' Z} c {Q' Z};
+  Conseq:"[| \<forall>Z. A \<turnstile> {P' Z} c {Q' Z};
              \<forall>s t. (\<forall>Z. P' Z s --> Q' Z t) --> (P s --> Q t) |] ==>
-                 A |- {P} c {Q }"
+                 A \<turnstile> {P} c {Q }"
 
- eConseq:"[| \<forall>Z. A |-e {P' Z} e {Q' Z};
+ eConseq:"[| \<forall>Z. A \<turnstile>\<^sub>e {P' Z} e {Q' Z};
              \<forall>s v t. (\<forall>Z. P' Z s --> Q' Z v t) --> (P s --> Q v t) |] ==>
-                 A |-e {P} e {Q }"
+                 A \<turnstile>\<^sub>e {P} e {Q }"
 
- Impl: "\<forall>Z. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) ||- 
+ Impl: "\<forall>Z. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) |\<turnstile> 
                           (\<lambda>Cm. (P Z Cm, body Cm, Q Z Cm))`Ms ==>
-                    A ||- (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms"
+                    A |\<turnstile> (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms"
 
 subsection "Derived Rules"
 

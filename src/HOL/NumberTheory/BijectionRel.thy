@@ -15,13 +15,12 @@ text {*
   \bigskip
 *}
 
-consts
+inductive_set
   bijR :: "('a => 'b => bool) => ('a set * 'b set) set"
-
-inductive "bijR P"
-  intros
+  for P :: "'a => 'b => bool"
+where
   empty [simp]: "({}, {}) \<in> bijR P"
-  insert: "P a b ==> a \<notin> A ==> b \<notin> B ==> (A, B) \<in> bijR P
+| insert: "P a b ==> a \<notin> A ==> b \<notin> B ==> (A, B) \<in> bijR P
     ==> (insert a A, insert b B) \<in> bijR P"
 
 text {*
@@ -41,14 +40,13 @@ definition
   symP :: "('a => 'a => bool) => bool" where
   "symP P = (\<forall>a b. P a b = P b a)"
 
-consts
+inductive_set
   bijER :: "('a => 'a => bool) => 'a set set"
-
-inductive "bijER P"
-  intros
+  for P :: "'a => 'a => bool"
+where
   empty [simp]: "{} \<in> bijER P"
-  insert1: "P a a ==> a \<notin> A ==> A \<in> bijER P ==> insert a A \<in> bijER P"
-  insert2: "P a b ==> a \<noteq> b ==> a \<notin> A ==> b \<notin> A ==> A \<in> bijER P
+| insert1: "P a a ==> a \<notin> A ==> A \<in> bijER P ==> insert a A \<in> bijER P"
+| insert2: "P a b ==> a \<noteq> b ==> a \<notin> A ==> b \<notin> A ==> A \<in> bijER P
     ==> insert a (insert b A) \<in> bijER P"
 
 
