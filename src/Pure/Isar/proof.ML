@@ -470,7 +470,10 @@ fun conclude_goal state goal propss =
 
     fun lost_structure () = error ("Lost goal structure:\n" ^ string_of_thm goal);
 
-    val th = Goal.conclude goal handle THM _ => lost_structure ();
+    val ns = map length propss;
+    val th = Goal.conclude
+      (if Library.foldl op + (0, ns) > 1 then Thm.norm_proof goal else goal)
+      handle THM _ => lost_structure ();
     val goal_propss = filter_out null propss;
     val results =
       Conjunction.elim_balanced (length goal_propss) th
