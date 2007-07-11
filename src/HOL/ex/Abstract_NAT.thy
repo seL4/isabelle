@@ -26,7 +26,7 @@ lemma zero_neq_succ [simp]: "zero \<noteq> succ m"
 
 text {* \medskip Primitive recursion as a (functional) relation -- polymorphic! *}
 
-inductive2
+inductive
   Rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a \<Rightarrow> bool"
   for e :: 'a and r :: "'n \<Rightarrow> 'a \<Rightarrow> 'a"
 where
