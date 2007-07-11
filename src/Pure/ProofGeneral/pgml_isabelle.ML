@@ -1,28 +1,23 @@
-(*  Title:      Pure/ProofGeneral/pgip_types.ML
+(*  Title:      Pure/ProofGeneral/pgml_isabelle.ML
     ID:         $Id$
     Author:     David Aspinall
 
-PGIP abstraction: marshalling between PGML and Isabelle types
+PGML print mode for common Isabelle markup.
 *)
 
 signature PGML_ISABELLE =
 sig
-(*    val pgml_of_prettyT : Pretty.T -> Pgml.pgmlterm *)
+  val pgml_mode: ('a -> 'b) -> 'a -> 'b
 end
 
 structure PgmlIsabelle : PGML_ISABELLE =
 struct
-   open Pgml;
-   open Pretty;
 
-(*   fun pgml_of_prettyT1 (Block(ts,ind,length)) =
-       Box {orient = SOME HVOrient, indent = SOME ind, content = map pgml_of_prettyT1 ts}
+(** print mode **)
 
-     | pgml_of_prettyT1 (String (str,len)) = Atoms { kind = NONE, content = [Str str] }  
-					    (* TODO: should unquote symbols *)
+val pgmlN = "PGML";
+fun pgml_mode f x = setmp print_mode (pgmlN :: ! print_mode) f x;
 
-     | pgml_of_prettyT1 (Break (flag,ind)) = Pgml.Break { mandatory = SOME flag, indent = SOME ind }
+val _ = Markup.add_mode pgmlN (fn markup as (name, _) => ("", ""));
 
-   val pgml_of_prettyT = pgml_of_prettyT1 o dest_prettyT;
-*)
-end
+end;
