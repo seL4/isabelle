@@ -9,7 +9,7 @@ theory Wellfounded_Recursion
 imports Transitive_Closure
 begin
 
-inductive2
+inductive
   wfrec_rel :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b => bool"
   for R :: "('a * 'a) set"
   and F :: "('a => 'b) => 'a => 'b"
@@ -22,7 +22,7 @@ constdefs
   "wf(r) == (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
 
   wfP :: "('a => 'a => bool) => bool"
-  "wfP r == wf (Collect2 r)"
+  "wfP r == wf {(x, y). r x y}"
 
   acyclic :: "('a*'a)set => bool"
   "acyclic r == !x. (x,x) ~: r^+"
@@ -38,19 +38,13 @@ constdefs
   [code func del]: "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
 
 abbreviation acyclicP :: "('a => 'a => bool) => bool" where
-  "acyclicP r == acyclic (Collect2 r)"
+  "acyclicP r == acyclic {(x, y). r x y}"
 
 class wellorder = linorder +
   assumes wf: "wf {(x, y). x \<sqsubset> y}"
 
 
-lemma wfP_wf_eq [pred_set_conv]: "wfP (member2 r) = wf r"
-  by (simp add: wfP_def)
-
-lemma wf_implies_wfP: "wf r \<Longrightarrow> wfP (member2 r)"
-  by (simp add: wfP_def)
-
-lemma wfP_implies_wf: "wfP r \<Longrightarrow> wf (Collect2 r)"
+lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
   by (simp add: wfP_def)
 
 lemma wfUNIVI: 
@@ -163,7 +157,8 @@ text{*Well-foundedness of the empty relation*}
 lemma wf_empty [iff]: "wf({})"
 by (simp add: wf_def)
 
-lemmas wfP_empty [iff] = wf_empty [to_pred]
+lemmas wfP_empty [iff] =
+  wf_empty [to_pred bot_empty_eq2, simplified bot_fun_eq bot_bool_eq]
 
 lemma wf_Int1: "wf r ==> wf (r Int r')"
 by (erule wf_subset, rule Int_lower1)
@@ -219,8 +214,8 @@ apply (erule_tac x="{a. a:A & (EX b:A. (b,a) : r i) }" in allE)
 apply (blast elim!: allE)  
 done
 
-lemmas wfP_SUP = wf_UN [where I=UNIV and r="\<lambda>i. Collect2 (r i)",
-  to_pred member2_SUP, simplified, standard]
+lemmas wfP_SUP = wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}",
+  to_pred SUP_UN_eq2 bot_empty_eq, simplified, standard]
 
 lemma wf_Union: 
  "[| ALL r:R. wf r;  
