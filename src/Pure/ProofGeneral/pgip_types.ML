@@ -36,12 +36,8 @@ sig
     (* Representation error in reading/writing PGIP *)
     exception PGIP of string
 
-
     (* Interface areas for message output *)
-    datatype displayarea = Status | Message | Display | Other of string
-
-    (* Kinds of message output (influence display behaviour) *)
-    datatype messagecategory = Normal | Information | Tracing | Internal 
+    datatype displayarea = Status | Message | Display | Tracing | Internal | Other of string
 
     (* Error levels *)
     datatype fatality = Info | Warning | Nonfatal | Fatal | Panic | Log | Debug
@@ -86,7 +82,6 @@ sig
     val pgval_to_string   : pgipval -> string
 
     val attrs_of_displayarea : displayarea -> XML.attributes
-    val attrs_of_messagecategory : messagecategory -> XML.attributes
     val attrs_of_fatality : fatality -> XML.attributes
     val attrs_of_location : location -> XML.attributes
     val location_of_attrs : XML.attributes -> location (* raises PGIP *)
@@ -329,9 +324,7 @@ fun pgval_to_string (_, Pgvalnull) = ""
 
 type pgipurl = Path.T    (* URLs: only local files *)
 
-datatype displayarea = Status | Message | Display | Other of string
-
-datatype messagecategory = Normal | Information | Tracing | Internal 
+datatype displayarea = Status | Message | Display | Tracing | Internal | Other of string
 
 datatype fatality = Info | Warning | Nonfatal | Fatal | Panic | Log | Debug
 
@@ -374,12 +367,9 @@ local
   fun string_of_area Status = "status"
     | string_of_area Message = "message"
     | string_of_area Display = "display"
+    | string_of_area Tracing = "tracing"
+    | string_of_area Internal = "internal"
     | string_of_area (Other s) = s
-
-  fun string_of_msgcat Internal = "internal"
-    | string_of_msgcat Information = "information"
-    | string_of_msgcat Tracing = "tracing"
-    | string_of_msgcat Normal = "normal"   (* omitted in PGIP *)
 
   fun string_of_fatality Info = "info"
     | string_of_fatality Warning = "warning"
@@ -390,11 +380,6 @@ local
     | string_of_fatality Debug = "debug"
 in
   fun attrs_of_displayarea area = [("area", string_of_area area)]
-
-  fun attrs_of_messagecategory msgcat = 
-      case msgcat of 
-	  Normal => []
-	| _ => [("messagecategory", string_of_msgcat msgcat)]
 
   fun attrs_of_fatality fatality = [("fatality", string_of_fatality fatality)]
 
