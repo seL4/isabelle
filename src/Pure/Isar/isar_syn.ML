@@ -255,7 +255,7 @@ val lemmasP =
   OuterSyntax.command "lemmas" "define lemmas" K.thy_decl (theorems Thm.lemmaK);
 
 val declareP =
-  OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
+  OuterSyntax.command "declare" "declare theorems (improper)" K.thy_decl
     (P.opt_target -- (P.and_list1 SpecParse.xthms1 >> flat)
       >> (fn (loc, args) => Toplevel.local_theory loc
           (#2 o Specification.theorems "" [(("", []), args)])));
