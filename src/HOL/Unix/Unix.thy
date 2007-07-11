@@ -350,7 +350,7 @@ text {*
   involved here).
 *}
 
-inductive2
+inductive
   transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
     ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
 where
@@ -501,7 +501,7 @@ text {*
   amount of time.
 *}
 
-inductive2
+inductive
   transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
     ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
 where
