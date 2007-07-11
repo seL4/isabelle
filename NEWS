@@ -541,6 +541,102 @@ the graph browser tool.
 
 *** HOL ***
 
+* New package for inductive predicates
+
+  An n-ary predicate p with m parameters z_1, ..., z_m can now be defined via
+
+    inductive
+      p :: "U_1 => ... => U_m => T_1 => ... => T_n => bool"
+      for z_1 :: U_1 and ... and z_n :: U_m
+    where
+      rule_1: "... ==> p z_1 ... z_m t_1_1 ... t_1_n"
+    | ...
+
+  rather than
+
+    consts s :: "U_1 => ... => U_m => (T_1 * ... * T_n) set"
+
+    abbreviation p :: "U_1 => ... => U_m => T_1 => ... => T_n => bool"
+    where "p z_1 ... z_m x_1 ... x_n == (x_1, ..., x_n) : s z_1 ... z_m"
+
+    inductive "s z_1 ... z_m"
+    intros
+      rule_1: "... ==> (t_1_1, ..., t_1_n) : s z_1 ... z_m"
+      ...
+
+  For backward compatibility, there is a wrapper allowing inductive
+  sets to be defined with the new package via
+
+    inductive_set
+      s :: "U_1 => ... => U_m => (T_1 * ... * T_n) set"
+      for z_1 :: U_1 and ... and z_n :: U_m
+    where
+      rule_1: "... ==> (t_1_1, ..., t_1_n) : s z_1 ... z_m"
+    | ...
+
+  or
+
+    inductive_set
+      s :: "U_1 => ... => U_m => (T_1 * ... * T_n) set"
+      and p :: "U_1 => ... => U_m => T_1 => ... => T_n => bool"
+      for z_1 :: U_1 and ... and z_n :: U_m
+    where
+      "p z_1 ... z_m x_1 ... x_n == (x_1, ..., x_n) : s z_1 ... z_m"
+    | rule_1: "... ==> p z_1 ... z_m t_1_1 ... t_1_n"
+    | ...
+
+  if the additional syntax "p ..." is required.
+
+  Many examples can be found in the subdirectories Auth, Bali, Induct,
+  or MicroJava.
+
+  INCOMPATIBILITIES:
+
+  - Since declaration and definition of inductive sets or predicates
+    is no longer separated, abbreviations involving the newly introduced
+    sets or predicates must be specified together with the introduction
+    rules after the "where" keyword (see example above), rather than before
+    the actual inductive definition.
+
+  - The variables in induction and elimination rules are now quantified
+    in the order of their occurrence in the introduction rules, rather than
+    in alphabetical order. Since this may break some proofs, these proofs
+    either have to be repaired, e.g. by reordering the variables
+    a_i_1 ... a_i_{k_i} in Isar "case" statements of the form
+
+      case (rule_i a_i_1 ... a_i_{k_i})
+
+    or the old order of quantification has to be restored by explicitly adding
+    meta-level quantifiers in the introduction rules, i.e.
+
+      | rule_i: "!!a_i_1 ... a_i_{k_i}. ... ==> p z_1 ... z_m t_i_1 ... t_i_n"
+
+  - The format of the elimination rules is now
+
+      p z_1 ... z_m x_1 ... x_n ==>
+        (!!a_1_1 ... a_1_{k_1}. x_1 = t_1_1 ==> ... ==> x_n = t_1_n ==> ... ==> P)
+        ==> ... ==> P
+
+    for predicates and
+
+      (x_1, ..., x_n) : s z_1 ... z_m ==>
+        (!!a_1_1 ... a_1_{k_1}. x_1 = t_1_1 ==> ... ==> x_n = t_1_n ==> ... ==> P)
+        ==> ... ==> P
+
+    for sets rather than
+
+      x : s z_1 ... z_m ==>
+        (!!a_1_1 ... a_1_{k_1}. x = (t_1_1, ..., t_1_n) ==> ... ==> P)
+        ==> ... ==> P
+
+    This may require terms in goals to be expanded to n-tuples (e.g. using case_tac
+    or simplification with the split_paired_all rule) before the above elimination
+    rule is applicable.
+
+  - The elimination or case analysis rules for (mutually) inductive sets or
+    predicates are now called "p_1.cases" ... "p_k.cases". The list of rules
+    "p_1_..._p_k.elims" is no longer available.
+
 * Method "metis" proves goals by applying the Metis general-purpose
 resolution prover.  Examples are in the directory MetisExamples.  See
 also http://gilith.com/software/metis/
