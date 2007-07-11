@@ -34,9 +34,11 @@ abbreviation
   sconc_syn :: "'a seq => 'a seq => 'a seq"  (infixr "@@" 65) where
   "xs @@ ys == sconc $ xs $ ys"
 
-abbreviation
-  Finite :: "'a seq => bool" where
-  "Finite x == x:sfinite"
+inductive
+  Finite :: "'a seq => bool"
+  where
+    sfinite_0:  "Finite nil"
+  | sfinite_n:  "[| Finite tr; a~=UU |] ==> Finite (a##tr)"
 
 defs
 
@@ -108,12 +110,7 @@ Infinite_def:
   "Infinite x == ~(seq_finite x)"
 
 
-inductive "sfinite"
-   intros
-    sfinite_0:  "nil:sfinite"
-    sfinite_n:  "[|tr:sfinite;a~=UU|] ==> (a##tr) : sfinite"
-
-declare sfinite.intros [simp]
+declare Finite.intros [simp]
 declare seq.rews [simp]
 
 
@@ -437,7 +434,7 @@ subsection "Finite"
 
 lemma Finite_UU_a: "Finite x --> x~=UU"
 apply (rule impI)
-apply (erule sfinite.induct)
+apply (erule Finite.induct)
  apply simp
 apply simp
 done
@@ -449,7 +446,7 @@ done
 
 lemma Finite_cons_a: "Finite x --> a~=UU --> x=a##xs --> Finite xs"
 apply (intro strip)
-apply (erule sfinite.elims)
+apply (erule Finite.cases)
 apply fastsimp
 apply (simp add: seq.injects)
 done

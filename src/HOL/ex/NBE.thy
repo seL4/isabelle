@@ -44,19 +44,16 @@ locale Vars =
  and x :: lam_var_name
  and X :: ml_var_name
 
-consts Pure_tms :: "tm set"
-inductive Pure_tms
-intros
-"Ct s : Pure_tms"
-"Vt x : Pure_tms"
-"t : Pure_tms ==> Lam t : Pure_tms"
-"s : Pure_tms ==> t : Pure_tms ==> At s t : Pure_tms"
+inductive_set Pure_tms :: "tm set"
+where
+  "Ct s : Pure_tms"
+| "Vt x : Pure_tms"
+| "t : Pure_tms ==> Lam t : Pure_tms"
+| "s : Pure_tms ==> t : Pure_tms ==> At s t : Pure_tms"
 
 consts
   R :: "(const_name * tm list * tm)set" (* reduction rules *)
   compR :: "(const_name * ml list * ml)set" (* compiled reduction rules *)
-  tRed :: "(tm * tm)set" (* beta + R reduction on pure terms *)
-  tRed_list :: "(tm list * tm list) set"
 
 fun
   lift_tm :: "nat \<Rightarrow> tm \<Rightarrow> tm" ("lift") and
@@ -226,54 +223,33 @@ apply (simp_all add:map_idI map_compose[symmetric])
 apply (simp cong:if_cong)
 done
 
-abbreviation
-  tred :: "[tm, tm] => bool"  (infixl "\<rightarrow>" 50) where
+inductive_set
+  tRed :: "(tm * tm)set" (* beta + R reduction on pure terms *)
+  and tred :: "[tm, tm] => bool"  (infixl "\<rightarrow>" 50)
+where
   "s \<rightarrow> t == (s, t) \<in> tRed"
+| "At (Lam t) s \<rightarrow> t[s/0]"
+| "(nm,ts,t) : R ==> foldl At (Ct nm) (map (subst rs) ts) \<rightarrow> subst rs t"
+| "t \<rightarrow> t' ==> Lam t \<rightarrow> Lam t'"
+| "s \<rightarrow> s' ==> At s t \<rightarrow> At s' t"
+| "t \<rightarrow> t' ==> At s t \<rightarrow> At s t'"
+
 abbreviation
   treds :: "[tm, tm] => bool"  (infixl "\<rightarrow>*" 50) where
   "s \<rightarrow>* t == (s, t) \<in> tRed^*"
-abbreviation
-  treds_list :: "[tm list, tm list] \<Rightarrow> bool" (infixl "\<rightarrow>*" 50) where
+
+inductive_set
+  tRed_list :: "(tm list * tm list) set"
+  and treds_list :: "[tm list, tm list] \<Rightarrow> bool" (infixl "\<rightarrow>*" 50)
+where
   "ss \<rightarrow>* ts == (ss, ts) \<in> tRed_list"
-
-inductive tRed
-intros
-"At (Lam t) s \<rightarrow> t[s/0]"
-"(nm,ts,t) : R ==> foldl At (Ct nm) (map (subst rs) ts) \<rightarrow> subst rs t"
-"t \<rightarrow> t' ==> Lam t \<rightarrow> Lam t'"
-"s \<rightarrow> s' ==> At s t \<rightarrow> At s' t"
-"t \<rightarrow> t' ==> At s t \<rightarrow> At s t'"
-
-inductive tRed_list
-intros
-"[] \<rightarrow>* []"
-"ts \<rightarrow>* ts' ==> t \<rightarrow>* t' ==> t#ts \<rightarrow>* t'#ts'"
+| "[] \<rightarrow>* []"
+| "ts \<rightarrow>* ts' ==> t \<rightarrow>* t' ==> t#ts \<rightarrow>* t'#ts'"
 
 declare tRed_list.intros[simp]
 
 lemma tRed_list_refl[simp]: includes Vars shows "ts \<rightarrow>* ts"
 by(induct ts) auto
-
-consts
-  Red :: "(ml * ml)set"
-  Redl :: "(ml list * ml list)set"
-  Redt :: "(tm * tm)set"
-
-abbreviation
-  red :: "[ml, ml] => bool"  (infixl "\<Rightarrow>" 50) where
-  "s \<Rightarrow> t == (s, t) \<in> Red"
-abbreviation
-  redl :: "[ml list, ml list] => bool"  (infixl "\<Rightarrow>" 50) where
-  "s \<Rightarrow> t == (s, t) \<in> Redl"
-abbreviation
-  redt :: "[tm, tm] => bool"  (infixl "\<Rightarrow>" 50) where
-  "s \<Rightarrow> t == (s, t) \<in> Redt"
-abbreviation
-  reds :: "[ml, ml] => bool"  (infixl "\<Rightarrow>*" 50) where
-  "s \<Rightarrow>* t == (s, t) \<in> Red^*"
-abbreviation
-  redts :: "[tm, tm] => bool"  (infixl "\<Rightarrow>*" 50) where
-  "s \<Rightarrow>* t == (s, t) \<in> Redt^*"
 
 
 fun ML_closed :: "nat \<Rightarrow> ml \<Rightarrow> bool"
@@ -292,38 +268,51 @@ and ML_closed_t :: "nat \<Rightarrow> tm \<Rightarrow> bool" where
 "ML_closed_t i v = True"
 thm ML_closed.simps ML_closed_t.simps
 
-inductive Red Redt Redl
-intros
+inductive_set
+  Red :: "(ml * ml)set"
+  and Redt :: "(tm * tm)set"
+  and Redl :: "(ml list * ml list)set"
+  and red :: "[ml, ml] => bool"  (infixl "\<Rightarrow>" 50)
+  and redl :: "[ml list, ml list] => bool"  (infixl "\<Rightarrow>" 50)
+  and redt :: "[tm, tm] => bool"  (infixl "\<Rightarrow>" 50)
+  and reds :: "[ml, ml] => bool"  (infixl "\<Rightarrow>*" 50)
+  and redts :: "[tm, tm] => bool"  (infixl "\<Rightarrow>*" 50)
+where
+  "s \<Rightarrow> t == (s, t) \<in> Red"
+| "s \<Rightarrow> t == (s, t) \<in> Redl"
+| "s \<Rightarrow> t == (s, t) \<in> Redt"
+| "s \<Rightarrow>* t == (s, t) \<in> Red^*"
+| "s \<Rightarrow>* t == (s, t) \<in> Redt^*"
 (* ML *)
-"A_ML (Lam_ML u) [v] \<Rightarrow> u[v/0]"
+| "A_ML (Lam_ML u) [v] \<Rightarrow> u[v/0]"
 (* compiled rules *)
-"(nm,vs,v) : compR ==> ALL i. ML_closed 0 (f i) \<Longrightarrow> A_ML (CC nm) (map (subst\<^bsub>ML\<^esub> f) vs) \<Rightarrow> subst\<^bsub>ML\<^esub> f v"
+| "(nm,vs,v) : compR ==> ALL i. ML_closed 0 (f i) \<Longrightarrow> A_ML (CC nm) (map (subst\<^bsub>ML\<^esub> f) vs) \<Rightarrow> subst\<^bsub>ML\<^esub> f v"
 (* apply *)
-apply_Fun1: "apply (Fun f vs (Suc 0)) v \<Rightarrow> A_ML f (vs @ [v])"
-apply_Fun2: "n > 0 ==>
+| apply_Fun1: "apply (Fun f vs (Suc 0)) v \<Rightarrow> A_ML f (vs @ [v])"
+| apply_Fun2: "n > 0 ==>
  apply (Fun f vs (Suc n)) v \<Rightarrow> Fun f (vs @ [v]) n"
-apply_C: "apply (C nm vs) v \<Rightarrow> C nm (vs @ [v])"
-apply_V: "apply (V x vs) v \<Rightarrow> V x (vs @ [v])"
+| apply_C: "apply (C nm vs) v \<Rightarrow> C nm (vs @ [v])"
+| apply_V: "apply (V x vs) v \<Rightarrow> V x (vs @ [v])"
 (* term_of *)
-term_of_C: "term_of (C nm vs) \<Rightarrow> foldl At (Ct nm) (map term_of vs)"
-term_of_V: "term_of (V x vs) \<Rightarrow> foldl At (Vt x) (map term_of vs)"
-term_of_Fun: "term_of(Fun vf vs n) \<Rightarrow>
+| term_of_C: "term_of (C nm vs) \<Rightarrow> foldl At (Ct nm) (map term_of vs)"
+| term_of_V: "term_of (V x vs) \<Rightarrow> foldl At (Vt x) (map term_of vs)"
+| term_of_Fun: "term_of(Fun vf vs n) \<Rightarrow>
  Lam (term_of ((apply (lift 0 (Fun vf vs n)) (V_ML 0))[V 0 []/0]))"
 (* Context *)
-ctxt_Lam: "t \<Rightarrow> t' ==> Lam t \<Rightarrow> Lam t'"
-ctxt_At1: "s \<Rightarrow> s' ==> At s t \<Rightarrow> At s' t"
-ctxt_At2: "t \<Rightarrow> t' ==> At s t \<Rightarrow> At s t'"
-ctxt_term_of: "v \<Rightarrow> v' ==> term_of v \<Rightarrow> term_of v'"
-ctxt_C: "vs \<Rightarrow> vs' ==> C nm vs \<Rightarrow> C nm vs'"
-ctxt_V: "vs \<Rightarrow> vs' ==> V x vs \<Rightarrow> V x vs'"
-ctxt_Fun1: "f \<Rightarrow> f'   ==> Fun f vs n \<Rightarrow> Fun f' vs n"
-ctxt_Fun3: "vs \<Rightarrow> vs' ==> Fun f vs n \<Rightarrow> Fun f vs' n"
-ctxt_apply1: "s \<Rightarrow> s'   ==> apply s t \<Rightarrow> apply s' t"
-ctxt_apply2: "t \<Rightarrow> t'   ==> apply s t \<Rightarrow> apply s t'"
-ctxt_A_ML1: "f \<Rightarrow> f'   ==> A_ML f vs \<Rightarrow> A_ML f' vs"
-ctxt_A_ML2: "vs \<Rightarrow> vs' ==> A_ML f vs \<Rightarrow> A_ML f vs'"
-ctxt_list1: "v \<Rightarrow> v'   ==> v#vs \<Rightarrow> v'#vs"
-ctxt_list2: "vs \<Rightarrow> vs' ==> v#vs \<Rightarrow> v#vs'"
+| ctxt_Lam: "t \<Rightarrow> t' ==> Lam t \<Rightarrow> Lam t'"
+| ctxt_At1: "s \<Rightarrow> s' ==> At s t \<Rightarrow> At s' t"
+| ctxt_At2: "t \<Rightarrow> t' ==> At s t \<Rightarrow> At s t'"
+| ctxt_term_of: "v \<Rightarrow> v' ==> term_of v \<Rightarrow> term_of v'"
+| ctxt_C: "vs \<Rightarrow> vs' ==> C nm vs \<Rightarrow> C nm vs'"
+| ctxt_V: "vs \<Rightarrow> vs' ==> V x vs \<Rightarrow> V x vs'"
+| ctxt_Fun1: "f \<Rightarrow> f'   ==> Fun f vs n \<Rightarrow> Fun f' vs n"
+| ctxt_Fun3: "vs \<Rightarrow> vs' ==> Fun f vs n \<Rightarrow> Fun f vs' n"
+| ctxt_apply1: "s \<Rightarrow> s'   ==> apply s t \<Rightarrow> apply s' t"
+| ctxt_apply2: "t \<Rightarrow> t'   ==> apply s t \<Rightarrow> apply s t'"
+| ctxt_A_ML1: "f \<Rightarrow> f'   ==> A_ML f vs \<Rightarrow> A_ML f' vs"
+| ctxt_A_ML2: "vs \<Rightarrow> vs' ==> A_ML f vs \<Rightarrow> A_ML f vs'"
+| ctxt_list1: "v \<Rightarrow> v'   ==> v#vs \<Rightarrow> v'#vs"
+| ctxt_list2: "vs \<Rightarrow> vs' ==> v#vs \<Rightarrow> v#vs'"
 
 
 consts
@@ -791,7 +780,7 @@ next
 next
   case term_of_V thus ?case apply (auto simp:map_compose[symmetric]) sorry
 next
-  case (term_of_Fun n vf vs)
+  case (term_of_Fun vf vs n)
   hence "term_of (Fun vf vs n)! \<rightarrow>*
        Lam (term_of (apply (lift 0 (Fun vf vs n)) (V_ML 0)[V 0 []/0]))!" sorry
   moreover

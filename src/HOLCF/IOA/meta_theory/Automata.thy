@@ -50,8 +50,7 @@ consts
   was_enabled        ::"('a,'s)ioa => 'a => 's => bool"
   set_was_enabled    ::"('a,'s)ioa => 'a set => 's => bool"
 
-  (* reachability and invariants *)
-  reachable     :: "('a,'s)ioa => 's set"
+  (* invariants *)
   invariant     :: "[('a,'s)ioa, 's=>bool] => bool"
 
   (* binary composition of action signatures and automata *)
@@ -73,7 +72,6 @@ consts
 syntax
 
   "_trans_of"  :: "'s => 'a => ('a,'s)ioa => 's => bool"  ("_ -_--_-> _" [81,81,81,81] 100)
-  "reachable"  :: "[('a,'s)ioa, 's] => bool"
   "act"        :: "('a,'s)ioa => 'a set"
   "ext"        :: "('a,'s)ioa => 'a set"
   "int"        :: "('a,'s)ioa => 'a set"
@@ -91,15 +89,16 @@ notation (xsymbols)
   par  (infixr "\<parallel>" 10)
 
 
-inductive "reachable C"
-   intros
-    reachable_0:  "s:(starts_of C) ==> s : reachable C"
-    reachable_n:  "[|s:reachable C; (s,a,t):trans_of C|] ==> t:reachable C"
+inductive
+  reachable :: "('a, 's) ioa => 's => bool"
+  for C :: "('a, 's) ioa"
+  where
+    reachable_0:  "s : starts_of C ==> reachable C s"
+  | reachable_n:  "[| reachable C s; (s, a, t) : trans_of C |] ==> reachable C t"
 
 
 translations
   "s -a--A-> t"   == "(s,a,t):trans_of A"
-  "reachable A s" == "s:reachable A"
   "act A"         == "actions (asig_of A)"
   "ext A"         == "externals (asig_of A)"
   "int A"         == "internals (asig_of A)"
@@ -481,7 +480,7 @@ lemma invariantI:
 apply (unfold invariant_def)
 apply (rule allI)
 apply (rule impI)
-apply (rule_tac xa = "s" in reachable.induct)
+apply (rule_tac x = "s" in reachable.induct)
 apply assumption
 apply blast
 apply blast

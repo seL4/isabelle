@@ -355,7 +355,7 @@ done
 
 lemma Seq_Finite_ind:
 "!! P.[| Finite x; P nil; !! a s. [| Finite s; P s|] ==> P (a>>s) |] ==> P x"
-apply (erule (1) sfinite.induct)
+apply (erule (1) Finite.induct)
 apply (tactic {* def_tac 1 *})
 apply (simp add: Consq_def)
 done

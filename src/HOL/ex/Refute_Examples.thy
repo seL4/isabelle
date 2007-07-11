@@ -937,35 +937,30 @@ oops
 
 subsubsection {* Inductively defined sets *}
 
-consts
-  arbitrarySet :: "'a set"
-inductive arbitrarySet
-intros
+inductive_set arbitrarySet :: "'a set"
+where
   "arbitrary : arbitrarySet"
 
 lemma "x : arbitrarySet"
   refute
 oops
 
-consts
-  evenCard :: "'a set set"
-inductive evenCard
-intros
+inductive_set evenCard :: "'a set set"
+where
   "{} : evenCard"
-  "\<lbrakk> S : evenCard; x \<notin> S; y \<notin> S; x \<noteq> y \<rbrakk> \<Longrightarrow> S \<union> {x, y} : evenCard"
+| "\<lbrakk> S : evenCard; x \<notin> S; y \<notin> S; x \<noteq> y \<rbrakk> \<Longrightarrow> S \<union> {x, y} : evenCard"
 
 lemma "S : evenCard"
   refute
 oops
 
-consts
+inductive_set
   even :: "nat set"
-  odd  :: "nat set"
-inductive even odd
-intros
+  and odd  :: "nat set"
+where
   "0 : even"
-  "n : even \<Longrightarrow> Suc n : odd"
-  "n : odd \<Longrightarrow> Suc n : even"
+| "n : even \<Longrightarrow> Suc n : odd"
+| "n : odd \<Longrightarrow> Suc n : even"
 
 lemma "n : odd"
   (*refute*)  -- {* unfortunately, this little example already takes too long *}
