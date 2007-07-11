@@ -39,14 +39,13 @@ sig
   val termN: string val term: T
   val keywordN: string val keyword: string -> T
   val commandN: string val command: string -> T
-  val identN: string val ident: T
   val stringN: string val string: T
   val altstringN: string val altstring: T
   val verbatimN: string val verbatim: T
-  val spaceN: string val space: T
   val commentN: string val comment: T
   val controlN: string val control: T
   val malformedN: string val malformed: T
+  val antiqN: string val antiq: T
   val whitespaceN: string val whitespace: T
   val junkN: string val junk: T
   val commandspanN: string val commandspan: string -> T
@@ -54,9 +53,9 @@ sig
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
   val default_output: T -> output * output
+  val add_mode: string -> (T -> output * output) -> unit
   val output: T -> output * output
   val enclose: T -> output -> output
-  val add_mode: string -> (T -> output * output) -> unit
 end;
 
 structure Markup: MARKUP =
@@ -129,14 +128,14 @@ val (termN, term) = markup "term";
 val (keywordN, keyword) = markup_string "keyword" nameN;
 val (commandN, command) = markup_string "command" nameN;
 
-val (identN, ident) = markup "ident";
 val (stringN, string) = markup "string";
 val (altstringN, altstring) = markup "altstring";
 val (verbatimN, verbatim) = markup "verbatim";
-val (spaceN, space) = markup "space";
 val (commentN, comment) = markup "comment";
 val (controlN, control) = markup "control";
 val (malformedN, malformed) = markup "malformed";
+
+val (antiqN, antiq) = markup "antiq";
 
 val (whitespaceN, whitespace) = markup "whitespace";
 val (junkN, junk) = markup "junk";
@@ -164,9 +163,8 @@ in
     the_default default (Library.get_first (Symtab.lookup (! modes)) (! print_mode));
 end;
 
-fun output m =
-  if m = none then ("", "")
-  else #output (get_mode ()) m;
+fun output ("", _) = ("", "")
+  | output m = #output (get_mode ()) m;
 
 val enclose = output #-> Library.enclose;
 
