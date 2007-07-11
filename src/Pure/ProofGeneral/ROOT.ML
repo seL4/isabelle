@@ -15,7 +15,9 @@ use "pgip.ML";
 use "pgip_isabelle.ML";
 use "pgml_isabelle.ML";
 use "preferences.ML";
-use "parsing.ML";
+use "pgip_parser.ML";
+
+use "parsing.ML";   (* old version *)
 
 use "pgip_tests.ML";
 
