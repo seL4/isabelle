@@ -96,7 +96,7 @@ text {* valid contexts *}
 
 types cxt = "(name\<times>ty) list"
 
-inductive2
+inductive
   valid :: "cxt \<Rightarrow> bool"
 where
   v1[intro]: "valid []"
@@ -112,7 +112,7 @@ by (auto)
 
 text {* "weak" typing relation *}
 
-inductive2
+inductive
   typing :: "cxt\<Rightarrow>llam\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60)
 where
     t_lPar[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lPar x : T"

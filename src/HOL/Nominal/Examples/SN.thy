@@ -59,7 +59,7 @@ lemma psubst_subst:
 by (nominal_induct t avoiding: \<theta> c s rule: lam.induct)
    (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
  
-inductive2 
+inductive 
   Beta :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _" [80,80] 80)
 where
   b1[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^isub>\<beta>(App s2 t)"
@@ -85,7 +85,7 @@ by (induct)
    (auto intro!: simp add: abs_supp lam.supp subst_supp)
 
 lemma beta_abs: "Lam [a].t\<longrightarrow>\<^isub>\<beta> t'\<Longrightarrow>\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>\<beta> t''"
-apply(ind_cases2 "Lam [a].t  \<longrightarrow>\<^isub>\<beta> t'")
+apply(ind_cases "Lam [a].t  \<longrightarrow>\<^isub>\<beta> t'")
 apply(auto simp add: lam.distinct lam.inject)
 apply(auto simp add: alpha)
 apply(rule_tac x="[(a,aa)]\<bullet>s2" in exI)
@@ -138,7 +138,7 @@ where
 
 (* valid contexts *)
 
-inductive2 
+inductive 
   valid :: "(name\<times>ty) list \<Rightarrow> bool"
 where
   v1[intro]: "valid []"
@@ -146,7 +146,7 @@ where
 
 equivariance valid 
 
-inductive_cases2 valid_elim[elim]: "valid ((a,\<tau>)#\<Gamma>)"
+inductive_cases valid_elim[elim]: "valid ((a,\<tau>)#\<Gamma>)"
 
 (* typing judgements *)
 
@@ -160,7 +160,7 @@ apply(induct \<Gamma>)
 apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
 done
 
-inductive2 
+inductive 
   typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60)
 where
   t1[intro]: "\<lbrakk>valid \<Gamma>; (a,\<tau>)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var a : \<tau>"
@@ -195,17 +195,17 @@ qed
 
 constdefs
   "SN" :: "lam \<Rightarrow> bool"
-  "SN t \<equiv> termi Beta t"
+  "SN t \<equiv> termip Beta t"
 
 lemma SN_preserved: "\<lbrakk>SN(t1);t1\<longrightarrow>\<^isub>\<beta> t2\<rbrakk>\<Longrightarrow>SN(t2)"
 apply(simp add: SN_def)
-apply(drule_tac a="t2" in acc_downward)
+apply(drule_tac a="t2" in accp_downward)
 apply(auto)
 done
 
 lemma SN_intro: "(\<forall>t2. t1\<longrightarrow>\<^isub>\<beta>t2 \<longrightarrow> SN(t2))\<Longrightarrow>SN(t1)"
 apply(simp add: SN_def)
-apply(rule accI)
+apply(rule accp.accI)
 apply(auto)
 done
 
@@ -225,27 +225,27 @@ constdefs
   "NEUT t \<equiv> (\<exists>a. t=Var a)\<or>(\<exists>t1 t2. t=App t1 t2)" 
 
 (* a slight hack to get the first element of applications *)
-inductive2 
+inductive 
   FST :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<guillemotright> _" [80,80] 80)
 where
   fst[intro!]:  "(App t s) \<guillemotright> t"
 
 lemma fst_elim[elim!]: 
   shows "(App t s) \<guillemotright> t' \<Longrightarrow> t=t'"
-apply(ind_cases2 "App t s \<guillemotright> t'")
+apply(ind_cases "App t s \<guillemotright> t'")
 apply(simp add: lam.inject)
 done
 
 lemma qq3: "SN(App t s)\<Longrightarrow>SN(t)"
 apply(simp add: SN_def)
-apply(subgoal_tac "\<forall>z. (App t s \<guillemotright> z) \<longrightarrow> termi Beta z")(*A*)
+apply(subgoal_tac "\<forall>z. (App t s \<guillemotright> z) \<longrightarrow> termip Beta z")(*A*)
 apply(force)
 (*A*)
-apply(erule acc_induct)
+apply(erule accp_induct)
 apply(clarify)
-apply(ind_cases2 "x \<guillemotright> z" for x z)
+apply(ind_cases "x \<guillemotright> z" for x z)
 apply(clarify)
-apply(rule accI)
+apply(rule accp.accI)
 apply(auto intro: b1)
 done
 
@@ -275,7 +275,7 @@ done
 lemma sub_ind: 
   "SN(u)\<Longrightarrow>(u\<in>RED \<tau>\<longrightarrow>(\<forall>t. (NEUT t\<and>CR2 \<tau>\<and>CR3 \<sigma>\<and>CR3_RED t (\<tau>\<rightarrow>\<sigma>))\<longrightarrow>(App t u)\<in>RED \<sigma>))"
 apply(simp add: SN_def)
-apply(erule acc_induct)
+apply(erule accp_induct)
 apply(auto)
 apply(simp add: CR3_def)
 apply(rotate_tac 5)
@@ -285,7 +285,7 @@ apply(rule conjI)
 apply(force simp only: NEUT_def)
 apply(simp (no_asm) add: CR3_RED_def)
 apply(clarify)
-apply(ind_cases2 "App t x \<longrightarrow>\<^isub>\<beta> t'" for x t t')
+apply(ind_cases "App t x \<longrightarrow>\<^isub>\<beta> t'" for x t t')
 apply(simp_all add: lam.inject)
 apply(simp only:  CR3_RED_def)
 apply(drule_tac x="s2" in spec)
@@ -360,29 +360,29 @@ next
 qed
     
 lemma double_acc_aux:
-  assumes a_acc: "acc r a"
-  and b_acc: "acc r b"
+  assumes a_acc: "accp r a"
+  and b_acc: "accp r b"
   and hyp: "\<And>x z.
-    (\<And>y. r y x \<Longrightarrow> acc r y) \<Longrightarrow>
+    (\<And>y. r y x \<Longrightarrow> accp r y) \<Longrightarrow>
     (\<And>y. r y x \<Longrightarrow> P y z) \<Longrightarrow>
-    (\<And>u. r u z \<Longrightarrow> acc r u) \<Longrightarrow>
+    (\<And>u. r u z \<Longrightarrow> accp r u) \<Longrightarrow>
     (\<And>u. r u z \<Longrightarrow> P x u) \<Longrightarrow> P x z"
   shows "P a b"
 proof -
   from a_acc
-  have r: "\<And>b. acc r b \<Longrightarrow> P a b"
-  proof (induct a rule: acc.induct)
+  have r: "\<And>b. accp r b \<Longrightarrow> P a b"
+  proof (induct a rule: accp.induct)
     case (accI x)
     note accI' = accI
-    have "acc r b" by fact
+    have "accp r b" by fact
     thus ?case
-    proof (induct b rule: acc.induct)
+    proof (induct b rule: accp.induct)
       case (accI y)
       show ?case
 	apply (rule hyp)
 	apply (erule accI')
 	apply (erule accI')
-	apply (rule acc.accI)
+	apply (rule accp.accI)
 	apply (erule accI)
 	apply (erule accI)
 	apply (erule accI)
@@ -393,7 +393,7 @@ proof -
 qed
 
 lemma double_acc:
-  "\<lbrakk>acc r a; acc r b; \<forall>x z. ((\<forall>y. r y x \<longrightarrow> P y z) \<and> (\<forall>u. r u z \<longrightarrow> P x u)) \<longrightarrow> P x z\<rbrakk> \<Longrightarrow> P a b"
+  "\<lbrakk>accp r a; accp r b; \<forall>x z. ((\<forall>y. r y x \<longrightarrow> P y z) \<and> (\<forall>u. r u z \<longrightarrow> P x u)) \<longrightarrow> P x z\<rbrakk> \<Longrightarrow> P a b"
 apply(rule_tac r="r" in double_acc_aux)
 apply(assumption)+
 apply(blast)
@@ -402,7 +402,7 @@ done
 lemma abs_RED: "(\<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>)\<longrightarrow>Lam [x].t\<in>RED (\<tau>\<rightarrow>\<sigma>)"
 apply(simp)
 apply(clarify)
-apply(subgoal_tac "termi Beta t")(*1*)
+apply(subgoal_tac "termip Beta t")(*1*)
 apply(erule rev_mp)
 apply(subgoal_tac "u \<in> RED \<tau>")(*A*)
 apply(erule rev_mp)
@@ -423,7 +423,7 @@ apply(rule conjI)
 apply(force simp add: NEUT_def)
 apply(simp add: CR3_RED_def)
 apply(clarify)
-apply(ind_cases2 "App(Lam[x].xa) z \<longrightarrow>\<^isub>\<beta> t'" for xa z t')
+apply(ind_cases "App(Lam[x].xa) z \<longrightarrow>\<^isub>\<beta> t'" for xa z t')
 apply(auto simp add: lam.inject lam.distinct)
 apply(drule beta_abs)
 apply(auto)
@@ -472,7 +472,7 @@ apply(rule conjI)
 apply(force simp add: NEUT_def)
 apply(simp add: NORMAL_def)
 apply(clarify)
-apply(ind_cases2 "Var x \<longrightarrow>\<^isub>\<beta> t'" for t')
+apply(ind_cases "Var x \<longrightarrow>\<^isub>\<beta> t'" for t')
 apply(auto simp add: lam.inject lam.distinct)
 apply(force simp add: RED_props)
 apply(simp add: id_subs)

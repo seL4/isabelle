@@ -50,7 +50,7 @@ nominal_datatype trmI =
 
 text {* valid contexts *}
 
-inductive2 
+inductive 
   valid :: "(name\<times>'a::pt_name) list \<Rightarrow> bool"
 where
   v1[intro]: "valid []"
@@ -58,7 +58,7 @@ where
 
 text {* typing judgements for trms *}
 
-inductive2 
+inductive 
   typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [80,80,80] 80)
 where
   t0[intro]: "\<lbrakk>valid \<Gamma>; (x,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : \<tau>"
@@ -76,7 +76,7 @@ where
 
 text {* typing judgements for Itrms *}
 
-inductive2 
+inductive 
   Ityping :: "(name\<times>tyI) list\<Rightarrow>trmI\<Rightarrow>tyI\<Rightarrow>bool" (" _ I\<turnstile> _ : _ " [80,80,80] 80)
 where
   t0[intro]: "\<lbrakk>valid \<Gamma>; (x,\<tau>)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> I\<turnstile> IVar x : \<tau>"
@@ -167,7 +167,7 @@ done
 
 text {* big-step evaluation for trms *}
 
-inductive2 
+inductive 
   big :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80)
 where
   b0[intro]: "Lam [x].e \<Down> Lam [x].e"
@@ -181,7 +181,7 @@ where
 | b8[intro]: "\<lbrakk>e\<Down>InL e'; e1[x::=e']\<Down>e''\<rbrakk> \<Longrightarrow> Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2 \<Down> e''"
 | b9[intro]: "\<lbrakk>e\<Down>InR e'; e2[x::=e']\<Down>e''\<rbrakk> \<Longrightarrow> Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2 \<Down> e''"
 
-inductive2 
+inductive 
   Ibig :: "((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>((nat\<Rightarrow>nat)\<times>trmI)\<Rightarrow>bool" ("_ I\<Down> _" [80,80] 80)
 where
   m0[intro]: "(m,ILam [x].e) I\<Down> (m,ILam [x].e)"

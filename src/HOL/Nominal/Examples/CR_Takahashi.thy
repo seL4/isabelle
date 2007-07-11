@@ -71,7 +71,7 @@ using a by (nominal_induct t avoiding: x y s rule: lam.induct)
 
 section {* Beta-Reduction *}
 
-inductive2 
+inductive 
   "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _" [80,80] 80)
 where
   b1[intro]: "t1 \<longrightarrow>\<^isub>\<beta> t2 \<Longrightarrow> App t1 s \<longrightarrow>\<^isub>\<beta> App t2 s"
@@ -81,7 +81,7 @@ where
 
 section {* Transitive Closure of Beta *}
 
-inductive2 
+inductive 
   "Beta_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80)
 where
   bs1[intro]: "t \<longrightarrow>\<^isub>\<beta>\<^sup>* t"
@@ -90,7 +90,7 @@ where
 
 section {* One-Reduction *}
 
-inductive2 
+inductive 
   One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1 _" [80,80] 80)
 where
   o1[intro]: "Var x\<longrightarrow>\<^isub>1 Var x"
@@ -169,7 +169,7 @@ done
 
 section {* Transitive Closure of One *}
 
-inductive2 
+inductive 
   "One_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1\<^sup>* _" [80,80] 80)
 where
   os1[intro]: "t \<longrightarrow>\<^isub>1\<^sup>* t"
@@ -178,7 +178,7 @@ where
 
 section {* Complete Development Reduction *}
 
-inductive2 
+inductive 
   Dev :: "lam \<Rightarrow> lam \<Rightarrow> bool" (" _ \<longrightarrow>\<^isub>d _" [80,80]80)
 where
   d1[intro]: "Var x \<longrightarrow>\<^isub>d Var x"

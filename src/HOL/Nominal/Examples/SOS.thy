@@ -207,7 +207,7 @@ by (nominal_induct t avoiding: a e rule: trm.induct)
 
 text {* Typing-Judgements *}
 
-inductive2
+inductive
   valid :: "(name \<times> 'a::pt_name) list \<Rightarrow> bool"
 where
     v_nil[intro]:  "valid []"
@@ -215,7 +215,7 @@ where
 
 equivariance valid 
 
-inductive_cases2  
+inductive_cases  
   valid_cons_inv_auto[elim]:"valid ((x,T)#\<Gamma>)"
 
 abbreviation
@@ -253,7 +253,7 @@ moreover
 ultimately show ?thesis by auto
 qed
 
-inductive2
+inductive
   typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
 where
   t_Var[intro]:   "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
@@ -287,7 +287,7 @@ declare ty.inject  [simp add]
 declare data.inject [simp add]
 
 
-inductive_cases2 typing_inv_auto[elim]: 
+inductive_cases typing_inv_auto[elim]: 
   "\<Gamma> \<turnstile> Lam [x].t : T"
   "\<Gamma> \<turnstile> Var x : T"
   "\<Gamma> \<turnstile> App x y : T"
@@ -487,7 +487,7 @@ qed (simp, fast)+
 
 text {* Big-Step Evaluation *}
 
-inductive2
+inductive
   big :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80) 
 where
   b_Lam[intro]:   "Lam [x].e \<Down> Lam [x].e"
@@ -530,7 +530,7 @@ declare trm.inject  [simp add]
 declare ty.inject  [simp add]
 declare data.inject [simp add]
 
-inductive_cases2 b_inv_auto[elim]: 
+inductive_cases b_inv_auto[elim]: 
   "App e\<^isub>1 e\<^isub>2 \<Down> t" 
   "Case e of inl x\<^isub>1 \<rightarrow> e\<^isub>1 | inr x\<^isub>2 \<rightarrow> e\<^isub>2 \<Down> t"
   "Lam[x].t \<Down> t"
@@ -615,7 +615,7 @@ lemma b_CaseR_elim[elim]:
   apply(assumption)
 done
 
-inductive2
+inductive
   val :: "trm\<Rightarrow>bool" 
 where
   v_Lam[intro]:   "val (Lam [x].e)"
@@ -628,7 +628,7 @@ declare trm.inject  [simp add]
 declare ty.inject  [simp add]
 declare data.inject [simp add]
 
-inductive_cases2 v_inv_auto[elim]: 
+inductive_cases v_inv_auto[elim]: 
   "val (Const n)"
   "val (Pr e\<^isub>1 e\<^isub>2)"
   "val (InL e)"

@@ -27,7 +27,7 @@ by (nominal_induct T rule: ty.induct)
 
 text {* valid contexts *}
 
-inductive2
+inductive
   valid :: "(name\<times>ty) list \<Rightarrow> bool"
 where
     v1[intro]: "valid []"
@@ -36,7 +36,7 @@ where
 equivariance valid
 
 text{* typing judgements *}
-inductive2
+inductive
   typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
 where
     t_Var[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"

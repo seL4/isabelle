@@ -147,7 +147,7 @@ by (nominal_induct M avoiding: x y N L rule: lam.induct)
 
 section {* Beta Reduction *}
 
-inductive2
+inductive
   "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _" [80,80] 80)
 where
     b1[intro]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^isub>\<beta>(App s2 t)"
@@ -160,7 +160,7 @@ equivariance Beta
 nominal_inductive Beta
   by (simp_all add: abs_fresh fresh_fact')
 
-inductive2
+inductive
   "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80)
 where
     bs1[intro, simp]: "M \<longrightarrow>\<^isub>\<beta>\<^sup>* M"
@@ -177,7 +177,7 @@ by (induct) (auto)
 
 section {* One-Reduction *}
 
-inductive2
+inductive
   One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1 _" [80,80] 80)
 where
     o1[intro!]:      "M\<longrightarrow>\<^isub>1M"
@@ -190,7 +190,7 @@ equivariance One
 nominal_inductive One
   by (simp_all add: abs_fresh fresh_fact')
 
-inductive2
+inductive
   "One_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>1\<^sup>* _" [80,80] 80)
 where
     os1[intro, simp]: "M \<longrightarrow>\<^isub>1\<^sup>* M"
@@ -272,7 +272,7 @@ lemma one_abs:
   shows "\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>1t''"
   using a
   apply -
-  apply(ind_cases2 "(Lam [a].t)\<longrightarrow>\<^isub>1t'")
+  apply(ind_cases "(Lam [a].t)\<longrightarrow>\<^isub>1t'")
   apply(auto simp add: lam.inject alpha)
   apply(rule_tac x="[(a,aa)]\<bullet>s2" in exI)
   apply(rule conjI)
@@ -289,7 +289,7 @@ lemma one_app:
          (\<exists>a s s1 s2. t1 = Lam [a].s \<and> a\<sharp>(t2,s2) \<and> t' = s1[a::=s2] \<and> s \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
   using a
   apply -
-  apply(ind_cases2 "App t1 t2 \<longrightarrow>\<^isub>1 t'")
+  apply(ind_cases "App t1 t2 \<longrightarrow>\<^isub>1 t'")
   apply(auto simp add: lam.distinct lam.inject)
   done
 
@@ -299,7 +299,7 @@ lemma one_red:
          (\<exists>s1 s2. M = s1[a::=s2] \<and> t1 \<longrightarrow>\<^isub>1 s1 \<and> t2 \<longrightarrow>\<^isub>1 s2)" 
   using a
   apply -
-  apply(ind_cases2 "App (Lam [a].t1) t2 \<longrightarrow>\<^isub>1 M")
+  apply(ind_cases "App (Lam [a].t1) t2 \<longrightarrow>\<^isub>1 M")
   apply(simp_all add: lam.inject)
   apply(force)
   apply(erule conjE)

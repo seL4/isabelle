@@ -177,7 +177,7 @@ by (simp add: ty_vrs_prm_simp ty_context_vrs_prm_simp)
 
 text {* Now validity of a context is a straightforward inductive definition. *}
   
-inductive2 
+inductive 
   valid_rel :: "ty_context \<Rightarrow> bool" ("\<turnstile> _ ok" [100] 100)
 where
   valid_nil[simp]:  "\<turnstile> [] ok"
@@ -279,7 +279,7 @@ text {* The definition for the subtyping-relation follows quite closely what is 
   does \emph{not} make the subtyping-relation ``partial"\ldots because we work over
   $\alpha$-equivalence classes.) *}
 
-inductive2 
+inductive 
   subtype_of :: "ty_context \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"   ("_\<turnstile>_<:_" [100,100,100] 100)
 where
   S_Top[intro]:    "\<lbrakk>\<turnstile> \<Gamma> ok; S closed_in \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> S <: Top"
@@ -509,7 +509,7 @@ lemma S_ForallE_left:
   shows "\<lbrakk>\<Gamma> \<turnstile> \<forall>[X<:S\<^isub>1].S\<^isub>2 <: T; X\<sharp>\<Gamma>; X\<sharp>S\<^isub>1\<rbrakk>
          \<Longrightarrow> T = Top \<or> (\<exists>T\<^isub>1 T\<^isub>2. T = \<forall>[X<:T\<^isub>1].T\<^isub>2 \<and> \<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1 \<and> ((X,T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2)"
   apply(frule subtype_implies_ok)
-  apply(ind_cases2 "\<Gamma> \<turnstile> \<forall>[X<:S\<^isub>1].S\<^isub>2 <: T")
+  apply(ind_cases "\<Gamma> \<turnstile> \<forall>[X<:S\<^isub>1].S\<^isub>2 <: T")
   apply(auto simp add: ty.inject alpha)
   apply(rule_tac x="[(X,Xa)]\<bullet>T\<^isub>2" in exI)
   apply(rule conjI)

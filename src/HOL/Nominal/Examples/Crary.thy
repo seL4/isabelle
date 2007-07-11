@@ -257,7 +257,7 @@ qed (auto)
 
 section {* Typing *}
 
-inductive2
+inductive
   valid :: "Ctxt \<Rightarrow> bool"
 where
   v_nil[intro]:  "valid []"
@@ -265,7 +265,7 @@ where
 
 equivariance valid 
 
-inductive_cases2  
+inductive_cases  
   valid_cons_elim_auto[elim]:"valid ((x,T)#\<Gamma>)"
 
 abbreviation
@@ -297,7 +297,7 @@ using a b c
 by (induct \<Gamma>)
    (auto dest!: fresh_context)
 
-inductive2
+inductive
   typing :: "Ctxt\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60) 
 where
   t_Var[intro]:   "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
@@ -319,7 +319,7 @@ lemma typing_implies_valid:
 declare trm.inject [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases2 t_inv_auto[elim]: 
+inductive_cases t_inv_auto[elim]: 
   "\<Gamma> \<turnstile> Lam [x].t : T"
   "\<Gamma> \<turnstile> Var x : T"
   "\<Gamma> \<turnstile> App x y : T"
@@ -332,7 +332,7 @@ declare ty.inject [simp del]
 
 section {* Definitional Equivalence *}
 
-inductive2
+inductive
   def_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<equiv> _ : _" [60,60] 60) 
 where
   Q_Refl[intro]:  "\<Gamma> \<turnstile> t : T \<Longrightarrow> \<Gamma> \<turnstile> t \<equiv> t : T"
@@ -358,7 +358,7 @@ using a by (induct) (auto elim: typing_implies_valid)
 
 section {* Weak Head Reduction *}
 
-inductive2
+inductive
   whr_def :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<leadsto> _" [80,80] 80) 
 where
   QAR_Beta[intro]: "App (Lam [x]. t\<^isub>1) t\<^isub>2 \<leadsto> t\<^isub>1[x::=t\<^isub>2]"
@@ -367,7 +367,7 @@ where
 declare trm.inject  [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases2 whr_inv_auto[elim]: 
+inductive_cases whr_inv_auto[elim]: 
   "t \<leadsto> t'"
   "Lam [x].t \<leadsto> t'"
   "App (Lam [x].t12) t2 \<leadsto> t"
@@ -390,7 +390,7 @@ abbreviation
 where
   "t\<leadsto>|  \<equiv> \<not>(\<exists> u. t \<leadsto> u)" 
 
-inductive2
+inductive
   whn_def :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80) 
 where
   QAN_Reduce[intro]: "\<lbrakk>s \<leadsto> t; t \<Down> u\<rbrakk> \<Longrightarrow> s \<Down> u"
@@ -398,7 +398,7 @@ where
 
 declare trm.inject[simp]
 
-inductive_cases2 whn_inv_auto[elim]: "t \<Down> t'"
+inductive_cases whn_inv_auto[elim]: "t \<Down> t'"
 
 declare trm.inject[simp del]
 
@@ -448,7 +448,7 @@ qed (auto)
 
 section {* Algorithmic Term Equivalence and Algorithmic Path Equivalence *}
 
-inductive2
+inductive
   alg_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<Leftrightarrow> _ : _" [60,60,60,60] 60) 
 and
   alg_path_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<leftrightarrow> _ : _" [60,60,60,60] 60) 
@@ -470,11 +470,11 @@ nominal_inductive alg_equiv
 declare trm.inject [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases2 alg_equiv_inv_auto[elim]: 
+inductive_cases alg_equiv_inv_auto[elim]: 
   "\<Gamma> \<turnstile> s\<Leftrightarrow>t : TBase"
   "\<Gamma> \<turnstile> s\<Leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
 
-inductive_cases2 alg_path_equiv_inv_auto[elim]: 
+inductive_cases alg_path_equiv_inv_auto[elim]: 
   "\<Gamma> \<turnstile> s\<leftrightarrow>t : TBase"
   "\<Gamma> \<turnstile> s\<leftrightarrow>t : TUnit"
   "\<Gamma> \<turnstile> s\<leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
