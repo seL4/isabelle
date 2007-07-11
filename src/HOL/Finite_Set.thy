@@ -12,7 +12,7 @@ begin
 
 subsection {* Definition and basic properties *}
 
-inductive2 finite :: "'a set => bool"
+inductive finite :: "'a set => bool"
   where
     emptyI [simp, intro!]: "finite {}"
   | insertI [simp, intro!]: "finite A ==> finite (insert a A)"
@@ -427,7 +427,7 @@ if @{text f} is associative-commutative. For an application of @{text fold}
 se the definitions of sums and products over finite sets.
 *}
 
-inductive2
+inductive
   foldSet :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a => bool"
   for f ::  "'a => 'a => 'a"
   and g :: "'b => 'a"
@@ -438,7 +438,7 @@ where
      "\<lbrakk> x \<notin> A; foldSet f g z A y \<rbrakk>
       \<Longrightarrow> foldSet f g z (insert x A) (f (g x) y)"
 
-inductive_cases2 empty_foldSetE [elim!]: "foldSet f g z {} x"
+inductive_cases empty_foldSetE [elim!]: "foldSet f g z {} x"
 
 constdefs
   fold :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a"
@@ -1794,7 +1794,7 @@ subsection{* A fold functional for non-empty sets *}
 
 text{* Does not require start value. *}
 
-inductive2
+inductive
   fold1Set :: "('a => 'a => 'a) => 'a set => 'a => bool"
   for f :: "'a => 'a => 'a"
 where
@@ -1809,9 +1809,9 @@ lemma fold1Set_nonempty:
   "fold1Set f A x \<Longrightarrow> A \<noteq> {}"
   by(erule fold1Set.cases, simp_all) 
 
-inductive_cases2 empty_fold1SetE [elim!]: "fold1Set f {} x"
+inductive_cases empty_fold1SetE [elim!]: "fold1Set f {} x"
 
-inductive_cases2 insert_fold1SetE [elim!]: "fold1Set f (insert a X) x"
+inductive_cases insert_fold1SetE [elim!]: "fold1Set f (insert a X) x"
 
 
 lemma fold1Set_sing [iff]: "(fold1Set f {a} b) = (a = b)"
