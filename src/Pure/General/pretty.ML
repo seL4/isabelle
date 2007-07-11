@@ -299,25 +299,21 @@ end;
 
 (* special output *)
 
-fun add_markup m add =
-  let val (bg, en) = Markup.output m
-  in Buffer.add bg #> add #> Buffer.add en end;
-
 (*symbolic markup -- no formatting*)
 fun symbolic prt =
   let
-    fun out (Block (m, [], _, _)) = add_markup m I
+    fun out (Block (m, [], _, _)) = Buffer.markup m I
       | out (Block (m, prts, indent, _)) =
-          add_markup m (add_markup (Markup.block indent) (fold out prts))
+          Buffer.markup m (Buffer.markup (Markup.block indent) (fold out prts))
       | out (String (s, _)) = Buffer.add s
-      | out (Break (false, wd)) = add_markup (Markup.break wd) (Buffer.add (output_spaces wd))
-      | out (Break (true, _)) = add_markup Markup.fbreak (Buffer.add (output_spaces 1));
+      | out (Break (false, wd)) = Buffer.markup (Markup.break wd) (Buffer.add (output_spaces wd))
+      | out (Break (true, _)) = Buffer.markup Markup.fbreak (Buffer.add (output_spaces 1));
   in out prt Buffer.empty end;
 
 (*unformatted output*)
 fun unformatted prt =
   let
-    fun fmt (Block (m, prts, _, _)) = add_markup m (fold fmt prts)
+    fun fmt (Block (m, prts, _, _)) = Buffer.markup m (fold fmt prts)
       | fmt (String (s, _)) = Buffer.add s
       | fmt (Break (false, wd)) = Buffer.add (output_spaces wd)
       | fmt (Break (true, _)) = Buffer.add (output_spaces 1);
