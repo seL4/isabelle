@@ -40,7 +40,7 @@ struct
 fun purify_name upper_else_lower =
   let
     fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
-    val is_junk = not o is_valid andf Symbol.not_eof;
+    val is_junk = not o is_valid andf Symbol.is_regular;
     val junk = Scan.many is_junk;
     val scan_valids = Symbol.scanner "Malformed input"
       ((junk |--
@@ -179,7 +179,7 @@ val purify_prefix =
   explode
   (*should disappear as soon as hierarchical theory name spaces are available*)
   #> Symbol.scanner "Malformed name"
-      (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.not_eof))
+      (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.is_regular))
   #> implode
   #> NameSpace.explode
   #> map (purify_name true);

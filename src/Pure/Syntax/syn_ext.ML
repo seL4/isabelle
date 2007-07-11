@@ -194,8 +194,8 @@ local
 val is_meta = member (op =) ["(", ")", "/", "_", "\\<index>"];
 
 val scan_delim_char =
-  $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
-  Scan.one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
+  $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.is_regular) ||
+  Scan.one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.is_regular);
 
 fun read_int ["0", "0"] = ~1
   | read_int cs = #1 (Library.read_int cs);

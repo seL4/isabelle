@@ -1087,13 +1087,13 @@ fun parse_mixfix rd s =
       || $$ "\\<module>" >> K Module
       || $$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length)
       || $$ "{" |-- $$ "*" |-- Scan.repeat1
-           (   $$ "'" |-- Scan.one Symbol.not_eof
-            || Scan.unless ($$ "*" -- $$ "}") (Scan.one Symbol.not_eof)) --|
+           (   $$ "'" |-- Scan.one Symbol.is_regular
+            || Scan.unless ($$ "*" -- $$ "}") (Scan.one Symbol.is_regular)) --|
          $$ "*" --| $$ "}" >> (Quote o rd o implode)
       || Scan.repeat1
-           (   $$ "'" |-- Scan.one Symbol.not_eof
+           (   $$ "'" |-- Scan.one Symbol.is_regular
             || Scan.unless ($$ "_" || $$ "?" || $$ "\\<module>" || $$ "/" || $$ "{" |-- $$ "*")
-                 (Scan.one Symbol.not_eof)) >> (Pretty o str o implode)))
+                 (Scan.one Symbol.is_regular)) >> (Pretty o str o implode)))
        (Symbol.explode s) of
      (p, []) => p
    | _ => error ("Malformed annotation: " ^ quote s));

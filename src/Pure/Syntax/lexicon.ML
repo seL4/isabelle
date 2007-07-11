@@ -216,7 +216,7 @@ fun lex_err msg prfx (cs, _) =
 
 val scan_chr =
   $$ "\\" |-- $$ "'" ||
-  Scan.one (fn s => s <> "\\" andalso s <> "'" andalso Symbol.not_eof s) ||
+  Scan.one (fn s => s <> "\\" andalso s <> "'" andalso Symbol.is_regular s) ||
   $$ "'" --| Scan.ahead (~$$ "'");
 
 val scan_str =
@@ -238,7 +238,7 @@ val scan_cmt =
   Scan.depend (fn d => $$ "(" ^^ $$ "*" >> pair (d + 1)) ||
   Scan.depend (fn 0 => Scan.fail | d => $$ "*" ^^ $$ ")" >> pair (d - 1)) ||
   Scan.lift ($$ "*" --| Scan.ahead (~$$ ")")) ||
-  Scan.lift (Scan.one (fn s => s <> "*" andalso Symbol.not_eof s));
+  Scan.lift (Scan.one (fn s => s <> "*" andalso Symbol.is_regular s));
 
 val scan_comment =
   $$ "(" -- $$ "*" -- !! (lex_err "missing end of comment" "(*")
@@ -335,7 +335,7 @@ fun read_var str =
   let
     val scan =
       $$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol.is_eof) >> var ||
-      Scan.many Symbol.not_eof >> (free o implode);
+      Scan.many Symbol.is_regular >> (free o implode);
   in the (Scan.read Symbol.stopper scan (Symbol.explode str)) end;
 
 
@@ -413,7 +413,7 @@ end;
 fun read_idents str =
   let
     val blanks = Scan.many Symbol.is_blank;
-    val junk = Scan.many Symbol.not_eof;
+    val junk = Scan.many Symbol.is_regular;
     val idents = Scan.repeat1 (blanks |-- scan_id --| blanks) -- junk;
   in
     (case Scan.read Symbol.stopper idents (Symbol.explode str) of

@@ -139,7 +139,7 @@ fun parse_infix prep_arg (x, i) s =
 
 fun parse_mixfix prep_arg s =
   let
-    val sym_any = Scan.one Symbol.not_eof;
+    val sym_any = Scan.one Symbol.is_regular;
     val parse = Scan.optional ($$ "!" >> K true) false -- Scan.repeat (
          ($$ "(" -- $$ "_" -- $$ ")" >> K (Arg NOBR))
       || ($$ "_" >> K (Arg BR))

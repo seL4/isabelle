@@ -53,11 +53,11 @@ fun implode_url (File p) = implode_path p
 local
 
 val scan_host =
-  (Scan.many1 (fn s => s <> "/" andalso Symbol.not_eof s) >> implode) --|
+  (Scan.many1 (fn s => s <> "/" andalso Symbol.is_regular s) >> implode) --|
   Scan.ahead ($$ "/" || Scan.one Symbol.is_eof);
 
-val scan_path = Scan.many Symbol.not_eof >> (Path.explode o implode);
-val scan_path_root = Scan.many Symbol.not_eof >> (Path.explode o implode o cons "/");
+val scan_path = Scan.many Symbol.is_regular >> (Path.explode o implode);
+val scan_path_root = Scan.many Symbol.is_regular >> (Path.explode o implode o cons "/");
 
 val scan_url =
   Scan.unless (Scan.this_string "file:" ||

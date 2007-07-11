@@ -39,7 +39,7 @@ local
 val scan_txt =
   T.scan_blank ||
   T.keep_line ($$ "@" --| Scan.ahead (~$$ "{")) ||
-  T.keep_line (Scan.one (fn s => s <> "@" andalso Symbol.not_sync s andalso Symbol.not_eof s));
+  T.keep_line (Scan.one (fn s => s <> "@" andalso Symbol.is_regular s));
 
 fun escape "\\" = "\\\\"
   | escape "\"" = "\\\""
@@ -50,7 +50,7 @@ val quote_escape = Library.quote o implode o map escape o Symbol.explode;
 val scan_ant =
   T.scan_blank ||
   T.scan_string >> quote_escape ||
-  T.keep_line (Scan.one (fn s => s <> "}" andalso Symbol.not_sync s andalso Symbol.not_eof s));
+  T.keep_line (Scan.one (fn s => s <> "}" andalso Symbol.is_regular s));
 
 val scan_antiq =
   T.keep_line ($$ "@" -- $$ "{") |--

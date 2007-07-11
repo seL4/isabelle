@@ -15,13 +15,12 @@ sig
   val is_printable: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
-  val not_eof: symbol -> bool
   val stopper: symbol * (symbol -> bool)
   val sync: symbol
   val is_sync: symbol -> bool
-  val not_sync: symbol -> bool
   val malformed: symbol
   val end_malformed: symbol
+  val is_regular: symbol -> bool
   val is_ascii: symbol -> bool
   val is_ascii_letter: symbol -> bool
   val is_hex_letter: symbol -> bool
@@ -110,13 +109,13 @@ val stopper = (eof, is_eof);
 
 val sync = "\\<^sync>";
 fun is_sync s = s = sync;
-fun not_sync s = s <> sync;
 
 val malformed = "[[";
 val end_malformed = "]]";
+fun malformed_msg s = "Malformed symbolic character: " ^ quote (Output.escape_malformed s);
 
-fun malformed_msg s =
-  "Malformed symbolic character: " ^ quote (Output.escape_malformed s);
+fun is_regular s =
+  not_eof s andalso s <> sync andalso s <> malformed andalso s <> end_malformed;
 
 
 (* ascii symbols *)

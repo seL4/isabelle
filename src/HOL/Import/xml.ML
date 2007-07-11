@@ -108,26 +108,26 @@ val scan_whspc = Scan.any Symbol.is_blank;
 val scan_special = $$ "&" ^^ scan_id ^^ $$ ";" >> decode;
 
 val parse_chars = Scan.repeat1 (Scan.unless ((* scan_whspc -- *)$$ "<")
-  (scan_special || Scan.one Symbol.not_eof)) >> implode;
+  (scan_special || Scan.one Symbol.is_regular)) >> implode;
 
 val parse_cdata = Scan.this_string "<![CDATA[" |--
-  (Scan.repeat (Scan.unless (Scan.this_string "]]>") (Scan.one Symbol.not_eof)) >>
+  (Scan.repeat (Scan.unless (Scan.this_string "]]>") (Scan.one Symbol.is_regular)) >>
     implode) --| Scan.this_string "]]>";
 
 val parse_att =
     scan_id --| scan_whspc --| $$ "=" --| scan_whspc --
     (($$ "\"" || $$ "'") :-- (fn s => (Scan.repeat (Scan.unless ($$ s)
-    (scan_special || Scan.one Symbol.not_eof)) >> implode) --| $$ s) >> snd);
+    (scan_special || Scan.one Symbol.is_regular)) >> implode) --| $$ s) >> snd);
 
 val parse_comment = Scan.this_string "<!--" --
-  Scan.repeat (Scan.unless (Scan.this_string "-->") (Scan.one Symbol.not_eof)) --
+  Scan.repeat (Scan.unless (Scan.this_string "-->") (Scan.one Symbol.is_regular)) --
   Scan.this_string "-->";
 
 val scan_comment_whspc = 
     (scan_whspc >> K()) --| (Scan.repeat (parse_comment |-- (scan_whspc >> K())));
 
 val parse_pi = Scan.this_string "<?" |--
-  Scan.repeat (Scan.unless (Scan.this_string "?>") (Scan.one Symbol.not_eof)) --|
+  Scan.repeat (Scan.unless (Scan.this_string "?>") (Scan.one Symbol.is_regular)) --|
   Scan.this_string "?>";
 
 fun parse_content xs =
@@ -153,7 +153,7 @@ and parse_elem xs =
 val parse_document =
   Scan.option (Scan.this_string "<!DOCTYPE" -- scan_whspc |--
     (Scan.repeat (Scan.unless ($$ ">")
-      (Scan.one Symbol.not_eof)) >> implode) --| $$ ">" --| scan_whspc) --
+      (Scan.one Symbol.is_regular)) >> implode) --| $$ ">" --| scan_whspc) --
   parse_elem;
 
 fun tree_of_string s =
