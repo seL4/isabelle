@@ -166,7 +166,7 @@ end;
 
 
 fun pgml area terms = Pgml.Pgml { version=NONE,systemid=NONE,
-				  area=SOME area, content=terms }
+                                  area=SOME area, content=terms }
 
 (** messages and notification **)
 
@@ -180,10 +180,10 @@ local
         else issue_pgip pgip
 
     fun wrap_pgml area s = 
-	if String.isPrefix "<pgml" s then  
-	    XML.Output s  (* already pgml outermost *)
-	else 
-	    Pgml.pgml_to_xml (pgml area [Pgml.Raw (XML.Output s)]) (* mixed *)
+        if String.isPrefix "<pgml" s then  
+            XML.Output s  (* already pgml outermost *)
+        else 
+            Pgml.pgml_to_xml (pgml area [Pgml.Raw (XML.Output s)]) (* mixed *)
 
 in
     fun normalmsg area s =
@@ -271,51 +271,45 @@ fun split_markup text =
     [bg, en] => (bg, en)
   | _ => (error ("Internal error: failed to split XML markup:\n" ^ text); ("", "")));
 
-val assoc = flip (AList.lookup (op=));
 
-fun read_int s =
-    (case Int.fromString s of 
-	 SOME i => i
-       | NONE => (error ("Internal error: ill-formed string: " ^ s); 0));
-
-fun block_markup props =
+fun block_markup markup =
     let 
-	val pgml = Pgml.Box { orient = NONE, 
-			      indent = Option.map read_int (assoc Markup.indentN props),
-			      content = pgmlterms_no_text }
+      val pgml = Pgml.Box { orient = NONE, 
+                            indent = Markup.get_int markup Markup.indentN,
+                            content = pgmlterms_no_text }
     in split_markup (output_pgmlterm pgml) end;
 
-fun break_markup props =
+fun break_markup markup =
     let 
-	val pgml = Pgml.Break { mandatory = NONE,
-				indent = Option.map read_int (assoc Markup.widthN props) }
+      val pgml = Pgml.Break { mandatory = NONE,
+                              indent = Markup.get_int markup Markup.widthN }
     in (output_pgmlterm pgml, "") end;
 
-fun fbreak_markup props =
+fun fbreak_markup markup =
     let 
-	val pgml = Pgml.Break { mandatory = SOME true, indent = NONE }
+      val pgml = Pgml.Break { mandatory = SOME true, indent = NONE }
     in (output_pgmlterm pgml, "") end;
 
 val state_markup =
     split_markup (output_pgmltext (pgml PgipTypes.Display pgmlterms_no_text))
 
-fun proof_general_markup (name, props) =
-  (     if name = Markup.blockN    then block_markup props
-   else if name = Markup.breakN    then break_markup props
-   else if name = Markup.fbreakN   then fbreak_markup props
-(* else if name = Markup.classN    then class_markup props
-   else if name = Markup.tyconN    then tycon_markup props
-   else if name = Markup.constN    then const_markup props
-   else if name = Markup.axiomN    then axiom_markup props
-   else if name = Markup.sortN     then sort_markup props
-   else if name = Markup.typN      then typ_markup props
-   else if name = Markup.termN     then term_markup props
-   else if name = Markup.keywordN  then keyword_markup props
-   else if name = Markup.commandN  then command_markup props 
-   else if name = Markup.promptN   then prompt_markup props *)
+fun proof_general_markup (markup as (name, _)) =
+        if name = Markup.blockN    then block_markup markup
+   else if name = Markup.breakN    then break_markup markup
+   else if name = Markup.fbreakN   then fbreak_markup markup
+(* else if name = Markup.classN    then class_markup markup
+   else if name = Markup.tyconN    then tycon_markup markup
+   else if name = Markup.constN    then const_markup markup
+   else if name = Markup.axiomN    then axiom_markup markup
+   else if name = Markup.sortN     then sort_markup markup
+   else if name = Markup.typN      then typ_markup markup
+   else if name = Markup.termN     then term_markup markup
+   else if name = Markup.keywordN  then keyword_markup markup
+   else if name = Markup.commandN  then command_markup markup 
+   else if name = Markup.promptN   then prompt_markup markup *)
    else if name = Markup.stateN    then state_markup
 (* else if name = Markup.subgoalN  then subgoal_markup () *)
-   else ("", ""));
+   else ("", "");
 
 in
 
@@ -596,7 +590,7 @@ fun setproverflag (Setproverflag vs) =
            | "pgmlsymbols"      => set_proverflag_pgmlsymbols value
            | "metainfo:thmdeps" => set_proverflag_thmdeps value 
            | _ => log_msg ("Unrecognised prover control flag: " ^ 
-			   (quote flagname) ^ " ignored."))
+                           (quote flagname) ^ " ignored."))
     end 
 
 
@@ -825,7 +819,7 @@ fun parsescript (Parsescript vs) =
         val location = #location vs   (* TODO: extract position *)
 
         val _ = start_delay_msgs ()   (* gather parsing errs/warns *)
-        val doc = PgipParser.pgip_parser text
+        val doc = OldPgipParser.pgip_parser text
         val errs = end_delayed_msgs ()
 
         val sysattrs = PgipTypes.opt_attr "systemdata" systemdata
@@ -1154,7 +1148,7 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
   | init_pgip true =
       (! initialized orelse
         (Output.no_warnings init_outer_syntax ();
-          PgipParser.init ();
+          OldPgipParser.init ();
           setup_preferences_tweak ();
           setup_proofgeneral_output ();
           setup_messages ();
