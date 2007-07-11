@@ -9,7 +9,7 @@ signature OUTER_LEX =
 sig
   datatype token_kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar | Nat |
-    String | AltString | Verbatim | Space | Comment | Sync | Malformed | Error of string | EOF
+    String | AltString | Verbatim | Space | Comment | Malformed | Error of string | Sync | EOF
   eqtype token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
@@ -29,7 +29,7 @@ sig
   val is_blank: token -> bool
   val is_newline: token -> bool
   val unparse: token -> string
-  val name_of: token -> string
+  val text_of: token -> string * string
   val val_of: token -> string
   val is_sid: string -> bool
   val !!! : string -> (Position.T * 'a -> 'b) -> Position.T * 'a -> 'b
@@ -58,7 +58,7 @@ struct
 
 datatype token_kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar | Nat |
-  String | AltString | Verbatim | Space | Comment | Sync | Malformed | Error of string | EOF;
+  String | AltString | Verbatim | Space | Comment | Malformed | Error of string | Sync | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
 
@@ -77,9 +77,9 @@ val str_of_kind =
   | Verbatim => "verbatim text"
   | Space => "white space"
   | Comment => "comment text"
-  | Sync => "sync marker"
   | Malformed => "malformed symbolic character"
   | Error _ => "bad input"
+  | Sync => "sync marker"
   | EOF => "end-of-file";
 
 
@@ -153,17 +153,22 @@ fun unparse (Token (_, (kind, x))) =
   | AltString => x |> enclose "`" "`" o escape "`"
   | Verbatim => x |> enclose "{*" "*}"
   | Comment => x |> enclose "(*" "*)"
-  | Sync => ""
   | Malformed => Output.escape_malformed x
+  | Sync => ""
   | EOF => ""
   | _ => x);
 
-fun name_of tok =
-  if is_semicolon tok then "terminator"
+fun text_of tok =
+  if is_semicolon tok then ("terminator", "")
   else
-    (case unparse tok of
-      "" => str_of_kind (kind_of tok)
-    | s => str_of_kind (kind_of tok) ^ " " ^ s);
+    let
+      val k = str_of_kind (kind_of tok);
+      val s = unparse tok;
+    in
+      if s = "" then (k, "")
+      else if size s < 40 andalso not (exists_string (fn c => c = "\n") s) then (k ^ " " ^ s, "")
+      else (k, s)
+    end;
 
 fun val_of (Token (_, (_, x))) = x;
 
@@ -220,8 +225,7 @@ fun scan_str q =
   scan_blank ||
   keep_line ($$ "\\") |-- !!! "bad escape character in string"
       (scan_blank || keep_line ($$ q || $$ "\\")) ||
-  keep_line (Scan.one (fn s => s <> q andalso s <> "\\" andalso
-    Symbol.not_sync s andalso Symbol.not_eof s));
+  keep_line (Scan.one (fn s => s <> q andalso s <> "\\" andalso Symbol.is_regular s));
 
 fun scan_strs q =
   keep_line ($$ q) |--
@@ -241,7 +245,7 @@ end;
 val scan_verb =
   scan_blank ||
   keep_line ($$ "*" --| Scan.ahead (~$$ "}")) ||
-  keep_line (Scan.one (fn s => s <> "*" andalso Symbol.not_sync s andalso Symbol.not_eof s));
+  keep_line (Scan.one (fn s => s <> "*" andalso Symbol.is_regular s));
 
 val scan_verbatim =
   keep_line ($$ "{" -- $$ "*") |--
@@ -265,8 +269,7 @@ val scan_cmt =
   Scan.depend (fn d => keep_line ($$ "(" ^^ $$ "*") >> pair (d + 1)) ||
   Scan.depend (fn 0 => Scan.fail | d => keep_line ($$ "*" ^^ $$ ")") >> pair (d - 1)) ||
   Scan.lift (keep_line ($$ "*" --| Scan.ahead (~$$ ")"))) ||
-  Scan.lift (keep_line (Scan.one (fn s =>
-    s <> "*" andalso Symbol.not_sync s andalso Symbol.not_eof s)));
+  Scan.lift (keep_line (Scan.one (fn s => s <> "*" andalso Symbol.is_regular s)));
 
 val scan_comment =
   keep_line ($$ "(" -- $$ "*") |--
@@ -281,8 +284,7 @@ local
 
 val scan_mal =
   scan_blank ||
-  keep_line (Scan.one (fn s =>
-    s <> Symbol.end_malformed andalso Symbol.not_sync s andalso Symbol.not_eof s));
+  keep_line (Scan.one Symbol.is_regular);
 
 in
 
@@ -329,7 +331,7 @@ fun scan (lex1, lex2) =
 
 local
 
-val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
+val is_junk = (not o Symbol.is_blank) andf Symbol.is_regular;
 
 fun recover msg = Scan.state :-- (fn pos =>
   keep_line (Scan.many is_junk) >> (fn xs => [Token (pos, (Error msg, implode xs))])) >> #2;
