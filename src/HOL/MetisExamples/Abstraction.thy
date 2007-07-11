@@ -33,12 +33,12 @@ show "False"
 qed
 
 lemma Collect_triv: "a \<in> {x. P x} ==> P a"
-by (metis member_Collect_eq member_def)
+by (metis mem_Collect_eq)
 
 
 ML{*ResAtp.problem_name := "Abstraction__Collect_mp"*}
 lemma "a \<in> {x. P x --> Q x} ==> a \<in> {x. P x} ==> a \<in> {x. Q x}"
-  by (metis CollectI Collect_imp_eq ComplD UnE memberI member_Collect_eq);
+  by (metis CollectI Collect_imp_eq ComplD UnE mem_Collect_eq);
   --{*34 secs*}
 
 ML{*ResAtp.problem_name := "Abstraction__Sigma_triv"*}
@@ -75,11 +75,11 @@ assume 0: "(a, b) \<in> Sigma A (llabs_subgoal_1 f)"
 assume 1: "\<And>f x. llabs_subgoal_1 f x = Collect (COMBB (op = x) f)"
 assume 2: "a \<notin> A \<or> a \<noteq> f b"
 have 3: "a \<in> A"
-  by (metis member2_def SigmaD1 0)
+  by (metis SigmaD1 0)
 have 4: "f b \<noteq> a"
   by (metis 3 2)
 have 5: "f b = a"
-  by (metis Domain_Id Compl_UNIV_eq singleton_conv2 vimage_Collect_eq 1 vimage_singleton_eq SigmaD2 member2_def 0)
+  by (metis Domain_Id Compl_UNIV_eq singleton_conv2 vimage_Collect_eq 1 vimage_singleton_eq SigmaD2 0)
 show "False"
   by (metis 5 4)
 qed finish_clausify
@@ -94,7 +94,7 @@ lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in
 assume 0: "(cl, f) \<in> CLF"
 assume 1: "CLF = Sigma CL llabs_subgoal_1"
 assume 2: "\<And>cl. llabs_subgoal_1 cl =
-     Collect (llabs_Predicate_XRangeP_def_2_ op \<in> (pset cl))"
+     Collect (llabs_List_Xlists_def_1_ (pset cl))"
 assume 3: "f \<notin> pset cl"
 show "False"
   by (metis 0 1 SigmaD2 3 2 Collect_mem_eq)
@@ -114,10 +114,10 @@ proof (neg_clausify)
 assume 0: "(cl, f) \<in> Sigma CL llabs_subgoal_1"
 assume 1: "\<And>cl. llabs_subgoal_1 cl =
      Collect
-      (llabs_Predicate_XRangeP_def_2_ op \<in> (Pi (pset cl) (COMBK (pset cl))))"
+      (llabs_List_Xlists_def_1_ (Pi (pset cl) (COMBK (pset cl))))"
 assume 2: "f \<notin> Pi (pset cl) (COMBK (pset cl))"
 show "False"
-  by (metis Collect_mem_eq 1 2 SigmaD2 0 member2_def)
+  by (metis Collect_mem_eq 1 2 SigmaD2 0)
 qed finish_clausify
     (*Hack to prevent the "Additional hypotheses" error*)
 
