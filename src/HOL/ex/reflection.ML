@@ -320,7 +320,7 @@ fun gen_reflection_tac ctxt conv corr_thms raw_eqs to i = (fn st =>
     val t = the_default P to;
     val th = genreflect ctxt conv corr_thms raw_eqs t
       RS ssubst;
-  in rtac th i st end);
+  in (rtac th i THEN TRY(rtac TrueI i)) st end);
 
-fun reflection_tac ctxt = gen_reflection_tac ctxt NBE.normalization_conv;
+fun reflection_tac ctxt = gen_reflection_tac ctxt Codegen.evaluation_conv;
 end
