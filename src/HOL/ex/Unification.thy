@@ -458,7 +458,7 @@ next
 
   from `unify_dom (M \<cdot> N, M' \<cdot> N')`
   have "unify_dom (M, M')"
-    by (rule acc_downward) (rule unify_rel.intros)
+    by (rule accp_downward) (rule unify_rel.intros)
   hence no_new_vars: 
     "\<And>t. vars_of (t \<triangleleft> \<theta>1) \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of t"
     by (rule unify_vars) (rule `unify M M' = Some \<theta>1`)
