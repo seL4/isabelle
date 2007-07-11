@@ -33,12 +33,6 @@ lemma Sup_upper: "x \<in> A \<Longrightarrow> x \<^loc>\<le> \<Squnion>A"
 lemma Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<^loc>\<le> z) \<Longrightarrow> \<Squnion>A \<^loc>\<le> z"
   by (auto simp: Sup_def intro: Inf_lower)
 
-lemma top_greatest [simp]: "x \<^loc>\<le> \<Sqinter>{}"
-  by (rule Inf_greatest) simp
-
-lemma bot_least [simp]: "\<Squnion>{} \<^loc>\<le> x"
-  by (rule Sup_least) simp
-
 lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
   unfolding Sup_def by auto
 
@@ -107,11 +101,27 @@ lemmas Sup_def = Sup_def [folded complete_lattice_class.Sup]
 lemmas Sup_upper = Sup_upper [folded complete_lattice_class.Sup]
 lemmas Sup_least = Sup_least [folded complete_lattice_class.Sup]
 
-lemmas bot_least [simp] = bot_least [folded complete_lattice_class.Sup]
 lemmas Sup_insert [code func] = Sup_insert [folded complete_lattice_class.Sup]
 lemmas Sup_singleton [simp, code func] = Sup_singleton [folded complete_lattice_class.Sup]
 lemmas Sup_insert_simp = Sup_insert_simp [folded complete_lattice_class.Sup]
 lemmas Sup_binary = Sup_binary [folded complete_lattice_class.Sup]
+
+(* FIXME: definition inside class does not work *)
+definition
+  top :: "'a::complete_lattice"
+where
+  "top = Inf {}"
+
+definition
+  bot :: "'a::complete_lattice"
+where
+  "bot = Sup {}"
+
+lemma top_greatest [simp]: "x \<le> top"
+  by (unfold top_def, rule Inf_greatest, simp)
+
+lemma bot_least [simp]: "bot \<le> x"
+  by (unfold bot_def, rule Sup_least, simp)
 
 definition
   SUPR :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> 'b" where
@@ -206,6 +216,13 @@ lemma not_Sup_empty_bool [simp]:
   "\<not> Sup {}"
   unfolding Sup_def Inf_bool_def by auto
 
+lemma top_bool_eq: "top = True"
+  by (iprover intro!: order_antisym le_boolI top_greatest)
+
+lemma bot_bool_eq: "bot = False"
+  by (iprover intro!: order_antisym le_boolI bot_least)
+
+
 subsubsection {* Functions *}
 
 instance "fun" :: (type, complete_lattice) complete_lattice
@@ -253,6 +270,12 @@ proof -
   by (auto simp add: Sup_def Inf_fun_def Inf_binary inf_bool_eq aux)
 qed
 
+lemma top_fun_eq: "top = (\<lambda>x. top)"
+  by (iprover intro!: order_antisym le_funI top_greatest)
+
+lemma bot_fun_eq: "bot = (\<lambda>x. bot)"
+  by (iprover intro!: order_antisym le_funI bot_least)
+
 
 subsubsection {* Sets *}
 
@@ -269,6 +292,12 @@ theorem Sup_set_eq: "Sup S = \<Union>S"
   apply (rule Union_least)
   apply (erule Sup_upper)
   done
+
+lemma top_set_eq: "top = UNIV"
+  by (iprover intro!: subset_antisym subset_UNIV top_greatest)
+
+lemma bot_set_eq: "bot = {}"
+  by (iprover intro!: subset_antisym empty_subsetI bot_least)
 
 
 subsection {* Least and greatest fixed points *}
