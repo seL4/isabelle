@@ -72,7 +72,7 @@ fun subst_ord (A:Type.tyenv, B:Type.tyenv) =
 
 structure Substtab = TableFun(type key = Type.tyenv val ord = subst_ord);
 
-val substtab_union = Substtab.fold Substtab.update
+fun substtab_union c = Substtab.fold Substtab.update c
 fun substtab_unions [] = Substtab.empty
   | substtab_unions [c] = c
   | substtab_unions (c::cs) = substtab_union c (substtab_unions cs)
