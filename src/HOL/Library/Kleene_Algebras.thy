@@ -445,7 +445,7 @@ lemma mk_tcl_correctness:
   by induct (auto simp:mk_tcl_lemma1 mk_tcl_lemma2)
 
 lemma graph_implies_dom: "mk_tcl_graph x y \<Longrightarrow> mk_tcl_dom x"
-  by (rule mk_tcl_graph.induct) (auto intro:accI elim:mk_tcl_rel.cases)
+  by (rule mk_tcl_graph.induct) (auto intro:accp.accI elim:mk_tcl_rel.cases)
 
 lemma mk_tcl_default: "\<not> mk_tcl_dom (a,x) \<Longrightarrow> mk_tcl a x = 0"
   unfolding mk_tcl_def

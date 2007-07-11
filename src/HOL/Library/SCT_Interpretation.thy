@@ -13,34 +13,34 @@ definition
   "idseq R s x = (s 0 = x \<and> (\<forall>i. R (s (Suc i)) (s i)))"
 
 lemma not_acc_smaller:
-  assumes notacc: "\<not> acc R x"
-  shows "\<exists>y. R y x \<and> \<not> acc R y"
+  assumes notacc: "\<not> accp R x"
+  shows "\<exists>y. R y x \<and> \<not> accp R y"
 proof (rule classical)
   assume "\<not> ?thesis"
-  hence "\<And>y. R y x \<Longrightarrow> acc R y" by blast
-  with accI have "acc R x" .
+  hence "\<And>y. R y x \<Longrightarrow> accp R y" by blast
+  with accp.accI have "accp R x" .
   with notacc show ?thesis by contradiction
 qed
 
 lemma non_acc_has_idseq:
-  assumes "\<not> acc R x"
+  assumes "\<not> accp R x"
   shows "\<exists>s. idseq R s x"
 proof -
   
-  have	"\<exists>f. \<forall>x. \<not>acc R x \<longrightarrow> R (f x) x \<and> \<not>acc R (f x)"
+  have	"\<exists>f. \<forall>x. \<not>accp R x \<longrightarrow> R (f x) x \<and> \<not>accp R (f x)"
 	by (rule choice, auto simp:not_acc_smaller)
   
   then obtain f where
-	in_R: "\<And>x. \<not>acc R x \<Longrightarrow> R (f x) x"
-	and nia: "\<And>x. \<not>acc R x \<Longrightarrow> \<not>acc R (f x)"
+	in_R: "\<And>x. \<not>accp R x \<Longrightarrow> R (f x) x"
+	and nia: "\<And>x. \<not>accp R x \<Longrightarrow> \<not>accp R (f x)"
 	by blast
   
   let ?s = "\<lambda>i. (f ^ i) x"
   
   {
 	fix i
-	have "\<not>acc R (?s i)"
-	  by (induct i) (auto simp:nia `\<not>acc R x`)
+	have "\<not>accp R (?s i)"
+	  by (induct i) (auto simp:nia `\<not>accp R x`)
 	hence "R (f (?s i)) (?s i)"
 	  by (rule in_R)
   }
@@ -281,10 +281,10 @@ theorem SCT_on_relations:
   assumes R: "R = mk_rel RDs"
   assumes sound: "sound_int \<A> RDs M"
   assumes "SCT \<A>"
-  shows "\<forall>x. acc R x"
+  shows "\<forall>x. accp R x"
 proof (rule, rule classical)
   fix x
-  assume "\<not> acc R x"
+  assume "\<not> accp R x"
   with non_acc_has_idseq	
   have "\<exists>s. idseq R s x" .
   then obtain s where "idseq R s x" ..
@@ -409,7 +409,7 @@ proof (rule, rule classical)
   qed
   ultimately have False
     by (rule no_inf_desc_nat_sequence[of "Suc n"]) simp
-  thus "acc R x" ..
+  thus "accp R x" ..
 qed
 
 end
