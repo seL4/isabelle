@@ -10,6 +10,7 @@ sig
   type T
   val empty: T
   val add: string -> T -> T
+  val markup: Markup.T -> (T -> T) -> T -> T
   val content: T -> string
   val write: Path.T -> T -> unit
   val output: (string -> unit) -> T -> unit
@@ -24,6 +25,10 @@ val empty = Buffer [];
 
 fun add "" buf = buf
   | add x (Buffer xs) = Buffer (x :: xs);
+
+fun markup m body =
+  let val (bg, en) = Markup.output m
+  in add bg #> body #> add en end;
 
 fun content (Buffer xs) = implode (rev xs);
 
