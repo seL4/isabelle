@@ -17,7 +17,7 @@ val profile = ref false;
 fun PROFILE msg = if !profile then timeap_msg msg else I
 
 
-val acc_const_name = "Accessible_Part.acc"
+val acc_const_name = "Accessible_Part.accp"
 fun mk_acc domT R =
     Const (acc_const_name, (domT --> domT --> HOLogic.boolT) --> domT --> HOLogic.boolT) $ R 
 
