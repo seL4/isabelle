@@ -9,7 +9,7 @@ theory Inductive
 imports FixedPoint Product_Type Sum_Type
 uses
   ("Tools/inductive_package.ML")
-  ("Tools/old_inductive_package.ML")
+  ("Tools/inductive_set_package.ML")
   ("Tools/inductive_realizer.ML")
   ("Tools/inductive_codegen.ML")
   ("Tools/datatype_aux.ML")
@@ -24,7 +24,7 @@ uses
   ("Tools/primrec_package.ML")
 begin
 
-subsection {* Inductive sets *}
+subsection {* Inductive predicates and sets *}
 
 text {* Inversion of injective functions. *}
 
@@ -60,10 +60,7 @@ hide const myinv
 
 text {* Package setup. *}
 
-ML {* setmp tolerate_legacy_features true use "Tools/old_inductive_package.ML" *}
-setup OldInductivePackage.setup
-
-theorems basic_monos [mono] =
+theorems basic_monos =
   subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   Collect_mono in_mono vimage_mono
   imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
@@ -74,7 +71,7 @@ theorems basic_monos [mono] =
 use "Tools/inductive_package.ML"
 setup InductivePackage.setup
 
-theorems [mono2] =
+theorems [mono] =
   imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
   not_all not_ex
@@ -128,6 +125,9 @@ use "Tools/inductive_codegen.ML"
 setup InductiveCodegen.setup
 
 use "Tools/primrec_package.ML"
+
+use "Tools/inductive_set_package.ML"
+setup InductiveSetPackage.setup
 
 text{* Lambda-abstractions with pattern matching: *}
 
