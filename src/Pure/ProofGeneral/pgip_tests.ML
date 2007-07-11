@@ -111,7 +111,7 @@ end
 (** parsing.ML **)
 local
 open PgipMarkup
-open PgipParser
+open OldPgipParser
 open PgipIsabelle
 
 fun asseqp a b =

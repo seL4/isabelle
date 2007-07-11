@@ -2,16 +2,16 @@
     ID:         $Id$
     Author:     David Aspinall
 
-Parsing Isabelle theory files to add PGIP markup.
+Parsing Isabelle theory files to add PGIP markup -- OLD VERSION.
 *)
 
-signature PGIP_PARSER =
+signature OLD_PGIP_PARSER =
 sig
     val pgip_parser: PgipMarkup.pgip_parser
     val init : unit -> unit		     (* clear state *)
 end
 
-structure PgipParser : PGIP_PARSER =
+structure OldPgipParser : OLD_PGIP_PARSER =
 struct
 
 
