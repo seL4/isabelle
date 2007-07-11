@@ -96,7 +96,10 @@ type token = T.token;
 
 fun fail_with s = Scan.fail_with
   (fn [] => s ^ " expected (past end-of-file!)"
-    | (tok :: _) => s ^ " expected,\nbut " ^ T.name_of tok ^ T.pos_of tok ^ " was found");
+    | (tok :: _) =>
+        (case T.text_of tok of
+          (txt, "") => s ^ " expected,\nbut " ^ txt ^ T.pos_of tok ^ " was found"
+        | (txt1, txt2) => s ^ " expected,\nbut " ^ txt1 ^ T.pos_of tok ^ " was found:\n" ^ txt2));
 
 fun group s scan = scan || fail_with s;
 
