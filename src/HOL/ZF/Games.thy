@@ -366,7 +366,7 @@ lemma "neg_game (neg_game g) = g"
 consts
   ge_game :: "(game * game) \<Rightarrow> bool" 
 
-recdef ge_game "Collect2 (gprod_2_1 (member2 option_of))"
+recdef ge_game "(gprod_2_1 option_of)"
   "ge_game (G, H) = (\<forall> x. if zin x (right_options G) then (
                           if zin x (left_options H) then \<not> (ge_game (H, x) \<or> (ge_game (x, G))) 
                                                     else \<not> (ge_game (H, x)))
@@ -448,8 +448,8 @@ lemma eq_game_sym: "(eq_game G H) = (eq_game H G)"
 lemma eq_game_refl: "eq_game G G"
   by (simp add: ge_game_refl eq_game_def)
 
-lemma induct_game: "(\<And>x. \<forall>y. lprod (member2 option_of) y x \<longrightarrow> P y \<Longrightarrow> P x) \<Longrightarrow> P a"
-  by (erule wfP_induct[OF wf_lprod[to_set, OF wf_option_of]])
+lemma induct_game: "(\<And>x. \<forall>y. (y, x) \<in> lprod option_of \<longrightarrow> P y \<Longrightarrow> P x) \<Longrightarrow> P a"
+  by (erule wf_induct[OF wf_lprod[OF wf_option_of]])
 
 lemma ge_game_trans:
   assumes "ge_game (x, y)" "ge_game (y, z)" 
@@ -509,7 +509,7 @@ constdefs
 consts 
   plus_game :: "game * game \<Rightarrow> game"
 
-recdef plus_game "Collect2 (gprod_2_2 (member2 option_of))"
+recdef plus_game "gprod_2_2 option_of"
   "plus_game (G, H) = Game (zunion (zimage (\<lambda> g. plus_game (g, H)) (left_options G))
                                    (zimage (\<lambda> h. plus_game (G, h)) (left_options H)))
                            (zunion (zimage (\<lambda> g. plus_game (g, H)) (right_options G))
