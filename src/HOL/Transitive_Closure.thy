@@ -20,62 +20,53 @@ text {*
   operands to be atomic.
 *}
 
-inductive2
-  rtrancl :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"   ("(_^**)" [1000] 1000)
-  for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+inductive_set
+  rtrancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"   ("(_^*)" [1000] 999)
+  for r :: "('a \<times> 'a) set"
 where
-    rtrancl_refl [intro!, Pure.intro!, simp]: "r^** a a"
-  | rtrancl_into_rtrancl [Pure.intro]: "r^** a b ==> r b c ==> r^** a c"
+    rtrancl_refl [intro!, Pure.intro!, simp]: "(a, a) : r^*"
+  | rtrancl_into_rtrancl [Pure.intro]: "(a, b) : r^* ==> (b, c) : r ==> (a, c) : r^*"
 
-inductive2
-  trancl :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  ("(_^++)" [1000] 1000)
-  for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+inductive_set
+  trancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_^+)" [1000] 999)
+  for r :: "('a \<times> 'a) set"
 where
-    r_into_trancl [intro, Pure.intro]: "r a b ==> r^++ a b"
-  | trancl_into_trancl [Pure.intro]: "r^++ a b ==> r b c ==> r^++ a c"
+    r_into_trancl [intro, Pure.intro]: "(a, b) : r ==> (a, b) : r^+"
+  | trancl_into_trancl [Pure.intro]: "(a, b) : r^+ ==> (b, c) : r ==> (a, c) : r^+"
 
-constdefs
-  rtrancl_set :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^*)" [1000] 999)
-  "r^* == Collect2 (member2 r)^**"
-
-  trancl_set :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^+)" [1000] 999)
-  "r^+ == Collect2 (member2 r)^++"
+notation
+  rtranclp  ("(_^**)" [1000] 1000) and
+  tranclp  ("(_^++)" [1000] 1000)
 
 abbreviation
-  reflcl :: "('a => 'a => bool) => 'a => 'a => bool"  ("(_^==)" [1000] 1000) where
+  reflclp :: "('a => 'a => bool) => 'a => 'a => bool"  ("(_^==)" [1000] 1000) where
   "r^== == sup r op ="
 
 abbreviation
-  reflcl_set :: "('a \<times> 'a) set => ('a \<times> 'a) set"  ("(_^=)" [1000] 999) where
+  reflcl :: "('a \<times> 'a) set => ('a \<times> 'a) set"  ("(_^=)" [1000] 999) where
   "r^= == r \<union> Id"
 
 notation (xsymbols)
-  rtrancl  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and
-  trancl  ("(_\<^sup>+\<^sup>+)" [1000] 1000) and
-  reflcl  ("(_\<^sup>=\<^sup>=)" [1000] 1000) and
-  rtrancl_set  ("(_\<^sup>*)" [1000] 999) and
-  trancl_set  ("(_\<^sup>+)" [1000] 999) and
-  reflcl_set  ("(_\<^sup>=)" [1000] 999)
+  rtranclp  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and
+  tranclp  ("(_\<^sup>+\<^sup>+)" [1000] 1000) and
+  reflclp  ("(_\<^sup>=\<^sup>=)" [1000] 1000) and
+  rtrancl  ("(_\<^sup>*)" [1000] 999) and
+  trancl  ("(_\<^sup>+)" [1000] 999) and
+  reflcl  ("(_\<^sup>=)" [1000] 999)
 
 notation (HTML output)
-  rtrancl  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and
-  trancl  ("(_\<^sup>+\<^sup>+)" [1000] 1000) and
-  reflcl  ("(_\<^sup>=\<^sup>=)" [1000] 1000) and
-  rtrancl_set  ("(_\<^sup>*)" [1000] 999) and
-  trancl_set  ("(_\<^sup>+)" [1000] 999) and
-  reflcl_set  ("(_\<^sup>=)" [1000] 999)
+  rtranclp  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and
+  tranclp  ("(_\<^sup>+\<^sup>+)" [1000] 1000) and
+  reflclp  ("(_\<^sup>=\<^sup>=)" [1000] 1000) and
+  rtrancl  ("(_\<^sup>*)" [1000] 999) and
+  trancl  ("(_\<^sup>+)" [1000] 999) and
+  reflcl  ("(_\<^sup>=)" [1000] 999)
 
 
 subsection {* Reflexive-transitive closure *}
 
-lemma rtrancl_set_eq [pred_set_conv]: "(member2 r)^** = member2 (r^*)"
-  by (simp add: rtrancl_set_def)
-
-lemma reflcl_set_eq [pred_set_conv]: "(sup (member2 r) op =) = member2 (r Un Id)"
+lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) op =) = (\<lambda>x y. (x, y) \<in> r Un Id)"
   by (simp add: expand_fun_eq)
-
-lemmas rtrancl_refl [intro!, Pure.intro!, simp] = rtrancl_refl [to_set]
-lemmas rtrancl_into_rtrancl [Pure.intro] = rtrancl_into_rtrancl [to_set]
 
 lemma r_into_rtrancl [intro]: "!!p. p \<in> r ==> p \<in> r^*"
   -- {* @{text rtrancl} of @{text r} contains @{text r} *}
@@ -83,20 +74,20 @@ lemma r_into_rtrancl [intro]: "!!p. p \<in> r ==> p \<in> r^*"
   apply (erule rtrancl_refl [THEN rtrancl_into_rtrancl])
   done
 
-lemma r_into_rtrancl' [intro]: "r x y ==> r^** x y"
+lemma r_into_rtranclp [intro]: "r x y ==> r^** x y"
   -- {* @{text rtrancl} of @{text r} contains @{text r} *}
-  by (erule rtrancl.rtrancl_refl [THEN rtrancl.rtrancl_into_rtrancl])
+  by (erule rtranclp.rtrancl_refl [THEN rtranclp.rtrancl_into_rtrancl])
 
-lemma rtrancl_mono': "r \<le> s ==> r^** \<le> s^**"
+lemma rtranclp_mono: "r \<le> s ==> r^** \<le> s^**"
   -- {* monotonicity of @{text rtrancl} *}
   apply (rule predicate2I)
-  apply (erule rtrancl.induct)
-   apply (rule_tac [2] rtrancl.rtrancl_into_rtrancl, blast+)
+  apply (erule rtranclp.induct)
+   apply (rule_tac [2] rtranclp.rtrancl_into_rtrancl, blast+)
   done
 
-lemmas rtrancl_mono = rtrancl_mono' [to_set]
+lemmas rtrancl_mono = rtranclp_mono [to_set]
 
-theorem rtrancl_induct' [consumes 1, induct set: rtrancl]:
+theorem rtranclp_induct [consumes 1, induct set: rtranclp]:
   assumes a: "r^** a b"
     and cases: "P a" "!!y z. [| r^** a y; r y z; P y |] ==> P z"
   shows "P b"
@@ -106,10 +97,10 @@ proof -
   thus ?thesis by iprover
 qed
 
-lemmas rtrancl_induct [consumes 1, induct set: rtrancl_set] = rtrancl_induct' [to_set]
+lemmas rtrancl_induct [consumes 1, induct set: rtrancl] = rtranclp_induct [to_set]
 
-lemmas rtrancl_induct2' =
-  rtrancl_induct'[of _ "(ax,ay)" "(bx,by)", split_rule,
+lemmas rtranclp_induct2 =
+  rtranclp_induct[of _ "(ax,ay)" "(bx,by)", split_rule,
                  consumes 1, case_names refl step]
 
 lemmas rtrancl_induct2 =
@@ -130,7 +121,7 @@ qed
 
 lemmas rtrancl_trans = trans_rtrancl [THEN transD, standard]
 
-lemma rtrancl_trans':
+lemma rtranclp_trans:
   assumes xy: "r^** x y"
   and yz: "r^** y z"
   shows "r^** x z" using yz xy
@@ -155,24 +146,24 @@ lemma rtrancl_Int_subset: "[| Id \<subseteq> s; r O (r^* \<inter> s) \<subseteq>
   apply (erule rtrancl_induct, auto) 
   done
 
-lemma converse_rtrancl_into_rtrancl':
+lemma converse_rtranclp_into_rtranclp:
   "r a b \<Longrightarrow> r\<^sup>*\<^sup>* b c \<Longrightarrow> r\<^sup>*\<^sup>* a c"
-  by (rule rtrancl_trans') iprover+
+  by (rule rtranclp_trans) iprover+
 
-lemmas converse_rtrancl_into_rtrancl = converse_rtrancl_into_rtrancl' [to_set]
+lemmas converse_rtrancl_into_rtrancl = converse_rtranclp_into_rtranclp [to_set]
 
 text {*
   \medskip More @{term "r^*"} equations and inclusions.
 *}
 
-lemma rtrancl_idemp' [simp]: "(r^**)^** = r^**"
+lemma rtranclp_idemp [simp]: "(r^**)^** = r^**"
   apply (auto intro!: order_antisym)
-  apply (erule rtrancl_induct')
-   apply (rule rtrancl.rtrancl_refl)
-  apply (blast intro: rtrancl_trans')
+  apply (erule rtranclp_induct)
+   apply (rule rtranclp.rtrancl_refl)
+  apply (blast intro: rtranclp_trans)
   done
 
-lemmas rtrancl_idemp [simp] = rtrancl_idemp' [to_set]
+lemmas rtrancl_idemp [simp] = rtranclp_idemp [to_set]
 
 lemma rtrancl_idemp_self_comp [simp]: "R^* O R^* = R^*"
   apply (rule set_ext)
@@ -183,22 +174,22 @@ lemma rtrancl_idemp_self_comp [simp]: "R^* O R^* = R^*"
 lemma rtrancl_subset_rtrancl: "r \<subseteq> s^* ==> r^* \<subseteq> s^*"
 by (drule rtrancl_mono, simp)
 
-lemma rtrancl_subset': "R \<le> S ==> S \<le> R^** ==> S^** = R^**"
-  apply (drule rtrancl_mono')
-  apply (drule rtrancl_mono', simp)
+lemma rtranclp_subset: "R \<le> S ==> S \<le> R^** ==> S^** = R^**"
+  apply (drule rtranclp_mono)
+  apply (drule rtranclp_mono, simp)
   done
 
-lemmas rtrancl_subset = rtrancl_subset' [to_set]
+lemmas rtrancl_subset = rtranclp_subset [to_set]
 
-lemma rtrancl_Un_rtrancl': "(sup (R^**) (S^**))^** = (sup R S)^**"
-  by (blast intro!: rtrancl_subset' intro: rtrancl_mono' [THEN predicate2D])
+lemma rtranclp_sup_rtranclp: "(sup (R^**) (S^**))^** = (sup R S)^**"
+  by (blast intro!: rtranclp_subset intro: rtranclp_mono [THEN predicate2D])
 
-lemmas rtrancl_Un_rtrancl = rtrancl_Un_rtrancl' [to_set]
+lemmas rtrancl_Un_rtrancl = rtranclp_sup_rtranclp [to_set]
 
-lemma rtrancl_reflcl' [simp]: "(R^==)^** = R^**"
-  by (blast intro!: rtrancl_subset')
+lemma rtranclp_reflcl [simp]: "(R^==)^** = R^**"
+  by (blast intro!: rtranclp_subset)
 
-lemmas rtrancl_reflcl [simp] = rtrancl_reflcl' [to_set]
+lemmas rtrancl_reflcl [simp] = rtranclp_reflcl [to_set]
 
 lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   apply (rule sym)
@@ -208,31 +199,31 @@ lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   apply (blast intro!: r_into_rtrancl)
   done
 
-lemma rtrancl_r_diff_Id': "(inf r op ~=)^** = r^**"
+lemma rtranclp_r_diff_Id: "(inf r op ~=)^** = r^**"
   apply (rule sym)
-  apply (rule rtrancl_subset')
+  apply (rule rtranclp_subset)
   apply blast+
   done
 
-theorem rtrancl_converseD':
+theorem rtranclp_converseD:
   assumes r: "(r^--1)^** x y"
   shows "r^** y x"
 proof -
   from r show ?thesis
-    by induct (iprover intro: rtrancl_trans' dest!: conversepD)+
+    by induct (iprover intro: rtranclp_trans dest!: conversepD)+
 qed
 
-lemmas rtrancl_converseD = rtrancl_converseD' [to_set]
+lemmas rtrancl_converseD = rtranclp_converseD [to_set]
 
-theorem rtrancl_converseI':
+theorem rtranclp_converseI:
   assumes r: "r^** y x"
   shows "(r^--1)^** x y"
 proof -
   from r show ?thesis
-    by induct (iprover intro: rtrancl_trans' conversepI)+
+    by induct (iprover intro: rtranclp_trans conversepI)+
 qed
 
-lemmas rtrancl_converseI = rtrancl_converseI' [to_set]
+lemmas rtrancl_converseI = rtranclp_converseI [to_set]
 
 lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
   by (fast dest!: rtrancl_converseD intro!: rtrancl_converseI)
@@ -240,41 +231,41 @@ lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
 lemma sym_rtrancl: "sym r ==> sym (r^*)"
   by (simp only: sym_conv_converse_eq rtrancl_converse [symmetric])
 
-theorem converse_rtrancl_induct'[consumes 1]:
+theorem converse_rtranclp_induct[consumes 1]:
   assumes major: "r^** a b"
     and cases: "P b" "!!y z. [| r y z; r^** z b; P z |] ==> P y"
   shows "P a"
 proof -
-  from rtrancl_converseI' [OF major]
+  from rtranclp_converseI [OF major]
   show ?thesis
-    by induct (iprover intro: cases dest!: conversepD rtrancl_converseD')+
+    by induct (iprover intro: cases dest!: conversepD rtranclp_converseD)+
 qed
 
-lemmas converse_rtrancl_induct[consumes 1] = converse_rtrancl_induct' [to_set]
+lemmas converse_rtrancl_induct[consumes 1] = converse_rtranclp_induct [to_set]
 
-lemmas converse_rtrancl_induct2' =
-  converse_rtrancl_induct'[of _ "(ax,ay)" "(bx,by)", split_rule,
+lemmas converse_rtranclp_induct2 =
+  converse_rtranclp_induct[of _ "(ax,ay)" "(bx,by)", split_rule,
                  consumes 1, case_names refl step]
 
 lemmas converse_rtrancl_induct2 =
   converse_rtrancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
                  consumes 1, case_names refl step]
 
-lemma converse_rtranclE':
+lemma converse_rtranclpE:
   assumes major: "r^** x z"
     and cases: "x=z ==> P"
       "!!y. [| r x y; r^** y z |] ==> P"
   shows P
   apply (subgoal_tac "x = z | (EX y. r x y & r^** y z)")
-   apply (rule_tac [2] major [THEN converse_rtrancl_induct'])
+   apply (rule_tac [2] major [THEN converse_rtranclp_induct])
     prefer 2 apply iprover
    prefer 2 apply iprover
   apply (erule asm_rl exE disjE conjE cases)+
   done
 
-lemmas converse_rtranclE = converse_rtranclE' [to_set]
+lemmas converse_rtranclE = converse_rtranclpE [to_set]
 
-lemmas converse_rtranclE2' = converse_rtranclE' [of _ "(xa,xb)" "(za,zb)", split_rule]
+lemmas converse_rtranclpE2 = converse_rtranclpE [of _ "(xa,xb)" "(za,zb)", split_rule]
 
 lemmas converse_rtranclE2 = converse_rtranclE [of "(xa,xb)" "(za,zb)", split_rule]
 
@@ -288,14 +279,8 @@ lemma rtrancl_unfold: "r^* = Id Un r O r^*"
 
 subsection {* Transitive closure *}
 
-lemma trancl_set_eq [pred_set_conv]: "(member2 r)^++ = member2 (r^+)"
-  by (simp add: trancl_set_def)
-
-lemmas r_into_trancl [intro, Pure.intro] = r_into_trancl [to_set]
-lemmas trancl_into_trancl [Pure.intro] = trancl_into_trancl [to_set]
-
 lemma trancl_mono: "!!p. p \<in> r^+ ==> r \<subseteq> s ==> p \<in> s^+"
-  apply (simp add: split_tupled_all trancl_set_def)
+  apply (simp add: split_tupled_all)
   apply (erule trancl.induct)
   apply (iprover dest: subsetD)+
   done
@@ -307,27 +292,27 @@ text {*
   \medskip Conversions between @{text trancl} and @{text rtrancl}.
 *}
 
-lemma trancl_into_rtrancl': "r^++ a b ==> r^** a b"
-  by (erule trancl.induct) iprover+
+lemma tranclp_into_rtranclp: "r^++ a b ==> r^** a b"
+  by (erule tranclp.induct) iprover+
 
-lemmas trancl_into_rtrancl = trancl_into_rtrancl' [to_set]
+lemmas trancl_into_rtrancl = tranclp_into_rtranclp [to_set]
 
-lemma rtrancl_into_trancl1': assumes r: "r^** a b"
+lemma rtranclp_into_tranclp1: assumes r: "r^** a b"
   shows "!!c. r b c ==> r^++ a c" using r
   by induct iprover+
 
-lemmas rtrancl_into_trancl1 = rtrancl_into_trancl1' [to_set]
+lemmas rtrancl_into_trancl1 = rtranclp_into_tranclp1 [to_set]
 
-lemma rtrancl_into_trancl2': "[| r a b; r^** b c |] ==> r^++ a c"
+lemma rtranclp_into_tranclp2: "[| r a b; r^** b c |] ==> r^++ a c"
   -- {* intro rule from @{text r} and @{text rtrancl} *}
-  apply (erule rtrancl.cases, iprover)
-  apply (rule rtrancl_trans' [THEN rtrancl_into_trancl1'])
-   apply (simp | rule r_into_rtrancl')+
+  apply (erule rtranclp.cases, iprover)
+  apply (rule rtranclp_trans [THEN rtranclp_into_tranclp1])
+   apply (simp | rule r_into_rtranclp)+
   done
 
-lemmas rtrancl_into_trancl2 = rtrancl_into_trancl2' [to_set]
+lemmas rtrancl_into_trancl2 = rtranclp_into_tranclp2 [to_set]
 
-lemma trancl_induct' [consumes 1, induct set: trancl]:
+lemma tranclp_induct [consumes 1, induct set: tranclp]:
   assumes a: "r^++ a b"
   and cases: "!!y. r a y ==> P y"
     "!!y z. r^++ a y ==> r y z ==> P y ==> P z"
@@ -339,32 +324,27 @@ proof -
   thus ?thesis by iprover
 qed
 
-lemmas trancl_induct [consumes 1, induct set: trancl_set] = trancl_induct' [to_set]
+lemmas trancl_induct [consumes 1, induct set: trancl] = tranclp_induct [to_set]
 
-lemmas trancl_induct2' =
-  trancl_induct'[of _ "(ax,ay)" "(bx,by)", split_rule,
+lemmas tranclp_induct2 =
+  tranclp_induct[of _ "(ax,ay)" "(bx,by)", split_rule,
                  consumes 1, case_names base step]
 
 lemmas trancl_induct2 =
   trancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
                  consumes 1, case_names base step]
 
-lemma trancl_trans_induct':
+lemma tranclp_trans_induct:
   assumes major: "r^++ x y"
     and cases: "!!x y. r x y ==> P x y"
       "!!x y z. [| r^++ x y; P x y; r^++ y z; P y z |] ==> P x z"
   shows "P x y"
   -- {* Another induction rule for trancl, incorporating transitivity *}
-  by (iprover intro: major [THEN trancl_induct'] cases)
+  by (iprover intro: major [THEN tranclp_induct] cases)
 
-lemmas trancl_trans_induct = trancl_trans_induct' [to_set]
+lemmas trancl_trans_induct = tranclp_trans_induct [to_set]
 
-lemma tranclE:
-  assumes H: "(a, b) : r^+"
-  and cases: "(a, b) : r ==> P" "\<And>c. (a, c) : r^+ ==> (c, b) : r ==> P"
-  shows P
-  using H [simplified trancl_set_def, simplified]
-  by cases (auto intro: cases [simplified trancl_set_def, simplified])
+inductive_cases tranclE: "(a, b) : r^+"
 
 lemma trancl_Int_subset: "[| r \<subseteq> s; r O (r^+ \<inter> s) \<subseteq> s|] ==> r^+ \<subseteq> s"
   apply (rule subsetI)
@@ -386,7 +366,7 @@ qed
 
 lemmas trancl_trans = trans_trancl [THEN transD, standard]
 
-lemma trancl_trans':
+lemma tranclp_trans:
   assumes xy: "r^++ x y"
   and yz: "r^++ y z"
   shows "r^++ x z" using yz xy
@@ -400,16 +380,16 @@ apply(unfold trans_def)
 apply(blast)
 done
 
-lemma rtrancl_trancl_trancl': assumes r: "r^** x y"
+lemma rtranclp_tranclp_tranclp: assumes r: "r^** x y"
   shows "!!z. r^++ y z ==> r^++ x z" using r
-  by induct (iprover intro: trancl_trans')+
+  by induct (iprover intro: tranclp_trans)+
 
-lemmas rtrancl_trancl_trancl = rtrancl_trancl_trancl' [to_set]
+lemmas rtrancl_trancl_trancl = rtranclp_tranclp_tranclp [to_set]
 
-lemma trancl_into_trancl2': "r a b ==> r^++ b c ==> r^++ a c"
-  by (erule trancl_trans' [OF trancl.r_into_trancl])
+lemma tranclp_into_tranclp2: "r a b ==> r^++ b c ==> r^++ a c"
+  by (erule tranclp_trans [OF tranclp.r_into_trancl])
 
-lemmas trancl_into_trancl2 = trancl_into_trancl2' [to_set]
+lemmas trancl_into_trancl2 = tranclp_into_tranclp2 [to_set]
 
 lemma trancl_insert:
   "(insert (y, x) r)^+ = r^+ \<union> {(a, b). (a, y) \<in> r^* \<and> (x, b) \<in> r^*}"
@@ -424,50 +404,50 @@ lemma trancl_insert:
     [THEN [2] rev_subsetD] rtrancl_trancl_trancl rtrancl_into_trancl2)
   done
 
-lemma trancl_converseI': "(r^++)^--1 x y ==> (r^--1)^++ x y"
+lemma tranclp_converseI: "(r^++)^--1 x y ==> (r^--1)^++ x y"
   apply (drule conversepD)
-  apply (erule trancl_induct')
-  apply (iprover intro: conversepI trancl_trans')+
+  apply (erule tranclp_induct)
+  apply (iprover intro: conversepI tranclp_trans)+
   done
 
-lemmas trancl_converseI = trancl_converseI' [to_set]
+lemmas trancl_converseI = tranclp_converseI [to_set]
 
-lemma trancl_converseD': "(r^--1)^++ x y ==> (r^++)^--1 x y"
+lemma tranclp_converseD: "(r^--1)^++ x y ==> (r^++)^--1 x y"
   apply (rule conversepI)
-  apply (erule trancl_induct')
-  apply (iprover dest: conversepD intro: trancl_trans')+
+  apply (erule tranclp_induct)
+  apply (iprover dest: conversepD intro: tranclp_trans)+
   done
 
-lemmas trancl_converseD = trancl_converseD' [to_set]
+lemmas trancl_converseD = tranclp_converseD [to_set]
 
-lemma trancl_converse': "(r^--1)^++ = (r^++)^--1"
+lemma tranclp_converse: "(r^--1)^++ = (r^++)^--1"
   by (fastsimp simp add: expand_fun_eq
-    intro!: trancl_converseI' dest!: trancl_converseD')
+    intro!: tranclp_converseI dest!: tranclp_converseD)
 
-lemmas trancl_converse = trancl_converse' [to_set]
+lemmas trancl_converse = tranclp_converse [to_set]
 
 lemma sym_trancl: "sym r ==> sym (r^+)"
   by (simp only: sym_conv_converse_eq trancl_converse [symmetric])
 
-lemma converse_trancl_induct':
+lemma converse_tranclp_induct:
   assumes major: "r^++ a b"
     and cases: "!!y. r y b ==> P(y)"
       "!!y z.[| r y z;  r^++ z b;  P(z) |] ==> P(y)"
   shows "P a"
-  apply (rule trancl_induct' [OF trancl_converseI', OF conversepI, OF major])
+  apply (rule tranclp_induct [OF tranclp_converseI, OF conversepI, OF major])
    apply (rule cases)
    apply (erule conversepD)
-  apply (blast intro: prems dest!: trancl_converseD' conversepD)
+  apply (blast intro: prems dest!: tranclp_converseD conversepD)
   done
 
-lemmas converse_trancl_induct = converse_trancl_induct' [to_set]
+lemmas converse_trancl_induct = converse_tranclp_induct [to_set]
 
-lemma tranclD': "R^++ x y ==> EX z. R x z \<and> R^** z y"
-  apply (erule converse_trancl_induct', auto)
-  apply (blast intro: rtrancl_trans')
+lemma tranclpD: "R^++ x y ==> EX z. R x z \<and> R^** z y"
+  apply (erule converse_tranclp_induct, auto)
+  apply (blast intro: rtranclp_trans)
   done
 
-lemmas tranclD = tranclD' [to_set]
+lemmas tranclD = tranclpD [to_set]
 
 lemma irrefl_tranclI: "r^-1 \<inter> r^* = {} ==> (x, x) \<notin> r^+"
   by (blast elim: tranclE dest: trancl_into_rtrancl)
@@ -486,13 +466,13 @@ lemma trancl_subset_Sigma: "r \<subseteq> A \<times> A ==> r^+ \<subseteq> A \<t
   apply (blast dest!: trancl_into_rtrancl trancl_subset_Sigma_aux)+
   done
 
-lemma reflcl_trancl' [simp]: "(r^++)^== = r^**"
+lemma reflcl_tranclp [simp]: "(r^++)^== = r^**"
   apply (safe intro!: order_antisym)
-   apply (erule trancl_into_rtrancl')
-  apply (blast elim: rtrancl.cases dest: rtrancl_into_trancl1')
+   apply (erule tranclp_into_rtranclp)
+  apply (blast elim: rtranclp.cases dest: rtranclp_into_tranclp1)
   done
 
-lemmas reflcl_trancl [simp] = reflcl_trancl' [to_set]
+lemmas reflcl_trancl [simp] = reflcl_tranclp [to_set]
 
 lemma trancl_reflcl [simp]: "(r^=)^+ = r^*"
   apply safe
@@ -509,10 +489,10 @@ lemma trancl_empty [simp]: "{}^+ = {}"
 lemma rtrancl_empty [simp]: "{}^* = Id"
   by (rule subst [OF reflcl_trancl]) simp
 
-lemma rtranclD': "R^** a b ==> a = b \<or> a \<noteq> b \<and> R^++ a b"
-  by (force simp add: reflcl_trancl' [symmetric] simp del: reflcl_trancl')
+lemma rtranclpD: "R^** a b ==> a = b \<or> a \<noteq> b \<and> R^++ a b"
+  by (force simp add: reflcl_tranclp [symmetric] simp del: reflcl_tranclp)
 
-lemmas rtranclD = rtranclD' [to_set]
+lemmas rtranclD = rtranclpD [to_set]
 
 lemma rtrancl_eq_or_trancl:
   "(x,y) \<in> R\<^sup>* = (x=y \<or> x\<noteq>y \<and> (x,y) \<in> R\<^sup>+)"
@@ -567,32 +547,32 @@ lemma trancl_into_trancl [rule_format]:
   apply (fast intro: r_r_into_trancl trancl_trans)
   done
 
-lemma trancl_rtrancl_trancl':
+lemma tranclp_rtranclp_tranclp:
     "r\<^sup>+\<^sup>+ a b ==> r\<^sup>*\<^sup>* b c ==> r\<^sup>+\<^sup>+ a c"
-  apply (drule tranclD')
+  apply (drule tranclpD)
   apply (erule exE, erule conjE)
-  apply (drule rtrancl_trans', assumption)
-  apply (drule rtrancl_into_trancl2', assumption, assumption)
+  apply (drule rtranclp_trans, assumption)
+  apply (drule rtranclp_into_tranclp2, assumption, assumption)
   done
 
-lemmas trancl_rtrancl_trancl = trancl_rtrancl_trancl' [to_set]
+lemmas trancl_rtrancl_trancl = tranclp_rtranclp_tranclp [to_set]
 
 lemmas transitive_closure_trans [trans] =
   r_r_into_trancl trancl_trans rtrancl_trans
-  trancl_into_trancl trancl_into_trancl2
-  rtrancl_into_rtrancl converse_rtrancl_into_rtrancl
+  trancl.trancl_into_trancl trancl_into_trancl2
+  rtrancl.rtrancl_into_rtrancl converse_rtrancl_into_rtrancl
   rtrancl_trancl_trancl trancl_rtrancl_trancl
 
-lemmas transitive_closure_trans' [trans] =
-  trancl_trans' rtrancl_trans'
-  trancl.trancl_into_trancl trancl_into_trancl2'
-  rtrancl.rtrancl_into_rtrancl converse_rtrancl_into_rtrancl'
-  rtrancl_trancl_trancl' trancl_rtrancl_trancl'
+lemmas transitive_closurep_trans' [trans] =
+  tranclp_trans rtranclp_trans
+  tranclp.trancl_into_trancl tranclp_into_tranclp2
+  rtranclp.rtrancl_into_rtrancl converse_rtranclp_into_rtranclp
+  rtranclp_tranclp_tranclp tranclp_rtranclp_tranclp
 
 declare trancl_into_rtrancl [elim]
 
-declare rtranclE [cases set: rtrancl_set]
-declare tranclE [cases set: trancl_set]
+declare rtranclE [cases set: rtrancl]
+declare tranclE [cases set: trancl]
 
 
 
@@ -604,9 +584,9 @@ ML_setup {*
 
 structure Trancl_Tac = Trancl_Tac_Fun (
   struct
-    val r_into_trancl = thm "r_into_trancl";
+    val r_into_trancl = thm "trancl.r_into_trancl";
     val trancl_trans  = thm "trancl_trans";
-    val rtrancl_refl = thm "rtrancl_refl";
+    val rtrancl_refl = thm "rtrancl.rtrancl_refl";
     val r_into_rtrancl = thm "r_into_rtrancl";
     val trancl_into_rtrancl = thm "trancl_into_rtrancl";
     val rtrancl_trancl_trancl = thm "rtrancl_trancl_trancl";
@@ -615,8 +595,8 @@ structure Trancl_Tac = Trancl_Tac_Fun (
 
   fun decomp (Trueprop $ t) =
     let fun dec (Const ("op :", _) $ (Const ("Pair", _) $ a $ b) $ rel ) =
-        let fun decr (Const ("Transitive_Closure.rtrancl_set", _ ) $ r) = (r,"r*")
-              | decr (Const ("Transitive_Closure.trancl_set", _ ) $ r)  = (r,"r+")
+        let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
+              | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
               | decr r = (r,"r");
             val (rel,r) = decr rel;
         in SOME (a,b,rel,r) end
@@ -627,19 +607,19 @@ structure Trancl_Tac = Trancl_Tac_Fun (
 
 structure Tranclp_Tac = Trancl_Tac_Fun (
   struct
-    val r_into_trancl = thm "trancl.r_into_trancl";
-    val trancl_trans  = thm "trancl_trans'";
-    val rtrancl_refl = thm "rtrancl.rtrancl_refl";
-    val r_into_rtrancl = thm "r_into_rtrancl'";
-    val trancl_into_rtrancl = thm "trancl_into_rtrancl'";
-    val rtrancl_trancl_trancl = thm "rtrancl_trancl_trancl'";
-    val trancl_rtrancl_trancl = thm "trancl_rtrancl_trancl'";
-    val rtrancl_trans = thm "rtrancl_trans'";
+    val r_into_trancl = thm "tranclp.r_into_trancl";
+    val trancl_trans  = thm "tranclp_trans";
+    val rtrancl_refl = thm "rtranclp.rtrancl_refl";
+    val r_into_rtrancl = thm "r_into_rtranclp";
+    val trancl_into_rtrancl = thm "tranclp_into_rtranclp";
+    val rtrancl_trancl_trancl = thm "rtranclp_tranclp_tranclp";
+    val trancl_rtrancl_trancl = thm "tranclp_rtranclp_tranclp";
+    val rtrancl_trans = thm "rtranclp_trans";
 
   fun decomp (Trueprop $ t) =
     let fun dec (rel $ a $ b) =
-        let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
-              | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
+        let fun decr (Const ("Transitive_Closure.rtranclp", _ ) $ r) = (r,"r*")
+              | decr (Const ("Transitive_Closure.tranclp", _ ) $ r)  = (r,"r+")
               | decr r = (r,"r");
             val (rel,r) = decr rel;
         in SOME (a, b, Envir.beta_eta_contract rel, r) end
