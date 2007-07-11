@@ -34,18 +34,17 @@ subsection {* Type nat *}
 
 text {* Type definition *}
 
-inductive2 Nat :: "ind \<Rightarrow> bool"
+inductive_set Nat :: "ind set"
 where
-    Zero_RepI: "Nat Zero_Rep"
-  | Suc_RepI: "Nat i ==> Nat (Suc_Rep i)"
+    Zero_RepI: "Zero_Rep : Nat"
+  | Suc_RepI: "i : Nat ==> Suc_Rep i : Nat"
 
 global
 
 typedef (open Nat)
-  nat = "Collect Nat"
+  nat = Nat
 proof
-  from Nat.Zero_RepI
-  show "Zero_Rep : Collect Nat" ..
+  show "Zero_Rep : Nat" by (rule Nat.Zero_RepI)
 qed
 
 text {* Abstract constants and syntax *}
@@ -72,23 +71,17 @@ lemmas [code func del] = less_def le_def
 
 text {* Induction *}
 
-lemma Rep_Nat': "Nat (Rep_Nat x)"
-  by (rule Rep_Nat [simplified mem_Collect_eq])
-
-lemma Abs_Nat_inverse': "Nat y \<Longrightarrow> Rep_Nat (Abs_Nat y) = y"
-  by (rule Abs_Nat_inverse [simplified mem_Collect_eq])
-
 theorem nat_induct: "P 0 ==> (!!n. P n ==> P (Suc n)) ==> P n"
   apply (unfold Zero_nat_def Suc_def)
   apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
-  apply (erule Rep_Nat' [THEN Nat.induct])
-  apply (iprover elim: Abs_Nat_inverse' [THEN subst])
+  apply (erule Rep_Nat [THEN Nat.induct])
+  apply (iprover elim: Abs_Nat_inverse [THEN subst])
   done
 
 text {* Distinctness of constructors *}
 
 lemma Suc_not_Zero [iff]: "Suc m \<noteq> 0"
-  by (simp add: Zero_nat_def Suc_def Abs_Nat_inject Rep_Nat' Suc_RepI Zero_RepI
+  by (simp add: Zero_nat_def Suc_def Abs_Nat_inject Rep_Nat Suc_RepI Zero_RepI
                 Suc_Rep_not_Zero_Rep)
 
 lemma Zero_not_Suc [iff]: "0 \<noteq> Suc m"
@@ -103,7 +96,7 @@ lemma Zero_neq_Suc: "0 = Suc m ==> R"
 text {* Injectiveness of @{term Suc} *}
 
 lemma inj_Suc[simp]: "inj_on Suc N"
-  by (simp add: Suc_def inj_on_def Abs_Nat_inject Rep_Nat' Suc_RepI
+  by (simp add: Suc_def inj_on_def Abs_Nat_inject Rep_Nat Suc_RepI
                 inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject)
 
 lemma Suc_inject: "Suc x = Suc y ==> x = y"

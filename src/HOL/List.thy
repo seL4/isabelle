@@ -2386,33 +2386,20 @@ by(induct xs) auto
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
 
-inductive2
-  listsp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
-  for A :: "'a \<Rightarrow> bool"
-where
-    Nil [intro!]: "listsp A []"
-  | Cons [intro!]: "[| A a; listsp A l |] ==> listsp A (a # l)"
-
-constdefs
+inductive_set
   lists :: "'a set => 'a list set"
-  "lists A == Collect (listsp (member A))"
+  for A :: "'a set"
+where
+    Nil [intro!]: "[]: lists A"
+  | Cons [intro!]: "[| a: A;l: lists A|] ==> a#l : lists A"
 
-lemma listsp_lists_eq [pred_set_conv]: "listsp (member A) = member (lists A)"
-  by (simp add: lists_def)
+inductive_cases listsE [elim!]: "x#l : lists A"
+inductive_cases listspE [elim!]: "listsp A (x # l)"
 
-lemmas lists_intros [intro!] = listsp.intros [to_set]
-
-lemmas lists_induct [consumes 1, case_names Nil Cons, induct set: lists] =
-  listsp.induct [to_set]
-
-inductive_cases2 listspE [elim!]: "listsp A (x # l)"
-
-lemmas listsE [elim!] = listspE [to_set]
-
-lemma listsp_mono [mono2]: "A \<le> B ==> listsp A \<le> listsp B"
+lemma listsp_mono [mono]: "A \<le> B ==> listsp A \<le> listsp B"
   by (clarify, erule listsp.induct, blast+)
 
-lemmas lists_mono [mono] = listsp_mono [to_set]
+lemmas lists_mono = listsp_mono [to_set]
 
 lemma listsp_infI:
   assumes l: "listsp A l" shows "listsp B l ==> listsp (inf A B) l" using l
@@ -2459,7 +2446,7 @@ by auto
 
 subsubsection{* Inductive definition for membership *}
 
-inductive2 ListMem :: "'a \<Rightarrow> 'a list \<Rightarrow> bool"
+inductive ListMem :: "'a \<Rightarrow> 'a list \<Rightarrow> bool"
 where
     elem:  "ListMem x (x # xs)"
   | insert:  "ListMem x xs \<Longrightarrow> ListMem x (y # xs)"
@@ -2711,73 +2698,60 @@ setup FundefDatatype.setup
 
 subsubsection{*Lifting a Relation on List Elements to the Lists*}
 
-inductive2
-  list_all2' :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool"
-  for r :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
+inductive_set
+  listrel :: "('a * 'a)set => ('a list * 'a list)set"
+  for r :: "('a * 'a)set"
 where
-    Nil:  "list_all2' r [] []"
-  | Cons: "[| r x y; list_all2' r xs ys |] ==> list_all2' r (x#xs) (y#ys)"
+    Nil:  "([],[]) \<in> listrel r"
+  | Cons: "[| (x,y) \<in> r; (xs,ys) \<in> listrel r |] ==> (x#xs, y#ys) \<in> listrel r"
 
-constdefs
-  listrel :: "('a * 'b) set => ('a list * 'b list) set"
-  "listrel r == Collect2 (list_all2' (member2 r))"
-
-lemma list_all2_listrel_eq [pred_set_conv]:
-  "list_all2' (member2 r) = member2 (listrel r)"
-  by (simp add: listrel_def)
-
-lemmas listrel_induct [consumes 1, case_names Nil Cons, induct set: listrel] =
-  list_all2'.induct [to_set]
-
-lemmas listrel_intros = list_all2'.intros [to_set]
-
-inductive_cases2 listrel_Nil1 [to_set, elim!]: "list_all2' r [] xs"
-inductive_cases2 listrel_Nil2 [to_set, elim!]: "list_all2' r xs []"
-inductive_cases2 listrel_Cons1 [to_set, elim!]: "list_all2' r  (y#ys) xs"
-inductive_cases2 listrel_Cons2 [to_set, elim!]: "list_all2' r xs (y#ys)"
+inductive_cases listrel_Nil1 [elim!]: "([],xs) \<in> listrel r"
+inductive_cases listrel_Nil2 [elim!]: "(xs,[]) \<in> listrel r"
+inductive_cases listrel_Cons1 [elim!]: "(y#ys,xs) \<in> listrel r"
+inductive_cases listrel_Cons2 [elim!]: "(xs,y#ys) \<in> listrel r"
 
 
 lemma listrel_mono: "r \<subseteq> s \<Longrightarrow> listrel r \<subseteq> listrel s"
 apply clarify  
-apply (erule listrel_induct)
-apply (blast intro: listrel_intros)+
+apply (erule listrel.induct)
+apply (blast intro: listrel.intros)+
 done
 
 lemma listrel_subset: "r \<subseteq> A \<times> A \<Longrightarrow> listrel r \<subseteq> lists A \<times> lists A"
 apply clarify 
-apply (erule listrel_induct, auto) 
+apply (erule listrel.induct, auto) 
 done
 
 lemma listrel_refl: "refl A r \<Longrightarrow> refl (lists A) (listrel r)" 
 apply (simp add: refl_def listrel_subset Ball_def)
 apply (rule allI) 
 apply (induct_tac x) 
-apply (auto intro: listrel_intros)
+apply (auto intro: listrel.intros)
 done
 
 lemma listrel_sym: "sym r \<Longrightarrow> sym (listrel r)" 
 apply (auto simp add: sym_def)
-apply (erule listrel_induct) 
-apply (blast intro: listrel_intros)+
+apply (erule listrel.induct) 
+apply (blast intro: listrel.intros)+
 done
 
 lemma listrel_trans: "trans r \<Longrightarrow> trans (listrel r)" 
 apply (simp add: trans_def)
 apply (intro allI) 
 apply (rule impI) 
-apply (erule listrel_induct) 
-apply (blast intro: listrel_intros)+
+apply (erule listrel.induct) 
+apply (blast intro: listrel.intros)+
 done
 
 theorem equiv_listrel: "equiv A r \<Longrightarrow> equiv (lists A) (listrel r)"
 by (simp add: equiv_def listrel_refl listrel_sym listrel_trans) 
 
 lemma listrel_Nil [simp]: "listrel r `` {[]} = {[]}"
-by (blast intro: listrel_intros)
+by (blast intro: listrel.intros)
 
 lemma listrel_Cons:
      "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})";
-by (auto simp add: set_Cons_def intro: listrel_intros) 
+by (auto simp add: set_Cons_def intro: listrel.intros) 
 
 
 subsection{*Miscellany*}
@@ -2875,7 +2849,7 @@ end;
 subsubsection {* Generation of efficient code *}
 
 consts
-  memberl :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
+  member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
   null:: "'a list \<Rightarrow> bool"
   list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
