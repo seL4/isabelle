@@ -19,10 +19,6 @@ definition
   continuous :: "('a::complete_lattice \<Rightarrow> 'a::complete_lattice) \<Rightarrow> bool" where
   "continuous F \<longleftrightarrow> (\<forall>M. chain M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
 
-abbreviation
-  bot :: "'a::complete_lattice" where
-  "bot \<equiv> Sup {}"
-
 lemma SUP_nat_conv:
   "(SUP n. M n) = sup (M 0) (SUP n. M(Suc n))"
 apply(rule order_antisym)
