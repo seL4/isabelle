@@ -9,6 +9,8 @@ signature MARKUP =
 sig
   type property = string * string
   type T = string * property list
+  val get_string: T -> string -> string option
+  val get_int: T -> string -> int option
   val none: T
   val properties: (string * string) list -> T -> T
   val nameN: string
@@ -68,15 +70,19 @@ type T = string * property list;
 
 val none = ("", []);
 
+
 fun properties more_props ((elem, props): T) =
   (elem, fold_rev (AList.update (op =)) more_props props);
 
-val nameN = "name";
-val kindN = "kind";
+fun get_string ((_, props): T) prop = AList.lookup (op =) props prop;
+fun get_int m prop = (case get_string m prop of NONE => NONE | SOME s => Int.fromString s);
 
 fun markup elem = (elem, (elem, []): T);
 fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
-fun markup_int elem prop = (elem, fn i => (elem, [(prop, string_of_int i)]): T);
+fun markup_int elem prop = (elem, fn i => (elem, [(prop, Int.toString i)]): T);
+
+val nameN = "name";
+val kindN = "kind";
 
 
 (* position *)
