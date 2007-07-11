@@ -110,6 +110,7 @@ sig
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
   val rewrite_proof_notypes : (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
+  val rew_proof : theory -> proof -> proof
 end
 
 structure Proofterm : PROOFTERM =
@@ -1191,6 +1192,8 @@ structure ProofData = TheoryDataFun
     (Library.merge (op =) (rules1, rules2),
       AList.merge (op =) (K true) (procs1, procs2));
 );
+
+fun rew_proof thy = rewrite_prf fst (ProofData.get thy);
 
 fun add_prf_rrule r = (ProofData.map o apfst) (insert (op =) r);
 
