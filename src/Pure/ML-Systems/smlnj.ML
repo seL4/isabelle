@@ -77,6 +77,9 @@ fun exception_trace f = f ();
 (*dummy implementation*)
 fun print x = x;
 
+(*dummy implementation*)
+fun makestring x = "dummy string for SML New Jersey";
+
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
