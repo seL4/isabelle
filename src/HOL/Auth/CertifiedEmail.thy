@@ -30,24 +30,23 @@ constdefs
    "response S R q == Hash {|Agent S, Key (shrK R), Nonce q|}"
 
 
-consts  certified_mail   :: "event list set"
-inductive "certified_mail"
-  intros 
+inductive_set certified_mail :: "event list set"
+  where
 
-Nil: --{*The empty trace*}
+  Nil: --{*The empty trace*}
      "[] \<in> certified_mail"
 
-Fake: --{*The Spy may say anything he can say.  The sender field is correct,
+| Fake: --{*The Spy may say anything he can say.  The sender field is correct,
           but agents don't use that information.*}
       "[| evsf \<in> certified_mail; X \<in> synth(analz(spies evsf))|] 
        ==> Says Spy B X # evsf \<in> certified_mail"
 
-FakeSSL: --{*The Spy may open SSL sessions with TTP, who is the only agent
+| FakeSSL: --{*The Spy may open SSL sessions with TTP, who is the only agent
     equipped with the necessary credentials to serve as an SSL server.*}
 	 "[| evsfssl \<in> certified_mail; X \<in> synth(analz(spies evsfssl))|]
           ==> Notes TTP {|Agent Spy, Agent TTP, X|} # evsfssl \<in> certified_mail"
 
-CM1: --{*The sender approaches the recipient.  The message is a number.*}
+| CM1: --{*The sender approaches the recipient.  The message is a number.*}
  "[|evs1 \<in> certified_mail;
     Key K \<notin> used evs1;
     K \<in> symKeys;
@@ -58,7 +57,7 @@ CM1: --{*The sender approaches the recipient.  The message is a number.*}
 		 Number cleartext, Nonce q, S2TTP|} # evs1 
 	\<in> certified_mail"
 
-CM2: --{*The recipient records @{term S2TTP} while transmitting it and her
+| CM2: --{*The recipient records @{term S2TTP} while transmitting it and her
      password to @{term TTP} over an SSL channel.*}
  "[|evs2 \<in> certified_mail;
     Gets R {|Agent S, Agent TTP, em, Number BothAuth, Number cleartext, 
@@ -69,7 +68,7 @@ CM2: --{*The recipient records @{term S2TTP} while transmitting it and her
    Notes TTP {|Agent R, Agent TTP, S2TTP, Key(RPwd R), hr|} # evs2
       \<in> certified_mail"
 
-CM3: --{*@{term TTP} simultaneously reveals the key to the recipient and gives
+| CM3: --{*@{term TTP} simultaneously reveals the key to the recipient and gives
          a receipt to the sender.  The SSL channel does not authenticate 
          the client (@{term R}), but @{term TTP} accepts the message only 
          if the given password is that of the claimed sender, @{term R}.
@@ -84,7 +83,7 @@ CM3: --{*@{term TTP} simultaneously reveals the key to the recipient and gives
    Gets S (Crypt (priSK TTP) S2TTP) # 
    Says TTP S (Crypt (priSK TTP) S2TTP) # evs3 \<in> certified_mail"
 
-Reception:
+| Reception:
  "[|evsr \<in> certified_mail; Says A B X \<in> set evsr|]
   ==> Gets B X#evsr \<in> certified_mail"
 

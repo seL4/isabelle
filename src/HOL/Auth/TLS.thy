@@ -99,25 +99,24 @@ axioms
   sessionK_neq_shrK [iff]: "sessionK nonces \<noteq> shrK A"
 
 
-consts    tls :: "event list set"
-inductive tls
-  intros
+inductive_set tls :: "event list set"
+  where
    Nil:  --{*The initial, empty trace*}
          "[] \<in> tls"
 
-   Fake: --{*The Spy may say anything he can say.  The sender field is correct,
+ | Fake: --{*The Spy may say anything he can say.  The sender field is correct,
           but agents don't use that information.*}
          "[| evsf \<in> tls;  X \<in> synth (analz (spies evsf)) |]
           ==> Says Spy B X # evsf \<in> tls"
 
-   SpyKeys: --{*The spy may apply @{term PRF} and @{term sessionK}
+ | SpyKeys: --{*The spy may apply @{term PRF} and @{term sessionK}
                 to available nonces*}
          "[| evsSK \<in> tls;
 	     {Nonce NA, Nonce NB, Nonce M} <= analz (spies evsSK) |]
           ==> Notes Spy {| Nonce (PRF(M,NA,NB)),
 			   Key (sessionK((NA,NB,M),role)) |} # evsSK \<in> tls"
 
-   ClientHello:
+ | ClientHello:
 	 --{*(7.4.1.2)
 	   PA represents @{text CLIENT_VERSION}, @{text CIPHER_SUITES} and @{text COMPRESSION_METHODS}.
 	   It is uninterpreted but will be confirmed in the FINISHED messages.
@@ -129,7 +128,7 @@ inductive tls
           ==> Says A B {|Agent A, Nonce NA, Number SID, Number PA|}
 	        # evsCH  \<in>  tls"
 
-   ServerHello:
+ | ServerHello:
          --{*7.4.1.3 of the TLS Internet-Draft
 	   PB represents @{text CLIENT_VERSION}, @{text CIPHER_SUITE} and @{text COMPRESSION_METHOD}.
            SERVER CERTIFICATE (7.4.2) is always present.
@@ -139,11 +138,11 @@ inductive tls
 	       \<in> set evsSH |]
           ==> Says B A {|Nonce NB, Number SID, Number PB|} # evsSH  \<in>  tls"
 
-   Certificate:
+ | Certificate:
          --{*SERVER (7.4.2) or CLIENT (7.4.6) CERTIFICATE.*}
          "evsC \<in> tls ==> Says B A (certificate B (pubK B)) # evsC  \<in>  tls"
 
-   ClientKeyExch:
+ | ClientKeyExch:
          --{*CLIENT KEY EXCHANGE (7.4.7).
            The client, A, chooses PMS, the PREMASTER SECRET.
            She encrypts PMS using the supplied KB, which ought to be pubK B.
@@ -158,7 +157,7 @@ inductive tls
 	      # Notes A {|Agent B, Nonce PMS|}
 	      # evsCX  \<in>  tls"
 
-   CertVerify:
+ | CertVerify:
 	--{*The optional Certificate Verify (7.4.8) message contains the
           specific components listed in the security analysis, F.1.1.2.
           It adds the pre-master-secret, which is also essential!
@@ -174,7 +173,7 @@ inductive tls
           among other things.  The master-secret is PRF(PMS,NA,NB).
           Either party may send its message first.*}
 
-   ClientFinished:
+ | ClientFinished:
         --{*The occurrence of Notes A {|Agent B, Nonce PMS|} stops the
           rule's applying when the Spy has satisfied the "Says A B" by
           repaying messages sent by the true client; in that case, the
@@ -193,7 +192,7 @@ inductive tls
 			       Nonce NB, Number PB, Agent B|}))
               # evsCF  \<in>  tls"
 
-   ServerFinished:
+ | ServerFinished:
 	--{*Keeping A' and A'' distinct means B cannot even check that the
           two messages originate from the same source. *}
          "[| evsSF \<in> tls;
@@ -208,7 +207,7 @@ inductive tls
 			       Nonce NB, Number PB, Agent B|}))
               # evsSF  \<in>  tls"
 
-   ClientAccepts:
+ | ClientAccepts:
 	--{*Having transmitted ClientFinished and received an identical
           message encrypted with serverK, the client stores the parameters
           needed to resume this session.  The "Notes A ..." premise is
@@ -224,7 +223,7 @@ inductive tls
           ==>
              Notes A {|Number SID, Agent A, Agent B, Nonce M|} # evsCA  \<in>  tls"
 
-   ServerAccepts:
+ | ServerAccepts:
 	--{*Having transmitted ServerFinished and received an identical
           message encrypted with clientK, the server stores the parameters
           needed to resume this session.  The "Says A'' B ..." premise is
@@ -241,7 +240,7 @@ inductive tls
           ==>
              Notes B {|Number SID, Agent A, Agent B, Nonce M|} # evsSA  \<in>  tls"
 
-   ClientResume:
+ | ClientResume:
          --{*If A recalls the @{text SESSION_ID}, then she sends a FINISHED
              message using the new nonces and stored MASTER SECRET.*}
          "[| evsCR \<in> tls;
@@ -254,7 +253,7 @@ inductive tls
 			       Nonce NB, Number PB, Agent B|}))
               # evsCR  \<in>  tls"
 
-   ServerResume:
+ | ServerResume:
          --{*Resumption (7.3):  If B finds the @{text SESSION_ID} then he can 
              send a FINISHED message using the recovered MASTER SECRET*}
          "[| evsSR \<in> tls;
@@ -267,7 +266,7 @@ inductive tls
 			       Nonce NB, Number PB, Agent B|})) # evsSR
 	        \<in>  tls"
 
-   Oops:
+ | Oops:
          --{*The most plausible compromise is of an old session key.  Losing
            the MASTER SECRET or PREMASTER SECRET is more serious but
            rather unlikely.  The assumption @{term "A\<noteq>Spy"} is essential: 

@@ -13,3 +13,4 @@ time_use_thy "Comb";
 time_use_thy "PropLog";
 time_use_thy "SList";
 time_use_thy "LFilter";
+time_use_thy "Com";

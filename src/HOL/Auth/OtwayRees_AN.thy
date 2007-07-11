@@ -22,34 +22,33 @@ From page 11 of
   IEEE Trans. SE 22 (1)
 *}
 
-consts  otway   :: "event list set"
-inductive "otway"
-  intros
+inductive_set otway :: "event list set"
+  where
    Nil: --{*The empty trace*}
         "[] \<in> otway"
 
-   Fake: --{*The Spy may say anything he can say.  The sender field is correct,
+ | Fake: --{*The Spy may say anything he can say.  The sender field is correct,
             but agents don't use that information.*}
          "[| evsf \<in> otway;  X \<in> synth (analz (knows Spy evsf)) |]
           ==> Says Spy B X  # evsf \<in> otway"
 
         
-   Reception: --{*A message that has been sent can be received by the
+ | Reception: --{*A message that has been sent can be received by the
                   intended recipient.*}
 	      "[| evsr \<in> otway;  Says A B X \<in>set evsr |]
                ==> Gets B X # evsr \<in> otway"
 
-   OR1:  --{*Alice initiates a protocol run*}
+ | OR1:  --{*Alice initiates a protocol run*}
          "evs1 \<in> otway
           ==> Says A B {|Agent A, Agent B, Nonce NA|} # evs1 \<in> otway"
 
-   OR2:  --{*Bob's response to Alice's message.*}
+ | OR2:  --{*Bob's response to Alice's message.*}
 	 "[| evs2 \<in> otway;
              Gets B {|Agent A, Agent B, Nonce NA|} \<in>set evs2 |]
           ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                  # evs2 \<in> otway"
 
-   OR3:  --{*The Server receives Bob's message.  Then he sends a new
+ | OR3:  --{*The Server receives Bob's message.  Then he sends a new
            session key to Bob with a packet for forwarding to Alice.*}
 	 "[| evs3 \<in> otway;  Key KAB \<notin> used evs3;
              Gets Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
@@ -59,7 +58,7 @@ inductive "otway"
                  Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key KAB|}|}
               # evs3 \<in> otway"
 
-   OR4:  --{*Bob receives the Server's (?) message and compares the Nonces with
+ | OR4:  --{*Bob receives the Server's (?) message and compares the Nonces with
 	     those in the message he previously sent the Server.
              Need @{term "B \<noteq> Server"} because we allow messages to self.*}
 	 "[| evs4 \<in> otway;  B \<noteq> Server;
@@ -68,7 +67,7 @@ inductive "otway"
                \<in>set evs4 |]
           ==> Says B A X # evs4 \<in> otway"
 
-   Oops: --{*This message models possible leaks of session keys.  The nonces
+ | Oops: --{*This message models possible leaks of session keys.  The nonces
              identify the protocol run.*}
 	 "[| evso \<in> otway;
              Says Server B

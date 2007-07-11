@@ -19,30 +19,29 @@ impressive-looking properties such as @{text Spy_not_see_encrypted_key}, yet
 the protocol is open to a middleperson attack.  Attempting to prove some key
 lemmas indicates the possibility of this attack.*}
 
-consts  otway   :: "event list set"
-inductive "otway"
-  intros
+inductive_set otway :: "event list set"
+  where
    Nil: --{*The empty trace*}
         "[] \<in> otway"
 
-   Fake: --{*The Spy may say anything he can say.  The sender field is correct,
+ | Fake: --{*The Spy may say anything he can say.  The sender field is correct,
             but agents don't use that information.*}
          "[| evsf \<in> otway;  X \<in> synth (analz (knows Spy evsf)) |]
           ==> Says Spy B X  # evsf \<in> otway"
 
         
-   Reception: --{*A message that has been sent can be received by the
+ | Reception: --{*A message that has been sent can be received by the
                   intended recipient.*}
 	      "[| evsr \<in> otway;  Says A B X \<in>set evsr |]
                ==> Gets B X # evsr \<in> otway"
 
-   OR1:  --{*Alice initiates a protocol run*}
+ | OR1:  --{*Alice initiates a protocol run*}
 	 "[| evs1 \<in> otway;  Nonce NA \<notin> used evs1 |]
           ==> Says A B {|Nonce NA, Agent A, Agent B,
                          Crypt (shrK A) {|Nonce NA, Agent A, Agent B|} |}
                  # evs1 \<in> otway"
 
-   OR2:  --{*Bob's response to Alice's message.
+ | OR2:  --{*Bob's response to Alice's message.
              This variant of the protocol does NOT encrypt NB.*}
 	 "[| evs2 \<in> otway;  Nonce NB \<notin> used evs2;
              Gets B {|Nonce NA, Agent A, Agent B, X|} \<in> set evs2 |]
@@ -51,7 +50,7 @@ inductive "otway"
                     Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
                  # evs2 \<in> otway"
 
-   OR3:  --{*The Server receives Bob's message and checks that the three NAs
+ | OR3:  --{*The Server receives Bob's message and checks that the three NAs
            match.  Then he sends a new session key to Bob with a packet for
            forwarding to Alice.*}
 	 "[| evs3 \<in> otway;  Key KAB \<notin> used evs3;
@@ -67,7 +66,7 @@ inductive "otway"
                     Crypt (shrK B) {|Nonce NB, Key KAB|}|}
                  # evs3 \<in> otway"
 
-   OR4:  --{*Bob receives the Server's (?) message and compares the Nonces with
+ | OR4:  --{*Bob receives the Server's (?) message and compares the Nonces with
 	     those in the message he previously sent the Server.
              Need @{term "B \<noteq> Server"} because we allow messages to self.*}
 	 "[| evs4 \<in> otway;  B \<noteq> Server;
@@ -78,7 +77,7 @@ inductive "otway"
                \<in> set evs4 |]
           ==> Says B A {|Nonce NA, X|} # evs4 \<in> otway"
 
-   Oops: --{*This message models possible leaks of session keys.  The nonces
+ | Oops: --{*This message models possible leaks of session keys.  The nonces
              identify the protocol run.*}
 	 "[| evso \<in> otway;
              Says Server B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}

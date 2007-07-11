@@ -130,31 +130,29 @@ by (auto simp: pro_def dest: prom_inj)
 
 subsubsection{*protocol*}
 
-consts p2 :: "event list set"
+inductive_set p2 :: "event list set"
+where
 
-inductive p2
-intros
+  Nil: "[]:p2"
 
-Nil: "[]:p2"
+| Fake: "[| evsf:p2; X:synth (analz (spies evsf)) |] ==> Says Spy B X # evsf : p2"
 
-Fake: "[| evsf:p2; X:synth (analz (spies evsf)) |] ==> Says Spy B X # evsf : p2"
+| Request: "[| evsr:p2; Nonce n ~:used evsr; I:agl |] ==> req A r n I B # evsr : p2"
 
-Request: "[| evsr:p2; Nonce n ~:used evsr; I:agl |] ==> req A r n I B # evsr : p2"
-
-Propose: "[| evsp:p2; Says A' B {|Agent A,Number r,I,cons M L|}:set evsp;
-I:agl; J:agl; isin (Agent C, app (J, del (Agent B, I)));
-Nonce ofr ~:used evsp |] ==> pro B ofr A r I (cons M L) J C # evsp : p2"
+| Propose: "[| evsp:p2; Says A' B {|Agent A,Number r,I,cons M L|}:set evsp;
+  I:agl; J:agl; isin (Agent C, app (J, del (Agent B, I)));
+  Nonce ofr ~:used evsp |] ==> pro B ofr A r I (cons M L) J C # evsp : p2"
 
 subsubsection{*valid offer lists*}
 
-consts valid :: "agent => nat => agent => msg set"
+inductive_set
+  valid :: "agent => nat => agent => msg set"
+  for A :: agent and  n :: nat and B :: agent
+where
+  Request [intro]: "cons (anchor A n B) nil:valid A n B"
 
-inductive "valid A n B"
-intros
-Request [intro]: "cons (anchor A n B) nil:valid A n B"
-
-Propose [intro]: "L:valid A n B
-==> cons (chain (next_shop (head L)) ofr A L C) L:valid A n B"
+| Propose [intro]: "L:valid A n B
+  ==> cons (chain (next_shop (head L)) ofr A L C) L:valid A n B"
 
 subsubsection{*basic properties of valid*}
 
@@ -188,15 +186,15 @@ apply (induct i)
 apply clarify
 apply (frule len_not_empty, clarsimp)
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,xa,l'a|}:valid A n B")
-apply (ind_cases "{|x,M,l'a|}:valid A n B")
+apply (ind_cases "{|x,xa,l'a|}:valid A n B" for x xa l'a)
+apply (ind_cases "{|x,M,l'a|}:valid A n B" for x l'a)
 apply (simp add: chain_def)
 (* i > 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,repl(l',Suc na,M)|}:valid A n B")
+apply (ind_cases "{|x,repl(l',Suc na,M)|}:valid A n B" for x l' na)
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B")
+apply (ind_cases "{|x,l'|}:valid A n B" for x l')
 by (drule_tac x=l' in spec, simp, blast)
 
 subsection{*insertion resilience:
@@ -212,15 +210,15 @@ apply (induct i)
 (* i = 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B", simp)
-apply (ind_cases "{|x,M,l'|}:valid A n B", clarsimp)
-apply (ind_cases "{|head l',l'|}:valid A n B", simp, simp)
+apply (ind_cases "{|x,l'|}:valid A n B" for x l', simp)
+apply (ind_cases "{|x,M,l'|}:valid A n B" for x l', clarsimp)
+apply (ind_cases "{|head l',l'|}:valid A n B" for l', simp, simp)
 (* i > 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B")
+apply (ind_cases "{|x,l'|}:valid A n B" for x l')
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,ins(l',Suc na,M)|}:valid A n B")
+apply (ind_cases "{|x,ins(l',Suc na,M)|}:valid A n B" for x l' na)
 apply (frule len_not_empty, clarsimp)
 by (drule_tac x=l' in spec, clarsimp)
 
@@ -233,14 +231,14 @@ apply (induct i)
 (* i = 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B")
+apply (ind_cases "{|x,l'|}:valid A n B" for x l')
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|M,l'|}:valid A n B")
+apply (ind_cases "{|M,l'|}:valid A n B" for l')
 apply (frule len_not_empty, clarsimp, simp)
 (* i > 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B")
+apply (ind_cases "{|x,l'|}:valid A n B" for x l')
 apply (frule len_not_empty, clarsimp)
 by (drule_tac x=l' in spec, clarsimp)
 
@@ -279,7 +277,7 @@ lemma p2_is_Gets_correct [iff]: "Gets_correct p2"
 by (auto simp: Gets_correct_def dest: p2_has_no_Gets)
 
 lemma p2_is_one_step [iff]: "one_step p2"
-by (unfold one_step_def, clarify, ind_cases "ev#evs:p2", auto)
+by (unfold one_step_def, clarify, ind_cases "ev#evs:p2" for ev evs, auto)
 
 lemma p2_has_only_Says' [rule_format]: "evs:p2 ==>
 ev:set evs --> (EX A B X. ev=Says A B X)"

@@ -19,71 +19,72 @@ constdefs
 
 subsection {* The Transition Relation *}
 
-consts
+inductive_set
   ann_transition :: "(('a ann_com_op \<times> 'a) \<times> ('a ann_com_op \<times> 'a)) set"        
-  transition :: "(('a com \<times> 'a) \<times> ('a com \<times> 'a)) set"
-    
-syntax
-  "_ann_transition" :: "('a ann_com_op \<times> 'a) \<Rightarrow> ('a ann_com_op \<times> 'a) \<Rightarrow> bool"
-                           ("_ -1\<rightarrow> _"[81,81] 100)
-  "_ann_transition_n" :: "('a ann_com_op \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a ann_com_op \<times> 'a) 
-                           \<Rightarrow> bool"  ("_ -_\<rightarrow> _"[81,81] 100)
-  "_ann_transition_*" :: "('a ann_com_op \<times> 'a) \<Rightarrow> ('a ann_com_op \<times> 'a) \<Rightarrow> bool"
-                           ("_ -*\<rightarrow> _"[81,81] 100)
+  and transition :: "(('a com \<times> 'a) \<times> ('a com \<times> 'a)) set"
+  and ann_transition' :: "('a ann_com_op \<times> 'a) \<Rightarrow> ('a ann_com_op \<times> 'a) \<Rightarrow> bool"
+    ("_ -1\<rightarrow> _"[81,81] 100)
+  and transition' :: "('a com \<times> 'a) \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"
+    ("_ -P1\<rightarrow> _"[81,81] 100)
+  and transitions :: "('a com \<times> 'a) \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"
+    ("_ -P*\<rightarrow> _"[81,81] 100)
+where
+  "con_0 -1\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition"
+| "con_0 -P1\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> transition"
+| "con_0 -P*\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> transition\<^sup>*"
 
-  "_transition" :: "('a com \<times> 'a) \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"  ("_ -P1\<rightarrow> _"[81,81] 100)
-  "_transition_n" :: "('a com \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"  
-                          ("_ -P_\<rightarrow> _"[81,81,81] 100)  
-  "_transition_*" :: "('a com \<times> 'a) \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"  ("_ -P*\<rightarrow> _"[81,81] 100)
+| AnnBasic:  "(Some (AnnBasic r f), s) -1\<rightarrow> (None, f s)"
+
+| AnnSeq1: "(Some c0, s) -1\<rightarrow> (None, t) \<Longrightarrow> 
+               (Some (AnnSeq c0 c1), s) -1\<rightarrow> (Some c1, t)"
+| AnnSeq2: "(Some c0, s) -1\<rightarrow> (Some c2, t) \<Longrightarrow> 
+               (Some (AnnSeq c0 c1), s) -1\<rightarrow> (Some (AnnSeq c2 c1), t)"
+
+| AnnCond1T: "s \<in> b  \<Longrightarrow> (Some (AnnCond1 r b c1 c2), s) -1\<rightarrow> (Some c1, s)"
+| AnnCond1F: "s \<notin> b \<Longrightarrow> (Some (AnnCond1 r b c1 c2), s) -1\<rightarrow> (Some c2, s)"
+
+| AnnCond2T: "s \<in> b  \<Longrightarrow> (Some (AnnCond2 r b c), s) -1\<rightarrow> (Some c, s)"
+| AnnCond2F: "s \<notin> b \<Longrightarrow> (Some (AnnCond2 r b c), s) -1\<rightarrow> (None, s)"
+
+| AnnWhileF: "s \<notin> b \<Longrightarrow> (Some (AnnWhile r b i c), s) -1\<rightarrow> (None, s)"
+| AnnWhileT: "s \<in> b  \<Longrightarrow> (Some (AnnWhile r b i c), s) -1\<rightarrow> 
+                         (Some (AnnSeq c (AnnWhile i b i c)), s)"
+
+| AnnAwait: "\<lbrakk> s \<in> b; atom_com c; (c, s) -P*\<rightarrow> (Parallel [], t) \<rbrakk> \<Longrightarrow>
+	           (Some (AnnAwait r b c), s) -1\<rightarrow> (None, t)" 
+
+| Parallel: "\<lbrakk> i<length Ts; Ts!i = (Some c, q); (Some c, s) -1\<rightarrow> (r, t) \<rbrakk>
+              \<Longrightarrow> (Parallel Ts, s) -P1\<rightarrow> (Parallel (Ts [i:=(r, q)]), t)"
+
+| Basic:  "(Basic f, s) -P1\<rightarrow> (Parallel [], f s)"
+
+| Seq1:   "All_None Ts \<Longrightarrow> (Seq (Parallel Ts) c, s) -P1\<rightarrow> (c, s)"
+| Seq2:   "(c0, s) -P1\<rightarrow> (c2, t) \<Longrightarrow> (Seq c0 c1, s) -P1\<rightarrow> (Seq c2 c1, t)"
+
+| CondT: "s \<in> b \<Longrightarrow> (Cond b c1 c2, s) -P1\<rightarrow> (c1, s)"
+| CondF: "s \<notin> b \<Longrightarrow> (Cond b c1 c2, s) -P1\<rightarrow> (c2, s)"
+
+| WhileF: "s \<notin> b \<Longrightarrow> (While b i c, s) -P1\<rightarrow> (Parallel [], s)"
+| WhileT: "s \<in> b \<Longrightarrow> (While b i c, s) -P1\<rightarrow> (Seq c (While b i c), s)"
+
+monos "rtrancl_mono"
 
 text {* The corresponding syntax translations are: *}
 
-translations
-  "con_0 -1\<rightarrow> con_1" \<rightleftharpoons> "(con_0, con_1) \<in> ann_transition"
-  "con_0 -n\<rightarrow> con_1" \<rightleftharpoons> "(con_0, con_1) \<in> ann_transition^n"
-  "con_0 -*\<rightarrow> con_1" \<rightleftharpoons> "(con_0, con_1) \<in> ann_transition\<^sup>*"
-   
-  "con_0 -P1\<rightarrow> con_1" \<rightleftharpoons> "(con_0, con_1) \<in> transition"
-  "con_0 -Pn\<rightarrow> con_1" \<rightleftharpoons> "(con_0, con_1) \<in> transition^n"
-  "con_0 -P*\<rightarrow> con_1" \<rightleftharpoons> "(con_0, con_1) \<in> transition\<^sup>*"
+abbreviation
+  ann_transition_n :: "('a ann_com_op \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a ann_com_op \<times> 'a) 
+                           \<Rightarrow> bool"  ("_ -_\<rightarrow> _"[81,81] 100)  where
+  "con_0 -n\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition^n"
 
-inductive ann_transition  transition
-intros
-  AnnBasic:  "(Some (AnnBasic r f), s) -1\<rightarrow> (None, f s)"
+abbreviation
+  ann_transitions :: "('a ann_com_op \<times> 'a) \<Rightarrow> ('a ann_com_op \<times> 'a) \<Rightarrow> bool"
+                           ("_ -*\<rightarrow> _"[81,81] 100)  where
+  "con_0 -*\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition\<^sup>*"
 
-  AnnSeq1: "(Some c0, s) -1\<rightarrow> (None, t) \<Longrightarrow> 
-               (Some (AnnSeq c0 c1), s) -1\<rightarrow> (Some c1, t)"
-  AnnSeq2: "(Some c0, s) -1\<rightarrow> (Some c2, t) \<Longrightarrow> 
-               (Some (AnnSeq c0 c1), s) -1\<rightarrow> (Some (AnnSeq c2 c1), t)"
-
-  AnnCond1T: "s \<in> b  \<Longrightarrow> (Some (AnnCond1 r b c1 c2), s) -1\<rightarrow> (Some c1, s)"
-  AnnCond1F: "s \<notin> b \<Longrightarrow> (Some (AnnCond1 r b c1 c2), s) -1\<rightarrow> (Some c2, s)"
-
-  AnnCond2T: "s \<in> b  \<Longrightarrow> (Some (AnnCond2 r b c), s) -1\<rightarrow> (Some c, s)"
-  AnnCond2F: "s \<notin> b \<Longrightarrow> (Some (AnnCond2 r b c), s) -1\<rightarrow> (None, s)"
-
-  AnnWhileF: "s \<notin> b \<Longrightarrow> (Some (AnnWhile r b i c), s) -1\<rightarrow> (None, s)"
-  AnnWhileT: "s \<in> b  \<Longrightarrow> (Some (AnnWhile r b i c), s) -1\<rightarrow> 
-                         (Some (AnnSeq c (AnnWhile i b i c)), s)"
-
-  AnnAwait: "\<lbrakk> s \<in> b; atom_com c; (c, s) -P*\<rightarrow> (Parallel [], t) \<rbrakk> \<Longrightarrow>
-	           (Some (AnnAwait r b c), s) -1\<rightarrow> (None, t)" 
-
-  Parallel: "\<lbrakk> i<length Ts; Ts!i = (Some c, q); (Some c, s) -1\<rightarrow> (r, t) \<rbrakk>
-              \<Longrightarrow> (Parallel Ts, s) -P1\<rightarrow> (Parallel (Ts [i:=(r, q)]), t)"
-
-  Basic:  "(Basic f, s) -P1\<rightarrow> (Parallel [], f s)"
-
-  Seq1:   "All_None Ts \<Longrightarrow> (Seq (Parallel Ts) c, s) -P1\<rightarrow> (c, s)"
-  Seq2:   "(c0, s) -P1\<rightarrow> (c2, t) \<Longrightarrow> (Seq c0 c1, s) -P1\<rightarrow> (Seq c2 c1, t)"
-
-  CondT: "s \<in> b \<Longrightarrow> (Cond b c1 c2, s) -P1\<rightarrow> (c1, s)"
-  CondF: "s \<notin> b \<Longrightarrow> (Cond b c1 c2, s) -P1\<rightarrow> (c2, s)"
-
-  WhileF: "s \<notin> b \<Longrightarrow> (While b i c, s) -P1\<rightarrow> (Parallel [], s)"
-  WhileT: "s \<in> b \<Longrightarrow> (While b i c, s) -P1\<rightarrow> (Seq c (While b i c), s)"
-
-monos "rtrancl_mono"
+abbreviation
+  transition_n :: "('a com \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"  
+                          ("_ -P_\<rightarrow> _"[81,81,81] 100)  where
+  "con_0 -Pn\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> transition^n"
 
 subsection {* Definition of Semantics *}
 

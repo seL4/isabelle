@@ -26,20 +26,15 @@ datatype
 
 subsection {* The proof system *}
 
-consts
-  thms  :: "'a pl set => 'a pl set"
-
-abbreviation
-  thm_rel :: "['a pl set, 'a pl] => bool"   (infixl "|-" 50) where
-  "H |- p == p \<in> thms H"
-
-inductive "thms(H)"
-  intros
-  H [intro]:  "p\<in>H ==> H |- p"
-  K:          "H |- p->q->p"
-  S:          "H |- (p->q->r) -> (p->q) -> p->r"
-  DN:         "H |- ((p->false) -> false) -> p"
-  MP:         "[| H |- p->q; H |- p |] ==> H |- q"
+inductive
+  thms :: "['a pl set, 'a pl] => bool"  (infixl "|-" 50)
+  for H :: "'a pl set"
+  where
+    H [intro]:  "p\<in>H ==> H |- p"
+  | K:          "H |- p->q->p"
+  | S:          "H |- (p->q->r) -> (p->q) -> p->r"
+  | DN:         "H |- ((p->false) -> false) -> p"
+  | MP:         "[| H |- p->q; H |- p |] ==> H |- q"
 
 subsection {* The semantics *}
 
@@ -80,9 +75,9 @@ definition
 subsection {* Proof theory of propositional logic *}
 
 lemma thms_mono: "G<=H ==> thms(G) <= thms(H)"
-apply (unfold thms.defs )
-apply (rule lfp_mono)
-apply (assumption | rule basic_monos)+
+apply (rule predicate1I)
+apply (erule thms.induct)
+apply (auto intro: thms.intros)
 done
 
 lemma thms_I: "H |- p->p"
@@ -94,7 +89,7 @@ subsubsection {* Weakening, left and right *}
 
 lemma weaken_left: "[| G \<subseteq> H;  G|-p |] ==> H|-p"
   -- {* Order of premises is convenient with @{text THEN} *}
-  by (erule thms_mono [THEN subsetD])
+  by (erule thms_mono [THEN predicate1D])
 
 lemmas weaken_left_insert = subset_insertI [THEN weaken_left]
 

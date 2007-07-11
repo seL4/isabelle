@@ -23,14 +23,14 @@ messages where all the occurrences of Key n are
 in a sub-message of the form Crypt (invKey K) X with K:Ks
 ******************************************************************************)
 
-consts guardK :: "nat => key set => msg set"
-
-inductive "guardK n Ks"
-intros
-No_Key [intro]: "Key n ~:parts {X} ==> X:guardK n Ks"
-Guard_Key [intro]: "invKey K:Ks ==> Crypt K X:guardK n Ks"
-Crypt [intro]: "X:guardK n Ks ==> Crypt K X:guardK n Ks"
-Pair [intro]: "[| X:guardK n Ks; Y:guardK n Ks |] ==> {|X,Y|}:guardK n Ks"
+inductive_set
+  guardK :: "nat => key set => msg set"
+  for n :: nat and Ks :: "key set"
+where
+  No_Key [intro]: "Key n ~:parts {X} ==> X:guardK n Ks"
+| Guard_Key [intro]: "invKey K:Ks ==> Crypt K X:guardK n Ks"
+| Crypt [intro]: "X:guardK n Ks ==> Crypt K X:guardK n Ks"
+| Pair [intro]: "[| X:guardK n Ks; Y:guardK n Ks |] ==> {|X,Y|}:guardK n Ks"
 
 subsection{*basic facts about @{term guardK}*}
 
@@ -119,7 +119,7 @@ lemma GuardK_analz [intro]: "[| GuardK n Ks G; ALL K. K:Ks --> Key K ~:analz G |
 ==> GuardK n Ks (analz G)"
 apply (auto simp: GuardK_def)
 apply (erule analz.induct, auto)
-by (ind_cases "Crypt K Xa:guardK n Ks", auto)
+by (ind_cases "Crypt K Xa:guardK n Ks" for K Xa, auto)
 
 lemma in_GuardK [dest]: "[| X:G; GuardK n Ks G |] ==> X:guardK n Ks"
 by (auto simp: GuardK_def)

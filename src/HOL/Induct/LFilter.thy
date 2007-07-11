@@ -9,13 +9,12 @@ header {*The "filter" functional for coinductive lists
 
 theory LFilter imports LList begin
 
-consts
+inductive_set
   findRel	:: "('a => bool) => ('a llist * 'a llist)set"
-
-inductive "findRel p"
-  intros
+  for p :: "'a => bool"
+  where
     found:  "p x ==> (LCons x l, LCons x l) \<in> findRel p"
-    seek:   "[| ~p x;  (l,l') \<in> findRel p |] ==> (LCons x l, l') \<in> findRel p"
+  | seek:   "[| ~p x;  (l,l') \<in> findRel p |] ==> (LCons x l, l') \<in> findRel p"
 
 declare findRel.intros [intro]
 

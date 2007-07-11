@@ -18,13 +18,13 @@ text{*decomposition of @{term analz} into two parts:
 
 subsection{*messages that do not contribute to analz*}
 
-consts pparts :: "msg set => msg set"
-
-inductive "pparts H"
-intros
-Inj [intro]: "[| X:H; is_MPair X |] ==> X:pparts H"
-Fst [dest]: "[| {|X,Y|}:pparts H; is_MPair X |] ==> X:pparts H"
-Snd [dest]: "[| {|X,Y|}:pparts H; is_MPair Y |] ==> Y:pparts H"
+inductive_set
+  pparts :: "msg set => msg set"
+  for H :: "msg set"
+where
+  Inj [intro]: "[| X:H; is_MPair X |] ==> X:pparts H"
+| Fst [dest]: "[| {|X,Y|}:pparts H; is_MPair X |] ==> X:pparts H"
+| Snd [dest]: "[| {|X,Y|}:pparts H; is_MPair Y |] ==> Y:pparts H"
 
 subsection{*basic facts about @{term pparts}*}
 
@@ -120,13 +120,13 @@ by (auto dest: pparts_sub pparts_analz)
 
 subsection{*messages that contribute to analz*}
 
-consts kparts :: "msg set => msg set"
-
-inductive "kparts H"
-intros
-Inj [intro]: "[| X:H; not_MPair X |] ==> X:kparts H"
-Fst [intro]: "[| {|X,Y|}:pparts H; not_MPair X |] ==> X:kparts H"
-Snd [intro]: "[| {|X,Y|}:pparts H; not_MPair Y |] ==> Y:kparts H"
+inductive_set
+  kparts :: "msg set => msg set"
+  for H :: "msg set"
+where
+  Inj [intro]: "[| X:H; not_MPair X |] ==> X:kparts H"
+| Fst [intro]: "[| {|X,Y|}:pparts H; not_MPair X |] ==> X:kparts H"
+| Snd [intro]: "[| {|X,Y|}:pparts H; not_MPair Y |] ==> Y:kparts H"
 
 subsection{*basic facts about @{term kparts}*}
 

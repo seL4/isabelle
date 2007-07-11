@@ -40,22 +40,20 @@ abbreviation (input)
 
 subsection{*definition of the protocol*}
 
-consts nsp :: "event list set"
+inductive_set nsp :: "event list set"
+where
 
-inductive nsp
-intros
+  Nil: "[]:nsp"
 
-Nil: "[]:nsp"
+| Fake: "[| evs:nsp; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs : nsp"
 
-Fake: "[| evs:nsp; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs : nsp"
+| NS1: "[| evs1:nsp; Nonce NA ~:used evs1 |] ==> ns1 A B NA # evs1 : nsp"
 
-NS1: "[| evs1:nsp; Nonce NA ~:used evs1 |] ==> ns1 A B NA # evs1 : nsp"
+| NS2: "[| evs2:nsp; Nonce NB ~:used evs2; ns1' A' A B NA:set evs2 |] ==>
+  ns2 B A NA NB # evs2:nsp"
 
-NS2: "[| evs2:nsp; Nonce NB ~:used evs2; ns1' A' A B NA:set evs2 |] ==>
-ns2 B A NA NB # evs2:nsp"
-
-NS3: "[| evs3:nsp; ns1 A B NA:set evs3; ns2' B' B A NA NB:set evs3 |] ==>
-ns3 A B NB # evs3:nsp"
+| NS3: "!!A B B' NA NB evs3. [| evs3:nsp; ns1 A B NA:set evs3; ns2' B' B A NA NB:set evs3 |] ==>
+  ns3 A B NB # evs3:nsp"
 
 subsection{*declarations for tactics*}
 
@@ -72,7 +70,7 @@ lemma nsp_is_Gets_correct [iff]: "Gets_correct nsp"
 by (auto simp: Gets_correct_def dest: nsp_has_no_Gets)
 
 lemma nsp_is_one_step [iff]: "one_step nsp"
-by (unfold one_step_def, clarify, ind_cases "ev#evs:nsp", auto)
+by (unfold one_step_def, clarify, ind_cases "ev#evs:nsp" for ev evs, auto)
 
 lemma nsp_has_only_Says' [rule_format]: "evs:nsp ==>
 ev:set evs --> (EX A B X. ev=Says A B X)"

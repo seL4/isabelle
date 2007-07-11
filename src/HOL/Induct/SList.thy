@@ -46,12 +46,12 @@ definition
   CONS :: "['a item, 'a item] => 'a item" where
   "CONS M N = In1(Scons M N)"
 
-consts
-  list      :: "'a item set => 'a item set"
-inductive "list(A)"
-  intros
+inductive_set
+  list :: "'a item set => 'a item set"
+  for A :: "'a item set"
+  where
     NIL_I:  "NIL: list A"
-    CONS_I: "[| a: A;  M: list A |] ==> CONS a M : list A"
+  | CONS_I: "[| a: A;  M: list A |] ==> CONS a M : list A"
 
 
 typedef (List)
@@ -149,6 +149,8 @@ definition
   ttl       :: "'a list => 'a list" where
   "ttl xs   = list_rec xs [] (%x xs r. xs)"
 
+(*<*)no_syntax
+    member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)(*>*)
 definition
   member :: "['a, 'a list] => bool"    (infixl "mem" 55) where
   "x mem xs = list_rec xs False (%y ys r. if y=x then True else r)"
@@ -254,16 +256,17 @@ lemma list_unfold: "list(A) = usum {Numb(0)} (uprod A (list(A)))"
 
 (*This justifies using list in other recursive type definitions*)
 lemma list_mono: "A<=B ==> list(A) <= list(B)"
-apply (unfold list.defs )
-apply (rule lfp_mono)
-apply (assumption | rule basic_monos)+
+apply (rule subsetI)
+apply (erule list.induct)
+apply (auto intro!: list.intros)
 done
 
 (*Type checking -- list creates well-founded sets*)
 lemma list_sexp: "list(sexp) <= sexp"
-apply (unfold NIL_def CONS_def list.defs)
-apply (rule lfp_lowerbound)
-apply (fast intro: sexp.intros sexp_In0I sexp_In1I)
+apply (rule subsetI)
+apply (erule list.induct)
+apply (unfold NIL_def CONS_def)
+apply (auto intro: sexp.intros sexp_In0I sexp_In1I)
 done
 
 (* A <= sexp ==> list(A) <= sexp *)

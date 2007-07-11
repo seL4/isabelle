@@ -11,22 +11,12 @@ theory Natural imports Com begin
 
 subsection "Execution of commands"
 
-consts  evalc   :: "(com \<times> state \<times> state) set"
-syntax "_evalc" :: "[com,state,state] \<Rightarrow> bool" ("<_,_>/ -c-> _" [0,0,60] 60)
-
-syntax (xsymbols)
-  "_evalc" :: "[com,state,state] \<Rightarrow> bool" ("\<langle>_,_\<rangle>/ \<longrightarrow>\<^sub>c _" [0,0,60] 60)
-
-syntax (HTML output)
-  "_evalc" :: "[com,state,state] \<Rightarrow> bool" ("\<langle>_,_\<rangle>/ \<longrightarrow>\<^sub>c _" [0,0,60] 60)
-
 text {*
   We write @{text "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'"} for \emph{Statement @{text c}, started
   in state @{text s}, terminates in state @{text s'}}. Formally,
   @{text "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'"} is just another form of saying \emph{the tuple
   @{text "(c,s,s')"} is part of the relation @{text evalc}}:
 *}
-translations  "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'" == "(c,s,s') \<in> evalc"
 
 constdefs
   update :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)" ("_/[_ ::= /_]" [900,0,0] 900)
@@ -38,18 +28,19 @@ syntax (xsymbols)
 text {*
   The big-step execution relation @{text evalc} is defined inductively:
 *}
-inductive evalc
-  intros
+inductive
+  evalc :: "[com,state,state] \<Rightarrow> bool" ("\<langle>_,_\<rangle>/ \<longrightarrow>\<^sub>c _" [0,0,60] 60)
+where
   Skip:    "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c s"
-  Assign:  "\<langle>x :== a,s\<rangle> \<longrightarrow>\<^sub>c s[x\<mapsto>a s]"
+| Assign:  "\<langle>x :== a,s\<rangle> \<longrightarrow>\<^sub>c s[x\<mapsto>a s]"
 
-  Semi:    "\<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s'' \<Longrightarrow> \<langle>c1,s''\<rangle> \<longrightarrow>\<^sub>c s' \<Longrightarrow> \<langle>c0; c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
+| Semi:    "\<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s'' \<Longrightarrow> \<langle>c1,s''\<rangle> \<longrightarrow>\<^sub>c s' \<Longrightarrow> \<langle>c0; c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
 
-  IfTrue:  "b s \<Longrightarrow> \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s' \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
-  IfFalse: "\<not>b s \<Longrightarrow> \<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c s' \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
+| IfTrue:  "b s \<Longrightarrow> \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s' \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
+| IfFalse: "\<not>b s \<Longrightarrow> \<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c s' \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
 
-  WhileFalse: "\<not>b s \<Longrightarrow> \<langle>\<WHILE> b \<DO> c,s\<rangle> \<longrightarrow>\<^sub>c s"
-  WhileTrue:  "b s \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'' \<Longrightarrow> \<langle>\<WHILE> b \<DO> c, s''\<rangle> \<longrightarrow>\<^sub>c s'
+| WhileFalse: "\<not>b s \<Longrightarrow> \<langle>\<WHILE> b \<DO> c,s\<rangle> \<longrightarrow>\<^sub>c s"
+| WhileTrue:  "b s \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'' \<Longrightarrow> \<langle>\<WHILE> b \<DO> c, s''\<rangle> \<longrightarrow>\<^sub>c s'
                \<Longrightarrow> \<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>c s'"
 
 lemmas evalc.intros [intro] -- "use those rules in automatic proofs"
@@ -74,33 +65,33 @@ text {*
 *}
 lemma skip:
   "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c s' = (s' = s)"
-  by (rule, erule evalc.elims) auto
+  by (rule, erule evalc.cases) auto
 
 lemma assign:
   "\<langle>x :== a,s\<rangle> \<longrightarrow>\<^sub>c s' = (s' = s[x\<mapsto>a s])"
-  by (rule, erule evalc.elims) auto
+  by (rule, erule evalc.cases) auto
 
 lemma semi:
   "\<langle>c0; c1, s\<rangle> \<longrightarrow>\<^sub>c s' = (\<exists>s''. \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s'' \<and> \<langle>c1,s''\<rangle> \<longrightarrow>\<^sub>c s')"
-  by (rule, erule evalc.elims) auto
+  by (rule, erule evalc.cases) auto
 
 lemma ifTrue:
   "b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s'"
-  by (rule, erule evalc.elims) auto
+  by (rule, erule evalc.cases) auto
 
 lemma ifFalse:
   "\<not>b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c s'"
-  by (rule, erule evalc.elims) auto
+  by (rule, erule evalc.cases) auto
 
 lemma whileFalse:
   "\<not> b s \<Longrightarrow> \<langle>\<WHILE> b \<DO> c,s\<rangle> \<longrightarrow>\<^sub>c s' = (s' = s)"
-  by (rule, erule evalc.elims) auto
+  by (rule, erule evalc.cases) auto
 
 lemma whileTrue:
   "b s \<Longrightarrow>
   \<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>c s' =
   (\<exists>s''. \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'' \<and> \<langle>\<WHILE> b \<DO> c, s''\<rangle> \<longrightarrow>\<^sub>c s')"
-  by (rule, erule evalc.elims) auto
+  by (rule, erule evalc.cases) auto
 
 text "Again, Isabelle may use these rules in automatic proofs:"
 lemmas evalc_cases [simp] = skip assign ifTrue ifFalse whileFalse semi whileTrue

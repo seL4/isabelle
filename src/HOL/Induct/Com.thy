@@ -15,8 +15,6 @@ typedecl loc
 types  state = "loc => nat"
        n2n2n = "nat => nat => nat"
 
-arities loc :: type
-
 datatype
   exp = N nat
       | X loc
@@ -33,36 +31,38 @@ and
 subsection {* Commands *}
 
 text{* Execution of commands *}
-consts  exec    :: "((exp*state) * (nat*state)) set => ((com*state)*state)set"
-
-abbreviation
-  exec_rel  ("_/ -[_]-> _" [50,0,50] 50)
-  "csig -[eval]-> s == (csig,s) \<in> exec eval"
 
 abbreviation (input)
-  generic_rel  ("_/ -|[_]-> _" [50,0,50] 50)
+  generic_rel  ("_/ -|[_]-> _" [50,0,50] 50)  where
   "esig -|[eval]-> ns == (esig,ns) \<in> eval"
 
 text{*Command execution.  Natural numbers represent Booleans: 0=True, 1=False*}
-inductive "exec eval"
-  intros
-    Skip:    "(SKIP,s) -[eval]-> s"
 
-    Assign:  "(e,s) -|[eval]-> (v,s') ==> (x := e, s) -[eval]-> s'(x:=v)"
+inductive_set
+  exec :: "((exp*state) * (nat*state)) set => ((com*state)*state)set"
+  and exec_rel :: "com * state => ((exp*state) * (nat*state)) set => state => bool"
+    ("_/ -[_]-> _" [50,0,50] 50)
+  for eval :: "((exp*state) * (nat*state)) set"
+  where
+    "csig -[eval]-> s == (csig,s) \<in> exec eval"
 
-    Semi:    "[| (c0,s) -[eval]-> s2; (c1,s2) -[eval]-> s1 |]
+  | Skip:    "(SKIP,s) -[eval]-> s"
+
+  | Assign:  "(e,s) -|[eval]-> (v,s') ==> (x := e, s) -[eval]-> s'(x:=v)"
+
+  | Semi:    "[| (c0,s) -[eval]-> s2; (c1,s2) -[eval]-> s1 |]
              ==> (c0 ;; c1, s) -[eval]-> s1"
 
-    IfTrue: "[| (e,s) -|[eval]-> (0,s');  (c0,s') -[eval]-> s1 |]
+  | IfTrue: "[| (e,s) -|[eval]-> (0,s');  (c0,s') -[eval]-> s1 |]
              ==> (IF e THEN c0 ELSE c1, s) -[eval]-> s1"
 
-    IfFalse: "[| (e,s) -|[eval]->  (Suc 0, s');  (c1,s') -[eval]-> s1 |]
+  | IfFalse: "[| (e,s) -|[eval]->  (Suc 0, s');  (c1,s') -[eval]-> s1 |]
               ==> (IF e THEN c0 ELSE c1, s) -[eval]-> s1"
 
-    WhileFalse: "(e,s) -|[eval]-> (Suc 0, s1)
+  | WhileFalse: "(e,s) -|[eval]-> (Suc 0, s1)
                  ==> (WHILE e DO c, s) -[eval]-> s1"
 
-    WhileTrue:  "[| (e,s) -|[eval]-> (0,s1);
+  | WhileTrue:  "[| (e,s) -|[eval]-> (0,s1);
                     (c,s1) -[eval]-> s2;  (WHILE e DO c, s2) -[eval]-> s3 |]
                  ==> (WHILE e DO c, s) -[eval]-> s3"
 
@@ -79,10 +79,19 @@ inductive_cases
 
 text{*Justifies using "exec" in the inductive definition of "eval"*}
 lemma exec_mono: "A<=B ==> exec(A) <= exec(B)"
-apply (unfold exec.defs )
-apply (rule lfp_mono)
-apply (assumption | rule basic_monos)+
+apply (rule subsetI)
+apply (simp add: split_paired_all)
+apply (erule exec.induct)
+apply blast+
 done
+
+lemma [pred_set_conv]:
+  "((\<lambda>x x' y y'. ((x, x'), (y, y')) \<in> R) <= (\<lambda>x x' y y'. ((x, x'), (y, y')) \<in> S)) = (R <= S)"
+  by (auto simp add: le_fun_def le_bool_def)
+
+lemma [pred_set_conv]:
+  "((\<lambda>x x' y. ((x, x'), y) \<in> R) <= (\<lambda>x x' y. ((x, x'), y) \<in> S)) = (R <= S)"
+  by (auto simp add: le_fun_def le_bool_def)
 
 ML {*
 Unify.trace_bound := 30;
@@ -102,23 +111,21 @@ done
 subsection {* Expressions *}
 
 text{* Evaluation of arithmetic expressions *}
-consts
+
+inductive_set
   eval    :: "((exp*state) * (nat*state)) set"
+  and eval_rel :: "[exp*state,nat*state] => bool"  (infixl "-|->" 50)
+  where
+    "esig -|-> ns == (esig, ns) \<in> eval"
 
-abbreviation
-  eval_rel :: "[exp*state,nat*state] => bool"         (infixl "-|->" 50)
-  "esig -|-> ns == (esig, ns) \<in> eval"
+  | N [intro!]: "(N(n),s) -|-> (n,s)"
 
-inductive eval
-  intros
-    N [intro!]: "(N(n),s) -|-> (n,s)"
+  | X [intro!]: "(X(x),s) -|-> (s(x),s)"
 
-    X [intro!]: "(X(x),s) -|-> (s(x),s)"
-
-    Op [intro]: "[| (e0,s) -|-> (n0,s0);  (e1,s0)  -|-> (n1,s1) |]
+  | Op [intro]: "[| (e0,s) -|-> (n0,s0);  (e1,s0)  -|-> (n1,s1) |]
                  ==> (Op f e0 e1, s) -|-> (f n0 n1, s1)"
 
-    valOf [intro]: "[| (c,s) -[eval]-> s0;  (e,s0)  -|-> (n,s1) |]
+  | valOf [intro]: "[| (c,s) -[eval]-> s0;  (e,s0)  -|-> (n,s1) |]
                     ==> (VALOF c RESULTIS e, s) -|-> (n, s1)"
 
   monos exec_mono
@@ -135,7 +142,7 @@ lemma var_assign_eval [intro!]: "(X x, s(x:=n)) -|-> (n, s(x:=n))"
 by (rule fun_upd_same [THEN subst], fast)
 
 
-text{* Make the induction rule look nicer -- though eta_contract makes the new
+text{* Make the induction rule look nicer -- though @{text eta_contract} makes the new
     version look worse than it is...*}
 
 lemma split_lemma:
@@ -167,11 +174,11 @@ apply (auto simp add: split_lemma)
 done
 
 
-text{*Lemma for Function_eval.  The major premise is that (c,s) executes to s1
+text{*Lemma for @{text Function_eval}.  The major premise is that @{text "(c,s)"} executes to @{text "s1"}
   using eval restricted to its functional part.  Note that the execution
-  (c,s) -[eval]-> s2 can use unrestricted eval!  The reason is that
-  the execution (c,s) -[eval Int {...}]-> s1 assures us that execution is
-  functional on the argument (c,s).
+  @{text "(c,s) -[eval]-> s2"} can use unrestricted @{text eval}!  The reason is that
+  the execution @{text "(c,s) -[eval Int {...}]-> s1"} assures us that execution is
+  functional on the argument @{text "(c,s)"}.
 *}
 lemma com_Unique:
  "(c,s) -[eval Int {((e,s),(n,t)). \<forall>nt'. (e,s) -|-> nt' --> (n,t)=nt'}]-> s1

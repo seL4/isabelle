@@ -19,31 +19,25 @@ datatype
 	     | DECRYPT  nat freemsg
 
 text{*The equivalence relation, which makes encryption and decryption inverses
-provided the keys are the same.*}
-consts  msgrel :: "(freemsg * freemsg) set"
+provided the keys are the same.
 
-abbreviation
-  msg_rel :: "[freemsg, freemsg] => bool"  (infixl "~~" 50) where
-  "X ~~ Y == (X,Y) \<in> msgrel"
-
-notation (xsymbols)
-  msg_rel  (infixl "\<sim>" 50)
-notation (HTML output)
-  msg_rel  (infixl "\<sim>" 50)
-
-text{*The first two rules are the desired equations. The next four rules
+The first two rules are the desired equations. The next four rules
 make the equations applicable to subterms. The last two rules are symmetry
 and transitivity.*}
-inductive "msgrel"
-  intros 
-    CD:    "CRYPT K (DECRYPT K X) \<sim> X"
-    DC:    "DECRYPT K (CRYPT K X) \<sim> X"
-    NONCE: "NONCE N \<sim> NONCE N"
-    MPAIR: "\<lbrakk>X \<sim> X'; Y \<sim> Y'\<rbrakk> \<Longrightarrow> MPAIR X Y \<sim> MPAIR X' Y'"
-    CRYPT: "X \<sim> X' \<Longrightarrow> CRYPT K X \<sim> CRYPT K X'"
-    DECRYPT: "X \<sim> X' \<Longrightarrow> DECRYPT K X \<sim> DECRYPT K X'"
-    SYM:   "X \<sim> Y \<Longrightarrow> Y \<sim> X"
-    TRANS: "\<lbrakk>X \<sim> Y; Y \<sim> Z\<rbrakk> \<Longrightarrow> X \<sim> Z"
+
+inductive_set
+  msgrel :: "(freemsg * freemsg) set"
+  and msg_rel :: "[freemsg, freemsg] => bool"  (infixl "\<sim>" 50)
+  where
+    "X \<sim> Y == (X,Y) \<in> msgrel"
+  | CD:    "CRYPT K (DECRYPT K X) \<sim> X"
+  | DC:    "DECRYPT K (CRYPT K X) \<sim> X"
+  | NONCE: "NONCE N \<sim> NONCE N"
+  | MPAIR: "\<lbrakk>X \<sim> X'; Y \<sim> Y'\<rbrakk> \<Longrightarrow> MPAIR X Y \<sim> MPAIR X' Y'"
+  | CRYPT: "X \<sim> X' \<Longrightarrow> CRYPT K X \<sim> CRYPT K X'"
+  | DECRYPT: "X \<sim> X' \<Longrightarrow> DECRYPT K X \<sim> DECRYPT K X'"
+  | SYM:   "X \<sim> Y \<Longrightarrow> Y \<sim> X"
+  | TRANS: "\<lbrakk>X \<sim> Y; Y \<sim> Z\<rbrakk> \<Longrightarrow> X \<sim> Z"
 
 
 text{*Proving that it is an equivalence relation*}

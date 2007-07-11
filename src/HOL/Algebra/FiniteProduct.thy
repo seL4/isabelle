@@ -18,13 +18,12 @@ text {* Instantiation of locale @{text LC} of theory @{text Finite_Set} is not
   @{text "x \<in> carrier G"}.  We introduce an explicit argument for the domain
   @{text D}. *}
 
-consts
+inductive_set
   foldSetD :: "['a set, 'b => 'a => 'a, 'a] => ('b set * 'a) set"
-
-inductive "foldSetD D f e"
-  intros
+  for D :: "'a set" and f :: "'b => 'a => 'a" and e :: 'a
+  where
     emptyI [intro]: "e \<in> D ==> ({}, e) \<in> foldSetD D f e"
-    insertI [intro]: "[| x ~: A; f x y \<in> D; (A, y) \<in> foldSetD D f e |] ==>
+  | insertI [intro]: "[| x ~: A; f x y \<in> D; (A, y) \<in> foldSetD D f e |] ==>
                       (insert x A, f x y) \<in> foldSetD D f e"
 
 inductive_cases empty_foldSetDE [elim!]: "({}, x) \<in> foldSetD D f e"
@@ -36,7 +35,7 @@ constdefs
 lemma foldSetD_closed:
   "[| (A, z) \<in> foldSetD D f e ; e \<in> D; !!x y. [| x \<in> A; y \<in> D |] ==> f x y \<in> D 
       |] ==> z \<in> D";
-  by (erule foldSetD.elims) auto
+  by (erule foldSetD.cases) auto
 
 lemma Diff1_foldSetD:
   "[| (A - {x}, y) \<in> foldSetD D f e; x \<in> A; f x y \<in> D |] ==>
@@ -75,7 +74,7 @@ locale LCD =
 
 lemma (in LCD) foldSetD_closed [dest]:
   "(A, z) \<in> foldSetD D f e ==> z \<in> D";
-  by (erule foldSetD.elims) auto
+  by (erule foldSetD.cases) auto
 
 lemma (in LCD) Diff1_foldSetD:
   "[| (A - {x}, y) \<in> foldSetD D f e; x \<in> A; A \<subseteq> B |] ==>
@@ -117,7 +116,7 @@ lemma (in LCD) foldSetD_determ_aux:
   apply (erule rev_mp)
   apply (simp add: less_Suc_eq_le)
   apply (rule impI)
-  apply (rename_tac Aa xa ya Ab xb yb, case_tac "xa = xb")
+  apply (rename_tac xa Aa ya xb Ab yb, case_tac "xa = xb")
    apply (subgoal_tac "Aa = Ab")
     prefer 2 apply (blast elim!: equalityE)
    apply blast

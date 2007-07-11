@@ -36,15 +36,14 @@ constdefs
       ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs))"
 
 
-consts  sr   :: "event list set"
-inductive "sr"
-  intros 
+inductive_set sr :: "event list set"
+  where
 
     Nil:  "[]\<in> sr"
 
 
 
-    Fake: "\<lbrakk> evsF\<in> sr;  X\<in> synth (analz (knows Spy evsF)); 
+  | Fake: "\<lbrakk> evsF\<in> sr;  X\<in> synth (analz (knows Spy evsF)); 
              illegalUse(Card B) \<rbrakk>
           \<Longrightarrow> Says Spy A X # 
               Inputs Spy (Card B) X # evsF \<in> sr"
@@ -52,24 +51,24 @@ inductive "sr"
 (*In general this rule causes the assumption Card B \<notin> cloned
   in most guarantees for B - starting with confidentiality -
   otherwise pairK_confidential could not apply*)
-    Forge:
+  | Forge:
          "\<lbrakk> evsFo \<in> sr; Nonce Nb \<in> analz (knows Spy evsFo);
              Key (pairK(A,B)) \<in> knows Spy evsFo \<rbrakk>
           \<Longrightarrow> Notes Spy (Key (sesK(Nb,pairK(A,B)))) # evsFo \<in> sr"
 
 
 
-   Reception: "\<lbrakk> evsR\<in> sr; Says A B X \<in> set evsR \<rbrakk>
+  | Reception: "\<lbrakk> evsR\<in> sr; Says A B X \<in> set evsR \<rbrakk>
               \<Longrightarrow> Gets B X # evsR \<in> sr"
 
 
 
 (*A AND THE SERVER *)
-    SR1:  "\<lbrakk> evs1\<in> sr; A \<noteq> Server\<rbrakk>
+  | SR1:  "\<lbrakk> evs1\<in> sr; A \<noteq> Server\<rbrakk>
           \<Longrightarrow> Says A Server \<lbrace>Agent A, Agent B\<rbrace> 
                 # evs1 \<in> sr"
 
-    SR2:  "\<lbrakk> evs2\<in> sr; 
+  | SR2:  "\<lbrakk> evs2\<in> sr; 
              Gets Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs2 \<rbrakk>
           \<Longrightarrow> Says Server A \<lbrace>Nonce (Pairkey(A,B)), 
                            Crypt (shrK A) \<lbrace>Nonce (Pairkey(A,B)), Agent B\<rbrace>
@@ -82,7 +81,7 @@ inductive "sr"
 (*A AND HER CARD*)
 (*A cannot decrypt the verifier for she dosn't know shrK A,
   but the pairkey is recognisable*)
-    SR3:  "\<lbrakk> evs3\<in> sr; legalUse(Card A);
+  | SR3:  "\<lbrakk> evs3\<in> sr; legalUse(Card A);
              Says A Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs3;
              Gets A \<lbrace>Nonce Pk, Certificate\<rbrace> \<in> set evs3 \<rbrakk>
           \<Longrightarrow> Inputs A (Card A) (Agent A)
@@ -93,7 +92,7 @@ Still, this doesn't and can't mean that the pairkey originated with
 the server*)
  
 (*The card outputs the nonce Na to A*)               
-    SR4:  "\<lbrakk> evs4\<in> sr;  A \<noteq> Server; 
+  | SR4:  "\<lbrakk> evs4\<in> sr;  A \<noteq> Server; 
              Nonce Na \<notin> used evs4; legalUse(Card A);
              Inputs A (Card A) (Agent A) \<in> set evs4 \<rbrakk> 
        \<Longrightarrow> Outpts (Card A) A \<lbrace>Nonce Na, Crypt (crdK (Card A)) (Nonce Na)\<rbrace>
@@ -101,9 +100,9 @@ the server*)
 
 (*The card can be exploited by the spy*)
 (*because of the assumptions on the card, A is certainly not server nor spy*)
- SR4Fake: "\<lbrakk> evs4F\<in> sr; Nonce Na \<notin> used evs4F; 
-             illegalUse(Card A);
-             Inputs Spy (Card A) (Agent A) \<in> set evs4F \<rbrakk> 
+  | SR4Fake: "\<lbrakk> evs4F\<in> sr; Nonce Na \<notin> used evs4F; 
+                illegalUse(Card A);
+                Inputs Spy (Card A) (Agent A) \<in> set evs4F \<rbrakk> 
       \<Longrightarrow> Outpts (Card A) Spy \<lbrace>Nonce Na, Crypt (crdK (Card A)) (Nonce Na)\<rbrace>
             # evs4F \<in> sr"
 
@@ -111,7 +110,7 @@ the server*)
 
 
 (*A TOWARDS B*)
-    SR5:  "\<lbrakk> evs5\<in> sr; 
+  | SR5:  "\<lbrakk> evs5\<in> sr; 
              Outpts (Card A) A \<lbrace>Nonce Na, Certificate\<rbrace> \<in> set evs5;
              \<forall> p q. Certificate \<noteq> \<lbrace>p, q\<rbrace> \<rbrakk>
           \<Longrightarrow> Says A B \<lbrace>Agent A, Nonce Na\<rbrace> # evs5 \<in> sr"
@@ -122,13 +121,13 @@ the server*)
 
 
 (*B AND HIS CARD*)
-    SR6:  "\<lbrakk> evs6\<in> sr; legalUse(Card B);
+  | SR6:  "\<lbrakk> evs6\<in> sr; legalUse(Card B);
              Gets B \<lbrace>Agent A, Nonce Na\<rbrace> \<in> set evs6 \<rbrakk>
           \<Longrightarrow> Inputs B (Card B) \<lbrace>Agent A, Nonce Na\<rbrace> 
                 # evs6 \<in> sr"
 
 (*B gets back from the card the session key and various verifiers*)
-    SR7:  "\<lbrakk> evs7\<in> sr; 
+  | SR7:  "\<lbrakk> evs7\<in> sr; 
              Nonce Nb \<notin> used evs7; legalUse(Card B); B \<noteq> Server;
              K = sesK(Nb,pairK(A,B));
              Key K \<notin> used evs7;
@@ -140,11 +139,11 @@ the server*)
 
  (*The card can be exploited by the spy*)
 (*because of the assumptions on the card, A is certainly not server nor spy*)
- SR7Fake:  "\<lbrakk> evs7F\<in> sr; Nonce Nb \<notin> used evs7F; 
-             illegalUse(Card B);
-             K = sesK(Nb,pairK(A,B));
-             Key K \<notin> used evs7F;
-             Inputs Spy (Card B) \<lbrace>Agent A, Nonce Na\<rbrace> \<in> set evs7F \<rbrakk>
+  | SR7Fake:  "\<lbrakk> evs7F\<in> sr; Nonce Nb \<notin> used evs7F; 
+                 illegalUse(Card B);
+                 K = sesK(Nb,pairK(A,B));
+                 Key K \<notin> used evs7F;
+                 Inputs Spy (Card B) \<lbrace>Agent A, Nonce Na\<rbrace> \<in> set evs7F \<rbrakk>
           \<Longrightarrow> Outpts (Card B) Spy \<lbrace>Nonce Nb, Key K,
                             Crypt (pairK(A,B)) \<lbrace>Nonce Na, Nonce Nb\<rbrace>, 
                             Crypt (pairK(A,B)) (Nonce Nb)\<rbrace> 
@@ -156,7 +155,7 @@ the server*)
 (*B TOWARDS A*)
 (*having sent an input that mentions A is the only memory B relies on,
   since the output doesn't mention A - lack of explicitness*) 
-    SR8:  "\<lbrakk> evs8\<in> sr;  
+  | SR8:  "\<lbrakk> evs8\<in> sr;  
              Inputs B (Card B) \<lbrace>Agent A, Nonce Na\<rbrace> \<in> set evs8;
              Outpts (Card B) B \<lbrace>Nonce Nb, Key K, 
                                  Cert1, Cert2\<rbrace> \<in> set evs8 \<rbrakk>
@@ -168,7 +167,7 @@ the server*)
 (*A AND HER CARD*)
 (*A cannot check the form of the verifiers - although I can prove the form of
   Cert2 - and just feeds her card with what she's got*)
-    SR9:  "\<lbrakk> evs9\<in> sr; legalUse(Card A);
+  | SR9:  "\<lbrakk> evs9\<in> sr; legalUse(Card A);
              Gets A \<lbrace>Nonce Pk, Cert1\<rbrace> \<in> set evs9;
              Outpts (Card A) A \<lbrace>Nonce Na, Cert2\<rbrace> \<in> set evs9; 
              Gets A \<lbrace>Nonce Nb, Cert3\<rbrace> \<in> set evs9;
@@ -179,7 +178,7 @@ the server*)
                 # evs9 \<in> sr"
 
 (*But the card will only give outputs to the inputs of the correct form*)
-    SR10: "\<lbrakk> evs10\<in> sr; legalUse(Card A); A \<noteq> Server;
+  | SR10: "\<lbrakk> evs10\<in> sr; legalUse(Card A); A \<noteq> Server;
              K = sesK(Nb,pairK(A,B));
              Inputs A (Card A) \<lbrace>Agent B, Nonce Na, Nonce Nb, 
                                  Nonce (Pairkey(A,B)),
@@ -193,16 +192,16 @@ the server*)
 
 (*The card can be exploited by the spy*)
 (*because of the assumptions on the card, A is certainly not server nor spy*)
-SR10Fake: "\<lbrakk> evs10F\<in> sr; 
-             illegalUse(Card A);
-             K = sesK(Nb,pairK(A,B));
-             Inputs Spy (Card A) \<lbrace>Agent B, Nonce Na, Nonce Nb, 
-                                   Nonce (Pairkey(A,B)),
-                                   Crypt (shrK A) \<lbrace>Nonce (Pairkey(A,B)), 
-                                                    Agent B\<rbrace>,
-                                   Crypt (pairK(A,B)) \<lbrace>Nonce Na, Nonce Nb\<rbrace>, 
-                                   Crypt (crdK (Card A)) (Nonce Na)\<rbrace>
-               \<in> set evs10F \<rbrakk>
+  | SR10Fake: "\<lbrakk> evs10F\<in> sr; 
+                 illegalUse(Card A);
+                 K = sesK(Nb,pairK(A,B));
+                 Inputs Spy (Card A) \<lbrace>Agent B, Nonce Na, Nonce Nb, 
+                                       Nonce (Pairkey(A,B)),
+                                       Crypt (shrK A) \<lbrace>Nonce (Pairkey(A,B)), 
+                                                        Agent B\<rbrace>,
+                                       Crypt (pairK(A,B)) \<lbrace>Nonce Na, Nonce Nb\<rbrace>, 
+                                       Crypt (crdK (Card A)) (Nonce Na)\<rbrace>
+                   \<in> set evs10F \<rbrakk>
           \<Longrightarrow> Outpts (Card A) Spy \<lbrace>Key K, Crypt (pairK(A,B)) (Nonce Nb)\<rbrace>
                  # evs10F \<in> sr"
 
@@ -212,7 +211,7 @@ SR10Fake: "\<lbrakk> evs10F\<in> sr;
 (*A TOWARDS B*)
 (*having initiated with B is the only memory A relies on,
   since the output doesn't mention B - lack of explicitness*) 
-    SR11: "\<lbrakk> evs11\<in> sr;
+  | SR11: "\<lbrakk> evs11\<in> sr;
              Says A Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs11;
              Outpts (Card A) A \<lbrace>Key K, Certificate\<rbrace> \<in> set evs11 \<rbrakk>
           \<Longrightarrow> Says A B (Certificate) 
@@ -222,13 +221,13 @@ SR10Fake: "\<lbrakk> evs10F\<in> sr;
 
     (*Both peers may leak by accident the session keys obtained from their
       cards*)
-    Oops1:
+  | Oops1:
      "\<lbrakk> evsO1 \<in> sr;
          Outpts (Card B) B \<lbrace>Nonce Nb, Key K, Certificate, 
                              Crypt (pairK(A,B)) (Nonce Nb)\<rbrace> \<in> set evsO1 \<rbrakk>
      \<Longrightarrow> Notes Spy \<lbrace>Key K, Nonce Nb, Agent A, Agent B\<rbrace> # evsO1 \<in> sr"
 
-    Oops2:
+  | Oops2:
      "\<lbrakk> evsO2 \<in> sr;
          Outpts (Card A) A \<lbrace>Key K, Crypt (pairK(A,B)) (Nonce Nb)\<rbrace> 
            \<in> set evsO2 \<rbrakk>

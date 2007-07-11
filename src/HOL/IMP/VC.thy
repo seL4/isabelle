@@ -120,11 +120,11 @@ proof induct
   show ?case (is "? ac. ?C ac")
   proof show "?C Askip" by simp qed
 next
-  case (ass P a x)
+  case (ass P x a)
   show ?case (is "? ac. ?C ac")
   proof show "?C(Aass x a)" by simp qed
 next
-  case (semi P Q R c1 c2)
+  case (semi P c1 Q c2 R)
   from semi.hyps obtain ac1 where ih1: "?Eq P c1 Q ac1" by fast
   from semi.hyps obtain ac2 where ih2: "?Eq Q c2 R ac2" by fast
   show ?case (is "? ac. ?C ac")
@@ -133,7 +133,7 @@ next
       using ih1 ih2 by simp (fast elim!: awp_mono vc_mono)
   qed
 next
-  case (If P Q b c1 c2)
+  case (If P b c1 Q c2)
   from If.hyps obtain ac1 where ih1: "?Eq (%s. P s & b s) c1 Q ac1" by fast
   from If.hyps obtain ac2 where ih2: "?Eq (%s. P s & ~b s) c2 Q ac2" by fast
   show ?case (is "? ac. ?C ac")

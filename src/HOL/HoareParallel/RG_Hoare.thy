@@ -11,36 +11,31 @@ constdefs
   stable :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"  
   "stable \<equiv> \<lambda>f g. (\<forall>x y. x \<in> f \<longrightarrow> (x, y) \<in> g \<longrightarrow> y \<in> f)" 
 
-consts rghoare :: "('a rgformula) set" 
-syntax 
-  "_rghoare" :: "['a com, 'a set, ('a \<times> 'a) set, ('a \<times> 'a) set, 'a set] \<Rightarrow> bool"  
-                ("\<turnstile> _ sat [_, _, _, _]" [60,0,0,0,0] 45)
-translations 
-  "\<turnstile> P sat [pre, rely, guar, post]" \<rightleftharpoons> "(P, pre, rely, guar, post) \<in> rghoare"
-
-inductive rghoare
-intros
+inductive
+  rghoare :: "['a com, 'a set, ('a \<times> 'a) set, ('a \<times> 'a) set, 'a set] \<Rightarrow> bool"  
+    ("\<turnstile> _ sat [_, _, _, _]" [60,0,0,0,0] 45)
+where
   Basic: "\<lbrakk> pre \<subseteq> {s. f s \<in> post}; {(s,t). s \<in> pre \<and> (t=f s \<or> t=s)} \<subseteq> guar; 
             stable pre rely; stable post rely \<rbrakk> 
            \<Longrightarrow> \<turnstile> Basic f sat [pre, rely, guar, post]"
 
-  Seq: "\<lbrakk> \<turnstile> P sat [pre, rely, guar, mid]; \<turnstile> Q sat [mid, rely, guar, post] \<rbrakk> 
+| Seq: "\<lbrakk> \<turnstile> P sat [pre, rely, guar, mid]; \<turnstile> Q sat [mid, rely, guar, post] \<rbrakk> 
            \<Longrightarrow> \<turnstile> Seq P Q sat [pre, rely, guar, post]"
 
-  Cond: "\<lbrakk> stable pre rely; \<turnstile> P1 sat [pre \<inter> b, rely, guar, post];
+| Cond: "\<lbrakk> stable pre rely; \<turnstile> P1 sat [pre \<inter> b, rely, guar, post];
            \<turnstile> P2 sat [pre \<inter> -b, rely, guar, post]; \<forall>s. (s,s)\<in>guar \<rbrakk>
           \<Longrightarrow> \<turnstile> Cond b P1 P2 sat [pre, rely, guar, post]"
 
-  While: "\<lbrakk> stable pre rely; (pre \<inter> -b) \<subseteq> post; stable post rely;
+| While: "\<lbrakk> stable pre rely; (pre \<inter> -b) \<subseteq> post; stable post rely;
             \<turnstile> P sat [pre \<inter> b, rely, guar, pre]; \<forall>s. (s,s)\<in>guar \<rbrakk>
           \<Longrightarrow> \<turnstile> While b P sat [pre, rely, guar, post]"
 
-  Await: "\<lbrakk> stable pre rely; stable post rely; 
+| Await: "\<lbrakk> stable pre rely; stable post rely; 
             \<forall>V. \<turnstile> P sat [pre \<inter> b \<inter> {V}, {(s, t). s = t}, 
                 UNIV, {s. (V, s) \<in> guar} \<inter> post] \<rbrakk>
            \<Longrightarrow> \<turnstile> Await b P sat [pre, rely, guar, post]"
   
-  Conseq: "\<lbrakk> pre \<subseteq> pre'; rely \<subseteq> rely'; guar' \<subseteq> guar; post' \<subseteq> post;
+| Conseq: "\<lbrakk> pre \<subseteq> pre'; rely \<subseteq> rely'; guar' \<subseteq> guar; post' \<subseteq> post;
              \<turnstile> P sat [pre', rely', guar', post'] \<rbrakk>
             \<Longrightarrow> \<turnstile> P sat [pre, rely, guar, post]"
 
@@ -60,14 +55,10 @@ subsection {* Proof System for Parallel Programs *}
 
 types 'a par_rgformula = "('a rgformula) list \<times> 'a set \<times> ('a \<times> 'a) set \<times> ('a \<times> 'a) set \<times> 'a set"
 
-consts par_rghoare :: "('a par_rgformula) set" 
-syntax 
-  "_par_rghoare" :: "('a rgformula) list \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set \<Rightarrow> bool"    ("\<turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45)
-translations 
-  "\<turnstile> Ps SAT [pre, rely, guar, post]" \<rightleftharpoons> "(Ps, pre, rely, guar, post) \<in> par_rghoare"
-
-inductive par_rghoare
-intros
+inductive
+  par_rghoare :: "('a rgformula) list \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set \<Rightarrow> bool"
+    ("\<turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45)
+where
   Parallel: 
   "\<lbrakk> \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j<length xs \<and> j\<noteq>i}. Guar(xs!j)) \<subseteq> Rely(xs!i);
     (\<Union>j\<in>{j. j<length xs}. Guar(xs!j)) \<subseteq> guar;
@@ -113,22 +104,22 @@ done
 lemma takecptn_is_cptn [rule_format, elim!]: 
   "\<forall>j. c \<in> cptn \<longrightarrow> take (Suc j) c \<in> cptn"
 apply(induct "c")
- apply(force elim: cptn.elims)
+ apply(force elim: cptn.cases)
 apply clarify
 apply(case_tac j) 
  apply simp
  apply(rule CptnOne)
 apply simp
-apply(force intro:cptn.intros elim:cptn.elims)
+apply(force intro:cptn.intros elim:cptn.cases)
 done
 
 lemma dropcptn_is_cptn [rule_format,elim!]: 
   "\<forall>j<length c. c \<in> cptn \<longrightarrow> drop j c \<in> cptn"
 apply(induct "c")
- apply(force elim: cptn.elims)
+ apply(force elim: cptn.cases)
 apply clarify
 apply(case_tac j,simp+) 
-apply(erule cptn.elims)
+apply(erule cptn.cases)
   apply simp
  apply force
 apply force
@@ -137,20 +128,20 @@ done
 lemma takepar_cptn_is_par_cptn [rule_format,elim]: 
   "\<forall>j. c \<in> par_cptn \<longrightarrow> take (Suc j) c \<in> par_cptn"
 apply(induct "c")
- apply(force elim: cptn.elims)
+ apply(force elim: cptn.cases)
 apply clarify
 apply(case_tac j,simp) 
  apply(rule ParCptnOne)
-apply(force intro:par_cptn.intros elim:par_cptn.elims)
+apply(force intro:par_cptn.intros elim:par_cptn.cases)
 done
 
 lemma droppar_cptn_is_par_cptn [rule_format]:
   "\<forall>j<length c. c \<in> par_cptn \<longrightarrow> drop j c \<in> par_cptn"
 apply(induct "c")
- apply(force elim: par_cptn.elims)
+ apply(force elim: par_cptn.cases)
 apply clarify
 apply(case_tac j,simp+) 
-apply(erule par_cptn.elims)
+apply(erule par_cptn.cases)
   apply simp
  apply force
 apply force
@@ -165,16 +156,16 @@ lemma not_ctran_None [rule_format]:
   "\<forall>s. (None, s)#xs \<in> cptn \<longrightarrow> (\<forall>i<length xs. ((None, s)#xs)!i -e\<rightarrow> xs!i)"
 apply(induct xs,simp+)
 apply clarify
-apply(erule cptn.elims,simp)
+apply(erule cptn.cases,simp)
  apply simp
  apply(case_tac i,simp)
   apply(rule Env)
  apply simp
-apply(force elim:ctran.elims)
+apply(force elim:ctran.cases)
 done
 
 lemma cptn_not_empty [simp]:"[] \<notin> cptn"
-apply(force elim:cptn.elims)
+apply(force elim:cptn.cases)
 done
 
 lemma etran_or_ctran [rule_format]: 
@@ -183,7 +174,7 @@ lemma etran_or_ctran [rule_format]:
    \<longrightarrow> x!i -e\<rightarrow> x!Suc i"
 apply(induct x,simp)
 apply clarify
-apply(erule cptn.elims,simp)
+apply(erule cptn.cases,simp)
  apply(case_tac i,simp)
   apply(rule Env)
  apply simp
@@ -202,10 +193,10 @@ lemma etran_or_ctran2 [rule_format]:
 apply(induct x)
  apply simp
 apply clarify
-apply(erule cptn.elims,simp)
+apply(erule cptn.cases,simp)
  apply(case_tac i,simp+)
 apply(case_tac i,simp)
- apply(force elim:etran.elims)
+ apply(force elim:etran.cases)
 apply simp
 done
 
@@ -221,7 +212,7 @@ lemma not_ctran_None2 [rule_format]:
   "\<lbrakk> (None, s) # xs \<in>cptn; i<length xs\<rbrakk> \<Longrightarrow> \<not> ((None, s) # xs) ! i -c\<rightarrow> xs ! i"
 apply(frule not_ctran_None,simp)
 apply(case_tac i,simp)
- apply(force elim:etran.elims)
+ apply(force elim:etranE)
 apply simp
 apply(rule etran_or_ctran2_disjI2,simp_all)
 apply(force intro:tl_of_cptn_is_cptn)
@@ -241,9 +232,9 @@ lemma stability [rule_format]:
   (\<forall>i. j\<le>i \<and> i<k \<longrightarrow> x!i -e\<rightarrow> x!Suc i) \<longrightarrow> snd(x!k)\<in>p \<and> fst(x!j)=fst(x!k)"
 apply(induct x)
  apply clarify
- apply(force elim:cptn.elims)
+ apply(force elim:cptn.cases)
 apply clarify
-apply(erule cptn.elims,simp)
+apply(erule cptn.cases,simp)
  apply simp
  apply(case_tac k,simp,simp)
  apply(case_tac j,simp) 
@@ -274,7 +265,7 @@ apply(erule cptn.elims,simp)
 apply(case_tac k,simp,simp)
 apply(case_tac j)
  apply(erule_tac x=0 and P="\<lambda>j. (?H j) \<longrightarrow> (?J j)\<in>etran" in allE,simp)
- apply(erule etran.elims,simp)
+ apply(erule etran.cases,simp)
 apply(erule_tac x="nata" in allE)
 apply(erule_tac x="nat" and P="\<lambda>j. (?s\<le>j) \<longrightarrow> (?J j)" in allE,simp)
 apply(subgoal_tac "(\<forall>i. i < length xs \<longrightarrow> ((Q, t) # xs) ! i -e\<rightarrow> xs ! i \<longrightarrow> (snd (((Q, t) # xs) ! i), snd (xs ! i)) \<in> rely)")
@@ -295,7 +286,7 @@ lemma unique_ctran_Basic [rule_format]:
 apply(induct x,simp)
 apply simp
 apply clarify
-apply(erule cptn.elims,simp)
+apply(erule cptn.cases,simp)
  apply(case_tac i,simp+)
  apply clarify
  apply(case_tac j,simp)
@@ -305,12 +296,12 @@ apply clarify
 apply simp
 apply(case_tac i)
  apply(case_tac j,simp,simp)
- apply(erule ctran.elims,simp_all)
+ apply(erule ctran.cases,simp_all)
  apply(force elim: not_ctran_None)
-apply(ind_cases "((Some (Basic f), sa), Q, t) \<in> ctran")
+apply(ind_cases "((Some (Basic f), sa), Q, t) \<in> ctran" for sa Q t)
 apply simp
 apply(drule_tac i=nat in not_ctran_None,simp)
-apply(erule etran.elims,simp)
+apply(erule etranE,simp)
 done
 
 lemma exists_ctran_Basic_None [rule_format]: 
@@ -319,7 +310,7 @@ lemma exists_ctran_Basic_None [rule_format]:
 apply(induct x,simp)
 apply simp
 apply clarify
-apply(erule cptn.elims,simp)
+apply(erule cptn.cases,simp)
  apply(case_tac i,simp,simp)
  apply(erule_tac x=nat in allE,simp)
  apply clarify
@@ -349,7 +340,7 @@ apply(rule conjI)
  apply clarify
  apply(drule_tac s="Some (Basic f)" in sym,simp)
  apply(thin_tac "\<forall>j. ?H j")
- apply(force elim:ctran.elims)
+ apply(force elim:ctran.cases)
 apply clarify
 apply(simp add:cp_def)
 apply clarify
@@ -368,7 +359,7 @@ apply clarify
 apply simp
 apply(drule_tac s="Some (Basic f)" in sym,simp)
 apply(case_tac "x!Suc j",simp)
-apply(rule ctran.elims,simp)
+apply(rule ctran.cases,simp)
 apply(simp_all)
 apply(drule_tac c=sa in subsetD,simp)
 apply clarify
@@ -389,7 +380,7 @@ lemma unique_ctran_Await [rule_format]:
   (\<forall>j. Suc j<length x \<longrightarrow> i\<noteq>j \<longrightarrow> x!j -e\<rightarrow> x!Suc j)"
 apply(induct x,simp+)
 apply clarify
-apply(erule cptn.elims,simp)
+apply(erule cptn.cases,simp)
  apply(case_tac i,simp+)
  apply clarify
  apply(case_tac j,simp)
@@ -399,11 +390,11 @@ apply clarify
 apply simp
 apply(case_tac i)
  apply(case_tac j,simp,simp)
- apply(erule ctran.elims,simp_all)
+ apply(erule ctran.cases,simp_all)
  apply(force elim: not_ctran_None)
-apply(ind_cases "((Some (Await b c), sa), Q, t) \<in> ctran",simp)
+apply(ind_cases "((Some (Await b c), sa), Q, t) \<in> ctran" for sa Q t,simp)
 apply(drule_tac i=nat in not_ctran_None,simp)
-apply(erule etran.elims,simp)
+apply(erule etranE,simp)
 done
 
 lemma exists_ctran_Await_None [rule_format]: 
@@ -411,7 +402,7 @@ lemma exists_ctran_Await_None [rule_format]:
   \<longrightarrow> i<length x \<longrightarrow> fst(x!i)=None \<longrightarrow> (\<exists>j<i. x!j -c\<rightarrow> x!Suc j)"
 apply(induct x,simp+)
 apply clarify
-apply(erule cptn.elims,simp)
+apply(erule cptn.cases,simp)
  apply(case_tac i,simp+)
  apply(erule_tac x=nat in allE,simp)
  apply clarify
@@ -440,7 +431,7 @@ apply(simp add:cp_def)
 apply force
 apply(simp add:cp_def)
  apply(case_tac l)
- apply(force elim:cptn.elims)
+ apply(force elim:cptn.cases)
 apply simp
 apply(erule CptnComp)
 apply clarify
@@ -466,7 +457,7 @@ apply(rule conjI)
   apply(erule_tac i=i in unique_ctran_Await,force,simp_all)
   apply(simp add:cp_def)
 --{* here starts the different part. *}
- apply(erule ctran.elims,simp_all)
+ apply(erule ctran.cases,simp_all)
  apply(drule Star_imp_cptn) 
  apply clarify
  apply(erule_tac x=sa in allE)
@@ -476,7 +467,7 @@ apply(rule conjI)
   apply (simp add:cp_def)
   apply clarify
   apply(erule_tac x=ia and P="\<lambda>i. ?H i \<longrightarrow> (?J i,?I i)\<in>ctran" in allE,simp)
-  apply(erule etran.elims,simp)
+  apply(erule etranE,simp)
  apply simp
 apply clarify
 apply(simp add:cp_def)
@@ -496,7 +487,7 @@ apply clarify
 apply simp
 apply(drule_tac s="Some (Await b P)" in sym,simp)
 apply(case_tac "x!Suc j",simp)
-apply(rule ctran.elims,simp)
+apply(rule ctran.cases,simp)
 apply(simp_all)
 apply(drule Star_imp_cptn) 
 apply clarify
@@ -507,7 +498,7 @@ apply(drule_tac c=l in subsetD)
  apply (simp add:cp_def)
  apply clarify
  apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> (?J i,?I i)\<in>ctran" in allE,simp)
- apply(erule etran.elims,simp)
+ apply(erule etranE,simp)
 apply simp
 apply clarify
 apply(frule_tac j="Suc j" and k="length x - 1" and p=post in stability,simp_all)
@@ -544,7 +535,7 @@ apply clarify
 apply (simp add:assum_def)
 apply(frule_tac j=0 and k="m" and p=pre in stability,simp+)
  apply(erule_tac m="Suc m" in etran_or_ctran,simp+)
-apply(erule ctran.elims,simp_all)
+apply(erule ctran.cases,simp_all)
  apply(erule_tac x="sa" in allE)
  apply(drule_tac c="drop (Suc m) x" in subsetD)
   apply simp
@@ -616,7 +607,7 @@ apply simp_all
     apply(simp (no_asm_use) add:lift_def)
    apply clarify
    apply(erule_tac x="Suc i" in allE, simp)
-  apply(ind_cases "((Some (Seq Pa Q), sa), None, t) \<in> ctran")
+  apply(ind_cases "((Some (Seq Pa Q), sa), None, t) \<in> ctran" for Pa sa t)
  apply(rule_tac x="(Some P, sa) # xs" in exI, simp add:cptn_iff_cptn_mod lift_def)
 apply(erule_tac x="length xs" in allE, simp)
 apply(simp only:Cons_lift_append)
@@ -649,7 +640,7 @@ apply simp_all
  apply(rule conjI,erule CptnEnv)
  apply(simp (no_asm_use) add:lift_def)
  apply(rule_tac x=ys in exI,simp)
-apply(ind_cases "((Some (Seq Pa Q), sa), t) \<in> ctran")
+apply(ind_cases "((Some (Seq Pa Q), sa), t) \<in> ctran" for Pa sa t)
  apply simp
  apply(rule_tac x="(Some Pa, sa)#[(None, ta)]" in exI,simp)
  apply(rule conjI)
@@ -724,7 +715,7 @@ apply(case_tac "\<exists>i<length x. fst(x!i)=Some Q")
   apply(erule_tac P="\<lambda>j. ?H j \<longrightarrow> ?J j \<longrightarrow> ?I j" in allE,erule impE, assumption)
   apply(simp add:snd_lift)
   apply(erule mp)
-  apply(force elim:etran.elims intro:Env simp add:lift_def)
+  apply(force elim:etranE intro:Env simp add:lift_def)
  apply(simp add:comm_def)
  apply(rule conjI)
   apply clarify
@@ -766,7 +757,7 @@ apply(drule_tac c=xs in subsetD,simp)
   back 
  apply(simp add:snd_lift)
  apply(erule mp)
- apply(force elim:etran.elims intro:Env simp add:lift_def)
+ apply(force elim:etranE intro:Env simp add:lift_def)
 apply simp
 apply clarify
 apply(erule_tac x="snd(xs!m)" in allE)
@@ -786,7 +777,7 @@ apply(drule_tac c=ys in subsetD,simp add:cp_def assum_def)
  apply (case_tac i, (simp add:snd_lift)+)
   apply(erule mp)
   apply(case_tac "xs!m")
-  apply(force elim:etran.elims intro:Env simp add:lift_def)
+  apply(force elim:etran.cases intro:Env simp add:lift_def)
  apply simp 
 apply simp
 apply clarify
@@ -866,7 +857,7 @@ apply(drule_tac c="(Some P, s) # xs" in subsetD,simp)
  apply simp
  apply(simp add:Cons_lift_append nth_append snd_lift del:map.simps)
  apply(erule mp)
- apply(erule etran.elims,simp)
+ apply(erule etranE,simp)
  apply(case_tac "fst(((Some P, s) # xs) ! i)")
   apply(force intro:Env simp add:lift_def)
  apply(force intro:Env simp add:lift_def)
@@ -900,7 +891,7 @@ apply(rule etran_in_comm)
 apply(erule mp)
 apply(erule tl_of_assum_in_assum,simp)
 --{* While-None *}
-apply(ind_cases "((Some (While b P), s), None, t) \<in> ctran")
+apply(ind_cases "((Some (While b P), s), None, t) \<in> ctran" for s t)
 apply(simp add:comm_def)
 apply(simp add:cptn_iff_cptn_mod [THEN sym])
 apply(rule conjI,clarify)
@@ -909,7 +900,7 @@ apply clarify
 apply(rule conjI, clarify)
  apply(case_tac i,simp,simp)
  apply(force simp add:not_ctran_None2)
-apply(subgoal_tac "\<forall>i. Suc i < length ((None, sa) # xs) \<longrightarrow> (((None, sa) # xs) ! i, ((None, sa) # xs) ! Suc i)\<in> etran")
+apply(subgoal_tac "\<forall>i. Suc i < length ((None, t) # xs) \<longrightarrow> (((None, t) # xs) ! i, ((None, t) # xs) ! Suc i)\<in> etran")
  prefer 2
  apply clarify
  apply(rule_tac m="length ((None, s) # xs)" in etran_or_ctran,simp+)
@@ -934,7 +925,7 @@ apply(rule conjI)
  apply(case_tac "fst(((Some P, sa) # xs) ! i)")
   apply(case_tac "((Some P, sa) # xs) ! i")
   apply (simp add:lift_def)
-  apply(ind_cases "(Some (While b P), ba) -c\<rightarrow> t")
+  apply(ind_cases "(Some (While b P), ba) -c\<rightarrow> t" for ba t)
    apply simp
   apply simp
  apply(simp add:snd_lift del:map.simps)
@@ -946,9 +937,9 @@ apply(rule conjI)
   apply(erule_tac x="Suc ia" in allE,simp add:snd_lift del:map.simps)
   apply(erule mp)
   apply(case_tac "fst(((Some P, sa) # xs) ! ia)")
-   apply(erule etran.elims,simp add:lift_def)
+   apply(erule etranE,simp add:lift_def)
    apply(rule Env)
-  apply(erule etran.elims,simp add:lift_def)
+  apply(erule etranE,simp add:lift_def)
   apply(rule Env)
  apply (simp add:comm_def del:map.simps)
  apply clarify
@@ -986,7 +977,7 @@ apply(rule conjI)
   apply(case_tac "fst(((Some P, sa) # xs) ! i)")
    apply(case_tac "((Some P, sa) # xs) ! i")
    apply (simp add:lift_def del:last.simps)
-   apply(ind_cases "(Some (While b P), ba) -c\<rightarrow> t")
+   apply(ind_cases "(Some (While b P), ba) -c\<rightarrow> t" for ba t)
     apply simp
    apply simp
   apply(simp add:snd_lift del:map.simps last.simps)
@@ -998,9 +989,9 @@ apply(rule conjI)
    apply clarify
    apply(erule_tac x="Suc ia" in allE,simp add:nth_append snd_lift del:map.simps last.simps, erule mp)
    apply(case_tac "fst(((Some P, sa) # xs) ! ia)")
-    apply(erule etran.elims,simp add:lift_def)
+    apply(erule etranE,simp add:lift_def)
     apply(rule Env)
-   apply(erule etran.elims,simp add:lift_def)
+   apply(erule etranE,simp add:lift_def)
    apply(rule Env)
   apply (simp add:comm_def del:map.simps)
   apply clarify
@@ -1158,9 +1149,9 @@ apply(erule disjE)
 --{* a c-tran in some @{text "\<sigma>_{ib}"}  *}
  apply clarify
  apply(case_tac "i=ib",simp)
-  apply(erule etran.elims,simp)
+  apply(erule etranE,simp)
  apply(erule_tac x="ib" and P="\<lambda>i. ?H i \<longrightarrow> (?I i) \<or> (?J i)" in allE)
- apply (erule etran.elims)
+ apply (erule etranE)
  apply(case_tac "ia=m",simp)
  apply simp
  apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (\<forall> i. ?P i j)" in allE)
@@ -1198,7 +1189,7 @@ apply(erule disjE)
  apply(force simp add:same_state_def par_assum_def)
 apply clarify
 apply(case_tac "i=ia",simp)
- apply(erule etran.elims,simp)
+ apply(erule etranE,simp)
 apply(erule_tac x="ia" and P="\<lambda>i. ?H i \<longrightarrow> (?I i) \<or> (?J i)" in allE,simp)
 apply(erule_tac x=j and P="\<lambda>j. \<forall>i. ?S j i \<longrightarrow> (?I j i, ?H j i)\<in> ctran \<longrightarrow> (?P i j)" in allE)
 apply(erule_tac x=ia and P="\<lambda>j. ?S j \<longrightarrow> (?I j, ?H j)\<in> ctran \<longrightarrow> (?P j)" in allE)
@@ -1237,7 +1228,7 @@ apply(simp add:conjoin_def same_program_def)
 apply clarify
 apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> fst(?I j)=(?J j)" in all_dupE)
 apply(erule_tac x="Suc i" and P="\<lambda>j. ?H j \<longrightarrow> fst(?I j)=(?J j)" in allE)
-apply(erule par_ctran.elims,simp)
+apply(erule par_ctranE,simp)
 apply(erule_tac x=i and P="\<lambda>j. \<forall>i. ?S j i \<longrightarrow> (?I j i, ?H j i)\<in> ctran \<longrightarrow> (?P i j)" in allE)
 apply(erule_tac x=ia and P="\<lambda>j. ?S j \<longrightarrow> (?I j, ?H j)\<in> ctran \<longrightarrow> (?P j)" in allE)
 apply(rule_tac x=ia in exI)
@@ -1255,7 +1246,7 @@ apply simp_all
 done
 
 lemma parcptn_not_empty [simp]:"[] \<notin> par_cptn"
-apply(force elim:par_cptn.elims)
+apply(force elim:par_cptn.cases)
 done
 
 lemma five: 
@@ -1336,12 +1327,12 @@ apply clarify
 apply(case_tac list,simp,simp)
 apply(case_tac i)
  apply(simp add:par_cp_def ParallelCom_def)
- apply(erule par_ctran.elims,simp)
+ apply(erule par_ctranE,simp)
 apply(simp add:par_cp_def ParallelCom_def)
 apply clarify
-apply(erule par_cptn.elims,simp)
+apply(erule par_cptn.cases,simp)
  apply simp
-apply(erule par_ctran.elims)
+apply(erule par_ctranE)
 back
 apply simp
 done

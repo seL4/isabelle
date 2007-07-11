@@ -11,32 +11,30 @@ header{*Verifying the Needham-Schroeder-Lowe Public-Key Protocol*}
 
 theory NS_Public imports Public begin
 
-consts  ns_public  :: "event list set"
-
-inductive ns_public
-  intros 
+inductive_set ns_public :: "event list set"
+  where 
          (*Initial trace is empty*)
    Nil:  "[] \<in> ns_public"
 
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-   Fake: "\<lbrakk>evsf \<in> ns_public;  X \<in> synth (analz (spies evsf))\<rbrakk>
+ | Fake: "\<lbrakk>evsf \<in> ns_public;  X \<in> synth (analz (spies evsf))\<rbrakk>
           \<Longrightarrow> Says Spy B X  # evsf \<in> ns_public"
 
          (*Alice initiates a protocol run, sending a nonce to Bob*)
-   NS1:  "\<lbrakk>evs1 \<in> ns_public;  Nonce NA \<notin> used evs1\<rbrakk>
+ | NS1:  "\<lbrakk>evs1 \<in> ns_public;  Nonce NA \<notin> used evs1\<rbrakk>
           \<Longrightarrow> Says A B (Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>)
                  # evs1  \<in>  ns_public"
 
          (*Bob responds to Alice's message with a further nonce*)
-   NS2:  "\<lbrakk>evs2 \<in> ns_public;  Nonce NB \<notin> used evs2;
+ | NS2:  "\<lbrakk>evs2 \<in> ns_public;  Nonce NB \<notin> used evs2;
            Says A' B (Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs2\<rbrakk>
           \<Longrightarrow> Says B A (Crypt (pubEK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>)
                 # evs2  \<in>  ns_public"
 
          (*Alice proves her existence by sending NB back to Bob.*)
-   NS3:  "\<lbrakk>evs3 \<in> ns_public;
+ | NS3:  "\<lbrakk>evs3 \<in> ns_public;
            Says A  B (Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs3;
            Says B' A (Crypt (pubEK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>)
               \<in> set evs3\<rbrakk>

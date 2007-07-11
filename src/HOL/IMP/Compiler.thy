@@ -54,7 +54,7 @@ qed
 
 text {* The other direction! *}
 
-inductive_cases [elim!]: "(([],p,s),next) : stepa1"
+inductive_cases [elim!]: "(([],p,s),(is',p',s')) : stepa1"
 
 lemma [simp]: "(\<langle>[],q,s\<rangle> -n\<rightarrow> \<langle>p',q',t\<rangle>) = (n=0 \<and> p' = [] \<and> q' = q \<and> t = s)"
 apply(rule iffI)

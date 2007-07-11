@@ -53,25 +53,23 @@ abbreviation (input)
 
 subsection{*definition of the protocol*}
 
-consts ya :: "event list set"
+inductive_set ya :: "event list set"
+where
 
-inductive ya
-intros
+  Nil: "[]:ya"
 
-Nil: "[]:ya"
+| Fake: "[| evs:ya; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs:ya"
 
-Fake: "[| evs:ya; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs:ya"
+| YA1: "[| evs1:ya; Nonce NA ~:used evs1 |] ==> ya1 A B NA # evs1:ya"
 
-YA1: "[| evs1:ya; Nonce NA ~:used evs1 |] ==> ya1 A B NA # evs1:ya"
+| YA2: "[| evs2:ya; ya1' A' A B NA:set evs2; Nonce NB ~:used evs2 |]
+  ==> ya2 A B NA NB # evs2:ya"
 
-YA2: "[| evs2:ya; ya1' A' A B NA:set evs2; Nonce NB ~:used evs2 |]
-==> ya2 A B NA NB # evs2:ya"
+| YA3: "[| evs3:ya; ya2' B' A B NA NB:set evs3; Key K ~:used evs3 |]
+  ==> ya3 A B NA NB K # evs3:ya"
 
-YA3: "[| evs3:ya; ya2' B' A B NA NB:set evs3; Key K ~:used evs3 |]
-==> ya3 A B NA NB K # evs3:ya"
-
-YA4: "[| evs4:ya; ya1 A B NA:set evs4; ya3' S Y A B NA NB K:set evs4 |]
-==> ya4 A B K NB Y # evs4:ya"
+| YA4: "[| evs4:ya; ya1 A B NA:set evs4; ya3' S Y A B NA NB K:set evs4 |]
+  ==> ya4 A B K NB Y # evs4:ya"
 
 subsection{*declarations for tactics*}
 
@@ -88,7 +86,7 @@ lemma ya_is_Gets_correct [iff]: "Gets_correct ya"
 by (auto simp: Gets_correct_def dest: ya_has_no_Gets)
 
 lemma ya_is_one_step [iff]: "one_step ya"
-by (unfold one_step_def, clarify, ind_cases "ev#evs:ya", auto)
+by (unfold one_step_def, clarify, ind_cases "ev#evs:ya" for ev evs, auto)
 
 lemma ya_has_only_Says' [rule_format]: "evs:ya ==>
 ev:set evs --> (EX A B X. ev=Says A B X)"

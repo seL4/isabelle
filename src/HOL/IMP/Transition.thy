@@ -20,10 +20,8 @@ text {*
   a statement, the transition relation is not
   @{typ "((com \<times> state) \<times> (com \<times> state)) set"}
   but instead:
-*}
-consts evalc1 :: "((com option \<times> state) \<times> (com option \<times> state)) set"
+  @{typ "((com option \<times> state) \<times> (com option \<times> state)) set"}
 
-text {*
   Some syntactic sugar that we will use to hide the
   @{text option} part in configurations:
 *}
@@ -44,53 +42,40 @@ translations
   "\<langle>s\<rangle>" == "(None, s)"
 
 text {*
+  Now, finally, we are set to write down the rules for our small step semantics:
+*}
+inductive_set
+  evalc1 :: "((com option \<times> state) \<times> (com option \<times> state)) set"
+  and evalc1' :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
+    ("_ \<longrightarrow>\<^sub>1 _" [60,60] 61)
+where
+  "cs \<longrightarrow>\<^sub>1 cs' == (cs,cs') \<in> evalc1"
+| Skip:    "\<langle>\<SKIP>, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s\<rangle>"
+| Assign:  "\<langle>x :== a, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s[x \<mapsto> a s]\<rangle>"
+
+| Semi1:   "\<langle>c0,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s'\<rangle> \<Longrightarrow> \<langle>c0;c1,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c1,s'\<rangle>"
+| Semi2:   "\<langle>c0,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c0',s'\<rangle> \<Longrightarrow> \<langle>c0;c1,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c0';c1,s'\<rangle>"
+
+| IfTrue:  "b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c1 \<ELSE> c2,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c1,s\<rangle>"
+| IfFalse: "\<not>b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c1 \<ELSE> c2,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c2,s\<rangle>"
+
+| While:   "\<langle>\<WHILE> b \<DO> c,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>\<IF> b \<THEN> c; \<WHILE> b \<DO> c \<ELSE> \<SKIP>,s\<rangle>"
+
+lemmas [intro] = evalc1.intros -- "again, use these rules in automatic proofs"
+
+text {*
   More syntactic sugar for the transition relation, and its
   iteration.
 *}
-syntax
-  "_evalc1" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
-    ("_ -1-> _" [60,60] 60)
-  "_evalcn" :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
-    ("_ -_-> _" [60,60,60] 60)
-  "_evalc*" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
-    ("_ -*-> _" [60,60] 60)
+abbreviation
+  evalcn :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
+    ("_ -_\<rightarrow>\<^sub>1 _" [60,60,60] 60)  where
+  "cs -n\<rightarrow>\<^sub>1 cs' == (cs,cs') \<in> evalc1^n"
 
-syntax (xsymbols)
-  "_evalc1" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
-    ("_ \<longrightarrow>\<^sub>1 _" [60,60] 61)
-  "_evalcn" :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
-    ("_ -_\<rightarrow>\<^sub>1 _" [60,60,60] 60)
-  "_evalc*" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
-    ("_ \<longrightarrow>\<^sub>1\<^sup>* _" [60,60] 60)
-
-translations
-  "cs \<longrightarrow>\<^sub>1 cs'" == "(cs,cs') \<in> evalc1"
-  "cs -n\<rightarrow>\<^sub>1 cs'" == "(cs,cs') \<in> evalc1^n"
-  "cs \<longrightarrow>\<^sub>1\<^sup>* cs'" == "(cs,cs') \<in> evalc1^*"
-
-  -- {* Isabelle/HOL converts @{text "(cs0,(c1,s1))"} to @{term "(cs0,c1,s1)"},
-        so we also include: *}
-  "cs0 \<longrightarrow>\<^sub>1 (c1,s1)" == "(cs0,c1,s1) \<in> evalc1"
-  "cs0 -n\<rightarrow>\<^sub>1 (c1,s1)" == "(cs0,c1,s1) \<in> evalc1^n"
-  "cs0 \<longrightarrow>\<^sub>1\<^sup>* (c1,s1)" == "(cs0,c1,s1) \<in> evalc1^*"
-
-text {*
-  Now, finally, we are set to write down the rules for our small step semantics:
-*}
-inductive evalc1
-  intros
-  Skip:    "\<langle>\<SKIP>, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s\<rangle>"
-  Assign:  "\<langle>x :== a, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s[x \<mapsto> a s]\<rangle>"
-
-  Semi1:   "\<langle>c0,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s'\<rangle> \<Longrightarrow> \<langle>c0;c1,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c1,s'\<rangle>"
-  Semi2:   "\<langle>c0,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c0',s'\<rangle> \<Longrightarrow> \<langle>c0;c1,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c0';c1,s'\<rangle>"
-
-  IfTrue:  "b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c1 \<ELSE> c2,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c1,s\<rangle>"
-  IfFalse: "\<not>b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c1 \<ELSE> c2,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c2,s\<rangle>"
-
-  While:   "\<langle>\<WHILE> b \<DO> c,s\<rangle> \<longrightarrow>\<^sub>1 \<langle>\<IF> b \<THEN> c; \<WHILE> b \<DO> c \<ELSE> \<SKIP>,s\<rangle>"
-
-lemmas [intro] = evalc1.intros -- "again, use these rules in automatic proofs"
+abbreviation
+  evalc' :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
+    ("_ \<longrightarrow>\<^sub>1\<^sup>* _" [60,60] 60)  where
+  "cs \<longrightarrow>\<^sub>1\<^sup>* cs' == (cs,cs') \<in> evalc1^*"
 
 (*<*)
 (* fixme: move to Relation_Power.thy *)
@@ -120,18 +105,18 @@ text {*
   syntax directed way:
 *}
 lemma SKIP_1: "\<langle>\<SKIP>, s\<rangle> \<longrightarrow>\<^sub>1 y = (y = \<langle>s\<rangle>)"
-  by (rule, cases set: evalc1, auto)
+  by (induct y, rule, cases set: evalc1, auto)
 
 lemma Assign_1: "\<langle>x :== a, s\<rangle> \<longrightarrow>\<^sub>1 y = (y = \<langle>s[x \<mapsto> a s]\<rangle>)"
-  by (rule, cases set: evalc1, auto)
+  by (induct y, rule, cases set: evalc1, auto)
 
 lemma Cond_1:
   "\<langle>\<IF> b \<THEN> c1 \<ELSE> c2, s\<rangle> \<longrightarrow>\<^sub>1 y = ((b s \<longrightarrow> y = \<langle>c1, s\<rangle>) \<and> (\<not>b s \<longrightarrow> y = \<langle>c2, s\<rangle>))"
-  by (rule, cases set: evalc1, auto)
+  by (induct y, rule, cases set: evalc1, auto)
 
 lemma While_1:
   "\<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>1 y = (y = \<langle>\<IF> b \<THEN> c; \<WHILE> b \<DO> c \<ELSE> \<SKIP>, s\<rangle>)"
-  by (rule, cases set: evalc1, auto)
+  by (induct y, rule, cases set: evalc1, auto)
 
 lemmas [simp] = SKIP_1 Assign_1 Cond_1 While_1
 
@@ -197,10 +182,10 @@ text {*
   has terminated and there is no next configuration:
 *}
 lemma stuck [elim!]: "\<langle>s\<rangle> \<longrightarrow>\<^sub>1 y \<Longrightarrow> P"
-  by (auto elim: evalc1.elims)
+  by (induct y, auto elim: evalc1.cases)
 
 lemma evalc_None_retrancl [simp, dest!]: "\<langle>s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* s' \<Longrightarrow> s' = \<langle>s\<rangle>"
-  by (induct set: rtrancl_set) auto
+  by (induct set: rtrancl) auto
 
 (*<*)
 (* FIXME: relpow.simps don't work *)
@@ -230,10 +215,10 @@ next
   case (Suc n)
 
   from `\<langle>c1; c2, s\<rangle> -Suc n\<rightarrow>\<^sub>1 \<langle>s''\<rangle>`
-  obtain y where
-      1: "\<langle>c1; c2, s\<rangle> \<longrightarrow>\<^sub>1 y" and
-      n: "y -n\<rightarrow>\<^sub>1 \<langle>s''\<rangle>"
-    by blast
+  obtain co s''' where
+      1: "\<langle>c1; c2, s\<rangle> \<longrightarrow>\<^sub>1 (co, s''')" and
+      n: "(co, s''') -n\<rightarrow>\<^sub>1 \<langle>s''\<rangle>"
+    by auto
 
   from 1
   show "\<exists>i j s'. \<langle>c1, s\<rangle> -i\<rightarrow>\<^sub>1 \<langle>s'\<rangle> \<and> \<langle>c2, s'\<rangle> -j\<rightarrow>\<^sub>1 \<langle>s''\<rangle> \<and> Suc n = i+j"
@@ -241,14 +226,14 @@ next
   proof (cases set: evalc1)
     case Semi1
     then obtain s' where
-        "y = \<langle>c2, s'\<rangle>" and "\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s'\<rangle>"
+        "co = Some c2" and "s''' = s'" and "\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>s'\<rangle>"
       by auto
     with 1 n have "?Q 1 n s'" by simp
     thus ?thesis by blast
   next
     case Semi2
     then obtain c1' s' where
-        y:  "y = \<langle>c1'; c2, s'\<rangle>" and
+        "co = Some (c1'; c2)" "s''' = s'" and
         c1: "\<langle>c1, s\<rangle> \<longrightarrow>\<^sub>1 \<langle>c1', s'\<rangle>"
       by auto
     with n have "\<langle>c1'; c2, s'\<rangle> -n\<rightarrow>\<^sub>1 \<langle>s''\<rangle>" by simp
@@ -476,13 +461,13 @@ proof -
 qed
 
 inductive_cases evalc1_SEs:
-  "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>1 t"
-  "\<langle>x:==a,s\<rangle> \<longrightarrow>\<^sub>1 t"
-  "\<langle>c1;c2, s\<rangle> \<longrightarrow>\<^sub>1 t"
-  "\<langle>\<IF> b \<THEN> c1 \<ELSE> c2, s\<rangle> \<longrightarrow>\<^sub>1 t"
-  "\<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>1 t"
+  "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>1 (co, s')"
+  "\<langle>x:==a,s\<rangle> \<longrightarrow>\<^sub>1 (co, s')"
+  "\<langle>c1;c2, s\<rangle> \<longrightarrow>\<^sub>1 (co, s')"
+  "\<langle>\<IF> b \<THEN> c1 \<ELSE> c2, s\<rangle> \<longrightarrow>\<^sub>1 (co, s')"
+  "\<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>1 (co, s')"
 
-inductive_cases evalc1_E: "\<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>1 t"
+inductive_cases evalc1_E: "\<langle>\<WHILE> b \<DO> c, s\<rangle> \<longrightarrow>\<^sub>1 (co, s')"
 
 declare evalc1_SEs [elim!]
 
@@ -546,6 +531,7 @@ apply (induct_tac n rule: nat_less_induct)
 apply (intro strip)
 apply (erule rel_pow_E2)
  apply simp
+apply (simp only: split_paired_all)
 apply (erule evalc1_E)
 
 apply simp

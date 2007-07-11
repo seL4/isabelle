@@ -10,73 +10,76 @@ subsubsection {* Environment transitions *}
 
 types 'a conf = "(('a com) option) \<times> 'a"
 
-consts etran    :: "('a conf \<times> 'a conf) set" 
-syntax  "_etran"  :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"  ("_ -e\<rightarrow> _" [81,81] 80)
-translations  "P -e\<rightarrow> Q"  \<rightleftharpoons> "(P,Q) \<in> etran"
-inductive etran
-intros
-  Env: "(P, s) -e\<rightarrow> (P, t)"
+inductive_set
+  etran :: "('a conf \<times> 'a conf) set" 
+  and etran' :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"  ("_ -e\<rightarrow> _" [81,81] 80)
+where
+  "P -e\<rightarrow> Q \<equiv> (P,Q) \<in> etran"
+| Env: "(P, s) -e\<rightarrow> (P, t)"
+
+lemma etranE: "c -e\<rightarrow> c' \<Longrightarrow> (\<And>P s t. c = (P, s) \<Longrightarrow> c' = (P, t) \<Longrightarrow> Q) \<Longrightarrow> Q"
+  by (induct c, induct c', erule etran.cases, blast)
 
 subsubsection {* Component transitions *}
 
-consts ctran    :: "('a conf \<times> 'a conf) set"
-syntax
-  "_ctran"  :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   ("_ -c\<rightarrow> _" [81,81] 80)
-  "_ctran_*":: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   ("_ -c*\<rightarrow> _" [81,81] 80)
-translations
-  "P -c\<rightarrow> Q"  \<rightleftharpoons> "(P,Q) \<in> ctran"
-  "P -c*\<rightarrow> Q" \<rightleftharpoons> "(P,Q) \<in> ctran^*"
+inductive_set
+  ctran :: "('a conf \<times> 'a conf) set"
+  and ctran' :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   ("_ -c\<rightarrow> _" [81,81] 80)
+  and ctrans :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   ("_ -c*\<rightarrow> _" [81,81] 80)
+where
+  "P -c\<rightarrow> Q \<equiv> (P,Q) \<in> ctran"
+| "P -c*\<rightarrow> Q \<equiv> (P,Q) \<in> ctran^*"
 
-inductive  ctran 
-intros
-  Basic:  "(Some(Basic f), s) -c\<rightarrow> (None, f s)"
+| Basic:  "(Some(Basic f), s) -c\<rightarrow> (None, f s)"
 
-  Seq1:   "(Some P0, s) -c\<rightarrow> (None, t) \<Longrightarrow> (Some(Seq P0 P1), s) -c\<rightarrow> (Some P1, t)"
+| Seq1:   "(Some P0, s) -c\<rightarrow> (None, t) \<Longrightarrow> (Some(Seq P0 P1), s) -c\<rightarrow> (Some P1, t)"
 
-  Seq2:   "(Some P0, s) -c\<rightarrow> (Some P2, t) \<Longrightarrow> (Some(Seq P0 P1), s) -c\<rightarrow> (Some(Seq P2 P1), t)"
+| Seq2:   "(Some P0, s) -c\<rightarrow> (Some P2, t) \<Longrightarrow> (Some(Seq P0 P1), s) -c\<rightarrow> (Some(Seq P2 P1), t)"
 
-  CondT: "s\<in>b  \<Longrightarrow> (Some(Cond b P1 P2), s) -c\<rightarrow> (Some P1, s)"
-  CondF: "s\<notin>b \<Longrightarrow> (Some(Cond b P1 P2), s) -c\<rightarrow> (Some P2, s)"
+| CondT: "s\<in>b  \<Longrightarrow> (Some(Cond b P1 P2), s) -c\<rightarrow> (Some P1, s)"
+| CondF: "s\<notin>b \<Longrightarrow> (Some(Cond b P1 P2), s) -c\<rightarrow> (Some P2, s)"
 
-  WhileF: "s\<notin>b \<Longrightarrow> (Some(While b P), s) -c\<rightarrow> (None, s)"
-  WhileT: "s\<in>b  \<Longrightarrow> (Some(While b P), s) -c\<rightarrow> (Some(Seq P (While b P)), s)"
+| WhileF: "s\<notin>b \<Longrightarrow> (Some(While b P), s) -c\<rightarrow> (None, s)"
+| WhileT: "s\<in>b  \<Longrightarrow> (Some(While b P), s) -c\<rightarrow> (Some(Seq P (While b P)), s)"
 
-  Await:  "\<lbrakk>s\<in>b; (Some P, s) -c*\<rightarrow> (None, t)\<rbrakk> \<Longrightarrow> (Some(Await b P), s) -c\<rightarrow> (None, t)" 
+| Await:  "\<lbrakk>s\<in>b; (Some P, s) -c*\<rightarrow> (None, t)\<rbrakk> \<Longrightarrow> (Some(Await b P), s) -c\<rightarrow> (None, t)" 
 
 monos "rtrancl_mono"
 
 subsection {* Semantics of Parallel Programs *}
 
 types 'a par_conf = "('a par_com) \<times> 'a"
-consts
+
+inductive_set
   par_etran :: "('a par_conf \<times> 'a par_conf) set"
+  and par_etran' :: "['a par_conf,'a par_conf] \<Rightarrow> bool" ("_ -pe\<rightarrow> _" [81,81] 80)
+where
+  "P -pe\<rightarrow> Q \<equiv> (P,Q) \<in> par_etran"
+| ParEnv:  "(Ps, s) -pe\<rightarrow> (Ps, t)"
+
+inductive_set
   par_ctran :: "('a par_conf \<times> 'a par_conf) set"
-syntax
-  "_par_etran":: "['a par_conf,'a par_conf] \<Rightarrow> bool" ("_ -pe\<rightarrow> _" [81,81] 80)
-  "_par_ctran":: "['a par_conf,'a par_conf] \<Rightarrow> bool" ("_ -pc\<rightarrow> _" [81,81] 80)
-translations
-  "P -pe\<rightarrow> Q"  \<rightleftharpoons> "(P,Q) \<in> par_etran"
-  "P -pc\<rightarrow> Q"  \<rightleftharpoons> "(P,Q) \<in> par_ctran"
+  and par_ctran' :: "['a par_conf,'a par_conf] \<Rightarrow> bool" ("_ -pc\<rightarrow> _" [81,81] 80)
+where
+  "P -pc\<rightarrow> Q \<equiv> (P,Q) \<in> par_ctran"
+| ParComp: "\<lbrakk>i<length Ps; (Ps!i, s) -c\<rightarrow> (r, t)\<rbrakk> \<Longrightarrow> (Ps, s) -pc\<rightarrow> (Ps[i:=r], t)"
 
-inductive  par_etran
-intros
-  ParEnv:  "(Ps, s) -pe\<rightarrow> (Ps, t)"
-
-inductive  par_ctran
-intros
-  ParComp: "\<lbrakk>i<length Ps; (Ps!i, s) -c\<rightarrow> (r, t)\<rbrakk> \<Longrightarrow> (Ps, s) -pc\<rightarrow> (Ps[i:=r], t)"
+lemma par_ctranE: "c -pc\<rightarrow> c' \<Longrightarrow>
+  (\<And>i Ps s r t. c = (Ps, s) \<Longrightarrow> c' = (Ps[i := r], t) \<Longrightarrow> i < length Ps \<Longrightarrow>
+     (Ps ! i, s) -c\<rightarrow> (r, t) \<Longrightarrow> P) \<Longrightarrow> P"
+  by (induct c, induct c', erule par_ctran.cases, blast)
 
 subsection {* Computations *}
 
 subsubsection {* Sequential computations *}
 
 types 'a confs = "('a conf) list"
-consts cptn :: "('a confs) set"
-inductive  "cptn"
-intros
+
+inductive_set cptn :: "('a confs) set"
+where
   CptnOne: "[(P,s)] \<in> cptn"
-  CptnEnv: "(P, t)#xs \<in> cptn \<Longrightarrow> (P,s)#(P,t)#xs \<in> cptn"
-  CptnComp: "\<lbrakk>(P,s) -c\<rightarrow> (Q,t); (Q, t)#xs \<in> cptn \<rbrakk> \<Longrightarrow> (P,s)#(Q,t)#xs \<in> cptn"
+| CptnEnv: "(P, t)#xs \<in> cptn \<Longrightarrow> (P,s)#(P,t)#xs \<in> cptn"
+| CptnComp: "\<lbrakk>(P,s) -c\<rightarrow> (Q,t); (Q, t)#xs \<in> cptn \<rbrakk> \<Longrightarrow> (P,s)#(Q,t)#xs \<in> cptn"
 
 constdefs
   cp :: "('a com) option \<Rightarrow> 'a \<Rightarrow> ('a confs) set"
@@ -85,12 +88,12 @@ constdefs
 subsubsection {* Parallel computations *}
 
 types  'a par_confs = "('a par_conf) list"
-consts par_cptn :: "('a par_confs) set"
-inductive  "par_cptn"
-intros
+
+inductive_set par_cptn :: "('a par_confs) set"
+where
   ParCptnOne: "[(P,s)] \<in> par_cptn"
-  ParCptnEnv: "(P,t)#xs \<in> par_cptn \<Longrightarrow> (P,s)#(P,t)#xs \<in> par_cptn"
-  ParCptnComp: "\<lbrakk> (P,s) -pc\<rightarrow> (Q,t); (Q,t)#xs \<in> par_cptn \<rbrakk> \<Longrightarrow> (P,s)#(Q,t)#xs \<in> par_cptn"
+| ParCptnEnv: "(P,t)#xs \<in> par_cptn \<Longrightarrow> (P,s)#(P,t)#xs \<in> par_cptn"
+| ParCptnComp: "\<lbrakk> (P,s) -pc\<rightarrow> (Q,t); (Q,t)#xs \<in> par_cptn \<rbrakk> \<Longrightarrow> (P,s)#(Q,t)#xs \<in> par_cptn"
 
 constdefs
   par_cp :: "'a par_com \<Rightarrow> 'a \<Rightarrow> ('a par_confs) set"
@@ -102,25 +105,24 @@ constdefs
   lift :: "'a com \<Rightarrow> 'a conf \<Rightarrow> 'a conf"
   "lift Q \<equiv> \<lambda>(P, s). (if P=None then (Some Q,s) else (Some(Seq (the P) Q), s))"
 
-consts  cptn_mod :: "('a confs) set"
-inductive  "cptn_mod"
-intros
+inductive_set cptn_mod :: "('a confs) set"
+where
   CptnModOne: "[(P, s)] \<in> cptn_mod"
-  CptnModEnv: "(P, t)#xs \<in> cptn_mod \<Longrightarrow> (P, s)#(P, t)#xs \<in> cptn_mod"
-  CptnModNone: "\<lbrakk>(Some P, s) -c\<rightarrow> (None, t); (None, t)#xs \<in> cptn_mod \<rbrakk> \<Longrightarrow> (Some P,s)#(None, t)#xs \<in>cptn_mod"
-  CptnModCondT: "\<lbrakk>(Some P0, s)#ys \<in> cptn_mod; s \<in> b \<rbrakk> \<Longrightarrow> (Some(Cond b P0 P1), s)#(Some P0, s)#ys \<in> cptn_mod"
-  CptnModCondF: "\<lbrakk>(Some P1, s)#ys \<in> cptn_mod; s \<notin> b \<rbrakk> \<Longrightarrow> (Some(Cond b P0 P1), s)#(Some P1, s)#ys \<in> cptn_mod"
-  CptnModSeq1: "\<lbrakk>(Some P0, s)#xs \<in> cptn_mod; zs=map (lift P1) xs \<rbrakk>
+| CptnModEnv: "(P, t)#xs \<in> cptn_mod \<Longrightarrow> (P, s)#(P, t)#xs \<in> cptn_mod"
+| CptnModNone: "\<lbrakk>(Some P, s) -c\<rightarrow> (None, t); (None, t)#xs \<in> cptn_mod \<rbrakk> \<Longrightarrow> (Some P,s)#(None, t)#xs \<in>cptn_mod"
+| CptnModCondT: "\<lbrakk>(Some P0, s)#ys \<in> cptn_mod; s \<in> b \<rbrakk> \<Longrightarrow> (Some(Cond b P0 P1), s)#(Some P0, s)#ys \<in> cptn_mod"
+| CptnModCondF: "\<lbrakk>(Some P1, s)#ys \<in> cptn_mod; s \<notin> b \<rbrakk> \<Longrightarrow> (Some(Cond b P0 P1), s)#(Some P1, s)#ys \<in> cptn_mod"
+| CptnModSeq1: "\<lbrakk>(Some P0, s)#xs \<in> cptn_mod; zs=map (lift P1) xs \<rbrakk>
                  \<Longrightarrow> (Some(Seq P0 P1), s)#zs \<in> cptn_mod"
-  CptnModSeq2: 
+| CptnModSeq2: 
   "\<lbrakk>(Some P0, s)#xs \<in> cptn_mod; fst(last ((Some P0, s)#xs)) = None; 
   (Some P1, snd(last ((Some P0, s)#xs)))#ys \<in> cptn_mod; 
   zs=(map (lift P1) xs)@ys \<rbrakk> \<Longrightarrow> (Some(Seq P0 P1), s)#zs \<in> cptn_mod"
 
-  CptnModWhile1: 
+| CptnModWhile1: 
   "\<lbrakk> (Some P, s)#xs \<in> cptn_mod; s \<in> b; zs=map (lift (While b P)) xs \<rbrakk> 
   \<Longrightarrow> (Some(While b P), s)#(Some(Seq P (While b P)), s)#zs \<in> cptn_mod"
-  CptnModWhile2: 
+| CptnModWhile2: 
   "\<lbrakk> (Some P, s)#xs \<in> cptn_mod; fst(last ((Some P, s)#xs))=None; s \<in> b; 
   zs=(map (lift (While b P)) xs)@ys; 
   (Some(While b P), snd(last ((Some P, s)#xs)))#ys \<in> cptn_mod\<rbrakk> 
@@ -169,7 +171,7 @@ apply simp_all
     apply simp
    apply(simp add:lift_def)
   apply clarify
-  apply(erule ctran.elims,simp_all)
+  apply(erule ctran.cases,simp_all)
  apply clarify
  apply(rule_tac x="xs" in exI)
  apply simp
@@ -185,10 +187,10 @@ apply(induct a)
 apply simp_all
 --{* basic *}
 apply clarify
-apply(erule ctran.elims,simp_all)
+apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,rule Basic,simp)
 apply clarify
-apply(erule ctran.elims,simp_all)
+apply(erule ctran.cases,simp_all)
 --{* Seq1 *}
 apply(rule_tac xs="[(None,ta)]" in CptnModSeq2)
   apply(erule CptnModNone)
@@ -216,12 +218,12 @@ apply(erule_tac CptnModSeq2)
 apply(simp add:lift_def)
 --{* Cond *}
 apply clarify
-apply(erule ctran.elims,simp_all)
+apply(erule ctran.cases,simp_all)
 apply(force elim: CptnModCondT)
 apply(force elim: CptnModCondF)
 --{* While *}
 apply  clarify
-apply(erule ctran.elims,simp_all)
+apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,erule WhileF,simp)
 apply(drule div_seq,force)
 apply clarify
@@ -231,7 +233,7 @@ apply clarify
 apply(force simp add:last_length elim:CptnModWhile2)
 --{* await *}
 apply clarify
-apply(erule ctran.elims,simp_all)
+apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,erule Await,simp+)
 done
 
@@ -241,7 +243,7 @@ apply(erule cptn.induct)
  apply(erule CptnModEnv)
 apply(case_tac P)
  apply simp
- apply(erule ctran.elims,simp_all)
+ apply(erule ctran.cases,simp_all)
 apply(force elim:cptn_onlyif_cptn_mod_aux)
 done
 
@@ -249,7 +251,7 @@ lemma lift_is_cptn: "c\<in>cptn \<Longrightarrow> map (lift P) c \<in> cptn"
 apply(erule cptn.induct)
   apply(force simp add:lift_def CptnOne)
  apply(force intro:CptnEnv simp add:lift_def)
-apply(force simp add:lift_def intro:CptnComp Seq2 Seq1 elim:ctran.elims)
+apply(force simp add:lift_def intro:CptnComp Seq2 Seq1 elim:ctran.cases)
 done
 
 lemma cptn_append_is_cptn [rule_format]: 
@@ -257,7 +259,7 @@ lemma cptn_append_is_cptn [rule_format]:
 apply(induct c1)
  apply simp
 apply clarify
-apply(erule cptn.elims,simp_all)
+apply(erule cptn.cases,simp_all)
  apply(force intro:CptnEnv)
 apply(force elim:CptnComp)
 done
@@ -309,7 +311,7 @@ apply(erule cptn_mod.induct)
     apply(rule CptnComp)
     apply(erule CondF,simp)
 --{* Seq1 *}   
-apply(erule cptn.elims,simp_all)
+apply(erule cptn.cases,simp_all)
   apply(rule CptnOne)
  apply clarify
  apply(drule_tac P=P1 in lift_is_cptn)
@@ -495,10 +497,10 @@ lemmas seq_and_if_not_eq [simp] = seq_not_eq1 seq_not_eq2
 seq_not_eq1 [THEN not_sym] seq_not_eq2 [THEN not_sym] 
 if_not_eq1 if_not_eq2 if_not_eq1 [THEN not_sym] if_not_eq2 [THEN not_sym]
 
-lemma prog_not_eq_in_ctran_aux [rule_format]: "(P,s) -c\<rightarrow> (Q,t) \<Longrightarrow> (P\<noteq>Q)"
-apply(erule ctran.induct)
-apply simp_all
-done
+lemma prog_not_eq_in_ctran_aux:
+  assumes c: "(P,s) -c\<rightarrow> (Q,t)"
+  shows "P\<noteq>Q" using c
+  by (induct x1 \<equiv> "(P,s)" x2 \<equiv> "(Q,t)" arbitrary: P s Q t) auto
 
 lemma prog_not_eq_in_ctran [simp]: "\<not> (P,s) -c\<rightarrow> (P,t)"
 apply clarify
@@ -522,7 +524,7 @@ apply simp
 done
 
 lemma tl_in_cptn: "\<lbrakk> a#xs \<in>cptn; xs\<noteq>[] \<rbrakk> \<Longrightarrow> xs\<in>cptn"
-apply(force elim:cptn.elims)
+apply(force elim:cptn.cases)
 done
 
 lemma tl_zero[rule_format]: 
@@ -562,7 +564,7 @@ apply(erule disjE)
   apply(case_tac "i=ia",simp,simp)
   apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> ?I j \<longrightarrow> ?J j" in allE)
   apply(drule_tac t=i in not_sym,simp)
-  apply(erule etran.elims,simp)
+  apply(erule etranE,simp)
  apply(rule ParCptnComp)
   apply(erule ParComp,simp)
 --{* applying the induction hypothesis *}
@@ -584,7 +586,7 @@ apply(erule disjE)
      erule_tac x=1 and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE)
    apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> ?I j \<longrightarrow> ?J j" in allE)
    apply(drule_tac t=i  in not_sym,simp)
-   apply(erule etran.elims,simp)
+   apply(erule etranE,simp)
   apply(erule allE,erule impE,assumption,erule tl_in_cptn)
   apply(force simp add:same_length_def length_Suc_conv)
  apply(simp add:same_length_def same_state_def)
@@ -620,7 +622,7 @@ apply(erule disjE)
     apply(rule tl_zero)
       apply(erule_tac x=l in allE, erule impE, assumption, 
             erule_tac x=1 and P="\<lambda>j.  (?H j) \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE,simp)
-      apply(force elim:etran.elims intro:Env)
+      apply(force elim:etranE intro:Env)
      apply force
     apply force
    apply simp
@@ -637,7 +639,7 @@ apply(erule disjE)
           erule_tac x=1 and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE)
     apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> ?I j \<longrightarrow> ?J j" in allE)
     apply(drule_tac t=i  in not_sym,simp)
-    apply(erule etran.elims,simp)
+    apply(erule etranE,simp)
    apply(erule tl_zero)
     apply force
    apply force
@@ -654,7 +656,7 @@ apply(erule disjE)
     apply(erule_tac x=l  in allE, erule impE, assumption,
           erule_tac x=1 and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE)
     apply(erule_tac x=l and P="\<lambda>j. ?H j \<longrightarrow> ?I j \<longrightarrow> ?J j" in allE,erule impE, assumption,simp)
-    apply(erule etran.elims,simp)
+    apply(erule etranE,simp)
    apply(rule tl_zero)
     apply force
    apply force
@@ -668,7 +670,7 @@ apply(erule disjE)
     apply(erule_tac x=ia  in allE, erule impE, assumption,
     erule_tac x=1 and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE)
     apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> ?I j \<longrightarrow> ?J j" in allE,erule impE, assumption,simp)
-    apply(force elim:etran.elims intro:Env)
+    apply(force elim:etranE intro:Env)
    apply force
   apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
  apply simp
@@ -681,7 +683,7 @@ apply(erule disjE)
  apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
 --{* first step is an environmental step *}
 apply clarify
-apply(erule par_etran.elims)
+apply(erule par_etran.cases)
 apply simp
 apply(rule ParCptnEnv)
 apply(erule_tac x="Ps" in allE)
@@ -691,14 +693,14 @@ apply(rule_tac x="map tl clist" in exI,simp)
 apply(rule conjI)
  apply clarify
  apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (?I ?s j) \<in> cptn" in allE,simp)
- apply(erule cptn.elims)
+ apply(erule cptn.cases)
    apply(simp add:same_length_def)
    apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
   apply(simp add:same_state_def)
   apply(erule_tac x=i  in allE, erule impE, assumption,
    erule_tac x=1 and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE,simp)
  apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> ?J j \<in>etran" in allE,simp)
- apply(erule etran.elims,simp)
+ apply(erule etranE,simp)
 apply(simp add:same_state_def same_length_def)
 apply(rule conjI,clarify)
  apply(case_tac j,simp,simp)
@@ -725,7 +727,7 @@ apply(erule disjE)
  apply(rule_tac x=i in exI,simp)
  apply(rule conjI)
   apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> ?J i \<in>etran" in allE, erule impE, assumption)
-  apply(erule etran.elims,simp)
+  apply(erule etranE,simp)
   apply(erule_tac x=i  in allE, erule impE, assumption,
         erule_tac x=1 and P="\<lambda>j.  (?H j) \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE,simp)
   apply(rule nth_tl_if)
@@ -735,7 +737,7 @@ apply(erule disjE)
   apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
  apply clarify
  apply(erule_tac x=l and P="\<lambda>i. ?H i \<longrightarrow> ?J i \<in>etran" in allE, erule impE, assumption)
- apply(erule etran.elims,simp)
+ apply(erule etranE,simp)
  apply(erule_tac x=l  in allE, erule impE, assumption,
        erule_tac x=1 and P="\<lambda>j.  (?H j) \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE,simp)
  apply(rule nth_tl_if)
@@ -751,7 +753,7 @@ apply(case_tac j,simp)
  apply(rule tl_zero)
    apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> ?J i \<in>etran" in allE, erule impE, assumption)
    apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> ?J i \<in>etran" in allE, erule impE, assumption)
-   apply(force elim:etran.elims intro:Env)
+   apply(force elim:etranE intro:Env)
   apply force
  apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
 apply simp
@@ -778,7 +780,7 @@ apply(induct ys)
   apply(rule nth_equalityI,simp,simp)
  apply(force intro: cptn.intros)
 apply(clarify)
-apply(erule par_cptn.elims,simp)
+apply(erule par_cptn.cases,simp)
  apply simp
  apply(erule_tac x="xs" in allE)
  apply(erule_tac x="t" in allE,simp)
@@ -811,7 +813,7 @@ apply(erule par_cptn.elims,simp)
   apply clarify
   apply(rule_tac x=i in exI,simp)
  apply force
-apply(erule par_ctran.elims,simp)
+apply(erule par_ctran.cases,simp)
 apply(erule_tac x="Ps[i:=r]" in allE)
 apply(erule_tac x="ta" in allE,simp)
 apply clarify
@@ -887,7 +889,7 @@ apply (rule iffI)
   apply(clarify)
   apply(simp add:par_cp_def cp_def)
   apply(case_tac x)
-   apply(force elim:par_cptn.elims)
+   apply(force elim:par_cptn.cases)
   apply simp
   apply(erule_tac x="list" in allE)
   apply clarify
@@ -899,7 +901,7 @@ apply (rule iffI)
   apply(erule_tac x=0 in allE)
   apply(simp add:cp_def conjoin_def same_length_def same_program_def same_state_def compat_label_def)
   apply clarify
-  apply(erule cptn.elims,force,force,force)
+  apply(erule cptn.cases,force,force,force)
  apply(simp add:par_cp_def conjoin_def  same_length_def same_program_def same_state_def compat_label_def)
  apply clarify
  apply(erule_tac x=0 and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in all_dupE)

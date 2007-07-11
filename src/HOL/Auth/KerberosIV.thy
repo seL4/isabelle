@@ -110,19 +110,16 @@ constdefs
                        Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace> \<rbrace>)
          \<in> set evs"
 
-consts
-
-kerbIV   :: "event list set"
-inductive "kerbIV"
-  intros
+inductive_set kerbIV :: "event list set"
+  where
 
    Nil:  "[] \<in> kerbIV"
 
-   Fake: "\<lbrakk> evsf \<in> kerbIV;  X \<in> synth (analz (spies evsf)) \<rbrakk>
+ | Fake: "\<lbrakk> evsf \<in> kerbIV;  X \<in> synth (analz (spies evsf)) \<rbrakk>
           \<Longrightarrow> Says Spy B X  # evsf \<in> kerbIV"
 
 (* FROM the initiator *)
-   K1:   "\<lbrakk> evs1 \<in> kerbIV \<rbrakk>
+ | K1:   "\<lbrakk> evs1 \<in> kerbIV \<rbrakk>
           \<Longrightarrow> Says A Kas \<lbrace>Agent A, Agent Tgs, Number (CT evs1)\<rbrace> # evs1
           \<in> kerbIV"
 
@@ -133,7 +130,7 @@ inductive "kerbIV"
 (*---------------------------------------------------------------------*)
 
 (*FROM Kas *)
-   K2:  "\<lbrakk> evs2 \<in> kerbIV; Key authK \<notin> used evs2; authK \<in> symKeys;
+ | K2:  "\<lbrakk> evs2 \<in> kerbIV; Key authK \<notin> used evs2; authK \<in> symKeys;
             Says A' Kas \<lbrace>Agent A, Agent Tgs, Number T1\<rbrace> \<in> set evs2 \<rbrakk>
           \<Longrightarrow> Says Kas A
                 (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number (CT evs2),
@@ -149,7 +146,7 @@ inductive "kerbIV"
 (*---------------------------------------------------------------------*)
 
 (* FROM the initiator *)
-   K3:  "\<lbrakk> evs3 \<in> kerbIV;
+ | K3:  "\<lbrakk> evs3 \<in> kerbIV;
             Says A Kas \<lbrace>Agent A, Agent Tgs, Number T1\<rbrace> \<in> set evs3;
             Says Kas' A (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta,
               authTicket\<rbrace>) \<in> set evs3;
@@ -169,7 +166,7 @@ inductive "kerbIV"
    Theorems that exploit it have the suffix `_u', which stands for updated 
    protocol.
 *)
-   K4:  "\<lbrakk> evs4 \<in> kerbIV; Key servK \<notin> used evs4; servK \<in> symKeys;
+ | K4:  "\<lbrakk> evs4 \<in> kerbIV; Key servK \<notin> used evs4; servK \<in> symKeys;
             B \<noteq> Tgs;  authK \<in> symKeys;
             Says A' Tgs \<lbrace>
              (Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK,
@@ -196,7 +193,7 @@ inductive "kerbIV"
 (*---------------------------------------------------------------------*)
 
 (* FROM the initiator *)
-   K5:  "\<lbrakk> evs5 \<in> kerbIV; authK \<in> symKeys; servK \<in> symKeys;
+ | K5:  "\<lbrakk> evs5 \<in> kerbIV; authK \<in> symKeys; servK \<in> symKeys;
             Says A Tgs
                 \<lbrace>authTicket, Crypt authK \<lbrace>Agent A, Number T2\<rbrace>,
 		  Agent B\<rbrace>
@@ -213,7 +210,7 @@ inductive "kerbIV"
 (*---------------------------------------------------------------------*)
 
 (* FROM the responder*)
-    K6:  "\<lbrakk> evs6 \<in> kerbIV;
+  | K6:  "\<lbrakk> evs6 \<in> kerbIV;
             Says A' B \<lbrace>
               (Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>),
               (Crypt servK \<lbrace>Agent A, Number T3\<rbrace>)\<rbrace>
@@ -228,7 +225,7 @@ inductive "kerbIV"
 (*---------------------------------------------------------------------*)
 
 (* Leaking an authK... *)
-   Oops1: "\<lbrakk> evsO1 \<in> kerbIV;  A \<noteq> Spy;
+ | Oops1: "\<lbrakk> evsO1 \<in> kerbIV;  A \<noteq> Spy;
               Says Kas A
                 (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta,
                                   authTicket\<rbrace>)  \<in> set evsO1;
@@ -239,7 +236,7 @@ inductive "kerbIV"
 (*---------------------------------------------------------------------*)
 
 (*Leaking a servK... *)
-   Oops2: "\<lbrakk> evsO2 \<in> kerbIV;  A \<noteq> Spy;
+ | Oops2: "\<lbrakk> evsO2 \<in> kerbIV;  A \<noteq> Spy;
               Says Tgs A
                 (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
                    \<in> set evsO2;

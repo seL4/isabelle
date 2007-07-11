@@ -48,32 +48,29 @@ defs   body_def: "body == map_of bodies"
 
 
 (* Well-typedness: all procedures called must exist *)
-consts WTs :: "com set"
-syntax WT  :: "com => bool"
-translations "WT c" == "c : WTs"
 
-inductive WTs intros
+inductive WT  :: "com => bool" where
 
     Skip:    "WT SKIP"
 
-    Assign:  "WT (X :== a)"
+  | Assign:  "WT (X :== a)"
 
-    Local:   "WT c ==>
+  | Local:   "WT c ==>
               WT (LOCAL Y := a IN c)"
 
-    Semi:    "[| WT c0; WT c1 |] ==>
+  | Semi:    "[| WT c0; WT c1 |] ==>
               WT (c0;; c1)"
 
-    If:      "[| WT c0; WT c1 |] ==>
+  | If:      "[| WT c0; WT c1 |] ==>
               WT (IF b THEN c0 ELSE c1)"
 
-    While:   "WT c ==>
+  | While:   "WT c ==>
               WT (WHILE b DO c)"
 
-    Body:    "body pn ~= None ==>
+  | Body:    "body pn ~= None ==>
               WT (BODY pn)"
 
-    Call:    "WT (BODY pn) ==>
+  | Call:    "WT (BODY pn) ==>
               WT (X:=CALL pn(a))"
 
 inductive_cases WTs_elim_cases:

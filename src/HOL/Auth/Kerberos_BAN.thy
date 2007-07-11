@@ -71,22 +71,21 @@ constdefs
       ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs))"
 
 
-consts  bankerberos   :: "event list set"
-inductive "bankerberos"
- intros
+inductive_set bankerberos :: "event list set"
+ where
 
    Nil:  "[] \<in> bankerberos"
 
-   Fake: "\<lbrakk> evsf \<in> bankerberos;  X \<in> synth (analz (spies evsf)) \<rbrakk>
+ | Fake: "\<lbrakk> evsf \<in> bankerberos;  X \<in> synth (analz (spies evsf)) \<rbrakk>
 	  \<Longrightarrow> Says Spy B X # evsf \<in> bankerberos"
 
 
-   BK1:  "\<lbrakk> evs1 \<in> bankerberos \<rbrakk>
+ | BK1:  "\<lbrakk> evs1 \<in> bankerberos \<rbrakk>
 	  \<Longrightarrow> Says A Server \<lbrace>Agent A, Agent B\<rbrace> # evs1
 		\<in>  bankerberos"
 
 
-   BK2:  "\<lbrakk> evs2 \<in> bankerberos;  Key K \<notin> used evs2; K \<in> symKeys;
+ | BK2:  "\<lbrakk> evs2 \<in> bankerberos;  Key K \<notin> used evs2; K \<in> symKeys;
 	     Says A' Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs2 \<rbrakk>
 	  \<Longrightarrow> Says Server A
 		(Crypt (shrK A)
@@ -95,7 +94,7 @@ inductive "bankerberos"
 		# evs2 \<in> bankerberos"
 
 
-   BK3:  "\<lbrakk> evs3 \<in> bankerberos;
+ | BK3:  "\<lbrakk> evs3 \<in> bankerberos;
 	     Says S A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
 	       \<in> set evs3;
 	     Says A Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs3;
@@ -104,7 +103,7 @@ inductive "bankerberos"
 	       # evs3 \<in> bankerberos"
 
 
-   BK4:  "\<lbrakk> evs4 \<in> bankerberos;
+ | BK4:  "\<lbrakk> evs4 \<in> bankerberos;
 	     Says A' B \<lbrace>(Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>),
 			 (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace>: set evs4;
 	     \<not> expiredK Tk evs4;  \<not> expiredA Ta evs4 \<rbrakk>
@@ -112,7 +111,7 @@ inductive "bankerberos"
 		\<in> bankerberos"
 
 	(*Old session keys may become compromised*)
-   Oops: "\<lbrakk> evso \<in> bankerberos;
+ | Oops: "\<lbrakk> evso \<in> bankerberos;
          Says Server A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
 	       \<in> set evso;
 	     expiredK Tk evso \<rbrakk>

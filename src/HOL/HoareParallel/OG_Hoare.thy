@@ -36,46 +36,40 @@ constdefs interfree :: "(('a ann_triple_op) list) \<Rightarrow> bool"
   "interfree Ts \<equiv> \<forall>i j. i < length Ts \<and> j < length Ts \<and> i \<noteq> j \<longrightarrow> 
                          interfree_aux (com (Ts!i), post (Ts!i), com (Ts!j)) "
 
-consts ann_hoare :: "('a ann_com \<times> 'a assn) set" 
-syntax "_ann_hoare" :: "'a ann_com \<Rightarrow> 'a assn \<Rightarrow> bool"  ("(2\<turnstile> _// _)" [60,90] 45)
-translations "\<turnstile> c q" \<rightleftharpoons> "(c, q) \<in> ann_hoare"
-
-consts oghoare :: "('a assn \<times> 'a com \<times> 'a assn) set"
-syntax "_oghoare" :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool"  ("(3\<parallel>- _//_//_)" [90,55,90] 50)
-translations "\<parallel>- p c q" \<rightleftharpoons> "(p, c, q) \<in> oghoare"
-
-inductive oghoare ann_hoare
-intros
+inductive
+  oghoare :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool"  ("(3\<parallel>- _//_//_)" [90,55,90] 50)
+  and ann_hoare :: "'a ann_com \<Rightarrow> 'a assn \<Rightarrow> bool"  ("(2\<turnstile> _// _)" [60,90] 45)
+where
   AnnBasic: "r \<subseteq> {s. f s \<in> q} \<Longrightarrow> \<turnstile> (AnnBasic r f) q"
 
-  AnnSeq:   "\<lbrakk> \<turnstile> c0 pre c1; \<turnstile> c1 q \<rbrakk> \<Longrightarrow> \<turnstile> (AnnSeq c0 c1) q"
+| AnnSeq:   "\<lbrakk> \<turnstile> c0 pre c1; \<turnstile> c1 q \<rbrakk> \<Longrightarrow> \<turnstile> (AnnSeq c0 c1) q"
   
-  AnnCond1: "\<lbrakk> r \<inter> b \<subseteq> pre c1; \<turnstile> c1 q; r \<inter> -b \<subseteq> pre c2; \<turnstile> c2 q\<rbrakk> 
+| AnnCond1: "\<lbrakk> r \<inter> b \<subseteq> pre c1; \<turnstile> c1 q; r \<inter> -b \<subseteq> pre c2; \<turnstile> c2 q\<rbrakk> 
               \<Longrightarrow> \<turnstile> (AnnCond1 r b c1 c2) q"
-  AnnCond2: "\<lbrakk> r \<inter> b \<subseteq> pre c; \<turnstile> c q; r \<inter> -b \<subseteq> q \<rbrakk> \<Longrightarrow> \<turnstile> (AnnCond2 r b c) q"
+| AnnCond2: "\<lbrakk> r \<inter> b \<subseteq> pre c; \<turnstile> c q; r \<inter> -b \<subseteq> q \<rbrakk> \<Longrightarrow> \<turnstile> (AnnCond2 r b c) q"
   
-  AnnWhile: "\<lbrakk> r \<subseteq> i; i \<inter> b \<subseteq> pre c; \<turnstile> c i; i \<inter> -b \<subseteq> q \<rbrakk> 
+| AnnWhile: "\<lbrakk> r \<subseteq> i; i \<inter> b \<subseteq> pre c; \<turnstile> c i; i \<inter> -b \<subseteq> q \<rbrakk> 
               \<Longrightarrow> \<turnstile> (AnnWhile r b i c) q"
   
-  AnnAwait:  "\<lbrakk> atom_com c; \<parallel>- (r \<inter> b) c q \<rbrakk> \<Longrightarrow> \<turnstile> (AnnAwait r b c) q"
+| AnnAwait:  "\<lbrakk> atom_com c; \<parallel>- (r \<inter> b) c q \<rbrakk> \<Longrightarrow> \<turnstile> (AnnAwait r b c) q"
   
-  AnnConseq: "\<lbrakk>\<turnstile> c q; q \<subseteq> q' \<rbrakk> \<Longrightarrow> \<turnstile> c q'"
+| AnnConseq: "\<lbrakk>\<turnstile> c q; q \<subseteq> q' \<rbrakk> \<Longrightarrow> \<turnstile> c q'"
 
 
-  Parallel: "\<lbrakk> \<forall>i<length Ts. \<exists>c q. Ts!i = (Some c, q) \<and> \<turnstile> c q; interfree Ts \<rbrakk>
+| Parallel: "\<lbrakk> \<forall>i<length Ts. \<exists>c q. Ts!i = (Some c, q) \<and> \<turnstile> c q; interfree Ts \<rbrakk>
 	   \<Longrightarrow> \<parallel>- (\<Inter>i\<in>{i. i<length Ts}. pre(the(com(Ts!i)))) 
                      Parallel Ts 
                   (\<Inter>i\<in>{i. i<length Ts}. post(Ts!i))"
 
-  Basic:   "\<parallel>- {s. f s \<in>q} (Basic f) q"
+| Basic:   "\<parallel>- {s. f s \<in>q} (Basic f) q"
   
-  Seq:    "\<lbrakk> \<parallel>- p c1 r; \<parallel>- r c2 q \<rbrakk> \<Longrightarrow> \<parallel>- p (Seq c1 c2) q "
+| Seq:    "\<lbrakk> \<parallel>- p c1 r; \<parallel>- r c2 q \<rbrakk> \<Longrightarrow> \<parallel>- p (Seq c1 c2) q "
 
-  Cond:   "\<lbrakk> \<parallel>- (p \<inter> b) c1 q; \<parallel>- (p \<inter> -b) c2 q \<rbrakk> \<Longrightarrow> \<parallel>- p (Cond b c1 c2) q"
+| Cond:   "\<lbrakk> \<parallel>- (p \<inter> b) c1 q; \<parallel>- (p \<inter> -b) c2 q \<rbrakk> \<Longrightarrow> \<parallel>- p (Cond b c1 c2) q"
 
-  While:  "\<lbrakk> \<parallel>- (p \<inter> b) c p \<rbrakk> \<Longrightarrow> \<parallel>- p (While b i c) (p \<inter> -b)"
+| While:  "\<lbrakk> \<parallel>- (p \<inter> b) c p \<rbrakk> \<Longrightarrow> \<parallel>- p (While b i c) (p \<inter> -b)"
 
-  Conseq: "\<lbrakk> p' \<subseteq> p; \<parallel>- p c q ; q \<subseteq> q' \<rbrakk> \<Longrightarrow> \<parallel>- p' c q'"
+| Conseq: "\<lbrakk> p' \<subseteq> p; \<parallel>- p c q ; q \<subseteq> q' \<rbrakk> \<Longrightarrow> \<parallel>- p' c q'"
 					    
 section {* Soundness *}
 (* In the version Isabelle-10-Sep-1999: HOL: The THEN and ELSE
@@ -147,13 +141,13 @@ done
 subsection {* Soundness of the System for Component Programs *}
 
 inductive_cases ann_transition_cases:
-    "(None,s) -1\<rightarrow> t"
-    "(Some (AnnBasic r f),s) -1\<rightarrow> t"
-    "(Some (AnnSeq c1 c2), s) -1\<rightarrow> t" 
-    "(Some (AnnCond1 r b c1 c2), s) -1\<rightarrow> t"
-    "(Some (AnnCond2 r b c), s) -1\<rightarrow> t"
-    "(Some (AnnWhile r b I c), s) -1\<rightarrow> t"
-    "(Some (AnnAwait r b c),s) -1\<rightarrow> t"
+    "(None,s) -1\<rightarrow> (c', s')"
+    "(Some (AnnBasic r f),s) -1\<rightarrow> (c', s')"
+    "(Some (AnnSeq c1 c2), s) -1\<rightarrow> (c', s')"
+    "(Some (AnnCond1 r b c1 c2), s) -1\<rightarrow> (c', s')"
+    "(Some (AnnCond2 r b c), s) -1\<rightarrow> (c', s')"
+    "(Some (AnnWhile r b I c), s) -1\<rightarrow> (c', s')"
+    "(Some (AnnAwait r b c),s) -1\<rightarrow> (c', s')"
 
 text {* Strong Soundness for Component Programs:*}
 
@@ -174,7 +168,7 @@ apply(rule conjI,clarify,simp,clarify,rule_tac x=qa in exI,fast)+
 apply(clarify,simp,clarify,rule_tac x=qa in exI,fast)
 done
 
-lemma Help: "(transition \<inter> {(v,v,u). True}) = (transition)"
+lemma Help: "(transition \<inter> {(x,y). True}) = (transition)"
 apply force
 done
 
@@ -412,7 +406,7 @@ apply(erule rtrancl_induct2)
 apply clarify
 apply(drule Parallel_length_post_PStar)
 apply clarify
-apply (ind_cases "(Parallel Ts, s) -P1\<rightarrow> (Parallel Rs, t)")
+apply (ind_cases "(Parallel Ts, s) -P1\<rightarrow> (Parallel Rs, t)" for Ts s Rs t)
 apply(rule conjI)
  apply clarify
  apply(case_tac "i=j")

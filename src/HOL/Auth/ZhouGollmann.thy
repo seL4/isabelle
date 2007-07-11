@@ -29,29 +29,27 @@ constdefs
 
 declare broken_def [simp]
 
-consts  zg  :: "event list set"
-
-inductive zg
-  intros
+inductive_set zg :: "event list set"
+  where
 
   Nil:  "[] \<in> zg"
 
-  Fake: "[| evsf \<in> zg;  X \<in> synth (analz (spies evsf)) |]
+| Fake: "[| evsf \<in> zg;  X \<in> synth (analz (spies evsf)) |]
 	 ==> Says Spy B X  # evsf \<in> zg"
 
-Reception:  "[| evsr \<in> zg; Says A B X \<in> set evsr |] ==> Gets B X # evsr \<in> zg"
+| Reception:  "[| evsr \<in> zg; Says A B X \<in> set evsr |] ==> Gets B X # evsr \<in> zg"
 
   (*L is fresh for honest agents.
     We don't require K to be fresh because we don't bother to prove secrecy!
     We just assume that the protocol's objective is to deliver K fairly,
     rather than to keep M secret.*)
-  ZG1: "[| evs1 \<in> zg;  Nonce L \<notin> used evs1; C = Crypt K (Number m);
+| ZG1: "[| evs1 \<in> zg;  Nonce L \<notin> used evs1; C = Crypt K (Number m);
 	   K \<in> symKeys;
 	   NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|}|]
        ==> Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} # evs1 \<in> zg"
 
   (*B must check that NRO is A's signature to learn the sender's name*)
-  ZG2: "[| evs2 \<in> zg;
+| ZG2: "[| evs2 \<in> zg;
 	   Gets B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs2;
 	   NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
 	   NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|}|]
@@ -59,7 +57,7 @@ Reception:  "[| evsr \<in> zg; Says A B X \<in> set evsr |] ==> Gets B X # evsr 
 
   (*A must check that NRR is B's signature to learn the sender's name;
     without spy, the matching label would be enough*)
-  ZG3: "[| evs3 \<in> zg; C = Crypt K M; K \<in> symKeys;
+| ZG3: "[| evs3 \<in> zg; C = Crypt K M; K \<in> symKeys;
 	   Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs3;
 	   Gets A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs3;
 	   NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
@@ -73,7 +71,7 @@ Reception:  "[| evsr \<in> zg; Says A B X \<in> set evsr |] ==> Gets B X # evsr 
    give con_K to the Spy. This makes the threat model more dangerous, while 
    also allowing lemma @{text Crypt_used_imp_spies} to omit the condition
    @{term "K \<noteq> priK TTP"}. *)
-  ZG4: "[| evs4 \<in> zg; K \<in> symKeys;
+| ZG4: "[| evs4 \<in> zg; K \<in> symKeys;
 	   Gets TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|}
 	     \<in> set evs4;
 	   sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};

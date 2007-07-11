@@ -100,24 +100,21 @@ constdefs
                     Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, tt\<rbrace> \<rbrace>
          \<in> set evs"
 
-consts
-
-kerbV   :: "event list set"
-inductive "kerbV"
-  intros
+inductive_set kerbV :: "event list set"
+  where
 
    Nil:  "[] \<in> kerbV"
 
-   Fake: "\<lbrakk> evsf \<in> kerbV;  X \<in> synth (analz (spies evsf)) \<rbrakk>
+ | Fake: "\<lbrakk> evsf \<in> kerbV;  X \<in> synth (analz (spies evsf)) \<rbrakk>
           \<Longrightarrow> Says Spy B X  # evsf \<in> kerbV"
 
 
 (*Authentication phase*)
-   KV1:   "\<lbrakk> evs1 \<in> kerbV \<rbrakk>
+ | KV1:   "\<lbrakk> evs1 \<in> kerbV \<rbrakk>
           \<Longrightarrow> Says A Kas \<lbrace>Agent A, Agent Tgs, Number (CT evs1)\<rbrace> # evs1
           \<in> kerbV"
    (*Unlike version IV, authTicket is not re-encrypted*)
-   KV2:  "\<lbrakk> evs2 \<in> kerbV; Key authK \<notin> used evs2; authK \<in> symKeys;
+ | KV2:  "\<lbrakk> evs2 \<in> kerbV; Key authK \<notin> used evs2; authK \<in> symKeys;
             Says A' Kas \<lbrace>Agent A, Agent Tgs, Number T1\<rbrace> \<in> set evs2 \<rbrakk>
           \<Longrightarrow> Says Kas A \<lbrace>
           Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number (CT evs2)\<rbrace>,
@@ -126,7 +123,7 @@ inductive "kerbV"
 
 
 (* Authorisation phase *)
-   KV3:  "\<lbrakk> evs3 \<in> kerbV; A \<noteq> Kas; A \<noteq> Tgs;
+ | KV3:  "\<lbrakk> evs3 \<in> kerbV; A \<noteq> Kas; A \<noteq> Tgs;
             Says A Kas \<lbrace>Agent A, Agent Tgs, Number T1\<rbrace> \<in> set evs3;
             Says Kas' A \<lbrace>Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta\<rbrace>,
                           authTicket\<rbrace> \<in> set evs3;
@@ -136,7 +133,7 @@ inductive "kerbV"
                            (Crypt authK \<lbrace>Agent A, Number (CT evs3)\<rbrace>),
                            Agent B\<rbrace> # evs3 \<in> kerbV"
    (*Unlike version IV, servTicket is not re-encrypted*)
-   KV4:  "\<lbrakk> evs4 \<in> kerbV; Key servK \<notin> used evs4; servK \<in> symKeys;
+ | KV4:  "\<lbrakk> evs4 \<in> kerbV; Key servK \<notin> used evs4; servK \<in> symKeys;
             B \<noteq> Tgs;  authK \<in> symKeys;
             Says A' Tgs \<lbrace>
              (Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK,
@@ -154,7 +151,7 @@ inductive "kerbV"
 
 
 (*Service phase*)
-   KV5:  "\<lbrakk> evs5 \<in> kerbV; authK \<in> symKeys; servK \<in> symKeys;
+ | KV5:  "\<lbrakk> evs5 \<in> kerbV; authK \<in> symKeys; servK \<in> symKeys;
             A \<noteq> Kas; A \<noteq> Tgs;
             Says A Tgs
                 \<lbrace>authTicket, Crypt authK \<lbrace>Agent A, Number T2\<rbrace>,
@@ -168,7 +165,7 @@ inductive "kerbV"
 			 Crypt servK \<lbrace>Agent A, Number (CT evs5)\<rbrace> \<rbrace>
                # evs5 \<in> kerbV"
 
-    KV6:  "\<lbrakk> evs6 \<in> kerbV; B \<noteq> Kas; B \<noteq> Tgs;
+  | KV6:  "\<lbrakk> evs6 \<in> kerbV; B \<noteq> Kas; B \<noteq> Tgs;
             Says A' B \<lbrace>
               (Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>),
               (Crypt servK \<lbrace>Agent A, Number T3\<rbrace>)\<rbrace>
@@ -182,7 +179,7 @@ inductive "kerbV"
 
 
 (* Leaking an authK... *)
-   Oops1:"\<lbrakk> evsO1 \<in> kerbV;  A \<noteq> Spy;
+ | Oops1:"\<lbrakk> evsO1 \<in> kerbV;  A \<noteq> Spy;
              Says Kas A \<lbrace>Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta\<rbrace>,
                           authTicket\<rbrace>  \<in> set evsO1;
               expiredAK Ta evsO1 \<rbrakk>
@@ -190,7 +187,7 @@ inductive "kerbV"
                # evsO1 \<in> kerbV"
 
 (*Leaking a servK... *)
-   Oops2: "\<lbrakk> evsO2 \<in> kerbV;  A \<noteq> Spy;
+ | Oops2: "\<lbrakk> evsO2 \<in> kerbV;  A \<noteq> Spy;
               Says Tgs A \<lbrace>Crypt authK \<lbrace>Key servK, Agent B, Number Ts\<rbrace>,
                            servTicket\<rbrace>  \<in> set evsO2;
               expiredSK Ts evsO2 \<rbrakk>

@@ -17,16 +17,17 @@ abbreviation
         who receives one.
   Perhaps the two session keys could be bundled into a single message.
 *)
-consts     respond :: "event list => (msg*msg*key)set"
-inductive "respond evs" (*Server's response to the nested message*)
-  intros
+inductive_set (*Server's response to the nested message*)
+  respond :: "event list => (msg*msg*key)set"
+  for evs :: "event list"
+  where
    One:  "Key KAB \<notin> used evs
           ==> (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, END|},
                {|Crypt (shrK A) {|Key KAB, Agent B, Nonce NA|}, END|},
                KAB)   \<in> respond evs"
 
     (*The most recent session key is passed up to the caller*)
-   Cons: "[| (PA, RA, KAB) \<in> respond evs;
+ | Cons: "[| (PA, RA, KAB) \<in> respond evs;
              Key KBC \<notin> used evs;  Key KBC \<notin> parts {RA};
              PA = Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, P|} |]
           ==> (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|},
@@ -40,50 +41,50 @@ inductive "respond evs" (*Server's response to the nested message*)
 (*Induction over "respond" can be difficult due to the complexity of the
   subgoals.  Set "responses" captures the general form of certificates.
 *)
-consts     responses :: "event list => msg set"
-inductive "responses evs"
-  intros
+inductive_set
+  responses :: "event list => msg set"
+  for evs :: "event list"
+  where
     (*Server terminates lists*)
    Nil:  "END \<in> responses evs"
 
-   Cons: "[| RA \<in> responses evs;  Key KAB \<notin> used evs |]
+ | Cons: "[| RA \<in> responses evs;  Key KAB \<notin> used evs |]
           ==> {|Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|},
                 RA|}  \<in> responses evs"
 
 
-consts     recur   :: "event list set"
-inductive "recur"
-  intros
+inductive_set recur :: "event list set"
+  where
          (*Initial trace is empty*)
    Nil:  "[] \<in> recur"
 
          (*The spy MAY say anything he CAN say.  Common to
            all similar protocols.*)
-   Fake: "[| evsf \<in> recur;  X \<in> synth (analz (knows Spy evsf)) |]
+ | Fake: "[| evsf \<in> recur;  X \<in> synth (analz (knows Spy evsf)) |]
           ==> Says Spy B X  # evsf \<in> recur"
 
          (*Alice initiates a protocol run.
            END is a placeholder to terminate the nesting.*)
-   RA1:  "[| evs1 \<in> recur;  Nonce NA \<notin> used evs1 |]
+ | RA1:  "[| evs1 \<in> recur;  Nonce NA \<notin> used evs1 |]
           ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, END|})
               # evs1 \<in> recur"
 
          (*Bob's response to Alice's message.  C might be the Server.
            We omit PA = {|XA, Agent A, Agent B, Nonce NA, P|} because
            it complicates proofs, so B may respond to any message at all!*)
-   RA2:  "[| evs2 \<in> recur;  Nonce NB \<notin> used evs2;
+ | RA2:  "[| evs2 \<in> recur;  Nonce NB \<notin> used evs2;
              Says A' B PA \<in> set evs2 |]
           ==> Says B C (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|})
               # evs2 \<in> recur"
 
          (*The Server receives Bob's message and prepares a response.*)
-   RA3:  "[| evs3 \<in> recur;  Says B' Server PB \<in> set evs3;
+ | RA3:  "[| evs3 \<in> recur;  Says B' Server PB \<in> set evs3;
              (PB,RB,K) \<in> respond evs3 |]
           ==> Says Server B RB # evs3 \<in> recur"
 
          (*Bob receives the returned message and compares the Nonces with
            those in the message he previously sent the Server.*)
-   RA4:  "[| evs4 \<in> recur;
+ | RA4:  "[| evs4 \<in> recur;
              Says B  C {|XH, Agent B, Agent C, Nonce NB,
                          XA, Agent A, Agent B, Nonce NA, P|} \<in> set evs4;
              Says C' B {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|},
@@ -350,7 +351,7 @@ text{*The last key returned by respond indeed appears in a certificate*}
 lemma respond_certificate:
      "(Hash[Key(shrK A)] {|Agent A, B, NA, P|}, RA, K) \<in> respond evs
       ==> Crypt (shrK A) {|Key K, B, NA|} \<in> parts {RA}"
-apply (ind_cases "(X, RA, K) \<in> respond evs")
+apply (ind_cases "(Hash[Key (shrK A)] \<lbrace>Agent A, B, NA, P\<rbrace>, RA, K) \<in> respond evs")
 apply simp_all
 done
 

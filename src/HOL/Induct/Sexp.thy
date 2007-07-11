@@ -14,14 +14,12 @@ types
 abbreviation "Leaf == Datatype.Leaf"
 abbreviation "Numb == Datatype.Numb"
 
-consts
+inductive_set
   sexp      :: "'a item set"
-
-inductive sexp
-  intros
+  where
     LeafI:  "Leaf(a) \<in> sexp"
-    NumbI:  "Numb(i) \<in> sexp"
-    SconsI: "[| M \<in> sexp;  N \<in> sexp |] ==> Scons M N \<in> sexp"
+  | NumbI:  "Numb(i) \<in> sexp"
+  | SconsI: "[| M \<in> sexp;  N \<in> sexp |] ==> Scons M N \<in> sexp"
 
 definition
   sexp_case :: "['a=>'b, nat=>'b, ['a item, 'a item]=>'b, 

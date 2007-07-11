@@ -24,21 +24,19 @@ header {*Definition of type llist by a greatest fixed point*}
 
 theory LList imports SList begin
 
-consts
-
+coinductive_set
   llist  :: "'a item set => 'a item set"
-  LListD :: "('a item * 'a item)set => ('a item * 'a item)set"
-
-
-coinductive "llist(A)"
-  intros
+  for A :: "'a item set"
+  where
     NIL_I:  "NIL \<in> llist(A)"
-    CONS_I:         "[| a \<in> A;  M \<in> llist(A) |] ==> CONS a M \<in> llist(A)"
+  | CONS_I:         "[| a \<in> A;  M \<in> llist(A) |] ==> CONS a M \<in> llist(A)"
 
-coinductive "LListD(r)"
-  intros
+coinductive_set
+  LListD :: "('a item * 'a item)set => ('a item * 'a item)set"
+  for r :: "('a item * 'a item)set"
+  where
     NIL_I:  "(NIL, NIL) \<in> LListD(r)"
-    CONS_I:         "[| (a,b) \<in> r;  (M,N) \<in> LListD(r) |] 
+  | CONS_I:         "[| (a,b) \<in> r;  (M,N) \<in> LListD(r) |] 
                      ==> (CONS a M, CONS b N) \<in> LListD(r)"
 
 
@@ -159,11 +157,19 @@ subsubsection{* Simplification *}
 declare option.split [split]
 
 text{*This justifies using llist in other recursive type definitions*}
-lemma llist_mono: "A\<subseteq>B ==> llist(A) \<subseteq> llist(B)"
-apply (simp add: llist.defs)
-apply (rule gfp_mono)
-apply (assumption | rule basic_monos)+
-done
+lemma llist_mono:
+  assumes subset: "A \<subseteq> B"
+  shows "llist A \<subseteq> llist B"
+proof
+  fix x
+  assume "x \<in> llist A"
+  then show "x \<in> llist B"
+  proof coinduct
+    case llist
+    then show ?case using subset
+      by cases blast+
+  qed
+qed
 
 
 lemma llist_unfold: "llist(A) = usum {Numb(0)} (uprod A (llist A))"
@@ -195,9 +201,9 @@ by (simp add: list_Fun_def CONS_def)
 
 text{*Utilise the ``strong'' part, i.e. @{text "gfp(f)"}*}
 lemma list_Fun_llist_I: "M \<in> llist(A) ==> M \<in> list_Fun A (X Un llist(A))"
-apply (unfold llist.defs list_Fun_def)
-apply (rule gfp_fun_UnI2) 
-apply (rule monoI, auto)
+apply (unfold list_Fun_def)
+apply (erule llist.cases)
+apply auto
 done
 
 subsection{* @{text LList_corec} satisfies the desired recurion equation *}
@@ -278,10 +284,10 @@ done
 text{*The domain of the @{text LListD} relation*}
 lemma Domain_LListD: 
     "Domain (LListD(diag A)) \<subseteq> llist(A)"
-apply (simp add: llist.defs NIL_def CONS_def)
-apply (rule gfp_upperbound)
-txt{*avoids unfolding @{text LListD} on the rhs*}
-apply (rule_tac P = "%x. Domain x \<subseteq> ?B" in LListD_unfold [THEN ssubst], auto) 
+apply (rule subsetI)
+apply (erule llist.coinduct)
+apply (simp add: NIL_def CONS_def)
+apply (drule_tac P = "%x. xa \<in> Domain x" in LListD_unfold [THEN subst], auto)
 done
 
 text{*This inclusion justifies the use of coinduction to show @{text "M = N"}*}
@@ -305,6 +311,7 @@ done
 
 lemma LListD_coinduct: 
     "[| M \<in> X;  X \<subseteq> LListD_Fun r (X Un LListD(r)) |] ==>  M \<in> LListD(r)"
+apply (cases M)
 apply (simp add: LListD_Fun_def)
 apply (erule LListD.coinduct)
 apply (auto ); 
@@ -320,9 +327,10 @@ by (simp add: LListD_Fun_def CONS_def, blast)
 text{*Utilise the "strong" part, i.e. @{text "gfp(f)"}*}
 lemma LListD_Fun_LListD_I:
      "M \<in> LListD(r) ==> M \<in> LListD_Fun r (X Un LListD(r))"
-apply (unfold LListD.defs LListD_Fun_def)
-apply (rule gfp_fun_UnI2) 
-apply (rule monoI, auto)
+apply (cases M)
+apply (simp add: LListD_Fun_def)
+apply (erule LListD.cases)
+apply auto
 done
 
 
@@ -523,7 +531,7 @@ lemma LList_fun_equalityI:
 apply (rule LList_equalityI)
 apply (erule imageI)
 apply (rule image_subsetI)
-apply (erule_tac aa=x in llist.cases)
+apply (erule_tac a=x in llist.cases)
 apply (erule ssubst, erule ssubst, erule LListD_Fun_diag_I, blast) 
 done
 
@@ -608,8 +616,8 @@ lemma Lappend_type: "[| M \<in> llist(A); N \<in> llist(A) |] ==> Lappend M N \<
 apply (rule_tac X = "\<Union>u\<in>llist (A) . \<Union>v \<in> llist (A) . {Lappend u v}" in llist_coinduct)
 apply fast
 apply safe
-apply (erule_tac aa = u in llist.cases)
-apply (erule_tac aa = v in llist.cases, simp_all, blast)
+apply (erule_tac a = u in llist.cases)
+apply (erule_tac a = v in llist.cases, simp_all, blast)
 done
 
 text{*strong co-induction: bisimulation and case analysis on one variable*}
@@ -617,7 +625,7 @@ lemma Lappend_type': "[| M \<in> llist(A); N \<in> llist(A) |] ==> Lappend M N \
 apply (rule_tac X = "(%u. Lappend u N) `llist (A)" in llist_coinduct)
 apply (erule imageI)
 apply (rule image_subsetI)
-apply (erule_tac aa = x in llist.cases)
+apply (erule_tac a = x in llist.cases)
 apply (simp add: list_Fun_llist_I, simp)
 done
 

@@ -18,28 +18,21 @@ datatype
 	     | FNCALL  nat "freeExp list"
 
 text{*The equivalence relation, which makes PLUS associative.*}
-consts  exprel :: "(freeExp * freeExp) set"
-
-abbreviation
-  exp_rel :: "[freeExp, freeExp] => bool"  (infixl "~~" 50) where
-  "X ~~ Y == (X,Y) \<in> exprel"
-
-notation (xsymbols)
-  exp_rel  (infixl "\<sim>" 50)
-notation (HTML output)
-  exp_rel  (infixl "\<sim>" 50)
 
 text{*The first rule is the desired equation. The next three rules
 make the equations applicable to subterms. The last two rules are symmetry
 and transitivity.*}
-inductive "exprel"
-  intros 
-    ASSOC: "PLUS X (PLUS Y Z) \<sim> PLUS (PLUS X Y) Z"
-    VAR: "VAR N \<sim> VAR N"
-    PLUS: "\<lbrakk>X \<sim> X'; Y \<sim> Y'\<rbrakk> \<Longrightarrow> PLUS X Y \<sim> PLUS X' Y'"
-    FNCALL: "(Xs,Xs') \<in> listrel exprel \<Longrightarrow> FNCALL F Xs \<sim> FNCALL F Xs'"
-    SYM:   "X \<sim> Y \<Longrightarrow> Y \<sim> X"
-    TRANS: "\<lbrakk>X \<sim> Y; Y \<sim> Z\<rbrakk> \<Longrightarrow> X \<sim> Z"
+inductive_set
+  exprel :: "(freeExp * freeExp) set"
+  and exp_rel :: "[freeExp, freeExp] => bool"  (infixl "\<sim>" 50)
+  where
+    "X \<sim> Y == (X,Y) \<in> exprel"
+  | ASSOC: "PLUS X (PLUS Y Z) \<sim> PLUS (PLUS X Y) Z"
+  | VAR: "VAR N \<sim> VAR N"
+  | PLUS: "\<lbrakk>X \<sim> X'; Y \<sim> Y'\<rbrakk> \<Longrightarrow> PLUS X Y \<sim> PLUS X' Y'"
+  | FNCALL: "(Xs,Xs') \<in> listrel exprel \<Longrightarrow> FNCALL F Xs \<sim> FNCALL F Xs'"
+  | SYM:   "X \<sim> Y \<Longrightarrow> Y \<sim> X"
+  | TRANS: "\<lbrakk>X \<sim> Y; Y \<sim> Z\<rbrakk> \<Longrightarrow> X \<sim> Z"
   monos listrel_mono
 
 
@@ -47,7 +40,7 @@ text{*Proving that it is an equivalence relation*}
 
 lemma exprel_refl: "X \<sim> X"
   and list_exprel_refl: "(Xs,Xs) \<in> listrel(exprel)"
-  by (induct X and Xs) (blast intro: exprel.intros listrel_intros)+
+  by (induct X and Xs) (blast intro: exprel.intros listrel.intros)+
 
 theorem equiv_exprel: "equiv UNIV exprel"
 proof -
@@ -63,13 +56,13 @@ theorem equiv_list_exprel: "equiv UNIV (listrel exprel)"
 
 lemma FNCALL_Nil: "FNCALL F [] \<sim> FNCALL F []"
 apply (rule exprel.intros) 
-apply (rule listrel_intros) 
+apply (rule listrel.intros) 
 done
 
 lemma FNCALL_Cons:
      "\<lbrakk>X \<sim> X'; (Xs,Xs') \<in> listrel(exprel)\<rbrakk>
       \<Longrightarrow> FNCALL F (X#Xs) \<sim> FNCALL F (X'#Xs')"
-by (blast intro: exprel.intros listrel_intros) 
+by (blast intro: exprel.intros listrel.intros) 
 
 
 
@@ -98,7 +91,7 @@ equivalence relation.  It also helps us prove that Variable
   (the abstract constructor) is injective*}
 theorem exprel_imp_eq_freevars: "U \<sim> V \<Longrightarrow> freevars U = freevars V"
 apply (induct set: exprel) 
-apply (erule_tac [4] listrel_induct) 
+apply (erule_tac [4] listrel.induct) 
 apply (simp_all add: Un_assoc)
 done
 
@@ -129,7 +122,7 @@ primrec
 
 theorem exprel_imp_eq_freefun:
      "U \<sim> V \<Longrightarrow> freefun U = freefun V"
-  by (induct set: exprel) (simp_all add: listrel_intros)
+  by (induct set: exprel) (simp_all add: listrel.intros)
 
 
 text{*This function, which returns the list of function arguments, is used to
@@ -143,8 +136,8 @@ primrec
 theorem exprel_imp_eqv_freeargs:
      "U \<sim> V \<Longrightarrow> (freeargs U, freeargs V) \<in> listrel exprel"
 apply (induct set: exprel)
-apply (erule_tac [4] listrel_induct) 
-apply (simp_all add: listrel_intros)
+apply (erule_tac [4] listrel.induct) 
+apply (simp_all add: listrel.intros)
 apply (blast intro: symD [OF equiv.sym [OF equiv_list_exprel]])
 apply (blast intro: transD [OF equiv.trans [OF equiv_list_exprel]])
 done
@@ -258,7 +251,7 @@ lemma FnCall_sing:
      "FnCall F [Abs_Exp(exprel``{U})] = Abs_Exp (exprel``{FNCALL F [U]})"
 proof -
   have "(\<lambda>U. exprel `` {FNCALL F [U]}) respects exprel"
-    by (simp add: congruent_def FNCALL_Cons listrel_intros)
+    by (simp add: congruent_def FNCALL_Cons listrel.intros)
   thus ?thesis
     by (simp add: FnCall_def UN_equiv_class [OF equiv_exprel])
 qed

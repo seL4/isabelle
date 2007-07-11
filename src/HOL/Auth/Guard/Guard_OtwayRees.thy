@@ -62,25 +62,23 @@ abbreviation
 
 subsection{*definition of the protocol*}
 
-consts or :: "event list set"
+inductive_set or :: "event list set"
+where
 
-inductive or
-intros
+  Nil: "[]:or"
 
-Nil: "[]:or"
+| Fake: "[| evs:or; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs:or"
 
-Fake: "[| evs:or; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs:or"
+| OR1: "[| evs1:or; Nonce NA ~:used evs1 |] ==> or1 A B NA # evs1:or"
 
-OR1: "[| evs1:or; Nonce NA ~:used evs1 |] ==> or1 A B NA # evs1:or"
+| OR2: "[| evs2:or; or1' A' A B NA X:set evs2; Nonce NB ~:used evs2 |]
+  ==> or2 A B NA NB X # evs2:or"
 
-OR2: "[| evs2:or; or1' A' A B NA X:set evs2; Nonce NB ~:used evs2 |]
-==> or2 A B NA NB X # evs2:or"
+| OR3: "[| evs3:or; or2' B' A B NA NB:set evs3; Key K ~:used evs3 |]
+  ==> or3 A B NA NB K # evs3:or"
 
-OR3: "[| evs3:or; or2' B' A B NA NB:set evs3; Key K ~:used evs3 |]
-==> or3 A B NA NB K # evs3:or"
-
-OR4: "[| evs4:or; or2 A B NA NB X:set evs4; or3' S Y A B NA NB K:set evs4 |]
-==> or4 A B NA X # evs4:or"
+| OR4: "[| evs4:or; or2 A B NA NB X:set evs4; or3' S Y A B NA NB K:set evs4 |]
+  ==> or4 A B NA X # evs4:or"
 
 subsection{*declarations for tactics*}
 
@@ -97,7 +95,7 @@ lemma or_is_Gets_correct [iff]: "Gets_correct or"
 by (auto simp: Gets_correct_def dest: or_has_no_Gets)
 
 lemma or_is_one_step [iff]: "one_step or"
-by (unfold one_step_def, clarify, ind_cases "ev#evs:or", auto)
+by (unfold one_step_def, clarify, ind_cases "ev#evs:or" for ev evs, auto)
 
 lemma or_has_only_Says' [rule_format]: "evs:or ==>
 ev:set evs --> (EX A B X. ev=Says A B X)"

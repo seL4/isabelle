@@ -15,29 +15,28 @@ text{*From page 257 of
 This theory has the prototypical example of a secrecy relation, KeyCryptNonce.
 *}
 
-consts  yahalom   :: "event list set"
-inductive "yahalom"
-  intros 
+inductive_set yahalom :: "event list set"
+  where
          (*Initial trace is empty*)
    Nil:  "[] \<in> yahalom"
 
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-   Fake: "[| evsf \<in> yahalom;  X \<in> synth (analz (knows Spy evsf)) |]
+ | Fake: "[| evsf \<in> yahalom;  X \<in> synth (analz (knows Spy evsf)) |]
           ==> Says Spy B X  # evsf \<in> yahalom"
 
          (*A message that has been sent can be received by the
            intended recipient.*)
-   Reception: "[| evsr \<in> yahalom;  Says A B X \<in> set evsr |]
+ | Reception: "[| evsr \<in> yahalom;  Says A B X \<in> set evsr |]
                ==> Gets B X # evsr \<in> yahalom"
 
          (*Alice initiates a protocol run*)
-   YM1:  "[| evs1 \<in> yahalom;  Nonce NA \<notin> used evs1 |]
+ | YM1:  "[| evs1 \<in> yahalom;  Nonce NA \<notin> used evs1 |]
           ==> Says A B {|Agent A, Nonce NA|} # evs1 \<in> yahalom"
 
          (*Bob's response to Alice's message.*)
-   YM2:  "[| evs2 \<in> yahalom;  Nonce NB \<notin> used evs2;
+ | YM2:  "[| evs2 \<in> yahalom;  Nonce NB \<notin> used evs2;
              Gets B {|Agent A, Nonce NA|} \<in> set evs2 |]
           ==> Says B Server 
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
@@ -45,7 +44,7 @@ inductive "yahalom"
 
          (*The Server receives Bob's message.  He responds by sending a
             new session key to Alice, with a packet for forwarding to Bob.*)
-   YM3:  "[| evs3 \<in> yahalom;  Key KAB \<notin> used evs3;  KAB \<in> symKeys;
+ | YM3:  "[| evs3 \<in> yahalom;  Key KAB \<notin> used evs3;  KAB \<in> symKeys;
              Gets Server 
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
                \<in> set evs3 |]
@@ -54,7 +53,7 @@ inductive "yahalom"
                      Crypt (shrK B) {|Agent A, Key KAB|}|}
                 # evs3 \<in> yahalom"
 
-   YM4:  
+ | YM4:  
        --{*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.  The premise
            @{term "A \<noteq> Server"} is needed for @{text Says_Server_not_range}.
@@ -68,7 +67,7 @@ inductive "yahalom"
          (*This message models possible leaks of session keys.  The Nonces
            identify the protocol run.  Quoting Server here ensures they are
            correct.*)
-   Oops: "[| evso \<in> yahalom;  
+ | Oops: "[| evso \<in> yahalom;  
              Says Server A {|Crypt (shrK A)
                                    {|Agent B, Key K, Nonce NA, Nonce NB|},
                              X|}  \<in> set evso |]

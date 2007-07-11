@@ -34,46 +34,38 @@ text {*
   (multi-step) reductions, @{text "--->"}.
 *}
 
-consts
-  contract  :: "(comb*comb) set"
-
-abbreviation
-  contract_rel1 :: "[comb,comb] => bool"   (infixl "-1->" 50) where
-  "x -1-> y == (x,y) \<in> contract"
+inductive_set
+  contract :: "(comb*comb) set"
+  and contract_rel1 :: "[comb,comb] => bool"  (infixl "-1->" 50)
+  where
+    "x -1-> y == (x,y) \<in> contract"
+   | K:     "K##x##y -1-> x"
+   | S:     "S##x##y##z -1-> (x##z)##(y##z)"
+   | Ap1:   "x-1->y ==> x##z -1-> y##z"
+   | Ap2:   "x-1->y ==> z##x -1-> z##y"
 
 abbreviation
   contract_rel :: "[comb,comb] => bool"   (infixl "--->" 50) where
   "x ---> y == (x,y) \<in> contract^*"
-
-inductive contract
-  intros
-    K:     "K##x##y -1-> x"
-    S:     "S##x##y##z -1-> (x##z)##(y##z)"
-    Ap1:   "x-1->y ==> x##z -1-> y##z"
-    Ap2:   "x-1->y ==> z##x -1-> z##y"
 
 text {*
   Inductive definition of parallel contractions, @{text "=1=>"} and
   (multi-step) parallel reductions, @{text "===>"}.
 *}
 
-consts
+inductive_set
   parcontract :: "(comb*comb) set"
-
-abbreviation
-  parcontract_rel1 :: "[comb,comb] => bool"   (infixl "=1=>" 50) where
-  "x =1=> y == (x,y) \<in> parcontract"
+  and parcontract_rel1 :: "[comb,comb] => bool"  (infixl "=1=>" 50)
+  where
+    "x =1=> y == (x,y) \<in> parcontract"
+  | refl:  "x =1=> x"
+  | K:     "K##x##y =1=> x"
+  | S:     "S##x##y##z =1=> (x##z)##(y##z)"
+  | Ap:    "[| x=1=>y;  z=1=>w |] ==> x##z =1=> y##w"
 
 abbreviation
   parcontract_rel :: "[comb,comb] => bool"   (infixl "===>" 50) where
   "x ===> y == (x,y) \<in> parcontract^*"
-
-inductive parcontract
-  intros
-    refl:  "x =1=> x"
-    K:     "K##x##y =1=> x"
-    S:     "S##x##y##z =1=> (x##z)##(y##z)"
-    Ap:    "[| x=1=>y;  z=1=>w |] ==> x##z =1=> y##w"
 
 text {*
   Misc definitions.

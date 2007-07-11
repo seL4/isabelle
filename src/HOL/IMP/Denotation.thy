@@ -62,7 +62,7 @@ apply fast
 apply fast
 
 (* while *)
-apply (erule lfp_induct_set [OF _ Gamma_mono])
+apply (erule lfp_induct2 [OF _ Gamma_mono])
 apply (unfold Gamma_def)
 apply fast
 done

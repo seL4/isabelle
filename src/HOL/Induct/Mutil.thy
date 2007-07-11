@@ -15,18 +15,19 @@ text {*
   the Mutilated Checkerboard Problem by J McCarthy.
 *}
 
-consts tiling :: "'a set set => 'a set set"
-inductive "tiling A"
-  intros
+inductive_set
+  tiling :: "'a set set => 'a set set"
+  for A :: "'a set set"
+  where
     empty [simp, intro]: "{} \<in> tiling A"
-    Un [simp, intro]:    "[| a \<in> A; t \<in> tiling A; a \<inter> t = {} |] 
+  | Un [simp, intro]:    "[| a \<in> A; t \<in> tiling A; a \<inter> t = {} |] 
                           ==> a \<union> t \<in> tiling A"
 
-consts domino :: "(nat \<times> nat) set set"
-inductive domino
-  intros
+inductive_set
+  domino :: "(nat \<times> nat) set set"
+  where
     horiz [simp]: "{(i, j), (i, Suc j)} \<in> domino"
-    vertl [simp]: "{(i, j), (Suc i, j)} \<in> domino"
+  | vertl [simp]: "{(i, j), (Suc i, j)} \<in> domino"
 
 text {* \medskip Sets of squares of the given colour*}
 

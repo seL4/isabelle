@@ -17,13 +17,12 @@ text {*
 
 subsection {* Tilings *}
 
-consts
+inductive_set
   tiling :: "'a set set => 'a set set"
-
-inductive "tiling A"
-  intros
+  for A :: "'a set set"
+  where
     empty: "{} : tiling A"
-    Un: "a : A ==> t : tiling A ==> a <= - t ==> a Un t : tiling A"
+  | Un: "a : A ==> t : tiling A ==> a <= - t ==> a Un t : tiling A"
 
 
 text "The union of two disjoint tilings is a tiling."
@@ -118,13 +117,11 @@ lemma evnodd_insert: "evnodd (insert (i, j) C) b =
 
 subsection {* Dominoes *}
 
-consts
+inductive_set
   domino :: "(nat * nat) set set"
-
-inductive domino
-  intros
+  where
     horiz: "{(i, j), (i, j + 1)} : domino"
-    vertl: "{(i, j), (i + 1, j)} : domino"
+  | vertl: "{(i, j), (i + 1, j)} : domino"
 
 lemma dominoes_tile_row:
   "{i} <*> below (2 * n) : tiling domino"

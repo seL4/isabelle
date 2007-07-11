@@ -106,22 +106,23 @@ constdefs ok :: "event list => rule => subs => bool"
 "ok evs R s == ((ALL x. x:fst R --> ap s x:set evs)
 & (ALL n. n:newn R --> Nonce (nonce s n) ~:used evs))"
 
-consts tr :: "proto => event list set"
+inductive_set
+  tr :: "proto => event list set"
+  for p :: proto
+where
 
-inductive "tr p" intros
+  Nil [intro]: "[]:tr p"
 
-Nil [intro]: "[]:tr p"
+| Fake [intro]: "[| evsf:tr p; X:synth (analz (spies evsf)) |]
+  ==> Says Spy B X # evsf:tr p"
 
-Fake [intro]: "[| evsf:tr p; X:synth (analz (spies evsf)) |]
-==> Says Spy B X # evsf:tr p"
-
-Proto [intro]: "[| evs:tr p; R:p; ok evs R s |] ==> ap' s R # evs:tr p"
+| Proto [intro]: "[| evs:tr p; R:p; ok evs R s |] ==> ap' s R # evs:tr p"
 
 subsection{*general properties*}
 
 lemma one_step_tr [iff]: "one_step (tr p)"
 apply (unfold one_step_def, clarify)
-by (ind_cases "ev # evs:tr p", auto)
+by (ind_cases "ev # evs:tr p" for ev evs, auto)
 
 constdefs has_only_Says' :: "proto => bool"
 "has_only_Says' p == ALL R. R:p --> is_Says (snd R)"
@@ -379,9 +380,6 @@ b' :: agent "b' == Friend 3"
 Na :: nat "Na == 0"
 Nb :: nat "Nb == 1"
 
-consts
-ns :: proto
-
 abbreviation
   ns1 :: rule where
   "ns1 == ({}, Says a b (Crypt (pubK b) {|Nonce Na, Agent a|}))"
@@ -397,10 +395,10 @@ abbreviation
     Says b' a (Crypt (pubK a) {|Nonce Na, Nonce Nb, Agent b|})},
     Says a b (Crypt (pubK b) (Nonce Nb)))"
 
-inductive ns intros
-[iff]: "ns1:ns"
-[iff]: "ns2:ns"
-[iff]: "ns3:ns"
+inductive_set ns :: proto where
+  [iff]: "ns1:ns"
+| [iff]: "ns2:ns"
+| [iff]: "ns3:ns"
 
 abbreviation (input)
   ns3a :: event where
@@ -428,6 +426,8 @@ constdefs inf :: "rule => rule => bool"
 lemma inf_is_ord [iff]: "ord ns inf"
 apply (unfold ord_def inf_def)
 apply (rule allI)+
+apply (rule impI)
+apply (simp add: split_paired_all)
 by (rule impI, erule ns.cases, simp_all)+
 
 subsection{*general properties*}
@@ -435,6 +435,7 @@ subsection{*general properties*}
 lemma ns_has_only_Says' [iff]: "has_only_Says' ns"
 apply (unfold has_only_Says'_def)
 apply (rule allI, rule impI)
+apply (simp add: split_paired_all)
 by (erule ns.cases, auto)
 
 lemma newn_ns1 [iff]: "newn ns1 = {Na}"
@@ -458,6 +459,7 @@ apply (rule impI, rule impI, rule impI, rule impI, rule impI)
 apply (erule fresh_ruleD, simp, simp, simp, simp)
 apply (rule allI)+
 apply (rule impI, rule impI, rule impI)
+apply (simp add: split_paired_all)
 apply (erule ns.cases)
 (* fresh with NS1 *)
 apply (rule impI, rule impI, rule impI, rule impI, rule impI, rule impI)
@@ -525,6 +527,7 @@ subsection{*unicity for NSL*}
 lemma "uniq' ns inf secret"
 apply (unfold uniq'_def)
 apply (rule allI)+
+apply (simp add: split_paired_all)
 apply (rule impI, erule ns.cases)
 (* R = ns1 *)
 apply (rule impI, erule ns.cases)
@@ -540,7 +543,8 @@ apply (drule notin_analz_insert)
 apply (drule Crypt_insert_synth, simp, simp, simp)
 apply (drule Crypt_insert_synth, simp, simp, simp, simp)
 (* Proto *)
-apply (erule_tac P="ok evsa Ra sa" in rev_mp)
+apply (erule_tac P="ok evsa R sa" in rev_mp)
+apply (simp add: split_paired_all)
 apply (erule ns.cases)
 (* ns1 *)
 apply (clarify, simp add: secret_def)
@@ -563,7 +567,8 @@ apply (drule notin_analz_insert)
 apply (drule Crypt_insert_synth, simp, simp, simp)
 apply (drule_tac n="nonce s' Nb" in Crypt_insert_synth, simp, simp, simp, simp)
 (* Proto *)
-apply (erule_tac P="ok evsa Ra sa" in rev_mp)
+apply (erule_tac P="ok evsa R sa" in rev_mp)
+apply (simp add: split_paired_all)
 apply (erule ns.cases)
 (* ns1 *)
 apply (clarify, simp add: secret_def)
@@ -591,7 +596,8 @@ apply (drule notin_analz_insert)
 apply (drule_tac n="nonce s' Nb" in Crypt_insert_synth, simp, simp, simp)
 apply (drule_tac n="nonce s' Nb" in Crypt_insert_synth, simp, simp, simp, simp)
 (* Proto *)
-apply (erule_tac P="ok evsa Ra sa" in rev_mp)
+apply (erule_tac P="ok evsa R sa" in rev_mp)
+apply (simp add: split_paired_all)
 apply (erule ns.cases)
 (* ns1 *)
 apply (simp add: secret_def)

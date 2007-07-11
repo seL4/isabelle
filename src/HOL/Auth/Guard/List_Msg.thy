@@ -137,12 +137,10 @@ abbreviation
   nil :: msg where
   "nil == Number 0"
 
-consts agl :: "msg set"
-
-inductive agl
-intros
-Nil[intro]: "nil:agl"
-Cons[intro]: "[| A:agent; I:agl |] ==> cons (Agent A) I :agl"
+inductive_set agl :: "msg set"
+where
+  Nil[intro]: "nil:agl"
+| Cons[intro]: "[| A:agent; I:agl |] ==> cons (Agent A) I :agl"
 
 subsubsection{*basic facts about agent lists*}
 
