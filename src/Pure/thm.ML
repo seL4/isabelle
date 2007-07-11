@@ -141,6 +141,7 @@ sig
   val get_tags: thm -> Markup.property list
   val map_tags: (Markup.property list -> Markup.property list) -> thm -> thm
   val compress: thm -> thm
+  val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
   val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
@@ -582,6 +583,18 @@ fun compress (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
       hyps = map (Compress.term thy) hyps,
       tpairs = map (pairself (Compress.term thy)) tpairs,
       prop = Compress.term thy prop}
+  end;
+
+fun norm_proof (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
+  let val thy = Theory.deref thy_ref in
+    Thm {thy_ref = thy_ref,
+      der = Pt.infer_derivs' (Pt.rew_proof thy) der,
+      tags = tags,
+      maxidx = maxidx,
+      shyps = shyps,
+      hyps = hyps,
+      tpairs = tpairs,
+      prop = prop}
   end;
 
 fun adjust_maxidx_thm i (th as Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
