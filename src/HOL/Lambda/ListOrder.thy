@@ -87,20 +87,20 @@ lemma Snoc_step1_SnocD:
   done
 
 lemma Cons_acc_step1I [intro!]:
-    "acc r x ==> acc (step1 r) xs \<Longrightarrow> acc (step1 r) (x # xs)"
-  apply (induct arbitrary: xs set: acc)
+    "accp r x ==> accp (step1 r) xs \<Longrightarrow> accp (step1 r) (x # xs)"
+  apply (induct arbitrary: xs set: accp)
   apply (erule thin_rl)
-  apply (erule acc_induct)
-  apply (rule accI)
+  apply (erule accp_induct)
+  apply (rule accp.accI)
   apply blast
   done
 
-lemma lists_accD: "listsp (acc r) xs ==> acc (step1 r) xs"
+lemma lists_accD: "listsp (accp r) xs ==> accp (step1 r) xs"
   apply (induct set: listsp)
-   apply (rule accI)
+   apply (rule accp.accI)
    apply simp
-  apply (rule accI)
-  apply (fast dest: acc_downward)
+  apply (rule accp.accI)
+  apply (fast dest: accp_downward)
   done
 
 lemma ex_step1I:
@@ -111,10 +111,10 @@ lemma ex_step1I:
   apply force
   done
 
-lemma lists_accI: "acc (step1 r) xs ==> listsp (acc r) xs"
-  apply (induct set: acc)
+lemma lists_accI: "accp (step1 r) xs ==> listsp (accp r) xs"
+  apply (induct set: accp)
   apply clarify
-  apply (rule accI)
+  apply (rule accp.accI)
   apply (drule_tac r=r in ex_step1I, assumption)
   apply blast
   done

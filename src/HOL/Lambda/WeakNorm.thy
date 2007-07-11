@@ -75,7 +75,7 @@ lemma listall_cong [cong, extraction_expand]:
   -- {* Currently needed for strange technical reasons *}
   by (unfold listall_def) simp
 
-inductive2 NF :: "dB \<Rightarrow> bool"
+inductive NF :: "dB \<Rightarrow> bool"
 where
   App: "listall NF ts \<Longrightarrow> NF (Var x \<degree>\<degree> ts)"
 | Abs: "NF t \<Longrightarrow> NF (Abs t)"
@@ -138,15 +138,15 @@ lemma app_Var_NF: "NF t \<Longrightarrow> \<exists>t'. t \<degree> Var i \<right
   apply (simplesubst app_last)  --{*Using @{text subst} makes extraction fail*}
   apply (rule exI)
   apply (rule conjI)
-  apply (rule rtrancl.rtrancl_refl)
+  apply (rule rtranclp.rtrancl_refl)
   apply (rule NF.App)
   apply (drule listall_conj1)
   apply (simp add: listall_app)
   apply (rule Var_NF)
   apply (rule exI)
   apply (rule conjI)
-  apply (rule rtrancl.rtrancl_into_rtrancl)
-  apply (rule rtrancl.rtrancl_refl)
+  apply (rule rtranclp.rtrancl_into_rtrancl)
+  apply (rule rtranclp.rtrancl_refl)
   apply (rule beta)
   apply (erule subst_Var_NF)
   done
@@ -361,7 +361,7 @@ qed
 
 
 -- {* A computationally relevant copy of @{term "e \<turnstile> t : T"} *}
-inductive2 rtyping :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
+inductive rtyping :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
   where
     Var: "e x = T \<Longrightarrow> e \<turnstile>\<^sub>R Var x : T"
   | Abs: "e\<langle>0:T\<rangle> \<turnstile>\<^sub>R t : U \<Longrightarrow> e \<turnstile>\<^sub>R Abs t : (T \<Rightarrow> U)"
@@ -411,7 +411,7 @@ next
   qed
   then obtain u where ured: "s' \<degree> t' \<rightarrow>\<^sub>\<beta>\<^sup>* u" and unf: "NF u" by simp iprover
   from sred tred have "s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t'" by (rule rtrancl_beta_App)
-  hence "s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* u" using ured by (rule rtrancl_trans')
+  hence "s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* u" using ured by (rule rtranclp_trans)
   with unf show ?case by iprover
 qed
 
@@ -419,21 +419,21 @@ qed
 subsection {* Extracting the program *}
 
 declare NF.induct [ind_realizer]
-declare rtrancl.induct [ind_realizer irrelevant]
+declare rtranclp.induct [ind_realizer irrelevant]
 declare rtyping.induct [ind_realizer]
 lemmas [extraction_expand] = conj_assoc listall_cons_eq
 
 extract type_NF
 
-lemma rtranclR_rtrancl_eq: "rtranclR r a b = rtrancl r a b"
+lemma rtranclR_rtrancl_eq: "rtranclpR r a b = r\<^sup>*\<^sup>* a b"
   apply (rule iffI)
-  apply (erule rtranclR.induct)
-  apply (rule rtrancl.rtrancl_refl)
-  apply (erule rtrancl.rtrancl_into_rtrancl)
+  apply (erule rtranclpR.induct)
+  apply (rule rtranclp.rtrancl_refl)
+  apply (erule rtranclp.rtrancl_into_rtrancl)
   apply assumption
-  apply (erule rtrancl.induct)
-  apply (rule rtranclR.rtrancl_refl)
-  apply (erule rtranclR.rtrancl_into_rtrancl)
+  apply (erule rtranclp.induct)
+  apply (rule rtranclpR.rtrancl_refl)
+  apply (erule rtranclpR.rtrancl_into_rtrancl)
   apply assumption
   done
 

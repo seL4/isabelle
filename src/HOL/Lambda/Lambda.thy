@@ -53,7 +53,7 @@ primrec
 
 subsection {* Beta-reduction *}
 
-inductive2 beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   where
     beta [simp, intro!]: "Abs s \<degree> t \<rightarrow>\<^sub>\<beta> s[t/0]"
   | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
@@ -67,7 +67,7 @@ abbreviation
 notation (latex)
   beta_reds  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
 
-inductive_cases2 beta_cases [elim!]:
+inductive_cases beta_cases [elim!]:
   "Var i \<rightarrow>\<^sub>\<beta> t"
   "Abs r \<rightarrow>\<^sub>\<beta> s"
   "s \<degree> t \<rightarrow>\<^sub>\<beta> u"
@@ -80,19 +80,19 @@ subsection {* Congruence rules *}
 
 lemma rtrancl_beta_Abs [intro!]:
     "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' ==> Abs s \<rightarrow>\<^sub>\<beta>\<^sup>* Abs s'"
-  by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+  by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_beta_AppL:
     "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t"
-  by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+  by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_beta_AppR:
     "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s \<degree> t'"
-  by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+  by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_beta_App [intro]:
     "[| s \<rightarrow>\<^sub>\<beta>\<^sup>* s'; t \<rightarrow>\<^sub>\<beta>\<^sup>* t' |] ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t'"
-  by (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR intro: rtrancl_trans')
+  by (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR intro: rtranclp_trans)
 
 
 subsection {* Substitution-lemmas *}
@@ -155,9 +155,9 @@ theorem subst_preserves_beta [simp]:
   by (induct arbitrary: t i set: beta) (simp_all add: subst_subst [symmetric])
 
 theorem subst_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> r[t/i] \<rightarrow>\<^sub>\<beta>\<^sup>* s[t/i]"
-  apply (induct set: rtrancl)
-   apply (rule rtrancl.rtrancl_refl)
-  apply (erule rtrancl.rtrancl_into_rtrancl)
+  apply (induct set: rtranclp)
+   apply (rule rtranclp.rtrancl_refl)
+  apply (erule rtranclp.rtrancl_into_rtrancl)
   apply (erule subst_preserves_beta)
   done
 
@@ -166,23 +166,23 @@ theorem lift_preserves_beta [simp]:
   by (induct arbitrary: i set: beta) auto
 
 theorem lift_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> lift r i \<rightarrow>\<^sub>\<beta>\<^sup>* lift s i"
-  apply (induct set: rtrancl)
-   apply (rule rtrancl.rtrancl_refl)
-  apply (erule rtrancl.rtrancl_into_rtrancl)
+  apply (induct set: rtranclp)
+   apply (rule rtranclp.rtrancl_refl)
+  apply (erule rtranclp.rtrancl_into_rtrancl)
   apply (erule lift_preserves_beta)
   done
 
 theorem subst_preserves_beta2 [simp]: "r \<rightarrow>\<^sub>\<beta> s ==> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
   apply (induct t arbitrary: r s i)
-    apply (simp add: subst_Var r_into_rtrancl')
+    apply (simp add: subst_Var r_into_rtranclp)
    apply (simp add: rtrancl_beta_App)
   apply (simp add: rtrancl_beta_Abs)
   done
 
 theorem subst_preserves_beta2': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
-  apply (induct set: rtrancl)
-   apply (rule rtrancl.rtrancl_refl)
-  apply (erule rtrancl_trans')
+  apply (induct set: rtranclp)
+   apply (rule rtranclp.rtrancl_refl)
+  apply (erule rtranclp_trans)
   apply (erule subst_preserves_beta2)
   done
 

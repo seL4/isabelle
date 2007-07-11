@@ -71,9 +71,9 @@ lemma apps_preserves_beta [simp]:
 
 lemma apps_preserves_beta2 [simp]:
     "r ->> s ==> r \<degree>\<degree> ss ->> s \<degree>\<degree> ss"
-  apply (induct set: rtrancl)
+  apply (induct set: rtranclp)
    apply blast
-  apply (blast intro: apps_preserves_beta rtrancl.rtrancl_into_rtrancl)
+  apply (blast intro: apps_preserves_beta rtranclp.rtrancl_into_rtrancl)
   done
 
 lemma apps_preserves_betas [simp]:

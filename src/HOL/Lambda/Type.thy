@@ -45,13 +45,13 @@ datatype type =
     Atom nat
   | Fun type type    (infixr "\<Rightarrow>" 200)
 
-inductive2 typing :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
+inductive typing :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
   where
     Var [intro!]: "env x = T \<Longrightarrow> env \<turnstile> Var x : T"
   | Abs [intro!]: "env\<langle>0:T\<rangle> \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs t : (T \<Rightarrow> U)"
   | App [intro!]: "env \<turnstile> s : T \<Rightarrow> U \<Longrightarrow> env \<turnstile> t : T \<Longrightarrow> env \<turnstile> (s \<degree> t) : U"
 
-inductive_cases2 typing_elims [elim!]:
+inductive_cases typing_elims [elim!]:
   "e \<turnstile> Var i : T"
   "e \<turnstile> t \<degree> u : T"
   "e \<turnstile> Abs t : T"
@@ -164,7 +164,7 @@ lemma list_app_typeD:
   apply (erule impE)
    apply assumption
   apply (elim exE conjE)
-  apply (ind_cases2 "e \<turnstile> t \<degree> u : T" for t u T)
+  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
   apply (rule_tac x = "Ta # Ts" in exI)
   apply simp
   done
@@ -202,12 +202,12 @@ theorem var_app_type_eq:
   "e \<turnstile> Var i \<degree>\<degree> ts : T \<Longrightarrow> e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> T = U"
   apply (induct ts arbitrary: T U rule: rev_induct)
   apply simp
-  apply (ind_cases2 "e \<turnstile> Var i : T" for T)
-  apply (ind_cases2 "e \<turnstile> Var i : T" for T)
+  apply (ind_cases "e \<turnstile> Var i : T" for T)
+  apply (ind_cases "e \<turnstile> Var i : T" for T)
   apply simp
   apply simp
-  apply (ind_cases2 "e \<turnstile> t \<degree> u : T" for t u T)
-  apply (ind_cases2 "e \<turnstile> t \<degree> u : T" for t u T)
+  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
+  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
   apply atomize
   apply (erule_tac x="Ta \<Rightarrow> T" in allE)
   apply (erule_tac x="Tb \<Rightarrow> U" in allE)
@@ -230,7 +230,7 @@ lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degr
   apply (rule FalseE)
   apply simp
   apply (erule list_app_typeE)
-  apply (ind_cases2 "e \<turnstile> t \<degree> u : T" for t u T)
+  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
   apply (drule_tac T="Atom nat" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
   apply assumption
   apply simp
@@ -242,7 +242,7 @@ lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degr
   apply (rule types_snoc)
   apply assumption
   apply (erule list_app_typeE)
-  apply (ind_cases2 "e \<turnstile> t \<degree> u : T" for t u T)
+  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
   apply (drule_tac T="type1 \<Rightarrow> type2" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
   apply assumption
   apply simp
@@ -250,7 +250,7 @@ lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degr
   apply (rule typing.App)
   apply assumption
   apply (erule list_app_typeE)
-  apply (ind_cases2 "e \<turnstile> t \<degree> u : T" for t u T)
+  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
   apply (frule_tac T="type1 \<Rightarrow> type2" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
   apply assumption
   apply simp
@@ -258,7 +258,7 @@ lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degr
   apply (rule_tac x="type1 # Us" in exI)
   apply simp
   apply (erule list_app_typeE)
-  apply (ind_cases2 "e \<turnstile> t \<degree> u : T" for t u T)
+  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
   apply (frule_tac T="type1 \<Rightarrow> Us \<Rrightarrow> T" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
   apply assumption
   apply simp
@@ -332,9 +332,9 @@ lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> t \<rightarrow>
     apply blast
    apply blast
   apply atomize
-  apply (ind_cases2 "s \<degree> t \<rightarrow>\<^sub>\<beta> t'" for s t t')
+  apply (ind_cases "s \<degree> t \<rightarrow>\<^sub>\<beta> t'" for s t t')
     apply hypsubst
-    apply (ind_cases2 "env \<turnstile> Abs t : T \<Rightarrow> U" for env t T U)
+    apply (ind_cases "env \<turnstile> Abs t : T \<Rightarrow> U" for env t T U)
     apply (rule subst_lemma)
       apply assumption
      apply assumption
@@ -344,7 +344,7 @@ lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> t \<rightarrow>
   done
 
 theorem subject_reduction': "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrightarrow> e \<turnstile> t : T \<Longrightarrow> e \<turnstile> t' : T"
-  by (induct set: rtrancl) (iprover intro: subject_reduction)+
+  by (induct set: rtranclp) (iprover intro: subject_reduction)+
 
 
 subsection {* Alternative induction rule for types *}

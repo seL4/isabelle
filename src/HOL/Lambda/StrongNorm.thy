@@ -277,7 +277,7 @@ next
   thus ?case by simp
 qed
 
-theorem type_implies_termi: "e \<turnstile> t : T \<Longrightarrow> termi beta t"
+theorem type_implies_termi: "e \<turnstile> t : T \<Longrightarrow> termip beta t"
 proof -
   assume "e \<turnstile> t : T"
   hence "IT t" by (rule type_implies_IT)

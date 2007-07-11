@@ -58,9 +58,9 @@ lemma square_rtrancl:
     "square R S S T ==> square (R^**) S S (T^**)"
   apply (unfold square_def)
   apply (intro strip)
-  apply (erule rtrancl_induct')
+  apply (erule rtranclp_induct)
    apply blast
-  apply (blast intro: rtrancl.rtrancl_into_rtrancl)
+  apply (blast intro: rtranclp.rtrancl_into_rtrancl)
   done
 
 lemma square_rtrancl_reflcl_commute:
@@ -110,14 +110,14 @@ lemma square_reflcl_confluent:
 
 lemma confluent_Un:
     "[| confluent R; confluent S; commute (R^**) (S^**) |] ==> confluent (sup R S)"
-  apply (rule rtrancl_Un_rtrancl' [THEN subst])
+  apply (rule rtranclp_sup_rtranclp [THEN subst])
   apply (blast dest: diamond_Un intro: diamond_confluent)
   done
 
 lemma diamond_to_confluence:
     "[| diamond R; T \<le> R; R \<le> T^** |] ==> confluent T"
   apply (force intro: diamond_confluent
-    dest: rtrancl_subset' [symmetric])
+    dest: rtranclp_subset [symmetric])
   done
 
 
@@ -128,12 +128,12 @@ lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
   apply (tactic {* safe_tac HOL_cs *})
    apply (tactic {*
      blast_tac (HOL_cs addIs
-       [thm "sup_ge2" RS thm "rtrancl_mono'" RS thm "predicate2D" RS thm "rtrancl_trans'",
-        thm "rtrancl_converseI'", thm "conversepI",
-        thm "sup_ge1" RS thm "rtrancl_mono'" RS thm "predicate2D"]) 1 *})
-  apply (erule rtrancl_induct')
+       [thm "sup_ge2" RS thm "rtranclp_mono" RS thm "predicate2D" RS thm "rtranclp_trans",
+        thm "rtranclp_converseI", thm "conversepI",
+        thm "sup_ge1" RS thm "rtranclp_mono" RS thm "predicate2D"]) 1 *})
+  apply (erule rtranclp_induct)
    apply blast
-  apply (blast del: rtrancl.rtrancl_refl intro: rtrancl_trans')
+  apply (blast del: rtranclp.rtrancl_refl intro: rtranclp_trans)
   done
 
 
@@ -152,7 +152,7 @@ proof induct
   case (less x b c)
   have xc: "R\<^sup>*\<^sup>* x c" by fact
   have xb: "R\<^sup>*\<^sup>* x b" by fact thus ?case
-  proof (rule converse_rtranclE')
+  proof (rule converse_rtranclpE)
     assume "x = b"
     with xc have "R\<^sup>*\<^sup>* b c" by simp
     thus ?thesis by iprover
@@ -161,7 +161,7 @@ proof induct
     assume xy: "R x y"
     assume yb: "R\<^sup>*\<^sup>* y b"
     from xc show ?thesis
-    proof (rule converse_rtranclE')
+    proof (rule converse_rtranclpE)
       assume "x = c"
       with xb have "R\<^sup>*\<^sup>* c b" by simp
       thus ?thesis by iprover
@@ -175,11 +175,11 @@ proof induct
       from this and yb yu have "\<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* u d" by (rule less)
       then obtain v where bv: "R\<^sup>*\<^sup>* b v" and uv: "R\<^sup>*\<^sup>* u v" by iprover
       from xy' have "R\<inverse>\<inverse> y' x" ..
-      moreover from y'u and uv have "R\<^sup>*\<^sup>* y' v" by (rule rtrancl_trans')
+      moreover from y'u and uv have "R\<^sup>*\<^sup>* y' v" by (rule rtranclp_trans)
       moreover note y'c
       ultimately have "\<exists>d. R\<^sup>*\<^sup>* v d \<and> R\<^sup>*\<^sup>* c d" by (rule less)
       then obtain w where vw: "R\<^sup>*\<^sup>* v w" and cw: "R\<^sup>*\<^sup>* c w" by iprover
-      from bv vw have "R\<^sup>*\<^sup>* b w" by (rule rtrancl_trans')
+      from bv vw have "R\<^sup>*\<^sup>* b w" by (rule rtranclp_trans)
       with cw show ?thesis by iprover
     qed
   qed
@@ -206,7 +206,7 @@ proof induct
   have xc: "R\<^sup>*\<^sup>* x c" by fact
   have xb: "R\<^sup>*\<^sup>* x b" by fact
   thus ?case
-  proof (rule converse_rtranclE')
+  proof (rule converse_rtranclpE)
     assume "x = b"
     with xc have "R\<^sup>*\<^sup>* b c" by simp
     thus ?thesis by iprover
@@ -215,7 +215,7 @@ proof induct
     assume xy: "R x y"
     assume yb: "R\<^sup>*\<^sup>* y b"
     from xc show ?thesis
-    proof (rule converse_rtranclE')
+    proof (rule converse_rtranclpE)
       assume "x = c"
       with xb have "R\<^sup>*\<^sup>* c b" by simp
       thus ?thesis by iprover
@@ -226,8 +226,8 @@ proof induct
       with xy obtain u where u: "R\<^sup>*\<^sup>* y u" "R\<^sup>*\<^sup>* y' u"
         by (blast dest: lc)
       from yb u y'c show ?thesis
-        by (blast del: rtrancl.rtrancl_refl
-            intro: rtrancl_trans'
+        by (blast del: rtranclp.rtrancl_refl
+            intro: rtranclp_trans
             dest: IH [OF conversepI, OF xy] IH [OF conversepI, OF xy'])
     qed
   qed

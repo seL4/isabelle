@@ -18,7 +18,7 @@ primrec
   "free (s \<degree> t) i = (free s i \<or> free t i)"
   "free (Abs s) i = free s (i + 1)"
 
-inductive2 eta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<eta>" 50)
+inductive eta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<eta>" 50)
   where
     eta [simp, intro]: "\<not> free s 0 ==> Abs (s \<degree> Var 0) \<rightarrow>\<^sub>\<eta> s[dummy/0]"
   | appL [simp, intro]: "s \<rightarrow>\<^sub>\<eta> t ==> s \<degree> u \<rightarrow>\<^sub>\<eta> t \<degree> u"
@@ -37,7 +37,7 @@ notation (xsymbols)
   eta_reds  (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>*" 50) and
   eta_red0  (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>=" 50)
 
-inductive_cases2 eta_cases [elim!]:
+inductive_cases eta_cases [elim!]:
   "Abs s \<rightarrow>\<^sub>\<eta> z"
   "s \<degree> t \<rightarrow>\<^sub>\<eta> u"
   "Var i \<rightarrow>\<^sub>\<eta> t"
@@ -103,19 +103,19 @@ theorem eta_confluent: "confluent eta"
 subsection "Congruence rules for eta*"
 
 lemma rtrancl_eta_Abs: "s \<rightarrow>\<^sub>\<eta>\<^sup>* s' ==> Abs s \<rightarrow>\<^sub>\<eta>\<^sup>* Abs s'"
-  by (induct set: rtrancl)
-    (blast intro: rtrancl.rtrancl_into_rtrancl)+
+  by (induct set: rtranclp)
+    (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_eta_AppL: "s \<rightarrow>\<^sub>\<eta>\<^sup>* s' ==> s \<degree> t \<rightarrow>\<^sub>\<eta>\<^sup>* s' \<degree> t"
-  by (induct set: rtrancl)
-    (blast intro: rtrancl.rtrancl_into_rtrancl)+
+  by (induct set: rtranclp)
+    (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_eta_AppR: "t \<rightarrow>\<^sub>\<eta>\<^sup>* t' ==> s \<degree> t \<rightarrow>\<^sub>\<eta>\<^sup>* s \<degree> t'"
-  by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+  by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_eta_App:
     "[| s \<rightarrow>\<^sub>\<eta>\<^sup>* s'; t \<rightarrow>\<^sub>\<eta>\<^sup>* t' |] ==> s \<degree> t \<rightarrow>\<^sub>\<eta>\<^sup>* s' \<degree> t'"
-  by (blast intro!: rtrancl_eta_AppL rtrancl_eta_AppR intro: rtrancl_trans')
+  by (blast intro!: rtrancl_eta_AppL rtrancl_eta_AppR intro: rtranclp_trans)
 
 
 subsection "Commutation of beta and eta"
@@ -149,7 +149,7 @@ lemma rtrancl_eta_subst':
 lemma rtrancl_eta_subst'':
   assumes eta: "s \<rightarrow>\<^sub>\<eta>\<^sup>* t"
   shows "u[s/i] \<rightarrow>\<^sub>\<eta>\<^sup>* u[t/i]" using eta
-  by induct (iprover intro: rtrancl_eta_subst rtrancl_trans')+
+  by induct (iprover intro: rtrancl_eta_subst rtranclp_trans)+
 
 lemma square_beta_eta: "square beta eta (eta^**) (beta^==)"
   apply (unfold square_def)
@@ -361,7 +361,7 @@ next
     by (auto dest: eta_par_beta)
   from s' obtain t'' where s: "s => t''" and t'': "t'' \<rightarrow>\<^sub>\<eta>\<^sup>* t'" using 2
     by blast
-  from t'' and t' have "t'' \<rightarrow>\<^sub>\<eta>\<^sup>* s'''" by (rule rtrancl_trans')
+  from t'' and t' have "t'' \<rightarrow>\<^sub>\<eta>\<^sup>* s'''" by (rule rtranclp_trans)
   with s show ?case by iprover
 qed
 
@@ -381,7 +381,7 @@ next
     with t' obtain t'' where st: "t' => t''" and tu: "t'' \<rightarrow>\<^sub>\<eta>\<^sup>* s''"
       by (auto dest: eta_postponement')
     from par_beta_subset_beta st have "t' \<rightarrow>\<^sub>\<beta>\<^sup>* t''" ..
-    with s have "s \<rightarrow>\<^sub>\<beta>\<^sup>* t''" by (rule rtrancl_trans')
+    with s have "s \<rightarrow>\<^sub>\<beta>\<^sup>* t''" by (rule rtranclp_trans)
     thus ?thesis using tu ..
   next
     assume "s' \<rightarrow>\<^sub>\<eta> s''"
