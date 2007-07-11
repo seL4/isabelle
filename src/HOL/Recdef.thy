@@ -75,7 +75,5 @@ lemmas [recdef_wf] =
   wf_pred_nat
   wf_same_fst
   wf_empty
-  wf_implies_wfP
-  wfP_implies_wf
 
 end
