@@ -66,7 +66,7 @@ definition
     | x # l' => nat_rec (f l') (\<lambda>y r. g (r # y # l')) x)"
   -- {* Note that @{term g} is applied first to @{term "PREC f g y"} and then to @{term y}! *}
 
-inductive2 PRIMREC :: "(nat list => nat) => bool"
+inductive PRIMREC :: "(nat list => nat) => bool"
   where
     SC: "PRIMREC SC"
   | CONSTANT: "PRIMREC (CONSTANT k)"
