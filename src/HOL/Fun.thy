@@ -600,6 +600,8 @@ val injD = @{thm injD}
 val datatype_injI = @{thm datatype_injI}
 val range_ex1_eq = @{thm range_ex1_eq}
 val expand_fun_eq = @{thm expand_fun_eq}
+val sup_fun_eq = @{thm sup_fun_eq}
+val sup_bool_eq = @{thm sup_bool_eq}
 *}
 
 end
