@@ -709,6 +709,10 @@ $(OUT)/HOL-Complex-Matrix: $(OUT)/HOL-Complex \
   $(SRC)/Tools/Compute_Oracle/Compute_Oracle.thy \
   $(SRC)/Tools/Compute_Oracle/am_compiler.ML \
   $(SRC)/Tools/Compute_Oracle/am_interpreter.ML \
+  $(SRC)/Tools/Compute_Oracle/am.ML \
+  $(SRC)/Tools/Compute_Oracle/linker.ML \
+  $(SRC)/Tools/Compute_Oracle/am_ghc.ML \
+  $(SRC)/Tools/Compute_Oracle/am_sml.ML \
   $(SRC)/Tools/Compute_Oracle/compute.ML \
   Matrix/MatrixGeneral.thy Matrix/Matrix.thy Matrix/SparseMatrix.thy \
   Matrix/LP.thy Matrix/document/root.tex Matrix/ROOT.ML \
