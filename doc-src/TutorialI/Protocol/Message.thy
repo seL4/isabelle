@@ -66,13 +66,14 @@ constdefs
 
 (** Inductive definition of all "parts" of a message.  **)
 
-consts  parts   :: "msg set => msg set"
-inductive "parts H"
-  intros 
+inductive_set
+  parts   :: "msg set => msg set"
+  for H :: "msg set"
+  where
     Inj [intro]:               "X \<in> H ==> X \<in> parts H"
-    Fst:         "{|X,Y|}   \<in> parts H ==> X \<in> parts H"
-    Snd:         "{|X,Y|}   \<in> parts H ==> Y \<in> parts H"
-    Body:        "Crypt K X \<in> parts H ==> X \<in> parts H"
+  | Fst:         "{|X,Y|}   \<in> parts H ==> X \<in> parts H"
+  | Snd:         "{|X,Y|}   \<in> parts H ==> Y \<in> parts H"
+  | Body:        "Crypt K X \<in> parts H ==> X \<in> parts H"
 
 
 (*Monotonicity*)
@@ -87,13 +88,14 @@ done
     messages, including keys.  A form of downward closure.  Pairs can
     be taken apart; messages decrypted with known keys.  **)
 
-consts  analz   :: "msg set => msg set"
-inductive "analz H"
-  intros 
+inductive_set
+  analz   :: "msg set => msg set"
+  for H :: "msg set"
+  where
     Inj [intro,simp] :    "X \<in> H ==> X \<in> analz H"
-    Fst:     "{|X,Y|} \<in> analz H ==> X \<in> analz H"
-    Snd:     "{|X,Y|} \<in> analz H ==> Y \<in> analz H"
-    Decrypt [dest]: 
+  | Fst:     "{|X,Y|} \<in> analz H ==> X \<in> analz H"
+  | Snd:     "{|X,Y|} \<in> analz H ==> Y \<in> analz H"
+  | Decrypt [dest]: 
              "[|Crypt K X \<in> analz H; Key(invKey K) \<in> analz H|] ==> X \<in> analz H"
 
 
@@ -109,15 +111,16 @@ done
     encrypted with known keys.  Agent names are public domain.
     Numbers can be guessed, but Nonces cannot be.  **)
 
-consts  synth   :: "msg set => msg set"
-inductive "synth H"
-  intros 
+inductive_set
+  synth   :: "msg set => msg set"
+  for H :: "msg set"
+  where
     Inj    [intro]:   "X \<in> H ==> X \<in> synth H"
-    Agent  [intro]:   "Agent agt \<in> synth H"
-    Number [intro]:   "Number n  \<in> synth H"
-    Hash   [intro]:   "X \<in> synth H ==> Hash X \<in> synth H"
-    MPair  [intro]:   "[|X \<in> synth H;  Y \<in> synth H|] ==> {|X,Y|} \<in> synth H"
-    Crypt  [intro]:   "[|X \<in> synth H;  Key(K) \<in> H|] ==> Crypt K X \<in> synth H"
+  | Agent  [intro]:   "Agent agt \<in> synth H"
+  | Number [intro]:   "Number n  \<in> synth H"
+  | Hash   [intro]:   "X \<in> synth H ==> Hash X \<in> synth H"
+  | MPair  [intro]:   "[|X \<in> synth H;  Y \<in> synth H|] ==> {|X,Y|} \<in> synth H"
+  | Crypt  [intro]:   "[|X \<in> synth H;  Key(K) \<in> H|] ==> Crypt K X \<in> synth H"
 
 (*Monotonicity*)
 lemma synth_mono: "G<=H ==> synth(G) <= synth(H)"

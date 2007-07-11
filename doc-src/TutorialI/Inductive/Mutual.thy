@@ -8,14 +8,13 @@ by mutual induction. As a trivial example we consider the even and odd
 natural numbers:
 *}
 
-consts Even :: "nat set"
-       Odd  :: "nat set"
-
-inductive Even Odd
-intros
-zero:  "0 \<in> Even"
-EvenI: "n \<in> Odd \<Longrightarrow> Suc n \<in> Even"
-OddI:  "n \<in> Even \<Longrightarrow> Suc n \<in> Odd"
+inductive_set
+  Even :: "nat set"
+  and Odd  :: "nat set"
+where
+  zero:  "0 \<in> Even"
+| EvenI: "n \<in> Odd \<Longrightarrow> Suc n \<in> Even"
+| OddI:  "n \<in> Even \<Longrightarrow> Suc n \<in> Odd"
 
 text{*\noindent
 The mutually inductive definition of multiple sets is no different from

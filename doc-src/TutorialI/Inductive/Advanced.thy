@@ -6,9 +6,10 @@ datatype 'f gterm = Apply 'f "'f gterm list"
 
 datatype integer_op = Number int | UnaryMinus | Plus;
 
-consts gterms :: "'f set \<Rightarrow> 'f gterm set"
-inductive "gterms F"
-intros
+inductive_set
+  gterms :: "'f set \<Rightarrow> 'f gterm set"
+  for F :: "'f set"
+where
 step[intro!]: "\<lbrakk>\<forall>t \<in> set args. t \<in> gterms F;  f \<in> F\<rbrakk>
                \<Longrightarrow> (Apply f args) \<in> gterms F"
 
@@ -83,17 +84,19 @@ primrec
 "integer_arity UnaryMinus        = 1"
 "integer_arity Plus              = 2"
 
-consts well_formed_gterm :: "('f \<Rightarrow> nat) \<Rightarrow> 'f gterm set"
-inductive "well_formed_gterm arity"
-intros
+inductive_set
+  well_formed_gterm :: "('f \<Rightarrow> nat) \<Rightarrow> 'f gterm set"
+  for arity :: "'f \<Rightarrow> nat"
+where
 step[intro!]: "\<lbrakk>\<forall>t \<in> set args. t \<in> well_formed_gterm arity;  
                 length args = arity f\<rbrakk>
                \<Longrightarrow> (Apply f args) \<in> well_formed_gterm arity"
 
 
-consts well_formed_gterm' :: "('f \<Rightarrow> nat) \<Rightarrow> 'f gterm set"
-inductive "well_formed_gterm' arity"
-intros
+inductive_set
+  well_formed_gterm' :: "('f \<Rightarrow> nat) \<Rightarrow> 'f gterm set"
+  for arity :: "'f \<Rightarrow> nat"
+where
 step[intro!]: "\<lbrakk>args \<in> lists (well_formed_gterm' arity);  
                 length args = arity f\<rbrakk>
                \<Longrightarrow> (Apply f args) \<in> well_formed_gterm' arity"
@@ -136,26 +139,28 @@ text{*
 
 text{* the rest isn't used: too complicated.  OK for an exercise though.*}
 
-consts integer_signature :: "(integer_op * (unit list * unit)) set"
-inductive "integer_signature"
-intros
-Number:     "(Number n,   ([], ())) \<in> integer_signature"
-UnaryMinus: "(UnaryMinus, ([()], ())) \<in> integer_signature"
-Plus:       "(Plus,       ([(),()], ())) \<in> integer_signature"
+inductive_set
+  integer_signature :: "(integer_op * (unit list * unit)) set"
+where
+  Number:     "(Number n,   ([], ())) \<in> integer_signature"
+| UnaryMinus: "(UnaryMinus, ([()], ())) \<in> integer_signature"
+| Plus:       "(Plus,       ([(),()], ())) \<in> integer_signature"
 
 
-consts well_typed_gterm :: "('f \<Rightarrow> 't list * 't) \<Rightarrow> ('f gterm * 't)set"
-inductive "well_typed_gterm sig"
-intros
+inductive_set
+  well_typed_gterm :: "('f \<Rightarrow> 't list * 't) \<Rightarrow> ('f gterm * 't)set"
+  for sig :: "'f \<Rightarrow> 't list * 't"
+where
 step[intro!]: 
     "\<lbrakk>\<forall>pair \<in> set args. pair \<in> well_typed_gterm sig; 
       sig f = (map snd args, rtype)\<rbrakk>
      \<Longrightarrow> (Apply f (map fst args), rtype) 
          \<in> well_typed_gterm sig"
 
-consts well_typed_gterm' :: "('f \<Rightarrow> 't list * 't) \<Rightarrow> ('f gterm * 't)set"
-inductive "well_typed_gterm' sig"
-intros
+inductive_set
+  well_typed_gterm' :: "('f \<Rightarrow> 't list * 't) \<Rightarrow> ('f gterm * 't)set"
+  for sig :: "'f \<Rightarrow> 't list * 't"
+where
 step[intro!]: 
     "\<lbrakk>args \<in> lists(well_typed_gterm' sig); 
       sig f = (map snd args, rtype)\<rbrakk>

@@ -25,16 +25,14 @@ by mutual induction. As a trivial example we consider the even and odd
 natural numbers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ Even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ Odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
 \isanewline
-\isacommand{inductive}\isamarkupfalse%
-\ Even\ Odd\isanewline
-\isakeyword{intros}\isanewline
-zero{\isacharcolon}\ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
-EvenI{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ Odd\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
-OddI{\isacharcolon}\ \ {\isachardoublequoteopen}n\ {\isasymin}\ Even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Odd{\isachardoublequoteclose}%
+\ \ Even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{and}\ Odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ zero{\isacharcolon}\ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ EvenI{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ Odd\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ OddI{\isacharcolon}\ \ {\isachardoublequoteopen}n\ {\isasymin}\ Even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Odd{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The mutually inductive definition of multiple sets is no different from

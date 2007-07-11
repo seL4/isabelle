@@ -2,11 +2,10 @@
 theory Even imports Main begin
 
 
-consts even :: "nat set"
-inductive even
-intros
-zero[intro!]: "0 \<in> even"
-step[intro!]: "n \<in> even \<Longrightarrow> (Suc (Suc n)) \<in> even"
+inductive_set even :: "nat set"
+where
+  zero[intro!]: "0 \<in> even"
+| step[intro!]: "n \<in> even \<Longrightarrow> (Suc (Suc n)) \<in> even"
 
 text{*An inductive definition consists of introduction rules. 
 

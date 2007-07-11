@@ -24,10 +24,12 @@ A}-avoiding path:
 % on the initial segment of M that avoids A.
 *}
 
-consts Avoid :: "state \<Rightarrow> state set \<Rightarrow> state set";
-inductive "Avoid s A"
-intros "s \<in> Avoid s A"
-       "\<lbrakk> t \<in> Avoid s A; t \<notin> A; (t,u) \<in> M \<rbrakk> \<Longrightarrow> u \<in> Avoid s A";
+inductive_set
+  Avoid :: "state \<Rightarrow> state set \<Rightarrow> state set"
+  for s :: state and A :: "state set"
+where
+    "s \<in> Avoid s A"
+  | "\<lbrakk> t \<in> Avoid s A; t \<notin> A; (t,u) \<in> M \<rbrakk> \<Longrightarrow> u \<in> Avoid s A";
 
 text{*
 It is easy to see that for any infinite @{term A}-avoiding path @{term f}

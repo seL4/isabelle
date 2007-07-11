@@ -14,11 +14,12 @@ defined as a least fixed point because inductive definitions were not yet
 available. But now they are:
 *}
 
-consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
-inductive "r*"
-intros
-rtc_refl[iff]:  "(x,x) \<in> r*"
-rtc_step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
+inductive_set
+  rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
+  for r :: "('a \<times> 'a)set"
+where
+  rtc_refl[iff]:  "(x,x) \<in> r*"
+| rtc_step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 
 text{*\noindent
 The function @{term rtc} is annotated with concrete syntax: instead of
@@ -119,12 +120,13 @@ of @{term r}, i.e.\ the least reflexive and transitive
 relation containing @{term r}. The latter is easily formalized
 *}
 
-consts rtc2 :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"
-inductive "rtc2 r"
-intros
-"(x,y) \<in> r \<Longrightarrow> (x,y) \<in> rtc2 r"
-"(x,x) \<in> rtc2 r"
-"\<lbrakk> (x,y) \<in> rtc2 r; (y,z) \<in> rtc2 r \<rbrakk> \<Longrightarrow> (x,z) \<in> rtc2 r"
+inductive_set
+  rtc2 :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"
+  for r :: "('a \<times> 'a)set"
+where
+  "(x,y) \<in> r \<Longrightarrow> (x,y) \<in> rtc2 r"
+| "(x,x) \<in> rtc2 r"
+| "\<lbrakk> (x,y) \<in> rtc2 r; (y,z) \<in> rtc2 r \<rbrakk> \<Longrightarrow> (x,z) \<in> rtc2 r"
 
 text{*\noindent
 and the equivalence of the two definitions is easily shown by the obvious rule

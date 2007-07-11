@@ -34,30 +34,26 @@ by (case_tac x, auto)
 
 text{*\noindent
 Words over this alphabet are of type @{typ"alfa list"}, and
-the three nonterminals are declared as sets of such words:
-*}
-
-consts S :: "alfa list set"
-       A :: "alfa list set"
-       B :: "alfa list set"
-
-text{*\noindent
+the three nonterminals are declared as sets of such words.
 The productions above are recast as a \emph{mutual} inductive
 definition\index{inductive definition!simultaneous}
 of @{term S}, @{term A} and~@{term B}:
 *}
 
-inductive S A B
-intros
+inductive_set
+  S :: "alfa list set"
+  and A :: "alfa list set"
+  and B :: "alfa list set"
+where
   "[] \<in> S"
-  "w \<in> A \<Longrightarrow> b#w \<in> S"
-  "w \<in> B \<Longrightarrow> a#w \<in> S"
+| "w \<in> A \<Longrightarrow> b#w \<in> S"
+| "w \<in> B \<Longrightarrow> a#w \<in> S"
 
-  "w \<in> S        \<Longrightarrow> a#w   \<in> A"
-  "\<lbrakk> v\<in>A; w\<in>A \<rbrakk> \<Longrightarrow> b#v@w \<in> A"
+| "w \<in> S        \<Longrightarrow> a#w   \<in> A"
+| "\<lbrakk> v\<in>A; w\<in>A \<rbrakk> \<Longrightarrow> b#v@w \<in> A"
 
-  "w \<in> S            \<Longrightarrow> b#w   \<in> B"
-  "\<lbrakk> v \<in> B; w \<in> B \<rbrakk> \<Longrightarrow> a#v@w \<in> B"
+| "w \<in> S            \<Longrightarrow> b#w   \<in> B"
+| "\<lbrakk> v \<in> B; w \<in> B \<rbrakk> \<Longrightarrow> a#v@w \<in> B"
 
 text{*\noindent
 First we show that all words in @{term S} contain the same number of @{term

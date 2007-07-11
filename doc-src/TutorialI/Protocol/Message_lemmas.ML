@@ -450,7 +450,7 @@ Goal "Key (invKey K) \\<in> analz H ==>  \
 \              analz (insert (Crypt K X) H) \\<subseteq> \
 \              insert (Crypt K X) (analz (insert X H))";
 by (rtac subsetI 1);
-by (eres_inst_tac [("xa","x")] analz.induct 1);
+by (eres_inst_tac [("x","x")] analz.induct 1);
 by Auto_tac;
 val lemma1 = result();
 
@@ -458,7 +458,7 @@ Goal "Key (invKey K) \\<in> analz H ==>  \
 \              insert (Crypt K X) (analz (insert X H)) \\<subseteq> \
 \              analz (insert (Crypt K X) H)";
 by Auto_tac;
-by (eres_inst_tac [("xa","x")] analz.induct 1);
+by (eres_inst_tac [("x","x")] analz.induct 1);
 by Auto_tac;
 by (blast_tac (claset() addIs [analz_insertI, analz.Decrypt]) 1);
 val lemma2 = result();

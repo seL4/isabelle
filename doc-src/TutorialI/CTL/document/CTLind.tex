@@ -41,12 +41,13 @@ then \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. We
 % on the initial segment of M that avoids A.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ Avoid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ set{\isachardoublequoteclose}\isanewline
-\isacommand{inductive}\isamarkupfalse%
-\ {\isachardoublequoteopen}Avoid\ s\ A{\isachardoublequoteclose}\isanewline
-\isakeyword{intros}\ {\isachardoublequoteopen}s\ {\isasymin}\ Avoid\ s\ A{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}\ t\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\ t\ {\isasymnotin}\ A{\isacharsemicolon}\ {\isacharparenleft}t{\isacharcomma}u{\isacharparenright}\ {\isasymin}\ M\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ u\ {\isasymin}\ Avoid\ s\ A{\isachardoublequoteclose}%
+\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isanewline
+\ \ Avoid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ set{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{for}\ s\ {\isacharcolon}{\isacharcolon}\ state\ \isakeyword{and}\ A\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ set{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ \ \ {\isachardoublequoteopen}s\ {\isasymin}\ Avoid\ s\ A{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}{\isasymlbrakk}\ t\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\ t\ {\isasymnotin}\ A{\isacharsemicolon}\ {\isacharparenleft}t{\isacharcomma}u{\isacharparenright}\ {\isasymin}\ M\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ u\ {\isasymin}\ Avoid\ s\ A{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 It is easy to see that for any infinite \isa{A}-avoiding path \isa{f}
 with \isa{f\ {\isadigit{0}}\ {\isasymin}\ Avoid\ s\ A} there is an infinite \isa{A}-avoiding path

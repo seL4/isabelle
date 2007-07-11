@@ -180,11 +180,12 @@ subsection{*Rule induction*}
 text{* HOL also supports inductively defined sets. See \cite{LNCS2283}
 for details. As an example we define our own version of the reflexive
 transitive closure of a relation --- HOL provides a predefined one as well.*}
-consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
-inductive "r*"
-intros
-refl:  "(x,x) \<in> r*"
-step:  "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
+inductive_set
+  rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
+  for r :: "('a \<times> 'a)set"
+where
+  refl:  "(x,x) \<in> r*"
+| step:  "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 
 text{* \noindent
 First the constant is declared as a function on binary

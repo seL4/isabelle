@@ -68,32 +68,27 @@ For convenience we include the following easy lemmas as simplification rules:%
 \begin{isamarkuptext}%
 \noindent
 Words over this alphabet are of type \isa{alfa\ list}, and
-the three nonterminals are declared as sets of such words:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ S\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}alfa\ list\ set{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ A\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}alfa\ list\ set{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ B\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}alfa\ list\ set{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-\noindent
+the three nonterminals are declared as sets of such words.
 The productions above are recast as a \emph{mutual} inductive
 definition\index{inductive definition!simultaneous}
 of \isa{S}, \isa{A} and~\isa{B}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive}\isamarkupfalse%
-\ S\ A\ B\isanewline
-\isakeyword{intros}\isanewline
+\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isanewline
+\ \ S\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}alfa\ list\ set{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{and}\ A\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}alfa\ list\ set{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{and}\ B\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}alfa\ list\ set{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}\ {\isasymin}\ S{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}w\ {\isasymin}\ A\ {\isasymLongrightarrow}\ b{\isacharhash}w\ {\isasymin}\ S{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}w\ {\isasymin}\ B\ {\isasymLongrightarrow}\ a{\isacharhash}w\ {\isasymin}\ S{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}w\ {\isasymin}\ A\ {\isasymLongrightarrow}\ b{\isacharhash}w\ {\isasymin}\ S{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}w\ {\isasymin}\ B\ {\isasymLongrightarrow}\ a{\isacharhash}w\ {\isasymin}\ S{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ {\isachardoublequoteopen}w\ {\isasymin}\ S\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ a{\isacharhash}w\ \ \ {\isasymin}\ A{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ v{\isasymin}A{\isacharsemicolon}\ w{\isasymin}A\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ b{\isacharhash}v{\isacharat}w\ {\isasymin}\ A{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}w\ {\isasymin}\ S\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ a{\isacharhash}w\ \ \ {\isasymin}\ A{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}{\isasymlbrakk}\ v{\isasymin}A{\isacharsemicolon}\ w{\isasymin}A\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ b{\isacharhash}v{\isacharat}w\ {\isasymin}\ A{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ {\isachardoublequoteopen}w\ {\isasymin}\ S\ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ b{\isacharhash}w\ \ \ {\isasymin}\ B{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ v\ {\isasymin}\ B{\isacharsemicolon}\ w\ {\isasymin}\ B\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ a{\isacharhash}v{\isacharat}w\ {\isasymin}\ B{\isachardoublequoteclose}%
+{\isacharbar}\ {\isachardoublequoteopen}w\ {\isasymin}\ S\ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ b{\isacharhash}w\ \ \ {\isasymin}\ B{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}{\isasymlbrakk}\ v\ {\isasymin}\ B{\isacharsemicolon}\ w\ {\isasymin}\ B\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ a{\isacharhash}v{\isacharat}w\ {\isasymin}\ B{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 First we show that all words in \isa{S} contain the same number of \isa{a}'s and \isa{b}'s. Since the definition of \isa{S} is by mutual

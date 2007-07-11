@@ -19,13 +19,11 @@
 \endisadelimtheory
 \isanewline
 \isanewline
-\isacommand{consts}\isamarkupfalse%
+\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
 \ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
-\isacommand{inductive}\isamarkupfalse%
-\ even\isanewline
-\isakeyword{intros}\isanewline
-zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
+\isakeyword{where}\isanewline
+\ \ zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 An inductive definition consists of introduction rules. 
 
@@ -35,7 +33,7 @@ An inductive definition consists of introduction rules.
 \rulename{even.step}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}xa\ {\isasymin}\ even{\isacharsemicolon}\ P\ {\isadigit{0}}{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ P\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ xa%
+\ \ \ \ \ {\isasymlbrakk}x\ {\isasymin}\ even{\isacharsemicolon}\ P\ {\isadigit{0}}{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ P\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x%
 \end{isabelle}
 \rulename{even.induct}
 
