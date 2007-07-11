@@ -17,7 +17,7 @@ sig
   (* More message functions... *)
   val nonfatal_error : string -> unit     (* recoverable (batch) error: carry on scripting *)
   val log_msg : string -> unit            (* for internal log messages *)
-  val error_with_pos : PgipTypes.fatality -> Position.T -> string -> unit
+  val error_with_pos : PgipTypes.displayarea -> PgipTypes.fatality -> Position.T -> string -> unit
 
   val get_currently_open_file : unit -> Path.T option  (* interface focus *)
 end
@@ -146,6 +146,13 @@ fun output_xml s = (!output_xml_fn) (XML.string_of_tree s);  (* TODO: string buf
 val output_pgips =
   XML.string_of_tree o PgipOutput.output o assemble_pgips o map PgipOutput.output;
 
+val output_pgmlterm = 
+  XML.string_of_tree o Pgml.pgmlterm_to_xml;
+
+val output_pgmltext = 
+  XML.string_of_tree o Pgml.pgml_to_xml;
+
+
 fun issue_pgip_rawtext str =
     output_xml (PgipOutput.output (assemble_pgips [XML.Output str]))
 
@@ -158,6 +165,8 @@ fun issue_pgip pgipop =
 end;
 
 
+fun pgml area terms = Pgml.Pgml { version=NONE,systemid=NONE,
+				  area=SOME area, content=terms }
 
 (** messages and notification **)
 
@@ -169,35 +178,39 @@ local
         if ! delay_msgs then
             delayed_msgs := pgip :: ! delayed_msgs
         else issue_pgip pgip
+
+    fun wrap_pgml area s = 
+	if String.isPrefix "<pgml" s then  
+	    XML.Output s  (* already pgml outermost *)
+	else 
+	    Pgml.pgml_to_xml (pgml area [Pgml.Raw (XML.Output s)]) (* mixed *)
+
 in
-    (* Normal responses are messages for the user *)
-    fun normalmsg area cat urgent s =
+    fun normalmsg area s =
         let
-            val content = XML.Elem("pgmltext",[],[XML.Output s])
-            val pgip = Normalresponse {area=area,messagecategory=cat,
-                                       urgent=urgent,content=[content] }
+            val content = wrap_pgml area s
+            val pgip = Normalresponse { content=[content] }
         in
             queue_or_issue pgip
         end
 
-    (* Error responses are error messages for the user, or system-level messages *)
-    fun errormsg fatality s =
+    fun errormsg area fatality s =
         let
-              val content = XML.Elem("pgmltext",[],[XML.Output s])
-              val pgip = Errorresponse {area=NONE,fatality=fatality,
-                                        content=[content],
-                                        location=NONE}
+            val content = wrap_pgml area s
+            val pgip = Errorresponse { fatality=fatality,
+                                       location=NONE,
+                                       content=[content] }
         in
             queue_or_issue pgip
         end
 
     (* Error responses with useful locations *)
-    fun error_with_pos fatality pos s =
+    fun error_with_pos area fatality pos s =
         let
-              val content = XML.Elem("pgmltext",[],[XML.Output s])
-              val pgip = Errorresponse {area=NONE,fatality=fatality,
-                                        content=[content],
-                                        location=SOME (PgipIsabelle.location_of_position pos)}
+              val content = wrap_pgml area s
+              val pgip = Errorresponse { fatality=fatality,
+                                         location=SOME (PgipIsabelle.location_of_position pos),
+                                         content=[content] }
         in
             queue_or_issue pgip
         end
@@ -209,28 +222,30 @@ end;
 (* NB: all of the standard error/message functions now expect already-escaped text.
    FIXME: this may cause us problems now we're generating trees; on the other
    hand the output functions were tuned some time ago, so it ought to be
-   enough to use Rawtext always above. *)
+   enough to use XML.Output always above. *)
 (* NB 2: all of standard functions print strings terminated with new lines, but we don't
    add new lines explicitly in PGIP: they are left implicit.  It means that PGIP messages
    can't be written without newlines. *)
 
 fun setup_messages () =
- (Output.writeln_fn := (fn s => normalmsg Message Normal false s);
-  Output.priority_fn := (fn s => normalmsg Message Normal true s);
-  Output.tracing_fn := (fn s => normalmsg  Message Tracing false s);
-  Output.warning_fn := (fn s => errormsg Warning s);
-  Output.error_fn := (fn s => errormsg Fatal s);
-  Output.debug_fn := (fn s => errormsg Debug s));
+ (Output.writeln_fn := (fn s => normalmsg Message s);
+  Output.priority_fn := (fn s => normalmsg Message s);
+  Output.tracing_fn := (fn s => normalmsg  Message s);
+  Output.warning_fn := (fn s => errormsg Message Warning s);
+  Output.error_fn := (fn s => errormsg Message Fatal s);
+  Output.debug_fn := (fn s => errormsg Message Debug s));
 
-fun panic s = (errormsg Panic ("## SYSTEM EXIT ##\n" ^ s); exit 1);
-fun nonfatal_error s = errormsg Nonfatal s;
-fun log_msg s = errormsg Log s;
+fun panic s = (errormsg Message Panic ("## SYSTEM EXIT ##\n" ^ s); exit 1);
+fun nonfatal_error s = errormsg Message Nonfatal s;
+fun log_msg s = errormsg Message Log s;
 
 
 (* immediate messages *)
 
-fun tell_clear_goals ()      = issue_pgip (Cleardisplay {area=Display})
-fun tell_clear_response ()   = issue_pgip (Cleardisplay {area=Message})
+fun tell_clear_goals () = 
+    issue_pgip (Normalresponse { content = [Pgml.pgml_to_xml (pgml Display [])] })
+fun tell_clear_response () = 
+    issue_pgip (Normalresponse { content = [Pgml.pgml_to_xml (pgml Message [])] })
 
 fun tell_file_loaded completed path   =
     issue_pgip (Informfileloaded {url=PgipTypes.pgipurl_of_path path,
@@ -249,29 +264,58 @@ local
 
 val no_text = chr 0;
 
+val pgmlterms_no_text= [Pgml.Raw (XML.Output no_text)]
+
 fun split_markup text =
   (case space_explode no_text text of
     [bg, en] => (bg, en)
-  | _ => (panic ("Failed to split XML markup:\n" ^ text); ("", "")));
+  | _ => (error ("Internal error: failed to split XML markup:\n" ^ text); ("", "")));
 
-fun statedisplay_markup () =
-  let
-    val pgml = Pgml.Pgml
-                 { version=SOME PgipIsabelle.isabelle_pgml_version_supported, 
-                   systemid=SOME PgipIsabelle.systemid,
-                   content = Pgml.Subterm
-		               { kind=SOME "statedisplay",
-		                 param=NONE,place=NONE,name=NONE,decoration=NONE,
-		                 action=NONE,pos=NONE,xref=NONE,
-		                 content=[Pgml.Atoms { kind = NONE,
-					               content = [Pgml.Str no_text] }] }
-			     (* [PgmlIsabelle.pgml_of_prettyT display] *) }
- 	            (* TODO: PGML markup for proof state navigation *)
-  in split_markup (output_pgips [Proofstate {pgml=pgml}]) end;
+val assoc = flip (AList.lookup (op=));
+
+fun read_int s =
+    (case Int.fromString s of 
+	 SOME i => i
+       | NONE => (error ("Internal error: ill-formed string: " ^ s); 0));
+
+fun block_markup props =
+    let 
+	val pgml = Pgml.Box { orient = NONE, 
+			      indent = Option.map read_int (assoc Markup.indentN props),
+			      content = pgmlterms_no_text }
+    in split_markup (output_pgmlterm pgml) end;
+
+fun break_markup props =
+    let 
+	val pgml = Pgml.Break { mandatory = NONE,
+				indent = Option.map read_int (assoc Markup.widthN props) }
+    in (output_pgmlterm pgml, "") end;
+
+fun fbreak_markup props =
+    let 
+	val pgml = Pgml.Break { mandatory = SOME true, indent = NONE }
+    in (output_pgmlterm pgml, "") end;
+
+val state_markup =
+    split_markup (output_pgmltext (pgml PgipTypes.Display pgmlterms_no_text))
 
 fun proof_general_markup (name, props) =
-  (if name = Markup.stateN then statedisplay_markup ()
-    else ("", ""));
+  (     if name = Markup.blockN    then block_markup props
+   else if name = Markup.breakN    then break_markup props
+   else if name = Markup.fbreakN   then fbreak_markup props
+(* else if name = Markup.classN    then class_markup props
+   else if name = Markup.tyconN    then tycon_markup props
+   else if name = Markup.constN    then const_markup props
+   else if name = Markup.axiomN    then axiom_markup props
+   else if name = Markup.sortN     then sort_markup props
+   else if name = Markup.typN      then typ_markup props
+   else if name = Markup.termN     then term_markup props
+   else if name = Markup.keywordN  then keyword_markup props
+   else if name = Markup.commandN  then command_markup props 
+   else if name = Markup.promptN   then prompt_markup props *)
+   else if name = Markup.stateN    then state_markup
+(* else if name = Markup.subgoalN  then subgoal_markup () *)
+   else ("", ""));
 
 in
 
@@ -715,7 +759,7 @@ fun showid (Showid vs) =
 
         fun idvalue strings =
             issue_pgip (Idvalue { thyname=thyname, objtype=objtype, name=name, 
-                                  text=[XML.Elem("pgmltext",[],
+                                  text=[XML.Elem("pgml",[],
                                                  map XML.Output strings)] })
 
         fun string_of_thm th = Output.output
