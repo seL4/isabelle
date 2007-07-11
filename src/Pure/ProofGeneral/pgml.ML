@@ -33,15 +33,17 @@ sig
 			  xref: PgipTypes.pgipurl option,
 			  content: pgmlterm list }
 	   | Alt of { kind: string option, content: pgmlterm list }
-	   | Embed of XML.tree list
+	   | Embed of XML.content
+	   | Raw of XML.tree
 
-    datatype pgmldoc =
+    datatype pgml = 
 	     Pgml of { version: string option, systemid: string option, 
-		       content: pgmlterm }
-
+		       area: PgipTypes.displayarea option, 
+		       content: pgmlterm list }
+		       
     val pgmlterm_to_xml : pgmlterm -> XML.tree
 
-    val pgmldoc_to_xml : pgmldoc -> XML.tree
+    val pgml_to_xml : pgml -> XML.tree
 end
 
 
@@ -50,6 +52,7 @@ struct
     open PgipTypes
 
     type pgmlsym = { name: string, content: string }
+
     datatype pgmlatom = Sym of pgmlsym | Str of string
 
     datatype pgmlorient = HOVOrient | HOrient | VOrient | HVOrient
@@ -74,11 +77,14 @@ struct
 			  xref: PgipTypes.pgipurl option,
 			  content: pgmlterm list }
 	   | Alt of { kind: string option, content: pgmlterm list }
-	   | Embed of XML.tree list
+	   | Embed of XML.content
+	   | Raw of XML.tree
 
-    datatype pgmldoc =
+		       
+    datatype pgml = 
 	     Pgml of { version: string option, systemid: string option, 
-		       content: pgmlterm }
+		       area: PgipTypes.displayarea option, 
+		       content: pgmlterm list }
 
     fun pgmlorient_to_string HOVOrient = "hov"
       | pgmlorient_to_string HOrient = "h"
@@ -137,8 +143,18 @@ struct
 
       | pgmlterm_to_xml (Embed xmls) = XML.Elem("embed", [], xmls)
 
+      | pgmlterm_to_xml (Raw xml) = xml
 
-    fun pgmldoc_to_xml (Pgml {version,systemid,content}) = 
-	XML.Elem("pgml",opt_attr "version" version  @ opt_attr "systemid" systemid,
-		 [pgmlterm_to_xml content])
+
+    datatype pgml = 
+	     Pgml of { version: string option, systemid: string option, 
+		       area: PgipTypes.displayarea option, 
+		       content: pgmlterm list }
+
+    fun pgml_to_xml (Pgml {version,systemid,area,content}) = 
+	XML.Elem("pgml",
+		 opt_attr "version" version @ 
+		 opt_attr "systemid" systemid @
+		 Option.getOpt(Option.map PgipTypes.attrs_of_displayarea area,[]),
+		 map pgmlterm_to_xml content)
 end
