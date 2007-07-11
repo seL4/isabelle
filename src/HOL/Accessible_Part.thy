@@ -17,98 +17,102 @@ text {*
  relation; see also \cite{paulin-tlca}.
 *}
 
-inductive2
-  acc :: "('a => 'a => bool) => 'a => bool"
-  for r :: "'a => 'a => bool"
+inductive_set
+  acc :: "('a * 'a) set => 'a set"
+  for r :: "('a * 'a) set"
   where
-    accI: "(!!y. r y x ==> acc r y) ==> acc r x"
+    accI: "(!!y. (y, x) : r ==> y : acc r) ==> x : acc r"
 
 abbreviation
-  termi :: "('a => 'a => bool) => 'a => bool" where
-  "termi r == acc (r\<inverse>\<inverse>)"
+  termip :: "('a => 'a => bool) => 'a => bool" where
+  "termip r == accp (r\<inverse>\<inverse>)"
+
+abbreviation
+  termi :: "('a * 'a) set => 'a set" where
+  "termi r == acc (r\<inverse>)"
 
 
 subsection {* Induction rules *}
 
-theorem acc_induct:
-  assumes major: "acc r a"
-  assumes hyp: "!!x. acc r x ==> \<forall>y. r y x --> P y ==> P x"
+theorem accp_induct:
+  assumes major: "accp r a"
+  assumes hyp: "!!x. accp r x ==> \<forall>y. r y x --> P y ==> P x"
   shows "P a"
-  apply (rule major [THEN acc.induct])
+  apply (rule major [THEN accp.induct])
   apply (rule hyp)
-   apply (rule accI)
+   apply (rule accp.accI)
    apply fast
   apply fast
   done
 
-theorems acc_induct_rule = acc_induct [rule_format, induct set: acc]
+theorems accp_induct_rule = accp_induct [rule_format, induct set: accp]
 
-theorem acc_downward: "acc r b ==> r a b ==> acc r a"
-  apply (erule acc.cases)
+theorem accp_downward: "accp r b ==> r a b ==> accp r a"
+  apply (erule accp.cases)
   apply fast
   done
 
-lemma not_acc_down:
-  assumes na: "\<not> acc R x"
-  obtains z where "R z x" and "\<not> acc R z"
+lemma not_accp_down:
+  assumes na: "\<not> accp R x"
+  obtains z where "R z x" and "\<not> accp R z"
 proof -
-  assume a: "\<And>z. \<lbrakk>R z x; \<not> acc R z\<rbrakk> \<Longrightarrow> thesis"
+  assume a: "\<And>z. \<lbrakk>R z x; \<not> accp R z\<rbrakk> \<Longrightarrow> thesis"
 
   show thesis
-  proof (cases "\<forall>z. R z x \<longrightarrow> acc R z")
+  proof (cases "\<forall>z. R z x \<longrightarrow> accp R z")
     case True
-    hence "\<And>z. R z x \<Longrightarrow> acc R z" by auto
-    hence "acc R x"
-      by (rule accI)
+    hence "\<And>z. R z x \<Longrightarrow> accp R z" by auto
+    hence "accp R x"
+      by (rule accp.accI)
     with na show thesis ..
   next
-    case False then obtain z where "R z x" and "\<not> acc R z"
+    case False then obtain z where "R z x" and "\<not> accp R z"
       by auto
     with a show thesis .
   qed
 qed
 
-lemma acc_downwards_aux: "r\<^sup>*\<^sup>* b a ==> acc r a --> acc r b"
-  apply (erule rtrancl_induct')
+lemma accp_downwards_aux: "r\<^sup>*\<^sup>* b a ==> accp r a --> accp r b"
+  apply (erule rtranclp_induct)
    apply blast
-  apply (blast dest: acc_downward)
+  apply (blast dest: accp_downward)
   done
 
-theorem acc_downwards: "acc r a ==> r\<^sup>*\<^sup>* b a ==> acc r b"
-  apply (blast dest: acc_downwards_aux)
+theorem accp_downwards: "accp r a ==> r\<^sup>*\<^sup>* b a ==> accp r b"
+  apply (blast dest: accp_downwards_aux)
   done
 
-theorem acc_wfI: "\<forall>x. acc r x ==> wfP r"
+theorem accp_wfPI: "\<forall>x. accp r x ==> wfP r"
   apply (rule wfPUNIVI)
-  apply (induct_tac P x rule: acc_induct)
+  apply (induct_tac P x rule: accp_induct)
    apply blast
   apply blast
   done
 
-theorem acc_wfD: "wfP r ==> acc r x"
+theorem accp_wfPD: "wfP r ==> accp r x"
   apply (erule wfP_induct_rule)
-  apply (rule accI)
+  apply (rule accp.accI)
   apply blast
   done
 
-theorem wf_acc_iff: "wfP r = (\<forall>x. acc r x)"
-  apply (blast intro: acc_wfI dest: acc_wfD)
+theorem wfP_accp_iff: "wfP r = (\<forall>x. accp r x)"
+  apply (blast intro: accp_wfPI dest: accp_wfPD)
   done
 
 
 text {* Smaller relations have bigger accessible parts: *}
 
-lemma acc_subset:
+lemma accp_subset:
   assumes sub: "R1 \<le> R2"
-  shows "acc R2 \<le> acc R1"
+  shows "accp R2 \<le> accp R1"
 proof
-  fix x assume "acc R2 x"
-  then show "acc R1 x"
+  fix x assume "accp R2 x"
+  then show "accp R1 x"
   proof (induct x)
     fix x
-    assume ih: "\<And>y. R2 y x \<Longrightarrow> acc R1 y"
-    with sub show "acc R1 x"
-      by (blast intro: accI)
+    assume ih: "\<And>y. R2 y x \<Longrightarrow> accp R1 y"
+    with sub show "accp R1 x"
+      by (blast intro: accp.accI)
   qed
 qed
 
@@ -116,15 +120,15 @@ qed
 text {* This is a generalized induction theorem that works on
   subsets of the accessible part. *}
 
-lemma acc_subset_induct:
-  assumes subset: "D \<le> acc R"
+lemma accp_subset_induct:
+  assumes subset: "D \<le> accp R"
     and dcl: "\<And>x z. \<lbrakk>D x; R z x\<rbrakk> \<Longrightarrow> D z"
     and "D x"
     and istep: "\<And>x. \<lbrakk>D x; (\<And>z. R z x \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
   shows "P x"
 proof -
   from subset and `D x`
-  have "acc R x" ..
+  have "accp R x" ..
   then show "P x" using `D x`
   proof (induct x)
     fix x
@@ -133,5 +137,30 @@ proof -
     with dcl and istep show "P x" by blast
   qed
 qed
+
+
+text {* Set versions of the above theorems *}
+
+lemmas acc_induct = accp_induct [to_set]
+
+lemmas acc_induct_rule = acc_induct [rule_format, induct set: acc]
+
+lemmas acc_downward = accp_downward [to_set]
+
+lemmas not_acc_down = not_accp_down [to_set]
+
+lemmas acc_downwards_aux = accp_downwards_aux [to_set]
+
+lemmas acc_downwards = accp_downwards [to_set]
+
+lemmas acc_wfI = accp_wfPI [to_set]
+
+lemmas acc_wfD = accp_wfPD [to_set]
+
+lemmas wf_acc_iff = wfP_accp_iff [to_set]
+
+lemmas acc_subset = accp_subset [to_set]
+
+lemmas acc_subset_induct = accp_subset_induct [to_set]
 
 end
