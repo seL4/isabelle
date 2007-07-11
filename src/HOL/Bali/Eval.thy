@@ -474,7 +474,7 @@ check_method_access::
        
 section "evaluation judgments"
 
-inductive2
+inductive
   halloc :: "[prog,state,obj_tag,loc,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>halloc _\<succ>_\<rightarrow> _"[61,61,61,61,61]60) for G::prog
 where --{* allocating objects on the heap, cf. 12.5 *}
 
@@ -487,7 +487,7 @@ where --{* allocating objects on the heap, cf. 12.5 *}
             \<Longrightarrow>
 	    G\<turnstile>Norm s \<midarrow>halloc oi\<succ>a\<rightarrow> (x,init_obj G oi' (Heap a) s)"
 
-inductive2 sxalloc :: "[prog,state,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>sxalloc\<rightarrow> _"[61,61,61]60) for G::prog
+inductive sxalloc :: "[prog,state,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>sxalloc\<rightarrow> _"[61,61,61]60) for G::prog
 where --{* allocating exception objects for
   standard exceptions (other than OutOfMemory) *}
 
@@ -503,7 +503,7 @@ where --{* allocating exception objects for
 	  G\<turnstile>(Some (Xcpt (Std xn)),s0) \<midarrow>sxalloc\<rightarrow> (Some (Xcpt (Loc a)),s1)"
 
 
-inductive2
+inductive
   eval :: "[prog,state,term,vals,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>_\<succ>\<rightarrow> '(_, _')"  [61,61,80,0,0]60)
   and exec ::"[prog,state,stmt      ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_\<rightarrow> _"   [61,61,65,   61]60)
   and evar ::"[prog,state,var  ,vvar,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_=\<succ>_\<rightarrow> _"[61,61,90,61,61]60)
@@ -765,17 +765,17 @@ lemmas eval_induct = eval_induct_ [split_format and and and and and and and and
 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-inductive_cases2 halloc_elim_cases: 
+inductive_cases halloc_elim_cases: 
   "G\<turnstile>(Some xc,s) \<midarrow>halloc oi\<succ>a\<rightarrow> s'"
   "G\<turnstile>(Norm    s) \<midarrow>halloc oi\<succ>a\<rightarrow> s'"
 
-inductive_cases2 sxalloc_elim_cases:
+inductive_cases sxalloc_elim_cases:
  	"G\<turnstile> Norm                 s  \<midarrow>sxalloc\<rightarrow> s'"
         "G\<turnstile>(Some (Jump j),s) \<midarrow>sxalloc\<rightarrow> s'"
  	"G\<turnstile>(Some (Error e),s) \<midarrow>sxalloc\<rightarrow> s'"
         "G\<turnstile>(Some (Xcpt (Loc a )),s) \<midarrow>sxalloc\<rightarrow> s'"
  	"G\<turnstile>(Some (Xcpt (Std xn)),s) \<midarrow>sxalloc\<rightarrow> s'"
-inductive_cases2 sxalloc_cases: "G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'"
+inductive_cases sxalloc_cases: "G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'"
 
 lemma sxalloc_elim_cases2: "\<lbrakk>G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s';  
        \<And>s.   \<lbrakk>s' = Norm s\<rbrakk> \<Longrightarrow> P;  
@@ -793,9 +793,9 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
 change_simpset (fn ss => ss delloop "split_all_tac");
 *}
-inductive_cases2 eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v, s')"
+inductive_cases eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v, s')"
 
-inductive_cases2 eval_elim_cases [cases set]:
+inductive_cases eval_elim_cases [cases set]:
         "G\<turnstile>(Some xc,s) \<midarrow>t                              \<succ>\<rightarrow> (v, s')"
 	"G\<turnstile>Norm s \<midarrow>In1r Skip                           \<succ>\<rightarrow> (x, s')"
         "G\<turnstile>Norm s \<midarrow>In1r (Jmp j)                        \<succ>\<rightarrow> (x, s')"

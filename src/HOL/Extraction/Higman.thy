@@ -15,37 +15,37 @@ text {*
 
 datatype letter = A | B
 
-inductive2 emb :: "letter list \<Rightarrow> letter list \<Rightarrow> bool"
+inductive emb :: "letter list \<Rightarrow> letter list \<Rightarrow> bool"
 where
    emb0 [Pure.intro]: "emb [] bs"
  | emb1 [Pure.intro]: "emb as bs \<Longrightarrow> emb as (b # bs)"
  | emb2 [Pure.intro]: "emb as bs \<Longrightarrow> emb (a # as) (a # bs)"
 
-inductive2 L :: "letter list \<Rightarrow> letter list list \<Rightarrow> bool"
+inductive L :: "letter list \<Rightarrow> letter list list \<Rightarrow> bool"
   for v :: "letter list"
 where
    L0 [Pure.intro]: "emb w v \<Longrightarrow> L v (w # ws)"
  | L1 [Pure.intro]: "L v ws \<Longrightarrow> L v (w # ws)"
 
-inductive2 good :: "letter list list \<Rightarrow> bool"
+inductive good :: "letter list list \<Rightarrow> bool"
 where
     good0 [Pure.intro]: "L w ws \<Longrightarrow> good (w # ws)"
   | good1 [Pure.intro]: "good ws \<Longrightarrow> good (w # ws)"
 
-inductive2 R :: "letter \<Rightarrow> letter list list \<Rightarrow> letter list list \<Rightarrow> bool"
+inductive R :: "letter \<Rightarrow> letter list list \<Rightarrow> letter list list \<Rightarrow> bool"
   for a :: letter
 where
     R0 [Pure.intro]: "R a [] []"
   | R1 [Pure.intro]: "R a vs ws \<Longrightarrow> R a (w # vs) ((a # w) # ws)"
 
-inductive2 T :: "letter \<Rightarrow> letter list list \<Rightarrow> letter list list \<Rightarrow> bool"
+inductive T :: "letter \<Rightarrow> letter list list \<Rightarrow> letter list list \<Rightarrow> bool"
   for a :: letter
 where
     T0 [Pure.intro]: "a \<noteq> b \<Longrightarrow> R b ws zs \<Longrightarrow> T a (w # zs) ((a # w) # zs)"
   | T1 [Pure.intro]: "T a ws zs \<Longrightarrow> T a (w # ws) ((a # w) # zs)"
   | T2 [Pure.intro]: "a \<noteq> b \<Longrightarrow> T a ws zs \<Longrightarrow> T a ws ((b # w) # zs)"
 
-inductive2 bar :: "letter list list \<Rightarrow> bool"
+inductive bar :: "letter list list \<Rightarrow> bool"
 where
     bar1 [Pure.intro]: "good ws \<Longrightarrow> bar ws"
   | bar2 [Pure.intro]: "(\<And>w. bar (w # ws)) \<Longrightarrow> bar ws"

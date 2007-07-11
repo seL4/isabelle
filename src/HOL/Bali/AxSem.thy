@@ -476,7 +476,7 @@ change_simpset (fn ss => ss delloop "split_all_tac");
 change_claset (fn cs => cs delSWrapper "split_all_tac");
 *}
 
-inductive2
+inductive
   ax_derivs :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool" ("_,_|\<turnstile>_" [61,58,58] 57)
   and ax_deriv :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triple  \<Rightarrow> bool" ("_,_\<turnstile>_" [61,58,58] 57)
   for G :: prog

@@ -541,7 +541,7 @@ subsubsection "members"
    below
 *)
 
-inductive2
+inductive
   members :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
     ("_ \<turnstile> _ member'_of _" [61,61,61] 60)
   for G :: prog
@@ -634,7 +634,7 @@ execution in the JVM) are not exactly the same.
 
 text {* Static overriding (used during the typecheck of the compiler) *}
 
-inductive2
+inductive
   stat_overridesR :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool"
     ("_ \<turnstile> _ overrides\<^sub>S _" [61,61,61] 60)
   for G :: prog
@@ -653,7 +653,7 @@ where
 
 text {* Dynamic overriding (used during the typecheck of the compiler) *}
 
-inductive2
+inductive
   overridesR :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool"
     ("_ \<turnstile> _ overrides _" [61,61,61] 60)
   for G :: prog
@@ -784,7 +784,7 @@ of members is not uniform.
 \end{itemize} 
 *} 
 
-inductive2
+inductive
   accessible_fromR :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
   and accessible_from :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
     ("_ \<turnstile> _ of _ accessible'_from _" [61,61,61,61] 60)
@@ -828,7 +828,7 @@ translations
 "G\<turnstile>Field fn f of C accessible_from accclass"  
  \<rightleftharpoons> "G\<turnstile>(fieldm fn f) of C accessible_from accclass" 
 
-inductive2
+inductive
   dyn_accessible_fromR :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
   and dyn_accessible_from' ::  "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
     ("_ \<turnstile> _ in _ dyn'_accessible'_from _" [61,61,61,61] 60)

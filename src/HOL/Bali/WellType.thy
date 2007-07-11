@@ -246,7 +246,7 @@ translations
   "tys"   <= (type) "ty + ty list"
 
 
-inductive2 
+inductive
   wt :: "env \<Rightarrow> dyn_ty \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>_"  [51,51,51,51] 50)
   and wt_stmt :: "env \<Rightarrow> dyn_ty \<Rightarrow>  stmt       \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>\<surd>"  [51,51,51   ] 50)
   and ty_expr :: "env \<Rightarrow> dyn_ty \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>-_" [51,51,51,51] 50)
@@ -456,7 +456,7 @@ ML_setup {*
 change_simpset (fn ss => ss delloop "split_all_tac")
 *}
 
-inductive_cases2 wt_elim_cases [cases set]:
+inductive_cases wt_elim_cases [cases set]:
 	"E,dt\<Turnstile>In2  (LVar vn)               \<Colon>T"
 	"E,dt\<Turnstile>In2  ({accC,statDeclC,s}e..fn)\<Colon>T"
 	"E,dt\<Turnstile>In2  (e.[i])                 \<Colon>T"

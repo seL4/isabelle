@@ -533,7 +533,7 @@ The definite assignment rules refer to the typing rules here to
 distinguish boolean and other expressions.
 *}
 
-inductive2
+inductive
   da :: "env \<Rightarrow> lname set \<Rightarrow> term \<Rightarrow> assigned \<Rightarrow> bool" ("_\<turnstile> _ \<guillemotright>_\<guillemotright> _" [65,65,65,65] 71)
 where
   Skip: "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
@@ -823,7 +823,7 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
 change_simpset (fn ss => ss delloop "split_all_tac");
 *}
-inductive_cases2 da_elim_cases [cases set]:
+inductive_cases da_elim_cases [cases set]:
   "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A" 
   "Env\<turnstile> B \<guillemotright>In1r Skip\<guillemotright> A" 
   "Env\<turnstile> B \<guillemotright>\<langle>Expr e\<rangle>\<guillemotright> A"

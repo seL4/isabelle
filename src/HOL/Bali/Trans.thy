@@ -68,7 +68,7 @@ translations
   "Ref a" == "Lit (Addr a)"
   "SKIP"  == "Lit Unit"
 
-inductive2
+inductive
   step :: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>1 _"[61,82,82] 81)
   for G :: prog
 where

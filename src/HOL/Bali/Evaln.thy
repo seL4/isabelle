@@ -28,7 +28,7 @@ If it would omit them @{term evaln} and @{term eval} would only be equivalent
 for welltyped, and definitely assigned terms.
 *}
 
-inductive2
+inductive
   evaln	:: "[prog, state, term, nat, vals, state] \<Rightarrow> bool"
     ("_\<turnstile>_ \<midarrow>_\<succ>\<midarrow>_\<rightarrow> '(_, _')" [61,61,80,61,0,0] 60)
   and evarn :: "[prog, state, var, vvar, nat, state] \<Rightarrow> bool"
@@ -201,9 +201,9 @@ declare split_if     [split del] split_if_asm     [split del]
 ML_setup {*
 change_simpset (fn ss => ss delloop "split_all_tac");
 *}
-inductive_cases2 evaln_cases: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s')"
+inductive_cases evaln_cases: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s')"
 
-inductive_cases2 evaln_elim_cases:
+inductive_cases evaln_elim_cases:
 	"G\<turnstile>(Some xc, s) \<midarrow>t                        \<succ>\<midarrow>n\<rightarrow> (v, s')"
 	"G\<turnstile>Norm s \<midarrow>In1r Skip                      \<succ>\<midarrow>n\<rightarrow> (x, s')"
         "G\<turnstile>Norm s \<midarrow>In1r (Jmp j)                   \<succ>\<midarrow>n\<rightarrow> (x, s')"

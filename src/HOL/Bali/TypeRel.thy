@@ -351,7 +351,7 @@ apply auto
 done
 
 
-inductive2 --{* implementation, cf. 8.1.4 *}
+inductive --{* implementation, cf. 8.1.4 *}
   implmt :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>_" [71,71,71] 70)
   for G :: prog
 where
@@ -385,7 +385,7 @@ done
 
 section "widening relation"
 
-inductive2
+inductive
  --{*widening, viz. method invocation conversion, cf. 5.3
 			    i.e. kind of syntactic subtyping *}
   widen :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>_" [71,71,71] 70)
@@ -407,14 +407,14 @@ declare widen.intros [simp]
 lemma widen_PrimT: "G\<turnstile>PrimT x\<preceq>T \<Longrightarrow> T = PrimT x"
 *)
 lemma widen_PrimT: "G\<turnstile>PrimT x\<preceq>T \<Longrightarrow> (\<exists>y. T = PrimT y)"
-apply (ind_cases2 "G\<turnstile>PrimT x\<preceq>T")
+apply (ind_cases "G\<turnstile>PrimT x\<preceq>T")
 by auto
 
 (* too strong in general:
 lemma widen_PrimT2: "G\<turnstile>S\<preceq>PrimT x \<Longrightarrow> S = PrimT x"
 *)
 lemma widen_PrimT2: "G\<turnstile>S\<preceq>PrimT x \<Longrightarrow> \<exists>y. S = PrimT y"
-apply (ind_cases2 "G\<turnstile>S\<preceq>PrimT x")
+apply (ind_cases "G\<turnstile>S\<preceq>PrimT x")
 by auto
 
 text {* 
@@ -424,37 +424,37 @@ text {*
  *}
 
 lemma widen_PrimT_strong: "G\<turnstile>PrimT x\<preceq>T \<Longrightarrow> T = PrimT x"
-by (ind_cases2 "G\<turnstile>PrimT x\<preceq>T") simp_all
+by (ind_cases "G\<turnstile>PrimT x\<preceq>T") simp_all
 
 lemma widen_PrimT2_strong: "G\<turnstile>S\<preceq>PrimT x \<Longrightarrow> S = PrimT x"
-by (ind_cases2 "G\<turnstile>S\<preceq>PrimT x") simp_all
+by (ind_cases "G\<turnstile>S\<preceq>PrimT x") simp_all
 
 text {* Specialized versions for booleans also would work for real Java *}
 
 lemma widen_Boolean: "G\<turnstile>PrimT Boolean\<preceq>T \<Longrightarrow> T = PrimT Boolean"
-by (ind_cases2 "G\<turnstile>PrimT Boolean\<preceq>T") simp_all
+by (ind_cases "G\<turnstile>PrimT Boolean\<preceq>T") simp_all
 
 lemma widen_Boolean2: "G\<turnstile>S\<preceq>PrimT Boolean \<Longrightarrow> S = PrimT Boolean"
-by (ind_cases2 "G\<turnstile>S\<preceq>PrimT Boolean") simp_all
+by (ind_cases "G\<turnstile>S\<preceq>PrimT Boolean") simp_all
 
 lemma widen_RefT: "G\<turnstile>RefT R\<preceq>T \<Longrightarrow> \<exists>t. T=RefT t"
-apply (ind_cases2 "G\<turnstile>RefT R\<preceq>T")
+apply (ind_cases "G\<turnstile>RefT R\<preceq>T")
 by auto
 
 lemma widen_RefT2: "G\<turnstile>S\<preceq>RefT R \<Longrightarrow> \<exists>t. S=RefT t"
-apply (ind_cases2 "G\<turnstile>S\<preceq>RefT R")
+apply (ind_cases "G\<turnstile>S\<preceq>RefT R")
 by auto
 
 lemma widen_Iface: "G\<turnstile>Iface I\<preceq>T \<Longrightarrow> T=Class Object \<or> (\<exists>J. T=Iface J)"
-apply (ind_cases2 "G\<turnstile>Iface I\<preceq>T")
+apply (ind_cases "G\<turnstile>Iface I\<preceq>T")
 by auto
 
 lemma widen_Iface2: "G\<turnstile>S\<preceq> Iface J \<Longrightarrow> S = NT \<or> (\<exists>I. S = Iface I) \<or> (\<exists>D. S = Class D)"
-apply (ind_cases2 "G\<turnstile>S\<preceq> Iface J")
+apply (ind_cases "G\<turnstile>S\<preceq> Iface J")
 by auto
 
 lemma widen_Iface_Iface: "G\<turnstile>Iface I\<preceq> Iface J \<Longrightarrow> G\<turnstile>I\<preceq>I J"
-apply (ind_cases2 "G\<turnstile>Iface I\<preceq> Iface J")
+apply (ind_cases "G\<turnstile>Iface I\<preceq> Iface J")
 by auto
 
 lemma widen_Iface_Iface_eq [simp]: "G\<turnstile>Iface I\<preceq> Iface J = G\<turnstile>I\<preceq>I J"
@@ -464,15 +464,15 @@ apply (erule widen.subint)
 done
 
 lemma widen_Class: "G\<turnstile>Class C\<preceq>T \<Longrightarrow>  (\<exists>D. T=Class D) \<or> (\<exists>I. T=Iface I)"
-apply (ind_cases2 "G\<turnstile>Class C\<preceq>T")
+apply (ind_cases "G\<turnstile>Class C\<preceq>T")
 by auto
 
 lemma widen_Class2: "G\<turnstile>S\<preceq> Class C \<Longrightarrow> C = Object \<or> S = NT \<or> (\<exists>D. S = Class D)"
-apply (ind_cases2 "G\<turnstile>S\<preceq> Class C")
+apply (ind_cases "G\<turnstile>S\<preceq> Class C")
 by auto
 
 lemma widen_Class_Class: "G\<turnstile>Class C\<preceq> Class cm \<Longrightarrow> G\<turnstile>C\<preceq>\<^sub>C cm"
-apply (ind_cases2 "G\<turnstile>Class C\<preceq> Class cm")
+apply (ind_cases "G\<turnstile>Class C\<preceq> Class cm")
 by auto
 
 lemma widen_Class_Class_eq [simp]: "G\<turnstile>Class C\<preceq> Class cm = G\<turnstile>C\<preceq>\<^sub>C cm"
@@ -482,7 +482,7 @@ apply (erule widen.subcls)
 done
 
 lemma widen_Class_Iface: "G\<turnstile>Class C\<preceq> Iface I \<Longrightarrow> G\<turnstile>C\<leadsto>I"
-apply (ind_cases2 "G\<turnstile>Class C\<preceq> Iface I")
+apply (ind_cases "G\<turnstile>Class C\<preceq> Iface I")
 by auto
 
 lemma widen_Class_Iface_eq [simp]: "G\<turnstile>Class C\<preceq> Iface I = G\<turnstile>C\<leadsto>I"
@@ -492,21 +492,21 @@ apply (erule widen.implmt)
 done
 
 lemma widen_Array: "G\<turnstile>S.[]\<preceq>T \<Longrightarrow> T=Class Object \<or> (\<exists>T'. T=T'.[] \<and> G\<turnstile>S\<preceq>T')"
-apply (ind_cases2 "G\<turnstile>S.[]\<preceq>T")
+apply (ind_cases "G\<turnstile>S.[]\<preceq>T")
 by auto
 
 lemma widen_Array2: "G\<turnstile>S\<preceq>T.[] \<Longrightarrow> S = NT \<or> (\<exists>S'. S=S'.[] \<and> G\<turnstile>S'\<preceq>T)"
-apply (ind_cases2 "G\<turnstile>S\<preceq>T.[]")
+apply (ind_cases "G\<turnstile>S\<preceq>T.[]")
 by auto
 
 
 lemma widen_ArrayPrimT: "G\<turnstile>PrimT t.[]\<preceq>T \<Longrightarrow> T=Class Object \<or> T=PrimT t.[]"
-apply (ind_cases2 "G\<turnstile>PrimT t.[]\<preceq>T")
+apply (ind_cases "G\<turnstile>PrimT t.[]\<preceq>T")
 by auto
 
 lemma widen_ArrayRefT: 
   "G\<turnstile>RefT t.[]\<preceq>T \<Longrightarrow> T=Class Object \<or> (\<exists>s. T=RefT s.[] \<and> G\<turnstile>RefT t\<preceq>RefT s)"
-apply (ind_cases2 "G\<turnstile>RefT t.[]\<preceq>T")
+apply (ind_cases "G\<turnstile>RefT t.[]\<preceq>T")
 by auto
 
 lemma widen_ArrayRefT_ArrayRefT_eq [simp]: 
@@ -527,7 +527,7 @@ by (auto dest: widen_Array)
 
 
 lemma widen_NT2: "G\<turnstile>S\<preceq>NT \<Longrightarrow> S = NT"
-apply (ind_cases2 "G\<turnstile>S\<preceq>NT")
+apply (ind_cases "G\<turnstile>S\<preceq>NT")
 by auto
 
 lemma widen_Object:"\<lbrakk>isrtype G T;ws_prog G\<rbrakk> \<Longrightarrow> G\<turnstile>RefT T \<preceq> Class Object"
@@ -610,7 +610,7 @@ rules
 *)
 
 (* more detailed than necessary for type-safety, see above rules. *)
-inductive2 --{* narrowing reference conversion, cf. 5.1.5 *}
+inductive --{* narrowing reference conversion, cf. 5.1.5 *}
   narrow :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<succ>_" [71,71,71] 70)
   for G :: prog
 where
@@ -625,20 +625,20 @@ where
 
 (*unused*)
 lemma narrow_RefT: "G\<turnstile>RefT R\<succ>T \<Longrightarrow> \<exists>t. T=RefT t"
-apply (ind_cases2 "G\<turnstile>RefT R\<succ>T")
+apply (ind_cases "G\<turnstile>RefT R\<succ>T")
 by auto
 
 lemma narrow_RefT2: "G\<turnstile>S\<succ>RefT R \<Longrightarrow> \<exists>t. S=RefT t"
-apply (ind_cases2 "G\<turnstile>S\<succ>RefT R")
+apply (ind_cases "G\<turnstile>S\<succ>RefT R")
 by auto
 
 (*unused*)
 lemma narrow_PrimT: "G\<turnstile>PrimT pt\<succ>T \<Longrightarrow> \<exists>t. T=PrimT t"
-by (ind_cases2 "G\<turnstile>PrimT pt\<succ>T")
+by (ind_cases "G\<turnstile>PrimT pt\<succ>T")
 
 lemma narrow_PrimT2: "G\<turnstile>S\<succ>PrimT pt \<Longrightarrow>  
 				  \<exists>t. S=PrimT t \<and> G\<turnstile>PrimT t\<preceq>PrimT pt"
-by (ind_cases2 "G\<turnstile>S\<succ>PrimT pt")
+by (ind_cases "G\<turnstile>S\<succ>PrimT pt")
 
 text {* 
    These narrowing lemmata hold in Bali but are to strong for ordinary
@@ -646,22 +646,22 @@ text {*
    long, int. These lemmata are just for documentation and are not used.
  *}
 lemma narrow_PrimT_strong: "G\<turnstile>PrimT pt\<succ>T \<Longrightarrow> T=PrimT pt"
-by (ind_cases2 "G\<turnstile>PrimT pt\<succ>T")
+by (ind_cases "G\<turnstile>PrimT pt\<succ>T")
 
 lemma narrow_PrimT2_strong: "G\<turnstile>S\<succ>PrimT pt \<Longrightarrow> S=PrimT pt"
-by (ind_cases2 "G\<turnstile>S\<succ>PrimT pt")
+by (ind_cases "G\<turnstile>S\<succ>PrimT pt")
 
 text {* Specialized versions for booleans also would work for real Java *}
 
 lemma narrow_Boolean: "G\<turnstile>PrimT Boolean\<succ>T \<Longrightarrow> T=PrimT Boolean"
-by (ind_cases2 "G\<turnstile>PrimT Boolean\<succ>T")
+by (ind_cases "G\<turnstile>PrimT Boolean\<succ>T")
 
 lemma narrow_Boolean2: "G\<turnstile>S\<succ>PrimT Boolean \<Longrightarrow> S=PrimT Boolean"
-by (ind_cases2 "G\<turnstile>S\<succ>PrimT Boolean")
+by (ind_cases "G\<turnstile>S\<succ>PrimT Boolean")
 
 section "casting relation"
 
-inductive2 --{* casting conversion, cf. 5.5 *}
+inductive --{* casting conversion, cf. 5.5 *}
   cast :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>? _" [71,71,71] 70)
   for G :: prog
 where
@@ -670,20 +670,20 @@ where
 
 (*unused*)
 lemma cast_RefT: "G\<turnstile>RefT R\<preceq>? T \<Longrightarrow> \<exists>t. T=RefT t"
-apply (ind_cases2 "G\<turnstile>RefT R\<preceq>? T")
+apply (ind_cases "G\<turnstile>RefT R\<preceq>? T")
 by (auto dest: widen_RefT narrow_RefT)
 
 lemma cast_RefT2: "G\<turnstile>S\<preceq>? RefT R \<Longrightarrow> \<exists>t. S=RefT t"
-apply (ind_cases2 "G\<turnstile>S\<preceq>? RefT R")
+apply (ind_cases "G\<turnstile>S\<preceq>? RefT R")
 by (auto dest: widen_RefT2 narrow_RefT2)
 
 (*unused*)
 lemma cast_PrimT: "G\<turnstile>PrimT pt\<preceq>? T \<Longrightarrow> \<exists>t. T=PrimT t"
-apply (ind_cases2 "G\<turnstile>PrimT pt\<preceq>? T")
+apply (ind_cases "G\<turnstile>PrimT pt\<preceq>? T")
 by (auto dest: widen_PrimT narrow_PrimT)
 
 lemma cast_PrimT2: "G\<turnstile>S\<preceq>? PrimT pt \<Longrightarrow> \<exists>t. S=PrimT t \<and> G\<turnstile>PrimT t\<preceq>PrimT pt"
-apply (ind_cases2 "G\<turnstile>S\<preceq>? PrimT pt")
+apply (ind_cases "G\<turnstile>S\<preceq>? PrimT pt")
 by (auto dest: widen_PrimT2 narrow_PrimT2)
 
 lemma cast_Boolean: 
