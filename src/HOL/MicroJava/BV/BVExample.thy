@@ -67,28 +67,28 @@ lemma E_classes [simp]:
 
 text {* The subclass releation spelled out: *}
 lemma subcls1:
-  "subcls1 E = member2 {(list_name,Object), (test_name,Object), (Xcpt NullPointer, Object),
-                (Xcpt ClassCast, Object), (Xcpt OutOfMemory, Object)}"
+  "subcls1 E = (\<lambda>C D. (C, D) \<in> {(list_name,Object), (test_name,Object), (Xcpt NullPointer, Object),
+                (Xcpt ClassCast, Object), (Xcpt OutOfMemory, Object)})"
   apply (simp add: subcls1_def2)
   apply (simp add: name_defs class_defs system_defs E_def class_def)
-  apply (auto simp: member2_inject split: split_if_asm)
+  apply (auto simp: expand_fun_eq split: split_if_asm)
   done
 
 text {* The subclass relation is acyclic; hence its converse is well founded: *}
 lemma notin_rtrancl:
   "r\<^sup>*\<^sup>* a b \<Longrightarrow> a \<noteq> b \<Longrightarrow> (\<And>y. \<not> r a y) \<Longrightarrow> False"
-  by (auto elim: converse_rtranclE')
+  by (auto elim: converse_rtranclpE)
 
 lemma acyclic_subcls1_E: "acyclicP (subcls1 E)"
   apply (rule acyclicI [to_pred])
   apply (simp add: subcls1)
-  apply (auto dest!: tranclD')
+  apply (auto dest!: tranclpD)
   apply (auto elim!: notin_rtrancl simp add: name_defs distinct_classes)
   done
 
 lemma wf_subcls1_E: "wfP ((subcls1 E)\<inverse>\<inverse>)"
   apply (rule finite_acyclic_wf_converse [to_pred])
-  apply (simp add: subcls1)
+  apply (simp add: subcls1 del: insert_iff)
   apply (rule acyclic_subcls1_E)
   done  
 
@@ -464,7 +464,7 @@ lemmas [code] =
   meta_eq_to_obj_eq [OF JType.sup_def [unfolded exec_lub_def]]
   meta_eq_to_obj_eq [OF JVM_le_unfold]
 
-lemmas [code ind] = rtrancl.rtrancl_refl converse_rtrancl_into_rtrancl'
+lemmas [code ind] = rtranclp.rtrancl_refl converse_rtranclp_into_rtranclp
 
 code_module BV
 contains

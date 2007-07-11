@@ -2912,7 +2912,7 @@ types
   ctxtn = "(name\<times>ty) list"
   ctxtc = "(coname\<times>ty) list"
 
-inductive2
+inductive
   validc :: "ctxtc \<Rightarrow> bool"
 where
   vc1[intro]: "validc []"
@@ -2920,7 +2920,7 @@ where
 
 equivariance validc
 
-inductive2
+inductive
   validn :: "ctxtn \<Rightarrow> bool"
 where
   vn1[intro]: "validn []"
@@ -2944,7 +2944,7 @@ text {* cut-reductions *}
 
 declare abs_perm[eqvt]
 
-inductive2
+inductive
   fin :: "trm \<Rightarrow> name \<Rightarrow> bool"
 where
   [intro]: "fin (Ax x a) x"
@@ -3367,7 +3367,7 @@ apply(rule exists_fresh')
 apply(rule fin_supp)
 done
 
-inductive2
+inductive
   fic :: "trm \<Rightarrow> coname \<Rightarrow> bool"
 where
   [intro]: "fic (Ax x a) a"
@@ -3766,7 +3766,7 @@ apply(drule fic_rest_elims)
 apply(simp)
 done
 
-inductive2
+inductive
   l_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^isub>l _" [100,100] 100)
 where
   LAxR:  "\<lbrakk>x\<sharp>M; a\<sharp>b; fic M a\<rbrakk> \<Longrightarrow> Cut <a>.M (x).(Ax x b) \<longrightarrow>\<^isub>l M[a\<turnstile>c>b]"
@@ -4467,7 +4467,7 @@ apply(auto simp add: fresh_left calc_atm abs_fresh alpha perm_fresh_fresh split:
 apply(perm_simp)+
 done
 
-inductive2
+inductive
   c_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^isub>c _" [100,100] 100)
 where
   left[intro]:  "\<lbrakk>\<not>fic M a; a\<sharp>N; x\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>c M{a:=(x).N}"
@@ -4532,7 +4532,7 @@ apply(induct rule: c_redu.induct)
 apply(auto simp add: abs_fresh rename_fresh subst_fresh)
 done
 
-inductive2
+inductive
   a_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^isub>a _" [100,100] 100)
 where
   al_redu[intro]: "M\<longrightarrow>\<^isub>l M' \<Longrightarrow> M \<longrightarrow>\<^isub>a M'"
@@ -5269,7 +5269,7 @@ text {* congruence rules for \<longrightarrow>\<^isub>a* *}
 
 lemma ax_do_not_a_star_reduce:
   shows "Ax x a \<longrightarrow>\<^isub>a* M \<Longrightarrow> M = Ax x a"
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule  ax_do_not_a_reduce)
 apply(simp)
@@ -5278,79 +5278,79 @@ done
 
 lemma a_star_CutL:
     "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a* Cut <a>.M' (x).N"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_CutR:
     "N \<longrightarrow>\<^isub>a* N'\<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a* Cut <a>.M (x).N'"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_Cut:
     "\<lbrakk>M \<longrightarrow>\<^isub>a* M'; N \<longrightarrow>\<^isub>a* N'\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a* Cut <a>.M' (x).N'"
-by (blast intro!: a_star_CutL a_star_CutR intro: rtrancl_trans')
+by (blast intro!: a_star_CutL a_star_CutR intro: rtranclp_trans)
 
 lemma a_star_NotR:
     "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> NotR (x).M a \<longrightarrow>\<^isub>a* NotR (x).M' a"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_NotL:
     "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> NotL <a>.M x \<longrightarrow>\<^isub>a* NotL <a>.M' x"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_AndRL:
     "M \<longrightarrow>\<^isub>a* M'\<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a* AndR <a>.M' <b>.N c"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_AndRR:
     "N \<longrightarrow>\<^isub>a* N'\<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a* AndR <a>.M <b>.N' c"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_AndR:
     "\<lbrakk>M \<longrightarrow>\<^isub>a* M'; N \<longrightarrow>\<^isub>a* N'\<rbrakk> \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a* AndR <a>.M' <b>.N' c"
-by (blast intro!: a_star_AndRL a_star_AndRR intro: rtrancl_trans')
+by (blast intro!: a_star_AndRL a_star_AndRR intro: rtranclp_trans)
 
 lemma a_star_AndL1:
     "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> AndL1 (x).M y \<longrightarrow>\<^isub>a* AndL1 (x).M' y"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_AndL2:
     "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> AndL2 (x).M y \<longrightarrow>\<^isub>a* AndL2 (x).M' y"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_OrLL:
     "M \<longrightarrow>\<^isub>a* M'\<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a* OrL (x).M' (y).N z"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_OrLR:
     "N \<longrightarrow>\<^isub>a* N'\<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a* OrL (x).M (y).N' z"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_OrL:
     "\<lbrakk>M \<longrightarrow>\<^isub>a* M'; N \<longrightarrow>\<^isub>a* N'\<rbrakk> \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a* OrL (x).M' (y).N' z"
-by (blast intro!: a_star_OrLL a_star_OrLR intro: rtrancl_trans')
+by (blast intro!: a_star_OrLL a_star_OrLR intro: rtranclp_trans)
 
 lemma a_star_OrR1:
     "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> OrR1 <a>.M b \<longrightarrow>\<^isub>a* OrR1 <a>.M' b"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_OrR2:
     "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> OrR2 <a>.M b \<longrightarrow>\<^isub>a* OrR2 <a>.M' b"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_ImpLL:
     "M \<longrightarrow>\<^isub>a* M'\<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^isub>a* ImpL <a>.M' (y).N z"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_ImpLR:
     "N \<longrightarrow>\<^isub>a* N'\<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^isub>a* ImpL <a>.M (y).N' z"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_ImpL:
     "\<lbrakk>M \<longrightarrow>\<^isub>a* M'; N \<longrightarrow>\<^isub>a* N'\<rbrakk> \<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^isub>a* ImpL <a>.M' (y).N' z"
-by (blast intro!: a_star_ImpLL a_star_ImpLR intro: rtrancl_trans')
+by (blast intro!: a_star_ImpLL a_star_ImpLR intro: rtranclp_trans)
 
 lemma a_star_ImpR:
     "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> ImpR (x).<a>.M b \<longrightarrow>\<^isub>a* ImpR (x).<a>.M' b"
-by (induct set: rtrancl) (blast intro: rtrancl.rtrancl_into_rtrancl)+
+by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemmas a_star_congs = a_star_Cut a_star_NotR a_star_NotL a_star_AndR a_star_AndL1 a_star_AndL2
                       a_star_OrL a_star_OrR1 a_star_OrR2 a_star_ImpL a_star_ImpR
@@ -5359,7 +5359,7 @@ lemma a_star_redu_NotL_elim:
   assumes a: "NotL <a>.M x \<longrightarrow>\<^isub>a* R"
   shows "\<exists>M'. R = NotL <a>.M' x \<and> M \<longrightarrow>\<^isub>a* M'"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_NotL_elim)
 apply(auto)
@@ -5369,7 +5369,7 @@ lemma a_star_redu_NotR_elim:
   assumes a: "NotR (x).M a \<longrightarrow>\<^isub>a* R"
   shows "\<exists>M'. R = NotR (x).M' a \<and> M \<longrightarrow>\<^isub>a* M'"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_NotR_elim)
 apply(auto)
@@ -5379,7 +5379,7 @@ lemma a_star_redu_AndR_elim:
   assumes a: "AndR <a>.M <b>.N c\<longrightarrow>\<^isub>a* R"
   shows "(\<exists>M' N'. R = AndR <a>.M' <b>.N' c \<and> M \<longrightarrow>\<^isub>a* M' \<and> N \<longrightarrow>\<^isub>a* N')"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_AndR_elim)
 apply(auto simp add: alpha trm.inject)
@@ -5389,7 +5389,7 @@ lemma a_star_redu_AndL1_elim:
   assumes a: "AndL1 (x).M y \<longrightarrow>\<^isub>a* R"
   shows "\<exists>M'. R = AndL1 (x).M' y \<and> M \<longrightarrow>\<^isub>a* M'"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_AndL1_elim)
 apply(auto simp add: alpha trm.inject)
@@ -5399,7 +5399,7 @@ lemma a_star_redu_AndL2_elim:
   assumes a: "AndL2 (x).M y \<longrightarrow>\<^isub>a* R"
   shows "\<exists>M'. R = AndL2 (x).M' y \<and> M \<longrightarrow>\<^isub>a* M'"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_AndL2_elim)
 apply(auto simp add: alpha trm.inject)
@@ -5409,7 +5409,7 @@ lemma a_star_redu_OrL_elim:
   assumes a: "OrL (x).M (y).N z \<longrightarrow>\<^isub>a* R"
   shows "(\<exists>M' N'. R = OrL (x).M' (y).N' z \<and> M \<longrightarrow>\<^isub>a* M' \<and> N \<longrightarrow>\<^isub>a* N')"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_OrL_elim)
 apply(auto simp add: alpha trm.inject)
@@ -5419,7 +5419,7 @@ lemma a_star_redu_OrR1_elim:
   assumes a: "OrR1 <a>.M y \<longrightarrow>\<^isub>a* R"
   shows "\<exists>M'. R = OrR1 <a>.M' y \<and> M \<longrightarrow>\<^isub>a* M'"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_OrR1_elim)
 apply(auto simp add: alpha trm.inject)
@@ -5429,7 +5429,7 @@ lemma a_star_redu_OrR2_elim:
   assumes a: "OrR2 <a>.M y \<longrightarrow>\<^isub>a* R"
   shows "\<exists>M'. R = OrR2 <a>.M' y \<and> M \<longrightarrow>\<^isub>a* M'"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_OrR2_elim)
 apply(auto simp add: alpha trm.inject)
@@ -5439,7 +5439,7 @@ lemma a_star_redu_ImpR_elim:
   assumes a: "ImpR (x).<a>.M y \<longrightarrow>\<^isub>a* R"
   shows "\<exists>M'. R = ImpR (x).<a>.M' y \<and> M \<longrightarrow>\<^isub>a* M'"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_ImpR_elim)
 apply(auto simp add: alpha trm.inject)
@@ -5449,7 +5449,7 @@ lemma a_star_redu_ImpL_elim:
   assumes a: "ImpL <a>.M (y).N z \<longrightarrow>\<^isub>a* R"
   shows "(\<exists>M' N'. R = ImpL <a>.M' (y).N' z \<and> M \<longrightarrow>\<^isub>a* M' \<and> N \<longrightarrow>\<^isub>a* N')"
 using a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto)
 apply(drule a_redu_ImpL_elim)
 apply(auto simp add: alpha trm.inject)
@@ -5788,7 +5788,7 @@ lemma fin_a_star_reduce:
   and      b: "M \<longrightarrow>\<^isub>a* M'"
   shows "fin M' x"
 using b a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto simp add: fin_a_reduce)
 done
 
@@ -5854,7 +5854,7 @@ lemma fic_a_star_reduce:
   and      b: "M \<longrightarrow>\<^isub>a* M'"
   shows "fic M' x"
 using b a
-apply(induct set: rtrancl)
+apply(induct set: rtranclp)
 apply(auto simp add: fic_a_reduce)
 done
 
@@ -10021,7 +10021,7 @@ text {* Candidates and SN *}
 
 text {* SNa *}
 
-inductive2 
+inductive 
   SNa :: "trm \<Rightarrow> bool"
 where
   SNaI: "(\<And>M'. M \<longrightarrow>\<^isub>a M' \<Longrightarrow> SNa M') \<Longrightarrow> SNa M"
@@ -19224,7 +19224,7 @@ done
 
 text {* typing relation *}
 
-inductive2
+inductive
    typing :: "ctxtn \<Rightarrow> trm \<Rightarrow> ctxtc \<Rightarrow> bool" ("_ \<turnstile> _ \<turnstile> _" [100,100,100] 100)
 where
   TAx:    "\<lbrakk>validn \<Gamma>;validc \<Delta>; (x,B)\<in>set \<Gamma>; (a,B)\<in>set \<Delta>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Ax x a \<turnstile> \<Delta>"

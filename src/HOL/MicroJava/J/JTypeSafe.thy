@@ -27,7 +27,7 @@ apply simp
 apply (case_tac "ref_ty")
 apply (clarsimp simp add: conf_def)
 apply simp
-apply (ind_cases2 "G \<turnstile> Class cname \<preceq>? Class D" for cname, simp)
+apply (ind_cases "G \<turnstile> Class cname \<preceq>? Class D" for cname, simp)
 apply (rule conf_widen, assumption+) apply (erule widen.subcls)
 
 apply (unfold cast_ok_def)
@@ -222,7 +222,7 @@ apply( clarsimp)
 apply( rule conjI)
 apply(  force elim!: NewC_conforms)
 apply( rule conf_obj_AddrI)
-apply(  rule_tac [2] rtrancl.rtrancl_refl)
+apply(  rule_tac [2] rtranclp.rtrancl_refl)
 apply( simp (no_asm))
 
 -- "for Cast"

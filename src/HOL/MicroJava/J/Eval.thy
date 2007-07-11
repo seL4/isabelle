@@ -32,7 +32,7 @@ constdefs
 
   -- "Evaluation relations"
 
-inductive2
+inductive
   eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
           ("_ \<turnstile> _ -_\<succ>_-> _" [51,82,60,82,82] 81)
   and evals :: "[java_mb prog,xstate,expr list,

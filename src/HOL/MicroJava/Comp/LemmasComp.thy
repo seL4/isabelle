@@ -111,7 +111,7 @@ lemma comp_classname: "is_class G C
 by (case_tac "class G C", auto simp: is_class_def dest: comp_class_imp)
 
 lemma comp_subcls1: "subcls1 (comp G) = subcls1 G"
-by (auto simp add: subcls1_def2 comp_classname comp_is_class member2_inject)
+by (auto simp add: subcls1_def2 comp_classname comp_is_class expand_fun_eq)
 
 lemma comp_widen: "widen (comp G) = widen G"
   apply (simp add: expand_fun_eq)
@@ -193,7 +193,8 @@ apply (subgoal_tac "(class G x = None) \<or> (\<exists> D fs ms. (class G x = So
 apply (erule disjE)
 
   (* case class G x = None *)
-apply (simp (no_asm_simp) add: class_rec_def comp_subcls1 wfrec [to_pred] cut_apply)
+apply (simp (no_asm_simp) add: class_rec_def comp_subcls1
+  wfrec [to_pred, where r="(subcls1 G)^--1", simplified])
 apply (simp add: comp_class_None)
 
   (* case \<exists> D fs ms. (class G x = Some (D, fs, ms)) *)

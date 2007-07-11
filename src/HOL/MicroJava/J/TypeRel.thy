@@ -9,7 +9,7 @@ header {* \isaheader{Relations between Java Types} *}
 theory TypeRel imports Decl begin
 
 -- "direct subclass, cf. 8.1.3"
-inductive2
+inductive
   subcls1 :: "'c prog => [cname, cname] => bool" ("_ \<turnstile> _ \<prec>C1 _" [71,71,71] 70)
   for G :: "'c prog"
 where
@@ -26,12 +26,12 @@ apply auto
 done
 
 lemma subcls1_def2: 
-  "subcls1 G = member2
-     (SIGMA C: {C. is_class G C} . {D. C\<noteq>Object \<and> fst (the (class G C))=D})"
+  "subcls1 G = (\<lambda>C D. (C, D) \<in>
+     (SIGMA C: {C. is_class G C} . {D. C\<noteq>Object \<and> fst (the (class G C))=D}))"
   by (auto simp add: is_class_def expand_fun_eq dest: subcls1D intro: subcls1I)
 
-lemma finite_subcls1: "finite (Collect2 (subcls1 G))"
-apply(simp add: subcls1_def2)
+lemma finite_subcls1: "finite {(C, D). subcls1 G C D}"
+apply(simp add: subcls1_def2 del: mem_Sigma_iff)
 apply(rule finite_SigmaI [OF finite_is_class])
 apply(rule_tac B = "{fst (the (class G C))}" in finite_subset)
 apply  auto
@@ -39,14 +39,14 @@ done
 
 lemma subcls_is_class: "(subcls1 G)^++ C D ==> is_class G C"
 apply (unfold is_class_def)
-apply(erule trancl_trans_induct')
+apply(erule tranclp_trans_induct)
 apply (auto dest!: subcls1D)
 done
 
 lemma subcls_is_class2 [rule_format (no_asm)]: 
   "G\<turnstile>C\<preceq>C D \<Longrightarrow> is_class G D \<longrightarrow> is_class G C"
 apply (unfold is_class_def)
-apply (erule rtrancl_induct')
+apply (erule rtranclp_induct)
 apply  (drule_tac [2] subcls1D)
 apply  auto
 done
@@ -54,7 +54,7 @@ done
 constdefs
   class_rec :: "'c prog \<Rightarrow> cname \<Rightarrow> 'a \<Rightarrow>
     (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
-  "class_rec G == wfrec (Collect2 ((subcls1 G)^--1))
+  "class_rec G == wfrec {(C, D). (subcls1 G)^--1 C D}
     (\<lambda>r C t f. case class G C of
          None \<Rightarrow> arbitrary
        | Some (D,fs,ms) \<Rightarrow> 
@@ -62,8 +62,8 @@ constdefs
 
 lemma class_rec_lemma: "wfP ((subcls1 G)^--1) \<Longrightarrow> class G C = Some (D,fs,ms) \<Longrightarrow>
  class_rec G C t f = f C fs ms (if C=Object then t else class_rec G D t f)"
-  by (simp add: class_rec_def wfrec [to_pred]
-    cut_apply [OF Collect2I [where P="(subcls1 G)^--1"], OF conversepI, OF subcls1I])
+  by (simp add: class_rec_def wfrec [to_pred, where r="(subcls1 G)^--1", simplified]
+    cut_apply [where r="{(C, D). subcls1 G D C}", simplified, OF subcls1I])
 
 definition
   "wf_class G = wfP ((subcls1 G)^--1)"
@@ -84,8 +84,8 @@ next
   proof (cases "class G C")
     case None
     with wf show ?thesis
-      by (simp add: class_rec_def wfrec [to_pred]
-        cut_apply [OF Collect2I [where P="(subcls1 G)^--1"], OF conversepI, OF subcls1I])
+      by (simp add: class_rec_def wfrec [to_pred, where r="(subcls1 G)^--1", simplified]
+        cut_apply [where r="{(C, D).subcls1 G D C}", simplified, OF subcls1I])
   next
     case (Some x) show ?thesis
     proof (cases x)
@@ -142,7 +142,7 @@ done
 
 
 -- "widening, viz. method invocation conversion,cf. 5.3 i.e. sort of syntactic subtyping"
-inductive2
+inductive
   widen   :: "'c prog => [ty   , ty   ] => bool" ("_ \<turnstile> _ \<preceq> _"   [71,71,71] 70)
   for G :: "'c prog"
 where
@@ -154,7 +154,7 @@ lemmas refl = HOL.refl
 
 -- "casting conversion, cf. 5.5 / 5.1.5"
 -- "left out casts on primitve types"
-inductive2
+inductive
   cast    :: "'c prog => [ty   , ty   ] => bool" ("_ \<turnstile> _ \<preceq>? _"  [71,71,71] 70)
   for G :: "'c prog"
 where
@@ -168,34 +168,34 @@ apply auto
 done
 
 lemma widen_RefT: "G\<turnstile>RefT R\<preceq>T ==> \<exists>t. T=RefT t"
-apply (ind_cases2 "G\<turnstile>RefT R\<preceq>T")
+apply (ind_cases "G\<turnstile>RefT R\<preceq>T")
 apply auto
 done
 
 lemma widen_RefT2: "G\<turnstile>S\<preceq>RefT R ==> \<exists>t. S=RefT t"
-apply (ind_cases2 "G\<turnstile>S\<preceq>RefT R")
+apply (ind_cases "G\<turnstile>S\<preceq>RefT R")
 apply auto
 done
 
 lemma widen_Class: "G\<turnstile>Class C\<preceq>T ==> \<exists>D. T=Class D"
-apply (ind_cases2 "G\<turnstile>Class C\<preceq>T")
+apply (ind_cases "G\<turnstile>Class C\<preceq>T")
 apply auto
 done
 
 lemma widen_Class_NullT [iff]: "(G\<turnstile>Class C\<preceq>NT) = False"
 apply (rule iffI)
-apply (ind_cases2 "G\<turnstile>Class C\<preceq>NT")
+apply (ind_cases "G\<turnstile>Class C\<preceq>NT")
 apply auto
 done
 
 lemma widen_Class_Class [iff]: "(G\<turnstile>Class C\<preceq> Class D) = (G\<turnstile>C\<preceq>C D)"
 apply (rule iffI)
-apply (ind_cases2 "G\<turnstile>Class C \<preceq> Class D")
+apply (ind_cases "G\<turnstile>Class C \<preceq> Class D")
 apply (auto elim: widen.subcls)
 done
 
 lemma widen_NT_Class [simp]: "G \<turnstile> T \<preceq> NT \<Longrightarrow> G \<turnstile> T \<preceq> Class D"
-by (ind_cases2 "G \<turnstile> T \<preceq> NT",  auto)
+by (ind_cases "G \<turnstile> T \<preceq> NT",  auto)
 
 lemma cast_PrimT_RefT [iff]: "(G\<turnstile>PrimT pT\<preceq>? RefT rT) = False"
 apply (rule iffI)

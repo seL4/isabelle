@@ -272,22 +272,22 @@ apply (unfold is_lub_def is_ub_def)
 apply (case_tac "r^** y x")
  apply (case_tac "r^** y x'")
   apply blast
- apply (blast elim: converse_rtranclE' dest: single_valuedD)
+ apply (blast elim: converse_rtranclpE dest: single_valuedD)
 apply (rule exI)
 apply (rule conjI)
- apply (blast intro: converse_rtrancl_into_rtrancl' dest: single_valuedD)
-apply (blast intro: rtrancl.rtrancl_into_rtrancl converse_rtrancl_into_rtrancl'
-             elim: converse_rtranclE' dest: single_valuedD)
+ apply (blast intro: converse_rtranclp_into_rtranclp dest: single_valuedD)
+apply (blast intro: rtranclp.rtrancl_into_rtrancl converse_rtranclp_into_rtranclp
+             elim: converse_rtranclpE dest: single_valuedD)
 done
 
 lemma single_valued_has_lubs [rule_format]:
   "\<lbrakk> single_valuedP r; r^** x u \<rbrakk> \<Longrightarrow> (!y. r^** y u \<longrightarrow> 
   (EX z. is_lub (r^** ) x y z))"
-apply (erule converse_rtrancl_induct')
+apply (erule converse_rtranclp_induct)
  apply clarify
- apply (erule converse_rtrancl_induct')
+ apply (erule converse_rtranclp_induct)
   apply blast
- apply (blast intro: converse_rtrancl_into_rtrancl')
+ apply (blast intro: converse_rtranclp_into_rtranclp)
 apply (blast intro: extend_lub)
 done
 
@@ -313,18 +313,18 @@ constdefs
 
 lemma acyclic_single_valued_finite:
  "\<lbrakk>acyclicP r; single_valuedP r; r\<^sup>*\<^sup>* x y \<rbrakk>
-  \<Longrightarrow> finite (Collect2 r \<inter> {a. r\<^sup>*\<^sup>* x a} \<times> {b. r\<^sup>*\<^sup>* b y})"
-apply(erule converse_rtrancl_induct')
+  \<Longrightarrow> finite ({(x, y). r x y} \<inter> {a. r\<^sup>*\<^sup>* x a} \<times> {b. r\<^sup>*\<^sup>* b y})"
+apply(erule converse_rtranclp_induct)
  apply(rule_tac B = "{}" in finite_subset)
   apply(simp only:acyclic_def [to_pred])
-  apply(blast intro:rtrancl_into_trancl2' rtrancl_trancl_trancl')
+  apply(blast intro:rtranclp_into_tranclp2 rtranclp_tranclp_tranclp)
  apply simp
 apply(rename_tac x x')
-apply(subgoal_tac "Collect2 r \<inter> {a. r\<^sup>*\<^sup>* x a} \<times> {b. r\<^sup>*\<^sup>* b y} =
-                   insert (x,x') (Collect2 r \<inter> {a. r\<^sup>*\<^sup>* x' a} \<times> {b. r\<^sup>*\<^sup>* b y})")
+apply(subgoal_tac "{(x, y). r x y} \<inter> {a. r\<^sup>*\<^sup>* x a} \<times> {b. r\<^sup>*\<^sup>* b y} =
+                   insert (x,x') ({(x, y). r x y} \<inter> {a. r\<^sup>*\<^sup>* x' a} \<times> {b. r\<^sup>*\<^sup>* b y})")
  apply simp
-apply(blast intro:converse_rtrancl_into_rtrancl'
-            elim:converse_rtranclE' dest:single_valuedD)
+apply(blast intro:converse_rtranclp_into_rtranclp
+            elim:converse_rtranclpE dest:single_valuedD)
 done
 
 
@@ -333,21 +333,21 @@ lemma exec_lub_conv:
   exec_lub r f x y = u";
 apply(unfold exec_lub_def)
 apply(rule_tac P = "\<lambda>z. r\<^sup>*\<^sup>* y z \<and> r\<^sup>*\<^sup>* z u" and
-               r = "(Collect2 r \<inter> {(a,b). r\<^sup>*\<^sup>* y a \<and> r\<^sup>*\<^sup>* b u})^-1" in while_rule)
+               r = "({(x, y). r x y} \<inter> {(a,b). r\<^sup>*\<^sup>* y a \<and> r\<^sup>*\<^sup>* b u})^-1" in while_rule)
     apply(blast dest: is_lubD is_ubD)
    apply(erule conjE)
-   apply(erule_tac z = u in converse_rtranclE')
+   apply(erule_tac z = u in converse_rtranclpE)
     apply(blast dest: is_lubD is_ubD)
-   apply(blast dest: rtrancl.rtrancl_into_rtrancl)
+   apply(blast dest: rtranclp.rtrancl_into_rtrancl)
   apply(rename_tac s)
   apply(subgoal_tac "is_ub (r\<^sup>*\<^sup>*) x y s")
    prefer 2; apply(simp add:is_ub_def)
   apply(subgoal_tac "r\<^sup>*\<^sup>* u s")
    prefer 2; apply(blast dest:is_lubD)
-  apply(erule converse_rtranclE')
+  apply(erule converse_rtranclpE)
    apply blast
   apply(simp only:acyclic_def [to_pred])
-  apply(blast intro:rtrancl_into_trancl2' rtrancl_trancl_trancl')
+  apply(blast intro:rtranclp_into_tranclp2 rtranclp_tranclp_tranclp)
  apply(rule finite_acyclic_wf)
   apply simp
   apply(erule acyclic_single_valued_finite)
@@ -358,7 +358,7 @@ apply(rule_tac P = "\<lambda>z. r\<^sup>*\<^sup>* y z \<and> r\<^sup>*\<^sup>* z
  apply blast
 apply simp
 apply(erule conjE)
-apply(erule_tac z = u in converse_rtranclE')
+apply(erule_tac z = u in converse_rtranclpE)
  apply(blast dest: is_lubD is_ubD)
 apply blast
 done

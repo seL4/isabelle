@@ -78,7 +78,7 @@ next
     have "R \<noteq> ClassT Object \<Longrightarrow> ?thesis"
      by (auto simp add: is_ty_def is_class_def split_tupled_all
                elim!: subcls1.cases
-               elim: converse_rtranclE'
+               elim: converse_rtranclpE
                split: ref_ty.splits)
     ultimately    
     show ?thesis by blast
@@ -146,16 +146,16 @@ apply (erule exE)
 apply (case_tac t)
  apply simp
 apply simp
-apply (insert rtrancl_r_diff_Id' [symmetric, standard, of "subcls1 G"])
+apply (insert rtranclp_r_diff_Id [symmetric, standard, of "subcls1 G"])
 apply simp
-apply (erule rtrancl.cases)
+apply (erule rtranclp.cases)
  apply blast
-apply (drule rtrancl_converseI')
+apply (drule rtranclp_converseI)
 apply (subgoal_tac "(inf (subcls1 G) op \<noteq>)^--1 = (inf ((subcls1 G)^--1) op \<noteq>)")
  prefer 2
  apply (simp add: converse_meet)
 apply simp
-apply (blast intro: rtrancl_into_trancl2')
+apply (blast intro: rtranclp_into_tranclp2)
 done 
 
 lemma closed_err_types:

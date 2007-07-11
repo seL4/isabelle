@@ -330,7 +330,7 @@ apply (rule wfP_SUP)
  apply (rename_tac m n)
  apply (case_tac "m=n")
   apply simp
- apply (fast intro!: equals0I [to_pred] dest: not_sym)
+ apply (fast intro!: equals0I [to_pred bot_empty_eq] dest: not_sym)
 apply clarify
 apply (rename_tac n)
 apply (induct_tac n)

@@ -404,7 +404,7 @@ lemma wtpd_expr_call: "wtpd_expr E ({C}a..mn({pTs'}ps))
        E\<turnstile>ps[::]pTs & max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')})"
 apply (simp only: wtpd_expr_def wtpd_exprs_def)
 apply (erule exE)
-apply (ind_cases2 "E \<turnstile> {C}a..mn( {pTs'}ps) :: T" for T)
+apply (ind_cases "E \<turnstile> {C}a..mn( {pTs'}ps) :: T" for T)
 apply (auto simp: max_spec_preserves_length)
 done
 
@@ -618,13 +618,13 @@ apply (rule list.induct)
 apply simp
 apply (rule allI)
 apply (rule iffI)
-  apply (ind_cases2 "E \<turnstile> [] [::] Ts" for Ts, assumption)
+  apply (ind_cases "E \<turnstile> [] [::] Ts" for Ts, assumption)
   apply simp apply (rule WellType.Nil)
 apply (simp add: list_all2_Cons1)
 apply (rule allI)
 apply (rule iffI)
   apply (rename_tac a exs Ts)
-  apply (ind_cases2 "E \<turnstile> a # exs  [::] Ts" for a exs Ts) apply blast
+  apply (ind_cases "E \<turnstile> a # exs  [::] Ts" for a exs Ts) apply blast
   apply (auto intro: WellType.Cons)
 done
 

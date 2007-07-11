@@ -173,18 +173,18 @@ apply (simp (no_asm))
 done
 
 lemma not_Object_subcls [elim!]: "(subcls1 tprg)^++ Object C ==> R"
-apply (auto dest!: tranclD' subcls1D)
+apply (auto dest!: tranclpD subcls1D)
 done
 
 lemma subcls_ObjectD [dest!]: "tprg\<turnstile>Object\<preceq>C C ==> C = Object"
-apply (erule rtrancl_induct')
+apply (erule rtranclp_induct)
 apply  auto
 apply (drule subcls1D)
 apply auto
 done
 
 lemma not_Base_subcls_Ext [elim!]: "(subcls1 tprg)^++ Base Ext ==> R"
-apply (auto dest!: tranclD' subcls1D)
+apply (auto dest!: tranclpD subcls1D)
 done
 
 lemma class_tprgD: 
@@ -194,10 +194,10 @@ apply (auto split add: split_if_asm simp add: map_of_Cons)
 done
 
 lemma not_class_subcls_class [elim!]: "(subcls1 tprg)^++ C C ==> R"
-apply (auto dest!: tranclD' subcls1D)
+apply (auto dest!: tranclpD subcls1D)
 apply (frule class_tprgD)
 apply (auto dest!:)
-apply (drule rtranclD')
+apply (drule rtranclpD)
 apply auto
 done
 
@@ -205,7 +205,7 @@ lemma unique_classes: "unique tprg"
 apply (simp (no_asm) add: ObjectC_def BaseC_def ExtC_def NullPointerC_def ClassCastC_def OutOfMemoryC_def)
 done
 
-lemmas subcls_direct = subcls1I [THEN r_into_rtrancl' [where r="subcls1 G"], standard]
+lemmas subcls_direct = subcls1I [THEN r_into_rtranclp [where r="subcls1 G"], standard]
 
 lemma Ext_subcls_Base [simp]: "tprg\<turnstile>Ext\<preceq>C Base"
 apply (rule subcls_direct)
@@ -345,7 +345,7 @@ apply (simp (no_asm))
 apply (fold ExtC_def)
 apply (rule mp) defer apply (rule wf_foo_Ext)
 apply (auto simp add: wf_mdecl_def)
-apply (drule rtranclD')
+apply (drule rtranclpD)
 apply auto
 done
 

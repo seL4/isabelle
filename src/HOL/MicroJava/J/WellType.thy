@@ -107,7 +107,7 @@ types
 -- "method body with parameter names, local variables, block, result expression."
 -- "local variables might include This, which is hidden anyway"
   
-inductive2
+inductive
   ty_expr :: "'c env => expr => ty => bool" ("_ \<turnstile> _ :: _" [51, 51, 51] 50)
   and ty_exprs :: "'c env => expr list => ty list => bool" ("_ \<turnstile> _ [::] _" [51, 51, 51] 50)
   and wt_stmt :: "'c env => stmt => bool" ("_ \<turnstile> _ \<surd>" [51, 51] 50)
