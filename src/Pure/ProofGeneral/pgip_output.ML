@@ -9,19 +9,13 @@ signature PGIPOUTPUT =
 sig
     (* These are the PGIP messages which the prover emits. *) 
     datatype pgipoutput = 
-      Cleardisplay        of { area: PgipTypes.displayarea }
-    | Normalresponse      of { area: PgipTypes.displayarea, 
-                               urgent: bool, 
-                               messagecategory: PgipTypes.messagecategory, 
-                               content: XML.content }
+      Normalresponse      of { content: XML.content }
     | Errorresponse       of { fatality: PgipTypes.fatality, 
-                               area: PgipTypes.displayarea option, 
                                location: PgipTypes.location option, 
                                content: XML.content }
     | Informfileloaded    of { url: PgipTypes.pgipurl, completed: bool }
     | Informfileoutdated  of { url: PgipTypes.pgipurl, completed: bool }
     | Informfileretracted of { url: PgipTypes.pgipurl, completed: bool }
-    | Proofstate          of { pgml: Pgml.pgmldoc }
     | Metainforesponse    of { attrs: XML.attributes, 
                                content: XML.content }
     | Lexicalstructure    of { content: XML.content }
@@ -73,15 +67,13 @@ struct
 open PgipTypes
 
 datatype pgipoutput = 
-         Cleardisplay        of { area: displayarea }
-       | Normalresponse      of { area: displayarea, urgent: bool, 
-                                  messagecategory: messagecategory, content: XML.content }
-       | Errorresponse       of { area: displayarea option, fatality: fatality, 
-                                  location: location option, content: XML.content }
+	 Normalresponse      of { content: XML.content }
+       | Errorresponse       of { fatality: fatality, 
+                                  location: location option, 
+				  content: XML.content }
        | Informfileloaded    of { url: Path.T, completed: bool }
        | Informfileoutdated  of { url: Path.T, completed: bool }
        | Informfileretracted of { url: Path.T, completed: bool }
-       | Proofstate          of { pgml: Pgml.pgmldoc }
        | Metainforesponse    of { attrs: XML.attributes, content: XML.content }
        | Lexicalstructure    of { content: XML.content }
        | Proverinfo          of { name: string, version: string, instance: string,
@@ -122,36 +114,22 @@ datatype pgipoutput =
 
 (* Construct output XML messages *)
 
-fun cleardisplay (Cleardisplay vs) =
-    let
-        val area = #area vs
-    in
-        XML.Elem ("cleardisplay", attrs_of_displayarea area, [])
-    end
-
 fun normalresponse (Normalresponse vs) =
     let 
-        val area = #area vs
-        val urgent = #urgent vs
-        val messagecategory = #messagecategory vs
         val content = #content vs
     in
         XML.Elem ("normalresponse", 
-                 attrs_of_displayarea area @
-                 (if urgent then attr "urgent" "true" else []) @
-                 attrs_of_messagecategory messagecategory,
-                 content)
+		  [],
+                  content)
     end
 
 fun errorresponse (Errorresponse vs) =
     let 
-        val area = #area vs
         val fatality = #fatality vs
         val location = #location vs
         val content = #content vs
     in
         XML.Elem ("errorresponse",
-                 these (Option.map attrs_of_displayarea area) @
                  attrs_of_fatality fatality @
                  these (Option.map attrs_of_location location),
                  content)
@@ -188,13 +166,6 @@ fun informfileretracted (Informfileretracted vs) =
 		  attrs_of_pgipurl url @ 
 		  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
 		  [])
-    end
-
-fun proofstate (Proofstate vs) =
-    let
-        val pgml = #pgml vs
-    in
-        XML.Elem("proofstate", [], [Pgml.pgmldoc_to_xml pgml])
     end
 
 fun metainforesponse (Metainforesponse vs) =
@@ -383,13 +354,11 @@ fun ready (Ready vs) = XML.Elem("ready",[],[])
 
 
 fun output pgipoutput = case pgipoutput of
-    Cleardisplay _          => cleardisplay pgipoutput
-  | Normalresponse _        => normalresponse pgipoutput
+    Normalresponse _        => normalresponse pgipoutput
   | Errorresponse _         => errorresponse pgipoutput
   | Informfileloaded _      => informfileloaded pgipoutput
   | Informfileoutdated _    => informfileoutdated pgipoutput
   | Informfileretracted _   => informfileretracted pgipoutput
-  | Proofstate _            => proofstate pgipoutput
   | Metainforesponse _      => metainforesponse pgipoutput
   | Lexicalstructure _      => lexicalstructure pgipoutput
   | Proverinfo _            => proverinfo pgipoutput
