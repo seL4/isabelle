@@ -409,6 +409,7 @@
     "context"
     "datatype"
     "declaration"
+    "declare"
     "defaultsort"
     "defer_recdef"
     "definition"
@@ -459,8 +460,7 @@
     "types_code"))
 
 (defconst isar-keywords-theory-script
-  '("declare"
-    "inductive_cases"))
+  '("inductive_cases"))
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
