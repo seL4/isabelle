@@ -1,16 +1,37 @@
 \section{Introduction}
 
-In the upcomung release of Isabelle 2007, new facilities for recursive
-function definitions \cite{krauss2006} will be available.
+In the upcoming release of Isabelle 2007, new facilities for recursive
+function definitions \cite{krauss2006} will be available, providing
+better support for general recursive definitions than previous
+packages did.  But despite all tool support, function definitions can
+sometimes be a difficult thing. 
 
 This tutorial is an example-guided introduction to the practical use
-of the package. We assume that you have mastered the basic concepts of
-Isabelle/HOL and are able to write basic specifications and
-proofs. To start out with Isabelle in general, you should read the
-tutorial \cite{isa-tutorial}.
+of the package and related tools. It should help you get started with
+defining functions quickly. For the more difficult definitions we will
+discuss what problems can arise, and how they can be solved.
 
-% Definitional extension
+We assume that you have mastered the basics of Isabelle/HOL
+and are able to write basic specifications and proofs. To start out
+with Isabelle in general, consult the Isabelle/HOL tutorial
+\cite{isa-tutorial}.
 
+
+
+\paragraph{Structure of this tutorial.}
+Section 2 introduces the syntax and basic operation of the \cmd{fun}
+command, which provides full automation with reasonable default
+behavior.  The impatient reader might want to stop after that
+section, and consult the remaining sections only when needed.
+Section 3 introduces the more verbose \cmd{function} command which
+gives fine-grained control to the user. This form should be used
+whenever the short form fails.
+After that we discuss different issues that are more specialized:
+termination, mutual and nested recursion, partiality, pattern matching
+and others.
+
+
+\paragraph{Some background.}
 Following the LCF tradition, the package is realized as a definitional
 extension: Recursive definitions are internally transformed into a
 non-recursive form, such that the function can be defined using
@@ -18,7 +39,7 @@ standard definition facilities. Then the recursive specification is
 derived from the primitive definition.  This is a complex task, but it
 is fully automated and mostly transparent to the user. Definitional
 extensions are valuable because they are conservative by construction:
-The new concept of general wellfounded recursion is completely reduced
+The \qt{new} concept of general wellfounded recursion is completely reduced
 to existing principles.
 
 
