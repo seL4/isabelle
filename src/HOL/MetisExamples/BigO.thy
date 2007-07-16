@@ -1343,13 +1343,10 @@ lemma bigo_fix: "(%x. f ((x::nat) + 1)) =o O(%x. h(x + 1)) ==> f 0 = 0 ==>
   apply (rule_tac x = c in exI)
   apply safe
   apply (case_tac "x = 0")
-prefer 2
-  apply (subgoal_tac "x = Suc (x - 1)")
-  apply (erule ssubst) back
-  apply (erule spec)
-  apply (rule Suc_pred') 
-  apply simp
 apply (metis OrderedGroup.abs_ge_zero  OrderedGroup.abs_zero  order_less_le  Ring_and_Field.split_mult_pos_le) 
+  apply (subgoal_tac "x = Suc (x - 1)")
+  apply metis
+  apply simp
   done
 
 
