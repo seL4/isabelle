@@ -291,8 +291,8 @@ fun remove_suc thy thms =
           map (apfst (Thm.capply ct1)) (find_vars ct2)
         end
       | _ => []);
-    val eqs = List.concat (map
-      (fn th => map (pair th) (find_vars (lhs_of th))) thms);
+    val eqs = maps
+      (fn th => map (pair th) (find_vars (lhs_of th))) thms;
     fun mk_thms (th, (ct, cv')) =
       let
         val th' =

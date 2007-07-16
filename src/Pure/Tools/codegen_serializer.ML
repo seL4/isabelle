@@ -991,7 +991,8 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
           add_group mk_class defs
       | group_defs ((defs as [(_, CodegenThingol.Classinst _)])) =
           add_group mk_inst defs
-      | group_defs defs = error ("Illegal mutual dependencies: " ^ (commas o map (labelled_name o fst)) defs)
+      | group_defs defs = error ("Illegal mutual dependencies: " ^
+          (commas o map (labelled_name o fst)) defs)
     val (_, nodes) =
       init_module
       |> fold group_defs (map (AList.make (Graph.get_node code))
@@ -1016,15 +1017,13 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
     fun pr_node prefix (Def (_, NONE)) =
           NONE
       | pr_node prefix (Def (_, SOME def)) =
-          SOME (pr_def tyco_syntax const_syntax labelled_name init_syms (deresolver prefix) is_cons def)
+          SOME (pr_def tyco_syntax const_syntax labelled_name init_syms
+            (deresolver prefix) is_cons def)
       | pr_node prefix (Module (dmodlname, (_, nodes))) =
           SOME (pr_modl dmodlname (the_prolog (NameSpace.implode (prefix @ [dmodlname]))
             @ separate (str "") ((map_filter (pr_node (prefix @ [dmodlname]) o Graph.get_node nodes)
                 o rev o flat o Graph.strong_conn) nodes)));
-    val mk_frame = if is_some module
-      then Pretty.chunks
-      else pr_modl "ROOT"
-    val p = mk_frame (the_prolog "" @ separate (str "") ((map_filter
+    val p = Pretty.chunks (the_prolog "" @ separate (str "") ((map_filter
       (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes))
   in output p end;
 
@@ -1489,8 +1488,8 @@ fun map_syntax_modl f (SyntaxModl { alias, prolog }) =
 fun merge_syntax_modl (SyntaxModl { alias = alias1, prolog = prolog1 },
     SyntaxModl { alias = alias2, prolog = prolog2 }) =
   mk_syntax_modl (
-    Symtab.merge (K true) (alias1, alias2),
-    Symtab.merge (op =) (prolog1, prolog2)
+    Symtab.join (K snd) (alias1, alias2),
+    Symtab.join (K snd) (prolog1, prolog2)
   );
 
 type serializer =
