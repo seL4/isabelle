@@ -31,6 +31,7 @@ abbreviation
   termi :: "('a * 'a) set => 'a set" where
   "termi r == acc (r\<inverse>)"
 
+lemmas accpI = accp.accI
 
 subsection {* Induction rules *}
 
