@@ -248,21 +248,10 @@ proof (rule order_trans)
 qed
 
 
-lemma star_mono:
-  fixes x y :: "'a :: kleene"
-  assumes "x \<le> y"
-  shows "star x \<le> star y"
-  oops
-
 lemma star_idemp:
   fixes x :: "'a :: kleene"
   shows "star (star x) = star x"
   oops
-
-lemma zero_star[simp]:
-  shows "star (0::'a::kleene) = 1"
-  oops
-
 
 lemma star_unfold_left:
   fixes a :: "'a :: kleene"
@@ -295,7 +284,9 @@ proof (rule order_antisym, rule star2)
   thus "star a \<le> 1 + star a * a" by simp
 qed
 
-
+lemma star_zero[simp]:
+  shows "star (0::'a::kleene) = 1"
+  by (rule star_unfold_left[of 0, simplified])
 
 lemma star_commute:
   fixes a b x :: "'a :: kleene"
@@ -339,14 +330,12 @@ proof (rule order_antisym)
         by (simp add:left_distrib mult_assoc)
     qed
   qed
-qed      
-
-
+qed
 
 lemma star_assoc:
   fixes c d :: "'a :: kleene"
   shows "star (c * d) * c = c * star (d * c)"
-  oops
+  by (auto simp:mult_assoc star_commute)  
 
 lemma star_dist:
   fixes a b :: "'a :: kleene"
@@ -357,12 +346,23 @@ lemma star_one:
   fixes a p p' :: "'a :: kleene"
   assumes "p * p' = 1" and "p' * p = 1"
   shows "p' * star a * p = star (p' * a * p)"
+proof -
+  from assms
+  have "p' * star a * p = p' * star (p * p' * a) * p"
+    by simp
+  also have "\<dots> = p' * p * star (p' * a * p)"
+    by (simp add: mult_assoc star_assoc)
+  also have "\<dots> = star (p' * a * p)"
+    by (simp add: assms)
+  finally show ?thesis .
+qed
+
+lemma star_mono:
+  fixes x y :: "'a :: kleene"
+  assumes "x \<le> y"
+  shows "star x \<le> star y"
   oops
 
-
-lemma star_zero: 
-  "star (0::'a::kleene) = 1"
-  by (rule star_unfold_left[of 0, simplified])
 
 
 (* Own lemmas *)
