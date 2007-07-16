@@ -409,12 +409,11 @@ code_axioms
   arbitrary_LT \<equiv> arbitrary_LT'
   arbitrary_TT \<equiv> arbitrary_TT'
 
-code_gen higman_idx in SML
+code_gen higman_idx in SML to Higman
 
 ML {*
 local
-  open ROOT.Higman
-  open ROOT.Nat
+  open Higman
 in
 
 val a = 16807.0;

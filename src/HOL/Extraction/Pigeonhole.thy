@@ -285,9 +285,9 @@ we generate ML code from them.
 *}
 
 definition
-  "test n = pigeonhole n (\<lambda>m. m - 1)"
+  "test n u = pigeonhole n (\<lambda>m. m - 1)"
 definition
-  "test' n = pigeonhole_slow n (\<lambda>m. m - 1)"
+  "test' n u = pigeonhole_slow n (\<lambda>m. m - 1)"
 definition
   "test'' u = pigeonhole 8 (op ! [0, 1, 2, 3, 4, 5, 6, 3, 7, 8])"
 
@@ -309,30 +309,30 @@ contains
   test' = test'
   test'' = test''
 
-code_gen test test' test'' in SML
+code_gen test test' test'' in SML to PH2
 
-ML "timeit (fn () => PH.test 10)"
-ML "timeit (fn () => ROOT.Pigeonhole.test 10)"
+ML "timeit (PH.test 10)"
+ML "timeit (PH2.test 10)"
 
-ML "timeit (fn () => PH.test' 10)"
-ML "timeit (fn () => ROOT.Pigeonhole.test' 10)"
+ML "timeit (PH.test' 10)"
+ML "timeit (PH2.test' 10)"
 
-ML "timeit (fn () => PH.test 20)"
-ML "timeit (fn () => ROOT.Pigeonhole.test 20)"
+ML "timeit (PH.test 20)"
+ML "timeit (PH2.test 20)"
 
-ML "timeit (fn () => PH.test' 20)"
-ML "timeit (fn () => ROOT.Pigeonhole.test' 20)"
+ML "timeit (PH.test' 20)"
+ML "timeit (PH2.test' 20)"
 
-ML "timeit (fn () => PH.test 25)"
-ML "timeit (fn () => ROOT.Pigeonhole.test 25)"
+ML "timeit (PH.test 25)"
+ML "timeit (PH2.test 25)"
 
-ML "timeit (fn () => PH.test' 25)"
-ML "timeit (fn () => ROOT.Pigeonhole.test' 25)"
+ML "timeit (PH.test' 25)"
+ML "timeit (PH2.test' 25)"
 
-ML "timeit (fn () => PH.test 500)"
-ML "timeit (fn () => ROOT.Pigeonhole.test 500)"
+ML "timeit (PH.test 500)"
+ML "timeit (PH2.test 500)"
 
 ML "timeit PH.test''"
-ML "timeit ROOT.Pigeonhole.test''"
+ML "timeit PH2.test''"
 
 end

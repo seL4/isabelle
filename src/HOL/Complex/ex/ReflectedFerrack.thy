@@ -1993,16 +1993,14 @@ where
   "ferrack_test u = linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
     (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
 
-code_gen linrqe ferrack_test in SML
-
-ML {* structure Ferrack = struct open ROOT end *}
+code_gen linrqe ferrack_test in SML to Ferrack
 
 (*code_module Ferrack
   contains
     linrqe = linrqe
     test = ferrack_test*)
 
-ML {* Ferrack.ReflectedFerrack.ferrack_test () *}
+ML {* Ferrack.ferrack_test () *}
 
 use "linreif.ML"
 oracle linr_oracle ("term") = ReflectedFerrack.linrqe_oracle

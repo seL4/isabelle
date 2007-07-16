@@ -581,34 +581,29 @@ definition
   int :: "nat \<Rightarrow> int" where
   "int \<equiv> of_nat"
 
-code_gen type_NF nat int in SML
+code_gen type_NF nat int in SML to Norm
 
 ML {*
-structure Norm = ROOT.WeakNorm;
-structure Type = ROOT.Type;
-structure Lambda = ROOT.Lambda;
-structure Nat = ROOT.Nat;
-
-val nat_of_int = ROOT.Integer.nat o IntInf.fromInt;
-val int_of_nat = IntInf.toInt o ROOT.WeakNorm.int;
+val nat_of_int = Norm.nat o IntInf.fromInt;
+val int_of_nat = IntInf.toInt o Norm.int;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
-      Type.Fun (dBtype_of_typ T, dBtype_of_typ U)
+      Norm.Fun (dBtype_of_typ T, dBtype_of_typ U)
   | dBtype_of_typ (TFree (s, _)) = (case explode s of
-        ["'", a] => Type.Atom (nat_of_int (ord a - 97))
+        ["'", a] => Norm.Atom (nat_of_int (ord a - 97))
       | _ => error "dBtype_of_typ: variable name")
   | dBtype_of_typ _ = error "dBtype_of_typ: bad type";
 
-fun dB_of_term (Bound i) = Lambda.Var (nat_of_int i)
-  | dB_of_term (t $ u) = Lambda.App (dB_of_term t, dB_of_term u)
-  | dB_of_term (Abs (_, _, t)) = Lambda.Abs (dB_of_term t)
+fun dB_of_term (Bound i) = Norm.Var (nat_of_int i)
+  | dB_of_term (t $ u) = Norm.App (dB_of_term t, dB_of_term u)
+  | dB_of_term (Abs (_, _, t)) = Norm.Abs (dB_of_term t)
   | dB_of_term _ = error "dB_of_term: bad term";
 
-fun term_of_dB Ts (Type ("fun", [T, U])) (Lambda.Abs dBt) =
+fun term_of_dB Ts (Type ("fun", [T, U])) (Norm.Abs dBt) =
       Abs ("x", T, term_of_dB (T :: Ts) U dBt)
   | term_of_dB Ts _ dBt = term_of_dB' Ts dBt
-and term_of_dB' Ts (Lambda.Var n) = Bound (int_of_nat n)
-  | term_of_dB' Ts (Lambda.App (dBt, dBu)) =
+and term_of_dB' Ts (Norm.Var n) = Bound (int_of_nat n)
+  | term_of_dB' Ts (Norm.App (dBt, dBu)) =
       let val t = term_of_dB' Ts dBt
       in case fastype_of1 (Ts, t) of
           Type ("fun", [T, U]) => t $ term_of_dB Ts T dBu
@@ -617,17 +612,17 @@ and term_of_dB' Ts (Lambda.Var n) = Bound (int_of_nat n)
   | term_of_dB' _ _ = error "term_of_dB: term not in normal form";
 
 fun typing_of_term Ts e (Bound i) =
-      Norm.Var (e, nat_of_int i, dBtype_of_typ (nth Ts i))
+      Norm.Vara (e, nat_of_int i, dBtype_of_typ (nth Ts i))
   | typing_of_term Ts e (t $ u) = (case fastype_of1 (Ts, t) of
-        Type ("fun", [T, U]) => Norm.Appa (e, dB_of_term t,
+        Type ("fun", [T, U]) => Norm.Appaa (e, dB_of_term t,
           dBtype_of_typ T, dBtype_of_typ U, dB_of_term u,
           typing_of_term Ts e t, typing_of_term Ts e u)
       | _ => error "typing_of_term: function type expected")
   | typing_of_term Ts e (Abs (s, T, t)) =
       let val dBT = dBtype_of_typ T
-      in Norm.Absa (e, dBT, dB_of_term t,
+      in Norm.Absaa (e, dBT, dB_of_term t,
         dBtype_of_typ (fastype_of1 (T :: Ts, t)),
-        typing_of_term (T :: Ts) (Type.shift e Nat.Zero_nat dBT) t)
+        typing_of_term (T :: Ts) (Norm.shift e Norm.Zero_nat dBT) t)
       end
   | typing_of_term _ _ _ = error "typing_of_term: bad term";
 
@@ -636,11 +631,11 @@ fun dummyf _ = error "dummy";
 
 ML {*
 val ct1 = @{cterm "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))"};
-val (dB1, _) = ROOT.WeakNorm.type_NF (typing_of_term [] dummyf (term_of ct1));
+val (dB1, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct1));
 val ct1' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 
 val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
-val (dB2, _) = ROOT.WeakNorm.type_NF (typing_of_term [] dummyf (term_of ct2));
+val (dB2, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct2));
 val ct2' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
 
