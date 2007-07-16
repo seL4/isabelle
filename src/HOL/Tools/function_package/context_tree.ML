@@ -9,19 +9,19 @@ Builds and traverses trees of nested contexts along a term.
 
 signature FUNDEF_CTXTREE =
 sig
+    type depgraph
     type ctx_tree
 
     (* FIXME: This interface is a mess and needs to be cleaned up! *)
     val cong_deps : thm -> int IntGraph.T
     val add_congs : thm list
 
-    val mk_tree: (thm * FundefCommon.depgraph) list ->
-                 (string * typ) -> term -> Proof.context -> term -> FundefCommon.ctx_tree
+    val mk_tree: (thm * depgraph) list ->
+                 (string * typ) -> term -> Proof.context -> term -> ctx_tree
 
-    val inst_tree: theory -> term -> term -> FundefCommon.ctx_tree
-                   -> FundefCommon.ctx_tree
+    val inst_tree: theory -> term -> term -> ctx_tree -> ctx_tree
 
-    val add_context_varnames : FundefCommon.ctx_tree -> string list -> string list
+    val add_context_varnames : ctx_tree -> string list -> string list
 
     val export_term : (string * typ) list * term list -> term -> term
     val export_thm : theory -> (string * typ) list * term list -> thm -> thm
@@ -33,9 +33,9 @@ sig
    (((string * typ) list * thm list) * thm) list ->
    (((string * typ) list * thm list) * thm) list * 'b ->
    (((string * typ) list * thm list) * thm) list * 'b)
-   -> FundefCommon.ctx_tree -> 'b -> 'b
+   -> ctx_tree -> 'b -> 'b
 
-    val rewrite_by_tree : theory -> term -> thm -> (thm * thm) list -> FundefCommon.ctx_tree -> thm * (thm * thm) list
+    val rewrite_by_tree : theory -> term -> thm -> (thm * thm) list -> ctx_tree -> thm * (thm * thm) list
 end
 
 structure FundefCtxTree : FUNDEF_CTXTREE =
@@ -43,6 +43,13 @@ struct
 
 open FundefCommon
 open FundefLib
+
+type depgraph = int IntGraph.T
+
+datatype ctx_tree 
+  = Leaf of term
+  | Cong of (term * thm * depgraph * ((string * typ) list * thm list * ctx_tree) list)
+  | RCall of (term * ctx_tree)
 
 
 (* Maps "Trueprop A = B" to "A" *)
@@ -160,7 +167,7 @@ fun export_thm thy (fixes, assumes) =
 
 fun import_thm thy (fixes, athms) =
     fold (forall_elim o cterm_of thy o Free) fixes
- #> fold implies_elim_swp athms
+ #> fold (flip implies_elim) athms
 
 fun assume_in_ctxt thy (fixes, athms) prop =
     let

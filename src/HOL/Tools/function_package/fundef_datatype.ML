@@ -249,13 +249,21 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
                            |> tap (check_defs ctxt fixes) (* Standard checks *)
                            |> tap (map (check_pats ctxt))    (* More checks for sequential mode *)
                            |> curry op ~~ flags'
-                           |> add_catchall fixes   (* Completion: still disabled *)
+                           |> add_catchall fixes   (* Completion *)
                            |> FundefSplit.split_some_equations ctxt
 
           fun restore_spec thms =
               nas ~~ Library.take (length nas, Library.unflat spliteqs thms)
+              
+          val spliteqs' = flat (Library.take (length nas, spliteqs))
+          val fnames = map (fst o fst) fixes
+          val indices = map (fn eq => find_index (curry op = (fname_of eq)) fnames) spliteqs'
+
+          fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1) (indices ~~ xs)
+                                       |> map (map snd)
+
         in
-          (flat spliteqs, restore_spec)
+          (flat spliteqs, restore_spec, sort)
         end
       else
         FundefCommon.empty_preproc check_defs config flags ctxt fixes spec

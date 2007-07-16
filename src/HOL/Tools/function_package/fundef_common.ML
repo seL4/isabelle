@@ -26,14 +26,6 @@ val graph_name = suffix "_graph"
 val rel_name = suffix "_rel"
 val dom_name = suffix "_dom"
 
-type depgraph = int IntGraph.T
-
-datatype ctx_tree 
-  = Leaf of term
-  | Cong of (term * thm * depgraph * ((string * typ) list * thm list * ctx_tree) list)
-  | RCall of (term * ctx_tree)
-
-
 
 datatype fundef_result =
   FundefResult of
@@ -58,6 +50,7 @@ datatype fundef_context_data =
      {
       defname : string,
 
+      (* contains no logical entities: invariant under morphisms *)
       add_simps : string -> Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
 
       fs : term list,
@@ -73,7 +66,7 @@ fun morph_fundef_data phi (FundefCtxData {add_simps, fs, R, psimps, pinducts, te
       val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
       val name = Morphism.name phi
     in
-      FundefCtxData { add_simps = add_simps (* contains no logical entities *), 
+      FundefCtxData { add_simps = add_simps,
                       fs = map term fs, R = term R, psimps = fact psimps, 
                       pinducts = fact pinducts, termination = thm termination,
                       defname = name defname }
@@ -154,7 +147,6 @@ fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
     FundefData.map (fold (fn f => NetRules.insert (f, data)) fs)
     #> store_termination_rule termination
 
-
 (* Configuration management *)
 datatype fundef_opt 
   = Sequential
@@ -185,6 +177,10 @@ fun apply_opt Sequential (FundefConfig {sequential, default, target, domintros,t
     FundefConfig {sequential=sequential, default=default, target=target, domintros=domintros,tailrec=true}
 
 fun target_of (FundefConfig {target, ...}) = target
+
+val default_config = FundefConfig { sequential=false, default="%x. arbitrary", 
+                                    target=NONE, domintros=false, tailrec=false }
+
 
 (* Common operations on equations *)
 
@@ -248,7 +244,7 @@ fun check_defs ctxt fixes eqs =
             val _ = null rvs orelse error (input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
                                                         ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:"))
                                     
-            val _ = forall (FundefLib.forall_aterms (fn Free (n, _) => not (n mem fnames) | _ => true)) gs 
+            val _ = forall (not o Term.exists_subterm (fn Free (n, _) => n mem fnames | _ => false)) gs 
                     orelse error (input_error "Recursive Calls not allowed in premises")
           in
             fqgar
@@ -265,14 +261,23 @@ fun check_defs ctxt fixes eqs =
 
 type fixes = ((string * typ) * mixfix) list
 type 'a spec = ((bstring * Attrib.src list) * 'a list) list
-type preproc = fundef_config -> bool list -> Proof.context -> fixes -> term spec -> (term list * (thm list -> thm spec))
+type preproc = fundef_config -> bool list -> Proof.context -> fixes -> term spec 
+               -> (term list * (thm list -> thm spec) * (thm list -> thm list list))
+
+val fname_of = fst o dest_Free o fst o strip_comb o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Logic.strip_imp_concl o snd o dest_all_all
 
 fun empty_preproc check _ _ ctxt fixes spec =
     let 
       val (nas,tss) = split_list spec
       val _ = check ctxt fixes (flat tss)
+      val ts = flat tss
+      val fnames = map (fst o fst) fixes
+      val indices = map (fn eq => find_index (curry op = (fname_of eq)) fnames) ts
+
+      fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1) (indices ~~ xs)
+                        |> map (map snd)
     in
-      (flat tss, curry op ~~ nas o Library.unflat tss)
+      (ts, curry op ~~ nas o Library.unflat tss, sort)
     end
 
 structure Preprocessor = GenericDataFun
@@ -313,44 +318,11 @@ local
 
   val flags_statements = statements_ow
                          >> (fn sow => (map (snd o snd) sow, map (apsnd fst) sow))
-
-  fun basic_apply_flags ((config, fixes), (flags, statements)) = ((config, fixes), statements)
 in
   fun fundef_parser default_cfg = (config_parser default_cfg -- P.fixes --| P.$$$ "where" -- flags_statements)
-                                  
 end
-
-
-
-
-
-val default_config = FundefConfig { sequential=false, default="%x. arbitrary", 
-                                    target=NONE, domintros=false, tailrec=false }
 
 
 end
 end
 
-(* Common Abbreviations *)
-
-structure FundefAbbrev =
-struct
-
-fun implies_elim_swp x y = implies_elim y x
-
-(* HOL abbreviations *)
-val boolT = HOLogic.boolT
-val mk_prod = HOLogic.mk_prod
-val mk_eq = HOLogic.mk_eq
-val eq_const = HOLogic.eq_const
-val Trueprop = HOLogic.mk_Trueprop
-val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT
-
-fun free_to_var (Free (v,T)) = Var ((v,0),T)
-  | free_to_var _ = raise Match
-
-fun var_to_free (Var ((v,_),T)) = Free (v,T)
-  | var_to_free _ = raise Match
-
-
-end

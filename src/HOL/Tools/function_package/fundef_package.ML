@@ -44,20 +44,20 @@ val note_theorem = LocalTheory.note Thm.theoremK
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
 
-fun add_simps fixes post sort label moreatts simps lthy =
+fun add_simps fnames post sort label moreatts simps lthy =
     let
-      val fnames = map (fst o fst) fixes
+      val atts = Attrib.internal (K Simplifier.simp_add) :: moreatts
+      val spec = post simps
+                   |> map (apfst (apsnd (append atts)))
 
       val (saved_spec_simps, lthy) =
-        fold_map note_theorem (post simps) lthy
-      val saved_simps = flat (map snd saved_spec_simps)
+        fold_map note_theorem spec lthy
 
+      val saved_simps = flat (map snd saved_spec_simps)
       val simps_by_f = sort saved_simps
 
       fun add_for_f fname simps =
-        note_theorem
-          ((NameSpace.qualified fname label, Attrib.internal (K Simplifier.simp_add) :: moreatts),
-            simps) #> snd
+        note_theorem ((NameSpace.qualified fname label, []), simps) #> snd
     in
       (saved_simps,
        fold2 add_for_f fnames simps_by_f lthy)
@@ -68,8 +68,9 @@ fun fundef_afterqed config fixes post defname cont sort_cont [[proof]] lthy =
       val FundefResult {fs, R, psimps, trsimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = 
           cont (Goal.close_result proof)
 
+      val fnames = map (fst o fst) fixes
       val qualify = NameSpace.qualified defname
-      val addsmps = add_simps fixes post sort_cont
+      val addsmps = add_simps fnames post sort_cont
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
@@ -107,11 +108,11 @@ fun prepare_spec prep fixspec eqnss lthy = (* FIXME: obsolete when "read_specifi
 fun gen_add_fundef prep fixspec eqnss config flags lthy =
     let
       val ((fixes, spec), ctxt') = prepare_spec prep fixspec eqnss lthy
-      val (eqs, post) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
+      val (eqs, post, sort_cont) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
 
       val defname = mk_defname fixes
 
-      val ((goalstate, cont, sort_cont), lthy) =
+      val ((goalstate, cont), lthy) =
           FundefMutual.prepare_fundef_mutual config defname fixes eqs lthy
 
       val afterqed = fundef_afterqed config fixes post defname cont sort_cont
@@ -189,6 +190,7 @@ val case_cong_hook = fold add_case_cong
 val setup_case_cong_hook =
     DatatypeHooks.add case_cong_hook
     #> (fn thy => case_cong_hook (Symtab.keys (DatatypePackage.get_datatypes thy)) thy)
+
 
 (* ad-hoc method to convert elimination-style goals to existential statements *)
 

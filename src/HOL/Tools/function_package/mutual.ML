@@ -16,7 +16,6 @@ sig
                               -> local_theory
                               -> ((thm (* goalstate *)
                                    * (thm -> FundefCommon.fundef_result) (* proof continuation *)
-                                   * (thm list -> thm list list)         (* sorting continuation *)
                                   ) * local_theory)
 
 end
@@ -332,19 +331,6 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
                      trsimps=mtrsimps}
     end
       
-(* puts an object in the "right bucket" *)
-fun store_grouped P x [] = []
-  | store_grouped P x ((l, xs)::bs) =
-    if P (x, l) then ((l, x::xs)::bs) else ((l, xs)::store_grouped P x bs)
-                                           
-fun sort_by_function (Mutual {fqgars, ...}) names xs =
-    fold_rev (store_grouped (op = o apfst fst))  (* fill *)
-             (map name_of_fqgar (Library.take (length xs, fqgars)) ~~ xs)      (* the name-thm pairs *)
-             (map (rpair []) names)                (* in the empty buckets labeled with names *)
-             
-             |> map (snd #> map snd)                     (* and remove the labels afterwards *)
-
-
 fun prepare_fundef_mutual config defname fixes eqss lthy =
     let
       val mutual = analyze_eqs lthy defname (map fst fixes) (map Envir.beta_eta_contract eqss)
@@ -356,9 +342,8 @@ fun prepare_fundef_mutual config defname fixes eqss lthy =
       val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
 
       val mutual_cont = mk_partial_rules_mutual lthy'' cont mutual'
-      val sort_cont = sort_by_function mutual' (map (fst o fst) fixes)
     in
-      ((goalstate, mutual_cont, sort_cont), lthy'')
+      ((goalstate, mutual_cont), lthy'')
     end
 
     
