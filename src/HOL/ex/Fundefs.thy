@@ -169,7 +169,7 @@ where
 thm evn.simps
 thm od.simps
 
-thm evn_od.pinduct
+thm evn_od.induct
 thm evn_od.termination
 
 
