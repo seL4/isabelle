@@ -8,7 +8,11 @@ theory Codegenerator
 imports ExecutableContent
 begin
 
-code_gen "*" in SML in OCaml file - in OCaml file -
-code_gen in SML in OCaml file - in OCaml file -
+code_gen "*" in SML to CodegenTest
+  in OCaml file -
+  in Haskell file -
+code_gen in SML to CodegenTest
+  in OCaml file -
+  in Haskell file -
 
 end

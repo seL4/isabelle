@@ -11,6 +11,7 @@ sig
   val get_eq_datatype: theory -> string -> thm list
   val dest_case_expr: theory -> term
     -> ((string * typ) list * ((term * typ) * (term * term) list)) option
+  val get_case_cert: theory -> string -> thm
 
   type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
     -> theory -> theory
@@ -405,6 +406,36 @@ fun get_eq_datatype thy dtco =
   in inject1 @ inject2 @ distinct end;
 
 end;
+
+fun get_case_cert thy tyco =
+  let
+    val raw_thms =
+      (#case_rewrites o DatatypePackage.the_datatype thy) tyco;
+    val thms as hd_thm :: _ = raw_thms
+      |> Conjunction.intr_balanced
+      |> Drule.unvarify
+      |> Conjunction.elim_balanced (length raw_thms)
+      |> map Simpdata.mk_meta_eq
+      |> map Drule.zero_var_indexes
+    val params = fold_aterms (fn (Free (v, _)) => insert (op =) v
+      | _ => I) (Thm.prop_of hd_thm) [];
+    val rhs = hd_thm
+      |> Thm.prop_of
+      |> Logic.dest_equals
+      |> fst
+      |> Term.strip_comb
+      |> apsnd (fst o split_last)
+      |> list_comb;
+    val lhs = Free (Name.variant params "case", Term.fastype_of rhs);
+    val asm = (Thm.cterm_of thy o Logic.mk_equals) (lhs, rhs);
+  in
+    thms
+    |> Conjunction.intr_balanced
+    |> MetaSimplifier.rewrite_rule [(Thm.symmetric o Thm.assume) asm]
+    |> Thm.implies_intr asm
+    |> Thm.generalize ([], params) 0
+    |> Thm.varifyT
+  end;
 
 
 
