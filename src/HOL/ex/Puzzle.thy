@@ -31,15 +31,10 @@ done
 lemma lemma1: "n <= f(n)"
 by (blast intro: lemma0)
 
-lemma lemma2: "f(n) < f(Suc(n))"
-by (blast intro: le_less_trans lemma1)
-
 lemma f_mono [rule_format (no_asm)]: "m <= n --> f(m) <= f(n)"
 apply (induct_tac "n")
- apply simp
-apply (rule impI)
-apply (erule le_SucE)
- apply (cut_tac n = n in lemma2, auto) 
+ apply simp 
+ apply (metis f_ax le_SucE le_trans lemma0 nat_le_linear nat_less_le)
 done
 
 lemma f_id: "f(n) = n"
