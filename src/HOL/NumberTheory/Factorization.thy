@@ -93,12 +93,8 @@ lemma prime_nd_one: "prime p ==> \<not> p dvd Suc 0"
   apply auto
   done
 
-lemma hd_dvd_prod: "prod (x # xs) = prod ys ==> x dvd (prod ys)"
-  apply (unfold dvd_def)
-  apply (rule exI)
-  apply (rule sym)
-  apply simp
-  done
+lemma hd_dvd_prod: "prod (x # xs) = prod ys ==> x dvd (prod ys)" 
+  by (metis dvd_mult_left dvd_refl prod.simps(2))
 
 lemma primel_tl: "primel (x # xs) ==> primel xs"
   apply (unfold primel_def)
@@ -233,12 +229,8 @@ lemma not_prime_ex_mk:
   done
 
 lemma split_primel:
-    "primel xs ==> primel ys ==> \<exists>l. primel l \<and> prod l = prod xs * prod ys"
-  apply (rule exI)
-  apply safe
-   apply (rule_tac [2] prod_append)
-  apply (simp add: primel_append)
-  done
+    "primel xs ==> primel ys ==> \<exists>l. primel l \<and> prod l = prod xs * prod ys" 
+  by (metis primel_append prod.simps(2) prod_append)
 
 lemma factor_exists [rule_format]: "Suc 0 < n --> (\<exists>l. primel l \<and> prod l = n)"
   apply (induct n rule: nat_less_induct)
@@ -329,27 +321,14 @@ lemma factor_unique [rule_format]:
   apply (rule perm.Cons)
   apply (case_tac "x = []")
    apply (simp add: perm_sing_eq primel_hd_tl)
-   apply (rule_tac p = a in prod_one_empty)
-     apply simp_all
-  apply (erule uniq_ex_aux)
-     apply (auto intro: primel_tl perm_primel simp add: primel_hd_tl)
-   apply (rule_tac k = a and n = "prod list" and m = "prod x" in mult_left_cancel)
-    apply (rule_tac [3] x = a in primel_prod_less)
-      apply (rule_tac [2] prod_xy_prod)
-      apply (rule_tac [2] s = "prod ys" in HOL.trans)
-       apply (erule_tac [3] perm_prod)
-      apply (erule_tac [5] perm_prod [symmetric])
-     apply (auto intro: perm_primel prime_g_zero)
+   apply (metis less_irrefl prime_g_zero primel_one_empty prod.simps(1))
+  apply (metis div_mult_self1_is_m nat_0_less_mult_iff perm_primel perm_prod perm_sym primel_prod_gz primel_prod_less primel_tl prod.simps(2))
   done
 
 lemma perm_nondec_unique:
     "xs <~~> ys ==> nondec xs ==> nondec ys ==> xs = ys"
-  apply (rule HOL.trans)
-   apply (rule HOL.trans)
-    apply (erule nondec_sort_eq)
-   apply (erule perm_sort_eq)
-  apply (erule nondec_sort_eq [symmetric])
-  done
+  by (metis nondec_sort_eq perm_sort_eq)
+
 
 lemma unique_prime_factorization [rule_format]:
     "\<forall>n. Suc 0 < n --> (\<exists>!l. primel l \<and> nondec l \<and> prod l = n)"
