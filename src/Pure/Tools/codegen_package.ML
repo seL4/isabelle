@@ -50,7 +50,7 @@ fun merge_abstypes ((typs1, consts1) : abstypes, (typs2, consts2) : abstypes) =
   (Symtab.merge (Type.eq_type Vartab.empty) (typs1, typs2),
     Consttab.merge CodegenConsts.eq_const (consts1, consts2));
 
-structure CodegenPackageData = TheoryDataFun
+structure Translation = TheoryDataFun
 (
   type T = appgens * abstypes;
   val empty = (Symtab.empty, (Symtab.empty, Consttab.empty));
@@ -109,7 +109,7 @@ structure Code = CodeDataFun
 
 (* translation kernel *)
 
-fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o CodegenPackageData.get) thy) tyco
+fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o Translation.get) thy) tyco
  of SOME ty => SOME ((map_atyps (fn TFree (n, _) => nth tys (the (Int.fromString n)))) ty)
   | NONE => NONE;
 
@@ -269,7 +269,7 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr (const as (c, opt_tyco)) 
       |-> (fn _ => succeed CodegenThingol.Bot);
     fun defgen_fun trns =
       let
-        val const' = perhaps (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy)) const;
+        val const' = perhaps (Consttab.lookup ((snd o snd o Translation.get) thy)) const;
         val raw_thms = CodegenFuncgr.funcs funcgr const';
         val ty = (Logic.unvarifyT o CodegenFuncgr.typ funcgr) const';
         val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
@@ -341,7 +341,7 @@ and appgen_default thy algbr funcgr ((c, ty), ts) trns =
   ||>> fold_map (exprgen_term thy algbr funcgr) ts
   |>> (fn ((((c, tys), ty), iss), ts) => IConst (c, (iss, tys)) `$$ ts)
 and select_appgen thy algbr funcgr ((c, ty), ts) trns =
-  case Symtab.lookup (fst (CodegenPackageData.get thy)) c
+  case Symtab.lookup (fst (Translation.get thy)) c
    of SOME (i, (appgen, _)) =>
         if length ts < i then
           let
@@ -423,7 +423,7 @@ fun add_appconst (c, appgen) thy =
     val i = (length o fst o strip_type o Sign.the_const_type thy) c;
     val _ = Code.change thy (K CodegenThingol.empty_code);
   in
-    (CodegenPackageData.map o apfst)
+    (Translation.map o apfst)
       (Symtab.update (c, (i, (appgen, stamp ())))) thy
   end;
 
@@ -476,7 +476,7 @@ fun gen_abstyp prep_const prep_typ (raw_abstyp, raw_substtyp) raw_absconsts thy 
     val _ = Code.change thy (K CodegenThingol.empty_code);
   in
     thy
-    |> (CodegenPackageData.map o apsnd) (fn (abstypes, abscs) =>
+    |> (Translation.map o apsnd) (fn (abstypes, abscs) =>
           (abstypes
           |> Symtab.update (abstyco, typpat),
           abscs
@@ -490,7 +490,7 @@ fun gen_constsubst prep_const raw_constsubsts thy =
     val _ = Code.change thy (K CodegenThingol.empty_code);
   in
     thy
-    |> (CodegenPackageData.map o apsnd o apsnd) (fold (add_consts thy I) constsubsts)
+    |> (Translation.map o apsnd o apsnd) (fold (add_consts thy I) constsubsts)
   end;
 
 in
@@ -510,7 +510,7 @@ end; (*local*)
 
 fun generate thy funcgr gen it =
   let
-    val cs = map_filter (Consttab.lookup ((snd o snd o CodegenPackageData.get) thy))
+    val cs = map_filter (Consttab.lookup ((snd o snd o Translation.get) thy))
       (CodegenFuncgr.all funcgr);
     val funcgr' = Funcgr.make thy cs;
     val naming = NameSpace.qualified_names NameSpace.default_naming;
