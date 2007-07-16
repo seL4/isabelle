@@ -10,62 +10,16 @@ theory While_Combinator
 imports Main
 begin
 
-text {*
- We define a while-combinator @{term while} and prove: (a) an
- unrestricted unfolding law (even if while diverges!)  (I got this
- idea from Wolfgang Goerigk), and (b) the invariant rule for reasoning
- about @{term while}.
+text {* 
+  We define the while combinator as the "mother of all tail recursive functions".
 *}
 
-consts while_aux :: "('a => bool) \<times> ('a => 'a) \<times> 'a => 'a"
-recdef (permissive) while_aux
-  "same_fst (\<lambda>b. True) (\<lambda>b. same_fst (\<lambda>c. True) (\<lambda>c.
-      {(t, s).  b s \<and> c s = t \<and>
-        \<not> (\<exists>f. f (0::nat) = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1)))}))"
-  "while_aux (b, c, s) =
-    (if (\<exists>f. f (0::nat) = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1)))
-      then arbitrary
-      else if b s then while_aux (b, c, c s)
-      else s)"
+function (tailrec) while :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+where
+  while_unfold[simp del]: "while b c s = (if b s then while b c (c s) else s)"
+by auto
 
-recdef_tc while_aux_tc: while_aux
-  apply (rule wf_same_fst)
-  apply (rule wf_same_fst)
-  apply (simp add: wf_iff_no_infinite_down_chain)
-  apply blast
-  done
-
-definition
-  while :: "('a => bool) => ('a => 'a) => 'a => 'a" where
-  "while b c s = while_aux (b, c, s)"
-
-lemma while_aux_unfold:
-  "while_aux (b, c, s) =
-    (if \<exists>f. f (0::nat) = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1))
-      then arbitrary
-      else if b s then while_aux (b, c, c s)
-      else s)"
-  apply (rule while_aux_tc [THEN while_aux.simps [THEN trans]])
-  apply (rule refl)
-  done
-
-text {*
- The recursion equation for @{term while}: directly executable!
-*}
-
-theorem while_unfold [code]:
-    "while b c s = (if b s then while b c (c s) else s)"
-  apply (unfold while_def)
-  apply (rule while_aux_unfold [THEN trans])
-  apply auto
-  apply (subst while_aux_unfold)
-  apply simp
-  apply clarify
-  apply (erule_tac x = "\<lambda>i. f (Suc i)" in allE)
-  apply blast
-  done
-
-hide const while_aux
+declare while_unfold[code]
 
 lemma def_while_unfold:
   assumes fdef: "f == while test do"
