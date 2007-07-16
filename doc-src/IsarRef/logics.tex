@@ -798,7 +798,7 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 
 \begin{rail}
 'code\_gen' ( constexpr + ) ? \\
-  ( ( 'in' target ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?;
+  ( ( 'in' target ( 'to' string ) ? ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?;
 
 'code\_thms' ( constexpr + ) ?;
 
@@ -863,6 +863,10 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
   to all exeuctable contants within a certain theory named ``name''
   by giving (``name.*''), or referring to \emph{all} executable
   constants currently available (``*'').
+
+  By default, for each involved theory one corresponding name space module
+  is generated.  Alternativly, a module name may be specified after the (``to'')
+  keyword; then \emph{all} code is placed in this module.
 
   For \emph{SML} and \emph{OCaml}, the file specification refers to
   a single file;  for \emph{Haskell}, it refers to a whole directory,
