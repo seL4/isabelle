@@ -94,7 +94,7 @@ subsubsection {* diamond, confluence, and union *}
 lemma diamond_Un:
     "[| diamond R; diamond S; commute R S |] ==> diamond (sup R S)"
   apply (unfold diamond_def)
-  apply (assumption | rule commute_Un commute_sym)+
+  apply (blast intro: commute_Un commute_sym) 
   done
 
 lemma diamond_confluent: "diamond R ==> confluent R"
