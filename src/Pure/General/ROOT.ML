@@ -4,6 +4,7 @@
 Library of general tools.
 *)
 
+use "print_mode.ML";
 use "stack.ML";
 use "ord_list.ML";
 use "alist.ML";
