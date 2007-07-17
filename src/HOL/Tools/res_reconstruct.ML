@@ -33,7 +33,7 @@ fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s
 (*Full proof reconstruction wanted*)
 val full = ref true;
 
-val recon_sorts = ref false;
+val recon_sorts = ref true;
 
 val modulus = ref 1;    (*keep every nth proof line*)
 
@@ -512,7 +512,9 @@ fun signal_success probfile toParent ppid msg =
     TextIO.output (toParent, "Success.\n");
     TextIO.output (toParent, probfile ^ "\n");
     TextIO.flushOut toParent;
-    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2)
+    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+    (*Give the parent time to respond before possibly sending another signal*)
+    OS.Process.sleep (Time.fromMilliseconds 600)
   end;
 
 fun tstp_extract proofextract probfile toParent ppid ctxt th sgno thm_names =
