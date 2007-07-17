@@ -13,7 +13,7 @@ $ isabelle RAW_ML_SYSTEM
 > use "ML-Systems/mosml.ML";
 > use "ROOT.ML";
 > Session.finish ();
-> cd "../HOL";
+> cd "../FOL";
 > use "ROOT.ML";
 *)
 
@@ -123,6 +123,9 @@ structure TextIO =
 struct
   fun canInput _ = raise IO.Io {cause = Fail "undefined", function = "canInput", name = ""};
   open TextIO;
+  fun inputLine is =
+    let val s = TextIO.inputLine is
+    in if s = "" then NONE else SOME s end;
 end;
 
 
