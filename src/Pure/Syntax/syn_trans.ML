@@ -147,11 +147,20 @@ fun bigimpl_ast_tr (*"_bigimpl"*) (asts as [asms, concl]) =
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
 
-(* type reflection *)
+(* meta conjunction *)
+
+fun conjunction_tr [t, u] = Lexicon.const "ProtoPure.conjunction" $ t $ u
+  | conjunction_tr ts = raise TERM ("conjunction_tr", ts);
+
+
+(* type/term reflection *)
 
 fun type_tr (*"_TYPE"*) [ty] =
       Lexicon.const "_constrain" $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty)
   | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
+
+fun term_tr [t] = Lexicon.const "ProtoPure.term" $ t
+  | term_tr ts = raise TERM ("term_tr", ts);
 
 
 (* dddot *)
@@ -453,8 +462,8 @@ val pure_trfuns =
    ("_bigimpl", bigimpl_ast_tr), ("_indexdefault", indexdefault_ast_tr),
    ("_indexnum", indexnum_ast_tr), ("_indexvar", indexvar_ast_tr), ("_struct", struct_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-   ("_TYPE", type_tr), ("_DDDOT", dddot_tr),
-   ("_index", index_tr)],
+   ("\\<^fixed>meta_conjunction", conjunction_tr), ("_TYPE", type_tr),
+   ("\\<^fixed>meta_term", term_tr), ("_DDDOT", dddot_tr), ("_index", index_tr)],
   ([]: (string * (term list -> term)) list),
   [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
    ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr'),

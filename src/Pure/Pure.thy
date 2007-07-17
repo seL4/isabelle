@@ -33,10 +33,6 @@ subsection {* Embedded terms *}
 locale (open) meta_term_syntax =
   fixes meta_term :: "'a => prop"  ("TERM _")
 
-parse_translation {*
-  [("\<^fixed>meta_term", fn [t] => Const ("ProtoPure.term", dummyT --> propT) $ t)]
-*}
-
 lemmas [intro?] = termI
 
 
@@ -44,10 +40,6 @@ subsection {* Meta-level conjunction *}
 
 locale (open) meta_conjunction_syntax =
   fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-
-parse_translation {*
-  [("\<^fixed>meta_conjunction", fn [t, u] => Logic.mk_conjunction (t, u))]
-*}
 
 lemma all_conjunction:
   includes meta_conjunction_syntax
