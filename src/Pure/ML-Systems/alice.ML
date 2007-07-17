@@ -7,6 +7,7 @@ NOTE: there is no wrapper script; may run it interactively as follows:
 
 $ cd Isabelle/src/Pure
 $ env ALICE_JIT_MODE=0 alice
+- val ml_system = "alice";
 - use "ML-Systems/alice.ML";
 - use "ROOT.ML";
 - Session.finish ();
