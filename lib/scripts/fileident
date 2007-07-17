@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# fileident --- produce file identification based
+
+FILE="$1"
+
+if [ -n "$ISABELLE_FILE_IDENT" -a -f "$FILE" -a -r "$FILE" ]
+then
+  ID=$(cat "$FILE" | $ISABELLE_FILE_IDENT | cut -d " " -f 1) && echo -n "$ID"
+fi
