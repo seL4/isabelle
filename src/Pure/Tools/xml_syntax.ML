@@ -154,6 +154,8 @@ fun proof_of_xml (tree as XML.Elem ("PBound", [("index", idx)], [])) =
       proof_of_xml proof % SOME (term_of_xml term)
   | proof_of_xml (XML.Elem ("AppP", [], [proof, proof'])) =
       proof_of_xml proof %% proof_of_xml proof'
+  | proof_of_xml (XML.Elem ("Hyp", [], [term])) =
+      Hyp (term_of_xml term)
   | proof_of_xml (XML.Elem ("PThm", [("name", s)], term :: opttypes)) =
       PThm (s, MinProof ([], [], []),  (* FIXME? *)
         term_of_xml term, opttypes_of_xml opttypes)
