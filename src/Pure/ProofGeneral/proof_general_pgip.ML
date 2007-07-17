@@ -513,17 +513,17 @@ fun use_thy_or_ml_file file =
 (* Responses to each of the PGIP input commands.
    These are programmed uniformly for extensibility. *)
 
-fun askpgip (Askpgip vs) =
+fun askpgip (Askpgip _) =
     (issue_pgip
          (Usespgip { version = PgipIsabelle.isabelle_pgip_version_supported,
                      pgipelems = PgipIsabelle.accepted_inputs });
      send_pgip_config())
 
-fun askpgml (Askpgml vs) =
+fun askpgml (Askpgml _) =
     issue_pgip
         (Usespgml { version = PgipIsabelle.isabelle_pgml_version_supported })
 
-fun askprefs (Askprefs vs) =
+fun askprefs (Askprefs _) =
     let
         fun preference_of {name, descr, default, pgiptype, get, set } =
             { name = name, descr = SOME descr, default = SOME default,
@@ -535,7 +535,7 @@ fun askprefs (Askprefs vs) =
                  (!preferences)
     end
 
-fun askconfig (Askconfig vs) = () (* TODO: add config response *)
+fun askconfig (Askconfig _) = () (* TODO: add config response *)
 
 local
     fun lookuppref pref =
@@ -563,9 +563,9 @@ fun getpref (Getpref vs) =
     end
 end
 
-fun proverinit vs = restart ()
+fun proverinit _ = restart ()
 
-fun proverexit vs = isarcmd "quit"
+fun proverexit _ = isarcmd "quit"
 
 fun set_proverflag_quiet b = 
     isarcmd (if b then "disable_pr" else "enable_pr")
@@ -608,9 +608,9 @@ fun undostep (Undostep vs) =
         isarcmd ("undos_proof " ^ Int.toString times)
     end
 
-fun redostep vs = isarcmd "redo"
+fun redostep _ = isarcmd "redo"
 
-fun abortgoal vs = isarcmd "kill" (* was: ProofGeneral.kill_proof *)
+fun abortgoal _ = isarcmd "kill" (* was: ProofGeneral.kill_proof *)
 
 
 (*** PGIP identifier tables ***)
@@ -791,7 +791,7 @@ val currently_open_file = ref (NONE : pgipurl option)
 
 fun get_currently_open_file () = ! currently_open_file;
 
-fun askguise vs =
+fun askguise _ =
     (* The "guise" is the PGIP abstraction of the prover's state.
        The <informguise> message is merely used for consistency checking. *)
     let
@@ -830,9 +830,9 @@ fun parsescript (Parsescript vs) =
                                   errs = map PgipOutput.output errs })
     end
 
-fun showproofstate vs = isarcmd "pr"
+fun showproofstate _ = isarcmd "pr"
 
-fun showctxt vs = isarcmd "print_context"
+fun showctxt _ = isarcmd "print_context"
 
 fun searchtheorems (Searchtheorems vs) =
     let
@@ -864,13 +864,13 @@ fun doitem (Doitem vs) =
         isarcmd text
     end
 
-fun undoitem vs =
+fun undoitem _ =
     isarcmd "undo"
 
-fun redoitem vs =
+fun redoitem _ =
     isarcmd "redo"
 
-fun aborttheory vs =
+fun aborttheory _ =
     isarcmd "kill"  (* was: "init_toplevel" *)
 
 fun retracttheory (Retracttheory vs) =
@@ -930,7 +930,7 @@ fun openfile (Openfile vs) =
                    currently_open_file := SOME url)
   end
 
-fun closefile vs =
+fun closefile _ =
     case !currently_open_file of
         SOME f => (proper_inform_file_processed f (Isar.state());
                    priority ("Finished working in file: " ^ PgipTypes.string_of_pgipurl f);
@@ -951,7 +951,7 @@ fun loadfile (Loadfile vs) =
         use_thy_or_ml_file (File.platform_path url)
     end
 
-fun abortfile vs =
+fun abortfile _ =
     case !currently_open_file of
         SOME f => (isarcmd "init_toplevel";
                    priority ("Aborted working in file: " ^
@@ -984,7 +984,7 @@ fun systemcmd (Systemcmd vs) =
   end
 
 exception PGIP_QUIT;
-fun quitpgip vs = raise PGIP_QUIT
+fun quitpgip _ = raise PGIP_QUIT
 
 fun process_input inp = case inp
  of Pgip.Askpgip _          => askpgip inp

@@ -81,7 +81,7 @@ struct
                                  opt_attr "metavarid" (#metavarid vs),
                     [])
 
-         | Closeblock vs =>
+         | Closeblock _ =>
            XML.Elem("closeblock", [], [])
 
          | Opentheory vs  =>
@@ -156,8 +156,8 @@ struct
 
    fun unparse_elt docelt =
    case docelt of
-       Openblock vs => ""
-     | Closeblock vs => ""
+       Openblock _ => ""
+     | Closeblock _ => ""
      | Opentheory vs => #text vs
      | Theoryitem vs => #text vs
      | Closetheory vs => #text vs

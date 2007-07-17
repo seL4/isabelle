@@ -350,7 +350,7 @@ fun pgip (Pgip vs) =
                  content)
     end
 
-fun ready (Ready vs) = XML.Elem("ready",[],[])
+fun ready (Ready _) = XML.Elem("ready",[],[])
 
 
 fun output pgipoutput = case pgipoutput of
