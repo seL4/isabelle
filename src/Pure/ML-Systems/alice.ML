@@ -2,6 +2,14 @@
     ID:         $Id$
 
 Compatibility file for Alice 1.4.
+
+NOTE: there is no wrapper script; may run it interactively as follows:
+
+$ cd Isabelle/src/Pure
+$ env ALICE_JIT_MODE=0 alice
+- use "ML-Systems/alice.ML";
+- use "ROOT.ML";
+- Session.finish ();
 *)
 
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
@@ -118,6 +126,12 @@ fun interrupt_timeout time f x =
 
 
 (** OS related **)
+
+(* current directory *)
+
+val cd = OS.FileSys.chDir;
+val pwd = OS.FileSys.getDir;
+
 
 (* system command execution *)
 

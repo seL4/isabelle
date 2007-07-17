@@ -217,10 +217,6 @@ sig
   val one_of: 'a list -> 'a
   val frequency: (int * 'a) list -> 'a
 
-  (*current directory*)
-  val cd: string -> unit
-  val pwd: unit -> string
-
   (*misc*)
   val divide_and_conquer: ('a -> 'a list * ('b list -> 'b)) -> 'a -> 'b
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
@@ -1015,13 +1011,6 @@ fun frequency xs =
     fun pick n ((k: int, x) :: xs) =
       if n <= k then x else pick (n - k) xs
   in pick (random_range 1 sum) xs end;
-
-
-
-(** current directory **)
-
-val cd = OS.FileSys.chDir;
-val pwd = OS.FileSys.getDir;
 
 
 

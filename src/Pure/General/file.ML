@@ -52,8 +52,8 @@ fun shell_path path = ! shell_path_fn path;
 
 (* current path *)
 
-val cd = Library.cd o platform_path;
-val pwd = explode_platform_path o Library.pwd;
+val cd = cd o platform_path;
+val pwd = explode_platform_path o pwd;
 
 fun norm_absolute p =
   let

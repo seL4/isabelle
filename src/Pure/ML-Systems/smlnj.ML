@@ -216,6 +216,12 @@ end;
 
 (** OS related **)
 
+(* current directory *)
+
+val cd = OS.FileSys.chDir;
+val pwd = OS.FileSys.getDir;
+
+
 (* system command execution *)
 
 (*execute Unix command which doesn't take any input from stdin and

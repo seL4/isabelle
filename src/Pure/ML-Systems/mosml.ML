@@ -7,7 +7,7 @@ Compatibility file for Moscow ML 2.01
 
 NOTE: saving images does not work; may run it interactively as follows:
 
-$ cd ~~/src/Pure
+$ cd Isabelle/src/Pure
 $ isabelle RAW_ML_SYSTEM
 > val ml_system = "mosml";
 > use "ML-Systems/mosml.ML";
@@ -163,6 +163,12 @@ fun raise_interrupt f x = f x;
 
 
 (** OS related **)
+
+(* current directory *)
+
+val cd = OS.FileSys.chDir;
+val pwd = OS.FileSys.getDir;
+
 
 (* system command execution *)
 
