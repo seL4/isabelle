@@ -180,6 +180,13 @@
         <xsd:attribute name="vname" type="xsd:string" use="required"/>
       </xsd:complexType>
     </xsd:element>
+    <xsd:element name="Hyp">
+      <xsd:complexType>
+        <xsd:sequence>
+          <xsd:group ref="termGroup"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:element>
   </xsd:choice>
 </xsd:group>
 
