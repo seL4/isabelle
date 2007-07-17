@@ -7,16 +7,14 @@ Pure Isabelle.
 val banner = "Pure Isabelle";
 val version = "Isabelle repository version";    (*filled in automatically!*)
 
+(*if true then some tools will OMIT some proofs*)
+val quick_and_dirty = ref false;
+
 print_depth 10;
 
 (*basic tools*)
 use "General/basics.ML";
 use "library.ML";
-
-(*generic non-sense*)
-val quick_and_dirty = ref false;
-val print_mode = ref ([]: string list);
-fun print_mode_active s = member (op =) (! print_mode) s;
 
 cd "General"; use "ROOT.ML"; cd "..";
 
@@ -42,15 +40,6 @@ use "Syntax/syn_trans.ML";
 use "Syntax/mixfix.ML";
 use "Syntax/printer.ML";
 use "Syntax/syntax.ML";
-structure Hidden = struct end;
-structure Lexicon = Hidden;
-structure Ast = Hidden;
-structure SynExt = Hidden;
-structure Parser = Hidden;
-structure TypeExt = Hidden;
-structure SynTrans = Hidden;
-structure Mixfix = Hidden;
-structure Printer = Hidden;
 
 use "General/ml_syntax.ML";
 
@@ -99,19 +88,4 @@ cd "Tools"; use "ROOT.ML"; cd "..";
 (*configuration for Proof General*)
 cd "ProofGeneral"; use "ROOT.ML"; cd "..";
 
-use_thy "Pure";
-structure Pure = struct val thy = theory "Pure" end;
-
-Context.add_setup
- (Sign.del_modesyntax Syntax.default_mode Syntax.appl_syntax #>
-  Sign.add_syntax Syntax.applC_syntax);
-use_thy "CPure";
-structure CPure = struct val thy = theory "CPure" end;
-
-(*final ML setup*)
-use "install_pp.ML";
-val use = ThyInfo.use;
-val cd = File.cd o Path.explode;
-ml_prompts "ML> " "ML# ";
-
-proofs := 0;
+use "pure_setup.ML";
