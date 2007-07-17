@@ -79,6 +79,13 @@ ISABELLE_USEDIR_OPTIONS="-p 1 -v true -V outline=/proof,/ML"
 HOL_USEDIR_OPTIONS=""
 #HOL_USEDIR_OPTIONS="-p 2"
 
+#Source file identification (default: full name + date stamp)
+ISABELLE_FILE_IDENT=""
+#ISABELLE_FILE_IDENT="md5"
+#ISABELLE_FILE_IDENT="md5sum"
+#ISABELLE_FILE_IDENT="sha1sum"
+#ISABELLE_FILE_IDENT="openssl dgst -sha1"
+
 
 ###
 ### Document preparation (cf. isatool latex/document)
