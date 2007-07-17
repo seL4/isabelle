@@ -322,11 +322,11 @@ lemma norm_unsigned_Cons1 [simp]: "norm_unsigned (\<one>#bs) = \<one>#bs"
 lemma norm_unsigned_idem [simp]: "norm_unsigned (norm_unsigned w) = norm_unsigned w"
   by (rule bit_list_induct [of _ w],simp_all)
 
-fun
+consts
   nat_to_bv_helper :: "nat => bit list => bit list"
-where (*recdef nat_to_bv_helper "measure (\<lambda>n. n)"*)
-  "nat_to_bv_helper n bs = (if n = 0 then bs
-                               else nat_to_bv_helper (n div 2) ((if n mod 2 = 0 then \<zero> else \<one>)#bs))"
+recdef nat_to_bv_helper "measure (\<lambda>n. n)"
+  "nat_to_bv_helper n = (%bs. (if n = 0 then bs
+                               else nat_to_bv_helper (n div 2) ((if n mod 2 = 0 then \<zero> else \<one>)#bs)))"
 
 definition
   nat_to_bv :: "nat => bit list" where
