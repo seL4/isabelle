@@ -33,26 +33,26 @@ subsubsection {* Basic logical connectives *}
 judgment
   Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
 
-consts
-  imp :: "o \<Rightarrow> o \<Rightarrow> o"    (infixr "\<longrightarrow>" 25)
+axiomatization
+  imp :: "o \<Rightarrow> o \<Rightarrow> o"    (infixr "\<longrightarrow>" 25) and
   All :: "('a \<Rightarrow> o) \<Rightarrow> o"    (binder "\<forall>" 10)
-
-axioms
-  impI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"
-  impE [dest, trans]: "A \<longrightarrow> B \<Longrightarrow> A \<Longrightarrow> B"
-  allI [intro]: "(\<And>x. P x) \<Longrightarrow> \<forall>x. P x"
+where
+  impI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B" and
+  impE [dest, trans]: "A \<longrightarrow> B \<Longrightarrow> A \<Longrightarrow> B" and
+  allI [intro]: "(\<And>x. P x) \<Longrightarrow> \<forall>x. P x" and
   allE [dest]: "\<forall>x. P x \<Longrightarrow> P a"
 
 
 subsubsection {* Extensional equality *}
 
-consts
+axiomatization
   equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"   (infixl "=" 50)
-
-axioms
-  refl [intro]: "x = x"
+where
+  refl [intro]: "x = x" and
   subst: "x = y \<Longrightarrow> P x \<Longrightarrow> P y"
-  ext [intro]: "(\<And>x. f x = g x) \<Longrightarrow> f = g"
+
+axiomatization where
+  ext [intro]: "(\<And>x. f x = g x) \<Longrightarrow> f = g" and
   iff [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A = B"
 
 theorem sym [sym]: "x = y \<Longrightarrow> y = x"
@@ -101,7 +101,7 @@ definition
 
 definition
   Ex :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10) where
-  "Ex \<equiv> \<lambda>P. \<forall>C. (\<forall>x. P x \<longrightarrow> C) \<longrightarrow> C"
+  "\<exists>x. P x \<equiv> \<forall>C. (\<forall>x. P x \<longrightarrow> C) \<longrightarrow> C"
 
 abbreviation
   not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"  (infixl "\<noteq>" 50) where
