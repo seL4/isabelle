@@ -229,8 +229,8 @@ end;
 
 fun setup_messages () =
  (Output.writeln_fn := (fn s => normalmsg Message s);
-  Output.priority_fn := (fn s => normalmsg Message s);
-  Output.tracing_fn := (fn s => normalmsg  Message s);
+  Output.priority_fn := (fn s => normalmsg Status s);
+  Output.tracing_fn := (fn s => normalmsg  Tracing s);
   Output.warning_fn := (fn s => errormsg Message Warning s);
   Output.error_fn := (fn s => errormsg Message Fatal s);
   Output.debug_fn := (fn s => errormsg Message Debug s));
@@ -820,6 +820,7 @@ fun parsescript (Parsescript vs) =
 
         val _ = start_delay_msgs ()   (* gather parsing errs/warns *)
         val doc = OldPgipParser.pgip_parser text
+		  (* not yet working: PgipParser.pgip_parser Position.none text  *)
         val errs = end_delayed_msgs ()
 
         val sysattrs = PgipTypes.opt_attr "systemdata" systemdata
