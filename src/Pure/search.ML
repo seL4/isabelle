@@ -196,7 +196,7 @@ fun DEEPEN (inc,lim) tacf m i =
               else if m>lim then
                        (warning "Search depth limit exceeded: giving up";
                         no_tac)
-              else (warning ("Search depth = " ^ string_of_int m);
+              else (priority ("Search depth = " ^ string_of_int m);
                              tacf m i  ORELSE  dpn (m+inc)))
   in  dpn m  end;
 
