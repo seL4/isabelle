@@ -27,10 +27,7 @@ lemma two_is_prime: "prime 2"
 
 lemma prime_imp_relprime: "prime p ==> \<not> p dvd n ==> gcd (p, n) = 1"
   apply (auto simp add: prime_def)
-  apply (drule_tac x = "gcd (p, n)" in spec)
-  apply auto
-  apply (insert gcd_dvd2 [of p n])
-  apply simp
+  apply (metis One_nat_def gcd_dvd1 gcd_dvd2)
   done
 
 text {*
