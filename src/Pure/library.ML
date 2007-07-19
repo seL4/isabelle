@@ -19,6 +19,7 @@ infix orf andf \ \\ mem mem_int mem_string union union_int
 signature BASIC_LIBRARY =
 sig
   (*functions*)
+  val undefined: 'a -> 'b
   val I: 'a -> 'a
   val K: 'a -> 'b -> 'a
   val flip: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
@@ -244,6 +245,8 @@ structure Library: LIBRARY =
 struct
 
 (* functions *)
+
+fun undefined _ = raise Match;
 
 fun I x = x;
 fun K x = fn _ => x;
