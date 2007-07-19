@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure Nat = 
 struct
 
@@ -22,5 +19,3 @@ fun fac n =
      | Nat.Suc m => Nat.times_nat n (fac m));
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

@@ -90,13 +90,13 @@ HOL/ex/Classpackage.thy for examples.
 code for ML and Haskell (including "class"es).  A short usage sketch:
 
     internal compilation:
-        code_gen <list of constants (term syntax)> (SML #)
+        code_gen <list of constants (term syntax)> in SML
     writing SML code to a file:
-        code_gen <list of constants (term syntax)> (SML <filename>)
+        code_gen <list of constants (term syntax)> in SML <filename>
     writing OCaml code to a file:
-        code_gen <list of constants (term syntax)> (OCaml <filename>)
+        code_gen <list of constants (term syntax)> in OCaml <filename>
     writing Haskell code to a bunch of files:
-        code_gen <list of constants (term syntax)> (Haskell <filename>)
+        code_gen <list of constants (term syntax)> in Haskell <filename>
 
 Reasonable default setup of framework in HOL/Main.
 
@@ -540,6 +540,27 @@ the graph browser tool.
 
 
 *** HOL ***
+
+* Code generator library theories:
+  * Pretty_Int represents HOL integers by big integer literals in target
+    languages.
+  * Pretty_Char represents HOL characters by character literals in target
+    languages.
+  * Pretty_Char_chr like Pretty_Char, but also offers treatment of character
+    codes; includes Pretty_Int.
+  * Executable_Set allows to generate code for finite sets using lists.
+  * Executable_Rat implements rational numbers as triples (sign, enumerator,
+    denominator).
+  * Executable_Real implements a subset of real numbers, namly those
+    representable by rational numbers.
+  * Efficient_Nat implements natural numbers by integers, which in general will
+    result in higher efficency; pattern matching with 0/Suc is eliminated;
+    includes Pretty_Int.
+  * ML_String provides an additional datatype ml_string; in the HOL default
+    setup, strings in HOL are mapped to lists of HOL characters in SML; values
+    of type ml_string are mapped to strings in SML.
+  * ML_Int provides an additional datatype ml_int which is mapped to to SML
+    built-in integers.
 
 * New package for inductive predicates
 

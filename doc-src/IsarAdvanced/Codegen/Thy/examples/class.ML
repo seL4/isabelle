@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure Nat = 
 struct
 
@@ -25,5 +22,3 @@ val dummy : Nat.nat option =
   head (null_optiona ()) [SOME (Nat.Suc Nat.Zero_nat), NONE];
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

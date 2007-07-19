@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure Nat = 
 struct
 
@@ -30,5 +27,3 @@ fun pick ((k, v) :: xs) n =
     end;
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

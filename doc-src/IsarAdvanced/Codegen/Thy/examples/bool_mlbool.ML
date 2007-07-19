@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure Nat = 
 struct
 
@@ -20,5 +17,3 @@ fun in_interval (k, l) n =
   (Nat.less_eq_nat k n) andalso (Nat.less_eq_nat n l);
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

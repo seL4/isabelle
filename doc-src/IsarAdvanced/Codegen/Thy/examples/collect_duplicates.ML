@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure HOL = 
 struct
 
@@ -12,8 +9,8 @@ end; (*struct HOL*)
 structure List = 
 struct
 
-fun memberl A_ x (y :: ys) = HOL.eq A_ x y orelse memberl A_ x ys
-  | memberl A_ x [] = false;
+fun member A_ x (y :: ys) = HOL.eq A_ x y orelse member A_ x ys
+  | member A_ x [] = false;
 
 end; (*struct List*)
 
@@ -21,12 +18,10 @@ structure Codegen =
 struct
 
 fun collect_duplicates B_ xs ys (z :: zs) =
-  (if List.memberl B_ z xs
-    then (if List.memberl B_ z ys then collect_duplicates B_ xs ys zs
+  (if List.member B_ z xs
+    then (if List.member B_ z ys then collect_duplicates B_ xs ys zs
            else collect_duplicates B_ xs (z :: ys) zs)
     else collect_duplicates B_ (z :: xs) (z :: ys) zs)
   | collect_duplicates B_ xs ys [] = xs;
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

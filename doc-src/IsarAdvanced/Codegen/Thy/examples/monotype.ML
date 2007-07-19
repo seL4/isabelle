@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure Nat = 
 struct
 
@@ -52,5 +49,3 @@ fun eq_monotype (Mono (tyco1, typargs1)) (Mono (tyco2, typargs2)) =
     List.list_all2 eq_monotype typargs1 typargs2;
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

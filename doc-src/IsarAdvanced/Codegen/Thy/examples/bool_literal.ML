@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure HOL = 
 struct
 
@@ -32,5 +29,3 @@ fun in_interval (k, l) n =
   HOL.anda (Nat.less_eq_nat k n) (Nat.less_eq_nat n l);
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

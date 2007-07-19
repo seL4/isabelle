@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure HOL = 
 struct
 
@@ -82,5 +79,3 @@ val example : (Nat.nat, (Nat.nat list)) searchtree =
         (Leaf (Nat.Suc Nat.Zero_nat, []))));
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

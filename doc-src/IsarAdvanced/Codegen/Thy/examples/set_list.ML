@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure HOL = 
 struct
 
@@ -15,8 +12,8 @@ struct
 fun foldr f (x :: xs) a = f x (foldr f xs a)
   | foldr f [] a = a;
 
-fun memberl A_ x (y :: ys) = HOL.eq A_ x y orelse memberl A_ x ys
-  | memberl A_ x [] = false;
+fun member A_ x (y :: ys) = HOL.eq A_ x y orelse member A_ x ys
+  | member A_ x [] = false;
 
 end; (*struct List*)
 
@@ -33,8 +30,6 @@ fun uniona xs (Set ys) = List.foldr insert ys xs;
 
 fun union (Set xs) = List.foldr uniona xs empty;
 
-fun member A_ x (Set xs) = List.memberl A_ x xs;
+fun member A_ x (Set xs) = List.member A_ x xs;
 
 end; (*struct Set*)
-
-end; (*struct ROOT*)

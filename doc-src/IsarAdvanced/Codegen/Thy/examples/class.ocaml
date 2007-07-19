@@ -1,6 +1,3 @@
-module ROOT = 
-struct
-
 module Nat = 
 struct
 
@@ -25,5 +22,3 @@ let rec dummy
   = head (null_optiona ()) [Some (Nat.Suc Nat.Zero_nat); None];;
 
 end;; (*struct Codegen*)
-
-end;; (*struct ROOT*)

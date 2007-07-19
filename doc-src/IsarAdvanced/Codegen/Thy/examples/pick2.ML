@@ -1,6 +1,3 @@
-structure ROOT = 
-struct
-
 structure Nat = 
 struct
 
@@ -24,5 +21,3 @@ fun pick ((k, v) :: xs) n =
   (if Nat.less_nat n k then v else pick xs (Nat.minus_nat n k));
 
 end; (*struct Codegen*)
-
-end; (*struct ROOT*)

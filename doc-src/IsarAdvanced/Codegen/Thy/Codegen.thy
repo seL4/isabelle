@@ -469,17 +469,17 @@ text {*
     \item[@{text "Pretty_Char_chr"}] like @{text "Pretty_Char"},
        but also offers treatment of character codes; includes
        @{text "Pretty_Int"}.
-    \item[@{text "ExecutableSet"}] allows to generate code
+    \item[@{text "Executable_Set"}] allows to generate code
        for finite sets using lists.
-    \item[@{text "ExecutableRat"}] \label{exec_rat} implements rational
+    \item[@{text "Executable_Rat"}] \label{exec_rat} implements rational
        numbers as triples @{text "(sign, enumerator, denominator)"}.
     \item[@{text "Executable_Real"}] implements a subset of real numbers,
        namly those representable by rational numbers.
-    \item[@{text "EfficientNat"}] \label{eff_nat} implements natural numbers by integers,
+    \item[@{text "Efficient_Nat"}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
        is eliminated;  includes @{text "Pretty_Int"}.
-    \item[@{text "MLString"}] provides an additional datatype @{text "mlstring"};
+    \item[@{text "ML_String"}] provides an additional datatype @{text "mlstring"};
        in the @{text HOL} default setup, strings in HOL are mapped to list
        of @{text HOL} characters in SML; values of type @{text "mlstring"} are
        mapped to strings in SML.
@@ -592,7 +592,7 @@ fun
 
 text {*
   The membership test during preprocessing is rewritten,
-  resulting in @{const List.memberl}, which itself
+  resulting in @{const List.member}, which itself
   performs an explicit equality check.
 *}
 
@@ -802,16 +802,6 @@ text {*
   the corresponding mechanism.  Each ``@{verbatim "_"}'' in
   a serialization expression is treated as a placeholder
   for the type constructor's (the constant's) arguments.
-*}
-
-code_reserved SML
-  bool true false
-
-text {*
-  To assert that the existing \qt{bool}, \qt{true} and \qt{false}
-  is not used for generated code, we use @{text "\<CODERESERVED>"}.
-
-  After this setup, code looks quite more readable:
 *}
 
 code_gen in_interval (*<*)in SML(*>*) in SML file "examples/bool_mlbool.ML"
