@@ -22,21 +22,23 @@ sig
   val ml_exts: string list
   val ml_path: string -> Path.T
   val thy_path: string -> Path.T
-  val check_file: Path.T option -> Path.T -> (Path.T * File.info) option
-  val load_file: Path.T option -> Path.T -> (Path.T * File.info)
-  eqtype master
-  val get_thy: master -> Path.T * File.info
-  val check_thy: Path.T -> string -> bool -> master
-  val deps_thy: Path.T -> string -> bool -> master * (string list * Path.T list)
-  val load_thy: Path.T -> string -> bool -> bool -> master
+  val check_file: Path.T list -> Path.T -> (Path.T * File.ident) option
+  val check_ml: Path.T list -> Path.T -> (Path.T * File.ident) option
+  val check_thy: Path.T list -> string -> bool ->
+    (Path.T * File.ident) * (Path.T * File.ident) option
+  val deps_thy: Path.T list -> string -> bool ->
+    ((Path.T * File.ident) * (Path.T * File.ident) option) * (string list * Path.T list)
+  val load_ml: Path.T list -> Path.T -> Path.T * File.ident
+  val load_thy: Path.T list -> string -> bool -> bool ->
+    (Path.T * File.ident) * (Path.T * File.ident) option
 end;
 
 (*this backdoor sealed later*)
 signature PRIVATE_THY_LOAD =
 sig
   include THY_LOAD
-  val deps_thy_fn: (string -> bool -> Path.T -> string list * Path.T list) ref
-  val load_thy_fn: (string -> bool -> bool -> Path.T -> unit) ref
+  val load_thy_fn: (Path.T list -> string -> bool -> bool ->
+    (Path.T * File.ident) * (Path.T * File.ident) option) ref
 end;
 
 structure ThyLoad: PRIVATE_THY_LOAD =
@@ -46,12 +48,11 @@ struct
 (* maintain load path *)
 
 val load_path = ref [Path.current];
-fun change_path f = load_path := f (! load_path);
 
 fun show_path () = map Path.implode (! load_path);
-fun del_path s = change_path (filter_out (equal (Path.explode s)));
-fun add_path s = (del_path s; change_path (cons (Path.explode s)));
-fun path_add s = (del_path s; change_path (fn path => path @ [Path.explode s]));
+fun del_path s = change load_path (remove (op =) (Path.explode s));
+fun add_path s = (del_path s; change load_path (cons (Path.explode s)));
+fun path_add s = (del_path s; change load_path (fn path => path @ [Path.explode s]));
 fun reset_path () = load_path := [Path.current];
 fun with_paths ss f x = Library.setmp load_path (! load_path @ map Path.explode ss) f x;
 fun with_path s f x = with_paths [s] f x;
@@ -59,85 +60,66 @@ fun with_path s f x = with_paths [s] f x;
 
 (* file formats *)
 
-val ml_exts = ["", "ML", "sml"];
+val ml_exts = ["ML", "sml"];
 val ml_path = Path.ext "ML" o Path.basic;
 val thy_path = Path.ext "thy" o Path.basic;
 
 
-(* check_file *)
+(* check files *)
 
-fun check_file current src_path =
+fun augment_path (ps: Path.T list) qs = distinct (op =) (ps @ qs);
+
+fun check_ext exts dirs src_path =
   let
     val path = Path.expand src_path;
+    val _ = Path.is_current path andalso error "Bad file specification";
+    val paths = augment_path dirs (! load_path);
 
     fun find_ext rel_path ext =
       let val ext_path = Path.expand (Path.ext ext rel_path)
-      in Option.map (fn info => (File.full_path ext_path, info)) (File.info ext_path) end;
-
-    fun find_dir dir =
-      get_first (find_ext (Path.append dir path)) ml_exts;
-
-    fun add_current ps = (case current of NONE => ps
-          | (SOME p) => if Path.is_current p then ps else p :: ps);
-
-    val paths =
-      if Path.is_current path then error "Bad file specification"
-      else if Path.is_basic path then add_current (! load_path)
-      else add_current [Path.current];
+      in Option.map (fn id => (File.full_path ext_path, id)) (File.ident ext_path) end;
+    fun find_dir dir = get_first (find_ext (Path.append dir path)) ("" :: exts);
   in get_first find_dir paths end;
 
+val check_file = check_ext [];
+val check_ml = check_ext ml_exts;
 
-(* load_file *)
-
-fun load_file current raw_path =
-  (case check_file current raw_path of
-    NONE => error ("Could not find ML file " ^ quote (Path.implode raw_path))
-  | SOME (path, info) => (ML_Context.use path; (path, info)));
-
-
-(* datatype master *)
-
-datatype master = Master of (Path.T * File.info) * (Path.T * File.info) option;
-
-fun get_thy (Master (thy, _)) = thy;
-
-
-(* check / process theory files *)
-
-local
-
-fun check_thy_aux (name, ml) =
+fun check_thy dirs name ml =
   let val thy_file = thy_path name in
-    case check_file NONE thy_file of
+    (case check_file dirs thy_file of
       NONE => error ("Could not find theory file " ^ quote (Path.implode thy_file) ^
-        " in dir(s) " ^ commas_quote (show_path ()))
-    | SOME thy_info => (thy_info, if ml then check_file NONE (ml_path name) else NONE)
+        " in dir(s) " ^ commas_quote (map Path.implode (augment_path dirs (! load_path))))
+    | SOME thy_id => (thy_id, if ml then check_file dirs (ml_path name) else NONE))
   end;
 
-fun cond_add_path path f x =
-  if Path.is_current path then f x else Library.setmp load_path (path :: ! load_path) f x;
 
-in
+(* theory deps *)
 
-fun check_thy dir name ml = Master (cond_add_path dir check_thy_aux (name, ml));
+fun deps_thy dirs name ml =
+  let
+    val master as ((path, _), _) = check_thy dirs name ml;
+    val (name', imports, uses) =
+      ThyHeader.read (Position.path path) (Source.of_string (File.read path));
+    val _ = name = name' orelse
+      error ("Filename " ^ quote (Path.implode (Path.base path)) ^
+        " does not agree with theory name " ^ quote name');
+    val ml_file =
+      if ml andalso is_some (check_file [] (ml_path name))
+      then [ml_path name] else [];
+  in (master, (imports, map (Path.explode o #1) uses @ ml_file)) end;
 
-fun process_thy dir f name ml =
-  let val master as Master ((path, _), _) = check_thy dir name ml
-  in (master, cond_add_path dir f path) end;
 
-end;
+(* load files *)
 
+fun load_ml dirs raw_path =
+  (case check_ml dirs raw_path of
+    NONE => error ("Could not find ML file " ^ quote (Path.implode raw_path))
+  | SOME (path, id) => (ML_Context.use path; (path, id)));
 
-(* deps_thy and load_thy *)
-
-(*hooks for theory syntax dependent operations*)
-fun undefined _ = raise Match;
-val deps_thy_fn = ref (undefined: string -> bool -> Path.T -> string list * Path.T list);
-val load_thy_fn = ref (undefined: string -> bool -> bool -> Path.T -> unit);
-
-fun deps_thy dir name ml = process_thy dir (! deps_thy_fn name ml) name ml;
-fun load_thy dir name ml time = #1 (process_thy dir (! load_thy_fn name ml time) name ml);
-
+(*dependent on outer syntax*)
+val load_thy_fn = ref (undefined: Path.T list -> string -> bool -> bool ->
+  (Path.T * File.ident) * (Path.T * File.ident) option);
+fun load_thy dirs name ml time = ! load_thy_fn dirs name ml time;
 
 end;
 
