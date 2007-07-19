@@ -426,56 +426,12 @@ lemma not_neg_nat: "~ neg z ==> int (nat z) = z"
 by (simp add: linorder_not_less neg_def)
 
 
-subsection{*The Set of Natural Numbers*}
+subsection{*Embedding of the Integers into any @{text ring_1}: @{term of_int}*}
 
 constdefs
-  Nats  :: "'a::semiring_1 set"
-  "Nats == range of_nat"
-
-notation (xsymbols)
-  Nats  ("\<nat>")
-
-lemma of_nat_in_Nats [simp]: "of_nat n \<in> Nats"
-by (simp add: Nats_def)
-
-lemma Nats_0 [simp]: "0 \<in> Nats"
-apply (simp add: Nats_def)
-apply (rule range_eqI)
-apply (rule of_nat_0 [symmetric])
-done
-
-lemma Nats_1 [simp]: "1 \<in> Nats"
-apply (simp add: Nats_def)
-apply (rule range_eqI)
-apply (rule of_nat_1 [symmetric])
-done
-
-lemma Nats_add [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> a+b \<in> Nats"
-apply (auto simp add: Nats_def)
-apply (rule range_eqI)
-apply (rule of_nat_add [symmetric])
-done
-
-lemma Nats_mult [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> a*b \<in> Nats"
-apply (auto simp add: Nats_def)
-apply (rule range_eqI)
-apply (rule of_nat_mult [symmetric])
-done
-
-lemma of_nat_eq_id [simp]: "of_nat = (id :: nat => nat)"
-proof
-  fix n
-  show "of_nat n = id n"  by (induct n, simp_all)
-qed (* belongs in Nat.thy *)
-
-
-subsection{*Embedding of the Integers into any @{text ring_1}:
-@{term of_int}*}
-
-constdefs
-   of_int :: "int => 'a::ring_1"
-   "of_int z == contents (\<Union>(i,j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
-
+  of_int :: "int => 'a::ring_1"
+  "of_int z == contents (\<Union>(i,j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
+lemmas [code func del] = of_int_def
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
 proof -

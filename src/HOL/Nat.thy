@@ -1370,6 +1370,48 @@ lemma of_nat_diff:
   by (simp del: of_nat_add
     add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
 
+
+subsection {*The Set of Natural Numbers*}
+
+definition
+  Nats  :: "'a::semiring_1 set"
+where
+  "Nats = range of_nat"
+
+notation (xsymbols)
+  Nats  ("\<nat>")
+
+lemma of_nat_in_Nats [simp]: "of_nat n \<in> Nats"
+  by (simp add: Nats_def)
+
+lemma Nats_0 [simp]: "0 \<in> Nats"
+apply (simp add: Nats_def)
+apply (rule range_eqI)
+apply (rule of_nat_0 [symmetric])
+done
+
+lemma Nats_1 [simp]: "1 \<in> Nats"
+apply (simp add: Nats_def)
+apply (rule range_eqI)
+apply (rule of_nat_1 [symmetric])
+done
+
+lemma Nats_add [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> a+b \<in> Nats"
+apply (auto simp add: Nats_def)
+apply (rule range_eqI)
+apply (rule of_nat_add [symmetric])
+done
+
+lemma Nats_mult [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> a*b \<in> Nats"
+apply (auto simp add: Nats_def)
+apply (rule range_eqI)
+apply (rule of_nat_mult [symmetric])
+done
+
+lemma of_nat_eq_id [simp]: "of_nat = (id :: nat => nat)"
+  by (auto simp add: expand_fun_eq)
+
+
 instance nat :: distrib_lattice
   "inf \<equiv> min"
   "sup \<equiv> max"
