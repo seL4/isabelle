@@ -23,7 +23,7 @@ sig
   val add_pretty_list_string: string -> string -> string
     -> string -> string list -> theory -> theory;
   val add_pretty_char: string -> string -> string list -> theory -> theory
-  val add_pretty_numeral: string -> string * typ -> string -> string -> string
+  val add_pretty_numeral: string -> bool -> string * typ -> string -> string -> string
     -> string -> string -> theory -> theory;
   val add_pretty_ml_string: string -> string -> string list -> string
     -> string -> string -> theory -> theory;
@@ -1635,13 +1635,15 @@ local
 val pretty : (string * {
     pretty_char: string -> string,
     pretty_string: string -> string,
-    pretty_numeral: IntInf.int -> string,
+    pretty_numeral: bool -> IntInf.int -> string,
     pretty_list: Pretty.T list -> Pretty.T,
     infix_cons: int * string
   }) list = [
   ("SML", { pretty_char = prefix "#" o quote o ML_Syntax.print_char,
       pretty_string = ML_Syntax.print_string,
-      pretty_numeral = fn k => "(" ^ IntInf.toString k ^ " : IntInf.int)",
+      pretty_numeral = fn unbounded => fn k =>
+        if unbounded then "(" ^ IntInf.toString k ^ " : IntInf.int)"
+        else IntInf.toString k,
       pretty_list = Pretty.enum "," "[" "]",
       infix_cons = (7, "::")}),
   ("OCaml", { pretty_char = fn c => enclose "'" "'"
@@ -1651,11 +1653,15 @@ val pretty : (string * {
             else c
           end),
       pretty_string = (fn _ => error "OCaml: no pretty strings"),
-      pretty_numeral = fn k => if k >= IntInf.fromInt 0 then
-            "(Big_int.big_int_of_int " ^ IntInf.toString k ^ ")"
+      pretty_numeral = fn unbounded => fn k => if k >= IntInf.fromInt 0 then
+            if unbounded then
+              "(Big_int.big_int_of_int " ^ IntInf.toString k ^ ")"
+            else IntInf.toString k
           else
-            "(Big_int.big_int_of_int " ^ (enclose "(" ")" o prefix "-"
-              o IntInf.toString o op ~) k ^ ")",
+            if unbounded then
+              "(Big_int.big_int_of_int " ^ (enclose "(" ")" o prefix "-"
+                o IntInf.toString o op ~) k ^ ")"
+            else (enclose "(" ")" o prefix "-" o IntInf.toString o op ~) k,
       pretty_list = Pretty.enum ";" "[" "]",
       infix_cons = (6, "::")}),
   ("Haskell", { pretty_char = fn c => enclose "'" "'"
@@ -1665,7 +1671,7 @@ val pretty : (string * {
             else c
           end),
       pretty_string = ML_Syntax.print_string,
-      pretty_numeral = fn k => if k >= IntInf.fromInt 0 then
+      pretty_numeral = fn unbounded => fn k => if k >= IntInf.fromInt 0 then
             IntInf.toString k
           else
             (enclose "(" ")" o Library.prefix "-" o IntInf.toString o IntInf.~) k,
@@ -1719,12 +1725,12 @@ fun pretty_char c_char c_nibbles target =
         | NONE => error "Illegal character expression";
   in (2, pretty) end;
 
-fun pretty_numeral c_bit0 c_bit1 c_pls c_min c_bit target =
+fun pretty_numeral unbounded c_bit0 c_bit1 c_pls c_min c_bit target =
   let
     val mk_numeral = #pretty_numeral (pr_pretty target);
     fun pretty _ _ _ [(t, _)] =
       case implode_numeral c_bit0 c_bit1 c_pls c_min c_bit t
-       of SOME k => (str o mk_numeral) k
+       of SOME k => (str o mk_numeral unbounded) k
         | NONE => error "Illegal numeral expression";
   in (1, pretty) end;
 
@@ -1994,7 +2000,7 @@ fun add_pretty_char target charr nibbles thy =
     |> add_syntax_const target charr' (SOME pr)
   end;
 
-fun add_pretty_numeral target number_of b0 b1 pls min bit thy =
+fun add_pretty_numeral target unbounded number_of b0 b1 pls min bit thy =
   let
     val number_of' = CodegenConsts.const_of_cexpr thy number_of;
     val (_, b0'') = idfs_of_const thy b0;
@@ -2002,7 +2008,7 @@ fun add_pretty_numeral target number_of b0 b1 pls min bit thy =
     val (_, pls'') = idfs_of_const thy pls;
     val (_, min'') = idfs_of_const thy min;
     val (_, bit'') = idfs_of_const thy bit;
-    val pr = pretty_numeral b0'' b1'' pls'' min'' bit'' target;
+    val pr = pretty_numeral unbounded b0'' b1'' pls'' min'' bit'' target;
   in
     thy
     |> add_syntax_const target number_of' (SOME pr)
