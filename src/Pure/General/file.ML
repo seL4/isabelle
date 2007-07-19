@@ -19,8 +19,8 @@ sig
   val tmp_path: Path.T -> Path.T
   val isatool: string -> int
   val system_command: string -> unit
-  eqtype info
-  val info: Path.T -> info option
+  eqtype ident
+  val ident: Path.T -> ident option
   val exists: Path.T -> bool
   val check: Path.T -> unit
   val rm: Path.T -> unit
@@ -86,12 +86,21 @@ fun system_command cmd =
 
 (* directory entries *)
 
-datatype info = Info of string;
+datatype ident = Ident of string;
 
-fun info path =
-  Option.map (Info o Time.toString) (try OS.FileSys.modTime (platform_path path));
+fun ident path =
+  (case try OS.FileSys.modTime (platform_path path) of
+    NONE => NONE
+  | SOME time => SOME (Ident
+      (case getenv "ISABELLE_FILE_IDENT" of
+        "" => Path.implode (full_path path) ^ ": " ^ Time.toString time
+      | cmd =>
+         let val id = execute ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_path path) in
+           if id <> "" then id
+           else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
+         end)));
 
-val exists = is_some o info;
+val exists = can OS.FileSys.modTime o platform_path;
 
 fun check path =
   if exists path then ()
