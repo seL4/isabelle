@@ -3,36 +3,90 @@
 \def\isabellecontext{Advanced}%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isacommand{theory}\isamarkupfalse%
-\ Advanced\ \isakeyword{imports}\ Even\ \isakeyword{begin}%
+%
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
-\isanewline
-\isanewline
+%
+\begin{isamarkuptext}%
+The premises of introduction rules may contain universal quantifiers and
+monotone functions.  A universal quantifier lets the rule 
+refer to any number of instances of 
+the inductively defined set.  A monotone function lets the rule refer
+to existing constructions (such as ``list of'') over the inductively defined
+set.  The examples below show how to use the additional expressiveness
+and how to reason from the resulting definitions.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Universal Quantifiers in Introduction Rules \label{sec:gterm-datatype}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\index{ground terms example|(}%
+\index{quantifiers!and inductive definitions|(}%
+As a running example, this section develops the theory of \textbf{ground
+terms}: terms constructed from constant and function 
+symbols but not variables. To simplify matters further, we regard a
+constant as a function applied to the null argument  list.  Let us declare a
+datatype \isa{gterm} for the type of ground  terms. It is a type constructor
+whose argument is a type of  function symbols.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}f\ gterm\ {\isacharequal}\ Apply\ {\isacharprime}f\ {\isachardoublequoteopen}{\isacharprime}f\ gterm\ list{\isachardoublequoteclose}\isanewline
-\isanewline
+\ {\isacharprime}f\ gterm\ {\isacharequal}\ Apply\ {\isacharprime}f\ {\isachardoublequoteopen}{\isacharprime}f\ gterm\ list{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+To try it out, we declare a datatype of some integer operations: 
+integer constants, the unary minus operator and the addition 
+operator.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ integer{\isacharunderscore}op\ {\isacharequal}\ Number\ int\ {\isacharbar}\ UnaryMinus\ {\isacharbar}\ Plus\isanewline
-\isanewline
+\ integer{\isacharunderscore}op\ {\isacharequal}\ Number\ int\ {\isacharbar}\ UnaryMinus\ {\isacharbar}\ Plus%
+\begin{isamarkuptext}%
+Now the type \isa{integer{\isacharunderscore}op\ gterm} denotes the ground 
+terms built over those symbols.
+
+The type constructor \isa{gterm} can be generalized to a function 
+over sets.  It returns 
+the set of ground terms that can be formed over a set \isa{F} of function symbols. For
+example,  we could consider the set of ground terms formed from the finite 
+set \isa{{\isacharbraceleft}Number\ {\isadigit{2}}{\isacharcomma}\ UnaryMinus{\isacharcomma}\ Plus{\isacharbraceright}}.
+
+This concept is inductive. If we have a list \isa{args} of ground terms 
+over~\isa{F} and a function symbol \isa{f} in \isa{F}, then we 
+can apply \isa{f} to \isa{args} to obtain another ground term. 
+The only difficulty is that the argument list may be of any length. Hitherto, 
+each rule in an inductive definition referred to the inductively 
+defined set a fixed number of times, typically once or twice. 
+A universal quantifier in the premise of the introduction rule 
+expresses that every element of \isa{args} belongs
+to our inductively defined set: is a ground term 
+over~\isa{F}.  The function \isa{set} denotes the set of elements in a given 
+list.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
 \isanewline
 \ \ gterms\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ set\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{for}\ F\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ set{\isachardoublequoteclose}\isanewline
 \isakeyword{where}\isanewline
 step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}{\isasymforall}t\ {\isasymin}\ set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ \ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ gterms\ F{\isachardoublequoteclose}\isanewline
-\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ gterms\ F{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+To demonstrate a proof from this definition, let us 
+show that the function \isa{gterms}
+is \textbf{monotone}.  We shall need this concept shortly.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
 \ gterms{\isacharunderscore}mono{\isacharcolon}\ {\isachardoublequoteopen}F{\isasymsubseteq}G\ {\isasymLongrightarrow}\ gterms\ F\ {\isasymsubseteq}\ gterms\ G{\isachardoublequoteclose}\isanewline
 %
@@ -44,16 +98,7 @@ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {
 \isacommand{apply}\isamarkupfalse%
 \ clarify\isanewline
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}F\ {\isasymsubseteq}\ G{\isacharsemicolon}\ {\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ x\ {\isasymin}\ gterms\ G{\isacharbraceright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
+\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ blast\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -65,34 +110,162 @@ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {
 %
 \endisadelimproof
 %
-\begin{isamarkuptext}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Intuitively, this theorem says that
+enlarging the set of function symbols enlarges the set of ground 
+terms. The proof is a trivial rule induction.
+First we use the \isa{clarify} method to assume the existence of an element of
+\isa{gterms\ F}.  (We could have used \isa{intro\ subsetI}.)  We then
+apply rule induction. Here is the resulting subgoal:
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}a\ {\isasymin}\ even{\isacharsemicolon}\ a\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}a\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}F\ {\isasymsubseteq}\ G{\isacharsemicolon}\ {\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymand}\ t\ {\isasymin}\ gterms\ G{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G%
 \end{isabelle}
-\rulename{even.cases}
+The assumptions state that \isa{f} belongs 
+to~\isa{F}, which is included in~\isa{G}, and that every element of the list \isa{args} is
+a ground term over~\isa{G}.  The \isa{blast} method finds this chain of reasoning easily.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\begin{warn}
+Why do we call this function \isa{gterms} instead 
+of \isa{gterm}?  A constant may have the same name as a type.  However,
+name  clashes could arise in the theorems that Isabelle generates. 
+Our choice of names keeps \isa{gterms{\isachardot}induct} separate from 
+\isa{gterm{\isachardot}induct}.
+\end{warn}
 
-Just as a demo I include
-the two forms that Markus has made available. First the one for binding the
-result to a name%
+Call a term \textbf{well-formed} if each symbol occurring in it is applied
+to the correct number of arguments.  (This number is called the symbol's
+\textbf{arity}.)  We can express well-formedness by
+generalizing the inductive definition of
+\isa{gterms}.
+Suppose we are given a function called \isa{arity}, specifying the arities
+of all symbols.  In the inductive step, we have a list \isa{args} of such
+terms and a function  symbol~\isa{f}. If the length of the list matches the
+function's arity  then applying \isa{f} to \isa{args} yields a well-formed
+term.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}cases}\isamarkupfalse%
-\ Suc{\isacharunderscore}Suc{\isacharunderscore}cases\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
 \isanewline
-\isacommand{thm}\isamarkupfalse%
-\ Suc{\isacharunderscore}Suc{\isacharunderscore}cases%
+\ \ well{\isacharunderscore}formed{\isacharunderscore}gterm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{for}\ arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}{\isasymforall}t\ {\isasymin}\ set\ args{\isachardot}\ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharsemicolon}\ \ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-\begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
-\end{isabelle}
-\rulename{Suc_Suc_cases}
+The inductive definition neatly captures the reasoning above.
+The universal quantification over the
+\isa{set} of arguments expresses that all of them are well-formed.%
+\index{quantifiers!and inductive definitions|)}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Alternative Definition Using a Monotone Function%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\index{monotone functions!and inductive definitions|(}% 
+An inductive definition may refer to the
+inductively defined  set through an arbitrary monotone function.  To
+demonstrate this powerful feature, let us
+change the  inductive definition above, replacing the
+quantifier by a use of the function \isa{lists}. This
+function, from the Isabelle theory of lists, is analogous to the
+function \isa{gterms} declared above: if \isa{A} is a set then
+\isa{lists\ A} is the set of lists whose elements belong to
+\isa{A}.  
 
-and now the one for local usage:%
+In the inductive definition of well-formed terms, examine the one
+introduction rule.  The first premise states that \isa{args} belongs to
+the \isa{lists} of well-formed terms.  This formulation is more
+direct, if more obscure, than using a universal quantifier.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isanewline
+\ \ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{for}\ arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharparenright}{\isacharsemicolon}\ \ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequoteclose}\isanewline
+\isakeyword{monos}\ lists{\isacharunderscore}mono%
+\begin{isamarkuptext}%
+We cite the theorem \isa{lists{\isacharunderscore}mono} to justify 
+using the function \isa{lists}.%
+\footnote{This particular theorem is installed by default already, but we
+include the \isakeyword{monos} declaration in order to illustrate its syntax.}
+\begin{isabelle}%
+A\ {\isasymsubseteq}\ B\ {\isasymLongrightarrow}\ lists\ A\ {\isasymsubseteq}\ lists\ B\rulename{lists{\isacharunderscore}mono}%
+\end{isabelle}
+Why must the function be monotone?  An inductive definition describes
+an iterative construction: each element of the set is constructed by a
+finite number of introduction rule applications.  For example, the
+elements of \isa{even} are constructed by finitely many applications of
+the rules
+\begin{isabelle}%
+{\isadigit{0}}\ {\isasymin}\ even\isasep\isanewline%
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even%
+\end{isabelle}
+All references to a set in its
+inductive definition must be positive.  Applications of an
+introduction rule cannot invalidate previous applications, allowing the
+construction process to converge.
+The following pair of rules do not constitute an inductive definition:
+\begin{trivlist}
+\item \isa{{\isadigit{0}}\ {\isasymin}\ even}
+\item \isa{n\ {\isasymnotin}\ even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ even}
+\end{trivlist}
+Showing that 4 is even using these rules requires showing that 3 is not
+even.  It is far from trivial to show that this set of rules
+characterizes the even numbers.  
+
+Even with its use of the function \isa{lists}, the premise of our
+introduction rule is positive:
+\begin{isabelle}%
+args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharparenright}%
+\end{isabelle}
+To apply the rule we construct a list \isa{args} of previously
+constructed well-formed terms.  We obtain a
+new term, \isa{Apply\ f\ args}.  Because \isa{lists} is monotone,
+applications of the rule remain valid as new terms are constructed.
+Further lists of well-formed
+terms become available and none are taken away.%
+\index{monotone functions!and inductive definitions|)}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{A Proof of Equivalence%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We naturally hope that these two inductive definitions of ``well-formed'' 
+coincide.  The equality can be proved by separate inclusions in 
+each direction.  Each is a trivial rule induction.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P\ n{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -100,26 +273,176 @@ and now the one for local usage:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}ind{\isacharunderscore}cases\ {\isachardoublequoteopen}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\isacommand{oops}\isamarkupfalse%
+\ clarify\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
-\isanewline
 %
 \endisadelimproof
-\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+The \isa{clarify} method gives
+us an element of \isa{well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity} on which to perform 
+induction.  The resulting subgoal can be proved automatically:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymand}\ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharsemicolon}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
+\end{isabelle}
+This proof resembles the one given in
+{\S}\ref{sec:gterm-datatype} above, especially in the form of the
+induction hypothesis.  Next, we consider the opposite inclusion:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ clarify\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+The proof script is identical, but the subgoal after applying induction may
+be surprising:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}args\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}}{\isasymin}\ lists\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ }{\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasyminter}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ {\isacharparenleft}}{\isacharbraceleft}a{\isachardot}\ a\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharbraceright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
+\end{isabelle}
+The induction hypothesis contains an application of \isa{lists}.  Using a
+monotone function in the inductive definition always has this effect.  The
+subgoal may look uninviting, but fortunately 
+\isa{lists} distributes over intersection:
+\begin{isabelle}%
+lists\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isacharequal}\ lists\ A\ {\isasyminter}\ lists\ B\rulename{lists{\isacharunderscore}Int{\isacharunderscore}eq}%
+\end{isabelle}
+Thanks to this default simplification rule, the induction hypothesis 
+is quickly replaced by its two parts:
+\begin{trivlist}
+\item \isa{args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharparenright}}
+\item \isa{args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharparenright}}
+\end{trivlist}
+Invoking the rule \isa{well{\isacharunderscore}formed{\isacharunderscore}gterm{\isachardot}step} completes the proof.  The
+call to \isa{auto} does all this work.
+
+This example is typical of how monotone functions
+\index{monotone functions} can be used.  In particular, many of them
+distribute over intersection.  Monotonicity implies one direction of
+this set equality; we have this theorem:
+\begin{isabelle}%
+mono\ f\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isasymsubseteq}\ f\ A\ {\isasyminter}\ f\ B\rulename{mono{\isacharunderscore}Int}%
+\end{isabelle}%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Another Example of Rule Inversion%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\index{rule inversion|(}%
+Does \isa{gterms} distribute over intersection?  We have proved that this
+function is monotone, so \isa{mono{\isacharunderscore}Int} gives one of the inclusions.  The
+opposite inclusion asserts that if \isa{t} is a ground term over both of the
+sets
+\isa{F} and~\isa{G} then it is also a ground term over their intersection,
+\isa{F\ {\isasyminter}\ G}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ gterms{\isacharunderscore}IntI{\isacharcolon}\isanewline
+\ \ \ \ \ {\isachardoublequoteopen}t\ {\isasymin}\ gterms\ F\ {\isasymLongrightarrow}\ t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}{\isachardoublequoteclose}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Attempting this proof, we get the assumption 
+\isa{Apply\ f\ args\ {\isasymin}\ gterms\ G}, which cannot be broken down. 
+It looks like a job for rule inversion:\cmmdx{inductive\protect\_cases}%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{inductive{\isacharunderscore}cases}\isamarkupfalse%
 \ gterm{\isacharunderscore}Apply{\isacharunderscore}elim\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-this is what we get:
-
+Here is the result.
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ {\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+{\isasymlbrakk}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isacharsemicolon}\isanewline
+\isaindent{\ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\isanewline
+{\isasymLongrightarrow}\ P\rulename{gterm{\isacharunderscore}Apply{\isacharunderscore}elim}%
 \end{isabelle}
-\rulename{gterm_Apply_elim}%
+This rule replaces an assumption about \isa{Apply\ f\ args} by 
+assumptions about \isa{f} and~\isa{args}.  
+No cases are discarded (there was only one to begin
+with) but the rule applies specifically to the pattern \isa{Apply\ f\ args}.
+It can be applied repeatedly as an elimination rule without looping, so we
+have given the \isa{elim{\isacharbang}} attribute. 
+
+Now we can prove the other half of that distributive law.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
@@ -132,19 +455,7 @@ this is what we get:
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ gterms\ F\ {\isasyminter}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ t\ {\isasymin}\ }{\isacharbraceleft}x{\isachardot}\ x\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ x\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}{\isacharbraceright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }Apply\ f\ args\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
+\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ blast\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -156,16 +467,45 @@ this is what we get:
 %
 \endisadelimproof
 %
-\begin{isamarkuptext}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+The proof begins with rule induction over the definition of
+\isa{gterms}, which leaves a single subgoal:  
 \begin{isabelle}%
-\ \ \ \ \ mono\ f\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isasymsubseteq}\ f\ A\ {\isasyminter}\ f\ B%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}args\ f{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ gterms\ F\ {\isasymand}\ {\isacharparenleft}t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }Apply\ f\ args\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}%
 \end{isabelle}
-\rulename{mono_Int}%
-\end{isamarkuptext}%
+To prove this, we assume \isa{Apply\ f\ args\ {\isasymin}\ gterms\ G}.  Rule inversion,
+in the form of \isa{gterm{\isacharunderscore}Apply{\isacharunderscore}elim}, infers
+that every element of \isa{args} belongs to 
+\isa{gterms\ G}; hence (by the induction hypothesis) it belongs
+to \isa{gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}}.  Rule inversion also yields
+\isa{f\ {\isasymin}\ G} and hence \isa{f\ {\isasymin}\ F\ {\isasyminter}\ G}. 
+All of this reasoning is done by \isa{blast}.
+
+\smallskip
+Our distributive law is a trivial consequence of previously-proved results:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
 \ gterms{\isacharunderscore}Int{\isacharunderscore}eq\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ {\isachardoublequoteopen}gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}\ {\isacharequal}\ gterms\ F\ {\isasyminter}\ gterms\ G{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ {\isachardoublequoteopen}gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}\ {\isacharequal}\ gterms\ F\ {\isasyminter}\ gterms\ G{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -181,237 +521,64 @@ this is what we get:
 %
 \endisadelimproof
 %
-\begin{isamarkuptext}%
-the following declaration isn't actually used%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ integer{\isacharunderscore}arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}integer{\isacharunderscore}op\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
-\isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}integer{\isacharunderscore}arity\ {\isacharparenleft}Number\ n{\isacharparenright}\ \ \ \ \ \ \ \ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}integer{\isacharunderscore}arity\ UnaryMinus\ \ \ \ \ \ \ \ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}integer{\isacharunderscore}arity\ Plus\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharequal}\ {\isadigit{2}}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
-\isanewline
-\ \ well{\isacharunderscore}formed{\isacharunderscore}gterm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}{\isasymforall}t\ {\isasymin}\ set\ args{\isachardot}\ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharsemicolon}\ \ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequoteclose}\isanewline
-\isanewline
-\isanewline
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
-\isanewline
-\ \ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharparenright}{\isacharsemicolon}\ \ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequoteclose}\isanewline
-\isakeyword{monos}\ lists{\isacharunderscore}mono\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ clarify%
-\begin{isamarkuptxt}%
-The situation after clarify
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ }x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
-note the induction hypothesis!
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasyminter}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ t\ {\isasymin}\ }{\isacharbraceleft}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharbraceright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\isamarkupfalse%
-\ auto\isanewline
-\isacommand{done}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ clarify%
-\begin{isamarkuptxt}%
-The situation after clarify
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ }x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
-note the induction hypothesis!
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}args\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}}{\isasymin}\ lists\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ }{\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasyminter}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ {\isacharparenleft}}{\isacharbraceleft}a{\isachardot}\ a\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharbraceright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\isamarkupfalse%
-\ auto\isanewline
-\isacommand{done}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-\begin{isabelle}%
-\ \ \ \ \ lists\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isacharequal}\ lists\ A\ {\isasyminter}\ lists\ B%
-\end{isabelle}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-the rest isn't used: too complicated.  OK for an exercise though.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
-\isanewline
-\ \ integer{\isacharunderscore}signature\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}integer{\isacharunderscore}op\ {\isacharasterisk}\ {\isacharparenleft}unit\ list\ {\isacharasterisk}\ unit{\isacharparenright}{\isacharparenright}\ set{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-\ \ Number{\isacharcolon}\ \ \ \ \ {\isachardoublequoteopen}{\isacharparenleft}Number\ n{\isacharcomma}\ \ \ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}{\isacharcomma}\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ integer{\isacharunderscore}signature{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ UnaryMinus{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}UnaryMinus{\isacharcomma}\ {\isacharparenleft}{\isacharbrackleft}{\isacharparenleft}{\isacharparenright}{\isacharbrackright}{\isacharcomma}\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ integer{\isacharunderscore}signature{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ Plus{\isacharcolon}\ \ \ \ \ \ \ {\isachardoublequoteopen}{\isacharparenleft}Plus{\isacharcomma}\ \ \ \ \ \ \ {\isacharparenleft}{\isacharbrackleft}{\isacharparenleft}{\isacharparenright}{\isacharcomma}{\isacharparenleft}{\isacharparenright}{\isacharbrackright}{\isacharcomma}\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ integer{\isacharunderscore}signature{\isachardoublequoteclose}\isanewline
-\isanewline
-\isanewline
+\index{rule inversion|)}%
+\index{ground terms example|)}
+
+
+\begin{isamarkuptext}
+\begin{exercise}
+A function mapping function symbols to their 
+types is called a \textbf{signature}.  Given a type 
+ranging over type symbols, we can represent a function's type by a
+list of argument types paired with the result type. 
+Complete this inductive definition:
+\begin{isabelle}
 \isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
 \isanewline
 \ \ well{\isacharunderscore}typed{\isacharunderscore}gterm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}f\ gterm\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ sig\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ \isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}{\isasymforall}pair\ {\isasymin}\ set\ args{\isachardot}\ pair\ {\isasymin}\ well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig{\isacharsemicolon}\ \isanewline
-\ \ \ \ \ \ sig\ f\ {\isacharequal}\ {\isacharparenleft}map\ snd\ args{\isacharcomma}\ rtype{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ {\isacharparenleft}map\ fst\ args{\isacharparenright}{\isacharcomma}\ rtype{\isacharparenright}\ \isanewline
-\ \ \ \ \ \ \ \ \ {\isasymin}\ well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
-\isanewline
-\ \ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}f\ gterm\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ sig\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ \isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}args\ {\isasymin}\ lists{\isacharparenleft}well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig{\isacharparenright}{\isacharsemicolon}\ \isanewline
-\ \ \ \ \ \ sig\ f\ {\isacharequal}\ {\isacharparenleft}map\ snd\ args{\isacharcomma}\ rtype{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ {\isacharparenleft}map\ fst\ args{\isacharparenright}{\isacharcomma}\ rtype{\isacharparenright}\ \isanewline
-\ \ \ \ \ \ \ \ \ {\isasymin}\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig{\isachardoublequoteclose}\isanewline
-\isakeyword{monos}\ lists{\isacharunderscore}mono\isanewline
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig\ {\isasymsubseteq}\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{for}\ sig\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isachardoublequoteclose}%
+\end{isabelle}
+\end{exercise}
+\end{isamarkuptext}
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ clarify\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ auto\isanewline
-\isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
-\isanewline
 %
 \endisadelimproof
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig\ {\isasymsubseteq}\ well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ clarify\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ auto\isanewline
-\isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
-\isanewline
 %
 \endisadelimproof
-\isanewline
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isacommand{end}\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
-\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

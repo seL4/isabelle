@@ -3,44 +3,81 @@
 \def\isabellecontext{Even}%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isacommand{theory}\isamarkupfalse%
-\ Even\ \isakeyword{imports}\ Main\ \isakeyword{begin}%
+%
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
-\isanewline
-\isanewline
+%
+\isamarkupsection{The Set of Even Numbers%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\index{even numbers!defining inductively|(}%
+The set of even numbers can be inductively defined as the least set
+containing 0 and closed under the operation $+2$.  Obviously,
+\emph{even} can also be expressed using the divides relation (\isa{dvd}). 
+We shall prove below that the two formulations coincide.  On the way we
+shall examine the primary means of reasoning about inductively defined
+sets: rule induction.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Making an Inductive Definition%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Using \commdx{inductive\_set}, we declare the constant \isa{even} to be
+a set of natural numbers with the desired properties.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
 \ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
 \isakeyword{where}\isanewline
 \ \ zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 {\isacharbar}\ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-An inductive definition consists of introduction rules. 
-
+An inductive definition consists of introduction rules.  The first one
+above states that 0 is even; the second states that if $n$ is even, then so
+is~$n+2$.  Given this declaration, Isabelle generates a fixed point
+definition for \isa{even} and proves theorems about it,
+thus following the definitional approach (see {\S}\ref{sec:definitional}).
+These theorems
+include the introduction rules specified in the declaration, an elimination
+rule for case analysis and an induction rule.  We can refer to these
+theorems by automatically-generated names.  Here are two examples:
 \begin{isabelle}%
-\ \ \ \ \ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even%
+{\isadigit{0}}\ {\isasymin}\ even\rulename{even{\isachardot}zero}\par\smallskip%
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\rulename{even{\isachardot}step}%
 \end{isabelle}
-\rulename{even.step}
 
-\begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}x\ {\isasymin}\ even{\isacharsemicolon}\ P\ {\isadigit{0}}{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ P\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x%
-\end{isabelle}
-\rulename{even.induct}
-
-Attributes can be given to the introduction rules.  Here both rules are
-specified as \isa{intro!}
-
-Our first lemma states that numbers of the form $2\times k$ are even.%
+The introduction rules can be given attributes.  Here
+both rules are specified as \isa{intro!},%
+\index{intro"!@\isa {intro"!} (attribute)}
+directing the classical reasoner to 
+apply them aggressively. Obviously, regarding 0 as even is safe.  The
+\isa{step} rule is also safe because $n+2$ is even if and only if $n$ is
+even.  We prove this equivalence later.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Using Introduction Rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Our first lemma states that numbers of the form $2\times k$ are even.
+Introduction rules are used to show that specific values belong to the
+inductive set.  Such proofs typically involve 
+induction, perhaps over some other inductive set.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
@@ -52,18 +89,7 @@ Our first lemma states that numbers of the form $2\times k$ are even.%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct{\isacharunderscore}tac\ k{\isacharparenright}%
-\begin{isamarkuptxt}%
-The first step is induction on the natural number \isa{k}, which leaves
-two subgoals:
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ {\isadigit{0}}\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ {\isacharasterisk}\ Suc\ n\ {\isasymin}\ even%
-\end{isabelle}
-Here \isa{auto} simplifies both subgoals so that they match the introduction
-rules, which then are applied automatically.%
-\end{isamarkuptxt}%
-\isamarkuptrue%
+\ {\isacharparenleft}induct{\isacharunderscore}tac\ k{\isacharparenright}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
 \ auto\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -75,13 +101,36 @@ rules, which then are applied automatically.%
 %
 \endisadelimproof
 %
-\begin{isamarkuptext}%
-Our goal is to prove the equivalence between the traditional definition
-of even (using the divides relation) and our inductive definition.  Half of
-this equivalence is trivial using the lemma just proved, whose \isa{intro!}
-attribute ensures it will be applied automatically.%
-\end{isamarkuptext}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+\noindent
+The first step is induction on the natural number \isa{k}, which leaves
+two subgoals:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ {\isadigit{0}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ {\isacharasterisk}\ Suc\ n\ {\isasymin}\ even%
+\end{isabelle}
+Here \isa{auto} simplifies both subgoals so that they match the introduction
+rules, which are then applied automatically.
+
+Our ultimate goal is to prove the equivalence between the traditional
+definition of \isa{even} (using the divides relation) and our inductive
+definition.  One direction of this equivalence is immediate by the lemma
+just proved, whose \isa{intro{\isacharbang}} attribute ensures it is applied automatically.%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
 \ dvd{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{2}}\ dvd\ n\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
@@ -99,25 +148,59 @@ attribute ensures it will be applied automatically.%
 %
 \endisadelimproof
 %
+\isamarkupsubsection{Rule Induction \label{sec:rule-induction}%
+}
+\isamarkuptrue%
+%
 \begin{isamarkuptext}%
-our first rule induction!%
+\index{rule induction|(}%
+From the definition of the set
+\isa{even}, Isabelle has
+generated an induction rule:
+\begin{isabelle}%
+{\isasymlbrakk}x\ {\isasymin}\ even{\isacharsemicolon}\ P\ {\isadigit{0}}{\isacharsemicolon}\isanewline
+\isaindent{\ }{\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ P\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\isanewline
+{\isasymLongrightarrow}\ P\ x\rulename{even{\isachardot}induct}%
+\end{isabelle}
+A property \isa{P} holds for every even number provided it
+holds for~\isa{{\isadigit{0}}} and is closed under the operation
+\isa{Suc(Suc \(\cdot\))}.  Then \isa{P} is closed under the introduction
+rules for \isa{even}, which is the least set closed under those rules. 
+This type of inductive argument is called \textbf{rule induction}. 
+
+Apart from the double application of \isa{Suc}, the induction rule above
+resembles the familiar mathematical induction, which indeed is an instance
+of rule induction; the natural numbers can be defined inductively to be
+the least set containing \isa{{\isadigit{0}}} and closed under~\isa{Suc}.
+
+Induction is the usual way of proving a property of the elements of an
+inductively defined set.  Let us prove that all members of the set
+\isa{even} are multiples of two.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ n{\isachardoublequoteclose}\isanewline
-%
+\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ n{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+%
+\begin{isamarkuptxt}%
+We begin by applying induction.  Note that \isa{even{\isachardot}induct} has the form
+of an elimination rule, so we use the method \isa{erule}.  We get two
+subgoals:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
-\end{isabelle}%
+\end{isabelle}
+We unfold the definition of \isa{dvd} in both subgoals, proving the first
+one and simplifying the second:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
@@ -125,7 +208,9 @@ our first rule induction!%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k%
-\end{isabelle}%
+\end{isabelle}
+The next command eliminates the existential quantifier from the assumption
+and replaces \isa{n} by \isa{{\isadigit{2}}\ {\isacharasterisk}\ k}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
@@ -133,13 +218,13 @@ our first rule induction!%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ k{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isasymexists}ka{\isachardot}\ Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ ka%
-\end{isabelle}%
+\end{isabelle}
+To conclude, we tell Isabelle that the desired value is
+\isa{Suc\ k}.  With this hint, the subgoal falls to \isa{simp}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}Suc\ k{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharcomma}\ simp{\isacharparenright}\isanewline
-\isacommand{done}\isamarkupfalse%
-%
+\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}Suc\ k{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharcomma}\ simp{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -148,7 +233,10 @@ our first rule induction!%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-no iff-attribute because we don't always want to use it%
+Combining the previous two results yields our objective, the
+equivalence relating \isa{even} and \isa{dvd}. 
+%
+%we don't want [iff]: discuss?%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
@@ -168,12 +256,21 @@ no iff-attribute because we don't always want to use it%
 %
 \endisadelimproof
 %
+\isamarkupsubsection{Generalization and Rule Induction \label{sec:gen-rule-induction}%
+}
+\isamarkuptrue%
+%
 \begin{isamarkuptext}%
-this result ISN'T inductive...%
+\index{generalizing for induction}%
+Before applying induction, we typically must generalize
+the induction formula.  With rule induction, the required generalization
+can be hard to find and sometimes requires a complete reformulation of the
+problem.  In this  example, our first attempt uses the obvious statement of
+the result.  It fails:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequoteopen}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -181,14 +278,7 @@ this result ISN'T inductive...%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ n\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}na{\isachardot}\ {\isasymlbrakk}na\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
+\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isanewline
 \isacommand{oops}\isamarkupfalse%
 %
 \endisatagproof
@@ -198,10 +288,35 @@ this result ISN'T inductive...%
 %
 \endisadelimproof
 %
-\begin{isamarkuptext}%
-...so we need an inductive lemma...%
-\end{isamarkuptext}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Rule induction finds no occurrences of \isa{Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}} in the
+conclusion, which it therefore leaves unchanged.  (Look at
+\isa{even{\isachardot}induct} to see why this happens.)  We have these subgoals:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ n\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}na{\isachardot}\ {\isasymlbrakk}na\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even%
+\end{isabelle}
+The first one is hopeless.  Rule induction on
+a non-variable term discards information, and usually fails.
+How to deal with such situations
+in general is described in {\S}\ref{sec:ind-var-in-prems} below.
+In the current case the solution is easy because
+we have the necessary inverse, subtraction:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
 \ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
@@ -211,15 +326,8 @@ this result ISN'T inductive...%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isanewline
+\ \isacommand{apply}\isamarkupfalse%
 \ auto\isanewline
 \isacommand{done}\isamarkupfalse%
 %
@@ -230,10 +338,34 @@ this result ISN'T inductive...%
 %
 \endisadelimproof
 %
-\begin{isamarkuptext}%
-...and prove it in a separate step%
-\end{isamarkuptext}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+This lemma is trivially inductive.  Here are the subgoals:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even%
+\end{isabelle}
+The first is trivial because \isa{{\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}} simplifies to \isa{{\isadigit{0}}}, which is
+even.  The second is trivial too: \isa{Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}} simplifies to
+\isa{n}, matching the assumption.%
+\index{rule induction|)}  %the sequel isn't really about induction
+
+\medskip
+Using our lemma, we can easily prove the result we originally wanted:%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
 \ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequoteopen}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
 %
@@ -248,11 +380,15 @@ this result ISN'T inductive...%
 {\isafoldproof}%
 %
 \isadelimproof
-\isanewline
 %
 \endisadelimproof
-\isanewline
-\isanewline
+%
+\begin{isamarkuptext}%
+We have just proved the converse of the introduction rule \isa{even{\isachardot}step}.
+This suggests proving the following equivalence.  We give it the
+\attrdx{iff} attribute because of its obvious value for simplification.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
 \ {\isacharbrackleft}iff{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
@@ -267,26 +403,127 @@ this result ISN'T inductive...%
 {\isafoldproof}%
 %
 \isadelimproof
-\isanewline
 %
 \endisadelimproof
 %
+\isamarkupsubsection{Rule Inversion \label{sec:rule-inversion}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\index{rule inversion|(}%
+Case analysis on an inductive definition is called \textbf{rule
+inversion}.  It is frequently used in proofs about operational
+semantics.  It can be highly effective when it is applied
+automatically.  Let us look at how rule inversion is done in
+Isabelle/HOL\@.
+
+Recall that \isa{even} is the minimal set closed under these two rules:
+\begin{isabelle}%
+{\isadigit{0}}\ {\isasymin}\ even\isasep\isanewline%
+n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even%
+\end{isabelle}
+Minimality means that \isa{even} contains only the elements that these
+rules force it to contain.  If we are told that \isa{a}
+belongs to
+\isa{even} then there are only two possibilities.  Either \isa{a} is \isa{{\isadigit{0}}}
+or else \isa{a} has the form \isa{Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}}, for some suitable \isa{n}
+that belongs to
+\isa{even}.  That is the gist of the \isa{cases} rule, which Isabelle proves
+for us when it accepts an inductive definition:
+\begin{isabelle}%
+{\isasymlbrakk}a\ {\isasymin}\ even{\isacharsemicolon}\ a\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\isanewline
+\isaindent{\ }{\isasymAnd}n{\isachardot}\ {\isasymlbrakk}a\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\isanewline
+{\isasymLongrightarrow}\ P\rulename{even{\isachardot}cases}%
+\end{isabelle}
+This general rule is less useful than instances of it for
+specific patterns.  For example, if \isa{a} has the form
+\isa{Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}} then the first case becomes irrelevant, while the second
+case tells us that \isa{n} belongs to \isa{even}.  Isabelle will generate
+this instance for us:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{inductive{\isacharunderscore}cases}\isamarkupfalse%
+\ Suc{\isacharunderscore}Suc{\isacharunderscore}cases\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+The \commdx{inductive\protect\_cases} command generates an instance of
+the \isa{cases} rule for the supplied pattern and gives it the supplied name:
+\begin{isabelle}%
+{\isasymlbrakk}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\rulename{Suc{\isacharunderscore}Suc{\isacharunderscore}cases}%
+\end{isabelle}
+Applying this as an elimination rule yields one case where \isa{even{\isachardot}cases}
+would yield two.  Rule inversion works well when the conclusions of the
+introduction rules involve datatype constructors like \isa{Suc} and \isa{{\isacharhash}}
+(list ``cons''); freeness reasoning discards all but one or two cases.
+
+In the \isacommand{inductive\_cases} command we supplied an
+attribute, \isa{elim{\isacharbang}},
+\index{elim"!@\isa {elim"!} (attribute)}%
+indicating that this elimination rule can be
+applied aggressively.  The original
+\isa{cases} rule would loop if used in that manner because the
+pattern~\isa{a} matches everything.
+
+The rule \isa{Suc{\isacharunderscore}Suc{\isacharunderscore}cases} is equivalent to the following implication:
+\begin{isabelle}%
+Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even%
+\end{isabelle}
+Just above we devoted some effort to reaching precisely
+this result.  Yet we could have obtained it by a one-line declaration,
+dispensing with the lemma \isa{even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}}. 
+This example also justifies the terminology
+\textbf{rule inversion}: the new rule inverts the introduction rule
+\isa{even{\isachardot}step}.  In general, a rule can be inverted when the set of elements
+it introduces is disjoint from those of the other introduction rules.
+
+For one-off applications of rule inversion, use the \methdx{ind_cases} method. 
+Here is an example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}ind{\isacharunderscore}cases\ {\isachardoublequoteopen}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The specified instance of the \isa{cases} rule is generated, then applied
+as an elimination rule.
+
+To summarize, every inductive definition produces a \isa{cases} rule.  The
+\commdx{inductive\protect\_cases} command stores an instance of the
+\isa{cases} rule for a given pattern.  Within a proof, the
+\isa{ind{\isacharunderscore}cases} method applies an instance of the \isa{cases}
+rule.
+
+The even numbers example has shown how inductive definitions can be
+used.  Later examples will show that they are actually worth using.%
+\index{rule inversion|)}%
+\index{even numbers!defining inductively|)}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
 %
 \isatagtheory
-\isacommand{end}\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
-\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
