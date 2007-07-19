@@ -21,7 +21,7 @@ structure I = PgipIsabelle;
 fun badcmd text = [D.Badcmd {text = text}];
 
 fun thy_begin text =
-  (case try ThyHeader.read (Source.of_string text, Position.none) of
+  (case try (ThyHeader.read Position.none) (Source.of_string text) of
     NONE => [D.Unparseable {text = text}]
   | SOME (name, imports, _) =>
       [D.Opentheory {thyname = name, parentnames = imports, text = text},
