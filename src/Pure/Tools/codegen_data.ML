@@ -139,7 +139,7 @@ fun add_drop_redundant thm (sels, dels) =
       | matches (_ :: _) [] = false
       | matches (x :: xs) (y :: ys) = Pattern.matches thy (x, y) andalso matches xs ys;
     fun drop thm' = not (matches args (args_of thm'))
-      orelse (warning ("Dropping redundant defining equation\n" ^ string_of_thm thm'); false);
+      orelse (warning ("code generator: dropping redundant defining equation\n" ^ string_of_thm thm'); false);
     val (keeps, drops) = List.partition drop sels;
   in (thm :: keeps, dels |> remove Thm.eq_thm_prop thm |> fold (insert Thm.eq_thm_prop) drops) end;
 

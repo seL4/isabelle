@@ -210,7 +210,7 @@ subsection {* Converting Numerals to Rings: @{term number_of} *}
 axclass number_ring \<subseteq> number, comm_ring_1
   number_of_eq: "number_of k = of_int k"
 
-text {* self-embedding of the intergers *}
+text {* self-embedding of the integers *}
 
 instance int :: number_ring
   int_number_of_def: "number_of w \<equiv> of_int w"
@@ -589,36 +589,36 @@ instance int :: eq ..
 code_datatype Pls Min Bit "number_of \<Colon> int \<Rightarrow> int"
 
 definition
-  int_aux :: "int \<Rightarrow> nat \<Rightarrow> int" where
-  "int_aux i n = (i + int n)"
+  int_aux :: "nat \<Rightarrow> int \<Rightarrow> int" where
+  "int_aux n i = int n + i"
 
 lemma [code]:
-  "int_aux i 0 = i"
-  "int_aux i (Suc n) = int_aux (i + 1) n" -- {* tail recursive *}
+  "int_aux 0 i  = i"
+  "int_aux (Suc n) i = int_aux n (i + 1)" -- {* tail recursive *}
   by (simp add: int_aux_def)+
 
 lemma [code unfold]:
-  "int n = int_aux 0 n"
+  "int n = int_aux n 0"
   by (simp add: int_aux_def)
 
 definition
-  nat_aux :: "nat \<Rightarrow> int \<Rightarrow> nat" where
-  "nat_aux n i = (n + nat i)"
+  nat_aux :: "int \<Rightarrow> nat \<Rightarrow> nat" where
+  "nat_aux i n = nat i + n"
 
-lemma [code]: "nat_aux n i = (if i <= 0 then n else nat_aux (Suc n) (i - 1))"
-  -- {* tail recursive *}
+lemma [code]:
+  "nat_aux i n = (if i \<le> 0 then n else nat_aux (i - 1) (Suc n))"  -- {* tail recursive *}
   by (auto simp add: nat_aux_def nat_eq_iff linorder_not_le order_less_imp_le
     dest: zless_imp_add1_zle)
 
-lemma [code]: "nat i = nat_aux 0 i"
+lemma [code]: "nat i = nat_aux i 0"
   by (simp add: nat_aux_def)
 
 lemma zero_is_num_zero [code func, code inline, symmetric, normal post]:
-  "(0\<Colon>int) = number_of Numeral.Pls" 
+  "(0\<Colon>int) = Numeral0" 
   by simp
 
 lemma one_is_num_one [code func, code inline, symmetric, normal post]:
-  "(1\<Colon>int) = number_of (Numeral.Pls BIT bit.B1)" 
+  "(1\<Colon>int) = Numeral1" 
   by simp 
 
 code_modulename SML

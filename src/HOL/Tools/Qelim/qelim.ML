@@ -2,8 +2,7 @@
     ID:         $Id$
     Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
 
-Proof protocoling and proof generation for multiple quantified
-formulae.
+Proof protocolling and proof generation for multiple quantified formulae.
 *)
 
 signature QELIM =

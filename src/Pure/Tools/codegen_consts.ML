@@ -30,6 +30,7 @@ sig
     -> string * typ list -> const
   val consts_of_cos: theory -> string -> (string * sort) list
     -> (string * typ list) list -> const list
+  val no_args: theory -> const -> int
 
   val typargs: theory -> string * typ -> typ list
   val typ_sort_inst: Sorts.algebra -> typ * sort
@@ -159,7 +160,7 @@ fun gen_co_of_const thy const =
     val (c, _) = const;
     val ty = (Logic.unvarifyT o mg_typ_of_const thy) const;
     fun err () = raise BAD
-     ("Illegal type for datatype constructor: " ^ string_of_typ thy ty);
+      ("Illegal type for datatype constructor: " ^ string_of_typ thy ty);
     val (tys, ty') = strip_type ty;
     val (tyco, vs) = ((apsnd o map) dest_TFree o dest_Type) ty'
       handle TYPE _ => err ();
@@ -177,6 +178,8 @@ in
 
 fun co_of_const thy const = gen_co_of_const thy const handle BAD msg => error msg;
 fun co_of_const' thy const = SOME (gen_co_of_const thy const) handle BAD msg => NONE;
+
+fun no_args thy = length o fst o strip_type o mg_typ_of_const thy;
 
 end;
 
