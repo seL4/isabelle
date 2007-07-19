@@ -20,6 +20,7 @@ sig
   val isatool: string -> int
   val system_command: string -> unit
   eqtype ident
+  val rep_ident: ident -> string
   val ident: Path.T -> ident option
   val exists: Path.T -> bool
   val check: Path.T -> unit
@@ -87,6 +88,8 @@ fun system_command cmd =
 (* directory entries *)
 
 datatype ident = Ident of string;
+
+fun rep_ident (Ident s) = s;
 
 fun ident path =
   (case try OS.FileSys.modTime (platform_path path) of
