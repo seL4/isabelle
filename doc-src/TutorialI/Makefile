@@ -17,8 +17,9 @@ NAME = tutorial
 FILES = tutorial.tex basics.tex fp.tex appendix.tex \
 	Advanced/advanced.tex \
 	CTL/ctl.tex \
-	Inductive/inductive.tex Inductive/even-example.tex \
-	Inductive/advanced-examples.tex \
+	Inductive/inductive.tex Inductive/document/AB.tex \
+	Inductive/document/Advanced.tex Inductive/document/Even.tex \
+	Inductive/document/Mutual.tex Inductive/document/Star.tex \
 	Protocol/protocol.tex \
 	Rules/rules.tex Sets/sets.tex \
 	Types/numerics.tex Types/types.tex \
