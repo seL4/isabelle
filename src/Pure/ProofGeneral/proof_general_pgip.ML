@@ -692,15 +692,14 @@ fun askrefs (Askrefs vs) =
 
         fun filerefs f =
             let val thy = thy_name f
-                val (_,filerefs) = OuterSyntax.deps_thy thy true f (* (Path.unpack f); *)
+                val (_, (_,filerefs)) = ThyLoad.deps_thy [Path.dir f] thy true
             in
                 issue_pgip (Setrefs {url=url, thyname=NONE, objtype=SOME PgipTypes.ObjFile,
                                      name=NONE, idtables=[], fileurls=filerefs})
             end
 
         fun thyrefs thy =
-            let val ml_path = ThyLoad.ml_path thy
-                val (thyrefs,_) = OuterSyntax.deps_thy thy true ml_path (* (Path.unpack f); *)
+            let val (_, (thyrefs,_)) = ThyLoad.deps_thy [] thy true
             in
                 issue_pgip (Setrefs {url=url, thyname=thyname, objtype=SOME PgipTypes.ObjTheory,
                                      name=NONE, idtables=[{context=NONE, objtype=PgipTypes.ObjTheory,
