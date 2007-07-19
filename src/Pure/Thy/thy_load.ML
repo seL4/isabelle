@@ -99,7 +99,7 @@ fun deps_thy dirs name ml =
   let
     val master as ((path, _), _) = check_thy dirs name ml;
     val (name', imports, uses) =
-      ThyHeader.read (Position.path path) (Source.of_string (File.read path));
+      ThyHeader.read (Position.path path) (Source.of_string_limited (File.read path));
     val _ = name = name' orelse
       error ("Filename " ^ quote (Path.implode (Path.base path)) ^
         " does not agree with theory name " ^ quote name');
