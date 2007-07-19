@@ -23,6 +23,7 @@ use "antiquote.ML";
 
 (*theory sources*)
 use "../Thy/ml_context.ML";
+use "../Thy/thy_header.ML";
 use "../Thy/thy_load.ML";
 use "../Thy/thy_info.ML";
 use "../Thy/html.ML";
@@ -67,7 +68,6 @@ use "../Thy/term_style.ML";
 use "../Thy/thy_output.ML";
 
 (*theory syntax*)
-use "../Thy/thy_header.ML";
 use "session.ML";
 use "../old_goals.ML";
 use "outer_syntax.ML";
