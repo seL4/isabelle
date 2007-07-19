@@ -897,17 +897,9 @@ val use_thyP =
   OuterSyntax.improper_command "use_thy" "use theory file" K.diag
     (P.name >> (Toplevel.no_timing oo IsarCmd.use_thy));
 
-val use_thy_onlyP =
-  OuterSyntax.improper_command "use_thy_only" "use theory file only, ignoring associated ML"
-    K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.use_thy_only));
-
 val update_thyP =
   OuterSyntax.improper_command "update_thy" "update theory file" K.diag
     (P.name >> (Toplevel.no_timing oo IsarCmd.update_thy));
-
-val update_thy_onlyP =
-  OuterSyntax.improper_command "update_thy_only" "update theory file, ignoring associated ML"
-    K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.update_thy_only));
 
 val touch_thyP =
   OuterSyntax.improper_command "touch_thy" "outdate theory, including descendants" K.diag
@@ -1026,9 +1018,9 @@ val _ = OuterSyntax.add_parsers [
   print_thmsP, print_prfsP, print_full_prfsP, print_propP,
   print_termP, print_typeP, print_codesetupP,
   (*system commands*)
-  cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
-  touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
-  kill_thyP, display_draftsP, print_draftsP, prP, disable_prP,
-  enable_prP, commitP, quitP, exitP, init_toplevelP, welcomeP];
+  cdP, pwdP, use_thyP, update_thyP, touch_thyP, touch_all_thysP,
+  touch_child_thysP, remove_thyP, kill_thyP, display_draftsP,
+  print_draftsP, prP, disable_prP, enable_prP, commitP, quitP, exitP,
+  init_toplevelP, welcomeP];
 
 end;
