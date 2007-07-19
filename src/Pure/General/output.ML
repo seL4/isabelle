@@ -141,16 +141,16 @@ fun ML_errors f = setmp do_toplevel_errors true (toplevel_errors f);
 (*global timing mode*)
 val timing = ref false;
 
-(*a conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime on warning channel*)
+(*conditional timing*)
 fun cond_timeit flag f =
   if flag then
-    let val start = start_timing ()
-        val result = f ()
+    let
+      val start = start_timing ();
+      val result = f ();
     in warning (end_timing start); result end
   else f ();
 
-(*unconditional timing function*)
+(*unconditional timing*)
 fun timeit x = cond_timeit true x;
 
 (*timed application function*)
