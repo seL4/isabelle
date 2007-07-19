@@ -6,7 +6,7 @@
 header {* Implemtation of the SCT criterion *}
 
 theory SCT_Implementation
-imports ExecutableSet SCT_Definition SCT_Theorem
+imports Executable_Set SCT_Definition SCT_Theorem
 begin
 
 fun edges_match :: "('n \<times> 'e \<times> 'n) \<times> ('n \<times> 'e \<times> 'n) \<Rightarrow> bool"

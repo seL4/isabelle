@@ -6,7 +6,7 @@
 header {* \isaheader{Example Welltypings}\label{sec:BVExample} *}
 
 theory BVExample
-imports JVMListExample BVSpecTypeSafe JVM ExecutableSet
+imports JVMListExample BVSpecTypeSafe JVM Executable_Set
 begin
 
 text {*

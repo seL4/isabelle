@@ -1,11 +1,11 @@
-(*  Title:      HOL/Library/EfficientNat.thy
+(*  Title:      HOL/Library/Efficient_Nat.thy
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
 header {* Implementation of natural numbers by integers *}
 
-theory EfficientNat
+theory Efficient_Nat
 imports Main Pretty_Int
 begin
 
@@ -132,7 +132,7 @@ next
   case False then show ?thesis by (simp add: nat_of_int_def)
 qed
 lemma [code func]:
-  "int_aux i n = (if int' n = 0 then i else int_aux (i + 1) (nat_of_int (int' n - 1)))"
+  "int_aux n i = (if int' n = 0 then i else int_aux (nat_of_int (int' n - 1)) (i + 1))"
 proof -
   have "0 < n \<Longrightarrow> int' n = 1 + int' (nat_of_int (int' n - 1))"
   proof -
@@ -141,7 +141,7 @@ proof -
     then have "nat_of_int (int' n - 1) = nat (int' n - 1)" by (simp add: nat_of_int_def)
     with prem show "int' n = 1 + int' (nat_of_int (int' n - 1))" unfolding int'_def by simp
   qed
-  then show ?thesis unfolding int_aux_def int'_def by simp
+  then show ?thesis unfolding int_aux_def int'_def by auto
 qed
 
 lemma div_nat_code [code func]:
@@ -153,6 +153,7 @@ lemma mod_nat_code [code func]:
   "m mod k = nat_of_int (snd (divAlg (int' m, int' k)))"
   unfolding mod_def [symmetric] int'_def zmod_int [symmetric]
   unfolding int'_def [symmetric] nat_of_int_int ..
+
 
 subsection {* Code generator setup for basic functions *}
 
@@ -391,16 +392,16 @@ subsection {* Module names *}
 code_modulename SML
   Nat Integer
   Divides Integer
-  EfficientNat Integer
+  Efficient_Nat Integer
 
 code_modulename OCaml
   Nat Integer
   Divides Integer
-  EfficientNat Integer
+  Efficient_Nat Integer
 
 code_modulename Haskell
   Nat Integer
-  EfficientNat Integer
+  Efficient_Nat Integer
 
 hide const nat_of_int int'
 

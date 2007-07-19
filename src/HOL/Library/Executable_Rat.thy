@@ -1,11 +1,11 @@
-(*  Title:      HOL/Library/ExecutableRat.thy
+(*  Title:      HOL/Library/Executable_Rat.thy
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
 header {* Executable implementation of rational numbers in HOL *}
 
-theory ExecutableRat
+theory Executable_Rat
 imports "~~/src/HOL/Real/Rational" "~~/src/HOL/NumberTheory/IntPrimes"
 begin
 
@@ -106,13 +106,13 @@ instance rat :: eq ..
 subsubsection {* names *}
 
 code_modulename SML
-  ExecutableRat Rational
+  Executable_Rat Rational
 
 code_modulename OCaml
-  ExecutableRat Rational
+  Executable_Rat Rational
 
 code_modulename Haskell
-  ExecutableRat Rational
+  Executable_Rat Rational
 
 subsubsection {* rat as abstype *}
 

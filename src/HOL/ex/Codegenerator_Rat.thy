@@ -6,7 +6,7 @@
 header {* Simple example for executable rational numbers *}
 
 theory Codegenerator_Rat
-imports ExecutableRat EfficientNat
+imports Executable_Rat Efficient_Nat
 begin
 
 definition

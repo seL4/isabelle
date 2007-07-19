@@ -6,7 +6,7 @@
 header {* Embedding (a subset of) the Pure term algebra in HOL *}
 
 theory Pure_term
-imports MLString
+imports ML_String
 begin
 
 subsection {* Definitions *}
@@ -47,16 +47,16 @@ ML {*
 structure Pure_term =
 struct
 
-val mk_sort = HOLogic.mk_list @{typ class} o map MLString.mk;
+val mk_sort = HOLogic.mk_list @{typ class} o map ML_String.mk;
 
 fun mk_typ f (Type (tyco, tys)) =
-      @{term Type} $ MLString.mk tyco
+      @{term Type} $ ML_String.mk tyco
         $ HOLogic.mk_list @{typ typ} (map (mk_typ f) tys)
   | mk_typ f (TFree v) =
       f v;
 
 fun mk_term f g (Const (c, ty)) =
-      @{term Const} $ MLString.mk c $ g ty
+      @{term Const} $ ML_String.mk c $ g ty
   | mk_term f g (t1 $ t2) =
       @{term App} $ mk_term f g t1 $ mk_term f g t2
   | mk_term f g (Free v) = f v;

@@ -4,7 +4,7 @@
 
 header {* Monolithic strings for ML *}
 
-theory MLString
+theory ML_String
 imports List
 begin
 
@@ -34,7 +34,7 @@ lemma [code func]: "size (s\<Colon>ml_string) = 0"
 subsection {* ML interface *}
 
 ML {*
-structure MLString =
+structure ML_String =
 struct
 
 fun mk s = @{term STR} $ HOLogic.mk_string s;

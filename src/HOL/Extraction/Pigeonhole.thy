@@ -6,7 +6,7 @@
 header {* The pigeonhole principle *}
 
 theory Pigeonhole
-imports EfficientNat
+imports Efficient_Nat
 begin
 
 text {*

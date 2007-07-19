@@ -11,5 +11,5 @@ else
    time_use_thy "QuotRem";
    time_use_thy "Warshall";
    time_use_thy "Higman";
-   no_document time_use_thy "EfficientNat";
+   no_document time_use_thy "Efficient_Nat";
    time_use_thy "Pigeonhole");

@@ -9,15 +9,15 @@ imports
   Coinductive_List
   Commutative_Ring
   Continuity
-  EfficientNat
+  Efficient_Nat
   Eval
-  ExecutableRat
+  Executable_Rat
   Executable_Real
-  ExecutableSet
+  Executable_Set
   FuncSet
   GCD
   Infinite_Set
-  MLString
+  ML_String
   Multiset
   NatPair
   Nat_Infinity

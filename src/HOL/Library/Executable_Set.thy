@@ -1,11 +1,11 @@
-(*  Title:      HOL/Library/ExecutableSet.thy
+(*  Title:      HOL/Library/Executable_Set.thy
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
 header {* Implementation of finite sets by lists *}
 
-theory ExecutableSet
+theory Executable_Set
 imports Main
 begin
 
@@ -257,15 +257,15 @@ nonfix subset;
 *}
 
 code_modulename SML
-  ExecutableSet List
+  Executable_Set List
   Set List
 
 code_modulename OCaml
-  ExecutableSet List
+  Executable_Set List
   Set List
 
 code_modulename Haskell
-  ExecutableSet List
+  Executable_Set List
   Set List
 
 definition [code inline]:
