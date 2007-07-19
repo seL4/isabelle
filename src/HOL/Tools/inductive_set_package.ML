@@ -65,12 +65,16 @@ val collect_mem_simproc =
 (* used for converting "strong" (co)induction rules                                *)
 (***********************************************************************************)
 
-val strong_ind_simproc =
-  Simplifier.simproc HOL.thy "strong_ind" ["t"] (fn thy => fn ss => fn t =>
+val anyt = Free ("t", TFree ("'t", []));
+
+fun strong_ind_simproc tab =
+  Simplifier.simproc_i HOL.thy "strong_ind" [anyt] (fn thy => fn ss => fn t =>
     let
-      val xs = strip_abs_vars t;
-      fun close t = fold (fn x => fn u => all (fastype_of x) $ lambda x u)
-        (term_vars t) t;
+      fun close p t f =
+        let val vs = Term.add_vars t []
+        in Drule.instantiate' [] (rev (map (SOME o cterm_of thy o Var) vs))
+          (p (fold (fn x as (_, T) => fn u => all T $ lambda (Var x) u) vs t) f)
+        end;
       fun mkop "op &" T x = SOME (Const ("op Int", T --> T --> T), x)
         | mkop "op |" T x = SOME (Const ("op Un", T --> T --> T), x)
         | mkop _ _ _ = NONE;
@@ -88,21 +92,33 @@ val strong_ind_simproc =
         | decomp _ = NONE;
       val simp = full_simp_tac (Simplifier.inherit_context ss
         (HOL_basic_ss addsimps [mem_Collect_eq, split_conv])) 1;
+      fun mk_rew t = (case strip_abs_vars t of
+          [] => NONE
+        | xs => (case decomp (strip_abs_body t) of
+            NONE => NONE
+          | SOME (bop, (m, p, S, S')) =>
+              SOME (close (Goal.prove (Simplifier.the_context ss) [] [])
+                (Logic.mk_equals (t, list_abs (xs, m $ p $ (bop $ S $ S'))))
+                (K (EVERY
+                  [rtac eq_reflection 1, REPEAT (rtac ext 1), rtac iffI 1,
+                   EVERY [etac conjE 1, rtac IntI 1, simp, simp,
+                     etac IntE 1, rtac conjI 1, simp, simp] ORELSE
+                   EVERY [etac disjE 1, rtac UnI1 1, simp, rtac UnI2 1, simp,
+                     etac UnE 1, rtac disjI1 1, simp, rtac disjI2 1, simp]])))
+                handle ERROR _ => NONE))
     in
-      if null xs then NONE
-      else case decomp (strip_abs_body t) of
-        NONE => NONE
-      | SOME (bop, (m, p, S, S')) =>
-          SOME (mk_meta_eq (Goal.prove (Simplifier.the_context ss) [] []
-            (close (HOLogic.mk_Trueprop (HOLogic.mk_eq
-              (t, list_abs (xs, m $ p $ (bop $ S $ S'))))))
-            (K (EVERY
-              [REPEAT (rtac ext 1), rtac iffI 1,
-               EVERY [etac conjE 1, rtac IntI 1, simp, simp,
-                 etac IntE 1, rtac conjI 1, simp, simp] ORELSE
-               EVERY [etac disjE 1, rtac UnI1 1, simp, rtac UnI2 1, simp,
-                 etac UnE 1, rtac disjI1 1, simp, rtac disjI2 1, simp]]))))
-            handle ERROR _ => NONE
+      case strip_comb t of
+        (h as Const (name, _), ts) => (case Symtab.lookup tab name of
+          SOME _ =>
+            let val rews = map mk_rew ts
+            in
+              if forall is_none rews then NONE
+              else SOME (fold (fn th1 => fn th2 => combination th2 th1)
+                (map2 (fn SOME r => K r | NONE => reflexive o cterm_of thy)
+                   rews ts) (reflexive (cterm_of thy h)))
+            end
+        | NONE => NONE)
+      | _ => NONE
     end);
 
 (* only eta contract terms occurring as arguments of functions satisfying p *)
@@ -304,7 +320,7 @@ fun is_pred tab t =
 fun to_pred_simproc rules =
   let val rules' = map mk_meta_eq rules
   in
-    Simplifier.simproc HOL.thy "to_pred" ["t"]
+    Simplifier.simproc_i HOL.thy "to_pred" [anyt]
       (fn thy => K (lookup_rule thy (prop_of #> Logic.dest_equals) rules'))
   end;
 
@@ -356,7 +372,7 @@ fun to_set thms ctxt thm =
       end) fs
   in
     Simplifier.full_simplify (HOL_basic_ss addsimps to_set_simps
-        addsimprocs [strong_ind_simproc])
+        addsimprocs [strong_ind_simproc pred_arities])
       (Thm.instantiate ([], insts) thm)
   end;
 
