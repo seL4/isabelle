@@ -2105,9 +2105,10 @@ subsection {* Getting the Contents of a Singleton Set *}
 
 constdefs
   contents :: "'a set => 'a"
-   "contents X == THE x. X = {x}"
+  "contents X == THE x. X = {x}"
+lemmas [code func del] = contents_def
 
-lemma contents_eq [simp]: "contents {x} = x"
+lemma contents_eq [simp, code func]: "contents {x} = x"
 by (simp add: contents_def)
 
 
