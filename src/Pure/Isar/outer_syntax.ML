@@ -42,8 +42,6 @@ sig
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
   val check_text: string * Position.T -> Toplevel.node option -> unit
-  val deps_thy: string -> bool -> Path.T -> string list * Path.T list
-  val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: bool -> unit Toplevel.isar
   val scan: string -> OuterLex.token list
   val read: OuterLex.token list -> (string * OuterLex.token list * Toplevel.transition) list
@@ -243,30 +241,13 @@ fun read toks =
 fun check_text s state = (ThyOutput.eval_antiquote (#1 (get_lexicons ())) state s; ());
 
 
-(* deps_thy *)
-
-fun deps_thy name ml path =
-  let
-    val src = Source.of_string (File.read path);
-    val pos = Position.path path;
-    val (name', imports, uses) = ThyHeader.read (src, pos);
-    val ml_path = ThyLoad.ml_path name;
-    val ml_file = if ml andalso is_some (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
-  in
-    if name <> name' then
-      error ("Filename " ^ quote (Path.implode path) ^
-        " does not agree with theory name " ^ quote name')
-    else (imports, map (Path.explode o #1) uses @ ml_file)
-  end;
-
-
 (* load_thy *)
 
 local
 
-fun try_ml_file name time =
+fun try_ml_file dirs name time =
   let val path = ThyLoad.ml_path name in
-    if is_none (ThyLoad.check_file NONE path) then ()
+    if is_none (ThyLoad.check_file dirs path) then ()
     else
       let
         val _ = legacy_feature ("loading attached ML script " ^ quote (Path.implode path));
@@ -275,9 +256,11 @@ fun try_ml_file name time =
       in Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr] end
   end;
 
-fun run_thy name path =
+fun run_thy dirs name time =
   let
+    val master as ((path, _), _) = ThyLoad.check_thy dirs name false;
     val text = Source.of_list (Library.untabify (explode (File.read path)));
+
     val _ = Present.init_theory name;
     val _ = Present.verbatim_source name (fn () => Source.exhaust (Symbol.source false text));
     val toks = text
@@ -287,23 +270,26 @@ fun run_thy name path =
     val trs = toks
       |> toplevel_source false false NONE (K (get_parser ()))
       |> Source.exhaust;
-  in
-    ThyOutput.present_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
-    |> Buffer.content
-    |> Present.theory_output name
-  end;
+
+    val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
+    val _ = cond_timeit time (fn () =>
+      ThyOutput.process_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
+      |> Buffer.content
+      |> Present.theory_output name);
+    val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
+
+  in master end;
+
+fun load_thy dirs name ml time =
+  let
+    val master = run_thy dirs name time;
+    val _ = ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
+    val _ = if ml then try_ml_file dirs name time else ();
+  in master end;
 
 in
 
-fun load_thy name ml time path =
- (if time then
-    timeit (fn () =>
-     (writeln ("\n**** Starting theory " ^ quote name ^ " ****");
-      run_thy name path;
-      writeln ("**** Finished theory " ^ quote name ^ " ****\n")))
-  else run_thy name path;
-  ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
-  if ml then try_ml_file name time else ());
+val _ = ThyLoad.load_thy_fn := load_thy;
 
 end;
 
@@ -350,10 +336,6 @@ val improper_command = parser true NONE;
 
 end;
 
-(*setup theory syntax dependent operations*)
-ThyLoad.deps_thy_fn := OuterSyntax.deps_thy;
-ThyLoad.load_thy_fn := OuterSyntax.load_thy;
 structure ThyLoad: THY_LOAD = ThyLoad;
-
 structure BasicOuterSyntax: BASIC_OUTER_SYNTAX = OuterSyntax;
 open BasicOuterSyntax;
