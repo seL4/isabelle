@@ -9,8 +9,7 @@ signature THY_HEADER =
 sig
   val args: OuterLex.token list ->
     (string * string list * (string * bool) list) * OuterLex.token list
-  val read: (string, 'a) Source.source * Position.T ->
-    string * string list * (string * bool) list
+  val read: Position.T -> (string, 'a) Source.source -> string * string list * (string * bool) list
 end;
 
 structure ThyHeader: THY_HEADER =
@@ -49,7 +48,7 @@ val header =
     (P.$$$ theoryN -- P.tags) |-- args)) ||
   (P.$$$ theoryN -- P.tags) |-- P.!!! args;
 
-fun read (src, pos) =
+fun read pos src =
   let val res =
     src
     |> Symbol.source false

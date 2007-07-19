@@ -2,14 +2,12 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Abstract algebra of file paths (external encoding Unix-style).
+Abstract algebra of file paths (external encoding in Unix style).
 *)
 
 signature PATH =
 sig
-  datatype elem = Root | Parent | Basic of string | Variable of string
   eqtype T
-  val rep: T -> elem list
   val is_current: T -> bool
   val current: T
   val root: T

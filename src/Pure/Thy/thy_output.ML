@@ -21,7 +21,7 @@ sig
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list ref
   val eval_antiquote: Scan.lexicon -> Toplevel.node option -> string * Position.T -> string
-  val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
+  val process_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     Toplevel.transition list -> (OuterLex.token, 'a) Source.source -> Buffer.T
   val output_list: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
     Proof.context -> 'a list -> string
@@ -286,7 +286,7 @@ fun present_trailer ((_, tags), active_tag, _, buffer, present_cont) =
 end;
 
 
-(* present_thy *)
+(* process_thy *)
 
 datatype markup = Markup | MarkupEnv | Verbatim;
 
@@ -317,7 +317,7 @@ val locale =
 
 in
 
-fun present_thy lex default_tags is_markup trs src =
+fun process_thy lex default_tags is_markup trs src =
   let
     (* tokens *)
 
