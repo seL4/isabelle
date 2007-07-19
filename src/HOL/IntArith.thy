@@ -212,6 +212,9 @@ next
   with False show ?thesis by simp
 qed
 
+lemma of_int_of_nat: "of_int k = (if k < 0 then - of_nat (nat (- k))
+  else of_nat (nat k))"
+  by (auto simp add: of_nat_nat)
 
 lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
 apply (cases "0 \<le> z'")
