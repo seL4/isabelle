@@ -52,6 +52,33 @@ fun arguments x = O.args (Scan.lift (Args.name -- Scan.optional (Args.colon |-- 
 
 fun pretty_thy_file name = (ThyLoad.check_thy Path.current name false; Pretty.str name);
 
+
+(* theorems with names *)
+
+fun tweak_line s =
+  if ! O.display then s else Symbol.strip_blanks s;
+
+val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.split_lines;
+
+fun output_named_list pretty src ctxt xs =
+  map (apfst (pretty ctxt)) xs        (*always pretty in order to exhibit errors!*)
+  |> (if ! O.quotes then map (apfst Pretty.quote) else I)
+  |> (if ! O.display then
+    map (fn (p, name) =>
+      Output.output (Pretty.string_of (Pretty.indent (! O.indent) p)) ^
+      "\\rulename{" ^ Output.output (Pretty.str_of (pretty_text name)) ^ "}")
+    #> space_implode "\\par\\smallskip%\n"
+    #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+  else
+    map (fn (p, name) =>
+      Output.output (Pretty.str_of p) ^
+      "\\rulename{" ^ Output.output (Pretty.str_of (pretty_text name)) ^ "}")
+    #> space_implode "\\par\\smallskip%\n"
+    #> enclose "\\isa{" "}");
+
+fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.revert_skolems ctxt;
+fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
+
 in
 
 val _ = O.add_commands
@@ -62,6 +89,9 @@ val _ = O.add_commands
   ("index_ML_functor", arguments (index_ml "functor" ml_functor)),
   ("ML_functor", O.args (Scan.lift Args.name) output_verbatim),
   ("verbatim", O.args (Scan.lift Args.name) output_verbatim),
-  ("thy_file", O.args (Scan.lift Args.name) (O.output (K pretty_thy_file)))];
+  ("thy_file", O.args (Scan.lift Args.name) (O.output (K pretty_thy_file))),
+  ("named_thms", O.args (Scan.repeat (Attrib.thm --
+       Scan.lift (Args.$$$ "(" |-- Args.name --| Args.$$$ ")")))
+     (output_named_list pretty_thm))];
 
 end;
