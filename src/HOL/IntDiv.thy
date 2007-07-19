@@ -1398,7 +1398,32 @@ apply (subgoal_tac "k ^ m = k ^ ((m - 1) + 1)")
  apply simp_all
 done
 
-text {* code serializer setup *}
+text {* by Brian Huffman *}
+lemma zminus_zmod: "- ((x::int) mod m) mod m = - x mod m"
+by (simp only: zmod_zminus1_eq_if mod_mod_trivial)
+
+lemma zdiff_zmod_left: "(x mod m - y) mod m = (x - y) mod (m::int)"
+by (simp only: diff_def zmod_zadd_left_eq [symmetric])
+
+lemma zdiff_zmod_right: "(x - y mod m) mod m = (x - y) mod (m::int)"
+proof -
+  have "(x + - (y mod m) mod m) mod m = (x + - y mod m) mod m"
+    by (simp only: zminus_zmod)
+  hence "(x + - (y mod m)) mod m = (x + - y) mod m"
+    by (simp only: zmod_zadd_right_eq [symmetric])
+  thus "(x - y mod m) mod m = (x - y) mod m"
+    by (simp only: diff_def)
+qed
+
+lemmas zmod_simps =
+  IntDiv.zmod_zadd_left_eq  [symmetric]
+  IntDiv.zmod_zadd_right_eq [symmetric]
+  IntDiv.zmod_zmult1_eq     [symmetric]
+  IntDiv.zmod_zmult1_eq'    [symmetric]
+  IntDiv.zpower_zmod
+  zminus_zmod zdiff_zmod_left zdiff_zmod_right
+
+text {* code generator setup *}
 
 code_modulename SML
   IntDiv Integer
