@@ -5,7 +5,7 @@
 header {* Quatifier elimination for R(0,1,+,floor,<) *}
 
 theory MIR
-  imports Real GCD
+  imports Real GCD Pretty_Int
   uses ("mireif.ML") ("mirtac.ML")
   begin
 
@@ -106,8 +106,10 @@ proof-
 qed
 
   (* The Divisibility relation between reals *)	
-consts rdvd:: "real \<Rightarrow> real \<Rightarrow> bool" (infixl 50)
-defs rdvd_def: "x rdvd y \<equiv> \<exists> (k::int). y=x*(real k)"
+definition
+  rdvd:: "real \<Rightarrow> real \<Rightarrow> bool" (infixl "rdvd" 50)
+where
+  rdvd_def: "x rdvd y \<longleftrightarrow> (\<exists>k\<Colon>int. y = x * real k)"
 
 lemma int_rdvd_real: 
   shows "real (i::int) rdvd x = (i dvd (floor x) \<and> real (floor x) = x)" (is "?l = ?r")
@@ -637,10 +639,8 @@ constdefs lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool"
   "lex_bnd t s \<equiv> lex_ns (bnds t, bnds s)"
 
 consts 
-  numgcd :: "num \<Rightarrow> int"
   numgcdh:: "num \<Rightarrow> int \<Rightarrow> int"
   reducecoeffh:: "num \<Rightarrow> int \<Rightarrow> num"
-  reducecoeff :: "num \<Rightarrow> num"
   dvdnumcoeff:: "num \<Rightarrow> int \<Rightarrow> bool"
 consts maxcoeff:: "num \<Rightarrow> int"
 recdef maxcoeff "measure size"
@@ -658,7 +658,11 @@ recdef numgcdh "measure size"
   "numgcdh (CN n c t) = (\<lambda>g. igcd c (numgcdh t g))"
   "numgcdh (CF c s t) = (\<lambda>g. igcd c (numgcdh t g))"
   "numgcdh t = (\<lambda>g. 1)"
-defs numgcd_def: "numgcd t \<equiv> numgcdh t (maxcoeff t)"
+
+definition
+  numgcd :: "num \<Rightarrow> int"
+where
+  numgcd_def: "numgcd t = numgcdh t (maxcoeff t)"
 
 recdef reducecoeffh "measure size"
   "reducecoeffh (C i) = (\<lambda> g. C (i div g))"
@@ -666,7 +670,10 @@ recdef reducecoeffh "measure size"
   "reducecoeffh (CF c s t) = (\<lambda> g. CF (c div g)  s (reducecoeffh t g))"
   "reducecoeffh t = (\<lambda>g. t)"
 
-defs reducecoeff_def: "reducecoeff t \<equiv> 
+definition
+  reducecoeff :: "num \<Rightarrow> num"
+where
+  reducecoeff_def: "reducecoeff t =
   (let g = numgcd t in 
   if g = 0 then C 0 else if g=1 then t else reducecoeffh t g)"
 
@@ -832,7 +839,6 @@ consts
   simpnum:: "num \<Rightarrow> num"
   numadd:: "num \<times> num \<Rightarrow> num"
   nummul:: "num \<Rightarrow> int \<Rightarrow> num"
-  numfloor:: "num \<Rightarrow> num"
 
 recdef numadd "measure (\<lambda> (t,s). size t + size s)"
   "numadd (CN n1 c1 r1,CN n2 c2 r2) =
@@ -939,7 +945,10 @@ qed (auto simp add: Let_def isint_iff isint_Floor isint_add isint_Mul split_def 
 lemma split_int_nb: "numbound0 t \<Longrightarrow> numbound0 (fst (split_int t)) \<and> numbound0 (snd (split_int t)) "
 by (induct t rule: split_int.induct, auto simp add: Let_def split_def)
 
-defs numfloor_def: "numfloor t \<equiv> (let (tv,ti) = split_int t in 
+definition
+  numfloor:: "num \<Rightarrow> num"
+where
+  numfloor_def: "numfloor t = (let (tv,ti) = split_int t in 
   (case tv of C i \<Rightarrow> numadd (tv,ti) 
   | _ \<Rightarrow> numadd(CF 1 tv (C 0),ti)))"
 
@@ -3884,25 +3893,40 @@ next
   with rsplit_ex fnsS fx show "?I x (rsplit f a)" by auto
 qed
 
-consts 
+definition
   lt :: "int \<Rightarrow> num \<Rightarrow> fm"
-  le :: "int \<Rightarrow> num \<Rightarrow> fm"
-  gt :: "int \<Rightarrow> num \<Rightarrow> fm"
-  ge :: "int \<Rightarrow> num \<Rightarrow> fm"
-  eq :: "int \<Rightarrow> num \<Rightarrow> fm"
-  neq :: "int \<Rightarrow> num \<Rightarrow> fm"
-
-defs lt_def: "lt c t \<equiv> (if c = 0 then (Lt t) else if c > 0 then (Lt (CN 0 c t)) 
+where
+  lt_def: "lt c t = (if c = 0 then (Lt t) else if c > 0 then (Lt (CN 0 c t)) 
                         else (Gt (CN 0 (-c) (Neg t))))"
-defs le_def: "le c t \<equiv> (if c = 0 then (Le t) else if c > 0 then (Le (CN 0 c t)) 
+
+definition
+  le :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  le_def: "le c t = (if c = 0 then (Le t) else if c > 0 then (Le (CN 0 c t)) 
                         else (Ge (CN 0 (-c) (Neg t))))"
-defs gt_def: "gt c t \<equiv> (if c = 0 then (Gt t) else if c > 0 then (Gt (CN 0 c t)) 
+
+definition
+  gt :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  gt_def: "gt c t = (if c = 0 then (Gt t) else if c > 0 then (Gt (CN 0 c t)) 
                         else (Lt (CN 0 (-c) (Neg t))))"
-defs ge_def: "ge c t \<equiv> (if c = 0 then (Ge t) else if c > 0 then (Ge (CN 0 c t)) 
+
+definition
+  ge :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  ge_def: "ge c t = (if c = 0 then (Ge t) else if c > 0 then (Ge (CN 0 c t)) 
                         else (Le (CN 0 (-c) (Neg t))))"
-defs eq_def: "eq c t \<equiv> (if c = 0 then (Eq t) else if c > 0 then (Eq (CN 0 c t)) 
+
+definition
+  eq :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  eq_def: "eq c t = (if c = 0 then (Eq t) else if c > 0 then (Eq (CN 0 c t)) 
                         else (Eq (CN 0 (-c) (Neg t))))"
-defs neq_def: "neq c t \<equiv> (if c = 0 then (NEq t) else if c > 0 then (NEq (CN 0 c t)) 
+
+definition
+  neq :: "int \<Rightarrow> num \<Rightarrow> fm"
+where
+  neq_def: "neq c t = (if c = 0 then (NEq t) else if c > 0 then (NEq (CN 0 c t)) 
                         else (NEq (CN 0 (-c) (Neg t))))"
 
 lemma lt_mono: "\<forall> a n s. Inum (x#bs) a = Inum (x#bs) (CN 0 n s) \<and> numbound0 s \<longrightarrow> Ifm (x#bs) (lt n s) = Ifm (x#bs) (Lt a)"
@@ -3973,12 +3997,6 @@ lemma neq_l: "isrlfm (rsplit neq a)"
   by (rule rsplit_l[where f="neq" and a="a"], auto simp add: neq_def) 
 (case_tac s, simp_all, case_tac"nat", simp_all)
 
-consts
-  DVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
-  DVDJ:: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
-  NDVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
-  NDVDJ:: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
-
 lemma small_le: 
   assumes u0:"0 \<le> u" and u1: "u < 1"
   shows "(-u \<le> real (n::int)) = (0 \<le> n)"
@@ -4017,8 +4035,15 @@ proof-
   finally show ?thesis .
 qed
 
-defs DVDJ_def: "DVDJ i n s \<equiv> (foldr disj (map (\<lambda> j. conj (Eq (CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (Dvd i (Sub (C j) (Floor (Neg s))))) (iupt(0,n - 1))) F)"
-defs NDVDJ_def: "NDVDJ i n s \<equiv> (foldr conj (map (\<lambda> j. disj (NEq (CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (NDvd i (Sub (C j) (Floor (Neg s))))) (iupt(0,n - 1))) T)"
+definition
+  DVDJ:: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
+where
+  DVDJ_def: "DVDJ i n s = (foldr disj (map (\<lambda> j. conj (Eq (CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (Dvd i (Sub (C j) (Floor (Neg s))))) (iupt(0,n - 1))) F)"
+
+definition
+  NDVDJ:: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
+where
+  NDVDJ_def: "NDVDJ i n s = (foldr conj (map (\<lambda> j. disj (NEq (CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (NDvd i (Sub (C j) (Floor (Neg s))))) (iupt(0,n - 1))) T)"
 
 lemma DVDJ_DVD: 
   assumes xp:"x\<ge> 0" and x1: "x < 1" and np:"real n > 0"
@@ -4077,10 +4102,17 @@ proof-
   from NDVDJ_def foldr_And_map_rlfm2[OF th] show ?thesis by auto
 qed
 
-defs DVD_def: "DVD i c t \<equiv> 
+definition
+  DVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
+where
+  DVD_def: "DVD i c t =
   (if i=0 then eq c t else 
   if c = 0 then (Dvd i t) else if c >0 then DVDJ (abs i) c t else DVDJ (abs i) (-c) (Neg t))"
-defs NDVD_def: "NDVD i c t \<equiv> 
+
+definition
+  NDVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
+where
+  "NDVD i c t =
   (if i=0 then neq c t else 
   if c = 0 then (NDvd i t) else if c >0 then NDVDJ (abs i) c t else NDVDJ (abs i) (-c) (Neg t))"
 
@@ -5750,32 +5782,42 @@ theorem mirlfrqe: "(Ifm bs (mirlfrqe p) = Ifm bs p) \<and> qfree (mirlfrqe p)"
 declare zdvd_iff_zmod_eq_0 [code]
 declare max_def [code unfold]
 
-code_module Mir
-file "mir.ML"
-contains 
-  mircfrqe = "mircfrqe"
-  mirlfrqe = "mirlfrqe"
-  test = "%x . mircfrqe (A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0)))))))"
-  test2 = "%x . mircfrqe (A (Iff (Eq (Add (Floor (Bound 0)) (Floor (Neg (Bound 0))))) (Eq (Sub (Floor (Bound 0)) (Bound 0)))))"
-  test' = "%x . mirlfrqe (A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0)))))))"
-  test2' = "%x . mirlfrqe (A (Iff (Eq (Add (Floor (Bound 0)) (Floor (Neg (Bound 0))))) (Eq (Sub (Floor (Bound 0)) (Bound 0)))))"
-test3 = "%x .mircfrqe (A(E(And (Ge(Sub (Bound 1) (Bound 0))) (Eq (Add (Floor (Bound 1)) (Floor (Neg(Bound 0))))))))"
+definition
+  "test1 (u\<Colon>unit) = mircfrqe (A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0)))))))"
 
-ML {* use "mir.ML" *}
+definition
+  "test2 (u\<Colon>unit) = mircfrqe (A (Iff (Eq (Add (Floor (Bound 0)) (Floor (Neg (Bound 0))))) (Eq (Sub (Floor (Bound 0)) (Bound 0)))))"
+
+definition
+  "test3 (u\<Colon>unit) = mirlfrqe (A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0)))))))"
+
+definition
+  "test4 (u\<Colon>unit) = mirlfrqe (A (Iff (Eq (Add (Floor (Bound 0)) (Floor (Neg (Bound 0))))) (Eq (Sub (Floor (Bound 0)) (Bound 0)))))"
+
+definition
+  "test5 (u\<Colon>unit) = mircfrqe (A(E(And (Ge(Sub (Bound 1) (Bound 0))) (Eq (Add (Floor (Bound 1)) (Floor (Neg(Bound 0))))))))"
+
+code_gen mircfrqe mirlfrqe test1 test2 test3 test4 test5
+  in SML to Mir
+
+code_gen mircfrqe mirlfrqe in SML to Mir file "raw_mir.ML"
+
 ML "set Toplevel.timing"
-ML "Mir.test ()"
+ML "Mir.test1 ()"
 ML "Mir.test2 ()"
-ML "Mir.test' ()"
-ML "Mir.test2' ()"
 ML "Mir.test3 ()"
+ML "Mir.test4 ()"
+ML "Mir.test5 ()"
+ML "reset Toplevel.timing"
 
 use "mireif.ML"
 oracle mircfr_oracle ("term") = ReflectedMir.mircfr_oracle
 oracle mirlfr_oracle ("term") = ReflectedMir.mirlfr_oracle
-use"mirtac.ML"
+use "mirtac.ML"
 setup "MirTac.setup"
 
 ML "set Toplevel.timing"
+
 lemma "ALL (x::real). (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> = (x = real \<lfloor>x\<rfloor>))"
 apply mir
 done
@@ -5788,10 +5830,10 @@ lemma "ALL (x::real). 2*\<lfloor>x\<rfloor> \<le> \<lfloor>2*x\<rfloor> \<and> \
 apply mir 
 done
 
-
 lemma "ALL (x::real). \<exists>y \<le> x. (\<lfloor>x\<rfloor> = \<lceil>y\<rceil>)"
 apply mir
 done
+
 ML "reset Toplevel.timing"
 
 end

@@ -1,3 +1,8 @@
+(*  Title:      HOL/Complex/ex/mirtac.ML
+    ID:         $Id$
+    Author:     Amine Chaieb, TU Muenchen
+*)
+
 structure MirTac =
 struct
 
