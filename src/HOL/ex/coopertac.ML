@@ -83,7 +83,7 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
 				  @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
 				  @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, @{thm "mod_1"},
 				  Suc_plus1]
-			addsimps add_ac
+			addsimps @{thms add_ac}
 			addsimprocs [cancel_div_mod_proc]
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]

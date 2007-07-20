@@ -69,7 +69,7 @@ fun std_postprocessor strict cs ss wfs =
    {wf_tac     = REPEAT (ares_tac wfs 1),
     terminator = asm_simp_tac ss 1
                  THEN TRY (silent_arith_tac 1 ORELSE
-                           fast_tac (cs addSDs [not0_implies_Suc] addss ss) 1),
+                           fast_tac (cs addSDs [@{thm not0_implies_Suc}] addss ss) 1),
     simplifier = Rules.simpl_conv ss []};
 
 

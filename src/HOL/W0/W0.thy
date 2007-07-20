@@ -210,7 +210,7 @@ lemma new_tv_subst:
   apply (unfold free_tv_subst cod_def dom_def)
   apply (tactic "safe_tac set_cs")
    apply (cut_tac m = m and n = n in less_linear)
-   apply (tactic "fast_tac (HOL_cs addSIs [less_or_eq_imp_le]) 1")
+   apply (tactic "fast_tac (HOL_cs addSIs [@{thm less_or_eq_imp_le}]) 1")
   apply (cut_tac m = ma and n = n in less_linear)
   apply (fast intro!: less_or_eq_imp_le)
   done
@@ -618,7 +618,7 @@ lemma free_tv_W: "!!n a s t m v. \<W> e a n = Ok (s, t, m) \<Longrightarrow>
   apply (tactic {* fast_tac (HOL_cs addDs [thm "mgu_free", thm "codD",
     thm "free_tv_subst_var" RS subsetD,
     thm "free_tv_app_subst_te" RS subsetD,
-    thm "free_tv_app_subst_tel" RS subsetD, less_le_trans, subsetD]
+    thm "free_tv_app_subst_tel" RS subsetD, @{thm less_le_trans}, subsetD]
     addSEs [UnE] addss (simpset() setSolver unsafe_solver)) 1 *})
       -- {* builtin arithmetic in simpset messes things up *}
   done
@@ -809,13 +809,13 @@ lemma I_correct_wrt_W: "!!a m s s' t n.
     apply (erule impE)
      prefer 2 apply (fastsimp simp add: new_tv_subst)
     apply (tactic {* fast_tac (HOL_cs addIs [thm "new_tv_Suc_list" RS mp,
-      thm "new_tv_subst_le", less_imp_le, lessI]) 1 *})
+      thm "new_tv_subst_le", @{thm less_imp_le}, @{thm lessI}]) 1 *})
    apply (intro strip)
    apply (erule allE)+
    apply (erule impE)
     prefer 2 apply (fastsimp simp add: new_tv_subst)
    apply (tactic {* fast_tac (HOL_cs addIs [thm "new_tv_Suc_list" RS mp,
-     thm "new_tv_subst_le", less_imp_le, lessI]) 1 *})
+     thm "new_tv_subst_le", @{thm less_imp_le}, @{thm lessI}]) 1 *})
   txt {* case @{text "App e1 e2"} *}
   apply (tactic {* simp_tac (simpset () setloop (split_inside_tac [thm "split_bind"])) 1 *})
   apply (intro strip)
@@ -891,7 +891,7 @@ lemma I_complete_wrt_W: "!!a m s.
    apply (intro strip)
    apply (subgoal_tac "TVar m # $s a = $s (TVar m # a)")
     apply (tactic {* asm_simp_tac (HOL_ss addsimps
-      [thm "new_tv_Suc_list", lessI RS less_imp_le RS thm "new_tv_subst_le"]) 1 *})
+      [thm "new_tv_Suc_list", @{thm lessI} RS @{thm less_imp_le} RS thm "new_tv_subst_le"]) 1 *})
     apply (erule conjE)
     apply (drule new_tv_not_free_tv [THEN not_free_impl_id])
     apply (simp (no_asm_simp))

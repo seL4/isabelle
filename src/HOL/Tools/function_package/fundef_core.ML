@@ -93,19 +93,19 @@ datatype clause_info =
 
 
 (* Theory dependencies. *)
-val Pair_inject = thm "Product_Type.Pair_inject";
+val Pair_inject = @{thm Product_Type.Pair_inject};
 
-val acc_induct_rule = thm "Accessible_Part.accp_induct_rule"
+val acc_induct_rule = @{thm Accessible_Part.accp_induct_rule};
 
-val ex1_implies_ex = thm "FunDef.fundef_ex1_existence"
-val ex1_implies_un = thm "FunDef.fundef_ex1_uniqueness"
-val ex1_implies_iff = thm "FunDef.fundef_ex1_iff"
+val ex1_implies_ex = @{thm FunDef.fundef_ex1_existence};
+val ex1_implies_un = @{thm FunDef.fundef_ex1_uniqueness};
+val ex1_implies_iff = @{thm FunDef.fundef_ex1_iff};
 
-val acc_downward = thm "Accessible_Part.accp_downward"
-val accI = thm "Accessible_Part.accp.accI"
-val case_split = thm "HOL.case_split_thm"
-val fundef_default_value = thm "FunDef.fundef_default_value"
-val not_acc_down = thm "Accessible_Part.not_accp_down"
+val acc_downward = @{thm Accessible_Part.accp_downward};
+val accI = @{thm Accessible_Part.accp.accI};
+val case_split = @{thm HOL.case_split_thm};
+val fundef_default_value = @{thm FunDef.fundef_default_value};
+val not_acc_down = @{thm Accessible_Part.not_accp_down};
 
 
 
@@ -573,8 +573,7 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
 (** Induction rule **)
 
 
-val acc_subset_induct = thm "Fun.predicate1I" RS
-  thm "Accessible_Part.accp_subset_induct"
+val acc_subset_induct = @{thm Orderings.predicate1I} RS @{thm Accessible_Part.accp_subset_induct}
 
 fun mk_partial_induct_rule thy globals R complete_thm clauses =
     let
@@ -704,9 +703,9 @@ fun mk_domain_intro thy (Globals {domT, ...}) R R_cases clause =
 
 (** Termination rule **)
 
-val wf_induct_rule = thm "Wellfounded_Recursion.wfP_induct_rule";
-val wf_in_rel = thm "FunDef.wf_in_rel";
-val in_rel_def = thm "FunDef.in_rel_def";
+val wf_induct_rule = @{thm Wellfounded_Recursion.wfP_induct_rule};
+val wf_in_rel = @{thm FunDef.wf_in_rel};
+val in_rel_def = @{thm FunDef.in_rel_def};
 
 fun mk_nest_term_case thy globals R' ihyp clause =
     let
