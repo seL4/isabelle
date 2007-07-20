@@ -181,7 +181,7 @@ fun mk_mono thm =
     case concl of
       Const ("==", _) $ _ $ _ => eq2mono (thm RS meta_eq_to_obj_eq)
     | _ $ (Const ("op =", _) $ _ $ _) => eq2mono thm
-    | _ $ (Const ("Orderings.ord_class.less_eq", _) $ _ $ _) =>
+    | _ $ (Const ("HOL.ord_class.less_eq", _) $ _ $ _) =>
       [dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
          (resolve_tac [le_funI, le_boolI'])) thm))]
     | _ => [thm]
@@ -554,7 +554,7 @@ fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
          (make_bool_args HOLogic.mk_not I bs i)) preds));
 
     val ind_concl = HOLogic.mk_Trueprop
-      (HOLogic.mk_binrel "Orderings.ord_class.less_eq" (rec_const, ind_pred));
+      (HOLogic.mk_binrel "HOL.ord_class.less_eq" (rec_const, ind_pred));
 
     val raw_fp_induct = (mono RS (fp_def RS def_lfp_induct));
 

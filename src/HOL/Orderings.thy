@@ -6,87 +6,11 @@
 header {* Syntactic and abstract orders *}
 
 theory Orderings
-imports HOL
+imports Set Fun
 uses
   (*"~~/src/Provers/quasi.ML"*)
   "~~/src/Provers/order.ML"
 begin
-
-subsection {* Order syntax *}
-
-class ord = type +
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubseteq>" 50)
-    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubset>" 50)
-begin
-
-notation
-  less_eq  ("op \<^loc><=") and
-  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50) and
-  less  ("op \<^loc><") and
-  less  ("(_/ \<^loc>< _)"  [51, 51] 50)
-  
-notation (xsymbols)
-  less_eq  ("op \<^loc>\<le>") and
-  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
-
-notation (HTML output)
-  less_eq  ("op \<^loc>\<le>") and
-  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
-
-abbreviation (input)
-  greater  (infix "\<^loc>>" 50) where
-  "x \<^loc>> y \<equiv> y \<^loc>< x"
-
-abbreviation (input)
-  greater_eq  (infix "\<^loc>>=" 50) where
-  "x \<^loc>>= y \<equiv> y \<^loc><= x"
-
-notation (input)
-  greater_eq  (infix "\<^loc>\<ge>" 50)
-
-text {*
-  syntactic min/max -- these definitions reach
-  their usual semantics in class linorder ahead.
-*}
-
-definition
-  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "min a b = (if a \<^loc>\<le> b then a else b)"
-
-definition
-  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "max a b = (if a \<^loc>\<le> b then b else a)"
-
-end
-
-notation
-  less_eq  ("op <=") and
-  less_eq  ("(_/ <= _)" [51, 51] 50) and
-  less  ("op <") and
-  less  ("(_/ < _)"  [51, 51] 50)
-  
-notation (xsymbols)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-
-notation (HTML output)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-
-abbreviation (input)
-  greater  (infix ">" 50) where
-  "x > y \<equiv> y < x"
-
-abbreviation (input)
-  greater_eq  (infix ">=" 50) where
-  "x >= y \<equiv> y <= x"
-
-notation (input)
-  greater_eq  (infix "\<ge>" 50)
-
-lemmas min_def [code func, code unfold, code inline del] = min_def [folded ord_class.min]
-lemmas max_def [code func, code unfold, code inline del] = max_def [folded ord_class.max]
-
 
 subsection {* Partial orders *}
 
@@ -265,7 +189,20 @@ by unfold_locales
   (simp add: less_le, auto intro: antisym order_trans simp add: linear)
 
 
-text {* min/max properties *}
+text {* min/max *}
+
+text {* for historic reasons, definitions are done in context ord *}
+
+definition (in ord)
+  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "min a b = (if a \<^loc>\<le> b then a else b)"
+
+definition (in ord)
+  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "max a b = (if a \<^loc>\<le> b then b else a)"
+
+lemmas (in -) min_def [code func, code unfold, code inline del] = min_def [folded ord_class.min]
+lemmas (in -) max_def [code func, code unfold, code inline del] = max_def [folded ord_class.max]
 
 lemma min_le_iff_disj:
   "min x y \<^loc>\<le> z \<longleftrightarrow> x \<^loc>\<le> z \<or> y \<^loc>\<le> z"
@@ -370,11 +307,11 @@ fun decomp_gen sort thy (Trueprop $ t) =
           if of_sort t1
           then SOME (t1, "=", t2)
           else NONE
-      | dec (Const (@{const_name Orderings.less_eq},  _) $ t1 $ t2) =
+      | dec (Const (@{const_name HOL.less_eq},  _) $ t1 $ t2) =
           if of_sort t1
           then SOME (t1, "<=", t2)
           else NONE
-      | dec (Const (@{const_name Orderings.less},  _) $ t1 $ t2) =
+      | dec (Const (@{const_name HOL.less},  _) $ t1 $ t2) =
           if of_sort t1
           then SOME (t1, "<", t2)
           else NONE
@@ -840,7 +777,81 @@ lemma [code func]:
   unfolding le_bool_def less_bool_def by simp_all
 
 
-subsection {* Monotonicity, syntactic least value operator and min/max *}
+subsection {* Order on sets *}
+
+instance set :: (type) order
+  by (intro_classes,
+      (assumption | rule subset_refl subset_trans subset_antisym psubset_eq)+)
+
+lemmas basic_trans_rules [trans] =
+  order_trans_rules set_rev_mp set_mp
+
+
+subsection {* Order on functions *}
+
+instance "fun" :: (type, ord) ord
+  le_fun_def: "f \<le> g \<equiv> \<forall>x. f x \<le> g x"
+  less_fun_def: "f < g \<equiv> f \<le> g \<and> f \<noteq> g" ..
+
+lemmas [code func del] = le_fun_def less_fun_def
+
+instance "fun" :: (type, order) order
+  by default
+    (auto simp add: le_fun_def less_fun_def expand_fun_eq
+       intro: order_trans order_antisym)
+
+lemma le_funI: "(\<And>x. f x \<le> g x) \<Longrightarrow> f \<le> g"
+  unfolding le_fun_def by simp
+
+lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) \<Longrightarrow> P"
+  unfolding le_fun_def by simp
+
+lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
+  unfolding le_fun_def by simp
+
+text {*
+  Handy introduction and elimination rules for @{text "\<le>"}
+  on unary and binary predicates
+*}
+
+lemma predicate1I [Pure.intro!, intro!]:
+  assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
+  shows "P \<le> Q"
+  apply (rule le_funI)
+  apply (rule le_boolI)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma predicate1D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
+  apply (erule le_funE)
+  apply (erule le_boolE)
+  apply assumption+
+  done
+
+lemma predicate2I [Pure.intro!, intro!]:
+  assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
+  shows "P \<le> Q"
+  apply (rule le_funI)+
+  apply (rule le_boolI)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma predicate2D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
+  apply (erule le_funE)+
+  apply (erule le_boolE)
+  apply assumption+
+  done
+
+lemma rev_predicate1D: "P x ==> P <= Q ==> Q x"
+  by (rule predicate1D)
+
+lemma rev_predicate2D: "P x y ==> P <= Q ==> Q x y"
+  by (rule predicate2D)
+
+
+subsection {* Monotonicity, least value operator and min/max *}
 
 locale mono =
   fixes f
@@ -848,11 +859,6 @@ locale mono =
 
 lemmas monoI [intro?] = mono.intro
   and monoD [dest?] = mono.mono
-
-constdefs
-  Least :: "('a::ord => bool) => 'a"               (binder "LEAST " 10)
-  "Least P == THE x. P x & (ALL y. P y --> x <= y)"
-    -- {* We can no longer use LeastM because the latter requires Hilbert-AC. *}
 
 lemma LeastI2_order:
   "[| P (x::'a::order);
@@ -863,6 +869,16 @@ apply (unfold Least_def)
 apply (rule theI2)
   apply (blast intro: order_antisym)+
 done
+
+lemma Least_mono:
+  "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
+    ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
+    -- {* Courtesy of Stephan Merz *}
+  apply clarify
+  apply (erule_tac P = "%x. x : S" in LeastI2_order, fast)
+  apply (rule LeastI2_order)
+  apply (auto elim: monoD intro!: order_antisym)
+  done
 
 lemma Least_equality:
   "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"

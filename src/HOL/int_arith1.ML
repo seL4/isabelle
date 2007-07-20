@@ -110,8 +110,8 @@ structure Int_Numeral_Base_Simprocs =
       mk_meta_eq ([f_eq, f_number_of_eq] MRS trans)
 
   (*reorientation simprules using ==, for the following simproc*)
-  val meta_zero_reorient = zero_reorient RS eq_reflection
-  val meta_one_reorient = one_reorient RS eq_reflection
+  val meta_zero_reorient = @{thm zero_reorient} RS eq_reflection
+  val meta_one_reorient = @{thm one_reorient} RS eq_reflection
   val meta_number_of_reorient = number_of_reorient RS eq_reflection
 
   (*reorientation simplification procedure: reorients (polymorphic) 
@@ -350,9 +350,9 @@ structure CancelNumeralsCommon =
   val trans_tac         = fn _ => trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    diff_simps @ minus_simps @ add_ac
+    diff_simps @ minus_simps @ @{thms add_ac}
   val norm_ss2 = num_ss addsimps non_add_simps @ mult_minus_simps
-  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ add_ac @ mult_ac
+  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -376,8 +376,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} Term.dummyT
   val bal_add1 = less_add_iff1 RS trans
   val bal_add2 = less_add_iff2 RS trans
 );
@@ -385,8 +385,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} Term.dummyT
   val bal_add1 = le_add_iff1 RS trans
   val bal_add2 = le_add_iff2 RS trans
 );
@@ -433,9 +433,9 @@ structure CombineNumeralsData =
   val trans_tac         = fn _ => trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    diff_simps @ minus_simps @ add_ac
+    diff_simps @ minus_simps @ @{thms add_ac}
   val norm_ss2 = num_ss addsimps non_add_simps @ mult_minus_simps
-  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ add_ac @ mult_ac
+  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -463,9 +463,9 @@ structure FieldCombineNumeralsData =
   val trans_tac         = fn _ => trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    inverse_1s @ divide_simps @ diff_simps @ minus_simps @ add_ac
+    inverse_1s @ divide_simps @ diff_simps @ minus_simps @ @{thms add_ac}
   val norm_ss2 = num_ss addsimps non_add_simps @ mult_minus_simps
-  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ add_ac @ mult_ac
+  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -541,7 +541,7 @@ test "(i + j + -12 + (k::int)) - -15 = y";
 
 structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
-  val assoc_ss = HOL_ss addsimps mult_ac
+  val assoc_ss = HOL_ss addsimps @{thms mult_ac}
   val eq_reflection = eq_reflection
 end;
 

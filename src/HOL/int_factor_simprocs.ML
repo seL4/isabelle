@@ -33,7 +33,7 @@ structure CancelNumeralFactorCommon =
 
   val norm_ss1 = HOL_ss addsimps minus_from_mult_simps @ mult_1s
   val norm_ss2 = HOL_ss addsimps simps @ mult_minus_simps
-  val norm_ss3 = HOL_ss addsimps mult_ac
+  val norm_ss3 = HOL_ss addsimps @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -78,8 +78,8 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} Term.dummyT
   val cancel = @{thm mult_less_cancel_left} RS trans
   val neg_exchanges = true
 )
@@ -87,8 +87,8 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} Term.dummyT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} Term.dummyT
   val cancel = @{thm mult_le_cancel_left} RS trans
   val neg_exchanges = true
 )
@@ -216,7 +216,7 @@ fun find_first_t past u []         = raise TERM ("find_first_t", [])
 
 (** Final simplification for the CancelFactor simprocs **)
 val simplify_one = Int_Numeral_Simprocs.simplify_meta_eq  
-  [@{thm mult_1_left}, mult_1_right, @{thm zdiv_1}, numeral_1_eq_1];
+  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm zdiv_1}, numeral_1_eq_1];
 
 fun cancel_simplify_meta_eq cancel_th ss th =
     simplify_one ss (([th, cancel_th]) MRS trans);
@@ -229,7 +229,7 @@ structure CancelFactorCommon =
   val dest_coeff        = dest_coeff
   val find_first        = find_first_t []
   val trans_tac         = fn _ => trans_tac
-  val norm_ss = HOL_ss addsimps mult_1s @ mult_ac
+  val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   end;
 

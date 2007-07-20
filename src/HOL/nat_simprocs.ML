@@ -125,15 +125,15 @@ fun dest_Sucs_sum relaxed t =
 
 
 (*Simplify 1*n and n*1 to n*)
-val add_0s  = map rename_numerals [add_0, add_0_right];
+val add_0s  = map rename_numerals [@{thm add_0}, @{thm add_0_right}];
 val mult_1s = map rename_numerals [@{thm nat_mult_1}, @{thm nat_mult_1_right}];
 
 (*Final simplification: cancel + and *; replace Numeral0 by 0 and Numeral1 by 1*)
 
 (*And these help the simproc return False when appropriate, which helps
   the arith prover.*)
-val contra_rules = [add_Suc, add_Suc_right, Zero_not_Suc, Suc_not_Zero,
-                    le_0_eq];
+val contra_rules = [@{thm add_Suc}, @{thm add_Suc_right}, @{thm Zero_not_Suc},
+  @{thm Suc_not_Zero}, @{thm le_0_eq}];
 
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
@@ -157,8 +157,8 @@ structure CancelNumeralsCommon =
   val trans_tac         = fn _ => trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    [@{thm Suc_eq_add_numeral_1_left}] @ add_ac
-  val norm_ss2 = num_ss addsimps bin_simps @ add_ac @ mult_ac
+    [@{thm Suc_eq_add_numeral_1_left}] @ @{thms add_ac}
+  val norm_ss2 = num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss = 
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -181,8 +181,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} HOLogic.natT
   val bal_add1 = @{thm nat_less_add_iff1} RS trans
   val bal_add2 = @{thm nat_less_add_iff2} RS trans
 );
@@ -190,8 +190,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} HOLogic.natT
   val bal_add1 = @{thm nat_le_add_iff1} RS trans
   val bal_add2 = @{thm nat_le_add_iff2} RS trans
 );
@@ -245,8 +245,8 @@ structure CombineNumeralsData =
   val prove_conv        = Int_Numeral_Base_Simprocs.prove_conv_nohyps
   val trans_tac         = fn _ => trans_tac
 
-  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1}] @ add_ac
-  val norm_ss2 = num_ss addsimps bin_simps @ add_ac @ mult_ac
+  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1}] @ @{thms add_ac}
+  val norm_ss2 = num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -271,8 +271,8 @@ structure CancelNumeralFactorCommon =
   val trans_tac         = fn _ => trans_tac
 
   val norm_ss1 = num_ss addsimps
-    numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1_left}] @ add_ac
-  val norm_ss2 = num_ss addsimps bin_simps @ add_ac @ mult_ac
+    numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1_left}] @ @{thms add_ac}
+  val norm_ss2 = num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -303,8 +303,8 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} HOLogic.natT
   val cancel = @{thm nat_mult_less_cancel1} RS trans
   val neg_exchanges = true
 )
@@ -312,8 +312,8 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} HOLogic.natT
   val cancel = @{thm nat_mult_le_cancel1} RS trans
   val neg_exchanges = true
 )
@@ -363,7 +363,7 @@ structure CancelFactorCommon =
   val dest_coeff        = dest_coeff
   val find_first        = find_first_t []
   val trans_tac         = fn _ => trans_tac
-  val norm_ss = HOL_ss addsimps mult_1s @ mult_ac
+  val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   end;
 
@@ -378,16 +378,16 @@ structure EqCancelFactor = ExtractCommonTermFun
 structure LessCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_less_cancel_disj}
 );
 
 structure LeCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_le_cancel_disj}
 );
 

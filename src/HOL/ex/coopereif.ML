@@ -32,8 +32,8 @@ fun i_of_term vs t = case t
 fun qf_of_term ps vs t = case t
      of Const("True",_) => T
       | Const("False",_) => F
-      | Const(@{const_name "Orderings.less"},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
-      | Const(@{const_name "Orderings.less_eq"},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
+      | Const(@{const_name HOL.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
+      | Const(@{const_name HOL.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
       | Const(@{const_name "Divides.dvd"},_)$t1$t2 => 
           (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => error "qf_of_term: unsupported dvd")
       | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))

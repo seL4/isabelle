@@ -42,8 +42,8 @@ fun fm_of_term vs t =
     case t of 
         Const("True",_) => T
       | Const("False",_) => F
-      | Const(@{const_name "Orderings.less"},_)$t1$t2 => Lta (Sub (num_of_term vs t1,num_of_term vs t2))
-      | Const(@{const_name "Orderings.less_eq"},_)$t1$t2 => Lea (Sub (num_of_term vs t1,num_of_term vs t2))
+      | Const(@{const_name HOL.less},_)$t1$t2 => Lta (Sub (num_of_term vs t1,num_of_term vs t2))
+      | Const(@{const_name HOL.less_eq},_)$t1$t2 => Lea (Sub (num_of_term vs t1,num_of_term vs t2))
       | Const (@{const_name "MIR.rdvd"},_ )$ (Const("RealDef.real",_) $ (Const(@{const_name "Numeral.number_of"},_)$t1))$t2 => 
         Dvda (HOLogic.dest_numeral t1, num_of_term vs t2)
       | Const("op =",eqT)$t1$t2 => 

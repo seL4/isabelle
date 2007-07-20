@@ -696,7 +696,7 @@ struct
       | Const ("Finite_Set.card", _)    => t
       | Const ("Finite_Set.Finites", _) => t
       | Const ("Finite_Set.finite", _)  => t
-      | Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
+      | Const (@{const_name HOL.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
       | Const (@{const_name HOL.plus}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
@@ -883,7 +883,7 @@ struct
       | Const ("Finite_Set.card", T)    => collect_type_axioms (axs, T)
       | Const ("Finite_Set.Finites", T) => collect_type_axioms (axs, T)
       | Const ("Finite_Set.finite", T)  => collect_type_axioms (axs, T)
-      | Const (@{const_name Orderings.less}, T as Type ("fun", [Type ("nat", []),
+      | Const (@{const_name HOL.less}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
           collect_type_axioms (axs, T)
       | Const (@{const_name HOL.plus}, T as Type ("fun", [Type ("nat", []),
@@ -2602,13 +2602,13 @@ struct
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
-  (* only an optimization: 'Orderings.less' could in principle be            *)
+  (* only an optimization: 'HOL.less' could in principle be            *)
   (* interpreted with interpreters available already (using its definition), *)
   (* but the code below is more efficient                                    *)
 
   fun Nat_less_interpreter thy model args t =
     case t of
-      Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
+      Const (@{const_name HOL.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
       let
         val (i_nat, _, _) = interpret thy model

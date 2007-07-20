@@ -130,13 +130,13 @@ fun prove thy solve_tac t =
 fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun =
     let
       val goals = mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
-      val less_thm = goals "Orderings.ord_class.less" |> prove thy solve_tac
+      val less_thm = goals @{const_name HOL.less} |> prove thy solve_tac
     in
       if Thm.no_prems less_thm then
         Less (Goal.finish less_thm)
       else
         let
-          val lesseq_thm = goals "Orderings.ord_class.less_eq" |> prove thy solve_tac
+          val lesseq_thm = goals @{const_name HOL.less_eq} |> prove thy solve_tac
         in
           if Thm.no_prems lesseq_thm then
             LessEq (Goal.finish lesseq_thm, less_thm)

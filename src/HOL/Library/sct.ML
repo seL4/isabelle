@@ -63,8 +63,8 @@ fun mk_nth xs =
     in Const (nth_const, lT --> HOLogic.natT --> T) $ xs end
 
 
-val less_nat_const = Const (@{const_name Orderings.less}, HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
-val lesseq_nat_const = Const (@{const_name Orderings.less_eq}, HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
+val less_nat_const = Const (@{const_name HOL.less}, HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
+val lesseq_nat_const = Const (@{const_name HOL.less_eq}, HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
 
 val has_edge_simps = [thm "Graphs.has_edge_def", thm "Graphs.dest_graph.simps"]
 

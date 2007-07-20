@@ -943,9 +943,10 @@ compiled to ML first.
     op +   ~> HOL.plus_class.plus
     op -   ~> HOL.minus_class.minus
     uminus ~> HOL.minus_class.uminus
+    abs    ~> HOL.abs_class.abs
     op *   ~> HOL.times_class.times
-    op <   ~> Orderings.ord_class.less
-    op <=  ~> Orderings.ord_class.less_eq
+    op <   ~> HOL.ord_class.less
+    op <=  ~> HOL.ord_class.less_eq
 
 Adaptions may be required in the following cases:
 
@@ -1044,7 +1045,7 @@ applies corr_thm and uses normalization by evaluation to "prove" f s =
 r and finally gets the theorem t = r, which is again applied to the
 subgoal. An Example is available in HOL/ex/ReflectionEx.thy.
 
-* Reflection: Automatic refification now handels binding, an example
+* Reflection: Automatic reification now handels binding, an example
 is available in HOL/ex/ReflectionEx.thy
 
 

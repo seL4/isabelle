@@ -480,14 +480,14 @@ let
 
  fun proc3 phi ss ct =
   (case term_of ct of
-    Const(@{const_name "Orderings.less"},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
+    Const(@{const_name HOL.less},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name "Orderings.less_eq"},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
+  | Const(@{const_name HOL.less_eq},_)$(Const(@{const_name "HOL.divide"},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
@@ -501,14 +501,14 @@ let
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name "Orderings.less"},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
+  | Const(@{const_name HOL.less},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const(@{const_name "Orderings.less_eq"},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
+  | Const(@{const_name HOL.less_eq},_)$_$(Const(@{const_name "HOL.divide"},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
@@ -745,7 +745,7 @@ fun whatis x ct = case term_of ct of
 fun xnormalize_conv ctxt [] ct = reflexive ct
 | xnormalize_conv ctxt (vs as (x::_)) ct =
    case term_of ct of
-   Const(@{const_name "Orderings.less"},_)$_$Const(@{const_name "HOL.zero"},_) =>
+   Const(@{const_name HOL.less},_)$_$Const(@{const_name "HOL.zero"},_) =>
     (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -788,7 +788,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
     | _ => reflexive ct)
 
 
-|  Const(@{const_name "Orderings.less_eq"},_)$_$Const(@{const_name "HOL.zero"},_) =>
+|  Const(@{const_name HOL.less_eq},_)$_$Const(@{const_name "HOL.zero"},_) =>
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -877,7 +877,7 @@ local
   val eq_iff_diff_eq_0 = mk_meta_eq @{thm "eq_iff_diff_eq_0"}
 in
 fun field_isolate_conv phi ctxt vs ct = case term_of ct of
-  Const(@{const_name "Orderings.less"},_)$a$b =>
+  Const(@{const_name HOL.less},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
        val T = ctyp_of_term ca
        val th = instantiate' [SOME T] [SOME ca, SOME cb] less_iff_diff_less_0
@@ -886,7 +886,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
               (Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
        val rth = transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
-| Const(@{const_name "Orderings.less_eq"},_)$a$b =>
+| Const(@{const_name HOL.less_eq},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
        val T = ctyp_of_term ca
        val th = instantiate' [SOME T] [SOME ca, SOME cb] le_iff_diff_le_0
@@ -917,11 +917,11 @@ fun classfield_whatis phi =
                             else Ferrante_Rackoff_Data.Nox
    | @{term "Not"}$(Const("op =", _)$y$z) => if term_of x aconv y then Ferrante_Rackoff_Data.NEq
                             else Ferrante_Rackoff_Data.Nox
-   | Const(@{const_name "Orderings.less"},_)$y$z =>
+   | Const(@{const_name HOL.less},_)$y$z =>
        if term_of x aconv y then Ferrante_Rackoff_Data.Lt
         else if term_of x aconv z then Ferrante_Rackoff_Data.Gt
         else Ferrante_Rackoff_Data.Nox
-   | Const (@{const_name "Orderings.less_eq"},_)$y$z =>
+   | Const (@{const_name HOL.less_eq},_)$y$z =>
          if term_of x aconv y then Ferrante_Rackoff_Data.Le
          else if term_of x aconv z then Ferrante_Rackoff_Data.Ge
          else Ferrante_Rackoff_Data.Nox

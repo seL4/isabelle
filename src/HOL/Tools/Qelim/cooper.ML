@@ -74,10 +74,10 @@ fun whatis x ct =
 | Const ("op =",ty)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
 | Const("Not",_) $ (Const ("op =",_)$y$_) => 
   if term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
-| Const ("Orderings.ord_class.less",_)$y$z =>
+| Const (@{const_name HOL.less}, _) $ y$ z =>
    if term_of x aconv y then Lt (Thm.dest_arg ct) 
    else if term_of x aconv z then Gt (Thm.dest_arg1 ct) else Nox
-| Const ("Orderings.ord_class.less_eq",_)$y$z => 
+| Const (@{const_name HOL.less_eq}, _) $ y $ z => 
    if term_of x aconv y then Le (Thm.dest_arg ct) 
    else if term_of x aconv z then Ge (Thm.dest_arg1 ct) else Nox
 | Const (@{const_name Divides.dvd},_)$_$(Const(@{const_name "HOL.plus"},_)$y$_) =>
@@ -222,10 +222,10 @@ else case tm of
   end 
  | _ => addC$(mulC$one$tm)$zero;
 
-fun lin (vs as x::_) (Const("Not",_)$(Const("Orderings.ord_class.less",T)$s$t)) = 
-    lin vs (Const("Orderings.ord_class.less_eq",T)$t$s)
-  | lin (vs as x::_) (Const("Not",_)$(Const("Orderings.ord_class.less_eq",T)$s$t)) = 
-    lin vs (Const("Orderings.ord_class.less",T)$t$s)
+fun lin (vs as x::_) (Const("Not", _) $ (Const (@{const_name HOL.less}, T) $ s $ t)) = 
+    lin vs (Const(@{const_name HOL.less_eq}, T) $ t $ s)
+  | lin (vs as x::_) (Const("Not",_) $ (Const(@{const_name HOL.less_eq}, T) $ s $ t)) = 
+    lin vs (Const(@{const_name HOL.less}, T) $ t $ s)
   | lin vs (Const ("Not",T)$t) = Const ("Not",T)$ (lin vs t)
   | lin (vs as x::_) (Const(@{const_name Divides.dvd},_)$d$t) = 
     HOLogic.mk_binrel @{const_name Divides.dvd} (numeral1 abs d, lint vs t)
@@ -298,12 +298,12 @@ fun unify ctxt q =
   fun h (acc,dacc) t = 
    case (term_of t) of
     Const(s,_)$(Const("HOL.times_class.times",_)$c$y)$ _ => 
-    if x aconv y 
-       andalso s mem ["op =", "Orderings.ord_class.less", "Orderings.ord_class.less_eq"] 
+    if x aconv y andalso member (op =)
+      ["op =", @{const_name HOL.less}, @{const_name HOL.less_eq}] s
     then (ins (dest_numeral c) acc,dacc) else (acc,dacc)
   | Const(s,_)$_$(Const("HOL.times_class.times",_)$c$y) => 
-    if x aconv y 
-       andalso s mem ["Orderings.ord_class.less", "Orderings.ord_class.less_eq"] 
+    if x aconv y andalso member (op =)
+       [@{const_name HOL.less}, @{const_name HOL.less_eq}] s 
     then (ins (dest_numeral c) acc, dacc) else (acc,dacc)
   | Const(@{const_name Divides.dvd},_)$_$(Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c$y)$_) => 
     if x aconv y then (acc,ins (dest_numeral c) dacc) else (acc,dacc)
@@ -338,10 +338,12 @@ fun unify ctxt q =
   | Const("op |",_)$_$_ => binop_conv unit_conv t
   | Const("Not",_)$_ => arg_conv unit_conv t
   | Const(s,_)$(Const("HOL.times_class.times",_)$c$y)$ _ => 
-    if x=y andalso s mem ["op =", "Orderings.ord_class.less", "Orderings.ord_class.less_eq"] 
+    if x=y andalso member (op =)
+      ["op =", @{const_name HOL.less}, @{const_name HOL.less_eq}] s
     then cv (Integer.div l (dest_numeral c)) t else Thm.reflexive t
   | Const(s,_)$_$(Const("HOL.times_class.times",_)$c$y) => 
-    if x=y andalso s mem ["Orderings.ord_class.less", "Orderings.ord_class.less_eq"] 
+    if x=y andalso member (op =)
+      [@{const_name HOL.less}, @{const_name HOL.less_eq}] s
     then cv (Integer.div l (dest_numeral c)) t else Thm.reflexive t
   | Const(@{const_name Divides.dvd},_)$d$(r as (Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c$y)$_)) => 
     if x=y then 
@@ -559,8 +561,8 @@ fun i_of_term vs t = case t
 fun qf_of_term ps vs t =  case t
  of Const("True",_) => T
   | Const("False",_) => F
-  | Const(@{const_name Orderings.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
-  | Const(@{const_name Orderings.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
+  | Const(@{const_name HOL.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
+  | Const(@{const_name HOL.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name Divides.dvd},_)$t1$t2 => 
       (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")
   | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
