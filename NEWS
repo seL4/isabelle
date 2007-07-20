@@ -24,6 +24,18 @@ function use_legacy_bindings.  INCOMPATIBILITY.
 'fun', 'help', 'if') are now keywords.  INCOMPATIBILITY, use double
 quotes.
 
+* Theory loader: be more serious about observing the static theory
+header specifications (including optional directories), but not the
+accidental file locations of previously successful loads.  Potential
+INCOMPATIBILITY, may need to refine theory headers.
+
+* Theory loader: optional support for content-based file
+identification, instead of the traditional scheme of full physical
+path plus date stamp; configured by the ISABELLE_FILE_IDENT setting,
+(cf. the system manual).  The new scheme allows to work with
+non-finished theories in persistent session images, such that source
+files may be moved later on without requiring reloads.
+
 * Legacy goal package: reduced interface to the bare minimum required
 to keep existing proof scripts running.  Most other user-level
 functions are now part of the OldGoals structure, which is *not* open
