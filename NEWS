@@ -31,7 +31,7 @@ INCOMPATIBILITY, may need to refine theory headers.
 
 * Theory loader: optional support for content-based file
 identification, instead of the traditional scheme of full physical
-path plus date stamp; configured by the ISABELLE_FILE_IDENT setting,
+path plus date stamp; configured by the ISABELLE_FILE_IDENT setting
 (cf. the system manual).  The new scheme allows to work with
 non-finished theories in persistent session images, such that source
 files may be moved later on without requiring reloads.
