@@ -218,7 +218,7 @@ apply (drule zero_less_imp_eq_int)
 apply (auto simp add: zmult_zless_mono2_lemma)
 done
 
-instance int :: minus
+instance int :: abs
   zabs_def: "\<bar>i\<Colon>int\<bar> \<equiv> if i < 0 then - i else i" ..
 
 instance int :: distrib_lattice

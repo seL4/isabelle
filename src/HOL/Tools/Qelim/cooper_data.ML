@@ -30,7 +30,7 @@ val allowed_consts =
    @{term "op < :: int => _"}, @{term "op < :: nat => _"},
    @{term "op <= :: int => _"}, @{term "op <= :: nat => _"},
    @{term "op dvd :: int => _"}, @{term "op dvd :: nat => _"}, 
-   @{term "abs :: int => _"},  @{term "abs :: nat => _"}, 
+   @{term "abs :: int => _"},  (*@ {term "abs :: nat => _"}, *)
    @{term "max :: int => _"},  @{term "max :: nat => _"}, 
    @{term "min :: int => _"},  @{term "min :: nat => _"}, 
    @{term "HOL.uminus :: int => _"}, @{term "HOL.uminus :: nat => _"}, 

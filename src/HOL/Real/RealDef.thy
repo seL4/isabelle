@@ -20,12 +20,8 @@ definition
 typedef (Real)  real = "UNIV//realrel"
   by (auto simp add: quotient_def)
 
-instance real :: "{ord, zero, one, plus, times, minus, inverse}" ..
-
 definition
-
   (** these don't use the overloaded "real" function: users don't see them **)
-
   real_of_preal :: "preal => real" where
   "real_of_preal m = Abs_Real(realrel``{(m + 1, 1)})"
 
@@ -33,44 +29,38 @@ consts
    (*overloaded constant for injecting other types into "real"*)
    real :: "'a => real"
 
+instance real :: zero
+  real_zero_def: "0 == Abs_Real(realrel``{(1, 1)})" ..
 
-defs (overloaded)
+instance real :: one
+  real_one_def: "1 == Abs_Real(realrel``{(1 + 1, 1)})" ..
 
-  real_zero_def:
-  "0 == Abs_Real(realrel``{(1, 1)})"
-
-  real_one_def:
-  "1 == Abs_Real(realrel``{(1 + 1, 1)})"
-
-  real_minus_def:
-  "- r ==  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
-
-  real_add_def:
-   "z + w ==
+instance real :: plus
+  real_add_def: "z + w ==
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
-		 { Abs_Real(realrel``{(x+u, y+v)}) })"
+		 { Abs_Real(realrel``{(x+u, y+v)}) })" ..
 
-  real_diff_def:
-   "r - (s::real) == r + - s"
+instance real :: minus
+  real_minus_def: "- r ==  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
+  real_diff_def: "r - (s::real) == r + - s" ..
 
+instance real :: times
   real_mult_def:
     "z * w ==
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
-		 { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })"
+		 { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })" ..
 
-  real_inverse_def:
-  "inverse (R::real) == (THE S. (R = 0 & S = 0) | S * R = 1)"
+instance real :: inverse
+  real_inverse_def: "inverse (R::real) == (THE S. (R = 0 & S = 0) | S * R = 1)"
+  real_divide_def: "R / (S::real) == R * inverse S" ..
 
-  real_divide_def:
-  "R / (S::real) == R * inverse S"
-
-  real_le_def:
-   "z \<le> (w::real) == 
+instance real :: ord
+  real_le_def: "z \<le> (w::real) == 
     \<exists>x y u v. x+v \<le> u+y & (x,y) \<in> Rep_Real z & (u,v) \<in> Rep_Real w"
+  real_less_def: "(x < (y::real)) == (x \<le> y & x \<noteq> y)" ..
 
-  real_less_def: "(x < (y::real)) == (x \<le> y & x \<noteq> y)"
-
-  real_abs_def:  "abs (r::real) == (if r < 0 then - r else r)"
+instance real :: abs
+  real_abs_def:  "abs (r::real) == (if r < 0 then - r else r)" ..
 
 
 subsection {* Equivalence relation over positive reals *}
@@ -946,11 +936,10 @@ consts_code
   "op * :: real \<Rightarrow> real \<Rightarrow> real" ("Rat.mult")
   "inverse :: real \<Rightarrow> real" ("Rat.inv")
   "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool" ("Rat.le")
-  "op < :: real \<Rightarrow> real \<Rightarrow> bool" ("(Rat.ord (_, _) = LESS)")
+  "op < :: real \<Rightarrow> real \<Rightarrow> bool" ("Rat.lt")
   "op = :: real \<Rightarrow> real \<Rightarrow> bool" ("curry Rat.eq")
   "real :: int \<Rightarrow> real" ("Rat.rat'_of'_int")
   "real :: nat \<Rightarrow> real" ("(Rat.rat'_of'_int o {*int*})")
-
 
 lemma [code, code unfold]:
   "number_of k = real (number_of k :: int)"

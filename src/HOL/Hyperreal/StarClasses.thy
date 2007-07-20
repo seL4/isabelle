@@ -25,7 +25,9 @@ instance star :: (times) times
 
 instance star :: (minus) minus
   star_minus_def:   "uminus \<equiv> *f* uminus"
-  star_diff_def:    "(op -) \<equiv> *f2* (op -)"
+  star_diff_def:    "(op -) \<equiv> *f2* (op -)" ..
+
+instance star :: (abs) abs
   star_abs_def:     "abs \<equiv> *f* abs" ..
 
 instance star :: (inverse) inverse
@@ -398,7 +400,7 @@ apply (transfer, erule (1) mult_strict_right_mono)
 done
 
 instance star :: (pordered_comm_semiring) pordered_comm_semiring
-by (intro_classes, transfer, rule mult_mono1_class.times_zero_less_eq_less.mult_mono)
+by (intro_classes, transfer, rule mult_mono1_class.less_eq_less_times_zero.mult_mono)
 
 instance star :: (pordered_cancel_comm_semiring) pordered_cancel_comm_semiring ..
 

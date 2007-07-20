@@ -783,7 +783,7 @@ next
   with a show ?thesis by simp 
 qed
 
-class lordered_ab_group_abs = lordered_ab_group +
+class lordered_ab_group_abs = lordered_ab_group + abs +
   assumes abs_lattice: "abs x = sup x (uminus x)"
 
 lemma abs_zero[simp]: "abs 0 = (0::'a::lordered_ab_group_abs)"

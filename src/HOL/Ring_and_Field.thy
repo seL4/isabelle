@@ -296,7 +296,7 @@ instance lordered_ring \<subseteq> lordered_ab_group_meet ..
 
 instance lordered_ring \<subseteq> lordered_ab_group_join ..
 
-class abs_if = minus + ord + zero +
+class abs_if = minus + ord + zero + abs +
   assumes abs_if: "abs a = (if a \<sqsubset> 0 then (uminus a) else a)"
 
 (* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.

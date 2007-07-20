@@ -159,51 +159,55 @@ lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
 
 subsubsection {* Standard operations on rational numbers *}
 
-instance rat :: "{ord, zero, one, plus, times, minus, inverse, power}" ..
+instance rat :: zero
+  Zero_rat_def: "0 == Fract 0 1" ..
 
-defs (overloaded)
-  Zero_rat_def:  "0 == Fract 0 1"
-  One_rat_def:   "1 == Fract 1 1"
+instance rat :: one
+  One_rat_def: "1 == Fract 1 1" ..
 
+instance rat :: plus
   add_rat_def:
    "q + r ==
        Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
-           ratrel``{(fst x * snd y + fst y * snd x, snd x * snd y)})"
+           ratrel``{(fst x * snd y + fst y * snd x, snd x * snd y)})" ..
+lemmas [code func del] = add_rat_def
 
+instance rat :: minus
   minus_rat_def:
     "- q == Abs_Rat (\<Union>x \<in> Rep_Rat q. ratrel``{(- fst x, snd x)})"
+  diff_rat_def:  "q - r == q + - (r::rat)" ..
+lemmas [code func del] = minus_rat_def
 
-  diff_rat_def:  "q - r == q + - (r::rat)"
-
+instance rat :: times
   mult_rat_def:
    "q * r ==
        Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
-           ratrel``{(fst x * fst y, snd x * snd y)})"
+           ratrel``{(fst x * fst y, snd x * snd y)})" ..
+lemmas [code func del] = mult_rat_def
 
+instance rat :: inverse
   inverse_rat_def:
     "inverse q ==
         Abs_Rat (\<Union>x \<in> Rep_Rat q.
             ratrel``{if fst x=0 then (0,1) else (snd x, fst x)})"
+  divide_rat_def:  "q / r == q * inverse (r::rat)" ..
+lemmas [code func del] = inverse_rat_def
 
-  divide_rat_def:  "q / r == q * inverse (r::rat)"
-
+instance rat :: ord
   le_rat_def:
    "q \<le> r == contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
       {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
+  less_rat_def: "(z < (w::rat)) == (z \<le> w & z \<noteq> w)" ..
+lemmas [code func del] = le_rat_def less_rat_def
 
-  less_rat_def: "(z < (w::rat)) == (z \<le> w & z \<noteq> w)"
+instance rat :: abs
+  abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)" ..
 
-  abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)"
+instance rat :: power ..
 
 primrec (rat)
   rat_power_0:   "q ^ 0       = 1"
   rat_power_Suc: "q ^ (Suc n) = (q::rat) * (q ^ n)"
-
-lemma zero_rat: "0 = Fract 0 1"
-by (simp add: Zero_rat_def)
-
-lemma one_rat: "1 = Fract 1 1"
-by (simp add: One_rat_def)
 
 theorem eq_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
   (Fract a b = Fract c d) = (a * d = c * b)"
@@ -241,7 +245,7 @@ theorem less_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
 by (simp add: less_rat_def le_rat eq_rat order_less_le)
 
 theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
-  by (simp add: abs_rat_def minus_rat zero_rat less_rat eq_rat)
+  by (simp add: abs_rat_def minus_rat Zero_rat_def less_rat eq_rat)
      (auto simp add: mult_less_0_iff zero_less_mult_iff order_le_less
                 split: abs_split)
 
@@ -257,9 +261,9 @@ proof
   show "q + r = r + q"
     by (induct q, induct r) (simp add: add_rat add_ac mult_ac)
   show "0 + q = q"
-    by (induct q) (simp add: zero_rat add_rat)
+    by (induct q) (simp add: Zero_rat_def add_rat)
   show "(-q) + q = 0"
-    by (induct q) (simp add: zero_rat minus_rat add_rat eq_rat)
+    by (induct q) (simp add: Zero_rat_def minus_rat add_rat eq_rat)
   show "q - r = q + (-r)"
     by (induct q, induct r) (simp add: add_rat minus_rat diff_rat)
   show "(q * r) * s = q * (r * s)"
@@ -267,16 +271,16 @@ proof
   show "q * r = r * q"
     by (induct q, induct r) (simp add: mult_rat mult_ac)
   show "1 * q = q"
-    by (induct q) (simp add: one_rat mult_rat)
+    by (induct q) (simp add: One_rat_def mult_rat)
   show "(q + r) * s = q * s + r * s"
     by (induct q, induct r, induct s)
        (simp add: add_rat mult_rat eq_rat int_distrib)
   show "q \<noteq> 0 ==> inverse q * q = 1"
-    by (induct q) (simp add: inverse_rat mult_rat one_rat zero_rat eq_rat)
+    by (induct q) (simp add: inverse_rat mult_rat One_rat_def Zero_rat_def eq_rat)
   show "q / r = q * inverse r"
     by (simp add: divide_rat_def)
   show "0 \<noteq> (1::rat)"
-    by (simp add: zero_rat one_rat eq_rat)
+    by (simp add: Zero_rat_def One_rat_def eq_rat)
 qed
 
 instance rat :: linorder
@@ -382,7 +386,7 @@ proof
     proof -
       let ?E = "e * f" and ?F = "f * f"
       from neq gt have "0 < ?E"
-        by (auto simp add: zero_rat less_rat le_rat order_less_le eq_rat)
+        by (auto simp add: Zero_rat_def less_rat le_rat order_less_le eq_rat)
       moreover from neq have "0 < ?F"
         by (auto simp add: zero_less_mult_iff)
       moreover from neq le have "(a * d) * (b * d) < (c * b) * (b * d)"
@@ -400,7 +404,7 @@ qed auto
 instance rat :: division_by_zero
 proof
   show "inverse 0 = (0::rat)"
-    by (simp add: zero_rat Fract_def inverse_rat_def
+    by (simp add: Zero_rat_def Fract_def inverse_rat_def
                   inverse_congruent UN_ratrel)
 qed
 
@@ -436,15 +440,15 @@ qed
 
 lemma zero_less_Fract_iff:
      "0 < b ==> (0 < Fract a b) = (0 < a)"
-by (simp add: zero_rat less_rat order_less_imp_not_eq2 zero_less_mult_iff)
+by (simp add: Zero_rat_def less_rat order_less_imp_not_eq2 zero_less_mult_iff)
 
 lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
 apply (insert add_rat [of concl: m n 1 1])
-apply (simp add: one_rat  [symmetric])
+apply (simp add: One_rat_def [symmetric])
 done
 
 lemma of_nat_rat: "of_nat k = Fract (of_nat k) 1"
-by (induct k) (simp_all add: zero_rat one_rat add_rat)
+by (induct k) (simp_all add: Zero_rat_def One_rat_def add_rat)
 
 lemma of_int_rat: "of_int k = Fract k 1"
 by (cases k rule: int_diff_cases, simp add: of_nat_rat diff_rat)
@@ -562,5 +566,8 @@ by (cases z rule: int_diff_cases, simp add: of_rat_diff)
 lemma of_rat_number_of_eq [simp]:
   "of_rat (number_of w) = (number_of w :: 'a::{number_ring,field_char_0})"
 by (simp add: number_of_eq)
+
+lemmas zero_rat = Zero_rat_def
+lemmas one_rat = One_rat_def
 
 end

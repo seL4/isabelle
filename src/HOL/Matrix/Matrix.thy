@@ -22,8 +22,10 @@ instance matrix :: ("{minus, zero}") minus
 instance matrix :: ("{plus, times, zero}") times
   times_matrix_def: "A * B \<equiv> mult_matrix (op *) (op +) A B" ..
 
+instance matrix :: (lordered_ab_group) abs
+  abs_matrix_def: "abs A \<equiv> sup A (- A)" ..
+
 instance matrix :: (lordered_ab_group) lordered_ab_group_meet
-  abs_matrix_def: "abs (A::('a::lordered_ab_group) matrix) == sup A (- A)"
 proof 
   fix A B C :: "('a::lordered_ab_group) matrix"
   show "A + B + C = A + (B + C)"    
