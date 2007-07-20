@@ -175,6 +175,12 @@ selection. Variables that are special in some sense are marked with *.
   \S\ref{sec:tool-usedir}). This typically contains compilation options for
   object-logics --- \texttt{usedir} is the basic utility for managing logic
   sessions (cf.\ the \texttt{IsaMakefile}s in the distribution).
+
+\item[\settdx{ISABELLE_FILE_IDENT}] specifies a shell command for
+  producing a source file identification, based on the actual content
+  instead of the full physical path and date stamp (which is the
+  default). A typical identification would produce a ``digest'' of the
+  text, using a cryptographic hash function like SHA-1, for example.
   
 \item[\settdx{ISABELLE_LATEX}, \settdx{ISABELLE_PDFLATEX},
   \settdx{ISABELLE_BIBTEX}, \settdx{ISABELLE_DVIPS}] refer to {\LaTeX} related
