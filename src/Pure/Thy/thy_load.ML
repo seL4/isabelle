@@ -75,9 +75,11 @@ fun check_ext exts dir src_path =
       let val ext_path = Path.expand (Path.ext ext rel_path)
       in Option.map (fn id => (File.full_path ext_path, id)) (File.ident ext_path) end;
     fun try_prfx prfx = get_first (try_ext (Path.append prfx path)) ("" :: exts);
-
-    val via_load_path = if Path.is_basic path then get_first try_prfx (! load_path) else NONE;
-  in (case via_load_path of NONE => try_prfx dir | res => res) end;
+  in
+    (case get_first try_prfx (if Path.is_basic path then (! load_path) else [Path.current]) of
+      NONE => try_prfx dir
+    | res => res)
+  end;
 
 val check_file = check_ext [];
 val check_ml = check_ext ml_exts;
