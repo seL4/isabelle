@@ -245,9 +245,9 @@ fun check_text s state = (ThyOutput.eval_antiquote (#1 (get_lexicons ())) state 
 
 local
 
-fun try_ml_file dirs name time =
+fun try_ml_file dir name time =
   let val path = ThyLoad.ml_path name in
-    if is_none (ThyLoad.check_file dirs path) then ()
+    if is_none (ThyLoad.check_file dir path) then ()
     else
       let
         val _ = legacy_feature ("loading attached ML script " ^ quote (Path.implode path));
@@ -256,9 +256,9 @@ fun try_ml_file dirs name time =
       in Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr] end
   end;
 
-fun run_thy dirs name time =
+fun run_thy dir name time =
   let
-    val master as ((path, _), _) = ThyLoad.check_thy dirs name false;
+    val master as ((path, _), _) = ThyLoad.check_thy dir name false;
     val text = Source.of_list (Library.untabify (explode (File.read path)));
 
     val _ = Present.init_theory name;
@@ -280,11 +280,11 @@ fun run_thy dirs name time =
 
   in master end;
 
-fun load_thy dirs name ml time =
+fun load_thy dir name ml time =
   let
-    val master = run_thy dirs name time;
+    val master = run_thy dir name time;
     val _ = ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
-    val _ = if ml then try_ml_file dirs name time else ();
+    val _ = if ml then try_ml_file dir name time else ();
   in master end;
 
 in

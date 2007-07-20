@@ -25,8 +25,7 @@ sig
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
   val theory_output: string -> string -> unit
-  val begin_theory: Path.T list -> string -> string list ->
-    (Path.T * bool) list -> theory -> theory
+  val begin_theory: Path.T -> string -> string list -> (Path.T * bool) list -> theory -> theory
   val add_hook: (string -> (string * thm list) list -> unit) -> unit
   val results: string -> (string * thm list) list -> unit
   val theorem: string -> thm -> unit
@@ -452,16 +451,16 @@ fun parent_link remote_path curr_session name =
        (html_path name))), name)
   end;
 
-fun begin_theory dirs name raw_parents orig_files thy =
+fun begin_theory dir name raw_parents orig_files thy =
     with_session thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
   let
     val parents = map (parent_link remote_path path) raw_parents;
     val ml_path = ThyLoad.ml_path name;
     val files = map (apsnd SOME) orig_files @
-      (if is_some (ThyLoad.check_file dirs ml_path) then [(ml_path, NONE)] else []);
+      (if is_some (ThyLoad.check_file dir ml_path) then [(ml_path, NONE)] else []);
 
     fun prep_file (raw_path, loadit) =
-      (case ThyLoad.check_ml dirs raw_path of
+      (case ThyLoad.check_ml dir raw_path of
         SOME (path, _) =>
           let
             val base = Path.base path;
@@ -471,8 +470,9 @@ fun begin_theory dirs name raw_parents orig_files thy =
               HTML.ml_file (Url.File base) (File.read path));
             (SOME (Url.File base_html), Url.File raw_path, loadit)
           end
-      | NONE => (warning ("Browser info: expected to find ML file" ^ quote (Path.implode raw_path));
-          (NONE, Url.File raw_path, loadit)));
+      | NONE =>
+          (warning ("Browser info: expected to find ML file" ^ quote (Path.implode raw_path));
+            (NONE, Url.File raw_path, loadit)));
 
     val files_html = map prep_file files;
 
