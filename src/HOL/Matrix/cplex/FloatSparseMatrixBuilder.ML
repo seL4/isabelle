@@ -30,6 +30,14 @@ sig
   val cut_vector : int -> vector -> vector
   val cut_matrix : vector -> int option -> matrix -> matrix
 
+  val delete_matrix : int list -> matrix -> matrix
+  val cut_matrix' : int list -> matrix -> matrix 
+  val delete_vector : int list -> vector -> vector
+  val cut_vector' : int list -> vector -> vector
+
+  val indices_of_matrix : matrix -> int list
+  val indices_of_vector : vector -> int list
+
   (* cplexProg c A b *)
   val cplexProg : vector -> matrix -> vector -> cplex.cplexProg * (string -> int)
   (* dual_cplexProg c A b *)
@@ -260,5 +268,14 @@ fun v_only_elem v =
 
 fun v_fold f = Inttab.fold f;
 fun m_fold f = Inttab.fold f;
+
+fun indices_of_vector v = Inttab.keys v
+fun indices_of_matrix m = Inttab.keys m
+fun delete_vector indices v = fold Inttab.delete indices v
+fun delete_matrix indices m = fold Inttab.delete indices m
+fun cut_matrix' indices m = fold (fn i => fn m => (case Inttab.lookup m i of NONE => m | SOME v => Inttab.update (i, v) m))  indices Inttab.empty
+fun cut_vector' indices v = fold (fn i => fn v => (case Inttab.lookup v i of NONE => v | SOME x => Inttab.update (i, x) v))  indices Inttab.empty
+
+
 
 end;
