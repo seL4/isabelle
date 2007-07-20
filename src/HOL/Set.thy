@@ -6,7 +6,7 @@
 header {* Set theory for higher-order logic *}
 
 theory Set
-imports Lattices
+imports HOL
 begin
 
 text {* A set in HOL is simply a predicate. *}
@@ -1040,13 +1040,6 @@ lemmas [symmetric, rulify] = atomize_ball
   and [symmetric, defn] = atomize_ball
 
 
-subsection {* Order on sets *}
-
-instance set :: (type) order
-  by (intro_classes,
-      (assumption | rule subset_refl subset_trans subset_antisym psubset_eq)+)
-
-
 subsection {* Further set-theory lemmas *}
 
 subsubsection {* Derived rules involving subsets. *}
@@ -1054,12 +1047,10 @@ subsubsection {* Derived rules involving subsets. *}
 text {* @{text insert}. *}
 
 lemma subset_insertI: "B \<subseteq> insert a B"
-  apply (rule subsetI)
-  apply (erule insertI2)
-  done
+  by (rule subsetI) (erule insertI2)
 
 lemma subset_insertI2: "A \<subseteq> B \<Longrightarrow> A \<subseteq> insert b B"
-by blast
+  by blast
 
 lemma subset_insert: "x \<notin> A ==> (A \<subseteq> insert x B) = (A \<subseteq> B)"
   by blast
@@ -1134,14 +1125,6 @@ lemma Diff_subset: "A - B \<subseteq> A"
 lemma Diff_subset_conv: "(A - B \<subseteq> C) = (A \<subseteq> B \<union> C)"
 by blast
 
-
-text {* \medskip Monotonicity. *}
-
-lemma mono_Un: "mono f ==> f A \<union> f B \<subseteq> f (A \<union> B)"
-  by (auto simp add: mono_def)
-
-lemma mono_Int: "mono f ==> f (A \<inter> B) \<subseteq> f A \<inter> f B"
-  by (auto simp add: mono_def)
 
 subsubsection {* Equalities involving union, intersection, inclusion, etc. *}
 
@@ -2014,16 +1997,6 @@ lemma eq_to_mono: "a = b ==> c = d ==> b --> d ==> a --> c"
 lemma eq_to_mono2: "a = b ==> c = d ==> ~ b --> ~ d ==> ~ a --> ~ c"
   by iprover
 
-lemma Least_mono:
-  "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
-    ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
-    -- {* Courtesy of Stephan Merz *}
-  apply clarify
-  apply (erule_tac P = "%x. x : S" in LeastI2_order, fast)
-  apply (rule LeastI2_order)
-  apply (auto elim: monoD intro!: order_antisym)
-  done
-
 
 subsection {* Inverse image of a function *}
 
@@ -2119,19 +2092,6 @@ lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
 
 lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
   by (rule subsetD)
-
-lemmas basic_trans_rules [trans] =
-  order_trans_rules set_rev_mp set_mp
-
-
-subsection {* Sets as lattice *}
-
-instance set :: (type) distrib_lattice
-  inf_set_eq: "inf A B \<equiv> A \<inter> B"
-  sup_set_eq: "sup A B \<equiv> A \<union> B"
-  by intro_classes (auto simp add: inf_set_eq sup_set_eq)
-
-lemmas [code func del] = inf_set_eq sup_set_eq
 
 
 subsection {* Basic ML bindings *}

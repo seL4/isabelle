@@ -460,87 +460,6 @@ lemma bij_swap_iff: "bij (swap a b f) = bij f"
 by (simp add: bij_def)
 
 
-subsection {* Order and lattice on functions *}
-
-instance "fun" :: (type, ord) ord
-  le_fun_def: "f \<le> g \<equiv> \<forall>x. f x \<le> g x"
-  less_fun_def: "f < g \<equiv> f \<le> g \<and> f \<noteq> g" ..
-
-lemmas [code func del] = le_fun_def less_fun_def
-
-instance "fun" :: (type, order) order
-  by default
-    (auto simp add: le_fun_def less_fun_def expand_fun_eq
-       intro: order_trans order_antisym)
-
-lemma le_funI: "(\<And>x. f x \<le> g x) \<Longrightarrow> f \<le> g"
-  unfolding le_fun_def by simp
-
-lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) \<Longrightarrow> P"
-  unfolding le_fun_def by simp
-
-lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
-  unfolding le_fun_def by simp
-
-text {*
-  Handy introduction and elimination rules for @{text "\<le>"}
-  on unary and binary predicates
-*}
-
-lemma predicate1I [Pure.intro!, intro!]:
-  assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
-  shows "P \<le> Q"
-  apply (rule le_funI)
-  apply (rule le_boolI)
-  apply (rule PQ)
-  apply assumption
-  done
-
-lemma predicate1D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
-  apply (erule le_funE)
-  apply (erule le_boolE)
-  apply assumption+
-  done
-
-lemma predicate2I [Pure.intro!, intro!]:
-  assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
-  shows "P \<le> Q"
-  apply (rule le_funI)+
-  apply (rule le_boolI)
-  apply (rule PQ)
-  apply assumption
-  done
-
-lemma predicate2D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
-  apply (erule le_funE)+
-  apply (erule le_boolE)
-  apply assumption+
-  done
-
-lemma rev_predicate1D: "P x ==> P <= Q ==> Q x"
-  by (rule predicate1D)
-
-lemma rev_predicate2D: "P x y ==> P <= Q ==> Q x y"
-  by (rule predicate2D)
-
-instance "fun" :: (type, lattice) lattice
-  inf_fun_eq: "inf f g \<equiv> (\<lambda>x. inf (f x) (g x))"
-  sup_fun_eq: "sup f g \<equiv> (\<lambda>x. sup (f x) (g x))"
-apply intro_classes
-unfolding inf_fun_eq sup_fun_eq
-apply (auto intro: le_funI)
-apply (rule le_funI)
-apply (auto dest: le_funD)
-apply (rule le_funI)
-apply (auto dest: le_funD)
-done
-
-lemmas [code func del] = inf_fun_eq sup_fun_eq
-
-instance "fun" :: (type, distrib_lattice) distrib_lattice
-  by default (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
-
-
 subsection {* Proof tool setup *} 
 
 text {* simplifies terms of the form
@@ -600,8 +519,6 @@ val injD = @{thm injD}
 val datatype_injI = @{thm datatype_injI}
 val range_ex1_eq = @{thm range_ex1_eq}
 val expand_fun_eq = @{thm expand_fun_eq}
-val sup_fun_eq = @{thm sup_fun_eq}
-val sup_bool_eq = @{thm sup_bool_eq}
 *}
 
 end

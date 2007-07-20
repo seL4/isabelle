@@ -218,7 +218,6 @@ class plus = type +
 class minus = type +
   fixes uminus :: "'a \<Rightarrow> 'a" 
     and minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>-" 65)
-    and abs :: "'a \<Rightarrow> 'a"
 
 class times = type +
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>*" 70)
@@ -227,6 +226,9 @@ class inverse = type +
   fixes inverse :: "'a \<Rightarrow> 'a"
     and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>'/" 70)
 
+class abs = type +
+  fixes abs :: "'a \<Rightarrow> 'a"
+
 notation
   uminus  ("- _" [81] 80)
 
@@ -234,6 +236,70 @@ notation (xsymbols)
   abs  ("\<bar>_\<bar>")
 notation (HTML output)
   abs  ("\<bar>_\<bar>")
+
+class ord = type +
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubseteq>" 50)
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubset>" 50)
+begin
+
+notation
+  less_eq  ("op \<^loc><=") and
+  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50) and
+  less  ("op \<^loc><") and
+  less  ("(_/ \<^loc>< _)"  [51, 51] 50)
+  
+notation (xsymbols)
+  less_eq  ("op \<^loc>\<le>") and
+  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
+
+notation (HTML output)
+  less_eq  ("op \<^loc>\<le>") and
+  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
+
+abbreviation (input)
+  greater  (infix "\<^loc>>" 50) where
+  "x \<^loc>> y \<equiv> y \<^loc>< x"
+
+abbreviation (input)
+  greater_eq  (infix "\<^loc>>=" 50) where
+  "x \<^loc>>= y \<equiv> y \<^loc><= x"
+
+notation (input)
+  greater_eq  (infix "\<^loc>\<ge>" 50)
+
+definition
+  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "\<^loc>LEAST " 10)
+where
+  "Least P == (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<^loc>\<le> y))"
+
+end
+
+notation
+  less_eq  ("op <=") and
+  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  less  ("op <") and
+  less  ("(_/ < _)"  [51, 51] 50)
+  
+notation (xsymbols)
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+
+notation (HTML output)
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+
+abbreviation (input)
+  greater  (infix ">" 50) where
+  "x > y \<equiv> y < x"
+
+abbreviation (input)
+  greater_eq  (infix ">=" 50) where
+  "x >= y \<equiv> y <= x"
+
+notation (input)
+  greater_eq  (infix "\<ge>" 50)
+
+lemmas Least_def = Least_def [folded ord_class.Least]
 
 syntax
   "_index1"  :: index    ("\<^sub>1")

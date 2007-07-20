@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Divides Equiv_Relations IntDef
+imports IntDef Divides
 begin
 
 subsection {* Definition and basic properties *}
@@ -93,6 +93,7 @@ proof -
     qed
   qed
 qed
+
 
 text{* Finite sets are the images of initial segments of natural numbers: *}
 
