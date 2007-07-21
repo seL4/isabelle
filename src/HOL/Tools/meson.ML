@@ -575,7 +575,7 @@ fun best_meson_tac sizef =
 
 (*First, breaks the goal into independent units*)
 val safe_best_meson_tac =
-     SELECT_GOAL (TRY Safe_tac THEN
+     SELECT_GOAL (TRY (CLASET safe_tac) THEN
                   TRYALL (best_meson_tac size_of_subgoals));
 
 (** Depth-first search version **)

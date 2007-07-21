@@ -246,7 +246,7 @@ lemma chinese_remainder:
          prefer 7
          apply (simp add: zmult_ac)
         apply (unfold xilin_sol_def)
-        apply (tactic {* Asm_simp_tac 7 *})
+        apply (tactic {* asm_simp_tac @{simpset} 7 *})
         apply (rule_tac [7] ex1_implies_ex [THEN someI_ex])
         apply (rule_tac [7] unique_xi_sol)
            apply (rule_tac [4] funprod_zdvd)

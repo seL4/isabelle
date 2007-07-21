@@ -670,7 +670,7 @@ qed "ax_thin";
 lemma ax_thin [rule_format (no_asm)]: 
   "G,(A'::'a triple set)|\<turnstile>(ts::'a triple set) \<Longrightarrow> \<forall>A. A' \<subseteq> A \<longrightarrow> G,A|\<turnstile>ts"
 apply (erule ax_derivs.induct)
-apply                (tactic "ALLGOALS(EVERY'[Clarify_tac,REPEAT o smp_tac 1])")
+apply                (tactic "ALLGOALS(EVERY'[clarify_tac @{claset}, REPEAT o smp_tac 1])")
 apply                (rule ax_derivs.empty)
 apply               (erule (1) ax_derivs.insert)
 apply              (fast intro: ax_derivs.asm)
@@ -712,7 +712,7 @@ apply   (fast intro: ax_derivs.weaken)
 apply  (rule ax_derivs.conseq, clarify, tactic "smp_tac 3 1", blast(* unused *))
 (*37 subgoals*)
 apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) (thms "ax_derivs.intros")) 
-                   THEN_ALL_NEW Fast_tac) *})
+                   THEN_ALL_NEW fast_tac @{claset}) *})
 (*1 subgoal*)
 apply (clarsimp simp add: subset_mtriples_iff)
 apply (rule ax_derivs.Methd)

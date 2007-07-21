@@ -163,7 +163,7 @@ apply (rule_tac [2]
                           [OF _ _ respond.One 
                                   [THEN respond.Cons, THEN respond.Cons]],
                      THEN recur.RA4, THEN recur.RA4])
-apply (tactic "basic_possibility_tac")
+apply basic_possibility
 apply (tactic "DEPTH_SOLVE (swap_res_tac [refl, conjI, disjCI] 1)")
 done
 

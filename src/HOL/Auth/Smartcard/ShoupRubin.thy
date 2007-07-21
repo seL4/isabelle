@@ -756,13 +756,13 @@ val prepare_tac =
  (*SR11*)  forward_tac [Outpts_A_Card_form_10] 21 THEN
            eresolve_tac [exE] 22 THEN eresolve_tac [exE] 22
 
-val parts_prepare_tac = 
+fun parts_prepare_tac ctxt = 
            prepare_tac THEN
  (*SR9*)   dresolve_tac [Gets_imp_knows_Spy_parts_Snd] 18 THEN 
  (*SR9*)   dresolve_tac [Gets_imp_knows_Spy_parts_Snd] 19 THEN 
  (*Oops1*) dresolve_tac [Outpts_B_Card_form_7] 25    THEN               
  (*Oops2*) dresolve_tac [Outpts_A_Card_form_10] 27 THEN                
- (*Base*)  Force_tac 1
+ (*Base*)  (force_tac (local_clasimpset_of ctxt)) 1
 
 val analz_prepare_tac = 
          prepare_tac THEN
@@ -777,7 +777,7 @@ method_setup prepare = {*
   "to launch a few simple facts that'll help the simplifier"
 
 method_setup parts_prepare = {*
-    Method.no_args (Method.SIMPLE_METHOD parts_prepare_tac) *}
+    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (parts_prepare_tac ctxt)) *}
   "additional facts to reason about parts"
 
 method_setup analz_prepare = {*
@@ -1386,10 +1386,4 @@ apply (erule sr.induct)
 apply auto
 done
 
-
-
-
-
-
 end
-

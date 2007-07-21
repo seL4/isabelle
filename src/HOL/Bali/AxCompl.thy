@@ -1404,7 +1404,7 @@ lemma nesting_lemma' [rule_format (no_asm)]:
 using finU uA
 apply -
 apply (induct_tac "n")
-apply  (tactic "ALLGOALS Clarsimp_tac")
+apply  (tactic "ALLGOALS (clarsimp_tac @{clasimpset})")
 apply  (tactic {* dtac (permute_prems 0 1 (thm "card_seteq")) 1 *})
 apply    simp
 apply   (erule finite_imageI)

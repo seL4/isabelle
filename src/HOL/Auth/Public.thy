@@ -425,31 +425,31 @@ subsection{*Specialized Methods for Possibility Theorems*}
 
 ML
 {*
-val Nonce_supply = thm "Nonce_supply";
-
-(*Tactic for possibility theorems (Isar interface)*)
-fun gen_possibility_tac ss state = state |>
+(*Tactic for possibility theorems*)
+fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (ss delsimps [used_Says]))
+    (ALLGOALS (simp_tac (local_simpset_of ctxt delsimps [used_Says]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
-                   resolve_tac [refl, conjI, Nonce_supply]))
-
-(*Tactic for possibility theorems (ML script version)*)
-fun possibility_tac state = gen_possibility_tac (simpset()) state
+                   resolve_tac [refl, conjI, @{thm Nonce_supply}]))
 
 (*For harder protocols (such as Recur) where we have to set up some
   nonces and keys initially*)
-fun basic_possibility_tac st = st |>
+fun basic_possibility_tac ctxt =
     REPEAT 
-    (ALLGOALS (asm_simp_tac (simpset() setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (local_simpset_of ctxt setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
 *}
 
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (gen_possibility_tac (local_simpset_of ctxt))) *}
+        Method.SIMPLE_METHOD (possibility_tac ctxt)) *}
+    "for proving possibility theorems"
+
+method_setup basic_possibility = {*
+    Method.ctxt_args (fn ctxt =>
+        Method.SIMPLE_METHOD (basic_possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 end

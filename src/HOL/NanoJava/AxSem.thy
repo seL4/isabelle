@@ -153,7 +153,7 @@ lemma Thin_lemma:
   "(A' |\<turnstile>  C         \<longrightarrow> (\<forall>A. A' \<subseteq> A \<longrightarrow> A |\<turnstile>  C       )) \<and> 
    (A'  \<turnstile>\<^sub>e {P} e {Q} \<longrightarrow> (\<forall>A. A' \<subseteq> A \<longrightarrow> A  \<turnstile>\<^sub>e {P} e {Q}))"
 apply (rule hoare_ehoare.induct)
-apply (tactic "ALLGOALS(EVERY'[Clarify_tac, REPEAT o smp_tac 1])")
+apply (tactic "ALLGOALS(EVERY'[clarify_tac @{claset}, REPEAT o smp_tac 1])")
 apply (blast intro: hoare_ehoare.Skip)
 apply (blast intro: hoare_ehoare.Comp)
 apply (blast intro: hoare_ehoare.Cond)

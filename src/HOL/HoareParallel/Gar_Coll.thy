@@ -792,7 +792,7 @@ apply(tactic  {* TRYALL (interfree_aux_tac) *})
 --{* 32 subgoals left *}
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 --{* 20 subgoals left *}
-apply(tactic{* TRYALL Clarify_tac *})
+apply(tactic{* TRYALL (clarify_tac @{claset}) *})
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 apply(tactic {* TRYALL (etac disjE) *})
 apply simp_all
@@ -812,7 +812,7 @@ apply(unfold modules collector_defs mutator_defs)
 apply(tactic  {* TRYALL (interfree_aux_tac) *})
 --{* 64 subgoals left *}
 apply(simp_all add:nth_list_update Invariants Append_to_free0)+
-apply(tactic{* TRYALL Clarify_tac *})
+apply(tactic{* TRYALL (clarify_tac @{claset}) *})
 --{* 4 subgoals left *}
 apply force
 apply(simp add:Append_to_free2)

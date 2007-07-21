@@ -150,7 +150,7 @@ lemma inv_inj: "zprime p ==> inj_on (inv p) (d22set (p - 2))"
         apply (rule_tac [7] zcong_trans)
          apply (tactic {* stac (thm "zcong_sym") 8 *})
          apply (erule_tac [7] inv_is_inv)
-          apply (tactic "Asm_simp_tac 9")
+          apply (tactic "asm_simp_tac @{simpset} 9")
           apply (erule_tac [9] inv_is_inv)
            apply (rule_tac [6] zless_zprime_imp_zrelprime)
              apply (rule_tac [8] inv_less)

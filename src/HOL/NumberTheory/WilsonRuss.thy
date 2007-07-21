@@ -270,7 +270,7 @@ lemma wset_zcong_prod_1 [rule_format]:
        apply (simp add: zmult_assoc)
       apply (rule_tac [5] zcong_zmult)
        apply (rule_tac [5] inv_is_inv)
-         apply (tactic "Clarify_tac 4")
+         apply (tactic "clarify_tac @{claset} 4")
          apply (subgoal_tac [4] "a \<in> wset (a - 1, p)")
           apply (rule_tac [5] wset_inv_mem_mem)
                apply (simp_all add: wset_fin)

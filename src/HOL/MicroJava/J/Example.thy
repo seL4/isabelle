@@ -373,7 +373,7 @@ apply (unfold max_spec_def)
 apply (auto simp add: appl_methds_foo_Base)
 done
 
-ML {* fun t thm = resolve_tac (thms "ty_expr_ty_exprs_wt_stmt.intros") 1 thm *}
+ML {* val t = resolve_tac @{thms ty_expr_ty_exprs_wt_stmt.intros} 1 *}
 lemma wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
   Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\<surd>"
 apply (tactic t) -- ";;"
@@ -399,7 +399,7 @@ apply (simp (no_asm))
 apply (rule max_spec_foo_Base)
 done
 
-ML {* fun e t = resolve_tac (thm "NewCI"::thms "eval_evals_exec.intros") 1 t *}
+ML {* val e = resolve_tac (@{thm NewCI} :: @{thms eval_evals_exec.intros}) 1 *}
 
 declare split_if [split del]
 declare init_vars_def [simp] c_hupd_def [simp] cast_ok_def [simp]

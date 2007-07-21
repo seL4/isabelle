@@ -206,7 +206,7 @@ qed "thin";
 *)
 lemma thin [rule_format]: "G'||-ts ==> !G. G' <= G --> G||-ts"
 apply (erule hoare_derivs.induct)
-apply                (tactic {* ALLGOALS (EVERY'[Clarify_tac, REPEAT o smp_tac 1]) *})
+apply                (tactic {* ALLGOALS (EVERY'[clarify_tac @{claset}, REPEAT o smp_tac 1]) *})
 apply (rule hoare_derivs.empty)
 apply               (erule (1) hoare_derivs.insert)
 apply              (fast intro: hoare_derivs.asm)

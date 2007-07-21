@@ -537,7 +537,8 @@ val program_defs_ref = ref ([]: thm list);
 
 (*proves "co" properties when the program is specified*)
 
-fun gen_constrains_tac(cs,ss) i = 
+fun constrains_tac ctxt =
+  let val css as (cs, ss) = local_clasimpset_of ctxt in
    SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
               REPEAT (etac Always_ConstrainsI 1
@@ -547,27 +548,30 @@ fun gen_constrains_tac(cs,ss) i =
               rtac constrainsI 1,
               (* Three subgoals *)
               rewrite_goal_tac [st_set_def] 3,
-              REPEAT (Force_tac 2),
+              REPEAT (force_tac css 2),
               full_simp_tac (ss addsimps !program_defs_ref) 1,
               ALLGOALS (clarify_tac cs),
               REPEAT (FIRSTGOAL (etac disjE)),
-              ALLGOALS Clarify_tac,
+              ALLGOALS (clarify_tac cs),
               REPEAT (FIRSTGOAL (etac disjE)),
               ALLGOALS (clarify_tac cs),
               ALLGOALS (asm_full_simp_tac ss),
-              ALLGOALS (clarify_tac cs)]) i;
-
-fun constrains_tac st = gen_constrains_tac (claset(), simpset()) st;
+              ALLGOALS (clarify_tac cs)])
+  end;
 
 (*For proving invariants*)
-fun always_tac i = 
-    rtac AlwaysI i THEN Force_tac i THEN constrains_tac i;
+fun always_tac ctxt i = 
+    rtac AlwaysI i THEN force_tac (local_clasimpset_of ctxt) i THEN constrains_tac ctxt i;
 *}
 
 method_setup safety = {*
   Method.ctxt_args (fn ctxt =>
-    Method.SIMPLE_METHOD' (gen_constrains_tac (local_clasimpset_of ctxt))) *}
+    Method.SIMPLE_METHOD' (constrains_tac ctxt)) *}
   "for proving safety properties"
 
+method_setup always = {*
+  Method.ctxt_args (fn ctxt =>
+    Method.SIMPLE_METHOD' (always_tac ctxt)) *}
+  "for proving invariants"
 
 end

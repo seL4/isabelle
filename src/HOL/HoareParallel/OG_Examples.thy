@@ -171,10 +171,10 @@ apply oghoare
 --{* 35 vc *}
 apply simp_all
 --{* 21 vc *}
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 --{* 11 vc *}
 apply simp_all
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 --{* 10 subgoals left *}
 apply(erule less_SucE)
  apply simp
@@ -431,17 +431,17 @@ lemma Producer_consumer:
  .{ \<forall>k<length a. (a ! k)=(\<acute>b ! k)}."
 apply oghoare
 --{* 138 vc  *}
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 --{* 112 subgoals left *}
 apply(simp_all (no_asm))
 apply(tactic {*ALLGOALS (conjI_Tac (K all_tac)) *})
 --{* 930 subgoals left *}
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 apply(simp_all (asm_lr) only:length_0_conv [THEN sym])
 --{* 44 subgoals left *}
 apply (simp_all (asm_lr) del:length_0_conv add: nth_list_update mod_less_divisor mod_lemma)
 --{* 32 subgoals left *}
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 
 apply(tactic {* TRYALL simple_arith_tac *})
 --{* 9 subgoals left *}
@@ -538,7 +538,7 @@ lemma Example_2: "0<n \<Longrightarrow>
  .{\<acute>x=n}."
 apply oghoare
 apply (simp_all cong del: strong_setsum_cong)
-apply (tactic {* ALLGOALS Clarify_tac *})
+apply (tactic {* ALLGOALS (clarify_tac @{claset}) *})
 apply (simp_all cong del: strong_setsum_cong)
    apply(erule (1) Example2_lemma2)
   apply(erule (1) Example2_lemma2)

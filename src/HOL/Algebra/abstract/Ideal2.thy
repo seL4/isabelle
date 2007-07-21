@@ -275,7 +275,7 @@ lemma pid_irred_imp_prime: "irred a ==> prime (a::'a::pid)"
   apply (unfold prime_def)
   apply (rule conjI)
    apply (rule_tac [2] conjI)
-    apply (tactic "Clarify_tac 3")
+    apply (tactic "clarify_tac @{claset} 3")
     apply (drule_tac [3] I = "ideal_of {a, b}" and x = "1" in irred_imp_max_ideal)
       apply (auto intro: ideal_of_is_ideal pid_ax simp add: irred_def not_dvd_psubideal pid_ax)
   apply (simp add: ideal_of_2_structure)

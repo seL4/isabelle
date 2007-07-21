@@ -495,7 +495,7 @@ lemma l_inverse [simp]: "!! a::'a::field. a ~= 0 ==> inverse a * a= 1"
 (* fields are integral domains *)
 
 lemma field_integral: "!! a::'a::field. a * b = 0 ==> a = 0 | b = 0"
-  apply (tactic "Step_tac 1")
+  apply (tactic "step_tac @{claset} 1")
   apply (rule_tac a = " (a*b) * inverse b" in box_equals)
     apply (rule_tac [3] refl)
    prefer 2

@@ -403,7 +403,8 @@ val Finite_stable_completion = thm "Finite_stable_completion";
 
 
 (*proves "ensures/leadsTo" properties when the program is specified*)
-fun gen_ensures_tac(cs,ss) sact = 
+fun ensures_tac ctxt sact =
+  let val css as (cs, ss) = local_clasimpset_of ctxt in
     SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
               etac Always_LeadsTo_Basis 1 
@@ -416,26 +417,22 @@ fun gen_ensures_tac(cs,ss) sact =
                  (*simplify the command's domain*)
               simp_tac (ss addsimps [domain_def]) 3, 
               (* proving the domain part *)
-             clarify_tac cs 3, dtac Cla.swap 3, force_tac (cs,ss) 4,
-             rtac ReplaceI 3, force_tac (cs,ss) 3, force_tac (cs,ss) 4,
+             clarify_tac cs 3, dtac Cla.swap 3, force_tac css 4,
+             rtac ReplaceI 3, force_tac css 3, force_tac css 4,
              asm_full_simp_tac ss 3, rtac conjI 3, simp_tac ss 4,
              REPEAT (rtac state_update_type 3),
-             gen_constrains_tac (cs,ss) 1,
+             constrains_tac ctxt 1,
              ALLGOALS (clarify_tac cs),
              ALLGOALS (asm_full_simp_tac (ss addsimps [st_set_def])),
                         ALLGOALS (clarify_tac cs),
-            ALLGOALS (asm_lr_simp_tac ss)]);
-
-fun ensures_tac sact = gen_ensures_tac (claset(), simpset()) sact;
+            ALLGOALS (asm_lr_simp_tac ss)])
+  end;
 *}
-
 
 method_setup ensures_tac = {*
     fn args => fn ctxt =>
-        Method.goal_args' (Scan.lift Args.name) 
-           (gen_ensures_tac (local_clasimpset_of ctxt))
+        Method.goal_args' (Scan.lift Args.name) (ensures_tac ctxt)
            args ctxt *}
     "for proving progress properties"
-
 
 end

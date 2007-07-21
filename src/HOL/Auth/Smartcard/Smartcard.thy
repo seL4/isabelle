@@ -359,23 +359,20 @@ ML
 {*
 (*Omitting used_Says makes the tactic much faster: it leaves expressions
     such as  Nonce ?N \<notin> used evs that match Nonce_supply*)
-fun gen_possibility_tac ss state = state |>
+fun possibility_tac ctxt =
    (REPEAT 
-    (ALLGOALS (simp_tac (ss delsimps [used_Says, used_Notes, used_Gets,
+    (ALLGOALS (simp_tac (local_simpset_of ctxt delsimps [used_Says, used_Notes, used_Gets,
                          used_Inputs, used_C_Gets, used_Outpts, used_A_Gets] 
                          setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply])))
 
-(*Tactic for possibility theorems (ML script version)*)
-fun possibility_tac state = gen_possibility_tac (simpset()) state
-
 (*For harder protocols (such as Recur) where we have to set up some
   nonces and keys initially*)
-fun basic_possibility_tac st = st |>
+fun basic_possibility_tac ctxt =
     REPEAT 
-    (ALLGOALS (asm_simp_tac (simpset() setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (local_simpset_of ctxt setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
 *}
@@ -426,8 +423,8 @@ ML
 val analz_image_freshK_lemma = thm "analz_image_freshK_lemma";
 
 val analz_image_freshK_ss = 
-     simpset() delsimps [image_insert, image_Un]
-	       delsimps [imp_disjL]    (*reduces blow-up*)
+     @{simpset} delsimps [image_insert, image_Un]
+	       delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
 	       addsimps thms "analz_image_freshK_simps"
 *}
 
@@ -450,11 +447,16 @@ method_setup analz_freshK = {*
 
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (gen_possibility_tac (Simplifier.get_local_simpset ctxt))) *}
+        Method.SIMPLE_METHOD (possibility_tac ctxt)) *}
+    "for proving possibility theorems"
+
+method_setup basic_possibility = {*
+    Method.ctxt_args (fn ctxt =>
+        Method.SIMPLE_METHOD (basic_possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
-by (induct e, auto simp: knows_Cons)
+by (induct e) (auto simp: knows_Cons)
 
 (*Needed for actual protocols that will follow*)
 declare shrK_disj_crdK[THEN not_sym, iff]
@@ -465,9 +467,5 @@ declare pairK_disj_pin[THEN not_sym, iff]
 declare crdK_disj_pin[THEN not_sym, iff]
 
 declare legalUse_def [iff] illegalUse_def [iff]
-
-
-
-
 
 end

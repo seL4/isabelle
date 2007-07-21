@@ -12,5 +12,3 @@ val banner = "ZF Set Theory (in FOL)";
 writeln banner;
 
 use_thy "Main_ZFC";
-
-Goal "True";  (*leave subgoal package empty*)

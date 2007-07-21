@@ -133,7 +133,7 @@ apply(interfree_aux)
 apply(simp_all add:mul_mutator_interfree)
 apply(simp_all add: mul_mutator_defs)
 apply(tactic {* TRYALL (interfree_aux_tac) *})
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 apply (simp_all add:nth_list_update)
 done
 
@@ -1135,7 +1135,7 @@ lemma Mul_interfree_Append_Redirect_Edge: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longr
   interfree_aux (Some(Mul_Append n),{}, Some(Mul_Redirect_Edge j n))"
 apply (unfold mul_modules)
 apply interfree_aux
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 apply(simp_all add:Graph6 Append_to_free0 Append_to_free1 mul_collector_defs mul_mutator_defs Mul_AppendInv_def)
 apply(erule_tac x=j in allE, force dest:Graph3)+
 done
@@ -1144,7 +1144,7 @@ lemma Mul_interfree_Redirect_Edge_Append: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longr
   interfree_aux (Some(Mul_Redirect_Edge j n),{},Some(Mul_Append n))"
 apply (unfold mul_modules)
 apply interfree_aux
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 apply(simp_all add:mul_collector_defs Append_to_free0 Mul_AppendInv_def  mul_mutator_defs nth_list_update)
 done
 
@@ -1152,7 +1152,7 @@ lemma Mul_interfree_Append_Color_Target: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longri
   interfree_aux (Some(Mul_Append n),{}, Some(Mul_Color_Target j n))"
 apply (unfold mul_modules)
 apply interfree_aux
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 apply(simp_all add:mul_mutator_defs mul_collector_defs Mul_AppendInv_def Graph7 Graph8 Append_to_free0 Append_to_free1 
               Graph12 nth_list_update)
 done
@@ -1161,7 +1161,7 @@ lemma Mul_interfree_Color_Target_Append: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longri
   interfree_aux (Some(Mul_Color_Target j n),{}, Some(Mul_Append n))"
 apply (unfold mul_modules)
 apply interfree_aux
-apply(tactic {* ALLGOALS Clarify_tac *})
+apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 apply(simp_all add: mul_mutator_defs nth_list_update)
 apply(simp add:Mul_AppendInv_def Append_to_free0)
 done
@@ -1190,7 +1190,7 @@ apply (clarify,simp add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Gra
 --{* 24 subgoals left *}
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 --{* 14 subgoals left *}
-apply(tactic {* TRYALL Clarify_tac *})
+apply(tactic {* TRYALL (clarify_tac @{claset}) *})
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 apply(tactic {* TRYALL (rtac conjI) *})
 apply(tactic {* TRYALL (rtac impI) *})

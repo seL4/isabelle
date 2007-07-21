@@ -130,15 +130,15 @@ local
   val bexE = thm "bexE"
 in
 
-  fun mk_ncanT_tac thy defs top_crls crls s = prove_goalw thy defs s
+  fun mk_ncanT_tac ctxt defs top_crls crls s = prove_goalw (ProofContext.theory_of ctxt) defs s
     (fn major::prems => [(resolve_tac ([major] RL top_crls) 1),
                          (REPEAT_SOME (eresolve_tac (crls @ [exE,bexE,conjE,disjE]))),
-                         (ALLGOALS (asm_simp_tac (simpset ()))),
+                         (ALLGOALS (asm_simp_tac (local_simpset_of ctxt))),
                          (ALLGOALS (ares_tac (prems RL [lemma]) ORELSE'
                                     etac bspec )),
-                         (safe_tac (claset () addSIs prems))])
+                         (safe_tac (local_claset_of ctxt addSIs prems))])
 
-  val ncanT_tac = mk_ncanT_tac (the_context ()) [] case_rls case_rls
+  val ncanT_tac = mk_ncanT_tac @{context} [] case_rls case_rls
 end
 *}
 
@@ -275,7 +275,7 @@ lemma zeroT: "zero : Nat"
 lemmas icanTs = zeroT succT nilT consT
 
 ML {*
-val incanT_tac = mk_ncanT_tac (the_context ()) [] (thms "icase_rls") (thms "case_rls");
+val incanT_tac = mk_ncanT_tac @{context} [] (thms "icase_rls") (thms "case_rls");
 
 bind_thm ("ncaseT", incanT_tac
   "[| n:Nat; n=zero ==> b:C(zero); !!x.[| x:Nat;  n=succ(x) |] ==> c(x):C(succ(x)) |] ==> ncase(n,b,c) : C(n)");
@@ -469,18 +469,18 @@ val EQgenIs = map (mk_genIs (the_context ()) (thms "data_defs") (thm "EQgenXH") 
    "[| <h,h'> : lfp(%x. EQgen(x) Un R Un EQ); <t,t'> : lfp(%x. EQgen(x) Un R Un EQ) |] ==> <h$t,h'$t'> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"];
 
 fun EQgen_raw_tac i =
-  (REPEAT (resolve_tac (EQgenIs @ [thm "EQ_refl" RS (thm "EQgen_mono" RS ci3_AI)] @
-    (EQgenIs RL [thm "EQgen_mono" RS ci3_AgenI]) @ [thm "EQgen_mono" RS ci3_RI]) i))
+  (REPEAT (resolve_tac (EQgenIs @ [@{thm EQ_refl} RS (@{thm EQgen_mono} RS ci3_AI)] @
+    (EQgenIs RL [@{thm EQgen_mono} RS ci3_AgenI]) @ [@{thm EQgen_mono} RS ci3_RI]) i))
 
 (* Goals of the form R <= EQgen(R) - rewrite elements <a,b> : EQgen(R) using rews and *)
 (* then reduce this to a goal <a',b'> : R (hopefully?)                                *)
 (*      rews are rewrite rules that would cause looping in the simpifier              *)
 
-fun EQgen_tac simp_set rews i =
+fun EQgen_tac ctxt rews i =
  SELECT_GOAL
-   (TRY (CLASET safe_tac) THEN
-    resolve_tac ((rews@[refl]) RL ((rews@[refl]) RL [thm "ssubst_pair"])) i THEN
-    ALLGOALS (simp_tac simp_set) THEN
+   (TRY (safe_tac (local_claset_of ctxt)) THEN
+    resolve_tac ((rews@[refl]) RL ((rews@[refl]) RL [@{thm ssubst_pair}])) i THEN
+    ALLGOALS (simp_tac (local_simpset_of ctxt)) THEN
     ALLGOALS EQgen_raw_tac) i
 *}
 

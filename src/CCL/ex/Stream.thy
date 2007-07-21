@@ -37,7 +37,7 @@ lemma map_comp:
    apply (blast intro: 1)
   apply safe
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac (simpset ()) [] 1")
+  apply (tactic "EQgen_tac @{context} [] 1")
    apply fastsimp
   done
 
@@ -51,7 +51,7 @@ lemma map_id:
   apply (blast intro: 1)
   apply safe
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac (simpset ()) [] 1")
+  apply (tactic "EQgen_tac @{context} [] 1")
   apply blast
   done
 
@@ -67,9 +67,9 @@ lemma map_append:
   apply (blast intro: prems)
   apply safe
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac (simpset ()) [] 1")
+  apply (tactic "EQgen_tac @{context} [] 1")
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac (simpset ()) [] 1")
+  apply (tactic "EQgen_tac @{context} [] 1")
   apply blast
   done
 
@@ -86,11 +86,11 @@ lemma append_assoc:
   apply (blast intro: prems)
   apply safe
   apply (drule ListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac (simpset ()) [] 1")
+  apply (tactic "EQgen_tac @{context} [] 1")
    prefer 2
    apply blast
   apply (tactic {* DEPTH_SOLVE (etac (XH_to_E (thm "ListsXH")) 1
-    THEN EQgen_tac (simpset ()) [] 1) *})
+    THEN EQgen_tac @{context} [] 1) *})
   done
 
 
@@ -104,7 +104,7 @@ lemma ilist_append:
   apply (blast intro: prems)
   apply safe
   apply (drule IListsXH [THEN iffD1])
-  apply (tactic "EQgen_tac (simpset ()) [] 1")
+  apply (tactic "EQgen_tac @{context} [] 1")
   apply blast
   done
 
@@ -136,7 +136,7 @@ lemma iter1_iter2_eq: "iter1(f,a) = iter2(f,a)"
   apply (tactic {* eq_coinduct3_tac
     "{p. EX x y. p=<x,y> & (EX n:Nat. x=iter1 (f,f^n`a) & y=map (f) ^n`iter2 (f,a))}" 1*})
   apply (fast intro!: napplyBzero [symmetric] napplyBzero [symmetric, THEN arg_cong])
-  apply (tactic {* EQgen_tac (simpset ()) [thm "iter1B", thm "iter2Blemma"] 1 *})
+  apply (tactic {* EQgen_tac @{context} [thm "iter1B", thm "iter2Blemma"] 1 *})
   apply (subst napply_f, assumption)
   apply (rule_tac f1 = f in napplyBsucc [THEN subst])
   apply blast

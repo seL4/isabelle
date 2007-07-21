@@ -758,22 +758,22 @@ val Outpts_B_Card_form_7 = thm "Outpts_B_Card_form_7"
 val Gets_imp_knows_Spy_parts_Snd = thm "Gets_imp_knows_Spy_parts_Snd"
 val Gets_imp_knows_Spy_analz_Snd = thm "Gets_imp_knows_Spy_analz_Snd"
 
-val prepare_tac = 
+fun prepare_tac ctxt = 
  (*SR_U8*)   forward_tac [Outpts_B_Card_form_7] 14 THEN
- (*SR_U8*)   Clarify_tac 15 THEN
+ (*SR_U8*)   clarify_tac (local_claset_of ctxt) 15 THEN
  (*SR_U9*)   forward_tac [Outpts_A_Card_form_4] 16 THEN 
  (*SR_U11*)  forward_tac [Outpts_A_Card_form_10] 21 
 
-val parts_prepare_tac = 
-           prepare_tac THEN
+fun parts_prepare_tac ctxt = 
+           prepare_tac ctxt THEN
  (*SR_U9*)   dresolve_tac [Gets_imp_knows_Spy_parts_Snd] 18 THEN 
  (*SR_U9*)   dresolve_tac [Gets_imp_knows_Spy_parts_Snd] 19 THEN 
  (*Oops1*) dresolve_tac [Outpts_B_Card_form_7] 25    THEN               
  (*Oops2*) dresolve_tac [Outpts_A_Card_form_10] 27 THEN                
- (*Base*)  Force_tac 1
+ (*Base*)  (force_tac (local_clasimpset_of ctxt)) 1
 
-val analz_prepare_tac = 
-         prepare_tac THEN
+fun analz_prepare_tac ctxt = 
+         prepare_tac ctxt THEN
          dtac (Gets_imp_knows_Spy_analz_Snd) 18 THEN 
  (*SR_U9*) dtac (Gets_imp_knows_Spy_analz_Snd) 19 THEN 
          REPEAT_FIRST (eresolve_tac [asm_rl, conjE] ORELSE' hyp_subst_tac)
@@ -781,15 +781,15 @@ val analz_prepare_tac =
 *}
 
 method_setup prepare = {*
-    Method.no_args (Method.SIMPLE_METHOD prepare_tac) *}
+    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (prepare_tac ctxt)) *}
   "to launch a few simple facts that'll help the simplifier"
 
 method_setup parts_prepare = {*
-    Method.no_args (Method.SIMPLE_METHOD parts_prepare_tac) *}
+    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (parts_prepare_tac ctxt)) *}
   "additional facts to reason about parts"
 
 method_setup analz_prepare = {*
-    Method.no_args (Method.SIMPLE_METHOD analz_prepare_tac) *}
+    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (analz_prepare_tac ctxt)) *}
   "additional facts to reason about analz"
 
 
