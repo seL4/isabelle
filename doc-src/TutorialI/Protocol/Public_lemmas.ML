@@ -125,7 +125,7 @@ by (ALLGOALS (asm_simp_tac
 			addsplits [expand_event_case])));
 by Safe_tac;
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
-by (ALLGOALS (blast_tac (claset() addSEs [add_leE])));
+by (ALLGOALS (blast_tac (claset() addSEs [@{thm add_leE}])));
 val lemma = result();
 
 Goal "EX N. Nonce N ~: used evs";

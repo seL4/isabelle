@@ -223,7 +223,7 @@ fun Reception_tac i =
 			       parts_trans,
                                Says_imp_knows_Spy RS analz.Inj,
                                impOfSubs analz_mono, analz_cut] 
-                        addIs [less_SucI]) i;
+                        addIs [@{thm less_SucI}]) i;
 
 
 (*Compatibility for the old "spies" function*)
