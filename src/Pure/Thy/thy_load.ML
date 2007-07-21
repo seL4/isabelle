@@ -66,6 +66,9 @@ val thy_path = Path.ext "thy" o Path.basic;
 
 (* check files *)
 
+fun search_path dir path =
+  distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
+
 fun check_ext exts dir src_path =
   let
     val path = Path.expand src_path;
@@ -75,11 +78,7 @@ fun check_ext exts dir src_path =
       let val ext_path = Path.expand (Path.ext ext rel_path)
       in Option.map (fn id => (File.full_path ext_path, id)) (File.ident ext_path) end;
     fun try_prfx prfx = get_first (try_ext (Path.append prfx path)) ("" :: exts);
-  in
-    (case get_first try_prfx (if Path.is_basic path then (! load_path) else [Path.current]) of
-      NONE => try_prfx dir
-    | res => res)
-  end;
+  in get_first try_prfx (search_path dir path) end;
 
 val check_file = check_ext [];
 val check_ml = check_ext ml_exts;
@@ -88,7 +87,7 @@ fun check_thy dir name ml =
   let val thy_file = thy_path name in
     (case check_file dir thy_file of
       NONE => error ("Could not find theory file " ^ quote (Path.implode thy_file) ^
-        " in " ^ commas_quote (map Path.implode (dir :: ! load_path)))  (* FIXME imprecise *)
+        " in " ^ commas_quote (map Path.implode (search_path dir thy_file)))
     | SOME thy_id => (thy_id, if ml then check_file dir (ml_path name) else NONE))
   end;
 
