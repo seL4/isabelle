@@ -50,7 +50,9 @@ $(LOG)/FOL-ex.gz: $(OUT)/FOL$(ML_SUFFIX) ex/First_Order_Logic.thy \
   ex/If.thy ex/IffOracle.thy ex/LocaleTest.thy \
   ex/Nat.thy ex/Natural_Numbers.thy ex/Miniscope.thy \
   ex/Prolog.thy ex/ROOT.ML ex/Classical.thy ex/document/root.tex \
-  ex/Foundation.thy ex/Intuitionistic.thy ex/Intro.thy ex/prop.ML ex/quant.ML
+  ex/Foundation.thy ex/Intuitionistic.thy ex/Intro.thy \
+  ex/Propositional_Int.thy ex/Propositional_Cla.thy \
+  ex/Quantifiers_Int.thy ex/Quantifiers_Cla.thy
 	@$(ISATOOL) usedir $(OUT)/FOL ex
 
 

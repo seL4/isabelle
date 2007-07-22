@@ -6,31 +6,27 @@
 Examples for First-Order Logic. 
 *)
 
-time_use_thy "First_Order_Logic";
-time_use_thy "Natural_Numbers";
-time_use_thy "Intro";
-time_use_thy "Nat";
-time_use_thy "Foundation";
-time_use_thy "Prolog";
+use_thys [
+  "First_Order_Logic",
+  "Natural_Numbers",
+  "Intro",
+  "Nat",
+  "Foundation",
+  "Prolog",
 
-time_use_thy "Intuitionistic";
+  "Intuitionistic",
+  "Propositional_Int",
+  "Quantifiers_Int",
 
-val thy = theory "IFOL"  and  tac = IntPr.fast_tac 1;
-time_use     "prop.ML";
-time_use     "quant.ML";
+  "Classical",
+  "Propositional_Cla",
+  "Quantifiers_Cla",
+  "Miniscope",
+  "If",
 
-writeln"\n** Classical examples **\n";
-time_use_thy "Miniscope";
-time_use_thy "Classical";
-time_use_thy "If";
-
-val thy = theory "FOL"  and  tac = Cla.fast_tac FOL_cs 1;
-time_use     "prop.ML";
-time_use     "quant.ML";
-
-time_use_thy "NatClass";
-
-time_use_thy "IffOracle";
+  "NatClass",
+  "IffOracle"
+];
 
 (*regression test for locales -- sets several global flags!*)
-time_use_thy "LocaleTest";
+no_document use_thy "LocaleTest";
