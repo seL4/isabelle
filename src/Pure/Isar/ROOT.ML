@@ -25,10 +25,10 @@ use "antiquote.ML";
 use "../Thy/ml_context.ML";
 use "../Thy/thy_header.ML";
 use "../Thy/thy_load.ML";
-use "../Thy/thy_info.ML";
 use "../Thy/html.ML";
 use "../Thy/latex.ML";
 use "../Thy/present.ML";
+use "../Thy/thy_info.ML";
 use "../Thy/thm_deps.ML";
 use "../Thy/thm_database.ML";
 
