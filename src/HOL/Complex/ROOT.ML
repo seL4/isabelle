@@ -5,9 +5,5 @@
 The Complex Numbers.
 *)
 
-no_document use_thy "Infinite_Set";
-no_document use_thy "Parity";
-
-with_path "../Real" use_thy "Float";
-with_path "../Hyperreal" use_thy "Hyperreal";
-use_thy "Complex_Main";
+no_document use_thys ["Infinite_Set", "Parity"];
+use_thys ["../Real/Float", "Complex_Main"];
