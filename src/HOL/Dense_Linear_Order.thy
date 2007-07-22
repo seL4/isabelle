@@ -146,7 +146,7 @@ lemma (in dense_linear_order) "\<forall>a b. (\<exists>x. a \<sqsubset> x \<and>
 lemma "\<forall>(a::'a::ordered_field) b. (\<exists>x. a < x \<and> x< b) \<longleftrightarrow> (a < b)"
   by dlo
 
-section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields -- see Arith_Tools.thy *}
+section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields -- see @{text "Arith_Tools.thy"} *}
 
 context Linorder
 begin
