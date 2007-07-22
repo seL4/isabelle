@@ -10,11 +10,143 @@ theory Dense_Linear_Order
 imports Finite_Set
 uses
   "Tools/Qelim/qelim.ML"
+  "Tools/Qelim/langford_data.ML"
   "Tools/Qelim/ferrante_rackoff_data.ML"
+  ("Tools/Qelim/langford.ML")
   ("Tools/Qelim/ferrante_rackoff.ML")
 begin
 
+
+setup Langford_Data.setup
 setup Ferrante_Rackoff_Data.setup
+
+section {* The classical QE after Langford for dense linear orders *}
+
+locale dense_linear_order = Linorder + 
+  assumes gt_ex: "\<forall>x. \<exists>y. x \<sqsubset> y" 
+  and lt_ex: "\<forall>x. \<exists>y. y \<sqsubset> x"
+  and dense: "\<forall>x y. x \<sqsubset> y \<longrightarrow> (\<exists>z. x \<sqsubset> z \<and> z \<sqsubset> y)"
+begin
+
+lemma dlo_qe_bnds: 
+  assumes ne: "L \<noteq> {}" and neU: "U \<noteq> {}" and fL: "finite L" and fU: "finite U"
+  shows "(\<exists>x. (\<forall>y \<in> L. y \<sqsubset> x) \<and> (\<forall>y \<in> U. x \<sqsubset> y)) \<equiv> (\<forall> l \<in> L. \<forall>u \<in> U. l \<sqsubset> u)"
+proof (simp only: atomize_eq, rule iffI)
+  assume H: "\<exists>x. (\<forall>y\<in>L. y \<^loc>< x) \<and> (\<forall>y\<in>U. x \<^loc>< y)"
+  then obtain x where xL: "\<forall>y\<in>L. y \<^loc>< x" and xU: "\<forall>y\<in>U. x \<^loc>< y" by blast
+  {fix l u assume l: "l \<in> L" and u: "u \<in> U"
+    from less_trans[OF xL[rule_format, OF l] xU[rule_format, OF u]]
+    have "l \<sqsubset> u" .}
+  thus "\<forall>l\<in>L. \<forall>u\<in>U. l \<^loc>< u" by blast
+next
+  assume H: "\<forall>l\<in>L. \<forall>u\<in>U. l \<^loc>< u"
+  let ?ML = "Max L"
+  let ?MU = "Min U"  
+  from fL ne have th1: "?ML \<in> L" and th1': "\<forall>l\<in>L. l \<sqsubseteq> ?ML" by auto
+  from fU neU have th2: "?MU \<in> U" and th2': "\<forall>u\<in>U. ?MU \<sqsubseteq> u" by auto
+  from th1 th2 H have "?ML \<sqsubset> ?MU" by auto
+  with dense obtain w where th3: "?ML \<sqsubset> w" and th4: "w \<sqsubset> ?MU" by blast
+  from th3 th1' have "\<forall>l \<in> L. l \<sqsubset> w" 
+    apply auto
+    apply (erule_tac x="l" in ballE)
+    by (auto intro: le_less_trans)
+
+  moreover from th4 th2' have "\<forall>u \<in> U. w \<sqsubset> u" 
+    apply auto
+    apply (erule_tac x="u" in ballE)
+    by (auto intro: less_le_trans)
+  ultimately show "\<exists>x. (\<forall>y\<in>L. y \<^loc>< x) \<and> (\<forall>y\<in>U. x \<^loc>< y)" by auto
+qed
+
+lemma dlo_qe_noub: 
+  assumes ne: "L \<noteq> {}" and fL: "finite L"
+  shows "(\<exists>x. (\<forall>y \<in> L. y \<sqsubset> x) \<and> (\<forall>y \<in> {}. x \<sqsubset> y)) \<equiv> True"
+proof(simp add: atomize_eq)
+  from gt_ex[rule_format, of "Max L"] obtain M where M: "Max L \<sqsubset> M" by blast
+  from ne fL have "\<forall>x \<in> L. x \<sqsubseteq> Max L" by simp
+  with M have "\<forall>x\<in>L. x \<sqsubset> M" by (auto intro: le_less_trans)
+  thus "\<exists>x. \<forall>y\<in>L. y \<^loc>< x" by blast
+qed
+
+lemma dlo_qe_nolb: 
+  assumes ne: "U \<noteq> {}" and fU: "finite U"
+  shows "(\<exists>x. (\<forall>y \<in> {}. y \<sqsubset> x) \<and> (\<forall>y \<in> U. x \<sqsubset> y)) \<equiv> True"
+proof(simp add: atomize_eq)
+  from lt_ex[rule_format, of "Min U"] obtain M where M: "M \<sqsubset> Min U" by blast
+  from ne fU have "\<forall>x \<in> U. Min U \<sqsubseteq> x" by simp
+  with M have "\<forall>x\<in>U. M \<sqsubset> x" by (auto intro: less_le_trans)
+  thus "\<exists>x. \<forall>y\<in>U. x \<^loc>< y" by blast
+qed
+
+lemma gather_simps: 
+  shows 
+  "(\<exists>x. (\<forall>y \<in> L. y \<sqsubset> x) \<and> (\<forall>y \<in> U. x \<sqsubset> y) \<and> x \<sqsubset> u \<and> P x) \<longleftrightarrow> (\<exists>x. (\<forall>y \<in> L. y \<sqsubset> x) \<and> (\<forall>y \<in> (insert u U). x \<sqsubset> y) \<and> P x)"
+  and "(\<exists>x. (\<forall>y \<in> L. y \<sqsubset> x) \<and> (\<forall>y \<in> U. x \<sqsubset> y) \<and> l \<sqsubset> x \<and> P x) \<longleftrightarrow> (\<exists>x. (\<forall>y \<in> (insert l L). y \<sqsubset> x) \<and> (\<forall>y \<in> U. x \<sqsubset> y) \<and> P x)"
+  "(\<exists>x. (\<forall>y \<in> L. y \<sqsubset> x) \<and> (\<forall>y \<in> U. x \<sqsubset> y) \<and> x \<sqsubset> u) \<longleftrightarrow> (\<exists>x. (\<forall>y \<in> L. y \<sqsubset> x) \<and> (\<forall>y \<in> (insert u U). x \<sqsubset> y))"
+  and "(\<exists>x. (\<forall>y \<in> L. y \<sqsubset> x) \<and> (\<forall>y \<in> U. x \<sqsubset> y) \<and> l \<sqsubset> x) \<longleftrightarrow> (\<exists>x. (\<forall>y \<in> (insert l L). y \<sqsubset> x) \<and> (\<forall>y \<in> U. x \<sqsubset> y))"  by auto
+
+lemma 
+  gather_start: "(\<exists>x. P x) \<equiv> (\<exists>x. (\<forall>y \<in> {}. y \<^loc>< x) \<and> (\<forall>y\<in> {}. x \<sqsubset> y) \<and> P x)" 
+  by simp
+
+lemma exists_neq: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t \<noteq> x" 
+  using gt_ex[rule_format, of t] by auto
+
+lemma less_not_permute: "\<not> (x \<sqsubset> y \<and> y \<sqsubset> x)" by (simp add: not_less linear)
+
+lemmas dlo_simps = order_refl less_irrefl not_less not_le exists_neq 
+  le_less neq_iff linear less_not_permute
+
+lemma axiom: "dense_linear_order (op \<sqsubseteq>) (op \<sqsubset>)" .
+lemma atoms: includes meta_term_syntax
+  shows "TERM (op \<sqsubset> :: 'a \<Rightarrow> _)" and "TERM (op \<sqsubseteq>)" and "TERM (op = :: 'a \<Rightarrow> _)" .
+
+declare axiom[langford qe: dlo_qe_bnds dlo_qe_nolb dlo_qe_noub gather: gather_start gather_simps atoms: atoms]
+declare dlo_simps[langfordsimp]
+end
+  (* FIXME: Move to HOL -- together with the conj_aci_rule in langford.ML *)
+
+lemma dnf:
+  "(P & (Q | R)) = ((P&Q) | (P&R))" 
+  "((Q | R) & P) = ((Q&P) | (R&P))"
+  by blast+
+
+lemmas weak_dnf_simps = simp_thms dnf
+
+
+lemma nnf_simps:
+    "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
+    "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not> \<not>(P)) = P"
+  by blast+
+
+lemma ex_distrib: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\<exists>x. P x) \<or> (\<exists>x. Q x))" by blast
+
+lemmas dnf_simps = weak_dnf_simps nnf_simps ex_distrib
+
+use "Tools/Qelim/langford.ML"
+
+method_setup dlo = {*
+  Method.ctxt_args (Method.SIMPLE_METHOD' o LangfordQE.dlo_tac)
+*} "Langford's algorithm for quantifier elimination in dense linear orders"
+
+interpretation dlo_ordring_class: dense_linear_order["op \<le> :: 'a::{ordered_field} \<Rightarrow> _" "op <"]
+apply unfold_locales
+apply auto
+apply (rule_tac x = "x + 1" in exI, simp)
+apply (rule_tac x = "x - 1" in exI, simp)
+apply (rule_tac x = "(x + y) / (1 + 1)" in exI)
+apply (rule conjI)
+apply (rule less_half_sum, simp)
+apply (rule gt_half_sum, simp)
+done
+
+lemma (in dense_linear_order) "\<forall>a b. (\<exists>x. a \<sqsubset> x \<and> x\<sqsubset> b) \<longleftrightarrow> (a \<sqsubset> b)"
+  by dlo
+
+lemma "\<forall>(a::'a::ordered_field) b. (\<exists>x. a < x \<and> x< b) \<longleftrightarrow> (a < b)"
+  by dlo
+
+section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields -- see Arith_Tools.thy *}
 
 context Linorder
 begin
@@ -291,10 +423,17 @@ qed
 
 end
 
-locale dense_linear_order = linorder_no_lb + linorder_no_ub +
+locale constr_dense_linear_order = linorder_no_lb + linorder_no_ub +
   fixes between
   assumes between_less: "\<forall>x y. x \<sqsubset> y \<longrightarrow> x \<sqsubset> between x y \<and> between x y \<sqsubset> y"
      and  between_same: "\<forall>x. between x x = x"
+
+interpretation constr_dense_linear_order < dense_linear_order
+  apply unfold_locales
+  using gt_ex lt_ex between_less
+    by (auto, rule_tac x="between x y" in exI, simp)
+
+context constr_dense_linear_order
 begin
 
 lemma rinf_U:
@@ -374,21 +513,21 @@ lemmas nmi_thms = nmi_conj nmi_disj nmi_eq nmi_neq nmi_lt nmi_le nmi_gt nmi_ge n
 lemmas npi_thms = npi_conj npi_disj npi_eq npi_neq npi_lt npi_le npi_gt npi_ge npi_P
 lemmas lin_dense_thms = lin_dense_conj lin_dense_disj lin_dense_eq lin_dense_neq lin_dense_lt lin_dense_le lin_dense_gt lin_dense_ge lin_dense_P
 
-lemma ferrack_axiom: "dense_linear_order less_eq less between" by fact
+lemma ferrack_axiom: "constr_dense_linear_order less_eq less between" by fact
 lemma atoms: includes meta_term_syntax
   shows "TERM (op \<sqsubset> :: 'a \<Rightarrow> _)" and "TERM (op \<sqsubseteq>)" and "TERM (op = :: 'a \<Rightarrow> _)" .
 
-declare ferrack_axiom [dlo minf: minf_thms pinf: pinf_thms
+declare ferrack_axiom [ferrack minf: minf_thms pinf: pinf_thms
     nmi: nmi_thms npi: npi_thms lindense:
     lin_dense_thms qe: fr_eq atoms: atoms]
 
 declaration {*
 let
+fun simps phi = map (Morphism.thm phi) [@{thm "not_less"}, @{thm "not_le"}]
 fun generic_whatis phi =
  let
   val [lt, le] = map (Morphism.term phi)
    (ProofContext.read_term_pats @{typ "dummy"} @{context} ["op \<sqsubset>", "op \<sqsubseteq>"]) (* FIXME avoid read? *)
-  val le = Morphism.term phi @{term "op \<sqsubseteq>"}
   fun h x t =
    case term_of t of
      Const("op =", _)$y$z => if term_of x aconv y then Ferrante_Rackoff_Data.Eq
@@ -406,7 +545,7 @@ fun generic_whatis phi =
              else Ferrante_Rackoff_Data.Nox
    | _ => Ferrante_Rackoff_Data.Nox
  in h end
- val ss = K (HOL_ss addsimps [@{thm "not_less"}, @{thm "not_le"}])
+ fun ss phi = HOL_ss addsimps (simps phi)
 in
  Ferrante_Rackoff_Data.funs  @{thm "ferrack_axiom"}
   {isolate_conv = K (K (K Thm.reflexive)), whatis = generic_whatis, simpset = ss}
@@ -415,9 +554,10 @@ end
 
 end
 
+
 use "Tools/Qelim/ferrante_rackoff.ML"
 
-method_setup dlo = {*
+method_setup ferrack = {*
   Method.ctxt_args (Method.SIMPLE_METHOD' o FerranteRackoff.dlo_tac)
 *} "Ferrante and Rackoff's algorithm for quantifier elimination in dense linear orders"
 
