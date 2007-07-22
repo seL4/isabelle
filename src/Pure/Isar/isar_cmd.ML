@@ -298,7 +298,7 @@ val skip_proof = local_skip_proof o global_skip_proof;
 (* init and exit *)
 
 fun begin_theory name imports uses =
-  ThyInfo.begin_theory Present.begin_theory name imports (map (apfst Path.explode) uses);
+  ThyInfo.begin_theory name imports (map (apfst Path.explode) uses);
 
 fun end_theory thy =
   if ThyInfo.check_known_thy (Context.theory_name thy) then ThyInfo.end_theory thy else thy;
