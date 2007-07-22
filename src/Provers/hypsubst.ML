@@ -28,7 +28,7 @@ Goal "P(a) --> (EX y. a=y --> P(f(a)))";
 
 Goal "!!x. [| Q(x,h1); P(a,h2); R(x,y,h3); R(y,z,h4); x=f(y); \
 \                 P(x,h5); P(y,h6); K(x,h7) |] ==> Q(x,c)";
-by (blast_hyp_subst_tac (ref true) 1);
+by (blast_hyp_subst_tac true 1);
 *)
 
 signature HYPSUBST_DATA =
@@ -49,7 +49,7 @@ signature HYPSUBST =
 sig
   val bound_hyp_subst_tac    : int -> tactic
   val hyp_subst_tac          : int -> tactic
-  val blast_hyp_subst_tac    : bool ref -> int -> tactic
+  val blast_hyp_subst_tac    : bool -> int -> tactic
   val stac                   : thm -> int -> tactic
   val hypsubst_setup         : theory -> theory
 end;
@@ -206,7 +206,7 @@ fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
           val hyps = List.take(hyps0, k) @ List.drop(hyps0, k+1)
           val n = length hyps
       in
-         if !trace then tracing "Substituting an equality" else ();
+         if trace then tracing "Substituting an equality" else ();
          DETERM
            (EVERY [REPEAT_DETERM_N k (etac Data.rev_mp i),
                    rotate_tac 1 i,

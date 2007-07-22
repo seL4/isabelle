@@ -48,7 +48,7 @@ signature BLAST_DATA =
   val ccontr            : thm
   val contr_tac         : int -> tactic
   val dup_intr          : thm -> thm
-  val hyp_subst_tac     : bool ref -> int -> tactic
+  val hyp_subst_tac     : bool -> int -> tactic
   val claset            : unit -> claset
   val rep_cs    : (* dependent on classical.ML *)
       claset -> {safeIs: thm list, safeEs: thm list,
@@ -1015,7 +1015,7 @@ fun prove (sign, start, cs, brs, cont) =
           in tracing sign brs0;
              if lim<0 then (traceMsg "Limit reached.  "; backtrack choices)
              else
-             prv (Data.hyp_subst_tac trace :: tacs,
+             prv (Data.hyp_subst_tac (!trace) :: tacs,
                   brs0::trs,  choices,
                   equalSubst sign
                     (G, {pairs = (br,haz)::pairs,
