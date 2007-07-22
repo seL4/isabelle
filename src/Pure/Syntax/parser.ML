@@ -58,7 +58,7 @@ val UnknownStart = EndToken;       (*productions for which no starting token is
 
 (* get all NTs that are connected with a list of NTs
    (used for expanding chain list)*)
-fun connected_with _ [] relatives = relatives
+fun connected_with _ ([]: nt_tag list) relatives = relatives
   | connected_with chains (root :: roots) relatives =
     let val branches = subtract (op =) relatives (these (AList.lookup (op =) chains root));
     in connected_with chains (branches @ roots) (branches @ relatives) end;
@@ -101,7 +101,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
             val tos = connected_with chains' [lhs] [lhs];
         in (copy_lookahead tos [],
-            (if member (op =) lambdas lhs then tos else []) union lambdas)
+            gen_union (op =) (if member (op =) lambdas lhs then tos else [], lambdas))
         end;
 
       (*test if new production can produce lambda
@@ -109,7 +109,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       val (new_lambda, lambdas') =
         if forall (fn (Nonterminal (id, _)) => member (op =) lambdas' id
                     | (Terminal _) => false) rhs then
-          (true, lambdas' union (connected_with chains' [lhs] [lhs]))
+          (true, gen_union (op =) (lambdas', connected_with chains' [lhs] [lhs]))
         else
           (false, lambdas');
 
@@ -155,10 +155,10 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                         val added_tks' = token_union (new_tks, added_tks);
 
-                        val nt_dependencies' = nts union nt_dependencies;
+                        val nt_dependencies' = gen_union (op =) (nts, nt_dependencies);
 
                         (*associate production with new starting tokens*)
-                        fun copy [] nt_prods = nt_prods
+                        fun copy ([]: token option list) nt_prods = nt_prods
                           | copy (tk :: tks) nt_prods =
                             let val old_prods = these (AList.lookup (op =) nt_prods tk);
 
@@ -278,7 +278,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           else (new_prod :: tk_prods, true);
 
                         val prods' = prods
-                                     |> is_new' ? AList.update (op =) (tk, tk_prods');
+                          |> is_new' ? AList.update (op =) (tk: token option, tk_prods');
                     in store tks prods' (is_new orelse is_new') end;
 
                 val (nt_prods', prod_count', changed) =
@@ -313,7 +313,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                   if key = SOME UnknownToken then tk_prods is used to hold
                   the productions not copied*)
                 fun update_prods [] result = result
-                  | update_prods ((p as (rhs, _, _)) :: ps)
+                  | update_prods ((p as (rhs, _: string, _: nt_tag)) :: ps)
                       (tk_prods, nt_prods) =
                     let
                       (*lookahead dependency for production*)
@@ -329,7 +329,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                    andalso member (op =) new_tks (the tk);
 
                       (*associate production with new starting tokens*)
-                      fun copy [] nt_prods = nt_prods
+                      fun copy ([]: token list) nt_prods = nt_prods
                         | copy (tk :: tks) nt_prods =
                           let
                             val tk_prods = (these o AList.lookup (op =) nt_prods) (SOME tk);
@@ -414,7 +414,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
         fun prod_of_chain from_ = ([Nonterminal (from_, ~1)], "", ~1);
 
         val nt_prods =
-          Library.foldl (op union) ([], map snd (snd (Array.sub (prods, tag)))) @
+          Library.foldl (gen_union op =) ([], map snd (snd (Array.sub (prods, tag)))) @
           map prod_of_chain ((these o AList.lookup (op =) chains) tag);
       in map (pretty_prod name) nt_prods end;
 
@@ -431,8 +431,8 @@ val empty_gram = Gram {nt_count = 0, prod_count = 0,
 
 (*Invert list of chain productions*)
 fun inverse_chains [] result = result
-  | inverse_chains ((root, branches) :: cs) result =
-    let fun add [] result = result
+  | inverse_chains ((root, branches: nt_tag list) :: cs) result =
+    let fun add ([]: nt_tag list) result = result
           | add (id :: ids) result =
             let val old = (these o AList.lookup (op =) result) id;
             in add ids (AList.update (op =) (id, root :: old) result) end;
@@ -563,7 +563,7 @@ fun merge_grams gram_a gram_b =
     fun process_nt ~1 result = result
       | process_nt nt result =
         let
-          val nt_prods = Library.foldl (op union)
+          val nt_prods = Library.foldl (gen_union op =)
                              ([], map snd (snd (Array.sub (prods2, nt))));
           val lhs_tag = convert_tag nt;
 
@@ -836,7 +836,7 @@ fun produce prods chains stateset i indata prev_token =
                       val chained = map (fn nt => (nt, minPrec))
                                         ((these o AList.lookup (op =) chains) nt);
                   in get_starts (chained @ nts)
-                                ((get nt_prods []) union result)
+                                (gen_union (op =) (get nt_prods [], result))
                   end;
 
               val nts =
