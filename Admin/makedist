@@ -124,6 +124,7 @@ fi
 $FIND . -name CVS -print | xargs rm -rf
 $FIND . -name .cvsignore -print | xargs rm -rf
 $FIND . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
+$FIND . -print | xargs chmod u+rw
 
 
 # build docs
