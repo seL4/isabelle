@@ -697,12 +697,10 @@ lemma sum_eq:"((x::'a::pordered_ab_group_add) + t = 0) == (x = - t)"
   using eq_diff_eq[where a= x and b=t and c=0] by simp
 
 
-interpretation class_ordered_field_dense_linear_order: dense_linear_order
+interpretation class_ordered_field_dense_linear_order: constr_dense_linear_order
  ["op <=" "op <"
    "\<lambda> x y. 1/2 * ((x::'a::{ordered_field,recpower,number_ring}) + y)"]
-proof (unfold_locales,
-  simp_all only: ordered_field_no_ub ordered_field_no_lb,
-    auto simp add: linorder_not_le)
+proof (unfold_locales, dlo, dlo, auto)
   fix x y::'a assume lt: "x < y"
   from  less_half_sum[OF lt] show "x < (x + y) /2" by simp
 next
