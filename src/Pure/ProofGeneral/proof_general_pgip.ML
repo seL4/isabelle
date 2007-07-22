@@ -357,7 +357,7 @@ fun proper_inform_file_processed path state =
     if Toplevel.is_toplevel state andalso ThyInfo.known_thy name then
      (ThyInfo.touch_child_thys name;
       ThyInfo.pretend_use_thy_only name handle ERROR msg =>
-       (warning msg; warning ("Failed to register theory: " ^ quote name);
+       (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
         tell_file_retracted true (Path.base path)))
     else raise Toplevel.UNDEF
   end;

@@ -165,17 +165,17 @@ val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
 val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
 
-fun proper_inform_file_processed file state =
+fun proper_inform_file_processed file () =
   let val name = thy_name file in
-    if Toplevel.is_toplevel state andalso ThyInfo.known_thy name then
+    if ThyInfo.known_thy name then
      (ThyInfo.touch_child_thys name;
       ThyInfo.pretend_use_thy_only name handle ERROR msg =>
-       (warning msg; warning ("Failed to register theory: " ^ quote name);
+       (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
         tell_file_retracted (Path.base (Path.explode file))))
     else raise Toplevel.UNDEF
   end;
 
-fun vacuous_inform_file_processed file state =
+fun vacuous_inform_file_processed file () =
  (warning ("No theory " ^ quote (thy_name file));
   tell_file_retracted (Path.base (Path.explode file)));
 
