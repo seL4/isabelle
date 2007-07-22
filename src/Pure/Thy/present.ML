@@ -20,12 +20,12 @@ sig
   val display_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> unit
   val init: bool -> bool -> string -> bool -> string list -> string list ->
-    string -> (bool * Path.T) option -> Url.T option * bool -> bool -> unit
+    string -> (bool * Path.T) option -> Url.T option * bool -> bool -> theory list -> unit
   val finish: unit -> unit
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
   val theory_output: string -> string -> unit
-  val begin_theory: Path.T -> string -> string list -> (Path.T * bool) list -> theory -> theory
+  val begin_theory: Path.T -> (Path.T * bool) list -> theory -> theory
   val add_hook: (string -> (string * thm list) list -> unit) -> unit
   val results: string -> (string * thm list) list -> unit
   val theorem: string -> thm -> unit
@@ -110,11 +110,14 @@ fun display_graph gr =
 
 
 fun ID_of sess s = space_implode "/" (sess @ [s]);
+fun ID_of_thy thy = ID_of (#session (get_info thy)) (Context.theory_name thy);
 
-(*retrieve graph data from initial theory loader database*)
-fun init_graph remote_path curr_sess = map (fn name =>
+
+(*retrieve graph data from initial collection of theories*)
+fun init_graph remote_path curr_sess = map (fn thy =>
   let
-    val {name = sess_name, session, is_local} = get_info (ThyInfo.theory name);
+    val name = Context.theory_name thy;
+    val {name = sess_name, session, is_local} = get_info thy;
     val path' = Path.append (Path.make session) (html_path name);
   in
    {name = name, ID = ID_of session name, dir = sess_name,
@@ -125,9 +128,8 @@ fun init_graph remote_path curr_sess = map (fn name =>
           (Path.append (Path.make session) (html_path name))))
       else Path.implode (Path.append (mk_rel_path curr_sess session) (html_path name)),
     unfold = false,
-    parents =
-      map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s) (ThyInfo.get_parents name)}
-  end) (ThyInfo.names ());
+    parents = map ID_of_thy (Theory.parents_of thy)}
+  end);
 
 fun ins_graph_entry (entry as {ID, ...}) (gr: graph_node list) =
   filter_out (fn entry' => #ID entry' = ID) gr @ [entry];
@@ -160,8 +162,8 @@ fun make_browser_info (theories, files, tex_index, html_index, graph) =
 
 val empty_browser_info = make_browser_info (Symtab.empty, [], Buffer.empty, Buffer.empty, []);
 
-fun init_browser_info remote_path curr_sess = make_browser_info
-  (Symtab.empty, [], Buffer.empty, Buffer.empty, init_graph remote_path curr_sess);
+fun init_browser_info remote_path curr_sess thys = make_browser_info
+  (Symtab.empty, [], Buffer.empty, Buffer.empty, init_graph remote_path curr_sess thys);
 
 fun map_browser_info f {theories, files, tex_index, html_index, graph} =
   make_browser_info (f (theories, files, tex_index, html_index, graph));
@@ -288,7 +290,7 @@ fun read_versions strs =
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
 fun init build info doc doc_graph doc_versions path name doc_prefix2
-    (remote_path, first_time) verbose =
+    (remote_path, first_time) verbose thys =
   if not build andalso not info andalso doc = "" andalso is_none doc_prefix2 then
     (browser_info := empty_browser_info; session_info := NONE)
   else
@@ -323,7 +325,7 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
     in
       session_info := SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
       info, doc, doc_graph, documents, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
-      browser_info := init_browser_info remote_path path;
+      browser_info := init_browser_info remote_path path thys;
       add_html_index index_text
     end;
 
@@ -441,20 +443,24 @@ fun theory_output name s =
   with_session () (fn _ => add_tex_source name (Latex.isabelle_file name s));
 
 
-fun parent_link remote_path curr_session name =
-  let val {name = _, session, is_local} = get_info (ThyInfo.theory name)
-  in (if null session then NONE else
-     SOME (if is_some remote_path andalso not is_local then
-       Url.append (the remote_path) (Url.File
-         (Path.append (Path.make session) (html_path name)))
-     else Url.File (Path.append (mk_rel_path curr_session session)
-       (html_path name))), name)
-  end;
+fun parent_link remote_path curr_session thy =
+  let
+    val {name = _, session, is_local} = get_info thy;
+    val name = Context.theory_name thy;
+    val link =
+      if null session then NONE
+      else SOME
+       (if is_some remote_path andalso not is_local then
+         Url.append (the remote_path) (Url.File (Path.append (Path.make session) (html_path name)))
+        else Url.File (Path.append (mk_rel_path curr_session session) (html_path name)));
+  in (link, name) end;
 
-fun begin_theory dir name raw_parents orig_files thy =
+fun begin_theory dir orig_files thy =
     with_session thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
   let
-    val parents = map (parent_link remote_path path) raw_parents;
+    val name = Context.theory_name thy;
+    val parents = Theory.parents_of thy;
+    val parent_specs = map (parent_link remote_path path) parents;
     val ml_path = ThyLoad.ml_path name;
     val files = map (apsnd SOME) orig_files @
       (if is_some (ThyLoad.check_file dir ml_path) then [(ml_path, NONE)] else []);
@@ -479,13 +485,13 @@ fun begin_theory dir name raw_parents orig_files thy =
     fun prep_html_source (tex_source, html_source, html) =
       let
         val txt = HTML.begin_theory (Url.File index_path, session)
-          name parents files_html (Buffer.content html_source)
+          name parent_specs files_html (Buffer.content html_source)
       in (tex_source, Buffer.empty, Buffer.add txt html) end;
 
     val entry =
      {name = name, ID = ID_of path name, dir = sess_name, unfold = true,
       path = Path.implode (html_path name),
-      parents = map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s) raw_parents};
+      parents = map ID_of_thy parents};
 
   in
     change_theory_info name prep_html_source;
