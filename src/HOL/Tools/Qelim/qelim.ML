@@ -1,17 +1,16 @@
 (*  Title:      HOL/Tools/Qelim/qelim.ML
     ID:         $Id$
-    Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
+    Author:     Amine Chaieb, TU Muenchen
 
-Proof protocolling and proof generation for multiple quantified formulae.
+Generic quantifier elimination conversions for HOL formulae.
 *)
 
 signature QELIM =
 sig
- val gen_qelim_conv: conv -> conv -> conv ->
-   (cterm -> 'a -> 'a) -> 'a -> ('a -> cterm -> thm) ->
-   ('a -> conv) -> ('a -> cterm -> thm) -> conv
- val standard_qelim_conv: (cterm list -> cterm -> thm) ->
-   (cterm list -> conv) -> (cterm list -> cterm -> thm) -> cterm -> thm
+ val gen_qelim_conv: conv -> conv -> conv -> (cterm -> 'a -> 'a) -> 'a 
+                     -> ('a -> conv) -> ('a -> conv) -> ('a -> conv) -> conv
+ val standard_qelim_conv: (cterm list -> conv) -> (cterm list -> conv) 
+                          -> (cterm list -> conv) -> conv
 end;
 
 structure Qelim: QELIM =
@@ -19,18 +18,17 @@ struct
 
 open Conv;
 
-
-(* gen_qelim_conv *)
-
 val all_not_ex = mk_meta_eq @{thm "all_not_ex"};
 
 fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
  let
   fun conv env p =
    case (term_of p) of
-    Const(s,T)$_$_ => if domain_type T = HOLogic.boolT
-                         andalso s mem ["op &","op |","op -->","op ="]
-                     then binop_conv (conv env) p else atcv env p
+    Const(s,T)$_$_ => 
+       if domain_type T = HOLogic.boolT
+          andalso s mem ["op &","op |","op -->","op ="]
+       then binop_conv (conv env) p 
+       else atcv env p
   | Const("Not",_)$_ => arg_conv (conv env) p
   | Const("Ex",_)$Abs(s,_,_) =>
     let
@@ -54,14 +52,15 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
   | _ => atcv env p
  in precv then_conv (conv env) then_conv postcv end
 
+(* Instantiation of some parameter for most common cases *)
 
-(* standard_qelim_conv *)
-
+local
 val pcv = Simplifier.rewrite
                  (HOL_basic_ss addsimps (simp_thms @ ex_simps @ all_simps)
                      @ [@{thm "all_not_ex"}, not_all, ex_disj_distrib]);
 
-fun standard_qelim_conv atcv ncv qcv p =
-  gen_qelim_conv pcv pcv pcv cons (Thm.add_cterm_frees p []) atcv ncv qcv p;
+in fun standard_qelim_conv atcv ncv qcv p =
+      gen_qelim_conv pcv pcv pcv cons (Thm.add_cterm_frees p []) atcv ncv qcv p
+end;
 
 end;
