@@ -56,7 +56,7 @@ sig
   val no_timing: transition -> transition
   val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit) ->
     transition -> transition
-  val init_empty: (state -> unit) -> transition -> transition
+  val init_empty: (unit -> unit) -> transition -> transition
   val exit: transition -> transition
   val undo_exit: transition -> transition
   val kill: transition -> transition
@@ -387,7 +387,7 @@ end;
 datatype trans =
   Init of (bool -> theory) * ((theory -> unit) * (theory -> unit)) |
                                                     (*init node; with exit/kill operation*)
-  InitEmpty of state -> unit |                      (*init empty toplevel*)
+  InitEmpty of unit -> unit |                       (*init empty toplevel*)
   Exit |                                            (*conclude node -- deferred until init*)
   UndoExit |                                        (*continue after conclusion*)
   Kill |                                            (*abort node*)
@@ -410,8 +410,8 @@ fun keep_state int f = controlled_execution (fn x => tap (f int) x);
 fun apply_tr int _ (Init (f, term)) (state as Toplevel _) =
       let val node = Theory (Context.Theory (f int), NONE)
       in safe_exit state; State (History.init (undo_limit int) node, term) end
-  | apply_tr int _ (InitEmpty f) state =
-      (keep_state int (K f) state; safe_exit state; toplevel)
+  | apply_tr int _ (InitEmpty f) (state as Toplevel _) =
+      (safe_exit state; keep_state int (fn _ => fn _ => f ()) toplevel)
   | apply_tr _ _ Exit (State (node, term)) =
       (the_global_theory (History.current node); Toplevel (SOME (node, term)))
   | apply_tr _ _ UndoExit (Toplevel (SOME state_info)) = State state_info
