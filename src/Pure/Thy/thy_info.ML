@@ -38,9 +38,7 @@ sig
   val load_file: bool -> Path.T -> unit
   val use: string -> unit
   val pretend_use_thy_only: string -> unit
-  val begin_theory: (Path.T -> string -> string list ->
-    (Path.T * bool) list -> theory -> theory) ->
-    string -> string list -> (Path.T * bool) list -> bool -> theory
+  val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> theory
   val finish: unit -> unit
   val register_theory: theory -> unit
@@ -210,8 +208,6 @@ fun get_theory name =
 fun the_theory name thy =
   if Context.theory_name thy = name then thy
   else get_theory name;
-
-fun put_theory name theory = change_thy name (fn (deps, _) => (deps, SOME theory));
 
 val _ = ML_Context.value_antiq "theory"
   (Scan.lift Args.name
@@ -438,7 +434,7 @@ fun check_uses name uses =
     | SOME (path, _) => error ("Illegal use of theory ML file: " ^ quote (Path.implode path)))
   end;
 
-fun begin_theory present name parents uses int =
+fun begin_theory name parents uses int =
   let
     val parent_names = map base_name parents;
     val dir = master_dir'' (lookup_deps name);
@@ -448,26 +444,27 @@ fun begin_theory present name parents uses int =
     val _ = ML_Context.set_context (SOME (Context.Theory (get_theory (List.last parent_names))));
     val _ = check_uses name uses;
 
-    val theory = Theory.begin_theory name (map get_theory parent_names);
+    val theory =
+      Theory.begin_theory name (map get_theory parent_names)
+      |> Present.begin_theory dir uses;
+
     val deps =
       if known_thy name then get_deps name
       else init_deps NONE parents (map #1 uses);
-    val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
+    val _ = change_thys (update_node name parent_names (deps, NONE));
 
-    val _ = change_thys (update_node name parent_names (deps, SOME (Theory.copy theory)));
-    val theory' = theory |> present dir name parent_names uses;
-    val _ = put_theory name (Theory.copy theory');
-    val ((), theory'') =
-      ML_Context.pass_context (Context.Theory theory') (List.app (load_file false)) uses_now
+    val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
+    val ((), theory') =
+      ML_Context.pass_context (Context.Theory theory) (List.app (load_file false)) uses_now
       ||> Context.the_theory;
-    val _ = put_theory name (Theory.copy theory'');
-  in theory'' end;
+  in theory' end;
 
 fun end_theory theory =
   let
     val name = Context.theory_name theory;
     val theory' = Theory.end_theory theory;
-  in put_theory name theory'; theory' end;
+    val _ = change_thy name (fn (deps, _) => (deps, SOME theory'));
+  in theory' end;
 
 
 (* finish all theories *)
