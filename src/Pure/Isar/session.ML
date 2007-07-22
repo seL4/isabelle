@@ -84,7 +84,7 @@ fun use_dir root build modes reset info doc doc_graph doc_versions
     (Library.setmp Proofterm.proofs level (fn () =>
       (init reset parent name;
        Present.init build info doc doc_graph doc_versions (path ()) name
-         (dumping dump) (get_rpath rpath) verbose;
+         (dumping dump) (get_rpath rpath) verbose (map ThyInfo.theory (ThyInfo.names ()));
        ThyInfo.time_use root;
        finish ()))) ()
   handle exn => (Output.error_msg (Toplevel.exn_message exn); exit 1);
