@@ -6,24 +6,26 @@
 Inductive definitions.
 *)
 
+use_thys [
 (** Datatypes **)
-time_use_thy "Datatypes";       (*sample datatypes*)
-time_use_thy "Binary_Trees";    (*binary trees*)
-time_use_thy "Term";            (*recursion over the list functor*)
-time_use_thy "Ntree";           (*variable-branching trees; function demo*)
-time_use_thy "Tree_Forest";     (*mutual recursion*)
-time_use_thy "Brouwer";         (*Infinite-branching trees*)
-time_use_thy "Mutil";           (*mutilated chess board*)
+  "Datatypes",       (*sample datatypes*)
+  "Binary_Trees",    (*binary trees*)
+  "Term",            (*recursion over the list functor*)
+  "Ntree",           (*variable-branching trees; function demo*)
+  "Tree_Forest",     (*mutual recursion*)
+  "Brouwer",         (*Infinite-branching trees*)
+  "Mutil",           (*mutilated chess board*)
 
 (*by Sidi Ehmety: Multisets.  A parent is FoldSet, the "fold" function for
 finite sets*)
-time_use_thy "Multiset";
-time_use_thy "Rmap";            (*mapping a relation over a list*)
-time_use_thy "PropLog";         (*completeness of propositional logic*)
+  "Multiset",
+  "Rmap",            (*mapping a relation over a list*)
+  "PropLog",         (*completeness of propositional logic*)
 
 (*two Coq examples by Christine Paulin-Mohring*)
-time_use_thy "ListN";
-time_use_thy "Acc";
+  "ListN",
+  "Acc",
 
-time_use_thy "Comb";            (*Combinatory Logic example*)
-time_use_thy "Primrec";         (*Primitive recursive functions*)
+  "Comb",            (*Combinatory Logic example*)
+  "Primrec"          (*Primitive recursive functions*)
+];

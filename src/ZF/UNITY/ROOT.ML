@@ -1,21 +1,18 @@
-(*  Title:      ZF/UNITY/ROOT
+(*  Title:      ZF/UNITY/ROOT.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Root file for ZF/UNITY proofs.
+ZF/UNITY proofs.
 *)
 
-add_path "../Induct";  (*for Multisets*)
+use_thys [
+  (*Simple examples: no composition*)
+  "Mutex",
 
-(*Simple examples: no composition*)
-time_use_thy"Mutex";
+  (*Basic meta-theory*)
+  "Guar",
 
-(*Basic meta-theory*)
-time_use_thy "Guar";
-
-(* Prefix relation; the Allocator example *)
-time_use_thy "Distributor";
-time_use_thy "Merge";
-time_use_thy "ClientImpl";
-time_use_thy "AllocImpl";
+  (*Prefix relation; the Allocator example*)
+  "Distributor", "Merge", "ClientImpl", "AllocImpl"
+];
