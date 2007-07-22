@@ -144,6 +144,6 @@ end;
 (* theory setup *)
 
 val setup =
-  Attrib.add_attributes [("dlo", att_syntax, "Ferrante Rackoff data")];
+  Attrib.add_attributes [("ferrack", att_syntax, "Ferrante Rackoff data")];
 
 end;
