@@ -5,6 +5,9 @@
 Compatibility file for ML systems without multithreading.
 *)
 
-(* critical section *)
+(*default number of worker threads*)
+val multithreading = ref (NONE: int option);
 
+(*critical section*)
+fun self_critical () = false;
 fun CRITICAL e = e ();
