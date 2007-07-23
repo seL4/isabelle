@@ -146,7 +146,7 @@ fun eval_antiquote lex node (str, pos) =
       | expand (Antiquote.Antiq x) =
           let val (opts, src) = Antiquote.scan_arguments lex antiq x in
             options opts (fn () => command src node) ();  (*preview errors!*)
-            Library.setmp print_mode (! modes @ Latex.modes @ ! print_mode)
+            PrintMode.with_modes (! modes @ Latex.modes)
               (Output.no_warnings (options opts (fn () => command src node))) ()
           end;
     val ants = Antiquote.scan_antiquotes (str, pos);
@@ -413,7 +413,7 @@ val _ = add_options
   ("display", Library.setmp display o boolean),
   ("break", Library.setmp break o boolean),
   ("quotes", Library.setmp quotes o boolean),
-  ("mode", fn s => fn f => fn () => Library.setmp print_mode (s :: ! print_mode) f ()),
+  ("mode", fn s => fn f => PrintMode.with_modes [s] f),
   ("margin", Pretty.setmp_margin o integer),
   ("indent", Library.setmp indent o integer),
   ("source", Library.setmp source o boolean),

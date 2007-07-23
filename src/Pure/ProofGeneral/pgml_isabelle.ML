@@ -16,7 +16,7 @@ struct
 (** print mode **)
 
 val pgmlN = "PGML";
-fun pgml_mode f x = setmp print_mode (pgmlN :: ! print_mode) f x;
+fun pgml_mode f x = PrintMode.with_modes [pgmlN] f x;
 
 val _ = Markup.add_mode pgmlN (fn markup as (name, _) => ("", ""));
 
