@@ -57,7 +57,7 @@ val str_of_action = fn Update => "Update" | Outdate => "Outdate" | Remove => "Re
 local
   val hooks = ref ([]: (action -> string -> unit) list);
 in
-  fun add_hook f = hooks := f :: ! hooks;
+  fun add_hook f = CRITICAL (fn () => change hooks (cons f));
   fun perform action name = List.app (fn f => (try (fn () => f action name) (); ())) (! hooks);
 end;
 
@@ -122,7 +122,7 @@ local
   val database = ref (Graph.empty: thy Graph.T);
 in
   fun get_thys () = ! database;
-  val change_thys = Library.change database;
+  fun change_thys f = CRITICAL (fn () => Library.change database f);
 end;
 
 
@@ -150,7 +150,8 @@ fun get_thy name =
     SOME thy => thy
   | NONE => error (loader_msg "nothing known about theory" [name]));
 
-fun change_thy name f = (get_thy name; change_thys (Graph.map_node name f));
+fun change_thy name f = CRITICAL (fn () =>
+  (get_thy name; change_thys (Graph.map_node name f)));
 
 
 (* access deps *)
@@ -229,8 +230,9 @@ fun is_outdated name =
 
 fun outdate_thy name =
   if is_finished name orelse is_outdated name then ()
-  else (change_deps name (Option.map (fn {outdated = _, master, parents, files} =>
-    make_deps true master parents files)); perform Outdate name);
+  else CRITICAL (fn () =>
+   (change_deps name (Option.map (fn {outdated = _, master, parents, files} =>
+    make_deps true master parents files)); perform Outdate name));
 
 fun check_unfinished name =
   if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); NONE)
@@ -317,9 +319,10 @@ fun load_thy really ml time initiators dir name =
     if null missing_files then ()
     else warning (loader_msg "unresolved dependencies of theory" [name] ^
       " on file(s): " ^ commas_quote missing_files);
-    change_deps name
-      (Option.map (fn {parents, ...} => make_deps false (SOME master) parents files));
-    perform Update name
+    CRITICAL (fn () =>
+     (change_deps name
+        (Option.map (fn {parents, ...} => make_deps false (SOME master) parents files));
+      perform Update name))
   end;
 
 
@@ -420,8 +423,7 @@ fun remove_thy name =
   else
     let val succs = thy_graph Graph.all_succs [name] in
       priority (loader_msg "removing" succs);
-      List.app (perform Remove) succs;
-      change_thys (Graph.del_nodes succs)
+      CRITICAL (fn () => (List.app (perform Remove) succs; change_thys (Graph.del_nodes succs)))
     end;
 
 
@@ -496,7 +498,7 @@ fun register_theory theory =
   in
     if not (null nonfinished) then err "non-finished parent theories" nonfinished
     else if not (null variants) then err "different versions of parent theories" variants
-    else (change_thys register; perform Update name)
+    else CRITICAL (fn () => (change_thys register; perform Update name))
   end;
 
 val _ = register_theory ProtoPure.thy;

@@ -221,7 +221,7 @@ in
 
 fun time_accumulator name =
   let val ti = time_init name in
-    change time_finish_hooks (cons (fn () => time_finish ti));
+    CRITICAL (fn () => change time_finish_hooks (cons (fn () => time_finish ti)));
     time_add ti
   end;
 

@@ -68,10 +68,11 @@ fun pass_context context f x =
     (y, SOME context') => (y, context')
   | (_, NONE) => error "Lost context in ML");
 
-fun save f x = setmp (get_context ()) f x;
+fun save f x = CRITICAL (fn () => setmp (get_context ()) f x);
 
-fun change_theory f =
-  set_context (SOME (Context.map_theory f (the_generic_context ())));
+fun change_theory f = CRITICAL (fn () =>
+  set_context (SOME (Context.map_theory f (the_generic_context ()))));
+
 
 
 (** ML antiquotations **)
@@ -80,8 +81,8 @@ fun change_theory f =
 
 val global_lexicon = ref Scan.empty_lexicon;
 
-fun add_keywords keywords =
-  change global_lexicon (Scan.extend_lexicon (map Symbol.explode keywords));
+fun add_keywords keywords = CRITICAL (fn () =>
+  change global_lexicon (Scan.extend_lexicon (map Symbol.explode keywords)));
 
 
 (* maintain commands *)
@@ -92,10 +93,11 @@ val global_parsers = ref (Symtab.empty:
 
 local
 
-fun add_item kind name scan = change global_parsers (fn tab =>
- (if not (Symtab.defined tab name) then ()
-  else warning ("Redefined ML antiquotation: " ^ quote name);
-  Symtab.update (name, scan >> kind) tab));
+fun add_item kind name scan = CRITICAL (fn () =>
+  change global_parsers (fn tab =>
+   (if not (Symtab.defined tab name) then ()
+    else warning ("Redefined ML antiquotation: " ^ quote name);
+    Symtab.update (name, scan >> kind) tab)));
 
 in
 
@@ -115,8 +117,7 @@ fun command src =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_parsers) name of
       NONE => error ("Unknown ML antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | SOME scan => transform_failure (curry Antiquote.ANTIQUOTE_FAIL (name, pos))
-        (fn () => syntax scan src) ())
+    | SOME scan => syntax scan src)
   end;
 
 
@@ -137,7 +138,7 @@ local
 val isabelle_struct = enclose "structure Isabelle =\nstruct\n" "end;";
 val isabelle_struct0 = isabelle_struct "";
 
-fun eval_antiquotes txt =
+fun eval_antiquotes txt = CRITICAL (fn () =>
   let
     val ants = Antiquote.scan_antiquotes (txt, Position.line 1);
 
@@ -158,7 +159,7 @@ fun eval_antiquotes txt =
     val (decls, body) =
       fold_map expand ants ML_Syntax.reserved
       |> #1 |> split_list |> pairself implode;
-  in (isabelle_struct decls, body) end;
+  in (isabelle_struct decls, body) end);
 
 fun eval name verbose txt =
   Output.ML_errors (use_text name Output.ml_output verbose) txt;

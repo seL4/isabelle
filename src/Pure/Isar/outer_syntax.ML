@@ -108,17 +108,17 @@ val global_parsers =
     Symtab.table);
 val global_markups = ref ([]: (string * ThyOutput.markup) list);
 
-fun change_lexicons f =
+fun change_lexicons f = CRITICAL (fn () =>
   let val lexs = f (! global_lexicons) in
     (case (op inter_string) (pairself Scan.dest_lexicon lexs) of
       [] => global_lexicons := lexs
     | bads => error ("Clash of outer syntax commands and keywords: " ^ commas_quote bads))
-  end;
+  end);
 
-fun make_markups () = global_markups :=
-  Symtab.fold (fn (name, (_, SOME m)) => cons (name, m) | _ => I) (! global_parsers) [];
-
-fun change_parsers f = (Library.change global_parsers f; make_markups ());
+fun change_parsers f = CRITICAL (fn () =>
+ (change global_parsers f;
+  global_markups :=
+    Symtab.fold (fn (name, (_, SOME m)) => cons (name, m) | _ => I) (! global_parsers) []));
 
 in
 
@@ -149,10 +149,10 @@ fun add_parser (Parser (name, (comment, kind, markup), int_only, parse)) tab =
   else warning ("Redefined outer syntax command " ^ quote name);
   Symtab.update (name, (((comment, kind), (int_only, parse)), markup)) tab);
 
-fun add_parsers parsers =
+fun add_parsers parsers = CRITICAL (fn () =>
   (change_parsers (fold add_parser parsers);
     change_lexicons (apsnd (Scan.extend_lexicon
-      (map (fn Parser (name, _, _, _) => Symbol.explode name) parsers))));
+      (map (fn Parser (name, _, _, _) => Symbol.explode name) parsers)))));
 
 end;
 
