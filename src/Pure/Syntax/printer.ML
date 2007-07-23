@@ -58,15 +58,11 @@ fun pp_show_brackets pp = Pretty.pp (setmp show_brackets true (Pretty.term pp),
 
 (* apply print (ast) translation function *)
 
-fun apply_trans ctxt name a fns args =
+fun apply_trans ctxt fns args =
   let
     fun app_first [] = raise Match
       | app_first (f :: fs) = f ctxt args handle Match => app_first fs;
-  in
-    transform_failure (fn Match => Match
-      | exn => EXCEPTION (exn, "Error in " ^ name ^ " for " ^ quote a))
-      app_first fns
-  end;
+  in app_first fns end;
 
 fun apply_typed x y fs = map (fn f => fn ctxt => f ctxt x y) fs;
 
@@ -99,7 +95,7 @@ fun ast_of_termT ctxt trf tm =
           | (f, args) => Ast.Appl (map ast_of (f :: args)))
       | ast_of t = simple_ast_of t
     and trans a args =
-      ast_of (apply_trans ctxt "print translation" a (apply_typed false dummyT (trf a)) args)
+      ast_of (apply_trans ctxt (apply_typed false dummyT (trf a)) args)
         handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
   in ast_of tm end;
 
@@ -160,7 +156,7 @@ fun ast_of_term ctxt trf show_all_types no_freeTs show_types show_sorts tm =
       | (t, ts) => Ast.mk_appl (simple_ast_of t) (map ast_of ts))
 
     and trans a T args =
-      ast_of (apply_trans ctxt "print translation" a (apply_typed show_sorts T (trf a)) args)
+      ast_of (apply_trans ctxt (apply_typed show_sorts T (trf a)) args)
         handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
     and constrain t T =
@@ -270,8 +266,6 @@ fun const_markup c = Pretty.markup (Markup.const c) o single;
 
 fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
   let
-    val trans = apply_trans ctxt "print ast translation";
-
     fun token_trans c [Ast.Variable x] =
           (case tokentrf c of
             NONE => NONE
@@ -359,7 +353,7 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
         (case token_trans a args of     (*try token translation function*)
           SOME s => [Pretty.raw_str s]
         | NONE =>                       (*try print translation functions*)
-            astT (trans a (trf a) args, p) handle Match => prnt ([], tabs))
+            astT (apply_trans ctxt (trf a) args, p) handle Match => prnt ([], tabs))
       end
 
     and astT (c as Ast.Constant a, p) = combT (c, a, [], p)

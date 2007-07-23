@@ -69,7 +69,6 @@ sig
   val done_text: text
   val sorry_text: bool -> text
   val finish_text: text option * bool -> Position.T -> text
-  exception METHOD_FAIL of (string * Position.T) * exn
   val method: theory -> src -> Proof.context -> method
   val method_i: theory -> src -> Proof.context -> method
   val add_methods: (bstring * (src -> Proof.context -> method) * string) list
@@ -406,8 +405,6 @@ fun print_methods thy =
 
 (* get methods *)
 
-exception METHOD_FAIL of (string * Position.T) * exn;
-
 fun method_i thy =
   let
     val meths = #2 (MethodsData.get thy);
@@ -415,7 +412,7 @@ fun method_i thy =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup meths name of
           NONE => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
-        | SOME ((mth, _), _) => transform_failure (curry METHOD_FAIL (name, pos)) (mth src))
+        | SOME ((mth, _), _) => mth src)
       end;
   in meth end;
 

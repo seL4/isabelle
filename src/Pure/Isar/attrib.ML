@@ -14,7 +14,6 @@ signature ATTRIB =
 sig
   include BASIC_ATTRIB
   type src
-  exception ATTRIB_FAIL of (string * Position.T) * exn
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
@@ -87,8 +86,6 @@ fun pretty_attribs _ [] = []
 
 (* get attributes *)
 
-exception ATTRIB_FAIL of (string * Position.T) * exn;
-
 fun attribute_i thy =
   let
     val attrs = #2 (AttributesData.get thy);
@@ -96,7 +93,7 @@ fun attribute_i thy =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup attrs name of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | SOME ((att, _), _) => transform_failure (curry ATTRIB_FAIL (name, pos)) (att src))
+        | SOME ((att, _), _) => att src)
       end;
   in attr end;
 

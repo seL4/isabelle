@@ -485,9 +485,7 @@ fun pts_to_asts ctxt trf pts =
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
-      | SOME f => transform_failure (fn exn =>
-            EXCEPTION (exn, "Error in parse ast translation for " ^ quote a))
-          (fn () => f ctxt args) ());
+      | SOME f => f ctxt args);
 
     (*translate pt bottom-up*)
     fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
@@ -507,9 +505,7 @@ fun asts_to_terms ctxt trf asts =
     fun trans a args =
       (case trf a of
         NONE => Term.list_comb (Lexicon.const a, args)
-      | SOME f => transform_failure (fn exn =>
-            EXCEPTION (exn, "Error in parse translation for " ^ quote a))
-          (fn () => f ctxt args) ());
+      | SOME f => f ctxt args);
 
     fun term_of (Ast.Constant a) = trans a []
       | term_of (Ast.Variable x) = Lexicon.read_var x

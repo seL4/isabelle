@@ -34,8 +34,6 @@ sig
 
   (*exceptions*)
   exception EXCEPTION of exn * string
-  val do_transform_failure: bool ref
-  val transform_failure: (exn -> exn) -> ('a -> 'b) -> 'a -> 'b
   datatype 'a result = Result of 'a | Exn of exn
   val capture: ('a -> 'b) -> 'a -> 'b result
   val release: 'a result -> 'a
@@ -272,13 +270,6 @@ fun funpow 0 _ x = x
 
 
 (* exceptions *)
-
-val do_transform_failure = ref true;
-
-fun transform_failure exn f x =
-  if ! do_transform_failure then
-    f x handle Interrupt => raise Interrupt | e => raise exn e
-  else f x;
 
 exception EXCEPTION of exn * string;
 
