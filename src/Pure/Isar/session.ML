@@ -80,8 +80,8 @@ fun dumping (_, "") = NONE
 
 fun use_dir root build modes reset info doc doc_graph doc_versions
     parent name dump rpath level verbose =
-  Library.setmp print_mode (modes @ ! print_mode)
-    (Library.setmp Proofterm.proofs level (fn () =>
+  setmp_noncritical print_mode (modes @ ! print_mode)
+    (setmp_noncritical Proofterm.proofs level (fn () =>
       (init reset parent name;
        Present.init build info doc doc_graph doc_versions (path ()) name
          (dumping dump) (get_rpath rpath) verbose (map ThyInfo.theory (ThyInfo.names ()));
