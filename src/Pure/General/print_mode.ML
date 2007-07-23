@@ -6,10 +6,17 @@ Generic print mode -- implicit configuration for various output
 mechanisms.
 *)
 
-signature PRINT_MODE =
+signature BASIC_PRINT_MODE =
 sig
   val print_mode: string list ref
   val print_mode_active: string -> bool
+end;
+
+signature PRINT_MODE =
+sig
+  include BASIC_PRINT_MODE
+  val with_modes: string list -> ('a -> 'b) -> 'a -> 'b
+  val with_default: ('a -> 'b) -> 'a -> 'b
 end;
 
 structure PrintMode: PRINT_MODE =
@@ -18,6 +25,12 @@ struct
 val print_mode = ref ([]: string list);
 fun print_mode_active s = member (op =) (! print_mode) s;
 
+fun with_modes modes f x = CRITICAL (fn () =>
+  setmp print_mode (modes @ ! print_mode) f x);
+
+fun with_default f x = setmp print_mode [] f x;
+
 end;
 
-open PrintMode;
+structure BasicPrintMode: BASIC_PRINT_MODE = PrintMode;
+open BasicPrintMode;
