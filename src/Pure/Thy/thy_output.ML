@@ -63,14 +63,14 @@ fun add_item kind (name, x) tab =
 
 in
 
-val add_commands = Library.change global_commands o fold (add_item "command");
-val add_options = Library.change global_options o fold (add_item "option");
+fun add_commands xs = CRITICAL (fn () => change global_commands (fold (add_item "command") xs));
+fun add_options xs = CRITICAL (fn () => change global_options (fold (add_item "option") xs));
 
 fun command src =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_commands) name of
       NONE => error ("Unknown text antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | SOME f => transform_failure (curry Antiquote.ANTIQUOTE_FAIL (name, pos)) (f src))
+    | SOME f => f src)
   end;
 
 fun option (name, s) f () =
