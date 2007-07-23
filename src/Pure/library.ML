@@ -74,6 +74,7 @@ sig
   val reset: bool ref -> bool
   val toggle: bool ref -> bool
   val change: 'a ref -> ('a -> 'a) -> unit
+  val setmp_noncritical: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
@@ -366,13 +367,15 @@ fun toggle flag = (flag := not (! flag); ! flag);
 fun change r f = r := f (! r);
 
 (*temporarily set flag during execution*)
-fun setmp flag value f x =
+fun setmp_noncritical flag value f x =
   let
     val orig_value = ! flag;
     val _ = flag := value;
     val result = capture f x;
     val _ = flag := orig_value;
   in release result end;
+
+fun setmp flag value f x = CRITICAL (fn () => setmp_noncritical flag value f x);
 
 
 
