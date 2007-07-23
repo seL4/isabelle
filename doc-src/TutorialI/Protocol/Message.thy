@@ -602,7 +602,7 @@ inductive_set
   | MPair  [intro]:
               "\<lbrakk>X \<in> synth H;  Y \<in> synth H\<rbrakk> \<Longrightarrow> \<lbrace>X,Y\<rbrace> \<in> synth H"
   | Crypt  [intro]:
-              "\<lbrakk>X \<in> synth H;  Key(K) \<in> H\<rbrakk> \<Longrightarrow> Crypt K X \<in> synth H"
+              "\<lbrakk>X \<in> synth H;  Key K \<in> H\<rbrakk> \<Longrightarrow> Crypt K X \<in> synth H"
 (*<*)
 lemma synth_mono: "G\<subseteq>H ==> synth(G) \<subseteq> synth(H)"
   by (auto, erule synth.induct, auto)  
