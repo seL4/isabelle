@@ -691,7 +691,6 @@ fun movedot_lambda _ [] = []
       else movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts;
 
 
-val warned = ref false;                            (*flag for warning message*)
 val branching_level = ref 600;                   (*trigger value for warnings*)
 
 (*get all productions of a NT and NTs chained to it which can
@@ -714,7 +713,7 @@ let
 in get_prods (connected_with chains nts nts) [] end;
 
 
-fun PROCESSS prods chains Estate i c states =
+fun PROCESSS warned prods chains Estate i c states =
 let
 fun all_prods_for nt = prods_for prods chains true c [nt];
 
@@ -800,7 +799,7 @@ fun syntax_error toks allowed =
     error (Pretty.string_of (Pretty.blk (0, [msg, Pretty.fbrk, expected])))
   end;
 
-fun produce prods chains stateset i indata prev_token =
+fun produce warned prods chains stateset i indata prev_token =
                                       (*prev_token is used for error messages*)
   (case Array.sub (stateset, i) of
     [] => let fun some_prods_for tk nt = prods_for prods chains false tk [nt];
@@ -855,10 +854,10 @@ fun produce prods chains stateset i indata prev_token =
     (case indata of
        [] => Array.sub (stateset, i)
      | c :: cs =>
-       let val (si, sii) = PROCESSS prods chains stateset i c s;
+       let val (si, sii) = PROCESSS warned prods chains stateset i c s;
        in Array.update (stateset, i, si);
           Array.update (stateset, i + 1, sii);
-          produce prods chains stateset (i + 1) cs c
+          produce warned prods chains stateset (i + 1) cs c
        end));
 
 
@@ -877,8 +876,7 @@ fun earley prods tags chains startsymbol indata =
     val Estate = Array.array (s, []);
   in
     Array.update (Estate, 0, S0);
-    warned := false;
-    get_trees (produce prods chains Estate 0 indata EndToken)
+    get_trees (produce (ref false) prods chains Estate 0 indata EndToken)
   end;
 
 
