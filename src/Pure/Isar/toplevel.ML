@@ -261,11 +261,6 @@ fun exn_msg _ TERMINATE = "Exit."
   | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg false (THEORY (msg, _)) = msg
   | exn_msg true (THEORY (msg, thys)) = raised "THEORY" (msg :: map Context.str_of_thy thys)
-  | exn_msg detailed (MetaSimplifier.SIMPROC_FAIL (name, exn)) =
-      fail_msg detailed "simproc" ((name, Position.none), exn)
-  | exn_msg detailed (Attrib.ATTRIB_FAIL info) = fail_msg detailed "attribute" info
-  | exn_msg detailed (Method.METHOD_FAIL info) = fail_msg detailed "method" info
-  | exn_msg detailed (Antiquote.ANTIQUOTE_FAIL info) = fail_msg detailed "antiquotation" info
   | exn_msg false (Syntax.AST (msg, _)) = raised "AST" [msg]
   | exn_msg true (Syntax.AST (msg, asts)) =
       raised "AST" (msg :: map (Pretty.string_of o Syntax.pretty_ast) asts)
@@ -283,9 +278,7 @@ fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ Empty = raised "Empty" []
   | exn_msg _ Subscript = raised "Subscript" []
   | exn_msg _ (Fail msg) = raised "Fail" [msg]
-  | exn_msg _ exn = General.exnMessage exn
-and fail_msg detailed kind ((name, pos), exn) =
-  "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_msg detailed exn;
+  | exn_msg _ exn = General.exnMessage exn;
 
 in
 
@@ -302,9 +295,7 @@ end;
 local
 
 fun debugging f x =
-  if ! debug then
-    setmp Library.do_transform_failure false
-      exception_trace (fn () => f x)
+  if ! debug then exception_trace (fn () => f x)
   else f x;
 
 fun interruptible f x =
@@ -721,13 +712,13 @@ fun exn () = snd (! global_state);
 
 nonfix >> >>>;
 
-fun >> tr =
+fun >> tr = CRITICAL (fn () =>
   (case apply true tr (get_state ()) of
     NONE => false
   | SOME (state', exn_info) =>
       (global_state := (state', exn_info);
         print_exn exn_info;
-        true));
+        true)));
 
 fun >>> [] = ()
   | >>> (tr :: trs) = if >> tr then >>> trs else ();
