@@ -28,7 +28,7 @@ sig
    {rules: rrule Net.net,
     prems: thm list,
     bounds: int * ((string * typ) * string) list,
-    depth: int * bool ref option,
+    depth: int * bool ref,
     context: Proof.context option} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
@@ -95,7 +95,6 @@ sig
   exception SIMPLIFIER of string * thm
   val solver: simpset -> solver -> int -> tactic
   val clear_ss: simpset -> simpset
-  exception SIMPROC_FAIL of string * exn
   val simproc_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
@@ -192,7 +191,7 @@ datatype simpset =
    {rules: rrule Net.net,
     prems: thm list,
     bounds: int * ((string * typ) * string) list,
-    depth: int * bool ref option,
+    depth: int * bool ref,
     context: Proof.context option} *
    {congs: (string * cong) list * string list,
     procs: proc Net.net,
@@ -259,17 +258,14 @@ val simp_depth_limit = ref 100;
 val trace_simp_depth_limit = ref 1;
 
 fun trace_depth (Simpset ({depth = (depth, exceeded), ...}, _)) msg =
-  if depth > !trace_simp_depth_limit then
-    (case exceeded of
-      NONE => ()
-    | SOME r => if !r then () else (tracing "trace_simp_depth_limit exceeded!"; r := true))
+  if depth > ! trace_simp_depth_limit then
+    if ! exceeded then () else (tracing "trace_simp_depth_limit exceeded!"; exceeded := true)
   else
-    (tracing (enclose "[" "]" (string_of_int depth) ^ msg);
-      (case exceeded of SOME r => r := false | _ => ()));
+    (tracing (enclose "[" "]" (string_of_int depth) ^ msg); exceeded := false);
 
 val inc_simp_depth = map_simpset1 (fn (rules, prems, bounds, (depth, exceeded), context) =>
   (rules, prems, bounds,
-    (depth + 1, if depth = !trace_simp_depth_limit then SOME (ref false) else exceeded), context));
+    (depth + 1, if depth = ! trace_simp_depth_limit then ref false else exceeded), context));
 
 fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
@@ -622,8 +618,6 @@ end;
 
 (* simprocs *)
 
-exception SIMPROC_FAIL of string * exn;
-
 datatype simproc =
   Simproc of
     {name: string,
@@ -774,7 +768,7 @@ fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, termless,
 (* empty *)
 
 fun init_ss mk_rews termless subgoal_tac solvers =
-  make_simpset ((Net.empty, [], (0, []), (0, NONE), NONE),
+  make_simpset ((Net.empty, [], (0, []), (0, ref false), NONE),
     (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
 
 fun clear_ss (ss as Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...})) =
@@ -954,8 +948,7 @@ fun rewritec (prover, thyt, maxt) ss t =
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
           if Pattern.matches thyt (Thm.term_of lhs, Thm.term_of t) then
             (debug_term false (fn () => "Trying procedure " ^ quote name ^ " on:") ss thyt eta_t;
-             case transform_failure (curry SIMPROC_FAIL name)
-                 (fn () => proc ss eta_t') () of
+             case proc ss eta_t' of
                NONE => (debug false (fn () => "FAILED") ss; proc_rews ps)
              | SOME raw_thm =>
                  (trace_thm (fn () => "Procedure " ^ quote name ^ " produced rewrite rule:")
