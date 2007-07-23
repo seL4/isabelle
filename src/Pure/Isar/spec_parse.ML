@@ -24,7 +24,7 @@ sig
   val locale_mixfix: token list -> mixfix * token list
   val locale_fixes: token list -> (string * string option * mixfix) list * token list
   val locale_insts: token list ->
-    (string option list * (string * string) list) * token list
+    (string option list * string list) * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_expr_unless: (token list -> 'a * token list) ->
     token list -> Locale.expr * token list
@@ -88,7 +88,7 @@ val locale_fixes =
 
 val locale_insts =
   Scan.optional (P.$$$ "[" |-- P.!!! (Scan.repeat1 (P.maybe P.term) --| P.$$$ "]")) []
-  -- Scan.optional (P.$$$ "where" |-- P.and_list1 (P.term -- (P.$$$ "=" |-- P.!!! P.term))) [];
+  -- Scan.optional (P.$$$ "where" |-- P.and_list1 P.term) [];
 
 local
 

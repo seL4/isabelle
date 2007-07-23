@@ -637,7 +637,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
         val def' = symmetric def
         val tac = (ALLGOALS o ProofContext.fact_tac) [def'];
         val name_locale = (#locale o the_class_data thy) class;
-        val def_eq = (Logic.dest_equals o Thm.prop_of) def';
+        val def_eq = Thm.prop_of def';
         val (params, consts) = split_list (param_map thy [class]);
       in
         prove_interpretation tac ((false, prfx), []) (Locale.Locale name_locale)
