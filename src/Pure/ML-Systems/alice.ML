@@ -13,6 +13,9 @@ $ env ALICE_JIT_MODE=0 alice
 - Session.finish ();
 *)
 
+use "ML-Systems/no_multithreading.ML";
+
+
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
   | exit _ = OS.Process.exit OS.Process.failure;
 

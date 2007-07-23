@@ -4,6 +4,9 @@
 Compatibility file for Poly/ML (version 4.1.x and 4.2.0).
 *)
 
+use "ML-Systems/no_multithreading.ML";
+
+
 (** ML system and platform related **)
 
 (* String compatibility *)

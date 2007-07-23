@@ -29,6 +29,9 @@ load "Process";
 load "FileSys";
 load "IO";
 
+use "ML-Systems/no_multithreading.ML";
+
+
 (*low-level pointer equality*)
 local val cast : 'a -> int = Obj.magic
 in fun pointer_eq (x:'a, y:'a) = (cast x = cast y) end;

@@ -4,6 +4,8 @@
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)
 
+use "ML-Systems/no_multithreading.ML";
+
 
 (** ML system related **)
 

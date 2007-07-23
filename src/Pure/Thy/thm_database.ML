@@ -51,14 +51,15 @@ val use_text_verbose = use_text "" Output.ml_output true;
 fun ml_store_thm (name, thm) =
   let val thm' = store_thm (name, thm) in
     if warn_ml name then ()
-    else (qed_thms := [thm'];
-      use_text_verbose ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);"))
+    else CRITICAL (fn () => (qed_thms := [thm'];
+      use_text_verbose ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);")))
   end;
 
 fun ml_store_thms (name, thms) =
   let val thms' = store_thms (name, thms) in
     if warn_ml name then ()
-    else (qed_thms := thms'; use_text_verbose ("val " ^ name ^ " = ! ThmDatabase.qed_thms;"))
+    else CRITICAL (fn () => (qed_thms := thms';
+      use_text_verbose ("val " ^ name ^ " = ! ThmDatabase.qed_thms;")))
   end;
 
 
