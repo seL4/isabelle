@@ -304,11 +304,11 @@ fun all_thms_of thy = maps thms_of (thy :: Theory.ancestors_of thy);
 
 (* hiding -- affects current theory node only *)
 
-fun hide_thms fully names thy =
+fun hide_thms fully names thy = CRITICAL (fn () =>
   let
     val r as ref {theorems = (space, thms), index} = get_theorems_ref thy;
     val space' = fold (NameSpace.hide fully) names space;
-  in r := {theorems = (space', thms), index = index}; thy end;
+  in r := {theorems = (space', thms), index = index}; thy end);
 
 
 (* fact specifications *)
@@ -343,7 +343,7 @@ fun warn_overwrite name = warning ("Replaced old copy of theorems " ^ quote name
 fun warn_same name = warning ("Theorem database already contains a copy of " ^ quote name);
 
 fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
-  | enter_thms pre_name post_name app_att (bname, thms) thy =
+  | enter_thms pre_name post_name app_att (bname, thms) thy = CRITICAL (fn () =>
       let
         val name = Sign.full_name thy bname;
         val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
@@ -359,7 +359,7 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
             else warn_overwrite name);
         r := {theorems = (space', theorems'), index = index'};
         (thms', thy')
-      end;
+      end);
 
 
 (* add_thms(s) *)
