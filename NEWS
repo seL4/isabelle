@@ -364,6 +364,18 @@ unfold predicates to assumptions.
 has changed.  This enables to override declarations from fragments due
 to interpretations -- for example, unwanted simp rules.
 
+* Isar/locales: interpretation in theories and proof contexts has been
+extended.  One may now specify (and prove) equations, which are
+unfolded in interpreted theorems.  This is useful for replacing
+defined concepts (constants depending on locale parameters) by
+concepts already existing in the target context.  Example:
+
+  interpretation partial_order ["op <= :: [int, int] => bool"]
+    where "partial_order.less (op <=) (x::int) y = (x < y)"
+
+Typically, the constant `partial_order.less' is created by the
+specification element definition in the context of locale partial_order.
+
 * Provers/induct: improved internal context management to support
 local fixes and defines on-the-fly.  Thus explicit meta-level
 connectives !! and ==> are rarely required anymore in inductive goals

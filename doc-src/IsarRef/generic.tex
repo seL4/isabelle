@@ -341,41 +341,48 @@ contexts ($\isarcmd{interpret}$).
 \railterm{printinterps}
 
 \begin{rail}
-  'interpretation' (interp | name ('<' | subseteq) contextexp)
+  'interpretation' (interp | name ('<' | subseteq) contextexpr)
   ;
   'interpret' interp
   ;
   printinterps '!'? name
   ;
-  interp: thmdecl? contextexpr ('[' (inst+) ']')?
+  interp: thmdecl? \\ (contextexpr ('[' (inst+) ']')? |
+    name ('[' (inst+) ']')? 'where' (prop + 'and'))
   ;
 \end{rail}
 
 
 \begin{descr}
 
-\item [$\isarcmd{interpretation}~expr~insts$]
+\item [$\isarcmd{interpretation}~expr~insts~\isarkeyword{where}~eqns$]
 
-  The first form of $\isarcmd{interpretation}$ interprets $expr$
-  in the theory.  The instantiation is given as a list of
-  terms $insts$ and is positional.
-  All parameters must receive an instantiation term --- with the
-  exception of defined parameters.  These are, if omitted, derived
-  from the defining equation and other instantiations.  Use ``\_'' to
-  omit an instantiation term.  Free variables are automatically
-  generalized.
+  The first form of $\isarcmd{interpretation}$ interprets $expr$ in
+  the theory.  The instantiation is given as a list of terms $insts$
+  and is positional.  All parameters must receive an instantiation
+  term --- with the exception of defined parameters.  These are, if
+  omitted, derived from the defining equation and other
+  instantiations.  Use ``\_'' to omit an instantiation term.  Free
+  variables are automatically generalized.
 
   The command generates proof obligations for the instantiated
   specifications (assumes and defines elements).  Once these are
   discharged by the user, instantiated facts are added to the theory in
   a post-processing phase.
 
+  Additional equations, which are unfolded in facts during
+  post-processing, may be given after the keyword
+  $\isarkeyword{where}$.  This is useful for interpreting concepts
+  introduced through definition specification elements.  The equations
+  must be proved.  Note that if equations are present, the context
+  expression is restricted to a locale name.
+
   The command is aware of interpretations already active in the
   theory.  No proof obligations are generated for those, neither is
   post-processing applied to their facts.  This avoids duplication of
   interpreted facts, in particular.  Note that, in the case of a
   locale with import, parts of the interpretation may already be
-  active.  The command will only generate proof obligations and add
+  active.  The command will only generate proof obligations and process
   facts for new parts.
 
   The context expression may be preceded by a name and/or attributes.
@@ -420,7 +427,7 @@ contexts ($\isarcmd{interpret}$).
   prefix and attributes, although only for fragments of $expr$ that
   are not interpreted in the theory already.
 
-\item [$\isarcmd{interpret}~expr~insts$]
+\item [$\isarcmd{interpret}~expr~insts~\isarkeyword{where}~eqns$]
   interprets $expr$ in the proof context and is otherwise similar to
   interpretation in theories.  Free variables in instantiations are not
   generalized, however.
