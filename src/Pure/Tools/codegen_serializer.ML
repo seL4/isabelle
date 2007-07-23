@@ -53,7 +53,7 @@ infixr 5 @@;
 infixr 5 @|;
 fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
-val str = setmp print_mode [] Pretty.str;
+val str = PrintMode.with_default Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
 val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
 fun semicolon ps = Pretty.block [concat ps, str ";"];

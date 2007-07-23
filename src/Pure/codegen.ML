@@ -879,7 +879,7 @@ fun output_code gr module xs =
   end;
 
 fun gen_generate_code prep_term thy modules module =
-  setmp print_mode [] (Pretty.setmp_margin (!margin) (fn xs =>
+  PrintMode.with_default (Pretty.setmp_margin (!margin) (fn xs =>
   let
     val _ = (module <> "" orelse
         member (op =) (!mode) "library" andalso forall (equal "" o fst) xs)
@@ -973,7 +973,7 @@ fun test_term thy sz i t =
       map (fn i => "arg" ^ string_of_int i) (1 upto length frees);
     val (code, gr) = setmp mode ["term_of", "test"]
       (generate_code_i thy [] "Generated") [("testf", list_abs_free (frees, t))];
-    val s = setmp print_mode [] (fn () => "structure TestTerm =\nstruct\n\n" ^
+    val s = PrintMode.with_default (fn () => "structure TestTerm =\nstruct\n\n" ^
       space_implode "\n" (map snd code) ^
       "\nopen Generated;\n\n" ^ Pretty.string_of
         (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
@@ -1032,7 +1032,7 @@ fun test_goal ({size, iterations, default_type}, tvinsts) i st =
 
 val eval_result = ref (Bound 0);
 
-fun eval_term thy = setmp print_mode [] (fn t =>
+fun eval_term thy = PrintMode.with_default (fn t =>
   let
     val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
       error "Term to be evaluated contains type variables";
@@ -1078,7 +1078,7 @@ val _ = Context.add_setup
 
 (**** Interface ****)
 
-val str = setmp print_mode [] Pretty.str;
+val str = PrintMode.with_default Pretty.str;
 
 fun parse_mixfix rd s =
   (case Scan.finite Symbol.stopper (Scan.repeat
