@@ -36,7 +36,7 @@ val init_data = CompressData.init;
 
 (* compress types *)
 
-fun typ thy =
+fun compress_typ thy =
   let
     val typs = #1 (CompressData.get thy);
     fun compress T =
@@ -47,10 +47,12 @@ fun typ thy =
           in change typs (Typtab.update (T', T')); T' end);
   in compress end;
 
+fun typ ty = CRITICAL (fn () => compress_typ ty);
+
 
 (* compress atomic terms *)
 
-fun term thy =
+fun compress_term thy =
   let
     val terms = #2 (CompressData.get thy);
     fun compress (t $ u) = compress t $ compress u
@@ -59,6 +61,8 @@ fun term thy =
           (case Termtab.lookup (! terms) t of
             SOME t' => t'
           | NONE => (change terms (Termtab.update (t, t)); t));
-  in compress o map_types (typ thy) end;
+  in compress o map_types (compress_typ thy) end;
+
+fun term tm = CRITICAL (fn () => compress_term tm);
 
 end;

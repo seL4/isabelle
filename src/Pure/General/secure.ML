@@ -39,12 +39,16 @@ fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 val orig_use_text = use_text;
 val orig_use_file = use_file;
 
-fun use_text name pr verbose txt = (secure_mltext (); orig_use_text name pr verbose txt);
-fun use_file pr verbose name = (secure_mltext (); orig_use_file pr verbose name);
-val use = use_file Output.ml_output true;
+fun use_text name pr verbose txt = CRITICAL (fn () =>
+  (secure_mltext (); orig_use_text name pr verbose txt));
+
+fun use_file pr verbose name = CRITICAL (fn () =>
+  (secure_mltext (); orig_use_file pr verbose name));
+
+fun use name = CRITICAL (fn () => use_file Output.ml_output true name);
 
 (*commit is dynamically bound!*)
-fun commit () = orig_use_text "" Output.ml_output false "commit();";
+fun commit () = CRITICAL (fn () => orig_use_text "" Output.ml_output false "commit();");
 
 
 (* shell commands *)
@@ -54,8 +58,8 @@ fun secure_shell () = deny_secure "Cannot execute shell commands in secure mode"
 val orig_execute = execute;
 val orig_system = system;
 
-fun execute s = (secure_shell (); orig_execute s);
-fun system s = (secure_shell (); orig_system s);
+fun execute s = CRITICAL (fn () => (secure_shell (); orig_execute s));
+fun system s = CRITICAL (fn () => (secure_shell (); orig_system s));
 
 end;
 

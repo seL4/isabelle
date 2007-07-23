@@ -996,9 +996,9 @@ local
   val random_seed = ref 1.0;
 in
 
-fun random () =
-  let val r = rmod (a * !random_seed) m
-  in (random_seed := r; r) end;
+fun random () = CRITICAL (fn () =>
+  let val r = rmod (a * ! random_seed) m
+  in (random_seed := r; r) end);
 
 end;
 
@@ -1062,7 +1062,7 @@ fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)
 val gensym_seed = ref 0;
 
 in
-  fun gensym pre = pre ^ newid (inc gensym_seed);
+  fun gensym pre = pre ^ newid (CRITICAL (fn () => inc gensym_seed));
 end;
 
 
@@ -1073,7 +1073,7 @@ val stamp: unit -> stamp = ref;
 
 type serial = int;
 local val count = ref 0
-in fun serial () = inc count end;
+in fun serial () = CRITICAL (fn () => inc count) end;
 
 val serial_string = string_of_int o serial;
 

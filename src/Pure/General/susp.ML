@@ -28,17 +28,19 @@ fun value v = ref (Value v);
 
 fun delay f = ref (Delay f);
 
-fun force (ref (Value v)) = v
-  | force (r as ref (Delay f)) =
+fun force susp = CRITICAL (fn () =>
+  (case ! susp of
+    Value v => v
+  | Delay f =>
       let
-        val v = f ()
-      in
-        r := Value v;
-        v
-      end;
+        val v = f ();
+        val _ = susp := Value v;
+      in v end));
 
-fun peek (ref (Value v)) = SOME v
-  | peek (ref (Delay _)) = NONE;
+fun peek susp =
+  (case ! susp of
+    Value v => SOME v
+  | Delay _ => NONE);
 
 fun same (r1 : 'a T, r2) = (r1 = r2); (*equality on references*)
 

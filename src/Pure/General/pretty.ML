@@ -90,8 +90,8 @@ local
   val default = {indent = default_indent};
   val modes = ref (Symtab.make [("", default)]);
 in
-  fun add_mode name indent =
-    change modes (Symtab.update_new (name, {indent = indent}));
+  fun add_mode name indent = CRITICAL (fn () =>
+    change modes (Symtab.update_new (name, {indent = indent})));
   fun get_mode () =
     the_default default (Library.get_first (Symtab.lookup (! modes)) (! print_mode));
 end;

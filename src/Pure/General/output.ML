@@ -68,8 +68,8 @@ local
   val default = {output = default_output, escape = default_escape};
   val modes = ref (Symtab.make [("", default)]);
 in
-  fun add_mode name output escape =
-    change modes (Symtab.update_new (name, {output = output, escape = escape}));
+  fun add_mode name output escape = CRITICAL (fn () =>
+    change modes (Symtab.update_new (name, {output = output, escape = escape})));
   fun get_mode () =
     the_default default (Library.get_first (Symtab.lookup (! modes)) (! print_mode));
 end;
@@ -86,8 +86,11 @@ val escape_malformed = escape o translate_string output;
 
 (* output primitives -- normally NOT used directly!*)
 
-fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
-fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
+fun std_output s = CRITICAL (fn () =>
+  (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut));
+
+fun std_error s = CRITICAL (fn () =>
+  (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr));
 
 val immediate_output = std_output o output;
 val writeln_default = std_output o suffix "\n";

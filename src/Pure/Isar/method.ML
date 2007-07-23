@@ -343,11 +343,11 @@ end;
 val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic);
 fun set_tactic f = tactic_ref := f;
 
-fun ml_tactic txt ctxt facts =
+fun ml_tactic txt ctxt = CRITICAL (fn () =>
   (ML_Context.use_mltext
     ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic =\n"
       ^ txt ^ "\nin Method.set_tactic tactic end") false (SOME (Context.Proof ctxt));
-    ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt) facts);
+    ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt)));
 
 fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
 fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);

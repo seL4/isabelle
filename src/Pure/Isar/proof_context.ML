@@ -455,9 +455,9 @@ val reject_tvars = (Term.map_types o Term.map_atyps)
 
 val prepare_dummies =
   let val next = ref 1 in
-    fn t =>
+    fn t => CRITICAL (fn () =>
       let val (i, u) = Term.replace_dummy_patterns (! next, t)
-      in next := i; u end
+      in next := i; u end)
   end;
 
 fun reject_dummies t = Term.no_dummy_patterns t
