@@ -180,10 +180,8 @@ $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
 HOL-Protocol: HOL $(LOG)/HOL-Protocol.gz
 
 $(LOG)/HOL-Protocol.gz: $(OUT)/HOL Protocol/ROOT.ML  \
-  Protocol/Message.thy Protocol/Message_lemmas.ML  \
-  Protocol/Event.thy Protocol/Event_lemmas.ML  \
-  Protocol/Public.thy Protocol/Public_lemmas.ML \
-  Protocol/NS_Public.thy    
+  Protocol/Message.thy Protocol/Event.thy \
+  Protocol/Public.thy Protocol/NS_Public.thy    
 	$(USEDIR) Protocol
 	@rm -f tutorial.dvi
 
