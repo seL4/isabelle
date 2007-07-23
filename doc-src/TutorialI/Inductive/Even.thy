@@ -16,7 +16,7 @@ sets: rule induction.
 subsection{* Making an Inductive Definition *}
 
 text {*
-Using \commdx{inductive\_set}, we declare the constant @{text even} to be
+Using \commdx{inductive\protect\_set}, we declare the constant @{text even} to be
 a set of natural numbers with the desired properties.
 *}
 
