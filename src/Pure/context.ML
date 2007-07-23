@@ -126,7 +126,7 @@ fun declare_theory_data empty copy extend merge =
   let
     val k = serial ();
     val kind = {empty = empty, copy = copy, extend = extend, merge = merge};
-    val _ = change kinds (Datatab.update (k, kind));
+    val _ = CRITICAL (fn () => change kinds (Datatab.update (k, kind)));
   in k end;
 
 val copy_data = Datatab.map' invoke_copy;
@@ -449,7 +449,7 @@ struct
 fun declare init =
   let
     val k = serial ();
-    val _ = change kinds (Datatab.update (k, init));
+    val _ = CRITICAL (fn () => change kinds (Datatab.update (k, init)));
   in k end;
 
 fun get k dest prf =
@@ -494,8 +494,8 @@ val proof_of = cases init_proof I;
 local
   val setup_fn = ref (I: theory -> theory);
 in
-  fun add_setup f = setup_fn := (! setup_fn #> f);
-  fun setup () = let val f = ! setup_fn in setup_fn := I; f end;
+  fun add_setup f = CRITICAL (fn () => setup_fn := (! setup_fn #> f));
+  fun setup () = CRITICAL (fn () => let val f = ! setup_fn in setup_fn := I; f end);
 end;
 
 end;

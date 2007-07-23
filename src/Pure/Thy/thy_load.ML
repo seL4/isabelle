@@ -46,15 +46,24 @@ struct
 
 (* maintain load path *)
 
-val load_path = ref [Path.current];
+local val load_path = ref [Path.current] in
 
 fun show_path () = map Path.implode (! load_path);
-fun del_path s = change load_path (remove (op =) (Path.explode s));
-fun add_path s = (del_path s; change load_path (cons (Path.explode s)));
-fun path_add s = (del_path s; change load_path (fn path => path @ [Path.explode s]));
+
+fun del_path s = CRITICAL (fn () => change load_path (remove (op =) (Path.explode s)));
+fun add_path s = CRITICAL (fn () => (del_path s; change load_path (cons (Path.explode s))));
+fun path_add s =
+  CRITICAL (fn () => (del_path s; change load_path (fn path => path @ [Path.explode s])));
 fun reset_path () = load_path := [Path.current];
-fun with_paths ss f x = Library.setmp load_path (! load_path @ map Path.explode ss) f x;
+
+fun with_paths ss f x =
+  CRITICAL (fn () => Library.setmp load_path (! load_path @ map Path.explode ss) f x);
 fun with_path s f x = with_paths [s] f x;
+
+fun search_path dir path =
+  distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
+
+end;
 
 
 (* file formats *)
@@ -66,10 +75,7 @@ val thy_path = Path.ext "thy" o Path.basic;
 
 (* check files *)
 
-fun search_path dir path =
-  distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
-
-fun check_ext exts dir src_path =
+fun check_ext exts paths dir src_path =
   let
     val path = Path.expand src_path;
     val _ = Path.is_current path andalso error "Bad file specification";
@@ -78,16 +84,19 @@ fun check_ext exts dir src_path =
       let val ext_path = Path.expand (Path.ext ext rel_path)
       in Option.map (fn id => (File.full_path ext_path, id)) (File.ident ext_path) end;
     fun try_prfx prfx = get_first (try_ext (Path.append prfx path)) ("" :: exts);
-  in get_first try_prfx (search_path dir path) end;
+  in get_first try_prfx paths end;
 
-val check_file = check_ext [];
-val check_ml = check_ext ml_exts;
+fun check_file dir path = check_ext [] (search_path dir path) dir path;
+fun check_ml dir path = check_ext ml_exts (search_path dir path) dir path;
 
 fun check_thy dir name ml =
-  let val thy_file = thy_path name in
-    (case check_file dir thy_file of
+  let
+    val thy_file = thy_path name;
+    val paths = search_path dir thy_file;
+  in
+    (case check_ext [] paths dir thy_file of
       NONE => error ("Could not find theory file " ^ quote (Path.implode thy_file) ^
-        " in " ^ commas_quote (map Path.implode (search_path dir thy_file)))
+        " in " ^ commas_quote (map Path.implode paths))
     | SOME thy_id => (thy_id, if ml then check_file dir (ml_path name) else NONE))
   end;
 

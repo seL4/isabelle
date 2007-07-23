@@ -172,7 +172,7 @@ fun map_browser_info f {theories, files, tex_index, html_index, graph} =
 (* state *)
 
 val browser_info = ref empty_browser_info;
-fun change_browser_info f = browser_info := map_browser_info f (! browser_info);
+fun change_browser_info f = CRITICAL (fn () => change browser_info (map_browser_info f));
 
 val suppress_tex_source = ref false;
 fun no_document f x = Library.setmp suppress_tex_source true f x;
@@ -290,7 +290,7 @@ fun read_versions strs =
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
 fun init build info doc doc_graph doc_versions path name doc_prefix2
-    (remote_path, first_time) verbose thys =
+    (remote_path, first_time) verbose thys = CRITICAL (fn () =>
   if not build andalso not info andalso doc = "" andalso is_none doc_prefix2 then
     (browser_info := empty_browser_info; session_info := NONE)
   else
@@ -327,7 +327,7 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
       info, doc, doc_graph, documents, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path thys;
       add_html_index index_text
-    end;
+    end);
 
 
 (* isatool wrappers *)
@@ -371,8 +371,9 @@ fun write_tex_index tex_index path =
   write_tex (Buffer.add Latex.tex_trailer tex_index) doc_indexN path;
 
 
-fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_graph,
-    documents, doc_prefix1, doc_prefix2, path, verbose, readme, ...} =>
+fun finish () = CRITICAL (fn () =>
+    with_session () (fn {name, info, html_prefix, doc_format, doc_graph,
+      documents, doc_prefix1, doc_prefix2, path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -429,7 +430,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
 
     browser_info := empty_browser_info;
     session_info := NONE
-  end);
+  end));
 
 
 (* theory elements *)
@@ -503,7 +504,7 @@ fun begin_theory dir orig_files thy =
 
 
 val hooks = ref ([]: (string -> (string * thm list) list -> unit) list);
-fun add_hook f = hooks := (f :: ! hooks);
+fun add_hook f = CRITICAL (fn () => change hooks (cons f));
 
 fun results k xs =
  (List.app (fn f => (try (fn () => f k xs) (); ())) (! hooks);
