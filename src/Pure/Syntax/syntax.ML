@@ -562,3 +562,13 @@ end;
 
 structure BasicSyntax: BASIC_SYNTAX = Syntax;
 open BasicSyntax;
+
+structure Hidden = struct end;
+structure Lexicon = Hidden;
+structure Ast = Hidden;
+structure SynExt = Hidden;
+structure Parser = Hidden;
+structure TypeExt = Hidden;
+structure SynTrans = Hidden;
+structure Mixfix = Hidden;
+structure Printer = Hidden;
