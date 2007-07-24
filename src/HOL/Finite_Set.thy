@@ -2684,47 +2684,30 @@ definition
 where
   "Max = fold1 max"
 
-lemma Linorder_Min:
-  "Linorder.Min (op \<le>) = Min"
-proof
-  fix A :: "'a set"
-  show "Linorder.Min (op \<le>) A = Min A"
-  by (simp add: Min_def Linorder.Min_def [OF Linorder.intro, OF linorder_axioms]
-    ord_class.min)
+interpretation
+  Linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <"]
+where
+  "Linorder.Min (op \<le>) = Min" and "Linorder.Max (op \<le>) = Max"
+proof -
+  show "Linorder (op \<le> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool) op <"
+  by (rule Linorder.intro, rule linorder_axioms)
+  have "Linorder (op \<le> \<Colon> 'b \<Rightarrow> 'b \<Rightarrow> bool) op <"
+  by (rule Linorder.intro, rule linorder_axioms)
+  then interpret Linorder1: Linorder ["op \<le> \<Colon> 'b \<Rightarrow> 'b \<Rightarrow> bool" "op <"] .
+  show "Linorder1.Min = Min" by (simp add: Min_def Linorder1.Min_def ord_class.min)
+  have "Linorder (op \<le> \<Colon> 'c \<Rightarrow> 'c \<Rightarrow> bool) op <"
+  by (rule Linorder.intro, rule linorder_axioms)
+  then interpret Linorder2: Linorder ["op \<le> \<Colon> 'c \<Rightarrow> 'c \<Rightarrow> bool" "op <"] .
+  show "Linorder2.Max = Max" by (simp add: Max_def Linorder2.Max_def ord_class.max)
 qed
 
-lemma Linorder_Max:
-  "Linorder.Max (op \<le>) = Max"
-proof
-  fix A :: "'a set"
-  show "Linorder.Max (op \<le>) A = Max A"
-  by (simp add: Max_def Linorder.Max_def [OF Linorder.intro, OF linorder_axioms]
-    ord_class.max)
-qed
-
-(*FIXME: temporary solution - doesn't work properly*)
-interpretation [folded ord_class.min ord_class.max, unfolded Linorder_Min Linorder_Max]:
+interpretation
   Linorder_ab_semigroup_add ["op \<le> \<Colon> 'a\<Colon>{linorder, pordered_ab_semigroup_add} \<Rightarrow> 'a \<Rightarrow> bool" "op <" "op +"]
+proof -
+  show "Linorder_ab_semigroup_add (op \<le> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool) (op <) (op +)"
   by (rule Linorder_ab_semigroup_add.intro,
     rule Linorder.intro, rule linorder_axioms, rule pordered_ab_semigroup_add_axioms)
-hide const Min Max
-
-interpretation [folded ord_class.min ord_class.max, unfolded Linorder_Min Linorder_Max]:
-  Linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <"]
-  by (rule Linorder.intro, rule linorder_axioms)
-declare Min_singleton [simp]
-declare Max_singleton [simp]
-declare Min_insert [simp]
-declare Max_insert [simp]
-declare Min_in [simp]
-declare Max_in [simp]
-declare Min_le [simp]
-declare Max_ge [simp]
-declare Min_ge_iff [simp]
-declare Max_le_iff [simp]
-declare Min_gr_iff [simp]
-declare Max_less_iff [simp]
-declare Max_less_iff [simp]
+qed
 
 
 subsection {* Class @{text finite} *}
