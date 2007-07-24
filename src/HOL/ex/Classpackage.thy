@@ -26,6 +26,11 @@ proof
   from mult_int_def show "k \<otimes> l \<otimes> j = k \<otimes> (l \<otimes> j)" by simp
 qed
 
+instance * :: (semigroup, semigroup) semigroup
+  mult_prod_def: "x \<otimes> y \<equiv> let (x1, x2) = x; (y1, y2) = y in
+              (x1 \<otimes> y1, x2 \<otimes> y2)"
+by default (simp_all add: split_paired_all mult_prod_def assoc)
+
 instance list :: (type) semigroup
   "xs \<otimes> ys \<equiv> xs @ ys"
 proof
@@ -52,6 +57,10 @@ next
   from mult_int_def one_int_def show "\<one> \<otimes> k = k" by simp
 qed
 
+instance * :: (monoidl, monoidl) monoidl
+  one_prod_def: "\<one> \<equiv> (\<one>, \<one>)"
+by default (simp_all add: split_paired_all mult_prod_def one_prod_def neutl)
+
 instance list :: (type) monoidl
   "\<one> \<equiv> []"
 proof
@@ -66,47 +75,13 @@ qed
 
 class monoid = monoidl +
   assumes neutr: "x \<^loc>\<otimes> \<^loc>\<one> = x"
-
-instance list :: (type) monoid
-proof
-  fix xs :: "'a list"
-  show "xs \<otimes> \<one> = xs"
-  proof -
-    from mult_list_def have "\<And>xs ys\<Colon>'a list. xs \<otimes> ys \<equiv> xs @ ys" .
-    moreover from one_list_def have "\<one> \<equiv> []\<Colon>'a list" by simp
-    ultimately show ?thesis by simp
-  qed
-qed  
-
-class monoid_comm = monoid +
-  assumes comm: "x \<^loc>\<otimes> y = y \<^loc>\<otimes> x"
-
-instance nat :: monoid_comm and int :: monoid_comm
-proof
-  fix n :: nat
-  from mult_nat_def one_nat_def show "n \<otimes> \<one> = n" by simp
-next
-  fix n m :: nat
-  from mult_nat_def show "n \<otimes> m = m \<otimes> n" by simp
-next
-  fix k :: int
-  from mult_int_def one_int_def show "k \<otimes> \<one> = k" by simp
-next
-  fix k l :: int
-  from mult_int_def show "k \<otimes> l = l \<otimes> k" by simp
-qed
-
-context monoid
 begin
 
 definition
   units :: "'a set" where
   "units = {y. \<exists>x. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one>}"
 
-end
-
-context monoid
-begin
+end context monoid begin
 
 lemma inv_obtain:
   assumes "x \<in> units"
@@ -139,66 +114,75 @@ proof -
   with neutl z_choice show ?thesis by simp
 qed
 
-end
+fun
+  npow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
+where
+  "npow 0 x = \<^loc>\<one>"
+  | "npow (Suc n) x = x \<^loc>\<otimes> npow n x"
 
-consts
-  reduce :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"
-
-primrec
-  "reduce f g 0 x = g"
-  "reduce f g (Suc n) x = f x (reduce f g n x)"
-
-context monoid
-begin
-
-definition
-  npow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
-  npow_def_prim: "npow n x = reduce (op \<^loc>\<otimes>) \<^loc>\<one> n x"
-
-end
-
-context monoid
-begin
+end context monoid begin
 
 abbreviation
   npow_syn :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
   "x \<^loc>\<up> n \<equiv> npow n x"
 
-lemma npow_def:
-  "x \<^loc>\<up> 0 = \<^loc>\<one>"
-  "x \<^loc>\<up> Suc n = x \<^loc>\<otimes> x \<^loc>\<up> n"
-using npow_def_prim by simp_all
-
 lemma nat_pow_one:
   "\<^loc>\<one> \<^loc>\<up> n = \<^loc>\<one>"
-using npow_def neutl by (induct n) simp_all
+using neutl by (induct n) simp_all
 
 lemma nat_pow_mult: "x \<^loc>\<up> n \<^loc>\<otimes> x \<^loc>\<up> m = x \<^loc>\<up> (n + m)"
 proof (induct n)
-  case 0 with neutl npow_def show ?case by simp
+  case 0 with neutl show ?case by simp
 next
-  case (Suc n) with Suc.hyps assoc npow_def show ?case by simp
+  case (Suc n) with Suc.hyps assoc show ?case by simp
 qed
 
 lemma nat_pow_pow: "(x \<^loc>\<up> m) \<^loc>\<up> n = x \<^loc>\<up> (n * m)"
-using npow_def nat_pow_mult by (induct n) simp_all
+using nat_pow_mult by (induct n) simp_all
 
 end
+
+instance * :: (monoid, monoid) monoid
+by default (simp_all add: split_paired_all mult_prod_def one_prod_def monoid_class.mult_one.neutr)
+
+instance list :: (type) monoid
+proof
+  fix xs :: "'a list"
+  show "xs \<otimes> \<one> = xs"
+  proof -
+    from mult_list_def have "\<And>xs ys\<Colon>'a list. xs \<otimes> ys \<equiv> xs @ ys" .
+    moreover from one_list_def have "\<one> \<equiv> []\<Colon>'a list" by simp
+    ultimately show ?thesis by simp
+  qed
+qed  
+
+class monoid_comm = monoid +
+  assumes comm: "x \<^loc>\<otimes> y = y \<^loc>\<otimes> x"
+
+instance nat :: monoid_comm and int :: monoid_comm
+proof
+  fix n :: nat
+  from mult_nat_def one_nat_def show "n \<otimes> \<one> = n" by simp
+next
+  fix n m :: nat
+  from mult_nat_def show "n \<otimes> m = m \<otimes> n" by simp
+next
+  fix k :: int
+  from mult_int_def one_int_def show "k \<otimes> \<one> = k" by simp
+next
+  fix k l :: int
+  from mult_int_def show "k \<otimes> l = l \<otimes> k" by simp
+qed
+
+instance * :: (monoid_comm, monoid_comm) monoid_comm
+by default (simp_all add: split_paired_all mult_prod_def comm)
 
 class group = monoidl +
   fixes inv :: "'a \<Rightarrow> 'a" ("\<^loc>\<div> _" [81] 80)
   assumes invl: "\<^loc>\<div> x \<^loc>\<otimes> x = \<^loc>\<one>"
+begin
 
-class group_comm = group + monoid_comm
-
-instance int :: group_comm
-  "\<div> k \<equiv> - (k\<Colon>int)"
-proof
-  fix k :: int
-  from mult_int_def one_int_def inv_int_def show "\<div> k \<otimes> k = \<one>" by simp
-qed
-
-lemma (in group) cancel:
+lemma cancel:
   "(x \<^loc>\<otimes> y = x \<^loc>\<otimes> z) = (y = z)"
 proof
   fix x y z :: 'a
@@ -212,7 +196,7 @@ next
   thus "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z" by simp
 qed
 
-lemma (in group) neutr:
+lemma neutr:
   "x \<^loc>\<otimes> \<^loc>\<one> = x"
 proof -
   from invl have "\<^loc>\<div> x \<^loc>\<otimes> x = \<^loc>\<one>" by simp
@@ -220,7 +204,7 @@ proof -
   with cancel show ?thesis by simp
 qed
 
-lemma (in group) invr:
+lemma invr:
   "x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<one>"
 proof -
   from neutl invl have "\<^loc>\<div> x \<^loc>\<otimes> x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<div> x" by simp
@@ -229,14 +213,20 @@ proof -
   with cancel show ?thesis ..
 qed
 
+end
+
 instance advanced group < monoid
 proof unfold_locales
   fix x
   from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
 qed
+hide const npow
 
-lemma (in group) all_inv [intro]:
-  "(x\<Colon>'a) \<in> monoid.units (op \<^loc>\<otimes>) \<^loc>\<one>"
+context group
+begin
+
+lemma all_inv [intro]:
+  "(x\<Colon>'a) \<in> units"
   unfolding units_def
 proof -
   fix x :: "'a"
@@ -246,7 +236,7 @@ proof -
   thus "x \<in> {y\<Colon>'a. \<exists>x\<Colon>'a. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one>}" by simp
 qed
 
-lemma (in group) cancer:
+lemma cancer:
   "(y \<^loc>\<otimes> x = z \<^loc>\<otimes> x) = (y = z)"
 proof
   assume eq: "y \<^loc>\<otimes> x = z \<^loc>\<otimes> x"
@@ -257,7 +247,7 @@ next
   thus "y \<^loc>\<otimes> x = z \<^loc>\<otimes> x" by simp
 qed
 
-lemma (in group) inv_one:
+lemma inv_one:
   "\<^loc>\<div> \<^loc>\<one> = \<^loc>\<one>"
 proof -
   from neutl have "\<^loc>\<div> \<^loc>\<one> = \<^loc>\<one> \<^loc>\<otimes> (\<^loc>\<div> \<^loc>\<one>)" ..
@@ -265,7 +255,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in group) inv_inv:
+lemma inv_inv:
   "\<^loc>\<div> (\<^loc>\<div> x) = x"
 proof -
   from invl invr neutr
@@ -275,7 +265,7 @@ proof -
   with invl neutr show ?thesis by simp
 qed
 
-lemma (in group) inv_mult_group:
+lemma inv_mult_group:
   "\<^loc>\<div> (x \<^loc>\<otimes> y) = \<^loc>\<div> y \<^loc>\<otimes> \<^loc>\<div> x"
 proof -
   from invl have "\<^loc>\<div> (x \<^loc>\<otimes> y) \<^loc>\<otimes> (x \<^loc>\<otimes> y) = \<^loc>\<one>" by simp
@@ -285,52 +275,52 @@ proof -
   with invr neutr show ?thesis by simp
 qed
 
-lemma (in group) inv_comm:
+lemma inv_comm:
   "x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<div> x \<^loc>\<otimes> x"
 using invr invl by simp
 
-definition (in group)
-  pow :: "int \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "pow k x = (if k < 0 then \<^loc>\<div> (monoid.npow (op \<^loc>\<otimes>) \<^loc>\<one> (nat (-k)) x)
-    else (monoid.npow (op \<^loc>\<otimes>) \<^loc>\<one> (nat k) x))"
+definition
+  pow :: "int \<Rightarrow> 'a \<Rightarrow> 'a"
+where
+  "pow k x = (if k < 0 then \<^loc>\<div> (npow (nat (-k)) x)
+    else (npow (nat k) x))"
 
-abbreviation (in group)
-  pow_syn :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
-  "x \<^loc>\<up> k \<equiv> pow k x"
+end context group begin
 
-lemma (in group) int_pow_zero:
-  "x \<^loc>\<up> (0\<Colon>int) = \<^loc>\<one>"
-using npow_def pow_def by simp
+abbreviation
+  pow_syn :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>\<up>" 75)
+where
+  "x \<^loc>\<up>\<up> k \<equiv> pow k x"
 
-lemma (in group) int_pow_one:
-  "\<^loc>\<one> \<^loc>\<up> (k\<Colon>int) = \<^loc>\<one>"
+lemma int_pow_zero:
+  "x \<^loc>\<up>\<up> (0\<Colon>int) = \<^loc>\<one>"
+using pow_def by simp
+
+lemma int_pow_one:
+  "\<^loc>\<one> \<^loc>\<up>\<up> (k\<Colon>int) = \<^loc>\<one>"
 using pow_def nat_pow_one inv_one by simp
 
-instance * :: (semigroup, semigroup) semigroup
-  mult_prod_def: "x \<otimes> y \<equiv> let (x1, x2) = x; (y1, y2) = y in
-              (x1 \<otimes> y1, x2 \<otimes> y2)"
-by default (simp_all add: split_paired_all mult_prod_def assoc)
-
-instance * :: (monoidl, monoidl) monoidl
-  one_prod_def: "\<one> \<equiv> (\<one>, \<one>)"
-by default (simp_all add: split_paired_all mult_prod_def one_prod_def neutl)
-
-instance * :: (monoid, monoid) monoid
-by default (simp_all add: split_paired_all mult_prod_def one_prod_def monoid_class.mult_one.neutr)
-
-instance * :: (monoid_comm, monoid_comm) monoid_comm
-by default (simp_all add: split_paired_all mult_prod_def comm)
+end
 
 instance * :: (group, group) group
   inv_prod_def: "\<div> x \<equiv> let (x1, x2) = x in (\<div> x1, \<div> x2)"
 by default (simp_all add: split_paired_all mult_prod_def one_prod_def inv_prod_def invl)
 
+class group_comm = group + monoid_comm
+
+instance int :: group_comm
+  "\<div> k \<equiv> - (k\<Colon>int)"
+proof
+  fix k :: int
+  from mult_int_def one_int_def inv_int_def show "\<div> k \<otimes> k = \<one>" by simp
+qed
+
 instance * :: (group_comm, group_comm) group_comm
 by default (simp_all add: split_paired_all mult_prod_def comm)
 
- 
 definition
-  "X a b c = (a \<otimes> \<one> \<otimes> b, a \<otimes> \<one> \<otimes> b, [a, b] \<otimes> \<one> \<otimes> [a, b, c])"
+  "X a b c = (a \<otimes> \<one> \<otimes> b, a \<otimes> \<one> \<otimes> b, npow 3 [a, b] \<otimes> \<one> \<otimes> [a, b, c])"
+
 definition
   "Y a b c = (a, \<div> a) \<otimes> \<one> \<otimes> \<div> (b, \<div> c)"
 
