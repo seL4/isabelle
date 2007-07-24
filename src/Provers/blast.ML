@@ -1246,7 +1246,7 @@ fun initialize thy =
  "start" is CPU time at start, for printing SEARCH time
         (also prints reconstruction time)
  "lim" is depth limit.*)
-fun timing_depth_tac start cs lim i st0 =
+fun timing_depth_tac start cs lim i st0 = CRITICAL (fn () =>
   let val st = (initialize (theory_of_thm st0); Conv.gconv_rule ObjectLogic.atomize_prems i st0);
       val sign = Thm.theory_of_thm st
       val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
@@ -1266,9 +1266,10 @@ fun timing_depth_tac start cs lim i st0 =
                        else ();
                        Seq.make(fn()=> cell))
           end
-  in prove (sign, start, cs, [initBranch (mkGoal concl :: hyps, lim)], cont)
-  end
-  handle PROVE     => Seq.empty;
+      val forced = Seq.pull
+        (prove (sign, start, cs, [initBranch (mkGoal concl :: hyps, lim)], cont))
+  in Seq.make (fn () => forced) end
+  handle PROVE     => Seq.empty);
 
 (*Public version with fixed depth*)
 fun depth_tac cs lim i st = timing_depth_tac (start_timing ()) cs lim i st;
