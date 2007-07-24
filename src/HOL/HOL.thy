@@ -299,8 +299,6 @@ abbreviation (input)
 notation (input)
   greater_eq  (infix "\<ge>" 50)
 
-lemmas Least_def = Least_def [folded ord_class.Least]
-
 syntax
   "_index1"  :: index    ("\<^sub>1")
 translations

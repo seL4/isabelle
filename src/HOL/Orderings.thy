@@ -195,14 +195,11 @@ text {* for historic reasons, definitions are done in context ord *}
 
 definition (in ord)
   min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "min a b = (if a \<^loc>\<le> b then a else b)"
+  [code unfold, code inline del]: "min a b = (if a \<^loc>\<le> b then a else b)"
 
 definition (in ord)
   max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "max a b = (if a \<^loc>\<le> b then b else a)"
-
-lemmas (in -) min_def [code func, code unfold, code inline del] = min_def [folded ord_class.min]
-lemmas (in -) max_def [code func, code unfold, code inline del] = max_def [folded ord_class.max]
+  [code unfold, code inline del]: "max a b = (if a \<^loc>\<le> b then b else a)"
 
 lemma min_le_iff_disj:
   "min x y \<^loc>\<le> z \<longleftrightarrow> x \<^loc>\<le> z \<or> y \<^loc>\<le> z"
@@ -238,7 +235,8 @@ by (simp add: max_def)
 
 end
 
-subsection {* Name duplicates -- including min/max interpretation *}
+
+subsection {* Name duplicates *}
 
 lemmas order_less_le = less_le
 lemmas order_eq_refl = order_class.eq_refl
@@ -275,14 +273,14 @@ lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
 lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
 lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
 
-lemmas min_le_iff_disj = linorder_class.min_le_iff_disj [folded ord_class.min]
-lemmas le_max_iff_disj = linorder_class.le_max_iff_disj [folded ord_class.max]
-lemmas min_less_iff_disj = linorder_class.min_less_iff_disj [folded ord_class.min]
-lemmas less_max_iff_disj = linorder_class.less_max_iff_disj [folded ord_class.max]
-lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj [folded ord_class.min]
-lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj [folded ord_class.max]
-lemmas split_min = linorder_class.split_min [folded ord_class.min]
-lemmas split_max = linorder_class.split_max [folded ord_class.max]
+lemmas min_le_iff_disj = linorder_class.min_le_iff_disj
+lemmas le_max_iff_disj = linorder_class.le_max_iff_disj
+lemmas min_less_iff_disj = linorder_class.min_less_iff_disj
+lemmas less_max_iff_disj = linorder_class.less_max_iff_disj
+lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj
+lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj
+lemmas split_min = linorder_class.split_min
+lemmas split_max = linorder_class.split_max
 
 
 subsection {* Reasoning tools setup *}

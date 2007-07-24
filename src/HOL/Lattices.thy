@@ -295,7 +295,7 @@ qed (auto simp add: min_def max_def not_le less_imp_le)
 
 interpretation min_max:
   distrib_lattice ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" min max]
-  by (rule distrib_lattice_min_max [folded ord_class.min ord_class.max])
+  by (rule distrib_lattice_min_max)
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (rule ext)+ auto
@@ -367,7 +367,7 @@ lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   apply (erule Inf_lower)
   done
 
-lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
+lemma Sup_insert [code func]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
   apply (rule antisym)
   apply (rule Sup_least)
   apply (erule insertE)
@@ -387,7 +387,7 @@ lemma Inf_singleton [simp]:
   "\<Sqinter>{a} = a"
   by (auto intro: antisym Inf_lower Inf_greatest)
 
-lemma Sup_singleton [simp]:
+lemma Sup_singleton [simp, code func]:
   "\<Squnion>{a} = a"
   by (auto intro: antisym Sup_upper Sup_least)
 
@@ -408,15 +408,6 @@ lemma Sup_binary:
   by (simp add: Sup_insert_simp)
 
 end
-
-lemmas Sup_def = Sup_def [folded complete_lattice_class.Sup]
-lemmas Sup_upper = Sup_upper [folded complete_lattice_class.Sup]
-lemmas Sup_least = Sup_least [folded complete_lattice_class.Sup]
-
-lemmas Sup_insert [code func] = Sup_insert [folded complete_lattice_class.Sup]
-lemmas Sup_singleton [simp, code func] = Sup_singleton [folded complete_lattice_class.Sup]
-lemmas Sup_insert_simp = Sup_insert_simp [folded complete_lattice_class.Sup]
-lemmas Sup_binary = Sup_binary [folded complete_lattice_class.Sup]
 
 definition
   top :: "'a::complete_lattice"

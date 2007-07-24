@@ -26,12 +26,10 @@ instance nat :: Divides.div
 definition (in times)
   dvd  :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<^loc>dvd" 50)
 where
-  "m \<^loc>dvd n \<longleftrightarrow> (\<exists>k. n = m \<^loc>* k)"
-lemmas dvd_def = dvd_def [folded times_class.dvd]
+  [code func del]: "m \<^loc>dvd n \<longleftrightarrow> (\<exists>k. n = m \<^loc>* k)"
 
 class dvd_mod = times + div + zero + -- {* for code generation *}
-  assumes dvd_def_mod: "times.dvd (op \<^loc>*) x y \<longleftrightarrow> y \<^loc>mod x = \<^loc>0"
-lemmas dvd_def_mod [code func] = dvd_def_mod [folded times_class.dvd]
+  assumes dvd_def_mod [code func]: "times.dvd (op \<^loc>*) x y \<longleftrightarrow> y \<^loc>mod x = \<^loc>0"
 
 definition
   quorem :: "(nat*nat) * (nat*nat) => bool" where
