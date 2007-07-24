@@ -7,6 +7,7 @@ Code generator translation kernel.  Code generator Isar setup.
 
 signature CODEGEN_PACKAGE =
 sig
+  val compile_term: theory -> term -> CodegenThingol.code * CodegenThingol.iterm;
   val eval_term: theory -> (string (*reference name!*) * 'a option ref) * term -> 'a;
   val satisfies_ref: bool option ref;
   val satisfies: theory -> term -> string list -> bool;
@@ -531,6 +532,17 @@ fun codegen_term thy t =
     val (ct', funcgr) = Funcgr.make_term thy (K (K K)) ct;
     val t' = Thm.term_of ct';
   in generate thy funcgr exprgen_term' t' end;
+
+fun compile_term thy t =
+  let
+    val ct = Thm.cterm_of thy t;
+    val (ct', funcgr) = Funcgr.make_term thy (K (K K)) ct;
+    val t' = Thm.term_of ct';
+    val t'' = generate thy funcgr exprgen_term' t';
+    val consts = CodegenThingol.fold_constnames (insert (op =)) t'' [];
+    val code = Code.get thy
+      |> CodegenThingol.project_code true [] (SOME consts)
+  in (code, t'') end;
 
 fun raw_eval_term thy (ref_spec, t) args =
   let
