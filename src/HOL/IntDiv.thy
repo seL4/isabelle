@@ -1231,6 +1231,11 @@ proof-
   thus ?thesis by blast
 qed
 
+lemma zdvd_zmult_cancel_disj[simp]:
+  "(k*m) dvd (k*n) = (k=0 | m dvd (n::int))"
+by (auto simp: zdvd_zmult_mono dest: zdvd_mult_cancel)
+
+
 theorem ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat x))"
   apply (simp split add: split_nat)
   apply (rule iffI)

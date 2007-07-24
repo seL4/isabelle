@@ -291,6 +291,15 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = false
 )
 
+structure DvdCancelNumeralFactor = CancelNumeralFactorFun
+ (open CancelNumeralFactorCommon
+  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val mk_bal   = HOLogic.mk_binrel @{const_name Divides.dvd}
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.dvd} HOLogic.natT
+  val cancel = @{thm nat_mult_dvd_cancel1} RS trans
+  val neg_exchanges = false
+)
+
 structure EqCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
@@ -331,7 +340,10 @@ val cancel_numeral_factors =
      K LeCancelNumeralFactor.proc),
     ("natdiv_cancel_numeral_factors",
      ["((l::nat) * m) div n", "(l::nat) div (m * n)"],
-     K DivCancelNumeralFactor.proc)];
+     K DivCancelNumeralFactor.proc),
+    ("natdvd_cancel_numeral_factors",
+     ["((l::nat) * m) dvd n", "(l::nat) dvd (m * n)"],
+     K DvdCancelNumeralFactor.proc)];
 
 
 
@@ -399,6 +411,14 @@ structure DivideCancelFactor = ExtractCommonTermFun
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_div_cancel_disj}
 );
 
+structure DvdCancelFactor = ExtractCommonTermFun
+ (open CancelFactorCommon
+  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val mk_bal   = HOLogic.mk_binrel @{const_name Divides.dvd}
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.dvd} HOLogic.natT
+  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_dvd_cancel_disj}
+);
+
 val cancel_factor =
   map prep_simproc
    [("nat_eq_cancel_factor",
@@ -412,7 +432,10 @@ val cancel_factor =
      K LeCancelFactor.proc),
     ("nat_divide_cancel_factor",
      ["((l::nat) * m) div n", "(l::nat) div (m * n)"],
-     K DivideCancelFactor.proc)];
+     K DivideCancelFactor.proc),
+    ("nat_dvd_cancel_factor",
+     ["((l::nat) * m) dvd n", "(l::nat) dvd (m * n)"],
+     K DvdCancelFactor.proc)];
 
 end;
 
