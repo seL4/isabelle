@@ -257,6 +257,7 @@ fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ Output.TOPLEVEL_ERROR = "Error."
   | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
   | exn_msg _ (ERROR msg) = msg
+  | exn_msg detailed (Exn.EXCEPTIONS (exns, "")) = cat_lines (map (exn_msg detailed) exns)
   | exn_msg detailed (Exn.EXCEPTIONS (exns, msg)) = cat_lines (map (exn_msg detailed) exns @ [msg])
   | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
   | exn_msg false (THEORY (msg, _)) = msg
