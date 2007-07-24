@@ -18,6 +18,7 @@ function usage()
   echo "  Options are:"
   echo "    -C BOOL      copy existing document directory to -D PATH (default true)"
   echo "    -D PATH      dump generated document sources into PATH"
+  echo "    -M MAX       multithreading: maximum number of worker threads (default 1)"
   echo "    -P PATH      set path for remote theory browsing information"
   echo "    -V VERSION   declare alternative document VERSION"
   echo "    -b           build mode (output heap image, using current dir)"
@@ -63,6 +64,7 @@ function check_number()
 
 COPY_DUMP="true"
 DUMP=""
+MAXTHREADS="1"
 RPATH=""
 DOCUMENT_VERSIONS=""
 BUILD=""
@@ -80,7 +82,7 @@ VERBOSE=false
 function getoptions()
 {
   OPTIND=1
-  while getopts "C:D:P:V:bc:d:f:g:i:m:p:rs:v:" OPT
+  while getopts "C:D:M:P:V:bc:d:f:g:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
       C)
@@ -89,6 +91,10 @@ function getoptions()
         ;;
       D)
         DUMP="$OPTARG"
+        ;;
+      M)
+        check_number "$OPTARG"
+        MAXTHREADS="$OPTARG"
         ;;
       P)
         RPATH="$OPTARG"
@@ -209,7 +215,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE;" \
+    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -218,7 +224,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE; quit();" \
+    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
