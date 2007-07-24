@@ -362,18 +362,18 @@ fun check_deps ml strict dir name =
 
 in
 
-fun require_thys really ml time strict keep_strict initiators dir strs tasks_visited =
-  fold_map (require_thy really ml time strict keep_strict initiators dir) strs tasks_visited
+fun require_thys really ml time strict keep_strict initiators dir strs tasks =
+  fold_map (require_thy really ml time strict keep_strict initiators dir) strs tasks
   |>> forall I
-and require_thy really ml time strict keep_strict initiators dir str (tasks, visited) =
+and require_thy really ml time strict keep_strict initiators dir str tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
     val dir' = Path.append dir (Path.dir path);
     val _ = member (op =) initiators name andalso error (cycle_msg initiators);
   in
-    (case AList.lookup (op =) visited name of
-      SOME current => (current, (tasks, visited))
+    (case try (Graph.get_node (fst tasks)) name of
+      SOME task => (is_none task, tasks)
     | NONE =>
         let
           val (current, deps, parents) = check_deps ml strict dir' name
@@ -382,42 +382,53 @@ and require_thy really ml time strict keep_strict initiators dir str (tasks, vis
                 required_by "\n" initiators);
           val parent_names = map base_name parents;
 
-          val (parents_current, (tasks', visited')) =
+          val (parents_current, (tasks_graph', tasks_len')) =
             require_thys true true time (strict andalso keep_strict) keep_strict
-              (name :: initiators) (Path.append dir (master_dir' deps))
-              parents (tasks, visited);
+              (name :: initiators) (Path.append dir (master_dir' deps)) parents tasks;
 
           val all_current = current andalso parents_current;
           val thy = if all_current orelse not really then SOME (get_theory name) else NONE;
           val _ = change_thys (new_deps name parent_names (deps, thy));
 
-          val tasks'' = tasks' |> new_deps name parent_names
-            (fn () => if all_current then () else load_thy really ml time initiators dir' name);
-          val visited'' = (name, all_current) :: visited';
-        in (all_current, (tasks'', visited'')) end)
+          val tasks_graph'' = tasks_graph' |> new_deps name parent_names
+           (if all_current then NONE
+            else SOME (fn () => load_thy really ml time initiators dir' name));
+          val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
+        in (all_current, (tasks_graph'', tasks_len'')) end)
   end;
 
 end;
 
 
-(* variations on use_thy *)
+(* use_thy etc. -- scheduling required theories *)
 
 local
 
 fun schedule_seq tasks =
-  Graph.topological_order tasks |> List.app (fn name => Graph.get_node tasks name ());
+  Graph.topological_order tasks
+  |> List.app (fn name => the_default I (Graph.get_node tasks name) ());
 
-fun schedule_tasks tasks =
-  let val m = ! Multithreading.number_of_threads in
-    if m <= 1 then schedule_seq tasks
+fun next_task (SOME f :: fs, G) = (SOME f, (fs, G))
+  | next_task (NONE :: fs, G) = next_task (fs, G)
+  | next_task ([], G) =
+      (case Graph.minimals G of
+        [] => (NONE, ([], G))
+      | ms => next_task (map (Graph.get_node G) ms, Graph.del_nodes ms G));
+
+fun schedule_tasks (tasks, n) =
+  let val m = ! Multithreading.max_threads in
+    if m <= 1 orelse n <= 1 then schedule_seq tasks
     else if Multithreading.self_critical () then
      (warning (loader_msg "no multithreading within critical section" []);
       schedule_seq tasks)
-    else sys_error "No multithreading scheduler yet"
+    else
+      (case Multithreading.schedule (Int.min (m, n)) next_task ([], tasks) of
+        [] => ()
+      | exns => raise Exn.EXCEPTIONS (exns, ""))
   end;
 
 fun gen_use_thy' req dir arg = Output.toplevel_errors (fn () =>
-  let val (_, (tasks, _)) = req [] dir arg (Graph.empty, [])
+  let val (_, tasks) = req [] dir arg (Graph.empty, 0)
   in schedule_tasks tasks end) ();
 
 fun gen_use_thy req str =
