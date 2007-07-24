@@ -4,7 +4,8 @@
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)
 
-use "ML-Systems/no_multithreading.ML";
+use "ML-Systems/exn.ML";
+use "ML-Systems/multithreading_dummy.ML";
 
 
 (** ML system related **)
@@ -127,36 +128,25 @@ fun use_file _ _ name = use name;
 
 exception Interrupt;
 
-local
-
-fun capture f x = ((f x): unit; NONE) handle exn => SOME exn;
-
-fun release NONE = ()
-  | release (SOME exn) = raise exn;
-
-in
-
 fun ignore_interrupt f x =
   let
     val old_handler = Signals.setHandler (Signals.sigINT, Signals.IGNORE);
-    val result = capture f x;
+    val result = Exn.capture f x;
     val _ = Signals.setHandler (Signals.sigINT, old_handler);
-  in release result end;
+  in Exn.release result end;
 
 fun raise_interrupt f x =
   let
     val interrupted = ref false;
-    val result = ref NONE;
+    val result = ref (Exn.Result ());
     val old_handler = Signals.inqHandler Signals.sigINT;
   in
     SMLofNJ.Cont.callcc (fn cont =>
       (Signals.setHandler (Signals.sigINT, Signals.HANDLER (fn _ => (interrupted := true; cont)));
-      result := capture f x));
+      result := Exn.capture f x));
     Signals.setHandler (Signals.sigINT, old_handler);
-    if ! interrupted then raise Interrupt else release (! result)
+    if ! interrupted then raise Interrupt else Exn.release (! result)
   end;
-
-end;
 
 
 (* basis library fixes *)

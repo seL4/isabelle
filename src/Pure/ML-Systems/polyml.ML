@@ -4,7 +4,8 @@
 Compatibility file for Poly/ML (version 4.1.x and 4.2.0).
 *)
 
-use "ML-Systems/no_multithreading.ML";
+use "ML-Systems/exn.ML";
+use "ML-Systems/multithreading_dummy.ML";
 
 
 (** ML system and platform related **)
@@ -121,20 +122,15 @@ exception Interrupt = SML90.Interrupt;
 
 local
 
-fun capture f x = ((f x): unit; NONE) handle exn => SOME exn;
-
-fun release NONE = ()
-  | release (SOME exn) = raise exn;
-
 val sig_int = 2;
 
 fun change_signal new_handler f x =
   let
     (*RACE wrt. other signals*)
     val old_handler = Signal.signal (sig_int, new_handler);
-    val result = capture f x;
+    val result = Exn.capture f x;
     val _ = Signal.signal (sig_int, old_handler);
-  in release result end;
+  in Exn.release result end;
 
 val default_handler = Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ());
 

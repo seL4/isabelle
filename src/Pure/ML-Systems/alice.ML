@@ -13,7 +13,8 @@ $ env ALICE_JIT_MODE=0 alice
 - Session.finish ();
 *)
 
-use "ML-Systems/no_multithreading.ML";
+use "ML-Systems/exn.ML";
+use "ML-Systems/multithreading_dummy.ML";
 
 
 fun exit 0 = (OS.Process.exit OS.Process.success): unit

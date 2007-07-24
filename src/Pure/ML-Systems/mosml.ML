@@ -29,7 +29,8 @@ load "Process";
 load "FileSys";
 load "IO";
 
-use "ML-Systems/no_multithreading.ML";
+use "ML-Systems/exn.ML";
+use "ML-Systems/multithreading_dummy.ML";
 
 
 (*low-level pointer equality*)
