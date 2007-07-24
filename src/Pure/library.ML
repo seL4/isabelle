@@ -32,14 +32,6 @@ sig
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
 
-  (*exceptions*)
-  exception EXCEPTION of exn * string
-  datatype 'a result = Result of 'a | Exn of exn
-  val capture: ('a -> 'b) -> 'a -> 'b result
-  val release: 'a result -> 'a
-  val get_result: 'a result -> 'a option
-  val get_exn: 'a result -> exn option
-
   (*errors*)
   exception SYS_ERROR of string
   val sys_error: string -> 'a
@@ -269,26 +261,6 @@ fun funpow 0 _ x = x
   | funpow n f x = funpow (n - 1) f (f x);
 
 
-(* exceptions *)
-
-exception EXCEPTION of exn * string;
-
-datatype 'a result =
-  Result of 'a |
-  Exn of exn;
-
-fun capture f x = Result (f x) handle e => Exn e;
-
-fun release (Result y) = y
-  | release (Exn e) = raise e;
-
-fun get_result (Result x) = SOME x
-  | get_result _ = NONE;
-
-fun get_exn (Exn exn) = SOME exn
-  | get_exn _ = NONE;
-
-
 (* errors *)
 
 exception SYS_ERROR of string;
@@ -362,9 +334,9 @@ fun setmp_noncritical flag value f x =
   let
     val orig_value = ! flag;
     val _ = flag := value;
-    val result = capture f x;
+    val result = Exn.capture f x;
     val _ = flag := orig_value;
-  in release result end;
+  in Exn.release result end;
 
 fun setmp flag value f x = CRITICAL (fn () => setmp_noncritical flag value f x);
 

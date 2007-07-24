@@ -191,7 +191,7 @@ fun time_add ti f x =
       Time.+ (time, Time.- (time2, time1) handle Time.Time => Time.zeroTime);
     val {name, timer, sys, usr, gc, count} = time_check ti;
     val (sys1, usr1, gc1) = check_timer timer;
-    val result = capture f x;
+    val result = Exn.capture f x;
     val (sys2, usr2, gc2) = check_timer timer;
   in
     ti := TI
@@ -201,7 +201,7 @@ fun time_add ti f x =
       usr = add_diff usr usr1 usr2,
       gc = add_diff gc gc1 gc2,
       count = count + 1};
-    release result
+    Exn.release result
   end;
 
 fun time_finish ti =

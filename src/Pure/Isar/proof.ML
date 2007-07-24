@@ -929,7 +929,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       (Seq.pull oo local_skip_proof) true
       |> setmp testing true
       |> setmp proofs 0
-      |> capture;
+      |> Exn.capture;
 
     fun after_qed' results =
       refine_goals print_rule (context_of state) (flat results)
@@ -939,10 +939,10 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     |> local_goal print_results prep_att prepp "show" before_qed after_qed' stmt
     |> int ? (fn goal_state =>
       (case test_proof goal_state of
-        Result (SOME _) => goal_state
-      | Result NONE => error (fail_msg (context_of goal_state))
-      | Exn Interrupt => raise Interrupt
-      | Exn exn => raise EXCEPTION (exn, fail_msg (context_of goal_state))))
+        Exn.Result (SOME _) => goal_state
+      | Exn.Result NONE => error (fail_msg (context_of goal_state))
+      | Exn.Exn Interrupt => raise Interrupt
+      | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn], fail_msg (context_of goal_state))))
   end;
 
 in

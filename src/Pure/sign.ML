@@ -609,13 +609,13 @@ fun read_def_terms' pp is_logtype syn consts map_free ctxt (def_type, def_sort) 
     val termss = fold_rev (multiply o fst) args [[]];
     val typs = map snd args;
 
-    fun infer ts = Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
+    fun infer ts = Exn.Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
         (try (Consts.the_constraint consts)) def_type used freeze (ts ~~ typs) |>> map fst)
-      handle TYPE (msg, _, _) => Exn (ERROR msg);
+      handle TYPE (msg, _, _) => Exn.Exn (ERROR msg);
 
     val err_results = map infer termss;
-    val errs = map_filter (fn Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
-    val results = map_filter get_result err_results;
+    val errs = map_filter (fn Exn.Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
+    val results = map_filter Exn.get_result err_results;
 
     val ambiguity = length termss;
     fun ambig_msg () =
