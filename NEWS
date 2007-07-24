@@ -754,6 +754,8 @@ possible incompatibilities when working on ML level.
   [x <- xs. P] to avoid an ambiguity caused by list comprehension syntax,
   and for uniformity. INCOMPATIBILITY
 
+* Lemma "set_take_whileD" renamed to "set_takeWhileD"
+
 * New lemma collection field_simps (an extension of ring_simps)
   for manipulating (in)equations involving division. Multiplies
   with all denominators that can be proved to be non-zero (in equations)

@@ -1410,7 +1410,7 @@ lemma dropWhile_append2 [simp]:
 "(!!x. x:set xs ==> P(x)) ==> dropWhile P (xs @ ys) = dropWhile P ys"
 by (induct xs) auto
 
-lemma set_take_whileD: "x : set (takeWhile P xs) ==> x : set xs \<and> P x"
+lemma set_takeWhileD: "x : set (takeWhile P xs) ==> x : set xs \<and> P x"
 by (induct xs) (auto split: split_if_asm)
 
 lemma takeWhile_eq_all_conv[simp]:
