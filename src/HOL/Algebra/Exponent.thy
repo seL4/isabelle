@@ -51,9 +51,6 @@ apply (rule disjI1)
 apply (rule_tac [2] disjI2)
 apply (erule_tac n = m in dvdE)
 apply (erule_tac [2] n = n in dvdE, auto)
-apply (rule_tac [2] k = p in dvd_mult_cancel)
-apply (rule_tac k = p in dvd_mult_cancel)
-apply (simp_all add: mult_ac)
 done
 
 
@@ -77,7 +74,6 @@ apply (erule prime_dvd_cases [THEN disjE], assumption, auto)
  apply (drule_tac x = nat in spec)
  apply (drule_tac x = b in spec)
  apply simp
- apply (blast intro: dvd_refl mult_dvd_mono)
 (*case 2: p dvd n*)
 apply (case_tac "b")
  apply simp
@@ -85,7 +81,6 @@ apply clarify
 apply (drule spec, drule spec, erule (1) notE impE)
 apply (drule_tac x = a in spec)
 apply (drule_tac x = nat in spec, simp)
-apply (blast intro: dvd_refl mult_dvd_mono)
 done
 
 (*needed in this form in Sylow.ML*)
