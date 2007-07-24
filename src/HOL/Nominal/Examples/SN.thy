@@ -24,10 +24,9 @@ by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
 
 lemma fresh_fact: 
   fixes a::"name"
-  assumes a: "a\<sharp>t1"
-  and     b: "a\<sharp>t2"
+  assumes a: "a\<sharp>t1" "a\<sharp>t2"
   shows "a\<sharp>t1[b::=t2]"
-using a b
+using a
 by (nominal_induct t1 avoiding: a b t2 rule: lam.induct)
    (auto simp add: abs_fresh fresh_atm)
 
@@ -62,20 +61,15 @@ by (nominal_induct t avoiding: \<theta> c s rule: lam.induct)
 inductive 
   Beta :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _" [80,80] 80)
 where
-  b1[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^isub>\<beta>(App s2 t)"
-| b2[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (App t s1)\<longrightarrow>\<^isub>\<beta>(App t s2)"
-| b3[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> (Lam [a].s1)\<longrightarrow>\<^isub>\<beta> (Lam [a].s2)"
-| b4[intro!]: "a\<sharp>s2 \<Longrightarrow>(App (Lam [a].s1) s2)\<longrightarrow>\<^isub>\<beta>(s1[a::=s2])"
+  b1[intro!]: "s1 \<longrightarrow>\<^isub>\<beta> s2 \<Longrightarrow> App s1 t \<longrightarrow>\<^isub>\<beta> App s2 t"
+| b2[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> App t s1 \<longrightarrow>\<^isub>\<beta> App t s2"
+| b3[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> Lam [a].s1 \<longrightarrow>\<^isub>\<beta> Lam [a].s2"
+| b4[intro!]: "a\<sharp>s2 \<Longrightarrow> App (Lam [a].s1) s2\<longrightarrow>\<^isub>\<beta> (s1[a::=s2])"
 
 equivariance Beta
 
 nominal_inductive Beta
   by (simp_all add: abs_fresh fresh_fact')
-
-abbreviation 
-  "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta>\<^sup>* _" [80,80] 80) 
-where
-  "t1 \<longrightarrow>\<^isub>\<beta>\<^sup>* t2 \<equiv> Beta\<^sup>*\<^sup>* t1 t2"
 
 lemma supp_beta: 
   assumes a: "t\<longrightarrow>\<^isub>\<beta> s"
@@ -84,7 +78,11 @@ using a
 by (induct)
    (auto intro!: simp add: abs_supp lam.supp subst_supp)
 
-lemma beta_abs: "Lam [a].t\<longrightarrow>\<^isub>\<beta> t'\<Longrightarrow>\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>\<beta> t''"
+lemma beta_abs: 
+  assumes a: "Lam [a].t\<longrightarrow>\<^isub>\<beta> t'"
+  shows "\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>\<beta> t''"
+using a
+apply -
 apply(ind_cases "Lam [a].t  \<longrightarrow>\<^isub>\<beta> t'")
 apply(auto simp add: lam.distinct lam.inject)
 apply(auto simp add: alpha)
@@ -156,9 +154,8 @@ lemma fresh_context:
   assumes a: "a\<sharp>\<Gamma>"
   shows "\<not>(\<exists>\<tau>::ty. (a,\<tau>)\<in>set \<Gamma>)"
 using a
-apply(induct \<Gamma>)
-apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
-done
+by (induct \<Gamma>)
+   (auto simp add: fresh_prod fresh_list_cons fresh_atm)
 
 inductive 
   typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60)
@@ -193,20 +190,63 @@ proof -
   thus "NORMAL (Var a)" by (force simp add: NORMAL_def)
 qed
 
-constdefs
-  "SN" :: "lam \<Rightarrow> bool"
-  "SN t \<equiv> termip Beta t"
+inductive 
+  SN :: "lam \<Rightarrow> bool"
+where
+  SN_intro: "(\<And>t'. t \<longrightarrow>\<^isub>\<beta> t' \<Longrightarrow> SN t') \<Longrightarrow> SN t"
 
-lemma SN_preserved: "\<lbrakk>SN(t1);t1\<longrightarrow>\<^isub>\<beta> t2\<rbrakk>\<Longrightarrow>SN(t2)"
-apply(simp add: SN_def)
-apply(drule_tac a="t2" in accp_downward)
-apply(auto)
-done
+lemma SN_elim:
+  assumes a: "SN M"
+  shows "(\<forall>M. (\<forall>N. M \<longrightarrow>\<^isub>\<beta> N \<longrightarrow> P N)\<longrightarrow> P M) \<longrightarrow> P M"
+using a
+by (induct rule: SN.SN.induct) (blast)
 
-lemma SN_intro: "(\<forall>t2. t1\<longrightarrow>\<^isub>\<beta>t2 \<longrightarrow> SN(t2))\<Longrightarrow>SN(t1)"
-apply(simp add: SN_def)
-apply(rule accp.accI)
-apply(auto)
+lemma SN_preserved: 
+  assumes a: "SN t1" "t1\<longrightarrow>\<^isub>\<beta> t2"
+  shows "SN t2"
+using a 
+by (cases) (auto)
+
+lemma double_SN_aux:
+  assumes a: "SN a"
+  and b: "SN b"
+  and hyp: "\<And>x z.
+    (\<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> SN y) \<Longrightarrow>
+    (\<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> P y z) \<Longrightarrow>
+    (\<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> SN u) \<Longrightarrow>
+    (\<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> P x u) \<Longrightarrow> P x z"
+  shows "P a b"
+proof -
+  from a
+  have r: "\<And>b. SN b \<Longrightarrow> P a b"
+  proof (induct a rule: SN.SN.induct)
+    case (SN_intro x)
+    note SNI' = SN_intro
+    have "SN b" by fact
+    thus ?case
+    proof (induct b rule: SN.SN.induct)
+      case (SN_intro y)
+      show ?case
+	apply (rule hyp)
+	apply (erule SNI')
+	apply (erule SNI')
+	apply (rule SN.SN_intro)
+	apply (erule SN_intro)+
+	done
+    qed
+  qed
+  from b show ?thesis by (rule r)
+qed
+
+lemma double_SN[consumes 2]:
+  assumes a: "SN a"
+  and     b: "SN b" 
+  and     c: "\<And>x z. \<lbrakk>\<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> P y z; \<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> P x u\<rbrakk> \<Longrightarrow> P x z"
+  shows "P a b"
+using a b c
+apply(rule_tac double_SN_aux)
+apply(assumption)+
+apply(blast)
 done
 
 section {* Candidates *}
@@ -217,43 +257,35 @@ consts
 nominal_primrec
   "RED (TVar X) = {t. SN(t)}"
   "RED (\<tau>\<rightarrow>\<sigma>) =   {t. \<forall>u. (u\<in>RED \<tau> \<longrightarrow> (App t u)\<in>RED \<sigma>)}"
-apply(rule TrueI)+
-done
+by (rule TrueI)+
 
 constdefs
   NEUT :: "lam \<Rightarrow> bool"
-  "NEUT t \<equiv> (\<exists>a. t=Var a)\<or>(\<exists>t1 t2. t=App t1 t2)" 
+  "NEUT t \<equiv> (\<exists>a. t = Var a) \<or> (\<exists>t1 t2. t = App t1 t2)" 
 
 (* a slight hack to get the first element of applications *)
+(* this is needed to get (SN t) from SN (App t s)         *) 
 inductive 
   FST :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<guillemotright> _" [80,80] 80)
 where
   fst[intro!]:  "(App t s) \<guillemotright> t"
 
-lemma fst_elim[elim!]: 
-  shows "(App t s) \<guillemotright> t' \<Longrightarrow> t=t'"
-apply(ind_cases "App t s \<guillemotright> t'")
-apply(simp add: lam.inject)
-done
-
-lemma qq3: "SN(App t s)\<Longrightarrow>SN(t)"
-apply(simp add: SN_def)
-apply(subgoal_tac "\<forall>z. (App t s \<guillemotright> z) \<longrightarrow> termip Beta z")(*A*)
-apply(force)
-(*A*)
-apply(erule accp_induct)
-apply(clarify)
-apply(ind_cases "x \<guillemotright> z" for x z)
-apply(clarify)
-apply(rule accp.accI)
-apply(auto intro: b1)
-done
+lemma SN_of_FST_of_App: 
+  assumes a: "SN (App t s)"
+  shows "SN t"
+using a
+proof - 
+  from a have "\<forall>z. (App t s \<guillemotright> z) \<longrightarrow> SN z"
+    by (induct rule: SN.SN.induct)
+       (blast elim: FST.cases intro: SN_intro)
+  then show "SN t" by blast
+qed
 
 section {* Candidates *}
 
 constdefs
   "CR1" :: "ty \<Rightarrow> bool"
-  "CR1 \<tau> \<equiv> \<forall> t. (t\<in>RED \<tau> \<longrightarrow> SN(t))"
+  "CR1 \<tau> \<equiv> \<forall>t. (t\<in>RED \<tau> \<longrightarrow> SN t)"
 
   "CR2" :: "ty \<Rightarrow> bool"
   "CR2 \<tau> \<equiv> \<forall>t t'. (t\<in>RED \<tau> \<and> t \<longrightarrow>\<^isub>\<beta> t') \<longrightarrow> t'\<in>RED \<tau>"
@@ -267,59 +299,78 @@ constdefs
   "CR4" :: "ty \<Rightarrow> bool"
   "CR4 \<tau> \<equiv> \<forall>t. (NEUT t \<and> NORMAL t) \<longrightarrow>t\<in>RED \<tau>"
 
-lemma CR3_CR4: "CR3 \<tau> \<Longrightarrow> CR4 \<tau>"
-apply(simp (no_asm_use) add: CR3_def CR3_RED_def CR4_def NORMAL_def)
-apply(blast)
-done
+lemma CR3_implies_CR4: 
+  assumes a: "CR3 \<tau>" 
+  shows "CR4 \<tau>"
+using a by (auto simp add: CR3_def CR3_RED_def CR4_def NORMAL_def)
 
-lemma sub_ind: 
-  "SN(u)\<Longrightarrow>(u\<in>RED \<tau>\<longrightarrow>(\<forall>t. (NEUT t\<and>CR2 \<tau>\<and>CR3 \<sigma>\<and>CR3_RED t (\<tau>\<rightarrow>\<sigma>))\<longrightarrow>(App t u)\<in>RED \<sigma>))"
-apply(simp add: SN_def)
-apply(erule accp_induct)
-apply(auto)
-apply(simp add: CR3_def)
-apply(rotate_tac 5)
-apply(drule_tac x="App t x" in spec)
-apply(drule mp)
-apply(rule conjI)
-apply(force simp only: NEUT_def)
-apply(simp (no_asm) add: CR3_RED_def)
-apply(clarify)
-apply(ind_cases "App t x \<longrightarrow>\<^isub>\<beta> t'" for x t t')
-apply(simp_all add: lam.inject)
-apply(simp only:  CR3_RED_def)
-apply(drule_tac x="s2" in spec)
-apply(simp)
-apply(drule_tac x="s2" in spec)
-apply(simp)
-apply(drule mp)
-apply(simp (no_asm_use) add: CR2_def)
-apply(blast)
-apply(drule_tac x="ta" in spec)
-apply(force)
-apply(auto simp only: NEUT_def lam.inject lam.distinct)
-done
+(* sub_induction in the arrow-type case for the next proof *) 
+lemma sub_induction: 
+  assumes a: "SN(u)"
+  and     b: "u\<in>RED \<tau>"
+  and     c1: "NEUT t"
+  and     c2: "CR2 \<tau>"
+  and     c3: "CR3 \<sigma>"
+  and     c4: "CR3_RED t (\<tau>\<rightarrow>\<sigma>)"
+  shows "(App t u)\<in>RED \<sigma>"
+using a b
+proof (induct)
+  fix u
+  assume as: "u\<in>RED \<tau>"
+  assume ih: " \<And>u'. \<lbrakk>u \<longrightarrow>\<^isub>\<beta> u'; u' \<in> RED \<tau>\<rbrakk> \<Longrightarrow> App t u' \<in> RED \<sigma>"
+  have "NEUT (App t u)" using c1 by (auto simp add: NEUT_def)
+  moreover
+  have "CR3_RED (App t u) \<sigma>" unfolding CR3_RED_def
+  proof (intro strip)
+    fix r
+    assume red: "App t u \<longrightarrow>\<^isub>\<beta> r"
+    moreover
+    { assume "\<exists>t'. t \<longrightarrow>\<^isub>\<beta> t' \<and> r = App t' u"
+      then obtain t' where a1: "t \<longrightarrow>\<^isub>\<beta> t'" and a2: "r = App t' u" by blast
+      have "t'\<in>RED (\<tau>\<rightarrow>\<sigma>)" using c4 a1 by (simp add: CR3_RED_def)
+      then have "App t' u\<in>RED \<sigma>" using as by simp
+      then have "r\<in>RED \<sigma>" using a2 by simp
+    }
+    moreover
+    { assume "\<exists>u'. u \<longrightarrow>\<^isub>\<beta> u' \<and> r = App t u'"
+      then obtain u' where b1: "u \<longrightarrow>\<^isub>\<beta> u'" and b2: "r = App t u'" by blast
+      have "u'\<in>RED \<tau>" using as b1 c2 by (auto simp add: CR2_def)
+      with ih have "App t u' \<in> RED \<sigma>" using b1 by simp
+      then have "r\<in>RED \<sigma>" using b2 by simp
+    }
+    moreover
+    { assume "\<exists>x t'. t = Lam [x].t'"
+      then obtain x t' where "t = Lam [x].t'" by blast
+      then have "NEUT (Lam [x].t')" using c1 by simp
+      then have "False" by (simp add: NEUT_def)
+      then have "r\<in>RED \<sigma>" by simp
+    }
+    ultimately show "r \<in> RED \<sigma>" by (cases) (auto simp add: lam.inject)
+  qed
+  ultimately show "App t u \<in> RED \<sigma>" using c3 by (simp add: CR3_def)
+qed 
 
+(* properties of the candiadates *)
 lemma RED_props: 
   shows "CR1 \<tau>" and "CR2 \<tau>" and "CR3 \<tau>"
 proof (nominal_induct \<tau> rule: ty.induct)
   case (TVar a)
   { case 1 show "CR1 (TVar a)" by (simp add: CR1_def)
   next
-    case 2 show "CR2 (TVar a)" by (force intro: SN_preserved simp add: CR2_def)
+    case 2 show "CR2 (TVar a)" by (auto intro: SN_preserved simp add: CR2_def)
   next
-    case 3 show "CR3 (TVar a)" by (force intro: SN_intro simp add: CR3_def CR3_RED_def)
+    case 3 show "CR3 (TVar a)" by (auto intro: SN_intro simp add: CR3_def CR3_RED_def)
   }
 next
   case (TArr \<tau>1 \<tau>2)
   { case 1
     have ih_CR3_\<tau>1: "CR3 \<tau>1" by fact
     have ih_CR1_\<tau>2: "CR1 \<tau>2" by fact
-    show "CR1 (\<tau>1 \<rightarrow> \<tau>2)"
-    proof (simp add: CR1_def, intro strip)
+    show "CR1 (\<tau>1 \<rightarrow> \<tau>2)" unfolding CR1_def
+    proof (simp, intro strip)
       fix t
       assume a: "\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t u \<in> RED \<tau>2"
-      from ih_CR3_\<tau>1 have "CR4 \<tau>1" by (simp add: CR3_CR4) 
+      from ih_CR3_\<tau>1 have "CR4 \<tau>1" by (simp add: CR3_implies_CR4) 
       moreover
       have "NEUT (Var a)" by (force simp add: NEUT_def)
       moreover
@@ -327,160 +378,129 @@ next
       ultimately have "(Var a)\<in> RED \<tau>1" by (simp add: CR4_def)
       with a have "App t (Var a) \<in> RED \<tau>2" by simp
       hence "SN (App t (Var a))" using ih_CR1_\<tau>2 by (simp add: CR1_def)
-      thus "SN(t)" by (rule qq3)
+      thus "SN(t)" by (rule SN_of_FST_of_App)
     qed
   next
     case 2
     have ih_CR1_\<tau>1: "CR1 \<tau>1" by fact
     have ih_CR2_\<tau>2: "CR2 \<tau>2" by fact
-    show "CR2 (\<tau>1 \<rightarrow> \<tau>2)"
-    proof (simp add: CR2_def, intro strip)
+    show "CR2 (\<tau>1 \<rightarrow> \<tau>2)" unfolding CR2_def
+    proof (simp, intro strip)
       fix t1 t2 u
       assume "(\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t1 u \<in> RED \<tau>2) \<and>  t1 \<longrightarrow>\<^isub>\<beta> t2" 
 	and  "u \<in> RED \<tau>1"
       hence "t1 \<longrightarrow>\<^isub>\<beta> t2" and "App t1 u \<in> RED \<tau>2" by simp_all
-      thus "App t2 u \<in> RED \<tau>2" using ih_CR2_\<tau>2 by (force simp add: CR2_def)
+      thus "App t2 u \<in> RED \<tau>2" using ih_CR2_\<tau>2 by (auto simp add: CR2_def)
     qed
   next
     case 3
     have ih_CR1_\<tau>1: "CR1 \<tau>1" by fact
     have ih_CR2_\<tau>1: "CR2 \<tau>1" by fact
     have ih_CR3_\<tau>2: "CR3 \<tau>2" by fact
-    show "CR3 (\<tau>1 \<rightarrow> \<tau>2)"
-    proof (simp add: CR3_def, intro strip)
+    show "CR3 (\<tau>1 \<rightarrow> \<tau>2)" unfolding CR3_def
+    proof (simp, intro strip)
       fix t u
       assume a1: "u \<in> RED \<tau>1"
       assume a2: "NEUT t \<and> CR3_RED t (\<tau>1 \<rightarrow> \<tau>2)"
-      from a1 have "SN(u)" using ih_CR1_\<tau>1 by (simp add: CR1_def)
-      hence "u\<in>RED \<tau>1\<longrightarrow>(\<forall>t. (NEUT t\<and>CR2 \<tau>1\<and>CR3 \<tau>2\<and>CR3_RED t (\<tau>1\<rightarrow>\<tau>2))\<longrightarrow>(App t u)\<in>RED \<tau>2)" 
-	by (rule sub_ind)
-      with a1 a2 show "(App t u)\<in>RED \<tau>2" using ih_CR2_\<tau>1 ih_CR3_\<tau>2 by simp
+      have "SN(u)" using a1 ih_CR1_\<tau>1 by (simp add: CR1_def)
+      then show "(App t u)\<in>RED \<tau>2" using ih_CR2_\<tau>1 ih_CR3_\<tau>2 a1 a2 by (blast intro: sub_induction)
     qed
   }
 qed
-    
-lemma double_acc_aux:
-  assumes a_acc: "accp r a"
-  and b_acc: "accp r b"
-  and hyp: "\<And>x z.
-    (\<And>y. r y x \<Longrightarrow> accp r y) \<Longrightarrow>
-    (\<And>y. r y x \<Longrightarrow> P y z) \<Longrightarrow>
-    (\<And>u. r u z \<Longrightarrow> accp r u) \<Longrightarrow>
-    (\<And>u. r u z \<Longrightarrow> P x u) \<Longrightarrow> P x z"
-  shows "P a b"
+   
+(* not as simple as on paper, because of the stronger double_SN induction *) 
+lemma abs_RED: 
+  assumes asm: "\<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>"
+  shows "Lam [x].t\<in>RED (\<tau>\<rightarrow>\<sigma>)"
 proof -
-  from a_acc
-  have r: "\<And>b. accp r b \<Longrightarrow> P a b"
-  proof (induct a rule: accp.induct)
-    case (accI x)
-    note accI' = accI
-    have "accp r b" by fact
-    thus ?case
-    proof (induct b rule: accp.induct)
-      case (accI y)
-      show ?case
-	apply (rule hyp)
-	apply (erule accI')
-	apply (erule accI')
-	apply (rule accp.accI)
-	apply (erule accI)
-	apply (erule accI)
-	apply (erule accI)
+  have b1: "SN t" 
+  proof -
+    have "Var x\<in>RED \<tau>"
+    proof -
+      have "CR4 \<tau>" by (simp add: RED_props CR3_implies_CR4)
+      moreover
+      have "NEUT (Var x)" by (auto simp add: NEUT_def)
+      moreover
+      have "NORMAL (Var x)" by (auto elim: Beta.cases simp add: NORMAL_def)
+      ultimately show "Var x\<in>RED \<tau>" by (simp add: CR4_def)
+    qed
+    then have "t[x::=Var x]\<in>RED \<sigma>" using asm by simp
+    then have "t\<in>RED \<sigma>" by (simp add: id_subs)
+    moreover 
+    have "CR1 \<sigma>" by (simp add: RED_props)
+    ultimately show "SN t" by (simp add: CR1_def)
+  qed
+  show "Lam [x].t\<in>RED (\<tau>\<rightarrow>\<sigma>)"
+  proof (simp, intro strip)
+    fix u
+    assume b2: "u\<in>RED \<tau>"
+    then have b3: "SN u" using RED_props by (auto simp add: CR1_def)
+    show "App (Lam [x].t) u \<in> RED \<sigma>" using b1 b3 b2 asm
+    proof(induct t u rule: double_SN)
+      fix t u
+      assume ih1: "\<And>t'.  \<lbrakk>t \<longrightarrow>\<^isub>\<beta> t'; u\<in>RED \<tau>; \<forall>s\<in>RED \<tau>. t'[x::=s]\<in>RED \<sigma>\<rbrakk> \<Longrightarrow> App (Lam [x].t') u \<in> RED \<sigma>" 
+      assume ih2: "\<And>u'.  \<lbrakk>u \<longrightarrow>\<^isub>\<beta> u'; u'\<in>RED \<tau>; \<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>\<rbrakk> \<Longrightarrow> App (Lam [x].t) u' \<in> RED \<sigma>"
+      assume as1: "u \<in> RED \<tau>"
+      assume as2: "\<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>"
+      have "CR3_RED (App (Lam [x].t) u) \<sigma>" unfolding CR3_RED_def
+      proof(intro strip)
+	fix r
+	assume red: "App (Lam [x].t) u \<longrightarrow>\<^isub>\<beta> r"
+	moreover
+	{ assume "\<exists>t'. t \<longrightarrow>\<^isub>\<beta> t' \<and> r = App (Lam [x].t') u"
+	  then obtain t' where a1: "t \<longrightarrow>\<^isub>\<beta> t'" and a2: "r = App (Lam [x].t') u" by blast
+	  have "App (Lam [x].t') u\<in>RED \<sigma>" using ih1 a1 as1 as2
+	    apply(auto)
+	    apply(drule_tac x="t'" in meta_spec)
+	    apply(simp)
+	    apply(drule meta_mp)
+	    apply(auto)
+	    apply(drule_tac x="s" in bspec)
+	    apply(simp)
+	    apply(subgoal_tac "CR2 \<sigma>")
+	    apply(unfold CR2_def)[1]
+	    apply(drule_tac x="t[x::=s]" in spec)
+	    apply(drule_tac x="t'[x::=s]" in spec)
+	    apply(simp add: beta_subst)
+	    apply(simp add: RED_props)
+	    done
+	  then have "r\<in>RED \<sigma>" using a2 by simp
+	}
+	moreover
+	{ assume "\<exists>u'. u \<longrightarrow>\<^isub>\<beta> u' \<and> r = App (Lam [x].t) u'"
+	  then obtain u' where b1: "u \<longrightarrow>\<^isub>\<beta> u'" and b2: "r = App (Lam [x].t) u'" by blast
+	  have "App (Lam [x].t) u'\<in>RED \<sigma>" using ih2 b1 as1 as2
+	    apply(auto)
+	    apply(drule_tac x="u'" in meta_spec)
+	    apply(simp)
+	    apply(drule meta_mp)
+	    apply(subgoal_tac "CR2 \<tau>")
+	    apply(unfold CR2_def)[1]
+	    apply(drule_tac x="u" in spec)
+	    apply(drule_tac x="u'" in spec)
+	    apply(simp)
+	    apply(simp add: RED_props)
+	    apply(simp)
+	    done
+	  then have "r\<in>RED \<sigma>" using b2 by simp
+	}
+	moreover
+	{ assume "r = t[x::=u]"
+	  then have "r\<in>RED \<sigma>" using as1 as2 by auto
+	}
+	ultimately show "r \<in> RED \<sigma>" 
+	apply(cases) 
+	apply(auto simp add: lam.inject)
+	apply(drule beta_abs)
+	apply(auto simp add: alpha subst_rename)
 	done
     qed
+    moreover 
+    have "NEUT (App (Lam [x].t) u)" unfolding NEUT_def by (auto)
+    ultimately show "App (Lam [x].t) u \<in> RED \<sigma>"  using RED_props by (simp add: CR3_def)
   qed
-  from b_acc show ?thesis by (rule r)
 qed
-
-lemma double_acc:
-  "\<lbrakk>accp r a; accp r b; \<forall>x z. ((\<forall>y. r y x \<longrightarrow> P y z) \<and> (\<forall>u. r u z \<longrightarrow> P x u)) \<longrightarrow> P x z\<rbrakk> \<Longrightarrow> P a b"
-apply(rule_tac r="r" in double_acc_aux)
-apply(assumption)+
-apply(blast)
-done
-
-lemma abs_RED: "(\<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>)\<longrightarrow>Lam [x].t\<in>RED (\<tau>\<rightarrow>\<sigma>)"
-apply(simp)
-apply(clarify)
-apply(subgoal_tac "termip Beta t")(*1*)
-apply(erule rev_mp)
-apply(subgoal_tac "u \<in> RED \<tau>")(*A*)
-apply(erule rev_mp)
-apply(rule_tac a="t" and b="u" in double_acc)
-apply(assumption)
-apply(subgoal_tac "CR1 \<tau>")(*A*)
-apply(simp add: CR1_def SN_def)
-(*A*)
-apply(force simp add: RED_props)
-apply(simp)
-apply(clarify)
-apply(subgoal_tac "CR3 \<sigma>")(*B*)
-apply(simp add: CR3_def)
-apply(rotate_tac 6)
-apply(drule_tac x="App(Lam[x].xa ) z" in spec)
-apply(drule mp)
-apply(rule conjI)
-apply(force simp add: NEUT_def)
-apply(simp add: CR3_RED_def)
-apply(clarify)
-apply(ind_cases "App(Lam[x].xa) z \<longrightarrow>\<^isub>\<beta> t'" for xa z t')
-apply(auto simp add: lam.inject lam.distinct)
-apply(drule beta_abs)
-apply(auto)
-apply(drule_tac x="t''" in spec)
-apply(simp)
-apply(drule mp)
-apply(clarify)
-apply(drule_tac x="s" in bspec)
-apply(assumption)
-apply(subgoal_tac "xa [ x ::= s ] \<longrightarrow>\<^isub>\<beta>  t'' [ x ::= s ]")(*B*)
-apply(subgoal_tac "CR2 \<sigma>")(*C*)
-apply(simp (no_asm_use) add: CR2_def)
-apply(blast)
-(*C*)
-apply(force simp add: RED_props)
-(*B*)
-apply(force intro!: beta_subst)
-apply(assumption)
-apply(rotate_tac 3)
-apply(drule_tac x="s2" in spec)
-apply(subgoal_tac "s2\<in>RED \<tau>")(*D*)
-apply(simp)
-(*D*)
-apply(subgoal_tac "CR2 \<tau>")(*E*)
-apply(simp (no_asm_use) add: CR2_def)
-apply(blast)
-(*E*)
-apply(force simp add: RED_props)
-apply(simp add: alpha)
-apply(erule disjE)
-apply(force)
-apply(auto)
-apply(simp add: subst_rename)
-apply(drule_tac x="z" in bspec)
-apply(assumption)
-(*B*)
-apply(force simp add: RED_props)
-(*1*)
-apply(drule_tac x="Var x" in bspec)
-apply(subgoal_tac "CR3 \<tau>")(*2*) 
-apply(drule CR3_CR4)
-apply(simp add: CR4_def)
-apply(drule_tac x="Var x" in spec)
-apply(drule mp)
-apply(rule conjI)
-apply(force simp add: NEUT_def)
-apply(simp add: NORMAL_def)
-apply(clarify)
-apply(ind_cases "Var x \<longrightarrow>\<^isub>\<beta> t'" for t')
-apply(auto simp add: lam.inject lam.distinct)
-apply(force simp add: RED_props)
-apply(simp add: id_subs)
-apply(subgoal_tac "CR1 \<sigma>")(*3*)
-apply(simp add: CR1_def SN_def)
-(*3*)
-apply(force simp add: RED_props)
-done
+qed
 
 abbreviation 
  mapsto :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> bool" ("_ maps _ to _" [55,55,55] 55) 
@@ -506,7 +526,7 @@ proof(nominal_induct  avoiding: \<theta> rule: typing.strong_induct)
     using fresh \<theta>_cond fresh_context by simp
   then have "\<forall>s\<in>RED \<sigma>. \<theta><t>[a::=s] \<in> RED \<tau>" 
     using fresh by (simp add: psubst_subst)
-  then have "(Lam [a].(\<theta><t>)) \<in> RED (\<sigma> \<rightarrow> \<tau>)" by (simp only: abs_RED)
+  then have "Lam [a].(\<theta><t>) \<in> RED (\<sigma> \<rightarrow> \<tau>)" by (simp only: abs_RED)
   then show "\<theta><(Lam [a].t)> \<in> RED (\<sigma> \<rightarrow> \<tau>)" using fresh by simp
 qed auto
 
@@ -531,16 +551,15 @@ by (induct \<Gamma>)
 
 lemma id_apply:  
   shows "(id \<Gamma>)<t> = t"
-apply(nominal_induct t avoiding: \<Gamma> rule: lam.induct)
-apply(auto simp add: id_maps id_fresh)
-done
+by (nominal_induct t avoiding: \<Gamma> rule: lam.induct)
+   (auto simp add: id_maps id_fresh)
 
 lemma id_closes:
   shows "(id \<Gamma>) closes \<Gamma>"
 apply(auto)
 apply(simp add: id_maps)
 apply(subgoal_tac "CR3 T") --"A"
-apply(drule CR3_CR4)
+apply(drule CR3_implies_CR4)
 apply(simp add: CR4_def)
 apply(drule_tac x="Var x" in spec)
 apply(force simp add: NEUT_def NORMAL_Var)
