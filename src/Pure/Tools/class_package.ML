@@ -29,7 +29,6 @@ sig
   val instance_sort_cmd: string * string -> theory -> Proof.state
   val prove_instance_sort: tactic -> class * sort -> theory -> theory
 
-  val INTERPRET_DEF: bool ref
   val class_of_locale: theory -> string -> class option
   val add_const_in_class: string -> (string * term) * Syntax.mixfix
     -> theory -> theory
@@ -210,7 +209,7 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
     |-> (fn (cs, defs) => do_proof (after_qed cs defs) arities)
   end;
 
-fun instance_arity_e' do_proof = gen_instance_arity Sign.read_arity read_def_cmd do_proof;
+fun instance_arity_cmd' do_proof = gen_instance_arity Sign.read_arity read_def_cmd do_proof;
 fun instance_arity' do_proof = gen_instance_arity Sign.cert_arity read_def do_proof;
 fun tactic_proof tac after_qed arities =
   fold (fn arity => AxClass.prove_arity arity tac) arities
@@ -218,7 +217,7 @@ fun tactic_proof tac after_qed arities =
 
 in
 
-val instance_arity_cmd = instance_arity_e' axclass_instance_arity;
+val instance_arity_cmd = instance_arity_cmd' axclass_instance_arity;
 val instance_arity = instance_arity' axclass_instance_arity;
 val prove_instance_arity = instance_arity' o tactic_proof;
 
@@ -235,9 +234,7 @@ datatype class_data = ClassData of {
   consts: (string * string) list
     (*locale parameter ~> toplevel theory constant*),
   v: string option,
-  intro: thm,
-  propnames: string list
-    (*for ad-hoc instance_in*)
+  intro: thm
 };
 
 fun rep_classdata (ClassData c) = c;
@@ -281,8 +278,6 @@ fun these_intros thy =
   Graph.fold (fn (_, (data, _)) => insert Thm.eq_thm ((#intro o rep_classdata) data))
     ((fst o ClassData.get) thy) [];
 
-val the_propnames = #propnames oo the_class_data;
-
 fun print_classes thy =
   let
     val algebra = Sign.classes_of thy;
@@ -318,15 +313,14 @@ fun print_classes thy =
 
 (* updaters *)
 
-fun add_class_data ((class, superclasses), (locale, consts, v, intro, propnames)) =
+fun add_class_data ((class, superclasses), (locale, consts, v, intro)) =
   ClassData.map (fn (gr, tab) => (
     gr
     |> Graph.new_node (class, ClassData {
       locale = locale,
       consts = consts,
       v = v,
-      intro = intro,
-      propnames = propnames}
+      intro = intro}
     )
     |> fold (curry Graph.add_edge class) superclasses,
     tab
@@ -380,56 +374,38 @@ fun prove_interpretation_in tac after_qed (name, expr) thy =
   |> Proof.global_terminal_proof (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
   |> ProofContext.theory_of;
 
-fun instance_sort' do_proof (class, sort) theory =
+
+(* constructing class introduction and other rules from axclass and locale rules *)
+
+fun mk_instT class = Symtab.empty
+  |> Symtab.update (AxClass.param_tyvarname, TFree (AxClass.param_tyvarname, [class]));
+
+fun mk_inst class param_names cs =
+  Symtab.empty
+  |> fold2 (fn v => fn (c, ty) => Symtab.update (v, Const
+       (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty))) param_names cs;
+
+fun OF_LAST thm1 thm2 =
   let
-    val loc_name = (#locale o the_class_data theory) class;
-    val loc_expr =
-      (Locale.Merge o map (Locale.Locale o #locale o the_class_data theory)) sort;
-    val const_names = (map (NameSpace.base o snd)
-      o maps (#consts o the_class_data theory)
-      o ancestry theory) [class];
-    fun get_thms thy =
-      ancestry thy sort
-      |> AList.make (the_propnames thy)
-      |> map (apsnd (map (NameSpace.append (Logic.const_of_class loc_name))))
-      |> map_filter (fn (superclass, thm_names) =>
-          case map_filter (try (PureThy.get_thm thy o Name)) thm_names
-           of [] => NONE
-            | thms => SOME (superclass, thms));
-    fun after_qed thy =
-      thy
-      |> `get_thms
-      |-> fold (fn (supclass, thms) => I
-            AxClass.prove_classrel (class, supclass)
-              (ALLGOALS (K (intro_classes_tac [])) THEN
-                (ALLGOALS o ProofContext.fact_tac) thms))
-  in
-    theory
-    |> do_proof after_qed (loc_name, loc_expr)
-  end;
+    val n = (length o Logic.strip_imp_prems o prop_of) thm2;
+  in (thm1 RSN (n, thm2)) end;
 
-val prove_instance_sort = instance_sort' o prove_interpretation_in;
-
-
-(* constructing class introduction rules from axclass and locale rules *)
-
-fun class_intro thy locale class sups =
+fun strip_all_ofclass thy sort =
   let
-    fun OF_LAST thm1 thm2 =
-      let
-        val n = (length o Logic.strip_imp_prems o prop_of) thm2;
-      in (thm1 RSN (n, thm2)) end;
+    val typ = TVar ((AxClass.param_tyvarname, 0), sort);
     fun prem_inclass t =
       case Logic.strip_imp_prems t
        of ofcls :: _ => try Logic.dest_inclass ofcls
         | [] => NONE;
-    val typ = TVar ((AxClass.param_tyvarname, 0), Sign.super_classes thy class);
     fun strip_ofclass class thm =
       thm OF (fst o AxClass.of_sort thy (typ, [class])) AxClass.cache;
-    fun strip_all_ofclass thm =
-      case (prem_inclass o Thm.prop_of) thm
-       of SOME (_, class) => thm |> strip_ofclass class |> strip_all_ofclass
-        | NONE => thm;
+    fun strip thm = case (prem_inclass o Thm.prop_of) thm
+     of SOME (_, class) => thm |> strip_ofclass class |> strip
+      | NONE => thm;
+  in strip end;
+
+fun class_intro thy locale class sups =
+  let
     fun class_elim class =
       case (map Drule.unconstrainTs o #axioms o AxClass.get_definition thy) class
        of [thm] => SOME thm
@@ -445,24 +421,39 @@ fun class_intro thy locale class sups =
     val raw_intro = case pred_intro'
      of SOME pred_intro => class_intro |> OF_LAST pred_intro
       | NONE => class_intro;
+    val sort = Sign.super_classes thy class;
+    val typ = TVar ((AxClass.param_tyvarname, 0), sort);
   in
     raw_intro
     |> Drule.instantiate' [SOME (Thm.ctyp_of thy typ)] []
-    |> strip_all_ofclass
+    |> strip_all_ofclass thy sort
     |> Thm.strip_shyps
     |> Drule.unconstrainTs
   end;
 
+fun interpretation_in_rule thy (class1, class2) =
+  let
+    val (params, consts) = split_list (param_map thy [class1]);
+    (*FIXME also remember this at add_class*)
+    fun mk_axioms class =
+      let
+        val name_locale = (#locale o the_class_data thy) class;
+        val inst = mk_inst class params consts;
+      in
+        Locale.global_asms_of thy name_locale
+        |> maps snd
+        |> (map o map_aterms) (fn Free (s, _) => (the o Symtab.lookup inst) s | t => t)
+        |> (map o map_types o map_atyps) (fn TFree _ => TFree ("'a", [class1]) | T => T)
+        |> map (ObjectLogic.ensure_propT thy)
+      end;
+    val (prems, concls) = pairself mk_axioms (class1, class2);
+  in
+    Goal.prove_global thy [] prems (Logic.mk_conjunction_list concls)
+      (Locale.intro_locales_tac true (ProofContext.init thy))
+  end;
 
-(* classes and instances *)
 
-fun mk_instT class = Symtab.empty
-  |> Symtab.update (AxClass.param_tyvarname, TFree (AxClass.param_tyvarname, [class]));
-
-fun mk_inst class param_names cs =
-  Symtab.empty
-  |> fold2 (fn v => fn (c, ty) => Symtab.update (v, Const
-       (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty))) param_names cs;
+(* classes *)
 
 local
 
@@ -530,10 +521,6 @@ fun gen_class add_locale prep_class prep_param bname
         Locale.global_asms_of thy name_locale
         |> map prep_asm
       end;
-    fun extract_axiom_names thy name_locale =
-      name_locale
-      |> Locale.global_asms_of thy
-      |> map (NameSpace.base o fst o fst) (*FIXME - is finally dropped*);
     fun note_intro name_axclass class_intro =
       PureThy.note_thmss_qualified "" ((Logic.const_of_class o NameSpace.base) name_axclass)
         [(("intro", []), [([class_intro], [])])]
@@ -547,11 +534,10 @@ fun gen_class add_locale prep_class prep_param bname
         axclass_params (bname, supsort) params (extract_assumes name_locale params) other_consts
       #-> (fn (name_axclass, ((_, (ax_terms, ax_axioms)), consts)) =>
         `(fn thy => class_intro thy name_locale name_axclass sups)
-      ##>> `(fn thy => extract_axiom_names thy name_locale)
-      #-> (fn (class_intro, axiom_names) =>
+      #-> (fn class_intro =>
         add_class_data ((name_axclass, sups),
           (name_locale, map (fst o fst) params ~~ map fst consts, v,
-            class_intro, axiom_names))
+            class_intro))
         (*FIXME: class_data should already contain data relevant
           for interpretation; use this later for class target*)
         (*FIXME: general export_fixes which may be parametrized
@@ -572,6 +558,41 @@ val class = gen_class Locale.add_locale_i Sign.certify_class (K I);
 end; (*local*)
 
 local
+
+fun singular_instance_subclass (class1, class2) thy  =
+  let
+    val interp = interpretation_in_rule thy (class1, class2);
+    val ax = #axioms (AxClass.get_definition thy class1);
+    val intro = #intro (AxClass.get_definition thy class2)
+      |> Drule.instantiate' [SOME (Thm.ctyp_of thy
+          (TVar ((AxClass.param_tyvarname, 0), [class1])))] [];
+    val thm = 
+      intro
+      |> OF_LAST (interp OF ax)
+      |> strip_all_ofclass thy (Sign.super_classes thy class2);
+  in
+    thy |> AxClass.add_classrel thm
+  end;
+
+fun instance_subsort (class, sort) thy =
+  let
+    val super_sort = (Graph.all_succs o #classes o Sorts.rep_algebra
+      o Sign.classes_of) thy sort;
+    val classes = filter_out (fn class' => Sign.subsort thy ([class], [class']))
+      (rev super_sort);
+  in
+    thy |> fold (curry singular_instance_subclass class) classes
+  end;
+
+fun instance_sort' do_proof (class, sort) theory =
+  let
+    val loc_name = (#locale o the_class_data theory) class;
+    val loc_expr =
+      (Locale.Merge o map (Locale.Locale o #locale o the_class_data theory)) sort;
+  in
+    theory
+    |> do_proof (instance_subsort (class, sort)) (loc_name, loc_expr)
+  end;
 
 fun gen_instance_sort prep_class prep_sort (raw_class, raw_sort) theory =
   let
@@ -595,6 +616,7 @@ in
 
 val instance_sort_cmd = gen_instance_sort Sign.read_class Sign.read_sort;
 val instance_sort = gen_instance_sort Sign.certify_class Sign.certify_sort;
+val prove_instance_sort = instance_sort' o prove_interpretation_in;
 val instance_class_cmd = gen_instance_class Sign.read_class;
 val instance_class = gen_instance_class Sign.certify_class;
 
@@ -602,8 +624,6 @@ end; (*local*)
 
 
 (** class target **)
-
-val INTERPRET_DEF = ref false;
 
 fun export_fixes thy class =
   let
@@ -651,8 +671,12 @@ fun add_const_in_class class ((c, rhs), syn) thy =
     |> Sign.parent_path
     |> Sign.sticky_prefix prfx
     |> PureThy.add_defs_i false [(def, [])]
-    |-> (fn [def] => ! INTERPRET_DEF ? interpret def)
+    |-> (fn [def] => interpret def)
     |> Sign.restore_naming thy
   end;
+
+
+(** experimental interpretation_in **)
+
 
 end;
