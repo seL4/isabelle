@@ -428,9 +428,10 @@ by (simp add: linorder_not_less neg_def)
 
 subsection{*Embedding of the Integers into any @{text ring_1}: @{term of_int}*}
 
-constdefs
-  of_int :: "int => 'a::ring_1"
-  "of_int z == contents (\<Union>(i,j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
+definition
+  of_int :: "int \<Rightarrow> 'a\<Colon>ring_1"
+where
+  "of_int z = contents (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 lemmas [code func del] = of_int_def
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
@@ -486,7 +487,7 @@ lemmas of_int_less_0_iff [simp] = of_int_less_iff [of _ 0, simplified]
 
 text{*Class for unital rings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}
-axclass ring_char_0 < ring_1, semiring_char_0
+class ring_char_0 = ring_1 + semiring_char_0
 
 lemma of_int_eq_iff [simp]:
      "(of_int w = (of_int z::'a::ring_char_0)) = (w = z)"
