@@ -471,8 +471,8 @@ proof -
   with R show ?thesis by (simp add: a_assoc r_neg )
 qed
 
-lemma (in ring) minus_eq:
-  "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y = x \<oplus> \<ominus> y"
+lemma (in abelian_group) minus_eq:
+  "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<ominus> y = x \<oplus> \<ominus> y"
   by (simp only: a_minus_def)
 
 text {* Setup algebra method:
