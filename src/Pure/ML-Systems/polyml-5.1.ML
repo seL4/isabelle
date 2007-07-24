@@ -5,6 +5,7 @@ Compatibility wrapper for Poly/ML 5.1.
 *)
 
 use "ML-Systems/polyml.ML";
+use "ML-Systems/multithreading_polyml.ML";
 
 val pointer_eq = PolyML.pointerEq;
 
@@ -39,54 +40,3 @@ fun use_file output verbose name =
     val instream = TextIO.openIn name;
     val txt = TextIO.inputAll instream before TextIO.closeIn instream;
   in use_text name output verbose txt end;
-
-
-
-(** multithreading **)
-
-open Thread;
-
-local
-
-datatype 'a result =
-  Result of 'a |
-  Exn of exn;
-
-fun capture f x = Result (f x) handle e => Exn e;
-
-fun release (Result y) = y
-  | release (Exn e) = raise e;
-
-fun message s =
-  (TextIO.output (TextIO.stdErr, (">>> " ^ s ^ "\n")); TextIO.flushOut TextIO.stdErr);
-
-
-val critical_lock = Mutex.mutex ();
-val critical_thread = ref (NONE: Thread.thread option);
-
-in
-
-(* critical section -- may be nested within the same thread *)
-
-fun self_critical () =
-  (case ! critical_thread of
-    NONE => false
-  | SOME id => Thread.equal (id, Thread.self ()));
-
-fun CRITICAL e =
-  if self_critical () then e ()
-  else
-    let
-      val _ =
-        if Mutex.trylock critical_lock then ()
-        else
-          (message "Waiting for critical lock";
-           Mutex.lock critical_lock;
-           message "Obtained critical lock");
-      val _ = critical_thread := SOME (Thread.self ());
-      val res = capture e ();
-      val _ = critical_thread := NONE;
-      val _ = Mutex.unlock critical_lock;
-    in release res end;
-
-end;
