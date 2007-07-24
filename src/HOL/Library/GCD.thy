@@ -252,7 +252,7 @@ lemma dvd_pos:
   shows "m > 0"
 using assms by (cases m) auto
 
-lemma lcm_lowest:
+lemma lcm_least:
   assumes "m dvd k" and "n dvd k"
   shows "lcm (m, n) dvd k"
 proof (cases k)

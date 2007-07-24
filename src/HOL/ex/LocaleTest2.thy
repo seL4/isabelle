@@ -601,7 +601,7 @@ proof -
     apply (rule_tac x = "gcd (x, y)" in exI)
     apply auto [1]
     apply (rule_tac x = "lcm (x, y)" in exI)
-    apply (auto intro: lcm_dvd1 lcm_dvd2 lcm_lowest)
+    apply (auto intro: lcm_dvd1 lcm_dvd2 lcm_least)
     done
   then interpret nat_dvd: dlat ["op dvd :: [nat, nat] => bool"] .
   txt {* Interpretation to ease use of definitions, which are
@@ -615,7 +615,7 @@ proof -
     apply (unfold nat_dvd.join_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_sup_def)
-    by (auto intro: lcm_dvd1 lcm_dvd2 lcm_lowest)
+    by (auto intro: lcm_dvd1 lcm_dvd2 lcm_least)
 qed
 
 text {* Interpreted theorems from the locales, involving defined terms. *}
