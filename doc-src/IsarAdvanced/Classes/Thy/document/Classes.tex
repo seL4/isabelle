@@ -85,7 +85,7 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
 
   Indeed, type classes not only allow for simple overloading
   but form a generic calculus, an instance of order-sorted
-  algebra \cite{Nipkow-Prehofer:1993,Nipkow:1993,Wenzel:1997}.
+  algebra \cite{Nipkow-Prehofer:1993,nipkow-sorts93,Wenzel:1997:TPHOL}.
 
   From a software enigineering point of view, type classes
   correspond to interfaces in object-oriented languages like Java;
@@ -115,7 +115,8 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
     \item instantating those abstract operations by a particular
        type
     \item in connection with a ``less ad-hoc'' approach to overloading,
-    \item with a direct link to the Isabelle module system (aka locales).
+    \item with a direct link to the Isabelle module system
+      (aka locales \cite{kammueller-locales}).
   \end{enumerate}
 
   \noindent Isar type classes also directly support code generation
@@ -124,12 +125,12 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
   This tutorial demonstrates common elements of structured specifications
   and abstract reasoning with type classes by the algebraic hierarchy of
   semigroups, monoids and groups.  Our background theory is that of
-  Isabelle/HOL \cite{Nipkow-et-al:2002:tutorial}, for which some
+  Isabelle/HOL \cite{isa-tutorial}, for which some
   familiarity is assumed.
 
   Here we merely present the look-and-feel for end users.
   Internally, those are mapped to more primitive Isabelle concepts.
-  See \cite{haftmann_wenzel2006classes} for more detail.%
+  See \cite{Haftmann-Wenzel:2006:classes} for more detail.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -662,6 +663,35 @@ Isabelle locales enable reasoning at a general level, while results
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Derived definitions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle locales support a concept of local definitions
+  in locales:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ \ \ \isacommand{fun}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{in}\ monoid{\isacharparenright}\isanewline
+\ \ \ \ \ \ pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ \isactrlloc {\isasymone}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ {\isacharbar}\ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ \isactrlloc {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent If the locale \isa{group} is also a class, this local
+  definition is propagated onto a global definition of
+  \isa{{\isachardoublequote}pow{\isacharunderscore}nat\ {\isasymColon}\ nat\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}monoid\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}monoid{\isachardoublequote}}
+  with corresponding theorems
+
+  \isa{pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}\isasep\isanewline%
+pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x}.
+
+  \noindent As you can see from this example, for local
+  definitions you may use any specification tool
+  which works together with locales (e.g. \cite{krauss2006}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Further issues%
 }
 \isamarkuptrue%
@@ -679,12 +709,12 @@ Turning back to the first motivation for type classes,
   takes this into account.  Concerning target languages
   lacking type classes (e.g.~SML), type classes
   are implemented by explicit dictionary construction.
-  As example, the natural power function on groups:%
+  For example, lets go back to the power function:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{fun}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}monoidl\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}monoidl{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ \ \ \ \ pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ {\isacharbar}\ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x{\isachardoublequoteclose}\isanewline
 \isanewline
@@ -704,17 +734,15 @@ Turning back to the first motivation for type classes,
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ example\ \isakeyword{in}\ Haskell\ \isakeyword{file}\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}{\isachardoublequoteclose}%
+\ example\ \isakeyword{in}\ Haskell\ \isakeyword{to}\ Classes\ \isakeyword{file}\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lsthaskell{Thy/code_examples/Classes.hs}
-
-  \noindent (we have left out all other modules).
 
   \noindent The whole code in SML with explicit dictionary passing:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ example\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}classes{\isachardot}ML{\isachardoublequoteclose}%
+\ example\ \isakeyword{in}\ SML\ \isakeyword{to}\ Classes\ \isakeyword{file}\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}classes{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/code_examples/classes.ML}%
 \end{isamarkuptext}%

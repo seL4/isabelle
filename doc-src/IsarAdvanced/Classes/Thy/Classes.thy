@@ -3,7 +3,7 @@
 
 (*<*)
 theory Classes
-imports Main
+imports Main Pretty_Int
 begin
 
 ML {*
@@ -106,7 +106,7 @@ text {*
 
   Indeed, type classes not only allow for simple overloading
   but form a generic calculus, an instance of order-sorted
-  algebra \cite{Nipkow-Prehofer:1993,Nipkow:1993,Wenzel:1997}.
+  algebra \cite{Nipkow-Prehofer:1993,nipkow-sorts93,Wenzel:1997:TPHOL}.
 
   From a software enigineering point of view, type classes
   correspond to interfaces in object-oriented languages like Java;
@@ -136,7 +136,8 @@ text {*
     \item instantating those abstract operations by a particular
        type
     \item in connection with a ``less ad-hoc'' approach to overloading,
-    \item with a direct link to the Isabelle module system (aka locales).
+    \item with a direct link to the Isabelle module system
+      (aka locales \cite{kammueller-locales}).
   \end{enumerate}
 
   \noindent Isar type classes also directly support code generation
@@ -145,12 +146,12 @@ text {*
   This tutorial demonstrates common elements of structured specifications
   and abstract reasoning with type classes by the algebraic hierarchy of
   semigroups, monoids and groups.  Our background theory is that of
-  Isabelle/HOL \cite{Nipkow-et-al:2002:tutorial}, for which some
+  Isabelle/HOL \cite{isa-tutorial}, for which some
   familiarity is assumed.
 
   Here we merely present the look-and-feel for end users.
   Internally, those are mapped to more primitive Isabelle concepts.
-  See \cite{haftmann_wenzel2006classes} for more detail.
+  See \cite{Haftmann-Wenzel:2006:classes} for more detail.
 *}
 
 section {* A simple algebra example \label{sec:example} *}
@@ -403,12 +404,33 @@ text {*
 *}
 
 
-(*subsection {* Derived definitions *}
+subsection {* Derived definitions *}
 
 text {*
-*}*)
+  Isabelle locales support a concept of local definitions
+  in locales:
+*}
 
-(* subsection {* Additional subclass relations *}
+    fun (in monoid)
+      pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
+      "pow_nat 0 x = \<^loc>\<one>"
+      | "pow_nat (Suc n) x = x \<^loc>\<otimes> pow_nat n x"
+
+text {*
+  \noindent If the locale @{text group} is also a class, this local
+  definition is propagated onto a global definition of
+  @{term [source] "pow_nat \<Colon> nat \<Rightarrow> \<alpha>\<Colon>monoid \<Rightarrow> \<alpha>\<Colon>monoid"}
+  with corresponding theorems
+
+  @{thm pow_nat.simps [no_vars]}.
+
+  \noindent As you can see from this example, for local
+  definitions you may use any specification tool
+  which works together with locales (e.g. \cite{krauss2006}).
+*}
+
+
+(*subsection {* Additional subclass relations *}
 
 text {*
   Any @{text "group"} is also a @{text "monoid"};  this
@@ -416,13 +438,36 @@ text {*
   together with a proof of the logical difference:
 *}
 
-    instance group < monoid
-    proof -
+    instance advanced group < monoid
+    proof unfold_locales
       fix x
       from invl have "x\<^loc>\<div> \<^loc>\<otimes> x = \<^loc>\<one>" by simp
       with assoc [symmetric] neutl invl have "x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<one>) = x\<^loc>\<div> \<^loc>\<otimes> x" by simp
       with left_cancel show "x \<^loc>\<otimes> \<^loc>\<one> = x" by simp
-    qed *)
+    qed
+
+text {*
+  The logical proof is carried out on the locale level
+  and thus conveniently is opened using the @{text unfold_locales}
+  method which only leaves the logical differences still
+  open to proof to the user.  After the proof it is propagated
+  to the type system, making @{text group} an instance of
+  @{text monoid}.  For illustration, a derived definition
+  in @{text group} which uses @{text of_nat}:
+*}
+
+    definition (in group)
+      pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
+      "pow_int k x = (if k >= 0
+        then pow_nat (nat k) x
+        else (pow_nat (nat (- k)) x)\<^loc>\<div>)"
+
+text {*
+  yields the global definition of
+  @{term [source] "pow_int \<Colon> int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group"}
+  with the corresponding theorem @{thm pow_int_def [no_vars]}.
+*} *)
+
 
 section {* Further issues *}
 
@@ -437,11 +482,11 @@ text {*
   takes this into account.  Concerning target languages
   lacking type classes (e.g.~SML), type classes
   are implemented by explicit dictionary construction.
-  As example, the natural power function on groups:
+  For example, lets go back to the power function:
 *}
 
     fun
-      pow_nat :: "nat \<Rightarrow> \<alpha>\<Colon>monoidl \<Rightarrow> \<alpha>\<Colon>monoidl" where
+      pow_nat :: "nat \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group" where
       "pow_nat 0 x = \<one>"
       | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
@@ -459,19 +504,17 @@ text {*
   \noindent This maps to Haskell as:
 *}
 
-code_gen example in Haskell file "code_examples/"
+code_gen example in Haskell to Classes file "code_examples/"
   (* NOTE: you may use Haskell only once in this document, otherwise
   you have to work in distinct subdirectories *)
 
 text {*
   \lsthaskell{Thy/code_examples/Classes.hs}
 
-  \noindent (we have left out all other modules).
-
   \noindent The whole code in SML with explicit dictionary passing:
 *}
 
-code_gen example (*<*)in SML(*>*)in SML file "code_examples/classes.ML"
+code_gen example (*<*)in SML to Classes(*>*)in SML to Classes file "code_examples/classes.ML"
 
 text {*
   \lstsml{Thy/code_examples/classes.ML}
