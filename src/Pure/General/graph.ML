@@ -44,6 +44,7 @@ sig
   val add_edge_acyclic: key * key -> 'a T -> 'a T                     (*exception CYCLES*)
   val add_deps_acyclic: key * key list -> 'a T -> 'a T                (*exception CYCLES*)
   val merge_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T         (*exception CYCLES*)
+  val topological_order: 'a T -> key list
   val add_edge_trans_acyclic: key * key -> 'a T -> 'a T               (*exception CYCLES*)
   val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T   (*exception CYCLES*)
 end;
@@ -130,7 +131,7 @@ fun reachable next xs =
     fun reach x (rs, R) =
       if member_keys R x then (rs, R)
       else apfst (cons x) (fold reach (next x) (rs, insert_keys x R))
-  in fold_map (fn x => reach x o pair []) xs empty_keys end;
+  in fold_map (fn x => fn X => reach x ([], X)) xs empty_keys end;
 
 (*immediate*)
 fun imm_preds G = #1 o #2 o get_entry G;
@@ -248,6 +249,8 @@ fun add_edge_acyclic (x, y) G =
 fun add_deps_acyclic (y, xs) = fold (fn x => add_edge_acyclic (x, y)) xs;
 
 fun merge_acyclic eq GG = gen_merge add_edge_acyclic eq GG;
+
+fun topological_order G = minimals G |> all_succs G;
 
 
 (* maintain transitive acyclic graphs *)
