@@ -49,6 +49,7 @@ end;
 structure ThyInfo: THY_INFO =
 struct
 
+
 (** theory loader actions and hooks **)
 
 datatype action = Update | Outdate | Remove;
@@ -83,7 +84,7 @@ fun upd_deps name entry G =
   fold (fn parent => Graph.del_edge (parent, name)) (Graph.imm_preds G name) G
   |> Graph.map_node name (K entry);
 
-fun update_node name parents entry G =
+fun new_deps name parents entry G =
   (if can (Graph.get_node G) name then upd_deps name entry G else Graph.new_node (name, entry) G)
   |> add_deps name parents;
 
@@ -115,6 +116,8 @@ fun master_dir (NONE: master option) = Path.current
 fun master_dir' (d: deps option) = the_default Path.current (Option.map (master_dir o #master) d);
 fun master_dir'' d = the_default Path.current (Option.map master_dir' d);
 
+fun base_name s = Path.implode (Path.base (Path.explode s));
+
 
 type thy = deps option * theory option;
 
@@ -130,10 +133,7 @@ end;
 
 fun thy_graph f x = f (get_thys ()) x;
 
-(*theory names in topological order*)
-fun get_names () =
-  let val G = get_thys ()
-  in Graph.all_succs G (Graph.minimals G) end;
+fun get_names () = Graph.topological_order (get_thys ());
 
 
 (* access thy *)
@@ -171,7 +171,7 @@ fun loaded_files name =
       (map_filter (Option.map #1 o #2) files));
 
 fun get_parents name =
-  (thy_graph Graph.imm_preds name) handle Graph.UNDEF _ =>
+  thy_graph Graph.imm_preds name handle Graph.UNDEF _ =>
     error (loader_msg "nothing known about theory" [name]);
 
 
@@ -310,7 +310,7 @@ fun load_thy really ml time initiators dir name =
 
     val _ = touch_thy name;
     val master =
-      if really then ThyLoad.load_thy dir name ml time
+      if really then ThyLoad.load_thy dir name ml (time orelse ! Output.timing)
       else #1 (ThyLoad.deps_thy dir name ml);
 
     val files = get_files name;
@@ -326,9 +326,7 @@ fun load_thy really ml time initiators dir name =
   end;
 
 
-(* require_thy *)
-
-fun base_name s = Path.implode (Path.base (Path.explode s));
+(* require_thy -- checking database entries wrt. the file-system *)
 
 local
 
@@ -362,39 +360,65 @@ fun check_deps ml strict dir name =
             in (current, deps', parents) end
         end);
 
-fun require_thys really ml time strict keep_strict initiators dir strs visited =
-  fold_map (require_thy really ml time strict keep_strict initiators dir) strs visited
-and require_thy really ml time strict keep_strict initiators dir str visited =
+in
+
+fun require_thys really ml time strict keep_strict initiators dir strs tasks_visited =
+  fold_map (require_thy really ml time strict keep_strict initiators dir) strs tasks_visited
+  |>> forall I
+and require_thy really ml time strict keep_strict initiators dir str (tasks, visited) =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
     val dir' = Path.append dir (Path.dir path);
     val _ = member (op =) initiators name andalso error (cycle_msg initiators);
   in
-    if known_thy name andalso is_finished name orelse member (op =) visited name
-    then (true, visited)
-    else
-      let
-        val (current, deps, parents) = check_deps ml strict dir' name
-          handle ERROR msg => cat_error msg
-            (loader_msg "the error(s) above occurred while examining theory" [name] ^
-              required_by "\n" initiators);
+    (case AList.lookup (op =) visited name of
+      SOME current => (current, (tasks, visited))
+    | NONE =>
+        let
+          val (current, deps, parents) = check_deps ml strict dir' name
+            handle ERROR msg => cat_error msg
+              (loader_msg "the error(s) above occurred while examining theory" [name] ^
+                required_by "\n" initiators);
+          val parent_names = map base_name parents;
 
-        val (parents_current, visited') =
-          require_thys true true time (strict andalso keep_strict) keep_strict
-            (name :: initiators) (Path.append dir (master_dir' deps)) parents (name :: visited);
+          val (parents_current, (tasks', visited')) =
+            require_thys true true time (strict andalso keep_strict) keep_strict
+              (name :: initiators) (Path.append dir (master_dir' deps))
+              parents (tasks, visited);
 
-        val all_current = current andalso forall I parents_current;
-        val thy = if all_current orelse not really then SOME (get_theory name) else NONE;
-        val _ = change_thys (update_node name (map base_name parents) (deps, thy));
-        val _ =
-          if all_current then ()
-          else load_thy really ml (time orelse ! Output.timing) initiators dir' name;
-      in (all_current, visited') end
+          val all_current = current andalso parents_current;
+          val thy = if all_current orelse not really then SOME (get_theory name) else NONE;
+          val _ = change_thys (new_deps name parent_names (deps, thy));
+
+          val tasks'' = tasks' |> new_deps name parent_names
+            (fn () => if all_current then () else load_thy really ml time initiators dir' name);
+          val visited'' = (name, all_current) :: visited';
+        in (all_current, (tasks'', visited'')) end)
   end;
 
-fun gen_use_thy' req dir arg =
-  Output.toplevel_errors (fn () => (req [] dir arg []; ())) ();
+end;
+
+
+(* variations on use_thy *)
+
+local
+
+fun schedule_seq tasks =
+  Graph.topological_order tasks |> List.app (fn name => Graph.get_node tasks name ());
+
+fun schedule_tasks tasks =
+  let val m = ! Multithreading.number_of_threads in
+    if m <= 1 then schedule_seq tasks
+    else if Multithreading.self_critical () then
+     (warning (loader_msg "no multithreading within critical section" []);
+      schedule_seq tasks)
+    else sys_error "No multithreading scheduler yet"
+  end;
+
+fun gen_use_thy' req dir arg = Output.toplevel_errors (fn () =>
+  let val (_, (tasks, _)) = req [] dir arg (Graph.empty, [])
+  in schedule_tasks tasks end) ();
 
 fun gen_use_thy req str =
   let val name = base_name str in
@@ -453,7 +477,7 @@ fun begin_theory name parents uses int =
     val deps =
       if known_thy name then get_deps name
       else init_deps NONE parents (map #1 uses);
-    val _ = change_thys (update_node name parent_names (deps, NONE));
+    val _ = change_thys (new_deps name parent_names (deps, NONE));
 
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
     val ((), theory') =
