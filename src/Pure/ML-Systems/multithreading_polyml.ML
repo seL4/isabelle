@@ -34,23 +34,25 @@ fun self_critical () =
     NONE => false
   | SOME id => Thread.equal (id, Thread.self ()));
 
-fun CRITICAL' name e =
+fun NAMED_CRITICAL name e =
   if self_critical () then e ()
   else
     let
       val _ =
         if Mutex.trylock critical_lock then ()
         else
-         (tracing (fn () => "CRITICAL " ^ name ^ ": waiting for lock");
+         (tracing (fn () =>
+            "CRITICAL" ^ (if name = "" then "" else " " ^ name) ^ ": waiting for lock");
           Mutex.lock critical_lock;
-          tracing (fn () => "CRITICAL " ^ name ^ ": obtained lock"));
+          tracing (fn () =>
+            "CRITICAL" ^ (if name = "" then "" else " " ^ name) ^ ": obtained lock"));
       val _ = critical_thread := SOME (Thread.self ());
       val result = Exn.capture e ();
       val _ = critical_thread := NONE;
       val _ = Mutex.unlock critical_lock;
     in Exn.release result end;
 
-fun CRITICAL e = CRITICAL' "" e;
+fun CRITICAL e = NAMED_CRITICAL "" e;
 
 end;
 
@@ -117,5 +119,5 @@ fun schedule n next_task tasks =
 
 end;
 
-val CRITICAL' = Multithreading.CRITICAL';
+val NAMED_CRITICAL = Multithreading.NAMED_CRITICAL;
 val CRITICAL = Multithreading.CRITICAL;
