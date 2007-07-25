@@ -11,6 +11,7 @@ sig
   val is_secure: unit -> bool
   val use_text: string -> (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use_file: (string -> unit) * (string -> 'a) -> bool -> string -> unit
+  val use_noncritical: string -> unit
   val use: string -> unit
   val commit: unit -> unit
   val execute: string -> string
@@ -45,7 +46,10 @@ fun use_text name pr verbose txt = CRITICAL (fn () =>
 fun use_file pr verbose name = CRITICAL (fn () =>
   (secure_mltext (); orig_use_file pr verbose name));
 
-fun use name = CRITICAL (fn () => use_file Output.ml_output true name);
+fun use name = use_file Output.ml_output true name;
+
+fun use_noncritical name =
+  (secure_mltext (); orig_use_file Output.ml_output true name);
 
 (*commit is dynamically bound!*)
 fun commit () = CRITICAL (fn () => orig_use_text "" Output.ml_output false "commit();");
@@ -63,6 +67,7 @@ fun system s = CRITICAL (fn () => (secure_shell (); orig_system s));
 
 end;
 
+(*override previous toplevel bindings!*)
 val use_text = Secure.use_text;
 val use_file = Secure.use_file;
 val use = Secure.use;
