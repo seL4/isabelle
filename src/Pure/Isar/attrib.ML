@@ -185,6 +185,13 @@ fun add_del_args add del x = syntax
 
 (** basic attributes **)
 
+(* configuration options *)
+
+fun option x =
+  syntax (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.name))
+    >> (fn (name, value) => Thm.declaration_attribute (K (Config.put_generic_src name value)))) x;
+
+
 (* tags *)
 
 fun tagged x = syntax (tag >> PureThy.tag) x;
@@ -264,7 +271,8 @@ fun internal_att x =
 
 val _ = Context.add_setup
  (add_attributes
-   [("tagged", tagged, "tagged theorem"),
+   [("option", option, "named configuration option"),
+    ("tagged", tagged, "tagged theorem"),
     ("untagged", untagged, "untagged theorem"),
     ("kind", kind, "theorem kind"),
     ("COMP", COMP_att, "direct composition with rules (no lifting)"),
