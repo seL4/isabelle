@@ -49,7 +49,6 @@ end;
 structure ThyInfo: THY_INFO =
 struct
 
-
 (** theory loader actions and hooks **)
 
 datatype action = Update | Outdate | Remove;
@@ -373,7 +372,7 @@ and require_thy really ml time strict keep_strict initiators dir str tasks =
     val _ = member (op =) initiators name andalso error (cycle_msg initiators);
   in
     (case try (Graph.get_node (fst tasks)) name of
-      SOME task => (is_none task, tasks)
+      SOME task => (Task.is_finished task, tasks)
     | NONE =>
         let
           val (current, deps, parents) = check_deps ml strict dir' name
@@ -391,8 +390,8 @@ and require_thy really ml time strict keep_strict initiators dir str tasks =
           val _ = change_thys (new_deps name parent_names (deps, thy));
 
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
-           (if all_current then NONE
-            else SOME (fn () => load_thy really ml time initiators dir' name));
+           (if all_current then Task.Finished
+            else Task.Task (fn () => load_thy really ml time initiators dir' name));
           val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
         in (all_current, (tasks_graph'', tasks_len'')) end)
   end;
@@ -400,20 +399,27 @@ and require_thy really ml time strict keep_strict initiators dir str tasks =
 end;
 
 
-(* use_thy etc. -- scheduling required theories *)
+(* variations on use_thy -- scheduling required theories *)
 
 local
 
 fun schedule_seq tasks =
   Graph.topological_order tasks
-  |> List.app (fn name => the_default I (Graph.get_node tasks name) ());
+  |> List.app (fn name => (case Graph.get_node tasks name of Task.Task f => f () | _ => ()));
 
-fun next_task (SOME f :: fs, G) = (SOME f, (fs, G))
-  | next_task (NONE :: fs, G) = next_task (fs, G)
-  | next_task ([], G) =
-      (case Graph.minimals G of
-        [] => (NONE, ([], G))
-      | ms => next_task (map (Graph.get_node G) ms, Graph.del_nodes ms G));
+fun next_task G =
+  let
+    val tasks = map (fn name => (name, Graph.get_node G name)) (Graph.minimals G);
+    val finished = filter (Task.is_finished o snd) tasks;
+  in
+    if not (null finished) then next_task (Graph.del_nodes (map fst finished) G)
+    else if null tasks then ((Task.Finished, I), G)
+    else
+      (case find_first (not o Task.is_running o snd) tasks of
+        NONE => ((Task.Running, I), G)
+      | SOME (name, task) =>
+          ((task, Graph.del_nodes [name]), Graph.map_node name (K Task.Running) G))
+  end;
 
 fun schedule_tasks (tasks, n) =
   let val m = ! Multithreading.max_threads in
@@ -422,7 +428,7 @@ fun schedule_tasks (tasks, n) =
      (warning (loader_msg "no multithreading within critical section" []);
       schedule_seq tasks)
     else
-      (case Multithreading.schedule (Int.min (m, n)) next_task ([], tasks) of
+      (case Multithreading.schedule (Int.min (m, n)) next_task tasks of
         [] => ()
       | exns => raise Exn.EXCEPTIONS (exns, ""))
   end;
