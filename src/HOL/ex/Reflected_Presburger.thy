@@ -1080,18 +1080,20 @@ proof (induct p rule: iszlfm.induct)
   case (1 p q) 
   let ?d = "\<delta> (And p q)"
   from prems ilcm_pos have dp: "?d >0" by simp
-  have d1: "\<delta> p dvd \<delta> (And p q)" using prems ilcm_dvd1 by simp 
-   hence th: "d\<delta> p ?d" using delta_mono prems by auto
-  have "\<delta> q dvd \<delta> (And p q)" using prems ilcm_dvd2 by simp 
-  hence th': "d\<delta> q ?d" using delta_mono prems by auto
-  from th th' dp show ?case by simp 
+  have d1: "\<delta> p dvd \<delta> (And p q)" using prems ilcm_dvd1 by simp
+  hence th: "d\<delta> p ?d" using delta_mono prems(3-4) by(simp del:dvd_ilcm_self1)
+  have "\<delta> q dvd \<delta> (And p q)" using prems ilcm_dvd2 by simp
+  hence th': "d\<delta> q ?d" using delta_mono prems by(simp del:dvd_ilcm_self2)
+  from th th' dp show ?case by simp
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
   from prems ilcm_pos have dp: "?d >0" by simp
-  have "\<delta> p dvd \<delta> (And p q)" using prems ilcm_dvd1 by simp hence th: "d\<delta> p ?d" using delta_mono prems by auto
-  have "\<delta> q dvd \<delta> (And p q)" using prems ilcm_dvd2 by simp hence th': "d\<delta> q ?d" using delta_mono prems by auto
-  from th th' dp show ?case by simp 
+  have "\<delta> p dvd \<delta> (And p q)" using prems ilcm_dvd1 by simp
+  hence th: "d\<delta> p ?d" using delta_mono prems by(simp del:dvd_ilcm_self1)
+  have "\<delta> q dvd \<delta> (And p q)" using prems ilcm_dvd2 by simp
+  hence th': "d\<delta> q ?d" using delta_mono prems by(simp del:dvd_ilcm_self2)
+  from th th' dp show ?case by simp
 qed simp_all
 
 
