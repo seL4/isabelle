@@ -758,6 +758,15 @@ apply (simp add: zmod_zadd1_eq)
 done
 
 
+lemma zmod_zdiff1_eq: fixes a::int
+  shows "(a - b) mod c = (a mod c - b mod c) mod c" (is "?l = ?r")
+proof -
+  have "?l = (c + (a mod c - b mod c)) mod c"
+    using zmod_zadd1_eq[of a "-b" c] by(simp add:ring_simps zmod_zminus1_eq_if)
+  also have "\<dots> = ?r" by simp
+  finally show ?thesis .
+qed
+
 subsection{*Proving  @{term "a div (b*c) = (a div b) div c"} *}
 
 (*The condition c>0 seems necessary.  Consider that 7 div ~6 = ~2 but

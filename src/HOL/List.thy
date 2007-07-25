@@ -983,6 +983,9 @@ by (induct xss) auto
 lemma set_concat [simp]: "set (concat xs) = \<Union>(set ` set xs)"
 by (induct xs) auto
 
+lemma set_concat_map: "set(concat(map f xs)) = (UN x:set xs. set(f x))"
+by(auto)
+
 lemma map_concat: "map f (concat xs) = concat (map (map f) xs)"
 by (induct xs) auto
 
@@ -1555,6 +1558,10 @@ by (induct xs ys rule:list_induct2') auto
 lemma set_zip_rightD:
   "(x,y)\<in> set (zip xs ys) \<Longrightarrow> y \<in> set ys"
 by (induct xs ys rule:list_induct2') auto
+
+lemma in_set_zipE:
+  "(x,y) : set(zip xs ys) \<Longrightarrow> (\<lbrakk> x : set xs; y : set ys \<rbrakk> \<Longrightarrow> R) \<Longrightarrow> R"
+by(blast dest: set_zip_leftD set_zip_rightD)
 
 subsubsection {* @{text list_all2} *}
 
