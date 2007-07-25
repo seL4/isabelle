@@ -1246,7 +1246,7 @@ fun initialize thy =
  "start" is CPU time at start, for printing SEARCH time
         (also prints reconstruction time)
  "lim" is depth limit.*)
-fun timing_depth_tac start cs lim i st0 = CRITICAL (fn () =>
+fun timing_depth_tac start cs lim i st0 = NAMED_CRITICAL "blast" (fn () =>
   let val st = (initialize (theory_of_thm st0); Conv.gconv_rule ObjectLogic.atomize_prems i st0);
       val sign = Thm.theory_of_thm st
       val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
