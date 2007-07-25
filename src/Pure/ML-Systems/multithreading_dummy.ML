@@ -19,7 +19,7 @@ sig
   val available: bool
   val max_threads: int ref
   val self_critical: unit -> bool
-  val CRITICAL': string -> (unit -> 'a) -> 'a
+  val NAMED_CRITICAL: string -> (unit -> 'a) -> 'a
   val CRITICAL: (unit -> 'a) -> 'a
   val schedule: int -> ('a -> (Task.task * ('a -> 'a)) * 'a) -> 'a -> exn list
 end;
@@ -34,12 +34,12 @@ val available = false;
 val max_threads = ref 1;
 
 fun self_critical () = false;
-fun CRITICAL' _ e = e ();
+fun NAMED_CRITICAL _ e = e ();
 fun CRITICAL e = e ();
 
 fun schedule _ _ _ = raise Fail "Multithreading support unavailable";
 
 end;
 
-val CRITICAL' = Multithreading.CRITICAL';
+val NAMED_CRITICAL = Multithreading.NAMED_CRITICAL;
 val CRITICAL = Multithreading.CRITICAL;
