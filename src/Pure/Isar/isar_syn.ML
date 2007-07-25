@@ -731,6 +731,10 @@ val print_commandsP =
   OuterSyntax.improper_command "print_commands" "print outer syntax commands" K.diag
     (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
 
+val print_optionsP =
+  OuterSyntax.improper_command "print_options" "print configuration options" K.diag
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_options));
+
 val print_contextP =
   OuterSyntax.improper_command "print_context" "print theory context name" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_context));
@@ -1009,14 +1013,15 @@ val _ = OuterSyntax.add_parsers [
   interpretP,
   (*diagnostic commands*)
   pretty_setmarginP, helpP, print_classesP, print_commandsP,
-  print_contextP, print_theoryP, print_syntaxP, print_abbrevsP,
-  print_factsP, print_theoremsP, print_localesP, print_localeP,
-  print_registrationsP, print_attributesP, print_simpsetP,
-  print_rulesP, print_induct_rulesP, print_trans_rulesP,
-  print_methodsP, print_antiquotationsP, thy_depsP, class_depsP,
-  thm_depsP, find_theoremsP, print_bindsP, print_casesP, print_stmtsP,
-  print_thmsP, print_prfsP, print_full_prfsP, print_propP,
-  print_termP, print_typeP, print_codesetupP,
+  print_optionsP, print_contextP, print_theoryP, print_syntaxP,
+  print_abbrevsP, print_factsP, print_theoremsP, print_localesP,
+  print_localeP, print_registrationsP, print_attributesP,
+  print_simpsetP, print_rulesP, print_induct_rulesP,
+  print_trans_rulesP, print_methodsP, print_antiquotationsP,
+  thy_depsP, class_depsP, thm_depsP, find_theoremsP, print_bindsP,
+  print_casesP, print_stmtsP, print_thmsP, print_prfsP,
+  print_full_prfsP, print_propP, print_termP, print_typeP,
+  print_codesetupP,
   (*system commands*)
   cdP, pwdP, use_thyP, update_thyP, touch_thyP, touch_all_thysP,
   touch_child_thysP, remove_thyP, kill_thyP, display_draftsP,
