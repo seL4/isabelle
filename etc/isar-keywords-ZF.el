@@ -202,10 +202,8 @@
     "undos_proof"
     "unfolding"
     "update_thy"
-    "update_thy_only"
     "use"
     "use_thy"
-    "use_thy_only"
     "using"
     "value"
     "welcome"
@@ -333,10 +331,8 @@
     "touch_thy"
     "typ"
     "update_thy"
-    "update_thy_only"
     "use"
     "use_thy"
-    "use_thy_only"
     "value"
     "welcome"))
 
