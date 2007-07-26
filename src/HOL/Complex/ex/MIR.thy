@@ -137,13 +137,13 @@ proof
   assume d: "real d rdvd t"
   from d int_rdvd_real have d2: "d dvd (floor t)" and ti: "real (floor t) = t" by auto
 
-  from iffD1[OF zdvd_abs1] d2 have "(abs d) dvd (floor t)" by blast
+  from iffD2[OF zdvd_abs1] d2 have "(abs d) dvd (floor t)" by blast
   with ti int_rdvd_real[symmetric] have "real (abs d) rdvd t" by blast 
   thus "abs (real d) rdvd t" by simp
 next
   assume "abs (real d) rdvd t" hence "real (abs d) rdvd t" by simp
   with int_rdvd_real[where i="abs d" and x="t"] have d2: "abs d dvd floor t" and ti: "real (floor t) =t" by auto
-  from iffD2[OF zdvd_abs1] d2 have "d dvd floor t" by blast
+  from iffD1[OF zdvd_abs1] d2 have "d dvd floor t" by blast
   with ti int_rdvd_real[symmetric] show "real d rdvd t" by blast
 qed
 
@@ -2139,18 +2139,20 @@ proof (induct p rule: iszlfm.induct)
   case (1 p q) 
   let ?d = "\<delta> (And p q)"
   from prems ilcm_pos have dp: "?d >0" by simp
-  have d1: "\<delta> p dvd \<delta> (And p q)" using prems ilcm_dvd1 by simp 
-   hence th: "d\<delta> p ?d" using delta_mono prems by(auto simp del: dvd_ilcm_self1)
-  have "\<delta> q dvd \<delta> (And p q)" using prems ilcm_dvd2 by(simp)
-  hence th': "d\<delta> q ?d" using delta_mono prems by(auto simp del: dvd_ilcm_self2)
-  from th th' dp show ?case by simp
+  have d1: "\<delta> p dvd \<delta> (And p q)" using prems by simp 
+   hence th: "d\<delta> p ?d" 
+     using delta_mono prems by (auto simp del: dvd_ilcm_self1)
+  have "\<delta> q dvd \<delta> (And p q)" using prems  by simp 
+  hence th': "d\<delta> q ?d" using delta_mono prems by (auto simp del: dvd_ilcm_self2)
+  from th th' dp show ?case by simp 
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
   from prems ilcm_pos have dp: "?d >0" by simp
-  have "\<delta> p dvd \<delta> (And p q)" using prems ilcm_dvd1 by simp hence th: "d\<delta> p ?d" using delta_mono prems by(auto simp del: dvd_ilcm_self1)
-  have "\<delta> q dvd \<delta> (And p q)" using prems ilcm_dvd2 by simp hence th': "d\<delta> q ?d" using delta_mono prems by(auto simp del: dvd_ilcm_self2)
-  from th th' dp show ?case by simp
+  have "\<delta> p dvd \<delta> (And p q)" using prems by simp hence th: "d\<delta> p ?d" using delta_mono prems 
+    by (auto simp del: dvd_ilcm_self1)
+  have "\<delta> q dvd \<delta> (And p q)" using prems by simp hence th': "d\<delta> q ?d" using delta_mono prems by (auto simp del: dvd_ilcm_self2)
+  from th th' dp show ?case by simp 
 qed simp_all
 
 
@@ -2514,19 +2516,15 @@ lemma \<zeta>:
 using linp
 proof(induct p rule: iszlfm.induct)
   case (1 p q)
-  from prems have dl1: "\<zeta> p dvd ilcm (\<zeta> p) (\<zeta> q)" 
-    by (simp add: ilcm_dvd1[where a="\<zeta> p" and b="\<zeta> q"])
-  from prems have dl2: "\<zeta> q dvd ilcm (\<zeta> p) (\<zeta> q)" 
-    by (simp add: ilcm_dvd2[where a="\<zeta> p" and b="\<zeta> q"])
+  from prems have dl1: "\<zeta> p dvd ilcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems have dl2: "\<zeta> q dvd ilcm (\<zeta> p) (\<zeta> q)" by simp
   from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="ilcm (\<zeta> p) (\<zeta> q)"] 
     d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="ilcm (\<zeta> p) (\<zeta> q)"] 
     dl1 dl2 show ?case by (auto simp add: ilcm_pos)
 next
   case (2 p q)
-  from prems have dl1: "\<zeta> p dvd ilcm (\<zeta> p) (\<zeta> q)" 
-    by (simp add: ilcm_dvd1[where a="\<zeta> p" and b="\<zeta> q"])
-  from prems have dl2: "\<zeta> q dvd ilcm (\<zeta> p) (\<zeta> q)" 
-    by (simp add: ilcm_dvd2[where a="\<zeta> p" and b="\<zeta> q"])
+  from prems have dl1: "\<zeta> p dvd ilcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems have dl2: "\<zeta> q dvd ilcm (\<zeta> p) (\<zeta> q)" by simp
   from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="ilcm (\<zeta> p) (\<zeta> q)"] 
     d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="ilcm (\<zeta> p) (\<zeta> q)"] 
     dl1 dl2 show ?case by (auto simp add: ilcm_pos)
@@ -3893,39 +3891,27 @@ next
   with rsplit_ex fnsS fx show "?I x (rsplit f a)" by auto
 qed
 
-definition
-  lt :: "int \<Rightarrow> num \<Rightarrow> fm"
-where
+definition lt :: "int \<Rightarrow> num \<Rightarrow> fm" where
   lt_def: "lt c t = (if c = 0 then (Lt t) else if c > 0 then (Lt (CN 0 c t)) 
                         else (Gt (CN 0 (-c) (Neg t))))"
 
-definition
-  le :: "int \<Rightarrow> num \<Rightarrow> fm"
-where
+definition  le :: "int \<Rightarrow> num \<Rightarrow> fm" where
   le_def: "le c t = (if c = 0 then (Le t) else if c > 0 then (Le (CN 0 c t)) 
                         else (Ge (CN 0 (-c) (Neg t))))"
 
-definition
-  gt :: "int \<Rightarrow> num \<Rightarrow> fm"
-where
+definition  gt :: "int \<Rightarrow> num \<Rightarrow> fm" where
   gt_def: "gt c t = (if c = 0 then (Gt t) else if c > 0 then (Gt (CN 0 c t)) 
                         else (Lt (CN 0 (-c) (Neg t))))"
 
-definition
-  ge :: "int \<Rightarrow> num \<Rightarrow> fm"
-where
+definition  ge :: "int \<Rightarrow> num \<Rightarrow> fm" where
   ge_def: "ge c t = (if c = 0 then (Ge t) else if c > 0 then (Ge (CN 0 c t)) 
                         else (Le (CN 0 (-c) (Neg t))))"
 
-definition
-  eq :: "int \<Rightarrow> num \<Rightarrow> fm"
-where
+definition  eq :: "int \<Rightarrow> num \<Rightarrow> fm" where
   eq_def: "eq c t = (if c = 0 then (Eq t) else if c > 0 then (Eq (CN 0 c t)) 
                         else (Eq (CN 0 (-c) (Neg t))))"
 
-definition
-  neq :: "int \<Rightarrow> num \<Rightarrow> fm"
-where
+definition neq :: "int \<Rightarrow> num \<Rightarrow> fm" where
   neq_def: "neq c t = (if c = 0 then (NEq t) else if c > 0 then (NEq (CN 0 c t)) 
                         else (NEq (CN 0 (-c) (Neg t))))"
 
@@ -4102,16 +4088,12 @@ proof-
   from NDVDJ_def foldr_And_map_rlfm2[OF th] show ?thesis by auto
 qed
 
-definition
-  DVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
-where
+definition DVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm" where
   DVD_def: "DVD i c t =
   (if i=0 then eq c t else 
   if c = 0 then (Dvd i t) else if c >0 then DVDJ (abs i) c t else DVDJ (abs i) (-c) (Neg t))"
 
-definition
-  NDVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
-where
+definition  NDVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm" where
   "NDVD i c t =
   (if i=0 then neq c t else 
   if c = 0 then (NDvd i t) else if c >0 then NDVDJ (abs i) c t else NDVDJ (abs i) (-c) (Neg t))"
@@ -4364,8 +4346,6 @@ next
   have "isatom (simpfm (NDvd i a))" by (cases "simpnum a", auto simp add: Let_def split_def)
   with bn bound0at_l show ?case by blast
 qed(auto simp add: conj_def imp_def disj_def iff_def Let_def simpfm_bound0 numadd_nb numneg_nb)
-
-
 
 lemma rlfm_I:
   assumes qfp: "qfree p"
