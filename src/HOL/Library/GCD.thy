@@ -425,37 +425,12 @@ by(simp add:ilcm_def dvd_int_iff)
 lemma dvd_ilcm_self2[simp]: "j dvd ilcm i j"
 by(simp add:ilcm_def dvd_int_iff)
 
-lemma ilcm_dvd1: 
-assumes anz: "a \<noteq> 0" 
-  and bnz: "b \<noteq> 0"
-  shows "a dvd (ilcm a b)"
-proof-
-  let ?na = "nat (abs a)"
-  let ?nb = "nat (abs b)"
-  have nap: "?na >0" using anz by simp
-  have nbp: "?nb >0" using bnz by simp
-  from nap nbp have "?na dvd lcm(?na,?nb)" using lcm_dvd1 by simp
-  thus ?thesis by (simp add: ilcm_def dvd_int_iff)
-qed
-
-lemma ilcm_dvd2: 
-assumes anz: "a \<noteq> 0" 
-  and bnz: "b \<noteq> 0"
-  shows "b dvd (ilcm a b)"
-proof-
-  let ?na = "nat (abs a)"
-  let ?nb = "nat (abs b)"
-  have nap: "?na >0" using anz by simp
-  have nbp: "?nb >0" using bnz by simp
-  from nap nbp have "?nb dvd lcm(?na,?nb)" using lcm_dvd2 by simp
-  thus ?thesis by (simp add: ilcm_def dvd_int_iff)
-qed
 
 lemma dvd_imp_dvd_ilcm1:
   assumes "k dvd i" shows "k dvd (ilcm i j)"
 proof -
   have "nat(abs k) dvd nat(abs i)" using `k dvd i`
-    by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric]IntDiv.zdvd_abs1)
+    by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric] zdvd_abs1)
   thus ?thesis by(simp add:ilcm_def dvd_int_iff)(blast intro: dvd_trans)
 qed
 
@@ -463,18 +438,16 @@ lemma dvd_imp_dvd_ilcm2:
   assumes "k dvd j" shows "k dvd (ilcm i j)"
 proof -
   have "nat(abs k) dvd nat(abs j)" using `k dvd j`
-    by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric]IntDiv.zdvd_abs1)
+    by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric] zdvd_abs1)
   thus ?thesis by(simp add:ilcm_def dvd_int_iff)(blast intro: dvd_trans)
 qed
+
 
 lemma zdvd_self_abs1: "(d::int) dvd (abs d)"
 by (case_tac "d <0", simp_all)
 
 lemma zdvd_self_abs2: "(abs (d::int)) dvd d"
 by (case_tac "d<0", simp_all)
-
-lemma zdvd_abs1: "((d::int) dvd t) = ((abs d) dvd t)"
- by (cases "d < 0") simp_all
 
 (* lcm a b is positive for positive a and b *)
 
