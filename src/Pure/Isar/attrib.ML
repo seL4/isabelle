@@ -145,13 +145,19 @@ val get_thms = Context.cases PureThy.get_thms ProofContext.get_thms;
 val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
 
 fun gen_thm pick = Scan.depend (fn st =>
- (Scan.ahead Args.alt_name -- Args.named_fact (get_thms st o Fact)
+  Args.$$$ "[" |-- Args.attribs (intern (Context.theory_of st)) --| Args.$$$ "]"
+    >> (fn srcs =>
+      let
+        val atts = map (attribute_i (Context.theory_of st)) srcs;
+        val (st', th') = Library.apply atts (st, Drule.dummy_thm);
+      in (st', pick "" [th']) end) ||
+  (Scan.ahead Args.alt_name -- Args.named_fact (get_thms st o Fact)
     >> (fn (s, fact) => ("", Fact s, fact)) ||
   Scan.ahead fact_name -- Args.named_fact (get_thms st o Name) -- Args.thm_sel
     >> (fn ((name, fact), sel) => (name, NameSelection (name, sel), fact)) ||
   Scan.ahead fact_name -- Args.named_fact (get_thms st o Name)
-    >> (fn (name, fact) => (name, Name name, fact))) --
-  Args.opt_attribs (intern (Context.theory_of st))
+    >> (fn (name, fact) => (name, Name name, fact)))
+  -- Args.opt_attribs (intern (Context.theory_of st))
   >> (fn ((name, thmref, fact), srcs) =>
     let
       val ths = PureThy.select_thm thmref fact;
@@ -190,17 +196,17 @@ local
 
 val equals = Args.$$$ "=";
 
-fun scan_value (Config.Bool _) =
-      (equals -- Args.$$$ "false") >> K (Config.Bool false) ||
-      (equals -- Args.$$$ "true") >> K (Config.Bool true) ||
-      (Scan.succeed (Config.Bool true))
-  | scan_value (Config.Int _) = (equals |-- Args.int) >> Config.Int
-  | scan_value (Config.String _) = (equals |-- Args.name) >> Config.String;
+fun scan_value (ConfigOption.Bool _) =
+      (equals -- Args.$$$ "false") >> K (ConfigOption.Bool false) ||
+      (equals -- Args.$$$ "true") >> K (ConfigOption.Bool true) ||
+      (Scan.succeed (ConfigOption.Bool true))
+  | scan_value (ConfigOption.Int _) = (equals |-- Args.int) >> ConfigOption.Int
+  | scan_value (ConfigOption.String _) = (equals |-- Args.name) >> ConfigOption.String;
 
 fun scan_config x =
-  ((Args.name >> Config.the_config) :-- (fn (config, config_type) =>
+  ((Args.name >> ConfigOption.the_option) :-- (fn (config, config_type) =>
     scan_value config_type >> (fn value =>
-      K (Thm.declaration_attribute (K (Config.put_generic config value))))) >> #2) x;
+      K (Thm.declaration_attribute (K (ConfigOption.put_generic config value))))) >> #2) x;
 
 fun scan_att x =
   (Args.internal_attribute ||
