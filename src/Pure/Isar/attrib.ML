@@ -42,7 +42,6 @@ struct
 type src = Args.src;
 
 
-
 (** named attributes **)
 
 (* theory data *)
@@ -187,9 +186,32 @@ fun add_del_args add del x = syntax
 
 (* configuration options *)
 
-fun option x =
-  syntax (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.name))
-    >> (fn (name, value) => Thm.declaration_attribute (K (Config.put_generic_src name value)))) x;
+local
+
+val equals = Args.$$$ "=";
+
+fun scan_value (Config.Bool _) =
+      (equals -- Args.$$$ "false") >> K (Config.Bool false) ||
+      (equals -- Args.$$$ "true") >> K (Config.Bool true) ||
+      (Scan.succeed (Config.Bool true))
+  | scan_value (Config.Int _) = (equals |-- Args.int) >> Config.Int
+  | scan_value (Config.String _) = (equals |-- Args.name) >> Config.String;
+
+fun scan_config x =
+  ((Args.name >> Config.the_config) :-- (fn (config, config_type) =>
+    scan_value config_type >> (fn value =>
+      K (Thm.declaration_attribute (K (Config.put_generic config value))))) >> #2) x;
+
+fun scan_att x =
+  (Args.internal_attribute ||
+    (Scan.ahead (scan_config --| Args.terminator) :--
+      (fn att => Args.named_attribute (K att))) >> #2) x;
+
+in
+
+fun option x = syntax (Scan.lift ((scan_att >> Morphism.form) --| Scan.many Args.not_eof)) x;
+
+end;
 
 
 (* tags *)
