@@ -438,7 +438,7 @@ val print_facts = Toplevel.unknown_context o Toplevel.keep (fn state =>
     ProofContext.print_lthms (Toplevel.context_of state));
 
 val print_options = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  Config.print_configs (Toplevel.context_of state));
+  ConfigOption.print_options (Toplevel.context_of state));
 
 val print_theorems_proof = Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
