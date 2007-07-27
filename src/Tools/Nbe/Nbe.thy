@@ -11,6 +11,11 @@ uses
   "~~/src/Tools/Nbe/nbe_package.ML"
 begin
 
+lemma [code inline]: "If b f g = bool_case f g b" by auto
+lemma [code func]: "null xs \<longleftrightarrow> (case xs of [] \<Rightarrow> True | _ \<Rightarrow> False)"
+by (cases xs) auto
+
+
 ML {* reset Toplevel.debug *}
 
 setup Nbe_Package.setup
@@ -38,11 +43,6 @@ lemma [normal pre, symmetric, normal post]:
   unfolding if_delayed_def ..
 
 hide (open) const if_delayed
-
-lemma [code func]: "null xs \<longleftrightarrow> (case xs of [] \<Rightarrow> True | _ \<Rightarrow> False)"
-apply (cases xs) apply auto done
-
-normal_form "null [x]"
 
 lemma "True"
 by normalization
@@ -163,6 +163,6 @@ normal_form "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 normal_form "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 
 
-
 lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
+lemma "null [x] = False" by normalization
