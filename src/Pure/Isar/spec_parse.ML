@@ -52,7 +52,7 @@ type token = P.token;
 (* theorem specifications *)
 
 val attrib = P.position ((P.keyword_sid || P.xname) -- P.!!! P.arguments) >> Args.src;
-val attribs = P.$$$ "[" |-- P.!!! (P.list attrib --| P.$$$ "]");
+val attribs = P.$$$ "[" |-- P.list attrib --| P.$$$ "]";
 val opt_attribs = Scan.optional attribs [];
 
 fun thm_name s = P.name -- opt_attribs --| P.$$$ s;
