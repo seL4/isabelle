@@ -48,6 +48,7 @@ sig
   val bracks: (T list -> 'a * T list) -> T list -> 'a * T list
   val mode: string -> 'a * T list -> bool * ('a * T list)
   val maybe: (T list -> 'a * T list) -> T list -> 'a option * T list
+  val terminator: T list -> T * T list
   val name: T list -> string * T list
   val alt_name: T list -> string * T list
   val symbol: T list -> string * T list
@@ -71,6 +72,8 @@ sig
   val named_typ: (string -> typ) -> T list -> typ * T list
   val named_term: (string -> term) -> T list -> term * T list
   val named_fact: (string -> thm list) -> T list -> thm list * T list
+  val named_attribute: (string -> morphism -> attribute) -> T list ->
+    (morphism -> attribute) * T list
   val typ_abbrev: Context.generic * T list -> typ * (Context.generic * T list)
   val typ: Context.generic * T list -> typ * (Context.generic * T list)
   val term: Context.generic * T list -> term * (Context.generic * T list)
@@ -270,6 +273,7 @@ fun parens scan = $$$ "(" |-- scan --| $$$ ")";
 fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
 fun mode s = Scan.lift (Scan.optional (parens ($$$ s) >> K true) false);
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
+val terminator = Scan.ahead (Scan.one is_eof);
 
 val name = named >> sym_of;
 val alt_name = alt_string >> sym_of;
@@ -312,6 +316,7 @@ fun named_text intern = internal_text || named >> evaluate Text intern;
 fun named_typ readT = internal_typ || named >> evaluate Typ readT;
 fun named_term read = internal_term || named >> evaluate Term read;
 fun named_fact get = internal_fact || (alt_string || named) >> evaluate Fact get;
+fun named_attribute att = internal_attribute || named >> evaluate Attribute att;
 
 
 (* terms and types *)
