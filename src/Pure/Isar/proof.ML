@@ -587,9 +587,12 @@ end;
 
 (* chain *)
 
+fun clean_facts ctxt =
+  put_facts (SOME (filter_out Drule.is_dummy_thm (the_facts ctxt))) ctxt;
+
 val chain =
   assert_forward
-  #> tap the_facts
+  #> clean_facts
   #> enter_chain;
 
 fun chain_facts facts =
@@ -648,7 +651,7 @@ fun gen_using f g note prep_atts args state =
         val ths = maps snd named_facts;
       in (statement, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
 
-fun append_using _ ths using = using @ ths;
+fun append_using _ ths using = using @ filter_out Drule.is_dummy_thm ths;
 fun unfold_using ctxt ths = map (LocalDefs.unfold ctxt ths);
 val unfold_goals = LocalDefs.unfold_goals;
 
