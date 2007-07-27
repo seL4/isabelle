@@ -1657,14 +1657,14 @@ fun add_thmss loc kind args ctxt =
 
 local
 
-val dummy_thm = Drule.mk_term (Thm.cterm_of ProtoPure.thy (Term.dummy_pattern propT));
 fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
 
 fun add_decls add loc decl =
   ProofContext.theory (change_locale loc
     (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
       (axiom, imports, elems, params, lparams, add (decl, stamp ()) decls, regs, intros))) #>
-  add_thmss loc Thm.internalK [(("", [Attrib.internal (decl_attrib decl)]), [([dummy_thm], [])])];
+  add_thmss loc Thm.internalK
+    [(("", [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
 
 in
 
