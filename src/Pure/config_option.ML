@@ -1,4 +1,4 @@
-(*  Title:      Pure/config.ML
+(*  Title:      Pure/config_option.ML
     ID:         $Id$
     Author:     Makarius
 
@@ -6,7 +6,7 @@ Configuration options as values within the local context.  Global
 environment of named options, with type declaration.
 *)
 
-signature CONFIG =
+signature CONFIG_OPTION =
 sig
   datatype value = Bool of bool | Int of int | String of string
   type 'a T
@@ -19,14 +19,14 @@ sig
   val put: 'a T -> 'a -> Proof.context -> Proof.context
   val put_thy: 'a T -> 'a -> theory -> theory
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
-  val print_configs: Proof.context -> unit
-  val the_config: string -> value T * value
+  val print_options: Proof.context -> unit
+  val the_option: string -> value T * value
   val bool: string -> bool -> bool T
   val int: string -> int -> int T
   val string: string -> string -> string T
 end;
 
-structure Config: CONFIG =
+structure ConfigOption: CONFIG_OPTION =
 struct
 
 (* mixed values *)
@@ -58,7 +58,7 @@ fun type_check f value =
         " expected,\nbut " ^ print_type value' ^ " was found");
   in value' end;
 
-structure ConfigData = GenericDataFun
+structure ConfigOptionData = GenericDataFun
 (
   type T = value Inttab.table;
   val empty = Inttab.empty;
@@ -69,15 +69,15 @@ structure ConfigData = GenericDataFun
 
 (* abstract configuration options *)
 
-datatype 'a T = Config of
+datatype 'a T = ConfigOption of
  {get_value: Context.generic -> 'a,
   map_value: ('a -> 'a) -> Context.generic -> Context.generic};
 
-fun get_generic context (Config {get_value, ...}) = get_value context;
+fun get_generic context (ConfigOption {get_value, ...}) = get_value context;
 fun get_ctxt ctxt = get_generic (Context.Proof ctxt);
 fun get_thy thy = get_generic (Context.Theory thy);
 
-fun map_generic (Config {map_value, ...}) f context = map_value f context;
+fun map_generic (ConfigOption {map_value, ...}) f context = map_value f context;
 fun map_ctxt config f = Context.proof_map (map_generic config f);
 fun map_thy config f = Context.theory_map (map_generic config f);
 
@@ -90,7 +90,7 @@ fun put_thy config value = map_thy config (K value);
 
 local val global_configs = ref (Symtab.empty: (value T * value) Symtab.table) in
 
-fun print_configs ctxt =
+fun print_options ctxt =
   let
     fun prt (name, (config, default)) =
       Pretty.block [Pretty.str (name ^ ": " ^ print_type default ^ " ="), Pretty.brk 1,
@@ -98,7 +98,7 @@ fun print_configs ctxt =
     val configs = sort_wrt #1 (Symtab.dest (! global_configs));
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
-fun the_config name =
+fun the_option name =
   (case Symtab.lookup (! global_configs) name of SOME cfg => cfg
   | NONE => error ("Unknown configuration option " ^ quote name));
 
@@ -108,16 +108,18 @@ fun declare make dest name default =
 
     val default_value = make default;
     fun get_value context =
-      the_default default_value (Inttab.lookup (ConfigData.get context) id);
-    fun map_value f = ConfigData.map (Inttab.map_default (id, default_value) (type_check f));
-    val config_value = Config {get_value = get_value, map_value = map_value};
+      the_default default_value (Inttab.lookup (ConfigOptionData.get context) id);
+    fun map_value f = ConfigOptionData.map (Inttab.map_default (id, default_value) (type_check f));
+    val config_value = ConfigOption {get_value = get_value, map_value = map_value};
 
     val _ = CRITICAL (fn () =>
      (if Symtab.defined (! global_configs) name
       then warning ("Hiding existing configuration option " ^ quote name) else ();
       change global_configs (Symtab.update (name, (config_value, default_value)))));
 
-  in Config {get_value = dest o get_value, map_value = fn f => map_value (make o f o dest)} end;
+  in
+    ConfigOption {get_value = dest o get_value, map_value = fn f => map_value (make o f o dest)}
+  end;
 
 end;
 
