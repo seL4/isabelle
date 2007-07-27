@@ -70,8 +70,10 @@ val thm_sel = P.$$$ "(" |-- P.list1
   P.nat --| P.minus >> PureThy.From ||
   P.nat >> PureThy.Single) --| P.$$$ ")";
 
-val xthm = (P.alt_string >> Fact || P.xname -- thm_sel >> NameSelection || P.xname >> Name)
-  -- opt_attribs;
+val xthm =
+  P.$$$ "[" |-- attribs --| P.$$$ "]" >> pair (Name "") ||
+  (P.alt_string >> Fact || P.xname -- thm_sel >> NameSelection || P.xname >> Name) -- opt_attribs;
+
 val xthms1 = Scan.repeat1 xthm;
 
 val name_facts = P.and_list1 (opt_thm_name "=" -- xthms1);
