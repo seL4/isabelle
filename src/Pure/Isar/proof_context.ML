@@ -758,11 +758,13 @@ fun retrieve_thms _ pick ctxt (Fact s) =
         val (space, tab) = #1 (thms_of ctxt);
         val thmref = PureThy.map_name_of_thmref (NameSpace.intern space) xthmref;
         val name = PureThy.name_of_thmref thmref;
-      in
-        (case Symtab.lookup tab name of
-          SOME ths => map (Thm.transfer thy) (PureThy.select_thm thmref ths)
-        | NONE => from_thy thy xthmref) |> pick name
-      end;
+        val thms =
+          if name = "" then [Thm.transfer thy Drule.dummy_thm]
+          else
+            (case Symtab.lookup tab name of
+              SOME ths => map (Thm.transfer thy) (PureThy.select_thm thmref ths)
+            | NONE => from_thy thy xthmref);
+      in pick name thms end;
 
 val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
 val get_thm_closure = retrieve_thms PureThy.get_thms_closure PureThy.single_thm;
