@@ -86,7 +86,7 @@ fun eval_term thy funcgr t =
   in
     t
     |> tracing (fn t => "Input:\n" ^ Display.raw_string_of_term t)
-    |> Nbe_Eval.eval thy funcgr
+    |> Nbe_Eval.eval thy
     |> tracing (fn t => "Normalized:\n" ^ setmp show_types true Display.raw_string_of_term t)
     |> tracing (fn _ => "Term type:\n" ^ Display.raw_string_of_typ ty)
     |> anno_vars

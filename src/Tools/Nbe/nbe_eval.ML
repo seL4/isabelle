@@ -7,26 +7,26 @@ Evaluation mechanisms for normalization by evaluation.
 
 (*
 FIXME:
-- implement purge operation proper
-- get rid of BVar (?) - it is only used tor terms to be evaluated, not for functions
+- get rid of BVar (?) - it is only used for terms to be evaluated, not for functions
+- proper purge operation - preliminary for...
+- really incremental code generation
 *)
 
 signature NBE_EVAL =
 sig
   datatype Univ = 
-      Constr of string * Univ list       (*named constructors*)
-    | Var of string * Univ list          (*free variables*)
+      Const of string * Univ list        (*uninterpreted constants*)
+    | Free of string * Univ list         (*free (uninterpreted) variables*)
     | BVar of int * Univ list            (*bound named variables*)
-    | Fun of (Univ list -> Univ) * Univ list * int
-                                        (*functions*)
+    | Abs of (int * (Univ list -> Univ)) * Univ list
+                                        (*abstractions as functions*)
   val apply: Univ -> Univ -> Univ
 
-  val univs_ref: (CodegenNames.const * Univ) list ref 
-  val compile_univs: string -> (CodegenNames.const * Univ) list
+  val univs_ref: Univ list ref 
   val lookup_fun: CodegenNames.const -> Univ
 
   (*preconditions: no Vars/TVars in term*)
-  val eval: theory -> CodegenFuncgr.T -> term -> term
+  val eval: theory -> term -> term
 
   val trace: bool ref
 end;
@@ -60,28 +60,28 @@ fun tracing f x = if !trace then (Output.tracing (f x); x) else x;
    and the number of arguments we're still waiting for.
 
    (?) Finally, it might happen, that a function does not get all the
-   arguments it needs. In this case the function must provide means to
+   arguments it needs.  In this case the function must provide means to
    present itself as a string. As this might be a heavy-wight
    operation, we delay it. (?) 
 *)
 
 datatype Univ = 
-    Constr of string * Univ list       (*named constructors*)
-  | Var of string * Univ list          (*free variables*)
+    Const of string * Univ list        (*named constructors*)
+  | Free of string * Univ list         (*free variables*)
   | BVar of int * Univ list            (*bound named variables*)
-  | Fun of (Univ list -> Univ) * Univ list * int
+  | Abs of (int * (Univ list -> Univ)) * Univ list
                                       (*functions*);
 
-fun apply (Fun (f, xs, 1)) x = f (x :: xs)
-  | apply (Fun (f, xs, n)) x = Fun (f, x :: xs, n - 1)
-  | apply (Constr (name, args)) x = Constr (name, x :: args)
-  | apply (Var (name, args)) x = Var (name, x :: args)
+fun apply (Abs ((1, f), xs)) x = f (x :: xs)
+  | apply (Abs ((n, f), xs)) x = Abs ((n - 1, f), x :: xs)
+  | apply (Const (name, args)) x = Const (name, x :: args)
+  | apply (Free (name, args)) x = Free (name, x :: args)
   | apply (BVar (name, args)) x = BVar (name, x :: args);
 
 
 (** global functions **)
 
-structure Nbe_Data = CodeDataFun
+structure Nbe_Functions = CodeDataFun
 (struct
   type T = Univ Symtab.table;
   val empty = Symtab.empty;
@@ -92,194 +92,202 @@ end);
 
 (** sandbox communication **)
 
-val univs_ref = ref [] : (string * Univ) list ref;
+val univs_ref = ref [] : Univ list ref;
 
-fun compile_univs "" = []
-  | compile_univs raw_s =
+local
+
+val tab_ref = ref NONE : Univ Symtab.table option ref;
+
+in
+
+fun lookup_fun s = case ! tab_ref
+ of NONE => error "compile_univs"
+  | SOME tab => (the o Symtab.lookup tab) s;
+
+fun compile_univs tab ([], _) = []
+  | compile_univs tab (cs, raw_s) =
       let
         val _ = univs_ref := [];
         val s = "Nbe_Eval.univs_ref := " ^ raw_s;
         val _ = tracing (fn () => "\n---generated code:\n" ^ s) ();
+        val _ = tab_ref := SOME tab; (*FIXME hide proper*)
         val _ = use_text "" (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
-          Output.tracing o enclose "\n--- compiler echo (with error!):\n" "\n---\n")
+          Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
           (!trace) s;
+        val _ = tab_ref := NONE;
         val univs = case !univs_ref of [] => error "compile_univs" | univs => univs;
-      in univs end;
+      in cs ~~ univs end;
 
-val tab_ref = ref Symtab.empty : Univ Symtab.table ref;
-fun lookup_fun s = (the o Symtab.lookup (! tab_ref)) s;
+end; (*local*)
 
 
 (** printing ML syntax **)
 
-structure S =
-struct
+fun ml_app e1 e2 = "(" ^ e1 ^ " " ^ e2 ^ ")";
+fun ml_apps s ss = Library.foldl (uncurry ml_app) (s, ss);
+fun ml_abs v e = "(fn" ^ v ^ " => " ^ e ^ ")";
 
-(* generic basics *)
+fun ml_Val v s = "val " ^ v ^ " = " ^ s;
+fun ml_Let ds e = "let\n" ^ space_implode "\n" ds ^ " in " ^ e ^ " end";
 
-fun app e1 e2 = "(" ^ e1 ^ " " ^ e2 ^ ")";
-fun apps s ss = Library.foldl (uncurry app) (s, ss);
-fun abs v e = "(fn" ^ v ^ " => " ^ e ^ ")";
+val ml_string = ML_Syntax.print_string;
+fun ml_pair e1 e2 = "(" ^ e1 ^ ", " ^ e2 ^ ")";
+fun ml_list es = "[" ^ commas es ^ "]";
 
-fun Val v s = "val " ^ v ^ " = " ^ s;
-fun Let ds e = "let\n" ^ space_implode "\n" ds ^ " in " ^ e ^ " end";
+fun ml_cases t cs =
+  "(case " ^ t ^ " of " ^ space_implode " |" (map (fn (p, t) => p ^ " => " ^ t) cs) ^ ")";
 
-val string = ML_Syntax.print_string;
-fun tup es = "(" ^ commas es ^ ")";
-fun list es = "[" ^ commas es ^ "]";
-
-fun fundefs (eqs :: eqss) =
-  let
-    fun fundef (name, eqs) =
+fun ml_fundefs ([(name, [([], e)])]) =
+      "val " ^ name ^ " = " ^ e ^ "\n"
+  | ml_fundefs (eqs :: eqss) =
       let
-        fun eqn (es, e) = name ^ " " ^ space_implode " " es ^ " = " ^ e
-      in space_implode "\n  | " (map eqn eqs) end;
-  in
-    (prefix "fun " o fundef) eqs :: map (prefix "and " o fundef) eqss
-    |> space_implode "\n"
-    |> suffix "\n"
-  end;
+        fun fundef (name, eqs) =
+          let
+            fun eqn (es, e) = name ^ " " ^ space_implode " " es ^ " = " ^ e
+          in space_implode "\n  | " (map eqn eqs) end;
+      in
+        (prefix "fun " o fundef) eqs :: map (prefix "and " o fundef) eqss
+        |> space_implode "\n"
+        |> suffix "\n"
+      end;
 
 
-(* runtime names *)
+(** nbe specific syntax **)
 
 local
-
-val Eval =              "Nbe_Eval.";
-val Eval_Constr =       Eval ^ "Constr";
-val Eval_apply =        Eval ^ "apply";
-val Eval_Fun =          Eval ^ "Fun";
-val Eval_lookup_fun =   Eval ^ "lookup_fun";
-
+  val Eval =            "Nbe_Eval.";
+  val Eval_Const =      Eval ^ "Const";
+  val Eval_Free =       Eval ^ "Free";
+  val Eval_apply =      Eval ^ "apply";
+  val Eval_Abs =        Eval ^ "Abs";
+  val Eval_lookup_fun = Eval ^ "lookup_fun";
 in
 
-(* nbe specific syntax *)
+fun nbe_const c args = ml_app Eval_Const (ml_pair (ml_string c) (ml_list args));
 
-fun nbe_constr c args = app Eval_Constr (tup [string c, list args]);
+fun nbe_fun c = "c_" ^ translate_string (fn "." => "_" | c => c) c;
 
-fun nbe_const c = "c_" ^ translate_string (fn "." => "_" | c => c) c;
+fun nbe_free v = ml_app Eval_Free (ml_pair (ml_string v)  (ml_list []));
 
-fun nbe_free v = "v_" ^ v;
+fun nbe_bound v = "v_" ^ v;
 
 fun nbe_apps e es =
-  Library.foldr (fn (s, e) => app (app Eval_apply e) s) (es, e);
+  Library.foldr (fn (s, e) => ml_app (ml_app Eval_apply e) s) (es, e);
 
-fun nbe_abs (v, e) =
-  app Eval_Fun (tup [abs (list [nbe_free v]) e, list [], "1"]);
+fun nbe_abss 0 f = ml_app f (ml_list [])
+  | nbe_abss n f = ml_app Eval_Abs (ml_pair (ml_pair (string_of_int n) f) (ml_list []));
 
-fun nbe_fun (c, 0) = tup [string c, app (nbe_const c) (list [])]
-  | nbe_fun (c, n) = tup [string c,
-      app Eval_Fun (tup [nbe_const c, list [], string_of_int n])];
+fun nbe_lookup c = ml_Val (nbe_fun c) (ml_app Eval_lookup_fun (ml_string c));
 
-fun nbe_lookup c = Val (nbe_const c) (app Eval_lookup_fun (string c));
-
-end;
+val nbe_value = "value";
 
 end;
 
 
-(** assembling and compiling ML representation of terms **)
+(** assembling and compiling of terms etc. **)
 
-fun assemble_term thy is_global local_arity =
+open BasicCodegenThingol;
+
+(* greetings to Tarski *)
+
+fun assemble_iterm thy is_fun num_args =
   let
-    fun of_term t =
+    fun of_iterm t =
       let
-        val (t', ts) = strip_comb t
-      in of_termapp t' (fold (cons o of_term) ts []) end
-    and of_termapp (Const cexpr) ts =
-          let
-            val c = (CodegenNames.const thy o CodegenConsts.const_of_cexpr thy) cexpr;
-          in case local_arity c
+        val (t', ts) = CodegenThingol.unfold_app t
+      in of_itermapp t' (fold (cons o of_iterm) ts []) end
+    and of_itermapp (IConst (c, (dss, _))) ts =
+          (case num_args c
            of SOME n => if n <= length ts
                 then let val (args2, args1) = chop (length ts - n) ts
-                in S.nbe_apps (S.app (S.nbe_const c) (S.list args1)) args2
-                end else S.nbe_constr c ts
-            | NONE => if is_global c then S.nbe_apps (S.nbe_const c) ts
-                else S.nbe_constr c ts
-          end
-      | of_termapp (Free (v, _)) ts = S.nbe_apps (S.nbe_free v) ts
-      | of_termapp (Abs abs) ts =
-          let
-            val (v', t') = Syntax.variant_abs abs;
-          in S.nbe_apps (S.nbe_abs (v', of_term t')) ts end;
-  in of_term end;
+                in nbe_apps (ml_app (nbe_fun c) (ml_list args1)) args2
+                end else nbe_const c ts
+            | NONE => if is_fun c then nbe_apps (nbe_fun c) ts
+                else nbe_const c ts)
+      | of_itermapp (IVar v) ts = nbe_apps (nbe_bound v) ts
+      | of_itermapp ((v, _) `|-> t) ts =
+          nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound v]) (of_iterm t))) ts
+      | of_itermapp (ICase (((t, _), cs), t0)) ts =
+          nbe_apps (ml_cases (of_iterm t) (map (pairself of_iterm) cs
+            @ [("_", of_iterm t0)])) ts
+  in of_iterm end;
 
-fun assemble_fun thy is_global local_arity (c, eqns) =
+fun assemble_fun thy is_fun num_args (c, eqns) =
   let
-    val assemble_arg = assemble_term thy (K false) (K NONE);
-    val assemble_rhs = assemble_term thy is_global local_arity;
+    val assemble_arg = assemble_iterm thy (K false) (K NONE);
+    val assemble_rhs = assemble_iterm thy is_fun num_args;
     fun assemble_eqn (args, rhs) =
-      ([S.list (map assemble_arg (rev args))], assemble_rhs rhs);
-    val default_params = map S.nbe_free
-      (Name.invent_list [] "a" ((the o local_arity) c));
-    val default_eqn = ([S.list default_params], S.nbe_constr c default_params);
+      ([ml_list (map assemble_arg (rev args))], assemble_rhs rhs);
+    val default_params = map nbe_bound
+      (Name.invent_list [] "a" ((the o num_args) c));
+    val default_eqn = ([ml_list default_params], nbe_const c default_params);
   in map assemble_eqn eqns @ [default_eqn] end;
 
-fun compile _ _ [] = []
-  | compile _ _ [(_, [])] = []
-  | compile thy is_global fundefs =
+fun assemble_eqnss thy is_fun [] = ([], "")
+  | assemble_eqnss thy is_fun eqnss =
       let
-        val eqnss = (map o apsnd o map) (apfst (snd o strip_comb) o Logic.dest_equals
-          o Logic.unvarify o prop_of) fundefs;
         val cs = map fst eqnss;
-        val arities = cs ~~ map (fn (_, (args, rhs) :: _) => length args) eqnss;
-        val used_cs = fold (fold (fold_aterms (fn Const cexpr =>
-          insert (op =) ((CodegenNames.const thy o CodegenConsts.const_of_cexpr thy) cexpr)
-            | _ => I)) o map snd o snd) eqnss [];
-        val bind_globals = map S.nbe_lookup (filter is_global used_cs);
-        val bind_locals = S.fundefs (map S.nbe_const cs ~~ map
-          (assemble_fun thy is_global (AList.lookup (op =) arities)) eqnss);
-        val result = S.list (map S.nbe_fun arities);
-      in compile_univs (S.Let (bind_globals @ [bind_locals]) result) end;
+        val num_args = cs ~~ map (fn (_, (args, rhs) :: _) => length args) eqnss;
+        val funs = fold (fold (CodegenThingol.fold_constnames
+          (insert (op =))) o map snd o snd) eqnss [];
+        val bind_funs = map nbe_lookup (filter is_fun funs);
+        val bind_locals = ml_fundefs (map nbe_fun cs ~~ map
+          (assemble_fun thy is_fun (AList.lookup (op =) num_args)) eqnss);
+        val result = ml_list (map (fn (c, n) => nbe_abss n (nbe_fun c)) num_args);
+      in (cs, ml_Let (bind_funs @ [bind_locals]) result) end;
 
-
-(** evaluation with greetings to Tarski **)
-
-(* conversion and evaluation *)
-
-fun univ_of_term thy lookup_fun =
+fun assemble_eval thy is_fun t =
   let
-    fun of_term vars t =
-      let
-        val (t', ts) = strip_comb t
-      in
-        Library.foldl (uncurry apply)
-          (of_termapp vars  t', map (of_term vars) ts)
-      end
-    and of_termapp vars (Const cexpr) =
-          let
-            val s = (CodegenNames.const thy o CodegenConsts.const_of_cexpr thy) cexpr;
-          in the_default (Constr (s, [])) (lookup_fun s) end
-      | of_termapp vars (Free (v, _)) =
-          the_default (Var (v, [])) (AList.lookup (op =) vars v)
-      | of_termapp vars (Abs abs) =
-          let
-            val (v', t') = Syntax.variant_abs abs;
-          in Fun (fn [x] => of_term (AList.update (op =) (v', x) vars) t', [], 1) end;
-  in of_term [] end;
+    val funs = CodegenThingol.fold_constnames (insert (op =)) t [];
+    val frees = CodegenThingol.fold_unbound_varnames (insert (op =)) t [];
+    val bind_funs = map nbe_lookup (filter is_fun funs);
+    val bind_value = ml_fundefs [(nbe_value, [([ml_list (map nbe_bound frees)],
+      assemble_iterm thy is_fun (K NONE) t)])];
+    val result = ml_list [ml_app nbe_value (ml_list (map nbe_free frees))];
+  in ([nbe_value], ml_Let (bind_funs @ [bind_value]) result) end;
+
+fun eqns_of_stmt (name, CodegenThingol.Fun ([], _)) =
+      NONE
+  | eqns_of_stmt (name, CodegenThingol.Fun (eqns, _)) =
+      SOME (name, eqns)
+  | eqns_of_stmt (_, CodegenThingol.Datatypecons _) =
+      NONE
+  | eqns_of_stmt (_, CodegenThingol.Datatype _) =
+      NONE
+  | eqns_of_stmt (_, CodegenThingol.Class _) =
+      NONE
+  | eqns_of_stmt (_, CodegenThingol.Classrel _) =
+      NONE
+  | eqns_of_stmt (_, CodegenThingol.Classop _) =
+      NONE
+  | eqns_of_stmt (_, CodegenThingol.Classinst _) =
+      NONE;
+
+fun compile_stmts thy is_fun =
+  map_filter eqns_of_stmt
+  #> assemble_eqnss thy is_fun
+  #> compile_univs (Nbe_Functions.get thy);
+
+fun eval_term thy is_fun =
+  assemble_eval thy is_fun
+  #> compile_univs (Nbe_Functions.get thy)
+  #> the_single
+  #> snd;
 
 
 (* ensure global functions *)
 
-fun ensure_funs thy funcgr t =
+fun ensure_funs thy code =
   let
-    fun consts_of thy t =
-      fold_aterms (fn Const c => cons (CodegenConsts.const_of_cexpr thy c) | _ => I) t []
-    val consts = consts_of thy t;
-    fun compile' eqs tab =
+    fun compile' stmts tab =
       let
-        val _ = tab_ref := tab;
-        val compiled = compile thy (Symtab.defined tab) eqs;
-      in Nbe_Data.change thy (fold Symtab.update compiled) end;
-    val nbe_tab = Nbe_Data.get thy;
-  in
-    CodegenFuncgr.deps funcgr consts
-    |> (map o filter_out) (Symtab.defined nbe_tab o CodegenNames.const thy)
-    |> filter_out null
-    |> (map o map) (fn c => (CodegenNames.const thy c, CodegenFuncgr.funcs funcgr c))
-    |> tracing (fn funs => "new definitions: " ^ (commas o maps (map fst)) funs)
-    |> (fn funs => fold compile' funs nbe_tab)
-  end;
+        val compiled = compile_stmts thy (Symtab.defined tab) stmts;
+      in Nbe_Functions.change thy (fold Symtab.update compiled) end;
+    val nbe_tab = Nbe_Functions.get thy;
+    val stmtss =
+      map (AList.make (Graph.get_node code)) (rev (Graph.strong_conn code))
+      |> (map o filter_out) (Symtab.defined nbe_tab o fst)
+  in fold compile' stmtss nbe_tab end;
 
 
 (* re-conversion *)
@@ -289,30 +297,31 @@ fun term_of_univ thy t =
     fun of_apps bounds (t, ts) =
       fold_map (of_univ bounds) ts
       #>> (fn ts' => list_comb (t, rev ts'))
-    and of_univ bounds (Constr (name, ts)) typidx =
+    and of_univ bounds (Const (name, ts)) typidx =
           let
             val SOME (const as (c, _)) = CodegenNames.const_rev thy name;
             val T = CodegenData.default_typ thy const;
             val T' = map_type_tvar (fn ((v, i), S) => TypeInfer.param (typidx + i) (v, S)) T;
             val typidx' = typidx + maxidx_of_typ T' + 1;
-          in of_apps bounds (Const (c, T'), ts) typidx' end
-      | of_univ bounds (Var (name, ts)) typidx =
-          of_apps bounds (Free (name, dummyT), ts) typidx
+          in of_apps bounds (Term.Const (c, T'), ts) typidx' end
+      | of_univ bounds (Free (name, ts)) typidx =
+          of_apps bounds (Term.Free (name, dummyT), ts) typidx
       | of_univ bounds (BVar (name, ts)) typidx =
           of_apps bounds (Bound (bounds - name - 1), ts) typidx
-      | of_univ bounds (F as Fun _) typidx =
+      | of_univ bounds (t as Abs _) typidx =
           typidx
-          |> of_univ (bounds + 1) (apply F (BVar (bounds, [])))
-          |-> (fn t' => pair (Abs ("u", dummyT, t')))
+          |> of_univ (bounds + 1) (apply t (BVar (bounds, [])))
+          |-> (fn t' => pair (Term.Abs ("u", dummyT, t')))
   in of_univ 0 t 0 |> fst end;
 
 
 (* interface *)
 
-fun eval thy funcgr t =
+fun eval thy t =
   let
-    val tab = ensure_funs thy funcgr t;
-    val u = univ_of_term thy (Symtab.lookup tab) t;
+    val (code, t') = CodegenPackage.compile_term thy t;
+    val tab = ensure_funs thy code;
+    val u = eval_term thy (Symtab.defined tab) t';
   in term_of_univ thy u end;;
 
 end;

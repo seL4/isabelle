@@ -39,7 +39,13 @@ lemma [normal pre, symmetric, normal post]:
 
 hide (open) const if_delayed
 
-lemma "True" by normalization
+lemma [code func]: "null xs \<longleftrightarrow> (case xs of [] \<Rightarrow> True | _ \<Rightarrow> False)"
+apply (cases xs) apply auto done
+
+normal_form "null [x]"
+
+lemma "True"
+by normalization
 lemma "x = x" by normalization
 lemma "True \<or> False"
 by normalization
@@ -93,11 +99,12 @@ lemma "mul2 (S(S(S(S(S Z))))) (S(S(S Z))) = S(S(S(S(S(S(S(S(S(S(S(S(S(S(S Z)))))
 lemma "mul (S(S(S(S(S Z))))) (S(S(S Z))) = S(S(S(S(S(S(S(S(S(S(S(S(S(S(S Z))))))))))))))" by normalization
 lemma "exp (S(S Z)) (S(S(S(S Z)))) = exp (S(S(S(S Z)))) (S(S Z))" by normalization
 
-lemma "(let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)) = Z" by normalization
-lemma "split (%x y. x) (a, b) = a" by normalization
-lemma "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z)) = Z" by normalization
-
-lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalization
+normal_form "f"
+normal_form "f x"
+normal_form "(f o g) x"
+normal_form "(f o id) x"
+normal_form "id"
+normal_form "\<lambda>x. x"
 
 lemma "[] @ [] = []" by normalization
 lemma "[] @ xs = xs" by normalization
@@ -110,24 +117,10 @@ normal_form "rev (a#b#cs) = rev cs @ [b, a]"
 normal_form "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
 normal_form "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
 normal_form "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
-normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()]"
-normal_form "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
-normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs"
-normal_form "let x = y::'x in [x,x]"
-normal_form "Let y (%x. [x,x])"
-normal_form "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
-normal_form "(%(x,y). add x y) (S z,S z)"
 normal_form "filter (%x. x) ([True,False,x]@xs)"
 normal_form "filter Not ([True,False,x]@xs)"
 
 normal_form "[x,y,z] @ [a,b,c] = [x, y, z, a, b ,c]"
-normal_form "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]"
-normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]"
-
-lemma "last [a, b, c] = c"
-  by normalization
-lemma "last ([a, b, c] @ xs) = (if null xs then c else last xs)"
-  by normalization
 
 lemma "(2::int) + 3 - 1 + (- k) * 2 = 4 + - k * 2" by normalization
 lemma "(-4::int) * 2 = -8" by normalization
@@ -140,19 +133,36 @@ lemma "(2::int) <= 3" by normalization
 lemma "abs ((-4::int) + 2 * 1) = 2" by normalization
 lemma "4 - 42 * abs (3 + (-7\<Colon>int)) = -164" by normalization
 lemma "(if (0\<Colon>nat) \<le> (x\<Colon>nat) then 0\<Colon>nat else x) = 0" by normalization
-lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
-lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
+
+lemma "last [a, b, c] = c"
+  by normalization
+lemma "last ([a, b, c] @ xs) = (if null xs then c else last xs)"
+  by normalization
+
+lemma "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z)) = Z" by normalization
+lemma "split (%x y. x) (a, b) = a" by normalization
+lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalization
+lemma "(let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)) = Z" 
+by normalization
+normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()]"
+normal_form "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
+normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs"
+normal_form "let x = y::'x in [x,x]"
+normal_form "Let y (%x. [x,x])"
+normal_form "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
+normal_form "(%(x,y). add x y) (S z,S z)"
+normal_form "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]"
+normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]"
 
 normal_form "Suc 0 \<in> set ms"
-
-normal_form "f"
-normal_form "f x"
-normal_form "(f o g) x"
-normal_form "(f o id) x"
-normal_form "\<lambda>x. x"
 
 (* Church numerals: *)
 
 normal_form "(%m n f x. m f (n f x)) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 normal_form "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 normal_form "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+
+
+
+lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
+lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
