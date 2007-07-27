@@ -118,6 +118,8 @@ sig
   val dest_term: thm -> cterm
   val cterm_rule: (thm -> thm) -> cterm -> cterm
   val term_rule: theory -> (thm -> thm) -> term -> term
+  val dummy_thm: thm
+  val is_dummy_thm: thm -> bool
   val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
@@ -892,6 +894,17 @@ fun dest_term th =
 
 fun cterm_rule f = dest_term o f o mk_term;
 fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
+
+
+(* dummy_thm *)
+
+val dummy_prop = Term.dummy_pattern propT;
+val dummy_thm = mk_term (Thm.cterm_of ProtoPure.thy dummy_prop);
+
+fun is_dummy_thm th =
+  (case try dest_term th of
+    NONE => false
+  | SOME ct => Logic.strip_imp_concl (Thm.term_of ct) aconv dummy_prop);
 
 
 
