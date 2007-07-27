@@ -92,7 +92,7 @@ fun term_of_i vs t = case t
       term_of_i vs t1 $ term_of_i vs t2
   | Mul (i, t2) => Const (@{const_name "HOL.times"}, HOLogic.intT --> HOLogic.intT --> HOLogic.intT) $
       HOLogic.mk_number HOLogic.intT i $ term_of_i vs t2
-  | Cn (n,i, t') => term_of_i vs (Add (Mul (i, Bound (nat n)), t'));
+  | Cn (n,i, t') => term_of_i vs (Add (Mul (i, Bound n), t'));
 
 fun term_of_qf ps vs t = case t
  of T => HOLogic.true_const 
