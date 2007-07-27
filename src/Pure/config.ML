@@ -45,6 +45,19 @@ fun print_type (Bool _) = "boolean"
   | print_type (Int _) = "integer"
   | print_type (String _) = "string";
 
+fun same_type (Bool _) (Bool _) = true
+  | same_type (Int _) (Int _) = true
+  | same_type (String _) (String _) = true
+  | same_type _ _ = false;
+
+fun type_check f value =
+  let
+    val value' = f value;
+    val _ = same_type value value' orelse
+      error ("Ill-typed configuration option: " ^ print_type value ^
+        " expected,\nbut " ^ print_type value' ^ " was found");
+  in value' end;
+
 structure ConfigData = GenericDataFun
 (
   type T = value Inttab.table;
@@ -96,7 +109,7 @@ fun declare make dest name default =
     val default_value = make default;
     fun get_value context =
       the_default default_value (Inttab.lookup (ConfigData.get context) id);
-    fun map_value f = ConfigData.map (Inttab.map_default (id, default_value) f);
+    fun map_value f = ConfigData.map (Inttab.map_default (id, default_value) (type_check f));
     val config_value = Config {get_value = get_value, map_value = map_value};
 
     val _ = CRITICAL (fn () =>
