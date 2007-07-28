@@ -161,6 +161,24 @@ LHS means that more general c('a * 'b) will be disallowed on any RHS.
 Command 'print_theory' outputs the normalized system of recursive
 equations, see section "definitions".
 
+* Isar: command 'declaration' augments a local theory by generic
+declaration functions written in ML.  This enables arbitrary content
+being added to the context, depending on a morphism that tells the
+difference of the original declaration context wrt. the application
+context encountered later on.
+
+* Isar: proper interfaces for simplification procedures.  Command
+'simproc_setup' declares named simprocs (with match patterns, and body
+text in ML).  Attribute "simproc" adds/deletes simprocs in the current
+context.  ML antiquotation @{simproc name} retrieves named simprocs.
+
+* Isar: an extra pair of brackets around attribute declarations
+abbreviates a theorem reference involving an internal dummy fact,
+which will be ignored later --- only the effect of the attribute on
+the background context will persist.  This form of in-place
+declarations is particularly useful with commands like 'declare' and
+'using', for example ``have A using [[simproc a]] by simp''.
+
 * Isar: method "assumption" (and implicit closing of subproofs) now
 takes simple non-atomic goal assumptions into account: after applying
 an assumption as a rule the resulting subgoals are solved by atomic
