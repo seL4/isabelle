@@ -71,7 +71,7 @@ sig
   val simp_del: attribute
   val cong_add: attribute
   val cong_del: attribute
-  val get_simproc: Proof.context -> xstring -> simproc
+  val get_simproc: Context.generic -> xstring -> simproc
   val def_simproc: {name: string, lhss: string list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} ->
     local_theory -> local_theory
@@ -109,8 +109,8 @@ val _ = Context.add_setup GlobalSimpset.init;
 fun print_simpset thy = print_ss (! (GlobalSimpset.get thy));
 val get_simpset = ! o GlobalSimpset.get;
 
-val change_simpset_of = change o GlobalSimpset.get;
-fun change_simpset f = change_simpset_of (ML_Context.the_context ()) f;
+fun change_simpset_of thy f = CRITICAL (fn () => change (GlobalSimpset.get thy) f);
+fun change_simpset f = CRITICAL (fn () => change_simpset_of (ML_Context.the_context ()) f);
 
 fun simpset_of thy = MetaSimplifier.context (ProofContext.init thy) (get_simpset thy);
 val simpset = simpset_of o ML_Context.the_context;
@@ -184,9 +184,9 @@ structure Simprocs = GenericDataFun
 
 (* get simprocs *)
 
-fun get_simproc ctxt xname =
+fun get_simproc context xname =
   let
-    val (space, tab) = Simprocs.get (Context.Proof ctxt);
+    val (space, tab) = Simprocs.get context;
     val name = NameSpace.intern space xname;
   in
     (case Symtab.lookup tab name of
@@ -196,7 +196,7 @@ fun get_simproc ctxt xname =
 
 val _ = ML_Context.value_antiq "simproc" (Scan.lift Args.name >> (fn name =>
   ("simproc",
-    "Simplifier.get_simproc (ML_Context.the_local_context ()) " ^ ML_Syntax.print_string name)));
+    "Simplifier.get_simproc (ML_Context.the_generic_context ()) " ^ ML_Syntax.print_string name)));
 
 
 (* define simprocs *)
@@ -220,16 +220,15 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
        identifier = identifier}
       |> morph_simproc (LocalTheory.target_morphism lthy);
   in
-    lthy |> LocalTheory.declaration (fn phi => fn context =>
+    lthy |> LocalTheory.declaration (fn phi =>
       let
         val name' = Morphism.name phi name;
         val simproc' = morph_simproc phi simproc;
       in
-        context
-        |> Simprocs.map (fn simprocs =>
+        Simprocs.map (fn simprocs =>
             NameSpace.extend_table naming [(name', simproc')] simprocs
               handle Symtab.DUP dup => err_dup_simproc dup)
-        |> map_ss (fn ss => ss addsimprocs [simproc'])
+        #> map_ss (fn ss => ss addsimprocs [simproc'])
       end)
   end;
 
@@ -328,6 +327,27 @@ val no_asm_simpN = "no_asm_simp";
 val asm_lrN = "asm_lr";
 
 
+(* simprocs *)
+
+local
+
+val add_del =
+  (Args.del -- Args.colon >> K (op delsimprocs) ||
+    Scan.option (Args.add -- Args.colon) >> K (op addsimprocs))
+  >> (fn f => fn simproc => fn phi => Thm.declaration_attribute
+      (K (map_ss (fn ss => f (ss, [morph_simproc phi simproc])))));
+
+in
+
+val simproc_att = Attrib.syntax
+  (Scan.peek (fn context =>
+    add_del :|-- (fn decl =>
+      Scan.repeat1 (Args.named_attribute (decl o get_simproc context))
+      >> (Library.apply o map Morphism.form))));
+
+end;
+  
+
 (* conversions *)
 
 local
@@ -351,8 +371,9 @@ end;
 
 val _ = Context.add_setup
  (Attrib.add_attributes
-   [(simpN, Attrib.add_del_args simp_add simp_del, "declaration of Simplifier rule"),
+   [(simpN, Attrib.add_del_args simp_add simp_del, "declaration of Simplifier rewrite rule"),
     (congN, Attrib.add_del_args cong_add cong_del, "declaration of Simplifier congruence rule"),
+    ("simproc", simproc_att, "declaration of simplification procedures"),
     ("simplified", simplified, "simplified rule")]);
 
 
@@ -429,14 +450,13 @@ fun easy_setup reflect trivs = method_setup [] #> (fn thy =>
       else [thm RS reflect] handle THM _ => [];
 
     fun mksimps thm = mk_eq (Drule.forall_elim_vars (#maxidx (Thm.rep_thm thm) + 1) thm);
-  in
-    GlobalSimpset.get thy :=
-      empty_ss setsubgoaler asm_simp_tac
-      setSSolver safe_solver
-      setSolver unsafe_solver
-      setmksimps mksimps;
-    thy
-  end);
+    val _ = CRITICAL (fn () =>
+      GlobalSimpset.get thy :=
+        empty_ss setsubgoaler asm_simp_tac
+        setSSolver safe_solver
+        setSolver unsafe_solver
+        setmksimps mksimps);
+  in thy end);
 
 end;
 
