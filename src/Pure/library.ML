@@ -338,7 +338,7 @@ fun setmp_noncritical flag value f x =
     val _ = flag := orig_value;
   in Exn.release result end;
 
-fun setmp flag value f x = CRITICAL (fn () => setmp_noncritical flag value f x);
+fun setmp flag value f x = NAMED_CRITICAL "setmp" (fn () => setmp_noncritical flag value f x);
 
 
 
