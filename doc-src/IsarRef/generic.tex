@@ -1126,6 +1126,51 @@ method available for single-step case splitting.
 \end{descr}
 
 
+\subsubsection{Simplification procedures}
+
+\indexisarcmd{simproc-setup}
+\indexisaratt{simproc}
+\begin{matharray}{rcl}
+  \isarcmd{simproc_setup} & : & \isarkeep{local{\dsh}theory} \\
+  simproc & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  'simproc\_setup' name '(' (term + '|') ')' '=' text \\ ('identifier' (nameref+))?
+  ;
+
+  'simproc' (('add' ':')? | 'del' ':') (name+)
+  ;
+\end{rail}
+
+\begin{descr}
+
+\item [$\isarcmd{simproc_setup}$] defines a named simplification
+  procedure that is invoked by the Simplifier whenever any of the
+  given term patterns match the current redex.  The implementation,
+  which is provided as ML source text, needs to be of type
+  \verb,morphism -> simpset -> cterm -> thm option,, where the
+  \verb,cterm, represents the current redex $r$ and the result is
+  supposed to be some proven rewrite rule $r \equiv r'$ (or a
+  generalized version), or \verb,NONE, to indicate failure.  The
+  \verb,simpset, argument holds the full context of the current
+  Simplifier invocation, including the actual Isar proof context.  The
+  \verb,morphism, informs about the difference of the original
+  compilation context wrt.\ the one of the actual application later
+  on.  The optional $\isarkeyword{identifier}$ specifies theorems that
+  represent the logical content of the abstract theory of this
+  simproc.
+
+  Morphisms and identifiers are only relevant for simprocs that are
+  defined within a local target context, e.g.\ in a locale.
+
+\item [$simproc\;add\colon\;name$ and $simproc\;del\colon\;name$] add
+  or delete named simprocs to the current Simplifier context.  The
+  default is to add a simproc.  Note that $\isarcmd{simproc_setup}$
+  already adds the new simproc to the subsequent context.
+
+\end{descr}
+
 \subsubsection{Forward simplification}
 
 \indexisaratt{simplified}
