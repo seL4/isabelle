@@ -20,16 +20,16 @@ sig
   val put_thy: 'a T -> 'a -> theory -> theory
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
   val print_options: Proof.context -> unit
-  val the_option: string -> value T * value
-  val bool: string -> bool -> bool T
-  val int: string -> int -> int T
-  val string: string -> string -> string T
+  val the_option: theory -> xstring -> value T * value
+  val bool: string -> bool -> bool T * (theory -> theory)
+  val int: string -> int -> int T * (theory -> theory)
+  val string: string -> string -> string T * (theory -> theory)
 end;
 
 structure ConfigOption: CONFIG_OPTION =
 struct
 
-(* mixed values *)
+(* simple values *)
 
 datatype value =
   Bool of bool |
@@ -58,14 +58,6 @@ fun type_check f value =
         " expected,\nbut " ^ print_type value' ^ " was found");
   in value' end;
 
-structure ConfigOptionData = GenericDataFun
-(
-  type T = value Inttab.table;
-  val empty = Inttab.empty;
-  val extend = I;
-  fun merge _ = Inttab.merge (K true);
-);
-
 
 (* abstract configuration options *)
 
@@ -86,42 +78,62 @@ fun put_ctxt config value = map_ctxt config (K value);
 fun put_thy config value = map_thy config (K value);
 
 
-(* global declarations *)
+(* context information *)
 
-local val global_configs = ref (Symtab.empty: (value T * value) Symtab.table) in
+fun err_dup_config name =
+  error ("Duplicate declaration of configuration option " ^ quote name);
+
+(*global declarations: name, default value and type*)
+structure Declaration = TheoryDataFun
+(struct
+  type T = ((value T * value) * serial) NameSpace.table;
+  val empty = NameSpace.empty_table;
+  val copy = I;
+  val extend = I;
+  fun merge _ tabs = NameSpace.merge_tables (eq_snd (op =)) tabs
+    handle Symtab.DUP dup => err_dup_config dup;
+end);
+
+(*local values*)
+structure Value = GenericDataFun
+(
+  type T = value Inttab.table;
+  val empty = Inttab.empty;
+  val extend = I;
+  fun merge _ = Inttab.merge (K true);
+);
 
 fun print_options ctxt =
   let
-    fun prt (name, (config, default)) =
+    val thy = ProofContext.theory_of ctxt;
+    fun prt (name, ((config, default), _)) =
       Pretty.block [Pretty.str (name ^ ": " ^ print_type default ^ " ="), Pretty.brk 1,
         Pretty.str (print_value (get_ctxt ctxt config))];
-    val configs = sort_wrt #1 (Symtab.dest (! global_configs));
+    val configs = NameSpace.extern_table (Declaration.get thy);
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
-fun the_option name =
-  (case Symtab.lookup (! global_configs) name of SOME cfg => cfg
-  | NONE => error ("Unknown configuration option " ^ quote name));
+fun the_option thy xname =
+  let val (space, tab) = Declaration.get thy in
+    (case Symtab.lookup tab (NameSpace.intern space xname) of
+      SOME (config, _) => config
+    | NONE => error ("Unknown configuration option " ^ quote xname))
+  end;
 
 fun declare make dest name default =
   let
     val id = serial ();
 
     val default_value = make default;
-    fun get_value context =
-      the_default default_value (Inttab.lookup (ConfigOptionData.get context) id);
-    fun map_value f = ConfigOptionData.map (Inttab.map_default (id, default_value) (type_check f));
+    fun get_value context = the_default default_value (Inttab.lookup (Value.get context) id);
+    fun map_value f = Value.map (Inttab.map_default (id, default_value) (type_check f));
     val config_value = ConfigOption {get_value = get_value, map_value = map_value};
 
-    val _ = CRITICAL (fn () =>
-     (if Symtab.defined (! global_configs) name
-      then warning ("Hiding existing configuration option " ^ quote name) else ();
-      change global_configs (Symtab.update (name, (config_value, default_value)))));
-
-  in
-    ConfigOption {get_value = dest o get_value, map_value = fn f => map_value (make o f o dest)}
-  end;
-
-end;
+    val config =
+      ConfigOption {get_value = dest o get_value, map_value = fn f => map_value (make o f o dest)};
+    fun setup thy = thy |> Declaration.map (fn tab =>
+      NameSpace.extend_table (Sign.naming_of thy) [(name, ((config_value, default_value), id))] tab
+        handle Symtab.DUP dup => err_dup_config dup);
+  in (config, setup) end;
 
 val bool = declare Bool (fn Bool b => b);
 val int = declare Int (fn Int i => i);
