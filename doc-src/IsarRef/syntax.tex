@@ -349,21 +349,29 @@ conforming to \railtok{symident}.
   ;
 \end{rail}
 
-Theorem specifications come in several flavors: \railnonterm{axmdecl} and
-\railnonterm{thmdecl} usually refer to axioms, assumptions or results of goal
-statements, while \railnonterm{thmdef} collects lists of existing theorems.
-Existing theorems are given by \railnonterm{thmref} and \railnonterm{thmrefs},
-the former requires an actual singleton result.  There are three forms of
-theorem references: (1) named facts $a$, (2) selections from named facts $a(i,
-j - k)$, or (3) literal fact propositions using $altstring$ syntax
+Theorem specifications come in several flavors: \railnonterm{axmdecl}
+and \railnonterm{thmdecl} usually refer to axioms, assumptions or
+results of goal statements, while \railnonterm{thmdef} collects lists
+of existing theorems.  Existing theorems are given by
+\railnonterm{thmref} and \railnonterm{thmrefs}, the former requires an
+actual singleton result.  There are three forms of theorem references:
+(1) named facts $a$, (2) selections from named facts $a(i, j - k)$, or
+(3) literal fact propositions using $altstring$ syntax
 $\backquote\phi\backquote$, (see also method $fact$ in
 \S\ref{sec:pure-meth-att}).
 
-Any kind of theorem specification may include lists of attributes both on the
-left and right hand sides; attributes are applied to any immediately preceding
-fact.  If names are omitted, the theorems are not stored within the theorem
-database of the theory or proof context, but any given attributes are applied
-nonetheless.
+Any kind of theorem specification may include lists of attributes both
+on the left and right hand sides; attributes are applied to any
+immediately preceding fact.  If names are omitted, the theorems are
+not stored within the theorem database of the theory or proof context,
+but any given attributes are applied nonetheless.
+
+An attribute declaration with an extra pair of brackets --- such as
+``$[[simproc~a]]$'' --- abbreviates a theorem reference that involves
+an internal dummy fact, which will be ignored later on.  So only the
+effect of the attribute on the background context will persist.  This
+form of in-place declarations is particularly useful with commands
+like $\DECLARE$ and $\USINGNAME$.
 
 \indexouternonterm{axmdecl}\indexouternonterm{thmdecl}
 \indexouternonterm{thmdef}\indexouternonterm{thmref}
@@ -375,7 +383,7 @@ nonetheless.
   ;
   thmdef: thmbind '='
   ;
-  thmref: (nameref selection? | altstring) attributes?
+  thmref: (nameref selection? | altstring) attributes? | '[' attributes ']'
   ;
   thmrefs: thmref +
   ;
