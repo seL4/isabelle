@@ -465,10 +465,10 @@ subsection {* Proof tool setup *}
 text {* simplifies terms of the form
   f(...,x:=y,...,x:=z,...) to f(...,x:=z,...) *}
 
-ML {*
+simproc_setup fun_upd2 ("f(v := w, x := y)") = {* fn _ =>
 let
   fun gen_fun_upd NONE T _ _ = NONE
-    | gen_fun_upd (SOME f) T x y = SOME (Const (@{const_name fun_upd},T) $ f $ x $ y)
+    | gen_fun_upd (SOME f) T x y = SOME (Const (@{const_name fun_upd}, T) $ f $ x $ y)
   fun dest_fun_T1 (Type (_, T :: Ts)) = T
   fun find_double (t as Const (@{const_name fun_upd},T) $ f $ x $ y) =
     let
@@ -476,20 +476,22 @@ let
             if v aconv x then SOME g else gen_fun_upd (find g) T v w
         | find t = NONE
     in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
-  fun fun_upd_prover ss =
-    rtac eq_reflection 1 THEN rtac ext 1 THEN
-    simp_tac (Simplifier.inherit_context ss @{simpset}) 1
-  val fun_upd2_simproc =
-    Simplifier.simproc @{theory}
-      "fun_upd2" ["f(v := w, x := y)"]
-      (fn _ => fn ss => fn t =>
-        case find_double t of (T, NONE) => NONE
-        | (T, SOME rhs) =>
-            SOME (Goal.prove (Simplifier.the_context ss) [] []
-              (Term.equals T $ t $ rhs) (K (fun_upd_prover ss))))
-in
-  Addsimprocs [fun_upd2_simproc]
-end;
+
+  fun proc ss ct =
+    let
+      val ctxt = Simplifier.the_context ss
+      val t = Thm.term_of ct
+    in
+      case find_double t of
+        (T, NONE) => NONE
+      | (T, SOME rhs) =>
+          SOME (Goal.prove ctxt [] [] (Term.equals T $ t $ rhs)
+            (fn _ =>
+              rtac eq_reflection 1 THEN
+              rtac ext 1 THEN
+              simp_tac (Simplifier.inherit_context ss @{simpset}) 1))
+    end
+in proc end
 *}
 
 
