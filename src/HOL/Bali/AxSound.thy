@@ -210,9 +210,7 @@ apply   (rule I,auto)
 done
   
 
-
-
-ML "Addsimprocs [wt_expr_proc,wt_var_proc,wt_exprs_proc,wt_stmt_proc]"
+declare [[simproc add: wt_expr wt_var wt_exprs wt_stmt]]
 
 lemma valid_stmtI: 
    assumes I: "\<And> n s0 L accC C s1 Y Z.

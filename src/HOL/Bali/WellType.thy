@@ -452,9 +452,7 @@ translations
 declare not_None_eq [simp del] 
 declare split_if [split del] split_if_asm [split del]
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac")
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
 
 inductive_cases wt_elim_cases [cases set]:
 	"E,dt\<Turnstile>In2  (LVar vn)               \<Colon>T"
@@ -490,9 +488,7 @@ inductive_cases wt_elim_cases [cases set]:
 declare not_None_eq [simp] 
 declare split_if [split] split_if_asm [split]
 declare split_paired_All [simp] split_paired_Ex [simp]
-ML_setup {*
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 
 lemma is_acc_class_is_accessible: 
   "is_acc_class G P C \<Longrightarrow> G\<turnstile>(Class C) accessible_in P"
@@ -606,25 +602,29 @@ lemma wt_exprs_eq: "E,dt\<Turnstile>In3 t\<Colon>U = (\<exists>Ts. U=Inr Ts \<an
 lemma wt_stmt_eq: "E,dt\<Turnstile>In1r t\<Colon>U = (U=Inl(PrimT Void)\<and>E,dt\<Turnstile>t\<Colon>\<surd>)"
   by (auto, frule wt_Inj_elim, auto, frule wt_Inj_elim, auto)
 
-ML {*
-fun wt_fun name lhs =
-let
-  fun is_Inj (Const (inj,_) $ _) = true
-    | is_Inj _                   = false
-  fun pred (_ $ _ $ _ $ _ $ x) = is_Inj x
-in
-  cond_simproc name lhs pred (thm name)
-end
+simproc_setup wt_expr ("E,dt\<Turnstile>In1l t\<Colon>U") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ (Const _ $ _)) => NONE
+    | _ => SOME (mk_meta_eq @{thm wt_expr_eq})) *}
 
-val wt_expr_proc  = wt_fun "wt_expr_eq"  "E,dt\<Turnstile>In1l t\<Colon>U";
-val wt_var_proc   = wt_fun "wt_var_eq"   "E,dt\<Turnstile>In2 t\<Colon>U";
-val wt_exprs_proc = wt_fun "wt_exprs_eq" "E,dt\<Turnstile>In3 t\<Colon>U";
-val wt_stmt_proc  = wt_fun "wt_stmt_eq"  "E,dt\<Turnstile>In1r t\<Colon>U";
-*}
+simproc_setup wt_var ("E,dt\<Turnstile>In2 t\<Colon>U") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ (Const _ $ _)) => NONE
+    | _ => SOME (mk_meta_eq @{thm wt_var_eq})) *}
 
-ML {*
-Addsimprocs [wt_expr_proc,wt_var_proc,wt_exprs_proc,wt_stmt_proc]
-*}
+simproc_setup wt_exprs ("E,dt\<Turnstile>In3 t\<Colon>U") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ (Const _ $ _)) => NONE
+    | _ => SOME (mk_meta_eq @{thm wt_exprs_eq})) *}
+
+simproc_setup wt_stmt ("E,dt\<Turnstile>In1r t\<Colon>U") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ (Const _ $ _)) => NONE
+    | _ => SOME (mk_meta_eq @{thm wt_stmt_eq})) *}
 
 lemma wt_elim_BinOp:
   "\<lbrakk>E,dt\<Turnstile>In1l (BinOp binop e1 e2)\<Colon>T;

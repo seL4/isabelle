@@ -820,9 +820,8 @@ where
 declare inj_term_sym_simps [simp]
 declare assigns_if.simps [simp del]
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac");
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+
 inductive_cases da_elim_cases [cases set]:
   "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A" 
   "Env\<turnstile> B \<guillemotright>In1r Skip\<guillemotright> A" 
@@ -887,9 +886,8 @@ inductive_cases da_elim_cases [cases set]:
 declare inj_term_sym_simps [simp del]
 declare assigns_if.simps [simp]
 declare split_paired_All [simp] split_paired_Ex [simp]
-ML_setup {*
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+
 (* To be able to eliminate both the versions with the overloaded brackets: 
    (B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A) and with the explicit constructor (B \<guillemotright>In1r Skip\<guillemotright> A), 
    every rule appears in both versions

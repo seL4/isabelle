@@ -733,10 +733,9 @@ qed
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac");
-change_claset (fn cs => cs delSWrapper "split_all_tac");
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+declaration {* K (Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")) *}
+
 lemma FVar_lemma: 
 "\<lbrakk>((v, f), Norm s2') = fvar statDeclC (static field) fn a (x2, s2); 
   G\<turnstile>statC\<preceq>\<^sub>C statDeclC;  
@@ -763,10 +762,8 @@ done
 declare split_paired_All [simp] split_paired_Ex [simp] 
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
-ML_setup {*
-change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Classical.map_cs (fn cs => cs addSbefore ("split_all_tac", split_all_tac))) *}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 
 
 lemma AVar_lemma1: "\<lbrakk>globs s (Inl a) = Some obj;tag obj=Arr ty i; 
@@ -881,10 +878,9 @@ by (auto simp add: abrupt_if_def)
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac");
-change_claset (fn cs => cs delSWrapper "split_all_tac");
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+declaration {* K (Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")) *}
+
 lemma conforms_init_lvars: 
 "\<lbrakk>wf_mhead G (pid declC) sig (mhead (mthd dm)); wf_prog G;  
   list_all2 (conf G s) pvs pTsa; G\<turnstile>pTsa[\<preceq>](parTs sig);  
@@ -935,10 +931,8 @@ done
 declare split_paired_All [simp] split_paired_Ex [simp] 
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
-ML_setup {*
-change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Classical.map_cs (fn cs => cs addSbefore ("split_all_tac", split_all_tac))) *}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 
 
 subsection "accessibility"

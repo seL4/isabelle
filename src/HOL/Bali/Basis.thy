@@ -11,22 +11,13 @@ ML {*
 Unify.search_bound := 40;
 Unify.trace_bound  := 40;
 *}
-(*print_depth 100;*)
-(*Syntax.ambiguity_level := 1;*)
 
 section "misc"
 
 declare same_fstI [intro!] (*### TO HOL/Wellfounded_Relations *)
 
-ML {*
-fun cond_simproc name pat pred thm = Simplifier.simproc (Thm.theory_of_thm thm) name [pat]
-  (fn _ => fn _ => fn t => if pred t then NONE else SOME (mk_meta_eq thm));
-*}
-
 declare split_if_asm  [split] option.split [split] option.split_asm [split]
-ML {*
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 declare if_weak_cong [cong del] option.weak_case_cong [cong del]
 declare length_Suc_conv [iff]
 

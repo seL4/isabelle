@@ -4,9 +4,7 @@ header {* Correctness of Definite Assignment *}
 
 theory DefiniteAssignmentCorrect imports WellForm Eval begin
 
-ML {*
-Delsimprocs [wt_expr_proc,wt_var_proc,wt_exprs_proc,wt_stmt_proc]
-*}
+declare [[simproc del: wt_expr wt_var wt_exprs wt_stmt]]
 
 lemma sxalloc_no_jump:
   assumes sxalloc: "G\<turnstile>s0 \<midarrow>sxalloc\<rightarrow> s1" and
@@ -4496,7 +4494,6 @@ proof -
     using that by (rule da_good_approxE) iprover+
 qed
 
-ML {*
-Addsimprocs [wt_expr_proc,wt_var_proc,wt_exprs_proc,wt_stmt_proc]
-*}
+declare [[simproc add: wt_expr wt_var wt_exprs wt_stmt]]
+
 end

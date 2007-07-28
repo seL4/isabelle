@@ -471,10 +471,8 @@ done
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac");
-change_claset (fn cs => cs delSWrapper "split_all_tac");
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+declaration {* K (Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")) *}
 
 inductive
   ax_derivs :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool" ("_,_|\<turnstile>_" [61,58,58] 57)
@@ -1015,9 +1013,7 @@ apply (erule mp [THEN conseq12])
 apply  (auto simp add: type_ok_def)
 done
 
-ML {*
-bind_thms ("ax_Abrupts", sum3_instantiate (thm "ax_derivs.Abrupt"))
-*}
+ML_setup {* bind_thms ("ax_Abrupts", sum3_instantiate @{thm ax_derivs.Abrupt}) *}
 declare ax_Abrupts [intro!]
 
 lemmas ax_Normal_cases = ax_cases [of _ _ _ normal]

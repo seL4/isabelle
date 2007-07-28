@@ -1751,8 +1751,9 @@ proof -
 qed
  	      
 (* local lemma *)
-ML {* bind_thm("bexI'",permute_prems 0 1 bexI) *}
-ML {* bind_thm("ballE'",permute_prems 1 1 ballE) *}
+lemma bexI': "x \<in> A \<Longrightarrow> P x \<Longrightarrow> \<exists>x\<in>A. P x" by blast
+lemma ballE': "\<forall>x\<in>A. P x \<Longrightarrow> (x \<notin> A \<Longrightarrow> Q) \<Longrightarrow> (P x \<Longrightarrow> Q) \<Longrightarrow> Q" by blast
+
 lemma subint_widen_imethds: 
  "\<lbrakk>G\<turnstile>I\<preceq>I J; wf_prog G; is_iface G J; jm \<in> imethds G J sig\<rbrakk> \<Longrightarrow>   
   \<exists> im \<in> imethds G I sig. is_static im = is_static jm \<and> 
@@ -2175,10 +2176,9 @@ next
 qed
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac");
-change_claset (fn cs => cs delSWrapper "split_all_tac");
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+declaration {* K (Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")) *}
+
 lemma dynamic_mheadsD:   
 "\<lbrakk>emh \<in> mheads G S statT sig;    
   G,statT \<turnstile> dynC valid_lookup_cls_for (is_static emh);
@@ -2306,10 +2306,8 @@ proof -
   qed
 qed
 declare split_paired_All [simp] split_paired_Ex [simp]
-ML_setup {*
-change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Classical.map_cs (fn cs => cs addSbefore ("split_all_tac", split_all_tac))) *}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 
 (* Tactical version *)
 (*
@@ -2452,10 +2450,9 @@ qed
   
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac");
-change_claset (fn cs => cs delSWrapper "split_all_tac");
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+declaration {* K (Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")) *}
+
 lemma wt_is_type: "E,dt\<Turnstile>v\<Colon>T \<Longrightarrow>  wf_prog (prg E) \<longrightarrow> 
   dt=empty_dt \<longrightarrow> (case T of 
                      Inl T \<Rightarrow> is_type (prg E) T 
@@ -2478,10 +2475,8 @@ apply  (auto dest: accmethd_rT_is_type
     )
 done
 declare split_paired_All [simp] split_paired_Ex [simp]
-ML_setup {*
-change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Classical.map_cs (fn cs => cs addSbefore ("split_all_tac", split_all_tac))) *}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 
 lemma ty_expr_is_type: 
 "\<lbrakk>E\<turnstile>e\<Colon>-T; wf_prog (prg E)\<rbrakk> \<Longrightarrow> is_type (prg E) T"

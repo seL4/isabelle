@@ -198,9 +198,8 @@ declare split_if     [split del] split_if_asm     [split del]
         option.split [split del] option.split_asm [split del]
         not_None_eq [simp del] 
         split_paired_All [simp del] split_paired_Ex [simp del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac");
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+
 inductive_cases evaln_cases: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s')"
 
 inductive_cases evaln_elim_cases:
@@ -241,9 +240,8 @@ declare split_if     [split] split_if_asm     [split]
         option.split [split] option.split_asm [split]
         not_None_eq [simp] 
         split_paired_All [simp] split_paired_Ex [simp]
-ML_setup {*
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+
 lemma evaln_Inj_elim: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (w,s') \<Longrightarrow> case t of In1 ec \<Rightarrow>  
   (case ec of Inl e \<Rightarrow> (\<exists>v. w = In1 v) | Inr c \<Rightarrow> w = \<diamondsuit>)  
   | In2 e \<Rightarrow> (\<exists>v. w = In2 v) | In3 e \<Rightarrow> (\<exists>v. w = In3 v)"
@@ -272,24 +270,31 @@ lemma evaln_exprs_eq: "G\<turnstile>s \<midarrow>In3 t\<succ>\<midarrow>n\<right
 lemma evaln_stmt_eq: "G\<turnstile>s \<midarrow>In1r t\<succ>\<midarrow>n\<rightarrow> (w, s') = (w=\<diamondsuit> \<and> G\<turnstile>s \<midarrow>t \<midarrow>n\<rightarrow> s')"
   by (auto, frule evaln_Inj_elim, auto, frule evaln_Inj_elim, auto)
 
-ML_setup {*
-fun enf name lhs =
-let
-  fun is_Inj (Const (inj,_) $ _) = true
-    | is_Inj _                   = false
-  fun pred (_ $ _ $ _ $ _ $ _ $ x $ _) = is_Inj x
-in
-  cond_simproc name lhs pred (thm name)
-end;
+simproc_setup evaln_expr ("G\<turnstile>s \<midarrow>In1l t\<succ>\<midarrow>n\<rightarrow> (w, s')") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
+    | _ => SOME (mk_meta_eq @{thm evaln_expr_eq})) *}
 
-val evaln_expr_proc  = enf "evaln_expr_eq"  "G\<turnstile>s \<midarrow>In1l t\<succ>\<midarrow>n\<rightarrow> (w, s')";
-val evaln_var_proc   = enf "evaln_var_eq"   "G\<turnstile>s \<midarrow>In2 t\<succ>\<midarrow>n\<rightarrow> (w, s')";
-val evaln_exprs_proc = enf "evaln_exprs_eq" "G\<turnstile>s \<midarrow>In3 t\<succ>\<midarrow>n\<rightarrow> (w, s')";
-val evaln_stmt_proc  = enf "evaln_stmt_eq"  "G\<turnstile>s \<midarrow>In1r t\<succ>\<midarrow>n\<rightarrow> (w, s')";
-Addsimprocs [evaln_expr_proc,evaln_var_proc,evaln_exprs_proc,evaln_stmt_proc];
+simproc_setup evaln_var ("G\<turnstile>s \<midarrow>In2 t\<succ>\<midarrow>n\<rightarrow> (w, s')") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
+    | _ => SOME (mk_meta_eq @{thm evaln_var_eq})) *}
 
-bind_thms ("evaln_AbruptIs", sum3_instantiate (thm "evaln.Abrupt"))
-*}
+simproc_setup evaln_exprs ("G\<turnstile>s \<midarrow>In3 t\<succ>\<midarrow>n\<rightarrow> (w, s')") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
+    | _ => SOME (mk_meta_eq @{thm evaln_exprs_eq})) *}
+
+simproc_setup evaln_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<midarrow>n\<rightarrow> (w, s')") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
+    | _ => SOME (mk_meta_eq @{thm evaln_stmt_eq})) *}
+
+ML_setup {* bind_thms ("evaln_AbruptIs", sum3_instantiate @{thm evaln.Abrupt}) *}
 declare evaln_AbruptIs [intro!]
 
 lemma evaln_Callee: "G\<turnstile>Norm s\<midarrow>In1l (Callee l e)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
@@ -352,16 +357,12 @@ apply auto
 apply (frule evaln_abrupt_lemma, auto)+
 done
 
-ML {*
-local
-  fun is_Some (Const ("Pair",_) $ (Const ("Datatype.option.Some",_) $ _)$ _) =true
-    | is_Some _ = false
-  fun pred (_ $ _ $ _ $ _ $ _ $ _ $ x) = is_Some x
-in
-  val evaln_abrupt_proc = 
- cond_simproc "evaln_abrupt" "G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s')" pred (thm "evaln_abrupt")
-end;
-Addsimprocs [evaln_abrupt_proc]
+simproc_setup evaln_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s')") = {*
+  fn _ => fn _ => fn ct =>
+    (case Thm.term_of ct of
+      (_ $ _ $ _ $ _ $ _ $ _ $ (Const ("Pair",_) $ (Const ("Datatype.option.Some",_) $ _)$ _))
+        => NONE
+    | _ => SOME (mk_meta_eq @{thm evaln_abrupt}))
 *}
 
 lemma evaln_LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else arbitrary)\<midarrow>n\<rightarrow> s"
@@ -509,9 +510,7 @@ proof -
   show ?thesis .
 qed
 
-ML {*
-Delsimprocs [wt_expr_proc,wt_var_proc,wt_exprs_proc,wt_stmt_proc]
-*}
+declare [[simproc del: wt_expr wt_var wt_exprs wt_stmt]]
 
 section {* eval implies evaln *}
 lemma eval_evaln: 
