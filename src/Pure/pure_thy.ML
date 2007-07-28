@@ -155,7 +155,6 @@ structure TheoremsData = TheoryDataFun
   fun copy (ref x) = ref x;
   val extend = mk_empty;
   fun merge _ = mk_empty;
-  fun print _ _ = ();
 end);
 
 val get_theorems_ref = TheoremsData.get;
