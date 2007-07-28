@@ -663,9 +663,6 @@ next
   qed
 qed
 
-
-ML"Addsimprocs [eval_expr_proc, eval_var_proc, eval_exprs_proc, eval_stmt_proc]"
-  
 lemma MGFn_Loop:
   assumes mfg_e: "G,(A::state triple set)\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
   and     mfg_c: "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
