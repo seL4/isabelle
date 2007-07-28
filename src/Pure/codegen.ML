@@ -1183,8 +1183,8 @@ val params =
    ("iterations", P.nat >> (K o set_iterations)),
    ("default_type", P.typ >> set_default_type)];
 
-val parse_test_params = P.short_ident :-- (fn s =>
-  P.$$$ "=" |-- (AList.lookup (op =) params s |> the_default Scan.fail)) >> snd;
+val parse_test_params = P.short_ident :|-- (fn s =>
+  P.$$$ "=" |-- (AList.lookup (op =) params s |> the_default Scan.fail));
 
 fun parse_tyinst xs =
   (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>

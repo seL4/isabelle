@@ -300,7 +300,7 @@ end;
 
 fun scan (lex1, lex2) =
   let
-    val scanner = Scan.state :-- (fn pos =>
+    val scanner = Scan.state :|-- (fn pos =>
       let
         fun token k x = Token (pos, (k, x));
         fun sync _ = token Sync Symbol.sync;
@@ -323,7 +323,7 @@ fun scan (lex1, lex2) =
             Syntax.scan_tvar >> token TypeVar ||
             Syntax.scan_nat >> token Nat ||
             scan_symid >> token SymIdent))
-      end) >> #2;
+      end);
   in !! (lex_err (fn cs => "bad input " ^ quote (Symbol.beginning 10 cs))) scanner end;
 
 
@@ -333,8 +333,8 @@ local
 
 val is_junk = (not o Symbol.is_blank) andf Symbol.is_regular;
 
-fun recover msg = Scan.state :-- (fn pos =>
-  keep_line (Scan.many is_junk) >> (fn xs => [Token (pos, (Error msg, implode xs))])) >> #2;
+fun recover msg = Scan.state :|-- (fn pos =>
+  keep_line (Scan.many is_junk) >> (fn xs => [Token (pos, (Error msg, implode xs))]));
 
 in
 

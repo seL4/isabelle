@@ -204,14 +204,14 @@ fun scan_value (ConfigOption.Bool _) =
   | scan_value (ConfigOption.String _) = (equals |-- Args.name) >> ConfigOption.String;
 
 fun scan_config x =
-  ((Args.name >> ConfigOption.the_option) :-- (fn (config, config_type) =>
+  ((Args.name >> ConfigOption.the_option) :|-- (fn (config, config_type) =>
     scan_value config_type >> (fn value =>
-      K (Thm.declaration_attribute (K (ConfigOption.put_generic config value))))) >> #2) x;
+      K (Thm.declaration_attribute (K (ConfigOption.put_generic config value)))))) x;
 
 fun scan_att x =
   (Args.internal_attribute ||
-    (Scan.ahead (scan_config --| Args.terminator) :--
-      (fn att => Args.named_attribute (K att))) >> #2) x;
+    (Scan.ahead (scan_config --| Args.terminator) :|--
+      (fn att => Args.named_attribute (K att)))) x;
 
 in
 

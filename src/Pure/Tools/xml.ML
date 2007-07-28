@@ -132,8 +132,8 @@ val parse_cdata = Scan.this_string "<![CDATA[" |--
 
 val parse_att =
   Symbol.scan_id --| scan_whspc --| $$ "=" --| scan_whspc --
-  (($$ "\"" || $$ "'") :-- (fn s => (Scan.repeat (Scan.unless ($$ s)
-    (scan_special || Scan.one Symbol.is_regular)) >> implode) --| $$ s) >> snd);
+  (($$ "\"" || $$ "'") :|-- (fn s => (Scan.repeat (Scan.unless ($$ s)
+    (scan_special || Scan.one Symbol.is_regular)) >> implode) --| $$ s));
 
 val parse_comment = Scan.this_string "<!--" --
   Scan.repeat (Scan.unless (Scan.this_string "-->") (Scan.one Symbol.is_regular)) --

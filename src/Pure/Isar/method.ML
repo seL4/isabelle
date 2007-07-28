@@ -468,8 +468,8 @@ local
 fun thms ss = Scan.repeat (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm) >> flat;
 fun app (f, att) (context, ths) = foldl_map att (Context.map_proof f context, ths);
 
-fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context (thms ss)) :--
-  (fn (m, ths) => Scan.succeed (app m (context, ths))) >> #2);
+fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context (thms ss)) :|--
+  (fn (m, ths) => Scan.succeed (app m (context, ths))));
 
 fun sectioned args ss = args -- Scan.repeat (section ss);
 

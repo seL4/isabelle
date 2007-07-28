@@ -476,10 +476,10 @@ fun single_rule [rule] = rule
   | single_rule _ = error "Single rule expected";
 
 fun named_rule k arg get =
-  Scan.lift (Args.$$$ k -- Args.colon) |-- Scan.repeat arg :--
+  Scan.lift (Args.$$$ k -- Args.colon) |-- Scan.repeat arg :|--
     (fn names => Scan.peek (fn context => Scan.succeed (names |> map (fn name =>
       (case get (Context.proof_of context) name of SOME x => x
-      | NONE => error ("No rule for " ^ k ^ " " ^ quote name)))))) >> #2;
+      | NONE => error ("No rule for " ^ k ^ " " ^ quote name))))));
 
 fun rule get_type get_set =
   named_rule InductAttrib.typeN Args.tyname get_type ||
