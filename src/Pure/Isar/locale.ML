@@ -94,12 +94,9 @@ sig
   val add_thmss: string -> string ->
     ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
-  val add_type_syntax: string -> (morphism -> Context.generic -> Context.generic) ->
-    Proof.context -> Proof.context
-  val add_term_syntax: string -> (morphism -> Context.generic -> Context.generic) ->
-    Proof.context -> Proof.context
-  val add_declaration: string -> (morphism -> Context.generic -> Context.generic) ->
-    Proof.context -> Proof.context
+  val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
+  val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
+  val add_declaration: string -> declaration -> Proof.context -> Proof.context
 
   val interpretation_i: (Proof.context -> Proof.context) ->
     (bool * string) * Attrib.src list -> expr ->
@@ -166,7 +163,7 @@ datatype 'a element =
 fun map_elem f (Elem e) = Elem (f e)
   | map_elem _ (Expr e) = Expr e;
 
-type decl = (morphism -> Context.generic -> Context.generic) * stamp;
+type decl = declaration * stamp;
 
 type locale =
  {axiom: Element.witness list,

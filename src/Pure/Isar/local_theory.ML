@@ -6,6 +6,7 @@ Local theory operations, with abstract target context.
 *)
 
 type local_theory = Proof.context;
+type declaration = morphism -> Context.generic -> Context.generic;
 
 signature LOCAL_THEORY =
 sig
@@ -31,9 +32,9 @@ sig
     local_theory -> (term * (bstring * thm)) list * local_theory
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory
-  val type_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
-  val term_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
-  val declaration: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
+  val type_syntax: declaration -> local_theory -> local_theory
+  val term_syntax: declaration -> local_theory -> local_theory
+  val declaration: declaration -> local_theory -> local_theory
   val def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
   val note: string -> (bstring * Attrib.src list) * thm list ->
@@ -67,9 +68,9 @@ type operations =
   notes: string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory,
-  type_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
-  term_syntax: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
-  declaration: (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory,
+  type_syntax: declaration -> local_theory -> local_theory,
+  term_syntax: declaration -> local_theory -> local_theory,
+  declaration: declaration -> local_theory -> local_theory,
   target_morphism: local_theory -> morphism,
   target_naming: local_theory -> NameSpace.naming,
   reinit: local_theory -> theory -> local_theory,

@@ -16,8 +16,7 @@ sig
   val funs: thm -> 
     {isolate_conv: morphism -> Proof.context -> cterm list -> cterm -> thm,
      whatis: morphism -> cterm -> cterm -> ord,
-     simpset: morphism -> simpset}
-             -> morphism -> Context.generic -> Context.generic
+     simpset: morphism -> simpset} -> declaration
   val match: Proof.context -> cterm -> entry option
   val setup: theory -> theory
 end;
