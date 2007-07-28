@@ -233,7 +233,7 @@ fun apply_theorems_i args = apfst (maps snd) o PureThy.note_thmss_i "" [(("", []
 (* declarations *)
 
 val declaration =
-  ML_Context.use_let "val declaration: declaration"
+  ML_Context.use_let "val declaration: Morphism.declaration"
     "Context.map_proof (LocalTheory.declaration declaration)"
   #> Context.proof_map;
 

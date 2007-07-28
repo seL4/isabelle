@@ -10,6 +10,7 @@ infix 1 $>
 signature BASIC_MORPHISM =
 sig
   type morphism
+  type declaration = morphism -> Context.generic -> Context.generic
   val $> : morphism * morphism -> morphism
 end
 
@@ -50,6 +51,8 @@ datatype morphism = Morphism of
   typ: typ -> typ,
   term: term -> term,
   fact: thm list -> thm list};
+
+type declaration = morphism -> Context.generic -> Context.generic;
 
 fun name (Morphism {name, ...}) = name;
 fun var (Morphism {var, ...}) = var;

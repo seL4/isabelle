@@ -6,7 +6,6 @@ Local theory operations, with abstract target context.
 *)
 
 type local_theory = Proof.context;
-type declaration = morphism -> Context.generic -> Context.generic;
 
 signature LOCAL_THEORY =
 sig
