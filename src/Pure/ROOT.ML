@@ -41,7 +41,6 @@ use "Syntax/mixfix.ML";
 use "Syntax/printer.ML";
 use "Syntax/syntax.ML";
 
-use "config_option.ML";
 use "General/ml_syntax.ML";
 
 (*core of tactical proof system*)
@@ -49,6 +48,7 @@ use "envir.ML";
 use "logic.ML";
 use "consts.ML";
 use "sign.ML";
+use "config_option.ML";
 use "pattern.ML";
 use "unify.ML";
 use "net.ML";
