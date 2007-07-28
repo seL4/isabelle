@@ -143,6 +143,8 @@ sig
   val get_local_claset: Proof.context -> claset
   val put_local_claset: claset -> Proof.context -> Proof.context
   val print_local_claset: Proof.context -> unit
+  val get_cs: Context.generic -> claset
+  val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
   val safe_elim: int option -> attribute
   val safe_intro: int option -> attribute
@@ -860,7 +862,7 @@ fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
 
 (** claset data **)
 
-(* global claset *)
+(* global clasets *)
 
 structure GlobalClaset = TheoryDataFun
 (
@@ -912,7 +914,7 @@ fun del_context_unsafe_wrapper name = (map_context_cs o apsnd)
   (AList.delete (op =) name);
 
 
-(* local claset *)
+(* local clasets *)
 
 structure LocalClaset = ProofDataFun
 (
@@ -927,6 +929,15 @@ fun local_claset_of ctxt =
   context_cs ctxt (get_local_claset ctxt) (get_context_cs ctxt);
 
 val print_local_claset = print_cs o local_claset_of;
+
+
+(* generic clasets *)
+
+fun get_cs (Context.Theory thy) = claset_of thy
+  | get_cs (Context.Proof ctxt) = local_claset_of ctxt;
+
+fun map_cs f (Context.Theory thy) = (change_claset_of thy f; Context.Theory thy)
+  | map_cs f (Context.Proof ctxt) = Context.Proof (LocalClaset.map f ctxt);
 
 
 (* attributes *)
