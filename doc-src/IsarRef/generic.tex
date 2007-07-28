@@ -98,6 +98,48 @@ All of these specifications support local theory targets (cf.\
 \S\ref{sec:target}).
 
 
+\subsection{Generic declarations}
+
+Arbitrary operations on the background context may be wrapped-up as
+generic declaration elements.  Since the underlying concept of local
+theories may be subject to later re-interpretation, there is an
+additional dependency on a morphism that tells the difference of the
+original declaration context wrt.\ the application context encountered
+later on.  A fact declaration is an important special case: it
+consists of a theorem which is applied to the context by means of an
+attribute.
+
+\indexisarcmd{declaration}\indexisarcmd{declare}
+\begin{matharray}{rcl}
+  \isarcmd{declaration} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{declare} & : & \isarkeep{local{\dsh}theory} \\
+\end{matharray}
+
+\begin{rail}
+  'declaration' target? text
+  ;
+  'declare' target? (thmrefs + 'and')
+  ;
+\end{rail}
+
+\begin{descr}
+
+\item [$\isarkeyword{declaration}~d$] adds the declaration function
+  $d$ of ML type \verb,declaration, to the current local theory under
+  construction.  In later application contexts, the function is
+  transformed according to the morphisms being involved in the
+  interpretation hierarchy.
+
+\item [$\isarkeyword{declare}~thms$] declares theorems to the current
+  local theory context.  No theorem binding is involved here, unlike
+  $\isarkeyword{theorems}$ or $\isarkeyword{lemmas}$ (cf.\
+  \S\ref{sec:axms-thms}), so $\isarkeyword{declare}$ only has the
+  effect of applying attributes as included in the theorem
+  specification.
+
+\end{descr}
+
+
 \subsection{Local theory targets}\label{sec:target}
 
 A local theory target is a context managed separately within the

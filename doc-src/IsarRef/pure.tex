@@ -1327,7 +1327,6 @@ used in scripts, too.
 
 \indexisarcmd{apply}\indexisarcmd{apply-end}\indexisarcmd{done}
 \indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
-\indexisarcmd{declare}
 \begin{matharray}{rcl}
   \isarcmd{apply}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
   \isarcmd{apply_end}^* & : & \isartrans{proof(state)}{proof(state)} \\
@@ -1335,20 +1334,14 @@ used in scripts, too.
   \isarcmd{defer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{prefer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
-  \isarcmd{declare}^* & : & \isarkeep{local{\dsh}theory} \\
 \end{matharray}
 
-\railalias{applyend}{apply\_end}
-\railterm{applyend}
-
 \begin{rail}
-  ( 'apply' | applyend ) method
+  ( 'apply' | 'apply\_end' ) method
   ;
   'defer' nat?
   ;
   'prefer' nat
-  ;
-  'declare' target? (thmrefs + 'and')
   ;
 \end{rail}
 
@@ -1383,14 +1376,6 @@ used in scripts, too.
   the latest proof command.  Basically, any proof command may return multiple
   results.
   
-\item [$\isarkeyword{declare}~thms$] declares theorems to the current
-  theory context (or the specified target context, see also
-  \S\ref{sec:target}).  No theorem binding is involved here, unlike
-  $\isarkeyword{theorems}$ or $\isarkeyword{lemmas}$ (cf.\ 
-  \S\ref{sec:axms-thms}), so $\isarkeyword{declare}$ only has the
-  effect of applying attributes as included in the theorem
-  specification.
-
 \end{descr}
 
 Any proper Isar proof method may be used with tactic script commands such as
