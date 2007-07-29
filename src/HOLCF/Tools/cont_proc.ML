@@ -101,17 +101,18 @@ end;
 local
   val rules = [cont_K, cont_I, cont_R, cont_A, cont_L];
   
+  (* FIXME proper cache as theory data!? *)
   val prev_cont_thms : thm list ref = ref [];
 
-  fun old_cont_tac i thm =
+  fun old_cont_tac i thm = CRITICAL (fn () =>
     case !prev_cont_thms of
       [] => no_tac thm
-    | (c::cs) => (prev_cont_thms := cs; rtac c i thm);
+    | (c::cs) => (prev_cont_thms := cs; rtac c i thm));
 
-  fun new_cont_tac f' i thm =
+  fun new_cont_tac f' i thm = CRITICAL (fn () =>
     case all_cont_thms f' of
       [] => no_tac thm
-    | (c::cs) => (prev_cont_thms := cs; rtac c i thm);
+    | (c::cs) => (prev_cont_thms := cs; rtac c i thm));
 
   fun cont_tac_of_term (Const ("Cont.cont", _) $ f) =
     let

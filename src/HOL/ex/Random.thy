@@ -156,12 +156,12 @@ end;
 local
   val seed_ref = ref (fromInt 1);
 in
-  fun seed () =
+  fun seed () = CRITICAL (fn () =>
     let
       val r = next (!seed_ref)
     in
       (seed_ref := r; r)
-    end;
+    end);
 end;
 
 fun value h s =
