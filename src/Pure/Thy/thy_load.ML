@@ -26,18 +26,17 @@ sig
   val check_ml: Path.T -> Path.T -> (Path.T * File.ident) option
   val check_thy: Path.T -> string -> bool -> (Path.T * File.ident) * (Path.T * File.ident) option
   val deps_thy: Path.T -> string -> bool ->
-    ((Path.T * File.ident) * (Path.T * File.ident) option) * (string list * Path.T list)
+   {master: (Path.T * File.ident) * (Path.T * File.ident) option,
+    text: string list, imports: string list, uses: Path.T list}
   val load_ml: Path.T -> Path.T -> Path.T * File.ident
-  val load_thy: Path.T -> string -> bool -> bool ->
-    (Path.T * File.ident) * (Path.T * File.ident) option
+  val load_thy: Path.T -> string -> Position.T -> string list -> bool -> bool -> unit
 end;
 
-(*this backdoor sealed later*)
 signature PRIVATE_THY_LOAD =
 sig
   include THY_LOAD
-  val load_thy_fn: (Path.T -> string -> bool -> bool ->
-    (Path.T * File.ident) * (Path.T * File.ident) option) ref
+  (*this backdoor is sealed later*)
+  val load_thy_fn: (Path.T -> string -> Position.T -> string list -> bool -> bool -> unit) ref
 end;
 
 structure ThyLoad: PRIVATE_THY_LOAD =
@@ -106,15 +105,17 @@ fun check_thy dir name ml =
 fun deps_thy dir name ml =
   let
     val master as ((path, _), _) = check_thy dir name ml;
+    val text = explode (File.read path);
     val (name', imports, uses) =
-      ThyHeader.read (Position.path path) (Source.of_string_limited (File.read path));
+      ThyHeader.read (Position.path path) (Source.of_list_limited 8000 text);
     val _ = name = name' orelse
       error ("Filename " ^ quote (Path.implode (Path.base path)) ^
         " does not agree with theory name " ^ quote name');
     val ml_file =
       if ml andalso is_some (check_file dir (ml_path name))
       then [ml_path name] else [];
-  in (master, (imports, map (Path.explode o #1) uses @ ml_file)) end;
+    val uses = map (Path.explode o #1) uses @ ml_file;
+  in {master = master, text = text, imports = imports, uses = uses} end;
 
 
 (* load files *)
@@ -125,9 +126,9 @@ fun load_ml dir raw_path =
   | SOME (path, id) => (ML_Context.use path; (path, id)));
 
 (*dependent on outer syntax*)
-val load_thy_fn = ref (undefined: Path.T -> string -> bool -> bool ->
-  (Path.T * File.ident) * (Path.T * File.ident) option);
-fun load_thy dir name ml time = ! load_thy_fn dir name ml time;
+val load_thy_fn =
+  ref (undefined: Path.T -> string -> Position.T -> string list -> bool -> bool -> unit);
+fun load_thy dir name pos text ml time = ! load_thy_fn dir name pos text ml time;
 
 end;
 

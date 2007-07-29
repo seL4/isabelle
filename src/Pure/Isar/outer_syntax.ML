@@ -256,16 +256,15 @@ fun try_ml_file dir name time =
       in Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr] end
   end;
 
-fun run_thy dir name time =
+fun run_thy dir name pos text time =
   let
-    val master as ((path, _), _) = ThyLoad.check_thy dir name false;
-    val text = Source.of_list (Library.untabify (explode (File.read path)));
+    val text_src = Source.of_list (Library.untabify text);
 
     val _ = Present.init_theory name;
-    val _ = Present.verbatim_source name (fn () => Source.exhaust (Symbol.source false text));
-    val toks = text
+    val _ = Present.verbatim_source name (fn () => Source.exhaust (Symbol.source false text_src));
+    val toks = text_src
       |> Symbol.source false
-      |> T.source NONE (K (get_lexicons ())) (Position.path path)
+      |> T.source NONE (K (get_lexicons ())) pos
       |> Source.exhausted;
     val trs = toks
       |> toplevel_source false false NONE (K (get_parser ()))
@@ -277,15 +276,12 @@ fun run_thy dir name time =
       |> Buffer.content
       |> Present.theory_output name);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
+  in () end;
 
-  in master end;
-
-fun load_thy dir name ml time =
-  let
-    val master = run_thy dir name time;
-    val _ = ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
-    val _ = if ml then try_ml_file dir name time else ();
-  in master end;
+fun load_thy dir name pos text ml time =
+ (run_thy dir name pos text time;
+  ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
+  if ml then try_ml_file dir name time else ());
 
 in
 
