@@ -554,7 +554,7 @@ fun rules_of_simpset ss =
 fun claset_rules_of ctxt = rules_of_claset (local_claset_of ctxt);
 fun simpset_rules_of ctxt = rules_of_simpset (local_simpset_of ctxt);
 
-fun atpset_rules_of ctxt = map pairname (ResAtpset.get_atpset ctxt);
+fun atpset_rules_of ctxt = map pairname (ResAtpset.get ctxt);
 
 
 (**** Translate a set of theorems into CNF ****)
