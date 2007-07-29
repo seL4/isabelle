@@ -44,10 +44,6 @@ sig
   val debug_fn: (output -> unit) ref
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
-  exception TOPLEVEL_ERROR
-  val do_toplevel_errors: bool ref
-  val toplevel_errors: ('a -> 'b) -> 'a -> 'b
-  val ML_errors: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
   val error_msg: string -> unit
   val ml_output: (string -> unit) * (string -> unit)
@@ -122,20 +118,6 @@ fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
 fun error_msg s = ! error_fn (output s);
 
 val ml_output = (writeln, error_msg);
-
-
-(* toplevel errors *)
-
-exception TOPLEVEL_ERROR;
-
-val do_toplevel_errors = ref true;
-
-fun toplevel_errors f x =
-  if ! do_toplevel_errors then
-    f x handle ERROR msg => (error_msg msg; raise TOPLEVEL_ERROR)
-  else f x;
-
-fun ML_errors f = setmp do_toplevel_errors true (toplevel_errors f);
 
 
 
