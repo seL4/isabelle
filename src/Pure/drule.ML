@@ -93,9 +93,6 @@ sig
   val store_thm_open: bstring -> thm -> thm
   val store_standard_thm_open: bstring -> thm -> thm
   val compose_single: thm * int * thm -> thm
-  val add_rule: thm -> thm list -> thm list
-  val del_rule: thm -> thm list -> thm list
-  val merge_rules: thm list * thm list -> thm list
   val imp_cong_rule: thm -> thm -> thm
   val arg_cong_rule: cterm -> thm -> thm
   val binop_cong_rule: cterm -> thm -> thm -> thm
@@ -119,7 +116,6 @@ sig
   val cterm_rule: (thm -> thm) -> cterm -> cterm
   val term_rule: theory -> (thm -> thm) -> term -> term
   val dummy_thm: thm
-  val is_dummy_thm: thm -> bool
   val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
@@ -518,11 +514,6 @@ fun tha COMP thb =
 (*Useful "distance" function for BEST_FIRST*)
 val size_of_thm = size_of_term o Thm.full_prop_of;
 
-(*maintain lists of theorems --- preserving canonical order*)
-val del_rule = remove Thm.eq_thm_prop;
-fun add_rule th = cons th o del_rule th;
-val merge_rules = Library.merge Thm.eq_thm_prop;
-
 
 
 (*** Meta-Rewriting Rules ***)
@@ -895,16 +886,7 @@ fun dest_term th =
 fun cterm_rule f = dest_term o f o mk_term;
 fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
 
-
-(* dummy_thm *)
-
-val dummy_prop = Term.dummy_pattern propT;
-val dummy_thm = mk_term (Thm.cterm_of ProtoPure.thy dummy_prop);
-
-fun is_dummy_thm th =
-  (case try dest_term th of
-    NONE => false
-  | SOME ct => Logic.strip_imp_concl (Thm.term_of ct) aconv dummy_prop);
+val dummy_thm = mk_term (Thm.cterm_of ProtoPure.thy (Term.dummy_pattern propT));
 
 
 

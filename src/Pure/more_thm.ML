@@ -27,8 +27,12 @@ sig
   val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val equiv_thm: thm * thm -> bool
+  val is_dummy: thm -> bool
   val plain_prop_of: thm -> term
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
+  val add_thm: thm -> thm list -> thm list
+  val del_thm: thm -> thm list -> thm list
+  val merge_thms: thm list * thm list -> thm list
   val axiomK: string
   val assumptionK: string
   val definitionK: string
@@ -136,6 +140,11 @@ fun equiv_thm ths =
 
 (* misc operations *)
 
+fun is_dummy thm =
+  (case try Logic.dest_term (Thm.concl_of thm) of
+    NONE => false
+  | SOME t => Term.is_dummy_pattern t);
+
 fun plain_prop_of raw_thm =
   let
     val thm = Thm.strip_shyps raw_thm;
@@ -154,6 +163,13 @@ fun plain_prop_of raw_thm =
 fun fold_terms f th =
   let val {tpairs, prop, hyps, ...} = Thm.rep_thm th
   in fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps end;
+
+
+(* lists of theorems in canonical order *)
+
+val add_thm = update eq_thm_prop;
+val del_thm = remove eq_thm_prop;
+val merge_thms = merge eq_thm_prop;
 
 
 
