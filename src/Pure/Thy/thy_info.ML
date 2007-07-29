@@ -9,14 +9,8 @@ file dependencies.
 signature BASIC_THY_INFO =
 sig
   val theory: string -> theory
-(*val use: string -> unit*)             (*exported later*)
-  val time_use: string -> unit
   val touch_thy: string -> unit
-  val use_thy: string -> unit
-  val use_thys: string list -> unit
-  val update_thy: string -> unit
   val remove_thy: string -> unit
-  val time_use_thy: string -> unit
 end;
 
 signature THY_INFO =
@@ -38,7 +32,12 @@ sig
   val touch_all_thys: unit -> unit
   val load_file: bool -> Path.T -> unit
   val use: string -> unit
+  val time_use: string -> unit
   val pretend_use_thy_only: string -> unit
+  val use_thys: string list -> unit
+  val use_thy: string -> unit
+  val time_use_thy: string -> unit
+  val update_thy: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> theory
   val finish: unit -> unit
@@ -280,7 +279,7 @@ fun run_file path =
 
 in
 
-fun load_file time path = Output.toplevel_errors (fn () =>
+fun load_file time path =
   if time then
     let val name = Path.implode path in
       timeit (fn () =>
@@ -288,7 +287,7 @@ fun load_file time path = Output.toplevel_errors (fn () =>
         run_file path;
         priority ("**** Finished file " ^ quote name ^ " ****\n")))
     end
-  else run_file path) ();
+  else run_file path;
 
 val use = load_file false o Path.explode;
 val time_use = load_file true o Path.explode;
@@ -433,9 +432,9 @@ fun schedule_tasks (tasks, n) =
       | exns => raise Exn.EXCEPTIONS (exns, ""))
   end;
 
-fun gen_use_thy' req dir arg = Output.toplevel_errors (fn () =>
+fun gen_use_thy' req dir arg =
   let val (_, tasks) = req [] dir arg (Graph.empty, 0)
-  in schedule_tasks tasks end) ();
+  in schedule_tasks tasks end;
 
 fun gen_use_thy req str =
   let val name = base_name str in
