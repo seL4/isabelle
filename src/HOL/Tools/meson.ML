@@ -61,7 +61,6 @@ val disj_comm = thm "meson_disj_comm";
 val disj_FalseD1 = thm "meson_disj_FalseD1";
 val disj_FalseD2 = thm "meson_disj_FalseD2";
 
-val depth_limit = ref 2000;
 
 (**** Operators for forward proof ****)
 
@@ -505,8 +504,8 @@ val nnf_extra_simps =
       thms"split_ifs" @ ex_simps @ all_simps @ simp_thms;
 
 val nnf_ss =
-    HOL_basic_ss addsimps nnf_extra_simps 
-                 addsimprocs [defALL_regroup,defEX_regroup,neq_simproc,let_simproc];
+  HOL_basic_ss addsimps nnf_extra_simps 
+    addsimprocs [defALL_regroup,defEX_regroup, @{simproc neq}, @{simproc let_simp}];
 
 fun make_nnf th = case prems_of th of
     [] => th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
