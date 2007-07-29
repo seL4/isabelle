@@ -161,8 +161,7 @@ fun eval_antiquotes txt = CRITICAL (fn () =>
       |> #1 |> split_list |> pairself implode;
   in (isabelle_struct decls, body) end);
 
-fun eval name verbose txt =
-  Output.ML_errors (use_text name Output.ml_output verbose) txt;
+fun eval name verbose txt = use_text name Output.ml_output verbose txt;
 
 in
 
