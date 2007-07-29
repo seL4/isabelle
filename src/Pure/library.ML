@@ -156,6 +156,7 @@ sig
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
   val insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
   val remove: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
+  val update: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
   val subtract: ('b * 'a -> bool) -> 'b list -> 'a list -> 'a list
   val merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
   val mem: ''a * ''a list -> bool
@@ -750,6 +751,7 @@ fun member eq list x =
 
 fun insert eq x xs = if member eq xs x then xs else x :: xs;
 fun remove eq x xs = if member eq xs x then filter_out (fn y => eq (x, y)) xs else xs;
+fun update eq x xs = cons x (remove eq x xs);
 
 fun subtract eq = fold (remove eq);
 
