@@ -102,36 +102,39 @@ fun schedule n next_task tasks =
     (*worker threads*)
     val running = ref 0;
     val active = ref 0;
+    fun trace_active () = tracing (fn () => "SCHEDULE: " ^ Int.toString (! active) ^ " active");
     val status = ref ([]: exn list);
     val wakeup = ConditionVar.conditionVar ();
     fun wait () = ConditionVar.wait (wakeup, lock);
-    fun continue cont k =
-      (PROTECTED "cont" (fn () => queue := cont (! queue));
-       ConditionVar.broadcast wakeup; work k ())
-    and work k () =
+    fun work () =
       (case dequeue () of
         (Task.Task f, cont) =>
           (case Exn.capture f () of
-            Exn.Result () => continue cont k
+            Exn.Result () => continue cont
           | Exn.Exn exn =>
-              (PROTECTED "status" (fn () => status := exn :: ! status); continue cont k))
+              (PROTECTED "status" (fn () => status := exn :: ! status); continue cont))
       | (Task.Running, _) =>
-          (PROTECTED "wait" (fn () => (dec active; wait (); inc active)); work k ())
+          (PROTECTED "wait" (fn () =>
+            (dec active; trace_active ();
+             wait ();
+             inc active; trace_active ()));
+           work ())
       | (Task.Finished, _) =>
          (PROTECTED "running" (fn () => (dec active; dec running));
-          ConditionVar.broadcast wakeup));
+          ConditionVar.broadcast wakeup))
+    and continue cont =
+      (PROTECTED "cont" (fn () => queue := cont (! queue));
+       ConditionVar.broadcast wakeup; work ());
 
     (*main control: fork and wait*)
     fun fork 0 = ()
       | fork k =
          (inc running; inc active;
-          Thread.fork (work k, [Thread.InterruptState Thread.InterruptDefer]);
+          Thread.fork (work, [Thread.InterruptState Thread.InterruptDefer]);
           fork (k - 1));
     val _ = PROTECTED "main" (fn () =>
      (fork (Int.max (n, 1));
-      while ! running <> 0 do
-        (tracing (fn () => "MAIN: " ^ Int.toString (! active) ^ " active");
-         wait ())));
+      while ! running <> 0 do (trace_active (); wait ())));
 
   in ! status end;
 
