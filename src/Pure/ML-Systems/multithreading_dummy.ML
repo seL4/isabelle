@@ -37,7 +37,7 @@ fun self_critical () = false;
 fun NAMED_CRITICAL _ e = e ();
 fun CRITICAL e = e ();
 
-fun schedule _ _ _ = raise Fail "Multithreading support unavailable";
+fun schedule _ _ _ = raise Fail "No multithreading support";
 
 end;
 
