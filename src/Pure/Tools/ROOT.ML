@@ -4,6 +4,8 @@
 Miscellaneous tools and packages for Pure Isabelle.
 *)
 
+use "named_thms.ML";
+
 (*basic XML support*)
 use "xml.ML";
 use "xml_syntax.ML";
