@@ -20,6 +20,7 @@ function usage()
   echo "    -D PATH      dump generated document sources into PATH"
   echo "    -M MAX       multithreading: maximum number of worker threads (default 1)"
   echo "    -P PATH      set path for remote theory browsing information"
+  echo "    -T BOOL      multithreading: trace mode (default false)"
   echo "    -V VERSION   declare alternative document VERSION"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -c BOOL      tell ML system to compress output image (default true)"
@@ -62,10 +63,11 @@ function check_number()
 
 # options
 
-COPY_DUMP="true"
+COPY_DUMP=true
 DUMP=""
 MAXTHREADS="1"
 RPATH=""
+TRACETHREADS=false
 DOCUMENT_VERSIONS=""
 BUILD=""
 COMPRESS=true
@@ -82,7 +84,7 @@ VERBOSE=false
 function getoptions()
 {
   OPTIND=1
-  while getopts "C:D:M:P:V:bc:d:f:g:i:m:p:rs:v:" OPT
+  while getopts "C:D:M:P:T:V:bc:d:f:g:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
       C)
@@ -98,6 +100,10 @@ function getoptions()
         ;;
       P)
         RPATH="$OPTARG"
+        ;;
+      T)
+        check_bool "$OPTARG"
+        TRACETHREADS="$OPTARG"
         ;;
       V)
         if [ -z "$DOCUMENT_VERSIONS" ]; then
@@ -215,7 +221,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS;" \
+    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS $TRACETHREADS;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -224,7 +230,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS; quit();" \
+    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS $TRACETHREADS; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
