@@ -1553,7 +1553,7 @@ lemma imethds_declI: "\<lbrakk>m \<in> imethds G I sig; ws_prog G; is_iface G I\
   (\<exists>i. iface G (decliface m) = Some i \<and> 
   table_of (imethods i) sig = Some (mthd m)) \<and>  
   (I,decliface m) \<in> (subint1 G)^* \<and> m \<in> imethds G (decliface m) sig"
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (rule ws_subint1_induct, assumption, assumption)
 apply (subst imethds_rec, erule conjunct1, assumption)
 apply (force elim: imethds_norec intro: rtrancl_into_rtrancl2)
@@ -1617,7 +1617,7 @@ lemma methd_declC:
 "\<lbrakk>methd G C sig = Some m; ws_prog G;is_class G C\<rbrakk> \<Longrightarrow>
  (\<exists>d. class G (declclass m)=Some d \<and> table_of (methods d) sig=Some (mthd m)) \<and> 
  G\<turnstile>C \<preceq>\<^sub>C (declclass m) \<and> methd G (declclass m) sig = Some m"   
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (rule ws_subcls1_induct, assumption, assumption)
 apply (subst methd_rec, assumption)
 apply (case_tac "Ca=Object")
@@ -2176,7 +2176,7 @@ lemma fields_declC:
   (\<exists>d. class G (declclassf efn) = Some d \<and> 
                     table_of (cfields d) (fname efn)=Some f) \<and> 
   G\<turnstile>C \<preceq>\<^sub>C (declclassf efn)  \<and> table_of (fields G (declclassf efn)) efn = Some f"
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (rule ws_subcls1_induct, assumption, assumption)
 apply (subst fields_rec, assumption)
 apply clarify
@@ -2207,7 +2207,7 @@ done
 lemma fields_mono_lemma: 
 "\<lbrakk>x \<in> set (fields G C); G\<turnstile>D \<preceq>\<^sub>C C; ws_prog G\<rbrakk> 
  \<Longrightarrow> x \<in> set (fields G D)"
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (erule converse_rtrancl_induct)
 apply  fast
 apply (drule subcls1D)

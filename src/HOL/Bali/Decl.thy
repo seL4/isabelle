@@ -633,7 +633,7 @@ lemma ws_subint1_induct:
  "\<lbrakk>is_iface G I; ws_prog G; \<And>I i. \<lbrakk>iface G I = Some i \<and> 
    (\<forall>J \<in> set (isuperIfs i). (I,J)\<in>subint1 G \<and> P J \<and> is_iface G J)\<rbrakk> \<Longrightarrow> P I
   \<rbrakk> \<Longrightarrow> P I"
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (rule subint1_induct)
 apply  assumption
 apply (simp (no_asm)) 
@@ -647,7 +647,7 @@ lemma ws_subcls1_induct: "\<lbrakk>is_class G C; ws_prog G;
  (C \<noteq> Object \<longrightarrow> (C,(super c))\<in>subcls1 G \<and> 
                   P (super c) \<and> is_class G (super c))\<rbrakk> \<Longrightarrow> P C
  \<rbrakk> \<Longrightarrow> P C"
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (rule subcls1_induct)
 apply  assumption
 apply (simp (no_asm)) 

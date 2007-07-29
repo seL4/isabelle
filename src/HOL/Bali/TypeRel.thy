@@ -373,7 +373,7 @@ apply  (auto intro: implmt.subcls1)
 done
 
 lemma implmt_subint2: "\<lbrakk> G\<turnstile>A\<leadsto>J; G\<turnstile>J\<preceq>I K\<rbrakk> \<Longrightarrow> G\<turnstile>A\<leadsto>K"
-apply (erule make_imp, erule implmt.induct)
+apply (erule rev_mp, erule implmt.induct)
 apply (auto dest: implmt.subint rtrancl_trans implmt.subcls1)
 done
 

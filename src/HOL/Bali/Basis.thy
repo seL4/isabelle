@@ -21,11 +21,6 @@ declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split
 declare if_weak_cong [cong del] option.weak_case_cong [cong del]
 declare length_Suc_conv [iff]
 
-(*###to be phased out *)
-ML {*
-bind_thm ("make_imp", rearrange_prems [1,0] mp)
-*}
-
 lemma Collect_split_eq: "{p. P (split f p)} = {(a,b). P (f a b)}"
 apply auto
 done

@@ -186,7 +186,7 @@ by (auto simp add: expand_fun_eq cond_override_def filter_tab_def )
 section {* Misc. *}
 
 lemma Ball_set_table: "(\<forall> (x,y)\<in> set l. P x y) \<Longrightarrow> \<forall> x. \<forall> y\<in> map_of l x: P x y"
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (induct l)
 apply simp
 apply (simp (no_asm))

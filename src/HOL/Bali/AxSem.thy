@@ -959,7 +959,7 @@ lemma ax_finite_mtriples_lemma: "\<lbrakk>F \<subseteq> ms; finite ms; \<forall>
     G,(A::'a triple set)\<turnstile>{Normal (P C sig)::'a assn} mb C sig-\<succ> {Q C sig}\<rbrakk> \<Longrightarrow> 
        G,A|\<turnstile>{{P} mb-\<succ> {Q} | F}"
 apply (frule (1) finite_subset)
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (erule thin_rl)
 apply (erule finite_induct)
 apply  (unfold mtriples_def)
@@ -984,7 +984,7 @@ lemma ax_finite_pointwise_lemma [rule_format]: "\<lbrakk>F \<subseteq> ms; finit
   ((\<forall>(C,sig)\<in>F. G,(A::'a triple set)\<turnstile>(f C sig::'a triple)) \<longrightarrow> (\<forall>(C,sig)\<in>ms. G,A\<turnstile>(g C sig::'a triple))) \<longrightarrow>  
       G,A|\<turnstile>split f ` F \<longrightarrow> G,A|\<turnstile>split g ` F"
 apply (frule (1) finite_subset)
-apply (erule make_imp)
+apply (erule rev_mp)
 apply (erule thin_rl)
 apply (erule finite_induct)
 apply  clarsimp+
