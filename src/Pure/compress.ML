@@ -47,7 +47,7 @@ fun compress_typ thy =
           in change typs (Typtab.update (T', T')); T' end);
   in compress end;
 
-fun typ ty = CRITICAL (fn () => compress_typ ty);
+fun typ ty = NAMED_CRITICAL "compress" (fn () => compress_typ ty);
 
 
 (* compress atomic terms *)
@@ -63,6 +63,6 @@ fun compress_term thy =
           | NONE => (change terms (Termtab.update (t, t)); t));
   in compress o map_types (compress_typ thy) end;
 
-fun term tm = CRITICAL (fn () => compress_term tm);
+fun term tm = NAMED_CRITICAL "compress" (fn () => compress_term tm);
 
 end;

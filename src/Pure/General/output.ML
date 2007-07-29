@@ -82,10 +82,10 @@ val escape_malformed = escape o translate_string output;
 
 (* output primitives -- normally NOT used directly!*)
 
-fun std_output s = CRITICAL (fn () =>
+fun std_output s = NAMED_CRITICAL "IO" (fn () =>
   (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut));
 
-fun std_error s = CRITICAL (fn () =>
+fun std_error s = NAMED_CRITICAL "IO" (fn () =>
   (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr));
 
 val immediate_output = std_output o output;

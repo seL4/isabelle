@@ -40,10 +40,10 @@ fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 val orig_use_text = use_text;
 val orig_use_file = use_file;
 
-fun use_text name pr verbose txt = CRITICAL (fn () =>
+fun use_text name pr verbose txt = NAMED_CRITICAL "ML" (fn () =>
   (secure_mltext (); orig_use_text name pr verbose txt));
 
-fun use_file pr verbose name = CRITICAL (fn () =>
+fun use_file pr verbose name = NAMED_CRITICAL "ML" (fn () =>
   (secure_mltext (); orig_use_file pr verbose name));
 
 fun use name = use_file Output.ml_output true name;
@@ -62,8 +62,8 @@ fun secure_shell () = deny_secure "Cannot execute shell commands in secure mode"
 val orig_execute = execute;
 val orig_system = system;
 
-fun execute s = CRITICAL (fn () => (secure_shell (); orig_execute s));
-fun system s = CRITICAL (fn () => (secure_shell (); orig_system s));
+fun execute s = NAMED_CRITICAL "system" (fn () => (secure_shell (); orig_execute s));
+fun system s = NAMED_CRITICAL "system" (fn () => (secure_shell (); orig_system s));
 
 end;
 

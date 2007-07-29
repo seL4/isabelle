@@ -114,7 +114,7 @@ fun exhausted src = of_list (exhaust src);
 
 (* stream source *)
 
-fun slurp_input instream = CRITICAL (fn () =>
+fun slurp_input instream = NAMED_CRITICAL "IO" (fn () =>
   let
     fun slurp () =
       (case TextIO.canInput (instream, 1) handle IO.Io _ => NONE of
@@ -128,7 +128,7 @@ fun drain_stream instream outstream prompt () =
     if exists (fn c => c = "\n") input then (input, ())
     else
       (case
-        CRITICAL (fn () =>
+        NAMED_CRITICAL "IO" (fn () =>
           (TextIO.output (outstream, Output.output prompt);
             TextIO.flushOut outstream;
             TextIO.inputLine instream)) of

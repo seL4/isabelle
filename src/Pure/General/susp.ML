@@ -28,7 +28,7 @@ fun value v = ref (Value v);
 
 fun delay f = ref (Delay f);
 
-fun force susp = CRITICAL (fn () =>
+fun force susp = NAMED_CRITICAL "susp" (fn () =>
   (case ! susp of
     Value v => v
   | Delay f =>

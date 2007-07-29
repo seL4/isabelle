@@ -719,7 +719,7 @@ fun exn () = snd (! global_state);
 
 nonfix >> >>>;
 
-fun >> tr = CRITICAL (fn () =>
+fun >> tr = NAMED_CRITICAL "toplevel" (fn () =>
   (case apply true tr (get_state ()) of
     NONE => false
   | SOME (state', exn_info) =>
