@@ -17,8 +17,8 @@ sig
   val map_filter: ('a -> 'b option) -> ('a, 'c) source -> ('b, ('a, 'c) source) source
   val filter: ('a -> bool) -> ('a, 'b) source -> ('a, ('a, 'b) source) source
   val of_list: 'a list -> ('a, 'a list) source
+  val of_list_limited: int -> 'a list -> ('a, 'a list) source
   val of_string: string -> (string, string list) source
-  val of_string_limited: string -> (string, string list) source
   val exhausted: ('a, 'b) source -> ('a, 'a list) source
   val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
   val tty: (string, unit) source
@@ -103,11 +103,9 @@ fun filter pred = map_filter (fn x => if pred x then SOME x else NONE);
 (* list source *)
 
 fun of_list xs = make_source [] xs default_prompt (fn _ => fn xs => (xs, []));
-val of_string = of_list o explode;
+fun of_list_limited n xs = make_source [] xs default_prompt (fn _ => chop n);
 
-fun of_string_limited s =
-  let val cs = explode s
-  in make_source [] cs default_prompt (fn _ => chop 8000) end;
+val of_string = of_list o explode;
 
 fun exhausted src = of_list (exhaust src);
 
