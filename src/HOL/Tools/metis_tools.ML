@@ -8,7 +8,7 @@ HOL setup for the Metis prover (version 2.0 from 2007).
 signature METIS_TOOLS =
 sig
   val type_lits: bool ref
-  val metis_tac : Thm.thm list -> int -> Tactical.tactic
+  val metis_tac : Proof.context -> thm list -> int -> tactic
   val setup : theory -> theory
 end
 
@@ -556,37 +556,29 @@ fun inst_excluded_middle th thy i_atm =
     end;
 
   fun metis_general_tac mode ctxt ths i st0 =
-    let val _ = Output.debug (fn () => "Metis called with theorems " ^ cat_lines (map string_of_thm ths))
+    let val _ = Output.debug (fn () =>
+          "Metis called with theorems " ^ cat_lines (map string_of_thm ths))
         val ths' = ResAxioms.cnf_rules_of_ths ths
     in
        (MESON ResAxioms.neg_clausify (fn cls => rtac (FOL_SOLVE mode ctxt cls ths') 1) i
         THEN ResAxioms.expand_defs_tac st0) st0
     end;
 
-  fun metis_tac ths gno st =
-    metis_general_tac ResAtp.Auto (ProofContext.init (theory_of_thm st)) ths gno st;
+  val metis_tac = metis_general_tac ResAtp.Auto;
+  val metisF_tac = metis_general_tac ResAtp.Fol;
+  val metisH_tac = metis_general_tac ResAtp.Hol;
 
-  fun metisF_tac ths gno st =
-    metis_general_tac ResAtp.Fol (ProofContext.init (theory_of_thm st)) ths gno st;
-
-  fun metisH_tac ths gno st =
-    metis_general_tac ResAtp.Hol (ProofContext.init (theory_of_thm st)) ths gno st;
-
-  fun metis_meth mode ths ctxt =
+  fun method mode = Method.thms_ctxt_args (fn ths => fn ctxt =>
     Method.SIMPLE_METHOD'
       (setmp ResHolClause.typ_level ResHolClause.T_CONST  (*constant-typed*)
         (setmp ResHolClause.minimize_applies false        (*avoid this optimization*)
-          (CHANGED_PROP o metis_general_tac mode ctxt ths)));
-
-  fun metis  ths ctxt = metis_meth ResAtp.Auto ths ctxt;
-  fun metisF ths ctxt = metis_meth ResAtp.Fol  ths ctxt;
-  fun metisH ths ctxt = metis_meth ResAtp.Hol  ths ctxt;
+          (CHANGED_PROP o metis_general_tac mode ctxt ths))));
 
   val setup =
     Method.add_methods
-      [("metis",  Method.thms_ctxt_args metis,  "METIS for FOL & HOL problems"),
-       ("metisF", Method.thms_ctxt_args metisF, "METIS for FOL problems"),
-       ("metisH", Method.thms_ctxt_args metisH, "METIS for HOL problems"),
+      [("metis", method ResAtp.Auto, "METIS for FOL & HOL problems"),
+       ("metisF", method ResAtp.Fol, "METIS for FOL problems"),
+       ("metisH", method ResAtp.Hol, "METIS for HOL problems"),
        ("finish_clausify",
          Method.no_args (Method.SIMPLE_METHOD' (K (ResAxioms.expand_defs_tac refl))),
     "cleanup after conversion to clauses")];
