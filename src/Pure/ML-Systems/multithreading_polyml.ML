@@ -10,6 +10,9 @@ open Thread;
 structure Multithreading: MULTITHREADING =
 struct
 
+
+(* flags *)
+
 val trace = ref false;
 fun tracing msg =
   if ! trace
@@ -20,15 +23,21 @@ val available = true;
 val max_threads = ref 1;
 
 
+(* misc utils *)
+
+fun show "" = ""
+  | show name = " " ^ name;
+
+fun show' "" = ""
+  | show' name = " [" ^ name ^ "]";
+
+fun inc i = (i := ! i + 1; ! i);
+fun dec i = (i := ! i - 1; ! i);
+
+
 (* critical section -- may be nested within the same thread *)
 
 local
-
-fun add_name "" = ""
-  | add_name name = " " ^ name;
-
-fun add_name' "" = ""
-  | add_name' name = " [" ^ name ^ "]";
 
 val critical_lock = Mutex.mutex ();
 val critical_thread = ref (NONE: Thread.thread option);
@@ -51,10 +60,10 @@ fun NAMED_CRITICAL name e =
           let
             val timer = Timer.startRealTimer ();
             val _ = tracing (fn () =>
-              "CRITICAL" ^ add_name name ^ add_name' (! critical_name) ^ ": waiting for lock");
+              "CRITICAL" ^ show name ^ show' (! critical_name) ^ ": waiting");
             val _ = Mutex.lock critical_lock;
             val _ = tracing (fn () =>
-              "CRITICAL" ^ add_name name ^ add_name' (! critical_name) ^ ": obtained lock after " ^
+              "CRITICAL" ^ show name ^ show' (! critical_name) ^ ": passed after " ^
               Time.toString (Timer.checkRealTimer timer));
           in () end;
       val _ = critical_thread := SOME (Thread.self ());
@@ -72,8 +81,11 @@ end;
 
 (* scheduling -- non-interruptible threads working on a queue of tasks *)
 
-fun inc i = (i := ! i + 1; ! i);
-fun dec i = (i := ! i - 1; ! i);
+local
+
+val protected_name = ref "";
+
+in
 
 fun schedule n next_task tasks =
   let
@@ -84,10 +96,12 @@ fun schedule n next_task tasks =
         val _ =
           if Mutex.trylock lock then ()
           else
-           (tracing (fn () => "PROTECTED " ^ name ^ ": waiting for lock");
+           (tracing (fn () => "PROTECTED" ^ show name ^ show' (! protected_name) ^ ": waiting");
             Mutex.lock lock;
-            tracing (fn () => "PROTECTED " ^ name ^ ": obtained lock"));
+            tracing (fn () => "PROTECTED" ^ show name ^ show' (! protected_name) ^ ": passed"));
+        val _ = protected_name := name;
         val res = Exn.capture e ();
+        val _ = protected_name := "";
         val _ = Mutex.unlock lock;
       in Exn.release res end;
 
@@ -137,6 +151,8 @@ fun schedule n next_task tasks =
       while ! running <> 0 do (trace_active (); wait ())));
 
   in ! status end;
+
+end;
 
 end;
 
