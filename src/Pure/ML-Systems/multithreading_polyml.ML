@@ -26,6 +26,13 @@ local
 
 val critical_lock = Mutex.mutex ();
 val critical_thread = ref (NONE: Thread.thread option);
+val critical_name = ref "";
+
+fun add_name "" = ""
+  | add_name name = " " ^ name;
+
+fun add_name' "" = ""
+  | add_name' name = " [" ^ name ^ "]";
 
 in
 
@@ -41,13 +48,19 @@ fun NAMED_CRITICAL name e =
       val _ =
         if Mutex.trylock critical_lock then ()
         else
-         (tracing (fn () =>
-            "CRITICAL" ^ (if name = "" then "" else " " ^ name) ^ ": waiting for lock");
-          Mutex.lock critical_lock;
-          tracing (fn () =>
-            "CRITICAL" ^ (if name = "" then "" else " " ^ name) ^ ": obtained lock"));
+          let
+            val timer = Timer.startRealTimer ();
+            val _ = tracing (fn () =>
+              "CRITICAL" ^ add_name name ^ add_name' (! critical_name) ^ ": waiting for lock");
+            val _ = Mutex.lock critical_lock;
+            val _ = tracing (fn () =>
+              "CRITICAL" ^ add_name name ^ add_name' (! critical_name) ^ ": obtained lock after " ^
+              Time.toString (Timer.checkRealTimer timer));
+          in () end;
       val _ = critical_thread := SOME (Thread.self ());
+      val _ = critical_name := name;
       val result = Exn.capture e ();
+      val _ = critical_name := "";
       val _ = critical_thread := NONE;
       val _ = Mutex.unlock critical_lock;
     in Exn.release result end;
@@ -86,10 +99,10 @@ fun schedule n next_task tasks =
     (*worker threads*)
     val running = ref 0;
     val status = ref ([]: exn list);
-    val finished = ConditionVar.conditionVar ();
-    fun wait () = ConditionVar.waitUntil (finished, lock, Time.fromMilliseconds 500);
+    val wakeup = ConditionVar.conditionVar ();
+    fun wait () = ConditionVar.wait (wakeup, lock);
     fun continue cont k =
-      (PROTECTED k (fn () => queue := cont (! queue)); ConditionVar.signal finished; work k ())
+      (PROTECTED k (fn () => queue := cont (! queue)); ConditionVar.broadcast wakeup; work k ())
     and work k () =
       (case dequeue k of
         (Task.Task f, cont) =>
@@ -104,7 +117,7 @@ fun schedule n next_task tasks =
       | (Task.Finished, _) =>
          (tracing (fn () => "TERMINATING " ^ Int.toString k);
           PROTECTED k (fn () => running := ! running - 1);
-          ConditionVar.signal finished));
+          ConditionVar.broadcast wakeup));
 
     (*main control: fork and wait*)
     fun fork 0 = ()
