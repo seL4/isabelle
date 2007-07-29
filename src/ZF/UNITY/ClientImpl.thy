@@ -96,10 +96,7 @@ done
 
 declare client_prog_def [THEN def_prg_Init, simp]
 declare client_prog_def [THEN def_prg_AllowedActs, simp]
-ML
-{*
-program_defs_ref := [thm"client_prog_def"]
-*}
+declare client_prog_def [program]
 
 declare  client_rel_act_def [THEN def_act_simp, simp]
 declare  client_tok_act_def [THEN def_act_simp, simp]

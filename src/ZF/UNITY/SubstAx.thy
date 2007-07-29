@@ -412,7 +412,7 @@ fun ensures_tac ctxt sact =
                   REPEAT (ares_tac [LeadsTo_Basis, leadsTo_Basis,
                                     EnsuresI, ensuresI] 1),
               (*now there are two subgoals: co & transient*)
-              simp_tac (ss addsimps !program_defs_ref) 2,
+              simp_tac (ss addsimps (ProgramDefs.get ctxt)) 2,
               res_inst_tac [("act", sact)] transientI 2,
                  (*simplify the command's domain*)
               simp_tac (ss addsimps [domain_def]) 3, 

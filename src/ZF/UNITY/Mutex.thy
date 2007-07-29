@@ -149,10 +149,7 @@ by (simp add: Mutex_def)
 
 
 declare Mutex_def [THEN def_prg_Init, simp]
-ML
-{*
-program_defs_ref := [thm"Mutex_def"]
-*}
+declare Mutex_def [program]
 
 declare  U0_def [THEN def_act_simp, simp]
 declare  U1_def [THEN def_act_simp, simp]

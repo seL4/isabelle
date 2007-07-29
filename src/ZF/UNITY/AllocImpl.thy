@@ -69,10 +69,7 @@ by (simp add: alloc_prog_def)
 
 declare alloc_prog_def [THEN def_prg_Init, simp]
 declare alloc_prog_def [THEN def_prg_AllowedActs, simp]
-ML
-{*
-program_defs_ref := [thm"alloc_prog_def"]
-*}
+declare alloc_prog_def [program]
 
 declare  alloc_giv_act_def [THEN def_act_simp, simp]
 declare  alloc_rel_act_def [THEN def_act_simp, simp]
