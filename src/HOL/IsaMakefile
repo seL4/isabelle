@@ -124,11 +124,10 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Tools/recdef_package.ML Tools/recfun_codegen.ML			\
   Tools/record_package.ML Tools/refute.ML Tools/refute_isar.ML		\
   Tools/res_atp.ML Tools/res_atp_methods.ML Tools/res_atp_provers.ML	\
-  Tools/res_atpset.ML Tools/res_axioms.ML Tools/res_clause.ML		\
-  Tools/res_hol_clause.ML Tools/res_reconstruct.ML			\
-  Tools/rewrite_hol_proof.ML Tools/sat_funcs.ML Tools/sat_solver.ML	\
-  Tools/specification_package.ML Tools/split_rule.ML			\
-  Tools/string_syntax.ML Tools/typecopy_package.ML			\
+  Tools/res_axioms.ML Tools/res_clause.ML Tools/res_hol_clause.ML	\
+  Tools/res_reconstruct.ML Tools/rewrite_hol_proof.ML 			\
+  Tools/sat_funcs.ML Tools/sat_solver.ML Tools/specification_package.ML	\
+  Tools/split_rule.ML Tools/string_syntax.ML Tools/typecopy_package.ML	\
   Tools/typedef_codegen.ML Tools/typedef_package.ML			\
   Transitive_Closure.thy Typedef.thy Wellfounded_Recursion.thy		\
   Wellfounded_Relations.thy arith_data.ML document/root.tex hologic.ML	\
