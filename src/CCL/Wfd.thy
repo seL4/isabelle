@@ -506,27 +506,15 @@ subsection {* Evaluation *}
 ML {*
 
 local
-
-structure Data = GenericDataFun
-(
-  type T = thm list;
-  val empty = [];
-  val extend = I;
-  fun merge _ = Drule.merge_rules;
-);
-
+  structure Data = NamedThmsFun(val name = "eval" val description = "evaluation rules");
 in
-
-val eval_add = Thm.declaration_attribute (Data.map o Drule.add_rule);
-val eval_del = Thm.declaration_attribute (Data.map o Drule.del_rule);
 
 fun eval_tac ctxt ths =
   METAHYPS (fn prems =>
-    DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ Data.get (Context.Proof ctxt)) 1)) 1;
+    DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ Data.get ctxt) 1)) 1;
 
 val eval_setup =
-  Attrib.add_attributes
-    [("eval", Attrib.add_del_args eval_add eval_del, "declaration of evaluation rule")] #>
+  Data.setup #>
   Method.add_methods [("eval", Method.thms_ctxt_args (fn ths => fn ctxt =>
     Method.SIMPLE_METHOD (CHANGED (eval_tac ctxt ths))), "evaluation")];
 
