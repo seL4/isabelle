@@ -238,16 +238,15 @@ lemma single_is_union:
   apply (blast dest: sym)
   done
 
-ML"reset use_neq_simproc"
 lemma add_eq_conv_diff:
   "(M + {#a#} = N + {#b#}) =
    (M = N \<and> a = b \<or> M = N - {#a#} + {#b#} \<and> N = M - {#b#} + {#a#})"
+  using [[simproc del: neq]]
   apply (unfold single_def union_def diff_def)
   apply (simp (no_asm) add: expand_fun_eq)
   apply (rule conjI, force, safe, simp_all)
   apply (simp add: eq_sym_conv)
   done
-ML"set use_neq_simproc"
 
 declare Rep_multiset_inject [symmetric, simp del]
 

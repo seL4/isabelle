@@ -185,92 +185,7 @@ fun unfold_tac ths =
 
 
 
-(** simprocs **)
-
-(* simproc for proving "(y = x) == False" from premise "~(x = y)" *)
-
-val use_neq_simproc = ref true;
-
-local
-  val neq_to_EQ_False = @{thm not_sym} RS @{thm Eq_FalseI};
-  fun neq_prover sg ss (eq $ lhs $ rhs) =
-    let
-      fun test thm = (case #prop (rep_thm thm) of
-                    _ $ (Not $ (eq' $ l' $ r')) =>
-                      Not = HOLogic.Not andalso eq' = eq andalso
-                      r' aconv lhs andalso l' aconv rhs
-                  | _ => false)
-    in if !use_neq_simproc then case find_first test (prems_of_ss ss)
-     of NONE => NONE
-      | SOME thm => SOME (thm RS neq_to_EQ_False)
-     else NONE
-    end
-in
-
-val neq_simproc = Simplifier.simproc @{theory} "neq_simproc" ["x = y"] neq_prover;
-
-end;
-
-
-(* simproc for Let *)
-
-val use_let_simproc = ref true;
-
-local
-  val (f_Let_unfold, x_Let_unfold) =
-      let val [(_$(f$x)$_)] = prems_of @{thm Let_unfold}
-      in (cterm_of @{theory} f, cterm_of @{theory} x) end
-  val (f_Let_folded, x_Let_folded) =
-      let val [(_$(f$x)$_)] = prems_of @{thm Let_folded}
-      in (cterm_of @{theory} f, cterm_of @{theory} x) end;
-  val g_Let_folded =
-      let val [(_$_$(g$_))] = prems_of @{thm Let_folded} in cterm_of @{theory} g end;
-in
-
-val let_simproc =
-  Simplifier.simproc @{theory} "let_simp" ["Let x f"]
-   (fn thy => fn ss => fn t =>
-     let val ctxt = Simplifier.the_context ss;
-         val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
-     in Option.map (hd o Variable.export ctxt' ctxt o single)
-      (case t' of (Const ("Let",_)$x$f) => (* x and f are already in normal form *)
-         if not (!use_let_simproc) then NONE
-         else if is_Free x orelse is_Bound x orelse is_Const x
-         then SOME @{thm Let_def}
-         else
-          let
-             val n = case f of (Abs (x,_,_)) => x | _ => "x";
-             val cx = cterm_of thy x;
-             val {T=xT,...} = rep_cterm cx;
-             val cf = cterm_of thy f;
-             val fx_g = Simplifier.rewrite ss (Thm.capply cf cx);
-             val (_$_$g) = prop_of fx_g;
-             val g' = abstract_over (x,g);
-           in (if (g aconv g')
-               then
-                  let
-                    val rl =
-                      cterm_instantiate [(f_Let_unfold,cf),(x_Let_unfold,cx)] @{thm Let_unfold};
-                  in SOME (rl OF [fx_g]) end
-               else if Term.betapply (f,x) aconv g then NONE (*avoid identity conversion*)
-               else let
-                     val abs_g'= Abs (n,xT,g');
-                     val g'x = abs_g'$x;
-                     val g_g'x = symmetric (beta_conversion false (cterm_of thy g'x));
-                     val rl = cterm_instantiate
-                               [(f_Let_folded,cterm_of thy f),(x_Let_folded,cx),
-                                (g_Let_folded,cterm_of thy abs_g')]
-                               @{thm Let_folded};
-                   in SOME (rl OF [transitive fx_g g_g'x])
-                   end)
-           end
-        | _ => NONE)
-     end)
-
-end;
-
-
-(* generic refutation procedure *)
+(** generic refutation procedure **)
 
 (* parameters:
 
@@ -321,8 +236,7 @@ val defEX_regroup =
     "defined EX" ["EX x. P x"] Quantifier1.rearrange_ex;
 
 
-val simpset_simprocs = HOL_basic_ss
-  addsimprocs [defALL_regroup, defEX_regroup, neq_simproc, let_simproc]
+val simpset_simprocs = HOL_basic_ss addsimprocs [defALL_regroup, defEX_regroup]
 
 end;
 

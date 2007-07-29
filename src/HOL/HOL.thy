@@ -24,7 +24,6 @@ uses
   "~~/src/Provers/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
   ("simpdata.ML")
-  "Tools/res_atpset.ML"
   ("~~/src/HOL/Tools/recfun_codegen.ML")
 begin
 
@@ -928,6 +927,8 @@ open BasicClassical;
 
 ML_Context.value_antiq "claset"
   (Scan.succeed ("claset", "Classical.local_claset_of (ML_Context.the_local_context ())"));
+
+structure ResAtpset = NamedThmsFun(val name = "atp" val description = "ATP rules");
 *}
 
 setup {*
@@ -1283,6 +1284,80 @@ setup {*
   #> Clasimp.setup
   #> EqSubst.setup
 *}
+
+text {* Simproc for proving @{text "(y = x) == False"} from premise @{text "~(x = y)"}: *}
+
+simproc_setup neq ("x = y") = {* fn _ =>
+let
+  val neq_to_EQ_False = @{thm not_sym} RS @{thm Eq_FalseI};
+  fun is_neq eq lhs rhs thm =
+    (case Thm.prop_of thm of
+      _ $ (Not $ (eq' $ l' $ r')) =>
+        Not = HOLogic.Not andalso eq' = eq andalso
+        r' aconv lhs andalso l' aconv rhs
+    | _ => false);
+  fun proc ss ct =
+    (case Thm.term_of ct of
+      eq $ lhs $ rhs =>
+        (case find_first (is_neq eq lhs rhs) (Simplifier.prems_of_ss ss) of
+          SOME thm => SOME (thm RS neq_to_EQ_False)
+        | NONE => NONE)
+     | _ => NONE);
+in proc end;
+*}
+
+simproc_setup let_simp ("Let x f") = {*
+let
+  val (f_Let_unfold, x_Let_unfold) =
+    let val [(_$(f$x)$_)] = prems_of @{thm Let_unfold}
+    in (cterm_of @{theory} f, cterm_of @{theory} x) end
+  val (f_Let_folded, x_Let_folded) =
+    let val [(_$(f$x)$_)] = prems_of @{thm Let_folded}
+    in (cterm_of @{theory} f, cterm_of @{theory} x) end;
+  val g_Let_folded =
+    let val [(_$_$(g$_))] = prems_of @{thm Let_folded} in cterm_of @{theory} g end;
+
+  fun proc _ ss ct =
+    let
+      val ctxt = Simplifier.the_context ss;
+      val thy = ProofContext.theory_of ctxt;
+      val t = Thm.term_of ct;
+      val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
+    in Option.map (hd o Variable.export ctxt' ctxt o single)
+      (case t' of Const ("Let",_) $ x $ f => (* x and f are already in normal form *)
+        if is_Free x orelse is_Bound x orelse is_Const x
+        then SOME @{thm Let_def}
+        else
+          let
+            val n = case f of (Abs (x,_,_)) => x | _ => "x";
+            val cx = cterm_of thy x;
+            val {T=xT,...} = rep_cterm cx;
+            val cf = cterm_of thy f;
+            val fx_g = Simplifier.rewrite ss (Thm.capply cf cx);
+            val (_$_$g) = prop_of fx_g;
+            val g' = abstract_over (x,g);
+          in (if (g aconv g')
+               then
+                  let
+                    val rl =
+                      cterm_instantiate [(f_Let_unfold,cf),(x_Let_unfold,cx)] @{thm Let_unfold};
+                  in SOME (rl OF [fx_g]) end
+               else if Term.betapply (f,x) aconv g then NONE (*avoid identity conversion*)
+               else let
+                     val abs_g'= Abs (n,xT,g');
+                     val g'x = abs_g'$x;
+                     val g_g'x = symmetric (beta_conversion false (cterm_of thy g'x));
+                     val rl = cterm_instantiate
+                               [(f_Let_folded,cterm_of thy f),(x_Let_folded,cx),
+                                (g_Let_folded,cterm_of thy abs_g')]
+                               @{thm Let_folded};
+                   in SOME (rl OF [transitive fx_g g_g'x])
+                   end)
+          end
+      | _ => NONE)
+    end
+in proc end *}
+
 
 lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
 proof
