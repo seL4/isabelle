@@ -38,6 +38,7 @@ sig
   val skip_proofs: bool ref
   exception TERMINATE
   exception RESTART
+  exception TOPLEVEL_ERROR
   val exn_message: exn -> string
   val program: (unit -> 'a) -> 'a
   type transition
@@ -237,6 +238,7 @@ exception TERMINATE;
 exception RESTART;
 exception EXCURSION_FAIL of exn * string;
 exception FAILURE of state * exn;
+exception TOPLEVEL_ERROR;
 
 
 (* print exceptions *)
@@ -254,7 +256,7 @@ fun raised name [] = "exception " ^ name ^ " raised"
 fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ RESTART = "Restart."
   | exn_msg _ Interrupt = "Interrupt."
-  | exn_msg _ Output.TOPLEVEL_ERROR = "Error."
+  | exn_msg _ TOPLEVEL_ERROR = "Error."
   | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
   | exn_msg _ (ERROR msg) = msg
   | exn_msg detailed (Exn.EXCEPTIONS (exns, "")) = cat_lines (map (exn_msg detailed) exns)
@@ -303,16 +305,20 @@ fun interruptible f x =
   let val y = ref x
   in raise_interrupt (fn () => y := f x) (); ! y end;
 
+fun toplevel_error f x = f x
+  handle exn => (Output.error_msg (exn_message exn); raise TOPLEVEL_ERROR);
+
 in
 
 fun controlled_execution f =
   f
   |> debugging
-  |> interruptible
-  |> setmp Output.do_toplevel_errors false;
+  |> interruptible;
 
 fun program f =
-  Output.ML_errors (fn () => debugging f () handle exn => error (exn_message exn)) ();
+ (f
+  |> debugging
+  |> toplevel_error) ();
 
 end;
 
