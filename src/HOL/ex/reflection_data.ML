@@ -2,44 +2,44 @@
     ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 
-Data for the reification and  reflection Methods
+Data for the reification and reflection methods.
 *)
 
 signature REIFY_DATA =
 sig
-  type entry = (thm list) * (thm list)
+  type entry = thm list * thm list
   val get: Proof.context -> entry
   val del: attribute
-  val add: attribute 
+  val add: attribute
   val setup: theory -> theory
 end;
 
 structure Reify_Data : REIFY_DATA =
 struct
 
-type entry = (thm list) * (thm list);
-fun appair f (x,y) = (f x, f y);
+type entry = thm list * thm list;
 
 structure Data = GenericDataFun
-( val name = "Reify-Data";
+(
   type T = entry
-  val empty = ([],[]);
+  val empty = ([], [])
   val extend = I
-  fun merge _ = appair (Library.merge Thm.eq_thm));
+  fun merge _ = pairself Thm.merge_thms
+);
 
 val get = Data.get o Context.Proof;
 
-val add = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (apfst (Drule.add_rule th )))
+val add = Thm.declaration_attribute (fn th => fn context =>
+  context |> Data.map (apfst (Thm.add_thm th)))
 
-val del = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (apfst(Drule.del_rule th )))
+val del = Thm.declaration_attribute (fn th => fn context =>
+  context |> Data.map (apfst (Thm.del_thm th)))
 
-val radd = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (apsnd(Drule.add_rule th )))
+val radd = Thm.declaration_attribute (fn th => fn context =>
+  context |> Data.map (apsnd (Thm.add_thm th)))
 
-val rdel = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (apsnd(Drule.del_rule th )))
+val rdel = Thm.declaration_attribute (fn th => fn context =>
+  context |> Data.map (apsnd (Thm.del_thm th)))
 
 (* concrete syntax *)
 (*
