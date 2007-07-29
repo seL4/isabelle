@@ -94,15 +94,16 @@ type master = (Path.T * File.ident) * (Path.T * File.ident) option;
 type deps =
   {outdated: bool,              (*entry considered outdated*)
     master: master option,      (*master dependencies for thy + attached ML file*)
+    text: string list,          (*source text for thy*)
     parents: string list,       (*source specification of parents (partially qualified)*)
     files:                      (*auxiliary files: source path, physical path + identifier*)
       (Path.T * (Path.T * File.ident) option) list};
 
-fun make_deps outdated master parents files : deps =
-  {outdated = outdated, master = master, parents = parents, files = files};
+fun make_deps outdated master text parents files : deps =
+  {outdated = outdated, master = master, text = text, parents = parents, files = files};
 
-fun init_deps master parents files =
-  SOME (make_deps true master parents (map (rpair NONE) files));
+fun init_deps master text parents files =
+  SOME (make_deps true master text parents (map (rpair NONE) files));
 
 fun master_idents (NONE: master option) = []
   | master_idents (SOME ((_, thy_id), NONE)) = [thy_id]
@@ -159,7 +160,6 @@ val get_deps = #1 o get_thy;
 fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
 
 fun is_finished name = is_none (get_deps name);
-fun get_files name = (case get_deps name of SOME {files, ...} => files | _ => []);
 
 fun loaded_files name =
   (case get_deps name of
@@ -229,8 +229,8 @@ fun is_outdated name =
 fun outdate_thy name =
   if is_finished name orelse is_outdated name then ()
   else CRITICAL (fn () =>
-   (change_deps name (Option.map (fn {outdated = _, master, parents, files} =>
-    make_deps true master parents files)); perform Outdate name));
+   (change_deps name (Option.map (fn {outdated = _, master, text, parents, files} =>
+    make_deps true master text parents files)); perform Outdate name));
 
 fun check_unfinished name =
   if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); NONE)
@@ -261,11 +261,11 @@ fun check_unfinished fail name =
 
 local
 
-fun provide path name info (deps as SOME {outdated, master, parents, files}) =
+fun provide path name info (deps as SOME {outdated, master, text, parents, files}) =
      (if AList.defined (op =) files path then ()
       else warning (loader_msg "undeclared dependency of theory" [name] ^
         " on file: " ^ quote (Path.implode path));
-      SOME (make_deps outdated master parents (AList.update (op =) (path, SOME info) files)))
+      SOME (make_deps outdated master text parents (AList.update (op =) (path, SOME info) files)))
   | provide _ _ _ NONE = NONE;
 
 fun run_file path =
@@ -306,20 +306,27 @@ fun load_thy really ml time initiators dir name =
       if really then priority ("Loading theory " ^ quote name ^ required_by " " initiators)
       else priority ("Registering theory " ^ quote name);
 
-    val _ = touch_thy name;
-    val master =
-      if really then ThyLoad.load_thy dir name ml (time orelse ! Output.timing)
-      else #1 (ThyLoad.deps_thy dir name ml);
+    val (master_path, text, files) =
+      (case get_deps name of
+        SOME {master = SOME ((master_path, _), _), text = text as _ :: _, files, ...} =>
+          (master_path, text, files)
+      | _ => error (loader_msg "corrupted dependency information" [name]));
 
-    val files = get_files name;
+    val _ = touch_thy name;
+    val _ =
+      if really then
+        ThyLoad.load_thy dir name (Position.path master_path) text ml (time orelse ! Output.timing)
+      else ();
+
     val missing_files = map_filter (fn (path, NONE) => SOME (Path.implode path) | _ => NONE) files;
+    val _ =
+      if null missing_files then ()
+      else warning (loader_msg "unresolved dependencies of theory" [name] ^
+        " on file(s): " ^ commas_quote missing_files);
   in
-    if null missing_files then ()
-    else warning (loader_msg "unresolved dependencies of theory" [name] ^
-      " on file(s): " ^ commas_quote missing_files);
     CRITICAL (fn () =>
      (change_deps name
-        (Option.map (fn {parents, ...} => make_deps false (SOME master) parents files));
+        (Option.map (fn {master, parents, files, ...} => make_deps false master [] parents files));
       perform Update name))
   end;
 
@@ -340,21 +347,22 @@ fun check_deps ml strict dir name =
   (case lookup_deps name of
     SOME NONE => (true, NONE, get_parents name)
   | NONE =>
-      let val (master, (parents, files)) = ThyLoad.deps_thy dir name ml
-      in (false, init_deps (SOME master) parents files, parents) end
-  | SOME (deps as SOME {outdated, master, parents, files}) =>
+      let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name ml
+      in (false, init_deps (SOME master) text parents files, parents) end
+  | SOME (deps as SOME {outdated, master, text, parents, files}) =>
       if not strict andalso can get_theory name then (true, deps, parents)
       else
         let val master' = SOME (ThyLoad.check_thy dir name ml) in
           if master_idents master <> master_idents master'
           then
-            let val (parents', files') = #2 (ThyLoad.deps_thy dir name ml)
-            in (false, init_deps master' parents' files', parents') end
+            let val {text = text', imports = parents', uses = files', ...} =
+              ThyLoad.deps_thy dir name ml;
+            in (false, init_deps master' text' parents' files', parents') end
           else
             let
               val checked_files = map (check_ml master') files;
               val current = not outdated andalso forall (is_some o snd) checked_files;
-              val deps' = SOME (make_deps (not current) master' parents checked_files);
+              val deps' = SOME (make_deps (not current) master' text parents checked_files);
             in (current, deps', parents) end
         end);
 
@@ -406,17 +414,23 @@ fun schedule_seq tasks =
   Graph.topological_order tasks
   |> List.app (fn name => (case Graph.get_node tasks name of Task.Task f => f () | _ => ()));
 
+fun max_task (task as (_, (Task.Task _, _))) NONE = SOME task
+  | max_task (task as (_, (Task.Task _, m))) (task' as SOME (_, (_, m'))) =
+      if m > m' then SOME task else task'
+  | max_task _ task' = task';
+
 fun next_task G =
   let
-    val tasks = map (fn name => (name, Graph.get_node G name)) (Graph.minimals G);
-    val finished = filter (Task.is_finished o snd) tasks;
+    val tasks = Graph.minimals G |> map (fn name =>
+      (name, (Graph.get_node G name, length (Graph.imm_succs G name))))
+    val finished = filter (Task.is_finished o fst o snd) tasks;
   in
     if not (null finished) then next_task (Graph.del_nodes (map fst finished) G)
     else if null tasks then ((Task.Finished, I), G)
     else
-      (case find_first (not o Task.is_running o snd) tasks of
+      (case fold max_task tasks NONE of
         NONE => ((Task.Running, I), G)
-      | SOME (name, task) =>
+      | SOME (name, (task, _)) =>
           ((task, Graph.del_nodes [name]), Graph.map_node name (K Task.Running) G))
   end;
 
@@ -492,7 +506,7 @@ fun begin_theory name parents uses int =
 
     val deps =
       if known_thy name then get_deps name
-      else init_deps NONE parents (map #1 uses);
+      else init_deps NONE [] parents (map #1 uses);
     val _ = change_thys (new_deps name parent_names (deps, NONE));
 
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
