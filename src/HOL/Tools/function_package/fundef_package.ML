@@ -172,14 +172,14 @@ val add_fundef_i = gen_add_fundef Specification.cert_specification
 
 (* congruence rules *)
 
-val cong_add = Thm.declaration_attribute (map_fundef_congs o Drule.add_rule o safe_mk_meta_eq);
-val cong_del = Thm.declaration_attribute (map_fundef_congs o Drule.del_rule o safe_mk_meta_eq);
+val cong_add = Thm.declaration_attribute (map_fundef_congs o Thm.add_thm o safe_mk_meta_eq);
+val cong_del = Thm.declaration_attribute (map_fundef_congs o Thm.del_thm o safe_mk_meta_eq);
 
 (* Datatype hook to declare datatype congs as "fundef_congs" *)
 
 
 fun add_case_cong n thy =
-    Context.theory_map (map_fundef_congs (Drule.add_rule
+    Context.theory_map (map_fundef_congs (Thm.add_thm
                           (DatatypePackage.get_datatype thy n |> the
                            |> #case_cong
                            |> safe_mk_meta_eq)))

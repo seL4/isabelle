@@ -89,7 +89,7 @@ structure FundefCongs = GenericDataFun
   type T = thm list
   val empty = []
   val extend = I
-  fun merge _ = Drule.merge_rules
+  fun merge _ = Thm.merge_thms
 );
 
 
@@ -136,7 +136,7 @@ structure TerminationRule = GenericDataFun
   type T = thm list
   val empty = []
   val extend = I
-  fun merge _ = Drule.merge_rules
+  fun merge _ = Thm.merge_thms
 );
 
 val get_termination_rules = TerminationRule.get

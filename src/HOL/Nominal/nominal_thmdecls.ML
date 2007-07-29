@@ -34,9 +34,9 @@ structure Data = GenericDataFun
   type T = {eqvts:thm list, freshs:thm list, bijs:thm list};
   val empty = ({eqvts=[], freshs=[], bijs=[]}:T);
   val extend = I;
-  fun merge _ (r1:T,r2:T) = {eqvts  = Drule.merge_rules (#eqvts r1, #eqvts r2),
-                             freshs = Drule.merge_rules (#freshs r1, #freshs r2),
-                             bijs   = Drule.merge_rules (#bijs r1, #bijs r2)}
+  fun merge _ (r1:T,r2:T) = {eqvts  = Thm.merge_thms (#eqvts r1, #eqvts r2),
+                             freshs = Thm.merge_thms (#freshs r1, #freshs r2),
+                             bijs   = Thm.merge_thms (#bijs r1, #bijs r2)}
 );
 
 (* Exception for when a theorem does not conform with form of an equivariance lemma. *)
@@ -102,7 +102,7 @@ fun get_derived_thm thy hyp concl orig_thm pi typi =
        val lhs = (Const("Nominal.perm", typi --> HOLogic.boolT --> HOLogic.boolT) $ Var(pi,typi) $ hyp)
        val goal_term = Logic.unvarify (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,concl)))
        val _ = Display.print_cterm (cterm_of thy goal_term)
-   in	
+   in
      Goal.prove_global thy [] [] goal_term (fn _ => (tactic_eqvt thy orig_thm pi typi))
    end
 
@@ -136,10 +136,10 @@ fun get_pi t thy =
              (Var (pi,typi as Type("List.list",[Type ("*",[Type (tyatm,[]),_])]))) $
                (Var (n,ty))) =>
              let
-		(* FIXME: this should be an operation the library *)
+                (* FIXME: this should be an operation the library *)
                 val class_name = (NameSpace.map_base (fn s => "pt_"^s) tyatm)
-	     in
-		if (Type.of_sort (Sign.tsig_of thy) (ty,[class_name]))
+             in
+                if (Type.of_sort (Sign.tsig_of thy) (ty,[class_name]))
                 then [(pi,typi)]
                 else raise
                 EQVT_FORM ("Could not find any permutation or an argument is not an instance of "^class_name)
@@ -177,7 +177,7 @@ fun eqvt_add_del_aux flag orig_thm context =
        (* case: eqvt-lemma is of the equational form *)
       | (Const ("Trueprop", _) $ (Const ("op =", _) $
             (Const ("Nominal.perm",typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
-	   (if (apply_pi lhs (pi,typi)) = rhs
+           (if (apply_pi lhs (pi,typi)) = rhs
                then [orig_thm]
                else raise EQVT_FORM "Type Equality")
       | _ => raise EQVT_FORM "Type unknown")
@@ -205,15 +205,15 @@ fun eqvt_map f th (r:Data.T)  = {eqvts = (f th (#eqvts r)), freshs = #freshs r, 
 fun fresh_map f th (r:Data.T) = {eqvts = #eqvts r, freshs = (f th (#freshs r)), bijs = #bijs r};
 fun bij_map f th (r:Data.T)   = {eqvts = #eqvts r, freshs = #freshs r, bijs = (f th (#bijs r))};
 
-val eqvt_add  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Drule.add_rule));
-val eqvt_del  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Drule.del_rule));
-val eqvt_force_add  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Drule.add_rule));
-val eqvt_force_del  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Drule.del_rule));
+val eqvt_add  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Thm.add_thm));
+val eqvt_del  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Thm.del_thm));
+val eqvt_force_add  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Thm.add_thm));
+val eqvt_force_del  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Thm.del_thm));
 
-val bij_add   = Thm.declaration_attribute (bij_add_del_aux (bij_map Drule.add_rule));
-val bij_del   = Thm.declaration_attribute (bij_add_del_aux (bij_map Drule.del_rule));
-val fresh_add = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Drule.add_rule));
-val fresh_del = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Drule.del_rule));
+val bij_add   = Thm.declaration_attribute (bij_add_del_aux (bij_map Thm.add_thm));
+val bij_del   = Thm.declaration_attribute (bij_add_del_aux (bij_map Thm.del_thm));
+val fresh_add = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Thm.add_thm));
+val fresh_del = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Thm.del_thm));
 
 
 
@@ -221,7 +221,7 @@ val setup =
   Attrib.add_attributes
      [("eqvt",  Attrib.add_del_args eqvt_add eqvt_del,   "equivariance theorem declaration"),
       ("eqvt_force", Attrib.add_del_args eqvt_force_add eqvt_force_del,
-                             "equivariance theorem declaration (without checking the form of the lemma)"),
+        "equivariance theorem declaration (without checking the form of the lemma)"),
       ("fresh", Attrib.add_del_args fresh_add fresh_del, "freshness theorem declaration"),
       ("bij",   Attrib.add_del_args bij_add bij_del,     "bijection theorem declaration")];
 

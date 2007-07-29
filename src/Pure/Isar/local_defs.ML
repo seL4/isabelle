@@ -151,15 +151,15 @@ structure Rules = GenericDataFun
   type T = thm list;
   val empty = []
   val extend = I;
-  fun merge _ = Drule.merge_rules;
+  fun merge _ = Thm.merge_thms;
 );
 
 fun print_rules ctxt =
   Pretty.writeln (Pretty.big_list "definitional transformations:"
     (map (ProofContext.pretty_thm ctxt) (Rules.get (Context.Proof ctxt))));
 
-val defn_add = Thm.declaration_attribute (Rules.map o Drule.add_rule);
-val defn_del = Thm.declaration_attribute (Rules.map o Drule.del_rule);
+val defn_add = Thm.declaration_attribute (Rules.map o Thm.add_thm);
+val defn_del = Thm.declaration_attribute (Rules.map o Thm.del_thm);
 
 
 (* meta rewrite rules *)

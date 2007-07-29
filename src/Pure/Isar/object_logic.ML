@@ -51,7 +51,7 @@ structure ObjectLogicData = TheoryDataFun
 
   fun merge _ ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
     (merge_judgment (judgment1, judgment2),
-      (Drule.merge_rules (atomize1, atomize2), Drule.merge_rules (rulify1, rulify2)));
+      (Thm.merge_thms (atomize1, atomize2), Thm.merge_thms (rulify1, rulify2)));
 );
 
 
@@ -141,8 +141,8 @@ fun is_elim rule =
 val get_atomize = #1 o #2 o ObjectLogicData.get;
 val get_rulify = #2 o #2 o ObjectLogicData.get;
 
-val add_atomize = ObjectLogicData.map o apsnd o apfst o Drule.add_rule;
-val add_rulify = ObjectLogicData.map o apsnd o apsnd o Drule.add_rule;
+val add_atomize = ObjectLogicData.map o apsnd o apfst o Thm.add_thm;
+val add_rulify = ObjectLogicData.map o apsnd o apsnd o Thm.add_thm;
 
 val declare_atomize = Thm.declaration_attribute (fn th => Context.mapping (add_atomize th) I);
 val declare_rulify = Thm.declaration_attribute (fn th => Context.mapping (add_rulify th) I);

@@ -30,13 +30,11 @@ structure TransferData = GenericDataFun
       refolds = refolds1, consts = consts1},
      {intros = intros2, unfolds = unfolds2,
       refolds = refolds2, consts = consts2}) =
-   {intros = Drule.merge_rules (intros1, intros2),
-    unfolds = Drule.merge_rules (unfolds1, unfolds2),
-    refolds = Drule.merge_rules (refolds1, refolds2),
+   {intros = Thm.merge_thms (intros1, intros2),
+    unfolds = Thm.merge_thms (unfolds1, unfolds2),
+    refolds = Thm.merge_thms (refolds1, refolds2),
     consts = Library.merge (op =) (consts1, consts2)} : T;
 );
-
-val transfer_start = thm "transfer_start"
 
 fun unstar_typ (Type ("StarDef.star",[t])) = unstar_typ t
   | unstar_typ (Type (a, Ts)) = Type (a, map unstar_typ Ts)
@@ -48,7 +46,7 @@ fun unstar_term consts term =
           else (Const(a,unstar_typ T) $ unstar t)
       | unstar (f $ t) = unstar f $ unstar t
       | unstar (Const(a,T)) = Const(a,unstar_typ T)
-      | unstar (Abs(a,T,t)) = Abs(a,unstar_typ T,unstar t) 
+      | unstar (Abs(a,T,t)) = Abs(a,unstar_typ T,unstar t)
       | unstar t = t
   in
     unstar term
@@ -67,7 +65,7 @@ fun transfer_thm_of ctxt ths t =
       rewrite_goals_tac (ths' @ refolds' @ unfolds') THEN
       ALLGOALS ObjectLogic.full_atomize_tac THEN
       match_tac [transitive_thm] 1 THEN
-      resolve_tac [transfer_start] 1 THEN
+      resolve_tac [@{thm transfer_start}] 1 THEN
       REPEAT_ALL_NEW (resolve_tac intros) 1 THEN
       match_tac [reflexive_thm] 1
   in Goal.prove ctxt [] [] (Logic.mk_equals (t,u)) (K tac) end
@@ -92,14 +90,14 @@ fun map_refolds f = TransferData.map
   (fn {intros,unfolds,refolds,consts} =>
     {intros=intros, unfolds=unfolds, refolds=f refolds, consts=consts})
 in
-val intro_add = Thm.declaration_attribute (map_intros o Drule.add_rule);
-val intro_del = Thm.declaration_attribute (map_intros o Drule.del_rule);
+val intro_add = Thm.declaration_attribute (map_intros o Thm.add_thm);
+val intro_del = Thm.declaration_attribute (map_intros o Thm.del_thm);
 
-val unfold_add = Thm.declaration_attribute (map_unfolds o Drule.add_rule);
-val unfold_del = Thm.declaration_attribute (map_unfolds o Drule.del_rule);
+val unfold_add = Thm.declaration_attribute (map_unfolds o Thm.add_thm);
+val unfold_del = Thm.declaration_attribute (map_unfolds o Thm.del_thm);
 
-val refold_add = Thm.declaration_attribute (map_refolds o Drule.add_rule);
-val refold_del = Thm.declaration_attribute (map_refolds o Drule.del_rule);
+val refold_add = Thm.declaration_attribute (map_refolds o Thm.add_thm);
+val refold_del = Thm.declaration_attribute (map_refolds o Thm.del_thm);
 end
 
 fun add_const c = Context.theory_map (TransferData.map

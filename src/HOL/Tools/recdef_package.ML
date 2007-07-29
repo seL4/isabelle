@@ -105,9 +105,9 @@ structure GlobalRecdefData = TheoryDataFun
    ((tab1, {simps = simps1, congs = congs1, wfs = wfs1}),
     (tab2, {simps = simps2, congs = congs2, wfs = wfs2})) : T =
       (Symtab.merge (K true) (tab1, tab2),
-        mk_hints (Drule.merge_rules (simps1, simps2),
+        mk_hints (Thm.merge_thms (simps1, simps2),
           AList.merge (op =) Thm.eq_thm (congs1, congs2),
-          Drule.merge_rules (wfs1, wfs2)));
+          Thm.merge_thms (wfs1, wfs2)));
 );
 
 val get_recdef = Symtab.lookup o #1 o GlobalRecdefData.get;
@@ -138,12 +138,12 @@ fun map_hints f = Context.mapping (GlobalRecdefData.map (apsnd f)) (LocalRecdefD
 
 fun attrib f = Thm.declaration_attribute (map_hints o f);
 
-val simp_add = attrib (map_simps o Drule.add_rule);
-val simp_del = attrib (map_simps o Drule.del_rule);
+val simp_add = attrib (map_simps o Thm.add_thm);
+val simp_del = attrib (map_simps o Thm.del_thm);
 val cong_add = attrib (map_congs o add_cong);
 val cong_del = attrib (map_congs o del_cong);
-val wf_add = attrib (map_wfs o Drule.add_rule);
-val wf_del = attrib (map_wfs o Drule.del_rule);
+val wf_add = attrib (map_wfs o Thm.add_thm);
+val wf_del = attrib (map_wfs o Thm.del_thm);
 
 
 (* modifiers *)

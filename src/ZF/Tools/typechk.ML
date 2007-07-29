@@ -49,7 +49,7 @@ structure Data = GenericDataFun
   val extend = I;
 
   fun merge _ (TC {rules, net}, TC {rules = rules', net = net'}) =
-    TC {rules = Drule.merge_rules (rules, rules'),
+    TC {rules = Thm.merge_thms (rules, rules'),
         net = Net.merge Thm.eq_thm_prop (net, net')};
 );
 

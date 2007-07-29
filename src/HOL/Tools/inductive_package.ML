@@ -134,7 +134,7 @@ structure InductiveData = GenericDataFun
   val empty = (Symtab.empty, []);
   val extend = I;
   fun merge _ ((tab1, monos1), (tab2, monos2)) =
-    (Symtab.merge (K true) (tab1, tab2), Drule.merge_rules (monos1, monos2));
+    (Symtab.merge (K true) (tab1, tab2), Thm.merge_thms (monos1, monos2));
 );
 
 val get_inductives = InductiveData.get o Context.Proof;
@@ -187,8 +187,8 @@ fun mk_mono thm =
     | _ => [thm]
   end handle THM _ => error ("Bad monotonicity theorem:\n" ^ string_of_thm thm);
 
-val mono_add = Thm.declaration_attribute (map_monos o fold Drule.add_rule o mk_mono);
-val mono_del = Thm.declaration_attribute (map_monos o fold Drule.del_rule o mk_mono);
+val mono_add = Thm.declaration_attribute (map_monos o fold Thm.add_thm o mk_mono);
+val mono_del = Thm.declaration_attribute (map_monos o fold Thm.del_thm o mk_mono);
 
 
 

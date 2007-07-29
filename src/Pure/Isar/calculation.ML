@@ -35,7 +35,7 @@ structure CalculationData = GenericDataFun
   val extend = I;
 
   fun merge _ (((trans1, sym1), _), ((trans2, sym2), _)) =
-    ((NetRules.merge (trans1, trans2), Drule.merge_rules (sym1, sym2)), NONE);
+    ((NetRules.merge (trans1, trans2), Thm.merge_thms (sym1, sym2)), NONE);
 );
 
 fun print_rules ctxt =
@@ -71,10 +71,10 @@ val trans_add = Thm.declaration_attribute (CalculationData.map o apfst o apfst o
 val trans_del = Thm.declaration_attribute (CalculationData.map o apfst o apfst o NetRules.delete);
 
 val sym_add =
-  Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Drule.add_rule)
+  Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Thm.add_thm)
   #> ContextRules.elim_query NONE;
 val sym_del =
-  Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Drule.del_rule)
+  Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Thm.del_thm)
   #> ContextRules.rule_del;
 
 
