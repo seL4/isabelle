@@ -176,7 +176,7 @@ fun mk_Eq thm = (thm RS Eq_FalseI) handle THM _ => (thm RS Eq_TrueI);
 
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
-fun atomize thm = case #prop(rep_thm thm) of
+fun atomize thm = case Thm.prop_of thm of
     Const("Trueprop",_) $ (Const("op &",_) $ _ $ _) =>
     atomize(thm RS conjunct1) @ atomize(thm RS conjunct2)
   | _ => [thm];
@@ -186,7 +186,7 @@ fun neg_prop ((TP as Const("Trueprop",_)) $ (Const("Not",_) $ t)) = TP $ t
   | neg_prop t = raise TERM ("neg_prop", [t]);
 
 fun is_False thm =
-  let val _ $ t = #prop(rep_thm thm)
+  let val _ $ t = Thm.prop_of thm
   in t = Const("False",HOLogic.boolT) end;
 
 fun is_nat(t) = fastype_of1 t = HOLogic.natT;
@@ -206,14 +206,13 @@ fun mk_arith_tactic name tactic = ArithTactic {name = name, tactic = tactic, id 
 
 fun eq_arith_tactic (ArithTactic {id = id1, ...}, ArithTactic {id = id2, ...}) = (id1 = id2);
 
-structure ArithTheoryData = TheoryDataFun
+structure ArithContextData = GenericDataFun
 (
   type T = {splits: thm list,
             inj_consts: (string * typ) list,
             discrete: string list,
             tactics: arithtactic list};
   val empty = {splits = [], inj_consts = [], discrete = [], tactics = []};
-  val copy = I;
   val extend = I;
   fun merge _ ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, tactics= tactics1},
              {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, tactics= tactics2}) =
@@ -223,28 +222,40 @@ structure ArithTheoryData = TheoryDataFun
     tactics = Library.merge eq_arith_tactic (tactics1, tactics2)};
 );
 
+val get_arith_data = ArithContextData.get o Context.Proof;
+
 val arith_split_add = Thm.declaration_attribute (fn thm =>
-  Context.mapping (ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-    {splits= insert Thm.eq_thm_prop thm splits, inj_consts= inj_consts, discrete= discrete, tactics= tactics})) I);
+  ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
+    {splits = insert Thm.eq_thm_prop thm splits,
+     inj_consts = inj_consts, discrete = discrete, tactics = tactics}));
 
-fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-  {splits = splits, inj_consts = inj_consts, discrete = insert (op =) d discrete, tactics= tactics});
+fun arith_discrete d = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
+  {splits = splits, inj_consts = inj_consts,
+   discrete = insert (op =) d discrete, tactics = tactics});
 
-fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-  {splits = splits, inj_consts = insert (op =) c inj_consts, discrete = discrete, tactics= tactics});
+fun arith_inj_const c = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
+  {splits = splits, inj_consts = insert (op =) c inj_consts,
+   discrete = discrete, tactics= tactics});
 
-fun arith_tactic_add tac = ArithTheoryData.map (fn {splits,inj_consts,discrete,tactics} =>
-  {splits= splits, inj_consts= inj_consts, discrete= discrete, tactics= insert eq_arith_tactic tac tactics});
+fun arith_tactic_add tac = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
+  {splits = splits, inj_consts = inj_consts, discrete = discrete,
+   tactics = insert eq_arith_tactic tac tactics});
 
 
 signature HOL_LIN_ARITH_DATA =
 sig
   include LIN_ARITH_DATA
-  val fast_arith_split_limit : int ref
+  val fast_arith_split_limit: int ConfigOption.T
+  val setup_options: theory -> theory
 end;
 
 structure LA_Data_Ref: HOL_LIN_ARITH_DATA =
 struct
+
+val (fast_arith_split_limit, setup1) = ConfigOption.int "fast_arith_split_limit" 9;
+val (fast_arith_neq_limit, setup2) = ConfigOption.int "fast_arith_neq_limit" 9;
+val setup_options = setup1 #> setup2;
+
 
 (* internal representation of linear (in-)equations *)
 type decompT = ((term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool);
@@ -387,10 +398,10 @@ fun allows_lin_arith sg (discrete : string list) (U as Type (D, [])) : bool * bo
   | allows_lin_arith sg discrete U =
   (of_lin_arith_sort sg U, false);
 
-fun decomp_typecheck (sg, discrete, inj_consts) (T : typ, xxx) : decompT option =
+fun decomp_typecheck (thy, discrete, inj_consts) (T : typ, xxx) : decompT option =
   case T of
     Type ("fun", [U, _]) =>
-      (case allows_lin_arith sg discrete U of
+      (case allows_lin_arith thy discrete U of
         (true, d) =>
           (case decomp0 inj_consts xxx of
             NONE                   => NONE
@@ -411,12 +422,11 @@ fun decomp_negation data
   | decomp_negation data _ =
       NONE;
 
-fun decomp sg : term -> decompT option =
-let
-  val {discrete, inj_consts, ...} = ArithTheoryData.get sg
-in
-  decomp_negation (sg, discrete, inj_consts)
-end;
+fun decomp ctxt : term -> decompT option =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val {discrete, inj_consts, ...} = get_arith_data ctxt
+  in decomp_negation (thy, discrete, inj_consts) end;
 
 fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
   | domain_is_nat (_ $ (Const ("Not", _) $ (Const (_, T) $ _ $ _))) = nT T
@@ -425,22 +435,10 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
 fun number_of (n, T) = HOLogic.mk_number T n;
 
 (*---------------------------------------------------------------------------*)
-(* code that performs certain goal transformations for linear arithmetic     *)
-(*---------------------------------------------------------------------------*)
-
-(* A "do nothing" variant of pre_decomp and pre_tac:
-
-fun pre_decomp sg Ts termitems = [termitems];
-fun pre_tac i = all_tac;
-*)
-
-(*---------------------------------------------------------------------------*)
 (* the following code performs splitting of certain constants (e.g. min,     *)
 (* max) in a linear arithmetic problem; similar to what split_tac later does *)
 (* to the proof state                                                        *)
 (*---------------------------------------------------------------------------*)
-
-val fast_arith_split_limit = ref 9;
 
 (* checks if splitting with 'thm' is implemented                             *)
 
@@ -493,24 +491,24 @@ fun subst_term ([] : (term * term) list) (t : term) = t
 (*        former can have a faster implementation as it does not need to be  *)
 (*        proof-producing).                                                  *)
 
-fun split_once_items (sg : theory) (Ts : typ list, terms : term list) :
+fun split_once_items ctxt (Ts : typ list, terms : term list) :
                      (typ list * term list) list option =
 let
+  val thy = ProofContext.theory_of ctxt
   (* takes a list  [t1, ..., tn]  to the term                                *)
   (*   tn' --> ... --> t1' --> False  ,                                      *)
   (* where ti' = HOLogic.dest_Trueprop ti                                    *)
-  (* term list -> term *)
   fun REPEAT_DETERM_etac_rev_mp terms' =
     fold (curry HOLogic.mk_imp) (map HOLogic.dest_Trueprop terms') HOLogic.false_const
-  val split_thms = filter is_split_thm (#splits (ArithTheoryData.get sg))
+  val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
   val cmap       = Splitter.cmap_of_split_thms split_thms
-  val splits     = Splitter.split_posns cmap sg Ts (REPEAT_DETERM_etac_rev_mp terms)
+  val splits     = Splitter.split_posns cmap thy Ts (REPEAT_DETERM_etac_rev_mp terms)
+  val split_limit = ConfigOption.get ctxt fast_arith_split_limit
 in
-  if length splits > !fast_arith_split_limit then (
-    tracing ("fast_arith_split_limit exceeded (current value is " ^
-              string_of_int (!fast_arith_split_limit) ^ ")");
-    NONE
-  ) else (
+  if length splits > split_limit then
+   (tracing ("fast_arith_split_limit exceeded (current value is " ^
+      string_of_int split_limit ^ ")"); NONE)
+  else (
   case splits of [] =>
     (* split_tac would fail: no possible split *)
     NONE
@@ -784,8 +782,8 @@ in
     (* implemented above, or 'is_split_thm' should be modified to filter it  *)
     (* out                                                                   *)
     | (t, ts) => (
-      warning ("Lin. Arith.: split rule for " ^ Sign.string_of_term sg t ^
-               " (with " ^ Int.toString (length ts) ^
+      warning ("Lin. Arith.: split rule for " ^ ProofContext.string_of_term ctxt t ^
+               " (with " ^ string_of_int (length ts) ^
                " argument(s)) not implemented; proof reconstruction is likely to fail");
       NONE
     ))
@@ -813,17 +811,17 @@ fun negated_term_occurs_positively (terms : term list) : bool =
       | _                                   => false)
     terms;
 
-fun pre_decomp sg (Ts : typ list, terms : term list) : (typ list * term list) list =
+fun pre_decomp ctxt (Ts : typ list, terms : term list) : (typ list * term list) list =
 let
   (* repeatedly split (including newly emerging subgoals) until no further   *)
   (* splitting is possible                                                   *)
   fun split_loop ([] : (typ list * term list) list) = ([] : (typ list * term list) list)
     | split_loop (subgoal::subgoals)                = (
-        case split_once_items sg subgoal of
+        case split_once_items ctxt subgoal of
           SOME new_subgoals => split_loop (new_subgoals @ subgoals)
         | NONE              => subgoal :: split_loop subgoals
       )
-  fun is_relevant t  = isSome (decomp sg t)
+  fun is_relevant t  = isSome (decomp ctxt t)
   (* filter_prems_tac is_relevant: *)
   val relevant_terms = filter_prems_tac_items is_relevant terms
   (* split_tac, NNF normalization: *)
@@ -855,30 +853,29 @@ local
     full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset) i st
 in
 
-fun split_once_tac (split_thms : thm list) (i : int) : tactic =
-let
-  fun cond_split_tac i st =
-    let
-      val subgoal = Logic.nth_prem (i, Thm.prop_of st)
-      val Ts      = rev (map snd (Logic.strip_params subgoal))
-      val concl   = HOLogic.dest_Trueprop (Logic.strip_assums_concl subgoal)
-      val cmap    = Splitter.cmap_of_split_thms split_thms
-      val splits  = Splitter.split_posns cmap (theory_of_thm st) Ts concl
-    in
-      if length splits > !fast_arith_split_limit then
-        no_tac st
-      else
-        split_tac split_thms i st
-    end
-in
-  EVERY' [
-    REPEAT_DETERM o etac rev_mp,
-    cond_split_tac,
-    rtac ccontr,
-    prem_nnf_tac,
-    TRY o REPEAT_ALL_NEW (DETERM o (eresolve_tac [conjE, exE] ORELSE' etac disjE))
-  ] i
-end
+fun split_once_tac ctxt split_thms =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val cond_split_tac = SUBGOAL (fn (subgoal, i) =>
+      let
+        val Ts = rev (map snd (Logic.strip_params subgoal))
+        val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl subgoal)
+        val cmap = Splitter.cmap_of_split_thms split_thms
+        val splits = Splitter.split_posns cmap thy Ts concl
+        val split_limit = ConfigOption.get ctxt fast_arith_split_limit
+      in
+        if length splits > split_limit then no_tac
+        else split_tac split_thms i
+      end)
+  in
+    EVERY' [
+      REPEAT_DETERM o etac rev_mp,
+      cond_split_tac,
+      rtac ccontr,
+      prem_nnf_tac,
+      TRY o REPEAT_ALL_NEW (DETERM o (eresolve_tac [conjE, exE] ORELSE' etac disjE))
+    ]
+  end;
 
 end;  (* local *)
 
@@ -887,22 +884,21 @@ end;  (* local *)
 (* subgoals and finally attempt to solve them by finding an immediate        *)
 (* contradiction (i.e. a term and its negation) in their premises.           *)
 
-fun pre_tac i st =
+fun pre_tac ctxt i =
 let
-  val sg            = theory_of_thm st
-  val split_thms    = filter is_split_thm (#splits (ArithTheoryData.get sg))
-  fun is_relevant t = isSome (decomp sg t)
+  val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
+  fun is_relevant t = isSome (decomp ctxt t)
 in
   DETERM (
     TRY (filter_prems_tac is_relevant i)
       THEN (
-        (TRY o REPEAT_ALL_NEW (split_once_tac split_thms))
+        (TRY o REPEAT_ALL_NEW (split_once_tac ctxt split_thms))
           THEN_ALL_NEW
             (CONVERSION Drule.beta_eta_conversion
               THEN'
             (TRY o (etac notE THEN' eq_assume_tac)))
       ) i
-  ) st
+  )
 end;
 
 end;  (* LA_Data_Ref *)
@@ -911,16 +907,14 @@ end;  (* LA_Data_Ref *)
 structure Fast_Arith =
   Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=LA_Data_Ref);
 
-val fast_arith_tac         = Fast_Arith.lin_arith_tac false;
+fun fast_arith_tac ctxt    = Fast_Arith.lin_arith_tac ctxt false;
 val fast_ex_arith_tac      = Fast_Arith.lin_arith_tac;
 val trace_arith            = Fast_Arith.trace;
-val fast_arith_neq_limit   = Fast_Arith.fast_arith_neq_limit;
-val fast_arith_split_limit = LA_Data_Ref.fast_arith_split_limit;
 
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics. *)
 
-val init_lin_arith_data =
+val init_arith_data =
  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
    {add_mono_thms = add_mono_thms @
     @{thms add_mono_thms_ordered_semiring} @ @{thms add_mono_thms_ordered_field},
@@ -929,7 +923,9 @@ val init_lin_arith_data =
     lessD = lessD @ [thm "Suc_leI"],
     neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_ordered_idom}],
     simpset = HOL_basic_ss
-      addsimps [@{thm "monoid_add_class.zero_plus.add_0_left"}, @{thm "monoid_add_class.zero_plus.add_0_right"},
+      addsimps
+       [@{thm "monoid_add_class.zero_plus.add_0_left"},
+        @{thm "monoid_add_class.zero_plus.add_0_right"},
         @{thm "Zero_not_Suc"}, @{thm "Suc_not_Zero"}, @{thm "le_0_eq"}, @{thm "One_nat_def"},
         @{thm "order_less_irrefl"}, @{thm "zero_neq_one"}, @{thm "zero_less_one"},
         @{thm "zero_le_one"}, @{thm "zero_neq_one"} RS not_sym, @{thm "not_one_le_zero"},
@@ -941,7 +937,7 @@ val init_lin_arith_data =
 
 val fast_nat_arith_simproc =
   Simplifier.simproc (the_context ()) "fast_nat_arith"
-    ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] Fast_Arith.lin_arith_prover;
+    ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] (K Fast_Arith.lin_arith_simproc);
 
 (* Because of fast_nat_arith_simproc, the arithmetic solver is really only
 useful to detect inconsistencies among the premises for subgoals which are
@@ -954,7 +950,7 @@ solver all the time rather than add the additional check. *)
 
 local
 
-fun raw_arith_tac ex i st =
+fun raw_arith_tac ctxt ex =
   (* FIXME: K true should be replaced by a sensible test (perhaps "isSome o
      decomp sg"? -- but note that the test is applied to terms already before
      they are split/normalized) to speed things up in case there are lots of
@@ -969,32 +965,30 @@ fun raw_arith_tac ex i st =
     (* fast_arith_split_limit may trigger.                                   *)
     (* Therefore splitting outside of fast_arith_tac may allow us to prove   *)
     (* some goals that fast_arith_tac alone would fail on.                   *)
-    (REPEAT_DETERM o split_tac (#splits (ArithTheoryData.get (Thm.theory_of_thm st))))
-    (fast_ex_arith_tac ex)
-    i st;
+    (REPEAT_DETERM o split_tac (#splits (get_arith_data ctxt)))
+    (fast_ex_arith_tac ctxt ex);
 
-fun arith_theory_tac i st =
-let
-  val tactics = #tactics (ArithTheoryData.get (Thm.theory_of_thm st))
-in
-  FIRST' (map (fn ArithTactic {tactic, ...} => tactic) tactics) i st
-end;
+fun more_arith_tacs ctxt =
+  let val tactics = #tactics (get_arith_data ctxt)
+  in FIRST' (map (fn ArithTactic {tactic, ...} => tactic) tactics) end;
 
 in
 
-  val simple_arith_tac = FIRST' [fast_arith_tac,
-    ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac true];
+fun simple_arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
+  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt true];
 
-  val arith_tac = FIRST' [fast_arith_tac,
-    ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac true,
-    arith_theory_tac];
+fun arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
+  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt true,
+  more_arith_tacs ctxt];
 
-  val silent_arith_tac = FIRST' [fast_arith_tac,
-    ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac false,
-    arith_theory_tac];
+fun silent_arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
+  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt false,
+  more_arith_tacs ctxt];
 
-  fun arith_method prems =
-    Method.METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));
+fun arith_method src =
+  Method.syntax Args.bang_facts src
+  #> (fn (prems, ctxt) => Method.METHOD (fn facts =>
+      HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac ctxt)));
 
 end;
 
@@ -1045,12 +1039,14 @@ end;
 (* theory setup *)
 
 val arith_setup =
-  init_lin_arith_data #>
-  (fn thy => (Simplifier.change_simpset_of thy (fn ss => ss
+  init_arith_data #>
+  Simplifier.map_ss (fn ss => ss
     addsimprocs (nat_cancel_sums @ [fast_nat_arith_simproc])
-    addSolver (mk_solver' "lin. arith." Fast_Arith.cut_lin_arith_tac)); thy)) #>
-  Method.add_methods
-    [("arith", (arith_method o fst) oo Method.syntax Args.bang_facts,
-      "decide linear arithmethic")] #>
-  Attrib.add_attributes [("arith_split", Attrib.no_args arith_split_add,
-    "declaration of split rules for arithmetic procedure")];
+    addSolver (mk_solver' "lin. arith." Fast_Arith.cut_lin_arith_tac)) #>
+  Context.mapping
+   (LA_Data_Ref.setup_options #>
+    Method.add_methods
+      [("arith", arith_method,
+        "decide linear arithmethic")] #>
+    Attrib.add_attributes [("arith_split", Attrib.no_args arith_split_add,
+      "declaration of split rules for arithmetic procedure")]) I;
