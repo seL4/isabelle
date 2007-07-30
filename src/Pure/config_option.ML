@@ -24,6 +24,9 @@ sig
   val bool: string -> bool -> bool T * (theory -> theory)
   val int: string -> int -> int T * (theory -> theory)
   val string: string -> string -> string T * (theory -> theory)
+  val global_bool: string -> bool -> bool T * (theory -> theory)
+  val global_int: string -> int -> int T * (theory -> theory)
+  val global_string: string -> string -> string T * (theory -> theory)
 end;
 
 structure ConfigOption: CONFIG_OPTION =
@@ -119,15 +122,24 @@ fun the_option thy xname =
     | NONE => error ("Unknown configuration option " ^ quote xname))
   end;
 
-fun declare make dest name default =
+fun declare global make dest name default =
   let
     val id = serial ();
 
     val default_value = make default;
     fun get_value context = the_default default_value (Inttab.lookup (Value.get context) id);
-    fun map_value f = Value.map (Inttab.map_default (id, default_value) (type_check f));
-    val config_value = ConfigOption {get_value = get_value, map_value = map_value};
+    fun modify_value f = Value.map (Inttab.map_default (id, default_value) (type_check f));
 
+    fun map_value f (context as Context.Proof _) =
+          let val context' = modify_value f context in
+            if global andalso
+              get_value (Context.Theory (Context.theory_of context')) <> get_value context'
+            then (warning ("Ignoring local change of global option " ^ quote name); context)
+            else context'
+          end
+      | map_value f context = modify_value f context;
+
+    val config_value = ConfigOption {get_value = get_value, map_value = map_value};
     val config =
       ConfigOption {get_value = dest o get_value, map_value = fn f => map_value (make o f o dest)};
     fun setup thy = thy |> Declaration.map (fn tab =>
@@ -135,9 +147,13 @@ fun declare make dest name default =
         handle Symtab.DUP dup => err_dup_config dup);
   in (config, setup) end;
 
-val bool = declare Bool (fn Bool b => b);
-val int = declare Int (fn Int i => i);
-val string = declare String (fn String s => s);
+val bool   = declare false Bool (fn Bool b => b);
+val int    = declare false Int (fn Int i => i);
+val string = declare false String (fn String s => s);
+
+val global_bool   = declare true Bool (fn Bool b => b);
+val global_int    = declare true Int (fn Int i => i);
+val global_string = declare true String (fn String s => s);
 
 
 (*final declarations of this structure!*)
