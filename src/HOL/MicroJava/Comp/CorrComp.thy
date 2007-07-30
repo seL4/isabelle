@@ -476,9 +476,7 @@ done
 (* to avoid automatic pair splits *)
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-ML_setup {*
-change_simpset (fn ss => ss delloop "split_all_tac");
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
 
 lemma distinct_method: "\<lbrakk> wf_java_prog G; is_class G C; 
   method (G, C) S = Some (D, rT, pns, lvars, blk, res) \<rbrakk> \<Longrightarrow> 
@@ -1265,9 +1263,7 @@ done
 
 (* reinstall pair splits *)
 declare split_paired_All [simp] split_paired_Ex [simp]
-ML_setup {*
-change_simpset (fn ss => ss addloop ("split_all_tac", split_all_tac));
-*}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 
 declare wf_prog_ws_prog [simp del]
 

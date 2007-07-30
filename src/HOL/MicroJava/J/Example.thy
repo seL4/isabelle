@@ -127,7 +127,8 @@ abbreviation "s1 == Norm    (empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
 abbreviation "s2 == Norm    (empty(a\<mapsto>obj1),empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
 abbreviation "s3 == (Some NP, empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
 
-ML {* bind_thm ("map_of_Cons", hd (tl (thms "map_of.simps"))) *}
+lemmas map_of_Cons = map_of.simps(2)
+
 lemma map_of_Cons1 [simp]: "map_of ((aa,bb)#ps) aa = Some bb"
 apply (simp (no_asm))
 done
