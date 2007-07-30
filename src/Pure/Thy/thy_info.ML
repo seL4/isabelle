@@ -26,23 +26,23 @@ sig
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
   val the_theory: string -> theory -> theory
-  val get_parents: string -> string list
   val loaded_files: string -> Path.T list
+  val get_parents: string -> string list
+  val pretty_theory: theory -> Pretty.T
   val touch_child_thys: string -> unit
   val touch_all_thys: unit -> unit
   val load_file: bool -> Path.T -> unit
   val use: string -> unit
   val time_use: string -> unit
-  val pretend_use_thy_only: string -> unit
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val time_use_thy: string -> unit
   val update_thy: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> theory
-  val finish: unit -> unit
+  val register_thy: string -> unit
   val register_theory: theory -> unit
-  val pretty_theory: theory -> Pretty.T
+  val finish: unit -> unit
 end;
 
 structure ThyInfo: THY_INFO =
@@ -217,6 +217,24 @@ val _ = ML_Context.value_antiq "theory"
 
 (** thy operations **)
 
+(* check state *)
+
+fun check_unfinished fail name =
+  if known_thy name andalso is_finished name then
+    fail (loader_msg "cannot update finished theory" [name])
+  else ();
+
+fun check_files name =
+  let
+    val files = (case get_deps name of SOME {files, ...} => files | NONE => []);
+    val missing_files = map_filter (fn (path, NONE) => SOME (Path.implode path) | _ => NONE) files;
+    val _ =
+      if null missing_files then ()
+      else warning (loader_msg "unresolved dependencies of theory" [name] ^
+        " on file(s): " ^ commas_quote missing_files);
+  in files end;
+
+
 (* maintain 'outdated' flag *)
 
 local
@@ -247,14 +265,6 @@ fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
 fun touch_all_thys () = List.app outdate_thy (get_names ());
 
 end;
-
-
-(* check 'finished' state *)
-
-fun check_unfinished fail name =
-  if known_thy name andalso is_finished name then
-    fail (loader_msg "cannot update finished theory" [name])
-  else ();
 
 
 (* load_file *)
@@ -300,29 +310,17 @@ end;
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy really ml time initiators dir name =
+fun load_thy ml time initiators dir name =
   let
-    val _ =
-      if really then priority ("Loading theory " ^ quote name ^ required_by " " initiators)
-      else priority ("Registering theory " ^ quote name);
-
-    val (master_path, text, files) =
+    val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val (pos, text, files) =
       (case get_deps name of
-        SOME {master = SOME ((master_path, _), _), text = text as _ :: _, files, ...} =>
-          (master_path, text, files)
+        SOME {master = SOME ((master_path, _), _), text, files, ...} =>
+          (Position.path master_path, text, files)
       | _ => error (loader_msg "corrupted dependency information" [name]));
-
     val _ = touch_thy name;
-    val _ =
-      if really then
-        ThyLoad.load_thy dir name (Position.path master_path) text ml (time orelse ! Output.timing)
-      else ();
-
-    val missing_files = map_filter (fn (path, NONE) => SOME (Path.implode path) | _ => NONE) files;
-    val _ =
-      if null missing_files then ()
-      else warning (loader_msg "unresolved dependencies of theory" [name] ^
-        " on file(s): " ^ commas_quote missing_files);
+    val _ = ThyLoad.load_thy dir name pos text ml (time orelse ! Output.timing);
+    val _ = check_files name;
   in
     CRITICAL (fn () =>
      (change_deps name
@@ -368,10 +366,10 @@ fun check_deps ml strict dir name =
 
 in
 
-fun require_thys really ml time strict keep_strict initiators dir strs tasks =
-  fold_map (require_thy really ml time strict keep_strict initiators dir) strs tasks
+fun require_thys ml time strict keep_strict initiators dir strs tasks =
+  fold_map (require_thy ml time strict keep_strict initiators dir) strs tasks
   |>> forall I
-and require_thy really ml time strict keep_strict initiators dir str tasks =
+and require_thy ml time strict keep_strict initiators dir str tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
@@ -389,16 +387,16 @@ and require_thy really ml time strict keep_strict initiators dir str tasks =
           val parent_names = map base_name parents;
 
           val (parents_current, (tasks_graph', tasks_len')) =
-            require_thys true true time (strict andalso keep_strict) keep_strict
+            require_thys true time (strict andalso keep_strict) keep_strict
               (name :: initiators) (Path.append dir (master_dir' deps)) parents tasks;
 
           val all_current = current andalso parents_current;
-          val thy = if all_current orelse not really then SOME (get_theory name) else NONE;
+          val thy = if all_current then SOME (get_theory name) else NONE;
           val _ = change_thys (new_deps name parent_names (deps, thy));
 
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
            (if all_current then Task.Finished
-            else Task.Task (fn () => load_thy really ml time initiators dir' name));
+            else Task.Task (fn () => load_thy ml time initiators dir' name));
           val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
         in (all_current, (tasks_graph'', tasks_len'')) end)
   end;
@@ -459,13 +457,12 @@ fun gen_use_thy req str =
 
 in
 
-val quiet_update_thys    = gen_use_thy' (require_thys true true false true true);
-val pretend_use_thy_only = gen_use_thy' (require_thy false false false true false) Path.current;
-val use_thys             = gen_use_thy' (require_thys true true false true false) Path.current;
+val quiet_update_thys    = gen_use_thy' (require_thys true false true true);
+val use_thys             = gen_use_thy' (require_thys true false true false) Path.current;
 
-val use_thy              = gen_use_thy (require_thy true true false true false);
-val time_use_thy         = gen_use_thy (require_thy true true true true false);
-val update_thy           = gen_use_thy (require_thy true true false true true);
+val use_thy              = gen_use_thy (require_thy true false true false);
+val time_use_thy         = gen_use_thy (require_thy true true true false);
+val update_thy           = gen_use_thy (require_thy true false true true);
 
 end;
 
@@ -524,12 +521,21 @@ fun end_theory theory =
   in theory' end;
 
 
-(* finish all theories *)
-
-fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
-
-
 (* register existing theories *)
+
+fun register_thy name =
+  let
+    val _ = priority ("Registering theory " ^ quote name);
+    val _ = get_theory name;
+    val _ = touch_thy name;
+    val files = check_files name;
+    val master = #master (ThyLoad.deps_thy Path.current name false);
+  in
+    CRITICAL (fn () =>
+     (change_deps name
+        (Option.map (fn {parents, ...} => make_deps false (SOME master) [] parents files));
+      perform Update name))
+  end;
 
 fun register_theory theory =
   let
@@ -557,6 +563,12 @@ fun register_theory theory =
   end;
 
 val _ = register_theory ProtoPure.thy;
+
+
+(* finish all theories *)
+
+fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
+
 
 (*final declarations of this structure*)
 val theory = get_theory;
