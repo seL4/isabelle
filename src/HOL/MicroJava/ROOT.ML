@@ -1,20 +1,8 @@
-goals_limit := 1;
-
-add_path "J";
-add_path "JVM";
-add_path "BV";
-add_path "Comp";
+(* $Id$ *)
 
 no_document use_thy "While_Combinator";
 
-use_thy "JTypeSafe";
-use_thy "Example";
-use_thy "JListExample";
-use_thy "JVMListExample";
-use_thy "JVMDefensive";
-use_thy "LBVJVM";
-use_thy "BVNoTypeError";
-use_thy "BVExample";
-
-use_thy "CorrComp";
-use_thy "CorrCompTp";
+use_thys ["J/JTypeSafe", "J/Example", "J/JListExample",
+  "JVM/JVMListExample", "JVM/JVMDefensive", "BV/LBVJVM",
+  "BV/BVNoTypeError", "BV/BVExample", "Comp/CorrComp",
+  "Comp/CorrCompTp"];
