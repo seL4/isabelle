@@ -280,7 +280,7 @@ fun run_thy dir name pos text time =
 
 fun load_thy dir name pos text ml time =
  (run_thy dir name pos text time;
-  ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name)));
+  CRITICAL (fn () => ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name))));
   if ml then try_ml_file dir name time else ());
 
 in
@@ -296,7 +296,7 @@ end;
 (* main loop *)
 
 fun gen_loop term =
- (ML_Context.set_context NONE;
+ (CRITICAL (fn () => ML_Context.set_context NONE);
   Toplevel.loop (isar term));
 
 fun gen_main term =
