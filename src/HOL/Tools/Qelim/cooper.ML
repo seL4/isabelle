@@ -173,7 +173,7 @@ fun decomp_minf x dvd inS [bseteq,bsetneq,bsetlt, bsetle, bsetgt,
 
     (* Canonical linear form for terms, formulae etc.. *)
 fun provelin ctxt t = Goal.prove ctxt [] [] t 
-                          (fn _ => EVERY [simp_tac lin_ss 1, TRY (simple_arith_tac 1)]);
+  (fn _ => EVERY [simp_tac lin_ss 1, TRY (simple_arith_tac ctxt 1)]);
 fun linear_cmul 0 tm =  zero 
   | linear_cmul n tm = 
     case tm of  

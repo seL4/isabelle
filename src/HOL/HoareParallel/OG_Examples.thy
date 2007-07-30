@@ -443,7 +443,7 @@ apply (simp_all (asm_lr) del:length_0_conv add: nth_list_update mod_less_divisor
 --{* 32 subgoals left *}
 apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 
-apply(tactic {* TRYALL simple_arith_tac *})
+apply(tactic {* TRYALL (simple_arith_tac @{context}) *})
 --{* 9 subgoals left *}
 apply (force simp add:less_Suc_eq)
 apply(drule sym)

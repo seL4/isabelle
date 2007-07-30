@@ -115,7 +115,7 @@ lemmas min_max_special[simp] =
  min_def[of "number_of u" "1::int", standard, simp]
 
 use "int_arith1.ML"
-setup int_arith_setup
+declaration {* K int_arith_setup *}
 
 
 subsection{*Lemmas About Small Numerals*}

@@ -17,7 +17,7 @@ begin
 
 subsection {* Simprocs for the Naturals *}
 
-setup nat_simprocs_setup
+declaration {* K nat_simprocs_setup *}
 
 subsubsection{*For simplifying @{term "Suc m - K"} and  @{term "K - Suc m"}*}
 

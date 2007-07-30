@@ -469,7 +469,7 @@ instance rat :: number_ring
   by default (simp add: rat_number_of_def) 
 
 use "rat_arith.ML"
-setup rat_arith_setup
+declaration {* K rat_arith_setup *}
 
 
 subsection {* Embedding from Rationals to other Fields *}

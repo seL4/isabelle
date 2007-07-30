@@ -30,7 +30,7 @@ val fast_hypreal_arith_simproc =
     Simplifier.simproc (the_context ())
       "fast_hypreal_arith" 
       ["(m::hypreal) < n", "(m::hypreal) <= n", "(m::hypreal) = n"]
-    Fast_Arith.lin_arith_prover;
+    (K Fast_Arith.lin_arith_simproc);
 
 val hypreal_arith_setup =
   Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
@@ -41,6 +41,6 @@ val hypreal_arith_setup =
     neqE = neqE,
     simpset = simpset addsimps simps}) #>
   arith_inj_const ("StarDef.star_of", HOLogic.realT --> hyprealT) #>
-  (fn thy => (change_simpset_of thy (fn ss => ss addsimprocs [fast_hypreal_arith_simproc]); thy));
+  Simplifier.map_ss (fn ss => ss addsimprocs [fast_hypreal_arith_simproc]);
 
 end;

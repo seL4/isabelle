@@ -1092,7 +1092,7 @@ lemma subst_equals:
   using 2 1 by (rule trans)
 
 use "arith_data.ML"
-setup arith_setup
+declaration {* K arith_setup *}
 
 text{*The following proofs may rely on the arithmetic proof procedures.*}
 

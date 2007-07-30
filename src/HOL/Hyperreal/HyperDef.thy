@@ -340,8 +340,7 @@ Addsimps [symmetric hypreal_diff_def]
 *)
 
 use "hypreal_arith.ML"
-
-setup hypreal_arith_setup
+declaration {* K hypreal_arith_setup *}
 
 
 subsection {* Exponentials on the Hyperreals *}

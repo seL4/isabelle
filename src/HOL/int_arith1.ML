@@ -610,6 +610,6 @@ val fast_int_arith_simproc =
   "fast_int_arith" 
      ["(m::'a::{ordered_idom,number_ring}) < n",
       "(m::'a::{ordered_idom,number_ring}) <= n",
-      "(m::'a::{ordered_idom,number_ring}) = n"] Fast_Arith.lin_arith_prover;
+      "(m::'a::{ordered_idom,number_ring}) = n"] (K Fast_Arith.lin_arith_simproc);
 
 Addsimprocs [fast_int_arith_simproc];

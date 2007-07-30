@@ -439,8 +439,8 @@ oracle linzqe_oracle ("term") = Coopereif.cooper_oracle
 
 use "Tools/Qelim/presburger.ML"
 
-setup {* 
-  arith_tactic_add 
+declaration {* fn _ =>
+  arith_tactic_add
     (mk_arith_tactic "presburger" (fn i => fn st =>
        (warning "Trying Presburger arithmetic ...";   
     Presburger.cooper_tac true [] [] ((ProofContext.init o theory_of_thm) st) i st)))

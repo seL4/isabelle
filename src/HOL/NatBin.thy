@@ -666,7 +666,7 @@ val nat_bin_arith_setup =
                                   neg_number_of_Min,neg_number_of_BIT]})
 *}
 
-setup nat_bin_arith_setup
+declaration {* K nat_bin_arith_setup *}
 
 (* Enable arith to deal with div/mod k where k is a numeral: *)
 declare split_div[of _ _ "number_of k", standard, arith_split]

@@ -832,8 +832,7 @@ by (simp add: real_of_int_real_of_nat [symmetric] int_nat_number_of)
  
 
 use "real_arith.ML"
-
-setup real_arith_setup
+declaration {* K real_arith_setup *}
 
 
 subsection{* Simprules combining x+y and 0: ARE THEY NEEDED?*}
