@@ -21,9 +21,9 @@ nominal_datatype ty =
 
 nominal_datatype trm = 
     Unit
-  | Var "name"
+  | Var "name" ("Var _" [100] 100)
   | Lam "\<guillemotleft>name\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
-  | App "trm" "trm"
+  | App "trm" "trm" ("App _ _" [110,110] 100)
   | Const "nat"
 
 types Ctxt  = "(name\<times>ty) list"
@@ -41,6 +41,8 @@ lemma fresh_ty[simp]:
   and   T::"ty"
   shows "x\<sharp>T"
   by (simp add: fresh_def supp_def)
+
+
 
 lemma ty_cases:
   fixes T::ty
@@ -89,11 +91,11 @@ by (induct rule: lookup.induct)
    (auto simp add: fresh_list_cons fresh_prod fresh_atm)
 
 consts
-  psubst :: "Subst \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [60,100] 100)
+  psubst :: "Subst \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [100,100] 130)
  
 nominal_primrec
   "\<theta><(Var x)> = (lookup \<theta> x)"
-  "\<theta><(App t\<^isub>1 t\<^isub>2)> = App (\<theta><t\<^isub>1>) (\<theta><t\<^isub>2>)"
+  "\<theta><(App t\<^isub>1 t\<^isub>2)> = App \<theta><t\<^isub>1> \<theta><t\<^isub>2>"
   "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].t)> = Lam [x].(\<theta><t>)"
   "\<theta><(Const n)> = Const n"
   "\<theta><(Unit)> = Unit"
@@ -164,19 +166,19 @@ by (auto simp add: fresh_subst' abs_fresh)
 
 lemma fresh_psubst_simp:
   assumes "x\<sharp>t"
-  shows "(x,u)#\<theta><t> = \<theta><t>" 
+  shows "((x,u)#\<theta>)<t> = \<theta><t>" 
 using assms
 proof (nominal_induct t avoiding: x u \<theta> rule: trm.induct)
   case (Lam y t x u)
-  have fs: "y\<sharp>\<theta>" "y\<sharp>x" "y\<sharp>u" by fact+
+  have fs: "y\<sharp>\<theta>" "y\<sharp>x" "y\<sharp>u" by fact
   moreover have "x\<sharp> Lam [y].t" by fact 
   ultimately have "x\<sharp>t" by (simp add: abs_fresh fresh_atm)
   moreover have ih:"\<And>n T. n\<sharp>t \<Longrightarrow> ((n,T)#\<theta>)<t> = \<theta><t>" by fact
-  ultimately have "(x,u)#\<theta><t> = \<theta><t>" by auto
-  moreover have "(x,u)#\<theta><Lam [y].t> = Lam [y]. ((x,u)#\<theta><t>)" using fs 
+  ultimately have "((x,u)#\<theta>)<t> = \<theta><t>" by auto
+  moreover have "((x,u)#\<theta>)<Lam [y].t> = Lam [y].(((x,u)#\<theta>)<t>)" using fs 
     by (simp add: fresh_list_cons fresh_prod)
   moreover have " \<theta><Lam [y].t> = Lam [y]. (\<theta><t>)" using fs by simp
-  ultimately show "(x,u)#\<theta><Lam [y].t> = \<theta><Lam [y].t>" by auto
+  ultimately show "((x,u)#\<theta>)<Lam [y].t> = \<theta><Lam [y].t>" by auto
 qed (auto simp add: fresh_atm abs_fresh)
 
 lemma forget: 
@@ -212,7 +214,7 @@ by (nominal_induct t rule: trm.induct)
 
 lemma psubst_subst_psubst:
   assumes h:"c\<sharp>\<theta>"
-  shows "\<theta><t>[c::=s] = (c,s)#\<theta><t>"
+  shows "\<theta><t>[c::=s] = ((c,s)#\<theta>)<t>"
   using h
 by (nominal_induct t avoiding: \<theta> c s rule: trm.induct)
    (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh' fresh_psubst)
@@ -244,7 +246,7 @@ proof (nominal_induct t avoiding: x u \<theta> rule: trm.induct)
   ultimately show ?case by auto  
 next
   case (Lam n t x u \<theta>)
-  have fs:"n\<sharp>x" "n\<sharp>u" "n\<sharp>\<theta>" "x\<sharp>\<theta>" by fact+
+  have fs:"n\<sharp>x" "n\<sharp>u" "n\<sharp>\<theta>" "x\<sharp>\<theta>" by fact
   have ih:"\<And> y s \<theta>. y\<sharp>\<theta> \<Longrightarrow> ((\<theta><(t[y::=s])>) = ((\<theta><t>)[y::=(\<theta><s>)]))" by fact
   have "\<theta> <(Lam [n].t)[x::=u]> = \<theta><Lam [n]. (t [x::=u])>" using fs by auto
   then have "\<theta> <(Lam [n].t)[x::=u]> = Lam [n]. \<theta><t [x::=u]>" using fs by auto
@@ -265,7 +267,7 @@ where
 
 equivariance valid 
 
-inductive_cases  
+inductive_cases
   valid_cons_elim_auto[elim]:"valid ((x,T)#\<Gamma>)"
 
 abbreviation
@@ -300,11 +302,11 @@ by (induct \<Gamma>)
 inductive
   typing :: "Ctxt\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60) 
 where
-  t_Var[intro]:   "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
-| t_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> e\<^isub>1 : T\<^isub>1\<rightarrow>T\<^isub>2; \<Gamma> \<turnstile> e\<^isub>2 : T\<^isub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App e\<^isub>1 e\<^isub>2 : T\<^isub>2"
-| t_Lam[intro]:   "\<lbrakk>x\<sharp>\<Gamma>; (x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T\<^isub>1\<rightarrow>T\<^isub>2"
-| t_Const[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n : TBase"
-| t_Unit[intro]:  "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Unit : TUnit"
+  T_Var[intro]:   "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
+| T_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> e\<^isub>1 : T\<^isub>1\<rightarrow>T\<^isub>2; \<Gamma> \<turnstile> e\<^isub>2 : T\<^isub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App e\<^isub>1 e\<^isub>2 : T\<^isub>2"
+| T_Lam[intro]:   "\<lbrakk>x\<sharp>\<Gamma>; (x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T\<^isub>1\<rightarrow>T\<^isub>2"
+| T_Const[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Const n : TBase"
+| T_Unit[intro]:  "valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Unit : TUnit"
 
 equivariance typing
 
@@ -316,19 +318,20 @@ lemma typing_implies_valid:
   shows "valid \<Gamma>"
   using a by (induct) (auto)
 
+(*
 declare trm.inject [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases t_inv_auto[elim]: 
-  "\<Gamma> \<turnstile> Lam [x].t : T"
-  "\<Gamma> \<turnstile> Var x : T"
-  "\<Gamma> \<turnstile> App x y : T"
-  "\<Gamma> \<turnstile> Const n : T"
-  "\<Gamma> \<turnstile> Unit : TUnit"
-  "\<Gamma> \<turnstile> s : TUnit"
+inductive_cases2 t_Lam_elim_auto[elim]: "\<Gamma> \<turnstile> Lam [x].t : T"
+inductive_cases2 t_Var_elim_auto[elim]: "\<Gamma> \<turnstile> Var x : T"
+inductive_cases2 t_App_elim_auto[elim]: "\<Gamma> \<turnstile> App x y : T"
+inductive_cases2 t_Const_elim_auto[elim]: "\<Gamma> \<turnstile> Const n : T"
+inductive_cases2 t_Unit_elim_auto[elim]: "\<Gamma> \<turnstile> Unit : TUnit"
+inductive_cases2 t_Unit_elim_auto'[elim]: "\<Gamma> \<turnstile> s : TUnit"
 
 declare trm.inject [simp del]
 declare ty.inject [simp del]
+*)
 
 section {* Definitional Equivalence *}
 
@@ -356,6 +359,126 @@ lemma def_equiv_implies_valid:
   shows "valid \<Gamma>"
 using a by (induct) (auto elim: typing_implies_valid)
 
+lemma test30:
+  fixes x::"name"
+  assumes a: "(x,T) \<in> set \<Gamma>"
+  shows "x\<in>supp \<Gamma>"
+using a
+apply(induct \<Gamma>)
+apply(auto simp add: supp_list_cons supp_prod supp_atm)
+done
+
+lemma supp_ty[simp]: 
+  fixes T::"ty"
+  shows "(supp T) = ({}::name set)"
+apply(simp add: supp_def)
+done
+
+lemma test3a:
+  assumes a: "\<Gamma> \<turnstile> t : T"
+  shows "(supp t) \<subseteq> ((supp \<Gamma>)::name set)"
+using a
+apply(induct)
+apply(auto simp add: trm.supp supp_atm supp_list_cons abs_supp supp_prod)
+apply(simp add: test30)
+apply(simp add: supp_def perm_nat_def)
+done
+
+lemma test3b:
+  shows "supp (t\<^isub>1[x::=t\<^isub>2]) \<subseteq> ((supp ([x].t\<^isub>1,t\<^isub>2))::name set)"
+apply(nominal_induct t\<^isub>1 avoiding: x t\<^isub>2 rule: trm.induct)
+apply(auto simp add: trm.supp supp_prod abs_supp supp_atm)
+apply(blast)
+apply(blast)
+apply(simp add: supp_def perm_nat_def)
+done
+
+lemma test3:
+  assumes a: "\<Gamma> \<turnstile> s \<equiv> t : T"
+  shows "(supp (s,t)) \<subseteq> ((supp \<Gamma>)::name set)"
+using a
+apply(induct)
+apply(auto simp add: supp_prod  supp_list_cons trm.supp abs_supp supp_atm)
+apply(drule test3a)
+apply(blast)
+apply(subgoal_tac "supp (t\<^isub>1[x::=t\<^isub>2]) \<subseteq> ((supp ([x].t\<^isub>1,t\<^isub>2))::name set)")
+apply(auto simp add: supp_prod abs_supp)[1]
+apply(rule test3b)
+apply(case_tac "x=xa")
+apply(simp add: fresh_def supp_prod)
+apply(blast)
+apply(case_tac "x=xa")
+apply(simp add: fresh_def supp_prod)
+apply(blast)
+apply(drule test3a)
+apply(blast)
+apply(drule test3a)+
+apply(blast)
+done
+
+lemma test0:
+  assumes a: "(x,T\<^isub>1)#\<Gamma> \<turnstile> s\<^isub>1 \<equiv> t\<^isub>1 : T\<^isub>2" 
+  and     b: "\<Gamma> \<turnstile> s\<^isub>2 \<equiv> t\<^isub>2 : T\<^isub>1"
+  shows "\<Gamma> \<turnstile> App (Lam [x]. s\<^isub>1) s\<^isub>2 \<equiv> t\<^isub>1[x::=t\<^isub>2] : T\<^isub>2"
+using a b
+apply(rule_tac Q_Beta)
+apply(auto)
+apply(drule def_equiv_implies_valid)
+apply(drule valid.cases)
+apply(auto)
+apply(drule test3)
+apply(auto simp add: fresh_def supp_prod)
+done
+
+lemma test1:
+  assumes a: "\<forall>x. x\<sharp>\<Gamma> \<longrightarrow> (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2"
+  shows "\<Gamma> \<turnstile> s \<equiv> t : T\<^isub>1 \<rightarrow> T\<^isub>2"
+using a
+apply -
+apply(generate_fresh "name")
+apply(rule_tac x="c" in Q_Ext)
+apply(simp)
+apply(simp add: fresh_prod)
+done
+
+lemma test2:
+  assumes a: "x\<sharp>(\<Gamma>,s,t) \<and> (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2"
+  shows "\<forall>x. x\<sharp>(\<Gamma>,s,t) \<longrightarrow> (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2"
+using a
+apply -
+apply(rule allI)
+apply(case_tac "xa=x")
+apply(simp)
+apply(rule impI)
+apply(erule conjE)
+apply(drule_tac pi="[(x,xa)]" in def_equiv.eqvt)
+apply(simp add: eqvts)
+apply(simp add: calc_atm)
+apply(perm_simp)
+done
+
+lemma test2:
+  assumes a: "x\<sharp>(\<Gamma>,s,t) \<and> (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2"
+  shows "\<forall>x. x\<sharp>\<Gamma> \<longrightarrow> (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2"
+using a
+apply -
+apply(rule allI)
+apply(case_tac "xa=x")
+apply(simp)
+apply(rule impI)
+apply(erule conjE)
+apply(frule test3)
+apply(simp add: supp_prod supp_list_cons supp_atm trm.supp)
+apply(subgoal_tac "xa\<sharp>(s,t)")
+apply(drule_tac pi="[(x,xa)]" in def_equiv.eqvt)
+apply(simp add: eqvts)
+apply(simp add: calc_atm)
+apply(perm_simp)
+apply(simp add: fresh_def supp_prod)
+apply(auto)
+done
+
+
 section {* Weak Head Reduction *}
 
 inductive
@@ -367,16 +490,15 @@ where
 declare trm.inject  [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases whr_inv_auto[elim]: 
-  "t \<leadsto> t'"
-  "Lam [x].t \<leadsto> t'"
-  "App (Lam [x].t12) t2 \<leadsto> t"
-  "Var x \<leadsto> t"
-  "Const n \<leadsto> t"
-  "App p q \<leadsto> t"
-  "t \<leadsto> Const n"
-  "t \<leadsto> Var x"
-  "t \<leadsto> App p q"
+inductive_cases whr_Gen[elim]: "t \<leadsto> t'"
+inductive_cases whr_Lam[elim]: "Lam [x].t \<leadsto> t'"
+inductive_cases whr_App_Lam[elim]: "App (Lam [x].t12) t2 \<leadsto> t"
+inductive_cases whr_Var[elim]: "Var x \<leadsto> t"
+inductive_cases whr_Const[elim]: "Const n \<leadsto> t"
+inductive_cases whr_App[elim]: "App p q \<leadsto> t"
+inductive_cases whr_Const_Right[elim]: "t \<leadsto> Const n"
+inductive_cases whr_Var_Right[elim]: "t \<leadsto> Var x"
+inductive_cases whr_App_Right[elim]: "t \<leadsto> App p q"
 
 declare trm.inject  [simp del]
 declare ty.inject  [simp del]
@@ -423,12 +545,12 @@ lemma red_unicity :
   shows "a=b"
   using a b
 apply (induct arbitrary: b)
-apply (erule whr_inv_auto(3))
+apply (erule whr_App_Lam)
 apply (clarify)
 apply (rule subst_fun_eq)
 apply (simp)
 apply (force)
-apply (erule whr_inv_auto(6))
+apply (erule whr_App)
 apply (blast)+
 done
 
@@ -438,13 +560,27 @@ lemma nf_unicity :
   using assms 
 proof (induct arbitrary: b)
   case (QAN_Reduce x t a b)
-  have h:"x \<leadsto> t" "t \<Down> a" by fact+
+  have h:"x \<leadsto> t" "t \<Down> a" by fact
   have ih:"\<And>b. t \<Down> b \<Longrightarrow> a = b" by fact
   have "x \<Down> b" by fact
   then obtain t' where "x \<leadsto> t'" and hl:"t' \<Down> b" using h by auto
   then have "t=t'" using h red_unicity by auto
   then show "a=b" using ih hl by auto
 qed (auto)
+
+lemma test4a:
+  shows "s \<leadsto> t \<Longrightarrow> (supp t) \<subseteq> ((supp s)::name set)"
+apply(induct s t rule: whr_def.induct)
+apply(insert test3b)
+apply(simp add: trm.supp supp_prod abs_supp)
+apply(auto simp add: trm.supp)
+done
+
+lemma test4b:
+  shows "s \<Down> t \<Longrightarrow> (supp t) \<subseteq> ((supp s)::name set)"
+apply(induct s t rule: whn_def.induct)
+apply(auto dest: test4a)
+done
 
 section {* Algorithmic Term Equivalence and Algorithmic Path Equivalence *}
 
@@ -467,27 +603,27 @@ nominal_inductive alg_equiv
   avoids QAT_Arrow: x
   by simp_all
 
+
 declare trm.inject [simp add]
 declare ty.inject  [simp add]
 
-inductive_cases alg_equiv_inv_auto[elim]: 
-  "\<Gamma> \<turnstile> s\<Leftrightarrow>t : TBase"
-  "\<Gamma> \<turnstile> s\<Leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
+inductive_cases alg_equiv_Base_inv_auto[elim]: "\<Gamma> \<turnstile> s\<Leftrightarrow>t : TBase"
+inductive_cases alg_equiv_Arrow_inv_auto[elim]: "\<Gamma> \<turnstile> s\<Leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
 
-inductive_cases alg_path_equiv_inv_auto[elim]: 
-  "\<Gamma> \<turnstile> s\<leftrightarrow>t : TBase"
-  "\<Gamma> \<turnstile> s\<leftrightarrow>t : TUnit"
-  "\<Gamma> \<turnstile> s\<leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
-  "\<Gamma> \<turnstile> Var x \<leftrightarrow> t : T"
-  "\<Gamma> \<turnstile> Var x \<leftrightarrow> t : T'"
-  "\<Gamma> \<turnstile> s \<leftrightarrow> Var x : T"
-  "\<Gamma> \<turnstile> s \<leftrightarrow> Var x : T'"
-  "\<Gamma> \<turnstile> Const n \<leftrightarrow> t : T"
-  "\<Gamma> \<turnstile> s \<leftrightarrow> Const n : T"
-  "\<Gamma> \<turnstile> App p s \<leftrightarrow> t : T"
-  "\<Gamma> \<turnstile> s \<leftrightarrow> App q t : T"
-  "\<Gamma> \<turnstile> Lam[x].s \<leftrightarrow> t : T"
-  "\<Gamma> \<turnstile> t \<leftrightarrow> Lam[x].s : T"
+inductive_cases alg_path_equiv_Base_inv_auto[elim]: "\<Gamma> \<turnstile> s\<leftrightarrow>t : TBase"
+inductive_cases alg_path_equiv_Unit_inv_auto[elim]: "\<Gamma> \<turnstile> s\<leftrightarrow>t : TUnit"
+inductive_cases alg_path_equiv_Arrow_inv_auto[elim]: "\<Gamma> \<turnstile> s\<leftrightarrow>t : T\<^isub>1 \<rightarrow> T\<^isub>2"
+
+inductive_cases alg_path_equiv_Var_left_inv_auto[elim]: "\<Gamma> \<turnstile> Var x \<leftrightarrow> t : T"
+inductive_cases alg_path_equiv_Var_left_inv_auto'[elim]: "\<Gamma> \<turnstile> Var x \<leftrightarrow> t : T'"
+inductive_cases alg_path_equiv_Var_right_inv_auto[elim]: "\<Gamma> \<turnstile> s \<leftrightarrow> Var x : T"
+inductive_cases alg_path_equiv_Var_right_inv_auto'[elim]: "\<Gamma> \<turnstile> s \<leftrightarrow> Var x : T'"
+inductive_cases alg_path_equiv_Const_left_inv_auto[elim]: "\<Gamma> \<turnstile> Const n \<leftrightarrow> t : T"
+inductive_cases alg_path_equiv_Const_right_inv_auto[elim]: "\<Gamma> \<turnstile> s \<leftrightarrow> Const n : T"
+inductive_cases alg_path_equiv_App_left_inv_auto[elim]: "\<Gamma> \<turnstile> App p s \<leftrightarrow> t : T"
+inductive_cases alg_path_equiv_App_right_inv_auto[elim]: "\<Gamma> \<turnstile> s \<leftrightarrow> App q t : T"
+inductive_cases alg_path_equiv_Lam_left_inv_auto[elim]: "\<Gamma> \<turnstile> Lam[x].s \<leftrightarrow> t : T"
+inductive_cases alg_path_equiv_Lam_right_inv_auto[elim]: "\<Gamma> \<turnstile> t \<leftrightarrow> Lam[x].s : T"
 
 declare trm.inject [simp del]
 declare ty.inject [simp del]
@@ -522,14 +658,14 @@ proof (induct arbitrary:  u T'
   case (QAP_Var \<Gamma> x T u T')
   have "\<Gamma> \<turnstile> Var x \<leftrightarrow> u : T'" by fact
   then have "u=Var x" and "(x,T') \<in> set \<Gamma>" by auto
-  moreover have "valid \<Gamma>" "(x,T) \<in> set \<Gamma>" by fact+
+  moreover have "valid \<Gamma>" "(x,T) \<in> set \<Gamma>" by fact
   ultimately show "T=T'" using type_unicity_in_context by auto
 next
   case (QAP_App \<Gamma> p q T\<^isub>1 T\<^isub>2 s t u T\<^isub>2')
-  have ih: "\<And>u T. \<Gamma> \<turnstile> p \<leftrightarrow> u : T \<Longrightarrow> T\<^isub>1\<rightarrow>T\<^isub>2 = T" by fact
+  have ih:"\<And>u T. \<Gamma> \<turnstile> p \<leftrightarrow> u : T \<Longrightarrow> T\<^isub>1\<rightarrow>T\<^isub>2 = T" by fact
   have "\<Gamma> \<turnstile> App p s \<leftrightarrow> u : T\<^isub>2'" by fact
   then obtain r t T\<^isub>1' where "u = App r t"  "\<Gamma> \<turnstile> p \<leftrightarrow> r : T\<^isub>1' \<rightarrow> T\<^isub>2'" by auto
-  with ih have "T\<^isub>1\<rightarrow>T\<^isub>2 = T\<^isub>1' \<rightarrow> T\<^isub>2'" by auto
+  then have "T\<^isub>1\<rightarrow>T\<^isub>2 = T\<^isub>1' \<rightarrow> T\<^isub>2'" by auto
   then show "T\<^isub>2=T\<^isub>2'" using ty.inject by auto
 qed (auto)
 
@@ -562,7 +698,7 @@ next
   case (QAT_Arrow  x \<Gamma> s t T\<^isub>1 T\<^isub>2 u)
   have ih:"(x,T\<^isub>1)#\<Gamma> \<turnstile> App t (Var x) \<Leftrightarrow> App u (Var x) : T\<^isub>2 
                                    \<Longrightarrow> (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<Leftrightarrow> App u (Var x) : T\<^isub>2" by fact
-  have fs: "x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" "x\<sharp>u" by fact+
+  have fs: "x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" "x\<sharp>u" by fact 
   have "\<Gamma> \<turnstile> t \<Leftrightarrow> u : T\<^isub>1\<rightarrow>T\<^isub>2" by fact
   then have "(x,T\<^isub>1)#\<Gamma> \<turnstile> App t (Var x) \<Leftrightarrow> App u (Var x) : T\<^isub>2" using fs 
     by (simp add: Q_Arrow_strong_inversion)
@@ -595,7 +731,7 @@ lemma algorithmic_monotonicity:
   and   "\<Gamma> \<turnstile> s \<leftrightarrow> t : T \<Longrightarrow> \<Gamma> \<subseteq> \<Gamma>' \<Longrightarrow> valid \<Gamma>' \<Longrightarrow> \<Gamma>' \<turnstile> s \<leftrightarrow> t : T"
 proof (nominal_induct \<Gamma> s t T and \<Gamma> s t T avoiding: \<Gamma>' rule: alg_equiv_alg_path_equiv.strong_inducts)
  case (QAT_Arrow x \<Gamma> s t T\<^isub>1 T\<^isub>2 \<Gamma>')
-  have fs:"x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" "x\<sharp>\<Gamma>'"by fact+
+  have fs:"x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" "x\<sharp>\<Gamma>'"by fact
   have h2:"\<Gamma> \<subseteq> \<Gamma>'" by fact
   have ih:"\<And>\<Gamma>'. \<lbrakk>(x,T\<^isub>1)#\<Gamma> \<subseteq> \<Gamma>'; valid \<Gamma>'\<rbrakk>  \<Longrightarrow> \<Gamma>' \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^isub>2" by fact
   have "valid \<Gamma>'" by fact
@@ -643,8 +779,8 @@ proof (induct arbitrary: \<Gamma>' rule: log_equiv.induct)
 next
   case (3 \<Gamma> s t T\<^isub>1 T\<^isub>2 \<Gamma>')
   have "\<Gamma> \<turnstile> s is t : T\<^isub>1\<rightarrow>T\<^isub>2" 
-  and "\<Gamma> \<subseteq> \<Gamma>'" 
-  and "valid \<Gamma>'" by fact+
+  and  "\<Gamma> \<subseteq> \<Gamma>'" 
+  and  "valid \<Gamma>'" by fact
   then show "\<Gamma>' \<turnstile> s is t : T\<^isub>1\<rightarrow>T\<^isub>2" by simp
 qed (auto)
 
@@ -781,10 +917,10 @@ proof -
 qed
 
 lemma logical_subst_monotonicity :
-  assumes a: "\<Gamma>' \<turnstile> s is t over \<Gamma>" 
+  assumes a: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" 
   and     b: "\<Gamma>' \<subseteq> \<Gamma>''"
   and     c: "valid \<Gamma>''"
-  shows "\<Gamma>'' \<turnstile> s is t over \<Gamma>"
+  shows "\<Gamma>'' \<turnstile> \<theta> is \<theta>' over \<Gamma>"
 using a b c logical_monotonicity by blast
 
 lemma equiv_subst_ext :
@@ -800,47 +936,53 @@ proof -
     moreover
     { 
       assume "(y,U) \<in> set [(x,T)]"
-      with h2 have "\<Gamma>' \<turnstile> (x,s)#\<theta><Var y> is (x,t)#\<theta>'<Var y> : U" by auto
+      then have "\<Gamma>' \<turnstile> ((x,s)#\<theta>)<Var y> is ((x,t)#\<theta>')<Var y> : U" by auto 
     }
     moreover
     {
       assume hl:"(y,U) \<in> set \<Gamma>"
       then have "\<not> y\<sharp>\<Gamma>" by (induct \<Gamma>) (auto simp add: fresh_list_cons fresh_atm fresh_prod)
       then have hf:"x\<sharp> Var y" using fs by (auto simp add: fresh_atm)
-      then have "(x,s)#\<theta><Var y> = \<theta><Var y>" "(x,t)#\<theta>'<Var y> = \<theta>'<Var y>" using fresh_psubst_simp by blast+ 
+      then have "((x,s)#\<theta>)<Var y> = \<theta><Var y>" "((x,t)#\<theta>')<Var y> = \<theta>'<Var y>" 
+	using fresh_psubst_simp by blast+ 
       moreover have  "\<Gamma>' \<turnstile> \<theta><Var y> is \<theta>'<Var y> : U" using h1 hl by auto
-      ultimately have "\<Gamma>' \<turnstile> (x,s)#\<theta><Var y> is (x,t)#\<theta>'<Var y> : U" by auto
+      ultimately have "\<Gamma>' \<turnstile> ((x,s)#\<theta>)<Var y> is ((x,t)#\<theta>')<Var y> : U" by auto
     }
-    ultimately have "\<Gamma>' \<turnstile> (x,s)#\<theta><Var y> is (x,t)#\<theta>'<Var y> : U" by auto
+    ultimately have "\<Gamma>' \<turnstile> ((x,s)#\<theta>)<Var y> is ((x,t)#\<theta>')<Var y> : U" by auto
   }
   then show "\<Gamma>' \<turnstile> (x,s)#\<theta> is (x,t)#\<theta>' over (x,T)#\<Gamma>" by auto
 qed
 
 theorem fundamental_theorem_1:
-  assumes h1: "\<Gamma> \<turnstile> t : T" 
-  and     h2: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>"
-  and     h3: "valid \<Gamma>'" 
+  assumes a1: "\<Gamma> \<turnstile> t : T" 
+  and     a2: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>"
+  and     a3: "valid \<Gamma>'" 
   shows "\<Gamma>' \<turnstile> \<theta><t> is \<theta>'<t> : T"   
-using h1 h2 h3
-proof (nominal_induct \<Gamma> t T avoiding: \<Gamma>' \<theta> \<theta>'  rule: typing.strong_induct)
-  case (t_Lam x \<Gamma> T\<^isub>1 t\<^isub>2 T\<^isub>2 \<Gamma>' \<theta> \<theta>')
-  have fs:"x\<sharp>\<theta>" "x\<sharp>\<theta>'" "x\<sharp>\<Gamma>" by fact+
-  have h:"\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" by fact
-  have ih:"\<And> \<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over (x,T\<^isub>1)#\<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><t\<^isub>2> is \<theta>'<t\<^isub>2> : T\<^isub>2" by fact
-  {
+using a1 a2 a3
+proof (nominal_induct \<Gamma> t T avoiding: \<theta> \<theta>' arbitrary: \<Gamma>' rule: typing.strong_induct)
+  case (T_Lam x \<Gamma> T\<^isub>1 t\<^isub>2 T\<^isub>2 \<theta> \<theta>' \<Gamma>')
+  have vc: "x\<sharp>\<theta>" "x\<sharp>\<theta>'" "x\<sharp>\<Gamma>" by fact
+  have asm1: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" by fact
+  have ih:"\<And>\<theta> \<theta>' \<Gamma>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over (x,T\<^isub>1)#\<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><t\<^isub>2> is \<theta>'<t\<^isub>2> : T\<^isub>2" by fact
+  show "\<Gamma>' \<turnstile> \<theta><Lam [x].t\<^isub>2> is \<theta>'<Lam [x].t\<^isub>2> : T\<^isub>1\<rightarrow>T\<^isub>2" using vc
+  proof (simp, intro strip)
     fix \<Gamma>'' s' t'
-    assume "\<Gamma>' \<subseteq> \<Gamma>''" and hl:"\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and v: "valid \<Gamma>''"
-    then have "\<Gamma>'' \<turnstile> \<theta> is \<theta>' over \<Gamma>" using logical_subst_monotonicity h by blast
-    then have "\<Gamma>'' \<turnstile> (x,s')#\<theta> is (x,t')#\<theta>' over (x,T\<^isub>1)#\<Gamma>" using equiv_subst_ext hl fs by blast
-    then have "\<Gamma>'' \<turnstile> (x,s')#\<theta><t\<^isub>2> is (x,t')#\<theta>'<t\<^isub>2> : T\<^isub>2" using ih v by auto
-    then have "\<Gamma>''\<turnstile>\<theta><t\<^isub>2>[x::=s'] is \<theta>'<t\<^isub>2>[x::=t'] : T\<^isub>2" using psubst_subst_psubst fs by simp
-    moreover have "App (Lam [x].\<theta><t\<^isub>2>) s' \<leadsto> \<theta><t\<^isub>2>[x::=s']" by auto
-    moreover have "App (Lam [x].\<theta>'<t\<^isub>2>) t' \<leadsto> \<theta>'<t\<^isub>2>[x::=t']" by auto
-    ultimately have "\<Gamma>''\<turnstile> App (Lam [x].\<theta><t\<^isub>2>) s' is App (Lam [x].\<theta>'<t\<^isub>2>) t' : T\<^isub>2" 
+    assume sub: "\<Gamma>' \<subseteq> \<Gamma>''" 
+    and    asm2: "\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" 
+    and    val: "valid \<Gamma>''"
+    from asm1 val sub have "\<Gamma>'' \<turnstile> \<theta> is \<theta>' over \<Gamma>" using logical_subst_monotonicity by blast
+    with asm2 vc have "\<Gamma>'' \<turnstile> (x,s')#\<theta> is (x,t')#\<theta>' over (x,T\<^isub>1)#\<Gamma>" using equiv_subst_ext by blast
+    with ih val have "\<Gamma>'' \<turnstile> ((x,s')#\<theta>)<t\<^isub>2> is ((x,t')#\<theta>')<t\<^isub>2> : T\<^isub>2" by auto
+    with vc have "\<Gamma>''\<turnstile>\<theta><t\<^isub>2>[x::=s'] is \<theta>'<t\<^isub>2>[x::=t'] : T\<^isub>2" by (simp add: psubst_subst_psubst)
+    moreover 
+    have "App (Lam [x].\<theta><t\<^isub>2>) s' \<leadsto> \<theta><t\<^isub>2>[x::=s']" by auto
+    moreover 
+    have "App (Lam [x].\<theta>'<t\<^isub>2>) t' \<leadsto> \<theta>'<t\<^isub>2>[x::=t']" by auto
+    ultimately show "\<Gamma>''\<turnstile> App (Lam [x].\<theta><t\<^isub>2>) s' is App (Lam [x].\<theta>'<t\<^isub>2>) t' : T\<^isub>2" 
       using logical_weak_head_closure by auto
-  }
-  then show "\<Gamma>' \<turnstile> \<theta><Lam [x].t\<^isub>2> is \<theta>'<Lam [x].t\<^isub>2> : T\<^isub>1\<rightarrow>T\<^isub>2" using fs by simp 
+  qed
 qed (auto)
+
 
 theorem fundamental_theorem_2:
   assumes h1: "\<Gamma> \<turnstile> s \<equiv> t : T" 
@@ -851,14 +993,14 @@ using h1 h2 h3
 proof (nominal_induct \<Gamma> s t T avoiding: \<Gamma>' \<theta> \<theta>' rule: def_equiv.strong_induct)
   case (Q_Refl \<Gamma> t T \<Gamma>' \<theta> \<theta>')
   have "\<Gamma> \<turnstile> t : T" 
-  and  "valid \<Gamma>'" by fact+
+  and  "valid \<Gamma>'" by fact
   moreover 
   have "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" by fact
   ultimately show "\<Gamma>' \<turnstile> \<theta><t> is \<theta>'<t> : T" using fundamental_theorem_1 by blast
 next
   case (Q_Symm \<Gamma> t s T \<Gamma>' \<theta> \<theta>')
   have "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" 
-  and "valid \<Gamma>'" by fact+
+  and "valid \<Gamma>'" by fact
   moreover 
   have ih: "\<And> \<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><t> is \<theta>'<s> : T" by fact
   ultimately show "\<Gamma>' \<turnstile> \<theta><s> is \<theta>'<t> : T" using logical_symmetry by blast
@@ -867,7 +1009,7 @@ next
   have ih1: "\<And> \<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><s> is \<theta>'<t> : T" by fact
   have ih2: "\<And> \<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><t> is \<theta>'<u> : T" by fact
   have h: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" 
-  and  v: "valid \<Gamma>'" by fact+
+  and  v: "valid \<Gamma>'" by fact
   then have "\<Gamma>' \<turnstile> \<theta>' is \<theta>' over \<Gamma>" using logical_pseudo_reflexivity by auto
   then have "\<Gamma>' \<turnstile> \<theta>'<t> is \<theta>'<u> : T" using ih2 v by auto
   moreover have "\<Gamma>' \<turnstile> \<theta><s> is \<theta>'<t> : T" using ih1 h v by auto
@@ -875,23 +1017,23 @@ next
 next
   case (Q_Abs x \<Gamma> T\<^isub>1 s\<^isub>2 t\<^isub>2 T\<^isub>2 \<Gamma>' \<theta> \<theta>')
   have fs:"x\<sharp>\<Gamma>" by fact
-  have fs2: "x\<sharp>\<theta>" "x\<sharp>\<theta>'" by fact+
+  have fs2: "x\<sharp>\<theta>" "x\<sharp>\<theta>'" by fact 
   have h2: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" 
-  and  h3: "valid \<Gamma>'" by fact+
+  and  h3: "valid \<Gamma>'" by fact
   have ih:"\<And>\<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over (x,T\<^isub>1)#\<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><s\<^isub>2> is \<theta>'<t\<^isub>2> : T\<^isub>2" by fact
   {
     fix \<Gamma>'' s' t'
     assume "\<Gamma>' \<subseteq> \<Gamma>''" and hl:"\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and hk: "valid \<Gamma>''"
     then have "\<Gamma>'' \<turnstile> \<theta> is \<theta>' over \<Gamma>" using h2 logical_subst_monotonicity by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<theta> is (x,t')#\<theta>' over (x,T\<^isub>1)#\<Gamma>" using equiv_subst_ext hl fs by blast
-    then have "\<Gamma>'' \<turnstile> (x,s')#\<theta><s\<^isub>2> is (x,t')#\<theta>'<t\<^isub>2> : T\<^isub>2" using ih hk by blast
+    then have "\<Gamma>'' \<turnstile> ((x,s')#\<theta>)<s\<^isub>2> is ((x,t')#\<theta>')<t\<^isub>2> : T\<^isub>2" using ih hk by blast
     then have "\<Gamma>''\<turnstile> \<theta><s\<^isub>2>[x::=s'] is \<theta>'<t\<^isub>2>[x::=t'] : T\<^isub>2" using fs2 psubst_subst_psubst by auto
     moreover have "App (Lam [x]. \<theta><s\<^isub>2>) s' \<leadsto>  \<theta><s\<^isub>2>[x::=s']" 
               and "App (Lam [x].\<theta>'<t\<^isub>2>) t' \<leadsto> \<theta>'<t\<^isub>2>[x::=t']" by auto
     ultimately have "\<Gamma>'' \<turnstile> App (Lam [x]. \<theta><s\<^isub>2>) s' is App (Lam [x].\<theta>'<t\<^isub>2>) t' : T\<^isub>2" 
       using logical_weak_head_closure by auto
   }
-  moreover have "valid \<Gamma>'" using h3 by auto
+  moreover have "valid \<Gamma>'" using h2 by auto
   ultimately have "\<Gamma>' \<turnstile> Lam [x].\<theta><s\<^isub>2> is Lam [x].\<theta>'<t\<^isub>2> : T\<^isub>1\<rightarrow>T\<^isub>2" by auto
   then show "\<Gamma>' \<turnstile> \<theta><Lam [x].s\<^isub>2> is \<theta>'<Lam [x].t\<^isub>2> : T\<^isub>1\<rightarrow>T\<^isub>2" using fs2 by auto
 next
@@ -900,14 +1042,14 @@ next
 next
   case (Q_Beta x \<Gamma> s\<^isub>2 t\<^isub>2 T\<^isub>1 s12 t12 T\<^isub>2 \<Gamma>' \<theta> \<theta>')
   have h: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" 
-  and  h': "valid \<Gamma>'" by fact+
+  and  h': "valid \<Gamma>'" by fact
   have fs: "x\<sharp>\<Gamma>" by fact
-  have fs2: " x\<sharp>\<theta>" "x\<sharp>\<theta>'" by fact+
+  have fs2: " x\<sharp>\<theta>" "x\<sharp>\<theta>'" by fact 
   have ih1: "\<And>\<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><s\<^isub>2> is \<theta>'<t\<^isub>2> : T\<^isub>1" by fact
   have ih2: "\<And>\<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over (x,T\<^isub>1)#\<Gamma>; valid \<Gamma>'\<rbrakk> \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><s12> is \<theta>'<t12> : T\<^isub>2" by fact
   have "\<Gamma>' \<turnstile> \<theta><s\<^isub>2> is \<theta>'<t\<^isub>2> : T\<^isub>1" using ih1 h' h by auto
   then have "\<Gamma>' \<turnstile> (x,\<theta><s\<^isub>2>)#\<theta> is (x,\<theta>'<t\<^isub>2>)#\<theta>' over (x,T\<^isub>1)#\<Gamma>" using equiv_subst_ext h fs by blast
-  then have "\<Gamma>' \<turnstile> (x,\<theta><s\<^isub>2>)#\<theta><s12> is (x,\<theta>'<t\<^isub>2>)#\<theta>'<t12> : T\<^isub>2" using ih2 h' by auto
+  then have "\<Gamma>' \<turnstile> ((x,\<theta><s\<^isub>2>)#\<theta>)<s12> is ((x,\<theta>'<t\<^isub>2>)#\<theta>')<t12> : T\<^isub>2" using ih2 h' by auto
   then have "\<Gamma>' \<turnstile> \<theta><s12>[x::=\<theta><s\<^isub>2>] is \<theta>'<t12>[x::=\<theta>'<t\<^isub>2>] : T\<^isub>2" using fs2 psubst_subst_psubst by auto
   then have "\<Gamma>' \<turnstile> \<theta><s12>[x::=\<theta><s\<^isub>2>] is \<theta>'<t12[x::=t\<^isub>2]> : T\<^isub>2" using fs2 psubst_subst_propagate by auto
   moreover have "App (Lam [x].\<theta><s12>) (\<theta><s\<^isub>2>) \<leadsto> \<theta><s12>[x::=\<theta><s\<^isub>2>]" by auto 
@@ -917,8 +1059,8 @@ next
 next
   case (Q_Ext x \<Gamma> s t T\<^isub>1 T\<^isub>2 \<Gamma>' \<theta> \<theta>')
   have h2: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" 
-  and  h2': "valid \<Gamma>'" by fact+
-  have fs:"x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" by fact+
+  and  h2': "valid \<Gamma>'" by fact
+  have fs:"x\<sharp>\<Gamma>" "x\<sharp>s" "x\<sharp>t" by fact
   have ih:"\<And>\<Gamma>' \<theta> \<theta>'. \<lbrakk>\<Gamma>' \<turnstile> \<theta> is \<theta>' over (x,T\<^isub>1)#\<Gamma>; valid \<Gamma>'\<rbrakk> 
                           \<Longrightarrow> \<Gamma>' \<turnstile> \<theta><App s (Var x)> is \<theta>'<App t (Var x)> : T\<^isub>2" by fact
    {
@@ -926,14 +1068,14 @@ next
     assume hsub: "\<Gamma>' \<subseteq> \<Gamma>''" and hl: "\<Gamma>''\<turnstile> s' is t' : T\<^isub>1" and hk: "valid \<Gamma>''"
     then have "\<Gamma>'' \<turnstile> \<theta> is \<theta>' over \<Gamma>" using h2 logical_subst_monotonicity by blast
     then have "\<Gamma>'' \<turnstile> (x,s')#\<theta> is (x,t')#\<theta>' over (x,T\<^isub>1)#\<Gamma>" using equiv_subst_ext hl fs by blast
-    then have "\<Gamma>'' \<turnstile> (x,s')#\<theta><App s (Var x)>  is (x,t')#\<theta>'<App t (Var x)> : T\<^isub>2" using ih hk by blast
+    then have "\<Gamma>'' \<turnstile> ((x,s')#\<theta>)<App s (Var x)>  is ((x,t')#\<theta>')<App t (Var x)> : T\<^isub>2" using ih hk by blast
     then 
-    have "\<Gamma>'' \<turnstile> App (((x,s')#\<theta>)<s>) (((x,s')#\<theta>)<(Var x)>) is App ((x,t')#\<theta>'<t>) ((x,t')#\<theta>'<(Var x)>) : T\<^isub>2"
+    have "\<Gamma>'' \<turnstile> App (((x,s')#\<theta>)<s>) (((x,s')#\<theta>)<(Var x)>) is App (((x,t')#\<theta>')<t>) (((x,t')#\<theta>')<(Var x)>) : T\<^isub>2"
       by auto
-    then have "\<Gamma>'' \<turnstile> App ((x,s')#\<theta><s>) s'  is App ((x,t')#\<theta>'<t>) t' : T\<^isub>2" by auto
+    then have "\<Gamma>'' \<turnstile> App ((x,s')#\<theta>)<s> s'  is App ((x,t')#\<theta>')<t> t' : T\<^isub>2" by auto
     then have "\<Gamma>'' \<turnstile> App (\<theta><s>) s' is App (\<theta>'<t>) t' : T\<^isub>2" using fs fresh_psubst_simp by auto
   }
-  moreover have "valid \<Gamma>'" using h2' by auto
+  moreover have "valid \<Gamma>'" using h2 by auto
   ultimately show "\<Gamma>' \<turnstile> \<theta><s> is \<theta>'<t> : T\<^isub>1\<rightarrow>T\<^isub>2" by auto
 next
   case (Q_Unit \<Gamma> s t \<Gamma>' \<theta> \<theta>')  
