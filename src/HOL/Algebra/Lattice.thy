@@ -656,7 +656,7 @@ qed
 
 subsection {* Total Orders *}
 
-locale total_order = lattice +
+locale total_order = partial_order +
   assumes total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
 
 text {* Introduction rule: the usual definition of total order *}
@@ -664,50 +664,52 @@ text {* Introduction rule: the usual definition of total order *}
 lemma (in partial_order) total_orderI:
   assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
   shows "total_order L"
-proof intro_locales
-  show "lattice_axioms L"
-  proof (rule lattice_axioms.intro)
-    fix x y
-    assume L: "x \<in> carrier L"  "y \<in> carrier L"
-    show "EX s. least L s (Upper L {x, y})"
-    proof -
-      note total L
-      moreover
-      {
-        assume "x \<sqsubseteq> y"
-        with L have "least L y (Upper L {x, y})"
-          by (rule_tac least_UpperI) auto
-      }
-      moreover
-      {
-        assume "y \<sqsubseteq> x"
-        with L have "least L x (Upper L {x, y})"
-          by (rule_tac least_UpperI) auto
-      }
-      ultimately show ?thesis by blast
-    qed
-  next
-    fix x y
-    assume L: "x \<in> carrier L"  "y \<in> carrier L"
-    show "EX i. greatest L i (Lower L {x, y})"
-    proof -
-      note total L
-      moreover
-      {
-        assume "y \<sqsubseteq> x"
-        with L have "greatest L y (Lower L {x, y})"
-          by (rule_tac greatest_LowerI) auto
-      }
-      moreover
-      {
-        assume "x \<sqsubseteq> y"
-        with L have "greatest L x (Lower L {x, y})"
-          by (rule_tac greatest_LowerI) auto
-      }
-      ultimately show ?thesis by blast
-    qed
+  by unfold_locales (rule total)
+
+text {* Total orders are lattices. *}
+
+interpretation total_order < lattice
+proof unfold_locales
+  fix x y
+  assume L: "x \<in> carrier L"  "y \<in> carrier L"
+  show "EX s. least L s (Upper L {x, y})"
+  proof -
+    note total L
+    moreover
+    {
+      assume "x \<sqsubseteq> y"
+      with L have "least L y (Upper L {x, y})"
+        by (rule_tac least_UpperI) auto
+    }
+    moreover
+    {
+      assume "y \<sqsubseteq> x"
+      with L have "least L x (Upper L {x, y})"
+        by (rule_tac least_UpperI) auto
+    }
+    ultimately show ?thesis by blast
   qed
-qed (rule total total_order_axioms.intro)+
+next
+  fix x y
+  assume L: "x \<in> carrier L"  "y \<in> carrier L"
+  show "EX i. greatest L i (Lower L {x, y})"
+  proof -
+    note total L
+    moreover
+    {
+      assume "y \<sqsubseteq> x"
+      with L have "greatest L y (Lower L {x, y})"
+        by (rule_tac greatest_LowerI) auto
+    }
+    moreover
+    {
+      assume "x \<sqsubseteq> y"
+      with L have "greatest L x (Lower L {x, y})"
+        by (rule_tac greatest_LowerI) auto
+    }
+    ultimately show ?thesis by blast
+  qed
+qed
 
 
 subsection {* Complete lattices *}
