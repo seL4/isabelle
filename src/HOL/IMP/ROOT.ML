@@ -6,9 +6,4 @@
 Caveat: HOLCF/IMP depends on HOL/IMP
 *)
 
-time_use_thy "Expr";
-time_use_thy "Transition";
-time_use_thy "VC";
-time_use_thy "Examples";
-time_use_thy "Compiler0";
-time_use_thy "Compiler";
+use_thys ["Expr", "Transition", "VC", "Examples", "Compiler0", "Compiler"];

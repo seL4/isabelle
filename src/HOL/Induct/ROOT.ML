@@ -1,16 +1,6 @@
 
 (* $Id$ *)
 
-time_use_thy "Mutil";
-time_use_thy "QuoDataType";
-time_use_thy "QuoNestedDataType";
-time_use_thy "Term";
-time_use_thy "ABexp";
-time_use_thy "Tree";
-time_use_thy "Ordinals";
-time_use_thy "Sigma_Algebra";
-time_use_thy "Comb";
-time_use_thy "PropLog";
-time_use_thy "SList";
-time_use_thy "LFilter";
-time_use_thy "Com";
+use_thys ["Mutil", "QuoDataType", "QuoNestedDataType", "Term",
+  "ABexp", "Tree", "Ordinals", "Sigma_Algebra", "Comb", "PropLog",
+  "SList", "LFilter", "Com"];
