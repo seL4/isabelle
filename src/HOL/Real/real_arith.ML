@@ -29,74 +29,14 @@ val int_inj_thms = [@{thm real_of_int_le_iff} RS iffD2,
 in
 
 val real_arith_setup =
-  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  LinArith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms,
     inj_thms = int_inj_thms @ nat_inj_thms @ inj_thms,
-    lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the reals are dense!*)
+    lessD = lessD,  (*Can't change lessD: the reals are dense!*)
     neqE = neqE,
     simpset = simpset addsimps simps}) #>
   arith_inj_const ("RealDef.real", HOLogic.natT --> HOLogic.realT) #>
   arith_inj_const ("RealDef.real", HOLogic.intT --> HOLogic.realT)
 
 end;
-
-
-(* Some test data [omitting examples that assume the ordering to be discrete!]
-Goal "!!a::real. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "!!a::real. [| a <= b; b+b <= c |] ==> a+a <= c";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "!!a::real. [| a+b <= i+j; a<=b; i<=j |] ==> a+a <= j+j";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "!!a::real. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
-by (arith_tac 1);
-qed "";
-
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a <= l";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a <= l+l+l+l";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a+a <= l+l+l+l+i";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> 6*a <= 5*l+i";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "a<=b ==> a < b+(1::real)";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "a<=b ==> a-(3::real) < b";
-by (fast_arith_tac 1);
-qed "";
-
-Goal "a<=b ==> a-(1::real) < b";
-by (fast_arith_tac 1);
-qed "";
-
-*)
-
-
-

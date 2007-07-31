@@ -656,7 +656,7 @@ val numerals = thms"numerals";
 val numeral_ss = simpset() addsimps numerals;
 
 val nat_bin_arith_setup =
- Fast_Arith.map_data
+ LinArith.map_data
    (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
      {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
       inj_thms = inj_thms,

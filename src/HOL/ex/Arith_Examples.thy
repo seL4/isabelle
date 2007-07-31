@@ -19,12 +19,12 @@ text {*
   method combines them both, and tries other methods (e.g.~@{text presburger})
   as well.  This is the one that you should use in your proofs!
 
-  An @{text arith}-based simproc is available as well
-  (see @{ML Fast_Arith.lin_arith_simproc}),
-  which---for performance reasons---however
-  does even less splitting than @{ML fast_arith_tac} at the moment (namely
-  inequalities only).  (On the other hand, it does take apart conjunctions,
-  which @{ML fast_arith_tac} currently does not do.)
+  An @{text arith}-based simproc is available as well (see @{ML
+  LinArith.lin_arith_simproc}), which---for performance
+  reasons---however does even less splitting than @{ML fast_arith_tac}
+  at the moment (namely inequalities only).  (On the other hand, it
+  does take apart conjunctions, which @{ML fast_arith_tac} currently
+  does not do.)
 *}
 
 (*
@@ -122,12 +122,12 @@ lemma "(i::int) mod 1 = 0"
   (* FIXME: need to replace 1 by its numeral representation *)
   apply (subst numeral_1_eq_1 [symmetric])
   (* FIXME: arith does not know about iszero *)
-  apply (tactic {* LA_Data_Ref.pre_tac @{context} 1 *})
+  apply (tactic {* lin_arith_pre_tac @{context} 1 *})
 oops
 
 lemma "(i::int) mod 42 <= 41"
   (* FIXME: arith does not know about iszero *)
-  apply (tactic {* LA_Data_Ref.pre_tac @{context} 1 *})
+  apply (tactic {* lin_arith_pre_tac @{context} 1 *})
 oops
 
 

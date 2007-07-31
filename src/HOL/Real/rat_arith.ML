@@ -36,11 +36,11 @@ in
 val ratT = Type ("Rational.rat", [])
 
 val rat_arith_setup =
-  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  LinArith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms,
     inj_thms = int_inj_thms @ nat_inj_thms @ inj_thms,
-    lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the rats are dense!*)
+    lessD = lessD,  (*Can't change lessD: the rats are dense!*)
     neqE =  neqE,
     simpset = simpset addsimps simps
                       addsimprocs simprocs}) #>
