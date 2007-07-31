@@ -12,9 +12,10 @@ theory Nat
 imports Wellfounded_Recursion Ring_and_Field
 uses
   "~~/src/Tools/rat.ML"
-  "~~/src/Provers/Arith/fast_lin_arith.ML"
   "~~/src/Provers/Arith/cancel_sums.ML"
   ("arith_data.ML")
+  "~~/src/Provers/Arith/fast_lin_arith.ML"
+  ("Tools/lin_arith.ML")
 begin
 
 subsection {* Type @{text ind} *}
@@ -1092,7 +1093,11 @@ lemma subst_equals:
   using 2 1 by (rule trans)
 
 use "arith_data.ML"
-declaration {* K arith_setup *}
+declaration {* K arith_data_setup *}
+
+use "Tools/lin_arith.ML"
+declaration {* K LinArith.setup *}
+
 
 text{*The following proofs may rely on the arithmetic proof procedures.*}
 
