@@ -165,8 +165,8 @@ text {*
 
   Any user-code that works relatively to the present background theory
   is already safe.  Contextual data may be easily stored within the
-  theory or proof context, thanks to the generic context data concept
-  of Isabelle/Isar (see \secref{sec:context-data}).  This greatly
+  theory or proof context, thanks to the generic data concept of
+  Isabelle/Isar (see \secref{sec:context-data}).  This greatly
   diminishes the demand for global state information in the first
   place.
 
@@ -194,10 +194,10 @@ text {*
   values, without any special precautions for multithreading.  Apart
   from the fully general functors for theory and proof data (see
   \secref{sec:context-data}) there are drop-in replacements that
-  emulate primitive references for the most basic cases of
-  \emph{configuration options} for type @{ML_type "bool"}/@{ML_type
-  "int"}/@{ML_type "string"} (see structure @{ML_struct ConfigOption})
-  and lists of theorems (see functor @{ML_functor NamedThmsFun}).
+  emulate primitive references for common cases of \emph{configuration
+  options} for type @{ML_type "bool"}/@{ML_type "int"}/@{ML_type
+  "string"} (see structure @{ML_struct ConfigOption}) and lists of
+  theorems (see functor @{ML_functor NamedThmsFun}).
 
   \item Keep components with local state information
   \emph{re-entrant}.  Instead of poking initial values into (private)
@@ -214,15 +214,15 @@ text {*
   example is the @{ML show_types} flag, which tells the pretty printer
   to output explicit type information for terms.  Such flags usually
   do not affect the functionality of the core system, but only the
-  output being presented to the user.
+  view being presented to the user.
 
   Occasionally, such global process flags are treated like implicit
   arguments to certain operations, by using the @{ML setmp} combinator
-  for safe temporary assignment.  Traditionally its main purpose was
-  to ensure proper recovery of the original value when exceptions are
-  raised in the body.  Now the functionality is extended to enter the
-  \emph{critical section}, with its usual potential of degrading
-  parallelism.
+  for safe temporary assignment.  Its traditional purpose was to
+  ensure proper recovery of the original value when exceptions are
+  raised in the body, now the functionality is extended to enter the
+  \emph{critical section} (with its usual potential of degrading
+  parallelism).
 
   Note that recovery of plain value passing semantics via @{ML
   setmp}~@{text "ref value"} assumes that this @{text "ref"} is
@@ -247,10 +247,10 @@ text {*
 
   Recall that in an open ``LCF-style'' system like Isabelle/Isar, the
   user participates in constructing the overall environment.  This
-  means that state-based facilities offered by one component need to
-  be used with caution later on.  Minimizing critical elements, by
-  staying within the plain value-oriented view relative to theory or
-  proof contexts most of the time, will also reduce the chance of
+  means that state-based facilities offered by one component will
+  require special caution later on.  So minimizing critical elements,
+  by staying within the plain value-oriented view relative to theory
+  or proof contexts most of the time, will also reduce the chance of
   mishaps occurring to end-users.
 *}
 
@@ -264,9 +264,10 @@ text %mlref {*
   \begin{description}
 
   \item @{ML NAMED_CRITICAL}~@{text "name f"} evaluates @{text "f ()"}
-  while staying within the critical section.  The @{text "name"}
-  argument serves for diagnostic output and might help to determine
-  sources of congestion.
+  while staying within the critical section of Isabelle/Isar.  No
+  other thread may do so at the same time, but non-critical parallel
+  execution will continue.  The @{text "name"} argument serves for
+  diagnostic purposes and might help to spot sources of congestion.
 
   \item @{ML CRITICAL} is the same as @{ML NAMED_CRITICAL} with empty
   name argument.

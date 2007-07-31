@@ -14,10 +14,6 @@ uses
   ("int_arith1.ML")
 begin
 
-text{*Duplicate: can't understand why it's necessary*}
-declare numeral_0_eq_0 [simp]
-
-
 subsection{*Inequality Reasoning for the Arithmetic Simproc*}
 
 lemma add_numeral_0: "Numeral0 + a = (a::'a::number_ring)"

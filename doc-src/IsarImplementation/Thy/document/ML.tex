@@ -187,8 +187,8 @@ Recent versions of Poly/ML (5.1 or later) support multithreaded
 
   Any user-code that works relatively to the present background theory
   is already safe.  Contextual data may be easily stored within the
-  theory or proof context, thanks to the generic context data concept
-  of Isabelle/Isar (see \secref{sec:context-data}).  This greatly
+  theory or proof context, thanks to the generic data concept of
+  Isabelle/Isar (see \secref{sec:context-data}).  This greatly
   diminishes the demand for global state information in the first
   place.
 
@@ -216,9 +216,9 @@ Recent versions of Poly/ML (5.1 or later) support multithreaded
   values, without any special precautions for multithreading.  Apart
   from the fully general functors for theory and proof data (see
   \secref{sec:context-data}) there are drop-in replacements that
-  emulate primitive references for the most basic cases of
-  \emph{configuration options} for type \verb|bool|/\verb|int|/\verb|string| (see structure \verb|ConfigOption|)
-  and lists of theorems (see functor \verb|NamedThmsFun|).
+  emulate primitive references for common cases of \emph{configuration
+  options} for type \verb|bool|/\verb|int|/\verb|string| (see structure \verb|ConfigOption|) and lists of
+  theorems (see functor \verb|NamedThmsFun|).
 
   \item Keep components with local state information
   \emph{re-entrant}.  Instead of poking initial values into (private)
@@ -235,15 +235,15 @@ Recent versions of Poly/ML (5.1 or later) support multithreaded
   example is the \verb|show_types| flag, which tells the pretty printer
   to output explicit type information for terms.  Such flags usually
   do not affect the functionality of the core system, but only the
-  output being presented to the user.
+  view being presented to the user.
 
   Occasionally, such global process flags are treated like implicit
   arguments to certain operations, by using the \verb|setmp| combinator
-  for safe temporary assignment.  Traditionally its main purpose was
-  to ensure proper recovery of the original value when exceptions are
-  raised in the body.  Now the functionality is extended to enter the
-  \emph{critical section}, with its usual potential of degrading
-  parallelism.
+  for safe temporary assignment.  Its traditional purpose was to
+  ensure proper recovery of the original value when exceptions are
+  raised in the body, now the functionality is extended to enter the
+  \emph{critical section} (with its usual potential of degrading
+  parallelism).
 
   Note that recovery of plain value passing semantics via \verb|setmp|~\isa{ref\ value} assumes that this \isa{ref} is
   exclusively manipulated within the critical section.  In particular,
@@ -267,10 +267,10 @@ Recent versions of Poly/ML (5.1 or later) support multithreaded
 
   Recall that in an open ``LCF-style'' system like Isabelle/Isar, the
   user participates in constructing the overall environment.  This
-  means that state-based facilities offered by one component need to
-  be used with caution later on.  Minimizing critical elements, by
-  staying within the plain value-oriented view relative to theory or
-  proof contexts most of the time, will also reduce the chance of
+  means that state-based facilities offered by one component will
+  require special caution later on.  So minimizing critical elements,
+  by staying within the plain value-oriented view relative to theory
+  or proof contexts most of the time, will also reduce the chance of
   mishaps occurring to end-users.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -291,9 +291,10 @@ Recent versions of Poly/ML (5.1 or later) support multithreaded
   \begin{description}
 
   \item \verb|NAMED_CRITICAL|~\isa{name\ f} evaluates \isa{f\ {\isacharparenleft}{\isacharparenright}}
-  while staying within the critical section.  The \isa{name}
-  argument serves for diagnostic output and might help to determine
-  sources of congestion.
+  while staying within the critical section of Isabelle/Isar.  No
+  other thread may do so at the same time, but non-critical parallel
+  execution will continue.  The \isa{name} argument serves for
+  diagnostic purposes and might help to spot sources of congestion.
 
   \item \verb|CRITICAL| is the same as \verb|NAMED_CRITICAL| with empty
   name argument.
