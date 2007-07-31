@@ -1,6 +1,6 @@
 \chapter{Generic tools and packages}\label{ch:gen-tools}
 
-\section{Theory specification commands}
+\section{Specification commands}
 
 \subsection{Derived specifications}
 
@@ -628,6 +628,44 @@ Isabelle documentation.
 
 \end{descr}
 
+
+\subsection{Configuration options}
+
+Isabelle/Pure maintains a record of named configuration options within
+the theory or proof context, with values of type $bool$, $int$, or
+$string$.  Tools may declare options in ML, and then refer to these
+values (relative to the context).  Thus global reference variables are
+easily avoided.  The user may change the values of configuration
+options by means of the $option$ attribute, which works particularly
+well with commands such as $\isarkeyword{declare}$ or
+$\isarkeyword{using}$.
+
+For historical reasons, some tools cannot take the full proof context
+into account and merely refer to the background theory.  This is
+accommodated by configuration options being declared as ``global'',
+which may not be changed within a local context.
+
+\indexisaratt{option}\indexisarcmd{print-options}
+\begin{matharray}{rcll}
+  \isarcmd{print_options} & : & \isarkeep{theory~|~proof} \\
+  option & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  'option' name ('=' ('true' | 'false' | int | name))?
+\end{rail}
+
+\begin{descr}
+
+\item [$\isarkeyword{print_options}$] prints the available
+  configuration options, with names, types, and current values.
+
+\item [$option~name = value$] modifies the named option, with the
+  syntax of the value depending on the option's type.  For $bool$ the
+  default value is $true$.  Any attempt to change a global option
+  locally is ignored.
+
+\end{descr}
 
 
 \section{Derived proof schemes}
