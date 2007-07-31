@@ -124,7 +124,6 @@ lemma ex_distrib: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\<exists>
 lemmas dnf_simps = weak_dnf_simps nnf_simps ex_distrib
 
 use "Tools/Qelim/langford.ML"
-
 method_setup dlo = {*
   Method.ctxt_args (Method.SIMPLE_METHOD' o LangfordQE.dlo_tac)
 *} "Langford's algorithm for quantifier elimination in dense linear orders"
@@ -139,12 +138,6 @@ apply (rule conjI)
 apply (rule less_half_sum, simp)
 apply (rule gt_half_sum, simp)
 done
-
-lemma (in dense_linear_order) "\<forall>a b. (\<exists>x. a \<sqsubset> x \<and> x\<sqsubset> b) \<longleftrightarrow> (a \<sqsubset> b)"
-  by dlo
-
-lemma "\<forall>(a::'a::ordered_field) b. (\<exists>x. a < x \<and> x< b) \<longleftrightarrow> (a < b)"
-  by dlo
 
 section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields -- see @{text "Arith_Tools.thy"} *}
 
@@ -561,4 +554,4 @@ method_setup ferrack = {*
   Method.ctxt_args (Method.SIMPLE_METHOD' o FerranteRackoff.dlo_tac)
 *} "Ferrante and Rackoff's algorithm for quantifier elimination in dense linear orders"
 
-end
+end 
