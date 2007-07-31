@@ -8,6 +8,9 @@ header {* Classical first-order logic *}
 theory FOL
 imports IFOL
 uses
+  "~~/src/Provers/classical.ML"
+  "~~/src/Provers/blast.ML"
+  "~~/src/Provers/clasimp.ML"
   ("cladata.ML")
   ("blastdata.ML")
   ("simpdata.ML")
