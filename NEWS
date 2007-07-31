@@ -161,6 +161,23 @@ LHS means that more general c('a * 'b) will be disallowed on any RHS.
 Command 'print_theory' outputs the normalized system of recursive
 equations, see section "definitions".
 
+* Configuration options are maintained within the theory or proof
+context (with name and type bool/int/string), providing a very simple
+interface to a poor-man's version of general context data.  Tools may
+declare options in ML (e.g. using ConfigOption.int) and then refer to
+these values using ConfigOption.get etc.  Users may change options via
+the "option" attribute, which works particularly well with commands
+'declare' or 'using', for example ``declare [[option foo = 42]]''.
+Thus global reference variables are easily avoided, which do not
+observe Isar toplevel undo/redo and fail to work with multithreading.
+
+* Named collections of theorems may be easily installed as context
+data using the functor NamedThmsFun (see
+src/Pure/Tools/named_thms.ML).  The user may add or delete facts via
+attributes.  This is just a common case of general context data, which
+is the preferred way for anything more complex than just a list of
+facts in canonical order.
+
 * Isar: command 'declaration' augments a local theory by generic
 declaration functions written in ML.  This enables arbitrary content
 being added to the context, depending on a morphism that tells the
