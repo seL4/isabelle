@@ -96,6 +96,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Tools/Groebner_Basis/groebner.ML Tools/Groebner_Basis/misc.ML		\
   Tools/Groebner_Basis/normalizer.ML					\
   Tools/Groebner_Basis/normalizer_data.ML Tools/Qelim/cooper.ML		\
+  Tools/Qelim/langford_data.ML Tools/Qelim/langford.ML		\
   Tools/Qelim/cooper_data.ML Tools/Qelim/ferrante_rackoff.ML		\
   Tools/Qelim/ferrante_rackoff_data.ML Tools/Qelim/generated_cooper.ML	\
   Tools/Qelim/presburger.ML Tools/Qelim/qelim.ML			\
