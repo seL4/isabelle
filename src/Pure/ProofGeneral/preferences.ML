@@ -149,7 +149,10 @@ val proof_preferences =
 	       "Take a few short cuts",
      bool_pref Toplevel.skip_proofs
 	       "skip-proofs"
-	       "Skip over proofs (interactive-only)"]
+	       "Skip over proofs (interactive-only)",
+     nat_pref Multithreading.max_threads
+	       "max-threads"
+	       "Maximum number of threads"]
 
 val preferences = 
     [("Display", display_preferences),
