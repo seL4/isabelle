@@ -6,7 +6,4 @@
 Examples for Classical Computational Logic.
 *)
 
-time_use_thy "Nat";
-time_use_thy "List";
-time_use_thy "Stream";
-time_use_thy "Flag";
+use_thys ["Nat", "List", "Stream", "Flag"];

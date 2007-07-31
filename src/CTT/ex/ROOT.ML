@@ -6,7 +6,4 @@
 Examples for Constructive Type Theory. 
 *)
 
-use_thy "Typechecking";
-use_thy "Elimination";
-use_thy "Equality";
-use_thy "Synthesis";
+use_thys ["Typechecking", "Elimination", "Equality", "Synthesis"];

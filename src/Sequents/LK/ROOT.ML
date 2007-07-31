@@ -6,7 +6,5 @@
 Examples for Classical Logic.
 *)
 
-use_thy "Propositional";
-use_thy "Quantifiers";
-use_thy "Hard_Quantifiers";
-use_thy "Nat";
+use_thys ["Propositional", "Quantifiers", "Hard_Quantifiers", "Nat"];
+

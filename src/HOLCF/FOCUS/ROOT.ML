@@ -6,9 +6,4 @@ ROOT file for the FOCUS extension of HOLCF.
 See README.html for further information.
 *)
 
-val banner = "HOLCF/FOCUS";
-writeln banner;
-
-with_path "~~/src/HOLCF/ex" use_thy "Fstreams";
-use_thy "FOCUS";
-use_thy "Buffer_adm";
+use_thys ["Fstreams", "FOCUS", "Buffer_adm"];

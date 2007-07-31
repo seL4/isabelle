@@ -6,8 +6,4 @@
 The Lambda-Cube a la Barendregt.
 *)
 
-val banner = "Barendregt's Lambda-Cube";
-writeln banner;
-
-use_thy "Cube";
-use_thy "Example";
+use_thys ["Cube", "Example"];
