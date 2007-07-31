@@ -175,7 +175,7 @@ val browser_info = ref empty_browser_info;
 fun change_browser_info f = CRITICAL (fn () => change browser_info (map_browser_info f));
 
 val suppress_tex_source = ref false;
-fun no_document f x = Library.setmp suppress_tex_source true f x;
+fun no_document f x = setmp_noncritical suppress_tex_source true f x;
 
 fun init_theory_info name info =
   change_browser_info (fn (theories, files, tex_index, html_index, graph) =>
