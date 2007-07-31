@@ -527,6 +527,8 @@ fun register_thy name =
   let
     val _ = priority ("Registering theory " ^ quote name);
     val _ = get_theory name;
+    val _ = map get_theory (get_parents name);
+    val _ = check_unfinished error name;
     val _ = touch_thy name;
     val files = check_files name;
     val master = #master (ThyLoad.deps_thy Path.current name false);
