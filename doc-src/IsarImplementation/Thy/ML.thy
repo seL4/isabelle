@@ -4,17 +4,19 @@ theory "ML" imports base begin
 
 chapter {* Aesthetics of ML programming *}
 
+section {* Style *}
+
 text FIXME
 
 text {* This style guide is loosely based on
   \url{http://caml.inria.fr/resources/doc/guides/guidelines.en.html}.
 %  FIMXE \url{http://www.cs.cornell.edu/Courses/cs312/2003sp/handouts/style.htm}
 
-  Like any style guide, it should not be interpreted dogmatically.
-  Instead, it forms a collection of recommendations which,
-  if obeyed, result in code that is not considered to be
-  obfuscated.  In certain cases, derivations are encouraged,
-  as far as you know what you are doing.
+  Like any style guide, it should not be interpreted dogmatically, but
+  with care and discernment.  Instead, it forms a collection of
+  recommendations which, if obeyed, result in code that is not
+  considered to be obfuscated.  In certain cases, derivations are
+  encouraged, as far as you know what you are doing.
 
   \begin{description}
 
@@ -35,20 +37,25 @@ text {* This style guide is loosely based on
       \begin{itemize}
 
         \item The space bar is the easiest key to find on the keyboard,
-          press it as often as necessary. {\ttfamily 2 + 2} is better
-          than {\ttfamily 2+2}, likewise {\ttfamily f (x, y)}
-          better than {\ttfamily f(x,y)}.
+          press it as often as necessary. @{verbatim "2 + 2"} is better
+          than @{verbatim "2+2"}, likewise @{verbatim "f (x, y)"} is
+          better than @{verbatim "f(x,y)"}.
 
-        \item Restrict your lines to \emph{at most} 80 characters.
-          This will allow you to keep the beginning of a line
-          in view while watching its end.
+        \item Restrict your lines to 80 characters.  This will allow
+          you to keep the beginning of a line in view while watching
+          its end.\footnote{To acknowledge the lax practice of
+          text editing these days, we tolerate as much as 100
+          characters per line, but anything beyond 120 is not
+          considered proper source text.}
 
-        \item Ban tabs; they are a context-sensitive formatting
-          feature and likely to confuse anyone not using your
-          favourite editor.
+        \item Ban tabulators; they are a context-sensitive formatting
+          feature and likely to confuse anyone not using your favorite
+          editor.\footnote{Some modern programming language even
+          forbid tabulators altogether according to the formal syntax
+          definition.}
 
         \item Get rid of trailing whitespace.  Instead, do not
-          surpess a trailing newline at the end of your files.
+          suppress a trailing newline at the end of your files.
 
         \item Choose a generally accepted style of indentation,
           then use it systematically throughout the whole
@@ -58,7 +65,7 @@ text {* This style guide is loosely based on
       \end{itemize}
 
     \item[cut-and-paste succeeds over copy-and-paste]
-      \emph{Never} copy-and-paste code when programming.  If you
+       \emph{Never} copy-and-paste code when programming.  If you
         need the same piece of code twice, introduce a
         reasonable auxiliary function (if there is no
         such function, very likely you got something wrong).
@@ -72,21 +79,203 @@ text {* This style guide is loosely based on
       over efforts to explain nasty code.
 
     \item[functional programming is based on functions]
-      Avoid ``constructivisms'', e.g. pass a table lookup function,
-      rather than an actual table with lookup in body.  Accustom
-      your way of codeing to the level of expressiveness
-      a functional programming language is giving onto you.
+      Avoid ``constructivisms'', i.e.\ unnecessary concrete datatype
+      representations.  Instead model things as abstract as
+      appropriate.  For example, pass a table lookup function rather
+      than a concrete table with lookup performed in body.  Accustom
+      your way of coding to the level of expressiveness a functional
+      programming language is giving onto you.
 
     \item[tuples]
       are often in the way.  When there is no striking argument
       to tuple function arguments, just write your function curried.
 
     \item[telling names]
-      Any name should tell its purpose as exactly as possible,
-      while keeping its length to the absolutely neccessary minimum.
-      Always give the same name to function arguments which
-      have the same meaning. Separate words by underscores
-      (``@{verbatim int_of_string}'', not ``@{verbatim intOfString}'')
+      Any name should tell its purpose as exactly as possible, while
+      keeping its length to the absolutely necessary minimum.  Always
+      give the same name to function arguments which have the same
+      meaning. Separate words by underscores (@{verbatim
+      int_of_string}, not @{verbatim intOfString}).\footnote{Some
+      recent tools for Emacs include special precautions to cope with
+      bumpy names in @{text "camelCase"}, e.g.\ for improved on-screen
+      readability.  It is easier to abstain from using such names in the
+      first place.}
+
+  \end{description}
+*}
+
+
+section {* Thread-safe programming *}
+
+text {*
+  Recent versions of Poly/ML (5.1 or later) support multithreaded
+  execution based on native operating system threads of the
+  underlying platform.  Thus threads will actually be executed in
+  parallel on multi-core systems.  A speedup-factor of approximately
+  2--4 can be expected for large well-structured Isabelle sessions,
+  where theories are organized as a graph with sufficiently many
+  independent nodes.
+
+  Threads lack the memory protection of separate processes, but
+  operate concurrently on shared heap memory.  This has the advantage
+  that results of independent computations are immediately available
+  to other threads, without requiring explicit communication,
+  reloading, or even recoding of data.
+
+  On the other hand, some programming guidelines need to be observed
+  in order to make unprotected parallelism work out smoothly.  While
+  the ML system implementation is responsible to maintain basic
+  integrity of the representation of ML values in memory, the
+  application programmer needs to ensure that multithreaded execution
+  does not break the intended semantics.
+
+  \medskip \paragraph{Critical shared resources.} Actually only those
+  parts outside the purely functional world of ML are critical.  In
+  particular, this covers
+
+  \begin{itemize}
+
+  \item global references (or arrays), i.e.\ those that persist over
+  several invocations of associated operations,\footnote{This is
+  independent of the visibility of such mutable values in the toplevel
+  scope.}
+
+  \item global ML bindings in the toplevel environment (@{verbatim
+  "type"}, @{verbatim val}, @{verbatim "structure"} etc.) due to
+  run-time invocation of the compiler,
+
+  \item direct I/O on shared channels, notably @{text "stdin"}, @{text
+  "stdout"}, @{text "stderr"}.
+
+  \end{itemize}
+
+  The majority of tools implemented within the Isabelle/Isar framework
+  will not require any of these critical elements: nothing special
+  needs to be observed when staying in the purely functional fragment
+  of ML.  Note that output via the official Isabelle channels does not
+  even count as direct I/O in the above sense, so the operations @{ML
+  "writeln"}, @{ML "warning"}, @{ML "tracing"} etc.\ are safe.
+
+  \paragraph{Multithreading in Isabelle/Isar.}  Our parallel execution
+  model is centered around the theory loader.  Whenever a given
+  subgraph of theories needs to be updated, the system schedules a
+  number of threads to process the sources as required, while
+  observing their dependencies.  Thus concurrency is limited to
+  independent nodes according to the theory import relation.
+
+  Any user-code that works relatively to the present background theory
+  is already safe.  Contextual data may be easily stored within the
+  theory or proof context, thanks to the generic context data concept
+  of Isabelle/Isar (see \secref{sec:context-data}).  This greatly
+  diminishes the demand for global state information in the first
+  place.
+
+  \medskip In rare situations where actual mutable content needs to be
+  manipulated, Isabelle provides a single \emph{critical section} that
+  may be entered while preventing any other thread from doing the
+  same.  Entering the critical section without contention is very
+  fast, and several basic system operations do so frequently.  This
+  also means that each thread should leave the critical section
+  quickly, otherwise parallel execution performance may degrade
+  significantly.
+
+  Despite this potential bottle-neck, we refrain from fine-grained
+  locking mechanisms: the restriction to a single lock prevents
+  deadlocks without demanding further considerations in user programs.
+
+  \paragraph{Good conduct of impure programs.} The following
+  guidelines enable non-functional programs to participate in
+  multithreading.
+
+  \begin{itemize}
+
+  \item Minimize global state information.  Using proper theory and
+  proof context data will actually return to functional update of
+  values, without any special precautions for multithreading.  Apart
+  from the fully general functors for theory and proof data (see
+  \secref{sec:context-data}) there are drop-in replacements that
+  emulate primitive references for the most basic cases of
+  \emph{configuration options} for type @{ML_type "bool"}/@{ML_type
+  "int"}/@{ML_type "string"} (see structure @{ML_struct ConfigOption})
+  and lists of theorems (see functor @{ML_functor NamedThmsFun}).
+
+  \item Keep components with local state information
+  \emph{re-entrant}.  Instead of poking initial values into (private)
+  global references, create a new state record on each invocation, and
+  pass that through any auxiliary functions of the component.  The
+  state record may well contain mutable references, without requiring
+  any special synchronizations, as long as each invocation sees its
+  own copy.  Occasionally, one might even return to plain functional
+  updates on non-mutable record values here.
+
+  \item Isolate process configuration flags.  The main legitimate
+  application of global references is to configure the whole process
+  in a certain way, essentially affecting all threads.  A typical
+  example is the @{ML show_types} flag, which tells the pretty printer
+  to output explicit type information for terms.  Such flags usually
+  do not affect the functionality of the core system, but only the
+  output being presented to the user.
+
+  Occasionally, such global process flags are treated like implicit
+  arguments to certain operations, by using the @{ML setmp} combinator
+  for safe temporary assignment.  Traditionally its main purpose was
+  to ensure proper recovery of the original value when exceptions are
+  raised in the body.  Now the functionality is extended to enter the
+  \emph{critical section}, with its usual potential of degrading
+  parallelism.
+
+  Note that recovery of plain value passing semantics via @{ML
+  setmp}~@{text "ref value"} assumes that this @{text "ref"} is
+  exclusively manipulated within the critical section.  In particular,
+  any persistent global assignment of @{text "ref := value"} needs to
+  be marked critical as well, to prevent intruding another threads
+  local view, and a lost-update in the global scope, too.
+
+  \item Minimize global ML bindings.  Processing theories occasionally
+  affects the global ML environment as well.  While each ML
+  compilation unit is safe, the order of scheduling of independent
+  declarations might cause problems when composing several modules
+  later on, due to hiding of previous ML names.
+
+  This cannot be helped in general, because the ML toplevel lacks the
+  graph structure of the Isabelle theory space.  Nevertheless, some
+  sound conventions of keeping global ML names essentially disjoint
+  (e.g.\ with the help of ML structures) prevents the problem to occur
+  in most practical situations.
+
+  \end{itemize}
+
+  Recall that in an open ``LCF-style'' system like Isabelle/Isar, the
+  user participates in constructing the overall environment.  This
+  means that state-based facilities offered by one component need to
+  be used with caution later on.  Minimizing critical elements, by
+  staying within the plain value-oriented view relative to theory or
+  proof contexts most of the time, will also reduce the chance of
+  mishaps occurring to end-users.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML NAMED_CRITICAL: "string -> (unit -> 'a) -> 'a"} \\
+  @{index_ML CRITICAL: "(unit -> 'a) -> 'a"} \\
+  @{index_ML setmp: "'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML NAMED_CRITICAL}~@{text "name f"} evaluates @{text "f ()"}
+  while staying within the critical section.  The @{text "name"}
+  argument serves for diagnostic output and might help to determine
+  sources of congestion.
+
+  \item @{ML CRITICAL} is the same as @{ML NAMED_CRITICAL} with empty
+  name argument.
+
+  \item @{ML setmp}~@{text "ref value f x"} evaluates @{text "f x"}
+  while staying within the critical section and having @{text "ref :=
+  value"} assigned temporarily.  This recovers a value-passing
+  semantics involving global references, regardless of exceptions or
+  concurrency.
 
   \end{description}
 *}
@@ -104,7 +293,7 @@ section {* Linear transformations *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML "(op |>)": "'a * ('a -> 'b) -> 'b"} \\
+  @{index_ML "op |> ": "'a * ('a -> 'b) -> 'b"} \\
   @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
   @{index_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
   \end{mldecls}
@@ -167,10 +356,10 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML "(op |->)": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
-  @{index_ML "(op |>>)": "('a * 'c) * ('a -> 'b) -> 'b * 'c"} \\
-  @{index_ML "(op ||>)": "('c * 'a) * ('a -> 'b) -> 'c * 'b"} \\
-  @{index_ML "(op ||>>)": "('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b"} \\
+  @{index_ML "op |-> ": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
+  @{index_ML "op |>> ": "('a * 'c) * ('a -> 'b) -> 'b * 'c"} \\
+  @{index_ML "op ||> ": "('c * 'a) * ('a -> 'b) -> 'c * 'b"} \\
+  @{index_ML "op ||>> ": "('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b"} \\
   @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
   \end{mldecls}
 *}
@@ -181,11 +370,11 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML "(op #>)": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
-  @{index_ML "(op #->)": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
-  @{index_ML "(op #>>)": "('a -> 'c * 'b) * ('c -> 'd) -> 'a -> 'd * 'b"} \\
-  @{index_ML "(op ##>)": "('a -> 'c * 'b) * ('b -> 'd) -> 'a -> 'c * 'd"} \\
-  @{index_ML "(op ##>>)": "('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd"} \\
+  @{index_ML "op #> ": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
+  @{index_ML "op #-> ": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
+  @{index_ML "op #>> ": "('a -> 'c * 'b) * ('c -> 'd) -> 'a -> 'd * 'b"} \\
+  @{index_ML "op ##> ": "('a -> 'c * 'b) * ('b -> 'd) -> 'a -> 'c * 'd"} \\
+  @{index_ML "op ##>> ": "('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd"} \\
   \end{mldecls}
 *}
 
@@ -197,7 +386,7 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML "(op `)": "('b -> 'a) -> 'b -> 'a * 'b"} \\
+  @{index_ML "op ` ": "('b -> 'a) -> 'b -> 'a * 'b"} \\
   @{index_ML tap: "('b -> 'a) -> 'b -> 'b"} \\
   \end{mldecls}
 *}
@@ -222,14 +411,15 @@ text %mlref {*
 *}
 
 text {*
-  Standard selector functions on @{text option}s are provided.
-  The @{ML try} and @{ML can} functions provide a convenient
-  interface for handling exceptions -- both take as arguments
-  a function @{text f} together with a parameter @{text x}
-  and catch any exception during the evaluation of the application
-  of @{text f} to @{text x}, either return a lifted result
-  (@{ML NONE} on failure) or a boolean value (@{ML false} on failure).
+  Standard selector functions on @{text option}s are provided.  The
+  @{ML try} and @{ML can} functions provide a convenient interface for
+  handling exceptions -- both take as arguments a function @{text f}
+  together with a parameter @{text x} and handle any exception during
+  the evaluation of the application of @{text f} to @{text x}, either
+  return a lifted result (@{ML NONE} on failure) or a boolean value
+  (@{ML false} on failure).
 *}
+
 
 section {* Common data structures *}
 
@@ -257,7 +447,7 @@ text {*
 
   Functions are parametrized by an explicit equality function
   to accomplish overloaded equality;  in most cases of monomorphic
-  equality, writing @{ML "(op =)"} should suffice.
+  equality, writing @{ML "op ="} should suffice.
 *}
 
 subsection {* Association lists *}
