@@ -76,7 +76,7 @@ signature BLAST =
     | $  of term*term;
   type branch
   val depth_tac         : claset -> int -> int -> tactic
-  val depth_limit : int ref
+  val depth_limit: int ConfigOption.T
   val blast_tac         : claset -> int -> tactic
   val Blast_tac         : int -> tactic
   val setup             : theory -> theory
@@ -1274,10 +1274,11 @@ fun timing_depth_tac start cs lim i st0 =
 (*Public version with fixed depth*)
 fun depth_tac cs lim i st = timing_depth_tac (start_timing ()) cs lim i st;
 
-val depth_limit = ref 20;
+val (depth_limit, setup_depth_limit) = ConfigOption.global_int "blast_depth_limit" 20;
 
 fun blast_tac cs i st =
-    ((DEEPEN (1, !depth_limit) (timing_depth_tac (start_timing ()) cs) 0) i
+    ((DEEPEN (1, ConfigOption.get_thy (Thm.theory_of_thm st) depth_limit)
+        (timing_depth_tac (start_timing ()) cs) 0) i
      THEN flexflex_tac) st
     handle TRANS s =>
       ((if !trace then warning ("blast: " ^ s) else ());
@@ -1305,15 +1306,13 @@ fun tryInThy thy lim s =
 
 (** method setup **)
 
-fun blast_args m =
-  Method.bang_sectioned_args'
-      Data.cla_modifiers (Scan.lift (Scan.option Args.nat)) m;
-
-fun blast_meth NONE = Data.cla_meth' blast_tac
-  | blast_meth (SOME lim) = Data.cla_meth' (fn cs => depth_tac cs lim);
+val blast_method =
+  Method.bang_sectioned_args' Data.cla_modifiers (Scan.lift (Scan.option Args.nat))
+    (fn NONE => Data.cla_meth' blast_tac
+      | SOME lim => Data.cla_meth' (fn cs => depth_tac cs lim));
 
 val setup =
-  Method.add_methods [("blast", blast_args blast_meth, "tableau prover")];
-
+  setup_depth_limit #>
+  Method.add_methods [("blast", blast_method, "tableau prover")];
 
 end;
