@@ -7,7 +7,8 @@ Characteristic properties of datatypes.
 
 signature DATATYPE_PROP =
 sig
-  val dtK : int ref
+  val distinctness_limit : int ConfigOption.T
+  val distinctness_limit_setup : theory -> theory
   val indexify_names: string list -> string list
   val make_tnames: typ list -> string list
   val make_injs : DatatypeAux.descr list -> (string * sort) list -> term list list
@@ -39,7 +40,8 @@ struct
 open DatatypeAux;
 
 (*the kind of distinctiveness axioms depends on number of constructors*)
-val dtK = ref 7;
+val (distinctness_limit, distinctness_limit_setup) =
+  ConfigOption.int "datatype_distinctness_limit" 7;
 
 fun indexify_names names =
   let
@@ -277,7 +279,7 @@ fun make_distincts new_type_names descr sorts thy =
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
 
-    (**** number of constructors < dtK : C_i ... ~= C_j ... ****)
+    (**** number of constructors < distinctness_limit : C_i ... ~= C_j ... ****)
 
     fun make_distincts_1 _ [] = []
       | make_distincts_1 T ((cname, cargs)::constrs) =
@@ -303,7 +305,8 @@ fun make_distincts new_type_names descr sorts thy =
           end;
 
   in map (fn (((_, (_, _, constrs)), T), tname) =>
-      if length constrs < !dtK then make_distincts_1 T constrs else [])
+      if length constrs < ConfigOption.get_thy thy distinctness_limit
+      then make_distincts_1 T constrs else [])
         ((hd descr) ~~ newTs ~~ new_type_names)
   end;
 

@@ -930,7 +930,10 @@ val add_datatype = gen_add_datatype read_typ true;
 (* setup theory *)
 
 val setup =
-  Method.add_methods tactic_emulations #> simproc_setup #> trfun_setup;
+  DatatypeProp.distinctness_limit_setup #>
+  Method.add_methods tactic_emulations #>
+  simproc_setup #>
+  trfun_setup;
 
 
 (* outer syntax *)
