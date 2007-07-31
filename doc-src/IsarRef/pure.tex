@@ -1610,37 +1610,21 @@ undo-able.
 
 \subsection{System operations}
 
-\indexisarcmd{cd}\indexisarcmd{pwd}\indexisarcmd{use-thy}\indexisarcmd{use-thy-only}
-\indexisarcmd{update-thy}\indexisarcmd{update-thy-only}\indexisarcmd{display-drafts}
-\indexisarcmd{print-drafts}
+\indexisarcmd{cd}\indexisarcmd{pwd}\indexisarcmd{use-thy}\indexisarcmd{update-thy}
+\indexisarcmd{display-drafts}\indexisarcmd{print-drafts}
 \begin{matharray}{rcl}
   \isarcmd{cd}^* & : & \isarkeep{\cdot} \\
   \isarcmd{pwd}^* & : & \isarkeep{\cdot} \\
   \isarcmd{use_thy}^* & : & \isarkeep{\cdot} \\
-  \isarcmd{use_thy_only}^* & : & \isarkeep{\cdot} \\
   \isarcmd{update_thy}^* & : & \isarkeep{\cdot} \\
-  \isarcmd{update_thy_only}^* & : & \isarkeep{\cdot} \\
   \isarcmd{display_drafts}^* & : & \isarkeep{\cdot} \\
   \isarcmd{print_drafts}^* & : & \isarkeep{\cdot} \\
 \end{matharray}
 
-\railalias{usethy}{use\_thy}
-\railterm{usethy}
-\railalias{usethyonly}{use\_thy\_only}
-\railterm{usethyonly}
-\railalias{updatethy}{update\_thy}
-\railterm{updatethy}
-\railalias{updatethyonly}{update\_thy\_only}
-\railterm{updatethyonly}
-\railalias{displaydrafts}{display\_drafts}
-\railterm{displaydrafts}
-\railalias{printdrafts}{print\_drafts}
-\railterm{printdrafts}
-
 \begin{rail}
-  ('cd' | usethy | usethyonly | updatethy | updatethyonly) name
+  ('cd' | 'use\_thy' | 'update\_thy') name
   ;
-  (displaydrafts | printdrafts) (name +)
+  ('display\_drafts' | 'print\_drafts') (name +)
   ;
 \end{rail}
 
@@ -1648,21 +1632,15 @@ undo-able.
 \item [$\isarkeyword{cd}~path$] changes the current directory of the Isabelle
   process.
 \item [$\isarkeyword{pwd}~$] prints the current working directory.
-\item [$\isarkeyword{use_thy}$, $\isarkeyword{use_thy_only}$,
-  $\isarkeyword{update_thy}$, $\isarkeyword{update_thy_only}$] load some
-  theory given as $name$ argument.  These commands are basically the same as
-  the corresponding ML functions\footnote{The ML versions also change the
-    implicit theory context to that of the theory loaded.}  (see also
-  \cite[\S1,\S6]{isabelle-ref}).  Note that both the ML and Isar versions may
-  load new- and old-style theories alike.
+\item [$\isarkeyword{use_thy}$ and $\isarkeyword{update_thy}$] preload
+  some theory given as $name$ argument.  These system commands are
+  scarcely used when working interactively, since loading of theories
+  is done transparently.
 \item [$\isarkeyword{display_drafts}~paths$ and
   $\isarkeyword{print_drafts}~paths$] perform simple output of a given list of
   raw source files.  Only those symbols that do not require additional
   {\LaTeX} packages are displayed properly, everything else is left verbatim.
 \end{descr}
-
-These system commands are scarcely used when working with the Proof~General
-interface, since loading of theories is done transparently.
 
 %%% Local Variables: 
 %%% mode: latex
