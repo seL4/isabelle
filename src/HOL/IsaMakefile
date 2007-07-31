@@ -160,7 +160,7 @@ HOL-Complex: HOL $(OUT)/HOL-Complex
 $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML $(SRC)/Tools/float.ML \
   Library/Zorn.thy							\
   Real/ContNotDenum.thy Real/float_arith.ML Real/Float.thy		\
-  Real/Lubs.thy Real/PReal.thy Real/RComplete.thy Real/ROOT.ML		\
+  Real/Lubs.thy Real/PReal.thy Real/RComplete.thy 			\
   Real/Rational.thy Real/Real.thy Real/RealDef.thy Real/RealPow.thy	\
   Real/RealVector.thy Real/rat_arith.ML Real/real_arith.ML		\
   Hyperreal/StarDef.thy Hyperreal/StarClasses.thy			\
