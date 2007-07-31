@@ -441,10 +441,9 @@ use "Tools/Qelim/presburger.ML"
 
 declaration {* fn _ =>
   arith_tactic_add
-    (mk_arith_tactic "presburger" (fn i => fn st =>
+    (mk_arith_tactic "presburger" (fn ctxt => fn i => fn st =>
        (warning "Trying Presburger arithmetic ...";   
-    Presburger.cooper_tac true [] [] ((ProofContext.init o theory_of_thm) st) i st)))
-  (* FIXME!!!!!!! get the right context!!*)	
+    Presburger.cooper_tac true [] [] ctxt i st)))
 *}
 
 method_setup presburger = {*
