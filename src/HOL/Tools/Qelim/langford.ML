@@ -4,7 +4,7 @@ sig
   val dlo_conv : Proof.context -> cterm -> thm
 end
 
-structure LangfordQE:LANGFORD_QE = 
+structure LangfordQE :LANGFORD_QE = 
 struct
 
 val dest_set =
@@ -182,6 +182,7 @@ val grab_atom_bop =
        else Thm.dest_fun2 tm
    | Const ("Not", _) $ _ => h bounds (Thm.dest_arg tm)
    | Const ("All", _) $ _ => find_body bounds (Thm.dest_arg tm)
+   | Const ("all", _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const ("Ex", _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const ("op &", _) $ _ $ _ => find_args bounds tm
    | Const ("op |", _) $ _ $ _ => find_args bounds tm
@@ -191,7 +192,7 @@ val grab_atom_bop =
    | Const ("Trueprop", _) $ _ => h bounds (Thm.dest_arg tm)
    | _ => Thm.dest_fun2 tm)
   and find_args bounds tm =
-           (h bounds (Thm.dest_arg tm) handle CTERM _ => Thm.dest_arg1 tm)
+    (h bounds (Thm.dest_arg tm) handle CTERM _ => h bounds (Thm.dest_arg1 tm))
  and find_body bounds b =
    let val (_, b') = Thm.dest_abs (SOME (Name.bound bounds)) b
    in h (bounds + 1) b' end;
@@ -206,12 +207,39 @@ fun dlo_conv ctxt tm =
     (_, NONE) => raise CTERM ("dlo_conv (langford): no corresponding instance in context!", [tm])
   | (ss, SOME instance) => raw_dlo_conv ss instance tm);
 
+fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
+ let 
+   fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
+   fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
+   val ts = sort (fn (a,b) => Term.fast_term_ord (term_of a, term_of b)) (f p)
+   val p' = fold_rev gen ts p
+ in implies_intr p' (implies_elim st (fold forall_elim ts (assume p'))) end));
+
+
+fun cfrees ats ct =
+ let 
+  val ins = insert (op aconvc)
+  fun h acc t = 
+   case (term_of t) of
+    b$_$_ => if member (op aconvc) ats (Thm.dest_fun2 t) 
+                then ins (Thm.dest_arg t) (ins (Thm.dest_arg1 t) acc) 
+                else h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
+  | _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
+  | Abs(_,_,_) => Thm.dest_abs NONE t ||> h acc |> uncurry (remove (op aconvc))
+  | Free _ => if member (op aconvc) ats t then acc else ins t acc
+  | Var _ => if member (op aconvc) ats t then acc else ins t acc
+  | _ => acc
+ in h [] ct end
+
 fun dlo_tac ctxt = CSUBGOAL (fn (p, i) =>
   (case dlo_instance ctxt p of
     (ss, NONE) => simp_tac ss i
   | (ss,  SOME instance) =>
       ObjectLogic.full_atomize_tac i THEN
-      simp_tac ss i THEN  
-      CONVERSION (ObjectLogic.judgment_conv (raw_dlo_conv ss instance)) i 
-      THEN (TRY (simp_tac ss i))));  
+      simp_tac ss i
+      THEN (CONVERSION Thm.eta_long_conversion) i
+      THEN (TRY o generalize_tac (cfrees (#atoms instance))) i
+      THEN ObjectLogic.full_atomize_tac i
+      THEN CONVERSION (ObjectLogic.judgment_conv (raw_dlo_conv ss instance)) i
+      THEN (simp_tac ss i)));  
 end;
