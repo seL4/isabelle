@@ -9,7 +9,7 @@ FOCUS streams (with lifted elements)
 header {* FOCUS flat streams *}
 
 theory Fstream
-imports Stream
+imports "../ex/Stream"
 begin
 
 defaultsort type
