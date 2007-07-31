@@ -305,7 +305,7 @@ val verbatim = preform o output;
 (* document *)
 
 val charset = ref "iso-8859-1";
-fun with_charset s = setmp charset s;
+fun with_charset s = setmp_noncritical charset s;
 
 fun begin_document title =
   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \
