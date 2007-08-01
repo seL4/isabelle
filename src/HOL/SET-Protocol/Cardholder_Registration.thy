@@ -263,7 +263,7 @@ apply (rule_tac [2]
 	 THEN set_cr.SET_CR5 [of concl: C i KC3 NC3 KC2 CardSecret],
 	 THEN Says_to_Gets,  
 	 THEN set_cr.SET_CR6 [of concl: i C KC2]])
-apply (tactic "basic_possibility_tac")
+apply (tactic "PublicSET.basic_possibility_tac")
 apply (simp_all (no_asm_simp) add: symKeys_neq_imp_neq)
 done
 
@@ -540,15 +540,12 @@ lemma Key_analz_image_Key_lemma:
       P --> (Key K \<in> analz (Key`KK Un H)) = (K \<in> KK | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
-ML
-{*
-val Gets_certificate_valid = thm "Gets_certificate_valid";
-
-fun valid_certificate_tac i =
-    EVERY [ftac Gets_certificate_valid i,
+method_setup valid_certificate_tac = {*
+  Method.goal_args (Scan.succeed ()) (fn () => fn i =>
+    EVERY [ftac @{thm Gets_certificate_valid} i,
            assume_tac i,
-           etac conjE i, REPEAT (hyp_subst_tac i)];
-*}
+           etac conjE i, REPEAT (hyp_subst_tac i)])
+*} ""
 
 text{*The @{text "(no_asm)"} attribute is essential, since it retains
   the quantifier and allows the simprule's condition to itself be simplified.*}
@@ -560,8 +557,8 @@ lemma symKey_compromise [rule_format (no_asm)]:
 apply (erule set_cr.induct)
 apply (rule_tac [!] allI) +
 apply (rule_tac [!] impI [THEN Key_analz_image_Key_lemma, THEN impI])+
-apply (tactic{*valid_certificate_tac 8*}) --{*for message 5*}
-apply (tactic{*valid_certificate_tac 6*}) --{*for message 5*}
+apply (valid_certificate_tac [8]) --{*for message 5*}
+apply (valid_certificate_tac [6]) --{*for message 5*}
 apply (erule_tac [9] msg6_KeyCryptKey_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un imp_disjL
@@ -570,7 +567,7 @@ apply (simp_all
               K_fresh_not_KeyCryptKey
               DK_fresh_not_KeyCryptKey ball_conj_distrib
               analz_image_priEK disj_simps)
-  --{*46 seconds on a 1.8GHz machine*}
+  --{*9 seconds on a 1.6GHz machine*}
 apply spy_analz
 apply blast  --{*3*}
 apply blast  --{*5*}
@@ -596,7 +593,7 @@ apply (simp_all del: image_insert image_Un imp_disjL
               K_fresh_not_KeyCryptKey
               DK_fresh_not_KeyCryptKey
               analz_image_priEK)
-  --{*13 seconds on a 1.8GHz machine*}
+  --{*2.5 seconds on a 1.6GHz machine*}
 apply spy_analz  --{*Fake*}
 apply (auto intro: analz_into_parts [THEN usedI] in_parts_Says_imp_used)
 done
@@ -739,7 +736,7 @@ apply (simp_all del: image_insert image_Un
               N_fresh_not_KeyCryptNonce
               DK_fresh_not_KeyCryptNonce K_fresh_not_KeyCryptKey
               ball_conj_distrib analz_image_priEK)
-  --{*71 seconds on a 1.8GHz machine*}
+  --{*14 seconds on a 1.6GHz machine*}
 apply spy_analz  --{*Fake*}
 apply blast  --{*3*}
 apply blast  --{*5*}
@@ -779,11 +776,11 @@ lemma KC2_secure_lemma [rule_format]:
                Cardholder k \<notin> bad & CA i \<notin> bad)"
 apply (erule_tac P = "U \<in> ?H" in rev_mp)
 apply (erule set_cr.induct)
-apply (tactic{*valid_certificate_tac 8*})  --{*for message 5*}
+apply (valid_certificate_tac [8])  --{*for message 5*}
 apply (simp_all del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps analz_knows_absorb
               analz_knows_absorb2 notin_image_iff)
-  --{*19 seconds on a 1.8GHz machine*}
+  --{*4 seconds on a 1.6GHz machine*}
 apply (simp_all (no_asm_simp)) --{*leaves 4 subgoals*}
 apply (blast intro!: analz_insertI)+
 done
@@ -804,8 +801,8 @@ lemma CardSecret_secrecy_lemma [rule_format]:
              \<in> parts (knows Spy evs) -->
           Nonce CardSecret \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct, analz_mono_contra)
-apply (tactic{*valid_certificate_tac 8*}) --{*for message 5*}
-apply (tactic{*valid_certificate_tac 6*}) --{*for message 5*}
+apply (valid_certificate_tac [8]) --{*for message 5*}
+apply (valid_certificate_tac [6]) --{*for message 5*}
 apply (frule_tac [9] msg6_KeyCryptNonce_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un imp_disjL
@@ -815,7 +812,7 @@ apply (simp_all
               N_fresh_not_KeyCryptNonce DK_fresh_not_KeyCryptNonce
               ball_conj_distrib Nonce_compromise symKey_compromise
               analz_image_priEK)
-  --{*12 seconds on a 1.8GHz machine*}
+  --{*2.5 seconds on a 1.6GHz machine*}
 apply spy_analz  --{*Fake*}
 apply (simp_all (no_asm_simp))
 apply blast  --{*1*}
@@ -870,8 +867,8 @@ lemma NonceCCA_secrecy_lemma [rule_format]:
              \<in> parts (knows Spy evs) -->
           Nonce NonceCCA \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct, analz_mono_contra)
-apply (tactic{*valid_certificate_tac 8*}) --{*for message 5*}
-apply (tactic{*valid_certificate_tac 6*}) --{*for message 5*}
+apply (valid_certificate_tac [8]) --{*for message 5*}
+apply (valid_certificate_tac [6]) --{*for message 5*}
 apply (frule_tac [9] msg6_KeyCryptNonce_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un imp_disjL
@@ -881,7 +878,7 @@ apply (simp_all
               N_fresh_not_KeyCryptNonce DK_fresh_not_KeyCryptNonce
               ball_conj_distrib Nonce_compromise symKey_compromise
               analz_image_priEK)
-  --{*15 seconds on a 1.8GHz machine*}
+  --{*3 seconds on a 1.6GHz machine*}
 apply spy_analz  --{*Fake*}
 apply blast  --{*1*}
 apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])  --{*2*}
@@ -941,14 +938,14 @@ lemma analz_image_pan [rule_format]:
 apply (erule set_cr.induct)
 apply (rule_tac [!] allI impI)+
 apply (rule_tac [!] analz_image_pan_lemma)
-apply (tactic{*valid_certificate_tac 8*}) --{*for message 5*}
-apply (tactic{*valid_certificate_tac 6*}) --{*for message 5*}
+apply (valid_certificate_tac [8]) --{*for message 5*}
+apply (valid_certificate_tac [6]) --{*for message 5*}
 apply (erule_tac [9] msg6_cardSK_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un
          add: analz_image_keys_simps disjoint_image_iff
               notin_image_iff analz_image_priEK)
-  --{*33 seconds on a 1.8GHz machine*}
+  --{*6 seconds on a 1.6GHz machine*}
 apply spy_analz
 apply (simp add: insert_absorb)  --{*6*}
 done
@@ -972,14 +969,14 @@ lemma pan_confidentiality:
       & (CA i) \<in> bad"
 apply (erule rev_mp)
 apply (erule set_cr.induct)
-apply (tactic{*valid_certificate_tac 8*}) --{*for message 5*}
-apply (tactic{*valid_certificate_tac 6*}) --{*for message 5*}
+apply (valid_certificate_tac [8]) --{*for message 5*}
+apply (valid_certificate_tac [6]) --{*for message 5*}
 apply (erule_tac [9] msg6_cardSK_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff analz_image_priEK)
-  --{*18 seconds on a 1.8GHz machine*}
+  --{*3.5 seconds on a 1.6GHz machine*}
 apply spy_analz  --{*fake*}
 apply blast  --{*3*}
 apply blast  --{*5*}

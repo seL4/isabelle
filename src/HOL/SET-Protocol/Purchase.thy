@@ -335,7 +335,7 @@ apply (rule_tac [2]
 	  THEN set_pur.AuthResUns [of concl: "PG j" M KP LID_M XID],
           THEN Says_to_Gets, 
 	  THEN set_pur.PRes]) 
-apply (tactic "basic_possibility_tac")
+apply (tactic "PublicSET.basic_possibility_tac")
 apply (simp_all add: used_Cons symKeys_neq_imp_neq) 
 done
 
@@ -371,7 +371,7 @@ apply (rule_tac [2]
 	  THEN set_pur.AuthResS [of concl: "PG j" M KP LID_M XID],
           THEN Says_to_Gets, 
 	  THEN set_pur.PRes]) 
-apply (tactic "basic_possibility_tac")
+apply (tactic "PublicSET.basic_possibility_tac")
 apply (auto simp add: used_Cons symKeys_neq_imp_neq) 
 done
 
@@ -476,14 +476,11 @@ lemma Gets_certificate_valid [simp]:
       ==> EK = pubEK C"
 by (frule Gets_imp_Says, auto)
 
-ML
-{*
-val Gets_certificate_valid = thm "Gets_certificate_valid";
-
-fun valid_certificate_tac i =
-    EVERY [ftac Gets_certificate_valid i,
-           assume_tac i, REPEAT (hyp_subst_tac i)];
-*}
+method_setup valid_certificate_tac = {*
+  Method.goal_args (Scan.succeed ()) (fn () => fn i =>
+    EVERY [ftac @{thm Gets_certificate_valid} i,
+           assume_tac i, REPEAT (hyp_subst_tac i)])
+*} ""
 
 
 subsection{*Proofs on Symmetric Keys*}
@@ -494,8 +491,8 @@ lemma new_keys_not_used [rule_format,simp]:
       ==> Key K \<notin> used evs --> K \<in> symKeys -->
           K \<notin> keysFor (parts (knows Spy evs))"
 apply (erule set_pur.induct)
-apply (tactic{*valid_certificate_tac 8*}) --{*PReqS*}
-apply (tactic{*valid_certificate_tac 7*}) --{*PReqUns*}
+apply (valid_certificate_tac [8]) --{*PReqS*}
+apply (valid_certificate_tac [7]) --{*PReqUns*}
 apply auto
 apply (force dest!: usedI keysFor_parts_insert) --{*Fake*}
 done
@@ -556,14 +553,14 @@ apply (erule set_pur.induct)
 apply (rule_tac [!] allI)+
 apply (rule_tac [!] impI [THEN Key_analz_image_Key_lemma, THEN impI])+
 apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (tactic{*valid_certificate_tac 8*}) --{*PReqS*}
-apply (tactic{*valid_certificate_tac 7*}) --{*PReqUns*}
+apply (valid_certificate_tac [8]) --{*PReqS*}
+apply (valid_certificate_tac [7]) --{*PReqUns*}
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*35 seconds on a 1.8GHz machine*}
+  --{*8 seconds on a 1.6GHz machine*}
 apply spy_analz --{*Fake*}
 apply (blast elim!: ballE)+ --{*PReq: unsigned and signed*}
 done
@@ -589,14 +586,14 @@ apply (erule set_pur.induct)
 apply (rule_tac [!] allI)+
 apply (rule_tac [!] impI [THEN Nonce_analz_image_Key_lemma])+
 apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (tactic{*valid_certificate_tac 8*}) --{*PReqS*}
-apply (tactic{*valid_certificate_tac 7*}) --{*PReqUns*}
+apply (valid_certificate_tac [8]) --{*PReqS*}
+apply (valid_certificate_tac [7]) --{*PReqUns*}
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps symKey_compromise
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*35 seconds on a 1.8GHz machine*}
+  --{*8 seconds on a 1.6GHz machine*}
 apply spy_analz --{*Fake*}
 apply (blast elim!: ballE) --{*PReqS*}
 done
@@ -611,14 +608,14 @@ lemma PANSecret_notin_spies:
 apply (erule rev_mp)
 apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_analz_spies)
-apply (tactic{*valid_certificate_tac 8*}) --{*PReqS*}
+apply (valid_certificate_tac [8]) --{*PReqS*}
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps
               symKey_compromise pushes sign_def Nonce_compromise
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*13 seconds on a 1.8GHz machine*}
+  --{*2.5 seconds on a 1.6GHz machine*}
 apply spy_analz
 apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])
 apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj] 
@@ -653,15 +650,15 @@ apply (erule set_pur.induct)
 apply (rule_tac [!] allI impI)+
 apply (rule_tac [!] analz_image_pan_lemma)+
 apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (tactic{*valid_certificate_tac 8*}) --{*PReqS*}
-apply (tactic{*valid_certificate_tac 7*}) --{*PReqUns*}
+apply (valid_certificate_tac [8]) --{*PReqS*}
+apply (valid_certificate_tac [7]) --{*PReqUns*}
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps
               symKey_compromise pushes sign_def
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*32 seconds on a 1.8GHz machine*}
+  --{*7 seconds on a 1.6GHz machine*}
 apply spy_analz --{*Fake*}
 apply auto
 done
@@ -684,14 +681,14 @@ theorem pan_confidentiality_unsigned:
 apply (erule rev_mp)
 apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (tactic{*valid_certificate_tac 8*}) --{*PReqS*}
-apply (tactic{*valid_certificate_tac 7*}) --{*PReqUns*}
+apply (valid_certificate_tac [8]) --{*PReqS*}
+apply (valid_certificate_tac [7]) --{*PReqUns*}
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*15 seconds on a 1.8GHz machine*}
+  --{*3 seconds on a 1.6GHz machine*}
 apply spy_analz --{*Fake*}
 apply blast --{*PReqUns: unsigned*}
 apply force --{*PReqS: signed*}
@@ -708,14 +705,14 @@ theorem pan_confidentiality_signed:
 apply (erule rev_mp)
 apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (tactic{*valid_certificate_tac 8*}) --{*PReqS*}
-apply (tactic{*valid_certificate_tac 7*}) --{*PReqUns*}
+apply (valid_certificate_tac [8]) --{*PReqS*}
+apply (valid_certificate_tac [7]) --{*PReqUns*}
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*17 seconds on a 1.8GHz machine*}
+  --{*3 seconds on a 1.6GHz machine*}
 apply spy_analz --{*Fake*}
 apply force --{*PReqUns: unsigned*}
 apply blast --{*PReqS: signed*}
@@ -861,7 +858,7 @@ lemma C_determines_EKj:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct, simp_all)
-apply (tactic{*valid_certificate_tac 2*}) --{*PReqUns*}
+apply (valid_certificate_tac [2]) --{*PReqUns*}
 apply auto
 apply (blast dest: Gets_imp_Says Says_C_PInitRes)
 done

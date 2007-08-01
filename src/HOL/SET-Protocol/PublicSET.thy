@@ -345,19 +345,16 @@ subsection{*Specialized Methods for Possibility Theorems*}
 
 ML
 {*
-val Nonce_supply1 = thm "Nonce_supply1";
-val Nonce_supply = thm "Nonce_supply";
-
-val used_Says = thm "used_Says";
-val used_Notes = thm "used_Notes";
+structure PublicSET =
+struct
 
 (*Tactic for possibility theorems (Isar interface)*)
 fun gen_possibility_tac ss state = state |>
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (ss delsimps [used_Says,used_Notes]))
+    (ALLGOALS (simp_tac (ss delsimps [@{thm used_Says}, @{thm used_Notes}]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
-                   resolve_tac [refl, conjI, Nonce_supply]))
+                   resolve_tac [refl, conjI, @{thm Nonce_supply}]))
 
 (*Tactic for possibility theorems (ML script version)*)
 fun possibility_tac state = gen_possibility_tac (simpset_of (Thm.theory_of_thm state)) state
@@ -369,11 +366,13 @@ fun basic_possibility_tac st = st |>
     (ALLGOALS (asm_simp_tac (simpset_of (Thm.theory_of_thm st) setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
+
+end
 *}
 
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (gen_possibility_tac (local_simpset_of ctxt))) *}
+        Method.SIMPLE_METHOD (PublicSET.gen_possibility_tac (local_simpset_of ctxt))) *}
     "for proving possibility theorems"
 
 

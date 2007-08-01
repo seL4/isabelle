@@ -289,7 +289,7 @@ apply (simp_all del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps abbrev_simps analz_knows_absorb
               analz_knows_absorb2 analz_Key_image_insert_eq notin_image_iff
               Spy_analz_private_Key analz_image_priEK)
-  --{*23 seconds on a 1.8GHz machine*}
+  --{*5 seconds on a 1.6GHz machine*}
 apply spy_analz  --{*Fake*}
 apply auto  --{*Message 3*}
 done

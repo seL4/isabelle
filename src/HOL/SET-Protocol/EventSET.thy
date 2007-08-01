@@ -182,7 +182,7 @@ ML
 val analz_mono_contra_tac = 
   let val analz_impI = inst "P" "?Y \<notin> analz (knows Spy ?evs)" impI
   in rtac analz_impI THEN' 
-     REPEAT1 o (dresolve_tac (thms"analz_mono_contra")) THEN'
+     REPEAT1 o (dresolve_tac @{thms analz_mono_contra}) THEN'
      mp_tac
   end
 *}
