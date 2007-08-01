@@ -63,7 +63,7 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   Tools/codegen_package.ML Tools/codegen_serializer.ML Tools/codegen_thingol.ML	\
   Tools/invoke.ML Tools/named_thms.ML Tools/nbe.ML Tools/nbe_codegen.ML		\
   Tools/nbe_eval.ML Tools/xml.ML Tools/xml_syntax.ML assumption.ML axclass.ML 	\
-  codegen.ML compress.ML config_option.ML conjunction.ML consts.ML context.ML	\
+  codegen.ML compress.ML config.ML conjunction.ML consts.ML context.ML		\
   context_position.ML conv.ML defs.ML display.ML drule.ML envir.ML		\
   fact_index.ML goal.ML library.ML logic.ML meta_simplifier.ML	\
   more_thm.ML morphism.ML name.ML net.ML old_goals.ML pattern.ML proofterm.ML	\

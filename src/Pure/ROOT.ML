@@ -27,6 +27,7 @@ use "sorts.ML";
 use "type.ML";
 use "context.ML";
 use "context_position.ML";
+use "config.ML";
 use "compress.ML";
 use "type_infer.ML";
 
@@ -48,7 +49,6 @@ use "envir.ML";
 use "logic.ML";
 use "consts.ML";
 use "sign.ML";
-use "config_option.ML";
 use "pattern.ML";
 use "unify.ML";
 use "net.ML";
