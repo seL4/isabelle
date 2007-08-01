@@ -9,7 +9,6 @@ signature NAMED_THMS =
 sig
   val get: Proof.context -> thm list
   val pretty: Proof.context -> Pretty.T
-  val print: Proof.context -> unit
   val add: attribute
   val del: attribute
   val setup: theory -> theory
@@ -31,12 +30,16 @@ val get = Data.get o Context.Proof;
 fun pretty ctxt =
   Pretty.big_list (description ^ ":") (map (ProofContext.pretty_thm ctxt) (get ctxt));
 
-val print = Pretty.writeln o pretty;
-
 val add = Thm.declaration_attribute (Data.map o Thm.add_thm);
 val del = Thm.declaration_attribute (Data.map o Thm.del_thm);
 
 val setup =
   Attrib.add_attributes [(name, Attrib.add_del_args add del, "declaration of " ^ description)];
+
+val _ = OuterSyntax.add_parsers
+ [OuterSyntax.improper_command ("print_" ^ name ^ "_rules") ("print " ^ description)
+    OuterKeyword.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+      Toplevel.keep (Pretty.writeln o pretty o Toplevel.context_of)))];
 
 end;
