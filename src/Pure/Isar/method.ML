@@ -382,7 +382,7 @@ fun finish_text (NONE, immed) pos = Basic (close immed, pos)
 
 (* method definitions *)
 
-structure MethodsData = TheoryDataFun
+structure Methods = TheoryDataFun
 (
   type T = (((src -> Proof.context -> method) * string) * stamp) NameSpace.table;
   val empty = NameSpace.empty_table;
@@ -394,7 +394,7 @@ structure MethodsData = TheoryDataFun
 
 fun print_methods thy =
   let
-    val meths = MethodsData.get thy;
+    val meths = Methods.get thy;
     fun prt_meth (name, ((_, comment), _)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
@@ -407,7 +407,7 @@ fun print_methods thy =
 
 fun method_i thy =
   let
-    val meths = #2 (MethodsData.get thy);
+    val meths = #2 (Methods.get thy);
     fun meth src =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup meths name of
@@ -416,7 +416,7 @@ fun method_i thy =
       end;
   in meth end;
 
-fun method thy = method_i thy o Args.map_name (NameSpace.intern (#1 (MethodsData.get thy)));
+fun method thy = method_i thy o Args.map_name (NameSpace.intern (#1 (Methods.get thy)));
 
 
 (* add method *)
@@ -428,7 +428,7 @@ fun add_methods raw_meths thy =
 
     fun add meths = NameSpace.extend_table (Sign.naming_of thy) new_meths meths
       handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup);
-  in MethodsData.map add thy end;
+  in Methods.map add thy end;
 
 val add_method = add_methods o Library.single;
 
