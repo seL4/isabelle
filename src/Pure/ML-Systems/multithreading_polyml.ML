@@ -12,9 +12,9 @@ struct
 
 (* options *)
 
-val trace = ref false;
-fun tracing msg =
-  if ! trace
+val trace = ref 0;
+fun tracing level msg =
+  if level <= ! trace
   then (TextIO.output (TextIO.stdErr, (">>> " ^ msg () ^ "\n")); TextIO.flushOut TextIO.stdErr)
   else ();
 
@@ -58,10 +58,10 @@ fun NAMED_CRITICAL name e =
         else
           let
             val timer = Timer.startRealTimer ();
-            val _ = tracing (fn () =>
+            val _ = tracing 3 (fn () =>
               "CRITICAL" ^ show name ^ show' (! critical_name) ^ ": waiting");
             val _ = Mutex.lock critical_lock;
-            val _ = tracing (fn () =>
+            val _ = tracing 3 (fn () =>
               "CRITICAL" ^ show name ^ show' (! critical_name) ^ ": passed after " ^
               Time.toString (Timer.checkRealTimer timer));
           in () end;
@@ -95,9 +95,9 @@ fun schedule n next_task tasks =
         val _ =
           if Mutex.trylock lock then ()
           else
-           (tracing (fn () => "PROTECTED" ^ show name ^ show' (! protected_name) ^ ": waiting");
+           (tracing 2 (fn () => "PROTECTED" ^ show name ^ show' (! protected_name) ^ ": waiting");
             Mutex.lock lock;
-            tracing (fn () => "PROTECTED" ^ show name ^ show' (! protected_name) ^ ": passed"));
+            tracing 2 (fn () => "PROTECTED" ^ show name ^ show' (! protected_name) ^ ": passed"));
         val _ = protected_name := name;
         val res = Exn.capture e ();
         val _ = protected_name := "";
@@ -112,7 +112,7 @@ fun schedule n next_task tasks =
     (*the queue of tasks*)
     val queue = ref tasks;
     val active = ref 0;
-    fun trace_active () = tracing (fn () => "SCHEDULE: " ^ Int.toString (! active) ^ " active");
+    fun trace_active () = tracing 1 (fn () => "SCHEDULE: " ^ Int.toString (! active) ^ " active");
     fun dequeue () =
       let
         val (next, tasks') = next_task (! queue);
