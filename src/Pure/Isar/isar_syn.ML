@@ -731,9 +731,9 @@ val print_commandsP =
   OuterSyntax.improper_command "print_commands" "print outer syntax commands" K.diag
     (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
 
-val print_optionsP =
-  OuterSyntax.improper_command "print_options" "print configuration options" K.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_options));
+val print_configsP =
+  OuterSyntax.improper_command "print_configs" "print configuration options" K.diag
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_configs));
 
 val print_contextP =
   OuterSyntax.improper_command "print_context" "print theory context name" K.diag
@@ -1013,7 +1013,7 @@ val _ = OuterSyntax.add_parsers [
   interpretP,
   (*diagnostic commands*)
   pretty_setmarginP, helpP, print_classesP, print_commandsP,
-  print_optionsP, print_contextP, print_theoryP, print_syntaxP,
+  print_configsP, print_contextP, print_theoryP, print_syntaxP,
   print_abbrevsP, print_factsP, print_theoremsP, print_localesP,
   print_localeP, print_registrationsP, print_attributesP,
   print_simpsetP, print_rulesP, print_induct_rulesP,

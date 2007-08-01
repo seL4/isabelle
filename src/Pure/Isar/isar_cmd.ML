@@ -78,7 +78,7 @@ sig
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_abbrevs: Toplevel.transition -> Toplevel.transition
   val print_facts: Toplevel.transition -> Toplevel.transition
-  val print_options: Toplevel.transition -> Toplevel.transition
+  val print_configs: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
   val print_locale: bool * (Locale.expr * Element.context list)
@@ -437,8 +437,8 @@ val print_facts = Toplevel.unknown_context o Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
     ProofContext.print_lthms (Toplevel.context_of state));
 
-val print_options = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  ConfigOption.print_options (Toplevel.context_of state));
+val print_configs = Toplevel.unknown_context o Toplevel.keep (fn state =>
+  Attrib.print_configs (Toplevel.context_of state));
 
 val print_theorems_proof = Toplevel.keep (fn state =>
   ProofContext.setmp_verbose
