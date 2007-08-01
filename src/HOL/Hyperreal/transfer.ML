@@ -73,8 +73,11 @@ fun transfer_thm_of ctxt ths t =
 fun transfer_tac ctxt ths =
     SUBGOAL (fn (t,i) =>
         (fn th =>
-            let val tr = transfer_thm_of ctxt ths t
-            in rewrite_goals_tac [tr] th end))
+            let
+              val tr = transfer_thm_of ctxt ths t
+              val (_$l$r) = concl_of tr;
+              val trs = if l aconv r then [] else [tr];
+            in rewrite_goals_tac trs th end))
 
 local
 
