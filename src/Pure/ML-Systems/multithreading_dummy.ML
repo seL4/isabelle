@@ -14,8 +14,8 @@ end;
 
 signature MULTITHREADING =
 sig
-  val trace: bool ref
-  val tracing: (unit -> string) -> unit
+  val trace: int ref
+  val tracing: int -> (unit -> string) -> unit
   val available: bool
   val max_threads: int ref
   val self_critical: unit -> bool
@@ -27,8 +27,8 @@ end;
 structure Multithreading: MULTITHREADING =
 struct
 
-val trace = ref false;
-fun tracing _ = ();
+val trace = ref 0;
+fun tracing _ _ = ();
 
 val available = false;
 val max_threads = ref 1;

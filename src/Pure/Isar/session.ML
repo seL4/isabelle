@@ -10,7 +10,7 @@ sig
   val name: unit -> string
   val welcome: unit -> string
   val use_dir: string -> bool -> string list -> bool -> bool -> string -> bool -> string list ->
-    string -> string -> bool * string -> string -> int -> bool -> int -> bool -> unit
+    string -> string -> bool * string -> string -> int -> bool -> int -> int -> unit
   val finish: unit -> unit
 end;
 

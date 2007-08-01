@@ -20,7 +20,7 @@ function usage()
   echo "    -D PATH      dump generated document sources into PATH"
   echo "    -M MAX       multithreading: maximum number of worker threads (default 1)"
   echo "    -P PATH      set path for remote theory browsing information"
-  echo "    -T BOOL      multithreading: trace mode (default false)"
+  echo "    -T LEVEL     multithreading: trace level (default 0)"
   echo "    -V VERSION   declare alternative document VERSION"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -c BOOL      tell ML system to compress output image (default true)"
@@ -67,7 +67,7 @@ COPY_DUMP=true
 DUMP=""
 MAXTHREADS="1"
 RPATH=""
-TRACETHREADS=false
+TRACETHREADS="0"
 DOCUMENT_VERSIONS=""
 BUILD=""
 COMPRESS=true
@@ -102,7 +102,7 @@ function getoptions()
         RPATH="$OPTARG"
         ;;
       T)
-        check_bool "$OPTARG"
+        check_number "$OPTARG"
         TRACETHREADS="$OPTARG"
         ;;
       V)
