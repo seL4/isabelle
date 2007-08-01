@@ -62,7 +62,7 @@ sig
 
   (*the limit on the number of ~= allowed; because each ~= is split
     into two cases, this can lead to an explosion*)
-  val fast_arith_neq_limit: int ConfigOption.T
+  val fast_arith_neq_limit: int Config.T
 end;
 (*
 decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
@@ -715,7 +715,7 @@ fun prove ctxt (params : (string * Term.typ) list) show_ex do_pre Hs concl : inj
     val Hs' = Hs @ [LA_Logic.neg_prop concl]
     fun is_neq NONE                 = false
       | is_neq (SOME (_,_,r,_,_,_)) = (r = "~=")
-    val neq_limit = ConfigOption.get ctxt LA_Data.fast_arith_neq_limit;
+    val neq_limit = Config.get ctxt LA_Data.fast_arith_neq_limit;
   in
     if count is_neq (map (LA_Data.decomp ctxt) Hs') > neq_limit then
      (trace_msg ("fast_arith_neq_limit exceeded (current value is " ^

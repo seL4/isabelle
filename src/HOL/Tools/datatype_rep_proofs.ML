@@ -526,7 +526,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       DatatypeProp.make_distincts new_type_names descr sorts thy5);
 
     val simproc_dists = map (fn ((((_, (_, _, constrs)), rep_thms), congr), dists) =>
-      if length constrs < ConfigOption.get_thy thy5 DatatypeProp.distinctness_limit
+      if length constrs < Config.get_thy thy5 DatatypeProp.distinctness_limit
       then FewConstrs dists
       else ManyConstrs (congr, HOL_basic_ss addsimps rep_thms)) (hd descr ~~
         constr_rep_thms ~~ rep_congs ~~ distinct_thms);

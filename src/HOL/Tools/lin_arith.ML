@@ -14,8 +14,8 @@ sig
   val arith_discrete: string -> Context.generic -> Context.generic
   val arith_inj_const: string * typ -> Context.generic -> Context.generic
   val arith_tactic_add: arith_tactic -> Context.generic -> Context.generic
-  val fast_arith_split_limit: int ConfigOption.T
-  val fast_arith_neq_limit: int ConfigOption.T
+  val fast_arith_split_limit: int Config.T
+  val fast_arith_neq_limit: int Config.T
   val lin_arith_pre_tac: Proof.context -> int -> tactic
   val fast_arith_tac: Proof.context -> int -> tactic
   val fast_ex_arith_tac: Proof.context -> bool -> int -> tactic
@@ -110,24 +110,24 @@ val get_arith_data = ArithContextData.get o Context.Proof;
 
 val arith_split_add = Thm.declaration_attribute (fn thm =>
   ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
-    {splits = insert Thm.eq_thm_prop thm splits,
+    {splits = update Thm.eq_thm_prop thm splits,
      inj_consts = inj_consts, discrete = discrete, tactics = tactics}));
 
 fun arith_discrete d = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
   {splits = splits, inj_consts = inj_consts,
-   discrete = insert (op =) d discrete, tactics = tactics});
+   discrete = update (op =) d discrete, tactics = tactics});
 
 fun arith_inj_const c = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
-  {splits = splits, inj_consts = insert (op =) c inj_consts,
+  {splits = splits, inj_consts = update (op =) c inj_consts,
    discrete = discrete, tactics= tactics});
 
 fun arith_tactic_add tac = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
   {splits = splits, inj_consts = inj_consts, discrete = discrete,
-   tactics = insert eq_arith_tactic tac tactics});
+   tactics = update eq_arith_tactic tac tactics});
 
 
-val (fast_arith_split_limit, setup1) = ConfigOption.int "fast_arith_split_limit" 9;
-val (fast_arith_neq_limit, setup2) = ConfigOption.int "fast_arith_neq_limit" 9;
+val (fast_arith_split_limit, setup1) = Attrib.config_int "fast_arith_split_limit" 9;
+val (fast_arith_neq_limit, setup2) = Attrib.config_int "fast_arith_neq_limit" 9;
 val setup_options = setup1 #> setup2;
 
 
@@ -382,7 +382,7 @@ let
   val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
   val cmap       = Splitter.cmap_of_split_thms split_thms
   val splits     = Splitter.split_posns cmap thy Ts (REPEAT_DETERM_etac_rev_mp terms)
-  val split_limit = ConfigOption.get ctxt fast_arith_split_limit
+  val split_limit = Config.get ctxt fast_arith_split_limit
 in
   if length splits > split_limit then
    (tracing ("fast_arith_split_limit exceeded (current value is " ^
@@ -741,7 +741,7 @@ fun split_once_tac ctxt split_thms =
         val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl subgoal)
         val cmap = Splitter.cmap_of_split_thms split_thms
         val splits = Splitter.split_posns cmap thy Ts concl
-        val split_limit = ConfigOption.get ctxt fast_arith_split_limit
+        val split_limit = Config.get ctxt fast_arith_split_limit
       in
         if length splits > split_limit then no_tac
         else split_tac split_thms i

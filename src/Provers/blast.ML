@@ -76,7 +76,7 @@ signature BLAST =
     | $  of term*term;
   type branch
   val depth_tac         : claset -> int -> int -> tactic
-  val depth_limit: int ConfigOption.T
+  val depth_limit       : int Config.T
   val blast_tac         : claset -> int -> tactic
   val Blast_tac         : int -> tactic
   val setup             : theory -> theory
@@ -1274,10 +1274,10 @@ fun timing_depth_tac start cs lim i st0 =
 (*Public version with fixed depth*)
 fun depth_tac cs lim i st = timing_depth_tac (start_timing ()) cs lim i st;
 
-val (depth_limit, setup_depth_limit) = ConfigOption.global_int "blast_depth_limit" 20;
+val (depth_limit, setup_depth_limit) = Attrib.config_int_global "blast_depth_limit" 20;
 
 fun blast_tac cs i st =
-    ((DEEPEN (1, ConfigOption.get_thy (Thm.theory_of_thm st) depth_limit)
+    ((DEEPEN (1, Config.get_thy (Thm.theory_of_thm st) depth_limit)
         (timing_depth_tac (start_timing ()) cs) 0) i
      THEN flexflex_tac) st
     handle TRANS s =>
