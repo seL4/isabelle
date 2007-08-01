@@ -196,8 +196,9 @@ text {*
   \secref{sec:context-data}) there are drop-in replacements that
   emulate primitive references for common cases of \emph{configuration
   options} for type @{ML_type "bool"}/@{ML_type "int"}/@{ML_type
-  "string"} (see structure @{ML_struct ConfigOption}) and lists of
-  theorems (see functor @{ML_functor NamedThmsFun}).
+  "string"} (see structure @{ML_struct Config} and @{ML
+  Attrib.config_bool} etc.), and lists of theorems (see functor
+  @{ML_functor NamedThmsFun}).
 
   \item Keep components with local state information
   \emph{re-entrant}.  Instead of poking initial values into (private)

@@ -217,8 +217,8 @@ Recent versions of Poly/ML (5.1 or later) support multithreaded
   from the fully general functors for theory and proof data (see
   \secref{sec:context-data}) there are drop-in replacements that
   emulate primitive references for common cases of \emph{configuration
-  options} for type \verb|bool|/\verb|int|/\verb|string| (see structure \verb|ConfigOption|) and lists of
-  theorems (see functor \verb|NamedThmsFun|).
+  options} for type \verb|bool|/\verb|int|/\verb|string| (see structure \verb|Config| and \verb|Attrib.config_bool| etc.), and lists of theorems (see functor
+  \verb|NamedThmsFun|).
 
   \item Keep components with local state information
   \emph{re-entrant}.  Instead of poking initial values into (private)

@@ -880,10 +880,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (* prove distinctness theorems *)
 
-    val distinctness_limit = ConfigOption.get_thy thy8 DatatypeProp.distinctness_limit;
-    val thy8' = ConfigOption.put_thy DatatypeProp.distinctness_limit 1000 thy8;
+    val distinctness_limit = Config.get_thy thy8 DatatypeProp.distinctness_limit;
+    val thy8' = Config.put_thy DatatypeProp.distinctness_limit 1000 thy8;
     val distinct_props = DatatypeProp.make_distincts new_type_names descr' sorts' thy8';
-    val thy8 = ConfigOption.put_thy DatatypeProp.distinctness_limit distinctness_limit thy8';
+    val thy8 = Config.put_thy DatatypeProp.distinctness_limit distinctness_limit thy8';
 
     val dist_rewrites = map (fn (rep_thms, dist_lemma) =>
       dist_lemma::(rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0]))

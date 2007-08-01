@@ -26,6 +26,14 @@ sig
     (('c * 'att list) * ('d * 'att list) list) list
   val crude_closure: Proof.context -> src -> src
   val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
+  val print_configs: Proof.context -> unit
+  val register_config: bstring -> Config.value Config.T -> theory -> theory
+  val config_bool: bstring -> bool -> bool Config.T * (theory -> theory)
+  val config_int: bstring -> int -> int Config.T * (theory -> theory)
+  val config_string: bstring -> string -> string Config.T * (theory -> theory)
+  val config_bool_global: bstring -> bool -> bool Config.T * (theory -> theory)
+  val config_int_global: bstring -> int -> int Config.T * (theory -> theory)
+  val config_string_global: bstring -> string -> string Config.T * (theory -> theory)
   val thm: Context.generic * Args.T list -> thm * (Context.generic * Args.T list)
   val thms: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
   val multi_thm: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
@@ -46,7 +54,7 @@ type src = Args.src;
 
 (* theory data *)
 
-structure AttributesData = TheoryDataFun
+structure Attributes = TheoryDataFun
 (
   type T = (((src -> attribute) * string) * stamp) NameSpace.table;
   val empty = NameSpace.empty_table;
@@ -58,7 +66,7 @@ structure AttributesData = TheoryDataFun
 
 fun print_attributes thy =
   let
-    val attribs = AttributesData.get thy;
+    val attribs = Attributes.get thy;
     fun prt_attr (name, ((_, comment), _)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
@@ -69,10 +77,10 @@ fun print_attributes thy =
 
 (* name space *)
 
-val intern = NameSpace.intern o #1 o AttributesData.get;
+val intern = NameSpace.intern o #1 o Attributes.get;
 val intern_src = Args.map_name o intern;
 
-val extern = NameSpace.extern o #1 o AttributesData.get o ProofContext.theory_of;
+val extern = NameSpace.extern o #1 o Attributes.get o ProofContext.theory_of;
 
 
 (* pretty printing *)
@@ -87,7 +95,7 @@ fun pretty_attribs _ [] = []
 
 fun attribute_i thy =
   let
-    val attrs = #2 (AttributesData.get thy);
+    val attrs = #2 (Attributes.get thy);
     fun attr src =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup attrs name of
@@ -125,7 +133,7 @@ fun add_attributes raw_attrs thy =
       raw_attrs |> map (fn (name, att, comment) => (name, ((att, comment), stamp ())));
     fun add attrs = NameSpace.extend_table (Sign.naming_of thy) new_attrs attrs
       handle Symtab.DUP dup => error ("Duplicate declaration of attributes " ^ quote dup);
-  in AttributesData.map add thy end;
+  in Attributes.map add thy end;
 
 
 
@@ -188,38 +196,75 @@ fun add_del_args add del x = syntax
 
 
 
-(** basic attributes **)
+(** configuration options **)
 
-(* configuration options *)
+(* naming *)
+
+structure Configs = TheoryDataFun
+(struct
+  type T = Config.value Config.T Symtab.table;
+  val empty = Symtab.empty;
+  val copy = I;
+  val extend = I;
+  fun merge _ = Symtab.merge (K true);
+end);
+
+fun print_configs ctxt =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    fun prt (name, config) =
+      let val value = Config.get ctxt config in
+        Pretty.block [Pretty.str (name ^ ": " ^ Config.print_type value ^ " ="), Pretty.brk 1,
+          Pretty.str (Config.print_value value)]
+      end;
+    val configs = NameSpace.extern_table (#1 (Attributes.get thy), Configs.get thy);
+  in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
+
+
+(* concrete syntax *)
 
 local
 
 val equals = Args.$$$ "=";
 
-fun scan_value (ConfigOption.Bool _) =
-      (equals -- Args.$$$ "false") >> K (ConfigOption.Bool false) ||
-      (equals -- Args.$$$ "true") >> K (ConfigOption.Bool true) ||
-      (Scan.succeed (ConfigOption.Bool true))
-  | scan_value (ConfigOption.Int _) = (equals |-- Args.int) >> ConfigOption.Int
-  | scan_value (ConfigOption.String _) = (equals |-- Args.name) >> ConfigOption.String;
+fun scan_value (Config.Bool _) =
+      equals -- Args.$$$ "false" >> K (Config.Bool false) ||
+      equals -- Args.$$$ "true" >> K (Config.Bool true) ||
+      Scan.succeed (Config.Bool true)
+  | scan_value (Config.Int _) = equals |-- Args.int >> Config.Int
+  | scan_value (Config.String _) = equals |-- Args.name >> Config.String;
 
-fun scan_config thy =
-  (Args.name >> ConfigOption.the_option thy) :|-- (fn (config, config_type) =>
-    scan_value config_type >> (fn value =>
-      K (Thm.declaration_attribute (K (ConfigOption.put_generic config value)))));
-
-fun scan_att thy =
-  (Args.internal_attribute ||
-    (Scan.ahead (scan_config thy --| Args.terminator) :|--
-      (fn att => Args.named_attribute (K att))));
+fun scan_config thy config =
+  let val config_type = Config.get_thy thy config
+  in scan_value config_type >> (K o Thm.declaration_attribute o K o Config.put_generic config) end;
 
 in
 
-fun option x = syntax (Scan.peek (fn context =>
-  (scan_att (Context.theory_of context) >> Morphism.form) --| Scan.many Args.not_eof)) x;
+fun register_config name config thy =
+  thy
+  |> add_attributes
+    [(name, syntax (Scan.lift (scan_config thy config) >> Morphism.form), "configuration option")]
+  |> Configs.map (Symtab.update (Sign.full_name thy name, config));
+
+fun declare_config make coerce global name default =
+  let
+    val config_value = Config.declare global name (make default);
+    val config = coerce config_value;
+  in (config, register_config name config_value) end;
+
+val config_bool   = declare_config Config.Bool Config.bool false;
+val config_int    = declare_config Config.Int Config.int false;
+val config_string = declare_config Config.String Config.string false;
+
+val config_bool_global   = declare_config Config.Bool Config.bool true;
+val config_int_global    = declare_config Config.Int Config.int true;
+val config_string_global = declare_config Config.String Config.string true;
 
 end;
 
+
+
+(** basic attributes **)
 
 (* tags *)
 
@@ -300,8 +345,7 @@ fun internal_att x =
 
 val _ = Context.add_setup
  (add_attributes
-   [("option", option, "named configuration option"),
-    ("tagged", tagged, "tagged theorem"),
+   [("tagged", tagged, "tagged theorem"),
     ("untagged", untagged, "untagged theorem"),
     ("kind", kind, "theorem kind"),
     ("COMP", COMP_att, "direct composition with rules (no lifting)"),
