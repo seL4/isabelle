@@ -137,10 +137,9 @@ fun schedule n next_task tasks =
           | Exn.Exn exn =>
               (PROTECTED "status" (fn () => status := exn :: ! status); continue cont))
       | (Task.Finished, _) =>
-         (PROTECTED "running" (fn () => (dec active; dec running));
-          wakeup_all ()))
+         (PROTECTED "running" (fn () => (dec active; dec running; wakeup_all ()))))
     and continue cont =
-      (PROTECTED "cont" (fn () => queue := cont (! queue)); wakeup_all; work ());
+      (PROTECTED "cont" (fn () => queue := cont (! queue); wakeup_all ()); work ());
 
     (*main control: fork and wait*)
     fun fork 0 = ()
