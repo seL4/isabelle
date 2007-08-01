@@ -95,7 +95,7 @@ inductive_set recur :: "event list set"
    (*No "oops" message can easily be expressed.  Each session key is
      associated--in two separate messages--with two nonces.  This is
      one try, but it isn't that useful.  Re domino attack, note that
-     Recur.ML proves that each session key is secure provided the two
+     Recur.thy proves that each session key is secure provided the two
      peers are, even if there are compromised agents elsewhere in
      the chain.  Oops cases proved using parts_cut, Key_in_keysFor_parts,
      etc.

@@ -277,7 +277,7 @@ done
 
 
 
-(*Begin lemmas on secure means, from Event.ML, proved for shouprubin. They help
+(*Begin lemmas on secure means, from Event.thy, proved for shouprubin. They help
   the simplifier, especially in analz_image_freshK*)
 
 
@@ -750,46 +750,42 @@ declare pairK_disj_sesK [THEN not_sym, iff]
 
 ML
 {*
-val Outpts_B_Card_form_7 = thm "Outpts_B_Card_form_7"
-val Outpts_A_Card_form_4 = thm "Outpts_A_Card_form_4"
-val Outpts_A_Card_form_10 = thm "Outpts_A_Card_form_10"
-val Gets_imp_knows_Spy = thm "Gets_imp_knows_Spy"
-val Outpts_B_Card_form_7 = thm "Outpts_B_Card_form_7"
-val Gets_imp_knows_Spy_parts_Snd = thm "Gets_imp_knows_Spy_parts_Snd"
-val Gets_imp_knows_Spy_analz_Snd = thm "Gets_imp_knows_Spy_analz_Snd"
+structure ShoupRubinBella =
+struct
 
 fun prepare_tac ctxt = 
- (*SR_U8*)   forward_tac [Outpts_B_Card_form_7] 14 THEN
+ (*SR_U8*)   forward_tac [@{thm Outpts_B_Card_form_7}] 14 THEN
  (*SR_U8*)   clarify_tac (local_claset_of ctxt) 15 THEN
- (*SR_U9*)   forward_tac [Outpts_A_Card_form_4] 16 THEN 
- (*SR_U11*)  forward_tac [Outpts_A_Card_form_10] 21 
+ (*SR_U9*)   forward_tac [@{thm Outpts_A_Card_form_4}] 16 THEN 
+ (*SR_U11*)  forward_tac [@{thm Outpts_A_Card_form_10}] 21 
 
 fun parts_prepare_tac ctxt = 
            prepare_tac ctxt THEN
- (*SR_U9*)   dresolve_tac [Gets_imp_knows_Spy_parts_Snd] 18 THEN 
- (*SR_U9*)   dresolve_tac [Gets_imp_knows_Spy_parts_Snd] 19 THEN 
- (*Oops1*) dresolve_tac [Outpts_B_Card_form_7] 25    THEN               
- (*Oops2*) dresolve_tac [Outpts_A_Card_form_10] 27 THEN                
+ (*SR_U9*)   dresolve_tac [@{thm Gets_imp_knows_Spy_parts_Snd}] 18 THEN 
+ (*SR_U9*)   dresolve_tac [@{thm Gets_imp_knows_Spy_parts_Snd}] 19 THEN 
+ (*Oops1*) dresolve_tac [@{thm Outpts_B_Card_form_7}] 25    THEN               
+ (*Oops2*) dresolve_tac [@{thm Outpts_A_Card_form_10}] 27 THEN                
  (*Base*)  (force_tac (local_clasimpset_of ctxt)) 1
 
 fun analz_prepare_tac ctxt = 
          prepare_tac ctxt THEN
-         dtac (Gets_imp_knows_Spy_analz_Snd) 18 THEN 
- (*SR_U9*) dtac (Gets_imp_knows_Spy_analz_Snd) 19 THEN 
+         dtac (@{thm Gets_imp_knows_Spy_analz_Snd}) 18 THEN 
+ (*SR_U9*) dtac (@{thm Gets_imp_knows_Spy_analz_Snd}) 19 THEN 
          REPEAT_FIRST (eresolve_tac [asm_rl, conjE] ORELSE' hyp_subst_tac)
 
+end
 *}
 
 method_setup prepare = {*
-    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (prepare_tac ctxt)) *}
+    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (ShoupRubinBella.prepare_tac ctxt)) *}
   "to launch a few simple facts that'll help the simplifier"
 
 method_setup parts_prepare = {*
-    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (parts_prepare_tac ctxt)) *}
+    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (ShoupRubinBella.parts_prepare_tac ctxt)) *}
   "additional facts to reason about parts"
 
 method_setup analz_prepare = {*
-    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (analz_prepare_tac ctxt)) *}
+    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (ShoupRubinBella.analz_prepare_tac ctxt)) *}
   "additional facts to reason about analz"
 
 
@@ -834,24 +830,16 @@ lemma analz_image_Key_Un_Nonce: "analz (Key`K \<union> Nonce`N) = Key`K \<union>
 apply auto
 done
 
-ML
-{*
-val knows_Spy_Inputs_secureM_srb_Spy = thm "knows_Spy_Inputs_secureM_srb_Spy"
-val knows_Spy_Outpts_secureM_srb_Spy = thm "knows_Spy_Outpts_secureM_srb_Spy"
-val shouprubin_assumes_securemeans = thm "shouprubin_assumes_securemeans"
-val analz_image_Key_Un_Nonce= thm "analz_image_Key_Un_Nonce"
-*}
-
 method_setup sc_analz_freshK = {*
     Method.ctxt_args (fn ctxt =>
      (Method.SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
-                          REPEAT_FIRST (rtac analz_image_freshK_lemma),
-                          ALLGOALS (asm_simp_tac (Simplifier.context ctxt analz_image_freshK_ss
-                                    addsimps [knows_Spy_Inputs_secureM_srb_Spy,
-                                              knows_Spy_Outpts_secureM_srb_Spy,
-                                              shouprubin_assumes_securemeans, 
-                                              analz_image_Key_Un_Nonce]))]))) *}
+          REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
+          ALLGOALS (asm_simp_tac (Simplifier.context ctxt Smartcard.analz_image_freshK_ss
+              addsimps [@{thm knows_Spy_Inputs_secureM_srb_Spy},
+                  @{thm knows_Spy_Outpts_secureM_srb_Spy},
+                  @{thm shouprubin_assumes_securemeans},
+                  @{thm analz_image_Key_Un_Nonce}]))]))) *}
     "for proving the Session Key Compromise theorem for smartcard protocols"
 
 

@@ -130,14 +130,10 @@ lemmas OR2_parts_knows_Spy =
 
 ML
 {*
-val Oops_parts_knows_Spy = thm "Oops_parts_knows_Spy"
-val OR4_parts_knows_Spy = thm "OR4_parts_knows_Spy"
-val OR2_parts_knows_Spy = thm "OR2_parts_knows_Spy"
-
 fun parts_explicit_tac i = 
-    forward_tac [Oops_parts_knows_Spy] (i+7) THEN
-    forward_tac [OR4_parts_knows_Spy]  (i+6) THEN
-    forward_tac [OR2_parts_knows_Spy]  (i+4)
+    forward_tac [@{thm Oops_parts_knows_Spy}] (i+7) THEN
+    forward_tac [@{thm OR4_parts_knows_Spy}]  (i+6) THEN
+    forward_tac [@{thm OR2_parts_knows_Spy}]  (i+4)
 *}
  
 method_setup parts_explicit = {*
@@ -249,21 +245,24 @@ by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 ML
 {*
-val analz_image_freshCryptK_lemma = thm "analz_image_freshCryptK_lemma";
-val analz_image_freshK_simps = thms "analz_image_freshK_simps";
+structure OtwayReesBella =
+struct
 
 val analz_image_freshK_ss = 
-     simpset() delsimps [image_insert, image_Un]
-	       delsimps [imp_disjL]    (*reduces blow-up*)
-	       addsimps thms "analz_image_freshK_simps"
+  @{simpset} delsimps [image_insert, image_Un]
+      delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
+      addsimps @{thms analz_image_freshK_simps}
+
+end
 *}
 
 method_setup analz_freshCryptK = {*
     Method.ctxt_args (fn ctxt =>
      (Method.SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
-                          REPEAT_FIRST (rtac analz_image_freshCryptK_lemma),
-                          ALLGOALS (asm_simp_tac (Simplifier.context ctxt analz_image_freshK_ss))]))) *}
+          REPEAT_FIRST (rtac @{thm analz_image_freshCryptK_lemma}),
+          ALLGOALS (asm_simp_tac
+            (Simplifier.context ctxt OtwayReesBella.analz_image_freshK_ss))]))) *}
   "for proving useful rewrite rule"
 
 

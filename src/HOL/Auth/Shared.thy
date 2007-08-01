@@ -163,55 +163,6 @@ text{*Unlike the corresponding property of nonces, we cannot prove
     possibility theorems must assume the existence of a few keys.*}
 
 
-subsection{*Tactics for possibility theorems*}
-
-ML
-{*
-val inj_shrK      = thm "inj_shrK";
-val isSym_keys    = thm "isSym_keys";
-val Nonce_supply = thm "Nonce_supply";
-val invKey_K = thm "invKey_K";
-val analz_Decrypt' = thm "analz_Decrypt'";
-val keysFor_parts_initState = thm "keysFor_parts_initState";
-val keysFor_parts_insert = thm "keysFor_parts_insert";
-val Crypt_imp_keysFor = thm "Crypt_imp_keysFor";
-val Spy_knows_Spy_bad = thm "Spy_knows_Spy_bad";
-val Crypt_Spy_analz_bad = thm "Crypt_Spy_analz_bad";
-val shrK_in_initState = thm "shrK_in_initState";
-val shrK_in_used = thm "shrK_in_used";
-val Key_not_used = thm "Key_not_used";
-val shrK_neq = thm "shrK_neq";
-val Nonce_notin_initState = thm "Nonce_notin_initState";
-val Nonce_notin_used_empty = thm "Nonce_notin_used_empty";
-val Nonce_supply_lemma = thm "Nonce_supply_lemma";
-val Nonce_supply1 = thm "Nonce_supply1";
-val Nonce_supply2 = thm "Nonce_supply2";
-val Nonce_supply3 = thm "Nonce_supply3";
-val Nonce_supply = thm "Nonce_supply";
-*}
-
-
-ML
-{*
-(*Omitting used_Says makes the tactic much faster: it leaves expressions
-    such as  Nonce ?N \<notin> used evs that match Nonce_supply*)
-fun possibility_tac ctxt =
-   (REPEAT 
-    (ALLGOALS (simp_tac (local_simpset_of ctxt delsimps [used_Says, used_Notes, used_Gets] 
-                         setSolver safe_solver))
-     THEN
-     REPEAT_FIRST (eq_assume_tac ORELSE' 
-                   resolve_tac [refl, conjI, Nonce_supply])))
-
-(*For harder protocols (such as Recur) where we have to set up some
-  nonces and keys initially*)
-fun basic_possibility_tac ctxt =
-    REPEAT 
-    (ALLGOALS (asm_simp_tac (local_simpset_of ctxt setSolver safe_solver))
-     THEN
-     REPEAT_FIRST (resolve_tac [refl, conjI]))
-*}
-
 subsection{*Specialized Rewriting for Theorems About @{term analz} and Image*}
 
 lemma subset_Compl_range: "A <= - (range shrK) ==> shrK x \<notin> A"
@@ -241,14 +192,40 @@ lemma analz_image_freshK_lemma:
          (Key K \<in> analz (Key`nE \<union> H)) = (K \<in> nE | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
+
+subsection{*Tactics for possibility theorems*}
+
 ML
 {*
-val analz_image_freshK_lemma = thm "analz_image_freshK_lemma";
+structure Shared =
+struct
 
-val analz_image_freshK_ss = 
-     simpset() delsimps [image_insert, image_Un]
-	       delsimps [imp_disjL]    (*reduces blow-up*)
-	       addsimps thms "analz_image_freshK_simps"
+(*Omitting used_Says makes the tactic much faster: it leaves expressions
+    such as  Nonce ?N \<notin> used evs that match Nonce_supply*)
+fun possibility_tac ctxt =
+   (REPEAT 
+    (ALLGOALS (simp_tac (local_simpset_of ctxt
+          delsimps [@{thm used_Says}, @{thm used_Notes}, @{thm used_Gets}] 
+          setSolver safe_solver))
+     THEN
+     REPEAT_FIRST (eq_assume_tac ORELSE' 
+                   resolve_tac [refl, conjI, @{thm Nonce_supply}])))
+
+(*For harder protocols (such as Recur) where we have to set up some
+  nonces and keys initially*)
+fun basic_possibility_tac ctxt =
+    REPEAT 
+    (ALLGOALS (asm_simp_tac (local_simpset_of ctxt setSolver safe_solver))
+     THEN
+     REPEAT_FIRST (resolve_tac [refl, conjI]))
+
+
+val analz_image_freshK_ss =
+  @{simpset} delsimps [image_insert, image_Un]
+      delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
+      addsimps @{thms analz_image_freshK_simps}
+
+end
 *}
 
 
@@ -264,18 +241,18 @@ method_setup analz_freshK = {*
     Method.ctxt_args (fn ctxt =>
      (Method.SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
-                          REPEAT_FIRST (rtac analz_image_freshK_lemma),
-                          ALLGOALS (asm_simp_tac (Simplifier.context ctxt analz_image_freshK_ss))]))) *}
+          REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
+          ALLGOALS (asm_simp_tac (Simplifier.context ctxt Shared.analz_image_freshK_ss))]))) *}
     "for proving the Session Key Compromise theorem"
 
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (possibility_tac ctxt)) *}
+        Method.SIMPLE_METHOD (Shared.possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 method_setup basic_possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (basic_possibility_tac ctxt)) *}
+        Method.SIMPLE_METHOD (Shared.basic_possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 lemma knows_subset_knows_Cons: "knows A evs <= knows A (e # evs)"

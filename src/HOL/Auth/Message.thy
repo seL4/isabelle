@@ -840,21 +840,8 @@ lemmas pushes = pushKeys pushCrypts
 subsection{*Tactics useful for many protocol proofs*}
 ML
 {*
-val invKey = thm "invKey"
-val keysFor_def = thm "keysFor_def"
-val HPair_def = thm "HPair_def"
-val symKeys_def = thm "symKeys_def"
-val parts_mono = thm "parts_mono";
-val analz_mono = thm "analz_mono";
-val synth_mono = thm "synth_mono";
-val analz_increasing = thm "analz_increasing";
-
-val analz_insertI = thm "analz_insertI";
-val analz_subset_parts = thm "analz_subset_parts";
-val Fake_parts_insert = thm "Fake_parts_insert";
-val Fake_analz_insert = thm "Fake_analz_insert";
-val pushes = thms "pushes";
-
+structure Message =
+struct
 
 (*Prove base case (subgoal i) and simplify others.  A typical base case
   concerns  Crypt K X \<notin> Key`shrK`bad  and cannot be proved by rewriting
@@ -872,9 +859,9 @@ fun prove_simple_subgoals_tac i =
   Y \<in> parts(insert X H)  and  Y \<in> analz(insert X H)
 *)
 val Fake_insert_tac = 
-    dresolve_tac [impOfSubs Fake_analz_insert,
-                  impOfSubs Fake_parts_insert] THEN'
-    eresolve_tac [asm_rl, thm"synth.Inj"];
+    dresolve_tac [impOfSubs @{thm Fake_analz_insert},
+                  impOfSubs @{thm Fake_parts_insert}] THEN'
+    eresolve_tac [asm_rl, @{thm synth.Inj}];
 
 fun Fake_insert_simp_tac ss i = 
     REPEAT (Fake_insert_tac i) THEN asm_full_simp_tac ss i;
@@ -883,8 +870,8 @@ fun atomic_spy_analz_tac (cs,ss) = SELECT_GOAL
     (Fake_insert_simp_tac ss 1
      THEN
      IF_UNSOLVED (Blast.depth_tac
-		  (cs addIs [analz_insertI,
-				   impOfSubs analz_subset_parts]) 4 1))
+		  (cs addIs [@{thm analz_insertI},
+				   impOfSubs @{thm analz_subset_parts}]) 4 1))
 
 (*The explicit claset and simpset arguments help it work with Isar*)
 fun gen_spy_analz_tac (cs,ss) i =
@@ -900,6 +887,8 @@ fun gen_spy_analz_tac (cs,ss) i =
        DEPTH_SOLVE (atomic_spy_analz_tac (cs,ss) 1)]) i)
 
 fun spy_analz_tac i = gen_spy_analz_tac (claset(), simpset()) i
+
+end
 *}
 
 text{*By default only @{text o_apply} is built-in.  But in the presence of
@@ -951,18 +940,17 @@ lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
 
 method_setup spy_analz = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (gen_spy_analz_tac (local_clasimpset_of ctxt) 1)) *}
+        Method.SIMPLE_METHOD (Message.gen_spy_analz_tac (local_clasimpset_of ctxt) 1)) *}
     "for proving the Fake case when analz is involved"
 
 method_setup atomic_spy_analz = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (atomic_spy_analz_tac (local_clasimpset_of ctxt) 1)) *}
+        Method.SIMPLE_METHOD (Message.atomic_spy_analz_tac (local_clasimpset_of ctxt) 1)) *}
     "for debugging spy_analz"
 
 method_setup Fake_insert_simp = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (Fake_insert_simp_tac (local_simpset_of ctxt) 1)) *}
+        Method.SIMPLE_METHOD (Message.Fake_insert_simp_tac (local_simpset_of ctxt) 1)) *}
     "for debugging spy_analz"
-
 
 end

@@ -377,13 +377,6 @@ by blast
 lemma insert_Key_image: "insert (Key K) (Key`KK \<union> C) = Key ` (insert K KK) \<union> C"
 by blast
 
-ML
-{*
-val Key_not_used = thm "Key_not_used";
-val insert_Key_singleton = thm "insert_Key_singleton";
-val insert_Key_image = thm "insert_Key_image";
-*}
-
 
 lemma Crypt_imp_keysFor :"[|Crypt K X \<in> H; K \<in> symKeys|] ==> K \<in> keysFor H"
 by (drule Crypt_imp_invKey_keysFor, simp)
@@ -404,31 +397,17 @@ lemmas analz_image_freshK_simps =
        Key_not_used insert_Key_image Un_assoc [THEN sym]
 
 ML {*
-val analz_image_freshK_lemma = thm "analz_image_freshK_lemma";
-val analz_image_freshK_simps = thms "analz_image_freshK_simps";
-val imp_disjL = thm "imp_disjL";
+structure Public =
+struct
 
-val analz_image_freshK_ss = simpset() delsimps [image_insert, image_Un]
-  delsimps [imp_disjL]    (*reduces blow-up*)
-  addsimps thms "analz_image_freshK_simps"
-*}
+val analz_image_freshK_ss = @{simpset} delsimps [image_insert, image_Un]
+  delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
+  addsimps @{thms analz_image_freshK_simps}
 
-method_setup analz_freshK = {*
-    Method.ctxt_args (fn ctxt =>
-     (Method.SIMPLE_METHOD
-      (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
-                          REPEAT_FIRST (rtac analz_image_freshK_lemma),
-                          ALLGOALS (asm_simp_tac (Simplifier.context ctxt analz_image_freshK_ss))]))) *}
-    "for proving the Session Key Compromise theorem"
-
-subsection{*Specialized Methods for Possibility Theorems*}
-
-ML
-{*
 (*Tactic for possibility theorems*)
 fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (local_simpset_of ctxt delsimps [used_Says]))
+    (ALLGOALS (simp_tac (local_simpset_of ctxt delsimps [@{thm used_Says}]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, @{thm Nonce_supply}]))
@@ -440,16 +419,29 @@ fun basic_possibility_tac ctxt =
     (ALLGOALS (asm_simp_tac (local_simpset_of ctxt setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
+
+end
 *}
+
+method_setup analz_freshK = {*
+    Method.ctxt_args (fn ctxt =>
+     (Method.SIMPLE_METHOD
+      (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
+          REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
+          ALLGOALS (asm_simp_tac (Simplifier.context ctxt Public.analz_image_freshK_ss))]))) *}
+    "for proving the Session Key Compromise theorem"
+
+
+subsection{*Specialized Methods for Possibility Theorems*}
 
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (possibility_tac ctxt)) *}
+        Method.SIMPLE_METHOD (Public.possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 method_setup basic_possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (basic_possibility_tac ctxt)) *}
+        Method.SIMPLE_METHOD (Public.basic_possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 end
