@@ -27,7 +27,7 @@ sig
   val crude_closure: Proof.context -> src -> src
   val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
   val print_configs: Proof.context -> unit
-  val register_config: bstring -> Config.value Config.T -> theory -> theory
+  val register_config: Config.value Config.T -> theory -> theory
   val config_bool: bstring -> bool -> bool Config.T * (theory -> theory)
   val config_int: bstring -> int -> int Config.T * (theory -> theory)
   val config_string: bstring -> string -> string Config.T * (theory -> theory)
@@ -240,17 +240,22 @@ fun scan_config thy config =
 
 in
 
-fun register_config name config thy =
-  thy
-  |> add_attributes
-    [(name, syntax (Scan.lift (scan_config thy config) >> Morphism.form), "configuration option")]
-  |> Configs.map (Symtab.update (Sign.full_name thy name, config));
+fun register_config config thy =
+  let
+    val bname = Config.name_of config;
+    val name = Sign.full_name thy bname;
+  in
+    thy
+    |> add_attributes [(bname, syntax (Scan.lift (scan_config thy config) >> Morphism.form),
+      "configuration option")]
+    |> Configs.map (Symtab.update (name, config))
+  end;
 
 fun declare_config make coerce global name default =
   let
     val config_value = Config.declare global name (make default);
     val config = coerce config_value;
-  in (config, register_config name config_value) end;
+  in (config, register_config config_value) end;
 
 val config_bool   = declare_config Config.Bool Config.bool false;
 val config_int    = declare_config Config.Int Config.int false;
@@ -344,7 +349,8 @@ fun internal_att x =
 (* theory setup *)
 
 val _ = Context.add_setup
- (add_attributes
+ (register_config MetaSimplifier.simp_depth_limit_value #>
+  add_attributes
    [("tagged", tagged, "tagged theorem"),
     ("untagged", untagged, "untagged theorem"),
     ("kind", kind, "theorem kind"),
