@@ -24,6 +24,7 @@ sig
   val map_generic: 'a T -> ('a -> 'a) -> Context.generic -> Context.generic
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
   val declare: bool -> string -> value -> value T
+  val name_of: 'a T -> string
 end;
 
 structure Config: CONFIG =
@@ -62,11 +63,14 @@ fun type_check name f value =
 (* abstract configuration options *)
 
 datatype 'a T = Config of
- {get_value: Context.generic -> 'a,
+ {name: string,
+  get_value: Context.generic -> 'a,
   map_value: ('a -> 'a) -> Context.generic -> Context.generic};
 
-fun coerce make dest (Config {get_value, map_value}) =
-  Config {get_value = dest o get_value, map_value = fn f => map_value (make o f o dest)};
+fun coerce make dest (Config {name, get_value, map_value}) = Config
+ {name = name,
+  get_value = dest o get_value,
+  map_value = fn f => map_value (make o f o dest)};
 
 val bool = coerce Bool (fn Bool b => b);
 val int = coerce Int (fn Int i => i);
@@ -110,7 +114,9 @@ fun declare global name default =
             else context'
           end
       | map_value f context = modify_value f context;
-  in Config {get_value = get_value, map_value = map_value} end;
+  in Config {name = name, get_value = get_value, map_value = map_value} end;
+
+fun name_of (Config {name, ...}) = name;
 
 
 (*final declarations of this structure!*)
