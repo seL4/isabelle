@@ -24,7 +24,7 @@ fun count_patternvars PVar = 1
 fun update_arity arity code a = 
     (case Inttab.lookup arity code of
 	 NONE => Inttab.update_new (code, a) arity
-       | SOME a' => if a > a' then Inttab.update (code, a) arity else arity)
+       | SOME (a': int) => if a > a' then Inttab.update (code, a) arity else arity)
 
 (* We have to find out the maximal arity of each constant *)
 fun collect_pattern_arity PVar arity = arity
