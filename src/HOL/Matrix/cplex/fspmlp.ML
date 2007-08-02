@@ -41,7 +41,7 @@ MAKE_CPLEX_MATRIX_CONVERTER(structure cplex = Cplex and matrix_builder = FloatSp
 
 datatype bound_type = LOWER | UPPER
 
-fun intbound_ord ((i1, b1),(i2,b2)) =
+fun intbound_ord ((i1: int, b1),(i2,b2)) =
     if i1 < i2 then LESS
     else if i1 = i2 then
         (if b1 = b2 then EQUAL else if b1=LOWER then LESS else GREATER)
