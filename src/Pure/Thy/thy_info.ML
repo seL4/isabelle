@@ -412,7 +412,7 @@ fun schedule_seq tasks =
   Graph.topological_order tasks
   |> List.app (fn name => (case Graph.get_node tasks name of Task.Task f => f () | _ => ()));
 
-fun max_task (task as (_, (Task.Task _, _))) NONE = SOME task
+fun max_task (task as (_, (Task.Task _, _: int))) NONE = SOME task
   | max_task (task as (_, (Task.Task _, m))) (task' as SOME (_, (_, m'))) =
       if m > m' then SOME task else task'
   | max_task _ task' = task';

@@ -204,7 +204,7 @@ val note_theorem = LocalTheory.note Thm.theoremK;
 fun coind_prefix true = "co"
   | coind_prefix false = "";
 
-fun log b m n = if m >= n then 0 else 1 + log b (b * m) n;
+fun log (b:int) m n = if m >= n then 0 else 1 + log b (b * m) n;
 
 fun make_bool_args f g [] i = []
   | make_bool_args f g (x :: xs) i =

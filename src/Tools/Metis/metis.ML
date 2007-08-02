@@ -5386,7 +5386,7 @@ local
     | range NONE (SOME j) = "{n IN Z | n <= " ^ Int.toString j ^ "}"
     | range (SOME i) (SOME j) =
     "{n IN Z | " ^ Int.toString i ^ " <= n <= " ^ Int.toString j ^ "}";
-  fun oLeq (SOME x) (SOME y) = x <= y | oLeq _ _ = true;
+  fun oLeq (SOME (x:int)) (SOME y) = x <= y | oLeq _ _ = true;
   fun argToInt arg omin omax x =
     (case Int.fromString x of
        SOME i =>

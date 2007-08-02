@@ -188,7 +188,7 @@ fun read_pgipbool s =
        | _ => raise PGIP ("Invalid boolean value: " ^ quote s))
 
 local
-    fun int_in_range (NONE,NONE) _ = true
+    fun int_in_range (NONE,NONE) (_: int) = true
       | int_in_range (SOME min,NONE) i = min<= i
       | int_in_range (NONE,SOME max) i = i<=max
       | int_in_range (SOME min,SOME max) i = min<= i andalso i<=max
