@@ -195,16 +195,36 @@ interpretation int: "domain" ["\<Z>"]
   by (unfold_locales) (auto simp: int_ring_def left_distrib right_distrib)
 
 
-interpretation int: partial_order ["(| carrier = UNIV::int set, le = op \<le> |)"]
-  where "lless (| carrier = UNIV::int set, le = op \<le> |) x y = (x < y)"
+text {* Removal of occurrences of @{term UNIV} in interpretation result
+  --- experimental. *}
+
+lemma UNIV:
+  "x \<in> UNIV = True"
+  "A \<subseteq> UNIV = True"
+  "(ALL x : UNIV. P x) = (ALL x. P x)"
+  "(EX x : UNIV. P x) = (EX x. P x)"
+  "(True --> Q) = Q"
+  "(True ==> PROP R) == PROP R"
+  by simp_all
+
+interpretation int [unfolded UNIV]:
+  partial_order ["(| carrier = UNIV::int set, le = op \<le> |)"]
+  where "carrier (| carrier = UNIV::int set, le = op \<le> |) = UNIV"
+    and "le (| carrier = UNIV::int set, le = op \<le> |) x y = (x \<le> y)"
+    and "lless (| carrier = UNIV::int set, le = op \<le> |) x y = (x < y)"
 proof -
   show "partial_order (| carrier = UNIV::int set, le = op \<le> |)"
     by unfold_locales simp_all
+  show "carrier (| carrier = UNIV::int set, le = op \<le> |) = UNIV"
+    by simp
+  show "le (| carrier = UNIV::int set, le = op \<le> |) x y = (x \<le> y)"
+    by simp
   show "lless (| carrier = UNIV::int set, le = op \<le> |) x y = (x < y)"
     by (simp add: lless_def) auto
 qed
 
-interpretation int: lattice ["(| carrier = UNIV::int set, le = op \<le> |)"]
+interpretation int [unfolded UNIV]:
+  lattice ["(| carrier = UNIV::int set, le = op \<le> |)"]
   where "join (| carrier = UNIV::int set, le = op \<le> |) x y = max x y"
     and "meet (| carrier = UNIV::int set, le = op \<le> |) x y = min x y"
 proof -
@@ -229,66 +249,9 @@ proof -
     done
 qed
 
-interpretation int: total_order ["(| carrier = UNIV::int set, le = op \<le> |)"]
-  by unfold_locales clarsimp
-
-(*
-lemma int_le_total_order:
-  "total_order (| carrier = UNIV::int set, le = op \<le> |)"
-  apply (rule partial_order.total_orderI)
-   apply (rule partial_order.intro, simp+)
-  apply clarsimp
-  done
-
-lemma less_int:
-  "lless (| carrier = UNIV::int set, le = op \<le> |) = (op <)"
-  by (auto simp add: expand_fun_eq lless_def)
-
-lemma join_int:
-  "join (| carrier = UNIV::int set, le = op \<le> |) = max"
-  apply (simp add: expand_fun_eq max_def)
-  apply (rule+)
-  apply (rule lattice.joinI)
-  apply (simp add: int_le_total_order total_order.axioms)
-  apply (simp add: least_def Upper_def)
-  apply arith
-  apply simp apply simp
-  apply (rule lattice.joinI)
-  apply (simp add: int_le_total_order total_order.axioms)
-  apply (simp add: least_def Upper_def)
-  apply arith
-  apply simp apply simp
-  done
-
-lemma meet_int:
-  "meet (| carrier = UNIV::int set, le = op \<le> |) = min"
-  apply (simp add: expand_fun_eq min_def)
-  apply (rule+)
-  apply (rule lattice.meetI)
-  apply (simp add: int_le_total_order total_order.axioms)
-  apply (simp add: greatest_def Lower_def)
-  apply arith
-  apply simp apply simp
-  apply (rule lattice.meetI)
-  apply (simp add: int_le_total_order total_order.axioms)
-  apply (simp add: greatest_def Lower_def)
-  apply arith
-  apply simp apply simp
-  done
-
-lemma carrier_int:
-  "carrier (| carrier = UNIV::int set, le = op \<le> |) = UNIV"
-  apply simp
-  done
-
-text {* Interpretation unfolding @{text lless}, @{text join} and @{text
-  meet} since they have natural representations in @{typ int}. *}
-
-interpretation 
-  int [unfolded less_int join_int meet_int carrier_int]:
+interpretation int [unfolded UNIV]:
   total_order ["(| carrier = UNIV::int set, le = op \<le> |)"]
-  by (rule int_le_total_order)
-*)
+  by unfold_locales clarsimp
 
 
 subsubsection {* Generated Ideals of @{text "\<Z>"} *}
