@@ -2790,7 +2790,7 @@ and gen_list aG i = gen_list' aG i i;
 *}
   "char" ("string")
 attach (term_of) {*
-val term_of_char = HOLogic.mk_char;
+val term_of_char = HOLogic.mk_char o ord;
 *}
 attach (test) {*
 fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
