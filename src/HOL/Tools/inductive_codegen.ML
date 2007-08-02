@@ -325,8 +325,10 @@ fun compile_expr thy defs dep module brack modes (gr, (NONE, t)) =
                val (gr', (ps, mode_id)) = foldl_map
                    (compile_expr thy defs dep module true modes) (gr, ms ~~ args1) |>>>
                  modename module name mode;
-               val (gr'', ps') = foldl_map
-                 (invoke_codegen thy defs dep module true) (gr', args2)
+               val (gr'', ps') = (case mode of
+                   ([], []) => (gr', [Pretty.str "()"])
+                 | _ => foldl_map
+                     (invoke_codegen thy defs dep module true) (gr', args2))
              in (gr', (if brack andalso not (null ps andalso null ps') then
                single o parens o Pretty.block else I)
                  (List.concat (separate [Pretty.brk 1]
@@ -398,7 +400,8 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
                    val (gr2, in_ps) = foldl_map
                      (invoke_codegen thy defs dep module true) (gr1, in_ts);
                    val (gr3, ps) = if is_ind t then
-                       apsnd (fn ps => ps @ Pretty.brk 1 ::
+                       apsnd (fn ps => ps @
+                           (if null in_ps then [] else [Pretty.brk 1]) @
                            separate (Pretty.brk 1) in_ps)
                          (compile_expr thy defs dep module false modes
                            (gr2, (mode, t)))
@@ -442,7 +445,8 @@ fun compile_pred thy defs gr dep module prfx all_vs arg_vs modes s cls mode =
     ((gr', "and "), Pretty.block
       ([Pretty.block (separate (Pretty.brk 1)
          (Pretty.str (prfx ^ mode_id) ::
-           map Pretty.str arg_vs @ xs) @
+           map Pretty.str arg_vs @
+           (case mode of ([], []) => [Pretty.str "()"] | _ => xs)) @
          [Pretty.str " ="]),
         Pretty.brk 1] @
        List.concat (separate [Pretty.str " ++", Pretty.brk 1] (map single cl_ps))))
@@ -491,7 +495,10 @@ fun mk_extra_defs thy defs gr dep names module ts =
             (gr, foldr add_term_consts [] ts)
 
 and mk_ind_def thy defs gr dep names module modecs intrs nparms =
-  add_edge (hd names, dep) gr handle Graph.UNDEF _ =>
+  add_edge_acyclic (hd names, dep) gr handle
+    Graph.CYCLES (xs :: _) =>
+      error ("InductiveCodegen: illegal cyclic dependencies:\n" ^ commas xs)
+  | Graph.UNDEF _ =>
     let
       val _ $ u = Logic.strip_imp_concl (hd intrs);
       val args = List.take (snd (strip_comb u), nparms);
