@@ -86,6 +86,8 @@ by (rtac go43 1);
 by (best_prolog_tac size_of_subgoals horns43);   (*1.6 secs*)
 *}
 
+ML {* Logic.auto_rename := false; *}
+
 (*
 #1  (q x xa ==> ~ q x xa) ==> q xa x
 #2  (q xa x ==> ~ q xa x) ==> q x xa
