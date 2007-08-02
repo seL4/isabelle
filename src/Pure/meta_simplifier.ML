@@ -14,7 +14,6 @@ signature BASIC_META_SIMPLIFIER =
 sig
   val debug_simp: bool ref
   val trace_simp: bool ref
-  val simp_depth_limit: int ref
   val trace_simp_depth_limit: int ref
   type rrule
   val eq_rrule: rrule * rrule -> bool
@@ -94,6 +93,8 @@ sig
   include BASIC_META_SIMPLIFIER
   exception SIMPLIFIER of string * thm
   val solver: simpset -> solver -> int -> tactic
+  val simp_depth_limit_value: Config.value Config.T
+  val simp_depth_limit: int Config.T
   val clear_ss: simpset -> simpset
   val simproc_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
@@ -254,7 +255,9 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 
 (* simp depth *)
 
-val simp_depth_limit = ref 100;
+val simp_depth_limit_value = Config.declare false "simp_depth_limit" (Config.Int 100);
+val simp_depth_limit = Config.int simp_depth_limit_value;
+
 val trace_simp_depth_limit = ref 1;
 
 fun trace_depth (Simpset ({depth = (depth, exceeded), ...}, _)) msg =
@@ -884,6 +887,7 @@ fun cond_skel (args as (congs, (lhs, rhs))) =
 
 fun rewritec (prover, thyt, maxt) ss t =
   let
+    val ctxt = the_context ss;
     val Simpset ({rules, ...}, {congs, procs, termless, ...}) = ss;
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = Thm.rhs_of eta_thm;
@@ -914,7 +918,7 @@ fun rewritec (prover, thyt, maxt) ss t =
               in SOME (thm'', uncond_skel (congs, lr)) end)
            else
              (trace_thm (fn () => "Trying to rewrite:") ss thm';
-              if simp_depth ss > ! simp_depth_limit
+              if simp_depth ss > Config.get ctxt simp_depth_limit
               then let val s = "simp_depth_limit exceeded - giving up"
                    in trace false (fn () => s) ss; warning s; NONE end
               else

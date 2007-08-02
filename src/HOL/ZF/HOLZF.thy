@@ -273,10 +273,9 @@ lemma PFun_inj: "Elem F (PFun U V) \<Longrightarrow> Elem x F \<Longrightarrow> 
   apply (auto simp add: PFun_def Sep)
   done
 
-ML {* simp_depth_limit := 2 *}
 lemma Fun_total: "\<lbrakk>Elem F (Fun U V); Elem a U\<rbrakk> \<Longrightarrow> \<exists>x. Elem (Opair a x) F"
+  using [[simp_depth_limit = 2]]
   by (auto simp add: Fun_def Sep Domain)
-ML {* simp_depth_limit := 1000 *}
 
 
 lemma unique_fun_value: "\<lbrakk>isFun f; Elem x (Domain f)\<rbrakk> \<Longrightarrow> ?! y. Elem (Opair x y) f"

@@ -282,11 +282,11 @@ apply (rule abs_div_2_less)
 apply (auto)
 done
 
-ML {* simp_depth_limit := 2 *}
+declare [[simp_depth_limit = 2]]
 recdef norm_float "measure (% (a,b). nat (abs a))"
   "norm_float (a,b) = (if (a \<noteq> 0) & (even a) then norm_float (a div 2, b+1) else (if a=0 then (0,0) else (a,b)))"
 (hints simp: even_def terminating_norm_float)
-ML {* simp_depth_limit := 1000 *}
+declare [[simp_depth_limit = 100]]
 
 lemma norm_float: "float x = float (norm_float x)"
 proof -

@@ -346,7 +346,7 @@ val simproc_att = Attrib.syntax
       >> (Library.apply o map Morphism.form))));
 
 end;
-  
+
 
 (* conversions *)
 
@@ -389,11 +389,6 @@ val simp_options =
   Args.parens (Args.$$$ asm_lrN) >> K asm_lr_simp_tac ||
   Scan.succeed asm_full_simp_tac);
 
-fun simp_flags x = (Scan.repeat
-  (Args.parens (Args.$$$ "depth_limit" -- Args.colon |-- Args.nat)
-    >> setmp MetaSimplifier.simp_depth_limit)
-  >> (curry (Library.foldl op o) I o rev)) x;
-
 val cong_modifiers =
  [Args.$$$ congN -- Args.colon >> K ((I, cong_add): Method.modifier),
   Args.$$$ congN -- Args.add -- Args.colon >> K (I, cong_add),
@@ -415,16 +410,16 @@ val simp_modifiers' =
    @ cong_modifiers;
 
 fun simp_args more_mods =
-  Method.sectioned_args (Args.bang_facts -- Scan.lift simp_options -- Scan.lift simp_flags)
+  Method.sectioned_args (Args.bang_facts -- Scan.lift simp_options)
     (more_mods @ simp_modifiers');
 
-fun simp_method ((prems, tac), FLAGS) ctxt = Method.METHOD (fn facts =>
+fun simp_method (prems, tac) ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN
-    (FLAGS o CHANGED_PROP o ALLGOALS o tac) (local_simpset_of ctxt));
+    (CHANGED_PROP o ALLGOALS o tac) (local_simpset_of ctxt));
 
-fun simp_method' ((prems, tac), FLAGS) ctxt = Method.METHOD (fn facts =>
+fun simp_method' (prems, tac) ctxt = Method.METHOD (fn facts =>
   HEADGOAL (Method.insert_tac (prems @ facts) THEN'
-      ((FLAGS o CHANGED_PROP) oo tac) (local_simpset_of ctxt)));
+      ((CHANGED_PROP) oo tac) (local_simpset_of ctxt)));
 
 
 

@@ -600,7 +600,7 @@ constdefs
   disj_matrices :: "('a::zero) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
   "disj_matrices A B == (! j i. (Rep_matrix A j i \<noteq> 0) \<longrightarrow> (Rep_matrix B j i = 0)) & (! j i. (Rep_matrix B j i \<noteq> 0) \<longrightarrow> (Rep_matrix A j i = 0))"  
 
-ML {* simp_depth_limit := 6 *}
+declare [[simp_depth_limit = 6]]
 
 lemma disj_matrices_contr1: "disj_matrices A B \<Longrightarrow> Rep_matrix A j i \<noteq> 0 \<Longrightarrow> Rep_matrix B j i = 0"
    by (simp add: disj_matrices_def)
@@ -777,7 +777,7 @@ lemma le_spmat_iff_sparse_row_le[rule_format]: "(sorted_spvec A) \<longrightarro
   apply (simp add: sorted_spvec_cons1 le_spvec_iff_sparse_row_le)
   done
 
-ML {* simp_depth_limit := 999 *}
+declare [[simp_depth_limit = 999]]
 
 consts 
    abs_spmat :: "('a::lordered_ring) spmat \<Rightarrow> 'a spmat"
