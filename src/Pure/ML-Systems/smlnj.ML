@@ -4,6 +4,10 @@
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)
 
+fun mk_int (i: int) = i;
+fun dest_int (i: int) = i;
+(*use "ML-Systems/proper_int.ML";*)
+
 use "ML-Systems/exn.ML";
 use "ML-Systems/multithreading_dummy.ML";
 
@@ -18,8 +22,8 @@ val pointer_eq = InlineT.ptreql;
 
 (* restore old-style character / string functions *)
 
-val ord     = SML90.ord;
-val chr     = SML90.chr;
+val ord     = mk_int o SML90.ord;
+val chr     = SML90.chr o dest_int;
 val explode = SML90.explode;
 val implode = SML90.implode;
 
@@ -40,8 +44,8 @@ fun quit () = exit 0;
 
 (*limit the printing depth -- divided by 2 for comparibility with Poly/ML*)
 fun print_depth n =
- (Control.Print.printDepth := n div 2;
-  Control.Print.printLength := n);
+ (Control.Print.printDepth := (dest_int n) div 2;
+  Control.Print.printLength := dest_int n);
 
 
 (* compiler-independent timing functions *)
@@ -92,8 +96,8 @@ fun make_pp path pprint =
 
     fun pp pps obj =
       pprint obj
-        (string pps, openHOVBox pps o Rel,
-          fn wd => break pps {nsp=wd, offset=0}, fn () => newline pps,
+        (string pps, openHOVBox pps o Rel o dest_int,
+          fn wd => break pps {nsp=dest_int wd, offset=0}, fn () => newline pps,
           fn () => closeBox pps);
   in (path, pp) end;
 
@@ -231,7 +235,7 @@ fun execute command =
   end;
 
 (*plain version; with return code*)
-val system = OS.Process.system: string -> int;
+val system = mk_int o OS.Process.system;
 
 
 (*Convert a process ID to a decimal string (chiefly for tracing)*)
