@@ -81,7 +81,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   $(SRC)/Provers/induct_method.ML $(SRC)/Provers/order.ML		\
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
   $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML			\
-  $(SRC)/Provers/trancl.ML $(SRC)/Tools/integer.ML			\
+  $(SRC)/Provers/trancl.ML $(SRC)/Tools/integer.ML $(SRC)/Tools/Metis/metis.ML\
   $(SRC)/Tools/rat.ML Tools/TFL/casesplit.ML ATP_Linkup.thy 		\
   Accessible_Part.thy Arith_Tools.thy Datatype.thy 			\
   Dense_Linear_Order.thy Divides.thy Equiv_Relations.thy Extraction.thy	\
