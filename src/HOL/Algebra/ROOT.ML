@@ -4,29 +4,28 @@
     Author: Clemens Ballarin, started 24 September 1999
 *)
 
+(* Preliminaries from set and number theory *)
+no_document use_thys ["FuncSet", "Primes", "Binomial"];
+
+
 (*** New development, based on explicit structures ***)
 
-(* Preliminaries from set and number theory *)
+use_thys [
+  (* Groups *)
+  "FiniteProduct",      (* Product operator for commutative groups *)
+  "Sylow",              (* Sylow's theorem *)
+  "Bij",                (* Automorphism Groups *)
 
-no_document use_thy "FuncSet";
-no_document use_thy "Primes";
-no_document use_thy "Binomial";
-
-
-(* Groups *)
-
-use_thy "FiniteProduct";	(* Product operator for commutative groups *)
-use_thy "Sylow";		(* Sylow's theorem *)
-use_thy "Bij";			(* Automorphism Groups *)
-
-(* Rings *)
-
-use_thy "UnivPoly";		(* Rings and polynomials *)
-use_thy "IntRing";		(* Ideals and residue classes *)
+  (* Rings *)
+  "UnivPoly",           (* Rings and polynomials *)
+  "IntRing"             (* Ideals and residue classes *)
+];
 
 
 (*** Old development, based on axiomatic type classes.
      Will be withdrawn in future. ***)
 
-with_path "abstract" (no_document time_use_thy) "Abstract";   (*The ring theory*)
-with_path "poly"     (no_document time_use_thy) "Polynomial"; (*The full theory*)
+no_document use_thys [
+  "abstract/Abstract",  (*The ring theory*)
+  "poly/Polynomial"     (*The full theory*)
+];
