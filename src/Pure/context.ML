@@ -3,8 +3,8 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Generic theory contexts with unique identity, arbitrarily typed data,
-development graph and history support.  Generic proof contexts with
-arbitrarily typed data.
+monotonic development graph and history support.  Generic proof
+contexts with arbitrarily typed data.
 *)
 
 signature BASIC_CONTEXT =
@@ -33,15 +33,14 @@ sig
   val pprint_thy: theory -> pprint_args -> unit
   val pretty_abbrev_thy: theory -> Pretty.T
   val str_of_thy: theory -> string
-  val check_thy: theory -> theory
+  val deref: theory_ref -> theory
+  val check_thy: theory -> theory_ref
   val eq_thy: theory * theory -> bool
   val thy_ord: theory * theory -> order
   val subthy: theory * theory -> bool
   val joinable: theory * theory -> bool
   val merge: theory * theory -> theory
   val merge_refs: theory_ref * theory_ref -> theory_ref
-  val self_ref: theory -> theory_ref
-  val deref: theory_ref -> theory
   val copy_thy: theory -> theory
   val checkpoint_thy: theory -> theory
   val finish_thy: theory -> theory
@@ -227,11 +226,24 @@ fun pretty_abbrev_thy thy =
 val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
 
 
-(* consistency *)
+(* theory references *)
 
-fun check_thy thy =
-  if is_stale thy then error ("Stale theory encountered:\n" ^ string_of_thy thy)
-  else thy;
+(*theory_ref provides a safe way to store dynamic references to a
+  theory in external data structures -- a plain theory value would
+  become stale as the self reference moves on*)
+
+datatype theory_ref = TheoryRef of theory ref;
+
+fun deref (TheoryRef (ref thy)) = thy;
+
+fun check_thy thy =  (*thread-safe version*)
+  let val thy_ref = TheoryRef (the_self thy) in
+    if is_stale thy then error ("Stale theory encountered:\n" ^ string_of_thy thy)
+    else thy_ref
+  end;
+
+
+(* consistency *)
 
 fun check_ins id ids =
   if draft_id id orelse Inttab.defined ids (#1 id) then ids
@@ -253,7 +265,7 @@ fun check_merge
 
 (* equality and inclusion *)
 
-val eq_thy = eq_id o pairself (#id o identity_of o check_thy);
+val eq_thy = eq_id o pairself (#id o identity_of);
 val thy_ord = int_ord o pairself (#1 o #id o identity_of);
 
 fun proper_subthy
@@ -263,18 +275,6 @@ fun proper_subthy
 fun subthy thys = eq_thy thys orelse proper_subthy thys;
 
 fun joinable (thy1, thy2) = subthy (thy1, thy2) orelse subthy (thy2, thy1);
-
-
-(* theory references *)
-
-(*theory_ref provides a safe way to store dynamic references to a
-  theory in external data structures -- a plain theory value would
-  become stale as the self reference moves on*)
-
-datatype theory_ref = TheoryRef of theory ref;
-
-val self_ref = TheoryRef o the_self o check_thy;
-fun deref (TheoryRef (ref thy)) = thy;
 
 
 (* trivial merge *)
@@ -289,7 +289,7 @@ fun merge (thy1, thy2) =
 
 fun merge_refs (ref1, ref2) =
   if ref1 = ref2 then ref1
-  else self_ref (merge (deref ref1, deref ref2));
+  else check_thy (merge (deref ref1, deref ref2));
 
 
 
@@ -307,9 +307,10 @@ fun create_thy name self id ids iids data ancestry history =
     val identity' = make_identity self id' ids' iids';
   in vitalize (Theory (identity', data, ancestry, history)) end;
 
-fun change_thy name f (thy as Theory ({self, id, ids, iids}, data, ancestry, history)) =
+fun change_thy name f thy = NAMED_CRITICAL "theory" (fn () =>
   let
     val _ = check_thy thy;
+    val Theory ({self, id, ids, iids}, data, ancestry, history) = thy;
     val (self', data', ancestry') =
       if is_draft thy then (self, data, ancestry)    (*destructive change!*)
       else if #version history > 0
@@ -317,14 +318,17 @@ fun change_thy name f (thy as Theory ({self, id, ids, iids}, data, ancestry, his
       else (NONE, extend_data data,
         make_ancestry [thy] (thy :: #ancestors ancestry));
     val data'' = f data';
-  in create_thy name self' id ids iids data'' ancestry' history end;
+  in create_thy name self' id ids iids data'' ancestry' history end);
 
 fun name_thy name = change_thy name I;
 val modify_thy = change_thy draftN;
 val extend_thy = modify_thy I;
 
-fun copy_thy (thy as Theory ({id, ids, iids, ...}, data, ancestry, history)) =
-  (check_thy thy; create_thy draftN NONE id ids iids (copy_data data) ancestry history);
+fun copy_thy thy = NAMED_CRITICAL "theory" (fn () =>
+  let
+    val _ = check_thy thy;
+    val Theory ({id, ids, iids, ...}, data, ancestry, history) = thy;
+  in create_thy draftN NONE id ids iids (copy_data data) ancestry history end);
 
 val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Inttab.empty
   Datatab.empty (make_ancestry [] []) (make_history ProtoPureN 0 []);
@@ -335,23 +339,25 @@ val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Intta
 fun merge_thys pp (thy1, thy2) =
   if exists_name CPureN thy1 <> exists_name CPureN thy2 then
     error "Cannot merge Pure and CPure developments"
-  else
+  else NAMED_CRITICAL "theory" (fn () =>
     let
+      val _ = check_thy thy1;
+      val _ = check_thy thy2;
       val (ids, iids) = check_merge thy1 thy2;
       val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
       val ancestry = make_ancestry [] [];
       val history = make_history "" 0 [];
-    in create_thy draftN NONE (serial (), draftN) ids iids data ancestry history end;
+    in create_thy draftN NONE (serial (), draftN) ids iids data ancestry history end);
 
 fun maximal_thys thys =
   thys |> filter (fn thy => not (exists (fn thy' => proper_subthy (thy, thy')) thys));
 
 fun begin_thy pp name imports =
   if name = draftN then error ("Illegal theory name: " ^ quote draftN)
-  else
+  else NAMED_CRITICAL "theory" (fn () =>
     let
-      val parents =
-        maximal_thys (distinct eq_thy (map check_thy imports));
+      val _ = map check_thy imports;
+      val parents = maximal_thys (distinct eq_thy imports);
       val ancestors = distinct eq_thy (parents @ maps ancestors_of parents);
       val Theory ({id, ids, iids, ...}, data, _, _) =
         (case parents of
@@ -360,31 +366,31 @@ fun begin_thy pp name imports =
         | thy :: thys => Library.foldl (merge_thys pp) (thy, thys));
       val ancestry = make_ancestry parents ancestors;
       val history = make_history name 0 [];
-    in create_thy draftN NONE id ids iids data ancestry history end;
+    in create_thy draftN NONE id ids iids data ancestry history end);
 
 
 (* undoable checkpoints *)
 
 fun checkpoint_thy thy =
   if not (is_draft thy) then thy
-  else
+  else NAMED_CRITICAL "theory" (fn () =>
     let
       val {name, version, intermediates} = history_of thy;
       val thy' as Theory (identity', data', ancestry', _) =
         name_thy (name ^ ":" ^ string_of_int version) thy;
       val history' = make_history name (version + 1) (thy' :: intermediates);
-    in vitalize (Theory (identity', data', ancestry', history')) end;
+    in vitalize (Theory (identity', data', ancestry', history')) end);
 
-fun finish_thy thy =
+fun finish_thy thy = NAMED_CRITICAL "theory" (fn () =>
   let
     val {name, version, intermediates} = history_of thy;
-    val rs = map (the_self o check_thy) intermediates;
+    val rs = map ((fn TheoryRef r => r) o check_thy) intermediates;
     val thy' as Theory ({self, id, ids, ...}, data', ancestry', _) = name_thy name thy;
     val identity' = make_identity self id ids Inttab.empty;
     val history' = make_history name 0 [];
     val thy'' = vitalize (Theory (identity', data', ancestry', history'));
     val _ = List.app (fn r => r := thy'') rs;
-  in thy'' end;
+  in thy'' end);
 
 
 (* theory data *)
@@ -435,12 +441,15 @@ fun init_new_data data thy =
 
 in
 
-fun init_proof thy = Proof (self_ref thy, init_data thy);
+fun init_proof thy = Proof (check_thy thy, init_data thy);
 
 fun transfer_proof thy' (prf as Proof (thy_ref, data)) =
-  if not (subthy (deref thy_ref, thy')) then
-    error "transfer proof context: not a super theory"
-  else Proof (self_ref thy', init_new_data data thy');
+  let
+    val thy = deref thy_ref;
+    val _ = subthy (thy, thy') orelse error "transfer proof context: not a super theory";
+    val _ = check_thy thy;
+    val thy_ref' = check_thy thy';
+  in Proof (thy_ref', init_new_data data thy') end;
 
 
 structure ProofData =
