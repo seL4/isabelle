@@ -1030,7 +1030,7 @@ fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)
 val gensym_seed = ref 0;
 
 in
-  fun gensym pre = pre ^ newid (CRITICAL (fn () => inc gensym_seed));
+  fun gensym pre = pre ^ newid (NAMED_CRITICAL "gensym" (fn () => inc gensym_seed));
 end;
 
 
@@ -1041,7 +1041,7 @@ val stamp: unit -> stamp = ref;
 
 type serial = int;
 local val count = ref 0
-in fun serial () = CRITICAL (fn () => inc count) end;
+in fun serial () = NAMED_CRITICAL "serial" (fn () => inc count) end;
 
 val serial_string = string_of_int o serial;
 
