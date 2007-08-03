@@ -786,7 +786,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/ROOT.ML \
   Nominal/Examples/CR.thy \
   Nominal/Examples/CR_Takahashi.thy \
-##  Nominal/Examples/Class.thy \
+  Nominal/Examples/Class.thy \
   Nominal/Examples/Compile.thy \
   Nominal/Examples/Fsub.thy \
   Nominal/Examples/Lambda_mu.thy \
