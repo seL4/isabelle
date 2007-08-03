@@ -238,8 +238,8 @@ fun selections (name, [thm]) = [(Name name, thm)]
 
 fun lookup_thms thy =
   let
-    val thy_ref = Theory.self_ref thy;
     val (space, thms) = #theorems (get_theorems thy);
+    val thy_ref = Theory.check_thy thy;
   in
     fn name =>
       Option.map (map (Thm.transfer (Theory.deref thy_ref)))     (*dynamic identity*)

@@ -156,8 +156,8 @@ text %mlref {*
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type theory_ref} \\
-  @{index_ML Theory.self_ref: "theory -> theory_ref"} \\
   @{index_ML Theory.deref: "theory_ref -> theory"} \\
+  @{index_ML Theory.check_thy: "theory -> theory_ref"} \\
   \end{mldecls}
 
   \begin{description}
@@ -187,11 +187,13 @@ text %mlref {*
   always valid theory; updates on the original are propagated
   automatically.
 
-  \item @{ML "Theory.self_ref"}~@{text "thy"} and @{ML
-  "Theory.deref"}~@{text "thy_ref"} convert between @{ML_type
-  "theory"} and @{ML_type "theory_ref"}.  As the referenced theory
-  evolves monotonically over time, later invocations of @{ML
+  \item @{ML "Theory.deref"}~@{text "thy_ref"} turns a @{ML_type
+  "theory_ref"} into an @{ML_type "theory"} value.  As the referenced
+  theory evolves monotonically over time, later invocations of @{ML
   "Theory.deref"} may refer to a larger context.
+
+  \item @{ML "Theory.check_thy"}~@{text "thy"} produces a @{ML_type
+  "theory_ref"} from a valid @{ML_type "theory"} value.
 
   \end{description}
 *}

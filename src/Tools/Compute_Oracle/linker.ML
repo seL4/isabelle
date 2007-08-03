@@ -365,8 +365,9 @@ fun make machine thy ths cs =
 					 end)
 				     ths (cs, [])
 	val (_, ths) = add_monos thy monocs ths
+  val computer = create_computer machine thy ths
     in
-	PComputer (machine, Theory.self_ref thy, ref (create_computer machine thy ths), ref ths)
+	PComputer (machine, Theory.check_thy thy, ref computer, ref ths)
     end
 
 fun add_instances (PComputer (machine, thyref, rcomputer, rths)) cs = 

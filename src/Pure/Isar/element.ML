@@ -411,7 +411,7 @@ fun instT_thm thy env th =
     in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
 
 fun instT_morphism thy env =
-  let val thy_ref = Theory.self_ref thy in
+  let val thy_ref = Theory.check_thy thy in
     Morphism.morphism
      {name = I, var = I,
       typ = instT_type env,
@@ -460,7 +460,7 @@ fun inst_thm thy (envT, env) th =
     end;
 
 fun inst_morphism thy envs =
-  let val thy_ref = Theory.self_ref thy in
+  let val thy_ref = Theory.check_thy thy in
     Morphism.morphism
      {name = I, var = I,
       typ = instT_type (#1 envs),

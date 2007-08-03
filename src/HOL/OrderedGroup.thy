@@ -1104,7 +1104,7 @@ val cancel_ss = HOL_basic_ss settermless termless_agrp
   
 val eq_reflection = @{thm eq_reflection};
   
-val thy_ref = Theory.self_ref @{theory};
+val thy_ref = Theory.check_thy @{theory};
 
 val T = TFree("'a", ["OrderedGroup.ab_group_add"]);
 

@@ -100,7 +100,7 @@ fun certificate thy f r =
   case Susp.peek r
    of SOME thms => (Susp.value o f thy) thms
      | NONE => let
-          val thy_ref = Theory.self_ref thy;
+          val thy_ref = Theory.check_thy thy;
         in lazy_thms (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
 
 fun merge' _ ([], []) = (false, [])

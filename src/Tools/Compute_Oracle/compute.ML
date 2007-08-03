@@ -267,7 +267,7 @@ fun make machine thy raw_ths =
 
 	val shyptable = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptable))) shyptable
 
-    in Computer (Theory.self_ref thy, encoding, Termtab.keys hyptable, shyptable, prog) end
+    in Computer (Theory.check_thy thy, encoding, Termtab.keys hyptable, shyptable, prog) end
 
 (*fun timeit f =
     let

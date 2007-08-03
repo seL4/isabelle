@@ -80,7 +80,7 @@ fun transform_elim th =
   inside that theory -- because it's needed for Skolemization *)
 
 (*This will refer to the final version of theory ATP_Linkup.*)
-val recon_thy_ref = Theory.self_ref (the_context ());
+val recon_thy_ref = Theory.check_thy @{theory}
 
 (*If called while ATP_Linkup is being created, it will transfer to the
   current version. If called afterward, it will transfer to the final version.*)

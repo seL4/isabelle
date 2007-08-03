@@ -32,7 +32,7 @@ sig
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
   val defs_of : theory -> Defs.T
-  val self_ref: theory -> theory_ref
+  val check_thy: theory -> theory_ref
   val deref: theory_ref -> theory
   val merge: theory * theory -> theory
   val merge_refs: theory_ref * theory_ref -> theory_ref
@@ -65,7 +65,7 @@ val subthy = Context.subthy;
 val parents_of = Context.parents_of;
 val ancestors_of = Context.ancestors_of;
 
-val self_ref = Context.self_ref;
+val check_thy = Context.check_thy;
 val deref = Context.deref;
 val merge = Context.merge;
 val merge_refs = Context.merge_refs;

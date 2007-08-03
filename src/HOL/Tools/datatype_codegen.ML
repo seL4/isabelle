@@ -596,7 +596,7 @@ fun eq_hook specs =
   let
     fun add_eq_thms (dtco, (_, (vs, cs))) thy =
       let
-        val thy_ref = Theory.self_ref thy;
+        val thy_ref = Theory.check_thy thy;
         val const = ("op =", SOME dtco);
         val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
       in
