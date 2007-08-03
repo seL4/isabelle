@@ -399,7 +399,7 @@ fun pp thy = Pretty.pp (pretty_term thy, pretty_typ thy, pretty_sort thy,
 val arity_number = Type.arity_number o tsig_of;
 fun arity_sorts thy = Type.arity_sorts (pp thy) (tsig_of thy);
 
-fun certify cert = cert o tsig_of o Context.check_thy;
+fun certify cert = cert o tsig_of;
 
 val certify_class      = certify Type.cert_class;
 val certify_sort       = certify Type.cert_sort;
@@ -450,7 +450,6 @@ in
 
 fun certify' normalize prop pp consts thy tm =
   let
-    val _ = Context.check_thy thy;
     val _ = check_vars tm;
     val tm' = Term.map_types (certify_typ thy) tm;
     val T = type_check pp tm';
@@ -501,7 +500,6 @@ fun read_class thy c = certify_class thy (intern_class thy c)
 fun read_sort' syn ctxt str =
   let
     val thy = ProofContext.theory_of ctxt;
-    val _ = Context.check_thy thy;
     val S = Syntax.read_sort ctxt syn (intern_sort thy) str;
   in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
 
@@ -547,7 +545,6 @@ local
 fun gen_read_typ' cert syn ctxt def_sort str =
   let
     val thy = ProofContext.theory_of ctxt;
-    val _ = Context.check_thy thy;
     val T = intern_tycons thy
       (Syntax.read_typ ctxt syn (get_sort thy def_sort) (intern_sort thy) str);
   in cert thy T handle TYPE (msg, _, _) => error msg end
