@@ -32,6 +32,7 @@ sig
   val proj_value_antiq: string -> (Context.generic * Args.T list ->
       (string * string * string) * (Context.generic * Args.T list)) -> unit
   val eval_antiquotes_fn: (string -> string * string) ref  (* FIXME tmp *)
+  val trace: bool ref
   val use_mltext: string -> bool -> Context.generic option -> unit
   val use_mltext_update: string -> bool -> Context.generic -> Context.generic
   val use_let: string -> string -> string -> Context.generic -> Context.generic
@@ -167,12 +168,12 @@ in
 
 val eval_antiquotes_fn = ref eval_antiquotes;
 
+val trace = ref false;
+
 fun eval_wrapper name verbose txt =
   let
     val (txt1, txt2) = ! eval_antiquotes_fn txt;
-    val _ =
-      if txt1 = isabelle_struct0 andalso txt2 = txt then ()
-      else Output.debug (fn () => cat_lines [txt1, txt2]);
+    val _ = if ! trace then tracing (cat_lines [txt1, txt2]) else ();
   in eval "" false txt1; eval name verbose txt2; eval "" false isabelle_struct0 end;
 
 end;
