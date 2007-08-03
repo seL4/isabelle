@@ -181,8 +181,8 @@ A logical context represents the background that is required for
   \end{mldecls}
   \begin{mldecls}
   \indexmltype{theory-ref}\verb|type theory_ref| \\
-  \indexml{Theory.self-ref}\verb|Theory.self_ref: theory -> theory_ref| \\
   \indexml{Theory.deref}\verb|Theory.deref: theory_ref -> theory| \\
+  \indexml{Theory.check-thy}\verb|Theory.check_thy: theory -> theory_ref| \\
   \end{mldecls}
 
   \begin{description}
@@ -211,8 +211,10 @@ A logical context represents the background that is required for
   always valid theory; updates on the original are propagated
   automatically.
 
-  \item \verb|Theory.self_ref|~\isa{thy} and \verb|Theory.deref|~\isa{thy{\isacharunderscore}ref} convert between \verb|theory| and \verb|theory_ref|.  As the referenced theory
-  evolves monotonically over time, later invocations of \verb|Theory.deref| may refer to a larger context.
+  \item \verb|Theory.deref|~\isa{thy{\isacharunderscore}ref} turns a \verb|theory_ref| into an \verb|theory| value.  As the referenced
+  theory evolves monotonically over time, later invocations of \verb|Theory.deref| may refer to a larger context.
+
+  \item \verb|Theory.check_thy|~\isa{thy} produces a \verb|theory_ref| from a valid \verb|theory| value.
 
   \end{description}%
 \end{isamarkuptext}%
