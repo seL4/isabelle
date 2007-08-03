@@ -92,18 +92,18 @@ fun new_deps name parents entry G =
 type master = (Path.T * File.ident) * (Path.T * File.ident) option;
 
 type deps =
-  {outdated: bool,              (*entry considered outdated*)
+  {update_time: int,            (*symbolic time of last update; < 0 means outdated*)
     master: master option,      (*master dependencies for thy + attached ML file*)
     text: string list,          (*source text for thy*)
     parents: string list,       (*source specification of parents (partially qualified)*)
     files:                      (*auxiliary files: source path, physical path + identifier*)
       (Path.T * (Path.T * File.ident) option) list};
 
-fun make_deps outdated master text parents files : deps =
-  {outdated = outdated, master = master, text = text, parents = parents, files = files};
+fun make_deps update_time master text parents files : deps =
+  {update_time = update_time, master = master, text = text, parents = parents, files = files};
 
 fun init_deps master text parents files =
-  SOME (make_deps true master text parents (map (rpair NONE) files));
+  SOME (make_deps ~1 master text parents (map (rpair NONE) files));
 
 fun master_idents (NONE: master option) = []
   | master_idents (SOME ((_, thy_id), NONE)) = [thy_id]
@@ -235,20 +235,20 @@ fun check_files name =
   in files end;
 
 
-(* maintain 'outdated' flag *)
+(* maintain update_time *)
 
 local
 
 fun is_outdated name =
   (case lookup_deps name of
-    SOME (SOME {outdated, ...}) => outdated
+    SOME (SOME {update_time, ...}) => update_time < 0
   | _ => false);
 
 fun outdate_thy name =
   if is_finished name orelse is_outdated name then ()
   else CRITICAL (fn () =>
-   (change_deps name (Option.map (fn {outdated = _, master, text, parents, files} =>
-    make_deps true master text parents files)); perform Outdate name));
+   (change_deps name (Option.map (fn {master, text, parents, files, ...} =>
+    make_deps ~1 master text parents files)); perform Outdate name));
 
 fun check_unfinished name =
   if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); NONE)
@@ -271,11 +271,12 @@ end;
 
 local
 
-fun provide path name info (deps as SOME {outdated, master, text, parents, files}) =
+fun provide path name info (deps as SOME {update_time, master, text, parents, files}) =
      (if AList.defined (op =) files path then ()
       else warning (loader_msg "undeclared dependency of theory" [name] ^
         " on file: " ^ quote (Path.implode path));
-      SOME (make_deps outdated master text parents (AList.update (op =) (path, SOME info) files)))
+      SOME (make_deps update_time master text parents
+        (AList.update (op =) (path, SOME info) files)))
   | provide _ _ _ NONE = NONE;
 
 fun run_file path =
@@ -310,7 +311,7 @@ end;
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy ml time initiators dir name =
+fun load_thy ml time upd_time initiators dir name =
   let
     val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
     val (pos, text, files) =
@@ -319,12 +320,16 @@ fun load_thy ml time initiators dir name =
           (Position.path master_path, text, files)
       | _ => error (loader_msg "corrupted dependency information" [name]));
     val _ = touch_thy name;
+    val _ = CRITICAL (fn () =>
+      change_deps name (Option.map (fn {master, text, parents, files, ...} =>
+        make_deps upd_time master text parents files)));
     val _ = ThyLoad.load_thy dir name pos text ml (time orelse ! Output.timing);
     val _ = check_files name;
   in
     CRITICAL (fn () =>
      (change_deps name
-        (Option.map (fn {master, parents, files, ...} => make_deps false master [] parents files));
+        (Option.map (fn {update_time, master, parents, files, ...} =>
+          make_deps update_time master [] parents files));
       perform Update name))
   end;
 
@@ -347,7 +352,7 @@ fun check_deps ml strict dir name =
   | NONE =>
       let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name ml
       in (false, init_deps (SOME master) text parents files, parents) end
-  | SOME (deps as SOME {outdated, master, text, parents, files}) =>
+  | SOME (deps as SOME {update_time, master, text, parents, files}) =>
       if not strict andalso can get_theory name then (true, deps, parents)
       else
         let val master' = SOME (ThyLoad.check_thy dir name ml) in
@@ -359,8 +364,9 @@ fun check_deps ml strict dir name =
           else
             let
               val checked_files = map (check_ml master') files;
-              val current = not outdated andalso forall (is_some o snd) checked_files;
-              val deps' = SOME (make_deps (not current) master' text parents checked_files);
+              val current = update_time >= 0 andalso forall (is_some o snd) checked_files;
+              val update_time' = if current then update_time else ~1;
+              val deps' = SOME (make_deps update_time' master' text parents checked_files);
             in (current, deps', parents) end
         end);
 
@@ -391,12 +397,13 @@ and require_thy ml time strict keep_strict initiators dir str tasks =
               (name :: initiators) (Path.append dir (master_dir' deps)) parents tasks;
 
           val all_current = current andalso parents_current;
-          val thy = if all_current then SOME (get_theory name) else NONE;
-          val _ = change_thys (new_deps name parent_names (deps, thy));
+          val theory = if all_current then SOME (get_theory name) else NONE;
+          val _ = change_thys (new_deps name parent_names (deps, theory));
 
+          val upd_time = serial ();
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
            (if all_current then Task.Finished
-            else Task.Task (fn () => load_thy ml time initiators dir' name));
+            else Task.Task (fn () => load_thy ml time upd_time initiators dir' name));
           val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
         in (all_current, (tasks_graph'', tasks_len'')) end)
   end;
@@ -420,7 +427,7 @@ fun max_task (task as (_, (Task.Task _, _: int))) NONE = SOME task
 fun next_task G =
   let
     val tasks = Graph.minimals G |> map (fn name =>
-      (name, (Graph.get_node G name, length (Graph.imm_succs G name))))
+      (name, (Graph.get_node G name, length (Graph.imm_succs G name))));
     val finished = filter (Task.is_finished o fst o snd) tasks;
   in
     if not (null finished) then next_task (Graph.del_nodes (map fst finished) G)
@@ -498,20 +505,21 @@ fun begin_theory name parents uses int =
       ML_Context.set_context (SOME (Context.Theory (get_theory (List.last parent_names)))));
     val _ = check_uses name uses;
 
-    val theory =
-      Theory.begin_theory name (map get_theory parent_names)
-      |> Present.begin_theory dir uses;
+    val theory = Theory.begin_theory name (map get_theory parent_names);
 
     val deps =
       if known_thy name then get_deps name
       else init_deps NONE [] parents (map #1 uses);
     val _ = change_thys (new_deps name parent_names (deps, NONE));
 
+    val update_time = (case deps of NONE => 0 | SOME {update_time, ...} => update_time);
+    val theory' = Present.begin_theory update_time dir uses theory;
+
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
-    val ((), theory') =
-      ML_Context.pass_context (Context.Theory theory) (List.app (load_file false)) uses_now
+    val ((), theory'') =
+      ML_Context.pass_context (Context.Theory theory') (List.app (load_file false)) uses_now
       ||> Context.the_theory;
-  in theory' end;
+  in theory'' end;
 
 fun end_theory theory =
   let
@@ -532,10 +540,11 @@ fun register_thy name =
     val _ = touch_thy name;
     val files = check_files name;
     val master = #master (ThyLoad.deps_thy Path.current name false);
+    val upd_time = serial ();
   in
     CRITICAL (fn () =>
      (change_deps name
-        (Option.map (fn {parents, ...} => make_deps false (SOME master) [] parents files));
+        (Option.map (fn {parents, ...} => make_deps upd_time (SOME master) [] parents files));
       perform Update name))
   end;
 
