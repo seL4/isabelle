@@ -6,39 +6,44 @@
 Root file for UNITY proofs.
 *)
 
-(*Basic meta-theory*)
-time_use_thy "UNITY_Main";
-
-(*Simple examples: no composition*)
-time_use_thy "Simple/Deadlock";
-time_use_thy "Simple/Common";
-time_use_thy "Simple/Network";
-time_use_thy "Simple/Token";
-time_use_thy "Simple/Channel";
-time_use_thy "Simple/Lift";
-time_use_thy "Simple/Mutex";
-time_use_thy "Simple/Reach";
-time_use_thy "Simple/Reachability";
-
 (*Verifying security protocols using UNITY*)
-with_path "../Auth" (no_document use_thy) "Public";
-with_path "../Auth" time_use_thy "Simple/NSP_Bad";
+no_document use_thy "../Auth/Public";
 
-(*Example of composition*)
-time_use_thy "Comp/Handshake";
+use_thys [
+  (*Basic meta-theory*)
+  "UNITY_Main",
 
-(*Universal properties examples*)
-time_use_thy "Comp/Counter";
-time_use_thy "Comp/Counterc";
-time_use_thy "Comp/Priority";
+  (*Simple examples: no composition*)
+  "Simple/Deadlock",
+  "Simple/Common",
+  "Simple/Network",
+  "Simple/Token",
+  "Simple/Channel",
+  "Simple/Lift",
+  "Simple/Mutex",
+  "Simple/Reach",
+  "Simple/Reachability",
 
-time_use_thy "Comp/TimerArray";
+  (*Verifying security protocols using UNITY*)
+  "Simple/NSP_Bad",
+
+  (*Example of composition*)
+  "Comp/Handshake",
+
+  (*Universal properties examples*)
+  "Comp/Counter",
+  "Comp/Counterc",
+  "Comp/Priority",
+
+  "Comp/TimerArray",
+
+  (*obsolete*)
+  "ELT"
+];
 
 (*Allocator example*)
 (* FIXME some parts no longer work -- had been commented out for a long time *)
 setmp quick_and_dirty true
-  time_use_thy "Comp/Alloc";
-time_use_thy "Comp/AllocImpl";
-time_use_thy "Comp/Client";
+  use_thy "Comp/Alloc";
 
-time_use_thy "ELT";  (*obsolete*)
+use_thys ["Comp/AllocImpl", "Comp/Client"];

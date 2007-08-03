@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Project.ML
+(*  Title:      HOL/UNITY/Project.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
@@ -672,22 +672,5 @@ lemma (in Extend) extending_LeadsTo:
 apply (unfold extending_def)
 apply (blast intro: project_LeadsTo_D)
 done
-
-ML
-{*
-val projecting_Int = thm "projecting_Int";
-val projecting_Un = thm "projecting_Un";
-val projecting_INT = thm "projecting_INT";
-val projecting_UN = thm "projecting_UN";
-val projecting_weaken = thm "projecting_weaken";
-val projecting_weaken_L = thm "projecting_weaken_L";
-val extending_Int = thm "extending_Int";
-val extending_Un = thm "extending_Un";
-val extending_INT = thm "extending_INT";
-val extending_UN = thm "extending_UN";
-val extending_weaken = thm "extending_weaken";
-val extending_weaken_L = thm "extending_weaken_L";
-val projecting_UNIV = thm "projecting_UNIV";
-*}
 
 end

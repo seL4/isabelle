@@ -179,7 +179,7 @@ lemma safety_prop_preserves [iff]: "safety_prop (preserves v)"
 by (auto intro: safety_prop_INTER1 simp add: preserves_def)
 
 
-(** Some lemmas used only in Client.ML **)
+(** Some lemmas used only in Client.thy **)
 
 lemma stable_localTo_stable2:
      "[| F \<in> stable {s. P (v s) (w s)};

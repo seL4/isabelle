@@ -106,19 +106,4 @@ apply (simp del: UN_simps
 apply (subst setsum_UN_disjoint, auto)
 done
 
-ML
-{*
-val NbT_pos = thm "NbT_pos";
-val setsum_fun_mono = thm "setsum_fun_mono";
-val tokens_mono_prefix = thm "tokens_mono_prefix";
-val mono_tokens = thm "mono_tokens";
-val bag_of_append = thm "bag_of_append";
-val mono_bag_of = thm "mono_bag_of";
-val bag_of_sublist_lemma = thm "bag_of_sublist_lemma";
-val bag_of_sublist = thm "bag_of_sublist";
-val bag_of_sublist_Un_Int = thm "bag_of_sublist_Un_Int";
-val bag_of_sublist_Un_disjoint = thm "bag_of_sublist_Un_disjoint";
-val bag_of_sublist_UN_disjoint = thm "bag_of_sublist_UN_disjoint";
-*}
-
 end

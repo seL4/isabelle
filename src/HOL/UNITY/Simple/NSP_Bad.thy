@@ -3,8 +3,6 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
-ML{*add_path "$ISABELLE_HOME/src/HOL/Auth"*}
-
 Original file is ../Auth/NS_Public_Bad
 *)
 
@@ -103,28 +101,25 @@ done
 
 text{*This ML code does the inductions directly.*}
 ML{*
-val ns_constrainsI = thm "ns_constrainsI";
-val impCE = thm "impCE";
-
 fun ns_constrains_tac(cs,ss) i =
    SELECT_GOAL
-      (EVERY [REPEAT (etac Always_ConstrainsI 1),
-	      REPEAT (resolve_tac [StableI, stableI,
-				   constrains_imp_Constrains] 1),
-	      rtac ns_constrainsI 1,
+      (EVERY [REPEAT (etac @{thm Always_ConstrainsI} 1),
+	      REPEAT (resolve_tac [@{thm StableI}, @{thm stableI},
+				   @{thm constrains_imp_Constrains}] 1),
+	      rtac @{thm ns_constrainsI} 1,
 	      full_simp_tac ss 1,
 	      REPEAT (FIRSTGOAL (etac disjE)),
-	      ALLGOALS (clarify_tac (cs delrules [impI,impCE])),
+	      ALLGOALS (clarify_tac (cs delrules [impI, @{thm impCE}])),
 	      REPEAT (FIRSTGOAL analz_mono_contra_tac),
 	      ALLGOALS (asm_simp_tac ss)]) i;
 
 (*Tactic for proving secrecy theorems*)
 fun ns_induct_tac(cs,ss) =
   (SELECT_GOAL o EVERY)
-     [rtac AlwaysI 1,
+     [rtac @{thm AlwaysI} 1,
       force_tac (cs,ss) 1,
       (*"reachable" gets in here*)
-      rtac (Always_reachable RS Always_ConstrainsI RS StableI) 1,
+      rtac (@{thm Always_reachable} RS @{thm Always_ConstrainsI} RS @{thm StableI}) 1,
       ns_constrains_tac(cs,ss) 1];
 *}
 

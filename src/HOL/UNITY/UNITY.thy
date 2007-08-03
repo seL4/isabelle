@@ -55,7 +55,7 @@ constdefs
     "increasing f == \<Inter>z. stable {s. z \<le> f s}"
 
 
-text{*Perhaps equalities.ML shouldn't add this in the first place!*}
+text{*Perhaps HOL shouldn't add this in the first place!*}
 declare image_Collect [simp del]
 
 subsubsection{*The abstract type of programs*}
@@ -346,7 +346,7 @@ by blast
 lemma Int_Union_Union: "Union(B) \<inter> A = Union((%C. C \<inter> A)`B)"
 by blast
 
-text{*Needed for WF reasoning in WFair.ML*}
+text{*Needed for WF reasoning in WFair.thy*}
 
 lemma Image_less_than [simp]: "less_than `` {k} = greaterThan k"
 by blast
