@@ -53,17 +53,17 @@ fun NAMED_CRITICAL name e =
   if self_critical () then e ()
   else
     let
+      val name' = ! critical_name;
       val _ =
         if Mutex.trylock critical_lock then ()
         else
           let
             val timer = Timer.startRealTimer ();
-            val _ = tracing 3 (fn () =>
-              "CRITICAL" ^ show name ^ show' (! critical_name) ^ ": waiting");
+            val _ = tracing 4 (fn () => "CRITICAL" ^ show name ^ show' name' ^ ": waiting");
             val _ = Mutex.lock critical_lock;
-            val _ = tracing 3 (fn () =>
-              "CRITICAL" ^ show name ^ show' (! critical_name) ^ ": passed after " ^
-              Time.toString (Timer.checkRealTimer timer));
+            val time = Timer.checkRealTimer timer;
+            val _ = tracing (if Time.> (time, Time.fromMilliseconds 10) then 3 else 4) (fn () =>
+              "CRITICAL" ^ show name ^ show' name' ^ ": passed after " ^ Time.toString time);
           in () end;
       val _ = critical_thread := SOME (Thread.self ());
       val _ = critical_name := name;
@@ -92,12 +92,15 @@ fun schedule n next_task tasks =
     val lock = Mutex.mutex ();
     fun PROTECTED name e =
       let
+        val name' = ! protected_name;
         val _ =
           if Mutex.trylock lock then ()
           else
-           (tracing 2 (fn () => "PROTECTED" ^ show name ^ show' (! protected_name) ^ ": waiting");
-            Mutex.lock lock;
-            tracing 2 (fn () => "PROTECTED" ^ show name ^ show' (! protected_name) ^ ": passed"));
+            let
+              val _ = tracing 2 (fn () => "PROTECTED" ^ show name ^ show' name' ^ ": waiting");
+              val _ = Mutex.lock lock;
+              val _ = tracing 2 (fn () => "PROTECTED" ^ show name ^ show' name' ^ ": passed");
+            in () end;
         val _ = protected_name := name;
         val res = Exn.capture e ();
         val _ = protected_name := "";
