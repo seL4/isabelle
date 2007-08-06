@@ -7,7 +7,7 @@
 Syntax.ambiguity_level := 100;
 proofs := 2;
 
-no_document use_thy "Accessible_Part";
+no_document use_thys ["Accessible_Part", "Pretty_Int"];
 use_thys ["Eta", "StrongNorm"];
 if HOL_proofs < 2 then
   warning "HOL proof terms required for running theory WeakNorm"
