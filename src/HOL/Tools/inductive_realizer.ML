@@ -271,6 +271,8 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
       (foldr forall_intr_prf (prf_of rrule) (vs2 @ rs))))
   end;
 
+fun rename tab = map (fn x => the_default x (AList.lookup op = tab x));
+
 fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
   let
     val qualifier = NameSpace.qualifier (name_of_thm induct);
@@ -365,9 +367,12 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     fun add_ind_realizer (thy, Ps) =
       let
+        val vs' = rename (map (pairself (fst o fst o dest_Var))
+          (params ~~ List.take (snd (strip_comb (HOLogic.dest_Trueprop
+            (hd (prems_of (hd inducts))))), nparms))) vs;
         val rs = indrule_realizer thy induct raw_induct rsets params'
-          (vs @ Ps) rec_names rss' intrs dummies;
-        val rlzs = map (fn (r, ind) => Extraction.realizes_of thy (vs @ Ps) r
+          (vs' @ Ps) rec_names rss' intrs dummies;
+        val rlzs = map (fn (r, ind) => Extraction.realizes_of thy (vs' @ Ps) r
           (prop_of ind)) (rs ~~ inducts);
         val used = foldr add_term_free_names [] rlzs;
         val rnames = Name.variant_list used (replicate (length inducts) "r");
@@ -391,22 +396,22 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
              [K (rewrite_goals_tac rews), ObjectLogic.atomize_prems_tac,
               DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE]]) 1)]);
         val (thm', thy') = PureThy.store_thm ((space_implode "_"
-          (NameSpace.qualified qualifier "induct" :: vs @ Ps @
+          (NameSpace.qualified qualifier "induct" :: vs' @ Ps @
              ["correctness"]), thm), []) thy;
         val thms = map (fn th => zero_var_indexes (rotate_prems ~1 (th RS mp)))
           (DatatypeAux.split_conj_thm thm');
         val ([thms'], thy'') = PureThy.add_thmss
           [((space_implode "_"
-             (NameSpace.qualified qualifier "inducts" :: vs @ Ps @
+             (NameSpace.qualified qualifier "inducts" :: vs' @ Ps @
                ["correctness"]), thms), [])] thy';
         val realizers = inducts ~~ thms' ~~ rlzs ~~ rs;
       in
         Extraction.add_realizers_i
           (map (fn (((ind, corr), rlz), r) =>
-              mk_realizer thy' (vs @ Ps) (Thm.get_name ind, ind, corr, rlz, r))
+              mk_realizer thy' (vs' @ Ps) (Thm.get_name ind, ind, corr, rlz, r))
             realizers @ (case realizers of
              [(((ind, corr), rlz), r)] =>
-               [mk_realizer thy' (vs @ Ps) (NameSpace.qualified qualifier "induct",
+               [mk_realizer thy' (vs' @ Ps) (NameSpace.qualified qualifier "induct",
                   ind, corr, rlz, r)]
            | _ => [])) thy''
       end;
