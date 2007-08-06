@@ -41,7 +41,8 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML		\
   Isar/rule_insts.ML Isar/session.ML Isar/skip_proof.ML Isar/spec_parse.ML	\
   Isar/specification.ML Isar/theory_target.ML Isar/toplevel.ML			\
   ML-Systems/alice.ML ML-Systems/exn.ML ML-Systems/multithreading_dummy.ML	\
-  ML-Systems/multithreading_polyml.ML ML-Systems/polyml-4.1.3.ML		\
+  ML-Systems/multithreading_polyml.ML ML-Systems/overloading_smlnj.ML 		\
+  ML-Systems/polyml-4.1.3.ML		\
   ML-Systems/polyml-4.1.4.ML ML-Systems/polyml-5.0.ML ML-Systems/polyml-5.1.ML	\
   ML-Systems/polyml-interrupt-timeout.ML ML-Systems/polyml-old-basis.ML		\
   ML-Systems/polyml-posix.ML ML-Systems/polyml.ML ML-Systems/poplogml.ML	\
@@ -79,11 +80,11 @@ RAW: $(OUT)/RAW
 
 $(OUT)/RAW: ML-Systems/alice.ML ML-Systems/exn.ML 				\
   ML-Systems/multithreading_dummy.ML ML-Systems/multithreading_polyml.ML	\
-  ML-Systems/polyml-4.1.3.ML ML-Systems/polyml-4.1.4.ML 			\
-  ML-Systems/polyml-5.0.ML ML-Systems/polyml-5.1.ML				\
+  ML-Systems/overloading_smlnj.ML ML-Systems/polyml-4.1.3.ML			\
+  ML-Systems/polyml-4.1.4.ML ML-Systems/polyml-5.0.ML ML-Systems/polyml-5.1.ML	\
   ML-Systems/polyml-interrupt-timeout.ML ML-Systems/polyml-old-basis.ML		\
   ML-Systems/polyml-posix.ML ML-Systems/polyml.ML ML-Systems/poplogml.ML	\
-  ML-Systems/smlnj.ML
+  ML-Systems/proper_int.ML ML-Systems/smlnj.ML
 	@./mk -r
 
 
