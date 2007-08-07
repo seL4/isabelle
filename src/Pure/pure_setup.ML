@@ -8,11 +8,10 @@ Pure theory and ML toplevel setup.
 (* ML toplevel use commands *)
 
 fun use name          = Toplevel.program (fn () => ThyInfo.use name);
-fun time_use name     = Toplevel.program (fn () => ThyInfo.time_use name);
 fun use_thys name     = Toplevel.program (fn () => ThyInfo.use_thys name);
 fun use_thy name      = Toplevel.program (fn () => ThyInfo.use_thy name);
+fun time_use name     = Toplevel.program (fn () => ThyInfo.time_use name);
 fun time_use_thy name = Toplevel.program (fn () => ThyInfo.time_use_thy name);
-fun update_thy name   = Toplevel.program (fn () => ThyInfo.update_thy name);
 
 
 (* the Pure theories *)

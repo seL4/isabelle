@@ -69,7 +69,6 @@ sig
   val cd: Path.T -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
   val use_thy: string -> Toplevel.transition -> Toplevel.transition
-  val update_thy: string -> Toplevel.transition -> Toplevel.transition
   val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
   val print_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
   val pretty_setmargin: int -> Toplevel.transition -> Toplevel.transition
@@ -401,7 +400,6 @@ val pwd = Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())));
 (* load theory files *)
 
 fun use_thy name = Toplevel.imperative (fn () => ML_Context.save ThyInfo.use_thy name);
-fun update_thy name = Toplevel.imperative (fn () => ML_Context.save ThyInfo.update_thy name);
 
 
 (* present draft files *)
