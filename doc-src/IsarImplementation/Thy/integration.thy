@@ -372,7 +372,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML theory: "string -> theory"} \\
   @{index_ML use_thy: "string -> unit"} \\
-  @{index_ML update_thy: "string -> unit"} \\
+  @{index_ML use_thys: "string list -> unit"} \\
   @{index_ML touch_thy: "string -> unit"} \\
   @{index_ML remove_thy: "string -> unit"} \\[1ex]
   @{index_ML ThyInfo.begin_theory}@{verbatim ": ... -> bool -> theory"} \\
@@ -388,13 +388,14 @@ text %mlref {*
   associated with name @{text A}.  Note that the result might be
   outdated.
 
-  \item @{ML use_thy}~@{text A} loads theory @{text A} if it is absent
-  or out-of-date.  It ensures that all parent theories are available
-  as well, but does not reload them if older versions are already
-  present.
+  \item @{ML use_thy}~@{text A} ensures that theory @{text A} is fully
+  up-to-date wrt.\ the external file store, reloading outdated
+  ancestors as required.
 
-  \item @{ML update_thy} is similar to @{ML use_thy}, but ensures that
-  theory @{text A} and all ancestors are fully up-to-date.
+  \item @{ML use_thys} is similar to @{ML use_thy}, but handles
+  several theories simultaneously.  Thus it acts like processing the
+  import header of a theory, without performing the merge of the
+  result, though.
 
   \item @{ML touch_thy}~@{text A} performs and @{text outdate} action
   on theory @{text A} and all descendants.
@@ -403,10 +404,7 @@ text %mlref {*
   descendants from the theory database.
 
   \item @{ML ThyInfo.begin_theory} is the basic operation behind a
-  @{text \<THEORY>} header declaration.  The boolean argument
-  indicates the strictness of treating ancestors: for @{ML true} (as
-  in interactive mode) like @{ML update_thy}, and for @{ML false} (as
-  in batch mode) like @{ML use_thy}.  This is {\ML} functions is
+  @{text \<THEORY>} header declaration.  This is {\ML} functions is
   normally not invoked directly.
 
   \item @{ML ThyInfo.end_theory} concludes the loading of a theory
