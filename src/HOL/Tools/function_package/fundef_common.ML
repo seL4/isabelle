@@ -84,15 +84,6 @@ structure FundefData = GenericDataFun
 );
 
 
-structure FundefCongs = GenericDataFun
-(
-  type T = thm list
-  val empty = []
-  val extend = I
-  fun merge _ = Thm.merge_thms
-);
-
-
 (* Generally useful?? *)
 fun lift_morphism thy f = 
     let 
@@ -125,11 +116,6 @@ fun import_last_fundef ctxt =
       end
 
 val all_fundef_data = NetRules.rules o FundefData.get
-
-val map_fundef_congs = FundefCongs.map 
-val get_fundef_congs = FundefCongs.get
-
-
 
 structure TerminationRule = GenericDataFun
 (

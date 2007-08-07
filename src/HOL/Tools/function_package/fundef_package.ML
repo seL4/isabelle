@@ -25,9 +25,6 @@ sig
 
     val setup_termination_proof : string option -> local_theory -> Proof.state
 
-    val cong_add: attribute
-    val cong_del: attribute
-
     val setup : theory -> theory
     val setup_case_cong_hook : theory -> theory
     val get_congs : theory -> thm list
@@ -169,17 +166,11 @@ val add_fundef = gen_add_fundef Specification.read_specification
 val add_fundef_i = gen_add_fundef Specification.cert_specification
 
 
-
-(* congruence rules *)
-
-val cong_add = Thm.declaration_attribute (map_fundef_congs o Thm.add_thm o safe_mk_meta_eq);
-val cong_del = Thm.declaration_attribute (map_fundef_congs o Thm.del_thm o safe_mk_meta_eq);
-
 (* Datatype hook to declare datatype congs as "fundef_congs" *)
 
 
 fun add_case_cong n thy =
-    Context.theory_map (map_fundef_congs (Thm.add_thm
+    Context.theory_map (FundefCtxTree.map_fundef_congs (Thm.add_thm
                           (DatatypePackage.get_datatype thy n |> the
                            |> #case_cong
                            |> safe_mk_meta_eq)))
@@ -266,14 +257,13 @@ val elim_to_cases_setup = Method.add_methods
 
 val setup =
   Attrib.add_attributes
-    [("fundef_cong", Attrib.add_del_args cong_add cong_del,
+    [("fundef_cong", Attrib.add_del_args FundefCtxTree.cong_add FundefCtxTree.cong_del,
       "declaration of congruence rule for function definitions")]
   #> setup_case_cong_hook
   #> FundefRelation.setup
   #> elim_to_cases_setup
 
-val get_congs = FundefCommon.get_fundef_congs o Context.Theory
-
+val get_congs = FundefCtxTree.get_fundef_congs o Context.Theory
 
 
 (* outer syntax *)

@@ -403,7 +403,7 @@ fun mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_cases compat_store c
 
 
 
-fun prove_stuff ctxt congs globals G f R clauses complete compat compat_store G_elim f_def =
+fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f_def =
     let
         val Globals {h, domT, ranT, x, ...} = globals
         val thy = ProofContext.theory_of ctxt
@@ -868,7 +868,6 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
                             
       val default = singleton (ProofContext.read_termTs lthy) (default_str, fT)
 
-      val congs = get_fundef_congs (Context.Proof lthy)
       val (globals, ctxt') = fix_globals domT ranT fvar lthy
 
       val Globals { x, h, ... } = globals
@@ -877,10 +876,8 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
 
       val n = length abstract_qglrs
 
-      val congs_deps = map (fn c => (c, FundefCtxTree.cong_deps c)) (congs @ FundefCtxTree.add_congs) (* FIXME: Save in theory *)
-              
       fun build_tree (ClauseContext { ctxt, rhs, ...}) = 
-            FundefCtxTree.mk_tree congs_deps (fname, fT) h ctxt rhs
+            FundefCtxTree.mk_tree (fname, fT) h ctxt rhs
 
       val trees = map build_tree clauses
       val RCss = map find_calls trees
@@ -912,7 +909,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
 
       val compat_store = store_compat_thms n compat
 
-      val (goalstate, values) = PROFILE "prove_stuff" (prove_stuff lthy congs globals G f R xclauses complete compat compat_store G_elim) f_defthm
+      val (goalstate, values) = PROFILE "prove_stuff" (prove_stuff lthy globals G f R xclauses complete compat compat_store G_elim) f_defthm
 
       val mk_trsimps = mk_trsimps lthy globals f G R f_defthm R_elim G_induct xclauses
 

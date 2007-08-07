@@ -13,11 +13,14 @@ sig
     type ctx_tree
 
     (* FIXME: This interface is a mess and needs to be cleaned up! *)
-    val cong_deps : thm -> int IntGraph.T
-    val add_congs : thm list
+    val get_fundef_congs : Context.generic -> thm list
+    val add_fundef_cong : thm -> Context.generic -> Context.generic
+    val map_fundef_congs : (thm list -> thm list) -> Context.generic -> Context.generic
 
-    val mk_tree: (thm * depgraph) list ->
-                 (string * typ) -> term -> Proof.context -> term -> ctx_tree
+    val cong_add: attribute
+    val cong_del: attribute
+
+    val mk_tree: (string * typ) -> term -> Proof.context -> term -> ctx_tree
 
     val inst_tree: theory -> term -> term -> ctx_tree -> ctx_tree
 
@@ -43,6 +46,24 @@ struct
 
 open FundefCommon
 open FundefLib
+
+structure FundefCongs = GenericDataFun
+(
+  type T = thm list
+  val empty = []
+  val extend = I
+  fun merge _ = Thm.merge_thms
+);
+
+val map_fundef_congs = FundefCongs.map 
+val get_fundef_congs = FundefCongs.get
+val add_fundef_cong = FundefCongs.map o Thm.add_thm
+
+(* congruence rules *)
+
+val cong_add = Thm.declaration_attribute (map_fundef_congs o Thm.add_thm o safe_mk_meta_eq);
+val cong_del = Thm.declaration_attribute (map_fundef_congs o Thm.del_thm o safe_mk_meta_eq);
+
 
 type depgraph = int IntGraph.T
 
@@ -71,13 +92,13 @@ fun branch_vars t =
 
 fun cong_deps crule =
     let
-  val branches = map branch_vars (prems_of crule)
-  val num_branches = (1 upto (length branches)) ~~ branches
+      val branches = map branch_vars (prems_of crule)
+      val num_branches = (1 upto (length branches)) ~~ branches
     in
-  IntGraph.empty
-      |> fold (fn (i,_)=> IntGraph.new_node (i,i)) num_branches
-      |> fold (fn ((i,(c1,_)),(j,(_, t2))) => if i = j orelse null (c1 inter t2) then I else IntGraph.add_edge_acyclic (i,j))
-      (product num_branches num_branches)
+      IntGraph.empty
+        |> fold (fn (i,_)=> IntGraph.new_node (i,i)) num_branches
+        |> fold (fn ((i,(c1,_)),(j,(_, t2))) => if i = j orelse null (c1 inter t2) then I else IntGraph.add_edge_acyclic (i,j))
+        (product num_branches num_branches)
     end
     
 val add_congs = map (fn c => c RS eq_reflection) [cong, ext] 
@@ -87,11 +108,11 @@ val add_congs = map (fn c => c RS eq_reflection) [cong, ext]
 (* Called on the INSTANTIATED branches of the congruence rule *)
 fun mk_branch ctx t = 
     let
-  val (ctx', fixes, impl) = dest_all_all_ctx ctx t
+      val (ctx', fixes, impl) = dest_all_all_ctx ctx t
     in
       (ctx', fixes, Logic.strip_imp_prems impl, rhs_of (Logic.strip_imp_concl impl))
     end
-
+    
 fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
     (let
        val thy = ProofContext.theory_of ctx
@@ -112,18 +133,26 @@ fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
 fun matchcall fvar (a $ b) = if a = Free fvar then SOME b else NONE
   | matchcall fvar _ = NONE
 
-fun mk_tree congs fvar h ctx t =
-    case matchcall fvar t of
-      SOME arg => RCall (t, mk_tree congs fvar h ctx arg)
-    | NONE => 
-      if not (exists_subterm (fn Free v => v = fvar | _ => false) t) then Leaf t
-      else 
-  let val (r, dep, branches) = find_cong_rule ctx fvar h congs t in
-    Cong (t, r, dep, 
-                map (fn (ctx', fixes, assumes, st) => 
-      (fixes, map (assume o cterm_of (ProofContext.theory_of ctx)) assumes, 
-                         mk_tree congs fvar h ctx' st)) branches)
-  end
+fun mk_tree fvar h ctxt t =
+    let 
+      val congs = get_fundef_congs (Context.Proof ctxt)
+      val congs_deps = map (fn c => (c, cong_deps c)) (congs @ add_congs) (* FIXME: Save in theory *)
+
+      fun mk_tree' ctx t =
+          case matchcall fvar t of
+            SOME arg => RCall (t, mk_tree' ctx arg)
+          | NONE => 
+            if not (exists_subterm (fn Free v => v = fvar | _ => false) t) then Leaf t
+            else 
+              let val (r, dep, branches) = find_cong_rule ctx fvar h congs_deps t in
+                Cong (t, r, dep, 
+                      map (fn (ctx', fixes, assumes, st) => 
+                              (fixes, map (assume o cterm_of (ProofContext.theory_of ctx)) assumes, 
+                               mk_tree' ctx' st)) branches)
+              end
+    in
+      mk_tree' ctxt t
+    end
     
 
 fun inst_tree thy fvar f tr =
