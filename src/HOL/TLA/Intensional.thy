@@ -243,24 +243,17 @@ lemma TrueW [simp]: "|- #True"
 (* ======== Functions to "unlift" intensional implications into HOL rules ====== *)
 
 ML {*
-
-local
-  val intD = thm "intD";
-  val inteq_reflection = thm "inteq_reflection";
-  val intensional_rews = thms "intensional_rews";
-in
-
 (* Basic unlifting introduces a parameter "w" and applies basic rewrites, e.g.
    |- F = G    becomes   F w = G w
    |- F --> G  becomes   F w --> G w
 *)
 
 fun int_unlift th =
-  rewrite_rule intensional_rews (th RS intD handle THM _ => th);
+  rewrite_rule @{thms intensional_rews} (th RS @{thm intD} handle THM _ => th);
 
 (* Turn  |- F = G  into meta-level rewrite rule  F == G *)
 fun int_rewrite th =
-  zero_var_indexes (rewrite_rule intensional_rews (th RS inteq_reflection))
+  zero_var_indexes (rewrite_rule @{thms intensional_rews} (th RS @{thm inteq_reflection}))
 
 (* flattening turns "-->" into "==>" and eliminates conjunctions in the
    antecedent. For example,
@@ -299,8 +292,6 @@ fun int_use th =
       Const _ $ (Const ("Intensional.Valid", _) $ _) =>
               (flatten (int_unlift th) handle THM _ => th)
     | _ => th
-
-end
 *}
 
 setup {*

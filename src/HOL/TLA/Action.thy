@@ -109,13 +109,9 @@ ML {*
    functions defined in Intensional.ML in that they introduce a
    "world" parameter of the form (s,t) and apply additional rewrites.
 *)
-local
-  val action_rews = thms "action_rews";
-  val actionD = thm "actionD";
-in
 
 fun action_unlift th =
-  (rewrite_rule action_rews (th RS actionD))
+  (rewrite_rule @{thms action_rews} (th RS @{thm actionD}))
     handle THM _ => int_unlift th;
 
 (* Turn  |- A = B  into meta-level rewrite rule  A == B *)
@@ -126,8 +122,6 @@ fun action_use th =
       Const _ $ (Const ("Intensional.Valid", _) $ _) =>
               (flatten (action_unlift th) handle THM _ => th)
     | _ => th;
-
-end
 *}
 
 setup {*
@@ -269,22 +263,12 @@ ML {*
    should plug in only "very safe" rules that can be applied blindly.
    Note that it applies whatever simplifications are currently active.
 *)
-local
-  val actionI = thm "actionI";
-  val intI = thm "intI";
-in
-
 fun action_simp_tac ss intros elims =
     asm_full_simp_tac
          (ss setloop ((resolve_tac ((map action_use intros)
-                                    @ [refl,impI,conjI,actionI,intI,allI]))
+                                    @ [refl,impI,conjI,@{thm actionI},@{thm intI},allI]))
                       ORELSE' (eresolve_tac ((map action_use elims)
                                              @ [conjE,disjE,exE]))));
-
-(* default version without additional plug-in rules *)
-val Action_simp_tac = action_simp_tac (simpset()) [] []
-
-end
 *}
 
 (* ---------------- enabled_tac: tactic to prove (Enabled A) -------------------- *)
@@ -299,14 +283,9 @@ ML {*
    - Solve for the unknowns using standard HOL reasoning.
    The following tactic combines these steps except the final one.
 *)
-local
-  val base_enabled = thm "base_enabled";
-in
 
-fun enabled_tac base_vars =
-  clarsimp_tac (claset() addSIs [base_vars RS base_enabled], simpset());
-
-end
+fun enabled_tac (cs, ss) base_vars =
+  clarsimp_tac (cs addSIs [base_vars RS @{thm base_enabled}], ss);
 *}
 
 (* Example *)
@@ -314,7 +293,7 @@ end
 lemma
   assumes "basevars (x,y,z)"
   shows "|- x --> Enabled ($x & (y$ = #False))"
-  apply (tactic {* enabled_tac (thm "assms") 1 *})
+  apply (tactic {* enabled_tac @{clasimpset} @{thm assms} 1 *})
   apply auto
   done
 

@@ -164,7 +164,7 @@ lemma Stuck_at_b: "|- [][(N1 | N2) & ~ beta1]_(x,y,sem,pc1,pc2) --> stable(pc1 =
 lemma N1_enabled_at_g: "|- pc1 = #g --> Enabled (<N1>_(x,y,sem,pc1,pc2))"
   apply clarsimp
   apply (rule_tac F = gamma1 in enabled_mono)
-   apply (tactic {* enabled_tac (thm "Inc_base") 1 *})
+   apply (tactic {* enabled_tac @{clasimpset} @{thm Inc_base} 1 *})
   apply (force simp: gamma1_def)
   apply (force simp: angle_def gamma1_def N1_def)
   done
@@ -186,7 +186,7 @@ lemma g1_leadsto_a1:
 lemma N2_enabled_at_g: "|- pc2 = #g --> Enabled (<N2>_(x,y,sem,pc1,pc2))"
   apply clarsimp
   apply (rule_tac F = gamma2 in enabled_mono)
-  apply (tactic {* enabled_tac (thm "Inc_base") 1 *})
+  apply (tactic {* enabled_tac @{clasimpset} @{thm Inc_base} 1 *})
    apply (force simp: gamma2_def)
   apply (force simp: angle_def gamma2_def N2_def)
   done
@@ -205,7 +205,7 @@ lemma g2_leadsto_a2:
 lemma N2_enabled_at_b: "|- pc2 = #b --> Enabled (<N2>_(x,y,sem,pc1,pc2))"
   apply clarsimp
   apply (rule_tac F = beta2 in enabled_mono)
-   apply (tactic {* enabled_tac (thm "Inc_base") 1 *})
+   apply (tactic {* enabled_tac @{clasimpset} @{thm Inc_base} 1 *})
    apply (force simp: beta2_def)
   apply (force simp: angle_def beta2_def N2_def)
   done
@@ -247,7 +247,7 @@ lemma N1_enabled_at_both_a:
   "|- pc2 = #a & (PsiInv & pc1 = #a) --> Enabled (<N1>_(x,y,sem,pc1,pc2))"
   apply clarsimp
   apply (rule_tac F = alpha1 in enabled_mono)
-  apply (tactic {* enabled_tac (thm "Inc_base") 1 *})
+  apply (tactic {* enabled_tac @{clasimpset} @{thm Inc_base} 1 *})
    apply (force simp: alpha1_def PsiInv_defs)
   apply (force simp: angle_def alpha1_def N1_def)
   done
@@ -288,7 +288,7 @@ lemma N1_live: "|- []($PsiInv & [(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2))
 lemma N1_enabled_at_b: "|- pc1 = #b --> Enabled (<N1>_(x,y,sem,pc1,pc2))"
   apply clarsimp
   apply (rule_tac F = beta1 in enabled_mono)
-   apply (tactic {* enabled_tac (thm "Inc_base") 1 *})
+   apply (tactic {* enabled_tac @{clasimpset} @{thm Inc_base} 1 *})
    apply (force simp: beta1_def)
   apply (force simp: angle_def beta1_def N1_def)
   done

@@ -29,31 +29,30 @@ lemma eq_diff_eq': "(x = y - z) = (y = x + (z::real))"
 by arith
 
 text{*A crude tactic to differentiate by proof.*}
+
+lemmas deriv_rulesI =
+  DERIV_ident DERIV_const DERIV_cos DERIV_cmult
+  DERIV_sin DERIV_exp DERIV_inverse DERIV_pow
+  DERIV_add DERIV_diff DERIV_mult DERIV_minus
+  DERIV_inverse_fun DERIV_quotient DERIV_fun_pow
+  DERIV_fun_exp DERIV_fun_sin DERIV_fun_cos
+  DERIV_ident DERIV_const DERIV_cos
+
 ML
 {*
 local
-val deriv_rulesI =
-  [thm "DERIV_ident", thm "DERIV_const", thm "DERIV_cos", thm "DERIV_cmult",
-  thm "DERIV_sin", thm "DERIV_exp", thm "DERIV_inverse", thm "DERIV_pow",
-  thm "DERIV_add", thm "DERIV_diff", thm "DERIV_mult", thm "DERIV_minus",
-  thm "DERIV_inverse_fun", thm "DERIV_quotient", thm "DERIV_fun_pow",
-  thm "DERIV_fun_exp", thm "DERIV_fun_sin", thm "DERIV_fun_cos",
-  thm "DERIV_ident", thm "DERIV_const", thm "DERIV_cos"];
-
-val DERIV_chain2 = thm "DERIV_chain2";
-
-in
-
 exception DERIV_name;
 fun get_fun_name (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _)) = f
 |   get_fun_name (_ $ (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _))) = f
 |   get_fun_name _ = raise DERIV_name;
 
+in
+
 val deriv_tac =
   SUBGOAL (fn (prem,i) =>
-   (resolve_tac deriv_rulesI i) ORELSE
+   (resolve_tac @{thms deriv_rulesI} i) ORELSE
     ((rtac (read_instantiate [("f",get_fun_name prem)]
-                     DERIV_chain2) i) handle DERIV_name => no_tac));;
+                     @{thm DERIV_chain2}) i) handle DERIV_name => no_tac));;
 
 val DERIV_tac = ALLGOALS(fn i => REPEAT(deriv_tac i));
 

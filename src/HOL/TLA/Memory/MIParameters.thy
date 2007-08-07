@@ -14,6 +14,4 @@ MIParameters = Main +
 
 datatype  histState  =  histA | histB
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end
