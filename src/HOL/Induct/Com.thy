@@ -93,10 +93,7 @@ lemma [pred_set_conv]:
   "((\<lambda>x x' y. ((x, x'), y) \<in> R) <= (\<lambda>x x' y. ((x, x'), y) \<in> S)) = (R <= S)"
   by (auto simp add: le_fun_def le_bool_def)
 
-ML {*
-Unify.trace_bound := 30;
-Unify.search_bound := 60;
-*}
+declare [[unify_trace_bound = 30, unify_search_bound = 60]]
 
 text{*Command execution is functional (deterministic) provided evaluation is*}
 theorem single_valued_exec: "single_valued ev ==> single_valued(exec ev)"

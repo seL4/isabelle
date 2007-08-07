@@ -249,7 +249,7 @@ lemma "|- (ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))"
 text "Problem 59"
 (*Unification works poorly here -- the abstraction %sobj prevents efficient
   operation of the occurs check*)
-ML {* Unify.trace_bound := !Unify.search_bound - 1 *}
+
 lemma "|- (ALL x. P(x) <-> ~P(f(x))) --> (EX x. P(x) & ~P(f(x)))"
   by best_dup
 

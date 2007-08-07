@@ -11,6 +11,8 @@ imports Pure
 uses ("prover.ML")
 begin
 
+declare [[unify_trace_bound = 20, unify_search_bound = 40]]
+
 global
 
 typedecl o

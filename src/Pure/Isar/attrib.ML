@@ -349,7 +349,11 @@ fun internal_att x =
 (* theory setup *)
 
 val _ = Context.add_setup
- (register_config MetaSimplifier.simp_depth_limit_value #>
+ (register_config Unify.trace_bound_value #>
+  register_config Unify.search_bound_value #>
+  register_config Unify.trace_simp_value #>
+  register_config Unify.trace_types_value #>
+  register_config MetaSimplifier.simp_depth_limit_value #>
   add_attributes
    [("tagged", tagged, "tagged theorem"),
     ("untagged", untagged, "untagged theorem"),

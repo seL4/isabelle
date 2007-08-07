@@ -7,10 +7,8 @@ header {* Definitions extending HOL as logical basis of Bali *}
 
 theory Basis imports Main begin
 
-ML {*
-Unify.search_bound := 40;
-Unify.trace_bound  := 40;
-*}
+declare [[unify_search_bound = 40, unify_trace_bound = 40]]
+
 
 section "misc"
 

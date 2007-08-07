@@ -12,10 +12,14 @@ this is assured because both have type "prop".
 
 signature UNIFY =
 sig
-  val trace_bound: int ref
-  val trace_simp: bool ref
-  val trace_types: bool ref
-  val search_bound: int ref
+  val trace_bound_value: Config.value Config.T
+  val trace_bound: int Config.T
+  val search_bound_value: Config.value Config.T
+  val search_bound: int Config.T
+  val trace_simp_value: Config.value Config.T
+  val trace_simp: bool Config.T
+  val trace_types_value: Config.value Config.T
+  val trace_types: bool Config.T
   val unifiers: theory * Envir.env * ((term * term) list) ->
     (Envir.env * (term * term) list) Seq.seq
   val smash_unifiers: theory -> (term * term) list -> Envir.env -> Envir.env Seq.seq
@@ -28,10 +32,22 @@ struct
 
 (*Unification options*)
 
-val trace_bound = ref 25  (*tracing starts above this depth, 0 for full*)
-and search_bound = ref 30 (*unification quits above this depth*)
-and trace_simp = ref false  (*print dpairs before calling SIMPL*)
-and trace_types = ref false (*announce potential incompleteness of type unification*)
+(*tracing starts above this depth, 0 for full*)
+val trace_bound_value = Config.declare true "unify_trace_bound" (Config.Int 25);
+val trace_bound = Config.int trace_bound_value;
+
+(*unification quits above this depth*)
+val search_bound_value = Config.declare true "unify_search_bound" (Config.Int 30);
+val search_bound = Config.int search_bound_value;
+
+(*print dpairs before calling SIMPL*)
+val trace_simp_value = Config.declare true "unify_trace_simp" (Config.Bool false);
+val trace_simp = Config.bool trace_simp_value;
+
+(*announce potential incompleteness of type unification*)
+val trace_types_value = Config.declare true "unify_trace_types" (Config.Bool false);
+val trace_types = Config.bool trace_types_value;
+
 
 type binderlist = (string*typ) list;
 
@@ -318,8 +334,10 @@ fun type_abs (env,T,t) = types_abs(binder_types env T, t);
   NB "vname" is only used in the call to make_args!!   *)
 fun matchcopy thy vname = let fun mc(rbinder, targs, u, ed as (env,dpairs))
   : (term * (Envir.env * dpair list))Seq.seq =
-let (*Produce copies of uarg and cons them in front of uargs*)
-    fun copycons uarg (uargs, (env, dpairs)) =
+let
+  val trace_tps = Config.get_thy thy trace_types;
+  (*Produce copies of uarg and cons them in front of uargs*)
+  fun copycons uarg (uargs, (env, dpairs)) =
   Seq.map(fn (uarg', ed') => (uarg'::uargs, ed'))
       (mc (rbinder, targs,eta_norm env (rbinder, Envir.head_norm env uarg),
      (env, dpairs)));
@@ -332,7 +350,7 @@ let (*Produce copies of uarg and cons them in front of uargs*)
     (*attempt projection on argument with given typ*)
     val Ts = map (curry (fastype env) rbinder) targs;
     fun projenv (head, (Us,bary), targ, tail) =
-  let val env = if !trace_types then test_unify_types thy (base,bary,env)
+  let val env = if trace_tps then test_unify_types thy (base,bary,env)
           else unify_types thy (base,bary,env)
   in Seq.make (fn () =>
       let val (env',args) = make_args vname (Ts,env,Us);
@@ -551,26 +569,30 @@ fun print_dpairs thy msg (env,dpairs) =
   SIMPL may raise exception CANTUNIFY. *)
 fun hounifiers (thy,env, tus : (term*term)list)
   : (Envir.env * (term*term)list)Seq.seq =
-  let fun add_unify tdepth ((env,dpairs), reseq) =
+  let
+    val trace_bnd = Config.get_thy thy trace_bound;
+    val search_bnd = Config.get_thy thy search_bound;
+    val trace_smp = Config.get_thy thy trace_simp;
+    fun add_unify tdepth ((env,dpairs), reseq) =
     Seq.make (fn()=>
     let val (env',flexflex,flexrigid) =
-         (if tdepth> !trace_bound andalso !trace_simp
+         (if tdepth> trace_bnd andalso trace_smp
     then print_dpairs thy "Enter SIMPL" (env,dpairs)  else ();
     SIMPL thy (env,dpairs))
     in case flexrigid of
         [] => SOME (List.foldr (add_ffpair thy) (env',[]) flexflex, reseq)
       | dp::frigid' =>
-    if tdepth > !search_bound then
+    if tdepth > search_bnd then
         (warning "Unification bound exceeded"; Seq.pull reseq)
     else
-    (if tdepth > !trace_bound then
+    (if tdepth > trace_bnd then
         print_dpairs thy "Enter MATCH" (env',flexrigid@flexflex)
      else ();
      Seq.pull (Seq.it_right (add_unify (tdepth+1))
          (MATCH thy (env',dp, frigid'@flexflex), reseq)))
     end
     handle CANTUNIFY =>
-      (if tdepth > !trace_bound then tracing"Failure node" else ();
+      (if tdepth > trace_bnd then tracing"Failure node" else ();
        Seq.pull reseq));
      val dps = map (fn(t,u)=> ([],t,u)) tus
   in add_unify 1 ((env, dps), Seq.empty) end;
