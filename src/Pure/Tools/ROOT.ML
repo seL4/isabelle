@@ -22,8 +22,3 @@ use "codegen_funcgr.ML";
 use "codegen_thingol.ML";
 use "codegen_serializer.ML";
 use "codegen_package.ML";
-
-(*norm-by-eval*)
-use "nbe_eval.ML";
-use "nbe_codegen.ML";
-use "nbe.ML";

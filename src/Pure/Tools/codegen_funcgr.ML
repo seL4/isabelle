@@ -24,6 +24,10 @@ sig
   val make: theory -> CodegenConsts.const list -> T
   val make_consts: theory -> CodegenConsts.const list -> CodegenConsts.const list * T
   val make_term: theory -> (T -> (thm -> thm) -> cterm -> thm -> 'a) -> cterm -> 'a * T
+    (*FIXME drop make_term as soon as possible*)
+  val eval_conv: theory -> (T -> cterm -> thm) -> cterm -> thm
+  val intervene: theory -> T -> T
+    (*FIXME drop intervene as soon as possible*)
 end;
 
 structure CodegenFuncgr = (*signature is added later*)
@@ -317,7 +321,7 @@ fun ensure_consts_term rewrites thy f ct funcgr =
       in Thm.transitive thm thm' end
     val _ = Sign.no_vars (Sign.pp thy) (Thm.term_of ct);
     val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
-    val thm1 = CodegenData.preprocess_cterm ct
+    val thm1 = CodegenData.preprocess_conv ct
       |> fold (rhs_conv o MetaSimplifier.rewrite false o single) (rewrites thy);
     val ct' = Thm.rhs_of thm1;
     val consts = consts_of thy (Thm.term_of ct');
@@ -342,6 +346,20 @@ fun ensure_consts_term rewrites thy f ct funcgr =
     val instdefs = instances_of_consts thy algebra funcgr' cs;
     val funcgr'' = ensure_consts rewrites thy instdefs funcgr';
   in (f funcgr'' drop ct'' thm5, funcgr'') end;
+
+fun ensure_consts_eval rewrites thy conv =
+  let
+    fun conv' funcgr drop_classes ct thm1 =
+      let
+        val thm2 = conv funcgr ct;
+        val thm3 = CodegenData.postprocess_conv (Thm.rhs_of thm2);
+        val thm23 = drop_classes (Thm.transitive thm2 thm3);
+      in
+        Thm.transitive thm1 thm23 handle THM _ =>
+          error ("eval_conv - could not construct proof:\n"
+          ^ (cat_lines o map string_of_thm) [thm1, thm2, thm3])
+      end;
+  in ensure_consts_term rewrites thy conv' end;
 
 end; (*local*)
 
@@ -373,6 +391,13 @@ fun make_consts thy =
 
 fun make_term thy f =
   Funcgr.change_yield thy o CodegenFuncgr.ensure_consts_term rewrites thy f;
+
+fun eval_conv thy f =
+  fst o Funcgr.change_yield thy o CodegenFuncgr.ensure_consts_eval rewrites thy f;
+
+(*FIXME*)
+fun intervene thy funcgr =
+  Funcgr.change thy (K funcgr);
 
 end; (*functor*)
 

@@ -757,9 +757,9 @@ by (induct xs) auto
 lemma set_map [simp]: "set (map f xs) = f`(set xs)"
 by (induct xs) auto
 
-lemma set_allpairs[simp]:
+lemma set_allpairs [simp]:
  "set(allpairs f xs ys) = {z. EX x : set xs. EX y : set ys. z = f x y}"
-by(induct xs) auto
+by (induct xs) auto
 
 lemma set_filter [simp]: "set (filter P xs) = {x. x : set xs \<and> P x}"
 by (induct xs) auto
@@ -2923,7 +2923,7 @@ next
   show ?case by (induct xs) (auto simp add: Cons aux)
 qed
 
-lemma mem_iff [normal post]:
+lemma mem_iff [code post]:
   "x mem xs \<longleftrightarrow> x \<in> set xs"
   by (induct xs) auto
 
@@ -2933,14 +2933,14 @@ lemma empty_null [code inline]:
   "xs = [] \<longleftrightarrow> null xs"
   by (cases xs) simp_all
 
-lemmas null_empty [normal post] =
+lemmas null_empty [code post] =
   empty_null [symmetric]
 
 lemma list_inter_conv:
   "set (list_inter xs ys) = set xs \<inter> set ys"
   by (induct xs) auto
 
-lemma list_all_iff [normal post]:
+lemma list_all_iff [code post]:
   "list_all P xs \<longleftrightarrow> (\<forall>x \<in> set xs. P x)"
   by (induct xs) auto
 
@@ -2958,7 +2958,7 @@ lemma list_all_length:
   "list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))"
   unfolding list_all_iff by (auto intro: all_nth_imp_all_set)
 
-lemma list_ex_iff [normal post]:
+lemma list_ex_iff [code post]:
   "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
   by (induct xs) simp_all
 
@@ -2978,7 +2978,7 @@ lemma map_filter_conv [simp]:
   by (induct xs) auto
 
 lemma [code inline]: "listsum (map f xs) = foldl (%n x. n + f x) 0 xs"
-by(simp add:listsum_foldr foldl_map[symmetric] foldl_foldr1)
+  by (simp add: listsum_foldr foldl_map [symmetric] foldl_foldr1)
 
 
 text {* Code for bounded quantification over nats. *}

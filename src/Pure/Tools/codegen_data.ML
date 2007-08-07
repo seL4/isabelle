@@ -21,6 +21,8 @@ sig
   val del_inline_proc: string -> theory -> theory
   val add_preproc: string * (theory -> thm list -> thm list) -> theory -> theory
   val del_preproc: string -> theory -> theory
+  val add_post: thm -> theory -> theory
+  val del_post: thm -> theory -> theory
   val add_datatype: string * ((string * sort) list * (string * typ list) list)
     -> theory -> theory
   val add_datatype_consts: CodegenConsts.const list -> theory -> theory
@@ -33,7 +35,8 @@ sig
   val get_datatype_of_constr: theory -> CodegenConsts.const -> string option
   val default_typ: theory -> CodegenConsts.const -> typ
 
-  val preprocess_cterm: cterm -> thm
+  val preprocess_conv: cterm -> thm
+  val postprocess_conv: cterm -> thm
 
   val print_codesetup: theory -> unit
 
@@ -176,24 +179,29 @@ fun merge_sdthms ((sels1, dels1), (sels2, dels2)) =
 
 (** exeuctable content **)
 
-datatype preproc = Preproc of {
+datatype thmproc = Preproc of {
   inlines: thm list,
   inline_procs: (string * (serial * (theory -> cterm list -> thm list))) list,
-  preprocs: (string * (serial * (theory -> thm list -> thm list))) list
+  preprocs: (string * (serial * (theory -> thm list -> thm list))) list,
+  posts: thm list
 };
 
-fun mk_preproc ((inlines, inline_procs), preprocs) =
-  Preproc { inlines = inlines, inline_procs = inline_procs, preprocs = preprocs };
-fun map_preproc f (Preproc { inlines, inline_procs, preprocs }) =
-  mk_preproc (f ((inlines, inline_procs), preprocs));
-fun merge_preproc (Preproc { inlines = inlines1, inline_procs = inline_procs1, preprocs = preprocs1 },
-  Preproc { inlines = inlines2, inline_procs = inline_procs2, preprocs = preprocs2 }) =
+fun mk_thmproc (((inlines, inline_procs), preprocs), posts) =
+  Preproc { inlines = inlines, inline_procs = inline_procs, preprocs = preprocs,
+    posts = posts };
+fun map_thmproc f (Preproc { inlines, inline_procs, preprocs, posts }) =
+  mk_thmproc (f (((inlines, inline_procs), preprocs), posts));
+fun merge_thmproc (Preproc { inlines = inlines1, inline_procs = inline_procs1,
+    preprocs = preprocs1, posts = posts1 },
+  Preproc { inlines = inlines2, inline_procs = inline_procs2,
+      preprocs = preprocs2, posts= posts2 }) =
     let
       val (touched1, inlines) = merge_thms (inlines1, inlines2);
       val (touched2, inline_procs) = merge_alist (op =) (eq_fst (op =)) (inline_procs1, inline_procs2);
       val (touched3, preprocs) = merge_alist (op =) (eq_fst (op =)) (preprocs1, preprocs2);
+      val (_, posts) = merge_thms (posts1, posts2);
     in (touched1 orelse touched2 orelse touched3,
-      mk_preproc ((inlines, inline_procs), preprocs)) end;
+      mk_thmproc (((inlines, inline_procs), preprocs), posts)) end;
 
 fun join_func_thms (tabs as (tab1, tab2)) =
   let
@@ -246,29 +254,29 @@ fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1 },
   in (touched, mk_spec (funcs, dtyps)) end;
 
 datatype exec = Exec of {
-  preproc: preproc,
+  thmproc: thmproc,
   spec: spec
 };
 
-fun mk_exec (preproc, spec) =
-  Exec { preproc = preproc, spec = spec };
-fun map_exec f (Exec { preproc = preproc, spec = spec }) =
-  mk_exec (f (preproc, spec));
-fun merge_exec (Exec { preproc = preproc1, spec = spec1 },
-  Exec { preproc = preproc2, spec = spec2 }) =
+fun mk_exec (thmproc, spec) =
+  Exec { thmproc = thmproc, spec = spec };
+fun map_exec f (Exec { thmproc = thmproc, spec = spec }) =
+  mk_exec (f (thmproc, spec));
+fun merge_exec (Exec { thmproc = thmproc1, spec = spec1 },
+  Exec { thmproc = thmproc2, spec = spec2 }) =
   let
-    val (touched', preproc) = merge_preproc (preproc1, preproc2);
+    val (touched', thmproc) = merge_thmproc (thmproc1, thmproc2);
     val (touched_cs, spec) = merge_spec (spec1, spec2);
     val touched = if touched' then NONE else touched_cs;
-  in (touched, mk_exec (preproc, spec)) end;
-val empty_exec = mk_exec (mk_preproc (([], []), []),
+  in (touched, mk_exec (thmproc, spec)) end;
+val empty_exec = mk_exec (mk_thmproc ((([], []), []), []),
   mk_spec (Consttab.empty, Symtab.empty));
 
-fun the_preproc (Exec { preproc = Preproc x, ...}) = x;
+fun the_thmproc (Exec { thmproc = Preproc x, ...}) = x;
 fun the_spec (Exec { spec = Spec x, ...}) = x;
 val the_funcs = #funcs o the_spec;
 val the_dtyps = #dtyps o the_spec;
-val map_preproc = map_exec o apfst o map_preproc;
+val map_thmproc = map_exec o apfst o map_thmproc;
 val map_funcs = map_exec o apsnd o map_spec o apfst;
 val map_dtyps = map_exec o apsnd o map_spec o apsnd;
 
@@ -404,9 +412,9 @@ fun print_codesetup thy =
                      (Pretty.block o Pretty.breaks)
                         (Pretty.str c :: Pretty.str "of" :: map (Pretty.quote o Sign.pretty_typ thy) tys)) cos)
           );
-    val inlines = (#inlines o the_preproc) exec;
-    val inline_procs = (map fst o #inline_procs o the_preproc) exec;
-    val preprocs = (map fst o #preprocs o the_preproc) exec;
+    val inlines = (#inlines o the_thmproc) exec;
+    val inline_procs = (map fst o #inline_procs o the_thmproc) exec;
+    val preprocs = (map fst o #preprocs o the_thmproc) exec;
     val funs = the_funcs exec
       |> Consttab.dest
       |> (map o apfst) (CodegenConsts.string_of_const thy)
@@ -695,32 +703,43 @@ fun add_datatype_consts_cmd raw_cs thy =
 end; (*local*)
 
 fun add_inline thm thy =
-  (map_exec_purge NONE o map_preproc o apfst o apfst)
+  (map_exec_purge NONE o map_thmproc o apfst o apfst o apfst)
     (insert Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
 fun del_inline thm thy =
-  (map_exec_purge NONE o map_preproc o apfst o apfst)
+  (map_exec_purge NONE o map_thmproc o apfst o apfst o apfst)
     (remove Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
 fun add_inline_proc (name, f) =
-  (map_exec_purge NONE o map_preproc o apfst o apsnd)
+  (map_exec_purge NONE o map_thmproc o apfst o apfst o apsnd)
     (AList.update (op =) (name, (serial (), f)));
 
 fun del_inline_proc name =
-  (map_exec_purge NONE o map_preproc o apfst o apsnd)
+  (map_exec_purge NONE o map_thmproc o apfst o apfst o apsnd)
     (delete_force "inline procedure" name);
 
 fun add_preproc (name, f) =
-  (map_exec_purge NONE o map_preproc o apsnd) (AList.update (op =) (name, (serial (), f)));
+  (map_exec_purge NONE o map_thmproc o apfst o apsnd)
+    (AList.update (op =) (name, (serial (), f)));
 
 fun del_preproc name =
-  (map_exec_purge NONE o map_preproc o apsnd) (delete_force "preprocessor" name);
+  (map_exec_purge NONE o map_thmproc o apfst o apsnd)
+    (delete_force "preprocessor" name);
+
+fun add_post thm thy =
+  (map_exec_purge NONE o map_thmproc o apsnd)
+    (insert Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
+        (*fully applied in order to get right context for mk_rew!*)
+
+fun del_post thm thy =
+  (map_exec_purge NONE o map_thmproc o apsnd)
+    (remove Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
+        (*fully applied in order to get right context for mk_rew!*)
 
 
-
-(** retrieval **)
+(** , post- and preprocessing **)
 
 local
 
@@ -752,20 +771,28 @@ in
 
 fun preprocess thy thms =
   thms
-  |> fold (fn (_, (_, f)) => apply_preproc thy f) ((#preprocs o the_preproc o get_exec) thy)
-  |> map (CodegenFunc.rewrite_func ((#inlines o the_preproc o get_exec) thy))
-  |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_preproc o get_exec) thy)
+  |> fold (fn (_, (_, f)) => apply_preproc thy f) ((#preprocs o the_thmproc o get_exec) thy)
+  |> map (CodegenFunc.rewrite_func ((#inlines o the_thmproc o get_exec) thy))
+  |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o get_exec) thy)
 (*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
   |> common_typ_funcs;
 
-fun preprocess_cterm ct =
+fun preprocess_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
   in
     ct
-    |> MetaSimplifier.rewrite false ((#inlines o the_preproc o get_exec) thy)
+    |> MetaSimplifier.rewrite false ((#inlines o the_thmproc o get_exec) thy)
     |> fold (fn (_, (_, f)) => rhs_conv (apply_inline_proc_cterm thy f))
-        ((#inline_procs o the_preproc o get_exec) thy)
+        ((#inline_procs o the_thmproc o get_exec) thy)
+  end;
+
+fun postprocess_conv ct =
+  let
+    val thy = Thm.theory_of_cterm ct;
+  in
+    ct
+    |> MetaSimplifier.rewrite false ((#posts o the_thmproc o get_exec) thy)
   end;
 
 end; (*local*)

@@ -27,9 +27,8 @@ sig
     | IVar of vname
     | `$ of iterm * iterm
     | `|-> of (vname * itype) * iterm
-    | ICase of (iterm * itype) * (iterm * iterm) list;
-        (*(discriminendum term (td), discriminendum type (ty)),
-                [(selector pattern (p), body term (t))] (bs))*)
+    | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
+        (*((term, type), [(selector pattern, body term )]), primitive term)*)
   val `-> : itype * itype -> itype;
   val `--> : itype list * itype -> itype;
   val `$$ : iterm * iterm list -> iterm;
@@ -50,7 +49,8 @@ sig
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
   val unfold_const_app: iterm ->
     ((string * (dict list list * itype list)) * iterm list) option;
-  val collapse_let: ((vname * itype) * iterm) * iterm -> iterm;
+  val collapse_let: ((vname * itype) * iterm) * iterm
+    -> (iterm * itype) * (iterm * iterm) list;
   val eta_expand: (string * (dict list list * itype list)) * iterm list -> int -> iterm;
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
@@ -129,7 +129,7 @@ datatype iterm =
   | IVar of vname
   | `$ of iterm * iterm
   | `|-> of (vname * itype) * iterm
-  | ICase of (iterm * itype) * (iterm * iterm) list;
+  | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
     (*see also signature*)
 
 (*
@@ -171,7 +171,7 @@ val unfold_app = unfoldl
     | _ => NONE);
 
 val split_abs =
-  (fn (v, ty) `|-> (t as ICase ((IVar w, _), [(p, t')])) =>
+  (fn (v, ty) `|-> (t as ICase (((IVar w, _), [(p, t')]), _)) =>
         if v = w then SOME (((v, SOME p), ty), t') else SOME (((v, NONE), ty), t)
     | (v, ty) `|-> t => SOME (((v, NONE), ty), t)
     | _ => NONE);
@@ -179,7 +179,7 @@ val split_abs =
 val unfold_abs = unfoldr split_abs;
 
 val split_let = 
-  (fn ICase ((td, ty), [(p, t)]) => SOME (((p, ty), td), t)
+  (fn ICase (((td, ty), [(p, t)]), _) => SOME (((p, ty), td), t)
     | _ => NONE);
 
 val unfold_let = unfoldr split_let;
@@ -189,16 +189,11 @@ fun unfold_const_app t =
   of (IConst c, ts) => SOME (c, ts)
    | _ => NONE;
 
-fun fold_aiterms f (t as IConst _) =
-      f t
-  | fold_aiterms f (t as IVar _) =
-      f t
-  | fold_aiterms f (t1 `$ t2) =
-      fold_aiterms f t1 #> fold_aiterms f t2
-  | fold_aiterms f (t as _ `|-> t') =
-      f t #> fold_aiterms f t'
-  | fold_aiterms f (ICase ((td, _), bs)) =
-      fold_aiterms f td #> fold (fn (p, t) => fold_aiterms f p #> fold_aiterms f t) bs;
+fun fold_aiterms f (t as IConst _) = f t
+  | fold_aiterms f (t as IVar _) = f t
+  | fold_aiterms f (t1 `$ t2) = fold_aiterms f t1 #> fold_aiterms f t2
+  | fold_aiterms f (t as _ `|-> t') = f t #> fold_aiterms f t'
+  | fold_aiterms f (ICase (_, t)) = fold_aiterms f t;
 
 fun fold_constnames f =
   let
@@ -215,29 +210,24 @@ fun fold_varnames f =
 
 fun fold_unbound_varnames f =
   let
-    fun add _ (IConst _) =
-          I
-      | add vs (IVar v) =
-          if not (member (op =) vs v) then f v else I
-      | add vs (t1 `$ t2) =
-          add vs t1 #> add vs t2
-      | add vs ((v, _) `|-> t) =
-          add (insert (op =) v vs) t
-      | add vs (ICase ((td, _), bs)) =
-          add vs td #> fold (fn (p, t) => add vs p #> add vs t) bs;
+    fun add _ (IConst _) = I
+      | add vs (IVar v) = if not (member (op =) vs v) then f v else I
+      | add vs (t1 `$ t2) = add vs t1 #> add vs t2
+      | add vs ((v, _) `|-> t) = add (insert (op =) v vs) t
+      | add vs (ICase (_, t)) = add vs t;
   in add [] end;
 
-fun collapse_let (((v, ty), se), be as ICase ((IVar w, _), ds)) =
+fun collapse_let (((v, ty), se), be as ICase (((IVar w, _), ds), _)) =
       let
         fun exists_v t = fold_unbound_varnames (fn w => fn b =>
           b orelse v = w) t false;
       in if v = w andalso forall (fn (t1, t2) =>
         exists_v t1 orelse not (exists_v t2)) ds
-        then ICase ((se, ty), ds)
-        else ICase ((se, ty), [(IVar v, be)])
+        then ((se, ty), ds)
+        else ((se, ty), [(IVar v, be)])
       end
   | collapse_let (((v, ty), se), be) =
-      ICase ((se, ty), [(IVar v, be)])
+      ((se, ty), [(IVar v, be)])
 
 fun eta_expand (c as (_, (_, tys)), ts) k =
   let

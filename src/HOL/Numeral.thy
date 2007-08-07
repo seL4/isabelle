@@ -36,11 +36,11 @@ text{*
 
 definition
   Pls :: int where
-  [code func del]:"Pls = 0"
+  [code func del]: "Pls = 0"
 
 definition
   Min :: int where
-  [code func del]:"Min = - 1"
+  [code func del]: "Min = - 1"
 
 definition
   Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
@@ -67,12 +67,6 @@ lemma Let_number_of [simp]: "Let (number_of v) f = f (number_of v)"
   -- {* Unfold all @{text let}s involving constants *}
   unfolding Let_def ..
 
-lemma Let_0 [simp]: "Let 0 f = f 0"
-  unfolding Let_def ..
-
-lemma Let_1 [simp]: "Let 1 f = f 1"
-  unfolding Let_def ..
-
 definition
   succ :: "int \<Rightarrow> int" where
   [code func del]: "succ k = k + 1"
@@ -94,11 +88,11 @@ lemmas numeral_simps =
 
 text {* Removal of leading zeroes *}
 
-lemma Pls_0_eq [simp, normal post]:
+lemma Pls_0_eq [simp, code post]:
   "Pls BIT B0 = Pls"
   unfolding numeral_simps by simp
 
-lemma Min_1_eq [simp, normal post]:
+lemma Min_1_eq [simp, code post]:
   "Min BIT B1 = Min"
   unfolding numeral_simps by simp
 
@@ -613,11 +607,11 @@ lemma [code]:
 lemma [code]: "nat i = nat_aux i 0"
   by (simp add: nat_aux_def)
 
-lemma zero_is_num_zero [code func, code inline, symmetric, normal post]:
+lemma zero_is_num_zero [code func, code inline, symmetric, code post]:
   "(0\<Colon>int) = Numeral0" 
   by simp
 
-lemma one_is_num_one [code func, code inline, symmetric, normal post]:
+lemma one_is_num_one [code func, code inline, symmetric, code post]:
   "(1\<Colon>int) = Numeral1" 
   by simp 
 

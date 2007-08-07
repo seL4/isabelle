@@ -25,6 +25,7 @@ uses
   "~~/src/Provers/quantifier1.ML"
   ("simpdata.ML")
   ("~~/src/HOL/Tools/recfun_codegen.ML")
+  "~~/src/Tools/nbe.ML"
 begin
 
 subsection {* Primitive logic *}
@@ -1540,6 +1541,12 @@ setup InductMethod.setup
 
 subsection {* Other simple lemmas and lemma duplicates *}
 
+lemma Let_0 [simp]: "Let 0 f = f 0"
+  unfolding Let_def ..
+
+lemma Let_1 [simp]: "Let 1 f = f 1"
+  unfolding Let_def ..
+
 lemma ex1_eq [iff]: "EX! x. x = t" "EX! x. t = x"
   by blast+
 
@@ -1786,9 +1793,13 @@ code_const undefined
   (OCaml "failwith/ \"undefined\"")
   (Haskell "error/ \"undefined\"")
 
-code_reserved SML Fail
-code_reserved OCaml failwith
 
+text {* Let and If *}
+
+setup {*
+  CodegenPackage.add_appconst (@{const_name Let}, CodegenPackage.appgen_let)
+  #> CodegenPackage.add_appconst (@{const_name If}, CodegenPackage.appgen_if)
+*}
 
 subsubsection {* Evaluation oracle *}
 
@@ -1811,29 +1822,13 @@ end
 
 subsubsection {* Normalization by evaluation *}
 
+setup Nbe.setup
+
 method_setup normalization = {*
   Method.no_args (Method.SIMPLE_METHOD'
-    (CONVERSION (ObjectLogic.judgment_conv NBE.normalization_conv)
+    (CONVERSION (ObjectLogic.judgment_conv Nbe.normalization_conv)
       THEN' resolve_tac [TrueI, refl]))
 *} "solve goal by normalization"
-
-
-text {* lazy @{const If} *}
-
-definition
-  if_delayed :: "bool \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> (bool \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  [code func del]: "if_delayed b f g = (if b then f True else g False)"
-
-lemma [code func]:
-  shows "if_delayed True f g = f True"
-    and "if_delayed False f g = g False"
-  unfolding if_delayed_def by simp_all
-
-lemma [normal pre, symmetric, normal post]:
-  "(if b then x else y) = if_delayed b (\<lambda>_. x) (\<lambda>_. y)"
-  unfolding if_delayed_def ..
-
-hide (open) const if_delayed
 
 
 subsection {* Legacy tactics and ML bindings *}

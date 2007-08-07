@@ -377,7 +377,8 @@ in
     fn thm => add_unfold thm #> CodeData.add_inline thm));
   val _ = map (Context.add_setup o add_del_attribute) [
     ("func", (CodeData.add_func true, CodeData.del_func)),
-    ("inline", (CodeData.add_inline, CodeData.del_inline))
+    ("inline", (CodeData.add_inline, CodeData.del_inline)),
+    ("post", (CodeData.add_post, CodeData.del_post))
   ];
 end; (*local*)
 
