@@ -231,6 +231,13 @@ fun check_defs ctxt fixes eqs =
                                     
             val _ = forall (not o Term.exists_subterm (fn Free (n, _) => n mem fnames | _ => false)) gs 
                     orelse error (input_error "Recursive Calls not allowed in premises")
+
+            val freeargs = map (fn t => subst_bounds (rev (map Free qs), t)) args
+            val funvars = filter (fn q => exists (exists_subterm (fn (Free q') $ _ => q = q' | _ => false)) freeargs) qs
+            val _ = null funvars
+                    orelse (warning (cat_lines ["Bound variable" ^ plural " " "s " funvars ^ commas_quote (map fst funvars) ^  
+                                                " occur" ^ plural "s" "" funvars ^ " in function position.",  
+                                                "Misspelled constructor???"]); true)
           in
             fqgar
           end
