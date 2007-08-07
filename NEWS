@@ -26,8 +26,13 @@ quotes.
 
 * Theory loader: be more serious about observing the static theory
 header specifications (including optional directories), but not the
-accidental file locations of previously successful loads.  Potential
-INCOMPATIBILITY, may need to refine theory headers.
+accidental file locations of previously successful loads.  The strict
+update policy of former update_thy is now already performed by
+use_thy, so the former has been removed; use_thys updates several
+theories simultaneously, just as 'imports' within a theory header
+specification, but without merging the results.  Potential
+INCOMPATIBILITY: may need to refine theory headers and commands
+ROOT.ML which depend on load order.
 
 * Theory loader: optional support for content-based file
 identification, instead of the traditional scheme of full physical
@@ -171,6 +176,19 @@ declaration works particularly well with commands 'declare' or
 'using', for example ``declare [[foo = 42]]''.  Thus it has become
 very easy to avoid global references, which would not observe Isar
 toplevel undo/redo and fail to work with multithreading.
+
+Various global ML references of Pure and HOL have been turned into
+configuration options:
+
+  Unify.search_bound		unify_search_bound
+  Unify.trace_bound		unify_trace_bound
+  Unify.trace_simp		unify_trace_simp
+  Unify.trace_types		unify_trace_types
+  Simplifier.simp_depth_limit	simp_depth_limit
+  Blast.depth_limit		blast_depth_limit
+  DatatypeProp.dtK		datatype_distinctness_limit
+  fast_arith_neq_limit  	fast_arith_neq_limit
+  fast_arith_split_limit	fast_arith_split_limit
 
 * Named collections of theorems may be easily installed as context
 data using the functor NamedThmsFun (see
