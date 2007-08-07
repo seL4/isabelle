@@ -225,7 +225,7 @@ by blast
 end
 
 
-subsection{* Distributive lattices *}
+subsection {* Distributive lattices *}
 
 class distrib_lattice = lattice +
   assumes sup_inf_distrib1: "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
