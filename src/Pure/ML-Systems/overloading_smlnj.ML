@@ -26,16 +26,16 @@ overload mod: ('a * 'a -> 'a) as
   IntInf.mod and Int31.mod and Int32.mod and Int64.mod and
   Word.mod and Word8.mod and Word32.mod and Word64.mod;
 overload < : ('a * 'a -> bool) as
-  IntInf.< and Int31.< and Int32.< and Int64.< and
+  IntInf.< and Int31.< and Int32.< and Int64.< and Real.< and
   Word.< and Word8.< and Word32.< and Word64.< and Char.< and String.<;
 overload <= : ('a * 'a -> bool) as
-  IntInf.<= and Int31.<= and Int32.<= and Int64.<= and
+  IntInf.<= and Int31.<= and Int32.<= and Int64.<= and Real.<= and
   Word.<= and Word8.<= and Word32.<= and Word64.<= and Char.<= and String.<=;
 overload > : ('a * 'a -> bool) as
-  IntInf.> and Int31.> and Int32.> and Int64.> and
+  IntInf.> and Int31.> and Int32.> and Int64.> and Real.> and
   Word.> and Word8.> and Word32.> and Word64.> and Char.> and String.>;
 overload >= : ('a * 'a -> bool) as
-  IntInf.>= and Int31.>= and Int32.>= and Int64.>= and
+  IntInf.>= and Int31.>= and Int32.>= and Int64.>= and Real.>= and
   Word.>= and Word8.>= and Word32.>= and Word64.>= and Char.>= and String.>=;
 overload abs: ('a -> 'a) as IntInf.abs and Int31.abs and Int32.abs and Int64.abs and Real.abs;
 
