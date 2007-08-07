@@ -68,7 +68,7 @@ instance nat :: "{ord, zero, one}"
   less_def: "m < n == (m, n) : pred_nat^+"
   le_def:   "m \<le> (n::nat) == ~ (n < m)" ..
 
-lemmas [code func del] = less_def le_def
+lemmas [code func del] = Zero_nat_def One_nat_def less_def le_def
 
 text {* Induction *}
 
@@ -114,7 +114,24 @@ text {* size of a datatype value *}
 class size = type +
   fixes size :: "'a \<Rightarrow> nat"
 
-text {* @{typ nat} is a datatype *}
+text {* now we are ready to re-invent primitive types
+  -- dependency on class size is hardwired into datatype package *}
+
+rep_datatype bool
+  distinct True_not_False False_not_True
+  induction bool_induct
+
+rep_datatype unit
+  induction unit_induct
+
+rep_datatype prod
+  inject Pair_eq
+  induction prod_induct
+
+rep_datatype sum
+  distinct Inl_not_Inr Inr_not_Inl
+  inject Inl_eq Inr_eq
+  induction sum_induct
 
 rep_datatype nat
   distinct  Suc_not_Zero Zero_not_Suc
@@ -129,7 +146,6 @@ lemmas nat_rec_0 = nat.recs(1)
 
 lemmas nat_case_0 = nat.cases(1)
   and nat_case_Suc = nat.cases(2)
-
 
 lemma n_not_Suc_n: "n \<noteq> Suc n"
   by (induct n) simp_all

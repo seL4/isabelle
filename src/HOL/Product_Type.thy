@@ -104,9 +104,9 @@ defs
   Pair_def:     "Pair a b == Abs_Prod (Pair_Rep a b)"
   fst_def:      "fst p == THE a. EX b. p = Pair a b"
   snd_def:      "snd p == THE b. EX a. p = Pair a b"
-  split_def [code func]:    "split == (%c p. c (fst p) (snd p))"
-  curry_def [code func]:    "curry == (%c x y. c (Pair x y))"
-  prod_fun_def [code func]: "prod_fun f g == split (%x y. Pair (f x) (g y))"
+  split_def:    "split == (%c p. c (fst p) (snd p))"
+  curry_def:    "curry == (%c x y. c (Pair x y))"
+  prod_fun_def: "prod_fun f g == split (%x y. Pair (f x) (g y))"
   Sigma_def [code func]:    "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
 
 abbreviation
@@ -337,7 +337,7 @@ lemma curryD [dest!]: "curry f a b ==> f (a,b)"
 lemma curryE: "[| curry f a b ; f (a,b) ==> Q |] ==> Q"
   by (simp add: curry_def)
 
-lemma curry_conv [simp]: "curry f a b = f (a,b)"
+lemma curry_conv [simp, code func]: "curry f a b = f (a,b)"
   by (simp add: curry_def)
 
 lemma prod_induct [induct type: *]: "!!x. (!!a b. P (a, b)) ==> P x"
@@ -346,7 +346,7 @@ lemma prod_induct [induct type: *]: "!!x. (!!a b. P (a, b)) ==> P x"
 lemma split_paired_Ex [simp]: "(EX x. P x) = (EX a b. P (a, b))"
   by fast
 
-lemma split_conv [simp]: "split c (a, b) = c a b"
+lemma split_conv [simp, code func]: "split c (a, b) = c a b"
   by (simp add: split_def)
 
 lemmas split = split_conv  -- {* for backwards compatibility *}
@@ -569,7 +569,7 @@ text {*
   functions.
 *}
 
-lemma prod_fun [simp]: "prod_fun f g (a, b) = (f a, g b)"
+lemma prod_fun [simp, code func]: "prod_fun f g (a, b) = (f a, g b)"
   by (simp add: prod_fun_def)
 
 lemma prod_fun_compose: "prod_fun (f1 o f2) (g1 o g2) = (prod_fun f1 g1 o prod_fun f2 g2)"
@@ -754,6 +754,8 @@ constdefs
   internal_split :: "('a => 'b => 'c) => 'a * 'b => 'c"
   "internal_split == split"
 
+lemmas [code func del] = internal_split_def
+
 lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)
 
@@ -908,7 +910,6 @@ in
 
   Codegen.add_codegen "let_codegen" let_codegen
   #> Codegen.add_codegen "split_codegen" split_codegen
-  #> CodegenPackage.add_appconst ("Let", CodegenPackage.appgen_let)
 
 end
 *}

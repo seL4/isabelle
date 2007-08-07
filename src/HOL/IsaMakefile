@@ -82,13 +82,13 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
   $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML			\
   $(SRC)/Provers/trancl.ML $(SRC)/Tools/integer.ML $(SRC)/Tools/Metis/metis.ML\
-  $(SRC)/Tools/rat.ML Tools/TFL/casesplit.ML ATP_Linkup.thy 		\
+  $(SRC)/Tools/nbe.ML $(SRC)/Tools/rat.ML Tools/TFL/casesplit.ML ATP_Linkup.thy	\
   Accessible_Part.thy Arith_Tools.thy Datatype.thy 			\
   Dense_Linear_Order.thy Divides.thy Equiv_Relations.thy Extraction.thy	\
   Finite_Set.thy FixedPoint.thy Fun.thy FunDef.thy HOL.thy		\
   Hilbert_Choice.thy Inductive.thy IntArith.thy IntDef.thy IntDiv.thy	\
   Lattices.thy List.thy Main.thy Map.thy Nat.thy NatBin.thy	\
-  Numeral.thy OrderedGroup.thy Orderings.thy Power.thy PreList.thy	\
+  Numeral.thy Option.thy OrderedGroup.thy Orderings.thy Power.thy PreList.thy	\
   Predicate.thy Product_Type.thy ROOT.ML Recdef.thy			\
   Record.thy Refute.thy Relation.thy Relation_Power.thy			\
   Ring_and_Field.thy SAT.thy Set.thy SetInterval.thy Sum_Type.thy	\
