@@ -360,7 +360,7 @@ done
 simproc_setup evaln_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s')") = {*
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
-      (_ $ _ $ _ $ _ $ _ $ _ $ (Const ("Pair",_) $ (Const ("Datatype.option.Some",_) $ _)$ _))
+      (_ $ _ $ _ $ _ $ _ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name Some},_) $ _)$ _))
         => NONE
     | _ => SOME (mk_meta_eq @{thm evaln_abrupt}))
 *}

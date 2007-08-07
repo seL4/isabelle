@@ -965,7 +965,7 @@ done
 simproc_setup eval_no_abrupt ("G\<turnstile>(x,s) \<midarrow>e\<succ>\<rightarrow> (w,Norm s')") = {*
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
-      (_ $ _ $ (Const ("Pair", _) $ (Const ("Datatype.option.None",_)) $ _) $ _  $ _ $ _) => NONE
+      (_ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name None}, _)) $ _) $ _  $ _ $ _) => NONE
     | _ => SOME (mk_meta_eq @{thm eval_no_abrupt}))
 *}
 
@@ -985,10 +985,9 @@ done
 simproc_setup eval_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<rightarrow> (w,s')") = {*
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
-      (_ $ _ $ _ $ _ $ _ $ (Const ("Pair",_) $ (Const ("Datatype.option.Some",_) $ _)$ _)) => NONE
+      (_ $ _ $ _ $ _ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name Some}, _) $ _)$ _)) => NONE
     | _ => SOME (mk_meta_eq @{thm eval_abrupt}))
 *}
-
 
 lemma LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else arbitrary)\<rightarrow> s"
 apply (case_tac "s", case_tac "a = None")
