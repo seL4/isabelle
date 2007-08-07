@@ -41,13 +41,13 @@ fun check_pats ctxt geq =
              ())
           end
           
-      val (fname, qs, gs, args, rhs) = split_def geq 
+      val (fname, qs, gs, args, rhs) = split_def ctxt geq 
                                        
       val _ = if not (null gs) then err "Conditional equations" else ()
       val _ = map check_constr_pattern args
                   
                   (* just count occurrences to check linearity *)
-      val _ = if fold (fold_aterms (fn Bound _ => curry (op +) 1 | _ => I)) args 0 < length qs
+      val _ = if fold (fold_aterms (fn Bound _ => curry (op +) 1 | _ => I)) args 0 > length qs
               then err "Nonlinear patterns" else ()
     in
       ()
@@ -226,9 +226,9 @@ fun mk_catchall fixes arities =
       map mk_eqn fixes
     end
 
-fun add_catchall fixes spec =
+fun add_catchall ctxt fixes spec =
     let 
-      val catchalls = mk_catchall fixes (mk_arities (map split_def (map snd spec)))
+      val catchalls = mk_catchall fixes (mk_arities (map (split_def ctxt) (map snd spec)))
     in
       spec @ map (pair true) catchalls
     end
@@ -249,7 +249,7 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
                            |> tap (check_defs ctxt fixes) (* Standard checks *)
                            |> tap (map (check_pats ctxt))    (* More checks for sequential mode *)
                            |> curry op ~~ flags'
-                           |> add_catchall fixes   (* Completion *)
+                           |> add_catchall ctxt fixes   (* Completion *)
                            |> FundefSplit.split_some_equations ctxt
 
           fun restore_spec thms =

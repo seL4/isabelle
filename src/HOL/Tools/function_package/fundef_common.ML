@@ -173,22 +173,21 @@ val default_config = FundefConfig { sequential=false, default="%x. arbitrary",
 fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_all_all b)
   | open_all_all t = ([], t)
 
-exception MalformedEquation of term
-
-fun split_def geq =
+fun split_def ctxt geq =
     let
+      fun input_error msg = cat_lines [msg, ProofContext.string_of_term ctxt geq]
       val (qs, imp) = open_all_all geq
 
       val gs = Logic.strip_imp_prems imp
       val eq = Logic.strip_imp_concl imp
 
       val (f_args, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
-          handle TERM _ => raise MalformedEquation geq
+          handle TERM _ => error (input_error "Not an equation")
 
       val (head, args) = strip_comb f_args
 
       val fname = fst (dest_Free head)
-          handle TERM _ => raise MalformedEquation geq
+          handle TERM _ => error (input_error "Head symbol must not be a bound variable")
     in
       (fname, qs, gs, args, rhs)
     end
@@ -217,7 +216,7 @@ fun check_defs ctxt fixes eqs =
           let
             fun input_error msg = cat_lines [msg, ProofContext.string_of_term ctxt geq]
                                   
-            val fqgar as (fname, qs, gs, args, rhs) = split_def geq
+            val fqgar as (fname, qs, gs, args, rhs) = split_def ctxt geq
                                  
             val _ = fname mem fnames 
                     orelse error (input_error ("Head symbol of left hand side must be " ^ plural "" "one out of " fnames 
@@ -235,6 +234,12 @@ fun check_defs ctxt fixes eqs =
           in
             fqgar
           end
+          
+      fun check_sorts ((fname, fT), _) =
+          Sorts.of_sort (Sign.classes_of (ProofContext.theory_of ctxt)) (fT, HOLogic.typeS)
+          orelse error ("Type of " ^ quote fname ^ " is not of sort " ^ quote "type" ^ ".")
+
+      val _ = map check_sorts fixes
 
       val _ = mk_arities (map check eqs)
           handle ArgumentCount fname => 

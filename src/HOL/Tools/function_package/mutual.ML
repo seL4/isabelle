@@ -121,7 +121,7 @@ fun analyze_eqs ctxt defname fs eqs =
     let
       val num = length fs
         val fnames = map fst fs
-        val fqgars = map split_def eqs
+        val fqgars = map (split_def ctxt) eqs
         val arities = mk_arities fqgars
 
         fun curried_types (fname, fT) =
