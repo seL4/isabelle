@@ -37,7 +37,6 @@ sig
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val time_use_thy: string -> unit
-  val update_thy: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> theory
   val register_thy: string -> unit
@@ -92,7 +91,7 @@ fun new_deps name parents entry G =
 type master = (Path.T * File.ident) * (Path.T * File.ident) option;
 
 type deps =
-  {update_time: int,            (*symbolic time of last update; < 0 means outdated*)
+  {update_time: int,            (*symbolic time of update; negative value means outdated*)
     master: master option,      (*master dependencies for thy + attached ML file*)
     text: string list,          (*source text for thy*)
     parents: string list,       (*source specification of parents (partially qualified)*)
@@ -346,36 +345,33 @@ fun check_ml master (src_path, info) =
         | SOME (path', id') => if id <> id' then NONE else SOME (path', id')))
   in (src_path, info') end;
 
-fun check_deps ml strict dir name =
+fun check_deps dir name =
   (case lookup_deps name of
     SOME NONE => (true, NONE, get_parents name)
   | NONE =>
-      let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name ml
+      let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name true
       in (false, init_deps (SOME master) text parents files, parents) end
   | SOME (deps as SOME {update_time, master, text, parents, files}) =>
-      if not strict andalso can get_theory name then (true, deps, parents)
-      else
-        let val master' = SOME (ThyLoad.check_thy dir name ml) in
-          if master_idents master <> master_idents master'
-          then
-            let val {text = text', imports = parents', uses = files', ...} =
-              ThyLoad.deps_thy dir name ml;
-            in (false, init_deps master' text' parents' files', parents') end
-          else
-            let
-              val checked_files = map (check_ml master') files;
-              val current = update_time >= 0 andalso forall (is_some o snd) checked_files;
-              val update_time' = if current then update_time else ~1;
-              val deps' = SOME (make_deps update_time' master' text parents checked_files);
-            in (current, deps', parents) end
-        end);
+      let val master' = SOME (ThyLoad.check_thy dir name true) in
+        if master_idents master <> master_idents master'
+        then
+          let val {text = text', imports = parents', uses = files', ...} =
+            ThyLoad.deps_thy dir name true;
+          in (false, init_deps master' text' parents' files', parents') end
+        else
+          let
+            val checked_files = map (check_ml master') files;
+            val current = update_time >= 0 andalso forall (is_some o snd) checked_files;
+            val update_time' = if current then update_time else ~1;
+            val deps' = SOME (make_deps update_time' master' text parents checked_files);
+          in (current, deps', parents) end
+      end);
 
 in
 
-fun require_thys ml time strict keep_strict initiators dir strs tasks =
-  fold_map (require_thy ml time strict keep_strict initiators dir) strs tasks
-  |>> forall I
-and require_thy ml time strict keep_strict initiators dir str tasks =
+fun require_thys time initiators dir strs tasks =
+  fold_map (require_thy time initiators dir) strs tasks |>> forall I
+and require_thy time initiators dir str tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
@@ -386,15 +382,15 @@ and require_thy ml time strict keep_strict initiators dir str tasks =
       SOME task => (Task.is_finished task, tasks)
     | NONE =>
         let
-          val (current, deps, parents) = check_deps ml strict dir' name
+          val (current, deps, parents) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
                 required_by "\n" initiators);
           val parent_names = map base_name parents;
 
           val (parents_current, (tasks_graph', tasks_len')) =
-            require_thys true time (strict andalso keep_strict) keep_strict
-              (name :: initiators) (Path.append dir (master_dir' deps)) parents tasks;
+            require_thys time (name :: initiators)
+              (Path.append dir (master_dir' deps)) parents tasks;
 
           val all_current = current andalso parents_current;
           val theory = if all_current then SOME (get_theory name) else NONE;
@@ -403,7 +399,7 @@ and require_thy ml time strict keep_strict initiators dir str tasks =
           val upd_time = serial ();
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
            (if all_current then Task.Finished
-            else Task.Task (fn () => load_thy ml time upd_time initiators dir' name));
+            else Task.Task (fn () => load_thy true time upd_time initiators dir' name));
           val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
         in (all_current, (tasks_graph'', tasks_len'')) end)
   end;
@@ -464,12 +460,11 @@ fun gen_use_thy req str =
 
 in
 
-val quiet_update_thys    = gen_use_thy' (require_thys true false true true);
-val use_thys             = gen_use_thy' (require_thys true false true false) Path.current;
+val quiet_use_thys = gen_use_thy' (require_thys false);
+val use_thys       = gen_use_thy' (require_thys false) Path.current;
 
-val use_thy              = gen_use_thy (require_thy true false true false);
-val time_use_thy         = gen_use_thy (require_thy true true true false);
-val update_thy           = gen_use_thy (require_thy true false true true);
+val use_thy        = gen_use_thy (require_thy false);
+val time_use_thy   = gen_use_thy (require_thy true);
 
 end;
 
@@ -499,7 +494,7 @@ fun begin_theory name parents uses int =
     val parent_names = map base_name parents;
     val dir = master_dir'' (lookup_deps name);
     val _ = check_unfinished error name;
-    val _ = if int then quiet_update_thys dir parents else ();
+    val _ = if int then quiet_use_thys dir parents else ();
     (* FIXME tmp *)
     val _ = CRITICAL (fn () =>
       ML_Context.set_context (SOME (Context.Theory (get_theory (List.last parent_names)))));
