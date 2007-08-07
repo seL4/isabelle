@@ -7,7 +7,7 @@
 header{* The Isabelle-ATP Linkup *}
 
 theory ATP_Linkup
-imports Divides Hilbert_Choice Record
+imports Divides Record Hilbert_Choice
 uses
   "Tools/polyhash.ML"
   "Tools/res_clause.ML"
