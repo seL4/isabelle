@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports IntDef Divides
+imports IntDef Divides Option
 begin
 
 subsection {* Definition and basic properties *}
@@ -2687,18 +2687,14 @@ where
 interpretation
   Linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <"]
 where
-  "Linorder.Min (op \<le>) = Min" and "Linorder.Max (op \<le>) = Max"
+  "Linorder.Min (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = Min"
+  and "Linorder.Max (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = Max"
 proof -
   show "Linorder (op \<le> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool) op <"
   by (rule Linorder.intro, rule linorder_axioms)
-  have "Linorder (op \<le> \<Colon> 'b \<Rightarrow> 'b \<Rightarrow> bool) op <"
-  by (rule Linorder.intro, rule linorder_axioms)
-  then interpret Linorder1: Linorder ["op \<le> \<Colon> 'b \<Rightarrow> 'b \<Rightarrow> bool" "op <"] .
-  show "Linorder1.Min = Min" by (simp add: Min_def Linorder1.Min_def ord_class.min)
-  have "Linorder (op \<le> \<Colon> 'c \<Rightarrow> 'c \<Rightarrow> bool) op <"
-  by (rule Linorder.intro, rule linorder_axioms)
-  then interpret Linorder2: Linorder ["op \<le> \<Colon> 'c \<Rightarrow> 'c \<Rightarrow> bool" "op <"] .
-  show "Linorder2.Max = Max" by (simp add: Max_def Linorder2.Max_def ord_class.max)
+  then interpret Linorder: Linorder ["op \<le> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool" "op <"] .
+  show "Linorder.Min = Min" by (simp add: Min_def Linorder.Min_def ord_class.min)
+  show "Linorder.Max = Max" by (simp add: Max_def Linorder.Max_def ord_class.max)
 qed
 
 interpretation
