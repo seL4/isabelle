@@ -88,15 +88,13 @@ fun new_deps name parents entry G =
 
 (* thy database *)
 
-type master = (Path.T * File.ident) * (Path.T * File.ident) option;
-
 type deps =
-  {update_time: int,            (*symbolic time of update; negative value means outdated*)
-    master: master option,      (*master dependencies for thy + attached ML file*)
-    text: string list,          (*source text for thy*)
-    parents: string list,       (*source specification of parents (partially qualified)*)
-    files:                      (*auxiliary files: source path, physical path + identifier*)
-      (Path.T * (Path.T * File.ident) option) list};
+  {update_time: int,                      (*symbolic time of update; negative value means outdated*)
+    master: (Path.T * File.ident) option, (*master dependencies for thy file*)
+    text: string list,                    (*source text for thy*)
+    parents: string list,                 (*source specification of parents (partially qualified)*)
+      (*auxiliary files: source path, physical path + identifier*)
+    files: (Path.T * (Path.T * File.ident) option) list};
 
 fun make_deps update_time master text parents files : deps =
   {update_time = update_time, master = master, text = text, parents = parents, files = files};
@@ -104,12 +102,8 @@ fun make_deps update_time master text parents files : deps =
 fun init_deps master text parents files =
   SOME (make_deps ~1 master text parents (map (rpair NONE) files));
 
-fun master_idents (NONE: master option) = []
-  | master_idents (SOME ((_, thy_id), NONE)) = [thy_id]
-  | master_idents (SOME ((_, thy_id), SOME (_, ml_id))) = [thy_id, ml_id];
-
-fun master_dir (NONE: master option) = Path.current
-  | master_dir (SOME ((path, _), _)) = Path.dir path;
+fun master_dir NONE = Path.current
+  | master_dir (SOME (path, _)) = Path.dir path;
 
 fun master_dir' (d: deps option) = the_default Path.current (Option.map (master_dir o #master) d);
 fun master_dir'' d = the_default Path.current (Option.map master_dir' d);
@@ -164,7 +158,7 @@ fun loaded_files name =
   (case get_deps name of
     NONE => []
   | SOME {master, files, ...} =>
-      (case master of SOME ((thy_path, _), _) => [thy_path] | NONE => []) @
+      (case master of SOME (thy_path, _) => [thy_path] | NONE => []) @
       (map_filter (Option.map #1 o #2) files));
 
 fun get_parents name =
@@ -227,11 +221,10 @@ fun check_files name =
   let
     val files = (case get_deps name of SOME {files, ...} => files | NONE => []);
     val missing_files = map_filter (fn (path, NONE) => SOME (Path.implode path) | _ => NONE) files;
-    val _ =
-      if null missing_files then ()
-      else warning (loader_msg "unresolved dependencies of theory" [name] ^
+    val _ = null missing_files orelse
+      error (loader_msg "unresolved dependencies of theory" [name] ^
         " on file(s): " ^ commas_quote missing_files);
-  in files end;
+  in () end;
 
 
 (* maintain update_time *)
@@ -310,20 +303,19 @@ end;
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy ml time upd_time initiators dir name =
+fun load_thy time upd_time initiators dir name =
   let
     val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
     val (pos, text, files) =
       (case get_deps name of
-        SOME {master = SOME ((master_path, _), _), text as _ :: _, files, ...} =>
+        SOME {master = SOME (master_path, _), text as _ :: _, files, ...} =>
           (Position.path master_path, text, files)
       | _ => error (loader_msg "corrupted dependency information" [name]));
     val _ = touch_thy name;
     val _ = CRITICAL (fn () =>
       change_deps name (Option.map (fn {master, text, parents, files, ...} =>
         make_deps upd_time master text parents files)));
-    val _ = ThyLoad.load_thy dir name pos text ml (time orelse ! Output.timing);
-    val _ = check_files name;
+    val _ = ThyLoad.load_thy dir name pos text (time orelse ! Output.timing);
   in
     CRITICAL (fn () =>
      (change_deps name
@@ -349,14 +341,16 @@ fun check_deps dir name =
   (case lookup_deps name of
     SOME NONE => (true, NONE, get_parents name)
   | NONE =>
-      let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name true
+      let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name
       in (false, init_deps (SOME master) text parents files, parents) end
   | SOME (deps as SOME {update_time, master, text, parents, files}) =>
-      let val master' as SOME ((thy_path, _), _) = SOME (ThyLoad.check_thy dir name true) in
-        if master_idents master <> master_idents master'
-        then
+      let
+        val (thy_path, thy_id) = ThyLoad.check_thy dir name;
+        val master' = SOME (thy_path, thy_id);
+      in
+        if Option.map #2 master <> SOME thy_id then
           let val {text = text', imports = parents', uses = files', ...} =
-            ThyLoad.deps_thy dir name true;
+            ThyLoad.deps_thy dir name;
           in (false, init_deps master' text' parents' files', parents') end
         else
           let
@@ -401,7 +395,7 @@ and require_thy time initiators dir str tasks =
           val upd_time = serial ();
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
            (if all_current then Task.Finished
-            else Task.Task (fn () => load_thy true time upd_time initiators dir' name));
+            else Task.Task (fn () => load_thy time upd_time initiators dir' name));
           val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
         in (all_current, (tasks_graph'', tasks_len'')) end)
   end;
@@ -484,13 +478,6 @@ fun remove_thy name =
 
 (* begin / end theory *)
 
-fun check_uses name uses =
-  let val illegal = map (fn ext => Path.ext ext (Path.basic name)) ("" :: ThyLoad.ml_exts) in
-    (case find_first (member (op =) illegal o Path.base o Path.expand o #1) uses of
-      NONE => ()
-    | SOME (path, _) => error ("Illegal use of theory ML file: " ^ quote (Path.implode path)))
-  end;
-
 fun begin_theory name parents uses int =
   let
     val parent_names = map base_name parents;
@@ -500,7 +487,6 @@ fun begin_theory name parents uses int =
     (* FIXME tmp *)
     val _ = CRITICAL (fn () =>
       ML_Context.set_context (SOME (Context.Theory (get_theory (List.last parent_names)))));
-    val _ = check_uses name uses;
 
     val theory = Theory.begin_theory name (map get_theory parent_names);
 
@@ -521,6 +507,7 @@ fun begin_theory name parents uses int =
 fun end_theory theory =
   let
     val name = Context.theory_name theory;
+    val _ = check_files name;
     val theory' = Theory.end_theory theory;
     val _ = change_thy name (fn (deps, _) => (deps, SOME theory'));
   in theory' end;
@@ -535,13 +522,12 @@ fun register_thy name =
     val _ = map get_theory (get_parents name);
     val _ = check_unfinished error name;
     val _ = touch_thy name;
-    val files = check_files name;
-    val master = #master (ThyLoad.deps_thy Path.current name false);
+    val master = #master (ThyLoad.deps_thy Path.current name);
     val upd_time = serial ();
   in
     CRITICAL (fn () =>
-     (change_deps name
-        (Option.map (fn {parents, ...} => make_deps upd_time (SOME master) [] parents files));
+     (change_deps name (Option.map
+       (fn {parents, files, ...} => make_deps upd_time (SOME master) [] parents files));
       perform Update name))
   end;
 
