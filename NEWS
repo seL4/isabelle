@@ -41,6 +41,11 @@ path plus date stamp; configured by the ISABELLE_FILE_IDENT setting
 non-finished theories in persistent session images, such that source
 files may be moved later on without requiring reloads.
 
+* Theory loader: old-style ML proof scripts being *attached* to a thy
+file (with the same base name as the theory) are considered a legacy
+feature, which will disappear eventually. Even now, the theory loader no
+longer maintains dependencies on such files.
+
 * Legacy goal package: reduced interface to the bare minimum required
 to keep existing proof scripts running.  Most other user-level
 functions are now part of the OldGoals structure, which is *not* open
