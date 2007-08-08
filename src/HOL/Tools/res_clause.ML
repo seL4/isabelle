@@ -123,24 +123,44 @@ val type_const_trans_table =
   Alphanumeric characters are left unchanged.
   The character _ goes to __
   Characters in the range ASCII space to / go to _A to _P, respectively.
-  Other printing characters go to _NNN where NNN is the decimal ASCII code.*)
-local
-
+  Other printing characters go to _nnn where nnn is the decimal ASCII code.*)
 val A_minus_space = Char.ord #"A" - Char.ord #" ";
+
+fun stringN_of_int 0 _ = ""
+  | stringN_of_int k n = stringN_of_int (k-1) (n div 10) ^ Int.toString (n mod 10);
 
 fun ascii_of_c c =
   if Char.isAlphaNum c then String.str c
   else if c = #"_" then "__"
   else if #" " <= c andalso c <= #"/" 
        then "_" ^ String.str (Char.chr (Char.ord c + A_minus_space))
-  else if Char.isPrint c then ("_" ^ Int.toString (Char.ord c))
+  else if Char.isPrint c 
+       then ("_" ^ stringN_of_int 3 (Char.ord c))  (*fixed width, in case more digits follow*)
   else ""
-
-in
 
 val ascii_of = String.translate ascii_of_c;
 
-end;
+(** Remove ASCII armouring from names in proof files **)
+
+(*We don't raise error exceptions because this code can run inside the watcher.
+  Also, the errors are "impossible" (hah!)*)
+fun undo_ascii_aux rcs [] = String.implode(rev rcs)
+  | undo_ascii_aux rcs [#"_"] = undo_ascii_aux (#"_"::rcs) []  (*ERROR*)
+      (*Three types of _ escapes: __, _A to _P, _nnn*)
+  | undo_ascii_aux rcs (#"_" :: #"_" :: cs) = undo_ascii_aux (#"_"::rcs) cs
+  | undo_ascii_aux rcs (#"_" :: c :: cs) = 
+      if #"A" <= c andalso c<= #"P"  (*translation of #" " to #"/"*)
+      then undo_ascii_aux (Char.chr(Char.ord c - A_minus_space) :: rcs) cs
+      else 
+        let val digits = List.take (c::cs, 3) handle Subscript => []
+        in  
+            case Int.fromString (String.implode digits) of
+                NONE => undo_ascii_aux (c:: #"_"::rcs) cs  (*ERROR*)
+              | SOME n => undo_ascii_aux (Char.chr n :: rcs) (List.drop (cs, 2))
+        end
+  | undo_ascii_aux rcs (c::cs) = undo_ascii_aux (c::rcs) cs;
+
+val undo_ascii_of = undo_ascii_aux [] o String.explode;
 
 (* convert a list of strings into one single string; surrounded by brackets *)
 fun paren_pack [] = ""   (*empty argument list*)
