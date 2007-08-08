@@ -140,10 +140,7 @@ lemma zgcd_zmult_eq_self2 [simp]: "0 \<le> k ==> zgcd (k * n, k) = k"
 
 lemma zrelprime_zdvd_zmult_aux:
      "zgcd (n, k) = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
-  apply (subgoal_tac "m = zgcd (m * n, m * k)")
-   apply (erule ssubst, rule zgcd_greatest_iff [THEN iffD2])
-   apply (simp_all add: zgcd_zmult_distrib2 [symmetric] zero_le_mult_iff)
-  done
+  by (metis abs_of_nonneg zdvd_triv_right zgcd_greatest_iff zgcd_zmult_distrib2_abs zmult_1_right)
 
 lemma zrelprime_zdvd_zmult: "zgcd (n, k) = 1 ==> k dvd m * n ==> k dvd m"
   apply (case_tac "0 \<le> m")
@@ -247,7 +244,6 @@ lemma zcong_trans:
 
 lemma zcong_zmult:
     "[a = b] (mod m) ==> [c = d] (mod m) ==> [a * c = b * d] (mod m)"
-
   apply (rule_tac b = "b * c" in zcong_trans)
    apply (unfold zcong_def)
   apply (metis zdiff_zmult_distrib2 zdvd_zmult zmult_commute)
