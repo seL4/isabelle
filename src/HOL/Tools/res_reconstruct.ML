@@ -91,64 +91,14 @@ val tstp_line = (Scan.this_string "cnf" -- $$"(") |--
                 clause -- Scan.option annotations --| $$ ")";
 
 
-(**** DUPLICATE of Susanto's code to remove ASCII armouring from names in proof files ****)
-
-(*original file: Isabelle_ext.sml*)
-
-val A_min_spc = Char.ord #"A" - Char.ord #" ";
-
-fun cList2int chs = getOpt (Int.fromString (String.implode (rev chs)), 0);
-
-(*why such a tiny range?*)
-fun check_valid_int x =
-  let val val_x = cList2int x
-  in (length x = 3) andalso (val_x >= 123) andalso (val_x <= 126)
-  end;
-
-fun normalise_s s [] st_ sti =
-      String.implode(rev(
-        if st_
-        then if null sti
-             then (#"_" :: s)
-             else if check_valid_int sti
-                  then (Char.chr (cList2int sti) :: s)
-                  else (sti @ (#"_" :: s))
-        else s))
-  | normalise_s s (#"_"::cs) st_ sti =
-      if st_
-      then let val s' = if null sti
-                        then (#"_"::s)
-                        else if check_valid_int sti
-                             then (Char.chr (cList2int sti) :: s)
-                             else (sti @ (#"_" :: s))
-           in normalise_s s' cs false []
-           end
-      else normalise_s s cs true []
-  | normalise_s s (c::cs) true sti =
-      if (Char.isDigit c)
-      then normalise_s s cs true (c::sti)
-      else let val s' = if null sti
-                        then if ((c >= #"A") andalso (c<= #"P"))
-                             then ((Char.chr(Char.ord c - A_min_spc))::s)
-                             else (c :: (#"_" :: s))
-                        else if check_valid_int sti
-                             then (Char.chr (cList2int sti) :: s)
-                             else (sti @ (#"_" :: s))
-           in normalise_s s' cs false []
-           end
-  | normalise_s s (c::cs) _ _ = normalise_s (c::s) cs false [];
-
-(*This version does not look for standard prefixes first.*)
-fun normalise_string s = normalise_s [] (String.explode s) false [];
-
-
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
 exception STREE of stree;
 
 (*If string s has the prefix s1, return the result of deleting it.*)
 fun strip_prefix s1 s =
-  if String.isPrefix s1 s then SOME (normalise_string (String.extract (s, size s1, NONE)))
+  if String.isPrefix s1 s 
+  then SOME (ResClause.undo_ascii_of (String.extract (s, size s1, NONE)))
   else NONE;
 
 (*Invert the table of translations between Isabelle and ATPs*)
