@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: David Aspinall and Makarius Wenzel
+#
+# DESCRIPTION: prepare Isabelle project, including document subdirectory
+# A useful abbreviation of a pair of isatool calls.
+#
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG NAME"
+  echo
+  echo "  Prepare a session directory in the current directory, including IsaMakefile,"
+  echo "  document source and LaTeX files."
+  exit 1
+}
+
+if [ "$#" -eq 1 ]; then
+   NAME="$1"; shift
+else
+  usage
+fi
+
+
+$ISATOOL mkdir -b -q $NAME
+(cd document; $ISATOOL latex -o sty)
+
