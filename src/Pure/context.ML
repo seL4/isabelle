@@ -415,11 +415,11 @@ end;
 
 (* datatype proof *)
 
-datatype proof = Proof of theory_ref * Object.T Datatab.table;
+datatype proof = Prf of Object.T Datatab.table * theory_ref;
 
-fun theory_of_proof (Proof (thy_ref, _)) = deref thy_ref;
-fun data_of_proof (Proof (_, data)) = data;
-fun map_prf f (Proof (thy_ref, data)) = Proof (thy_ref, f data);
+fun theory_of_proof (Prf (_, thy_ref)) = deref thy_ref;
+fun data_of_proof (Prf (data, _)) = data;
+fun map_prf f (Prf (data, thy_ref)) = Prf (f data, thy_ref);
 
 
 (* proof data kinds *)
@@ -441,15 +441,16 @@ fun init_new_data data thy =
 
 in
 
-fun init_proof thy = Proof (check_thy thy, init_data thy);
+fun init_proof thy = Prf (init_data thy, check_thy thy);
 
-fun transfer_proof thy' (prf as Proof (thy_ref, data)) =
+fun transfer_proof thy' (prf as Prf (data, thy_ref)) =
   let
     val thy = deref thy_ref;
     val _ = subthy (thy, thy') orelse error "transfer proof context: not a super theory";
     val _ = check_thy thy;
+    val data' = init_new_data data thy';
     val thy_ref' = check_thy thy';
-  in Proof (thy_ref', init_new_data data thy') end;
+  in Prf (data', thy_ref') end;
 
 
 structure ProofData =
