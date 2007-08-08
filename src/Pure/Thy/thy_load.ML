@@ -24,19 +24,18 @@ sig
   val thy_path: string -> Path.T
   val check_file: Path.T -> Path.T -> (Path.T * File.ident) option
   val check_ml: Path.T -> Path.T -> (Path.T * File.ident) option
-  val check_thy: Path.T -> string -> bool -> (Path.T * File.ident) * (Path.T * File.ident) option
-  val deps_thy: Path.T -> string -> bool ->
-   {master: (Path.T * File.ident) * (Path.T * File.ident) option,
-    text: string list, imports: string list, uses: Path.T list}
+  val check_thy: Path.T -> string -> Path.T * File.ident
+  val deps_thy: Path.T -> string ->
+   {master: Path.T * File.ident, text: string list, imports: string list, uses: Path.T list}
   val load_ml: Path.T -> Path.T -> Path.T * File.ident
-  val load_thy: Path.T -> string -> Position.T -> string list -> bool -> bool -> unit
+  val load_thy: Path.T -> string -> Position.T -> string list -> bool -> unit
 end;
 
 signature PRIVATE_THY_LOAD =
 sig
   include THY_LOAD
   (*this backdoor is sealed later*)
-  val load_thy_fn: (Path.T -> string -> Position.T -> string list -> bool -> bool -> unit) ref
+  val load_thy_fn: (Path.T -> string -> Position.T -> string list -> bool -> unit) ref
 end;
 
 structure ThyLoad: PRIVATE_THY_LOAD =
@@ -88,7 +87,7 @@ fun check_ext exts paths dir src_path =
 fun check_file dir path = check_ext [] (search_path dir path) dir path;
 fun check_ml dir path = check_ext ml_exts (search_path dir path) dir path;
 
-fun check_thy dir name ml =
+fun check_thy dir name =
   let
     val thy_file = thy_path name;
     val paths = search_path dir thy_file;
@@ -96,25 +95,22 @@ fun check_thy dir name ml =
     (case check_ext [] paths dir thy_file of
       NONE => error ("Could not find theory file " ^ quote (Path.implode thy_file) ^
         " in " ^ commas_quote (map Path.implode paths))
-    | SOME thy_id => (thy_id, if ml then check_file dir (ml_path name) else NONE))
+    | SOME thy_id => thy_id)
   end;
 
 
 (* theory deps *)
 
-fun deps_thy dir name ml =
+fun deps_thy dir name =
   let
-    val master as ((path, _), _) = check_thy dir name ml;
+    val master as (path, _) = check_thy dir name;
     val text = explode (File.read path);
     val (name', imports, uses) =
       ThyHeader.read (Position.path path) (Source.of_list_limited 8000 text);
     val _ = name = name' orelse
       error ("Filename " ^ quote (Path.implode (Path.base path)) ^
         " does not agree with theory name " ^ quote name');
-    val ml_file =
-      if ml andalso is_some (check_file dir (ml_path name))
-      then [ml_path name] else [];
-    val uses = map (Path.explode o #1) uses @ ml_file;
+    val uses = map (Path.explode o #1) uses;
   in {master = master, text = text, imports = imports, uses = uses} end;
 
 
@@ -127,8 +123,8 @@ fun load_ml dir raw_path =
 
 (*dependent on outer syntax*)
 val load_thy_fn =
-  ref (undefined: Path.T -> string -> Position.T -> string list -> bool -> bool -> unit);
-fun load_thy dir name pos text ml time = ! load_thy_fn dir name pos text ml time;
+  ref (undefined: Path.T -> string -> Position.T -> string list -> bool -> unit);
+fun load_thy dir name pos text time = ! load_thy_fn dir name pos text time;
 
 end;
 
