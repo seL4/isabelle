@@ -278,10 +278,10 @@ fun run_thy dir name pos text time =
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
   in () end;
 
-fun load_thy dir name pos text ml time =
+fun load_thy dir name pos text time =
  (run_thy dir name pos text time;
   CRITICAL (fn () => ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name))));
-  if ml then try_ml_file dir name time else ());
+  try_ml_file dir name time);
 
 in
 
