@@ -243,17 +243,17 @@ fun is_outdated name =
     SOME (SOME {update_time, ...}) => update_time < 0
   | _ => false);
 
-fun outdate_thy name =
-  if is_finished name orelse is_outdated name then ()
-  else CRITICAL (fn () =>
-   (change_deps name (Option.map (fn {master, text, parents, files, ...} =>
-    make_deps ~1 master text parents files)); perform Outdate name));
-
 fun check_unfinished name =
   if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); NONE)
   else SOME name;
 
 in
+
+fun outdate_thy name =
+  if is_finished name orelse is_outdated name then ()
+  else CRITICAL (fn () =>
+   (change_deps name (Option.map (fn {master, text, parents, files, ...} =>
+    make_deps ~1 master text parents files)); perform Outdate name));
 
 fun touch_thys names =
   List.app outdate_thy (thy_graph Graph.all_succs (map_filter check_unfinished names));
@@ -315,7 +315,7 @@ fun load_thy ml time upd_time initiators dir name =
     val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
     val (pos, text, files) =
       (case get_deps name of
-        SOME {master = SOME ((master_path, _), _), text, files, ...} =>
+        SOME {master = SOME ((master_path, _), _), text as _ :: _, files, ...} =>
           (Position.path master_path, text, files)
       | _ => error (loader_msg "corrupted dependency information" [name]));
     val _ = touch_thy name;
@@ -352,7 +352,7 @@ fun check_deps dir name =
       let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name true
       in (false, init_deps (SOME master) text parents files, parents) end
   | SOME (deps as SOME {update_time, master, text, parents, files}) =>
-      let val master' = SOME (ThyLoad.check_thy dir name true) in
+      let val master' as SOME ((thy_path, _), _) = SOME (ThyLoad.check_thy dir name true) in
         if master_idents master <> master_idents master'
         then
           let val {text = text', imports = parents', uses = files', ...} =
@@ -360,17 +360,18 @@ fun check_deps dir name =
           in (false, init_deps master' text' parents' files', parents') end
         else
           let
-            val checked_files = map (check_ml master') files;
-            val current = update_time >= 0 andalso forall (is_some o snd) checked_files;
+            val files' = map (check_ml master') files;
+            val current = update_time >= 0 andalso forall (is_some o snd) files';
             val update_time' = if current then update_time else ~1;
-            val deps' = SOME (make_deps update_time' master' text parents checked_files);
+            val text' = if current then text else explode (File.read thy_path);
+            val deps' = SOME (make_deps update_time' master' text' parents files');
           in (current, deps', parents) end
       end);
 
 in
 
 fun require_thys time initiators dir strs tasks =
-  fold_map (require_thy time initiators dir) strs tasks |>> forall I
+      fold_map (require_thy time initiators dir) strs tasks |>> forall I
 and require_thy time initiators dir str tasks =
   let
     val path = Path.expand (Path.explode str);
@@ -394,6 +395,7 @@ and require_thy time initiators dir str tasks =
 
           val all_current = current andalso parents_current;
           val theory = if all_current then SOME (get_theory name) else NONE;
+          val _ = if not all_current andalso known_thy name then outdate_thy name else ();
           val _ = change_thys (new_deps name parent_names (deps, theory));
 
           val upd_time = serial ();
@@ -460,11 +462,11 @@ fun gen_use_thy req str =
 
 in
 
-val quiet_use_thys = gen_use_thy' (require_thys false);
-val use_thys       = gen_use_thy' (require_thys false) Path.current;
+val use_thys_dir = gen_use_thy' (require_thys false);
+val use_thys = use_thys_dir Path.current;
 
-val use_thy        = gen_use_thy (require_thy false);
-val time_use_thy   = gen_use_thy (require_thy true);
+val use_thy = gen_use_thy (require_thy false);
+val time_use_thy = gen_use_thy (require_thy true);
 
 end;
 
@@ -494,7 +496,7 @@ fun begin_theory name parents uses int =
     val parent_names = map base_name parents;
     val dir = master_dir'' (lookup_deps name);
     val _ = check_unfinished error name;
-    val _ = if int then quiet_use_thys dir parents else ();
+    val _ = if int then use_thys_dir dir parents else ();
     (* FIXME tmp *)
     val _ = CRITICAL (fn () =>
       ML_Context.set_context (SOME (Context.Theory (get_theory (List.last parent_names)))));
