@@ -25,39 +25,42 @@ definition
   real_of_preal :: "preal => real" where
   "real_of_preal m = Abs_Real(realrel``{(m + 1, 1)})"
 
-consts
-   (*overloaded constant for injecting other types into "real"*)
-   real :: "'a => real"
-
 instance real :: zero
   real_zero_def: "0 == Abs_Real(realrel``{(1, 1)})" ..
+lemmas [code func del] = real_zero_def
 
 instance real :: one
   real_one_def: "1 == Abs_Real(realrel``{(1 + 1, 1)})" ..
+lemmas [code func del] = real_one_def
 
 instance real :: plus
   real_add_def: "z + w ==
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
 		 { Abs_Real(realrel``{(x+u, y+v)}) })" ..
+lemmas [code func del] = real_add_def
 
 instance real :: minus
   real_minus_def: "- r ==  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
   real_diff_def: "r - (s::real) == r + - s" ..
+lemmas [code func del] = real_minus_def real_diff_def
 
 instance real :: times
   real_mult_def:
     "z * w ==
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
 		 { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })" ..
+lemmas [code func del] = real_mult_def
 
 instance real :: inverse
   real_inverse_def: "inverse (R::real) == (THE S. (R = 0 & S = 0) | S * R = 1)"
   real_divide_def: "R / (S::real) == R * inverse S" ..
+lemmas [code func del] = real_inverse_def real_divide_def
 
 instance real :: ord
   real_le_def: "z \<le> (w::real) == 
     \<exists>x y u v. x+v \<le> u+y & (x,y) \<in> Rep_Real z & (u,v) \<in> Rep_Real w"
   real_less_def: "(x < (y::real)) == (x \<le> y & x \<noteq> y)" ..
+lemmas [code func del] = real_le_def real_less_def
 
 instance real :: abs
   real_abs_def:  "abs (r::real) == (if r < 0 then - r else r)" ..
@@ -520,23 +523,36 @@ lemma real_inverse_gt_one: "[| (0::real) < x; x < 1 |] ==> 1 < inverse x"
 by (simp add: one_less_inverse_iff) (* TODO: generalize/move *)
 
 
-subsection{*Embedding the Integers into the Reals*}
+subsection {* Embedding numbers into the Reals *}
+
+abbreviation
+  real_of_nat :: "nat \<Rightarrow> real"
+where
+  "real_of_nat \<equiv> of_nat"
+
+abbreviation
+  real_of_int :: "int \<Rightarrow> real"
+where
+  "real_of_int \<equiv> of_int"
+
+abbreviation
+  real_of_rat :: "rat \<Rightarrow> real"
+where
+  "real_of_rat \<equiv> of_rat"
+
+consts
+  (*overloaded constant for injecting other types into "real"*)
+  real :: "'a => real"
 
 defs (overloaded)
-  real_of_nat_def: "real z == of_nat z"
-  real_of_int_def: "real z == of_int z"
+  real_of_nat_def [code unfold]: "real == real_of_nat"
+  real_of_int_def [code unfold]: "real == real_of_int"
 
 lemma real_eq_of_nat: "real = of_nat"
-  apply (rule ext)
-  apply (unfold real_of_nat_def)
-  apply (rule refl)
-  done
+  unfolding real_of_nat_def ..
 
 lemma real_eq_of_int: "real = of_int"
-  apply (rule ext)
-  apply (unfold real_of_int_def)
-  apply (rule refl)
-  done
+  unfolding real_of_int_def ..
 
 lemma real_of_int_zero [simp]: "real (0::int) = 0"  
 by (simp add: real_of_int_def) 
@@ -811,14 +827,14 @@ done
 
 subsection{*Numerals and Arithmetic*}
 
-instance real :: number ..
-
-defs (overloaded)
-  real_number_of_def: "(number_of w :: real) == of_int w"
-    --{*the type constraint is essential!*}
-
 instance real :: number_ring
-by (intro_classes, simp add: real_number_of_def) 
+  real_number_of_def: "number_of w \<equiv> real_of_int w"
+  by intro_classes (simp add: real_number_of_def)
+
+lemma [code, code unfold]:
+  "number_of k = real_of_int (number_of k)"
+  unfolding number_of_is_id real_number_of_def ..
+
 
 text{*Collapse applications of @{term real} to @{term number_of}*}
 lemma real_number_of [simp]: "real (number_of v :: int) = number_of v"
@@ -939,9 +955,5 @@ consts_code
   "op = :: real \<Rightarrow> real \<Rightarrow> bool" ("curry Rat.eq")
   "real :: int \<Rightarrow> real" ("Rat.rat'_of'_int")
   "real :: nat \<Rightarrow> real" ("(Rat.rat'_of'_int o {*int*})")
-
-lemma [code, code unfold]:
-  "number_of k = real (number_of k :: int)"
-  by simp
 
 end

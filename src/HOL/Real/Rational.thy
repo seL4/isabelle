@@ -81,7 +81,11 @@ declare Abs_Rat_inject [simp]  Abs_Rat_inverse [simp]
 
 definition
   Fract :: "int \<Rightarrow> int \<Rightarrow> rat" where
-  "Fract a b = Abs_Rat (ratrel``{(a,b)})"
+  [code func del]: "Fract a b = Abs_Rat (ratrel``{(a,b)})"
+
+lemma Fract_zero:
+  "Fract k 0 = Fract l 0"
+  by (simp add: Fract_def ratrel_def)
 
 theorem Rat_cases [case_names Fract, cases type: rat]:
     "(!!a b. q = Fract a b ==> b \<noteq> 0 ==> C) ==> C"
@@ -161,9 +165,11 @@ subsubsection {* Standard operations on rational numbers *}
 
 instance rat :: zero
   Zero_rat_def: "0 == Fract 0 1" ..
+lemmas [code func del] = Zero_rat_def
 
 instance rat :: one
   One_rat_def: "1 == Fract 1 1" ..
+lemmas [code func del] = One_rat_def
 
 instance rat :: plus
   add_rat_def:
@@ -176,7 +182,7 @@ instance rat :: minus
   minus_rat_def:
     "- q == Abs_Rat (\<Union>x \<in> Rep_Rat q. ratrel``{(- fst x, snd x)})"
   diff_rat_def:  "q - r == q + - (r::rat)" ..
-lemmas [code func del] = minus_rat_def
+lemmas [code func del] = minus_rat_def diff_rat_def
 
 instance rat :: times
   mult_rat_def:
@@ -191,7 +197,7 @@ instance rat :: inverse
         Abs_Rat (\<Union>x \<in> Rep_Rat q.
             ratrel``{if fst x=0 then (0,1) else (snd x, fst x)})"
   divide_rat_def:  "q / r == q * inverse (r::rat)" ..
-lemmas [code func del] = inverse_rat_def
+lemmas [code func del] = inverse_rat_def divide_rat_def
 
 instance rat :: ord
   le_rat_def:
@@ -459,6 +465,9 @@ by (rule of_nat_rat [symmetric])
 lemma Fract_of_int_eq: "Fract k 1 = of_int k"
 by (rule of_int_rat [symmetric])
 
+lemma Fract_of_int_quotient: "Fract k l = (if l = 0 then Fract 1 0 else of_int k / of_int l)"
+by (auto simp add: Fract_zero Fract_of_int_eq [symmetric] divide_rat)
+
 
 subsection {* Numerals and Arithmetic *}
 
@@ -474,14 +483,14 @@ declaration {* K rat_arith_setup *}
 
 subsection {* Embedding from Rationals to other Fields *}
 
-axclass field_char_0 < field, ring_char_0
+class field_char_0 = field + ring_char_0
 
 instance ordered_field < field_char_0 ..
 
 definition
   of_rat :: "rat \<Rightarrow> 'a::field_char_0"
 where
-  "of_rat q = contents (\<Union>(a,b) \<in> Rep_Rat q. {of_int a / of_int b})"
+  [code func del]: "of_rat q = contents (\<Union>(a,b) \<in> Rep_Rat q. {of_int a / of_int b})"
 
 lemma of_rat_congruent:
   "(\<lambda>(a, b). {of_int a / of_int b::'a::field_char_0}) respects ratrel"
@@ -569,5 +578,15 @@ by (simp add: number_of_eq)
 
 lemmas zero_rat = Zero_rat_def
 lemmas one_rat = One_rat_def
+
+abbreviation
+  rat_of_nat :: "nat \<Rightarrow> rat"
+where
+  "rat_of_nat \<equiv> of_nat"
+
+abbreviation
+  rat_of_int :: "int \<Rightarrow> rat"
+where
+  "rat_of_int \<equiv> of_int"
 
 end
