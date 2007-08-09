@@ -444,7 +444,7 @@ text {*
 
   \item the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}
     for exhaustive syntax diagrams.
-  \item or \fixme[ref] which deals with foundational issues
+  \item or \cite{Haftmann-Nipkow:2007:codegen} which deals with foundational issues
     of the code generator framework.
 
   \end{itemize}
@@ -469,10 +469,10 @@ text {*
     \item[@{text "Pretty_Char_chr"}] like @{text "Pretty_Char"},
        but also offers treatment of character codes; includes
        @{text "Pretty_Int"}.
-    \item[@{text "Executable_Set"}] allows to generate code
+    \item[@{text "Executable_Set"}] \label{exec_set} allows to generate code
        for finite sets using lists.
-    \item[@{text "Executable_Rat"}] \label{exec_rat} implements rational
-       numbers as triples @{text "(sign, enumerator, denominator)"}.
+    \item[@{text "Executable_Rat"}] implements rational
+       numbers.
     \item[@{text "Executable_Real"}] implements a subset of real numbers,
        namly those representable by rational numbers.
     \item[@{text "Efficient_Nat"}] \label{eff_nat} implements natural numbers by integers,
@@ -1082,7 +1082,7 @@ text {*
 
   Another axiomatic extension is code generation
   for abstracted types.  For this, the  
-  @{text "ExecutableRat"} (see \secref{exec_rat})
+  @{text "Executable_Set"} theory (see \secref{exec_set})
   forms a good example.
 *}
 

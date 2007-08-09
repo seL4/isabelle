@@ -11,10 +11,15 @@ fun eq_nat Zero_nat (Suc m) = false
 fun plus_nat (Suc m) n = plus_nat m (Suc n)
   | plus_nat Zero_nat n = n;
 
+fun prod_case f1 (a, b) = f1 a b;
+
 end; (*struct Nat*)
 
 structure List = 
 struct
+
+fun list_case f1 f2 [] = f1
+  | list_case f1 f2 (a :: lista) = f2 a lista;
 
 fun zip xs (y :: ys) =
   (case xs of [] => [] | z :: zs => (z, y) :: zip zs ys)

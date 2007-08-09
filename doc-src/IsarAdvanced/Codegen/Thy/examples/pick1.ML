@@ -1,3 +1,10 @@
+structure HOL = 
+struct
+
+fun leta s f = f s;
+
+end; (*struct HOL*)
+
 structure Nat = 
 struct
 
@@ -11,6 +18,8 @@ and less_eq_nat (Suc n) m = less_nat n m
 fun minus_nat (Suc m) (Suc n) = minus_nat m n
   | minus_nat Zero_nat n = Zero_nat
   | minus_nat m Zero_nat = m;
+
+fun prod_case f1 (a, b) = f1 a b;
 
 end; (*struct Nat*)
 
