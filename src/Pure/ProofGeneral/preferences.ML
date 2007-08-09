@@ -16,7 +16,7 @@ sig
 			  get: unit -> string,
 			  set: string -> unit }
 
-  (* table of categorised and preferences; names must be unique *)
+  (* table of categories and preferences; names must be unique *)
   type isa_preference_table = (string * isa_preference list) list
 
   val preferences : isa_preference_table
