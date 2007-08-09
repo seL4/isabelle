@@ -162,18 +162,22 @@ fun parse_args f args =
 
 (* generic serializer combinators *)
 
-fun gen_pr_app pr_app' pr_term const_syntax vars fxy (app as ((c, (_, tys)), ts)) =
+fun gen_pr_app pr_app' pr_term const_syntax labelled_name is_cons
+      lhs vars fxy (app as ((c, (_, tys)), ts)) =
   case const_syntax c
-   of NONE => brackify fxy (pr_app' vars app)
+   of NONE => if lhs andalso not (is_cons c) then
+          error ("non-constructor on left hand side of equation: " ^ labelled_name c)
+        else brackify fxy (pr_app' lhs vars app)
     | SOME (i, pr) =>
         let
           val k = if i < 0 then length tys else i;
-          fun pr' fxy ts = pr pr_term vars fxy (ts ~~ curry Library.take k tys);
+          fun pr' fxy ts = pr (pr_term lhs) vars fxy (ts ~~ curry Library.take k tys);
         in if k = length ts
           then pr' fxy ts
         else if k < length ts
-          then case chop k ts of (ts1, ts2) => brackify fxy (pr' APP ts1 :: map (pr_term vars BR) ts2)
-          else pr_term vars fxy (CodegenThingol.eta_expand app k)
+          then case chop k ts of (ts1, ts2) =>
+            brackify fxy (pr' APP ts1 :: map (pr_term lhs vars BR) ts2)
+          else pr_term lhs vars fxy (CodegenThingol.eta_expand app k)
         end;
 
 fun gen_pr_bind pr_bind' pr_term fxy ((v, pat), ty) vars =
@@ -341,56 +345,56 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
                 else pr pr_typ fxy tys)
       | pr_typ fxy (ITyVar v) =
           str ("'" ^ v);
-    fun pr_term vars fxy (IConst c) =
-          pr_app vars fxy (c, [])
-      | pr_term vars fxy (IVar v) =
+    fun pr_term lhs vars fxy (IConst c) =
+          pr_app lhs vars fxy (c, [])
+      | pr_term lhs vars fxy (IVar v) =
           str (CodegenNames.lookup_var vars v)
-      | pr_term vars fxy (t as t1 `$ t2) =
+      | pr_term lhs vars fxy (t as t1 `$ t2) =
           (case CodegenThingol.unfold_const_app t
-           of SOME c_ts => pr_app vars fxy c_ts
+           of SOME c_ts => pr_app lhs vars fxy c_ts
             | NONE =>
-                brackify fxy [pr_term vars NOBR t1, pr_term vars BR t2])
-      | pr_term vars fxy (t as _ `|-> _) =
+                brackify fxy [pr_term lhs vars NOBR t1, pr_term lhs vars BR t2])
+      | pr_term lhs vars fxy (t as _ `|-> _) =
           let
             val (binds, t') = CodegenThingol.unfold_abs t;
             fun pr ((v, pat), ty) =
               pr_bind NOBR ((SOME v, pat), ty)
               #>> (fn p => concat [str "fn", p, str "=>"]);
             val (ps, vars') = fold_map pr binds vars;
-          in brackets (ps @ [pr_term vars' NOBR t']) end
-      | pr_term vars fxy (ICase (cases as (_, t0))) = (case CodegenThingol.unfold_const_app t0
+          in brackets (ps @ [pr_term lhs vars' NOBR t']) end
+      | pr_term lhs vars fxy (ICase (cases as (_, t0))) = (case CodegenThingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
                 then pr_case vars fxy cases
-                else pr_app vars fxy c_ts
+                else pr_app lhs vars fxy c_ts
             | NONE => pr_case vars fxy cases)
-    and pr_app' vars (app as ((c, (iss, tys)), ts)) =
+    and pr_app' lhs vars (app as ((c, (iss, tys)), ts)) =
       if is_cons c then let
         val k = length tys
       in if k < 2 then 
-        (str o deresolv) c :: map (pr_term vars BR) ts
+        (str o deresolv) c :: map (pr_term lhs vars BR) ts
       else if k = length ts then
-        [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term vars NOBR) ts)]
-      else [pr_term vars BR (CodegenThingol.eta_expand app k)] end else
+        [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term lhs vars NOBR) ts)]
+      else [pr_term lhs vars BR (CodegenThingol.eta_expand app k)] end else
         (str o deresolv) c
-          :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
-    and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
+          :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term lhs vars BR) ts
+    and pr_app lhs vars = gen_pr_app pr_app' pr_term const_syntax labelled_name is_cons lhs vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
       | pr_bind' ((SOME v, SOME p), _) = concat [str v, str "as", p]
-    and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy
+    and pr_bind fxy = gen_pr_bind pr_bind' (pr_term false) fxy
     and pr_case vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, t') = CodegenThingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
               |> pr_bind NOBR ((NONE, SOME pat), ty)
-              |>> (fn p => semicolon [str "val", p, str "=", pr_term vars NOBR t])
+              |>> (fn p => semicolon [str "val", p, str "=", pr_term false vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
           in
             Pretty.chunks [
               [str ("let"), Pretty.fbrk, Pretty.chunks ps] |> Pretty.block,
-              [str ("in"), Pretty.fbrk, pr_term vars' NOBR t'] |> Pretty.block,
+              [str ("in"), Pretty.fbrk, pr_term false vars' NOBR t'] |> Pretty.block,
               str ("end")
             ]
           end
@@ -400,12 +404,12 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
               let
                 val (p, vars') = pr_bind NOBR ((NONE, SOME pat), ty) vars;
               in
-                concat [str delim, p, str "=>", pr_term vars' NOBR t]
+                concat [str delim, p, str "=>", pr_term false vars' NOBR t]
               end;
           in
             (Pretty.enclose "(" ")" o single o brackify fxy) (
               str "case"
-              :: pr_term vars NOBR td
+              :: pr_term false vars NOBR td
               :: pr "of" b
               :: map (pr "|") bs
             )
@@ -447,8 +451,8 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
                          then [str ":", pr_typ NOBR ty]
                          else
                            pr_tyvars vs
-                           @ map (pr_term vars BR) ts)
-                   @ [str "=", pr_term vars NOBR t]
+                           @ map (pr_term true vars BR) ts)
+                   @ [str "=", pr_term false vars NOBR t]
                     )
                   end
               in
@@ -547,7 +551,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
                 concat [
                   (str o pr_label_classop) classop,
                   str "=",
-                  pr_term vars NOBR t
+                  pr_term false vars NOBR t
                 ]
               end;
           in
@@ -613,61 +617,61 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
                 else pr pr_typ fxy tys)
       | pr_typ fxy (ITyVar v) =
           str ("'" ^ v);
-    fun pr_term vars fxy (IConst c) =
-          pr_app vars fxy (c, [])
-      | pr_term vars fxy (IVar v) =
+    fun pr_term lhs vars fxy (IConst c) =
+          pr_app lhs vars fxy (c, [])
+      | pr_term lhs vars fxy (IVar v) =
           str (CodegenNames.lookup_var vars v)
-      | pr_term vars fxy (t as t1 `$ t2) =
+      | pr_term lhs vars fxy (t as t1 `$ t2) =
           (case CodegenThingol.unfold_const_app t
-           of SOME c_ts => pr_app vars fxy c_ts
+           of SOME c_ts => pr_app lhs vars fxy c_ts
             | NONE =>
-                brackify fxy [pr_term vars NOBR t1, pr_term vars BR t2])
-      | pr_term vars fxy (t as _ `|-> _) =
+                brackify fxy [pr_term lhs vars NOBR t1, pr_term lhs vars BR t2])
+      | pr_term lhs vars fxy (t as _ `|-> _) =
           let
             val (binds, t') = CodegenThingol.unfold_abs t;
             fun pr ((v, pat), ty) = pr_bind BR ((SOME v, pat), ty);
             val (ps, vars') = fold_map pr binds vars;
-          in brackets (str "fun" :: ps @ str "->" @@ pr_term vars' NOBR t') end
-      | pr_term vars fxy (ICase (cases as (_, t0))) = (case CodegenThingol.unfold_const_app t0
+          in brackets (str "fun" :: ps @ str "->" @@ pr_term lhs vars' NOBR t') end
+      | pr_term lhs vars fxy (ICase (cases as (_, t0))) = (case CodegenThingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
                 then pr_case vars fxy cases
-                else pr_app vars fxy c_ts
+                else pr_app lhs vars fxy c_ts
             | NONE => pr_case vars fxy cases)
-    and pr_app' vars (app as ((c, (iss, tys)), ts)) =
+    and pr_app' lhs vars (app as ((c, (iss, tys)), ts)) =
       if is_cons c then
         if length tys = length ts
         then case ts
          of [] => [(str o deresolv) c]
-          | [t] => [(str o deresolv) c, pr_term vars BR t]
-          | _ => [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term vars NOBR) ts)]
-        else [pr_term vars BR (CodegenThingol.eta_expand app (length tys))]
+          | [t] => [(str o deresolv) c, pr_term lhs vars BR t]
+          | _ => [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term lhs vars NOBR) ts)]
+        else [pr_term lhs vars BR (CodegenThingol.eta_expand app (length tys))]
       else (str o deresolv) c
-        :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term vars BR) ts)
-    and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
+        :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term lhs vars BR) ts)
+    and pr_app lhs vars = gen_pr_app pr_app' pr_term const_syntax labelled_name is_cons lhs vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
       | pr_bind' ((SOME v, SOME p), _) = brackets [p, str "as", str v]
-    and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy
+    and pr_bind fxy = gen_pr_bind pr_bind' (pr_term false) fxy
     and pr_case vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, t') = CodegenThingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
               |> pr_bind NOBR ((NONE, SOME pat), ty)
-              |>> (fn p => concat [str "let", p, str "=", pr_term vars NOBR t, str "in"])
+              |>> (fn p => concat [str "let", p, str "=", pr_term false vars NOBR t, str "in"])
             val (ps, vars') = fold_map pr binds vars;
-          in Pretty.chunks (ps @| pr_term vars' NOBR t') end
+          in Pretty.chunks (ps @| pr_term false vars' NOBR t') end
       | pr_case vars fxy (((td, ty), b::bs), _) =
           let
             fun pr delim (pat, t) =
               let
                 val (p, vars') = pr_bind NOBR ((NONE, SOME pat), ty) vars;
-              in concat [str delim, p, str "->", pr_term vars' NOBR t] end;
+              in concat [str delim, p, str "->", pr_term false vars' NOBR t] end;
           in
             (Pretty.enclose "(" ")" o single o brackify fxy) (
               str "match"
-              :: pr_term vars NOBR td
+              :: pr_term false vars NOBR td
               :: pr "with" b
               :: map (pr "|") bs
             )
@@ -698,9 +702,9 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
                   |> CodegenNames.intro_vars ((fold o CodegenThingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
               in concat [
-                (Pretty.block o Pretty.commas) (map (pr_term vars NOBR) ts),
+                (Pretty.block o Pretty.commas) (map (pr_term true vars NOBR) ts),
                 str "->",
-                pr_term vars NOBR t
+                pr_term false vars NOBR t
               ] end;
             fun pr_eqs [(ts, t)] =
                   let
@@ -714,9 +718,9 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
                           (insert (op =)) ts []);
                   in
                     concat (
-                      map (pr_term vars BR) ts
+                      map (pr_term true vars BR) ts
                       @ str "="
-                      @@ pr_term vars NOBR t
+                      @@ pr_term false vars NOBR t
                     )
                   end
               | pr_eqs (eqs as (eq as ([_], _)) :: eqs') =
@@ -837,7 +841,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
                 concat [
                   (str o deresolv) classop,
                   str "=",
-                  pr_term vars NOBR t
+                  pr_term false vars NOBR t
                 ]
               end;
           in
@@ -872,9 +876,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
   (_ : string -> class_syntax option) tyco_syntax const_syntax code =
   let
     val module_alias = if is_some module then K module else raw_module_alias;
-    val is_cons = fn node => case CodegenThingol.get_def code node
-     of CodegenThingol.Datatypecons _ => true
-      | _ => false;
+    val is_cons = CodegenThingol.is_cons code;
     datatype node =
         Def of string * ml_def option
       | Module of string * ((Name.context * Name.context) * node Graph.T);
@@ -1077,7 +1079,8 @@ val pr_bind_haskell = gen_pr_bind pr_bind';
 
 in
 
-fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms deresolv_here deresolv deriving_show def =
+fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
+    deresolv_here deresolv is_cons deriving_show def =
   let
     fun class_name class = case class_syntax class
      of NONE => deresolv class
@@ -1115,45 +1118,45 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms der
       Pretty.block (pr_typparms tyvars vs @@ pr_tycoexpr tyvars NOBR tycoexpr);
     fun pr_typscheme tyvars (vs, ty) =
       Pretty.block (pr_typparms tyvars vs @@ pr_typ tyvars NOBR ty);
-    fun pr_term vars fxy (IConst c) =
-          pr_app vars fxy (c, [])
-      | pr_term vars fxy (t as (t1 `$ t2)) =
+    fun pr_term lhs vars fxy (IConst c) =
+          pr_app lhs vars fxy (c, [])
+      | pr_term lhs vars fxy (t as (t1 `$ t2)) =
           (case CodegenThingol.unfold_const_app t
-           of SOME app => pr_app vars fxy app
+           of SOME app => pr_app lhs vars fxy app
             | _ =>
                 brackify fxy [
-                  pr_term vars NOBR t1,
-                  pr_term vars BR t2
+                  pr_term lhs vars NOBR t1,
+                  pr_term lhs vars BR t2
                 ])
-      | pr_term vars fxy (IVar v) =
+      | pr_term lhs vars fxy (IVar v) =
           (str o CodegenNames.lookup_var vars) v
-      | pr_term vars fxy (t as _ `|-> _) =
+      | pr_term lhs vars fxy (t as _ `|-> _) =
           let
             val (binds, t') = CodegenThingol.unfold_abs t;
             fun pr ((v, pat), ty) = pr_bind BR ((SOME v, pat), ty);
             val (ps, vars') = fold_map pr binds vars;
-          in brackets (str "\\" :: ps @ str "->" @@ pr_term vars' NOBR t') end
-      | pr_term vars fxy (ICase (cases as (_, t0))) = (case CodegenThingol.unfold_const_app t0
+          in brackets (str "\\" :: ps @ str "->" @@ pr_term lhs vars' NOBR t') end
+      | pr_term lhs vars fxy (ICase (cases as (_, t0))) = (case CodegenThingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
                 then pr_case vars fxy cases
-                else pr_app vars fxy c_ts
+                else pr_app lhs vars fxy c_ts
             | NONE => pr_case vars fxy cases)
-    and pr_app' vars ((c, _), ts) =
-      (str o deresolv) c :: map (pr_term vars BR) ts
-    and pr_app vars = gen_pr_app pr_app' pr_term const_syntax vars
-    and pr_bind fxy = pr_bind_haskell pr_term fxy
+    and pr_app' lhs vars ((c, _), ts) =
+      (str o deresolv) c :: map (pr_term lhs vars BR) ts
+    and pr_app lhs vars = gen_pr_app pr_app' pr_term const_syntax labelled_name is_cons lhs vars
+    and pr_bind fxy = pr_bind_haskell (pr_term false) fxy
     and pr_case vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, t) = CodegenThingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
               |> pr_bind BR ((NONE, SOME pat), ty)
-              |>> (fn p => semicolon [p, str "=", pr_term vars NOBR t])
+              |>> (fn p => semicolon [p, str "=", pr_term false vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
           in
             Pretty.block_enclose (
               str "let {",
-              concat [str "}", str "in", pr_term vars' NOBR t]
+              concat [str "}", str "in", pr_term false vars' NOBR t]
             ) ps
           end
       | pr_case vars fxy (((td, ty), bs as _ :: _), _) =
@@ -1161,10 +1164,10 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms der
             fun pr (pat, t) =
               let
                 val (p, vars') = pr_bind NOBR ((NONE, SOME pat), ty) vars;
-              in semicolon [p, str "->", pr_term vars' NOBR t] end;
+              in semicolon [p, str "->", pr_term false vars' NOBR t] end;
           in
             Pretty.block_enclose (
-              concat [str "(case", pr_term vars NOBR td, str "of", str "{"],
+              concat [str "(case", pr_term false vars NOBR td, str "of", str "{"],
               str "})"
             ) (map pr bs)
           end
@@ -1185,9 +1188,9 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms der
               in
                 semicolon (
                   (str o deresolv_here) name
-                  :: map (pr_term vars BR) ts
+                  :: map (pr_term true vars BR) ts
                   @ str "="
-                  @@ pr_term vars NOBR t
+                  @@ pr_term false vars NOBR t
                 )
               end;
           in
@@ -1276,7 +1279,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms der
                   semicolon [
                     (str o classop_name class) classop,
                     str "=",
-                    pr_term vars NOBR t
+                    pr_term false vars NOBR t
                   ]
                 end;
           in
@@ -1315,9 +1318,10 @@ fun pretty_haskell_monad c_mbind c_kbind =
 end; (*local*)
 
 fun seri_haskell module_prefix module destination string_classes labelled_name
-  reserved_syms raw_module_alias module_prolog class_syntax tyco_syntax const_syntax code =
+    reserved_syms raw_module_alias module_prolog class_syntax tyco_syntax const_syntax code =
   let
     val _ = Option.map File.check destination;
+    val is_cons = CodegenThingol.is_cons code;
     val module_alias = if is_some module then K module else raw_module_alias;
     val init_names = Name.make_context reserved_syms;
     val name_modl = mk_modl_name_tab init_names module_prefix module_alias code;
@@ -1386,7 +1390,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
     fun seri_def qualified = pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
-      deresolv_here (if qualified then deresolv else deresolv_here)
+      deresolv_here (if qualified then deresolv else deresolv_here) is_cons
       (if string_classes then deriving_show else K false);
     fun write_module (SOME destination) modlname =
           let
@@ -1458,7 +1462,7 @@ fun seri_diagnosis labelled_name _ _ _ _ _ _ code =
             pr_typ (INFX (1, R)) ty2
           ])
       | pr_fun _ = NONE
-    val pr = pr_haskell (K NONE) pr_fun (K NONE) labelled_name init_names I I (K false);
+    val pr = pr_haskell (K NONE) pr_fun (K NONE) labelled_name init_names I I (K false) (K false);
   in
     []
     |> Graph.fold (fn (name, (def, _)) => case try pr (name, def) of SOME p => cons p | NONE => I) code
