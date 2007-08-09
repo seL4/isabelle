@@ -96,7 +96,7 @@ local
         let
             val ((thyname,imports,files),_) = ThyHeader.args (toks@sync)
         in
-            [D.Opentheory { thyname=thyname, 
+            [D.Opentheory { thyname=SOME thyname, 
 			    parentnames = imports,
 			    text = str },
 	     D.Openblock { metavarid=NONE,name=NONE,objtype=SOME I.ObjTheoryBody }]

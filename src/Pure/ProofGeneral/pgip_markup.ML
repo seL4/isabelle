@@ -12,7 +12,7 @@ sig
     Openblock     of { metavarid: string option, name: string option,
                        objtype: PgipTypes.objtype option }
   | Closeblock    of { }
-  | Opentheory    of { thyname: string, parentnames: string list , text: string}
+  | Opentheory    of { thyname: string option, parentnames: string list , text: string}
   | Theoryitem    of { name: string option, objtype: PgipTypes.objtype option, text: string }
   | Closetheory   of { text: string }
   | Opengoal      of { thmname: string option, text: string }
@@ -50,7 +50,7 @@ struct
     Openblock     of { metavarid: string option, name: string option,
                        objtype: PgipTypes.objtype option }
   | Closeblock    of { }
-  | Opentheory    of { thyname: string, parentnames: string list, text: string}
+  | Opentheory    of { thyname: string option, parentnames: string list, text: string}
   | Theoryitem    of { name: string option, objtype: PgipTypes.objtype option, text: string }
   | Closetheory   of { text: string }
   | Opengoal      of { thmname: string option, text: string }
@@ -86,7 +86,7 @@ struct
 
          | Opentheory vs  =>
            XML.Elem("opentheory",
-                    attr "thyname" (#thyname vs) @
+                    opt_attr "thyname" (#thyname vs) @
                     opt_attr "parentnames"
                              (case (#parentnames vs)
                                of [] => NONE

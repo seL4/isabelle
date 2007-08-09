@@ -123,7 +123,7 @@ val _ =
     asseqp "theory A imports Bthy Cthy Dthy begin"
     [Opentheory
          {text = "theory A imports Bthy Cthy Dthy begin",
-          thyname = "A",
+          thyname = SOME "A",
           parentnames = ["Bthy", "Cthy", "Dthy"]},
      Openblock {metavarid=NONE,name=NONE,objtype=SOME ObjTheoryBody}];
 
