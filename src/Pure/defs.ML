@@ -11,14 +11,16 @@ sig
   val pretty_const: Pretty.pp -> string * typ list -> Pretty.T
   val plain_args: typ list -> bool
   type T
-  val specifications_of: T -> string -> (serial * {is_def: bool, thyname: string, name: string,
-    lhs: typ list, rhs: (string * typ list) list}) list
+  val specifications_of: T -> string -> {is_def: bool, name: string,
+    lhs: typ list, rhs: (string * typ list) list} list
+  val all_specifications_of: T -> (string * {is_def: bool, name: string,
+    lhs: typ list, rhs: (string * typ list) list} list) list
   val dest: T ->
    {restricts: ((string * typ list) * string) list,
     reducts: ((string * typ list) * (string * typ list) list) list}
   val empty: T
   val merge: Pretty.pp -> T * T -> T
-  val define: Pretty.pp -> bool -> bool -> string -> string ->
+  val define: Pretty.pp -> bool -> bool -> string ->
     string * typ list -> (string * typ list) list -> T -> T
 end
 
@@ -51,7 +53,7 @@ fun match_args (Ts, Us) =
 
 (* datatype defs *)
 
-type spec = {is_def: bool, thyname: string, name: string, lhs: args, rhs: (string * args) list};
+type spec = {is_def: bool, name: string, lhs: args, rhs: (string * args) list};
 
 type def =
  {specs: spec Inttab.table,                 (*source specifications*)
@@ -74,7 +76,9 @@ fun lookup_list which defs c =
     SOME (def: def) => which def
   | NONE => []);
 
-fun specifications_of (Defs defs) = lookup_list (Inttab.dest o #specs) defs;
+fun specifications_of (Defs defs) = lookup_list (map snd o Inttab.dest o #specs) defs;
+fun all_specifications_of (Defs defs) =
+  ((map o apsnd) (map snd o Inttab.dest o #specs) o Symtab.dest) defs;
 val restricts_of = lookup_list #restricts;
 val reducts_of = lookup_list #reducts;
 
@@ -197,14 +201,14 @@ fun merge pp (Defs defs1, Defs defs2) =
 
 (* define *)
 
-fun define pp unchecked is_def thyname name (c, args) deps (Defs defs) =
+fun define pp unchecked is_def name (c, args) deps (Defs defs) =
   let
     val restr =
       if plain_args args orelse
         (case args of [Type (a, rec_args)] => plain_args rec_args | _ => false)
       then [] else [(args, name)];
     val spec =
-      (serial (), {is_def = is_def, thyname = thyname, name = name, lhs = args, rhs = deps});
+      (serial (), {is_def = is_def, name = name, lhs = args, rhs = deps});
     val defs' = defs |> update_specs c spec;
   in Defs (defs' |> (if unchecked then I else dependencies pp (c, args) restr deps)) end;
 
