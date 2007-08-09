@@ -5,13 +5,6 @@
 Compatibility file for ML systems without multithreading.
 *)
 
-structure Task =
-struct
-  datatype task = Task of (unit -> unit) | Running | Finished;
-  fun is_running Running = true | is_running _ = false;
-  fun is_finished Finished = true | is_finished _ = false;
-end;
-
 signature MULTITHREADING =
 sig
   val trace: int ref
@@ -21,7 +14,9 @@ sig
   val self_critical: unit -> bool
   val NAMED_CRITICAL: string -> (unit -> 'a) -> 'a
   val CRITICAL: (unit -> 'a) -> 'a
-  val schedule: int -> ('a -> (Task.task * ('a -> 'a)) * 'a) -> 'a -> exn list
+  datatype 'a task =
+    Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
+  val schedule: int -> ('a -> 'a task * 'a) -> 'a -> exn list
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -36,6 +31,9 @@ val max_threads = ref 1;
 fun self_critical () = false;
 fun NAMED_CRITICAL _ e = e ();
 fun CRITICAL e = e ();
+
+datatype 'a task =
+  Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
 
 fun schedule _ _ _ = raise Fail "No multithreading support";
 
