@@ -3,9 +3,7 @@
 # $Id$
 # Author: David Aspinall and Makarius Wenzel
 #
-# DESCRIPTION: prepare Isabelle project, including document subdirectory
-# A useful abbreviation of a pair of isatool calls.
-#
+# DESCRIPTION: prepare a session directory for PG-Eclipse
 
 PRG="$(basename "$0")"
 
@@ -14,18 +12,16 @@ function usage()
   echo
   echo "Usage: $PRG NAME"
   echo
-  echo "  Prepare a session directory in the current directory, including IsaMakefile,"
-  echo "  document source and LaTeX files."
+  echo "  Prepare a session directory for PG-Eclipse."
   exit 1
 }
 
 if [ "$#" -eq 1 ]; then
-   NAME="$1"; shift
+  NAME="$1"; shift
 else
   usage
 fi
 
-
-$ISATOOL mkdir -b -q $NAME
-(cd document; $ISATOOL latex -o sty)
+"$ISATOOL" mkdir -b -q "$NAME"
+(cd document; "$ISATOOL" latex -o sty)
 
