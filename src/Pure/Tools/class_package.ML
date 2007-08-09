@@ -235,7 +235,7 @@ datatype class_data = ClassData of {
     (*locale parameter ~> toplevel theory constant*),
   v: string option,
   intro: thm
-};
+} * thm list (*derived defs*);
 
 fun rep_classdata (ClassData c) = c;
 
@@ -265,17 +265,19 @@ val ancestry = Graph.all_succs o fst o ClassData.get;
 
 fun param_map thy =
   let
-    fun params thy class =
+    fun params class =
       let
         val const_typs = (#params o AxClass.get_definition thy) class;
-        val const_names = (#consts o the_class_data thy) class;
+        val const_names = (#consts o fst o the_class_data thy) class;
       in
         (map o apsnd) (fn c => (c, (the o AList.lookup (op =) const_typs) c)) const_names
       end;
-  in maps (params thy) o ancestry thy end;
+  in maps params o ancestry thy end;
+
+fun these_defs thy = maps (these o Option.map snd o lookup_class_data thy) o ancestry thy;
 
 fun these_intros thy =
-  Graph.fold (fn (_, (data, _)) => insert Thm.eq_thm ((#intro o rep_classdata) data))
+  Graph.fold (fn (_, (data, _)) => insert Thm.eq_thm ((#intro o fst o rep_classdata) data))
     ((fst o ClassData.get) thy) [];
 
 fun print_classes thy =
@@ -297,7 +299,7 @@ fun print_classes thy =
       (SOME o Pretty.str) ("class " ^ class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
         (Sign.pretty_sort thy o Sign.certify_sort thy o Sign.super_classes thy) class],
-      Option.map (Pretty.str o prefix "locale: " o #locale) (lookup_class_data thy class),
+      Option.map (Pretty.str o prefix "locale: " o #locale o fst) (lookup_class_data thy class),
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks) (Pretty.str "parameters:" :: ps)) o map mk_param
         o these o Option.map #params o try (AxClass.get_definition thy)) class,
       (SOME o Pretty.block o Pretty.breaks) [
@@ -316,17 +318,15 @@ fun print_classes thy =
 fun add_class_data ((class, superclasses), (locale, consts, v, intro)) =
   ClassData.map (fn (gr, tab) => (
     gr
-    |> Graph.new_node (class, ClassData {
-      locale = locale,
-      consts = consts,
-      v = v,
-      intro = intro}
-    )
+    |> Graph.new_node (class, ClassData ({ locale = locale, consts = consts,
+         v = v, intro = intro }, []))
     |> fold (curry Graph.add_edge class) superclasses,
     tab
     |> Symtab.update (locale, class)
   ));
 
+fun add_class_const_thm (class, thm) = (ClassData.map o apfst o Graph.map_node class)
+  (fn ClassData (data, thms) => ClassData (data, thm :: thms));
 
 (* tactics and methods *)
 
@@ -423,11 +423,13 @@ fun class_intro thy locale class sups =
       | NONE => class_intro;
     val sort = Sign.super_classes thy class;
     val typ = TVar ((AxClass.param_tyvarname, 0), sort);
+    val defs = these_defs thy sups;
   in
     raw_intro
     |> Drule.instantiate' [SOME (Thm.ctyp_of thy typ)] []
     |> strip_all_ofclass thy sort
     |> Thm.strip_shyps
+    |> MetaSimplifier.rewrite_rule defs
     |> Drule.unconstrainTs
   end;
 
@@ -437,7 +439,7 @@ fun interpretation_in_rule thy (class1, class2) =
     (*FIXME also remember this at add_class*)
     fun mk_axioms class =
       let
-        val name_locale = (#locale o the_class_data thy) class;
+        val name_locale = (#locale o fst o the_class_data thy) class;
         val inst = mk_inst class params consts;
       in
         Locale.global_asms_of thy name_locale
@@ -482,7 +484,7 @@ fun gen_class add_locale prep_class prep_param bname
     val sups = filter (is_some o lookup_class_data thy) supclasses
       |> Sign.certify_sort thy;
     val supsort = Sign.certify_sort thy supclasses;
-    val suplocales = map (Locale.Locale o #locale o the_class_data thy) sups;
+    val suplocales = map (Locale.Locale o #locale o fst o the_class_data thy) sups;
     val supexpr = Locale.Merge (suplocales @ includes);
     val supparams = (map fst o Locale.parameters_of_expr thy)
       (Locale.Merge suplocales);
@@ -514,9 +516,10 @@ fun gen_class add_locale prep_class prep_param bname
         fun subst (Free (c, ty)) =
               Const ((fst o the o AList.lookup (op =) consts) c, ty)
           | subst t = t;
+        val super_defs = these_defs thy sups;
         fun prep_asm ((name, atts), ts) =
           ((NameSpace.base name, map (Attrib.attribute thy) atts),
-            (map o map_aterms) subst ts);
+            (map o map_aterms) ((*MetaSimplifier.rewrite_term thy super_defs [] o *)subst) ts);
       in
         Locale.global_asms_of thy name_locale
         |> map prep_asm
@@ -586,9 +589,9 @@ fun instance_subsort (class, sort) thy =
 
 fun instance_sort' do_proof (class, sort) theory =
   let
-    val loc_name = (#locale o the_class_data theory) class;
+    val loc_name = (#locale o fst o the_class_data theory) class;
     val loc_expr =
-      (Locale.Merge o map (Locale.Locale o #locale o the_class_data theory)) sort;
+      (Locale.Merge o map (Locale.Locale o #locale o fst o the_class_data theory)) sort;
   in
     theory
     |> do_proof (instance_subsort (class, sort)) (loc_name, loc_expr)
@@ -627,7 +630,7 @@ end; (*local*)
 
 fun export_fixes thy class =
   let
-    val v = (#v o the_class_data thy) class;
+    val v = (#v o fst o the_class_data thy) class;
     val constrain_sort = curry (Sorts.inter_sort (Sign.classes_of thy)) [class];
     val subst_typ = Term.map_type_tfree (fn var as (w, sort) =>
       if SOME w = v then TFree (w, constrain_sort sort) else TFree var);
@@ -656,12 +659,13 @@ fun add_const_in_class class ((c, rhs), syn) thy =
       let
         val def' = symmetric def
         val tac = (ALLGOALS o ProofContext.fact_tac) [def'];
-        val name_locale = (#locale o the_class_data thy) class;
+        val name_locale = (#locale o fst o the_class_data thy) class;
         val def_eq = Thm.prop_of def';
         val (params, consts) = split_list (param_map thy [class]);
       in
         prove_interpretation tac ((false, prfx), []) (Locale.Locale name_locale)
           ((mk_instT class, mk_inst class params consts), [def_eq])
+        #> add_class_const_thm (class, def')
       end;
   in
     thy
