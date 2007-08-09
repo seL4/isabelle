@@ -1428,6 +1428,12 @@ This simplifies use of multiple Isabelle installations.
 operations, notably runtime compilation and evaluation of ML source
 code.
 
+* Experimental support for multithreading, using Poly/ML 5.1 (internal
+version from CVS). The maximum number of threads is specified via usedir
+option -M or the "max-threads" setting in Proof General. User-code needs
+to observe certain guidelines for thread-safe programming, see appendix
+A in the Isar Implementation manual.
+
 
 New in Isabelle2005 (October 2005)
 ----------------------------------
