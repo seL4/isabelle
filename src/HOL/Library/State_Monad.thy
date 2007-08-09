@@ -221,32 +221,29 @@ translations
   "_do f" => "CONST run f"
   "_mbind x f g" => "f \<guillemotright>= (\<lambda>x. g)"
   "_fcomp f g" => "f \<guillemotright> g"
-  "_let x t f" => "Let t (\<lambda>x. f)"
+  "_let x t f" => "CONST Let t (\<lambda>x. f)"
   "_nil f" => "f"
 
 print_translation {*
 let
-  val name_mbind = @{const_syntax "mbind"};
-  val name_fcomp = @{const_syntax "fcomp"};
-  fun unfold_monad (t as Const (name, _) $ f $ g) =
-        if name = name_mbind then let
-            val ([(v, ty)], g') = Term.strip_abs_eta 1 g;
-          in Const ("_mbind", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
-        else if name = name_fcomp then
-          Const ("_fcomp", dummyT) $ f $ unfold_monad g
-        else t
-    | unfold_monad (Const ("Let", _) $ f $ g) =
+  fun unfold_monad (Const (@{const_syntax mbind}, _) $ f $ g) =
         let
-          
+          val ([(v, ty)], g') = Term.strip_abs_eta 1 g;
+        in Const ("_mbind", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
+    | unfold_monad (Const (@{const_syntax fcomp}, _) $ f $ g) =
+        Const ("_fcomp", dummyT) $ f $ unfold_monad g
+    | unfold_monad (Const (@{const_syntax Let}, _) $ f $ g) =
+        let
           val ([(v, ty)], g') = Term.strip_abs_eta 1 g;
         in Const ("_let", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
-    | unfold_monad (Const ("Pair", _) $ f) =
+    | unfold_monad (Const (@{const_syntax Pair}, _) $ f) =
         Const ("return", dummyT) $ f
     | unfold_monad f = f;
   fun tr' (f::ts) =
     list_comb (Const ("_do", dummyT) $ unfold_monad f, ts)
 in [(@{const_syntax "run"}, tr')] end;
 *}
+
 
 subsection {* Combinators *}
 
@@ -258,12 +255,10 @@ fun
   list :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
   "list f [] = id"
 | "list f (x#xs) = (do f x; list f xs done)"
-lemmas [code] = list.simps
 
 fun list_yield :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<times> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'c list \<times> 'b" where
   "list_yield f [] = return []"
 | "list_yield f (x#xs) = (do y \<leftarrow> f x; ys \<leftarrow> list_yield f xs; return (y#ys) done)"
-lemmas [code] = list_yield.simps
   
 text {* combinator properties *}
 
@@ -304,7 +299,7 @@ text {*
 *}
 
 text {*
-  For an example, see HOL/ex/CodeRandom.thy (more examples coming soon).
+  For an example, see HOL/ex/Random.thy.
 *}
 
 end

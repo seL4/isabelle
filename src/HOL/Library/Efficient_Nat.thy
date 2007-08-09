@@ -401,6 +401,7 @@ code_modulename OCaml
 
 code_modulename Haskell
   Nat Integer
+  Divides Integer
   Efficient_Nat Integer
 
 hide const nat_of_int int'

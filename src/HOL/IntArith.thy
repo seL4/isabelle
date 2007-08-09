@@ -196,7 +196,7 @@ lemma split_nat [arith_split]:
   "P(nat(i::int)) = ((\<forall>n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
   (is "?P = (?L & ?R)")
 proof (cases "i < 0")
-  case True thus ?thesis by simp
+  case True thus ?thesis by auto
 next
   case False
   have "?P = ?L"
@@ -264,11 +264,12 @@ proof -
     by (rule wf_subset [OF wf_measure]) 
 qed
 
-                     (* `set:int': dummy construction *)
-theorem int_ge_induct[case_names base step,induct set:int]:
-  assumes ge: "k \<le> (i::int)" and
-        base: "P(k)" and
-        step: "\<And>i. \<lbrakk>k \<le> i; P i\<rbrakk> \<Longrightarrow> P(i+1)"
+(* `set:int': dummy construction *)
+theorem int_ge_induct [case_names base step, induct set:int]:
+  fixes i :: int
+  assumes ge: "k \<le> i" and
+    base: "P k" and
+    step: "\<And>i. k \<le> i \<Longrightarrow> P i \<Longrightarrow> P (i + 1)"
   shows "P i"
 proof -
   { fix n have "\<And>i::int. n = nat(i-k) \<Longrightarrow> k \<le> i \<Longrightarrow> P i"
@@ -278,7 +279,7 @@ proof -
       thus "P i" using base by simp
     next
       case (Suc n)
-      hence "n = nat((i - 1) - k)" by arith
+      then have "n = nat((i - 1) - k)" by arith
       moreover
       have ki1: "k \<le> i - 1" using Suc.prems by arith
       ultimately

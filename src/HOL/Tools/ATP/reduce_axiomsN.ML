@@ -138,7 +138,7 @@ fun count_axiom_consts thy ((thm,_), tab) =
 
 (*The frequency of a constant is the sum of those of all instances of its type.*)
 fun const_frequency ctab (c, cts) =
-  let val pairs = CTtab.dest (Option.valOf (Symtab.lookup ctab c))
+  let val pairs = CTtab.dest (the (Symtab.lookup ctab c))
       fun add ((cts',m), n) = if match_types cts cts' then m+n else n
   in  List.foldl add 0 pairs  end;
 

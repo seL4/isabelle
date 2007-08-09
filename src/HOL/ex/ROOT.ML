@@ -18,8 +18,8 @@ time_use_thy "Random";
 
 no_document time_use_thy "Executable_Rat";
 no_document time_use_thy "Efficient_Nat";
-time_use_thy "Codegenerator_Rat";
 no_document time_use_thy "Codegenerator";
+no_document time_use_thy "Codegenerator_Pretty";
 
 time_use_thy "Higher_Order_Logic";
 time_use_thy "Abstract_NAT";

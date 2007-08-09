@@ -11,8 +11,5 @@ begin
 code_gen "*" in SML to CodegenTest
   in OCaml file -
   in Haskell file -
-code_gen in SML to CodegenTest
-  in OCaml file -
-  in Haskell file -
 
 end

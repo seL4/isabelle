@@ -70,12 +70,12 @@ sig
   type code = def Graph.T;
   type transact;
   val empty_code: code;
-  val get_def: code -> string -> def;
   val merge_code: code * code -> code;
   val project_code: bool (*delete empty funs*)
     -> string list (*hidden*) -> string list option (*selected*)
     -> code -> code;
   val empty_funs: code -> string list;
+  val is_cons: code -> string -> bool;
   val add_eval_def: string (*bind name*) * iterm -> code -> code;
 
   val ensure_def: (string -> string) -> (transact -> def * code) -> string
@@ -264,16 +264,14 @@ exception FAIL of string list;
 
 val empty_code = Graph.empty : code; (*read: "depends on"*)
 
-val get_def = Graph.get_node;
-
 fun ensure_bot name = Graph.default_node (name, Bot);
 
 fun add_def_incr (name, Bot) code =
-      (case the_default Bot (try (get_def code) name)
+      (case the_default Bot (try (Graph.get_node code) name)
        of Bot => error "Attempted to add Bot to code"
         | _ => code)
   | add_def_incr (name, def) code =
-      (case try (get_def code) name
+      (case try (Graph.get_node code) name
        of NONE => Graph.new_node (name, def) code
         | SOME Bot => Graph.map_node name (K def) code
         | SOME _ => error ("Tried to overwrite definition " ^ quote name));
@@ -285,7 +283,7 @@ val merge_code : code * code -> code = Graph.merge (K true);
 
 fun project_code delete_empty_funs hidden raw_selected code =
   let
-    fun is_empty_fun name = case get_def code name
+    fun is_empty_fun name = case Graph.get_node code name
      of Fun ([], _) => true
       | _ => false;
     val names = subtract (op =) hidden (Graph.keys code);
@@ -306,6 +304,10 @@ fun project_code delete_empty_funs hidden raw_selected code =
 fun empty_funs code =
   Graph.fold (fn (name, (Fun ([], _), _)) => cons name
                | _ => I) code [];
+
+fun is_cons code name = case Graph.get_node code name
+ of Datatypecons _ => true
+  | _ => false;
 
 fun check_samemodule names =
   fold (fn name =>
@@ -345,7 +347,7 @@ fun check_prep_def code Bot =
       error "Attempted to add bare class relation"
   | check_prep_def code (d as Classinst ((class, (tyco, arity)), (_, inst_classops))) =
       let
-        val Class (_, (_, classops)) = get_def code class;
+        val Class (_, (_, classops)) = Graph.get_node code class;
         val _ = if length inst_classops > length classops
           then error "Too many class operations given"
           else ();
@@ -405,7 +407,7 @@ fun ensure_def labelled_name defgen msg name (dep, code) =
           add_dp dep;
   in
     code
-    |> add_def (can (get_def code) name)
+    |> add_def (can (Graph.get_node code) name)
     |> pair dep
   end;
 

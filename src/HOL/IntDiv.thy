@@ -1446,6 +1446,6 @@ code_modulename OCaml
   IntDiv Integer
 
 code_modulename Haskell
-  IntDiv Divides
+  IntDiv Integer
 
 end
