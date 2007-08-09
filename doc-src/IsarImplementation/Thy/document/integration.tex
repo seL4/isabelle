@@ -442,7 +442,7 @@ The theory database maintains a collection of theories, together
 \begin{mldecls}
   \indexml{theory}\verb|theory: string -> theory| \\
   \indexml{use-thy}\verb|use_thy: string -> unit| \\
-  \indexml{update-thy}\verb|update_thy: string -> unit| \\
+  \indexml{use-thys}\verb|use_thys: string list -> unit| \\
   \indexml{touch-thy}\verb|touch_thy: string -> unit| \\
   \indexml{remove-thy}\verb|remove_thy: string -> unit| \\[1ex]
   \indexml{ThyInfo.begin-theory}\verb|ThyInfo.begin_theory|\verb|: ... -> bool -> theory| \\
@@ -458,13 +458,14 @@ The theory database maintains a collection of theories, together
   associated with name \isa{A}.  Note that the result might be
   outdated.
 
-  \item \verb|use_thy|~\isa{A} loads theory \isa{A} if it is absent
-  or out-of-date.  It ensures that all parent theories are available
-  as well, but does not reload them if older versions are already
-  present.
+  \item \verb|use_thy|~\isa{A} ensures that theory \isa{A} is fully
+  up-to-date wrt.\ the external file store, reloading outdated
+  ancestors as required.
 
-  \item \verb|update_thy| is similar to \verb|use_thy|, but ensures that
-  theory \isa{A} and all ancestors are fully up-to-date.
+  \item \verb|use_thys| is similar to \verb|use_thy|, but handles
+  several theories simultaneously.  Thus it acts like processing the
+  import header of a theory, without performing the merge of the
+  result, though.
 
   \item \verb|touch_thy|~\isa{A} performs and \isa{outdate} action
   on theory \isa{A} and all descendants.
@@ -473,10 +474,7 @@ The theory database maintains a collection of theories, together
   descendants from the theory database.
 
   \item \verb|ThyInfo.begin_theory| is the basic operation behind a
-  \isa{{\isasymTHEORY}} header declaration.  The boolean argument
-  indicates the strictness of treating ancestors: for \verb|true| (as
-  in interactive mode) like \verb|update_thy|, and for \verb|false| (as
-  in batch mode) like \verb|use_thy|.  This is {\ML} functions is
+  \isa{{\isasymTHEORY}} header declaration.  This is {\ML} functions is
   normally not invoked directly.
 
   \item \verb|ThyInfo.end_theory| concludes the loading of a theory
