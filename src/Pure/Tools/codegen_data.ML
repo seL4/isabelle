@@ -680,7 +680,8 @@ fun del_datatype tyco thy =
   case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
    of SOME (vs, cos) => let
         val consts = CodegenConsts.consts_of_cos thy tyco vs cos;
-      in map_exec_purge (SOME consts) (map_dtyps (Symtab.delete tyco)) thy end
+      in map_exec_purge (if null consts then NONE else SOME consts)
+        (map_dtyps (Symtab.delete tyco)) thy end
     | NONE => thy;
 
 in
