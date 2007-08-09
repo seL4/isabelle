@@ -114,25 +114,6 @@ text {* size of a datatype value *}
 class size = type +
   fixes size :: "'a \<Rightarrow> nat"
 
-text {* now we are ready to re-invent primitive types
-  -- dependency on class size is hardwired into datatype package *}
-
-rep_datatype bool
-  distinct True_not_False False_not_True
-  induction bool_induct
-
-rep_datatype unit
-  induction unit_induct
-
-rep_datatype prod
-  inject Pair_eq
-  induction prod_induct
-
-rep_datatype sum
-  distinct Inl_not_Inr Inr_not_Inl
-  inject Inl_eq Inr_eq
-  induction sum_induct
-
 rep_datatype nat
   distinct  Suc_not_Zero Zero_not_Suc
   inject    Suc_Suc_eq
@@ -1101,12 +1082,24 @@ lemma [code func]:
   using Suc_le_eq less_Suc_eq_le by simp_all
 
 
+subsection{*Embedding of the Naturals into any
+  @{text semiring_1}: @{term of_nat}*}
+
+context semiring_1
+begin
+
+definition
+  of_nat_def: "of_nat = nat_rec \<^loc>0 (\<lambda>_. (op \<^loc>+) \<^loc>1)"
+
+end
+
 subsection {* Further Arithmetic Facts Concerning the Natural Numbers *}
 
 lemma subst_equals:
   assumes 1: "t = s" and 2: "u = t"
   shows "u = s"
   using 2 1 by (rule trans)
+
 
 use "arith_data.ML"
 declaration {* K arith_data_setup *}
@@ -1274,45 +1267,19 @@ declare diff_diff_left [simp]  add_diff_assoc [simp]  add_diff_assoc2[simp]
 text{*At present we prove no analogue of @{text not_less_Least} or @{text
 Least_Suc}, since there appears to be no need.*}
 
-ML
-{*
-val pred_nat_trancl_eq_le = thm "pred_nat_trancl_eq_le";
-val nat_diff_split = thm "nat_diff_split";
-val nat_diff_split_asm = thm "nat_diff_split_asm";
-val le_square = thm "le_square";
-val le_cube = thm "le_cube";
-val diff_less_mono = thm "diff_less_mono";
-val less_diff_conv = thm "less_diff_conv";
-val le_diff_conv = thm "le_diff_conv";
-val le_diff_conv2 = thm "le_diff_conv2";
-val diff_diff_cancel = thm "diff_diff_cancel";
-val le_add_diff = thm "le_add_diff";
-val diff_less = thm "diff_less";
-val diff_diff_eq = thm "diff_diff_eq";
-val eq_diff_iff = thm "eq_diff_iff";
-val less_diff_iff = thm "less_diff_iff";
-val le_diff_iff = thm "le_diff_iff";
-val diff_le_mono = thm "diff_le_mono";
-val diff_le_mono2 = thm "diff_le_mono2";
-val diff_less_mono2 = thm "diff_less_mono2";
-val diffs0_imp_equal = thm "diffs0_imp_equal";
-val one_less_mult = thm "one_less_mult";
-val n_less_m_mult_n = thm "n_less_m_mult_n";
-val n_less_n_mult_m = thm "n_less_n_mult_m";
-val diff_diff_right = thm "diff_diff_right";
-val diff_Suc_diff_eq1 = thm "diff_Suc_diff_eq1";
-val diff_Suc_diff_eq2 = thm "diff_Suc_diff_eq2";
-*}
-
 
 subsection{*Embedding of the Naturals into any
   @{text semiring_1}: @{term of_nat}*}
 
-consts of_nat :: "nat => 'a::semiring_1"
+context semiring_1
+begin
 
-primrec
-  of_nat_0:   "of_nat 0 = 0"
-  of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
+lemma of_nat_simps [simp, code]:
+  shows of_nat_0:   "of_nat 0 = \<^loc>0"
+    and of_nat_Suc: "of_nat (Suc m) = \<^loc>1 \<^loc>+ of_nat m"
+  unfolding of_nat_def by simp_all
+
+end
 
 lemma of_nat_id [simp]: "(of_nat n \<Colon> nat) = n"
   by (induct n) auto
@@ -1320,7 +1287,7 @@ lemma of_nat_id [simp]: "(of_nat n \<Colon> nat) = n"
 lemma of_nat_1 [simp]: "of_nat 1 = 1"
   by simp
 
-lemma of_nat_add [simp]: "of_nat (m+n) = of_nat m + of_nat n"
+lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
   by (induct m) (simp_all add: add_ac)
 
 lemma of_nat_mult: "of_nat (m*n) = of_nat m * of_nat n"
@@ -1370,8 +1337,10 @@ lemma of_nat_le_0_iff [simp]: "(of_nat m \<le> (0::'a::ordered_semidom)) = (m = 
 
 text{*Class for unital semirings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}
-axclass semiring_char_0 < semiring_1
-  of_nat_eq_iff [simp]: "(of_nat m = of_nat n) = (m = n)"
+
+class semiring_char_0 = semiring_1 +
+  assumes of_nat_eq_iff [simp]:
+    "(Nat.semiring_1.of_nat \<^loc>1 \<^loc>0 (op \<^loc>+) m = Nat.semiring_1.of_nat \<^loc>1 \<^loc>0 (op \<^loc>+)  n) = (m = n)"
 
 text{*Every @{text ordered_semidom} has characteristic zero.*}
 instance ordered_semidom < semiring_char_0
@@ -1390,6 +1359,9 @@ lemma of_nat_diff:
     "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::ring_1)"
   by (simp del: of_nat_add
     add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
+
+lemma abs_of_nat [simp]: "\<bar>of_nat n::'a::ordered_idom\<bar> = of_nat n"
+  by (rule of_nat_0_le_iff [THEN abs_of_nonneg])
 
 
 subsection {*The Set of Natural Numbers*}
@@ -1443,5 +1415,37 @@ subsection {* Size function *}
 
 lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
+
+subsection {* legacy bindings *}
+
+ML
+{*
+val pred_nat_trancl_eq_le = thm "pred_nat_trancl_eq_le";
+val nat_diff_split = thm "nat_diff_split";
+val nat_diff_split_asm = thm "nat_diff_split_asm";
+val le_square = thm "le_square";
+val le_cube = thm "le_cube";
+val diff_less_mono = thm "diff_less_mono";
+val less_diff_conv = thm "less_diff_conv";
+val le_diff_conv = thm "le_diff_conv";
+val le_diff_conv2 = thm "le_diff_conv2";
+val diff_diff_cancel = thm "diff_diff_cancel";
+val le_add_diff = thm "le_add_diff";
+val diff_less = thm "diff_less";
+val diff_diff_eq = thm "diff_diff_eq";
+val eq_diff_iff = thm "eq_diff_iff";
+val less_diff_iff = thm "less_diff_iff";
+val le_diff_iff = thm "le_diff_iff";
+val diff_le_mono = thm "diff_le_mono";
+val diff_le_mono2 = thm "diff_le_mono2";
+val diff_less_mono2 = thm "diff_less_mono2";
+val diffs0_imp_equal = thm "diffs0_imp_equal";
+val one_less_mult = thm "one_less_mult";
+val n_less_m_mult_n = thm "n_less_m_mult_n";
+val n_less_n_mult_m = thm "n_less_n_mult_m";
+val diff_diff_right = thm "diff_diff_right";
+val diff_Suc_diff_eq1 = thm "diff_Suc_diff_eq1";
+val diff_Suc_diff_eq2 = thm "diff_Suc_diff_eq2";
+*}
 
 end

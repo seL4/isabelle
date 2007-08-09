@@ -44,7 +44,7 @@ val rat_arith_setup =
     neqE =  neqE,
     simpset = simpset addsimps simps
                       addsimprocs simprocs}) #>
-  arith_inj_const ("Nat.of_nat", HOLogic.natT --> ratT) #>
-  arith_inj_const ("IntDef.of_int", HOLogic.intT --> ratT)
+  arith_inj_const (@{const_name of_nat}, HOLogic.natT --> ratT) #>
+  arith_inj_const (@{const_name of_int}, HOLogic.intT --> ratT)
 
 end;

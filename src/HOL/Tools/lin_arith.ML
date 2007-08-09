@@ -478,7 +478,7 @@ in
         val terms2      = map (subst_term [(split_term, zero_nat)]) rev_terms
         val t1'         = incr_boundvars 1 t1
         val t1_eq_int_n = Const ("op =", HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ t1' $
-                            (Const ("Nat.of_nat", HOLogic.natT --> HOLogic.intT) $ n)
+                            (Const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT) $ n)
         val t1_lt_zero  = Const (@{const_name HOL.less},
                             HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ t1 $ zero_int
         val not_false   = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
