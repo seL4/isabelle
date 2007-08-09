@@ -50,7 +50,7 @@ fun output_verbatim _ _ = split_lines #> map verbatim #> space_implode "\\isasep
 
 fun arguments x = O.args (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) "")) x;
 
-fun pretty_thy_file name = (ThyLoad.check_thy Path.current name false; Pretty.str name);
+fun pretty_thy_file name = (ThyLoad.check_thy Path.current name; Pretty.str name);
 
 
 (* theorems with names *)
