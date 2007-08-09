@@ -44,7 +44,7 @@ syntax
 translations
   "table_of" == "map_of"
   
-  (type)"'a \<rightharpoonup> 'b"       <= (type)"'a \<Rightarrow> 'b Option.option"
+  (type)"'a \<rightharpoonup> 'b"       <= (type)"'a \<Rightarrow> 'b Datatype.option"
   (type)"('a, 'b) table" <= (type)"'a \<rightharpoonup> 'b"
 
 (* ### To map *)

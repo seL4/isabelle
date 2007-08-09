@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports IntDef Divides Option
+imports IntDef Divides
 begin
 
 subsection {* Definition and basic properties *}
