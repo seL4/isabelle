@@ -325,6 +325,55 @@ fun load_thy time upd_time initiators dir name =
   end;
 
 
+(* scheduling loader tasks *)
+
+datatype task = Task of (unit -> unit) | Finished | Running;
+fun task_finished Finished = true | task_finished _ = false;
+
+local
+
+fun max_task (name, (Task body, m)) NONE = SOME (name, (body, m))
+  | max_task (name, (Task body, m)) (task' as SOME (_, (_, m'))) =
+      if m > m' then SOME (name, (body, m)) else task'
+  | max_task _ task' = task';
+
+fun next_task G =
+  let
+    val tasks = Graph.minimals G |> map (fn name =>
+      (name, (Graph.get_node G name, length (Graph.imm_succs G name))));
+    val finished = filter (task_finished o fst o snd) tasks;
+  in
+    if not (null finished) then next_task (Graph.del_nodes (map fst finished) G)
+    else if null tasks then (Multithreading.Terminate, G)
+    else
+      (case fold max_task tasks NONE of
+        NONE => (Multithreading.Wait, G)
+      | SOME (name, (body, _)) =>
+         (Multithreading.Task {body = body, cont = Graph.del_nodes [name], fail = K Graph.empty},
+          Graph.map_node name (K Running) G))
+  end;
+
+fun schedule_seq tasks =
+  Graph.topological_order tasks
+  |> List.app (fn name => (case Graph.get_node tasks name of Task body => body () | _ => ()));
+
+in
+
+fun schedule_tasks tasks n =
+  let val m = ! Multithreading.max_threads in
+    if m <= 1 orelse n <= 1 then schedule_seq tasks
+    else if Multithreading.self_critical () then
+     (warning (loader_msg "no multithreading within critical section" []);
+      schedule_seq tasks)
+    else
+      (case Multithreading.schedule (Int.min (m, n)) next_task tasks of
+        [] => ()
+      | exns => raise Exn.EXCEPTIONS (exns, ""))
+  end;
+
+end;
+
+
 (* require_thy -- checking database entries wrt. the file-system *)
 
 local
@@ -374,7 +423,7 @@ and require_thy time initiators dir str tasks =
     val _ = member (op =) initiators name andalso error (cycle_msg initiators);
   in
     (case try (Graph.get_node (fst tasks)) name of
-      SOME task => (Task.is_finished task, tasks)
+      SOME task => (task_finished task, tasks)
     | NONE =>
         let
           val (current, deps, parents) = check_deps dir' name
@@ -394,8 +443,8 @@ and require_thy time initiators dir str tasks =
 
           val upd_time = serial ();
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
-           (if all_current then Task.Finished
-            else Task.Task (fn () => load_thy time upd_time initiators dir' name));
+           (if all_current then Finished
+            else Task (fn () => load_thy time upd_time initiators dir' name));
           val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
         in (all_current, (tasks_graph'', tasks_len'')) end)
   end;
@@ -403,49 +452,13 @@ and require_thy time initiators dir str tasks =
 end;
 
 
-(* variations on use_thy -- scheduling required theories *)
+(* use_thy etc. *)
 
 local
 
-fun schedule_seq tasks =
-  Graph.topological_order tasks
-  |> List.app (fn name => (case Graph.get_node tasks name of Task.Task f => f () | _ => ()));
-
-fun max_task (task as (_, (Task.Task _, _: int))) NONE = SOME task
-  | max_task (task as (_, (Task.Task _, m))) (task' as SOME (_, (_, m'))) =
-      if m > m' then SOME task else task'
-  | max_task _ task' = task';
-
-fun next_task G =
-  let
-    val tasks = Graph.minimals G |> map (fn name =>
-      (name, (Graph.get_node G name, length (Graph.imm_succs G name))));
-    val finished = filter (Task.is_finished o fst o snd) tasks;
-  in
-    if not (null finished) then next_task (Graph.del_nodes (map fst finished) G)
-    else if null tasks then ((Task.Finished, I), G)
-    else
-      (case fold max_task tasks NONE of
-        NONE => ((Task.Running, I), G)
-      | SOME (name, (task, _)) =>
-          ((task, Graph.del_nodes [name]), Graph.map_node name (K Task.Running) G))
-  end;
-
-fun schedule_tasks (tasks, n) =
-  let val m = ! Multithreading.max_threads in
-    if m <= 1 orelse n <= 1 then schedule_seq tasks
-    else if Multithreading.self_critical () then
-     (warning (loader_msg "no multithreading within critical section" []);
-      schedule_seq tasks)
-    else
-      (case Multithreading.schedule (Int.min (m, n)) next_task tasks of
-        [] => ()
-      | exns => raise Exn.EXCEPTIONS (exns, ""))
-  end;
-
 fun gen_use_thy' req dir arg =
-  let val (_, tasks) = req [] dir arg (Graph.empty, 0)
-  in schedule_tasks tasks end;
+  let val (_, (tasks, n)) = req [] dir arg (Graph.empty, 0)
+  in schedule_tasks tasks n end;
 
 fun gen_use_thy req str =
   let val name = base_name str in
@@ -458,7 +471,6 @@ in
 
 val use_thys_dir = gen_use_thy' (require_thys false);
 val use_thys = use_thys_dir Path.current;
-
 val use_thy = gen_use_thy (require_thy false);
 val time_use_thy = gen_use_thy (require_thy true);
 
