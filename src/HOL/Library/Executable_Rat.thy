@@ -3,107 +3,95 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Executable implementation of rational numbers in HOL *}
+header {* Implementation of rational numbers as pairs of integers *}
 
 theory Executable_Rat
-imports "~~/src/HOL/Real/Rational" "~~/src/HOL/NumberTheory/IntPrimes"
+imports Abstract_Rat "~~/src/HOL/Real/Rational"
 begin
 
-text {*
-  Actually \emph{nothing} is proved about this implementation.
-*}
-
-subsection {* Representation and operations of executable rationals *}
-
-datatype erat = Rat bool nat nat
-
-axiomatization
-  div_zero :: erat
-
-fun
-  common :: "(nat * nat) \<Rightarrow> (nat * nat) \<Rightarrow> (nat * nat) * nat" where
-  "common (p1, q1) (p2, q2) = (
-     let
-       q' = q1 * q2 div gcd (q1, q2)
-     in ((p1 * (q' div q1), p2 * (q' div q2)), q'))"
+hide (open) const Rat
 
 definition
-  minus_sign :: "nat \<Rightarrow> nat \<Rightarrow> bool * nat" where
-  "minus_sign n m = (if n < m then (False, m - n) else (True, n - m))"
+  Rat :: "int \<times> int \<Rightarrow> rat"
+where
+  "Rat = INum"
 
-fun
-  add_sign :: "bool * nat \<Rightarrow> bool * nat \<Rightarrow> bool * nat" where
-  "add_sign (True, n) (True, m) = (True, n + m)"
-| "add_sign (False, n) (False, m) = (False, n + m)"
-| "add_sign (True, n) (False, m) = minus_sign n m"
-| "add_sign (False, n) (True, m) = minus_sign m n"
+code_datatype Rat
+
+lemma Rat_simp:
+  "Rat (k, l) = rat_of_int k / rat_of_int l"
+  unfolding Rat_def INum_def by simp
+
+lemma Rat_zero [simp]: "Rat 0\<^sub>N = 0"
+  by (simp add: Rat_simp)
+
+lemma Rat_lit [simp]: "Rat i\<^sub>N = rat_of_int i"
+  by (simp add: Rat_simp)
+
+lemma zero_rat_code [code]:
+  "0 = Rat 0\<^sub>N" by simp
+
+lemma zero_rat_code [code]:
+  "1 = Rat 1\<^sub>N" by simp
+
+lemma [code, code unfold]:
+  "number_of k = rat_of_int (number_of k)"
+  by (simp add: number_of_is_id rat_number_of_def)
 
 definition
-  erat_of_quotient :: "int \<Rightarrow> int \<Rightarrow> erat" where
-  "erat_of_quotient k1 k2 = (
-    let
-      l1 = nat (abs k1);
-      l2 = nat (abs k2);
-      m = gcd (l1, l2)
-    in Rat (k1 \<le> 0 \<longleftrightarrow> k2 \<le> 0) (l1 div m) (l2 div m))"
+  [code func del]: "Fract' (b\<Colon>bool) k l = Fract k l"
 
-instance erat :: zero
-  zero_rat_def: "0 \<equiv> Rat True 0 1" ..
+lemma [code]:
+  "Fract k l = Fract' (l \<noteq> 0) k l"
+  unfolding Fract'_def ..
 
-instance erat :: one
-  one_rat_def: "1 \<equiv> Rat True 1 1" ..
+lemma [code]:
+  "Fract' True k l = (if l \<noteq> 0 then Rat (k, l) else Fract 1 0)"
+  by (simp add: Fract'_def Rat_simp Fract_of_int_quotient [of k l])
 
-instance erat :: plus
-  add_rat_def: "r + s \<equiv> case r of Rat a1 p1 q1 \<Rightarrow> case s of Rat a2 p2 q2 \<Rightarrow>
-        let
-          ((r1, r2), den) = common (p1, q1) (p2, q2);
-          (sign, num) = add_sign (a1, r1) (a2, r2)
-        in Rat sign num den" ..
-
-instance erat :: minus
-  uminus_rat_def: "- r \<equiv> case r of Rat a p q \<Rightarrow>
-        if p = 0 then Rat True 0 1
-        else Rat (\<not> a) p q" ..
-  
-instance erat :: times
-  times_rat_def: "r * s \<equiv> case r of Rat a1 p1 q1 \<Rightarrow> case s of Rat a2 p2 q2 \<Rightarrow>
-        let
-          p = p1 * p2;
-          q = q1 * q2;
-          m = gcd (p, q)
-        in Rat (a1 = a2) (p div m) (q div m)" ..
-
-instance erat :: inverse
-  inverse_rat_def: "inverse r \<equiv> case r of Rat a p q \<Rightarrow>
-        if p = 0 then div_zero
-        else Rat a q p" ..
-
-instance erat :: ord
-  le_rat_def: "r1 \<le> r2 \<equiv> case r1 of Rat a1 p1 q1 \<Rightarrow> case r2 of Rat a2 p2 q2 \<Rightarrow>
-        (\<not> a1 \<and> a2) \<or>
-        (\<not> (a1 \<and> \<not> a2) \<and>
-          (let
-            ((r1, r2), dummy) = common (p1, q1) (p2, q2)
-          in if a1 then r1 \<le> r2 else r2 \<le> r1))" ..
-
-
-subsection {* Code generator setup *}
-
-subsubsection {* code lemmas *}
-
-lemma number_of_rat [code unfold]:
-  "(number_of k \<Colon> rat) = Fract k 1"
-  unfolding Fract_of_int_eq rat_number_of_def by simp
-
-lemma rat_minus [code func]:
-  "(a\<Colon>rat) - b = a + (- b)" unfolding diff_minus ..
-
-lemma rat_divide [code func]:
-  "(a\<Colon>rat) / b = a * inverse b" unfolding divide_inverse ..
+lemma [code]:
+  "of_rat (Rat (k, l)) = (if l \<noteq> 0 then of_int k / of_int l else 0)"
+  by (cases "l = 0")
+    (auto simp add: Rat_simp of_rat_rat [simplified Fract_of_int_quotient [of k l], symmetric])
 
 instance rat :: eq ..
 
-subsubsection {* names *}
+lemma rat_eq_code [code]: "Rat x = Rat y \<longleftrightarrow> normNum x = normNum y"
+  unfolding Rat_def INum_normNum_iff ..
+
+lemma rat_less_eq_code [code]: "Rat x \<le> Rat y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
+proof -
+  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> Rat (normNum x) \<le> Rat (normNum y)" 
+    by (simp add: Rat_def del: normNum)
+  also have "\<dots> = (Rat x \<le> Rat y)" by (simp add: Rat_def)
+  finally show ?thesis by simp
+qed
+
+lemma rat_less_code [code]: "Rat x < Rat y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
+proof -
+  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> Rat (normNum x) < Rat (normNum y)" 
+    by (simp add: Rat_def del: normNum)
+  also have "\<dots> = (Rat x < Rat y)" by (simp add: Rat_def)
+  finally show ?thesis by simp
+qed
+
+lemma rat_add_code [code]: "Rat x + Rat y = Rat (x +\<^sub>N y)"
+  unfolding Rat_def by simp
+
+lemma rat_mul_code [code]: "Rat x * Rat y = Rat (x *\<^sub>N y)"
+  unfolding Rat_def by simp
+
+lemma rat_neg_code [code]: "- Rat x = Rat (~\<^sub>N x)"
+  unfolding Rat_def by simp
+
+lemma rat_sub_code [code]: "Rat x - Rat y = Rat (x -\<^sub>N y)"
+  unfolding Rat_def by simp
+
+lemma rat_inv_code [code]: "inverse (Rat x) = Rat (Ninv x)"
+  unfolding Rat_def Ninv divide_rat_def by simp
+
+lemma rat_div_code [code]: "Rat x / Rat y = Rat (x \<div>\<^sub>N y)"
+  unfolding Rat_def by simp
 
 code_modulename SML
   Executable_Rat Rational
@@ -113,38 +101,5 @@ code_modulename OCaml
 
 code_modulename Haskell
   Executable_Rat Rational
-
-subsubsection {* rat as abstype *}
-
-code_const div_zero
-  (SML "raise/ Fail/ \"Division by zero\"")
-  (OCaml "failwith \"Division by zero\"")
-  (Haskell "error/ \"Division by zero\"")
-
-code_abstype rat erat where
-  Fract \<equiv> erat_of_quotient
-  "0 \<Colon> rat" \<equiv> "0 \<Colon> erat"
-  "1 \<Colon> rat" \<equiv> "1 \<Colon> erat"
-  "op + \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" \<equiv> "op + \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat"
-  "uminus \<Colon> rat \<Rightarrow> rat" \<equiv> "uminus \<Colon> erat \<Rightarrow> erat"
-  "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" \<equiv> "op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat"
-  "inverse \<Colon> rat \<Rightarrow> rat" \<equiv> "inverse \<Colon> erat \<Rightarrow> erat"
-  "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv>  "op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool"
-  "op = \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" \<equiv> "op = \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool"
-
-types_code
-  rat ("{*erat*}")
-
-consts_code
-  div_zero ("(raise/ (Fail/ \"Division by zero\"))")
-  Fract ("({*erat_of_quotient*} (_) (_))")
-  "0 \<Colon> rat" ("({*Rat True 0 1*})")
-  "1 \<Colon> rat" ("({*Rat True 1 1*})")
-  "plus \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" ("({*op + \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat*} (_) (_))")
-  "uminus \<Colon> rat \<Rightarrow> rat" ("({*uminus \<Colon> erat \<Rightarrow> erat*} (_))")
-  "op * \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat" ("({*op * \<Colon> erat \<Rightarrow> erat \<Rightarrow> erat*} (_) (_))")
-  "inverse \<Colon> rat \<Rightarrow> rat" ("({*inverse \<Colon> erat \<Rightarrow> erat*} (_))")
-  "op \<le> \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" ("({*op \<le> \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool*} (_) (_))")
-  "op = \<Colon> rat \<Rightarrow> rat \<Rightarrow> bool" ("({*op = \<Colon> erat \<Rightarrow> erat \<Rightarrow> bool*} (_) (_))")
 
 end
