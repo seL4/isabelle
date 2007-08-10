@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Multithreading in Poly/ML (version 5.1).
+Multithreading in Poly/ML 5.1 or later (cf. polyml/basis/Thread.sml).
 *)
 
 open Thread;
@@ -10,8 +10,8 @@ open Thread;
 signature MULTITHREADING =
 sig
   include MULTITHREADING
-  val uninterruptible: ('a -> 'b) -> 'a -> 'b
-  val interruptible: ('a -> 'b) -> 'a -> 'b
+  val uninterruptible: (Thread.threadAttribute list -> 'a -> 'b) -> 'a -> 'b
+  val interruptible: (Thread.threadAttribute list -> 'a -> 'b) -> 'a -> 'b
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -44,17 +44,16 @@ fun show' "" = "" | show' name = " [" ^ name ^ "]";
 
 (* thread attributes *)
 
-local
-
 fun with_attributes new_atts f x =
   let
     val orig_atts = Thread.getAttributes ();
     fun restore () = Thread.setAttributes orig_atts;
   in
     Exn.release
-     (let
+    (*RACE for fully asynchronous interrupts!*)
+    (let
         val _ = Thread.setAttributes new_atts;
-        val result = Exn.capture f x;
+        val result = Exn.capture (f orig_atts) x;
         val _ = restore ();
       in result end
       handle Interrupt => (restore (); Exn.Exn Interrupt))
@@ -62,12 +61,8 @@ fun with_attributes new_atts f x =
 
 fun with_interrupt_state state = with_attributes [Thread.InterruptState state];
 
-in
-
 fun uninterruptible f x = with_interrupt_state Thread.InterruptDefer f x;
 fun interruptible f x = with_interrupt_state Thread.InterruptAsynchOnce f x;
-
-end;
 
 
 (* critical section -- may be nested within the same thread *)
@@ -88,7 +83,7 @@ fun self_critical () =
 fun NAMED_CRITICAL name e =
   if self_critical () then e ()
   else
-    uninterruptible (fn () =>
+    uninterruptible (fn atts => fn () =>
       let
         val name' = ! critical_name;
         val _ =
@@ -104,7 +99,7 @@ fun NAMED_CRITICAL name e =
             in () end;
         val _ = critical_thread := SOME (Thread.self ());
         val _ = critical_name := name;
-        val result = Exn.capture e ();
+        val result = Exn.capture (with_attributes atts (fn _ => e)) ();
         val _ = critical_name := "";
         val _ = critical_thread := NONE;
         val _ = Mutex.unlock critical_lock;
@@ -126,7 +121,7 @@ val protected_name = ref "";
 
 in
 
-fun schedule n next_task = uninterruptible (fn tasks =>
+fun schedule n next_task = uninterruptible (fn _ => fn tasks =>
   let
     (*protected execution*)
     val lock = Mutex.mutex ();
@@ -152,7 +147,7 @@ fun schedule n next_task = uninterruptible (fn tasks =>
     fun wakeup_all () = ConditionVar.broadcast wakeup;
     fun wait () = ConditionVar.wait (wakeup, lock);
 
-    (*the queue of tasks*)
+    (*queue of tasks*)
     val queue = ref tasks;
     val active = ref 0;
     fun trace_active () = tracing 1 (fn () => "SCHEDULE: " ^ Int.toString (! active) ^ " active");
@@ -183,7 +178,7 @@ fun schedule n next_task = uninterruptible (fn tasks =>
     fun worker () =
       (case PROTECTED "dequeue" dequeue of
         Task {body, cont, fail} =>
-          (case Exn.capture (interruptible body) () of
+          (case Exn.capture (interruptible (fn _ => body)) () of
             Exn.Result () =>
               (PROTECTED "cont" (fn () => (change queue cont; wakeup_all ())); worker ())
           | Exn.Exn exn =>
