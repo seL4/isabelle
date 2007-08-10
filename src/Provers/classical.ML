@@ -1022,7 +1022,7 @@ fun rule_tac [] ctxt cs facts = some_rule_tac ctxt cs facts
 
 fun default_tac rules ctxt cs facts =
   HEADGOAL (rule_tac rules ctxt cs facts) ORELSE
-  ClassPackage.default_intro_classes_tac facts;
+  Class.default_intro_classes_tac facts;
 
 in
   val rule = METHOD_CLASET' o rule_tac;

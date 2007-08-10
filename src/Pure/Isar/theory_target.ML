@@ -83,12 +83,12 @@ fun consts is_loc some_class depends decls lthy =
       let
         val U = map #2 xs ---> T;
         val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
-        val (mx1, mx2) = ClassPackage.fork_mixfix is_loc some_class mx;
+        val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
         val thy' = Sign.add_consts_authentic [(c, U, mx1)] thy;
       in (((c, mx2), t), thy') end;
 
     fun const_class (SOME class) ((c, _), mx) (_, t) =
-          ClassPackage.add_const_in_class class ((c, t), mx)
+          Class.add_const_in_class class ((c, t), mx)
       | const_class NONE _ _ = I;
 
     val (abbrs, lthy') = lthy
@@ -136,7 +136,7 @@ fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
 
     val ((lhs as Const (full_c, _), rhs), lthy1) = lthy
       |> LocalTheory.theory_result (Sign.add_abbrev (#1 prmode) (c, u'));
-    val (mx1, mx2) = ClassPackage.fork_mixfix is_loc some_class mx;
+    val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
   in
     lthy1
     |> LocalTheory.theory (Sign.add_notation prmode [(lhs, mx1)])
@@ -341,7 +341,7 @@ fun begin loc ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val is_loc = loc <> "";
-    val some_class = ClassPackage.class_of_locale thy loc;
+    val some_class = Class.class_of_locale thy loc;
   in
     ctxt
     |> Data.put (if is_loc then SOME loc else NONE)

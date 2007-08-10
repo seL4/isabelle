@@ -502,7 +502,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       in
         foldl (fn ((s, tvs), thy) => AxClass.prove_arity
             (s, replicate (length tvs) (cp_class :: classes), [cp_class])
-            (ClassPackage.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
+            (Class.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
           thy (full_new_type_names' ~~ tyvars)
       end;
 
@@ -510,7 +510,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       fold (fn name1 => fold (composition_instance name1) atoms) atoms |>
       curry (Library.foldr (fn ((i, (tyname, args, _)), thy) =>
         AxClass.prove_arity (tyname, replicate (length args) classes, classes)
-        (ClassPackage.intro_classes_tac [] THEN REPEAT (EVERY
+        (Class.intro_classes_tac [] THEN REPEAT (EVERY
            [resolve_tac perm_empty_thms 1,
             resolve_tac perm_append_thms 1,
             resolve_tac perm_eq_thms 1, assume_tac 1])) thy))
@@ -681,7 +681,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           AxClass.prove_arity
             (Sign.intern_type thy name,
               replicate (length tvs) (classes @ cp_classes), [class])
-            (EVERY [ClassPackage.intro_classes_tac [],
+            (EVERY [Class.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
               asm_full_simp_tac (simpset_of thy addsimps [Rep_inverse]) 1,
               asm_full_simp_tac (simpset_of thy addsimps
@@ -706,7 +706,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           AxClass.prove_arity
             (Sign.intern_type thy name,
               replicate (length tvs) (classes @ cp_classes), [class])
-            (EVERY [ClassPackage.intro_classes_tac [],
+            (EVERY [Class.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
               asm_full_simp_tac (simpset_of thy addsimps
                 ((Rep RS perm_closed1 RS Abs_inverse) ::
@@ -1142,7 +1142,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         in fold (fn T => AxClass.prove_arity
             (fst (dest_Type T),
               replicate (length sorts) [class], [class])
-            (ClassPackage.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
+            (Class.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
         end) (atoms ~~ finite_supp_thms);
 
     (**** strong induction theorem ****)

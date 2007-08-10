@@ -566,7 +566,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       in
         thy
         |> AxClass.prove_arity (tyco, replicate n HOLogic.typeS, [HOLogic.class_size])
-             (ClassPackage.intro_classes_tac [])
+             (Class.intro_classes_tac [])
       end
 
     val thy2' = thy

@@ -409,14 +409,14 @@ fun create_nom_typedecls ak_names thy =
            val cls_name = Sign.full_name thy' ("pt_"^ak_name);
            val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name'^"_inst")); 
 
-           val proof1 = EVERY [ClassPackage.intro_classes_tac [],
+           val proof1 = EVERY [Class.intro_classes_tac [],
                                  rtac ((at_inst RS at_pt_inst) RS pt1) 1,
                                  rtac ((at_inst RS at_pt_inst) RS pt2) 1,
                                  rtac ((at_inst RS at_pt_inst) RS pt3) 1,
                                  atac 1];
            val simp_s = HOL_basic_ss addsimps 
                         PureThy.get_thmss thy' [Name (ak_name^"_prm_"^ak_name'^"_def")];  
-           val proof2 = EVERY [ClassPackage.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
+           val proof2 = EVERY [Class.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
 
          in
            thy'
@@ -441,7 +441,7 @@ fun create_nom_typedecls ak_names thy =
           val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
 
           fun pt_proof thm = 
-              EVERY [ClassPackage.intro_classes_tac [],
+              EVERY [Class.intro_classes_tac [],
                      rtac (thm RS pt1) 1, rtac (thm RS pt2) 1, rtac (thm RS pt3) 1, atac 1];
 
           val pt_thm_fun   = at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst));
@@ -488,12 +488,12 @@ fun create_nom_typedecls ak_names thy =
                (if ak_name = ak_name'
                 then
                   let val at_thm = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
-                  in  EVERY [ClassPackage.intro_classes_tac [],
+                  in  EVERY [Class.intro_classes_tac [],
                              rtac ((at_thm RS fs_at_inst) RS fs1) 1] end
                 else
                   let val dj_inst = PureThy.get_thm thy' (Name ("dj_"^ak_name'^"_"^ak_name));
                       val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, finite_emptyI];
-                  in EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1] end)
+                  in EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1] end)
         in
          AxClass.prove_arity (qu_name,[],[qu_class]) proof thy'
         end) ak_names thy) ak_names thy18;
@@ -510,7 +510,7 @@ fun create_nom_typedecls ak_names thy =
         let
           val cls_name = Sign.full_name thy ("fs_"^ak_name);
           val fs_inst  = PureThy.get_thm thy (Name ("fs_"^ak_name^"_inst"));
-          fun fs_proof thm = EVERY [ClassPackage.intro_classes_tac [], rtac (thm RS fs1) 1];
+          fun fs_proof thm = EVERY [Class.intro_classes_tac [], rtac (thm RS fs1) 1];
 
           val fs_thm_unit  = fs_unit_inst;
           val fs_thm_prod  = fs_inst RS (fs_inst RS fs_prod_inst);
@@ -557,7 +557,7 @@ fun create_nom_typedecls ak_names thy =
                     val pt_inst  = PureThy.get_thm thy'' (Name ("pt_"^ak_name''^"_inst"));
                     val at_inst  = PureThy.get_thm thy'' (Name ("at_"^ak_name''^"_inst"));
                   in
-		   EVERY [ClassPackage.intro_classes_tac [],
+		   EVERY [Class.intro_classes_tac [],
                           rtac (at_inst RS (pt_inst RS pt_perm_compose)) 1]
                   end)
 		else
@@ -569,7 +569,7 @@ fun create_nom_typedecls ak_names thy =
                                            [Name (ak_name' ^"_prm_"^ak_name^"_def"),
                                             Name (ak_name''^"_prm_"^ak_name^"_def")]));
                   in
-                    EVERY [ClassPackage.intro_classes_tac [], simp_tac simp_s 1]
+                    EVERY [Class.intro_classes_tac [], simp_tac simp_s 1]
                   end))
               in
                 AxClass.prove_arity (name,[],[cls_name]) proof thy''
@@ -592,7 +592,7 @@ fun create_nom_typedecls ak_names thy =
             val pt_inst  = PureThy.get_thm thy' (Name ("pt_"^ak_name^"_inst"));
             val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
 
-            fun cp_proof thm  = EVERY [ClassPackage.intro_classes_tac [],rtac (thm RS cp1) 1];
+            fun cp_proof thm  = EVERY [Class.intro_classes_tac [],rtac (thm RS cp1) 1];
 	  
             val cp_thm_unit = cp_unit_inst;
             val cp_thm_prod = cp_inst RS (cp_inst RS cp_prod_inst);
@@ -623,7 +623,7 @@ fun create_nom_typedecls ak_names thy =
 	     let
 	       val qu_class = Sign.full_name thy ("pt_"^ak_name);
 	       val simp_s = HOL_basic_ss addsimps [defn];
-               val proof = EVERY [ClassPackage.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
+               val proof = EVERY [Class.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
              in 
 	       AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
              end) ak_names;
@@ -634,7 +634,7 @@ fun create_nom_typedecls ak_names thy =
 	       val qu_class = Sign.full_name thy ("fs_"^ak_name);
 	       val supp_def = @{thm "Nominal.supp_def"};
                val simp_s = HOL_ss addsimps [supp_def,Collect_const,finite_emptyI,defn];
-               val proof = EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1];
+               val proof = EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1];
              in 
 	       AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
              end) ak_names;
@@ -645,7 +645,7 @@ fun create_nom_typedecls ak_names thy =
 	       val qu_class = Sign.full_name thy ("cp_"^ak_name^"_"^ak_name');
 	       val supp_def = @{thm "Nominal.supp_def"};
                val simp_s = HOL_ss addsimps [defn];
-               val proof = EVERY [ClassPackage.intro_classes_tac [], asm_simp_tac simp_s 1];
+               val proof = EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1];
              in
 	       AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
              end) ak_names)) ak_names;

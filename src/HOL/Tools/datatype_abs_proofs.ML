@@ -428,7 +428,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
       in
         thy
         |> AxClass.prove_arity (tyco, replicate n HOLogic.typeS, [HOLogic.class_size])
-             (ClassPackage.intro_classes_tac [])
+             (Class.intro_classes_tac [])
       end
 
     val (size_def_thms, thy') =

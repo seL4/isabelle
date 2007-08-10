@@ -1,11 +1,11 @@
-(*  Title:      Pure/Tools/class_package.ML
+(*  Title:      Pure/Isar/class.ML
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Type classes derived from primitive axclasses and locales.
 *)
 
-signature CLASS_PACKAGE =
+signature CLASS =
 sig
   val fork_mixfix: bool -> string option -> mixfix -> mixfix * mixfix
 
@@ -38,7 +38,7 @@ sig
   val default_intro_classes_tac: thm list -> tactic
 end;
 
-structure ClassPackage : CLASS_PACKAGE =
+structure Class : CLASS =
 struct
 
 (** auxiliary **)
@@ -62,9 +62,9 @@ fun axclass_cmd (class, raw_superclasses) raw_specs thy =
   in AxClass.define_class (class, superclasses) [] (name_atts ~~ axiomss) thy end;
 
 
-(** AxClasses with implicit parameter handling **)
+(** axclasses with implicit parameter handling **)
 
-(* AxClass instances *)
+(* axclass instances *)
 
 local
 
@@ -201,7 +201,7 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
     fun after_qed cs defs thy =
       thy
       |> fold Sign.add_const_constraint_i (map (apsnd SOME) cs)
-      |> fold (CodegenData.add_func false o snd) defs;
+      |> fold (Code.add_func false o snd) defs;
   in
     theory
     |> fold_map get_remove_contraint (map fst cs |> distinct (op =))
@@ -562,7 +562,7 @@ end; (*local*)
 
 local
 
-fun singular_instance_subclass (class1, class2) thy  =
+fun instance_subclass (class1, class2) thy  =
   let
     val interp = interpretation_in_rule thy (class1, class2);
     val ax = #axioms (AxClass.get_definition thy class1);
@@ -584,7 +584,7 @@ fun instance_subsort (class, sort) thy =
     val classes = filter_out (fn class' => Sign.subsort thy ([class], [class']))
       (rev super_sort);
   in
-    thy |> fold (curry singular_instance_subclass class) classes
+    thy |> fold (curry instance_subclass class) classes
   end;
 
 fun instance_sort' do_proof (class, sort) theory =
@@ -678,9 +678,5 @@ fun add_const_in_class class ((c, rhs), syn) thy =
     |-> (fn [def] => interpret def)
     |> Sign.restore_naming thy
   end;
-
-
-(** experimental interpretation_in **)
-
 
 end;
