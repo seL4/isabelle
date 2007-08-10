@@ -590,10 +590,10 @@ The \isa{HOL} \isa{Main} theory already provides a code
     \item[\isa{Pretty{\isacharunderscore}Char{\isacharunderscore}chr}] like \isa{Pretty{\isacharunderscore}Char},
        but also offers treatment of character codes; includes
        \isa{Pretty{\isacharunderscore}Int}.
-    \item[\isa{Executable{\isacharunderscore}Set}] allows to generate code
+    \item[\isa{Executable{\isacharunderscore}Set}] \label{exec_set} allows to generate code
        for finite sets using lists.
-    \item[\isa{Executable{\isacharunderscore}Rat}] \label{exec_rat} implements rational
-       numbers as triples \isa{{\isacharparenleft}sign{\isacharcomma}\ enumerator{\isacharcomma}\ denominator{\isacharparenright}}.
+    \item[\isa{Executable{\isacharunderscore}Rat}] implements rational
+       numbers.
     \item[\isa{Executable{\isacharunderscore}Real}] implements a subset of real numbers,
        namly those representable by rational numbers.
     \item[\isa{Efficient{\isacharunderscore}Nat}] \label{eff_nat} implements natural numbers by integers,
@@ -1535,7 +1535,7 @@ A dummy example:%
 
   Another axiomatic extension is code generation
   for abstracted types.  For this, the  
-  \isa{Executable{\isacharunderscore}Rat} theory (see \secref{exec_rat})
+  \isa{Executable{\isacharunderscore}Set} theory (see \secref{exec_set})
   forms a good example.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1552,12 +1552,12 @@ Since the code generator framework not only aims to provide
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Constants with type discipline: codegen\_consts.ML%
+\isamarkupsubsection{Basics: \isa{CodeUnit}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-This Pure module manages identification of (probably overloaded)
+This module provides identification of (probably overloaded)
   constants by unique identifiers.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1570,20 +1570,20 @@ This Pure module manages identification of (probably overloaded)
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{CodegenConsts.const}\verb|type CodegenConsts.const = string * string option| \\
-  \indexml{CodegenConsts.const-of-cexpr}\verb|CodegenConsts.const_of_cexpr: theory -> string * typ -> CodegenConsts.const| \\
+  \indexmltype{CodeUnit.const}\verb|type CodeUnit.const = string * string option| \\
+  \indexml{CodeUnit.const-of-cexpr}\verb|CodeUnit.const_of_cexpr: theory -> string * typ -> CodeUnit.const| \\
  \end{mldecls}
 
   \begin{description}
 
-  \item \verb|CodegenConsts.const| is the identifier type:
+  \item \verb|CodeUnit.const| is the identifier type:
      the product of a \emph{string} with a list of \emph{typs}.
      The \emph{string} is the constant name as represented inside Isabelle;
      for overloaded constants, the attached \emph{string option}
      is either \isa{SOME} type constructor denoting an instance,
      or \isa{NONE} for the polymorphic constant.
 
-  \item \verb|CodegenConsts.const_of_cexpr|~\isa{thy}~\isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}}
+  \item \verb|CodeUnit.const_of_cexpr|~\isa{thy}~\isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}}
      maps a constant expression \isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}}
      to its canonical identifier.
 
@@ -1598,7 +1598,7 @@ This Pure module manages identification of (probably overloaded)
 %
 \endisadelimmlref
 %
-\isamarkupsubsection{Executable theory content: codegen\_data.ML%
+\isamarkupsubsection{Executable theory content: \isa{Code}%
 }
 \isamarkuptrue%
 %
@@ -1607,37 +1607,6 @@ This Pure module implements the core notions of
   executable content of a theory.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isamarkupsubsubsection{Suspended theorems%
-}
-\isamarkuptrue%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isatagmlref
-%
-\begin{isamarkuptext}%
-\begin{mldecls}
-  \indexml{CodegenData.lazy-thms}\verb|CodegenData.lazy_thms: (unit -> thm list) -> thm list Susp.T|
-  \end{mldecls}
-
-  \begin{description}
-
-  \item \verb|CodegenData.lazy_thms|~\isa{f} turns an abstract
-     theorem computation \isa{f} into a suspension of theorems.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagmlref
-{\isafoldmlref}%
-%
-\isadelimmlref
-%
-\endisadelimmlref
 %
 \isamarkupsubsubsection{Managing executable content%
 }
@@ -1651,69 +1620,69 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{CodegenData.add-func}\verb|CodegenData.add_func: bool -> thm -> theory -> theory| \\
-  \indexml{CodegenData.del-func}\verb|CodegenData.del_func: thm -> theory -> theory| \\
-  \indexml{CodegenData.add-funcl}\verb|CodegenData.add_funcl: CodegenConsts.const * thm list Susp.T -> theory -> theory| \\
-  \indexml{CodegenData.add-inline}\verb|CodegenData.add_inline: thm -> theory -> theory| \\
-  \indexml{CodegenData.del-inline}\verb|CodegenData.del_inline: thm -> theory -> theory| \\
-  \indexml{CodegenData.add-inline-proc}\verb|CodegenData.add_inline_proc: string * (theory -> cterm list -> thm list)|\isasep\isanewline%
+  \indexml{Code.add-func}\verb|Code.add_func: bool -> thm -> theory -> theory| \\
+  \indexml{Code.del-func}\verb|Code.del_func: thm -> theory -> theory| \\
+  \indexml{Code.add-funcl}\verb|Code.add_funcl: CodeUnit.const * thm list Susp.T -> theory -> theory| \\
+  \indexml{Code.add-inline}\verb|Code.add_inline: thm -> theory -> theory| \\
+  \indexml{Code.del-inline}\verb|Code.del_inline: thm -> theory -> theory| \\
+  \indexml{Code.add-inline-proc}\verb|Code.add_inline_proc: string * (theory -> cterm list -> thm list)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
-  \indexml{CodegenData.del-inline-proc}\verb|CodegenData.del_inline_proc: string -> theory -> theory| \\
-  \indexml{CodegenData.add-preproc}\verb|CodegenData.add_preproc: string * (theory -> thm list -> thm list)|\isasep\isanewline%
+  \indexml{Code.del-inline-proc}\verb|Code.del_inline_proc: string -> theory -> theory| \\
+  \indexml{Code.add-preproc}\verb|Code.add_preproc: string * (theory -> thm list -> thm list)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
-  \indexml{CodegenData.del-preproc}\verb|CodegenData.del_preproc: string -> theory -> theory| \\
-  \indexml{CodegenData.add-datatype}\verb|CodegenData.add_datatype: string * ((string * sort) list * (string * typ list) list)|\isasep\isanewline%
+  \indexml{Code.del-preproc}\verb|Code.del_preproc: string -> theory -> theory| \\
+  \indexml{Code.add-datatype}\verb|Code.add_datatype: string * ((string * sort) list * (string * typ list) list)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
-  \indexml{CodegenData.get-datatype}\verb|CodegenData.get_datatype: theory -> string|\isasep\isanewline%
+  \indexml{Code.get-datatype}\verb|Code.get_datatype: theory -> string|\isasep\isanewline%
 \verb|    -> (string * sort) list * (string * typ list) list| \\
-  \indexml{CodegenData.get-datatype-of-constr}\verb|CodegenData.get_datatype_of_constr: theory -> CodegenConsts.const -> string option|
+  \indexml{Code.get-datatype-of-constr}\verb|Code.get_datatype_of_constr: theory -> CodeUnit.const -> string option|
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|CodegenData.add_func|~\isa{thm}~\isa{thy} adds function
+  \item \verb|Code.add_func|~\isa{thm}~\isa{thy} adds function
      theorem \isa{thm} to executable content.
 
-  \item \verb|CodegenData.del_func|~\isa{thm}~\isa{thy} removes function
+  \item \verb|Code.del_func|~\isa{thm}~\isa{thy} removes function
      theorem \isa{thm} from executable content, if present.
 
-  \item \verb|CodegenData.add_funcl|~\isa{{\isacharparenleft}const{\isacharcomma}\ lthms{\isacharparenright}}~\isa{thy} adds
+  \item \verb|Code.add_funcl|~\isa{{\isacharparenleft}const{\isacharcomma}\ lthms{\isacharparenright}}~\isa{thy} adds
      suspended defining equations \isa{lthms} for constant
      \isa{const} to executable content.
 
-  \item \verb|CodegenData.add_inline|~\isa{thm}~\isa{thy} adds
+  \item \verb|Code.add_inline|~\isa{thm}~\isa{thy} adds
      inlining theorem \isa{thm} to executable content.
 
-  \item \verb|CodegenData.del_inline|~\isa{thm}~\isa{thy} remove
+  \item \verb|Code.del_inline|~\isa{thm}~\isa{thy} remove
      inlining theorem \isa{thm} from executable content, if present.
 
-  \item \verb|CodegenData.add_inline_proc|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
+  \item \verb|Code.add_inline_proc|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
      inline procedure \isa{f} (named \isa{name}) to executable content;
      \isa{f} is a computation of rewrite rules dependent on
      the current theory context and the list of all arguments
      and right hand sides of the defining equations belonging
      to a certain function definition.
 
-  \item \verb|CodegenData.del_inline_proc|~\isa{name}~\isa{thy} removes
+  \item \verb|Code.del_inline_proc|~\isa{name}~\isa{thy} removes
      inline procedure named \isa{name} from executable content.
 
-  \item \verb|CodegenData.add_preproc|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
+  \item \verb|Code.add_preproc|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
      generic preprocessor \isa{f} (named \isa{name}) to executable content;
      \isa{f} is a transformation of the defining equations belonging
      to a certain function definition, depending on the
      current theory context.
 
-  \item \verb|CodegenData.del_preproc|~\isa{name}~\isa{thy} removes
+  \item \verb|Code.del_preproc|~\isa{name}~\isa{thy} removes
      generic preprcoessor named \isa{name} from executable content.
 
-  \item \verb|CodegenData.add_datatype|~\isa{{\isacharparenleft}name{\isacharcomma}\ spec{\isacharparenright}}~\isa{thy} adds
+  \item \verb|Code.add_datatype|~\isa{{\isacharparenleft}name{\isacharcomma}\ spec{\isacharparenright}}~\isa{thy} adds
      a datatype to executable content, with type constructor
      \isa{name} and specification \isa{spec}; \isa{spec} is
      a pair consisting of a list of type variable with sort
      constraints and a list of constructors with name
      and types of arguments.
 
-  \item \verb|CodegenData.get_datatype_of_constr|~\isa{thy}~\isa{const}
+  \item \verb|Code.get_datatype_of_constr|~\isa{thy}~\isa{const}
      returns type constructor corresponding to
      constructor \isa{const}; returns \isa{NONE}
      if \isa{const} is no constructor.
@@ -1741,29 +1710,29 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{CodegenConsts.const-ord}\verb|CodegenConsts.const_ord: CodegenConsts.const * CodegenConsts.const -> order| \\
-  \indexml{CodegenConsts.eq-const}\verb|CodegenConsts.eq_const: CodegenConsts.const * CodegenConsts.const -> bool| \\
-  \indexml{CodegenConsts.read-const}\verb|CodegenConsts.read_const: theory -> string -> CodegenConsts.const| \\
-  \indexmlstructure{CodegenConsts.Consttab}\verb|structure CodegenConsts.Consttab| \\
-  \indexml{CodegenFunc.head-func}\verb|CodegenFunc.head_func: thm -> CodegenConsts.const * typ| \\
-  \indexml{CodegenFunc.rewrite-func}\verb|CodegenFunc.rewrite_func: thm list -> thm -> thm| \\
+  \indexml{CodeUnit.const-ord}\verb|CodeUnit.const_ord: CodeUnit.const * CodeUnit.const -> order| \\
+  \indexml{CodeUnit.eq-const}\verb|CodeUnit.eq_const: CodeUnit.const * CodeUnit.const -> bool| \\
+  \indexml{CodeUnit.read-const}\verb|CodeUnit.read_const: theory -> string -> CodeUnit.const| \\
+  \indexmlstructure{CodeUnit.Consttab}\verb|structure CodeUnit.Consttab| \\
+  \indexml{CodeUnit.head-func}\verb|CodeUnit.head_func: thm -> CodeUnit.const * typ| \\
+  \indexml{CodeUnit.rewrite-func}\verb|CodeUnit.rewrite_func: thm list -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|CodegenConsts.const_ord|,~\verb|CodegenConsts.eq_const|
+  \item \verb|CodeUnit.const_ord|,~\verb|CodeUnit.eq_const|
      provide order and equality on constant identifiers.
 
-  \item \verb|CodegenConsts.Consttab|
+  \item \verb|CodeUnit.Consttab|
      provides table structures with constant identifiers as keys.
 
-  \item \verb|CodegenConsts.read_const|~\isa{thy}~\isa{s}
+  \item \verb|CodeUnit.read_const|~\isa{thy}~\isa{s}
      reads a constant as a concrete term expression \isa{s}.
 
-  \item \verb|CodegenFunc.head_func|~\isa{thm}
+  \item \verb|CodeUnit.head_func|~\isa{thm}
      extracts the constant and its type from a defining equation \isa{thm}.
 
-  \item \verb|CodegenFunc.rewrite_func|~\isa{rews}~\isa{thm}
+  \item \verb|CodeUnit.rewrite_func|~\isa{rews}~\isa{thm}
      rewrites a defining equation \isa{thm} with a set of rewrite
      rules \isa{rews}; only arguments and right hand side are rewritten,
      not the head of the defining equation.
@@ -1819,7 +1788,7 @@ Due to incrementality of code generation, changes in the
   \isa{type\ T} \\
   \isa{val\ empty{\isacharcolon}\ T} \\
   \isa{val\ merge{\isacharcolon}\ Pretty{\isachardot}pp\ {\isasymrightarrow}\ T\ {\isacharasterisk}\ T\ {\isasymrightarrow}\ T} \\
-  \isa{val\ purge{\isacharcolon}\ theory\ option\ {\isasymrightarrow}\ CodegenConsts{\isachardot}const\ list\ option\ {\isasymrightarrow}\ T\ {\isasymrightarrow}\ T}
+  \isa{val\ purge{\isacharcolon}\ theory\ option\ {\isasymrightarrow}\ CodeUnit{\isachardot}const\ list\ option\ {\isasymrightarrow}\ T\ {\isasymrightarrow}\ T}
   \end{tabular}
 
   \begin{description}
@@ -1875,7 +1844,7 @@ Out of the executable content of a theory, a normalized
   until its underlying executable content changes.
 
   Defining equations are retrieved by instantiation
-  of the functor \verb|CodegenFuncgrRetrieval|
+  of the functor \verb|CodeFuncgrRetrieval|
   which takes two arguments:
 
   \medskip
@@ -1892,12 +1861,12 @@ Out of the executable content of a theory, a normalized
 
   \end{description}
 
-  An instance of \verb|CodegenFuncgrRetrieval| in essence
+  An instance of \verb|CodeFuncgrRetrieval| in essence
   provides the following interface:
 
   \medskip
   \begin{tabular}{l}
-  \isa{make{\isacharcolon}\ theory\ {\isasymrightarrow}\ CodegenConsts{\isachardot}const\ list\ {\isasymrightarrow}\ CodegenFuncgr{\isachardot}T} \\
+  \isa{make{\isacharcolon}\ theory\ {\isasymrightarrow}\ CodeUnit{\isachardot}const\ list\ {\isasymrightarrow}\ CodeFuncgr{\isachardot}T} \\
   \end{tabular}
 
   \begin{description}
@@ -1923,33 +1892,33 @@ Out of the executable content of a theory, a normalized
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{CodegenFuncgr.T}\verb|type CodegenFuncgr.T| \\
-  \indexml{CodegenFuncgr.funcs}\verb|CodegenFuncgr.funcs: CodegenFuncgr.T -> CodegenConsts.const -> thm list| \\
-  \indexml{CodegenFuncgr.typ}\verb|CodegenFuncgr.typ: CodegenFuncgr.T -> CodegenConsts.const -> typ| \\
-  \indexml{CodegenFuncgr.deps}\verb|CodegenFuncgr.deps: CodegenFuncgr.T|\isasep\isanewline%
-\verb|    -> CodegenConsts.const list -> CodegenConsts.const list list| \\
-  \indexml{CodegenFuncgr.all}\verb|CodegenFuncgr.all: CodegenFuncgr.T -> CodegenConsts.const list|
+  \indexmltype{CodeFuncgr.T}\verb|type CodeFuncgr.T| \\
+  \indexml{CodeFuncgr.funcs}\verb|CodeFuncgr.funcs: CodeFuncgr.T -> CodeUnit.const -> thm list| \\
+  \indexml{CodeFuncgr.typ}\verb|CodeFuncgr.typ: CodeFuncgr.T -> CodeUnit.const -> typ| \\
+  \indexml{CodeFuncgr.deps}\verb|CodeFuncgr.deps: CodeFuncgr.T|\isasep\isanewline%
+\verb|    -> CodeUnit.const list -> CodeUnit.const list list| \\
+  \indexml{CodeFuncgr.all}\verb|CodeFuncgr.all: CodeFuncgr.T -> CodeUnit.const list|
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|CodegenFuncgr.T| represents
+  \item \verb|CodeFuncgr.T| represents
     a normalized defining equation system.
 
-  \item \verb|CodegenFuncgr.funcs|~\isa{funcgr}~\isa{const}
+  \item \verb|CodeFuncgr.funcs|~\isa{funcgr}~\isa{const}
     retrieves defining equiations for constant \isa{const}.
 
-  \item \verb|CodegenFuncgr.typ|~\isa{funcgr}~\isa{const}
+  \item \verb|CodeFuncgr.typ|~\isa{funcgr}~\isa{const}
     retrieves function type for constant \isa{const}.
 
-  \item \verb|CodegenFuncgr.deps|~\isa{funcgr}~\isa{consts}
+  \item \verb|CodeFuncgr.deps|~\isa{funcgr}~\isa{consts}
     returns the transitive closure of dependencies for
     constants \isa{consts} as a partitioning where each partition
     corresponds to a strongly connected component of
     dependencies and any partition does \emph{not}
     depend on partitions further left.
 
-  \item \verb|CodegenFuncgr.all|~\isa{funcgr}
+  \item \verb|CodeFuncgr.all|~\isa{funcgr}
     returns all currently represented constants.
 
   \end{description}%
