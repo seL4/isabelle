@@ -171,13 +171,18 @@ fun value h s =
 end;
 *}
 
+code_reserved SML Random
+
 code_type randseed
   (SML "Random.seed")
+types_code randseed ("Random.seed")
 
 code_const random_int
   (SML "Random.value")
+consts_code random_int ("Random.value")
 
 code_const run_random
-  (SML "case _ (Random.seed ()) of (x, '_) => x")
+  (SML "case (Random.seed ()) of (x, '_) => _ x")
+consts_code run_random ("case (Random.seed ()) of (x, '_) => _ x")
 
 end
