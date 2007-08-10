@@ -8,7 +8,6 @@ ATPs with TPTP format input.
 signature RES_ATP =
 sig
   val prover: string ref
-  val custom_spass: string list ref
   val destdir: string ref
   val helper_path: string -> string -> string
   val problem_name: string ref
@@ -18,22 +17,12 @@ sig
   datatype mode = Auto | Fol | Hol
   val linkup_logic_mode : mode ref
   val write_subgoal_file: bool -> mode -> Proof.context -> thm list -> thm list -> int -> string
-  val vampire_time: int ref
-  val eprover_time: int ref
-  val spass_time: int ref
-  val run_vampire: int -> unit
-  val run_eprover: int -> unit
-  val run_spass: int -> unit
-  val vampireLimit: unit -> int
-  val eproverLimit: unit -> int
-  val spassLimit: unit -> int
   val atp_method: (Proof.context -> thm list -> int -> tactic) ->
     Method.src -> Proof.context -> Proof.method
   val cond_rm_tmp: string -> unit
   val include_all: bool ref
   val run_relevance_filter: bool ref
   val run_blacklist_filter: bool ref
-  val blacklist: string list ref
   val add_all : unit -> unit
   val add_claset : unit -> unit
   val add_simpset : unit -> unit
@@ -61,8 +50,6 @@ fun timestamp s = Output.debug (fn () => ("At " ^ Time.toString (Time.now()) ^ "
 (********************************************************************)
 
 (*** background linkup ***)
-val call_atp = ref false;
-val hook_count = ref 0;
 val time_limit = ref 60;
 val prover = ref "";
 
@@ -84,8 +71,6 @@ fun set_prover atp =
 
 val _ = set_prover "E"; (* use E as the default prover *)
 
-val custom_spass =   (*specialized options for SPASS*)
-      ref ["-Auto=0","-FullRed=0","-IORe","-IOFc","-RTaut","-RFSub","-RBSub"];
 val destdir = ref "";   (*Empty means write files to /tmp*)
 val problem_name = ref "prob";
 
@@ -107,29 +92,6 @@ fun probfile_nosuffix _ =
   else error ("No such directory: " ^ !destdir);
 
 fun prob_pathname n = probfile_nosuffix n ^ "_" ^ Int.toString n;
-
-
-(*** ATP methods ***)
-val vampire_time = ref 60;
-val eprover_time = ref 60;
-val spass_time = ref 60;
-
-fun run_vampire time =
-    if (time >0) then vampire_time:= time
-    else vampire_time:=60;
-
-fun run_eprover time =
-    if (time > 0) then eprover_time:= time
-    else eprover_time:=60;
-
-fun run_spass time =
-    if (time > 0) then spass_time:=time
-    else spass_time:=60;
-
-
-fun vampireLimit () = !vampire_time;
-fun eproverLimit () = !eprover_time;
-fun spassLimit () = !spass_time;
 
 fun atp_input_file () =
     let val file = !problem_name
@@ -294,8 +256,9 @@ fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL)
 
 (*** white list and black list of lemmas ***)
 
-(*The rule subsetI is frequently omitted by the relevance filter.*)
-val whitelist = ref [subsetI];
+(*The rule subsetI is frequently omitted by the relevance filter. This could be theory data
+  or identified with ATPset (which however is too big currently)*)
+val whitelist = [subsetI];
 
 (*Names of theorems and theorem lists to be blacklisted.
 
@@ -303,7 +266,7 @@ val whitelist = ref [subsetI];
   membership literals) and relate to seldom-used facts. Some duplicate other rules.
   FIXME: this blacklist needs to be maintained using theory data and added to using
   an attribute.*)
-val blacklist = ref
+val blacklist = 
   ["Datatype.prod.size",
    "Divides.dvd_0_left_iff",
    "Finite_Set.card_0_eq",
@@ -510,7 +473,7 @@ fun get_relevant_clauses thy cls_thms white_cls goals =
 
 fun all_valid_thms ctxt =
   let
-    val banned_tab = foldl setinsert Symtab.empty (!blacklist)
+    val banned_tab = foldl setinsert Symtab.empty blacklist
     fun blacklisted s = !run_blacklist_filter andalso
                         (isSome (Symtab.lookup banned_tab s) orelse is_package_def s)
 
@@ -582,7 +545,7 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
         in  claset_thms @ simpset_thms @ atpset_thms  end
       val user_rules = filter check_named
                          (map ResAxioms.pairname
-                           (if null user_thms then !whitelist else user_thms))
+                           (if null user_thms then whitelist else user_thms))
   in
       (filter check_named included_thms, user_rules)
   end;
@@ -681,10 +644,10 @@ fun has_typed_var tycons =
   they lead to unsoundness. Note that "unit" satisfies numerous equations like ?X=().
   The resulting clause will have no type constraint, yielding false proofs. Even "bool"
   leads to many unsound proofs, though (obviously) only for higher-order problems.*)
-val unwanted_types = ref ["Product_Type.unit","bool"];
+val unwanted_types = ["Product_Type.unit","bool"];
 
 fun unwanted t =
-    is_taut t orelse has_typed_var (!unwanted_types) t orelse
+    is_taut t orelse has_typed_var unwanted_types t orelse
     forall too_general_equality (dest_disj t);
 
 (*Clauses containing variables of type "unit" or "bool" are unlikely to be useful and
@@ -909,8 +872,6 @@ fun sledgehammer state =
                   Pretty.string_of (ProofContext.pretty_term ctxt
                     (Logic.mk_conjunction_list (Thm.prems_of goal))));
     Output.debug (fn () => "current theory: " ^ Context.theory_name thy);
-    inc hook_count;
-    Output.debug (fn () => "in hook for time: " ^ Int.toString (!hook_count));
     ResClause.init thy;
     ResHolClause.init thy;
     if !time_limit > 0 then isar_atp (ctxt, goal)

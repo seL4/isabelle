@@ -7,7 +7,6 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature RES_AXIOMS =
 sig
-  val trace_abs: bool ref
   val cnf_axiom : string * thm -> thm list
   val cnf_name : string -> thm list
   val meta_cnf_axiom : thm -> thm list
@@ -31,8 +30,6 @@ struct
   Currently TRUE: the combinator code cannot be used with proof reconstruction
   because it is not performed by inference!!*)
 val abstract_lambdas = true;
-
-val trace_abs = ref false;
 
 (* FIXME legacy *)
 fun freeze_thm th = #1 (Drule.freeze_thaw th);
@@ -230,8 +227,8 @@ val Envir.Envir {asol = tenv0, iTs = tyenv0, ...} = Envir.empty 0
 (*Does an existing abstraction definition have an RHS that matches the one we need now?
   thy is the current theory, which must extend that of theorem th.*)
 fun match_rhs thy t th =
-  let val _ = if !trace_abs then warning ("match_rhs: " ^ string_of_cterm (cterm_of thy t) ^ 
-                                          " against\n" ^ string_of_thm th) else ();
+  let val _ = Output.debug (fn()=> "match_rhs: " ^ string_of_cterm (cterm_of thy t) ^ 
+                                   " against\n" ^ string_of_thm th);
       val (tyenv,tenv) = Pattern.first_order_match thy (rhs_of th, t) (tyenv0,tenv0)
       val term_insts = map Meson.term_pair_of (Vartab.dest tenv)
       val ct_pairs = if subthy (theory_of_thm th, thy) andalso 
@@ -256,27 +253,27 @@ fun declare_absfuns s th =
                 val _ = assert_eta_free ct;
                 val (cvs,cta) = dest_abs_list ct
                 val (vs,Tvs) = ListPair.unzip (map (dest_Free o term_of) cvs)
-                val _ = if !trace_abs then warning ("Nested lambda: " ^ string_of_cterm cta) else ();
+                val _ = Output.debug (fn()=>"Nested lambda: " ^ string_of_cterm cta);
                 val (u'_th,defs) = abstract thy cta
-                val _ = if !trace_abs then warning ("Returned " ^ string_of_thm u'_th) else ();
+                val _ = Output.debug (fn()=>"Returned " ^ string_of_thm u'_th);
                 val cu' = Thm.rhs_of u'_th
                 val u' = term_of cu'
                 val abs_v_u = lambda_list (map term_of cvs) u'
                 (*get the formal parameters: ALL variables free in the term*)
                 val args = term_frees abs_v_u
-                val _ = if !trace_abs then warning (Int.toString (length args) ^ " arguments") else ();
+                val _ = Output.debug (fn()=>Int.toString (length args) ^ " arguments");
                 val rhs = list_abs_free (map dest_Free args, abs_v_u)
                       (*Forms a lambda-abstraction over the formal parameters*)
-                val _ = if !trace_abs then warning ("Looking up " ^ string_of_cterm cu') else ();
+                val _ = Output.debug (fn()=>"Looking up " ^ string_of_cterm cu');
                 val thy = theory_of_thm u'_th
                 val (ax,ax',thy) =
                  case List.mapPartial (match_rhs thy abs_v_u) 
                          (Net.match_term (!abstraction_cache) u') of
                      (ax,ax')::_ => 
-                       (if !trace_abs then warning ("Re-using axiom " ^ string_of_thm ax) else ();
+                       (Output.debug (fn()=>"Re-using axiom " ^ string_of_thm ax);
                         (ax,ax',thy))
                    | [] =>
-                      let val _ = if !trace_abs then warning "Lookup was empty" else ();
+                      let val _ = Output.debug (fn()=>"Lookup was empty");
                           val Ts = map type_of args
                           val cT = Ts ---> (Tvs ---> typ_of (ctyp_of_term cu'))
                           val c = Const (Sign.full_name thy cname, cT)
@@ -286,33 +283,29 @@ fun declare_absfuns s th =
                           val cdef = cname ^ "_def"
                           val thy = Theory.add_defs_i false false
                                        [(cdef, equals cT $ c $ rhs)] thy
-                          val _ = if !trace_abs then (warning ("Definition is " ^ 
-                                                      string_of_thm (get_axiom thy cdef))) 
-                                  else ();
+                          val _ = Output.debug (fn()=> "Definition is " ^ string_of_thm (get_axiom thy cdef));
                           val ax = get_axiom thy cdef |> freeze_thm
                                      |> mk_object_eq |> strip_lambdas (length args)
                                      |> mk_meta_eq |> Meson.generalize
                           val (_,ax') = Option.valOf (match_rhs thy abs_v_u ax)
-                          val _ = if !trace_abs then 
-                                    (warning ("Declaring: " ^ string_of_thm ax);
-                                     warning ("Instance: " ^ string_of_thm ax')) 
-                                  else ();
+                          val _ = Output.debug (fn()=> "Declaring: " ^ string_of_thm ax ^ "\n" ^
+                                                       "Instance: " ^ string_of_thm ax');
                           val _ = abstraction_cache := Net.insert_term eq_absdef 
                                             ((Logic.varify u'), ax) (!abstraction_cache)
                             handle Net.INSERT =>
                               raise THM ("declare_absfuns: INSERT", 0, [th,u'_th,ax])
                        in  (ax,ax',thy)  end
-            in if !trace_abs then warning ("Lookup result: " ^ string_of_thm ax') else ();
+            in Output.debug (fn()=>"Lookup result: " ^ string_of_thm ax');
                (transitive (abstract_rule_list vs cvs u'_th) (symmetric ax'), ax::defs) end
         | (t1$t2) =>
             let val (ct1,ct2) = Thm.dest_comb ct
                 val (th1,defs1) = abstract thy ct1
                 val (th2,defs2) = abstract (theory_of_thm th1) ct2
             in  (combination th1 th2, defs1@defs2)  end
-      val _ = if !trace_abs then warning ("declare_absfuns, Abstracting: " ^ string_of_thm th) else ();
+      val _ = Output.debug (fn()=>"declare_absfuns, Abstracting: " ^ string_of_thm th);
       val (eqth,defs) = abstract (theory_of_thm th) (cprop_of th)
       val ths = equal_elim eqth th :: map (strip_lambdas ~1 o mk_object_eq o freeze_thm) defs
-      val _ = if !trace_abs then warning ("declare_absfuns, Result: " ^ string_of_thm (hd ths)) else ();
+      val _ = Output.debug (fn()=>"declare_absfuns, Result: " ^ string_of_thm (hd ths));
   in  (theory_of_thm eqth, map Drule.eta_contraction_rule ths)  end;
 
 fun name_of def = try (#1 o dest_Free o lhs_of) def;
@@ -349,7 +342,7 @@ fun assume_absfuns s th =
                  case List.mapPartial (match_rhs thy abs_v_u) 
                         (Net.match_term (!abstraction_cache) u') of
                      (ax,ax')::_ => 
-                       (if !trace_abs then warning ("Re-using axiom " ^ string_of_thm ax) else ();
+                       (Output.debug (fn()=>"Re-using axiom " ^ string_of_thm ax);
                         (ax,ax'))
                    | [] =>
                       let val Ts = map type_of args
@@ -365,17 +358,17 @@ fun assume_absfuns s th =
                             handle Net.INSERT =>
                               raise THM ("assume_absfuns: INSERT", 0, [th,u'_th,ax])
                       in (ax,ax') end
-            in if !trace_abs then warning ("Lookup result: " ^ string_of_thm ax') else ();
+            in Output.debug (fn()=>"Lookup result: " ^ string_of_thm ax');
                (transitive (abstract_rule_list vs cvs u'_th) (symmetric ax'), ax::defs) end
         | (t1$t2) =>
             let val (ct1,ct2) = Thm.dest_comb ct
                 val (t1',defs1) = abstract ct1
                 val (t2',defs2) = abstract ct2
             in  (combination t1' t2', defs1@defs2)  end
-      val _ = if !trace_abs then warning ("assume_absfuns, Abstracting: " ^ string_of_thm th) else ();
+      val _ = Output.debug (fn()=>"assume_absfuns, Abstracting: " ^ string_of_thm th);
       val (eqth,defs) = abstract (cprop_of th)
       val ths = equal_elim eqth th :: map (strip_lambdas ~1 o mk_object_eq o freeze_thm) defs
-      val _ = if !trace_abs then warning ("assume_absfuns, Result: " ^ string_of_thm (hd ths)) else ();
+      val _ = Output.debug (fn()=>"assume_absfuns, Result: " ^ string_of_thm (hd ths));
   in  map Drule.eta_contraction_rule ths  end;
 
 
@@ -603,6 +596,9 @@ fun is_okdef xs (Const ("==", _) $ t $ u) =   (*Definition of Free, not in certa
       is_Free t andalso not (member (op aconv) xs t)
   | is_okdef _ _ = false
 
+(*This function tries to cope with open locales, which introduce hypotheses of the form
+  Free == t, conjecture clauses, which introduce various hypotheses, and also definitions
+  of llabs_ and sko_ functions. *)
 fun expand_defs_tac st0 st =
   let val hyps0 = #hyps (rep_thm st0)
       val hyps = #hyps (crep_thm st)

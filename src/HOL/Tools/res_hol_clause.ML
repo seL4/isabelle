@@ -37,10 +37,6 @@ fun full_types () = (typ_level:=T_FULL);
 fun partial_types () = (typ_level:=T_PARTIAL);
 fun const_types_only () = (typ_level:=T_CONST);
 
-(*A flag to set if we use the Turner optimizations. Currently FALSE, as the 5 standard
-  combinators appear to work best.*)
-val use_Turner = ref false;
-
 (*If true, each function will be directly applied to as many arguments as possible, avoiding
   use of the "apply" operator. Use of hBOOL is also minimized. It only works for the 
   constant-typed translation, though it could be tried for the partially-typed one.*)
@@ -70,34 +66,7 @@ fun is_free (Bound(a)) n = (a = n)
   | is_free (P $ Q) n = ((is_free P n) orelse (is_free Q n))
   | is_free _ _ = false;
 
-fun mk_compact_comb (tm as (Const("ATP_Linkup.COMBB",_)$p) $ (Const("ATP_Linkup.COMBB",_)$q$r)) bnds =
-      let val tp_p = Term.type_of1(bnds,p)
-	  val tp_q = Term.type_of1(bnds,q)
-	  val tp_r = Term.type_of1(bnds,r)
-	  val typ_B' = [tp_p,tp_q,tp_r] ---> Term.type_of1(bnds,tm)
-      in
-	  Const("ATP_Linkup.COMBB'",typ_B') $ p $ q $ r
-      end
-  | mk_compact_comb (tm as (Const("ATP_Linkup.COMBC",_) $ (Const("ATP_Linkup.COMBB",_)$p$q) $ r)) bnds =
-      let val tp_p = Term.type_of1(bnds,p)
-	  val tp_q = Term.type_of1(bnds,q)
-	  val tp_r = Term.type_of1(bnds,r)
-	  val typ_C' = [tp_p,tp_q,tp_r] ---> Term.type_of1(bnds,tm)
-      in
-	  Const("ATP_Linkup.COMBC'",typ_C') $ p $ q $ r
-      end
-  | mk_compact_comb (tm as (Const("ATP_Linkup.COMBS",_) $ (Const("ATP_Linkup.COMBB",_)$p$q) $ r)) bnds =
-      let val tp_p = Term.type_of1(bnds,p)
-	  val tp_q = Term.type_of1(bnds,q)
-	  val tp_r = Term.type_of1(bnds,r)
-	  val typ_S' = [tp_p,tp_q,tp_r] ---> Term.type_of1(bnds,tm)
-      in
-	  Const("ATP_Linkup.COMBS'",typ_S') $ p $ q $ r
-      end
-  | mk_compact_comb tm _ = tm;
-
-fun compact_comb t bnds = 
-  if !use_Turner then mk_compact_comb t bnds else t;
+fun compact_comb t bnds = t;
 
 fun lam2comb (Abs(x,tp,Bound 0)) _ = Const("ATP_Linkup.COMBI",tp-->tp) 
   | lam2comb (Abs(x,tp,Bound n)) bnds = 
