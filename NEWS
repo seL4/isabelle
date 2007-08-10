@@ -1429,10 +1429,12 @@ operations, notably runtime compilation and evaluation of ML source
 code.
 
 * Experimental support for multithreading, using Poly/ML 5.1 (internal
-version from CVS). The maximum number of threads is specified via usedir
-option -M or the "max-threads" setting in Proof General. User-code needs
-to observe certain guidelines for thread-safe programming, see appendix
-A in the Isar Implementation manual.
+version from CVS). The theory loader exploits parallelism when
+processing independent theories, following the header specifications.
+The maximum number of worker threads is specified via usedir option -M
+or the "max-threads" setting in Proof General.  User-code needs to
+observe certain guidelines for thread-safe programming, see appendix A
+in the Isar Implementation manual.
 
 
 New in Isabelle2005 (October 2005)
@@ -5058,5 +5060,5 @@ have been removed;
 * 'subtype' facility in HOL for introducing new types as subsets of existing
 types;
 
-
+:mode=text:wrap=hard:maxLineLen=72:
 $Id$
