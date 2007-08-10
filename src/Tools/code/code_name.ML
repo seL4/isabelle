@@ -1,13 +1,13 @@
-(*  Title:      Pure/Tools/codegen_names.ML
+(*  Title:      Tools/code/code_name.ML
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Naming policies for code generation: prefixing any name by corresponding theory name,
-conversion to alphanumeric representation.
+Naming policies for code generation: prefixing any name by corresponding
+theory name, conversion to alphanumeric representation.
 Mappings are incrementally cached.
 *)
 
-signature CODEGEN_NAMES =
+signature CODE_NAME =
 sig
   val purify_var: string -> string
   val purify_tvar: string -> string
@@ -27,12 +27,14 @@ sig
   val tyco_rev: theory -> tyco -> tyco option
   val instance: theory -> class * tyco -> string
   val instance_rev: theory -> string -> (class * tyco) option
-  val const: theory -> CodegenConsts.const -> const
-  val const_rev: theory -> const -> CodegenConsts.const option
+  val const: theory -> CodeUnit.const -> const
+  val const_rev: theory -> const -> CodeUnit.const option
   val labelled_name: theory -> string -> string
+
+  val setup: theory -> theory
 end;
 
-structure CodegenNames: CODEGEN_NAMES =
+structure CodeName: CODE_NAME =
 struct
 
 (** purification **)
@@ -211,7 +213,7 @@ fun instance_policy thy = default_policy thy (fn (class, tyco) =>
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
 fun force_thyname thy (const as (c, opt_tyco)) =
-  case CodegenData.get_datatype_of_constr thy const
+  case Code.get_datatype_of_constr thy const
    of SOME dtco => SOME (thyname_of_tyco thy dtco)
     | NONE => (case AxClass.class_of_param thy c
        of SOME class => (case opt_tyco
@@ -233,7 +235,7 @@ fun const_policy thy (const as (c, opt_tyco)) =
 
 type tyco = string;
 type const = string;
-structure Consttab = CodegenConsts.Consttab;
+structure Consttab = CodeUnit.Consttab;
 
 structure StringPairTab =
   TableFun(
@@ -296,13 +298,13 @@ structure ConstName = CodeDataFun
   val empty = (Consttab.empty, Symtab.empty);
   fun merge _ ((const1, constrev1), (const2, constrev2)) : T =
     (Consttab.merge (op =) (const1, const2),
-      Symtab.merge CodegenConsts.eq_const (constrev1, constrev2));
+      Symtab.merge CodeUnit.eq_const (constrev1, constrev2));
   fun purge _ NONE _ = empty
     | purge _ (SOME cs) (const, constrev) = (fold Consttab.delete_safe cs const,
         fold Symtab.delete (map_filter (Consttab.lookup const) cs) constrev);
 );
 
-val _ = Context.add_setup (CodeName.init);
+val setup = CodeName.init;
 
 
 (* forward lookup with cache update *)
@@ -406,7 +408,7 @@ val f_mapping = [
   (idf_classrel,    Option.map string_of_classrel oo classrel_rev),
   (idf_tyco,        tyco_rev),
   (idf_instance,    Option.map string_of_instance oo instance_rev),
-  (idf_const,       fn thy => Option.map (CodegenConsts.string_of_const thy) o const_rev thy)
+  (idf_const,       fn thy => Option.map (CodeUnit.string_of_const thy) o const_rev thy)
 ];
 
 in

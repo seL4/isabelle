@@ -107,8 +107,8 @@ fun mk_Fun(name,v,0) = (name,v [])
 
 (* ------------------ evaluation with greetings to Tarski ------------------ *)
 
-fun prep_term thy (Const c) = Const (CodegenNames.const thy
-      (CodegenConsts.const_of_cexpr thy c), dummyT)
+fun prep_term thy (Const c) = Const (CodeNames.const thy
+      (CodeUnit.const_of_cexpr thy c), dummyT)
   | prep_term thy (Free v_ty) = Free v_ty
   | prep_term thy (s $ t) = prep_term thy s $ prep_term thy t
   | prep_term thy (Abs (raw_v, ty, raw_t)) =

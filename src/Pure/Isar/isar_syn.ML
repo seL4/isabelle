@@ -89,7 +89,7 @@ val axclassP =
     (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []
         -- Scan.repeat (SpecParse.thm_name ":" -- (P.prop >> single))
-      >> (fn (x, y) => Toplevel.theory (snd o ClassPackage.axclass_cmd x y)));
+      >> (fn (x, y) => Toplevel.theory (snd o Class.axclass_cmd x y)));
 
 
 (* types *)
@@ -422,16 +422,16 @@ val classP =
     -- P.opt_begin
     >> (fn (((bname, add_consts), (supclasses, elems)), begin) =>
         Toplevel.begin_local_theory begin
-          (ClassPackage.class_cmd bname supclasses elems add_consts #-> TheoryTarget.begin)));
+          (Class.class_cmd bname supclasses elems add_consts #-> TheoryTarget.begin)));
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal ((
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-           >> ClassPackage.instance_class_cmd
+           >> Class.instance_class_cmd
       || P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-           >> ClassPackage.instance_sort_cmd
+           >> Class.instance_sort_cmd
       || P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-           >> (fn (arities, defs) => ClassPackage.instance_arity_cmd arities defs)
+           >> (fn (arities, defs) => Class.instance_arity_cmd arities defs)
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 end;
@@ -441,7 +441,7 @@ end;
 
 val code_datatypeP =
   OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl
-    (Scan.repeat1 P.term >> (Toplevel.theory o CodegenData.add_datatype_consts_cmd));
+    (Scan.repeat1 P.term >> (Toplevel.theory o Code.add_datatype_consts_cmd));
 
 
 
@@ -763,7 +763,7 @@ val print_localesP =
 val print_classesP =
   OuterSyntax.improper_command "print_classes" "print classes of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory
-      o Toplevel.keep (ClassPackage.print_classes o Toplevel.theory_of)));
+      o Toplevel.keep (Class.print_classes o Toplevel.theory_of)));
 
 val print_localeP =
   OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
@@ -884,7 +884,7 @@ val print_codesetupP =
   OuterSyntax.improper_command "print_codesetup" "print code generator setup of this theory" K.diag
     (Scan.succeed
       (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
-        (CodegenData.print_codesetup o Toplevel.theory_of)));
+        (Code.print_codesetup o Toplevel.theory_of)));
 
 
 (** system commands (for interactive mode only) **)

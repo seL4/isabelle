@@ -60,7 +60,7 @@ let
     @{const_name NibbleC}, @{const_name NibbleD},
     @{const_name NibbleE}, @{const_name NibbleF}];
 in
-  CodegenSerializer.add_pretty_ml_string "SML"
+  CodeTarget.add_pretty_ml_string "SML"
     charr nibbles @{const_name Nil} @{const_name Cons} @{const_name STR}
 end
 *}

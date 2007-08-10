@@ -25,7 +25,7 @@ sig
   val app: Univ -> Univ -> Univ              (*explicit application*)
 
   val univs_ref: Univ list ref 
-  val lookup_fun: CodegenNames.const -> Univ
+  val lookup_fun: CodeName.const -> Univ
 
   val normalization_conv: cterm -> thm
 
@@ -183,7 +183,7 @@ val nbe_value = "value";
 
 end;
 
-open BasicCodegenThingol;
+open BasicCodeThingol;
 
 (* greetings to Tarski *)
 
@@ -191,7 +191,7 @@ fun assemble_iterm thy is_fun num_args =
   let
     fun of_iterm t =
       let
-        val (t', ts) = CodegenThingol.unfold_app t
+        val (t', ts) = CodeThingol.unfold_app t
       in of_itermapp t' (fold (cons o of_iterm) ts []) end
     and of_itermapp (IConst (c, (dss, _))) ts =
           (case num_args c
@@ -225,7 +225,7 @@ fun assemble_eqnss thy is_fun [] = ([], "")
       let
         val cs = map fst eqnss;
         val num_args = cs ~~ map (fn (_, (args, rhs) :: _) => length args) eqnss;
-        val funs = fold (fold (CodegenThingol.fold_constnames
+        val funs = fold (fold (CodeThingol.fold_constnames
           (insert (op =))) o map snd o snd) eqnss [];
         val bind_funs = map nbe_lookup (filter is_fun funs);
         val bind_locals = ml_fundefs (map nbe_fun cs ~~ map
@@ -235,29 +235,29 @@ fun assemble_eqnss thy is_fun [] = ([], "")
 
 fun assemble_eval thy is_fun t =
   let
-    val funs = CodegenThingol.fold_constnames (insert (op =)) t [];
-    val frees = CodegenThingol.fold_unbound_varnames (insert (op =)) t [];
+    val funs = CodeThingol.fold_constnames (insert (op =)) t [];
+    val frees = CodeThingol.fold_unbound_varnames (insert (op =)) t [];
     val bind_funs = map nbe_lookup (filter is_fun funs);
     val bind_value = ml_fundefs [(nbe_value, [([ml_list (map nbe_bound frees)],
       assemble_iterm thy is_fun (K NONE) t)])];
     val result = ml_list [nbe_value `$` ml_list (map nbe_free frees)];
   in ([nbe_value], ml_Let (bind_funs @ [bind_value]) result) end;
 
-fun eqns_of_stmt (name, CodegenThingol.Fun ([], _)) =
+fun eqns_of_stmt (name, CodeThingol.Fun ([], _)) =
       NONE
-  | eqns_of_stmt (name, CodegenThingol.Fun (eqns, _)) =
+  | eqns_of_stmt (name, CodeThingol.Fun (eqns, _)) =
       SOME (name, eqns)
-  | eqns_of_stmt (_, CodegenThingol.Datatypecons _) =
+  | eqns_of_stmt (_, CodeThingol.Datatypecons _) =
       NONE
-  | eqns_of_stmt (_, CodegenThingol.Datatype _) =
+  | eqns_of_stmt (_, CodeThingol.Datatype _) =
       NONE
-  | eqns_of_stmt (_, CodegenThingol.Class _) =
+  | eqns_of_stmt (_, CodeThingol.Class _) =
       NONE
-  | eqns_of_stmt (_, CodegenThingol.Classrel _) =
+  | eqns_of_stmt (_, CodeThingol.Classrel _) =
       NONE
-  | eqns_of_stmt (_, CodegenThingol.Classop _) =
+  | eqns_of_stmt (_, CodeThingol.Classop _) =
       NONE
-  | eqns_of_stmt (_, CodegenThingol.Classinst _) =
+  | eqns_of_stmt (_, CodeThingol.Classinst _) =
       NONE;
 
 fun compile_stmts thy is_fun =
@@ -297,8 +297,8 @@ fun term_of_univ thy t =
       #>> (fn ts' => list_comb (t, rev ts'))
     and of_univ bounds (Const (name, ts)) typidx =
           let
-            val SOME (const as (c, _)) = CodegenNames.const_rev thy name;
-            val T = CodegenData.default_typ thy const;
+            val SOME (const as (c, _)) = CodeName.const_rev thy name;
+            val T = Code.default_typ thy const;
             val T' = map_type_tvar (fn ((v, i), S) => TypeInfer.param (typidx + i) (v, S)) T;
             val typidx' = typidx + maxidx_of_typ T' + 1;
           in of_apps bounds (Term.Const (c, T'), ts) typidx' end
@@ -345,7 +345,7 @@ fun eval thy code t t' =
 
 (* evaluation oracle *)
 
-exception Normalization of CodegenThingol.code * term * CodegenThingol.iterm;
+exception Normalization of CodeThingol.code * term * CodeThingol.iterm;
 
 fun normalization_oracle (thy, Normalization (code, t, t')) =
   Logic.mk_equals (t, eval thy code t t');
@@ -361,7 +361,7 @@ fun normalization_conv ct =
       let
         val t = Thm.term_of ct;
       in normalization_invoke thy code t t' end;
-  in CodegenPackage.eval_conv thy conv ct end;
+  in CodePackage.eval_conv thy conv ct end;
 
 (* evaluation command *)
 

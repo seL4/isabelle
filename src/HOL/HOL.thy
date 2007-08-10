@@ -183,7 +183,7 @@ axioms
   True_or_False:  "(P=True) | (P=False)"
 
 defs
-  Let_def [code func]: "Let s f == f(s)"
+  Let_def:      "Let s f == f(s)"
   if_def:       "If P x y == THE z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
 finalconsts
@@ -1701,6 +1701,8 @@ method_setup evaluation = {*
 
 subsubsection {* Generic code generator setup *}
 
+setup "CodeName.setup #> CodeTarget.setup"
+
 text {* operational equality for code generation *}
 
 class eq (attach "op =") = type
@@ -1736,8 +1738,6 @@ lemma [code func]:
     and "(\<not> False) = True" by (rule HOL.simp_thms)+
 
 lemmas [code] = imp_conv_disj
-
-lemmas [code func] = if_True if_False
 
 instance bool :: eq ..
 
@@ -1796,15 +1796,18 @@ code_const undefined
 
 text {* Let and If *}
 
+lemmas [code func] = Let_def if_True if_False
+
 setup {*
-  CodegenPackage.add_appconst (@{const_name Let}, CodegenPackage.appgen_let)
-  #> CodegenPackage.add_appconst (@{const_name If}, CodegenPackage.appgen_if)
+  CodePackage.add_appconst (@{const_name Let}, CodePackage.appgen_let)
+  #> CodePackage.add_appconst (@{const_name If}, CodePackage.appgen_if)
 *}
+
 
 subsubsection {* Evaluation oracle *}
 
 oracle eval_oracle ("term") = {* fn thy => fn t => 
-  if CodegenPackage.satisfies thy (HOLogic.dest_Trueprop t) [] 
+  if CodePackage.satisfies thy (HOLogic.dest_Trueprop t) [] 
   then t
   else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
 *}

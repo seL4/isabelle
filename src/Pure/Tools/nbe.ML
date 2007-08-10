@@ -65,7 +65,7 @@ fun apply_posts thy =
 
 (* theorem store *)
 
-structure Funcgr = CodegenFuncgrRetrieval (val rewrites = the_pres);
+structure Funcgr = CodeFuncgrRetrieval (val rewrites = the_pres);
 
 (* code store *)
 
@@ -110,14 +110,14 @@ fun generate thy funs =
 fun ensure_funs thy funcgr t =
   let
     fun consts_of thy t =
-      fold_aterms (fn Const c => cons (CodegenConsts.const_of_cexpr thy c) | _ => I) t []
+      fold_aterms (fn Const c => cons (CodeUnit.const_of_cexpr thy c) | _ => I) t []
     val consts = consts_of thy t;
     val nbe_tab = NBE_Data.get thy;
   in
-    CodegenFuncgr.deps funcgr consts
-    |> (map o filter_out) (Symtab.defined nbe_tab o CodegenNames.const thy)
+    CodeFuncgr.deps funcgr consts
+    |> (map o filter_out) (Symtab.defined nbe_tab o CodeNames.const thy)
     |> filter_out null
-    |> (map o map) (fn c => (CodegenNames.const thy c, CodegenFuncgr.funcs funcgr c))
+    |> (map o map) (fn c => (CodeNames.const thy c, CodeFuncgr.funcs funcgr c))
     |> generate thy
   end;
 
@@ -156,7 +156,7 @@ fun eval_term thy funcgr t =
 
 (* evaluation oracle *)
 
-exception Normalization of CodegenFuncgr.T * term;
+exception Normalization of CodeFuncgr.T * term;
 
 fun normalization_oracle (thy, Normalization (funcgr, t)) =
   Logic.mk_equals (t, eval_term thy funcgr t);

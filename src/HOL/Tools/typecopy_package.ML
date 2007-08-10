@@ -141,8 +141,7 @@ fun get_spec thy tyco =
 
 (* hook for projection function code *)
 
-fun add_project (_ , {proj_def, ...} : info) =
-  CodegenData.add_func true proj_def;
+fun add_project (_ , {proj_def, ...} : info) = Code.add_func true proj_def;
 
 val setup = add_hook add_project;
 

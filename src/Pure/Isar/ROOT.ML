@@ -43,10 +43,9 @@ use "element.ML";
 use "net_rules.ML";
 use "induct_attrib.ML";
 
-(*code generator base*)
-use "../Tools/codegen_consts.ML";
-use "../Tools/codegen_func.ML";
-use "../Tools/codegen_data.ML";
+(*executable theory content*)
+use "code_unit.ML";
+use "code.ML";
 
 (*derived theory and proof elements*)
 use "local_theory.ML";
@@ -54,7 +53,7 @@ use "calculation.ML";
 use "obtain.ML";
 use "locale.ML";
 use "spec_parse.ML";
-use "../Tools/class_package.ML";
+use "class.ML";
 use "theory_target.ML";
 use "specification.ML";
 use "constdefs.ML";

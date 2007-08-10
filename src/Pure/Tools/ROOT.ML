@@ -13,12 +13,10 @@ use "xml_syntax.ML";
 (*derived theory and proof elements*)
 use "invoke.ML";
 
-(*code generator, 1st generation*)
+(*code generator*)
 use "../codegen.ML";
-
-(*code generator, 2nd generation*)
-use "codegen_names.ML";
-use "codegen_funcgr.ML";
-use "codegen_thingol.ML";
-use "codegen_serializer.ML";
-use "codegen_package.ML";
+use "../../Tools/code/code_name.ML";
+use "../../Tools/code/code_funcgr.ML";
+use "../../Tools/code/code_thingol.ML";
+use "../../Tools/code/code_target.ML";
+use "../../Tools/code/code_package.ML";

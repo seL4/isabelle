@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/codegen_thingol.ML
+(*  Title:      Tools/code/code_thingol.ML
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
@@ -13,7 +13,7 @@ infix 4 `$$;
 infixr 3 `|->;
 infixr 3 `|-->;
 
-signature BASIC_CODEGEN_THINGOL =
+signature BASIC_CODE_THINGOL =
 sig
   type vname = string;
   datatype dict =
@@ -36,9 +36,9 @@ sig
   type typscheme = (vname * sort) list * itype;
 end;
 
-signature CODEGEN_THINGOL =
+signature CODE_THINGOL =
 sig
-  include BASIC_CODEGEN_THINGOL;
+  include BASIC_CODE_THINGOL;
   val unfoldl: ('a -> ('a * 'b) option) -> 'a -> 'a * 'b list;
   val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a;
   val unfold_fun: itype -> itype list * itype;
@@ -84,18 +84,12 @@ sig
   val fail: string -> transact -> 'a * code;
   val message: string -> (transact -> 'a) -> transact -> 'a;
   val start_transact: (transact -> 'a * transact) -> code -> 'a * code;
-
-  val trace: bool ref;
-  val tracing: ('a -> string) -> 'a -> 'a;
 end;
 
-structure CodegenThingol: CODEGEN_THINGOL =
+structure CodeThingol: CODE_THINGOL =
 struct
 
 (** auxiliary **)
-
-val trace = ref false;
-fun tracing f x = (if !trace then Output.tracing (f x) else (); x);
 
 fun unfoldl dest x =
   case dest x
@@ -388,10 +382,7 @@ fun ensure_def labelled_name defgen msg name (dep, code) =
      of NONE => msg
       | SOME dep => msg ^ ", required for " ^ labelled_name dep);
     fun add_dp NONE = I
-      | add_dp (SOME dep) =
-          tracing (fn _ => "adding dependency " ^ labelled_name dep
-            ^ " -> " ^ labelled_name name)
-          #> add_dep (dep, name);
+      | add_dp (SOME dep) = add_dep (dep, name);
     fun prep_def def code =
       (check_prep_def code def, code);
     fun invoke_generator name defgen code =
@@ -439,4 +430,4 @@ fun add_eval_def (name, t) code =
 end; (*struct*)
 
 
-structure BasicCodegenThingol: BASIC_CODEGEN_THINGOL = CodegenThingol;
+structure BasicCodeThingol: BASIC_CODE_THINGOL = CodeThingol;

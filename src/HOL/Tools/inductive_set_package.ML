@@ -531,8 +531,8 @@ val setup =
       "convert rule to set notation"),
      ("to_pred", Attrib.syntax (Attrib.thms >> to_pred_att),
       "convert rule to predicate notation")] #>
-  Codegen.add_attribute "ind_set"
-    (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> code_ind_att) #>
+  Code.add_attribute ("ind_set",
+    Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> code_ind_att) #>
   Codegen.add_preprocessor codegen_preproc #>
   Attrib.add_attributes [("mono_set", Attrib.add_del_args mono_add_att mono_del_att,
     "declaration of monotonicity rule for set operators")] #>

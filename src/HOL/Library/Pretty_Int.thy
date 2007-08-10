@@ -24,7 +24,7 @@ code_instance int :: eq
   (Haskell -)
 
 setup {*
-  fold (fn target => CodegenSerializer.add_pretty_numeral target true
+  fold (fn target => CodeTarget.add_pretty_numeral target true
     (@{const_name number_of}, @{typ "int \<Rightarrow> int"})
     @{const_name Numeral.B0} @{const_name Numeral.B1}
     @{const_name Numeral.Pls} @{const_name Numeral.Min}

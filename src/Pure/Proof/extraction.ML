@@ -741,7 +741,7 @@ fun extract thms thy =
                       (ProofChecker.thm_of_proof thy'
                        (fst (Proofterm.freeze_thaw_prf prf)))))), [])
              |> snd
-             |> fold (CodegenData.add_func false) def_thms
+             |> fold (Code.add_func false) def_thms
            end
        | SOME _ => thy);
 

@@ -574,7 +574,7 @@ The same story again for code next generation.
 *}
 
 setup {*
-  CodegenSerializer.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
+  CodeTarget.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
 *}
 
 definition

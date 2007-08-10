@@ -50,7 +50,7 @@ let
       (Type (tyco,
         map TFree (Name.names Name.context "'a" asorts))))]) arities, thy);
   fun hook specs =
-    DatatypeCodegen.prove_codetypes_arities (ClassPackage.intro_classes_tac [])
+    DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
       [TypOf.class_typ_of] mk ((K o K) I)
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
@@ -112,7 +112,7 @@ let
   fun hook specs =
     if (fst o hd) specs = (fst o dest_Type) @{typ typ} then I
     else
-      DatatypeCodegen.prove_codetypes_arities (ClassPackage.intro_classes_tac [])
+      DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
       [TermOf.class_term_of] ((K o K o pair) []) mk
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
@@ -165,7 +165,7 @@ struct
 val eval_ref = ref (NONE : term option);
 
 fun eval_term thy t =
-  CodegenPackage.eval_term
+  CodePackage.eval_term
     thy (("Eval.eval_ref", eval_ref), TermOf.mk_term_of t);
 
 fun print eval s = Toplevel.keep (fn state =>

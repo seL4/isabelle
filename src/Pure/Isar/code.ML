@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/codegen_data.ML
+(*  Title:      Pure/Isar/code.ML
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
@@ -6,14 +6,11 @@ Abstract executable content of theory.  Management of data dependent on
 executable content.
 *)
 
-signature CODEGEN_DATA =
+signature CODE =
 sig
-  val lazy_thms: (unit -> thm list) -> thm list Susp.T
-  val eval_always: bool ref
-
   val add_func: bool -> thm -> theory -> theory
   val del_func: thm -> theory -> theory
-  val add_funcl: CodegenConsts.const * thm list Susp.T -> theory -> theory
+  val add_funcl: CodeUnit.const * thm list Susp.T -> theory -> theory
   val add_func_attr: bool -> Attrib.src
   val add_inline: thm -> theory -> theory
   val del_inline: thm -> theory -> theory
@@ -25,22 +22,22 @@ sig
   val del_post: thm -> theory -> theory
   val add_datatype: string * ((string * sort) list * (string * typ list) list)
     -> theory -> theory
-  val add_datatype_consts: CodegenConsts.const list -> theory -> theory
+  val add_datatype_consts: CodeUnit.const list -> theory -> theory
   val add_datatype_consts_cmd: string list -> theory -> theory
 
   val coregular_algebra: theory -> Sorts.algebra
   val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
-  val these_funcs: theory -> CodegenConsts.const -> thm list
+  val these_funcs: theory -> CodeUnit.const -> thm list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
-  val get_datatype_of_constr: theory -> CodegenConsts.const -> string option
-  val default_typ: theory -> CodegenConsts.const -> typ
+  val get_datatype_of_constr: theory -> CodeUnit.const -> string option
+  val default_typ: theory -> CodeUnit.const -> typ
 
   val preprocess_conv: cterm -> thm
   val postprocess_conv: cterm -> thm
 
-  val print_codesetup: theory -> unit
+  val add_attribute: string * (Args.T list -> attribute * Args.T list) -> theory -> theory
 
-  val trace: bool ref
+  val print_codesetup: theory -> unit
 end;
 
 signature CODE_DATA_ARGS =
@@ -48,7 +45,7 @@ sig
   type T
   val empty: T
   val merge: Pretty.pp -> T * T -> T
-  val purge: theory option -> CodegenConsts.const list option -> T -> T
+  val purge: theory option -> CodeUnit.const list option -> T -> T
 end;
 
 signature CODE_DATA =
@@ -59,11 +56,11 @@ sig
   val change_yield: theory -> (T -> 'a * T) -> 'a * T
 end;
 
-signature PRIVATE_CODEGEN_DATA =
+signature PRIVATE_CODE =
 sig
-  include CODEGEN_DATA
+  include CODE
   val declare_data: Object.T -> (Pretty.pp -> Object.T * Object.T -> Object.T)
-    -> (theory option -> CodegenConsts.const list option -> Object.T -> Object.T) -> serial
+    -> (theory option -> CodeUnit.const list option -> Object.T -> Object.T) -> serial
   val get_data: serial * ('a -> Object.T) * (Object.T -> 'a)
     -> theory -> 'a
   val change_data: serial * ('a -> Object.T) * (Object.T -> 'a)
@@ -72,24 +69,15 @@ sig
     -> theory -> ('a -> 'b * 'a) -> 'b * 'a
 end;
 
-structure CodegenData : PRIVATE_CODEGEN_DATA =
+structure Code : PRIVATE_CODE =
 struct
 
-(* auxiliary, diagnostics *)
+(** preliminaries **)
 
-structure Consttab = CodegenConsts.Consttab;
-
-val trace = ref false;
-fun tracing f x = (if !trace then Output.tracing (f x) else (); x);
+structure Consttab = CodeUnit.Consttab;
 
 
-(* lazy theorems, certificate theorems *)
-
-val eval_always = ref false;
-
-fun lazy_thms f = if !eval_always
-  then Susp.value (f ())
-  else Susp.delay f;
+(* certificate theorems *)
 
 fun string_of_lthms r = case Susp.peek r
  of SOME thms => (map string_of_thm o rev) thms
@@ -104,7 +92,7 @@ fun certificate thy f r =
    of SOME thms => (Susp.value o f thy) thms
      | NONE => let
           val thy_ref = Theory.check_thy thy;
-        in lazy_thms (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
+        in Susp.delay (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
 
 fun merge' _ ([], []) = (false, [])
   | merge' _ ([], ys) = (true, ys)
@@ -125,7 +113,7 @@ fun merge_lthms (r1, r2) =
    of SOME [] => (true, r2)
     | _ => case Susp.peek r2
        of SOME [] => (true, r1)
-        | _ => (apsnd (lazy_thms o K)) (merge_thms (Susp.force r1, Susp.force r2));
+        | _ => (apsnd (Susp.delay o K)) (merge_thms (Susp.force r1, Susp.force r2));
 
 
 (* pairs of (selected, deleted) defining equations *)
@@ -150,7 +138,7 @@ fun add_thm thm (sels, dels) =
   apfst Susp.value (add_drop_redundant thm (Susp.force sels, dels));
 
 fun add_lthms lthms (sels, []) =
-      (lazy_thms (fn () => fold add_drop_redundant
+      (Susp.delay (fn () => fold add_drop_redundant
         (Susp.force lthms) (Susp.force sels, []) |> fst), [])
         (*FIXME*)
   | add_lthms lthms (sels, dels) =
@@ -170,11 +158,42 @@ fun merge_sdthms ((sels1, dels1), (sels2, dels2)) =
         (subtract Thm.eq_thm_prop dels2 (Susp.force sels1), Susp.force sels2);
       val (_, dels) = merge_thms
         (subtract Thm.eq_thm_prop (Susp.force sels2) dels1, dels2);
-    in (true, ((lazy_thms o K) sels, dels)) end
+    in (true, ((Susp.delay o K) sels, dels)) end
     else let
       val (sels_t, sels) = merge_lthms (sels1, sels2);
     in (sels_t, (sels, dels)) end
   end;
+
+
+(* code attributes *)
+
+structure CodeAttr = TheoryDataFun (
+  type T = (string * (Args.T list -> attribute * Args.T list)) list;
+  val empty = [];
+  val copy = I;
+  val extend = I;
+  fun merge _ = AList.merge (op =) (K true);
+);
+
+fun add_attribute (attr as (name, _)) =
+  let
+    fun add_parser ("", parser) attrs = attrs @ [("", parser)]
+      | add_parser (name, parser) attrs = (name, Args.$$$ name |-- parser) :: attrs;
+    fun error "" = error ("Code attribute already declared")
+      | error name = error ("Code attribute " ^ name ^ " already declared")
+  in CodeAttr.map (fn attrs => if AList.defined (op =) attrs name
+    then error name else add_parser attr attrs)
+  end;
+
+val _ =
+  let
+    val code_attr = Attrib.syntax (Scan.peek (fn context =>
+      List.foldr op || Scan.fail (map snd (CodeAttr.get (Context.theory_of context)))));
+  in
+    Context.add_setup (Attrib.add_attributes
+      [("code", code_attr, "declare theorems for code generation")])
+  end;
+
 
 
 (** exeuctable content **)
@@ -207,9 +226,9 @@ fun join_func_thms (tabs as (tab1, tab2)) =
   let
     val cs1 = Consttab.keys tab1;
     val cs2 = Consttab.keys tab2;
-    val cs' = filter (member CodegenConsts.eq_const cs2) cs1;
+    val cs' = filter (member CodeUnit.eq_const cs2) cs1;
     val cs'' = subtract (op =) cs' cs1 @ subtract (op =) cs' cs2;
-    val cs''' = ref [] : CodegenConsts.const list ref;
+    val cs''' = ref [] : CodeUnit.const list ref;
     fun merge c x = let val (touched, thms') = merge_sdthms x in
       (if touched then cs''' := cons c (!cs''') else (); thms') end;
   in (cs'' @ !cs''', Consttab.join merge tabs) end;
@@ -291,7 +310,7 @@ local
 type kind = {
   empty: Object.T,
   merge: Pretty.pp -> Object.T * Object.T -> Object.T,
-  purge: theory option -> CodegenConsts.const list option -> Object.T -> Object.T
+  purge: theory option -> CodeUnit.const list option -> Object.T -> Object.T
 };
 
 val kinds = ref (Datatab.empty: kind Datatab.table);
@@ -417,7 +436,7 @@ fun print_codesetup thy =
     val preprocs = (map fst o #preprocs o the_thmproc) exec;
     val funs = the_funcs exec
       |> Consttab.dest
-      |> (map o apfst) (CodegenConsts.string_of_const thy)
+      |> (map o apfst) (CodeUnit.string_of_const thy)
       |> sort (string_ord o pairself fst);
     val dtyps = the_dtyps exec
       |> Symtab.dest
@@ -468,13 +487,13 @@ fun common_typ_funcs [] = []
             val max' = Thm.maxidx_of thm' + 1;
           in (thm', max') end;
         val (thms', maxidx) = fold_map incr_thm thms 0;
-        val ty1 :: tys = map (snd o CodegenFunc.head_func) thms';
+        val ty1 :: tys = map (snd o CodeUnit.head_func) thms';
         fun unify ty env = Sign.typ_unify thy (ty1, ty) env
           handle Type.TUNIFY =>
             error ("Type unificaton failed, while unifying defining equations\n"
             ^ (cat_lines o map Display.string_of_thm) thms
             ^ "\nwith types\n"
-            ^ (cat_lines o map (CodegenConsts.string_of_typ thy)) (ty1 :: tys));
+            ^ (cat_lines o map (CodeUnit.string_of_typ thy)) (ty1 :: tys));
         val (env, _) = fold unify tys (Vartab.empty, maxidx)
         val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
@@ -482,9 +501,9 @@ fun common_typ_funcs [] = []
 
 fun certify_const thy const thms =
   let
-    fun cert thm = if CodegenConsts.eq_const (const, fst (CodegenFunc.head_func thm))
+    fun cert thm = if CodeUnit.eq_const (const, fst (CodeUnit.head_func thm))
       then thm else error ("Wrong head of defining equation,\nexpected constant "
-        ^ CodegenConsts.string_of_const thy const ^ "\n" ^ string_of_thm thm)
+        ^ CodeUnit.string_of_const thy const ^ "\n" ^ string_of_thm thm)
   in map cert thms end;
 
 
@@ -516,7 +535,7 @@ fun specific_constraints thy (class, tyco) =
       |> maps these
       |> map (Thm.transfer thy);
     val sorts = map (map (snd o dest_TVar) o snd o dest_Type o the_single
-      o Sign.const_typargs thy o (fn ((c, _), ty) => (c, ty)) o CodegenFunc.head_func) funcs;
+      o Sign.const_typargs thy o (fn ((c, _), ty) => (c, ty)) o CodeUnit.head_func) funcs;
   in sorts end;
 
 fun weakest_constraints thy (class, tyco) =
@@ -570,14 +589,14 @@ fun assert_func_typ thm =
     val thy = Thm.theory_of_thm thm;
     fun check_typ_classop class (const as (c, SOME tyco), thm) =
           let
-            val (_, ty) = CodegenFunc.head_func thm;
+            val (_, ty) = CodeUnit.head_func thm;
             val ty_decl = classop_weakest_typ thy class (c, tyco);
             val ty_strongest = classop_strongest_typ thy class (c, tyco);
             fun constrain thm = 
               let
                 val max = Thm.maxidx_of thm + 1;
                 val ty_decl' = Logic.incr_tvar max ty_decl;
-                val (_, ty') = CodegenFunc.head_func thm;
+                val (_, ty') = CodeUnit.head_func thm;
                 val (env, _) = Sign.typ_unify thy (ty_decl', ty') (Vartab.empty, max);
                 val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
                   cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
@@ -585,55 +604,55 @@ fun assert_func_typ thm =
           in if Sign.typ_instance thy (ty_strongest, ty)
             then if Sign.typ_instance thy (ty, ty_decl)
             then thm
-            else (warning ("Constraining type\n" ^ CodegenConsts.string_of_typ thy ty
+            else (warning ("Constraining type\n" ^ CodeUnit.string_of_typ thy ty
               ^ "\nof defining equation\n"
               ^ string_of_thm thm
               ^ "\nto permitted most general type\n"
-              ^ CodegenConsts.string_of_typ thy ty_decl);
+              ^ CodeUnit.string_of_typ thy ty_decl);
               constrain thm)
-            else CodegenFunc.bad_thm ("Type\n" ^ CodegenConsts.string_of_typ thy ty
+            else CodeUnit.bad_thm ("Type\n" ^ CodeUnit.string_of_typ thy ty
               ^ "\nof defining equation\n"
               ^ string_of_thm thm
               ^ "\nis incompatible with permitted least general type\n"
-              ^ CodegenConsts.string_of_typ thy ty_strongest)
+              ^ CodeUnit.string_of_typ thy ty_strongest)
           end
       | check_typ_classop class ((c, NONE), thm) =
-          CodegenFunc.bad_thm ("Illegal type for class operation " ^ quote c
+          CodeUnit.bad_thm ("Illegal type for class operation " ^ quote c
            ^ "\nin defining equation\n"
            ^ string_of_thm thm);
     fun check_typ_fun (const as (c, _), thm) =
       let
-        val (_, ty) = CodegenFunc.head_func thm;
+        val (_, ty) = CodeUnit.head_func thm;
         val ty_decl = Sign.the_const_type thy c;
       in if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
         then thm
-        else CodegenFunc.bad_thm ("Type\n" ^ CodegenConsts.string_of_typ thy ty
+        else CodeUnit.bad_thm ("Type\n" ^ CodeUnit.string_of_typ thy ty
            ^ "\nof defining equation\n"
            ^ string_of_thm thm
            ^ "\nis incompatible with declared function type\n"
-           ^ CodegenConsts.string_of_typ thy ty_decl)
+           ^ CodeUnit.string_of_typ thy ty_decl)
       end;
     fun check_typ (const as (c, _), thm) =
       case AxClass.class_of_param thy c
        of SOME class => check_typ_classop class (const, thm)
         | NONE => check_typ_fun (const, thm);
-  in check_typ (fst (CodegenFunc.head_func thm), thm) end;
+  in check_typ (fst (CodeUnit.head_func thm), thm) end;
 
-val mk_func = CodegenFunc.error_thm
-  (assert_func_typ o CodegenFunc.mk_func);
-val mk_func_liberal = CodegenFunc.warning_thm
-  (assert_func_typ o CodegenFunc.mk_func);
+val mk_func = CodeUnit.error_thm
+  (assert_func_typ o CodeUnit.mk_func);
+val mk_func_liberal = CodeUnit.warning_thm
+  (assert_func_typ o CodeUnit.mk_func);
 
 end;
 
 
 
-(** interfaces **)
+(** interfaces and attributes **)
 
 fun add_func true thm thy =
       let
         val func = mk_func thm;
-        val (const, _) = CodegenFunc.head_func func;
+        val (const, _) = CodeUnit.head_func func;
       in map_exec_purge (SOME [const]) (map_funcs
         (Consttab.map_default
           (const, (Susp.value [], [])) (add_thm func))) thy
@@ -641,7 +660,7 @@ fun add_func true thm thy =
   | add_func false thm thy =
       case mk_func_liberal thm
        of SOME func => let
-              val (const, _) = CodegenFunc.head_func func
+              val (const, _) = CodeUnit.head_func func
             in map_exec_purge (SOME [const]) (map_funcs
               (Consttab.map_default
                 (const, (Susp.value [], [])) (add_thm func))) thy
@@ -655,7 +674,7 @@ fun delete_force msg key xs =
 fun del_func thm thy =
   let
     val func = mk_func thm;
-    val (const, _) = CodegenFunc.head_func func;
+    val (const, _) = CodeUnit.head_func func;
   in map_exec_purge (SOME [const]) (map_funcs
     (Consttab.map_entry
       const (del_thm func))) thy
@@ -679,7 +698,7 @@ local
 fun del_datatype tyco thy =
   case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
    of SOME (vs, cos) => let
-        val consts = CodegenConsts.consts_of_cos thy tyco vs cos;
+        val consts = CodeUnit.consts_of_cos thy tyco vs cos;
       in map_exec_purge (if null consts then NONE else SOME consts)
         (map_dtyps (Symtab.delete tyco)) thy end
     | NONE => thy;
@@ -688,7 +707,7 @@ in
 
 fun add_datatype (tyco, (vs_cos as (vs, cos))) thy =
   let
-    val consts = CodegenConsts.consts_of_cos thy tyco vs cos;
+    val consts = CodeUnit.consts_of_cos thy tyco vs cos;
   in
     thy
     |> del_datatype tyco
@@ -696,21 +715,21 @@ fun add_datatype (tyco, (vs_cos as (vs, cos))) thy =
   end;
 
 fun add_datatype_consts consts thy =
-  add_datatype (CodegenConsts.cos_of_consts thy consts) thy;
+  add_datatype (CodeUnit.cos_of_consts thy consts) thy;
 
 fun add_datatype_consts_cmd raw_cs thy =
-  add_datatype_consts (map (CodegenConsts.read_const thy) raw_cs) thy
+  add_datatype_consts (map (CodeUnit.read_const thy) raw_cs) thy
 
 end; (*local*)
 
 fun add_inline thm thy =
   (map_exec_purge NONE o map_thmproc o apfst o apfst o apfst)
-    (insert Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
+    (insert Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
 fun del_inline thm thy =
   (map_exec_purge NONE o map_thmproc o apfst o apfst o apfst)
-    (remove Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
+    (remove Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
 fun add_inline_proc (name, f) =
@@ -731,35 +750,49 @@ fun del_preproc name =
 
 fun add_post thm thy =
   (map_exec_purge NONE o map_thmproc o apsnd)
-    (insert Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
+    (insert Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
 fun del_post thm thy =
   (map_exec_purge NONE o map_thmproc o apsnd)
-    (remove Thm.eq_thm_prop (CodegenFunc.error_thm CodegenFunc.mk_rew thm)) thy;
+    (remove Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
+val _ = Context.add_setup
+  (let
+    fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
+    fun add_simple_attribute (name, f) =
+      add_attribute (name, Scan.succeed (mk_attribute f));
+    fun add_del_attribute (name, (add, del)) =
+      add_attribute (name, Args.del |-- Scan.succeed (mk_attribute del)
+        || Scan.succeed (mk_attribute add))
+  in
+    add_del_attribute ("func", (add_func true, del_func))
+    #> add_del_attribute ("inline", (add_inline, del_inline))
+    #> add_del_attribute ("post", (add_post, del_post))
+  end);
 
-(** , post- and preprocessing **)
+
+(** post- and preprocessing **)
 
 local
 
 fun gen_apply_inline_proc prep post thy f x =
   let
     val cts = prep x;
-    val rews = map CodegenFunc.assert_rew (f thy cts);
+    val rews = map CodeUnit.assert_rew (f thy cts);
   in post rews x end;
 
 val apply_inline_proc = gen_apply_inline_proc (maps
   ((fn [args, rhs] => rhs :: (snd o Drule.strip_comb) args) o snd o Drule.strip_comb o Thm.cprop_of))
-  (fn rews => map (CodegenFunc.rewrite_func rews));
+  (fn rews => map (CodeUnit.rewrite_func rews));
 val apply_inline_proc_cterm = gen_apply_inline_proc single
   (MetaSimplifier.rewrite false);
 
 fun apply_preproc thy f [] = []
   | apply_preproc thy f (thms as (thm :: _)) =
       let
-        val (const, _) = CodegenFunc.head_func thm;
+        val (const, _) = CodeUnit.head_func thm;
         val thms' = f thy thms;
       in certify_const thy const thms' end;
 
@@ -773,7 +806,7 @@ in
 fun preprocess thy thms =
   thms
   |> fold (fn (_, (_, f)) => apply_preproc thy f) ((#preprocs o the_thmproc o get_exec) thy)
-  |> map (CodegenFunc.rewrite_func ((#inlines o the_thmproc o get_exec) thy))
+  |> map (CodeUnit.rewrite_func ((#inlines o the_thmproc o get_exec) thy))
   |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o get_exec) thy)
 (*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
   |> common_typ_funcs;
@@ -807,7 +840,7 @@ fun get_datatype thy tyco =
         |> rpair [];
 
 fun get_datatype_of_constr thy const =
-  case CodegenConsts.co_of_const' thy const
+  case CodeUnit.co_of_const' thy const
    of SOME (tyco, (_, co)) => if member eq_co
         (Symtab.lookup (((the_dtyps o get_exec) thy)) tyco
           |> Option.map snd
@@ -818,7 +851,7 @@ fun get_constr_typ thy const =
   case get_datatype_of_constr thy const
    of SOME tyco => let
         val (vs, cos) = get_datatype thy tyco;
-        val (_, (_, (co, tys))) = CodegenConsts.co_of_const thy const
+        val (_, (_, (co, tys))) = CodeUnit.co_of_const thy const
       in (tys ---> Type (tyco, map TFree vs))
         |> map_atyps (fn TFree (v, _) => TFree (v, AList.lookup (op =) vs v |> the))
         |> Logic.varifyT
@@ -855,7 +888,7 @@ fun these_funcs thy const =
 fun default_typ thy (const as (c, _)) = case default_typ_proto thy const
  of SOME ty => ty
   | NONE => (case get_funcs thy const
-     of thm :: _ => snd (CodegenFunc.head_func thm)
+     of thm :: _ => snd (CodeUnit.head_func thm)
       | [] => Sign.the_const_type thy c);
 
 end; (*local*)
@@ -872,21 +905,21 @@ type T = Data.T;
 exception Data of T;
 fun dest (Data x) = x
 
-val kind = CodegenData.declare_data (Data Data.empty)
+val kind = Code.declare_data (Data Data.empty)
   (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)))
   (fn thy_opt => fn cs => fn Data x => Data (Data.purge thy_opt cs x));
 
 val data_op = (kind, Data, dest);
 
-val get = CodegenData.get_data data_op;
-val change = CodegenData.change_data data_op;
-fun change_yield thy = CodegenData.change_yield_data data_op thy;
+val get = Code.get_data data_op;
+val change = Code.change_data data_op;
+fun change_yield thy = Code.change_yield_data data_op thy;
 
 end;
 
-structure CodegenData : CODEGEN_DATA =
+structure Code : CODE =
 struct
 
-open CodegenData;
+open Code;
 
 end;

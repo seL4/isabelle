@@ -44,7 +44,7 @@ fun add optmod =
       handle TERM _ => tap (fn _ => warn thm);
   in
     Thm.declaration_attribute (fn thm => Context.mapping
-      (add thm #> CodegenData.add_func false thm) I)
+      (add thm #> Code.add_func false thm) I)
   end;
 
 fun del_thm thm thy =
@@ -58,7 +58,7 @@ fun del_thm thm thy =
   end handle TERM _ => (warn thm; thy);
 
 val del = Thm.declaration_attribute
-  (fn thm => Context.mapping (del_thm thm #> CodegenData.del_func thm) I)
+  (fn thm => Context.mapping (del_thm thm #> Code.del_func thm) I)
 
 fun del_redundant thy eqs [] = eqs
   | del_redundant thy eqs (eq :: eqs') =
@@ -170,9 +170,8 @@ fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
 
 
 val setup =
-  add_codegen "recfun" recfun_codegen #>
-  add_attribute ""
-    (Args.del |-- Scan.succeed del
+  add_codegen "recfun" recfun_codegen
+  #> Code.add_attribute ("", Args.del |-- Scan.succeed del
      || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add);
 
 end;

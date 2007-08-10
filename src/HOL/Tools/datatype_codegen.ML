@@ -538,7 +538,7 @@ fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
 (* registering code types in code generator *)
 
 fun codetype_hook dtspecs =
-  fold (fn (dtco, (_, spec)) => CodegenData.add_datatype (dtco, spec)) dtspecs;
+  fold (fn (dtco, (_, spec)) => Code.add_datatype (dtco, spec)) dtspecs;
 
 
 (* instrumentalizing the sort algebra *)
@@ -553,7 +553,7 @@ fun get_codetypes_arities thy tycos sort =
     val algebra' = algebra
       |> fold (fn (tyco, _) =>
            Sorts.add_arities pp (tyco, map (fn class => (class, map snd vs)) sort)) css;
-    fun typ_sort_inst ty = CodegenConsts.typ_sort_inst algebra' (Logic.varifyT ty, sort);
+    fun typ_sort_inst ty = CodeUnit.typ_sort_inst algebra' (Logic.varifyT ty, sort);
     val venv = Vartab.empty
       |> fold (fn (v, sort) => Vartab.update_new ((v, 0), sort)) vs
       |> fold (fn (_, cs) => fold (fn (_, tys) => fold typ_sort_inst tys) cs) css;
@@ -585,7 +585,7 @@ fun prove_codetypes_arities tac tycos sort f after_qed thy =
         |> not (null arities) ? (
             f arities css
             #-> (fn defs =>
-              ClassPackage.prove_instance_arity tac arities defs
+              Class.prove_instance_arity tac arities defs
             #> after_qed arities css))
       end;
 
@@ -600,10 +600,10 @@ fun eq_hook specs =
         val const = ("op =", SOME dtco);
         val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
       in
-        CodegenData.add_funcl (const, CodegenData.lazy_thms get_thms) thy
+        Code.add_funcl (const, Susp.delay get_thms) thy
       end;
   in
-    prove_codetypes_arities (ClassPackage.intro_classes_tac [])
+    prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
       [HOLogic.class_eq] ((K o K o pair) []) ((K o K) (fold add_eq_thms specs))
   end;
@@ -616,14 +616,14 @@ fun add_datatype_case_const dtco thy =
   let
     val {case_name, index, descr, ...} = DatatypePackage.the_datatype thy dtco;
   in
-    CodegenPackage.add_appconst (case_name, CodegenPackage.appgen_case dest_case_expr) thy
+    CodePackage.add_appconst (case_name, CodePackage.appgen_case dest_case_expr) thy
   end;
 
 fun add_datatype_case_defs dtco thy =
   let
     val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
   in
-    fold_rev (CodegenData.add_func true) case_rewrites thy
+    fold_rev (Code.add_func true) case_rewrites thy
   end;
 
 val setup = 
