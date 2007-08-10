@@ -1,4 +1,4 @@
-# -*- shell-script -*-
+# -*- shell-script -*- :mode=shellscript:
 # $Id$
 #
 # Isabelle settings -- site defaults.
@@ -62,7 +62,7 @@ ML_DBASE=""
 #ML_SUFFIX=".psv"
 #ML_PLATFORM=""
 
-# Alice 1.3 (experimental!)
+# Alice 1.4 (experimental!)
 #ML_SYSTEM=alice
 #ML_HOME="/usr/local/alice/bin"
 #ML_OPTIONS=""
