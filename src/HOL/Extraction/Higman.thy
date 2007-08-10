@@ -6,7 +6,9 @@
 
 header {* Higman's lemma *}
 
-theory Higman imports Main begin
+theory Higman
+imports Main (*"~~/src/HOL/ex/Random"*)
+begin
 
 text {*
   Formalization by Stefan Berghofer and Monika Seisenberger,
@@ -335,13 +337,37 @@ text {*
   @{thm [display] prop3_def [no_vars]}
 *}
 
+
+subsection {* Some examples *}
+
+(* an attempt to express examples in HOL -- function
+  mk_word :: "nat \<Rightarrow> randseed \<Rightarrow> letter list \<times> randseed"
+where
+  "mk_word k = (do
+     i \<leftarrow> random 10;
+     (if i > 7 \<and> k > 2 \<or> k > 1000 then return []
+     else do
+       let l = (if i mod 2 = 0 then A else B);
+       ls \<leftarrow> mk_word (Suc k);
+       return (l # ls)
+     done)
+   done)"
+by pat_completeness auto
+termination by (relation "measure ((op -) 1001)") auto
+
+fun
+  mk_word' :: "nat \<Rightarrow> randseed \<Rightarrow> letter list \<times> randseed"
+where
+  "mk_word' 0 = mk_word 0"
+  | "mk_word' (Suc n) = (do _ \<leftarrow> mk_word 0; mk_word' n done)"*)
+
 consts_code
   "arbitrary :: LT"  ("({* L0 [] [] *})")
   "arbitrary :: TT"  ("({* T0 A [] [] [] R0 *})")
 
 code_module Higman
 contains
-  test = higman_idx
+  higman = higman_idx
 
 ML {*
 local open Higman in
@@ -378,36 +404,28 @@ fun f2 zero = [A,A]
   | f2 (Suc (Suc zero)) = [B,A]
   | f2 _ = [];
 
-val (i1, j1) = test g1;
+val (i1, j1) = higman g1;
 val (v1, w1) = (g1 i1, g1 j1);
-val (i2, j2) = test g2;
+val (i2, j2) = higman g2;
 val (v2, w2) = (g2 i2, g2 j2);
-val (i3, j3) = test f1;
+val (i3, j3) = higman f1;
 val (v3, w3) = (f1 i3, f1 j3);
-val (i4, j4) = test f2;
+val (i4, j4) = higman f2;
 val (v4, w4) = (f2 i4, f2 j4);
 
 end;
 *}
 
 definition
-  arbitrary_LT :: "LT" where
+  arbitrary_LT :: LT where
   [symmetric, code inline]: "arbitrary_LT = arbitrary"
 
 definition
-  arbitrary_TT :: "TT" where
+  arbitrary_TT :: TT where
   [symmetric, code inline]: "arbitrary_TT = arbitrary"
 
-
-definition
-  "arbitrary_LT' = L0 [] []"
-
-definition
-  "arbitrary_TT' = T0 A [] [] [] R0"
-
-code_axioms
-  arbitrary_LT \<equiv> arbitrary_LT'
-  arbitrary_TT \<equiv> arbitrary_TT'
+code_datatype L0 L1 arbitrary_LT
+code_datatype T0 T1 T2 arbitrary_TT
 
 code_gen higman_idx in SML to Higman
 
