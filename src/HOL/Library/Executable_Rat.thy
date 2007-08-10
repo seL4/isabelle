@@ -94,12 +94,15 @@ lemma rat_div_code [code]: "Rat x / Rat y = Rat (x \<div>\<^sub>N y)"
   unfolding Rat_def by simp
 
 code_modulename SML
+  Rational Rational
   Executable_Rat Rational
 
 code_modulename OCaml
+  Rational Rational
   Executable_Rat Rational
 
 code_modulename Haskell
+  Rational Rational
   Executable_Rat Rational
 
 end
