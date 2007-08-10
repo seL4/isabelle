@@ -239,7 +239,7 @@ fun nat_of_int_of_number_of thy cts =
 *}
 
 setup {*
-  CodegenData.add_inline_proc ("nat_of_int_of_number_of", nat_of_int_of_number_of)
+  Code.add_inline_proc ("nat_of_int_of_number_of", nat_of_int_of_number_of)
 *}
 
 text {*
@@ -268,15 +268,8 @@ text {*
 (*<*)
 
 ML {*
-local
-  val Suc_if_eq = thm "Suc_if_eq";
-  val Suc_clause = thm "Suc_clause";
-  fun contains_suc t = member (op =) (term_consts t) "Suc";
-in
-
 fun remove_suc thy thms =
   let
-    val Suc_if_eq' = Thm.transfer thy Suc_if_eq;
     val vname = Name.variant (map fst
       (fold (Term.add_varnames o Thm.full_prop_of) thms [])) "x";
     val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));
@@ -302,7 +295,7 @@ fun remove_suc thy thms =
              (Drule.instantiate'
                [SOME (ctyp_of_term ct)] [SOME (Thm.cabs cv ct),
                  SOME (Thm.cabs cv' (rhs_of th)), NONE, SOME cv']
-               Suc_if_eq')) (Thm.forall_intr cv' th)
+               @{thm Suc_if_eq})) (Thm.forall_intr cv' th)
       in
         case map_filter (fn th'' =>
             SOME (th'', singleton
@@ -321,7 +314,8 @@ fun remove_suc thy thms =
 
 fun eqn_suc_preproc thy ths =
   let
-    val dest = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of
+    val dest = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of;
+    fun contains_suc t = member (op =) (term_consts t) @{const_name Suc};
   in
     if forall (can dest) ths andalso
       exists (contains_suc o dest) ths
@@ -330,10 +324,9 @@ fun eqn_suc_preproc thy ths =
 
 fun remove_suc_clause thy thms =
   let
-    val Suc_clause' = Thm.transfer thy Suc_clause;
     val vname = Name.variant (map fst
       (fold (Term.add_varnames o Thm.full_prop_of) thms [])) "x";
-    fun find_var (t as Const ("Suc", _) $ (v as Var _)) = SOME (t, v)
+    fun find_var (t as Const (@{const_name Suc}, _) $ (v as Var _)) = SOME (t, v)
       | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)
       | find_var _ = NONE;
     fun find_thm th =
@@ -351,7 +344,7 @@ fun remove_suc_clause thy thms =
                 [SOME (cert (lambda v (Abs ("x", HOLogic.natT,
                    abstract_over (Sucv,
                      HOLogic.dest_Trueprop (prop_of th')))))),
-                 SOME (cert v)] Suc_clause'))
+                 SOME (cert v)] @{thm Suc_clause}))
             (Thm.forall_intr (cert v) th'))
         in
           remove_suc_clause thy (map (fn th''' =>
@@ -369,8 +362,6 @@ fun clause_suc_preproc thy ths =
     then remove_suc_clause thy ths else ths
   end;
 
-end; (*local*)
-
 fun lift_obj_eq f thy =
   map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
   #> f thy
@@ -381,8 +372,8 @@ fun lift_obj_eq f thy =
 setup {*
   Codegen.add_preprocessor eqn_suc_preproc
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> CodegenData.add_preproc ("eqn_Suc", lift_obj_eq eqn_suc_preproc)
-  #> CodegenData.add_preproc ("clause_Suc", lift_obj_eq clause_suc_preproc)
+  #> Code.add_preproc ("eqn_Suc", lift_obj_eq eqn_suc_preproc)
+  #> Code.add_preproc ("clause_Suc", lift_obj_eq clause_suc_preproc)
 *}
 (*>*)
 
