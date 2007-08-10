@@ -1,28 +1,28 @@
 (*  Title:      HOL/Complex/ex/ROOT.ML
     ID:         $Id$
 
-Miscellaneous examples involving the Reals, Hyperreals, etc.
+Miscellaneous examples.
 *)
 
-use_thy "BinEx";
-no_document (with_path "../../NumberTheory" use_thy) "Factorization";
-(*These two examples just need the theory Primes.*)
-use_thy "Sqrt";
-use_thy "Sqrt_Script";
-(*This example also needs the theory Factorization.*)
-use_thy "NSPrimes";
+no_document use_thys [
+  "../../NumberTheory/Factorization",
+  "BigO",
+  "NatPair"
+];
 
-no_document use_thy "BigO";
-use_thy "BigO_Complex";
+use_thys [
+  "BinEx",
+  "Sqrt",
+  "Sqrt_Script",
+  "NSPrimes",
+  "BigO_Complex",
 
-use_thy "Arithmetic_Series_Complex";
-use_thy "HarmonicSeries";
+  "Arithmetic_Series_Complex",
+  "HarmonicSeries",
 
-no_document use_thy "NatPair";
-use_thy "DenumRat";
+  "DenumRat"
+];
 
 if String.isPrefix "smlnj" ml_system then ()  (* FIXME tmp *)
-else use_thy "MIR";
+else use_thys ["MIR", "ReflectedFerrack"];
 
-if String.isPrefix "smlnj" ml_system then ()  (* FIXME tmp *)
-else use_thy "ReflectedFerrack";
