@@ -333,8 +333,8 @@ fun task_finished Finished = true | task_finished _ = false;
 local
 
 fun max_task (name, (Task body, m)) NONE = SOME (name, (body, m))
-  | max_task (name, (Task body, m)) (task' as SOME (_, (_, m'))) =
-      if m > m' then SOME (name, (body, m)) else task'
+  | max_task (name, (Task body, m)) (task' as SOME (name', (_, m'))) =
+      if m > m' orelse m = m' andalso name < name' then SOME (name, (body, m)) else task'
   | max_task _ task' = task';
 
 fun next_task G =
