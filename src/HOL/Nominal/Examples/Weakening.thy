@@ -59,6 +59,7 @@ where
 text {* Now it comes: The Weakening Lemma *}
 
 lemma weakening_version1: 
+  fixes \<Gamma>1 \<Gamma>2 :: "(name\<times>ty) list"
   assumes a: "\<Gamma>1 \<turnstile> t : T" 
   and     b: "valid \<Gamma>2" 
   and     c: "\<Gamma>1 \<subseteq> \<Gamma>2"
@@ -97,7 +98,8 @@ next
   with vc show "\<Gamma>2 \<turnstile> Lam [x].t : T1\<rightarrow>T2" by auto
 qed (auto) (* app case *)
 
-lemma weakening_version3: 
+lemma weakening_version3:
+  fixes \<Gamma>1 \<Gamma>2 :: "(name\<times>ty) list"
   assumes a: "\<Gamma>1 \<turnstile> t : T"
   and     b: "valid \<Gamma>2" 
   and     c: "\<Gamma>1 \<subseteq> \<Gamma>2"
@@ -120,6 +122,7 @@ text{* The original induction principle for the typing relation
        is not strong enough - even this simple lemma fails to be simple ;o) *}
 
 lemma weakening_too_weak: 
+  fixes \<Gamma>1 \<Gamma>2 :: "(name\<times>ty) list"
   assumes a: "\<Gamma>1 \<turnstile> t : T"
   and     b: "valid \<Gamma>2" 
   and     c: "\<Gamma>1 \<subseteq> \<Gamma>2"

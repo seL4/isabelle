@@ -142,11 +142,13 @@ lemma rtrancl_eta_subst: "s \<rightarrow>\<^sub>\<eta> t \<Longrightarrow> u[s/i
   done
 
 lemma rtrancl_eta_subst':
+  fixes s t :: dB
   assumes eta: "s \<rightarrow>\<^sub>\<eta>\<^sup>* t"
   shows "s[u/i] \<rightarrow>\<^sub>\<eta>\<^sup>* t[u/i]" using eta
   by induct (iprover intro: eta_subst)+
 
 lemma rtrancl_eta_subst'':
+  fixes s t :: dB
   assumes eta: "s \<rightarrow>\<^sub>\<eta>\<^sup>* t"
   shows "u[s/i] \<rightarrow>\<^sub>\<eta>\<^sup>* u[t/i]" using eta
   by induct (iprover intro: rtrancl_eta_subst rtranclp_trans)+
@@ -238,6 +240,7 @@ text {*
 *}
 
 theorem eta_case:
+  fixes s :: dB
   assumes free: "\<not> free s 0"
   and s: "s[dummy/0] => u"
   shows "\<exists>t'. Abs (s \<degree> Var 0) => t' \<and> t' \<rightarrow>\<^sub>\<eta>\<^sup>* u"

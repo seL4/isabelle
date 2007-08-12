@@ -274,6 +274,7 @@ where
   "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2 \<equiv> \<forall>a T. (a,T)\<in>set \<Gamma>\<^isub>1 \<longrightarrow> (a,T)\<in>set \<Gamma>\<^isub>2"
 
 lemma valid_monotonicity[elim]:
+ fixes \<Gamma> \<Gamma>' :: Ctxt
  assumes a: "\<Gamma> \<subseteq> \<Gamma>'" 
  and     b: "x\<sharp>\<Gamma>'"
  shows "(x,T\<^isub>1)#\<Gamma> \<subseteq> (x,T\<^isub>1)#\<Gamma>'"
@@ -373,6 +374,7 @@ apply(simp add: supp_def)
 done
 
 lemma test3a:
+  fixes \<Gamma> :: Ctxt and t :: trm
   assumes a: "\<Gamma> \<turnstile> t : T"
   shows "(supp t) \<subseteq> ((supp \<Gamma>)::name set)"
 using a
@@ -392,6 +394,7 @@ apply(simp add: supp_def perm_nat_def)
 done
 
 lemma test3:
+  fixes \<Gamma> :: Ctxt and s t :: trm
   assumes a: "\<Gamma> \<turnstile> s \<equiv> t : T"
   shows "(supp (s,t)) \<subseteq> ((supp \<Gamma>)::name set)"
 using a
@@ -765,7 +768,8 @@ apply(relation "measure (\<lambda>(_,_,_,T). size T)")
 apply(auto)
 done
 
-lemma logical_monotonicity :
+lemma logical_monotonicity:
+ fixes \<Gamma> \<Gamma>' :: Ctxt
  assumes a1: "\<Gamma> \<turnstile> s is t : T" 
  and     a2: "\<Gamma> \<subseteq> \<Gamma>'" 
  and     a3: "valid \<Gamma>'"
@@ -915,6 +919,7 @@ proof -
 qed
 
 lemma logical_subst_monotonicity :
+  fixes \<Gamma> \<Gamma>' \<Gamma>'' :: Ctxt
   assumes a: "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma>" 
   and     b: "\<Gamma>' \<subseteq> \<Gamma>''"
   and     c: "valid \<Gamma>''"

@@ -366,6 +366,7 @@ proof -
 qed
 
 lemma weakening: 
+  fixes \<Gamma>\<^isub>1 \<Gamma>\<^isub>2 :: "(name\<times>ty) list"
   assumes "\<Gamma>\<^isub>1 \<turnstile> e: T" and "valid \<Gamma>\<^isub>2" and "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2"
   shows "\<Gamma>\<^isub>2 \<turnstile> e: T"
   using assms

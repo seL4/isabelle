@@ -143,6 +143,7 @@ where
   "\<Gamma>1 \<subseteq> \<Gamma>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>1 \<longrightarrow> (x,T)\<in>set \<Gamma>2"
 
 lemma weakening_almost_automatic:
+  fixes \<Gamma>1 \<Gamma>2 :: cxt
   assumes a: "\<Gamma>1 \<turnstile> t : T"
   and     b: "\<Gamma>1 \<subseteq> \<Gamma>2"
   and     c: "valid \<Gamma>2"
@@ -155,6 +156,7 @@ apply(auto intro!: t_lLam)
 done
 
 lemma weakening_in_more_detail:
+  fixes \<Gamma>1 \<Gamma>2 :: cxt
   assumes a: "\<Gamma>1 \<turnstile> t : T"
   and     b: "\<Gamma>1 \<subseteq> \<Gamma>2"
   and     c: "valid \<Gamma>2"
