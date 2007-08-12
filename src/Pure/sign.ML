@@ -588,47 +588,52 @@ val read_const = Consts.read_const o consts_of;
   freeze: if true then generated parameters are turned into TFrees, else TVars
 *)
 
-fun read_def_terms' pp is_logtype syn consts map_free ctxt (def_type, def_sort) used freeze sTs =
+fun read_def_terms'
+    pp is_logtype syn consts map_free ctxt (def_type, def_sort) used freeze raw_args =
   let
     val thy = ProofContext.theory_of ctxt;
 
-    (*read terms -- potentially ambiguous*)
-    val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
-    val read =
-      Syntax.read_term (get_sort thy def_sort) map_const map_free
-        (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn;
-
-    val args = sTs |> map (fn (s, raw_T) =>
-      let val T = certify_typ thy raw_T handle TYPE (msg, _, _) => error msg
-      in (read (#1 (TypeInfer.paramify_dummies T 0)) s, T) end);
+    fun infer args = TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
+        (try (Consts.the_constraint consts)) def_type used freeze args |>> map fst
+      handle TYPE (msg, _, _) => error msg;
 
     (*brute-force disambiguation via type-inference*)
-    val termss = fold_rev (multiply o fst) args [[]];
-    val typs = map snd args;
+    fun disambig _ [t] = t
+      | disambig T ts =
+          let
+            fun try_infer t = Exn.Result (singleton (fst o infer) (t, T))
+              handle ERROR msg => Exn.Exn (ERROR msg);
+            val err_results = map try_infer ts;
+            val errs = map_filter (fn Exn.Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
+            val results = map_filter Exn.get_result err_results;
 
-    fun infer ts = Exn.Result (TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
-        (try (Consts.the_constraint consts)) def_type used freeze (ts ~~ typs) |>> map fst)
-      handle TYPE (msg, _, _) => Exn.Exn (ERROR msg);
-
-    val err_results = map infer termss;
-    val errs = map_filter (fn Exn.Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
-    val results = map_filter Exn.get_result err_results;
-
-    val ambiguity = length termss;
-    fun ambig_msg () =
-      if ambiguity > 1 andalso ambiguity <= ! Syntax.ambiguity_level then
-        "Got more than one parse tree.\n\
-        \Retry with smaller Syntax.ambiguity_level for more information."
-      else "";
+            val ambiguity = length ts;
+            fun ambig_msg () =
+              if ambiguity > 1 andalso ambiguity <= ! Syntax.ambiguity_level then
+                "Got more than one parse tree.\n\
+                \Retry with smaller Syntax.ambiguity_level for more information."
+              else "";
+          in
+            if null results then cat_error (ambig_msg ()) (cat_lines errs)
+            else if length results = 1 then
+              (if ambiguity > ! Syntax.ambiguity_level then
+                warning "Fortunately, only one parse tree is type correct.\n\
+                  \You may still want to disambiguate your grammar or your input."
+              else (); hd results)
+            else cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
+              cat_lines (map (Pretty.string_of_term pp) ts))
+          end;
+          
+    (*read term*)
+    val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
+    fun read T = disambig T o Syntax.read_term (get_sort thy def_sort) map_const map_free
+        (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn T;
   in
-    if null results then cat_error (ambig_msg ()) (cat_lines errs)
-    else if length results = 1 then
-      (if ambiguity > ! Syntax.ambiguity_level then
-        warning "Fortunately, only one parse tree is type correct.\n\
-          \You may still want to disambiguate your grammar or your input."
-      else (); hd results)
-    else cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
-      cat_lines (map (Pretty.string_of_term pp) (maps fst results)))
+    raw_args
+    |> map (fn (s, raw_T) =>
+      let val T = certify_typ thy raw_T handle TYPE (msg, _, _) => error msg
+      in (read (#1 (TypeInfer.paramify_dummies T 0)) s, T) end)
+    |> infer
   end;
 
 fun read_def_terms (thy, types, sorts) used freeze sTs =
