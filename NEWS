@@ -46,6 +46,13 @@ file (with the same base name as the theory) are considered a legacy
 feature, which will disappear eventually. Even now, the theory loader no
 longer maintains dependencies on such files.
 
+* Syntax: the scope for resolving ambiguities via type-inference is now
+limited to individual terms, instead of whole simultaneous
+specifications as before. This greatly reduces the complexity of the
+syntax module and improves flexibility by separating parsing and
+type-checking. INCOMPATIBILITY: additional type-constraints (explicit
+'fixes' etc.) are required in rare situations.
+
 * Legacy goal package: reduced interface to the bare minimum required
 to keep existing proof scripts running.  Most other user-level
 functions are now part of the OldGoals structure, which is *not* open
