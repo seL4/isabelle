@@ -23,6 +23,8 @@ use "name.ML";
 use "term.ML";
 use "term_subst.ML";
 use "General/pretty.ML";
+use "Syntax/lexicon.ML";
+use "Syntax/simple_syntax.ML";
 use "sorts.ML";
 use "type.ML";
 use "context.ML";
@@ -32,7 +34,6 @@ use "compress.ML";
 use "type_infer.ML";
 
 (*inner syntax module*)
-use "Syntax/lexicon.ML";
 use "Syntax/ast.ML";
 use "Syntax/syn_ext.ML";
 use "Syntax/parser.ML";
