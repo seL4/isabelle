@@ -57,8 +57,12 @@ val const = long_ident || ident;
 
 (*
   typ  = typ1 => ... => typ1
+       | typ1
   typ1 = typ2 const ... const
-  typ2 = tfree | const | "(" typ ")"
+       | typ2
+  typ2 = tfree
+       | const
+       | ( typ )
 *)
 
 fun typ x =
@@ -91,7 +95,7 @@ val read_typ = read typ;
         | term5
   term5 = ident
         | CONST const
-        | "(" term ")"
+        | ( term )
 *)
 
 local
