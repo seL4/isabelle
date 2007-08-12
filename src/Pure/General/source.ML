@@ -112,24 +112,23 @@ fun exhausted src = of_list (exhaust src);
 
 (* stream source *)
 
-fun slurp_input instream = NAMED_CRITICAL "IO" (fn () =>
+fun slurp_input instream =
   let
     fun slurp () =
       (case TextIO.canInput (instream, 1) handle IO.Io _ => NONE of
         NONE => []
       | SOME 0 => []
       | SOME _ => TextIO.input instream :: slurp ());
-  in maps explode (slurp ()) end);
+  in maps explode (slurp ()) end;
 
 fun drain_stream instream outstream prompt () =
   let val input = slurp_input instream in
     if exists (fn c => c = "\n") input then (input, ())
     else
       (case
-        NAMED_CRITICAL "IO" (fn () =>
           (TextIO.output (outstream, Output.output prompt);
             TextIO.flushOut outstream;
-            TextIO.inputLine instream)) of
+            TextIO.inputLine instream) of
           SOME line => (input @ explode line, ())
         | NONE => (input, ()))
   end;
