@@ -5778,9 +5778,10 @@ definition
   "test5 (u\<Colon>unit) = mircfrqe (A(E(And (Ge(Sub (Bound 1) (Bound 0))) (Eq (Add (Floor (Bound 1)) (Floor (Neg(Bound 0))))))))"
 
 code_gen mircfrqe mirlfrqe test1 test2 test3 test4 test5
-  in SML to Mir
+  in SML module_name Mir
 
-code_gen mircfrqe mirlfrqe in SML to Mir file "raw_mir.ML"
+(*code_gen mircfrqe mirlfrqe
+  in SML module_name Mir file "raw_mir.ML"*)
 
 ML "set Toplevel.timing"
 ML "Mir.test1 ()"

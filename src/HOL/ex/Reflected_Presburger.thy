@@ -1936,8 +1936,8 @@ where
       (Bound 2))))))))"
 
 code_reserved SML oo
-code_gen pa cooper_test in SML to GeneratedCooper
-(*code_gen pa in SML to GeneratedCooper file "~~/src/HOL/Tools/Qelim/raw_generated_cooper.ML"*)
+code_gen pa cooper_test in SML module_name GeneratedCooper
+(*code_gen pa in SML module_name GeneratedCooper file "~~/src/HOL/Tools/Qelim/raw_generated_cooper.ML"*)
 
 ML {* GeneratedCooper.cooper_test () *}
 use "coopereif.ML"

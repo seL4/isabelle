@@ -1993,7 +1993,7 @@ where
   "ferrack_test u = linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
     (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
 
-code_gen linrqe ferrack_test in SML to Ferrack
+code_gen linrqe ferrack_test in SML module_name Ferrack
 
 (*code_module Ferrack
   contains

@@ -427,7 +427,7 @@ definition
 code_datatype L0 L1 arbitrary_LT
 code_datatype T0 T1 T2 arbitrary_TT
 
-code_gen higman_idx in SML to Higman
+code_gen higman_idx in SML module_name Higman
 
 ML {*
 local

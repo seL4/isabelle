@@ -303,36 +303,36 @@ code_const arbitrary_nat_pair (SML "(~1, ~1)")
   (* this is justified since for valid inputs this "arbitrary" will be dropped
      in the next recursion step in pigeonhole_def *)
 
-code_module PH
+code_module PH1
 contains
   test = test
   test' = test'
   test'' = test''
 
-code_gen test test' test'' in SML to PH2
+code_gen test test' test'' in SML module_name PH2
 
-ML "timeit (PH.test 10)"
+ML "timeit (PH1.test 10)"
 ML "timeit (PH2.test 10)"
 
-ML "timeit (PH.test' 10)"
+ML "timeit (PH1.test' 10)"
 ML "timeit (PH2.test' 10)"
 
-ML "timeit (PH.test 20)"
+ML "timeit (PH1.test 20)"
 ML "timeit (PH2.test 20)"
 
-ML "timeit (PH.test' 20)"
+ML "timeit (PH1.test' 20)"
 ML "timeit (PH2.test' 20)"
 
-ML "timeit (PH.test 25)"
+ML "timeit (PH1.test 25)"
 ML "timeit (PH2.test 25)"
 
-ML "timeit (PH.test' 25)"
+ML "timeit (PH1.test' 25)"
 ML "timeit (PH2.test' 25)"
 
-ML "timeit (PH.test 500)"
+ML "timeit (PH1.test 500)"
 ML "timeit (PH2.test 500)"
 
-ML "timeit PH.test''"
+ML "timeit PH1.test''"
 ML "timeit PH2.test''"
 
 end

@@ -581,7 +581,7 @@ definition
   int :: "nat \<Rightarrow> int" where
   "int \<equiv> of_nat"
 
-code_gen type_NF nat int in SML to Norm
+code_gen type_NF nat int in SML module_name Norm
 
 ML {*
 val nat_of_int = Norm.nat o IntInf.fromInt;
