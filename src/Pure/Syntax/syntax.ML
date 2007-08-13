@@ -68,8 +68,6 @@ sig
   val merge_syntaxes: syntax -> syntax -> syntax
   val basic_syn: syntax
   val basic_nonterms: string list
-  val appl_syntax: (string * string * mixfix) list
-  val applC_syntax: (string * string * mixfix) list
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
@@ -320,16 +318,6 @@ val basic_nonterms =
     SynExt.args, SynExt.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
     "asms", SynExt.any_, SynExt.sprop, "num_const", "index", "struct"]);
 
-val appl_syntax =
- [("_appl", "[('b => 'a), args] => logic", Mixfix.Mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),
-  ("_appl", "[('b => 'a), args] => aprop", Mixfix.Mixfix ("(1_/(1'(_')))", [1000, 0], 1000))];
-
-val applC_syntax =
- [("",       "'a => cargs",                  Mixfix.Delimfix "_"),
-  ("_cargs", "['a, cargs] => cargs",         Mixfix.Mixfix ("_/ _", [1000, 1000], 1000)),
-  ("_applC", "[('b => 'a), cargs] => logic", Mixfix.Mixfix ("(1_/ _)", [1000, 1000], 999)),
-  ("_applC", "[('b => 'a), cargs] => aprop", Mixfix.Mixfix ("(1_/ _)", [1000, 1000], 999))];
-
 
 
 (** print syntax **)
@@ -564,7 +552,6 @@ structure BasicSyntax: BASIC_SYNTAX = Syntax;
 open BasicSyntax;
 
 structure Hidden = struct end;
-structure Lexicon = Hidden;
 structure Ast = Hidden;
 structure SynExt = Hidden;
 structure Parser = Hidden;
