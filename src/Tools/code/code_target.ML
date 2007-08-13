@@ -687,11 +687,12 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
               | fillup_parm x (i, NONE) = x ^ string_of_int i;
             fun fish_parms vars eqs =
               let
-                val raw_fished = fold (map2 fish_parm) eqs (replicate (length (hd eqs)) NONE);
-                val x = Name.variant (map_filter I raw_fished) "x";
-                val fished = map_index (fillup_parm x) raw_fished;
-                val vars' = CodeName.intro_vars fished vars;
-              in map (CodeName.lookup_var vars') fished end;
+                val fished1 = fold (map2 fish_parm) eqs (replicate (length (hd eqs)) NONE);
+                val x = Name.variant (map_filter I fished1) "x";
+                val fished2 = map_index (fillup_parm x) fished1;
+                val fished3 = fold_rev (fn x => fn xs => Name.variant xs x :: xs) fished2 [];
+                val vars' = CodeName.intro_vars fished3 vars;
+              in map (CodeName.lookup_var vars') fished3 end;
             fun pr_eq (ts, t) =
               let
                 val consts = map_filter
