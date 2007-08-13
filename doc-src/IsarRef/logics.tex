@@ -770,7 +770,6 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \indexisarcmd{code-reserved}
 \indexisarcmd{code-modulename}
 \indexisarcmd{code-moduleprolog}
-\indexisarcmd{code-axioms}
 \indexisarcmd{code-abstype}
 \indexisarcmd{print-codesetup}
 \indexisaratt{code func}
@@ -789,7 +788,6 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
   \isarcmd{code_reserved} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_modulename} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_moduleprolog} & : & \isartrans{theory}{theory} \\
-  \isarcmd{code_axioms} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_abstype} & : & \isartrans{theory}{theory} \\
   \isarcmd{print_codesetup}^* & : & \isarkeep{theory~|~proof} \\
   code\ func & : & \isaratt \\
@@ -798,7 +796,7 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 
 \begin{rail}
 'code\_gen' ( constexpr + ) ? \\
-  ( ( 'in' target ( 'to' string ) ? ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?;
+  ( ( 'in' target ( 'module_name' string ) ? ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?;
 
 'code\_thms' ( constexpr + ) ?;
 
@@ -838,8 +836,6 @@ target : 'OCaml' | 'SML' | 'Haskell';
 
 'code\_moduleprolog' target ( ( string ( string | '-') ) + );
 
-'code\_axioms' ( const ( '==' | equiv ) const + );
-
 'code\_abstype' typ typ 'where' ( const ( '==' | equiv ) const + );
 
 syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
@@ -865,8 +861,8 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
   constants currently available (``*'').
 
   By default, for each involved theory one corresponding name space module
-  is generated.  Alternativly, a module name may be specified after the (``to'')
-  keyword; then \emph{all} code is placed in this module.
+  is generated.  Alternativly, a module name may be specified after the
+  (``module_name'') keyword; then \emph{all} code is placed in this module.
 
   For \emph{SML} and \emph{OCaml}, the file specification refers to
   a single file;  for \emph{Haskell}, it refers to a whole directory,
@@ -882,7 +878,7 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 
 \item [$\isarcmd{code_thms}$] prints a list of theorems representing the
   corresponding program containing all given constants; if no constants are
-  given, the currently cached code theorems in printed.
+  given, the currently cached code theorems are printed.
 
 \item [$\isarcmd{code_deps}$] visualizes dependencies of theorems representing the
   corresponding program containing all given constants; if no constants are
@@ -919,12 +915,8 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 \item [$\isarcmd{code_modulename}$] declares aliasings from one module name
   onto another.
 
-\item [$\isarcmd{code_moduleprolog}$] adds any content (''prolog``)
+\item [$\isarcmd{code_moduleprolog}$] adds an arbitrary content (''prolog``)
   to a specified module. A ``-'' will remove an already given prolog.
-
-\item [$\isarcmd{code_axioms}$] uses the given equations for code generation
-  whenever possible. Both sides are required to be constants which are
-  mapped on functions in generated code.
 
 \item [$\isarcmd{code_abstype}$] offers an interface for implementing
   an abstract type plus operations by executable counterparts.
