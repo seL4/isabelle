@@ -217,7 +217,7 @@ fun lookup_consumes th =
   (case AList.lookup (op =) (Thm.get_tags th) (consumes_tagN) of
     NONE => NONE
   | SOME s =>
-      (case Syntax.read_nat s of SOME n => SOME n
+      (case Lexicon.read_nat s of SOME n => SOME n
       | _ => raise THM ("Malformed 'consumes' tag of theorem", 0, [th])));
 
 fun get_consumes th = the_default 0 (lookup_consumes th);

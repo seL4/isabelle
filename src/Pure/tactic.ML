@@ -245,7 +245,7 @@ in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
 end;
 
 fun lift_inst_rule (st, i, sinsts, rule) = lift_inst_rule'
-  (st, i, map (apfst Syntax.read_indexname) sinsts, rule);
+  (st, i, map (apfst Lexicon.read_indexname) sinsts, rule);
 
 (*
 Like lift_inst_rule but takes terms, not strings, where the terms may contain

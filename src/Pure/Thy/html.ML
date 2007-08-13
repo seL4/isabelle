@@ -250,7 +250,7 @@ fun free_or_skolem x =
   | SOME x' => style "skolem" x');
 
 fun var_or_skolem s =
-  (case Syntax.read_variable s of
+  (case Lexicon.read_variable s of
     SOME (x, i) =>
       (case try Name.dest_skolem x of
         NONE => style "var" s

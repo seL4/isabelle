@@ -280,9 +280,9 @@ val alt_name = alt_string >> sym_of;
 val symbol = symbolic >> sym_of;
 val liberal_name = symbol || name;
 
-val nat = some_ident Syntax.read_nat;
+val nat = some_ident Lexicon.read_nat;
 val int = Scan.optional ($$$ "-" >> K ~1) 1 -- nat >> op *;
-val var = some_ident Syntax.read_variable;
+val var = some_ident Lexicon.read_variable;
 
 
 (* enumerations *)
