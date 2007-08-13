@@ -78,11 +78,8 @@ sig
   val is_cons: code -> string -> bool;
   val add_eval_def: string (*bind name*) * iterm -> code -> code;
 
-  val ensure_def: (string -> string) -> (transact -> def * code) -> string
+  val ensure_def: (string -> string) -> (transact -> def * transact) -> string
     -> string -> transact -> transact;
-  val succeed: 'a -> transact -> 'a * code;
-  val fail: string -> transact -> 'a * code;
-  val message: string -> (transact -> 'a) -> transact -> 'a;
   val start_transact: (transact -> 'a * transact) -> code -> 'a * code;
 end;
 
@@ -251,7 +248,6 @@ datatype def =
 
 type code = def Graph.T;
 type transact = Graph.key option * code;
-exception FAIL of string list;
 
 
 (* abstract code *)
@@ -385,12 +381,11 @@ fun ensure_def labelled_name defgen msg name (dep, code) =
       | add_dp (SOME dep) = add_dep (dep, name);
     fun prep_def def code =
       (check_prep_def code def, code);
-    fun invoke_generator name defgen code =
-      defgen (SOME name, code) handle FAIL msgs => raise FAIL (msg' :: msgs);
     fun add_def false =
           ensure_bot name
           #> add_dp dep
-          #> invoke_generator name defgen
+          #> curry defgen (SOME name)
+          ##> snd
           #-> (fn def => prep_def def)
           #-> (fn def => add_def_incr (name, def)
           #> postprocess_def (name, def))
@@ -402,25 +397,10 @@ fun ensure_def labelled_name defgen msg name (dep, code) =
     |> pair dep
   end;
 
-fun succeed some (_, code) = (some, code);
-
-fun fail msg (_, code) = raise FAIL [msg];
-
-fun message msg f trns =
-  f trns handle FAIL msgs =>
-    raise FAIL (msg :: msgs);
-
 fun start_transact f code =
-  let
-    fun handle_fail f x =
-      (f x
-      handle FAIL msgs =>
-        (error o cat_lines) ("Code generation failed, while:" :: msgs))
-  in
-    (NONE, code)
-    |> handle_fail f
-    |-> (fn x => fn (_, code) => (x, code))
-  end;
+  (NONE, code)
+  |> f
+  |-> (fn x => fn (_, code) => (x, code));
 
 fun add_eval_def (name, t) code =
   code
