@@ -26,17 +26,17 @@ val stopper = (eof, is_eof);
 val not_eof = not o is_eof;
 
 val lexicon = Scan.make_lexicon
-  (map Symbol.explode ["!!", "%", "(", ")", ".", "::", "==", "==>", "=?=", "=>", "CONST"]);
+  (map Symbol.explode ["!!", "%", "(", ")", ".", "::", "==", "==>", "=?=", "=>", "&&", "CONST"]);
 
 in
 
 fun read scan s =
   (case
       Symbol.explode s |>
-      Lexicon.tokenize lexicon false |> filter not_eof |>
+      Lexicon.tokenize lexicon false |>
       Scan.read stopper scan of
     SOME x => x
-  | NONE => error ("Bad input: " ^ quote s));
+  | NONE => error ("Malformed input: " ^ quote s));
 
 end;
 
@@ -49,6 +49,8 @@ fun enum2 s scan = scan -- Scan.repeat1 ($$ s |-- scan) >> op ::;
 
 val tfree = Scan.some (fn Lexicon.TFreeSy s => SOME s | _ => NONE);
 val ident = Scan.some (fn Lexicon.IdentSy s => SOME s | _ => NONE);
+val var =
+  Scan.some (fn Lexicon.VarSy s => SOME (Lexicon.read_indexname (unprefix "?" s)) | _ => NONE);
 val long_ident = Scan.some (fn Lexicon.LongIdentSy s => SOME s | _ => NONE);
 val const = long_ident || ident;
 
@@ -86,14 +88,17 @@ val read_typ = read typ;
         | term2
   term2 = term3 == term2
         | term3 =?= term2
+        | term3 && term2
         | term3
   term3 = ident :: typ
+        | var :: typ
         | CONST const :: typ
         | %ident :: typ. term3
         | term4
   term4 = term5 ... term5
         | term5
   term5 = ident
+        | var
         | CONST const
         | ( term )
 *)
@@ -101,8 +106,8 @@ val read_typ = read typ;
 local
 
 val constraint = $$ "::" |-- typ;
-val var = ident -- constraint;
-val bind = var --| $$ ".";
+val idt = ident -- constraint;
+val bind = idt --| $$ ".";
 
 in
 
@@ -114,12 +119,16 @@ and term1 env T x =
  (enum2 "==>" (term2 env propT) >> foldr1 (fn (A, B) => Term.implies $ A $ B) ||
   term2 env T) x
 and term2 env T x =
- (equal env "==" || equal env "=?=" || term3 env T) x
+ (equal env "==" || equal env "=?=" ||
+  term3 env propT -- ($$ "&&" |-- term2 env propT) >> (fn (A, B) =>
+  Const ("ProtoPure.conjunction", propT --> propT --> propT) $ A $ B) ||
+  term3 env T) x
 and equal env eq x =
  (term3 env dummyT -- ($$ eq |-- term2 env dummyT) >> (fn (t, u) =>
    Const (eq, Term.fastype_of t --> Term.fastype_of u --> propT) $ t $ u)) x
 and term3 env T x =
- (var >> Free ||
+ (idt >> Free ||
+  var -- constraint >> Var ||
   $$ "CONST" |-- const -- constraint >> Const ||
   $$ "%" |-- bind :|-- (fn v => term3 (v :: env) dummyT >> lambda (Free v)) ||
   term4 env T) x
@@ -128,11 +137,18 @@ and term4 env T x =
   term5 env T) x
 and term5 env T x =
  (ident >> (fn a => Free (a, the_default T (AList.lookup (op =) env a))) ||
+  var >> (fn xi => Var (xi, T)) ||
   $$ "CONST" |-- const >> (fn c => Const (c, T)) ||
   $$ "(" |-- term env T --| $$ ")") x;
 
-val read_term = read (term [] dummyT);
-val read_prop = read (term [] propT);
+fun read_tm T s =
+  let val t = read (term [] T) s in
+    if can (Term.map_types Term.no_dummyT) t then t
+    else error ("Unspecified types in input: " ^ quote s)
+  end;
+
+val read_term = read_tm dummyT;
+val read_prop = read_tm propT;
 
 end;
 
