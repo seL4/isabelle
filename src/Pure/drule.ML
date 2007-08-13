@@ -518,7 +518,7 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 
 (*** Meta-Rewriting Rules ***)
 
-fun read_prop s = Thm.read_cterm ProtoPure.thy (s, propT);
+val read_prop = Thm.cterm_of ProtoPure.thy o SimpleSyntax.read_prop;
 
 fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
 fun store_standard_thm name thm = store_thm name (standard thm);
@@ -530,12 +530,12 @@ val reflexive_thm =
   in store_standard_thm_open "reflexive" (Thm.reflexive cx) end;
 
 val symmetric_thm =
-  let val xy = read_prop "x == y"
+  let val xy = read_prop "x::'a == y::'a"
   in store_standard_thm_open "symmetric" (Thm.implies_intr xy (Thm.symmetric (Thm.assume xy))) end;
 
 val transitive_thm =
-  let val xy = read_prop "x == y"
-      val yz = read_prop "y == z"
+  let val xy = read_prop "x::'a == y::'a"
+      val yz = read_prop "y::'a == z::'a"
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
   in store_standard_thm_open "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
@@ -547,14 +547,14 @@ fun extensional eq =
   in equal_elim (eta_conversion (cprop_of eq')) eq' end;
 
 val equals_cong =
-  store_standard_thm_open "equals_cong" (Thm.reflexive (read_prop "x == y"));
+  store_standard_thm_open "equals_cong" (Thm.reflexive (read_prop "x::'a == y::'a"));
 
 val imp_cong =
   let
-    val ABC = read_prop "PROP A ==> PROP B == PROP C"
-    val AB = read_prop "PROP A ==> PROP B"
-    val AC = read_prop "PROP A ==> PROP C"
-    val A = read_prop "PROP A"
+    val ABC = read_prop "A ==> B::prop == C::prop"
+    val AB = read_prop "A ==> B"
+    val AC = read_prop "A ==> C"
+    val A = read_prop "A"
   in
     store_standard_thm_open "imp_cong" (implies_intr ABC (equal_intr
       (implies_intr AB (implies_intr A
@@ -567,10 +567,10 @@ val imp_cong =
 
 val swap_prems_eq =
   let
-    val ABC = read_prop "PROP A ==> PROP B ==> PROP C"
-    val BAC = read_prop "PROP B ==> PROP A ==> PROP C"
-    val A = read_prop "PROP A"
-    val B = read_prop "PROP B"
+    val ABC = read_prop "A ==> B ==> C"
+    val BAC = read_prop "B ==> A ==> C"
+    val A = read_prop "A"
+    val B = read_prop "B"
   in
     store_standard_thm_open "swap_prems_eq" (equal_intr
       (implies_intr ABC (implies_intr B (implies_intr A
@@ -620,19 +620,19 @@ val abs_def =
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl = store_standard_thm_open "asm_rl" (Thm.trivial (read_prop "PROP ?psi"));
+val asm_rl = store_standard_thm_open "asm_rl" (Thm.trivial (read_prop "?psi"));
 val _ = store_thm "_" asm_rl;
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
 val cut_rl =
   store_standard_thm_open "cut_rl"
-    (Thm.trivial (read_prop "PROP ?psi ==> PROP ?theta"));
+    (Thm.trivial (read_prop "?psi ==> ?theta"));
 
 (*Generalized elim rule for one conclusion; cut_rl with reversed premises:
      [| PROP V;  PROP V ==> PROP W |] ==> PROP W *)
 val revcut_rl =
-  let val V = read_prop "PROP V"
-      and VW = read_prop "PROP V ==> PROP W";
+  let val V = read_prop "V"
+      and VW = read_prop "V ==> W";
   in
     store_standard_thm_open "revcut_rl"
       (implies_intr V (implies_intr VW (implies_elim (assume VW) (assume V))))
@@ -640,14 +640,14 @@ val revcut_rl =
 
 (*for deleting an unwanted assumption*)
 val thin_rl =
-  let val V = read_prop "PROP V"
-      and W = read_prop "PROP W";
+  let val V = read_prop "V"
+      and W = read_prop "W";
   in store_standard_thm_open "thin_rl" (implies_intr V (implies_intr W (assume W))) end;
 
 (* (!!x. PROP ?V) == PROP ?V       Allows removal of redundant parameters*)
 val triv_forall_equality =
-  let val V  = read_prop "PROP V"
-      and QV = read_prop "!!x::'a. PROP V"
+  let val V  = read_prop "V"
+      and QV = read_prop "!!x::'a. V"
       and x  = cert (Free ("x", Term.aT []));
   in
     store_standard_thm_open "triv_forall_equality"
@@ -660,8 +660,8 @@ val triv_forall_equality =
 *)
 val distinct_prems_rl =
   let
-    val AAB = read_prop "PROP Phi ==> PROP Phi ==> PROP Psi"
-    val A = read_prop "PROP Phi";
+    val AAB = read_prop "Phi ==> Phi ==> Psi"
+    val A = read_prop "Phi";
   in
     store_standard_thm_open "distinct_prems_rl"
       (implies_intr_list [AAB, A] (implies_elim_list (assume AAB) [assume A, assume A]))
@@ -672,11 +672,11 @@ val distinct_prems_rl =
    `thm COMP swap_prems_rl' swaps the first two premises of `thm'
 *)
 val swap_prems_rl =
-  let val cmajor = read_prop "PROP PhiA ==> PROP PhiB ==> PROP Psi";
+  let val cmajor = read_prop "PhiA ==> PhiB ==> Psi";
       val major = assume cmajor;
-      val cminor1 = read_prop "PROP PhiA";
+      val cminor1 = read_prop "PhiA";
       val minor1 = assume cminor1;
-      val cminor2 = read_prop "PROP PhiB";
+      val cminor2 = read_prop "PhiB";
       val minor2 = assume cminor2;
   in store_standard_thm_open "swap_prems_rl"
        (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
@@ -688,8 +688,8 @@ val swap_prems_rl =
    Introduction rule for == as a meta-theorem.
 *)
 val equal_intr_rule =
-  let val PQ = read_prop "PROP phi ==> PROP psi"
-      and QP = read_prop "PROP psi ==> PROP phi"
+  let val PQ = read_prop "phi ==> psi"
+      and QP = read_prop "psi ==> phi"
   in
     store_standard_thm_open "equal_intr_rule"
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
@@ -697,8 +697,8 @@ val equal_intr_rule =
 
 (* PROP ?phi == PROP ?psi ==> PROP ?phi ==> PROP ?psi *)
 val equal_elim_rule1 =
-  let val eq = read_prop "PROP phi == PROP psi"
-      and P = read_prop "PROP phi"
+  let val eq = read_prop "phi::prop == psi::prop"
+      and P = read_prop "phi"
   in store_standard_thm_open "equal_elim_rule1"
     (Thm.equal_elim (assume eq) (assume P) |> implies_intr_list [eq, P])
   end;
@@ -709,7 +709,7 @@ val equal_elim_rule2 =
 
 (* "[| PROP ?phi; PROP ?phi; PROP ?psi |] ==> PROP ?psi" *)
 val remdups_rl =
-  let val P = read_prop "PROP phi" and Q = read_prop "PROP psi";
+  let val P = read_prop "phi" and Q = read_prop "psi";
   in store_standard_thm_open "remdups_rl" (implies_intr_list [P, P, Q] (Thm.assume Q)) end;
 
 

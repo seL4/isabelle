@@ -29,8 +29,8 @@ struct
 
 (** abstract syntax **)
 
-fun read s = Thm.read_cterm ProtoPure.thy (s, propT);
 val cert = Thm.cterm_of ProtoPure.thy;
+val read_prop = cert o SimpleSyntax.read_prop;
 
 val true_prop = cert Logic.true_prop;
 val conjunction = cert Logic.conjunction;
@@ -63,11 +63,11 @@ fun convs cv ct =
 
 local
 
-val A = read "PROP A" and vA = read "PROP ?A";
-val B = read "PROP B" and vB = read "PROP ?B";
-val C = read "PROP C";
-val ABC = read "PROP A ==> PROP B ==> PROP C";
-val A_B = read "PROP ProtoPure.conjunction(A, B)"
+val A = read_prop "A" and vA = read_prop "?A";
+val B = read_prop "B" and vB = read_prop "?B";
+val C = read_prop "C";
+val ABC = read_prop "A ==> B ==> C";
+val A_B = read_prop "A && B";
 
 val conjunction_def = Drule.unvarify ProtoPure.conjunction_def;
 
@@ -125,7 +125,7 @@ fun conjs n =
   let val As = map (fn A => cert (Free (A, propT))) (Name.invents Name.context "A" n)
   in (As, mk_conjunction_balanced As) end;
 
-val B = cert (Free ("B", propT));
+val B = read_prop "B";
 
 fun comp_rule th rule =
   Thm.adjust_maxidx_thm ~1 (th COMP
