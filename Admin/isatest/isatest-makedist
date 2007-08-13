@@ -99,6 +99,8 @@ $SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
 sleep 5
 $SSH atbroy51 "$MAKEALL $HOME/settings/at-poly $HOME/settings/at-poly-e"
 sleep 5
+$SSH atbroy9 "$MAKEALL $HOME/settings/at-poly-5.1-para"
+sleep 5
 $SSH atbroy10 "$MAKEALL $HOME/settings/at-sml-dev"
 sleep 5
 $SSH atbroy101 "$MAKEALL $HOME/settings/at64-poly-e"
