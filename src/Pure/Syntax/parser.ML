@@ -882,7 +882,7 @@ fun earley prods tags chains startsymbol indata =
 
 fun parse (Gram {tags, prods, chains, ...}) start toks =
 let val r =
-  (case earley prods tags chains start toks of
+  (case earley prods tags chains start (toks @ [Lexicon.EndToken]) of
     [] => sys_error "parse: no parse trees"
   | pts => pts);
 in r end
