@@ -226,16 +226,24 @@ translations
 
 print_translation {*
 let
-  fun unfold_monad (Const (@{const_syntax mbind}, _) $ f $ Abs (abs as (_, ty, _))) =
+  fun dest_abs_eta (Abs (abs as (_, ty, _))) =
         let
-          val (v', g') = Syntax.variant_abs abs;
-        in Const ("_mbind", dummyT) $ Free (v', ty) $ f $ unfold_monad g' end
+          val (v, t) = Syntax.variant_abs abs;
+        in ((v, ty), t) end
+    | dest_abs_eta t =
+        let
+          val (v, t) = Syntax.variant_abs ("", dummyT, t $ Bound 0);
+        in ((v, dummyT), t) end
+  fun unfold_monad (Const (@{const_syntax mbind}, _) $ f $ g) =
+        let
+          val ((v, ty), g') = dest_abs_eta g;
+        in Const ("_mbind", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
     | unfold_monad (Const (@{const_syntax fcomp}, _) $ f $ g) =
         Const ("_fcomp", dummyT) $ f $ unfold_monad g
-    | unfold_monad (Const (@{const_syntax Let}, _) $ f $ Abs (abs as (_, ty, _))) =
+    | unfold_monad (Const (@{const_syntax Let}, _) $ f $ g) =
         let
-          val (v', g') = Syntax.variant_abs abs;
-        in Const ("_mbind", dummyT) $ Free (v', ty) $ f $ unfold_monad g' end
+          val ((v, ty), g') = dest_abs_eta g;
+        in Const ("_let", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
     | unfold_monad (Const (@{const_syntax Pair}, _) $ f) =
         Const ("return", dummyT) $ f
     | unfold_monad f = f;
