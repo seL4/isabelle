@@ -96,6 +96,8 @@ sig
     theory -> thm list list * theory
   val add_defss_i: bool -> ((bstring * term list) * attribute list) list ->
     theory -> thm list list * theory
+  val appl_syntax: (string * typ * mixfix) list
+  val applC_syntax: (string * typ * mixfix) list
 end;
 
 structure PureThy: PURE_THY =
@@ -489,8 +491,19 @@ end;
 
 (*** the ProtoPure theory ***)
 
-val aT = TFree ("'a", []);
-val A = Free ("A", propT);
+val typ = SimpleSyntax.read_typ;
+val term = SimpleSyntax.read_term;
+val prop = SimpleSyntax.read_prop;
+
+val appl_syntax =
+ [("_appl", typ "('b => 'a) => args => logic", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),
+  ("_appl", typ "('b => 'a) => args => aprop", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000))];
+
+val applC_syntax =
+ [("",       typ "'a => cargs",                  Delimfix "_"),
+  ("_cargs", typ "'a => cargs => cargs",         Mixfix ("_/ _", [1000, 1000], 1000)),
+  ("_applC", typ "('b => 'a) => cargs => logic", Mixfix ("(1_/ _)", [1000, 1000], 999)),
+  ("_applC", typ "('b => 'a) => cargs => aprop", Mixfix ("(1_/ _)", [1000, 1000], 999))];
 
 val proto_pure =
   Context.pre_pure_thy
@@ -502,90 +515,89 @@ val proto_pure =
     ("itself", 1, NoSyn),
     ("dummy", 0, NoSyn)]
   |> Sign.add_nonterminals Syntax.basic_nonterms
-  |> Sign.add_syntax
-   [("_lambda",     "[pttrns, 'a] => logic",     Mixfix ("(3%_./ _)", [0, 3], 3)),
-    ("_abs",        "'a",                        NoSyn),
-    ("",            "'a => args",                Delimfix "_"),
-    ("_args",       "['a, args] => args",        Delimfix "_,/ _"),
-    ("",            "id => idt",                 Delimfix "_"),
-    ("_idtdummy",   "idt",                       Delimfix "'_"),
-    ("_idtyp",      "[id, type] => idt",         Mixfix ("_::_", [], 0)),
-    ("_idtypdummy", "type => idt",               Mixfix ("'_()::_", [], 0)),
-    ("",            "idt => idt",                Delimfix "'(_')"),
-    ("",            "idt => idts",               Delimfix "_"),
-    ("_idts",       "[idt, idts] => idts",       Mixfix ("_/ _", [1, 0], 0)),
-    ("",            "idt => pttrn",              Delimfix "_"),
-    ("",            "pttrn => pttrns",           Delimfix "_"),
-    ("_pttrns",     "[pttrn, pttrns] => pttrns", Mixfix ("_/ _", [1, 0], 0)),
-    ("",            "id => aprop",               Delimfix "_"),
-    ("",            "longid => aprop",           Delimfix "_"),
-    ("",            "var => aprop",              Delimfix "_"),
-    ("_DDDOT",      "aprop",                     Delimfix "..."),
-    ("_aprop",      "aprop => prop",             Delimfix "PROP _"),
-    ("_asm",        "prop => asms",              Delimfix "_"),
-    ("_asms",       "[prop, asms] => asms",      Delimfix "_;/ _"),
-    ("_bigimpl",    "[asms, prop] => prop",      Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
-    ("_ofclass",    "[type, logic] => prop",     Delimfix "(1OFCLASS/(1'(_,/ _')))"),
-    ("_mk_ofclass", "_",                         NoSyn),
-    ("_TYPE",       "type => logic",             Delimfix "(1TYPE/(1'(_')))"),
-    ("",            "id => logic",               Delimfix "_"),
-    ("",            "longid => logic",           Delimfix "_"),
-    ("",            "var => logic",              Delimfix "_"),
-    ("_DDDOT",      "logic",                     Delimfix "..."),
-    ("_constify",   "num => num_const",          Delimfix "_"),
-    ("_indexnum",   "num_const => index",        Delimfix "\\<^sub>_"),
-    ("_index",      "logic => index",            Delimfix "(00\\<^bsub>_\\<^esub>)"),
-    ("_indexdefault", "index",                   Delimfix ""),
-    ("_indexvar",   "index",                     Delimfix "'\\<index>"),
-    ("_struct",     "index => logic",            Mixfix ("\\<struct>_", [1000], 1000)),
-    ("==>",         "prop => prop => prop",      Delimfix "op ==>"),
-    (Term.dummy_patternN, "aprop",               Delimfix "'_")]
-  |> Sign.add_syntax Syntax.appl_syntax
-  |> Sign.add_modesyntax (Symbol.xsymbolsN, true)
-   [("fun",      "[type, type] => type",  Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
-    ("_bracket", "[types, type] => type", Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
-    ("_ofsort",  "[tid, sort] => type",   Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
-    ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
-    ("_idtyp",    "[id, type] => idt",    Mixfix ("_\\<Colon>_", [], 0)),
-    ("_idtypdummy", "type => idt",        Mixfix ("'_()\\<Colon>_", [], 0)),
-    ("_type_constraint_", "'a",           NoSyn),
-    ("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-    ("==",       "['a, 'a] => prop",      InfixrName ("\\<equiv>", 2)),
-    ("all_binder", "[idts, prop] => prop", Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
-    ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Longrightarrow>", 1)),
-    ("_DDDOT",   "aprop",                 Delimfix "\\<dots>"),
-    ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
-    ("_DDDOT",   "logic",                 Delimfix "\\<dots>")]
-  |> Sign.add_modesyntax ("", false)
-   [("prop", "prop => prop", Mixfix ("_", [0], 0)),
-    ("ProtoPure.term", "'a => prop", Delimfix "TERM _"),
-    ("ProtoPure.conjunction", "prop => prop => prop", InfixrName ("&&", 2))]
-  |> Sign.add_modesyntax ("HTML", false)
-   [("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
-  |> Sign.add_consts
-   [("==", "'a => 'a => prop", InfixrName ("==", 2)),
-    ("==>", "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
-    ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
-    ("prop", "prop => prop", NoSyn),
-    ("TYPE", "'a itself", NoSyn),
-    (Term.dummy_patternN, "'a", Delimfix "'_")]
+  |> Sign.add_syntax_i
+   [("_lambda",     typ "pttrns => 'a => logic",     Mixfix ("(3%_./ _)", [0, 3], 3)),
+    ("_abs",        typ "'a",                        NoSyn),
+    ("",            typ "'a => args",                Delimfix "_"),
+    ("_args",       typ "'a => args => args",        Delimfix "_,/ _"),
+    ("",            typ "id => idt",                 Delimfix "_"),
+    ("_idtdummy",   typ "idt",                       Delimfix "'_"),
+    ("_idtyp",      typ "id => type => idt",         Mixfix ("_::_", [], 0)),
+    ("_idtypdummy", typ "type => idt",               Mixfix ("'_()::_", [], 0)),
+    ("",            typ "idt => idt",                Delimfix "'(_')"),
+    ("",            typ "idt => idts",               Delimfix "_"),
+    ("_idts",       typ "idt => idts => idts",       Mixfix ("_/ _", [1, 0], 0)),
+    ("",            typ "idt => pttrn",              Delimfix "_"),
+    ("",            typ "pttrn => pttrns",           Delimfix "_"),
+    ("_pttrns",     typ "pttrn => pttrns => pttrns", Mixfix ("_/ _", [1, 0], 0)),
+    ("",            typ "id => aprop",               Delimfix "_"),
+    ("",            typ "longid => aprop",           Delimfix "_"),
+    ("",            typ "var => aprop",              Delimfix "_"),
+    ("_DDDOT",      typ "aprop",                     Delimfix "..."),
+    ("_aprop",      typ "aprop => prop",             Delimfix "PROP _"),
+    ("_asm",        typ "prop => asms",              Delimfix "_"),
+    ("_asms",       typ "prop => asms => asms",      Delimfix "_;/ _"),
+    ("_bigimpl",    typ "asms => prop => prop",      Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
+    ("_ofclass",    typ "type => logic => prop",     Delimfix "(1OFCLASS/(1'(_,/ _')))"),
+    ("_mk_ofclass", typ "dummy",                     NoSyn),
+    ("_TYPE",       typ "type => logic",             Delimfix "(1TYPE/(1'(_')))"),
+    ("",            typ "id => logic",               Delimfix "_"),
+    ("",            typ "longid => logic",           Delimfix "_"),
+    ("",            typ "var => logic",              Delimfix "_"),
+    ("_DDDOT",      typ "logic",                     Delimfix "..."),
+    ("_constify",   typ "num => num_const",          Delimfix "_"),
+    ("_indexnum",   typ "num_const => index",        Delimfix "\\<^sub>_"),
+    ("_index",      typ "logic => index",            Delimfix "(00\\<^bsub>_\\<^esub>)"),
+    ("_indexdefault", typ "index",                   Delimfix ""),
+    ("_indexvar",   typ "index",                     Delimfix "'\\<index>"),
+    ("_struct",     typ "index => logic",            Mixfix ("\\<struct>_", [1000], 1000)),
+    ("==>",         typ "prop => prop => prop",      Delimfix "op ==>"),
+    (Term.dummy_patternN, typ "aprop",               Delimfix "'_")]
+  |> Sign.add_syntax_i appl_syntax
+  |> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
+   [("fun",      typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
+    ("_bracket", typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
+    ("_ofsort",  typ "tid => sort => type",    Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
+    ("_constrain", typ "'a => type => 'a",     Mixfix ("_\\<Colon>_", [4, 0], 3)),
+    ("_idtyp",    typ "id => type => idt",     Mixfix ("_\\<Colon>_", [], 0)),
+    ("_idtypdummy", typ "type => idt",         Mixfix ("'_()\\<Colon>_", [], 0)),
+    ("_type_constraint_", typ "'a",            NoSyn),
+    ("_lambda",  typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
+    ("==",       typ "'a => 'a => prop",       InfixrName ("\\<equiv>", 2)),
+    ("all_binder", typ "idts => prop => prop", Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
+    ("==>",      typ "prop => prop => prop",   InfixrName ("\\<Longrightarrow>", 1)),
+    ("_DDDOT",   typ "aprop",                  Delimfix "\\<dots>"),
+    ("_bigimpl", typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
+    ("_DDDOT",   typ "logic",                  Delimfix "\\<dots>")]
+  |> Sign.add_modesyntax_i ("", false)
+   [("prop", typ "prop => prop", Mixfix ("_", [0], 0)),
+    ("ProtoPure.term", typ "'a => prop", Delimfix "TERM _"),
+    ("ProtoPure.conjunction", typ "prop => prop => prop", InfixrName ("&&", 2))]
+  |> Sign.add_modesyntax_i ("HTML", false)
+   [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
+  |> Sign.add_consts_i
+   [("==", typ "'a => 'a => prop", InfixrName ("==", 2)),
+    ("==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
+    ("all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
+    ("prop", typ "prop => prop", NoSyn),
+    ("TYPE", typ "'a itself", NoSyn),
+    (Term.dummy_patternN, typ "'a", Delimfix "'_")]
   |> Theory.add_finals_i false
-    [Const ("==", [aT, aT] ---> propT),
-     Const ("==>", [propT, propT] ---> propT),
-     Const ("all", (aT --> propT) --> propT),
-     Const ("TYPE", Term.a_itselfT),
-     Const (Term.dummy_patternN, aT)]
+    [Const ("==", typ "'a => 'a => prop"),
+     Const ("==>", typ "prop => prop => prop"),
+     Const ("all", typ "('a => prop) => prop"),
+     Const ("TYPE", typ "'a itself"),
+     Const (Term.dummy_patternN, typ "'a")]
   |> Sign.add_trfuns Syntax.pure_trfuns
   |> Sign.add_trfunsT Syntax.pure_trfunsT
   |> Sign.local_path
-  |> Sign.add_consts
-   [("term", "'a => prop", NoSyn),
-    ("conjunction", "prop => prop => prop", NoSyn)]
-  |> (add_defs false o map Thm.no_attributes)
-   [("prop_def", "prop(A) == A"),
-    ("term_def", "term(x) == (!!A. PROP A ==> PROP A)"),
-    ("conjunction_def",
-      "conjunction(A, B) == (!!C. (PROP A ==> PROP B ==> PROP C) ==> PROP C)")] |> snd
+  |> Sign.add_consts_i
+   [("term", typ "'a => prop", NoSyn),
+    ("conjunction", typ "prop => prop => prop", NoSyn)]
+  |> (add_defs_i false o map Thm.no_attributes)
+   [("prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
+    ("term_def", prop "(CONST ProtoPure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
+    ("conjunction_def", prop "(A && B) == (!!C::prop. (A ==> B ==> C) ==> C)")] |> snd
   |> Sign.hide_consts false ["conjunction", "term"]
   |> add_thmss [(("nothing", []), [])] |> snd
   |> Theory.add_axioms_i Proofterm.equality_axms
