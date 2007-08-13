@@ -346,6 +346,13 @@ fun internal_att x =
   syntax (Scan.lift Args.internal_attribute >> Morphism.form) x;
 
 
+(* attribute rotated *)
+
+fun rotated_att x = 
+  syntax (Scan.lift (Scan.optional Args.int 1) >> 
+                    (fn n => Thm.rule_attribute (fn _ => rotate_prems n))) x
+
+
 (* theory setup *)
 
 val _ = Context.add_setup
@@ -375,6 +382,7 @@ val _ = Context.add_setup
     ("atomize", no_args ObjectLogic.declare_atomize, "declaration of atomize rule"),
     ("rulify", no_args ObjectLogic.declare_rulify, "declaration of rulify rule"),
     ("rule_format", rule_format_att, "result put into standard rule format"),
+    ("rotated", rotated_att, "rotated theorem premises"),
     ("defn", add_del_args LocalDefs.defn_add LocalDefs.defn_del,
       "declaration of definitional transformations"),
     ("attribute", internal_att, "internal attribute")]);

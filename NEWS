@@ -292,6 +292,9 @@ and command 'unfolding' now all support object-level equalities
 analogous to the 'rule_format' attribute, but *not* that of the
 Simplifier (which is usually more generous).
 
+* Isar: the new attribute [rotated n] (default n = 1) rotates the
+premises of a theorem by n. Useful in conjunction with drule.
+
 * Isar: the goal restriction operator [N] (default N = 1) evaluates a
 method expression within a sandbox consisting of the first N
 sub-goals, which need to exist.  For example, ``simp_all [3]''
