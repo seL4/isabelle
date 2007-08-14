@@ -45,11 +45,11 @@ fun cert_def ctxt eq =
     fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^ display_term eq);
     val ((lhs, _), eq') = eq
       |> Sign.no_vars pp
-      |> Logic.dest_def pp Term.is_Free (Variable.is_fixed ctxt) (K true)
+      |> PrimitiveDefs.dest_def pp Term.is_Free (Variable.is_fixed ctxt) (K true)
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
   in (Term.dest_Free (Term.head_of lhs), eq') end;
 
-val abs_def = Logic.abs_def #>> Term.dest_Free;
+val abs_def = PrimitiveDefs.abs_def #>> Term.dest_Free;
 
 fun mk_def ctxt args =
   let
