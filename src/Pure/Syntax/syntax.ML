@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Root of Isabelle's syntax module.
+Standard Isabelle syntax, based on arbitrary context-free grammars
+(specified by mixfix declarations).
 *)
 
 signature BASIC_SYNTAX =
@@ -72,19 +73,40 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
-  val read_term:
+  val standard_read_term:
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> string option) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> Proof.context ->
     (string -> bool) -> syntax -> typ -> string -> term list
-  val read_typ: Proof.context -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
+  val standard_read_typ: Proof.context -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
     (sort -> sort) -> string -> typ
-  val read_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
+  val standard_read_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
   val pretty_term: (string -> xstring) -> Proof.context -> syntax -> bool -> term -> Pretty.T
   val pretty_typ: Proof.context -> syntax -> typ -> Pretty.T
   val pretty_sort: Proof.context -> syntax -> sort -> Pretty.T
   val ambiguity_level: int ref
   val ambiguity_is_error: bool ref
+  val install_parsers:
+   {sort: Proof.context -> string -> sort,
+    typ: Proof.context -> string -> typ,
+    term: Proof.context -> string -> term,
+    prop: Proof.context -> string -> term} -> unit
+  val parse_sort: Proof.context -> string -> sort
+  val parse_typ: Proof.context -> string -> typ
+  val parse_term: Proof.context -> string -> term
+  val parse_prop: Proof.context -> string -> term
+  val add_type_check: (term list -> Proof.context -> Term.term list * Proof.context) ->
+    Context.generic -> Context.generic
+  val type_check: term list -> Proof.context -> term list * Proof.context
+  val check_terms: Proof.context -> term list -> term list
+  val check_props: Proof.context -> term list -> term list
+  val check_typs: Proof.context -> typ list -> typ list
+  val read_sort: Proof.context -> string -> sort
+  val read_typ: Proof.context -> string -> typ
+  val read_terms: Proof.context -> string list -> term list
+  val read_props: Proof.context -> string list -> term list
+  val read_term: Proof.context -> string -> term
+  val read_prop: Proof.context -> string -> term
 end;
 
 structure Syntax: SYNTAX =
@@ -375,7 +397,7 @@ end;
 (* read_ast *)
 
 val ambiguity_level = ref 1;
-val ambiguity_is_error = ref false
+val ambiguity_is_error = ref false;
 
 fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root str =
   let
@@ -411,14 +433,14 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty str =
 
 (* read terms *)
 
-fun read_term get_sort map_const map_free map_type map_sort ctxt is_logtype syn ty str =
+fun standard_read_term get_sort map_const map_free map_type map_sort ctxt is_logtype syn ty str =
   map (TypeExt.decode_term get_sort map_const map_free map_type map_sort)
     (read ctxt is_logtype syn ty str);
 
 
 (* read types *)
 
-fun read_typ ctxt syn get_sort map_sort str =
+fun standard_read_typ ctxt syn get_sort map_sort str =
   (case read ctxt (K false) syn SynExt.typeT str of
     [t] => TypeExt.typ_of_term (get_sort (TypeExt.term_sorts map_sort t)) map_sort t
   | _ => error "read_typ: ambiguous syntax");
@@ -426,7 +448,7 @@ fun read_typ ctxt syn get_sort map_sort str =
 
 (* read sorts *)
 
-fun read_sort ctxt syn map_sort str =
+fun standard_read_sort ctxt syn map_sort str =
   (case read ctxt (K false) syn TypeExt.sortT str of
     [t] => TypeExt.sort_of_term map_sort t
   | _ => error "read_sort: ambiguous syntax");
@@ -541,6 +563,83 @@ fun remove_trrules ctxt is_logtype syn =
 
 val extend_trrules_i = ext_syntax SynExt.syn_ext_rules o cert_rules;
 val remove_trrules_i = remove_syntax default_mode o SynExt.syn_ext_rules o cert_rules;
+
+
+
+(** generic parsing and type-checking **)
+
+(* parsing *)
+
+type parsers =
+ {sort: Proof.context -> string -> sort,
+  typ: Proof.context -> string -> typ,
+  term: Proof.context -> string -> term,
+  prop: Proof.context -> string -> term};
+
+local
+  val parsers = ref (NONE: parsers option);
+in
+  fun install_parsers ps = CRITICAL (fn () =>
+    if is_some (! parsers) then error "Inner syntax parsers already installed"
+    else parsers := SOME ps);
+
+  fun parse which ctxt s =
+    (case ! parsers of
+      NONE => error "Inner syntax parsers not yet installed"
+    | SOME ps => which ps ctxt s);
+end;
+
+val parse_sort = parse #sort;
+val parse_typ = parse #typ;
+val parse_term = parse #term;
+val parse_prop = parse #prop;
+
+
+(* type-checking *)
+
+structure TypeCheck = GenericDataFun
+(
+  type T = ((term list -> Proof.context -> term list * Proof.context) * stamp) list;
+  val empty = [];
+  val extend = I;
+  fun merge _ type_checks : T = Library.merge (eq_snd op =) type_checks;
+);
+
+fun add_type_check f = TypeCheck.map (cons (f, stamp ()));
+
+fun type_check ts0 ctxt0 =
+  let
+    val funs = rev (TypeCheck.get (Context.Proof ctxt0));
+    fun check [] ts ctxt = (ts, ctxt)
+      | check ((f, _) :: fs) ts ctxt = f ts ctxt |-> check fs;
+
+    fun check_fixpoint ts ctxt =
+      let val (ts', ctxt') = check funs ts ctxt in
+        if eq_list (op aconv) (ts, ts') then (ts, ctxt)
+        else check_fixpoint ts' ctxt'
+      end;
+  in check_fixpoint ts0 ctxt0 end;
+
+fun check_terms ctxt ts = #1 (type_check ts ctxt);
+fun check_props ctxt = map (fn t => TypeInfer.constrain t propT) #> check_terms ctxt;
+fun check_typs ctxt = map Logic.mk_type #> check_terms ctxt #> map Logic.dest_type;
+
+fun check_sort ctxt S =
+  (case singleton (check_typs ctxt) (TFree ("", S)) of   (* FIXME TypeInfer.invent_type (!?) *)
+    TFree ("", S') => S'
+  | T => raise TYPE ("check_sort", [T], []));
+
+
+(* combined operations *)
+
+fun read_sort ctxt = parse_sort ctxt #> check_sort ctxt;
+fun read_typ ctxt = parse_typ ctxt #> singleton (check_typs ctxt);
+
+fun read_terms ctxt = map (parse_term ctxt) #> check_terms ctxt;
+fun read_props ctxt = map (parse_prop ctxt) #> check_props ctxt;
+
+val read_term = singleton o read_terms;
+val read_prop = singleton o read_props;
 
 
 (*export parts of internal Syntax structures*)
