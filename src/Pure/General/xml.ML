@@ -7,7 +7,7 @@ Basic support for XML.
 
 signature XML =
 sig
-  (* string functions *)
+  (*string functions*)
   val header: string
   val text: string -> string
   val text_charref: string -> string
@@ -15,7 +15,7 @@ sig
   type attributes = (string * string) list
   val attribute: string * string -> string
   val element: string -> attributes -> string list -> string
-  (* tree functions *)
+  (*tree functions*)
   datatype tree =
       Elem of string * attributes * tree list
     | Text of string
