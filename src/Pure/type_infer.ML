@@ -15,7 +15,7 @@ sig
   val paramify_vars: typ -> typ
   val paramify_dummies: typ -> int -> typ * int
   val appl_error: Pretty.pp -> string -> term -> typ -> term -> typ -> string list
-  val infer_types: Pretty.pp -> Type.tsig ->
+  val infer_types: Pretty.pp -> Type.tsig -> Type.mode ->
     (string -> typ option) -> (indexname -> typ option) ->
     Name.context -> bool -> (term * typ) list -> (term * typ) list * (indexname * typ) list
 end;
@@ -381,10 +381,10 @@ fun infer pp tsig =
 
 (* infer_types *)
 
-fun infer_types pp tsig const_type var_type used freeze args =
+fun infer_types pp tsig mode const_type var_type used freeze args =
   let
     (*certify types*)
-    val certT = Type.cert_typ tsig;
+    fun certT T = Type.cert_typ_mode mode tsig T;
     val (raw_ts, raw_Ts) = split_list args;
     val ts = map (Term.map_types certT) raw_ts;
     val Ts = map certT raw_Ts;
