@@ -116,12 +116,11 @@ fun term env T x =
    term (v :: env) propT >> (fn B => Term.all (#2 v) $ lambda (Free v) B)) ||
   term1 env T) x
 and term1 env T x =
- (enum2 "==>" (term2 env propT) >> foldr1 (fn (A, B) => Term.implies $ A $ B) ||
+ (enum2 "==>" (term2 env propT) >> foldr1 Logic.mk_implies ||
   term2 env T) x
 and term2 env T x =
  (equal env "==" || equal env "=?=" ||
-  term3 env propT -- ($$ "&&" |-- term2 env propT) >> (fn (A, B) =>
-  Const ("ProtoPure.conjunction", propT --> propT --> propT) $ A $ B) ||
+  term3 env propT -- ($$ "&&" |-- term2 env propT) >> Logic.mk_conjunction ||
   term3 env T) x
 and equal env eq x =
  (term3 env dummyT -- ($$ eq |-- term2 env dummyT) >> (fn (t, u) =>
