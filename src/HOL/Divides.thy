@@ -7,7 +7,7 @@
 header {* The division operators div, mod and the divides relation "dvd" *}
 
 theory Divides
-imports Datatype Power
+imports Power
 uses "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
 
