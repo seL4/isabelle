@@ -73,14 +73,14 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
-  val standard_read_term:
+  val standard_parse_term:
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> string option) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> Proof.context ->
     (string -> bool) -> syntax -> typ -> string -> term list
-  val standard_read_typ: Proof.context -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
+  val standard_parse_typ: Proof.context -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
     (sort -> sort) -> string -> typ
-  val standard_read_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
+  val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
   val pretty_term: (string -> xstring) -> Proof.context -> syntax -> bool -> term -> Pretty.T
   val pretty_typ: Proof.context -> syntax -> typ -> Pretty.T
   val pretty_sort: Proof.context -> syntax -> sort -> Pretty.T
@@ -95,6 +95,10 @@ sig
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
   val parse_prop: Proof.context -> string -> term
+  val global_parse_sort: theory -> string -> sort
+  val global_parse_typ: theory -> string -> typ
+  val global_parse_term: theory -> string -> term
+  val global_parse_prop: theory -> string -> term
   val add_type_check: (term list -> Proof.context -> Term.term list * Proof.context) ->
     Context.generic -> Context.generic
   val type_check: term list -> Proof.context -> term list * Proof.context
@@ -107,6 +111,10 @@ sig
   val read_props: Proof.context -> string list -> term list
   val read_term: Proof.context -> string -> term
   val read_prop: Proof.context -> string -> term
+  val global_read_sort: theory -> string -> sort
+  val global_read_typ: theory -> string -> typ
+  val global_read_term: theory -> string -> term
+  val global_read_prop: theory -> string -> term
 end;
 
 structure Syntax: SYNTAX =
@@ -433,14 +441,14 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty str =
 
 (* read terms *)
 
-fun standard_read_term get_sort map_const map_free map_type map_sort ctxt is_logtype syn ty str =
+fun standard_parse_term get_sort map_const map_free map_type map_sort ctxt is_logtype syn ty str =
   map (TypeExt.decode_term get_sort map_const map_free map_type map_sort)
     (read ctxt is_logtype syn ty str);
 
 
 (* read types *)
 
-fun standard_read_typ ctxt syn get_sort map_sort str =
+fun standard_parse_typ ctxt syn get_sort map_sort str =
   (case read ctxt (K false) syn SynExt.typeT str of
     [t] => TypeExt.typ_of_term (get_sort (TypeExt.term_sorts map_sort t)) map_sort t
   | _ => error "read_typ: ambiguous syntax");
@@ -448,7 +456,7 @@ fun standard_read_typ ctxt syn get_sort map_sort str =
 
 (* read sorts *)
 
-fun standard_read_sort ctxt syn map_sort str =
+fun standard_parse_sort ctxt syn map_sort str =
   (case read ctxt (K false) syn TypeExt.sortT str of
     [t] => TypeExt.sort_of_term map_sort t
   | _ => error "read_sort: ambiguous syntax");
@@ -594,6 +602,11 @@ val parse_typ = parse #typ;
 val parse_term = parse #term;
 val parse_prop = parse #prop;
 
+val global_parse_sort = parse_sort o ProofContext.init;
+val global_parse_typ = parse_typ o ProofContext.init;
+val global_parse_term = parse_term o ProofContext.init;
+val global_parse_prop = parse_prop o ProofContext.init;
+
 
 (* type-checking *)
 
@@ -640,6 +653,11 @@ fun read_props ctxt = map (parse_prop ctxt) #> check_props ctxt;
 
 val read_term = singleton o read_terms;
 val read_prop = singleton o read_props;
+
+val global_read_sort = read_sort o ProofContext.init;
+val global_read_typ = read_typ o ProofContext.init;
+val global_read_term = read_term o ProofContext.init;
+val global_read_prop = read_prop o ProofContext.init;
 
 
 (*export parts of internal Syntax structures*)
