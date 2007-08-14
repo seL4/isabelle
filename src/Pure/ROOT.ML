@@ -26,13 +26,13 @@ use "logic.ML";
 use "General/pretty.ML";
 use "Syntax/lexicon.ML";
 use "Syntax/simple_syntax.ML";
-use "sorts.ML";
-use "type.ML";
 use "context.ML";
 use "context_position.ML";
+use "sorts.ML";
+use "type.ML";
+use "type_infer.ML";
 use "config.ML";
 use "compress.ML";
-use "type_infer.ML";
 
 (*inner syntax module*)
 use "Syntax/ast.ML";
