@@ -31,9 +31,12 @@ sig
   val cert_class: tsig -> class -> class
   val cert_sort: tsig -> sort -> sort
   val witness_sorts: tsig -> sort list -> sort list -> (typ * sort) list
+  type mode
+  val mode_default: mode
+  val mode_syntax: mode
+  val mode_abbrev: mode
+  val cert_typ_mode: mode -> tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
-  val cert_typ_syntax: tsig -> typ -> typ
-  val cert_typ_abbrev: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
   val arity_sorts: Pretty.pp -> tsig -> string -> sort -> sort list
 
@@ -144,6 +147,15 @@ fun witness_sorts (tsig as TSig {classes, log_types, ...}) =
   Sorts.witness_sorts (#2 classes) log_types;
 
 
+(* certification mode *)
+
+datatype mode = Mode of {normalize: bool, logical: bool};
+
+val mode_default = Mode {normalize = true, logical = true};
+val mode_syntax = Mode {normalize = true, logical = false};
+val mode_abbrev = Mode {normalize = false, logical = false};
+
+
 (* certified types *)
 
 fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
@@ -155,14 +167,16 @@ fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
   | inst_typ env (T as TFree (x, _)) = the_default T (AList.lookup (op =) env x)
   | inst_typ _ T = T;
 
-fun certify_typ normalize syntax tsig ty =
+in
+
+fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
   let
     val TSig {types = (_, types), ...} = tsig;
     fun err msg = raise TYPE (msg, [ty], []);
 
-    val check_syntax =
-      if syntax then K ()
-      else fn c => err ("Illegal occurrence of syntactic type: " ^ quote c);
+    val check_logical =
+      if logical then fn c => err ("Illegal occurrence of syntactic type: " ^ quote c)
+      else fn _ => ();
 
     fun cert (T as Type (c, Ts)) =
           let
@@ -171,11 +185,12 @@ fun certify_typ normalize syntax tsig ty =
           in
             (case Symtab.lookup types c of
               SOME (LogicalType n, _) => (nargs n; Type (c, Ts'))
-            | SOME (Abbreviation (vs, U, syn), _) => (nargs (length vs);
-                if syn then check_syntax c else ();
+            | SOME (Abbreviation (vs, U, syn), _) =>
+               (nargs (length vs);
+                if syn then check_logical c else ();
                 if normalize then inst_typ (vs ~~ Ts') U
                 else Type (c, Ts'))
-            | SOME (Nonterminal, _) => (nargs 0; check_syntax c; T)
+            | SOME (Nonterminal, _) => (nargs 0; check_logical c; T)
             | NONE => err (undecl_type c))
           end
       | cert (TFree (x, S)) = TFree (x, cert_sort tsig S)
@@ -187,11 +202,7 @@ fun certify_typ normalize syntax tsig ty =
     val ty' = cert ty;
   in if ty = ty' then ty else ty' end;  (*avoid copying of already normal type*)
 
-in
-
-val cert_typ        = certify_typ true false;
-val cert_typ_syntax = certify_typ true true;
-val cert_typ_abbrev = certify_typ false true;
+val cert_typ = cert_typ_mode mode_default;
 
 end;
 
@@ -547,7 +558,7 @@ fun syntactic types (Type (c, Ts)) =
 fun add_abbrev naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg = cat_error msg ("The error(s) above occurred in type abbreviation: " ^ quote a);
-    val rhs' = strip_sorts (no_tvars (cert_typ_syntax tsig rhs))
+    val rhs' = strip_sorts (no_tvars (cert_typ_mode mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
   in
     (case duplicates (op =) vs of
