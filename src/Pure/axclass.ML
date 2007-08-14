@@ -189,7 +189,7 @@ fun print_axclasses thy =
 fun cert_classrel thy raw_rel =
   let
     val (c1, c2) = pairself (Sign.certify_class thy) raw_rel;
-    val _ = Type.add_classrel (Sign.pp thy) (c1, c2) (Sign.tsig_of thy);
+    val _ = Sign.primitive_classrel (c1, c2) (Theory.copy thy);
     val _ =
       (case subtract (op =) (all_params_of thy [c1]) (all_params_of thy [c2]) of
         [] => ()

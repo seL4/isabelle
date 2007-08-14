@@ -266,8 +266,8 @@ in
   | _                   => NONE
 end handle Zero => NONE;
 
-fun of_lin_arith_sort sg (U : typ) : bool =
-  Type.of_sort (Sign.tsig_of sg) (U, ["Ring_and_Field.ordered_idom"])
+fun of_lin_arith_sort thy U =
+  Sign.of_sort thy (U, ["Ring_and_Field.ordered_idom"]);
 
 fun allows_lin_arith sg (discrete : string list) (U as Type (D, [])) : bool * bool =
   if of_lin_arith_sort sg U then

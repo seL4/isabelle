@@ -78,8 +78,7 @@ fun generate_fresh_tac atom_name i thm =
    val goal = List.nth(prems_of thm, i-1);
    val ps = Logic.strip_params goal;
    val Ts = rev (map snd ps);
-   fun is_of_fs_name T = Type.of_sort (Sign.tsig_of thy)
-     (T, Sign.intern_sort thy ["fs_"^atom_basename]); 
+   fun is_of_fs_name T = Sign.of_sort thy (T, Sign.intern_sort thy ["fs_"^atom_basename]); 
 (* rebuild de bruijn indices *)
    val bvs = map_index (Bound o fst) ps;
 (* select variables of the right class *)

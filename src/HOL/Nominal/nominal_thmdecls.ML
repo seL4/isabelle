@@ -144,7 +144,7 @@ fun get_pi t thy =
                 (* FIXME: this should be an operation the library *)
                 val class_name = (NameSpace.map_base (fn s => "pt_"^s) tyatm)
              in
-                if (Type.of_sort (Sign.tsig_of thy) (ty,[class_name]))
+                if (Sign.of_sort thy (ty,[class_name]))
                 then [(pi,typi)]
                 else raise
                 EQVT_FORM ("Could not find any permutation or an argument is not an instance of "^class_name)
