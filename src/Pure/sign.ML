@@ -484,7 +484,7 @@ fun cert_def pp tm =
   let val ((lhs, rhs), _) = tm
     |> no_vars pp
     |> Logic.strip_imp_concl
-    |> Logic.dest_def pp Term.is_Const (K false) (K false)
+    |> PrimitiveDefs.dest_def pp Term.is_Const (K false) (K false)
   in (Term.dest_Const (Term.head_of lhs), rhs) end
   handle TERM (msg, _) => error msg;
 
@@ -500,7 +500,7 @@ fun read_class thy c = certify_class thy (intern_class thy c)
 fun read_sort' syn ctxt str =
   let
     val thy = ProofContext.theory_of ctxt;
-    val S = Syntax.read_sort ctxt syn (intern_sort thy) str;
+    val S = Syntax.standard_read_sort ctxt syn (intern_sort thy) str;
   in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
 
 fun read_sort thy str = read_sort' (syn_of thy) (ProofContext.init thy) str;
@@ -546,7 +546,7 @@ fun gen_read_typ' cert syn ctxt def_sort str =
   let
     val thy = ProofContext.theory_of ctxt;
     val T = intern_tycons thy
-      (Syntax.read_typ ctxt syn (get_sort thy def_sort) (intern_sort thy) str);
+      (Syntax.standard_read_typ ctxt syn (get_sort thy def_sort) (intern_sort thy) str);
   in cert thy T handle TYPE (msg, _, _) => error msg end
   handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
 
@@ -626,7 +626,7 @@ fun read_def_terms'
           
     (*read term*)
     val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
-    fun read T = disambig T o Syntax.read_term (get_sort thy def_sort) map_const map_free
+    fun read T = disambig T o Syntax.standard_read_term (get_sort thy def_sort) map_const map_free
         (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn T;
   in
     raw_args
