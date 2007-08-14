@@ -91,20 +91,15 @@ proof -
 qed
 
 lemma Rep_range:
-assumes "type_definition Rep Abs A"
-shows "range Rep = A"
-proof -
-  from assms have A1: "!!x. Rep x : A"
-              and A2: "!!y. y : A ==> y = Rep(Abs y)"
-     by (auto simp add: type_definition_def)
-  have "range Rep <= A" using A1 by (auto simp add: image_def)
-  moreover have "A <= range Rep"
+  shows "range Rep = A"
+proof
+  show "range Rep <= A" using Rep by (auto simp add: image_def)
+  show "A <= range Rep"
   proof
     fix x assume "x : A"
-    hence "x = Rep (Abs x)" by (rule A2)
-    thus "x : range Rep" by (auto simp add: image_def)
+    hence "x = Rep (Abs x)" by (rule Abs_inverse [symmetric])
+    thus "x : range Rep" by (rule range_eqI)
   qed
-  ultimately show ?thesis ..
 qed
 
 end
