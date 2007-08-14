@@ -617,7 +617,7 @@ fun gen_instance_class prep_class (raw_class, raw_superclass) theory =
 
 in
 
-val instance_sort_cmd = gen_instance_sort Sign.read_class Sign.read_sort;
+val instance_sort_cmd = gen_instance_sort Sign.read_class Syntax.global_read_sort;
 val instance_sort = gen_instance_sort Sign.certify_class Sign.certify_sort;
 val prove_instance_sort = instance_sort' o prove_interpretation_in;
 val instance_class_cmd = gen_instance_class Sign.read_class;
