@@ -155,7 +155,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
        ((if def then [(name, setT', NoSyn)] else []) @
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)])
-      #> add_def (Logic.mk_defpair (setC, set))
+      #> add_def (PrimitiveDefs.mk_defpair (setC, set))
       ##>> PureThy.add_axioms_i [((typedef_name, typedef_prop),
           [apsnd (fn cond_axm => nonempty RS cond_axm)])]
       ##> Theory.add_deps "" (dest_Const RepC) typedef_deps

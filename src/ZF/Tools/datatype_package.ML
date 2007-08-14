@@ -92,7 +92,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     let val ncon = length con_ty_list    (*number of constructors*)
         fun mk_def (((id,T,syn), name, args, prems), kcon) =
               (*kcon is index of constructor*)
-            Logic.mk_defpair (list_comb (Const (full_name name, T), args),
+            PrimitiveDefs.mk_defpair (list_comb (Const (full_name name, T), args),
                         mk_inject npart kpart
                         (mk_inject ncon kcon (mk_tuple args)))
     in  ListPair.map mk_def (con_ty_list, 1 upto ncon)  end;
@@ -141,7 +141,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val case_const = Const (case_name, case_typ);
   val case_tm = list_comb (case_const, case_args);
 
-  val case_def = Logic.mk_defpair
+  val case_def = PrimitiveDefs.mk_defpair
     (case_tm, BalancedTree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_case case_lists));
 
 
@@ -218,7 +218,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                          (List.concat case_lists ~~ List.concat recursor_lists)
 
   val recursor_def =
-      Logic.mk_defpair
+      PrimitiveDefs.mk_defpair
         (recursor_tm,
          Ind_Syntax.Vrecursor_const $
            absfree ("rec", iT, list_comb (case_const, recursor_cases)));

@@ -157,7 +157,7 @@ let
   val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
 
   (*The individual sets must already be declared*)
-  val axpairs = map Logic.mk_defpair
+  val axpairs = map PrimitiveDefs.mk_defpair
         ((big_rec_tm, fp_rhs) ::
          (case parts of
              [_] => []                        (*no mutual recursion*)
