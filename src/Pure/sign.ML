@@ -130,8 +130,7 @@ sig
   val certify_class: theory -> class -> class
   val certify_sort: theory -> sort -> sort
   val certify_typ: theory -> typ -> typ
-  val certify_typ_syntax: theory -> typ -> typ
-  val certify_typ_abbrev: theory -> typ -> typ
+  val certify_typ_mode: Type.mode -> theory -> typ -> typ
   val certify': bool -> bool -> Pretty.pp -> Consts.T -> theory -> term -> term * typ * int
   val certify_term: theory -> term -> term * typ * int
   val certify_prop: theory -> term -> term * typ * int
@@ -141,17 +140,10 @@ sig
   val no_vars: Pretty.pp -> term -> term
   val cert_def: Pretty.pp -> term -> (string * typ) * term
   val read_class: theory -> xstring -> class
-  val read_sort': Syntax.syntax -> Proof.context -> string -> sort
-  val read_sort: theory -> string -> sort
   val read_arity: theory -> xstring * string list * string -> arity
   val cert_arity: theory -> arity -> arity
   val get_sort: theory ->
     (indexname -> sort option) -> (indexname * sort) list -> indexname -> sort
-  val read_typ': Syntax.syntax -> Proof.context -> (indexname -> sort option) -> string -> typ
-  val read_typ_syntax': Syntax.syntax -> Proof.context ->
-    (indexname -> sort option) -> string -> typ
-  val read_typ_abbrev': Syntax.syntax -> Proof.context ->
-    (indexname -> sort option) -> string -> typ
   val read_def_typ: theory * (indexname -> sort option) -> string -> typ
   val read_typ: theory -> string -> typ
   val read_typ_syntax: theory -> string -> typ
@@ -399,13 +391,10 @@ fun pp thy = Pretty.pp (pretty_term thy, pretty_typ thy, pretty_sort thy,
 val arity_number = Type.arity_number o tsig_of;
 fun arity_sorts thy = Type.arity_sorts (pp thy) (tsig_of thy);
 
-fun certify cert = cert o tsig_of;
-
-val certify_class      = certify Type.cert_class;
-val certify_sort       = certify Type.cert_sort;
-val certify_typ        = certify Type.cert_typ;
-val certify_typ_syntax = certify Type.cert_typ_syntax;
-val certify_typ_abbrev = certify Type.cert_typ_abbrev;
+val certify_class         = Type.cert_class o tsig_of;
+val certify_sort          = Type.cert_sort o tsig_of;
+val certify_typ           = Type.cert_typ o tsig_of;
+fun certify_typ_mode mode = Type.cert_typ_mode mode o tsig_of;
 
 
 (* certify term/prop *)
@@ -492,18 +481,10 @@ fun cert_def pp tm =
 
 (** read and certify entities **)    (*exception ERROR*)
 
-(* classes and sorts *)
+(* classes *)
 
 fun read_class thy c = certify_class thy (intern_class thy c)
   handle TYPE (msg, _, _) => error msg;
-
-fun read_sort' syn ctxt str =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val S = Syntax.standard_read_sort ctxt syn (intern_sort thy) str;
-  in certify_sort thy S handle TYPE (msg, _, _) => error msg end;
-
-fun read_sort thy str = read_sort' (syn_of thy) (ProofContext.init thy) str;
 
 
 (* type arities *)
@@ -512,7 +493,7 @@ fun prep_arity prep_tycon prep_sort thy (t, Ss, S) =
   let val arity = (prep_tycon thy t, map (prep_sort thy) Ss, prep_sort thy S)
   in Type.add_arity (pp thy) arity (tsig_of thy); arity end;
 
-val read_arity = prep_arity intern_type read_sort;
+val read_arity = prep_arity intern_type Syntax.global_read_sort;
 val cert_arity = prep_arity (K I) certify_sort;
 
 
@@ -542,29 +523,23 @@ fun get_sort thy def_sort raw_env =
 
 local
 
-fun gen_read_typ' cert syn ctxt def_sort str =
+fun gen_read_typ mode (thy, def_sort) str =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val ctxt = ProofContext.init thy;
+    val syn = syn_of thy;
     val T = intern_tycons thy
-      (Syntax.standard_read_typ ctxt syn (get_sort thy def_sort) (intern_sort thy) str);
-  in cert thy T handle TYPE (msg, _, _) => error msg end
+      (Syntax.standard_parse_typ ctxt syn (get_sort thy def_sort) (intern_sort thy) str);
+  in certify_typ_mode mode thy T handle TYPE (msg, _, _) => error msg end
   handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
-
-fun gen_read_typ cert (thy, def_sort) str =
-  gen_read_typ' cert (syn_of thy) (ProofContext.init thy) def_sort str;
 
 in
 
 fun no_def_sort thy = (thy: theory, K NONE);
 
-val read_typ'        = gen_read_typ' certify_typ;
-val read_typ_syntax' = gen_read_typ' certify_typ_syntax;
-val read_typ_abbrev' = gen_read_typ' certify_typ_abbrev;
-val read_def_typ     = gen_read_typ certify_typ;
-
-val read_typ = read_def_typ o no_def_sort;
-val read_typ_syntax  = gen_read_typ certify_typ_syntax o no_def_sort;
-val read_typ_abbrev  = gen_read_typ certify_typ_abbrev o no_def_sort;
+val read_def_typ     = gen_read_typ Type.mode_default;
+val read_typ         = gen_read_typ Type.mode_default o no_def_sort;
+val read_typ_syntax  = gen_read_typ Type.mode_syntax o no_def_sort;
+val read_typ_abbrev  = gen_read_typ Type.mode_abbrev o no_def_sort;
 
 end;
 
@@ -594,7 +569,7 @@ fun read_def_terms'
     val thy = ProofContext.theory_of ctxt;
 
     fun infer args = TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
-        (try (Consts.the_constraint consts)) def_type used freeze args |>> map fst
+        Type.mode_default (try (Consts.the_constraint consts)) def_type used freeze args |>> map fst
       handle TYPE (msg, _, _) => error msg;
 
     (*brute-force disambiguation via type-inference*)
@@ -623,10 +598,10 @@ fun read_def_terms'
             else cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
               cat_lines (map (Pretty.string_of_term pp) ts))
           end;
-          
+
     (*read term*)
     val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
-    fun read T = disambig T o Syntax.standard_read_term (get_sort thy def_sort) map_const map_free
+    fun read T = disambig T o Syntax.standard_parse_term (get_sort thy def_sort) map_const map_free
         (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn T;
   in
     raw_args
@@ -663,7 +638,7 @@ fun read_prop thy = simple_read_term thy propT;
 fun gen_add_defsort prep_sort s thy =
   thy |> map_tsig (Type.set_defsort (prep_sort thy s));
 
-val add_defsort = gen_add_defsort read_sort;
+val add_defsort = gen_add_defsort Syntax.global_read_sort;
 val add_defsort_i = gen_add_defsort certify_sort;
 
 
@@ -700,31 +675,32 @@ fun gen_add_tyabbr prep_typ (a, vs, rhs, mx) thy =
     let
       val syn' = Syntax.extend_type_gram [(a, length vs, mx)] syn;
       val a' = Syntax.type_name a mx;
-      val abbr = (a', vs, prep_typ thy rhs)
+      val abbr = (a', vs, certify_typ_mode Type.mode_syntax thy (prep_typ thy rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote a');
       val tsig' = Type.add_abbrevs naming [abbr] tsig;
     in (naming, syn', tsig', consts) end);
 
-val add_tyabbrs = fold (gen_add_tyabbr read_typ_syntax);
-val add_tyabbrs_i = fold (gen_add_tyabbr certify_typ_syntax);
+val add_tyabbrs = fold (gen_add_tyabbr Syntax.global_parse_typ);
+val add_tyabbrs_i = fold (gen_add_tyabbr (K I));
 
 
 (* modify syntax *)
 
 fun gen_syntax change_gram prep_typ mode args thy =
   let
-    fun prep (c, T, mx) = (c, prep_typ thy T, mx) handle ERROR msg =>
-      cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name c mx));
+    fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (prep_typ thy T), mx)
+      handle ERROR msg =>
+        cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name c mx));
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax Syntax.extend_const_gram x;
 
-val add_modesyntax = gen_add_syntax read_typ_syntax;
-val add_modesyntax_i = gen_add_syntax certify_typ_syntax;
+val add_modesyntax = gen_add_syntax Syntax.global_parse_typ;
+val add_modesyntax_i = gen_add_syntax (K I);
 val add_syntax = add_modesyntax Syntax.default_mode;
 val add_syntax_i = add_modesyntax_i Syntax.default_mode;
-val del_modesyntax = gen_syntax Syntax.remove_const_gram read_typ_syntax;
-val del_modesyntax_i = gen_syntax Syntax.remove_const_gram certify_typ_syntax;
+val del_modesyntax = gen_syntax Syntax.remove_const_gram Syntax.global_parse_typ;
+val del_modesyntax_i = gen_syntax Syntax.remove_const_gram (K I);
 
 fun const_syntax thy (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)
   | const_syntax _ _ = NONE;
