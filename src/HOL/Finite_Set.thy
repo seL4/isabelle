@@ -1776,7 +1776,7 @@ lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME num
   done
 
 text {* Relates to equivalence classes.  Based on a theorem of
-F. Kammüller's.  *}
+F. Kammï¿½ller's.  *}
 
 lemma dvd_partition:
   "finite (Union C) ==>
@@ -2276,7 +2276,7 @@ done
 
 subsection {* Finiteness and quotients *}
 
-text {*Suggested by Florian Kammüller*}
+text {*Suggested by Florian Kammï¿½ller*}
 
 lemma finite_quotient: "finite A ==> r \<subseteq> A \<times> A ==> finite (A//r)"
   -- {* recall @{thm equiv_type} *}
@@ -2710,12 +2710,12 @@ subsection {* Class @{text finite} *}
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
 class finite (attach UNIV) = type +
-  assumes finite: "finite UNIV"
+  assumes finite_UNIV: "finite UNIV"
 setup {* Sign.parent_path *}
 hide const finite
 
-lemma finite_set: "finite (A::'a::finite set)"
-  by (rule finite_subset [OF subset_UNIV finite])
+lemma finite [simp]: "finite (A::'a::finite set)"
+  by (rule finite_subset [OF subset_UNIV finite_UNIV])
 
 lemma univ_unit:
   "UNIV = {()}" by auto
@@ -2802,7 +2802,7 @@ proof
   show "finite (UNIV :: ('a => 'b) set)"
   proof (rule finite_imageD)
     let ?graph = "%f::'a => 'b. {(x, y). y = f x}"
-    show "finite (range ?graph)" by (rule finite_set)
+    show "finite (range ?graph)" by (rule finite)
     show "inj ?graph" by (rule inj_graph)
   qed
 qed
