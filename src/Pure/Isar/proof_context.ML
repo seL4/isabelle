@@ -41,6 +41,8 @@ sig
   val string_of_typ: Proof.context -> typ -> string
   val string_of_term: Proof.context -> term -> string
   val string_of_thm: Proof.context -> thm -> string
+  val get_type_mode: Proof.context -> Type.mode
+  val put_type_mode: Type.mode -> Proof.context -> Proof.context
   val read_typ: Proof.context -> string -> typ
   val read_typ_syntax: Proof.context -> string -> typ
   val read_typ_abbrev: Proof.context -> string -> typ
@@ -341,22 +343,63 @@ val string_of_thm = Pretty.string_of oo pretty_thm;
 
 (** prepare types **)
 
+(* implicit type mode *)
+
+structure TypeMode = ProofDataFun
+(
+  type T = Type.mode;
+  fun init _ = Type.mode_default;
+);
+
+val get_type_mode = TypeMode.get;
+val put_type_mode = TypeMode.put;
+
+
+(* read_typ *)
+
+fun read_typ_mode mode ctxt s =
+  Syntax.read_typ (put_type_mode mode ctxt) s;
+
+val read_typ        = read_typ_mode Type.mode_default;
+val read_typ_syntax = read_typ_mode Type.mode_syntax;
+val read_typ_abbrev = read_typ_mode Type.mode_abbrev;
+
+
+(* cert_typ *)
+
+fun cert_typ_mode mode ctxt T =
+  Sign.certify_typ_mode mode (theory_of ctxt) T
+    handle TYPE (msg, _, _) => error msg;
+
+val cert_typ        = cert_typ_mode Type.mode_default;
+val cert_typ_syntax = cert_typ_mode Type.mode_syntax;
+val cert_typ_abbrev = cert_typ_mode Type.mode_abbrev;
+
+
+
+(** inner syntax parsers **)
+
 local
 
-fun read_typ_aux read ctxt s =
-  read (syn_of ctxt) ctxt (Variable.def_sort ctxt) s;
+fun parse_sort ctxt str =
+  Syntax.standard_parse_sort ctxt (syn_of ctxt) (Sign.intern_sort (theory_of ctxt)) str;
 
-fun cert_typ_aux cert ctxt raw_T =
-  cert (theory_of ctxt) raw_T handle TYPE (msg, _, _) => error msg;
+fun parse_typ ctxt str =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val get_sort = Sign.get_sort thy (Variable.def_sort ctxt);
+    val T = Sign.intern_tycons thy
+      (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) str);
+  in T end
+  handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
+
+fun parse_term _ _ = error "Inner syntax: term parser unavailable";
+fun parse_prop _ _ = error "Inner syntax: prop parser unavailable";
 
 in
 
-val read_typ        = read_typ_aux Sign.read_typ';
-val read_typ_syntax = read_typ_aux Sign.read_typ_syntax';
-val read_typ_abbrev = read_typ_aux Sign.read_typ_abbrev';
-val cert_typ        = cert_typ_aux Sign.certify_typ;
-val cert_typ_syntax = cert_typ_aux Sign.certify_typ_syntax;
-val cert_typ_abbrev = cert_typ_aux Sign.certify_typ_abbrev;
+val _ = Syntax.install_parsers
+  {sort = parse_sort, typ = parse_typ, term = parse_term, prop = parse_prop};
 
 end;
 
@@ -566,14 +609,19 @@ end;
 local
 
 fun gen_infer_types pattern ctxt ts =
-  TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (try (Consts.the_constraint (consts_of ctxt)))
-    (Variable.def_type ctxt pattern) (Variable.names_of ctxt) (not pattern) (map (rpair dummyT) ts)
-  |> #1 |> map #1;
+  TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (get_type_mode ctxt)
+    (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
+    (Variable.names_of ctxt) (not pattern) (map (rpair dummyT) ts)
+  |> #1 |> map #1
+  handle TYPE (msg, _, _) => error msg;
 
 in
 
 val infer_types = gen_infer_types false;
 val infer_types_pats = gen_infer_types true;
+
+val _ = Context.add_setup (Context.theory_map
+    (Syntax.add_type_check (fn ts => fn ctxt => (infer_types ctxt ts, ctxt))));
 
 end;
 
@@ -871,16 +919,16 @@ fun prep_vars prep_typ internal legacy =
       fun cond_tvars T =
         if internal then T
         else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
-      val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
+      val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
       val var = (x, opt_T, mx);
     in (var, ctxt |> declare_var var |> #2) end);
 
 in
 
-val read_vars        = prep_vars read_typ false false;
-val cert_vars        = prep_vars cert_typ true false;
-val read_vars_legacy = prep_vars read_typ true true;
-val cert_vars_legacy = prep_vars cert_typ true true;
+val read_vars        = prep_vars Syntax.parse_typ false false;
+val cert_vars        = prep_vars (K I) true false;
+val read_vars_legacy = prep_vars Syntax.parse_typ true true;
+val cert_vars_legacy = prep_vars (K I) true true;
 
 end;
 
