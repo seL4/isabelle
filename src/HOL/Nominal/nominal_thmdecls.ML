@@ -47,7 +47,7 @@ structure Data = GenericDataFun
 (* be equal to t except that every free variable, say x, is replaced by pi o x. In   *)
 (* the implicational case it is also checked that the variables and permutation fit  *)
 (* together, i.e. are of the right "pt_class", so that a stronger version of the     *)
-(* eqality-lemma can be derived. *)
+(* equality-lemma can be derived. *)
 exception EQVT_FORM of string;
 
 fun print_data ctxt =
@@ -70,7 +70,8 @@ val get_bij_thms = Context.Theory #> Data.get #> #bijs;
 (* FIXME: should be a function in a library *)
 fun mk_permT T = HOLogic.listT (HOLogic.mk_prodT (T, T));
 
-val perm_bool = thm "perm_bool";
+val perm_boolE = thm "perm_boolE";
+val perm_boolI = thm "perm_boolI";
 val perm_fun_def = thm "perm_fun_def";
 
 val NOMINAL_EQVT_DEBUG = ref false;
@@ -89,12 +90,16 @@ fun tactic_eqvt ctx orig_thm pi typi =
         val perm_pi_simp = dynamic_thms ctx "perm_pi_simp"
     in
         EVERY [tactic ("iffI applied",rtac iffI 1),
-               tactic ("simplifies with orig_thm and perm_bool",
-                          asm_full_simp_tac (HOL_basic_ss addsimps [perm_bool,orig_thm]) 1),
+	       tactic ("remove pi with perm_boolE",
+                          (dtac perm_boolE 1)),
+               tactic ("solve with orig_thm",
+                          (etac orig_thm 1)),
                tactic ("applies orig_thm instantiated with rev pi",
                           dtac (Drule.cterm_instantiate [(mypi,mypifree)] orig_thm) 1),
+	       tactic ("getting rid of the pi on the right",
+                          (rtac perm_boolI 1)),
                tactic ("getting rid of all remaining perms",
-                          full_simp_tac (HOL_basic_ss addsimps (perm_bool::perm_pi_simp)) 1)]
+                          full_simp_tac (HOL_basic_ss addsimps perm_pi_simp) 1)]
     end;
 
 fun get_derived_thm thy hyp concl orig_thm pi typi =
@@ -159,7 +164,8 @@ fun get_pi t thy =
 (* Either adds a theorem (orig_thm) to or deletes one from the equivaraince *)
 (* lemma list depending on flag. To be added the lemma has to satisfy a     *)
 (* certain form. *)
-fun eqvt_add_del_aux flag orig_thm context =
+
+fun eqvt_add_del_aux flag orig_thm context = 
   let
     val thy = Context.theory_of context
     val thms_to_be_added = (case (prop_of orig_thm) of
