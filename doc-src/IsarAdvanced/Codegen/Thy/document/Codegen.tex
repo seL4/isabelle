@@ -590,7 +590,7 @@ The \isa{HOL} \isa{Main} theory already provides a code
     \item[\isa{Pretty{\isacharunderscore}Char{\isacharunderscore}chr}] like \isa{Pretty{\isacharunderscore}Char},
        but also offers treatment of character codes; includes
        \isa{Pretty{\isacharunderscore}Int}.
-    \item[\isa{Executable{\isacharunderscore}Set}] \label{exec_set} allows to generate code
+    \item[\isa{Executable{\isacharunderscore}Set}] allows to generate code
        for finite sets using lists.
     \item[\isa{Executable{\isacharunderscore}Rat}] implements rational
        numbers.
@@ -1452,91 +1452,12 @@ Code generation is \emph{incremental}: theorems
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Axiomatic extensions%
+\isamarkupsubsection{Code generation and proof extraction%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{warn}
-    The extensions introduced in this section, though working
-    in practice, are not the cream of the crop, as you
-    will notice during reading.  They will
-    eventually be replaced by more mature approaches.
-  \end{warn}
-
-  Sometimes equalities are taken for granted which are
-  not derivable inside the HOL logic but are silently assumed
-  to hold for executable code.  For example, we may want
-  to identify the famous HOL constant \isa{arbitrary}
-  of type \isa{{\isacharprime}a\ option} with \isa{None}.
-  By brute force:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{axiomatization}\isamarkupfalse%
-\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}arbitrary\ {\isacharequal}\ None{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-However this has to be considered harmful since this axiom,
-  though probably justifiable for generated code, could
-  introduce serious inconsistencies into the logic.
-
-  So, there is a distinguished construct for stating axiomatic
-  equalities of constants which apply only for code generation.
-  Before introducing this, here is a convenient place to describe
-  shortly how to deal with some restrictions the type discipline
-  imposes.
-
-  By itself, the constant \isa{arbitrary} is a non-overloaded
-  polymorphic constant.  So, there is no way to distinguish
-  different versions of \isa{arbitrary} for different types
-  inside the code generator framework.  However, inlining
-  theorems together with auxiliary constants provide a solution:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{definition}\isamarkupfalse%
-\isanewline
-\ \ arbitrary{\isacharunderscore}option\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ option{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isacharbrackleft}symmetric{\isacharcomma}\ code\ inline{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}arbitrary{\isacharunderscore}option\ {\isacharequal}\ arbitrary{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-By that, we replace any \isa{arbitrary} with option type
-  by \isa{arbitrary{\isacharunderscore}option} in defining equations.
-
-  For technical reasons, we further have to provide a
-  synonym for \isa{None} which in code generator view
-  is a function rather than a term constructor:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{definition}\isamarkupfalse%
-\isanewline
-\ \ {\isachardoublequoteopen}None{\isacharprime}\ {\isacharequal}\ None{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-Then finally we are enabled to use \isa{{\isasymCODEAXIOMS}}:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{code{\isacharunderscore}axioms}\isamarkupfalse%
-\isanewline
-\ \ arbitrary{\isacharunderscore}option\ {\isasymequiv}\ None{\isacharprime}%
-\begin{isamarkuptext}%
-A dummy example:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{fun}\isamarkupfalse%
-\isanewline
-\ \ dummy{\isacharunderscore}option\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ option{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ {\isachardoublequoteopen}dummy{\isacharunderscore}option\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ Some\ x{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}dummy{\isacharunderscore}option\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ arbitrary{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ dummy{\isacharunderscore}option\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}arbitrary{\isachardot}ML{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-\lstsml{Thy/examples/arbitrary.ML}
-
-  \medskip
-
-  Another axiomatic extension is code generation
-  for abstracted types.  For this, the  
-  \isa{Executable{\isacharunderscore}Set} theory (see \secref{exec_set})
-  forms a good example.%
+\fixme%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1832,105 +1753,6 @@ Due to incrementality of code generation, changes in the
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isamarkupsubsubsection{Building implementable systems fo defining equations%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Out of the executable content of a theory, a normalized
-  defining equation systems may be constructed containing
-  function definitions for constants.  The system is cached
-  until its underlying executable content changes.
-
-  Defining equations are retrieved by instantiation
-  of the functor \verb|CodeFuncgrRetrieval|
-  which takes two arguments:
-
-  \medskip
-  \begin{tabular}{l}
-  \isa{val\ rewrites{\isacharcolon}\ theory\ {\isasymrightarrow}\ thm\ list}
-  \end{tabular}
-
-  \begin{description}
-
-  \item \isa{rewrites} specifies a set of theory-dependent
-    rewrite rules which are added to the preprocessor setup;
-    if no additional preprocessing is required, pass
-    a function returning an empty list.
-
-  \end{description}
-
-  An instance of \verb|CodeFuncgrRetrieval| in essence
-  provides the following interface:
-
-  \medskip
-  \begin{tabular}{l}
-  \isa{make{\isacharcolon}\ theory\ {\isasymrightarrow}\ CodeUnit{\isachardot}const\ list\ {\isasymrightarrow}\ CodeFuncgr{\isachardot}T} \\
-  \end{tabular}
-
-  \begin{description}
-
-  \item \isa{make}~\isa{thy}~\isa{consts} returns
-    a system of defining equations which is guaranteed
-    to contain all defining equations for constants \isa{consts}
-    including all defining equations any defining equation
-    for any constant in \isa{consts} depends on.
-
-  \end{description}
-
-  Systems of defining equations are graphs accesible by the
-  following operations:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isatagmlref
-%
-\begin{isamarkuptext}%
-\begin{mldecls}
-  \indexmltype{CodeFuncgr.T}\verb|type CodeFuncgr.T| \\
-  \indexml{CodeFuncgr.funcs}\verb|CodeFuncgr.funcs: CodeFuncgr.T -> CodeUnit.const -> thm list| \\
-  \indexml{CodeFuncgr.typ}\verb|CodeFuncgr.typ: CodeFuncgr.T -> CodeUnit.const -> typ| \\
-  \indexml{CodeFuncgr.deps}\verb|CodeFuncgr.deps: CodeFuncgr.T|\isasep\isanewline%
-\verb|    -> CodeUnit.const list -> CodeUnit.const list list| \\
-  \indexml{CodeFuncgr.all}\verb|CodeFuncgr.all: CodeFuncgr.T -> CodeUnit.const list|
-  \end{mldecls}
-
-  \begin{description}
-
-  \item \verb|CodeFuncgr.T| represents
-    a normalized defining equation system.
-
-  \item \verb|CodeFuncgr.funcs|~\isa{funcgr}~\isa{const}
-    retrieves defining equiations for constant \isa{const}.
-
-  \item \verb|CodeFuncgr.typ|~\isa{funcgr}~\isa{const}
-    retrieves function type for constant \isa{const}.
-
-  \item \verb|CodeFuncgr.deps|~\isa{funcgr}~\isa{consts}
-    returns the transitive closure of dependencies for
-    constants \isa{consts} as a partitioning where each partition
-    corresponds to a strongly connected component of
-    dependencies and any partition does \emph{not}
-    depend on partitions further left.
-
-  \item \verb|CodeFuncgr.all|~\isa{funcgr}
-    returns all currently represented constants.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagmlref
-{\isafoldmlref}%
-%
-\isadelimmlref
-%
-\endisadelimmlref
 %
 \isamarkupsubsubsection{Datatype hooks%
 }
