@@ -638,10 +638,8 @@ fun assert_func_typ thm =
         | NONE => check_typ_fun (const, thm);
   in check_typ (fst (CodeUnit.head_func thm), thm) end;
 
-val mk_func = CodeUnit.error_thm
-  (assert_func_typ o CodeUnit.mk_func);
-val mk_func_liberal = CodeUnit.warning_thm
-  (assert_func_typ o CodeUnit.mk_func);
+val mk_func = CodeUnit.error_thm (assert_func_typ o CodeUnit.mk_func);
+val mk_func_liberal = CodeUnit.warning_thm (assert_func_typ o CodeUnit.mk_func);
 
 end;
 

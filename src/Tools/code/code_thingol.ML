@@ -76,7 +76,7 @@ sig
     -> code -> code;
   val empty_funs: code -> string list;
   val is_cons: code -> string -> bool;
-  val add_eval_def: string (*bind name*) * iterm -> code -> code;
+  val add_eval_def: string (*bind name*) * (iterm * itype) -> code -> code;
 
   val ensure_def: (string -> string) -> (transact -> def * transact) -> string
     -> string -> transact -> transact;
@@ -247,7 +247,6 @@ datatype def =
       * (string * iterm) list);
 
 type code = def Graph.T;
-type transact = Graph.key option * code;
 
 
 (* abstract code *)
@@ -372,6 +371,8 @@ fun postprocess_def (name, Datatype (_, constrs)) =
 
 (* transaction protocol *)
 
+type transact = Graph.key option * code;
+
 fun ensure_def labelled_name defgen msg name (dep, code) =
   let
     val msg' = (case dep
@@ -402,9 +403,9 @@ fun start_transact f code =
   |> f
   |-> (fn x => fn (_, code) => (x, code));
 
-fun add_eval_def (name, t) code =
+fun add_eval_def (name, (t, ty)) code =
   code
-  |> Graph.new_node (name, Fun ([([], t)], ([("_", [])], ITyVar "_")))
+  |> Graph.new_node (name, Fun ([([], t)], ([], ty)))
   |> fold (curry Graph.add_edge name) (Graph.keys code);
 
 end; (*struct*)

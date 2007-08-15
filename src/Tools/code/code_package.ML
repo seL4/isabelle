@@ -9,13 +9,14 @@ signature CODE_PACKAGE =
 sig
   (* interfaces *)
   val eval_conv: theory
-    -> (CodeThingol.code -> CodeThingol.iterm -> cterm -> thm) -> cterm -> thm;
-  val codegen_command: theory -> string -> unit;
-
-  (* primitive interfaces *)
-  val eval_term: theory -> (string (*reference name!*) * 'a option ref) * term -> 'a;
+    -> (CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> cterm -> thm)
+    -> cterm -> thm;
+  val eval_term: theory
+    -> (CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> cterm -> 'a)
+    -> cterm -> 'a;
   val satisfies_ref: bool option ref;
-  val satisfies: theory -> term -> string list -> bool;
+  val satisfies: theory -> cterm -> string list -> bool;
+  val codegen_command: theory -> string -> unit;
 
   (* axiomatic interfaces *)
   type appgen;
@@ -63,12 +64,10 @@ structure Translation = TheoryDataFun
     (merge_appgens (appgens1, appgens2), merge_abstypes (abstypes1, abstypes2));
 );
 
-structure Funcgr = CodeFuncgrRetrieval (fun rewrites thy = []);
-
-fun code_depgr thy [] = Funcgr.make thy []
+fun code_depgr thy [] = CodeFuncgr.make thy []
   | code_depgr thy consts =
       let
-        val gr = Funcgr.make thy consts;
+        val gr = CodeFuncgr.make thy consts;
         val select = CodeFuncgr.Constgraph.all_succs gr consts;
       in
         CodeFuncgr.Constgraph.subgraph
@@ -116,7 +115,10 @@ fun get_abstype thy (tyco, tys) = case Symtab.lookup ((fst o snd o Translation.g
  of SOME ty => SOME ((map_atyps (fn TFree (n, _) => nth tys (the (Int.fromString n)))) ty)
   | NONE => NONE;
 
-fun ensure_def thy = CodeThingol.ensure_def (CodeName.labelled_name thy);
+val value_name = "Isabelle_Eval.EVAL.EVAL";
+
+fun ensure_def thy = CodeThingol.ensure_def
+  (fn s => if s = value_name then "<term>" else CodeName.labelled_name thy s);
 
 fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr class =
   let
@@ -442,7 +444,7 @@ fun add_consts thy f (c1, c2 as (c, opt_tyco)) =
         orelse is_some (Code.get_datatype_of_constr thy c2)
       then error ("Not a function: " ^ CodeUnit.string_of_const thy c2)
       else ();
-    val funcgr = Funcgr.make thy [c1, c2];
+    val funcgr = CodeFuncgr.make thy [c1, c2];
     val ty1 = (f o CodeFuncgr.typ funcgr) c1;
     val ty2 = CodeFuncgr.typ funcgr c2;
     val _ = if Sign.typ_equiv thy (ty1, ty2) then () else
@@ -513,75 +515,23 @@ end; (*local*)
 fun generate thy funcgr gen it =
   let
     (*FIXME*)
-    val _ = Funcgr.intervene thy funcgr;
+    val _ = CodeFuncgr.intervene thy funcgr;
     val cs = map_filter (Consttab.lookup ((snd o snd o Translation.get) thy))
       (CodeFuncgr.all funcgr);
-    val funcgr' = Funcgr.make thy cs;
+    val CodeFuncgr' = CodeFuncgr.make thy cs;
     val naming = NameSpace.qualified_names NameSpace.default_naming;
     val consttab = Consts.empty
       |> fold (fn c => Consts.declare naming
-           ((CodeName.const thy c, CodeFuncgr.typ funcgr' c), true))
-           (CodeFuncgr.all funcgr');
+           ((CodeName.const thy c, CodeFuncgr.typ CodeFuncgr' c), true))
+           (CodeFuncgr.all CodeFuncgr');
     val algbr = (Code.operational_algebra thy, consttab);
   in   
     Program.change_yield thy
-      (CodeThingol.start_transact (gen thy algbr funcgr' it))
+      (CodeThingol.start_transact (gen thy algbr CodeFuncgr' it))
+    |> fst
   end;
 
-    (*val val_name = "Isabelle_Eval.EVAL.EVAL";
-    val val_name' = "Isabelle_Eval.EVAL";
-    val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
-    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [] labelled_name;
-    fun eval code = (
-      reff := NONE;
-      seri (SOME [val_name]) code;
-      use_text "generated code for evaluation" Output.ml_output (!eval_verbose)
-        ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name'_args ^ "))");
-      case !reff
-       of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
-            ^ " (reference probably has been shadowed)")
-        | SOME value => value
-      );
-
-    fun defgen_fun trns =
-      let
-        val const' = perhaps (Consttab.lookup ((snd o snd o Translation.get) thy)) const;
-        val raw_thms = CodeFuncgr.funcs funcgr const';
-        val ty = (Logic.unvarifyT o CodeFuncgr.typ funcgr) const';
-        val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
-          then raw_thms
-          else map (CodeUnit.expand_eta 1) raw_thms;
-        val timeap = if !timing then Output.timeap_msg ("time for " ^ c')
-          else I;
-        val msg = cat_lines ("generating code for theorems " :: map string_of_thm thms);
-        val vs = (map dest_TFree o Consts.typargs consts) (c', ty);
-        val dest_eqthm =
-          apfst (snd o strip_comb) o Logic.dest_equals o Logic.unvarify o prop_of;
-        fun exprgen_eq (args, rhs) trns =
-          trns
-          |> fold_map (exprgen_term thy algbr funcgr) args
-          ||>> exprgen_term thy algbr funcgr rhs;
-      in
-        trns
-        |> CodeThingol.message msg (fn trns => trns
-        |> timeap (fold_map (exprgen_eq o dest_eqthm) thms)
-        ||>> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
-        ||>> exprgen_typ thy algbr funcgr ty
-        |-> (fn ((eqs, vs), ty) => succeed (CodeThingol.Fun (eqs, (vs, ty)))))
-      end;
-    val defgen = if (is_some o Code.get_datatype_of_constr thy) const
-      then defgen_datatypecons
-      else if is_some opt_tyco
-        orelse (not o is_some o AxClass.class_of_param thy) c
-      then defgen_fun
-      else defgen_classop
-  in
-    trns
-    |> ensure_def thy defgen ("generating constant " ^ CodeUnit.string_of_const thy const) c'
-
-*)
-
-(*fun eval_conv thy conv =
+fun raw_eval f thy g =
   let
     val value_name = "Isabelle_Eval.EVAL.EVAL";
     fun ensure_eval thy algbr funcgr t = 
@@ -590,58 +540,46 @@ fun generate thy funcgr gen it =
           exprgen_term' thy algbr funcgr t
           ##>> exprgen_typ thy algbr funcgr (fastype_of t)
           #>> (fn (t, ty) => CodeThingol.Fun ([([], t)], ([], ty)));
+        fun result (dep, code) =
+          let
+            val CodeThingol.Fun ([([], t)], ([], ty)) = Graph.get_node code value_name;
+            val deps = Graph.imm_succs code value_name;
+            val code' = Graph.del_nodes [value_name] code;
+            val code'' = CodeThingol.project_code false [] (SOME deps) code';
+          in ((code'', (t, ty), deps), (dep, code')) end;
       in
         ensure_def thy defgen_eval "evaluation" value_name
-        #> pair value_name
+        #> result
       end;
-    fun conv' funcgr ct =
+    fun h funcgr ct =
       let
-        val (_, code) = generate thy funcgr ensure_eval (Thm.term_of ct);
-        val consts = CodeThingol.fold_constnames (insert (op =)) t [];
-        val code = Program.get thy
-          |> CodeThingol.project_code true [] (SOME consts)
-      in conv code t ct end;
-  in Funcgr.eval_conv thy conv' end;*)
+        val (code, (t, ty), deps) = generate thy funcgr ensure_eval (Thm.term_of ct);
+      in g code (t, ty) deps ct end;
+  in f thy h end;
 
-fun eval_conv thy conv =
-  let
-    fun conv' funcgr ct =
-      let
-        val (t, _) = generate thy funcgr exprgen_term' (Thm.term_of ct);
-        val consts = CodeThingol.fold_constnames (insert (op =)) t [];
-        val code = Program.get thy
-          |> CodeThingol.project_code true [] (SOME consts)
-      in conv code t ct end;
-  in Funcgr.eval_conv thy conv' end;
-
-fun codegen_term thy t =
-  let
-    val ct = Thm.cterm_of thy t;
-    val (ct', funcgr) = Funcgr.make_term thy (K (K K)) ct;
-    val t' = Thm.term_of ct';
-  in generate thy funcgr exprgen_term' t' |> fst end;
-
-fun raw_eval_term thy (ref_spec, t) args =
-  let
-    val _ = (Term.map_types o Term.map_atyps) (fn _ =>
-      error ("Term " ^ Sign.string_of_term thy t ^ " contains polymorphic type"))
-      t;
-    val t' = codegen_term thy t;
-  in
-    CodeTarget.eval_term thy CodeName.labelled_name
-      (Program.get thy) (ref_spec, t') args
-  end;
+fun eval_conv thy = raw_eval CodeFuncgr.eval_conv thy;
+fun eval_term thy = raw_eval CodeFuncgr.eval_term thy;
 
 val satisfies_ref : bool option ref = ref NONE;
 
-fun eval_term thy t = raw_eval_term thy t [];
-fun satisfies thy t witnesses = raw_eval_term thy
-  (("CodePackage.satisfies_ref", satisfies_ref), t) witnesses;
+fun satisfies thy ct witnesses =
+  let
+    fun evl code (t, ty) deps ct =
+      let
+        val t0 = Thm.term_of ct
+        val _ = (Term.map_types o Term.map_atyps) (fn _ =>
+          error ("Term " ^ Sign.string_of_term thy t0 ^ " contains polymorphic type"))
+          t0;
+      in
+        CodeTarget.eval_term thy ("CodePackage.satisfies_ref", satisfies_ref)
+          code (t, ty) witnesses
+      end;
+  in eval_term thy evl ct end;
 
 fun filter_generatable thy consts =
   let
-    val (consts', funcgr) = Funcgr.make_consts thy consts;
-    val (consts'', _) = generate thy funcgr (fold_map ooo perhaps_def_const) consts';
+    val (consts', funcgr) = CodeFuncgr.make_consts thy consts;
+    val consts'' = generate thy funcgr (fold_map ooo perhaps_def_const) consts';
     val consts''' = map_filter (fn (const, SOME _) => SOME const | (_, NONE) => NONE)
       (consts' ~~ consts'');
   in consts''' end;
@@ -658,9 +596,9 @@ fun code raw_cs seris thy =
   let
     val (perm1, cs) = CodeUnit.read_const_exprs thy
       (filter_generatable thy) raw_cs;
-    val (perm2, cs') = case generate thy (Funcgr.make thy cs) (fold_map ooo ensure_def_const') cs
-     of ([], _) => (true, NONE)
-      | (cs, _) => (false, SOME cs);
+    val (perm2, cs') = case generate thy (CodeFuncgr.make thy cs) (fold_map ooo ensure_def_const') cs
+     of [] => (true, NONE)
+      | cs => (false, SOME cs);
     val code = Program.get thy;
     val seris' = map (fn (((target, module), file), args) =>
       CodeTarget.get_serializer thy target (perm1 orelse perm2) module file args
@@ -670,10 +608,10 @@ fun code raw_cs seris thy =
   end;
 
 fun code_thms_cmd thy =
-  code_thms thy o snd o CodeUnit.read_const_exprs thy (fst o Funcgr.make_consts thy);
+  code_thms thy o snd o CodeUnit.read_const_exprs thy (fst o CodeFuncgr.make_consts thy);
 
 fun code_deps_cmd thy =
-  code_deps thy o snd o CodeUnit.read_const_exprs thy (fst o Funcgr.make_consts thy);
+  code_deps thy o snd o CodeUnit.read_const_exprs thy (fst o CodeFuncgr.make_consts thy);
 
 val (inK, module_nameK, fileK) = ("in", "module_name", "file");
 

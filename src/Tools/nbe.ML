@@ -60,11 +60,6 @@ fun tracing f x = if !trace then (Output.tracing (f x); x) else x;
    Moreover, to handle functions that are still waiting for some
    arguments we have additionally a list of arguments collected to far
    and the number of arguments we're still waiting for.
-
-   (?) Finally, it might happen, that a function does not get all the
-   arguments it needs.  In this case the function must provide means to
-   present itself as a string. As this might be a heavy-wight
-   operation, we delay it. (?) 
 *)
 
 datatype Univ = 
@@ -233,7 +228,7 @@ fun assemble_eqnss thy is_fun [] = ([], "")
         val result = ml_list (map (fn (c, n) => nbe_abss n (nbe_fun c)) num_args);
       in (cs, ml_Let (bind_funs @ [bind_locals]) result) end;
 
-fun assemble_eval thy is_fun t =
+fun assemble_eval thy is_fun (t, deps) =
   let
     val funs = CodeThingol.fold_constnames (insert (op =)) t [];
     val frees = CodeThingol.fold_unbound_varnames (insert (op =)) t [];
@@ -314,7 +309,7 @@ fun term_of_univ thy t =
 
 (* evaluation with type reconstruction *)
 
-fun eval thy code t t' =
+fun eval thy code t t' deps =
   let
     fun subst_Frees [] = I
       | subst_Frees inst =
@@ -330,7 +325,7 @@ fun eval thy code t t' =
     fun constrain t =
       singleton (ProofContext.infer_types_pats (ProofContext.init thy)) (TypeInfer.constrain t ty);
   in
-    t'
+    (t', deps)
     |> eval_term thy (Symtab.defined (ensure_funs thy code))
     |> term_of_univ thy
     |> tracing (fn t => "Normalized:\n" ^ setmp show_types true Display.raw_string_of_term t)
@@ -345,22 +340,22 @@ fun eval thy code t t' =
 
 (* evaluation oracle *)
 
-exception Normalization of CodeThingol.code * term * CodeThingol.iterm;
+exception Normalization of CodeThingol.code * term * CodeThingol.iterm * string list;
 
-fun normalization_oracle (thy, Normalization (code, t, t')) =
-  Logic.mk_equals (t, eval thy code t t');
+fun normalization_oracle (thy, Normalization (code, t, t', deps)) =
+  Logic.mk_equals (t, eval thy code t t' deps);
 
-fun normalization_invoke thy code t t' =
-  Thm.invoke_oracle_i thy "HOL.normalization" (thy, Normalization (code, t, t'));
-  (*FIXME get rid of hardwired theory name "HOL"*)
+fun normalization_invoke thy code t t' deps =
+  Thm.invoke_oracle_i thy "Code_Setup.normalization" (thy, Normalization (code, t, t', deps));
+  (*FIXME get rid of hardwired theory name*)
 
 fun normalization_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    fun conv code t' ct =
+    fun conv code (t', ty') deps ct =
       let
         val t = Thm.term_of ct;
-      in normalization_invoke thy code t t' end;
+      in normalization_invoke thy code t t' deps end;
   in CodePackage.eval_conv thy conv ct end;
 
 (* evaluation command *)

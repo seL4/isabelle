@@ -12,25 +12,18 @@ sig
   val timing: bool ref
   val funcs: T -> CodeUnit.const -> thm list
   val typ: T -> CodeUnit.const -> typ
-  val deps: T -> CodeUnit.const list -> CodeUnit.const list list
   val all: T -> CodeUnit.const list
   val pretty: theory -> T -> Pretty.T
+  val make: theory -> CodeUnit.const list -> T
+  val make_consts: theory -> CodeUnit.const list -> CodeUnit.const list * T
+  val eval_conv: theory -> (T -> cterm -> thm) -> cterm -> thm
+  val eval_term: theory -> (T -> cterm -> 'a) -> cterm -> 'a
+  val intervene: theory -> T -> T
+    (*FIXME drop intervene as soon as possible*)
   structure Constgraph : GRAPH
 end
 
-signature CODE_FUNCGR_RETRIEVAL =
-sig
-  type T (* = CODE_FUNCGR.T *)
-  val make: theory -> CodeUnit.const list -> T
-  val make_consts: theory -> CodeUnit.const list -> CodeUnit.const list * T
-  val make_term: theory -> (T -> (thm -> thm) -> cterm -> thm -> 'a) -> cterm -> 'a * T
-    (*FIXME drop make_term as soon as possible*)
-  val eval_conv: theory -> (T -> cterm -> thm) -> cterm -> thm
-  val intervene: theory -> T -> T
-    (*FIXME drop intervene as soon as possible*)
-end;
-
-structure CodeFuncgr = (*signature is added later*)
+structure CodeFuncgr : CODE_FUNCGR =
 struct
 
 (** the graph type **)
@@ -47,15 +40,6 @@ fun funcs funcgr =
 
 fun typ funcgr =
   fst o Constgraph.get_node funcgr;
-
-fun deps funcgr cs =
-  let
-    val conn = Constgraph.strong_conn funcgr;
-    val order = rev conn;
-  in
-    (map o filter) (member (op =) (Constgraph.all_succs funcgr cs)) order
-    |> filter_out null
-  end;
 
 fun all funcgr = Constgraph.keys funcgr;
 
@@ -208,7 +192,7 @@ fun instances_of_consts thy algebra funcgr consts =
     |> instances_of thy algebra
   end;
 
-fun ensure_const' rewrites thy algebra funcgr const auxgr =
+fun ensure_const' thy algebra funcgr const auxgr =
   if can (Constgraph.get_node funcgr) const
     then (NONE, auxgr)
   else if can (Constgraph.get_node auxgr) const
@@ -219,26 +203,25 @@ fun ensure_const' rewrites thy algebra funcgr const auxgr =
     |> pair (SOME const)
   else let
     val thms = Code.these_funcs thy const
-      |> map (CodeUnit.rewrite_func (rewrites thy))
       |> CodeUnit.norm_args
       |> CodeUnit.norm_varnames CodeName.purify_tvar CodeName.purify_var;
     val rhs = consts_of (const, thms);
   in
     auxgr
     |> Constgraph.new_node (const, thms)
-    |> fold_map (ensure_const rewrites thy algebra funcgr) rhs
+    |> fold_map (ensure_const thy algebra funcgr) rhs
     |-> (fn rhs' => fold (fn SOME const' => Constgraph.add_edge (const, const')
                            | NONE => I) rhs')
     |> pair (SOME const)
   end
-and ensure_const rewrites thy algebra funcgr const =
+and ensure_const thy algebra funcgr const =
   let
     val timeap = if !timing
       then Output.timeap_msg ("time for " ^ CodeUnit.string_of_const thy const)
       else I;
-  in timeap (ensure_const' rewrites thy algebra funcgr const) end;
+  in timeap (ensure_const' thy algebra funcgr const) end;
 
-fun merge_funcss rewrites thy algebra raw_funcss funcgr =
+fun merge_funcss thy algebra raw_funcss funcgr =
   let
     val funcss = raw_funcss
       |> resort_funcss thy algebra funcgr
@@ -267,7 +250,7 @@ fun merge_funcss rewrites thy algebra raw_funcss funcgr =
           (fold_consts (insert (op =)) thms []);
       in
         funcgr
-        |> ensure_consts' rewrites thy algebra insts
+        |> ensure_consts' thy algebra insts
         |> fold (curry Constgraph.add_edge const) deps
         |> fold (curry Constgraph.add_edge const) insts
        end;
@@ -276,22 +259,22 @@ fun merge_funcss rewrites thy algebra raw_funcss funcgr =
     |> fold add_funcs funcss
     |> fold add_deps funcss
   end
-and ensure_consts' rewrites thy algebra cs funcgr =
+and ensure_consts' thy algebra cs funcgr =
   let
     val auxgr = Constgraph.empty
-      |> fold (snd oo ensure_const rewrites thy algebra funcgr) cs;
+      |> fold (snd oo ensure_const thy algebra funcgr) cs;
   in
     funcgr
-    |> fold (merge_funcss rewrites thy algebra)
+    |> fold (merge_funcss thy algebra)
          (map (AList.make (Constgraph.get_node auxgr))
          (rev (Constgraph.strong_conn auxgr)))
   end handle INVALID (cs', msg)
     => raise INVALID (fold (insert CodeUnit.eq_const) cs' cs, msg);
 
-fun ensure_consts rewrites thy consts funcgr =
+fun ensure_consts thy consts funcgr =
   let
     val algebra = Code.coregular_algebra thy
-  in ensure_consts' rewrites thy algebra consts funcgr
+  in ensure_consts' thy algebra consts funcgr
     handle INVALID (cs', msg) => error (msg ^ ",\nwhile preprocessing equations for constant(s) "
     ^ commas (map (CodeUnit.string_of_const thy) cs'))
   end;
@@ -302,16 +285,16 @@ in
 
 val ensure_consts = ensure_consts;
 
-fun check_consts rewrites thy consts funcgr =
+fun check_consts thy consts funcgr =
   let
     val algebra = Code.coregular_algebra thy;
     fun try_const const funcgr =
-      (SOME const, ensure_consts' rewrites thy algebra [const] funcgr)
+      (SOME const, ensure_consts' thy algebra [const] funcgr)
       handle INVALID (cs', msg) => (NONE, funcgr);
     val (consts', funcgr') = fold_map try_const consts funcgr;
   in (map_filter I consts', funcgr') end;
 
-fun ensure_consts_term rewrites thy f ct funcgr =
+fun ensure_consts_term_proto thy f ct funcgr =
   let
     fun consts_of thy t =
       fold_aterms (fn Const c => cons (CodeUnit.const_of_cexpr thy c) | _ => I) t []
@@ -321,11 +304,10 @@ fun ensure_consts_term rewrites thy f ct funcgr =
       in Thm.transitive thm thm' end
     val _ = Sign.no_vars (Sign.pp thy) (Thm.term_of ct);
     val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
-    val thm1 = Code.preprocess_conv ct
-      |> fold (rhs_conv o MetaSimplifier.rewrite false o single) (rewrites thy);
+    val thm1 = Code.preprocess_conv ct;
     val ct' = Thm.rhs_of thm1;
     val consts = consts_of thy (Thm.term_of ct');
-    val funcgr' = ensure_consts rewrites thy consts funcgr;
+    val funcgr' = ensure_consts thy consts funcgr;
     val algebra = Code.coregular_algebra thy;
     val (_, thm2) = Thm.varifyT' [] thm1;
     val thm3 = Thm.reflexive (Thm.rhs_of thm2);
@@ -344,10 +326,10 @@ fun ensure_consts_term rewrites thy f ct funcgr =
     val cs = fold_aterms (fn Const c => cons c | _ => I) (Thm.term_of ct'') [];
     val drop = drop_classes thy tfrees;
     val instdefs = instances_of_consts thy algebra funcgr' cs;
-    val funcgr'' = ensure_consts rewrites thy instdefs funcgr';
+    val funcgr'' = ensure_consts thy instdefs funcgr';
   in (f funcgr'' drop ct'' thm5, funcgr'') end;
 
-fun ensure_consts_eval rewrites thy conv =
+fun ensure_consts_eval thy conv =
   let
     fun conv' funcgr drop_classes ct thm1 =
       let
@@ -359,49 +341,38 @@ fun ensure_consts_eval rewrites thy conv =
           error ("eval_conv - could not construct proof:\n"
           ^ (cat_lines o map string_of_thm) [thm1, thm2, thm3])
       end;
-  in ensure_consts_term rewrites thy conv' end;
+  in ensure_consts_term_proto thy conv' end;
+
+fun ensure_consts_term thy f =
+  let
+    fun f' funcgr drop_classes ct thm1 = f funcgr ct;
+  in ensure_consts_term_proto thy f' end;
 
 end; (*local*)
-
-end; (*struct*)
-
-functor CodeFuncgrRetrieval (val rewrites: theory -> thm list) : CODE_FUNCGR_RETRIEVAL =
-struct
-
-(** code data **)
-
-type T = CodeFuncgr.T;
 
 structure Funcgr = CodeDataFun
 (struct
   type T = T;
-  val empty = CodeFuncgr.Constgraph.empty;
-  fun merge _ _ = CodeFuncgr.Constgraph.empty;
-  fun purge _ NONE _ = CodeFuncgr.Constgraph.empty
+  val empty = Constgraph.empty;
+  fun merge _ _ = Constgraph.empty;
+  fun purge _ NONE _ = Constgraph.empty
     | purge _ (SOME cs) funcgr =
-        CodeFuncgr.Constgraph.del_nodes ((CodeFuncgr.Constgraph.all_preds funcgr 
-          o filter (can (CodeFuncgr.Constgraph.get_node funcgr))) cs) funcgr;
+        Constgraph.del_nodes ((Constgraph.all_preds funcgr 
+          o filter (can (Constgraph.get_node funcgr))) cs) funcgr;
 end);
 
 fun make thy =
-  Funcgr.change thy o CodeFuncgr.ensure_consts rewrites thy;
+  Funcgr.change thy o ensure_consts thy;
 
 fun make_consts thy =
-  Funcgr.change_yield thy o CodeFuncgr.check_consts rewrites thy;
-
-fun make_term thy f =
-  Funcgr.change_yield thy o CodeFuncgr.ensure_consts_term rewrites thy f;
+  Funcgr.change_yield thy o check_consts thy;
 
 fun eval_conv thy f =
-  fst o Funcgr.change_yield thy o CodeFuncgr.ensure_consts_eval rewrites thy f;
+  fst o Funcgr.change_yield thy o ensure_consts_eval thy f;
+
+fun eval_term thy f =
+  fst o Funcgr.change_yield thy o ensure_consts_term thy f;
 
 fun intervene thy funcgr = Funcgr.change thy (K funcgr);
-
-end; (*functor*)
-
-structure CodeFuncgr : CODE_FUNCGR =
-struct
-
-open CodeFuncgr;
 
 end; (*struct*)
