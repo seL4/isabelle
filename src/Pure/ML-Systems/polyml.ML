@@ -70,7 +70,7 @@ fun interrupt_timeout time f x =
 fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
 
-(* toplevel pretty printing (see also Pure/install_pp.ML) *)
+(* toplevel pretty printing (see also Pure/pure_setup.ML) *)
 
 fun make_pp _ pprint (str, blk, brk, en) _ _ obj =
   pprint obj (str, fn ind => blk (ind, false), fn wd => brk (wd, 0),

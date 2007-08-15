@@ -90,7 +90,7 @@ fun exception_trace f = f ();
 fun print x = x;
 
 
-(* toplevel pretty printing (see also Pure/install_pp.ML) *)
+(* toplevel pretty printing (see also Pure/pure_setup.ML) *)
 
 fun make_pp path pprint = (path, pprint);
 fun install_pp (path, pp) = ();

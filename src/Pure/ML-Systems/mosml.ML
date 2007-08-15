@@ -79,7 +79,7 @@ fun print_depth n =
  (Meta.printDepth := n div 2;
   Meta.printLength := n);
 
-(*interface for toplevel pretty printers, see also Pure/install_pp.ML*)
+(*interface for toplevel pretty printers, see also Pure/pure_setup.ML*)
 (*the documentation refers to an installPP but I couldn't fine it!*)
 fun make_pp path pprint = ();
 fun install_pp _ = ();

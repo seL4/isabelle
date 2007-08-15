@@ -88,7 +88,7 @@ fun print x = x;
 fun makestring x = "dummy string for SML New Jersey";
 
 
-(* toplevel pretty printing (see also Pure/install_pp.ML) *)
+(* toplevel pretty printing (see also Pure/pure_setup.ML) *)
 
 fun make_pp path pprint =
   let
