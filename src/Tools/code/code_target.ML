@@ -36,8 +36,8 @@ sig
   val assert_serializer: theory -> string -> string;
 
   val eval_verbose: bool ref;
-  val eval_term: theory -> (theory -> string -> string) -> CodeThingol.code
-    -> (string * 'a option ref) * CodeThingol.iterm -> string list -> 'a;
+  val eval_term: theory -> (string * 'a option ref) -> CodeThingol.code
+    ->  CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val code_width: int ref;
 
   val setup: theory -> theory;
@@ -189,7 +189,7 @@ fun gen_pr_bind pr_bind' pr_term fxy ((v, pat), ty) vars =
     val vars' = CodeName.intro_vars (the_list v) vars;
     val vars'' = CodeName.intro_vars vs vars';
     val v' = Option.map (CodeName.lookup_var vars') v;
-    val pat' = Option.map (pr_term vars'' fxy) pat;
+    val pat' = Option.map (pr_term true vars'' fxy) pat;
   in (pr_bind' ((v', pat'), ty), vars'') end;
 
 
@@ -383,7 +383,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
       | pr_bind' ((SOME v, SOME p), _) = concat [str v, str "as", p]
-    and pr_bind fxy = gen_pr_bind pr_bind' (pr_term false) fxy
+    and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy
     and pr_case vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, t') = CodeThingol.unfold_let (ICase cases);
@@ -448,7 +448,6 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
                     concat (
                       [str definer, (str o deresolv) name]
                       @ (if null ts andalso null vs
-                           andalso not (ty = ITyVar "_")(*for evaluation*)
                          then [str ":", pr_typ NOBR ty]
                          else
                            pr_tyvars vs
@@ -653,7 +652,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
       | pr_bind' ((SOME v, SOME p), _) = brackets [p, str "as", str v]
-    and pr_bind fxy = gen_pr_bind pr_bind' (pr_term false) fxy
+    and pr_bind fxy = gen_pr_bind pr_bind' pr_term fxy
     and pr_case vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, t') = CodeThingol.unfold_let (ICase cases);
@@ -687,12 +686,11 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
               | fillup_parm x (i, NONE) = x ^ string_of_int i;
             fun fish_parms vars eqs =
               let
-                val fished1 = fold (map2 fish_parm) eqs (replicate (length (hd eqs)) NONE);
-                val x = Name.variant (map_filter I fished1) "x";
-                val fished2 = map_index (fillup_parm x) fished1;
-                val fished3 = fold_rev (fn x => fn xs => Name.variant xs x :: xs) fished2 [];
-                val vars' = CodeName.intro_vars fished3 vars;
-              in map (CodeName.lookup_var vars') fished3 end;
+                val raw_fished = fold (map2 fish_parm) eqs (replicate (length (hd eqs)) NONE);
+                val x = Name.variant (map_filter I raw_fished) "x";
+                val fished = map_index (fillup_parm x) raw_fished;
+                val vars' = CodeName.intro_vars fished vars;
+              in map (CodeName.lookup_var vars') fished end;
             fun pr_eq (ts, t) =
               let
                 val consts = map_filter
@@ -1146,7 +1144,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
     and pr_app' lhs vars ((c, _), ts) =
       (str o deresolv) c :: map (pr_term lhs vars BR) ts
     and pr_app lhs vars = gen_pr_app pr_app' pr_term const_syntax labelled_name is_cons lhs vars
-    and pr_bind fxy = pr_bind_haskell (pr_term false) fxy
+    and pr_bind fxy = pr_bind_haskell pr_term fxy
     and pr_case vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, t) = CodeThingol.unfold_let (ICase cases);
@@ -1302,7 +1300,7 @@ fun pretty_haskell_monad c_mbind c_kbind =
   let
     fun pretty pr vars fxy [(t, _)] =
       let
-        val pr_bind = pr_bind_haskell pr;
+        val pr_bind = pr_bind_haskell (K pr);
         fun pr_mbind (NONE, t) vars =
               (semicolon [pr vars NOBR t], vars)
           | pr_mbind (SOME (bind, true), t) vars = vars
@@ -1618,12 +1616,12 @@ fun get_serializer thy target permissive module file args labelled_name = fn cs 
       (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 
-fun eval_term thy labelled_name code ((ref_name, reff), t) args =
+fun eval_term thy (ref_name, reff) code (t, ty) args =
   let
     val val_name = "Isabelle_Eval.EVAL.EVAL";
     val val_name' = "Isabelle_Eval.EVAL";
     val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
-    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [] labelled_name;
+    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [] CodeName.labelled_name;
     fun eval code = (
       reff := NONE;
       seri (SOME [val_name]) code;
@@ -1636,7 +1634,7 @@ fun eval_term thy labelled_name code ((ref_name, reff), t) args =
       );
   in
     code
-    |> CodeThingol.add_eval_def (val_name, t)
+    |> CodeThingol.add_eval_def (val_name, (t, ty))
     |> eval
   end;
 
