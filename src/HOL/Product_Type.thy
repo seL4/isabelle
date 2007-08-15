@@ -22,7 +22,7 @@ constdefs
   Unity :: unit    ("'(')")
   "() == Abs_unit True"
 
-lemma unit_eq: "u = ()"
+lemma unit_eq [noatp]: "u = ()"
   by (induct u) (simp add: unit_def Unity_def)
 
 text {*
@@ -46,7 +46,7 @@ lemma unit_all_eq1: "(!!x::unit. PROP P x) == PROP P ()"
 lemma unit_all_eq2: "(!!x::unit. PROP P) == PROP P"
   by (rule triv_forall_equality)
 
-lemma unit_induct [induct type: unit]: "P () ==> P x"
+lemma unit_induct [noatp,induct type: unit]: "P () ==> P x"
   by simp
 
 text {*
@@ -55,7 +55,7 @@ text {*
   f} rather than by @{term [source] "%u. f ()"}.
 *}
 
-lemma unit_abs_eta_conv [simp]: "(%u::unit. f ()) = f"
+lemma unit_abs_eta_conv [simp,noatp]: "(%u::unit. f ()) = f"
   by (rule ext) simp
 
 
@@ -443,7 +443,7 @@ Addsimprocs [split_beta_proc, split_eta_proc];
 lemma split_beta: "(%(x, y). P x y) z = P (fst z) (snd z)"
   by (subst surjective_pairing, rule split_conv)
 
-lemma split_split: "R (split c p) = (ALL x y. p = (x, y) --> R (c x y))"
+lemma split_split [noatp]: "R(split c p) = (ALL x y. p = (x, y) --> R(c x y))"
   -- {* For use with @{text split} and the Simplifier. *}
   by (insert surj_pair [of p], clarify, simp)
 
@@ -454,7 +454,7 @@ text {*
   current goal contains one of those constants.
 *}
 
-lemma split_split_asm: "R (split c p) = (~(EX x y. p = (x, y) & (~R (c x y))))"
+lemma split_split_asm [noatp]: "R (split c p) = (~(EX x y. p = (x, y) & (~R (c x y))))"
 by (subst split_split, simp)
 
 
@@ -525,10 +525,10 @@ end;
 change_claset (fn cs => cs addSbefore ("split_conv_tac", split_conv_tac));
 *}
 
-lemma split_eta_SetCompr [simp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
+lemma split_eta_SetCompr [simp,noatp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
   by (rule ext) fast
 
-lemma split_eta_SetCompr2 [simp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
+lemma split_eta_SetCompr2 [simp,noatp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
   by (rule ext) fast
 
 lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
@@ -696,11 +696,11 @@ lemma UN_Times_distrib:
   -- {* Suggested by Pierre Chartier *}
   by blast
 
-lemma split_paired_Ball_Sigma [simp]:
+lemma split_paired_Ball_Sigma [simp,noatp]:
     "(ALL z: Sigma A B. P z) = (ALL x:A. ALL y: B x. P(x,y))"
   by blast
 
-lemma split_paired_Bex_Sigma [simp]:
+lemma split_paired_Bex_Sigma [simp,noatp]:
     "(EX z: Sigma A B. P z) = (EX x:A. EX y: B x. P(x,y))"
   by blast
 

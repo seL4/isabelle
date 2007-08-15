@@ -483,6 +483,8 @@ lemma dvd_0_left: "0 dvd m ==> m = (0::nat)"
 lemma dvd_0_left_iff [iff]: "(0 dvd (m::nat)) = (m = 0)"
   by (blast intro: dvd_0_left)
 
+declare dvd_0_left_iff [noatp]
+
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
   unfolding dvd_def by simp
 

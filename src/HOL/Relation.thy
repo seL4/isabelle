@@ -112,7 +112,7 @@ lemma diag_empty [simp]: "diag {} = {}"
 lemma diag_eqI: "a = b ==> a : A ==> (a, b) : diag A"
   by (simp add: diag_def)
 
-lemma diagI [intro!]: "a : A ==> (a, a) : diag A"
+lemma diagI [intro!,noatp]: "a : A ==> (a, a) : diag A"
   by (rule diag_eqI) (rule refl)
 
 lemma diagE [elim!]:
@@ -325,6 +325,8 @@ lemma sym_Int_converse: "sym (r \<inter> r^-1)"
 
 subsection {* Domain *}
 
+declare Domain_def [noatp]
+
 lemma Domain_iff: "(a : Domain r) = (EX y. (a, y) : r)"
   by (unfold Domain_def) blast
 
@@ -411,6 +413,8 @@ lemma snd_eq_Range: "snd ` R = Range R";
 
 subsection {* Image of a set under a relation *}
 
+declare Image_def [noatp]
+
 lemma Image_iff: "(b : r``A) = (EX x:A. (x, b) : r)"
   by (simp add: Image_def)
 
@@ -420,7 +424,7 @@ lemma Image_singleton: "r``{a} = {b. (a, b) : r}"
 lemma Image_singleton_iff [iff]: "(b : r``{a}) = ((a, b) : r)"
   by (rule Image_iff [THEN trans]) simp
 
-lemma ImageI [intro]: "(a, b) : r ==> a : A ==> b : r``A"
+lemma ImageI [intro,noatp]: "(a, b) : r ==> a : A ==> b : r``A"
   by (unfold Image_def) blast
 
 lemma ImageE [elim!]:

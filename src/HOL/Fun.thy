@@ -268,7 +268,7 @@ by blast
 lemma vimage_id [simp]: "id -` A = A"
 by (simp add: id_def)
 
-lemma vimage_image_eq: "f -` (f ` A) = {y. EX x:A. f x = f y}"
+lemma vimage_image_eq [noatp]: "f -` (f ` A) = {y. EX x:A. f x = f y}"
 by (blast intro: sym)
 
 lemma image_vimage_subset: "f ` (f -` A) <= A"

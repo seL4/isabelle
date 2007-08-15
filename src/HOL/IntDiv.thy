@@ -1082,7 +1082,7 @@ lemmas zdvd_iff_zmod_eq_0_number_of [simp] =
 lemma zdvd_0_right [iff]: "(m::int) dvd 0"
   by (simp add: dvd_def)
 
-lemma zdvd_0_left [iff]: "(0 dvd (m::int)) = (m = 0)"
+lemma zdvd_0_left [iff,noatp]: "(0 dvd (m::int)) = (m = 0)"
   by (simp add: dvd_def)
 
 lemma zdvd_1_left [iff]: "1 dvd (m::int)"

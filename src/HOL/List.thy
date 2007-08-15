@@ -436,7 +436,7 @@ by (induct xs) auto
 lemma self_append_conv [iff]: "(xs = xs @ ys) = (ys = [])"
 by (induct xs) auto
 
-lemma append_eq_append_conv [simp]:
+lemma append_eq_append_conv [simp,noatp]:
  "!!ys. length xs = length ys \<or> length us = length vs
  ==> (xs@us = ys@vs) = (xs=ys \<and> us=vs)"
 apply (induct xs)
@@ -469,7 +469,7 @@ using append_same_eq [of _ _ "[]"] by auto
 lemma self_append_conv2 [iff]: "(ys = xs @ ys) = (xs = [])"
 using append_same_eq [of "[]"] by auto
 
-lemma hd_Cons_tl [simp]: "xs \<noteq> [] ==> hd xs # tl xs = xs"
+lemma hd_Cons_tl [simp,noatp]: "xs \<noteq> [] ==> hd xs # tl xs = xs"
 by (induct xs) auto
 
 lemma hd_append: "hd (xs @ ys) = (if xs = [] then hd ys else hd xs)"
@@ -2391,10 +2391,10 @@ inductive_set
   for A :: "'a set"
 where
     Nil [intro!]: "[]: lists A"
-  | Cons [intro!]: "[| a: A;l: lists A|] ==> a#l : lists A"
+  | Cons [intro!,noatp]: "[| a: A;l: lists A|] ==> a#l : lists A"
 
-inductive_cases listsE [elim!]: "x#l : lists A"
-inductive_cases listspE [elim!]: "listsp A (x # l)"
+inductive_cases listsE [elim!,noatp]: "x#l : lists A"
+inductive_cases listspE [elim!,noatp]: "listsp A (x # l)"
 
 lemma listsp_mono [mono]: "A \<le> B ==> listsp A \<le> listsp B"
   by (clarify, erule listsp.induct, blast+)
@@ -2429,15 +2429,15 @@ by (induct xs) auto
 
 lemmas in_lists_conv_set = in_listsp_conv_set [to_set]
 
-lemma in_listspD [dest!]: "listsp A xs ==> \<forall>x\<in>set xs. A x"
+lemma in_listspD [dest!,noatp]: "listsp A xs ==> \<forall>x\<in>set xs. A x"
 by (rule in_listsp_conv_set [THEN iffD1])
 
-lemmas in_listsD [dest!] = in_listspD [to_set]
+lemmas in_listsD [dest!,noatp] = in_listspD [to_set]
 
-lemma in_listspI [intro!]: "\<forall>x\<in>set xs. A x ==> listsp A xs"
+lemma in_listspI [intro!,noatp]: "\<forall>x\<in>set xs. A x ==> listsp A xs"
 by (rule in_listsp_conv_set [THEN iffD2])
 
-lemmas in_listsI [intro!] = in_listspI [to_set]
+lemmas in_listsI [intro!,noatp] = in_listspI [to_set]
 
 lemma lists_UNIV [simp]: "lists UNIV = UNIV"
 by auto

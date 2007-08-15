@@ -225,11 +225,11 @@ lemma max_less_iff_conj [simp]:
   "max x y \<^loc>< z \<longleftrightarrow> x \<^loc>< z \<and> y \<^loc>< z"
 unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
-lemma split_min:
+lemma split_min [noatp]:
   "P (min i j) \<longleftrightarrow> (i \<^loc>\<le> j \<longrightarrow> P i) \<and> (\<not> i \<^loc>\<le> j \<longrightarrow> P j)"
 by (simp add: min_def)
 
-lemma split_max:
+lemma split_max [noatp]:
   "P (max i j) \<longleftrightarrow> (i \<^loc>\<le> j \<longrightarrow> P j) \<and> (\<not> i \<^loc>\<le> j \<longrightarrow> P i)"
 by (simp add: max_def)
 

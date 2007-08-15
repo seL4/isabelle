@@ -775,11 +775,11 @@ lemma subset_insert_iff: "(A \<subseteq> insert x B) = (if x:A then A - {x} \<su
 
 subsubsection {* Singletons, using insert *}
 
-lemma singletonI [intro!]: "a : {a}"
+lemma singletonI [intro!,noatp]: "a : {a}"
     -- {* Redundant? But unlike @{text insertCI}, it proves the subgoal immediately! *}
   by (rule insertI1)
 
-lemma singletonD [dest!]: "b : {a} ==> b = a"
+lemma singletonD [dest!,noatp]: "b : {a} ==> b = a"
   by blast
 
 lemmas singletonE = singletonD [elim_format]
@@ -790,10 +790,12 @@ lemma singleton_iff: "(b : {a}) = (b = a)"
 lemma singleton_inject [dest!]: "{a} = {b} ==> a = b"
   by blast
 
-lemma singleton_insert_inj_eq [iff]: "({b} = insert a A) = (a = b & A \<subseteq> {b})"
+lemma singleton_insert_inj_eq [iff,noatp]:
+     "({b} = insert a A) = (a = b & A \<subseteq> {b})"
   by blast
 
-lemma singleton_insert_inj_eq' [iff]: "(insert a A = {b}) = (a = b & A \<subseteq> {b})"
+lemma singleton_insert_inj_eq' [iff,noatp]:
+     "(insert a A = {b}) = (a = b & A \<subseteq> {b})"
   by blast
 
 lemma subset_singletonD: "A \<subseteq> {x} ==> A = {} | A = {x}"
@@ -817,6 +819,8 @@ subsubsection {* Unions of families *}
 text {*
   @{term [source] "UN x:A. B x"} is @{term "Union (B`A)"}.
 *}
+
+declare UNION_def [noatp]
 
 lemma UN_iff [simp]: "(b: (UN x:A. B x)) = (EX x:A. b: B x)"
   by (unfold UNION_def) blast
@@ -858,7 +862,7 @@ lemma INT_cong [cong]:
 
 subsubsection {* Union *}
 
-lemma Union_iff [simp]: "(A : Union C) = (EX X:C. A:X)"
+lemma Union_iff [simp,noatp]: "(A : Union C) = (EX X:C. A:X)"
   by (unfold Union_def) blast
 
 lemma UnionI [intro]: "X:C ==> A:X ==> A : Union C"
@@ -872,7 +876,7 @@ lemma UnionE [elim!]: "A : Union C ==> (!!X. A:X ==> X:C ==> R) ==> R"
 
 subsubsection {* Inter *}
 
-lemma Inter_iff [simp]: "(A : Inter C) = (ALL X:C. A:X)"
+lemma Inter_iff [simp,noatp]: "(A : Inter C) = (ALL X:C. A:X)"
   by (unfold Inter_def) blast
 
 lemma InterI [intro!]: "(!!X. X:C ==> A:X) ==> A : Inter C"
@@ -896,6 +900,8 @@ text {*
   \medskip Image of a set under a function.  Frequently @{term b} does
   not have the syntactic form of @{term "f x"}.
 *}
+
+declare image_def [noatp]
 
 lemma image_eqI [simp, intro]: "b = f x ==> x:A ==> b : f`A"
   by (unfold image_def) blast
@@ -996,10 +1002,10 @@ ML_setup {*
 
 subsubsection {* The ``proper subset'' relation *}
 
-lemma psubsetI [intro!]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
+lemma psubsetI [intro!,noatp]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
   by (unfold psubset_def) blast
 
-lemma psubsetE [elim!]: 
+lemma psubsetE [elim!,noatp]: 
     "[|A \<subset> B;  [|A \<subseteq> B; ~ (B\<subseteq>A)|] ==> R|] ==> R"
   by (unfold psubset_def) blast
 
@@ -1164,10 +1170,10 @@ lemma Collect_all_eq: "{x. \<forall>y. P x y} = (\<Inter>y. {x. P x y})"
 lemma Collect_ball_eq: "{x. \<forall>y\<in>A. P x y} = (\<Inter>y\<in>A. {x. P x y})"
   by blast
 
-lemma Collect_ex_eq: "{x. \<exists>y. P x y} = (\<Union>y. {x. P x y})"
+lemma Collect_ex_eq [noatp]: "{x. \<exists>y. P x y} = (\<Union>y. {x. P x y})"
   by blast
 
-lemma Collect_bex_eq: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A. {x. P x y})"
+lemma Collect_bex_eq [noatp]: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A. {x. P x y})"
   by blast
 
 
@@ -1211,12 +1217,12 @@ lemma UN_insert_distrib: "u \<in> A ==> (\<Union>x\<in>A. insert a (B x)) = inse
 lemma insert_inter_insert[simp]: "insert a A \<inter> insert a B = insert a (A \<inter> B)"
   by blast
 
-lemma insert_disjoint[simp]:
+lemma insert_disjoint [simp,noatp]:
  "(insert a A \<inter> B = {}) = (a \<notin> B \<and> A \<inter> B = {})"
  "({} = insert a A \<inter> B) = (a \<notin> B \<and> {} = A \<inter> B)"
   by auto
 
-lemma disjoint_insert[simp]:
+lemma disjoint_insert [simp,noatp]:
  "(B \<inter> insert a A = {}) = (a \<notin> B \<and> B \<inter> A = {})"
  "({} = A \<inter> insert b B) = (b \<notin> A \<and> {} = A \<inter> B)"
   by auto
@@ -1245,7 +1251,7 @@ lemma image_is_empty [iff]: "(f`A = {}) = (A = {})"
   by blast
 
 
-lemma image_Collect: "f ` {x. P x} = {f x | x. P x}"
+lemma image_Collect [noatp]: "f ` {x. P x} = {f x | x. P x}"
   -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
       with its implicit quantifier and conjunction.  Also image enjoys better
       equational properties than does the RHS. *}
@@ -1262,7 +1268,7 @@ lemma image_cong: "M = N ==> (!!x. x \<in> N ==> f x = g x) ==> f`M = g`N"
 
 text {* \medskip @{text range}. *}
 
-lemma full_SetCompr_eq: "{u. \<exists>x. u = f x} = range f"
+lemma full_SetCompr_eq [noatp]: "{u. \<exists>x. u = f x} = range f"
   by auto
 
 lemma range_composition [simp]: "range (\<lambda>x. f (g x)) = f`range g"
@@ -1322,7 +1328,7 @@ lemma Int_Un_distrib: "A \<inter> (B \<union> C) = (A \<inter> B) \<union> (A \<
 lemma Int_Un_distrib2: "(B \<union> C) \<inter> A = (B \<inter> A) \<union> (C \<inter> A)"
   by blast
 
-lemma Int_UNIV [simp]: "(A \<inter> B = UNIV) = (A = UNIV & B = UNIV)"
+lemma Int_UNIV [simp,noatp]: "(A \<inter> B = UNIV) = (A = UNIV & B = UNIV)"
   by blast
 
 lemma Int_subset_iff [simp]: "(C \<subseteq> A \<inter> B) = (C \<subseteq> A & C \<subseteq> B)"
@@ -1479,10 +1485,10 @@ lemma Union_Un_distrib [simp]: "\<Union>(A Un B) = \<Union>A \<union> \<Union>B"
 lemma Union_Int_subset: "\<Union>(A \<inter> B) \<subseteq> \<Union>A \<inter> \<Union>B"
   by blast
 
-lemma Union_empty_conv [simp]: "(\<Union>A = {}) = (\<forall>x\<in>A. x = {})"
+lemma Union_empty_conv [simp,noatp]: "(\<Union>A = {}) = (\<forall>x\<in>A. x = {})"
   by blast
 
-lemma empty_Union_conv [simp]: "({} = \<Union>A) = (\<forall>x\<in>A. x = {})"
+lemma empty_Union_conv [simp,noatp]: "({} = \<Union>A) = (\<forall>x\<in>A. x = {})"
   by blast
 
 lemma Union_disjoint: "(\<Union>C \<inter> A = {}) = (\<forall>B\<in>C. B \<inter> A = {})"
@@ -1506,7 +1512,7 @@ lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<in
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by blast
 
-lemma Inter_UNIV_conv [simp]:
+lemma Inter_UNIV_conv [simp,noatp]:
   "(\<Inter>A = UNIV) = (\<forall>x\<in>A. x = UNIV)"
   "(UNIV = \<Inter>A) = (\<forall>x\<in>A. x = UNIV)"
   by blast+
@@ -1517,7 +1523,7 @@ text {*
 
   Basic identities: *}
 
-lemma UN_empty [simp]: "(\<Union>x\<in>{}. B x) = {}"
+lemma UN_empty [simp,noatp]: "(\<Union>x\<in>{}. B x) = {}"
   by blast
 
 lemma UN_empty2 [simp]: "(\<Union>x\<in>A. {}) = {}"
@@ -1657,7 +1663,7 @@ text {* \medskip Set difference. *}
 lemma Diff_eq: "A - B = A \<inter> (-B)"
   by blast
 
-lemma Diff_eq_empty_iff [simp]: "(A - B = {}) = (A \<subseteq> B)"
+lemma Diff_eq_empty_iff [simp,noatp]: "(A - B = {}) = (A \<subseteq> B)"
   by blast
 
 lemma Diff_cancel [simp]: "A - A = {}"
@@ -1678,7 +1684,7 @@ lemma Diff_empty [simp]: "A - {} = A"
 lemma Diff_UNIV [simp]: "A - UNIV = {}"
   by blast
 
-lemma Diff_insert0 [simp]: "x \<notin> A ==> A - insert x B = A - B"
+lemma Diff_insert0 [simp,noatp]: "x \<notin> A ==> A - insert x B = A - B"
   by blast
 
 lemma Diff_insert: "A - insert a B = A - B - {a}"
@@ -1850,7 +1856,7 @@ lemma INT_simps [simp]:
   "!!A B f. (INT x:f`A. B x)    = (INT a:A. B (f a))"
   by auto
 
-lemma ball_simps [simp]:
+lemma ball_simps [simp,noatp]:
   "!!A P Q. (ALL x:A. P x | Q) = ((ALL x:A. P x) | Q)"
   "!!A P Q. (ALL x:A. P | Q x) = (P | (ALL x:A. Q x))"
   "!!A P Q. (ALL x:A. P --> Q x) = (P --> (ALL x:A. Q x))"
@@ -1865,7 +1871,7 @@ lemma ball_simps [simp]:
   "!!A P. (~(ALL x:A. P x)) = (EX x:A. ~P x)"
   by auto
 
-lemma bex_simps [simp]:
+lemma bex_simps [simp,noatp]:
   "!!A P Q. (EX x:A. P x & Q) = ((EX x:A. P x) & Q)"
   "!!A P Q. (EX x:A. P & Q x) = (P & (EX x:A. Q x))"
   "!!P. (EX x:{}. P x) = False"

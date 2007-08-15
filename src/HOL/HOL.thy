@@ -935,7 +935,13 @@ ML_Context.value_antiq "claset"
   (Scan.succeed ("claset", "Classical.local_claset_of (ML_Context.the_local_context ())"));
 
 structure ResAtpset = NamedThmsFun(val name = "atp" val description = "ATP rules");
+
+structure ResBlacklist = NamedThmsFun(val name = "noatp" val description = "Theorems blacklisted for ATP");
 *}
+
+(*ResBlacklist holds theorems blacklisted to sledgehammer. 
+  These theorems typically produce clauses that are prolific (match too many equality or
+  membership literals) and relate to seldom-used facts. Some duplicate other rules.*)
 
 setup {*
 let
@@ -948,6 +954,7 @@ in
   #> ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
   #> Classical.setup
   #> ResAtpset.setup
+  #> ResBlacklist.setup
 end
 *}
 
@@ -1136,6 +1143,8 @@ lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by iprover
 lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by iprover
 lemma all_not_ex: "(ALL x. P x) = (~ (EX x. ~ P x ))" by blast
 
+declare All_def [noatp]
+
 lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by iprover
 lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by iprover
 
@@ -1181,7 +1190,7 @@ lemma split_if: "P (if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
 lemma split_if_asm: "P (if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
 by (simplesubst split_if, blast)
 
-lemmas if_splits = split_if split_if_asm
+lemmas if_splits [noatp] = split_if split_if_asm
 
 lemma if_cancel: "(if c then x else x) = x"
 by (simplesubst split_if, blast)

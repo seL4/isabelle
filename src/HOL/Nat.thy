@@ -241,7 +241,7 @@ lemma less_SucE: assumes major: "m < Suc n"
 lemma less_Suc_eq: "(m < Suc n) = (m < n | m = n)"
   by (blast elim!: less_SucE intro: less_trans)
 
-lemma less_one [iff]: "(n < (1::nat)) = (n = 0)"
+lemma less_one [iff,noatp]: "(n < (1::nat)) = (n = 0)"
   by (simp add: less_Suc_eq)
 
 lemma less_Suc0 [iff]: "(n < Suc 0) = (n = 0)"
@@ -516,7 +516,7 @@ lemma gr0I: "((n::nat) = 0 ==> False) ==> 0 < n"
 lemma gr0_conv_Suc: "(0 < n) = (\<exists>m. n = Suc m)"
   by (fast intro: not0_implies_Suc)
 
-lemma not_gr0 [iff]: "!!n::nat. (~ (0 < n)) = (n = 0)"
+lemma not_gr0 [iff,noatp]: "!!n::nat. (~ (0 < n)) = (n = 0)"
   apply (rule iffI)
   apply (rule ccontr)
   apply simp_all
@@ -1012,7 +1012,7 @@ lemma mult_eq_1_iff [simp]: "(m * n = Suc 0) = (m = 1 & n = 1)"
    apply auto
   done
 
-lemma one_eq_mult_iff [simp]: "(Suc 0 = m * n) = (m = 1 & n = 1)"
+lemma one_eq_mult_iff [simp,noatp]: "(Suc 0 = m * n) = (m = 1 & n = 1)"
   apply (rule trans)
   apply (rule_tac [2] mult_eq_1_iff, fastsimp)
   done
@@ -1332,7 +1332,7 @@ lemma of_nat_le_iff [simp]:
 text{*Special cases where either operand is zero*}
 lemma of_nat_0_le_iff [simp]: "(0::'a::ordered_semidom) \<le> of_nat n"
   by (rule of_nat_le_iff [of 0, simplified])
-lemma of_nat_le_0_iff [simp]: "(of_nat m \<le> (0::'a::ordered_semidom)) = (m = 0)"
+lemma of_nat_le_0_iff [simp,noatp]: "(of_nat m \<le> (0::'a::ordered_semidom)) = (m = 0)"
   by (rule of_nat_le_iff [of _ 0, simplified])
 
 text{*Class for unital semirings with characteristic zero.
@@ -1347,9 +1347,9 @@ instance ordered_semidom < semiring_char_0
 by intro_classes (simp add: order_eq_iff)
 
 text{*Special cases where either operand is zero*}
-lemma of_nat_0_eq_iff [simp]: "((0::'a::semiring_char_0) = of_nat n) = (0 = n)"
+lemma of_nat_0_eq_iff [simp,noatp]: "((0::'a::semiring_char_0) = of_nat n) = (0 = n)"
   by (rule of_nat_eq_iff [of 0, simplified])
-lemma of_nat_eq_0_iff [simp]: "(of_nat m = (0::'a::semiring_char_0)) = (m = 0)"
+lemma of_nat_eq_0_iff [simp,noatp]: "(of_nat m = (0::'a::semiring_char_0)) = (m = 0)"
   by (rule of_nat_eq_iff [of _ 0, simplified])
 
 lemma inj_of_nat: "inj (of_nat :: nat \<Rightarrow> 'a::semiring_char_0)"

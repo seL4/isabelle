@@ -556,6 +556,8 @@ rep_datatype prod
   inject Pair_eq
   induction prod_induct
 
+declare prod.size [noatp]
+
 lemmas prod_caseI = prod.cases [THEN iffD2, standard]
 
 lemma prod_caseI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> prod_case c p"

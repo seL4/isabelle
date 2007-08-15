@@ -260,152 +260,6 @@ fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL)
   or identified with ATPset (which however is too big currently)*)
 val whitelist = [subsetI];
 
-(*Names of theorems and theorem lists to be blacklisted.
-
-  These theorems typically produce clauses that are prolific (match too many equality or
-  membership literals) and relate to seldom-used facts. Some duplicate other rules.
-  FIXME: this blacklist needs to be maintained using theory data and added to using
-  an attribute.*)
-val blacklist = 
-  ["Datatype.prod.size",
-   "Divides.dvd_0_left_iff",
-   "Finite_Set.card_0_eq",
-   "Finite_Set.card_infinite",
-   "Finite_Set.Max_ge",
-   "Finite_Set.Max_in",
-   "Finite_Set.Max_le_iff",
-   "Finite_Set.Max_less_iff",
-   "Finite_Set.max.f_below_strict_below.below_f_conv", (*duplicates in Orderings.*)
-   "Finite_Set.max.f_below_strict_below.strict_below_f_conv", (*duplicates in Orderings.*)
-   "Finite_Set.Min_ge_iff",
-   "Finite_Set.Min_gr_iff",
-   "Finite_Set.Min_in",
-   "Finite_Set.Min_le",
-   "Finite_Set.min.f_below_strict_below.below_f_conv",        (*duplicates in Orderings.*)
-   "Finite_Set.min.f_below_strict_below.strict_below_f_conv", (*duplicates in Orderings.*)
-   "Fun.vimage_image_eq",   (*involves an existential quantifier*)
-   "HOL.split_if_asm",     (*splitting theorem*)
-   "HOL.split_if",         (*splitting theorem*)
-   "HOL.All_def",          (*far worse than useless!!*)
-   "IntDef.abs_split",
-   "IntDef.Integ.Abs_Integ_inject",
-   "IntDef.Integ.Abs_Integ_inverse",
-   "IntDiv.zdvd_0_left",
-   "List.append_eq_append_conv",
-   "List.hd_Cons_tl",   (*Says everything is [] or Cons. Probably prolific.*)
-   "List.in_listsD",
-   "List.in_listsI",
-   "List.lists.Cons",
-   "List.listsE",
-   "Nat.less_one", (*not directional? obscure*)
-   "Nat.not_gr0",
-   "Nat.one_eq_mult_iff", (*duplicate by symmetry*)
-   "Nat.of_nat_0_eq_iff",
-   "Nat.of_nat_eq_0_iff",
-   "Nat.of_nat_le_0_iff",
-   "NatSimprocs.divide_le_0_iff_number_of",  (*too many clauses*)
-   "NatSimprocs.divide_less_0_iff_number_of",
-   "NatSimprocs.equation_minus_iff_1",  (*not directional*)
-   "NatSimprocs.equation_minus_iff_number_of", (*not directional*)
-   "NatSimprocs.le_minus_iff_1", (*not directional*)
-   "NatSimprocs.le_minus_iff_number_of",  (*not directional*)
-   "NatSimprocs.less_minus_iff_1", (*not directional*)
-   "NatSimprocs.less_minus_iff_number_of", (*not directional*)
-   "NatSimprocs.minus_equation_iff_number_of", (*not directional*)
-   "NatSimprocs.minus_le_iff_1", (*not directional*)
-   "NatSimprocs.minus_le_iff_number_of", (*not directional*)
-   "NatSimprocs.minus_less_iff_1", (*not directional*)
-   "NatSimprocs.mult_le_cancel_left_number_of", (*excessive case analysis*)
-   "NatSimprocs.mult_le_cancel_right_number_of", (*excessive case analysis*)
-   "NatSimprocs.mult_less_cancel_left_number_of", (*excessive case analysis*)
-   "NatSimprocs.mult_less_cancel_right_number_of", (*excessive case analysis*)
-   "NatSimprocs.zero_le_divide_iff_number_of", (*excessive case analysis*)
-   "NatSimprocs.zero_less_divide_iff_number_of",
-   "OrderedGroup.abs_0_eq", (*duplicate by symmetry*)
-   "OrderedGroup.diff_eq_0_iff_eq", (*prolific?*)
-   "OrderedGroup.sup_0_eq_0",
-   "OrderedGroup.inf_0_eq_0",
-   "OrderedGroup.pprt_eq_0",   (*obscure*)
-   "OrderedGroup.pprt_eq_id",   (*obscure*)
-   "OrderedGroup.pprt_mono",   (*obscure*)
-   "Orderings.split_max",      (*splitting theorem*)
-   "Orderings.split_min",      (*splitting theorem*)
-   "Power.zero_less_power_abs_iff",
-   "Product_Type.split_eta_SetCompr",   (*involves an existential quantifier*)
-   "Product_Type.split_paired_Ball_Sigma",     (*splitting theorem*)
-   "Product_Type.split_paired_Bex_Sigma",      (*splitting theorem*)
-   "Product_Type.split_split_asm",             (*splitting theorem*)
-   "Product_Type.split_split",                 (*splitting theorem*)
-   "Product_Type.unit_abs_eta_conv",
-   "Product_Type.unit_induct",
-   "Relation.diagI",
-   "Relation.Domain_def",   (*involves an existential quantifier*)
-   "Relation.Image_def",   (*involves an existential quantifier*)
-   "Relation.ImageI",
-   "Ring_and_Field.divide_cancel_left", (*fields are seldom used & often prolific*)
-   "Ring_and_Field.divide_cancel_right",
-   "Ring_and_Field.divide_divide_eq_left",
-   "Ring_and_Field.divide_divide_eq_right",
-   "Ring_and_Field.divide_eq_0_iff",
-   "Ring_and_Field.divide_eq_1_iff",
-   "Ring_and_Field.divide_eq_eq_1",
-   "Ring_and_Field.divide_le_0_1_iff",
-   "Ring_and_Field.divide_le_eq_1_neg",  (*obscure and prolific*)
-   "Ring_and_Field.divide_le_eq_1_pos",  (*obscure and prolific*)
-   "Ring_and_Field.divide_less_0_1_iff",
-   "Ring_and_Field.divide_less_eq_1_neg",  (*obscure and prolific*)
-   "Ring_and_Field.divide_less_eq_1_pos",  (*obscure and prolific*)
-   "Ring_and_Field.eq_divide_eq_1", (*duplicate by symmetry*)
-   "Ring_and_Field.field_mult_cancel_left",
-   "Ring_and_Field.field_mult_cancel_right",
-   "Ring_and_Field.inverse_le_iff_le_neg",
-   "Ring_and_Field.inverse_le_iff_le",
-   "Ring_and_Field.inverse_less_iff_less_neg",
-   "Ring_and_Field.inverse_less_iff_less",
-   "Ring_and_Field.le_divide_eq_1_neg", (*obscure and prolific*)
-   "Ring_and_Field.le_divide_eq_1_pos", (*obscure and prolific*)
-   "Ring_and_Field.less_divide_eq_1_neg", (*obscure and prolific*)
-   "Ring_and_Field.less_divide_eq_1_pos", (*obscure and prolific*)
-   "Ring_and_Field.one_eq_divide_iff",  (*duplicate by symmetry*)
-   "Set.ball_simps", "Set.bex_simps",  (*quantifier rewriting: useless*)
-   "Set.Collect_bex_eq",   (*involves an existential quantifier*)
-   "Set.Collect_ex_eq",   (*involves an existential quantifier*)
-   "Set.Diff_eq_empty_iff", (*redundant with paramodulation*)
-   "Set.Diff_insert0",
-   "Set.empty_Union_conv",   (*redundant with paramodulation*)
-   "Set.full_SetCompr_eq",   (*involves an existential quantifier*)
-   "Set.image_Collect",      (*involves Collect and a boolean variable...*)
-   "Set.image_def",          (*involves an existential quantifier*)
-   "Set.disjoint_insert", "Set.insert_disjoint",
-   "Set.Int_UNIV",  (*redundant with paramodulation*)
-   "Set.Inter_UNIV_conv",
-   "Set.Inter_iff", (*We already have InterI, InterE*)
-   "Set.psubsetE",    (*too prolific and obscure*)
-   "Set.psubsetI",
-   "Set.singleton_insert_inj_eq'",
-   "Set.singleton_insert_inj_eq",
-   "Set.singletonD",  (*these two duplicate some "insert" lemmas*)
-   "Set.singletonI",
-   "Set.Un_empty", (*redundant with paramodulation*)
-   "Set.UNION_def",   (*involves an existential quantifier*)
-   "Set.Union_empty_conv", (*redundant with paramodulation*)
-   "Set.Union_iff",              (*We already have UnionI, UnionE*)
-   "SetInterval.atLeastAtMost_iff", (*obscure and prolific*)
-   "SetInterval.atLeastLessThan_iff", (*obscure and prolific*)
-   "SetInterval.greaterThanAtMost_iff", (*obscure and prolific*)
-   "SetInterval.greaterThanLessThan_iff", (*obscure and prolific*)
-   "SetInterval.ivl_subset"];  (*excessive case analysis*)
-
-(*These might be prolific but are probably OK, and min and max are basic.
-   "Orderings.max_less_iff_conj",
-   "Orderings.min_less_iff_conj",
-   "Orderings.min_max.below_inf.below_inf_conv",
-   "Orderings.min_max.below_sup.above_sup_conv",
-Very prolific and somewhat obscure:
-   "Set.InterD",
-   "Set.UnionI",
-*)
-
 (*** retrieve lemmas from clasimpset and atpset, may filter them ***)
 
 (*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
@@ -473,9 +327,7 @@ fun get_relevant_clauses thy cls_thms white_cls goals =
 
 fun all_valid_thms ctxt =
   let
-    val banned_tab = foldl setinsert Symtab.empty blacklist
-    fun blacklisted s = !run_blacklist_filter andalso
-                        (isSome (Symtab.lookup banned_tab s) orelse is_package_def s)
+    fun blacklisted s = !run_blacklist_filter andalso is_package_def s
 
     fun extern_valid space (name, ths) =
       let
@@ -514,10 +366,16 @@ fun add_multi_names ((a, ths), pairs) =
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
-(*The single theorems go BEFORE the multiple ones*)
+(*The single theorems go BEFORE the multiple ones. Blacklist is applied to all.*)
 fun name_thm_pairs ctxt =
   let val (mults,singles) = List.partition is_multi (all_valid_thms ctxt)
-  in  foldl add_single_names  (foldl add_multi_names [] mults) singles end;
+      val ht = mk_clause_table 900   (*ht for blacklisted theorems*)
+      fun blacklisted x = !run_blacklist_filter andalso isSome (Polyhash.peek ht x)
+  in
+      app (fn th => ignore (Polyhash.peekInsert ht (th,()))) (ResBlacklist.get ctxt);
+      filter (not o blacklisted o #2)
+        (foldl add_single_names (foldl add_multi_names [] mults) singles)
+  end;
 
 fun check_named ("",th) = (warning ("No name for theorem " ^ string_of_thm th); false)
   | check_named (_,th) = true;

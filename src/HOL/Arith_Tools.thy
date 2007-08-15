@@ -193,19 +193,19 @@ declare right_diff_distrib_number_of [simp]
 text{*These are actually for fields, like real: but where else to put them?*}
 lemmas zero_less_divide_iff_number_of =
     zero_less_divide_iff [of "number_of w", standard]
-declare zero_less_divide_iff_number_of [simp]
+declare zero_less_divide_iff_number_of [simp,noatp]
 
 lemmas divide_less_0_iff_number_of =
     divide_less_0_iff [of "number_of w", standard]
-declare divide_less_0_iff_number_of [simp]
+declare divide_less_0_iff_number_of [simp,noatp]
 
 lemmas zero_le_divide_iff_number_of =
     zero_le_divide_iff [of "number_of w", standard]
-declare zero_le_divide_iff_number_of [simp]
+declare zero_le_divide_iff_number_of [simp,noatp]
 
 lemmas divide_le_0_iff_number_of =
     divide_le_0_iff [of "number_of w", standard]
-declare divide_le_0_iff_number_of [simp]
+declare divide_le_0_iff_number_of [simp,noatp]
 
 
 (****
@@ -249,58 +249,58 @@ text {*These laws simplify inequalities, moving unary minus from a term
 into the literal.*}
 lemmas less_minus_iff_number_of =
     less_minus_iff [of "number_of v", standard]
-declare less_minus_iff_number_of [simp]
+declare less_minus_iff_number_of [simp,noatp]
 
 lemmas le_minus_iff_number_of =
     le_minus_iff [of "number_of v", standard]
-declare le_minus_iff_number_of [simp]
+declare le_minus_iff_number_of [simp,noatp]
 
 lemmas equation_minus_iff_number_of =
     equation_minus_iff [of "number_of v", standard]
-declare equation_minus_iff_number_of [simp]
+declare equation_minus_iff_number_of [simp,noatp]
 
 
 lemmas minus_less_iff_number_of =
     minus_less_iff [of _ "number_of v", standard]
-declare minus_less_iff_number_of [simp]
+declare minus_less_iff_number_of [simp,noatp]
 
 lemmas minus_le_iff_number_of =
     minus_le_iff [of _ "number_of v", standard]
-declare minus_le_iff_number_of [simp]
+declare minus_le_iff_number_of [simp,noatp]
 
 lemmas minus_equation_iff_number_of =
     minus_equation_iff [of _ "number_of v", standard]
-declare minus_equation_iff_number_of [simp]
+declare minus_equation_iff_number_of [simp,noatp]
 
 
 text{*To Simplify Inequalities Where One Side is the Constant 1*}
 
-lemma less_minus_iff_1 [simp]:
+lemma less_minus_iff_1 [simp,noatp]:
   fixes b::"'b::{ordered_idom,number_ring}"
   shows "(1 < - b) = (b < -1)"
 by auto
 
-lemma le_minus_iff_1 [simp]:
+lemma le_minus_iff_1 [simp,noatp]:
   fixes b::"'b::{ordered_idom,number_ring}"
   shows "(1 \<le> - b) = (b \<le> -1)"
 by auto
 
-lemma equation_minus_iff_1 [simp]:
+lemma equation_minus_iff_1 [simp,noatp]:
   fixes b::"'b::number_ring"
   shows "(1 = - b) = (b = -1)"
 by (subst equation_minus_iff, auto)
 
-lemma minus_less_iff_1 [simp]:
+lemma minus_less_iff_1 [simp,noatp]:
   fixes a::"'b::{ordered_idom,number_ring}"
   shows "(- a < 1) = (-1 < a)"
 by auto
 
-lemma minus_le_iff_1 [simp]:
+lemma minus_le_iff_1 [simp,noatp]:
   fixes a::"'b::{ordered_idom,number_ring}"
   shows "(- a \<le> 1) = (-1 \<le> a)"
 by auto
 
-lemma minus_equation_iff_1 [simp]:
+lemma minus_equation_iff_1 [simp,noatp]:
   fixes a::"'b::number_ring"
   shows "(- a = 1) = (a = -1)"
 by (subst minus_equation_iff, auto)
@@ -310,19 +310,19 @@ text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "
 
 lemmas mult_less_cancel_left_number_of =
     mult_less_cancel_left [of "number_of v", standard]
-declare mult_less_cancel_left_number_of [simp]
+declare mult_less_cancel_left_number_of [simp,noatp]
 
 lemmas mult_less_cancel_right_number_of =
     mult_less_cancel_right [of _ "number_of v", standard]
-declare mult_less_cancel_right_number_of [simp]
+declare mult_less_cancel_right_number_of [simp,noatp]
 
 lemmas mult_le_cancel_left_number_of =
     mult_le_cancel_left [of "number_of v", standard]
-declare mult_le_cancel_left_number_of [simp]
+declare mult_le_cancel_left_number_of [simp,noatp]
 
 lemmas mult_le_cancel_right_number_of =
     mult_le_cancel_right [of _ "number_of v", standard]
-declare mult_le_cancel_right_number_of [simp]
+declare mult_le_cancel_right_number_of [simp,noatp]
 
 
 text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}

@@ -1507,7 +1507,7 @@ constdefs
 lemma card_empty [simp]: "card {} = 0"
   by (simp add: card_def)
 
-lemma card_infinite [simp]: "~ finite A ==> card A = 0"
+lemma card_infinite [simp,noatp]: "~ finite A ==> card A = 0"
   by (simp add: card_def)
 
 lemma card_eq_setsum: "card A = setsum (%x. 1) A"
@@ -1521,7 +1521,7 @@ lemma card_insert_if:
     "finite A ==> card (insert x A) = (if x:A then card A else Suc(card(A)))"
   by (simp add: insert_absorb)
 
-lemma card_0_eq [simp]: "finite A ==> (card A = 0) = (A = {})"
+lemma card_0_eq [simp,noatp]: "finite A ==> (card A = 0) = (A = {})"
   apply auto
   apply (drule_tac a = x in mk_disjoint_insert, clarify, auto)
   done
@@ -2034,7 +2034,7 @@ proof -
   then show ?thesis by (simp add: below_def)
 qed
 
-lemma below_f_conv [simp]: "x \<sqsubseteq> y \<cdot> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
+lemma below_f_conv [simp,noatp]: "x \<sqsubseteq> y \<cdot> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
 proof
   assume "x \<sqsubseteq> y \<cdot> z"
   hence xyzx: "x \<cdot> (y \<cdot> z) = x"  by(simp add: below_def)
@@ -2099,7 +2099,7 @@ next
   qed
 qed
 
-lemma strict_below_f_conv[simp]: "x \<sqsubset> y \<cdot> z = (x \<sqsubset> y \<and> x \<sqsubset> z)"
+lemma strict_below_f_conv[simp,noatp]: "x \<sqsubset> y \<cdot> z = (x \<sqsubset> y \<and> x \<sqsubset> z)"
 apply(simp add: strict_below_def)
 using lin[of y z] by (auto simp:below_def ACI)
 
@@ -2575,12 +2575,12 @@ lemmas Max_singleton [simp] = fold1_singleton_def [OF Max_def]
 lemmas Min_insert [simp] = ACIf.fold1_insert_idem_def [OF ACIf_min Min_def]
 lemmas Max_insert [simp] = ACIf.fold1_insert_idem_def [OF ACIf_max Max_def]
 
-lemma Min_in [simp]:
+lemma Min_in [simp,noatp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Min A \<in> A"
   using ACf.fold1_in [OF ACf_min]
   by (fastsimp simp: Min_def min_def)
 
-lemma Max_in [simp]:
+lemma Max_in [simp,noatp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Max A \<in> A"
   using ACf.fold1_in [OF ACf_max]
   by (fastsimp simp: Max_def max_def)
@@ -2591,41 +2591,41 @@ lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk
 lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<^loc>\<le> Max N"
   by (simp add: Max_def ACIfSLlin.fold1_antimono [OF ACIfSLlin_max])
 
-lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x"
+lemma Min_le [simp,noatp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x"
   by (simp add: Min_def ACIfSL.fold1_belowI [OF ACIfSL_min])
 
-lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A"
+lemma Max_ge [simp,noatp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A"
   by (simp add: Max_def ACIfSL.fold1_belowI [OF ACIfSL_max])
 
-lemma Min_ge_iff [simp]:
+lemma Min_ge_iff [simp,noatp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<^loc>\<le> a)"
   by (simp add: Min_def ACIfSL.below_fold1_iff [OF ACIfSL_min])
 
-lemma Max_le_iff [simp]:
+lemma Max_le_iff [simp,noatp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A \<^loc>\<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<^loc>\<le> x)"
   by (simp add: Max_def ACIfSL.below_fold1_iff [OF ACIfSL_max])
 
-lemma Min_gr_iff [simp]:
+lemma Min_gr_iff [simp,noatp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>< Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<^loc>< a)"
   by (simp add: Min_def ACIfSLlin.strict_below_fold1_iff [OF ACIfSLlin_min])
 
-lemma Max_less_iff [simp]:
+lemma Max_less_iff [simp,noatp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A \<^loc>< x \<longleftrightarrow> (\<forall>a\<in>A. a \<^loc>< x)"
   by (simp add: Max_def ACIfSLlin.strict_below_fold1_iff [OF ACIfSLlin_max])
 
-lemma Min_le_iff:
+lemma Min_le_iff [noatp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<^loc>\<le> x)"
   by (simp add: Min_def ACIfSLlin.fold1_below_iff [OF ACIfSLlin_min])
 
-lemma Max_ge_iff:
+lemma Max_ge_iff [noatp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<^loc>\<le> a)"
   by (simp add: Max_def ACIfSLlin.fold1_below_iff [OF ACIfSLlin_max])
 
-lemma Min_less_iff:
+lemma Min_less_iff [noatp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<^loc>< x \<longleftrightarrow> (\<exists>a\<in>A. a \<^loc>< x)"
   by (simp add: Min_def ACIfSLlin.fold1_strict_below_iff [OF ACIfSLlin_min])
 
-lemma Max_gr_iff:
+lemma Max_gr_iff [noatp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>< Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<^loc>< a)"
   by (simp add: Max_def ACIfSLlin.fold1_strict_below_iff [OF ACIfSLlin_max])
 

@@ -71,7 +71,7 @@ by (auto simp add: Integ_def intrel_def quotient_def)
 
 text{*Reduces equality on abstractions to equality on representatives:
   @{prop "\<lbrakk>x \<in> Integ; y \<in> Integ\<rbrakk> \<Longrightarrow> (Abs_Integ x = Abs_Integ y) = (x=y)"} *}
-declare Abs_Integ_inject [simp]  Abs_Integ_inverse [simp]
+declare Abs_Integ_inject [simp,noatp]  Abs_Integ_inverse [simp,noatp]
 
 text{*Case analysis on the representation of an integer as an equivalence
       class of pairs of naturals.*}
@@ -371,7 +371,7 @@ text{*This version is proved for all ordered rings, not just integers!
       It is proved here because attribute @{text arith_split} is not available
       in theory @{text Ring_and_Field}.
       But is it really better than just rewriting with @{text abs_if}?*}
-lemma abs_split [arith_split]:
+lemma abs_split [arith_split,noatp]:
      "P(abs(a::'a::ordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 

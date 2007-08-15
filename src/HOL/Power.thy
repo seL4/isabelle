@@ -183,7 +183,7 @@ apply (induct "n")
 apply (auto simp add: power_Suc abs_mult)
 done
 
-lemma zero_less_power_abs_iff [simp]:
+lemma zero_less_power_abs_iff [simp,noatp]:
      "(0 < (abs a)^n) = (a \<noteq> (0::'a::{ordered_idom,recpower}) | n=0)"
 proof (induct "n")
   case 0

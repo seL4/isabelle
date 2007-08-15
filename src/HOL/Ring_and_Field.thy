@@ -660,7 +660,7 @@ proof (rule ccontr)
 qed  
 
 text{*Cancellation of equalities with a common factor*}
-lemma mult_cancel_right [simp]:
+lemma mult_cancel_right [simp,noatp]:
   fixes a b c :: "'a::ring_no_zero_divisors"
   shows "(a * c = b * c) = (c = 0 \<or> a = b)"
 proof -
@@ -670,7 +670,7 @@ proof -
     by (simp add: disj_commute)
 qed
 
-lemma mult_cancel_left [simp]:
+lemma mult_cancel_left [simp,noatp]:
   fixes a b c :: "'a::ring_no_zero_divisors"
   shows "(c * a = c * b) = (c = 0 \<or> a = b)"
 proof -
@@ -1029,11 +1029,11 @@ by (simp add: divide_inverse mult_ac)
 
 lemmas times_divide_eq = times_divide_eq_right times_divide_eq_left
 
-lemma divide_divide_eq_right [simp]:
+lemma divide_divide_eq_right [simp,noatp]:
   "a / (b/c) = (a*c) / (b::'a::{field,division_by_zero})"
 by (simp add: divide_inverse mult_ac)
 
-lemma divide_divide_eq_left [simp]:
+lemma divide_divide_eq_left [simp,noatp]:
   "(a / b) / (c::'a::{field,division_by_zero}) = a / (b*c)"
 by (simp add: divide_inverse mult_assoc)
 
@@ -1309,7 +1309,7 @@ apply (force dest!: inverse_le_imp_le nonzero_inverse_eq_imp_eq)
 done
 
 text{*Both premises are essential. Consider -1 and 1.*}
-lemma inverse_less_iff_less [simp]:
+lemma inverse_less_iff_less [simp,noatp]:
   "[|0 < a; 0 < b|] ==> (inverse a < inverse b) = (b < (a::'a::ordered_field))"
 by (blast intro: less_imp_inverse_less dest: inverse_less_imp_less) 
 
@@ -1317,7 +1317,7 @@ lemma le_imp_inverse_le:
   "[|a \<le> b; 0 < a|] ==> inverse b \<le> inverse (a::'a::ordered_field)"
 by (force simp add: order_le_less less_imp_inverse_less)
 
-lemma inverse_le_iff_le [simp]:
+lemma inverse_le_iff_le [simp,noatp]:
  "[|0 < a; 0 < b|] ==> (inverse a \<le> inverse b) = (b \<le> (a::'a::ordered_field))"
 by (blast intro: le_imp_inverse_le dest: inverse_le_imp_le) 
 
@@ -1351,7 +1351,7 @@ apply (insert inverse_less_imp_less [of "-b" "-a"])
 apply (simp add: order_less_imp_not_eq nonzero_inverse_minus_eq) 
 done
 
-lemma inverse_less_iff_less_neg [simp]:
+lemma inverse_less_iff_less_neg [simp,noatp]:
   "[|a < 0; b < 0|] ==> (inverse a < inverse b) = (b < (a::'a::ordered_field))"
 apply (insert inverse_less_iff_less [of "-b" "-a"])
 apply (simp del: inverse_less_iff_less 
@@ -1362,7 +1362,7 @@ lemma le_imp_inverse_le_neg:
   "[|a \<le> b; b < 0|] ==> inverse b \<le> inverse (a::'a::ordered_field)"
 by (force simp add: order_le_less less_imp_inverse_less_neg)
 
-lemma inverse_le_iff_le_neg [simp]:
+lemma inverse_le_iff_le_neg [simp,noatp]:
  "[|a < 0; b < 0|] ==> (inverse a \<le> inverse b) = (b \<le> (a::'a::ordered_field))"
 by (blast intro: le_imp_inverse_le_neg dest: inverse_le_imp_le_neg) 
 
@@ -1585,7 +1585,7 @@ lemma divide_le_0_iff:
       (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
 by (simp add: divide_inverse mult_le_0_iff)
 
-lemma divide_eq_0_iff [simp]:
+lemma divide_eq_0_iff [simp,noatp]:
      "(a/b = 0) = (a=0 | b=(0::'a::{field,division_by_zero}))"
 by (simp add: divide_inverse)
 
@@ -1625,13 +1625,13 @@ by(simp add:field_simps)
 
 subsection{*Cancellation Laws for Division*}
 
-lemma divide_cancel_right [simp]:
+lemma divide_cancel_right [simp,noatp]:
      "(a/c = b/c) = (c = 0 | a = (b::'a::{field,division_by_zero}))"
 apply (cases "c=0", simp)
 apply (simp add: divide_inverse)
 done
 
-lemma divide_cancel_left [simp]:
+lemma divide_cancel_left [simp,noatp]:
      "(c/a = c/b) = (c = 0 | a = (b::'a::{field,division_by_zero}))" 
 apply (cases "c=0", simp)
 apply (simp add: divide_inverse)
@@ -1641,23 +1641,23 @@ done
 subsection {* Division and the Number One *}
 
 text{*Simplify expressions equated with 1*}
-lemma divide_eq_1_iff [simp]:
+lemma divide_eq_1_iff [simp,noatp]:
      "(a/b = 1) = (b \<noteq> 0 & a = (b::'a::{field,division_by_zero}))"
 apply (cases "b=0", simp)
 apply (simp add: right_inverse_eq)
 done
 
-lemma one_eq_divide_iff [simp]:
+lemma one_eq_divide_iff [simp,noatp]:
      "(1 = a/b) = (b \<noteq> 0 & a = (b::'a::{field,division_by_zero}))"
 by (simp add: eq_commute [of 1])
 
-lemma zero_eq_1_divide_iff [simp]:
+lemma zero_eq_1_divide_iff [simp,noatp]:
      "((0::'a::{ordered_field,division_by_zero}) = 1/a) = (a = 0)"
 apply (cases "a=0", simp)
 apply (auto simp add: nonzero_eq_divide_eq)
 done
 
-lemma one_divide_eq_0_iff [simp]:
+lemma one_divide_eq_0_iff [simp,noatp]:
      "(1/a = (0::'a::{ordered_field,division_by_zero})) = (a = 0)"
 apply (cases "a=0", simp)
 apply (insert zero_neq_one [THEN not_sym])
@@ -1671,9 +1671,9 @@ lemmas zero_le_divide_1_iff = zero_le_divide_iff [of 1, simplified]
 lemmas divide_le_0_1_iff = divide_le_0_iff [of 1, simplified]
 
 declare zero_less_divide_1_iff [simp]
-declare divide_less_0_1_iff [simp]
+declare divide_less_0_1_iff [simp,noatp]
 declare zero_le_divide_1_iff [simp]
-declare divide_le_0_1_iff [simp]
+declare divide_le_0_1_iff [simp,noatp]
 
 
 subsection {* Ordering Rules for Division *}
@@ -1722,22 +1722,22 @@ by(auto simp: field_simps times_divide_eq zero_less_mult_iff mult_strict_right_m
 
 text{*Simplify quotients that are compared with the value 1.*}
 
-lemma le_divide_eq_1:
+lemma le_divide_eq_1 [noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "(1 \<le> b / a) = ((0 < a & a \<le> b) | (a < 0 & b \<le> a))"
 by (auto simp add: le_divide_eq)
 
-lemma divide_le_eq_1:
+lemma divide_le_eq_1 [noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "(b / a \<le> 1) = ((0 < a & b \<le> a) | (a < 0 & a \<le> b) | a=0)"
 by (auto simp add: divide_le_eq)
 
-lemma less_divide_eq_1:
+lemma less_divide_eq_1 [noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "(1 < b / a) = ((0 < a & a < b) | (a < 0 & b < a))"
 by (auto simp add: less_divide_eq)
 
-lemma divide_less_eq_1:
+lemma divide_less_eq_1 [noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "(b / a < 1) = ((0 < a & b < a) | (a < 0 & a < b) | a=0)"
 by (auto simp add: divide_less_eq)
@@ -1745,52 +1745,52 @@ by (auto simp add: divide_less_eq)
 
 subsection{*Conditional Simplification Rules: No Case Splits*}
 
-lemma le_divide_eq_1_pos [simp]:
+lemma le_divide_eq_1_pos [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "0 < a \<Longrightarrow> (1 \<le> b/a) = (a \<le> b)"
 by (auto simp add: le_divide_eq)
 
-lemma le_divide_eq_1_neg [simp]:
+lemma le_divide_eq_1_neg [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "a < 0 \<Longrightarrow> (1 \<le> b/a) = (b \<le> a)"
 by (auto simp add: le_divide_eq)
 
-lemma divide_le_eq_1_pos [simp]:
+lemma divide_le_eq_1_pos [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "0 < a \<Longrightarrow> (b/a \<le> 1) = (b \<le> a)"
 by (auto simp add: divide_le_eq)
 
-lemma divide_le_eq_1_neg [simp]:
+lemma divide_le_eq_1_neg [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "a < 0 \<Longrightarrow> (b/a \<le> 1) = (a \<le> b)"
 by (auto simp add: divide_le_eq)
 
-lemma less_divide_eq_1_pos [simp]:
+lemma less_divide_eq_1_pos [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "0 < a \<Longrightarrow> (1 < b/a) = (a < b)"
 by (auto simp add: less_divide_eq)
 
-lemma less_divide_eq_1_neg [simp]:
+lemma less_divide_eq_1_neg [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "a < 0 \<Longrightarrow> (1 < b/a) = (b < a)"
 by (auto simp add: less_divide_eq)
 
-lemma divide_less_eq_1_pos [simp]:
+lemma divide_less_eq_1_pos [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "0 < a \<Longrightarrow> (b/a < 1) = (b < a)"
 by (auto simp add: divide_less_eq)
 
-lemma divide_less_eq_1_neg [simp]:
+lemma divide_less_eq_1_neg [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "a < 0 \<Longrightarrow> b/a < 1 <-> a < b"
 by (auto simp add: divide_less_eq)
 
-lemma eq_divide_eq_1 [simp]:
+lemma eq_divide_eq_1 [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "(1 = b/a) = ((a \<noteq> 0 & a = b))"
 by (auto simp add: eq_divide_eq)
 
-lemma divide_eq_eq_1 [simp]:
+lemma divide_eq_eq_1 [simp,noatp]:
   fixes a :: "'a :: {ordered_field,division_by_zero}"
   shows "(b/a = 1) = ((a \<noteq> 0 & a = b))"
 by (auto simp add: divide_eq_eq)

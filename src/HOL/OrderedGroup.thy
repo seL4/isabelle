@@ -711,16 +711,16 @@ qed
 lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
-lemma pprt_eq_id[simp]: "0 <= x \<Longrightarrow> pprt x = x"
+lemma pprt_eq_id[simp,noatp]: "0 <= x \<Longrightarrow> pprt x = x"
   by (simp add: pprt_def le_iff_sup sup_aci)
 
-lemma nprt_eq_id[simp]: "x <= 0 \<Longrightarrow> nprt x = x"
+lemma nprt_eq_id[simp,noatp]: "x <= 0 \<Longrightarrow> nprt x = x"
   by (simp add: nprt_def le_iff_inf inf_aci)
 
-lemma pprt_eq_0[simp]: "x <= 0 \<Longrightarrow> pprt x = 0"
+lemma pprt_eq_0[simp,noatp]: "x <= 0 \<Longrightarrow> pprt x = 0"
   by (simp add: pprt_def le_iff_sup sup_aci)
 
-lemma nprt_eq_0[simp]: "0 <= x \<Longrightarrow> nprt x = 0"
+lemma nprt_eq_0[simp,noatp]: "0 <= x \<Longrightarrow> nprt x = 0"
   by (simp add: nprt_def le_iff_inf inf_aci)
 
 lemma sup_0_imp_0: "sup a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
@@ -745,10 +745,10 @@ apply (simp add: sup_commute)
 apply (erule sup_0_imp_0)
 done
 
-lemma inf_0_eq_0[simp]: "(inf a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
+lemma inf_0_eq_0[simp,noatp]: "(inf a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
 by (auto, erule inf_0_imp_0)
 
-lemma sup_0_eq_0[simp]: "(sup a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
+lemma sup_0_eq_0[simp,noatp]: "(sup a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
 by (auto, erule sup_0_imp_0)
 
 lemma zero_le_double_add_iff_zero_le_single_add[simp]: "(0 \<le> a + a) = (0 \<le> (a::'a::lordered_ab_group))"
@@ -797,6 +797,8 @@ proof -
   have "(0 = abs a) = (abs a = 0)" by (simp only: eq_ac)
   thus ?thesis by simp
 qed
+
+declare abs_0_eq [noatp] (*essentially the same as the other one*)
 
 lemma neg_inf_eq_sup[simp]: "- inf a (b::_::lordered_ab_group) = sup (-a) (-b)"
 by (simp add: inf_eq_neg_sup)
@@ -883,10 +885,10 @@ by (simp add: le_iff_sup pprt_def sup_commute)
 lemma zero_le_iff_nprt_id: "(a \<le> 0) = (nprt a = a)"
 by (simp add: le_iff_inf nprt_def inf_commute)
 
-lemma pprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> pprt a <= pprt b"
+lemma pprt_mono[simp,noatp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> pprt a <= pprt b"
   by (simp add: le_iff_sup pprt_def sup_aci)
 
-lemma nprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> nprt a <= nprt b"
+lemma nprt_mono[simp,noatp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> nprt a <= nprt b"
   by (simp add: le_iff_inf nprt_def inf_aci)
 
 lemma pprt_neg: "pprt (-x) = - nprt x"
@@ -1063,7 +1065,7 @@ lemmas diff_less_0_iff_less = less_iff_diff_less_0 [symmetric]
 lemmas diff_eq_0_iff_eq = eq_iff_diff_eq_0 [symmetric]
 lemmas diff_le_0_iff_le = le_iff_diff_le_0 [symmetric]
 declare diff_less_0_iff_less [simp]
-declare diff_eq_0_iff_eq [simp]
+declare diff_eq_0_iff_eq [simp,noatp]
 declare diff_le_0_iff_le [simp]
 
 ML {*
