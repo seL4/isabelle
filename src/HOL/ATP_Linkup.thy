@@ -11,7 +11,6 @@ imports Divides Record Hilbert_Choice
 uses
   "Tools/polyhash.ML"
   "Tools/res_clause.ML"
-  "Tools/ATP/reduce_axiomsN.ML"
   ("Tools/res_hol_clause.ML")
   ("Tools/res_axioms.ML")
   ("Tools/res_reconstruct.ML")
