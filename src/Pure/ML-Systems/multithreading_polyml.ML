@@ -146,6 +146,7 @@ fun schedule n next_task = uninterruptible (fn _ => fn tasks =>
     val wakeup = ConditionVar.conditionVar ();
     fun wakeup_all () = ConditionVar.broadcast wakeup;
     fun wait () = ConditionVar.wait (wakeup, lock);
+    fun wait_timeout () = ConditionVar.waitUntil (wakeup, lock, Time.now () + Time.fromSeconds 1);
 
     (*queue of tasks*)
     val queue = ref tasks;
@@ -194,7 +195,7 @@ fun schedule n next_task = uninterruptible (fn _ => fn tasks =>
       while not (List.null (! running)) do
       (trace_active ();
        if not (List.null (! status)) then (List.app Thread.interrupt (! running)) else ();
-       wait ())));
+       wait_timeout ())));
 
   in ! status end);
 
