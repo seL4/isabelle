@@ -54,6 +54,7 @@ sig
   val promptN: string val prompt: T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
+  val sendbackN: string val sendback: T
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
   val output: T -> output * output
@@ -153,6 +154,7 @@ val (commandspanN, commandspan) = markup_string "commandspan" nameN;
 val (promptN, prompt) = markup "prompt";
 val (stateN, state) = markup "state";
 val (subgoalN, subgoal) = markup "subgoal";
+val (sendbackN, sendback) = markup "sendback";
 
 
 (* print mode operations *)

@@ -9,6 +9,7 @@ See http://proofgeneral.inf.ed.ac.uk
 signature PROOF_GENERAL =
 sig
   val init: bool -> unit
+  val sendback: string -> Pretty.T list -> unit
   val write_keywords: string -> unit
 end;
 
@@ -101,6 +102,7 @@ end;
 fun proof_general_markup (name, props) =
   (if name = Markup.promptN then ("", special "372")
     else if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
+    else if name = Markup.sendbackN then (special "375", special "376")
     else ("", ""))
   |> (name <> Markup.promptN andalso print_mode_active "test_markup") ?
     (fn (bg, en) =>
@@ -139,6 +141,9 @@ fun tell_file_loaded path =
 
 fun tell_file_retracted path =
   emacs_notify ("Proof General, you can unlock the file " ^ quote (File.platform_path path));
+
+fun sendback heading prts =
+  Pretty.writeln (Pretty.big_list heading [Pretty.markup Markup.sendback prts]);
 
 
 (* theory loader actions *)
