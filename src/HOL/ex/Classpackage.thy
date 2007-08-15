@@ -143,7 +143,7 @@ using nat_pow_mult by (induct n) simp_all
 end
 
 instance * :: (monoid, monoid) monoid
-by default (simp_all add: split_paired_all mult_prod_def one_prod_def monoid_class.mult_one.neutr)
+by default (simp_all add: split_paired_all mult_prod_def one_prod_def neutr)
 
 instance list :: (type) monoid
 proof
@@ -220,7 +220,16 @@ proof unfold_locales
   fix x
   from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
 qed
-hide const npow
+
+hide const npow (*FIXME*)
+lemmas neutr = monoid_class.mult_one.neutr
+lemmas inv_obtain = monoid_class.inv_obtain
+lemmas inv_unique = monoid_class.inv_unique
+lemmas nat_pow_mult = monoid_class.nat_pow_mult
+lemmas nat_pow_one = monoid_class.nat_pow_one
+lemmas nat_pow_pow = monoid_class.nat_pow_pow
+lemmas units_def = monoid_class.units_def
+lemmas mult_one_def = monoid_class.units_inv_comm
 
 context group
 begin
@@ -285,7 +294,12 @@ where
   "pow k x = (if k < 0 then \<^loc>\<div> (npow (nat (-k)) x)
     else (npow (nat k) x))"
 
-end context group begin
+end
+
+(*FIXME*)
+lemmas pow_def [code func] = pow_def [folded monoid_class.npow]
+
+context group begin
 
 abbreviation
   pow_syn :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>\<up>" 75)
@@ -322,7 +336,7 @@ definition
   "X a b c = (a \<otimes> \<one> \<otimes> b, a \<otimes> \<one> \<otimes> b, npow 3 [a, b] \<otimes> \<one> \<otimes> [a, b, c])"
 
 definition
-  "Y a b c = (a, \<div> a) \<otimes> \<one> \<otimes> \<div> (b, \<div> c)"
+  "Y a b c = (a, \<div> a) \<otimes> \<one> \<otimes> \<div> (b, \<div> pow (-3) c)"
 
 definition "x1 = X (1::nat) 2 3"
 definition "x2 = X (1::int) 2 3"
