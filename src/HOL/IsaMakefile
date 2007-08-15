@@ -82,8 +82,12 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
   $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML			\
   $(SRC)/Provers/trancl.ML $(SRC)/Tools/integer.ML $(SRC)/Tools/Metis/metis.ML\
+  $(SRC)/Pure/codegen.ML			\
+  $(SRC)/Tools/code/code_funcgr.ML			\
+  $(SRC)/Tools/code/code_name.ML $(SRC)/Tools/code/code_package.ML		\
+  $(SRC)/Tools/code/code_target.ML $(SRC)/Tools/code/code_thingol.ML	\
   $(SRC)/Tools/nbe.ML $(SRC)/Tools/rat.ML Tools/TFL/casesplit.ML ATP_Linkup.thy	\
-  Accessible_Part.thy Arith_Tools.thy Datatype.thy 			\
+  Accessible_Part.thy Arith_Tools.thy Code_Setup.thy Datatype.thy 			\
   Dense_Linear_Order.thy Divides.thy Equiv_Relations.thy Extraction.thy	\
   Finite_Set.thy FixedPoint.thy Fun.thy FunDef.thy HOL.thy		\
   Hilbert_Choice.thy Inductive.thy IntArith.thy IntDef.thy IntDiv.thy	\
@@ -222,7 +226,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/SCT_Interpretation.thy \
   Library/SCT_Implementation.thy Library/Size_Change_Termination.thy \
   Library/SCT_Examples.thy Library/sct.ML \
-  Library/Pure_term.thy Library/Eval.thy Library/Pretty_Int.thy \
+  Library/Pure_term.thy Library/Eval.thy Library/Eval_Witness.thy Library/Pretty_Int.thy \
   Library/Pretty_Char.thy Library/Pretty_Char_chr.thy Library/Abstract_Rat.thy
 	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
 

@@ -24,7 +24,12 @@ uses
   "~~/src/Provers/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
   ("simpdata.ML")
-  ("~~/src/HOL/Tools/recfun_codegen.ML")
+  "~~/src/Pure/codegen.ML"
+  "~~/src/Tools/code/code_name.ML"
+  "~~/src/Tools/code/code_funcgr.ML"
+  "~~/src/Tools/code/code_thingol.ML"
+  "~~/src/Tools/code/code_target.ML"
+  "~~/src/Tools/code/code_package.ML"
   "~~/src/Tools/nbe.ML"
 begin
 
@@ -1636,202 +1641,41 @@ val trans = @{thm trans}
 *}
 
 
-subsection {* Code generator setup *}
+subsection {* Code generator basic setup -- see further @{text Code_Setup.thy} *}
 
-subsubsection {* SML code generator setup *}
-
-use "~~/src/HOL/Tools/recfun_codegen.ML"
-
-types_code
-  "bool"  ("bool")
-attach (term_of) {*
-fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
-*}
-attach (test) {*
-fun gen_bool i = one_of [false, true];
-*}
-  "prop"  ("bool")
-attach (term_of) {*
-fun term_of_prop b =
-  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
-*}
-
-consts_code
-  "Trueprop" ("(_)")
-  "True"    ("true")
-  "False"   ("false")
-  "Not"     ("Bool.not")
-  "op |"    ("(_ orelse/ _)")
-  "op &"    ("(_ andalso/ _)")
-  "If"      ("(if _/ then _/ else _)")
-
-setup {*
-let
-
-fun eq_codegen thy defs gr dep thyname b t =
-    (case strip_comb t of
-       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
-     | (Const ("op =", _), [t, u]) =>
-          let
-            val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
-            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u);
-            val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
-          in
-            SOME (gr''', Codegen.parens
-              (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
-          end
-     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
-         thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
-     | _ => NONE);
-
-in
-
-Codegen.add_codegen "eq_codegen" eq_codegen
-#> RecfunCodegen.setup
-
-end
-*}
-
-text {* Evaluation *}
-
-method_setup evaluation = {*
-  Method.no_args (Method.SIMPLE_METHOD' (CONVERSION Codegen.evaluation_conv THEN' rtac TrueI))
-*} "solve goal by evaluation"
-
-
-subsubsection {* Generic code generator setup *}
-
-setup "CodeName.setup #> CodeTarget.setup"
-
-text {* operational equality for code generation *}
+setup "CodeName.setup #> CodeTarget.setup #> Codegen.setup"
 
 class eq (attach "op =") = type
-
-
-text {* using built-in Haskell equality *}
-
-code_class eq
-  (Haskell "Eq" where "op =" \<equiv> "(==)")
-
-code_const "op ="
-  (Haskell infixl 4 "==")
-
-
-text {* type bool *}
 
 code_datatype True False
 
 lemma [code func]:
-  shows "(False \<and> x) = False"
-    and "(True \<and> x) = x"
-    and "(x \<and> False) = False"
-    and "(x \<and> True) = x" by simp_all
+  shows "False \<and> x \<longleftrightarrow> False"
+    and "True \<and> x \<longleftrightarrow> x"
+    and "x \<and> False \<longleftrightarrow> False"
+    and "x \<and> True \<longleftrightarrow> x" by simp_all
 
 lemma [code func]:
-  shows "(False \<or> x) = x"
-    and "(True \<or> x) = True"
-    and "(x \<or> False) = x"
-    and "(x \<or> True) = True" by simp_all
+  shows "False \<or> x \<longleftrightarrow> x"
+    and "True \<or> x \<longleftrightarrow> True"
+    and "x \<or> False \<longleftrightarrow> x"
+    and "x \<or> True \<longleftrightarrow> True" by simp_all
 
 lemma [code func]:
-  shows "(\<not> True) = False"
-    and "(\<not> False) = True" by (rule HOL.simp_thms)+
-
-lemmas [code] = imp_conv_disj
+  shows "\<not> True \<longleftrightarrow> False"
+    and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
 
 instance bool :: eq ..
 
 lemma [code func]:
-  shows "True = P \<longleftrightarrow> P"
-    and "False = P \<longleftrightarrow> \<not> P"
-    and "P = True \<longleftrightarrow> P"
-    and "P = False \<longleftrightarrow> \<not> P" by simp_all
-
-code_type bool
-  (SML "bool")
-  (OCaml "bool")
-  (Haskell "Bool")
-
-code_instance bool :: eq
-  (Haskell -)
-
-code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
-
-code_const True and False and Not and "op &" and "op |" and If
-  (SML "true" and "false" and "not"
-    and infixl 1 "andalso" and infixl 0 "orelse"
-    and "!(if (_)/ then (_)/ else (_))")
-  (OCaml "true" and "false" and "not"
-    and infixl 4 "&&" and infixl 2 "||"
-    and "!(if (_)/ then (_)/ else (_))")
-  (Haskell "True" and "False" and "not"
-    and infixl 3 "&&" and infixl 2 "||"
-    and "!(if (_)/ then (_)/ else (_))")
-
-code_reserved SML
-  bool true false not
-
-code_reserved OCaml
-  bool not
-
-
-text {* type prop *}
+  shows "False = P \<longleftrightarrow> \<not> P"
+    and "True = P \<longleftrightarrow> P" 
+    and "P = False \<longleftrightarrow> \<not> P" 
+    and "P = True \<longleftrightarrow> P" by simp_all
 
 code_datatype Trueprop "prop"
 
-
-text {* type itself *}
-
 code_datatype "TYPE('a)"
-
-
-text {* code generation for undefined as exception *}
-
-code_const undefined
-  (SML "raise/ Fail/ \"undefined\"")
-  (OCaml "failwith/ \"undefined\"")
-  (Haskell "error/ \"undefined\"")
-
-
-text {* Let and If *}
-
-lemmas [code func] = Let_def if_True if_False
-
-setup {*
-  CodePackage.add_appconst (@{const_name Let}, CodePackage.appgen_let)
-  #> CodePackage.add_appconst (@{const_name If}, CodePackage.appgen_if)
-*}
-
-
-subsubsection {* Evaluation oracle *}
-
-oracle eval_oracle ("term") = {* fn thy => fn t => 
-  if CodePackage.satisfies thy (HOLogic.dest_Trueprop t) [] 
-  then t
-  else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
-*}
-
-method_setup eval = {*
-let
-  fun eval_tac thy = 
-    SUBGOAL (fn (t, i) => rtac (eval_oracle thy t) i)
-in 
-  Method.ctxt_args (fn ctxt => 
-    Method.SIMPLE_METHOD' (eval_tac (ProofContext.theory_of ctxt)))
-end
-*} "solve goal by evaluation"
-
-
-subsubsection {* Normalization by evaluation *}
-
-setup Nbe.setup
-
-method_setup normalization = {*
-  Method.no_args (Method.SIMPLE_METHOD'
-    (CONVERSION (ObjectLogic.judgment_conv Nbe.normalization_conv)
-      THEN' resolve_tac [TrueI, refl]))
-*} "solve goal by normalization"
 
 
 subsection {* Legacy tactics and ML bindings *}

@@ -85,6 +85,8 @@ sig
   val mk_deftab: theory -> deftab
   val add_unfold: thm -> theory -> theory
 
+  val setup: theory -> theory
+
   val get_node: codegr -> string -> node
   val add_edge: string * string -> codegr -> codegr
   val add_edge_acyclic: string * string -> codegr -> codegr
@@ -336,13 +338,6 @@ fun add_unfold eqn =
       end)
   in add_preprocessor prep end;
 
-val _ = Context.add_setup
-  (let
-    fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
-  in
-    Code.add_attribute ("unfold", Scan.succeed (mk_attribute
-      (fn thm => add_unfold thm #> Code.add_inline thm)))
-  end);
 
 
 (**** associate constants with target language code ****)
@@ -798,11 +793,6 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
                  (add_edge (node_id, dep) gr'', p module''))
            end);
 
-val _ = Context.add_setup
- (add_codegen "default" default_codegen #>
-  add_tycodegen "default" default_tycodegen);
-
-
 fun mk_struct name s = "structure " ^ name ^ " =\nstruct\n\n" ^ s ^ "end;\n";
 
 fun add_to_module name s = AList.map_entry (op =) name (suffix s);
@@ -1034,10 +1024,8 @@ fun evaluation_oracle (thy, Evaluation t) =
 
 fun evaluation_conv ct =
   let val {thy, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i thy "Pure.evaluation" (thy, Evaluation t) end;
+  in Thm.invoke_oracle_i thy "Code_Setup.evaluation" (thy, Evaluation t) end;
 
-val _ = Context.add_setup
-  (Theory.add_oracle ("evaluation", evaluation_oracle));
 
 (**** Interface ****)
 
@@ -1060,21 +1048,6 @@ fun parse_mixfix rd s =
        (Symbol.explode s) of
      (p, []) => p
    | _ => error ("Malformed annotation: " ^ quote s));
-
-val _ = Context.add_setup
-  (fold assoc_type [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
-     [("term_of",
-       "fun term_of_fun_type _ T _ U _ = Free (\"<function>\", T --> U);\n"),
-      ("test",
-       "fun gen_fun_type _ G i =\n\
-       \  let\n\
-       \    val f = ref (fn x => raise Match);\n\
-       \    val _ = (f := (fn x =>\n\
-       \      let\n\
-       \        val y = G i;\n\
-       \        val f' = !f\n\
-       \      in (f := (fn x' => if x = x' then y else f' x'); y) end))\n\
-       \  in (fn x => !f x) end;\n")]))]);
 
 
 structure P = OuterParse and K = OuterKeyword;
@@ -1179,5 +1152,29 @@ val _ = OuterSyntax.add_keywords ["attach", "file", "contains"];
 
 val _ = OuterSyntax.add_parsers
   [assoc_typeP, assoc_constP, code_libraryP, code_moduleP, test_paramsP, testP, valueP];
+
+val setup = 
+  let
+    fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
+  in
+    Code.add_attribute ("unfold", Scan.succeed (mk_attribute
+      (fn thm => add_unfold thm #> Code.add_inline thm)))
+    #> add_codegen "default" default_codegen
+    #> add_tycodegen "default" default_tycodegen
+    #> Theory.add_oracle ("evaluation", evaluation_oracle)
+    #> fold assoc_type [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
+        [("term_of",
+            "fun term_of_fun_type _ T _ U _ = Free (\"<function>\", T --> U);\n"),
+        ("test",
+           "fun gen_fun_type _ G i =\n\
+           \  let\n\
+           \    val f = ref (fn x => raise Match);\n\
+           \    val _ = (f := (fn x =>\n\
+           \      let\n\
+           \        val y = G i;\n\
+           \        val f' = !f\n\
+           \      in (f := (fn x' => if x = x' then y else f' x'); y) end))\n\
+           \  in (fn x => !f x) end;\n")]))]
+  end;
 
 end;

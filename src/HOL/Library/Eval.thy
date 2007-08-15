@@ -6,7 +6,7 @@
 header {* A simple term evaluation mechanism *}
 
 theory Eval
-imports Pure_term
+imports Main Pure_term
 begin
 
 subsection {* @{text typ_of} class *}
@@ -154,31 +154,67 @@ ML {*
 signature EVAL =
 sig
   val eval_ref: term option ref
-  val eval_term: theory -> term -> term
-  val print: (theory -> term -> term) -> string
-    -> Toplevel.transition -> Toplevel.transition
+  val eval_conv: cterm -> thm
+  val eval_print: (cterm -> thm) -> Proof.context -> term -> unit
+  val eval_print_cmd: (cterm -> thm) -> string -> Toplevel.state -> unit
 end;
 
-structure Eval : EVAL =
+structure Eval =
 struct
 
 val eval_ref = ref (NONE : term option);
 
-fun eval_term thy t =
-  CodePackage.eval_term
-    thy (("Eval.eval_ref", eval_ref), TermOf.mk_term_of t);
+end;
+*}
 
-fun print eval s = Toplevel.keep (fn state =>
+oracle eval_oracle ("term * CodeThingol.code * CodeThingol.iterm * CodeThingol.itype * cterm") = {* fn thy => fn (t0, code, t, ty, ct) => 
+let
+  val _ = (Term.map_types o Term.map_atyps) (fn _ =>
+    error ("Term " ^ Sign.string_of_term thy t0 ^ " contains polymorphic type"))
+    t0;
+in Logic.mk_equals (t0, CodeTarget.eval_term thy ("Eval.eval_ref", Eval.eval_ref) code (t, ty) []) end;
+*}
+
+ML {*
+structure Eval : EVAL =
+struct
+
+open Eval;
+
+fun eval_invoke thy t0 code (t, ty) _ ct = eval_oracle thy (t0, code, t, ty, ct);
+
+fun eval_conv ct =
+  let
+    val thy = Thm.theory_of_cterm ct;
+    val ct' = (Thm.cterm_of thy o TermOf.mk_term_of o Thm.term_of) ct;
+  in
+    CodePackage.eval_term thy
+      (eval_invoke thy (Thm.term_of ct)) ct'
+  end;
+
+fun eval_print conv ctxt t =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val ct = Thm.cterm_of thy t;
+    val (_, t') = (Logic.dest_equals o Thm.prop_of o conv) ct;
+    val ty = Term.type_of t';
+    val p = 
+      Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt ty)];
+  in Pretty.writeln p end;
+
+fun eval_print_cmd conv raw_t state =
   let
     val ctxt = Toplevel.context_of state;
+    val t = ProofContext.read_term ctxt raw_t;
     val thy = ProofContext.theory_of ctxt;
-    val t = eval thy (ProofContext.read_term ctxt s);
-    val T = Term.type_of t;
-  in
-    writeln (Pretty.string_of
-      (Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)]))
-  end);
+    val ct = Thm.cterm_of thy t;
+    val (_, t') = (Logic.dest_equals o Thm.prop_of o conv) ct;
+    val ty = Term.type_of t';
+    val p = 
+      Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt ty)];
+  in Pretty.writeln p end;
 
 end;
 *}
@@ -187,8 +223,8 @@ ML {*
 val valueP =
   OuterSyntax.improper_command "value" "read, evaluate and print term" OuterKeyword.diag
     ((OuterParse.opt_keyword "overloaded" -- OuterParse.term)
-      >> (fn (b, t) => (Toplevel.no_timing o Eval.print
-            (if b then Eval.eval_term else Codegen.eval_term) t)));
+      >> (fn (b, t) => Toplevel.no_timing o Toplevel.keep
+           (Eval.eval_print_cmd (if b then Eval.eval_conv else Codegen.evaluation_conv) t)));
 
 val _ = OuterSyntax.add_parsers [valueP];
 *}
