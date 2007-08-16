@@ -8,12 +8,21 @@ theory Eval_Examples
 imports Eval
 begin
 
+text {* SML evaluation oracle *}
+
+lemma "True \<or> False" by evaluation
+lemma "\<not> (Suc 0 = Suc 1)" by evaluation
+lemma "[] = ([]\<Colon> int list)" by evaluation
+lemma "[()] = [()]" by evaluation
+lemma "fst ([]::nat list, Suc 0) = []" by evaluation
+
 text {* evaluation oracle *}
 
 lemma "True \<or> False" by eval
 lemma "\<not> (Suc 0 = Suc 1)" by eval
 lemma "[] = ([]\<Colon> int list)" by eval
 lemma "[()] = [()]" by eval
+lemma "fst ([]::nat list, Suc 0) = []" by eval
 
 text {* term evaluation *}
 
@@ -24,7 +33,6 @@ value (overloaded) "nat 100"
 value (overloaded) "(10\<Colon>int) \<le> 12"
 value (overloaded) "[(nat 100, ())]"
 value (overloaded) "[]::nat list"
-value (overloaded) "fst ([]::nat list, Suc 0) = []"
 
 text {* a fancy datatype *}
 

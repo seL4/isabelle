@@ -346,7 +346,7 @@ fun normalization_oracle (thy, Normalization (code, t, t', deps)) =
   Logic.mk_equals (t, eval thy code t t' deps);
 
 fun normalization_invoke thy code t t' deps =
-  Thm.invoke_oracle_i thy "Code_Setup.normalization" (thy, Normalization (code, t, t', deps));
+  Thm.invoke_oracle_i thy "HOL.normalization" (thy, Normalization (code, t, t', deps));
   (*FIXME get rid of hardwired theory name*)
 
 fun normalization_conv ct =
