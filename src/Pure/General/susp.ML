@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Sebastian Skalberg and Florian Haftmann, TU Muenchen
 
-Delayed evaluation.
+Delayed evaluation. Supposed to be value oriented; may result in
+multiple evaluations in a multi-threaded environment!
 *)
 
 signature SUSP =
@@ -28,14 +29,14 @@ fun value v = ref (Value v);
 
 fun delay f = ref (Delay f);
 
-fun force susp = NAMED_CRITICAL "susp" (fn () =>
+fun force susp =
   (case ! susp of
     Value v => v
   | Delay f =>
       let
         val v = f ();
         val _ = susp := Value v;
-      in v end));
+      in v end);
 
 fun peek susp =
   (case ! susp of
@@ -44,4 +45,4 @@ fun peek susp =
 
 fun same (r1 : 'a T, r2) = (r1 = r2); (*equality on references*)
 
-end
+end;
