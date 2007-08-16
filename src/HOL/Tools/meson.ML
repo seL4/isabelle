@@ -11,35 +11,42 @@ NEED TO SORT LITERALS BY # OF VARS, USING ==>I/E.  ELIMINATES NEED FOR
 FUNCTION nodups -- if done to goal clauses too!
 *)
 
-signature BASIC_MESON =
+signature MESON =
 sig
-  val size_of_subgoals	: thm -> int
-  val make_cnf		: thm list -> thm -> thm list
-  val finish_cnf	: thm list -> thm list
-  val make_nnf		: thm -> thm
-  val make_nnf1		: thm -> thm
-  val skolemize		: thm -> thm
-  val make_clauses	: thm list -> thm list
-  val make_horns	: thm list -> thm list
-  val best_prolog_tac	: (thm -> int) -> thm list -> tactic
-  val depth_prolog_tac	: thm list -> tactic
-  val gocls		: thm list -> thm list
-  val skolemize_prems_tac	: thm list -> int -> tactic
-  val MESON		: (thm list -> thm list) -> (thm list -> tactic) -> int -> tactic
-  val best_meson_tac	: (thm -> int) -> int -> tactic
-  val safe_best_meson_tac	: int -> tactic
-  val depth_meson_tac	: int -> tactic
-  val prolog_step_tac'	: thm list -> int -> tactic
-  val iter_deepen_prolog_tac	: thm list -> tactic
-  val iter_deepen_meson_tac	: thm list -> int -> tactic
-  val meson_tac		: int -> tactic
-  val negate_head	: thm -> thm
-  val select_literal	: int -> thm -> thm
-  val skolemize_tac	: int -> tactic
+  val term_pair_of: indexname * (typ * 'a) -> term * 'a
+  val first_order_resolve: thm -> thm -> thm
+  val flexflex_first_order: thm -> thm
+  val size_of_subgoals: thm -> int
+  val make_cnf: thm list -> thm -> thm list
+  val finish_cnf: thm list -> thm list
+  val generalize: thm -> thm
+  val make_nnf: thm -> thm
+  val make_nnf1: thm -> thm
+  val skolemize: thm -> thm
+  val is_fol_term: theory -> term -> bool
+  val make_clauses: thm list -> thm list
+  val make_horns: thm list -> thm list
+  val best_prolog_tac: (thm -> int) -> thm list -> tactic
+  val depth_prolog_tac: thm list -> tactic
+  val gocls: thm list -> thm list
+  val skolemize_prems_tac: thm list -> int -> tactic
+  val MESON: (thm list -> thm list) -> (thm list -> tactic) -> int -> tactic
+  val best_meson_tac: (thm -> int) -> int -> tactic
+  val safe_best_meson_tac: int -> tactic
+  val depth_meson_tac: int -> tactic
+  val prolog_step_tac': thm list -> int -> tactic
+  val iter_deepen_prolog_tac: thm list -> tactic
+  val iter_deepen_meson_tac: thm list -> int -> tactic
+  val make_meta_clause: thm -> thm
+  val make_meta_clauses: thm list -> thm list
+  val meson_claset_tac: thm list -> claset -> int -> tactic
+  val meson_tac: int -> tactic
+  val negate_head: thm -> thm
+  val select_literal: int -> thm -> thm
+  val skolemize_tac: int -> tactic
 end
 
-
-structure Meson =
+structure Meson: MESON =
 struct
 
 val not_conjD = thm "meson_not_conjD";
@@ -82,31 +89,31 @@ fun first_order_resolve thA thB =
   in  thA RS (cterm_instantiate ct_pairs thB)  end
   handle _ => raise THM ("first_order_resolve", 0, [thA,thB]);
 
-fun flexflex_first_order th = 
+fun flexflex_first_order th =
   case (tpairs_of th) of
       [] => th
     | pairs =>
-	let val thy = theory_of_thm th
-	    val (tyenv,tenv) = 
-	          foldl (uncurry (Pattern.first_order_match thy)) (tyenv0,tenv0) pairs
-	    val t_pairs = map term_pair_of (Vartab.dest tenv)
-	    val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
-	in  th'  end
-	handle THM _ => th;
+        let val thy = theory_of_thm th
+            val (tyenv,tenv) =
+                  foldl (uncurry (Pattern.first_order_match thy)) (tyenv0,tenv0) pairs
+            val t_pairs = map term_pair_of (Vartab.dest tenv)
+            val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
+        in  th'  end
+        handle THM _ => th;
 
 (*raises exception if no rules apply -- unlike RL*)
-fun tryres (th, rls) = 
+fun tryres (th, rls) =
   let fun tryall [] = raise THM("tryres", 0, th::rls)
         | tryall (rl::rls) = (th RS rl handle THM _ => tryall rls)
   in  tryall rls  end;
-  
+
 (*Permits forward proof from rules that discharge assumptions. The supplied proof state st,
   e.g. from conj_forward, should have the form
     "[| P' ==> ?P; Q' ==> ?Q |] ==> ?P & ?Q"
   and the effect should be to instantiate ?P and ?Q with normalized versions of P' and Q'.*)
 fun forward_res nf st =
   let fun forward_tacf [prem] = rtac (nf prem) 1
-        | forward_tacf prems = 
+        | forward_tacf prems =
             error ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:\n" ^
                    string_of_thm st ^
                    "\nPremises:\n" ^
@@ -126,9 +133,9 @@ fun has_conns bs =
         | has (Const("op &",_) $ p $ q) = member (op =) bs "op &" orelse has p orelse has q
         | has (Const("All",_) $ Abs(_,_,p)) = member (op =) bs "All" orelse has p
         | has (Const("Ex",_) $ Abs(_,_,p)) = member (op =) bs "Ex" orelse has p
-	| has _ = false
+        | has _ = false
   in  has  end;
-  
+
 
 (**** Clause handling ****)
 
@@ -143,11 +150,11 @@ val nliterals = length o literals;
 
 (*** Tautology Checking ***)
 
-fun signed_lits_aux (Const ("op |", _) $ P $ Q) (poslits, neglits) = 
+fun signed_lits_aux (Const ("op |", _) $ P $ Q) (poslits, neglits) =
       signed_lits_aux Q (signed_lits_aux P (poslits, neglits))
   | signed_lits_aux (Const("Not",_) $ P) (poslits, neglits) = (poslits, P::neglits)
   | signed_lits_aux P (poslits, neglits) = (P::poslits, neglits);
-  
+
 fun signed_lits th = signed_lits_aux (HOLogic.dest_Trueprop (concl_of th)) ([],[]);
 
 (*Literals like X=X are tautologous*)
@@ -161,14 +168,14 @@ fun is_taut th =
       orelse
       exists (member (op aconv) neglits) (HOLogic.false_const :: poslits)
   end
-  handle TERM _ => false;	(*probably dest_Trueprop on a weird theorem*)		      
+  handle TERM _ => false;       (*probably dest_Trueprop on a weird theorem*)
 
 
 (*** To remove trivial negated equality literals from clauses ***)
 
 (*They are typically functional reflexivity axioms and are the converses of
   injectivity equivalences*)
-  
+
 val not_refl_disj_D = thm"meson_not_refl_disj_D";
 
 (*Is either term a Var that does not properly occur in the other term?*)
@@ -179,25 +186,25 @@ fun eliminable (t as Var _, u) = t aconv u orelse not (Logic.occs(t,u))
 fun refl_clause_aux 0 th = th
   | refl_clause_aux n th =
        case HOLogic.dest_Trueprop (concl_of th) of
-	  (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _) => 
+          (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _) =>
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
-	| (Const ("op |", _) $ (Const("Not",_) $ (Const("op =",_) $ t $ u)) $ _) => 
-	    if eliminable(t,u) 
-	    then refl_clause_aux (n-1) (th RS not_refl_disj_D)  (*Var inequation: delete*)
-	    else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
-	| (Const ("op |", _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
-	| _ => (*not a disjunction*) th;
+        | (Const ("op |", _) $ (Const("Not",_) $ (Const("op =",_) $ t $ u)) $ _) =>
+            if eliminable(t,u)
+            then refl_clause_aux (n-1) (th RS not_refl_disj_D)  (*Var inequation: delete*)
+            else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
+        | (Const ("op |", _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
+        | _ => (*not a disjunction*) th;
 
-fun notequal_lits_count (Const ("op |", _) $ P $ Q) = 
+fun notequal_lits_count (Const ("op |", _) $ P $ Q) =
       notequal_lits_count P + notequal_lits_count Q
   | notequal_lits_count (Const("Not",_) $ (Const("op =",_) $ _ $ _)) = 1
   | notequal_lits_count _ = 0;
 
 (*Simplify a clause by applying reflexivity to its negated equality literals*)
-fun refl_clause th = 
+fun refl_clause th =
   let val neqs = notequal_lits_count (HOLogic.dest_Trueprop (concl_of th))
   in  zero_var_indexes (refl_clause_aux neqs th)  end
-  handle TERM _ => th;	(*probably dest_Trueprop on a weird theorem*)		      
+  handle TERM _ => th;  (*probably dest_Trueprop on a weird theorem*)
 
 
 (*** The basic CNF transformation ***)
@@ -210,22 +217,22 @@ fun prod x y = if x < !max_clauses andalso y < !max_clauses then x*y else !max_c
 (*Estimate the number of clauses in order to detect infeasible theorems*)
 fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
   | signed_nclauses b (Const("Not",_) $ t) = signed_nclauses (not b) t
-  | signed_nclauses b (Const("op &",_) $ t $ u) = 
+  | signed_nclauses b (Const("op &",_) $ t $ u) =
       if b then sum (signed_nclauses b t) (signed_nclauses b u)
            else prod (signed_nclauses b t) (signed_nclauses b u)
-  | signed_nclauses b (Const("op |",_) $ t $ u) = 
+  | signed_nclauses b (Const("op |",_) $ t $ u) =
       if b then prod (signed_nclauses b t) (signed_nclauses b u)
            else sum (signed_nclauses b t) (signed_nclauses b u)
-  | signed_nclauses b (Const("op -->",_) $ t $ u) = 
+  | signed_nclauses b (Const("op -->",_) $ t $ u) =
       if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
            else sum (signed_nclauses (not b) t) (signed_nclauses b u)
-  | signed_nclauses b (Const("op =", Type ("fun", [T, _])) $ t $ u) = 
+  | signed_nclauses b (Const("op =", Type ("fun", [T, _])) $ t $ u) =
       if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
-	  if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
-			(prod (signed_nclauses (not b) u) (signed_nclauses b t))
-	       else sum (prod (signed_nclauses b t) (signed_nclauses b u))
-			(prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
-      else 1 
+          if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
+                        (prod (signed_nclauses (not b) u) (signed_nclauses b t))
+               else sum (prod (signed_nclauses b t) (signed_nclauses b u))
+                        (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
+      else 1
   | signed_nclauses b (Const("Ex", _) $ Abs (_,_,t)) = signed_nclauses b t
   | signed_nclauses b (Const("All",_) $ Abs (_,_,t)) = signed_nclauses b t
   | signed_nclauses _ _ = 1; (* literal *)
@@ -247,12 +254,12 @@ fun freeze_spec th =
   (nf prem) returns a LIST of theorems, we can backtrack to get all combinations.*)
 fun resop nf [prem] = resolve_tac (nf prem) 1;
 
-(*Any need to extend this list with 
+(*Any need to extend this list with
   "HOL.type_class","HOL.eq_class","ProtoPure.term"?*)
-val has_meta_conn = 
+val has_meta_conn =
     exists_Const (member (op =) ["==", "==>", "all", "prop"] o #1);
 
-fun apply_skolem_ths (th, rls) = 
+fun apply_skolem_ths (th, rls) =
   let fun tryall [] = raise THM("apply_skolem_ths", 0, th::rls)
         | tryall (rl::rls) = (first_order_resolve th rl handle THM _ => tryall rls)
   in  tryall rls  end;
@@ -262,28 +269,28 @@ fun apply_skolem_ths (th, rls) =
   Eliminates existential quantifiers using skoths: Skolemization theorems.*)
 fun cnf skoths (th,ths) =
   let fun cnf_aux (th,ths) =
-  	if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
-        else if not (has_conns ["All","Ex","op &"] (prop_of th))  
-	then th::ths (*no work to do, terminate*)
-	else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
-	    Const ("op &", _) => (*conjunction*)
-		cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
-	  | Const ("All", _) => (*universal quantifier*)
-	        cnf_aux (freeze_spec th, ths)
-	  | Const ("Ex", _) => 
-	      (*existential quantifier: Insert Skolem functions*)
-	      cnf_aux (apply_skolem_ths (th,skoths), ths)
-	  | Const ("op |", _) => 
-	      (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
-	        all combinations of converting P, Q to CNF.*)
-	      let val tac =
-		  (METAHYPS (resop cnf_nil) 1) THEN
-		   (fn st' => st' |> METAHYPS (resop cnf_nil) 1)
-	      in  Seq.list_of (tac (th RS disj_forward)) @ ths  end 
-	  | _ => (*no work to do*) th::ths 
+        if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
+        else if not (has_conns ["All","Ex","op &"] (prop_of th))
+        then th::ths (*no work to do, terminate*)
+        else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
+            Const ("op &", _) => (*conjunction*)
+                cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
+          | Const ("All", _) => (*universal quantifier*)
+                cnf_aux (freeze_spec th, ths)
+          | Const ("Ex", _) =>
+              (*existential quantifier: Insert Skolem functions*)
+              cnf_aux (apply_skolem_ths (th,skoths), ths)
+          | Const ("op |", _) =>
+              (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
+                all combinations of converting P, Q to CNF.*)
+              let val tac =
+                  (METAHYPS (resop cnf_nil) 1) THEN
+                   (fn st' => st' |> METAHYPS (resop cnf_nil) 1)
+              in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
+          | _ => (*no work to do*) th::ths
       and cnf_nil th = cnf_aux (th,[])
-  in 
-    if too_many_clauses (concl_of th) 
+  in
+    if too_many_clauses (concl_of th)
     then (Output.debug (fn () => ("cnf is ignoring: " ^ string_of_thm th)); ths)
     else cnf_aux (th,ths)
   end;
@@ -292,7 +299,7 @@ fun all_names (Const ("all", _) $ Abs(x,_,P)) = x :: all_names P
   | all_names _ = [];
 
 fun new_names n [] = []
-  | new_names n (x::xs) = 
+  | new_names n (x::xs) =
       if String.isPrefix "mes_" x then (x, radixstring(26,"A",n)) :: new_names (n+1) xs
       else new_names n xs;
 
@@ -302,7 +309,7 @@ fun nice_names th =
   let val old_names = all_names (prop_of th)
   in  Drule.rename_bvars (new_names 0 old_names) th  end;
 
-(*Convert all suitable free variables to schematic variables, 
+(*Convert all suitable free variables to schematic variables,
   but don't discharge assumptions.*)
 fun generalize th = Thm.varifyT (forall_elim_vars 0 (nice_names (forall_intr_frees th)));
 
@@ -317,9 +324,9 @@ fun finish_cnf ths = filter (not o is_taut) (map (refl_clause o generalize) ths)
 (*Forward proof, passing extra assumptions as theorems to the tactic*)
 fun forward_res2 nf hyps st =
   case Seq.pull
-	(REPEAT
-	 (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
-	 st)
+        (REPEAT
+         (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
+         st)
   of SOME(th,_) => th
    | NONE => raise THM("forward_res2", 0, [st]);
 
@@ -328,7 +335,7 @@ fun forward_res2 nf hyps st =
 fun nodups_aux rls th = nodups_aux rls (th RS disj_assoc)
     handle THM _ => tryres(th,rls)
     handle THM _ => tryres(forward_res2 nodups_aux rls (th RS disj_forward2),
-			   [disj_FalseD1, disj_FalseD2, asm_rl])
+                           [disj_FalseD1, disj_FalseD2, asm_rl])
     handle THM _ => th;
 
 (*Remove duplicate literals, if there are any*)
@@ -340,12 +347,12 @@ fun nodups th =
 
 (**** Generation of contrapositives ****)
 
-fun is_left (Const ("Trueprop", _) $ 
+fun is_left (Const ("Trueprop", _) $
                (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _)) = true
   | is_left _ = false;
-               
+
 (*Associate disjuctions to right -- make leftmost disjunct a LITERAL*)
-fun assoc_right th = 
+fun assoc_right th =
   if is_left (prop_of th) then assoc_right (th RS disj_assoc)
   else th;
 
@@ -369,34 +376,34 @@ fun sort_clauses ths = sort (make_ord fewerlits) ths;
 fun has_bool (Type("bool",_)) = true
   | has_bool (Type(_, Ts)) = exists has_bool Ts
   | has_bool _ = false;
-  
-(*Is the string the name of a connective? Really only | and Not can remain, 
-  since this code expects to be called on a clause form.*)  
+
+(*Is the string the name of a connective? Really only | and Not can remain,
+  since this code expects to be called on a clause form.*)
 val is_conn = member (op =)
-    ["Trueprop", "op &", "op |", "op -->", "Not", 
+    ["Trueprop", "op &", "op |", "op -->", "Not",
      "All", "Ex", "Ball", "Bex"];
 
-(*True if the term contains a function--not a logical connective--where the type 
+(*True if the term contains a function--not a logical connective--where the type
   of any argument contains bool.*)
-val has_bool_arg_const = 
+val has_bool_arg_const =
     exists_Const
       (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
 
-(*A higher-order instance of a first-order constant? Example is the definition of 
+(*A higher-order instance of a first-order constant? Example is the definition of
   HOL.one, 1, at a function type in theory SetsAndFunctions.*)
-fun higher_inst_const thy (c,T) = 
+fun higher_inst_const thy (c,T) =
   case binder_types T of
       [] => false (*not a function type, OK*)
     | Ts => length (binder_types (Sign.the_const_type thy c)) <> length Ts;
 
-(*Raises an exception if any Vars in the theorem mention type bool. 
+(*Raises an exception if any Vars in the theorem mention type bool.
   Also rejects functions whose arguments are Booleans or other functions.*)
 fun is_fol_term thy t =
     Term.is_first_order ["all","All","Ex"] t andalso
     not (exists (has_bool o fastype_of) (term_vars t)  orelse
-	 has_bool_arg_const t  orelse  
-	 exists_Const (higher_inst_const thy) t orelse
-	 has_meta_conn t);
+         has_bool_arg_const t  orelse
+         exists_Const (higher_inst_const thy) t orelse
+         has_meta_conn t);
 
 fun rigid t = not (is_Var (head_of t));
 
@@ -405,8 +412,8 @@ fun ok4horn (Const ("Trueprop",_) $ (Const ("op |", _) $ t $ _)) = rigid t
   | ok4horn _ = false;
 
 (*Create a meta-level Horn clause*)
-fun make_horn crules th = 
-  if ok4horn (concl_of th) 
+fun make_horn crules th =
+  if ok4horn (concl_of th)
   then make_horn crules (tryres(th,crules)) handle THM _ => th
   else th;
 
@@ -414,17 +421,17 @@ fun make_horn crules th =
   is a HOL disjunction.*)
 fun add_contras crules (th,hcs) =
   let fun rots (0,th) = hcs
-	| rots (k,th) = zero_var_indexes (make_horn crules th) ::
-			rots(k-1, assoc_right (th RS disj_comm))
+        | rots (k,th) = zero_var_indexes (make_horn crules th) ::
+                        rots(k-1, assoc_right (th RS disj_comm))
   in case nliterals(prop_of th) of
-	1 => th::hcs
+        1 => th::hcs
       | n => rots(n, assoc_right th)
   end;
 
 (*Use "theorem naming" to label the clauses*)
 fun name_thms label =
     let fun name1 (th, (k,ths)) =
-	  (k-1, PureThy.put_name_hint (label ^ string_of_int k) th :: ths)
+          (k-1, PureThy.put_name_hint (label ^ string_of_int k) th :: ths)
     in  fn ths => #2 (foldr name1 (length ths, []) ths)  end;
 
 (*Is the given disjunction an all-negative support clause?*)
@@ -436,7 +443,7 @@ val neg_clauses = List.filter is_negative;
 (***** MESON PROOF PROCEDURE *****)
 
 fun rhyps (Const("==>",_) $ (Const("Trueprop",_) $ A) $ phi,
-	   As) = rhyps(phi, A::As)
+           As) = rhyps(phi, A::As)
   | rhyps (_, As) = As;
 
 (** Detecting repeated assumptions in a subgoal **)
@@ -449,7 +456,7 @@ fun has_reps [] = false
   | has_reps [_] = false
   | has_reps [t,u] = (t aconv u)
   | has_reps ts = (Library.foldl ins_term (Net.empty, ts);  false)
-		  handle Net.INSERT => true;
+                  handle Net.INSERT => true;
 
 (*Like TRYALL eq_assume_tac, but avoids expensive THEN calls*)
 fun TRYING_eq_assume_tac 0 st = Seq.single st
@@ -485,8 +492,8 @@ fun ok4nnf (Const ("Trueprop",_) $ (Const ("Not", _) $ t)) = rigid t
   | ok4nnf (Const ("Trueprop",_) $ t) = rigid t
   | ok4nnf _ = false;
 
-fun make_nnf1 th = 
-  if ok4nnf (concl_of th) 
+fun make_nnf1 th =
+  if ok4nnf (concl_of th)
   then make_nnf1 (tryres(th, nnf_rls))
     handle THM _ =>
         forward_res make_nnf1
@@ -494,23 +501,23 @@ fun make_nnf1 th =
     handle THM _ => th
   else th;
 
-(*The simplification removes defined quantifiers and occurrences of True and False. 
+(*The simplification removes defined quantifiers and occurrences of True and False.
   nnf_ss also includes the one-point simprocs,
   which are needed to avoid the various one-point theorems from generating junk clauses.*)
 val nnf_simps =
-     [simp_implies_def, Ex1_def, Ball_def, Bex_def, if_True, 
+     [simp_implies_def, Ex1_def, Ball_def, Bex_def, if_True,
       if_False, if_cancel, if_eq_cancel, cases_simp];
 val nnf_extra_simps =
       thms"split_ifs" @ ex_simps @ all_simps @ simp_thms;
 
 val nnf_ss =
-  HOL_basic_ss addsimps nnf_extra_simps 
+  HOL_basic_ss addsimps nnf_extra_simps
     addsimprocs [defALL_regroup,defEX_regroup, @{simproc neq}, @{simproc let_simp}];
 
 fun make_nnf th = case prems_of th of
     [] => th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
-	     |> simplify nnf_ss  
-	     |> make_nnf1
+             |> simplify nnf_ss
+             |> make_nnf1
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for
@@ -553,20 +560,20 @@ fun skolemize_prems_tac prems =
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
-fun MESON mkcl cltac i st = 
+fun MESON mkcl cltac i st =
   SELECT_GOAL
     (EVERY [ObjectLogic.atomize_prems_tac 1,
             rtac ccontr 1,
-	    METAHYPS (fn negs =>
-		      EVERY1 [skolemize_prems_tac negs,
-			      METAHYPS (cltac o mkcl)]) 1]) i st
-  handle THM _ => no_tac st;	(*probably from make_meta_clause, not first-order*)
+            METAHYPS (fn negs =>
+                      EVERY1 [skolemize_prems_tac negs,
+                              METAHYPS (cltac o mkcl)]) 1]) i st
+  handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 
 (** Best-first search versions **)
 
 (*ths is a list of additional clauses (HOL disjunctions) to use.*)
 fun best_meson_tac sizef =
-  MESON make_clauses 
+  MESON make_clauses
     (fn cls =>
          THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
                          (has_fewer_prems 1, sizef)
@@ -600,19 +607,19 @@ fun prolog_step_tac' horns =
 fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN (has_fewer_prems 1) (prolog_step_tac' horns);
 
-fun iter_deepen_meson_tac ths = MESON make_clauses 
+fun iter_deepen_meson_tac ths = MESON make_clauses
  (fn cls =>
       case (gocls (cls@ths)) of
-	   [] => no_tac  (*no goal clauses*)
-	 | goes => 
-	     let val horns = make_horns (cls@ths)
-	         val _ =
-	             Output.debug (fn () => ("meson method called:\n" ^ 
-	     	                  space_implode "\n" (map string_of_thm (cls@ths)) ^ 
-	     	                  "\nclauses:\n" ^ 
-	     	                  space_implode "\n" (map string_of_thm horns)))
-	     in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
-	     end
+           [] => no_tac  (*no goal clauses*)
+         | goes =>
+             let val horns = make_horns (cls@ths)
+                 val _ =
+                     Output.debug (fn () => ("meson method called:\n" ^
+                                  space_implode "\n" (map string_of_thm (cls@ths)) ^
+                                  "\nclauses:\n" ^
+                                  space_implode "\n" (map string_of_thm horns)))
+             in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
+             end
  );
 
 fun meson_claset_tac ths cs =
@@ -623,7 +630,7 @@ val meson_tac = CLASET' (meson_claset_tac []);
 
 (**** Code to support ordinary resolution, rather than Model Elimination ****)
 
-(*Convert a list of clauses (disjunctions) to meta-level clauses (==>), 
+(*Convert a list of clauses (disjunctions) to meta-level clauses (==>),
   with no contrapositives, for ordinary resolution.*)
 
 (*Rules to convert the head literal into a negated assumption. If the head
@@ -632,21 +639,21 @@ val meson_tac = CLASET' (meson_claset_tac []);
 val notEfalse = read_instantiate [("R","False")] notE;
 val notEfalse' = rotate_prems 1 notEfalse;
 
-fun negated_asm_of_head th = 
+fun negated_asm_of_head th =
     th RS notEfalse handle THM _ => th RS notEfalse';
 
 (*Converting one clause*)
-val make_meta_clause = 
+val make_meta_clause =
   zero_var_indexes o negated_asm_of_head o make_horn resolution_clause_rules;
-  
+
 fun make_meta_clauses ths =
     name_thms "MClause#"
       (distinct Thm.eq_thm_prop (map make_meta_clause ths));
 
 (*Permute a rule's premises to move the i-th premise to the last position.*)
 fun make_last i th =
-  let val n = nprems_of th 
-  in  if 1 <= i andalso i <= n 
+  let val n = nprems_of th
+  in  if 1 <= i andalso i <= n
       then Thm.permute_prems (i-1) 1 th
       else raise THM("select_literal", i, [th])
   end;
@@ -660,17 +667,17 @@ fun select_literal i cl = negate_head (make_last i cl);
 
 
 (*Top-level Skolemization. Allows part of the conversion to clauses to be
-  expressed as a tactic (or Isar method).  Each assumption of the selected 
+  expressed as a tactic (or Isar method).  Each assumption of the selected
   goal is converted to NNF and then its existential quantifiers are pulled
-  to the front. Finally, all existential quantifiers are eliminated, 
+  to the front. Finally, all existential quantifiers are eliminated,
   leaving !!-quantified variables. Perhaps Safe_tac should follow, but it
   might generate many subgoals.*)
 
-fun skolemize_tac i st = 
+fun skolemize_tac i st =
   let val ts = Logic.strip_assums_hyp (List.nth (prems_of st, i-1))
-  in 
+  in
      EVERY' [METAHYPS
-	    (fn hyps => (cut_facts_tac (map (skolemize o make_nnf) hyps) 1
+            (fn hyps => (cut_facts_tac (map (skolemize o make_nnf) hyps) 1
                          THEN REPEAT (etac exE 1))),
             REPEAT_DETERM_N (length ts) o (etac thin_rl)] i st
   end
@@ -678,5 +685,3 @@ fun skolemize_tac i st =
 
 end;
 
-structure BasicMeson: BASIC_MESON = Meson;
-open BasicMeson;

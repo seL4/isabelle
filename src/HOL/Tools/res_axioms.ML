@@ -409,7 +409,7 @@ fun skolem_of_def def =
 fun to_nnf th =
     th |> transfer_to_ATP_Linkup
        |> transform_elim |> zero_var_indexes |> freeze_thm
-       |> Conv.fconv_rule ObjectLogic.atomize |> make_nnf |> strip_lambdas ~1;
+       |> Conv.fconv_rule ObjectLogic.atomize |> Meson.make_nnf |> strip_lambdas ~1;
 
 (*Generate Skolem functions for a theorem supplied in nnf*)
 fun skolem_of_nnf s th =
@@ -636,13 +636,14 @@ val clausify = Attrib.syntax (Scan.lift Args.nat
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
-val neg_skolemize_tac = EVERY' [rtac ccontr, ObjectLogic.atomize_prems_tac, skolemize_tac];
+val neg_skolemize_tac = EVERY' [rtac ccontr, ObjectLogic.atomize_prems_tac, Meson.skolemize_tac];
 
 (*finish_cnf removes tautologies and functional reflexivity axioms, but by calling Thm.varifyT
   it can introduce TVars, which are useless in conjecture clauses.*)
 val no_tvars = null o term_tvars o prop_of;
 
-val neg_clausify = filter no_tvars o Meson.finish_cnf o assume_abstract_list "subgoal" o make_clauses;
+val neg_clausify =
+  filter no_tvars o Meson.finish_cnf o assume_abstract_list "subgoal" o Meson.make_clauses;
 
 fun neg_conjecture_clauses st0 n =
   let val st = Seq.hd (neg_skolemize_tac n st0)

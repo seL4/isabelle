@@ -30,19 +30,19 @@ writeln"Problem 25";
 Goal "(\<exists>x. P x) & (\<forall>x. L x --> ~ (M x & R x)) & (\<forall>x. P x --> (M x & L x)) & ((\<forall>x. P x --> Q x) | (\<exists>x. P x & R x)) --> (\<exists>x. Q x & P x)";
 by (rtac ccontr 1);
 val [prem25] = gethyps 1;
-val nnf25 = make_nnf prem25;
-val xsko25 = skolemize nnf25;
+val nnf25 = Meson.make_nnf prem25;
+val xsko25 = Meson.skolemize nnf25;
 by (cut_facts_tac [xsko25] 1 THEN REPEAT (etac exE 1));
 val [_,sko25] = gethyps 1;
-val clauses25 = make_clauses [sko25];   (*7 clauses*)
-val horns25 = make_horns clauses25;     (*16 Horn clauses*)
-val go25::_ = gocls clauses25;
+val clauses25 = Meson.make_clauses [sko25];   (*7 clauses*)
+val horns25 = Meson.make_horns clauses25;     (*16 Horn clauses*)
+val go25::_ = Meson.gocls clauses25;
 *}
 
 ML {*
 Goal "False";
 by (rtac go25 1);
-by (depth_prolog_tac horns25);
+by (Meson.depth_prolog_tac horns25);
 *}
 
 ML {*
@@ -50,19 +50,19 @@ writeln"Problem 26";
 Goal "((\<exists>x. p x) = (\<exists>x. q x)) & (\<forall>x. \<forall>y. p x & q y --> (r x = s y)) --> ((\<forall>x. p x --> r x) = (\<forall>x. q x --> s x))";
 by (rtac ccontr 1);
 val [prem26] = gethyps 1;
-val nnf26 = make_nnf prem26;
-val xsko26 = skolemize nnf26;
+val nnf26 = Meson.make_nnf prem26;
+val xsko26 = Meson.skolemize nnf26;
 by (cut_facts_tac [xsko26] 1 THEN REPEAT (etac exE 1));
 val [_,sko26] = gethyps 1;
-val clauses26 = make_clauses [sko26];                   (*9 clauses*)
-val horns26 = make_horns clauses26;                     (*24 Horn clauses*)
-val go26::_ = gocls clauses26;
+val clauses26 = Meson.make_clauses [sko26];                   (*9 clauses*)
+val horns26 = Meson.make_horns clauses26;                     (*24 Horn clauses*)
+val go26::_ = Meson.gocls clauses26;
 *}
 
 ML {*
 Goal "False";
 by (rtac go26 1);
-by (depth_prolog_tac horns26);  (*1.4 secs*)
+by (Meson.depth_prolog_tac horns26);  (*1.4 secs*)
 (*Proof is of length 107!!*)
 *}
 
@@ -71,19 +71,19 @@ writeln"Problem 43  NOW PROVED AUTOMATICALLY!!";  (*16 Horn clauses*)
 Goal "(\<forall>x. \<forall>y. q x y = (\<forall>z. p z x = (p z y::bool))) --> (\<forall>x. (\<forall>y. q x y = (q y x::bool)))";
 by (rtac ccontr 1);
 val [prem43] = gethyps 1;
-val nnf43 = make_nnf prem43;
-val xsko43 = skolemize nnf43;
+val nnf43 = Meson.make_nnf prem43;
+val xsko43 = Meson.skolemize nnf43;
 by (cut_facts_tac [xsko43] 1 THEN REPEAT (etac exE 1));
 val [_,sko43] = gethyps 1;
-val clauses43 = make_clauses [sko43];   (*6*)
-val horns43 = make_horns clauses43;     (*16*)
-val go43::_ = gocls clauses43;
+val clauses43 = Meson.make_clauses [sko43];   (*6*)
+val horns43 = Meson.make_horns clauses43;     (*16*)
+val go43::_ = Meson.gocls clauses43;
 *}
 
 ML {*
 Goal "False";
 by (rtac go43 1);
-by (best_prolog_tac size_of_subgoals horns43);   (*1.6 secs*)
+by (Meson.best_prolog_tac Meson.size_of_subgoals horns43);   (*1.6 secs*)
 *}
 
 ML {* Logic.auto_rename := false; *}

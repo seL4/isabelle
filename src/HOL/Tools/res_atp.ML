@@ -768,7 +768,7 @@ fun dfg_writer logic = ResHolClause.dfg_write_file (logic=FOL);
 
 (*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
-    let val conj_cls = make_clauses conjectures
+    let val conj_cls = Meson.make_clauses conjectures
                          |> ResAxioms.assume_abstract_list "subgoal" |> Meson.finish_cnf
         val hyp_cls = cnf_hyps_thms ctxt
         val goal_cls = conj_cls@hyp_cls

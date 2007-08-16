@@ -338,7 +338,7 @@ fun inst_excluded_middle th thy i_atm =
           val index_th2 = get_index i_atm prems_th2
                 handle Empty => error "Failed to find literal in th2"
           val _ = Output.debug (fn () => "  index_th2: " ^ Int.toString index_th2)
-      in  (select_literal index_th1 i_th1) RSN (index_th2, i_th2)  end
+      in  (Meson.select_literal index_th1 i_th1) RSN (index_th2, i_th2)  end
     end;
 
   (* INFERENCE RULE: REFL *)
@@ -560,7 +560,7 @@ fun inst_excluded_middle th thy i_atm =
           "Metis called with theorems " ^ cat_lines (map string_of_thm ths))
         val ths' = ResAxioms.cnf_rules_of_ths ths
     in
-       (MESON ResAxioms.neg_clausify (fn cls => rtac (FOL_SOLVE mode ctxt cls ths') 1) i
+       (Meson.MESON ResAxioms.neg_clausify (fn cls => rtac (FOL_SOLVE mode ctxt cls ths') 1) i
         THEN ResAxioms.expand_defs_tac st0) st0
     end;
 
