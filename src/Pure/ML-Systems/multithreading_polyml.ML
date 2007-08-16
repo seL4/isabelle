@@ -59,10 +59,11 @@ fun with_attributes new_atts f x =
       handle Interrupt => (restore (); Exn.Exn Interrupt))
   end;
 
-fun with_interrupt_state state = with_attributes [Thread.InterruptState state];
+fun uninterruptible f x = with_attributes
+  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer] f x;
 
-fun uninterruptible f x = with_interrupt_state Thread.InterruptDefer f x;
-fun interruptible f x = with_interrupt_state Thread.InterruptAsynchOnce f x;
+fun interruptible f x = with_attributes
+  [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce] f x;
 
 
 (* critical section -- may be nested within the same thread *)
@@ -205,4 +206,7 @@ end;
 
 val NAMED_CRITICAL = Multithreading.NAMED_CRITICAL;
 val CRITICAL = Multithreading.CRITICAL;
+
+fun ignore_interrupt f = Multithreading.uninterruptible (fn _ => f);
+fun raise_interrupt f = Multithreading.interruptible (fn _ => f);
 
