@@ -512,14 +512,13 @@ fun literals_conv bops uops env cv =
 fun integer_nnf_conv ctxt env =
  nnf_conv then_conv literals_conv [HOLogic.conj, HOLogic.disj] [] env (linearize_conv ctxt);
 
-(* val my_term = ref (@{cterm "NotaHING"}); *)
 local
  val pcv = Simplifier.rewrite 
      (HOL_basic_ss addsimps (simp_thms @ (List.take(ex_simps,4)) 
                       @ [not_all,all_not_ex, ex_disj_distrib]))
  val postcv = Simplifier.rewrite presburger_ss
  fun conv ctxt p = 
-  let val _ = () (* my_term := p *)
+  let val _ = ()
   in
    Qelim.gen_qelim_conv pcv postcv pcv (cons o term_of) 
       (term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt) 
