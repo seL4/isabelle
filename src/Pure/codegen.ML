@@ -1024,7 +1024,8 @@ fun evaluation_oracle (thy, Evaluation t) =
 
 fun evaluation_conv ct =
   let val {thy, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i thy "Code_Setup.evaluation" (thy, Evaluation t) end;
+  in Thm.invoke_oracle_i thy "HOL.evaluation" (thy, Evaluation t) end;
+  (*FIXME get rid of hardwired theory name*)
 
 
 (**** Interface ****)

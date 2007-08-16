@@ -1652,7 +1652,7 @@ val trans = @{thm trans}
 
 subsection {* Code generator basic setup -- see further @{text Code_Setup.thy} *}
 
-setup "CodeName.setup #> CodeTarget.setup #> Codegen.setup"
+setup "CodeName.setup #> CodeTarget.setup #> Codegen.setup #> Nbe.setup"
 
 class eq (attach "op =") = type
 

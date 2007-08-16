@@ -152,8 +152,6 @@ end
 
 subsection {* Normalization by evaluation *}
 
-setup Nbe.setup
-
 method_setup normalization = {*
   Method.no_args (Method.SIMPLE_METHOD'
     (CONVERSION (ObjectLogic.judgment_conv Nbe.normalization_conv)
