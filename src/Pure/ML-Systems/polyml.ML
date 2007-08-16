@@ -111,7 +111,9 @@ local
   fun eval "-q" = ()
     | eval txt = use_text "" (println, println) false txt;
 in
-  val _ = PolyML.onEntry (fn () => app eval (CommandLine.arguments ()));
+  val _ = PolyML.onEntry (fn () =>
+   (Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ()));
+    app eval (CommandLine.arguments ())));
 end;
 
 

@@ -52,15 +52,13 @@ else
   EXIT=""
 fi
 
-ROOT_FUNCTION="fn () => (Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.rootFunction ())"
-
 if [ -z "$OUTFILE" ]; then
   COMMIT='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\n"); false);'
 else
   if [ -z "$COMPRESS" ]; then
-    COMMIT="fun commit () = (TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.export (\"$OUTFILE\", $ROOT_FUNCTION); true);"
+    COMMIT="fun commit () = (TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.export (\"$OUTFILE\", PolyML.rootFunction); true);"
   else
-    COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.export (\"$OUTFILE\", $ROOT_FUNCTION); true);"
+    COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.export (\"$OUTFILE\", PolyML.rootFunction); true);"
   fi
   [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
   rm -f "${OUTFILE}.o" || fail_out
