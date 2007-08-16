@@ -715,17 +715,17 @@ fun get_state () = fst (! global_state);
 fun exn () = snd (! global_state);
 
 
-(* apply transformers to global state *)
+(* apply transformers to global state --- NOT THREAD-SAFE! *)
 
 nonfix >> >>>;
 
-fun >> tr = NAMED_CRITICAL "toplevel" (fn () =>
+fun >> tr =
   (case apply true tr (get_state ()) of
     NONE => false
   | SOME (state', exn_info) =>
       (global_state := (state', exn_info);
         print_exn exn_info;
-        true)));
+        true));
 
 fun >>> [] = ()
   | >>> (tr :: trs) = if >> tr then >>> trs else ();
