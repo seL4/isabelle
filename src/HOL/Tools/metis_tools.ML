@@ -7,7 +7,7 @@ HOL setup for the Metis prover (version 2.0 from 2007).
 
 signature METIS_TOOLS =
 sig
-  val type_lits: bool ref
+  val type_lits: bool Config.T
   val metis_tac : Proof.context -> thm list -> int -> tactic
   val setup : theory -> theory
 end
@@ -17,7 +17,7 @@ struct
 
   structure Rc = ResReconstruct;
 
-  val type_lits = ref true;
+  val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" true;
 
   (* ------------------------------------------------------------------------- *)
   (* Useful Theorems                                                           *)
@@ -100,11 +100,11 @@ struct
 
   fun metis_of_tfree tf = Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_typeLit tf));
 
-  fun hol_thm_to_fol isFO th =
+  fun hol_thm_to_fol ctxt isFO th =
     let val (mlits, types_sorts) =
                (literals_of_hol_thm isFO o HOLogic.dest_Trueprop o prop_of) th
         val (tvar_lits,tfree_lits) = ResClause.add_typs_aux types_sorts
-        val tlits = if !type_lits then map metis_of_typeLit tvar_lits else []
+        val tlits = if Config.get ctxt type_lits then map metis_of_typeLit tvar_lits else []
     in  (Metis.Thm.axiom (Metis.LiteralSet.fromList(tlits@mlits)), tfree_lits)  end;
 
   (* ARITY CLAUSE *)
@@ -115,7 +115,7 @@ struct
         metis_lit false (ResClause.make_type_class c) [Metis.Term.Var str];
 
   (*TrueI is returned as the Isabelle counterpart because there isn't any.*)
-  fun arity_cls thy (ResClause.ArityClause{kind,conclLit,premLits,...}) =
+  fun arity_cls (ResClause.ArityClause{kind,conclLit,premLits,...}) =
     (TrueI, Metis.Thm.axiom (Metis.LiteralSet.fromList (map m_arity_cls (conclLit :: premLits))));
 
   (* CLASSREL CLAUSE *)
@@ -123,7 +123,7 @@ struct
   fun m_classrel_cls subclass superclass =
     [metis_lit false subclass [Metis.Term.Var "T"], metis_lit true superclass [Metis.Term.Var "T"]];
 
-  fun classrel_cls thy (ResClause.ClassrelClause {axiom_name,subclass,superclass,...}) =
+  fun classrel_cls (ResClause.ClassrelClause {axiom_name,subclass,superclass,...}) =
     (TrueI, Metis.Thm.axiom (Metis.LiteralSet.fromList (m_classrel_cls subclass superclass)));
 
   (* ------------------------------------------------------------------------- *)
@@ -456,7 +456,7 @@ fun inst_excluded_middle th thy i_atm =
         val arity_clauses = ResClause.make_arity_clauses thy tycons supers
         val (supers',arity_clauses) = ResClause.make_arity_clauses thy tycons supers
         val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
-    in  map (classrel_cls thy) classrel_clauses @ map (arity_cls thy) arity_clauses
+    in  map classrel_cls classrel_clauses @ map arity_cls arity_clauses
     end;
 
   (* ------------------------------------------------------------------------- *)
@@ -476,8 +476,8 @@ fun inst_excluded_middle th thy i_atm =
     in  c=pred orelse exists in_mterm tm_list  end;
 
   (*transform isabelle clause to metis clause *)
-  fun add_thm thy (ith, {isFO, axioms, tfrees}) : logic_map =
-    let val (mth, tfree_lits) = hol_thm_to_fol isFO ith
+  fun add_thm ctxt (ith, {isFO, axioms, tfrees}) : logic_map =
+    let val (mth, tfree_lits) = hol_thm_to_fol ctxt isFO ith
         fun add_tfree (tf, axs) =
               if member (op=) tfrees tf then axs
               else (metis_of_tfree tf, TrueI) :: axs
@@ -496,17 +496,17 @@ fun inst_excluded_middle th thy i_atm =
                           tfrees = tfrees}
 
   (* Function to generate metis clauses, including comb and type clauses *)
-  fun build_map mode thy cls ths =
+  fun build_map mode thy ctxt cls ths =
     let val isFO = (mode = ResAtp.Fol) orelse
                     (mode <> ResAtp.Hol andalso ResAtp.is_fol_thms (cls @ ths))
-        val lmap = foldl (add_thm thy) {isFO = isFO, axioms = [], tfrees = []} (cls @ ths)
+        val lmap = foldl (add_thm ctxt) {isFO = isFO, axioms = [], tfrees = []} (cls @ ths)
         val clause_lists = map (Metis.Thm.clause o #1) (#axioms lmap)
         fun used c = exists (Metis.LiteralSet.exists (const_in_metis c)) clause_lists
         (*Now check for the existence of certain combinators*)
         val IK    = if used "c_COMBI" orelse used "c_COMBK" then [comb_I,comb_K] else []
         val BC    = if used "c_COMBB" then [comb_B] else []
         val EQ    = if used "c_fequal" then [fequal_imp_equal', equal_imp_fequal'] else []
-        val lmap' = if isFO then lmap else foldl (add_thm thy) lmap ([ext_thm] @ EQ @ IK @ BC)
+        val lmap' = if isFO then lmap else foldl (add_thm ctxt) lmap ([ext_thm] @ EQ @ IK @ BC)
     in
         add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap'
     end;
@@ -527,7 +527,7 @@ fun inst_excluded_middle th thy i_atm =
         val _ = app (fn th => Output.debug (fn () => string_of_thm th)) cls
         val _ = Output.debug (fn () => "THEOREM CLAUSES")
         val _ = app (fn th => Output.debug (fn () => string_of_thm th)) ths
-        val {isFO,axioms,tfrees} = build_map mode thy cls ths
+        val {isFO,axioms,tfrees} = build_map mode thy ctxt cls ths
         val _ = if null tfrees then ()
                 else (Output.debug (fn () => "TFREE CLAUSES");
                       app (fn tf => Output.debug (fn _ => ResClause.tptp_of_typeLit tf)) tfrees)
@@ -575,6 +575,7 @@ fun inst_excluded_middle th thy i_atm =
           (CHANGED_PROP o metis_general_tac mode ctxt ths))));
 
   val setup =
+    type_lits_setup #>
     Method.add_methods
       [("metis", method ResAtp.Auto, "METIS for FOL & HOL problems"),
        ("metisF", method ResAtp.Fol, "METIS for FOL problems"),
