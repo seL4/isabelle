@@ -163,7 +163,7 @@ fun add_def (name, prop) =
 
 in
 
-fun defs loc kind args lthy0 =
+fun defs kind args lthy0 =
   let
     fun def ((c, mx), ((name, atts), rhs)) lthy1 =
       let
@@ -350,7 +350,7 @@ fun begin loc ctxt =
       consts = consts is_loc some_class,
       axioms = axioms,
       abbrev = abbrev is_loc some_class,
-      defs = defs loc,
+      defs = defs,
       notes = notes loc,
       type_syntax = type_syntax loc,
       term_syntax = term_syntax loc,
