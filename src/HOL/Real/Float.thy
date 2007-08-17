@@ -320,6 +320,12 @@ qed
 lemma pow2_int: "pow2 (int n) = 2^n"
   by (simp add: pow2_def)
 
+lemma float_add_l0: "float (0, e) + x = x"
+  by (simp add: float_def)
+
+lemma float_add_r0: "x + float (0, e) = x"
+  by (simp add: float_def)
+
 lemma float_add:
   "float (a1, e1) + float (a2, e2) =
   (if e1<=e2 then float (a1+a2*2^(nat(e2-e1)), e1)
@@ -327,6 +333,44 @@ lemma float_add:
   apply (simp add: float_def ring_simps)
   apply (auto simp add: pow2_int[symmetric] pow2_add[symmetric])
   done
+
+lemma float_add_assoc1:
+  "(x + float (y1, e1)) + float (y2, e2) = (float (y1, e1) + float (y2, e2)) + x"
+  by simp
+
+lemma float_add_assoc2:
+  "(float (y1, e1) + x) + float (y2, e2) = (float (y1, e1) + float (y2, e2)) + x"
+  by simp
+
+lemma float_add_assoc3:
+  "float (y1, e1) + (x + float (y2, e2)) = (float (y1, e1) + float (y2, e2)) + x"
+  by simp
+
+lemma float_add_assoc4:
+  "float (y1, e1) + (float (y2, e2) + x) = (float (y1, e1) + float (y2, e2)) + x"
+  by simp
+
+lemma float_mult_l0: "float (0, e) * x = float (0, 0)"
+  by (simp add: float_def)
+
+lemma float_mult_r0: "x * float (0, e) = float (0, 0)"
+  by (simp add: float_def)
+
+definition 
+  lbound :: "real \<Rightarrow> real"
+where
+  "lbound x = min 0 x"
+
+definition
+  ubound :: "real \<Rightarrow> real"
+where
+  "ubound x = max 0 x"
+
+lemma lbound: "lbound x \<le> x"   
+  by (simp add: lbound_def)
+
+lemma ubound: "x \<le> ubound x"
+  by (simp add: ubound_def)
 
 lemma float_mult:
   "float (a1, e1) * float (a2, e2) =
@@ -383,6 +427,18 @@ lemma float_zero:
 lemma float_pprt:
   "pprt (float (a, b)) = (if 0 <= a then (float (a,b)) else (float (0, b)))"
   by (auto simp add: zero_le_float float_le_zero float_zero)
+
+lemma pprt_lbound: "pprt (lbound x) = float (0, 0)"
+  apply (simp add: float_def)
+  apply (rule pprt_eq_0)
+  apply (simp add: lbound_def)
+  done
+
+lemma nprt_ubound: "nprt (ubound x) = float (0, 0)"
+  apply (simp add: float_def)
+  apply (rule nprt_eq_0)
+  apply (simp add: ubound_def)
+  done
 
 lemma float_nprt:
   "nprt (float (a, b)) = (if 0 <= a then (float (0,b)) else (float (a, b)))"
@@ -513,7 +569,8 @@ lemmas powerarith = nat_number_of zpower_number_of_even
   zpower_number_of_odd[simplified zero_eq_Numeral0_nring one_eq_Numeral1_nring]
   zpower_Pls zpower_Min
 
-lemmas floatarith[simplified norm_0_1] = float_add float_mult float_minus float_abs zero_le_float float_pprt float_nprt
+lemmas floatarith[simplified norm_0_1] = float_add float_add_l0 float_add_r0 float_mult float_mult_l0 float_mult_r0 
+          float_minus float_abs zero_le_float float_pprt float_nprt pprt_lbound nprt_ubound float_add_assoc1 float_add_assoc2
 
 (* for use with the compute oracle *)
 lemmas arith = binarith intarith intarithrel natarith powerarith floatarith not_false_eq_true not_true_eq_false
