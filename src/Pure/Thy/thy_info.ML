@@ -30,7 +30,6 @@ sig
   val get_parents: string -> string list
   val pretty_theory: theory -> Pretty.T
   val touch_child_thys: string -> unit
-  val touch_all_thys: unit -> unit
   val load_file: bool -> Path.T -> unit
   val use: string -> unit
   val time_use: string -> unit
@@ -253,8 +252,6 @@ fun touch_thys names =
 
 fun touch_thy name = touch_thys [name];
 fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
-
-fun touch_all_thys () = List.app outdate_thy (get_names ());
 
 end;
 

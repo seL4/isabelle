@@ -46,7 +46,6 @@ sig
   val exit: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
   val touch_child_thys: string -> Toplevel.transition -> Toplevel.transition
-  val touch_all_thys: Toplevel.transition -> Toplevel.transition
   val touch_thy: string -> Toplevel.transition -> Toplevel.transition
   val remove_thy: string -> Toplevel.transition -> Toplevel.transition
   val kill_thy: string -> Toplevel.transition -> Toplevel.transition
@@ -323,7 +322,6 @@ val quit = Toplevel.imperative quit;
 (* touch theories *)
 
 fun touch_child_thys name = Toplevel.imperative (fn () => ThyInfo.touch_child_thys name);
-val touch_all_thys = Toplevel.imperative ThyInfo.touch_all_thys;
 fun touch_thy name = Toplevel.imperative (fn () => ThyInfo.touch_thy name);
 fun remove_thy name = Toplevel.imperative (fn () => ThyInfo.remove_thy name);
 fun kill_thy name = Toplevel.imperative (fn () => kill_theory name);
