@@ -48,13 +48,13 @@ use "code_unit.ML";
 use "code.ML";
 
 (*derived theory and proof elements*)
-use "local_theory.ML";
 use "calculation.ML";
 use "obtain.ML";
 use "locale.ML";
-use "spec_parse.ML";
 use "class.ML";
+use "local_theory.ML";
 use "theory_target.ML";
+use "spec_parse.ML";
 use "specification.ML";
 use "constdefs.ML";
 
