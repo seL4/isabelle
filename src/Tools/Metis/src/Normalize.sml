@@ -795,14 +795,14 @@ val newSkolemFunction =
     let
       val counter : int NameMap.map ref = ref (NameMap.new ())
     in
-      fn n =>
+      fn n => CRITICAL (fn () =>
       let
         val ref m = counter
         val i = Option.getOpt (NameMap.peek m n, 0)
         val () = counter := NameMap.insert m (n, i + 1)
       in
         "skolem_" ^ n ^ (if i = 0 then "" else "_" ^ Int.toString i)
-      end
+      end)
     end;
 
 fun skolemize fv bv fm =
@@ -993,13 +993,13 @@ val newDefinitionRelation =
     let
       val counter : int ref = ref 0
     in
-      fn () =>
+      fn () => CRITICAL (fn () =>
       let
         val ref i = counter
         val () = counter := i + 1
       in
         "defCNF_" ^ Int.toString i
-      end
+      end)
     end;
 
 fun newDefinition def =

@@ -377,7 +377,7 @@ local
 
   val primesList = ref (calcPrimes 10);
 in
-  fun primes n =
+  fun primes n = CRITICAL (fn () =>
       if length (!primesList) <= n then List.take (!primesList,n)
       else
         let
@@ -385,9 +385,9 @@ in
           val () = primesList := l
         in
           l
-        end;
+        end);
 
-  fun primesUpTo n =
+  fun primesUpTo n = CRITICAL (fn () =>
       let
         fun f k [] =
             let
@@ -400,7 +400,7 @@ in
             if p <= n then f (k + 1) ps else List.take (!primesList, k)
       in
         f 0 (!primesList)
-      end;
+      end);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -572,22 +572,22 @@ fun isRight (Left _) = false
 local
   val generator = ref 0
 in
-  fun newInt () =
+  fun newInt () = CRITICAL (fn () =>
       let
         val n = !generator
         val () = generator := n + 1
       in
         n
-      end;
+      end);
 
   fun newInts 0 = []
-    | newInts k =
+    | newInts k = CRITICAL (fn () =>
       let
         val n = !generator
         val () = generator := n + k
       in
         interval n k
-      end;
+      end);
 end;
 
 local

@@ -18,27 +18,29 @@ fun newgenseed seed =
 
 fun newgen () = newgenseed (Time.toReal (Time.now ()));
 
-fun random {seedref as ref seed} = 
-    (seedref := nextrand seed; seed / m);
+fun random {seedref} = CRITICAL (fn () => 
+    (seedref := nextrand (! seedref); ! seedref / m));
 
-fun randomlist (n, {seedref as ref seed0}) = 
-    let fun h 0 seed res = (seedref := seed; res)
+fun randomlist (n, {seedref}) = CRITICAL (fn () =>
+    let val seed0 = ! seedref
+        fun h 0 seed res = (seedref := seed; res)
 	  | h i seed res = h (i-1) (nextrand seed) (seed / m :: res)
-    in h n seed0 [] end;
+    in h n seed0 [] end);
 
 fun range (min, max) = 
     if min > max then raise Fail "Random.range: empty range" 
     else 
-	fn {seedref as ref seed} =>
-	(seedref := nextrand seed; min + (floor(real(max-min) * seed / m)));
+	fn {seedref} => CRITICAL (fn () =>
+	(seedref := nextrand (! seedref); min + (floor(real(max-min) * ! seedref / m))));
 
 fun rangelist (min, max) =
     if min > max then raise Fail "Random.rangelist: empty range" 
     else 
-	fn (n, {seedref as ref seed0}) => 
-	let fun h 0 seed res = (seedref := seed; res)
+	fn (n, {seedref}) => CRITICAL (fn () => 
+	let val seed0 = ! seedref
+            fun h 0 seed res = (seedref := seed; res)
 	      | h i seed res = h (i-1) (nextrand seed) 
 		               (min + floor(real(max-min) * seed / m) :: res)
-	in h n seed0 [] end
+	in h n seed0 [] end)
 
 end

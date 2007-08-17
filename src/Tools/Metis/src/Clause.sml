@@ -16,7 +16,8 @@ val newId =
     let
       val r = ref 0
     in
-      fn () => case r of ref n => let val () = r := n + 1 in n end
+      fn () => CRITICAL (fn () =>
+        case r of ref n => let val () = r := n + 1 in n end)
     end;
 
 (* ------------------------------------------------------------------------- *)
