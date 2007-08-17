@@ -973,11 +973,8 @@ by (induct xss) auto
 lemma Nil_eq_concat_conv [simp]: "([] = concat xss) = (\<forall>xs \<in> set xss. xs = [])"
 by (induct xss) auto
 
-lemma set_concat [simp]: "set (concat xs) = \<Union>(set ` set xs)"
+lemma set_concat [simp]: "set (concat xs) = (UN x:set xs. set x)"
 by (induct xs) auto
-
-lemma set_concat_map: "set(concat(map f xs)) = (UN x:set xs. set(f x))"
-by(auto)
 
 lemma map_concat: "map f (concat xs) = concat (map (map f) xs)"
 by (induct xs) auto
@@ -2047,7 +2044,7 @@ qed
 
 lemma length_remdups_concat:
  "length(remdups(concat xss)) = card(\<Union>xs \<in> set xss. set xs)"
-by(simp add: distinct_card[symmetric])
+by(simp add: set_concat distinct_card[symmetric])
 
 
 subsubsection {* @{text remove1} *}
