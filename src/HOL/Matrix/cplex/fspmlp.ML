@@ -13,7 +13,6 @@ sig
     val A : linprog -> term * term
     val b : linprog -> term
     val c : linprog -> term * term
-    val r : linprog -> term
     val r12 : linprog -> term * term
 
     exception Load of string
@@ -27,14 +26,13 @@ struct
 type vector = FloatSparseMatrixBuilder.vector
 type matrix = FloatSparseMatrixBuilder.matrix
 
-type linprog = term * (term * term) * term * (term * term) * term * (term * term)
+type linprog = term * (term * term) * term * (term * term) * (term * term)
 
-fun y (c1, c2, c3, c4, c5, _) = c1
-fun A (c1, c2, c3, c4, c5, _) = c2
-fun b (c1, c2, c3, c4, c5, _) = c3
-fun c (c1, c2, c3, c4, c5, _) = c4
-fun r (c1, c2, c3, c4, c5, _) = c5
-fun r12 (c1, c2, c3, c4, c5, c6) = c6
+fun y (c1, c2, c3, c4, _) = c1
+fun A (c1, c2, c3, c4, _) = c2
+fun b (c1, c2, c3, c4, _) = c3
+fun c (c1, c2, c3, c4, _) = c4
+fun r12 (c1, c2, c3, c4, c6) = c6
 
 structure CplexFloatSparseMatrixConverter =
 MAKE_CPLEX_MATRIX_CONVERTER(structure cplex = Cplex and matrix_builder = FloatSparseMatrixBuilder);
@@ -268,32 +266,35 @@ fun calcr safe_propagation xlen names prec A b =
 
 	val (r1, r2) = split_graph g
 
-        fun add_row_entry m index value =
+        fun add_row_entry m index f vname value =
             let
-                val vec = cons_spvec (FloatSparseMatrixBuilder.mk_spvec_entry 0 value) empty_spvec
+		val v = (case value of 
+			     SOME value => FloatSparseMatrixBuilder.mk_spvec_entry 0 value
+			   | NONE => FloatSparseMatrixBuilder.mk_spvec_entry' 0 (f $ (Var ((vname,0), HOLogic.realT))))
+                val vec = cons_spvec v empty_spvec
             in
                 cons_spmat (FloatSparseMatrixBuilder.mk_spmat_entry index vec) m
             end
 
         fun abs_estimate i r1 r2 =
             if i = 0 then
-                let val e = empty_spmat in (e, (e, e)) end
+                let val e = empty_spmat in (e, e) end
             else
                 let
                     val index = xlen-i
-                    val (r, (r12_1, r12_2)) = abs_estimate (i-1) r1 r2
-                    val b1 = case Inttab.lookup r1 index of NONE => raise (Load ("x-value not bounded from below: "^(names index))) | SOME x => x
-                    val b2 = case Inttab.lookup r2 index of NONE => raise (Load ("x-value not bounded from above: "^(names index))) | SOME x => x
-                    val abs_max = Float.max (Float.neg (Float.negative_part b1)) (Float.positive_part b2)
+                    val (r12_1, r12_2) = abs_estimate (i-1) r1 r2
+                    val b1 = Inttab.lookup r1 index
+                    val b2 = Inttab.lookup r2 index 
                     val i' = Integer.int index
                 in
-                    (add_row_entry r i' abs_max, (add_row_entry r12_1 i' b1, add_row_entry r12_2 i' b2))
+                    (add_row_entry r12_1 i' @{term "lbound :: real => real"} ((names index)^"l") b1, 
+		     add_row_entry r12_2 i' @{term "ubound :: real => real"} ((names index)^"u") b2)
                 end
 
-        val (r, (r1, r2)) = abs_estimate xlen r1 r2
+        val (r1, r2) = abs_estimate xlen r1 r2
 
     in
-        (r, (r1, r2))
+        (r1, r2)
     end
 
 fun load filename prec safe_propagation =
@@ -302,12 +303,12 @@ fun load filename prec safe_propagation =
         val prog = Cplex.elim_nonfree_bounds prog
         val prog = Cplex.relax_strict_ineqs prog
         val (maximize, c, A, b, (xlen, names, _)) = CplexFloatSparseMatrixConverter.convert_prog prog			    
-        val (r, (r1, r2)) = calcr safe_propagation xlen names prec A b
+        val (r1, r2) = calcr safe_propagation xlen names prec A b
         val _ = if maximize then () else raise Load "sorry, cannot handle minimization problems"
         val (dualprog, indexof) = FloatSparseMatrixBuilder.dual_cplexProg c A b
         val results = Cplex.solve dualprog
         val (optimal,v) = CplexFloatSparseMatrixConverter.convert_results results indexof
-        val A = FloatSparseMatrixBuilder.cut_matrix v NONE A
+        (*val A = FloatSparseMatrixBuilder.cut_matrix v NONE A*)
         fun id x = x
         val v = FloatSparseMatrixBuilder.set_vector FloatSparseMatrixBuilder.empty_matrix 0 v
         val b = FloatSparseMatrixBuilder.transpose_matrix (FloatSparseMatrixBuilder.set_vector FloatSparseMatrixBuilder.empty_matrix 0 b)
@@ -317,7 +318,7 @@ fun load filename prec safe_propagation =
         val (_,b2) = FloatSparseMatrixBuilder.approx_matrix prec id b
         val c = FloatSparseMatrixBuilder.approx_matrix prec id c
     in
-        (y1, A, b2, c, r, (r1, r2))
+        (y1, A, b2, c, (r1, r2))
     end handle CplexFloatSparseMatrixConverter.Converter s => (raise (Load ("Converter: "^s)))
 
 end

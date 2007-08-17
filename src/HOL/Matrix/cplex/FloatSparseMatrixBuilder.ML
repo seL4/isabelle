@@ -15,6 +15,7 @@ sig
   val approx_matrix : int -> (float -> float) -> matrix -> term * term
 
   val mk_spvec_entry : integer -> float -> term
+  val mk_spvec_entry' : integer -> term -> term
   val mk_spmat_entry : integer -> term -> term
   val spvecT: typ
   val spmatT: typ
@@ -63,6 +64,9 @@ fun approx_value prec f =
 
 fun mk_spvec_entry i f =
   HOLogic.mk_prod (HOLogic.mk_number HOLogic.natT i, FloatArith.mk_float f);
+
+fun mk_spvec_entry' i x =
+  HOLogic.mk_prod (HOLogic.mk_number HOLogic.natT i, x);
 
 fun mk_spmat_entry i e =
   HOLogic.mk_prod (HOLogic.mk_number HOLogic.natT i, e);
