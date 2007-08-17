@@ -404,7 +404,8 @@ fun check_deps dir name =
         else
           let
             val files' = map (check_ml master') files;
-            val current = update_time >= 0 andalso forall (is_some o snd) files';
+            val current = update_time >= 0 andalso can get_theory name
+              andalso forall (is_some o snd) files';
             val update_time' = if current then update_time else ~1;
             val text' = if current then text else explode (File.read thy_path);
             val deps' = SOME (make_deps update_time' master' text' parents files');
