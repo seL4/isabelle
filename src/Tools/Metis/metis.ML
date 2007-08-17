@@ -37,6 +37,12 @@ val pointerEqual : 'a * 'a -> bool
 
 val time : ('a -> 'b) -> 'a -> 'b
 
+(* ------------------------------------------------------------------------- *)
+(* Critical section markup (multiprocessing)                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val CRITICAL: (unit -> 'a) -> 'a
+
 end
 
 (**** Original file: PortableIsabelle.sml ****)
@@ -71,6 +77,12 @@ val pointerEqual = pointer_eq;
 (* ------------------------------------------------------------------------- *)
 
 val time = timeap;
+
+(* ------------------------------------------------------------------------- *)
+(* Critical section markup (multiprocessing)                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val CRITICAL = CRITICAL;
 
 end
 
@@ -1002,28 +1014,30 @@ fun newgenseed seed =
 
 fun newgen () = newgenseed (Time.toReal (Time.now ()));
 
-fun random {seedref as ref seed} = 
-    (seedref := nextrand seed; seed / m);
+fun random {seedref} = CRITICAL (fn () => 
+    (seedref := nextrand (! seedref); ! seedref / m));
 
-fun randomlist (n, {seedref as ref seed0}) = 
-    let fun h 0 seed res = (seedref := seed; res)
+fun randomlist (n, {seedref}) = CRITICAL (fn () =>
+    let val seed0 = ! seedref
+        fun h 0 seed res = (seedref := seed; res)
 	  | h i seed res = h (i-1) (nextrand seed) (seed / m :: res)
-    in h n seed0 [] end;
+    in h n seed0 [] end);
 
 fun range (min, max) = 
     if min > max then raise Fail "Random.range: empty range" 
     else 
-	fn {seedref as ref seed} =>
-	(seedref := nextrand seed; min + (floor(real(max-min) * seed / m)));
+	fn {seedref} => CRITICAL (fn () =>
+	(seedref := nextrand (! seedref); min + (floor(real(max-min) * ! seedref / m))));
 
 fun rangelist (min, max) =
     if min > max then raise Fail "Random.rangelist: empty range" 
     else 
-	fn (n, {seedref as ref seed0}) => 
-	let fun h 0 seed res = (seedref := seed; res)
+	fn (n, {seedref}) => CRITICAL (fn () => 
+	let val seed0 = ! seedref
+            fun h 0 seed res = (seedref := seed; res)
 	      | h i seed res = h (i-1) (nextrand seed) 
 		               (min + floor(real(max-min) * seed / m) :: res)
-	in h n seed0 [] end
+	in h n seed0 [] end)
 
 end
 end;
@@ -1722,7 +1736,7 @@ local
 
   val primesList = ref (calcPrimes 10);
 in
-  fun primes n =
+  fun primes n = CRITICAL (fn () =>
       if length (!primesList) <= n then List.take (!primesList,n)
       else
         let
@@ -1730,9 +1744,9 @@ in
           val () = primesList := l
         in
           l
-        end;
+        end);
 
-  fun primesUpTo n =
+  fun primesUpTo n = CRITICAL (fn () =>
       let
         fun f k [] =
             let
@@ -1745,7 +1759,7 @@ in
             if p <= n then f (k + 1) ps else List.take (!primesList, k)
       in
         f 0 (!primesList)
-      end;
+      end);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1917,22 +1931,22 @@ fun isRight (Left _) = false
 local
   val generator = ref 0
 in
-  fun newInt () =
+  fun newInt () = CRITICAL (fn () =>
       let
         val n = !generator
         val () = generator := n + 1
       in
         n
-      end;
+      end);
 
   fun newInts 0 = []
-    | newInts k =
+    | newInts k = CRITICAL (fn () =>
       let
         val n = !generator
         val () = generator := n + k
       in
         interval n k
-      end;
+      end);
 end;
 
 local
@@ -11127,14 +11141,14 @@ val newSkolemFunction =
     let
       val counter : int NameMap.map ref = ref (NameMap.new ())
     in
-      fn n =>
+      fn n => CRITICAL (fn () =>
       let
         val ref m = counter
         val i = Option.getOpt (NameMap.peek m n, 0)
         val () = counter := NameMap.insert m (n, i + 1)
       in
         "skolem_" ^ n ^ (if i = 0 then "" else "_" ^ Int.toString i)
-      end
+      end)
     end;
 
 fun skolemize fv bv fm =
@@ -11325,13 +11339,13 @@ val newDefinitionRelation =
     let
       val counter : int ref = ref 0
     in
-      fn () =>
+      fn () => CRITICAL (fn () =>
       let
         val ref i = counter
         val () = counter := i + 1
       in
         "defCNF_" ^ Int.toString i
-      end
+      end)
     end;
 
 fun newDefinition def =
@@ -14831,7 +14845,8 @@ val newId =
     let
       val r = ref 0
     in
-      fn () => case r of ref n => let val () = r := n + 1 in n end
+      fn () => CRITICAL (fn () =>
+        case r of ref n => let val () = r := n + 1 in n end)
     end;
 
 (* ------------------------------------------------------------------------- *)
