@@ -30,6 +30,6 @@ fun add hook =
   DatatypeHooksData.map (cons (serial (), hook));
 
 fun all dtcos thy =
-  fold (fn (_, f) => f dtcos) (DatatypeHooksData.get thy) thy;
+  fold_rev (fn (_, f) => f dtcos) (DatatypeHooksData.get thy) thy;
 
 end;

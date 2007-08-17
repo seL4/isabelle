@@ -78,7 +78,7 @@ fun add_hook hook =
   (TypecopyData.map o apsnd o cons) (serial (), hook);
 
 fun invoke_hooks tyco_info thy =
-  fold (fn (_, f) => f tyco_info) ((snd o TypecopyData.get) thy) thy;
+  fold_rev (fn (_, f) => f tyco_info) ((snd o TypecopyData.get) thy) thy;
 
 
 (* add a type copy *)
