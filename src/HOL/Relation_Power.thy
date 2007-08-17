@@ -15,7 +15,7 @@ instance
       --{* only type @{typ "('a * 'a) set"} should be in class @{text power}!*}
 
 (*R^n = R O ... O R, the n-fold composition of R*)
-primrec (relpow)
+primrec (unchecked relpow)
   "R^0 = Id"
   "R^(Suc n) = R O (R^n)"
 
@@ -25,7 +25,7 @@ instance
       --{* only type @{typ "'a => 'a"} should be in class @{text power}!*}
 
 (*f^n = f o ... o f, the n-fold composition of f*)
-primrec (funpow)
+primrec (unchecked funpow)
   "f^0 = id"
   "f^(Suc n) = f o (f^n)"
 
