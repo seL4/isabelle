@@ -581,15 +581,20 @@ fun map_tags f (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
 (*Compression of theorems -- a separate rule, not integrated with the others,
   as it could be slow.*)
 fun compress (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
-  let val thy = Theory.deref thy_ref in
-    Thm {thy_ref = thy_ref,
+  let
+    val thy = Theory.deref thy_ref;
+    val hyps' = map (Compress.term thy) hyps;
+    val tpairs' = map (pairself (Compress.term thy)) tpairs;
+    val prop' = Compress.term thy prop;
+  in
+    Thm {thy_ref = Theory.check_thy thy,
       der = der,
       tags = tags,
       maxidx = maxidx,
       shyps = shyps,
-      hyps = map (Compress.term thy) hyps,
-      tpairs = map (pairself (Compress.term thy)) tpairs,
-      prop = Compress.term thy prop}
+      hyps = hyps',
+      tpairs = tpairs',
+      prop = prop'}
   end;
 
 fun norm_proof (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
