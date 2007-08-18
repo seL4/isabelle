@@ -17,8 +17,6 @@ sig
   datatype mode = Auto | Fol | Hol
   val linkup_logic_mode : mode ref
   val write_subgoal_file: bool -> mode -> Proof.context -> thm list -> thm list -> int -> string
-  val atp_method: (Proof.context -> thm list -> int -> tactic) ->
-    Method.src -> Proof.context -> Proof.method
   val cond_rm_tmp: string -> unit
   val include_all: bool ref
   val run_relevance_filter: bool ref
@@ -762,9 +760,9 @@ fun unwanted t =
   likely to lead to unsound proofs.*)
 fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
 
-fun tptp_writer logic = ResHolClause.tptp_write_file (logic=FOL);
+fun tptp_writer thy logic = ResHolClause.tptp_write_file thy (logic=FOL);
 
-fun dfg_writer logic = ResHolClause.dfg_write_file (logic=FOL);
+fun dfg_writer thy logic = ResHolClause.dfg_write_file thy (logic=FOL);
 
 (*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
@@ -796,7 +794,7 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         and file = atp_input_file()
         and user_lemmas_names = map #1 user_rules
     in
-        writer logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
+        writer thy logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
         Output.debug (fn () => "Writing to " ^ file);
         file
     end;
@@ -808,16 +806,6 @@ fun cond_rm_tmp file =
     then Output.debug (fn () => "ATP input kept...")
     else OS.FileSys.remove file;
 
-
-(****** setup ATPs as Isabelle methods ******)
-
-fun atp_meth tac ths ctxt =
-    let val thy = ProofContext.theory_of ctxt
-        val _ = ResClause.init thy
-        val _ = ResHolClause.init thy
-    in Method.SIMPLE_METHOD' (tac ctxt ths) end;
-
-fun atp_method tac = Method.thms_ctxt_args (atp_meth tac);
 
 (***************************************************************)
 (* automatic ATP invocation                                    *)
@@ -918,7 +906,7 @@ fun write_problem_files probfile (ctxt,th)  =
                 val _ = Output.debug (fn () => "arity clauses = " ^ Int.toString (length arity_clauses))
                 val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
                 val _ = Output.debug (fn () => "classrel clauses = " ^ Int.toString (length classrel_clauses))
-                val clnames = writer logic ccls fname (axcls,classrel_clauses,arity_clauses) []
+                val clnames = writer thy logic ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Vector.fromList clnames
                 val _ = if !Output.debugging then trace_vector fname thm_names else ()
             in  (thm_names,fname) :: write_all ccls_list axcls_list (k+1)  end
@@ -980,8 +968,6 @@ fun sledgehammer state =
                   Pretty.string_of (ProofContext.pretty_term ctxt
                     (Logic.mk_conjunction_list (Thm.prems_of goal))));
     Output.debug (fn () => "current theory: " ^ Context.theory_name thy);
-    ResClause.init thy;
-    ResHolClause.init thy;
     if !time_limit > 0 then isar_atp (ctxt, goal)
     else (warning ("Writing problem file only: " ^ !problem_name);
           isar_atp_writeonly (ctxt, goal))
