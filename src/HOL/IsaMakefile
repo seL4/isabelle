@@ -10,6 +10,7 @@ images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix HOL-Nominal TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
+  HOL-ex \
   HOL-Library \
   HOL-Auth \
   HOL-AxClasses \
@@ -42,8 +43,7 @@ test: \
   HOL-UNITY \
   HOL-Unix \
   HOL-W0 \
-  HOL-ZF \
-  HOL-ex 
+  HOL-ZF
     # ^ this is the sort position
 
 all: test images
