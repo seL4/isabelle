@@ -82,7 +82,7 @@ val time = timeap;
 (* Critical section markup (multiprocessing)                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val CRITICAL = CRITICAL;
+fun CRITICAL e = NAMED_CRITICAL "metis" e;
 
 end
 
