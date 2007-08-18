@@ -43,7 +43,6 @@ sig
   datatype type_literal = LTVar of string * string | LTFree of string * string
   val mk_typ_var_sort: typ -> typ_var * sort
   exception CLAUSE of string * term
-  val init : theory -> unit
   val isMeta : string -> bool
   val add_typs_aux : (typ_var * string list) list -> type_literal list * type_literal list
   val get_tvar_strs: (typ_var * sort) list -> string list
@@ -264,16 +263,6 @@ fun mk_typ_var_sort (TFree(a,s)) = (FOLTFree a,s)
 
 
 exception CLAUSE of string * term;
-
-
-(*Declarations of the current theory--to allow suppressing types.*)
-val const_typargs = ref (Library.K [] : (string*typ -> typ list));
-
-fun num_typargs(s,T) = length (!const_typargs (s,T));
-
-(*Initialize the type suppression mechanism with the current theory before
-    producing any clauses!*)
-fun init thy = (const_typargs := Sign.const_typargs thy);
 
 
 (*Flatten a type to a fol_type while accumulating sort constraints on the TFrees and
