@@ -19,7 +19,6 @@ sig
   datatype type_level = T_FULL | T_PARTIAL | T_CONST
   val typ_level: type_level ref
   val minimize_applies: bool ref
-  val init: theory -> unit
   type axiom_name = string
   type polarity = bool
   type clause_id = int
@@ -29,11 +28,11 @@ sig
     | CombApp of combterm * combterm
   datatype literal = Literal of polarity * combterm
   val strip_comb: combterm -> combterm * combterm list
-  val literals_of_term: term -> literal list * (ResClause.typ_var * sort) list
-  val tptp_write_file: bool -> thm list -> string ->
+  val literals_of_term: theory -> term -> literal list * (ResClause.typ_var * sort) list
+  val tptp_write_file: theory -> bool -> thm list -> string ->
     (thm * (axiom_name * clause_id)) list * ResClause.classrelClause list *
       ResClause.arityClause list -> string list -> axiom_name list
-  val dfg_write_file: bool -> thm list -> string ->
+  val dfg_write_file: theory -> bool -> thm list -> string ->
     (thm * (axiom_name * clause_id)) list * ResClause.classrelClause list *
       ResClause.arityClause list -> string list -> axiom_name list
 end
@@ -71,8 +70,6 @@ fun const_types_only () = (typ_level:=T_CONST);
   constant-typed translation, though it could be tried for the partially-typed one.*)
 val minimize_applies = ref true;
 
-val const_typargs = ref (Library.K [] : (string*typ -> typ list));
-
 val const_min_arity = ref (Symtab.empty : int Symtab.table);
 
 val const_needs_hBOOL = ref (Symtab.empty : bool Symtab.table);
@@ -84,7 +81,6 @@ fun min_arity_of c = getOpt (Symtab.lookup(!const_min_arity) c, 0);
 fun needs_hBOOL c = not (!minimize_applies) orelse !typ_level=T_PARTIAL orelse
                     getOpt (Symtab.lookup(!const_needs_hBOOL) c, false);
 
-fun init thy = (const_typargs := Sign.const_typargs thy);
 
 (**********************************************************************)
 (* convert a Term.term with lambdas into a Term.term with combinators *)
@@ -212,46 +208,46 @@ fun simp_type_of (Type (a, Ts)) =
   | simp_type_of (TVar (v,s)) = RC.AtomV(RC.make_schematic_type_var v);
 
 
-fun const_type_of (c,t) =
+fun const_type_of thy (c,t) =
       let val (tp,ts) = type_of t
-      in  (tp, ts, map simp_type_of (!const_typargs(c,t))) end;
+      in  (tp, ts, map simp_type_of (Sign.const_typargs thy (c,t))) end;
 
 (* convert a Term.term (with combinators) into a combterm, also accummulate sort info *)
-fun combterm_of (Const(c,t)) =
-      let val (tp,ts,tvar_list) = const_type_of (c,t)
+fun combterm_of thy (Const(c,t)) =
+      let val (tp,ts,tvar_list) = const_type_of thy (c,t)
           val c' = CombConst(RC.make_fixed_const c, tp, tvar_list)
       in  (c',ts)  end
-  | combterm_of (Free(v,t)) =
+  | combterm_of thy (Free(v,t)) =
       let val (tp,ts) = type_of t
           val v' = if RC.isMeta v then CombVar(RC.make_schematic_var(v,0),tp)
                    else CombConst(RC.make_fixed_var v, tp, [])
       in  (v',ts)  end
-  | combterm_of (Var(v,t)) =
+  | combterm_of thy (Var(v,t)) =
       let val (tp,ts) = type_of t
           val v' = CombVar(RC.make_schematic_var v,tp)
       in  (v',ts)  end
-  | combterm_of (t as (P $ Q)) =
-      let val (P',tsP) = combterm_of P
-          val (Q',tsQ) = combterm_of Q
+  | combterm_of thy (t as (P $ Q)) =
+      let val (P',tsP) = combterm_of thy P
+          val (Q',tsQ) = combterm_of thy Q
       in  (CombApp(P',Q'), tsP union tsQ)  end;
 
-fun predicate_of ((Const("Not",_) $ P), polarity) = predicate_of (P, not polarity)
-  | predicate_of (t,polarity) = (combterm_of t, polarity);
+fun predicate_of thy ((Const("Not",_) $ P), polarity) = predicate_of thy (P, not polarity)
+  | predicate_of thy (t,polarity) = (combterm_of thy t, polarity);
 
-fun literals_of_term1 args (Const("Trueprop",_) $ P) = literals_of_term1 args P
-  | literals_of_term1 args (Const("op |",_) $ P $ Q) =
-      literals_of_term1 (literals_of_term1 args P) Q
-  | literals_of_term1 (lits,ts) P =
-      let val ((pred,ts'),pol) = predicate_of (P,true)
+fun literals_of_term1 thy args (Const("Trueprop",_) $ P) = literals_of_term1 thy args P
+  | literals_of_term1 thy args (Const("op |",_) $ P $ Q) =
+      literals_of_term1 thy (literals_of_term1 thy args P) Q
+  | literals_of_term1 thy (lits,ts) P =
+      let val ((pred,ts'),pol) = predicate_of thy (P,true)
       in
           (Literal(pol,pred)::lits, ts union ts')
       end;
 
-fun literals_of_term P = literals_of_term1 ([],[]) P;
+fun literals_of_term thy P = literals_of_term1 thy ([],[]) P;
 
 (* making axiom and conjecture clauses *)
-fun make_clause(clause_id,axiom_name,kind,th) =
-    let val (lits,ctypes_sorts) = literals_of_term (to_comb (prop_of th) [])
+fun make_clause thy (clause_id,axiom_name,kind,th) =
+    let val (lits,ctypes_sorts) = literals_of_term thy (to_comb (prop_of th) [])
         val (ctvar_lits,ctfree_lits) = RC.add_typs_aux ctypes_sorts
     in
         if forall isFalse lits
@@ -264,20 +260,20 @@ fun make_clause(clause_id,axiom_name,kind,th) =
     end;
 
 
-fun add_axiom_clause ((th,(name,id)), pairs) =
-  let val cls = make_clause(id, name, RC.Axiom, th)
+fun add_axiom_clause thy ((th,(name,id)), pairs) =
+  let val cls = make_clause thy (id, name, RC.Axiom, th)
   in
       if isTaut cls then pairs else (name,cls)::pairs
   end;
 
-val make_axiom_clauses = foldl add_axiom_clause [];
+fun make_axiom_clauses thy = foldl (add_axiom_clause thy) [];
 
-fun make_conjecture_clauses_aux _ [] = []
-  | make_conjecture_clauses_aux n (th::ths) =
-      make_clause(n,"conjecture", RC.Conjecture, th) ::
-      make_conjecture_clauses_aux (n+1) ths;
+fun make_conjecture_clauses_aux _ _ [] = []
+  | make_conjecture_clauses_aux thy n (th::ths) =
+      make_clause thy (n,"conjecture", RC.Conjecture, th) ::
+      make_conjecture_clauses_aux thy (n+1) ths;
 
-val make_conjecture_clauses = make_conjecture_clauses_aux 0;
+fun make_conjecture_clauses thy = make_conjecture_clauses_aux thy 0;
 
 
 (**********************************************************************)
@@ -524,7 +520,7 @@ fun count_user_clause user_lemmas (Clause{axiom_name,literals,...}, ct) =
 
 val cnf_helper_thms = ResAxioms.cnf_rules_pairs o (map ResAxioms.pairname)
 
-fun get_helper_clauses isFO (conjectures, axclauses, user_lemmas) =
+fun get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas) =
   if isFO then []  (*first-order*)
   else
     let val ct0 = foldl count_clause init_counters conjectures
@@ -547,7 +543,7 @@ fun get_helper_clauses isFO (conjectures, axclauses, user_lemmas) =
                  else []
         val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
     in
-        map #2 (make_axiom_clauses (other @ IK @ BC @ S @ B'C' @ S'))
+        map #2 (make_axiom_clauses thy (other @ IK @ BC @ S @ B'C' @ S'))
     end;
 
 (*Find the minimal arity of each function mentioned in the term. Also, note which uses
@@ -590,12 +586,12 @@ fun count_constants (conjectures, axclauses, helper_clauses) =
 (* tptp format *)
 
 (* write TPTP format to a single file *)
-fun tptp_write_file isFO thms filename (ax_tuples,classrel_clauses,arity_clauses) user_lemmas =
+fun tptp_write_file thy isFO thms filename (ax_tuples,classrel_clauses,arity_clauses) user_lemmas =
     let val _ = Output.debug (fn () => ("Preparing to write the TPTP file " ^ filename))
         val _ = RC.dfg_format := false
-        val conjectures = make_conjecture_clauses thms
-        val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
-        val helper_clauses = get_helper_clauses isFO (conjectures, axclauses, user_lemmas)
+        val conjectures = make_conjecture_clauses thy thms
+        val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses thy ax_tuples)
+        val helper_clauses = get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas)
         val _ = count_constants (conjectures, axclauses, helper_clauses);
         val (tptp_clss,tfree_litss) = ListPair.unzip (map clause2tptp conjectures)
         val tfree_clss = map RC.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
@@ -615,14 +611,14 @@ fun tptp_write_file isFO thms filename (ax_tuples,classrel_clauses,arity_clauses
 
 (* dfg format *)
 
-fun dfg_write_file isFO thms filename (ax_tuples,classrel_clauses,arity_clauses) user_lemmas =
+fun dfg_write_file thy isFO thms filename (ax_tuples,classrel_clauses,arity_clauses) user_lemmas =
     let val _ = Output.debug (fn () => ("Preparing to write the DFG file " ^ filename))
         val _ = RC.dfg_format := true
-        val conjectures = make_conjecture_clauses thms
-        val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses ax_tuples)
-        val helper_clauses = get_helper_clauses isFO (conjectures, axclauses, user_lemmas)
+        val conjectures = make_conjecture_clauses thy thms
+        val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses thy ax_tuples)
+        val helper_clauses = get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas)
         val _ = count_constants (conjectures, axclauses, helper_clauses);
-        val (dfg_clss,tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
+        val (dfg_clss, tfree_litss) = ListPair.unzip (map clause2dfg conjectures)
         and probname = Path.implode (Path.base (Path.explode filename))
         val axstrs = map (#1 o clause2dfg) axclauses
         val tfree_clss = map RC.dfg_tfree_clause (RC.union_all tfree_litss)
