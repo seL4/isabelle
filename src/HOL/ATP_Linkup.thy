@@ -102,7 +102,7 @@ oracle eprover_oracle ("string * int") = {* ResAtpProvers.eprover_o *}
 oracle spass_oracle ("string * int") = {* ResAtpProvers.spass_o *}
 
 use "Tools/res_atp_methods.ML"
-setup ResAtpMethods.ResAtps_setup
+setup ResAtpMethods.setup
 
 
 subsection {* The Metis prover *}
