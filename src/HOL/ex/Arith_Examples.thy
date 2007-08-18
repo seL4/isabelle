@@ -130,6 +130,12 @@ lemma "(i::int) mod 42 <= 41"
   apply (tactic {* lin_arith_pre_tac @{context} 1 *})
 oops
 
+lemma "-(i::int) * 1 = 0 ==> i = 0"
+  by (tactic {* fast_arith_tac @{context} 1 *})
+
+lemma "[| (0::int) < abs i; abs i * 1 < abs i * j |] ==> 1 < abs i * j"
+  by (tactic {* fast_arith_tac @{context} 1 *})
+
 
 subsection {* Meta-Logic *}
 

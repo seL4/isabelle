@@ -140,93 +140,88 @@ val fast_arith_neq_limit = fast_arith_neq_limit;
 (* Decomposition of terms *)
 
 (*internal representation of linear (in-)equations*)
-type decompT = ((term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool);
+type decompT =
+  ((term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool);
 
 fun nT (Type ("fun", [N, _])) = (N = HOLogic.natT)
   | nT _                      = false;
 
 fun add_atom (t : term) (m : Rat.rat) (p : (term * Rat.rat) list, i : Rat.rat) :
              (term * Rat.rat) list * Rat.rat =
-  case AList.lookup (op =) p t of NONE   => ((t, m) :: p, i)
-                                | SOME n => (AList.update (op =) (t, Rat.add n m) p, i);
+  case AList.lookup (op =) p t of
+      NONE   => ((t, m) :: p, i)
+    | SOME n => (AList.update (op =) (t, Rat.add n m) p, i);
 
-exception Zero;
+(* decompose nested multiplications, bracketing them to the right and combining
+   all their coefficients
 
-fun rat_of_term (numt, dent) =
-  let
-    val num = HOLogic.dest_numeral numt
-    val den = HOLogic.dest_numeral dent
-  in
-    if den = 0 then raise Zero else Rat.rat_of_quotient (num, den)
-  end;
+   inj_consts: list of constants to be ignored when encountered
+               (e.g. arithmetic type conversions that preserve value)
 
-(*Warning: in rare cases number_of encloses a non-numeral,
-  in which case dest_numeral raises TERM; hence all the handles below.
-  Same for Suc-terms that turn out not to be numerals -
-  although the simplifier should eliminate those anyway ...*)
-fun number_of_Sucs (Const ("Suc", _) $ n) : int =
-      number_of_Sucs n + 1
-  | number_of_Sucs t =
-      if HOLogic.is_zero t then 0 else raise TERM ("number_of_Sucs", []);
+   m: multiplicity associated with the entire product
 
-(*decompose nested multiplications, bracketing them to the right and combining
-  all their coefficients*)
+   returns either (SOME term, associated multiplicity) or (NONE, constant)
+*)
 fun demult (inj_consts : (string * typ) list) : term * Rat.rat -> term option * Rat.rat =
 let
-  fun demult ((mC as Const (@{const_name HOL.times}, _)) $ s $ t, m) = (
-    (case s of
-      Const ("Numeral.number_class.number_of", _) $ n =>
-        demult (t, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
-    | Const (@{const_name HOL.uminus}, _) $ (Const ("Numeral.number_class.number_of", _) $ n) =>
-        demult (t, Rat.mult m (Rat.rat_of_int (~(HOLogic.dest_numeral n))))
-    | Const (@{const_name Suc}, _) $ _ =>
-        demult (t, Rat.mult m (Rat.rat_of_int (HOLogic.dest_nat s)))
-    | Const (@{const_name HOL.times}, _) $ s1 $ s2 =>
+  fun demult ((mC as Const (@{const_name HOL.times}, _)) $ s $ t, m) =
+      (case s of Const (@{const_name HOL.times}, _) $ s1 $ s2 =>
+        (* bracketing to the right: '(s1 * s2) * t' becomes 's1 * (s2 * t)' *)
         demult (mC $ s1 $ (mC $ s2 $ t), m)
-    | Const (@{const_name HOL.divide}, _) $ numt $
-          (Const ("Numeral.number_class.number_of", _) $ dent) =>
-        let
-          val den = HOLogic.dest_numeral dent
-        in
-          if den = 0 then
-            raise Zero
-          else
-            demult (mC $ numt $ t, Rat.mult m (Rat.inv (Rat.rat_of_int den)))
-        end
-    | _ =>
-        atomult (mC, s, t, m)
-    ) handle TERM _ => atomult (mC, s, t, m)
-  )
-    | demult (atom as Const(@{const_name HOL.divide}, _) $ t $
-        (Const ("Numeral.number_class.number_of", _) $ dent), m) =
-      (let
-        val den = HOLogic.dest_numeral dent
-      in
-        if den = 0 then
-          raise Zero
-        else
-          demult (t, Rat.mult m (Rat.inv (Rat.rat_of_int den)))
-      end handle TERM _ => (SOME atom, m))
+      | _ =>
+        (* product 's * t', where either factor can be 'NONE' *)
+        (case demult (s, m) of
+          (SOME s', m') =>
+            (case demult (t, m') of
+              (SOME t', m'') => (SOME (mC $ s' $ t'), m'')
+            | (NONE,    m'') => (SOME s', m''))
+        | (NONE,    m') => demult (t, m')))
+    | demult ((mC as Const (@{const_name HOL.divide}, _)) $ s $ t, m) =
+      (* FIXME: Shouldn't we simplify nested quotients, e.g. '(s/t)/u' could
+         become 's/(t*u)', and '(s*t)/u' could become 's*(t/u)' ?   Note that
+         if we choose to do so here, the simpset used by arith must be able to
+         perform the same simplifications. *)
+      (* FIXME: Currently we treat the numerator as atomic unless the
+         denominator can be reduced to a numeric constant.  It might be better
+         to demult the numerator in any case, and invent a new term of the form
+         '1 / t' if the numerator can be reduced, but the denominator cannot. *)
+      (* FIXME: Currently we even treat the whole fraction as atomic unless the
+         denominator can be reduced to a numeric constant.  It might be better
+         to use the partially reduced denominator (i.e. 's / (2* t)' could be
+         demult'ed to 's / t' with multiplicity .5).   This would require a
+         very simple change only below, but it breaks existing proofs. *)
+      (* quotient 's / t', where the denominator t can be NONE *)
+      (* Note: will raise Rat.DIVZERO iff m' is Rat.zero *)
+      (case demult (t, Rat.one) of
+        (SOME _, _) => (SOME (mC $ s $ t), m)
+      | (NONE,  m') => apsnd (Rat.mult (Rat.inv m')) (demult (s, m)))
+    (* terms that evaluate to numeric constants *)
+    | demult (Const (@{const_name HOL.uminus}, _) $ t, m) = demult (t, Rat.neg m)
     | demult (Const (@{const_name HOL.zero}, _), m) = (NONE, Rat.zero)
     | demult (Const (@{const_name HOL.one}, _), m) = (NONE, m)
+    (*Warning: in rare cases number_of encloses a non-numeral,
+      in which case dest_numeral raises TERM; hence all the handles below.
+      Same for Suc-terms that turn out not to be numerals -
+      although the simplifier should eliminate those anyway ...*)
     | demult (t as Const ("Numeral.number_class.number_of", _) $ n, m) =
-        ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
-          handle TERM _ => (SOME t, m))
-    | demult (Const (@{const_name HOL.uminus}, _) $ t, m) = demult (t, Rat.neg m)
+      ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
+        handle TERM _ => (SOME t, m))
+    | demult (t as Const (@{const_name Suc}, _) $ _, m) =
+      ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_nat t)))
+        handle TERM _ => (SOME t, m))
+    (* injection constants are ignored *)
     | demult (t as Const f $ x, m) =
-        (if member (op =) inj_consts f then SOME x else SOME t, m)
+      if member (op =) inj_consts f then demult (x, m) else (SOME t, m)
+    (* everything else is considered atomic *)
     | demult (atom, m) = (SOME atom, m)
-and
-  atomult (mC, atom, t, m) = (
-    case demult (t, m) of (NONE, m')    => (SOME atom, m')
-                        | (SOME t', m') => (SOME (mC $ atom $ t'), m')
-  )
 in demult end;
 
 fun decomp0 (inj_consts : (string * typ) list) (rel : string, lhs : term, rhs : term) :
             ((term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat) option =
 let
-  (* Turn term into list of summand * multiplicity plus a constant *)
+  (* Turns a term 'all' and associated multiplicity 'm' into a list 'p' of
+     summands and associated multiplicities, plus a constant 'i' (with implicit
+     multiplicity 1) *)
   fun poly (Const (@{const_name HOL.plus}, _) $ s $ t,
         m : Rat.rat, pi : (term * Rat.rat) list * Rat.rat) = poly (s, m, poly (t, m, pi))
     | poly (all as Const (@{const_name HOL.minus}, T) $ s $ t, m, pi) =
@@ -264,7 +259,7 @@ in
   | @{const_name HOL.less_eq} => SOME (p, i, "<=", q, j)
   | "op ="              => SOME (p, i, "=", q, j)
   | _                   => NONE
-end handle Zero => NONE;
+end handle Rat.DIVZERO => NONE;
 
 fun of_lin_arith_sort thy U =
   Sign.of_sort thy (U, ["Ring_and_Field.ordered_idom"]);
