@@ -24,6 +24,4 @@ constdefs
   nu :: "('a pred => 'a pred) => 'a pred"    (binder "Nu " 10)
   "nu f == Charfun(gfp(Collect o f o Charfun))"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end

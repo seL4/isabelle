@@ -136,8 +136,6 @@ apply (frule constrainsD2)
 apply (auto simp add: constrains_def component_eq_subset)
 done
 
-(* Used in Guar.thy to show that programs are partially ordered*)
-(* bind_thm ("program_less_le", strict_component_def RS meta_eq_to_obj_eq);*)
 
 (*** preserves ***)
 
@@ -336,58 +334,5 @@ apply (blast intro: constrains_weaken)
 apply (drule_tac x = k in spec)
 apply (blast intro: constrains_weaken) 
 done
-
-ML
-{*
-val component_of_def = thm "component_of_def";
-val component_def = thm "component_def";
-
-val componentI = thm "componentI";
-val component_eq_subset = thm "component_eq_subset";
-val component_SKIP = thm "component_SKIP";
-val component_refl = thm "component_refl";
-val SKIP_minimal = thm "SKIP_minimal";
-val component_Join1 = thm "component_Join1";
-val component_Join2 = thm "component_Join2";
-val Join_absorb1 = thm "Join_absorb1";
-val Join_absorb2 = thm "Join_absorb2";
-val JN_component_iff = thm "JN_component_iff";
-val component_JN = thm "component_JN";
-val component_trans = thm "component_trans";
-val component_antisym = thm "component_antisym";
-val Join_component_iff = thm "Join_component_iff";
-val component_constrains = thm "component_constrains";
-val preserves_is_safety_prop = thm "preserves_is_safety_prop";
-val preservesI = thm "preservesI";
-val preserves_imp_eq = thm "preserves_imp_eq";
-val Join_preserves = thm "Join_preserves";
-val JN_preserves = thm "JN_preserves";
-val SKIP_preserves = thm "SKIP_preserves";
-val fun_pair_apply = thm "fun_pair_apply";
-val preserves_fun_pair = thm "preserves_fun_pair";
-val preserves_fun_pair_iff = thm "preserves_fun_pair_iff";
-val fun_pair_comp_distrib = thm "fun_pair_comp_distrib";
-val comp_apply = thm "comp_apply";
-val preserves_type = thm "preserves_type";
-val preserves_into_program = thm "preserves_into_program";
-val subset_preserves_comp = thm "subset_preserves_comp";
-val imp_preserves_comp = thm "imp_preserves_comp";
-val preserves_subset_stable = thm "preserves_subset_stable";
-val preserves_imp_stable = thm "preserves_imp_stable";
-val preserves_imp_increasing = thm "preserves_imp_increasing";
-val preserves_id_subset_stable = thm "preserves_id_subset_stable";
-val preserves_id_imp_stable = thm "preserves_id_imp_stable";
-val component_of_imp_component = thm "component_of_imp_component";
-val component_of_refl = thm "component_of_refl";
-val component_of_SKIP = thm "component_of_SKIP";
-val component_of_trans = thm "component_of_trans";
-val localize_Init_eq = thm "localize_Init_eq";
-val localize_Acts_eq = thm "localize_Acts_eq";
-val localize_AllowedActs_eq = thm "localize_AllowedActs_eq";
-val stable_localTo_stable2 = thm "stable_localTo_stable2";
-val Increasing_preserves_Stable = thm "Increasing_preserves_Stable";
-val Constrains_UN_left = thm "Constrains_UN_left";
-val stable_Join_Stable = thm "stable_Join_Stable";
-*}
 
 end

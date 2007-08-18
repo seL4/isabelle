@@ -357,11 +357,9 @@ ML {* val tac4 =  asm_full_simp_tac (ss addsimps [thm "inv4_def"]) *}
 
 text {* rebind them *}
 
-ML_setup {*
-bind_thm ("inv1", rewrite_rule [thm "Impl.inv1_def"] (thm "inv1" RS thm "invariantE"));
-bind_thm ("inv2", rewrite_rule [thm "Impl.inv2_def"] (thm "inv2" RS thm "invariantE"));
-bind_thm ("inv3", rewrite_rule [thm "Impl.inv3_def"] (thm "inv3" RS thm "invariantE"));
-bind_thm ("inv4", rewrite_rule [thm "Impl.inv4_def"] (thm "inv4" RS thm "invariantE"));
-*}
+lemmas inv1 = inv1 [THEN invariantE, unfolded inv1_def]
+  and inv2 = inv2 [THEN invariantE, unfolded inv2_def]
+  and inv3 = inv3 [THEN invariantE, unfolded inv3_def]
+  and inv4 = inv4 [THEN invariantE, unfolded inv4_def]
 
 end

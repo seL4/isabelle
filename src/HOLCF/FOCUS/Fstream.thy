@@ -150,8 +150,6 @@ by (simp add: fscons_def)
 
 section "slen"
 
-(*bind_thm("slen_empty", slen_empty);*)
-
 lemma slen_fscons: "#(m~> s) = iSuc (#s)"
 by (simp add: fscons_def)
 

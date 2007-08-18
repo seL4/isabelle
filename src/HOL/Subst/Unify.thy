@@ -178,16 +178,18 @@ lemma unifyCombComb [simp]:
                               | Some sigma => Some (theta \<lozenge> sigma)))"
 by (simp add: unify_tc2 unify_simps0 split add: option.split)
 
-text{*The ML version had this, but it can't be used: we get
-*** exception THM raised: transfer: not a super theory
-All we can do is state the desired induction rule in full and prove it.*}
-ML{*
-bind_thm ("unify_induct",
-	  rule_by_tactic
-	     (ALLGOALS (full_simp_tac (simpset() addsimps [thm"unify_tc2"])))
-	     (thm"unify_induct0"));
-*}
-
+lemma unify_induct:
+  "(\<And>m n. P (Const m) (Const n)) \<Longrightarrow>
+  (\<And>m M N. P (Const m) (Comb M N)) \<Longrightarrow>
+  (\<And>m v. P (Const m) (Var v)) \<Longrightarrow>
+  (\<And>v M. P (Var v) M) \<Longrightarrow>
+  (\<And>M N x. P (Comb M N) (Const x)) \<Longrightarrow>
+  (\<And>M N v. P (Comb M N) (Var v)) \<Longrightarrow>
+  (\<And>M1 N1 M2 N2.
+    \<forall>theta. unify (M1, M2) = Some theta \<longrightarrow> P (N1 \<lhd> theta) (N2 \<lhd> theta) \<Longrightarrow>
+    P M1 M2 \<Longrightarrow> P (Comb M1 N1) (Comb M2 N2)) \<Longrightarrow>
+  P u v"
+by (rule unify_induct0) (simp_all add: unify_tc2)
 
 text{*Correctness. Notice that idempotence is not needed to prove that the
 algorithm terminates and is not needed to prove the algorithm correct, if you

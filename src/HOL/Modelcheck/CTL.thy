@@ -17,6 +17,4 @@ constdefs
   EG ::"['a trans,'a pred]=> 'a pred"
   "EG N f == nu (% Q. % u.(f u & CEX N Q u))"
 
-ML {* use_legacy_bindings (the_context ()) *}
-
 end
