@@ -8,8 +8,10 @@ HOL setup for the Metis prover (version 2.0 from 2007).
 signature METIS_TOOLS =
 sig
   val type_lits: bool Config.T
-  val metis_tac : Proof.context -> thm list -> int -> tactic
-  val setup : theory -> theory
+  val metis_tac: Proof.context -> thm list -> int -> tactic
+  val metisF_tac: Proof.context -> thm list -> int -> tactic
+  val metisH_tac: Proof.context -> thm list -> int -> tactic
+  val setup: theory -> theory
 end
 
 structure MetisTools: METIS_TOOLS =
@@ -91,8 +93,8 @@ struct
               metis_lit pol "=" (map hol_term_to_fol_HO tms)
           | _ => metis_lit pol "{}" [hol_term_to_fol_HO tm];
 
-  fun literals_of_hol_thm isFO  t =
-        let val (lits, types_sorts) = ResHolClause.literals_of_term t
+  fun literals_of_hol_thm thy isFO t =
+        let val (lits, types_sorts) = ResHolClause.literals_of_term thy t
         in  (map (hol_literal_to_fol isFO) lits, types_sorts) end;
 
   fun metis_of_typeLit (ResClause.LTVar (s,x))  = metis_lit false s [Metis.Term.Var x]
@@ -101,8 +103,9 @@ struct
   fun metis_of_tfree tf = Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_typeLit tf));
 
   fun hol_thm_to_fol ctxt isFO th =
-    let val (mlits, types_sorts) =
-               (literals_of_hol_thm isFO o HOLogic.dest_Trueprop o prop_of) th
+    let val thy = ProofContext.theory_of ctxt
+        val (mlits, types_sorts) =
+               (literals_of_hol_thm thy isFO o HOLogic.dest_Trueprop o prop_of) th
         val (tvar_lits,tfree_lits) = ResClause.add_typs_aux types_sorts
         val tlits = if Config.get ctxt type_lits then map metis_of_typeLit tvar_lits else []
     in  (Metis.Thm.axiom (Metis.LiteralSet.fromList(tlits@mlits)), tfree_lits)  end;
@@ -521,8 +524,6 @@ fun inst_excluded_middle th thy i_atm =
     let val thy = ProofContext.theory_of ctxt
         val _ = if exists(is_false o prop_of) cls then error "problem contains the empty clause"
                 else ();
-        val _ = ResClause.init thy
-        val _ = ResHolClause.init thy
         val _ = Output.debug (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
         val _ = app (fn th => Output.debug (fn () => string_of_thm th)) cls
         val _ = Output.debug (fn () => "THEOREM CLAUSES")
