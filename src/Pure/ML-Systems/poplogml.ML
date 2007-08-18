@@ -21,6 +21,7 @@ fun ml_prompts p1 p2 = ();
 fun make_pp path pprint = ();
 fun install_pp _ = ();
 
+fun get_print_depth () = 10;
 fun print_depth _ = ();
 
 fun exception_trace f = f ();

@@ -76,6 +76,14 @@ fun make_pp _ pprint (str, blk, brk, en) _ _ obj =
   pprint obj (str, fn ind => blk (ind, false), fn wd => brk (wd, 0),
     fn () => brk (99999, 0), en);
 
+(*print depth*)
+local
+  val depth = ref 10;
+in
+  fun get_print_depth () = ! depth;
+  fun print_depth n = (depth := n; PolyML.print_depth n);
+end;
+
 
 (* ML command execution -- 'eval' *)
 

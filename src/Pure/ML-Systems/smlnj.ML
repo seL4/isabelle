@@ -43,10 +43,15 @@ val _ =
 fun quit () = exit 0;
 
 (*limit the printing depth -- divided by 2 for comparibility with Poly/ML*)
-fun print_depth n =
- (Control.Print.printDepth := (dest_int n) div 2;
-  Control.Print.printLength := dest_int n);
-
+local
+  val depth = ref 10;
+in
+  fun get_print_depth () = ! depth;
+  fun print_depth n =
+   (depth := n;
+    Control.Print.printDepth := dest_int n div 2;
+    Control.Print.printLength := dest_int n);
+end;
 
 (* compiler-independent timing functions *)
 

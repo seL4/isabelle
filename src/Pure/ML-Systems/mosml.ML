@@ -75,9 +75,15 @@ exception Option = Option.Option;
 
 
 (*limit the printing depth*)
-fun print_depth n =
- (Meta.printDepth := n div 2;
-  Meta.printLength := n);
+local
+  val depth = ref 10;
+in
+  fun get_print_depth () = ! depth;
+  fun print_depth n =
+   (depth := n;
+    Meta.printDepth := n div 2;
+    Meta.printLength := n);
+end;
 
 (*interface for toplevel pretty printers, see also Pure/pure_setup.ML*)
 (*the documentation refers to an installPP but I couldn't fine it!*)

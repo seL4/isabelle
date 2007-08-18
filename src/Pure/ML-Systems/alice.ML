@@ -42,6 +42,7 @@ val implode = String.concat;
 
 fun quit () = exit 0;
 
+fun get_print_depth () = ! Print.depth;
 fun print_depth n = Print.depth := n;
 
 
