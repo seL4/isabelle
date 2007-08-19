@@ -139,26 +139,26 @@ definition
   "up_cont f = (\<forall>F. up_chain F --> f (\<Union>(range F)) = \<Union>(f ` range F))"
 
 lemma up_contI:
-    "(!!F. up_chain F ==> f (\<Union>(range F)) = \<Union>(f ` range F)) ==> up_cont f"
-  apply (unfold up_cont_def)
-  apply blast
-  done
+  "(!!F. up_chain F ==> f (\<Union>(range F)) = \<Union>(f ` range F)) ==> up_cont f"
+apply (unfold up_cont_def)
+apply blast
+done
 
 lemma up_contD:
-    "up_cont f ==> up_chain F ==> f (\<Union>(range F)) = \<Union>(f ` range F)"
-  apply (unfold up_cont_def)
-  apply auto
-  done
+  "up_cont f ==> up_chain F ==> f (\<Union>(range F)) = \<Union>(f ` range F)"
+apply (unfold up_cont_def)
+apply auto
+done
 
 
 lemma up_cont_mono: "up_cont f ==> mono f"
-  apply (rule monoI)
-  apply (drule_tac F = "\<lambda>i. if i = 0 then A else B" in up_contD)
-   apply (rule up_chainI)
-   apply  simp+
-  apply (drule Un_absorb1)
-  apply (auto simp add: nat_not_singleton)
-  done
+apply (rule monoI)
+apply (drule_tac F = "\<lambda>i. if i = 0 then A else B" in up_contD)
+ apply (rule up_chainI)
+ apply simp
+apply (drule Un_absorb1)
+apply (auto simp add: nat_not_singleton)
+done
 
 
 definition
@@ -180,13 +180,13 @@ lemma down_contD: "down_cont f ==> down_chain F ==>
   done
 
 lemma down_cont_mono: "down_cont f ==> mono f"
-  apply (rule monoI)
-  apply (drule_tac F = "\<lambda>i. if i = 0 then B else A" in down_contD)
-   apply (rule down_chainI)
-   apply simp+
-  apply (drule Int_absorb1)
-  apply (auto simp add: nat_not_singleton)
-  done
+apply (rule monoI)
+apply (drule_tac F = "\<lambda>i. if i = 0 then B else A" in down_contD)
+ apply (rule down_chainI)
+ apply simp
+apply (drule Int_absorb1)
+apply (auto simp add: nat_not_singleton)
+done
 
 
 subsection "Iteration"

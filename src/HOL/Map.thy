@@ -90,13 +90,13 @@ defs
 subsection {* @{term [source] empty} *}
 
 lemma empty_upd_none [simp]: "empty(x := None) = empty"
-  by (rule ext) simp
+by (rule ext) simp
 
 
 subsection {* @{term [source] map_upd} *}
 
 lemma map_upd_triv: "t k = Some x ==> t(k|->x) = t"
-  by (rule ext) simp
+by (rule ext) simp
 
 lemma map_upd_nonempty [simp]: "t(k|->x) ~= empty"
 proof
@@ -114,344 +114,338 @@ proof -
 qed
 
 lemma map_upd_Some_unfold:
-    "((m(a|->b)) x = Some y) = (x = a \<and> b = y \<or> x \<noteq> a \<and> m x = Some y)"
-  by auto
+  "((m(a|->b)) x = Some y) = (x = a \<and> b = y \<or> x \<noteq> a \<and> m x = Some y)"
+by auto
 
 lemma image_map_upd [simp]: "x \<notin> A \<Longrightarrow> m(x \<mapsto> y) ` A = m ` A"
-  by auto
+by auto
 
 lemma finite_range_updI: "finite (range f) ==> finite (range (f(a|->b)))"
-  unfolding image_def
-  apply (simp (no_asm_use) add: full_SetCompr_eq)
-  apply (rule finite_subset)
-   prefer 2 apply assumption
-  apply auto
-  done
+unfolding image_def
+apply (simp (no_asm_use) add:full_SetCompr_eq)
+apply (rule finite_subset)
+ prefer 2 apply assumption
+apply (auto)
+done
 
 
 subsection {* @{term [source] map_of} *}
 
 lemma map_of_eq_None_iff:
-    "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
-  by (induct xys) simp_all
+  "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
+by (induct xys) simp_all
 
-lemma map_of_is_SomeD:
-    "map_of xys x = Some y \<Longrightarrow> (x,y) \<in> set xys"
-  apply (induct xys)
-   apply simp
-  apply (clarsimp split: if_splits)
-  done
+lemma map_of_is_SomeD: "map_of xys x = Some y \<Longrightarrow> (x,y) \<in> set xys"
+apply (induct xys)
+ apply simp
+apply (clarsimp split: if_splits)
+done
 
 lemma map_of_eq_Some_iff [simp]:
-    "distinct(map fst xys) \<Longrightarrow> (map_of xys x = Some y) = ((x,y) \<in> set xys)"
-  apply (induct xys)
-   apply simp
-  apply (auto simp: map_of_eq_None_iff [symmetric])
-  done
+  "distinct(map fst xys) \<Longrightarrow> (map_of xys x = Some y) = ((x,y) \<in> set xys)"
+apply (induct xys)
+ apply simp
+apply (auto simp: map_of_eq_None_iff [symmetric])
+done
 
 lemma Some_eq_map_of_iff [simp]:
-    "distinct(map fst xys) \<Longrightarrow> (Some y = map_of xys x) = ((x,y) \<in> set xys)"
-  by (auto simp del:map_of_eq_Some_iff simp add: map_of_eq_Some_iff [symmetric])
+  "distinct(map fst xys) \<Longrightarrow> (Some y = map_of xys x) = ((x,y) \<in> set xys)"
+by (auto simp del:map_of_eq_Some_iff simp add: map_of_eq_Some_iff [symmetric])
 
 lemma map_of_is_SomeI [simp]: "\<lbrakk> distinct(map fst xys); (x,y) \<in> set xys \<rbrakk>
     \<Longrightarrow> map_of xys x = Some y"
-  apply (induct xys)
-   apply simp
-  apply force
-  done
+apply (induct xys)
+ apply simp
+apply force
+done
 
 lemma map_of_zip_is_None [simp]:
-    "length xs = length ys \<Longrightarrow> (map_of (zip xs ys) x = None) = (x \<notin> set xs)"
-  by (induct rule: list_induct2) simp_all
+  "length xs = length ys \<Longrightarrow> (map_of (zip xs ys) x = None) = (x \<notin> set xs)"
+by (induct rule: list_induct2) simp_all
 
 lemma finite_range_map_of: "finite (range (map_of xys))"
-  apply (induct xys)
-   apply (simp_all add: image_constant)
-  apply (rule finite_subset)
-   prefer 2 apply assumption
-  apply auto
-  done
+apply (induct xys)
+ apply (simp_all add: image_constant)
+apply (rule finite_subset)
+ prefer 2 apply assumption
+apply auto
+done
 
 lemma map_of_SomeD: "map_of xs k = Some y \<Longrightarrow> (k, y) \<in> set xs"
-  by (induct xs) (simp, atomize (full), auto)
+by (induct xs) (simp, atomize (full), auto)
 
 lemma map_of_mapk_SomeI:
-  assumes "inj f"
-  shows "map_of t k = Some x ==>
-    map_of (map (split (%k. Pair (f k))) t) (f k) = Some x"
-  by (induct t) (auto simp add: `inj f` inj_eq)
+  "inj f ==> map_of t k = Some x ==>
+   map_of (map (split (%k. Pair (f k))) t) (f k) = Some x"
+by (induct t) (auto simp add: inj_eq)
 
 lemma weak_map_of_SomeI: "(k, x) : set l ==> \<exists>x. map_of l k = Some x"
-  by (induct l) auto
+by (induct l) auto
 
 lemma map_of_filter_in:
-  assumes 1: "map_of xs k = Some z"
-    and 2: "P k z"
-  shows "map_of (filter (split P) xs) k = Some z"
-  using 1 by (induct xs) (insert 2, auto)
+  "map_of xs k = Some z \<Longrightarrow> P k z \<Longrightarrow> map_of (filter (split P) xs) k = Some z"
+by (induct xs) auto
 
 lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = option_map f (map_of xs x)"
-  by (induct xs) auto
+by (induct xs) auto
 
 
 subsection {* @{term [source] option_map} related *}
 
 lemma option_map_o_empty [simp]: "option_map f o empty = empty"
-  by (rule ext) simp
+by (rule ext) simp
 
 lemma option_map_o_map_upd [simp]:
-    "option_map f o m(a|->b) = (option_map f o m)(a|->f b)"
-  by (rule ext) simp
+  "option_map f o m(a|->b) = (option_map f o m)(a|->f b)"
+by (rule ext) simp
 
 
 subsection {* @{term [source] map_comp} related *}
 
 lemma map_comp_empty [simp]:
-    "m \<circ>\<^sub>m empty = empty"
-    "empty \<circ>\<^sub>m m = empty"
-  by (auto simp add: map_comp_def intro: ext split: option.splits)
+  "m \<circ>\<^sub>m empty = empty"
+  "empty \<circ>\<^sub>m m = empty"
+by (auto simp add: map_comp_def intro: ext split: option.splits)
 
 lemma map_comp_simps [simp]:
-    "m2 k = None \<Longrightarrow> (m1 \<circ>\<^sub>m m2) k = None"
-    "m2 k = Some k' \<Longrightarrow> (m1 \<circ>\<^sub>m m2) k = m1 k'"
-  by (auto simp add: map_comp_def)
+  "m2 k = None \<Longrightarrow> (m1 \<circ>\<^sub>m m2) k = None"
+  "m2 k = Some k' \<Longrightarrow> (m1 \<circ>\<^sub>m m2) k = m1 k'"
+by (auto simp add: map_comp_def)
 
 lemma map_comp_Some_iff:
-    "((m1 \<circ>\<^sub>m m2) k = Some v) = (\<exists>k'. m2 k = Some k' \<and> m1 k' = Some v)"
-  by (auto simp add: map_comp_def split: option.splits)
+  "((m1 \<circ>\<^sub>m m2) k = Some v) = (\<exists>k'. m2 k = Some k' \<and> m1 k' = Some v)"
+by (auto simp add: map_comp_def split: option.splits)
 
 lemma map_comp_None_iff:
-    "((m1 \<circ>\<^sub>m m2) k = None) = (m2 k = None \<or> (\<exists>k'. m2 k = Some k' \<and> m1 k' = None)) "
-  by (auto simp add: map_comp_def split: option.splits)
+  "((m1 \<circ>\<^sub>m m2) k = None) = (m2 k = None \<or> (\<exists>k'. m2 k = Some k' \<and> m1 k' = None)) "
+by (auto simp add: map_comp_def split: option.splits)
 
 
 subsection {* @{text "++"} *}
 
 lemma map_add_empty[simp]: "m ++ empty = m"
-  unfolding map_add_def by simp
+by(simp add: map_add_def)
 
 lemma empty_map_add[simp]: "empty ++ m = m"
-  unfolding map_add_def by (rule ext) (simp split: option.split)
+by (rule ext) (simp add: map_add_def split: option.split)
 
 lemma map_add_assoc[simp]: "m1 ++ (m2 ++ m3) = (m1 ++ m2) ++ m3"
-  unfolding map_add_def by (rule ext) (simp add: map_add_def split: option.split)
+by (rule ext) (simp add: map_add_def split: option.split)
 
 lemma map_add_Some_iff:
-    "((m ++ n) k = Some x) = (n k = Some x | n k = None & m k = Some x)"
-  unfolding map_add_def by (simp split: option.split)
+  "((m ++ n) k = Some x) = (n k = Some x | n k = None & m k = Some x)"
+by (simp add: map_add_def split: option.split)
 
 lemma map_add_SomeD [dest!]:
-    "(m ++ n) k = Some x \<Longrightarrow> n k = Some x \<or> n k = None \<and> m k = Some x"
-  by (rule map_add_Some_iff [THEN iffD1])
+  "(m ++ n) k = Some x \<Longrightarrow> n k = Some x \<or> n k = None \<and> m k = Some x"
+by (rule map_add_Some_iff [THEN iffD1])
 
 lemma map_add_find_right [simp]: "!!xx. n k = Some xx ==> (m ++ n) k = Some xx"
-  by (subst map_add_Some_iff) fast
+by (subst map_add_Some_iff) fast
 
 lemma map_add_None [iff]: "((m ++ n) k = None) = (n k = None & m k = None)"
-  unfolding map_add_def by (simp split: option.split)
+by (simp add: map_add_def split: option.split)
 
 lemma map_add_upd[simp]: "f ++ g(x|->y) = (f ++ g)(x|->y)"
-  unfolding map_add_def by (rule ext) simp
+by (rule ext) (simp add: map_add_def)
 
 lemma map_add_upds[simp]: "m1 ++ (m2(xs[\<mapsto>]ys)) = (m1++m2)(xs[\<mapsto>]ys)"
-  by (simp add: map_upds_def)
+by (simp add: map_upds_def)
 
 lemma map_of_append[simp]: "map_of (xs @ ys) = map_of ys ++ map_of xs"
-  unfolding map_add_def
-  apply (induct xs)
-   apply simp
-  apply (rule ext)
-  apply (simp split add: option.split)
-  done
+unfolding map_add_def
+apply (induct xs)
+ apply simp
+apply (rule ext)
+apply (simp split add: option.split)
+done
 
 lemma finite_range_map_of_map_add:
   "finite (range f) ==> finite (range (f ++ map_of l))"
-  apply (induct l)
-   apply (auto simp del: fun_upd_apply)
-  apply (erule finite_range_updI)
-  done
+apply (induct l)
+ apply (auto simp del: fun_upd_apply)
+apply (erule finite_range_updI)
+done
 
 lemma inj_on_map_add_dom [iff]:
-    "inj_on (m ++ m') (dom m') = inj_on m' (dom m')"
-  unfolding map_add_def dom_def inj_on_def
-  by (fastsimp split: option.splits)
+  "inj_on (m ++ m') (dom m') = inj_on m' (dom m')"
+by (fastsimp simp: map_add_def dom_def inj_on_def split: option.splits)
 
 
 subsection {* @{term [source] restrict_map} *}
 
 lemma restrict_map_to_empty [simp]: "m|`{} = empty"
-  by (simp add: restrict_map_def)
+by (simp add: restrict_map_def)
 
 lemma restrict_map_empty [simp]: "empty|`D = empty"
-  by (simp add: restrict_map_def)
+by (simp add: restrict_map_def)
 
 lemma restrict_in [simp]: "x \<in> A \<Longrightarrow> (m|`A) x = m x"
-  by (simp add: restrict_map_def)
+by (simp add: restrict_map_def)
 
 lemma restrict_out [simp]: "x \<notin> A \<Longrightarrow> (m|`A) x = None"
-  by (simp add: restrict_map_def)
+by (simp add: restrict_map_def)
 
 lemma ran_restrictD: "y \<in> ran (m|`A) \<Longrightarrow> \<exists>x\<in>A. m x = Some y"
-  by (auto simp: restrict_map_def ran_def split: split_if_asm)
+by (auto simp: restrict_map_def ran_def split: split_if_asm)
 
 lemma dom_restrict [simp]: "dom (m|`A) = dom m \<inter> A"
-  by (auto simp: restrict_map_def dom_def split: split_if_asm)
+by (auto simp: restrict_map_def dom_def split: split_if_asm)
 
 lemma restrict_upd_same [simp]: "m(x\<mapsto>y)|`(-{x}) = m|`(-{x})"
-  by (rule ext) (auto simp: restrict_map_def)
+by (rule ext) (auto simp: restrict_map_def)
 
 lemma restrict_restrict [simp]: "m|`A|`B = m|`(A\<inter>B)"
-  by (rule ext) (auto simp: restrict_map_def)
+by (rule ext) (auto simp: restrict_map_def)
 
 lemma restrict_fun_upd [simp]:
-    "m(x := y)|`D = (if x \<in> D then (m|`(D-{x}))(x := y) else m|`D)"
-  by (simp add: restrict_map_def expand_fun_eq)
+  "m(x := y)|`D = (if x \<in> D then (m|`(D-{x}))(x := y) else m|`D)"
+by (simp add: restrict_map_def expand_fun_eq)
 
 lemma fun_upd_None_restrict [simp]:
-    "(m|`D)(x := None) = (if x:D then m|`(D - {x}) else m|`D)"
-  by (simp add: restrict_map_def expand_fun_eq)
+  "(m|`D)(x := None) = (if x:D then m|`(D - {x}) else m|`D)"
+by (simp add: restrict_map_def expand_fun_eq)
 
 lemma fun_upd_restrict: "(m|`D)(x := y) = (m|`(D-{x}))(x := y)"
-  by (simp add: restrict_map_def expand_fun_eq)
+by (simp add: restrict_map_def expand_fun_eq)
 
 lemma fun_upd_restrict_conv [simp]:
-    "x \<in> D \<Longrightarrow> (m|`D)(x := y) = (m|`(D-{x}))(x := y)"
-  by (simp add: restrict_map_def expand_fun_eq)
+  "x \<in> D \<Longrightarrow> (m|`D)(x := y) = (m|`(D-{x}))(x := y)"
+by (simp add: restrict_map_def expand_fun_eq)
 
 
 subsection {* @{term [source] map_upds} *}
 
 lemma map_upds_Nil1 [simp]: "m([] [|->] bs) = m"
-  by (simp add: map_upds_def)
+by (simp add: map_upds_def)
 
 lemma map_upds_Nil2 [simp]: "m(as [|->] []) = m"
-  by (simp add:map_upds_def)
+by (simp add:map_upds_def)
 
 lemma map_upds_Cons [simp]: "m(a#as [|->] b#bs) = (m(a|->b))(as[|->]bs)"
-  by (simp add:map_upds_def)
+by (simp add:map_upds_def)
 
 lemma map_upds_append1 [simp]: "\<And>ys m. size xs < size ys \<Longrightarrow>
-    m(xs@[x] [\<mapsto>] ys) = m(xs [\<mapsto>] ys)(x \<mapsto> ys!size xs)"
-  apply(induct xs)
-   apply (clarsimp simp add: neq_Nil_conv)
-  apply (case_tac ys)
-   apply simp
-  apply simp
-  done
+  m(xs@[x] [\<mapsto>] ys) = m(xs [\<mapsto>] ys)(x \<mapsto> ys!size xs)"
+apply(induct xs)
+ apply (clarsimp simp add: neq_Nil_conv)
+apply (case_tac ys)
+ apply simp
+apply simp
+done
 
 lemma map_upds_list_update2_drop [simp]:
   "\<lbrakk>size xs \<le> i; i < size ys\<rbrakk>
     \<Longrightarrow> m(xs[\<mapsto>]ys[i:=y]) = m(xs[\<mapsto>]ys)"
-  apply (induct xs arbitrary: m ys i)
-   apply simp
-  apply (case_tac ys)
-   apply simp
-  apply (simp split: nat.split)
-  done
+apply (induct xs arbitrary: m ys i)
+ apply simp
+apply (case_tac ys)
+ apply simp
+apply (simp split: nat.split)
+done
 
 lemma map_upd_upds_conv_if:
   "(f(x|->y))(xs [|->] ys) =
    (if x : set(take (length ys) xs) then f(xs [|->] ys)
                                     else (f(xs [|->] ys))(x|->y))"
-  apply (induct xs arbitrary: x y ys f)
-   apply simp
-  apply (case_tac ys)
-   apply (auto split: split_if simp: fun_upd_twist)
-  done
+apply (induct xs arbitrary: x y ys f)
+ apply simp
+apply (case_tac ys)
+ apply (auto split: split_if simp: fun_upd_twist)
+done
 
 lemma map_upds_twist [simp]:
-    "a ~: set as ==> m(a|->b)(as[|->]bs) = m(as[|->]bs)(a|->b)"
-  using set_take_subset by (fastsimp simp add: map_upd_upds_conv_if)
+  "a ~: set as ==> m(a|->b)(as[|->]bs) = m(as[|->]bs)(a|->b)"
+using set_take_subset by (fastsimp simp add: map_upd_upds_conv_if)
 
 lemma map_upds_apply_nontin [simp]:
-    "x ~: set xs ==> (f(xs[|->]ys)) x = f x"
-  apply (induct xs arbitrary: ys)
-   apply simp
-  apply (case_tac ys)
-   apply (auto simp: map_upd_upds_conv_if)
-  done
+  "x ~: set xs ==> (f(xs[|->]ys)) x = f x"
+apply (induct xs arbitrary: ys)
+ apply simp
+apply (case_tac ys)
+ apply (auto simp: map_upd_upds_conv_if)
+done
 
 lemma fun_upds_append_drop [simp]:
-    "size xs = size ys \<Longrightarrow> m(xs@zs[\<mapsto>]ys) = m(xs[\<mapsto>]ys)"
-  apply (induct xs arbitrary: m ys)
-   apply simp
-  apply (case_tac ys)
-   apply simp_all
-  done
+  "size xs = size ys \<Longrightarrow> m(xs@zs[\<mapsto>]ys) = m(xs[\<mapsto>]ys)"
+apply (induct xs arbitrary: m ys)
+ apply simp
+apply (case_tac ys)
+ apply simp_all
+done
 
 lemma fun_upds_append2_drop [simp]:
-    "size xs = size ys \<Longrightarrow> m(xs[\<mapsto>]ys@zs) = m(xs[\<mapsto>]ys)"
-  apply (induct xs arbitrary: m ys)
-   apply simp
-  apply (case_tac ys)
-   apply simp_all
-  done
+  "size xs = size ys \<Longrightarrow> m(xs[\<mapsto>]ys@zs) = m(xs[\<mapsto>]ys)"
+apply (induct xs arbitrary: m ys)
+ apply simp
+apply (case_tac ys)
+ apply simp_all
+done
 
 
 lemma restrict_map_upds[simp]:
   "\<lbrakk> length xs = length ys; set xs \<subseteq> D \<rbrakk>
     \<Longrightarrow> m(xs [\<mapsto>] ys)|`D = (m|`(D - set xs))(xs [\<mapsto>] ys)"
-  apply (induct xs arbitrary: m ys)
-   apply simp
-  apply (case_tac ys)
-   apply simp
-  apply (simp add: Diff_insert [symmetric] insert_absorb)
-  apply (simp add: map_upd_upds_conv_if)
-  done
+apply (induct xs arbitrary: m ys)
+ apply simp
+apply (case_tac ys)
+ apply simp
+apply (simp add: Diff_insert [symmetric] insert_absorb)
+apply (simp add: map_upd_upds_conv_if)
+done
 
 
 subsection {* @{term [source] dom} *}
 
 lemma domI: "m a = Some b ==> a : dom m"
-  unfolding dom_def by simp
+by(simp add:dom_def)
 (* declare domI [intro]? *)
 
 lemma domD: "a : dom m ==> \<exists>b. m a = Some b"
-  by (cases "m a") (auto simp add: dom_def)
+by (cases "m a") (auto simp add: dom_def)
 
 lemma domIff [iff, simp del]: "(a : dom m) = (m a ~= None)"
-  unfolding dom_def by simp
+by(simp add:dom_def)
 
 lemma dom_empty [simp]: "dom empty = {}"
-  unfolding dom_def by simp
+by(simp add:dom_def)
 
 lemma dom_fun_upd [simp]:
-    "dom(f(x := y)) = (if y=None then dom f - {x} else insert x (dom f))"
-  unfolding dom_def by auto
+  "dom(f(x := y)) = (if y=None then dom f - {x} else insert x (dom f))"
+by(auto simp add:dom_def)
 
 lemma dom_map_of: "dom(map_of xys) = {x. \<exists>y. (x,y) : set xys}"
-  by (induct xys) (auto simp del: fun_upd_apply)
+by (induct xys) (auto simp del: fun_upd_apply)
 
 lemma dom_map_of_conv_image_fst:
-    "dom(map_of xys) = fst ` (set xys)"
-  unfolding dom_map_of by force
+  "dom(map_of xys) = fst ` (set xys)"
+by(force simp: dom_map_of)
 
 lemma dom_map_of_zip [simp]: "[| length xs = length ys; distinct xs |] ==>
-    dom(map_of(zip xs ys)) = set xs"
-  by (induct rule: list_induct2) simp_all
+  dom(map_of(zip xs ys)) = set xs"
+by (induct rule: list_induct2) simp_all
 
 lemma finite_dom_map_of: "finite (dom (map_of l))"
-  unfolding dom_def
-  by (induct l) (auto simp add: insert_Collect [symmetric])
+by (induct l) (auto simp add: dom_def insert_Collect [symmetric])
 
 lemma dom_map_upds [simp]:
-    "dom(m(xs[|->]ys)) = set(take (length ys) xs) Un dom m"
-  apply (induct xs arbitrary: m ys)
-   apply simp
-  apply (case_tac ys)
-   apply auto
-  done
+  "dom(m(xs[|->]ys)) = set(take (length ys) xs) Un dom m"
+apply (induct xs arbitrary: m ys)
+ apply simp
+apply (case_tac ys)
+ apply auto
+done
 
 lemma dom_map_add [simp]: "dom(m++n) = dom n Un dom m"
-  unfolding dom_def by auto
+by(auto simp:dom_def)
 
 lemma dom_override_on [simp]:
   "dom(override_on f g A) =
     (dom f  - {a. a : A - dom g}) Un {a. a : A Int dom g}"
-  unfolding dom_def override_on_def by auto
+by(auto simp: dom_def override_on_def)
 
 lemma map_add_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
-  by (rule ext) (force simp: map_add_def dom_def split: option.split)
+by (rule ext) (force simp: map_add_def dom_def split: option.split)
 
 (* Due to John Matthews - could be rephrased with dom *)
 lemma finite_map_freshness:
@@ -462,68 +456,68 @@ by(bestsimp dest:ex_new_if_finite)
 subsection {* @{term [source] ran} *}
 
 lemma ranI: "m a = Some b ==> b : ran m"
-  unfolding ran_def by auto
+by(auto simp: ran_def)
 (* declare ranI [intro]? *)
 
 lemma ran_empty [simp]: "ran empty = {}"
-  unfolding ran_def by simp
+by(auto simp: ran_def)
 
 lemma ran_map_upd [simp]: "m a = None ==> ran(m(a|->b)) = insert b (ran m)"
-  unfolding ran_def
-  apply auto
-  apply (subgoal_tac "aa ~= a")
-   apply auto
-  done
+unfolding ran_def
+apply auto
+apply (subgoal_tac "aa ~= a")
+ apply auto
+done
 
 
 subsection {* @{text "map_le"} *}
 
 lemma map_le_empty [simp]: "empty \<subseteq>\<^sub>m g"
-  by (simp add: map_le_def)
+by (simp add: map_le_def)
 
 lemma upd_None_map_le [simp]: "f(x := None) \<subseteq>\<^sub>m f"
-  by (force simp add: map_le_def)
+by (force simp add: map_le_def)
 
 lemma map_le_upd[simp]: "f \<subseteq>\<^sub>m g ==> f(a := b) \<subseteq>\<^sub>m g(a := b)"
-  by (fastsimp simp add: map_le_def)
+by (fastsimp simp add: map_le_def)
 
 lemma map_le_imp_upd_le [simp]: "m1 \<subseteq>\<^sub>m m2 \<Longrightarrow> m1(x := None) \<subseteq>\<^sub>m m2(x \<mapsto> y)"
-  by (force simp add: map_le_def)
+by (force simp add: map_le_def)
 
 lemma map_le_upds [simp]:
-    "f \<subseteq>\<^sub>m g ==> f(as [|->] bs) \<subseteq>\<^sub>m g(as [|->] bs)"
-  apply (induct as arbitrary: f g bs)
-   apply simp
-  apply (case_tac bs)
-   apply auto
-  done
+  "f \<subseteq>\<^sub>m g ==> f(as [|->] bs) \<subseteq>\<^sub>m g(as [|->] bs)"
+apply (induct as arbitrary: f g bs)
+ apply simp
+apply (case_tac bs)
+ apply auto
+done
 
 lemma map_le_implies_dom_le: "(f \<subseteq>\<^sub>m g) \<Longrightarrow> (dom f \<subseteq> dom g)"
-  by (fastsimp simp add: map_le_def dom_def)
+by (fastsimp simp add: map_le_def dom_def)
 
 lemma map_le_refl [simp]: "f \<subseteq>\<^sub>m f"
-  by (simp add: map_le_def)
+by (simp add: map_le_def)
 
 lemma map_le_trans[trans]: "\<lbrakk> m1 \<subseteq>\<^sub>m m2; m2 \<subseteq>\<^sub>m m3\<rbrakk> \<Longrightarrow> m1 \<subseteq>\<^sub>m m3"
-  by (auto simp add: map_le_def dom_def)
+by (auto simp add: map_le_def dom_def)
 
 lemma map_le_antisym: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m f \<rbrakk> \<Longrightarrow> f = g"
-  unfolding map_le_def
-  apply (rule ext)
-  apply (case_tac "x \<in> dom f", simp)
-  apply (case_tac "x \<in> dom g", simp, fastsimp)
-  done
+unfolding map_le_def
+apply (rule ext)
+apply (case_tac "x \<in> dom f", simp)
+apply (case_tac "x \<in> dom g", simp, fastsimp)
+done
 
 lemma map_le_map_add [simp]: "f \<subseteq>\<^sub>m (g ++ f)"
-  by (fastsimp simp add: map_le_def)
+by (fastsimp simp add: map_le_def)
 
 lemma map_le_iff_map_add_commute: "(f \<subseteq>\<^sub>m f ++ g) = (f++g = g++f)"
-  by (fastsimp simp add: map_add_def map_le_def expand_fun_eq split: option.splits)
+by(fastsimp simp: map_add_def map_le_def expand_fun_eq split: option.splits)
 
 lemma map_add_le_mapE: "f++g \<subseteq>\<^sub>m h \<Longrightarrow> g \<subseteq>\<^sub>m h"
-  by (fastsimp simp add: map_le_def map_add_def dom_def)
+by (fastsimp simp add: map_le_def map_add_def dom_def)
 
 lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h; f \<subseteq>\<^sub>m f++g \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
-  by (clarsimp simp add: map_le_def map_add_def dom_def split: option.splits)
+by (clarsimp simp add: map_le_def map_add_def dom_def split: option.splits)
 
 end
