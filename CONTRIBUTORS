@@ -7,6 +7,9 @@ distribution.
 Contributions to Isabelle 2007
 ------------------------------
 
+* August 2007: Brian Huffman, PSU
+  HOL/Library/Boolean_Algebra and HOL/Library/Numeral_Type
+
 * June 2007: Amine Chaieb, TUM
   Semiring normalization and Groebner Bases
 

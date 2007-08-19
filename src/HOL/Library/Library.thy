@@ -6,6 +6,7 @@ imports
   AssocList
   BigO
   Binomial
+  Boolean_Algebra
   Char_ord
   Coinductive_List
   Commutative_Ring
@@ -24,6 +25,7 @@ imports
   NatPair
   Nat_Infinity
   Nested_Environment
+  Numeral_Type
   OptionalSugar
   Parity
   Permutation
