@@ -11,11 +11,6 @@ theory MIR
 
 declare real_of_int_floor_cancel [simp del]
 
-  (* All pairs from two lists *)
-
-lemma allpairs_set: "set (allpairs Pair xs ys) = {(x,y). x\<in> set xs \<and> y \<in> set ys}"
-by (induct xs) auto
-
 fun alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list" where 
   "alluopairs [] = []"
 | "alluopairs (x#xs) = (map (Pair x) (x#xs))@(alluopairs xs)"
@@ -3536,7 +3531,7 @@ consts rsplit0 :: "num \<Rightarrow> (fm \<times> int \<times> num) list"
 recdef rsplit0 "measure num_size"
   "rsplit0 (Bound 0) = [(T,1,C 0)]"
   "rsplit0 (Add a b) = (let acs = rsplit0 a ; bcs = rsplit0 b 
-              in map (\<lambda> ((p,n,t),(q,m,s)). (And p q, n+m, Add t s)) (allpairs Pair acs bcs))"
+              in map (\<lambda> ((p,n,t),(q,m,s)). (And p q, n+m, Add t s)) [(a,b). a\<leftarrow>acs,b\<leftarrow>bcs])"
   "rsplit0 (Sub a b) = rsplit0 (Add a (Neg b))"
   "rsplit0 (Neg a) = map (\<lambda> (p,n,s). (p,-n,Neg s)) (rsplit0 a)"
   "rsplit0 (Floor a) = foldl (op @) [] (map 
@@ -3692,8 +3687,8 @@ proof(induct t rule: rsplit0.induct)
       ultimately show ?ths by auto
     qed
 next
-  case (3 a b) thus ?case by auto 
-qed (auto simp add: Let_def allpairs_set split_def ring_simps conj_rl)
+  case (3 a b) thus ?case by auto
+qed (auto simp add: Let_def split_def ring_simps conj_rl)
 
 lemma real_in_int_intervals: 
   assumes xb: "real m \<le> x \<and> x < real ((n::int) + 1)"
@@ -3710,8 +3705,8 @@ proof(induct t rule: rsplit0.induct)
   then obtain "pa" "na" "sa" where pa: "(pa,na,sa)\<in> ?SS a \<and> ?I pa" by blast
   from prems have "\<exists> (pb,nb,sb) \<in> ?SS b. ?I pb" by auto
   then obtain "pb" "nb" "sb" where pb: "(pb,nb,sb)\<in> ?SS b \<and> ?I pb" by blast
-  from pa pb have th: "((pa,na,sa),(pb,nb,sb)) \<in> set (allpairs Pair (rsplit0 a) (rsplit0 b))"
-    by (auto simp add: allpairs_set)
+  from pa pb have th: "((pa,na,sa),(pb,nb,sb)) \<in> set[(x,y). x\<leftarrow>rsplit0 a, y\<leftarrow>rsplit0 b]"
+    by (auto)
   let ?f="(\<lambda> ((p,n,t),(q,m,s)). (And p q, n+m, Add t s))"
   from imageI[OF th, where f="?f"] have "?f ((pa,na,sa),(pb,nb,sb)) \<in> ?SS (Add a b)"
     by (simp add: Let_def)
@@ -5415,7 +5410,7 @@ constdefs cooper :: "fm \<Rightarrow> fm"
    in if md = T then T else
     (let qd = evaldjf (\<lambda> t. simpfm (subst0 t q)) 
                                (remdups (map (\<lambda> (b,j). simpnum (Add b (C j))) 
-                                            (allpairs Pair B js)))
+                                            [(b,j). b\<leftarrow>B,j\<leftarrow>js]))
      in decr (disj md qd)))"
 lemma cooper: assumes qf: "qfree p"
   shows "((\<exists> (x::int). Ifm (real x#bs) p) = (Ifm bs (cooper p))) \<and> qfree (cooper p)" 
@@ -5431,8 +5426,8 @@ proof-
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
   let ?N = "\<lambda> t. Inum (real (i::int)#bs) t"
-  let ?bjs = "allpairs Pair ?B ?js"
-  let ?sbjs = "map (\<lambda> (b,j). simpnum (Add b (C j))) (allpairs Pair ?B ?js)"
+  let ?bjs = "[(b,j). b\<leftarrow>?B,j\<leftarrow>?js]"
+  let ?sbjs = "map (\<lambda> (b,j). simpnum (Add b (C j))) ?bjs"
   let ?qd = "evaldjf (\<lambda> t. simpfm (subst0 t ?q)) (remdups ?sbjs)"
   have qbf:"unit p = (?q,?B,?d)" by simp
   from unit[OF qf qbf] have pq_ex: "(\<exists>(x::int). ?I x p) = (\<exists> (x::int). ?I x ?q)" and 
@@ -5448,10 +5443,10 @@ proof-
   hence th: "\<forall> j\<in> set ?js. bound0 (simpfm (subst0 (C j) ?smq))"
     by (auto simp add: simpfm_bound0)
   from evaldjf_bound0[OF th] have mdb: "bound0 ?md" by simp 
-  from Bn jsnb have "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). numbound0 (Add b (C j))"
-    by (simp add: allpairs_set)
-  hence "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). numbound0 (simpnum (Add b (C j)))"
-    using simpnum_numbound0 by blast 
+  from Bn jsnb have "\<forall> (b,j) \<in> set ?bjs. numbound0 (Add b (C j))"
+    by simp
+  hence "\<forall> (b,j) \<in> set ?bjs. numbound0 (simpnum (Add b (C j)))"
+    using simpnum_numbound0 by blast
   hence "\<forall> t \<in> set ?sbjs. numbound0 t" by simp
   hence "\<forall> t \<in> set (remdups ?sbjs). bound0 (subst0 t ?q)"
     using subst0_bound0[OF qfq] by auto 
@@ -5463,8 +5458,8 @@ proof-
   from trans [OF pq_ex cp_thm'[OF lq uq dd dp]] B
   have "?lhs = (\<exists> j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists> b\<in> ?N ` set ?B. Ifm ((b+ real j)#bs) ?q))" by auto
   also have "\<dots> = ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> (b,j) \<in> (?N ` set ?B \<times> set ?js). Ifm ((b+ real j)#bs) ?q))" apply (simp only: iupt_set simpfm) by auto
-  also have "\<dots>= ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> t \<in> (\<lambda> (b,j). ?N (Add b (C j))) ` set (allpairs Pair ?B ?js). Ifm (t #bs) ?q))" by (simp only: allpairs_set) simp
-  also have "\<dots>= ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> t \<in> (\<lambda> (b,j). ?N (simpnum (Add b (C j)))) ` set (allpairs Pair ?B ?js). Ifm (t #bs) ?q))" by (simp only: simpnum_ci)
+  also have "\<dots>= ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> t \<in> (\<lambda> (b,j). ?N (Add b (C j))) ` set ?bjs. Ifm (t #bs) ?q))" by simp
+  also have "\<dots>= ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> t \<in> (\<lambda> (b,j). ?N (simpnum (Add b (C j)))) ` set ?bjs. Ifm (t #bs) ?q))" by (simp only: simpnum_ci)
   also  have "\<dots>= ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> t \<in> set ?sbjs. Ifm (?N t #bs) ?q))" 
     by (auto simp add: split_def) 
   also have "\<dots> = ((\<exists> j\<in> set ?js. (\<lambda> j. ?I i (simpfm (subst0 (C j) ?smq))) j) \<or> (\<exists> t \<in> set (remdups ?sbjs). (\<lambda> t. ?I i (simpfm (subst0 t ?q))) t))" by (simp only: simpfm subst0_I[OF qfq] simpfm Inum.simps subst0_I[OF qfmq] set_remdups)

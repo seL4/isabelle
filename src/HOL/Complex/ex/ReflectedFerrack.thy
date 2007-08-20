@@ -1766,13 +1766,6 @@ next
   ultimately show "?E" by blast
 qed
 
-consts allpairs:: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list"
-primrec
-  "allpairs [] ys = []"
-  "allpairs (x#xs) ys = (map (Pair x) ys)@(allpairs xs ys)"
-
-lemma allpairs_set: "set (allpairs xs ys) = {(x,y). x\<in> set xs \<and> y \<in> set ys}"
-by (induct xs) auto
 
     (* Implement the right hand side of Ferrante and Rackoff's Theorem. *)
 constdefs ferrack:: "fm \<Rightarrow> fm"

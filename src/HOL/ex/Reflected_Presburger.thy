@@ -1850,7 +1850,7 @@ constdefs cooper :: "fm \<Rightarrow> fm"
        md = evaldjf (\<lambda> j. simpfm (subst0 (C j) mq)) js
    in if md = T then T else
     (let qd = evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) q)) 
-                               (allpairs Pair B js)
+                               [(b,j). b\<leftarrow>B,j\<leftarrow>js]
      in decr (disj md qd)))"
 lemma cooper: assumes qf: "qfree p"
   shows "((\<exists> x. Ifm bbs (x#bs) p) = (Ifm bbs bs (cooper p))) \<and> qfree (cooper p)" 
@@ -1866,7 +1866,8 @@ proof-
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
   let ?N = "\<lambda> t. Inum (i#bs) t"
-  let ?qd = "evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) (allpairs Pair ?B ?js)"
+  let ?Bjs = "[(b,j). b\<leftarrow>?B,j\<leftarrow>?js]"
+  let ?qd = "evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) ?Bjs"
   have qbf:"unit p = (?q,?B,?d)" by simp
   from unit[OF qf qbf] have pq_ex: "(\<exists>(x::int). ?I x p) = (\<exists> (x::int). ?I x ?q)" and 
     B:"?N ` set ?B = ?N ` set (\<beta> ?q)" and 
@@ -1881,13 +1882,13 @@ proof-
   hence th: "\<forall> j\<in> set ?js. bound0 (simpfm (subst0 (C j) ?smq))"
     by (auto simp add: simpfm_bound0)
   from evaldjf_bound0[OF th] have mdb: "bound0 ?md" by simp 
-  from Bn jsnb have "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). numbound0 (Add b (C j))"
+  from Bn jsnb have "\<forall> (b,j) \<in> set ?Bjs. numbound0 (Add b (C j))"
     by simp
-  hence "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). bound0 (subst0 (Add b (C j)) ?q)"
+  hence "\<forall> (b,j) \<in> set ?Bjs. bound0 (subst0 (Add b (C j)) ?q)"
     using subst0_bound0[OF qfq] by blast
-  hence "\<forall> (b,j) \<in> set (allpairs Pair ?B ?js). bound0 (simpfm (subst0 (Add b (C j)) ?q))"
+  hence "\<forall> (b,j) \<in> set ?Bjs. bound0 (simpfm (subst0 (Add b (C j)) ?q))"
     using simpfm_bound0  by blast
-  hence th': "\<forall> x \<in> set (allpairs Pair ?B ?js). bound0 ((\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) x)"
+  hence th': "\<forall> x \<in> set ?Bjs. bound0 ((\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) x)"
     by auto 
   from evaldjf_bound0 [OF th'] have qdb: "bound0 ?qd" by simp
   from mdb qdb 
@@ -1901,10 +1902,10 @@ proof-
     by (simp only: simpfm subst0_I[OF qfmq] iupt_set) auto
   also have "\<dots> = (?I i (evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js) \<or> (\<exists> j\<in> set ?js. \<exists> b\<in> set ?B. ?I i (subst0 (Add b (C j)) ?q)))" 
    by (simp only: evaldjf_ex subst0_I[OF qfq])
- also have "\<dots>= (?I i ?md \<or> (\<exists> (b,j) \<in> set (allpairs Pair ?B ?js). (\<lambda> (b,j). ?I i (simpfm (subst0 (Add b (C j)) ?q))) (b,j)))"
-   by (simp only: simpfm set_allpairs) blast
- also have "\<dots> = (?I i ?md \<or> (?I i (evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) (allpairs Pair ?B ?js))))"
-   by (simp only: evaldjf_ex[where bs="i#bs" and f="\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)" and ps="allpairs Pair ?B ?js"]) (auto simp add: split_def)
+ also have "\<dots>= (?I i ?md \<or> (\<exists> (b,j) \<in> set ?Bjs. (\<lambda> (b,j). ?I i (simpfm (subst0 (Add b (C j)) ?q))) (b,j)))"
+   by (simp only: simpfm set_concat set_map UN_simps) blast
+ also have "\<dots> = (?I i ?md \<or> (?I i (evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) ?Bjs)))"
+   by (simp only: evaldjf_ex[where bs="i#bs" and f="\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)" and ps="?Bjs"]) (auto simp add: split_def)
  finally have mdqd: "?lhs = (?I i ?md \<or> ?I i ?qd)" by simp  
   also have "\<dots> = (?I i (disj ?md ?qd))" by (simp add: disj)
   also have "\<dots> = (Ifm bbs bs (decr (disj ?md ?qd)))" by (simp only: decr [OF mdqdb]) 
