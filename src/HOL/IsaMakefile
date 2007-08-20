@@ -825,7 +825,8 @@ $(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML \
   Word/WordShift.thy \
   Word/WordGenLib.thy \
   Word/WordMain.thy \
-  Word/WordExamples.thy
+  Word/WordExamples.thy \
+  Word/document/root.tex
 	@cd Word; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Word
 
 
