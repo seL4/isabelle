@@ -1770,8 +1770,8 @@ next
     using mirror[OF lp, where x="- x", symmetric] by auto
   thus "\<exists> x. ?I x ?mp" by blast
 qed
-  
-  
+
+
 lemma cp_thm': 
   assumes lp: "iszlfm p"
   and up: "d\<beta> p 1" and dd: "d\<delta> p d" and dp: "d > 0"
@@ -1856,7 +1856,6 @@ lemma cooper: assumes qf: "qfree p"
   shows "((\<exists> x. Ifm bbs (x#bs) p) = (Ifm bbs bs (cooper p))) \<and> qfree (cooper p)" 
   (is "(?lhs = ?rhs) \<and> _")
 proof-
-
   let ?I = "\<lambda> x p. Ifm bbs (x#bs) p"
   let ?q = "fst (unit p)"
   let ?B = "fst (snd(unit p))"
@@ -1903,7 +1902,7 @@ proof-
   also have "\<dots> = (?I i (evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js) \<or> (\<exists> j\<in> set ?js. \<exists> b\<in> set ?B. ?I i (subst0 (Add b (C j)) ?q)))" 
    by (simp only: evaldjf_ex subst0_I[OF qfq])
  also have "\<dots>= (?I i ?md \<or> (\<exists> (b,j) \<in> set ?Bjs. (\<lambda> (b,j). ?I i (simpfm (subst0 (Add b (C j)) ?q))) (b,j)))"
-   by (simp only: simpfm set_concat set_map UN_simps) blast
+   by (simp only: simpfm set_concat set_map concat_map_singleton UN_simps) blast
  also have "\<dots> = (?I i ?md \<or> (?I i (evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) ?Bjs)))"
    by (simp only: evaldjf_ex[where bs="i#bs" and f="\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)" and ps="?Bjs"]) (auto simp add: split_def)
  finally have mdqd: "?lhs = (?I i ?md \<or> ?I i ?qd)" by simp  

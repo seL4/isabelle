@@ -222,22 +222,30 @@ primrec
 
 subsubsection {* List comprehension *}
 
-text{* Input syntax for Haskell-like list comprehension
-notation. Typical example: @{text"[(x,y). x \<leftarrow> xs, y \<leftarrow> ys, x \<noteq> y]"}, the list of all pairs of distinct elements from @{text xs} and @{text ys}.
+text{* Input syntax for Haskell-like list comprehension notation.
+Typical example: @{text"[(x,y). x \<leftarrow> xs, y \<leftarrow> ys, x \<noteq> y]"},
+the list of all pairs of distinct elements from @{text xs} and @{text ys}.
+The syntax is as in Haskell, except that @{text"|"} becomes a dot
+(like in Isabelle's set comprehension): @{text"[e. x \<leftarrow> xs, \<dots>]"} rather than
+\verb![e| x <- xs, ...]!.
 
-There are two differences to Haskell.  The general synatx is
-@{text"[e. p \<leftarrow> xs, \<dots>]"} rather than \verb![x| x <- xs, ...]!. Patterns in
-generators can only be tuples (at the moment).
+The qualifiers after the dot are
+\begin{description}
+\item[generators] @{text"p \<leftarrow> xs"},
+ where @{text p} is a pattern and @{text xs} an expression of list type,
+\item[guards] @{text"b"}, where @{text b} is a boolean expression, or
+\item[local bindings] @{text"let x = e"}.
+\end{description}
 
 To avoid misunderstandings, the translation is not reversed upon
 output. You can add the inverse translations in your own theory if you
 desire.
 
-Hint: formulae containing complex list comprehensions may become quite
-unreadable after the simplifier has finished with them. It can be
-helpful to introduce definitions for such list comprehensions and
-treat them separately in suitable lemmas.
-*}
+It is easy to write short list comprehensions which stand for complex
+expressions. During proofs, they may become unreadable (and
+mangled). In such cases it can be advisable to introduce separate
+definitions for the list comprehensions in question.  *}
+
 (*
 Proper theorem proving support would be nice. For example, if
 @{text"set[f x y. x \<leftarrow> xs, y \<leftarrow> ys, P x y]"}
@@ -249,28 +257,56 @@ nonterminals lc_qual lc_quals
 
 syntax
 "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
-"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ <- _")
+"_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ <- _")
 "_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
+"_lc_let" :: "letbinds => lc_qual"  ("let _")
 "_lc_end" :: "lc_quals" ("]")
 "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals" (", __")
+"_lc_abs" :: "'a => 'b list => 'b list"
 
 translations
-"[e. p<-xs]" => "map (%p. e) xs"
+"[e. p<-xs]" => "concat(map (_lc_abs p [e]) xs)"
 "_listcompr e (_lc_gen p xs) (_lc_quals Q Qs)"
- => "concat (map (%p. _listcompr e Q Qs) xs)"
+ => "concat (map (_lc_abs p (_listcompr e Q Qs)) xs)"
 "[e. P]" => "if P then [e] else []"
 "_listcompr e (_lc_test P) (_lc_quals Q Qs)"
  => "if P then (_listcompr e Q Qs) else []"
+"_listcompr e (_lc_let b) (_lc_quals Q Qs)"
+ => "_Let b (_listcompr e Q Qs)"
 
 syntax (xsymbols)
-"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+"_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
 syntax (HTML output)
-"_lc_gen" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+"_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
 
+parse_translation (advanced) {*
+let
+
+   fun abs_tr0 ctxt p es =
+    let
+      val x = Free (Name.variant (add_term_free_names (p$es, [])) "x", dummyT);
+      val case1 = Syntax.const "_case1" $ p $ es;
+      val case2 = Syntax.const "_case1" $ Syntax.const Term.dummy_patternN
+                                        $ Syntax.const @{const_name Nil};
+      val cs = Syntax.const "_case2" $ case1 $ case2
+      val ft = DatatypeCase.case_tr false DatatypePackage.datatype_of_constr
+                 ctxt [x, cs]
+    in lambda x ft end;
+
+  fun abs_tr ctxt [x as Free (s, T), r] =
+        let val thy = ProofContext.theory_of ctxt;
+            val s' = Sign.intern_const thy s
+        in if Sign.declared_const thy s' then abs_tr0 ctxt x r else lambda x r
+        end
+   | abs_tr ctxt [p,es] = abs_tr0 ctxt p es
+
+in [("_lc_abs", abs_tr)] end
+*}
 
 (*
 term "[(x,y,z). b]"
-term "[(x,y,z). x \<leftarrow> xs]"
+term "[(x,y). Cons True x \<leftarrow> xs]"
+term "[(x,y,z). Cons x [] \<leftarrow> xs]"
 term "[(x,y,z). x<a, x>b]"
 term "[(x,y,z). x<a, x\<leftarrow>xs]"
 term "[(x,y,z). x\<leftarrow>xs, x>b]"
@@ -283,8 +319,8 @@ term "[(x,y,z). x\<leftarrow>xs, x>b, y<a]"
 term "[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]"
 term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]"
 term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]"
+term "[(x,y). x\<leftarrow>xs, let xx = x+x, y\<leftarrow>ys, y \<noteq> xx]"
 *)
-
 
 subsubsection {* @{const Nil} and @{const Cons} *}
 
@@ -367,7 +403,7 @@ lemma list_induct2':
 by (induct xs arbitrary: ys) (case_tac x, auto)+
 
 lemma neq_if_length_neq: "length xs \<noteq> length ys \<Longrightarrow> (xs = ys) == False"
-  by (rule Eq_FalseI) auto
+by (rule Eq_FalseI) auto
 
 simproc_setup list_neq ("(xs::'a list) = ys") = {*
 (*
@@ -835,7 +871,7 @@ lemma filter_False [simp]: "\<forall>x \<in> set xs. \<not> P x ==> filter P xs 
 by (induct xs) auto
 
 lemma filter_empty_conv: "(filter P xs = []) = (\<forall>x\<in>set xs. \<not> P x)" 
-  by (induct xs) simp_all
+by (induct xs) simp_all
 
 lemma filter_id_conv: "(filter P xs = xs) = (\<forall>x\<in>set xs. P x)"
 apply (induct xs)
@@ -961,6 +997,9 @@ lemma Nil_eq_concat_conv [simp]: "([] = concat xss) = (\<forall>xs \<in> set xss
 by (induct xss) auto
 
 lemma set_concat [simp]: "set (concat xs) = (UN x:set xs. set x)"
+by (induct xs) auto
+
+lemma concat_map_singleton[simp, code]: "concat(map (%x. [f x]) xs) = map f xs"
 by (induct xs) auto
 
 lemma map_concat: "map f (concat xs) = concat (map (map f) xs)"
@@ -1432,12 +1471,12 @@ done
 lemma takeWhile_cong [fundef_cong, recdef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |] 
   ==> takeWhile P l = takeWhile Q k"
-  by (induct k arbitrary: l) (simp_all)
+by (induct k arbitrary: l) (simp_all)
 
 lemma dropWhile_cong [fundef_cong, recdef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |] 
   ==> dropWhile P l = dropWhile Q k"
-  by (induct k arbitrary: l, simp_all)
+by (induct k arbitrary: l, simp_all)
 
 
 subsubsection {* @{text zip} *}
@@ -1544,17 +1583,17 @@ subsubsection {* @{text list_all2} *}
 
 lemma list_all2_lengthD [intro?]: 
   "list_all2 P xs ys ==> length xs = length ys"
-  by (simp add: list_all2_def)
+by (simp add: list_all2_def)
 
 lemma list_all2_Nil [iff, code]: "list_all2 P [] ys = (ys = [])"
-  by (simp add: list_all2_def)
+by (simp add: list_all2_def)
 
 lemma list_all2_Nil2 [iff, code]: "list_all2 P xs [] = (xs = [])"
-  by (simp add: list_all2_def)
+by (simp add: list_all2_def)
 
 lemma list_all2_Cons [iff, code]:
   "list_all2 P (x # xs) (y # ys) = (P x y \<and> list_all2 P xs ys)"
-  by (auto simp add: list_all2_def)
+by (auto simp add: list_all2_def)
 
 lemma list_all2_Cons1:
 "list_all2 P (x # xs) ys = (\<exists>z zs. ys = z # zs \<and> P x z \<and> list_all2 P xs zs)"
@@ -1603,7 +1642,7 @@ by (induct rule:list_induct2, simp_all)
 
 lemma list_all2_appendI [intro?, trans]:
   "\<lbrakk> list_all2 P a b; list_all2 P c d \<rbrakk> \<Longrightarrow> list_all2 P (a@c) (b@d)"
-  by (simp add: list_all2_append list_all2_lengthD)
+by (simp add: list_all2_append list_all2_lengthD)
 
 lemma list_all2_conv_all_nth:
 "list_all2 P xs ys =
@@ -1626,39 +1665,39 @@ qed simp
 
 lemma list_all2_all_nthI [intro?]:
   "length a = length b \<Longrightarrow> (\<And>n. n < length a \<Longrightarrow> P (a!n) (b!n)) \<Longrightarrow> list_all2 P a b"
-  by (simp add: list_all2_conv_all_nth)
+by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2I:
   "\<forall>x \<in> set (zip a b). split P x \<Longrightarrow> length a = length b \<Longrightarrow> list_all2 P a b"
-  by (simp add: list_all2_def)
+by (simp add: list_all2_def)
 
 lemma list_all2_nthD:
   "\<lbrakk> list_all2 P xs ys; p < size xs \<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
-  by (simp add: list_all2_conv_all_nth)
+by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2_nthD2:
   "\<lbrakk>list_all2 P xs ys; p < size ys\<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
-  by (frule list_all2_lengthD) (auto intro: list_all2_nthD)
+by (frule list_all2_lengthD) (auto intro: list_all2_nthD)
 
 lemma list_all2_map1: 
   "list_all2 P (map f as) bs = list_all2 (\<lambda>x y. P (f x) y) as bs"
-  by (simp add: list_all2_conv_all_nth)
+by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2_map2: 
   "list_all2 P as (map f bs) = list_all2 (\<lambda>x y. P x (f y)) as bs"
-  by (auto simp add: list_all2_conv_all_nth)
+by (auto simp add: list_all2_conv_all_nth)
 
 lemma list_all2_refl [intro?]:
   "(\<And>x. P x x) \<Longrightarrow> list_all2 P xs xs"
-  by (simp add: list_all2_conv_all_nth)
+by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2_update_cong:
   "\<lbrakk> i<size xs; list_all2 P xs ys; P x y \<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
-  by (simp add: list_all2_conv_all_nth nth_list_update)
+by (simp add: list_all2_conv_all_nth nth_list_update)
 
 lemma list_all2_update_cong2:
   "\<lbrakk>list_all2 P xs ys; P x y; i < length ys\<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
-  by (simp add: list_all2_lengthD list_all2_update_cong)
+by (simp add: list_all2_lengthD list_all2_update_cong)
 
 lemma list_all2_takeI [simp,intro?]:
   "\<And>n ys. list_all2 P xs ys \<Longrightarrow> list_all2 P (take n xs) (take n ys)"
@@ -1684,7 +1723,7 @@ lemma list_all2_mono [intro?]:
 
 lemma list_all2_eq:
   "xs = ys \<longleftrightarrow> list_all2 (op =) xs ys"
-  by (induct xs ys rule: list_induct2') auto
+by (induct xs ys rule: list_induct2') auto
 
 
 subsubsection {* @{text foldl} and @{text foldr} *}
@@ -1705,12 +1744,12 @@ by(induct xs arbitrary:a) simp_all
 lemma foldl_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f a x = g a x |] 
   ==> foldl f a l = foldl g b k"
-  by (induct k arbitrary: a b l) simp_all
+by (induct k arbitrary: a b l) simp_all
 
 lemma foldr_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f x a = g x a |] 
   ==> foldr f l a = foldr g k b"
-  by (induct k arbitrary: a b l) simp_all
+by (induct k arbitrary: a b l) simp_all
 
 text{* The ``First Duality Theorem'' in Bird \& Wadler: *}
 
@@ -1923,10 +1962,10 @@ lemma distinct_remdups [iff]: "distinct (remdups xs)"
 by (induct xs) auto
 
 lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
-  by (induct x, auto) 
+by (induct x, auto) 
 
 lemma remdups_eq_nil_right_iff [simp]: "([] = remdups x) = (x = [])"
-  by (induct x, auto)
+by (induct x, auto)
 
 lemma length_remdups_leq[iff]: "length(remdups xs) <= length xs"
 by (induct xs) auto
@@ -2008,7 +2047,7 @@ lemma nth_eq_iff_index_eq:
 by(auto simp: distinct_conv_nth)
 
 lemma distinct_card: "distinct xs ==> card (set xs) = size xs"
-  by (induct xs) auto
+by (induct xs) auto
 
 lemma card_distinct: "card (set xs) = size xs ==> distinct xs"
 proof (induct xs)
@@ -2371,13 +2410,13 @@ inductive_cases listsE [elim!,noatp]: "x#l : lists A"
 inductive_cases listspE [elim!,noatp]: "listsp A (x # l)"
 
 lemma listsp_mono [mono]: "A \<le> B ==> listsp A \<le> listsp B"
-  by (clarify, erule listsp.induct, blast+)
+by (clarify, erule listsp.induct, blast+)
 
 lemmas lists_mono = listsp_mono [to_set]
 
 lemma listsp_infI:
   assumes l: "listsp A l" shows "listsp B l ==> listsp (inf A B) l" using l
-  by induct blast+
+by induct blast+
 
 lemmas lists_IntI = listsp_infI [to_set]
 
@@ -2556,10 +2595,10 @@ constdefs
             (\<exists> u a b v w. (a,b) \<in> r \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
 
 lemma lexord_Nil_left[simp]:  "([],y) \<in> lexord r = (\<exists> a x. y = a # x)"
-  by (unfold lexord_def, induct_tac y, auto) 
+by (unfold lexord_def, induct_tac y, auto) 
 
 lemma lexord_Nil_right[simp]: "(x,[]) \<notin> lexord r"
-  by (unfold lexord_def, induct_tac x, auto)
+by (unfold lexord_def, induct_tac x, auto)
 
 lemma lexord_cons_cons[simp]:
      "((a # x, b # y) \<in> lexord r) = ((a,b)\<in> r | (a = b & (x,y)\<in> lexord r))"
@@ -2572,18 +2611,18 @@ lemma lexord_cons_cons[simp]:
 lemmas lexord_simps = lexord_Nil_left lexord_Nil_right lexord_cons_cons
 
 lemma lexord_append_rightI: "\<exists> b z. y = b # z \<Longrightarrow> (x, x @ y) \<in> lexord r"
-  by (induct_tac x, auto)  
+by (induct_tac x, auto)  
 
 lemma lexord_append_left_rightI:
      "(a,b) \<in> r \<Longrightarrow> (u @ a # x, u @ b # y) \<in> lexord r"
-  by (induct_tac u, auto)
+by (induct_tac u, auto)
 
 lemma lexord_append_leftI: " (u,v) \<in> lexord r \<Longrightarrow> (x @ u, x @ v) \<in> lexord r"
-  by (induct x, auto)
+by (induct x, auto)
 
 lemma lexord_append_leftD:
      "\<lbrakk> (x @ u, x @ v) \<in> lexord r; (! a. (a,a) \<notin> r) \<rbrakk> \<Longrightarrow> (u,v) \<in> lexord r"
-  by (erule rev_mp, induct_tac x, auto)
+by (erule rev_mp, induct_tac x, auto)
 
 lemma lexord_take_index_conv: 
    "((x,y) : lexord r) = 
@@ -2629,7 +2668,7 @@ lemma lexord_trans:
   by blast
 
 lemma lexord_transI:  "trans r \<Longrightarrow> trans (lexord r)"
-  by (rule transI, drule lexord_trans, blast) 
+by (rule transI, drule lexord_trans, blast) 
 
 lemma lexord_linear: "(! a b. (a,b)\<in> r | a = b | (b,a) \<in> r) \<Longrightarrow> (x,y) : lexord r | x = y | (y,x) : lexord r"
   apply (rule_tac x = y in spec) 
@@ -2647,21 +2686,21 @@ definition
   "measures fs = inv_image (lex less_than) (%a. map (%f. f a) fs)"
 
 lemma wf_measures[recdef_wf, simp]: "wf (measures fs)"
-  unfolding measures_def
-  by blast
+unfolding measures_def
+by blast
 
 lemma in_measures[simp]: 
   "(x, y) \<in> measures [] = False"
   "(x, y) \<in> measures (f # fs)
          = (f x < f y \<or> (f x = f y \<and> (x, y) \<in> measures fs))"  
-  unfolding measures_def
-  by auto
+unfolding measures_def
+by auto
 
 lemma measures_less: "f x < f y ==> (x, y) \<in> measures (f#fs)"
-  by simp
+by simp
 
 lemma measures_lesseq: "f x <= f y ==> (x, y) \<in> measures fs ==> (x, y) \<in> measures (f#fs)"
-  by auto
+by auto
 
 (* install the lexicographic_order method and the "fun" command *)
 use "Tools/function_package/lexicographic_order.ML"
@@ -2899,34 +2938,34 @@ qed
 
 lemma mem_iff [code post]:
   "x mem xs \<longleftrightarrow> x \<in> set xs"
-  by (induct xs) auto
+by (induct xs) auto
 
 lemmas in_set_code [code unfold] = mem_iff [symmetric]
 
 lemma empty_null [code inline]:
   "xs = [] \<longleftrightarrow> null xs"
-  by (cases xs) simp_all
+by (cases xs) simp_all
 
 lemmas null_empty [code post] =
   empty_null [symmetric]
 
 lemma list_inter_conv:
   "set (list_inter xs ys) = set xs \<inter> set ys"
-  by (induct xs) auto
+by (induct xs) auto
 
 lemma list_all_iff [code post]:
   "list_all P xs \<longleftrightarrow> (\<forall>x \<in> set xs. P x)"
-  by (induct xs) auto
+by (induct xs) auto
 
 lemmas list_ball_code [code unfold] = list_all_iff [symmetric]
 
 lemma list_all_append [simp]:
   "list_all P (xs @ ys) \<longleftrightarrow> (list_all P xs \<and> list_all P ys)"
-  by (induct xs) auto
+by (induct xs) auto
 
 lemma list_all_rev [simp]:
   "list_all P (rev xs) \<longleftrightarrow> list_all P xs"
-  by (simp add: list_all_iff)
+by (simp add: list_all_iff)
 
 lemma list_all_length:
   "list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))"
@@ -2934,7 +2973,7 @@ lemma list_all_length:
 
 lemma list_ex_iff [code post]:
   "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
-  by (induct xs) simp_all
+by (induct xs) simp_all
 
 lemmas list_bex_code [code unfold] =
   list_ex_iff [symmetric]
@@ -2945,57 +2984,57 @@ lemma list_ex_length:
 
 lemma filtermap_conv:
    "filtermap f xs = map (\<lambda>x. the (f x)) (filter (\<lambda>x. f x \<noteq> None) xs)"
-  by (induct xs) (simp_all split: option.split) 
+by (induct xs) (simp_all split: option.split) 
 
 lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
-  by (induct xs) auto
+by (induct xs) auto
 
 lemma [code inline]: "listsum (map f xs) = foldl (%n x. n + f x) 0 xs"
-  by (simp add: listsum_foldr foldl_map [symmetric] foldl_foldr1)
+by (simp add: listsum_foldr foldl_map [symmetric] foldl_foldr1)
 
 
 text {* Code for bounded quantification over nats. *}
 
 lemma atMost_upto [code unfold]:
   "{..n} = set [0..n]"
-  by auto
+by auto
 
 lemma atLeast_upt [code unfold]:
   "{..<n} = set [0..<n]"
-  by auto
+by auto
 
 lemma greaterThanLessThan_upd [code unfold]:
   "{n<..<m} = set [Suc n..<m]"
-  by auto
+by auto
 
 lemma atLeastLessThan_upd [code unfold]:
   "{n..<m} = set [n..<m]"
-  by auto
+by auto
 
 lemma greaterThanAtMost_upto [code unfold]:
   "{n<..m} = set [Suc n..m]"
-  by auto
+by auto
 
 lemma atLeastAtMost_upto [code unfold]:
   "{n..m} = set [n..m]"
-  by auto
+by auto
 
 lemma all_nat_less_eq [code unfold]:
   "(\<forall>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
-  by auto
+by auto
 
 lemma ex_nat_less_eq [code unfold]:
   "(\<exists>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
-  by auto
+by auto
 
 lemma all_nat_less [code unfold]:
   "(\<forall>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
-  by auto
+by auto
 
 lemma ex_nat_less [code unfold]:
   "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
-  by auto
+by auto
 
 lemma foldl_append_append: "\<And> ss ss'. foldl (op @) (ss@ss') xs = ss@(foldl (op @) ss' xs)"
 by (induct xs, simp_all)
@@ -3006,7 +3045,8 @@ proof(induct xs)
 next
   case (Cons x xs ss)
   have "set (foldl op @ ss (map f (x # xs))) = set (foldl op @ (ss @ f x) (map f xs))" by simp
-  also have "\<dots> = set (ss@ f x) \<union> UNION (set xs) (\<lambda>x. set (f x))" using prems  by simp
+  also have "\<dots> = set (ss@ f x) \<union> UNION (set xs) (\<lambda>x. set (f x))"
+    using prems by simp
   also have "\<dots>= set ss \<union> set (f x) \<union> UNION (set xs) (\<lambda>x. set (f x))" by simp
   also have "\<dots> = set ss \<union> UNION (set (x#xs)) (\<lambda>x. set (f x))"
     by (simp add: Un_assoc)
@@ -3057,11 +3097,11 @@ qed
 
 lemma partition_filter1:
     "fst (partition P xs) = filter P xs"
-  by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
+by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
 
 lemma partition_filter2:
     "snd (partition P xs) = filter (Not o P) xs"
-  by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
+by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
 
 lemma partition_set:
   assumes "partition P xs = (yes, no)"

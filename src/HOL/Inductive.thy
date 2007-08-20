@@ -141,8 +141,8 @@ let
   fun fun_tr ctxt [cs] =
     let
       val x = Free (Name.variant (add_term_free_names (cs, [])) "x", dummyT);
-      val ft = DatatypeCase.case_tr DatatypePackage.datatype_of_constr ctxt
-                 [x, cs]
+      val ft = DatatypeCase.case_tr true DatatypePackage.datatype_of_constr
+                 ctxt [x, cs]
     in lambda x ft end
 in [("_lam_pats_syntax", fun_tr)] end
 *}

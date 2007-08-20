@@ -433,7 +433,7 @@ fun add_case_tr' case_names thy =
 
 val trfun_setup =
   Theory.add_advanced_trfuns ([],
-    [("_case_syntax", DatatypeCase.case_tr datatype_of_constr)],
+    [("_case_syntax", DatatypeCase.case_tr true datatype_of_constr)],
     [], []);
 
 

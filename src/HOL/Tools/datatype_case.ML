@@ -15,8 +15,8 @@ sig
     string list -> term -> (term * (term * term) list) option
   val strip_case: (string -> DatatypeAux.datatype_info option) -> bool ->
     term -> (term * (term * term) list) option
-  val case_tr: (theory -> string -> DatatypeAux.datatype_info option) ->
-    Proof.context -> term list -> term
+  val case_tr: bool -> (theory -> string -> DatatypeAux.datatype_info option)
+    -> Proof.context -> term list -> term
   val case_tr': (theory -> string -> DatatypeAux.datatype_info option) ->
     string -> Proof.context -> term list -> term
 end;
@@ -304,7 +304,7 @@ val make_case_untyped = gen_make_case (K (K Vartab.empty))
 
 (* parse translation *)
 
-fun case_tr tab_of ctxt [t, u] =
+fun case_tr err tab_of ctxt [t, u] =
     let
       val thy = ProofContext.theory_of ctxt;
       (* replace occurrences of dummy_pattern by distinct variables *)
@@ -343,11 +343,11 @@ fun case_tr tab_of ctxt [t, u] =
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
         | dest_case2 t = [t];
       val (cases, cnstrts) = split_list (map dest_case1 (dest_case2 u));
-      val (case_tm, _) = make_case_untyped (tab_of thy) ctxt true []
+      val (case_tm, _) = make_case_untyped (tab_of thy) ctxt err []
         (fold (fn tT => fn t => Syntax.const "_constrain" $ t $ tT)
            (flat cnstrts) t) cases;
     in case_tm end
-  | case_tr _ _ ts = case_error "case_tr";
+  | case_tr _ _ _ ts = case_error "case_tr";
 
 
 (*---------------------------------------------------------------------------
