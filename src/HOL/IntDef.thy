@@ -682,9 +682,4 @@ abbreviation
 where
   "int \<equiv> of_nat"
 
-abbreviation
-  int_of_nat :: "nat \<Rightarrow> int"
-where
-  "int_of_nat \<equiv> of_nat"
-
 end
