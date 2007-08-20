@@ -140,16 +140,16 @@ subsection "Bit-wise operations"
 
 defs (overloaded)
   word_and_def: 
-  "(a::'a::len0 word) AND b == word_of_int (int_and (uint a) (uint b))"
+  "(a::'a::len0 word) AND b == word_of_int (uint a AND uint b)"
 
   word_or_def:  
-  "(a::'a::len0 word) OR b == word_of_int (int_or (uint a) (uint b))"
+  "(a::'a::len0 word) OR b == word_of_int (uint a OR uint b)"
 
   word_xor_def: 
-  "(a::'a::len0 word) XOR b == word_of_int (int_xor (uint a) (uint b))"
+  "(a::'a::len0 word) XOR b == word_of_int (uint a XOR uint b)"
 
   word_not_def: 
-  "NOT (a::'a::len0 word) == word_of_int (int_not (uint a))"
+  "NOT (a::'a::len0 word) == word_of_int (NOT (uint a))"
 
   word_test_bit_def: 
   "test_bit (a::'a::len0 word) == bin_nth (uint a)"

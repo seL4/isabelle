@@ -440,7 +440,7 @@ lemma app2_Cons [simp]:
 
 lemma bl_xor_aux_bin [rule_format] : "ALL v w bs cs. 
     app2 (%x y. x ~= y) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) = 
-    bin_to_bl_aux n (int_xor v w) (app2 (%x y. x ~= y) bs cs)"
+    bin_to_bl_aux n (v XOR w) (app2 (%x y. x ~= y) bs cs)"
   apply (induct_tac n)
    apply safe
    apply simp
@@ -453,7 +453,7 @@ lemma bl_xor_aux_bin [rule_format] : "ALL v w bs cs.
     
 lemma bl_or_aux_bin [rule_format] : "ALL v w bs cs. 
     app2 (op | ) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) = 
-    bin_to_bl_aux n (int_or v w) (app2 (op | ) bs cs)" 
+    bin_to_bl_aux n (v OR w) (app2 (op | ) bs cs)" 
   apply (induct_tac n)
    apply safe
    apply simp
@@ -466,7 +466,7 @@ lemma bl_or_aux_bin [rule_format] : "ALL v w bs cs.
     
 lemma bl_and_aux_bin [rule_format] : "ALL v w bs cs. 
     app2 (op & ) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) = 
-    bin_to_bl_aux n (int_and v w) (app2 (op & ) bs cs)" 
+    bin_to_bl_aux n (v AND w) (app2 (op & ) bs cs)" 
   apply (induct_tac n)
    apply safe
    apply simp
@@ -479,7 +479,7 @@ lemma bl_and_aux_bin [rule_format] : "ALL v w bs cs.
     
 lemma bl_not_aux_bin [rule_format] : 
   "ALL w cs. map Not (bin_to_bl_aux n w cs) = 
-    bin_to_bl_aux n (int_not w) (map Not cs)"
+    bin_to_bl_aux n (NOT w) (map Not cs)"
   apply (induct n)
    apply clarsimp
   apply clarsimp

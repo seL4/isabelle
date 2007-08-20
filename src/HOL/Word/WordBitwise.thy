@@ -29,11 +29,11 @@ lemmas word_no_log_defs [simp] =
 
 lemmas word_wi_log_defs = word_no_log_defs [unfolded word_no_wi]
 
-lemma uint_or: "uint (x OR y) = int_or (uint x) (uint y)"
+lemma uint_or: "uint (x OR y) = (uint x) OR (uint y)"
   by (simp add: word_or_def word_no_wi [symmetric] int_number_of
                 bin_trunc_ao(2) [symmetric])
 
-lemma uint_and: "uint (x AND y) = int_and (uint x) (uint y)"
+lemma uint_and: "uint (x AND y) = (uint x) AND (uint y)"
   by (simp add: word_and_def int_number_of word_no_wi [symmetric]
                 bin_trunc_ao(1) [symmetric]) 
 
