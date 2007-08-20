@@ -9,7 +9,7 @@
 
 header {* Basic Definitions for Binary Integers *}
 
-theory BinGeneral imports TdThs Num_Lemmas
+theory BinGeneral imports Num_Lemmas
 
 begin
 

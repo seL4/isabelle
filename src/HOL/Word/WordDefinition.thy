@@ -8,7 +8,7 @@
 
 header {* Definition of Word Type *}
 
-theory WordDefinition imports Size BitSyntax BinBoolList begin 
+theory WordDefinition imports Size BinBoolList TdThs begin
 
 typedef (open word) 'a word
   = "{(0::int) ..< 2^len_of TYPE('a::len0)}" by auto
