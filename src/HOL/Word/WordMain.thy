@@ -5,6 +5,8 @@
   The main interface of the word library to other theories.
 *)
 
+header {* Main Word Library *}
+
 theory WordMain imports WordGenLib
 begin
 

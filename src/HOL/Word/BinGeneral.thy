@@ -7,9 +7,13 @@
   in particular, bin_rec and related work
 *) 
 
+header {* Basic Definitions for Binary Integers *}
+
 theory BinGeneral imports TdThs Num_Lemmas
 
 begin
+
+subsection {* Recursion combinator for binary integers *}
 
 lemma brlem: "(bin = Numeral.Min) = (- bin + Numeral.pred 0 = 0)"
   unfolding Min_def pred_def by arith
@@ -299,7 +303,7 @@ lemma size_Cons_lem_eq_bin:
   by (auto simp: pred_def succ_def split add : split_if_asm)
 
 
-section "Simplifications for (s)bintrunc"
+subsection "Simplifications for (s)bintrunc"
 
 lemma bit_bool:
   "(b = (b' = bit.B1)) = (b' = (if b then bit.B1 else bit.B0))"

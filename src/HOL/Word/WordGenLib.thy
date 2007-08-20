@@ -6,6 +6,8 @@
    of recursion and induction patterns for words.
 *)
 
+header {* Miscellaneous Library for Words *}
+
 theory WordGenLib imports WordShift Boolean_Algebra
 begin
 

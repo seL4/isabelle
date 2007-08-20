@@ -1,9 +1,9 @@
 (* 
   ID:      $Id$
   Author:  Jeremy Dawson, NICTA
-
-  useful numerical lemmas 
 *) 
+
+header {* Useful Numerical Lemmas *}
 
 theory Num_Lemmas imports Parity begin
 

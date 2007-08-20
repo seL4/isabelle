@@ -4,6 +4,9 @@
 
   contains theorems to do with bit-wise (logical) operations on words
 *)
+
+header {* Bitwise Operations on Words *}
+
 theory WordBitwise imports WordArith begin
 
 lemmas bin_log_bintrs = bin_trunc_not bin_trunc_xor bin_trunc_and bin_trunc_or

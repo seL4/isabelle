@@ -6,6 +6,7 @@
   the definition of the word type 
 *) 
 
+header {* Definition of Word Type *}
 
 theory WordDefinition imports Size BitSyntax BinBoolList begin 
 
@@ -26,7 +27,7 @@ instance word :: (type) inverse ..
 instance word :: (type) bit ..
 
 
-section "Type conversions and casting"
+subsection "Type conversions and casting"
 
 constdefs
   -- {* representation of words using unsigned or signed bins, 
@@ -94,7 +95,7 @@ translations
   "case x of of_int y => b" == "word_int_case (%y. b) x"
 
 
-section  "Arithmetic operations"
+subsection  "Arithmetic operations"
 
 defs (overloaded)
   word_1_wi: "(1 :: ('a :: len0) word) == word_of_int 1"
@@ -135,7 +136,7 @@ defs (overloaded)
   word_mod_def: "a mod b == word_of_int (uint a mod uint b)"
 
 
-section "Bit-wise operations"
+subsection "Bit-wise operations"
 
 defs (overloaded)
   word_and_def: 
@@ -175,7 +176,7 @@ constdefs
   "clearBit w n == set_bit w n False"
 
 
-section "Shift operations"
+subsection "Shift operations"
 
 constdefs
   shiftl1 :: "'a :: len0 word => 'a word"
@@ -212,7 +213,7 @@ defs (overloaded)
   shiftr_def: "(w::'a::len0 word) >> n == (shiftr1 ^ n) w"
 
 
-section "Rotation"
+subsection "Rotation"
 
 constdefs
   rotater1 :: "'a list => 'a list"
@@ -233,7 +234,7 @@ constdefs
                     else word_rotl (nat (- i)) w"
 
 
-section "Split and cat operations"
+subsection "Split and cat operations"
 
 constdefs
   word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word"

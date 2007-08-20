@@ -7,6 +7,8 @@
   to linear arithmetic on int or nat
 *) 
 
+header {* Word Arithmetic *}
+
 theory WordArith imports WordDefinition begin
 
 
@@ -217,7 +219,7 @@ lemmas word_pred_alt = word_arith_alts (6)
 lemmas word_0_alt = word_arith_alts (7)
 lemmas word_1_alt = word_arith_alts (8)
 
-section  "Transferring goals from words to ints"
+subsection  "Transferring goals from words to ints"
 
 lemma word_ths:  
   shows
@@ -307,7 +309,7 @@ lemmas word_plus_ac0 = word_add_0 word_add_0_right word_add_ac
 lemmas word_times_ac1 = word_mult_1 word_mult_1_right word_mult_ac
 
 
-section "Order on fixed-length words"
+subsection "Order on fixed-length words"
 
 lemma word_order_trans: "x <= y ==> y <= z ==> x <= (z :: 'a :: len0 word)"
   unfolding word_le_def by auto
@@ -436,7 +438,7 @@ lemma uint_sub_lt2p [simp]:
   using uint_ge_0 [of y] uint_lt2p [of x] by arith
 
 
-section "Conditions for the addition (etc) of two words to overflow"
+subsection "Conditions for the addition (etc) of two words to overflow"
 
 lemma uint_add_lem: 
   "(uint x + uint y < 2 ^ len_of TYPE('a)) = 
@@ -464,7 +466,7 @@ lemmas uint_plus_if' =
   trans [OF uint_word_ariths(2) mod_add_if_z, simplified, standard]
 
 
-section {* Definition of uint\_arith *}
+subsection {* Definition of uint\_arith *}
 
 lemma word_of_int_inverse:
   "word_of_int r = a ==> 0 <= r ==> r < 2 ^ len_of TYPE('a) ==> 
@@ -533,7 +535,7 @@ method_setup uint_arith =
   "solving word arithmetic via integers and arith"
 
 
-section "More on overflows and monotonicity"
+subsection "More on overflows and monotonicity"
 
 lemma no_plus_overflow_uint_size: 
   "((x :: 'a :: len0 word) <= x + y) = (uint x + uint y < 2 ^ size x)"
@@ -762,7 +764,7 @@ lemma rtb_rbl_ariths:
                  word_pred_rbl word_mult_rbl word_add_rbl)
 
 
-section "Arithmetic type class instantiations"
+subsection "Arithmetic type class instantiations"
 
 instance word :: (len0) comm_monoid_add ..
 
@@ -841,7 +843,7 @@ lemma iszero_word_no [simp] :
   done
     
 
-section "Word and nat"
+subsection "Word and nat"
 
 lemma td_ext_unat':
   "n = len_of TYPE ('a :: len) ==> 
@@ -1034,7 +1036,7 @@ lemma uint_mod: "uint ((x :: 'a :: len word) mod y) = uint x mod uint y"
   unfolding uint_nat by (simp add : unat_mod zmod_int)
 
 
-section {* Definition of unat\_arith tactic *}
+subsection {* Definition of unat\_arith tactic *}
 
 lemma unat_split:
   fixes x::"'a::len word"
@@ -1230,7 +1232,7 @@ lemma of_bl_length_less:
   done
 
 
-section "Cardinality, finiteness of set of words"
+subsection "Cardinality, finiteness of set of words"
 
 lemmas card_lessThan' = card_lessThan [unfolded lessThan_def]
 

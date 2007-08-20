@@ -11,7 +11,7 @@ header "Bool lists and integers"
 
 theory BinBoolList imports BinOperations begin
 
-section "Arithmetic in terms of bool lists"
+subsection "Arithmetic in terms of bool lists"
 
 consts (* arithmetic operations in terms of the reversed bool list,
   assuming input list(s) the same length, and don't extend them *)
@@ -930,7 +930,7 @@ lemmas tl_Nil = tl.simps (1)
 lemmas tl_Cons = tl.simps (2)
 
 
-section "Repeated splitting or concatenation"
+subsection "Repeated splitting or concatenation"
 
 lemma sclem:
   "size (concat (map (bin_to_bl n) xs)) = length xs * n"

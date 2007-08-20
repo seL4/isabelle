@@ -5,6 +5,9 @@
   consequences of type definition theorems, 
   and of extended type definition theorems
 *)
+
+header {* Type Definition Theorems *}
+
 theory TdThs imports Main begin
 
 lemma
@@ -91,7 +94,7 @@ declare Nat.induct [case_names 0 Suc, induct type]
 declare Nat.exhaust [case_names 0 Suc, cases type]
 
 
-section "Extended of type definition predicate"
+subsection "Extended form of type definition predicate"
 
 lemma td_conds:
   "norm o norm = norm ==> (fr o norm = norm o fr) = 

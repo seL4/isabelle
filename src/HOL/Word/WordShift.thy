@@ -5,9 +5,11 @@
   contains theorems to do with shifting, rotating, splitting words
 *)
 
+header {* Shifting, Rotating, and Splitting Words *}
+
 theory WordShift imports WordBitwise begin
 
-section "Bit shifting"
+subsection "Bit shifting"
 
 lemma shiftl1_number [simp] :
   "shiftl1 (number_of w) = number_of (w BIT bit.B0)"
@@ -166,7 +168,7 @@ lemma sshiftr_div_2n: "sint (sshiftr w n) = sint w div 2 ^ n"
                    zdiv_zmult2_eq [symmetric])
   done
 
-subsection "shift functions in terms of lists of bools"
+subsubsection "shift functions in terms of lists of bools"
 
 lemmas bshiftr1_no_bin [simp] = 
   bshiftr1_def [where w="number_of ?w", unfolded to_bl_no_bin]
@@ -454,7 +456,7 @@ lemma aligned_bl_add_size':
 
 lemmas aligned_bl_add_size = refl [THEN aligned_bl_add_size']
 
-subsection "Mask"
+subsubsection "Mask"
 
 lemma nth_mask': "m = mask n ==> test_bit m i = (i < n & i < size m)"
   apply (unfold mask_def test_bit_bl)
@@ -590,7 +592,7 @@ lemma mask_power_eq:
   by (clarsimp simp: and_mask_wi word_of_int_power_hom bintr_ariths)
 
 
-subsection "Revcast"
+subsubsection "Revcast"
 
 lemmas revcast_def' = revcast_def [simplified]
 lemmas revcast_def'' = revcast_def' [simplified word_size]
@@ -713,7 +715,7 @@ lemmas ucast_down =
   rc2 [simplified rev_shiftr revcast_ucast [symmetric]]
 
 
-subsection "Slices"
+subsubsection "Slices"
 
 lemmas slice1_no_bin [simp] =
   slice1_def [where w="number_of ?w", unfolded to_bl_no_bin]
@@ -858,7 +860,7 @@ lemma sofl_test:
   done
 
 
-section "Split and cat"
+subsection "Split and cat"
 
 lemmas word_split_bin' = word_split_def [THEN meta_eq_to_obj_eq, standard]
 lemmas word_cat_bin' = word_cat_def [THEN meta_eq_to_obj_eq, standard]
@@ -1025,7 +1027,7 @@ lemmas word_cat_split_size =
   sym [THEN [2] word_cat_split_alt [symmetric], standard]
 
 
-subsection "Split and slice"
+subsubsection "Split and slice"
 
 lemma split_slices: 
   "word_split w = (u, v) ==> u = slice (size v) w & v = slice 0 w"
@@ -1240,7 +1242,7 @@ lemma word_rsplit_rcat_size':
 lemmas word_rsplit_rcat_size = refl [THEN word_rsplit_rcat_size']
 
 
-section "Rotation"
+subsection "Rotation"
 
 lemmas rotater_0' [simp] = rotater_def [where n = "0", simplified]
 
@@ -1262,7 +1264,7 @@ lemmas rotate_eqs [standard] =
   rotate_eq_mod
 
 
-subsection "Rotation of list to right"
+subsubsection "Rotation of list to right"
 
 lemma rotate1_rl': "rotater1 (l @ [a]) = a # l"
   unfolding rotater1_def by (cases l) auto
@@ -1332,7 +1334,7 @@ lemmas rotater_0 = rotater_eqs (1)
 lemmas rotater_add = rotater_eqs (2)
 
 
-subsection "map, app2, commuting with rotate(r)"
+subsubsection "map, app2, commuting with rotate(r)"
 
 lemma last_map: "xs ~= [] ==> last (map f xs) = f (last xs)"
   by (induct xs) auto
@@ -1511,7 +1513,7 @@ lemma word_roti_conv_mod': "word_roti n w = word_roti (n mod int (size w)) w"
 lemmas word_roti_conv_mod = word_roti_conv_mod' [unfolded word_size]
 
 
-subsection "Word rotation commutes with bit-wise operations"
+subsubsection "Word rotation commutes with bit-wise operations"
 
 (* using locale to not pollute lemma namespace *)
 locale word_rotate 
