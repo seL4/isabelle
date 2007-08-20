@@ -49,7 +49,7 @@ definition
 definition
   "foobar' = (foo' R1' 1 R3', bar' R2' 0 R3', foo' R1' R3' R2')"
 
-code_gen foobar foobar' in SML module_name Foo
+export_code foobar foobar' in SML module_name Foo
   in OCaml file -
   in Haskell file -
 ML {* (Foo.foobar, Foo.foobar') *}

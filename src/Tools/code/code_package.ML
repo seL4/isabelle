@@ -626,7 +626,7 @@ val code_exprP =
 val _ = OuterSyntax.add_keywords [inK, module_nameK, fileK];
 
 val (codeK, code_abstypeK, code_axiomsK, code_thmsK, code_depsK) =
-  ("code_gen", "code_abstype", "code_axioms", "code_thms", "code_deps");
+  ("export_code", "code_abstype", "code_axioms", "code_thms", "code_deps");
 
 in
 

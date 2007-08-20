@@ -146,7 +146,7 @@ text {*
   \noindent Then we generate code
 *}
 
-code_gen example (*<*)in SML(*>*)in SML file "examples/tree.ML"
+export_code example (*<*)in SML(*>*)in SML file "examples/tree.ML"
 
 text {*
   \noindent which looks like:
@@ -224,10 +224,10 @@ text {*
   \noindent This executable specification is now turned to SML code:
 *}
 
-code_gen fac (*<*)in SML(*>*)in SML file "examples/fac.ML"
+export_code fac (*<*)in SML(*>*)in SML file "examples/fac.ML"
 
 text {*
-  \noindent  The @{text "\<CODEGEN>"} command takes a space-separated list of
+  \noindent  The @{text "\<EXPORTCODE>"} command takes a space-separated list of
   constants together with \qn{serialization directives}
   These start with a \qn{target language}
   identifier, followed by a file specification
@@ -262,7 +262,7 @@ definition
   pick_some :: "'a list \<Rightarrow> 'a" where
   "pick_some = hd"
 (*>*)
-code_gen pick_some in SML file "examples/fail_const.ML"
+export_code pick_some in SML file "examples/fail_const.ML"
 
 text {* \noindent will fail. *}
 
@@ -306,7 +306,7 @@ lemma [code func]:
   "pick ((k, v)#xs) n = (if n < k then v else pick xs (n - k))"
   by simp
 
-code_gen pick (*<*)in SML(*>*) in SML file "examples/pick1.ML"
+export_code pick (*<*)in SML(*>*) in SML file "examples/pick1.ML"
 
 text {*
   \noindent This theorem now is used for generating code:
@@ -319,7 +319,7 @@ text {*
 
 lemmas [code func del] = pick.simps 
 
-code_gen pick (*<*)in SML(*>*) in SML file "examples/pick2.ML"
+export_code pick (*<*)in SML(*>*) in SML file "examples/pick2.ML"
 
 text {*
   \lstsml{Thy/examples/pick2.ML}
@@ -335,7 +335,7 @@ lemma [code func]:
   "fac n = (case n of 0 \<Rightarrow> 1 | Suc m \<Rightarrow> n * fac m)"
   by (cases n) simp_all
 
-code_gen fac (*<*)in SML(*>*)in SML file "examples/fac_case.ML"
+export_code fac (*<*)in SML(*>*)in SML file "examples/fac_case.ML"
 
 text {*
   \lstsml{Thy/examples/fac_case.ML}
@@ -397,7 +397,7 @@ text {*
   the file system, with root directory given as file specification.
 *}
 
-code_gen dummy in Haskell file "examples/"
+export_code dummy in Haskell file "examples/"
   (* NOTE: you may use Haskell only once in this document, otherwise
   you have to work in distinct subdirectories *)
 
@@ -410,7 +410,7 @@ text {*
   The whole code in SML with explicit dictionary passing:
 *}
 
-code_gen dummy (*<*)in SML(*>*)in SML file "examples/class.ML"
+export_code dummy (*<*)in SML(*>*)in SML file "examples/class.ML"
 
 text {*
   \lstsml{Thy/examples/class.ML}
@@ -420,7 +420,7 @@ text {*
   \noindent or in OCaml:
 *}
 
-code_gen dummy in OCaml file "examples/class.ocaml"
+export_code dummy in OCaml file "examples/class.ocaml"
 
 text {*
   \lstsml{Thy/examples/class.ocaml}
@@ -596,7 +596,7 @@ text {*
   performs an explicit equality check.
 *}
 
-code_gen collect_duplicates (*<*)in SML(*>*)in SML file "examples/collect_duplicates.ML"
+export_code collect_duplicates (*<*)in SML(*>*)in SML file "examples/collect_duplicates.ML"
 
 text {*
   \lstsml{Thy/examples/collect_duplicates.ML}
@@ -668,7 +668,7 @@ text {*
   \noindent Then code generation succeeds:
 *}
 
-code_gen "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>ord \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+export_code "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>ord \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
   (*<*)in SML(*>*)in SML file "examples/lexicographic.ML"
 
 text {*
@@ -722,7 +722,7 @@ text {*
   does not depend on instance @{text "monotype \<Colon> eq"}:
 *}
 
-code_gen "op = :: monotype \<Rightarrow> monotype \<Rightarrow> bool"
+export_code "op = :: monotype \<Rightarrow> monotype \<Rightarrow> bool"
   (*<*)in SML(*>*)in SML file "examples/monotype.ML"
 
 text {*
@@ -771,7 +771,7 @@ code_type %tt bool
 code_const %tt True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
-code_gen in_interval (*<*)in SML(*>*)in SML file "examples/bool_literal.ML"
+export_code in_interval (*<*)in SML(*>*)in SML file "examples/bool_literal.ML"
 
 text {*
   \lstsml{Thy/examples/bool_literal.ML}
@@ -804,7 +804,7 @@ text {*
   for the type constructor's (the constant's) arguments.
 *}
 
-code_gen in_interval (*<*)in SML(*>*) in SML file "examples/bool_mlbool.ML"
+export_code in_interval (*<*)in SML(*>*) in SML file "examples/bool_mlbool.ML"
 
 text {*
   \lstsml{Thy/examples/bool_mlbool.ML}
@@ -820,7 +820,7 @@ text {*
 code_const %tt "op \<and>"
   (SML infixl 1 "andalso")
 
-code_gen in_interval (*<*)in SML(*>*) in SML file "examples/bool_infix.ML"
+export_code in_interval (*<*)in SML(*>*) in SML file "examples/bool_infix.ML"
 
 text {*
   \lstsml{Thy/examples/bool_infix.ML}
@@ -949,7 +949,7 @@ lemma [code func]: "xs \<union> set ys = foldr insert ys xs" by (induct ys) simp
 
 lemma [code func]: "\<Union>set xs = foldr (op \<union>) xs {}" by (induct xs) simp_all
 
-code_gen "{}" insert "op \<in>" "op \<union>" "Union" (*<*)in SML(*>*) in SML file "examples/set_list.ML"
+export_code "{}" insert "op \<in>" "op \<union>" "Union" (*<*)in SML(*>*) in SML file "examples/set_list.ML"
 
 text {*
   \lstsml{Thy/examples/set_list.ML}
@@ -997,7 +997,7 @@ text {*
   hid away the details from the user.  Anyway, caching
   reaches the surface by using a slightly more general form
   of the @{text "\<CODETHMS>"}, @{text "\<CODEDEPS>"}
-  and @{text "\<CODEGEN>"} commands: the list of constants
+  and @{text "\<EXPORTCODE>"} commands: the list of constants
   may be omitted.  Then, all constants with code theorems
   in the current cache are referred to.
 *}

@@ -776,7 +776,7 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \indexisaratt{code inline}
 
 \begin{matharray}{rcl}
-  \isarcmd{code_gen}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{export_code}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{code_thms}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{code_deps}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{code_datatype} & : & \isartrans{theory}{theory} \\
@@ -795,7 +795,7 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \end{matharray}
 
 \begin{rail}
-'code\_gen' ( constexpr + ) ? \\
+'export\_code' ( constexpr + ) ? \\
   ( ( 'in' target ( 'module_name' string ) ? ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?;
 
 'code\_thms' ( constexpr + ) ?;
@@ -849,7 +849,7 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 
 \begin{descr}
 
-\item [$\isarcmd{code_gen}$] is the canonical interface for generating and
+\item [$\isarcmd{export_code}$] is the canonical interface for generating and
   serializing code: for a given list of constants, code is generated for the specified
   target language(s).  Abstract code is cached incrementally.  If no constant is given,
   the currently cached code is serialized.  If no serialization instruction

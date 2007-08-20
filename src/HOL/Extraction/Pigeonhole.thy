@@ -309,7 +309,7 @@ contains
   test' = test'
   test'' = test''
 
-code_gen test test' test'' in SML module_name PH2
+export_code test test' test'' in SML module_name PH2
 
 ML "timeit (PH1.test 10)"
 ML "timeit (PH2.test 10)"

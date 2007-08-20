@@ -342,7 +342,7 @@ definition "x1 = X (1::nat) 2 3"
 definition "x2 = X (1::int) 2 3"
 definition "y2 = Y (1::int) 2 3"
 
-code_gen x1 x2 y2 in SML module_name Classpackage
+export_code x1 x2 y2 in SML module_name Classpackage
   in OCaml file -
   in Haskell file -
 

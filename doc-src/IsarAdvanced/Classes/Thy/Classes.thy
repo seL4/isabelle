@@ -504,7 +504,7 @@ text {*
   \noindent This maps to Haskell as:
 *}
 
-code_gen example in Haskell to Classes file "code_examples/"
+export_code example in Haskell to Classes file "code_examples/"
   (* NOTE: you may use Haskell only once in this document, otherwise
   you have to work in distinct subdirectories *)
 
@@ -514,7 +514,7 @@ text {*
   \noindent The whole code in SML with explicit dictionary passing:
 *}
 
-code_gen example (*<*)in SML to Classes(*>*)in SML to Classes file "code_examples/classes.ML"
+export_code example (*<*)in SML to Classes(*>*)in SML to Classes file "code_examples/classes.ML"
 
 text {*
   \lstsml{Thy/code_examples/classes.ML}
