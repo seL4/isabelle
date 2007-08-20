@@ -44,7 +44,6 @@ consts
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  allpairs :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
 
 abbreviation
   upto:: "nat => nat => nat list"  ("(1[_../_])") where
@@ -221,10 +220,6 @@ primrec
   "splice (x#xs) ys = (if ys=[] then x#xs else x # hd ys # splice xs (tl ys))"
     -- {*Warning: simpset does not contain the second eqn but a derived one. *}
 
-primrec
-"allpairs f [] ys = []"
-"allpairs f (x # xs) ys = map (f x) ys @ allpairs f xs ys"
-
 subsubsection {* List comprehension *}
 
 text{* Input syntax for Haskell-like list comprehension
@@ -325,10 +320,6 @@ by (induct xs) auto
 
 lemma length_tl [simp]: "length (tl xs) = length xs - 1"
 by (cases xs) auto
-
-lemma length_allpairs[simp]:
- "length(allpairs f xs ys) = length xs * length ys"
-by(induct xs) auto
 
 lemma length_0_conv [iff]: "(length xs = 0) = (xs = [])"
 by (induct xs) auto
@@ -755,10 +746,6 @@ lemma set_rev [simp]: "set (rev xs) = set xs"
 by (induct xs) auto
 
 lemma set_map [simp]: "set (map f xs) = f`(set xs)"
-by (induct xs) auto
-
-lemma set_allpairs [simp]:
- "set(allpairs f xs ys) = {z. EX x : set xs. EX y : set ys. z = f x y}"
 by (induct xs) auto
 
 lemma set_filter [simp]: "set (filter P xs) = {x. x : set xs \<and> P x}"
@@ -2370,16 +2357,6 @@ apply(induct xs) apply simp
 apply(case_tac ys)
  apply auto
 done
-
-subsubsection {* @{const allpairs} *}
-
-lemma allpairs_conv_concat:
- "allpairs f xs ys = concat(map (%x. map (f x) ys) xs)"
-by(induct xs) auto
-
-lemma allpairs_append:
- "allpairs f (xs @ ys) zs = allpairs f xs zs @ allpairs f ys zs"
-by(induct xs) auto
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
 
