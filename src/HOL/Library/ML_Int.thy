@@ -109,9 +109,9 @@ proof (induct n)
   case 0 show ?case by simp
 next
   case (Suc n)
-  then have "int_of_ml_int (ml_int_of_int (int_of_nat n))
+  then have "int_of_ml_int (ml_int_of_int (int n))
     = int_of_ml_int (of_nat n)" by simp
-  then have "int_of_nat n = int_of_ml_int (of_nat n)" by simp
+  then have "int n = int_of_ml_int (of_nat n)" by simp
   then show ?case by simp
 qed
 
@@ -127,7 +127,7 @@ lemma one_ml_int_code [code inline, code func]:
   "(1\<Colon>ml_int) = Numeral1"
   by simp
 
-instance ml_int :: minus
+instance ml_int :: abs
   "\<bar>k\<bar> \<equiv> if k < 0 then -k else k" ..
 
 
