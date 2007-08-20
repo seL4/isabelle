@@ -568,40 +568,14 @@ fun read_def_terms'
   let
     val thy = ProofContext.theory_of ctxt;
 
-    fun infer args = TypeInfer.infer_types (Syntax.pp_show_brackets pp) (tsig_of thy)
+    fun infer args = TypeInfer.infer_types pp (tsig_of thy)
         Type.mode_default (try (Consts.the_constraint consts)) def_type used freeze args |>> map fst
       handle TYPE (msg, _, _) => error msg;
 
-    (*brute-force disambiguation via type-inference*)
-    fun disambig _ [t] = t
-      | disambig T ts =
-          let
-            fun try_infer t = Exn.Result (singleton (fst o infer) (t, T))
-              handle ERROR msg => Exn.Exn (ERROR msg);
-            val err_results = map try_infer ts;
-            val errs = map_filter (fn Exn.Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
-            val results = map_filter Exn.get_result err_results;
-
-            val ambiguity = length ts;
-            fun ambig_msg () =
-              if ambiguity > 1 andalso ambiguity <= ! Syntax.ambiguity_level then
-                "Got more than one parse tree.\n\
-                \Retry with smaller Syntax.ambiguity_level for more information."
-              else "";
-          in
-            if null results then cat_error (ambig_msg ()) (cat_lines errs)
-            else if length results = 1 then
-              (if ambiguity > ! Syntax.ambiguity_level then
-                warning "Fortunately, only one parse tree is type correct.\n\
-                  \You may still want to disambiguate your grammar or your input."
-              else (); hd results)
-            else cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
-              cat_lines (map (Pretty.string_of_term pp) ts))
-          end;
-
-    (*read term*)
+    fun check T t = Exn.Result (singleton (fst o infer) (t, T))
+      handle ERROR msg => Exn.Exn (ERROR msg);
     val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
-    fun read T = disambig T o Syntax.standard_parse_term (get_sort thy def_sort) map_const map_free
+    fun read T = Syntax.standard_parse_term pp (check T) (get_sort thy def_sort) map_const map_free
         (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn T;
   in
     raw_args
