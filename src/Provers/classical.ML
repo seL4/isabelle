@@ -655,22 +655,24 @@ fun cs addSE2    (name, thm) =
   Merging the term nets may look more efficient, but the rather delicate
   treatment of priority might get muddled up.*)
 fun merge_cs (cs as CS {safeIs, safeEs, hazIs, hazEs, ...},
-    CS {safeIs = safeIs2, safeEs = safeEs2, hazIs = hazIs2, hazEs = hazEs2,
+    cs' as CS {safeIs = safeIs2, safeEs = safeEs2, hazIs = hazIs2, hazEs = hazEs2,
       swrappers, uwrappers, ...}) =
-  let
-    val safeIs' = fold rem_thm safeIs safeIs2;
-    val safeEs' = fold rem_thm safeEs safeEs2;
-    val hazIs' = fold rem_thm hazIs hazIs2;
-    val hazEs' = fold rem_thm hazEs hazEs2;
-    val cs1   = cs addSIs safeIs'
-                   addSEs safeEs'
-                   addIs  hazIs'
-                   addEs  hazEs';
-    val cs2 = map_swrappers
-      (fn ws => AList.merge (op =) (K true) (ws, swrappers)) cs1;
-    val cs3 = map_uwrappers
-      (fn ws => AList.merge (op =) (K true) (ws, uwrappers)) cs2;
-  in cs3 end;
+  if pointer_eq (cs, cs') then cs
+  else
+    let
+      val safeIs' = fold rem_thm safeIs safeIs2;
+      val safeEs' = fold rem_thm safeEs safeEs2;
+      val hazIs' = fold rem_thm hazIs hazIs2;
+      val hazEs' = fold rem_thm hazEs hazEs2;
+      val cs1   = cs addSIs safeIs'
+                     addSEs safeEs'
+                     addIs  hazIs'
+                     addEs  hazEs';
+      val cs2 = map_swrappers
+        (fn ws => AList.merge (op =) (K true) (ws, swrappers)) cs1;
+      val cs3 = map_uwrappers
+        (fn ws => AList.merge (op =) (K true) (ws, uwrappers)) cs2;
+    in cs3 end;
 
 
 (**** Simple tactics for theorem proving ****)
@@ -851,12 +853,14 @@ fun make_context_cs (swrappers, uwrappers) =
 val empty_context_cs = make_context_cs ([], []);
 
 fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
-  let
-    val ContextCS {swrappers = swrappers1, uwrappers = uwrappers1} = ctxt_cs1;
-    val ContextCS {swrappers = swrappers2, uwrappers = uwrappers2} = ctxt_cs2;
-    val swrappers' = AList.merge (op =) (K true) (swrappers1, swrappers2);
-    val uwrappers' = AList.merge (op =) (K true) (uwrappers1, uwrappers2);
-  in make_context_cs (swrappers', uwrappers') end;
+  if pointer_eq (ctxt_cs1, ctxt_cs2) then ctxt_cs1
+  else
+    let
+      val ContextCS {swrappers = swrappers1, uwrappers = uwrappers1} = ctxt_cs1;
+      val ContextCS {swrappers = swrappers2, uwrappers = uwrappers2} = ctxt_cs2;
+      val swrappers' = AList.merge (op =) (K true) (swrappers1, swrappers2);
+      val uwrappers' = AList.merge (op =) (K true) (uwrappers1, uwrappers2);
+    in make_context_cs (swrappers', uwrappers') end;
 
 
 

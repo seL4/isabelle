@@ -791,28 +791,30 @@ val empty_ss = init_ss basic_mk_rews Term.termless (K (K no_tac)) ([], []);
 (* merge *)  (*NOTE: ignores some fields of 2nd simpset*)
 
 fun merge_ss (ss1, ss2) =
-  let
-    val Simpset ({rules = rules1, prems = prems1, bounds = bounds1, depth = depth1, context = _},
-     {congs = (congs1, weak1), procs = procs1, mk_rews, termless, subgoal_tac,
-      loop_tacs = loop_tacs1, solvers = (unsafe_solvers1, solvers1)}) = ss1;
-    val Simpset ({rules = rules2, prems = prems2, bounds = bounds2, depth = depth2, context = _},
-     {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
-      loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
-
-    val rules' = Net.merge eq_rrule (rules1, rules2);
-    val prems' = merge Thm.eq_thm_prop (prems1, prems2);
-    val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
-    val depth' = if #1 depth1 < #1 depth2 then depth2 else depth1;
-    val congs' = merge (eq_cong o pairself #2) (congs1, congs2);
-    val weak' = merge (op =) (weak1, weak2);
-    val procs' = Net.merge eq_proc (procs1, procs2);
-    val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
-    val unsafe_solvers' = merge eq_solver (unsafe_solvers1, unsafe_solvers2);
-    val solvers' = merge eq_solver (solvers1, solvers2);
-  in
-    make_simpset ((rules', prems', bounds', depth', NONE), ((congs', weak'), procs',
-      mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
-  end;
+  if pointer_eq (ss1, ss2) then ss1
+  else
+    let
+      val Simpset ({rules = rules1, prems = prems1, bounds = bounds1, depth = depth1, context = _},
+       {congs = (congs1, weak1), procs = procs1, mk_rews, termless, subgoal_tac,
+        loop_tacs = loop_tacs1, solvers = (unsafe_solvers1, solvers1)}) = ss1;
+      val Simpset ({rules = rules2, prems = prems2, bounds = bounds2, depth = depth2, context = _},
+       {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
+        loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
+  
+      val rules' = Net.merge eq_rrule (rules1, rules2);
+      val prems' = merge Thm.eq_thm_prop (prems1, prems2);
+      val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
+      val depth' = if #1 depth1 < #1 depth2 then depth2 else depth1;
+      val congs' = merge (eq_cong o pairself #2) (congs1, congs2);
+      val weak' = merge (op =) (weak1, weak2);
+      val procs' = Net.merge eq_proc (procs1, procs2);
+      val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
+      val unsafe_solvers' = merge eq_solver (unsafe_solvers1, unsafe_solvers2);
+      val solvers' = merge eq_solver (solvers1, solvers2);
+    in
+      make_simpset ((rules', prems', bounds', depth', NONE), ((congs', weak'), procs',
+        mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
+    end;
 
 
 
