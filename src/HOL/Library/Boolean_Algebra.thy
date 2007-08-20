@@ -12,9 +12,9 @@ imports Main
 begin
 
 locale boolean =
-  fixes conj :: "'a => 'a => 'a" (infixr "\<sqinter>" 70)
-  fixes disj :: "'a => 'a => 'a" (infixr "\<squnion>" 65)
-  fixes compl :: "'a => 'a" ("\<sim> _" [81] 80)
+  fixes conj :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<sqinter>" 70)
+  fixes disj :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<squnion>" 65)
+  fixes compl :: "'a \<Rightarrow> 'a" ("\<sim> _" [81] 80)
   fixes zero :: "'a" ("\<zero>")
   fixes one  :: "'a" ("\<one>")
   assumes conj_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
@@ -23,10 +23,10 @@ locale boolean =
   assumes disj_commute: "x \<squnion> y = y \<squnion> x"
   assumes conj_disj_distrib: "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
   assumes disj_conj_distrib: "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
-  assumes conj_one_right: "x \<sqinter> \<one> = x"
-  assumes disj_zero_right: "x \<squnion> \<zero> = x"
-  assumes conj_cancel_right: "x \<sqinter> \<sim> x = \<zero>"
-  assumes disj_cancel_right: "x \<squnion> \<sim> x = \<one>"
+  assumes conj_one_right [simp]: "x \<sqinter> \<one> = x"
+  assumes disj_zero_right [simp]: "x \<squnion> \<zero> = x"
+  assumes conj_cancel_right [simp]: "x \<sqinter> \<sim> x = \<zero>"
+  assumes disj_cancel_right [simp]: "x \<squnion> \<sim> x = \<one>"
 begin
 
 lemmas disj_ac =
@@ -51,7 +51,7 @@ apply (rule disj_cancel_right)
 apply (rule conj_cancel_right)
 done
 
-text {* Complement *}
+subsection {* Complement *}
 
 lemma complement_unique:
   assumes 1: "a \<sqinter> x = \<zero>"
@@ -67,25 +67,25 @@ proof -
   thus "x = y" using conj_one_right by simp
 qed
 
-lemma compl_unique: "[| x \<sqinter> y = \<zero>; x \<squnion> y = \<one> |] ==> \<sim> x = y"
+lemma compl_unique: "\<lbrakk>x \<sqinter> y = \<zero>; x \<squnion> y = \<one>\<rbrakk> \<Longrightarrow> \<sim> x = y"
 by (rule complement_unique [OF conj_cancel_right disj_cancel_right])
 
 lemma double_compl [simp]: "\<sim> (\<sim> x) = x"
 proof (rule compl_unique)
-  from conj_cancel_right show "\<sim> x \<sqinter> x = \<zero>" by (simp add: conj_commute)
-  from disj_cancel_right show "\<sim> x \<squnion> x = \<one>" by (simp add: disj_commute)
+  from conj_cancel_right show "\<sim> x \<sqinter> x = \<zero>" by (simp only: conj_commute)
+  from disj_cancel_right show "\<sim> x \<squnion> x = \<one>" by (simp only: disj_commute)
 qed
 
 lemma compl_eq_compl_iff [simp]: "(\<sim> x = \<sim> y) = (x = y)"
 by (rule inj_eq [OF inj_on_inverseI], rule double_compl)
 
-text {* Conjunction *}
+subsection {* Conjunction *}
 
 lemma conj_absorb: "x \<sqinter> x = x"
 proof -
   have "x \<sqinter> x = (x \<sqinter> x) \<squnion> \<zero>" using disj_zero_right by simp
   also have "... = (x \<sqinter> x) \<squnion> (x \<sqinter> \<sim> x)" using conj_cancel_right by simp
-  also have "... = x \<sqinter> (x \<squnion> \<sim> x)" using conj_disj_distrib by simp
+  also have "... = x \<sqinter> (x \<squnion> \<sim> x)" using conj_disj_distrib by (simp only:)
   also have "... = x \<sqinter> \<one>" using disj_cancel_right by simp
   also have "... = x" using conj_one_right by simp
   finally show ?thesis .
@@ -113,16 +113,16 @@ lemma conj_cancel_left [simp]: "\<sim> x \<sqinter> x = \<zero>"
 by (subst conj_commute) (rule conj_cancel_right)
 
 lemma conj_left_absorb [simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
-by (simp add: conj_assoc [symmetric] conj_absorb)
+by (simp only: conj_assoc [symmetric] conj_absorb)
 
 lemma conj_disj_distrib2:
   "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)" 
-by (simp add: conj_commute conj_disj_distrib)
+by (simp only: conj_commute conj_disj_distrib)
 
 lemmas conj_disj_distribs =
    conj_disj_distrib conj_disj_distrib2
 
-text {* Disjunction *}
+subsection {* Disjunction *}
 
 lemma disj_absorb [simp]: "x \<squnion> x = x"
 by (rule boolean.conj_absorb [OF dual])
@@ -152,23 +152,23 @@ by (rule boolean.conj_disj_distrib2 [OF dual])
 lemmas disj_conj_distribs =
    disj_conj_distrib disj_conj_distrib2
 
-text {* De Morgan's Laws *}
+subsection {* De Morgan's Laws *}
 
 lemma de_Morgan_conj [simp]: "\<sim> (x \<sqinter> y) = \<sim> x \<squnion> \<sim> y"
 proof (rule compl_unique)
   have "(x \<sqinter> y) \<sqinter> (\<sim> x \<squnion> \<sim> y) = ((x \<sqinter> y) \<sqinter> \<sim> x) \<squnion> ((x \<sqinter> y) \<sqinter> \<sim> y)"
     by (rule conj_disj_distrib)
   also have "... = (y \<sqinter> (x \<sqinter> \<sim> x)) \<squnion> (x \<sqinter> (y \<sqinter> \<sim> y))"
-    by (simp add: conj_ac)
+    by (simp only: conj_ac)
   finally show "(x \<sqinter> y) \<sqinter> (\<sim> x \<squnion> \<sim> y) = \<zero>"
-    by (simp add: conj_cancel_right conj_zero_right disj_zero_right)
+    by (simp only: conj_cancel_right conj_zero_right disj_zero_right)
 next
   have "(x \<sqinter> y) \<squnion> (\<sim> x \<squnion> \<sim> y) = (x \<squnion> (\<sim> x \<squnion> \<sim> y)) \<sqinter> (y \<squnion> (\<sim> x \<squnion> \<sim> y))"
     by (rule disj_conj_distrib2)
   also have "... = (\<sim> y \<squnion> (x \<squnion> \<sim> x)) \<sqinter> (\<sim> x \<squnion> (y \<squnion> \<sim> y))"
-    by (simp add: disj_ac)
+    by (simp only: disj_ac)
   finally show "(x \<sqinter> y) \<squnion> (\<sim> x \<squnion> \<sim> y) = \<one>"
-    by (simp add: disj_cancel_right disj_one_right conj_one_right)
+    by (simp only: disj_cancel_right disj_one_right conj_one_right)
 qed
 
 lemma de_Morgan_disj [simp]: "\<sim> (x \<squnion> y) = \<sim> x \<sqinter> \<sim> y"
@@ -176,7 +176,7 @@ by (rule boolean.de_Morgan_conj [OF dual])
 
 end
 
-text {* Symmetric Difference *}
+subsection {* Symmetric Difference *}
 
 locale boolean_xor = boolean +
   fixes xor :: "'a => 'a => 'a"  (infixr "\<oplus>" 65)
@@ -185,11 +185,11 @@ begin
 
 lemma xor_def2:
   "x \<oplus> y = (x \<squnion> y) \<sqinter> (\<sim> x \<squnion> \<sim> y)"
-by (simp add: xor_def conj_disj_distribs
-              disj_ac conj_ac conj_cancel_right disj_zero_left)
+by (simp only: xor_def conj_disj_distribs
+               disj_ac conj_ac conj_cancel_right disj_zero_left)
 
 lemma xor_commute: "x \<oplus> y = y \<oplus> x"
-by (simp add: xor_def conj_commute disj_commute)
+by (simp only: xor_def conj_commute disj_commute)
 
 lemma xor_assoc: "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
 proof -
@@ -197,10 +197,10 @@ proof -
             (\<sim> x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (\<sim> x \<sqinter> \<sim> y \<sqinter> z)"
   have "?t \<squnion> (z \<sqinter> x \<sqinter> \<sim> x) \<squnion> (z \<sqinter> y \<sqinter> \<sim> y) =
         ?t \<squnion> (x \<sqinter> y \<sqinter> \<sim> y) \<squnion> (x \<sqinter> z \<sqinter> \<sim> z)"
-    by (simp add: conj_cancel_right conj_zero_right)
+    by (simp only: conj_cancel_right conj_zero_right)
   thus "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
-    apply (simp add: xor_def de_Morgan_disj de_Morgan_conj double_compl)
-    apply (simp add: conj_disj_distribs conj_ac disj_ac)
+    apply (simp only: xor_def de_Morgan_disj de_Morgan_conj double_compl)
+    apply (simp only: conj_disj_distribs conj_ac disj_ac)
     done
 qed
 
@@ -209,41 +209,41 @@ lemmas xor_ac =
   mk_left_commute [of "xor", OF xor_assoc xor_commute]
 
 lemma xor_zero_right [simp]: "x \<oplus> \<zero> = x"
-by (simp add: xor_def compl_zero conj_one_right conj_zero_right disj_zero_right)
+by (simp only: xor_def compl_zero conj_one_right conj_zero_right disj_zero_right)
 
 lemma xor_zero_left [simp]: "\<zero> \<oplus> x = x"
 by (subst xor_commute) (rule xor_zero_right)
 
 lemma xor_one_right [simp]: "x \<oplus> \<one> = \<sim> x"
-by (simp add: xor_def compl_one conj_zero_right conj_one_right disj_zero_left)
+by (simp only: xor_def compl_one conj_zero_right conj_one_right disj_zero_left)
 
 lemma xor_one_left [simp]: "\<one> \<oplus> x = \<sim> x"
 by (subst xor_commute) (rule xor_one_right)
 
 lemma xor_self [simp]: "x \<oplus> x = \<zero>"
-by (simp add: xor_def conj_cancel_right conj_cancel_left disj_zero_right)
+by (simp only: xor_def conj_cancel_right conj_cancel_left disj_zero_right)
 
 lemma xor_left_self [simp]: "x \<oplus> (x \<oplus> y) = y"
-by (simp add: xor_assoc [symmetric] xor_self xor_zero_left)
+by (simp only: xor_assoc [symmetric] xor_self xor_zero_left)
 
 lemma xor_compl_left: "\<sim> x \<oplus> y = \<sim> (x \<oplus> y)"
-apply (simp add: xor_def de_Morgan_disj de_Morgan_conj double_compl)
-apply (simp add: conj_disj_distribs)
-apply (simp add: conj_cancel_right conj_cancel_left)
-apply (simp add: disj_zero_left disj_zero_right)
-apply (simp add: disj_ac conj_ac)
+apply (simp only: xor_def de_Morgan_disj de_Morgan_conj double_compl)
+apply (simp only: conj_disj_distribs)
+apply (simp only: conj_cancel_right conj_cancel_left)
+apply (simp only: disj_zero_left disj_zero_right)
+apply (simp only: disj_ac conj_ac)
 done
 
 lemma xor_compl_right: "x \<oplus> \<sim> y = \<sim> (x \<oplus> y)"
-apply (simp add: xor_def de_Morgan_disj de_Morgan_conj double_compl)
-apply (simp add: conj_disj_distribs)
-apply (simp add: conj_cancel_right conj_cancel_left)
-apply (simp add: disj_zero_left disj_zero_right)
-apply (simp add: disj_ac conj_ac)
+apply (simp only: xor_def de_Morgan_disj de_Morgan_conj double_compl)
+apply (simp only: conj_disj_distribs)
+apply (simp only: conj_cancel_right conj_cancel_left)
+apply (simp only: disj_zero_left disj_zero_right)
+apply (simp only: disj_ac conj_ac)
 done
 
 lemma xor_cancel_right [simp]: "x \<oplus> \<sim> x = \<one>"
-by (simp add: xor_compl_right xor_self compl_zero)
+by (simp only: xor_compl_right xor_self compl_zero)
 
 lemma xor_cancel_left [simp]: "\<sim> x \<oplus> x = \<one>"
 by (subst xor_commute) (rule xor_cancel_right)
@@ -252,9 +252,9 @@ lemma conj_xor_distrib: "x \<sqinter> (y \<oplus> z) = (x \<sqinter> y) \<oplus>
 proof -
   have "(x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> z) =
         (y \<sqinter> x \<sqinter> \<sim> x) \<squnion> (z \<sqinter> x \<sqinter> \<sim> x) \<squnion> (x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> z)"
-    by (simp add: conj_cancel_right conj_zero_right disj_zero_left)
+    by (simp only: conj_cancel_right conj_zero_right disj_zero_left)
   thus "x \<sqinter> (y \<oplus> z) = (x \<sqinter> y) \<oplus> (x \<sqinter> z)"
-    by (simp (no_asm_use) add:
+    by (simp (no_asm_use) only:
         xor_def de_Morgan_disj de_Morgan_conj double_compl
         conj_disj_distribs conj_ac disj_ac)
 qed
@@ -265,7 +265,7 @@ proof -
   have "x \<sqinter> (y \<oplus> z) = (x \<sqinter> y) \<oplus> (x \<sqinter> z)"
     by (rule conj_xor_distrib)
   thus "(y \<oplus> z) \<sqinter> x = (y \<sqinter> x) \<oplus> (z \<sqinter> x)"
-    by (simp add: conj_commute)
+    by (simp only: conj_commute)
 qed
 
 lemmas conj_xor_distribs =
