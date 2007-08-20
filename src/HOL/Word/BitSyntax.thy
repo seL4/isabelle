@@ -12,18 +12,29 @@ theory BitSyntax
 imports Main
 begin
 
-axclass bit < type
+class bit = type +
+  fixes bitNOT :: "'a \<Rightarrow> 'a"
+    and bitAND :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    and bitOR  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    and bitXOR :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 
 text {*
   We want the bitwise operations to bind slightly weaker
   than @{text "+"} and @{text "-"}, but @{text "~~"} to 
   bind slightly stronger than @{text "*"}.
 *}
-consts
-  bitNOT  :: "'a::bit \<Rightarrow> 'a"       ("NOT _" [70] 71)
-  bitAND  :: "'a::bit \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "AND" 64)
-  bitOR   :: "'a::bit \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "OR"  59)
-  bitXOR  :: "'a::bit \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "XOR" 59)
+
+notation
+  bitNOT  ("NOT _" [70] 71)
+
+notation
+  bitAND  (infixr "AND" 64)
+
+notation
+  bitOR   (infixr "OR"  59)
+
+notation
+  bitXOR  (infixr "XOR" 59)
 
 text {*
   Testing and shifting operations.
@@ -40,13 +51,12 @@ consts
 
 subsection {* Bitwise operations on type @{typ bit} *}
 
-instance bit :: bit ..
-
-defs (overloaded)
+instance bit :: bit
   NOT_bit_def: "NOT x \<equiv> case x of bit.B0 \<Rightarrow> bit.B1 | bit.B1 \<Rightarrow> bit.B0"
   AND_bit_def: "x AND y \<equiv> case x of bit.B0 \<Rightarrow> bit.B0 | bit.B1 \<Rightarrow> y"
   OR_bit_def: "x OR y :: bit \<equiv> NOT (NOT x AND NOT y)"
   XOR_bit_def: "x XOR y :: bit \<equiv> (x AND NOT y) OR (NOT x AND y)"
+  ..
 
 lemma bit_simps [simp]:
   "NOT bit.B0 = bit.B1"
