@@ -11,6 +11,41 @@ theory WordShift imports WordBitwise begin
 
 subsection "Bit shifting"
 
+constdefs
+  shiftl1 :: "'a :: len0 word => 'a word"
+  "shiftl1 w == word_of_int (uint w BIT bit.B0)"
+
+  -- "shift right as unsigned or as signed, ie logical or arithmetic"
+  shiftr1 :: "'a :: len0 word => 'a word"
+  "shiftr1 w == word_of_int (bin_rest (uint w))"
+
+  sshiftr1 :: "'a :: len word => 'a word" 
+  "sshiftr1 w == word_of_int (bin_rest (sint w))"
+
+  bshiftr1 :: "bool => 'a :: len word => 'a word"
+  "bshiftr1 b w == of_bl (b # butlast (to_bl w))"
+
+  sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55)
+  "w >>> n == (sshiftr1 ^ n) w"
+
+  mask :: "nat => 'a::len word"
+  "mask n == (1 << n) - 1"
+
+  revcast :: "'a :: len0 word => 'b :: len0 word"
+  "revcast w ==  of_bl (takefill False (len_of TYPE('b)) (to_bl w))"
+
+  slice1 :: "nat => 'a :: len0 word => 'b :: len0 word"
+  "slice1 n w == of_bl (takefill False n (to_bl w))"
+
+  slice :: "nat => 'a :: len0 word => 'b :: len0 word"
+  "slice n w == slice1 (size w - n) w"
+
+defs (overloaded)
+  shiftl_def: "(w::'a::len0 word) << n == (shiftl1 ^ n) w"
+  shiftr_def: "(w::'a::len0 word) >> n == (shiftr1 ^ n) w"
+
+lemmas slice_def' = slice_def [unfolded word_size]
+
 lemma shiftl1_number [simp] :
   "shiftl1 (number_of w) = number_of (w BIT bit.B0)"
   apply (unfold shiftl1_def word_number_of_def)
@@ -862,6 +897,23 @@ lemma sofl_test:
 
 subsection "Split and cat"
 
+constdefs
+  word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word"
+  "word_cat a b == word_of_int (bin_cat (uint a) (len_of TYPE ('b)) (uint b))"
+
+  word_split :: "'a :: len0 word => ('b :: len0 word) * ('c :: len0 word)"
+  "word_split a == 
+   case bin_split (len_of TYPE ('c)) (uint a) of 
+     (u, v) => (word_of_int u, word_of_int v)"
+
+  word_rcat :: "'a :: len0 word list => 'b :: len0 word"
+  "word_rcat ws == 
+  word_of_int (bin_rcat (len_of TYPE ('a)) (map uint ws))"
+
+  word_rsplit :: "'a :: len0 word => 'b :: len word list"
+  "word_rsplit w == 
+  map word_of_int (bin_rsplit (len_of TYPE ('b)) (len_of TYPE ('a), uint w))"
+
 lemmas word_split_bin' = word_split_def [THEN meta_eq_to_obj_eq, standard]
 lemmas word_cat_bin' = word_cat_def [THEN meta_eq_to_obj_eq, standard]
 
@@ -1243,6 +1295,24 @@ lemmas word_rsplit_rcat_size = refl [THEN word_rsplit_rcat_size']
 
 
 subsection "Rotation"
+
+constdefs
+  rotater1 :: "'a list => 'a list"
+  "rotater1 ys == 
+    case ys of [] => [] | x # xs => last ys # butlast ys"
+
+  rotater :: "nat => 'a list => 'a list"
+  "rotater n == rotater1 ^ n"
+
+  word_rotr :: "nat => 'a :: len0 word => 'a :: len0 word"
+  "word_rotr n w == of_bl (rotater n (to_bl w))"
+
+  word_rotl :: "nat => 'a :: len0 word => 'a :: len0 word"
+  "word_rotl n w == of_bl (rotate n (to_bl w))"
+
+  word_roti :: "int => 'a :: len0 word => 'a :: len0 word"
+  "word_roti i w == if i >= 0 then word_rotr (nat i) w
+                    else word_rotl (nat (- i)) w"
 
 lemmas rotater_0' [simp] = rotater_def [where n = "0", simplified]
 

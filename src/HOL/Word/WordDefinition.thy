@@ -176,83 +176,6 @@ constdefs
   "clearBit w n == set_bit w n False"
 
 
-subsection "Shift operations"
-
-constdefs
-  shiftl1 :: "'a :: len0 word => 'a word"
-  "shiftl1 w == word_of_int (uint w BIT bit.B0)"
-
-  -- "shift right as unsigned or as signed, ie logical or arithmetic"
-  shiftr1 :: "'a :: len0 word => 'a word"
-  "shiftr1 w == word_of_int (bin_rest (uint w))"
-
-  sshiftr1 :: "'a :: len word => 'a word" 
-  "sshiftr1 w == word_of_int (bin_rest (sint w))"
-
-  bshiftr1 :: "bool => 'a :: len word => 'a word"
-  "bshiftr1 b w == of_bl (b # butlast (to_bl w))"
-
-  sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55)
-  "w >>> n == (sshiftr1 ^ n) w"
-
-  mask :: "nat => 'a::len word"
-  "mask n == (1 << n) - 1"
-
-  revcast :: "'a :: len0 word => 'b :: len0 word"
-  "revcast w ==  of_bl (takefill False (len_of TYPE('b)) (to_bl w))"
-
-  slice1 :: "nat => 'a :: len0 word => 'b :: len0 word"
-  "slice1 n w == of_bl (takefill False n (to_bl w))"
-
-  slice :: "nat => 'a :: len0 word => 'b :: len0 word"
-  "slice n w == slice1 (size w - n) w"
-
-
-defs (overloaded)
-  shiftl_def: "(w::'a::len0 word) << n == (shiftl1 ^ n) w"
-  shiftr_def: "(w::'a::len0 word) >> n == (shiftr1 ^ n) w"
-
-
-subsection "Rotation"
-
-constdefs
-  rotater1 :: "'a list => 'a list"
-  "rotater1 ys == 
-    case ys of [] => [] | x # xs => last ys # butlast ys"
-
-  rotater :: "nat => 'a list => 'a list"
-  "rotater n == rotater1 ^ n"
-
-  word_rotr :: "nat => 'a :: len0 word => 'a :: len0 word"
-  "word_rotr n w == of_bl (rotater n (to_bl w))"
-
-  word_rotl :: "nat => 'a :: len0 word => 'a :: len0 word"
-  "word_rotl n w == of_bl (rotate n (to_bl w))"
-
-  word_roti :: "int => 'a :: len0 word => 'a :: len0 word"
-  "word_roti i w == if i >= 0 then word_rotr (nat i) w
-                    else word_rotl (nat (- i)) w"
-
-
-subsection "Split and cat operations"
-
-constdefs
-  word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word"
-  "word_cat a b == word_of_int (bin_cat (uint a) (len_of TYPE ('b)) (uint b))"
-
-  word_split :: "'a :: len0 word => ('b :: len0 word) * ('c :: len0 word)"
-  "word_split a == 
-   case bin_split (len_of TYPE ('c)) (uint a) of 
-     (u, v) => (word_of_int u, word_of_int v)"
-
-  word_rcat :: "'a :: len0 word list => 'b :: len0 word"
-  "word_rcat ws == 
-  word_of_int (bin_rcat (len_of TYPE ('a)) (map uint ws))"
-
-  word_rsplit :: "'a :: len0 word => 'b :: len word list"
-  "word_rsplit w == 
-  map word_of_int (bin_rsplit (len_of TYPE ('b)) (len_of TYPE ('a), uint w))"
-
 constdefs
   -- "Largest representable machine integer."
   max_word :: "'a::len word"
@@ -897,7 +820,6 @@ lemma ucast_down_bl': "uc = ucast ==> is_down uc ==> uc (of_bl bl) = of_bl bl"
     
 lemmas ucast_down_bl = ucast_down_bl' [OF refl]
 
-lemmas slice_def' = slice_def [unfolded word_size]
 lemmas test_bit_def' = word_test_bit_def [THEN meta_eq_to_obj_eq, THEN fun_cong]
 
 lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
