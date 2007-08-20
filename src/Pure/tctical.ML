@@ -203,7 +203,7 @@ fun print_tac msg =
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =
   (tracing "** Press RETURN to continue:";
-   if CRITICAL (fn () => TextIO.inputLine TextIO.stdIn) = SOME "\n" then Seq.single st
+   if TextIO.inputLine TextIO.stdIn = SOME "\n" then Seq.single st
    else (tracing "Goodbye";  Seq.empty));
 
 exception TRACE_EXIT of thm
@@ -215,7 +215,7 @@ and suppress_tracing = ref false;
 
 (*Handle all tracing commands for current state and tactic *)
 fun exec_trace_command flag (tac, st) =
-   case CRITICAL (fn () => TextIO.inputLine TextIO.stdIn) of
+   case TextIO.inputLine TextIO.stdIn of
        SOME "\n" => tac st
      | SOME "f\n" => Seq.empty
      | SOME "o\n" => (flag:=false;  tac st)
