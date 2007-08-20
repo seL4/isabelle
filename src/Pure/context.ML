@@ -307,28 +307,30 @@ fun create_thy name self id ids iids data ancestry history =
     val identity' = make_identity self id' ids' iids';
   in vitalize (Theory (identity', data, ancestry, history)) end;
 
-fun change_thy name f thy = NAMED_CRITICAL "theory" (fn () =>
+fun change_thy name f thy =
   let
-    val _ = check_thy thy;
     val Theory ({self, id, ids, iids}, data, ancestry, history) = thy;
     val (self', data', ancestry') =
       if is_draft thy then (self, data, ancestry)    (*destructive change!*)
       else if #version history > 0
       then (NONE, copy_data data, ancestry)
-      else (NONE, extend_data data,
-        make_ancestry [thy] (thy :: #ancestors ancestry));
+      else (NONE, extend_data data, make_ancestry [thy] (thy :: #ancestors ancestry));
     val data'' = f data';
-  in create_thy name self' id ids iids data'' ancestry' history end);
+    val thy' = NAMED_CRITICAL "theory" (fn () =>
+      (check_thy thy; create_thy name self' id ids iids data'' ancestry' history));
+  in thy' end;
 
 fun name_thy name = change_thy name I;
 val modify_thy = change_thy draftN;
 val extend_thy = modify_thy I;
 
-fun copy_thy thy = NAMED_CRITICAL "theory" (fn () =>
+fun copy_thy thy =
   let
-    val _ = check_thy thy;
     val Theory ({id, ids, iids, ...}, data, ancestry, history) = thy;
-  in create_thy draftN NONE id ids iids (copy_data data) ancestry history end);
+    val data' = copy_data data;
+    val thy' = NAMED_CRITICAL "theory" (fn () =>
+      (check_thy thy; create_thy draftN NONE id ids iids data' ancestry history));
+  in thy' end;
 
 val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Inttab.empty
   Datatab.empty (make_ancestry [] []) (make_history ProtoPureN 0 []);
@@ -339,24 +341,24 @@ val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Intta
 fun merge_thys pp (thy1, thy2) =
   if exists_name CPureN thy1 <> exists_name CPureN thy2 then
     error "Cannot merge Pure and CPure developments"
-  else NAMED_CRITICAL "theory" (fn () =>
+  else
     let
-      val _ = check_thy thy1;
-      val _ = check_thy thy2;
       val (ids, iids) = check_merge thy1 thy2;
       val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
       val ancestry = make_ancestry [] [];
       val history = make_history "" 0 [];
-    in create_thy draftN NONE (serial (), draftN) ids iids data ancestry history end);
+      val thy' = NAMED_CRITICAL "theory" (fn () =>
+       (check_thy thy1; check_thy thy2;
+        create_thy draftN NONE (serial (), draftN) ids iids data ancestry history))
+    in thy' end;
 
 fun maximal_thys thys =
   thys |> filter (fn thy => not (exists (fn thy' => proper_subthy (thy, thy')) thys));
 
 fun begin_thy pp name imports =
   if name = draftN then error ("Illegal theory name: " ^ quote draftN)
-  else NAMED_CRITICAL "theory" (fn () =>
+  else
     let
-      val _ = map check_thy imports;
       val parents = maximal_thys (distinct eq_thy imports);
       val ancestors = distinct eq_thy (parents @ maps ancestors_of parents);
       val Theory ({id, ids, iids, ...}, data, _, _) =
@@ -366,20 +368,24 @@ fun begin_thy pp name imports =
         | thy :: thys => Library.foldl (merge_thys pp) (thy, thys));
       val ancestry = make_ancestry parents ancestors;
       val history = make_history name 0 [];
-    in create_thy draftN NONE id ids iids data ancestry history end);
+      val thy' = NAMED_CRITICAL "theory" (fn () =>
+        (map check_thy imports; create_thy draftN NONE id ids iids data ancestry history));
+    in thy' end;
 
 
 (* undoable checkpoints *)
 
 fun checkpoint_thy thy =
   if not (is_draft thy) then thy
-  else NAMED_CRITICAL "theory" (fn () =>
+  else
     let
       val {name, version, intermediates} = history_of thy;
       val thy' as Theory (identity', data', ancestry', _) =
         name_thy (name ^ ":" ^ string_of_int version) thy;
       val history' = make_history name (version + 1) (thy' :: intermediates);
-    in vitalize (Theory (identity', data', ancestry', history')) end);
+      val thy'' = NAMED_CRITICAL "theory" (fn () =>
+        (check_thy thy'; vitalize (Theory (identity', data', ancestry', history'))));
+    in thy'' end;
 
 fun finish_thy thy = NAMED_CRITICAL "theory" (fn () =>
   let
