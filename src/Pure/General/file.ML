@@ -129,14 +129,14 @@ fun output txts stream = List.app (fn txt => TextIO.output (stream, txt)) txts;
 
 in
 
-fun read path = NAMED_CRITICAL "IO" (fn () =>
-  fail_safe TextIO.inputAll TextIO.closeIn (TextIO.openIn (platform_path path)));
+fun read path =
+  fail_safe TextIO.inputAll TextIO.closeIn (TextIO.openIn (platform_path path));
 
-fun write_list path txts = NAMED_CRITICAL "IO" (fn () =>
-  fail_safe (output txts) TextIO.closeOut (TextIO.openOut (platform_path path)));
+fun write_list path txts =
+  fail_safe (output txts) TextIO.closeOut (TextIO.openOut (platform_path path));
 
-fun append_list path txts = NAMED_CRITICAL "IO" (fn () =>
-  fail_safe (output txts) TextIO.closeOut (TextIO.openAppend (platform_path path)));
+fun append_list path txts =
+  fail_safe (output txts) TextIO.closeOut (TextIO.openAppend (platform_path path));
 
 fun write path txt = write_list path [txt];
 fun append path txt = append_list path [txt];
