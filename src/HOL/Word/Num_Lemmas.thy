@@ -26,9 +26,6 @@ lemma nonemptyE: "S ~= {} ==> (!!x. x : S ==> R) ==> R"
   apply auto
   done
 
-lemma int_number_of: "number_of (y::int) = y" 
-  by (simp add: number_of_eq)
-
 lemma gt_or_eq_0: "0 < y \<or> 0 = (y::nat)" by auto
 
 constdefs

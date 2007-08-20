@@ -837,7 +837,7 @@ instance word :: (len) number_ring
 lemma iszero_word_no [simp] : 
   "iszero (number_of bin :: 'a :: len word) = 
     iszero (number_of (bintrunc (len_of TYPE('a)) bin) :: int)"
-  apply (simp add: zero_bintrunc int_number_of)
+  apply (simp add: zero_bintrunc number_of_is_id)
   apply (unfold iszero_def Pls_def)
   apply (rule refl)
   done

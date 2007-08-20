@@ -30,11 +30,11 @@ lemmas word_no_log_defs [simp] =
 lemmas word_wi_log_defs = word_no_log_defs [unfolded word_no_wi]
 
 lemma uint_or: "uint (x OR y) = (uint x) OR (uint y)"
-  by (simp add: word_or_def word_no_wi [symmetric] int_number_of
+  by (simp add: word_or_def word_no_wi [symmetric] number_of_is_id
                 bin_trunc_ao(2) [symmetric])
 
 lemma uint_and: "uint (x AND y) = (uint x) AND (uint y)"
-  by (simp add: word_and_def int_number_of word_no_wi [symmetric]
+  by (simp add: word_and_def number_of_is_id word_no_wi [symmetric]
                 bin_trunc_ao(1) [symmetric]) 
 
 lemma word_ops_nth_size:
@@ -203,19 +203,19 @@ lemmas word_and_le2 =
 
 lemma bl_word_not: "to_bl (NOT w) = map Not (to_bl w)" 
   unfolding to_bl_def word_log_defs
-  by (simp add: bl_not_bin int_number_of word_no_wi [symmetric])
+  by (simp add: bl_not_bin number_of_is_id word_no_wi [symmetric])
 
 lemma bl_word_xor: "to_bl (v XOR w) = app2 op ~= (to_bl v) (to_bl w)" 
   unfolding to_bl_def word_log_defs bl_xor_bin
-  by (simp add: int_number_of word_no_wi [symmetric])
+  by (simp add: number_of_is_id word_no_wi [symmetric])
 
 lemma bl_word_or: "to_bl (v OR w) = app2 op | (to_bl v) (to_bl w)" 
   unfolding to_bl_def word_log_defs
-  by (simp add: bl_or_bin int_number_of word_no_wi [symmetric])
+  by (simp add: bl_or_bin number_of_is_id word_no_wi [symmetric])
 
 lemma bl_word_and: "to_bl (v AND w) = app2 op & (to_bl v) (to_bl w)" 
   unfolding to_bl_def word_log_defs
-  by (simp add: bl_and_bin int_number_of word_no_wi [symmetric])
+  by (simp add: bl_and_bin number_of_is_id word_no_wi [symmetric])
 
 lemma word_lsb_alt: "lsb (w::'a::len0 word) = test_bit w 0"
   by (auto simp: word_test_bit_def word_lsb_def)
@@ -236,7 +236,7 @@ lemma word_lsb_int: "lsb w = (uint w mod 2 = 1)"
 
 lemma word_msb_sint: "msb w = (sint w < 0)" 
   unfolding word_msb_def
-  by (simp add : sign_Min_lt_0 int_number_of)
+  by (simp add : sign_Min_lt_0 number_of_is_id)
   
 lemma word_msb_no': 
   "w = number_of bin ==> msb (w::'a::len word) = bin_nth bin (size w - 1)"
@@ -393,7 +393,7 @@ lemma word_set_no:
     number_of (bin_sc n (if b then bit.B1 else bit.B0) bin)"
   apply (unfold word_set_bit_def word_number_of_def [symmetric])
   apply (rule word_eqI)
-  apply (clarsimp simp: word_size bin_nth_sc_gen int_number_of 
+  apply (clarsimp simp: word_size bin_nth_sc_gen number_of_is_id 
                         test_bit_no nth_bintr)
   done
 
@@ -468,7 +468,7 @@ lemma word_of_int_2p: "(word_of_int (2 ^ n) :: 'a :: len word) = 2 ^ n"
    apply (rule word_ubin.norm_eq_iff [THEN iffD1]) 
    apply (rule box_equals) 
      apply (rule_tac [2] bintr_ariths (1))+ 
-   apply (clarsimp simp add : int_number_of)
+   apply (clarsimp simp add : number_of_is_id)
   apply simp 
   done
 
