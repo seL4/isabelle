@@ -622,16 +622,16 @@ fun add_type_check f = TypeCheck.map (cons (f, stamp ()));
 
 fun type_check ts0 ctxt0 =
   let
-    val funs = rev (TypeCheck.get (Context.Proof ctxt0));
+    val funs = map #1 (rev (TypeCheck.get (Context.Proof ctxt0)));
     fun check [] ts ctxt = (ts, ctxt)
-      | check ((f, _) :: fs) ts ctxt = f ts ctxt |-> check fs;
+      | check (f :: fs) ts ctxt = f ts ctxt |-> check fs;
 
     fun check_fixpoint ts ctxt =
       let val (ts', ctxt') = check funs ts ctxt in
         if eq_list (op aconv) (ts, ts') then (ts, ctxt)
         else check_fixpoint ts' ctxt'
       end;
-  in check_fixpoint ts0 ctxt0 end;
+  in (case funs of [f] => f ts0 ctxt0 | _ => check_fixpoint ts0 ctxt0) end;
 
 fun check_terms ctxt ts = #1 (type_check ts ctxt);
 fun check_props ctxt = map (fn t => TypeInfer.constrain t propT) #> check_terms ctxt;
