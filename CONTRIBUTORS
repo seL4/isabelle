@@ -7,6 +7,13 @@ distribution.
 Contributions to Isabelle 2007
 ------------------------------
 
+* August 2007: Jeremy Dawson, NICTA,
+               Paul Graunke, Galois, 
+               Brian Huffman, PSU,
+               Gerwin Klein, NICTA, 
+               John Matthews, Galois
+  HOL-Word: a library for fixed-size machine words in Isabelle.
+
 * August 2007: Brian Huffman, PSU
   HOL/Library/Boolean_Algebra and HOL/Library/Numeral_Type
 

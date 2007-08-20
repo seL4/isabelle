@@ -635,6 +635,20 @@ the graph browser tool.
 
 *** HOL ***
 
+* HOL-Word:
+  New extensive library and type for generic, fixed size machine
+  words, with arithemtic, bit-wise, shifting and rotating operations,
+  reflection into int, nat, and bool lists, automation for linear
+  arithmetic (by automatic reflection into nat or int), including
+  lemmas on overflow and monotonicity. Instantiated to all appropriate
+  arithmetic type classes, supporting automatic simplification of
+  numerals on all operations. Jointly developed by NICTA, Galois, and
+  PSU.
+
+* Library/Boolean_Algebra: locales for abstract boolean algebras.
+
+* Library/Numeral_Type: numbers as types, e.g. TYPE(32).
+
 * Code generator library theories:
   * Pretty_Int represents HOL integers by big integer literals in target
     languages.
