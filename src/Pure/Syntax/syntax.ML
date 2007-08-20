@@ -73,11 +73,11 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
-  val standard_parse_term:
+  val standard_parse_term: Pretty.pp -> (term -> term Exn.result) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> string option) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> Proof.context ->
-    (string -> bool) -> syntax -> typ -> string -> term list
+    (string -> bool) -> syntax -> typ -> string -> term
   val standard_parse_typ: Proof.context -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
     (sort -> sort) -> string -> typ
   val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
@@ -441,9 +441,36 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty str =
 
 (* read terms *)
 
-fun standard_parse_term get_sort map_const map_free map_type map_sort ctxt is_logtype syn ty str =
-  map (TypeExt.decode_term get_sort map_const map_free map_type map_sort)
-    (read ctxt is_logtype syn ty str);
+(*brute-force disambiguation via type-inference*)
+fun disambig _ _ [t] = t
+  | disambig pp check ts =
+      let
+        val err_results = map check ts;
+        val errs = map_filter (fn Exn.Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
+        val results = map_filter Exn.get_result err_results;
+
+        val ambiguity = length ts;
+        fun ambig_msg () =
+          if ambiguity > 1 andalso ambiguity <= ! ambiguity_level then
+            "Got more than one parse tree.\n\
+            \Retry with smaller ambiguity_level for more information."
+          else "";
+      in
+        if null results then cat_error (ambig_msg ()) (cat_lines errs)
+        else if length results = 1 then
+          (if ambiguity > ! ambiguity_level then
+            warning "Fortunately, only one parse tree is type correct.\n\
+              \You may still want to disambiguate your grammar or your input."
+          else (); hd results)
+        else cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
+          cat_lines (map (Pretty.string_of_term pp) ts))
+      end;
+
+fun standard_parse_term pp check get_sort map_const map_free map_type map_sort
+    ctxt is_logtype syn ty str =
+  read ctxt is_logtype syn ty str
+  |> map (TypeExt.decode_term get_sort map_const map_free map_type map_sort)
+  |> disambig (Printer.pp_show_brackets pp) check;
 
 
 (* read types *)
