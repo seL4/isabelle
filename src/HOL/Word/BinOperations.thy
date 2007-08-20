@@ -34,30 +34,6 @@ lemma int_not_simps [simp]:
   "NOT (w BIT b) = (NOT w) BIT (NOT b)"
   by (unfold int_not_def) (auto intro: bin_rec_simps)
 
-lemma bit_extra_simps [simp]: 
-  "x AND bit.B0 = bit.B0"
-  "x AND bit.B1 = x"
-  "x OR bit.B1 = bit.B1"
-  "x OR bit.B0 = x"
-  "x XOR bit.B1 = NOT x"
-  "x XOR bit.B0 = x"
-  by (cases x, auto)+
-
-lemma bit_ops_comm: 
-  "(x::bit) AND y = y AND x"
-  "(x::bit) OR y = y OR x"
-  "(x::bit) XOR y = y XOR x"
-  by (cases y, auto)+
-
-lemma bit_ops_same [simp]: 
-  "(x::bit) AND x = x"
-  "(x::bit) OR x = x"
-  "(x::bit) XOR x = bit.B0"
-  by (cases x, auto)+
-
-lemma bit_not_not [simp]: "NOT (NOT (x::bit)) = x"
-  by (cases x) auto
-
 lemma int_xor_Pls [simp]: 
   "Numeral.Pls XOR x = x"
   unfolding int_xor_def by (simp add: bin_rec_PM)

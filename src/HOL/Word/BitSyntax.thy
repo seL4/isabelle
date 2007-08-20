@@ -70,7 +70,28 @@ lemma bit_simps [simp]:
   by (simp_all add: NOT_bit_def AND_bit_def OR_bit_def
                     XOR_bit_def split: bit.split)
 
-lemma bit_NOT_NOT: "NOT (NOT (b::bit)) = b"
-  by (induct b) simp_all
+lemma bit_extra_simps [simp]: 
+  "x AND bit.B0 = bit.B0"
+  "x AND bit.B1 = x"
+  "x OR bit.B1 = bit.B1"
+  "x OR bit.B0 = x"
+  "x XOR bit.B1 = NOT x"
+  "x XOR bit.B0 = x"
+  by (cases x, auto)+
+
+lemma bit_ops_comm: 
+  "(x::bit) AND y = y AND x"
+  "(x::bit) OR y = y OR x"
+  "(x::bit) XOR y = y XOR x"
+  by (cases y, auto)+
+
+lemma bit_ops_same [simp]: 
+  "(x::bit) AND x = x"
+  "(x::bit) OR x = x"
+  "(x::bit) XOR x = bit.B0"
+  by (cases x, auto)+
+
+lemma bit_not_not [simp]: "NOT (NOT (x::bit)) = x"
+  by (cases x) auto
 
 end
