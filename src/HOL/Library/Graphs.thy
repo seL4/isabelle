@@ -81,6 +81,7 @@ instance graph :: (type, type) "{distrib_lattice, complete_lattice}"
   "inf G H \<equiv> Graph (dest_graph G \<inter> dest_graph H)"
   "sup G H \<equiv> G + H"
   Inf_graph_def: "Inf \<equiv> \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
+  Sup_graph_def: "Sup \<equiv> \<lambda>Gs. Graph (\<Union>(dest_graph ` Gs))"
 proof
   fix x y z :: "('a,'b) graph"
   fix A :: "('a, 'b) graph set"
@@ -121,10 +122,16 @@ proof
 
   { assume "\<And>x. x \<in> A \<Longrightarrow> z \<le> x" thus "z \<le> Inf A"
     unfolding Inf_graph_def graph_leq_def by auto }
+
+  { assume "x \<in> A" thus "x \<le> Sup A" 
+      unfolding Sup_graph_def graph_leq_def by auto }
+
+  { assume "\<And>x. x \<in> A \<Longrightarrow> x \<le> z" thus "Sup A \<le> z"
+    unfolding Sup_graph_def graph_leq_def by auto }
 qed
 
 lemmas [code func del] = graph_leq_def graph_less_def
-  inf_graph_def sup_graph_def Inf_graph_def
+  inf_graph_def sup_graph_def Inf_graph_def Sup_graph_def
 
 lemma in_grplus:
   "has_edge (G + H) p b q = (has_edge G p b q \<or> has_edge H p b q)"

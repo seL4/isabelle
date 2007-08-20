@@ -327,26 +327,21 @@ subsection {* Complete lattices *}
 
 class complete_lattice = lattice +
   fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
+    and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
   assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
-  assumes Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
+     and Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
+  assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
+     and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
 begin
 
-definition
-  Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
-where
-  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<^loc>\<le> b}"
-
 lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<^loc>\<le> a}"
-  unfolding Sup_def by (auto intro: Inf_greatest Inf_lower)
+  by (auto intro: Inf_lower Inf_greatest Sup_upper Sup_least)
 
-lemma Sup_upper: "x \<in> A \<Longrightarrow> x \<^loc>\<le> \<Squnion>A"
-  by (auto simp: Sup_def intro: Inf_greatest)
-
-lemma Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<^loc>\<le> z) \<Longrightarrow> \<Squnion>A \<^loc>\<le> z"
-  by (auto simp: Sup_def intro: Inf_lower)
+lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<^loc>\<le> b}"
+  by (auto intro: Inf_lower Inf_greatest Sup_upper Sup_least)
 
 lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
-  unfolding Sup_def by auto
+  unfolding Sup_Inf by auto
 
 lemma Sup_Univ: "\<Squnion>UNIV = \<Sqinter>{}"
   unfolding Inf_Sup by auto
@@ -367,7 +362,7 @@ lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   apply (erule Inf_lower)
   done
 
-lemma Sup_insert [code func]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
+lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
   apply (rule antisym)
   apply (rule Sup_least)
   apply (erule insertE)
@@ -387,7 +382,7 @@ lemma Inf_singleton [simp]:
   "\<Sqinter>{a} = a"
   by (auto intro: antisym Inf_lower Inf_greatest)
 
-lemma Sup_singleton [simp, code func]:
+lemma Sup_singleton [simp]:
   "\<Squnion>{a} = a"
   by (auto intro: antisym Sup_upper Sup_least)
 
@@ -491,23 +486,8 @@ instance bool :: distrib_lattice
 
 instance bool :: complete_lattice
   Inf_bool_def: "Inf A \<equiv> \<forall>x\<in>A. x"
-  apply intro_classes
-  apply (unfold Inf_bool_def)
-  apply (iprover intro!: le_boolI elim: ballE)
-  apply (iprover intro!: ballI le_boolI elim: ballE le_boolE)
-  done
-
-theorem Sup_bool_eq: "Sup A \<longleftrightarrow> (\<exists>x\<in>A. x)"
-  apply (rule order_antisym)
-  apply (rule Sup_least)
-  apply (rule le_boolI)
-  apply (erule bexI, assumption)
-  apply (rule le_boolI)
-  apply (erule bexE)
-  apply (rule le_boolE)
-  apply (rule Sup_upper)
-  apply assumption+
-  done
+  Sup_bool_def: "Sup A \<equiv> \<exists>x\<in>A. x"
+  by intro_classes (auto simp add: Inf_bool_def Sup_bool_def le_bool_def)
 
 lemma Inf_empty_bool [simp]:
   "Inf {}"
@@ -515,7 +495,7 @@ lemma Inf_empty_bool [simp]:
 
 lemma not_Sup_empty_bool [simp]:
   "\<not> Sup {}"
-  unfolding Sup_def Inf_bool_def by auto
+  unfolding Sup_bool_def by auto
 
 lemma top_bool_eq: "top = True"
   by (iprover intro!: order_antisym le_boolI top_greatest)
@@ -541,17 +521,10 @@ lemmas mono_Un = mono_sup
 
 instance set :: (type) complete_lattice
   Inf_set_def: "Inf S \<equiv> \<Inter>S"
-  by intro_classes (auto simp add: Inf_set_def)
+  Sup_set_def: "Sup S \<equiv> \<Union>S"
+  by intro_classes (auto simp add: Inf_set_def Sup_set_def)
 
-lemmas [code func del] = Inf_set_def
-
-theorem Sup_set_eq: "Sup S = \<Union>S"
-  apply (rule subset_antisym)
-  apply (rule Sup_least)
-  apply (erule Union_upper)
-  apply (rule Union_least)
-  apply (erule Sup_upper)
-  done
+lemmas [code func del] = Inf_set_def Sup_set_def
 
 lemma top_set_eq: "top = UNIV"
   by (iprover intro!: subset_antisym subset_UNIV top_greatest)
@@ -581,36 +554,12 @@ instance "fun" :: (type, distrib_lattice) distrib_lattice
 
 instance "fun" :: (type, complete_lattice) complete_lattice
   Inf_fun_def: "Inf A \<equiv> (\<lambda>x. Inf {y. \<exists>f\<in>A. y = f x})"
-  apply intro_classes
-  apply (unfold Inf_fun_def)
-  apply (rule le_funI)
-  apply (rule Inf_lower)
-  apply (rule CollectI)
-  apply (rule bexI)
-  apply (rule refl)
-  apply assumption
-  apply (rule le_funI)
-  apply (rule Inf_greatest)
-  apply (erule CollectE)
-  apply (erule bexE)
-  apply (iprover elim: le_funE)
-  done
+  Sup_fun_def: "Sup A \<equiv> (\<lambda>x. Sup {y. \<exists>f\<in>A. y = f x})"
+  by intro_classes
+    (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
+      intro: Inf_lower Sup_upper Inf_greatest Sup_least)
 
-lemmas [code func del] = Inf_fun_def
-
-theorem Sup_fun_eq: "Sup A = (\<lambda>x. Sup {y. \<exists>f\<in>A. y = f x})"
-  apply (rule order_antisym)
-  apply (rule Sup_least)
-  apply (rule le_funI)
-  apply (rule Sup_upper)
-  apply fast
-  apply (rule le_funI)
-  apply (rule Sup_least)
-  apply (erule CollectE)
-  apply (erule bexE)
-  apply (drule le_funD [OF Sup_upper])
-  apply simp
-  done
+lemmas [code func del] = Inf_fun_def Sup_fun_def
 
 lemma Inf_empty_fun:
   "Inf {} = (\<lambda>_. Inf {})"
@@ -618,11 +567,7 @@ lemma Inf_empty_fun:
 
 lemma Sup_empty_fun:
   "Sup {} = (\<lambda>_. Sup {})"
-proof -
-  have aux: "\<And>x. {y. \<exists>f. y = f x} = UNIV" by auto
-  show ?thesis
-  by (auto simp add: Sup_def Inf_fun_def Inf_binary inf_bool_eq aux)
-qed
+  by rule (auto simp add: Sup_fun_def)
 
 lemma top_fun_eq: "top = (\<lambda>x. top)"
   by (iprover intro!: order_antisym le_funI top_greatest)

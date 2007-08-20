@@ -134,10 +134,10 @@ lemma inf2E [elim!]: "inf A B x y ==> (A x y ==> B x y ==> P) ==> P"
 subsection {* Unions of families *}
 
 lemma SUP1_iff [simp]: "(SUP x:A. B x) b = (EX x:A. B x b)"
-  by (simp add: SUPR_def Sup_fun_eq Sup_bool_eq) blast
+  by (simp add: SUPR_def Sup_fun_def Sup_bool_def) blast
 
 lemma SUP2_iff [simp]: "(SUP x:A. B x) b c = (EX x:A. B x b c)"
-  by (simp add: SUPR_def Sup_fun_eq Sup_bool_eq) blast
+  by (simp add: SUPR_def Sup_fun_def Sup_bool_def) blast
 
 lemma SUP1_I [intro]: "a : A ==> B a b ==> (SUP x:A. B x) b"
   by auto
