@@ -1,3 +1,11 @@
+(* 
+  ID:     $Id$
+  Author: Brian Huffman, PSU and Gerwin Klein, NICTA
+
+  Syntactic class for bitwise operations.
+*)
+
+
 header {* Syntactic class for bitwise operations *}
 
 theory BitSyntax
@@ -49,10 +57,10 @@ lemma bit_simps [simp]:
   "bit.B1 OR y = bit.B1"
   "bit.B0 XOR y = y"
   "bit.B1 XOR y = NOT y"
-by (simp_all add: NOT_bit_def AND_bit_def OR_bit_def
-                  XOR_bit_def split: bit.split)
+  by (simp_all add: NOT_bit_def AND_bit_def OR_bit_def
+                    XOR_bit_def split: bit.split)
 
 lemma bit_NOT_NOT: "NOT (NOT (b::bit)) = b"
-by (induct b) simp_all
+  by (induct b) simp_all
 
 end
