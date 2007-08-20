@@ -376,34 +376,6 @@ val cert_typ_syntax = cert_typ_mode Type.mode_syntax;
 val cert_typ_abbrev = cert_typ_mode Type.mode_abbrev;
 
 
-
-(** inner syntax parsers **)
-
-local
-
-fun parse_sort ctxt str =
-  Syntax.standard_parse_sort ctxt (syn_of ctxt) (Sign.intern_sort (theory_of ctxt)) str;
-
-fun parse_typ ctxt str =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val get_sort = Sign.get_sort thy (Variable.def_sort ctxt);
-    val T = Sign.intern_tycons thy
-      (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) str);
-  in T end
-  handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
-
-fun parse_term _ _ = error "Inner syntax: term parser unavailable";
-fun parse_prop _ _ = error "Inner syntax: prop parser unavailable";
-
-in
-
-val _ = Syntax.install_parsers
-  {sort = parse_sort, typ = parse_typ, term = parse_term, prop = parse_prop};
-
-end;
-
-
 (* internalize Skolem constants *)
 
 val lookup_skolem = AList.lookup (op =) o Variable.fixes_of;
@@ -523,14 +495,17 @@ fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mes
         if is_internal andalso is_declared then SOME x else NONE);
   in if is_some res then res else if is_declared then SOME x else NONE end;
 
+fun term_context ctxt =
+  let val thy = theory_of ctxt in
+   {get_sort = Sign.get_sort thy (Variable.def_sort ctxt),
+    map_const = try (#1 o Term.dest_Const o Consts.read_const (consts_of ctxt)),
+    map_free = legacy_intern_skolem ctxt (K false) (Variable.def_type ctxt false),
+    map_type = Sign.intern_tycons thy,
+    map_sort = Sign.intern_sort thy}
+  end;
+
 fun decode_term ctxt =
-  let
-    val thy = theory_of ctxt;
-    val get_sort = Sign.get_sort thy (Variable.def_sort ctxt);
-    val map_const = try (#1 o Term.dest_Const o Consts.read_const (consts_of ctxt));
-    val map_free = legacy_intern_skolem ctxt (K false) (Variable.def_type ctxt false);
-    val map_type = Sign.intern_tycons thy;
-    val map_sort = Sign.intern_sort thy;
+  let val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt
   in Syntax.decode_term get_sort map_const map_free map_type map_sort end;
 
 
@@ -650,6 +625,42 @@ fun read_const ctxt c =
   (case lookup_skolem ctxt c of
     SOME x => Free (x, infer_type ctxt x)
   | NONE => Consts.read_const (consts_of ctxt) c);
+
+
+
+(** inner syntax parsers **)
+
+local
+
+fun parse_sort ctxt str =
+  Syntax.standard_parse_sort ctxt (syn_of ctxt) (Sign.intern_sort (theory_of ctxt)) str;
+
+fun parse_typ ctxt str =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val get_sort = Sign.get_sort thy (Variable.def_sort ctxt);
+    val T = Sign.intern_tycons thy
+      (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) str);
+  in T end
+  handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
+
+fun parse_term T ctxt str =
+  let
+    val thy = theory_of ctxt;
+    fun infer t =
+      singleton (infer_types (put_type_mode Type.mode_default ctxt)) (TypeInfer.constrain t T);
+    fun check t = Exn.Result (infer t) handle ERROR msg => Exn.Exn (ERROR msg);
+    val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
+    val read = Syntax.standard_parse_term (pp ctxt) check get_sort map_const map_free
+      map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) T;
+  in read str end;
+
+in
+
+val _ = Syntax.install_parsers
+  {sort = parse_sort, typ = parse_typ, term = parse_term dummyT, prop = parse_term propT};
+
+end;
 
 
 
