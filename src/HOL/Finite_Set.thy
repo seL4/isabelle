@@ -1775,8 +1775,7 @@ lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME num
   apply (blast elim!: equalityE)
   done
 
-text {* Relates to equivalence classes.  Based on a theorem of
-F. Kammï¿½ller's.  *}
+text {* Relates to equivalence classes.  Based on a theorem of F. Kammüller.  *}
 
 lemma dvd_partition:
   "finite (Union C) ==>
@@ -2276,7 +2275,7 @@ done
 
 subsection {* Finiteness and quotients *}
 
-text {*Suggested by Florian Kammï¿½ller*}
+text {*Suggested by Florian Kammüller*}
 
 lemma finite_quotient: "finite A ==> r \<subseteq> A \<times> A ==> finite (A//r)"
   -- {* recall @{thm equiv_type} *}
@@ -2359,25 +2358,23 @@ lemmas int_setsum = of_nat_setsum [where 'a=int]
 lemmas int_setprod = of_nat_setprod [where 'a=int]
 
 
-locale Lattice = lattice -- {* we do not pollute the @{text lattice} clas *}
+context lattice
 begin
 
 definition
-  Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
+  Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^bsub>fin\<^esub>_" [900] 900)
 where
-  "Inf = fold1 (op \<sqinter>)"
+  "Inf_fin = fold1 (op \<sqinter>)"
 
 definition
-  Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+  Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^bsub>fin\<^esub>_" [900] 900)
 where
-  "Sup = fold1 (op \<squnion>)"
+  "Sup_fin = fold1 (op \<squnion>)"
 
-end
+end context lattice begin
 
-locale Distrib_Lattice = distrib_lattice + Lattice
-
-lemma (in Lattice) Inf_le_Sup[simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Squnion>A"
-apply(unfold Sup_def Inf_def)
+lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<sqsubseteq> \<Squnion>\<^bsub>fin\<^esub>A"
+apply(unfold Sup_fin_def Inf_fin_def)
 apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast
 apply(erule exE)
@@ -2386,31 +2383,34 @@ apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_inf])
 apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_sup])
 done
 
-lemma (in Lattice) sup_Inf_absorb[simp]:
-  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<squnion> \<Sqinter>A) = a"
+lemma sup_Inf_absorb [simp]:
+  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<squnion> \<Sqinter>\<^bsub>fin\<^esub>A) = a"
 apply(subst sup_commute)
-apply(simp add:Inf_def sup_absorb2 ACIfSL.fold1_belowI[OF ACIfSL_inf])
+apply(simp add: Inf_fin_def sup_absorb2 ACIfSL.fold1_belowI [OF ACIfSL_inf])
 done
 
-lemma (in Lattice) inf_Sup_absorb[simp]:
-  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<sqinter> \<Squnion>A) = a"
-by(simp add:Sup_def inf_absorb1 ACIfSL.fold1_belowI[OF ACIfSL_sup])
+lemma inf_Sup_absorb [simp]:
+  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<sqinter> \<Squnion>\<^bsub>fin\<^esub>A) = a"
+by(simp add: Sup_fin_def inf_absorb1 ACIfSL.fold1_belowI [OF ACIfSL_sup])
 
-lemma (in Distrib_Lattice) sup_Inf1_distrib:
- "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<squnion> \<Sqinter>A) = \<Sqinter>{x \<squnion> a|a. a \<in> A}"
-apply(simp add:Inf_def image_def
+end
+
+context distrib_lattice
+begin
+
+lemma sup_Inf1_distrib:
+ "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<squnion> \<Sqinter>\<^bsub>fin\<^esub>A) = \<Sqinter>\<^bsub>fin\<^esub>{x \<squnion> a|a. a \<in> A}"
+apply(simp add: Inf_fin_def image_def
   ACIf.hom_fold1_commute[OF ACIf_inf, where h="sup x", OF sup_inf_distrib1])
 apply(rule arg_cong, blast)
 done
 
-
-lemma (in Distrib_Lattice) sup_Inf2_distrib:
-assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
-shows "(\<Sqinter>A \<squnion> \<Sqinter>B) = \<Sqinter>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
-using A
-proof (induct rule: finite_ne_induct)
+lemma sup_Inf2_distrib:
+  assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
+  shows "(\<Sqinter>\<^bsub>fin\<^esub>A \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B) = \<Sqinter>\<^bsub>fin\<^esub>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
+using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
-    by (simp add: sup_Inf1_distrib[OF B] fold1_singleton_def[OF Inf_def])
+    by (simp add: sup_Inf1_distrib [OF B] fold1_singleton_def [OF Inf_fin_def])
 next
   case (insert x A)
   have finB: "finite {x \<squnion> b |b. b \<in> B}"
@@ -2422,37 +2422,34 @@ next
     thus ?thesis by(simp add: insert(1) B(1))
   qed
   have ne: "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
-  have "\<Sqinter>(insert x A) \<squnion> \<Sqinter>B = (x \<sqinter> \<Sqinter>A) \<squnion> \<Sqinter>B"
+  have "\<Sqinter>\<^bsub>fin\<^esub>(insert x A) \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B = (x \<sqinter> \<Sqinter>\<^bsub>fin\<^esub>A) \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B"
     using insert
- by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_def])
-  also have "\<dots> = (x \<squnion> \<Sqinter>B) \<sqinter> (\<Sqinter>A \<squnion> \<Sqinter>B)" by(rule sup_inf_distrib2)
-  also have "\<dots> = \<Sqinter>{x \<squnion> b|b. b \<in> B} \<sqinter> \<Sqinter>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
+ by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_fin_def])
+  also have "\<dots> = (x \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B) \<sqinter> (\<Sqinter>\<^bsub>fin\<^esub>A \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B)" by(rule sup_inf_distrib2)
+  also have "\<dots> = \<Sqinter>\<^bsub>fin\<^esub>{x \<squnion> b|b. b \<in> B} \<sqinter> \<Sqinter>\<^bsub>fin\<^esub>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
     using insert by(simp add:sup_Inf1_distrib[OF B])
-  also have "\<dots> = \<Sqinter>({x\<squnion>b |b. b \<in> B} \<union> {a\<squnion>b |a b. a \<in> A \<and> b \<in> B})"
-    (is "_ = \<Sqinter>?M")
+  also have "\<dots> = \<Sqinter>\<^bsub>fin\<^esub>({x\<squnion>b |b. b \<in> B} \<union> {a\<squnion>b |a b. a \<in> A \<and> b \<in> B})"
+    (is "_ = \<Sqinter>\<^bsub>fin\<^esub>?M")
     using B insert
-    by(simp add:Inf_def ACIf.fold1_Un2[OF ACIf_inf finB _ finAB ne])
+    by (simp add: Inf_fin_def ACIf.fold1_Un2[OF ACIf_inf finB _ finAB ne])
   also have "?M = {a \<squnion> b |a b. a \<in> insert x A \<and> b \<in> B}"
     by blast
   finally show ?case .
 qed
 
-
-lemma (in Distrib_Lattice) inf_Sup1_distrib:
- "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<sqinter> \<Squnion>A) = \<Squnion>{x \<sqinter> a|a. a \<in> A}"
-apply(simp add:Sup_def image_def
+lemma inf_Sup1_distrib:
+ "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<sqinter> \<Squnion>\<^bsub>fin\<^esub>A) = \<Squnion>\<^bsub>fin\<^esub>{x \<sqinter> a|a. a \<in> A}"
+apply (simp add: Sup_fin_def image_def
   ACIf.hom_fold1_commute[OF ACIf_sup, where h="inf x", OF inf_sup_distrib1])
-apply(rule arg_cong, blast)
+apply (rule arg_cong, blast)
 done
 
-
-lemma (in Distrib_Lattice) inf_Sup2_distrib:
-assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
-shows "(\<Squnion>A \<sqinter> \<Squnion>B) = \<Squnion>{a \<sqinter> b|a b. a \<in> A \<and> b \<in> B}"
-using A
-proof (induct rule: finite_ne_induct)
+lemma inf_Sup2_distrib:
+  assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
+  shows "(\<Squnion>\<^bsub>fin\<^esub>A \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B) = \<Squnion>\<^bsub>fin\<^esub>{a \<sqinter> b|a b. a \<in> A \<and> b \<in> B}"
+using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
-    by(simp add: inf_Sup1_distrib[OF B] fold1_singleton_def[OF Sup_def])
+    by(simp add: inf_Sup1_distrib [OF B] fold1_singleton_def [OF Sup_fin_def])
 next
   case (insert x A)
   have finB: "finite {x \<sqinter> b |b. b \<in> B}"
@@ -2464,34 +2461,40 @@ next
     thus ?thesis by(simp add: insert(1) B(1))
   qed
   have ne: "{a \<sqinter> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
-  have "\<Squnion>(insert x A) \<sqinter> \<Squnion>B = (x \<squnion> \<Squnion>A) \<sqinter> \<Squnion>B"
-    using insert by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_sup Sup_def])
-  also have "\<dots> = (x \<sqinter> \<Squnion>B) \<squnion> (\<Squnion>A \<sqinter> \<Squnion>B)" by(rule inf_sup_distrib2)
-  also have "\<dots> = \<Squnion>{x \<sqinter> b|b. b \<in> B} \<squnion> \<Squnion>{a \<sqinter> b|a b. a \<in> A \<and> b \<in> B}"
+  have "\<Squnion>\<^bsub>fin\<^esub>(insert x A) \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B = (x \<squnion> \<Squnion>\<^bsub>fin\<^esub>A) \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B"
+    using insert by (simp add: ACIf.fold1_insert_idem_def [OF ACIf_sup Sup_fin_def])
+  also have "\<dots> = (x \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B) \<squnion> (\<Squnion>\<^bsub>fin\<^esub>A \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B)" by(rule inf_sup_distrib2)
+  also have "\<dots> = \<Squnion>\<^bsub>fin\<^esub>{x \<sqinter> b|b. b \<in> B} \<squnion> \<Squnion>\<^bsub>fin\<^esub>{a \<sqinter> b|a b. a \<in> A \<and> b \<in> B}"
     using insert by(simp add:inf_Sup1_distrib[OF B])
-  also have "\<dots> = \<Squnion>({x\<sqinter>b |b. b \<in> B} \<union> {a\<sqinter>b |a b. a \<in> A \<and> b \<in> B})"
-    (is "_ = \<Squnion>?M")
+  also have "\<dots> = \<Squnion>\<^bsub>fin\<^esub>({x\<sqinter>b |b. b \<in> B} \<union> {a\<sqinter>b |a b. a \<in> A \<and> b \<in> B})"
+    (is "_ = \<Squnion>\<^bsub>fin\<^esub>?M")
     using B insert
-    by(simp add:Sup_def ACIf.fold1_Un2[OF ACIf_sup finB _ finAB ne])
+    by (simp add: Sup_fin_def ACIf.fold1_Un2[OF ACIf_sup finB _ finAB ne])
   also have "?M = {a \<sqinter> b |a b. a \<in> insert x A \<and> b \<in> B}"
     by blast
   finally show ?case .
 qed
 
+end
+
+context complete_lattice
+begin
+
 text {*
-  Infimum and supremum in complete lattices may also
-  be characterized by @{const fold1}:
+  Coincidence on finite sets in complete lattices:
 *}
 
-lemma (in complete_lattice) Inf_fold1:
-  "finite A \<Longrightarrow>  A \<noteq> {} \<Longrightarrow> \<Sqinter>A = fold1 (op \<sqinter>) A"
-by (induct A set: finite)
+lemma Inf_fin_Inf:
+  "finite A \<Longrightarrow>  A \<noteq> {} \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A = \<Sqinter>A"
+unfolding Inf_fin_def by (induct A set: finite)
    (simp_all add: Inf_insert_simp ACIf.fold1_insert_idem [OF ACIf_inf])
 
-lemma (in complete_lattice) Sup_fold1:
-  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Squnion>A = fold1 (op \<squnion>) A"
-by (induct A set: finite)
+lemma Sup_fin_Sup:
+  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Squnion>\<^bsub>fin\<^esub>A = \<Squnion>A"
+unfolding Sup_fin_def by (induct A set: finite)
    (simp_all add: Sup_insert_simp ACIf.fold1_insert_idem [OF ACIf_sup])
+
+end
 
 
 subsubsection {* Fold1 in linear orders with @{const min} and @{const max} *}
@@ -2502,7 +2505,7 @@ text{*
   over (non-empty) sets by means of @{text fold1}.
 *}
 
-locale Linorder = linorder -- {* we do not pollute the @{text linorder} class *}
+context linorder
 begin
 
 definition
@@ -2514,6 +2517,8 @@ definition
   Max :: "'a set \<Rightarrow> 'a"
 where
   "Max = fold1 max"
+
+end context linorder begin
 
 text {* recall: @{term min} and @{term max} behave like @{const inf} and @{const sup} *}
 
@@ -2648,7 +2653,7 @@ lemma hom_Max_commute:
 
 end
 
-locale Linorder_ab_semigroup_add = Linorder + pordered_ab_semigroup_add
+class linordered_ab_semigroup_add = linorder + pordered_ab_semigroup_add
 begin
 
 lemma add_Min_commute:
@@ -2672,37 +2677,6 @@ lemma add_Max_commute:
   done
 
 end
-
-definition
-  Min :: "'a set \<Rightarrow> 'a\<Colon>linorder"
-where
-  "Min = fold1 min"
-
-definition
-  Max :: "'a set \<Rightarrow> 'a\<Colon>linorder"
-where
-  "Max = fold1 max"
-
-interpretation
-  Linorder ["op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <"]
-where
-  "Linorder.Min (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = Min"
-  and "Linorder.Max (op \<le> \<Colon> 'a\<Colon>linorder \<Rightarrow> 'a \<Rightarrow> bool) = Max"
-proof -
-  show "Linorder (op \<le> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool) op <"
-  by (rule Linorder.intro, rule linorder_axioms)
-  then interpret Linorder: Linorder ["op \<le> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool" "op <"] .
-  show "Linorder.Min = Min" by (simp add: Min_def Linorder.Min_def ord_class.min)
-  show "Linorder.Max = Max" by (simp add: Max_def Linorder.Max_def ord_class.max)
-qed
-
-interpretation
-  Linorder_ab_semigroup_add ["op \<le> \<Colon> 'a\<Colon>{linorder, pordered_ab_semigroup_add} \<Rightarrow> 'a \<Rightarrow> bool" "op <" "op +"]
-proof -
-  show "Linorder_ab_semigroup_add (op \<le> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool) (op <) (op +)"
-  by (rule Linorder_ab_semigroup_add.intro,
-    rule Linorder.intro, rule linorder_axioms, rule pordered_ab_semigroup_add_axioms)
-qed
 
 
 subsection {* Class @{text finite} *}

@@ -635,6 +635,10 @@ the graph browser tool.
 
 *** HOL ***
 
+* theory Finite_Set: "name-space" locales Lattice, Distrib_lattice, Linorder etc.
+have disappeared; operations defined in terms of fold_set now are named
+Inf_fin, Sup_fin.  INCOMPATIBILITY.
+
 * HOL-Word:
   New extensive library and type for generic, fixed size machine
   words, with arithemtic, bit-wise, shifting and rotating operations,
@@ -814,12 +818,12 @@ possible incompatibilities when working on ML level.
     Nat.size ~> Nat.size_class.size
     Numeral.number_of ~> Numeral.number_class.number_of
     FixedPoint.Inf ~> FixedPoint.complete_lattice_class.Inf
+    FixedPoint.Sup ~> FixedPoint.complete_lattice_class.Sup
 
 * Rudimentary class target mechanism involves constant renames:
 
     Orderings.min ~> Orderings.ord_class.min
     Orderings.max ~> Orderings.ord_class.max
-    FixedPoint.Sup ~> FixedPoint.complete_lattice_class.Sup
 
 * primrec: missing cases mapped to "undefined" instead of "arbitrary"
 
@@ -871,7 +875,7 @@ INCOMPATIBILITY.
     class "comp_lat" now named "complete_lattice"
 
     Instantiation of lattice classes allows explicit definitions
-    for "inf" and "sup" operations.
+    for "inf" and "sup" operations (or "Inf" and "Sup" for complete lattices).
 
   INCOMPATIBILITY.  Theorem renames:
 
@@ -964,6 +968,11 @@ INCOMPATIBILITY.
     Meet_greatest           ~> Inf_greatest
     Meet_lower              ~> Inf_lower
     Meet_set_def            ~> Inf_set_def
+
+    Sup_def                 ~> Sup_Inf
+    Sup_bool_eq             ~> Sup_bool_def
+    Sup_fun_eq              ~> Sup_fun_def
+    Sup_set_eq              ~> Sup_set_def
 
     listsp_meetI            ~> listsp_infI
     listsp_meet_eq          ~> listsp_inf_eq
