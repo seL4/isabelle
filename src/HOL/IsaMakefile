@@ -11,8 +11,8 @@ images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix HOL-Nominal \
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
-  HOL-ex \
   HOL-Library \
+  HOL-ex \
   HOL-Auth \
   HOL-AxClasses \
   HOL-Bali \
