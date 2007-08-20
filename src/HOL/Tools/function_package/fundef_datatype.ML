@@ -233,6 +233,18 @@ fun add_catchall ctxt fixes spec =
       spec @ map (pair true) catchalls
     end
 
+fun warn_if_redundant ctxt origs tss =
+    let
+	fun msg t = "Ignoring redundant equation: " ^ quote (ProofContext.string_of_term ctxt t)
+
+	val (tss', _) = chop (length origs) tss
+	fun check ((_, t), []) = (Output.warning (msg t); [])
+	  | check ((_, t), s) = s
+    in
+	map check (origs ~~ tss')
+    end
+
+
 fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fixes spec =
     let
       val enabled = sequential orelse exists I flags
@@ -245,12 +257,15 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
                             
           val eqs = map the_single eqss
                     
-          val spliteqs = eqs
+          val feqs = eqs
                            |> tap (check_defs ctxt fixes) (* Standard checks *)
                            |> tap (map (check_pats ctxt))    (* More checks for sequential mode *)
                            |> curry op ~~ flags'
-                           |> add_catchall ctxt fixes   (* Completion *)
-                           |> FundefSplit.split_some_equations ctxt
+
+	  val compleqs = add_catchall ctxt fixes feqs   (* Completion *)
+
+	  val spliteqs = warn_if_redundant ctxt feqs
+					   (FundefSplit.split_some_equations ctxt compleqs)
 
           fun restore_spec thms =
               nas ~~ Library.take (length nas, Library.unflat spliteqs thms)
