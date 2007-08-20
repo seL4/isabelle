@@ -42,75 +42,6 @@ constdefs
   bin_rec :: "'a => 'a => (int => bit => 'a => 'a) => int => 'a"
   "bin_rec f1 f2 f3 bin == bin_rec' (bin, f1, f2, f3)"
 
-consts
-  -- "corresponding operations analysing bins"
-  bin_last :: "int => bit"
-  bin_rest :: "int => int"
-  bin_sign :: "int => int"
-  bin_nth :: "int => nat => bool"
-
-primrec
-  Z : "bin_nth w 0 = (bin_last w = bit.B1)"
-  Suc : "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
-
-defs  
-  bin_rest_def : "bin_rest w == fst (bin_rl w)"
-  bin_last_def : "bin_last w == snd (bin_rl w)"
-  bin_sign_def : "bin_sign == bin_rec Numeral.Pls Numeral.Min (%w b s. s)"
-
-consts
-  bintrunc :: "nat => int => int"
-primrec 
-  Z : "bintrunc 0 bin = Numeral.Pls"
-  Suc : "bintrunc (Suc n) bin = bintrunc n (bin_rest bin) BIT (bin_last bin)"
-
-consts
-  sbintrunc :: "nat => int => int" 
-primrec 
-  Z : "sbintrunc 0 bin = 
-    (case bin_last bin of bit.B1 => Numeral.Min | bit.B0 => Numeral.Pls)"
-  Suc : "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
-
-consts
-  bin_split :: "nat => int => int * int"
-primrec
-  Z : "bin_split 0 w = (w, Numeral.Pls)"
-  Suc : "bin_split (Suc n) w = (let (w1, w2) = bin_split n (bin_rest w)
-    in (w1, w2 BIT bin_last w))"
-
-consts
-  bin_cat :: "int => nat => int => int"
-primrec
-  Z : "bin_cat w 0 v = w"
-  Suc : "bin_cat w (Suc n) v = bin_cat w n (bin_rest v) BIT bin_last v"
-
-lemmas funpow_minus_simp = 
-  trans [OF gen_minus [where f = "power f"] funpow_Suc, standard]
-
-lemmas funpow_pred_simp [simp] =
-  funpow_minus_simp [of "number_of bin", simplified nobm1, standard]
-
-lemmas replicate_minus_simp = 
-  trans [OF gen_minus [where f = "%n. replicate n x"] replicate.replicate_Suc,
-         standard]
-
-lemmas replicate_pred_simp [simp] =
-  replicate_minus_simp [of "number_of bin", simplified nobm1, standard]
-
-lemmas power_Suc_no [simp] = power_Suc [of "number_of ?a"]
-
-lemmas power_minus_simp = 
-  trans [OF gen_minus [where f = "power f"] power_Suc, standard]
-
-lemmas power_pred_simp = 
-  power_minus_simp [of "number_of bin", simplified nobm1, standard]
-lemmas power_pred_simp_no [simp] = power_pred_simp [where f= "number_of ?f"]
-
-lemma bin_rl: "bin_rl w = (bin_rest w, bin_last w)"
-  unfolding bin_rest_def bin_last_def by auto
-
-lemmas bin_rl_simp [simp] = iffD1 [OF bin_rl_char bin_rl]
-
 lemma bin_rec_PM:
   "f = bin_rec f1 f2 f3 ==> f Numeral.Pls = f1 & f Numeral.Min = f2"
   apply safe
@@ -133,6 +64,29 @@ lemma bin_rec_Bit:
   done
 
 lemmas bin_rec_simps = refl [THEN bin_rec_Bit] bin_rec_Pls bin_rec_Min
+
+subsection {* Destructors for binary integers *}
+
+consts
+  -- "corresponding operations analysing bins"
+  bin_last :: "int => bit"
+  bin_rest :: "int => int"
+  bin_sign :: "int => int"
+  bin_nth :: "int => nat => bool"
+
+primrec
+  Z : "bin_nth w 0 = (bin_last w = bit.B1)"
+  Suc : "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
+
+defs  
+  bin_rest_def : "bin_rest w == fst (bin_rl w)"
+  bin_last_def : "bin_last w == snd (bin_rl w)"
+  bin_sign_def : "bin_sign == bin_rec Numeral.Pls Numeral.Min (%w b s. s)"
+
+lemma bin_rl: "bin_rl w = (bin_rest w, bin_last w)"
+  unfolding bin_rest_def bin_last_def by auto
+
+lemmas bin_rl_simp [simp] = iffD1 [OF bin_rl_char bin_rl]
 
 lemma bin_rest_simps [simp]: 
   "bin_rest Numeral.Pls = Numeral.Pls"
@@ -243,13 +197,28 @@ lemmas bin_nth_Suc = bin_nth.simps(2)
 lemmas bin_nth_simps = 
   bin_nth_0 bin_nth_Suc bin_nth_Pls bin_nth_Min bin_nth_minus
 
-lemma sign_bintr:
-  "!!w. bin_sign (bintrunc n w) = Numeral.Pls"
-  by (induct n) auto
-
 lemma bin_sign_rest [simp]: 
   "bin_sign (bin_rest w) = (bin_sign w)"
   by (case_tac w rule: bin_exhaust) auto
+
+subsection {* Truncating binary integers *}
+
+consts
+  bintrunc :: "nat => int => int"
+primrec 
+  Z : "bintrunc 0 bin = Numeral.Pls"
+  Suc : "bintrunc (Suc n) bin = bintrunc n (bin_rest bin) BIT (bin_last bin)"
+
+consts
+  sbintrunc :: "nat => int => int" 
+primrec 
+  Z : "sbintrunc 0 bin = 
+    (case bin_last bin of bit.B1 => Numeral.Min | bit.B0 => Numeral.Pls)"
+  Suc : "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
+
+lemma sign_bintr:
+  "!!w. bin_sign (bintrunc n w) = Numeral.Pls"
+  by (induct n) auto
 
 lemma bintrunc_mod2p:
   "!!w. bintrunc n w = (w mod 2 ^ n :: int)"
@@ -274,34 +243,6 @@ lemma sbintrunc_mod2p:
      apply auto
   apply (auto simp: even_def)
   done
-
-lemmas m2pths [OF zless2p, standard] = pos_mod_sign pos_mod_bound
-
-lemma list_exhaust_size_gt0:
-  assumes y: "\<And>a list. y = a # list \<Longrightarrow> P"
-  shows "0 < length y \<Longrightarrow> P"
-  apply (cases y, simp)
-  apply (rule y)
-  apply fastsimp
-  done
-
-lemma list_exhaust_size_eq0:
-  assumes y: "y = [] \<Longrightarrow> P"
-  shows "length y = 0 \<Longrightarrow> P"
-  apply (cases y)
-   apply (rule y, simp)
-  apply simp
-  done
-
-lemma size_Cons_lem_eq:
-  "y = xa # list ==> size y = Suc k ==> size list = k"
-  by auto
-
-lemma size_Cons_lem_eq_bin:
-  "y = xa # list ==> size y = number_of (Numeral.succ k) ==> 
-    size list = number_of k"
-  by (auto simp: pred_def succ_def split add : split_if_asm)
-
 
 subsection "Simplifications for (s)bintrunc"
 
@@ -602,6 +543,8 @@ lemmas bintr_arith1s =
 lemmas bintr_ariths =
   brdmods' [where c="2^?n", folded pred_def succ_def bintrunc_mod2p]
 
+lemmas m2pths [OF zless2p, standard] = pos_mod_sign pos_mod_bound
+
 lemma bintr_ge0: "(0 :: int) <= number_of (bintrunc n w)"
   by (simp add : no_bintr m2pths)
 
@@ -693,6 +636,70 @@ lemmas rco_bintr = bintrunc_rest'
 lemmas rco_sbintr = sbintrunc_rest' 
   [THEN rco_lem [THEN fun_cong], unfolded o_def]
 
+subsection {* Splitting and concatenation *}
+
+consts
+  bin_split :: "nat => int => int * int"
+primrec
+  Z : "bin_split 0 w = (w, Numeral.Pls)"
+  Suc : "bin_split (Suc n) w = (let (w1, w2) = bin_split n (bin_rest w)
+    in (w1, w2 BIT bin_last w))"
+
+consts
+  bin_cat :: "int => nat => int => int"
+primrec
+  Z : "bin_cat w 0 v = w"
+  Suc : "bin_cat w (Suc n) v = bin_cat w n (bin_rest v) BIT bin_last v"
+
+subsection {* Miscellaneous lemmas *}
+
+lemmas funpow_minus_simp = 
+  trans [OF gen_minus [where f = "power f"] funpow_Suc, standard]
+
+lemmas funpow_pred_simp [simp] =
+  funpow_minus_simp [of "number_of bin", simplified nobm1, standard]
+
+lemmas replicate_minus_simp = 
+  trans [OF gen_minus [where f = "%n. replicate n x"] replicate.replicate_Suc,
+         standard]
+
+lemmas replicate_pred_simp [simp] =
+  replicate_minus_simp [of "number_of bin", simplified nobm1, standard]
+
+lemmas power_Suc_no [simp] = power_Suc [of "number_of ?a"]
+
+lemmas power_minus_simp = 
+  trans [OF gen_minus [where f = "power f"] power_Suc, standard]
+
+lemmas power_pred_simp = 
+  power_minus_simp [of "number_of bin", simplified nobm1, standard]
+lemmas power_pred_simp_no [simp] = power_pred_simp [where f= "number_of ?f"]
+
+lemma list_exhaust_size_gt0:
+  assumes y: "\<And>a list. y = a # list \<Longrightarrow> P"
+  shows "0 < length y \<Longrightarrow> P"
+  apply (cases y, simp)
+  apply (rule y)
+  apply fastsimp
+  done
+
+lemma list_exhaust_size_eq0:
+  assumes y: "y = [] \<Longrightarrow> P"
+  shows "length y = 0 \<Longrightarrow> P"
+  apply (cases y)
+   apply (rule y, simp)
+  apply simp
+  done
+
+lemma size_Cons_lem_eq:
+  "y = xa # list ==> size y = Suc k ==> size list = k"
+  by auto
+
+lemma size_Cons_lem_eq_bin:
+  "y = xa # list ==> size y = number_of (Numeral.succ k) ==> 
+    size list = number_of k"
+  by (auto simp: pred_def succ_def split add : split_if_asm)
+
 lemmas ls_splits = 
   prod.split split_split prod.split_asm split_split_asm split_if_asm
 
@@ -714,5 +721,3 @@ lemmas s2n_ths = n2s_ths [symmetric]
 
 
 end
-
-
