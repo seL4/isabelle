@@ -74,7 +74,7 @@ lemma word_bw_assocs:
   using word_of_int_Ex [where x=x] 
         word_of_int_Ex [where x=y] 
         word_of_int_Ex [where x=z]
-  by (auto simp: bwsimps)
+  by (auto simp: bwsimps bbw_assocs)
   
 lemma word_bw_comms:
   fixes x :: "'a::len0 word"
@@ -84,7 +84,7 @@ lemma word_bw_comms:
   "x XOR y = y XOR x"
   using word_of_int_Ex [where x=x] 
         word_of_int_Ex [where x=y] 
-  by (auto simp: bwsimps)
+  by (auto simp: bwsimps bin_ops_comm)
   
 lemma word_bw_lcs:
   fixes x :: "'a::len0 word"

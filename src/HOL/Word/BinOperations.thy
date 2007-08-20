@@ -236,7 +236,10 @@ lemma bbw_ao_dist:
   apply (case_tac ba, auto)
   done
 
+(*
+Why were these declared simp???
 declare bin_ops_comm [simp] bbw_assocs [simp] 
+*)
 
 lemma plus_and_or [rule_format]:
   "ALL y::int. (x AND y) + (x OR y) = x + y"
