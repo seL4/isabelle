@@ -72,18 +72,23 @@ lemma lfp_induct_set:
 
 lemma lfp_ordinal_induct: 
   assumes mono: "mono f"
-  shows "[| !!S. P S ==> P(f S); !!M. !S:M. P S ==> P(Union M) |] 
-         ==> P(lfp f)"
-apply(subgoal_tac "lfp f = Union{S. S \<subseteq> lfp f & P S}")
- apply (erule ssubst, simp) 
-apply(subgoal_tac "Union{S. S \<subseteq> lfp f & P S} \<subseteq> lfp f")
- prefer 2 apply blast
-apply(rule equalityI)
- prefer 2 apply assumption
-apply(drule mono [THEN monoD])
-apply (cut_tac mono [THEN lfp_unfold], simp)
-apply (rule lfp_lowerbound, auto) 
-done
+  and P_f: "!!S. P S ==> P(f S)"
+  and P_Union: "!!M. !S:M. P S ==> P(Union M)"
+  shows "P(lfp f)"
+proof -
+  let ?M = "{S. S \<subseteq> lfp f & P S}"
+  have "P (Union ?M)" using P_Union by simp
+  also have "Union ?M = lfp f"
+  proof
+    show "Union ?M \<subseteq> lfp f" by blast
+    hence "f (Union ?M) \<subseteq> f (lfp f)" by (rule mono [THEN monoD])
+    hence "f (Union ?M) \<subseteq> lfp f" using mono [THEN lfp_unfold] by simp
+    hence "f (Union ?M) \<in> ?M" using P_f P_Union by simp
+    hence "f (Union ?M) \<subseteq> Union ?M" by (rule Union_upper)
+    thus "lfp f \<subseteq> Union ?M" by (rule lfp_lowerbound)
+  qed
+  finally show ?thesis .
+qed
 
 
 text{*Definition forms of @{text lfp_unfold} and @{text lfp_induct}, 
