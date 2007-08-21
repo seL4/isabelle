@@ -29,13 +29,9 @@ function
 termination 
   apply (relation "measure (nat o abs o fst)")
    apply simp
-  apply (simp add: Pls_def brlem)
-  apply (clarsimp simp: bin_rl_char pred_def)
-  apply (frule thin_rl [THEN refl [THEN bin_abs_lem [rule_format]]]) 
-    apply (unfold Pls_def Min_def number_of_eq)
-    prefer 2
-    apply (erule asm_rl)
-   apply auto
+  apply (case_tac bin rule: bin_exhaust)
+  apply (frule bin_abs_lem)
+  apply simp
   done
 
 constdefs
