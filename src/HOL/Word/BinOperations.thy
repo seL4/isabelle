@@ -435,49 +435,6 @@ lemmas bin_sc_Suc_minus =
 lemmas bin_sc_Suc_pred [simp] = 
   bin_sc_Suc_minus [of "number_of bin", simplified nobm1, standard]
 
-subsection {* Operations on lists of booleans *}
-
-consts
-  bin_to_bl :: "nat => int => bool list"
-  bin_to_bl_aux :: "nat => int => bool list => bool list"
-  bl_to_bin :: "bool list => int"
-  bl_to_bin_aux :: "int => bool list => int"
-
-  bl_of_nth :: "nat => (nat => bool) => bool list"
-
-primrec
-  Nil : "bl_to_bin_aux w [] = w"
-  Cons : "bl_to_bin_aux w (b # bs) = 
-      bl_to_bin_aux (w BIT (if b then bit.B1 else bit.B0)) bs"
-
-primrec
-  Z : "bin_to_bl_aux 0 w bl = bl"
-  Suc : "bin_to_bl_aux (Suc n) w bl =
-    bin_to_bl_aux n (bin_rest w) ((bin_last w = bit.B1) # bl)"
-
-defs
-  bin_to_bl_def : "bin_to_bl n w == bin_to_bl_aux n w []"
-  bl_to_bin_def : "bl_to_bin bs == bl_to_bin_aux Numeral.Pls bs"
-
-primrec
-  Suc : "bl_of_nth (Suc n) f = f n # bl_of_nth n f"
-  Z : "bl_of_nth 0 f = []"
-
-consts
-  takefill :: "'a => nat => 'a list => 'a list"
-  app2 :: "('a => 'b => 'c) => 'a list => 'b list => 'c list"
-
--- "takefill - like take but if argument list too short,"
--- "extends result to get requested length"
-primrec
-  Z : "takefill fill 0 xs = []"
-  Suc : "takefill fill (Suc n) xs = (
-    case xs of [] => fill # takefill fill n xs
-      | y # ys => y # takefill fill n ys)"
-
-defs
-  app2_def : "app2 f as bs == map (split f) (zip as bs)"
-
 subsection {* Splitting and concatenation *}
 
 -- "rcat and rsplit"

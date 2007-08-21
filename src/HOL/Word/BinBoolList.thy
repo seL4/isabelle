@@ -11,32 +11,7 @@ header "Bool lists and integers"
 
 theory BinBoolList imports BinOperations begin
 
-subsection "Arithmetic in terms of bool lists"
-
-consts (* arithmetic operations in terms of the reversed bool list,
-  assuming input list(s) the same length, and don't extend them *)
-  rbl_succ :: "bool list => bool list"
-  rbl_pred :: "bool list => bool list"
-  rbl_add :: "bool list => bool list => bool list"
-  rbl_mult :: "bool list => bool list => bool list"
-
-primrec 
-  Nil: "rbl_succ Nil = Nil"
-  Cons: "rbl_succ (x # xs) = (if x then False # rbl_succ xs else True # xs)"
-
-primrec 
-  Nil : "rbl_pred Nil = Nil"
-  Cons : "rbl_pred (x # xs) = (if x then False # xs else True # rbl_pred xs)"
-
-primrec (* result is length of first arg, second arg may be longer *)
-  Nil : "rbl_add Nil x = Nil"
-  Cons : "rbl_add (y # ys) x = (let ws = rbl_add ys (tl x) in 
-    (y ~= hd x) # (if hd x & y then rbl_succ ws else ws))"
-
-primrec (* result is length of first arg, second arg may be longer *)
-  Nil : "rbl_mult Nil x = Nil"
-  Cons : "rbl_mult (y # ys) x = (let ws = False # rbl_mult ys x in 
-    if y then rbl_add ws x else ws)"
+subsection "Lemmas about standard list operations"
 
 lemma tl_take: "tl (take n l) = take (n - 1) (tl l)"
   apply (cases n, clarsimp)
@@ -75,6 +50,34 @@ lemma butlast_power:
   "(butlast ^ n) bl = take (length bl - n) bl"
   by (induct n) (auto simp: butlast_take)
 
+lemma nth_rev [rule_format] : 
+  "n < length xs --> rev xs ! n = xs ! (length xs - 1 - n)"
+  apply (induct_tac "xs")
+   apply simp
+  apply (clarsimp simp add : nth_append nth.simps split add : nat.split)
+  apply (rule_tac f = "%n. list ! n" in arg_cong) 
+  apply arith
+  done
+
+lemmas nth_rev_alt = nth_rev [where xs = "rev ?ys", simplified]
+
+lemma hd_butlast: "size xs > 1 ==> hd (butlast xs) = hd xs"
+  by (cases xs) auto
+
+subsection "From integers to bool lists"
+
+consts
+  bin_to_bl :: "nat => int => bool list"
+  bin_to_bl_aux :: "nat => int => bool list => bool list"
+
+primrec
+  Z : "bin_to_bl_aux 0 w bl = bl"
+  Suc : "bin_to_bl_aux (Suc n) w bl =
+    bin_to_bl_aux n (bin_rest w) ((bin_last w = bit.B1) # bl)"
+
+defs
+  bin_to_bl_def : "bin_to_bl n w == bin_to_bl_aux n w []"
+
 lemma bin_to_bl_aux_Pls_minus_simp:
   "0 < n ==> bin_to_bl_aux n Numeral.Pls bl = 
     bin_to_bl_aux (n - 1) Numeral.Pls (False # bl)"
@@ -94,80 +97,23 @@ declare bin_to_bl_aux_Pls_minus_simp [simp]
   bin_to_bl_aux_Min_minus_simp [simp]
   bin_to_bl_aux_Bit_minus_simp [simp]
 
-(** link between bin and bool list **)
-
-lemma bl_to_bin_aux_append [rule_format] : 
-  "ALL w. bl_to_bin_aux w (bs @ cs) = bl_to_bin_aux (bl_to_bin_aux w bs) cs"
-  by (induct bs) auto
-
 lemma bin_to_bl_aux_append [rule_format] : 
   "ALL w bs. bin_to_bl_aux n w bs @ cs = bin_to_bl_aux n w (bs @ cs)"
   by (induct n) auto
-
-lemma bl_to_bin_append: 
-  "bl_to_bin (bs @ cs) = bl_to_bin_aux (bl_to_bin bs) cs"
-  unfolding bl_to_bin_def by (rule bl_to_bin_aux_append)
 
 lemma bin_to_bl_aux_alt: 
   "bin_to_bl_aux n w bs = bin_to_bl n w @ bs" 
   unfolding bin_to_bl_def by (simp add : bin_to_bl_aux_append)
 
-lemma bin_to_bl_0: "bin_to_bl 0 bs = []"
+lemma bin_to_bl_0 [simp]: "bin_to_bl 0 bs = []"
   unfolding bin_to_bl_def by auto
 
 lemma size_bin_to_bl_aux [rule_format] : 
   "ALL w bs. size (bin_to_bl_aux n w bs) = n + length bs"
   by (induct n) auto
 
-lemma size_bin_to_bl: "size (bin_to_bl n w) = n" 
+lemma size_bin_to_bl [simp]: "size (bin_to_bl n w) = n" 
   unfolding bin_to_bl_def by (simp add : size_bin_to_bl_aux)
-
-lemma bin_bl_bin' [rule_format] : 
-  "ALL w bs. bl_to_bin (bin_to_bl_aux n w bs) = 
-    bl_to_bin_aux (bintrunc n w) bs"
-  by (induct n) (auto simp add : bl_to_bin_def)
-
-lemma bin_bl_bin: "bl_to_bin (bin_to_bl n w) = bintrunc n w"
-  unfolding bin_to_bl_def bin_bl_bin' by auto
-
-lemma bl_bin_bl' [rule_format] :
-  "ALL w n. bin_to_bl (n + length bs) (bl_to_bin_aux w bs) = 
-    bin_to_bl_aux n w bs"
-  apply (induct "bs")
-   apply auto
-    apply (simp_all only : add_Suc [symmetric])
-    apply (auto simp add : bin_to_bl_def)
-  done
-
-lemma bl_bin_bl: "bin_to_bl (length bs) (bl_to_bin bs) = bs"
-  unfolding bl_to_bin_def
-  apply (rule box_equals)
-    apply (rule bl_bin_bl')
-   prefer 2
-   apply (rule bin_to_bl_aux.Z)
-  apply simp
-  done
-  
-declare 
-  bin_to_bl_0 [simp] 
-  size_bin_to_bl [simp] 
-  bin_bl_bin [simp] 
-  bl_bin_bl [simp]
-
-lemma bl_to_bin_inj:
-  "bl_to_bin bs = bl_to_bin cs ==> length bs = length cs ==> bs = cs"
-  apply (rule_tac box_equals)
-    defer
-    apply (rule bl_bin_bl)
-   apply (rule bl_bin_bl)
-  apply simp
-  done
-
-lemma bl_to_bin_False: "bl_to_bin (False # bl) = bl_to_bin bl"
-  unfolding bl_to_bin_def by auto
-  
-lemma bl_to_bin_Nil: "bl_to_bin [] = Numeral.Pls"
-  unfolding bl_to_bin_def by auto
 
 lemma bin_to_bl_Pls_aux [rule_format] : 
   "ALL bl. bin_to_bl_aux n Numeral.Pls bl = replicate n False @ bl"
@@ -182,21 +128,6 @@ lemma bin_to_bl_Min_aux [rule_format] :
 
 lemma bin_to_bl_Min: "bin_to_bl n Numeral.Min = replicate n True"
   unfolding bin_to_bl_def by (simp add : bin_to_bl_Min_aux)
-
-lemma bl_to_bin_rep_F: 
-  "bl_to_bin (replicate n False @ bl) = bl_to_bin bl"
-  apply (simp add: bin_to_bl_Pls_aux [symmetric] bin_bl_bin')
-  apply (simp add: bl_to_bin_def)
-  done
-
-lemma bin_to_bl_trunc:
-  "n <= m ==> bin_to_bl n (bintrunc m w) = bin_to_bl n w"
-  by (auto intro: bl_to_bin_inj)
-
-declare 
-  bin_to_bl_trunc [simp] 
-  bl_to_bin_False [simp] 
-  bl_to_bin_Nil [simp]
 
 lemma bin_to_bl_aux_bintr [rule_format] :
   "ALL m bin bl. bin_to_bl_aux n (bintrunc m bin) bl = 
@@ -214,16 +145,95 @@ lemma bin_to_bl_aux_bintr [rule_format] :
 lemmas bin_to_bl_bintr = 
   bin_to_bl_aux_bintr [where bl = "[]", folded bin_to_bl_def]
 
-lemma bl_to_bin_rep_False: "bl_to_bin (replicate n False) = Numeral.Pls"
-  by (induct n) auto
-
 lemma len_bin_to_bl_aux [rule_format] : 
   "ALL w bs. length (bin_to_bl_aux n w bs) = n + length bs"
   by (induct "n") auto
 
 lemma len_bin_to_bl [simp]: "length (bin_to_bl n w) = n"
   unfolding bin_to_bl_def len_bin_to_bl_aux by auto
+
+
+subsection "From bool lists to integers"
+
+consts
+  bl_to_bin :: "bool list => int"
+  bl_to_bin_aux :: "int => bool list => int"
+
+primrec
+  Nil : "bl_to_bin_aux w [] = w"
+  Cons : "bl_to_bin_aux w (b # bs) = 
+      bl_to_bin_aux (w BIT (if b then bit.B1 else bit.B0)) bs"
+
+defs
+  bl_to_bin_def : "bl_to_bin bs == bl_to_bin_aux Numeral.Pls bs"
+
+(** link between bin and bool list **)
+
+lemma bl_to_bin_aux_append [rule_format] : 
+  "ALL w. bl_to_bin_aux w (bs @ cs) = bl_to_bin_aux (bl_to_bin_aux w bs) cs"
+  by (induct bs) auto
+
+lemma bl_to_bin_append: 
+  "bl_to_bin (bs @ cs) = bl_to_bin_aux (bl_to_bin bs) cs"
+  unfolding bl_to_bin_def by (rule bl_to_bin_aux_append)
+
+lemma bl_to_bin_False [simp]: "bl_to_bin (False # bl) = bl_to_bin bl"
+  unfolding bl_to_bin_def by auto
   
+lemma bl_to_bin_Nil [simp]: "bl_to_bin [] = Numeral.Pls"
+  unfolding bl_to_bin_def by auto
+
+lemma bl_to_bin_rep_F: 
+  "bl_to_bin (replicate n False @ bl) = bl_to_bin bl"
+  by (induct n) auto
+
+lemma bl_to_bin_rep_False: "bl_to_bin (replicate n False) = Numeral.Pls"
+  by (induct n) auto
+
+
+subsection "Converting between bool lists and integers"
+
+lemma bin_bl_bin' [rule_format] : 
+  "ALL w bs. bl_to_bin (bin_to_bl_aux n w bs) = 
+    bl_to_bin_aux (bintrunc n w) bs"
+  by (induct n) (auto simp add : bl_to_bin_def)
+
+lemma bin_bl_bin [simp]: "bl_to_bin (bin_to_bl n w) = bintrunc n w"
+  unfolding bin_to_bl_def bin_bl_bin' by auto
+
+lemma bl_bin_bl' [rule_format] :
+  "ALL w n. bin_to_bl (n + length bs) (bl_to_bin_aux w bs) = 
+    bin_to_bl_aux n w bs"
+  apply (induct "bs")
+   apply auto
+    apply (simp_all only : add_Suc [symmetric])
+    apply (auto simp add : bin_to_bl_def)
+  done
+
+lemma bl_bin_bl [simp]: "bin_to_bl (length bs) (bl_to_bin bs) = bs"
+  unfolding bl_to_bin_def
+  apply (rule box_equals)
+    apply (rule bl_bin_bl')
+   prefer 2
+   apply (rule bin_to_bl_aux.Z)
+  apply simp
+  done
+  
+lemma bl_to_bin_inj:
+  "bl_to_bin bs = bl_to_bin cs ==> length bs = length cs ==> bs = cs"
+  apply (rule_tac box_equals)
+    defer
+    apply (rule bl_bin_bl)
+   apply (rule bl_bin_bl)
+  apply simp
+  done
+
+lemma bin_to_bl_trunc [simp]:
+  "n <= m ==> bin_to_bl n (bintrunc m w) = bin_to_bl n w"
+  by (auto intro: bl_to_bin_inj)
+
+subsection "@{term bin_sign} with bool list operations"
+
 lemma sign_bl_bin' [rule_format] : 
   "ALL w. bin_sign (bl_to_bin_aux w bs) = bin_sign w"
   by (induct bs) auto
@@ -244,6 +254,8 @@ lemma bl_sbin_sign_aux [rule_format] :
 lemma bl_sbin_sign: 
   "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = Numeral.Min)"
   unfolding bin_to_bl_def by (rule bl_sbin_sign_aux)
+
+subsection "@{term bin_nth} with bool list operations"
 
 lemma bin_nth_of_bl_aux [rule_format] : 
   "ALL w. bin_nth (bl_to_bin_aux w bl) n = 
@@ -272,17 +284,6 @@ lemma bin_nth_bl [rule_format] : "ALL m w. n < m -->
   apply (simp add: bin_to_bl_aux_alt)
   done
 
-lemma nth_rev [rule_format] : 
-  "n < length xs --> rev xs ! n = xs ! (length xs - 1 - n)"
-  apply (induct_tac "xs")
-   apply simp
-  apply (clarsimp simp add : nth_append nth.simps split add : nat.split)
-  apply (rule_tac f = "%n. list ! n" in arg_cong) 
-  apply arith
-  done
-
-lemmas nth_rev_alt = nth_rev [where xs = "rev ?ys", simplified]
-
 lemma nth_bin_to_bl_aux [rule_format] : 
   "ALL w n bl. n < m + length bl --> (bin_to_bl_aux m w bl) ! n = 
     (if n < m then bin_nth w (m - 1 - n) else bl ! (n - m))"
@@ -300,6 +301,8 @@ lemma nth_bin_to_bl_aux [rule_format] :
   
 lemma nth_bin_to_bl: "n < m ==> (bin_to_bl m w) ! n = bin_nth w (m - Suc n)"
   unfolding bin_to_bl_def by (simp add : nth_bin_to_bl_aux)
+
+subsection "Ordering with bool list operations"
 
 lemma bl_to_bin_lt2p_aux [rule_format] : 
   "ALL w. bl_to_bin_aux w bs < (w + 1) * (2 ^ length bs)"
@@ -336,6 +339,8 @@ lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
   apply simp
   done
 
+subsection "@{term butlast} with bool list operations"
+
 lemma butlast_rest_bin: 
   "butlast (bin_to_bl n w) = bin_to_bl (n - 1) (bin_rest w)"
   apply (unfold bin_to_bl_def)
@@ -359,6 +364,8 @@ lemma butlast_rest_bl2bin:
   apply (cases bl)
    apply (auto simp add: butlast_rest_bl2bin_aux)
   done
+
+subsection "Truncation"
 
 lemma trunc_bl2bin_aux [rule_format] : 
   "ALL w. bintrunc m (bl_to_bin_aux w bl) = 
@@ -397,6 +404,7 @@ lemma bl2bin_drop:
    apply auto
   done
 
+(* TODO: This is not related to bool lists; should be moved *)
 lemma nth_rest_power_bin [rule_format] :
   "ALL n. bin_nth ((bin_rest ^ k) w) n = bin_nth w (n + k)"
   apply (induct k, clarsimp)
@@ -411,8 +419,7 @@ lemma take_rest_power_bin:
   apply (clarsimp simp add: nth_bin_to_bl nth_rest_power_bin)
   done
 
-lemma hd_butlast: "size xs > 1 ==> hd (butlast xs) = hd xs"
-  by (cases xs) auto
+subsection "@{term last} with bool list operations"
 
 lemma last_bin_last' [rule_format] : 
   "ALL w. size xs > 0 --> last xs = (bin_last (bl_to_bin_aux w xs) = bit.B1)" 
@@ -429,8 +436,14 @@ lemma bin_last_last:
   apply (auto simp add: bin_to_bl_aux_alt)
   done
 
-(** links between bit-wise operations and operations on bool lists **)
-    
+subsection "Bit-wise operations on bool lists"
+
+consts
+  app2 :: "('a => 'b => 'c) => 'a list => 'b list => 'c list"
+
+defs
+  app2_def : "app2 f as bs == map (split f) (zip as bs)"
+
 lemma app2_Nil [simp]: "app2 f [] ys = []"
   unfolding app2_def by auto
 
@@ -500,6 +513,8 @@ lemmas bl_or_bin = bl_or_aux_bin [where bs="[]" and cs="[]",
 lemmas bl_xor_bin = bl_xor_aux_bin [where bs="[]" and cs="[]", 
                                     unfolded app2_Nil, folded bin_to_bl_def]
 
+subsection "@{term drop} with bool list operations"
+
 lemma drop_bin2bl_aux [rule_format] : 
   "ALL m bin bs. drop m (bin_to_bl_aux n bin bs) = 
     bin_to_bl_aux (n - m) bin (drop (m - n) bs)"
@@ -534,6 +549,8 @@ lemma take_bin2bl_lem [rule_format] :
   apply simp
   done
 
+subsection "@{term bin_split} with bool list operations"
+
 lemma bin_split_take [rule_format] : 
   "ALL b c. bin_split n c = (a, b) --> 
     bin_to_bl m a = take m (bin_to_bl (m + n) c)"
@@ -549,6 +566,19 @@ lemma bin_split_take1:
     bin_to_bl m a = take m (bin_to_bl k c)"
   by (auto elim: bin_split_take)
   
+subsection "@{term takefill}"
+
+consts
+  takefill :: "'a => nat => 'a list => 'a list"
+
+-- "takefill - like take but if argument list too short,"
+-- "extends result to get requested length"
+primrec
+  Z : "takefill fill 0 xs = []"
+  Suc : "takefill fill (Suc n) xs = (
+    case xs of [] => fill # takefill fill n xs
+      | y # ys => y # takefill fill n ys)"
+
 lemma nth_takefill [rule_format] : "ALL m l. m < n --> 
     takefill fill n l ! m = (if m < length l then l ! m else fill)"
   apply (induct n, clarsimp)
@@ -642,6 +672,8 @@ lemmas takefill_minus_simps = takefill_Suc_cases [THEN [2]
 lemmas takefill_pred_simps [simp] =
   takefill_minus_simps [where n="number_of bin", simplified nobm1, standard]
 
+subsection "@{term bin_cat} with bool list operations"
+
 (* links with function bl_to_bin *)
 
 lemma bl_to_bin_aux_cat: 
@@ -691,7 +723,15 @@ lemma mask_lem: "(bl_to_bin (True # replicate n False)) =
   apply simp
   done
 
-(* function bl_of_nth *)
+subsection "function @{term bl_of_nth}"
+
+consts
+  bl_of_nth :: "nat => (nat => bool) => bool list"
+
+primrec
+  Suc : "bl_of_nth (Suc n) f = f n # bl_of_nth n f"
+  Z : "bl_of_nth 0 f = []"
+
 lemma length_bl_of_nth [simp]: "length (bl_of_nth n f) = n"
   by (induct n)  auto
 
@@ -723,6 +763,33 @@ lemma bl_of_nth_nth_le [rule_format] : "ALL xs.
   done
 
 lemmas bl_of_nth_nth [simp] = order_refl [THEN bl_of_nth_nth_le, simplified]
+
+subsection "Arithmetic in terms of bool lists"
+
+consts (* arithmetic operations in terms of the reversed bool list,
+  assuming input list(s) the same length, and don't extend them *)
+  rbl_succ :: "bool list => bool list"
+  rbl_pred :: "bool list => bool list"
+  rbl_add :: "bool list => bool list => bool list"
+  rbl_mult :: "bool list => bool list => bool list"
+
+primrec 
+  Nil: "rbl_succ Nil = Nil"
+  Cons: "rbl_succ (x # xs) = (if x then False # rbl_succ xs else True # xs)"
+
+primrec 
+  Nil : "rbl_pred Nil = Nil"
+  Cons : "rbl_pred (x # xs) = (if x then False # xs else True # rbl_pred xs)"
+
+primrec (* result is length of first arg, second arg may be longer *)
+  Nil : "rbl_add Nil x = Nil"
+  Cons : "rbl_add (y # ys) x = (let ws = rbl_add ys (tl x) in 
+    (y ~= hd x) # (if hd x & y then rbl_succ ws else ws))"
+
+primrec (* result is length of first arg, second arg may be longer *)
+  Nil : "rbl_mult Nil x = Nil"
+  Cons : "rbl_mult (y # ys) x = (let ws = False # rbl_mult ys x in 
+    if y then rbl_add ws x else ws)"
 
 lemma size_rbl_pred: "length (rbl_pred bl) = length bl"
   by (induct bl) auto
@@ -880,6 +947,8 @@ lemma rbl_mult_split:
     (y --> P (rbl_add ws xs)) & (~ y -->  P ws))"
   by (clarsimp simp add : Let_def)
   
+subsection "Miscellaneous lemmas"
+
 lemma and_len: "xs = ys ==> xs = ys & length xs = length ys"
   by auto
 
@@ -1014,8 +1083,6 @@ lemma bin_split_pred_simp [simp]:
   (let (w1, w2) = bin_split (number_of (Numeral.pred bin)) (bin_rest w)
    in (w1, w2 BIT bin_last w))" 
   by (simp only: nobm1 bin_split_minus_simp)
-
-declare bin_split_pred_simp [simp]
 
 lemma bin_rsplit_aux_simp_alt:
   "bin_rsplit_aux (n, bs, m, c) =
