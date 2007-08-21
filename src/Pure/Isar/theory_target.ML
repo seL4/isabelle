@@ -301,7 +301,7 @@ fun notes loc kind facts lthy =
     |> ProofContext.qualified_names
     |> ProofContext.note_thmss_i kind local_facts
     ||> ProofContext.restore_naming lthy
-    ||> ProofContext.restore_stmt lthy
+    ||> ProofContext.restore_mode lthy
   end;
 
 
