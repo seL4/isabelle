@@ -77,6 +77,10 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma one_less_power:
+  "\<lbrakk>1 < (a::'a::{ordered_semidom,recpower}); 0 < n\<rbrakk> \<Longrightarrow> 1 < a ^ n"
+by (cases n, simp_all add: power_gt1_lemma power_Suc)
+
 lemma power_gt1:
      "1 < (a::'a::{ordered_semidom,recpower}) ==> 1 < a ^ (Suc n)"
 by (simp add: power_gt1_lemma power_Suc)
