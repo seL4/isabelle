@@ -12,19 +12,6 @@ header {* Word Arithmetic *}
 theory WordArith imports WordDefinition begin
 
 
-lemma word_less_alt: "(a < b) = (uint a < uint b)"
-  unfolding word_less_def word_le_def
-  by (auto simp del: word_uint.Rep_inject 
-           simp: word_uint.Rep_inject [symmetric])
-
-lemma signed_linorder: "linorder word_sle word_sless"
-  apply unfold_locales
-      apply (unfold word_sle_def word_sless_def) 
-  by auto 
-
-interpretation signed: linorder ["word_sle" "word_sless"] 
-  by (rule signed_linorder)
-
 lemmas word_arith_wis [THEN meta_eq_to_obj_eq] = 
   word_add_def word_mult_def word_minus_def 
   word_succ_def word_pred_def word_0_wi word_1_wi
@@ -38,18 +25,6 @@ lemmas word_div_no [simp] =
 
 lemmas word_mod_no [simp] = 
   word_mod_def [of "number_of ?a" "number_of ?b"]
-
-lemmas word_less_no [simp] = 
-  word_less_def [of "number_of ?a" "number_of ?b"]
-
-lemmas word_le_no [simp] = 
-  word_le_def [of "number_of ?a" "number_of ?b"]
-
-lemmas word_sless_no [simp] = 
-  word_sless_def [of "number_of ?a" "number_of ?b"]
-
-lemmas word_sle_no [simp] = 
-  word_sle_def [of "number_of ?a" "number_of ?b"]
 
 (* following two are available in class number_ring, 
   but convenient to have them here here;
@@ -308,8 +283,53 @@ lemmas word_mult_ac = word_mult_commute word_mult_assoc word_mult_left_commute
 lemmas word_plus_ac0 = word_add_0 word_add_0_right word_add_ac
 lemmas word_times_ac1 = word_mult_1 word_mult_1_right word_mult_ac
 
+instance word :: (len0) semigroup_add
+  by intro_classes (simp add: word_add_assoc)
+
+instance word :: (len0) ring
+  by intro_classes
+     (auto simp: word_arith_eqs word_diff_minus 
+                 word_diff_self [unfolded word_diff_minus])
+
 
 subsection "Order on fixed-length words"
+
+instance word :: (len0) ord
+  word_le_def: "a <= b == uint a <= uint b"
+  word_less_def: "x < y == x <= y & x ~= y"
+  ..
+
+constdefs
+  word_sle :: "'a :: len word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50)
+  "a <=s b == sint a <= sint b"
+
+  word_sless :: "'a :: len word => 'a word => bool" ("(_/ <s _)" [50, 51] 50)
+  "(x <s y) == (x <=s y & x ~= y)"
+
+lemma word_less_alt: "(a < b) = (uint a < uint b)"
+  unfolding word_less_def word_le_def
+  by (auto simp del: word_uint.Rep_inject 
+           simp: word_uint.Rep_inject [symmetric])
+
+lemma signed_linorder: "linorder word_sle word_sless"
+  apply unfold_locales
+      apply (unfold word_sle_def word_sless_def) 
+  by auto 
+
+interpretation signed: linorder ["word_sle" "word_sless"] 
+  by (rule signed_linorder)
+
+lemmas word_less_no [simp] = 
+  word_less_def [of "number_of ?a" "number_of ?b"]
+
+lemmas word_le_no [simp] = 
+  word_le_def [of "number_of ?a" "number_of ?b"]
+
+lemmas word_sless_no [simp] = 
+  word_sless_def [of "number_of ?a" "number_of ?b"]
+
+lemmas word_sle_no [simp] = 
+  word_sle_def [of "number_of ?a" "number_of ?b"]
 
 lemma word_order_trans: "x <= y ==> y <= z ==> x <= (z :: 'a :: len0 word)"
   unfolding word_le_def by auto
@@ -327,17 +347,9 @@ lemma word_order_linear:
 lemma word_zero_le [simp] :
   "0 <= (y :: 'a :: len0 word)"
   unfolding word_le_def by auto
-  
-instance word :: (len0) semigroup_add
-  by intro_classes (simp add: word_add_assoc)
 
 instance word :: (len0) linorder
   by intro_classes (auto simp: word_less_def word_le_def)
-
-instance word :: (len0) ring
-  by intro_classes
-     (auto simp: word_arith_eqs word_diff_minus 
-                 word_diff_self [unfolded word_diff_minus])
 
 lemma word_m1_ge [simp] : "word_pred 0 >= y"
   unfolding word_le_def
@@ -375,6 +387,11 @@ lemma wi_le:
     (n mod 2 ^ len_of TYPE('a) <= m mod 2 ^ len_of TYPE('a))"
   unfolding word_le_def by (simp add: word_uint.eq_norm)
 
+lemmas unat_mono = word_less_nat_alt [THEN iffD1, standard]
+
+
+subsection "Divisibility"
+
 lemma udvd_nat_alt: "a udvd b = (EX n>=0. unat b = n * unat a)"
   apply (unfold udvd_def)
   apply safe
@@ -390,8 +407,6 @@ lemma udvd_nat_alt: "a udvd b = (EX n>=0. unat b = n * unat a)"
 
 lemma udvd_iff_dvd: "x udvd y <-> unat x dvd unat y"
   unfolding dvd_def udvd_nat_alt by force
-
-lemmas unat_mono = word_less_nat_alt [THEN iffD1, standard]
 
 lemma word_zero_neq_one: "0 < len_of TYPE ('a :: len0) ==> (0 :: 'a word) ~= 1";
   unfolding word_arith_wis
@@ -787,8 +802,6 @@ instance word :: (len) comm_semiring_1
 instance word :: (len) comm_ring_1 ..
 
 instance word :: (len0) comm_semiring_0 ..
-
-instance word :: (len0) order ..
 
 instance word :: (len) recpower
   by (intro_classes) (simp_all add: word_pow)

@@ -21,7 +21,6 @@ instance word :: (type) zero ..
 instance word :: (type) times ..
 instance word :: (type) Divides.div ..
 instance word :: (type) power ..
-instance word :: (type) ord ..
 instance word :: (type) size ..
 instance word :: (type) inverse ..
 instance word :: (type) bit ..
@@ -85,9 +84,6 @@ defs (overloaded)
   word_1_wi: "(1 :: ('a :: len0) word) == word_of_int 1"
   word_0_wi: "(0 :: ('a :: len0) word) == word_of_int 0"
 
-  word_le_def: "a <= b == uint a <= uint b"
-  word_less_def: "x < y == x <= y & x ~= (y :: 'a :: len0 word)"
-
 constdefs
   word_succ :: "'a :: len0 word => 'a word"
   "word_succ a == word_of_int (Numeral.succ (uint a))"
@@ -97,12 +93,6 @@ constdefs
 
   udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50)
   "a udvd b == EX n>=0. uint b = n * uint a"
-
-  word_sle :: "'a :: len word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50)
-  "a <=s b == sint a <= sint b"
-
-  word_sless :: "'a :: len word => 'a word => bool" ("(_/ <s _)" [50, 51] 50)
-  "(x <s y) == (x <=s y & x ~= y)"
 
 consts
   word_power :: "'a :: len0 word => nat => 'a word"
