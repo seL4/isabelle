@@ -81,7 +81,7 @@ by (rule inj_eq [OF inj_on_inverseI], rule double_compl)
 
 subsection {* Conjunction *}
 
-lemma conj_absorb: "x \<sqinter> x = x"
+lemma conj_absorb [simp]: "x \<sqinter> x = x"
 proof -
   have "x \<sqinter> x = (x \<sqinter> x) \<squnion> \<zero>" using disj_zero_right by simp
   also have "... = (x \<sqinter> x) \<squnion> (x \<sqinter> \<sim> x)" using conj_cancel_right by simp
@@ -94,7 +94,7 @@ qed
 lemma conj_zero_right [simp]: "x \<sqinter> \<zero> = \<zero>"
 proof -
   have "x \<sqinter> \<zero> = x \<sqinter> (x \<sqinter> \<sim> x)" using conj_cancel_right by simp
-  also have "... = (x \<sqinter> x) \<sqinter> \<sim> x" using conj_assoc by simp
+  also have "... = (x \<sqinter> x) \<sqinter> \<sim> x" using conj_assoc by (simp only:)
   also have "... = x \<sqinter> \<sim> x" using conj_absorb by simp
   also have "... = \<zero>" using conj_cancel_right by simp
   finally show ?thesis .
