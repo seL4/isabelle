@@ -251,6 +251,14 @@ structure IntDivCancelFactor = ExtractCommonTermFun
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zdiv_zmult_zmult1_if}
 );
 
+structure IntModCancelFactor = ExtractCommonTermFun
+ (open CancelFactorCommon
+  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val mk_bal   = HOLogic.mk_binop @{const_name Divides.mod}
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.mod} HOLogic.intT
+  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zmod_zmult_zmult1}
+);
+
 structure IntDvdCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
@@ -277,6 +285,9 @@ val cancel_factors =
     ("int_div_cancel_factor",
      ["((l::int) * m) div n", "(l::int) div (m * n)"],
      K IntDivCancelFactor.proc),
+    ("int_mod_cancel_factor",
+     ["((l::int) * m) mod n", "(l::int) mod (m * n)"],
+     K IntModCancelFactor.proc),
     ("int_dvd_cancel_factor",
      ["((l::int) * m) dvd n", "(l::int) dvd (m * n)"],
      K IntDvdCancelFactor.proc),
