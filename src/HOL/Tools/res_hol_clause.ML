@@ -16,7 +16,7 @@ sig
   val comb_B: thm
   val comb_C: thm
   val comb_S: thm
-  datatype type_level = T_FULL | T_PARTIAL | T_CONST
+  datatype type_level = T_FULL | T_CONST
   val typ_level: type_level ref
   val minimize_applies: bool ref
   type axiom_name = string
@@ -57,17 +57,12 @@ val equal_imp_fequal = thm "ATP_Linkup.equal_imp_fequal";
 
 
 (*The different translations of types*)
-datatype type_level = T_FULL | T_PARTIAL | T_CONST;
+datatype type_level = T_FULL | T_CONST;
 
 val typ_level = ref T_CONST;
 
-fun full_types () = (typ_level:=T_FULL);
-fun partial_types () = (typ_level:=T_PARTIAL);
-fun const_types_only () = (typ_level:=T_CONST);
-
 (*If true, each function will be directly applied to as many arguments as possible, avoiding
-  use of the "apply" operator. Use of hBOOL is also minimized. It only works for the
-  constant-typed translation, though it could be tried for the partially-typed one.*)
+  use of the "apply" operator. Use of hBOOL is also minimized.*)
 val minimize_applies = ref true;
 
 val const_min_arity = ref (Symtab.empty : int Symtab.table);
@@ -78,75 +73,8 @@ fun min_arity_of c = getOpt (Symtab.lookup(!const_min_arity) c, 0);
 
 (*True if the constant ever appears outside of the top-level position in literals.
   If false, the constant always receives all of its arguments and is used as a predicate.*)
-fun needs_hBOOL c = not (!minimize_applies) orelse !typ_level=T_PARTIAL orelse
+fun needs_hBOOL c = not (!minimize_applies) orelse
                     getOpt (Symtab.lookup(!const_needs_hBOOL) c, false);
-
-
-(**********************************************************************)
-(* convert a Term.term with lambdas into a Term.term with combinators *)
-(**********************************************************************)
-
-fun is_free (Bound(a)) n = (a = n)
-  | is_free (Abs(x,_,b)) n = (is_free b (n+1))
-  | is_free (P $ Q) n = ((is_free P n) orelse (is_free Q n))
-  | is_free _ _ = false;
-
-fun compact_comb t bnds = t;
-
-fun lam2comb (Abs(x,tp,Bound 0)) _ = Const("ATP_Linkup.COMBI",tp-->tp)
-  | lam2comb (Abs(x,tp,Bound n)) bnds =
-      let val tb = List.nth(bnds,n-1)
-      in  Const("ATP_Linkup.COMBK", [tb,tp] ---> tb) $ Bound (n-1)  end
-  | lam2comb (Abs(x,t1,Const(c,t2))) _ = Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Const(c,t2)
-  | lam2comb (Abs(x,t1,Free(v,t2))) _ = Const("ATP_Linkup.COMBK",[t2,t1] ---> t2) $ Free(v,t2)
-  | lam2comb (Abs(x,t1,Var(ind,t2))) _ = Const("ATP_Linkup.COMBK", [t2,t1] ---> t2) $ Var(ind,t2)
-  | lam2comb (t as (Abs(x,t1,P$(Bound 0)))) bnds =
-      if is_free P 0 then
-          let val tI = [t1] ---> t1
-              val P' = lam2comb (Abs(x,t1,P)) bnds
-              val tp' = Term.type_of1(bnds,P')
-              val tS = [tp',tI] ---> Term.type_of1(t1::bnds,P)
-          in
-              compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $
-                             Const("ATP_Linkup.COMBI",tI)) bnds
-          end
-      else incr_boundvars ~1 P
-  | lam2comb (t as (Abs(x,t1,P$Q))) bnds =
-      let val nfreeP = not(is_free P 0)
-          and nfreeQ = not(is_free Q 0)
-          val tpq = Term.type_of1(t1::bnds, P$Q)
-      in
-          if nfreeP andalso nfreeQ
-          then
-            let val tK = [tpq,t1] ---> tpq
-            in  Const("ATP_Linkup.COMBK",tK) $ incr_boundvars ~1 (P $ Q)  end
-          else if nfreeP then
-            let val Q' = lam2comb (Abs(x,t1,Q)) bnds
-                val P' = incr_boundvars ~1 P
-                val tp = Term.type_of1(bnds,P')
-                val tq' = Term.type_of1(bnds, Q')
-                val tB = [tp,tq',t1] ---> tpq
-            in  compact_comb (Const("ATP_Linkup.COMBB",tB) $ P' $ Q') bnds  end
-          else if nfreeQ then
-            let val P' = lam2comb (Abs(x,t1,P)) bnds
-                val Q' = incr_boundvars ~1 Q
-                val tq = Term.type_of1(bnds,Q')
-                val tp' = Term.type_of1(bnds, P')
-                val tC = [tp',tq,t1] ---> tpq
-            in  compact_comb (Const("ATP_Linkup.COMBC",tC) $ P' $ Q') bnds  end
-          else
-            let val P' = lam2comb (Abs(x,t1,P)) bnds
-                val Q' = lam2comb (Abs(x,t1,Q)) bnds
-                val tp' = Term.type_of1(bnds,P')
-                val tq' = Term.type_of1(bnds,Q')
-                val tS = [tp',tq',t1] ---> tpq
-            in  compact_comb (Const("ATP_Linkup.COMBS",tS) $ P' $ Q') bnds  end
-      end
-  | lam2comb (t as (Abs(x,t1,_))) _ = raise RC.CLAUSE("HOL CLAUSE",t);
-
-fun to_comb (Abs(x,tp,b)) bnds = lam2comb (Abs(x, tp, to_comb b (tp::bnds))) bnds
-  | to_comb (P $ Q) bnds = (to_comb P bnds) $ (to_comb Q bnds)
-  | to_comb t _ = t;
 
 
 (******************************************************)
@@ -226,10 +154,11 @@ fun combterm_of thy (Const(c,t)) =
       let val (tp,ts) = type_of t
           val v' = CombVar(RC.make_schematic_var v,tp)
       in  (v',ts)  end
-  | combterm_of thy (t as (P $ Q)) =
+  | combterm_of thy (P $ Q) =
       let val (P',tsP) = combterm_of thy P
           val (Q',tsQ) = combterm_of thy Q
-      in  (CombApp(P',Q'), tsP union tsQ)  end;
+      in  (CombApp(P',Q'), tsP union tsQ)  end
+  | combterm_of thy (t as Abs _) = raise RC.CLAUSE("HOL CLAUSE",t);
 
 fun predicate_of thy ((Const("Not",_) $ P), polarity) = predicate_of thy (P, not polarity)
   | predicate_of thy (t,polarity) = (combterm_of thy t, polarity);
@@ -247,7 +176,7 @@ fun literals_of_term thy P = literals_of_term1 thy ([],[]) P;
 
 (* making axiom and conjecture clauses *)
 fun make_clause thy (clause_id,axiom_name,kind,th) =
-    let val (lits,ctypes_sorts) = literals_of_term thy (to_comb (prop_of th) [])
+    let val (lits,ctypes_sorts) = literals_of_term thy (prop_of th)
         val (ctvar_lits,ctfree_lits) = RC.add_typs_aux ctypes_sorts
     in
         if forall isFalse lits
@@ -308,21 +237,6 @@ fun wrap_type (s, tp) =
 
 fun apply ss = "hAPP" ^ RC.paren_pack ss;
 
-(*Full (non-optimized) and partial-typed transations*)
-fun string_of_combterm1 (CombConst(c,tp,_)) =
-      let val c' = if c = "equal" then "c_fequal" else c
-      in  wrap_type (c',tp)  end
-  | string_of_combterm1 (CombVar(v,tp)) = wrap_type (v,tp)
-  | string_of_combterm1 (CombApp(t1,t2)) =
-      let val s1 = string_of_combterm1 t1
-          and s2 = string_of_combterm1 t2
-      in
-          case !typ_level of
-              T_FULL => wrap_type (apply [s1,s2], result_type (type_of_combterm t1))
-            | T_PARTIAL => apply [s1,s2, RC.string_of_fol_type (type_of_combterm t1)]
-            | T_CONST => raise ERROR "string_of_combterm1"
-      end;
-
 fun rev_apply (v, []) = v
   | rev_apply (v, arg::args) = apply [rev_apply (v, args), arg];
 
@@ -348,19 +262,12 @@ fun string_of_applic (CombConst(c,tp,tvars), args) =
 
 fun wrap_type_if (head, s, tp) = if head_needs_hBOOL head then wrap_type (s, tp) else s;
 
-(*Full (if optimized) and constant-typed transations*)
-fun string_of_combterm2 t =
+fun string_of_combterm t =
   let val (head, args) = strip_comb t
   in  wrap_type_if (head,
-                    string_of_applic (head, map string_of_combterm2 args),
+                    string_of_applic (head, map string_of_combterm args),
                     type_of_combterm t)
   end;
-
-fun string_of_combterm t =
-    case (!typ_level,!minimize_applies) of
-         (T_PARTIAL, _) => string_of_combterm1 t
-       | (T_FULL, false) => string_of_combterm1 t
-       | _ => string_of_combterm2 t;
 
 (*Boolean-valued terms are here converted to literals.*)
 fun boolify t = "hBOOL" ^ RC.paren_pack [string_of_combterm t];
@@ -448,16 +355,13 @@ fun addtypes tvars tab = foldl RC.add_foltype_funcs tab tvars;
 fun add_decls (CombConst(c,tp,tvars), (funcs,preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
       else
-        (case !typ_level of
-            T_PARTIAL => (RC.add_foltype_funcs (tp, Symtab.update(c,0) funcs), preds)
-          | _ =>
-               let val arity = min_arity_of c
-                   val ntys = if !typ_level = T_CONST then length tvars else 0
-                   val addit = Symtab.update(c, arity+ntys)
-               in
-                   if needs_hBOOL c then (addtypes tvars (addit funcs), preds)
-                   else (addtypes tvars funcs, addit preds)
-               end)
+	let val arity = min_arity_of c
+	    val ntys = if !typ_level = T_CONST then length tvars else 0
+	    val addit = Symtab.update(c, arity+ntys)
+	in
+	    if needs_hBOOL c then (addtypes tvars (addit funcs), preds)
+	    else (addtypes tvars funcs, addit preds)
+	end
   | add_decls (CombVar(_,ctp), (funcs,preds)) =
       (RC.add_foltype_funcs (ctp,funcs), preds)
   | add_decls (CombApp(P,Q),decls) = add_decls(P,add_decls (Q,decls));
@@ -469,8 +373,7 @@ fun add_clause_decls (Clause {literals, ...}, decls) =
     handle Symtab.DUP a => raise ERROR ("function " ^ a ^ " has multiple arities")
 
 fun decls_of_clauses clauses arity_clauses =
-  let val happ_ar = case !typ_level of T_PARTIAL => 3 | _ => 2
-      val init_functab = Symtab.update (type_wrapper,2) (Symtab.update ("hAPP",happ_ar) RC.init_functab)
+  let val init_functab = Symtab.update (type_wrapper,2) (Symtab.update ("hAPP",2) RC.init_functab)
       val init_predtab = Symtab.update ("hBOOL",1) Symtab.empty
       val (functab,predtab) = (foldl add_clause_decls (init_functab, init_predtab) clauses)
   in
@@ -492,11 +395,9 @@ fun preds_of_clauses clauses clsrel_clauses arity_clauses =
                clsrel_clauses)
 
 
-
 (**********************************************************************)
 (* write clauses to files                                             *)
 (**********************************************************************)
-
 
 val init_counters =
     Symtab.make [("c_COMBI", 0), ("c_COMBK", 0),
@@ -574,7 +475,7 @@ fun display_arity (c,n) =
                 (if needs_hBOOL c then " needs hBOOL" else ""));
 
 fun count_constants (conjectures, axclauses, helper_clauses) =
-  if !minimize_applies andalso !typ_level<>T_PARTIAL then
+  if !minimize_applies then
     (const_min_arity := Symtab.empty;
      const_needs_hBOOL := Symtab.empty;
      List.app count_constants_clause conjectures;
