@@ -11,9 +11,12 @@ signature PROOF_CONTEXT =
 sig
   val theory_of: Proof.context -> theory
   val init: theory -> Proof.context
-  val is_stmt: Proof.context -> bool
+  type mode
+  val set_mode: mode -> Proof.context -> Proof.context
+  val get_mode: Proof.context -> mode
+  val restore_mode: Proof.context -> Proof.context -> Proof.context
+  val set_type_mode: Type.mode -> Proof.context -> Proof.context
   val set_stmt: bool -> Proof.context -> Proof.context
-  val restore_stmt: Proof.context -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
   val full_name: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
@@ -41,8 +44,6 @@ sig
   val string_of_typ: Proof.context -> typ -> string
   val string_of_term: Proof.context -> term -> string
   val string_of_thm: Proof.context -> thm -> string
-  val get_type_mode: Proof.context -> Type.mode
-  val put_type_mode: Type.mode -> Proof.context -> Proof.context
   val read_typ: Proof.context -> string -> typ
   val read_typ_syntax: Proof.context -> string -> typ
   val read_typ_abbrev: Proof.context -> string -> typ
@@ -177,20 +178,41 @@ val tsig_of = Sign.tsig_of o theory_of;
 val init = Context.init_proof;
 
 
+(** inner syntax mode **)
+
+datatype mode =
+  Mode of
+   {type_mode: Type.mode,
+    stmt: bool,                (*inner statement mode*)
+    pattern: bool,             (*pattern binding schematic variables*)
+    schematic: bool,           (*term referencing loose schematic variables*)
+    abbrev: bool};             (*abbrev mode -- no normalization*)
+
+fun make_mode (type_mode, stmt, pattern, schematic, abbrev) =
+  Mode {type_mode = type_mode, stmt = stmt, pattern = pattern,
+    schematic = schematic, abbrev = abbrev};
+
+val mode_default   = make_mode (Type.mode_default, false, false, false, false);
+val mode_stmt      = make_mode (Type.mode_default, true, false, false, false);
+val mode_pattern   = make_mode (Type.mode_default, false, true, false, false);
+val mode_schematic = make_mode (Type.mode_default, false, false, true, false);
+val mode_abbrev    = make_mode (Type.mode_default, false, false, false, true);
+
+
 
 (** Isar proof context information **)
 
 datatype ctxt =
   Ctxt of
-   {is_stmt: bool,                                (*inner statement mode*)
+   {mode: mode,                                   (*inner syntax mode*)
     naming: NameSpace.naming,                     (*local naming conventions*)
     syntax: LocalSyntax.T,                        (*local syntax*)
     consts: Consts.T * Consts.T,                  (*global/local consts*)
     thms: thm list NameSpace.table * FactIndex.T, (*local thms*)
     cases: (string * (RuleCases.T * bool)) list}; (*local contexts*)
 
-fun make_ctxt (is_stmt, naming, syntax, consts, thms, cases) =
-  Ctxt {is_stmt = is_stmt, naming = naming, syntax = syntax,
+fun make_ctxt (mode, naming, syntax, consts, thms, cases) =
+  Ctxt {mode = mode, naming = naming, syntax = syntax,
     consts = consts, thms = thms, cases = cases};
 
 val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
@@ -199,7 +221,7 @@ structure ContextData = ProofDataFun
 (
   type T = ctxt;
   fun init thy =
-    make_ctxt (false, local_naming, LocalSyntax.init thy,
+    make_ctxt (mode_default, local_naming, LocalSyntax.init thy,
       (Sign.consts_of thy, Sign.consts_of thy),
       (NameSpace.empty_table, FactIndex.empty), []);
 );
@@ -207,35 +229,48 @@ structure ContextData = ProofDataFun
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {is_stmt, naming, syntax, consts, thms, cases} =>
-    make_ctxt (f (is_stmt, naming, syntax, consts, thms, cases)));
+  ContextData.map (fn Ctxt {mode, naming, syntax, consts, thms, cases} =>
+    make_ctxt (f (mode, naming, syntax, consts, thms, cases)));
 
-fun set_stmt b =
-  map_context (fn (_, naming, syntax, consts, thms, cases) =>
-    (b, naming, syntax, consts, thms, cases));
+fun set_mode mode = map_context (fn (_, naming, syntax, consts, thms, cases) =>
+  (mode, naming, syntax, consts, thms, cases));
+
+fun map_mode f =
+  map_context (fn (Mode {type_mode, stmt, pattern, schematic, abbrev},
+      naming, syntax, consts, thms, cases) =>
+    (make_mode (f (type_mode, stmt, pattern, schematic, abbrev)),
+      naming, syntax, consts, thms, cases));
 
 fun map_naming f =
-  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
-    (is_stmt, f naming, syntax, consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, f naming, syntax, consts, thms, cases));
 
 fun map_syntax f =
-  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
-    (is_stmt, naming, f syntax, consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, naming, f syntax, consts, thms, cases));
 
 fun map_consts f =
-  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
-    (is_stmt, naming, syntax, f consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, naming, syntax, f consts, thms, cases));
 
 fun map_thms f =
-  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
-    (is_stmt, naming, syntax, consts, f thms, cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, naming, syntax, consts, f thms, cases));
 
 fun map_cases f =
-  map_context (fn (is_stmt, naming, syntax, consts, thms, cases) =>
-    (is_stmt, naming, syntax, consts, thms, f cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, naming, syntax, consts, thms, f cases));
 
-val is_stmt = #is_stmt o rep_context;
-fun restore_stmt ctxt = set_stmt (is_stmt ctxt);
+val get_mode = #mode o rep_context;
+fun restore_mode ctxt = set_mode (get_mode ctxt);
+
+val get_type_mode = get_mode #> (fn Mode {type_mode, ...} => type_mode);
+
+fun set_type_mode type_mode = map_mode
+  (fn (_, stmt, pattern, schematic, abbrev) => (type_mode, stmt, pattern, schematic, abbrev));
+
+fun set_stmt stmt = map_mode
+  (fn (type_mode, _, pattern, schematic, abbrev) => (type_mode, stmt, pattern, schematic, abbrev));
 
 val naming_of = #naming o rep_context;
 val full_name = NameSpace.full o naming_of;
@@ -343,22 +378,10 @@ val string_of_thm = Pretty.string_of oo pretty_thm;
 
 (** prepare types **)
 
-(* implicit type mode *)
-
-structure TypeMode = ProofDataFun
-(
-  type T = Type.mode;
-  fun init _ = Type.mode_default;
-);
-
-val get_type_mode = TypeMode.get;
-val put_type_mode = TypeMode.put;
-
-
 (* read_typ *)
 
 fun read_typ_mode mode ctxt s =
-  Syntax.read_typ (put_type_mode mode ctxt) s;
+  Syntax.read_typ (set_type_mode mode ctxt) s;
 
 val read_typ        = read_typ_mode Type.mode_default;
 val read_typ_syntax = read_typ_mode Type.mode_syntax;
@@ -375,6 +398,9 @@ val cert_typ        = cert_typ_mode Type.mode_default;
 val cert_typ_syntax = cert_typ_mode Type.mode_syntax;
 val cert_typ_abbrev = cert_typ_mode Type.mode_abbrev;
 
+
+
+(** prepare variables **)
 
 (* internalize Skolem constants *)
 
@@ -648,7 +674,7 @@ fun parse_term T ctxt str =
   let
     val thy = theory_of ctxt;
     fun infer t =
-      singleton (infer_types (put_type_mode Type.mode_default ctxt)) (TypeInfer.constrain t T);
+      singleton (infer_types (set_type_mode Type.mode_default ctxt)) (TypeInfer.constrain t T);
     fun check t = Exn.Result (infer t) handle ERROR msg => Exn.Exn (ERROR msg);
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
     val read = Syntax.standard_parse_term (pp ctxt) check get_sort map_const map_free
@@ -897,7 +923,8 @@ fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn c
       swap (foldl_map (Thm.proof_attributes (attrs @ more_attrs @ [PureThy.kind k])) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = PureThy.name_thms false false name (flat res);
-  in ((bname, thms), ctxt' |> update_thms (is_stmt ctxt, true) (bname, SOME thms)) end);
+    val Mode {stmt, ...} = get_mode ctxt;
+  in ((bname, thms), ctxt' |> update_thms (stmt, true) (bname, SOME thms)) end);
 
 in
 
