@@ -218,8 +218,8 @@ fun checkChildren (ctxt, th, thm_names_list) toParentStr children =
 	| check (child::children) =
 	   let val {prover, file, proc_handle, instr=childIn, ...} : cmdproc = child
 	       val _ = trace ("\nprobfile = " ^ file)
-	       val sgno = number_from_filename file  (*subgoal number*)
-	       val thm_names = List.nth(thm_names_list, sgno-1);
+	       val i = number_from_filename file  (*subgoal number*)
+	       val thm_names = List.nth(thm_names_list, i-1);
 	       val ppid = Posix.ProcEnv.getppid()
 	   in
 	     if pollChild childIn
@@ -227,11 +227,11 @@ fun checkChildren (ctxt, th, thm_names_list) toParentStr children =
 	       let val _ = trace ("\nInput available from child: " ^ file)
 		   val childDone = (case prover of
 		       "vampire" => ResReconstruct.checkVampProofFound
-			    (childIn, toParentStr, ppid, file, ctxt, th, sgno, thm_names)
+			    (childIn, toParentStr, ppid, file, ctxt, th, i, thm_names)
 		     | "E" => ResReconstruct.checkEProofFound
-			    (childIn, toParentStr, ppid, file, ctxt, th, sgno, thm_names)
+			    (childIn, toParentStr, ppid, file, ctxt, th, i, thm_names)
 		     | "spass" => ResReconstruct.checkSpassProofFound
-			    (childIn, toParentStr, ppid, file, ctxt, th, sgno, thm_names)
+			    (childIn, toParentStr, ppid, file, ctxt, th, i, thm_names)
 		     | _ => (trace ("\nBad prover! " ^ prover); true) )
 		in
 		 if childDone (*ATP has reported back (with success OR failure)*)
@@ -355,6 +355,17 @@ fun read_proof probfile =
       val _ = trace("\nProof:\n" ^ msg)
   in  if !Output.debugging then () else File.rm p;  msg  end;
 
+(*Non-successful outcomes*)
+fun report i s = priority ("Subgoal " ^ Int.toString i ^ ": " ^ s);
+
+(*Successful outcome: auto-insertion of commands into the PG buffer. Thanks to D Aspinall!!*)
+fun report_success i s sgtx = 
+  let val lines = String.tokens (fn c => c = #"\n") s
+  in  if length lines > 1 then report i (s ^ sgtx)  (*multiple commands: do the old way*)
+      else priority (cat_lines ["Subgoal " ^ string_of_int i ^ ":", sgtx,
+                                "  Try this command:", Markup.enclose Markup.sendback s])
+  end;
+
 fun createWatcher (ctxt, th, thm_names_list) =
  let val {pid=childpid, instr=childin, outstr=childout} = setupWatcher (ctxt,th,thm_names_list)
      fun decr_watched() =
@@ -370,28 +381,27 @@ fun createWatcher (ctxt, th, thm_names_list) =
                           handle Option => error "watcher: \"outcome\" line is missing"
 	   val probfile = valOf (TextIO.inputLine childin)
                           handle Option => error "watcher: \"probfile\" line is missing"
-	   val sgno = number_from_filename probfile
-	   val text = string_of_subgoal th sgno
-	   fun report s = priority ("Subgoal " ^ Int.toString sgno ^ ": " ^ s);
+	   val i = number_from_filename probfile
+	   val text = "\n" ^ string_of_subgoal th i
        in
 	 Output.debug (fn () => ("In signal handler. outcome = \"" ^ outcome ^
 		       "\"\nprobfile = " ^ probfile ^
 		       "\nGoals being watched: "^  Int.toString (!goals_being_watched)));
 	 if String.isPrefix "Invalid" outcome
-	 then (report ("Subgoal is not provable:\n" ^ text);
+	 then (report i ("Subgoal is not provable:" ^ text);
 	       decr_watched())
 	 else if String.isPrefix "Failure" outcome
-	 then (report ("Proof attempt failed:\n" ^ text);
+	 then (report i ("Proof attempt failed:" ^ text);
 	       decr_watched())
 	(* print out a list of rules used from clasimpset*)
 	 else if String.isPrefix "Success" outcome
-	 then (report (read_proof probfile ^ "\n" ^ text);
+	 then (report_success i (read_proof probfile) text;
 	       decr_watched())
 	  (* if proof translation failed *)
 	 else if String.isPrefix "Translation failed" outcome
-	 then (report (outcome ^ text);
+	 then (report i (outcome ^ text);
 	       decr_watched())
-	 else (report "System error in proof handler";
+	 else (report i "System error in proof handler";
 	       decr_watched())
        end
  in Output.debug (fn () => ("subgoals forked to createWatcher: "^ prems_string_of th));
