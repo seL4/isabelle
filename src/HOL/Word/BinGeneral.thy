@@ -13,6 +13,96 @@ theory BinGeneral imports Num_Lemmas
 
 begin
 
+subsection {* BIT as a datatype constructor *}
+
+constdefs
+  -- "alternative way of defining @{text bin_last}, @{text bin_rest}"
+  bin_rl :: "int => int * bit" 
+  "bin_rl w == SOME (r, l). w = r BIT l"
+
+(** ways in which type Bin resembles a datatype **)
+
+lemma BIT_eq: "u BIT b = v BIT c ==> u = v & b = c"
+  apply (unfold Bit_def)
+  apply (simp (no_asm_use) split: bit.split_asm)
+     apply simp_all
+   apply (drule_tac f=even in arg_cong, clarsimp)+
+  done
+     
+lemmas BIT_eqE [elim!] = BIT_eq [THEN conjE, standard]
+
+lemma BIT_eq_iff [simp]: 
+  "(u BIT b = v BIT c) = (u = v \<and> b = c)"
+  by (rule iffI) auto
+
+lemmas BIT_eqI [intro!] = conjI [THEN BIT_eq_iff [THEN iffD2]]
+
+lemma less_Bits: 
+  "(v BIT b < w BIT c) = (v < w | v <= w & b = bit.B0 & c = bit.B1)"
+  unfolding Bit_def by (auto split: bit.split)
+
+lemma le_Bits: 
+  "(v BIT b <= w BIT c) = (v < w | v <= w & (b ~= bit.B1 | c ~= bit.B0))" 
+  unfolding Bit_def by (auto split: bit.split)
+
+lemma neB1E [elim!]:
+  assumes ne: "y \<noteq> bit.B1"
+  assumes y: "y = bit.B0 \<Longrightarrow> P"
+  shows "P"
+  apply (rule y)
+  apply (cases y rule: bit.exhaust, simp)
+  apply (simp add: ne)
+  done
+
+lemma bin_ex_rl: "EX w b. w BIT b = bin"
+  apply (unfold Bit_def)
+  apply (cases "even bin")
+   apply (clarsimp simp: even_equiv_def)
+   apply (auto simp: odd_equiv_def split: bit.split)
+  done
+
+lemma bin_exhaust:
+  assumes Q: "\<And>x b. bin = x BIT b \<Longrightarrow> Q"
+  shows "Q"
+  apply (insert bin_ex_rl [of bin])  
+  apply (erule exE)+
+  apply (rule Q)
+  apply force
+  done
+
+lemma bin_rl_char: "(bin_rl w = (r, l)) = (r BIT l = w)"
+  apply (unfold bin_rl_def)
+  apply safe
+   apply (cases w rule: bin_exhaust)
+   apply auto
+  done
+
+lemmas bin_rl_simps [THEN bin_rl_char [THEN iffD2], standard, simp] =
+  Pls_0_eq Min_1_eq refl 
+
+lemma bin_abs_lem:
+  "bin = (w BIT b) ==> ~ bin = Numeral.Min --> ~ bin = Numeral.Pls -->
+    nat (abs w) < nat (abs bin)"
+  apply (clarsimp simp add: bin_rl_char)
+  apply (unfold Pls_def Min_def Bit_def)
+  apply (cases b)
+   apply (clarsimp, arith)
+  apply (clarsimp, arith)
+  done
+
+lemma bin_induct:
+  assumes PPls: "P Numeral.Pls"
+    and PMin: "P Numeral.Min"
+    and PBit: "!!bin bit. P bin ==> P (bin BIT bit)"
+  shows "P bin"
+  apply (rule_tac P=P and a=bin and f1="nat o abs" 
+                  in wf_measure [THEN wf_induct])
+  apply (simp add: measure_def inv_image_def)
+  apply (case_tac x rule: bin_exhaust)
+  apply (frule bin_abs_lem)
+  apply (auto simp add : PPls PMin PBit)
+  done
+
 subsection {* Recursion combinator for binary integers *}
 
 lemma brlem: "(bin = Numeral.Min) = (- bin + Numeral.pred 0 = 0)"
