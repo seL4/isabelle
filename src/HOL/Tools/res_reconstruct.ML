@@ -541,7 +541,7 @@ fun prover_lemma_list_aux getax proofstr probfile toParent ppid thm_names =
  (trace ("\n\nGetting lemma names. proofstr is " ^ proofstr ^
          " num of clauses is " ^ string_of_int (Vector.length thm_names));
   signal_success probfile toParent ppid
-    ("Try this command: \n  apply " ^ rules_to_metis (getax proofstr thm_names))
+    ("apply " ^ rules_to_metis (getax proofstr thm_names))
  )
  handle e => (*FIXME: exn handler is too general!*)
   (trace ("\nprover_lemma_list_aux: In exception handler: " ^ Toplevel.exn_message e);
