@@ -11,20 +11,9 @@ header {* Word Arithmetic *}
 
 theory WordArith imports WordDefinition begin
 
-
 lemmas word_arith_wis [THEN meta_eq_to_obj_eq] = 
   word_add_def word_mult_def word_minus_def 
   word_succ_def word_pred_def word_0_wi word_1_wi
-
-lemma udvdI: 
-  "0 \<le> n ==> uint b = n * uint a ==> a udvd b"
-  by (auto simp: udvd_def)
-
-lemmas word_div_no [simp] = 
-  word_div_def [of "number_of ?a" "number_of ?b"]
-
-lemmas word_mod_no [simp] = 
-  word_mod_def [of "number_of ?a" "number_of ?b"]
 
 (* following two are available in class number_ring, 
   but convenient to have them here here;
@@ -221,11 +210,6 @@ lemmas sint_word_ariths = uint_word_arith_bintrs
   unfolded uint_sint bintr_arith1s bintr_ariths 
     len_gt_0 [THEN bin_sbin_eq_iff'] word_sbin.norm_Rep, standard]
 
-lemmas uint_div_alt = word_div_def
-  [THEN meta_eq_to_obj_eq [THEN trans [OF uint_cong int_word_uint]], standard]
-lemmas uint_mod_alt = word_mod_def
-  [THEN meta_eq_to_obj_eq [THEN trans [OF uint_cong int_word_uint]], standard]
-
 lemma word_pred_0_n1: "word_pred 0 = word_of_int -1"
   unfolding word_pred_def number_of_eq
   by (simp add : pred_def word_no_wi)
@@ -392,6 +376,14 @@ lemmas unat_mono = word_less_nat_alt [THEN iffD1, standard]
 
 subsection "Divisibility"
 
+definition
+  udvd :: "'a::len word \<Rightarrow> 'a word \<Rightarrow> bool" (infixl "udvd" 50) where
+  "a udvd b \<equiv> \<exists>n\<ge>0. uint b = n * uint a"
+
+lemma udvdI: 
+  "0 \<le> n ==> uint b = n * uint a ==> a udvd b"
+  by (auto simp: udvd_def)
+
 lemma udvd_nat_alt: "a udvd b = (EX n>=0. unat b = n * unat a)"
   apply (unfold udvd_def)
   apply safe
@@ -407,6 +399,26 @@ lemma udvd_nat_alt: "a udvd b = (EX n>=0. unat b = n * unat a)"
 
 lemma udvd_iff_dvd: "x udvd y <-> unat x dvd unat y"
   unfolding dvd_def udvd_nat_alt by force
+
+
+subsection "Division with remainder"
+
+instance word :: (len0) Divides.div
+  word_div_def: "a div b == word_of_int (uint a div uint b)"
+  word_mod_def: "a mod b == word_of_int (uint a mod uint b)"
+  ..
+
+lemmas word_div_no [simp] = 
+  word_div_def [of "number_of ?a" "number_of ?b"]
+
+lemmas word_mod_no [simp] = 
+  word_mod_def [of "number_of ?a" "number_of ?b"]
+
+lemmas uint_div_alt = word_div_def
+  [THEN meta_eq_to_obj_eq [THEN trans [OF uint_cong int_word_uint]], standard]
+lemmas uint_mod_alt = word_mod_def
+  [THEN meta_eq_to_obj_eq [THEN trans [OF uint_cong int_word_uint]], standard]
+
 
 lemma word_zero_neq_one: "0 < len_of TYPE ('a :: len0) ==> (0 :: 'a word) ~= 1";
   unfolding word_arith_wis

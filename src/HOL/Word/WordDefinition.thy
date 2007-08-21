@@ -19,7 +19,6 @@ instance word :: (type) plus ..
 instance word :: (type) one ..
 instance word :: (type) zero ..
 instance word :: (type) times ..
-instance word :: (type) Divides.div ..
 instance word :: (type) power ..
 instance word :: (type) size ..
 instance word :: (type) inverse ..
@@ -91,9 +90,6 @@ constdefs
   word_pred :: "'a :: len0 word => 'a word"
   "word_pred a == word_of_int (Numeral.pred (uint a))"
 
-  udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50)
-  "a udvd b == EX n>=0. uint b = n * uint a"
-
 consts
   word_power :: "'a :: len0 word => nat => 'a word"
 primrec
@@ -106,8 +102,6 @@ defs (overloaded)
   word_sub_wi: "a - b == word_of_int (uint a - uint b)"
   word_minus_def: "- a == word_of_int (- uint a)"
   word_mult_def: "a * b == word_of_int (uint a * uint b)"
-  word_div_def: "a div b == word_of_int (uint a div uint b)"
-  word_mod_def: "a mod b == word_of_int (uint a mod uint b)"
 
 
 subsection "Bit-wise operations"
