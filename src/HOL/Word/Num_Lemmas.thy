@@ -10,11 +10,6 @@ theory Num_Lemmas imports Parity begin
 lemma contentsI: "y = {x} ==> contents y = x" 
   unfolding contents_def by auto
 
-lemma prod_case_split: "prod_case = split"
-  by (rule ext)+ auto
- 
-lemmas split_split = prod.split [unfolded prod_case_split] 
-lemmas split_split_asm = prod.split_asm [unfolded prod_case_split]
 lemmas "split.splits" = split_split split_split_asm 
 
 lemmas funpow_0 = funpow.simps(1)
@@ -31,8 +26,6 @@ lemma gt_or_eq_0: "0 < y \<or> 0 = (y::nat)" by auto
 constdefs
   mod_alt :: "'a => 'a => 'a :: Divides.div"
   "mod_alt n m == n mod m" 
-
-declare iszero_0 [iff]
 
 lemmas xtr1 = xtrans(1)
 lemmas xtr2 = xtrans(2)
@@ -70,10 +63,6 @@ lemma nobm1:
   apply (unfold nat_number_of_def One_nat_def nat_1 [symmetric] pred_def)
   apply (simp add: number_of_eq nat_diff_distrib [symmetric])
   done
-
-lemma of_int_power:
-  "of_int (a ^ n) = (of_int a ^ n :: 'a :: {recpower, comm_ring_1})" 
-  by (induct n) (auto simp add: power_Suc)
 
 lemma zless2: "0 < (2 :: int)" 
   by auto
