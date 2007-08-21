@@ -543,12 +543,14 @@ lemmas arith_simps =
 text {* Simplification of relational operations *}
 
 lemmas rel_simps [simp] = 
-  eq_number_of_eq iszero_number_of_Pls nonzero_number_of_Min
+  eq_number_of_eq iszero_0 nonzero_number_of_Min
   iszero_number_of_0 iszero_number_of_1
   less_number_of_eq_neg
   not_neg_number_of_Pls not_neg_0 not_neg_1 not_iszero_1
   neg_number_of_Min neg_number_of_BIT
   le_number_of_eq
+(* iszero_number_of_Pls would never be used
+   because its lhs simplifies to "iszero 0" *)
 
 
 subsection {* Simplification of arithmetic when nested to the right. *}
