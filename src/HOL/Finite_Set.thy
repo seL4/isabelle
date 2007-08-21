@@ -2653,7 +2653,7 @@ lemma hom_Max_commute:
 
 end
 
-class linordered_ab_semigroup_add = linorder + pordered_ab_semigroup_add
+context ordered_ab_semigroup_add
 begin
 
 lemma add_Min_commute:

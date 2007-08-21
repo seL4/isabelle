@@ -235,7 +235,13 @@ proof
   thus "a \<le> b" by simp
 qed
 
-class ordered_cancel_ab_semigroup_add = pordered_cancel_ab_semigroup_add + linorder
+class ordered_ab_semigroup_add =
+  linorder + pordered_ab_semigroup_add
+
+class ordered_cancel_ab_semigroup_add =
+  linorder + pordered_cancel_ab_semigroup_add
+
+instance ordered_cancel_ab_semigroup_add \<subseteq> ordered_ab_semigroup_add ..
 
 instance ordered_cancel_ab_semigroup_add \<subseteq> pordered_ab_semigroup_add_imp_le
 proof
@@ -1049,7 +1055,7 @@ lemmas group_simps =
   diff_less_eq less_diff_eq diff_le_eq le_diff_eq
 
 lemma estimate_by_abs:
-"a + b <= (c::'a::lordered_ab_group_abs) \<Longrightarrow> a <= c + abs b" 
+  "a + b <= (c::'a::lordered_ab_group_abs) \<Longrightarrow> a <= c + abs b" 
 proof -
   assume "a+b <= c"
   hence 2: "a <= c+(-b)" by (simp add: group_simps)
@@ -1061,12 +1067,9 @@ qed
 subsection {* Tools setup *}
 
 text{*Simplification of @{term "x-y < 0"}, etc.*}
-lemmas diff_less_0_iff_less = less_iff_diff_less_0 [symmetric]
-lemmas diff_eq_0_iff_eq = eq_iff_diff_eq_0 [symmetric]
-lemmas diff_le_0_iff_le = le_iff_diff_le_0 [symmetric]
-declare diff_less_0_iff_less [simp]
-declare diff_eq_0_iff_eq [simp,noatp]
-declare diff_le_0_iff_le [simp]
+lemmas diff_less_0_iff_less [simp] = less_iff_diff_less_0 [symmetric]
+lemmas diff_eq_0_iff_eq [simp, noatp] = eq_iff_diff_eq_0 [symmetric]
+lemmas diff_le_0_iff_le [simp] = le_iff_diff_le_0 [symmetric]
 
 ML {*
 structure ab_group_add_cancel = Abel_Cancel(
