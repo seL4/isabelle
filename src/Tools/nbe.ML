@@ -15,7 +15,7 @@ FIXME:
 signature NBE =
 sig
   datatype Univ = 
-      Const of string * Univ list        (*named constructors*)
+      Const of string * Univ list            (*named (uninterpreted) constants*)
     | Free of string * Univ list
     | BVar of int * Univ list
     | Abs of (int * (Univ list -> Univ)) * Univ list;
@@ -63,11 +63,11 @@ fun tracing f x = if !trace then (Output.tracing (f x); x) else x;
 *)
 
 datatype Univ = 
-    Const of string * Univ list        (*named constructors*)
+    Const of string * Univ list        (*named (uninterpreted) constants*)
   | Free of string * Univ list         (*free variables*)
   | BVar of int * Univ list            (*bound named variables*)
   | Abs of (int * (Univ list -> Univ)) * Univ list
-                                      (*functions*);
+                                      (*abstractions as closures*);
 
 (* constructor functions *)
 
@@ -108,7 +108,7 @@ fun compile_univs tab ([], _) = []
       let
         val _ = univs_ref := [];
         val s = "Nbe.univs_ref := " ^ raw_s;
-        val _ = tracing (fn () => "\n---generated code:\n" ^ s) ();
+        val _ = tracing (fn () => "\n--- generated code:\n" ^ s) ();
         val _ = tab_ref := SOME tab;
         val _ = use_text "" (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
           Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
@@ -228,7 +228,7 @@ fun assemble_eqnss thy is_fun ([], deps) = ([], "")
         val result = ml_list (map (fn (c, n) => nbe_abss n (nbe_fun c)) num_args);
       in (cs, ml_Let (bind_funs @ [bind_locals]) result) end;
 
-fun assemble_eval thy is_fun (t, deps) =
+fun assemble_eval thy is_fun (((vs, ty), t), deps) =
   let
     val funs = CodeThingol.fold_constnames (insert (op =)) t [];
     val frees = CodeThingol.fold_unbound_varnames (insert (op =)) t [];
@@ -238,9 +238,9 @@ fun assemble_eval thy is_fun (t, deps) =
     val result = ml_list [nbe_value `$` ml_list (map nbe_free frees)];
   in ([nbe_value], ml_Let (bind_funs @ [bind_value]) result) end;
 
-fun eqns_of_stmt ((_, CodeThingol.Fun ([], _)), _) =
+fun eqns_of_stmt ((_, CodeThingol.Fun (_, [])), _) =
       NONE
-  | eqns_of_stmt ((name, CodeThingol.Fun (eqns, _)), deps) =
+  | eqns_of_stmt ((name, CodeThingol.Fun (_, eqns)), deps) =
       SOME ((name, eqns), deps)
   | eqns_of_stmt ((_, CodeThingol.Datatypecons _), _) =
       NONE
@@ -312,7 +312,7 @@ fun term_of_univ thy t =
 
 (* evaluation with type reconstruction *)
 
-fun eval thy code t t' deps =
+fun eval thy code t vs_ty_t deps =
   let
     val ty = type_of t;
     fun subst_Frees [] = I
@@ -328,37 +328,37 @@ fun eval thy code t t' deps =
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Sign.string_of_term thy) t);
   in
-    (t', deps)
+    (vs_ty_t, deps)
     |> eval_term thy (Symtab.defined (ensure_funs thy code))
     |> term_of_univ thy
     |> tracing (fn t => "Normalized:\n" ^ setmp show_types true Display.raw_string_of_term t)
-    |> tracing (fn _ => "Term type:\n" ^ Display.raw_string_of_typ ty)
     |> anno_vars
     |> tracing (fn t => "Vars typed:\n" ^ setmp show_types true Display.raw_string_of_term t)
-    |> tracing (fn t => setmp show_types true (Sign.string_of_term thy) t)
     |> constrain
     |> tracing (fn t => "Types inferred:\n" ^ setmp show_types true Display.raw_string_of_term t)
     |> check_tvars
+    |> tracing (fn _ => "---\n")
   end;
 
 (* evaluation oracle *)
 
-exception Normalization of CodeThingol.code * term * CodeThingol.iterm * string list;
+exception Normalization of CodeThingol.code * term
+  * (CodeThingol.typscheme * CodeThingol.iterm) * string list;
 
-fun normalization_oracle (thy, Normalization (code, t, t', deps)) =
-  Logic.mk_equals (t, eval thy code t t' deps);
+fun normalization_oracle (thy, Normalization (code, t, vs_ty_t, deps)) =
+  Logic.mk_equals (t, eval thy code t vs_ty_t deps);
 
-fun normalization_invoke thy code t t' deps =
-  Thm.invoke_oracle_i thy "HOL.normalization" (thy, Normalization (code, t, t', deps));
+fun normalization_invoke thy code t vs_ty_t deps =
+  Thm.invoke_oracle_i thy "HOL.normalization" (thy, Normalization (code, t, vs_ty_t, deps));
   (*FIXME get rid of hardwired theory name*)
 
 fun normalization_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    fun conv code (t', ty') deps ct =
+    fun conv code vs_ty_t deps ct =
       let
         val t = Thm.term_of ct;
-      in normalization_invoke thy code t t' deps end;
+      in normalization_invoke thy code t vs_ty_t deps end;
   in CodePackage.eval_conv thy conv ct end;
 
 (* evaluation command *)

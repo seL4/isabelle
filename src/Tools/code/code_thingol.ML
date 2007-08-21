@@ -58,7 +58,7 @@ sig
 
   datatype def =
       Bot
-    | Fun of (iterm list * iterm) list * typscheme
+    | Fun of typscheme * (iterm list * iterm) list
     | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
     | Class of (class * string) list * (vname * (string * itype) list)
@@ -231,12 +231,10 @@ fun eta_expand (c as (_, (_, tys)), ts) k =
 
 (** definitions, transactions **)
 
-(* type definitions *)
-
 type typscheme = (vname * sort) list * itype;
 datatype def =
     Bot
-  | Fun of (iterm list * iterm) list * typscheme
+  | Fun of typscheme * (iterm list * iterm) list
   | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
   | Class of (class * string) list * (vname * (string * itype) list)
@@ -273,7 +271,7 @@ val merge_code : code * code -> code = Graph.merge (K true);
 fun project_code delete_empty_funs hidden raw_selected code =
   let
     fun is_empty_fun name = case Graph.get_node code name
-     of Fun ([], _) => true
+     of Fun (_, []) => true
       | _ => false;
     val names = subtract (op =) hidden (Graph.keys code);
     val deleted = Graph.all_preds code (filter is_empty_fun names);
@@ -291,7 +289,7 @@ fun project_code delete_empty_funs hidden raw_selected code =
   end;
 
 fun empty_funs code =
-  Graph.fold (fn (name, (Fun ([], _), _)) => cons name
+  Graph.fold (fn (name, (Fun (_, []), _)) => cons name
                | _ => I) code [];
 
 fun is_cons code name = case Graph.get_node code name
@@ -322,8 +320,8 @@ fun check_funeqs eqs =
 
 fun check_prep_def code Bot =
       Bot
-  | check_prep_def code (Fun (eqs, d)) =
-      Fun (check_funeqs eqs, d)
+  | check_prep_def code (Fun (d, eqs)) =
+      Fun (d, check_funeqs eqs)
   | check_prep_def code (d as Datatype _) =
       d
   | check_prep_def code (Datatypecons dtco) =
@@ -405,7 +403,7 @@ fun start_transact f code =
 
 fun add_eval_def (name, (t, ty)) code =
   code
-  |> Graph.new_node (name, Fun ([([], t)], ([], ty)))
+  |> Graph.new_node (name, Fun (([], ty), [([], t)]))
   |> fold (curry Graph.add_edge name) (Graph.keys code);
 
 end; (*struct*)

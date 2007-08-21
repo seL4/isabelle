@@ -293,7 +293,7 @@ fun mk_modl_name_tab init_names prefix module_alias code =
 (** SML/OCaml serializer **)
 
 datatype ml_def =
-    MLFuns of (string * ((iterm list * iterm) list * typscheme)) list
+    MLFuns of (string * (typscheme * (iterm list * iterm) list)) list
   | MLDatas of (string * ((vname * sort) list * (string * itype list) list)) list
   | MLClass of string * ((class * string) list * (vname * (string * itype) list))
   | MLClassinst of string * ((class * (string * (vname * sort) list))
@@ -423,13 +423,13 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
                 fun mk [] [] = "val"
                   | mk (_::_) _ = "fun"
                   | mk [] vs = if (null o filter_out (null o snd)) vs then "val" else "fun";
-                fun chk (_, ((ts, _) :: _, (vs, _))) NONE = SOME (mk ts vs)
-                  | chk (_, ((ts, _) :: _, (vs, _))) (SOME defi) =
+                fun chk (_, ((vs, _), (ts, _) :: _)) NONE = SOME (mk ts vs)
+                  | chk (_, ((vs, _), (ts, _) :: _)) (SOME defi) =
                       if defi = mk ts vs then SOME defi
                       else error ("Mixing simultaneous vals and funs not implemented: "
                         ^ commas (map (labelled_name o fst) funns));
               in the (fold chk funns NONE) end;
-            fun pr_funn definer (name, (eqs as eq::eqs', (raw_vs, ty))) =
+            fun pr_funn definer (name, ((raw_vs, ty), eqs as eq :: eqs')) =
               let
                 val vs = filter_out (null o snd) raw_vs;
                 val shift = if null eqs' then I else
@@ -758,7 +758,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
                       :: maps (append [Pretty.fbrk, str "|", Pretty.brk 1] o single o pr_eq) eqs'
                     )
                   end;
-            fun pr_funn definer (name, (eqs, (vs, ty))) =
+            fun pr_funn definer (name, ((vs, ty), eqs)) =
               concat (
                 str definer
                 :: (str o deresolv) name
@@ -1173,7 +1173,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
             ) (map pr bs)
           end
       | pr_case vars fxy ((_, []), _) = str "error \"empty case\"";
-    fun pr_def (name, CodeThingol.Fun (eqs, (vs, ty))) =
+    fun pr_def (name, CodeThingol.Fun ((vs, ty), eqs)) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
             fun pr_eq (ts, t) =

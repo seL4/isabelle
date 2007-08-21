@@ -167,7 +167,8 @@ val eval_ref = ref (NONE : term option);
 end;
 *}
 
-oracle eval_oracle ("term * CodeThingol.code * CodeThingol.iterm * CodeThingol.itype * cterm") = {* fn thy => fn (t0, code, t, ty, ct) => 
+oracle eval_oracle ("term * CodeThingol.code * (CodeThingol.typscheme * CodeThingol.iterm) * cterm") =
+{* fn thy => fn (t0, code, ((vs, ty), t), ct) => 
 let
   val _ = (Term.map_types o Term.map_atyps) (fn _ =>
     error ("Term " ^ Sign.string_of_term thy t0 ^ " contains polymorphic type"))
@@ -181,7 +182,7 @@ struct
 
 open Eval;
 
-fun eval_invoke thy t0 code (t, ty) _ ct = eval_oracle thy (t0, code, t, ty, ct);
+fun eval_invoke thy t0 code vs_ty_t _ ct = eval_oracle thy (t0, code, vs_ty_t, ct);
 
 fun eval_conv ct =
   let

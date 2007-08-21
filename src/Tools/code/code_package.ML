@@ -9,10 +9,12 @@ signature CODE_PACKAGE =
 sig
   (* interfaces *)
   val eval_conv: theory
-    -> (CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> cterm -> thm)
+    -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
+       -> string list -> cterm -> thm)
     -> cterm -> thm;
   val eval_term: theory
-    -> (CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> cterm -> 'a)
+    -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
+       -> string list -> cterm -> 'a)
     -> cterm -> 'a;
   val satisfies_ref: bool option ref;
   val satisfies: theory -> cterm -> string list -> bool;
@@ -285,10 +287,10 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr (const as (c, opt_tyco)) 
           ##>> exprgen_term thy algbr funcgr rhs;
       in
         trns
-        |> timeap (fold_map (exprgen_eq o dest_eqthm) thms)
-        ||>> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
+        |> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
         ||>> exprgen_typ thy algbr funcgr ty
-        |>> (fn ((eqs, vs), ty) => CodeThingol.Fun (eqs, (vs, ty)))
+        ||>> timeap (fold_map (exprgen_eq o dest_eqthm) thms)
+        |>> (fn ((vs, ty), eqs) => CodeThingol.Fun ((vs, ty), eqs))
       end;
     val defgen = if (is_some o Code.get_datatype_of_constr thy) const
       then defgen_datatypecons
@@ -536,25 +538,28 @@ fun raw_eval f thy g =
     val value_name = "Isabelle_Eval.EVAL.EVAL";
     fun ensure_eval thy algbr funcgr t = 
       let
+        val ty = fastype_of t;
+        val vs = typ_tfrees ty;
         val defgen_eval =
-          exprgen_term' thy algbr funcgr t
-          ##>> exprgen_typ thy algbr funcgr (fastype_of t)
-          #>> (fn (t, ty) => CodeThingol.Fun ([([], t)], ([], ty)));
+          fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
+          ##>> exprgen_typ thy algbr funcgr ty
+          ##>> exprgen_term' thy algbr funcgr t
+          #>> (fn ((vs, ty), t) => CodeThingol.Fun ((vs, ty), [([], t)]));
         fun result (dep, code) =
           let
-            val CodeThingol.Fun ([([], t)], ([], ty)) = Graph.get_node code value_name;
+            val CodeThingol.Fun ((vs, ty), [([], t)]) = Graph.get_node code value_name;
             val deps = Graph.imm_succs code value_name;
             val code' = Graph.del_nodes [value_name] code;
             val code'' = CodeThingol.project_code false [] (SOME deps) code';
-          in ((code'', (t, ty), deps), (dep, code')) end;
+          in ((code'', ((vs, ty), t), deps), (dep, code')) end;
       in
         ensure_def thy defgen_eval "evaluation" value_name
         #> result
       end;
     fun h funcgr ct =
       let
-        val (code, (t, ty), deps) = generate thy funcgr ensure_eval (Thm.term_of ct);
-      in g code (t, ty) deps ct end;
+        val (code, vs_ty_t, deps) = generate thy funcgr ensure_eval (Thm.term_of ct);
+      in g code vs_ty_t deps ct end;
   in f thy h end;
 
 fun eval_conv thy = raw_eval CodeFuncgr.eval_conv thy;
@@ -564,7 +569,7 @@ val satisfies_ref : bool option ref = ref NONE;
 
 fun satisfies thy ct witnesses =
   let
-    fun evl code (t, ty) deps ct =
+    fun evl code ((vs, ty), t) deps ct =
       let
         val t0 = Thm.term_of ct
         val _ = (Term.map_types o Term.map_atyps) (fn _ =>
