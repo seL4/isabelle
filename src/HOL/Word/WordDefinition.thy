@@ -55,22 +55,6 @@ constdefs
   norm_sint :: "nat => int => int"
   "norm_sint n w == (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
 
-  -- "cast a word to a different length"
-  scast :: "'a :: len word => 'b :: len word"
-  "scast w == word_of_int (sint w)"
-  ucast :: "'a :: len0 word => 'b :: len0 word"
-  "ucast w == word_of_int (uint w)"
-
-  -- "whether a cast (or other) function is to a longer or shorter length"
-  source_size :: "('a :: len0 word => 'b) => nat"
-  "source_size c == let arb = arbitrary ; x = c arb in size arb"  
-  target_size :: "('a => 'b :: len0 word) => nat"
-  "target_size c == size (c arbitrary)"
-  is_up :: "('a :: len0 word => 'b :: len0 word) => bool"
-  "is_up c == source_size c <= target_size c"
-  is_down :: "('a :: len0 word => 'b :: len0 word) => bool"
-  "is_down c == target_size c <= source_size c"
-
 constdefs
   of_bl :: "bool list => 'a :: len0 word" 
   "of_bl bl == word_of_int (bl_to_bin bl)"
@@ -628,7 +612,45 @@ lemmas num_abs_bintr = sym [THEN trans,
   OF num_of_bintr word_number_of_def [THEN meta_eq_to_obj_eq], standard]
 lemmas num_abs_sbintr = sym [THEN trans,
   OF num_of_sbintr word_number_of_def [THEN meta_eq_to_obj_eq], standard]
-  
+
+lemma word_rev_tf': 
+  "r = to_bl (of_bl bl) ==> r = rev (takefill False (length r) (rev bl))"
+  unfolding of_bl_def uint_bl
+  by (clarsimp simp add: bl_bin_bl_rtf word_ubin.eq_norm word_size)
+
+lemmas word_rev_tf = refl [THEN word_rev_tf', unfolded word_bl.Rep', standard]
+
+lemmas word_rep_drop = word_rev_tf [simplified takefill_alt,
+  simplified, simplified rev_take, simplified]
+
+lemma of_bl_append_same: "of_bl (X @ to_bl w) = w"
+  by (rule word_bl.Rep_eqD) (simp add: word_rep_drop)
+
+lemmas test_bit_def' = word_test_bit_def [THEN meta_eq_to_obj_eq, THEN fun_cong]
+
+lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
+lemmas word_log_bin_defs = word_log_defs
+
+
+subsection {* Casting words to different lengths *}
+
+constdefs
+  -- "cast a word to a different length"
+  scast :: "'a :: len word => 'b :: len word"
+  "scast w == word_of_int (sint w)"
+  ucast :: "'a :: len0 word => 'b :: len0 word"
+  "ucast w == word_of_int (uint w)"
+
+  -- "whether a cast (or other) function is to a longer or shorter length"
+  source_size :: "('a :: len0 word => 'b) => nat"
+  "source_size c == let arb = arbitrary ; x = c arb in size arb"  
+  target_size :: "('a => 'b :: len0 word) => nat"
+  "target_size c == size (c arbitrary)"
+  is_up :: "('a :: len0 word => 'b :: len0 word) => bool"
+  "is_up c == source_size c <= target_size c"
+  is_down :: "('a :: len0 word => 'b :: len0 word) => bool"
+  "is_down c == target_size c <= source_size c"
+
 (** cast - note, no arg for new length, as it's determined by type of result,
   thus in "cast w = w, the type means cast to length of w! **)
 
@@ -679,16 +701,6 @@ lemma down_cast_same': "uc = ucast ==> is_down uc ==> uc = scast"
   apply (rule word_ubin.norm_eq_iff [THEN iffD1])
   apply simp
   done
-
-lemma word_rev_tf': 
-  "r = to_bl (of_bl bl) ==> r = rev (takefill False (length r) (rev bl))"
-  unfolding of_bl_def uint_bl
-  by (clarsimp simp add: bl_bin_bl_rtf word_ubin.eq_norm word_size)
-
-lemmas word_rev_tf = refl [THEN word_rev_tf', unfolded word_bl.Rep', standard]
-
-lemmas word_rep_drop = word_rev_tf [simplified takefill_alt,
-  simplified, simplified rev_take, simplified]
 
 lemma to_bl_ucast: 
   "to_bl (ucast (w::'b::len0 word) ::'a::len0 word) = 
@@ -802,8 +814,6 @@ lemma down_ucast_inj:
    inj_on (ucast :: 'a word => 'b word) A"
   by (rule inj_on_inverseI, erule ucast_down_ucast_id)
 
-lemma of_bl_append_same: "of_bl (X @ to_bl w) = w"
-  by (rule word_bl.Rep_eqD) (simp add: word_rep_drop)
   
 lemma ucast_down_no': 
   "uc = ucast ==> is_down uc ==> uc (number_of bin) = number_of bin"
@@ -819,10 +829,5 @@ lemma ucast_down_bl': "uc = ucast ==> is_down uc ==> uc (of_bl bl) = of_bl bl"
   unfolding of_bl_no by clarify (erule ucast_down_no)
     
 lemmas ucast_down_bl = ucast_down_bl' [OF refl]
-
-lemmas test_bit_def' = word_test_bit_def [THEN meta_eq_to_obj_eq, THEN fun_cong]
-
-lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
-lemmas word_log_bin_defs = word_log_defs
 
 end
