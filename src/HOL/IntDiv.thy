@@ -1357,6 +1357,9 @@ proof
   show "z^(Suc n) = z * (z^n)" by simp
 qed
 
+lemma of_int_power:
+  "of_int (z ^ n) = (of_int z ^ n :: 'a::{recpower, ring_1})"
+  by (induct n) (simp_all add: power_Suc)
 
 lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
 apply (induct "y", auto)
