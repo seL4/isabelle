@@ -6,7 +6,7 @@
 header {* Some examples for Presburger Arithmetic *}
 
 theory PresburgerEx
-imports Main
+imports Presburger
 begin
 
 lemma "\<And>m n ja ia. \<lbrakk>\<not> m \<le> j; \<not> n \<le> i; e \<noteq> 0; Suc j \<le> ja\<rbrakk> \<Longrightarrow> \<exists>m. \<forall>ja ia. m \<le> ja \<longrightarrow> (if j = ja \<and> i = ia then e else 0) = 0" by presburger
