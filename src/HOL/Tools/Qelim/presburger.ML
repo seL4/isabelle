@@ -52,10 +52,27 @@ fun thin_prems_tac P = simp_tac all_maxscope_ss THEN'
 end;
 
 local
+ fun isnum t = case t of 
+   Const(@{const_name "HOL.zero"},_) => true
+ | Const(@{const_name "HOL.one"},_) => true
+ | @{term "Suc"}$s => isnum s
+ | @{term "nat"}$s => isnum s
+ | @{term "int"}$s => isnum s
+ | Const(@{const_name "uminus"},_)$s => isnum s
+ | Const(@{const_name "HOL.plus"},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name "HOL.times"},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name "HOL.minus"},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name "Nat.power"},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name "Divides.mod"},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name "Divides.div"},_)$l$r => isnum l andalso isnum r
+ | _ => can HOLogic.dest_number t orelse can HOLogic.dest_nat t
+
  fun ty cts t = 
  if not (typ_of (ctyp_of_term t) mem [HOLogic.intT, HOLogic.natT]) then false 
     else case term_of t of 
-      c$_$_ => not (member (op aconv) cts c)
+      c$l$r => if c mem [@{term"op *::int => _"}, @{term"op *::nat => _"}] 
+               then not (isnum l orelse isnum r)
+               else not (member (op aconv) cts c)
     | c$_ => not (member (op aconv) cts c)
     | c => not (member (op aconv) cts c)
 
