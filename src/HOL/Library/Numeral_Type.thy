@@ -54,6 +54,14 @@ syntax "_type_card" :: "type => nat" ("(1CARD/(1'(_')))")
 
 translations "CARD(t)" => "card (UNIV::t set)"
 
+typed_print_translation {*
+let
+  fun card_univ_tr' show_sorts _ [Const (@{const_name UNIV}, Type(_,[T]))] =
+    Syntax.const "_type_card" $ Syntax.term_of_typ show_sorts T;
+in [("card", card_univ_tr')]
+end
+*}
+
 lemma card_unit: "CARD(unit) = 1"
   unfolding univ_unit by simp
 
@@ -200,7 +208,7 @@ subsection {* Classes with at values least 1 and 2  *}
 
 text {* Class finite already captures "at least 1" *}
 
-lemma zero_less_card_finite:
+lemma zero_less_card_finite [simp]:
   "0 < CARD('a::finite)"
 proof (cases "CARD('a::finite) = 0")
   case False thus ?thesis by (simp del: card_0_eq)
@@ -209,7 +217,7 @@ next
   thus ?thesis by (simp add: finite)
 qed
 
-lemma one_le_card_finite:
+lemma one_le_card_finite [simp]:
   "Suc 0 <= CARD('a::finite)"
   by (simp add: less_Suc_eq_le [symmetric] zero_less_card_finite)
 
