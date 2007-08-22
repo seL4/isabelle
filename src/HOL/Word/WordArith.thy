@@ -38,24 +38,9 @@ lemma word_m1_wi: "-1 == word_of_int -1"
 lemma word_m1_wi_Min: "-1 = word_of_int Numeral.Min"
   by (simp add: word_m1_wi number_of_eq)
 
-lemma word_0_bl: "of_bl [] = 0" 
-  unfolding word_0_wi of_bl_def by (simp add : Pls_def)
-
-lemma word_1_bl: "of_bl [True] = 1" 
-  unfolding word_1_wi of_bl_def
-  by (simp add : bl_to_bin_def Bit_def Pls_def)
-
 lemma uint_0 [simp] : "(uint 0 = 0)" 
   unfolding word_0_wi
   by (simp add: word_ubin.eq_norm Pls_def [symmetric])
-
-lemma of_bl_0 [simp] : "of_bl (replicate n False) = 0"
-  by (simp add : word_0_wi of_bl_def bl_to_bin_rep_False Pls_def)
-
-lemma to_bl_0: 
-  "to_bl (0::'a::len0 word) = replicate (len_of TYPE('a)) False"
-  unfolding uint_bl
-  by (simp add : word_size bin_to_bl_Pls Pls_def [symmetric])
 
 lemma uint_0_iff: "(uint x = 0) = (x = 0)"
   by (auto intro!: word_uint.Rep_eqD)
@@ -742,55 +727,6 @@ lemma udvd_incr2_K:
   apply simp
   done
 
-(* links with rbl operations *)
-lemma word_succ_rbl:
-  "to_bl w = bl ==> to_bl (word_succ w) = (rev (rbl_succ (rev bl)))"
-  apply (unfold word_succ_def)
-  apply clarify
-  apply (simp add: to_bl_of_bin)
-  apply (simp add: to_bl_def rbl_succ)
-  done
-
-lemma word_pred_rbl:
-  "to_bl w = bl ==> to_bl (word_pred w) = (rev (rbl_pred (rev bl)))"
-  apply (unfold word_pred_def)
-  apply clarify
-  apply (simp add: to_bl_of_bin)
-  apply (simp add: to_bl_def rbl_pred)
-  done
-
-lemma word_add_rbl:
-  "to_bl v = vbl ==> to_bl w = wbl ==> 
-    to_bl (v + w) = (rev (rbl_add (rev vbl) (rev wbl)))"
-  apply (unfold word_add_def)
-  apply clarify
-  apply (simp add: to_bl_of_bin)
-  apply (simp add: to_bl_def rbl_add)
-  done
-
-lemma word_mult_rbl:
-  "to_bl v = vbl ==> to_bl w = wbl ==> 
-    to_bl (v * w) = (rev (rbl_mult (rev vbl) (rev wbl)))"
-  apply (unfold word_mult_def)
-  apply clarify
-  apply (simp add: to_bl_of_bin)
-  apply (simp add: to_bl_def rbl_mult)
-  done
-
-lemma rtb_rbl_ariths:
-  "rev (to_bl w) = ys \<Longrightarrow> rev (to_bl (word_succ w)) = rbl_succ ys"
-
-  "rev (to_bl w) = ys \<Longrightarrow> rev (to_bl (word_pred w)) = rbl_pred ys"
-
-  "[| rev (to_bl v) = ys; rev (to_bl w) = xs |] 
-  ==> rev (to_bl (v * w)) = rbl_mult ys xs"
-
-  "[| rev (to_bl v) = ys; rev (to_bl w) = xs |] 
-  ==> rev (to_bl (v + w)) = rbl_add ys xs"
-  by (auto simp: rev_swap [symmetric] word_succ_rbl 
-                 word_pred_rbl word_mult_rbl word_add_rbl)
-
-
 subsection "Arithmetic type class instantiations"
 
 instance word :: (len0) comm_monoid_add ..
@@ -1231,22 +1167,6 @@ lemma word_of_int_power_hom:
 lemma word_arith_power_alt: 
   "a ^ n = (word_of_int (uint a ^ n) :: 'a :: len word)"
   by (simp add : word_of_int_power_hom [symmetric])
-
-lemma of_bl_length_less: 
-  "length x = k ==> k < len_of TYPE('a) ==> (of_bl x :: 'a :: len word) < 2 ^ k"
-  apply (unfold of_bl_no [unfolded word_number_of_def]
-                word_less_alt word_number_of_alt)
-  apply safe
-  apply (simp (no_asm) add: word_of_int_power_hom word_uint.eq_norm 
-                       del: word_of_int_bin)
-  apply (simp add: mod_pos_pos_trivial)
-  apply (subst mod_pos_pos_trivial)
-    apply (rule bl_to_bin_ge0)
-   apply (rule order_less_trans)
-    apply (rule bl_to_bin_lt2p)
-   apply simp
-  apply (rule bl_to_bin_lt2p)    
-  done
 
 
 subsection "Cardinality, finiteness of set of words"

@@ -8,7 +8,7 @@
 
 header {* Definition of Word Type *}
 
-theory WordDefinition imports Size BinBoolList TdThs begin
+theory WordDefinition imports Size BinOperations TdThs begin
 
 typedef (open word) 'a word
   = "{(0::int) ..< 2^len_of TYPE('a::len0)}" by auto
@@ -52,16 +52,6 @@ constdefs
   "unats n == {i. i < 2 ^ n}"
   norm_sint :: "nat => int => int"
   "norm_sint n w == (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
-
-constdefs
-  of_bl :: "bool list => 'a :: len0 word" 
-  "of_bl bl == word_of_int (bl_to_bin bl)"
-  to_bl :: "'a :: len0 word => bool list"
-  "to_bl w == 
-  bin_to_bl (len_of TYPE ('a)) (uint w)"
-
-  word_reverse :: "'a :: len0 word => 'a word"
-  "word_reverse w == of_bl (rev (to_bl w))"
 
 defs (overloaded)
   word_size: "size (w :: 'a :: len0 word) == len_of TYPE('a)"
@@ -126,9 +116,6 @@ defs (overloaded)
   "set_bit (a::'a::len0 word) n x == 
    word_of_int (bin_sc n (If x bit.B1 bit.B0) (uint a))"
 
-  word_set_bits_def:  
-  "(BITS n. f n)::'a::len0 word == of_bl (bl_of_nth (len_of TYPE ('a)) f)"
-
   word_lsb_def: 
   "lsb (a::'a::len0 word) == bin_last (uint a) = bit.B1"
 
@@ -156,8 +143,6 @@ primrec
   "of_bool True = 1"
 
 
-
-lemmas of_nth_def = word_set_bits_def
 
 lemmas word_size_gt_0 [iff] = 
   xtr1 [OF word_size [THEN meta_eq_to_obj_eq] len_gt_0, standard]
@@ -287,13 +272,6 @@ lemma word_number_of_alt: "number_of b == word_of_int (number_of b)"
 
 lemma word_no_wi: "number_of = word_of_int"
   by (auto simp: word_number_of_def intro: ext)
-
-lemma to_bl_def': 
-  "(to_bl :: 'a :: len0 word => bool list) =
-    bin_to_bl (len_of TYPE('a)) o uint"
-  by (auto simp: to_bl_def intro: ext)
-
-lemmas word_reverse_no_def [simp] = word_reverse_def [of "number_of ?w"]
 
 lemmas uints_mod = uints_def [unfolded no_bintr_alt1]
 
@@ -463,88 +441,6 @@ lemma bin_nth_sint':
 lemmas bin_nth_uint_imp = bin_nth_uint_imp' [rule_format, unfolded word_size]
 lemmas bin_nth_sint = bin_nth_sint' [rule_format, unfolded word_size]
 
-(* type definitions theorem for in terms of equivalent bool list *)
-lemma td_bl: 
-  "type_definition (to_bl :: 'a::len0 word => bool list) 
-                   of_bl  
-                   {bl. length bl = len_of TYPE('a)}"
-  apply (unfold type_definition_def of_bl_def to_bl_def)
-  apply (simp add: word_ubin.eq_norm)
-  apply safe
-  apply (drule sym)
-  apply simp
-  done
-
-interpretation word_bl:
-  type_definition ["to_bl :: 'a::len0 word => bool list"
-                   of_bl  
-                   "{bl. length bl = len_of TYPE('a::len0)}"]
-  by (rule td_bl)
-
-lemma word_size_bl: "size w == size (to_bl w)"
-  unfolding word_size by auto
-
-lemma to_bl_use_of_bl:
-  "(to_bl w = bl) = (w = of_bl bl \<and> length bl = length (to_bl w))"
-  by (fastsimp elim!: word_bl.Abs_inverse [simplified])
-
-lemma to_bl_word_rev: "to_bl (word_reverse w) = rev (to_bl w)"
-  unfolding word_reverse_def by (simp add: word_bl.Abs_inverse)
-
-lemma word_rev_rev [simp] : "word_reverse (word_reverse w) = w"
-  unfolding word_reverse_def by (simp add : word_bl.Abs_inverse)
-
-lemma word_rev_gal: "word_reverse w = u ==> word_reverse u = w"
-  by auto
-
-lemmas word_rev_gal' = sym [THEN word_rev_gal, symmetric, standard]
-
-lemmas length_bl_gt_0 [iff] = xtr1 [OF word_bl.Rep' len_gt_0, standard]
-lemmas bl_not_Nil [iff] = 
-  length_bl_gt_0 [THEN length_greater_0_conv [THEN iffD1], standard]
-lemmas length_bl_neq_0 [iff] = length_bl_gt_0 [THEN gr_implies_not0]
-
-lemma hd_bl_sign_sint: "hd (to_bl w) = (bin_sign (sint w) = Numeral.Min)"
-  apply (unfold to_bl_def sint_uint)
-  apply (rule trans [OF _ bl_sbin_sign])
-  apply simp
-  done
-
-lemma of_bl_drop': 
-  "lend = length bl - len_of TYPE ('a :: len0) ==> 
-    of_bl (drop lend bl) = (of_bl bl :: 'a word)"
-  apply (unfold of_bl_def)
-  apply (clarsimp simp add : trunc_bl2bin [symmetric])
-  done
-
-lemmas of_bl_no = of_bl_def [folded word_number_of_def]
-
-lemma test_bit_of_bl:  
-  "(of_bl bl::'a::len0 word) !! n = (rev bl ! n \<and> n < len_of TYPE('a) \<and> n < length bl)"
-  apply (unfold of_bl_def word_test_bit_def)
-  apply (auto simp add: word_size word_ubin.eq_norm nth_bintr bin_nth_of_bl)
-  done
-
-lemma no_of_bl: 
-  "(number_of bin ::'a::len0 word) = of_bl (bin_to_bl (len_of TYPE ('a)) bin)"
-  unfolding word_size of_bl_no by (simp add : word_number_of_def)
-
-lemma uint_bl: "to_bl w == bin_to_bl (size w) (uint w)"
-  unfolding word_size to_bl_def by auto
-
-lemma to_bl_bin: "bl_to_bin (to_bl w) = uint w"
-  unfolding uint_bl by (simp add : word_size)
-
-lemma to_bl_of_bin: 
-  "to_bl (word_of_int bin::'a::len0 word) = bin_to_bl (len_of TYPE('a)) bin"
-  unfolding uint_bl by (clarsimp simp add: word_ubin.eq_norm word_size)
-
-lemmas to_bl_no_bin [simp] = to_bl_of_bin [folded word_number_of_def]
-
-lemma to_bl_to_bin [simp] : "bl_to_bin (to_bl w) = uint w"
-  unfolding uint_bl by (simp add : word_size)
-  
-lemmas uint_bl_bin [simp] = trans [OF bin_bl_bin word_ubin.norm_Rep, standard]
 
 lemmas num_AB_u [simp] = word_uint.Rep_inverse 
   [unfolded o_def word_number_of_def [symmetric], standard]
@@ -597,19 +493,6 @@ lemmas num_abs_bintr = sym [THEN trans,
 lemmas num_abs_sbintr = sym [THEN trans,
   OF num_of_sbintr word_number_of_def [THEN meta_eq_to_obj_eq], standard]
 
-lemma word_rev_tf': 
-  "r = to_bl (of_bl bl) ==> r = rev (takefill False (length r) (rev bl))"
-  unfolding of_bl_def uint_bl
-  by (clarsimp simp add: bl_bin_bl_rtf word_ubin.eq_norm word_size)
-
-lemmas word_rev_tf = refl [THEN word_rev_tf', unfolded word_bl.Rep', standard]
-
-lemmas word_rep_drop = word_rev_tf [simplified takefill_alt,
-  simplified, simplified rev_take, simplified]
-
-lemma of_bl_append_same: "of_bl (X @ to_bl w) = w"
-  by (rule word_bl.Rep_eqD) (simp add: word_rep_drop)
-
 lemmas test_bit_def' = word_test_bit_def [THEN meta_eq_to_obj_eq, THEN fun_cong]
 
 lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
@@ -643,10 +526,6 @@ lemma ucast_id: "ucast w = w"
 
 lemma scast_id: "scast w = w"
   unfolding scast_def by auto
-
-lemma ucast_bl: "ucast w == of_bl (to_bl w)"
-  unfolding ucast_def of_bl_def uint_bl
-  by (auto simp add : word_size)
 
 lemma nth_ucast: 
   "(ucast w::'a::len0 word) !! n = (w !! n & n < len_of TYPE('a))"
@@ -686,40 +565,6 @@ lemma down_cast_same': "uc = ucast ==> is_down uc ==> uc = scast"
   apply simp
   done
 
-lemma to_bl_ucast: 
-  "to_bl (ucast (w::'b::len0 word) ::'a::len0 word) = 
-   replicate (len_of TYPE('a) - len_of TYPE('b)) False @
-   drop (len_of TYPE('b) - len_of TYPE('a)) (to_bl w)"
-  apply (unfold ucast_bl)
-  apply (rule trans)
-   apply (rule word_rep_drop)
-  apply simp
-  done
-
-lemma ucast_up_app': 
-  "uc = ucast ==> source_size uc + n = target_size uc ==> 
-    to_bl (uc w) = replicate n False @ (to_bl w)"
-  apply (auto simp add : source_size target_size to_bl_ucast)
-  apply (rule_tac f = "%n. replicate n False" in arg_cong)
-  apply simp
-  done
-
-lemma ucast_down_drop': 
-  "uc = ucast ==> source_size uc = target_size uc + n ==> 
-    to_bl (uc w) = drop n (to_bl w)"
-  by (auto simp add : source_size target_size to_bl_ucast)
-
-lemma scast_down_drop': 
-  "sc = scast ==> source_size sc = target_size sc + n ==> 
-    to_bl (sc w) = drop n (to_bl w)"
-  apply (subgoal_tac "sc = ucast")
-   apply safe
-   apply simp
-   apply (erule refl [THEN ucast_down_drop'])
-  apply (rule refl [THEN down_cast_same', symmetric])
-  apply (simp add : source_size target_size is_down)
-  done
-
 lemma sint_up_scast': 
   "sc = scast ==> is_up sc ==> sint (sc w) = sint w"
   apply (unfold is_up)
@@ -746,9 +591,6 @@ lemma uint_up_ucast':
   done
     
 lemmas down_cast_same = refl [THEN down_cast_same']
-lemmas ucast_up_app = refl [THEN ucast_up_app']
-lemmas ucast_down_drop = refl [THEN ucast_down_drop']
-lemmas scast_down_drop = refl [THEN scast_down_drop']
 lemmas uint_up_ucast = refl [THEN uint_up_ucast']
 lemmas sint_up_scast = refl [THEN sint_up_scast']
 
@@ -762,13 +604,8 @@ lemma scast_up_scast': "sc = scast ==> is_up sc ==> scast (sc w) = scast w"
   apply (clarsimp simp add: sint_up_scast)
   done
     
-lemma ucast_of_bl_up': 
-  "w = of_bl bl ==> size bl <= size w ==> ucast w = of_bl bl"
-  by (auto simp add : nth_ucast word_size test_bit_of_bl intro!: word_eqI)
-
 lemmas ucast_up_ucast = refl [THEN ucast_up_ucast']
 lemmas scast_up_scast = refl [THEN scast_up_scast']
-lemmas ucast_of_bl_up = refl [THEN ucast_of_bl_up']
 
 lemmas ucast_up_ucast_id = trans [OF ucast_up_ucast ucast_id]
 lemmas scast_up_scast_id = trans [OF scast_up_scast scast_id]
@@ -808,10 +645,5 @@ lemma ucast_down_no':
   done
     
 lemmas ucast_down_no = ucast_down_no' [OF refl]
-
-lemma ucast_down_bl': "uc = ucast ==> is_down uc ==> uc (of_bl bl) = of_bl bl"
-  unfolding of_bl_no by clarify (erule ucast_down_no)
-    
-lemmas ucast_down_bl = ucast_down_bl' [OF refl]
 
 end
