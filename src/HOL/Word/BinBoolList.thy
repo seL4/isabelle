@@ -961,12 +961,6 @@ lemma tl_if: "tl (if p then xs else ys) = (if p then tl xs else tl ys)"
 lemma hd_if: "hd (if p then xs else ys) = (if p then hd xs else hd ys)"
   by auto
 
-lemma if_Not_x: "(if p then ~ x else x) = (p = (~ x))"
-  by auto
-
-lemma if_x_Not: "(if p then x else ~ x) = (p = x)"
-  by auto
-
 lemma if_same_and: "(If p x y & If p u v) = (if p then x & u else y & v)"
   by auto
 
@@ -985,13 +979,6 @@ lemma if_Cons: "(if p then x # xs else y # ys) = If p x y # If p xs ys"
 lemma if_single:
   "(if xc then [xab] else [an]) = [if xc then xab else an]"
   by auto
-
-lemma if_bool_simps:
-  "If p True y = (p | y) & If p False y = (~p & y) & 
-    If p y True = (p --> y) & If p y False = (p & y)"
-  by auto
-
-lemmas if_simps = if_x_Not if_Not_x if_cancel if_True if_False if_bool_simps
 
 lemmas seqr = eq_reflection [where x = "size ?w"]
 

@@ -522,4 +522,19 @@ lemma nonneg_mod_div:
   apply (auto intro: pos_imp_zdiv_nonneg_iff [THEN iffD2])
   done
 
+subsection "if simps"
+
+lemma if_Not_x: "(if p then ~ x else x) = (p = (~ x))"
+  by auto
+
+lemma if_x_Not: "(if p then x else ~ x) = (p = x)"
+  by auto
+
+lemma if_bool_simps:
+  "If p True y = (p | y) & If p False y = (~p & y) & 
+    If p y True = (p --> y) & If p y False = (p & y)"
+  by auto
+
+lemmas if_simps = if_x_Not if_Not_x if_cancel if_True if_False if_bool_simps
+
 end
