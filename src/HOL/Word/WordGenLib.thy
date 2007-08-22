@@ -14,17 +14,17 @@ begin
 declare of_nat_2p [simp]
 
 lemma word_int_cases:
-  "\<lbrakk>\<And>n. \<lbrakk>(x ::'a::len0 word) = word_of_int n; 0 \<le> n; n < 2^len_of TYPE('a)\<rbrakk> \<Longrightarrow> P\<rbrakk>
+  "\<lbrakk>\<And>n. \<lbrakk>(x ::'a word) = word_of_int n; 0 \<le> n; n < 2^CARD('a)\<rbrakk> \<Longrightarrow> P\<rbrakk>
    \<Longrightarrow> P"
   by (cases x rule: word_uint.Abs_cases) (simp add: uints_num)
 
 lemma word_nat_cases [cases type: word]:
-  "\<lbrakk>\<And>n. \<lbrakk>(x ::'a::len word) = of_nat n; n < 2^len_of TYPE('a)\<rbrakk> \<Longrightarrow> P\<rbrakk>
+  "\<lbrakk>\<And>n. \<lbrakk>(x ::'a::finite word) = of_nat n; n < 2^CARD('a)\<rbrakk> \<Longrightarrow> P\<rbrakk>
    \<Longrightarrow> P"
   by (cases x rule: word_unat.Abs_cases) (simp add: unats_def)
 
 lemma max_word_eq:
-  "(max_word::'a::len word) = 2^len_of TYPE('a) - 1"
+  "(max_word::'a::finite word) = 2^CARD('a) - 1"
   by (simp add: max_word_def word_of_int_hom_syms word_of_int_2p)
 
 lemma max_word_max [simp,intro!]:
@@ -33,14 +33,14 @@ lemma max_word_max [simp,intro!]:
      (simp add: max_word_def word_le_def int_word_uint int_mod_eq')
   
 lemma word_of_int_2p_len: 
-  "word_of_int (2 ^ len_of TYPE('a)) = (0::'a::len0 word)"
+  "word_of_int (2 ^ CARD('a)) = (0::'a word)"
   by (subst word_uint.Abs_norm [symmetric]) 
      (simp add: word_of_int_hom_syms)
 
 lemma word_pow_0:
-  "(2::'a::len word) ^ len_of TYPE('a) = 0"
+  "(2::'a::finite word) ^ CARD('a) = 0"
 proof -
-  have "word_of_int (2 ^ len_of TYPE('a)) = (0::'a word)"
+  have "word_of_int (2 ^ CARD('a)) = (0::'a word)"
     by (rule word_of_int_2p_len)
   thus ?thesis by (simp add: word_of_int_2p)
 qed
@@ -53,18 +53,18 @@ lemma max_word_wrap: "x + 1 = 0 \<Longrightarrow> x = max_word"
   done
 
 lemma max_word_minus: 
-  "max_word = (-1::'a::len word)"
+  "max_word = (-1::'a::finite word)"
 proof -
   have "-1 + 1 = (0::'a word)" by simp
   thus ?thesis by (rule max_word_wrap [symmetric])
 qed
 
 lemma max_word_bl [simp]:
-  "to_bl (max_word::'a::len word) = replicate (len_of TYPE('a)) True"
+  "to_bl (max_word::'a::finite word) = replicate CARD('a) True"
   by (subst max_word_minus to_bl_n1)+ simp
 
 lemma max_test_bit [simp]:
-  "(max_word::'a::len word) !! n = (n < len_of TYPE('a))"
+  "(max_word::'a::finite word) !! n = (n < CARD('a))"
   by (auto simp add: test_bit_bl word_size)
 
 lemma word_and_max [simp]:
@@ -76,15 +76,15 @@ lemma word_or_max [simp]:
   by (rule word_eqI) (simp add: word_ops_nth_size word_size)
 
 lemma word_ao_dist2:
-  "x AND (y OR z) = x AND y OR x AND (z::'a::len0 word)"
+  "x AND (y OR z) = x AND y OR x AND (z::'a word)"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
 lemma word_oa_dist2:
-  "x OR y AND z = (x OR y) AND (x OR (z::'a::len0 word))"
+  "x OR y AND z = (x OR y) AND (x OR (z::'a word))"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
 lemma word_and_not [simp]:
-  "x AND NOT x = (0::'a::len0 word)"
+  "x AND NOT x = (0::'a word)"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
 lemma word_or_not [simp]:
@@ -111,7 +111,7 @@ interpretation word_bool_alg:
   by (rule word_boolean)
 
 lemma word_xor_and_or:
-  "x XOR y = x AND NOT y OR NOT x AND (y::'a::len0 word)"
+  "x XOR y = x AND NOT y OR NOT x AND (y::'a word)"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
 interpretation word_bool_alg:
@@ -123,15 +123,15 @@ interpretation word_bool_alg:
   done
 
 lemma shiftr_0 [iff]:
-  "(x::'a::len0 word) >> 0 = x"
+  "(x::'a word) >> 0 = x"
   by (simp add: shiftr_bl)
 
 lemma shiftl_0 [simp]: 
-  "(x :: 'a :: len word) << 0 = x"
+  "(x :: 'a :: finite word) << 0 = x"
   by (simp add: shiftl_t2n)
 
 lemma shiftl_1 [simp]:
-  "(1::'a::len word) << n = 2^n"
+  "(1::'a::finite word) << n = 2^n"
   by (simp add: shiftl_t2n)
 
 lemma uint_lt_0 [simp]:
@@ -139,21 +139,21 @@ lemma uint_lt_0 [simp]:
   by (simp add: linorder_not_less)
 
 lemma shiftr1_1 [simp]: 
-  "shiftr1 (1::'a::len word) = 0"
+  "shiftr1 (1::'a::finite word) = 0"
   by (simp add: shiftr1_def word_0_alt)
 
 lemma shiftr_1[simp]: 
-  "(1::'a::len word) >> n = (if n = 0 then 1 else 0)"
+  "(1::'a::finite word) >> n = (if n = 0 then 1 else 0)"
   by (induct n) (auto simp: shiftr_def)
 
 lemma word_less_1 [simp]: 
-  "((x::'a::len word) < 1) = (x = 0)"
+  "((x::'a::finite word) < 1) = (x = 0)"
   by (simp add: word_less_nat_alt unat_0_iff)
 
 lemma to_bl_mask:
-  "to_bl (mask n :: 'a::len word) = 
-  replicate (len_of TYPE('a) - n) False @ 
-    replicate (min (len_of TYPE('a)) n) True"
+  "to_bl (mask n :: 'a::finite word) = 
+  replicate (CARD('a) - n) False @ 
+    replicate (min CARD('a) n) True"
   by (simp add: mask_bl word_rep_drop min_def)
 
 lemma map_replicate_True:
@@ -167,19 +167,19 @@ lemma map_replicate_False:
   by (induct xs arbitrary: n) auto
 
 lemma bl_and_mask:
-  fixes w :: "'a::len word"
+  fixes w :: "'a::finite word"
   fixes n
-  defines "n' \<equiv> len_of TYPE('a) - n"
+  defines "n' \<equiv> CARD('a) - n"
   shows "to_bl (w AND mask n) =  replicate n' False @ drop n' (to_bl w)"
 proof - 
   note [simp] = map_replicate_True map_replicate_False
   have "to_bl (w AND mask n) = 
-        app2 op & (to_bl w) (to_bl (mask n::'a::len word))"
+        app2 op & (to_bl w) (to_bl (mask n::'a::finite word))"
     by (simp add: bl_word_and)
   also
   have "to_bl w = take n' (to_bl w) @ drop n' (to_bl w)" by simp
   also
-  have "app2 op & \<dots> (to_bl (mask n::'a::len word)) = 
+  have "app2 op & \<dots> (to_bl (mask n::'a::finite word)) = 
         replicate n' False @ drop n' (to_bl w)"
     unfolding to_bl_mask n'_def app2_def
     by (subst zip_append) auto
@@ -193,7 +193,7 @@ lemma drop_rev_takefill:
   by (simp add: takefill_alt rev_take)
 
 lemma map_nth_0 [simp]:
-  "map (op !! (0::'a::len0 word)) xs = replicate (length xs) False"
+  "map (op !! (0::'a word)) xs = replicate (length xs) False"
   by (induct xs) auto
 
 lemma uint_plus_if_size:
@@ -206,7 +206,7 @@ lemma uint_plus_if_size:
                 word_size)
 
 lemma unat_plus_if_size:
-  "unat (x + (y::'a::len word)) = 
+  "unat (x + (y::'a::finite word)) = 
   (if unat x + unat y < 2^size x then 
       unat x + unat y 
    else 
@@ -217,7 +217,7 @@ lemma unat_plus_if_size:
   done
 
 lemma word_neq_0_conv [simp]:
-  fixes w :: "'a :: len word"
+  fixes w :: "'a :: finite word"
   shows "(w \<noteq> 0) = (0 < w)"
 proof -
   have "0 \<le> w" by (rule word_zero_le)
@@ -225,7 +225,7 @@ proof -
 qed
 
 lemma max_lt:
-  "unat (max a b div c) = unat (max a b) div unat (c:: 'a :: len word)"
+  "unat (max a b div c) = unat (max a b) div unat (c:: 'a :: finite word)"
   apply (subst word_arith_nat_defs)
   apply (subst word_unat.eq_norm)
   apply (subst mod_if)
@@ -253,12 +253,12 @@ lemma unat_sub_simple:
 lemmas unat_sub = unat_sub_simple
 
 lemma word_less_sub1:
-  fixes x :: "'a :: len word"
+  fixes x :: "'a :: finite word"
   shows "x \<noteq> 0 ==> 1 < x = (0 < x - 1)"
   by (simp add: unat_sub_if_size word_less_nat_alt)
 
 lemma word_le_sub1:
-  fixes x :: "'a :: len word"
+  fixes x :: "'a :: finite word"
   shows "x \<noteq> 0 ==> 1 \<le> x = (0 \<le> x - 1)"
   by (simp add: unat_sub_if_size order_le_less word_less_nat_alt)
 
@@ -268,9 +268,9 @@ lemmas word_le_sub1_numberof [simp] =
   word_le_sub1 [of "number_of ?w"]
   
 lemma word_of_int_minus: 
-  "word_of_int (2^len_of TYPE('a) - i) = (word_of_int (-i)::'a::len word)"
+  "word_of_int (2^CARD('a) - i) = (word_of_int (-i)::'a::finite word)"
 proof -
-  have x: "2^len_of TYPE('a) - i = -i + 2^len_of TYPE('a)" by simp
+  have x: "2^CARD('a) - i = -i + 2^CARD('a)" by simp
   show ?thesis
     apply (subst x)
     apply (subst word_uint.Abs_norm [symmetric], subst zmod_zadd_self2)
@@ -282,7 +282,7 @@ lemmas word_of_int_inj =
   word_uint.Abs_inject [unfolded uints_num, simplified]
 
 lemma word_le_less_eq:
-  "(x ::'z::len word) \<le> y = (x = y \<or> x < y)"
+  "(x ::'z::finite word) \<le> y = (x = y \<or> x < y)"
   by (auto simp add: word_less_def)
 
 lemma mod_plus_cong:
@@ -312,7 +312,7 @@ lemma mod_minus_cong:
   done
 
 lemma word_induct_less: 
-  "\<lbrakk>P (0::'a::len word); \<And>n. \<lbrakk>n < m; P n\<rbrakk> \<Longrightarrow> P (1 + n)\<rbrakk> \<Longrightarrow> P m"
+  "\<lbrakk>P (0::'a::finite word); \<And>n. \<lbrakk>n < m; P n\<rbrakk> \<Longrightarrow> P (1 + n)\<rbrakk> \<Longrightarrow> P m"
   apply (cases m)
   apply atomize
   apply (erule rev_mp)+
@@ -335,24 +335,24 @@ lemma word_induct_less:
   done
   
 lemma word_induct: 
-  "\<lbrakk>P (0::'a::len word); \<And>n. P n \<Longrightarrow> P (1 + n)\<rbrakk> \<Longrightarrow> P m"
+  "\<lbrakk>P (0::'a::finite word); \<And>n. P n \<Longrightarrow> P (1 + n)\<rbrakk> \<Longrightarrow> P m"
   by (erule word_induct_less, simp)
 
 lemma word_induct2 [induct type]: 
-  "\<lbrakk>P 0; \<And>n. \<lbrakk>1 + n \<noteq> 0; P n\<rbrakk> \<Longrightarrow> P (1 + n)\<rbrakk> \<Longrightarrow> P (n::'b::len word)"
+  "\<lbrakk>P 0; \<And>n. \<lbrakk>1 + n \<noteq> 0; P n\<rbrakk> \<Longrightarrow> P (1 + n)\<rbrakk> \<Longrightarrow> P (n::'b::finite word)"
   apply (rule word_induct, simp)
   apply (case_tac "1+n = 0", auto)
   done
 
 constdefs
-  word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a"
+  word_rec :: "'a \<Rightarrow> ('b::finite word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a"
   "word_rec forZero forSuc n \<equiv> nat_rec forZero (forSuc \<circ> of_nat) (unat n)"
 
 lemma word_rec_0: "word_rec z s 0 = z"
   by (simp add: word_rec_def)
 
 lemma word_rec_Suc: 
-  "1 + n \<noteq> (0::'a::len word) \<Longrightarrow> word_rec z s (1 + n) = s n (word_rec z s n)"
+  "1 + n \<noteq> (0::'a::finite word) \<Longrightarrow> word_rec z s (1 + n) = s n (word_rec z s n)"
   apply (simp add: word_rec_def unat_word_ariths)
   apply (subst nat_mod_eq')
    apply (cut_tac x=n in unat_lt2p)
@@ -448,7 +448,7 @@ apply simp
 done
 
 lemma unatSuc: 
-  "1 + n \<noteq> (0::'a::len word) \<Longrightarrow> unat (1 + n) = Suc (unat n)"
+  "1 + n \<noteq> (0::'a::finite word) \<Longrightarrow> unat (1 + n) = Suc (unat n)"
   by unat_arith
 
 end

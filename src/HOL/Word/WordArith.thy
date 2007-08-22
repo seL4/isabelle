@@ -29,7 +29,7 @@ lemma int_one_bin: "(1 :: int) == (Numeral.Pls BIT bit.B1)"
   unfolding Pls_def Bit_def by auto
 
 lemma word_1_no: 
-  "(1 :: 'a :: len0 word) == number_of (Numeral.Pls BIT bit.B1)"
+  "(1 :: 'a word) == number_of (Numeral.Pls BIT bit.B1)"
   unfolding word_1_wi word_number_of_def int_one_bin by auto
 
 lemma word_m1_wi: "-1 == word_of_int -1" 
@@ -51,7 +51,7 @@ lemma unat_0_iff: "(unat x = 0) = (x = 0)"
 lemma unat_0 [simp]: "unat 0 = 0"
   unfolding unat_def by auto
 
-lemma size_0_same': "size w = 0 ==> w = (v :: 'a :: len0 word)"
+lemma size_0_same': "size w = 0 ==> w = (v :: 'a word)"
   apply (unfold word_size)
   apply (rule box_equals)
     defer
@@ -95,14 +95,14 @@ lemma scast_n1 [simp] : "scast -1 = -1"
   apply (rule refl)
   done
 
-lemma uint_1 [simp] : "uint (1 :: 'a :: len word) = 1"
+lemma uint_1 [simp] : "uint (1 :: 'a :: finite word) = 1"
   unfolding word_1_wi
   by (simp add: word_ubin.eq_norm int_one_bin bintrunc_minus_simps)
 
-lemma unat_1 [simp] : "unat (1 :: 'a :: len word) = 1"
+lemma unat_1 [simp] : "unat (1 :: 'a :: finite word) = 1"
   by (unfold unat_def uint_1) auto
 
-lemma ucast_1 [simp] : "ucast (1 :: 'a :: len word) = 1"
+lemma ucast_1 [simp] : "ucast (1 :: 'a :: finite word) = 1"
   unfolding ucast_def word_1_wi
   by (simp add: word_ubin.eq_norm int_one_bin bintrunc_minus_simps)
 
@@ -124,7 +124,7 @@ lemma wi_homs:
 
 lemmas wi_hom_syms = wi_homs [symmetric]
 
-lemma word_sub_def: "a - b == a + - (b :: 'a :: len0 word)"
+lemma word_sub_def: "a - b == a + - (b :: 'a word)"
   unfolding word_sub_wi diff_def
   by (simp only : word_uint.Rep_inverse wi_hom_syms)
     
@@ -193,7 +193,7 @@ lemmas uint_word_arith_bintrs = uint_word_ariths [folded bintrunc_mod2p]
 lemmas sint_word_ariths = uint_word_arith_bintrs
   [THEN uint_sint [symmetric, THEN trans],
   unfolded uint_sint bintr_arith1s bintr_ariths 
-    len_gt_0 [THEN bin_sbin_eq_iff'] word_sbin.norm_Rep, standard]
+    zero_less_card_finite [THEN bin_sbin_eq_iff'] word_sbin.norm_Rep, standard]
 
 lemma word_pred_0_n1: "word_pred 0 = word_of_int -1"
   unfolding word_pred_def number_of_eq
@@ -220,8 +220,8 @@ lemma word_of_int_Ex:
   by (rule_tac x="uint x" in exI) simp
 
 lemma word_arith_eqs:
-  fixes a :: "'a::len0 word"
-  fixes b :: "'a::len0 word"
+  fixes a :: "'a word"
+  fixes b :: "'a word"
   shows
   word_add_0: "0 + a = a" and
   word_add_0_right: "a + 0 = a" and
@@ -252,10 +252,10 @@ lemmas word_mult_ac = word_mult_commute word_mult_assoc word_mult_left_commute
 lemmas word_plus_ac0 = word_add_0 word_add_0_right word_add_ac
 lemmas word_times_ac1 = word_mult_1 word_mult_1_right word_mult_ac
 
-instance word :: (len0) semigroup_add
+instance word :: (type) semigroup_add
   by intro_classes (simp add: word_add_assoc)
 
-instance word :: (len0) ring
+instance word :: (type) ring
   by intro_classes
      (auto simp: word_arith_eqs word_diff_minus 
                  word_diff_self [unfolded word_diff_minus])
@@ -263,16 +263,16 @@ instance word :: (len0) ring
 
 subsection "Order on fixed-length words"
 
-instance word :: (len0) ord
+instance word :: (type) ord
   word_le_def: "a <= b == uint a <= uint b"
   word_less_def: "x < y == x <= y & x ~= y"
   ..
 
 constdefs
-  word_sle :: "'a :: len word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50)
+  word_sle :: "'a :: finite word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50)
   "a <=s b == sint a <= sint b"
 
-  word_sless :: "'a :: len word => 'a word => bool" ("(_/ <s _)" [50, 51] 50)
+  word_sless :: "'a :: finite word => 'a word => bool" ("(_/ <s _)" [50, 51] 50)
   "(x <s y) == (x <=s y & x ~= y)"
 
 lemma word_less_alt: "(a < b) = (uint a < uint b)"
@@ -300,24 +300,24 @@ lemmas word_sless_no [simp] =
 lemmas word_sle_no [simp] = 
   word_sle_def [of "number_of ?a" "number_of ?b"]
 
-lemma word_order_trans: "x <= y ==> y <= z ==> x <= (z :: 'a :: len0 word)"
+lemma word_order_trans: "x <= y ==> y <= z ==> x <= (z :: 'a word)"
   unfolding word_le_def by auto
 
-lemma word_order_refl: "z <= (z :: 'a :: len0 word)"
+lemma word_order_refl: "z <= (z :: 'a word)"
   unfolding word_le_def by auto
 
-lemma word_order_antisym: "x <= y ==> y <= x ==> x = (y :: 'a :: len0 word)"
+lemma word_order_antisym: "x <= y ==> y <= x ==> x = (y :: 'a word)"
   unfolding word_le_def by (auto intro!: word_uint.Rep_eqD)
 
 lemma word_order_linear:
-  "y <= x | x <= (y :: 'a :: len0 word)"
+  "y <= x | x <= (y :: 'a word)"
   unfolding word_le_def by auto
 
 lemma word_zero_le [simp] :
-  "0 <= (y :: 'a :: len0 word)"
+  "0 <= (y :: 'a word)"
   unfolding word_le_def by auto
 
-instance word :: (len0) linorder
+instance word :: (type) linorder
   by intro_classes (auto simp: word_less_def word_le_def)
 
 lemma word_m1_ge [simp] : "word_pred 0 >= y"
@@ -329,7 +329,7 @@ lemmas word_n1_ge [simp]  = word_m1_ge [simplified word_sp_01]
 lemmas word_not_simps [simp] = 
   word_zero_le [THEN leD] word_m1_ge [THEN leD] word_n1_ge [THEN leD]
 
-lemma word_gt_0: "0 < y = (0 ~= (y :: 'a :: len0 word))"
+lemma word_gt_0: "0 < y = (0 ~= (y :: 'a word))"
   unfolding word_less_def by auto
 
 lemmas word_gt_0_no [simp] = word_gt_0 [of "number_of ?y"]
@@ -347,13 +347,13 @@ lemma word_less_nat_alt: "(a < b) = (unat a < unat b)"
   by (rule nat_less_eq_zless [symmetric]) simp
   
 lemma wi_less: 
-  "(word_of_int n < (word_of_int m :: 'a :: len0 word)) = 
-    (n mod 2 ^ len_of TYPE('a) < m mod 2 ^ len_of TYPE('a))"
+  "(word_of_int n < (word_of_int m :: 'a word)) = 
+    (n mod 2 ^ CARD('a) < m mod 2 ^ CARD('a))"
   unfolding word_less_alt by (simp add: word_uint.eq_norm)
 
 lemma wi_le: 
-  "(word_of_int n <= (word_of_int m :: 'a :: len0 word)) = 
-    (n mod 2 ^ len_of TYPE('a) <= m mod 2 ^ len_of TYPE('a))"
+  "(word_of_int n <= (word_of_int m :: 'a word)) = 
+    (n mod 2 ^ CARD('a) <= m mod 2 ^ CARD('a))"
   unfolding word_le_def by (simp add: word_uint.eq_norm)
 
 lemmas unat_mono = word_less_nat_alt [THEN iffD1, standard]
@@ -362,7 +362,7 @@ lemmas unat_mono = word_less_nat_alt [THEN iffD1, standard]
 subsection "Divisibility"
 
 definition
-  udvd :: "'a::len word \<Rightarrow> 'a word \<Rightarrow> bool" (infixl "udvd" 50) where
+  udvd :: "'a::finite word \<Rightarrow> 'a word \<Rightarrow> bool" (infixl "udvd" 50) where
   "a udvd b \<equiv> \<exists>n\<ge>0. uint b = n * uint a"
 
 lemma udvdI: 
@@ -388,7 +388,7 @@ lemma udvd_iff_dvd: "x udvd y <-> unat x dvd unat y"
 
 subsection "Division with remainder"
 
-instance word :: (len0) Divides.div
+instance word :: (type) Divides.div
   word_div_def: "a div b == word_of_int (uint a div uint b)"
   word_mod_def: "a mod b == word_of_int (uint a mod uint b)"
   ..
@@ -405,11 +405,11 @@ lemmas uint_mod_alt = word_mod_def
   [THEN meta_eq_to_obj_eq [THEN trans [OF uint_cong int_word_uint]], standard]
 
 
-lemma word_zero_neq_one: "0 < len_of TYPE ('a :: len0) ==> (0 :: 'a word) ~= 1";
+lemma word_zero_neq_one: "0 < CARD('a) ==> (0 :: 'a word) ~= 1";
   unfolding word_arith_wis
   by (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc)
 
-lemmas lenw1_zero_neq_one = len_gt_0 [THEN word_zero_neq_one]
+lemmas lenw1_zero_neq_one = zero_less_card_finite [THEN word_zero_neq_one]
 
 lemma no_no [simp] : "number_of (number_of b) = number_of b"
   by (simp add: number_of_eq)
@@ -445,21 +445,21 @@ lemmas uint_mult_ge0 [simp] =
   mult_nonneg_nonneg [OF uint_ge_0 uint_ge_0, standard]
 
 lemma uint_sub_lt2p [simp]: 
-  "uint (x :: 'a :: len0 word) - uint (y :: 'b :: len0 word) < 
-    2 ^ len_of TYPE('a)"
+  "uint (x :: 'a word) - uint (y :: 'b word) < 
+    2 ^ CARD('a)"
   using uint_ge_0 [of y] uint_lt2p [of x] by arith
 
 
 subsection "Conditions for the addition (etc) of two words to overflow"
 
 lemma uint_add_lem: 
-  "(uint x + uint y < 2 ^ len_of TYPE('a)) = 
-    (uint (x + y :: 'a :: len0 word) = uint x + uint y)"
+  "(uint x + uint y < 2 ^ CARD('a)) = 
+    (uint (x + y :: 'a word) = uint x + uint y)"
   by (unfold uint_word_ariths) (auto intro!: trans [OF _ int_mod_lem])
 
 lemma uint_mult_lem: 
-  "(uint x * uint y < 2 ^ len_of TYPE('a)) = 
-    (uint (x * y :: 'a :: len0 word) = uint x * uint y)"
+  "(uint x * uint y < 2 ^ CARD('a)) = 
+    (uint (x * y :: 'a word) = uint x * uint y)"
   by (unfold uint_word_ariths) (auto intro!: trans [OF _ int_mod_lem])
 
 lemma uint_sub_lem: 
@@ -481,25 +481,25 @@ lemmas uint_plus_if' =
 subsection {* Definition of uint\_arith *}
 
 lemma word_of_int_inverse:
-  "word_of_int r = a ==> 0 <= r ==> r < 2 ^ len_of TYPE('a) ==> 
-   uint (a::'a::len0 word) = r"
+  "word_of_int r = a ==> 0 <= r ==> r < 2 ^ CARD('a) ==> 
+   uint (a::'a word) = r"
   apply (erule word_uint.Abs_inverse' [rotated])
   apply (simp add: uints_num)
   done
 
 lemma uint_split:
-  fixes x::"'a::len0 word"
+  fixes x::"'a word"
   shows "P (uint x) = 
-         (ALL i. word_of_int i = x & 0 <= i & i < 2^len_of TYPE('a) --> P i)"
+         (ALL i. word_of_int i = x & 0 <= i & i < 2^CARD('a) --> P i)"
   apply (fold word_int_case_def)
   apply (auto dest!: word_of_int_inverse simp: int_word_uint int_mod_eq'
               split: word_int_split)
   done
 
 lemma uint_split_asm:
-  fixes x::"'a::len0 word"
+  fixes x::"'a word"
   shows "P (uint x) = 
-         (~(EX i. word_of_int i = x & 0 <= i & i < 2^len_of TYPE('a) & ~ P i))"
+         (~(EX i. word_of_int i = x & 0 <= i & i < 2^CARD('a) & ~ P i))"
   by (auto dest!: word_of_int_inverse 
            simp: int_word_uint int_mod_eq'
            split: uint_split)
@@ -511,7 +511,7 @@ lemmas uint_arith_simps =
   word_uint.Rep_inject [symmetric] 
   uint_sub_if' uint_plus_if'
 
-(* use this to stop, eg, 2 ^ len_of TYPE (32) being simplified *)
+(* use this to stop, eg, 2 ^ CARD(32) being simplified *)
 lemma power_False_cong: "False ==> a ^ b = c ^ d" 
   by auto
 
@@ -550,17 +550,17 @@ method_setup uint_arith =
 subsection "More on overflows and monotonicity"
 
 lemma no_plus_overflow_uint_size: 
-  "((x :: 'a :: len0 word) <= x + y) = (uint x + uint y < 2 ^ size x)"
+  "((x :: 'a word) <= x + y) = (uint x + uint y < 2 ^ size x)"
   unfolding word_size by uint_arith
 
 lemmas no_olen_add = no_plus_overflow_uint_size [unfolded word_size]
 
-lemma no_ulen_sub: "((x :: 'a :: len0 word) >= x - y) = (uint y <= uint x)"
+lemma no_ulen_sub: "((x :: 'a word) >= x - y) = (uint y <= uint x)"
   by uint_arith
 
 lemma no_olen_add':
-  fixes x :: "'a::len0 word"
-  shows "(x \<le> y + x) = (uint y + uint x < 2 ^ len_of TYPE('a))"
+  fixes x :: "'a word"
+  shows "(x \<le> y + x) = (uint y + uint x < 2 ^ CARD('a))"
   by (simp add: word_add_ac add_ac no_olen_add)
 
 lemmas olen_add_eqv = trans [OF no_olen_add no_olen_add' [symmetric], standard]
@@ -573,35 +573,35 @@ lemmas word_sub_le_iff = no_ulen_sub [folded word_le_def]
 lemmas word_sub_le = word_sub_le_iff [THEN iffD2, standard]
 
 lemma word_less_sub1: 
-  "(x :: 'a :: len word) ~= 0 ==> (1 < x) = (0 < x - 1)"
+  "(x :: 'a :: finite word) ~= 0 ==> (1 < x) = (0 < x - 1)"
   by uint_arith
 
 lemma word_le_sub1: 
-  "(x :: 'a :: len word) ~= 0 ==> (1 <= x) = (0 <= x - 1)"
+  "(x :: 'a :: finite word) ~= 0 ==> (1 <= x) = (0 <= x - 1)"
   by uint_arith
 
 lemma sub_wrap_lt: 
-  "((x :: 'a :: len0 word) < x - z) = (x < z)"
+  "((x :: 'a word) < x - z) = (x < z)"
   by uint_arith
 
 lemma sub_wrap: 
-  "((x :: 'a :: len0 word) <= x - z) = (z = 0 | x < z)"
+  "((x :: 'a word) <= x - z) = (z = 0 | x < z)"
   by uint_arith
 
 lemma plus_minus_not_NULL_ab: 
-  "(x :: 'a :: len0 word) <= ab - c ==> c <= ab ==> c ~= 0 ==> x + c ~= 0"
+  "(x :: 'a word) <= ab - c ==> c <= ab ==> c ~= 0 ==> x + c ~= 0"
   by uint_arith
 
 lemma plus_minus_no_overflow_ab: 
-  "(x :: 'a :: len0 word) <= ab - c ==> c <= ab ==> x <= x + c" 
+  "(x :: 'a word) <= ab - c ==> c <= ab ==> x <= x + c" 
   by uint_arith
 
 lemma le_minus': 
-  "(a :: 'a :: len0 word) + c <= b ==> a <= a + c ==> c <= b - a"
+  "(a :: 'a word) + c <= b ==> a <= a + c ==> c <= b - a"
   by uint_arith
 
 lemma le_plus': 
-  "(a :: 'a :: len0 word) <= b ==> c <= b - a ==> a + c <= b"
+  "(a :: 'a word) <= b ==> c <= b - a ==> a + c <= b"
   by uint_arith
 
 lemmas le_plus = le_plus' [rotated]
@@ -609,69 +609,69 @@ lemmas le_plus = le_plus' [rotated]
 lemmas le_minus = leD [THEN thin_rl, THEN le_minus', standard]
 
 lemma word_plus_mono_right: 
-  "(y :: 'a :: len0 word) <= z ==> x <= x + z ==> x + y <= x + z"
+  "(y :: 'a word) <= z ==> x <= x + z ==> x + y <= x + z"
   by uint_arith
 
 lemma word_less_minus_cancel: 
-  "y - x < z - x ==> x <= z ==> (y :: 'a :: len0 word) < z"
+  "y - x < z - x ==> x <= z ==> (y :: 'a word) < z"
   by uint_arith
 
 lemma word_less_minus_mono_left: 
-  "(y :: 'a :: len0 word) < z ==> x <= y ==> y - x < z - x"
+  "(y :: 'a word) < z ==> x <= y ==> y - x < z - x"
   by uint_arith
 
 lemma word_less_minus_mono:  
   "a < c ==> d < b ==> a - b < a ==> c - d < c 
-  ==> a - b < c - (d::'a::len word)"
+  ==> a - b < c - (d::'a::finite word)"
   by uint_arith
 
 lemma word_le_minus_cancel: 
-  "y - x <= z - x ==> x <= z ==> (y :: 'a :: len0 word) <= z"
+  "y - x <= z - x ==> x <= z ==> (y :: 'a word) <= z"
   by uint_arith
 
 lemma word_le_minus_mono_left: 
-  "(y :: 'a :: len0 word) <= z ==> x <= y ==> y - x <= z - x"
+  "(y :: 'a word) <= z ==> x <= y ==> y - x <= z - x"
   by uint_arith
 
 lemma word_le_minus_mono:  
   "a <= c ==> d <= b ==> a - b <= a ==> c - d <= c 
-  ==> a - b <= c - (d::'a::len word)"
+  ==> a - b <= c - (d::'a::finite word)"
   by uint_arith
 
 lemma plus_le_left_cancel_wrap: 
-  "(x :: 'a :: len0 word) + y' < x ==> x + y < x ==> (x + y' < x + y) = (y' < y)"
+  "(x :: 'a word) + y' < x ==> x + y < x ==> (x + y' < x + y) = (y' < y)"
   by uint_arith
 
 lemma plus_le_left_cancel_nowrap: 
-  "(x :: 'a :: len0 word) <= x + y' ==> x <= x + y ==> 
+  "(x :: 'a word) <= x + y' ==> x <= x + y ==> 
     (x + y' < x + y) = (y' < y)" 
   by uint_arith
 
 lemma word_plus_mono_right2: 
-  "(a :: 'a :: len0 word) <= a + b ==> c <= b ==> a <= a + c"
+  "(a :: 'a word) <= a + b ==> c <= b ==> a <= a + c"
   by uint_arith
 
 lemma word_less_add_right: 
-  "(x :: 'a :: len0 word) < y - z ==> z <= y ==> x + z < y"
+  "(x :: 'a word) < y - z ==> z <= y ==> x + z < y"
   by uint_arith
 
 lemma word_less_sub_right: 
-  "(x :: 'a :: len0 word) < y + z ==> y <= x ==> x - y < z"
+  "(x :: 'a word) < y + z ==> y <= x ==> x - y < z"
   by uint_arith
 
 lemma word_le_plus_either: 
-  "(x :: 'a :: len0 word) <= y | x <= z ==> y <= y + z ==> x <= y + z"
+  "(x :: 'a word) <= y | x <= z ==> y <= y + z ==> x <= y + z"
   by uint_arith
 
 lemma word_less_nowrapI: 
-  "(x :: 'a :: len0 word) < z - k ==> k <= z ==> 0 < k ==> x < x + k"
+  "(x :: 'a word) < z - k ==> k <= z ==> 0 < k ==> x < x + k"
   by uint_arith
 
-lemma inc_le: "(i :: 'a :: len word) < m ==> i + 1 <= m"
+lemma inc_le: "(i :: 'a :: finite word) < m ==> i + 1 <= m"
   by uint_arith
 
 lemma inc_i: 
-  "(1 :: 'a :: len word) <= i ==> i < m ==> 1 <= (i + 1) & i + 1 <= m"
+  "(1 :: 'a :: finite word) <= i ==> i < m ==> 1 <= (i + 1) & i + 1 <= m"
   by uint_arith
 
 lemma udvd_incr_lem:
@@ -729,36 +729,36 @@ lemma udvd_incr2_K:
 
 subsection "Arithmetic type class instantiations"
 
-instance word :: (len0) comm_monoid_add ..
+instance word :: (type) comm_monoid_add ..
 
-instance word :: (len0) comm_monoid_mult
+instance word :: (type) comm_monoid_mult
   apply (intro_classes)
    apply (simp add: word_mult_commute)
   apply (simp add: word_mult_1)
   done
 
-instance word :: (len0) comm_semiring 
+instance word :: (type) comm_semiring 
   by (intro_classes) (simp add : word_left_distrib)
 
-instance word :: (len0) ab_group_add ..
+instance word :: (type) ab_group_add ..
 
-instance word :: (len0) comm_ring ..
+instance word :: (type) comm_ring ..
 
-instance word :: (len) comm_semiring_1 
+instance word :: (finite) comm_semiring_1 
   by (intro_classes) (simp add: lenw1_zero_neq_one)
 
-instance word :: (len) comm_ring_1 ..
+instance word :: (finite) comm_ring_1 ..
 
-instance word :: (len0) comm_semiring_0 ..
+instance word :: (type) comm_semiring_0 ..
 
-instance word :: (len) recpower
+instance word :: (finite) recpower
   by (intro_classes) (simp_all add: word_pow)
 
 (* note that iszero_def is only for class comm_semiring_1_cancel,
-   which requires word length >= 1, ie 'a :: len word *) 
+   which requires word length >= 1, ie 'a :: finite word *) 
 lemma zero_bintrunc:
-  "iszero (number_of x :: 'a :: len word) = 
-    (bintrunc (len_of TYPE('a)) x = Numeral.Pls)"
+  "iszero (number_of x :: 'a :: finite word) = 
+    (bintrunc CARD('a) x = Numeral.Pls)"
   apply (unfold iszero_def word_0_wi word_no_wi)
   apply (rule word_ubin.norm_eq_iff [symmetric, THEN trans])
   apply (simp add : Pls_def [symmetric])
@@ -781,15 +781,15 @@ lemma word_of_int_nat:
   by (simp add: of_nat_nat word_of_int)
 
 lemma word_number_of_eq: 
-  "number_of w = (of_int w :: 'a :: len word)"
+  "number_of w = (of_int w :: 'a :: finite word)"
   unfolding word_number_of_def word_of_int by auto
 
-instance word :: (len) number_ring
+instance word :: (finite) number_ring
   by (intro_classes) (simp add : word_number_of_eq)
 
 lemma iszero_word_no [simp] : 
-  "iszero (number_of bin :: 'a :: len word) = 
-    iszero (number_of (bintrunc (len_of TYPE('a)) bin) :: int)"
+  "iszero (number_of bin :: 'a :: finite word) = 
+    iszero (number_of (bintrunc CARD('a) bin) :: int)"
   apply (simp add: zero_bintrunc number_of_is_id)
   apply (unfold iszero_def Pls_def)
   apply (rule refl)
@@ -799,7 +799,7 @@ lemma iszero_word_no [simp] :
 subsection "Word and nat"
 
 lemma td_ext_unat':
-  "n = len_of TYPE ('a :: len) ==> 
+  "n = CARD('a :: finite) ==> 
     td_ext (unat :: 'a word => nat) of_nat 
     (unats n) (%i. i mod 2 ^ n)"
   apply (unfold td_ext_def' unat_def word_of_nat unats_uints)
@@ -812,24 +812,24 @@ lemmas td_ext_unat = refl [THEN td_ext_unat']
 lemmas unat_of_nat = td_ext_unat [THEN td_ext.eq_norm, standard]
 
 interpretation word_unat:
-  td_ext ["unat::'a::len word => nat" 
+  td_ext ["unat::'a::finite word => nat" 
           of_nat 
-          "unats (len_of TYPE('a::len))"
-          "%i. i mod 2 ^ len_of TYPE('a::len)"]
+          "unats CARD('a::finite)"
+          "%i. i mod 2 ^ CARD('a::finite)"]
   by (rule td_ext_unat)
 
 lemmas td_unat = word_unat.td_thm
 
 lemmas unat_lt2p [iff] = word_unat.Rep [unfolded unats_def mem_Collect_eq]
 
-lemma unat_le: "y <= unat (z :: 'a :: len word) ==> y : unats (len_of TYPE ('a))"
+lemma unat_le: "y <= unat (z :: 'a :: finite word) ==> y : unats CARD('a)"
   apply (unfold unats_def)
   apply clarsimp
   apply (rule xtrans, rule unat_lt2p, assumption) 
   done
 
 lemma word_nchotomy:
-  "ALL w. EX n. (w :: 'a :: len word) = of_nat n & n < 2 ^ len_of TYPE ('a)"
+  "ALL w. EX n. (w :: 'a :: finite word) = of_nat n & n < 2 ^ CARD('a)"
   apply (rule allI)
   apply (rule word_unat.Abs_cases)
   apply (unfold unats_def)
@@ -837,8 +837,8 @@ lemma word_nchotomy:
   done
 
 lemma of_nat_eq:
-  fixes w :: "'a::len word"
-  shows "(of_nat n = w) = (\<exists>q. n = unat w + q * 2 ^ len_of TYPE('a))"
+  fixes w :: "'a::finite word"
+  shows "(of_nat n = w) = (\<exists>q. n = unat w + q * 2 ^ CARD('a))"
   apply (rule trans)
    apply (rule word_unat.inverse_norm)
   apply (rule iffI)
@@ -852,7 +852,7 @@ lemma of_nat_eq_size:
   unfolding word_size by (rule of_nat_eq)
 
 lemma of_nat_0:
-  "(of_nat m = (0::'a::len word)) = (\<exists>q. m = q * 2 ^ len_of TYPE('a))"
+  "(of_nat m = (0::'a::finite word)) = (\<exists>q. m = q * 2 ^ CARD('a))"
   by (simp add: of_nat_eq)
 
 lemmas of_nat_2p = mult_1 [symmetric, THEN iffD2 [OF of_nat_0 exI]]
@@ -861,7 +861,7 @@ lemma of_nat_gt_0: "of_nat k ~= 0 ==> 0 < k"
   by (cases k) auto
 
 lemma of_nat_neq_0: 
-  "0 < k ==> k < 2 ^ len_of TYPE ('a :: len) ==> of_nat k ~= (0 :: 'a word)"
+  "0 < k ==> k < 2 ^ CARD('a :: finite) ==> of_nat k ~= (0 :: 'a word)"
   by (clarsimp simp add : of_nat_0)
 
 lemma Abs_fnat_hom_add:
@@ -869,17 +869,17 @@ lemma Abs_fnat_hom_add:
   by simp
 
 lemma Abs_fnat_hom_mult:
-  "of_nat a * of_nat b = (of_nat (a * b) :: 'a :: len word)"
+  "of_nat a * of_nat b = (of_nat (a * b) :: 'a :: finite word)"
   by (simp add: word_of_nat word_of_int_mult_hom zmult_int)
 
 lemma Abs_fnat_hom_Suc:
   "word_succ (of_nat a) = of_nat (Suc a)"
   by (simp add: word_of_nat word_of_int_succ_hom add_ac)
 
-lemma Abs_fnat_hom_0: "(0::'a::len word) = of_nat 0"
+lemma Abs_fnat_hom_0: "(0::'a::finite word) = of_nat 0"
   by (simp add: word_of_nat word_0_wi)
 
-lemma Abs_fnat_hom_1: "(1::'a::len word) = of_nat (Suc 0)"
+lemma Abs_fnat_hom_1: "(1::'a::finite word) = of_nat (Suc 0)"
   by (simp add: word_of_nat word_1_wi)
 
 lemmas Abs_fnat_homs = 
@@ -921,14 +921,14 @@ lemmas word_sub_less_iff = word_sub_le_iff
   [simplified linorder_not_less [symmetric], simplified]
 
 lemma unat_add_lem: 
-  "(unat x + unat y < 2 ^ len_of TYPE('a)) = 
-    (unat (x + y :: 'a :: len word) = unat x + unat y)"
+  "(unat x + unat y < 2 ^ CARD('a)) = 
+    (unat (x + y :: 'a :: finite word) = unat x + unat y)"
   unfolding unat_word_ariths
   by (auto intro!: trans [OF _ nat_mod_lem])
 
 lemma unat_mult_lem: 
-  "(unat x * unat y < 2 ^ len_of TYPE('a)) = 
-    (unat (x * y :: 'a :: len word) = unat x * unat y)"
+  "(unat x * unat y < 2 ^ CARD('a)) = 
+    (unat (x * y :: 'a :: finite word) = unat x * unat y)"
   unfolding unat_word_ariths
   by (auto intro!: trans [OF _ nat_mod_lem])
 
@@ -936,7 +936,7 @@ lemmas unat_plus_if' =
   trans [OF unat_word_ariths(1) mod_nat_add, simplified, standard]
 
 lemma le_no_overflow: 
-  "x <= b ==> a <= a + b ==> x <= a + (b :: 'a :: len0 word)"
+  "x <= b ==> a <= a + b ==> x <= a + (b :: 'a word)"
   apply (erule order_trans)
   apply (erule olen_add_eqv [THEN iffD1])
   done
@@ -967,13 +967,13 @@ lemma unat_sub_if_size:
 
 lemmas unat_sub_if' = unat_sub_if_size [unfolded word_size]
 
-lemma unat_div: "unat ((x :: 'a :: len word) div y) = unat x div unat y"
+lemma unat_div: "unat ((x :: 'a :: finite word) div y) = unat x div unat y"
   apply (simp add : unat_word_ariths)
   apply (rule unat_lt2p [THEN xtr7, THEN nat_mod_eq'])
   apply (rule div_le_dividend)
   done
 
-lemma unat_mod: "unat ((x :: 'a :: len word) mod y) = unat x mod unat y"
+lemma unat_mod: "unat ((x :: 'a :: finite word) mod y) = unat x mod unat y"
   apply (clarsimp simp add : unat_word_ariths)
   apply (cases "unat y")
    prefer 2
@@ -982,25 +982,25 @@ lemma unat_mod: "unat ((x :: 'a :: len word) mod y) = unat x mod unat y"
    apply auto
   done
 
-lemma uint_div: "uint ((x :: 'a :: len word) div y) = uint x div uint y"
+lemma uint_div: "uint ((x :: 'a :: finite word) div y) = uint x div uint y"
   unfolding uint_nat by (simp add : unat_div zdiv_int)
 
-lemma uint_mod: "uint ((x :: 'a :: len word) mod y) = uint x mod uint y"
+lemma uint_mod: "uint ((x :: 'a :: finite word) mod y) = uint x mod uint y"
   unfolding uint_nat by (simp add : unat_mod zmod_int)
 
 
 subsection {* Definition of unat\_arith tactic *}
 
 lemma unat_split:
-  fixes x::"'a::len word"
+  fixes x::"'a::finite word"
   shows "P (unat x) = 
-         (ALL n. of_nat n = x & n < 2^len_of TYPE('a) --> P n)"
+         (ALL n. of_nat n = x & n < 2^CARD('a) --> P n)"
   by (auto simp: unat_of_nat)
 
 lemma unat_split_asm:
-  fixes x::"'a::len word"
+  fixes x::"'a::finite word"
   shows "P (unat x) = 
-         (~(EX n. of_nat n = x & n < 2^len_of TYPE('a) & ~ P n))"
+         (~(EX n. of_nat n = x & n < 2^CARD('a) & ~ P n))"
   by (auto simp: unat_of_nat)
 
 lemmas of_nat_inverse = 
@@ -1044,10 +1044,10 @@ method_setup unat_arith =
   "solving word arithmetic via natural numbers and arith"
 
 lemma no_plus_overflow_unat_size: 
-  "((x :: 'a :: len word) <= x + y) = (unat x + unat y < 2 ^ size x)" 
+  "((x :: 'a :: finite word) <= x + y) = (unat x + unat y < 2 ^ size x)" 
   unfolding word_size by unat_arith
 
-lemma unat_sub: "b <= a ==> unat (a - b) = unat a - unat (b :: 'a :: len word)"
+lemma unat_sub: "b <= a ==> unat (a - b) = unat a - unat (b :: 'a :: finite word)"
   by unat_arith
 
 lemmas no_olen_add_nat = no_plus_overflow_unat_size [unfolded word_size]
@@ -1055,7 +1055,7 @@ lemmas no_olen_add_nat = no_plus_overflow_unat_size [unfolded word_size]
 lemmas unat_plus_simple = trans [OF no_olen_add_nat unat_add_lem, standard]
 
 lemma word_div_mult: 
-  "(0 :: 'a :: len word) < y ==> unat x * unat y < 2 ^ len_of TYPE('a) ==> 
+  "(0 :: 'a :: finite word) < y ==> unat x * unat y < 2 ^ CARD('a) ==> 
     x * y div y = x"
   apply unat_arith
   apply clarsimp
@@ -1063,8 +1063,8 @@ lemma word_div_mult:
   apply auto
   done
 
-lemma div_lt': "(i :: 'a :: len word) <= k div x ==> 
-    unat i * unat x < 2 ^ len_of TYPE('a)"
+lemma div_lt': "(i :: 'a :: finite word) <= k div x ==> 
+    unat i * unat x < 2 ^ CARD('a)"
   apply unat_arith
   apply clarsimp
   apply (drule mult_le_mono1)
@@ -1074,7 +1074,7 @@ lemma div_lt': "(i :: 'a :: len word) <= k div x ==>
 
 lemmas div_lt'' = order_less_imp_le [THEN div_lt']
 
-lemma div_lt_mult: "(i :: 'a :: len word) < k div x ==> 0 < x ==> i * x < k"
+lemma div_lt_mult: "(i :: 'a :: finite word) < k div x ==> 0 < x ==> i * x < k"
   apply (frule div_lt'' [THEN unat_mult_lem [THEN iffD1]])
   apply (simp add: unat_arith_simps)
   apply (drule (1) mult_less_mono1)
@@ -1083,7 +1083,7 @@ lemma div_lt_mult: "(i :: 'a :: len word) < k div x ==> 0 < x ==> i * x < k"
   done
 
 lemma div_le_mult: 
-  "(i :: 'a :: len word) <= k div x ==> 0 < x ==> i * x <= k"
+  "(i :: 'a :: finite word) <= k div x ==> 0 < x ==> i * x <= k"
   apply (frule div_lt' [THEN unat_mult_lem [THEN iffD1]])
   apply (simp add: unat_arith_simps)
   apply (drule mult_le_mono1)
@@ -1092,7 +1092,7 @@ lemma div_le_mult:
   done
 
 lemma div_lt_uint': 
-  "(i :: 'a :: len word) <= k div x ==> uint i * uint x < 2 ^ len_of TYPE('a)"
+  "(i :: 'a :: finite word) <= k div x ==> uint i * uint x < 2 ^ CARD('a)"
   apply (unfold uint_nat)
   apply (drule div_lt')
   apply (simp add: zmult_int zless_nat_eq_int_zless [symmetric] 
@@ -1102,8 +1102,8 @@ lemma div_lt_uint':
 lemmas div_lt_uint'' = order_less_imp_le [THEN div_lt_uint']
 
 lemma word_le_exists': 
-  "(x :: 'a :: len0 word) <= y ==> 
-    (EX z. y = x + z & uint x + uint z < 2 ^ len_of TYPE('a))"
+  "(x :: 'a word) <= y ==> 
+    (EX z. y = x + z & uint x + uint z < 2 ^ CARD('a))"
   apply (rule exI)
   apply (rule conjI)
   apply (rule zadd_diff_inverse)
@@ -1139,7 +1139,7 @@ lemmas uno_simps [THEN le_unat_uoi, standard] =
   mod_le_divisor div_le_dividend thd1 
 
 lemma word_mod_div_equality:
-  "(n div b) * b + (n mod b) = (n :: 'a :: len word)"
+  "(n div b) * b + (n mod b) = (n :: 'a :: finite word)"
   apply (unfold word_less_nat_alt word_arith_nat_defs)
   apply (cut_tac y="unat b" in gt_or_eq_0)
   apply (erule disjE)
@@ -1147,7 +1147,7 @@ lemma word_mod_div_equality:
   apply simp
   done
 
-lemma word_div_mult_le: "a div b * b <= (a::'a::len word)"
+lemma word_div_mult_le: "a div b * b <= (a::'a::finite word)"
   apply (unfold word_le_nat_alt word_arith_nat_defs)
   apply (cut_tac y="unat b" in gt_or_eq_0)
   apply (erule disjE)
@@ -1155,17 +1155,17 @@ lemma word_div_mult_le: "a div b * b <= (a::'a::len word)"
   apply simp
   done
 
-lemma word_mod_less_divisor: "0 < n ==> m mod n < (n :: 'a :: len word)"
+lemma word_mod_less_divisor: "0 < n ==> m mod n < (n :: 'a :: finite word)"
   apply (simp only: word_less_nat_alt word_arith_nat_defs)
   apply (clarsimp simp add : uno_simps)
   done
 
 lemma word_of_int_power_hom: 
-  "word_of_int a ^ n = (word_of_int (a ^ n) :: 'a :: len word)"
+  "word_of_int a ^ n = (word_of_int (a ^ n) :: 'a :: finite word)"
   by (induct n) (simp_all add : word_of_int_hom_syms power_Suc)
 
 lemma word_arith_power_alt: 
-  "a ^ n = (word_of_int (uint a ^ n) :: 'a :: len word)"
+  "a ^ n = (word_of_int (uint a ^ n) :: 'a :: finite word)"
   by (simp add : word_of_int_power_hom [symmetric])
 
 
@@ -1178,7 +1178,7 @@ lemmas card_eq = word_unat.Abs_inj_on [THEN card_image,
 
 lemmas card_word = trans [OF card_eq card_lessThan', standard]
 
-lemma finite_word_UNIV: "finite (UNIV :: 'a :: len word set)"
+lemma finite_word_UNIV: "finite (UNIV :: 'a :: finite word set)"
   apply (rule contrapos_np)
    prefer 2
    apply (erule card_infinite)
@@ -1186,7 +1186,7 @@ lemma finite_word_UNIV: "finite (UNIV :: 'a :: len word set)"
   done
 
 lemma card_word_size: 
-  "card (UNIV :: 'a :: len word set) = (2 ^ size (x :: 'a word))"
+  "card (UNIV :: 'a :: finite word set) = (2 ^ size (x :: 'a word))"
   unfolding word_size by (rule card_word)
 
 end 
