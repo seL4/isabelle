@@ -79,7 +79,7 @@ lemma card_set: "CARD('a::finite set) = 2 ^ CARD('a)"
 
 subsection {* Numeral Types *}
 
-typedef (open) pls = "UNIV :: nat set" ..
+typedef (open) num0 = "UNIV :: nat set" ..
 typedef (open) num1 = "UNIV :: unit set" ..
 typedef (open) 'a bit0 = "UNIV :: (bool * 'a) set" ..
 typedef (open) 'a bit1 = "UNIV :: (bool * 'a) option set" ..
@@ -117,8 +117,8 @@ lemma card_bit1: "CARD('a::finite bit1) = Suc (2 * CARD('a))"
   unfolding type_definition.card [OF type_definition_bit1]
   by (simp only: card_prod card_option card_bool)
 
-lemma card_pls: "CARD (pls) = 0"
-  by (simp add: type_definition.card [OF type_definition_pls])
+lemma card_num0: "CARD (num0) = 0"
+  by (simp add: type_definition.card [OF type_definition_num0])
 
 lemmas card_univ_simps [simp] =
   card_unit
@@ -130,7 +130,7 @@ lemmas card_univ_simps [simp] =
   card_num1
   card_bit0
   card_bit1
-  card_pls
+  card_num0
 
 subsection {* Syntax *}
 
@@ -142,13 +142,13 @@ syntax
 
 translations
   "_NumeralType1" == (type) "num1"
-  "_NumeralType0" == (type) "pls"
+  "_NumeralType0" == (type) "num0"
 
 parse_translation {*
 let
 
 val num1_const = Syntax.const "Numeral_Type.num1";
-val pls_const = Syntax.const "Numeral_Type.pls";
+val num0_const = Syntax.const "Numeral_Type.num0";
 val B0_const = Syntax.const "Numeral_Type.bit0";
 val B1_const = Syntax.const "Numeral_Type.bit1";
 
@@ -157,7 +157,7 @@ fun mk_bintype n =
     fun mk_bit n = if n = 0 then B0_const else B1_const;
     fun bin_of n =
       if n = 1 then num1_const
-      else if n = 0 then pls_const
+      else if n = 0 then num0_const
       else if n = ~1 then raise TERM ("negative type numeral", [])
       else
         let val (q, r) = IntInf.divMod (n, 2);
@@ -176,7 +176,7 @@ let
 fun int_of [] = 0
   | int_of (b :: bs) = IntInf.fromInt b + (2 * int_of bs);
 
-fun bin_of (Const ("pls", _)) = []
+fun bin_of (Const ("num0", _)) = []
   | bin_of (Const ("num1", _)) = [1]
   | bin_of (Const ("bit0", _) $ bs) = 0 :: bin_of bs
   | bin_of (Const ("bit1", _) $ bs) = 1 :: bin_of bs
