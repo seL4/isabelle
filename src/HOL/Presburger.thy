@@ -18,6 +18,7 @@ setup CooperData.setup
 
 subsection{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
 
+
 lemma minf:
   "\<lbrakk>\<exists>(z ::'a::linorder).\<forall>x<z. P x = P' x; \<exists>z.\<forall>x<z. Q x = Q' x\<rbrakk> 
      \<Longrightarrow> \<exists>z.\<forall>x<z. (P x \<and> Q x) = (P' x \<and> Q' x)"
