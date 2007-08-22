@@ -6,7 +6,6 @@
 *)
 
 header {* Shifting, Rotating, and Splitting Words *}
-
 theory WordShift imports WordBitwise WordBoolList begin
 
 subsection "Bit shifting"
@@ -22,29 +21,12 @@ constdefs
   sshiftr1 :: "'a :: len word => 'a word" 
   "sshiftr1 w == word_of_int (bin_rest (sint w))"
 
-  bshiftr1 :: "bool => 'a :: len word => 'a word"
-  "bshiftr1 b w == of_bl (b # butlast (to_bl w))"
-
   sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55)
   "w >>> n == (sshiftr1 ^ n) w"
-
-  mask :: "nat => 'a::len word"
-  "mask n == (1 << n) - 1"
-
-  revcast :: "'a :: len0 word => 'b :: len0 word"
-  "revcast w ==  of_bl (takefill False (len_of TYPE('b)) (to_bl w))"
-
-  slice1 :: "nat => 'a :: len0 word => 'b :: len0 word"
-  "slice1 n w == of_bl (takefill False n (to_bl w))"
-
-  slice :: "nat => 'a :: len0 word => 'b :: len0 word"
-  "slice n w == slice1 (size w - n) w"
 
 defs (overloaded)
   shiftl_def: "(w::'a::len0 word) << n == (shiftl1 ^ n) w"
   shiftr_def: "(w::'a::len0 word) >> n == (shiftr1 ^ n) w"
-
-lemmas slice_def' = slice_def [unfolded word_size]
 
 lemma shiftl1_number [simp] :
   "shiftl1 (number_of w) = number_of (w BIT bit.B0)"
@@ -204,6 +186,10 @@ lemma sshiftr_div_2n: "sint (sshiftr w n) = sint w div 2 ^ n"
   done
 
 subsubsection "shift functions in terms of lists of bools"
+
+definition
+  bshiftr1 :: "bool => 'a :: len word => 'a word" where
+  "bshiftr1 b w == of_bl (b # butlast (to_bl w))"
 
 lemmas bshiftr1_no_bin [simp] = 
   bshiftr1_def [where w="number_of ?w", unfolded to_bl_no_bin]
@@ -493,6 +479,10 @@ lemmas aligned_bl_add_size = refl [THEN aligned_bl_add_size']
 
 subsubsection "Mask"
 
+definition
+  mask :: "nat => 'a::len word" where
+  "mask n == (1 << n) - 1"
+
 lemma nth_mask': "m = mask n ==> test_bit m i = (i < n & i < size m)"
   apply (unfold mask_def test_bit_bl)
   apply (simp only: word_1_bl [symmetric] shiftl_of_bl)
@@ -629,6 +619,10 @@ lemma mask_power_eq:
 
 subsubsection "Revcast"
 
+definition
+  revcast :: "'a :: len0 word => 'b :: len0 word" where
+  "revcast w ==  of_bl (takefill False (len_of TYPE('b)) (to_bl w))"
+
 lemmas revcast_def' = revcast_def [simplified]
 lemmas revcast_def'' = revcast_def' [simplified word_size]
 lemmas revcast_no_def [simp] =
@@ -751,6 +745,16 @@ lemmas ucast_down =
 
 
 subsubsection "Slices"
+
+definition
+  slice1 :: "nat => 'a :: len0 word => 'b :: len0 word" where
+  "slice1 n w == of_bl (takefill False n (to_bl w))"
+
+definition
+  slice :: "nat => 'a :: len0 word => 'b :: len0 word" where
+  "slice n w == slice1 (size w - n) w"
+
+lemmas slice_def' = slice_def [unfolded word_size]
 
 lemmas slice1_no_bin [simp] =
   slice1_def [where w="number_of ?w", unfolded to_bl_no_bin]
