@@ -212,9 +212,9 @@ end
 section {* The classical QE after Langford for dense linear orders *}
 
 class dense_linear_order = linorder + 
-  assumes gt_ex: "\<forall>x. \<exists>y. x \<sqsubset> y" 
-  and lt_ex: "\<forall>x. \<exists>y. y \<sqsubset> x"
-  and dense: "\<forall>x y. x \<sqsubset> y \<longrightarrow> (\<exists>z. x \<sqsubset> z \<and> z \<sqsubset> y)"
+  assumes gt_ex: "\<exists>y. x \<sqsubset> y" 
+  and lt_ex: "\<exists>y. y \<sqsubset> x"
+  and dense: "x \<sqsubset> y \<Longrightarrow> (\<exists>z. x \<sqsubset> z \<and> z \<sqsubset> y)"
 begin
 
 lemma dlo_qe_bnds: 
@@ -306,7 +306,6 @@ method_setup dlo = {*
 
 interpretation dlo_ordring_class: dense_linear_order ["op \<le> \<Colon> 'a\<Colon>ordered_field \<Rightarrow> _" "op <"]
 apply unfold_locales
-apply auto
 apply (rule_tac x = "x + 1" in exI, simp)
 apply (rule_tac x = "x - 1" in exI, simp)
 apply (rule_tac x = "(x + y) / (1 + 1)" in exI)
@@ -323,10 +322,10 @@ section {* Contructive dense linear orders yield QE for linear arithmetic over o
 text {* Linear order without upper bounds *}
 
 class linorder_no_ub = linorder +
-  assumes gt_ex: "\<forall>x. \<exists>y. x \<sqsubset> y"
+  assumes gt_ex: "\<exists>y. x \<sqsubset> y"
 begin
 
-lemma ge_ex: "\<forall>x. \<exists>y. x \<sqsubseteq> y" using gt_ex by auto
+lemma ge_ex: "\<exists>y. x \<sqsubseteq> y" using gt_ex by auto
 
 text {* Theorems for @{text "\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>+\<infinity>\<^esub>)"} *}
 lemma pinf_conj:
@@ -373,10 +372,10 @@ end
 text {* Linear order without upper bounds *}
 
 class linorder_no_lb = linorder +
-  assumes lt_ex: "\<forall>x. \<exists>y. y \<sqsubset> x"
+  assumes lt_ex: "\<exists>y. y \<sqsubset> x"
 begin
 
-lemma le_ex: "\<forall>x. \<exists>y. y \<sqsubseteq> x" using lt_ex by auto
+lemma le_ex: "\<exists>y. y \<sqsubseteq> x" using lt_ex by auto
 
 
 text {* Theorems for @{text "\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>-\<infinity>\<^esub>)"} *}
@@ -422,8 +421,8 @@ end
 
 class constr_dense_linear_order = linorder_no_lb + linorder_no_ub +
   fixes between
-  assumes between_less: "\<forall>x y. x \<sqsubset> y \<longrightarrow> x \<sqsubset> between x y \<and> between x y \<sqsubset> y"
-     and  between_same: "\<forall>x. between x x = x"
+  assumes between_less: "x \<sqsubset> y \<Longrightarrow> x \<sqsubset> between x y \<and> between x y \<sqsubset> y"
+     and  between_same: "between x x = x"
 
 instance advanced constr_dense_linear_order < dense_linear_order
   apply unfold_locales
