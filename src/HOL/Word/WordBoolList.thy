@@ -5,7 +5,7 @@
 
 header {* Bool Lists and Words *}
 
-theory WordBoolList imports BinBoolList WordArith begin
+theory WordBoolList imports BinBoolList WordBitwise begin
 
 constdefs
   of_bl :: "bool list => 'a :: len0 word" 
@@ -256,6 +256,107 @@ lemma of_bl_length_less:
     apply (rule bl_to_bin_lt2p)
    apply simp
   apply (rule bl_to_bin_lt2p)    
+  done
+
+subsection "Bitwise operations on bool lists"
+
+lemma bl_word_not: "to_bl (NOT w) = map Not (to_bl w)" 
+  unfolding to_bl_def word_log_defs
+  by (simp add: bl_not_bin number_of_is_id word_no_wi [symmetric])
+
+lemma bl_word_xor: "to_bl (v XOR w) = app2 op ~= (to_bl v) (to_bl w)" 
+  unfolding to_bl_def word_log_defs bl_xor_bin
+  by (simp add: number_of_is_id word_no_wi [symmetric])
+
+lemma bl_word_or: "to_bl (v OR w) = app2 op | (to_bl v) (to_bl w)" 
+  unfolding to_bl_def word_log_defs
+  by (simp add: bl_or_bin number_of_is_id word_no_wi [symmetric])
+
+lemma bl_word_and: "to_bl (v AND w) = app2 op & (to_bl v) (to_bl w)" 
+  unfolding to_bl_def word_log_defs
+  by (simp add: bl_and_bin number_of_is_id word_no_wi [symmetric])
+
+lemma word_lsb_last: "lsb (w::'a::len word) = last (to_bl w)"
+  apply (unfold word_lsb_def uint_bl bin_to_bl_def) 
+  apply (rule_tac bin="uint w" in bin_exhaust)
+  apply (cases "size w")
+   apply auto
+   apply (auto simp add: bin_to_bl_aux_alt)
+  done
+
+lemma word_msb_alt: "msb (w::'a::len word) = hd (to_bl w)"
+  apply (unfold word_msb_nth uint_bl)
+  apply (subst hd_conv_nth)
+  apply (rule length_greater_0_conv [THEN iffD1])
+   apply simp
+  apply (simp add : nth_bin_to_bl word_size)
+  done
+
+lemma bin_nth_uint':
+  "bin_nth (uint w) n = (rev (bin_to_bl (size w) (uint w)) ! n & n < size w)"
+  apply (unfold word_size)
+  apply (safe elim!: bin_nth_uint_imp)
+   apply (frule bin_nth_uint_imp)
+   apply (fast dest!: bin_nth_bl)+
+  done
+
+lemmas bin_nth_uint = bin_nth_uint' [unfolded word_size]
+
+lemma test_bit_bl: "w !! n = (rev (to_bl w) ! n & n < size w)"
+  unfolding to_bl_def word_test_bit_def word_size
+  by (rule bin_nth_uint)
+
+lemma to_bl_nth: "n < size w ==> to_bl w ! n = w !! (size w - Suc n)"
+  apply (unfold test_bit_bl)
+  apply clarsimp
+  apply (rule trans)
+   apply (rule nth_rev_alt)
+   apply (auto simp add: word_size)
+  done
+
+lemma of_bl_rep_False: "of_bl (replicate n False @ bs) = of_bl bs"
+  unfolding of_bl_def bl_to_bin_rep_F by auto
+  
+lemma td_ext_nth':
+  "n = size (w::'a::len0 word) ==> ofn = set_bits ==> [w, ofn g] = l ==> 
+    td_ext test_bit ofn {f. ALL i. f i --> i < n} (%h i. h i & i < n)"
+  apply (unfold word_size td_ext_def')
+  apply safe
+     apply (rule_tac [3] ext)
+     apply (rule_tac [4] ext)
+     apply (unfold word_size of_nth_def test_bit_bl)
+     apply safe
+       defer
+       apply (clarsimp simp: word_bl.Abs_inverse)+
+  apply (rule word_bl.Rep_inverse')
+  apply (rule sym [THEN trans])
+  apply (rule bl_of_nth_nth)
+  apply simp
+  apply (rule bl_of_nth_inj)
+  apply (clarsimp simp add : test_bit_bl word_size)
+  done
+
+lemmas td_ext_nth = td_ext_nth' [OF refl refl refl, unfolded word_size]
+
+interpretation test_bit:
+  td_ext ["op !! :: 'a::len0 word => nat => bool"
+          set_bits
+          "{f. \<forall>i. f i \<longrightarrow> i < len_of TYPE('a::len0)}"
+          "(\<lambda>h i. h i \<and> i < len_of TYPE('a::len0))"]
+  by (rule td_ext_nth)
+
+declare test_bit.Rep' [simp del]
+declare test_bit.Rep' [rule del]
+
+lemmas td_nth = test_bit.td_thm
+
+lemma to_bl_n1: 
+  "to_bl (-1::'a::len0 word) = replicate (len_of TYPE ('a)) True"
+  apply (rule word_bl.Abs_inverse')
+   apply simp
+  apply (rule word_eqI)
+  apply (clarsimp simp add: word_size test_bit_no)
+  apply (auto simp add: word_bl.Abs_inverse test_bit_bl word_size)
   done
 
 end

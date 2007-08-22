@@ -7,7 +7,7 @@
 
 header {* Shifting, Rotating, and Splitting Words *}
 
-theory WordShift imports WordBitwise begin
+theory WordShift imports WordBitwise WordBoolList begin
 
 subsection "Bit shifting"
 

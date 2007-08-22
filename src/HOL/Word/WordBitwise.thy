@@ -7,7 +7,7 @@
 
 header {* Bitwise Operations on Words *}
 
-theory WordBitwise imports WordArith WordBoolList begin
+theory WordBitwise imports WordArith begin
 
 lemmas bin_log_bintrs = bin_trunc_not bin_trunc_xor bin_trunc_and bin_trunc_or
   
@@ -201,35 +201,11 @@ lemmas word_and_le1 =
 lemmas word_and_le2 =
   xtr3 [OF word_ao_absorbs (8) [symmetric] le_word_or2, standard]
 
-lemma bl_word_not: "to_bl (NOT w) = map Not (to_bl w)" 
-  unfolding to_bl_def word_log_defs
-  by (simp add: bl_not_bin number_of_is_id word_no_wi [symmetric])
-
-lemma bl_word_xor: "to_bl (v XOR w) = app2 op ~= (to_bl v) (to_bl w)" 
-  unfolding to_bl_def word_log_defs bl_xor_bin
-  by (simp add: number_of_is_id word_no_wi [symmetric])
-
-lemma bl_word_or: "to_bl (v OR w) = app2 op | (to_bl v) (to_bl w)" 
-  unfolding to_bl_def word_log_defs
-  by (simp add: bl_or_bin number_of_is_id word_no_wi [symmetric])
-
-lemma bl_word_and: "to_bl (v AND w) = app2 op & (to_bl v) (to_bl w)" 
-  unfolding to_bl_def word_log_defs
-  by (simp add: bl_and_bin number_of_is_id word_no_wi [symmetric])
-
 lemma word_lsb_alt: "lsb (w::'a::len0 word) = test_bit w 0"
   by (auto simp: word_test_bit_def word_lsb_def)
 
 lemma word_lsb_1_0: "lsb (1::'a::len word) & ~ lsb (0::'b::len0 word)"
   unfolding word_lsb_def word_1_no word_0_no by auto
-
-lemma word_lsb_last: "lsb (w::'a::len word) = last (to_bl w)"
-  apply (unfold word_lsb_def uint_bl bin_to_bl_def) 
-  apply (rule_tac bin="uint w" in bin_exhaust)
-  apply (cases "size w")
-   apply auto
-   apply (auto simp add: bin_to_bl_aux_alt)
-  done
 
 lemma word_lsb_int: "lsb w = (uint w mod 2 = 1)"
   unfolding word_lsb_def bin_last_mod by auto
@@ -253,39 +229,9 @@ lemma word_msb_nth': "msb (w::'a::len word) = bin_nth (uint w) (size w - 1)"
 
 lemmas word_msb_nth = word_msb_nth' [unfolded word_size]
 
-lemma word_msb_alt: "msb (w::'a::len word) = hd (to_bl w)"
-  apply (unfold word_msb_nth uint_bl)
-  apply (subst hd_conv_nth)
-  apply (rule length_greater_0_conv [THEN iffD1])
-   apply simp
-  apply (simp add : nth_bin_to_bl word_size)
-  done
-
 lemma word_set_nth:
   "set_bit w n (test_bit w n) = (w::'a::len0 word)"
   unfolding word_test_bit_def word_set_bit_def by auto
-
-lemma bin_nth_uint':
-  "bin_nth (uint w) n = (rev (bin_to_bl (size w) (uint w)) ! n & n < size w)"
-  apply (unfold word_size)
-  apply (safe elim!: bin_nth_uint_imp)
-   apply (frule bin_nth_uint_imp)
-   apply (fast dest!: bin_nth_bl)+
-  done
-
-lemmas bin_nth_uint = bin_nth_uint' [unfolded word_size]
-
-lemma test_bit_bl: "w !! n = (rev (to_bl w) ! n & n < size w)"
-  unfolding to_bl_def word_test_bit_def word_size
-  by (rule bin_nth_uint)
-
-lemma to_bl_nth: "n < size w ==> to_bl w ! n = w !! (size w - Suc n)"
-  apply (unfold test_bit_bl)
-  apply clarsimp
-  apply (rule trans)
-   apply (rule nth_rev_alt)
-   apply (auto simp add: word_size)
-  done
 
 lemma test_bit_set: 
   fixes w :: "'a::len0 word"
@@ -303,9 +249,6 @@ lemma test_bit_set_gen:
               simp add: word_test_bit_def [symmetric])
   done
 
-lemma of_bl_rep_False: "of_bl (replicate n False @ bs) = of_bl bs"
-  unfolding of_bl_def bl_to_bin_rep_F by auto
-  
 lemma msb_nth':
   fixes w :: "'a::len word"
   shows "msb w = w !! (size w - 1)"
@@ -320,39 +263,6 @@ lemmas word_ops_msb = msb1 [unfolded msb_nth [symmetric, unfolded One_nat_def]]
 
 lemmas lsb0 = len_gt_0 [THEN word_ops_nth_size [unfolded word_size], standard]
 lemmas word_ops_lsb = lsb0 [unfolded word_lsb_alt]
-
-lemma td_ext_nth':
-  "n = size (w::'a::len0 word) ==> ofn = set_bits ==> [w, ofn g] = l ==> 
-    td_ext test_bit ofn {f. ALL i. f i --> i < n} (%h i. h i & i < n)"
-  apply (unfold word_size td_ext_def')
-  apply safe
-     apply (rule_tac [3] ext)
-     apply (rule_tac [4] ext)
-     apply (unfold word_size of_nth_def test_bit_bl)
-     apply safe
-       defer
-       apply (clarsimp simp: word_bl.Abs_inverse)+
-  apply (rule word_bl.Rep_inverse')
-  apply (rule sym [THEN trans])
-  apply (rule bl_of_nth_nth)
-  apply simp
-  apply (rule bl_of_nth_inj)
-  apply (clarsimp simp add : test_bit_bl word_size)
-  done
-
-lemmas td_ext_nth = td_ext_nth' [OF refl refl refl, unfolded word_size]
-
-interpretation test_bit:
-  td_ext ["op !! :: 'a::len0 word => nat => bool"
-          set_bits
-          "{f. \<forall>i. f i \<longrightarrow> i < len_of TYPE('a::len0)}"
-          "(\<lambda>h i. h i \<and> i < len_of TYPE('a::len0))"]
-  by (rule td_ext_nth)
-
-declare test_bit.Rep' [simp del]
-declare test_bit.Rep' [rule del]
-
-lemmas td_nth = test_bit.td_thm
 
 lemma word_set_set_same: 
   fixes w :: "'a::len0 word"
@@ -402,17 +312,9 @@ lemmas setBit_no = setBit_def [THEN trans [OF meta_eq_to_obj_eq word_set_no],
 lemmas clearBit_no = clearBit_def [THEN trans [OF meta_eq_to_obj_eq word_set_no],
   simplified if_simps, THEN eq_reflection, standard]
 
-lemma to_bl_n1: 
-  "to_bl (-1::'a::len0 word) = replicate (len_of TYPE ('a)) True"
-  apply (rule word_bl.Abs_inverse')
-   apply simp
-  apply (rule word_eqI)
-  apply (clarsimp simp add: word_size test_bit_no)
-  apply (auto simp add: word_bl.Abs_inverse test_bit_bl word_size)
-  done
-
 lemma word_msb_n1: "msb (-1::'a::len word)"
-  unfolding word_msb_alt word_msb_alt to_bl_n1 by simp
+  unfolding word_msb_def sint_sbintrunc number_of_is_id bin_sign_lem
+  by (rule bin_nth_Min)
 
 declare word_set_set_same [simp] word_set_nth [simp]
   test_bit_no [simp] word_set_no [simp] nth_0 [simp]
