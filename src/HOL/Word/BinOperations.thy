@@ -361,10 +361,13 @@ lemma bin_sc_sc_diff:
 lemma bin_nth_sc_gen: 
   "!!w m. bin_nth (bin_sc n b w) m = (if m = n then b = bit.B1 else bin_nth w m)"
   by (induct n) (case_tac [!] m, auto)
+
+lemma bit_bool1: "(if s = bit.B1 then bit.B1 else bit.B0) = s"
+  by auto
   
 lemma bin_sc_nth [simp]:
   "!!w. (bin_sc n (If (bin_nth w n) bit.B1 bit.B0) w) = w"
-  by (induct n) auto
+  by (induct n) (auto simp add: bit_bool1)
 
 lemma bin_sign_sc [simp]:
   "!!w. bin_sign (bin_sc n b w) = bin_sign w"
