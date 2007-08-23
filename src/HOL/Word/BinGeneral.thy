@@ -158,11 +158,6 @@ consts
   bin_last :: "int => bit"
   bin_rest :: "int => int"
   bin_sign :: "int => int"
-  bin_nth :: "int => nat => bool"
-
-primrec
-  Z : "bin_nth w 0 = (bin_last w = bit.B1)"
-  Suc : "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
 
 defs  
   bin_rest_def : "bin_rest w == fst (bin_rl w)"
@@ -227,6 +222,15 @@ lemma bin_rest_div:
 
 lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
   unfolding bin_rest_div [symmetric] by auto
+
+subsection {* Testing bit positions *}
+
+consts
+  bin_nth :: "int => nat => bool"
+
+primrec
+  Z : "bin_nth w 0 = (bin_last w = bit.B1)"
+  Suc : "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
 
 lemma bin_nth_lem [rule_format]:
   "ALL y. bin_nth x = bin_nth y --> x = y"
