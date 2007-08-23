@@ -126,7 +126,7 @@ lemma bin_last_Pls [simp]: "bin_last Numeral.Pls = bit.B0"
 lemma bin_last_Min [simp]: "bin_last Numeral.Min = bit.B1"
   by (subst Min_1_eq [symmetric], rule bin_last_BIT)
 
-lemma bin_rest_BIT_bin_last: "(bin_rest x) BIT (bin_last x) = x"
+lemma bin_rest_BIT_bin_last [simp]: "(bin_rest x) BIT (bin_last x) = x"
   by (cases x rule: BIT_cases) simp
 
 lemma wf_bin_rest:
