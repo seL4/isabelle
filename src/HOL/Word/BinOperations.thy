@@ -36,11 +36,11 @@ lemma int_not_simps [simp]:
 
 lemma int_xor_Pls [simp]: 
   "Numeral.Pls XOR x = x"
-  unfolding int_xor_def by (simp add: bin_rec_PM)
+  unfolding int_xor_def by (simp add: bin_rec_Pls)
 
 lemma int_xor_Min [simp]: 
   "Numeral.Min XOR x = NOT x"
-  unfolding int_xor_def by (simp add: bin_rec_PM)
+  unfolding int_xor_def by (simp add: bin_rec_Min)
 
 lemma int_xor_Bits [simp]: 
   "(x BIT b) XOR (y BIT c) = (x XOR y) BIT (b XOR c)"
@@ -66,11 +66,11 @@ lemmas int_xor_extra_simps [simp] = int_xor_x_simps' [simplified arith_simps]
 
 lemma int_or_Pls [simp]: 
   "Numeral.Pls OR x = x"
-  by (unfold int_or_def) (simp add: bin_rec_PM)
+  by (unfold int_or_def) (simp add: bin_rec_Pls)
   
 lemma int_or_Min [simp]:
   "Numeral.Min OR x = Numeral.Min"
-  by (unfold int_or_def) (simp add: bin_rec_PM)
+  by (unfold int_or_def) (simp add: bin_rec_Min)
 
 lemma int_or_Bits [simp]: 
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b OR c)"
@@ -90,11 +90,11 @@ lemmas int_or_extra_simps [simp] = int_or_x_simps' [simplified arith_simps]
 
 lemma int_and_Pls [simp]:
   "Numeral.Pls AND x = Numeral.Pls"
-  unfolding int_and_def by (simp add: bin_rec_PM)
+  unfolding int_and_def by (simp add: bin_rec_Pls)
 
 lemma int_and_Min [simp]:
   "Numeral.Min AND x = x"
-  unfolding int_and_def by (simp add: bin_rec_PM)
+  unfolding int_and_def by (simp add: bin_rec_Min)
 
 lemma int_and_Bits [simp]: 
   "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
