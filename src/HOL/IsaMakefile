@@ -814,6 +814,7 @@ $(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML \
   Library/Boolean_Algebra.thy Library/Numeral_Type.thy \
   Word/Num_Lemmas.thy \
   Word/TdThs.thy \
+  Word/BinInduct.thy \
   Word/BinGeneral.thy \
   Word/BinOperations.thy \
   Word/BinBoolList.thy \
