@@ -64,15 +64,11 @@ constdefs
   bin_rec :: "'a => 'a => (int => bit => 'a => 'a) => int => 'a"
   "bin_rec f1 f2 f3 bin == bin_rec' (bin, f1, f2, f3)"
 
-lemma bin_rec_PM:
-  "f = bin_rec f1 f2 f3 ==> f Numeral.Pls = f1 & f Numeral.Min = f2"
-  apply safe
-   apply (unfold bin_rec_def)
-   apply (auto intro: bin_rec'.simps [THEN trans])
-  done
+lemma bin_rec_Pls: "bin_rec f1 f2 f3 Numeral.Pls = f1"
+  unfolding bin_rec_def by simp
 
-lemmas bin_rec_Pls = refl [THEN bin_rec_PM, THEN conjunct1, standard]
-lemmas bin_rec_Min = refl [THEN bin_rec_PM, THEN conjunct2, standard]
+lemma bin_rec_Min: "bin_rec f1 f2 f3 Numeral.Min = f2"
+  unfolding bin_rec_def by simp
 
 lemma bin_rec_Bit:
   "f = bin_rec f1 f2 f3  ==> f3 Numeral.Pls bit.B0 f1 = f1 ==> 
