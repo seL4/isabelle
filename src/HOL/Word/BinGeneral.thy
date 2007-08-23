@@ -17,17 +17,7 @@ subsection {* BIT as a datatype constructor *}
 
 (** ways in which type Bin resembles a datatype **)
 
-lemmas BIT_eqE = BIT_eq [THEN conjE, standard]
-
 lemmas BIT_eqI = conjI [THEN BIT_eq_iff [THEN iffD2]]
-
-lemma less_Bits: 
-  "(v BIT b < w BIT c) = (v < w | v <= w & b = bit.B0 & c = bit.B1)"
-  unfolding Bit_def by (auto split: bit.split)
-
-lemma le_Bits: 
-  "(v BIT b <= w BIT c) = (v < w | v <= w & (b ~= bit.B1 | c ~= bit.B0))" 
-  unfolding Bit_def by (auto split: bit.split)
 
 lemma neB1E [elim!]:
   assumes ne: "y \<noteq> bit.B1"
@@ -37,9 +27,6 @@ lemma neB1E [elim!]:
   apply (cases y rule: bit.exhaust, simp)
   apply (simp add: ne)
   done
-
-lemma bin_ex_rl: "EX w b. w BIT b = bin"
-  by (insert BIT_exhausts [of bin], auto)
 
 lemma bin_exhaust:
   assumes Q: "\<And>x b. bin = x BIT b \<Longrightarrow> Q"
@@ -246,12 +233,6 @@ lemma sbintrunc_mod2p:
   done
 
 text "Simplifications for (s)bintrunc"
-
-lemma bit_bool:
-  "(b = (b' = bit.B1)) = (b' = (if b then bit.B1 else bit.B0))"
-  by (cases b') auto
-
-lemmas bit_bool1 [simp] = refl [THEN bit_bool [THEN iffD1], symmetric]
 
 lemma bin_sign_lem:
   "!!bin. (bin_sign (sbintrunc n bin) = Numeral.Min) = bin_nth bin n"
