@@ -125,8 +125,7 @@ lemma wi_homs:
 lemmas wi_hom_syms = wi_homs [symmetric]
 
 lemma word_sub_def: "a - b == a + - (b :: 'a word)"
-  unfolding word_sub_wi diff_def
-  by (simp only : word_uint.Rep_inverse wi_hom_syms)
+  by (rule diff_def)
     
 lemmas word_diff_minus = word_sub_def [THEN meta_eq_to_obj_eq, standard]
 
@@ -218,48 +217,6 @@ lemma word_sp_01 [simp] :
 lemma word_of_int_Ex:
   "\<exists>y. x = word_of_int y"
   by (rule_tac x="uint x" in exI) simp
-
-lemma word_arith_eqs:
-  fixes a :: "'a word"
-  fixes b :: "'a word"
-  shows
-  word_add_0: "0 + a = a" and
-  word_add_0_right: "a + 0 = a" and
-  word_mult_1: "1 * a = a" and
-  word_mult_1_right: "a * 1 = a" and
-  word_add_commute: "a + b = b + a" and
-  word_add_assoc: "a + b + c = a + (b + c)" and
-  word_add_left_commute: "a + (b + c) = b + (a + c)" and
-  word_mult_commute: "a * b = b * a" and
-  word_mult_assoc: "a * b * c = a * (b * c)" and
-  word_mult_left_commute: "a * (b * c) = b * (a * c)" and
-  word_left_distrib: "(a + b) * c = a * c + b * c" and
-  word_right_distrib: "a * (b + c) = a * b + a * c" and
-  word_left_minus: "- a + a = 0" and
-  word_diff_0_right: "a - 0 = a" and
-  word_diff_self: "a - a = 0"
-  using word_of_int_Ex [of a] 
-        word_of_int_Ex [of b] 
-        word_of_int_Ex [of c]
-  by (auto simp: word_of_int_hom_syms [symmetric]
-                 zadd_0_right add_commute add_assoc add_left_commute
-                 mult_commute mult_assoc mult_left_commute
-                 plus_times.left_distrib plus_times.right_distrib)
-  
-lemmas word_add_ac = word_add_commute word_add_assoc word_add_left_commute
-lemmas word_mult_ac = word_mult_commute word_mult_assoc word_mult_left_commute
-  
-lemmas word_plus_ac0 = word_add_0 word_add_0_right word_add_ac
-lemmas word_times_ac1 = word_mult_1 word_mult_1_right word_mult_ac
-
-instance word :: (type) semigroup_add
-  by intro_classes (simp add: word_add_assoc)
-
-instance word :: (type) ring
-  by intro_classes
-     (auto simp: word_arith_eqs word_diff_minus 
-                 word_diff_self [unfolded word_diff_minus])
-
 
 subsection "Order on fixed-length words"
 
@@ -561,7 +518,7 @@ lemma no_ulen_sub: "((x :: 'a word) >= x - y) = (uint y <= uint x)"
 lemma no_olen_add':
   fixes x :: "'a word"
   shows "(x \<le> y + x) = (uint y + uint x < 2 ^ CARD('a))"
-  by (simp add: word_add_ac add_ac no_olen_add)
+  by (simp add: add_ac no_olen_add)
 
 lemmas olen_add_eqv = trans [OF no_olen_add no_olen_add' [symmetric], standard]
 
@@ -729,31 +686,6 @@ lemma udvd_incr2_K:
 
 subsection "Arithmetic type class instantiations"
 
-instance word :: (type) comm_monoid_add ..
-
-instance word :: (type) comm_monoid_mult
-  apply (intro_classes)
-   apply (simp add: word_mult_commute)
-  apply (simp add: word_mult_1)
-  done
-
-instance word :: (type) comm_semiring 
-  by (intro_classes) (simp add : word_left_distrib)
-
-instance word :: (type) ab_group_add ..
-
-instance word :: (type) comm_ring ..
-
-instance word :: (finite) comm_semiring_1 
-  by (intro_classes) (simp add: lenw1_zero_neq_one)
-
-instance word :: (finite) comm_ring_1 ..
-
-instance word :: (type) comm_semiring_0 ..
-
-instance word :: (finite) recpower
-  by (intro_classes) (simp_all add: word_pow)
-
 (* note that iszero_def is only for class comm_semiring_1_cancel,
    which requires word length >= 1, ie 'a :: finite word *) 
 lemma zero_bintrunc:
@@ -772,8 +704,7 @@ lemma word_of_nat: "of_nat n = word_of_int (int n)"
 
 lemma word_of_int: "of_int = word_of_int"
   apply (rule ext)
-  apply (case_tac x rule: int_diff_cases)
-  apply (simp add: word_of_nat word_of_int_sub_hom)
+  apply (simp add: word_of_int Abs_word'_eq)
   done
 
 lemma word_of_int_nat: 

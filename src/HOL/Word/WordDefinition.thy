@@ -15,16 +15,74 @@ typedef (open word) 'a word
   = "{(0::int) ..< 2^CARD('a)}" by auto
 
 instance word :: (type) number ..
-instance word :: (type) minus ..
-instance word :: (type) plus ..
-instance word :: (type) one ..
-instance word :: (type) zero ..
-instance word :: (type) times ..
-instance word :: (type) power ..
 instance word :: (type) size ..
 instance word :: (type) inverse ..
 instance word :: (type) bit ..
 
+subsection {* Basic arithmetic *}
+
+definition
+  Abs_word' :: "int \<Rightarrow> 'a word"
+  where "Abs_word' x = Abs_word (x mod 2^CARD('a))"
+
+lemma Rep_word_mod: "Rep_word (x::'a word) mod 2^CARD('a) = Rep_word x"
+  by (simp only: mod_pos_pos_trivial Rep_word [simplified])
+
+lemma Rep_word_inverse': "Abs_word' (Rep_word x) = x"
+  unfolding Abs_word'_def Rep_word_mod
+  by (rule Rep_word_inverse)
+
+lemma Abs_word'_inverse: "Rep_word (Abs_word' z::'a word) = z mod 2^CARD('a)"
+  unfolding Abs_word'_def
+  by (simp add: Abs_word_inverse)
+
+lemmas Rep_word_simps =
+  Rep_word_inject [symmetric]
+  Rep_word_mod
+  Rep_word_inverse'
+  Abs_word'_inverse
+
+instance word :: (type) "{zero,one,plus,minus,times,power}"
+  word_zero_def: "0 \<equiv> Abs_word' 0"
+  word_one_def: "1 \<equiv> Abs_word' 1"
+  word_add_def: "x + y \<equiv> Abs_word' (Rep_word x + Rep_word y)"
+  word_mult_def: "x * y \<equiv> Abs_word' (Rep_word x * Rep_word y)"
+  word_diff_def: "x - y \<equiv> Abs_word' (Rep_word x - Rep_word y)"
+  word_minus_def: "- x \<equiv> Abs_word' (- Rep_word x)"
+  word_power_def: "x ^ n \<equiv> Abs_word' (Rep_word x ^ n)"
+  ..
+
+lemmas word_arith_defs =
+  word_zero_def
+  word_one_def
+  word_add_def
+  word_mult_def
+  word_diff_def
+  word_minus_def
+  word_power_def
+
+instance word :: (type) "{comm_ring,comm_monoid_mult,recpower}"
+  apply (intro_classes, unfold word_arith_defs)
+  apply (simp_all add: Rep_word_simps zmod_simps ring_simps
+                       mod_pos_pos_trivial)
+  done
+
+instance word :: (finite) comm_ring_1
+  apply (intro_classes, unfold word_arith_defs)
+  apply (simp_all add: Rep_word_simps zmod_simps ring_simps
+                       mod_pos_pos_trivial one_less_power)
+  done
+
+lemma word_of_nat: "of_nat n = Abs_word' (int n)"
+  apply (induct n)
+  apply (simp add: word_zero_def)
+  apply (simp add: Rep_word_simps word_arith_defs zmod_simps)
+  done
+
+lemma word_of_int: "of_int z = Abs_word' z"
+  apply (cases z rule: int_diff_cases)
+  apply (simp add: Rep_word_simps word_diff_def word_of_nat zmod_simps)
+  done
 
 subsection "Type conversions and casting"
 
@@ -70,9 +128,15 @@ translations
 
 subsection  "Arithmetic operations"
 
-defs (overloaded)
-  word_1_wi: "(1 :: ('a) word) == word_of_int 1"
-  word_0_wi: "(0 :: ('a) word) == word_of_int 0"
+lemma Abs_word'_eq: "Abs_word' = word_of_int"
+  unfolding expand_fun_eq Abs_word'_def word_of_int_def
+  by (simp add: bintrunc_mod2p)
+
+lemma word_1_wi: "(1 :: ('a) word) == word_of_int 1"
+  by (simp only: word_arith_defs Abs_word'_eq)
+
+lemma word_0_wi: "(0 :: ('a) word) == word_of_int 0"
+  by (simp only: word_arith_defs Abs_word'_eq)
 
 constdefs
   word_succ :: "'a word => 'a word"
@@ -87,13 +151,21 @@ primrec
   "word_power a 0 = 1"
   "word_power a (Suc n) = a * word_power a n"
 
-defs (overloaded)
+lemma
   word_pow: "power == word_power"
-  word_add_def: "a + b == word_of_int (uint a + uint b)"
-  word_sub_wi: "a - b == word_of_int (uint a - uint b)"
-  word_minus_def: "- a == word_of_int (- uint a)"
-  word_mult_def: "a * b == word_of_int (uint a * uint b)"
+  apply (rule eq_reflection, rule ext, rule ext)
+  apply (rename_tac n, induct_tac n, simp_all add: power_Suc)
+  done
 
+lemma
+  word_add_def: "a + b == word_of_int (uint a + uint b)"
+and
+  word_sub_wi: "a - b == word_of_int (uint a - uint b)"
+and
+  word_minus_def: "- a == word_of_int (- uint a)"
+and
+  word_mult_def: "a * b == word_of_int (uint a * uint b)"
+  by (simp_all only: word_arith_defs Abs_word'_eq uint_def)
 
 subsection "Bit-wise operations"
 
