@@ -1,8 +1,8 @@
 structure HOL = 
 struct
 
-type 'a eq = {eq : 'a -> 'a -> bool};
-fun eq (A_:'a eq) = #eq A_;
+type 'a eq = {eqop : 'a -> 'a -> bool};
+fun eqop (A_:'a eq) = #eqop A_;
 
 end; (*struct HOL*)
 
@@ -12,7 +12,7 @@ struct
 fun foldr f (x :: xs) a = f x (foldr f xs a)
   | foldr f [] a = a;
 
-fun member A_ x (y :: ys) = HOL.eq A_ x y orelse member A_ x ys
+fun member A_ x (y :: ys) = HOL.eqop A_ x y orelse member A_ x ys
   | member A_ x [] = false;
 
 end; (*struct List*)
@@ -26,10 +26,10 @@ val empty : 'a set = Set [];
 
 fun insert x (Set xs) = Set (x :: xs);
 
-fun uniona xs (Set ys) = List.foldr insert ys xs;
-
-fun union (Set xs) = List.foldr uniona xs empty;
+fun union xs (Set ys) = List.foldr insert ys xs;
 
 fun member A_ x (Set xs) = List.member A_ x xs;
+
+fun uniona (Set xs) = List.foldr union xs empty;
 
 end; (*struct Set*)

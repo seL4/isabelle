@@ -590,8 +590,6 @@ The \isa{HOL} \isa{Main} theory already provides a code
     \item[\isa{Pretty{\isacharunderscore}Char{\isacharunderscore}chr}] like \isa{Pretty{\isacharunderscore}Char},
        but also offers treatment of character codes; includes
        \isa{Pretty{\isacharunderscore}Int}.
-    \item[\isa{Executable{\isacharunderscore}Set}] allows to generate code
-       for finite sets using lists.
     \item[\isa{Executable{\isacharunderscore}Rat}] implements rational
        numbers.
     \item[\isa{Executable{\isacharunderscore}Real}] implements a subset of real numbers,
@@ -1304,6 +1302,20 @@ Conceptually, any datatype is spanned by a set of
   as constructor:%
 \end{isamarkuptext}%
 \isamarkuptrue%
+\ %
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
 \isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
 \ set\isanewline
 \isanewline
@@ -1473,52 +1485,6 @@ Since the code generator framework not only aims to provide
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Basics: \isa{CodeUnit}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-This module provides identification of (probably overloaded)
-  constants by unique identifiers.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isatagmlref
-%
-\begin{isamarkuptext}%
-\begin{mldecls}
-  \indexmltype{CodeUnit.const}\verb|type CodeUnit.const = string * string option| \\
-  \indexml{CodeUnit.const-of-cexpr}\verb|CodeUnit.const_of_cexpr: theory -> string * typ -> CodeUnit.const| \\
- \end{mldecls}
-
-  \begin{description}
-
-  \item \verb|CodeUnit.const| is the identifier type:
-     the product of a \emph{string} with a list of \emph{typs}.
-     The \emph{string} is the constant name as represented inside Isabelle;
-     for overloaded constants, the attached \emph{string option}
-     is either \isa{SOME} type constructor denoting an instance,
-     or \isa{NONE} for the polymorphic constant.
-
-  \item \verb|CodeUnit.const_of_cexpr|~\isa{thy}~\isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}}
-     maps a constant expression \isa{{\isacharparenleft}constname{\isacharcomma}\ typ{\isacharparenright}}
-     to its canonical identifier.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagmlref
-{\isafoldmlref}%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
 \isamarkupsubsection{Executable theory content: \isa{Code}%
 }
 \isamarkuptrue%
@@ -1543,7 +1509,7 @@ This Pure module implements the core notions of
 \begin{mldecls}
   \indexml{Code.add-func}\verb|Code.add_func: bool -> thm -> theory -> theory| \\
   \indexml{Code.del-func}\verb|Code.del_func: thm -> theory -> theory| \\
-  \indexml{Code.add-funcl}\verb|Code.add_funcl: CodeUnit.const * thm list Susp.T -> theory -> theory| \\
+  \indexml{Code.add-funcl}\verb|Code.add_funcl: string * thm list Susp.T -> theory -> theory| \\
   \indexml{Code.add-inline}\verb|Code.add_inline: thm -> theory -> theory| \\
   \indexml{Code.del-inline}\verb|Code.del_inline: thm -> theory -> theory| \\
   \indexml{Code.add-inline-proc}\verb|Code.add_inline_proc: string * (theory -> cterm list -> thm list)|\isasep\isanewline%
@@ -1552,11 +1518,10 @@ This Pure module implements the core notions of
   \indexml{Code.add-preproc}\verb|Code.add_preproc: string * (theory -> thm list -> thm list)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
   \indexml{Code.del-preproc}\verb|Code.del_preproc: string -> theory -> theory| \\
-  \indexml{Code.add-datatype}\verb|Code.add_datatype: string * ((string * sort) list * (string * typ list) list)|\isasep\isanewline%
-\verb|    -> theory -> theory| \\
+  \indexml{Code.add-datatype}\verb|Code.add_datatype: (string * typ) list -> theory -> theory| \\
   \indexml{Code.get-datatype}\verb|Code.get_datatype: theory -> string|\isasep\isanewline%
 \verb|    -> (string * sort) list * (string * typ list) list| \\
-  \indexml{Code.get-datatype-of-constr}\verb|Code.get_datatype_of_constr: theory -> CodeUnit.const -> string option|
+  \indexml{Code.get-datatype-of-constr}\verb|Code.get_datatype_of_constr: theory -> string -> string option|
   \end{mldecls}
 
   \begin{description}
@@ -1596,12 +1561,9 @@ This Pure module implements the core notions of
   \item \verb|Code.del_preproc|~\isa{name}~\isa{thy} removes
      generic preprcoessor named \isa{name} from executable content.
 
-  \item \verb|Code.add_datatype|~\isa{{\isacharparenleft}name{\isacharcomma}\ spec{\isacharparenright}}~\isa{thy} adds
-     a datatype to executable content, with type constructor
-     \isa{name} and specification \isa{spec}; \isa{spec} is
-     a pair consisting of a list of type variable with sort
-     constraints and a list of constructors with name
-     and types of arguments.
+  \item \verb|Code.add_datatype|~\isa{cs}~\isa{thy} adds
+     a datatype to executable content, with generation
+     set \isa{cs}.
 
   \item \verb|Code.get_datatype_of_constr|~\isa{thy}~\isa{const}
      returns type constructor corresponding to
@@ -1631,21 +1593,12 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{CodeUnit.const-ord}\verb|CodeUnit.const_ord: CodeUnit.const * CodeUnit.const -> order| \\
-  \indexml{CodeUnit.eq-const}\verb|CodeUnit.eq_const: CodeUnit.const * CodeUnit.const -> bool| \\
-  \indexml{CodeUnit.read-const}\verb|CodeUnit.read_const: theory -> string -> CodeUnit.const| \\
-  \indexmlstructure{CodeUnit.Consttab}\verb|structure CodeUnit.Consttab| \\
-  \indexml{CodeUnit.head-func}\verb|CodeUnit.head_func: thm -> CodeUnit.const * typ| \\
+  \indexml{CodeUnit.read-const}\verb|CodeUnit.read_const: theory -> string -> string| \\
+  \indexml{CodeUnit.head-func}\verb|CodeUnit.head_func: thm -> string * typ| \\
   \indexml{CodeUnit.rewrite-func}\verb|CodeUnit.rewrite_func: thm list -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
-
-  \item \verb|CodeUnit.const_ord|,~\verb|CodeUnit.eq_const|
-     provide order and equality on constant identifiers.
-
-  \item \verb|CodeUnit.Consttab|
-     provides table structures with constant identifiers as keys.
 
   \item \verb|CodeUnit.read_const|~\isa{thy}~\isa{s}
      reads a constant as a concrete term expression \isa{s}.

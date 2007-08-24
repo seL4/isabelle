@@ -1,15 +1,15 @@
 structure HOL = 
 struct
 
-type 'a eq = {eq : 'a -> 'a -> bool};
-fun eq (A_:'a eq) = #eq A_;
+type 'a eq = {eqop : 'a -> 'a -> bool};
+fun eqop (A_:'a eq) = #eqop A_;
 
 end; (*struct HOL*)
 
 structure List = 
 struct
 
-fun member A_ x (y :: ys) = HOL.eq A_ x y orelse member A_ x ys
+fun member A_ x (y :: ys) = HOL.eqop A_ x y orelse member A_ x ys
   | member A_ x [] = false;
 
 end; (*struct List*)

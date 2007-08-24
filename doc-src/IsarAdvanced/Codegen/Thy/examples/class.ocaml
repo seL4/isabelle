@@ -1,7 +1,7 @@
 module Nat = 
 struct
 
-type nat = Zero_nat | Suc of nat;;
+type nat = Suc of nat | Zero_nat;;
 
 end;; (*struct Nat*)
 
@@ -14,11 +14,9 @@ let null _A = _A.null;;
 let rec head _B = function x :: xs -> x
                   | [] -> null _B;;
 
-let rec null_option = None;;
-
-let null_optiona () = ({null = null_option} : ('b option) null);;
+let null_option () = ({null = None} : ('b option) null);;
 
 let rec dummy
-  = head (null_optiona ()) [Some (Nat.Suc Nat.Zero_nat); None];;
+  = head (null_option ()) [Some (Nat.Suc Nat.Zero_nat); None];;
 
 end;; (*struct Codegen*)

@@ -1,7 +1,7 @@
 structure HOL = 
 struct
 
-datatype boola = True | False;
+datatype boola = False | True;
 
 fun anda x True = x
   | anda x False = False
@@ -13,7 +13,7 @@ end; (*struct HOL*)
 structure Nat = 
 struct
 
-datatype nat = Zero_nat | Suc of nat;
+datatype nat = Suc of nat | Zero_nat;
 
 fun less_nat n (Suc m) = less_eq_nat n m
   | less_nat n Zero_nat = HOL.False

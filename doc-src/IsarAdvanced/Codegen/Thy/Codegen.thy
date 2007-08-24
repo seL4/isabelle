@@ -469,8 +469,6 @@ text {*
     \item[@{text "Pretty_Char_chr"}] like @{text "Pretty_Char"},
        but also offers treatment of character codes; includes
        @{text "Pretty_Int"}.
-    \item[@{text "Executable_Set"}] allows to generate code
-       for finite sets using lists.
     \item[@{text "Executable_Rat"}] implements rational
        numbers.
     \item[@{text "Executable_Real"}] implements a subset of real numbers,
@@ -935,7 +933,7 @@ text {*
   how to implement finite sets by lists
   using the conversion @{term [source] "set \<Colon> 'a list \<Rightarrow> 'a set"}
   as constructor:
-*}
+*} (*<*)ML {* nonfix union *} lemmas [code func del] = in_code union_empty1 union_empty2 union_insert Union_code(*>*)
 
 code_datatype set
 
@@ -1018,35 +1016,6 @@ text {*
   description of the most important ML interfaces.
 *}
 
-subsection {* Basics: @{text CodeUnit} *}
-
-text {*
-  This module provides identification of (probably overloaded)
-  constants by unique identifiers.
-*}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML_type CodeUnit.const: "string * string option"} \\
-  @{index_ML CodeUnit.const_of_cexpr: "theory -> string * typ -> CodeUnit.const"} \\
- \end{mldecls}
-
-  \begin{description}
-
-  \item @{ML_type CodeUnit.const} is the identifier type:
-     the product of a \emph{string} with a list of \emph{typs}.
-     The \emph{string} is the constant name as represented inside Isabelle;
-     for overloaded constants, the attached \emph{string option}
-     is either @{text SOME} type constructor denoting an instance,
-     or @{text NONE} for the polymorphic constant.
-
-  \item @{ML CodeUnit.const_of_cexpr}~@{text thy}~@{text "(constname, typ)"}
-     maps a constant expression @{text "(constname, typ)"}
-     to its canonical identifier.
-
-  \end{description}
-*}
-
 subsection {* Executable theory content: @{text Code} *}
 
 text {*
@@ -1060,7 +1029,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Code.add_func: "bool -> thm -> theory -> theory"} \\
   @{index_ML Code.del_func: "thm -> theory -> theory"} \\
-  @{index_ML Code.add_funcl: "CodeUnit.const * thm list Susp.T -> theory -> theory"} \\
+  @{index_ML Code.add_funcl: "string * thm list Susp.T -> theory -> theory"} \\
   @{index_ML Code.add_inline: "thm -> theory -> theory"} \\
   @{index_ML Code.del_inline: "thm -> theory -> theory"} \\
   @{index_ML Code.add_inline_proc: "string * (theory -> cterm list -> thm list)
@@ -1069,11 +1038,10 @@ text %mlref {*
   @{index_ML Code.add_preproc: "string * (theory -> thm list -> thm list)
     -> theory -> theory"} \\
   @{index_ML Code.del_preproc: "string -> theory -> theory"} \\
-  @{index_ML Code.add_datatype: "string * ((string * sort) list * (string * typ list) list)
-    -> theory -> theory"} \\
+  @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\
   @{index_ML Code.get_datatype: "theory -> string
     -> (string * sort) list * (string * typ list) list"} \\
-  @{index_ML Code.get_datatype_of_constr: "theory -> CodeUnit.const -> string option"}
+  @{index_ML Code.get_datatype_of_constr: "theory -> string -> string option"}
   \end{mldecls}
 
   \begin{description}
@@ -1113,12 +1081,9 @@ text %mlref {*
   \item @{ML Code.del_preproc}~@{text "name"}~@{text "thy"} removes
      generic preprcoessor named @{text name} from executable content.
 
-  \item @{ML Code.add_datatype}~@{text "(name, spec)"}~@{text "thy"} adds
-     a datatype to executable content, with type constructor
-     @{text name} and specification @{text spec}; @{text spec} is
-     a pair consisting of a list of type variable with sort
-     constraints and a list of constructors with name
-     and types of arguments.
+  \item @{ML Code.add_datatype}~@{text cs}~@{text thy} adds
+     a datatype to executable content, with generation
+     set @{text cs}.
 
   \item @{ML Code.get_datatype_of_constr}~@{text "thy"}~@{text "const"}
      returns type constructor corresponding to
@@ -1132,21 +1097,12 @@ subsection {* Auxiliary *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML CodeUnit.const_ord: "CodeUnit.const * CodeUnit.const -> order"} \\
-  @{index_ML CodeUnit.eq_const: "CodeUnit.const * CodeUnit.const -> bool"} \\
-  @{index_ML CodeUnit.read_const: "theory -> string -> CodeUnit.const"} \\
-  @{index_ML_structure CodeUnit.Consttab} \\
-  @{index_ML CodeUnit.head_func: "thm -> CodeUnit.const * typ"} \\
+  @{index_ML CodeUnit.read_const: "theory -> string -> string"} \\
+  @{index_ML CodeUnit.head_func: "thm -> string * typ"} \\
   @{index_ML CodeUnit.rewrite_func: "thm list -> thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
-
-  \item @{ML CodeUnit.const_ord},~@{ML CodeUnit.eq_const}
-     provide order and equality on constant identifiers.
-
-  \item @{ML_struct CodeUnit.Consttab}
-     provides table structures with constant identifiers as keys.
 
   \item @{ML CodeUnit.read_const}~@{text thy}~@{text s}
      reads a constant as a concrete term expression @{text s}.

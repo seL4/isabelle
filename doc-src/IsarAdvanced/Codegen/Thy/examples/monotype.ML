@@ -1,12 +1,12 @@
 structure Nat = 
 struct
 
-datatype nat = Zero_nat | Suc of nat;
+datatype nat = Suc of nat | Zero_nat;
 
-fun eq_nat Zero_nat (Suc m) = false
-  | eq_nat (Suc n) Zero_nat = false
-  | eq_nat (Suc n) (Suc m) = eq_nat n m
-  | eq_nat Zero_nat Zero_nat = true;
+fun eqop_nat Zero_nat (Suc m) = false
+  | eqop_nat (Suc n) Zero_nat = false
+  | eqop_nat (Suc n) (Suc m) = eqop_nat n m
+  | eqop_nat Zero_nat Zero_nat = true;
 
 fun plus_nat (Suc m) n = plus_nat m (Suc n)
   | plus_nat Zero_nat n = n;
@@ -39,7 +39,7 @@ fun list_all2 p (x :: xs) (y :: ys) = p x y andalso list_all2 p xs ys
   | list_all2 p xs [] = null xs
   | list_all2 p [] ys = null ys
   | list_all2 p xs ys =
-    Nat.eq_nat (size_list xs) (size_list ys) andalso
+    Nat.eqop_nat (size_list xs) (size_list ys) andalso
       list_all (fn a as (aa, b) => p aa b) (zip xs ys);
 
 end; (*struct List*)
@@ -49,8 +49,8 @@ struct
 
 datatype monotype = Mono of Nat.nat * monotype list;
 
-fun eq_monotype (Mono (tyco1, typargs1)) (Mono (tyco2, typargs2)) =
-  Nat.eq_nat tyco1 tyco2 andalso
-    List.list_all2 eq_monotype typargs1 typargs2;
+fun eqop_monotype (Mono (tyco1, typargs1)) (Mono (tyco2, typargs2)) =
+  Nat.eqop_nat tyco1 tyco2 andalso
+    List.list_all2 eqop_monotype typargs1 typargs2;
 
 end; (*struct Codegen*)

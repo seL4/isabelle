@@ -1,7 +1,7 @@
 structure Nat = 
 struct
 
-datatype nat = Zero_nat | Suc of nat;
+datatype nat = Suc of nat | Zero_nat;
 
 end; (*struct Nat*)
 
@@ -14,11 +14,9 @@ fun null (A_:'a null) = #null A_;
 fun head B_ (x :: xs) = x
   | head B_ [] = null B_;
 
-val null_option : 'a option = NONE;
-
-fun null_optiona () = {null = null_option} : ('b option) null;
+fun null_option () = {null = NONE} : ('b option) null;
 
 val dummy : Nat.nat option =
-  head (null_optiona ()) [SOME (Nat.Suc Nat.Zero_nat), NONE];
+  head (null_option ()) [SOME (Nat.Suc Nat.Zero_nat), NONE];
 
 end; (*struct Codegen*)

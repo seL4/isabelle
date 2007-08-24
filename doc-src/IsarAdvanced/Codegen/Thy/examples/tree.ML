@@ -1,8 +1,8 @@
 structure HOL = 
 struct
 
-type 'a eq = {eq : 'a -> 'a -> bool};
-fun eq (A_:'a eq) = #eq A_;
+type 'a eq = {eqop : 'a -> 'a -> bool};
+fun eqop (A_:'a eq) = #eqop A_;
 
 type 'a ord = {less_eq : 'a -> 'a -> bool, less : 'a -> 'a -> bool};
 fun less_eq (A_:'a ord) = #less_eq A_;
@@ -24,14 +24,14 @@ end; (*struct Orderings*)
 structure Nat = 
 struct
 
-datatype nat = Zero_nat | Suc of nat;
+datatype nat = Suc of nat | Zero_nat;
 
-fun eq_nat Zero_nat (Suc m) = false
-  | eq_nat (Suc n) Zero_nat = false
-  | eq_nat (Suc n) (Suc m) = eq_nat n m
-  | eq_nat Zero_nat Zero_nat = true;
+fun eqop_nat Zero_nat (Suc m) = false
+  | eqop_nat (Suc n) Zero_nat = false
+  | eqop_nat (Suc n) (Suc m) = eqop_nat n m
+  | eqop_nat Zero_nat Zero_nat = true;
 
-val eq_nata = {eq = eq_nat} : nat HOL.eq;
+val eq_nat = {eqop = eqop_nat} : nat HOL.eq;
 
 fun less_nat n (Suc m) = less_eq_nat n m
   | less_nat n Zero_nat = false
@@ -50,8 +50,9 @@ end; (*struct Nat*)
 structure Codegen = 
 struct
 
-datatype ('a, 'b) searchtree = Leaf of 'a * 'b |
-  Branch of ('a, 'b) searchtree * 'a * ('a, 'b) searchtree;
+datatype ('a, 'b) searchtree =
+  Branch of ('a, 'b) searchtree * 'a * ('a, 'b) searchtree |
+  Leaf of 'a * 'b;
 
 fun update (C1_, C2_) (it, entry) (Branch (t1, key, t2)) =
   (if HOL.less_eq ((Orderings.ord_order o Orderings.order_linorder) C2_)
@@ -59,7 +60,7 @@ fun update (C1_, C2_) (it, entry) (Branch (t1, key, t2)) =
     then Branch (update (C1_, C2_) (it, entry) t1, key, t2)
     else Branch (t1, key, update (C1_, C2_) (it, entry) t2))
   | update (C1_, C2_) (it, entry) (Leaf (key, vala)) =
-    (if HOL.eq C1_ it key then Leaf (key, entry)
+    (if HOL.eqop C1_ it key then Leaf (key, entry)
       else (if HOL.less_eq
                  ((Orderings.ord_order o Orderings.order_linorder) C2_) it
                  key
@@ -67,13 +68,13 @@ fun update (C1_, C2_) (it, entry) (Branch (t1, key, t2)) =
              else Branch (Leaf (key, vala), it, Leaf (it, entry))));
 
 val example : (Nat.nat, (Nat.nat list)) searchtree =
-  update (Nat.eq_nata, Nat.linorder_nat)
+  update (Nat.eq_nat, Nat.linorder_nat)
     (Nat.Suc (Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat))),
       [Nat.Suc (Nat.Suc Nat.Zero_nat), Nat.Suc (Nat.Suc Nat.Zero_nat)])
-    (update (Nat.eq_nata, Nat.linorder_nat)
+    (update (Nat.eq_nat, Nat.linorder_nat)
       (Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat)),
         [Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat))])
-      (update (Nat.eq_nata, Nat.linorder_nat)
+      (update (Nat.eq_nat, Nat.linorder_nat)
         (Nat.Suc (Nat.Suc Nat.Zero_nat), [Nat.Suc (Nat.Suc Nat.Zero_nat)])
         (Leaf (Nat.Suc Nat.Zero_nat, []))));
 

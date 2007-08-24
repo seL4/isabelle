@@ -1,7 +1,7 @@
 structure Nat = 
 struct
 
-datatype nat = Zero_nat | Suc of nat;
+datatype nat = Suc of nat | Zero_nat;
 
 fun nat_case f1 f2 Zero_nat = f1
   | nat_case f1 f2 (Suc nat) = f2 nat;
