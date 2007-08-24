@@ -431,7 +431,7 @@ val instanceP =
       || P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
            >> Class.instance_sort_cmd
       || P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-           >> (fn (arities, defs) => Class.instance_arity_cmd arities defs)
+           >> (fn (arities, defs) => Class.instance_arity_cmd arities defs (fold (Code.add_func false)))
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 end;
@@ -441,7 +441,7 @@ end;
 
 val code_datatypeP =
   OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl
-    (Scan.repeat1 P.term >> (Toplevel.theory o Code.add_datatype_consts_cmd));
+    (Scan.repeat1 P.term >> (Toplevel.theory o Code.add_datatype_cmd));
 
 
 

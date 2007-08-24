@@ -25,7 +25,7 @@ sig
   val app: Univ -> Univ -> Univ              (*explicit application*)
 
   val univs_ref: Univ list ref 
-  val lookup_fun: CodeName.const -> Univ
+  val lookup_fun: string -> Univ
 
   val normalization_conv: cterm -> thm
 
@@ -295,8 +295,8 @@ fun term_of_univ thy t =
       #>> (fn ts' => list_comb (t, rev ts'))
     and of_univ bounds (Const (name, ts)) typidx =
           let
-            val SOME (const as (c, _)) = CodeName.const_rev thy name;
-            val T = Code.default_typ thy const;
+            val SOME c = CodeName.const_rev thy name;
+            val T = Code.default_typ thy c;
             val T' = map_type_tvar (fn ((v, i), S) => TypeInfer.param (typidx + i) (v, S)) T;
             val typidx' = typidx + maxidx_of_typ T' + 1;
           in of_apps bounds (Term.Const (c, T'), ts) typidx' end

@@ -10,7 +10,7 @@ signature CODE =
 sig
   val add_func: bool -> thm -> theory -> theory
   val del_func: thm -> theory -> theory
-  val add_funcl: CodeUnit.const * thm list Susp.T -> theory -> theory
+  val add_funcl: string * thm list Susp.T -> theory -> theory
   val add_func_attr: bool -> Attrib.src
   val add_inline: thm -> theory -> theory
   val del_inline: thm -> theory -> theory
@@ -20,17 +20,15 @@ sig
   val del_preproc: string -> theory -> theory
   val add_post: thm -> theory -> theory
   val del_post: thm -> theory -> theory
-  val add_datatype: string * ((string * sort) list * (string * typ list) list)
-    -> theory -> theory
-  val add_datatype_consts: CodeUnit.const list -> theory -> theory
-  val add_datatype_consts_cmd: string list -> theory -> theory
+  val add_datatype: (string * typ) list -> theory -> theory
+  val add_datatype_cmd: string list -> theory -> theory
 
   val coregular_algebra: theory -> Sorts.algebra
   val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
-  val these_funcs: theory -> CodeUnit.const -> thm list
+  val these_funcs: theory -> string -> thm list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
-  val get_datatype_of_constr: theory -> CodeUnit.const -> string option
-  val default_typ: theory -> CodeUnit.const -> typ
+  val get_datatype_of_constr: theory -> string -> string option
+  val default_typ: theory -> string -> typ
 
   val preprocess_conv: cterm -> thm
   val postprocess_conv: cterm -> thm
@@ -45,7 +43,7 @@ sig
   type T
   val empty: T
   val merge: Pretty.pp -> T * T -> T
-  val purge: theory option -> CodeUnit.const list option -> T -> T
+  val purge: theory option -> string list option -> T -> T
 end;
 
 signature CODE_DATA =
@@ -60,7 +58,7 @@ signature PRIVATE_CODE =
 sig
   include CODE
   val declare_data: Object.T -> (Pretty.pp -> Object.T * Object.T -> Object.T)
-    -> (theory option -> CodeUnit.const list option -> Object.T -> Object.T) -> serial
+    -> (theory option -> string list option -> Object.T -> Object.T) -> serial
   val get_data: serial * ('a -> Object.T) * (Object.T -> 'a)
     -> theory -> 'a
   val change_data: serial * ('a -> Object.T) * (Object.T -> 'a)
@@ -73,9 +71,6 @@ structure Code : PRIVATE_CODE =
 struct
 
 (** preliminaries **)
-
-structure Consttab = CodeUnit.Consttab;
-
 
 (* certificate theorems *)
 
@@ -224,24 +219,23 @@ fun merge_thmproc (Preproc { inlines = inlines1, inline_procs = inline_procs1,
 
 fun join_func_thms (tabs as (tab1, tab2)) =
   let
-    val cs1 = Consttab.keys tab1;
-    val cs2 = Consttab.keys tab2;
-    val cs' = filter (member CodeUnit.eq_const cs2) cs1;
+    val cs1 = Symtab.keys tab1;
+    val cs2 = Symtab.keys tab2;
+    val cs' = filter (member (op =) cs2) cs1;
     val cs'' = subtract (op =) cs' cs1 @ subtract (op =) cs' cs2;
-    val cs''' = ref [] : CodeUnit.const list ref;
+    val cs''' = ref [] : string list ref;
     fun merge c x = let val (touched, thms') = merge_sdthms x in
       (if touched then cs''' := cons c (!cs''') else (); thms') end;
-  in (cs'' @ !cs''', Consttab.join merge tabs) end;
+  in (cs'' @ !cs''', Symtab.join merge tabs) end;
 fun merge_funcs (thms1, thms2) =
   let
     val (consts, thms) = join_func_thms (thms1, thms2);
   in (SOME consts, thms) end;
 
 val eq_string = op = : string * string -> bool;
-val eq_co = op = : (string * typ list) * (string * typ list) -> bool;
 fun eq_dtyp ((vs1, cs1), (vs2, cs2)) = 
   gen_eq_set (eq_pair eq_string (gen_eq_set eq_string)) (vs1, vs2)
-    andalso gen_eq_set eq_co (cs1, cs2);
+    andalso gen_eq_set (eq_fst eq_string) (cs1, cs2);
 fun merge_dtyps (tabs as (tab1, tab2)) =
   let
     val tycos1 = Symtab.keys tab1;
@@ -256,7 +250,7 @@ fun merge_dtyps (tabs as (tab1, tab2)) =
   in ((new_types, diff_types), Symtab.join join tabs) end;
 
 datatype spec = Spec of {
-  funcs: sdthms Consttab.table,
+  funcs: sdthms Symtab.table,
   dtyps: ((string * sort) list * (string * typ list) list) Symtab.table
 };
 
@@ -289,7 +283,7 @@ fun merge_exec (Exec { thmproc = thmproc1, spec = spec1 },
     val touched = if touched' then NONE else touched_cs;
   in (touched, mk_exec (thmproc, spec)) end;
 val empty_exec = mk_exec (mk_thmproc ((([], []), []), []),
-  mk_spec (Consttab.empty, Symtab.empty));
+  mk_spec (Symtab.empty, Symtab.empty));
 
 fun the_thmproc (Exec { thmproc = Preproc x, ...}) = x;
 fun the_spec (Exec { spec = Spec x, ...}) = x;
@@ -310,7 +304,7 @@ local
 type kind = {
   empty: Object.T,
   merge: Pretty.pp -> Object.T * Object.T -> Object.T,
-  purge: theory option -> CodeUnit.const list option -> Object.T -> Object.T
+  purge: theory option -> string list option -> Object.T -> Object.T
 };
 
 val kinds = ref (Datatab.empty: kind Datatab.table);
@@ -429,13 +423,14 @@ fun print_codesetup thy =
             :: separate (Pretty.str "|") (map (fn (c, []) => Pretty.str c
                  | (c, tys) =>
                      (Pretty.block o Pretty.breaks)
-                        (Pretty.str c :: Pretty.str "of" :: map (Pretty.quote o Sign.pretty_typ thy) tys)) cos)
+                        (Pretty.str (CodeUnit.string_of_const thy c)
+                          :: Pretty.str "of" :: map (Pretty.quote o Sign.pretty_typ thy) tys)) cos)
           );
     val inlines = (#inlines o the_thmproc) exec;
     val inline_procs = (map fst o #inline_procs o the_thmproc) exec;
     val preprocs = (map fst o #preprocs o the_thmproc) exec;
     val funs = the_funcs exec
-      |> Consttab.dest
+      |> Symtab.dest
       |> (map o apfst) (CodeUnit.string_of_const thy)
       |> sort (string_ord o pairself fst);
     val dtyps = the_dtyps exec
@@ -499,9 +494,11 @@ fun common_typ_funcs [] = []
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
       in map (Thm.instantiate (instT, [])) thms' end;
 
+fun const_of_func thy = Class.unoverload_const thy o CodeUnit.head_func;
+
 fun certify_const thy const thms =
   let
-    fun cert thm = if CodeUnit.eq_const (const, fst (CodeUnit.head_func thm))
+    fun cert thm = if const = const_of_func thy thm
       then thm else error ("Wrong head of defining equation,\nexpected constant "
         ^ CodeUnit.string_of_const thy const ^ "\n" ^ string_of_thm thm)
   in map cert thms end;
@@ -527,15 +524,17 @@ fun inter_sorts thy =
 fun specific_constraints thy (class, tyco) =
   let
     val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
-    val clsops = (these o Option.map snd o try (AxClass.params_of_class thy)) class;
+    val clsops = (map fst o these o Option.map snd
+      o try (AxClass.params_of_class thy)) class;
     val funcs = clsops
-      |> map (fn (clsop, _) => (clsop, SOME tyco))
-      |> map (Consttab.lookup ((the_funcs o get_exec) thy))
+      |> map (fn c => Class.inst_const thy (c, tyco))
+      |> map (Symtab.lookup ((the_funcs o get_exec) thy))
       |> (map o Option.map) (Susp.force o fst)
       |> maps these
-      |> map (Thm.transfer thy);
-    val sorts = map (map (snd o dest_TVar) o snd o dest_Type o the_single
-      o Sign.const_typargs thy o (fn ((c, _), ty) => (c, ty)) o CodeUnit.head_func) funcs;
+      |> map (Thm.transfer thy)
+    fun sorts_of [Type (_, tys)] = map (snd o dest_TVar) tys
+      | sorts_of tys = map (snd o dest_TVar) tys;
+    val sorts = map (sorts_of o Sign.const_typargs thy o CodeUnit.head_func) funcs;
   in sorts end;
 
 fun weakest_constraints thy (class, tyco) =
@@ -587,8 +586,9 @@ val classop_strongest_typ = gen_classop_typ strongest_constraints;
 fun assert_func_typ thm =
   let
     val thy = Thm.theory_of_thm thm;
-    fun check_typ_classop class (const as (c, SOME tyco), thm) =
+    fun check_typ_classop tyco (c, thm) =
           let
+            val SOME class = AxClass.class_of_param thy c;
             val (_, ty) = CodeUnit.head_func thm;
             val ty_decl = classop_weakest_typ thy class (c, tyco);
             val ty_strongest = classop_strongest_typ thy class (c, tyco);
@@ -615,12 +615,8 @@ fun assert_func_typ thm =
               ^ string_of_thm thm
               ^ "\nis incompatible with permitted least general type\n"
               ^ CodeUnit.string_of_typ thy ty_strongest)
-          end
-      | check_typ_classop class ((c, NONE), thm) =
-          CodeUnit.bad_thm ("Illegal type for class operation " ^ quote c
-           ^ "\nin defining equation\n"
-           ^ string_of_thm thm);
-    fun check_typ_fun (const as (c, _), thm) =
+          end;
+    fun check_typ_fun (c, thm) =
       let
         val (_, ty) = CodeUnit.head_func thm;
         val ty_decl = Sign.the_const_type thy c;
@@ -632,11 +628,11 @@ fun assert_func_typ thm =
            ^ "\nis incompatible with declared function type\n"
            ^ CodeUnit.string_of_typ thy ty_decl)
       end;
-    fun check_typ (const as (c, _), thm) =
-      case AxClass.class_of_param thy c
-       of SOME class => check_typ_classop class (const, thm)
-        | NONE => check_typ_fun (const, thm);
-  in check_typ (fst (CodeUnit.head_func thm), thm) end;
+    fun check_typ (c, thm) =
+      case Class.param_const thy c
+       of SOME (c, tyco) => check_typ_classop tyco (c, thm)
+        | NONE => check_typ_fun (c, thm);
+  in check_typ (const_of_func thy thm, thm) end;
 
 val mk_func = CodeUnit.error_thm (assert_func_typ o CodeUnit.mk_func);
 val mk_func_liberal = CodeUnit.warning_thm (assert_func_typ o CodeUnit.mk_func);
@@ -647,21 +643,56 @@ end;
 
 (** interfaces and attributes **)
 
+fun get_datatype thy tyco =
+  case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
+   of SOME spec => spec
+    | NONE => Sign.arity_number thy tyco
+        |> Name.invents Name.context "'a"
+        |> map (rpair [])
+        |> rpair [];
+
+fun get_datatype_of_constr thy c =
+  case (snd o strip_type o Sign.the_const_type thy) c
+   of Type (tyco, _) => if member (op =)
+       ((the_default [] o Option.map (map fst o snd) o Symtab.lookup ((the_dtyps o get_exec) thy)) tyco) c
+       then SOME tyco else NONE
+    | _ => NONE;
+
+fun get_constr_typ thy c =
+  case get_datatype_of_constr thy c
+   of SOME tyco => let
+          val (vs, cos) = get_datatype thy tyco;
+          val SOME tys = AList.lookup (op =) cos c;
+          val ty = tys ---> Type (tyco, map TFree vs);
+        in SOME (Logic.varifyT ty) end
+    | NONE => NONE;
+
 fun add_func true thm thy =
       let
         val func = mk_func thm;
-        val (const, _) = CodeUnit.head_func func;
-      in map_exec_purge (SOME [const]) (map_funcs
-        (Consttab.map_default
-          (const, (Susp.value [], [])) (add_thm func))) thy
+        val c = const_of_func thy func;
+        val _ = if (is_some o AxClass.class_of_param thy) c
+          then error ("Rejected polymorphic equation for overloaded constant:\n"
+            ^ string_of_thm thm)
+          else ();
+        val _ = if (is_some o get_datatype_of_constr thy) c
+          then error ("Rejected equation for datatype constructor:\n"
+            ^ string_of_thm func)
+          else ();
+      in map_exec_purge (SOME [c]) (map_funcs
+        (Symtab.map_default
+          (c, (Susp.value [], [])) (add_thm func))) thy
       end
   | add_func false thm thy =
       case mk_func_liberal thm
        of SOME func => let
-              val (const, _) = CodeUnit.head_func func
-            in map_exec_purge (SOME [const]) (map_funcs
-              (Consttab.map_default
-                (const, (Susp.value [], [])) (add_thm func))) thy
+              val c = const_of_func thy func
+            in if (is_some o AxClass.class_of_param thy) c
+              orelse (is_some o get_datatype_of_constr thy) c
+              then thy
+              else map_exec_purge (SOME [c]) (map_funcs
+              (Symtab.map_default
+                (c, (Susp.value [], [])) (add_thm func))) thy
             end
         | NONE => thy;
 
@@ -672,9 +703,9 @@ fun delete_force msg key xs =
 fun del_func thm thy =
   let
     val func = mk_func thm;
-    val (const, _) = CodeUnit.head_func func;
+    val const = const_of_func thy func;
   in map_exec_purge (SOME [const]) (map_funcs
-    (Consttab.map_entry
+    (Symtab.map_entry
       const (del_thm func))) thy
   end;
 
@@ -684,41 +715,31 @@ fun add_funcl (const, lthms) thy =
       (*FIXME must check compatibility with sort algebra;
         alas, naive checking results in non-termination!*)
   in
-    map_exec_purge (SOME [const]) (map_funcs (Consttab.map_default (const, (Susp.value [], []))
+    map_exec_purge (SOME [const]) (map_funcs (Symtab.map_default (const, (Susp.value [], []))
       (add_lthms lthms'))) thy
   end;
 
 fun add_func_attr strict = Attrib.internal (fn _ => Thm.declaration_attribute
   (fn thm => Context.mapping (add_func strict thm) I));
 
-local
-
-fun del_datatype tyco thy =
-  case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
-   of SOME (vs, cos) => let
-        val consts = CodeUnit.consts_of_cos thy tyco vs cos;
-      in map_exec_purge (if null consts then NONE else SOME consts)
-        (map_dtyps (Symtab.delete tyco)) thy end
-    | NONE => thy;
-
-in
-
-fun add_datatype (tyco, (vs_cos as (vs, cos))) thy =
+fun add_datatype raw_cs thy =
   let
-    val consts = CodeUnit.consts_of_cos thy tyco vs cos;
+    val cs = map (fn c_ty as (_, ty) => (Class.unoverload_const thy c_ty, ty)) raw_cs;
+    val (tyco, vs_cos) = CodeUnit.constrset_of_consts thy cs;
+    val purge_cs = map fst (snd vs_cos);
+    val purge_cs' = case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
+     of SOME (vs, cos) => if null cos then NONE else SOME (purge_cs @ map fst cos)
+      | NONE => NONE;
   in
     thy
-    |> del_datatype tyco
-    |> map_exec_purge (SOME consts) (map_dtyps (Symtab.update_new (tyco, vs_cos)))
+    |> map_exec_purge purge_cs' (map_dtyps (Symtab.update (tyco, vs_cos))
+        #> map_funcs (fold (Symtab.delete_safe o fst) cs))
   end;
 
-fun add_datatype_consts consts thy =
-  add_datatype (CodeUnit.cos_of_consts thy consts) thy;
-
-fun add_datatype_consts_cmd raw_cs thy =
-  add_datatype_consts (map (CodeUnit.read_const thy) raw_cs) thy
-
-end; (*local*)
+fun add_datatype_cmd raw_cs thy =
+  let
+    val cs = map (CodeUnit.read_bare_const thy) raw_cs;
+  in add_datatype cs thy end;
 
 fun add_inline thm thy =
   (map_exec_purge NONE o map_thmproc o apfst o apfst o apfst)
@@ -790,7 +811,7 @@ val apply_inline_proc_cterm = gen_apply_inline_proc single
 fun apply_preproc thy f [] = []
   | apply_preproc thy f (thms as (thm :: _)) =
       let
-        val (const, _) = CodeUnit.head_func thm;
+        val const = const_of_func thy thm;
         val thms' = f thy thms;
       in certify_const thy const thms' end;
 
@@ -807,7 +828,8 @@ fun preprocess thy thms =
   |> map (CodeUnit.rewrite_func ((#inlines o the_thmproc o get_exec) thy))
   |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o get_exec) thy)
 (*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
-  |> common_typ_funcs;
+  |> common_typ_funcs
+  |> map (Conv.fconv_rule (Class.unoverload thy));
 
 fun preprocess_conv ct =
   let
@@ -817,6 +839,7 @@ fun preprocess_conv ct =
     |> MetaSimplifier.rewrite false ((#inlines o the_thmproc o get_exec) thy)
     |> fold (fn (_, (_, f)) => rhs_conv (apply_inline_proc_cterm thy f))
         ((#inline_procs o the_thmproc o get_exec) thy)
+    |> rhs_conv (Class.unoverload thy)
   end;
 
 fun postprocess_conv ct =
@@ -824,49 +847,24 @@ fun postprocess_conv ct =
     val thy = Thm.theory_of_cterm ct;
   in
     ct
-    |> MetaSimplifier.rewrite false ((#posts o the_thmproc o get_exec) thy)
+    |> Class.overload thy
+    |> rhs_conv (MetaSimplifier.rewrite false ((#posts o the_thmproc o get_exec) thy))
   end;
 
 end; (*local*)
 
-fun get_datatype thy tyco =
-  case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
-   of SOME spec => spec
-    | NONE => Sign.arity_number thy tyco
-        |> Name.invents Name.context "'a"
-        |> map (rpair [])
-        |> rpair [];
-
-fun get_datatype_of_constr thy const =
-  case CodeUnit.co_of_const' thy const
-   of SOME (tyco, (_, co)) => if member eq_co
-        (Symtab.lookup (((the_dtyps o get_exec) thy)) tyco
-          |> Option.map snd
-          |> the_default []) co then SOME tyco else NONE
-    | NONE => NONE;
-
-fun get_constr_typ thy const =
-  case get_datatype_of_constr thy const
-   of SOME tyco => let
-        val (vs, cos) = get_datatype thy tyco;
-        val (_, (_, (co, tys))) = CodeUnit.co_of_const thy const
-      in (tys ---> Type (tyco, map TFree vs))
-        |> map_atyps (fn TFree (v, _) => TFree (v, AList.lookup (op =) vs v |> the))
-        |> Logic.varifyT
-        |> SOME end
-    | NONE => NONE;
-
-fun default_typ_proto thy (const as (c, SOME tyco)) = classop_weakest_typ thy
-      ((the o AxClass.class_of_param thy) c) (c, tyco) |> SOME
-  | default_typ_proto thy (const as (c, NONE)) = case AxClass.class_of_param thy c
-       of SOME class => SOME (Term.map_type_tvar
-            (K (TVar (("'a", 0), [class]))) (Sign.the_const_type thy c))
-        | NONE => get_constr_typ thy const;
+fun default_typ_proto thy c = case Class.param_const thy c
+ of SOME (c, tyco) => classop_weakest_typ thy ((the o AxClass.class_of_param thy) c)
+      (c, tyco) |> SOME
+  | NONE => (case AxClass.class_of_param thy c
+     of SOME class => SOME (Term.map_type_tvar
+          (K (TVar (("'a", 0), [class]))) (Sign.the_const_type thy c))
+      | NONE => get_constr_typ thy c);
 
 local
 
 fun get_funcs thy const =
-  Consttab.lookup ((the_funcs o get_exec) thy) const
+  Symtab.lookup ((the_funcs o get_exec) thy) const
   |> Option.map (Susp.force o fst)
   |> these
   |> map (Thm.transfer thy);
@@ -883,10 +881,10 @@ fun these_funcs thy const =
     |> drop_refl thy
   end;
 
-fun default_typ thy (const as (c, _)) = case default_typ_proto thy const
+fun default_typ thy c = case default_typ_proto thy c
  of SOME ty => ty
-  | NONE => (case get_funcs thy const
-     of thm :: _ => snd (CodeUnit.head_func thm)
+  | NONE => (case get_funcs thy c
+     of thm :: _ => snd (CodeUnit.head_func (Conv.fconv_rule (Class.unoverload thy) thm))
       | [] => Sign.the_const_type thy c);
 
 end; (*local*)

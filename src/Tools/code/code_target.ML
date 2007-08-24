@@ -11,7 +11,7 @@ sig
   include BASIC_CODE_THINGOL;
 
   val add_syntax_class: string -> class
-    -> (string * (CodeUnit.const * string) list) option -> theory -> theory;
+    -> (string * (string * string) list) option -> theory -> theory;
   val add_syntax_inst: string -> string * class -> bool -> theory -> theory;
   val add_syntax_tycoP: string -> string -> OuterParse.token list
     -> (theory -> theory) * OuterParse.token list;
@@ -23,7 +23,7 @@ sig
   val add_pretty_list_string: string -> string -> string
     -> string -> string list -> theory -> theory;
   val add_pretty_char: string -> string -> string list -> theory -> theory
-  val add_pretty_numeral: string -> bool -> string * typ -> string -> string -> string
+  val add_pretty_numeral: string -> bool -> string -> string -> string -> string
     -> string -> string -> theory -> theory;
   val add_pretty_ml_string: string -> string -> string list -> string
     -> string -> string -> theory -> theory;
@@ -1410,7 +1410,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
           |> distinct (op =)
           |> remove (op =) modlname';
         val qualified =
-          imports
+          imports @ map fst defs
           |> map_filter (try deresolv)
           |> map NameSpace.base
           |> has_duplicates (op =);
@@ -1793,8 +1793,8 @@ fun gen_add_syntax_class prep_class prep_const target raw_class raw_syn thy =
   let
     val cls = prep_class thy raw_class;
     val class = CodeName.class thy cls;
-    fun mk_classop (const as (c, _)) = case AxClass.class_of_param thy c
-     of SOME class' => if cls = class' then CodeName.const thy const
+    fun mk_classop c = case AxClass.class_of_param thy c
+     of SOME class' => if cls = class' then CodeName.const thy c
           else error ("Not a class operation for class " ^ quote class ^ ": " ^ quote c)
       | NONE => error ("Not a class operation: " ^ quote c);
     fun mk_syntax_ops raw_ops = AList.lookup (op =)
@@ -1845,8 +1845,8 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
   let
     val c = prep_const thy raw_c;
     val c' = CodeName.const thy c;
-    fun check_args (syntax as (n, _)) = if n > (length o fst o strip_type o Sign.the_const_type thy o fst) c
-      then error ("Too many arguments in syntax for constant " ^ (quote o fst) c)
+    fun check_args (syntax as (n, _)) = if n > CodeUnit.no_args thy c
+      then error ("Too many arguments in syntax for constant " ^ quote c)
       else syntax;
   in case raw_syn
    of SOME syntax =>
@@ -1882,12 +1882,6 @@ fun read_tyco thy raw_tyco =
     val _ = if Sign.declared_tyname thy tyco then ()
       else error ("No such type constructor: " ^ quote raw_tyco);
   in tyco end;
-
-fun idfs_of_const thy c =
-  let
-    val c' = (c, Sign.the_const_type thy c);
-    val c'' = CodeUnit.const_of_cexpr thy c';
-  in (c'', CodeName.const thy c'') end;
 
 fun no_bindings x = (Option.map o apsnd)
   (fn pretty => fn pr => fn vars => pretty (pr vars)) x;
@@ -1974,79 +1968,75 @@ fun add_syntax_constP target c = parse_syntax fst >> (add_syntax_const_cmd targe
 
 fun add_undefined target undef target_undefined thy =
   let
-    val (undef', _) = idfs_of_const thy undef;
     fun pr _ _ _ _ = str target_undefined;
   in
     thy
-    |> add_syntax_const target undef' (SOME (~1, pr))
+    |> add_syntax_const target undef (SOME (~1, pr))
   end;
 
 fun add_pretty_list target nill cons thy =
   let
-    val (_, nil'') = idfs_of_const thy nill;
-    val (cons', cons'') = idfs_of_const thy cons;
-    val pr = pretty_list nil'' cons'' target;
+    val nil' = CodeName.const thy nill;
+    val cons' = CodeName.const thy cons;
+    val pr = pretty_list nil' cons' target;
   in
     thy
-    |> add_syntax_const target cons' (SOME pr)
+    |> add_syntax_const target cons (SOME pr)
   end;
 
 fun add_pretty_list_string target nill cons charr nibbles thy =
   let
-    val (_, nil'') = idfs_of_const thy nill;
-    val (cons', cons'') = idfs_of_const thy cons;
-    val (_, charr'') = idfs_of_const thy charr;
-    val (_, nibbles'') = split_list (map (idfs_of_const thy) nibbles);
-    val pr = pretty_list_string nil'' cons'' charr'' nibbles'' target;
+    val nil' = CodeName.const thy nill;
+    val cons' = CodeName.const thy cons;
+    val charr' = CodeName.const thy charr;
+    val nibbles' = map (CodeName.const thy) nibbles;
+    val pr = pretty_list_string nil' cons' charr' nibbles' target;
   in
     thy
-    |> add_syntax_const target cons' (SOME pr)
+    |> add_syntax_const target cons (SOME pr)
   end;
 
 fun add_pretty_char target charr nibbles thy =
   let
-    val (charr', charr'') = idfs_of_const thy charr;
-    val (_, nibbles'') = split_list (map (idfs_of_const thy) nibbles);
-    val pr = pretty_char charr'' nibbles'' target;
+    val charr' = CodeName.const thy charr;
+    val nibbles' = map (CodeName.const thy) nibbles;
+    val pr = pretty_char charr' nibbles' target;
   in
     thy
-    |> add_syntax_const target charr' (SOME pr)
+    |> add_syntax_const target charr (SOME pr)
   end;
 
 fun add_pretty_numeral target unbounded number_of b0 b1 pls min bit thy =
   let
-    val number_of' = CodeUnit.const_of_cexpr thy number_of;
-    val (_, b0'') = idfs_of_const thy b0;
-    val (_, b1'') = idfs_of_const thy b1;
-    val (_, pls'') = idfs_of_const thy pls;
-    val (_, min'') = idfs_of_const thy min;
-    val (_, bit'') = idfs_of_const thy bit;
-    val pr = pretty_numeral unbounded b0'' b1'' pls'' min'' bit'' target;
+    val b0' = CodeName.const thy b0;
+    val b1' = CodeName.const thy b1;
+    val pls' = CodeName.const thy pls;
+    val min' = CodeName.const thy min;
+    val bit' = CodeName.const thy bit;
+    val pr = pretty_numeral unbounded b0' b1' pls' min' bit' target;
   in
     thy
-    |> add_syntax_const target number_of' (SOME pr)
+    |> add_syntax_const target number_of (SOME pr)
   end;
 
 fun add_pretty_ml_string target charr nibbles nill cons str thy =
   let
-    val (_, charr'') = idfs_of_const thy charr;
-    val (_, nibbles'') = split_list (map (idfs_of_const thy) nibbles);
-    val (_, nil'') = idfs_of_const thy nill;
-    val (_, cons'') = idfs_of_const thy cons;
-    val (str', _) = idfs_of_const thy str;
-    val pr = pretty_ml_string charr'' nibbles'' nil'' cons'' target;
+    val charr' = CodeName.const thy charr;
+    val nibbles' = map (CodeName.const thy) nibbles;
+    val nil' = CodeName.const thy nill;
+    val cons' = CodeName.const thy cons;
+    val pr = pretty_ml_string charr' nibbles' nil' cons' target;
   in
     thy
-    |> add_syntax_const target str' (SOME pr)
+    |> add_syntax_const target str (SOME pr)
   end;
 
 fun add_pretty_imperative_monad_bind target bind thy =
   let
-    val (bind', _) = idfs_of_const thy bind;
     val pr = pretty_imperative_monad_bind
   in
     thy
-    |> add_syntax_const target bind' (SOME pr)
+    |> add_syntax_const target bind (SOME pr)
   end;
 
 val add_haskell_monad = gen_add_haskell_monad CodeUnit.read_const;

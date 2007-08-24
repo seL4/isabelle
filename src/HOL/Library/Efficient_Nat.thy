@@ -63,6 +63,8 @@ lemma nat_of_int_int:
 lemma eq_nat_of_int: "int' n = x \<Longrightarrow> n = nat_of_int x"
 by (erule subst, simp only: nat_of_int_int)
 
+code_datatype nat_of_int
+
 text {*
   Case analysis on natural numbers is rephrased using a conditional
   expression:
@@ -160,8 +162,6 @@ subsection {* Code generator setup for basic functions *}
 text {*
   @{typ nat} is no longer a datatype but embedded into the integers.
 *}
-
-code_datatype nat_of_int
 
 code_type nat
   (SML "IntInf.int")

@@ -1954,7 +1954,6 @@ proof-
   let ?res = "disj ?mp (disj ?pp ?ep)"
   from rminusinf_bound0[OF lq] rplusinf_bound0[OF lq] ep_nb
   have nbth: "bound0 ?res" by auto
-  thm rlfm_I[OF simpfm_qf[OF qf]]
 
   from conjunct1[OF rlfm_I[OF simpfm_qf[OF qf]]] simpfm  
 
@@ -1997,7 +1996,7 @@ ML {* Ferrack.ferrack_test () *}
 
 use "linreif.ML"
 oracle linr_oracle ("term") = ReflectedFerrack.linrqe_oracle
-use"linrtac.ML"
-setup "LinrTac.setup"
+use "linrtac.ML"
+setup LinrTac.setup
 
 end

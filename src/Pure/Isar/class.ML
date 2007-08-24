@@ -15,31 +15,35 @@ sig
     -> string list -> theory -> string * Proof.context
   val class_cmd: bstring -> string list -> Element.context Locale.element list
     -> string list -> theory -> string * Proof.context
+  val class_of_locale: theory -> string -> class option
+  val add_const_in_class: string -> (string * term) * Syntax.mixfix
+    -> theory -> theory
+
   val instance_arity: arity list -> ((bstring * Attrib.src list) * term) list
+    -> (thm list -> theory -> theory)
     -> theory -> Proof.state
   val instance_arity_cmd: (bstring * string list * string) list
     -> ((bstring * Attrib.src list) * string) list
+    -> (thm list -> theory -> theory)
     -> theory -> Proof.state
   val prove_instance_arity: tactic -> arity list
     -> ((bstring * Attrib.src list) * term) list
-    -> theory -> theory
+    -> theory -> thm list * theory
+  val unoverload: theory -> conv
+  val overload: theory -> conv
+  val unoverload_const: theory -> string * typ -> string
+  val inst_const: theory -> string * string -> string
+  val param_const: theory -> string -> (string * string) option
+  val intro_classes_tac: thm list -> tactic
+  val default_intro_classes_tac: thm list -> tactic
+
   val instance_class: class * class -> theory -> Proof.state
   val instance_class_cmd: string * string -> theory -> Proof.state
   val instance_sort: class * sort -> theory -> Proof.state
   val instance_sort_cmd: string * string -> theory -> Proof.state
   val prove_instance_sort: tactic -> class * sort -> theory -> theory
 
-  val class_of_locale: theory -> string -> class option
-  val add_const_in_class: string -> (string * term) * Syntax.mixfix
-    -> theory -> theory
-
-  val unoverload: theory -> thm -> thm
-  val overload: theory -> thm -> thm
-  val inst_const: theory -> string * string -> string
-
   val print_classes: theory -> unit
-  val intro_classes_tac: thm list -> tactic
-  val default_intro_classes_tac: thm list -> tactic
 end;
 
 structure Class : CLASS =
@@ -130,24 +134,39 @@ fun axclass_params (name, raw_superclasses) raw_consts raw_dep_axioms other_cons
 
 structure InstData = TheoryDataFun
 (
-  type T = (string * thm) Symtab.table Symtab.table;
-    (*constant name ~> type constructor ~> (constant name, equation)*)
-  val empty = Symtab.empty;
+  type T = (string * thm) Symtab.table Symtab.table * (string * string) Symtab.table;
+    (*constant name ~> type constructor ~> (constant name, equation),
+        constant name ~> (constant name, type constructor)*)
+  val empty = (Symtab.empty, Symtab.empty);
   val copy = I;
   val extend = I;
-  fun merge _ = Symtab.join (K (Symtab.merge (K true)));
+  fun merge _ ((taba1, tabb1), (taba2, tabb2)) =
+    (Symtab.join (K (Symtab.merge (K true))) (taba1, taba2),
+      Symtab.merge (K true) (tabb1, tabb2));
 );
 
 fun inst_thms f thy =
-  Symtab.fold (Symtab.fold (cons o f o snd o snd) o snd) (InstData.get thy) [];
-fun add_inst (c, tyco) inst = (InstData.map o Symtab.map_default (c, Symtab.empty))
-  (Symtab.update_new (tyco, inst));
+  (Symtab.fold (Symtab.fold (cons o f o snd o snd) o snd) o fst) (InstData.get thy) [];
+fun add_inst (c, tyco) inst = (InstData.map o apfst o Symtab.map_default (c, Symtab.empty))
+  (Symtab.update_new (tyco, inst))
+  #> (InstData.map o apsnd) (Symtab.update_new (fst inst, (c, tyco)));
 
-fun unoverload thy thm = MetaSimplifier.rewrite_rule (inst_thms I thy) thm;
-fun overload thy thm = MetaSimplifier.rewrite_rule (inst_thms symmetric thy) thm;
+fun unoverload thy thm = MetaSimplifier.rewrite false (inst_thms I thy) thm;
+fun overload thy thm = MetaSimplifier.rewrite false (inst_thms symmetric thy) thm;
 
 fun inst_const thy (c, tyco) =
-  (fst o the o Symtab.lookup ((the o Symtab.lookup (InstData.get thy)) c)) tyco;
+  (fst o the o Symtab.lookup ((the o Symtab.lookup (fst (InstData.get thy))) c)) tyco;
+fun unoverload_const thy (c_ty as (c, _)) =
+  case AxClass.class_of_param thy c
+   of SOME class => (case Sign.const_typargs thy c_ty
+       of [Type (tyco, _)] =>
+            (case Symtab.lookup ((the o Symtab.lookup (fst (InstData.get thy))) c) tyco
+             of SOME (c, _) => c
+              | NONE => c)
+        | [_] => c)
+    | NONE => c;
+
+val param_const = Symtab.lookup o snd o InstData.get;
 
 fun add_inst_def (class, tyco) (c, ty) thy =
   let
@@ -166,7 +185,7 @@ fun add_inst_def (class, tyco) (c, ty) thy =
   end;
 
 fun add_inst_def' (class, tyco) (c, ty) thy =
-  if case Symtab.lookup (InstData.get thy) c
+  if case Symtab.lookup (fst (InstData.get thy)) c
    of NONE => true
     | SOME tab => is_none (Symtab.lookup tab tyco)
   then add_inst_def (class, tyco) (c, Logic.unvarifyT ty) thy
@@ -176,7 +195,7 @@ fun add_def ((class, tyco), ((name, prop), atts)) thy =
   let
     val ((lhs as Const (c, ty), args), rhs) = (apfst Term.strip_comb o Logic.dest_equals) prop;
     fun add_inst' def ([], (Const (c_inst, ty))) =
-          if forall (fn TFree_ => true | _ => false) (Sign.const_typargs thy (c_inst, ty))
+          if forall (fn TFree _ => true | _ => false) (Sign.const_typargs thy (c_inst, ty))
           then add_inst (c, tyco) (c_inst, def)
           else add_inst_def (class, tyco) (c, ty)
       | add_inst' _ t = add_inst_def (class, tyco) (c, ty);
@@ -205,7 +224,7 @@ fun gen_read_def thy prep_att read_def ((raw_name, raw_atts), raw_t) =
 fun read_def_cmd thy = gen_read_def thy Attrib.intern_src Theory.read_axm;
 fun read_def thy = gen_read_def thy (K I) (K I);
 
-fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory =
+fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs after_qed theory =
   let
     val arities = map (prep_arity theory) raw_arities;
     val _ = if null arities then error "at least one arity must be given" else ();
@@ -259,28 +278,32 @@ fun gen_instance_arity prep_arity read_def do_proof raw_arities raw_defs theory 
         |> Sign.add_const_constraint_i (c, NONE)
         |> pair (c, Logic.unvarifyT ty)
       end;
-    fun after_qed cs defs =
+    fun after_qed' cs defs =
       fold Sign.add_const_constraint_i (map (apsnd SOME) cs)
-      #> fold (Code.add_func false) defs;
+      #> after_qed defs;
   in
     theory
     |> fold_map get_remove_contraint (map fst cs |> distinct (op =))
     ||>> fold_map add_def defs
     ||> fold (fn (c, ((class, tyco), ty)) => add_inst_def' (class, tyco) (c, ty)) other_cs
-    |-> (fn (cs, defs) => do_proof (after_qed cs defs) arities)
+    |-> (fn (cs, defs) => do_proof (after_qed' cs defs) arities defs)
   end;
 
 fun instance_arity_cmd' do_proof = gen_instance_arity Sign.read_arity read_def_cmd do_proof;
 fun instance_arity' do_proof = gen_instance_arity Sign.cert_arity read_def do_proof;
-fun tactic_proof tac after_qed arities =
+fun tactic_proof tac f arities defs =
   fold (fn arity => AxClass.prove_arity arity tac) arities
-  #> after_qed;
+  #> f
+  #> pair defs;
 
 in
 
-val instance_arity_cmd = instance_arity_cmd' axclass_instance_arity;
-val instance_arity = instance_arity' axclass_instance_arity;
-val prove_instance_arity = instance_arity' o tactic_proof;
+val instance_arity_cmd = instance_arity_cmd'
+  (fn f => fn arities => fn defs => axclass_instance_arity f arities);
+val instance_arity = instance_arity'
+  (fn f => fn arities => fn defs => axclass_instance_arity f arities);
+fun prove_instance_arity tac arities defs =
+  instance_arity' (tactic_proof tac) arities defs (K I);
 
 end; (*local*)
 

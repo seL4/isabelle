@@ -25,7 +25,7 @@ code_instance int :: eq
 
 setup {*
   fold (fn target => CodeTarget.add_pretty_numeral target true
-    (@{const_name number_of}, @{typ "int \<Rightarrow> int"})
+    @{const_name number_int_inst.number_of_int}
     @{const_name Numeral.B0} @{const_name Numeral.B1}
     @{const_name Numeral.Pls} @{const_name Numeral.Min}
     @{const_name Numeral.Bit}

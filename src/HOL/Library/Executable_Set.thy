@@ -11,22 +11,8 @@ begin
 
 subsection {* Definitional rewrites *}
 
-instance set :: (eq) eq ..
-
 lemma [code target: Set]:
   "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
-  by blast
-
-lemma [code func]:
-  "(A\<Colon>'a\<Colon>eq set) = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
-  by blast
-
-lemma [code func]:
-  "(A\<Colon>'a\<Colon>eq set) \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
-  unfolding subset_def ..
-
-lemma [code func]:
-  "(A\<Colon>'a\<Colon>eq set) \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> A \<noteq> B"
   by blast
 
 lemma [code]:
@@ -36,8 +22,6 @@ lemma [code]:
 definition
   filter_set :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "filter_set P xs = {x\<in>xs. P x}"
-
-lemmas [symmetric, code inline] = filter_set_def
 
 
 subsection {* Operations on lists *}
@@ -255,74 +239,6 @@ nonfix inter;
 nonfix union;
 nonfix subset;
 *}
-
-code_modulename SML
-  Executable_Set List
-  Set List
-
-code_modulename OCaml
-  Executable_Set List
-  Set List
-
-code_modulename Haskell
-  Executable_Set List
-  Set List
-
-definition [code inline]:
-  "empty_list = []"
-
-lemma [code func]:
-  "insert (x \<Colon> 'a\<Colon>eq) = insert x" ..
-
-lemma [code func]:
-  "(xs \<Colon> 'a\<Colon>eq set) \<union> ys = xs \<union> ys" ..
-
-lemma [code func]:
-  "(xs \<Colon> 'a\<Colon>eq set) \<inter> ys = xs \<inter> ys" ..
-
-lemma [code func]:
-  "(op -) (xs \<Colon> 'a\<Colon>eq set) = (op -) (xs \<Colon> 'a\<Colon>eq set)" ..
-
-lemma [code func]:
-  "image (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq) = image f" ..
-
-lemma [code func]:
-  "Union (xss \<Colon> 'a\<Colon>eq set set) = Union xss" ..
-
-lemma [code func]:
-  "Inter (xss \<Colon> 'a\<Colon>eq set set) = Inter xss" ..
-
-lemma [code func]:
-  "UNION xs (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq set) = UNION xs f" ..
-
-lemma [code func]:
-  "INTER xs (f \<Colon> 'a \<Rightarrow> 'b\<Colon>eq set) = INTER xs f" ..
-
-lemma [code func]:
-  "Ball (xs \<Colon> 'a\<Colon>type set) = Ball xs" ..
-
-lemma [code func]:
-  "Bex (xs \<Colon> 'a\<Colon>type set) = Bex xs" ..
-
-lemma [code func]:
-  "filter_set P (xs \<Colon> 'a\<Colon>type set) = filter_set P xs" ..
-
-
-code_abstype "'a set" "'a list" where
-  "{}" \<equiv> empty_list
-  insert \<equiv> insertl
-  "op \<union>" \<equiv> unionl
-  "op \<inter>" \<equiv> intersect
-  "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" \<equiv> subtract'
-  image \<equiv> map_distinct
-  Union \<equiv> unions
-  Inter \<equiv> intersects
-  UNION \<equiv> map_union
-  INTER \<equiv> map_inter
-  Ball \<equiv> Blall
-  Bex \<equiv> Blex
-  filter_set \<equiv> filter
-
 
 subsubsection {* type serializations *}
 

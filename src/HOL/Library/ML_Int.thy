@@ -170,7 +170,7 @@ code_type ml_int
 
 setup {*
   CodeTarget.add_pretty_numeral "SML" false
-    (@{const_name number_of}, @{typ "int \<Rightarrow> ml_int"})
+    @{const_name ml_int_of_int}
     @{const_name Numeral.B0} @{const_name Numeral.B1}
     @{const_name Numeral.Pls} @{const_name Numeral.Min}
     @{const_name Numeral.Bit}

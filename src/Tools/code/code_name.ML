@@ -17,18 +17,16 @@ sig
   val intro_vars: string list -> var_ctxt -> var_ctxt;
   val lookup_var: var_ctxt -> string -> string;
 
-  type tyco = string
-  type const = string
   val class: theory -> class -> class
   val class_rev: theory -> class -> class option
   val classrel: theory -> class * class -> string
   val classrel_rev: theory -> string -> (class * class) option
-  val tyco: theory -> tyco -> tyco
-  val tyco_rev: theory -> tyco -> tyco option
-  val instance: theory -> class * tyco -> string
-  val instance_rev: theory -> string -> (class * tyco) option
-  val const: theory -> CodeUnit.const -> const
-  val const_rev: theory -> const -> CodeUnit.const option
+  val tyco: theory -> string -> string
+  val tyco_rev: theory -> string -> string option
+  val instance: theory -> class * string -> string
+  val instance_rev: theory -> string -> (class * string) option
+  val const: theory -> string -> string
+  val const_rev: theory -> string -> string option
   val labelled_name: theory -> string -> string
 
   val setup: theory -> theory
@@ -186,8 +184,7 @@ val purify_prefix =
   #> NameSpace.explode
   #> map (purify_name true);
 
-fun purify_base "op =" = "eq"
-  | purify_base "op &" = "and"
+fun purify_base "op &" = "and"
   | purify_base "op |" = "or"
   | purify_base "op -->" = "implies"
   | purify_base "{}" = "empty"
@@ -196,7 +193,9 @@ fun purify_base "op =" = "eq"
   | purify_base "op Un" = "union"
   | purify_base "*" = "product"
   | purify_base "+" = "sum"
-  | purify_base s = purify_name false s;
+  | purify_base s = if String.isPrefix "op =" s
+      then "eq" ^ purify_name false s
+      else purify_name false s;
 
 fun default_policy thy get_basename get_thyname name =
   let
@@ -212,30 +211,28 @@ fun tyco_policy thy = default_policy thy NameSpace.base thyname_of_tyco;
 fun instance_policy thy = default_policy thy (fn (class, tyco) => 
   NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
 
-fun force_thyname thy (const as (c, opt_tyco)) =
-  case Code.get_datatype_of_constr thy const
-   of SOME dtco => SOME (thyname_of_tyco thy dtco)
-    | NONE => (case AxClass.class_of_param thy c
-       of SOME class => (case opt_tyco
-           of SOME tyco => SOME (thyname_of_instance thy (class, tyco))
-            | NONE => SOME (thyname_of_class thy class))
-        | NONE => NONE);
+fun force_thyname thy c = case Code.get_datatype_of_constr thy c
+ of SOME dtco => SOME (thyname_of_tyco thy dtco)
+  | NONE => (case AxClass.class_of_param thy c
+     of SOME class => SOME (thyname_of_class thy class)
+      | NONE => (case Class.param_const thy c
+         of SOME (c, tyco) => SOME (thyname_of_instance thy
+              ((the o AxClass.class_of_param thy) c, tyco))
+          | NONE => NONE));
 
-fun const_policy thy (const as (c, opt_tyco)) =
-  case force_thyname thy const
+fun const_policy thy c =
+  case force_thyname thy c
    of NONE => default_policy thy NameSpace.base thyname_of_const c
     | SOME thyname => let
         val prefix = purify_prefix thyname;
-        val tycos = the_list opt_tyco;
-        val base = map (purify_base o NameSpace.base) (c :: tycos);
-      in NameSpace.implode (prefix @ [space_implode "_" base]) end;
+        val base = (purify_base o NameSpace.base) c;
+      in NameSpace.implode (prefix @ [base]) end;
 
 
 (* theory and code data *)
 
 type tyco = string;
 type const = string;
-structure Consttab = CodeUnit.Consttab;
 
 structure StringPairTab =
   TableFun(
@@ -294,14 +291,14 @@ structure CodeName = TheoryDataFun
 
 structure ConstName = CodeDataFun
 (
-  type T = const Consttab.table * (string * string option) Symtab.table;
-  val empty = (Consttab.empty, Symtab.empty);
+  type T = const Symtab.table * string Symtab.table;
+  val empty = (Symtab.empty, Symtab.empty);
   fun merge _ ((const1, constrev1), (const2, constrev2)) : T =
-    (Consttab.merge (op =) (const1, const2),
-      Symtab.merge CodeUnit.eq_const (constrev1, constrev2));
+    (Symtab.merge (op =) (const1, const2),
+      Symtab.merge (op =) (constrev1, constrev2));
   fun purge _ NONE _ = empty
-    | purge _ (SOME cs) (const, constrev) = (fold Consttab.delete_safe cs const,
-        fold Symtab.delete (map_filter (Consttab.lookup const) cs) constrev);
+    | purge _ (SOME cs) (const, constrev) = (fold Symtab.delete_safe cs const,
+        fold Symtab.delete_safe (map_filter (Symtab.lookup const) cs) constrev);
 );
 
 val setup = CodeName.init;
@@ -333,10 +330,10 @@ fun get_const thy const =
     val tabs = ConstName.get thy;
     fun declare name =
       let
-        val names' = (Consttab.update (const, name) (fst tabs),
+        val names' = (Symtab.update (const, name) (fst tabs),
           Symtab.update_new (name, const) (snd tabs))
       in (ConstName.change thy (K names'); name) end;
-  in case Consttab.lookup (fst tabs) const
+  in case Symtab.lookup (fst tabs) const
    of SOME name => name
     | NONE => 
         const

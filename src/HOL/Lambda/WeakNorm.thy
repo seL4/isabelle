@@ -614,13 +614,13 @@ and term_of_dB' Ts (Norm.Var n) = Bound (int_of_nat n)
 fun typing_of_term Ts e (Bound i) =
       Norm.Vara (e, nat_of_int i, dBtype_of_typ (nth Ts i))
   | typing_of_term Ts e (t $ u) = (case fastype_of1 (Ts, t) of
-        Type ("fun", [T, U]) => Norm.Appaa (e, dB_of_term t,
+        Type ("fun", [T, U]) => Norm.Appb (e, dB_of_term t,
           dBtype_of_typ T, dBtype_of_typ U, dB_of_term u,
           typing_of_term Ts e t, typing_of_term Ts e u)
       | _ => error "typing_of_term: function type expected")
   | typing_of_term Ts e (Abs (s, T, t)) =
       let val dBT = dBtype_of_typ T
-      in Norm.Absaa (e, dBT, dB_of_term t,
+      in Norm.Absb (e, dBT, dB_of_term t,
         dBtype_of_typ (fastype_of1 (T :: Ts, t)),
         typing_of_term (T :: Ts) (Norm.shift e Norm.Zero_nat dBT) t)
       end

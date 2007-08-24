@@ -26,7 +26,7 @@ sig
   val prove_codetypes_arities: tactic -> (string * bool) list -> sort
     -> (arity list -> (string * term list) list -> theory
       -> ((bstring * Attrib.src list) * term) list * theory)
-    -> (arity list -> (string * term list) list -> theory -> theory)
+    -> (arity list -> (string * term list) list -> thm list -> theory -> theory)
     -> theory -> theory
 
   val setup: theory -> theory
@@ -537,8 +537,13 @@ fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
 
 (* registering code types in code generator *)
 
-fun codetype_hook dtspecs =
-  fold (fn (dtco, (_, spec)) => Code.add_datatype (dtco, spec)) dtspecs;
+fun add_datatype_spec (tyco, (vs, cos)) thy =
+  let
+    val cs = map (fn (c, tys) => (c, tys ---> Type (tyco, map TFree vs))) cos;
+  in try (Code.add_datatype cs) thy |> the_default thy end;
+
+val codetype_hook =
+  fold (fn (dtco, (_, spec)) => add_datatype_spec (dtco, spec));
 
 
 (* instrumentalizing the sort algebra *)
@@ -586,7 +591,8 @@ fun prove_codetypes_arities tac tycos sort f after_qed thy =
             f arities css
             #-> (fn defs =>
               Class.prove_instance_arity tac arities defs
-            #> after_qed arities css))
+            #-> (fn defs =>
+              after_qed arities css defs)))
       end;
 
 
@@ -597,7 +603,7 @@ fun eq_hook specs =
     fun add_eq_thms (dtco, (_, (vs, cs))) thy =
       let
         val thy_ref = Theory.check_thy thy;
-        val const = ("op =", SOME dtco);
+        val const = Class.inst_const thy ("op =", dtco);
         val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
       in
         Code.add_funcl (const, Susp.delay get_thms) thy
@@ -605,7 +611,7 @@ fun eq_hook specs =
   in
     prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [HOLogic.class_eq] ((K o K o pair) []) ((K o K) (fold add_eq_thms specs))
+      [HOLogic.class_eq] ((K o K o pair) []) ((K o K o K) (fold add_eq_thms specs))
   end;
 
 

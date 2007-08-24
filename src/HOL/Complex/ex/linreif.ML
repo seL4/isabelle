@@ -44,16 +44,16 @@ fun fm_of_term vs t =
     case t of 
 	Const("True",_) => T
       | Const("False",_) => F
-      | Const(@{const_name HOL.less},_)$t1$t2 => Lta (Sub (num_of_term vs t1,num_of_term vs t2))
-      | Const(@{const_name HOL.less_eq},_)$t1$t2 => Lea (Sub (num_of_term vs t1,num_of_term vs t2))
+      | Const(@{const_name HOL.less},_)$t1$t2 => Lt (Sub (num_of_term vs t1,num_of_term vs t2))
+      | Const(@{const_name HOL.less_eq},_)$t1$t2 => Le (Sub (num_of_term vs t1,num_of_term vs t2))
       | Const("op =",eqT)$t1$t2 => 
 	if (domain_type eqT = rT)
-	then Eqa (Sub (num_of_term vs t1,num_of_term vs t2)) 
-	else Iffa(fm_of_term vs t1,fm_of_term vs t2)
+	then Eq (Sub (num_of_term vs t1,num_of_term vs t2)) 
+	else Iff(fm_of_term vs t1,fm_of_term vs t2)
       | Const("op &",_)$t1$t2 => And(fm_of_term vs t1,fm_of_term vs t2)
       | Const("op |",_)$t1$t2 => Or(fm_of_term vs t1,fm_of_term vs t2)
-      | Const("op -->",_)$t1$t2 => Impa(fm_of_term vs t1,fm_of_term vs t2)
-      | Const("Not",_)$t' => Nota(fm_of_term vs t')
+      | Const("op -->",_)$t1$t2 => Imp(fm_of_term vs t1,fm_of_term vs t2)
+      | Const("Not",_)$t' => Not(fm_of_term vs t')
       | Const("Ex",_)$Term.Abs(xn,xT,p) => 
 	E(fm_of_term (map (fn(v,n) => (v,1+ n)) vs) p)
       | Const("All",_)$Term.Abs(xn,xT,p) => 
@@ -91,22 +91,22 @@ fun term_of_fm vs t =
     case t of 
 	T => HOLogic.true_const 
       | F => HOLogic.false_const
-      | Lta t => Const(@{const_name HOL.less},[rT,rT] ---> bT)$
+      | Lt t => Const(@{const_name HOL.less},[rT,rT] ---> bT)$
 			   (term_of_num vs t)$ rzero
-      | Lea t => Const(@{const_name HOL.less_eq},[rT,rT] ---> bT)$
+      | Le t => Const(@{const_name HOL.less_eq},[rT,rT] ---> bT)$
 			  (term_of_num vs t)$ rzero
-      | Gta t => Const(@{const_name HOL.less},[rT,rT] ---> bT)$
+      | Gt t => Const(@{const_name HOL.less},[rT,rT] ---> bT)$
 			   rzero $(term_of_num vs t)
-      | Gea t => Const(@{const_name HOL.less_eq},[rT,rT] ---> bT)$
+      | Ge t => Const(@{const_name HOL.less_eq},[rT,rT] ---> bT)$
 			  rzero $(term_of_num vs t)
-      | Eqa t => Const("op =",[rT,rT] ---> bT)$
+      | Eq t => Const("op =",[rT,rT] ---> bT)$
 			   (term_of_num vs t)$ rzero
-      | NEq t => term_of_fm vs (Nota (Eqa t))
-      | Nota t' => HOLogic.Not$(term_of_fm vs t')
+      | NEq t => term_of_fm vs (Not (Eq t))
+      | Not t' => HOLogic.Not$(term_of_fm vs t')
       | And(t1,t2) => HOLogic.conj$(term_of_fm vs t1)$(term_of_fm vs t2)
       | Or(t1,t2) => HOLogic.disj$(term_of_fm vs t1)$(term_of_fm vs t2)
-      | Impa(t1,t2) => HOLogic.imp$(term_of_fm vs t1)$(term_of_fm vs t2)
-      | Iffa(t1,t2) => (HOLogic.eq_const bT)$(term_of_fm vs t1)$
+      | Imp(t1,t2) => HOLogic.imp$(term_of_fm vs t1)$(term_of_fm vs t2)
+      | Iff(t1,t2) => (HOLogic.eq_const bT)$(term_of_fm vs t1)$
 					   (term_of_fm vs t2)
       | _ => error "If this is raised, Isabelle/HOL or generate_code is inconsistent!";
 

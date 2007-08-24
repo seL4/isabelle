@@ -52,7 +52,7 @@ let
   fun hook specs =
     DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [TypOf.class_typ_of] mk ((K o K) I)
+      [TypOf.class_typ_of] mk ((K o K) (fold (Code.add_func true)))
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
@@ -98,7 +98,7 @@ let
     PureThy.add_thmss [((name, thms), atts)] #-> (fn [thms] => pair (name, thms));
   fun thy_def ((name, atts), t) =
     PureThy.add_defs_i false [((name, t), atts)] #-> (fn [thm] => pair (name, thm));
-  fun mk arities css thy =
+  fun mk arities css _ thy =
     let
       val (_, asorts, _) :: _ = arities;
       val vs = Name.names Name.context "'a" asorts;

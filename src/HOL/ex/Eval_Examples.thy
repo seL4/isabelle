@@ -31,8 +31,8 @@ value (overloaded) "(Suc 2 + 1) * 4"
 value (overloaded) "(Suc 2 + Suc 0) * Suc 3"
 value (overloaded) "nat 100"
 value (overloaded) "(10\<Colon>int) \<le> 12"
-value (overloaded) "[(nat 100, ())]"
 value (overloaded) "[]::nat list"
+value (overloaded) "[(nat 100, ())]"
 
 text {* a fancy datatype *}
 

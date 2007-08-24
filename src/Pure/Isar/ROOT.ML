@@ -43,15 +43,17 @@ use "element.ML";
 use "net_rules.ML";
 use "induct_attrib.ML";
 
-(*executable theory content*)
-use "code_unit.ML";
-use "code.ML";
-
 (*derived theory and proof elements*)
 use "calculation.ML";
 use "obtain.ML";
 use "locale.ML";
 use "class.ML";
+
+(*executable theory content*)
+use "code_unit.ML";
+use "code.ML";
+
+(*local theories and specifications*)
 use "local_theory.ML";
 use "theory_target.ML";
 use "spec_parse.ML";

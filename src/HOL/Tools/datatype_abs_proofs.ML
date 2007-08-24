@@ -429,6 +429,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
         thy
         |> Class.prove_instance_arity (Class.intro_classes_tac [])
             [(tyco, replicate n HOLogic.typeS, [HOLogic.class_size])] []
+        |> snd
       end
 
     val (size_def_thms, thy') =

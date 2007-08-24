@@ -567,6 +567,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
         thy
         |> Class.prove_instance_arity (Class.intro_classes_tac [])
             [(tyco, replicate n HOLogic.typeS, [HOLogic.class_size])] []
+        |> snd
       end
 
     val thy2' = thy
