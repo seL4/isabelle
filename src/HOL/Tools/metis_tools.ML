@@ -17,7 +17,7 @@ end
 structure MetisTools: METIS_TOOLS =
 struct
 
-  structure Rc = ResReconstruct;
+  structure Recon = ResReconstruct;
 
   val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" true;
 
@@ -163,7 +163,7 @@ fun const_of ctxt (c,Ts) =  Const (c, dummyT)
   let val thy = ProofContext.theory_of ctxt
       and (types, sorts) = Variable.constraints_of ctxt
       val declaredT = Consts.the_constraint (Sign.consts_of thy) c
-      val t = Rc.fix_sorts sorts (Const(c, Sign.const_instance thy (c,Ts)))
+      val t = Recon.fix_sorts sorts (Const(c, Sign.const_instance thy (c,Ts)))
   in
       Sign.typ_match thy (declaredT, type_of t) Vartab.empty;
       t
@@ -190,10 +190,10 @@ fun const_of ctxt (c,Ts) =  Const (c, dummyT)
     let val thy = ProofContext.theory_of ctxt
         val _ = Output.debug (fn () => "fol_term_to_hol: " ^ Metis.Term.toString fol_tm)
         fun tm_to_tt (Metis.Term.Var v) =
-               (case Rc.strip_prefix ResClause.tvar_prefix v of
-                    SOME w => Type (Rc.make_tvar w)
+               (case Recon.strip_prefix ResClause.tvar_prefix v of
+                    SOME w => Type (Recon.make_tvar w)
                   | NONE =>
-                case Rc.strip_prefix ResClause.schematic_var_prefix v of
+                case Recon.strip_prefix ResClause.schematic_var_prefix v of
                     SOME w => Term (mk_var w)
                   | NONE   => Term (mk_var v) )
                       (*Var from Metis with a name like _nnn; possibly a type variable*)
@@ -210,14 +210,14 @@ fun const_of ctxt (c,Ts) =  Const (c, dummyT)
         and applic_to_tt ("=",ts) =
               Term (list_comb(Const ("op =", HOLogic.typeT), terms_of (map tm_to_tt ts)))
           | applic_to_tt (a,ts) =
-              case Rc.strip_prefix ResClause.const_prefix a of
+              case Recon.strip_prefix ResClause.const_prefix a of
                   SOME b =>
-                    let val c = Rc.invert_const b
-                        val ntypes = Rc.num_typargs thy c
+                    let val c = Recon.invert_const b
+                        val ntypes = Recon.num_typargs thy c
                         val nterms = length ts - ntypes
                         val tts = map tm_to_tt ts
                         val tys = types_of (List.take(tts,ntypes))
-                        val ntyargs = Rc.num_typargs thy c
+                        val ntyargs = Recon.num_typargs thy c
                     in if length tys = ntyargs then
                            apply_list (const_of ctxt (c, tys)) nterms (List.drop(tts,ntypes))
                        else error ("Constant " ^ c ^ " expects " ^ Int.toString ntyargs ^
@@ -228,13 +228,13 @@ fun const_of ctxt (c,Ts) =  Const (c, dummyT)
                                    space_implode "\n" (map (ProofContext.string_of_term ctxt) (terms_of tts)))
                        end
                 | NONE => (*Not a constant. Is it a type constructor?*)
-              case Rc.strip_prefix ResClause.tconst_prefix a of
-                  SOME b => Type (Term.Type(Rc.invert_type_const b, types_of (map tm_to_tt ts)))
+              case Recon.strip_prefix ResClause.tconst_prefix a of
+                  SOME b => Type (Term.Type(Recon.invert_type_const b, types_of (map tm_to_tt ts)))
                 | NONE => (*Maybe a TFree. Should then check that ts=[].*)
-              case Rc.strip_prefix ResClause.tfree_prefix a of
+              case Recon.strip_prefix ResClause.tfree_prefix a of
                   SOME b => Type (mk_tfree ctxt b)
                 | NONE => (*a fixed variable? They are Skolem functions.*)
-              case Rc.strip_prefix ResClause.fixed_var_prefix a of
+              case Recon.strip_prefix ResClause.fixed_var_prefix a of
                   SOME b =>
                     let val opr = Term.Free(b, HOLogic.typeT)
                     in  apply_list opr (length ts) (map tm_to_tt ts)  end
@@ -301,9 +301,9 @@ fun inst_excluded_middle th thy i_atm =
               in  SOME (cterm_of thy v, t)  end
               handle Option => NONE (*List.find failed for the variable.*)
         fun remove_typeinst (a, t) =
-              case Rc.strip_prefix ResClause.schematic_var_prefix a of
+              case Recon.strip_prefix ResClause.schematic_var_prefix a of
                   SOME b => SOME (b, t)
-                | NONE   => case Rc.strip_prefix ResClause.tvar_prefix a of
+                | NONE   => case Recon.strip_prefix ResClause.tvar_prefix a of
                   SOME _ => NONE          (*type instantiations are forbidden!*)
                 | NONE   => SOME (a,t)    (*internal Metis var?*)
         val _ = Output.debug (fn () => "  isa th: " ^ string_of_thm i_th)
@@ -319,6 +319,18 @@ fun inst_excluded_middle th thy i_atm =
     in  cterm_instantiate substs' i_th  end;
 
   (* INFERENCE RULE: RESOLVE *)
+  
+  (*Like RSN, but we rename apart only the type variables. Vars here typically have an index
+    of 1, and the use of RSN would increase this typically to 3. Instantiations of those Vars
+    could then fail. See comment on mk_var.*)
+  fun resolve_inc_tyvars(tha,i,thb) =
+    let val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
+	val ths = Seq.list_of (bicompose false (false,tha,nprems_of tha) i thb)
+    in  
+	case distinct Thm.eq_thm ths of
+	  [th] => th
+	| _ => raise THM ("resolve_inc_tyvars: unique result expected", i, [tha,thb])
+    end;
 
   fun resolve_inf ctxt thpairs atm th1 th2 =
     let
@@ -341,7 +353,7 @@ fun inst_excluded_middle th thy i_atm =
           val index_th2 = get_index i_atm prems_th2
                 handle Empty => error "Failed to find literal in th2"
           val _ = Output.debug (fn () => "  index_th2: " ^ Int.toString index_th2)
-      in  (Meson.select_literal index_th1 i_th1) RSN (index_th2, i_th2)  end
+      in  resolve_inc_tyvars (Meson.select_literal index_th1 i_th1, index_th2, i_th2)  end
     end;
 
   (* INFERENCE RULE: REFL *)
@@ -352,7 +364,7 @@ fun inst_excluded_middle th thy i_atm =
     in  cterm_instantiate [(cterm_of thy v_x, cterm_of thy i_lit)] REFL_THM  end;
 
   fun get_ty_arg_size thy (Const("op =",_)) = 0  (*equality has no type arguments*)
-    | get_ty_arg_size thy (Const(c,_))      = (Rc.num_typargs thy c handle TYPE _ => 0)
+    | get_ty_arg_size thy (Const(c,_))      = (Recon.num_typargs thy c handle TYPE _ => 0)
     | get_ty_arg_size thy _      = 0;
 
   (* INFERENCE RULE: EQUALITY *)
@@ -427,9 +439,9 @@ fun inst_excluded_middle th thy i_atm =
             val th = Meson.flexflex_first_order (factor (step ctxt isFO thpairs (fol_th, inf)))
             val _ = Output.debug (fn () => "ISABELLE THM: " ^ string_of_thm th)
             val _ = Output.debug (fn () => "=============================================")
+            val n_metis_lits = length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th)))
         in
-            if nprems_of th =
-        length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th))) then ()
+            if nprems_of th = n_metis_lits then ()
             else error "Metis: proof reconstruction has gone wrong";
             translate isFO ctxt ((fol_th, th) :: thpairs) infpairs
         end;
