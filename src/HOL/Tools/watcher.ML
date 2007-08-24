@@ -360,12 +360,14 @@ fun report i s = priority ("Subgoal " ^ Int.toString i ^ ": " ^ s);
 
 (*Successful outcome: auto-insertion of commands into the PG buffer. Thanks to D Aspinall!!*)
 fun report_success i s sgtx = 
-  let val lines = String.tokens (fn c => c = #"\n") s
-  in  if length lines > 1 then report i (s ^ sgtx)  (*multiple commands: do the old way*)
-      else priority (cat_lines ["Subgoal " ^ string_of_int i ^ ":", sgtx,
-                                "  Try this command:", Markup.enclose Markup.sendback s])
-  end;
-
+  let val sgline = "Subgoal " ^ string_of_int i ^ ":"
+      val outlines = 
+	case split_lines s of
+	    [] => ["Received bad string: " ^ s]
+	  | line::lines => ["  Try this command:", (*Markup.enclose Markup.sendback*) line, ""]
+	                   @ lines
+  in priority (cat_lines (sgline::sgtx::outlines)) end;
+  
 fun createWatcher (ctxt, th, thm_names_list) =
  let val {pid=childpid, instr=childin, outstr=childout} = setupWatcher (ctxt,th,thm_names_list)
      fun decr_watched() =

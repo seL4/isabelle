@@ -7,7 +7,7 @@ ATPs with TPTP format input.
 
 signature RES_ATP =
 sig
-  val prover: string ref
+  val prover: ResReconstruct.atp ref
   val destdir: string ref
   val helper_path: string -> string -> string
   val problem_name: string ref
@@ -45,6 +45,8 @@ end;
 structure ResAtp: RES_ATP =
 struct
 
+structure Recon = ResReconstruct;
+
 fun timestamp s = Output.debug (fn () => ("At " ^ Time.toString (Time.now()) ^ ": " ^ s));
 
 (********************************************************************)
@@ -55,7 +57,7 @@ fun timestamp s = Output.debug (fn () => ("At " ^ Time.toString (Time.now()) ^ "
 (*** background linkup ***)
 val run_blacklist_filter = ref true;
 val time_limit = ref 60;
-val prover = ref "";
+val prover = ref Recon.E;
 
 (*** relevance filter parameters ***)
 val run_relevance_filter = ref true;
@@ -70,15 +72,15 @@ fun set_prover atp =
       "e" =>
           (max_new := 100;
            theory_const := false;
-           prover := "E")
+           prover := Recon.E)
     | "spass" =>
           (max_new := 40;
            theory_const := true;
-           prover := "spass")
+           prover := Recon.SPASS)
     | "vampire" =>
           (max_new := 60;
            theory_const := false;
-           prover := "vampire")
+           prover := Recon.Vampire)
     | _ => error ("No such prover: " ^ atp);
 
 val _ = set_prover "E"; (* use E as the default prover *)
@@ -822,30 +824,26 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
           in
             Output.debug (fn () => "problem file in watcher_call_provers is " ^ probfile);
             (*options are separated by Watcher.setting_sep, currently #"%"*)
-            if !prover = "spass"
-            then
-              let val spass = helper_path "SPASS_HOME" "SPASS"
-                  val sopts =
-   "-Auto%-SOS=1%-PGiven=0%-PProblem=0%-Splits=0%-FullRed=0%-DocProof%-TimeLimit=" ^ time
-              in
-                  ("spass", spass, sopts, probfile) :: make_atp_list xs (n+1)
-              end
-            else if !prover = "vampire"
-            then
-              let val vampire = helper_path "VAMPIRE_HOME" "vampire"
-                  val vopts = "--mode casc%-t " ^ time  (*what about -m 100000?*)
-              in
-                  ("vampire", vampire, vopts, probfile) :: make_atp_list xs (n+1)
-              end
-             else if !prover = "E"
-             then
-               let val Eprover = helper_path "E_HOME" "eproof"
-               in
-                  ("E", Eprover,
-                     "--tstp-in%--tstp-out%-l5%-xAutoDev%-tAutoDev%--silent%--cpu-limit=" ^ time, probfile) ::
-                   make_atp_list xs (n+1)
-               end
-             else error ("Invalid prover name: " ^ !prover)
+            case !prover of
+                Recon.SPASS =>
+		  let val spass = helper_path "SPASS_HOME" "SPASS"
+		      val sopts =
+       "-Auto%-SOS=1%-PGiven=0%-PProblem=0%-Splits=0%-FullRed=0%-DocProof%-TimeLimit=" ^ time
+		  in
+		      ("spass", spass, sopts, probfile) :: make_atp_list xs (n+1)
+		  end
+              | Recon.Vampire =>
+		  let val vampire = helper_path "VAMPIRE_HOME" "vampire"
+		      val vopts = "--mode casc%-t " ^ time  (*what about -m 100000?*)
+		  in
+		      ("vampire", vampire, vopts, probfile) :: make_atp_list xs (n+1)
+		  end
+              | Recon.E =>
+		  let val eproof = helper_path "E_HOME" "eproof"
+                      val eopts = "--tstp-in%--tstp-out%-l5%-xAutoDev%-tAutoDev%--silent%--cpu-limit=" ^ time
+		  in
+		     ("E", eproof, eopts, probfile) :: make_atp_list xs (n+1)
+		  end
           end
 
     val atp_list = make_atp_list sg_terms 1
@@ -885,7 +883,7 @@ fun write_problem_files probfile (ctxt,th)  =
       val axcls_list = map (fn ngcls => white_cls @ relevance_filter thy included_cls (map prop_of ngcls)) goal_cls
       val _ = app (fn axcls => Output.debug (fn () => "filtered clauses = " ^ Int.toString(length axcls)))
                   axcls_list
-      val writer = if !prover = "spass" then dfg_writer else tptp_writer
+      val writer = if !prover = Recon.SPASS then dfg_writer else tptp_writer
       fun write_all [] [] _ = []
         | write_all (ccls::ccls_list) (axcls::axcls_list) k =
             let val fname = probfile k
