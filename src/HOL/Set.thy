@@ -2099,6 +2099,147 @@ lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
   by (rule subsetD)
 
 
+subsection {* Code generation for finite sets *}
+
+code_datatype "{}" insert
+
+
+subsubsection {* Primitive predicates *}
+
+definition
+  is_empty :: "'a set \<Rightarrow> bool"
+where
+  [code func del]: "is_empty A \<longleftrightarrow> A = {}"
+lemmas [code inline] = is_empty_def [symmetric]
+
+lemma is_empty_insert [code func]:
+  "is_empty (insert a A) \<longleftrightarrow> False"
+  by (simp add: is_empty_def)
+
+lemma is_empty_empty [code func]:
+  "is_empty {} \<longleftrightarrow> True"
+  by (simp add: is_empty_def)
+
+lemma Ball_insert [code func]:
+  "Ball (insert a A) P \<longleftrightarrow> P a \<and> Ball A P"
+  by simp
+
+lemma Ball_empty [code func]:
+  "Ball {} P \<longleftrightarrow> True"
+  by simp
+
+lemma Bex_insert [code func]:
+  "Bex (insert a A) P \<longleftrightarrow> P a \<or> Bex A P"
+  by simp
+
+lemma Bex_empty [code func]:
+  "Bex {} P \<longleftrightarrow> False"
+  by simp
+
+
+subsubsection {* Primitive operations *}
+
+lemma minus_insert [code func]:
+  "insert a A - B = (let C = A - B in if a \<in> B then C else insert a C)"
+  by (auto simp add: Let_def)
+
+lemma minus_empty1 [code func]:
+  "{} - A = {}"
+  by simp
+
+lemma minus_empty2 [code func]:
+  "A - {} = A"
+  by simp
+
+lemma inter_insert [code func]:
+  "insert a A \<inter> B = (let C = A \<inter> B in if a \<in> B then insert a C else C)"
+  by (auto simp add: Let_def)
+
+lemma inter_empty1 [code func]:
+  "{} \<inter> A = {}"
+  by simp
+
+lemma inter_empty2 [code func]:
+  "A \<inter> {} = {}"
+  by simp
+
+lemma union_insert [code func]:
+  "insert a A \<union> B = (let C = A \<union> B in if a \<in> B then C else insert a C)"
+  by (auto simp add: Let_def)
+
+lemma union_empty1 [code func]:
+  "{} \<union> A = A"
+  by simp
+
+lemma union_empty2 [code func]:
+  "A \<union> {} = A"
+  by simp
+
+lemma INTER_insert [code func]:
+  "INTER (insert a A) f = f a \<inter> INTER A f"
+  by auto
+
+lemma INTER_singleton [code func]:
+  "INTER {a} f = f a"
+  by auto
+
+lemma UNION_insert [code func]:
+  "UNION (insert a A) f = f a \<union> UNION A f"
+  by auto
+
+lemma UNION_empty [code func]:
+  "UNION {} f = {}"
+  by auto
+
+
+subsubsection {* Derived predicates *}
+
+lemma in_code [code func]:
+  "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. a = x)"
+  by simp
+
+instance set :: (eq) eq ..
+
+lemma eq_set_code [code func]:
+  fixes A B :: "'a\<Colon>eq set"
+  shows "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
+  by auto
+
+lemma subset_eq_code [code func]:
+  fixes A B :: "'a\<Colon>eq set"
+  shows "A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
+  by auto
+
+lemma subset_code [code func]:
+  fixes A B :: "'a\<Colon>eq set"
+  shows "A \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> \<not> B \<subseteq> A"
+  by auto
+
+
+subsubsection {* Derived operations *}
+
+lemma image_code [code func]:
+  "image f A = UNION A (\<lambda>x. {f x})" by auto
+
+definition
+  project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  [code func del, code post]: "project P A = {a\<in>A. P a}"
+
+lemmas [symmetric, code inline] = project_def
+
+lemma project_code [code func]:
+  "project P A = UNION A (\<lambda>a. if P a then {a} else {})"
+  by (auto simp add: project_def split: if_splits)
+
+lemma Inter_code [code func]:
+  "Inter A = INTER A (\<lambda>x. x)"
+  by auto
+
+lemma Union_code [code func]:
+  "Union A = UNION A (\<lambda>x. x)"
+  by auto
+
+
 subsection {* Basic ML bindings *}
 
 ML {*
