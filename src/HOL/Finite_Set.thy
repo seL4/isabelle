@@ -1507,7 +1507,7 @@ constdefs
 lemma card_empty [simp]: "card {} = 0"
   by (simp add: card_def)
 
-lemma card_infinite [simp,noatp]: "~ finite A ==> card A = 0"
+lemma card_infinite [simp]: "~ finite A ==> card A = 0"
   by (simp add: card_def)
 
 lemma card_eq_setsum: "card A = setsum (%x. 1) A"
@@ -2579,12 +2579,12 @@ lemmas Max_singleton [simp] = fold1_singleton_def [OF Max_def]
 lemmas Min_insert [simp] = ACIf.fold1_insert_idem_def [OF ACIf_min Min_def]
 lemmas Max_insert [simp] = ACIf.fold1_insert_idem_def [OF ACIf_max Max_def]
 
-lemma Min_in [simp,noatp]:
+lemma Min_in [simp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Min A \<in> A"
   using ACf.fold1_in [OF ACf_min]
   by (fastsimp simp: Min_def min_def)
 
-lemma Max_in [simp,noatp]:
+lemma Max_in [simp]:
   shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Max A \<in> A"
   using ACf.fold1_in [OF ACf_max]
   by (fastsimp simp: Max_def max_def)
@@ -2595,10 +2595,10 @@ lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk
 lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<^loc>\<le> Max N"
   by (simp add: Max_def ACIfSLlin.fold1_antimono [OF ACIfSLlin_max])
 
-lemma Min_le [simp,noatp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x"
+lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x"
   by (simp add: Min_def ACIfSL.fold1_belowI [OF ACIfSL_min])
 
-lemma Max_ge [simp,noatp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A"
+lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A"
   by (simp add: Max_def ACIfSL.fold1_belowI [OF ACIfSL_max])
 
 lemma Min_ge_iff [simp,noatp]:
@@ -2690,7 +2690,7 @@ hide const finite
 lemma finite [simp]: "finite (A::'a::finite set)"
   by (rule finite_subset [OF subset_UNIV finite_UNIV])
 
-lemma univ_unit:
+lemma univ_unit [noatp]:
   "UNIV = {()}" by auto
 
 instance unit :: finite
@@ -2702,7 +2702,7 @@ qed
 
 lemmas [code func] = univ_unit
 
-lemma univ_bool:
+lemma univ_bool [noatp]:
   "UNIV = {False, True}" by auto
 
 instance bool :: finite
@@ -2723,7 +2723,7 @@ proof
   qed
 qed
 
-lemma univ_prod [code func]:
+lemma univ_prod [noatp, code func]:
   "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) \<times> (UNIV \<Colon> 'b\<Colon>finite set)"
   unfolding UNIV_Times_UNIV ..
 
@@ -2736,7 +2736,7 @@ proof
   thus "finite (UNIV :: ('a + 'b) set)" by simp
 qed
 
-lemma univ_sum [code func]:
+lemma univ_sum [noatp, code func]:
   "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) <+> (UNIV \<Colon> 'b\<Colon>finite set)"
   unfolding UNIV_Plus_UNIV ..
 
@@ -2752,7 +2752,7 @@ proof
   finally show "finite (UNIV :: 'a option set)" .
 qed
 
-lemma univ_option [code func]:
+lemma univ_option [noatp, code func]:
   "UNIV = insert (None \<Colon> 'a\<Colon>finite option) (image Some UNIV)"
   unfolding insert_None_conv_UNIV ..
 
@@ -2764,7 +2764,7 @@ proof
   thus "finite (UNIV :: 'a set set)" by simp
 qed
 
-lemma univ_set [code func]:
+lemma univ_set [noatp, code func]:
   "UNIV = Pow (UNIV \<Colon> 'a\<Colon>finite set)" unfolding Pow_UNIV ..
 
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"

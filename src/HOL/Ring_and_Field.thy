@@ -994,7 +994,7 @@ text{* There is a whole bunch of simp-rules just for class @{text
 field} but none for class @{text field} and @{text nonzero_divides}
 because the latter are covered by a simproc. *}
 
-lemma nonzero_mult_divide_mult_cancel_left[simp]:
+lemma nonzero_mult_divide_mult_cancel_left[simp,noatp]:
 assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" shows "(c*a)/(c*b) = a/(b::'a::field)"
 proof -
   have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
@@ -1013,7 +1013,7 @@ apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_mult_cancel_left)
 done
 
-lemma nonzero_mult_divide_mult_cancel_right:
+lemma nonzero_mult_divide_mult_cancel_right [noatp]:
   "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (b*c) = a/(b::'a::field)"
 by (simp add: mult_commute [of _ c] nonzero_mult_divide_mult_cancel_left) 
 
@@ -1059,34 +1059,34 @@ done
 
 subsubsection{*Special Cancellation Simprules for Division*}
 
-lemma mult_divide_mult_cancel_left_if[simp]:
+lemma mult_divide_mult_cancel_left_if[simp,noatp]:
 fixes c :: "'a :: {field,division_by_zero}"
 shows "(c*a) / (c*b) = (if c=0 then 0 else a/b)"
 by (simp add: mult_divide_mult_cancel_left)
 
-lemma nonzero_mult_divide_cancel_right[simp]:
+lemma nonzero_mult_divide_cancel_right[simp,noatp]:
   "b \<noteq> 0 \<Longrightarrow> a * b / b = (a::'a::field)"
 using nonzero_mult_divide_mult_cancel_right[of 1 b a] by simp
 
-lemma nonzero_mult_divide_cancel_left[simp]:
+lemma nonzero_mult_divide_cancel_left[simp,noatp]:
   "a \<noteq> 0 \<Longrightarrow> a * b / a = (b::'a::field)"
 using nonzero_mult_divide_mult_cancel_left[of 1 a b] by simp
 
 
-lemma nonzero_divide_mult_cancel_right[simp]:
+lemma nonzero_divide_mult_cancel_right[simp,noatp]:
   "\<lbrakk> a\<noteq>0; b\<noteq>0 \<rbrakk> \<Longrightarrow> b / (a * b) = 1/(a::'a::field)"
 using nonzero_mult_divide_mult_cancel_right[of a b 1] by simp
 
-lemma nonzero_divide_mult_cancel_left[simp]:
+lemma nonzero_divide_mult_cancel_left[simp,noatp]:
   "\<lbrakk> a\<noteq>0; b\<noteq>0 \<rbrakk> \<Longrightarrow> a / (a * b) = 1/(b::'a::field)"
 using nonzero_mult_divide_mult_cancel_left[of b a 1] by simp
 
 
-lemma nonzero_mult_divide_mult_cancel_left2[simp]:
+lemma nonzero_mult_divide_mult_cancel_left2[simp,noatp]:
   "[|b\<noteq>0; c\<noteq>0|] ==> (c*a) / (b*c) = a/(b::'a::field)"
 using nonzero_mult_divide_mult_cancel_left[of b c a] by(simp add:mult_ac)
 
-lemma nonzero_mult_divide_mult_cancel_right2[simp]:
+lemma nonzero_mult_divide_mult_cancel_right2[simp,noatp]:
   "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (c*b) = a/(b::'a::field)"
 using nonzero_mult_divide_mult_cancel_right[of b c a] by(simp add:mult_ac)
 
@@ -2116,7 +2116,7 @@ qed
 
 subsection {* Theorems for proof tools *}
 
-lemma add_mono_thms_ordered_semiring:
+lemma add_mono_thms_ordered_semiring [noatp]:
   fixes i j k :: "'a\<Colon>pordered_ab_semigroup_add"
   shows "i \<le> j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
     and "i = j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
@@ -2124,7 +2124,7 @@ lemma add_mono_thms_ordered_semiring:
     and "i = j \<and> k = l \<Longrightarrow> i + k = j + l"
 by (rule add_mono, clarify+)+
 
-lemma add_mono_thms_ordered_field:
+lemma add_mono_thms_ordered_field [noatp]:
   fixes i j k :: "'a\<Colon>pordered_cancel_ab_semigroup_add"
   shows "i < j \<and> k = l \<Longrightarrow> i + k < j + l"
     and "i = j \<and> k < l \<Longrightarrow> i + k < j + l"
