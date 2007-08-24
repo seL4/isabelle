@@ -121,6 +121,7 @@ sig
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
+  val incr_type_indexes: int -> thm -> thm
   val incr_indexes: thm -> thm -> thm
   val incr_indexes2: thm -> thm -> thm -> thm
   val remdups_rl: thm
@@ -495,16 +496,16 @@ fun bottom_rl OF rls = rls MRS bottom_rl;
   with no lifting or renaming!  Q may contain ==> or meta-quants
   ALWAYS deletes premise i *)
 fun compose(tha,i,thb) =
-    Seq.list_of (bicompose false (false,tha,0) i thb);
+    distinct Thm.eq_thm (Seq.list_of (bicompose false (false,tha,0) i thb));
 
 fun compose_single (tha,i,thb) =
-  (case compose (tha,i,thb) of
+  case compose (tha,i,thb) of
     [th] => th
-  | _ => raise THM ("compose: unique result expected", i, [tha,thb]));
+  | _ => raise THM ("compose: unique result expected", i, [tha,thb]);
 
 (*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
 fun tha COMP thb =
-    case distinct Thm.eq_thm (compose(tha,1,thb)) of
+    case compose(tha,1,thb) of
         [th] => th
       | _ =>   raise THM("COMP", 1, [tha,thb]);
 
@@ -763,6 +764,13 @@ fun norm_hhf_cterm ct =
 
 
 (* var indexes *)
+
+(*Increment the indexes of only the type variables*)
+fun incr_type_indexes inc th =
+  let val tvs = term_tvars (prop_of th)
+      and thy = theory_of_thm th
+      fun inc_tvar ((a,i),s) = pairself (ctyp_of thy) (TVar ((a,i),s), TVar ((a,i+inc),s))
+  in Thm.instantiate (map inc_tvar tvs, []) th end;
 
 fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
 
