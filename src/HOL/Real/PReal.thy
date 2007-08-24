@@ -17,22 +17,11 @@ text{*Could be generalized and moved to @{text Ring_and_Field}*}
 lemma add_eq_exists: "\<exists>x. a+x = (b::rat)"
 by (rule_tac x="b-a" in exI, simp)
 
-text{*As a special case, the sum of two positives is positive.  One of the
-premises could be weakened to the relation @{text "\<le>"}.*}
-lemma pos_add_strict: "[|0<a; b<c|] ==> b < a + (c::'a::ordered_semidom)"
-by (insert add_strict_mono [of 0 a b c], simp)
-
-lemma interval_empty_iff:
-     "({y::'a::ordered_field. x < y & y < z} = {}) = (~(x < z))"
-by (auto dest: dense)
-
-
 definition
   cut :: "rat set => bool" where
   "cut A = ({} \<subset> A &
             A < {r. 0 < r} &
             (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
-
 
 lemma cut_of_rat: 
   assumes q: "0 < q" shows "cut {r::rat. 0 < r & r < q}" (is "cut ?A")

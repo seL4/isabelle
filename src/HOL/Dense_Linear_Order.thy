@@ -211,10 +211,7 @@ end
 
 section {* The classical QE after Langford for dense linear orders *}
 
-class dense_linear_order = linorder + 
-  assumes gt_ex: "\<exists>y. x \<sqsubset> y" 
-  and lt_ex: "\<exists>y. y \<sqsubset> x"
-  and dense: "x \<sqsubset> y \<Longrightarrow> (\<exists>z. x \<sqsubset> z \<and> z \<sqsubset> y)"
+context dense_linear_order
 begin
 
 lemma dlo_qe_bnds: 
@@ -304,20 +301,8 @@ method_setup dlo = {*
   Method.ctxt_args (Method.SIMPLE_METHOD' o LangfordQE.dlo_tac)
 *} "Langford's algorithm for quantifier elimination in dense linear orders"
 
-interpretation dlo_ordring_class: dense_linear_order ["op \<le> \<Colon> 'a\<Colon>ordered_field \<Rightarrow> _" "op <"]
-apply unfold_locales
-apply (rule_tac x = "x + 1" in exI, simp)
-apply (rule_tac x = "x - 1" in exI, simp)
-apply (rule_tac x = "(x + y) / (1 + 1)" in exI)
-apply (rule conjI)
-apply (rule less_half_sum, simp)
-apply (rule gt_half_sum, simp)
-done
-
 
 section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields -- see @{text "Arith_Tools.thy"} *}
-
-
 
 text {* Linear order without upper bounds *}
 
@@ -428,6 +413,10 @@ instance advanced constr_dense_linear_order < dense_linear_order
   apply unfold_locales
   using gt_ex lt_ex between_less
     by (auto, rule_tac x="between x y" in exI, simp)
+(*FIXME*)
+lemmas gt_ex = dense_linear_order_class.less_eq_less.gt_ex
+lemmas lt_ex = dense_linear_order_class.less_eq_less.lt_ex
+lemmas dense = dense_linear_order_class.less_eq_less.dense
 
 context constr_dense_linear_order
 begin
@@ -555,9 +544,5 @@ use "Tools/Qelim/ferrante_rackoff.ML"
 method_setup ferrack = {*
   Method.ctxt_args (Method.SIMPLE_METHOD' o FerranteRackoff.dlo_tac)
 *} "Ferrante and Rackoff's algorithm for quantifier elimination in dense linear orders"
-
-
-(*FIXME: synchronize dense orders with existing algebra*)
-lemmas dense = Ring_and_Field.dense
 
 end 

@@ -236,53 +236,6 @@ by (simp add: max_def)
 end
 
 
-subsection {* Name duplicates *}
-
-lemmas order_less_le = less_le
-lemmas order_eq_refl = order_class.eq_refl
-lemmas order_less_irrefl = order_class.less_irrefl
-lemmas order_le_less = order_class.le_less
-lemmas order_le_imp_less_or_eq = order_class.le_imp_less_or_eq
-lemmas order_less_imp_le = order_class.less_imp_le
-lemmas order_less_imp_not_eq = order_class.less_imp_not_eq
-lemmas order_less_imp_not_eq2 = order_class.less_imp_not_eq2
-lemmas order_neq_le_trans = order_class.neq_le_trans
-lemmas order_le_neq_trans = order_class.le_neq_trans
-
-lemmas order_antisym = antisym
-lemmas order_less_not_sym = order_class.less_not_sym
-lemmas order_less_asym = order_class.less_asym
-lemmas order_eq_iff = order_class.eq_iff
-lemmas order_antisym_conv = order_class.antisym_conv
-lemmas order_less_trans = order_class.less_trans
-lemmas order_le_less_trans = order_class.le_less_trans
-lemmas order_less_le_trans = order_class.less_le_trans
-lemmas order_less_imp_not_less = order_class.less_imp_not_less
-lemmas order_less_imp_triv = order_class.less_imp_triv
-lemmas order_less_asym' = order_class.less_asym'
-
-lemmas linorder_linear = linear
-lemmas linorder_less_linear = linorder_class.less_linear
-lemmas linorder_le_less_linear = linorder_class.le_less_linear
-lemmas linorder_le_cases = linorder_class.le_cases
-lemmas linorder_not_less = linorder_class.not_less
-lemmas linorder_not_le = linorder_class.not_le
-lemmas linorder_neq_iff = linorder_class.neq_iff
-lemmas linorder_neqE = linorder_class.neqE
-lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
-lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
-lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
-
-lemmas min_le_iff_disj = linorder_class.min_le_iff_disj
-lemmas le_max_iff_disj = linorder_class.le_max_iff_disj
-lemmas min_less_iff_disj = linorder_class.min_less_iff_disj
-lemmas less_max_iff_disj = linorder_class.less_max_iff_disj
-lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj
-lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj
-lemmas split_min = linorder_class.split_min
-lemmas split_max = linorder_class.split_max
-
-
 subsection {* Reasoning tools setup *}
 
 ML {*
@@ -336,25 +289,25 @@ end);*)
 
 structure Order_Tac = Order_Tac_Fun (
 struct
-  val less_reflE = thm "order_less_irrefl" RS thm "notE";
-  val le_refl = thm "order_refl";
-  val less_imp_le = thm "order_less_imp_le";
-  val not_lessI = thm "linorder_not_less" RS thm "iffD2";
-  val not_leI = thm "linorder_not_le" RS thm "iffD2";
-  val not_lessD = thm "linorder_not_less" RS thm "iffD1";
-  val not_leD = thm "linorder_not_le" RS thm "iffD1";
-  val eqI = thm "order_antisym";
-  val eqD1 = thm "order_eq_refl";
-  val eqD2 = thm "sym" RS thm "order_eq_refl";
-  val less_trans = thm "order_less_trans";
-  val less_le_trans = thm "order_less_le_trans";
-  val le_less_trans = thm "order_le_less_trans";
-  val le_trans = thm "order_trans";
-  val le_neq_trans = thm "order_le_neq_trans";
-  val neq_le_trans = thm "order_neq_le_trans";
-  val less_imp_neq = thm "less_imp_neq";
-  val eq_neq_eq_imp_neq = thm "eq_neq_eq_imp_neq";
-  val not_sym = thm "not_sym";
+  val less_reflE = @{thm less_irrefl} RS @{thm notE};
+  val le_refl = @{thm order_refl};
+  val less_imp_le = @{thm less_imp_le};
+  val not_lessI = @{thm not_less} RS @{thm iffD2};
+  val not_leI = @{thm not_le} RS @{thm iffD2};
+  val not_lessD = @{thm not_less} RS @{thm iffD1};
+  val not_leD = @{thm not_le} RS @{thm iffD1};
+  val eqI = @{thm antisym};
+  val eqD1 = @{thm eq_refl};
+  val eqD2 = @{thm sym} RS @{thm eq_refl};
+  val less_trans = @{thm less_trans};
+  val less_le_trans = @{thm less_le_trans};
+  val le_less_trans = @{thm le_less_trans};
+  val le_trans = @{thm order_trans};
+  val le_neq_trans = @{thm le_neq_trans};
+  val neq_le_trans = @{thm neq_le_trans};
+  val less_imp_neq = @{thm less_imp_neq};
+  val eq_neq_eq_imp_neq = @{thm eq_neq_eq_imp_neq};
+  val not_sym = @{thm not_sym};
   val decomp_part = decomp_gen ["Orderings.order"];
   val decomp_lin = decomp_gen ["Orderings.linorder"];
 end);
@@ -376,9 +329,9 @@ fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
          let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s))
          in case find_first (prp t) prems of
               NONE => NONE
-            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_antisym_conv1}))
+            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv1}))
          end
-     | SOME thm => SOME(mk_meta_eq(thm RS @{thm order_antisym_conv}))
+     | SOME thm => SOME(mk_meta_eq(thm RS @{thm order_class.antisym_conv}))
   end
   handle THM _ => NONE;
 
@@ -391,9 +344,9 @@ fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
          let val t = HOLogic.mk_Trueprop(NotC $ (less $ s $ r))
          in case find_first (prp t) prems of
               NONE => NONE
-            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_antisym_conv3}))
+            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv3}))
          end
-     | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_antisym_conv2}))
+     | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv2}))
   end
   handle THM _ => NONE;
 
@@ -418,6 +371,66 @@ in
      of 5 March 2004, was observed). *)
 end
 *}
+
+
+subsection {* Dense orders *}
+
+class dense_linear_order = linorder + 
+  assumes gt_ex: "\<exists>y. x \<sqsubset> y" 
+  and lt_ex: "\<exists>y. y \<sqsubset> x"
+  and dense: "x \<sqsubset> y \<Longrightarrow> (\<exists>z. x \<sqsubset> z \<and> z \<sqsubset> y)"
+  (*see further theory Dense_Linear_Order*)
+
+lemma interval_empty_iff:
+  fixes x y z :: "'a\<Colon>dense_linear_order"
+  shows "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
+  by (auto dest: dense)
+
+subsection {* Name duplicates *}
+
+lemmas order_less_le = less_le
+lemmas order_eq_refl = order_class.eq_refl
+lemmas order_less_irrefl = order_class.less_irrefl
+lemmas order_le_less = order_class.le_less
+lemmas order_le_imp_less_or_eq = order_class.le_imp_less_or_eq
+lemmas order_less_imp_le = order_class.less_imp_le
+lemmas order_less_imp_not_eq = order_class.less_imp_not_eq
+lemmas order_less_imp_not_eq2 = order_class.less_imp_not_eq2
+lemmas order_neq_le_trans = order_class.neq_le_trans
+lemmas order_le_neq_trans = order_class.le_neq_trans
+
+lemmas order_antisym = antisym
+lemmas order_less_not_sym = order_class.less_not_sym
+lemmas order_less_asym = order_class.less_asym
+lemmas order_eq_iff = order_class.eq_iff
+lemmas order_antisym_conv = order_class.antisym_conv
+lemmas order_less_trans = order_class.less_trans
+lemmas order_le_less_trans = order_class.le_less_trans
+lemmas order_less_le_trans = order_class.less_le_trans
+lemmas order_less_imp_not_less = order_class.less_imp_not_less
+lemmas order_less_imp_triv = order_class.less_imp_triv
+lemmas order_less_asym' = order_class.less_asym'
+
+lemmas linorder_linear = linear
+lemmas linorder_less_linear = linorder_class.less_linear
+lemmas linorder_le_less_linear = linorder_class.le_less_linear
+lemmas linorder_le_cases = linorder_class.le_cases
+lemmas linorder_not_less = linorder_class.not_less
+lemmas linorder_not_le = linorder_class.not_le
+lemmas linorder_neq_iff = linorder_class.neq_iff
+lemmas linorder_neqE = linorder_class.neqE
+lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
+lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
+lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
+
+lemmas min_le_iff_disj = linorder_class.min_le_iff_disj
+lemmas le_max_iff_disj = linorder_class.le_max_iff_disj
+lemmas min_less_iff_disj = linorder_class.min_less_iff_disj
+lemmas less_max_iff_disj = linorder_class.less_max_iff_disj
+lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj
+lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj
+lemmas split_min = linorder_class.split_min
+lemmas split_max = linorder_class.split_max
 
 
 subsection {* Bounded quantifiers *}
@@ -754,6 +767,7 @@ instance bool :: order
   le_bool_def: "P \<le> Q \<equiv> P \<longrightarrow> Q"
   less_bool_def: "P < Q \<equiv> P \<le> Q \<and> P \<noteq> Q"
   by intro_classes (auto simp add: le_bool_def less_bool_def)
+lemmas [code func del] = le_bool_def less_bool_def
 
 lemma le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<le> Q"
 by (simp add: le_bool_def)

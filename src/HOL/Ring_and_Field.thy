@@ -325,6 +325,11 @@ class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
   (*previously ordered_semiring*)
   assumes zero_less_one [simp]: "\<^loc>0 \<sqsubset> \<^loc>1"
 
+lemma pos_add_strict:
+  fixes a b c :: "'a\<Colon>ordered_semidom"
+  shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
+  using add_strict_mono [of 0 a b c] by simp
+
 class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + lordered_ab_group + abs_if
   (*previously ordered_ring*)
 
@@ -1878,8 +1883,15 @@ by (simp add: field_simps zero_less_two)
 lemma gt_half_sum: "a < b ==> (a+b)/(1+1::'a::ordered_field) < b"
 by (simp add: field_simps zero_less_two)
 
-lemma dense: "a < b ==> \<exists>r::'a::ordered_field. a < r & r < b"
-by (blast intro!: less_half_sum gt_half_sum)
+instance ordered_field < dense_linear_order
+proof
+  fix x y :: 'a
+  have "x < x + 1" by simp
+  then show "\<exists>y. x < y" .. 
+  have "x - 1 < x" by simp
+  then show "\<exists>y. y < x" ..
+  show "x < y \<Longrightarrow> \<exists>z>x. z < y" by (blast intro!: less_half_sum gt_half_sum)
+qed
 
 
 subsection {* Absolute Value *}

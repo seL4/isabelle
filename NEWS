@@ -635,6 +635,9 @@ the graph browser tool.
 
 *** HOL ***
 
+* Formulation of theorem "dense" changed slightly due to integration with new
+class dense_linear_order.
+
 * theory Finite_Set: "name-space" locales Lattice, Distrib_lattice, Linorder etc.
 have disappeared; operations defined in terms of fold_set now are named
 Inf_fin, Sup_fin.  INCOMPATIBILITY.
