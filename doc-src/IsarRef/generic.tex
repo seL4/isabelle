@@ -912,6 +912,7 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
   COMP & : & \isaratt \\[0.5ex]
   unfolded & : & \isaratt \\
   folded & : & \isaratt \\[0.5ex]
+  rotated & : & \isaratt \\
   elim_format & : & \isaratt \\
   standard^* & : & \isaratt \\
   no_vars^* & : & \isaratt \\
@@ -926,6 +927,7 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
   ;
   ('unfolded' | 'folded') thmrefs
   ;
+  'rotated' ( int )?
 \end{rail}
 
 \begin{descr}
@@ -944,6 +946,8 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
   
 \item [$unfolded~\vec a$ and $folded~\vec a$] expand and fold back
   again the given definitions throughout a rule.
+
+\item [$rotated~n$] rotate the premises of a theorem by $n$ (default 1).
 
 \item [$elim_format$] turns a destruction rule into elimination rule format,
   by resolving with the rule $\PROP A \Imp (\PROP A \Imp \PROP B) \Imp \PROP
