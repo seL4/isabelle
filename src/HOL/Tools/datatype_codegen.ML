@@ -543,7 +543,7 @@ fun add_datatype_spec (tyco, (vs, cos)) thy =
   in try (Code.add_datatype cs) thy |> the_default thy end;
 
 val codetype_hook =
-  fold (fn (dtco, (_, spec)) => add_datatype_spec (dtco, spec));
+  fold (fn (dtco, (_ : bool, spec)) => add_datatype_spec (dtco, spec));
 
 
 (* instrumentalizing the sort algebra *)
