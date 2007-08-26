@@ -8,6 +8,11 @@ theory Codegenerator
 imports ExecutableContent
 begin
 
+ML {*
+nonfix union;
+nonfix inter;
+*}
+
 export_code * in SML module_name CodegenTest
   in OCaml file -
   in Haskell file -
