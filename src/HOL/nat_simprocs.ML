@@ -547,7 +547,7 @@ test "(a*(b*c)) div (d*(b::nat)*(x*a)) = (uu::nat)";
 local
 
 (* reduce contradictory <= to False *)
-val add_rules =
+val add_rules = @{thms ring_distribs} @
   [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1}, @{thm nat_0}, @{thm nat_1},
    @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
    @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
@@ -555,8 +555,20 @@ val add_rules =
    @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
    @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
    @{thm mult_Suc}, @{thm mult_Suc_right},
+   @{thm add_Suc}, @{thm add_Suc_right},
    @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
    @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of}, @{thm if_True}, @{thm if_False}];
+
+(* Products are multiplied out during proof (re)construction via
+ring_distribs. Ideally they should remain atomic. But that is
+currently not possible because 1 is replaced by Suc 0, and then some
+simprocs start to mess around with products like (n+1)*m. The rule
+1 == Suc 0 is necessary for early parts of HOL where numerals and
+simprocs are not yet available. But then it is difficult to remove
+that rule later on, because it may find its way back in when theories
+(and thus lin-arith simpsets) are merged. Otherwise one could turn the
+rule around (Suc n = n+1) and see if that helps products being left
+alone. *)
 
 val simprocs = Nat_Numeral_Simprocs.combine_numerals
   :: Nat_Numeral_Simprocs.cancel_numerals;
