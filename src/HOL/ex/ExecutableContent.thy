@@ -19,7 +19,7 @@ imports
   List_Prefix
   Nat_Infinity
   NatPair
-  (*Nested_Environment*)
+  Nested_Environment
   Permutation
   Primes
   Product_ord
