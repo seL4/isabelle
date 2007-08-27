@@ -2,12 +2,11 @@
 
   POLYML_HOME="/usr/proj/polyml/polyml-5.1-test"
   ML_SYSTEM="polyml-5.1"
-  ML_PLATFORM="x86-darwin"
+  ML_PLATFORM="x86-linux"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 500"
 
-
-ISABELLE_HOME_USER=~/isabelle-at-mac-poly-e
+ISABELLE_HOME_USER=~/isabelle-at-poly-p
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
@@ -29,6 +28,6 @@ else
   ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 fi
 
-ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true -g false -M 4"
+ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true -M 2"
 
 HOL_USEDIR_OPTIONS="-p 2"
