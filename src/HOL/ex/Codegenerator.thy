@@ -8,7 +8,7 @@ theory Codegenerator
 imports ExecutableContent
 begin
 
-ML {*
+ML {* (*FIXME get rid of this*)
 nonfix union;
 nonfix inter;
 *}
@@ -16,5 +16,10 @@ nonfix inter;
 export_code * in SML module_name CodegenTest
   in OCaml file -
   in Haskell file -
+
+ML {*
+infix union;
+infix inter;
+*}
 
 end
