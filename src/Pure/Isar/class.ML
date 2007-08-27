@@ -34,6 +34,7 @@ sig
   val unoverload_const: theory -> string * typ -> string
   val inst_const: theory -> string * string -> string
   val param_const: theory -> string -> (string * string) option
+  val params_of_sort: theory -> sort -> (string * (string * typ)) list
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
 
@@ -176,12 +177,10 @@ fun add_inst_def (class, tyco) (c, ty) thy =
   in
     thy
     |> Sign.sticky_prefix name_inst
-    |> Sign.add_consts_i [(c_inst_base, ty, Syntax.NoSyn)]
-    |> `(fn thy => Sign.full_name thy c_inst_base)
-    |-> (fn c_inst => PureThy.add_defs_i true
-          [((Thm.def_name c_inst_base, Logic.mk_equals (Const (c_inst, ty), Const (c, ty))), [])]
-    #-> (fn [def] => add_inst (c, tyco) (c_inst, symmetric def))
-    #> Sign.restore_naming thy)
+    |> PureThy.simple_def ("", [])
+         (((c_inst_base, ty, Syntax.NoSyn), []), Const (c, ty))
+    |-> (fn (c_inst, thm) => add_inst (c, tyco) (c_inst, symmetric thm))
+    |> Sign.restore_naming thy
   end;
 
 fun add_inst_def' (class, tyco) (c, ty) thy =
@@ -347,7 +346,7 @@ fun the_class_data thy class =
 
 val ancestry = Graph.all_succs o fst o ClassData.get;
 
-fun param_map thy =
+fun params_of_sort thy =
   let
     fun params class =
       let
@@ -519,7 +518,7 @@ fun class_intro thy locale class sups =
 
 fun interpretation_in_rule thy (class1, class2) =
   let
-    val (params, consts) = split_list (param_map thy [class1]);
+    val (params, consts) = split_list (params_of_sort thy [class1]);
     (*FIXME also remember this at add_class*)
     fun mk_axioms class =
       let
@@ -572,7 +571,7 @@ fun gen_class add_locale prep_class prep_param bname
     val supexpr = Locale.Merge (suplocales @ includes);
     val supparams = (map fst o Locale.parameters_of_expr thy)
       (Locale.Merge suplocales);
-    val supconsts = AList.make (the o AList.lookup (op =) (param_map thy sups))
+    val supconsts = AList.make (the o AList.lookup (op =) (params_of_sort thy sups))
       (map fst supparams);
     (*val elems_constrains = map
       (Element.Constrains o apsnd (Term.map_type_tfree subst_classtyvar)) supparams;*)
@@ -718,7 +717,7 @@ fun export_fixes thy class =
     val constrain_sort = curry (Sorts.inter_sort (Sign.classes_of thy)) [class];
     val subst_typ = Term.map_type_tfree (fn var as (w, sort) =>
       if SOME w = v then TFree (w, constrain_sort sort) else TFree var);
-    val consts = param_map thy [class];
+    val consts = params_of_sort thy [class];
     fun subst_aterm (t as Free (v, ty)) = (case AList.lookup (op =) consts v
          of SOME (c, _) => Const (c, ty)
           | NONE => t)
@@ -745,7 +744,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
         val tac = (ALLGOALS o ProofContext.fact_tac) [def'];
         val name_locale = (#locale o fst o the_class_data thy) class;
         val def_eq = Thm.prop_of def';
-        val (params, consts) = split_list (param_map thy [class]);
+        val (params, consts) = split_list (params_of_sort thy [class]);
       in
         prove_interpretation tac ((false, prfx), []) (Locale.Locale name_locale)
           ((mk_instT class, mk_inst class params consts), [def_eq])
