@@ -7,7 +7,7 @@ Code generator translation kernel.  Code generator Isar setup.
 
 signature CODE_PACKAGE =
 sig
-  (* interfaces *)
+  (*interfaces*)
   val eval_conv: theory
     -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
        -> string list -> cterm -> thm)
@@ -20,7 +20,7 @@ sig
   val satisfies: theory -> cterm -> string list -> bool;
   val codegen_command: theory -> string -> unit;
 
-  (* axiomatic interfaces *)
+  (*axiomatic interfaces*)
   type appgen;
   val add_appconst: string * appgen -> theory -> theory;
   val appgen_let: appgen;
@@ -429,13 +429,22 @@ fun generate thy funcgr gen it =
     |> fst
   end;
 
+fun code thy permissive cs seris =
+  let
+    val code = Program.get thy;
+    val seris' = map (fn (((target, module), file), args) =>
+      CodeTarget.get_serializer thy target permissive module file args
+        CodeName.labelled_name cs) seris;
+  in (map (fn f => f code) seris' : unit list; ()) end;
+
 fun raw_eval f thy g =
   let
     val value_name = "Isabelle_Eval.EVAL.EVAL";
     fun ensure_eval thy algbr funcgr t = 
       let
         val ty = fastype_of t;
-        val vs = typ_tfrees ty;
+        val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
+          o dest_TFree))) t [];
         val defgen_eval =
           fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
           ##>> exprgen_typ thy algbr funcgr ty
@@ -485,6 +494,77 @@ fun filter_generatable thy consts =
       (consts' ~~ consts'');
   in consts''' end;
 
+fun generate_const_exprs thy raw_cs =
+  let
+    val (perm1, cs) = CodeUnit.read_const_exprs thy
+      (filter_generatable thy) raw_cs;
+    val (perm2, cs') = case generate thy (CodeFuncgr.make thy cs)
+      (fold_map ooo ensure_def_const') cs
+     of [] => (true, NONE)
+      | cs => (false, SOME cs);
+  in (perm1 orelse perm2, cs') end;
+
+
+(** code properties **)
+
+fun mk_codeprops thy all_cs sel_cs =
+  let
+    fun select (thmref, thm) = case try (Drule.unvarify o Drule.zero_var_indexes) thm
+     of NONE => NONE
+      | SOME thm => let
+          val t = (ObjectLogic.drop_judgment thy o Thm.prop_of) thm;
+          val cs = fold_aterms (fn Const (c, ty) =>
+            cons (Class.unoverload_const thy (c, ty)) | _ => I) t [];
+        in if exists (member (op =) sel_cs) cs
+          andalso forall (member (op =) all_cs) cs
+          then SOME (thmref, thm) else NONE end;
+    fun mk_codeprop (thmref, thm) =
+      let
+        val t = ObjectLogic.drop_judgment thy (Thm.prop_of thm);
+        val ty_judg = fastype_of t;
+        val tfrees1 = fold_aterms (fn Const (c, ty) =>
+          Term.add_tfreesT ty | _ => I) t [];
+        val vars = Term.add_frees t [];
+        val tfrees2 = fold (Term.add_tfreesT o snd) vars [];
+        val tfrees' = subtract (op =) tfrees2 tfrees1 |> map TFree;
+        val ty = map Term.itselfT tfrees' @ map snd vars ---> ty_judg;
+        val tfree_vars = map Logic.mk_type tfrees';
+        val c = PureThy.string_of_thmref thmref
+          |> NameSpace.explode
+          |> (fn [x] => [x] | (x::xs) => xs)
+          |> space_implode "_"
+        val propdef = (((c, ty), tfree_vars @ map Free vars), t);
+      in if c = "" then NONE else SOME (thmref, propdef) end;
+  in
+    PureThy.thms_containing thy ([], [])
+    |> maps PureThy.selections
+    |> map_filter select
+    |> map_filter mk_codeprop
+  end;
+
+fun add_codeprops all_cs sel_cs thy =
+  let
+    val codeprops = mk_codeprops thy all_cs sel_cs;
+    fun lift_name_yield f x = (Name.context, x) |> f ||> snd;
+    fun add (thmref, (((raw_c, ty), ts), t)) (names, thy) =
+      let
+        val _ = warning ("Adding theorem " ^ quote (PureThy.string_of_thmref thmref)
+          ^ " as code property " ^ quote raw_c);
+        val ([raw_c'], names') = Name.variants [raw_c] names;
+      in
+        thy
+        |> PureThy.simple_def ("", []) (((raw_c', ty, Syntax.NoSyn), ts), t)
+        ||> pair names'
+      end;
+  in
+    thy
+    |> Sign.sticky_prefix "codeprop"
+    |> lift_name_yield (fold_map add codeprops)
+    ||> Sign.restore_naming thy
+    |-> (fn c_thms => fold (Code.add_func true o snd) c_thms #> pair c_thms)
+  end;
+
+
 
 (** toplevel interface and setup **)
 
@@ -493,20 +573,11 @@ local
 structure P = OuterParse
 and K = OuterKeyword
 
-fun code raw_cs seris thy =
+fun code_cmd raw_cs seris thy =
   let
-    val (perm1, cs) = CodeUnit.read_const_exprs thy
-      (filter_generatable thy) raw_cs;
-    val (perm2, cs') = case generate thy (CodeFuncgr.make thy cs) (fold_map ooo ensure_def_const') cs
-     of [] => (true, NONE)
-      | cs => (false, SOME cs);
-    val code = Program.get thy;
-    val seris' = map (fn (((target, module), file), args) =>
-      CodeTarget.get_serializer thy target (perm1 orelse perm2) module file args
-        CodeName.labelled_name cs') seris;
-  in
-    (map (fn f => f code) seris' : unit list; ())
-  end;
+    val (permissive, cs) = generate_const_exprs thy raw_cs;
+    val _ = code thy permissive cs seris;
+  in () end;
 
 fun code_thms_cmd thy =
   code_thms thy o snd o CodeUnit.read_const_exprs thy (fst o CodeFuncgr.make_consts thy);
@@ -514,28 +585,42 @@ fun code_thms_cmd thy =
 fun code_deps_cmd thy =
   code_deps thy o snd o CodeUnit.read_const_exprs thy (fst o CodeFuncgr.make_consts thy);
 
+fun code_props_cmd raw_cs seris thy =
+  let
+    val (_, all_cs) = generate_const_exprs thy ["*"];
+    val (permissive, cs) = generate_const_exprs thy raw_cs;
+    val (c_thms, thy') = add_codeprops (map (the o CodeName.const_rev thy) (these all_cs))
+      (map (the o CodeName.const_rev thy) (these cs)) thy;
+    val prop_cs = (filter_generatable thy' o map fst) c_thms;
+    val _ = if null seris then [] else generate thy' (CodeFuncgr.make thy' prop_cs)
+      (fold_map ooo ensure_def_const') prop_cs;
+    val _ = if null seris then () else code thy' permissive
+      (SOME (map (CodeName.const thy') prop_cs)) seris;
+  in thy' end;
+
 val (inK, module_nameK, fileK) = ("in", "module_name", "file");
 
-val code_exprP =
+fun code_exprP cmd =
   (Scan.repeat P.term
   -- Scan.repeat (P.$$$ inK |-- P.name
      -- Scan.option (P.$$$ module_nameK |-- P.name)
      -- Scan.option (P.$$$ fileK |-- P.name)
      -- Scan.optional (P.$$$ "(" |-- P.arguments --| P.$$$ ")") []
-  ) >> (fn (raw_cs, seris) => code raw_cs seris));
+  ) >> (fn (raw_cs, seris) => cmd raw_cs seris));
 
 val _ = OuterSyntax.add_keywords [inK, module_nameK, fileK];
 
-val (codeK, code_thmsK, code_depsK) = ("export_code", "code_thms", "code_deps");
+val (codeK, code_thmsK, code_depsK, code_propsK) =
+  ("export_code", "code_thms", "code_deps", "code_props");
 
 in
 
 val codeP =
   OuterSyntax.improper_command codeK "generate executable code for constants"
-    K.diag (P.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+    K.diag (P.!!! (code_exprP code_cmd) >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 fun codegen_command thy cmd =
-  case Scan.read OuterLex.stopper (P.!!! code_exprP) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
+  case Scan.read OuterLex.stopper (P.!!! (code_exprP code_cmd)) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
    of SOME f => (writeln "Now generating code..."; f thy)
     | NONE => error ("Bad directive " ^ quote cmd);
 
@@ -551,8 +636,12 @@ val code_depsP =
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
 
-val _ = OuterSyntax.add_parsers [codeP, code_thmsP, code_depsP];
+val code_propsP =
+  OuterSyntax.command code_propsK "generate characteristic properties for executable constants"
+    K.thy_decl (P.!!! (code_exprP code_props_cmd) >> Toplevel.theory);
 
-end; (* local *)
+val _ = OuterSyntax.add_parsers [codeP, code_thmsP, code_depsP, code_propsP];
 
-end; (* struct *)
+end; (*local*)
+
+end; (*struct*)
