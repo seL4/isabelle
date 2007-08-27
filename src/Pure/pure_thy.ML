@@ -84,6 +84,8 @@ sig
     theory -> thm list list * theory
   val add_axiomss_i: ((bstring * term list) * attribute list) list ->
     theory -> thm list list * theory
+  val simple_def: bstring * attribute list ->
+    ((bstring * typ * mixfix) * term list) * term -> theory -> (string * thm) * theory
   val add_defs: bool -> ((bstring * string) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_i: bool -> ((bstring * term) * attribute list) list ->
@@ -486,6 +488,21 @@ in
   val add_defss            = add_multis o Theory.add_defs false;
   val add_defss_i          = add_multis o Theory.add_defs_i false;
 end;
+
+
+(* simple interface for simple definitions *)
+
+fun simple_def (raw_name, atts) (((raw_c, ty, syn), ts), t) thy =
+  let
+    val c = Sign.full_name thy raw_c;
+    val name = if raw_name = "" then Thm.def_name raw_c else raw_name;
+    val def = Logic.mk_equals (list_comb (Const (c, ty), ts), t);
+  in
+    thy
+    |> Sign.add_consts_authentic [(raw_c, ty, syn)]
+    |> add_defs_i false [((name, def), atts)]
+    |-> (fn [thm] => pair (c, thm))
+  end;
 
 
 
