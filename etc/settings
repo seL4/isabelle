@@ -76,8 +76,8 @@ ML_DBASE=""
 ISABELLE_USEDIR_OPTIONS="-p 1 -v true -V outline=/proof,/ML"
 
 # Specifically for the HOL image
-HOL_USEDIR_OPTIONS="-M 1"
-#HOL_USEDIR_OPTIONS="-M 1 -p 2"
+HOL_USEDIR_OPTIONS=""
+#HOL_USEDIR_OPTIONS="-p 2"
 
 #Source file identification (default: full name + date stamp)
 ISABELLE_FILE_IDENT=""
