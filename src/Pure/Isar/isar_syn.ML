@@ -455,7 +455,7 @@ fun gen_theorem kind =
       Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) ("", []) --
       SpecParse.general_statement >> (fn ((loc, a), (elems, concl)) =>
       (Toplevel.print o
-       Toplevel.local_theory_to_proof loc
+       Toplevel.local_theory_to_proof' loc
          (Specification.theorem kind NONE (K I) a elems concl))));
 
 val theoremP = gen_theorem Thm.theoremK;
