@@ -109,7 +109,7 @@ section {* Big step execution *}
 
 ML {*
 
-val SOME ((_, (heap, locs)), _) = Seq.pull J.test;
+val SOME ((_, (heap, locs)), _) = DSeq.pull J.test;
 locs J.l1_name;
 locs J.l2_name;
 locs J.l3_name;
