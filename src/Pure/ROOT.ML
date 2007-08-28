@@ -88,6 +88,8 @@ use "Proof/extraction.ML";
 
 cd "Tools"; use "ROOT.ML"; cd "..";
 
+use "codegen.ML";
+
 (*configuration for Proof General*)
 cd "ProofGeneral"; use "ROOT.ML"; cd "..";
 
