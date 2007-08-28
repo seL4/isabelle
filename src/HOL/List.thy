@@ -1004,7 +1004,7 @@ by (induct xss) auto
 lemma set_concat [simp]: "set (concat xs) = (UN x:set xs. set x)"
 by (induct xs) auto
 
-lemma concat_map_singleton[simp, code]: "concat(map (%x. [f x]) xs) = map f xs"
+lemma concat_map_singleton[simp, code unfold]: "concat(map (%x. [f x]) xs) = map f xs"
 by (induct xs) auto
 
 lemma map_concat: "map f (concat xs) = concat (map (map f) xs)"
