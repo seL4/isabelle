@@ -42,10 +42,11 @@ sig
     -> local_theory -> (bstring * thm list) list * local_theory
   val theorem: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
     string * Attrib.src list -> Element.context Locale.element list -> Element.statement ->
-    local_theory -> Proof.state
+    bool -> local_theory -> Proof.state
   val theorem_i: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
     string * Attrib.src list -> Element.context_i Locale.element list -> Element.statement_i ->
-    local_theory -> Proof.state
+    bool -> local_theory -> Proof.state
+  val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic
 end;
 
 structure Specification: SPECIFICATION =
@@ -244,8 +245,16 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
                 [((Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
       in ((prems, stmt, facts), goal_ctxt) end);
 
+structure TheoremHook = GenericDataFun
+(
+  type T = ((bool -> Proof.state -> Proof.state) * stamp) list;
+  val empty = [];
+  val extend = I;
+  fun merge _ type_checks : T = Library.merge (eq_snd op =) type_checks;
+);
+
 fun gen_theorem prep_att prep_stmt
-    kind before_qed after_qed (name, raw_atts) raw_elems raw_concl lthy0 =
+    kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy0 =
   let
     val _ = LocalTheory.affirm lthy0;
     val thy = ProofContext.theory_of lthy0;
@@ -280,6 +289,8 @@ fun gen_theorem prep_att prep_stmt
     |> ProofContext.note_thmss_i Thm.assumptionK [((AutoBind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
+    |> Library.apply (map (fn (f, _) => f int)
+      (TheoremHook.get (Context.Proof goal_ctxt)))
     |> Proof.refine_insert facts
   end;
 
@@ -287,6 +298,8 @@ in
 
 val theorem = gen_theorem Attrib.intern_src Locale.read_context_statement_i;
 val theorem_i = gen_theorem (K I) Locale.cert_context_statement;
+
+fun add_theorem_hook f = TheoremHook.map (cons (f, stamp ()));
 
 end;
 
