@@ -293,9 +293,9 @@ fun compile_match nvs eq_ps out_ps success_p can_fail =
       (Pretty.block ((if eqs=[] then [] else Pretty.str "if " ::
          [Pretty.block eqs, Pretty.brk 1, Pretty.str "then "]) @
          (success_p ::
-          (if eqs=[] then [] else [Pretty.brk 1, Pretty.str "else Seq.empty"]))) ::
+          (if eqs=[] then [] else [Pretty.brk 1, Pretty.str "else DSeq.empty"]))) ::
        (if can_fail then
-          [Pretty.brk 1, Pretty.str "| _ => Seq.empty)"]
+          [Pretty.brk 1, Pretty.str "| _ => DSeq.empty)"]
         else [Pretty.str ")"])))
   end;
 
@@ -358,10 +358,6 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
     val ((all_vs', eqs), in_ts') =
       foldl_map check_constrt ((all_vs, []), in_ts);
 
-    fun is_ind t = (case head_of t of
-          Const (s, _) => s = "op =" orelse AList.defined (op =) modes s
-        | Var ((s, _), _) => s mem arg_vs);
-
     fun compile_prems out_ts' vs names gr [] =
           let
             val (gr2, out_ps) = foldl_map
@@ -376,7 +372,7 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
             val (gr5, eq_ps') = foldl_map compile_eq (gr4, eqs')
           in
             (gr5, compile_match (snd nvs) (eq_ps @ eq_ps') out_ps'
-              (Pretty.block [Pretty.str "Seq.single", Pretty.brk 1, mk_tuple out_ps])
+              (Pretty.block [Pretty.str "DSeq.single", Pretty.brk 1, mk_tuple out_ps])
               (exists (not o is_exhaustive) out_ts'''))
           end
       | compile_prems out_ts vs names gr ps =
@@ -399,15 +395,16 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
                    val (in_ts, out_ts''') = get_args js 1 us;
                    val (gr2, in_ps) = foldl_map
                      (invoke_codegen thy defs dep module true) (gr1, in_ts);
-                   val (gr3, ps) = if is_ind t then
+                   val (gr3, ps) = (case body_type (fastype_of t) of
+                       Type ("bool", []) =>
                        apsnd (fn ps => ps @
                            (if null in_ps then [] else [Pretty.brk 1]) @
                            separate (Pretty.brk 1) in_ps)
                          (compile_expr thy defs dep module false modes
                            (gr2, (mode, t)))
-                     else
-                       apsnd (fn p => [Pretty.str "Seq.of_list", Pretty.brk 1, p])
-                           (invoke_codegen thy defs dep module true (gr2, t));
+                     | _ =>
+                       apsnd (fn p => [Pretty.str "DSeq.of_list", Pretty.brk 1, p])
+                           (invoke_codegen thy defs dep module true (gr2, t)));
                    val (gr4, rest) = compile_prems out_ts''' vs' (fst nvs) gr3 ps';
                  in
                    (gr4, compile_match (snd nvs) eq_ps out_ps
@@ -429,7 +426,7 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
 
     val (gr', prem_p) = compile_prems in_ts' arg_vs all_vs' gr ps;
   in
-    (gr', Pretty.block [Pretty.str "Seq.single", Pretty.brk 1, inp,
+    (gr', Pretty.block [Pretty.str "DSeq.single", Pretty.brk 1, inp,
        Pretty.str " :->", Pretty.brk 1, prem_p])
   end;
 
@@ -609,7 +606,7 @@ fun mk_fun thy defs name eqns dep module module' gr =
       val vars = map (fn i => Pretty.str ("x" ^ string_of_int i)) mode;
       val s = Pretty.string_of (Pretty.block
         [mk_app false (Pretty.str ("fun " ^ snd fun_id)) vars, Pretty.str " =",
-         Pretty.brk 1, Pretty.str "Seq.hd", Pretty.brk 1,
+         Pretty.brk 1, Pretty.str "DSeq.hd", Pretty.brk 1,
          parens (Pretty.block (separate (Pretty.brk 1) (Pretty.str mode_id ::
            vars)))]) ^ ";\n\n";
       val gr'' = mk_ind_def thy defs (add_edge (name, dep)
@@ -639,7 +636,7 @@ fun conv_ntuple fs ts p =
   in
     if k > 0 then
       Pretty.block
-        [Pretty.str "Seq.map (fn", Pretty.brk 1,
+        [Pretty.str "DSeq.map (fn", Pretty.brk 1,
          mk_tuple xs', Pretty.str " =>", Pretty.brk 1, fst (conv xs []),
          Pretty.str ")", Pretty.brk 1, parens p]
     else p
@@ -665,7 +662,7 @@ fun inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
                     let val (gr', call_p) = mk_ind_call thy defs gr dep module true
                       s T (ts1 @ ts2') names thyname k intrs
                     in SOME (gr', (if brack then parens else I) (Pretty.block
-                      [Pretty.str "Seq.list_of", Pretty.brk 1, Pretty.str "(",
+                      [Pretty.str "DSeq.list_of", Pretty.brk 1, Pretty.str "(",
                        conv_ntuple fs ots call_p, Pretty.str ")"]))
                     end
                   else NONE
@@ -703,22 +700,51 @@ val setup =
 end;
 
 
+(**** sequences with recursion depth limit ****)
+
+structure DSeq =
+struct
+
+fun maps f s 0 = Seq.empty
+  | maps f s i = Seq.maps (fn a => f a i) (s (i - 1));
+
+fun map f s i = Seq.map f (s i);
+
+fun append s1 s2 i = Seq.append (s1 i) (s2 i);
+
+fun interleave s1 s2 i = Seq.interleave (s1 i, s2 i);
+
+fun single x i = Seq.single x;
+
+fun empty i = Seq.empty;
+
+fun of_list xs i = Seq.of_list xs;
+
+fun list_of s = Seq.list_of (s ~1);
+
+fun pull s = Seq.pull (s ~1);
+
+fun hd s = Seq.hd (s ~1);
+
+end;
+
+
 (**** combinators for code generated from inductive predicates ****)
 
 infix 5 :->;
 infix 3 ++;
 
-fun s :-> f = Seq.maps f s;
+fun s :-> f = DSeq.maps f s;
 
-fun s1 ++ s2 = Seq.append s1 s2;
+fun s1 ++ s2 = DSeq.append s1 s2;
 
-fun ?? b = if b then Seq.single () else Seq.empty;
+fun ?? b = if b then DSeq.single () else DSeq.empty;
 
 fun ??? f g = f o g;
 
-fun ?! s = is_some (Seq.pull s);
+fun ?! s = is_some (DSeq.pull s);
 
-fun equal__1 x = Seq.single x;
+fun equal__1 x = DSeq.single x;
 
 val equal__2 = equal__1;
 
