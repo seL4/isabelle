@@ -235,13 +235,13 @@ fun add_catchall ctxt fixes spec =
 
 fun warn_if_redundant ctxt origs tss =
     let
-	fun msg t = "Ignoring redundant equation: " ^ quote (ProofContext.string_of_term ctxt t)
-
-	val (tss', _) = chop (length origs) tss
-	fun check ((_, t), []) = (Output.warning (msg t); [])
-	  | check ((_, t), s) = s
+        fun msg t = "Ignoring redundant equation: " ^ quote (ProofContext.string_of_term ctxt t)
+                    
+        val (tss', _) = chop (length origs) tss
+        fun check ((_, t), []) = (Output.warning (msg t); [])
+          | check ((_, t), s) = s
     in
-	map check (origs ~~ tss')
+        (map check (origs ~~ tss'); tss)
     end
 
 
@@ -262,10 +262,10 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
                            |> tap (map (check_pats ctxt))    (* More checks for sequential mode *)
                            |> curry op ~~ flags'
 
-	  val compleqs = add_catchall ctxt fixes feqs   (* Completion *)
+    val compleqs = add_catchall ctxt fixes feqs   (* Completion *)
 
-	  val spliteqs = warn_if_redundant ctxt feqs
-					   (FundefSplit.split_some_equations ctxt compleqs)
+    val spliteqs = warn_if_redundant ctxt feqs
+             (FundefSplit.split_some_equations ctxt compleqs)
 
           fun restore_spec thms =
               nas ~~ Library.take (length nas, Library.unflat spliteqs thms)
