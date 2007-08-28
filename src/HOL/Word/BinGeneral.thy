@@ -9,53 +9,48 @@
 
 header {* Basic Definitions for Binary Integers *}
 
-theory BinGeneral imports BinInduct Num_Lemmas
+theory BinGeneral imports Num_Lemmas
 
 begin
 
-subsection {* BIT as a datatype constructor *}
-
-(** ways in which type Bin resembles a datatype **)
-
-lemmas BIT_eqI = conjI [THEN BIT_eq_iff [THEN iffD2]]
-
-lemma neB1E [elim!]:
-  assumes ne: "y \<noteq> bit.B1"
-  assumes y: "y = bit.B0 \<Longrightarrow> P"
-  shows "P"
-  apply (rule y)
-  apply (cases y rule: bit.exhaust, simp)
-  apply (simp add: ne)
-  done
-
-lemma bin_exhaust:
-  assumes Q: "\<And>x b. bin = x BIT b \<Longrightarrow> Q"
-  shows "Q"
-  by (rule BIT_cases, rule Q)
-
 subsection {* Recursion combinator for binary integers *}
+
+lemma brlem: "(bin = Numeral.Min) = (- bin + Numeral.pred 0 = 0)"
+  unfolding Min_def pred_def by arith
 
 function
   bin_rec' :: "int * 'a * 'a * (int => bit => 'a => 'a) => 'a"  
   where 
   "bin_rec' (bin, f1, f2, f3) = (if bin = Numeral.Pls then f1 
     else if bin = Numeral.Min then f2
-    else f3 (bin_rest bin) (bin_last bin)
-            (bin_rec' (bin_rest bin, f1, f2, f3)))"
+    else case bin_rl bin of (w, b) => f3 w b (bin_rec' (w, f1, f2, f3)))"
   by pat_completeness auto
 
 termination 
-  by (relation "measure (size o fst)") simp_all
+  apply (relation "measure (nat o abs o fst)")
+   apply simp
+  apply (simp add: Pls_def brlem)
+  apply (clarsimp simp: bin_rl_char pred_def)
+  apply (frule thin_rl [THEN refl [THEN bin_abs_lem [rule_format]]]) 
+    apply (unfold Pls_def Min_def number_of_eq)
+    prefer 2
+    apply (erule asm_rl)
+   apply auto
+  done
 
 constdefs
   bin_rec :: "'a => 'a => (int => bit => 'a => 'a) => int => 'a"
   "bin_rec f1 f2 f3 bin == bin_rec' (bin, f1, f2, f3)"
 
-lemma bin_rec_Pls: "bin_rec f1 f2 f3 Numeral.Pls = f1"
-  unfolding bin_rec_def by simp
+lemma bin_rec_PM:
+  "f = bin_rec f1 f2 f3 ==> f Numeral.Pls = f1 & f Numeral.Min = f2"
+  apply safe
+   apply (unfold bin_rec_def)
+   apply (auto intro: bin_rec'.simps [THEN trans])
+  done
 
-lemma bin_rec_Min: "bin_rec f1 f2 f3 Numeral.Min = f2"
-  unfolding bin_rec_def by simp
+lemmas bin_rec_Pls = refl [THEN bin_rec_PM, THEN conjunct1, standard]
+lemmas bin_rec_Min = refl [THEN bin_rec_PM, THEN conjunct2, standard]
 
 lemma bin_rec_Bit:
   "f = bin_rec f1 f2 f3  ==> f3 Numeral.Pls bit.B0 f1 = f1 ==> 
@@ -64,23 +59,46 @@ lemma bin_rec_Bit:
   apply (unfold bin_rec_def)
   apply (rule bin_rec'.simps [THEN trans])
   apply auto
+       apply (unfold Pls_def Min_def Bit_def)
+       apply (cases b, auto)+
   done
 
 lemmas bin_rec_simps = refl [THEN bin_rec_Bit] bin_rec_Pls bin_rec_Min
 
-subsection {* Sign of binary integers *}
+subsection {* Destructors for binary integers *}
 
 consts
+  -- "corresponding operations analysing bins"
+  bin_last :: "int => bit"
+  bin_rest :: "int => int"
   bin_sign :: "int => int"
+  bin_nth :: "int => nat => bool"
+
+primrec
+  Z : "bin_nth w 0 = (bin_last w = bit.B1)"
+  Suc : "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
 
 defs  
+  bin_rest_def : "bin_rest w == fst (bin_rl w)"
+  bin_last_def : "bin_last w == snd (bin_rl w)"
   bin_sign_def : "bin_sign == bin_rec Numeral.Pls Numeral.Min (%w b s. s)"
 
-lemmas bin_rest_simps =
-  bin_rest_Pls bin_rest_Min bin_rest_BIT
+lemma bin_rl: "bin_rl w = (bin_rest w, bin_last w)"
+  unfolding bin_rest_def bin_last_def by auto
 
-lemmas bin_last_simps =
-  bin_last_Pls bin_last_Min bin_last_BIT
+lemmas bin_rl_simp [simp] = iffD1 [OF bin_rl_char bin_rl]
+
+lemma bin_rest_simps [simp]: 
+  "bin_rest Numeral.Pls = Numeral.Pls"
+  "bin_rest Numeral.Min = Numeral.Min"
+  "bin_rest (w BIT b) = w"
+  unfolding bin_rest_def by auto
+
+lemma bin_last_simps [simp]: 
+  "bin_last Numeral.Pls = bit.B0"
+  "bin_last Numeral.Min = bit.B1"
+  "bin_last (w BIT b) = b"
+  unfolding bin_last_def by auto
     
 lemma bin_sign_simps [simp]:
   "bin_sign Numeral.Pls = Numeral.Pls"
@@ -105,30 +123,24 @@ lemma bin_r_l_extras [simp]:
 
 lemma bin_last_mod: 
   "bin_last w = (if w mod 2 = 0 then bit.B0 else bit.B1)"
-  apply (subgoal_tac "bin_last w =
-         (if number_of w mod 2 = (0::int) then bit.B0 else bit.B1)")
-   apply (simp only: number_of_is_id)
-  apply (induct w rule: int_bin_induct, simp_all)
+  apply (case_tac w rule: bin_exhaust)
+  apply (case_tac b)
+   apply auto
   done
 
 lemma bin_rest_div: 
   "bin_rest w = w div 2"
-  apply (subgoal_tac "number_of (bin_rest w) = number_of w div (2::int)")
-   apply (simp only: number_of_is_id)
-  apply (induct w rule: int_bin_induct, simp_all)
+  apply (case_tac w rule: bin_exhaust)
+  apply (rule trans)
+   apply clarsimp
+   apply (rule refl)
+  apply (drule trans)
+   apply (rule Bit_def)
+  apply (simp add: z1pdiv2 split: bit.split)
   done
 
 lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
   unfolding bin_rest_div [symmetric] by auto
-
-subsection {* Testing bit positions *}
-
-consts
-  bin_nth :: "int => nat => bool"
-
-primrec
-  Z : "bin_nth w 0 = (bin_last w = bit.B1)"
-  Suc : "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
 
 lemma bin_nth_lem [rule_format]:
   "ALL y. bin_nth x = bin_nth y --> x = y"
@@ -232,7 +244,13 @@ lemma sbintrunc_mod2p:
   apply (auto simp: even_def)
   done
 
-text "Simplifications for (s)bintrunc"
+subsection "Simplifications for (s)bintrunc"
+
+lemma bit_bool:
+  "(b = (b' = bit.B1)) = (b' = (if b then bit.B1 else bit.B0))"
+  by (cases b') auto
+
+lemmas bit_bool1 [simp] = refl [THEN bit_bool [THEN iffD1], symmetric]
 
 lemma bin_sign_lem:
   "!!bin. (bin_sign (sbintrunc n bin) = Numeral.Min) = bin_nth bin n"
