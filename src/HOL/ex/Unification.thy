@@ -178,7 +178,7 @@ next
   show "\<theta> =\<^sub>s [(v,t)] \<bullet> \<theta>" 
   proof
     fix s show "s \<triangleleft> \<theta> = s \<triangleleft> [(v,t)] \<bullet> \<theta>" using th 
-      by (induct s, auto)
+      by (induct s) auto
   qed
 qed
 
@@ -194,7 +194,7 @@ lemma unify_partial_correctness:
   assumes "unify_dom (M, N)"
   assumes "unify M N = Some \<sigma>"
   shows "MGU \<sigma> M N"
-using prems
+using assms
 proof (induct M N arbitrary: \<sigma>)
   case (7 M N M' N' \<sigma>) -- "The interesting case"
 
@@ -357,21 +357,21 @@ lemma unify_vars:
   assumes "unify M N = Some \<sigma>"
   shows "vars_of (t \<triangleleft> \<sigma>) \<subseteq> vars_of M \<union> vars_of N \<union> vars_of t"
   (is "?P M N \<sigma> t")
-using prems
+using assms
 proof (induct M N arbitrary:\<sigma> t)
   case (3 c v) 
   hence "\<sigma> = [(v, Const c)]" by simp
-  thus ?case by (induct t, auto)
+  thus ?case by (induct t) auto
 next
   case (4 M N v) 
   hence "\<not>occ (Var v) (M\<cdot>N)" by (cases "occ (Var v) (M\<cdot>N)", auto)
-  with prems have "\<sigma> = [(v, M\<cdot>N)]" by simp
-  thus ?case by (induct t, auto)
+  with 4 have "\<sigma> = [(v, M\<cdot>N)]" by simp
+  thus ?case by (induct t) auto
 next
   case (5 v M)
   hence "\<not>occ (Var v) M" by (cases "occ (Var v) M", auto)
-  with prems have "\<sigma> = [(v, M)]" by simp
-  thus ?case by (induct t, auto)
+  with 5 have "\<sigma> = [(v, M)]" by simp
+  thus ?case by (induct t) auto
 next
   case (7 M N M' N' \<sigma>)
   then obtain \<theta>1 \<theta>2 
@@ -420,7 +420,7 @@ lemma unify_eliminates:
   assumes "unify M N = Some \<sigma>"
   shows "(\<exists>v\<in>vars_of M \<union> vars_of N. elim \<sigma> v) \<or> \<sigma> =\<^sub>s []"
   (is "?P M N \<sigma>")
-using prems
+using assms
 proof (induct M N arbitrary:\<sigma>)
   case 1 thus ?case by simp
 next
@@ -428,19 +428,19 @@ next
 next
   case (3 c v)
   have no_occ: "\<not> occ (Var v) (Const c)" by simp
-  with prems have "\<sigma> = [(v, Const c)]" by simp
+  with 3 have "\<sigma> = [(v, Const c)]" by simp
   with occ_elim[OF no_occ]
   show ?case by auto
 next
   case (4 M N v)
   hence no_occ: "\<not>occ (Var v) (M\<cdot>N)" by (cases "occ (Var v) (M\<cdot>N)", auto)
-  with prems have "\<sigma> = [(v, M\<cdot>N)]" by simp
+  with 4 have "\<sigma> = [(v, M\<cdot>N)]" by simp
   with occ_elim[OF no_occ]
   show ?case by auto 
 next
   case (5 v M) 
   hence no_occ: "\<not>occ (Var v) M" by (cases "occ (Var v) M", auto)
-  with prems have "\<sigma> = [(v, M)]" by simp
+  with 5 have "\<sigma> = [(v, M)]" by simp
   with occ_elim[OF no_occ]
   show ?case by auto 
 next 
