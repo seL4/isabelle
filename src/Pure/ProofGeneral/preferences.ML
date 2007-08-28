@@ -58,7 +58,7 @@ val bool_pref =
 val proof_pref =
     let
         fun get () = PgipTypes.bool_to_pgstring (! proofs >= 2)
-        fun set s = proofs := (if PgipTypes.read_pgipbool s then 1 else 2)
+        fun set s = proofs := (if PgipTypes.read_pgipbool s then 2 else 1)
     in
         mkpref get set PgipTypes.Pgipbool "full-proofs"
                "Record full proof objects internally"
@@ -139,7 +139,10 @@ val tracing_preferences =
                "Whether to enable timing in Isabelle.",
      bool_pref Toplevel.debug
                 "debugging"
-                "Whether to enable debugging."]
+                "Whether to enable debugging.",
+     bool_pref Codegen.auto_quickcheck
+                "auto-quickcheck"
+                "Whether to enable quickcheck automatically."]
 
 val proof_preferences =
     [bool_pref quick_and_dirty
@@ -148,6 +151,7 @@ val proof_preferences =
      bool_pref Toplevel.skip_proofs
                "skip-proofs"
                "Skip over proofs (interactive-only)",
+     proof_pref,
      nat_pref Multithreading.max_threads
                "max-threads"
                "Maximum number of threads"]
