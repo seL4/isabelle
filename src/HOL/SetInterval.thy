@@ -253,14 +253,20 @@ by blast
 
 subsubsection {* The Constant @{term atLeastLessThan} *}
 
-text{*But not a simprule because some concepts are better left in terms
-  of @{term atLeastLessThan}*}
+text{*The orientation of the following rule is tricky. The lhs is
+defined in terms of the rhs.  Hence the chosen orientation makes sense
+in this theory --- the reverse orientation complicates proofs (eg
+nontermination). But outside, when the definition of the lhs is rarely
+used, the opposite orientation seems preferable because it reduces a
+specific concept to a more general one. *}
 lemma atLeast0LessThan: "{0::nat..<n} = {..<n}"
 by(simp add:lessThan_def atLeastLessThan_def)
-(*
-lemma atLeastLessThan0 [simp]: "{m..<0::nat} = {}"
+
+declare atLeast0LessThan[symmetric, code unfold]
+
+lemma atLeastLessThan0: "{m..<0::nat} = {}"
 by (simp add: atLeastLessThan_def)
-*)
+
 subsubsection {* Intervals of nats with @{term Suc} *}
 
 text{*Not a simprule because the RHS is too messy.*}

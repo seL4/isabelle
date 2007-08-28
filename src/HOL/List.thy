@@ -451,6 +451,11 @@ by (induct xs) auto
 lemma append_Nil2 [simp]: "xs @ [] = xs"
 by (induct xs) auto
 
+interpretation semigroup_append: semigroup_add ["op @"]
+by unfold_locales simp
+interpretation monoid_append: monoid_add ["[]" "op @"]
+by unfold_locales (simp+)
+
 lemma append_is_Nil_conv [iff]: "(xs @ ys = []) = (xs = [] \<and> ys = [])"
 by (induct xs) auto
 
@@ -1738,7 +1743,9 @@ by (induct xs) auto
 lemma foldr_map: "foldr g (map f xs) a = foldr (g o f) xs a"
 by(induct xs) simp_all
 
-lemma foldl_map: "foldl g a (map f xs) = foldl (%a x. g a (f x)) a xs"
+text{* For efficient code generation: avoid intermediate list. *}
+lemma foldl_map[code unfold]:
+  "foldl g a (map f xs) = foldl (%a x. g a (f x)) a xs"
 by(induct xs arbitrary:a) simp_all
 
 lemma foldl_cong [fundef_cong, recdef_cong]:
@@ -1750,6 +1757,15 @@ lemma foldr_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f x a = g x a |] 
   ==> foldr f l a = foldr g k b"
 by (induct k arbitrary: a b l) simp_all
+
+lemma (in semigroup_add) foldl_assoc:
+shows "foldl op\<^loc>+ (x\<^loc>+y) zs = x \<^loc>+ (foldl op\<^loc>+ y zs)"
+by (induct zs arbitrary: y) (simp_all add:add_assoc)
+
+lemma (in monoid_add) foldl_absorb0:
+shows "x \<^loc>+ (foldl op\<^loc>+ \<^loc>0 zs) = foldl op\<^loc>+ x zs"
+by (induct zs) (simp_all add:foldl_assoc)
+
 
 text{* The ``First Duality Theorem'' in Bird \& Wadler: *}
 
@@ -1785,15 +1801,34 @@ lemma sum_eq_0_conv [iff]:
 "!!m::nat. (foldl (op +) m ns = 0) = (m = 0 \<and> (\<forall>n \<in> set ns. n = 0))"
 by (induct ns) auto
 
+text{* @{const foldl} and @{text concat} *}
+
+lemma concat_conv_foldl: "concat xss = foldl op@ [] xss"
+by (induct xss) (simp_all add:monoid_append.foldl_absorb0)
+
+lemma foldl_conv_concat:
+  "foldl (op @) xs xxs = xs @ (concat xxs)"
+by(simp add:concat_conv_foldl monoid_append.foldl_absorb0)
+
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
+
+lemma listsum_append[simp]: "listsum (xs @ ys) = listsum xs + listsum ys"
+by (induct xs) (simp_all add:add_assoc)
+
+lemma listsum_rev[simp]:
+fixes xs :: "'a::comm_monoid_add list"
+shows "listsum (rev xs) = listsum xs"
+by (induct xs) (simp_all add:add_ac)
 
 lemma listsum_foldr:
  "listsum xs = foldr (op +) xs 0"
 by(induct xs) auto
 
-(* for efficient code generation *)
-lemma listsum[code]: "listsum xs = foldl (op +) 0 xs"
+text{* For efficient code generation ---
+       @{const listsum} is not tail recursive but @{const foldl} is. *}
+lemma listsum[code unfold]: "listsum xs = foldl (op +) 0 xs"
 by(simp add:listsum_foldr foldl_foldr1)
+
 
 text{* Some syntactic sugar for summing a function over a list: *}
 
@@ -2990,11 +3025,8 @@ lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
 by (induct xs) auto
 
-lemma [code inline]: "listsum (map f xs) = foldl (%n x. n + f x) 0 xs"
-by (simp add: listsum_foldr foldl_map [symmetric] foldl_foldr1)
 
-
-text {* Code for bounded quantification over nats. *}
+text {* Code for bounded quantification and summation over nats. *}
 
 lemma atMost_upto [code unfold]:
   "{..n} = set [0..n]"
@@ -3004,11 +3036,11 @@ lemma atLeast_upt [code unfold]:
   "{..<n} = set [0..<n]"
 by auto
 
-lemma greaterThanLessThan_upd [code unfold]:
+lemma greaterThanLessThan_upt [code unfold]:
   "{n<..<m} = set [Suc n..<m]"
 by auto
 
-lemma atLeastLessThan_upd [code unfold]:
+lemma atLeastLessThan_upt [code unfold]:
   "{n..<m} = set [n..<m]"
 by auto
 
@@ -3036,9 +3068,23 @@ lemma ex_nat_less [code unfold]:
   "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
 by auto
 
-lemma foldl_append_append: "\<And> ss ss'. foldl (op @) (ss@ss') xs = ss@(foldl (op @) ss' xs)"
-by (induct xs, simp_all)
+lemma setsum_set_upt_conv_listsum[code unfold]:
+  "setsum f (set[k..<n]) = listsum (map f [k..<n])"
+apply(subst atLeastLessThan_upt[symmetric])
+by (induct n) simp_all
 
+
+(* FIXME Amine *)
+
+(* is now available as thm semigroup_append.foldl_assoc *)
+lemma foldl_append_append: "foldl (op @) (ss@ss') xs = ss@(foldl (op @) ss' xs)"
+by (induct xs arbitrary: ss ss', simp_all)
+
+(* now superfluous *)
+lemma foldl_append_map_set:
+ "set (foldl (op @) ss (map f xs)) = set ss \<union> UNION (set xs) (\<lambda>x. set (f x))"
+by(simp add:foldl_conv_concat)
+(*
 lemma foldl_append_map_set: "\<And> ss. set (foldl (op @) ss (map f xs)) = set ss \<union> UNION (set xs) (\<lambda>x. set (f x))"
 proof(induct xs)
   case Nil thus ?case by simp
@@ -3052,11 +3098,15 @@ next
     by (simp add: Un_assoc)
   finally show ?case by simp
 qed
+*)
 
+(* also superfluous *)
 lemma foldl_append_map_Nil_set: 
   "set (foldl (op @) [] (map f xs)) = UNION (set xs) (\<lambda>x. set (f x))"
+by(simp add:foldl_conv_concat)
+(*
 using foldl_append_map_set[where ss="[]" and xs="xs" and f="f"] by simp
-
+*)
 
 subsubsection {* List partitioning *}
 
