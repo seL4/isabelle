@@ -44,6 +44,7 @@ test: \
   HOL-UNITY \
   HOL-Unix \
   HOL-W0 \
+  HOL-Word-Examples \
   HOL-ZF
     # ^ this is the sort position
 
@@ -826,9 +827,18 @@ $(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML \
   Word/WordGenLib.thy \
   Word/WordBoolList.thy \
   Word/WordMain.thy \
-  Word/WordExamples.thy \
   Word/document/root.tex
 	@cd Word; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Word
+
+
+## HOL-Word-Examples
+
+HOL-Word-Examples: HOL-Word $(LOG)/HOL-Word-Examples.gz
+
+$(LOG)/HOL-Word-Examples.gz: $(OUT)/HOL-Word \
+  Word/Examples/ROOT.ML \
+  Word/Examples/WordExamples.thy
+	@cd Word; $(ISATOOL) usedir $(OUT)/HOL-Word Examples
 
 
 ## clean
