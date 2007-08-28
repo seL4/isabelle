@@ -24,7 +24,6 @@ uses
   "~~/src/Provers/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
   ("simpdata.ML")
-  "~~/src/Pure/codegen.ML"
   "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_funcgr.ML"
   "~~/src/Tools/code/code_thingol.ML"
@@ -1652,7 +1651,7 @@ val trans = @{thm trans}
 
 subsection {* Code generator basic setup -- see further @{text Code_Setup.thy} *}
 
-setup "CodeName.setup #> CodeTarget.setup #> Codegen.setup #> Nbe.setup"
+setup "CodeName.setup #> CodeTarget.setup #> Nbe.setup"
 
 class eq (attach "op =") = type
 

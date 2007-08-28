@@ -84,7 +84,6 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
   $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML			\
   $(SRC)/Provers/trancl.ML $(SRC)/Tools/integer.ML $(SRC)/Tools/Metis/metis.ML\
-  $(SRC)/Pure/codegen.ML			\
   $(SRC)/Tools/code/code_funcgr.ML			\
   $(SRC)/Tools/code/code_name.ML $(SRC)/Tools/code/code_package.ML		\
   $(SRC)/Tools/code/code_target.ML $(SRC)/Tools/code/code_thingol.ML	\
