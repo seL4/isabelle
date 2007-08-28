@@ -56,13 +56,13 @@ fun shell_path path = ! shell_path_fn path;
 val cd = cd o platform_path;
 val pwd = explode_platform_path o pwd;
 
-fun norm_absolute p =
+fun norm_absolute p = NAMED_CRITICAL "IO" (fn () =>
   let
     val p' = pwd ();
     fun norm p = if can cd p then pwd ()
       else Path.append (norm (Path.dir p)) (Path.base p);
     val p'' = norm p;
-  in (cd p'; p'') end
+  in (cd p'; p'') end);
 
 fun full_path path =
   (if Path.is_absolute path then path
