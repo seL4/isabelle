@@ -5,8 +5,6 @@
 
 theory NBE imports Main Executable_Set begin
 
-ML"set quick_and_dirty"
-
 declare Let_def[simp]
 
 consts_code undefined ("(raise Match)")

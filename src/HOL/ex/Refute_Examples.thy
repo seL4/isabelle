@@ -518,8 +518,6 @@ text {* With @{text quick_and_dirty} set, the datatype package does
   not generate certain axioms for recursion operators.  Without these
   axioms, refute may find spurious countermodels. *}
 
-ML {* reset quick_and_dirty *}
-
 text {* unit *}
 
 lemma "P (x::unit)"
