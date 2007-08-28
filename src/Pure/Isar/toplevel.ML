@@ -71,6 +71,8 @@ sig
   val end_local_theory: transition -> transition
   val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: xstring option -> (bool -> node -> unit) -> transition -> transition
+  val local_theory_to_proof': xstring option -> (bool -> local_theory -> Proof.state) ->
+    transition -> transition
   val local_theory_to_proof: xstring option -> (local_theory -> Proof.state) ->
     transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
@@ -580,7 +582,7 @@ local
 fun begin_proof init finish = app_current (fn int =>
   (fn Theory (gthy, _) =>
     let
-      val prf = init gthy;
+      val prf = init int gthy;
       val schematic = Proof.schematic_goal prf;
     in
       if ! skip_proofs andalso schematic then
@@ -595,10 +597,11 @@ fun begin_proof init finish = app_current (fn int =>
 
 in
 
-fun local_theory_to_proof loc f = begin_proof (f o loc_begin loc) (loc_finish loc);
+fun local_theory_to_proof' loc f = begin_proof (fn int => f int o loc_begin loc) (loc_finish loc);
+fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
-    (fn Context.Theory thy => f thy | _ => raise UNDEF)
+    (K (fn Context.Theory thy => f thy | _ => raise UNDEF))
     (K (Context.Theory o ProofContext.theory_of));
 
 end;
