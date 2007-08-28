@@ -26,8 +26,8 @@ sig
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm list * attribute list) list
     -> theory -> theory * {induct_rules: thm}
-  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> local_theory -> Proof.state
-  val recdef_tc_i: bstring * Attrib.src list -> string -> int option -> local_theory -> Proof.state
+  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> bool -> local_theory -> Proof.state
+  val recdef_tc_i: bstring * Attrib.src list -> string -> int option -> bool -> local_theory -> Proof.state
   val setup: theory -> theory
 end;
 
@@ -257,7 +257,7 @@ val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarCmd.apply_theorems_i;
 
 (** recdef_tc(_i) **)
 
-fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i lthy =
+fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val name = prep_name thy raw_name;
@@ -272,7 +272,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i lthy =
         " in recdef definition of " ^ quote name);
   in
     Specification.theorem_i Thm.internalK NONE (K I) (bname, atts)
-      [] (Element.Shows [(("", []), [(HOLogic.mk_Trueprop tc, [])])]) lthy
+      [] (Element.Shows [(("", []), [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;
 
 val recdef_tc = gen_recdef_tc Attrib.intern_src Sign.intern_const;
@@ -322,7 +322,7 @@ val recdef_tcP =
     (P.opt_target --
       SpecParse.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
       >> (fn (((loc, thm_name), name), i) =>
-        Toplevel.print o Toplevel.local_theory_to_proof loc (recdef_tc thm_name name i)));
+        Toplevel.print o Toplevel.local_theory_to_proof' loc (recdef_tc thm_name name i)));
 
 
 val _ = OuterSyntax.add_keywords ["permissive", "congs", "hints"];
