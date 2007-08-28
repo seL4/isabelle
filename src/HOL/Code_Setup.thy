@@ -61,6 +61,8 @@ in
 end
 *}
 
+quickcheck_params [size = 5, iterations = 50]
+
 text {* Evaluation *}
 
 method_setup evaluation = {*
