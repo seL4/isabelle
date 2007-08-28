@@ -73,7 +73,8 @@ sig
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> (string * term) list option) ref
-  val test_term: theory -> int -> int -> term -> (string * term) list option
+  val test_term: theory -> bool -> int -> int -> term -> (string * term) list option
+  val auto_quickcheck: bool ref
   val eval_result: term ref
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
@@ -84,8 +85,6 @@ sig
   val fillin_mixfix: ('a -> Pretty.T) -> 'a mixfix list -> 'a list -> Pretty.T
   val mk_deftab: theory -> deftab
   val add_unfold: thm -> theory -> theory
-
-  val setup: theory -> theory
 
   val get_node: codegr -> string -> node
   val add_edge: string * string -> codegr -> codegr
@@ -338,6 +337,13 @@ fun add_unfold eqn =
       end)
   in add_preprocessor prep end;
 
+val _ = Context.add_setup
+  (let
+    fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
+  in
+    Code.add_attribute ("unfold", Scan.succeed (mk_attribute
+      (fn thm => add_unfold thm #> Code.add_inline thm)))
+  end);
 
 
 (**** associate constants with target language code ****)
@@ -639,8 +645,9 @@ fun fillin_mixfix f ms args =
 
 fun eta_expand t ts i =
   let
-    val (Ts, _) = strip_type (fastype_of t);
-    val j = i - length ts
+    val k = length ts;
+    val Ts = Library.drop (k, binder_types (fastype_of t));
+    val j = i - k
   in
     List.foldr (fn (T, t) => Abs ("x", T, t))
       (list_comb (t, ts @ map Bound (j-1 downto 0))) (Library.take (j, Ts))
@@ -793,6 +800,11 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
                  (add_edge (node_id, dep) gr'', p module''))
            end);
 
+val _ = Context.add_setup
+ (add_codegen "default" default_codegen #>
+  add_tycodegen "default" default_tycodegen);
+
+
 fun mk_struct name s = "structure " ^ name ^ " =\nstruct\n\n" ^ s ^ "end;\n";
 
 fun add_to_module name s = AList.map_entry (op =) name (suffix s);
@@ -915,7 +927,7 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = Pretty.str
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
-fun test_term thy sz i t =
+fun test_term thy quiet sz i t =
   let
     val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
       error "Term to be tested contains type variables";
@@ -950,35 +962,55 @@ fun test_term thy sz i t =
                   [Pretty.str "]"])]],
             Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
       "\n\nend;\n") ();
-    val _ = use_text "" Output.ml_output false s;
+    val _ = use_text "" (K (), error) false s;
     fun iter f k = if k > i then NONE
       else (case (f () handle Match =>
-          (warning "Exception Match raised in generated code"; NONE)) of
+          (if quiet then ()
+           else warning "Exception Match raised in generated code"; NONE)) of
         NONE => iter f (k+1) | SOME x => SOME x);
     fun test k = if k > sz then NONE
-      else (priority ("Test data size: " ^ string_of_int k);
+      else (if quiet then () else priority ("Test data size: " ^ string_of_int k);
         case iter (fn () => !test_fn k) 1 of
           NONE => test (k+1) | SOME x => SOME x);
   in test 0 end;
 
-fun test_goal ({size, iterations, default_type}, tvinsts) i st =
+fun test_goal out quiet ({size, iterations, default_type}, tvinsts) i assms state =
   let
-    val thy = Toplevel.theory_of st;
+    val thy = Proof.theory_of state;
     fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val (gi, frees) = Logic.goal_params
-      (prop_of (snd (snd (Proof.get_goal (Toplevel.proof_of st))))) i;
+      (prop_of (snd (snd (Proof.get_goal state)))) i;
     val gi' = ObjectLogic.atomize_term thy (map_types
       (map_type_tfree (fn p as (s, _) =>
         the_default (the_default (TFree p) default_type)
-          (AList.lookup (op =) tvinsts s))) (subst_bounds (frees, strip gi)));
-  in case test_term (Toplevel.theory_of st) size iterations gi' of
+          (AList.lookup (op =) tvinsts s)))
+      (Logic.list_implies (assms, subst_bounds (frees, strip gi))));
+  in case test_term thy quiet size iterations gi' of
       NONE => writeln "No counterexamples found."
-    | SOME cex => writeln ("Counterexample found:\n" ^
+    | SOME cex => out ("Counterexample found:\n" ^
         Pretty.string_of (Pretty.chunks (map (fn (s, t) =>
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1,
             Sign.pretty_term thy t]) cex)))
   end;
+
+exception Counterex of string;
+
+val auto_quickcheck = ref true;
+
+fun test_goal' int state =
+  let val assms = map term_of (Assumption.assms_of (Proof.context_of state))
+  in
+    (if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
+     then
+       (test_goal (fn s => raise Counterex s) true
+          (get_test_params (Proof.theory_of state), []) 1 assms state
+        handle ERROR _ => () | Counterex s => error s)
+     else (); state)
+  end;
+
+val _ = Context.add_setup
+  (Context.theory_map (Specification.add_theorem_hook test_goal'));
 
 
 (**** Evaluator for terms ****)
@@ -1024,8 +1056,10 @@ fun evaluation_oracle (thy, Evaluation t) =
 
 fun evaluation_conv ct =
   let val {thy, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i thy "HOL.evaluation" (thy, Evaluation t) end;
-  (*FIXME get rid of hardwired theory name*)
+  in Thm.invoke_oracle_i thy "Pure.evaluation" (thy, Evaluation t) end;
+
+val _ = Context.add_setup
+  (Theory.add_oracle ("evaluation", evaluation_oracle));
 
 
 (**** Interface ****)
@@ -1049,6 +1083,21 @@ fun parse_mixfix rd s =
        (Symbol.explode s) of
      (p, []) => p
    | _ => error ("Malformed annotation: " ^ quote s));
+
+val _ = Context.add_setup
+  (fold assoc_type [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
+     [("term_of",
+       "fun term_of_fun_type _ T _ U _ = Free (\"<function>\", T --> U);\n"),
+      ("test",
+       "fun gen_fun_type _ G i =\n\
+       \  let\n\
+       \    val f = ref (fn x => raise Match);\n\
+       \    val _ = (f := (fn x =>\n\
+       \      let\n\
+       \        val y = G i;\n\
+       \        val f' = !f\n\
+       \      in (f := (fn x' => if x = x' then y else f' x'); y) end))\n\
+       \  in (fn x => !f x) end;\n")]))]);
 
 
 structure P = OuterParse and K = OuterKeyword;
@@ -1127,23 +1176,20 @@ fun parse_tyinst xs =
   (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>
     fn (x, ys) => (x, (v, Sign.read_typ thy s) :: ys))) xs;
 
-fun app [] x = x
-  | app (f :: fs) x = app fs (f x);
-
 val test_paramsP =
   OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
     (P.$$$ "[" |-- P.list1 parse_test_params --| P.$$$ "]" >>
       (fn fs => Toplevel.theory (fn thy =>
-         map_test_params (app (map (fn f => f thy) fs)) thy)));
+         map_test_params (Library.apply (map (fn f => f thy) fs)) thy)));
 
 val testP =
   OuterSyntax.command "quickcheck" "try to find counterexample for subgoal" K.diag
   (Scan.option (P.$$$ "[" |-- P.list1
     (   parse_test_params >> (fn f => fn thy => apfst (f thy))
      || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
-    (fn (ps, g) => Toplevel.keep (fn st =>
-      test_goal (app (the_default [] (Option.map (map (fn f => f (Toplevel.theory_of st))) ps))
-        (get_test_params (Toplevel.theory_of st), [])) g st)));
+    (fn (ps, g) => Toplevel.keep (fn st => test_goal writeln false
+      (Library.apply (the_default [] (Option.map (map (fn f => f (Toplevel.theory_of st))) ps))
+        (get_test_params (Toplevel.theory_of st), [])) g [] (Toplevel.proof_of st))));
 
 val valueP =
   OuterSyntax.improper_command "value" "read, evaluate and print term" K.diag
@@ -1153,29 +1199,5 @@ val _ = OuterSyntax.add_keywords ["attach", "file", "contains"];
 
 val _ = OuterSyntax.add_parsers
   [assoc_typeP, assoc_constP, code_libraryP, code_moduleP, test_paramsP, testP, valueP];
-
-val setup = 
-  let
-    fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
-  in
-    Code.add_attribute ("unfold", Scan.succeed (mk_attribute
-      (fn thm => add_unfold thm #> Code.add_inline thm)))
-    #> add_codegen "default" default_codegen
-    #> add_tycodegen "default" default_tycodegen
-    #> Theory.add_oracle ("evaluation", evaluation_oracle)
-    #> fold assoc_type [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
-        [("term_of",
-            "fun term_of_fun_type _ T _ U _ = Free (\"<function>\", T --> U);\n"),
-        ("test",
-           "fun gen_fun_type _ G i =\n\
-           \  let\n\
-           \    val f = ref (fn x => raise Match);\n\
-           \    val _ = (f := (fn x =>\n\
-           \      let\n\
-           \        val y = G i;\n\
-           \        val f' = !f\n\
-           \      in (f := (fn x' => if x = x' then y else f' x'); y) end))\n\
-           \  in (fn x => !f x) end;\n")]))]
-  end;
 
 end;
