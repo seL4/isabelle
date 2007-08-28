@@ -251,7 +251,7 @@ else
 
 \tableofcontents
 
-\parindent 0pt\parskip 0.5ex
+%\parindent 0pt\parskip 0.5ex
 
 % generated text of all theories
 \input{session}
