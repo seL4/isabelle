@@ -33,6 +33,7 @@ val In1_not_In0 = thm "In1_not_In0";
 val Un_assoc = thm "Un_assoc";
 val Collect_disj_eq = thm "Collect_disj_eq";
 val empty_def = thm "empty_def";
+val empty_iff = thm "empty_iff";
 
 open DatatypeAux;
 open NominalAtoms;
@@ -1041,7 +1042,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                if null dts then HOLogic.true_const
                else foldr1 HOLogic.mk_conj (map fresh args2))))
              (fn _ =>
-               simp_tac (simpset_of thy8 addsimps [fresh_def, supp_thm]) 1))
+               simp_tac (HOL_ss addsimps [Un_iff, empty_iff, fresh_def, supp_thm]) 1))
         end) atoms) constrs)
       end) (List.take (pdescr, length new_type_names) ~~ new_type_names ~~ inject_thms ~~ perm_simps')));
 
