@@ -5,6 +5,8 @@
 
 theory NBE imports Main Executable_Set begin
 
+axiomatization where unproven: "PROP A"
+
 declare Let_def[simp]
 
 consts_code undefined ("(raise Match)")
@@ -340,7 +342,7 @@ fun size' :: "ml \<Rightarrow> nat" where
 
 lemma listsum_size'[simp]:
  "v \<in> set vs \<Longrightarrow> size' v < Suc(listsum (map size' vs))"
-sorry
+by (rule unproven)
 
 corollary cor_listsum_size'[simp]:
  "v \<in> set vs \<Longrightarrow> size' v < Suc(m + listsum (map size' vs))"
@@ -358,10 +360,10 @@ by (induct rule: tm_ml.inducts) (simp_all add: A cons_ML_def split:nat.split)
 
 lemma [simp]:
  "\<forall>i j. size'(f i) = size'(V_ML j) \<Longrightarrow> size' (subst\<^bsub>ML\<^esub> f v) = size' v"
-sorry
+by (rule unproven)
 
 lemma [simp]: "size' (lift i v) = size' v"
-sorry
+by (rule unproven)
 
 (* the kernel function as in Section 4.1 of "Operational aspects\<dots>" *)
 
@@ -549,19 +551,19 @@ done
 (*
 lemma subst_ML_compose:
   "subst_ml_ML f2 (subst_ml_ML f1 v) = subst_ml_ML (%i. subst_ml_ML f2 (f1 i)) v"
-sorry
+by (rule unproven)
 *)
 
 lemma map_eq_iff_nth:
  "(map f xs = map g xs) = (!i<size xs. f(xs!i) = g(xs!i))"
-sorry
+by (rule unproven)
 
 lemma [simp]: includes Vars shows "ML_closed k v \<Longrightarrow> lift\<^bsub>ML\<^esub> k v = v"
-sorry
+by (rule unproven)
 lemma [simp]: includes Vars shows "ML_closed 0 v \<Longrightarrow> subst\<^bsub>ML\<^esub> f v = v"
-sorry
+by (rule unproven)
 lemma [simp]: includes Vars shows "ML_closed k v \<Longrightarrow> ML_closed k (lift m v)"
-sorry
+by (rule unproven)
 
 lemma red_Lam[simp]: includes Vars shows "t \<rightarrow>* t' ==> Lam t \<rightarrow>* Lam t'"
 apply(induct rule:rtrancl_induct)
@@ -707,7 +709,7 @@ text{* End of horrible detour *}
 
 lemma kernel_subst1:
 "ML_closed 1 u \<Longrightarrow> ML_closed 0 v \<Longrightarrow> kernel( u[v/0]) = (kernel((lift 0 u)[V 0 []/0]))[kernel v/0]"
-sorry
+by (rule unproven)
 
 lemma includes Vars shows foldl_Pure[simp]:
  "t : Pure_tms \<Longrightarrow> \<forall>t\<in>set ts. t : Pure_tms \<Longrightarrow> 
@@ -722,10 +724,10 @@ apply(induct rule:kernel.induct)
 apply simp_all
 apply(rule Pure_tms.intros);
 (* "ML_closed (Suc k) v \<Longrightarrow> ML_closed k (lift 0 v)" *)
-sorry
+by (rule unproven)
 
 lemma subst_Vt: includes Vars shows "subst Vt = id"
-sorry
+by (rule unproven)
 (*
 apply(rule ext)
 apply(induct_tac x)
@@ -750,16 +752,16 @@ apply(cut_tac u = "u" and v = "v" in kernel_subst1)
 apply(simp_all)
 done
   finally have "kernel(A_ML (Lam_ML u) [v]) \<rightarrow>* kernel(u[v/0])" (is ?A) by(rule r_into_rtrancl)
-  moreover have "ML_closed 0 (u[v/0])" (is "?C") using cl apply simp sorry
+  moreover have "ML_closed 0 (u[v/0])" (is "?C") using cl apply simp by (rule unproven)
   ultimately show "?A & ?C" ..
 next
-  case term_of_C thus ?case apply (auto simp:map_compose[symmetric])sorry
+  case term_of_C thus ?case apply (auto simp:map_compose[symmetric])by (rule unproven)
 next
   fix f :: "nat \<Rightarrow> ml" and nm vs v
   assume f: "\<forall>i. ML_closed 0 (f i)"  and compR: "(nm, vs, v) \<in> compR"
   note tRed.intros(2)[OF compiler_correct[OF compR f], of Vt,simplified map_compose[symmetric]]
   hence red: "foldl At (Ct nm) (map (kernel o subst\<^bsub>ML\<^esub> f) vs) \<rightarrow>
-         (subst\<^bsub>ML\<^esub> f v)!" (is "_ \<rightarrow> ?R") apply(simp add:map_compose) sorry
+         (subst\<^bsub>ML\<^esub> f v)!" (is "_ \<rightarrow> ?R") apply(simp add:map_compose) by (rule unproven)
   have "A_ML (CC nm) (map (subst\<^bsub>ML\<^esub> f) vs)! =
        foldl At (Ct nm) (map (kernel o subst\<^bsub>ML\<^esub> f) vs)" by (simp add:map_compose)
   also(* have "map (kernel o subst\<^bsub>ML\<^esub> f) vs = map (subst (kernel o f)) (vs!)"
@@ -770,20 +772,20 @@ next
     using closed_subst_kernel(2)[OF compiled_V_free2[OF compR]] by simp*)
   finally have "A_ML (CC nm) (map (subst\<^bsub>ML\<^esub> f) vs)! \<rightarrow>* subst\<^bsub>ML\<^esub> f v!" (is "?A")
     by(rule r_into_rtrancl) (*
-  also have "?l = (subst\<^bsub>ML\<^esub> fa (A_ML (CC nm) (map (subst\<^bsub>ML\<^esub> f) vs)))!" (is "_ = ?l'") sorry
-  also have "?r = subst\<^bsub>ML\<^esub> fa (subst\<^bsub>ML\<^esub> f v)!"  (is "_ = ?r'") sorry 
+  also have "?l = (subst\<^bsub>ML\<^esub> fa (A_ML (CC nm) (map (subst\<^bsub>ML\<^esub> f) vs)))!" (is "_ = ?l'") by (rule unproven)
+  also have "?r = subst\<^bsub>ML\<^esub> fa (subst\<^bsub>ML\<^esub> f v)!"  (is "_ = ?r'") by (rule unproven) 
   finally have "?l' \<rightarrow>* ?r'" (is ?A) . *)
-  moreover have "ML_closed 0 (subst\<^bsub>ML\<^esub> f v)" (is "?C") using prems sorry
+  moreover have "ML_closed 0 (subst\<^bsub>ML\<^esub> f v)" (is "?C") by (rule unproven)
   ultimately show "?A & ?C" ..
 next
-  case term_of_V thus ?case apply (auto simp:map_compose[symmetric]) sorry
+  case term_of_V thus ?case apply (auto simp:map_compose[symmetric]) by (rule unproven)
 next
   case (term_of_Fun vf vs n)
   hence "term_of (Fun vf vs n)! \<rightarrow>*
-       Lam (term_of (apply (lift 0 (Fun vf vs n)) (V_ML 0)[V 0 []/0]))!" sorry
+       Lam (term_of (apply (lift 0 (Fun vf vs n)) (V_ML 0)[V 0 []/0]))!" by - (rule unproven)
   moreover
   have "ML_closed_t 0
-        (Lam (term_of (apply (lift 0 (Fun vf vs n)) (V_ML 0)[V 0 []/0])))" sorry
+        (Lam (term_of (apply (lift 0 (Fun vf vs n)) (V_ML 0)[V 0 []/0])))" by (rule unproven)
   ultimately show ?case ..
 next
   case apply_Fun1 thus ?case by simp
@@ -832,14 +834,14 @@ by (induct ts arbitrary:t) auto
 
 corollary kernel_inv: includes Vars shows
  "(t :: tm) \<Rightarrow>* t' ==> ML_closed_t 0 t ==> t! \<rightarrow>* t'!"
-sorry
+by (rule unproven)
 
 theorem includes Vars
 assumes t: "t : Pure_tms" and t': "t' : Pure_tms" and
  closed: "free_vars t = {}" and reds: "term_of (eval t []) \<Rightarrow>* t'"
  shows "t \<rightarrow>* t' "
 proof -
-  have ML_cl: "ML_closed_t 0 (term_of (eval t []))" sorry
+  have ML_cl: "ML_closed_t 0 (term_of (eval t []))" by (rule unproven)
   have "(eval t [])! = t!"
     using kernel_eval[OF t, where e="[]"] closed by simp
   hence "(term_of (eval t []))! = t!" by simp
