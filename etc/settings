@@ -41,7 +41,7 @@ ML_DBASE=""
 #ML_HOME=/usr/local/polyml/x86-cygwin
 #ML_SYSTEM=polyml-5.1
 #ML_OPTIONS="-H 500"
-#POLYML_LINK_OPTIONS="-lstdc++"
+#POLY_LINK_OPTIONS="-lstdc++"
 
 # Poly/ML 4.2.0
 #ML_PLATFORM=x86-linux
