@@ -3586,8 +3586,8 @@ proof(induct t rule: rsplit0.induct)
     thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
       by (auto simp add: split_def)
   qed
-  from foldl_append_map_Nil_set[where xs="rsplit0 a" and f="?ff"]
-  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by auto
+  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" 
+    by (auto simp add: foldl_conv_concat)
   also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by auto
   also have "\<dots> = 
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 
@@ -3739,8 +3739,8 @@ next
     thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
       by (auto simp add: split_def)
   qed
-  from foldl_append_map_Nil_set[where xs="rsplit0 a" and f="?ff"]
-  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by auto
+
+  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by (auto simp add: foldl_conv_concat) 
   also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by auto
   also have "\<dots> = 
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 
@@ -5810,6 +5810,10 @@ lemma "ALL (x::real). \<exists>y \<le> x. (\<lfloor>x\<rfloor> = \<lceil>y\<rcei
 apply mir
 done
 
+(*
+lemma "ALL x y. \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
+by mir
+*)
 ML "reset Toplevel.timing"
 
 end
