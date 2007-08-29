@@ -232,14 +232,15 @@ The syntax is as in Haskell, except that @{text"|"} becomes a dot
 The qualifiers after the dot are
 \begin{description}
 \item[generators] @{text"p \<leftarrow> xs"},
- where @{text p} is a pattern and @{text xs} an expression of list type,
-\item[guards] @{text"b"}, where @{text b} is a boolean expression, or
-\item[local bindings] @{text"let x = e"}.
+ where @{text p} is a pattern and @{text xs} an expression of list type, or
+\item[guards] @{text"b"}, where @{text b} is a boolean expression.
+%\item[local bindings] @ {text"let x = e"}.
 \end{description}
 
-To avoid misunderstandings, the translation is not reversed upon
-output. You can add the inverse translations in your own theory if you
-desire.
+Just like in Haskell, list comprehension is just a shorthand. To avoid
+misunderstandings, the translation into desugared form is not reversed
+upon output. Note that the translation of @{text"[e. x \<leftarrow> xs]"} is
+optmized to @{term"map (%x. e) xs"}.
 
 It is easy to write short list comprehensions which stand for complex
 expressions. During proofs, they may become unreadable (and
@@ -259,11 +260,13 @@ syntax
 "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
 "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ <- _")
 "_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
-"_lc_let" :: "letbinds => lc_qual"  ("let _")
+(*"_lc_let" :: "letbinds => lc_qual"  ("let _")*)
 "_lc_end" :: "lc_quals" ("]")
 "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals" (", __")
 "_lc_abs" :: "'a => 'b list => 'b list"
 
+(* These are easier than ML code but cannot express the optimized
+   translation of [e. p<-xs]
 translations
 "[e. p<-xs]" => "concat(map (_lc_abs p [e]) xs)"
 "_listcompr e (_lc_gen p xs) (_lc_quals Q Qs)"
@@ -273,6 +276,7 @@ translations
  => "if P then (_listcompr e Q Qs) else []"
 "_listcompr e (_lc_let b) (_lc_quals Q Qs)"
  => "_Let b (_listcompr e Q Qs)"
+*)
 
 syntax (xsymbols)
 "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
@@ -281,36 +285,58 @@ syntax (HTML output)
 
 parse_translation (advanced) {*
 let
+  val NilC = Syntax.const @{const_name Nil};
+  val ConsC = Syntax.const @{const_name Cons};
+  val mapC = Syntax.const @{const_name map};
+  val concatC = Syntax.const @{const_name concat};
+  val IfC = Syntax.const @{const_name If};
+  fun singl x = ConsC $ x $ NilC;
 
-   fun abs_tr0 ctxt p es =
+   fun pat_tr ctxt p e opti = (* %x. case x of p => e | _ => [] *)
     let
-      val x = Free (Name.variant (add_term_free_names (p$es, [])) "x", dummyT);
-      val case1 = Syntax.const "_case1" $ p $ es;
+      val x = Free (Name.variant (add_term_free_names (p$e, [])) "x", dummyT);
+      val e = if opti then singl e else e;
+      val case1 = Syntax.const "_case1" $ p $ e;
       val case2 = Syntax.const "_case1" $ Syntax.const Term.dummy_patternN
-                                        $ Syntax.const @{const_name Nil};
+                                        $ NilC;
       val cs = Syntax.const "_case2" $ case1 $ case2
       val ft = DatatypeCase.case_tr false DatatypePackage.datatype_of_constr
                  ctxt [x, cs]
     in lambda x ft end;
 
-  fun abs_tr ctxt [x as Free (s, T), r] =
+  fun abs_tr ctxt (p as Free(s,T)) e opti =
         let val thy = ProofContext.theory_of ctxt;
             val s' = Sign.intern_const thy s
-        in if Sign.declared_const thy s' then abs_tr0 ctxt x r else lambda x r
+        in if Sign.declared_const thy s'
+           then (pat_tr ctxt p e opti, false)
+           else (lambda p e, true)
         end
-   | abs_tr ctxt [p,es] = abs_tr0 ctxt p es
+    | abs_tr ctxt p e opti = (pat_tr ctxt p e opti, false);
 
-in [("_lc_abs", abs_tr)] end
+  fun lc_tr ctxt [e, Const("_lc_test",_)$b, qs] =
+        let val res = case qs of Const("_lc_end",_) => singl e
+                      | Const("_lc_quals",_)$q$qs => lc_tr ctxt [e,q,qs];
+        in IfC $ b $ res $ NilC end
+    | lc_tr ctxt [e, Const("_lc_gen",_) $ p $ es, Const("_lc_end",_)] =
+        (case abs_tr ctxt p e true of
+           (f,true) => mapC $ f $ es
+         | (f, false) => concatC $ (mapC $ f $ es))
+    | lc_tr ctxt [e, Const("_lc_gen",_) $ p $ es, Const("_lc_quals",_)$q$qs] =
+        let val e' = lc_tr ctxt [e,q,qs];
+        in concatC $ (mapC $ (fst(abs_tr ctxt p e' false)) $ es) end
+
+in [("_listcompr", lc_tr)] end
 *}
 
 (*
 term "[(x,y,z). b]"
+term "[(x,y,z). x\<leftarrow>xs]"
+term "[e x y. x\<leftarrow>xs, y\<leftarrow>ys]"
+term "[(x,y,z). x<a, x>b]"
+term "[(x,y,z). x\<leftarrow>xs, x>b]"
+term "[(x,y,z). x<a, x\<leftarrow>xs]"
 term "[(x,y). Cons True x \<leftarrow> xs]"
 term "[(x,y,z). Cons x [] \<leftarrow> xs]"
-term "[(x,y,z). x<a, x>b]"
-term "[(x,y,z). x<a, x\<leftarrow>xs]"
-term "[(x,y,z). x\<leftarrow>xs, x>b]"
-term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys]"
 term "[(x,y,z). x<a, x>b, x=d]"
 term "[(x,y,z). x<a, x>b, y\<leftarrow>ys]"
 term "[(x,y,z). x<a, x\<leftarrow>xs,y>b]"
@@ -1004,7 +1030,7 @@ by (induct xss) auto
 lemma set_concat [simp]: "set (concat xs) = (UN x:set xs. set x)"
 by (induct xs) auto
 
-lemma concat_map_singleton[simp, code unfold]: "concat(map (%x. [f x]) xs) = map f xs"
+lemma concat_map_singleton[simp]: "concat(map (%x. [f x]) xs) = map f xs"
 by (induct xs) auto
 
 lemma map_concat: "map f (concat xs) = concat (map (map f) xs)"
