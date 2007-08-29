@@ -18,6 +18,9 @@ case $(uname -s) in
           sparc)
             PLATFORM=sparc-solaris
             ;;
+          i?86)
+            PLATFORM=x86-solaris
+            ;;
         esac
         ;;
     esac
