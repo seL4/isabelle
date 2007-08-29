@@ -30,11 +30,18 @@ ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
 ML_OPTIONS="-H 500"
 ML_DBASE=""
 
-# Poly/ML 5.0
+# Poly/ML 5.1 on 64bit Linux
 #ML_PLATFORM=x86_64-linux
 #ML_HOME=/usr/local/polyml/x86_64-linux
-#ML_SYSTEM=polyml-5.0
+#ML_SYSTEM=polyml-5.1
+#ML_OPTIONS="-H 1000"
+
+# Poly/ML 5.1 on Cygwin
+#ML_PLATFORM=x86-cygwin
+#ML_HOME=/usr/local/polyml/x86-cygwin
+#ML_SYSTEM=polyml-5.1
 #ML_OPTIONS="-H 500"
+#POLYML_LINK_OPTIONS="-lstdc++"
 
 # Poly/ML 4.2.0
 #ML_PLATFORM=x86-linux
