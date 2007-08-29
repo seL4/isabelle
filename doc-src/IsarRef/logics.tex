@@ -573,38 +573,105 @@ with the same properties using $\isarkeyword{specification}$, one can prove
 that the two constants are, in fact, equal.  If this might be a problem,
 one should use $\isarkeyword{ax_specification}$.
 
-\subsection{(Co)Inductive sets}\label{sec:hol-inductive}
+\subsection{Inductive and coinductive definitions}\label{sec:hol-inductive}
 
-\indexisarcmdof{HOL}{inductive}\indexisarcmdof{HOL}{coinductive}\indexisarattof{HOL}{mono}
+An {\bf inductive definition} specifies the least predicate (or set) $R$ closed under given
+rules.  (Applying a rule to elements of~$R$ yields a result within~$R$.)  For
+example, a structural operational semantics is an inductive definition of an
+evaluation relation.  Dually, a {\bf coinductive definition} specifies the
+greatest predicate (or set) $R$ consistent with given rules.  (Every element of~$R$ can be
+seen as arising by applying a rule to elements of~$R$.)  An important example
+is using bisimulation relations to formalise equivalence of processes and
+infinite data structures.
+
+This package is related to the ZF one, described in a separate
+paper,%
+\footnote{It appeared in CADE~\cite{paulson-CADE}; a longer version is
+  distributed with Isabelle.}  %
+which you should refer to in case of difficulties.  The package is simpler
+than ZF's thanks to HOL's extra-logical automatic type-checking.  The types of
+the (co)inductive predicates (or sets) determine the domain of the fixedpoint definition, and
+the package does not have to use inference rules for type-checking.
+
+\indexisarcmdof{HOL}{inductive}\indexisarcmdof{HOL}{inductive-set}\indexisarcmdof{HOL}{coinductive}\indexisarcmdof{HOL}{coinductive-set}\indexisarattof{HOL}{mono}
 \begin{matharray}{rcl}
   \isarcmd{inductive} & : & \isartrans{theory}{theory} \\
+  \isarcmd{inductive_set} & : & \isartrans{theory}{theory} \\
   \isarcmd{coinductive} & : & \isartrans{theory}{theory} \\
+  \isarcmd{coinductive_set} & : & \isartrans{theory}{theory} \\
   mono & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
-  ('inductive' | 'coinductive') sets intros monos?
+  ('inductive' | 'inductive\_set' | 'coinductive' | 'coinductive\_set') target? fixes ('for' fixes)? \\ ('where' clauses)? ('monos' thmrefs)?
+  ;
+  clauses: (thmdecl? prop + '|')
   ;
   'mono' (() | 'add' | 'del')
-  ;
-
-  sets: (term +)
-  ;
-  intros: 'intros' (thmdecl? prop +)
-  ;
-  monos: 'monos' thmrefs
   ;
 \end{rail}
 
 \begin{descr}
 \item [$\isarkeyword{inductive}$ and $\isarkeyword{coinductive}$] define
-  (co)inductive sets from the given introduction rules.
+  (co)inductive predicates from the introduction rules given in the \texttt{where} section.
+  The optional \texttt{monos} section contains \textit{monotonicity theorems},
+  which are required for each operator applied to a recursive set in the introduction rules.
+  There {\bf must} be a theorem of the form $A \leq B \Imp M~A \leq M~B$, for each
+  premise $M~R@i~t$ in an introduction rule!
+\item [$\isarkeyword{inductive_set}$ and $\isarkeyword{coinductive_set}$] are wrappers
+  for to the previous commands, allowing the definition of (co)inductive sets.
 \item [$mono$] declares monotonicity rules.  These rule are involved in the
   automated monotonicity proof of $\isarkeyword{inductive}$.
 \end{descr}
 
-See \cite{isabelle-HOL} for further information on inductive definitions in
-HOL, but note that this covers the old-style theory format.
+\subsubsection{Derived rules}
+
+Each (co)inductive definition $R$ adds definitions to the theory and also
+proves some theorems:
+\begin{description}
+\item[$R{\dtt}intros$] is the list of introduction rules, now proved as theorems, for
+the recursive predicates (or sets).  The rules are also available individually,
+using the names given them in the theory file.
+\item[$R{\dtt}cases$] is the case analysis (or elimination) rule.
+\item[$R{\dtt}(co)induct$] is the (co)induction rule.
+\end{description}
+When several predicates $R@1$, $\ldots$, $R@n$ are defined simultaneously,
+the list of introduction rules is called $R@1_\ldots_R@n{\dtt}intros$, the
+case analysis rules are called $R@1{\dtt}cases$, $\ldots$, $R@n{\dtt}cases$, and
+the list of mutual induction rules is called $R@1_\ldots_R@n{\dtt}inducts$.
+
+\subsubsection{Monotonicity theorems}
+
+Each theory contains a default set of theorems that are used in monotonicity
+proofs. New rules can be added to this set via the $mono$ attribute.
+Theory \texttt{Inductive} shows how this is done. In general, the following
+monotonicity theorems may be added:
+\begin{itemize}
+\item Theorems of the form $A \leq B \Imp M~A \leq M~B$, for proving
+  monotonicity of inductive definitions whose introduction rules have premises
+  involving terms such as $M~R@i~t$.
+\item Monotonicity theorems for logical operators, which are of the general form
+  $\List{\cdots \to \cdots;~\ldots;~\cdots \to \cdots} \Imp
+    \cdots \to \cdots$.
+  For example, in the case of the operator $\lor$, the corresponding theorem is
+  \[
+  \infer{P@1 \lor P@2 \to Q@1 \lor Q@2}
+    {P@1 \to Q@1 & P@2 \to Q@2}
+  \]
+\item De Morgan style equations for reasoning about the ``polarity'' of expressions, e.g.
+  \[
+  (\lnot \lnot P) ~=~ P \qquad\qquad
+  (\lnot (P \land Q)) ~=~ (\lnot P \lor \lnot Q)
+  \]
+\item Equations for reducing complex operators to more primitive ones whose
+  monotonicity can easily be proved, e.g.
+  \[
+  (P \to Q) ~=~ (\lnot P \lor Q) \qquad\qquad
+  \mathtt{Ball}~A~P ~\equiv~ \forall x.~x \in A \to P~x
+  \]
+\end{itemize}
+
+%FIXME: Example of an inductive definition
 
 
 \subsection{Arithmetic proof support}
