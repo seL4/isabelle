@@ -4,8 +4,45 @@
 Miscellaneous examples for Higher-Order Logic.
 *)
 
-no_document use_thy "Parity";
-no_document use_thy "GCD";
+no_document use_thys  [
+  "Parity",
+  "GCD"
+];
+
+use_thys [
+  "Higher_Order_Logic",
+  "Abstract_NAT",
+  "Guess",
+  "Binary",
+  "Recdefs",
+  "Fundefs",
+  "InductiveInvariant_examples",
+  "Locales",
+  "LocaleTest2",
+  "Records",
+  "MonoidGroup",
+  "BinEx",
+  "Hex_Bin_Examples",
+  "Antiquote",
+  "Multiquote",
+  "PER",
+  "NatSum",
+  "ThreeDivides",
+  "Intuitionistic",
+  "CTL",
+  "Arith_Examples",
+  "BT",
+  "InSort",
+  "Qsort",
+  "MergeSort",
+  "Puzzle",
+  "Lagrange",
+  "Groebner_Examples",
+  "MT",
+  "Unification",
+  "Commutative_RingEx",
+  "Commutative_Ring_Complete"
+];
 
 no_document time_use_thy "Classpackage";
 
@@ -21,53 +58,21 @@ no_document time_use_thy "Efficient_Nat";
 no_document time_use_thy "Codegenerator";
 no_document time_use_thy "Codegenerator_Pretty";
 
-time_use_thy "Higher_Order_Logic";
-time_use_thy "Abstract_NAT";
-time_use_thy "Guess";
-time_use_thy "Binary";
 
-time_use_thy "Recdefs";
-time_use_thy "Fundefs";
-time_use_thy "InductiveInvariant_examples";
-time_use_thy "Primrec";
-time_use_thy "Locales";
-time_use_thy "LocaleTest2";
-time_use_thy "Records";
-time_use_thy "MonoidGroup";
-time_use_thy "BinEx";
-time_use_thy "Hex_Bin_Examples";
 setmp proofs 2 time_use_thy "Hilbert_Classical";
-time_use_thy "Antiquote";
-time_use_thy "Multiquote";
 
-time_use_thy "PER";
-time_use_thy "NatSum";
-time_use_thy "ThreeDivides";
-time_use_thy "Intuitionistic";
+time_use_thy "Primrec";
 time_use_thy "Classical";
-time_use_thy "CTL";
+time_use_thy "set";
+
 time_use_thy "Meson_Test";
-time_use_thy "Arith_Examples";
 time_use_thy "Dense_Linear_Order_Ex";
 time_use_thy "PresburgerEx";
 time_use_thy "Reflected_Presburger";
-time_use_thy "BT";
-time_use_thy "InSort";
-time_use_thy "Qsort";
-time_use_thy "MergeSort";
-time_use_thy "Puzzle";
 
-time_use_thy "Lagrange";
-time_use_thy "Groebner_Examples";
-
-time_use_thy "Commutative_RingEx";
-time_use_thy "Commutative_Ring_Complete";
 time_use_thy "Reflection";
 
 time_use_thy "NBE";
-
-time_use_thy "set";
-time_use_thy "MT";
 
 no_document use_thy "FuncSet";
 time_use_thy "Tarski";
@@ -94,5 +99,3 @@ time_use_thy "Adder";
 
 HTML.with_charset "utf-8" (no_document time_use_thy) "Hebrew";
 HTML.with_charset "utf-8" (no_document time_use_thy) "Chinese";
-
-time_use_thy "Unification";
