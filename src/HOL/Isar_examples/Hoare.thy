@@ -8,7 +8,7 @@ A formulation of Hoare logic suitable for Isar.
 header {* Hoare Logic *}
 
 theory Hoare imports Main
-uses ("~~/src/HOL/Hoare/hoare.ML") begin
+uses ("~~/src/HOL/Hoare/hoare_tac.ML") begin
 
 subsection {* Abstract syntax and semantics *}
 
@@ -442,8 +442,7 @@ lemma WhileRule:
   apply blast
   done
 
-ML {* val Valid_def = thm "Valid_def" *}
-use "~~/src/HOL/Hoare/hoare.ML"
+use "~~/src/HOL/Hoare/hoare_tac.ML"
 
 method_setup hoare = {*
   Method.no_args

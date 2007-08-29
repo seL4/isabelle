@@ -369,7 +369,7 @@ $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
 HOL-Hoare: HOL $(LOG)/HOL-Hoare.gz
 
 $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.thy \
-  Hoare/Examples.thy Hoare/Hoare.thy \
+  Hoare/Examples.thy Hoare/Hoare.thy Hoare/hoare_tac.ML \
   Hoare/Heap.thy Hoare/HeapSyntax.thy Hoare/Pointer_Examples.thy \
   Hoare/ROOT.ML Hoare/ExamplesAbort.thy  Hoare/HeapSyntaxAbort.thy \
   Hoare/HoareAbort.thy Hoare/SchorrWaite.thy \
@@ -687,7 +687,7 @@ $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
   Isar_examples/Puzzle.thy Isar_examples/Summation.thy \
   Isar_examples/ROOT.ML Isar_examples/document/proof.sty \
   Isar_examples/document/root.bib Isar_examples/document/root.tex \
-  Isar_examples/document/style.tex Hoare/hoare.ML
+  Isar_examples/document/style.tex Hoare/hoare_tac.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Isar_examples
 
 
