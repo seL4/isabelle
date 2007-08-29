@@ -369,10 +369,10 @@ $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
 HOL-Hoare: HOL $(LOG)/HOL-Hoare.gz
 
 $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.thy \
-  Hoare/Examples.thy Hoare/hoare.ML Hoare/Hoare.thy \
+  Hoare/Examples.thy Hoare/Hoare.thy \
   Hoare/Heap.thy Hoare/HeapSyntax.thy Hoare/Pointer_Examples.thy \
   Hoare/ROOT.ML Hoare/ExamplesAbort.thy  Hoare/HeapSyntaxAbort.thy \
-  Hoare/hoareAbort.ML Hoare/HoareAbort.thy Hoare/SchorrWaite.thy \
+  Hoare/HoareAbort.thy Hoare/SchorrWaite.thy \
   Hoare/Separation.thy Hoare/SepLogHeap.thy \
   Hoare/document/root.tex Hoare/document/root.bib
 	@$(ISATOOL) usedir $(OUT)/HOL Hoare
@@ -667,7 +667,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy \
   ex/Puzzle.thy ex/Qsort.thy ex/Quickcheck_Examples.thy \
   ex/Reflection.thy ex/reflection_data.ML ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy \
   ex/Records.thy ex/Reflected_Presburger.thy ex/coopertac.ML ex/coopereif.ML \
-  ex/Refute_Examples.thy ex/SAT_Examples.thy ex/svc_oracle.ML ex/SVC_Oracle.thy \
+  ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy \
   ex/Sudoku.thy ex/Tarski.thy ex/Unification.thy ex/document/root.bib \
   ex/document/root.tex ex/Meson_Test.thy ex/reflection.ML \
   ex/set.thy ex/svc_funcs.ML ex/svc_test.thy Library/Parity.thy Library/GCD.thy
