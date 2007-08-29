@@ -1786,6 +1786,9 @@ by (induct xs) auto
 lemma foldl_foldr: "foldl f a xs = foldr (%x y. f y x) (rev xs) a"
 by (simp add: foldr_foldl [of "%x y. f y x" "rev xs"])
 
+lemma (in ab_semigroup_add) foldr_conv_foldl: "foldr op \<^loc>+ xs a = foldl op \<^loc>+ a xs"
+  by (induct xs, auto simp add: foldl_assoc add_commute)
+
 text {*
 Note: @{text "n \<le> foldl (op +) n ns"} looks simpler, but is more
 difficult to use because it requires an additional transitivity step.
@@ -1800,6 +1803,14 @@ by (force intro: start_le_sum simp add: in_set_conv_decomp)
 lemma sum_eq_0_conv [iff]:
 "!!m::nat. (foldl (op +) m ns = 0) = (m = 0 \<and> (\<forall>n \<in> set ns. n = 0))"
 by (induct ns) auto
+
+lemma foldr_invariant: 
+  "\<lbrakk>Q x ; \<forall> x\<in> set xs. P x; \<forall> x y. P x \<and> Q y \<longrightarrow> Q (f x y) \<rbrakk> \<Longrightarrow> Q (foldr f xs x)"
+  by (induct xs, simp_all)
+
+lemma foldl_invariant: 
+  "\<lbrakk>Q x ; \<forall> x\<in> set xs. P x; \<forall> x y. P x \<and> Q y \<longrightarrow> Q (f y x) \<rbrakk> \<Longrightarrow> Q (foldl f x xs)"
+  by (induct xs arbitrary: x, simp_all)
 
 text{* @{const foldl} and @{text concat} *}
 
@@ -3072,41 +3083,6 @@ lemma setsum_set_upt_conv_listsum[code unfold]:
   "setsum f (set[k..<n]) = listsum (map f [k..<n])"
 apply(subst atLeastLessThan_upt[symmetric])
 by (induct n) simp_all
-
-
-(* FIXME Amine *)
-
-(* is now available as thm semigroup_append.foldl_assoc *)
-lemma foldl_append_append: "foldl (op @) (ss@ss') xs = ss@(foldl (op @) ss' xs)"
-by (induct xs arbitrary: ss ss', simp_all)
-
-(* now superfluous *)
-lemma foldl_append_map_set:
- "set (foldl (op @) ss (map f xs)) = set ss \<union> UNION (set xs) (\<lambda>x. set (f x))"
-by(simp add:foldl_conv_concat)
-(*
-lemma foldl_append_map_set: "\<And> ss. set (foldl (op @) ss (map f xs)) = set ss \<union> UNION (set xs) (\<lambda>x. set (f x))"
-proof(induct xs)
-  case Nil thus ?case by simp
-next
-  case (Cons x xs ss)
-  have "set (foldl op @ ss (map f (x # xs))) = set (foldl op @ (ss @ f x) (map f xs))" by simp
-  also have "\<dots> = set (ss@ f x) \<union> UNION (set xs) (\<lambda>x. set (f x))"
-    using prems by simp
-  also have "\<dots>= set ss \<union> set (f x) \<union> UNION (set xs) (\<lambda>x. set (f x))" by simp
-  also have "\<dots> = set ss \<union> UNION (set (x#xs)) (\<lambda>x. set (f x))"
-    by (simp add: Un_assoc)
-  finally show ?case by simp
-qed
-*)
-
-(* also superfluous *)
-lemma foldl_append_map_Nil_set: 
-  "set (foldl (op @) [] (map f xs)) = UNION (set xs) (\<lambda>x. set (f x))"
-by(simp add:foldl_conv_concat)
-(*
-using foldl_append_map_set[where ss="[]" and xs="xs" and f="f"] by simp
-*)
 
 subsubsection {* List partitioning *}
 
