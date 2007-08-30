@@ -7,7 +7,7 @@
 
 THIS=$(cd "$(dirname "$0")"; pwd -P)
 
-PLATFORMS="at-poly at-sml-dev at-mac-poly-e at64-poly-e at-poly-5.1-para"
+PLATFORMS="at-poly at-sml-dev at-mac-poly-e at64-poly-e at-poly-5.1-para-e at64-poly-5.1-para-e at-mac-poly-5.1-para-e"
 SESSIONS="\
   HOL \
   HOL-Algebra \
@@ -19,6 +19,7 @@ SESSIONS="\
   HOL-Hoare \
   HOL-HoareParallel \
   HOL-Lambda \
+  HOL-MetisExamples \
   HOL-MicroJava \
   HOL-Nominal-Examples \
   HOL-NumberTheory \
