@@ -847,6 +847,8 @@ possible incompatibilities when working on ML level.
 
 * Lemma "set_take_whileD" renamed to "set_takeWhileD"
 
+* new function "sgn" on ordered_idom, hence in particular on int and real.
+
 * New lemma collection field_simps (an extension of ring_simps)
   for manipulating (in)equations involving division. Multiplies
   with all denominators that can be proved to be non-zero (in equations)
