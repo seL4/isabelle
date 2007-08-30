@@ -109,8 +109,6 @@ val constraint = $$ "::" |-- typ;
 val idt = ident -- constraint;
 val bind = idt --| $$ ".";
 
-in
-
 fun term env T x =
  ($$ "!!" |-- bind :|-- (fn v =>
    term (v :: env) propT >> (fn B => Term.all (#2 v) $ lambda (Free v) B)) ||
@@ -145,6 +143,8 @@ fun read_tm T s =
     if can (Term.map_types Term.no_dummyT) t then t
     else error ("Unspecified types in input: " ^ quote s)
   end;
+
+in
 
 val read_term = read_tm dummyT;
 val read_prop = read_tm propT;
