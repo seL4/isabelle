@@ -935,6 +935,19 @@ apply (cut_tac c = c in zmod_zmult_zmult1)
 apply (auto simp add: mult_commute)
 done
 
+lemma zmod_zmod_cancel:
+assumes "n dvd m" shows "(k::int) mod m mod n = k mod n"
+proof -
+  from `n dvd m` obtain r where "m = n*r" by(auto simp:dvd_def)
+  have "k mod n = (m * (k div m) + k mod m) mod n"
+    using zmod_zdiv_equality[of k m] by simp
+  also have "\<dots> = (m * (k div m) mod n + k mod m mod n) mod n"
+    by(subst zmod_zadd1_eq, rule refl)
+  also have "m * (k div m) mod n = 0" using `m = n*r`
+    by(simp add:mult_ac)
+  finally show ?thesis by simp
+qed
+
 
 subsection {*Splitting Rules for div and mod*}
 
