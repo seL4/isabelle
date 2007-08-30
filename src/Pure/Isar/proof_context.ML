@@ -15,7 +15,6 @@ sig
   val set_mode: mode -> Proof.context -> Proof.context
   val get_mode: Proof.context -> mode
   val restore_mode: Proof.context -> Proof.context -> Proof.context
-  val set_type_mode: Type.mode -> Proof.context -> Proof.context
   val set_stmt: bool -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
   val full_name: Proof.context -> bstring -> string
@@ -182,21 +181,19 @@ val init = Context.init_proof;
 
 datatype mode =
   Mode of
-   {type_mode: Type.mode,
-    stmt: bool,                (*inner statement mode*)
+   {stmt: bool,                (*inner statement mode*)
     pattern: bool,             (*pattern binding schematic variables*)
     schematic: bool,           (*term referencing loose schematic variables*)
     abbrev: bool};             (*abbrev mode -- no normalization*)
 
-fun make_mode (type_mode, stmt, pattern, schematic, abbrev) =
-  Mode {type_mode = type_mode, stmt = stmt, pattern = pattern,
-    schematic = schematic, abbrev = abbrev};
+fun make_mode (stmt, pattern, schematic, abbrev) =
+  Mode {stmt = stmt, pattern = pattern, schematic = schematic, abbrev = abbrev};
 
-val mode_default   = make_mode (Type.mode_default, false, false, false, false);
-val mode_stmt      = make_mode (Type.mode_default, true, false, false, false);
-val mode_pattern   = make_mode (Type.mode_default, false, true, false, false);
-val mode_schematic = make_mode (Type.mode_default, false, false, true, false);
-val mode_abbrev    = make_mode (Type.mode_default, false, false, false, true);
+val mode_default   = make_mode (false, false, false, false);
+val mode_stmt      = make_mode (true, false, false, false);
+val mode_pattern   = make_mode (false, true, false, false);
+val mode_schematic = make_mode (false, false, true, false);
+val mode_abbrev    = make_mode (false, false, false, true);
 
 
 
@@ -236,10 +233,8 @@ fun set_mode mode = map_context (fn (_, naming, syntax, consts, thms, cases) =>
   (mode, naming, syntax, consts, thms, cases));
 
 fun map_mode f =
-  map_context (fn (Mode {type_mode, stmt, pattern, schematic, abbrev},
-      naming, syntax, consts, thms, cases) =>
-    (make_mode (f (type_mode, stmt, pattern, schematic, abbrev)),
-      naming, syntax, consts, thms, cases));
+  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, consts, thms, cases) =>
+    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, consts, thms, cases));
 
 fun map_naming f =
   map_context (fn (mode, naming, syntax, consts, thms, cases) =>
@@ -264,13 +259,8 @@ fun map_cases f =
 val get_mode = #mode o rep_context;
 fun restore_mode ctxt = set_mode (get_mode ctxt);
 
-val get_type_mode = get_mode #> (fn Mode {type_mode, ...} => type_mode);
-
-fun set_type_mode type_mode = map_mode
-  (fn (_, stmt, pattern, schematic, abbrev) => (type_mode, stmt, pattern, schematic, abbrev));
-
-fun set_stmt stmt = map_mode
-  (fn (type_mode, _, pattern, schematic, abbrev) => (type_mode, stmt, pattern, schematic, abbrev));
+fun set_stmt stmt =
+  map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
 val naming_of = #naming o rep_context;
 val full_name = NameSpace.full o naming_of;
@@ -381,7 +371,7 @@ val string_of_thm = Pretty.string_of oo pretty_thm;
 (* read_typ *)
 
 fun read_typ_mode mode ctxt s =
-  Syntax.read_typ (set_type_mode mode ctxt) s;
+  Syntax.read_typ (Type.set_mode mode ctxt) s;
 
 val read_typ        = read_typ_mode Type.mode_default;
 val read_typ_syntax = read_typ_mode Type.mode_syntax;
@@ -605,12 +595,12 @@ val cert_prop_pats = map o gen_cert true true false;
 end;
 
 
-(* type inference *)
+(* type checking and type inference *)
 
 local
 
 fun gen_infer_types pattern ctxt ts =
-  TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (get_type_mode ctxt)
+  TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
     (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
     (Variable.names_of ctxt) (not pattern) (map (rpair dummyT) ts)
   |> #1 |> map #1
@@ -618,11 +608,17 @@ fun gen_infer_types pattern ctxt ts =
 
 in
 
+fun check_typ ctxt = cert_typ_mode (Type.get_mode ctxt) ctxt;
+
+val _ = Context.add_setup (Context.theory_map
+    (Syntax.add_typ_check (fn Ts => fn ctxt => (map (check_typ ctxt) Ts, ctxt))));
+
+
 val infer_types = gen_infer_types false;
 val infer_types_pats = gen_infer_types true;
 
 val _ = Context.add_setup (Context.theory_map
-    (Syntax.add_type_check (fn ts => fn ctxt => (infer_types ctxt ts, ctxt))));
+    (Syntax.add_term_check (fn ts => fn ctxt => (infer_types ctxt ts, ctxt))));
 
 end;
 
@@ -674,7 +670,7 @@ fun parse_term T ctxt str =
   let
     val thy = theory_of ctxt;
     fun infer t =
-      singleton (infer_types (set_type_mode Type.mode_default ctxt)) (TypeInfer.constrain t T);
+      singleton (infer_types (Type.set_mode Type.mode_default ctxt)) (TypeInfer.constrain t T);
     fun check t = Exn.Result (infer t) handle ERROR msg => Exn.Exn (ERROR msg);
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
     val read = Syntax.standard_parse_term (pp ctxt) check get_sort map_const map_free
