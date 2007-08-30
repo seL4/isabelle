@@ -243,10 +243,9 @@ fun const_of ctxt (c,Ts) =  Const (c, dummyT)
 
   fun fol_terms_to_hol ctxt fol_tms =
     let val ts = map (fol_term_to_hol_RAW ctxt) fol_tms
-        val _ = Output.debug (fn () => "  calling infer_types:")
+        val _ = Output.debug (fn () => "  calling type inference:")
         val _ = app (fn t => Output.debug (fn () => ProofContext.string_of_term ctxt t)) ts
-        val ts' = ProofContext.infer_types_pats ctxt ts
-                    (*DO NOT freeze TVars in the result*)
+        val ts' = Syntax.check_terms ctxt ts |> Variable.polymorphic ctxt;
         val _ = app (fn t => Output.debug
                       (fn () => "  final term: " ^ ProofContext.string_of_term ctxt t ^
                                 "  of type  " ^ ProofContext.string_of_typ ctxt (type_of t)))
@@ -309,7 +308,7 @@ fun inst_excluded_middle th thy i_atm =
         val _ = Output.debug (fn () => "  isa th: " ^ string_of_thm i_th)
         val substs = List.mapPartial remove_typeinst (Metis.Subst.toList fsubst)
         val (vars,rawtms) = ListPair.unzip (List.mapPartial subst_translation substs)
-        val tms = ProofContext.infer_types_pats ctxt rawtms
+        val tms = Syntax.check_terms ctxt rawtms |> Variable.polymorphic ctxt;
         val ctm_of = cterm_of thy o (map_types o Logic.incr_tvar) (1 + Thm.maxidx_of i_th)
         val substs' = ListPair.zip (vars, map ctm_of tms)
         val _ = Output.debug (fn() => "subst_translations:")
