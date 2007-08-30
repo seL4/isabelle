@@ -99,18 +99,20 @@ sig
   val global_parse_typ: theory -> string -> typ
   val global_parse_term: theory -> string -> term
   val global_parse_prop: theory -> string -> term
-  val add_type_check: (term list -> Proof.context -> Term.term list * Proof.context) ->
-    Context.generic -> Context.generic
-  val type_check: term list -> Proof.context -> term list * Proof.context
+  val check_sort: Proof.context -> sort -> sort
+  val check_typs: Proof.context -> typ list -> typ list
   val check_terms: Proof.context -> term list -> term list
   val check_props: Proof.context -> term list -> term list
-  val check_typs: Proof.context -> typ list -> typ list
+  val add_typ_check: (typ list -> Proof.context -> typ list * Proof.context) ->
+    Context.generic -> Context.generic
+  val add_term_check: (term list -> Proof.context -> term list * Proof.context) ->
+    Context.generic -> Context.generic
   val read_sort: Proof.context -> string -> sort
   val read_typ: Proof.context -> string -> typ
-  val read_terms: Proof.context -> string list -> term list
-  val read_props: Proof.context -> string list -> term list
   val read_term: Proof.context -> string -> term
   val read_prop: Proof.context -> string -> term
+  val read_terms: Proof.context -> string list -> term list
+  val read_props: Proof.context -> string list -> term list
   val global_read_sort: theory -> string -> sort
   val global_read_typ: theory -> string -> typ
   val global_read_term: theory -> string -> term
@@ -635,39 +637,52 @@ val global_parse_term = parse_term o ProofContext.init;
 val global_parse_prop = parse_prop o ProofContext.init;
 
 
-(* type-checking *)
+(* checking types/terms *)
 
-structure TypeCheck = GenericDataFun
+local
+
+structure Checks = GenericDataFun
 (
-  type T = ((term list -> Proof.context -> term list * Proof.context) * stamp) list;
-  val empty = [];
+  type T =
+    ((typ list -> Proof.context -> typ list * Proof.context) * stamp) list *
+    ((term list -> Proof.context -> term list * Proof.context) * stamp) list;
+  val empty = ([], []);
   val extend = I;
-  fun merge _ type_checks : T = Library.merge (eq_snd op =) type_checks;
+  fun merge _ ((typ_checks1, term_checks1), (typ_checks2, term_checks2)) : T =
+    (Library.merge (eq_snd op =) (typ_checks1, typ_checks2),
+     Library.merge (eq_snd op =) (term_checks1, term_checks2));
 );
 
-fun add_type_check f = TypeCheck.map (cons (f, stamp ()));
-
-fun type_check ts0 ctxt0 =
+fun gen_check which eq ctxt0 xs0 =
   let
-    val funs = map #1 (rev (TypeCheck.get (Context.Proof ctxt0)));
-    fun check [] ts ctxt = (ts, ctxt)
-      | check (f :: fs) ts ctxt = f ts ctxt |-> check fs;
+    val funs = map fst (rev (which (Checks.get (Context.Proof ctxt0))));
 
-    fun check_fixpoint ts ctxt =
-      let val (ts', ctxt') = check funs ts ctxt in
-        if eq_list (op aconv) (ts, ts') then (ts, ctxt)
-        else check_fixpoint ts' ctxt'
+    fun check [] xs ctxt = (xs, ctxt)
+      | check (f :: fs) xs ctxt = f xs ctxt |-> check fs;
+
+    fun check_fixpoint xs ctxt =
+      let val (xs', ctxt') = check funs xs ctxt in
+        if eq_list eq (xs, xs') then (xs, ctxt)
+        else check_fixpoint xs' ctxt'
       end;
-  in (case funs of [f] => f ts0 ctxt0 | _ => check_fixpoint ts0 ctxt0) end;
+  in #1 (case funs of [f] => f xs0 ctxt0 | _ => check_fixpoint xs0 ctxt0) end;
 
-fun check_terms ctxt ts = #1 (type_check ts ctxt);
+in
+
+val check_typs = gen_check fst (op =);
+val check_terms = gen_check snd (op aconv);
+
 fun check_props ctxt = map (fn t => TypeInfer.constrain t propT) #> check_terms ctxt;
-fun check_typs ctxt = map Logic.mk_type #> check_terms ctxt #> map Logic.dest_type;
 
 fun check_sort ctxt S =
   (case singleton (check_typs ctxt) (TFree ("", S)) of   (* FIXME TypeInfer.invent_type (!?) *)
     TFree ("", S') => S'
   | T => raise TYPE ("check_sort", [T], []));
+
+fun add_typ_check f = Checks.map (apfst (cons (f, stamp ())));
+fun add_term_check f = Checks.map (apsnd (cons (f, stamp ())));
+
+end;
 
 
 (* combined operations *)
