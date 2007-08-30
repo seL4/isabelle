@@ -489,29 +489,86 @@ by (simp add: mod_def divAlg_def)
 
 text {*Simplify expresions in which div and mod combine numerical constants*}
 
-lemmas div_pos_pos_number_of [simp] =
+lemma quoremI:
+  "\<lbrakk>a == b * q + r; if 0 < b then 0 \<le> r \<and> r < b else b < r \<and> r \<le> 0\<rbrakk>
+    \<Longrightarrow> quorem ((a, b), (q, r))"
+  unfolding quorem_def by simp
+
+lemmas quorem_div_eq = quoremI [THEN quorem_div, THEN eq_reflection]
+lemmas quorem_mod_eq = quoremI [THEN quorem_mod, THEN eq_reflection]
+lemmas arithmetic_simps =
+  arith_simps
+  add_special
+  OrderedGroup.add_0_left
+  OrderedGroup.add_0_right
+  mult_zero_left
+  mult_zero_right
+  mult_1_left
+  mult_1_right
+
+(* simprocs adapted from HOL/ex/Binary.thy *)
+ML {*
+local
+  infix ==;
+  val op == = Logic.mk_equals;
+  fun plus m n = @{term "plus :: int \<Rightarrow> int \<Rightarrow> int"} $ m $ n;
+  fun mult m n = @{term "times :: int \<Rightarrow> int \<Rightarrow> int"} $ m $ n;
+
+  val binary_ss = HOL_basic_ss addsimps @{thms arithmetic_simps};
+  fun prove ctxt prop =
+    Goal.prove ctxt [] [] prop (fn _ => ALLGOALS (full_simp_tac binary_ss));
+
+  fun binary_proc proc ss ct =
+    (case Thm.term_of ct of
+      _ $ t $ u =>
+      (case try (pairself (`(snd o HOLogic.dest_number))) (t, u) of
+        SOME args => proc (Simplifier.the_context ss) args
+      | NONE => NONE)
+    | _ => NONE);
+in
+
+fun divmod_proc rule = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
+  if n = 0 then NONE
+  else
+    let val (k, l) = IntInf.divMod (m, n);
+        fun mk_num x = HOLogic.mk_number HOLogic.intT x;
+    in SOME (rule OF [prove ctxt (t == plus (mult u (mk_num k)) (mk_num l))])
+    end);
+
+end;
+*}
+
+simproc_setup binary_int_div ("number_of m div number_of n :: int") =
+  {* K (divmod_proc (@{thm quorem_div_eq})) *}
+
+simproc_setup binary_int_mod ("number_of m mod number_of n :: int") =
+  {* K (divmod_proc (@{thm quorem_mod_eq})) *}
+
+(* The following 8 lemmas are made unnecessary by the above simprocs: *)
+
+lemmas div_pos_pos_number_of =
     div_pos_pos [of "number_of v" "number_of w", standard]
 
-lemmas div_neg_pos_number_of [simp] =
+lemmas div_neg_pos_number_of =
     div_neg_pos [of "number_of v" "number_of w", standard]
 
-lemmas div_pos_neg_number_of [simp] =
+lemmas div_pos_neg_number_of =
     div_pos_neg [of "number_of v" "number_of w", standard]
 
-lemmas div_neg_neg_number_of [simp] =
+lemmas div_neg_neg_number_of =
     div_neg_neg [of "number_of v" "number_of w", standard]
 
 
-lemmas mod_pos_pos_number_of [simp] =
+lemmas mod_pos_pos_number_of =
     mod_pos_pos [of "number_of v" "number_of w", standard]
 
-lemmas mod_neg_pos_number_of [simp] =
+lemmas mod_neg_pos_number_of =
     mod_neg_pos [of "number_of v" "number_of w", standard]
 
-lemmas mod_pos_neg_number_of [simp] =
+lemmas mod_pos_neg_number_of =
     mod_pos_neg [of "number_of v" "number_of w", standard]
 
-lemmas mod_neg_neg_number_of [simp] =
+lemmas mod_neg_neg_number_of =
     mod_neg_neg [of "number_of v" "number_of w", standard]
 
 
