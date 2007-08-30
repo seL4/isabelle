@@ -367,7 +367,7 @@ end end;
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
 fun mk_const_def sign (c, Ty, rhs) =
-  singleton (ProofContext.infer_types (ProofContext.init sign))
+  singleton (Syntax.check_terms (ProofContext.init sign))
     (Sign.intern_term sign (Const("==",dummyT) $ Const(c,Ty) $ rhs));
 
 (*Make all TVars available for instantiation by adding a ? to the front*)

@@ -238,7 +238,7 @@ fun fix_sorts vt =
   vt0 holds the initial sort constraints, from the conjecture clauses.*)
 fun clause_of_strees ctxt vt0 ts =
   let val (vt, dt) = lits_of_strees ctxt (vt0,[]) ts in
-    singleton (ProofContext.infer_types ctxt) (TypeInfer.constrain (fix_sorts vt dt) HOLogic.boolT)
+    singleton (Syntax.check_terms ctxt) (TypeInfer.constrain (fix_sorts vt dt) HOLogic.boolT)
   end;
 
 (*Quantification over a list of Vars. FIXME: for term.ML??*)

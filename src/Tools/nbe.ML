@@ -323,7 +323,7 @@ fun eval thy code t vs_ty_t deps =
       subst_Frees (map (fn (s, T) => (s, Term.Free (s, T))) (Term.add_frees t []))
       #> subst_Vars (map (fn (ixn, T) => (ixn, Var (ixn, T))) (Term.add_vars t []))
     fun constrain t =
-      singleton (ProofContext.infer_types_pats (ProofContext.init thy)) (TypeInfer.constrain t ty);
+      singleton (Syntax.check_terms (ProofContext.init thy)) (TypeInfer.constrain t ty);
     fun check_tvars t = if null (Term.term_tvars t) then t else
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Sign.string_of_term thy) t);

@@ -99,7 +99,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
   end;
 
 fun infer_terms ctxt =
-  ProofContext.infer_types ctxt o
+  Syntax.check_terms ctxt o
     (map (fn (t, T) => TypeInfer.constrain t (TypeInfer.paramify_vars T)));
 
 in
