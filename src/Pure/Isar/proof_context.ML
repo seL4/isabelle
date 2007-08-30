@@ -12,6 +12,7 @@ sig
   val theory_of: Proof.context -> theory
   val init: theory -> Proof.context
   type mode
+  val join_mode: mode -> mode -> mode
   val set_mode: mode -> Proof.context -> Proof.context
   val get_mode: Proof.context -> mode
   val restore_mode: Proof.context -> Proof.context -> Proof.context
@@ -70,8 +71,6 @@ sig
   val cert_prop: Proof.context -> term -> term
   val cert_term_pats: typ -> Proof.context -> term list -> term list
   val cert_prop_pats: Proof.context -> term list -> term list
-  val infer_types: Proof.context -> term list -> term list
-  val infer_types_pats: Proof.context -> term list -> term list
   val infer_type: Proof.context -> string -> typ
   val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
@@ -188,6 +187,12 @@ datatype mode =
 
 fun make_mode (stmt, pattern, schematic, abbrev) =
   Mode {stmt = stmt, pattern = pattern, schematic = schematic, abbrev = abbrev};
+
+fun join_mode
+    (Mode {stmt = stmt1, pattern = pattern1, schematic = schematic1, abbrev = abbrev1})
+    (Mode {stmt = stmt2, pattern = pattern2, schematic = schematic2, abbrev = abbrev2}) =
+  make_mode (stmt1 orelse stmt2, pattern1 orelse pattern2,
+    schematic1 orelse schematic2, abbrev1 orelse abbrev2);
 
 val mode_default   = make_mode (false, false, false, false);
 val mode_stmt      = make_mode (true, false, false, false);
@@ -425,7 +430,7 @@ fun revert_skolems ctxt =
       | reverts (t $ u) = reverts t $ reverts u
       | reverts (Abs (x, T, t)) = Abs (x, T, reverts t)
       | reverts a = a;
-  in reverts end
+  in reverts end;
 
 
 
@@ -471,8 +476,11 @@ fun reject_schematic (Var (xi, _)) =
   | reject_schematic (t $ u) = (reject_schematic t; reject_schematic u)
   | reject_schematic _ = ();
 
-fun expand_binds ctxt schematic =
-  Variable.expand_binds ctxt #> (if schematic then I else tap reject_schematic);
+fun expand_binds ctxt =
+  let val Mode {pattern, schematic, ...} = get_mode ctxt in
+    if pattern then I
+    else Variable.expand_binds ctxt #> (if schematic then I else tap reject_schematic)
+  end;
 
 
 (* schematic type variables *)
@@ -542,7 +550,8 @@ fun gen_read' read app pattern schematic
         (legacy_intern_skolem ctxt internal types) s
       handle TERM (msg, _) => error msg)
     |> app (certify_consts ctxt)
-    |> app (if pattern then I else expand_binds ctxt schematic)
+    |> app (expand_binds (set_mode
+          (Mode {stmt = false, pattern = pattern, schematic = schematic, abbrev = false}) ctxt))
     |> app (if pattern orelse schematic then I else reject_tvars)
     |> app (if pattern then prepare_dummies else reject_dummies)
   end;
@@ -575,58 +584,51 @@ end;
 
 local
 
-fun gen_cert prop pattern schematic ctxt t = t
-  |> certify_consts ctxt
-  |> (if pattern then I else expand_binds ctxt schematic)
-  |> (fn t' => #1 (Sign.certify' false prop (pp ctxt) (consts_of ctxt) (theory_of ctxt) t')
-    handle TYPE (msg, _, _) => error msg
-      | TERM (msg, _) => error msg);
+fun gen_cert prop mode ctxt0 t =
+  let val ctxt = set_mode mode ctxt0 in
+    t
+    |> certify_consts ctxt
+    |> expand_binds ctxt
+    |> (fn t' => #1 (Sign.certify' false prop (pp ctxt) (consts_of ctxt) (theory_of ctxt) t')
+      handle TYPE (msg, _, _) => error msg
+        | TERM (msg, _) => error msg)
+   end;
 
 in
 
-val cert_term = gen_cert false false false;
+val cert_term = gen_cert false mode_default;
 val cert_terms = map o cert_term;
-val cert_prop = gen_cert true false false;
-val cert_props = map oo gen_cert true false;
+val cert_prop = gen_cert true mode_default;
+fun cert_props schematic = map o gen_cert true (if schematic then mode_schematic else mode_default);
 
-fun cert_term_pats _ = map o gen_cert false true false;
-val cert_prop_pats = map o gen_cert true true false;
-
-end;
-
-
-(* type checking and type inference *)
-
-local
-
-fun gen_infer_types pattern ctxt ts =
-  TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
-    (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
-    (Variable.names_of ctxt) (not pattern) (map (rpair dummyT) ts)
-  |> #1 |> map #1
-  handle TYPE (msg, _, _) => error msg;
-
-in
-
-fun check_typ ctxt = cert_typ_mode (Type.get_mode ctxt) ctxt;
-
-val _ = Context.add_setup (Context.theory_map
-    (Syntax.add_typ_check (fn Ts => fn ctxt => (map (check_typ ctxt) Ts, ctxt))));
-
-
-val infer_types = gen_infer_types false;
-val infer_types_pats = gen_infer_types true;
-
-val _ = Context.add_setup (Context.theory_map
-    (Syntax.add_term_check (fn ts => fn ctxt => (infer_types ctxt ts, ctxt))));
+fun cert_term_pats _ = map o gen_cert false mode_pattern;
+val cert_prop_pats = map o gen_cert true mode_pattern;
 
 end;
+
+
+(* type checking/inference *)
+
+fun standard_infer_types ctxt ts =
+  let val Mode {pattern, ...} = get_mode ctxt in
+    TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
+      (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
+      (Variable.names_of ctxt) (not pattern) (map (rpair dummyT) ts)
+    |> #1 |> map #1
+    handle TYPE (msg, _, _) => error msg
+  end;
+
+val _ = Context.add_setup (Context.theory_map (Syntax.add_term_check
+    (fn ts => fn ctxt => (standard_infer_types ctxt ts, ctxt))));
+
+val _ = Context.add_setup (Context.theory_map (Syntax.add_typ_check
+    (fn Ts => fn ctxt => (map (cert_typ_mode (Type.get_mode ctxt) ctxt) Ts, ctxt))));
 
 
 (* inferred types of parameters *)
 
 fun infer_type ctxt x =
-  Term.fastype_of (singleton (infer_types ctxt) (Free (x, dummyT)));
+  Term.fastype_of (singleton (Syntax.check_terms ctxt) (Free (x, dummyT)));
 
 fun inferred_param x ctxt =
   let val T = infer_type ctxt x
@@ -669,8 +671,8 @@ fun parse_typ ctxt str =
 fun parse_term T ctxt str =
   let
     val thy = theory_of ctxt;
-    fun infer t =
-      singleton (infer_types (Type.set_mode Type.mode_default ctxt)) (TypeInfer.constrain t T);
+    fun infer t = singleton (standard_infer_types (Type.set_mode Type.mode_default ctxt))
+        (TypeInfer.constrain t T);
     fun check t = Exn.Result (infer t) handle ERROR msg => Exn.Exn (ERROR msg);
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
     val read = Syntax.standard_parse_term (pp ctxt) check get_sort map_const map_free
