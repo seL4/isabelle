@@ -74,6 +74,7 @@ sig
   val fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
+  val burrow_types: (typ list -> typ list) -> term list -> term list
   val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
   val add_term_names: term * string list -> string list
   val aconv: term * term -> bool
@@ -480,6 +481,26 @@ fun fold_term_types f (t as Const (_, T)) = f t T
   | fold_term_types f (t $ u) = fold_term_types f t #> fold_term_types f u;
 
 fun fold_types f = fold_term_types (K f);
+
+fun replace_types (Const (c, _)) (T :: Ts) = (Const (c, T), Ts)
+  | replace_types (Free (x, _)) (T :: Ts) = (Free (x, T), Ts)
+  | replace_types (Var (xi, _)) (T :: Ts) = (Var (xi, T), Ts)
+  | replace_types (Bound i) Ts = (Bound i, Ts)
+  | replace_types (Abs (x, _, b)) (T :: Ts) =
+      let val (b', Ts') = replace_types b Ts
+      in (Abs (x, T, b'), Ts') end
+  | replace_types (t $ u) Ts =
+      let
+        val (t', Ts') = replace_types t Ts;
+        val (u', Ts'') = replace_types u Ts';
+      in (t' $ u', Ts'') end;
+
+fun burrow_types f ts =
+  let
+    val Ts = rev (fold (fold_types cons) ts []);
+    val Ts' = f Ts;
+    val (ts', []) = fold_map replace_types ts Ts';
+  in ts' end;
 
 (*collect variables*)
 val add_tvarsT = fold_atyps (fn TVar v => insert (op =) v | _ => I);
