@@ -603,7 +603,8 @@ the package does not have to use inference rules for type-checking.
 \end{matharray}
 
 \begin{rail}
-  ('inductive' | 'inductive\_set' | 'coinductive' | 'coinductive\_set') target? fixes ('for' fixes)? \\ ('where' clauses)? ('monos' thmrefs)?
+  ('inductive' | 'inductive\_set' | 'coinductive' | 'coinductive\_set') target? fixes ('for' fixes)? \\
+  ('where' clauses)? ('monos' thmrefs)?
   ;
   clauses: (thmdecl? prop + '|')
   ;
@@ -614,6 +615,8 @@ the package does not have to use inference rules for type-checking.
 \begin{descr}
 \item [$\isarkeyword{inductive}$ and $\isarkeyword{coinductive}$] define
   (co)inductive predicates from the introduction rules given in the \texttt{where} section.
+  The optional \texttt{for} section contains a list of parameters of the (co)inductive
+  predicates that remain fixed throughout the definition.
   The optional \texttt{monos} section contains \textit{monotonicity theorems},
   which are required for each operator applied to a recursive set in the introduction rules.
   There {\bf must} be a theorem of the form $A \leq B \Imp M~A \leq M~B$, for each
@@ -728,7 +731,7 @@ Isar.  These should be never used in proper proof texts!
   ;
   inducttac goalspec? (insts * 'and') rule?
   ;
-  indcases (prop +)
+  indcases (prop +) ('for' (name +)) ?
   ;
   inductivecases (thmdecl? (prop +) + 'and')
   ;
@@ -752,7 +755,9 @@ Isar.  These should be never used in proper proof texts!
 
   While $ind_cases$ is a proof method to apply the result immediately as
   elimination rules, $\isarkeyword{inductive_cases}$ provides case split
-  theorems at the theory level for later use,
+  theorems at the theory level for later use.
+  The \texttt{for} option of the $ind_cases$ method allows to specify a list
+  of variables that should be generalized before applying the resulting rule.
 \end{descr}
 
 
@@ -863,7 +868,8 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 
 \begin{rail}
 'export\_code' ( constexpr + ) ? \\
-  ( ( 'in' target ( 'module_name' string ) ? ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?;
+  ( ( 'in' target ( 'module\_name' string ) ? \\
+      ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?;
 
 'code\_thms' ( constexpr + ) ?;
 
