@@ -333,6 +333,9 @@ lemma pos_add_strict:
 class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + lordered_ab_group + abs_if
   (*previously ordered_ring*)
 
+definition (in ordered_idom) sgn where
+"sgn x = (if x = \<^loc>0 then \<^loc>0 else if \<^loc>0 \<sqsubset> x then \<^loc>1 else uminus \<^loc>1)"
+
 instance ordered_idom \<subseteq> ordered_ring_strict ..
 
 instance ordered_idom \<subseteq> pordered_comm_ring ..
@@ -1895,6 +1898,10 @@ qed
 
 
 subsection {* Absolute Value *}
+
+lemma mult_sgn_abs: "sgn x * abs x = (x::'a::{ordered_idom,linorder})"
+using less_linear[of x 0]
+by(auto simp: sgn_def abs_if)
 
 lemma abs_one [simp]: "abs 1 = (1::'a::ordered_idom)"
 by (simp add: abs_if zero_less_one [THEN order_less_not_sym])
