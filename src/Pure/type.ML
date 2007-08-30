@@ -35,6 +35,9 @@ sig
   val mode_default: mode
   val mode_syntax: mode
   val mode_abbrev: mode
+  val get_mode: Proof.context -> mode
+  val set_mode: mode -> Proof.context -> Proof.context
+  val restore_mode: Proof.context -> Proof.context -> Proof.context
   val cert_typ_mode: mode -> tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
@@ -154,6 +157,16 @@ datatype mode = Mode of {normalize: bool, logical: bool};
 val mode_default = Mode {normalize = true, logical = true};
 val mode_syntax = Mode {normalize = true, logical = false};
 val mode_abbrev = Mode {normalize = false, logical = false};
+
+structure Mode = ProofDataFun
+(
+  type T = mode;
+  fun init _ = mode_default;
+);
+
+val get_mode = Mode.get;
+fun set_mode mode = Mode.map (K mode);
+fun restore_mode ctxt = set_mode (get_mode ctxt);
 
 
 (* certified types *)
