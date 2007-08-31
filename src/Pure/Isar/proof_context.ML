@@ -496,14 +496,9 @@ fun expand_abbrevs ctxt = certify_consts ctxt #> expand_binds ctxt;
 end;
 
 
-(* schematic type variables *)
+(* term patterns *)
 
-val reject_tvars = (Term.map_types o Term.map_atyps)
-  (fn TVar (xi, _) => error ("Illegal schematic type variable: " ^ Term.string_of_vname xi)
-    | T => T);
-
-
-(* dummy patterns *)
+local
 
 val prepare_dummies =
   let val next = ref 1 in
@@ -514,6 +509,23 @@ val prepare_dummies =
 
 fun reject_dummies t = Term.no_dummy_patterns t
   handle TERM _ => error "Illegal dummy pattern(s) in term";
+
+val reject_tvars = (Term.map_types o Term.map_atyps)
+  (fn T as TVar (xi, _) =>
+        if not (TypeInfer.is_param xi)
+        then error ("Illegal schematic type variable: " ^ Term.string_of_vname xi)
+        else T
+    | T => T);
+
+in
+
+fun prepare_pattern ctxt =
+  let val Mode {pattern, schematic, ...} = get_mode ctxt in
+    (if pattern orelse schematic then I else reject_tvars) #>
+    (if pattern then prepare_dummies else reject_dummies)
+  end;
+
+end;
 
 
 (* decoding raw terms (syntax trees) *)
@@ -552,9 +564,10 @@ local
 
 fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 
-fun gen_read' read app pattern schematic
-    ctxt internal more_types more_sorts more_used s =
+fun gen_read' read app pattern schematic ctxt0 internal more_types more_sorts more_used s =
   let
+    val ctxt = ctxt0
+      |> set_mode (Mode {stmt = false, pattern = pattern, schematic = schematic, abbrev = false});
     val types = append_env (Variable.def_type ctxt pattern) more_types;
     val sorts = append_env (Variable.def_sort ctxt) more_sorts;
     val used = fold Name.declare more_used (Variable.names_of ctxt);
@@ -562,10 +575,8 @@ fun gen_read' read app pattern schematic
     (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used)
         (legacy_intern_skolem ctxt internal types) s
       handle TERM (msg, _) => error msg)
-    |> app (expand_abbrevs (set_mode
-          (Mode {stmt = false, pattern = pattern, schematic = schematic, abbrev = false}) ctxt))
-    |> app (if pattern orelse schematic then I else reject_tvars)
-    |> app (if pattern then prepare_dummies else reject_dummies)
+    |> app (expand_abbrevs ctxt)
+    |> app (prepare_pattern ctxt)
   end;
 
 fun gen_read read app pattern schematic ctxt =
@@ -629,8 +640,13 @@ fun standard_infer_types ctxt ts =
     handle TYPE (msg, _, _) => error msg
   end;
 
+fun standard_term_check ctxt =
+  standard_infer_types ctxt #>
+  map (expand_abbrevs ctxt) #>
+  map (prepare_pattern ctxt);
+
 val _ = Context.add_setup (Context.theory_map (Syntax.add_term_check
-    (fn ts => fn ctxt => (map (expand_abbrevs ctxt) (standard_infer_types ctxt ts), ctxt))));
+    (fn ts => fn ctxt => (standard_term_check ctxt ts, ctxt))));
 
 val _ = Context.add_setup (Context.theory_map (Syntax.add_typ_check
     (fn Ts => fn ctxt => (map (cert_typ_mode (Type.get_mode ctxt) ctxt) Ts, ctxt))));
@@ -639,7 +655,8 @@ val _ = Context.add_setup (Context.theory_map (Syntax.add_typ_check
 (* inferred types of parameters *)
 
 fun infer_type ctxt x =
-  Term.fastype_of (singleton (Syntax.check_terms ctxt) (Free (x, dummyT)));
+  Term.fastype_of (singleton (Syntax.check_terms (set_mode mode_schematic ctxt))
+    (Free (x, dummyT)));
 
 fun inferred_param x ctxt =
   let val T = infer_type ctxt x
