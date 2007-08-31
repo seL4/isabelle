@@ -159,18 +159,10 @@ struct
 (*Instantiate constant c with the supplied types, but if they don't match its declared
   sort constraints, replace by a general type.*)
 fun const_of ctxt (c,Ts) =  Const (c, dummyT)
-(*Formerly, this code was used. Now, we just leave it all to type inference!
-  let val thy = ProofContext.theory_of ctxt
-      and (types, sorts) = Variable.constraints_of ctxt
-      val declaredT = Consts.the_constraint (Sign.consts_of thy) c
-      val t = Recon.fix_sorts sorts (Const(c, Sign.const_instance thy (c,Ts)))
-  in
-      Sign.typ_match thy (declaredT, type_of t) Vartab.empty;
-      t
-  end
-  handle Type.TYPE_MATCH => Const (c, dummyT);
-*)
 
+fun infer_types ctxt =
+  Syntax.check_terms (ProofContext.set_mode ProofContext.mode_pattern ctxt);
+  
   (*We use 1 rather than 0 because variable references in clauses may otherwise conflict
     with variable constraints in the goal...at least, type inference often fails otherwise.
     SEE ALSO axiom_inf below.*)
@@ -245,7 +237,7 @@ fun const_of ctxt (c,Ts) =  Const (c, dummyT)
     let val ts = map (fol_term_to_hol_RAW ctxt) fol_tms
         val _ = Output.debug (fn () => "  calling type inference:")
         val _ = app (fn t => Output.debug (fn () => ProofContext.string_of_term ctxt t)) ts
-        val ts' = Syntax.check_terms ctxt ts |> Variable.polymorphic ctxt;
+        val ts' = infer_types ctxt ts;
         val _ = app (fn t => Output.debug
                       (fn () => "  final term: " ^ ProofContext.string_of_term ctxt t ^
                                 "  of type  " ^ ProofContext.string_of_typ ctxt (type_of t)))
@@ -308,7 +300,7 @@ fun inst_excluded_middle th thy i_atm =
         val _ = Output.debug (fn () => "  isa th: " ^ string_of_thm i_th)
         val substs = List.mapPartial remove_typeinst (Metis.Subst.toList fsubst)
         val (vars,rawtms) = ListPair.unzip (List.mapPartial subst_translation substs)
-        val tms = Syntax.check_terms ctxt rawtms |> Variable.polymorphic ctxt;
+        val tms = infer_types ctxt rawtms;
         val ctm_of = cterm_of thy o (map_types o Logic.incr_tvar) (1 + Thm.maxidx_of i_th)
         val substs' = ListPair.zip (vars, map ctm_of tms)
         val _ = Output.debug (fn() => "subst_translations:")
