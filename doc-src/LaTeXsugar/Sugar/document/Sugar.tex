@@ -182,6 +182,22 @@ subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub 
 %
 \endisadelimML
 %
+\isamarkupsubsection{Qualified names%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+If there are multiple declarations of the same name, Isabelle prints
+the qualified name, for example \isa{T{\isachardot}length}, where \isa{T} is the
+theory it is defined in, to distinguish it from the predefined \isa{{\isachardoublequote}List{\isachardot}length{\isachardoublequote}}. In case there is no danger of confusion, you can insist on
+short names (no qualifiers) by setting \verb!short_names!, typically
+in \texttt{ROOT.ML}:
+\begin{verbatim}
+set short_names;
+\end{verbatim}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Variable names\label{sec:varnames}%
 }
 \isamarkuptrue%
@@ -461,7 +477,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   Note the space between \verb!@! and \verb!{! in the tabular argument.
   It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
   as an antiquotation. The styles \verb!lhs! and \verb!rhs!
-  extract the left hand side (or right hand side respectively) from the
+  extract the left hand side (or right hand side respectivly) from the
   conclusion of propositions consisting of a binary operator
   (e.~g.~\isa{{\isacharequal}}, \isa{{\isasymequiv}}, \isa{{\isacharless}}).
 
@@ -531,7 +547,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   
   After this \verb!setup!,
   there will be a new style available named \verb!my_concl!, thus allowing
-  antiquotations like \verb!@!\verb!{thm_style my_concl hd_Cons_tl}!
+  antiquoations like \verb!@!\verb!{thm_style my_concl hd_Cons_tl}!
   yielding \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}.%
 \end{isamarkuptext}%
 \isamarkuptrue%

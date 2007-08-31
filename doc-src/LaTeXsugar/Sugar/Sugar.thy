@@ -133,6 +133,19 @@ subscript: write \verb!x\<^isub>1! and obtain the much nicer @{text"x\<^isub>1"}
 
 (*<*)ML"reset show_question_marks"(*>*)
 
+subsection {*Qualified names*}
+
+text{* If there are multiple declarations of the same name, Isabelle prints
+the qualified name, for example @{text "T.length"}, where @{text T} is the
+theory it is defined in, to distinguish it from the predefined @{const[source]
+"List.length"}. In case there is no danger of confusion, you can insist on
+short names (no qualifiers) by setting \verb!short_names!, typically
+in \texttt{ROOT.ML}:
+\begin{verbatim}
+set short_names;
+\end{verbatim}
+*}
+
 subsection {*Variable names\label{sec:varnames}*}
 
 text{* It sometimes happens that you want to change the name of a
