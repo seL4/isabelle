@@ -209,6 +209,9 @@ lemmas [code func del] = le_rat_def less_rat_def
 instance rat :: abs
   abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)" ..
 
+instance rat :: sgn
+  sgn_rat_def: "sgn(q::rat) == (if q=0 then 0 else if 0<q then 1 else - 1)" ..
+
 instance rat :: power ..
 
 primrec (rat)
@@ -405,7 +408,7 @@ proof
   qed
   show "\<bar>q\<bar> = (if q < 0 then -q else q)"
     by (simp only: abs_rat_def)
-qed auto
+qed (auto simp: sgn_rat_def)
 
 instance rat :: division_by_zero
 proof

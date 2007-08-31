@@ -215,6 +215,8 @@ done
 
 instance int :: abs
   zabs_def: "\<bar>i\<Colon>int\<bar> \<equiv> if i < 0 then - i else i" ..
+instance int :: sgn
+  zsgn_def: "sgn(i\<Colon>int) \<equiv> (if i=0 then 0 else if 0<i then 1 else - 1)" ..
 
 instance int :: distrib_lattice
   "inf \<equiv> min"
@@ -230,6 +232,8 @@ proof
     by (rule zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)"
     by (simp only: zabs_def)
+  show "sgn(i\<Colon>int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
+    by (simp only: zsgn_def)
 qed
 
 lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"

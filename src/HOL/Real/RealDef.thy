@@ -65,6 +65,8 @@ lemmas [code func del] = real_le_def real_less_def
 instance real :: abs
   real_abs_def:  "abs (r::real) == (if r < 0 then - r else r)" ..
 
+instance real :: sgn
+  real_sgn_def: "sgn x == (if x=0 then 0 else if 0<x then 1 else - 1)" ..
 
 subsection {* Equivalence relation over positive reals *}
 
@@ -412,6 +414,8 @@ proof
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)
   show "x < y ==> 0 < z ==> z * x < z * y" by (rule real_mult_less_mono2)
   show "\<bar>x\<bar> = (if x < 0 then -x else x)" by (simp only: real_abs_def)
+  show "sgn x = (if x=0 then 0 else if 0<x then 1 else - 1)"
+    by (simp only: real_sgn_def)
 qed
 
 text{*The function @{term real_of_preal} requires many proofs, but it seems

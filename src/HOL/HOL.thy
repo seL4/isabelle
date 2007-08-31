@@ -233,6 +233,9 @@ class inverse = type +
 class abs = type +
   fixes abs :: "'a \<Rightarrow> 'a"
 
+class sgn = type +
+  fixes sgn :: "'a \<Rightarrow> 'a"
+
 notation
   uminus  ("- _" [81] 80)
 

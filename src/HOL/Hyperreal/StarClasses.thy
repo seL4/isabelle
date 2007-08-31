@@ -30,6 +30,9 @@ instance star :: (minus) minus
 instance star :: (abs) abs
   star_abs_def:     "abs \<equiv> *f* abs" ..
 
+instance star :: (sgn) sgn
+  star_sgn_def:     "sgn \<equiv> *f* sgn" ..
+
 instance star :: (inverse) inverse
   star_divide_def:  "(op /) \<equiv> *f2* (op /)"
   star_inverse_def: "inverse \<equiv> *f* inverse" ..
@@ -52,7 +55,7 @@ lemmas star_class_defs [transfer_unfold] =
   star_zero_def     star_one_def      star_number_def
   star_add_def      star_diff_def     star_minus_def
   star_mult_def     star_divide_def   star_inverse_def
-  star_le_def       star_less_def     star_abs_def
+  star_le_def       star_less_def     star_abs_def       star_sgn_def
   star_div_def      star_mod_def      star_power_def
 
 text {* Class operations preserve standard elements *}
@@ -412,6 +415,9 @@ instance star :: (lordered_ring) lordered_ring ..
 
 instance star :: (abs_if) abs_if
 by (intro_classes, transfer, rule abs_if)
+
+instance star :: (sgn_if) sgn_if
+by (intro_classes, transfer, rule sgn_if)
 
 instance star :: (ordered_ring_strict) ordered_ring_strict ..
 instance star :: (pordered_comm_ring) pordered_comm_ring ..

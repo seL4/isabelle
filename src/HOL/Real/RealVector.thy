@@ -376,8 +376,16 @@ class norm = type +
 
 instance real :: norm
   real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>" ..
+ML"set Toplevel.debug"
 
-axclass real_normed_vector < real_vector, norm
+class sgn_div_norm = scaleR + inverse + norm + sgn +
+assumes sgn_div_norm: "sgn x = x /# norm x"
+(* FIXME junk needed because of bug in locales *)
+and "(sgn :: 'a::scaleR \<Rightarrow> 'a) = sgn"
+and "(inverse :: 'a::scaleR \<Rightarrow> 'a) = inverse"
+and "(scaleR :: real \<Rightarrow> 'a::scaleR \<Rightarrow> 'a) = scaleR"
+
+axclass real_normed_vector < real_vector, sgn_div_norm
   norm_ge_zero [simp]: "0 \<le> norm x"
   norm_eq_zero [simp]: "(norm x = 0) = (x = 0)"
   norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
@@ -407,6 +415,9 @@ qed
 
 instance real :: real_normed_field
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
+apply (simp add: real_sgn_def)
+(* FIXME junk *)
+apply(rule refl)+
 apply (rule abs_ge_zero)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)
@@ -584,27 +595,25 @@ by (induct n) (simp_all add: power_Suc norm_mult)
 
 subsection {* Sign function *}
 
-definition
-  sgn :: "'a::real_normed_vector \<Rightarrow> 'a" where
-  "sgn x = scaleR (inverse (norm x)) x"
+lemma norm_sgn:
+  "norm (sgn(x::'a::real_normed_vector)) = (if x = 0 then 0 else 1)"
+by (simp add: sgn_div_norm norm_scaleR)
 
-lemma norm_sgn: "norm (sgn x) = (if x = 0 then 0 else 1)"
-unfolding sgn_def by (simp add: norm_scaleR)
+lemma sgn_zero [simp]: "sgn(0::'a::real_normed_vector) = 0"
+by (simp add: sgn_div_norm)
 
-lemma sgn_zero [simp]: "sgn 0 = 0"
-unfolding sgn_def by simp
+lemma sgn_zero_iff: "(sgn(x::'a::real_normed_vector) = 0) = (x = 0)"
+by (simp add: sgn_div_norm)
 
-lemma sgn_zero_iff: "(sgn x = 0) = (x = 0)"
-unfolding sgn_def by simp
+lemma sgn_minus: "sgn (- x) = - sgn(x::'a::real_normed_vector)"
+by (simp add: sgn_div_norm)
 
-lemma sgn_minus: "sgn (- x) = - sgn x"
-unfolding sgn_def by simp
-
-lemma sgn_scaleR: "sgn (scaleR r x) = scaleR (sgn r) (sgn x)"
-unfolding sgn_def by (simp add: norm_scaleR mult_ac)
+lemma sgn_scaleR:
+  "sgn (scaleR r x) = scaleR (sgn r) (sgn(x::'a::real_normed_vector))"
+by (simp add: sgn_div_norm norm_scaleR mult_ac)
 
 lemma sgn_one [simp]: "sgn (1::'a::real_normed_algebra_1) = 1"
-unfolding sgn_def by simp
+by (simp add: sgn_div_norm)
 
 lemma sgn_of_real:
   "sgn (of_real r::'a::real_normed_algebra_1) = of_real (sgn r)"
@@ -613,10 +622,10 @@ unfolding of_real_def by (simp only: sgn_scaleR sgn_one)
 lemma sgn_mult:
   fixes x y :: "'a::real_normed_div_algebra"
   shows "sgn (x * y) = sgn x * sgn y"
-unfolding sgn_def by (simp add: norm_mult mult_commute)
+by (simp add: sgn_div_norm norm_mult mult_commute)
 
 lemma real_sgn_eq: "sgn (x::real) = x / \<bar>x\<bar>"
-unfolding sgn_def by (simp add: divide_inverse)
+by (simp add: sgn_div_norm divide_inverse)
 
 lemma real_sgn_pos: "0 < (x::real) \<Longrightarrow> sgn x = 1"
 unfolding real_sgn_eq by simp

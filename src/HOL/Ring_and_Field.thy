@@ -299,6 +299,9 @@ instance lordered_ring \<subseteq> lordered_ab_group_join ..
 class abs_if = minus + ord + zero + abs +
   assumes abs_if: "abs a = (if a \<sqsubset> 0 then (uminus a) else a)"
 
+class sgn_if = sgn + zero + one + minus + ord +
+assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 \<sqsubset> x then 1 else uminus 1)"
+
 (* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.
    Basically, ordered_ring + no_zero_divisors = ordered_ring_strict.
  *)
@@ -311,7 +314,8 @@ proof
     by (simp only: abs_if sup_eq_if)
 qed
 
-class ordered_ring_strict = ring + ordered_semiring_strict + lordered_ab_group + abs_if
+class ordered_ring_strict =
+  ring + ordered_semiring_strict + lordered_ab_group + abs_if
 
 instance ordered_ring_strict \<subseteq> ordered_ring ..
 
@@ -330,11 +334,12 @@ lemma pos_add_strict:
   shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
   using add_strict_mono [of 0 a b c] by simp
 
-class ordered_idom = comm_ring_1 + ordered_comm_semiring_strict + lordered_ab_group + abs_if
+class ordered_idom =
+  comm_ring_1 +
+  ordered_comm_semiring_strict +
+  lordered_ab_group +
+  abs_if + sgn_if
   (*previously ordered_ring*)
-
-definition (in ordered_idom) sgn where
-"sgn x = (if x = \<^loc>0 then \<^loc>0 else if \<^loc>0 \<sqsubset> x then \<^loc>1 else uminus \<^loc>1)"
 
 instance ordered_idom \<subseteq> ordered_ring_strict ..
 
@@ -1901,7 +1906,7 @@ subsection {* Absolute Value *}
 
 lemma mult_sgn_abs: "sgn x * abs x = (x::'a::{ordered_idom,linorder})"
 using less_linear[of x 0]
-by(auto simp: sgn_def abs_if)
+by(auto simp: sgn_if abs_if)
 
 lemma abs_one [simp]: "abs 1 = (1::'a::ordered_idom)"
 by (simp add: abs_if zero_less_one [THEN order_less_not_sym])

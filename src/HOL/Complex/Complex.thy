@@ -299,6 +299,9 @@ abbreviation
   cmod :: "complex \<Rightarrow> real" where
     "cmod \<equiv> norm"
 
+instance complex :: sgn
+  complex_sgn_def: "sgn x == x /\<^sub>R cmod x" ..
+
 lemmas cmod_def = complex_norm_def
 
 lemma complex_norm [simp]: "cmod (Complex x y) = sqrt (x\<twosuperior> + y\<twosuperior>)"
@@ -320,7 +323,8 @@ proof
   show "norm (x * y) = norm x * norm y"
     by (induct x, induct y)
        (simp add: real_sqrt_mult [symmetric] power2_eq_square ring_simps)
-qed
+  show "sgn x = x /\<^sub>R cmod x" by(simp add: complex_sgn_def)
+qed (* FIXME junk *) (rule refl)+
 
 lemma cmod_unit_one [simp]: "cmod (Complex (cos a) (sin a)) = 1"
 by simp
@@ -529,7 +533,7 @@ definition
   "arg z = (SOME a. Re(sgn z) = cos a & Im(sgn z) = sin a & -pi < a & a \<le> pi)"
 
 lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
-by (simp add: sgn_def divide_inverse scaleR_conv_of_real mult_commute)
+by (simp add: complex_sgn_def divide_inverse scaleR_conv_of_real mult_commute)
 
 lemma i_mult_eq: "ii * ii = complex_of_real (-1)"
 by (simp add: i_def complex_of_real_def)
@@ -542,10 +546,10 @@ lemma complex_eq_cancel_iff2 [simp]:
 by (simp add: complex_of_real_def)
 
 lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
-unfolding sgn_def by (simp add: divide_inverse)
+by (simp add: complex_sgn_def divide_inverse)
 
 lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
-unfolding sgn_def by (simp add: divide_inverse)
+by (simp add: complex_sgn_def divide_inverse)
 
 lemma complex_inverse_complex_split:
      "inverse(complex_of_real x + ii * complex_of_real y) =
