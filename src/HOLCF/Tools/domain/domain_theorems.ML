@@ -54,9 +54,13 @@ infixr 9 oo;
 
 (* ----- general proof facilities ------------------------------------------- *)
 
+fun legacy_infer_term thy t =
+  let val ctxt = ProofContext.set_mode ProofContext.mode_schematic (ProofContext.init thy)
+  in singleton (Syntax.check_terms ctxt) (Sign.intern_term thy t) end;
+
 fun pg'' thy defs t tacs =
   let
-    val t' = FixrecPackage.legacy_infer_term thy t;
+    val t' = legacy_infer_term thy t;
     val asms = Logic.strip_imp_prems t';
     val prop = Logic.strip_imp_concl t';
     fun tac prems =
