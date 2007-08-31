@@ -13,6 +13,11 @@ sig
   val init: theory -> Proof.context
   type mode
   val join_mode: mode -> mode -> mode
+  val mode_default: mode
+  val mode_stmt: mode
+  val mode_pattern: mode
+  val mode_schematic: mode
+  val mode_abbrev: mode
   val set_mode: mode -> Proof.context -> Proof.context
   val get_mode: Proof.context -> mode
   val restore_mode: Proof.context -> Proof.context -> Proof.context
@@ -467,6 +472,8 @@ fun read_props_thy freeze pp syn thy defaults fixed =
 
 (* local abbreviations *)
 
+local
+
 fun certify_consts ctxt =
   Consts.certify (pp ctxt) (tsig_of ctxt) (consts_of ctxt);
 
@@ -481,6 +488,12 @@ fun expand_binds ctxt =
     if pattern then I
     else Variable.expand_binds ctxt #> (if schematic then I else tap reject_schematic)
   end;
+
+in
+
+fun expand_abbrevs ctxt = certify_consts ctxt #> expand_binds ctxt;
+
+end;
 
 
 (* schematic type variables *)
@@ -549,8 +562,7 @@ fun gen_read' read app pattern schematic
     (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used)
         (legacy_intern_skolem ctxt internal types) s
       handle TERM (msg, _) => error msg)
-    |> app (certify_consts ctxt)
-    |> app (expand_binds (set_mode
+    |> app (expand_abbrevs (set_mode
           (Mode {stmt = false, pattern = pattern, schematic = schematic, abbrev = false}) ctxt))
     |> app (if pattern orelse schematic then I else reject_tvars)
     |> app (if pattern then prepare_dummies else reject_dummies)
@@ -587,8 +599,7 @@ local
 fun gen_cert prop mode ctxt0 t =
   let val ctxt = set_mode mode ctxt0 in
     t
-    |> certify_consts ctxt
-    |> expand_binds ctxt
+    |> expand_abbrevs ctxt
     |> (fn t' => #1 (Sign.certify' false prop (pp ctxt) (consts_of ctxt) (theory_of ctxt) t')
       handle TYPE (msg, _, _) => error msg
         | TERM (msg, _) => error msg)
@@ -619,7 +630,7 @@ fun standard_infer_types ctxt ts =
   end;
 
 val _ = Context.add_setup (Context.theory_map (Syntax.add_term_check
-    (fn ts => fn ctxt => (standard_infer_types ctxt ts, ctxt))));
+    (fn ts => fn ctxt => (map (expand_abbrevs ctxt) (standard_infer_types ctxt ts), ctxt))));
 
 val _ = Context.add_setup (Context.theory_map (Syntax.add_typ_check
     (fn Ts => fn ctxt => (map (cert_typ_mode (Type.get_mode ctxt) ctxt) Ts, ctxt))));
