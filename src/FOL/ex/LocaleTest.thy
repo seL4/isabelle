@@ -12,7 +12,6 @@ theory LocaleTest
 imports FOL
 begin
 
-ML {* set quick_and_dirty *}    (* allow for thm command in batch mode *)
 ML {* set Toplevel.debug *}
 ML {* set show_hyps *}
 ML {* set show_sorts *}

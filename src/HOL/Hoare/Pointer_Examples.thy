@@ -8,6 +8,8 @@ Examples of verifications of pointer programs
 
 theory Pointer_Examples imports HeapSyntax begin
 
+axiomatization where unproven: "PROP A"
+
 section "Verifications"
 
 subsection "List reversal"
@@ -340,38 +342,35 @@ the lemmas.*}
 consts ispath:: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool"
        path:: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> 'a list"
 
-ML"set quick_and_dirty"
-
 text"First some basic lemmas:"
 
 lemma [simp]: "ispath f p p"
-sorry
+by (rule unproven)
 lemma [simp]: "path f p p = []"
-sorry
+by (rule unproven)
 lemma [simp]: "ispath f p q \<Longrightarrow> a \<notin> set(path f p q) \<Longrightarrow> ispath (f(a := r)) p q"
-sorry
+by (rule unproven)
 lemma [simp]: "ispath f p q \<Longrightarrow> a \<notin> set(path f p q) \<Longrightarrow>
  path (f(a := r)) p q = path f p q"
-sorry
+by (rule unproven)
 
 text"Some more specific lemmas needed by the example:"
 
 lemma [simp]: "ispath (f(a := q)) p (Ref a) \<Longrightarrow> ispath (f(a := q)) p q"
-sorry
+by (rule unproven)
 lemma [simp]: "ispath (f(a := q)) p (Ref a) \<Longrightarrow>
  path (f(a := q)) p q = path (f(a := q)) p (Ref a) @ [a]"
-sorry
+by (rule unproven)
 lemma [simp]: "ispath f p (Ref a) \<Longrightarrow> f a = Ref b \<Longrightarrow>
  b \<notin> set (path f p (Ref a))"
-sorry
+by (rule unproven)
 lemma [simp]: "ispath f p (Ref a) \<Longrightarrow> f a = Null \<Longrightarrow> islist f p"
-sorry
+by (rule unproven)
 lemma [simp]: "ispath f p (Ref a) \<Longrightarrow> f a = Null \<Longrightarrow> list f p = path f p (Ref a) @ [a]"
-sorry
+by (rule unproven)
 
 lemma [simp]: "islist f p \<Longrightarrow> distinct (list f p)"
-sorry
-ML"reset quick_and_dirty"
+by (rule unproven)
 
 lemma "VARS hd tl p q r s
  {islist tl p & Ps = list tl p \<and> islist tl q & Qs = list tl q \<and>
