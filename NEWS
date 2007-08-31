@@ -1466,11 +1466,12 @@ This simplifies use of multiple Isabelle installations.
 operations, notably runtime compilation and evaluation of ML source
 code.
 
-* Experimental support for multithreading, using Poly/ML 5.1 (internal
-version from CVS). The theory loader exploits parallelism when
-processing independent theories, following the header specifications.
-The maximum number of worker threads is specified via usedir option -M
-or the "max-threads" setting in Proof General.  User-code needs to
+* Support for multithreading, using Poly/ML 5.1 (internal version from
+CVS). The theory loader exploits parallelism when processing independent
+theories, following the header specifications. The maximum number of
+worker threads is specified via usedir option -M or the "max-threads"
+setting in Proof General. A speedup factor of 1.5--3.5 can be expected
+on a 4-core machine, and up to 6 on a 8-core machine. User-code needs to
 observe certain guidelines for thread-safe programming, see appendix A
 in the Isar Implementation manual.
 
