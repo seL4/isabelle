@@ -847,7 +847,12 @@ possible incompatibilities when working on ML level.
 
 * Lemma "set_take_whileD" renamed to "set_takeWhileD"
 
-* new function "sgn" on ordered_idom, hence in particular on int and real.
+* function "sgn" is now overloaded and available on int, real, complex
+  (and other numeric types).
+  The details: new class "sgn" with function "sgn";
+  two possible defs of sgn in the classes sgn_if and sgn_div_norm
+  (as equational assumptions);
+  ordered_idom now also inherits from sgn_if - INCOMPATIBILITY.
 
 * New lemma collection field_simps (an extension of ring_simps)
   for manipulating (in)equations involving division. Multiplies
