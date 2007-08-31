@@ -36,7 +36,9 @@ fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
 
 fun prove ctxt xs asms prop tac =
-  Goal.prove ctxt xs asms prop
-    (if ! quick_and_dirty then (K (cheat_tac (ProofContext.theory_of ctxt))) else tac);
+  Goal.prove ctxt xs asms prop (fn args => fn st =>
+    if ! quick_and_dirty
+    then setmp quick_and_dirty true (cheat_tac (ProofContext.theory_of ctxt)) st
+    else tac args st);
 
 end;
