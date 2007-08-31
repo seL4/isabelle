@@ -181,27 +181,25 @@ is produced by
 \verb!@!\verb!{thm[mode=Rule] conjI} {\sc conjI}!\\
 \verb!\end{center}!
 \end{quote}
-It is not recommended to use the standard \texttt{display} attribute
+It is not recommended to use the standard \texttt{display} option
 together with \texttt{Rule} because centering does not work and because
 the line breaking mechanisms of \texttt{display} and \texttt{mathpartir} can
 clash.
 
 Of course you can display multiple rules in this fashion:
 \begin{quote}
-\verb!\begin{center}\isastyle!\\
+\verb!\begin{center}!\\
 \verb!@!\verb!{thm[mode=Rule] conjI} {\sc conjI} \\[1ex]!\\
 \verb!@!\verb!{thm[mode=Rule] conjE} {\sc disjI$_1$} \qquad!\\
 \verb!@!\verb!{thm[mode=Rule] disjE} {\sc disjI$_2$}!\\
 \verb!\end{center}!
 \end{quote}
 yields
-\begin{center}\isastyle
+\begin{center}\small
 @{thm[mode=Rule] conjI} {\sc conjI} \\[1ex]
 @{thm[mode=Rule] disjI1} {\sc disjI$_1$} \qquad
 @{thm[mode=Rule] disjI2} {\sc disjI$_2$}
 \end{center}
-Note that we included \verb!\isastyle! to obtain
-the smaller font that otherwise comes only with \texttt{display}.
 
 The \texttt{mathpartir} package copes well if there are too many
 premises for one line:
@@ -218,20 +216,44 @@ displayed with a horizontal line, which looks at least unusual.
 In case you print theorems without premises no rule will be printed by the
 \texttt{Rule} print mode. However, you can use \texttt{Axiom} instead:
 \begin{quote}
-\verb!\begin{center}\isastyle!\\
+\verb!\begin{center}!\\
 \verb!@!\verb!{thm[mode=Axiom] refl} {\sc refl}! \\
 \verb!\end{center}!
 \end{quote}
 yields
-\begin{center}\isastyle
+\begin{center}
 @{thm[mode=Axiom] refl} {\sc refl} 
 \end{center}
-
-
-
 *}
 
-subsection{*If-then*}
+subsection "Displays and font sizes"
+
+text{* When displaying theorems with the \texttt{display} option, e.g.
+\verb!@!\verb!{thm[display] refl}! @{thm[display] refl} the theorem is
+set in small font. It uses the \LaTeX-macro \verb!\isastyle!,
+which is also the style that regular theory text is set in, e.g. *}
+
+lemma "t = t"
+(*<*)oops(*>*)
+
+text{* \noindent Otherwise \verb!\isastyleminor! is used,
+which does not modify the font size (assuming you stick to the default
+\verb!\isabellestyle{it}! in \texttt{root.tex}). If you prefer
+normal font size throughout your text, include
+\begin{quote}
+\verb!\renewcommand{\isastyle}{\isastyleminor}!
+\end{quote}
+in \texttt{root.tex}. On the other hand, if you like the small font,
+just put \verb!\isastyle! in front of the text in question,
+e.g.\ at the start of one of the center-environments above.
+
+The advantage of the display option is that you can display a whole
+list of theorems in one go. For example,
+\verb!@!\verb!{thm[display] foldl.simps}!
+generates @{thm[display] foldl.simps}
+*}
+
+subsection "If-then"
 
 text{* If you prefer a fake ``natural language'' style you can produce
 the body of
@@ -303,19 +325,16 @@ text {*
 
 section "Proofs"
 
-text {*
-  Full proofs, even if written in beautiful Isar style, are likely to
-  be too long and detailed to be included in conference papers, but
-  some key lemmas might be of interest.
-
-  It is usually easiest to put them in figures like the one in Fig.\
-  \ref{fig:proof}. This was achieved with the \isakeyword{text\_raw}
-  command:
+text {* Full proofs, even if written in beautiful Isar style, are
+likely to be too long and detailed to be included in conference
+papers, but some key lemmas might be of interest.
+It is usually easiest to put them in figures like the one in Fig.\
+\ref{fig:proof}. This was achieved with the \isakeyword{text\_raw} command:
 *}
 text_raw {*
   \begin{figure}
   \begin{center}\begin{minipage}{0.6\textwidth}  
-  \isastyle\isamarkuptrue
+  \isastyleminor\isamarkuptrue
 *}
 lemma True
 proof -
@@ -334,7 +353,7 @@ text {*
 \verb!text_raw {!\verb!*!\\
 \verb!  \begin{figure}!\\
 \verb!  \begin{center}\begin{minipage}{0.6\textwidth}!\\
-\verb!  \isastyle\isamarkuptrue!\\
+\verb!  \isastyleminor\isamarkuptrue!\\
 \verb!*!\verb!}!\\
 \verb!lemma True!\\
 \verb!proof -!\\
@@ -347,7 +366,8 @@ text {*
 \verb!  \end{figure}!\\
 \verb!*!\verb!}!
 \end{quote}
-  
+
+Other theory text, e.g.\ definitions, can be put in figures, too.
 *}
 
 section {*Styles\label{sec:styles}*}
