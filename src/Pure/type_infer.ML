@@ -11,6 +11,7 @@ sig
   val logicT: typ
   val polymorphicT: typ -> typ
   val constrain: term -> typ -> term
+  val is_param: indexname -> bool
   val param: int -> string * sort -> typ
   val paramify_vars: typ -> typ
   val paramify_dummies: typ -> int -> typ * int
@@ -39,7 +40,7 @@ fun constrain t T =
 
 (* user parameters *)
 
-fun is_param_default (x, _) = size x > 0 andalso ord x = ord "?";
+fun is_param (x, _: int) = String.isPrefix "?" x;
 fun param i (x, S) = TVar (("?" ^ x, i), S);
 
 val paramify_vars = Term.map_atyps (fn TVar ((x, i), S) => param i (x, S) | T => T);
@@ -100,12 +101,12 @@ fun fold_pretyps f (PConst (_, T)) x = f T x
 
 (* pretyp_of *)
 
-fun pretyp_of is_param typ params =
+fun pretyp_of is_para typ params =
   let
     val params' = fold_atyps
       (fn TVar (xi as (x, _), S) =>
           (fn ps =>
-            if is_param xi andalso not (Vartab.defined ps xi)
+            if is_para xi andalso not (Vartab.defined ps xi)
             then Vartab.update (xi, mk_param S) ps else ps)
         | _ => I) typ params;
 
@@ -123,7 +124,7 @@ fun pretyp_of is_param typ params =
 
 (* preterm_of *)
 
-fun preterm_of const_type is_param tm (vparams, params) =
+fun preterm_of const_type is_para tm (vparams, params) =
   let
     fun add_vparm xi ps =
       if not (Vartab.defined ps xi) then
@@ -138,7 +139,7 @@ fun preterm_of const_type is_param tm (vparams, params) =
       tm vparams;
     fun var_param xi = the (Vartab.lookup vparams' xi);
 
-    val preT_of = pretyp_of is_param;
+    val preT_of = pretyp_of is_para;
     fun polyT_of T = fst (pretyp_of (K true) T Vartab.empty);
 
     fun constraint T t ps =
@@ -398,7 +399,7 @@ fun infer_types pp tsig check_typs const_type var_type used freeze args =
     (*convert to preterms/typs*)
     val (Ts', Tps) = fold_map (pretyp_of (K true)) Ts Vartab.empty;
     val (ts', (vps, ps)) =
-      fold_map (preterm_of const_type is_param_default o constrain_vars) ts (Vartab.empty, Tps);
+      fold_map (preterm_of const_type is_param o constrain_vars) ts (Vartab.empty, Tps);
 
     (*run type inference*)
     val tTs' = ListPair.map Constraint (ts', Ts');
