@@ -63,11 +63,7 @@ sig
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
   val read_prop_legacy: Proof.context -> string -> term
-  val read_term: Proof.context -> string -> term
-  val read_prop: Proof.context -> string -> term
-  val read_prop_schematic: Proof.context -> string -> term
   val read_termTs: Proof.context -> (string * typ) list -> term list
-  val read_terms: Proof.context -> string list -> term list
   val read_term_pats: typ -> Proof.context -> string list -> term list
   val read_prop_pats: Proof.context -> string list -> term list
   val read_term_abbrev: Proof.context -> string -> term
@@ -441,13 +437,6 @@ fun revert_skolems ctxt =
 
 (** prepare terms and propositions **)
 
-(*
-  (1) read / certify wrt. theory of context
-  (2) intern Skolem constants
-  (3) expand term bindings
-*)
-
-
 (* read wrt. theory *)     (*exception ERROR*)
 
 fun read_def_termTs freeze pp syn ctxt (types, sorts, used) fixed sTs =
@@ -593,11 +582,7 @@ val read_prop_pats = read_term_pats propT;
 fun read_prop_legacy ctxt =
   gen_read' (read_prop_thy true) I false false ctxt (K true) (K NONE) (K NONE) [];
 
-val read_term            = gen_read (read_term_thy true) I false false;
-val read_prop            = gen_read (read_prop_thy true) I false false;
-val read_prop_schematic  = gen_read (read_prop_thy true) I false true;
 val read_termTs          = gen_read (read_terms_thy true) map false false;
-fun read_terms ctxt      = read_termTs ctxt o map (rpair dummyT);
 fun read_props schematic = gen_read (read_props_thy true) map false schematic;
 
 end;
@@ -703,8 +688,8 @@ fun parse_term T ctxt str =
         (TypeInfer.constrain t T);
     fun check t = Exn.Result (infer t) handle ERROR msg => Exn.Exn (ERROR msg);
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
-    val read = Syntax.standard_parse_term (pp ctxt) check get_sort map_const map_free
-      map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) T;
+    val read = Syntax.standard_parse_term (pp ctxt) check get_sort map_const map_free map_type
+      map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) ((#1 (TypeInfer.paramify_dummies T 0)));
   in read str end;
 
 in
@@ -746,14 +731,16 @@ fun simult_matches ctxt (t, pats) =
 local
 
 fun gen_bind prep (xi as (x, _), raw_t) ctxt =
-  ctxt |> Variable.add_binds [(xi, Option.map (prep ctxt) raw_t)];
+  ctxt
+  |> set_mode mode_default
+  |> Variable.add_binds [(xi, Option.map (prep ctxt) raw_t)];
 
 in
 
 fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
   | drop_schematic b = b;
 
-val add_binds = fold (gen_bind read_term);
+val add_binds = fold (gen_bind Syntax.read_term);
 val add_binds_i = fold (gen_bind cert_term);
 
 fun auto_bind f ts ctxt = ctxt |> add_binds_i (map drop_schematic (f (theory_of ctxt) ts));
@@ -776,7 +763,7 @@ fun prep_bind prep_pats (raw_pats, t) ctxt =
 
 fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
   let
-    val ts = prep_terms ctxt (map snd raw_binds);
+    val ts = prep_terms (set_mode mode_default ctxt) (map snd raw_binds);
     val (binds, ctxt') =
       apfst flat (fold_map (prep_bind prep_pats) (map fst raw_binds ~~ ts) ctxt);
     val binds' =
@@ -792,7 +779,7 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
 
 in
 
-val match_bind = gen_binds read_terms read_term_pats;
+val match_bind = gen_binds Syntax.read_terms read_term_pats;
 val match_bind_i = gen_binds cert_terms cert_term_pats;
 
 end;
@@ -860,7 +847,9 @@ fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
 
 fun retrieve_thms _ pick ctxt (Fact s) =
       let
-        val th = Goal.prove ctxt [] [] (read_prop ctxt s) (K (ALLGOALS (some_fact_tac ctxt)))
+        val prop = Syntax.read_prop (set_mode mode_default ctxt) s
+          |> singleton (Variable.polymorphic ctxt);
+        val th = Goal.prove ctxt [] [] prop (K (ALLGOALS (some_fact_tac ctxt)))
           handle ERROR msg => cat_error msg "Failed to retrieve literal fact.";
       in pick "" [th] end
   | retrieve_thms from_thy pick ctxt xthmref =
@@ -1033,7 +1022,7 @@ fun target_notation mode args phi =
 (* abbreviations *)
 
 val set_expand_abbrevs = map_consts o apsnd o Consts.set_expand;
-fun read_term_abbrev ctxt = read_term (set_expand_abbrevs false ctxt);
+fun read_term_abbrev ctxt = Syntax.read_term (set_expand_abbrevs false ctxt);
 
 fun add_abbrev mode (c, raw_t) ctxt =
   let
