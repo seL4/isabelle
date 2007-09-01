@@ -12,7 +12,6 @@ sig
   val theory_of: Proof.context -> theory
   val init: theory -> Proof.context
   type mode
-  val join_mode: mode -> mode -> mode
   val mode_default: mode
   val mode_stmt: mode
   val mode_pattern: mode
@@ -188,12 +187,6 @@ datatype mode =
 
 fun make_mode (stmt, pattern, schematic, abbrev) =
   Mode {stmt = stmt, pattern = pattern, schematic = schematic, abbrev = abbrev};
-
-fun join_mode
-    (Mode {stmt = stmt1, pattern = pattern1, schematic = schematic1, abbrev = abbrev1})
-    (Mode {stmt = stmt2, pattern = pattern2, schematic = schematic2, abbrev = abbrev2}) =
-  make_mode (stmt1 orelse stmt2, pattern1 orelse pattern2,
-    schematic1 orelse schematic2, abbrev1 orelse abbrev2);
 
 val mode_default   = make_mode (false, false, false, false);
 val mode_stmt      = make_mode (true, false, false, false);
@@ -485,7 +478,19 @@ fun expand_abbrevs ctxt = certify_consts ctxt #> expand_binds ctxt;
 end;
 
 
-(* term patterns *)
+(* patterns *)
+
+fun prepare_patternT ctxt =
+  let val Mode {pattern, schematic, ...} = get_mode ctxt in
+    if pattern orelse schematic then I
+    else Term.map_atyps
+      (fn T as TVar (xi, _) =>
+            if not (TypeInfer.is_param xi)
+            then error ("Illegal schematic type variable: " ^ Term.string_of_vname xi)
+            else T
+        | T => T)
+  end;
+
 
 local
 
@@ -499,18 +504,11 @@ val prepare_dummies =
 fun reject_dummies t = Term.no_dummy_patterns t
   handle TERM _ => error "Illegal dummy pattern(s) in term";
 
-val reject_tvars = (Term.map_types o Term.map_atyps)
-  (fn T as TVar (xi, _) =>
-        if not (TypeInfer.is_param xi)
-        then error ("Illegal schematic type variable: " ^ Term.string_of_vname xi)
-        else T
-    | T => T);
-
 in
 
 fun prepare_pattern ctxt =
-  let val Mode {pattern, schematic, ...} = get_mode ctxt in
-    (if pattern orelse schematic then I else reject_tvars) #>
+  let val Mode {pattern, ...} = get_mode ctxt in
+    Term.map_types (prepare_patternT ctxt) #>
     (if pattern then prepare_dummies else reject_dummies)
   end;
 
@@ -625,16 +623,26 @@ fun standard_infer_types ctxt ts =
     handle TYPE (msg, _, _) => error msg
   end;
 
+local
+
 fun standard_term_check ctxt =
   standard_infer_types ctxt #>
   map (expand_abbrevs ctxt) #>
   map (prepare_pattern ctxt);
 
+fun standard_typ_check ctxt =
+  map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
+  map (prepare_patternT ctxt);
+
+in
+
 val _ = Context.add_setup (Context.theory_map (Syntax.add_term_check
     (fn ts => fn ctxt => (standard_term_check ctxt ts, ctxt))));
 
 val _ = Context.add_setup (Context.theory_map (Syntax.add_typ_check
-    (fn Ts => fn ctxt => (map (cert_typ_mode (Type.get_mode ctxt) ctxt) Ts, ctxt))));
+    (fn Ts => fn ctxt => (standard_typ_check ctxt Ts, ctxt))));
+
+end;
 
 
 (* inferred types of parameters *)
