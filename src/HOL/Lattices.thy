@@ -513,11 +513,15 @@ instance set :: (type) distrib_lattice
 
 lemmas [code func del] = inf_set_eq sup_set_eq
 
-lemmas mono_Int = mono_inf
-  [where ?'a="?'a set", where ?'b="?'b set", unfolded inf_set_eq sup_set_eq]
+lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
+  apply (fold inf_set_eq sup_set_eq)
+  apply (erule mono_inf)
+  done
 
-lemmas mono_Un = mono_sup
-  [where ?'a="?'a set", where ?'b="?'b set", unfolded inf_set_eq sup_set_eq]
+lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
+  apply (fold inf_set_eq sup_set_eq)
+  apply (erule mono_sup)
+  done
 
 instance set :: (type) complete_lattice
   Inf_set_def: "Inf S \<equiv> \<Inter>S"
@@ -580,10 +584,5 @@ text {* redundant bindings *}
 
 lemmas inf_aci = inf_ACI
 lemmas sup_aci = sup_ACI
-
-ML {*
-val sup_fun_eq = @{thm sup_fun_eq}
-val sup_bool_eq = @{thm sup_bool_eq}
-*}
 
 end
