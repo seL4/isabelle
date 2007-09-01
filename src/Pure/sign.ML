@@ -567,7 +567,8 @@ fun read_def_terms'
     pp is_logtype syn consts map_free ctxt (def_type, def_sort) used freeze raw_args =
   let
     val thy = ProofContext.theory_of ctxt;
-    val check_typs = Syntax.check_typs (Type.set_mode Type.mode_default ctxt);
+    fun check_typs Ts = map (certify_typ thy) Ts
+      handle TYPE (msg, _, _) => error msg;
 
     fun infer args = TypeInfer.infer_types pp (tsig_of thy) check_typs
         (try (Consts.the_constraint consts)) def_type used freeze args |>> map fst
