@@ -347,8 +347,10 @@ instance ordered_idom \<subseteq> pordered_comm_ring ..
 
 class ordered_field = field + ordered_idom
 
-lemmas linorder_neqE_ordered_idom =
- linorder_neqE[where 'a = "?'b::ordered_idom"]
+lemma linorder_neqE_ordered_idom:
+  fixes x y :: "'a :: ordered_idom"
+  assumes "x \<noteq> y" obtains "x < y" | "y < x"
+  using assms by (rule linorder_neqE)
 
 lemma eq_add_iff1:
   "(a*e + c = b*e + d) = ((a-b)*e + c = (d::'a::ring))"
