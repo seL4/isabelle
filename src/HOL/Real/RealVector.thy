@@ -376,11 +376,10 @@ class norm = type +
 
 instance real :: norm
   real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>" ..
-ML"set Toplevel.debug"
 
 class sgn_div_norm = scaleR + inverse + norm + sgn +
 assumes sgn_div_norm: "sgn x = x /# norm x"
-(* FIXME junk needed because of bug in locales *)
+(* FIXME junk needed because of broken locale interpretation *)
 and "(sgn :: 'a::scaleR \<Rightarrow> 'a) = sgn"
 and "(inverse :: 'a::scaleR \<Rightarrow> 'a) = inverse"
 and "(scaleR :: real \<Rightarrow> 'a::scaleR \<Rightarrow> 'a) = scaleR"
