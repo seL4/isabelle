@@ -234,8 +234,8 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
 
 in
 
-val def_simproc = gen_simproc ProofContext.read_terms;
-val def_simproc_i = gen_simproc ProofContext.cert_terms;
+val def_simproc = gen_simproc Syntax.read_terms;
+val def_simproc_i = gen_simproc Syntax.check_terms;
 
 end;
 

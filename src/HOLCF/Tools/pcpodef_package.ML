@@ -173,11 +173,11 @@ fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
     fun after_qed [[th]] = ProofContext.theory (pcpodef_result th);
   in Proof.theorem_i NONE after_qed [[(goal, [])]] (ProofContext.init thy) end;
 
-fun pcpodef_proof x = gen_pcpodef_proof ProofContext.read_term true x;
-fun pcpodef_proof_i x = gen_pcpodef_proof ProofContext.cert_term true x;
+fun pcpodef_proof x = gen_pcpodef_proof Syntax.read_term true x;
+fun pcpodef_proof_i x = gen_pcpodef_proof Syntax.check_term true x;
 
-fun cpodef_proof x = gen_pcpodef_proof ProofContext.read_term false x;
-fun cpodef_proof_i x = gen_pcpodef_proof ProofContext.cert_term false x;
+fun cpodef_proof x = gen_pcpodef_proof Syntax.read_term false x;
+fun cpodef_proof_i x = gen_pcpodef_proof Syntax.check_term false x;
 
 
 (** outer syntax **)

@@ -243,8 +243,8 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
 
 in
 
-val add_typedef = gen_typedef ProofContext.read_term;
-val add_typedef_i = gen_typedef ProofContext.cert_term;
+val add_typedef = gen_typedef Syntax.read_term;
+val add_typedef_i = gen_typedef Syntax.check_term;
 
 end;
 
@@ -262,8 +262,8 @@ fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
 
 in
 
-val typedef = gen_typedef ProofContext.read_term;
-val typedef_i = gen_typedef ProofContext.cert_term;
+val typedef = gen_typedef Syntax.read_term;
+val typedef_i = gen_typedef Syntax.check_term;
 
 end;
 

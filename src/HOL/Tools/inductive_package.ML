@@ -464,8 +464,8 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
         map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
   in lthy |> note_theorems facts |>> map snd end;
 
-val inductive_cases = gen_inductive_cases Attrib.intern_src ProofContext.read_prop;
-val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
+val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
+val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
 
 fun ind_cases src = Method.syntax (Scan.lift (Scan.repeat1 Args.name --
@@ -473,7 +473,7 @@ fun ind_cases src = Method.syntax (Scan.lift (Scan.repeat1 Args.name --
   #> (fn ((raw_props, fixes), ctxt) =>
     let
       val (_, ctxt') = Variable.add_fixes fixes ctxt;
-      val props = map (ProofContext.read_prop ctxt') raw_props;
+      val props = Syntax.read_props ctxt' raw_props;
       val ctxt'' = fold Variable.declare_term props ctxt';
       val rules = ProofContext.export ctxt'' ctxt (map (mk_cases ctxt'') props)
     in Method.erule 0 rules end);
