@@ -100,6 +100,9 @@ sig
   val global_parse_term: theory -> string -> term
   val global_parse_prop: theory -> string -> term
   val check_sort: Proof.context -> sort -> sort
+  val check_typ: Proof.context -> typ -> typ
+  val check_term: Proof.context -> term -> term
+  val check_prop: Proof.context -> term -> term
   val check_typs: Proof.context -> typ list -> typ list
   val check_terms: Proof.context -> term list -> term list
   val check_props: Proof.context -> term list -> term list
@@ -671,8 +674,11 @@ in
 
 val check_typs = gen_check fst (op =);
 val check_terms = gen_check snd (op aconv);
-
 fun check_props ctxt = map (fn t => TypeInfer.constrain t propT) #> check_terms ctxt;
+
+val check_typ = singleton o check_typs;
+val check_term = singleton o check_terms;
+val check_prop = singleton o check_props;
 
 fun check_sort ctxt S =
   (case singleton (check_typs ctxt) (TFree ("", S)) of   (* FIXME TypeInfer.invent_type (!?) *)
