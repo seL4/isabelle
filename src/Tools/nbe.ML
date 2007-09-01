@@ -377,9 +377,9 @@ fun norm_print_term ctxt modes t =
 
 (** Isar setup **)
 
-fun norm_print_term_cmd (modes, raw_t) state =
+fun norm_print_term_cmd (modes, s) state =
   let val ctxt = Toplevel.context_of state
-  in norm_print_term ctxt modes (ProofContext.read_term ctxt raw_t) end;
+  in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
 
 val setup = Theory.add_oracle ("normalization", normalization_oracle)
 

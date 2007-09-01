@@ -323,9 +323,9 @@ fun named_attribute att = internal_attribute || named >> evaluate Attribute att;
 
 val typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev o Context.proof_of);
 val typ = Scan.peek (named_typ o ProofContext.read_typ o Context.proof_of);
-val term = Scan.peek (named_term o ProofContext.read_term o Context.proof_of);
+val term = Scan.peek (named_term o Syntax.read_term o Context.proof_of);
 val term_abbrev = Scan.peek (named_term o ProofContext.read_term_abbrev o Context.proof_of);
-val prop = Scan.peek (named_term o ProofContext.read_prop o Context.proof_of);
+val prop = Scan.peek (named_term o Syntax.read_prop o Context.proof_of);
 
 
 (* type and constant names *)

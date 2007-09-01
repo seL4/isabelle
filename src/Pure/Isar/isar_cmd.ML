@@ -563,13 +563,13 @@ fun string_of_prfs full state arg =
 fun string_of_prop state s =
   let
     val ctxt = Proof.context_of state;
-    val prop = ProofContext.read_prop ctxt s;
+    val prop = Syntax.read_prop ctxt s;
   in Pretty.string_of (Pretty.quote (ProofContext.pretty_term ctxt prop)) end;
 
 fun string_of_term state s =
   let
     val ctxt = Proof.context_of state;
-    val t = ProofContext.read_term ctxt s;
+    val t = Syntax.read_term ctxt s;
     val T = Term.type_of t;
   in
     Pretty.string_of

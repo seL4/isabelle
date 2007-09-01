@@ -207,7 +207,7 @@ fun eval_print conv ctxt t =
 fun eval_print_cmd conv raw_t state =
   let
     val ctxt = Toplevel.context_of state;
-    val t = ProofContext.read_term ctxt raw_t;
+    val t = Syntax.read_term ctxt raw_t;
     val thy = ProofContext.theory_of ctxt;
     val ct = Thm.cterm_of thy t;
     val (_, t') = (Logic.dest_equals o Thm.prop_of o conv) ct;

@@ -47,7 +47,7 @@ fun smart_cases thy ss read_prop s =
 
 fun inductive_cases args thy =
   let
-    val read_prop = ProofContext.read_prop (ProofContext.init thy);
+    val read_prop = Syntax.read_prop (ProofContext.init thy);
     val mk_cases = smart_cases thy (Simplifier.simpset_of thy) read_prop;
     val facts = args |> map (fn ((name, srcs), props) =>
       ((name, map (Attrib.attribute thy) srcs),
@@ -59,8 +59,7 @@ fun inductive_cases args thy =
 
 fun mk_cases_meth (props, ctxt) =
   props
-  |> map (smart_cases (ProofContext.theory_of ctxt) (local_simpset_of ctxt)
-    (ProofContext.read_prop ctxt))
+  |> map (smart_cases (ProofContext.theory_of ctxt) (local_simpset_of ctxt) (Syntax.read_prop ctxt))
   |> Method.erule 0;
 
 val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name));

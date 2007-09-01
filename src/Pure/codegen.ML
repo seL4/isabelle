@@ -1024,7 +1024,7 @@ fun print_evaluated_term s = Toplevel.keep (fn state =>
   let
     val ctxt = Toplevel.context_of state;
     val thy = ProofContext.theory_of ctxt;
-    val t = eval_term thy (ProofContext.read_term ctxt s);
+    val t = eval_term thy (Syntax.read_term ctxt s);
     val T = Term.type_of t;
   in
     writeln (Pretty.string_of

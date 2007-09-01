@@ -144,7 +144,7 @@ fun total_termination_afterqed data [[totality]] lthy =
 fun setup_termination_proof term_opt lthy =
     let
       val data = the (case term_opt of
-                        SOME t => import_fundef_data (ProofContext.read_term lthy t) (Context.Proof lthy)
+                        SOME t => import_fundef_data (Syntax.read_term lthy t) (Context.Proof lthy)
                       | NONE => import_last_fundef (Context.Proof lthy))
           handle Option.Option => raise ERROR ("Not a function: " ^ quote (the_default "" term_opt))
 
