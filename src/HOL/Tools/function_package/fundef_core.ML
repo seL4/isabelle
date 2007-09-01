@@ -479,7 +479,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
       val f_def = 
           Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
                                 Abs ("y", ranT, G $ Bound 1 $ Bound 0))
-              |> ProofContext.cert_term lthy
+              |> Syntax.check_term lthy
 
       val ((f, (_, f_defthm)), lthy) =
         LocalTheory.def Thm.internalK ((function_name fname, mixfix), ((fdefname, []), f_def)) lthy
