@@ -377,12 +377,8 @@ class norm = type +
 instance real :: norm
   real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>" ..
 
-class sgn_div_norm = scaleR + inverse + norm + sgn +
-assumes sgn_div_norm: "sgn x = x /# norm x"
-(* FIXME junk needed because of broken locale interpretation *)
-and "(sgn :: 'a::scaleR \<Rightarrow> 'a) = sgn"
-and "(inverse :: 'a::scaleR \<Rightarrow> 'a) = inverse"
-and "(scaleR :: real \<Rightarrow> 'a::scaleR \<Rightarrow> 'a) = scaleR"
+class sgn_div_norm = scaleR + norm + sgn +
+  assumes sgn_div_norm: "sgn x = x /# norm x"
 
 axclass real_normed_vector < real_vector, sgn_div_norm
   norm_ge_zero [simp]: "0 \<le> norm x"
@@ -415,8 +411,6 @@ qed
 instance real :: real_normed_field
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (simp add: real_sgn_def)
-(* FIXME junk *)
-apply(rule refl)+
 apply (rule abs_ge_zero)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)

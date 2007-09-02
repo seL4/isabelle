@@ -324,7 +324,7 @@ proof
     by (induct x, induct y)
        (simp add: real_sqrt_mult [symmetric] power2_eq_square ring_simps)
   show "sgn x = x /\<^sub>R cmod x" by(simp add: complex_sgn_def)
-qed (* FIXME junk *) (rule refl)+
+qed
 
 lemma cmod_unit_one [simp]: "cmod (Complex (cos a) (sin a)) = 1"
 by simp
