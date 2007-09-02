@@ -49,23 +49,23 @@ structure NominalPermeq : NOMINAL_PERMEQ =
 struct
 
 (* some lemmas needed below *)
-val finite_emptyI = thm "finite.emptyI";
-val finite_Un     = thm "finite_Un";
-val conj_absorb   = thm "conj_absorb";
-val not_false     = thm "not_False_eq_True"
-val perm_fun_def  = thm "Nominal.perm_fun_def"
-val perm_eq_app   = thm "Nominal.pt_fun_app_eq"
-val supports_def  = thm "Nominal.supports_def";
-val fresh_def     = thm "Nominal.fresh_def";
-val fresh_prod    = thm "Nominal.fresh_prod";
-val fresh_unit    = thm "Nominal.fresh_unit";
-val supports_rule = thm "supports_finite";
-val supp_prod     = thm "supp_prod";
-val supp_unit     = thm "supp_unit";
-val pt_perm_compose_aux = thm "pt_perm_compose_aux";
-val cp1_aux             = thm "cp1_aux";
-val perm_aux_fold       = thm "perm_aux_fold"; 
-val supports_fresh_rule = thm "supports_fresh";
+val finite_emptyI = @{thm "finite.emptyI"};
+val finite_Un     = @{thm "finite_Un"};
+val conj_absorb   = @{thm "conj_absorb"};
+val not_false     = @{thm "not_False_eq_True"}
+val perm_fun_def  = @{thm "Nominal.perm_fun_def"};
+val perm_eq_app   = @{thm "Nominal.pt_fun_app_eq"};
+val supports_def  = @{thm "Nominal.supports_def"};
+val fresh_def     = @{thm "Nominal.fresh_def"};
+val fresh_prod    = @{thm "Nominal.fresh_prod"};
+val fresh_unit    = @{thm "Nominal.fresh_unit"};
+val supports_rule = @{thm "supports_finite"};
+val supp_prod     = @{thm "supp_prod"};
+val supp_unit     = @{thm "supp_unit"};
+val pt_perm_compose_aux = @{thm "pt_perm_compose_aux"};
+val cp1_aux             = @{thm "cp1_aux"};
+val perm_aux_fold       = @{thm "perm_aux_fold"}; 
+val supports_fresh_rule = @{thm "supports_fresh"};
 
 (* pulls out dynamically a thm via the proof state *)
 fun dynamic_thms st name = PureThy.get_thms (theory_of_thm st) (Name name);
@@ -73,12 +73,12 @@ fun dynamic_thm  st name = PureThy.get_thm  (theory_of_thm st) (Name name);
 
 
 (* needed in the process of fully simplifying permutations *)
-val strong_congs = [thm "if_cong"]
+val strong_congs = [@{thm "if_cong"}]
 (* needed to avoid warnings about overwritten congs *)
-val weak_congs   = [thm "if_weak_cong"]
+val weak_congs   = [@{thm "if_weak_cong"}]
 
+(* FIXME comment *)
 (* a tactical which fails if the tactic taken as an argument generates does not solve the sub goal i *)
-
 fun SOLVEI t = t THEN_ALL_NEW (fn i => no_tac);
 
 (* debugging *)
@@ -115,7 +115,7 @@ fun perm_simproc_app st sg ss redex =
       | _ => NONE
   end
 
-(* a simproc that deals with instances in front of functions  *)
+(* a simproc that deals with permutation instances in front of functions  *)
 fun perm_simproc_fun st sg ss redex = 
    let 
      fun applicable_fun t =
@@ -235,13 +235,9 @@ fun apply_cong_tac i =
 (*     pi o f = rhs                           *)  
 (* is transformed to                          *)
 (*     %x. pi o (f ((rev pi) o x)) = rhs      *)
-fun unfold_perm_fun_def_tac i = 
-    let
-	val perm_fun_def = thm "Nominal.perm_fun_def"
-    in
-	("unfolding of permutations on functions", 
-         rtac (perm_fun_def RS meta_eq_to_obj_eq RS trans) i)
-    end
+fun unfold_perm_fun_def_tac i =
+    ("unfolding of permutations on functions", 
+      rtac (perm_fun_def RS meta_eq_to_obj_eq RS trans) i)
 
 (* applies the ext-rule such that      *)
 (*                                     *)
