@@ -93,8 +93,10 @@ fun mult (Rat (p1, q1)) (Rat (p2, q2)) =
 
 fun neg (Rat (p, q)) = Rat (Integer.neg p, q);
 
-fun inv (Rat (p, 0)) = raise DIVZERO
-  | inv (Rat (p, q)) = Rat (q, p);
+fun inv (Rat (p, q)) = case Integer.sign p
+ of LESS => Rat (Integer.neg q, Integer.neg p)
+  | EQAUL => raise DIVZERO
+  | GREATER => Rat (q, p);
 
 fun rounddown (Rat (p, q)) = Rat (Integer.div p q, 1);
 
