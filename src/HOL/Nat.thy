@@ -802,9 +802,14 @@ $P(n)$ is true for all $n\in\mathbb{N}$ if
         a smaller integer $m$ such that $\neg P(m)$.
 \end{itemize} *}
 
-lemma infinite_descent[case_names 0 smaller]: 
+lemma infinite_descent0[case_names 0 smaller]: 
   "\<lbrakk> P 0; !!n. n>0 \<Longrightarrow> \<not> P n \<Longrightarrow> (\<exists>m::nat. m < n \<and> \<not>P m) \<rbrakk> \<Longrightarrow> P n"
 by (induct n rule: less_induct, case_tac "n>0", auto)
+
+text{* A compact version without explicit base case: *}
+lemma infinite_descent:
+  "\<lbrakk> !!n::nat. \<not> P n \<Longrightarrow>  \<exists>m<n. \<not>  P m \<rbrakk> \<Longrightarrow>  P n"
+by (induct n rule: less_induct, auto)
 
 
 text {* Infinite descent using a mapping to $\mathbb{N}$:
@@ -814,15 +819,14 @@ $P(x)$ is true for all $x\in D$ if there exists a $V: D \to \mathbb{N}$ and
 \item case ``smaller'': given $V(x)>0$ and $\neg P(x)$ prove there exists a $y \in D$ such that $V(y)<V(x)$ and $~\neg P(y)$.
 \end{itemize}
 NB: the proof also shows how to use the previous lemma. *}
-corollary infinite_descent_measure[case_names 0 smaller]:
-fixes V :: "'a \<Rightarrow> nat" 
-assumes 0: "!!x. V x = 0 \<Longrightarrow> P x" 
-and 1: "!!x. V x > 0 \<Longrightarrow> \<not>P x \<Longrightarrow> (\<exists>y. V y < V x \<and> \<not>P y)"
+corollary infinite_descent0_measure[case_names 0 smaller]:
+assumes 0: "!!x. V x = (0::nat) \<Longrightarrow> P x"
+and     1: "!!x. V x > 0 \<Longrightarrow> \<not>P x \<Longrightarrow> (\<exists>y. V y < V x \<and> \<not>P y)"
 shows "P x"
 proof -
   obtain n where "n = V x" by auto
-  moreover have "!!x. V x = (n::nat) \<Longrightarrow> P x"
-  proof (induct n rule: infinite_descent)
+  moreover have "!!x. V x = n \<Longrightarrow> P x"
+  proof (induct n rule: infinite_descent0)
     case 0 -- "i.e. $V(x) = 0$"
     with 0 show "P x" by auto
   next -- "now $n>0$ and $P(x)$ does not hold for some $x$ with $V(x)=n$"
@@ -834,6 +838,21 @@ proof -
   qed
   ultimately show "P x" by auto
 qed
+
+text{* Again, without explicit base case: *}
+lemma infinite_descent_measure:
+assumes "!!x. \<not> P x \<Longrightarrow> \<exists>y. (V::'a\<Rightarrow>nat) y < V x \<and> \<not> P y" shows "P x"
+proof -
+  from assms obtain n where "n = V x" by auto
+  moreover have "!!x. V x = n \<Longrightarrow> P x"
+  proof (induct n rule: infinite_descent, auto)
+    fix x assume "\<not> P x"
+    with assms show "\<exists>m < V x. \<exists>y. V y = m \<and> \<not> P y" by auto
+  qed
+  ultimately show "P x" by auto
+qed
+
+
 
 text {* A [clumsy] way of lifting @{text "<"}
   monotonicity to @{text "\<le>"} monotonicity *}
