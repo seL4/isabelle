@@ -95,7 +95,7 @@ fun neg (Rat (p, q)) = Rat (Integer.neg p, q);
 
 fun inv (Rat (p, q)) = case Integer.sign p
  of LESS => Rat (Integer.neg q, Integer.neg p)
-  | EQAUL => raise DIVZERO
+  | EQUAL => raise DIVZERO
   | GREATER => Rat (q, p);
 
 fun rounddown (Rat (p, q)) = Rat (Integer.div p q, 1);
