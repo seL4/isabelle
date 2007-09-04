@@ -2007,7 +2007,7 @@ structure Idtab =
 
 (* abstraction of equations *)
 
-(* maps f(t1,...,tn)  to  (f(t1,...,tk), [tk+1,...,tn]) where tk is not a variable *)
+(* maps f(t1,...,tn)  to  (f(t1,...,tk), [tk+1,...,tn]) where tk is not a variable and all ti with i>k are *)
 fun strip_vars ct =
   let
     fun stripc (p as (ct, cts)) =
