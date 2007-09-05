@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     David Aspinall
 
-Proof General interface for Isabelle.
+Proof General interface for Isabelle, both the traditional Emacs version,
+and PGIP experiments.
 *)
 
 use "pgip_types.ML";
@@ -14,16 +15,13 @@ use "pgip.ML";
 
 use "pgip_isabelle.ML";
 use "pgml_isabelle.ML";
-use "preferences.ML";
+(use |> setmp proofs 1 |> setmp quick_and_dirty true) "preferences.ML";
 use "pgip_parser.ML";
 
 use "parsing.ML";   (* old version *)
 
 use "pgip_tests.ML";
 
-(use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general_pgip.ML";
-(use |> setmp proofs 1 |> setmp quick_and_dirty true) "proof_general_emacs.ML";
+use "proof_general_pgip.ML";
+use "proof_general_emacs.ML";
 
-(* desirable to have tests on UI connection:
-  use "pgip_isabelle_tests.ML"
-*)
