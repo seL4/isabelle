@@ -4,7 +4,7 @@
 Miscellaneous examples for Higher-Order Logic.
 *)
 
-no_document use_thys  [
+no_document use_thys [
   "Parity",
   "GCD"
 ];
