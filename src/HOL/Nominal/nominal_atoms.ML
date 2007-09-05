@@ -60,8 +60,7 @@ fun mk_Cons x xs =
 (* atom_decl <ak1> ... <akn>                           *)
 fun create_nom_typedecls ak_names thy =
   let
-    val cla_s = claset_of thy;
-
+    
     (* declares a type-decl for every atom-kind: *) 
     (* that is typedecl <ak>                     *)
     val thy1 = TypedefPackage.add_typedecls (map (fn x => (x,[],NoSyn)) ak_names) thy;
@@ -175,7 +174,7 @@ fun create_nom_typedecls ak_names thy =
         val i_type = Type(ak_name_qu,[]);
 	val cat = Const ("Nominal.at",(Term.itselfT i_type)  --> HOLogic.boolT);
         val at_type = Logic.mk_type i_type;
-        val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy5
+        val simp_s = HOL_ss addsimps PureThy.get_thmss thy5
                                   [Name "at_def",
                                    Name (ak_name ^ "_prm_" ^ ak_name ^ "_def"),
                                    Name (ak_name ^ "_prm_" ^ ak_name ^ ".simps"),
@@ -186,7 +185,7 @@ fun create_nom_typedecls ak_names thy =
 	val name = "at_"^ak_name^ "_inst";
         val statement = HOLogic.mk_Trueprop (cat $ at_type);
 
-        val proof = fn _ => auto_tac (cla_s,simp_s);
+        val proof = fn _ => simp_tac simp_s 1
 
       in 
         ((name, Goal.prove_global thy5 [] [] statement proof), []) 
@@ -239,7 +238,7 @@ fun create_nom_typedecls ak_names thy =
 	val cpt = Const ("Nominal.pt",(Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
         val pt_type = Logic.mk_type i_type1;
         val at_type = Logic.mk_type i_type2;
-        val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy7
+        val simp_s = HOL_ss addsimps PureThy.get_thmss thy7
                                   [Name "pt_def",
                                    Name ("pt_" ^ ak_name ^ "1"),
                                    Name ("pt_" ^ ak_name ^ "2"),
@@ -248,7 +247,7 @@ fun create_nom_typedecls ak_names thy =
 	val name = "pt_"^ak_name^ "_inst";
         val statement = HOLogic.mk_Trueprop (cpt $ pt_type $ at_type);
 
-        val proof = fn _ => auto_tac (cla_s,simp_s);
+        val proof = fn _ => simp_tac simp_s 1;
       in 
         ((name, Goal.prove_global thy7 [] [] statement proof), []) 
       end) ak_names_types);
@@ -286,14 +285,14 @@ fun create_nom_typedecls ak_names thy =
                                  (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
          val fs_type = Logic.mk_type i_type1;
          val at_type = Logic.mk_type i_type2;
-	 val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy11
+	 val simp_s = HOL_ss addsimps PureThy.get_thmss thy11
                                    [Name "fs_def",
                                     Name ("fs_" ^ ak_name ^ "1")];
     
 	 val name = "fs_"^ak_name^ "_inst";
          val statement = HOLogic.mk_Trueprop (cfs $ fs_type $ at_type);
 
-         val proof = fn _ => auto_tac (cla_s,simp_s);
+         val proof = fn _ => simp_tac simp_s 1;
        in 
          ((name, Goal.prove_global thy11 [] [] statement proof), []) 
        end) ak_names_types);
@@ -344,7 +343,9 @@ fun create_nom_typedecls ak_names thy =
 	     val name = "cp_"^ak_name^ "_"^ak_name'^"_inst";
              val statement = HOLogic.mk_Trueprop (ccp $ cp_type $ at_type $ at_type');
 
-             val proof = fn _ => EVERY [auto_tac (cla_s,simp_s), rtac cp1 1];
+             val proof = fn _ => EVERY [simp_tac simp_s 1, 
+                                        rtac allI 1, rtac allI 1, rtac allI 1,
+                                        rtac cp1 1];
 	   in
 	     PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
 	   end) 
@@ -367,7 +368,7 @@ fun create_nom_typedecls ak_names thy =
                            (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
                  val at_type  = Logic.mk_type i_type1;
                  val at_type' = Logic.mk_type i_type2;
-                 val simp_s = HOL_basic_ss addsimps PureThy.get_thmss thy' 
+                 val simp_s = HOL_ss addsimps PureThy.get_thmss thy' 
 					   [Name "disjoint_def",
                                             Name (ak_name^"_prm_"^ak_name'^"_def"),
                                             Name (ak_name'^"_prm_"^ak_name^"_def")];
@@ -375,7 +376,7 @@ fun create_nom_typedecls ak_names thy =
 	         val name = "dj_"^ak_name^"_"^ak_name';
                  val statement = HOLogic.mk_Trueprop (cdj $ at_type $ at_type');
 
-                 val proof = fn _ => auto_tac (cla_s,simp_s);
+                 val proof = fn _ => simp_tac simp_s 1;
 	       in
 		PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
 	       end
