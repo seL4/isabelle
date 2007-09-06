@@ -649,25 +649,25 @@ fun gen_int i = one_of [~1, 1] * random_range 0 i;
 setup {*
 let
 
-fun number_of_codegen thy defs gr dep module b (Const (@{const_name Numeral.number_of}, Type ("fun", [_, T])) $ t) =
-      if T = HOLogic.intT then
-        (SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, T)),
-          (Pretty.str o IntInf.toString o HOLogic.dest_numeral) t) handle TERM _ => NONE)
-      else if T = HOLogic.natT then
-        SOME (Codegen.invoke_codegen thy defs dep module b (gr,
-          Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
-            (Const (@{const_name Numeral.number_of}, HOLogic.intT --> HOLogic.intT) $ t)))
-      else NONE
-  | number_of_codegen _ _ _ _ _ _ _ = NONE;
+fun strip_number_of (@{term "Numeral.number_of :: int => int"} $ t) = t
+  | strip_number_of t = t;
+
+fun numeral_codegen thy defs gr dep module b t =
+  let val i = HOLogic.dest_numeral (strip_number_of t)
+  in
+    SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, HOLogic.intT)),
+      Pretty.str (IntInf.toString i))
+  end handle TERM _ => NONE;
 
 in
 
-Codegen.add_codegen "number_of_codegen" number_of_codegen
+Codegen.add_codegen "numeral_codegen" numeral_codegen
 
 end
 *}
 
 consts_code
+  "number_of :: int \<Rightarrow> int"    ("(_)")
   "0 :: int"                   ("0")
   "1 :: int"                   ("1")
   "uminus :: int => int"       ("~")
