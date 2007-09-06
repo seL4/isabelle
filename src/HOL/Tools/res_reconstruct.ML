@@ -70,7 +70,7 @@ fun termlist x = (term -- Scan.repeat ($$"," |-- term) >> op::) x
 and term x = (quoted >> atom || integer>>Int || truefalse ||
               Symbol.scan_id -- Scan.optional ($$"(" |-- termlist --| $$")") [] >> Br ||
               $$"(" |-- term --| $$")" ||
-              $$"[" |-- termlist --| $$"]" >> listof) x;
+              $$"[" |-- Scan.optional termlist [] --| $$"]" >> listof) x;
 
 fun negate t = Br("c_Not", [t]);
 fun equate (t1,t2) = Br("c_equal", [t1,t2]);
@@ -81,13 +81,13 @@ fun syn_equal (t, NONE) = t
   | syn_equal (t1, SOME (SOME _, t2)) = negate (equate (t1,t2));
 
 (*Literals can involve negation, = and !=.*)
-val literal = $$"~" |-- term >> negate ||
-              (term -- Scan.option (Scan.option ($$"!") --| $$"=" -- term) >> syn_equal) ;
+fun literal x = ($$"~" |-- literal >> negate ||
+                 (term -- Scan.option (Scan.option ($$"!") --| $$"=" -- term) >> syn_equal)) x;
 
 val literals = literal -- Scan.repeat ($$"|" |-- literal) >> op:: ;
 
 (*Clause: a list of literals separated by the disjunction sign*)
-val clause = $$"(" |-- literals --| $$")";
+val clause = $$"(" |-- literals --| $$")" || Scan.single literal;
 
 val annotations = $$"," |-- term -- Scan.option ($$"," |-- termlist);
 
@@ -435,7 +435,7 @@ fun stringify_deps thm_names deps_map [] = []
                stringify_deps thm_names ((lno,lname)::deps_map) lines
            end;
 
-val proofstart = "\nproof (neg_clausify)\n";
+val proofstart = "proof (neg_clausify)\n";
 
 fun isar_header [] = proofstart
   | isar_header ts = proofstart ^ "fix " ^ space_implode " " ts ^ "\n";
@@ -452,7 +452,9 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     app (fn th => Output.debug (fn () => string_of_thm th)) ccls;
     isar_header (map #1 fixes) ^
     String.concat (isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines))
-  end;
+  end
+  handle e => (*FIXME: exn handler is too general!*)
+    "Translation of TSTP raised an exception: " ^ Toplevel.exn_message e;
 
 (*Could use split_lines, but it can return blank lines...*)
 val lines = String.tokens (equal #"\n");
@@ -477,16 +479,16 @@ fun signal_success probfile toParent ppid msg =
 
 (**** retrieve the axioms that were used in the proof ****)
 
+(*PureThy.get_name_hint returns "??.unknown" if no name is available.*)
+fun goodhint x = (x <> "??.unknown");  
+
 (*Get names of axioms used. Axioms are indexed from 1, while the vector is indexed from 0*)
 fun get_axiom_names (thm_names: string vector) step_nums =
     let fun is_axiom n = n <= Vector.length thm_names
-        fun index i = Vector.sub(thm_names, i-1)
-        val axnums = List.filter is_axiom step_nums
-        val axnames = sort_distinct string_ord (map index axnums)
+        fun getname i = Vector.sub(thm_names, i-1)
     in
-	if length axnums = length step_nums then "UNSOUND!!" :: axnames
-	else axnames
-    end
+	sort_distinct string_ord (filter goodhint (map getname (filter is_axiom step_nums)))
+    end;
 
  (*String contains multiple lines. We want those of the form
      "253[0:Inp] et cetera..."
@@ -532,23 +534,21 @@ fun get_vamp_linenums proofextract =
 fun get_axiom_names_vamp proofextract thm_names =
    get_axiom_names thm_names (get_vamp_linenums proofextract);
 
-fun get_axiom_names E       = get_axiom_names_tstp
-  | get_axiom_names SPASS   = get_axiom_names_spass
-  | get_axiom_names Vampire = get_axiom_names_vamp;
+fun get_axiom_names_for E       = get_axiom_names_tstp
+  | get_axiom_names_for SPASS   = get_axiom_names_spass
+  | get_axiom_names_for Vampire = get_axiom_names_vamp;
 
-fun rules_to_metis [] = "metis"
-  | rules_to_metis xs = "(metis " ^ space_implode " " xs ^ ")"
-
-fun metis_line atp proofextract thm_names =
-  "apply " ^ rules_to_metis (get_axiom_names atp proofextract thm_names);
+fun metis_line [] = "apply metis"
+  | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
 
 (*The signal handler in watcher.ML must be able to read the output of this.*)
 fun lemma_list atp proofextract thm_names probfile toParent ppid =
-  signal_success probfile toParent ppid (metis_line atp proofextract thm_names);
+  signal_success probfile toParent ppid 
+                 (metis_line (get_axiom_names_for atp proofextract thm_names));
 
-fun tstp_extract atp proofextract thm_names probfile toParent ppid ctxt th sgno =
+fun tstp_extract proofextract thm_names probfile toParent ppid ctxt th sgno =
   let val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-      val line1 = metis_line atp proofextract thm_names
+      val line1 = metis_line (get_axiom_names_tstp proofextract thm_names)
   in
     signal_success probfile toParent ppid
       (line1 ^ "\n" ^ decode_tstp_file cnfs ctxt th sgno thm_names)
@@ -556,20 +556,16 @@ fun tstp_extract atp proofextract thm_names probfile toParent ppid ctxt th sgno 
 
 (**** Extracting proofs from an ATP's output ****)
 
-(*Return everything in s that comes before the string t*)
-fun cut_before t s =
-  let val (s1,s2) = Substring.position t (Substring.full s)
-  in  if Substring.size s2 = 0 then error "cut_before: string not found"
-      else Substring.string s2
-  end;
-
+val start_TSTP = "SZS output start CNFRefutation"
+val end_TSTP   = "SZS output end CNFRefutation"
 val start_E = "# Proof object starts here."
 val end_E   = "# Proof object ends here."
-val start_V6 = "%================== Proof: ======================"
-val end_V6   = "%==============  End of proof. =================="
 val start_V8 = "=========== Refutation =========="
 val end_V8 = "======= End of refutation ======="
+val start_SPASS = "Here is a proof"
 val end_SPASS = "Formulae used in the proof"
+
+fun any_substring ss ln = exists (fn s => String.isSubstring s ln) ss;
 
 (*********************************************************************************)
 (*  Inspect the output of an ATP process to see if it has found a proof,     *)
@@ -579,32 +575,24 @@ val end_SPASS = "Formulae used in the proof"
 (*Returns "true" if it successfully returns a lemma list, otherwise "false", but this
   return value is currently never used!*)
 fun startTransfer endS (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names) =
- let fun transferInput currentString =
-      (case TextIO.inputLine fromChild of
-        NONE =>  (*end of file?*)
-	  (trace ("\n extraction_failed.  End bracket: " ^ endS ^
-	          "\naccumulated text: " ^ currentString);
-	   false)
-      | SOME thisLine =>
-	if String.isPrefix endS thisLine
-	then let val proofextract = currentString ^ cut_before endS thisLine
-	         val atp = if endS = end_V8 then Vampire
-			   else if endS = end_SPASS then SPASS
-			   else E
-	     in
-	       trace ("\nExtracted proof:\n" ^ proofextract);
+ let val atp = if endS = end_V8 then Vampire
+	       else if endS = end_SPASS then SPASS
+	       else E
+     fun transferInput proofextract =
+       case TextIO.inputLine fromChild of
+	   NONE =>  (*end of file?*)
+	     (trace ("\n extraction_failed.  End bracket: " ^ endS ^
+		     "\naccumulated text: " ^ proofextract);
+	      false)
+	 | SOME thisLine =>
+	     if any_substring [endS,end_TSTP] thisLine
+	     then
+	      (trace ("\nExtracted proof:\n" ^ proofextract);
 	       if String.isPrefix "cnf(" proofextract
-	       then tstp_extract atp proofextract thm_names probfile toParent ppid ctxt th sgno
+	       then tstp_extract proofextract thm_names probfile toParent ppid ctxt th sgno
 	       else lemma_list atp proofextract thm_names probfile toParent ppid;
-	       true
-	     end
-	     handle e => (*FIXME: exn handler is too general!*)
-	      (trace ("\nstartTransfer: In exception handler: " ^ Toplevel.exn_message e);
-	       TextIO.output (toParent, "Translation failed\n" ^ probfile);
-	       TextIO.flushOut toParent;
-	       Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
 	       true)
-	else transferInput (currentString^thisLine))
+	     else transferInput (proofextract ^ thisLine)
  in
      transferInput ""
  end
@@ -627,10 +615,10 @@ fun checkVampProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, 
   (case TextIO.inputLine fromChild of
     NONE => (trace "\nNo proof output seen"; false)
   | SOME thisLine =>
-     if String.isPrefix start_V8 thisLine
+     if any_substring [start_V8,start_TSTP] thisLine
      then startTransfer end_V8 arg
-     else if (String.isPrefix "Satisfiability detected" thisLine) orelse
-             (String.isPrefix "Refutation not found" thisLine)
+     else if (String.isSubstring "Satisfiability detected" thisLine) orelse
+             (String.isSubstring "Refutation not found" thisLine)
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
      else checkVampProofFound arg);
@@ -640,12 +628,12 @@ fun checkEProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgn
   (case TextIO.inputLine fromChild of
     NONE => (trace "\nNo proof output seen"; false)
   | SOME thisLine =>
-     if String.isPrefix start_E thisLine
+     if any_substring [start_E,start_TSTP] thisLine 
      then startTransfer end_E arg
-     else if String.isPrefix "# Problem is satisfiable" thisLine
+     else if String.isSubstring "SZS status: Satisfiable" thisLine
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
-     else if String.isPrefix "# Cannot determine problem status within resource limit" thisLine
+     else if String.isSubstring "SZS status: ResourceOut" thisLine
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
      else checkEProofFound arg);
@@ -655,7 +643,7 @@ fun checkSpassProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th,
   (case TextIO.inputLine fromChild of
     NONE => (trace "\nNo proof output seen"; false)
   | SOME thisLine =>
-     if String.isPrefix "Here is a proof" thisLine
+     if any_substring [start_SPASS,start_TSTP] thisLine
      then startTransfer end_SPASS arg
      else if thisLine = "SPASS beiseite: Completion found.\n"
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
