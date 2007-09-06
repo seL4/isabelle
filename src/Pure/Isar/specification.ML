@@ -289,8 +289,7 @@ fun gen_theorem prep_att prep_stmt
     |> ProofContext.note_thmss_i Thm.assumptionK [((AutoBind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
-    |> Library.apply (map (fn (f, _) => f int)
-      (TheoremHook.get (Context.Proof goal_ctxt)))
+    |> Library.apply (map (fn (f, _) => f int) (rev (TheoremHook.get (Context.Proof goal_ctxt))))
     |> Proof.refine_insert facts
   end;
 
