@@ -28,6 +28,7 @@ sig
   val assert_backward: state -> state
   val assert_no_chain: state -> state
   val enter_forward: state -> state
+  val goal_message: (unit -> Pretty.T) -> state -> state
   val get_goal: state -> context * (thm list * thm)
   val schematic_goal: state -> bool
   val show_main_goal: bool ref
@@ -137,6 +138,7 @@ and node =
 and goal =
   Goal of
    {statement: string * term list list,     (*goal kind and statement, starting with vars*)
+    messages: (unit -> Pretty.T) list,      (*persistent messages (hints etc.)*)
     using: thm list,                        (*goal facts*)
     goal: thm,                              (*subgoals ==> statement*)
     before_qed: Method.text option,
@@ -144,8 +146,8 @@ and goal =
       (thm list list -> state -> state Seq.seq) *
       (thm list list -> context -> context)};
 
-fun make_goal (statement, using, goal, before_qed, after_qed) =
-  Goal {statement = statement, using = using, goal = goal,
+fun make_goal (statement, messages, using, goal, before_qed, after_qed) =
+  Goal {statement = statement, messages = messages, using = using, goal = goal,
     before_qed = before_qed, after_qed = after_qed};
 
 fun make_node (context, facts, mode, goal) =
@@ -274,19 +276,22 @@ val before_qed = #before_qed o #2 o current_goal;
 
 fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) =
       let
-        val Goal {statement, using, goal, before_qed, after_qed} = goal;
-        val goal' = make_goal (g (statement, using, goal, before_qed, after_qed));
+        val Goal {statement, messages, using, goal, before_qed, after_qed} = goal;
+        val goal' = make_goal (g (statement, messages, using, goal, before_qed, after_qed));
       in State (make_node (f context, facts, mode, SOME goal'), nodes) end
   | map_goal f g (State (nd, node :: nodes)) =
       let val State (node', nodes') = map_goal f g (State (node, nodes))
       in map_context f (State (nd, node' :: nodes')) end
   | map_goal _ _ state = state;
 
-fun set_goal goal = map_goal I (fn (statement, using, _, before_qed, after_qed) =>
-  (statement, using, goal, before_qed, after_qed));
+fun set_goal goal = map_goal I (fn (statement, messages, using, _, before_qed, after_qed) =>
+  (statement, messages, using, goal, before_qed, after_qed));
 
-fun using_facts using = map_goal I (fn (statement, _, goal, before_qed, after_qed) =>
-  (statement, using, goal, before_qed, after_qed));
+fun goal_message msg = map_goal I (fn (statement, messages, using, goal, before_qed, after_qed) =>
+  (statement, msg :: messages, using, goal, before_qed, after_qed));
+
+fun using_facts using = map_goal I (fn (statement, messages, _, goal, before_qed, after_qed) =>
+  (statement, messages, using, goal, before_qed, after_qed));
 
 local
   fun find i state =
@@ -334,13 +339,14 @@ fun pretty_state nr state =
       (case filter_out (equal "") strs of [] => ""
       | strs' => enclose " (" ")" (commas strs'));
 
-    fun prt_goal (SOME (ctxt, (i, {statement = _, using, goal, before_qed, after_qed}))) =
+    fun prt_goal (SOME (ctxt, (i, {messages, using, goal, before_qed, after_qed, ...}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Pretty.str ("goal" ^
             description [levels_up (i div 2), subgoals (Thm.nprems_of goal)] ^ ":")] @
           pretty_goals_local ctxt Markup.subgoal
-            (true, ! show_main_goal) (! Display.goals_limit) goal
+            (true, ! show_main_goal) (! Display.goals_limit) goal @
+          (map (fn msg => msg ()) (rev messages))
       | prt_goal NONE = [];
 
     val prt_ctxt =
@@ -380,7 +386,8 @@ fun goal_cases st =
 
 fun apply_method current_context pos meth_fun state =
   let
-    val (goal_ctxt, (_, {statement, using, goal, before_qed, after_qed})) = find_goal state;
+    val (goal_ctxt, (_, {statement, messages, using, goal, before_qed, after_qed})) =
+      find_goal state;
     val ctxt = ContextPosition.put pos (if current_context then context_of state else goal_ctxt);
     val meth = meth_fun ctxt;
   in
@@ -389,7 +396,7 @@ fun apply_method current_context pos meth_fun state =
       |> map_goal
           (ProofContext.add_cases false (no_goal_cases goal @ goal_cases goal') #>
            ProofContext.add_cases true meth_cases)
-          (K (statement, using, goal', before_qed, after_qed)))
+          (K (statement, messages, using, goal', before_qed, after_qed)))
   end;
 
 fun select_goals n meth state =
@@ -645,11 +652,11 @@ fun gen_using f g note prep_atts args state =
   |> map_context_result
     (note "" (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
   |> (fn (named_facts, state') =>
-    state' |> map_goal I (fn (statement, using, goal, before_qed, after_qed) =>
+    state' |> map_goal I (fn (statement, messages, using, goal, before_qed, after_qed) =>
       let
         val ctxt = context_of state';
         val ths = maps snd named_facts;
-      in (statement, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
+      in (statement, messages, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
 
 fun append_using _ ths using = using @ filter_out Thm.is_dummy ths;
 fun unfold_using ctxt ths = map (LocalDefs.unfold ctxt ths);
@@ -798,7 +805,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)
-    |> put_goal (SOME (make_goal ((kind, propss'), [], goal, before_qed, after_qed')))
+    |> put_goal (SOME (make_goal ((kind, propss'), [], [], goal, before_qed, after_qed')))
     |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
     |> chaining ? (`the_facts #-> using_facts)
@@ -812,8 +819,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
 
 fun generic_qed state =
   let
-    val (goal_ctxt, {statement = (_, stmt), using = _, goal, before_qed = _, after_qed}) =
-      current_goal state;
+    val (goal_ctxt, {statement = (_, stmt), goal, after_qed, ...}) = current_goal state;
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
