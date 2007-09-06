@@ -834,7 +834,7 @@ fun watcher_call_provers sign sg_terms (childin, childout, pid) =
 		  end
               | Recon.Vampire =>
 		  let val vampire = helper_path "VAMPIRE_HOME" "vampire"
-		      val vopts = "--mode casc%-t " ^ time  (*what about -m 100000?*)
+		      val vopts = "--output_syntax tptp%--mode casc%-t " ^ time
 		  in
 		      ("vampire", vampire, vopts, probfile) :: make_atp_list xs (n+1)
 		  end
@@ -861,7 +861,7 @@ fun trace_vector fname =
   and allows the suppression of the suffix "_1" in problem-generation mode.
   FIXME: does not cope with &&, and it isn't easy because one could have multiple
   subgoals, each involving &&.*)
-fun write_problem_files probfile (ctxt,th)  =
+fun write_problem_files probfile (ctxt, chain_ths, th) =
   let val goals = Thm.prems_of th
       val _ = Output.debug (fn () => "number of subgoals = " ^ Int.toString (length goals))
       val thy = ProofContext.theory_of ctxt
@@ -873,7 +873,7 @@ fun write_problem_files probfile (ctxt,th)  =
                 Auto => problem_logic_goals (map (map prop_of) goal_cls)
               | Fol => FOL
               | Hol => HOL
-      val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt []
+      val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt chain_ths
       val included_cls = included_thms |> ResAxioms.cnf_rules_pairs |> make_unique
                                        |> restrict_to_logic thy logic
                                        |> remove_unwanted_clauses
@@ -926,12 +926,12 @@ fun kill_last_watcher () =
      handle OS.SysErr _ => Output.debug (fn () => "Attempt to kill watcher failed");
 
 (*writes out the current problems and calls ATPs*)
-fun isar_atp (ctxt, th) =
+fun isar_atp (ctxt, chain_ths, th) =
   if Thm.no_prems th then ()
   else
     let
       val _ = kill_last_watcher()
-      val (files,thm_names_list) = write_problem_files prob_pathname (ctxt,th)
+      val (files,thm_names_list) = write_problem_files prob_pathname (ctxt, chain_ths, th)
       val (childin, childout, pid) = Watcher.createWatcher (ctxt, th, thm_names_list)
     in
       last_watcher_pid := SOME (childin, childout, pid, files);
@@ -944,31 +944,32 @@ fun isar_atp (ctxt, th) =
 fun callatp () =
   let val th = topthm()
       val ctxt = ProofContext.init (theory_of_thm th)
-  in  isar_atp (ctxt, th)  end;
+  in  isar_atp (ctxt, [], th)  end;
 
 val isar_atp_writeonly = setmp print_mode []
-      (fn (ctxt,th) =>
+      (fn (ctxt, chain_ths, th) =>
        if Thm.no_prems th then ()
        else
          let val probfile = if Thm.nprems_of th = 1 then probfile_nosuffix
                             else prob_pathname
-         in ignore (write_problem_files probfile (ctxt,th)) end);
+         in ignore (write_problem_files probfile (ctxt, chain_ths, th)) end);
 
 
 (** the Isar toplevel command **)
 
 fun sledgehammer state =
   let
-    val (ctxt, (_, goal)) = Proof.get_goal (Toplevel.proof_of state);
+    val (ctxt, (chain_ths, goal)) = Proof.get_goal (Toplevel.proof_of state);
     val thy = ProofContext.theory_of ctxt;
   in
     Output.debug (fn () => "subgoals in isar_atp:\n" ^
                   Pretty.string_of (ProofContext.pretty_term ctxt
                     (Logic.mk_conjunction_list (Thm.prems_of goal))));
     Output.debug (fn () => "current theory: " ^ Context.theory_name thy);
-    if !time_limit > 0 then isar_atp (ctxt, goal)
+    app (fn th => Output.debug (fn _ => "chained: " ^ string_of_thm th)) chain_ths;
+    if !time_limit > 0 then isar_atp (ctxt, chain_ths, goal)
     else (warning ("Writing problem file only: " ^ !problem_name);
-          isar_atp_writeonly (ctxt, goal))
+          isar_atp_writeonly (ctxt, chain_ths, goal))
   end;
 
 val _ = OuterSyntax.add_parsers
