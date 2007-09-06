@@ -24,8 +24,8 @@ consts
   perm :: "'x prm \<Rightarrow> 'a \<Rightarrow> 'a"     (infixr "\<bullet>" 80)
   swap :: "('x \<times> 'x) \<Rightarrow> 'x \<Rightarrow> 'x"
 
-(* for the decision procedure involving permutations *)
-(* (to make the perm-composition to be terminating   *)
+(* an auxiliary constant for the decision procedure involving *) 
+(* permutations (to avoid loops when using perm-composition)  *)
 constdefs
   "perm_aux pi x \<equiv> pi\<bullet>x"
 
@@ -1107,6 +1107,10 @@ apply(case_tac "x")
 apply(simp_all add: pt3[OF pta])
 done
 
+lemma pt_bool_inst:
+  shows  "pt TYPE(bool) TYPE('x)"
+  by (simp add: pt_def perm_bool)
+
 section {* further lemmas for permutation types *}
 (*==============================================*)
 
@@ -1993,17 +1997,15 @@ lemma pt_swap_eq_aux:
   and     a: "\<forall>(a::'x) (b::'x). [(a,b)]\<bullet>y = y"
   shows "pi\<bullet>y = y"
 proof(induct pi)
-    case Nil show ?case by (simp add: pt1[OF pt])
-  next
-    case (Cons x xs)
-    have "\<exists>a b. x=(a,b)" by force
-    then obtain a b where p: "x=(a,b)" by force
-    assume i: "xs\<bullet>y = y"
-    have "x#xs = [x]@xs" by simp
-    hence "(x#xs)\<bullet>y = ([x]@xs)\<bullet>y" by simp
-    hence "(x#xs)\<bullet>y = [x]\<bullet>(xs\<bullet>y)" by (simp only: pt2[OF pt])
-    thus ?case using a i p by force
-  qed
+  case Nil show ?case by (simp add: pt1[OF pt])
+next
+  case (Cons x xs)
+  have ih: "xs\<bullet>y = y" by fact
+  obtain a b where p: "x=(a,b)" by force
+  have "((a,b)#xs)\<bullet>y = ([(a,b)]@xs)\<bullet>y" by simp
+  also have "\<dots> = [(a,b)]\<bullet>(xs\<bullet>y)" by (simp only: pt2[OF pt])
+  finally show ?case using a ih p by simp
+qed
 
 lemma pt_swap_eq:
   fixes   y :: "'a"
