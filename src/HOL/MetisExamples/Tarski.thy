@@ -1018,12 +1018,7 @@ done
 ML{*ResAtp.problem_name:="Tarski__fz_in_int_rel"*}  (*ALL THEOREMS*)
 lemma (in Tarski) f'z_in_int_rel: "[| z \<in> P; \<forall>y\<in>Y. (y, z) \<in> induced P r |]
       ==> ((%x: intY1. f x) z, z) \<in> induced intY1 r" 
-(*
-  apply (metis P_def UnE Un_absorb contra_subsetD equalityE fix_imp_eq indI intY1_elem intY1_f_closed monotoneE monotone_f reflE rel_imp_elem restrict_apply z_in_interval)
-??unsound??*)
-apply (simp add: induced_def  intY1_f_closed z_in_interval P_def)
-apply (simp add: fix_imp_eq [of _ f A] fix_subset [of f A, THEN subsetD]
-                 reflE)
+apply (metis P_def acc_def fix_imp_eq fix_subset indI reflE restrict_apply subset_def z_in_interval)
 done
 
 (*never proved, 2007-01-22*)

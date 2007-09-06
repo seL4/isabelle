@@ -409,7 +409,44 @@ qed
 
 
 ML{*ResReconstruct.modulus:=1*}
+
+(*Vampire finds this structured proof*)
+lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
+    ALL x. (abs (h x)) <= (c * (abs (f x))))
+      = (EX c. 0 < c & (ALL x. (abs(h x)) <= (c * (abs (f x)))))"
+  apply auto
+  apply (case_tac "c = 0", simp)
+  apply (rule_tac x = "1" in exI, simp)
+  apply (rule_tac x = "abs c" in exI, auto);
+proof (neg_clausify)
+fix c x  (*sort/type constraint inserted by hand!*)
+have 0: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2. \<bar>X1 * \<bar>X2\<bar>\<bar> = \<bar>X1 * X2\<bar>"
+  by (metis abs_ge_zero abs_mult_pos abs_mult)
+assume 1: "\<And>A. \<bar>h A\<bar> \<le> c * \<bar>f A\<bar>"
+have 2: "\<And>X1 X2. \<not> \<bar>X1\<bar> \<le> X2 \<or> (0\<Colon>'a) \<le> X2"
+  by (metis abs_ge_zero order_trans)
+have 3: "\<And>X1. (0\<Colon>'a) \<le> c * \<bar>f X1\<bar>"
+  by (metis 1 2)
+have 4: "\<And>X1. c * \<bar>f X1\<bar> = \<bar>c * f X1\<bar>"
+  by (metis 0 abs_of_nonneg 3)
+have 5: "\<And>X1. - h X1 \<le> c * \<bar>f X1\<bar>"
+  by (metis 1 abs_le_D2)
+have 6: "\<And>X1. - h X1 \<le> \<bar>c * f X1\<bar>"
+  by (metis 4 5)
+have 7: "\<And>X1. h X1 \<le> c * \<bar>f X1\<bar>"
+  by (metis 1 abs_le_D1)
+have 8: "\<And>X1. h X1 \<le> \<bar>c * f X1\<bar>"
+  by (metis 4 7)
+assume 9: "\<not> \<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>"
+have 10: "\<not> \<bar>h x\<bar> \<le> \<bar>c * f x\<bar>"
+  by (metis abs_mult 9)
+show "False"
+  by (metis 6 8 10 abs_leI)
+qed
+
+
 ML{*ResReconstruct.recon_sorts:=true*}
+
 
 lemma bigo_alt_def: "O(f) = 
     {h. EX c. (0 < c & (ALL x. abs (h x) <= c * abs (f x)))}"
@@ -1433,26 +1470,28 @@ lemma bigo_lesso2: "f =o g +o O(h) ==>
 apply (erule thin_rl)
 (*sledgehammer*);  
   apply (case_tac "0 <= k x - g x")
-  apply (simp del: compare_rls diff_minus);
-  apply (subst abs_of_nonneg)
-  apply (drule_tac x = x in spec) back
-ML{*ResAtp.problem_name := "BigO__bigo_lesso2_simpler"*}
-(*sledgehammer*);  
-  apply (simp add: compare_rls del: diff_minus)
-  apply (subst diff_minus)+
-  apply (rule add_right_mono)
-  apply (erule spec)
-  apply (rule order_trans) 
-  prefer 2
-  apply (rule abs_ge_zero)
-(*
-  apply (simp only: compare_rls min_max.below_sup.above_sup_conv 
-             linorder_not_le order_less_imp_le)
-*)
-  apply (simp add: compare_rls del: diff_minus)
-done
-
-
+  prefer 2 (*re-order subgoals because I don't know what to put after a structured proof*)
+   apply (metis abs_ge_zero abs_minus_commute linorder_linear min_max.less_eq_less_sup.sup_absorb1 min_max.less_eq_less_sup.sup_commute)
+proof (neg_clausify)
+fix x
+assume 0: "\<And>A. k A \<le> f A"
+have 1: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X2. \<not> max X1 X2 < X1"
+  by (metis linorder_not_less le_maxI1)  (*sort inserted by hand*)
+assume 2: "(0\<Colon>'b) \<le> k x - g x"
+have 3: "\<not> k x - g x < (0\<Colon>'b)"
+  by (metis 2 linorder_not_less)
+have 4: "\<And>X1 X2. min X1 (k X2) \<le> f X2"
+  by (metis min_max.less_eq_less_inf.inf_le2 min_max.less_eq_less_inf.le_inf_iff min_max.less_eq_less_inf.le_iff_inf 0)
+have 5: "\<bar>g x - f x\<bar> = f x - g x"
+  by (metis abs_minus_commute combine_common_factor mult_zero_right minus_add_cancel minus_zero abs_if diff_less_eq min_max.less_eq_less_inf.inf_commute 4 linorder_not_le min_max.less_eq_less_inf.le_iff_inf 3 diff_less_0_iff_less linorder_not_less)
+have 6: "max (0\<Colon>'b) (k x - g x) = k x - g x"
+  by (metis min_max.less_eq_less_sup.le_iff_sup 2)
+assume 7: "\<not> max (k x - g x) (0\<Colon>'b) \<le> \<bar>f x - g x\<bar>"
+have 8: "\<not> k x - g x \<le> f x - g x"
+  by (metis 5 abs_minus_commute 7 min_max.less_eq_less_sup.sup_commute 6)
+show "False"
+  by (metis min_max.less_eq_less_sup.sup_commute min_max.less_eq_less_inf.inf_commute min_max.less_eq_less_inf_sup.sup_inf_absorb min_max.less_eq_less_inf.le_iff_inf 0 max_diff_distrib_left 1 linorder_not_le 8)
+qed
 
 ML{*ResAtp.problem_name := "BigO__bigo_lesso3"*}
 lemma bigo_lesso3: "f =o g +o O(h) ==>
@@ -1472,16 +1511,9 @@ apply (erule thin_rl)
   apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
 ML{*ResAtp.problem_name := "BigO__bigo_lesso3_simpler"*}
-(*sledgehammer*);  
-  apply (simp del: diff_minus)
-  apply (subst diff_minus)+
-  apply (rule add_left_mono)
-  apply (rule le_imp_neg_le)
-  apply (erule spec)
-  apply (rule order_trans) 
-  prefer 2
-  apply (rule abs_ge_zero)
-  apply (simp del: diff_minus)
+apply (metis diff_less_0_iff_less linorder_not_le not_leE uminus_add_conv_diff xt1(12) xt1(6))
+apply (metis add_minus_cancel diff_le_eq le_diff_eq uminus_add_conv_diff)
+apply (metis abs_ge_zero linorder_linear min_max.less_eq_less_sup.sup_absorb1 min_max.less_eq_less_sup.sup_commute)
 done
 
 lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
@@ -1503,8 +1535,7 @@ lemma bigo_lesso5: "f <o g =o O(h) ==>
     EX C. ALL x. f x <= g x + C * abs(h x)"
   apply (simp only: lesso_def bigo_alt_def)
   apply clarsimp
-(*sledgehammer*);  
-apply (auto simp add: compare_rls add_ac) 
+  apply (metis abs_if abs_mult add_commute diff_le_eq less_not_permute mult_commute)  
 done
 
 end
