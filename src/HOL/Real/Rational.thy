@@ -6,7 +6,7 @@
 header {* Rational numbers *}
 
 theory Rational
-imports Main
+imports Abstract_Rat
 uses ("rat_arith.ML")
 begin
 
@@ -591,5 +591,127 @@ abbreviation
   rat_of_int :: "int \<Rightarrow> rat"
 where
   "rat_of_int \<equiv> of_int"
+
+
+subsection {* Implementation of rational numbers as pairs of integers *}
+
+definition
+  RatC :: "int \<times> int \<Rightarrow> rat"
+where
+  "RatC = INum"
+
+code_datatype RatC
+
+lemma RatC_simp:
+  "RatC (k, l) = rat_of_int k / rat_of_int l"
+  unfolding RatC_def INum_def by simp
+
+lemma RatC_zero [simp]: "RatC 0\<^sub>N = 0"
+  by (simp add: RatC_simp)
+
+lemma RatC_lit [simp]: "RatC i\<^sub>N = rat_of_int i"
+  by (simp add: RatC_simp)
+
+lemma zero_rat_code [code, code unfold]:
+  "0 = RatC 0\<^sub>N" by simp
+
+lemma zero_rat_code [code, code unfold]:
+  "1 = RatC 1\<^sub>N" by simp
+
+lemma [code, code unfold]:
+  "number_of k = rat_of_int (number_of k)"
+  by (simp add: number_of_is_id rat_number_of_def)
+
+definition
+  [code func del]: "Fract' (b\<Colon>bool) k l = Fract k l"
+
+lemma [code]:
+  "Fract k l = Fract' (l \<noteq> 0) k l"
+  unfolding Fract'_def ..
+
+lemma [code]:
+  "Fract' True k l = (if l \<noteq> 0 then RatC (k, l) else Fract 1 0)"
+  by (simp add: Fract'_def RatC_simp Fract_of_int_quotient [of k l])
+
+lemma [code]:
+  "of_rat (RatC (k, l)) = (if l \<noteq> 0 then of_int k / of_int l else 0)"
+  by (cases "l = 0")
+    (auto simp add: RatC_simp of_rat_rat [simplified Fract_of_int_quotient [of k l], symmetric])
+
+instance rat :: eq ..
+
+lemma rat_eq_code [code]: "RatC x = RatC y \<longleftrightarrow> normNum x = normNum y"
+  unfolding RatC_def INum_normNum_iff ..
+
+lemma rat_less_eq_code [code]: "RatC x \<le> RatC y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
+proof -
+  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> RatC (normNum x) \<le> RatC (normNum y)" 
+    by (simp add: RatC_def del: normNum)
+  also have "\<dots> = (RatC x \<le> RatC y)" by (simp add: RatC_def)
+  finally show ?thesis by simp
+qed
+
+lemma rat_less_code [code]: "RatC x < RatC y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
+proof -
+  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> RatC (normNum x) < RatC (normNum y)" 
+    by (simp add: RatC_def del: normNum)
+  also have "\<dots> = (RatC x < RatC y)" by (simp add: RatC_def)
+  finally show ?thesis by simp
+qed
+
+lemma rat_add_code [code]: "RatC x + RatC y = RatC (x +\<^sub>N y)"
+  unfolding RatC_def by simp
+
+lemma rat_mul_code [code]: "RatC x * RatC y = RatC (x *\<^sub>N y)"
+  unfolding RatC_def by simp
+
+lemma rat_neg_code [code]: "- RatC x = RatC (~\<^sub>N x)"
+  unfolding RatC_def by simp
+
+lemma rat_sub_code [code]: "RatC x - RatC y = RatC (x -\<^sub>N y)"
+  unfolding RatC_def by simp
+
+lemma rat_inv_code [code]: "inverse (RatC x) = RatC (Ninv x)"
+  unfolding RatC_def Ninv divide_rat_def by simp
+
+lemma rat_div_code [code]: "RatC x / RatC y = RatC (x \<div>\<^sub>N y)"
+  unfolding RatC_def by simp
+
+text {* Setup for old code generator *}
+
+types_code
+  rat ("(int */ int)")
+attach (term_of) {*
+fun term_of_rat (p, q) =
+  let val rT = Type ("Rational.rat", [])
+  in
+    if q = 1 orelse p = 0 then HOLogic.mk_number rT p
+    else Const ("HOL.inverse_class.divide", [rT, rT] ---> rT) $
+      HOLogic.mk_number rT p $ HOLogic.mk_number rT q
+  end;
+*}
+attach (test) {*
+fun gen_rat i =
+  let
+    val p = random_range 0 i;
+    val q = random_range 1 (i + 1);
+    val g = Integer.gcd p q;
+    val p' = Integer.div p g;
+    val q' = Integer.div q g;
+  in
+    (if one_of [true, false] then p' else ~ p',
+     if p' = 0 then 0 else q')
+  end;
+*}
+
+consts_code
+  RatC ("(_)")
+
+consts_code
+  "of_int :: int \<Rightarrow> rat" ("\<module>rat'_of'_int")
+attach {*
+fun rat_of_int 0 = (0, 0)
+  | rat_of_int i = (i, 1);
+*}
 
 end
