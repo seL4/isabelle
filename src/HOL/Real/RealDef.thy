@@ -549,8 +549,8 @@ consts
   real :: "'a => real"
 
 defs (overloaded)
-  real_of_nat_def [code unfold]: "real == real_of_nat"
-  real_of_int_def [code unfold]: "real == real_of_int"
+  real_of_nat_def [code inline]: "real == real_of_nat"
+  real_of_int_def [code inline]: "real == real_of_int"
 
 lemma real_eq_of_nat: "real = of_nat"
   unfolding real_of_nat_def ..
@@ -926,38 +926,108 @@ by simp
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 by simp
 
-subsection{*Code generation using Isabelle's rats*}
+
+subsection {* Implementation of rational real numbers as pairs of integers *}
+
+definition
+  RealC :: "int \<times> int \<Rightarrow> real"
+where
+  "RealC = INum"
+
+code_datatype RealC
+
+lemma RealC_simp:
+  "RealC (k, l) = real_of_int k / real_of_int l"
+  unfolding RealC_def INum_def by simp
+
+lemma RealC_zero [simp]: "RealC 0\<^sub>N = 0"
+  by (simp add: RealC_simp)
+
+lemma RealC_lit [simp]: "RealC i\<^sub>N = real_of_int i"
+  by (simp add: RealC_simp)
+
+lemma zero_real_code [code, code unfold]:
+  "0 = RealC 0\<^sub>N" by simp
+
+lemma one_real_code [code, code unfold]:
+  "1 = RealC 1\<^sub>N" by simp
+
+instance real :: eq ..
+
+lemma real_eq_code [code]: "RealC x = RealC y \<longleftrightarrow> normNum x = normNum y"
+  unfolding RealC_def INum_normNum_iff ..
+
+lemma real_less_eq_code [code]: "RealC x \<le> RealC y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
+proof -
+  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> RealC (normNum x) \<le> RealC (normNum y)" 
+    by (simp add: RealC_def del: normNum)
+  also have "\<dots> = (RealC x \<le> RealC y)" by (simp add: RealC_def)
+  finally show ?thesis by simp
+qed
+
+lemma real_less_code [code]: "RealC x < RealC y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
+proof -
+  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> RealC (normNum x) < RealC (normNum y)" 
+    by (simp add: RealC_def del: normNum)
+  also have "\<dots> = (RealC x < RealC y)" by (simp add: RealC_def)
+  finally show ?thesis by simp
+qed
+
+lemma real_add_code [code]: "RealC x + RealC y = RealC (x +\<^sub>N y)"
+  unfolding RealC_def by simp
+
+lemma real_mul_code [code]: "RealC x * RealC y = RealC (x *\<^sub>N y)"
+  unfolding RealC_def by simp
+
+lemma real_neg_code [code]: "- RealC x = RealC (~\<^sub>N x)"
+  unfolding RealC_def by simp
+
+lemma real_sub_code [code]: "RealC x - RealC y = RealC (x -\<^sub>N y)"
+  unfolding RealC_def by simp
+
+lemma real_inv_code [code]: "inverse (RealC x) = RealC (Ninv x)"
+  unfolding RealC_def Ninv real_divide_def by simp
+
+lemma real_div_code [code]: "RealC x / RealC y = RealC (x \<div>\<^sub>N y)"
+  unfolding RealC_def by simp
+
+text {* Setup for old code generator *}
 
 types_code
-  real ("Rat.rat")
+  real ("(int */ int)")
 attach (term_of) {*
-fun term_of_real x =
- let 
-  val rT = HOLogic.realT
-  val (p, q) = Rat.quotient_of_rat x
- in if q = 1 then HOLogic.mk_number rT p
-    else Const("HOL.divide",[rT,rT] ---> rT) $
-           (HOLogic.mk_number rT p) $ (HOLogic.mk_number rT q)
-end;
+fun term_of_real (p, q) =
+  let val rT = HOLogic.realT
+  in
+    if q = 1 orelse p = 0 then HOLogic.mk_number rT p
+    else Const ("HOL.inverse_class.divide", [rT, rT] ---> rT) $
+      HOLogic.mk_number rT p $ HOLogic.mk_number rT q
+  end;
 *}
 attach (test) {*
 fun gen_real i =
-let val p = random_range 0 i; val q = random_range 0 i;
-    val r = if q=0 then Rat.rat_of_int i else Rat.rat_of_quotient(p,q)
-in if one_of [true,false] then r else Rat.neg r end;
+  let
+    val p = random_range 0 i;
+    val q = random_range 1 (i + 1);
+    val g = Integer.gcd p q;
+    val p' = Integer.div p g;
+    val q' = Integer.div q g;
+  in
+    (if one_of [true, false] then p' else ~ p',
+     if p' = 0 then 0 else q')
+  end;
 *}
 
 consts_code
-  "0 :: real" ("Rat.zero")
-  "1 :: real" ("Rat.one")
-  "uminus :: real \<Rightarrow> real" ("Rat.neg")
-  "op + :: real \<Rightarrow> real \<Rightarrow> real" ("Rat.add")
-  "op * :: real \<Rightarrow> real \<Rightarrow> real" ("Rat.mult")
-  "inverse :: real \<Rightarrow> real" ("Rat.inv")
-  "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool" ("Rat.le")
-  "op < :: real \<Rightarrow> real \<Rightarrow> bool" ("Rat.lt")
-  "op = :: real \<Rightarrow> real \<Rightarrow> bool" ("curry Rat.eq")
-  "real :: int \<Rightarrow> real" ("Rat.rat'_of'_int")
-  "real :: nat \<Rightarrow> real" ("(Rat.rat'_of'_int o {*int*})")
+  RealC ("(_)")
+
+consts_code
+  "of_int :: int \<Rightarrow> real" ("\<module>real'_of'_int")
+attach {*
+fun real_of_int 0 = (0, 0)
+  | real_of_int i = (i, 1);
+*}
+
+declare real_of_int_of_nat_eq [symmetric, code]
 
 end
