@@ -255,5 +255,17 @@ HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
 #GLPK_PATH=glpsol
 
 # External provers
-#VAMPIRE_HOME=/usr/local/Vampire
-#E_HOME=/usr/local/E
+VAMPIRE_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/" \
+  "/usr/local/Vampire" \
+  "")
+
+E_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/" \
+  "/usr/local/E" \
+  "")
+  
+SPASS_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/" \
+  "/usr/local/SPASS" \
+  "")
