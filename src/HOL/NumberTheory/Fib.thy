@@ -15,11 +15,11 @@ text {*
   \bigskip
 *}
 
-consts fib :: "nat => nat"
-recdef fib  "measure (\<lambda>x. x)"
-   zero:    "fib 0  = 0"
-   one:     "fib (Suc 0) = Suc 0"
-   Suc_Suc: "fib (Suc (Suc x)) = fib x + fib (Suc x)"
+fun fib :: "nat \<Rightarrow> nat"
+where
+     "fib 0 = 0"
+|    "fib (Suc 0) = 1"
+| fib_2: "fib (Suc (Suc n)) = fib n + fib (Suc n)"
 
 text {*
   \medskip The difficulty in these proofs is to ensure that the
@@ -28,13 +28,12 @@ text {*
   to the Simplifier and are applied very selectively at first.
 *}
 
-text{*We disable @{text fib.Suc_Suc} for simplification ...*}
-declare fib.Suc_Suc [simp del]
+text{*We disable @{text fib.fib_2fib_2} for simplification ...*}
+declare fib_2 [simp del]
 
 text{*...then prove a version that has a more restrictive pattern.*}
 lemma fib_Suc3: "fib (Suc (Suc (Suc n))) = fib (Suc n) + fib (Suc (Suc n))"
-  by (rule fib.Suc_Suc)
-
+  by (rule fib_2)
 
 text {* \medskip Concrete Mathematics, page 280 *}
 
@@ -43,12 +42,12 @@ lemma fib_add: "fib (Suc (n + k)) = fib (Suc k) * fib (Suc n) + fib k * fib n"
     prefer 3
     txt {* simplify the LHS just enough to apply the induction hypotheses *}
     apply (simp add: fib_Suc3)
-    apply (simp_all add: fib.Suc_Suc add_mult_distrib2)
+    apply (simp_all add: fib_2 add_mult_distrib2)
     done
 
 lemma fib_Suc_neq_0: "fib (Suc n) \<noteq> 0"
   apply (induct n rule: fib.induct)
-    apply (simp_all add: fib.Suc_Suc)
+    apply (simp_all add: fib_2)
   done
 
 lemma fib_Suc_gr_0: "0 < fib (Suc n)"
@@ -68,13 +67,13 @@ lemma fib_Cassini_int:
   (if n mod 2 = 0 then int (fib (Suc n) * fib (Suc n)) - 1
    else int (fib (Suc n) * fib (Suc n)) + 1)"
 proof(induct n rule: fib.induct)
-  case 1 thus ?case by (simp add: fib.Suc_Suc)
+  case 1 thus ?case by (simp add: fib_2)
 next
-  case 2 thus ?case by (simp add: fib.Suc_Suc mod_Suc)
+  case 2 thus ?case by (simp add: fib_2 mod_Suc)
 next 
   case (3 x) 
   have th: "Suc 0 \<noteq> x mod 2 \<longrightarrow> x mod 2 = 0" by presburger
-  with prems show ?case by (simp add: fib.Suc_Suc add_mult_distrib add_mult_distrib2
+  with prems show ?case by (simp add: fib_2 add_mult_distrib add_mult_distrib2
                    mod_Suc zmult_int [symmetric])
 qed
 
@@ -97,7 +96,7 @@ lemma gcd_fib_Suc_eq_1: "gcd (fib n, fib (Suc n)) = Suc 0"
   apply (induct n rule: fib.induct)
     prefer 3
     apply (simp add: gcd_commute fib_Suc3)
-   apply (simp_all add: fib.Suc_Suc)
+   apply (simp_all add: fib_2)
   done
 
 lemma gcd_fib_add: "gcd (fib m, fib (n + m)) = gcd (fib m, fib n)"
@@ -142,7 +141,7 @@ lemma fib_gcd: "fib (gcd (m, n)) = gcd (fib m, fib n)"  -- {* Law 6.111 *}
 theorem fib_mult_eq_setsum:
     "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   apply (induct n rule: fib.induct)
-    apply (auto simp add: atMost_Suc fib.Suc_Suc)
+    apply (auto simp add: atMost_Suc fib_2)
   apply (simp add: add_mult_distrib add_mult_distrib2)
   done
 
