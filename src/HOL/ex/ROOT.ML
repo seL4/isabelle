@@ -53,7 +53,6 @@ no_document time_use_thy "State_Monad";
 no_document time_use_thy "Pretty_Int";
 time_use_thy "Random";
 
-no_document time_use_thy "Executable_Rat";
 no_document time_use_thy "Efficient_Nat";
 no_document time_use_thy "Codegenerator";
 no_document time_use_thy "Codegenerator_Pretty";

@@ -13,8 +13,7 @@ imports
   Binomial
   Commutative_Ring
   "~~/src/HOL/ex/Commutative_Ring_Complete"
-  Executable_Rat
-  Executable_Real
+  "~~/src/HOL/Real/RealDef"
   GCD
   List_Prefix
   Nat_Infinity

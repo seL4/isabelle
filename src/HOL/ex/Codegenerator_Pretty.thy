@@ -6,7 +6,7 @@
 header {* Simple examples for pretty numerals and such *}
 
 theory Codegenerator_Pretty
-imports Executable_Rat Executable_Real Efficient_Nat
+imports "~~/src/HOL/Real/RealDef" Efficient_Nat
 begin
 
 definition
