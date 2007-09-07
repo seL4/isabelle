@@ -339,7 +339,8 @@ fun pretty_state nr state =
       (case filter_out (equal "") strs of [] => ""
       | strs' => enclose " (" ")" (commas strs'));
 
-    fun prt_goal (SOME (ctxt, (i, {messages, using, goal, before_qed, after_qed, ...}))) =
+    fun prt_goal (SOME (ctxt, (i,
+            {statement = _, messages, using, goal, before_qed, after_qed}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Pretty.str ("goal" ^
