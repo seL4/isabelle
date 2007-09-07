@@ -442,6 +442,7 @@ fun isar_header [] = proofstart
 
 fun decode_tstp_file cnfs ctxt th sgno thm_names =
   let val tuples = map (dest_tstp o tstp_line o explode) cnfs
+      val ctxt = ProofContext.set_mode ProofContext.mode_schematic ctxt
       val nonnull_lines =
               foldr add_nonnull_prfline []
                     (foldr add_prfline [] (decode_tstp_list ctxt tuples))
