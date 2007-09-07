@@ -255,18 +255,13 @@ lemma SC_case: "SC l < ack (1, list_add l)"
   done
 
 lemma CONSTANT_case: "CONSTANT k l < ack (k, list_add l)"
-  apply simp
-  done
+  by simp
 
 lemma PROJ_case [rule_format]: "\<forall>i. PROJ i l < ack (0, list_add l)"
   apply (simp add: PROJ_def)
   apply (induct l)
-   apply simp_all
-  apply (rule allI)
-  apply (case_tac i)
-  apply (simp (no_asm_simp) add: le_add1 le_imp_less_Suc)
-  apply (simp (no_asm_simp))
-  apply (blast intro: less_le_trans intro!: le_add2)
+   apply (auto simp add: drop_Cons split: nat.split) 
+  apply (blast intro: less_le_trans le_add2)
   done
 
 
@@ -275,7 +270,7 @@ text {* @{term COMP} case *}
 lemma COMP_map_aux: "\<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack (kf, list_add l))
   ==> \<exists>k. \<forall>l. list_add (map (\<lambda>f. f l) fs) < ack (k, list_add l)"
   apply (induct fs)
-  apply (rule_tac x = 0 in exI)
+  apply (rule_tac x = 0 in exI) 
    apply simp
   apply simp
   apply (blast intro: add_less_mono ack_add_bound less_trans)
@@ -328,11 +323,7 @@ lemma PREC_case:
   "\<forall>l. f l < ack (kf, list_add l) ==>
     \<forall>l. g l < ack (kg, list_add l) ==>
     \<exists>k. \<forall>l. PREC f g l < ack (k, list_add l)"
-  apply (rule exI)
-  apply (rule allI)
-  apply (rule le_less_trans [OF le_add1 PREC_case_aux])
-   apply (blast intro: ack_add_bound2)+
-  done
+  by (metis le_less_trans [OF le_add1 PREC_case_aux] ack_add_bound2) 
 
 lemma ack_bounds_PRIMREC: "PRIMREC f ==> \<exists>k. \<forall>l. f l < ack (k, list_add l)"
   apply (erule PRIMREC.induct)
