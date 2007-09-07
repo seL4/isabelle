@@ -37,7 +37,7 @@ sig
   val def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
   val note: string -> (bstring * Attrib.src list) * thm list ->
-    local_theory -> (bstring * thm list) * Proof.context
+    local_theory -> (bstring * thm list) * local_theory
   val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
   val target_naming: local_theory -> NameSpace.naming
