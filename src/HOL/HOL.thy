@@ -708,6 +708,10 @@ lemma theI2:
   shows "Q (THE x. P x)"
 by (iprover intro: assms theI)
 
+lemma the1I2: assumes "EX! x. P x" "\<And>x. P x \<Longrightarrow> Q x" shows "Q (THE x. P x)"
+by(iprover intro:assms(2) theI2[where P=P and Q=Q] ex1E[OF assms(1)]
+           elim:allE impE)
+
 lemma the1_equality [elim?]: "[| EX!x. P x; P a |] ==> (THE x. P x) = a"
 apply (rule the_equality)
 apply  assumption
