@@ -284,14 +284,14 @@ fun map_goal f g (State (Node {context, facts, mode, goal = SOME goal}, nodes)) 
       in map_context f (State (nd, node' :: nodes')) end
   | map_goal _ _ state = state;
 
-fun set_goal goal = map_goal I (fn (statement, messages, using, _, before_qed, after_qed) =>
-  (statement, messages, using, goal, before_qed, after_qed));
+fun set_goal goal = map_goal I (fn (statement, _, using, _, before_qed, after_qed) =>
+  (statement, [], using, goal, before_qed, after_qed));
 
 fun goal_message msg = map_goal I (fn (statement, messages, using, goal, before_qed, after_qed) =>
   (statement, msg :: messages, using, goal, before_qed, after_qed));
 
-fun using_facts using = map_goal I (fn (statement, messages, _, goal, before_qed, after_qed) =>
-  (statement, messages, using, goal, before_qed, after_qed));
+fun using_facts using = map_goal I (fn (statement, _, _, goal, before_qed, after_qed) =>
+  (statement, [], using, goal, before_qed, after_qed));
 
 local
   fun find i state =
@@ -387,7 +387,7 @@ fun goal_cases st =
 
 fun apply_method current_context pos meth_fun state =
   let
-    val (goal_ctxt, (_, {statement, messages, using, goal, before_qed, after_qed})) =
+    val (goal_ctxt, (_, {statement, messages = _, using, goal, before_qed, after_qed})) =
       find_goal state;
     val ctxt = ContextPosition.put pos (if current_context then context_of state else goal_ctxt);
     val meth = meth_fun ctxt;
@@ -397,7 +397,7 @@ fun apply_method current_context pos meth_fun state =
       |> map_goal
           (ProofContext.add_cases false (no_goal_cases goal @ goal_cases goal') #>
            ProofContext.add_cases true meth_cases)
-          (K (statement, messages, using, goal', before_qed, after_qed)))
+          (K (statement, [], using, goal', before_qed, after_qed)))
   end;
 
 fun select_goals n meth state =
@@ -653,11 +653,11 @@ fun gen_using f g note prep_atts args state =
   |> map_context_result
     (note "" (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
   |> (fn (named_facts, state') =>
-    state' |> map_goal I (fn (statement, messages, using, goal, before_qed, after_qed) =>
+    state' |> map_goal I (fn (statement, _, using, goal, before_qed, after_qed) =>
       let
         val ctxt = context_of state';
         val ths = maps snd named_facts;
-      in (statement, messages, f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
+      in (statement, [], f ctxt ths using, g ctxt ths goal, before_qed, after_qed) end));
 
 fun append_using _ ths using = using @ filter_out Thm.is_dummy ths;
 fun unfold_using ctxt ths = map (LocalDefs.unfold ctxt ths);
