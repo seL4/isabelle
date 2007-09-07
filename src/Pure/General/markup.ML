@@ -55,6 +55,7 @@ sig
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
   val sendbackN: string val sendback: T
+  val hiliteN: string val hilite: T
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
   val output: T -> output * output
@@ -155,6 +156,7 @@ val (promptN, prompt) = markup "prompt";
 val (stateN, state) = markup "state";
 val (subgoalN, subgoal) = markup "subgoal";
 val (sendbackN, sendback) = markup "sendback";
+val (hiliteN, hilite) = markup "hilite";
 
 
 (* print mode operations *)
