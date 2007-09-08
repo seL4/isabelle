@@ -2,28 +2,29 @@
     ID:         $Id$
     Authors:    Stefan Berghofer, Julien Narboux, TU Muenchen
 
-A tactic to generate fresh names.
-A tactic to get rid of the fresh_fun.
+Provides a tactic to generate fresh names and
+a tactic to analyse instances of the fresh_fun.
+
 *)
 
-(* First some functions that could be in the library *)
+(* First some functions that should be in the library *)
 
-(* A tactical which applies a list of int -> tactic to the corresponding subgoals present after the application of another tactic. 
-T THENL [A,B,C] is equivalent to T THEN (C 3 THEN B 2 THEN A 1) 
-*)
+(* A tactical which applies a list of int -> tactic to the          *) 
+(* corresponding subgoals present after the application of          *) 
+(* another tactic.                                                  *)
+(*                                                                  *)
+(*  T THENL [A,B,C] is equivalent to T THEN (C 3 THEN B 2 THEN A 1) *) 
 
 infix 1 THENL
-
 fun tac THENL tacs =
  tac THEN
   (EVERY (map  (fn (tac,i) => tac i) (rev tacs ~~ (length tacs downto 1))))
 
-(* A tactical to test if a tactic completly solve a subgoal *)
-
+(* A tactic which only succeeds when the argument *)
+(* tactic solves completely the specified subgoal *)
 fun SOLVEI t = t THEN_ALL_NEW (fn i => no_tac);
 
 (* A version of TRY for int -> tactic *)
-
 fun TRY' tac i =  TRY (tac i);
 
 fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
@@ -55,20 +56,18 @@ val res_inst_tac_term' =
 fun cut_inst_tac_term' tinst th =
   res_inst_tac_term' tinst false (Tactic.make_elim_preserve th);
 
-fun get_dyn_thm thy name atom_name = (PureThy.get_thm thy (Name name)) handle _ => raise ERROR ("The atom type "^atom_name^" is not defined."); 
+fun get_dyn_thm thy name atom_name = (PureThy.get_thm thy (Name name)) handle _ => 
+                                          raise ERROR ("The atom type "^atom_name^" is not defined."); 
 
-(* End of function waiting to be
- in the library *)
+(* End of function waiting to be in the library :o) *)
 
-(* The theorems needed that are known at
-compile time. *)
+(* The theorems needed that are known at compile time. *)
+val at_exists_fresh' = @{thm "at_exists_fresh'"};
+val fresh_fun_app'   = @{thm "fresh_fun_app'"};
+val fresh_prod       = @{thm "fresh_prod"};
 
-val at_exists_fresh' = thm "at_exists_fresh'";
-val fresh_fun_app' = thm "fresh_fun_app'";
-val fresh_prod = thm "fresh_prod";
-
-(* A tactic to generate a name fresh for 
-all the free variables and parameters of the goal *)
+(* A tactic to generate a name fresh for  all the free *) 
+(* variables and parameters of the goal                *)
 
 fun generate_fresh_tac atom_name i thm =
  let 
@@ -104,14 +103,15 @@ fun get_inner_fresh_fun (Bound j) = NONE
   | get_inner_fresh_fun (v as Var _)  = NONE
   | get_inner_fresh_fun (Const _) = NONE
   | get_inner_fresh_fun (Abs (_, _, t)) = get_inner_fresh_fun t 
-  | get_inner_fresh_fun (Const ("Nominal.fresh_fun",Type("fun",[Type ("fun",[Type (T,_),_]),_])) $ u) = SOME T 
+  | get_inner_fresh_fun (Const ("Nominal.fresh_fun",Type("fun",[Type ("fun",[Type (T,_),_]),_])) $ u) 
+                           = SOME T 
   | get_inner_fresh_fun (t $ u) = 
      let val a = get_inner_fresh_fun u in
      if a = NONE then get_inner_fresh_fun t else a 
      end;
 
-(* This tactic generates a fresh name 
-of the atom type given by the inner most fresh_fun *)
+(* This tactic generates a fresh name of the atom type *) 
+(* given by the innermost fresh_fun                    *)
 
 fun generate_fresh_fun_tac i thm =
   let
@@ -123,7 +123,7 @@ fun generate_fresh_fun_tac i thm =
   | SOME atom_name  => generate_fresh_tac atom_name i thm               
   end
 
-(* Two substitution tactics which looks for the inner most occurence in 
+(* Two substitution tactics which looks for the innermost occurence in 
    one assumption or in the conclusion *)
 
 val search_fun     = curry (Seq.flat o (uncurry EqSubst.searchf_bt_unify_valid));
@@ -135,7 +135,9 @@ fun subst_inner_asm_tac_aux i ctx = EqSubst.eqsubst_asm_tac' ctx search_fun_asm 
 (* A tactic to substitute in the first assumption 
    which contains an occurence. *)
 
-fun subst_inner_asm_tac ctx th =  curry (curry (FIRST' (map uncurry (map uncurry (map subst_inner_asm_tac_aux (1 upto Thm.nprems_of th)))))) ctx th;
+fun subst_inner_asm_tac ctx th =  
+   curry (curry (FIRST' (map uncurry (map uncurry (map subst_inner_asm_tac_aux 
+                                                             (1 upto Thm.nprems_of th)))))) ctx th;
 
 fun fresh_fun_tac no_asm i thm = 
   (* Find the variable we instantiate *)
@@ -151,7 +153,8 @@ fun fresh_fun_tac no_asm i thm =
     val goal = nth (prems_of thm) (i-1);
     val atom_name_opt = get_inner_fresh_fun goal;
     val n = List.length (Logic.strip_params goal);
-    (* Here we rely on the fact that the variable introduced by generate_fresh_tac is the last one in the list, the inner one *)
+    (* Here we rely on the fact that the variable introduced by generate_fresh_tac *)
+    (* is the last one in the list, the inner one *)
   in
   case atom_name_opt of 
     NONE => all_tac thm
