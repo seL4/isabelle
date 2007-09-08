@@ -486,12 +486,14 @@ val print_antiquotations = Toplevel.imperative ThyOutput.print_antiquotations;
 val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
-    val all_thys = sort Context.thy_ord (thy :: Theory.ancestors_of thy);
+    val all_thys = sort ThyInfo.thy_ord (thy :: Theory.ancestors_of thy);
     val gr = all_thys |> map (fn node =>
       let
         val name = Context.theory_name node;
         val parents = map Context.theory_name (Theory.parents_of node);
-      in {name = name, ID = name, parents = parents, dir = "", unfold = true, path = ""} end);
+        val dir = Present.session_name node;
+        val unfold = not (ThyInfo.known_thy name andalso ThyInfo.is_finished name);
+      in {name = name, ID = name, parents = parents, dir = dir, unfold = unfold, path = ""} end);
   in Present.display_graph gr end);
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
@@ -513,7 +515,7 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (Proof.get_thmss (Toplevel.enter_proof_body state) args));
 
-fun find_theorems ((opt_lim, rem_dups), spec) = 
+fun find_theorems ((opt_lim, rem_dups), spec) =
   Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val proof_state = Toplevel.enter_proof_body state;
