@@ -36,7 +36,6 @@ sig
   val deref: theory_ref -> theory
   val check_thy: theory -> theory_ref
   val eq_thy: theory * theory -> bool
-  val thy_ord: theory * theory -> order
   val subthy: theory * theory -> bool
   val joinable: theory * theory -> bool
   val merge: theory * theory -> theory
@@ -266,7 +265,6 @@ fun check_merge
 (* equality and inclusion *)
 
 val eq_thy = eq_id o pairself (#id o identity_of);
-val thy_ord = int_ord o pairself (#1 o #id o identity_of);
 
 fun proper_subthy
     (Theory ({id = (i, _), ...}, _, _, _), Theory ({ids, iids, ...}, _, _, _)) =
