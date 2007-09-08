@@ -49,7 +49,7 @@ fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
                   (x :: _) =>
                     (case ThyInfo.lookup_theory x of
                       SOME thy =>
-                        let val name = #name (Present.get_info thy)
+                        let val name = Present.session_name thy
                         in if name = "" then [] else [name] end
                     | NONE => [])
                  | _ => ["global"]);
