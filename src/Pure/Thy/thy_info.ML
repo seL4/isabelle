@@ -26,6 +26,7 @@ sig
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
   val the_theory: string -> theory -> theory
+  val is_finished: string -> bool
   val loaded_files: string -> Path.T list
   val get_parents: string -> string list
   val pretty_theory: theory -> Pretty.T
@@ -36,6 +37,7 @@ sig
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val time_use_thy: string -> unit
+  val thy_ord: theory * theory -> order
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> theory
   val register_thy: string -> unit
@@ -165,7 +167,7 @@ fun get_parents name =
     error (loader_msg "nothing known about theory" [name]);
 
 
-(* pretty printing a theory *)
+(* pretty_theory *)
 
 local
 
@@ -486,6 +488,20 @@ fun remove_thy name =
     end;
 
 
+(* update_time *)
+
+structure UpdateTime = TheoryDataFun
+(
+  type T = int;
+  val empty = 0;
+  val copy = I;
+  fun extend _ = empty;
+  fun merge _ _ = empty;
+);
+
+val thy_ord = int_ord o pairself UpdateTime.get;
+
+
 (* begin / end theory *)
 
 fun begin_theory name parents uses int =
@@ -506,7 +522,10 @@ fun begin_theory name parents uses int =
     val _ = change_thys (new_deps name parent_names (deps, NONE));
 
     val update_time = (case deps of NONE => 0 | SOME {update_time, ...} => update_time);
-    val theory' = Present.begin_theory update_time dir uses theory;
+    val update_time = if update_time > 0 then update_time else serial ();
+    val theory' = theory
+      |> UpdateTime.put update_time
+      |> Present.begin_theory update_time dir uses;
 
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
     val ((), theory'') =
@@ -528,12 +547,12 @@ fun end_theory theory =
 fun register_thy name =
   let
     val _ = priority ("Registering theory " ^ quote name);
-    val _ = get_theory name;
+    val thy = get_theory name;
     val _ = map get_theory (get_parents name);
     val _ = check_unfinished error name;
     val _ = touch_thy name;
     val master = #master (ThyLoad.deps_thy Path.current name);
-    val upd_time = serial ();
+    val upd_time = UpdateTime.get thy;
   in
     CRITICAL (fn () =>
      (change_deps name (Option.map
