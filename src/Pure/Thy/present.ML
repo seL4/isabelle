@@ -14,7 +14,7 @@ end;
 signature PRESENT =
 sig
   include BASIC_PRESENT
-  val get_info: theory -> {name: string, session: string list, is_local: bool}
+  val session_name: theory -> string
   val write_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> Path.T -> unit
   val display_graph: {name: string, ID: string, dir: string, unfold: bool,
@@ -87,6 +87,8 @@ fun get_info thy =
   then {name = Context.PureN, session = [], is_local = false}
   else BrowserInfoData.get thy;
 
+val session_name = #name o get_info;
+
 
 
 (** graphs **)
@@ -102,7 +104,7 @@ fun write_graph gr path =
 
 fun display_graph gr =
   let
-    val _ = writeln "Generating graph ...";
+    val _ = writeln "Displaying graph ...";
     val path = File.tmp_path (Path.explode "tmp.graph");
     val _ = write_graph gr path;
     val _ = File.isatool ("browser -c " ^ File.shell_path path ^ " &");
