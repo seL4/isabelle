@@ -9,6 +9,9 @@ struct
   fun isSuffix s1 s2 =
     let val n1 = size s1 and n2 = size s2
     in if n1 = n2 then s1 = s2 else n1 <= n2 andalso String.substring (s2, n2 - n1, n1) = s1 end;
+  fun isSubstring s1 s2 =
+    String.isPrefix s1 s2 orelse
+      size s1 < size s2 andalso isSubstring s1 (String.extract (s2, 1, NONE)); 
   open String;
 end;
 
