@@ -957,39 +957,43 @@ fun test_term thy quiet sz i t =
           NONE => test (k+1) | SOME x => SOME x);
   in test 0 end;
 
-fun test_goal out quiet ({size, iterations, default_type}, tvinsts) i assms state =
+fun test_goal quiet ({size, iterations, default_type}, tvinsts) i assms state =
   let
     val thy = Proof.theory_of state;
     fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
       | strip t = t;
-    val (gi, frees) = Logic.goal_params
-      (prop_of (snd (snd (Proof.get_goal state)))) i;
+    val (_, (_, st)) = Proof.get_goal state;
+    val (gi, frees) = Logic.goal_params (prop_of st) i;
     val gi' = ObjectLogic.atomize_term thy (map_types
       (map_type_tfree (fn p as (s, _) =>
         the_default (the_default (TFree p) default_type)
           (AList.lookup (op =) tvinsts s)))
       (Logic.list_implies (assms, subst_bounds (frees, strip gi))));
-  in case test_term thy quiet size iterations gi' of
-      NONE => writeln "No counterexamples found."
-    | SOME cex => out ("Counterexample found:\n" ^
-        Pretty.string_of (Pretty.chunks (map (fn (s, t) =>
-          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1,
-            Sign.pretty_term thy t]) cex)))
-  end;
+  in test_term thy quiet size iterations gi' end;
 
-exception Counterex of string;
+fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
+  | pretty_counterex ctxt (SOME cex) =
+      Pretty.chunks (Pretty.str "Counterexample found:\n" ::
+        map (fn (s, t) =>
+          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1,
+            ProofContext.pretty_term ctxt t]) cex);
 
 val auto_quickcheck = ref true;
 
 fun test_goal' int state =
-  let val assms = map term_of (Assumption.assms_of (Proof.context_of state))
+  let
+    val ctxt = Proof.context_of state;
+    val assms = map term_of (Assumption.assms_of ctxt)
   in
-    (if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
-     then
-       (test_goal (fn s => raise Counterex s) true
-          (get_test_params (Proof.theory_of state), []) 1 assms state
-        handle ERROR _ => () | Counterex s => error s)
-     else (); state)
+    if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
+    then
+      (case try (test_goal true
+           (get_test_params (Proof.theory_of state), []) 1 assms) state of
+         SOME (cex as SOME _) =>
+           Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
+             Pretty.markup Markup.hilite [pretty_counterex ctxt cex]]) state
+       | _ => state)
+    else state
   end;
 
 val _ = Context.add_setup
@@ -1170,9 +1174,11 @@ val testP =
   (Scan.option (P.$$$ "[" |-- P.list1
     (   parse_test_params >> (fn f => fn thy => apfst (f thy))
      || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
-    (fn (ps, g) => Toplevel.keep (fn st => test_goal writeln false
-      (Library.apply (the_default [] (Option.map (map (fn f => f (Toplevel.theory_of st))) ps))
-        (get_test_params (Toplevel.theory_of st), [])) g [] (Toplevel.proof_of st))));
+    (fn (ps, g) => Toplevel.keep (fn st => Toplevel.proof_of st |>
+      test_goal false (Library.apply (the_default []
+          (Option.map (map (fn f => f (Toplevel.theory_of st))) ps))
+        (get_test_params (Toplevel.theory_of st), [])) g [] |>
+      pretty_counterex (Toplevel.context_of st) |> Pretty.writeln)));
 
 val valueP =
   OuterSyntax.improper_command "value" "read, evaluate and print term" K.diag
