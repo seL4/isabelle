@@ -2030,6 +2030,15 @@ by (induct xs) (auto simp add: insert_absorb)
 lemma distinct_remdups [iff]: "distinct (remdups xs)"
 by (induct xs) auto
 
+lemma finite_distinct_list: "finite A \<Longrightarrow> EX xs. set xs = A & distinct xs"
+proof -
+  assume "finite A"
+  then obtain xs where "set xs = A" by(auto dest!:finite_list)
+  hence "set(remdups xs) = A & distinct(remdups xs)" by simp
+  thus ?thesis ..
+qed
+(* by (metis distinct_remdups finite_list set_remdups) *)
+
 lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
 by (induct x, auto) 
 
