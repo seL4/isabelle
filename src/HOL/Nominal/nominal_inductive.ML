@@ -147,7 +147,7 @@ fun prove_strong_ind s avoids thy =
       InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
     val raw_induct = atomize_induct raw_induct;
     val monos = InductivePackage.get_monos ctxt;
-    val eqvt_thms = NominalThmDecls.get_eqvt_thms thy;
+    val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
     val _ = (case names \\ foldl (apfst prop_of #> add_term_consts) [] eqvt_thms of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
@@ -461,7 +461,7 @@ fun prove_eqvt s xatoms thy =
       end;
     val perm_pi_simp = PureThy.get_thms thy (Name "perm_pi_simp");
     val eqvt_ss = HOL_basic_ss addsimps
-      (NominalThmDecls.get_eqvt_thms thy @ perm_pi_simp) addsimprocs
+      (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
       [mk_perm_bool_simproc names];
     val t = Logic.unvarify (concl_of raw_induct);
     val pi = Name.variant (add_term_names (t, [])) "pi";

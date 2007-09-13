@@ -133,7 +133,7 @@ fun perm_simproc_fun st sg ss redex =
    end
 
 (* function for simplyfying permutations *)
-fun perm_simp_gen dyn_thms f ss i = 
+fun perm_simp_gen dyn_thms eqvt_thms ss i = 
     ("general simplification of permutations", fn st =>
     let
 
@@ -143,7 +143,7 @@ fun perm_simp_gen dyn_thms f ss i =
        val perm_sp_app = Simplifier.simproc (theory_of_thm st) "perm_simproc_app" 
 	                 ["Nominal.perm pi x"] (perm_simproc_app st);
 
-       val ss' = ss addsimps ((List.concat (map (dynamic_thms st) dyn_thms))@(f st))
+       val ss' = ss addsimps ((List.concat (map (dynamic_thms st) dyn_thms))@eqvt_thms)
                     delcongs weak_congs
                     addcongs strong_congs
                     addsimprocs [perm_sp_fun, perm_sp_app]
@@ -152,23 +152,21 @@ fun perm_simp_gen dyn_thms f ss i =
     end);
 
 (* general simplification of permutations and permutation that arose from eqvt-problems *)
-val perm_simp = 
+fun perm_simp ss = 
     let val simps = ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp","swap_simps"]
     in 
-	perm_simp_gen simps (fn st => [])
+	perm_simp_gen simps [] ss
     end;
 
-val eqvt_simp = 
+fun eqvt_simp ss = 
     let val simps = ["perm_swap","perm_fresh_fresh","perm_pi_simp"]
-	fun eqvts_thms st = NominalThmDecls.get_eqvt_thms (theory_of_thm st);
+	val eqvts_thms = NominalThmDecls.get_eqvt_thms (Simplifier.the_context ss);
     in 
-	perm_simp_gen simps eqvts_thms
+	perm_simp_gen simps eqvts_thms ss
     end;
 
-(* FIXME removes the name lookup for these theorems use an ml value instead *)
 
 (* main simplification tactics for permutations *)
-(* FIXME: perm_simp_tac should simplify more permutations *)
 fun perm_simp_tac tactical ss i = DETERM (tactical (perm_simp ss i));
 fun eqvt_simp_tac tactical ss i = DETERM (tactical (eqvt_simp ss i)); 
 
@@ -384,6 +382,7 @@ val perm_full_simp_meth       = local_simp_meth_setup (perm_full_simp_tac NO_DEB
 val perm_full_simp_meth_debug = local_simp_meth_setup (perm_full_simp_tac DEBUG_tac);
 val supports_meth             = local_simp_meth_setup (supports_tac NO_DEBUG_tac);
 val supports_meth_debug       = local_simp_meth_setup (supports_tac DEBUG_tac);
+
 val finite_guess_meth         = basic_simp_meth_setup false (finite_guess_tac NO_DEBUG_tac);
 val finite_guess_meth_debug   = basic_simp_meth_setup true (finite_guess_tac DEBUG_tac);
 val fresh_guess_meth          = basic_simp_meth_setup false (fresh_guess_tac NO_DEBUG_tac);

@@ -5,7 +5,7 @@
    declaration "eqvts" "bijs" and "freshs".
 
    By attaching [eqvt] [bij] or [fresh] to a lemma, the lemma gets stored
-   in a data-slot in the theory context. Possible modifiers
+   in a data-slot in the context. Possible modifiers
    are [attribute add] and [attribute del] for adding and deleting,
    respectively the lemma from the data-slot.
 *)
@@ -18,9 +18,9 @@ sig
   val eqvt_force_add: attribute
   val eqvt_force_del: attribute
   val setup: theory -> theory
-  val get_eqvt_thms: theory -> thm list
-  val get_fresh_thms: theory -> thm list
-  val get_bij_thms: theory -> thm list
+  val get_eqvt_thms: Proof.context -> thm list
+  val get_fresh_thms: Proof.context -> thm list
+  val get_bij_thms: Proof.context -> thm list
 
 
   val NOMINAL_EQVT_DEBUG : bool ref
@@ -62,17 +62,12 @@ fun print_data ctxt =
       pretty_thms "Bijection lemmas:" (#bijs data)])
   end;
 
-
-val get_eqvt_thms = Context.Theory #> Data.get #> #eqvts;
-val get_fresh_thms = Context.Theory #> Data.get #> #freshs;
-val get_bij_thms = Context.Theory #> Data.get #> #bijs;
+val get_eqvt_thms = Context.Proof #> Data.get #> #eqvts;
+val get_fresh_thms = Context.Proof #> Data.get #> #freshs;
+val get_bij_thms = Context.Proof #> Data.get #> #bijs;
 
 (* FIXME: should be a function in a library *)
 fun mk_permT T = HOLogic.listT (HOLogic.mk_prodT (T, T));
-
-val perm_boolE = thm "perm_boolE";
-val perm_boolI = thm "perm_boolI";
-val perm_fun_def = thm "perm_fun_def";
 
 val NOMINAL_EQVT_DEBUG = ref false;
 
@@ -90,14 +85,12 @@ fun tactic_eqvt ctx orig_thm pi typi =
         val perm_pi_simp = dynamic_thms ctx "perm_pi_simp"
     in
         EVERY [tactic ("iffI applied",rtac iffI 1),
-	       tactic ("remove pi with perm_boolE",
-                          (dtac perm_boolE 1)),
-               tactic ("solve with orig_thm",
-                          (etac orig_thm 1)),
+	       tactic ("remove pi with perm_boolE", (dtac @{thm perm_boolE} 1)),
+               tactic ("solve with orig_thm", (etac orig_thm 1)),
                tactic ("applies orig_thm instantiated with rev pi",
                           dtac (Drule.cterm_instantiate [(mypi,mypifree)] orig_thm) 1),
 	       tactic ("getting rid of the pi on the right",
-                          (rtac perm_boolI 1)),
+                          (rtac @{thm perm_boolI} 1)),
                tactic ("getting rid of all remaining perms",
                           full_simp_tac (HOL_basic_ss addsimps perm_pi_simp) 1)]
     end;

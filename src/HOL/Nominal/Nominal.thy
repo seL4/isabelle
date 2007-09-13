@@ -1224,6 +1224,18 @@ apply(rule at_ds5'[OF at])
 apply(rule pt1[OF pt])
 done
 
+lemma pt_swap_bij'':
+  fixes a  :: "'x"
+  and   x  :: "'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "[(a,a)]\<bullet>x = x"
+apply(rule trans)
+apply(rule pt3[OF pt])
+apply(rule at_ds1[OF at])
+apply(rule pt1[OF pt])
+done
+
 lemma pt_set_bij1:
   fixes pi :: "'x prm"
   and   x  :: "'a"
@@ -1754,6 +1766,7 @@ qed
 
 section {* equivaraince for some connectives *}
 
+(*
 lemma pt_all_eqvt:
   fixes  pi :: "'x prm"
   and     x :: "'a"
@@ -1761,6 +1774,18 @@ lemma pt_all_eqvt:
   and     at: "at TYPE('x)"
   shows "pi\<bullet>(\<forall>(x::'a). P x) = (\<forall>(x::'a). pi\<bullet>(P ((rev pi)\<bullet>x)))"
 apply(auto simp add: perm_bool perm_fun_def)
+apply(drule_tac x="pi\<bullet>x" in spec)
+apply(simp add: pt_rev_pi[OF pt, OF at])
+done
+*)
+
+lemma pt_all_eqvt:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(\<forall>(x::'a). P x) = (\<forall>(x::'a). P ((rev pi)\<bullet>x))"
+apply(auto simp add: perm_bool)
 apply(drule_tac x="pi\<bullet>x" in spec)
 apply(simp add: pt_rev_pi[OF pt, OF at])
 done
