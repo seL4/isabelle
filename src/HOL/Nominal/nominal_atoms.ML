@@ -21,6 +21,8 @@ struct
 val finite_emptyI = @{thm "finite.emptyI"};
 val Collect_const = @{thm "Collect_const"};
 
+val inductive_forall_def = @{thm "induct_forall_def"};
+
 
 (* theory data *)
 
@@ -803,7 +805,13 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
             ||>> PureThy.add_thmss [(("exists_fresh", inst_at [at_exists_fresh]),[])]
             ||>> PureThy.add_thmss [(("exists_fresh'", inst_at [at_exists_fresh']),[])]
-            ||>> PureThy.add_thmss [(("all_eqvt", inst_pt_at [all_eqvt]),[NominalThmDecls.eqvt_force_add])] 
+            ||>> PureThy.add_thmss
+              let
+                val thms1 = inst_pt_at [all_eqvt];
+                val thms2 = map (fold_rule [inductive_forall_def]) thms1
+              in
+                [(("all_eqvt", thms1 @ thms2), [NominalThmDecls.eqvt_force_add])]
+              end
             ||>> PureThy.add_thmss [(("ex_eqvt", inst_pt_at [ex_eqvt]),[NominalThmDecls.eqvt_force_add])]
             ||>> PureThy.add_thmss 
 	      let val thms1 = inst_at [at_fresh]
