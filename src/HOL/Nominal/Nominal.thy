@@ -1766,7 +1766,6 @@ qed
 
 section {* equivaraince for some connectives *}
 
-(*
 lemma pt_all_eqvt:
   fixes  pi :: "'x prm"
   and     x :: "'a"
@@ -1774,18 +1773,6 @@ lemma pt_all_eqvt:
   and     at: "at TYPE('x)"
   shows "pi\<bullet>(\<forall>(x::'a). P x) = (\<forall>(x::'a). pi\<bullet>(P ((rev pi)\<bullet>x)))"
 apply(auto simp add: perm_bool perm_fun_def)
-apply(drule_tac x="pi\<bullet>x" in spec)
-apply(simp add: pt_rev_pi[OF pt, OF at])
-done
-*)
-
-lemma pt_all_eqvt:
-  fixes  pi :: "'x prm"
-  and     x :: "'a"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and     at: "at TYPE('x)"
-  shows "pi\<bullet>(\<forall>(x::'a). P x) = (\<forall>(x::'a). P ((rev pi)\<bullet>x))"
-apply(auto simp add: perm_bool)
 apply(drule_tac x="pi\<bullet>x" in spec)
 apply(simp add: pt_rev_pi[OF pt, OF at])
 done
