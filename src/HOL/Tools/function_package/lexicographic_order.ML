@@ -22,9 +22,14 @@ struct
 (** General stuff **)
 
 fun mk_measures domT mfuns =
-    let val list = HOLogic.mk_list (domT --> HOLogic.natT) mfuns
+    let 
+        val relT = HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT))
+        val mlexT = (domT --> HOLogic.natT) --> relT --> relT
+        fun mk_ms [] = Const (@{const_name "{}"}, relT)
+          | mk_ms (f::fs) = 
+            Const (@{const_name "Wellfounded_Relations.mlex_prod"}, mlexT) $ f $ mk_ms fs
     in
-      Const (@{const_name "List.measures"}, fastype_of list --> (HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))) $ list
+        mk_ms mfuns
     end
 
 fun del_index n [] = []
@@ -36,7 +41,7 @@ fun transpose ([]::_) = []
 
 (** Matrix cell datatype **)
 
-datatype cell = Less of thm | LessEq of (thm * thm) | None of (thm * thm) | False of thm;
+datatype cell = Less of thm| LessEq of (thm * thm) | None of (thm * thm) | False of thm;
 
 fun is_Less (Less _) = true
   | is_Less _ = false
@@ -209,10 +214,10 @@ fun nsearch_table table = bfs_search_table [([], table)]
 
 (* prove row :: cell list -> tactic *)
 fun prove_row (Less less_thm :: _) =
-    (rtac @{thm "measures_less"} 1)
+    (rtac @{thm "mlex_less"} 1)
     THEN PRIMITIVE (flip implies_elim less_thm)
   | prove_row (LessEq (lesseq_thm, _) :: tail) =
-    (rtac @{thm "measures_lesseq"} 1)
+    (rtac @{thm "mlex_leq"} 1)
     THEN PRIMITIVE (flip implies_elim lesseq_thm)
     THEN prove_row tail
   | prove_row _ = sys_error "lexicographic_order"
@@ -291,7 +296,8 @@ fun lexicographic_order_tac ctxt solve_tac (st: thm) =
 
     in (* 4: proof reconstruction *)
       st |> (PRIMITIVE (cterm_instantiate [(cterm_of thy rel, cterm_of thy relation)])
-              THEN rtac @{thm "wf_measures"} 1
+              THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
+              THEN (rtac @{thm "wf_empty"} 1)
               THEN EVERY (map prove_row clean_table))
     end
 
