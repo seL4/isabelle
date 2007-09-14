@@ -124,6 +124,24 @@ lemma in_lex_prod[simp]:
   "(((a,b),(a',b')): r <*lex*> s) = ((a,a'): r \<or> (a = a' \<and> (b, b') : s))"
   by (auto simp:lex_prod_def)
 
+text {* lexicographic combinations with measure functions *}
+
+definition 
+  mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr "<*mlex*>" 80)
+where
+  "f <*mlex*> R = inv_image (less_than <*lex*> R) (%x. (f x, x))"
+
+lemma wf_mlex: "wf R \<Longrightarrow> wf (f <*mlex*> R)"
+unfolding mlex_prod_def
+by auto
+
+lemma mlex_less: "f x < f y \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
+unfolding mlex_prod_def by simp
+
+lemma mlex_leq: "f x \<le> f y \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
+unfolding mlex_prod_def by auto
+
+
 text{*Transitivity of WF combinators.*}
 lemma trans_lex_prod [intro!]: 
     "[| trans R1; trans R2 |] ==> trans (R1 <*lex*> R2)"
