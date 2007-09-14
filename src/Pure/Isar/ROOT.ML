@@ -20,9 +20,9 @@ use "args.ML";
 use "outer_parse.ML";
 use "outer_keyword.ML";
 use "antiquote.ML";
+use "../ML/ml_context.ML";
 
 (*theory sources*)
-use "../Thy/ml_context.ML";
 use "../Thy/thy_header.ML";
 use "../Thy/thy_load.ML";
 use "../Thy/html.ML";

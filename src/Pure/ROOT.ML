@@ -44,7 +44,7 @@ use "Syntax/mixfix.ML";
 use "Syntax/printer.ML";
 use "Syntax/syntax.ML";
 
-use "General/ml_syntax.ML";
+use "ML/ml_syntax.ML";
 
 (*core of tactical proof system*)
 use "envir.ML";
