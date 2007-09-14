@@ -43,26 +43,15 @@ lemma "(\<Inter>x \<in> C. f x \<inter> g x) = \<Inter>(f ` C) \<inter> \<Inter>
 lemma singleton_example_1:
      "\<And>S::'a set set. \<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
   by blast
-(*With removal of negated equality literals, this no longer works:
-  by (meson subsetI subset_antisym insertCI)
-*)
 
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
   -- {*Variant of the problem above. *}
   by blast
-(*With removal of negated equality literals, this no longer works:
-by (meson subsetI subset_antisym insertCI UnionI) 
-*)
-
 
 lemma "\<exists>!x. f (g x) = x \<Longrightarrow> \<exists>!y. g (f y) = y"
   -- {* A unique fixpoint theorem --- @{text fast}/@{text best}/@{text meson} all fail. *}
-  apply (erule ex1E, rule ex1I, erule arg_cong)
-  apply (rule subst, assumption, erule allE, rule arg_cong, erule mp)
-  apply (erule arg_cong)
-  done
-
+  by metis
 
 
 subsection {* Cantor's Theorem: There is no surjection from a set to its powerset *}

@@ -17,8 +17,8 @@ text {*
 
 fun fib :: "nat \<Rightarrow> nat"
 where
-     "fib 0 = 0"
-|    "fib (Suc 0) = 1"
+         "fib 0 = 0"
+|        "fib (Suc 0) = 1"
 | fib_2: "fib (Suc (Suc n)) = fib n + fib (Suc n)"
 
 text {*
@@ -38,12 +38,13 @@ lemma fib_Suc3: "fib (Suc (Suc (Suc n))) = fib (Suc n) + fib (Suc (Suc n))"
 text {* \medskip Concrete Mathematics, page 280 *}
 
 lemma fib_add: "fib (Suc (n + k)) = fib (Suc k) * fib (Suc n) + fib k * fib n"
-  apply (induct n rule: fib.induct)
-    prefer 3
-    txt {* simplify the LHS just enough to apply the induction hypotheses *}
-    apply (simp add: fib_Suc3)
-    apply (simp_all add: fib_2 add_mult_distrib2)
-    done
+proof (induct n rule: fib.induct)
+  case 1 show ?case by simp
+next
+  case 2 show ?case  by (simp add: fib_2)
+next
+  case 3 thus ?case by (simp add: fib_2 add_mult_distrib2)
+qed
 
 lemma fib_Suc_neq_0: "fib (Suc n) \<noteq> 0"
   apply (induct n rule: fib.induct)
@@ -72,9 +73,8 @@ next
   case 2 thus ?case by (simp add: fib_2 mod_Suc)
 next 
   case (3 x) 
-  have th: "Suc 0 \<noteq> x mod 2 \<longrightarrow> x mod 2 = 0" by presburger
-  with prems show ?case by (simp add: fib_2 add_mult_distrib add_mult_distrib2
-                   mod_Suc zmult_int [symmetric])
+  have "Suc 0 \<noteq> x mod 2 \<longrightarrow> x mod 2 = 0" by presburger
+  with "3.hyps" show ?case by (simp add: fib_2 add_mult_distrib add_mult_distrib2)
 qed
 
 text{*We now obtain a version for the natural numbers via the coercion 
