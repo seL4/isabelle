@@ -2679,7 +2679,11 @@ lemma add_Max_commute:
 end
 
 
-subsection {* Class @{text finite} *}
+subsection {* Class @{text finite} and code generation *}
+
+lemma finite_code [code func]:
+  "finite {} \<longleftrightarrow> True"
+  "finite (insert a A) \<longleftrightarrow> finite A" by auto
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
 class finite (attach UNIV) = type +
