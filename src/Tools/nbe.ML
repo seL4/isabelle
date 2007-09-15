@@ -1,4 +1,4 @@
-(*  Title:      Tools/Nbe/Nbe_Eval.ML
+(*  Title:      Tools/nbe.ML
     ID:         $Id$
     Authors:    Klaus Aehlig, LMU Muenchen; Tobias Nipkow, Florian Haftmann, TU Muenchen
 
@@ -24,7 +24,7 @@ sig
                                             (*abstractions as functions*)
   val app: Univ -> Univ -> Univ              (*explicit application*)
 
-  val univs_ref: Univ list ref 
+  val univs_ref: (unit -> Univ list) ref 
   val lookup_fun: string -> Univ
 
   val normalization_conv: cterm -> thm
@@ -91,7 +91,7 @@ end);
 
 (* sandbox communication *)
 
-val univs_ref = ref [] : Univ list ref;
+val univs_ref = ref (fn () => [] : Univ list);
 
 local
 
@@ -106,7 +106,7 @@ fun lookup_fun s = case ! tab_ref
 fun compile_univs tab ([], _) = []
   | compile_univs tab (cs, raw_s) =
       let
-        val _ = univs_ref := [];
+        val _ = univs_ref := (fn () => []);
         val s = "Nbe.univs_ref := " ^ raw_s;
         val _ = tracing (fn () => "\n--- generated code:\n" ^ s) ();
         val _ = tab_ref := SOME tab;
@@ -114,7 +114,7 @@ fun compile_univs tab ([], _) = []
           Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
           (!trace) s;
         val _ = tab_ref := NONE;
-        val univs = case !univs_ref of [] => error "compile_univs" | univs => univs;
+        val univs = case !univs_ref () of [] => error "compile_univs" | univs => univs;
       in cs ~~ univs end;
 
 end; (*local*)
@@ -127,7 +127,7 @@ end; (*local*)
 infix 9 `$` `$$`;
 fun e1 `$` e2 = "(" ^ e1 ^ " " ^ e2 ^ ")";
 fun e `$$` es = "(" ^ e ^ " " ^ space_implode " " es ^ ")";
-fun ml_abs v e = "(fn" ^ v ^ " => " ^ e ^ ")";
+fun ml_abs v e = "(fn " ^ v ^ " => " ^ e ^ ")";
 
 fun ml_Val v s = "val " ^ v ^ " = " ^ s;
 fun ml_cases t cs =
@@ -135,6 +135,8 @@ fun ml_cases t cs =
 fun ml_Let ds e = "let\n" ^ space_implode "\n" ds ^ " in " ^ e ^ " end";
 
 fun ml_list es = "[" ^ commas es ^ "]";
+
+val ml_delay = ml_abs "()"
 
 fun ml_fundefs ([(name, [([], e)])]) =
       "val " ^ name ^ " = " ^ e ^ "\n"
@@ -225,7 +227,8 @@ fun assemble_eqnss thy is_fun ([], deps) = ([], "")
         val bind_funs = map nbe_lookup (filter is_fun funs);
         val bind_locals = ml_fundefs (map nbe_fun cs ~~ map
           (assemble_fun thy is_fun (AList.lookup (op =) num_args)) eqnss);
-        val result = ml_list (map (fn (c, n) => nbe_abss n (nbe_fun c)) num_args);
+        val result = ml_list (map (fn (c, n) => nbe_abss n (nbe_fun c)) num_args)
+          |> ml_delay;
       in (cs, ml_Let (bind_funs @ [bind_locals]) result) end;
 
 fun assemble_eval thy is_fun (((vs, ty), t), deps) =
@@ -235,13 +238,14 @@ fun assemble_eval thy is_fun (((vs, ty), t), deps) =
     val bind_funs = map nbe_lookup (filter is_fun funs);
     val bind_value = ml_fundefs [(nbe_value, [([ml_list (map nbe_bound frees)],
       assemble_iterm thy is_fun (K NONE) t)])];
-    val result = ml_list [nbe_value `$` ml_list (map nbe_free frees)];
+    val result = ml_list [nbe_value `$` ml_list (map nbe_free frees)]
+      |> ml_delay;
   in ([nbe_value], ml_Let (bind_funs @ [bind_value]) result) end;
 
 fun eqns_of_stmt ((_, CodeThingol.Fun (_, [])), _) =
       NONE
   | eqns_of_stmt ((name, CodeThingol.Fun (_, eqns)), deps) =
-      SOME ((name, eqns), deps)
+      SOME ((name, map fst eqns), deps)
   | eqns_of_stmt ((_, CodeThingol.Datatypecons _), _) =
       NONE
   | eqns_of_stmt ((_, CodeThingol.Datatype _), _) =
