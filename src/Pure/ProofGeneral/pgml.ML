@@ -1,4 +1,4 @@
-(*  Title:      Pure/ProofGeneral/pgip_types.ML
+(*  Title:      Pure/ProofGeneral/pgml.ML
     ID:         $Id$
     Author:     David Aspinall
 

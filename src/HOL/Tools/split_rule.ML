@@ -1,4 +1,4 @@
-(*  Title:      Tools/split_rule.ML
+(*  Title:      HOL/Tools/split_rule.ML
     ID:         $Id$
     Author:     Stefan Berghofer, David von Oheimb, and Markus Wenzel, TU Muenchen
 

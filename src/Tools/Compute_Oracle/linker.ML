@@ -1,4 +1,4 @@
-(*  Title:      Tools/Compute_Oracle/Linker.ML
+(*  Title:      Tools/Compute_Oracle/linker.ML
     ID:         $Id$
     Author:     Steven Obua
 

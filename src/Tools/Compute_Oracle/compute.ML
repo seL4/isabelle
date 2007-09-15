@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/compute.ML
+(*  Title:      Tools/Compute_Oracle/compute.ML
     ID:         $Id$
     Author:     Steven Obua
 *)

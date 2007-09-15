@@ -1,4 +1,4 @@
-(*  Title:      HOL/IMP/ROOT.ML
+(*  Title:      HOL/Hoare/ROOT.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998-2003 TUM

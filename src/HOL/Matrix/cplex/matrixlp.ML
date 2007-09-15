@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/cplex/MatrixLP.ML
+(*  Title:      HOL/Matrix/cplex/matrixlp.ML
     ID:         $Id$
     Author:     Steven Obua
 *)

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nominal/nominal_atoms.ML
+(*  Title:      HOL/Nominal/ROOT.ML
     ID:         $Id$
     Author:     Stefan Berghofer and Christian Urban, TU Muenchen
 

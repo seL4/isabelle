@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/function_package/lib.ML
+(*  Title:      HOL/Tools/function_package/fundef_lib.ML
     ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 

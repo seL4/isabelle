@@ -1,4 +1,4 @@
-(*  Title:      Watcher.ML
+(*  Title:      HOL/Tools/watcher.ML
     ID:         $Id$
     Author:     Claire Quigley
     Copyright   2004  University of Cambridge

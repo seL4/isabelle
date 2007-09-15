@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/rat.ML
+(*  Title:      Tools/rat.ML
     ID:         $Id$
     Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
 

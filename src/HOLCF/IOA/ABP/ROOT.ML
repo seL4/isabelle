@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/ABP/ROOT.ML
+(*  Title:      HOLCF/IOA/ABP/ROOT.ML
     ID:         $Id$
     Author:     Olaf Mueller
 

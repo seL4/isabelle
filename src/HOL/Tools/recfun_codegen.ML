@@ -1,4 +1,4 @@
-(*  Title:      HOL/recfun_codegen.ML
+(*  Title:      HOL/Tools/recfun_codegen.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 

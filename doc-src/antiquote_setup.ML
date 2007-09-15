@@ -1,4 +1,4 @@
-(*  Title:      antiquote_setup.ML
+(*  Title:      Doc/antiquote_setup.ML
     ID:         $Id$
     Author:     Makarius
 

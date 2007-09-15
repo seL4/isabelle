@@ -1,4 +1,4 @@
-(*  Title:      LK/ex/ROOT.ML
+(*  Title:      Sequents/LK/ROOT.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge

@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/examples/NTP/ROOT.ML
+(*  Title:      HOLCF/IOA/NTP/ROOT.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/svc_funcs.ML
+(*  Title:      HOL/ex/svc_funcs.ML
     ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1999  University of Cambridge

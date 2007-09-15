@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/ex/ROOT.ML
+(*  Title:      HOLCF/IOA/ex/ROOT.ML
     ID:         $Id$
     Author:     Olaf Mueller
 *)

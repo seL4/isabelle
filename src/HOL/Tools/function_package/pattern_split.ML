@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/function_package/fundef_package.ML
+(*  Title:      HOL/Tools/function_package/pattern_split.ML
     ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 

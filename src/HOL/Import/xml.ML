@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/xml.ML
+(*  Title:      HOL/Import/xml.ML
     ID:         $Id$
     Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
 

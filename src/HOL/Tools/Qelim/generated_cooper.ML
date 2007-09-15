@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Presburger/generated_cooper.ML
+(*  Title:      HOL/Tools/Qelim/generated_cooper.ML
     ID:         $Id$
 
 This file is generated from HOL/ex/Reflected_Presburger.thy.  DO NOT EDIT.

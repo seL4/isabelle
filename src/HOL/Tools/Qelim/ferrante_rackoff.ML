@@ -1,4 +1,4 @@
-(* Title:      HOL/Tools/ferrante_rackoff.ML
+(* Title:      HOL/Tools/Qelim/ferrante_rackoff.ML
    ID:         $Id$
    Author:     Amine Chaieb, TU Muenchen
 

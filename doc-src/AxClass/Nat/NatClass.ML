@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/NatClass.ML
+(*  Title:      Doc/AxClass/Nat/NatClass.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 

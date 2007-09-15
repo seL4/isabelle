@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML-Systems/de_overload.ML
+(*  Title:      Admin/de_overload.ML
     ID:         $Id$
     Author:     Makarius
 

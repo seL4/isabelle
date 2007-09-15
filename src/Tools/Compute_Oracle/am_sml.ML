@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/am_sml.ML
+(*  Title:      Tools/Compute_Oracle/am_sml.ML
     ID:         $Id$
     Author:     Steven Obua
 

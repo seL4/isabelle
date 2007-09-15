@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML-Systems/overloading-smlnj.ML
+(*  Title:      Pure/ML-Systems/overloading_smlnj.ML
     ID:         $Id$
     Author:     Makarius
 

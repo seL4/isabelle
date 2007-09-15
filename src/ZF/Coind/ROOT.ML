@@ -1,4 +1,4 @@
-(*  Title:      ZF/Coind/MT.ML
+(*  Title:      ZF/Coind/ROOT.ML
     ID:         $Id$
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge

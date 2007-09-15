@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/float.ML
+(*  Title:      Tools/float.ML
     ID:         $Id$
     Author:     Steven Obua, Florian Haftmann, TU Muenchen
 

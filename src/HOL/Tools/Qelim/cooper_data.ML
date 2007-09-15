@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Presburger/cooper_data.ML
+(*  Title:      HOL/Tools/Qelim/cooper_data.ML
     ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 *)

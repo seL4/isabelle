@@ -1,4 +1,4 @@
-(*  Title:      HOL/inductive_codegen.ML
+(*  Title:      HOL/Tools/inductive_codegen.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 

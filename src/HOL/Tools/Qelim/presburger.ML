@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Presburger/presburger.ML
+(*  Title:      HOL/Tools/Qelim/presburger.ML
     ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 *)

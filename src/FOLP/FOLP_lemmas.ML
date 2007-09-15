@@ -1,4 +1,4 @@
-(*  Title:      FOLP/FOLP.ML
+(*  Title:      FOLP/FOLP_lemmas.ML
     ID:         $Id$
     Author:     Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
