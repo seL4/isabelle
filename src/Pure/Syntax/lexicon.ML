@@ -93,7 +93,7 @@ fun is_tid s =
 
 val scan_letter_letdigs = Scan.one Symbol.is_letter -- Scan.many Symbol.is_letdig >> op ::;
 val scan_digits1 = Scan.many1 Symbol.is_digit;
-val scan_hex1 = Scan.many1 (Symbol.is_digit orf Symbol.is_hex_letter);
+val scan_hex1 = Scan.many1 Symbol.is_ascii_hex;
 val scan_bin1 = Scan.many1 (fn s => s = "0" orelse s = "1");
 
 val scan_id = scan_letter_letdigs >> implode;
