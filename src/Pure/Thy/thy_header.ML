@@ -27,8 +27,8 @@ val importsN = "imports";
 val usesN = "uses";
 val beginN = "begin";
 
-val header_lexicon = T.make_lexicon
-  ["%", "(", ")", ";", beginN, headerN, importsN, theoryN, usesN];
+val header_lexicon = Scan.make_lexicon
+  (map Symbol.explode ["%", "(", ")", ";", beginN, headerN, importsN, theoryN, usesN]);
 
 
 (* header args *)

@@ -45,7 +45,6 @@ sig
     (token, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   val source_proper: (token, 'a) Source.source ->
     (token, (token, 'a) Source.source) Source.source
-  val make_lexicon: string list -> Scan.lexicon
 end;
 
 structure OuterLex: OUTER_LEX =
@@ -346,9 +345,5 @@ end;
 
 fun source_proper src = src |> Source.filter is_proper;
 
-
-(* lexicons *)
-
-val make_lexicon = Scan.make_lexicon o map Symbol.explode;
 
 end;
