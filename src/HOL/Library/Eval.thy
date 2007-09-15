@@ -34,11 +34,14 @@ fun mk_typ_of_def ty =
 end;
 *}
 
+instance "prop" :: typ_of
+  "typ_of T \<equiv> STR ''prop'' {\<struct>} []" ..
+
 instance itself :: (typ_of) typ_of
   "typ_of T \<equiv> STR ''itself'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
 
-instance "prop" :: typ_of
-  "typ_of T \<equiv> STR ''prop'' {\<struct>} []" ..
+instance set :: (typ_of) typ_of
+  "typ_of T \<equiv> STR ''set'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
 
 instance int :: typ_of
   "typ_of T \<equiv> STR ''IntDef.int'' {\<struct>} []" ..
@@ -153,7 +156,7 @@ subsection {* Evaluation infrastructure *}
 ML {*
 signature EVAL =
 sig
-  val eval_ref: term option ref
+  val eval_ref: (unit -> term) option ref
   val eval_conv: cterm -> thm
   val eval_print: (cterm -> thm) -> Proof.context -> term -> unit
   val eval_print_cmd: (cterm -> thm) -> string -> Toplevel.state -> unit
@@ -162,7 +165,7 @@ end;
 structure Eval =
 struct
 
-val eval_ref = ref (NONE : term option);
+val eval_ref = ref (NONE : (unit -> term) option);
 
 end;
 *}
@@ -223,9 +226,11 @@ end;
 ML {*
 val valueP =
   OuterSyntax.improper_command "value" "read, evaluate and print term" OuterKeyword.diag
-    ((OuterParse.opt_keyword "overloaded" -- OuterParse.term)
-      >> (fn (b, t) => Toplevel.no_timing o Toplevel.keep
-           (Eval.eval_print_cmd (if b then Eval.eval_conv else Codegen.evaluation_conv) t)));
+    (OuterParse.term
+      >> (fn t => Toplevel.no_timing o Toplevel.keep
+           (Eval.eval_print_cmd (fn ct => case try Eval.eval_conv ct
+     of SOME thm => thm
+      | NONE => Codegen.evaluation_conv ct) t)));
 
 val _ = OuterSyntax.add_parsers [valueP];
 *}

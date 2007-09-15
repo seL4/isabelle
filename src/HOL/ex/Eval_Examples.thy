@@ -26,13 +26,14 @@ lemma "fst ([]::nat list, Suc 0) = []" by eval
 
 text {* term evaluation *}
 
-value (overloaded) "(Suc 2 + 1) * 4"
-value (overloaded) "(Suc 2 + 1) * 4"
-value (overloaded) "(Suc 2 + Suc 0) * Suc 3"
-value (overloaded) "nat 100"
-value (overloaded) "(10\<Colon>int) \<le> 12"
-value (overloaded) "[]::nat list"
-value (overloaded) "[(nat 100, ())]"
+value "(Suc 2 + 1) * 4"
+value "(Suc 2 + 1) * 4"
+value "(Suc 2 + Suc 0) * Suc 3"
+value "nat 100"
+value "(10\<Colon>int) \<le> 12"
+value "[]::nat list"
+value "[(nat 100, ())]"
+value "max (2::int) 4"
 
 text {* a fancy datatype *}
 
@@ -43,6 +44,6 @@ datatype ('a, 'b) bair =
 and ('a, 'b) cair =
     Cair 'a 'b
 
-value (overloaded) "Shift (Cair (4::nat) [Suc 0])"
+value "Shift (Cair (4::nat) [Suc 0])"
 
 end
