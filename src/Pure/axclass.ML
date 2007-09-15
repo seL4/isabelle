@@ -8,6 +8,16 @@ definitions and proofs.
 
 signature AX_CLASS =
 sig
+  val define_class: bstring * class list -> string list ->
+    ((bstring * attribute list) * term list) list -> theory -> class * theory
+  val define_class_params: bstring * class list -> ((bstring * typ) * mixfix) list ->
+    (theory -> (string * typ) list -> ((bstring * attribute list) * term list) list) ->
+    string list -> theory ->
+    (class * ((string * typ) list * thm list)) * theory
+  val add_classrel: thm -> theory -> theory
+  val add_arity: thm -> theory -> theory
+  val prove_classrel: class * class -> tactic -> theory -> theory
+  val prove_arity: string * sort list * sort -> tactic -> theory -> theory
   val get_definition: theory -> class -> {def: thm, intro: thm, axioms: thm list,
     params: (string * typ) list}
   val class_intros: theory -> thm list
@@ -17,12 +27,6 @@ sig
   val print_axclasses: theory -> unit
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
-  val add_classrel: thm -> theory -> theory
-  val add_arity: thm -> theory -> theory
-  val prove_classrel: class * class -> tactic -> theory -> theory
-  val prove_arity: string * sort list * sort -> tactic -> theory -> theory
-  val define_class: bstring * class list -> string list ->
-    ((bstring * attribute list) * term list) list -> theory -> class * theory
   val axiomatize_class: bstring * xstring list -> theory -> theory
   val axiomatize_class_i: bstring * class list -> theory -> theory
   val axiomatize_classrel: (xstring * xstring) list -> theory -> theory
@@ -356,6 +360,40 @@ fun define_class (bclass, raw_super) params raw_specs thy =
           fold (fn x => add_param pp (x, class)) params parameters));
 
   in (class, result_thy) end;
+
+
+
+(** axclasses with implicit parameter handling **)
+
+fun define_class_params (name, raw_superclasses) raw_consts raw_dep_axioms other_consts thy =
+  let
+    val superclasses = map (Sign.certify_class thy) raw_superclasses;
+    val consts = (map o apfst o apsnd) (Sign.certify_typ thy) raw_consts;
+    val prefix = Logic.const_of_class name;
+    fun mk_const_name c = NameSpace.map_base (NameSpace.append prefix)
+      (Sign.full_name thy c);
+    fun add_const ((c, ty), syn) =
+      Sign.add_consts_authentic [(c, ty, syn)]
+      #> pair (mk_const_name c, ty);
+    fun mk_axioms cs thy =
+      raw_dep_axioms thy cs
+      |> (map o apsnd o map) (Sign.cert_prop thy)
+      |> rpair thy;
+    fun add_constraint class (c, ty) =
+      Sign.add_const_constraint_i (c, SOME
+        (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
+  in
+    thy
+    |> Theory.add_path prefix
+    |> fold_map add_const consts
+    ||> Theory.restore_naming thy
+    |-> (fn cs => mk_axioms cs
+    #-> (fn axioms_prop => define_class (name, superclasses)
+           (map fst cs @ other_consts) axioms_prop
+    #-> (fn class => `(fn thy => get_definition thy class)
+    #-> (fn {axioms, ...} => fold (add_constraint class) cs
+    #> pair (class, (cs, axioms))))))
+  end;
 
 
 

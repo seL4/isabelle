@@ -427,12 +427,23 @@ val classP =
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal ((
       P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-           >> Class.instance_class_cmd
+           >> Class.classrel_cmd
       || P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-           >> Class.instance_sort_cmd
+           >> Class.interpretation_in_class_cmd
       || P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-           >> (fn (arities, defs) => Class.instance_arity_cmd arities defs (fold (Code.add_func false)))
+           >> (fn (arities, defs) => Class.instance_cmd arities defs (fold (Code.add_func false)))
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
+
+val instantiationP =
+  OuterSyntax.command "instantiation" "prove type arity" K.thy_decl (
+      P.and_list1 P.arity -- P.opt_begin
+           >> (fn (arities, begin) => (begin ? Toplevel.print)
+            o Toplevel.begin_local_theory begin
+                (Instance.begin_instantiation_cmd arities)));
+
+val instance_proofP =
+  OuterSyntax.command "instance_proof" "prove type arity relation" K.thy_goal
+      (Scan.succeed ((Toplevel.print oo Toplevel.local_theory_to_proof NONE) Instance.proof_instantiation));
 
 end;
 
@@ -993,7 +1004,7 @@ val _ = OuterSyntax.add_parsers [
   simproc_setupP, parse_ast_translationP, parse_translationP,
   print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP, contextP,
-  localeP, classP, instanceP, code_datatypeP,
+  localeP, classP, instanceP, instantiationP, instance_proofP, code_datatypeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,

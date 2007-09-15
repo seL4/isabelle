@@ -427,7 +427,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
         val n = Sign.arity_number thy tyco;
       in
         thy
-        |> Class.prove_instance_arity (Class.intro_classes_tac [])
+        |> Class.prove_instance (Class.intro_classes_tac [])
             [(tyco, replicate n HOLogic.typeS, [HOLogic.class_size])] []
         |> snd
       end

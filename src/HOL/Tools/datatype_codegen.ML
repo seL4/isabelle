@@ -1,4 +1,4 @@
-(*  Title:      HOL/datatype_codegen.ML
+(*  Title:      HOL/Tools/datatype_codegen.ML
     ID:         $Id$
     Author:     Stefan Berghofer & Florian Haftmann, TU Muenchen
 
@@ -590,7 +590,7 @@ fun prove_codetypes_arities tac tycos sort f after_qed thy =
         |> not (null arities) ? (
             f arities css
             #-> (fn defs =>
-              Class.prove_instance_arity tac arities defs
+              Class.prove_instance tac arities defs
             #-> (fn defs =>
               after_qed arities css defs)))
       end;
