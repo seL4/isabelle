@@ -36,7 +36,7 @@ sig
   val assert_serializer: theory -> string -> string;
 
   val eval_verbose: bool ref;
-  val eval_term: theory -> (string * 'a option ref) -> CodeThingol.code
+  val eval_term: theory -> (string * (unit -> 'a) option ref) -> CodeThingol.code
     ->  CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val code_width: int ref;
 
@@ -298,7 +298,7 @@ datatype ml_def =
   | MLClass of string * ((class * string) list * (vname * (string * itype) list))
   | MLClassinst of string * ((class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
-      * (string * iterm) list));
+      * (string * const) list));
 
 fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
   let
@@ -540,20 +540,12 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
-            fun pr_classop (classop, t) =
-              let
-                val consts = map_filter
-                  (fn c => if (is_some o const_syntax) c
-                    then NONE else (SOME o NameSpace.base o deresolv) c)
-                    (CodeThingol.fold_constnames (insert (op =)) t []);
-                val vars = CodeName.intro_vars consts init_syms;
-              in
-                concat [
-                  (str o pr_label_classop) classop,
-                  str "=",
-                  pr_term false vars NOBR t
-                ]
-              end;
+            fun pr_classop (classop, c_inst) =
+              concat [
+                (str o pr_label_classop) classop,
+                str "=",
+                pr_app false init_syms NOBR (c_inst, [])
+              ];
           in
             semicolon ([
               str (if null arity then "val" else "fun"),
@@ -831,20 +823,12 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons m
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
-            fun pr_classop_def (classop, t) =
-              let
-                val consts = map_filter
-                  (fn c => if (is_some o const_syntax) c
-                    then NONE else (SOME o NameSpace.base o deresolv) c)
-                    (CodeThingol.fold_constnames (insert (op =)) t []);
-                val vars = CodeName.intro_vars consts init_syms;
-              in
-                concat [
-                  (str o deresolv) classop,
-                  str "=",
-                  pr_term false vars NOBR t
-                ]
-              end;
+            fun pr_classop_def (classop, c_inst) =
+              concat [
+                (str o deresolv) classop,
+                str "=",
+                pr_app false init_syms NOBR (c_inst, [])
+              ];
           in
             concat (
               str "let"
@@ -920,7 +904,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
     fun mk_funs defs =
       fold_map
         (fn (name, CodeThingol.Fun info) =>
-              map_nsp_fun (name_def false name) >> (fn base => (base, (name, info)))
+              map_nsp_fun (name_def false name) >> (fn base => (base, (name, (apsnd o map) fst info)))
           | (name, def) => error ("Function block containing illegal definition: " ^ labelled_name name)
         ) defs
       >> (split_list #> apsnd MLFuns);
@@ -950,7 +934,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
              | [info] => MLClass info)));
     fun mk_inst [(name, CodeThingol.Classinst info)] =
       map_nsp_fun (name_def false name)
-      >> (fn base => ([base], MLClassinst (name, info)));
+      >> (fn base => ([base], MLClassinst (name, (apsnd o apsnd o map) fst info)));
     fun add_group mk defs nsp_nodes =
       let
         val names as (name :: names') = map fst defs;
@@ -1046,7 +1030,7 @@ fun isar_seri_sml module file =
   let
     val output = case file
      of NONE => use_text "generated code" Output.ml_output (!eval_verbose) o code_output
-      | SOME "-" => writeln o code_output
+      | SOME "-" => PrintMode.with_default writeln o code_output
       | SOME file => File.write (Path.explode file) o code_output;
   in
     parse_args (Scan.succeed ())
@@ -1057,10 +1041,10 @@ fun isar_seri_ocaml module file =
   let
     val output = case file
      of NONE => error "OCaml: no internal compilation"
-      | SOME "-" => writeln o code_output
+      | SOME "-" => PrintMode.with_default writeln o code_output
       | SOME file => File.write (Path.explode file) o code_output;
     fun output_file file = File.write (Path.explode file) o code_output;
-    val output_diag = writeln o code_output;
+    val output_diag = PrintMode.with_default writeln o code_output;
   in
     parse_args (Scan.succeed ())
     #> (fn () => seri_ml pr_ocaml pr_ocaml_modl module output)
@@ -1176,7 +1160,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
     fun pr_def (name, CodeThingol.Fun ((vs, ty), eqs)) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
-            fun pr_eq (ts, t) =
+            fun pr_eq ((ts, t), _) =
               let
                 val consts = map_filter
                   (fn c => if (is_some o const_syntax) c
@@ -1268,21 +1252,12 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
       | pr_def (_, CodeThingol.Classinst ((class, (tyco, vs)), (_, classop_defs))) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
-            fun pr_instdef (classop, t) =
-                let
-                  val consts = map_filter
-                    (fn c => if (is_some o const_syntax) c
-                      then NONE else (SOME o NameSpace.base o deresolv) c)
-                      (CodeThingol.fold_constnames (insert (op =)) t []);
-                  val vars = init_syms
-                    |> CodeName.intro_vars consts;
-                in
-                  semicolon [
-                    (str o classop_name class) classop,
-                    str "=",
-                    pr_term false vars NOBR t
-                  ]
-                end;
+            fun pr_instdef ((classop, c_inst), _) =
+              semicolon [
+                (str o classop_name class) classop,
+                str "=",
+                pr_app false init_syms NOBR (c_inst, [])
+              ];
           in
             Pretty.block_enclose (
               Pretty.block [
@@ -1401,7 +1376,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
             val pathname = Path.append destination filename;
             val _ = File.mkdir (Path.dir pathname);
           in File.write pathname end
-      | write_module NONE _ = writeln;
+      | write_module NONE _ = PrintMode.with_default writeln;
     fun seri_module (modlname', (imports, (defs, _))) =
       let
         val imports' =
@@ -1469,7 +1444,7 @@ fun seri_diagnosis labelled_name _ _ _ _ _ _ code =
     |> Graph.fold (fn (name, (def, _)) => case try pr (name, def) of SOME p => cons p | NONE => I) code
     |> Pretty.chunks2
     |> code_output
-    |> writeln
+    |> PrintMode.with_default writeln
   end;
 
 
@@ -1627,11 +1602,11 @@ fun eval_term thy (ref_name, reff) code (t, ty) args =
       reff := NONE;
       seri (SOME [val_name]) code;
       use_text "generated code for evaluation" Output.ml_output (!eval_verbose)
-        ("val _ = (" ^ ref_name ^ " := SOME (" ^ val_name'_args ^ "))");
+        ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ val_name'_args ^ "))");
       case !reff
        of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
             ^ " (reference probably has been shadowed)")
-        | SOME value => value
+        | SOME f => f ()
       );
   in
     code

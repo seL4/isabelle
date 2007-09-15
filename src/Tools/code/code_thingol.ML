@@ -22,8 +22,9 @@ sig
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
+  type const = string * (dict list list * itype list (*types of arguments*))
   datatype iterm =
-      IConst of string * (dict list list * itype list (*types of arguments*))
+      IConst of const
     | IVar of vname
     | `$ of iterm * iterm
     | `|-> of (vname * itype) * iterm
@@ -58,7 +59,7 @@ sig
 
   datatype def =
       Bot
-    | Fun of typscheme * (iterm list * iterm) list
+    | Fun of typscheme * ((iterm list * iterm) * thm) list
     | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
     | Class of (class * string) list * (vname * (string * itype) list)
@@ -66,7 +67,7 @@ sig
     | Classrel of class * class
     | Classinst of (class * (string * (vname * sort) list))
           * ((class * (string * (string * dict list list))) list
-        * (string * iterm) list);
+        * ((string * const) * thm) list);
   type code = def Graph.T;
   type transact;
   val empty_code: code;
@@ -115,8 +116,10 @@ datatype itype =
     `%% of string * itype list
   | ITyVar of vname;
 
+type const = string * (dict list list * itype list (*types of arguments*))
+
 datatype iterm =
-    IConst of string * (dict list list * itype list)
+    IConst of const
   | IVar of vname
   | `$ of iterm * iterm
   | `|-> of (vname * itype) * iterm
@@ -234,7 +237,7 @@ fun eta_expand (c as (_, (_, tys)), ts) k =
 type typscheme = (vname * sort) list * itype;
 datatype def =
     Bot
-  | Fun of typscheme * (iterm list * iterm) list
+  | Fun of typscheme * ((iterm list * iterm) * thm) list
   | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
   | Class of (class * string) list * (vname * (string * itype) list)
@@ -242,7 +245,7 @@ datatype def =
   | Classrel of class * class
   | Classinst of (class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
-      * (string * iterm) list);
+      * ((string * const) * thm) list);
 
 type code = def Graph.T;
 
@@ -308,7 +311,7 @@ fun check_samemodule names =
   ) names NONE;
 
 fun check_funeqs eqs =
-  (fold (fn (pats, _) =>
+  (fold (fn ((pats, _), _) =>
     let
       val l = length pats
     in
@@ -339,7 +342,7 @@ fun check_prep_def code Bot =
           then error "Too many class operations given"
           else ();
         fun check_classop (f, _) =
-          if AList.defined (op =) inst_classops f
+          if AList.defined (op =) (map fst inst_classops) f
           then () else error ("Missing definition for class operation " ^ quote f);
         val _ = map check_classop classops;
       in d end;
@@ -403,7 +406,7 @@ fun start_transact f code =
 
 fun add_eval_def (name, (t, ty)) code =
   code
-  |> Graph.new_node (name, Fun (([], ty), [([], t)]))
+  |> Graph.new_node (name, Fun (([], ty), [(([], t), Drule.dummy_thm)]))
   |> fold (curry Graph.add_edge name) (Graph.keys code);
 
 end; (*struct*)
