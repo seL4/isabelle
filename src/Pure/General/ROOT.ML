@@ -12,6 +12,7 @@ use "markup.ML";
 use "scan.ML";
 use "source.ML";
 use "symbol.ML";
+use "../ML/ml_lex.ML";
 use "secure.ML";
 
 use "stack.ML";

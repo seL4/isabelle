@@ -51,7 +51,7 @@ $(OUT)/Pure$(ML_SUFFIX): \
   ML-Systems/polyml-5.1.ML ML-Systems/polyml-interrupt-timeout.ML		\
   ML-Systems/polyml-old-basis.ML ML-Systems/polyml-posix.ML			\
   ML-Systems/polyml.ML ML-Systems/poplogml.ML ML-Systems/proper_int.ML		\
-  ML-Systems/smlnj.ML ML/ml_context.ML ML/ml_syntax.ML				\
+  ML-Systems/smlnj.ML ML/ml_context.ML ML/ml_lex.ML ML/ml_syntax.ML		\
   Proof/extraction.ML Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML	\
   Proof/proofchecker.ML Proof/reconstruct.ML ProofGeneral/ROOT.ML		\
   ProofGeneral/parsing.ML ProofGeneral/pgip.ML					\
