@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/ml_context.ML
+(*  Title:      Pure/ML/ml_context.ML
     ID:         $Id$
     Author:     Makarius
 
