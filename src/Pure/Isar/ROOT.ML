@@ -56,6 +56,7 @@ use "code.ML";
 (*local theories and specifications*)
 use "local_theory.ML";
 use "theory_target.ML";
+use "instance.ML";
 use "spec_parse.ML";
 use "specification.ML";
 use "constdefs.ML";
