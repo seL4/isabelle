@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/ml_syntax.ML
+(*  Title:      Pure/ML/ml_syntax.ML
     ID:         $Id$
     Author:     Makarius
 
@@ -31,14 +31,7 @@ struct
 
 (* reserved words *)
 
-val reserved_names =
- ["abstype", "and", "andalso", "as", "case", "do", "datatype", "else",
-  "end", "exception", "fn", "fun", "handle", "if", "in", "infix",
-  "infixr", "let", "local", "nonfix", "of", "op", "open", "orelse",
-  "raise", "rec", "then", "type", "val", "with", "withtype", "while",
-  "eqtype", "functor", "include", "sharing", "sig", "signature",
-  "struct", "structure", "where"];
-
+val reserved_names = filter Syntax.is_ascii_identifier ML_Lex.keywords;
 val reserved = Name.make_context reserved_names;
 val is_reserved = Name.is_declared reserved;
 
