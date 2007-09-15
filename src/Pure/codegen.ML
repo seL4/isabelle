@@ -1031,9 +1031,9 @@ fun print_evaluated_term s = Toplevel.keep (fn state =>
     val t = eval_term thy (Syntax.read_term ctxt s);
     val T = Term.type_of t;
   in
-    writeln (Pretty.string_of
+    Pretty.writeln
       (Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)]))
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)])
   end);
 
 exception Evaluation of term;

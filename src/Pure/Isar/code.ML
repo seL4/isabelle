@@ -679,9 +679,9 @@ fun add_func true thm thy =
           then error ("Rejected equation for datatype constructor:\n"
             ^ string_of_thm func)
           else ();
-      in map_exec_purge (SOME [c]) (map_funcs
-        (Symtab.map_default
-          (c, (Susp.value [], [])) (add_thm func))) thy
+      in
+        (map_exec_purge (SOME [c]) o map_funcs) (Symtab.map_default
+          (c, (Susp.value [], [])) (add_thm func)) thy
       end
   | add_func false thm thy =
       case mk_func_liberal thm

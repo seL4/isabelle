@@ -70,7 +70,7 @@ by pat_completeness auto
 
 (* Prove a lemma before attempting a termination proof *)
 lemma f91_estimate: 
-  assumes trm: "f91_dom n" 
+  assumes trm: "f91_dom n"
   shows "n < f91 n + 11"
 using trm by induct auto
 
@@ -80,12 +80,13 @@ proof
   show "wf ?R" ..
 
   fix n::nat assume "~ 100 < n" (* Inner call *)
-  thus "(n + 11, n) : ?R" by simp 
+  thus "(n + 11, n) : ?R" by simp
 
   assume inner_trm: "f91_dom (n + 11)" (* Outer call *)
   with f91_estimate have "n + 11 < f91 (n + 11) + 11" .
   with `~ 100 < n` show "(f91 (n + 11), n) : ?R" by simp 
 qed
+
 
 
 
