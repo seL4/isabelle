@@ -34,8 +34,8 @@ fun use_text (tune: string -> string) name (print, err) verbose txt =
     if verbose then print (output ()) else ()
   end;
 
-fun use_file output verbose name =
+fun use_file tune output verbose name =
   let
     val instream = TextIO.openIn name;
     val txt = TextIO.inputAll instream before TextIO.closeIn instream;
-  in use_text name output verbose txt end;
+  in use_text tune name output verbose txt end;
