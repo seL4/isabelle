@@ -13,6 +13,8 @@ $ env ALICE_JIT_MODE=0 alice
 - Session.finish ();
 *)
 
+val ml_system_fix_ints = false;
+
 use "ML-Systems/exn.ML";
 use "ML-Systems/multithreading_dummy.ML";
 

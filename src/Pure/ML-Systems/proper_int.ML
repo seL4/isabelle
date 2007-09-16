@@ -6,6 +6,8 @@ SML basis with type int representing proper integers, not machine
 words.
 *)
 
+val ml_system_fix_ints = true;
+
 val mk_int = IntInf.fromInt: Int.int -> IntInf.int;
 val dest_int = IntInf.toInt: IntInf.int -> Int.int;
 

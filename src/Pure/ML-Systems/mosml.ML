@@ -19,6 +19,8 @@ $ isabelle RAW_ML_SYSTEM
 
 (** ML system related **)
 
+val ml_system_fix_ints = false;
+
 load "Obj";
 load "Bool";
 load "Int";

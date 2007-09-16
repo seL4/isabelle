@@ -7,6 +7,8 @@ Compatibility file for Poplog/PML (version 15.6/2.1).
 
 (* Compiler and runtime options *)
 
+val ml_system_fix_ints = false;
+
 val _ = Compile.filetype := ".ML";
 val _ = Memory.hilim := let fun MB n = n div 4 * 1024 * 1024 in MB 120 end;
 val _ = Memory.stacklim := 10 * ! Memory.stacklim;
