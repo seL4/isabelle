@@ -4,15 +4,11 @@
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)
 
-fun mk_int (i: int) = i;
-fun dest_int (i: int) = i;
-(*use "ML-Systems/proper_int.ML";*)
-
+use "ML-Systems/proper_int.ML";
+use "ML-Systems/overloading_smlnj.ML";
 use "ML-Systems/exn.ML";
 use "ML-Systems/multithreading_dummy.ML";
 
-
-(** ML system related **)
 
 (*low-level pointer equality*)
 
@@ -40,11 +36,12 @@ val _ =
 
 (* Poly/ML emulation *)
 
+val exit = exit o dest_int;
 fun quit () = exit 0;
 
 (*limit the printing depth -- divided by 2 for comparibility with Poly/ML*)
 local
-  val depth = ref 10;
+  val depth = ref (10: int);
 in
   fun get_print_depth () = ! depth;
   fun print_depth n =
@@ -111,7 +108,7 @@ fun install_pp (path, pp) = CompilerPPTable.install_pp path pp;
 
 (* ML command execution *)
 
-fun use_text name (print, err) verbose txt =
+fun use_text (tune: string -> string) name (print, err) verbose txt =
   let
     val ref out_orig = Control.Print.out;
 
@@ -122,14 +119,18 @@ fun use_text name (print, err) verbose txt =
       in String.substring (str, 0, Int.max (0, size str - 1)) end;
   in
     Control.Print.out := out;
-    Backend.Interact.useStream (TextIO.openString txt) handle exn =>
+    Backend.Interact.useStream (TextIO.openString (tune txt)) handle exn =>
       (Control.Print.out := out_orig;
         err ((if name = "" then "" else "Error in " ^ name ^ "\n") ^ output ()); raise exn);
     Control.Print.out := out_orig;
     if verbose then print (output ()) else ()
   end;
 
-fun use_file _ _ name = use name;
+fun use_file tune output verbose name =
+  let
+    val instream = TextIO.openIn name;
+    val txt = TextIO.inputAll instream before TextIO.closeIn instream;
+  in use_text tune name output verbose txt end;
 
 
 
