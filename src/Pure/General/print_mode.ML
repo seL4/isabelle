@@ -25,9 +25,8 @@ struct
 val print_mode = ref ([]: string list);
 fun print_mode_active s = member (op =) (! print_mode) s;
 
-fun with_modes [] f x = f x
-  | with_modes modes f x = NAMED_CRITICAL "print_mode" (fn () =>
-      setmp print_mode (modes @ ! print_mode) f x);
+fun with_modes modes f x = NAMED_CRITICAL "print_mode" (fn () =>
+  setmp print_mode (modes @ ! print_mode) f x);
 
 fun with_default f x = NAMED_CRITICAL "print_mode" (fn () =>
   setmp print_mode [] f x);
