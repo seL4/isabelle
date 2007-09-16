@@ -7,6 +7,8 @@ Compatibility file for Poly/ML (version 4.1.x and 4.2.0).
 use "ML-Systems/exn.ML";
 use "ML-Systems/multithreading_dummy.ML";
 
+val ml_system_fix_ints = false;
+
 
 (** ML system and platform related **)
 
@@ -87,9 +89,9 @@ end;
 
 (* ML command execution -- 'eval' *)
 
-fun use_text name (print, err) verbose txt =
+fun use_text (tune: string -> string) name (print, err) verbose txt =
   let
-    val in_buffer = ref (explode txt);
+    val in_buffer = ref (explode (tune txt));
     val out_buffer = ref ([]: string list);
     fun output () = implode (rev (case ! out_buffer of "\n" :: cs => cs | cs => cs));
 
@@ -109,7 +111,11 @@ fun use_text name (print, err) verbose txt =
     if verbose then print (output ()) else ()
   end;
 
-fun use_file _ _ name = use name;
+fun use_file tune output verbose name =
+  let
+    val instream = TextIO.openIn name;
+    val txt = TextIO.inputAll instream before TextIO.closeIn instream;
+  in use_text tune name output verbose txt end;
 
 
 (*eval command line arguments*)
@@ -117,7 +123,7 @@ local
   fun println s =
     (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut);
   fun eval "-q" = ()
-    | eval txt = use_text "" (println, println) false txt;
+    | eval txt = use_text (fn x => x) "" (println, println) false txt;
 in
   val _ = PolyML.onEntry (fn () =>
    (Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ()));
