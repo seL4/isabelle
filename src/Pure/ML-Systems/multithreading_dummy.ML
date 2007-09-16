@@ -22,11 +22,11 @@ end;
 structure Multithreading: MULTITHREADING =
 struct
 
-val trace = ref 0;
+val trace = ref (0: int);
 fun tracing _ _ = ();
 
 val available = false;
-val max_threads = ref 1;
+val max_threads = ref (1: int);
 
 fun self_critical () = false;
 fun NAMED_CRITICAL _ e = e ();

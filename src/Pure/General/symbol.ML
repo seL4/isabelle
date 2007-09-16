@@ -499,7 +499,7 @@ fun bump_string str =
 val xsymbolsN = "xsymbols";
 
 fun sym_len s =
-  if not (is_printable s) then 0
+  if not (is_printable s) then (0: int)
   else if String.isPrefix "\\<long" s then 2
   else if String.isPrefix "\\<Long" s then 2
   else if s = "\\<spacespace>" then 2

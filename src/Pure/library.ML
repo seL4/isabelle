@@ -258,7 +258,7 @@ fun (f ooo g) x y z = f (g x y z);
 fun (f oooo g) x y z w = f (g x y z w);
 
 (*function exponentiation: f(...(f x)...) with n applications of f*)
-fun funpow 0 _ x = x
+fun funpow (0: int) _ x = x
   | funpow n f x = funpow (n - 1) f (f x);
 
 
@@ -406,17 +406,17 @@ fun eq_list eq (list1, list2) =
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
 
-fun chop 0 xs = ([], xs)
+fun chop (0: int) xs = ([], xs)
   | chop _ [] = ([], [])
   | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
 
 (*take the first n elements from a list*)
-fun take (n, []) = []
+fun take (n: int, []) = []
   | take (n, x :: xs) =
       if n > 0 then x :: take (n - 1, xs) else [];
 
 (*drop the first n elements from a list*)
-fun drop (n, []) = []
+fun drop (n: int, []) = []
   | drop (n, x :: xs) =
       if n > 0 then drop (n - 1, xs) else x :: xs;
 
@@ -431,18 +431,18 @@ fun nth_list xss i = nth xss i handle Subscript => [];
 
 fun nth_map 0 f (x :: xs) = f x :: xs
   | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs
-  | nth_map _ _ [] = raise Subscript;
+  | nth_map (_: int) _ [] = raise Subscript;
 
 fun map_index f =
   let
-    fun mapp _ [] = []
-      | mapp i (x :: xs) = f (i, x) :: mapp (i+1) xs
+    fun mapp (_: int) [] = []
+      | mapp i (x :: xs) = f (i, x) :: mapp (i + 1) xs
   in mapp 0 end;
 
 fun fold_index f =
   let
-    fun fold_aux _ [] y = y
-      | fold_aux i (x :: xs) y = fold_aux (i+1) xs (f (i, x) y);
+    fun fold_aux (_: int) [] y = y
+      | fold_aux i (x :: xs) y = fold_aux (i + 1) xs (f (i, x) y);
   in fold_aux 0 end;
 
 val last_elem = List.last;
@@ -454,7 +454,7 @@ fun split_last [] = raise Empty
 
 (*find the position of an element in a list*)
 fun find_index pred =
-  let fun find _ [] = ~1
+  let fun find (_: int) [] = ~1
         | find n (x :: xs) = if pred x then n else find (n + 1) xs;
   in find 0 end;
 
@@ -472,7 +472,7 @@ fun get_first _ [] = NONE
 
 fun get_index f =
   let
-    fun get _ [] = NONE
+    fun get (_: int) [] = NONE
       | get i (x :: xs) =
           case f x
            of NONE => get (i + 1) xs
@@ -497,7 +497,7 @@ fun separate s (x :: (xs as _ :: _)) = x :: s :: separate s xs
   | separate _ xs = xs;
 
 (*make the list [x, x, ..., x] of length n*)
-fun replicate n (x: 'a) : 'a list =
+fun replicate (n: int) x =
   let fun rep (0, xs) = xs
         | rep (n, xs) = rep (n - 1, x :: xs)
   in
@@ -595,18 +595,18 @@ fun suffixes xs = [] :: suffixes1 xs;
 
 (** integers **)
 
-fun inc i = (i := ! i + 1; ! i);
-fun dec i = (i := ! i - 1; ! i);
+fun inc i = (i := ! i + (1: int); ! i);
+fun dec i = (i := ! i - (1: int); ! i);
 
 
 (* lists of integers *)
 
 (*make the list [from, from + 1, ..., to]*)
-fun (i upto j) =
+fun ((i: int) upto j) =
   if i > j then [] else i :: (i + 1 upto j);
 
 (*make the list [from, from - 1, ..., to]*)
-fun (i downto j) =
+fun ((i: int) downto j) =
   if i < j then [] else i :: (i - 1 downto j);
 
 
@@ -732,7 +732,7 @@ fun unsuffix sffx s =
   if String.isSuffix sffx s then String.substring (s, 0, size s - size sffx)
   else raise Fail "unsuffix";
 
-fun replicate_string 0 _ = ""
+fun replicate_string (0: int) _ = ""
   | replicate_string 1 a = a
   | replicate_string k a =
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
@@ -1002,7 +1002,7 @@ fun partition_list p i j =
             else
             let val (ns, rest) = List.partition (p k) xs;
             in  ns :: part(k+1)rest  end
-  in  part i end;
+  in  part (i: int) end;
 
 fun partition_eq (eq:'a * 'a -> bool) =
   let
@@ -1027,7 +1027,7 @@ fun gensym_char i =
 val char_vec = Vector.tabulate (62, gensym_char);
 fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)));
 
-val gensym_seed = ref 0;
+val gensym_seed = ref (0: int);
 
 in
   fun gensym pre = pre ^ newid (NAMED_CRITICAL "gensym" (fn () => inc gensym_seed));
@@ -1040,7 +1040,7 @@ type stamp = unit ref;
 val stamp: unit -> stamp = ref;
 
 type serial = int;
-local val count = ref 0
+local val count = ref (0: int)
 in fun serial () = NAMED_CRITICAL "serial" (fn () => inc count) end;
 
 val serial_string = string_of_int o serial;
