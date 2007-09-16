@@ -248,7 +248,7 @@ $(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.thy \
 HOL-Induct: HOL $(LOG)/HOL-Induct.gz
 
 $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
-  Induct/Com.thy Induct/Comb.thy Induct/LFilter.thy \
+  Induct/Common_Patterns.thy Induct/Com.thy Induct/Comb.thy Induct/LFilter.thy \
   Induct/LList.thy Induct/Mutil.thy Induct/Ordinals.thy \
   Induct/PropLog.thy Induct/QuoNestedDataType.thy Induct/QuoDataType.thy\
   Induct/ROOT.ML \
