@@ -354,19 +354,29 @@ where
 | succ_Evn: "Evn n \<Longrightarrow> Odd (Suc n)"
 | succ_Odd: "Odd n \<Longrightarrow> Evn (Suc n)"
 
-lemma "Evn n \<Longrightarrow> P n"
-  and "Odd n \<Longrightarrow> Q n"
+lemma
+    "Evn n \<Longrightarrow> P1 n"
+    "Evn n \<Longrightarrow> P2 n"
+    "Evn n \<Longrightarrow> P3 n"
+  and
+    "Odd n \<Longrightarrow> Q1 n"
+    "Odd n \<Longrightarrow> Q2 n"
 proof (induct rule: Evn_Odd.inducts)
   case zero
-  show "P 0" sorry
+  { case 1 show "P1 0" sorry }
+  { case 2 show "P2 0" sorry }
+  { case 3 show "P3 0" sorry }
 next
   case (succ_Evn n)
-  note `Evn n` and `P n`
-  show "Q (Suc n)" sorry
+  note `Evn n` and `P1 n` `P2 n` `P3 n`
+  { case 1 show "Q1 (Suc n)" sorry }
+  { case 2 show "Q2 (Suc n)" sorry }
 next
   case (succ_Odd n)
-  note `Odd n` and `Q n`
-  show "P (Suc n)" sorry
+  note `Odd n` and `Q1 n` `Q2 n`
+  { case 1 show "P1 (Suc n)" sorry }
+  { case 2 show "P2 (Suc n)" sorry }
+  { case 3 show "P3 (Suc n)" sorry }
 qed
 
 end
