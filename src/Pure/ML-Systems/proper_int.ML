@@ -192,3 +192,19 @@ struct
   open Time;
   fun fmt a b = Time.fmt (dest_int a) b;
 end;
+
+
+(* Posix *)
+
+structure Posix =
+struct
+  open Posix;
+  structure IO =
+  struct
+    open IO;
+    fun mkTextWriter {appendMode, chunkSize, fd, initBlkMode, name} =
+      IO.mkTextWriter {appendMode = appendMode, chunkSize = dest_int chunkSize,
+        fd = fd, initBlkMode = initBlkMode, name = name};
+  end;
+end;
+
