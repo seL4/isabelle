@@ -221,7 +221,7 @@ fun trace scan xs =
 
 fun finite' (stopper, is_stopper) scan (state, input) =
   let
-    fun lost () = raise ABORT "Scanner bug: lost stopper of finite scan!";
+    fun lost () = raise ABORT "Bad scanner: lost stopper of finite scan!";
 
     fun stop [] = lost ()
       | stop lst =
