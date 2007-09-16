@@ -11,9 +11,9 @@ val pointer_eq = PolyML.pointerEq;
 
 (* improved versions of use_text/file *)
 
-fun use_text name (print, err) verbose txt =
+fun use_text (tune: string -> string) name (print, err) verbose txt =
   let
-    val in_buffer = ref (explode txt);
+    val in_buffer = ref (explode (tune txt));
     val out_buffer = ref ([]: string list);
     fun output () = implode (rev (case ! out_buffer of "\n" :: cs => cs | cs => cs));
 

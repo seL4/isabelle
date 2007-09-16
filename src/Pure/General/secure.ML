@@ -37,8 +37,8 @@ fun deny_secure msg = if is_secure () then error msg else ();
 
 fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 
-val orig_use_text = use_text;
-val orig_use_file = use_file;
+fun orig_use_text x = use_text ML_Parse.fix_ints x;
+fun orig_use_file x = use_file ML_Parse.fix_ints x;
 
 fun use_text name pr verbose txt = NAMED_CRITICAL "ML" (fn () =>
   (secure_mltext (); orig_use_text name pr verbose txt));
