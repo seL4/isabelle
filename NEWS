@@ -446,75 +446,25 @@ concepts already existing in the target context.  Example:
 Typically, the constant `partial_order.less' is created by a definition
 specification element in the context of locale partial_order.
 
-* Provers/induct: improved internal context management to support
-local fixes and defines on-the-fly.  Thus explicit meta-level
-connectives !! and ==> are rarely required anymore in inductive goals
-(using object-logic connectives for this purpose has been long
-obsolete anyway).  The subsequent proof patterns illustrate advanced
-techniques of natural induction; general datatypes and inductive sets
-work analogously (see also src/HOL/Lambda for realistic examples).
+* Provers/induct: improved internal context management to support local
+fixes and defines on-the-fly. Thus explicit meta-level connectives !!
+and ==> are rarely required anymore in inductive goals (using
+object-logic connectives for this purpose has been long obsolete
+anyway). Common proof patterns are explained in
+HOL/Induct/Common_Patterns.thy, see also HOL/Isar_examples/Puzzle.thy
+and src/HOL/Lambda for realistic examples.
 
-(1) This is how to ``strengthen'' an inductive goal wrt. certain
-parameters:
+* Provers/induct: improved handling of simultaneous goals. Instead of
+introducing object-level conjunction, the statement is now split into
+several conclusions, while the corresponding symbolic cases are nested
+accordingly. INCOMPATIBILITY, proofs need to be structured explicitly,
+see HOL/Induct/Common_Patterns.thy, for example.
 
-  lemma
-    fixes n :: nat and x :: 'a
-    assumes a: "A n x"
-    shows "P n x"
-    using a                     -- {* make induct insert fact a *}
-  proof (induct n arbitrary: x) -- {* generalize goal to "!!x. A n x ==> P n x" *}
-    case 0
-    show ?case sorry
-  next
-    case (Suc n)
-    note `!!x. A n x ==> P n x` -- {* induction hypothesis, according to induction rule *}
-    note `A (Suc n) x`          -- {* induction premise, stemming from fact a *}
-    show ?case sorry
-  qed
-
-(2) This is how to perform induction over ``expressions of a certain
-form'', using a locally defined inductive parameter n == "a x"
-together with strengthening (the latter is usually required to get
-sufficiently flexible induction hypotheses):
-
-  lemma
-    fixes a :: "'a => nat"
-    assumes a: "A (a x)"
-    shows "P (a x)"
-    using a
-  proof (induct n == "a x" arbitrary: x)
-    ...
-
-See also HOL/Isar_examples/Puzzle.thy for an application of the this
-particular technique.
-
-(3) This is how to perform existential reasoning ('obtains' or
-'obtain') by induction, while avoiding explicit object-logic
-encodings:
-
-  lemma
-    fixes n :: nat
-    obtains x :: 'a where "P n x" and "Q n x"
-  proof (induct n arbitrary: thesis)
-    case 0
-    obtain x where "P 0 x" and "Q 0 x" sorry
-    then show thesis by (rule 0)
-  next
-    case (Suc n)
-    obtain x where "P n x" and "Q n x" by (rule Suc.hyps)
-    obtain x where "P (Suc n) x" and "Q (Suc n) x" sorry
-    then show thesis by (rule Suc.prems)
-  qed
-
-Here the 'arbitrary: thesis' specification essentially modifies the
-scope of the formal thesis parameter, in order to the get the whole
-existence statement through the induction as expected.
-
-* Provers/induct: mutual induction rules are now specified as a list
-of rule sharing the same induction cases.  HOL packages usually
-provide foo_bar.inducts for mutually defined items foo and bar
-(e.g. inductive sets or datatypes).  INCOMPATIBILITY, users need to
-specify mutual induction rules differently, i.e. like this:
+* Provers/induct: mutual induction rules are now specified as a list of
+rule sharing the same induction cases. HOL packages usually provide
+foo_bar.inducts for mutually defined items foo and bar (e.g. inductive
+sets or datatypes). INCOMPATIBILITY, users need to specify mutual
+induction rules differently, i.e. like this:
 
   (induct rule: foo_bar.inducts)
   (induct set: foo bar)
@@ -523,75 +473,7 @@ specify mutual induction rules differently, i.e. like this:
 The ML function ProjectRule.projections turns old-style rules into the
 new format.
 
-* Provers/induct: improved handling of simultaneous goals.  Instead of
-introducing object-level conjunction, the statement is now split into
-several conclusions, while the corresponding symbolic cases are
-nested accordingly.  INCOMPATIBILITY, proofs need to be structured
-explicitly.  For example:
-
-  lemma
-    fixes n :: nat
-    shows "P n" and "Q n"
-  proof (induct n)
-    case 0 case 1
-    show "P 0" sorry
-  next
-    case 0 case 2
-    show "Q 0" sorry
-  next
-    case (Suc n) case 1
-    note `P n` and `Q n`
-    show "P (Suc n)" sorry
-  next
-    case (Suc n) case 2
-    note `P n` and `Q n`
-    show "Q (Suc n)" sorry
-  qed
-
-The split into subcases may be deferred as follows -- this is
-particularly relevant for goal statements with local premises.
-
-  lemma
-    fixes n :: nat
-    shows "A n ==> P n" and "B n ==> Q n"
-  proof (induct n)
-    case 0
-    {
-      case 1
-      note `A 0`
-      show "P 0" sorry
-    next
-      case 2
-      note `B 0`
-      show "Q 0" sorry
-    }
-  next
-    case (Suc n)
-    note `A n ==> P n` and `B n ==> Q n`
-    {
-      case 1
-      note `A (Suc n)`
-      show "P (Suc n)" sorry
-    next
-      case 2
-      note `B (Suc n)`
-      show "Q (Suc n)" sorry
-    }
-  qed
-
-If simultaneous goals are to be used with mutual rules, the statement
-needs to be structured carefully as a two-level conjunction, using
-lists of propositions separated by 'and':
-
-  lemma
-    shows "a : A ==> P1 a"
-          "a : A ==> P2 a"
-      and "b : B ==> Q1 b"
-          "b : B ==> Q2 b"
-          "b : B ==> Q3 b"
-  proof (induct set: A B)
-
-* Provers/induct: support coinduction as well.  See
+* Provers/induct: support coinduction as well. See
 src/HOL/Library/Coinductive_List.thy for various examples.
 
 * Attribute "symmetric" produces result with standardized schematic
