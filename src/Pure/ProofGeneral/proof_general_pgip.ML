@@ -572,9 +572,10 @@ fun set_proverflag_quiet b =
 
 fun set_proverflag_pgmlsymbols b =
     (pgmlsymbols_flag := b;
-     change print_mode 
+      NAMED_CRITICAL "print_mode" (fn () =>
+        change print_mode 
             (fn mode =>
-                remove (op =) Symbol.xsymbolsN mode @ (if b then [Symbol.xsymbolsN] else [])))
+                remove (op =) Symbol.xsymbolsN mode @ (if b then [Symbol.xsymbolsN] else []))))
 
 fun set_proverflag_thmdeps b =
     (show_theorem_dependencies := b;

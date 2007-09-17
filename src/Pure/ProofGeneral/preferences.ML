@@ -67,10 +67,11 @@ val proof_pref =
 val thm_deps_pref =
     let
         fun get () = PgipTypes.bool_to_pgstring (print_mode_active thm_depsN)
-        fun set s = if PgipTypes.read_pgipbool s then
-                        change print_mode (insert (op =) thm_depsN)
-                    else
-                        change print_mode (remove (op =) thm_depsN)
+        fun set s =  NAMED_CRITICAL "print_mode" (fn () =>
+          if PgipTypes.read_pgipbool s then
+            change print_mode (insert (op =) thm_depsN)
+          else
+            change print_mode (remove (op =) thm_depsN))
     in
         mkpref get set PgipTypes.Pgipbool "theorem-dependencies"
                "Track theorem dependencies within Proof General"
