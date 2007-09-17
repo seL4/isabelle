@@ -367,14 +367,14 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
 (* pretty_term_ast *)
 
 fun pretty_term_ast extern_const ctxt curried prtabs trf tokentrf ast =
-  pretty extern_const ctxt (mode_tabs prtabs (! print_mode))
+  pretty extern_const ctxt (mode_tabs prtabs (print_mode_value ()))
     trf tokentrf false curried ast 0;
 
 
 (* pretty_typ_ast *)
 
 fun pretty_typ_ast ctxt _ prtabs trf tokentrf ast =
-  pretty I ctxt (mode_tabs prtabs (! print_mode))
+  pretty I ctxt (mode_tabs prtabs (print_mode_value ()))
     trf tokentrf true false ast 0;
 
 end;

@@ -170,7 +170,7 @@ in
   fun add_mode name output = CRITICAL (fn () =>
     change modes (Symtab.update_new (name, {output = output})));
   fun get_mode () =
-    the_default default (Library.get_first (Symtab.lookup (! modes)) (! print_mode));
+    the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
 end;
 
 fun output ("", _) = ("", "")

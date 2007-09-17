@@ -946,7 +946,7 @@ fun callatp () =
       val ctxt = ProofContext.init (theory_of_thm th)
   in  isar_atp (ctxt, [], th)  end;
 
-val isar_atp_writeonly = setmp print_mode []
+val isar_atp_writeonly = PrintMode.with_default
       (fn (ctxt, chain_ths, th) =>
        if Thm.no_prems th then ()
        else

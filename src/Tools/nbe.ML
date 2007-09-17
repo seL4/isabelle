@@ -373,7 +373,7 @@ fun norm_print_term ctxt modes t =
     val ct = Thm.cterm_of thy t;
     val (_, t') = (Logic.dest_equals o Thm.prop_of o normalization_conv) ct;
     val ty = Term.type_of t';
-    val p = Library.setmp print_mode (modes @ ! print_mode) (fn () =>
+    val p = Library.setmp print_mode (modes @ print_mode_value ()) (fn () =>
       Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t'), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt ty)]) ();
   in Pretty.writeln p end;

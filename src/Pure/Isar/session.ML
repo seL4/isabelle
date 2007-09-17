@@ -87,7 +87,7 @@ fun use_dir root build modes reset info doc doc_graph doc_versions
       Secure.use_noncritical root;
       finish ()))
     |> setmp_noncritical Proofterm.proofs level
-    |> setmp_noncritical print_mode (modes @ ! print_mode)
+    |> setmp_noncritical print_mode (modes @ print_mode_value ())
     |> setmp_noncritical Multithreading.trace trace_threads
     |> setmp_noncritical Multithreading.max_threads
       (if Multithreading.available then max_threads

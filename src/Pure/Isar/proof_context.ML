@@ -314,7 +314,7 @@ fun pretty_term' abbrevs ctxt t =
     val consts = consts_of ctxt;
     val do_abbrevs = abbrevs andalso not (print_mode_active "no_abbrevs");
     val t' = t
-      |> do_abbrevs ? rewrite_term true thy (Consts.abbrevs_of consts (! print_mode @ [""]))
+      |> do_abbrevs ? rewrite_term true thy (Consts.abbrevs_of consts (print_mode_value () @ [""]))
       |> do_abbrevs ? rewrite_term false thy (Consts.abbrevs_of consts [Syntax.internalM])
       |> Sign.extern_term (Consts.extern_early consts) thy
       |> LocalSyntax.extern_term syntax;

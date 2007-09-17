@@ -25,8 +25,8 @@ struct
 val debug = ref false
 fun message s = if !debug then writeln s else ()
 
-val string_of_thm = Library.setmp print_mode [] string_of_thm;
-val string_of_cterm = Library.setmp print_mode [] string_of_cterm;
+val string_of_thm = PrintMode.with_default string_of_thm;
+val string_of_cterm = PrintMode.with_default string_of_cterm;
 
 fun import_tac (thyname,thmname) =
     if ! quick_and_dirty
