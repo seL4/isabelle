@@ -172,15 +172,15 @@ val bracketsN = "brackets";
 val no_bracketsN = "no_brackets";
 
 fun no_brackets () =
-  find_first (fn mode => mode = bracketsN orelse mode = no_bracketsN) (! print_mode)
-    = SOME no_bracketsN;
+  find_first (fn mode => mode = bracketsN orelse mode = no_bracketsN)
+    (print_mode_value ()) = SOME no_bracketsN;
 
 val type_bracketsN = "type_brackets";
 val no_type_bracketsN = "no_type_brackets";
 
 fun no_type_brackets () =
-  find_first (fn mode => mode = type_bracketsN orelse mode = no_type_bracketsN) (! print_mode)
-    <> SOME type_bracketsN;
+  find_first (fn mode => mode = type_bracketsN orelse mode = no_type_bracketsN)
+    (print_mode_value ()) <> SOME type_bracketsN;
 
 
 (* parse ast translations *)

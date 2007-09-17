@@ -567,7 +567,7 @@ fun pretty_t t_to_ast prt_t markup ctxt (syn as Syntax (tabs, _)) curried t =
     val ast = t_to_ast ctxt (lookup_tr' print_trtab) t;
   in
     Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
-      (lookup_tokentr tokentrtab (! print_mode))
+      (lookup_tokentr tokentrtab (print_mode_value ()))
       (Ast.normalize_ast (Symtab.lookup_list print_ruletab) ast))
   end;
 

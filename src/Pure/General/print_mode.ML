@@ -9,6 +9,7 @@ mechanisms.
 signature BASIC_PRINT_MODE =
 sig
   val print_mode: string list ref
+  val print_mode_value: unit -> string list
   val print_mode_active: string -> bool
 end;
 
@@ -23,7 +24,9 @@ structure PrintMode: PRINT_MODE =
 struct
 
 val print_mode = ref ([]: string list);
-fun print_mode_active s = member (op =) (! print_mode) s;
+
+fun print_mode_value () = NAMED_CRITICAL "print_mode" (fn () => ! print_mode);
+fun print_mode_active s = member (op =) (print_mode_value ()) s;
 
 fun with_modes modes f x = NAMED_CRITICAL "print_mode" (fn () =>
   setmp print_mode (modes @ ! print_mode) f x);
