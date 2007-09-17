@@ -21,11 +21,11 @@ local
 
 in
 
-  fun use_text name p v t =
+  fun use_text tune name p v t =
     let val name = case name of "" => "unnamed" | name => name
         val arcs = rewrite (OS.Process.getEnv "ISABELLE_HOME",
                             #arcs (OS.Path.fromString name))
         val _    = AnnoMaLy.nameNextStream ("isabelle" :: arcs)
-    in  smlnj_use_text name p v t  end
+    in  smlnj_use_text tune name p v t  end
 
 end;
