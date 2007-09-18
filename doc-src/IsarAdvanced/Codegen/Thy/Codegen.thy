@@ -1198,7 +1198,7 @@ text {*
   \end{description}
 *}
 
-subsubsection {* Datatype hooks *}
+(*subsubsection {* Datatype hooks *}
 
 text {*
   Isabelle/HOL's datatype package provides a mechanism to
@@ -1311,7 +1311,9 @@ text {*
      the block.
 
   \end{description}
+*}*)
 
+text {*
   \emph{Happy proving, happy hacking!}
 *}
 

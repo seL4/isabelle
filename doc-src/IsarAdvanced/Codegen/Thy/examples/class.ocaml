@@ -14,7 +14,7 @@ let null _A = _A.null;;
 let rec head _B = function x :: xs -> x
                   | [] -> null _B;;
 
-let null_option () = ({null = None} : ('b option) null);;
+let null_option () = ({null = None} : ('a option) null);;
 
 let rec dummy
   = head (null_option ()) [Some (Nat.Suc Nat.Zero_nat); None];;

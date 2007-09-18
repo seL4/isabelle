@@ -1,9 +1,9 @@
 structure Classes = 
 struct
 
-datatype nat = Zero_nat | Suc of nat;
+datatype nat = Suc of nat | Zero_nat;
 
-datatype bit = B0 | B1;
+datatype bit = B1 | B0;
 
 fun nat_aux i n =
   (if IntInf.<= (i, (0 : IntInf.int)) then n

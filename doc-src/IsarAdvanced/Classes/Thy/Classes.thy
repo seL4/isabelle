@@ -1,4 +1,3 @@
-
 (* $Id$ *)
 
 (*<*)
@@ -7,7 +6,7 @@ imports Main Pretty_Int
 begin
 
 ML {*
-CodegenSerializer.code_width := 74;
+CodeTarget.code_width := 74;
 *}
 
 syntax
@@ -189,7 +188,7 @@ text {*
 *}
 
     instance int :: semigroup
-      mult_int_def: "\<And>i j \<Colon> int. i \<otimes> j \<equiv> i + j"
+      mult_int_def: "i \<otimes> j \<equiv> i + j"
     proof
       fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
       then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)" unfolding mult_int_def .
@@ -504,7 +503,7 @@ text {*
   \noindent This maps to Haskell as:
 *}
 
-export_code example in Haskell to Classes file "code_examples/"
+export_code example in Haskell module_name Classes file "code_examples/"
   (* NOTE: you may use Haskell only once in this document, otherwise
   you have to work in distinct subdirectories *)
 
@@ -514,7 +513,7 @@ text {*
   \noindent The whole code in SML with explicit dictionary passing:
 *}
 
-export_code example (*<*)in SML to Classes(*>*)in SML to Classes file "code_examples/classes.ML"
+export_code example (*<*)in SML module_name Classes(*>*)in SML module_name Classes file "code_examples/classes.ML"
 
 text {*
   \lstsml{Thy/code_examples/classes.ML}

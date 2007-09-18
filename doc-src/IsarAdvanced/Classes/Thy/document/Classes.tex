@@ -4,7 +4,6 @@
 %
 \isadelimtheory
 \isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -172,7 +171,7 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \isamarkuptrue%
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ int\ {\isacharcolon}{\isacharcolon}\ semigroup\isanewline
-\ \ \ \ \ \ mult{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymAnd}i\ j\ {\isasymColon}\ int{\isachardot}\ i\ {\isasymotimes}\ j\ {\isasymequiv}\ i\ {\isacharplus}\ j{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ mult{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}i\ {\isasymotimes}\ j\ {\isasymequiv}\ i\ {\isacharplus}\ j{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -733,16 +732,16 @@ Turning back to the first motivation for type classes,
 \noindent This maps to Haskell as:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ example\ \isakeyword{in}\ Haskell\ \isakeyword{to}\ Classes\ \isakeyword{file}\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}{\isachardoublequoteclose}%
+\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
+\ example\ \isakeyword{in}\ Haskell\ \isakeyword{module{\isacharunderscore}name}\ Classes\ \isakeyword{file}\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lsthaskell{Thy/code_examples/Classes.hs}
 
   \noindent The whole code in SML with explicit dictionary passing:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{code{\isacharunderscore}gen}\isamarkupfalse%
-\ example\ \isakeyword{in}\ SML\ \isakeyword{to}\ Classes\ \isakeyword{file}\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}classes{\isachardot}ML{\isachardoublequoteclose}%
+\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
+\ example\ \isakeyword{in}\ SML\ \isakeyword{module{\isacharunderscore}name}\ Classes\ \isakeyword{file}\ {\isachardoublequoteopen}code{\isacharunderscore}examples{\isacharslash}classes{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \lstsml{Thy/code_examples/classes.ML}%
 \end{isamarkuptext}%
