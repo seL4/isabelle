@@ -18,7 +18,6 @@ uses
   ("Tools/datatype_rep_proofs.ML")
   ("Tools/datatype_abs_proofs.ML")
   ("Tools/datatype_realizer.ML")
-  ("Tools/datatype_hooks.ML")
   ("Tools/datatype_case.ML")
   ("Tools/datatype_package.ML")
   ("Tools/datatype_codegen.ML")
@@ -110,8 +109,6 @@ use "Tools/datatype_rep_proofs.ML"
 use "Tools/datatype_abs_proofs.ML"
 use "Tools/datatype_case.ML"
 use "Tools/datatype_realizer.ML"
-
-use "Tools/datatype_hooks.ML"
 
 use "Tools/datatype_package.ML"
 setup DatatypePackage.setup

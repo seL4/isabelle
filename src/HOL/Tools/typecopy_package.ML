@@ -19,8 +19,8 @@ sig
     -> theory -> (string * info) * theory
   val get_typecopies: theory -> string list
   val get_typecopy_info: theory -> string -> info option
-  type hook = string * info -> theory -> theory
-  val add_hook: hook -> theory -> theory
+  type interpretator = string * info -> theory -> theory
+  val add_interpretator: interpretator -> theory -> theory
   val get_spec: theory -> string -> (string * sort) list * (string * typ list) list
   val get_eq: theory -> string -> thm
   val print_typecopies: theory -> unit
@@ -41,21 +41,20 @@ type info = {
   proj_def: thm
 };
 
-type hook = string * info -> theory -> theory;
+structure TypecopyInterpretator = TheoryInterpretatorFun(struct type T = string; val eq = op = end);
 
 structure TypecopyData = TheoryDataFun
 (
-  type T = info Symtab.table * (serial * hook) list;
-  val empty = (Symtab.empty, []);
+  type T = info Symtab.table;
+  val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  fun merge _ ((tab1, hooks1), (tab2, hooks2) : T) =
-    (Symtab.merge (K true) (tab1, tab2), AList.merge (op =) (K true) (hooks1, hooks2));
+  fun merge _ = Symtab.merge (K true);
 );
 
 fun print_typecopies thy =
   let
-    val (tab, _) = TypecopyData.get thy;
+    val tab = TypecopyData.get thy;
     fun mk (tyco, { vs, constr, typ, proj = (proj, _), ... } : info) =
       (Pretty.block o Pretty.breaks) [
         Sign.pretty_typ thy (Type (tyco, map TFree vs)),
@@ -68,17 +67,16 @@ fun print_typecopies thy =
         (Pretty.str "type copies:" :: map mk (Symtab.dest tab))
     end;
 
-val get_typecopies = Symtab.keys o fst o TypecopyData.get;
-val get_typecopy_info = Symtab.lookup o fst o TypecopyData.get;
+val get_typecopies = Symtab.keys o TypecopyData.get;
+val get_typecopy_info = Symtab.lookup o TypecopyData.get;
 
 
-(* hook management *)
+(* interpretator management *)
 
-fun add_hook hook =
-  (TypecopyData.map o apsnd o cons) (serial (), hook);
+type interpretator = string * info -> theory -> theory;
 
-fun invoke_hooks tyco_info thy =
-  fold_rev (fn (_, f) => f tyco_info) ((snd o TypecopyData.get) thy) thy;
+fun add_interpretator interp = TypecopyInterpretator.add_interpretator
+  (fold (fn tyco => fn thy => interp (tyco, (the o get_typecopy_info thy) tyco) thy));
 
 
 (* add a type copy *)
@@ -109,8 +107,8 @@ fun gen_add_typecopy prep_typ (raw_tyco, raw_vs) raw_ty constr_proj thy =
           };
         in
           thy
-          |> (TypecopyData.map o apfst o Symtab.update_new) (tyco, info)
-          |> invoke_hooks (tyco, info)
+          |> (TypecopyData.map o Symtab.update_new) (tyco, info)
+          |> TypecopyInterpretator.add_those [tyco]
           |> pair (tyco, info)
         end
   in
@@ -139,10 +137,10 @@ fun get_spec thy tyco =
   in (vs, [(constr, [typ])]) end;
 
 
-(* hook for projection function code *)
+(* interpretator for projection function code *)
 
 fun add_project (_ , {proj_def, ...} : info) = Code.add_default_func proj_def;
 
-val setup = add_hook add_project;
+val setup = TypecopyInterpretator.init #> add_interpretator add_project;
 
 end;

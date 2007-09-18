@@ -12,7 +12,7 @@ imports
   Commutative_Ring
   Continuity
   Efficient_Nat
-  Eval
+  (*Eval*)
   Eval_Witness
   Executable_Set
   FuncSet

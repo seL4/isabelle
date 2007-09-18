@@ -17,12 +17,11 @@ sig
     -> theory -> theory
   val codetype_hook: hook
   val eq_hook: hook
-  val codetypes_dependency: theory -> (string * bool) list list
-  val add_codetypes_hook_bootstrap: hook -> theory -> theory
+  val add_codetypes_hook: hook -> theory -> theory
   val the_codetypes_mut_specs: theory -> (string * bool) list
     -> ((string * sort) list * (string * (bool * (string * typ list) list)) list)
   val get_codetypes_arities: theory -> (string * bool) list -> sort
-    -> (string * (arity * term list)) list option
+    -> (string * (arity * term list)) list
   val prove_codetypes_arities: tactic -> (string * bool) list -> sort
     -> (arity list -> (string * term list) list -> theory
       -> ((bstring * Attrib.src list) * term) list * theory)
@@ -443,6 +442,11 @@ fun get_case_cert thy tyco =
 
 (* abstraction over datatypes vs. type copies *)
 
+fun get_spec thy (dtco, true) =
+      (the o DatatypePackage.get_datatype_spec thy) dtco
+  | get_spec thy (tyco, false) =
+      TypecopyPackage.get_spec thy tyco;
+
 fun codetypes_dependency thy =
   let
     val names =
@@ -471,11 +475,6 @@ fun codetypes_dependency thy =
     |> Graph.strong_conn
     |> map (AList.make (the o AList.lookup (op =) names))
   end;
-
-fun get_spec thy (dtco, true) =
-      (the o DatatypePackage.get_datatype_spec thy) dtco
-  | get_spec thy (tyco, false) =
-      TypecopyPackage.get_spec thy tyco;
 
 local
   fun get_eq_thms thy tyco = case DatatypePackage.get_datatype thy tyco
@@ -506,7 +505,7 @@ end;
 type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
   -> theory -> theory;
 
-fun add_codetypes_hook_bootstrap hook thy =
+fun add_codetypes_hook hook thy =
   let
     fun add_spec thy (tyco, is_dt) =
       (tyco, (is_dt, get_spec thy (tyco, is_dt)));
@@ -517,8 +516,8 @@ fun add_codetypes_hook_bootstrap hook thy =
   in
     thy
     |> fold hook ((map o map) (add_spec thy) (codetypes_dependency thy))
-    |> DatatypeHooks.add datatype_hook
-    |> TypecopyPackage.add_hook typecopy_hook
+    |> DatatypePackage.add_interpretator datatype_hook
+    |> TypecopyPackage.add_interpretator typecopy_hook
   end;
 
 fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
@@ -572,11 +571,11 @@ fun get_codetypes_arities thy tycos sort =
         val ty = (tys' ---> Type (tyco, map TFree vs'));
       in list_comb (Const (c, ty), map Free ts) end;
   in
-    map (fn (tyco, cs) => (tyco, (mk_arity tyco, map (mk_cons tyco) cs))) css |> SOME
-  end handle Class_Error => NONE;
+    map (fn (tyco, cs) => (tyco, (mk_arity tyco, map (mk_cons tyco) cs))) css
+  end;
 
 fun prove_codetypes_arities tac tycos sort f after_qed thy =
-  case get_codetypes_arities thy tycos sort
+  case try (get_codetypes_arities thy tycos) sort
    of NONE => thy
     | SOME insts => let
         fun proven (tyco, asorts, sort) =
@@ -634,13 +633,13 @@ fun add_datatype_case_defs dtco thy =
 
 val setup = 
   add_codegen "datatype" datatype_codegen
-  #> add_tycodegen "datatype" datatype_tycodegen 
-  #> DatatypeHooks.add (fold add_datatype_case_const)
-  #> DatatypeHooks.add (fold add_datatype_case_defs)
+  #> add_tycodegen "datatype" datatype_tycodegen
+  #> DatatypePackage.add_interpretator (fold add_datatype_case_const)
+  #> DatatypePackage.add_interpretator (fold add_datatype_case_defs)
 
 val setup_hooks =
-  add_codetypes_hook_bootstrap codetype_hook
-  #> add_codetypes_hook_bootstrap eq_hook
+  add_codetypes_hook codetype_hook
+  #> add_codetypes_hook eq_hook
 
 
 end;

@@ -56,7 +56,7 @@ let
     DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
       [TypOf.class_typ_of] mk ((K o K) (fold Code.add_default_func))
-in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
+in DatatypeCodegen.add_codetypes_hook hook end
 *}
 
 
@@ -118,7 +118,7 @@ let
       DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
       [TermOf.class_term_of] ((K o K o pair) []) mk
-in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
+in DatatypeCodegen.add_codetypes_hook hook end
 *}
 
 abbreviation

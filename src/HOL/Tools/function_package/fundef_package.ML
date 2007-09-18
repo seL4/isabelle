@@ -26,7 +26,6 @@ sig
     val setup_termination_proof : string option -> local_theory -> Proof.state
 
     val setup : theory -> theory
-    val setup_case_cong_hook : theory -> theory
     val get_congs : theory -> thm list
 end
 
@@ -176,11 +175,10 @@ fun add_case_cong n thy =
                            |> safe_mk_meta_eq)))
                        thy
 
-val case_cong_hook = fold add_case_cong
+val case_cong = fold add_case_cong
 
-val setup_case_cong_hook =
-    DatatypeHooks.add case_cong_hook
-    #> (fn thy => case_cong_hook (Symtab.keys (DatatypePackage.get_datatypes thy)) thy)
+val setup_case_cong = DatatypePackage.add_interpretator case_cong
+
 
 
 (* ad-hoc method to convert elimination-style goals to existential statements *)
@@ -259,7 +257,7 @@ val setup =
   Attrib.add_attributes
     [("fundef_cong", Attrib.add_del_args FundefCtxTree.cong_add FundefCtxTree.cong_del,
       "declaration of congruence rule for function definitions")]
-  #> setup_case_cong_hook
+  #> setup_case_cong
   #> FundefRelation.setup
   #> elim_to_cases_setup
 

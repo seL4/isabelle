@@ -69,6 +69,7 @@ sig
   val datatype_of_case : theory -> string -> DatatypeAux.datatype_info option
   val get_datatype_spec : theory -> string -> ((string * sort) list * (string * typ list) list) option
   val get_datatype_constrs : theory -> string -> (string * typ) list option
+  val add_interpretator: (string list -> theory -> theory) -> theory -> theory
   val print_datatypes : theory -> unit
   val make_case :  Proof.context -> bool -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
@@ -521,6 +522,10 @@ fun gen_specify_consts add args thy =
 val specify_consts = gen_specify_consts Sign.add_consts_i;
 val specify_consts_authentic = gen_specify_consts Sign.add_consts_authentic;
 
+structure DatatypeInterpretator = TheoryInterpretatorFun(struct type T = string; val eq = op = end);
+
+fun add_interpretator interpretator = DatatypeInterpretator.add_interpretator interpretator;
+
 fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
     case_names_induct case_names_exhausts thy =
   let
@@ -666,7 +671,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
       |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
-      |> DatatypeHooks.all (map fst dt_infos);
+      |> DatatypeInterpretator.add_those (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -726,7 +731,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       |> Theory.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
       |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
-      |> DatatypeHooks.all (map fst dt_infos);
+      |> DatatypeInterpretator.add_those (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -831,7 +836,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
       |> DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos)
-      |> DatatypeHooks.all (map fst dt_infos);
+      |> DatatypeInterpretator.add_those (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -934,7 +939,8 @@ val setup =
   DatatypeProp.distinctness_limit_setup #>
   Method.add_methods tactic_emulations #>
   simproc_setup #>
-  trfun_setup;
+  trfun_setup #>
+  DatatypeInterpretator.init;
 
 
 (* outer syntax *)

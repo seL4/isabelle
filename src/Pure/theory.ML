@@ -51,8 +51,106 @@ sig
   val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
 end
 
-structure Theory: THEORY =
+signature THEORY_INTERPRETATOR =
+sig
+  type T
+  type interpretator = T list -> theory -> theory
+  val add_those: T list -> theory -> theory
+  val all_those: theory -> T list
+  val add_interpretator: interpretator -> theory -> theory
+  val init: theory -> theory
+end;
+
+signature THEORY_INTERPRETATOR_KEY =
+sig
+  type T
+  val eq: T * T -> bool
+end;
+
+structure Theory =
 struct
+
+
+(** datatype thy **)
+
+datatype thy = Thy of
+ {axioms: term NameSpace.table,
+  defs: Defs.T,
+  oracles: ((theory * Object.T -> term) * stamp) NameSpace.table,
+  consolidate: theory -> theory};
+
+fun make_thy (axioms, defs, oracles, consolidate) =
+  Thy {axioms = axioms, defs = defs, oracles = oracles, consolidate = consolidate};
+
+fun err_dup_axm dup = error ("Duplicate axiom: " ^ quote dup);
+fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
+
+structure ThyData = TheoryDataFun
+(
+  type T = thy;
+  val empty = make_thy (NameSpace.empty_table, Defs.empty, NameSpace.empty_table, I);
+  val copy = I;
+
+  fun extend (Thy {axioms, defs, oracles, consolidate}) =
+    make_thy (NameSpace.empty_table, defs, oracles, consolidate);
+
+  fun merge pp (thy1, thy2) =
+    let
+      val Thy {axioms = _, defs = defs1, oracles = oracles1,
+        consolidate = consolidate1} = thy1;
+      val Thy {axioms = _, defs = defs2, oracles = oracles2,
+        consolidate = consolidate2} = thy2;
+
+      val axioms = NameSpace.empty_table;
+      val defs = Defs.merge pp (defs1, defs2);
+      val oracles = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
+        handle Symtab.DUP dup => err_dup_ora dup;
+      val consolidate = consolidate1 #> consolidate2;
+    in make_thy (axioms, defs, oracles, consolidate) end;
+);
+
+fun rep_theory thy = ThyData.get thy |> (fn Thy {axioms, defs, oracles, ...} =>
+  {axioms = axioms, defs = defs, oracles = oracles});
+
+fun map_thy f = ThyData.map (fn (Thy {axioms, defs, oracles, consolidate}) =>
+  make_thy (f (axioms, defs, oracles, consolidate)));
+
+fun map_axioms f = map_thy
+  (fn (axioms, defs, oracles, consolidate) => (f axioms, defs, oracles, consolidate));
+fun map_defs f = map_thy
+  (fn (axioms, defs, oracles, consolidate) => (axioms, f defs, oracles, consolidate));
+fun map_oracles f = map_thy
+  (fn (axioms, defs, oracles, consolidate) => (axioms, defs, f oracles, consolidate));
+
+
+(* basic operations *)
+
+val axiom_space = #1 o #axioms o rep_theory;
+val axiom_table = #2 o #axioms o rep_theory;
+
+val oracle_space = #1 o #oracles o rep_theory;
+val oracle_table = #2 o #oracles o rep_theory;
+
+val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
+
+val defs_of = #defs o rep_theory;
+
+fun requires thy name what =
+  if Context.exists_name name thy then ()
+  else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
+
+
+(* interpretators *)
+
+fun add_consolidate f = map_thy
+  (fn (axioms, defs, oracles, consolidate) => (axioms, defs, oracles, consolidate #> f));
+
+fun consolidate thy =
+  let
+    val Thy {consolidate, ...} = ThyData.get thy;
+  in
+    thy |> consolidate
+  end;
 
 
 (** type theory **)
@@ -61,6 +159,10 @@ struct
 
 val eq_thy = Context.eq_thy;
 val subthy = Context.subthy;
+
+fun assert_super thy1 thy2 =
+  if subthy (thy1, thy2) then thy2
+  else raise THEORY ("Not a super theory", [thy1, thy2]);
 
 val parents_of = Context.parents_of;
 val ancestors_of = Context.ancestors_of;
@@ -73,7 +175,7 @@ val merge_refs = Context.merge_refs;
 fun merge_list [] = raise THEORY ("Empty merge of theories", [])
   | merge_list (thy :: thys) = Library.foldl merge (thy, thys);
 
-val begin_theory = Sign.local_path oo Context.begin_thy Sign.pp;
+val begin_theory = Sign.local_path o consolidate oo Context.begin_thy Sign.pp;
 val end_theory = Context.finish_thy;
 val checkpoint = Context.checkpoint_thy;
 val copy = Context.copy_thy;
@@ -86,73 +188,10 @@ open SignTheory;
 
 
 
-(** datatype thy **)
+(** axioms **)
 
-datatype thy = Thy of
- {axioms: term NameSpace.table,
-  defs: Defs.T,
-  oracles: ((theory * Object.T -> term) * stamp) NameSpace.table};
-
-fun make_thy (axioms, defs, oracles) =
-  Thy {axioms = axioms, defs = defs, oracles = oracles};
-
-fun err_dup_axm dup = error ("Duplicate axiom: " ^ quote dup);
-fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
-
-structure ThyData = TheoryDataFun
-(
-  type T = thy;
-  val empty = make_thy (NameSpace.empty_table, Defs.empty, NameSpace.empty_table);
-  val copy = I;
-
-  fun extend (Thy {axioms, defs, oracles}) = make_thy (NameSpace.empty_table, defs, oracles);
-
-  fun merge pp (thy1, thy2) =
-    let
-      val Thy {axioms = _, defs = defs1, oracles = oracles1} = thy1;
-      val Thy {axioms = _, defs = defs2, oracles = oracles2} = thy2;
-
-      val axioms = NameSpace.empty_table;
-      val defs = Defs.merge pp (defs1, defs2);
-      val oracles = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
-        handle Symtab.DUP dup => err_dup_ora dup;
-    in make_thy (axioms, defs, oracles) end;
-);
-
-fun rep_theory thy = ThyData.get thy |> (fn Thy args => args);
-
-fun map_thy f = ThyData.map (fn (Thy {axioms, defs, oracles}) =>
-  make_thy (f (axioms, defs, oracles)));
-
-fun map_axioms f = map_thy (fn (axioms, defs, oracles) => (f axioms, defs, oracles));
-fun map_defs f = map_thy (fn (axioms, defs, oracles) => (axioms, f defs, oracles));
-fun map_oracles f = map_thy (fn (axioms, defs, oracles) => (axioms, defs, f oracles));
-
-
-(* basic operations *)
-
-val axiom_space = #1 o #axioms o rep_theory;
-val axiom_table = #2 o #axioms o rep_theory;
-
-val oracle_space = #1 o #oracles o rep_theory;
-val oracle_table = #2 o #oracles o rep_theory;
-
-val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
 fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
 
-val defs_of = #defs o rep_theory;
-
-fun requires thy name what =
-  if Context.exists_name name thy then ()
-  else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
-
-fun assert_super thy1 thy2 =
-  if subthy (thy1, thy2) then thy2
-  else raise THEORY ("Not a super theory", [thy1, thy2]);
-
-
-
-(** add axioms **)
 
 (* prepare axioms *)
 
@@ -311,5 +350,66 @@ fun add_oracle (bname, oracle) thy = thy |> map_oracles (fn oracles =>
 
 end;
 
+functor TheoryInterpretatorFun(Key: THEORY_INTERPRETATOR_KEY) : THEORY_INTERPRETATOR =
+struct
+
+open Key;
+
+type interpretator = T list -> theory -> theory;
+
+fun apply ips x = fold_rev (fn (_, f) => f x) ips;
+
+structure InterpretatorData = TheoryDataFun (
+  type T = ((serial * interpretator) list * T list) * (theory -> theory);
+  val empty = (([], []), I);
+  val extend = I;
+  val copy = I;
+  fun merge pp (((interpretators1, done1), upd1), ((interpretators2, done2), upd2)) =
+    let
+      fun diff (interpretators1 : (serial * interpretator) list, done1)
+        (interpretators2, done2) = let
+          val interpretators = subtract (eq_fst (op =)) interpretators1 interpretators2;
+          val undone = subtract eq done2 done1;
+        in apply interpretators undone end;
+      val interpretators = AList.merge (op =) (K true) (interpretators1, interpretators2);
+      val done = Library.merge eq (done1, done2);
+      val upd_new = diff (interpretators2, done2) (interpretators1, done1)
+        #> diff (interpretators1, done1) (interpretators2, done2);
+      val upd = upd1 #> upd2 #> upd_new;
+    in ((interpretators, done), upd) end;
+);
+
+fun consolidate thy =
+  let
+    val (_, upd) = InterpretatorData.get thy;
+  in
+    thy |> upd |> (InterpretatorData.map o apsnd) (K I)
+  end;
+
+val init = Theory.add_consolidate consolidate;
+
+fun add_those xs thy =
+  let
+    val ((interpretators, _), _) = InterpretatorData.get thy;
+  in
+    thy
+    |> apply interpretators xs
+    |> (InterpretatorData.map o apfst o apsnd) (append xs)
+  end;
+
+val all_those = snd o fst o InterpretatorData.get;
+
+fun add_interpretator interpretator thy =
+  let
+    val ((interpretators, xs), _) = InterpretatorData.get thy;
+  in
+    thy
+    |> interpretator (rev xs)
+    |> (InterpretatorData.map o apfst o apfst) (cons (serial (), interpretator))
+  end;
+
+end;
+
+structure Theory: THEORY = Theory;
 structure BasicTheory: BASIC_THEORY = Theory;
 open BasicTheory;
