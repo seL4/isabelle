@@ -164,14 +164,14 @@ text {*
 *}
 
 code_type nat
-  (SML "IntInf.int")
+  (SML "int")
   (OCaml "Big'_int.big'_int")
   (Haskell "Integer")
 
 types_code
   nat ("int")
 attach (term_of) {*
-val term_of_nat = HOLogic.mk_number HOLogic.natT o IntInf.fromInt;
+val term_of_nat = HOLogic.mk_number HOLogic.natT;
 *}
 attach (test) {*
 fun gen_nat i = random_range 0 i;
@@ -224,7 +224,7 @@ fun nat_of_int_of_number_of thy cts =
     val simplify_less = Simplifier.rewrite 
       (HOL_basic_ss addsimps (@{thms less_numeral_code} @ @{thms less_eq_numeral_code}));
     fun mk_rew (t, ty) =
-      if ty = HOLogic.natT andalso IntInf.<= (0, HOLogic.dest_numeral t) then
+      if ty = HOLogic.natT andalso 0 <= HOLogic.dest_numeral t then
         Thm.capply @{cterm "(op \<le>) Numeral.Pls"} (Thm.cterm_of thy t)
         |> simplify_less
         |> (fn thm => @{thm nat_of_int_of_number_of_aux} OF [thm])

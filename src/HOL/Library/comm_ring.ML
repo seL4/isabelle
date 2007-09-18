@@ -46,7 +46,7 @@ fun reif_pol T vs (t as Free _) =
       in if i = 0
         then pol_PX T $ (pol_Pc T $ cring_one T)
           $ one $ (pol_Pc T $ cring_zero T)
-        else pol_Pinj T $ HOLogic.mk_nat (Integer.int i)
+        else pol_Pinj T $ HOLogic.mk_nat i
           $ (pol_PX T $ (pol_Pc T $ cring_one T)
             $ one $ (pol_Pc T $ cring_zero T))
         end

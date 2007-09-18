@@ -200,7 +200,7 @@ let
    val t's = map (fn xn => snd (valOf (AList.lookup (op =) tml (xn,0)))) xns (* FIXME : Express with sbst*)
    val subst_ns = map (fn (Const _ $ vs $ n, Var (xn0,T)) => 
                           (cert n, snd (valOf (AList.lookup (op =) tml xn0)) 
-                             |> (index_of #> IntInf.fromInt #> HOLogic.mk_nat #> cert))) 
+                             |> (index_of #> HOLogic.mk_nat #> cert))) 
                       subst
    val subst_vs = 
     let 

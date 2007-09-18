@@ -425,8 +425,8 @@ definition
 export_code type_NF nat int in SML module_name Norm
 
 ML {*
-val nat_of_int = Norm.nat o IntInf.fromInt;
-val int_of_nat = IntInf.toInt o Norm.int;
+val nat_of_int = Norm.nat;
+val int_of_nat = Norm.int;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       Norm.Fun (dBtype_of_typ T, dBtype_of_typ U)

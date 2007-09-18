@@ -157,8 +157,8 @@ fun measures_of thy RD =
       measures
     end
 
-val mk_number = HOLogic.mk_nat o IntInf.fromInt
-val dest_number = IntInf.toInt o HOLogic.dest_nat
+val mk_number = HOLogic.mk_nat
+val dest_number = HOLogic.dest_nat
 
 fun nums_to i = map mk_number (0 upto (i - 1))
 

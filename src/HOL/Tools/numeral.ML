@@ -7,8 +7,8 @@ Logical operations on numerals (see also HOL/hologic.ML).
 
 signature NUMERAL =
 sig
-  val mk_cnumeral: integer -> cterm
-  val mk_cnumber: ctyp -> integer -> cterm
+  val mk_cnumeral: int -> cterm
+  val mk_cnumber: ctyp -> int -> cterm
 end;
 
 structure Numeral: NUMERAL =
@@ -23,9 +23,8 @@ fun mk_cbit 0 = @{cterm "Numeral.bit.B0"}
 fun mk_cnumeral 0 = @{cterm "Numeral.Pls"}
   | mk_cnumeral ~1 = @{cterm "Numeral.Min"}
   | mk_cnumeral i =
-      let val (q, r) = Integer.divmod i 2 in
-        Thm.capply (Thm.capply @{cterm "Numeral.Bit"} (mk_cnumeral q))
-          (mk_cbit (Integer.machine_int r))
+      let val (q, r) = Integer.div_mod i 2 in
+        Thm.capply (Thm.capply @{cterm "Numeral.Bit"} (mk_cnumeral q)) (mk_cbit r)
       end;
 
 

@@ -82,8 +82,8 @@ sig
   val mk_Suc: term -> term
   val dest_Suc: term -> term
   val Suc_zero: term
-  val mk_nat: integer -> term
-  val dest_nat: term -> integer
+  val mk_nat: int -> term
+  val dest_nat: term -> int
   val class_size: string
   val size_const: typ -> term
   val bitT: typ
@@ -95,12 +95,12 @@ sig
   val pls_const: term
   val min_const: term
   val bit_const: term
-  val mk_numeral: integer -> term
-  val dest_numeral: term -> integer
+  val mk_numeral: int -> term
+  val dest_numeral: term -> int
   val number_of_const: typ -> term
   val add_numerals: term -> (term * typ) list -> (term * typ) list
-  val mk_number: typ -> integer -> term
-  val dest_number: term -> typ * integer
+  val mk_number: typ -> int -> term
+  val dest_number: term -> typ * int
   val realT: typ
   val nibbleT: typ
   val mk_nibble: int -> term
@@ -423,13 +423,13 @@ fun dest_Suc (Const ("Suc", _) $ t) = t
 
 val Suc_zero = mk_Suc zero;
 
-fun mk_nat (n: integer) =
+fun mk_nat n =
   let
     fun mk 0 = zero
       | mk n = mk_Suc (mk (n - 1));
   in if n < 0 then raise TERM ("mk_nat: negative number", []) else mk n end;
 
-fun dest_nat (Const ("HOL.zero_class.zero", _)) = (0: integer)
+fun dest_nat (Const ("HOL.zero_class.zero", _)) = 0
   | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
@@ -465,13 +465,12 @@ and bit_const = Const ("Numeral.Bit", intT --> bitT --> intT);
 fun mk_numeral 0 = pls_const
   | mk_numeral ~1 = min_const
   | mk_numeral i =
-      let val (q, r) = Integer.divmod i 2
-      in bit_const $ mk_numeral q $ mk_bit (Integer.machine_int r) end;
+      let val (q, r) = Integer.div_mod i 2;
+      in bit_const $ mk_numeral q $ mk_bit r end;
 
 fun dest_numeral (Const ("Numeral.Pls", _)) = 0
   | dest_numeral (Const ("Numeral.Min", _)) = ~1
-  | dest_numeral (Const ("Numeral.Bit", _) $ bs $ b) =
-      2 * dest_numeral bs + Integer.int (dest_bit b)
+  | dest_numeral (Const ("Numeral.Bit", _) $ bs $ b) = 2 * dest_numeral bs + dest_bit b
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
 
 fun number_of_const T = Const ("Numeral.number_class.number_of", intT --> T);

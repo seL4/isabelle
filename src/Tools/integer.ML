@@ -7,73 +7,27 @@ Unbounded integers.
 
 signature INTEGER =
 sig
-  eqtype int
-  val zero: int
-  val one: int
-  val two: int
-  val int: Int.int -> int
-  val machine_int: int -> Int.int
-  val string_of_int: int -> string
-  val int_of_string: string -> int option
-  val eq: int * int -> bool
-  val ord: int * int -> order
-  val le: int -> int -> bool
-  val lt: int -> int -> bool
-  val signabs: int -> order * int
   val sign: int -> order
-  val abs: int -> int
-  val min: int -> int -> int
-  val max: int -> int -> int
-  val inc: int -> int
-  val add: int -> int -> int
-  val sub: int -> int -> int
-  val mult: int -> int -> int
-  val divmod: int -> int -> int * int
-  val div: int -> int -> int
-  val mod: int -> int -> int
-  val neg: int -> int
-  val exp: int -> int
-  val log: int -> int
+  val sum: int list -> int
+  val div_mod: int -> int -> int * int
+  val square: int -> int
   val pow: int -> int -> int (* exponent -> base -> result *)
   val gcd: int -> int -> int
+  val gcds: int list -> int
   val lcm: int -> int -> int
+  val lcms: int list -> int
 end;
 
 structure Integer : INTEGER =
 struct
 
-open IntInf;
+fun sign x = int_ord (x, 0);
 
-val int = fromInt;
+fun sum xs = fold (curry op +) xs 0;
 
-val zero = int 0;
-val one = int 1;
-val two = int 2;
+fun div_mod x y = IntInf.divMod (x, y);
 
-val machine_int = toInt;
-val string_of_int = toString;
-val int_of_string = fromString;
-
-val eq = op = : int * int -> bool;
-val ord = compare;
-val le = curry (op <=);
-val lt = curry (op <);
-
-fun sign k = ord (k, zero);
-fun signabs k = (ord (k, zero), abs k);
-
-val min = curry min;
-val max = curry max;
-
-val inc = curry (op +) one;
-
-val add = curry (op +);
-val sub = curry (op -);
-val mult = curry ( op * );
-val divmod = curry divMod;
-nonfix div val div = curry div;
-nonfix mod val mod = curry mod;
-val neg = ~;
+fun square x = x * x;
 
 fun pow k l =
   let
@@ -81,38 +35,24 @@ fun pow k l =
       | pw 1 l = l
       | pw k l =
           let
-            val (k', r) = divmod k 2;
-            val l' = pw k' (mult l l);
-          in if r = 0 then l' else mult l' l end;
-  in if k < zero
+            val (k', r) = div_mod k 2;
+            val l' = pw k' (l * l);
+          in if r = 0 then l' else l' * l end;
+  in
+    if k < 0
     then error "pow: negative exponent"
     else pw k l
   end;
 
-fun exp k = pow k two;
-val log = int o log2;
-
 fun gcd x y =
   let
-    fun gxd x y = if y = zero then x else gxd y (mod x y)
-  in if lt x y then gxd y x else gxd x y end;
+    fun gxd x y = if y = 0 then x else gxd y (x mod y)
+  in if x < y then gxd y x else gxd x y end;
 
-fun lcm x y = div (mult x y) (gcd x y);
+fun gcds xs = fold gcd xs 0;
+
+fun lcm x y = (x * y) div (gcd x y);
+fun lcms xs = fold lcm xs 1;
 
 end;
 
-type integer = Integer.int;
-
-infix 7 *%;
-infix 6 +% -%;
-infix 4 =% <% <=% >% >=% <>%;
-
-fun a +% b = Integer.add a b;
-fun a -% b = Integer.sub a b;
-fun a *% b = Integer.mult a b;
-fun a =% b = Integer.eq (a, b);
-fun a <% b = Integer.lt a b;
-fun a <=% b = Integer.le a b;
-fun a >% b = b <% a;
-fun a >=% b = b <=% a;
-fun a <>% b = not (a =% b);

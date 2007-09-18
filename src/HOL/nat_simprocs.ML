@@ -20,7 +20,7 @@ fun rename_numerals th =
 (*Utilities*)
 
 fun mk_number n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_numeral n;
-fun dest_number t = IntInf.max (0, snd (HOLogic.dest_number t));
+fun dest_number t = Int.max (0, snd (HOLogic.dest_number t));
 
 fun find_first_numeral past (t::terms) =
         ((dest_number t, t, rev past @ terms)
@@ -119,7 +119,7 @@ fun dest_Sucs_sum relaxed t =
   in
      if relaxed orelse exists prod_has_numeral ts then 
        if k=0 then ts
-       else mk_number (IntInf.fromInt k) :: ts
+       else mk_number k :: ts
      else raise TERM("Nat_Numeral_Simprocs.dest_Sucs_sum", [t])
   end;
 
@@ -234,9 +234,9 @@ val cancel_numerals =
 
 structure CombineNumeralsData =
   struct
-  type coeff            = IntInf.int
-  val iszero            = (fn x : IntInf.int => x = 0)
-  val add               = IntInf.+
+  type coeff            = int
+  val iszero            = (fn x => x = 0)
+  val add               = op +
   val mk_sum            = (fn T:typ => long_mk_sum)  (*to work for 2*x + 3*x *)
   val dest_sum          = dest_Sucs_sum false
   val mk_coeff          = mk_coeff

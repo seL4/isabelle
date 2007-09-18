@@ -23,7 +23,7 @@ fun mk_bin num =
     fun bit b bs = Syntax.const @{const_name Numeral.Bit} $ bs $ HOLogic.mk_bit b;
     fun mk 0 = (* FIXME funpow z (bit 0) *) (Syntax.const @{const_name Numeral.Pls})
       | mk ~1 = (* FIXME funpow z (bit 1) *) (Syntax.const @{const_name Numeral.Min})
-      | mk i = let val (q, r) = IntInf.divMod (i, 2) in bit (IntInf.toInt r) (mk q) end;
+      | mk i = let val (q, r) = Integer.div_mod i 2 in bit r (mk q) end;
   in mk value end;
 
 in
@@ -54,7 +54,7 @@ fun leading _ [] = 0
   | leading (i: int) (j :: js) = if i = j then 1 + leading i js else 0;
 
 fun int_of [] = 0
-  | int_of (b :: bs) = IntInf.fromInt b + 2 * int_of bs;
+  | int_of (b :: bs) = b + 2 * int_of bs;
 
 fun dest_bin_str tm =
   let
@@ -64,7 +64,7 @@ fun dest_bin_str tm =
         ~1 :: bs => ("-", leading 1 bs)
       | bs => ("", leading 0 bs));
     val i = int_of rev_digs;
-    val num = IntInf.toString (IntInf.abs i);
+    val num = string_of_int (abs i);
   in
     if (i = 0 orelse i = 1) andalso z = 0 then raise Match
     else sign ^ implode (replicate z "0") ^ num

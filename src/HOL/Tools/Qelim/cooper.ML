@@ -14,7 +14,6 @@ struct
 
 open Conv;
 open Normalizer;
-structure Integertab = TableFun(type key = Integer.int val ord = Integer.ord);
 
 exception COOPER of string * exn;
 val simp_thms_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms);
@@ -178,10 +177,10 @@ fun linear_cmul 0 tm =  zero
   | linear_cmul n tm = 
     case tm of  
       Const("HOL.plus_class.plus",_)$a$b => addC$(linear_cmul n a)$(linear_cmul n b)
-    | Const ("HOL.times_class.times",_)$c$x => mulC$(numeral1 (Integer.mult n) c)$x
+    | Const ("HOL.times_class.times",_)$c$x => mulC$(numeral1 (fn m => n * m) c)$x
     | Const("HOL.minus_class.minus",_)$a$b => subC$(linear_cmul n a)$(linear_cmul n b)
     | (m as Const("HOL.minus_class.uminus",_))$a => m$(linear_cmul n a)
-    | _ =>  numeral1 (Integer.mult n) tm;
+    | _ =>  numeral1 (fn m => n * m) tm;
 fun earlier [] x y = false 
 	| earlier (h::t) x y = 
     if h aconv y then false else if h aconv x then true else earlier t x y; 
@@ -191,7 +190,7 @@ fun linear_add vars tm1 tm2 =
 	 (Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c1$x1)$r1,
     Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c2$x2)$r2) => 
    if x1 = x2 then 
-     let val c = numeral2 Integer.add c1 c2
+     let val c = numeral2 (curry op +) c1 c2
 	   in if c = zero then linear_add vars r1  r2  
 	      else addC$(mulC$c$x1)$(linear_add vars  r1 r2)
      end 
@@ -201,7 +200,7 @@ fun linear_add vars tm1 tm2 =
     	  addC$(mulC$c1$x1)$(linear_add vars r1 tm2)
  | (_, Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c2$x2)$r2) => 
       	  addC$(mulC$c2$x2)$(linear_add vars tm1 r2) 
- | (_,_) => numeral2 Integer.add tm1 tm2;
+ | (_,_) => numeral2 (curry op +) tm1 tm2;
  
 fun linear_neg tm = linear_cmul ~1 tm; 
 fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2); 
@@ -294,7 +293,7 @@ fun unify ctxt q =
  let
   val (e,(cx,p)) = q |> Thm.dest_comb ||> Thm.dest_abs NONE
   val x = term_of cx 
-  val ins = insert (op = : integer*integer -> bool)
+  val ins = insert (op = : int * int -> bool)
   fun h (acc,dacc) t = 
    case (term_of t) of
     Const(s,_)$(Const("HOL.times_class.times",_)$c$y)$ _ => 
@@ -312,7 +311,7 @@ fun unify ctxt q =
   | Const("Not",_)$_ => h (acc,dacc) (Thm.dest_arg t)
   | _ => (acc, dacc)
   val (cs,ds) = h ([],[]) p
-  val l = fold Integer.lcm (cs union ds) 1
+  val l = Integer.lcms (cs union ds)
   fun cv k ct = 
     let val (tm as b$s$t) = term_of ct 
     in ((HOLogic.eq_const bT)$tm$(b$(linear_cmul k s)$(linear_cmul k t))
@@ -325,10 +324,10 @@ fun unify ctxt q =
            (Thm.capply (Thm.capply @{cterm "op = :: int => _"} (Numeral.mk_cnumber @{ctyp "int"} x)) 
            @{cterm "0::int"})))
    in equal_elim (Thm.symmetric th) TrueI end;
-  val notz = let val tab = fold Integertab.update 
-                               (ds ~~ (map (fn x => nzprop (Integer.div l x)) ds)) Integertab.empty 
+  val notz = let val tab = fold Inttab.update 
+                               (ds ~~ (map (fn x => nzprop (l div x)) ds)) Inttab.empty 
             in 
-             (fn ct => (valOf (Integertab.lookup tab (ct |> term_of |> dest_numeral)) 
+             (fn ct => (valOf (Inttab.lookup tab (ct |> term_of |> dest_numeral)) 
                 handle Option => (writeln "noz: Theorems-Table contains no entry for"; 
                                     print_cterm ct ; raise Option)))
            end
@@ -340,15 +339,15 @@ fun unify ctxt q =
   | Const(s,_)$(Const("HOL.times_class.times",_)$c$y)$ _ => 
     if x=y andalso member (op =)
       ["op =", @{const_name HOL.less}, @{const_name HOL.less_eq}] s
-    then cv (Integer.div l (dest_numeral c)) t else Thm.reflexive t
+    then cv (l div dest_numeral c) t else Thm.reflexive t
   | Const(s,_)$_$(Const("HOL.times_class.times",_)$c$y) => 
     if x=y andalso member (op =)
       [@{const_name HOL.less}, @{const_name HOL.less_eq}] s
-    then cv (Integer.div l (dest_numeral c)) t else Thm.reflexive t
+    then cv (l div dest_numeral c) t else Thm.reflexive t
   | Const(@{const_name Divides.dvd},_)$d$(r as (Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c$y)$_)) => 
     if x=y then 
       let 
-       val k = Integer.div l (dest_numeral c)
+       val k = l div dest_numeral c
        val kt = HOLogic.mk_number iT k
        val th1 = inst' [Thm.dest_arg1 t, Thm.dest_arg t] 
              ((Thm.dest_arg t |> funpow 2 Thm.dest_arg1 |> notz) RS zdvd_mono)
@@ -384,7 +383,6 @@ val [A_tm,B_tm] = map (fn th => cprop_of th |> funpow 2 Thm.dest_arg |> Thm.dest
 
 val D_tm = @{cpat "?D::int"};
 
-val int_eq = (op =):integer*integer -> bool;
 fun cooperex_conv ctxt vs q = 
 let 
 
@@ -403,11 +401,11 @@ let
   | Le t => (bacc, ins (plus1 t) aacc,dacc)
   | Gt t => (ins t bacc, aacc,dacc)
   | Ge t => (ins (minus1 t) bacc, aacc,dacc)
-  | Dvd (d,s) => (bacc,aacc,insert int_eq (term_of d |> dest_numeral) dacc)
-  | NDvd (d,s) => (bacc,aacc,insert int_eq (term_of d|> dest_numeral) dacc)
+  | Dvd (d,s) => (bacc,aacc,insert (op =) (term_of d |> dest_numeral) dacc)
+  | NDvd (d,s) => (bacc,aacc,insert (op =) (term_of d|> dest_numeral) dacc)
   | _ => (bacc, aacc, dacc)
  val (b0,a0,ds) = h p ([],[],[])
- val d = fold Integer.lcm ds 1
+ val d = Integer.lcms ds
  val cd = Numeral.mk_cnumber @{ctyp "int"} d
  val dt = term_of cd
  fun divprop x = 
@@ -417,9 +415,9 @@ let
       (Thm.capply @{cterm Trueprop} 
            (Thm.capply (Thm.capply dvdc (Numeral.mk_cnumber @{ctyp "int"} x)) cd))
    in equal_elim (Thm.symmetric th) TrueI end;
- val dvd = let val tab = fold Integertab.update
-                               (ds ~~ (map divprop ds)) Integertab.empty in 
-           (fn ct => (valOf (Integertab.lookup tab (term_of ct |> dest_numeral)) 
+ val dvd = let val tab = fold Inttab.update
+                               (ds ~~ (map divprop ds)) Inttab.empty in 
+           (fn ct => (valOf (Inttab.lookup tab (term_of ct |> dest_numeral)) 
                     handle Option => (writeln "dvd: Theorems-Table contains no entry for"; 
                                       print_cterm ct ; raise Option)))
            end
@@ -545,7 +543,7 @@ fun i_of_term vs t = case t
       | SOME n => Bound n)
   | @{term "0::int"} => C 0
   | @{term "1::int"} => C 1
-  | Term.Bound i => Bound (Integer.int i)
+  | Term.Bound i => Bound i
   | Const(@{const_name HOL.uminus},_)$t' => Neg (i_of_term vs t')
   | Const(@{const_name HOL.plus},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
   | Const(@{const_name HOL.minus},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
@@ -641,8 +639,7 @@ fun term_of_qf ps vs t =
 
 fun cooper_oracle thy t = 
   let
-    val (vs, ps) = pairself (map_index (swap o apfst Integer.int))
-      (term_frees t, term_bools [] t);
+    val (vs, ps) = pairself (map_index swap) (term_frees t, term_bools [] t);
   in
     equals propT $ HOLogic.mk_Trueprop t $
       HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t)))

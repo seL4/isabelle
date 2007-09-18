@@ -29,8 +29,7 @@ struct
 
   fun dest_binary (Const (@{const_name HOL.zero}, Type ("nat", _))) = 0
     | dest_binary (Const (@{const_name HOL.one}, Type ("nat", _))) = 1
-    | dest_binary (Const ("Binary.bit", _) $ bs $ b) =
-        2 * dest_binary bs + IntInf.fromInt (dest_bit b)
+    | dest_binary (Const ("Binary.bit", _) $ bs $ b) = 2 * dest_binary bs + dest_bit b
     | dest_binary t = raise TERM ("dest_binary", [t]);
 
   fun mk_bit 0 = @{term False}
@@ -42,8 +41,8 @@ struct
     | mk_binary n =
         if n < 0 then raise TERM ("mk_binary", [])
         else
-          let val (q, r) = IntInf.divMod (n, 2)
-          in @{term bit} $ mk_binary q $ mk_bit (IntInf.toInt r) end;
+          let val (q, r) = Integer.div_mod n 2
+          in @{term bit} $ mk_binary q $ mk_bit r end;
 end
 *}
 
@@ -162,7 +161,7 @@ val diff_proc = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
 fun divmod_proc rule = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
   if n = 0 then NONE
   else
-    let val (k, l) = IntInf.divMod (m, n)
+    let val (k, l) = Integer.div_mod m n
     in SOME (rule OF [prove ctxt (t == plus (mult u (Binary.mk_binary k)) (Binary.mk_binary l))]) end);
 
 end;

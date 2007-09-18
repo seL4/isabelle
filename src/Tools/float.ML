@@ -7,7 +7,7 @@ Implementation of real numbers as mantisse-exponent pairs.
 
 signature FLOAT =
 sig
-  type float = integer * integer
+  type float = int * int
   val zero: float
   val eq: float * float -> bool
   val ord: float * float -> order
@@ -25,25 +25,25 @@ end;
 structure Float : FLOAT =
 struct
 
-type float = integer * integer;
+type float = int * int;
 
 val zero: float = (0, 0);
 
 fun add (a1, b1) (a2, b2) =
-  if Integer.ord (b1, b2) = LESS then
-    (a1 +% a2 *% Integer.exp (b2 -% b1), b1)
+  if b1 < b2 then
+    (a1 + a2 * Integer.square (b2 - b1), b1)
   else
-    (a1 *% Integer.exp (b1 -% b2) +% a2, b2);
+    (a1 * Integer.square (b1 - b2) + a2, b2);
 
 fun sub (a1, b1) (a2, b2) =
-  if Integer.ord (b1, b2) = LESS then
-    (a1 -% a2 *% Integer.exp (b2 -% b1), b1)
+  if b1 < b2 then
+    (a1 - a2 * Integer.square (b2 - b1), b1)
   else
-    (a1 *% Integer.exp (b1 -% b2) -% a2, b2);
+    (a1 * Integer.square (b1 - b2) - a2, b2);
 
-fun neg (a, b) = (Integer.neg a, b);
+fun neg (a, b) = (~ a, b);
 
-fun mult (a1, b1) (a2, b2) = (a1 *% a2, b1 +% b2);
+fun mult (a1, b1) (a2, b2) = (a1 * a2, b1 + b2);
 
 fun sign (a, b) = Integer.sign a;
 
@@ -54,7 +54,7 @@ fun eq (r, s) = ord (r, s) = EQUAL;
 fun min r s = case ord (r, s) of LESS => r | _ => s;
 fun max r s = case ord (r, s) of LESS => s | _ => r;
 
-fun positive_part (a, b) = (Integer.max 0 a, b);
-fun negative_part (a, b) = (Integer.min 0 a, b);
+fun positive_part (a, b) = (Int.max (0, a), b);
+fun negative_part (a, b) = (Int.min (0, a), b);
 
 end;

@@ -29,7 +29,7 @@ sig
   val var: indexname -> term
   val read_nat: string -> int option
   val read_int: string -> int option
-  val read_xnum: string -> {radix: int, leading_zeros: int, value: IntInf.int}
+  val read_xnum: string -> {radix: int, leading_zeros: int, value: int}
   val read_idents: string -> string list
   val fixedN: string
   val constN: string
@@ -402,7 +402,7 @@ fun read_xnum str =
       | "0" :: "b" :: cs => (1, 2, cs)
       | "-" :: cs => (~1, 10, cs)
       | cs => (1, 10, cs));
-    val value = IntInf.fromInt sign * #1 (Library.read_intinf radix digs);
+    val value = sign * #1 (Library.read_radix_int radix digs);
   in {radix = radix, leading_zeros = leading_zeros digs, value = value} end;
 
 end;

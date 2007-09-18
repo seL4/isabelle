@@ -284,11 +284,10 @@ fun calcr safe_propagation xlen names prec A b =
                     val index = xlen-i
                     val (r12_1, r12_2) = abs_estimate (i-1) r1 r2
                     val b1 = Inttab.lookup r1 index
-                    val b2 = Inttab.lookup r2 index 
-                    val i' = Integer.int index
+                    val b2 = Inttab.lookup r2 index
                 in
-                    (add_row_entry r12_1 i' @{term "lbound :: real => real"} ((names index)^"l") b1, 
-		     add_row_entry r12_2 i' @{term "ubound :: real => real"} ((names index)^"u") b2)
+                    (add_row_entry r12_1 index @{term "lbound :: real => real"} ((names index)^"l") b1, 
+		     add_row_entry r12_2 index @{term "ubound :: real => real"} ((names index)^"u") b2)
                 end
 
         val (r1, r2) = abs_estimate xlen r1 r2

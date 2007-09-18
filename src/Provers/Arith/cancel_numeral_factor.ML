@@ -22,8 +22,8 @@ sig
   (*abstract syntax*)
   val mk_bal: term * term -> term
   val dest_bal: term -> term * term
-  val mk_coeff: IntInf.int * term -> term
-  val dest_coeff: term -> IntInf.int * term
+  val mk_coeff: int * term -> term
+  val dest_coeff: term -> int * term
   (*rules*)
   val cancel: thm
   val neg_exchanges: bool  (*true if a negative coeff swaps the two operands,

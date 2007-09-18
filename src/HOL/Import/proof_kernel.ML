@@ -466,7 +466,7 @@ fun protect_tyvarname s =
     end
 
 val protected_varnames = ref (Symtab.empty:string Symtab.table)
-val invented_isavar = ref (IntInf.fromInt 0)
+val invented_isavar = ref 0
 
 fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_" s)
 
@@ -484,8 +484,8 @@ fun protect_varname s =
       SOME t => t
     | NONE => 
       let
-	  val _ = invented_isavar := IntInf.+ (!invented_isavar, IntInf.fromInt 1)
-	  val t = "u_"^(IntInf.toString (!invented_isavar))
+	  val _ = inc invented_isavar
+	  val t = "u_" ^ string_of_int (!invented_isavar)
 	  val _ = ImportRecorder.protect_varname s t
           val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
       in
@@ -499,8 +499,8 @@ fun replay_protect_varname s t =
 	  SOME t' => raise REPLAY_PROTECT_VARNAME (s, t, t')
 	| NONE => 	
           let
-	      val _ = invented_isavar := IntInf.+ (!invented_isavar, IntInf.fromInt 1)
-	      val t = "u_"^(IntInf.toString (!invented_isavar))
+	      val _ = inc invented_isavar
+	      val t = "u_" ^ string_of_int (!invented_isavar)
               val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
           in
 	      ()

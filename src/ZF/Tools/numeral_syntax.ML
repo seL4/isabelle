@@ -8,8 +8,8 @@ theory Bin.
 
 signature NUMERAL_SYNTAX =
 sig
-  val dest_bin : term -> IntInf.int
-  val mk_bin   : IntInf.int -> term
+  val dest_bin : term -> int
+  val mk_bin   : int -> term
   val int_tr   : term list -> term
   val int_tr'  : bool -> typ -> term list -> term
   val setup    : theory -> theory
@@ -23,7 +23,7 @@ struct
 val zero = Const("0", iT);
 val succ = Const("succ", iT --> iT);
 
-fun mk_bit (0: IntInf.int) = zero
+fun mk_bit 0 = zero
   | mk_bit 1 = succ$zero
   | mk_bit _ = sys_error "mk_bit";
 
@@ -42,7 +42,7 @@ val pls_const = Const ("Bin.bin.Pls", iT)
 and min_const = Const ("Bin.bin.Min", iT)
 and bit_const = Const ("Bin.bin.Bit", [iT, iT] ---> iT);
 
-fun mk_bin (i: IntInf.int) =
+fun mk_bin i =
   let fun bin_of_int 0  = []
   	    | bin_of_int ~1 = [~1]
     	| bin_of_int n  = (n mod 2) :: bin_of_int (n div 2);
@@ -67,8 +67,8 @@ fun bin_of (Const ("Pls", _)) = []
   | bin_of _ = raise Match;
 
 (*Convert a list of bits to an integer*)
-fun integ_of [] = 0 : IntInf.int
-  | integ_of (b :: bs) = (IntInf.fromInt b) + 2 * integ_of bs;
+fun integ_of [] = 0
+  | integ_of (b :: bs) = b + 2 * integ_of bs;
 
 val dest_bin = integ_of o bin_of;
 
@@ -82,7 +82,7 @@ fun show_int t =
 	(case rev rev_digs of
 	     ~1 :: bs => ("-", prefix_len (equal 1) bs)
 	   | bs =>       ("",  prefix_len (equal 0) bs));
-    val num = IntInf.toString (abs (integ_of rev_digs));
+    val num = string_of_int (abs (integ_of rev_digs));
   in
     "#" ^ sign ^ implode (replicate zs "0") ^ num
   end;

@@ -41,8 +41,8 @@ val (PFalse, PFalse') =
 (* ------------------------------------------------------------------------- *)
 
 datatype history =
-   Start of integer
- | Mmul of (Rat.rat * (integer list)) * history
+   Start of int
+ | Mmul of (Rat.rat * int list) * history
  | Add of history * history;
 
 
@@ -54,8 +54,8 @@ fun morder_lt m1 m2=
                 ([],[]) => false
               | (x1::o1,x2::o2) => x1 > x2 orelse x1 = x2 andalso lexorder o1 o2
               | _ => error "morder: inconsistent monomial lengths"
-        val n1 = fold Integer.add m1 0
-        val n2 = fold Integer.add m2 0 in
+        val n1 = Integer.sum m1
+        val n2 = Integer.sum m2 in
     n1 < n2 orelse n1 = n2 andalso lexorder m1 m2
     end;
 
@@ -80,7 +80,7 @@ fun grob_add l1 l2 =
 
 fun grob_sub l1 l2 = grob_add l1 (grob_neg l2);
 
-fun grob_mmul (c1,m1) (c2,m2) = (c1*/c2,map2 Integer.add m1 m2);
+fun grob_mmul (c1,m1) (c2,m2) = (c1*/c2, ListPair.map (op +) (m1, m2));
 
 fun grob_cmul cm pol = map (grob_mmul cm) pol;
 
@@ -108,29 +108,27 @@ fun grob_div l1 l2 =
 fun grob_pow vars l n =
   if n < 0 then error "grob_pow: negative power"
   else if n = 0 then [(rat_1,map (fn v => 0) vars)]
-  else grob_mul l (grob_pow vars l (n -% 1));
-
-val max = fn (x: integer) => fn y => if x < y then y else x;
+  else grob_mul l (grob_pow vars l (n - 1));
 
 fun degree vn p =
  case p of
   [] => error "Zero polynomial"
 | [(c,ns)] => nth ns vn
-| (c,ns)::p' => max (nth ns vn) (degree vn p');
+| (c,ns)::p' => Int.max (nth ns vn, degree vn p');
 
 fun head_deg vn p = let val d = degree vn p in
  (d,fold (fn (c,r) => fn q => grob_add q [(c, map_index (fn (i,n) => if i = vn then 0 else n) r)]) (filter (fn (c,ns) => c <>/ rat_0 andalso nth ns vn = d) p) []) end;
 
-val is_zerop = forall (fn (c,ns) => c =/ rat_0 andalso forall (curry (op =) (0: integer)) ns);
+val is_zerop = forall (fn (c,ns) => c =/ rat_0 andalso forall (curry (op =) 0) ns);
 val grob_pdiv =
  let fun pdiv_aux vn (n,a) p k s =
   if is_zerop s then (k,s) else
   let val (m,b) = head_deg vn s
   in if m < n then (k,s) else
-     let val p' = grob_mul p [(rat_1, map_index (fn (i,v) => if i = vn then m -% n else 0)
+     let val p' = grob_mul p [(rat_1, map_index (fn (i,v) => if i = vn then m - n else 0)
                                                 (snd (hd s)))]
      in if a = b then pdiv_aux vn (n,a) p k (grob_sub s p')
-        else pdiv_aux vn (n,a) p (k +% 1) (grob_sub (grob_mul a s) (grob_mul b p'))
+        else pdiv_aux vn (n,a) p (k + 1) (grob_sub (grob_mul a s) (grob_mul b p'))
      end
   end
  in fn vn => fn s => fn p => pdiv_aux vn (head_deg vn p) p 0 s
@@ -140,11 +138,11 @@ val grob_pdiv =
 
 fun mdiv (c1,m1) (c2,m2) =
   (c1//c2,
-   map2 (fn n1 => fn n2 => if n1 < n2 then error "mdiv" else n1 -% n2) m1 m2);
+   map2 (fn n1 => fn n2 => if n1 < n2 then error "mdiv" else n1 - n2) m1 m2);
 
 (* Lowest common multiple of two monomials. *)
 
-fun mlcm (c1,m1) (c2,m2) = (rat_1,map2 max m1 m2);
+fun mlcm (c1,m1) (c2,m2) = (rat_1, ListPair.map Int.max (m1, m2));
 
 (* Reduce monomial cm by polynomial pol, returning replacement for cm.  *)
 
@@ -221,7 +219,7 @@ fun forall2 p l1 l2 =
   | _ => false;
 
 fun poly_eq p1 p2 =
-  forall2 (fn (c1,m1) => fn (c2,m2) => c1 =/ c2 andalso (m1: integer list) = m2) p1 p2;
+  forall2 (fn (c1,m1) => fn (c2,m2) => c1 =/ c2 andalso (m1: int list) = m2) p1 p2;
 
 fun memx ((p1,h1),(p2,h2)) ppairs =
   not (exists (fn ((q1,_),(q2,_)) => poly_eq p1 q1 andalso poly_eq p2 q2) ppairs);
@@ -237,7 +235,7 @@ fun criterion2 basis (lcm,((p1,h1),(p2,h2))) opairs =
 (* Test for hitting constant polynomial.                                     *)
 
 fun constant_poly p =
-  length p = 1 andalso forall (fn x => x = (0: integer)) (snd(hd p));
+  length p = 1 andalso forall (fn x => x = 0) (snd(hd p));
 
 (* ------------------------------------------------------------------------- *)
 (* Grobner basis algorithm.                                                  *)
@@ -299,8 +297,7 @@ fun grobner_interreduce rpols ipols =
 (* ------------------------------------------------------------------------- *)
 
 fun grobner pols =
-    let val npols = map2 (fn p => fn n => (p,Start n)) pols
-          (map Integer.int (0 upto (length pols - 1)))
+    let val npols = map2 (fn p => fn n => (p,Start n)) pols (0 upto (length pols - 1))
         val phists = filter (fn (p,_) => not (null p)) npols
         val bas = grobner_interreduce [] (map monic phists)
         val prs0 = product bas bas
@@ -376,7 +373,7 @@ fun grobner_strong vars pols pol =
         val pol' = augment pol
         val allpols = (grob_sub (grob_mul grob_z pol') grob_1)::pols'
         val (l,cert) = grobner_weak vars' allpols
-        val d = fold_rev (fold_rev (max o hd o snd) o snd) cert 0
+        val d = fold_rev (fold_rev (curry Int.max o hd o snd) o snd) cert 0
         fun transform_monomial (c,m) =
             grob_cmul (c,tl m) (grob_pow vars pol (d - hd m))
         fun transform_polynomial q = fold_rev (grob_add o transform_monomial) q []
@@ -575,7 +572,7 @@ val holify_polynomial =
  let fun holify_varpow (v,n) =
   if n = 1 then v else ring_mk_pow v (Numeral.mk_cnumber @{ctyp "nat"} n)  (* FIXME *)
  fun holify_monomial vars (c,m) =
-  let val xps = map holify_varpow (filter (fn (_,n) => n <> (0: integer)) (vars ~~ m))
+  let val xps = map holify_varpow (filter (fn (_,n) => n <> 0) (vars ~~ m))
    in end_itlist ring_mk_mul (mk_const c :: xps)
   end
  fun holify_polynomial vars p =
@@ -624,7 +621,7 @@ fun refute tm =
           grobify_equations(list_mk_conj(Thm.dest_arg(concl nth)::map concl eths))
        val (deg,l,cert) = grobner_strong vars pols pol
        val th1 = Conv.fconv_rule((arg_conv o arg_conv)(binop_conv ring_normalize_conv)) nth
-       val th2 = funpow (Integer.machine_int deg) (idom_rule o HOLogic.conj_intr th1) neq_01
+       val th2 = funpow deg (idom_rule o HOLogic.conj_intr th1) neq_01
       in (vars,l,cert,th2)
       end)
 (*    val _ = writeln ("Translating certificate to HOL inferences") *)
@@ -637,7 +634,7 @@ fun refute tm =
         if null pols then reflexive(mk_const rat_0) else
         end_itlist mk_add
             (map (fn (i,p) => Drule.arg_cong_rule (mk_comb ring_mul_tm p)
-              (nth eths (Integer.machine_int i) |> mk_meta_eq)) pols)
+              (nth eths i |> mk_meta_eq)) pols)
     val th1 = thm_fn herts_pos
     val th2 = thm_fn herts_neg
     val th3 = HOLogic.conj_intr(mk_add (symmetric th1) th2 |> mk_object_eq) noteqth
@@ -681,7 +678,7 @@ fun ideal tms tm ord =
   val pol = grobify_term vars tm
   val cert = grobner_ideal vars pols pol
  in map (fn n => these (AList.lookup (op =) cert n) |> holify_polynomial vars)
-        (map Integer.int (0 upto (length pols - 1)))
+        (0 upto (length pols - 1))
  end
 in (ring,ideal)
 end;

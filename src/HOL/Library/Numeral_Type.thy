@@ -168,12 +168,12 @@ fun mk_bintype n =
       else if n = 0 then num0_const
       else if n = ~1 then raise TERM ("negative type numeral", [])
       else
-        let val (q, r) = IntInf.divMod (n, 2);
+        let val (q, r) = Integer.div_mod n 2;
         in mk_bit r $ bin_of q end;
   in bin_of n end;
 
 fun numeral_tr (*"_NumeralType"*) [Const (str, _)] =
-      mk_bintype (valOf (IntInf.fromString str))
+      mk_bintype (valOf (Int.fromString str))
   | numeral_tr (*"_NumeralType"*) ts = raise TERM ("numeral_tr", ts);
 
 in [("_NumeralType", numeral_tr)] end;
@@ -182,7 +182,7 @@ in [("_NumeralType", numeral_tr)] end;
 print_translation {*
 let
 fun int_of [] = 0
-  | int_of (b :: bs) = IntInf.fromInt b + (2 * int_of bs);
+  | int_of (b :: bs) = b + 2 * int_of bs;
 
 fun bin_of (Const ("num0", _)) = []
   | bin_of (Const ("num1", _)) = [1]
@@ -194,7 +194,7 @@ fun bit_tr' b [t] =
   let
     val rev_digs = b :: bin_of t handle TERM _ => raise Match
     val i = int_of rev_digs;
-    val num = IntInf.toString (IntInf.abs i);
+    val num = string_of_int (abs i);
   in
     Syntax.const "_NumeralType" $ Syntax.free num
   end

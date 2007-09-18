@@ -60,12 +60,11 @@ fun proc ss t =
             val d = 0
               |> fold (Integer.gcd o snd) tks
               |> fold (Integer.gcd o snd) uks;
-            val d' = Integer.machine_int d;
           in
             if d = 0 orelse d = 1 then NONE
             else SOME
               (Data.prove_conv (Data.multiply_tac d) Data.norm_tac (Simplifier.the_context ss)
-                (t, Data.mk_bal (div_sum d' tks, div_sum d' uks)))
+                (t, Data.mk_bal (div_sum d tks, div_sum d uks)))
           end));
 
 

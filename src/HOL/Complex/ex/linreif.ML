@@ -10,8 +10,6 @@ struct
 
 open Ferrack;
 
-val nat = Ferrack.nat o Integer.int;
-
 exception LINR;
 
 (* pseudo reification : term -> intterm *)

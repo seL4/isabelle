@@ -58,7 +58,7 @@ sig
 
   (*preprocessing, performed on the goal -- must do the same as 'pre_decomp':*)
   val pre_tac: Proof.context -> int -> tactic
-  val number_of: IntInf.int * typ -> term
+  val number_of: int * typ -> term
 
   (*the limit on the number of ~= allowed; because each ~= is split
     into two cases, this can lead to an explosion*)
@@ -154,11 +154,11 @@ datatype injust = Asm of int
                 | NotLessD of injust
                 | NotLeD of injust
                 | NotLeDD of injust
-                | Multiplied of IntInf.int * injust
-                | Multiplied2 of IntInf.int * injust
+                | Multiplied of int * injust
+                | Multiplied2 of int * injust
                 | Added of injust * injust;
 
-datatype lineq = Lineq of IntInf.int * lineq_type * IntInf.int list * injust;
+datatype lineq = Lineq of int * lineq_type * int list * injust;
 
 (* ------------------------------------------------------------------------- *)
 (* Finding a (counter) example from the trace of a failed elimination        *)
@@ -178,7 +178,7 @@ fun elim_eqns (Lineq (i, Le, cs, _)) = [(i, true, cs)]
   | elim_eqns (Lineq (i, Lt, cs, _)) = [(i, false, cs)];
 
 (* PRE: ex[v] must be 0! *)
-fun eval ex v (a:IntInf.int,le,cs:IntInf.int list) =
+fun eval ex v (a, le, cs) =
   let
     val rs = map Rat.rat_of_int cs;
     val rsum = fold2 (Rat.add oo Rat.mult) rs ex Rat.zero;
@@ -332,9 +332,9 @@ fun is_trivial (Lineq(_,_,l,_)) = forall (fn i => i=0) l;
 fun is_answer (ans as Lineq(k,ty,l,_)) =
   case ty  of Eq => k <> 0 | Le => k > 0 | Lt => k >= 0;
 
-fun calc_blowup (l:IntInf.int list) =
+fun calc_blowup l =
   let val (p,n) = List.partition (curry (op <) 0) (List.filter (curry (op <>) 0) l)
-  in (length p) * (length n) end;
+  in length p * length n end;
 
 (* ------------------------------------------------------------------------- *)
 (* Main elimination code:                                                    *)
@@ -360,9 +360,9 @@ fun extract_first p =
 fun print_ineqs ineqs =
   if !trace then
      tracing(cat_lines(""::map (fn Lineq(c,t,l,_) =>
-       IntInf.toString c ^
+       string_of_int c ^
        (case t of Eq => " =  " | Lt=> " <  " | Le => " <= ") ^
-       commas(map IntInf.toString l)) ineqs))
+       commas(map string_of_int l)) ineqs))
   else ();
 
 type history = (int * lineq list) list;
@@ -381,7 +381,7 @@ fun elim (ineqs, hist) =
   let val (eqs, noneqs) = List.partition (fn (Lineq(_,ty,_,_)) => ty=Eq) nontriv in
   if not (null eqs) then
      let val clist = Library.foldl (fn (cs,Lineq(_,_,l,_)) => l union cs) ([],eqs)
-         val sclist = sort (fn (x,y) => IntInf.compare(abs(x),abs(y)))
+         val sclist = sort (fn (x,y) => int_ord (abs x, abs y))
                            (List.filter (fn i => i<>0) clist)
          val c = hd sclist
          val (SOME(eq as Lineq(_,_,ceq,_)),othereqs) =
@@ -487,8 +487,8 @@ fun mkthm ss asms (just: injust) =
         | mk (NotLeDD j)          = trace_thm "NLeD" (hd ([mk j RS LA_Logic.not_leD] RL lessD))
         | mk (NotLessD j)         = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
         | mk (Added (j1, j2))     = simp (trace_thm "+" (addthms (mk j1) (mk j2)))
-        | mk (Multiplied (n, j))  = (trace_msg ("*" ^ IntInf.toString n); trace_thm "*" (multn (n, mk j)))
-        | mk (Multiplied2 (n, j)) = simp (trace_msg ("**" ^ IntInf.toString n); trace_thm "**" (multn2 (n, mk j)))
+        | mk (Multiplied (n, j))  = (trace_msg ("*" ^ string_of_int n); trace_thm "*" (multn (n, mk j)))
+        | mk (Multiplied2 (n, j)) = simp (trace_msg ("**" ^ string_of_int n); trace_thm "**" (multn2 (n, mk j)))
 
   in trace_msg "mkthm";
      let val thm = trace_thm "Final thm:" (mk just)
@@ -507,13 +507,11 @@ fun mkthm ss asms (just: injust) =
 end;
 
 fun coeff poly atom =
-  AList.lookup (op aconv) poly atom |> the_default (0: integer);
-
-fun lcms ks = fold Integer.lcm ks 1;
+  AList.lookup (op aconv) poly atom |> the_default 0;
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s
-    val m = lcms(map (abs o snd o Rat.quotient_of_rat) (r :: s :: map snd rlhs @ map snd rrhs))
+    val m = Integer.lcms(map (abs o snd o Rat.quotient_of_rat) (r :: s :: map snd rlhs @ map snd rrhs))
     fun mult(t,r) =
         let val (i,j) = Rat.quotient_of_rat r
         in (t,i * (m div j)) end
@@ -547,9 +545,9 @@ fun mklineq n atoms =
 
 fun print_atom((a,d),r) =
   let val (p,q) = Rat.quotient_of_rat r
-      val s = if d then IntInf.toString p else
+      val s = if d then string_of_int p else
               if p = 0 then "0"
-              else IntInf.toString p ^ "/" ^ IntInf.toString q
+              else string_of_int p ^ "/" ^ string_of_int q
   in a ^ " = " ^ s end;
 
 fun produce_ex sds =

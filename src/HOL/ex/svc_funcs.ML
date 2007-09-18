@@ -27,12 +27,8 @@ struct
    | UnInterp of string * expr list
    | FalseExpr
    | TrueExpr
-   | Int of IntInf.int
-   | Rat of IntInf.int * IntInf.int;
-
- fun signedInt i =
-     if i < 0 then "-" ^ IntInf.toString (~i)
-     else IntInf.toString i;
+   | Int of int
+   | Rat of int * int;
 
  fun is_intnat T = T = HOLogic.intT orelse T = HOLogic.natT;
 
@@ -49,8 +45,8 @@ struct
              "(" ^ s ^ (Library.foldl (fn (a, b) => a ^ " " ^ (ue b)) ("", l)) ^ ") "
            | ue (FalseExpr) = "FALSE "
            | ue (TrueExpr)  = "TRUE "
-           | ue (Int i)     = (signedInt i) ^ " "
-           | ue (Rat(i, j)) = (signedInt i) ^ "|" ^ (signedInt j) ^ " "
+           | ue (Int i)     = signed_string_of_int i ^ " "
+           | ue (Rat(i, j)) = signed_string_of_int i ^ "|" ^ signed_string_of_int j ^ " "
      in
          ue t
      end;

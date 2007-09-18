@@ -131,30 +131,27 @@ axiomatization
 ML {*
 signature RANDOM =
 sig
-  type seed = IntInf.int;
+  type seed = int;
   val seed: unit -> seed;
-  val value: IntInf.int -> seed -> IntInf.int * seed;
+  val value: int -> seed -> int * seed;
 end;
 
 structure Random : RANDOM =
 struct
-
-open IntInf;
 
 exception RANDOM;
 
 type seed = int;
 
 local
-  val a = fromInt 16807;
-    (*greetings to SML/NJ*)
-  val m = (the o fromString) "2147483647";
+  val a = 16807;
+  val m = 2147483647;
 in
   fun next s = (a * s) mod m;
 end;
 
 local
-  val seed_ref = ref (fromInt 1);
+  val seed_ref = ref 1;
 in
   fun seed () = CRITICAL (fn () =>
     let

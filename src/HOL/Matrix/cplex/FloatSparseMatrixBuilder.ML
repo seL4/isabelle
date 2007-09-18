@@ -14,9 +14,9 @@ sig
   val approx_vector : int -> (float -> float) -> vector -> term * term
   val approx_matrix : int -> (float -> float) -> matrix -> term * term
 
-  val mk_spvec_entry : integer -> float -> term
-  val mk_spvec_entry' : integer -> term -> term
-  val mk_spmat_entry : integer -> term -> term
+  val mk_spvec_entry : int -> float -> term
+  val mk_spvec_entry' : int -> term -> term
+  val mk_spmat_entry : int -> term -> term
   val spvecT: typ
   val spmatT: typ
   
@@ -76,7 +76,7 @@ fun approx_vector prec pprt vector =
     fun app (index, s) (lower, upper) =
       let
         val (flower, fupper) = approx_value prec pprt s
-        val index = HOLogic.mk_number HOLogic.natT (Integer.int index)
+        val index = HOLogic.mk_number HOLogic.natT index
         val elower = HOLogic.mk_prod (index, flower)
         val eupper = HOLogic.mk_prod (index, fupper)
       in (elower :: lower, eupper :: upper) end;
@@ -89,7 +89,7 @@ fun approx_matrix prec pprt vector =
     fun app (index, v) (lower, upper) =
       let
         val (flower, fupper) = approx_vector prec pprt v
-        val index = HOLogic.mk_number HOLogic.natT (Integer.int index)
+        val index = HOLogic.mk_number HOLogic.natT index
         val elower = HOLogic.mk_prod (index, flower)
         val eupper = HOLogic.mk_prod (index, fupper)
       in (elower :: lower, eupper :: upper) end;

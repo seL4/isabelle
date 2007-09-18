@@ -9,7 +9,7 @@ sig
   val destruct_floatstr: (char -> bool) -> (char -> bool) -> string -> bool * string * string * bool * string
 
   exception Floating_point of string
-  val approx_dec_by_bin: integer -> Float.float -> Float.float * Float.float
+  val approx_dec_by_bin: int -> Float.float -> Float.float * Float.float
   val approx_decstr_by_bin: int -> string -> Float.float * Float.float
 
   val mk_float: Float.float -> term
@@ -91,30 +91,30 @@ fun exp10 x = Integer.pow x 10;
 fun find_most_significant q r =
   let
     fun int2real i =
-      case (Real.fromString o Integer.string_of_int) i of
+      case (Real.fromString o string_of_int) i of
         SOME r => r
         | NONE => raise (Floating_point "int2real")
     fun subtract (q, r) (q', r') =
-      if r <=% r' then
+      if r <= r' then
         (q - q' * exp10 (r' - r), r)
       else
         (q * exp10 (r - r') - q', r')
     fun bin2dec d =
-      if 0 <=% d then
-        (Integer.exp d, 0)
+      if 0 <= d then
+        (Integer.square d, 0)
       else
         (exp5 (~ d), d)
 
-    val L = Integer.int (Real.floor (int2real (Integer.log q) + int2real r * ln2_10))
+    val L = Real.floor (int2real (IntInf.log2 q) + int2real r * ln2_10)
     val L1 = L + 1
 
     val (q1, r1) = subtract (q, r) (bin2dec L1) 
   in
-    if 0 <=% q1 then
+    if 0 <= q1 then
       let
         val (q2, r2) = subtract (q, r) (bin2dec (L1 + 1))
       in
-        if 0 <=% q2 then
+        if 0 <= q2 then
           raise (Floating_point "find_most_significant")
         else
           (L1, (q1, r1))
@@ -123,7 +123,7 @@ fun find_most_significant q r =
       let
         val (q0, r0) = subtract (q, r) (bin2dec L)
       in
-        if 0 <=% q0 then
+        if 0 <= q0 then
           (L, (q0, r0))
         else
           raise (Floating_point "find_most_significant")
@@ -133,10 +133,10 @@ fun find_most_significant q r =
 fun approx_dec_by_bin n (q,r) =
   let
     fun addseq acc d' [] = acc
-      | addseq acc d' (d::ds) = addseq (acc +% Integer.exp (d - d')) d' ds
+      | addseq acc d' (d::ds) = addseq (acc + Integer.square (d - d')) d' ds
 
     fun seq2bin [] = (0, 0)
-      | seq2bin (d::ds) = (addseq 0 d ds +% 1, d)
+      | seq2bin (d::ds) = (addseq 0 d ds + 1, d)
 
     fun approx d_seq d0 precision (q,r) =
       if q = 0 then
@@ -147,11 +147,11 @@ fun approx_dec_by_bin n (q,r) =
         let
           val (d, (q', r')) = find_most_significant q r
         in
-          if precision <% d0 - d then
+          if precision < d0 - d then
             let
               val d' = d0 - precision
               val x1 = seq2bin (d_seq)
-              val x2 = (fst x1 * Integer.exp (snd x1 - d') + 1,  d') (* = seq2bin (d'::d_seq) *)
+              val x2 = (fst x1 * Integer.square (snd x1 - d') + 1,  d') (* = seq2bin (d'::d_seq) *)
             in
               (x1, x2)
             end
@@ -160,26 +160,26 @@ fun approx_dec_by_bin n (q,r) =
         end
 
     fun approx_start precision (q, r) =
-      if q =% 0 then
+      if q = 0 then
         ((0, 0), (0, 0))
       else
         let
           val (d, (q', r')) = find_most_significant q r
         in
-          if precision <=% 0 then
+          if precision <= 0 then
             let
               val x1 = seq2bin [d]
             in
               if q' = 0 then
                 (x1, x1)
               else
-                (x1, seq2bin [d +% 1])
+                (x1, seq2bin [d + 1])
             end
           else
             approx [d] d precision (q', r')
         end
   in
-    if 0 <=% q then
+    if 0 <= q then
       approx_start n (q,r)
     else
       let
@@ -191,16 +191,16 @@ fun approx_dec_by_bin n (q,r) =
 
 fun approx_decstr_by_bin n decstr =
   let
-    fun str2int s = the_default 0 (Integer.int_of_string s);
-    fun signint p x = if p then x else Integer.neg x
+    fun str2int s = the_default 0 (Int.fromString s)
+    fun signint p x = if p then x else ~ x
 
     val (p, d1, d2, ep, e) = destruct_floatstr Char.isDigit (fn e => e = #"e" orelse e = #"E") decstr
-    val s = Integer.int (size d2)
+    val s = size d2
 
     val q = signint p (str2int d1 * exp10 s + str2int d2)
     val r = signint ep (str2int e) - s
   in
-    approx_dec_by_bin (Integer.int n) (q,r)
+    approx_dec_by_bin n (q,r)
   end
 
 fun mk_float (a, b) = @{term "float"} $

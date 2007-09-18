@@ -236,12 +236,12 @@ fun implode_numeral c_bit0 c_bit1 c_pls c_min c_bit =
           else if c = c_bit1 then SOME 1
           else NONE
       | dest_bit _ = NONE;
-    fun dest_numeral (IConst (c, _)) = if c = c_pls then SOME (IntInf.fromInt 0)
-          else if c = c_min then SOME (IntInf.fromInt ~1)
+    fun dest_numeral (IConst (c, _)) = if c = c_pls then SOME 0
+          else if c = c_min then SOME ~1
           else NONE
       | dest_numeral (IConst (c, _) `$ t1 `$ t2) =
           if c = c_bit then case (dest_numeral t1, dest_bit t2)
-           of (SOME n, SOME b) => SOME (IntInf.fromInt 2 * n + IntInf.fromInt b)
+           of (SOME n, SOME b) => SOME (2 * n + b)
             | _ => NONE
           else NONE
       | dest_numeral _ = NONE;
@@ -1631,15 +1631,15 @@ local
 val pretty : (string * {
     pretty_char: string -> string,
     pretty_string: string -> string,
-    pretty_numeral: bool -> IntInf.int -> string,
+    pretty_numeral: bool -> int -> string,
     pretty_list: Pretty.T list -> Pretty.T,
     infix_cons: int * string
   }) list = [
   ("SML", { pretty_char = prefix "#" o quote o ML_Syntax.print_char,
       pretty_string = ML_Syntax.print_string,
       pretty_numeral = fn unbounded => fn k =>
-        if unbounded then "(" ^ IntInf.toString k ^ " : IntInf.int)"
-        else IntInf.toString k,
+        if unbounded then "(" ^ string_of_int k ^ " : int)"
+        else string_of_int k,
       pretty_list = Pretty.enum "," "[" "]",
       infix_cons = (7, "::")}),
   ("OCaml", { pretty_char = fn c => enclose "'" "'"
@@ -1649,15 +1649,15 @@ val pretty : (string * {
             else c
           end),
       pretty_string = (fn _ => error "OCaml: no pretty strings"),
-      pretty_numeral = fn unbounded => fn k => if k >= IntInf.fromInt 0 then
+      pretty_numeral = fn unbounded => fn k => if k >= 0 then
             if unbounded then
-              "(Big_int.big_int_of_int " ^ IntInf.toString k ^ ")"
-            else IntInf.toString k
+              "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
+            else string_of_int k
           else
             if unbounded then
               "(Big_int.big_int_of_int " ^ (enclose "(" ")" o prefix "-"
-                o IntInf.toString o op ~) k ^ ")"
-            else (enclose "(" ")" o prefix "-" o IntInf.toString o op ~) k,
+                o string_of_int o op ~) k ^ ")"
+            else (enclose "(" ")" o prefix "-" o string_of_int o op ~) k,
       pretty_list = Pretty.enum ";" "[" "]",
       infix_cons = (6, "::")}),
   ("Haskell", { pretty_char = fn c => enclose "'" "'"
@@ -1667,10 +1667,8 @@ val pretty : (string * {
             else c
           end),
       pretty_string = ML_Syntax.print_string,
-      pretty_numeral = fn unbounded => fn k => if k >= IntInf.fromInt 0 then
-            IntInf.toString k
-          else
-            (enclose "(" ")" o Library.prefix "-" o IntInf.toString o IntInf.~) k,
+      pretty_numeral = fn unbounded => fn k => if k >= 0 then string_of_int k
+          else enclose "(" ")" (signed_string_of_int k),
       pretty_list = Pretty.enum "," "[" "]",
       infix_cons = (5, ":")})
 ];

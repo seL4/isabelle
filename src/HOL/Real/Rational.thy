@@ -697,8 +697,8 @@ fun gen_rat i =
     val p = random_range 0 i;
     val q = random_range 1 (i + 1);
     val g = Integer.gcd p q;
-    val p' = Integer.div p g;
-    val q' = Integer.div q g;
+    val p' = p div g;
+    val q' = q div g;
   in
     (if one_of [true, false] then p' else ~ p',
      if p' = 0 then 0 else q')

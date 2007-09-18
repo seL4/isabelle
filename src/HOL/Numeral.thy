@@ -635,12 +635,10 @@ code_modulename OCaml
 code_modulename Haskell
   Numeral Integer
 
-(*FIXME: the IntInf.fromInt below hides a dependence on fixed-precision ints!*)
-
 types_code
   "int" ("int")
 attach (term_of) {*
-val term_of_int = HOLogic.mk_number HOLogic.intT o IntInf.fromInt;
+val term_of_int = HOLogic.mk_number HOLogic.intT;
 *}
 attach (test) {*
 fun gen_int i = one_of [~1, 1] * random_range 0 i;
@@ -656,7 +654,7 @@ fun numeral_codegen thy defs gr dep module b t =
   let val i = HOLogic.dest_numeral (strip_number_of t)
   in
     SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, HOLogic.intT)),
-      Pretty.str (IntInf.toString i))
+      Pretty.str (string_of_int i))
   end handle TERM _ => NONE;
 
 in

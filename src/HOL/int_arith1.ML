@@ -147,9 +147,9 @@ val numeral_syms = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym];
 (*Order integers by absolute value and then by sign. The standard integer
   ordering is not well-founded.*)
 fun num_ord (i,j) =
-      (case IntInf.compare (IntInf.abs i, IntInf.abs j) of
-            EQUAL => int_ord (IntInf.sign i, IntInf.sign j) 
-          | ord => ord);
+  (case int_ord (abs i, abs j) of
+    EQUAL => int_ord (Int.sign i, Int.sign j) 
+  | ord => ord);
 
 (*This resembles Term.term_ord, but it puts binary numerals before other
   non-atomic terms.*)
@@ -265,11 +265,11 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 
 (*Fractions as pairs of ints. Can't use Rat.rat because the representation
   needs to preserve negative values in the denominator.*)
-fun mk_frac (p, q : IntInf.int) = if q = 0 then raise Div else (p, q);
+fun mk_frac (p, q) = if q = 0 then raise Div else (p, q);
 
 (*Don't reduce fractions; sums must be proved by rule add_frac_eq.
   Fractions are reduced later by the cancel_numeral_factor simproc.*)
-fun add_frac ((p1 : IntInf.int, q1 : IntInf.int), (p2, q2)) = (p1 * q2 + p2 * q1, q1 * q2);
+fun add_frac ((p1, q1), (p2, q2)) = (p1 * q2 + p2 * q1, q1 * q2);
 
 val mk_divide = HOLogic.mk_binop @{const_name HOL.divide};
 
@@ -421,9 +421,9 @@ val cancel_numerals =
 
 structure CombineNumeralsData =
   struct
-  type coeff            = IntInf.int
-  val iszero            = (fn x : IntInf.int => x = 0)
-  val add               = IntInf.+
+  type coeff            = int
+  val iszero            = (fn x => x = 0)
+  val add               = op +
   val mk_sum            = long_mk_sum    (*to work for e.g. 2*x + 3*x *)
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
@@ -451,8 +451,8 @@ structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 (*Version for fields, where coefficients can be fractions*)
 structure FieldCombineNumeralsData =
   struct
-  type coeff            = IntInf.int * IntInf.int
-  val iszero            = (fn (p : IntInf.int, q) => p = 0)
+  type coeff            = int * int
+  val iszero            = (fn (p, q) => p = 0)
   val add               = add_frac
   val mk_sum            = long_mk_sum
   val dest_sum          = dest_sum

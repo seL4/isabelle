@@ -10,8 +10,6 @@ struct
 
 open GeneratedCooper;
 
-val nat = GeneratedCooper.nat o Integer.int;
-
 fun i_of_term vs t = case t
  of Free(xn,xT) => (case AList.lookup (op aconv) vs t
    of NONE   => error "Variable not found in the list!"
