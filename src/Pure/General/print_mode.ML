@@ -16,8 +16,8 @@ end;
 signature PRINT_MODE =
 sig
   include BASIC_PRINT_MODE
+  val setmp: string list -> ('a -> 'b) -> 'a -> 'b
   val with_modes: string list -> ('a -> 'b) -> 'a -> 'b
-  val with_default: ('a -> 'b) -> 'a -> 'b
 end;
 
 structure PrintMode: PRINT_MODE =
@@ -28,11 +28,8 @@ val print_mode = ref ([]: string list);
 fun print_mode_value () = NAMED_CRITICAL "print_mode" (fn () => ! print_mode);
 fun print_mode_active s = member (op =) (print_mode_value ()) s;
 
-fun with_modes modes f x = NAMED_CRITICAL "print_mode" (fn () =>
-  setmp print_mode (modes @ ! print_mode) f x);
-
-fun with_default f x = NAMED_CRITICAL "print_mode" (fn () =>
-  setmp print_mode [] f x);
+fun setmp modes f x = NAMED_CRITICAL "print_mode" (fn () => Library.setmp print_mode modes f x);
+fun with_modes modes f x = NAMED_CRITICAL "print_mode" (fn () => setmp (modes @ ! print_mode) f x);
 
 end;
 

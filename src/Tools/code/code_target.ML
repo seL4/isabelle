@@ -56,7 +56,7 @@ infixr 5 @@;
 infixr 5 @|;
 fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
-val str = PrintMode.with_default Pretty.str;
+val str = PrintMode.setmp [] Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
 val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
@@ -1033,7 +1033,7 @@ fun isar_seri_sml module file =
   let
     val output = case file
      of NONE => use_text "generated code" Output.ml_output (!eval_verbose) o code_output
-      | SOME "-" => PrintMode.with_default writeln o code_output
+      | SOME "-" => PrintMode.setmp [] writeln o code_output
       | SOME file => File.write (Path.explode file) o code_output;
   in
     parse_args (Scan.succeed ())
@@ -1044,10 +1044,10 @@ fun isar_seri_ocaml module file =
   let
     val output = case file
      of NONE => error "OCaml: no internal compilation"
-      | SOME "-" => PrintMode.with_default writeln o code_output
+      | SOME "-" => PrintMode.setmp [] writeln o code_output
       | SOME file => File.write (Path.explode file) o code_output;
     fun output_file file = File.write (Path.explode file) o code_output;
-    val output_diag = PrintMode.with_default writeln o code_output;
+    val output_diag = PrintMode.setmp [] writeln o code_output;
   in
     parse_args (Scan.succeed ())
     #> (fn () => seri_ml pr_ocaml pr_ocaml_modl module output)
@@ -1381,7 +1381,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
             val pathname = Path.append destination filename;
             val _ = File.mkdir (Path.dir pathname);
           in File.write pathname end
-      | write_module NONE _ = PrintMode.with_default writeln;
+      | write_module NONE _ = PrintMode.setmp [] writeln;
     fun seri_module (modlname', (imports, (defs, _))) =
       let
         val imports' =
@@ -1449,7 +1449,7 @@ fun seri_diagnosis labelled_name _ _ _ _ _ _ _ code =
     |> Graph.fold (fn (name, (def, _)) => case try pr (name, def) of SOME p => cons p | NONE => I) code
     |> Pretty.chunks2
     |> code_output
-    |> PrintMode.with_default writeln
+    |> PrintMode.setmp [] writeln
   end;
 
 

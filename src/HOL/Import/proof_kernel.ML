@@ -200,7 +200,7 @@ fun simple_smart_string_of_cterm ct =
 			   handle TERM _ => ct)
     in
 	quote(
-	Library.setmp print_mode [] (
+	PrintMode.setmp [] (
 	Library.setmp show_brackets false (
 	Library.setmp show_all_types true (
 	Library.setmp Syntax.ambiguity_is_error false (
@@ -234,16 +234,15 @@ fun smart_string_of_cterm ct =
 	    handle ERROR mesg => F (n+1)
 		 | SMART_STRING => raise ERROR ("smart_string failed for: "^(G 0 string_of_cterm ct))
     in
-      Library.setmp print_mode [] (Library.setmp Syntax.ambiguity_is_error true F) 0
+      PrintMode.setmp [] (Library.setmp Syntax.ambiguity_is_error true F) 0
     end
     handle ERROR mesg => simple_smart_string_of_cterm ct
  
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
-fun prth th = writeln (Library.setmp print_mode [] string_of_thm th)
-fun prc ct = writeln (Library.setmp print_mode [] string_of_cterm ct)
-fun prin t = writeln
-  (Library.setmp print_mode [] (fn () => Sign.string_of_term (the_context ()) t) ());
+fun prth th = writeln (PrintMode.setmp [] string_of_thm th)
+fun prc ct = writeln (PrintMode.setmp [] string_of_cterm ct)
+fun prin t = writeln (PrintMode.setmp [] (fn () => Sign.string_of_term (the_context ()) t) ());
 fun pth (HOLThm(ren,thm)) =
     let
 	(*val _ = writeln "Renaming:"

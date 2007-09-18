@@ -19,8 +19,8 @@ end;
 structure IoaPackage: IOA_PACKAGE =
 struct
 
-val string_of_typ = PrintMode.with_default o Sign.string_of_typ;
-val string_of_term = PrintMode.with_default o Sign.string_of_term;
+val string_of_typ = PrintMode.setmp [] o Sign.string_of_typ;
+val string_of_term = PrintMode.setmp [] o Sign.string_of_term;
 
 exception malformed;
 
