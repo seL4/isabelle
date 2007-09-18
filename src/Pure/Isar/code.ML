@@ -8,10 +8,12 @@ executable content.
 
 signature CODE =
 sig
-  val add_func: bool -> thm -> theory -> theory
+  val add_func: thm -> theory -> theory
+  val add_liberal_func: thm -> theory -> theory
+  val add_default_func: thm -> theory -> theory
+  val add_default_func_attr: Attrib.src
   val del_func: thm -> theory -> theory
   val add_funcl: string * thm list Susp.T -> theory -> theory
-  val add_func_attr: bool -> Attrib.src
   val add_inline: thm -> theory -> theory
   val del_inline: thm -> theory -> theory
   val add_inline_proc: string * (theory -> cterm list -> thm list) -> theory -> theory
@@ -635,13 +637,18 @@ fun assert_func_typ thm =
   in check_typ (const_of_func thy thm, thm) end;
 
 val mk_func = CodeUnit.error_thm (assert_func_typ o CodeUnit.mk_func);
-val mk_func_liberal = CodeUnit.warning_thm (assert_func_typ o CodeUnit.mk_func);
+val mk_liberal_func = CodeUnit.warning_thm (assert_func_typ o CodeUnit.mk_func);
+val mk_default_func = CodeUnit.try_thm (assert_func_typ o CodeUnit.mk_func);
 
 end;
 
 
 
 (** interfaces and attributes **)
+
+fun delete_force msg key xs =
+  if AList.defined (op =) xs key then AList.delete (op =) key xs
+  else error ("No such " ^ msg ^ ": " ^ quote key);
 
 fun get_datatype thy tyco =
   case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
@@ -667,38 +674,48 @@ fun get_constr_typ thy c =
         in SOME (Logic.varifyT ty) end
     | NONE => NONE;
 
-fun add_func true thm thy =
-      let
-        val func = mk_func thm;
-        val c = const_of_func thy func;
-        val _ = if (is_some o AxClass.class_of_param thy) c
-          then error ("Rejected polymorphic equation for overloaded constant:\n"
-            ^ string_of_thm thm)
-          else ();
-        val _ = if (is_some o get_datatype_of_constr thy) c
-          then error ("Rejected equation for datatype constructor:\n"
-            ^ string_of_thm func)
-          else ();
-      in
-        (map_exec_purge (SOME [c]) o map_funcs) (Symtab.map_default
-          (c, (Susp.value [], [])) (add_thm func)) thy
-      end
-  | add_func false thm thy =
-      case mk_func_liberal thm
-       of SOME func => let
-              val c = const_of_func thy func
-            in if (is_some o AxClass.class_of_param thy) c
-              orelse (is_some o get_datatype_of_constr thy) c
-              then thy
-              else map_exec_purge (SOME [c]) (map_funcs
-              (Symtab.map_default
-                (c, (Susp.value [], [])) (add_thm func))) thy
-            end
-        | NONE => thy;
+fun add_func thm thy =
+  let
+    val func = mk_func thm;
+    val c = const_of_func thy func;
+    val _ = if (is_some o AxClass.class_of_param thy) c
+      then error ("Rejected polymorphic equation for overloaded constant:\n"
+        ^ string_of_thm thm)
+      else ();
+    val _ = if (is_some o get_datatype_of_constr thy) c
+      then error ("Rejected equation for datatype constructor:\n"
+        ^ string_of_thm func)
+      else ();
+  in
+    (map_exec_purge (SOME [c]) o map_funcs) (Symtab.map_default
+      (c, (Susp.value [], [])) (add_thm func)) thy
+  end;
 
-fun delete_force msg key xs =
-  if AList.defined (op =) xs key then AList.delete (op =) key xs
-  else error ("No such " ^ msg ^ ": " ^ quote key);
+fun add_liberal_func thm thy =
+  case mk_liberal_func thm
+   of SOME func => let
+          val c = const_of_func thy func
+        in if (is_some o AxClass.class_of_param thy) c
+          orelse (is_some o get_datatype_of_constr thy) c
+          then thy
+          else map_exec_purge (SOME [c]) (map_funcs
+            (Symtab.map_default
+              (c, (Susp.value [], [])) (add_thm func))) thy
+        end
+    | NONE => thy;
+
+fun add_default_func thm thy =
+  case mk_default_func thm
+   of SOME func => let
+          val c = const_of_func thy func
+        in if (is_some o AxClass.class_of_param thy) c
+          orelse (is_some o get_datatype_of_constr thy) c
+          then thy
+          else map_exec_purge (SOME [c]) (map_funcs
+          (Symtab.map_default
+            (c, (Susp.value [], [])) (add_thm func))) thy
+        end
+    | NONE => thy;
 
 fun del_func thm thy =
   let
@@ -719,8 +736,8 @@ fun add_funcl (const, lthms) thy =
       (add_lthms lthms'))) thy
   end;
 
-fun add_func_attr strict = Attrib.internal (fn _ => Thm.declaration_attribute
-  (fn thm => Context.mapping (add_func strict thm) I));
+val add_default_func_attr = Attrib.internal (fn _ => Thm.declaration_attribute
+  (fn thm => Context.mapping (add_default_func thm) I));
 
 fun add_datatype raw_cs thy =
   let
@@ -786,7 +803,7 @@ val _ = Context.add_setup
       add_attribute (name, Args.del |-- Scan.succeed (mk_attribute del)
         || Scan.succeed (mk_attribute add))
   in
-    add_del_attribute ("func", (add_func true, del_func))
+    add_del_attribute ("func", (add_func, del_func))
     #> add_del_attribute ("inline", (add_inline, del_inline))
     #> add_del_attribute ("post", (add_post, del_post))
   end);

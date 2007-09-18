@@ -629,7 +629,7 @@ fun add_datatype_case_defs dtco thy =
   let
     val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
   in
-    fold_rev (Code.add_func true) case_rewrites thy
+    fold_rev Code.add_default_func case_rewrites thy
   end;
 
 val setup = 

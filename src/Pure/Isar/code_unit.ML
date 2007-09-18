@@ -27,6 +27,7 @@ sig
   val bad_thm: string -> 'a
   val error_thm: (thm -> thm) -> thm -> thm
   val warning_thm: (thm -> thm) -> thm -> thm option
+  val try_thm: (thm -> thm) -> thm -> thm option
 
   val inst_thm: sort Vartab.table -> thm -> thm
   val expand_eta: int -> thm -> thm
@@ -46,6 +47,7 @@ fun bad_thm msg = raise BAD_THM msg;
 fun error_thm f thm = f thm handle BAD_THM msg => error msg;
 fun warning_thm f thm = SOME (f thm) handle BAD_THM msg
   => (warning ("code generator: " ^ msg); NONE);
+fun try_thm f thm = SOME (f thm) handle BAD_THM _ => NONE;
 
 fun string_of_typ thy = setmp show_sorts true (Sign.string_of_typ thy);
 fun string_of_const thy c = case Class.param_const thy c

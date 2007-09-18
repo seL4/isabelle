@@ -329,7 +329,7 @@ fun add_rules simps case_thms size_thms rec_thms inject distinct
   PureThy.add_thmss [(("simps", simps), []),
     (("", flat case_thms @ size_thms @ 
           flat distinct @ rec_thms), [Simplifier.simp_add]),
-    (("", size_thms @ rec_thms), [RecfunCodegen.add NONE]),
+    (("", size_thms @ rec_thms), [RecfunCodegen.add_default]),
     (("", flat inject), [iff_add]),
     (("", map (fn th => th RS notE) (flat distinct)), [Classical.safe_elim NONE]),
     (("", weak_case_congs), [cong_att])]

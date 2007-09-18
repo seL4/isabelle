@@ -431,7 +431,7 @@ val instanceP =
       || P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
            >> Class.interpretation_in_class_cmd
       || P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-           >> (fn (arities, defs) => Class.instance_cmd arities defs (fold (Code.add_func false)))
+           >> (fn (arities, defs) => Class.instance_cmd arities defs (fold Code.add_default_func))
     ) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val instantiationP =

@@ -8,6 +8,7 @@ Code generator for recursive functions.
 signature RECFUN_CODEGEN =
 sig
   val add: string option -> attribute
+  val add_default: attribute
   val del: attribute
   val setup: theory -> theory
 end;
@@ -26,7 +27,6 @@ structure RecCodegenData = TheoryDataFun
   fun merge _ = Symtab.merge_list (Thm.eq_thm_prop o pairself fst);
 );
 
-
 val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
 val lhs_of = fst o dest_eqn o prop_of;
 val const_of = dest_Const o head_of o fst o dest_eqn;
@@ -34,28 +34,23 @@ val const_of = dest_Const o head_of o fst o dest_eqn;
 fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
   string_of_thm thm);
 
-fun add optmod =
-  let
-    fun add thm =
-      if Pattern.pattern (lhs_of thm) then
-        RecCodegenData.map
-          (Symtab.update_list ((fst o const_of o prop_of) thm, (thm, optmod)))
-      else tap (fn _ => warn thm)
-      handle TERM _ => tap (fn _ => warn thm);
-  in
-    Thm.declaration_attribute (fn thm => Context.mapping
-      (add thm #> Code.add_func false thm) I)
-  end;
+fun add_thm opt_module thm =
+  if Pattern.pattern (lhs_of thm) then
+    RecCodegenData.map
+      (Symtab.update_list ((fst o const_of o prop_of) thm, (thm, opt_module)))
+  else tap (fn _ => warn thm)
+  handle TERM _ => tap (fn _ => warn thm);
 
-fun del_thm thm thy =
-  let
-    val tab = RecCodegenData.get thy;
-    val (s, _) = const_of (prop_of thm);
-  in case Symtab.lookup tab s of
-      NONE => thy
-    | SOME thms =>
-        RecCodegenData.put (Symtab.update (s, remove (Thm.eq_thm o apsnd fst) thm thms) tab) thy
-  end handle TERM _ => (warn thm; thy);
+fun add opt_module = Thm.declaration_attribute (fn thm => Context.mapping
+  (add_thm opt_module thm #> Code.add_liberal_func thm) I);
+
+val add_default = Thm.declaration_attribute (fn thm => Context.mapping
+  (add_thm NONE thm #> Code.add_default_func thm) I);
+
+fun del_thm thm = case try const_of (prop_of thm)
+ of SOME (s, _) => RecCodegenData.map
+      (Symtab.map_entry s (remove (Thm.eq_thm o apsnd fst) thm))
+  | NONE => tap (fn _ => warn thm);
 
 val del = Thm.declaration_attribute
   (fn thm => Context.mapping (del_thm thm #> Code.del_func thm) I)
