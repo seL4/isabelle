@@ -2493,6 +2493,12 @@ done
 
 subsection {*Sorting*}
 
+text{* Currently it is not shown that @{const sort} returns a
+permutation of its input because the nicest proof is via multisets,
+which are not yet available. Alternatively one could define a function
+that counts the number of occurrences of an element in a list and use
+that instead of multisets to state the correctness property. *}
+
 context linorder
 begin
 
@@ -2507,13 +2513,13 @@ by (induct xs) (auto simp add:sorted_Cons)
 lemma set_insort: "set(insort x xs) = insert x (set xs)"
 by (induct xs) auto
 
-lemma set_sort: "set(sort xs) = set xs"
+lemma set_sort[simp]: "set(sort xs) = set xs"
 by (induct xs) (simp_all add:set_insort)
 
 lemma distinct_insort: "distinct (insort x xs) = (x \<notin> set xs \<and> distinct xs)"
 by(induct xs)(auto simp:set_insort)
 
-lemma distinct_sort: "distinct (sort xs) = distinct xs"
+lemma distinct_sort[simp]: "distinct (sort xs) = distinct xs"
 by(induct xs)(simp_all add:distinct_insort set_sort)
 
 lemma sorted_insort: "sorted (insort x xs) = sorted xs"
