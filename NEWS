@@ -729,6 +729,8 @@ possible incompatibilities when working on ML level.
 
 * Lemma "set_take_whileD" renamed to "set_takeWhileD"
 
+* new functions sorted and sort in List.
+
 * function "sgn" is now overloaded and available on int, real, complex
   (and other numeric types).
   The details: new class "sgn" with function "sgn";
