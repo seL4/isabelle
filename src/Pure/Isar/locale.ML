@@ -1596,7 +1596,10 @@ fun collect_global_witnesses thy parms ids vts = let
     val eqns =
       fold_map (join_eqns (get_global_registration thy) I (ProofContext.init thy))
         ids' Termtab.empty |> snd |> Termtab.dest |> map snd;
-  in ((tinst, inst), wits, eqns) end;
+
+    val tinst' = fold (Sign.typ_match thy) (parmvTs ~~ map Term.fastype_of vts) Vartab.empty
+         |> Vartab.dest |> map (fn ((x, 0), (_, T)) => (x, T)) |> Symtab.make;
+  in ((tinst', vinst), (tinst, inst), wits, eqns) end;
 
 
 (* store instantiations of args for all registered interpretations
@@ -1614,11 +1617,11 @@ fun note_thmss_registrations target (kind, args) thy =
 
     fun activate (vts, (((fully_qualified, prfx), atts2), _, _)) thy =
       let
-        val (insts, prems, eqns) = collect_global_witnesses thy parms ids vts;
+        val (vinsts, insts, prems, eqns) = collect_global_witnesses thy parms ids vts;
         val attrib = Attrib.attribute_i thy;
         val inst_atts = Args.morph_values
           (Morphism.name_morphism (NameSpace.qualified prfx) $>
-            Element.inst_morphism thy insts $>
+            Element.inst_morphism' thy vinsts insts $>
             Element.satisfy_morphism prems $>
             Morphism.term_morphism (MetaSimplifier.rewrite_term thy eqns []) $>
             Morphism.thm_morphism (MetaSimplifier.rewrite_rule eqns #> Drule.standard));
@@ -2301,7 +2304,7 @@ fun prep_registration_in_locale target expr thy =
 
         fun activate_reg (vts, (((fully_qualified, prfx), atts2), _, _)) thy =
           let
-            val (insts, wits, _) = collect_global_witnesses thy fixed target_ids vts;
+            val (vinsts, insts, wits, _) = collect_global_witnesses thy fixed target_ids vts;
             fun inst_parms ps = map
                   (the o AList.lookup (op =) (map #1 fixed ~~ vts)) ps;
             val disch = Element.satisfy_thm wits;
@@ -2316,7 +2319,7 @@ fun prep_registration_in_locale target expr thy =
                 else thy
                   |> put_global_registration (name, ps') ((fully_qualified, prfx), atts2)
                   |> fold (fn witn => fn thy => add_global_witness (name, ps')
-                     (Element.morph_witness (Element.inst_morphism thy insts) witn) thy) thms
+                     (Element.morph_witness (Element.inst_morphism' thy vinsts insts) witn) thy) thms
               end;
 
             fun activate_derived_id ((_, Assumed _), _) thy = thy
