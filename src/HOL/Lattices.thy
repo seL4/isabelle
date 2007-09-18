@@ -289,8 +289,7 @@ proof unfold_locales
   fix x y z
   show "max x (min y z) = min (max x y) (max x z)"
   unfolding min_def max_def
-    by (auto simp add: intro: antisym, unfold not_le,
-      auto intro: less_trans le_less_trans aux)
+  by auto
 qed (auto simp add: min_def max_def not_le less_imp_le)
 
 interpretation min_max:

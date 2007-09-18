@@ -2509,7 +2509,6 @@ by(induct xs)(simp_all add:distinct_insort set_sort)
 lemma sorted_insort: "sorted (insort x xs) = sorted xs"
 apply (induct xs)
  apply(auto simp:sorted_Cons set_insort not_le less_imp_le)
-apply(blast intro:order_trans)
 done
 
 theorem sorted_sort[simp]: "sorted (sort xs)"

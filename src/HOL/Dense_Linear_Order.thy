@@ -232,15 +232,8 @@ next
   from fU neU have th2: "?MU \<in> U" and th2': "\<forall>u\<in>U. ?MU \<sqsubseteq> u" by auto
   from th1 th2 H have "?ML \<sqsubset> ?MU" by auto
   with dense obtain w where th3: "?ML \<sqsubset> w" and th4: "w \<sqsubset> ?MU" by blast
-  from th3 th1' have "\<forall>l \<in> L. l \<sqsubset> w" 
-    apply auto
-    apply (erule_tac x="l" in ballE)
-    by (auto intro: le_less_trans)
-
-  moreover from th4 th2' have "\<forall>u \<in> U. w \<sqsubset> u" 
-    apply auto
-    apply (erule_tac x="u" in ballE)
-    by (auto intro: less_le_trans)
+  from th3 th1' have "\<forall>l \<in> L. l \<sqsubset> w" by auto
+  moreover from th4 th2' have "\<forall>u \<in> U. w \<sqsubset> u" by auto
   ultimately show "\<exists>x. (\<forall>y\<in>L. y \<^loc>< x) \<and> (\<forall>y\<in>U. x \<^loc>< y)" by auto
 qed
 
