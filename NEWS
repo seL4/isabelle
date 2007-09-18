@@ -1142,7 +1142,7 @@ polymorphic versions (INCOMPATIBILITY):
 
 *** ML ***
 
-* Generic arithmetic modules: Tools/integer.ML, Tools/rat.ML, Tools/float.ML
+* Generic arithmetic modules: Tools/rat.ML, Tools/float.ML
 
 * Context data interfaces (Theory/Proof/GenericDataFun): removed
 name/print, uninitialized data defaults to ad-hoc copy of empty value,

@@ -8,7 +8,6 @@ header {* The basis of Higher-Order Logic *}
 theory HOL
 imports CPure
 uses
-  "~~/src/Tools/integer.ML"
   ("hologic.ML")
   "~~/src/Tools/IsaPlanner/zipper.ML"
   "~~/src/Tools/IsaPlanner/isand.ML"
