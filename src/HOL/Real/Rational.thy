@@ -596,27 +596,27 @@ where
 subsection {* Implementation of rational numbers as pairs of integers *}
 
 definition
-  RatC :: "int \<times> int \<Rightarrow> rat"
+  Rational :: "int \<times> int \<Rightarrow> rat"
 where
-  "RatC = INum"
+  "Rational = INum"
 
-code_datatype RatC
+code_datatype Rational
 
-lemma RatC_simp:
-  "RatC (k, l) = rat_of_int k / rat_of_int l"
-  unfolding RatC_def INum_def by simp
+lemma Rational_simp:
+  "Rational (k, l) = rat_of_int k / rat_of_int l"
+  unfolding Rational_def INum_def by simp
 
-lemma RatC_zero [simp]: "RatC 0\<^sub>N = 0"
-  by (simp add: RatC_simp)
+lemma Rational_zero [simp]: "Rational 0\<^sub>N = 0"
+  by (simp add: Rational_simp)
 
-lemma RatC_lit [simp]: "RatC i\<^sub>N = rat_of_int i"
-  by (simp add: RatC_simp)
-
-lemma zero_rat_code [code, code unfold]:
-  "0 = RatC 0\<^sub>N" by simp
+lemma Rational_lit [simp]: "Rational i\<^sub>N = rat_of_int i"
+  by (simp add: Rational_simp)
 
 lemma zero_rat_code [code, code unfold]:
-  "1 = RatC 1\<^sub>N" by simp
+  "0 = Rational 0\<^sub>N" by simp
+
+lemma zero_rat_code [code, code unfold]:
+  "1 = Rational 1\<^sub>N" by simp
 
 lemma [code, code unfold]:
   "number_of k = rat_of_int (number_of k)"
@@ -630,63 +630,64 @@ lemma [code]:
   unfolding Fract'_def ..
 
 lemma [code]:
-  "Fract' True k l = (if l \<noteq> 0 then RatC (k, l) else Fract 1 0)"
-  by (simp add: Fract'_def RatC_simp Fract_of_int_quotient [of k l])
+  "Fract' True k l = (if l \<noteq> 0 then Rational (k, l) else Fract 1 0)"
+  by (simp add: Fract'_def Rational_simp Fract_of_int_quotient [of k l])
 
 lemma [code]:
-  "of_rat (RatC (k, l)) = (if l \<noteq> 0 then of_int k / of_int l else 0)"
+  "of_rat (Rational (k, l)) = (if l \<noteq> 0 then of_int k / of_int l else 0)"
   by (cases "l = 0")
-    (auto simp add: RatC_simp of_rat_rat [simplified Fract_of_int_quotient [of k l], symmetric])
+    (auto simp add: Rational_simp of_rat_rat [simplified Fract_of_int_quotient [of k l], symmetric])
 
 instance rat :: eq ..
 
-lemma rat_eq_code [code]: "RatC x = RatC y \<longleftrightarrow> normNum x = normNum y"
-  unfolding RatC_def INum_normNum_iff ..
+lemma rat_eq_code [code]: "Rational x = Rational y \<longleftrightarrow> normNum x = normNum y"
+  unfolding Rational_def INum_normNum_iff ..
 
-lemma rat_less_eq_code [code]: "RatC x \<le> RatC y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
+lemma rat_less_eq_code [code]: "Rational x \<le> Rational y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
 proof -
-  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> RatC (normNum x) \<le> RatC (normNum y)" 
-    by (simp add: RatC_def del: normNum)
-  also have "\<dots> = (RatC x \<le> RatC y)" by (simp add: RatC_def)
+  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> Rational (normNum x) \<le> Rational (normNum y)" 
+    by (simp add: Rational_def del: normNum)
+  also have "\<dots> = (Rational x \<le> Rational y)" by (simp add: Rational_def)
   finally show ?thesis by simp
 qed
 
-lemma rat_less_code [code]: "RatC x < RatC y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
+lemma rat_less_code [code]: "Rational x < Rational y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
 proof -
-  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> RatC (normNum x) < RatC (normNum y)" 
-    by (simp add: RatC_def del: normNum)
-  also have "\<dots> = (RatC x < RatC y)" by (simp add: RatC_def)
+  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> Rational (normNum x) < Rational (normNum y)" 
+    by (simp add: Rational_def del: normNum)
+  also have "\<dots> = (Rational x < Rational y)" by (simp add: Rational_def)
   finally show ?thesis by simp
 qed
 
-lemma rat_add_code [code]: "RatC x + RatC y = RatC (x +\<^sub>N y)"
-  unfolding RatC_def by simp
+lemma rat_add_code [code]: "Rational x + Rational y = Rational (x +\<^sub>N y)"
+  unfolding Rational_def by simp
 
-lemma rat_mul_code [code]: "RatC x * RatC y = RatC (x *\<^sub>N y)"
-  unfolding RatC_def by simp
+lemma rat_mul_code [code]: "Rational x * Rational y = Rational (x *\<^sub>N y)"
+  unfolding Rational_def by simp
 
-lemma rat_neg_code [code]: "- RatC x = RatC (~\<^sub>N x)"
-  unfolding RatC_def by simp
+lemma rat_neg_code [code]: "- Rational x = Rational (~\<^sub>N x)"
+  unfolding Rational_def by simp
 
-lemma rat_sub_code [code]: "RatC x - RatC y = RatC (x -\<^sub>N y)"
-  unfolding RatC_def by simp
+lemma rat_sub_code [code]: "Rational x - Rational y = Rational (x -\<^sub>N y)"
+  unfolding Rational_def by simp
 
-lemma rat_inv_code [code]: "inverse (RatC x) = RatC (Ninv x)"
-  unfolding RatC_def Ninv divide_rat_def by simp
+lemma rat_inv_code [code]: "inverse (Rational x) = Rational (Ninv x)"
+  unfolding Rational_def Ninv divide_rat_def by simp
 
-lemma rat_div_code [code]: "RatC x / RatC y = RatC (x \<div>\<^sub>N y)"
-  unfolding RatC_def by simp
+lemma rat_div_code [code]: "Rational x / Rational y = Rational (x \<div>\<^sub>N y)"
+  unfolding Rational_def by simp
 
-text {* Setup for old code generator *}
+text {* Setup for SML code generator *}
 
 types_code
   rat ("(int */ int)")
 attach (term_of) {*
 fun term_of_rat (p, q) =
-  let val rT = Type ("Rational.rat", [])
+  let
+    val rT = @{typ rat}
   in
     if q = 1 orelse p = 0 then HOLogic.mk_number rT p
-    else Const ("HOL.inverse_class.divide", [rT, rT] ---> rT) $
+    else @{term "op / \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"} $
       HOLogic.mk_number rT p $ HOLogic.mk_number rT q
   end;
 *}
@@ -705,7 +706,7 @@ fun gen_rat i =
 *}
 
 consts_code
-  RatC ("(_)")
+  Rational ("(_)")
 
 consts_code
   "of_int :: int \<Rightarrow> rat" ("\<module>rat'_of'_int")
