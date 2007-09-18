@@ -17,7 +17,7 @@ function usage()
   echo
   echo "  Issues code generation using image IMAGE,"
   echo "  theory THY,"
-  echo "  with Isar command 'code_gen SERI'"
+  echo "  with Isar command 'export_code SERI'"
   echo
   exit 1
 }
