@@ -30,6 +30,7 @@ imports
   Pretty_Char_chr
   Pretty_Int
   Primes
+  Quicksort
   Quotient
   Ramsey
   State_Monad

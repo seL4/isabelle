@@ -32,8 +32,6 @@ use_thys [
   "CTL",
   "Arith_Examples",
   "BT",
-  "InSort",
-  "Qsort",
   "MergeSort",
   "Puzzle",
   "Lagrange",
