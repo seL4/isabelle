@@ -212,7 +212,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/List_Prefix.thy Library/State_Monad.thy Library/Multiset.thy \
   Library/NatPair.thy \
   Library/Permutation.thy Library/Primes.thy Library/Quotient.thy \
-  Library/Nat_Infinity.thy Library/Word.thy \
+  Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy \
   Library/README.html Library/Continuity.thy \
   Library/Nested_Environment.thy Library/Zorn.thy\
   Library/Library/ROOT.ML Library/Library/document/root.tex \
@@ -248,7 +248,7 @@ $(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.thy \
 HOL-Induct: HOL $(LOG)/HOL-Induct.gz
 
 $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
-  Induct/Common_Patterns.thy Induct/Com.thy Induct/Comb.thy Induct/LFilter.thy \
+  Induct/Com.thy Induct/Comb.thy Induct/LFilter.thy \
   Induct/LList.thy Induct/Mutil.thy Induct/Ordinals.thy \
   Induct/PropLog.thy Induct/QuoNestedDataType.thy Induct/QuoDataType.thy\
   Induct/ROOT.ML \
@@ -659,12 +659,12 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy \
   ex/Commutative_RingEx.thy ex/Hex_Bin_Examples.thy \
   ex/Commutative_Ring_Complete.thy ex/ExecutableContent.thy \
   ex/Fundefs.thy ex/Guess.thy ex/Hebrew.thy ex/Binary.thy \
-  ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy ex/InSort.thy \
+  ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy \
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy \
   ex/Intuitionistic.thy ex/Lagrange.thy ex/Locales.thy ex/LocaleTest2.thy \
   ex/MT.thy ex/MergeSort.thy ex/MonoidGroup.thy ex/Multiquote.thy \
   ex/NatSum.thy ex/NBE.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy \
-  ex/Puzzle.thy ex/Qsort.thy ex/Quickcheck_Examples.thy \
+  ex/Puzzle.thy ex/Quickcheck_Examples.thy \
   ex/Reflection.thy ex/reflection_data.ML ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy \
   ex/Records.thy ex/Reflected_Presburger.thy ex/coopertac.ML ex/coopereif.ML \
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy \

@@ -8,8 +8,6 @@ header {* The datatype of finite lists *}
 theory List
 imports PreList
 uses "Tools/string_syntax.ML"
-  ("Tools/function_package/lexicographic_order.ML")
-  ("Tools/function_package/fundef_datatype.ML")
 begin
 
 datatype 'a list =
@@ -219,6 +217,23 @@ primrec
   "splice [] ys = ys"
   "splice (x#xs) ys = (if ys=[] then x#xs else x # hd ys # splice xs (tl ys))"
     -- {*Warning: simpset does not contain the second eqn but a derived one. *}
+
+text{* The following simple sort functions are intended for proofs,
+not for efficient implementations. *}
+
+fun (in linorder) sorted :: "'a list \<Rightarrow> bool" where
+"sorted [] \<longleftrightarrow> True" |
+"sorted [x] \<longleftrightarrow> True" |
+"sorted (x#y#zs) \<longleftrightarrow> x \<^loc><= y \<and> sorted (y#zs)"
+
+fun (in linorder) insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"insort x [] = [x]" |
+"insort x (y#ys) = (if x \<^loc><= y then (x#y#ys) else y#(insort x ys))"
+
+fun (in linorder) sort :: "'a list \<Rightarrow> 'a list" where
+"sort [] = []" |
+"sort (x#xs) = insort x (sort xs)"
+
 
 subsubsection {* List comprehension *}
 
@@ -2474,6 +2489,44 @@ apply(induct xs arbitrary: ys) apply simp
 apply(case_tac ys)
  apply auto
 done
+
+
+subsection {*Sorting*}
+
+context linorder
+begin
+
+lemma sorted_Cons: "sorted (x#xs) = (sorted xs & (ALL y:set xs. x \<^loc><= y))"
+apply(induct xs arbitrary: x) apply simp
+by simp (blast intro: order_trans)
+
+lemma sorted_append:
+  "sorted (xs@ys) = (sorted xs & sorted ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<^loc>\<le>y))"
+by (induct xs) (auto simp add:sorted_Cons)
+
+lemma set_insort: "set(insort x xs) = insert x (set xs)"
+by (induct xs) auto
+
+lemma set_sort: "set(sort xs) = set xs"
+by (induct xs) (simp_all add:set_insort)
+
+lemma distinct_insort: "distinct (insort x xs) = (x \<notin> set xs \<and> distinct xs)"
+by(induct xs)(auto simp:set_insort)
+
+lemma distinct_sort: "distinct (sort xs) = distinct xs"
+by(induct xs)(simp_all add:distinct_insort set_sort)
+
+lemma sorted_insort: "sorted (insort x xs) = sorted xs"
+apply (induct xs)
+ apply(auto simp:sorted_Cons set_insort not_le less_imp_le)
+apply(blast intro:order_trans)
+done
+
+theorem sorted_sort[simp]: "sorted (sort xs)"
+by (induct xs) (auto simp:sorted_insort)
+
+end
+
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
 
