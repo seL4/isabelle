@@ -112,7 +112,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Tools/datatype_case.ML Tools/datatype_codegen.ML			\
   Tools/datatype_hooks.ML Tools/datatype_package.ML			\
   Tools/datatype_prop.ML Tools/datatype_realizer.ML			\
-  Tools/datatype_rep_proofs.ML Tools/function_package/auto_term.ML	\
+  Tools/datatype_rep_proofs.ML Tools/dseq.ML	\
+  Tools/function_package/auto_term.ML	\
   Tools/function_package/context_tree.ML				\
   Tools/function_package/fundef_common.ML				\
   Tools/function_package/fundef_core.ML					\

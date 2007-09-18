@@ -1,0 +1,56 @@
+(*  Title:      HOL/Tools/DSeq.ML
+    ID:         $Id$
+    Author:     Stefan Berghofer, TU Muenchen
+
+Sequences with recursion depth limit.
+*)
+
+structure DSeq =
+struct
+
+fun maps f s 0 = Seq.empty
+  | maps f s i = Seq.maps (fn a => f a i) (s (i - 1));
+
+fun map f s i = Seq.map f (s i);
+
+fun append s1 s2 i = Seq.append (s1 i) (s2 i);
+
+fun interleave s1 s2 i = Seq.interleave (s1 i, s2 i);
+
+fun single x i = Seq.single x;
+
+fun empty i = Seq.empty;
+
+fun guard b = if b then single () else empty;
+
+fun of_list xs i = Seq.of_list xs;
+
+fun list_of s = Seq.list_of (s ~1);
+
+fun pull s = Seq.pull (s ~1);
+
+fun hd s = Seq.hd (s ~1);
+
+end;
+
+
+(* combinators for code generated from inductive predicates *)
+
+infix 5 :->;
+infix 3 ++;
+
+fun s :-> f = DSeq.maps f s;
+
+fun f ++ g = DSeq.append f g;
+
+val ?? = DSeq.guard;
+
+fun ??? f g = f o g;
+
+fun ?! s = is_some (DSeq.pull s);
+
+fun equal__1 x = DSeq.single x;
+
+val equal__2 = equal__1;
+
+fun equal__1_2 (x, y) = ?? (x = y);

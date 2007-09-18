@@ -11,6 +11,7 @@ uses
   ("Tools/inductive_package.ML")
   ("Tools/inductive_set_package.ML")
   ("Tools/inductive_realizer.ML")
+  "Tools/dseq.ML"
   ("Tools/inductive_codegen.ML")
   ("Tools/datatype_aux.ML")
   ("Tools/datatype_prop.ML")
