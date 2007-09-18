@@ -20,9 +20,9 @@ use_thys [
   "Arithmetic_Series_Complex",
   "HarmonicSeries",
 
-  "DenumRat"
+  "DenumRat",
+  
+  "MIR",
+  "ReflectedFerrack"
 ];
-
-if String.isPrefix "smlnj" ml_system then ()  (* FIXME tmp *)
-else use_thys ["MIR", "ReflectedFerrack"];
 
