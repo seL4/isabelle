@@ -64,6 +64,7 @@ sig
   val inst_term: typ Symtab.table * term Symtab.table -> term -> term
   val inst_thm: theory -> typ Symtab.table * term Symtab.table -> thm -> thm
   val inst_morphism: theory -> typ Symtab.table * term Symtab.table -> morphism
+  val inst_morphism': theory -> typ Symtab.table * term Symtab.table -> typ Symtab.table * term Symtab.table -> morphism
   val satisfy_thm: witness list -> thm -> thm
   val satisfy_morphism: witness list -> morphism
   val satisfy_facts: witness list ->
@@ -466,6 +467,16 @@ fun inst_morphism thy envs =
       typ = instT_type (#1 envs),
       term = inst_term envs,
       fact = map (fn th => inst_thm (Theory.deref thy_ref) envs th)}
+  end;
+
+(* separate instantiation for theorems -- cannot have vars *)
+fun inst_morphism' thy envs envs' =
+  let val thy_ref = Theory.check_thy thy in
+    Morphism.morphism
+     {name = I, var = I,
+      typ = instT_type (#1 envs),
+      term = inst_term envs,
+      fact = map (fn th => inst_thm (Theory.deref thy_ref) envs' th)}
   end;
 
 
