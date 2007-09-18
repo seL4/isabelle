@@ -1,7 +1,5 @@
 (*<*)
-theory appendix
-imports Main
-begin
+theory appendix imports Main begin;
 (*>*)
 
 text{*
@@ -24,10 +22,12 @@ Constant & Type & Syntax \\
 @{term abs} &  @{text "('a::minus) \<Rightarrow> 'a"} & ${\mid} x {\mid}$\\
 @{text"\<le>"} & @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> bool"} & (infixl 50) \\
 @{text"<"} & @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> bool"} & (infixl 50) \\
-%@{term Least} & @{text "('a::ord \<Rightarrow> bool) \<Rightarrow> 'a"} &
-%@{text LEAST}$~x.~P$
+@{term min} &  @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> 'a"} \\
+@{term max} &  @{text "('a::ord) \<Rightarrow> 'a \<Rightarrow> 'a"} \\
+@{term Least} & @{text "('a::ord \<Rightarrow> bool) \<Rightarrow> 'a"} &
+@{text LEAST}$~x.~P$
 \end{tabular}
-\caption{Algebraic symbols and operations in HOL}
+\caption{Overloaded Constants in HOL}
 \label{tab:overloading}
 \end{center}
 \end{table}
