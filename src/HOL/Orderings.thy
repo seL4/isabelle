@@ -8,7 +8,6 @@ header {* Syntactic and abstract orders *}
 theory Orderings
 imports Set Fun
 uses
-  (*"~~/src/Provers/quasi.ML"*)
   "~~/src/Provers/order.ML"
 begin
 
@@ -239,81 +238,239 @@ end
 subsection {* Reasoning tools setup *}
 
 ML {*
-local
 
-fun decomp_gen sort thy (Trueprop $ t) =
+signature ORDERS =
+sig
+  val print_structures: Proof.context -> unit
+  val setup: theory -> theory
+  val order_tac: Proof.context -> int -> tactic
+end;
+
+structure Orders: ORDERS =
+struct
+
+(** Theory and context data **)
+
+fun struct_eq ((s1: string, ts1), (s2, ts2)) =
+  (s1 = s2) andalso eq_list (op aconv) (ts1, ts2);
+
+structure Data = GenericDataFun
+(
+  type T = ((string * term list) * Order_Tac.less_arith) list;
+    (* Order structures:
+       identifier of the structure, list of operations and record of theorems
+       needed to set up the transitivity reasoner,
+       identifier and operations identify the structure uniquely. *)
+  val empty = [];
+  val extend = I;
+  fun merge _ = AList.join struct_eq (K fst);
+);
+
+fun print_structures ctxt =
   let
-    fun of_sort t =
+    val structs = Data.get (Context.Proof ctxt);
+    fun pretty_term t = Pretty.block
+      [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.brk 1,
+        Pretty.str "::", Pretty.brk 1,
+        Pretty.quote (ProofContext.pretty_typ ctxt (type_of t))];
+    fun pretty_struct ((s, ts), _) = Pretty.block
+      [Pretty.str s, Pretty.str ":", Pretty.brk 1,
+       Pretty.enclose "(" ")" (Pretty.breaks (map pretty_term ts))];
+  in
+    Pretty.writeln (Pretty.big_list "Order structures:" (map pretty_struct structs))
+  end;
+
+
+(** Method **)
+
+fun struct_tac ((s, [eq, le, less]), thms) =
+  let
+    fun decomp thy (Trueprop $ t) =
       let
-        val T = type_of t
-      in
-        (* exclude numeric types: linear arithmetic subsumes transitivity *)
-        T <> HOLogic.natT andalso T <> HOLogic.intT
-          andalso T <> HOLogic.realT andalso Sign.of_sort thy (T, sort)
-      end;
-    fun dec (Const (@{const_name Not}, _) $ t) = (case dec t
-          of NONE => NONE
-           | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
-      | dec (Const (@{const_name "op ="},  _) $ t1 $ t2) =
-          if of_sort t1
-          then SOME (t1, "=", t2)
-          else NONE
-      | dec (Const (@{const_name HOL.less_eq},  _) $ t1 $ t2) =
-          if of_sort t1
-          then SOME (t1, "<=", t2)
-          else NONE
-      | dec (Const (@{const_name HOL.less},  _) $ t1 $ t2) =
-          if of_sort t1
-          then SOME (t1, "<", t2)
-          else NONE
-      | dec _ = NONE;
-  in dec t end;
+        fun excluded t =
+          (* exclude numeric types: linear arithmetic subsumes transitivity *)
+          let val T = type_of t
+          in
+	    T = HOLogic.natT orelse T = HOLogic.intT orelse T = HOLogic.realT
+          end;
+	fun dec (Const (@{const_name Not}, _) $ t) = (case dec t
+	      of NONE => NONE
+	       | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
+          | dec (bin_op $ t1 $ t2) =
+              if excluded t1 then NONE
+              else if Pattern.matches thy (eq, bin_op) then SOME (t1, "=", t2)
+              else if Pattern.matches thy (le, bin_op) then SOME (t1, "<=", t2)
+              else if Pattern.matches thy (less, bin_op) then SOME (t1, "<", t2)
+              else NONE
+	  | dec _ = NONE;
+      in dec t end;
+  in
+    case s of
+      "order" => Order_Tac.partial_tac decomp thms
+    | "linorder" => Order_Tac.linear_tac decomp thms
+    | _ => error ("Unknown kind of order `" ^ s ^ "' encountered in transitivity reasoner.")
+  end
 
-in
+fun order_tac ctxt =
+  FIRST' (map (fn s => CHANGED o struct_tac s) (Data.get (Context.Proof ctxt)));
 
-(* sorry - there is no preorder class
-structure Quasi_Tac = Quasi_Tac_Fun (
-struct
-  val le_trans = thm "order_trans";
-  val le_refl = thm "order_refl";
-  val eqD1 = thm "order_eq_refl";
-  val eqD2 = thm "sym" RS thm "order_eq_refl";
-  val less_reflE = thm "order_less_irrefl" RS thm "notE";
-  val less_imp_le = thm "order_less_imp_le";
-  val le_neq_trans = thm "order_le_neq_trans";
-  val neq_le_trans = thm "order_neq_le_trans";
-  val less_imp_neq = thm "less_imp_neq";
-  val decomp_trans = decomp_gen ["Orderings.preorder"];
-  val decomp_quasi = decomp_gen ["Orderings.preorder"];
-end);*)
 
-structure Order_Tac = Order_Tac_Fun (
-struct
-  val less_reflE = @{thm less_irrefl} RS @{thm notE};
-  val le_refl = @{thm order_refl};
-  val less_imp_le = @{thm less_imp_le};
-  val not_lessI = @{thm not_less} RS @{thm iffD2};
-  val not_leI = @{thm not_le} RS @{thm iffD2};
-  val not_lessD = @{thm not_less} RS @{thm iffD1};
-  val not_leD = @{thm not_le} RS @{thm iffD1};
-  val eqI = @{thm antisym};
-  val eqD1 = @{thm eq_refl};
-  val eqD2 = @{thm sym} RS @{thm eq_refl};
-  val less_trans = @{thm less_trans};
-  val less_le_trans = @{thm less_le_trans};
-  val le_less_trans = @{thm le_less_trans};
-  val le_trans = @{thm order_trans};
-  val le_neq_trans = @{thm le_neq_trans};
-  val neq_le_trans = @{thm neq_le_trans};
-  val less_imp_neq = @{thm less_imp_neq};
-  val eq_neq_eq_imp_neq = @{thm eq_neq_eq_imp_neq};
-  val not_sym = @{thm not_sym};
-  val decomp_part = decomp_gen ["Orderings.order"];
-  val decomp_lin = decomp_gen ["Orderings.linorder"];
-end);
+(** Attribute **)
+
+fun add_struct_thm s tag =
+  Thm.declaration_attribute
+    (fn thm => Data.map (AList.map_default struct_eq (s, Order_Tac.empty TrueI) (Order_Tac.update tag thm)));
+fun del_struct s =
+  Thm.declaration_attribute
+    (fn _ => Data.map (AList.delete struct_eq s));
+
+val attribute = Attrib.syntax
+     (Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) ||
+          Args.del >> K NONE) --| Args.colon (* FIXME ||
+        Scan.succeed true *) ) -- Scan.lift Args.name --
+      Scan.repeat Args.term
+      >> (fn ((SOME tag, n), ts) => add_struct_thm (n, ts) tag
+           | ((NONE, n), ts) => del_struct (n, ts)));
+
+
+(** Diagnostic command **)
+
+val print = Toplevel.unknown_context o
+  Toplevel.keep (Toplevel.node_case
+    (Context.cases (print_structures o ProofContext.init) print_structures)
+    (print_structures o Proof.context_of));
+
+val printP =
+  OuterSyntax.improper_command "print_orders"
+    "print order structures available to transitivity reasoner" OuterKeyword.diag
+    (Scan.succeed (Toplevel.no_timing o print));
+
+
+(** Setup **)
+
+val setup = let val _ = OuterSyntax.add_parsers [printP] in
+    Method.add_methods [("order", Method.ctxt_args (Method.SIMPLE_METHOD' o order_tac),
+      "normalisation of algebraic structure")] #>
+    Attrib.add_attributes [("order", attribute, "theorems controlling transitivity reasoner")]
+  end;
 
 end;
+
 *}
+
+setup Orders.setup
+
+
+text {* Declarations to set up transitivity reasoner of partial and linear orders. *}
+
+(* The type constraint on @{term op =} below is necessary since the operation
+   is not a parameter of the locale. *)
+lemmas (in order)
+  [order add less_reflE: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_irrefl [THEN notE]
+lemmas (in order)
+  [order add le_refl: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  order_refl
+lemmas (in order)
+  [order add less_imp_le: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_imp_le
+lemmas (in order)
+  [order add eqI: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  antisym
+lemmas (in order)
+  [order add eqD1: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  eq_refl
+lemmas (in order)
+  [order add eqD2: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  sym [THEN eq_refl]
+lemmas (in order)
+  [order add less_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_trans
+lemmas (in order)
+  [order add less_le_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_le_trans
+lemmas (in order)
+  [order add le_less_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  le_less_trans
+lemmas (in order)
+  [order add le_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  order_trans
+lemmas (in order)
+  [order add le_neq_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  le_neq_trans
+lemmas (in order)
+  [order add neq_le_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  neq_le_trans
+lemmas (in order)
+  [order add less_imp_neq: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_imp_neq
+lemmas (in order)
+  [order add eq_neq_eq_imp_neq: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+   eq_neq_eq_imp_neq
+lemmas (in order)
+  [order add not_sym: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  not_sym
+
+lemmas (in linorder) [order del: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] = _
+
+lemmas (in linorder)
+  [order add less_reflE: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_irrefl [THEN notE]
+lemmas (in linorder)
+  [order add le_refl: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  order_refl
+lemmas (in linorder)
+  [order add less_imp_le: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_imp_le
+lemmas (in linorder)
+  [order add not_lessI: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  not_less [THEN iffD2]
+lemmas (in linorder)
+  [order add not_leI: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  not_le [THEN iffD2]
+lemmas (in linorder)
+  [order add not_lessD: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  not_less [THEN iffD1]
+lemmas (in linorder)
+  [order add not_leD: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  not_le [THEN iffD1]
+lemmas (in linorder)
+  [order add eqI: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  antisym
+lemmas (in linorder)
+  [order add eqD1: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  eq_refl
+lemmas (in linorder)
+  [order add eqD2: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  sym [THEN eq_refl]
+lemmas (in linorder)
+  [order add less_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_trans
+lemmas (in linorder)
+  [order add less_le_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_le_trans
+lemmas (in linorder)
+  [order add le_less_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  le_less_trans
+lemmas (in linorder)
+  [order add le_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  order_trans
+lemmas (in linorder)
+  [order add le_neq_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  le_neq_trans
+lemmas (in linorder)
+  [order add neq_le_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  neq_le_trans
+lemmas (in linorder)
+  [order add less_imp_neq: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  less_imp_neq
+lemmas (in linorder)
+  [order add eq_neq_eq_imp_neq: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  eq_neq_eq_imp_neq
+lemmas (in linorder)
+  [order add not_sym: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  not_sym
+
 
 setup {*
 let
@@ -356,15 +513,14 @@ fun add_simprocs procs thy =
       Simplifier.simproc thy name raw_ts proc)) procs); thy);
 fun add_solver name tac thy =
   (Simplifier.change_simpset_of thy (fn ss => ss addSolver
-    (mk_solver name (K tac))); thy);
+    (mk_solver' name (fn ss => tac (MetaSimplifier.the_context ss)))); thy);
 
 in
   add_simprocs [
        ("antisym le", ["(x::'a::order) <= y"], prove_antisym_le),
        ("antisym less", ["~ (x::'a::linorder) < y"], prove_antisym_less)
      ]
-  #> add_solver "Trans_linear" Order_Tac.linear_tac
-  #> add_solver "Trans_partial" Order_Tac.partial_tac
+  #> add_solver "Transitivity" Orders.order_tac
   (* Adding the transitivity reasoners also as safe solvers showed a slight
      speed up, but the reasoning strength appears to be not higher (at least
      no breaking of additional proofs in the entire HOL distribution, as
@@ -380,6 +536,7 @@ class dense_linear_order = linorder +
   and lt_ex: "\<exists>y. y \<sqsubset> x"
   and dense: "x \<sqsubset> y \<Longrightarrow> (\<exists>z. x \<sqsubset> z \<and> z \<sqsubset> y)"
   (*see further theory Dense_Linear_Order*)
+
 
 lemma interval_empty_iff:
   fixes x y z :: "'a\<Colon>dense_linear_order"
