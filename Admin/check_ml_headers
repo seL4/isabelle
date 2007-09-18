@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# check_ml_headers - check headers of *.ML files in Distribution for inconsistencies
+#
+# requires some GNU tools
+#
+
+ONLY_FILENAMES=1
+if [ "$1" == "-o" ]
+then
+  ONLY_FILENAMES=""
+fi
+
+REPORT_EMPTY=""
+if [ "$2" == "-e" ]
+then
+  REPORT_EMPTY=1
+fi
+
+ISABELLE_SRC="$(isatool getenv -b ISABELLE_HOME)/src/"
+
+for LOC in $(find "$ISABELLE_SRC" -name "*.ML")
+do
+  TITLE="$(head -n 1 "$LOC" | grep -Po '(?<=Title:)\s*\S+.ML' | grep -Po '\S+.ML')"
+  FILELOC="${LOC:${#ISABELLE_SRC}}"
+  if [ "$TITLE" != "$FILELOC" ]
+  then
+    if [ -n "$REPORT_EMPTY" -o -n "$TITLE" ]
+    then
+      if [ -n "$ONLY_FILENAMES" ]
+      then
+        echo "Inconsistency in $LOC: $TITLE"
+      else
+        echo "$LOC"
+      fi
+    fi
+  fi
+done
