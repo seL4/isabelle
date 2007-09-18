@@ -7,7 +7,6 @@ Code generator translation kernel.  Code generator Isar setup.
 
 signature CODE_PACKAGE =
 sig
-  (*interfaces*)
   val eval_conv: theory
     -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
        -> string list -> cterm -> thm)
@@ -18,9 +17,10 @@ sig
     -> cterm -> 'a;
   val satisfies_ref: (unit -> bool) option ref;
   val satisfies: theory -> cterm -> string list -> bool;
+  val eval_invoke: theory -> (string * (unit -> 'a) option ref) -> CodeThingol.code
+    -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val codegen_command: theory -> string -> unit;
 
-  (*axiomatic interfaces*)
   type appgen;
   val add_appconst: string * appgen -> theory -> theory;
   val appgen_let: appgen;
@@ -425,7 +425,7 @@ fun code thy permissive cs seris =
     val code = Program.get thy;
     val seris' = map (fn (((target, module), file), args) =>
       CodeTarget.get_serializer thy target permissive module file args
-        CodeName.labelled_name cs) seris;
+        CodeName.labelled_name (K false) cs) seris;
   in (map (fn f => f code) seris' : unit list; ()) end;
 
 fun raw_eval f thy g =
@@ -461,6 +461,8 @@ fun raw_eval f thy g =
 fun eval_conv thy = raw_eval CodeFuncgr.eval_conv thy;
 fun eval_term thy = raw_eval CodeFuncgr.eval_term thy;
 
+fun eval_invoke thy = CodeTarget.eval_invoke thy CodeName.labelled_name (K false);
+
 val satisfies_ref : (unit -> bool) option ref = ref NONE;
 
 fun satisfies thy ct witnesses =
@@ -472,7 +474,7 @@ fun satisfies thy ct witnesses =
           error ("Term " ^ Sign.string_of_term thy t0 ^ " contains polymorphic type"))
           t0;
       in
-        CodeTarget.eval_term thy ("CodePackage.satisfies_ref", satisfies_ref)
+        eval_invoke thy ("CodePackage.satisfies_ref", satisfies_ref)
           code (t, ty) witnesses
       end;
   in eval_term thy evl ct end;
@@ -552,7 +554,7 @@ fun add_codeprops all_cs sel_cs thy =
     |> Sign.sticky_prefix "codeprop"
     |> lift_name_yield (fold_map add codeprops)
     ||> Sign.restore_naming thy
-    |-> (fn c_thms => fold (Code.add_func true o snd) c_thms #> pair c_thms)
+    |-> (fn c_thms => fold (Code.add_func o snd) c_thms #> pair c_thms)
   end;
 
 

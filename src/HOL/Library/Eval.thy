@@ -55,7 +55,7 @@ let
   fun hook specs =
     DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [TypOf.class_typ_of] mk ((K o K) (fold (Code.add_func true)))
+      [TypOf.class_typ_of] mk ((K o K) (fold Code.add_default_func))
 in DatatypeCodegen.add_codetypes_hook_bootstrap hook end
 *}
 
@@ -176,7 +176,10 @@ let
   val _ = (Term.map_types o Term.map_atyps) (fn _ =>
     error ("Term " ^ Sign.string_of_term thy t0 ^ " contains polymorphic type"))
     t0;
-in Logic.mk_equals (t0, CodeTarget.eval_term thy ("Eval.eval_ref", Eval.eval_ref) code (t, ty) []) end;
+in
+  Logic.mk_equals (t0,
+    CodePackage.eval_invoke thy ("Eval.eval_ref", Eval.eval_ref) code (t, ty) [])
+end;
 *}
 
 ML {*

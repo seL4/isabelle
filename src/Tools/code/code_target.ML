@@ -32,12 +32,14 @@ sig
   type serializer;
   val add_serializer: string * serializer -> theory -> theory;
   val get_serializer: theory -> string -> bool -> string option -> string option -> Args.T list
-    -> (theory -> string -> string) -> string list option -> CodeThingol.code -> unit;
+    -> (theory -> string -> string) -> (string -> bool) -> string list option
+    -> CodeThingol.code -> unit;
   val assert_serializer: theory -> string -> string;
 
   val eval_verbose: bool ref;
-  val eval_term: theory -> (string * (unit -> 'a) option ref) -> CodeThingol.code
-    ->  CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
+  val eval_invoke: theory -> (theory -> string -> string) -> (string -> bool)
+    -> (string * (unit -> 'a) option ref) -> CodeThingol.code
+    -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val code_width: int ref;
 
   val setup: theory -> theory;
@@ -300,7 +302,7 @@ datatype ml_def =
         * ((class * (string * (string * dict list list))) list
       * (string * const) list));
 
-fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
+fun pr_sml allows_exception tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
   let
     val pr_label_classrel = translate_string (fn "." => "__" | c => c) o NameSpace.qualifier;
     val pr_label_classop = NameSpace.base o NameSpace.qualifier;
@@ -569,7 +571,8 @@ fun pr_sml_modl name content =
     str ("end; (*struct " ^ name ^ "*)")
   ]);
 
-fun pr_ocaml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
+fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
+    init_syms deresolv is_cons ml_def =
   let
     fun pr_dicts fxy ds =
       let
@@ -858,7 +861,7 @@ val code_width = ref 80;
 fun code_output p = Pretty.setmp_margin (!code_width) Pretty.output p ^ "\n";
 
 fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_alias module_prolog
-  (_ : string -> class_syntax option) tyco_syntax const_syntax code =
+  allows_exception (_ : string -> class_syntax option) tyco_syntax const_syntax code =
   let
     val module_alias = if is_some module then K module else raw_module_alias;
     val is_cons = CodeThingol.is_cons code;
@@ -1014,7 +1017,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
     fun pr_node prefix (Def (_, NONE)) =
           NONE
       | pr_node prefix (Def (_, SOME def)) =
-          SOME (pr_def tyco_syntax const_syntax labelled_name init_syms
+          SOME (pr_def allows_exception tyco_syntax const_syntax labelled_name init_syms
             (deresolver prefix) is_cons def)
       | pr_node prefix (Module (dmodlname, (_, nodes))) =
           SOME (pr_modl dmodlname (the_prolog (NameSpace.implode (prefix @ [dmodlname]))
@@ -1064,8 +1067,8 @@ val pr_bind_haskell = gen_pr_bind pr_bind';
 
 in
 
-fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
-    deresolv_here deresolv is_cons deriving_show def =
+fun pr_haskell allows_exception class_syntax tyco_syntax const_syntax labelled_name
+    init_syms deresolv_here deresolv is_cons deriving_show def =
   let
     fun class_name class = case class_syntax class
      of NONE => deresolv class
@@ -1294,7 +1297,8 @@ fun pretty_haskell_monad c_mbind c_kbind =
 end; (*local*)
 
 fun seri_haskell module_prefix module destination string_classes labelled_name
-    reserved_syms raw_module_alias module_prolog class_syntax tyco_syntax const_syntax code =
+    reserved_syms raw_module_alias module_prolog
+    allows_exception class_syntax tyco_syntax const_syntax code =
   let
     val _ = Option.map File.check destination;
     val is_cons = CodeThingol.is_cons code;
@@ -1365,7 +1369,8 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
-    fun seri_def qualified = pr_haskell class_syntax tyco_syntax const_syntax labelled_name init_syms
+    fun seri_def qualified = pr_haskell allows_exception class_syntax tyco_syntax
+      const_syntax labelled_name init_syms
       deresolv_here (if qualified then deresolv else deresolv_here) is_cons
       (if string_classes then deriving_show else K false);
     fun write_module (SOME destination) modlname =
@@ -1428,7 +1433,7 @@ fun isar_seri_haskell module file =
 
 (** diagnosis serializer **)
 
-fun seri_diagnosis labelled_name _ _ _ _ _ _ code =
+fun seri_diagnosis labelled_name _ _ _ _ _ _ _ code =
   let
     val init_names = CodeName.make_vars [];
     fun pr_fun "fun" = SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
@@ -1438,7 +1443,7 @@ fun seri_diagnosis labelled_name _ _ _ _ _ _ code =
             pr_typ (INFX (1, R)) ty2
           ])
       | pr_fun _ = NONE
-    val pr = pr_haskell (K NONE) pr_fun (K NONE) labelled_name init_names I I (K false) (K false);
+    val pr = pr_haskell (K true) (K NONE) pr_fun (K NONE) labelled_name init_names I I (K false) (K false);
   in
     []
     |> Graph.fold (fn (name, (def, _)) => case try pr (name, def) of SOME p => cons p | NONE => I) code
@@ -1495,6 +1500,7 @@ type serializer =
   -> string list
   -> (string -> string option)
   -> (string -> Pretty.T option)
+  -> (string -> bool)
   -> (string -> class_syntax option)
   -> (string -> typ_syntax option)
   -> (string -> term_syntax option)
@@ -1570,7 +1576,8 @@ val target_OCaml = "OCaml";
 val target_Haskell = "Haskell";
 val target_diag = "diag";
 
-fun get_serializer thy target permissive module file args labelled_name = fn cs =>
+fun get_serializer thy target permissive module file args
+    labelled_name allows_exception = fn cs =>
   let
     val data = case Symtab.lookup (CodeTargetData.get thy) target
      of SOME data => data
@@ -1589,15 +1596,16 @@ fun get_serializer thy target permissive module file args labelled_name = fn cs 
     project
     #> check_empty_funs
     #> seri module file args (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
-      (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
+      allows_exception (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 
-fun eval_term thy (ref_name, reff) code (t, ty) args =
+fun eval_invoke thy labelled_name allows_exception (ref_name, reff) code (t, ty) args =
   let
     val val_name = "Isabelle_Eval.EVAL.EVAL";
     val val_name' = "Isabelle_Eval.EVAL";
     val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
-    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [] CodeName.labelled_name;
+    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE []
+      labelled_name allows_exception;
     fun eval code = (
       reff := NONE;
       seri (SOME [val_name]) code;
