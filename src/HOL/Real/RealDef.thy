@@ -930,77 +930,78 @@ by simp
 subsection {* Implementation of rational real numbers as pairs of integers *}
 
 definition
-  RealC :: "int \<times> int \<Rightarrow> real"
+  Ratreal :: "int \<times> int \<Rightarrow> real"
 where
-  "RealC = INum"
+  "Ratreal = INum"
 
-code_datatype RealC
+code_datatype Ratreal
 
-lemma RealC_simp:
-  "RealC (k, l) = real_of_int k / real_of_int l"
-  unfolding RealC_def INum_def by simp
+lemma Ratreal_simp:
+  "Ratreal (k, l) = real_of_int k / real_of_int l"
+  unfolding Ratreal_def INum_def by simp
 
-lemma RealC_zero [simp]: "RealC 0\<^sub>N = 0"
-  by (simp add: RealC_simp)
+lemma Ratreal_zero [simp]: "Ratreal 0\<^sub>N = 0"
+  by (simp add: Ratreal_simp)
 
-lemma RealC_lit [simp]: "RealC i\<^sub>N = real_of_int i"
-  by (simp add: RealC_simp)
+lemma Ratreal_lit [simp]: "Ratreal i\<^sub>N = real_of_int i"
+  by (simp add: Ratreal_simp)
 
 lemma zero_real_code [code, code unfold]:
-  "0 = RealC 0\<^sub>N" by simp
+  "0 = Ratreal 0\<^sub>N" by simp
 
 lemma one_real_code [code, code unfold]:
-  "1 = RealC 1\<^sub>N" by simp
+  "1 = Ratreal 1\<^sub>N" by simp
 
 instance real :: eq ..
 
-lemma real_eq_code [code]: "RealC x = RealC y \<longleftrightarrow> normNum x = normNum y"
-  unfolding RealC_def INum_normNum_iff ..
+lemma real_eq_code [code]: "Ratreal x = Ratreal y \<longleftrightarrow> normNum x = normNum y"
+  unfolding Ratreal_def INum_normNum_iff ..
 
-lemma real_less_eq_code [code]: "RealC x \<le> RealC y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
+lemma real_less_eq_code [code]: "Ratreal x \<le> Ratreal y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
 proof -
-  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> RealC (normNum x) \<le> RealC (normNum y)" 
-    by (simp add: RealC_def del: normNum)
-  also have "\<dots> = (RealC x \<le> RealC y)" by (simp add: RealC_def)
+  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> Ratreal (normNum x) \<le> Ratreal (normNum y)" 
+    by (simp add: Ratreal_def del: normNum)
+  also have "\<dots> = (Ratreal x \<le> Ratreal y)" by (simp add: Ratreal_def)
   finally show ?thesis by simp
 qed
 
-lemma real_less_code [code]: "RealC x < RealC y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
+lemma real_less_code [code]: "Ratreal x < Ratreal y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
 proof -
-  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> RealC (normNum x) < RealC (normNum y)" 
-    by (simp add: RealC_def del: normNum)
-  also have "\<dots> = (RealC x < RealC y)" by (simp add: RealC_def)
+  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> Ratreal (normNum x) < Ratreal (normNum y)" 
+    by (simp add: Ratreal_def del: normNum)
+  also have "\<dots> = (Ratreal x < Ratreal y)" by (simp add: Ratreal_def)
   finally show ?thesis by simp
 qed
 
-lemma real_add_code [code]: "RealC x + RealC y = RealC (x +\<^sub>N y)"
-  unfolding RealC_def by simp
+lemma real_add_code [code]: "Ratreal x + Ratreal y = Ratreal (x +\<^sub>N y)"
+  unfolding Ratreal_def by simp
 
-lemma real_mul_code [code]: "RealC x * RealC y = RealC (x *\<^sub>N y)"
-  unfolding RealC_def by simp
+lemma real_mul_code [code]: "Ratreal x * Ratreal y = Ratreal (x *\<^sub>N y)"
+  unfolding Ratreal_def by simp
 
-lemma real_neg_code [code]: "- RealC x = RealC (~\<^sub>N x)"
-  unfolding RealC_def by simp
+lemma real_neg_code [code]: "- Ratreal x = Ratreal (~\<^sub>N x)"
+  unfolding Ratreal_def by simp
 
-lemma real_sub_code [code]: "RealC x - RealC y = RealC (x -\<^sub>N y)"
-  unfolding RealC_def by simp
+lemma real_sub_code [code]: "Ratreal x - Ratreal y = Ratreal (x -\<^sub>N y)"
+  unfolding Ratreal_def by simp
 
-lemma real_inv_code [code]: "inverse (RealC x) = RealC (Ninv x)"
-  unfolding RealC_def Ninv real_divide_def by simp
+lemma real_inv_code [code]: "inverse (Ratreal x) = Ratreal (Ninv x)"
+  unfolding Ratreal_def Ninv real_divide_def by simp
 
-lemma real_div_code [code]: "RealC x / RealC y = RealC (x \<div>\<^sub>N y)"
-  unfolding RealC_def by simp
+lemma real_div_code [code]: "Ratreal x / Ratreal y = Ratreal (x \<div>\<^sub>N y)"
+  unfolding Ratreal_def by simp
 
-text {* Setup for old code generator *}
+text {* Setup for SML code generator *}
 
 types_code
   real ("(int */ int)")
 attach (term_of) {*
 fun term_of_real (p, q) =
-  let val rT = HOLogic.realT
+  let
+    val rT = HOLogic.realT
   in
     if q = 1 orelse p = 0 then HOLogic.mk_number rT p
-    else Const ("HOL.inverse_class.divide", [rT, rT] ---> rT) $
+    else @{term "op / \<Colon> real \<Rightarrow> real \<Rightarrow> real"} $
       HOLogic.mk_number rT p $ HOLogic.mk_number rT q
   end;
 *}
@@ -1019,7 +1020,7 @@ fun gen_real i =
 *}
 
 consts_code
-  RealC ("(_)")
+  Ratreal ("(_)")
 
 consts_code
   "of_int :: int \<Rightarrow> real" ("\<module>real'_of'_int")
