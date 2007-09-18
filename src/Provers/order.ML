@@ -20,60 +20,247 @@ to
 2. or prove the conclusion, which must be of the same form as the
    premises (excluding ~(t < u) and ~(t <= u) for partial orders)
 
-The package is implemented as an ML functor and thus not limited to the
-relation <= and friends.  It can be instantiated to any partial and/or
-linear order --- for example, the divisibility relation "dvd".  In
-order to instantiate the package for a partial order only, supply
-dummy theorems to the rules for linear orders, and don't use
-linear_tac!
+The package is not limited to the relation <= and friends.  It can be
+instantiated to any partial and/or linear order --- for example, the
+divisibility relation "dvd".  In order to instantiate the package for
+a partial order only, supply dummy theorems to the rules for linear
+orders, and don't use linear_tac!
 
 *)
 
-signature LESS_ARITH =
+signature ORDER_TAC =
 sig
-  (* Theorems for partial orders *)
-  val less_reflE: thm  (* x < x ==> P *)
-  val le_refl: thm  (* x <= x *)
-  val less_imp_le: thm (* x < y ==> x <= y *)
-  val eqI: thm (* [| x <= y; y <= x |] ==> x = y *)
-  val eqD1: thm (* x = y ==> x <= y *)
-  val eqD2: thm (* x = y ==> y <= x *)
-  val less_trans: thm  (* [| x < y; y < z |] ==> x < z *)
-  val less_le_trans: thm  (* [| x < y; y <= z |] ==> x < z *)
-  val le_less_trans: thm  (* [| x <= y; y < z |] ==> x < z *)
-  val le_trans: thm  (* [| x <= y; y <= z |] ==> x <= z *)
-  val le_neq_trans : thm (* [| x <= y ; x ~= y |] ==> x < y *)
-  val neq_le_trans : thm (* [| x ~= y ; x <= y |] ==> x < y *)
-  val not_sym : thm (* x ~= y ==> y ~= x *)
+  (* Theorems required by the reasoner *)
+  type less_arith
+  val empty : thm -> less_arith
+  val update : string -> thm -> less_arith -> less_arith
 
-  (* Additional theorems for linear orders *)
-  val not_lessD: thm (* ~(x < y) ==> y <= x *)
-  val not_leD: thm (* ~(x <= y) ==> y < x *)
-  val not_lessI: thm (* y <= x  ==> ~(x < y) *)
-  val not_leI: thm (* y < x  ==> ~(x <= y) *)
-
-  (* Additional theorems for subgoals of form x ~= y *)
-  val less_imp_neq : thm (* x < y ==> x ~= y *)
-  val eq_neq_eq_imp_neq : thm (* [| x = u ; u ~= v ; v = z|] ==> x ~= z *)
-
-  (* Analysis of premises and conclusion *)
-  (* decomp_x (`x Rel y') should yield (x, Rel, y)
-       where Rel is one of "<", "<=", "~<", "~<=", "=" and "~=",
-       other relation symbols cause an error message *)
-  (* decomp_part is used by partial_tac *)
-  val decomp_part: theory -> term -> (term * string * term) option
-  (* decomp_lin is used by linear_tac *)
-  val decomp_lin: theory -> term -> (term * string * term) option
+  (* Tactics *)
+  val partial_tac:
+    (theory -> term -> (term * string * term) option) -> less_arith -> int -> tactic
+  val linear_tac:
+    (theory -> term -> (term * string * term) option) -> less_arith -> int -> tactic
 end;
 
-signature ORDER_TAC  =
-sig
-  val partial_tac: int -> tactic
-  val linear_tac:  int -> tactic
-end;
-
-functor Order_Tac_Fun (Less: LESS_ARITH): ORDER_TAC =
+structure Order_Tac: ORDER_TAC =
 struct
+
+(* Record to handle input theorems in a convenient way. *)
+
+type less_arith =
+  {
+    (* Theorems for partial orders *)
+    less_reflE: thm,  (* x < x ==> P *)
+    le_refl: thm,  (* x <= x *)
+    less_imp_le: thm, (* x < y ==> x <= y *)
+    eqI: thm, (* [| x <= y; y <= x |] ==> x = y *)
+    eqD1: thm, (* x = y ==> x <= y *)
+    eqD2: thm, (* x = y ==> y <= x *)
+    less_trans: thm,  (* [| x < y; y < z |] ==> x < z *)
+    less_le_trans: thm,  (* [| x < y; y <= z |] ==> x < z *)
+    le_less_trans: thm,  (* [| x <= y; y < z |] ==> x < z *)
+    le_trans: thm,  (* [| x <= y; y <= z |] ==> x <= z *)
+    le_neq_trans : thm, (* [| x <= y ; x ~= y |] ==> x < y *)
+    neq_le_trans : thm, (* [| x ~= y ; x <= y |] ==> x < y *)
+    not_sym : thm, (* x ~= y ==> y ~= x *)
+
+    (* Additional theorems for linear orders *)
+    not_lessD: thm, (* ~(x < y) ==> y <= x *)
+    not_leD: thm, (* ~(x <= y) ==> y < x *)
+    not_lessI: thm, (* y <= x  ==> ~(x < y) *)
+    not_leI: thm, (* y < x  ==> ~(x <= y) *)
+
+    (* Additional theorems for subgoals of form x ~= y *)
+    less_imp_neq : thm, (* x < y ==> x ~= y *)
+    eq_neq_eq_imp_neq : thm (* [| x = u ; u ~= v ; v = z|] ==> x ~= z *)
+  }
+
+fun empty dummy_thm =
+    {less_reflE= dummy_thm, le_refl= dummy_thm, less_imp_le= dummy_thm, eqI= dummy_thm,
+      eqD1= dummy_thm, eqD2= dummy_thm,
+      less_trans= dummy_thm, less_le_trans= dummy_thm, le_less_trans= dummy_thm,
+      le_trans= dummy_thm, le_neq_trans = dummy_thm, neq_le_trans = dummy_thm,
+      not_sym = dummy_thm,
+      not_lessD= dummy_thm, not_leD= dummy_thm, not_lessI= dummy_thm, not_leI= dummy_thm,
+      less_imp_neq = dummy_thm, eq_neq_eq_imp_neq = dummy_thm}
+
+fun change thms f =
+  let
+    val {less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq} = thms;
+    val (less_reflE', le_refl', less_imp_le', eqI', eqD1', eqD2', less_trans',
+      less_le_trans', le_less_trans', le_trans', le_neq_trans', neq_le_trans',
+      not_sym', not_lessD', not_leD', not_lessI', not_leI', less_imp_neq',
+      eq_neq_eq_imp_neq') =
+     f (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq)
+  in {less_reflE = less_reflE', le_refl= le_refl',
+      less_imp_le = less_imp_le', eqI = eqI', eqD1 = eqD1', eqD2 = eqD2',
+      less_trans = less_trans', less_le_trans = less_le_trans',
+      le_less_trans = le_less_trans', le_trans = le_trans', le_neq_trans = le_neq_trans',
+      neq_le_trans = neq_le_trans', not_sym = not_sym',
+      not_lessD = not_lessD', not_leD = not_leD', not_lessI = not_lessI',
+      not_leI = not_leI',
+      less_imp_neq = less_imp_neq', eq_neq_eq_imp_neq = eq_neq_eq_imp_neq'}
+  end;
+
+fun update "less_reflE" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (thm, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "le_refl" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, thm, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "less_imp_le" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, thm, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "eqI" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, thm, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "eqD1" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, thm, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "eqD2" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, thm, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "less_trans" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, thm,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "less_le_trans" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      thm, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "le_less_trans" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, thm, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "le_trans" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, thm, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "le_neq_trans" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, thm, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "neq_le_trans" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, thm,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "not_sym" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      thm, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "not_lessD" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, thm, not_leD, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "not_leD" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, thm, not_lessI, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "not_lessI" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, thm, not_leI, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "not_leI" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, thm, less_imp_neq, eq_neq_eq_imp_neq))
+  | update "less_imp_neq" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, thm, eq_neq_eq_imp_neq))
+  | update "eq_neq_eq_imp_neq" thm thms =
+    change thms (fn (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq,
+      eq_neq_eq_imp_neq) =>
+    (less_reflE, le_refl, less_imp_le, eqI, eqD1, eqD2, less_trans,
+      less_le_trans, le_less_trans, le_trans, le_neq_trans, neq_le_trans,
+      not_sym, not_lessD, not_leD, not_lessI, not_leI, less_imp_neq, thm));
+
 
 (* Extract subgoal with signature *)
 fun SUBGOAL goalfun i st =
@@ -115,9 +302,10 @@ fun getprf   (Less (_, _, p)) = p
 |   getprf   (Le   (_, _, p)) = p
 |   getprf   (NotEq (_,_, p)) = p;
 
+
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkasm_partial sign (t, n) : theory -> (Term.term * int) -> less          *)
+(* mkasm_partial                                                            *)
 (*                                                                          *)
 (* Tuple (t, n) (t an assumption, n its index in the assumptions) is        *)
 (* translated to an element of type less.                                   *)
@@ -125,27 +313,27 @@ fun getprf   (Less (_, _, p)) = p
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun mkasm_partial sign (t, n) =
-  case Less.decomp_part sign t of
+fun mkasm_partial decomp (less_thms : less_arith) sign (t, n) =
+  case decomp sign t of
     SOME (x, rel, y) => (case rel of
-      "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], Less.less_reflE)) 
+      "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], #less_reflE less_thms)) 
                else [Less (x, y, Asm n)]
     | "~<"  => []
     | "<="  => [Le (x, y, Asm n)]
     | "~<=" => [] 
-    | "="   => [Le (x, y, Thm ([Asm n], Less.eqD1)),
-                Le (y, x, Thm ([Asm n], Less.eqD2))]
+    | "="   => [Le (x, y, Thm ([Asm n], #eqD1 less_thms)),
+                Le (y, x, Thm ([Asm n], #eqD2 less_thms))]
     | "~="  => if (x aconv y) then 
-                  raise Contr (Thm ([(Thm ([(Thm ([], Less.le_refl)) ,(Asm n)], Less.le_neq_trans))], Less.less_reflE))
+                  raise Contr (Thm ([(Thm ([(Thm ([], #le_refl less_thms)) ,(Asm n)], #le_neq_trans less_thms))], #less_reflE less_thms))
                else [ NotEq (x, y, Asm n),
-                      NotEq (y, x,Thm ( [Asm n], Less.not_sym))] 
+                      NotEq (y, x,Thm ( [Asm n], #not_sym less_thms))] 
     | _     => error ("partial_tac: unknown relation symbol ``" ^ rel ^
-                 "''returned by decomp_part."))
+                 "''returned by decomp."))
   | NONE => [];
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkasm_linear sign (t, n) : theory -> (Term.term * int) -> less           *)
+(* mkasm_linear                                                             *)
 (*                                                                          *)
 (* Tuple (t, n) (t an assumption, n its index in the assumptions) is        *)
 (* translated to an element of type less.                                   *)
@@ -153,73 +341,85 @@ fun mkasm_partial sign (t, n) =
 (*                                                                          *)
 (* ************************************************************************ *)
  
-fun mkasm_linear sign (t, n) =
-  case Less.decomp_lin sign t of
+fun mkasm_linear decomp (less_thms : less_arith) sign (t, n) =
+  case decomp sign t of
     SOME (x, rel, y) => (case rel of
-      "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], Less.less_reflE)) 
+      "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], #less_reflE less_thms)) 
                else [Less (x, y, Asm n)]
-    | "~<"  => [Le (y, x, Thm ([Asm n], Less.not_lessD))]
+    | "~<"  => [Le (y, x, Thm ([Asm n], #not_lessD less_thms))]
     | "<="  => [Le (x, y, Asm n)]
     | "~<=" => if (x aconv y) then 
-                  raise (Contr (Thm ([Thm ([Asm n], Less.not_leD)], Less.less_reflE))) 
-               else [Less (y, x, Thm ([Asm n], Less.not_leD))] 
-    | "="   => [Le (x, y, Thm ([Asm n], Less.eqD1)),
-                Le (y, x, Thm ([Asm n], Less.eqD2))]
+                  raise (Contr (Thm ([Thm ([Asm n], #not_leD less_thms)], #less_reflE less_thms))) 
+               else [Less (y, x, Thm ([Asm n], #not_leD less_thms))] 
+    | "="   => [Le (x, y, Thm ([Asm n], #eqD1 less_thms)),
+                Le (y, x, Thm ([Asm n], #eqD2 less_thms))]
     | "~="  => if (x aconv y) then 
-                  raise Contr (Thm ([(Thm ([(Thm ([], Less.le_refl)) ,(Asm n)], Less.le_neq_trans))], Less.less_reflE))
+                  raise Contr (Thm ([(Thm ([(Thm ([], #le_refl less_thms)) ,(Asm n)], #le_neq_trans less_thms))], #less_reflE less_thms))
                else [ NotEq (x, y, Asm n),
-                      NotEq (y, x,Thm ( [Asm n], Less.not_sym))] 
+                      NotEq (y, x,Thm ( [Asm n], #not_sym less_thms))] 
     | _     => error ("linear_tac: unknown relation symbol ``" ^ rel ^
-                 "''returned by decomp_lin."))
+                 "''returned by decomp."))
   | NONE => [];
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkconcl_partial sign t : theory -> Term.term -> less                     *)
+(* mkconcl_partial                                                          *)
 (*                                                                          *)
 (* Translates conclusion t to an element of type less.                      *)
 (* Partial orders only.                                                     *)
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun mkconcl_partial sign t =
-  case Less.decomp_part sign t of
+fun mkconcl_partial decomp (less_thms : less_arith) sign t =
+  case decomp sign t of
     SOME (x, rel, y) => (case rel of
       "<"   => ([Less (x, y, Asm ~1)], Asm 0)
     | "<="  => ([Le (x, y, Asm ~1)], Asm 0)
     | "="   => ([Le (x, y, Asm ~1), Le (y, x, Asm ~1)],
-                 Thm ([Asm 0, Asm 1], Less.eqI))
+                 Thm ([Asm 0, Asm 1], #eqI less_thms))
     | "~="  => ([NotEq (x,y, Asm ~1)], Asm 0)
     | _  => raise Cannot)
   | NONE => raise Cannot;
 
 (* ************************************************************************ *)
 (*                                                                          *)
-(* mkconcl_linear sign t : theory -> Term.term -> less                      *)
+(* mkconcl_linear                                                           *)
 (*                                                                          *)
 (* Translates conclusion t to an element of type less.                      *)
 (* Linear orders only.                                                      *)
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun mkconcl_linear sign t =
-  case Less.decomp_lin sign t of
+fun mkconcl_linear decomp (less_thms : less_arith) sign t =
+  case decomp sign t of
     SOME (x, rel, y) => (case rel of
       "<"   => ([Less (x, y, Asm ~1)], Asm 0)
-    | "~<"  => ([Le (y, x, Asm ~1)], Thm ([Asm 0], Less.not_lessI))
+    | "~<"  => ([Le (y, x, Asm ~1)], Thm ([Asm 0], #not_lessI less_thms))
     | "<="  => ([Le (x, y, Asm ~1)], Asm 0)
-    | "~<=" => ([Less (y, x, Asm ~1)], Thm ([Asm 0], Less.not_leI))
+    | "~<=" => ([Less (y, x, Asm ~1)], Thm ([Asm 0], #not_leI less_thms))
     | "="   => ([Le (x, y, Asm ~1), Le (y, x, Asm ~1)],
-                 Thm ([Asm 0, Asm 1], Less.eqI))
+                 Thm ([Asm 0, Asm 1], #eqI less_thms))
     | "~="  => ([NotEq (x,y, Asm ~1)], Asm 0)
     | _  => raise Cannot)
   | NONE => raise Cannot;
- 
+
+
+(*** The common part for partial and linear orders ***)
+
+(* Analysis of premises and conclusion: *)
+(* decomp (`x Rel y') should yield (x, Rel, y)
+     where Rel is one of "<", "<=", "~<", "~<=", "=" and "~=",
+     other relation symbols cause an error message *)
+
+fun gen_order_tac mkasm mkconcl decomp (less_thms : less_arith) =
+
+let
+
 (* ******************************************************************* *)
 (*                                                                     *)
-(* mergeLess (less1,less2):  less * less -> less                       *)
+(* mergeLess                                                           *)
 (*                                                                     *)
-(* Merge to elements of type less according to the following rules     *)
+(* Merge two elements of type less according to the following rules    *)
 (*                                                                     *)
 (* x <  y && y <  z ==> x < z                                          *)
 (* x <  y && y <= z ==> x < z                                          *)
@@ -233,18 +433,18 @@ fun mkconcl_linear sign t =
 (* ******************************************************************* *)
 
 fun mergeLess (Less (x, _, p) , Less (_ , z, q)) =
-      Less (x, z, Thm ([p,q] , Less.less_trans))
+      Less (x, z, Thm ([p,q] , #less_trans less_thms))
 |   mergeLess (Less (x, _, p) , Le (_ , z, q)) =
-      Less (x, z, Thm ([p,q] , Less.less_le_trans))
+      Less (x, z, Thm ([p,q] , #less_le_trans less_thms))
 |   mergeLess (Le (x, _, p) , Less (_ , z, q)) =
-      Less (x, z, Thm ([p,q] , Less.le_less_trans))
+      Less (x, z, Thm ([p,q] , #le_less_trans less_thms))
 |   mergeLess (Le (x, z, p) , NotEq (x', z', q)) =
       if (x aconv x' andalso z aconv z' ) 
-      then Less (x, z, Thm ([p,q] , Less.le_neq_trans))
+      then Less (x, z, Thm ([p,q] , #le_neq_trans less_thms))
       else error "linear/partial_tac: internal error le_neq_trans"
 |   mergeLess (NotEq (x, z, p) , Le (x' , z', q)) =
       if (x aconv x' andalso z aconv z') 
-      then Less (x, z, Thm ([p,q] , Less.neq_le_trans))
+      then Less (x, z, Thm ([p,q] , #neq_le_trans less_thms))
       else error "linear/partial_tac: internal error neq_le_trans"
 |   mergeLess (NotEq (x, z, p) , Less (x' , z', q)) =
       if (x aconv x' andalso z aconv z') 
@@ -255,7 +455,7 @@ fun mergeLess (Less (x, _, p) , Less (_ , z, q)) =
       then Less (x, z, p)
       else error "linear/partial_tac: internal error less_neq_trans"
 |   mergeLess (Le (x, _, p) , Le (_ , z, q)) =
-      Le (x, z, Thm ([p,q] , Less.le_trans))
+      Le (x, z, Thm ([p,q] , #le_trans less_thms))
 |   mergeLess (_, _) =
       error "linear/partial_tac: internal error: undefined case";
 
@@ -320,7 +520,7 @@ fun (Less (x, y, _)) subsumes (Le (x', y', _)) =
 (* ******************************************************************* *)
 
 fun triv_solv (Le (x, x', _)) =
-    if x aconv x' then  SOME (Thm ([], Less.le_refl)) 
+    if x aconv x' then  SOME (Thm ([], #le_refl less_thms))
     else NONE
 |   triv_solv _ = NONE;
 
@@ -617,7 +817,7 @@ fun completeTermPath u v g  =
      in rev_path y end;
        
   in 
-  if found then (if u aconv v then [(Le (u, v, (Thm ([], Less.le_refl))))]
+  if found then (if u aconv v then [(Le (u, v, (Thm ([], #le_refl less_thms))))]
   else path u v ) else raise Cannot
 end;  
 
@@ -659,7 +859,7 @@ let
            end
    in  
       if x aconv y then 
-        [(Le (x, y, (Thm ([], Less.le_refl))))]
+        [(Le (x, y, (Thm ([], #le_refl less_thms))))]
       else ( if xi = yi then completeTermPath x y (List.nth(sccSubgraphs, xi))
              else rev_completeComponentPath y )  
    end;
@@ -746,7 +946,7 @@ in
            val xyLesss = transPath (tl xypath, hd xypath) 
        in  
 	  (case xyLesss of
-	    (Less (_, _, q)) => if xyLesss subsumes subgoal then (Thm ([q], Less.less_imp_le))  
+	    (Less (_, _, q)) => if xyLesss subsumes subgoal then (Thm ([q], #less_imp_le less_thms))  
 				else raise Cannot
 	     | _   => if xyLesss subsumes subgoal then (getprf xyLesss) 
 	              else raise Cannot)
@@ -786,10 +986,10 @@ in
      (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
        ( SOME (NotEq (x, y, p)), NotEq (x', y', _)) =>
           if  (x aconv x' andalso y aconv y') then p 
-	  else Thm ([p], Less.not_sym)
+	  else Thm ([p], #not_sym less_thms)
      | ( SOME (Less (x, y, p)), NotEq (x', y', _)) => 
-          if x aconv x' andalso y aconv y' then (Thm ([p], Less.less_imp_neq))
-          else (Thm ([(Thm ([p], Less.less_imp_neq))], Less.not_sym))
+          if x aconv x' andalso y aconv y' then (Thm ([p], #less_imp_neq less_thms))
+          else (Thm ([(Thm ([p], #less_imp_neq less_thms))], #not_sym less_thms))
      | _ => raise Cannot) 
    ) else (
    
@@ -810,12 +1010,12 @@ in
 	        (* if x ~= y follows from edge e *)
 	    	if e subsumes subgoal then (
 		     case e of (Less (u, v, q)) => (
-		       if u aconv x andalso v aconv y then (Thm ([q], Less.less_imp_neq))
-		       else (Thm ([(Thm ([q], Less.less_imp_neq))], Less.not_sym))
+		       if u aconv x andalso v aconv y then (Thm ([q], #less_imp_neq less_thms))
+		       else (Thm ([(Thm ([q], #less_imp_neq less_thms))], #not_sym less_thms))
 		     )
 		     |    (NotEq (u,v, q)) => (
 		       if u aconv x andalso v aconv y then q
-		       else (Thm ([q],  Less.not_sym))
+		       else (Thm ([q],  #not_sym less_thms))
 		     )
 		 )
                 (* if SCC_x is linked to SCC_y via edge e *)
@@ -823,7 +1023,7 @@ in
                    case e of (Less (_, _,_)) => (
 		        let val xypath = (completeTermPath x u (List.nth(sccSubgraphs, ui)) ) @ [e] @ (completeTermPath v y (List.nth(sccSubgraphs, vi)) )
 			    val xyLesss = transPath (tl xypath, hd xypath)
-			in  (Thm ([getprf xyLesss], Less.less_imp_neq)) end)
+			in  (Thm ([getprf xyLesss], #less_imp_neq less_thms)) end)
 		   | _ => (   
 		        let 
 			    val xupath = completeTermPath x u  (List.nth(sccSubgraphs, ui))
@@ -834,17 +1034,17 @@ in
 			    val uxLesss = transPath (tl uxpath, hd uxpath)			    
 			    val vyLesss = transPath (tl vypath, hd vypath)			
 			    val yvLesss = transPath (tl yvpath, hd yvpath)
-			    val x_eq_u =  (Thm ([(getprf xuLesss),(getprf uxLesss)], Less.eqI))
-			    val v_eq_y =  (Thm ([(getprf vyLesss),(getprf yvLesss)], Less.eqI))
+			    val x_eq_u =  (Thm ([(getprf xuLesss),(getprf uxLesss)], #eqI less_thms))
+			    val v_eq_y =  (Thm ([(getprf vyLesss),(getprf yvLesss)], #eqI less_thms))
 			in 
-                           (Thm ([x_eq_u , (getprf e), v_eq_y ], Less.eq_neq_eq_imp_neq)) 
+                           (Thm ([x_eq_u , (getprf e), v_eq_y ], #eq_neq_eq_imp_neq less_thms)) 
 			end
 			)       
 		  ) else if ui = yi andalso vi = xi then (
 		     case e of (Less (_, _,_)) => (
 		        let val xypath = (completeTermPath y u (List.nth(sccSubgraphs, ui)) ) @ [e] @ (completeTermPath v x (List.nth(sccSubgraphs, vi)) )
 			    val xyLesss = transPath (tl xypath, hd xypath)
-			in (Thm ([(Thm ([getprf xyLesss], Less.less_imp_neq))] , Less.not_sym)) end ) 
+			in (Thm ([(Thm ([getprf xyLesss], #less_imp_neq less_thms))] , #not_sym less_thms)) end ) 
 		     | _ => (
 		        
 			let val yupath = completeTermPath y u (List.nth(sccSubgraphs, ui))
@@ -855,24 +1055,24 @@ in
 			    val uyLesss = transPath (tl uypath, hd uypath)			    
 			    val vxLesss = transPath (tl vxpath, hd vxpath)			
 			    val xvLesss = transPath (tl xvpath, hd xvpath)
-			    val y_eq_u =  (Thm ([(getprf yuLesss),(getprf uyLesss)], Less.eqI))
-			    val v_eq_x =  (Thm ([(getprf vxLesss),(getprf xvLesss)], Less.eqI))
+			    val y_eq_u =  (Thm ([(getprf yuLesss),(getprf uyLesss)], #eqI less_thms))
+			    val v_eq_x =  (Thm ([(getprf vxLesss),(getprf xvLesss)], #eqI less_thms))
 			in
-			    (Thm ([(Thm ([y_eq_u , (getprf e), v_eq_x ], Less.eq_neq_eq_imp_neq))], Less.not_sym))
+			    (Thm ([(Thm ([y_eq_u , (getprf e), v_eq_x ], #eq_neq_eq_imp_neq less_thms))], #not_sym less_thms))
 		        end
 		       )
 		  ) else (
                        (* there exists a path x < y or y < x such that
                           x ~= y may be concluded *)
 	        	case  (findLess e x y xi yi xreachable yreachable) of 
-		              (SOME prf) =>  (Thm ([prf], Less.less_imp_neq))  
+		              (SOME prf) =>  (Thm ([prf], #less_imp_neq less_thms))  
                              | NONE =>  (
 		               let 
 		                val yr = dfs_int_reachable sccGraph yi
 	                        val xr = dfs_int_reachable sccGraph_transpose xi
 		               in 
 		                case  (findLess e y x yi xi yr xr) of 
-		                      (SOME prf) => (Thm ([(Thm ([prf], Less.less_imp_neq))], Less.not_sym)) 
+		                      (SOME prf) => (Thm ([(Thm ([prf], #less_imp_neq less_thms))], #not_sym less_thms)) 
                                       | _ => processNeqEdges es
 		               end)
 		 ) end) 
@@ -923,7 +1123,7 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
 	     val xxLesss = transPath (tl xxpath, hd xxpath)
 	     val q = getprf xxLesss
 	    in 
-	     raise (Contr (Thm ([q], Less.less_reflE ))) 
+	     raise (Contr (Thm ([q], #less_reflE less_thms ))) 
 	    end 
 	  )
         | (NotEq (x, y, _)) => (
@@ -934,7 +1134,7 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
 	     val yxLesss = transPath (tl yxpath, hd yxpath)
              val q = getprf (mergeLess ((mergeLess (edge, xyLesss)),yxLesss )) 
 	    in 
-	     raise (Contr (Thm ([q], Less.less_reflE )))
+	     raise (Contr (Thm ([q], #less_reflE less_thms )))
 	    end  
 	 )
 	| _ =>  error "trans_tac/handleContr: invalid Contradiction");
@@ -1007,42 +1207,10 @@ in
      ( (map fst tmp), (map snd tmp))  
 end; 
 
-(* *********************************************************************** *)
-(*                                                                         *)
-(* solvePartialOrder sign (asms,concl) :                                   *)
-(* theory -> less list * Term.term -> proof list                           *)
-(*                                                                         *)
-(* Find proof if possible for partial orders.                              *)
-(*                                                                         *)
-(* *********************************************************************** *)
 
-fun solvePartialOrder sign (asms, concl) =
- let 
-  val (leqG, neqG, neqE) = mkGraphs asms
-  val components = scc_term leqG
-  val ntc = indexNodes (indexComps components)
-  val (sccGraph, sccSubgraphs) = mk_sccGraphs components leqG neqG ntc 
- in
-   let 
-   val (subgoals, prf) = mkconcl_partial sign concl
-   fun solve facts less =
-       (case triv_solv less of NONE => findProof (sccGraph, neqE, ntc, sccSubgraphs ) less
-       | SOME prf => prf )
-  in
-   map (solve asms) subgoals
-  end
- end;
+(** Find proof if possible. **)
 
-(* *********************************************************************** *)
-(*                                                                         *)
-(* solveTotalOrder sign (asms,concl) :                                     *)
-(* theory -> less list * Term.term -> proof list                           *)
-(*                                                                         *)
-(* Find proof if possible for linear orders.                               *)
-(*                                                                         *)
-(* *********************************************************************** *)
-
-fun solveTotalOrder sign (asms, concl) =
+fun gen_solve mkconcl sign (asms, concl) =
  let 
   val (leqG, neqG, neqE) = mkGraphs asms
   val components = scc_term leqG   
@@ -1050,7 +1218,7 @@ fun solveTotalOrder sign (asms, concl) =
   val (sccGraph, sccSubgraphs) = mk_sccGraphs components leqG neqG ntc
  in
    let 
-   val (subgoals, prf) = mkconcl_linear sign concl
+   val (subgoals, prf) = mkconcl decomp less_thms sign concl
    fun solve facts less =
       (case triv_solv less of NONE => findProof (sccGraph, neqE, ntc, sccSubgraphs) less
       | SOME prf => prf )
@@ -1058,40 +1226,33 @@ fun solveTotalOrder sign (asms, concl) =
    map (solve asms) subgoals
   end
  end;
-  
+
+in
+
+    SUBGOAL (fn (A, n, sign) =>
+     let
+      val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
+      val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
+      val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
+      val lesss = List.concat (ListPair.map (mkasm decomp less_thms sign) (Hs, 0 upto (length Hs - 1)))
+      val prfs = gen_solve mkconcl sign (lesss, C);
+      val (subgoals, prf) = mkconcl decomp less_thms sign C;
+     in
+      METAHYPS (fn asms =>
+	let val thms = map (prove asms) prfs
+	in rtac (prove thms prf) 1 end) n
+     end
+     handle Contr p => METAHYPS (fn asms => rtac (prove asms p) 1) n
+	  | Cannot  => no_tac
+	  )
+
+end;
+
 (* partial_tac - solves partial orders *)
-val partial_tac = SUBGOAL (fn (A, n, sign) =>
- let
-  val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
-  val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
-  val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
-  val lesss = List.concat (ListPair.map (mkasm_partial sign) (Hs, 0 upto (length Hs - 1)))
-  val prfs = solvePartialOrder sign (lesss, C);
-  val (subgoals, prf) = mkconcl_partial sign C;
- in
-  METAHYPS (fn asms =>
-    let val thms = map (prove asms) prfs
-    in rtac (prove thms prf) 1 end) n
- end
- handle Contr p => METAHYPS (fn asms => rtac (prove asms p) 1) n
-      | Cannot  => no_tac
-      );
-       
+val partial_tac = gen_order_tac mkasm_partial mkconcl_partial;
+
 (* linear_tac - solves linear/total orders *)
-val linear_tac = SUBGOAL (fn (A, n, sign) =>
- let
-  val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
-  val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
-  val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
-  val lesss = List.concat (ListPair.map (mkasm_linear sign) (Hs, 0 upto (length Hs - 1)))
-  val prfs = solveTotalOrder sign (lesss, C);
-  val (subgoals, prf) = mkconcl_linear sign C;
- in
-  METAHYPS (fn asms =>
-    let val thms = map (prove asms) prfs
-    in rtac (prove thms prf) 1 end) n
- end
- handle Contr p => METAHYPS (fn asms => rtac (prove asms p) 1) n
-      | Cannot  => no_tac);
+val linear_tac = gen_order_tac mkasm_linear mkconcl_linear;
+
        
 end;
