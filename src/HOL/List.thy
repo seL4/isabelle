@@ -689,10 +689,7 @@ lemma map_eq_imp_length_eq:
   "map f xs = map f ys ==> length xs = length ys"
 apply (induct ys arbitrary: xs)
  apply simp
-apply(simp (no_asm_use))
-apply clarify
-apply(simp (no_asm_use))
-apply fast
+apply (metis Suc_length_conv length_map)
 done
 
 lemma map_inj_on:
@@ -1091,7 +1088,7 @@ by(cases xs) simp_all
 lemma list_eq_iff_nth_eq:
  "(xs = ys) = (length xs = length ys \<and> (ALL i<length xs. xs!i = ys!i))"
 apply(induct xs arbitrary: ys)
- apply simp apply blast
+ apply force
 apply(case_tac ys)
  apply simp
 apply(simp add:nth_Cons split:nat.split)apply blast
@@ -1100,11 +1097,10 @@ done
 lemma set_conv_nth: "set xs = {xs!i | i. i < length xs}"
 apply (induct xs, simp, simp)
 apply safe
-apply (rule_tac x = 0 in exI, simp)
- apply (rule_tac x = "Suc i" in exI, simp)
+apply (metis nat_case_0 nth.simps zero_less_Suc)
+apply (metis less_Suc_eq_0_disj nth_Cons_Suc)
 apply (case_tac i, simp)
-apply (rename_tac j)
-apply (rule_tac x = j in exI, simp)
+apply (metis diff_Suc_Suc nat_case_Suc nth.simps zero_less_diff)
 done
 
 lemma in_set_conv_nth: "(x \<in> set xs) = (\<exists>i < length xs. xs!i = x)"
@@ -1926,10 +1922,7 @@ lemma upt_Suc_append: "i <= j ==> [i..<(Suc j)] = [i..<j]@[j]"
 by simp
 
 lemma upt_conv_Cons: "i < j ==> [i..<j] = i # [Suc i..<j]"
-apply(rule trans)
-apply(subst upt_rec)
- prefer 2 apply (rule refl, simp)
-done
+by (metis upt_rec)
 
 lemma upt_add_eq_append: "i<=j ==> [i..<j+k] = [i..<j]@[j..<j+k]"
 -- {* LOOPS as a simprule, since @{text "j <= j"}. *}
@@ -2046,13 +2039,7 @@ lemma distinct_remdups [iff]: "distinct (remdups xs)"
 by (induct xs) auto
 
 lemma finite_distinct_list: "finite A \<Longrightarrow> EX xs. set xs = A & distinct xs"
-proof -
-  assume "finite A"
-  then obtain xs where "set xs = A" by(auto dest!:finite_list)
-  hence "set(remdups xs) = A & distinct(remdups xs)" by simp
-  thus ?thesis ..
-qed
-(* by (metis distinct_remdups finite_list set_remdups) *)
+by (metis distinct_remdups finite_list set_remdups)
 
 lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
 by (induct x, auto) 
@@ -2128,11 +2115,8 @@ apply (simp add: set_conv_nth)
  apply (case_tac j)
 apply (clarsimp simp add: set_conv_nth, simp)
 apply (rule conjI)
- apply (clarsimp simp add: set_conv_nth)
- apply (erule_tac x = 0 in allE, simp)
- apply (erule_tac x = "Suc i" in allE, simp, clarsimp)
-apply (erule_tac x = "Suc i" in allE, simp)
-apply (erule_tac x = "Suc j" in allE, simp)
+apply (metis Zero_neq_Suc gr0_conv_Suc in_set_conv_nth lessI less_trans_Suc nth_Cons' nth_Cons_Suc)
+apply (metis Suc_Suc_eq lessI less_trans_Suc nth_Cons_Suc)
 done
 
 lemma nth_eq_iff_index_eq:
@@ -2798,7 +2782,7 @@ lemma lexord_trans:
   apply (case_tac xa, erule ssubst) 
   apply (erule allE, erule allE) -- {* avoid simp recursion *} 
   apply (case_tac x, simp, simp) 
-  apply (case_tac x, erule allE, erule allE, simp) 
+  apply (case_tac x, erule allE, erule allE, simp)
   apply (erule_tac x = listb in allE) 
   apply (erule_tac x = lista in allE, simp)
   apply (unfold trans_def)

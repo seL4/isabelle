@@ -523,11 +523,14 @@ fun get_axiom_names_tstp proofextract thm_names =
    get_axiom_names thm_names (List.mapPartial parse_tstp_line (split_lines proofextract));
 
  (*String contains multiple lines. We want those of the form
-     "*********** [448, input] ***********".
+     "*********** [448, input] ***********"
+   or possibly those of the form
+     "cnf(108, axiom, ..."
   A list consisting of the first number in each line is returned. *)
 fun get_vamp_linenums proofextract =
   let val toks = String.tokens (not o Char.isAlphaNum)
       fun inputno [ntok,"input"] = Int.fromString ntok
+        | inputno ("cnf"::ntok::"axiom"::_) = Int.fromString ntok
         | inputno _ = NONE
       val lines = String.tokens (fn c => c = #"\n") proofextract
   in  List.mapPartial (inputno o toks) lines  end

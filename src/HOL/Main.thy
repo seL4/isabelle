@@ -5,7 +5,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Map Hilbert_Choice ATP_Linkup
+imports Map 
 begin
 
 text {*
@@ -13,10 +13,11 @@ text {*
   PreList} already includes most HOL theories.
 
   \medskip Late clause setup: installs \emph{all} known theorems
-  into the clause cache; cf.\ theory @{text ATP_Linkup}.
+  into the clause cache; cf.\ theory @{text ATP_Linkup}. 
+  FIXME: delete once end_theory actions are installed!
 *}
 
-setup ResAxioms.setup
+setup ResAxioms.clause_cache_setup
 
 ML {* val HOL_proofs = !proofs *}
 

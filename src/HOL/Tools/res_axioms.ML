@@ -15,6 +15,7 @@ sig
   val cnf_rules_pairs : (string * thm) list -> (thm * (string * int)) list
   val meson_method_setup : theory -> theory
   val setup : theory -> theory
+  val clause_cache_setup : theory -> theory
   val assume_abstract_list: string -> thm list -> thm list
   val neg_conjecture_clauses: thm -> int -> thm list * (string * typ) list
   val claset_rules_of: Proof.context -> (string * thm) list   (*FIXME DELETE*)

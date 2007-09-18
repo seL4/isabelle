@@ -93,8 +93,7 @@ done
 lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in> pset cl"proof (neg_clausify)
 assume 0: "(cl, f) \<in> CLF"
 assume 1: "CLF = Sigma CL llabs_subgoal_1"
-assume 2: "\<And>cl. llabs_subgoal_1 cl =
-     Collect (llabs_List_Xlists_def_1_ (pset cl))"
+assume 2: "\<And>cl. llabs_subgoal_1 cl = Collect (llabs_Predicate_Xsup_Un_eq_1_ (pset cl))"
 assume 3: "f \<notin> pset cl"
 show "False"
   by (metis 0 1 SigmaD2 3 2 Collect_mem_eq)
@@ -109,15 +108,17 @@ done
 
 lemma
     "(cl,f) \<in> (SIGMA cl::'a set : CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
-    f \<in> pset cl \<rightarrow> pset cl" 
+    f \<in> pset cl \<rightarrow> pset cl"
 proof (neg_clausify)
 assume 0: "(cl, f) \<in> Sigma CL llabs_subgoal_1"
 assume 1: "\<And>cl. llabs_subgoal_1 cl =
      Collect
-      (llabs_List_Xlists_def_1_ (Pi (pset cl) (COMBK (pset cl))))"
+      (llabs_Predicate_Xsup_Un_eq_1_ (Pi (pset cl) (COMBK (pset cl))))"
 assume 2: "f \<notin> Pi (pset cl) (COMBK (pset cl))"
+have 3: "\<not> llabs_Predicate_Xsup_Un_eq_1_ (Pi (pset cl) (COMBK (pset cl))) f"
+  by (metis Collect_mem_eq 2)
 show "False"
-  by (metis Collect_mem_eq 1 2 SigmaD2 0)
+  by (metis acc_def 0 Collect_mem_eq SigmaD2 3 1 Collect_mem_eq)
 qed finish_clausify
     (*Hack to prevent the "Additional hypotheses" error*)
 
