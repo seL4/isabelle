@@ -2112,9 +2112,14 @@ apply (rule iffI, clarsimp)
 apply (case_tac j, simp)
 apply (simp add: set_conv_nth)
  apply (case_tac j)
-apply (clarsimp simp add: set_conv_nth, simp)
+apply (clarsimp simp add: set_conv_nth, simp) 
 apply (rule conjI)
+(*TOO SLOW
 apply (metis Zero_neq_Suc gr0_conv_Suc in_set_conv_nth lessI less_trans_Suc nth_Cons' nth_Cons_Suc)
+*)
+ apply (clarsimp simp add: set_conv_nth)
+ apply (erule_tac x = 0 in allE, simp)
+ apply (erule_tac x = "Suc i" in allE, simp, clarsimp)
 apply (metis Suc_Suc_eq lessI less_trans_Suc nth_Cons_Suc)
 done
 
