@@ -51,6 +51,11 @@ case $HOSTNAME in
         NICE=""
         ;;
 
+    atbroy100)
+	MFLAGS="-j 2"
+	NICE="nice -n 1"
+	;;
+
     atbroy31)
         # cluster
         MFLAGS="-j 5"
