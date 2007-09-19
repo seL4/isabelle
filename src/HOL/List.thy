@@ -43,11 +43,6 @@ consts
   replicate :: "nat => 'a => 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 
-(* has been generalized
-abbreviation
-  upto:: "nat => nat => nat list"  ("(1[_../_])") where
-  "[i..j] == [i..<(Suc j)]"
-*)
 
 nonterminals lupdbinds lupdbind
 
@@ -2512,7 +2507,7 @@ by(induct xs)(simp_all add:distinct_insort set_sort)
 
 lemma sorted_insort: "sorted (insort x xs) = sorted xs"
 apply (induct xs)
- apply(auto simp:sorted_Cons set_insort not_le less_imp_le)
+ apply(auto simp:sorted_Cons set_insort)
 done
 
 theorem sorted_sort[simp]: "sorted (sort xs)"
