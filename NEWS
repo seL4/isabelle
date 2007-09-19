@@ -737,6 +737,10 @@ possible incompatibilities when working on ML level.
   [x <- xs. P] to avoid an ambiguity caused by list comprehension syntax,
   and for uniformity. INCOMPATIBILITY
 
+* [a..b] is now defined for arbitrary linear orders.
+  It used to be defined on nat only, as an abbreviation for [a..<Suc b]
+  INCOMPATIBILITY
+
 * Lemma "set_take_whileD" renamed to "set_takeWhileD"
 
 * new functions sorted and sort in List.
