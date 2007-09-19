@@ -46,7 +46,7 @@ sig
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
   val error_msg: string -> unit
-  val ml_output: (string -> unit) * (string -> unit)
+  val ml_output: (string -> unit) * (string -> 'a)
   val accumulated_time: unit -> unit
 end;
 
@@ -117,7 +117,7 @@ fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
 
 fun error_msg s = ! error_fn (output s);
 
-val ml_output = (writeln, error_msg);
+val ml_output = (writeln, error);
 
 
 
