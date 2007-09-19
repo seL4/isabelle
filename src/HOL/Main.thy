@@ -14,7 +14,7 @@ text {*
 
   \medskip Late clause setup: installs \emph{all} known theorems
   into the clause cache; cf.\ theory @{text ATP_Linkup}. 
-  FIXME: delete once end_theory actions are installed!
+  FIXME: delete once @{text end_theory} actions are installed!
 *}
 
 setup ResAxioms.clause_cache_setup
