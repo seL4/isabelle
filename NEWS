@@ -1152,6 +1152,9 @@ polymorphic versions (INCOMPATIBILITY):
 
 *** ML ***
 
+* ML basics: just one true type int, which coincides with IntInf.int
+(even on SML/NJ).
+
 * Generic arithmetic modules: Tools/rat.ML, Tools/float.ML
 
 * Context data interfaces (Theory/Proof/GenericDataFun): removed
