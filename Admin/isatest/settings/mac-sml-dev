@@ -30,4 +30,4 @@ fi
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true"
 
-HOL_USEDIR_OPTIONS="-p 2"
+HOL_USEDIR_OPTIONS="-p 1"
