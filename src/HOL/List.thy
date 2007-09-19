@@ -43,10 +43,11 @@ consts
   replicate :: "nat => 'a => 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 
+(* has been generalized
 abbreviation
   upto:: "nat => nat => nat list"  ("(1[_../_])") where
   "[i..j] == [i..<(Suc j)]"
-
+*)
 
 nonterminals lupdbinds lupdbind
 
@@ -108,14 +109,12 @@ primrec
   "map f [] = []"
   "map f (x#xs) = f(x)#map f xs"
 
-function (*authentic syntax for append -- revert to primrec
+fun (*authentic syntax for append -- revert to primrec
   as soon as "authentic" primrec is available*)
   append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65)
 where
   append_Nil: "[] @ ys = ys"
   | append_Cons: "(x # xs) @ ys = x # (xs @ ys)"
-by (auto, case_tac a, auto)
-termination by (relation "measure (size o fst)") auto
 
 primrec
   "rev([]) = []"
@@ -1897,7 +1896,7 @@ lemma uminus_listsum_map:
 by(induct xs) simp_all
 
 
-subsubsection {* @{text upto} *}
+subsubsection {* @{text upt} *}
 
 lemma upt_rec[code]: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
 -- {* simp does not terminate! *}
@@ -1958,7 +1957,7 @@ apply(induct j)
 apply auto
 done
 
-lemma map_Suc_upt: "map Suc [m..<n] = [Suc m..n]"
+lemma map_Suc_upt: "map Suc [m..<n] = [Suc m..<Suc n]"
 by (induct n) auto
 
 lemma nth_map_upt: "i < n-m ==> (map f [m..<n]) ! i = f(m+i)"
@@ -2514,7 +2513,54 @@ done
 theorem sorted_sort[simp]: "sorted (sort xs)"
 by (induct xs) (auto simp:sorted_insort)
 
+lemma sorted_distinct_set_unique:
+assumes "sorted xs" "distinct xs" "sorted ys" "distinct ys" "set xs = set ys"
+shows "xs = ys"
+proof -
+  from assms have 1: "length xs = length ys" by (metis distinct_card)
+  from assms show ?thesis
+  proof(induct rule:list_induct2[OF 1])
+    case 1 show ?case by simp
+  next
+    case 2 thus ?case by (simp add:sorted_Cons)
+       (metis Diff_insert_absorb antisym insertE insert_iff)
+  qed
+qed
+
+lemma finite_sorted_distinct_unique:
+shows "finite A \<Longrightarrow> EX! xs. set xs = A & sorted xs & distinct xs"
+apply(drule finite_distinct_list)
+apply clarify
+apply(rule_tac a="sort xs" in ex1I)
+apply (auto simp: sorted_distinct_set_unique)
+done
+
 end
+
+
+subsubsection {* @{text upto}: the generic interval-list *}
+
+(* FIXME why does (in linorder) fail? *)
+definition upto :: "'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a list" ("(1[_../_])") where
+"upto i j == THE is. set is = {i..j} & sorted is & distinct is"
+
+(*The following lemmas could/should be generalized to discrete linear orders*)
+
+lemma set_upto[simp]: "set[a::int..b] = {a..b}"
+apply(simp add:upto_def)
+apply(rule the1I2)
+apply(simp_all add: finite_sorted_distinct_unique)
+done
+
+lemma upto_rec: "[i::int..j] = (if i <= j then i # [i+1..j] else [])"
+apply(simp add:upto_def cong:conj_cong)
+apply clarify
+apply (rule the1_equality[OF finite_sorted_distinct_unique])
+ apply simp
+apply(rule the1I2[OF finite_sorted_distinct_unique])
+ apply simp
+apply (fastsimp simp: sorted_Cons)
+done
 
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
@@ -2822,12 +2868,6 @@ by simp
 lemma measures_lesseq: "f x <= f y ==> (x, y) \<in> measures fs ==> (x, y) \<in> measures (f#fs)"
 by auto
 
-(* install the lexicographic_order method and the "fun" command *)
-use "Tools/function_package/lexicographic_order.ML"
-use "Tools/function_package/fundef_datatype.ML"
-setup LexicographicOrder.setup
-setup FundefDatatype.setup
-
 
 subsubsection{*Lifting a Relation on List Elements to the Lists*}
 
@@ -3114,7 +3154,7 @@ by (induct xs) auto
 text {* Code for bounded quantification and summation over nats. *}
 
 lemma atMost_upto [code unfold]:
-  "{..n} = set [0..n]"
+  "{..n} = set [0..<Suc n]"
 by auto
 
 lemma atLeast_upt [code unfold]:
@@ -3130,11 +3170,11 @@ lemma atLeastLessThan_upt [code unfold]:
 by auto
 
 lemma greaterThanAtMost_upto [code unfold]:
-  "{n<..m} = set [Suc n..m]"
+  "{n<..m} = set [Suc n..<Suc m]"
 by auto
 
 lemma atLeastAtMost_upto [code unfold]:
-  "{n..m} = set [n..m]"
+  "{n..m} = set [n..<Suc m]"
 by auto
 
 lemma all_nat_less_eq [code unfold]:
