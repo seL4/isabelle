@@ -2371,8 +2371,6 @@ definition
 where
   "Sup_fin = fold1 (op \<squnion>)"
 
-end context lattice begin
-
 lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<sqsubseteq> \<Squnion>\<^bsub>fin\<^esub>A"
 apply(unfold Sup_fin_def Inf_fin_def)
 apply(subgoal_tac "EX a. a:A")
@@ -2683,7 +2681,14 @@ subsection {* Class @{text finite} and code generation *}
 
 lemma finite_code [code func]:
   "finite {} \<longleftrightarrow> True"
-  "finite (insert a A) \<longleftrightarrow> finite A" by auto
+  "finite (insert a A) \<longleftrightarrow> finite A"
+  by auto
+
+lemma card_code [code func]:
+  "card {} = 0"
+  "card (insert a A) =
+    (if finite A then Suc (card (A - {a})) else card (insert a A))"
+  by (auto simp add: card_insert)
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
 class finite (attach UNIV) = type +
