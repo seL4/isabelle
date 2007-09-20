@@ -570,7 +570,7 @@ lemmas powerarith = nat_number_of zpower_number_of_even
   zpower_Pls zpower_Min
 
 lemmas floatarith[simplified norm_0_1] = float_add float_add_l0 float_add_r0 float_mult float_mult_l0 float_mult_r0 
-          float_minus float_abs zero_le_float float_pprt float_nprt pprt_lbound nprt_ubound float_add_assoc1 float_add_assoc2
+          float_minus float_abs zero_le_float float_pprt float_nprt pprt_lbound nprt_ubound
 
 (* for use with the compute oracle *)
 lemmas arith = binarith intarith intarithrel natarith powerarith floatarith not_false_eq_true not_true_eq_false
