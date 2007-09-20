@@ -38,7 +38,7 @@ lemma [code func]:
   by (cases c) auto
 
 code_const int_of_char and char_of_int
-  (SML "!Char.ord" and "!Char.chr")
+  (SML "!(IntInf.fromInt o Char.ord)" and "!(Char.chr o IntInf.toInt)")
   (OCaml "Big'_int.big'_int'_of'_int (Char.code _)" and "Char.chr (Big'_int.int'_of'_big'_int _)")
   (Haskell "toInteger (fromEnum (_ :: Char))" and "!(let chr k | k < 256 = toEnum k :: Char in chr . fromInteger)")
 
