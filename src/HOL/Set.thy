@@ -2081,13 +2081,13 @@ lemma vimage_mono: "A \<subseteq> B ==> f -` A \<subseteq> f -` B"
 
 subsection {* Getting the Contents of a Singleton Set *}
 
-constdefs
-  contents :: "'a set => 'a"
-  "contents X == THE x. X = {x}"
-lemmas [code func del] = contents_def
+definition
+  contents :: "'a set \<Rightarrow> 'a"
+where
+  [code func del]: "contents X = (THE x. X = {x})"
 
-lemma contents_eq [simp, code func]: "contents {x} = x"
-by (simp add: contents_def)
+lemma contents_eq [simp]: "contents {x} = x"
+  by (simp add: contents_def)
 
 
 subsection {* Transitivity rules for calculational reasoning *}
@@ -2140,7 +2140,7 @@ lemma Bex_empty [code func]:
 subsubsection {* Primitive operations *}
 
 lemma minus_insert [code func]:
-  "insert a A - B = (let C = A - B in if a \<in> B then C else insert a C)"
+  "insert (a\<Colon>'a\<Colon>eq) A - B = (let C = A - B in if a \<in> B then C else insert a C)"
   by (auto simp add: Let_def)
 
 lemma minus_empty1 [code func]:
@@ -2190,6 +2190,11 @@ lemma UNION_insert [code func]:
 lemma UNION_empty [code func]:
   "UNION {} f = {}"
   by auto
+
+lemma contents_insert [code func]:
+  "contents (insert a A) = contents (insert a (A - {a}))"
+  by auto
+declare contents_eq [code func]
 
 
 subsubsection {* Derived predicates *}
