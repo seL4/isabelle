@@ -53,6 +53,7 @@ sig
   val collapse_let: ((vname * itype) * iterm) * iterm
     -> (iterm * itype) * (iterm * iterm) list;
   val eta_expand: (string * (dict list list * itype list)) * iterm list -> int -> iterm;
+  val contains_dictvar: iterm -> bool;
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
@@ -231,6 +232,15 @@ fun eta_expand (c as (_, (_, tys)), ts) k =
     val vs_tys = Name.names ctxt "a" ((curry Library.take l o curry Library.drop j) tys);
   in vs_tys `|--> IConst c `$$ ts @ map (fn (v, _) => IVar v) vs_tys end;
 
+fun contains_dictvar t =
+  let
+    fun contains (DictConst (_, dss)) = (fold o fold) contains dss
+      | contains (DictVar _) = K true;
+  in
+    fold_aiterms
+      (fn IConst (_, (dss, _)) => (fold o fold) contains dss | _ => I) t false
+  end;
+  
 
 (** definitions, transactions **)
 

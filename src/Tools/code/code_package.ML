@@ -468,15 +468,8 @@ val satisfies_ref : (unit -> bool) option ref = ref NONE;
 fun satisfies thy ct witnesses =
   let
     fun evl code ((vs, ty), t) deps ct =
-      let
-        val t0 = Thm.term_of ct
-        val _ = (Term.map_types o Term.map_atyps) (fn _ =>
-          error ("Term " ^ Sign.string_of_term thy t0 ^ " contains polymorphic type"))
-          t0;
-      in
-        eval_invoke thy ("CodePackage.satisfies_ref", satisfies_ref)
-          code (t, ty) witnesses
-      end;
+      eval_invoke thy ("CodePackage.satisfies_ref", satisfies_ref)
+        code (t, ty) witnesses;
   in eval_term thy evl ct end;
 
 fun filter_generatable thy consts =

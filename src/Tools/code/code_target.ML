@@ -1601,6 +1601,8 @@ fun get_serializer thy target permissive module file args
 
 fun eval_invoke thy labelled_name allows_exception (ref_name, reff) code (t, ty) args =
   let
+    val _ = if CodeThingol.contains_dictvar t then
+      error "Term to be evaluated constains free dictionaries" else ();
     val val_name = "Isabelle_Eval.EVAL.EVAL";
     val val_name' = "Isabelle_Eval.EVAL";
     val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
