@@ -113,7 +113,7 @@ let
       |> snd
     end;
   fun hook specs =
-    if (fst o hd) specs = (fst o dest_Type) @{typ typ} then I
+    if null specs orelse (fst o hd) specs = (fst o dest_Type) @{typ typ} then I
     else
       DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
       (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)

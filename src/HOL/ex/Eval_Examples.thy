@@ -5,7 +5,7 @@
 header {* Small examples for evaluation mechanisms *}
 
 theory Eval_Examples
-imports Eval
+imports Eval "~~/src/HOL/Real/Rational"
 begin
 
 text {* SML evaluation oracle *}
@@ -34,6 +34,8 @@ value "(10\<Colon>int) \<le> 12"
 value "[]::nat list"
 value "[(nat 100, ())]"
 value "max (2::int) 4"
+value "of_int 2 / of_int 4 * (1::rat)"
+
 
 text {* a fancy datatype *}
 

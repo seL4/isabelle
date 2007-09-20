@@ -718,13 +718,13 @@ fun add_default_func thm thy =
     | NONE => thy;
 
 fun del_func thm thy =
-  let
-    val func = mk_func thm;
-    val const = const_of_func thy func;
-  in map_exec_purge (SOME [const]) (map_funcs
-    (Symtab.map_entry
-      const (del_thm func))) thy
-  end;
+  case mk_liberal_func thm
+   of SOME func => let
+          val c = const_of_func thy func;
+        in map_exec_purge (SOME [c]) (map_funcs
+          (Symtab.map_entry c (del_thm func))) thy
+        end
+    | NONE => thy;
 
 fun add_funcl (const, lthms) thy =
   let
