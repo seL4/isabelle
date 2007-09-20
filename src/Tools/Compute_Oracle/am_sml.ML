@@ -330,8 +330,8 @@ fun sml_prog name code rules =
 		val strict_args = (case toplevel_arity_of c of NONE => the (arity_of c) | SOME sa => sa)
 		val xs = map (fn n => if n < strict_args then "x"^(str n) else "x"^(str n)^"()") rightargs
 		val right = (indexed "C" c)^" "^(string_of_tuple xs)
-		val debug_lazy = "(print x"^(string_of_int (strict_args - 1))^";"
-		val right = if strict_args < the (arity_of c) then debug_lazy^"raise AM_SML.Run \"unresolved lazy call: "^(string_of_int c)^"\")" else right		
+		val message = "(\"unresolved lazy call: "^(string_of_int c)^", \"^(makestring x"^(string_of_int (strict_args - 1))^"))"		
+		val right = if strict_args < the (arity_of c) then "raise AM_SML.Run "^message else right		
 	    in
 		(indexed "c" c)^(if gnum > 0 then "_"^(str gnum) else "")^leftargs^" = "^right
 	    end
@@ -363,7 +363,7 @@ fun sml_prog name code rules =
 	    end
         
 	fun mk_constr_type_args n = if n > 0 then " of Term "^(rep_str " * Term" (n-1)) else ""
-	val _ = writelist [        
+	val _ = writelist [                   
 		"structure "^name^" = struct",
 		"",
 		"datatype Term = Const of int | App of Term * Term | Abs of (Term -> Term)",
@@ -456,7 +456,7 @@ fun sml_prog name code rules =
 		"",
 		"fun export term = AM_SML.save_result (\""^code^"\", convert term)",
 		"",
-                "val _ = AM_SML.set_compiled_rewriter (fn t => convert (eval [] t))",
+                "val _ = AM_SML.set_compiled_rewriter (fn t => (convert (eval [] t)))",
                 "",
 		"end"]
     in

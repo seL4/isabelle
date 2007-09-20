@@ -25,9 +25,13 @@ signature COMPUTE = sig
 
     val setup : theory -> theory
 
+    val print_encoding : bool ref
+
 end
 
 structure Compute :> COMPUTE = struct
+
+val print_encoding = ref false
 
 datatype machine = BARRAS | BARRAS_COMPILED | HASKELL | SML	 
 
@@ -261,8 +265,6 @@ fun make machine thy raw_ths =
 	      | HASKELL => ProgHaskell (AM_GHC.compile rules)
 	      | SML => ProgSML (AM_SML.compile rules)
 
-(*	val _ = print (Encode.fold (fn x => fn s => x::s) encoding [])*)
-
         fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
 
 	val shyptable = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptable))) shyptable
@@ -290,6 +292,7 @@ fun compute (Computer (rthy, encoding, hyps, shyptable, prog)) naming ct =
         val {t=t, T=ty, thy=ctthy, ...} = rep_cterm ct
         val thy = Theory.merge (Theory.deref rthy, ctthy)
         val (encoding, t) = report "remove_types" (fn () => remove_types encoding t)
+	val _ = if (!print_encoding) then writeln (makestring ("encoding: ",Encode.fold (fn x => fn s => x::s) encoding [])) else ()
         val t = report "run" (fn () => run prog t)
         val t = report "infer_types" (fn () => infer_types naming encoding ty t)
     in
@@ -340,7 +343,7 @@ fun rewrite r ct = rewrite_param r default_naming ct
 fun compute_oracle (thy, Param (r, naming, ct)) =
     let
         val _ = Theory.assert_super (theory_of r) thy
-        val t' = compute r naming ct
+        val t' = timeit (fn () => compute r naming ct)
 	val eq = Logic.mk_equals (term_of ct, t')
 	val hyps = hyps_of r
 	val shyptab = shyptab_of r

@@ -3,7 +3,13 @@
     Author:     Steven Obua
 *)
 
-structure AM_Interpreter : ABSTRACT_MACHINE = struct
+signature AM_BARRAS = 
+sig
+  include ABSTRACT_MACHINE
+  val max_reductions : int option ref
+end
+
+structure AM_Interpreter : AM_BARRAS = struct
 
 open AbstractMachine;
 
@@ -28,6 +34,29 @@ fun term_of_clos (CVar x) = Var x
   | term_of_clos (CAbs u) = Abs (term_of_clos u)
   | term_of_clos (Closure (e, u)) = raise (Run "internal error: closure in normalized term found")
   | term_of_clos CDummy = raise (Run "internal error: dummy in normalized term found")
+
+fun resolve_closure closures (CVar x) = (case List.nth (closures, x) of CDummy => CVar x | r => r)
+  | resolve_closure closures (CConst c) = CConst c
+  | resolve_closure closures (CApp (u, v)) = CApp (resolve_closure closures u, resolve_closure closures v)
+  | resolve_closure closures (CAbs u) = CAbs (resolve_closure (CDummy::closures) u)
+  | resolve_closure closures (CDummy) = raise (Run "internal error: resolve_closure applied to CDummy")
+  | resolve_closure closures (Closure (e, u)) = resolve_closure e u
+
+fun resolve_closure' c = resolve_closure [] c
+
+fun resolve_stack tm SEmpty = tm
+  | resolve_stack tm (SAppL (c, s)) = resolve_stack (CApp (tm, resolve_closure' c)) s
+  | resolve_stack tm (SAppR (c, s)) = resolve_stack (CApp (resolve_closure' c, tm)) s
+  | resolve_stack tm (SAbs s) = resolve_stack (CAbs tm) s
+
+fun resolve (stack, closure) = 
+    let
+	val _ = writeln "start resolving"
+	val t =	resolve_stack (resolve_closure' closure) stack
+	val _ = writeln "finished resolving"
+    in
+	t
+    end
 
 fun strip_closure args (CApp (a,b)) = strip_closure (b::args) a
   | strip_closure args x = (x, args)
@@ -104,18 +133,27 @@ datatype loopstate = Continue of state | Stop of stack * closure
 fun proj_C (Continue s) = s
   | proj_C _ = raise Match
 
+exception InterruptedExecution of stack * closure
+
 fun proj_S (Stop s) = s
-  | proj_S _ = raise Match
+  | proj_S (Continue (_,_,s,c)) = (s,c)
 
 fun cont (Continue _) = true
   | cont _ = false
 
+val max_reductions = ref (NONE : int option)
+
 fun do_reduction reduce p =
     let
 	val s = ref (Continue p)
-	val _ = while cont (!s) do (s := reduce (proj_C (!s)))
+	val counter = ref 0
+	val _ = case !max_reductions of 
+		    NONE => while cont (!s) do (s := reduce (proj_C (!s)))
+		  | SOME m => while cont (!s) andalso (!counter < m) do (s := reduce (proj_C (!s)); counter := (!counter) + 1)
     in
-	proj_S (!s)
+	case !max_reductions of
+	    SOME m => if !counter >= m then raise InterruptedExecution (proj_S (!s)) else proj_S (!s)
+	  | NONE => proj_S (!s)
     end
 
 fun weak_reduce (false, prog, stack, Closure (e, CApp (a, b))) = Continue (false, prog, SAppL (Closure (e, b), stack), Closure (e, a))
@@ -131,13 +169,13 @@ fun weak_reduce (false, prog, stack, Closure (e, CApp (a, b))) = Continue (false
   | weak_reduce (true, prog, stack, c) = Stop (stack, c)
 
 fun strong_reduce (false, prog, stack, Closure (e, CAbs m)) =
-    let
-        val (stack', wnf) = do_reduction weak_reduce (false, prog, SEmpty, Closure (CDummy::e, m))
-    in
-        case stack' of
-            SEmpty => Continue (false, prog, SAbs stack, wnf)
-          | _ => raise (Run "internal error in strong: weak failed")
-    end
+    (let
+         val (stack', wnf) = do_reduction weak_reduce (false, prog, SEmpty, Closure (CDummy::e, m))
+     in
+         case stack' of
+             SEmpty => Continue (false, prog, SAbs stack, wnf)
+           | _ => raise (Run "internal error in strong: weak failed")
+     end handle InterruptedExecution state => raise InterruptedExecution (stack, resolve state))
   | strong_reduce (false, prog, stack, clos as (CApp (u, v))) = Continue (false, prog, SAppL (v, stack), u)
   | strong_reduce (false, prog, stack, clos) = Continue (true, prog, stack, clos)
   | strong_reduce (true, prog, SAbs stack, m) = Continue (false, prog, stack, CAbs m)
@@ -146,15 +184,15 @@ fun strong_reduce (false, prog, stack, Closure (e, CAbs m)) =
   | strong_reduce (true, prog, stack, clos) = Stop (stack, clos)
 
 fun run prog t =
-    let
-        val (stack, wnf) = do_reduction weak_reduce (false, prog, SEmpty, Closure ([], clos_of_term t))
-    in
-        case stack of
-            SEmpty => (case do_reduction strong_reduce (false, prog, SEmpty, wnf) of
-                           (SEmpty, snf) => term_of_clos snf
-                         | _ => raise (Run "internal error in run: strong failed"))
-          | _ => raise (Run "internal error in run: weak failed")
-    end
+    (let
+         val (stack, wnf) = do_reduction weak_reduce (false, prog, SEmpty, Closure ([], clos_of_term t))
+     in
+         case stack of
+             SEmpty => (case do_reduction strong_reduce (false, prog, SEmpty, wnf) of
+                            (SEmpty, snf) => term_of_clos snf
+                          | _ => raise (Run "internal error in run: strong failed"))
+           | _ => raise (Run "internal error in run: weak failed")
+     end handle InterruptedExecution state => term_of_clos (resolve state))
 
 fun discard p = ()
 
