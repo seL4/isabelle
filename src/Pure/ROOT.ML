@@ -56,6 +56,7 @@ use "unify.ML";
 use "net.ML";
 use "defs.ML";
 use "theory.ML";
+use "interpretation.ML";
 use "proofterm.ML";
 use "thm.ML";
 use "more_thm.ML";
