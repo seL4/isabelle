@@ -90,14 +90,31 @@ fun consts is_loc some_class depends decls lthy =
     fun const_class (SOME class) ((c, _), mx) (_, t) =
           Class.add_const_in_class class ((c, t), mx)
       | const_class NONE _ _ = I;
-
+    fun hide_abbrev (SOME class) abbrs thy =
+          let
+            val raw_cs = map (fst o fst) abbrs;
+            val prfx = (Logic.const_of_class o NameSpace.base) class;
+            fun mk_name c =
+              let
+                val n1 = Sign.full_name thy c;
+                val n2 = NameSpace.qualifier n1;
+                val n3 = NameSpace.base n1;
+              in NameSpace.implode [n2, prfx, prfx, n3] end;
+            val cs = map mk_name raw_cs;
+          in
+            Sign.hide_consts_i true cs thy
+          end
+      | hide_abbrev NONE _ thy = thy;
     val (abbrs, lthy') = lthy
       |> LocalTheory.theory_result (fold_map const decls)
     val defs = map (apsnd (pair ("", []))) abbrs;
+    
   in
     lthy'
-    |> is_loc ? fold (internal_abbrev Syntax.default_mode) abbrs
     |> LocalTheory.raw_theory (fold2 (const_class some_class) decls abbrs)
+    |> is_loc ? fold (internal_abbrev Syntax.default_mode) abbrs
+    |> LocalTheory.raw_theory (hide_abbrev some_class abbrs)
+        (*FIXME abbreviations should never occur*)
     |> LocalDefs.add_defs defs
     |>> map (apsnd snd)
   end;
@@ -342,10 +359,15 @@ fun begin loc ctxt =
     val thy = ProofContext.theory_of ctxt;
     val is_loc = loc <> "";
     val some_class = Class.class_of_locale thy loc;
+    fun class_init_exit (SOME class) =
+          Class.init class
+      | class_init_exit NONE =
+          pair I;
   in
     ctxt
     |> Data.put (if is_loc then SOME loc else NONE)
-    |> LocalTheory.init (NameSpace.base loc)
+    |> class_init_exit some_class
+    |-> (fn exit => LocalTheory.init (NameSpace.base loc)
      {pretty = pretty loc,
       consts = consts is_loc some_class,
       axioms = axioms,
@@ -358,8 +380,9 @@ fun begin loc ctxt =
       target_morphism = target_morphism loc,
       target_naming = target_naming loc,
       reinit = fn _ =>
-        begin loc o (if is_loc then Locale.init loc else ProofContext.init),
-      exit = LocalTheory.target_of}
+        (if is_loc then Locale.init loc else ProofContext.init)
+        #> begin loc,
+      exit = LocalTheory.target_of #> ProofContext.theory exit })
   end;
 
 fun init_i NONE thy = begin "" (ProofContext.init thy)

@@ -215,18 +215,23 @@ primrec
 text{* The following simple sort functions are intended for proofs,
 not for efficient implementations. *}
 
-fun (in linorder) sorted :: "'a list \<Rightarrow> bool" where
-"sorted [] \<longleftrightarrow> True" |
-"sorted [x] \<longleftrightarrow> True" |
-"sorted (x#y#zs) \<longleftrightarrow> x \<^loc><= y \<and> sorted (y#zs)"
+context linorder
+begin
 
-fun (in linorder) insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"insort x [] = [x]" |
-"insort x (y#ys) = (if x \<^loc><= y then (x#y#ys) else y#(insort x ys))"
+fun  sorted :: "'a list \<Rightarrow> bool" where
+  "sorted [] \<longleftrightarrow> True" |
+  "sorted [x] \<longleftrightarrow> True" |
+  "sorted (x#y#zs) \<longleftrightarrow> x \<^loc><= y \<and> sorted (y#zs)"
 
-fun (in linorder) sort :: "'a list \<Rightarrow> 'a list" where
-"sort [] = []" |
-"sort (x#xs) = insort x (sort xs)"
+fun insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "insort x [] = [x]" |
+  "insort x (y#ys) = (if x \<^loc><= y then (x#y#ys) else y#(insort x ys))"
+
+fun sort :: "'a list \<Rightarrow> 'a list" where
+  "sort [] = []" |
+  "sort (x#xs) = insort x (sort xs)"
+
+end
 
 
 subsubsection {* List comprehension *}

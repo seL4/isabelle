@@ -81,8 +81,6 @@ definition
   units :: "'a set" where
   "units = {y. \<exists>x. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one>}"
 
-end context monoid begin
-
 lemma inv_obtain:
   assumes "x \<in> units"
   obtains y where "y \<^loc>\<otimes> x = \<^loc>\<one>" and "x \<^loc>\<otimes> y = \<^loc>\<one>"
@@ -119,8 +117,6 @@ fun
 where
   "npow 0 x = \<^loc>\<one>"
   | "npow (Suc n) x = x \<^loc>\<otimes> npow n x"
-
-end context monoid begin
 
 abbreviation
   npow_syn :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
