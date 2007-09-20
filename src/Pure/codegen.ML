@@ -75,7 +75,8 @@ sig
   val test_fn: (int -> (string * term) list option) ref
   val test_term: theory -> bool -> int -> int -> term -> (string * term) list option
   val auto_quickcheck: bool ref
-  val eval_result: term ref
+  val auto_quickcheck_time_limit: Time.time ref
+  val eval_result: (unit -> term) ref
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
@@ -945,7 +946,7 @@ fun test_term thy quiet sz i t =
                   [Pretty.str "]"])]],
             Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
       "\n\nend;\n") ();
-    val _ = use_text "" (K (), error) false s;
+    val _ = ML_Context.use_mltext s false (SOME (Context.Theory thy));
     fun iter f k = if k > i then NONE
       else (case (f () handle Match =>
           (if quiet then ()
@@ -965,9 +966,15 @@ fun test_goal quiet ({size, iterations, default_type}, tvinsts) i assms state =
     val (_, (_, st)) = Proof.get_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
     val gi' = ObjectLogic.atomize_term thy (map_types
-      (map_type_tfree (fn p as (s, _) =>
-        the_default (the_default (TFree p) default_type)
-          (AList.lookup (op =) tvinsts s)))
+      (map_type_tfree (fn p as (s, S) =>
+        let val T = the_default (the_default (TFree p) default_type)
+          (AList.lookup (op =) tvinsts s)
+        in if Sign.of_sort thy (T, S) then T
+          else error ("Type " ^ Sign.string_of_typ thy T ^
+            " to be substituted for variable " ^
+            Sign.string_of_typ thy (TFree p) ^ "\ndoes not have sort " ^
+            Sign.string_of_sort thy S)
+        end))
       (Logic.list_implies (assms, subst_bounds (frees, strip gi))));
   in test_term thy quiet size iterations gi' end;
 
@@ -979,22 +986,24 @@ fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
             ProofContext.pretty_term ctxt t]) cex);
 
 val auto_quickcheck = ref true;
+val auto_quickcheck_time_limit = ref (Time.fromSeconds 5);
 
 fun test_goal' int state =
   let
     val ctxt = Proof.context_of state;
     val assms = map term_of (Assumption.assms_of ctxt)
+    val params = get_test_params (Proof.theory_of state)
   in
     if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
     then
-      (case try (test_goal true
-           (get_test_params (Proof.theory_of state), []) 1 assms) state of
+      (case try (fn state => interrupt_timeout (!auto_quickcheck_time_limit)
+           (test_goal true (params, []) 1 assms) state) state of
          SOME (cex as SOME _) =>
            Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
              Pretty.markup Markup.hilite [pretty_counterex ctxt cex]]) state
        | _ => state)
     else state
-  end;
+  end handle Interrupt => state;
 
 val _ = Context.add_setup
   (Context.theory_map (Specification.add_theorem_hook test_goal'));
@@ -1002,7 +1011,7 @@ val _ = Context.add_setup
 
 (**** Evaluator for terms ****)
 
-val eval_result = ref (Bound 0);
+val eval_result = ref (fn () => Bound 0);
 
 fun eval_term thy = PrintMode.setmp [] (fn t =>
   let
@@ -1011,18 +1020,19 @@ fun eval_term thy = PrintMode.setmp [] (fn t =>
     val _ = (null (term_vars t) andalso null (term_frees t)) orelse
       error "Term to be evaluated contains variables";
     val (code, gr) = setmp mode ["term_of"]
-      (generate_code_i thy [] "Generated") [("result", t)];
+      (generate_code_i thy [] "Generated")
+      [("result", Abs ("x", TFree ("'a", []), t))];
     val s = "structure EvalTerm =\nstruct\n\n" ^
       space_implode "\n" (map snd code) ^
       "\nopen Generated;\n\n" ^ Pretty.string_of
-        (Pretty.block [Pretty.str "val () = Codegen.eval_result :=",
+        (Pretty.block [Pretty.str "val () = Codegen.eval_result := (fn () =>",
           Pretty.brk 1,
           mk_app false (mk_term_of gr "Generated" false (fastype_of t))
-            [Pretty.str "result"],
-          Pretty.str ";"])  ^
+            [Pretty.str "(result ())"],
+          Pretty.str ");"]) ^
       "\n\nend;\n";
-    val _ = use_text "" Output.ml_output false s
-  in !eval_result end);
+    val _ = ML_Context.use_mltext s false (SOME (Context.Theory thy))
+  in !eval_result () end);
 
 fun print_evaluated_term s = Toplevel.keep (fn state =>
   let
@@ -1128,8 +1138,8 @@ fun parse_code lib =
        val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
        val (code, gr) = setmp mode mode'' (generate_code thy modules module) xs
      in ((case opt_fname of
-         NONE => use_text "" Output.ml_output false
-           (space_implode "\n" (map snd code))
+         NONE => ML_Context.use_mltext (space_implode "\n" (map snd code))
+           false (SOME (Context.Theory thy))
        | SOME fname =>
            if lib then
              app (fn (name, s) => File.write
