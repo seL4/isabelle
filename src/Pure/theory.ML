@@ -15,30 +15,28 @@ signature THEORY =
 sig
   include BASIC_THEORY
   include SIGN_THEORY
+  val assert_super: theory -> theory -> theory
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
-  val begin_theory: string -> theory list -> theory
-  val end_theory: theory -> theory
+  val check_thy: theory -> theory_ref
+  val deref: theory_ref -> theory
+  val merge: theory * theory -> theory
+  val merge_refs: theory_ref * theory_ref -> theory_ref
+  val merge_list: theory list -> theory
   val checkpoint: theory -> theory
   val copy: theory -> theory
-  val rep_theory: theory ->
-   {axioms: term NameSpace.table,
-    defs: Defs.T,
-    oracles: ((theory * Object.T -> term) * stamp) NameSpace.table}
+  val requires: theory -> string -> string -> unit
   val axiom_space: theory -> NameSpace.T
   val axiom_table: theory -> term Symtab.table
   val oracle_space: theory -> NameSpace.T
   val oracle_table: theory -> ((theory * Object.T -> term) * stamp) Symtab.table
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
-  val defs_of : theory -> Defs.T
-  val check_thy: theory -> theory_ref
-  val deref: theory_ref -> theory
-  val merge: theory * theory -> theory
-  val merge_refs: theory_ref * theory_ref -> theory_ref
-  val merge_list: theory list -> theory
-  val requires: theory -> string -> string -> unit
-  val assert_super: theory -> theory -> theory
+  val defs_of: theory -> Defs.T
+  val at_begin: (theory -> theory option) -> theory -> theory
+  val at_end: (theory -> theory option) -> theory -> theory
+  val begin_theory: string -> theory list -> theory
+  val end_theory: theory -> theory
   val cert_axm: theory -> string * term -> string * term
   val read_axm: theory -> string * string -> string * term
   val add_axioms: (bstring * string) list -> theory -> theory
@@ -51,111 +49,11 @@ sig
   val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
 end
 
-signature THEORY_INTERPRETATOR =
-sig
-  type T
-  type interpretator = T list -> theory -> theory
-  val add_those: T list -> theory -> theory
-  val all_those: theory -> T list
-  val add_interpretator: interpretator -> theory -> theory
-  val init: theory -> theory
-end;
-
-signature THEORY_INTERPRETATOR_KEY =
-sig
-  type T
-  val eq: T * T -> bool
-end;
-
-structure Theory =
+structure Theory: THEORY =
 struct
 
 
-(** datatype thy **)
-
-datatype thy = Thy of
- {axioms: term NameSpace.table,
-  defs: Defs.T,
-  oracles: ((theory * Object.T -> term) * stamp) NameSpace.table,
-  consolidate: theory -> theory};
-
-fun make_thy (axioms, defs, oracles, consolidate) =
-  Thy {axioms = axioms, defs = defs, oracles = oracles, consolidate = consolidate};
-
-fun err_dup_axm dup = error ("Duplicate axiom: " ^ quote dup);
-fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
-
-structure ThyData = TheoryDataFun
-(
-  type T = thy;
-  val empty = make_thy (NameSpace.empty_table, Defs.empty, NameSpace.empty_table, I);
-  val copy = I;
-
-  fun extend (Thy {axioms, defs, oracles, consolidate}) =
-    make_thy (NameSpace.empty_table, defs, oracles, consolidate);
-
-  fun merge pp (thy1, thy2) =
-    let
-      val Thy {axioms = _, defs = defs1, oracles = oracles1,
-        consolidate = consolidate1} = thy1;
-      val Thy {axioms = _, defs = defs2, oracles = oracles2,
-        consolidate = consolidate2} = thy2;
-
-      val axioms = NameSpace.empty_table;
-      val defs = Defs.merge pp (defs1, defs2);
-      val oracles = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
-        handle Symtab.DUP dup => err_dup_ora dup;
-      val consolidate = consolidate1 #> consolidate2;
-    in make_thy (axioms, defs, oracles, consolidate) end;
-);
-
-fun rep_theory thy = ThyData.get thy |> (fn Thy {axioms, defs, oracles, ...} =>
-  {axioms = axioms, defs = defs, oracles = oracles});
-
-fun map_thy f = ThyData.map (fn (Thy {axioms, defs, oracles, consolidate}) =>
-  make_thy (f (axioms, defs, oracles, consolidate)));
-
-fun map_axioms f = map_thy
-  (fn (axioms, defs, oracles, consolidate) => (f axioms, defs, oracles, consolidate));
-fun map_defs f = map_thy
-  (fn (axioms, defs, oracles, consolidate) => (axioms, f defs, oracles, consolidate));
-fun map_oracles f = map_thy
-  (fn (axioms, defs, oracles, consolidate) => (axioms, defs, f oracles, consolidate));
-
-
-(* basic operations *)
-
-val axiom_space = #1 o #axioms o rep_theory;
-val axiom_table = #2 o #axioms o rep_theory;
-
-val oracle_space = #1 o #oracles o rep_theory;
-val oracle_table = #2 o #oracles o rep_theory;
-
-val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
-
-val defs_of = #defs o rep_theory;
-
-fun requires thy name what =
-  if Context.exists_name name thy then ()
-  else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
-
-
-(* interpretators *)
-
-fun add_consolidate f = map_thy
-  (fn (axioms, defs, oracles, consolidate) => (axioms, defs, oracles, consolidate #> f));
-
-fun consolidate thy =
-  let
-    val Thy {consolidate, ...} = ThyData.get thy;
-  in
-    thy |> consolidate
-  end;
-
-
-(** type theory **)
-
-(* context operations *)
+(** theory context operations **)
 
 val eq_thy = Context.eq_thy;
 val subthy = Context.subthy;
@@ -169,16 +67,127 @@ val ancestors_of = Context.ancestors_of;
 
 val check_thy = Context.check_thy;
 val deref = Context.deref;
+
 val merge = Context.merge;
 val merge_refs = Context.merge_refs;
 
 fun merge_list [] = raise THEORY ("Empty merge of theories", [])
   | merge_list (thy :: thys) = Library.foldl merge (thy, thys);
 
-val begin_theory = Sign.local_path o consolidate oo Context.begin_thy Sign.pp;
-val end_theory = Context.finish_thy;
 val checkpoint = Context.checkpoint_thy;
 val copy = Context.copy_thy;
+
+fun requires thy name what =
+  if Context.exists_name name thy then ()
+  else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
+
+
+
+(** theory wrappers **)
+
+type wrapper = (theory -> theory option) * stamp;
+
+fun apply_wrappers (wrappers: wrapper list) =
+  let
+    fun app [] res = res
+      | app ((f, _) :: fs) (changed, thy) =
+          (case f thy of
+            NONE => app fs (changed, thy)
+          | SOME thy' => app fs (true, thy'));
+    fun app_fixpoint thy =
+      (case app wrappers (false, thy) of
+        (false, _) => thy
+      | (true, thy') => app_fixpoint thy');
+  in app_fixpoint end;
+
+
+
+(** datatype thy **)
+
+datatype thy = Thy of
+ {axioms: term NameSpace.table,
+  defs: Defs.T,
+  oracles: ((theory * Object.T -> term) * stamp) NameSpace.table,
+  wrappers: wrapper list * wrapper list};
+
+fun make_thy (axioms, defs, oracles, wrappers) =
+  Thy {axioms = axioms, defs = defs, oracles = oracles, wrappers = wrappers};
+
+fun err_dup_axm dup = error ("Duplicate axiom: " ^ quote dup);
+fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
+
+structure ThyData = TheoryDataFun
+(
+  type T = thy;
+  val empty = make_thy (NameSpace.empty_table, Defs.empty, NameSpace.empty_table, ([], []));
+  val copy = I;
+
+  fun extend (Thy {axioms, defs, oracles, wrappers}) =
+    make_thy (NameSpace.empty_table, defs, oracles, wrappers);
+
+  fun merge pp (thy1, thy2) =
+    let
+      val Thy {axioms = _, defs = defs1, oracles = oracles1, wrappers = (bgs1, ens1)} = thy1;
+      val Thy {axioms = _, defs = defs2, oracles = oracles2, wrappers = (bgs2, ens2)} = thy2;
+
+      val axioms' = NameSpace.empty_table;
+      val defs' = Defs.merge pp (defs1, defs2);
+      val oracles' = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
+        handle Symtab.DUP dup => err_dup_ora dup;
+      val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
+      val ens' = Library.merge (eq_snd op =) (ens1, ens2);
+    in make_thy (axioms', defs', oracles', (bgs', ens')) end;
+);
+
+fun rep_theory thy = ThyData.get thy |> (fn Thy args => args);
+
+fun map_thy f = ThyData.map (fn (Thy {axioms, defs, oracles, wrappers}) =>
+  make_thy (f (axioms, defs, oracles, wrappers)));
+
+
+fun map_axioms f = map_thy
+  (fn (axioms, defs, oracles, wrappers) => (f axioms, defs, oracles, wrappers));
+
+fun map_defs f = map_thy
+  (fn (axioms, defs, oracles, wrappers) => (axioms, f defs, oracles, wrappers));
+
+fun map_oracles f = map_thy
+  (fn (axioms, defs, oracles, wrappers) => (axioms, defs, f oracles, wrappers));
+
+fun map_wrappers f = map_thy
+  (fn (axioms, defs, oracles, wrappers) => (axioms, defs, oracles, f wrappers));
+
+
+(* basic operations *)
+
+val axiom_space = #1 o #axioms o rep_theory;
+val axiom_table = #2 o #axioms o rep_theory;
+
+val oracle_space = #1 o #oracles o rep_theory;
+val oracle_table = #2 o #oracles o rep_theory;
+
+val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
+fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
+
+val defs_of = #defs o rep_theory;
+
+
+(* begin/end theory *)
+
+val begin_wrappers = rev o #1 o #wrappers o rep_theory;
+val end_wrappers = rev o #2 o #wrappers o rep_theory;
+
+fun at_begin f = map_wrappers (apfst (cons (f, stamp ())));
+fun at_end f = map_wrappers (apsnd (cons (f, stamp ())));
+
+fun begin_theory name imports =
+  let
+    val thy = Context.begin_thy Sign.pp name imports;
+    val wrappers = begin_wrappers thy;
+  in thy |> Sign.local_path |> apply_wrappers wrappers end;
+
+fun end_theory thy =
+  thy |> apply_wrappers (end_wrappers thy) |> Context.finish_thy;
 
 
 (* signature operations *)
@@ -188,10 +197,7 @@ open SignTheory;
 
 
 
-(** axioms **)
-
-fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
-
+(** add axioms **)
 
 (* prepare axioms *)
 
@@ -350,66 +356,5 @@ fun add_oracle (bname, oracle) thy = thy |> map_oracles (fn oracles =>
 
 end;
 
-functor TheoryInterpretatorFun(Key: THEORY_INTERPRETATOR_KEY) : THEORY_INTERPRETATOR =
-struct
-
-open Key;
-
-type interpretator = T list -> theory -> theory;
-
-fun apply ips x = fold_rev (fn (_, f) => f x) ips;
-
-structure InterpretatorData = TheoryDataFun (
-  type T = ((serial * interpretator) list * T list) * (theory -> theory);
-  val empty = (([], []), I);
-  val extend = I;
-  val copy = I;
-  fun merge pp (((interpretators1, done1), upd1), ((interpretators2, done2), upd2)) =
-    let
-      fun diff (interpretators1 : (serial * interpretator) list, done1)
-        (interpretators2, done2) = let
-          val interpretators = subtract (eq_fst (op =)) interpretators1 interpretators2;
-          val undone = subtract eq done2 done1;
-        in apply interpretators undone end;
-      val interpretators = AList.merge (op =) (K true) (interpretators1, interpretators2);
-      val done = Library.merge eq (done1, done2);
-      val upd_new = diff (interpretators2, done2) (interpretators1, done1)
-        #> diff (interpretators1, done1) (interpretators2, done2);
-      val upd = upd1 #> upd2 #> upd_new;
-    in ((interpretators, done), upd) end;
-);
-
-fun consolidate thy =
-  let
-    val (_, upd) = InterpretatorData.get thy;
-  in
-    thy |> upd |> (InterpretatorData.map o apsnd) (K I)
-  end;
-
-val init = Theory.add_consolidate consolidate;
-
-fun add_those xs thy =
-  let
-    val ((interpretators, _), _) = InterpretatorData.get thy;
-  in
-    thy
-    |> apply interpretators xs
-    |> (InterpretatorData.map o apfst o apsnd) (append xs)
-  end;
-
-val all_those = snd o fst o InterpretatorData.get;
-
-fun add_interpretator interpretator thy =
-  let
-    val ((interpretators, xs), _) = InterpretatorData.get thy;
-  in
-    thy
-    |> interpretator (rev xs)
-    |> (InterpretatorData.map o apfst o apfst) (cons (serial (), interpretator))
-  end;
-
-end;
-
-structure Theory: THEORY = Theory;
 structure BasicTheory: BASIC_THEORY = Theory;
 open BasicTheory;
