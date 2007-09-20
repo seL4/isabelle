@@ -70,6 +70,6 @@ end;
 (*override previous toplevel bindings!*)
 val use_text = Secure.use_text;
 val use_file = Secure.use_file;
-val use = Secure.use;
+fun use s = Secure.use s handle ERROR msg => (writeln msg; raise Fail "ML error");
 val execute = Secure.execute;
 val system = Secure.system;
