@@ -684,10 +684,10 @@ types_code
 attach (term_of) {*
 fun term_of_rat (p, q) =
   let
-    val rT = @{typ rat}
+    val rT = Type ("Rational.rat", [])
   in
     if q = 1 orelse p = 0 then HOLogic.mk_number rT p
-    else @{term "op / \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"} $
+    else Const ("HOL.inverse_class.divide", rT --> rT --> rT) $
       HOLogic.mk_number rT p $ HOLogic.mk_number rT q
   end;
 *}
