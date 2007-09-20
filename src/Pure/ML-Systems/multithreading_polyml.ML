@@ -10,8 +10,9 @@ open Thread;
 signature MULTITHREADING =
 sig
   include MULTITHREADING
-  val uninterruptible: (Thread.threadAttribute list -> 'a -> 'b) -> 'a -> 'b
-  val interruptible: (Thread.threadAttribute list -> 'a -> 'b) -> 'a -> 'b
+  val ignore_interrupt: ('a -> 'b) -> 'a -> 'b
+  val raise_interrupt: ('a -> 'b) -> 'a -> 'b
+  val interrupt_timeout: Time.time -> ('a -> 'b) -> 'a -> 'b
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -59,11 +60,27 @@ fun with_attributes new_atts f x =
       handle Interrupt => (restore (); Exn.Exn Interrupt))
   end;
 
+
+(* interrupt handling *)
+
 fun uninterruptible f x = with_attributes
   [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer] f x;
 
 fun interruptible f x = with_attributes
   [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce] f x;
+
+fun ignore_interrupt f = uninterruptible (fn _ => f);
+fun raise_interrupt f = interruptible (fn _ => f);
+
+fun interrupt_timeout time f x =
+  uninterruptible (fn atts => fn () =>
+    let
+      val worker = Thread.self ();
+      val watchdog = Thread.fork (interruptible (fn _ => fn () =>
+        (OS.Process.sleep time; Thread.interrupt worker)), []);
+      val result = Exn.capture (with_attributes atts (fn _ => f)) x;
+      val _ = Thread.interrupt watchdog handle Thread _ => ();
+    in Exn.release result end) ();
 
 
 (* critical section -- may be nested within the same thread *)
@@ -206,7 +223,7 @@ end;
 
 val NAMED_CRITICAL = Multithreading.NAMED_CRITICAL;
 val CRITICAL = Multithreading.CRITICAL;
-
-fun ignore_interrupt f = Multithreading.uninterruptible (fn _ => f);
-fun raise_interrupt f = Multithreading.interruptible (fn _ => f);
+val ignore_interrupt = Multithreading.ignore_interrupt;
+val raise_interrupt = Multithreading.raise_interrupt;
+val interrupt_timeout = Multithreading.interrupt_timeout;
 
