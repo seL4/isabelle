@@ -198,7 +198,9 @@ fun pretty_full_theory verbose thy =
     fun pretty_restrict (const, name) =
       Pretty.block ([prt_const' const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
 
-    val {axioms, defs, oracles} = Theory.rep_theory thy;
+    val axioms = (Theory.axiom_space thy, Theory.axiom_table thy);
+    val oracles = (Theory.oracle_space thy, Theory.oracle_table thy);
+    val defs = Theory.defs_of thy;
     val {restricts, reducts} = Defs.dest defs;
     val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
     val {constants, constraints} = Consts.dest consts;
