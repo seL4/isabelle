@@ -238,14 +238,10 @@ fun eta (Abs (a, T, body)) =
   | eta _ = raise SAME
 and etah t = (eta t handle SAME => t);
 
-fun has_abs (Abs _) = true
-  | has_abs (t $ u) = has_abs t orelse has_abs u
-  | has_abs _ = false;
-
 in
 
 fun eta_contract t =
-  if has_abs t then etah t else t;
+  if Term.has_abs t then etah t else t;
 
 val beta_eta_contract = eta_contract o beta_norm;
 
