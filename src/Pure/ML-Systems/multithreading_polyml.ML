@@ -133,16 +133,11 @@ end;
 datatype 'a task =
   Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
 
-local
-
-val protected_name = ref "";
-
-in
-
 fun schedule n next_task = uninterruptible (fn _ => fn tasks =>
   let
     (*protected execution*)
     val lock = Mutex.mutex ();
+    val protected_name = ref "";
     fun PROTECTED name e =
       let
         val name' = ! protected_name;
@@ -216,8 +211,6 @@ fun schedule n next_task = uninterruptible (fn _ => fn tasks =>
        wait_timeout ())));
 
   in ! status end);
-
-end;
 
 end;
 
