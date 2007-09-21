@@ -183,6 +183,7 @@ sig
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
+  val has_abs: term -> bool
   val dest_abs: string * typ * term -> string * term
   val declare_term_names: term -> Name.context -> Name.context
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
@@ -1102,6 +1103,11 @@ fun exists_subterm P =
       | Abs (_, _, t) => ex t
       | _ => false);
   in ex end;
+
+fun has_abs (Abs _) = true
+  | has_abs (t $ u) = has_abs t orelse has_abs u
+  | has_abs _ = false;
+
 
 
 (** Consts etc. **)
