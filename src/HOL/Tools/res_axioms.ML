@@ -7,23 +7,25 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature RES_AXIOMS =
 sig
-  val cnf_axiom : string * thm -> thm list
-  val cnf_name : string -> thm list
-  val meta_cnf_axiom : thm -> thm list
-  val pairname : thm -> string * thm
-  val skolem_thm : thm -> thm list
-  val cnf_rules_pairs : (string * thm) list -> (thm * (string * int)) list
-  val meson_method_setup : theory -> theory
-  val setup : theory -> theory
-  val clause_cache_setup : theory -> theory
+  val cnf_axiom: thm -> thm list
+  val meta_cnf_axiom: thm -> thm list
+  val pairname: thm -> string * thm
+  val skolem_thm: thm -> thm list
+  val cnf_rules_pairs: (string * thm) list -> (thm * (string * int)) list
+  val cnf_rules_of_ths: thm list -> thm list
+  val neg_clausify: thm list -> thm list
+  val expand_defs_tac: thm -> tactic
   val assume_abstract_list: string -> thm list -> thm list
   val neg_conjecture_clauses: thm -> int -> thm list * (string * typ) list
   val claset_rules_of: Proof.context -> (string * thm) list   (*FIXME DELETE*)
   val simpset_rules_of: Proof.context -> (string * thm) list  (*FIXME DELETE*)
   val atpset_rules_of: Proof.context -> (string * thm) list
+  val meson_method_setup: theory -> theory
+  val clause_cache_setup: theory -> theory
+  val setup: theory -> theory
 end;
 
-structure ResAxioms =
+structure ResAxioms: RES_AXIOMS =
 struct
 
 (*For running the comparison between combinators and abstractions.
@@ -49,11 +51,11 @@ fun seed th net =
   let val (_,ct) = Thm.dest_abs NONE (Thm.rhs_of th)
       val t = Logic.legacy_varify (term_of ct)
   in  Net.insert_term Thm.eq_thm (t, th) net end;
-  
-val abstraction_cache = ref 
-      (seed (thm"ATP_Linkup.I_simp") 
-       (seed (thm"ATP_Linkup.B_simp") 
-	(seed (thm"ATP_Linkup.K_simp") Net.empty)));
+
+val abstraction_cache = ref
+      (seed (thm"ATP_Linkup.I_simp")
+       (seed (thm"ATP_Linkup.B_simp")
+        (seed (thm"ATP_Linkup.K_simp") Net.empty)));
 
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
@@ -66,9 +68,9 @@ val ctp_false = cterm_of HOL.thy (HOLogic.mk_Trueprop HOLogic.false_const);
   conclusion variable to False.*)
 fun transform_elim th =
   case concl_of th of    (*conclusion variable*)
-       Const("Trueprop",_) $ (v as Var(_,Type("bool",[]))) => 
+       Const("Trueprop",_) $ (v as Var(_,Type("bool",[]))) =>
            Thm.instantiate ([], [(cterm_of HOL.thy v, cfalse)]) th
-    | v as Var(_, Type("prop",[])) => 
+    | v as Var(_, Type("prop",[])) =>
            Thm.instantiate ([], [(cterm_of HOL.thy v, ctp_false)]) th
     | _ => th;
 
@@ -167,11 +169,11 @@ end;
 (*Removes the lambdas from an equation of the form t = (%x. u).  A non-negative n,
   serves as an upper bound on how many to remove.*)
 fun strip_lambdas 0 th = th
-  | strip_lambdas n th = 
+  | strip_lambdas n th =
       case prop_of th of
-	  _ $ (Const ("op =", _) $ _ $ Abs (x,_,_)) =>
-	      strip_lambdas (n-1) (freeze_thm (th RS xfun_cong x))
-	| _ => th;
+          _ $ (Const ("op =", _) $ _ $ Abs (x,_,_)) =>
+              strip_lambdas (n-1) (freeze_thm (th RS xfun_cong x))
+        | _ => th;
 
 (*Convert meta- to object-equality. Fails for theorems like split_comp_eq,
   where some types have the empty sort.*)
@@ -202,21 +204,15 @@ fun eq_absdef (th1, th2) =
     Context.joinable (theory_of_thm th1, theory_of_thm th2)  andalso
     rhs_of th1 aconv rhs_of th2;
 
-fun lambda_free (Abs _) = false
-  | lambda_free (t $ u) = lambda_free t andalso lambda_free u
-  | lambda_free _ = true;
+val lambda_free = not o Term.has_abs;
 
-fun monomorphic t =
-  Term.fold_types (Term.fold_atyps (fn TVar _ => K false | _ => I)) t true;
+val monomorphic = not o Term.exists_type (Term.exists_subtype Term.is_TVar);
 
 fun dest_abs_list ct =
   let val (cv,ct') = Thm.dest_abs NONE ct
       val (cvs,cu) = dest_abs_list ct'
   in (cv::cvs, cu) end
   handle CTERM _ => ([],ct);
-
-fun lambda_list [] u = u
-  | lambda_list (v::vs) u = lambda v (lambda_list vs u);
 
 fun abstract_rule_list [] [] th = th
   | abstract_rule_list (v::vs) (ct::cts) th = abstract_rule v ct (abstract_rule_list vs cts th)
@@ -228,12 +224,12 @@ val Envir.Envir {asol = tenv0, iTs = tyenv0, ...} = Envir.empty 0
 (*Does an existing abstraction definition have an RHS that matches the one we need now?
   thy is the current theory, which must extend that of theorem th.*)
 fun match_rhs thy t th =
-  let val _ = Output.debug (fn()=> "match_rhs: " ^ string_of_cterm (cterm_of thy t) ^ 
+  let val _ = Output.debug (fn()=> "match_rhs: " ^ string_of_cterm (cterm_of thy t) ^
                                    " against\n" ^ string_of_thm th);
       val (tyenv,tenv) = Pattern.first_order_match thy (rhs_of th, t) (tyenv0,tenv0)
       val term_insts = map Meson.term_pair_of (Vartab.dest tenv)
-      val ct_pairs = if subthy (theory_of_thm th, thy) andalso 
-                        forall lambda_free (map #2 term_insts) 
+      val ct_pairs = if subthy (theory_of_thm th, thy) andalso
+                        forall lambda_free (map #2 term_insts)
                      then map (pairself (cterm_of thy)) term_insts
                      else raise Pattern.MATCH (*Cannot allow lambdas in the instantiation*)
       fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy T)
@@ -259,7 +255,7 @@ fun declare_absfuns s th =
                 val _ = Output.debug (fn()=>"Returned " ^ string_of_thm u'_th);
                 val cu' = Thm.rhs_of u'_th
                 val u' = term_of cu'
-                val abs_v_u = lambda_list (map term_of cvs) u'
+                val abs_v_u = fold_rev (lambda o term_of) cvs u'
                 (*get the formal parameters: ALL variables free in the term*)
                 val args = term_frees abs_v_u
                 val _ = Output.debug (fn()=>Int.toString (length args) ^ " arguments");
@@ -268,9 +264,9 @@ fun declare_absfuns s th =
                 val _ = Output.debug (fn()=>"Looking up " ^ string_of_cterm cu');
                 val thy = theory_of_thm u'_th
                 val (ax,ax',thy) =
-                 case List.mapPartial (match_rhs thy abs_v_u) 
+                 case List.mapPartial (match_rhs thy abs_v_u)
                          (Net.match_term (!abstraction_cache) u') of
-                     (ax,ax')::_ => 
+                     (ax,ax')::_ =>
                        (Output.debug (fn()=>"Re-using axiom " ^ string_of_thm ax);
                         (ax,ax',thy))
                    | [] =>
@@ -291,7 +287,7 @@ fun declare_absfuns s th =
                           val (_,ax') = Option.valOf (match_rhs thy abs_v_u ax)
                           val _ = Output.debug (fn()=> "Declaring: " ^ string_of_thm ax ^ "\n" ^
                                                        "Instance: " ^ string_of_thm ax');
-                          val _ = abstraction_cache := Net.insert_term eq_absdef 
+                          val _ = abstraction_cache := Net.insert_term eq_absdef
                                             ((Logic.varify u'), ax) (!abstraction_cache)
                             handle Net.INSERT =>
                               raise THM ("declare_absfuns: INSERT", 0, [th,u'_th,ax])
@@ -332,7 +328,7 @@ fun assume_absfuns s th =
                 val cu' = Thm.rhs_of u'_th
                 val u' = term_of cu'
                 (*Could use Thm.cabs instead of lambda to work at level of cterms*)
-                val abs_v_u = lambda_list (map term_of cvs) (term_of cu')
+                val abs_v_u = fold_rev (lambda o term_of) cvs (term_of cu')
                 (*get the formal parameters: free variables not present in the defs
                   (to avoid taking abstraction function names as parameters) *)
                 val args = filter (valid_name defs) (term_frees abs_v_u)
@@ -340,9 +336,9 @@ fun assume_absfuns s th =
                       (*Forms a lambda-abstraction over the formal parameters*)
                 val rhs = term_of crhs
                 val (ax,ax') =
-                 case List.mapPartial (match_rhs thy abs_v_u) 
+                 case List.mapPartial (match_rhs thy abs_v_u)
                         (Net.match_term (!abstraction_cache) u') of
-                     (ax,ax')::_ => 
+                     (ax,ax')::_ =>
                        (Output.debug (fn()=>"Re-using axiom " ^ string_of_thm ax);
                         (ax,ax'))
                    | [] =>
@@ -416,7 +412,7 @@ fun to_nnf th =
 fun skolem_of_nnf s th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
 
-fun assert_lambda_free ths msg = 
+fun assert_lambda_free ths msg =
   case filter (not o lambda_free o prop_of) ths of
       [] => ()
     | ths' => error (msg ^ "\n" ^ cat_lines (map string_of_thm ths'));
@@ -451,7 +447,7 @@ fun declare_abstract s (thy, ths) =
 fun flatten_name s = space_implode "_X" (NameSpace.explode s);
 
 fun fake_name th =
-  if PureThy.has_name_hint th then flatten_name (PureThy.get_name_hint th) 
+  if PureThy.has_name_hint th then flatten_name (PureThy.get_name_hint th)
   else gensym "unknown_thm_";
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
@@ -483,7 +479,7 @@ structure ThmCache = TheoryDataFun
   fun merge _ (ref tab1, ref tab2) : T = ref (Thmtab.merge (K true) (tab1, tab2));
 );
 
-(*The cache prevents repeated clausification of a theorem, and also repeated declaration of 
+(*The cache prevents repeated clausification of a theorem, and also repeated declaration of
   Skolem functions. The global one holds theorems proved prior to this point. Theory data
   holds the remaining ones.*)
 val global_clause_cache = ref (Thmtab.empty : (thm list) Thmtab.table);
@@ -495,11 +491,11 @@ fun skolem_cache_thm clause_cache th thy =
       NONE =>
         (case skolem thy (Thm.transfer thy th) of
              NONE => ([th],thy)
-           | SOME (cls,thy') => 
-                 (if null cls 
+           | SOME (cls,thy') =>
+                 (if null cls
                   then warning ("skolem_cache: empty clause set for " ^ string_of_thm th)
                   else ();
-                  change clause_cache (Thmtab.update (th, cls)); 
+                  change clause_cache (Thmtab.update (th, cls));
                   (cls,thy')))
     | SOME cls => (cls,thy);
 
@@ -510,16 +506,16 @@ fun cnf_axiom th =
       val in_cache = if cache = global_clause_cache then NONE else Thmtab.lookup (!cache) th
   in
      case in_cache of
-       NONE => 
-	 (case Thmtab.lookup (!global_clause_cache) th of
-	   NONE => 
-	     let val cls = map Goal.close_result (skolem_thm th)
-	     in Output.debug (fn () => Int.toString (length cls) ^ " clauses inserted into cache: " ^ 
-	                         (if PureThy.has_name_hint th then PureThy.get_name_hint th
-	                          else string_of_thm th));
-		change cache (Thmtab.update (th, cls)); cls 
-	     end
-	 | SOME cls => cls)
+       NONE =>
+         (case Thmtab.lookup (!global_clause_cache) th of
+           NONE =>
+             let val cls = map Goal.close_result (skolem_thm th)
+             in Output.debug (fn () => Int.toString (length cls) ^ " clauses inserted into cache: " ^
+                                 (if PureThy.has_name_hint th then PureThy.get_name_hint th
+                                  else string_of_thm th));
+                change cache (Thmtab.update (th, cls)); cls
+             end
+         | SOME cls => cls)
      | SOME cls => cls
   end;
 
@@ -581,7 +577,7 @@ fun skolem_cache clause_cache th thy = #2 (skolem_cache_thm clause_cache th thy)
 (*The cache can be kept smaller by inspecting the prop of each thm. Can ignore all that are
   lambda_free, but then the individual theory caches become much bigger.*)
 
-fun clause_cache_setup thy = 
+fun clause_cache_setup thy =
   fold (skolem_cache global_clause_cache) (map #2 (PureThy.all_thms_of thy)) thy;
 
 
@@ -605,7 +601,7 @@ fun expand_defs_tac st0 st =
       val hyps = #hyps (crep_thm st)
       val newhyps = filter_out (member (op aconv) hyps0 o Thm.term_of) hyps
       val defs = filter (is_absko o Thm.term_of) newhyps
-      val remaining_hyps = filter_out (member (op aconv) (map Thm.term_of defs)) 
+      val remaining_hyps = filter_out (member (op aconv) (map Thm.term_of defs))
                                       (map Thm.term_of hyps)
       val fixed = term_frees (concl_of st) @
                   foldl (gen_union (op aconv)) [] (map term_frees remaining_hyps)
@@ -652,19 +648,19 @@ fun neg_conjecture_clauses st0 n =
   in (neg_clausify (Option.valOf (metahyps_thms n st)), params) end
   handle Option => raise ERROR "unable to Skolemize subgoal";
 
-(*Conversion of a subgoal to conjecture clauses. Each clause has  
+(*Conversion of a subgoal to conjecture clauses. Each clause has
   leading !!-bound universal variables, to express generality. *)
-val neg_clausify_tac = 
-  neg_skolemize_tac THEN' 
+val neg_clausify_tac =
+  neg_skolemize_tac THEN'
   SUBGOAL
     (fn (prop,_) =>
      let val ts = Logic.strip_assums_hyp prop
-     in EVERY1 
-	 [METAHYPS
-	    (fn hyps => 
+     in EVERY1
+         [METAHYPS
+            (fn hyps =>
               (Method.insert_tac
                 (map forall_intr_vars (neg_clausify hyps)) 1)),
-	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
+          REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
 
 (** The Skolemization attribute **)
@@ -685,9 +681,9 @@ val setup_attrs = Attrib.add_attributes
    ("clausify", clausify, "conversion of theorem to clauses")];
 
 val setup_methods = Method.add_methods
-  [("neg_clausify", Method.no_args (Method.SIMPLE_METHOD' neg_clausify_tac), 
+  [("neg_clausify", Method.no_args (Method.SIMPLE_METHOD' neg_clausify_tac),
     "conversion of goal to conjecture clauses")];
-     
+
 val setup = clause_cache_setup #> ThmCache.init #> setup_attrs #> setup_methods;
 
 end;
