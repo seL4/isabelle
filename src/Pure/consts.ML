@@ -25,12 +25,11 @@ sig
   val syntax: T -> string * mixfix -> string * typ * mixfix
   val syntax_name: T -> string -> string
   val read_const: T -> string -> term
-  val certify: Pretty.pp -> Type.tsig -> T -> term -> term          (*exception TYPE*)
+  val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
   val declare: NameSpace.naming -> (bstring * typ) * bool -> T -> T
   val constrain: string * typ option -> T -> T
-  val set_expand: bool -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string ->
     bstring * term -> T -> (term * term) * T
   val hide: bool -> string -> T -> T
@@ -57,17 +56,15 @@ type decl =
 datatype T = Consts of
  {decls: (decl * serial) NameSpace.table,
   constraints: typ Symtab.table,
-  rev_abbrevs: (term * term) list Symtab.table,
-  do_expand: bool} * stamp;
+  rev_abbrevs: (term * term) list Symtab.table} * stamp;
 
 fun eq_consts (Consts (_, s1), Consts (_, s2)) = s1 = s2;
 
-fun make_consts (decls, constraints, rev_abbrevs, do_expand) =
-  Consts ({decls = decls, constraints = constraints, rev_abbrevs = rev_abbrevs,
-    do_expand = do_expand}, stamp ());
+fun make_consts (decls, constraints, rev_abbrevs) =
+  Consts ({decls = decls, constraints = constraints, rev_abbrevs = rev_abbrevs}, stamp ());
 
-fun map_consts f (Consts ({decls, constraints, rev_abbrevs, do_expand}, _)) =
-  make_consts (f (decls, constraints, rev_abbrevs, do_expand));
+fun map_consts f (Consts ({decls, constraints, rev_abbrevs}, _)) =
+  make_consts (f (decls, constraints, rev_abbrevs));
 
 fun abbrevs_of (Consts ({rev_abbrevs, ...}, _)) modes =
   maps (Symtab.lookup_list rev_abbrevs) modes;
@@ -144,10 +141,11 @@ fun read_const consts raw_c =
 
 (* certify *)
 
-fun certify pp tsig (consts as Consts ({do_expand, ...}, _)) =
+fun certify pp tsig do_expand consts =
   let
     fun err msg (c, T) =
       raise TYPE (msg ^ " " ^ quote c ^ " :: " ^ Pretty.string_of_typ pp T, [], []);
+    val certT = Type.cert_typ tsig;
     fun cert tm =
       let
         val (head, args) = Term.strip_comb tm;
@@ -155,10 +153,10 @@ fun certify pp tsig (consts as Consts ({do_expand, ...}, _)) =
         fun comb head' = Term.list_comb (head', args');
       in
         (case head of
-          Abs (x, T, t) => comb (Abs (x, T, cert t))
+          Abs (x, T, t) => comb (Abs (x, certT T, cert t))
         | Const (c, T) =>
             let
-              val T' = Type.cert_typ tsig T;
+              val T' = certT T;
               val (U, kind) = #1 (#1 (the_const consts c));
             in
               if not (Type.raw_instance (T', U)) then
@@ -189,8 +187,9 @@ fun instance consts (c, Ts) =
   let
     val declT = the_declaration consts c;
     val vars = map Term.dest_TVar (typargs consts (c, declT));
-  in declT |> TermSubst.instantiateT (vars ~~ Ts) end
-  handle UnequalLengths => raise TYPE ("const_instance", Ts, [Const(c,dummyT)]);
+    val inst = vars ~~ Ts handle UnequalLengths =>
+      raise TYPE ("Consts.instance", Ts, [Const (c, dummyT)]);
+  in declT |> TermSubst.instantiateT inst end;
 
 
 
@@ -208,14 +207,13 @@ fun extend_decls naming decl tab = NameSpace.extend_table naming [decl] tab
 
 (* name space *)
 
-fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs, do_expand) =>
-  (apfst (NameSpace.hide fully c) decls, constraints, rev_abbrevs, do_expand));
+fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
+  (apfst (NameSpace.hide fully c) decls, constraints, rev_abbrevs));
 
 
 (* declarations *)
 
-fun declare naming ((c, declT), authentic) =
-    map_consts (fn (decls, constraints, rev_abbrevs, do_expand) =>
+fun declare naming ((c, declT), authentic) = map_consts (fn (decls, constraints, rev_abbrevs) =>
   let
     fun args_of (Type (_, Ts)) pos = args_of_list Ts 0 pos
       | args_of (TVar v) pos = insert (eq_fst op =) (v, rev pos)
@@ -224,23 +222,20 @@ fun declare naming ((c, declT), authentic) =
       | args_of_list [] _ _ = I;
     val decl =
       (((declT, LogicalConst (map #2 (rev (args_of declT [] [])))), authentic), serial ());
-  in (extend_decls naming (c, decl) decls, constraints, rev_abbrevs, do_expand) end);
+  in (extend_decls naming (c, decl) decls, constraints, rev_abbrevs) end);
 
 
 (* constraints *)
 
 fun constrain (c, C) consts =
-  consts |> map_consts (fn (decls, constraints, rev_abbrevs, do_expand) =>
+  consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
     (the_const consts c handle TYPE (msg, _, _) => error msg;
       (decls,
         constraints |> (case C of SOME T => Symtab.update (c, T) | NONE => Symtab.delete_safe c),
-        rev_abbrevs, do_expand)));
+        rev_abbrevs)));
 
 
 (* abbreviations *)
-
-fun set_expand b = map_consts (fn (decls, constraints, rev_abbrevs, _) =>
-  (decls, constraints, rev_abbrevs, b));
 
 local
 
@@ -263,8 +258,8 @@ in
 
 fun abbreviate pp tsig naming mode (c, raw_rhs) consts =
   let
-    val cert_term = certify pp tsig (consts |> set_expand false);
-    val expand_term = certify pp tsig (consts |> set_expand true);
+    val cert_term = certify pp tsig false consts;
+    val expand_term = certify pp tsig true consts;
     val force_expand = mode = Syntax.internalM;
 
     val rhs = raw_rhs
@@ -279,13 +274,13 @@ fun abbreviate pp tsig naming mode (c, raw_rhs) consts =
     val _ = Term.exists_subterm Term.is_Var rhs andalso err "Illegal schematic variables"
     val _ = null (Term.hidden_polymorphism rhs T) orelse err "Extra type variables";
   in
-    consts |> map_consts (fn (decls, constraints, rev_abbrevs, do_expand) =>
+    consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
         val decls' = decls |> extend_decls naming
           (c, (((T, Abbreviation (rhs, rhs', force_expand)), true), serial ()));
         val rev_abbrevs' = rev_abbrevs
           |> fold (curry Symtab.update_list mode) (rev_abbrev lhs rhs);
-      in (decls', constraints, rev_abbrevs', do_expand) end)
+      in (decls', constraints, rev_abbrevs') end)
     |> pair (lhs, rhs)
   end;
 
@@ -294,13 +289,11 @@ end;
 
 (* empty and merge *)
 
-val empty = make_consts (NameSpace.empty_table, Symtab.empty, Symtab.empty, true);
+val empty = make_consts (NameSpace.empty_table, Symtab.empty, Symtab.empty);
 
 fun merge
-   (Consts ({decls = decls1, constraints = constraints1,
-      rev_abbrevs = rev_abbrevs1, do_expand = do_expand1}, _),
-    Consts ({decls = decls2, constraints = constraints2,
-      rev_abbrevs = rev_abbrevs2, do_expand = do_expand2}, _)) =
+   (Consts ({decls = decls1, constraints = constraints1, rev_abbrevs = rev_abbrevs1}, _),
+    Consts ({decls = decls2, constraints = constraints2, rev_abbrevs = rev_abbrevs2}, _)) =
   let
     val decls' = NameSpace.merge_tables (eq_snd (op =)) (decls1, decls2)
       handle Symtab.DUP c => err_dup_const c;
@@ -308,7 +301,6 @@ fun merge
       handle Symtab.DUP c => err_inconsistent_constraints c;
     val rev_abbrevs' = (rev_abbrevs1, rev_abbrevs2) |> Symtab.join
       (K (Library.merge (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u')));
-    val do_expand' = do_expand1 orelse do_expand2;
-  in make_consts (decls', constraints', rev_abbrevs', do_expand') end;
+  in make_consts (decls', constraints', rev_abbrevs') end;
 
 end;
