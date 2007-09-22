@@ -131,7 +131,7 @@ sig
   val certify_sort: theory -> sort -> sort
   val certify_typ: theory -> typ -> typ
   val certify_typ_mode: Type.mode -> theory -> typ -> typ
-  val certify': bool -> bool -> Pretty.pp -> Consts.T -> theory -> term -> term * typ * int
+  val certify': bool -> Pretty.pp -> bool -> Consts.T -> theory -> term -> term * typ * int
   val certify_term: theory -> term -> term * typ * int
   val certify_prop: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
@@ -437,20 +437,19 @@ fun check_vars (t $ u) = (check_vars t; check_vars u)
 
 in
 
-fun certify' normalize prop pp consts thy tm =
+fun certify' prop pp do_expand consts thy tm =
   let
     val _ = check_vars tm;
     val tm' = Term.map_types (certify_typ thy) tm;
     val T = type_check pp tm';
     val _ = if prop andalso T <> propT then err "Term not of type prop" else ();
-    val tm'' = Consts.certify pp (tsig_of thy) consts tm';
-    val tm'' = if normalize then tm'' else tm';
+    val tm'' = Consts.certify pp (tsig_of thy) do_expand consts tm';
   in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
-fun certify_term thy = certify' true false (pp thy) (consts_of thy) thy;
-fun certify_prop thy = certify' true true (pp thy) (consts_of thy) thy;
+fun certify_term thy = certify' false (pp thy) true (consts_of thy) thy;
+fun certify_prop thy = certify' true (pp thy) true (consts_of thy) thy;
 
-fun cert_term_abbrev thy = #1 o certify' false false (pp thy) (consts_of thy) thy;
+fun cert_term_abbrev thy = #1 o certify' false (pp thy) false (consts_of thy) thy;
 val cert_term = #1 oo certify_term;
 val cert_prop = #1 oo certify_prop;
 
@@ -591,7 +590,7 @@ fun read_def_terms (thy, types, sorts) used freeze sTs =
   let
     val pp = pp thy;
     val consts = consts_of thy;
-    val cert_consts = Consts.certify pp (tsig_of thy) consts;
+    val cert_consts = Consts.certify pp (tsig_of thy) true consts;
     fun map_free x = if is_some (types (x, ~1)) then SOME x else NONE;
     val (ts, inst) =
       read_def_terms' pp (is_logtype thy) (syn_of thy) consts map_free
