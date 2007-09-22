@@ -152,7 +152,6 @@ sig
     Proof.context -> Proof.context
   val target_notation: Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
-  val set_expand_abbrevs: bool -> Proof.context -> Proof.context
   val add_abbrev: string -> bstring * term -> Proof.context -> (term * term) * Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
@@ -200,12 +199,12 @@ val mode_abbrev    = make_mode (false, false, false, true);
 
 datatype ctxt =
   Ctxt of
-   {mode: mode,                                   (*inner syntax mode*)
-    naming: NameSpace.naming,                     (*local naming conventions*)
-    syntax: LocalSyntax.T,                        (*local syntax*)
-    consts: Consts.T * Consts.T,                  (*global/local consts*)
-    thms: thm list NameSpace.table * FactIndex.T, (*local thms*)
-    cases: (string * (RuleCases.T * bool)) list}; (*local contexts*)
+   {mode: mode,                                       (*inner syntax mode*)
+    naming: NameSpace.naming,                         (*local naming conventions*)
+    syntax: LocalSyntax.T,                            (*local syntax*)
+    consts: Consts.T * Consts.T,                      (*global/local consts*)
+    thms: thm list NameSpace.table * FactIndex.T,     (*local thms*)
+    cases: (string * (RuleCases.T * bool)) list};     (*local contexts*)
 
 fun make_ctxt (mode, naming, syntax, consts, thms, cases) =
   Ctxt {mode = mode, naming = naming, syntax = syntax,
@@ -303,9 +302,8 @@ fun theory_result f ctxt =
 
 local
 
-fun rewrite_term warn thy rews t =
-  if can Term.type_of t then Pattern.rewrite_term thy rews [] t
-  else (if warn then warning "Printing malformed term -- cannot expand abbreviations" else (); t);
+fun rewrite_term thy rews t =
+  if can Term.type_of t then Pattern.rewrite_term thy rews [] t else t;
 
 fun pretty_term' abbrevs ctxt t =
   let
@@ -314,8 +312,8 @@ fun pretty_term' abbrevs ctxt t =
     val consts = consts_of ctxt;
     val do_abbrevs = abbrevs andalso not (print_mode_active "no_abbrevs");
     val t' = t
-      |> do_abbrevs ? rewrite_term true thy (Consts.abbrevs_of consts (print_mode_value () @ [""]))
-      |> do_abbrevs ? rewrite_term false thy (Consts.abbrevs_of consts [Syntax.internalM])
+      |> do_abbrevs ? rewrite_term thy (Consts.abbrevs_of consts (print_mode_value () @ [""]))
+      |> do_abbrevs ? rewrite_term thy (Consts.abbrevs_of consts [Syntax.internalM])
       |> Sign.extern_term (Consts.extern_early consts) thy
       |> LocalSyntax.extern_term syntax;
   in Sign.pretty_term' ctxt (LocalSyntax.syn_of syntax) (Consts.extern consts) t' end;
@@ -457,7 +455,8 @@ fun read_props_thy freeze pp syn thy defaults fixed =
 local
 
 fun certify_consts ctxt =
-  Consts.certify (pp ctxt) (tsig_of ctxt) (consts_of ctxt);
+  let val Mode {abbrev, ...} = get_mode ctxt
+  in Consts.certify (pp ctxt) (tsig_of ctxt) (not abbrev) (consts_of ctxt) end;
 
 fun reject_schematic (Var (xi, _)) =
       error ("Unbound schematic variable: " ^ Term.string_of_vname xi)
@@ -594,7 +593,7 @@ fun gen_cert prop mode ctxt0 t =
   let val ctxt = set_mode mode ctxt0 in
     t
     |> expand_abbrevs ctxt
-    |> (fn t' => #1 (Sign.certify' false prop (pp ctxt) (consts_of ctxt) (theory_of ctxt) t')
+    |> (fn t' => #1 (Sign.certify' prop (pp ctxt) false (consts_of ctxt) (theory_of ctxt) t')
       handle TYPE (msg, _, _) => error msg
         | TERM (msg, _) => error msg)
    end;
@@ -740,8 +739,7 @@ local
 
 fun gen_bind prep (xi as (x, _), raw_t) ctxt =
   ctxt
-  |> set_mode mode_default
-  |> Variable.add_binds [(xi, Option.map (prep ctxt) raw_t)];
+  |> Variable.add_binds [(xi, Option.map (prep (set_mode mode_default ctxt)) raw_t)];
 
 in
 
@@ -1029,12 +1027,11 @@ fun target_notation mode args phi =
 
 (* abbreviations *)
 
-val set_expand_abbrevs = map_consts o apsnd o Consts.set_expand;
-fun read_term_abbrev ctxt = Syntax.read_term (set_expand_abbrevs false ctxt);
+fun read_term_abbrev ctxt = Syntax.read_term (set_mode mode_abbrev ctxt);
 
 fun add_abbrev mode (c, raw_t) ctxt =
   let
-    val t0 = cert_term (ctxt |> set_expand_abbrevs false) raw_t
+    val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
