@@ -147,7 +147,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
   let
     val ((vars, [(_, [prop])]), _) =
       prep (the_list raw_var) [(("", []), [raw_prop])]
-        (lthy |> ProofContext.set_expand_abbrevs false);
+        (lthy |> ProofContext.set_mode ProofContext.mode_abbrev);
     val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def lthy prop));
     val mx = (case vars of [] => NoSyn | [((y, _), mx)] =>
       if x = y then mx
