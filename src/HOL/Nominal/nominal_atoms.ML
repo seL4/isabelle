@@ -63,10 +63,66 @@ fun mk_Cons x xs =
 fun create_nom_typedecls ak_names thy =
   let
     
-    (* declares a type-decl for every atom-kind: *) 
-    (* that is typedecl <ak>                     *)
-    val thy1 = TypedefPackage.add_typedecls (map (fn x => (x,[],NoSyn)) ak_names) thy;
-    
+    val (_,thy1) = 
+    fold_map (fn ak => fn thy => 
+          let val dt = ([],ak,NoSyn,[(ak,[@{typ nat}],NoSyn)]) 
+              val ({inject,case_thms,...},thy1) = DatatypePackage.add_datatype_i true false [ak] [dt] thy
+              val inject_flat = Library.flat inject
+              val ak_type = Type (Sign.intern_type thy1 ak,[])
+              val ak_sign = Sign.intern_const thy1 ak 
+              
+              val inj_type = @{typ nat}-->ak_type
+              val inj_on_type = inj_type-->(@{typ "nat set"})-->@{typ bool}  
+
+              (* first statement *)
+              val stmnt1 = HOLogic.mk_Trueprop 
+                  (Const (@{const_name "inj_on"},inj_on_type) $ 
+                         Const (ak_sign,inj_type) $ HOLogic.mk_UNIV @{typ nat})
+
+              val simp1 = @{thm inj_on_def}::inject_flat
+              
+              val proof1 = fn _ => EVERY [simp_tac (HOL_basic_ss addsimps simp1) 1,
+                                          rtac @{thm ballI} 1,
+                                          rtac @{thm ballI} 1,
+                                          rtac @{thm impI} 1,
+                                          atac 1]
+             
+              val (inj_thm,thy2) = 
+                   PureThy.add_thms [((ak^"_inj",Goal.prove_global thy1 [] [] stmnt1 proof1), [])] thy1
+              
+              (* second statement *)
+              val y = Free ("y",ak_type)  
+              val stmnt2 = HOLogic.mk_Trueprop
+                  (HOLogic.mk_exists ("x",@{typ nat},HOLogic.mk_eq (y,Const (ak_sign,inj_type) $ Bound 0)))
+
+              val proof2 = fn _ => EVERY [case_tac "y" 1,
+                                          asm_simp_tac (HOL_basic_ss addsimps simp1) 1,
+                                          rtac @{thm exI} 1,
+                                          rtac @{thm refl} 1]
+
+              (* third statement *)
+              val (inject_thm,thy3) =
+                  PureThy.add_thms [((ak^"_injection",Goal.prove_global thy2 [] [] stmnt2 proof2), [])] thy2
+  
+              val stmnt3 = HOLogic.mk_Trueprop
+                           (HOLogic.mk_not
+                              (Const ("Finite_Set.finite", HOLogic.mk_setT ak_type --> HOLogic.boolT) $
+                                  HOLogic.mk_UNIV ak_type))
+             
+              val simp2 = [@{thm image_def},@{thm bex_UNIV}]@inject_thm
+              val simp3 = [@{thm UNIV_def}]
+
+              val proof3 = fn _ => EVERY [cut_facts_tac inj_thm 1,
+                                          dtac @{thm range_inj_infinite} 1,
+                                          asm_full_simp_tac (HOL_basic_ss addsimps simp2) 1,
+                                          simp_tac (HOL_basic_ss addsimps simp3) 1]  
+           
+              val (inf_thm,thy4) =  
+                    PureThy.add_thms [((ak^"_infinite",Goal.prove_global thy1 [] [] stmnt3 proof3), [])] thy3
+          in 
+            ((inj_thm,inject_thm,inf_thm),thy4)
+          end) ak_names thy
+
     (* produces a list consisting of pairs:         *)
     (*  fst component is the atom-kind name         *)
     (*  snd component is its type                   *)
