@@ -137,7 +137,7 @@ fun eval_term thy funcgr t =
         ^ setmp show_types true (Sign.string_of_term thy) t);
     val ty = type_of t;
     fun constrain t =
-      singleton (Syntax.check_terms (ProofContext.init thy)) (TypeInfer.constrain t ty);
+      singleton (Syntax.check_terms (ProofContext.init thy)) (TypeInfer.constrain ty t);
     val _ = ensure_funs thy funcgr t;
   in
     t

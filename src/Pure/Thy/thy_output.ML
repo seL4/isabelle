@@ -434,7 +434,7 @@ fun pretty_term_abbrev ctxt =
   ProofContext.pretty_term_abbrev ctxt o ProofContext.revert_skolems ctxt;
 
 fun pretty_term_typ ctxt t =
-  ProofContext.pretty_term ctxt (TypeInfer.constrain t (Term.fastype_of t));
+  ProofContext.pretty_term ctxt (TypeInfer.constrain (Term.fastype_of t) t);
 
 fun pretty_term_typeof ctxt = ProofContext.pretty_typ ctxt o Term.fastype_of;
 

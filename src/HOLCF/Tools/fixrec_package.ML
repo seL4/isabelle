@@ -23,7 +23,7 @@ struct
 fun legacy_infer_term thy t =
   singleton (Syntax.check_terms (ProofContext.init thy)) (Sign.intern_term thy t);
 
-fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain t propT);
+fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain propT t);
 
 
 val fix_eq2 = thm "fix_eq2";

@@ -109,10 +109,10 @@ fun decode_term get_sort map_const map_free map_type map_sort tm =
     val decodeT = map_type o typ_of_term (get_sort sort_env) map_sort;
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
-          TypeInfer.constrain (decode t) (decodeT typ)
+          TypeInfer.constrain (decodeT typ) (decode t)
       | decode (Const ("_constrainAbs", _) $ (Abs (x, T, t)) $ typ) =
           if T = dummyT then Abs (x, decodeT typ, decode t)
-          else TypeInfer.constrain (Abs (x, map_type T, decode t)) (decodeT typ --> dummyT)
+          else TypeInfer.constrain (decodeT typ --> dummyT) (Abs (x, map_type T, decode t))
       | decode (Abs (x, T, t)) = Abs (x, map_type T, decode t)
       | decode (t $ u) = decode t $ decode u
       | decode (Const (a, T)) =

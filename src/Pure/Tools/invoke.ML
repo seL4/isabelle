@@ -100,7 +100,7 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
 
 fun infer_terms ctxt =
   Syntax.check_terms ctxt o
-    (map (fn (t, T) => TypeInfer.constrain t (TypeInfer.paramify_vars T)));
+    (map (fn (t, T) => TypeInfer.constrain (TypeInfer.paramify_vars T) t));
 
 in
 

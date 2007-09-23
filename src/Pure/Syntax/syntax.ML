@@ -674,7 +674,7 @@ in
 
 val check_typs = gen_check fst (op =);
 val check_terms = gen_check snd (op aconv);
-fun check_props ctxt = map (fn t => TypeInfer.constrain t propT) #> check_terms ctxt;
+fun check_props ctxt = map (TypeInfer.constrain propT) #> check_terms ctxt;
 
 val check_typ = singleton o check_typs;
 val check_term = singleton o check_terms;

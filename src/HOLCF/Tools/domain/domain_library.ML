@@ -153,8 +153,8 @@ fun mk_imp  (S,T) = imp  $ S $ T;
 fun mk_lam  (x,T) = Abs(x,dummyT,T);
 fun mk_all  (x,P) = HOLogic.mk_all (x,dummyT,P);
 fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
-fun mk_constrain      (typ,T) = TypeInfer.constrain T typ;
-fun mk_constrainall (x,typ,P) = %%:"All" $ (TypeInfer.constrain (mk_lam(x,P)) (typ --> boolT));
+val mk_constrain = uncurry TypeInfer.constrain;
+fun mk_constrainall (x,typ,P) = %%:"All" $ (TypeInfer.constrain (typ --> boolT) (mk_lam(x,P)));
 end
 
 fun mk_All  (x,P) = %%:"all" $ mk_lam(x,P); (* meta universal quantification *)
