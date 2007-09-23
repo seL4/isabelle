@@ -766,8 +766,8 @@ fun gen_bind prep_terms gen raw_binds ctxt =
         val binds = simult_matches ctxt2 (t, pats);
       in (binds, ctxt2) end;
 
-    val ts = prep_terms ctxt dummyT (map #2 raw_binds);
-    val (binds, ctxt') = apfst flat (fold_map prep_bind (map #1 raw_binds ~~ ts) ctxt);
+    val ts = prep_terms ctxt dummyT (map snd raw_binds);
+    val (binds, ctxt') = apfst flat (fold_map prep_bind (map fst raw_binds ~~ ts) ctxt);
     val binds' =
       if gen then map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds)
       else binds;
