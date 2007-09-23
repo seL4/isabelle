@@ -434,28 +434,6 @@ val read_term_schematic = read_term_mode mode_schematic;
 val read_term_abbrev    = read_term_mode mode_abbrev;
 
 
-(* read wrt. theory *)     (*exception ERROR*)
-
-fun read_def_termTs freeze pp syn ctxt (types, sorts, used) fixed sTs =
-  Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt) fixed
-    ctxt (types, sorts) used freeze sTs;
-
-fun read_def_termT freeze pp syn ctxt defaults fixed sT =
-  apfst hd (read_def_termTs freeze pp syn ctxt defaults fixed [sT]);
-
-fun read_term_thy freeze pp syn thy defaults fixed s =
-  #1 (read_def_termT freeze pp syn thy defaults fixed (s, dummyT));
-
-fun read_prop_thy freeze pp syn thy defaults fixed s =
-  #1 (read_def_termT freeze pp syn thy defaults fixed (s, propT));
-
-fun read_terms_thy freeze pp syn thy defaults fixed =
-  #1 o read_def_termTs freeze pp syn thy defaults fixed;
-
-fun read_props_thy freeze pp syn thy defaults fixed =
-  #1 o read_def_termTs freeze pp syn thy defaults fixed o map (rpair propT);
-
-
 (* local abbreviations *)
 
 local
@@ -551,17 +529,30 @@ fun decode_term ctxt =
   in Syntax.decode_term get_sort map_const map_free map_type map_sort end;
 
 
-(* read terms *)
+(* read terms -- legacy *)
 
 local
 
+fun read_def_termTs freeze pp syn ctxt (types, sorts, used) fixed sTs =
+  Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt) fixed
+    ctxt (types, sorts) used freeze sTs;
+
+fun read_def_termT freeze pp syn ctxt defaults fixed sT =
+  apfst hd (read_def_termTs freeze pp syn ctxt defaults fixed [sT]);
+
+fun read_prop_thy freeze pp syn thy defaults fixed s =
+  #1 (read_def_termT freeze pp syn thy defaults fixed (s, propT));
+
+fun read_terms_thy freeze pp syn thy defaults fixed =
+  #1 o read_def_termTs freeze pp syn thy defaults fixed;
+
+
 fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 
-fun gen_read' read app pattern schematic ctxt0 internal more_types more_sorts more_used s =
+fun gen_read' read app schematic ctxt0 internal more_types more_sorts more_used s =
   let
-    val ctxt = ctxt0
-      |> set_mode (Mode {stmt = false, pattern = pattern, schematic = schematic, abbrev = false});
-    val types = append_env (Variable.def_type ctxt pattern) more_types;
+    val ctxt = if schematic then set_mode mode_schematic ctxt0 else ctxt0;
+    val types = append_env (Variable.def_type ctxt false) more_types;
     val sorts = append_env (Variable.def_sort ctxt) more_sorts;
     val used = fold Name.declare more_used (Variable.names_of ctxt);
   in
@@ -572,18 +563,17 @@ fun gen_read' read app pattern schematic ctxt0 internal more_types more_sorts mo
     |> app (singleton (prepare_patterns ctxt))
   end;
 
-fun gen_read read app pattern schematic ctxt =
-  gen_read' read app pattern schematic ctxt (K false) (K NONE) (K NONE) [];
+fun gen_read read app schematic ctxt =
+  gen_read' read app schematic ctxt (K false) (K NONE) (K NONE) [];
 
 in
 
-val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) false true;
+val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) true;
 
 fun read_prop_legacy ctxt =
-  gen_read' (read_prop_thy true) I false false ctxt (K true) (K NONE) (K NONE) [];
+  gen_read' (read_prop_thy true) I false ctxt (K true) (K NONE) (K NONE) [];
 
-val read_termTs          = gen_read (read_terms_thy true) map false false;
-fun read_props schematic = gen_read (read_props_thy true) map false schematic;
+val read_termTs = gen_read (read_terms_thy true) map false;
 
 end;
 
