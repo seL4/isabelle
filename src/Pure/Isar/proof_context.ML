@@ -58,19 +58,16 @@ sig
   val revert_skolem: Proof.context -> string -> string
   val revert_skolems: Proof.context -> term -> term
   val decode_term: Proof.context -> term -> term
+  val read_term_pattern: Proof.context -> string -> term
+  val read_term_schematic: Proof.context -> string -> term
+  val read_term_abbrev: Proof.context -> string -> term
   val read_termTs_schematic: Proof.context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
   val read_prop_legacy: Proof.context -> string -> term
   val read_termTs: Proof.context -> (string * typ) list -> term list
-  val read_term_pats: typ -> Proof.context -> string list -> term list
-  val read_prop_pats: Proof.context -> string list -> term list
-  val read_term_abbrev: Proof.context -> string -> term
   val cert_term: Proof.context -> term -> term
-  val cert_terms: Proof.context -> term list -> term list
   val cert_prop: Proof.context -> term -> term
-  val cert_term_pats: typ -> Proof.context -> term list -> term list
-  val cert_prop_pats: Proof.context -> term list -> term list
   val infer_type: Proof.context -> string -> typ
   val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
@@ -428,6 +425,15 @@ fun revert_skolems ctxt =
 
 (** prepare terms and propositions **)
 
+(* read_term *)
+
+fun read_term_mode mode ctxt = Syntax.read_term (set_mode mode ctxt);
+
+val read_term_pattern   = read_term_mode mode_pattern;
+val read_term_schematic = read_term_mode mode_schematic;
+val read_term_abbrev    = read_term_mode mode_abbrev;
+
+
 (* read wrt. theory *)     (*exception ERROR*)
 
 fun read_def_termTs freeze pp syn ctxt (types, sorts, used) fixed sTs =
@@ -505,10 +511,11 @@ fun reject_dummies t = Term.no_dummy_patterns t
 
 in
 
-fun prepare_pattern ctxt =
+fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
-    Term.map_types (prepare_patternT ctxt) #>
-    (if pattern then prepare_dummies else reject_dummies)
+    (if pattern then Variable.polymorphic ctxt else I) #>
+    (map o Term.map_types) (prepare_patternT ctxt) #>
+    map (if pattern then prepare_dummies else reject_dummies)
   end;
 
 end;
@@ -562,7 +569,7 @@ fun gen_read' read app pattern schematic ctxt0 internal more_types more_sorts mo
         (legacy_intern_skolem ctxt internal types) s
       handle TERM (msg, _) => error msg)
     |> app (expand_abbrevs ctxt)
-    |> app (prepare_pattern ctxt)
+    |> app (singleton (prepare_patterns ctxt))
   end;
 
 fun gen_read read app pattern schematic ctxt =
@@ -571,10 +578,6 @@ fun gen_read read app pattern schematic ctxt =
 in
 
 val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) false true;
-
-fun read_term_pats T ctxt =
-  #1 o gen_read (read_def_termTs false) (apfst o map) true false ctxt o map (rpair T);
-val read_prop_pats = read_term_pats propT;
 
 fun read_prop_legacy ctxt =
   gen_read' (read_prop_thy true) I false false ctxt (K true) (K NONE) (K NONE) [];
@@ -589,24 +592,17 @@ end;
 
 local
 
-fun gen_cert prop mode ctxt0 t =
-  let val ctxt = set_mode mode ctxt0 in
-    t
-    |> expand_abbrevs ctxt
-    |> (fn t' => #1 (Sign.certify' prop (pp ctxt) false (consts_of ctxt) (theory_of ctxt) t')
-      handle TYPE (msg, _, _) => error msg
-        | TERM (msg, _) => error msg)
-   end;
+fun gen_cert prop ctxt t =
+  t
+  |> expand_abbrevs ctxt
+  |> (fn t' => #1 (Sign.certify' prop (pp ctxt) false (consts_of ctxt) (theory_of ctxt) t')
+    handle TYPE (msg, _, _) => error msg
+      | TERM (msg, _) => error msg);
 
 in
 
-val cert_term = gen_cert false mode_default;
-val cert_terms = map o cert_term;
-val cert_prop = gen_cert true mode_default;
-fun cert_props schematic = map o gen_cert true (if schematic then mode_schematic else mode_default);
-
-fun cert_term_pats _ = map o gen_cert false mode_pattern;
-val cert_prop_pats = map o gen_cert true mode_pattern;
+val cert_term = gen_cert false;
+val cert_prop = gen_cert true;
 
 end;
 
@@ -627,7 +623,7 @@ local
 fun standard_term_check ctxt =
   standard_infer_types ctxt #>
   map (expand_abbrevs ctxt) #>
-  map (prepare_pattern ctxt);
+  prepare_patterns ctxt;
 
 fun standard_typ_check ctxt =
   map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
@@ -691,8 +687,8 @@ fun parse_typ ctxt str =
 fun parse_term T ctxt str =
   let
     val thy = theory_of ctxt;
-    fun infer t = singleton (standard_infer_types (Type.set_mode Type.mode_default ctxt))
-        (TypeInfer.constrain t T);
+    val infer = singleton (standard_infer_types (Type.set_mode Type.mode_default ctxt)) o
+      TypeInfer.constrain T;
     fun check t = Exn.Result (infer t) handle ERROR msg => Exn.Exn (ERROR msg);
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
     val read = Syntax.standard_parse_term (pp ctxt) check get_sort map_const map_free map_type
@@ -760,18 +756,18 @@ end;
 
 local
 
-fun prep_bind prep_pats (raw_pats, t) ctxt =
+fun gen_bind prep_terms gen raw_binds ctxt =
   let
-    val ctxt' = Variable.declare_term t ctxt;
-    val pats = prep_pats (Term.fastype_of t) ctxt' raw_pats;
-    val binds = simult_matches ctxt' (t, pats);
-  in (binds, ctxt') end;
+    fun prep_bind (raw_pats, t) ctxt1 =
+      let
+        val T = Term.fastype_of t;
+        val ctxt2 = Variable.declare_term t ctxt1;
+        val pats = prep_terms (set_mode mode_pattern ctxt2) T raw_pats;
+        val binds = simult_matches ctxt2 (t, pats);
+      in (binds, ctxt2) end;
 
-fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
-  let
-    val ts = prep_terms (set_mode mode_default ctxt) (map snd raw_binds);
-    val (binds, ctxt') =
-      apfst flat (fold_map (prep_bind prep_pats) (map fst raw_binds ~~ ts) ctxt);
+    val ts = prep_terms ctxt dummyT (map #2 raw_binds);
+    val (binds, ctxt') = apfst flat (fold_map prep_bind (map #1 raw_binds ~~ ts) ctxt);
     val binds' =
       if gen then map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds)
       else binds;
@@ -785,8 +781,11 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
 
 in
 
-val match_bind = gen_binds Syntax.read_terms read_term_pats;
-val match_bind_i = gen_binds cert_terms cert_term_pats;
+fun read_terms ctxt T =
+  map (Syntax.parse_term ctxt #> TypeInfer.constrain T) #> Syntax.check_terms ctxt;
+
+val match_bind = gen_bind read_terms;
+val match_bind_i = gen_bind (fn ctxt => fn _ => map (cert_term ctxt));
 
 end;
 
@@ -795,19 +794,19 @@ end;
 
 local
 
-fun prep_propp schematic prep_props prep_pats (context, args) =
+fun prep_propp mode prep_props (context, args) =
   let
     fun prep (_, raw_pats) (ctxt, prop :: props) =
-          let val ctxt' = Variable.declare_term prop ctxt
-          in ((prop, prep_pats ctxt' raw_pats), (ctxt', props)) end
-      | prep _ _ = sys_error "prep_propp";
+      let val ctxt' = Variable.declare_term prop ctxt
+      in ((prop, prep_props (set_mode mode_pattern ctxt') raw_pats), (ctxt', props)) end;
+
     val (propp, (context', _)) = (fold_map o fold_map) prep args
-      (context, prep_props schematic context (maps (map fst) args));
+      (context, prep_props (set_mode mode context) (maps (map fst) args));
   in (context', propp) end;
 
-fun gen_bind_propp prepp (ctxt, raw_args) =
+fun gen_bind_propp mode parse_prop (ctxt, raw_args) =
   let
-    val (ctxt', args) = prepp (ctxt, raw_args);
+    val (ctxt', args) = prep_propp mode parse_prop (ctxt, raw_args);
     val binds = flat (flat (map (map (simult_matches ctxt')) args));
     val propss = map (map #1) args;
 
@@ -818,15 +817,15 @@ fun gen_bind_propp prepp (ctxt, raw_args) =
 
 in
 
-val read_propp = prep_propp false read_props read_prop_pats;
-val cert_propp = prep_propp false cert_props cert_prop_pats;
-val read_propp_schematic = prep_propp true read_props read_prop_pats;
-val cert_propp_schematic = prep_propp true cert_props cert_prop_pats;
+val read_propp           = prep_propp mode_default Syntax.read_props;
+val cert_propp           = prep_propp mode_default (map o cert_prop);
+val read_propp_schematic = prep_propp mode_schematic Syntax.read_props;
+val cert_propp_schematic = prep_propp mode_schematic (map o cert_prop);
 
-val bind_propp = gen_bind_propp read_propp;
-val bind_propp_i = gen_bind_propp cert_propp;
-val bind_propp_schematic = gen_bind_propp read_propp_schematic;
-val bind_propp_schematic_i = gen_bind_propp cert_propp_schematic;
+val bind_propp             = gen_bind_propp mode_default Syntax.read_props;
+val bind_propp_i           = gen_bind_propp mode_default (map o cert_prop);
+val bind_propp_schematic   = gen_bind_propp mode_schematic Syntax.read_props;
+val bind_propp_schematic_i = gen_bind_propp mode_schematic (map o cert_prop);
 
 end;
 
@@ -1026,8 +1025,6 @@ fun target_notation mode args phi =
 
 
 (* abbreviations *)
-
-fun read_term_abbrev ctxt = Syntax.read_term (set_mode mode_abbrev ctxt);
 
 fun add_abbrev mode (c, raw_t) ctxt =
   let
