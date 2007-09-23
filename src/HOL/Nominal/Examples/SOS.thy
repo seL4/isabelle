@@ -1052,7 +1052,7 @@ next
       proof -
 	have "n\<^isub>2\<sharp>v\<^isub>0" using ht' fresh_preserved fresh_psubst f by auto
 	then have "n\<^isub>2\<sharp>v\<^isub>0'" using eqc by auto
-	then have "n\<^isub>2\<sharp>((n\<^isub>1,v\<^isub>0')#\<theta>)" using f fresh_list_cons fresh_atm by force 
+	then have "n\<^isub>2\<sharp>((n\<^isub>1,v\<^isub>0')#\<theta>)" using f by (simp add: fresh_list_cons fresh_prod fresh_atm)
 	then have "n\<^isub>2\<sharp>((n\<^isub>1,v\<^isub>0')#\<theta>)<t\<^isub>1>" using f fresh_psubst by auto
 	moreover then have "n\<^isub>2 \<sharp> v\<^isub>1" using fresh_preserved ho by auto
 	ultimately show  "n\<^isub>2\<sharp>(\<theta><t'>,\<theta><t\<^isub>1>,v\<^isub>1,n\<^isub>1)" using f by (simp add: fresh_psubst fresh_atm)
@@ -1079,7 +1079,7 @@ next
       have "n\<^isub>1\<sharp>\<theta><t'>" using fresh_psubst f by simp
       then have "n\<^isub>1\<sharp>v\<^isub>0" using ht' fresh_preserved by auto
       then have "n\<^isub>1\<sharp>v\<^isub>0'" using eqc by auto
-      then have "n\<^isub>1\<sharp>((n\<^isub>2,v\<^isub>0')#\<theta>)" using f fresh_list_cons fresh_atm by force 
+      then have "n\<^isub>1\<sharp>((n\<^isub>2,v\<^isub>0')#\<theta>)" using f by (simp add: fresh_list_cons fresh_atm fresh_prod)
       then have "n\<^isub>1\<sharp>((n\<^isub>2,v\<^isub>0')#\<theta>)<t\<^isub>2>" using f fresh_psubst by auto
       moreover then have "n\<^isub>1\<sharp>v\<^isub>2" using fresh_preserved ho by auto
       ultimately show  "n\<^isub>1 \<sharp> (\<theta><t'>,\<theta><t\<^isub>2>,v\<^isub>2,n\<^isub>2)" using f by (simp add: fresh_psubst fresh_atm)
