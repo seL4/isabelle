@@ -257,11 +257,11 @@ val _ = thm_antiq "thms";
 
 end;
 
-val _ = proj_value_antiq "cpat" (Scan.lift Args.name >> 
-      (fn ns => ("cpat", 
-      "((cterm_of (ML_Context.the_context ())) o Library.the_single o " ^ 
-      "(ProofContext.read_term_pats TypeInfer.logicT (ML_Context.the_local_context ())))"
-      ^ (ML_Syntax.print_list ML_Syntax.print_string [ns]), "")));
+val _ = proj_value_antiq "cpat" (Scan.lift Args.name >>
+    (fn name => ("cpat",
+      "Thm.cterm_of (ML_Context.the_context ()) (Syntax.read_term \
+      \(ProofContext.set_mode ProofContext.mode_pattern (ML_Context.the_local_context ()))"
+      ^ ML_Syntax.print_string name ^ ")", "")));
 
 (*final declarations of this structure!*)
 nonfix >>;
