@@ -8,9 +8,8 @@ Simple type inference.
 signature TYPE_INFER =
 sig
   val anyT: sort -> typ
-  val logicT: typ
   val polymorphicT: typ -> typ
-  val constrain: term -> typ -> term
+  val constrain: typ -> term -> term
   val is_param: indexname -> bool
   val param: int -> string * sort -> typ
   val paramify_vars: typ -> typ
@@ -28,12 +27,11 @@ struct
 (** type parameters and constraints **)
 
 fun anyT S = TFree ("'_dummy_", S);
-val logicT = anyT [];
 
 (*indicate polymorphic Vars*)
 fun polymorphicT T = Type ("_polymorphic_", [T]);
 
-fun constrain t T =
+fun constrain T t =
   if T = dummyT then t
   else Const ("_type_constraint_", T --> T) $ t;
 
@@ -392,8 +390,8 @@ fun infer_types pp tsig check_typs const_type var_type used freeze args =
     (*constrain vars*)
     val get_type = the_default dummyT o var_type;
     val constrain_vars = Term.map_aterms
-      (fn Free (x, T) => constrain (Free (x, get_type (x, ~1))) T
-        | Var (xi, T) => constrain (Var (xi, get_type xi)) T
+      (fn Free (x, T) => constrain T (Free (x, get_type (x, ~1)))
+        | Var (xi, T) => constrain T (Var (xi, get_type xi))
         | t => t);
 
     (*convert to preterms/typs*)
