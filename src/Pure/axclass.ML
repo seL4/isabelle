@@ -305,9 +305,7 @@ fun define_class (bclass, raw_super) params raw_specs thy =
       |> map_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
       |> Logic.close_form;
 
-    (*FIXME is ProofContext.cert_propp really neccessary?*)
-    val axiomss = ProofContext.cert_propp (ctxt, map (map (rpair []) o snd) raw_specs)
-      |> snd |> map (map (prep_axiom o fst));
+    val axiomss = map (map (prep_axiom o Sign.cert_prop thy) o snd) raw_specs;
     val name_atts = map fst raw_specs;
 
 
