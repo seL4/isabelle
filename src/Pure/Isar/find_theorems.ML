@@ -27,10 +27,8 @@ fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ Elim = Elim
   | read_criterion _ Dest = Dest
-  | read_criterion ctxt (Simp str) =
-      Simp (hd (ProofContext.read_term_pats dummyT ctxt [str]))
-  | read_criterion ctxt (Pattern str) =
-      Pattern (hd (ProofContext.read_term_pats dummyT ctxt [str]));
+  | read_criterion ctxt (Simp str) = Simp (ProofContext.read_term_pattern ctxt str)
+  | read_criterion ctxt (Pattern str) = Pattern (ProofContext.read_term_pattern ctxt str);
 
 fun pretty_criterion ctxt (b, c) =
   let
