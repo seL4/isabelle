@@ -504,8 +504,7 @@ let
 fun simps phi = map (Morphism.thm phi) [@{thm "not_less"}, @{thm "not_le"}]
 fun generic_whatis phi =
  let
-  val [lt, le] = map (Morphism.term phi)
-   (ProofContext.read_term_pats dummyT @{context} ["op \<sqsubset>", "op \<sqsubseteq>"]) (* FIXME avoid read? *)
+  val [lt, le] = map (Morphism.term phi) [@{term "op \<sqsubset>"}, @{term "op \<sqsubseteq>"}]
   fun h x t =
    case term_of t of
      Const("op =", _)$y$z => if term_of x aconv y then Ferrante_Rackoff_Data.Eq
