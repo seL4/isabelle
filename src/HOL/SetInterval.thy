@@ -13,6 +13,42 @@ theory SetInterval
 imports IntArith
 begin
 
+context ord
+begin
+definition
+  lessThan    :: "'a => 'a set"	("(1\<^loc>{..<_})") where
+  "\<^loc>{..<u} == {x. x \<sqsubset> u}"
+
+definition
+  atMost      :: "'a => 'a set"	("(1\<^loc>{.._})") where
+  "\<^loc>{..u} == {x. x \<sqsubseteq> u}"
+
+definition
+  greaterThan :: "'a => 'a set"	("(1\<^loc>{_<..})") where
+  "\<^loc>{l<..} == {x. l\<sqsubset>x}"
+
+definition
+  atLeast     :: "'a => 'a set"	("(1\<^loc>{_..})") where
+  "\<^loc>{l..} == {x. l\<sqsubseteq>x}"
+
+definition
+  greaterThanLessThan :: "'a => 'a => 'a set"  ("(1\<^loc>{_<..<_})") where
+  "\<^loc>{l<..<u} == \<^loc>{l<..} Int \<^loc>{..<u}"
+
+definition
+  atLeastLessThan :: "'a => 'a => 'a set"      ("(1\<^loc>{_..<_})") where
+  "\<^loc>{l..<u} == \<^loc>{l..} Int \<^loc>{..<u}"
+
+definition
+  greaterThanAtMost :: "'a => 'a => 'a set"    ("(1\<^loc>{_<.._})") where
+  "\<^loc>{l<..u} == \<^loc>{l<..} Int \<^loc>{..u}"
+
+definition
+  atLeastAtMost :: "'a => 'a => 'a set"        ("(1\<^loc>{_.._})") where
+  "\<^loc>{l..u} == \<^loc>{l..} Int \<^loc>{..u}"
+
+end
+(*
 constdefs
   lessThan    :: "('a::ord) => 'a set"	("(1{..<_})")
   "{..<u} == {x. x<u}"
@@ -37,6 +73,7 @@ constdefs
 
   atLeastAtMost :: "['a::ord, 'a] => 'a set"        ("(1{_.._})")
   "{l..u} == {l..} Int {..u}"
+*)
 
 text{* A note of warning when using @{term"{..<n}"} on type @{typ
 nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
@@ -69,7 +106,7 @@ translations
 
 subsection {* Various equivalences *}
 
-lemma lessThan_iff [iff]: "(i: lessThan k) = (i<k)"
+lemma (in ord) lessThan_iff [iff]: "(i: lessThan k) = (i\<^loc><k)"
 by (simp add: lessThan_def)
 
 lemma Compl_lessThan [simp]:
@@ -80,7 +117,7 @@ done
 lemma single_Diff_lessThan [simp]: "!!k:: 'a::order. {k} - lessThan k = {k}"
 by auto
 
-lemma greaterThan_iff [iff]: "(i: greaterThan k) = (k<i)"
+lemma (in ord) greaterThan_iff [iff]: "(i: greaterThan k) = (k\<^loc><i)"
 by (simp add: greaterThan_def)
 
 lemma Compl_greaterThan [simp]:
@@ -93,7 +130,7 @@ apply (subst Compl_greaterThan [symmetric])
 apply (rule double_complement)
 done
 
-lemma atLeast_iff [iff]: "(i: atLeast k) = (k<=i)"
+lemma (in ord) atLeast_iff [iff]: "(i: atLeast k) = (k\<^loc><=i)"
 by (simp add: atLeast_def)
 
 lemma Compl_atLeast [simp]:
@@ -101,7 +138,7 @@ lemma Compl_atLeast [simp]:
 apply (simp add: lessThan_def atLeast_def le_def, auto)
 done
 
-lemma atMost_iff [iff]: "(i: atMost k) = (i<=k)"
+lemma (in ord) atMost_iff [iff]: "(i: atMost k) = (i\<^loc><=k)"
 by (simp add: atMost_def)
 
 lemma atMost_Int_atLeast: "!!n:: 'a::order. atMost n Int atLeast n = {n}"
@@ -153,42 +190,51 @@ done
 
 subsection {*Two-sided intervals*}
 
+context ord
+begin
+
 lemma greaterThanLessThan_iff [simp,noatp]:
-  "(i : {l<..<u}) = (l < i & i < u)"
+  "(i : \<^loc>{l<..<u}) = (l \<^loc>< i & i \<^loc>< u)"
 by (simp add: greaterThanLessThan_def)
 
 lemma atLeastLessThan_iff [simp,noatp]:
-  "(i : {l..<u}) = (l <= i & i < u)"
+  "(i : \<^loc>{l..<u}) = (l \<^loc><= i & i \<^loc>< u)"
 by (simp add: atLeastLessThan_def)
 
 lemma greaterThanAtMost_iff [simp,noatp]:
-  "(i : {l<..u}) = (l < i & i <= u)"
+  "(i : \<^loc>{l<..u}) = (l \<^loc>< i & i \<^loc><= u)"
 by (simp add: greaterThanAtMost_def)
 
 lemma atLeastAtMost_iff [simp,noatp]:
-  "(i : {l..u}) = (l <= i & i <= u)"
+  "(i : \<^loc>{l..u}) = (l \<^loc><= i & i \<^loc><= u)"
 by (simp add: atLeastAtMost_def)
 
 text {* The above four lemmas could be declared as iffs.
   If we do so, a call to blast in Hyperreal/Star.ML, lemma @{text STAR_Int}
   seems to take forever (more than one hour). *}
+end
 
 subsubsection{* Emptyness and singletons *}
 
-lemma atLeastAtMost_empty [simp]: "n < m ==> {m::'a::order..n} = {}";
-  by (auto simp add: atLeastAtMost_def atMost_def atLeast_def);
+context order
+begin
 
-lemma atLeastLessThan_empty[simp]: "n \<le> m ==> {m..<n::'a::order} = {}"
+lemma atLeastAtMost_empty [simp]: "n \<^loc>< m ==> \<^loc>{m..n} = {}";
+by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
+
+lemma atLeastLessThan_empty[simp]: "n \<^loc>\<le> m ==> \<^loc>{m..<n} = {}"
 by (auto simp add: atLeastLessThan_def)
 
-lemma greaterThanAtMost_empty[simp]:"l \<le> k ==> {k<..(l::'a::order)} = {}"
+lemma greaterThanAtMost_empty[simp]:"l \<^loc>\<le> k ==> \<^loc>{k<..l} = {}"
 by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
 
-lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..(l::'a::order)} = {}"
+lemma greaterThanLessThan_empty[simp]:"l \<^loc>\<le> k ==> \<^loc>{k<..l} = {}"
 by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
 
-lemma atLeastAtMost_singleton [simp]: "{a::'a::order..a} = {a}";
-by (auto simp add: atLeastAtMost_def atMost_def atLeast_def);
+lemma atLeastAtMost_singleton [simp]: "\<^loc>{a..a} = {a}"
+by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
+
+end
 
 subsection {* Intervals of natural numbers *}
 
