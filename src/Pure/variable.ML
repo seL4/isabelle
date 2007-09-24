@@ -55,6 +55,7 @@ sig
   val focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context
   val focus_subgoal: int -> thm -> Proof.context -> (cterm list * cterm) * Proof.context
   val warn_extra_tfrees: Proof.context -> Proof.context -> unit
+  val polymorphic_types: Proof.context -> term list -> (indexname * sort) list * term list
   val polymorphic: Proof.context -> term list -> term list
 end;
 
@@ -468,13 +469,20 @@ fun warn_extra_tfrees ctxt1 ctxt2 =
 
 (* polymorphic terms *)
 
-fun polymorphic ctxt ts =
+fun polymorphic_types ctxt ts =
   let
     val ctxt' = fold declare_term ts ctxt;
     val occs = type_occs_of ctxt;
     val occs' = type_occs_of ctxt';
     val types = Symtab.fold (fn (a, _) => if Symtab.defined occs a then I else cons a) occs' [];
     val idx = fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1;
-  in map (TermSubst.generalize (types, []) idx) ts end;
+    val Ts' = (fold o fold_types o fold_atyps)
+      (fn T as TFree _ =>
+          (case TermSubst.generalizeT types idx T of TVar v => insert (op =) v | _ => I)
+        | _ => I) ts [];
+    val ts' = map (TermSubst.generalize (types, []) idx) ts;
+  in (rev Ts', ts') end;
+
+fun polymorphic ctxt ts = snd (polymorphic_types ctxt ts);
 
 end;
