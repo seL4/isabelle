@@ -1,8 +1,8 @@
-(*  Title:      Pure/ML-Systems/multithreading_dummy.ML
+(*  Title:      Pure/ML-Systems/multithreading.ML
     ID:         $Id$
     Author:     Makarius
 
-Compatibility file for ML systems without multithreading.
+Dummy implementation of multithreading interface.
 *)
 
 signature MULTITHREADING =
