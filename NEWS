@@ -1178,11 +1178,14 @@ ML {* @{cterm "%x. x"} *}
 ML {* @{cprop "x == y"} *}
 ML {* @{thm asm_rl} *}
 ML {* @{thms asm_rl} *}
+ML {* @{type_name c} *}
 ML {* @{const_name c} *}
 ML {* @{const_syntax c} *}
 ML {* @{context} *}
 ML {* @{theory} *}
 ML {* @{theory Pure} *}
+ML {* @{theory_ref} *}
+ML {* @{theory_ref Pure} *}
 ML {* @{simpset} *}
 ML {* @{claset} *}
 ML {* @{clasimpset} *}
