@@ -215,23 +215,18 @@ primrec
 text{* The following simple sort functions are intended for proofs,
 not for efficient implementations. *}
 
-context linorder
-begin
+fun (in linorder) sorted :: "'a list \<Rightarrow> bool" where
+"sorted [] \<longleftrightarrow> True" |
+"sorted [x] \<longleftrightarrow> True" |
+"sorted (x#y#zs) \<longleftrightarrow> x \<^loc><= y \<and> sorted (y#zs)"
 
-fun  sorted :: "'a list \<Rightarrow> bool" where
-  "sorted [] \<longleftrightarrow> True" |
-  "sorted [x] \<longleftrightarrow> True" |
-  "sorted (x#y#zs) \<longleftrightarrow> x \<^loc><= y \<and> sorted (y#zs)"
+fun (in linorder) insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"insort x [] = [x]" |
+"insort x (y#ys) = (if x \<^loc><= y then (x#y#ys) else y#(insort x ys))"
 
-fun insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "insort x [] = [x]" |
-  "insort x (y#ys) = (if x \<^loc><= y then (x#y#ys) else y#(insort x ys))"
-
-fun sort :: "'a list \<Rightarrow> 'a list" where
-  "sort [] = []" |
-  "sort (x#xs) = insort x (sort xs)"
-
-end
+fun (in linorder) sort :: "'a list \<Rightarrow> 'a list" where
+"sort [] = []" |
+"sort (x#xs) = insort x (sort xs)"
 
 
 subsubsection {* List comprehension *}
@@ -2545,27 +2540,61 @@ end
 
 subsubsection {* @{text upto}: the generic interval-list *}
 
-(* FIXME why does (in linorder) fail? *)
-definition upto :: "'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a list" ("(1[_../_])") where
-"upto i j == THE is. set is = {i..j} & sorted is & distinct is"
+class finite_intvl_succ = linorder +
+fixes successor :: "'a \<Rightarrow> 'a"
+assumes finite_intvl: "finite(ord.atLeastAtMost (op \<sqsubseteq>) a b)" (* FIXME should be finite({a..b}) *)
+and successor_incr: "a \<sqsubset> successor a"
+and ord_discrete: "\<not>(\<exists>x. a \<sqsubset> x & x \<sqsubset> successor a)"
 
-(*The following lemmas could/should be generalized to discrete linear orders*)
+context finite_intvl_succ
+begin
 
-lemma set_upto[simp]: "set[a::int..b] = {a..b}"
+definition
+ upto :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list" ("(1\<^loc>[_../_])") where
+"upto i j == THE is. set is = \<^loc>{i..j} & sorted is & distinct is"
+
+lemma set_upto[simp]: "set\<^loc>[a..b] = \<^loc>{a..b}"
 apply(simp add:upto_def)
 apply(rule the1I2)
-apply(simp_all add: finite_sorted_distinct_unique)
+apply(simp_all add: finite_sorted_distinct_unique finite_intvl)
 done
 
-lemma upto_rec: "[i::int..j] = (if i <= j then i # [i+1..j] else [])"
-apply(simp add:upto_def cong:conj_cong)
-apply clarify
-apply (rule the1_equality[OF finite_sorted_distinct_unique])
- apply simp
-apply(rule the1I2[OF finite_sorted_distinct_unique])
- apply simp
-apply (fastsimp simp: sorted_Cons)
+lemma insert_intvl: "i \<^loc>\<le> j \<Longrightarrow> insert i \<^loc>{successor i..j} = \<^loc>{i..j}"
+apply(insert successor_incr[of i])
+apply(auto simp: atLeastAtMost_def atLeast_def atMost_def)
+apply (metis ord_discrete less_le not_le)
 done
+
+lemma upto_rec[code]: "\<^loc>[i..j] = (if i \<sqsubseteq> j then i # \<^loc>[successor i..j] else [])"
+proof cases
+  assume "i \<sqsubseteq> j" thus ?thesis
+    apply(simp add:upto_def)
+    apply (rule the1_equality[OF finite_sorted_distinct_unique])
+     apply (simp add:finite_intvl)
+    apply(rule the1I2[OF finite_sorted_distinct_unique])
+     apply (simp add:finite_intvl)
+    apply (simp add: sorted_Cons insert_intvl Ball_def)
+    apply (metis successor_incr leD less_imp_le order_trans)
+    done
+next
+  assume "~ i \<sqsubseteq> j" thus ?thesis
+    apply(simp add:upto_def atLeastAtMost_empty cong:conj_cong)
+    apply(subst atLeastAtMost_empty) apply simp
+    apply(simp cong:conj_cong)
+    done (* FIXME should reduce to the first simp alone *)
+qed
+
+end
+
+text{* The integers are an instance of the above class: *}
+
+instance int:: finite_intvl_succ
+  successor_int_def: "successor == (%i. i+1)"
+apply(intro_classes)
+apply(simp_all add: successor_int_def ord_class.atLeastAtMost[symmetric])
+done
+
+text{* Now @{term"[i..j::int]"} is defined for integers. *}
 
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
