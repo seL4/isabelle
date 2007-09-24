@@ -207,6 +207,12 @@ val _ = ML_Context.value_antiq "theory"
     >> (fn name => (name ^ "_thy", "ThyInfo.theory " ^ ML_Syntax.print_string name))
   || Scan.succeed ("thy", "ML_Context.the_context ()"));
 
+val _ = ML_Context.value_antiq "theory_ref"
+  (Scan.lift Args.name
+    >> (fn name => (name ^ "_thy",
+        "Theory.check_thy (ThyInfo.theory " ^ ML_Syntax.print_string name ^ ")"))
+  || Scan.succeed ("thy", "Theory.check_thy (ML_Context.the_context ())"));
+
 
 
 (** thy operations **)
