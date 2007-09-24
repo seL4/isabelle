@@ -7,7 +7,7 @@ Compatibility file for Standard ML of New Jersey 110 or later.
 use "ML-Systems/proper_int.ML";
 use "ML-Systems/overloading_smlnj.ML";
 use "ML-Systems/exn.ML";
-use "ML-Systems/multithreading_dummy.ML";
+use "ML-Systems/multithreading.ML";
 
 
 (*low-level pointer equality*)
@@ -167,13 +167,6 @@ struct
   fun inputLine is = TextIO.inputLine is
     handle IO.Io _ => raise Interrupt;
 end;
-
-
-(* bounded time execution *)
-
-fun interrupt_timeout time f x =
-  TimeLimit.timeLimit time f x
-    handle TimeLimit.TimeOut => raise Interrupt;
 
 
 (** Signal handling: emulation of the Poly/ML Signal structure. Note that types

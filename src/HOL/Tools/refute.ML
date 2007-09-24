@@ -1240,9 +1240,9 @@ struct
         ^ (if negate then "refutes" else "satisfies") ^ ": "
         ^ Sign.string_of_term thy t);
       if maxtime>0 then (
-        interrupt_timeout (Time.fromSeconds (Int.toLarge maxtime))
+        TimeLimit.timeLimit (Time.fromSeconds maxtime)
           wrapper ()
-        handle Interrupt =>
+        handle TimeLimit.TimeOut =>
           writeln ("\nSearch terminated, time limit (" ^ string_of_int maxtime
             ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.")
       ) else

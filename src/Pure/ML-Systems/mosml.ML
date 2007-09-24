@@ -32,7 +32,8 @@ load "FileSys";
 load "IO";
 
 use "ML-Systems/exn.ML";
-use "ML-Systems/multithreading_dummy.ML";
+use "ML-Systems/multithreading.ML";
+use "ML-Systems/time_limit.ML";
 
 
 (*low-level pointer equality*)
@@ -139,13 +140,6 @@ struct
     let val s = TextIO.inputLine is
     in if s = "" then NONE else SOME s end;
 end;
-
-
-(* bounded time execution *)
-
-(*dummy implementation*)
-fun interrupt_timeout time f x =
-  f x;
 
 
 (* ML command execution *)

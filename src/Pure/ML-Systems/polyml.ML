@@ -5,7 +5,8 @@ Compatibility file for Poly/ML (version 4.1.x and 4.2.0).
 *)
 
 use "ML-Systems/exn.ML";
-use "ML-Systems/multithreading_dummy.ML";
+use "ML-Systems/multithreading.ML";
+use "ML-Systems/time_limit.ML";
 
 val ml_system_fix_ints = false;
 
@@ -58,13 +59,6 @@ fun check_timer timer =
     val {sys, usr} = Timer.checkCPUTimer timer;
     val gc = Timer.checkGCTime timer;    (* FIXME already included in usr? *)
   in (sys, usr, gc) end;
-
-
-(* bounded time execution *)
-
-(*dummy implementation*)
-fun interrupt_timeout time f x =
-  f x;
 
 
 (* prompts *)

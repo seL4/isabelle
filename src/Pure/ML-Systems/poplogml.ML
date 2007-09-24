@@ -272,12 +272,6 @@ struct
 end;
 
 
-(* bounded time execution *)
-
-(* FIXME proper implementation available? *)
-fun interrupt_timeout time f x =
-  f x;
-
 
 (** interrupts **)      (*Note: may get into race conditions*)
 

@@ -16,7 +16,8 @@ $ env ALICE_JIT_MODE=0 alice
 val ml_system_fix_ints = false;
 
 use "ML-Systems/exn.ML";
-use "ML-Systems/multithreading_dummy.ML";
+use "ML-Systems/multithreading.ML";
+use "ML-Systems/time_limit.ML";
 
 
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
@@ -123,13 +124,6 @@ struct
   fun inputLine is = TextIO.inputLine is
     handle IO.Io _ => raise Interrupt;
 end;
-
-
-(* bounded time execution *)
-
-(*dummy implementation*)
-fun interrupt_timeout time f x =
-  f x;
 
 
 

@@ -996,14 +996,14 @@ fun test_goal' int state =
   in
     if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
     then
-      (case try (fn state => interrupt_timeout (!auto_quickcheck_time_limit)
+      (case try (fn state => TimeLimit.timeLimit (!auto_quickcheck_time_limit)
            (test_goal true (params, []) 1 assms) state) state of
          SOME (cex as SOME _) =>
            Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
              Pretty.markup Markup.hilite [pretty_counterex ctxt cex]]) state
        | _ => state)
     else state
-  end handle Interrupt => state;
+  end handle TimeLimit.TimeOut => state;
 
 val _ = Context.add_setup
   (Context.theory_map (Specification.add_theorem_hook test_goal'));

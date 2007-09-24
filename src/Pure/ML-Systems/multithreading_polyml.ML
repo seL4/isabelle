@@ -12,7 +12,7 @@ sig
   include MULTITHREADING
   val ignore_interrupt: ('a -> 'b) -> 'a -> 'b
   val raise_interrupt: ('a -> 'b) -> 'a -> 'b
-  val interrupt_timeout: Time.time -> ('a -> 'b) -> 'a -> 'b
+  structure TimeLimit: TIME_LIMIT
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -72,15 +72,30 @@ fun interruptible f x = with_attributes
 fun ignore_interrupt f = uninterruptible (fn _ => f);
 fun raise_interrupt f = interruptible (fn _ => f);
 
-fun interrupt_timeout time f x =
+
+(* execution with time limit *)
+
+structure TimeLimit =
+struct
+
+exception TimeOut;
+
+fun timeLimit time f x =
   uninterruptible (fn atts => fn () =>
     let
       val worker = Thread.self ();
+      val timeout = ref false;
       val watchdog = Thread.fork (interruptible (fn _ => fn () =>
-        (OS.Process.sleep time; Thread.interrupt worker)), []);
+        (OS.Process.sleep time; timeout := true; Thread.interrupt worker)), []);
+
+      (*RACE! timeout signal vs. external Interrupt*)
       val result = Exn.capture (with_attributes atts (fn _ => f)) x;
+      val was_timeout = (case result of Exn.Exn Interrupt => ! timeout | _ => false);
+
       val _ = Thread.interrupt watchdog handle Thread _ => ();
-    in Exn.release result end) ();
+    in if was_timeout then raise TimeOut else Exn.release result end) ();
+
+end;
 
 
 (* critical section -- may be nested within the same thread *)
@@ -216,7 +231,9 @@ end;
 
 val NAMED_CRITICAL = Multithreading.NAMED_CRITICAL;
 val CRITICAL = Multithreading.CRITICAL;
+
 val ignore_interrupt = Multithreading.ignore_interrupt;
 val raise_interrupt = Multithreading.raise_interrupt;
-val interrupt_timeout = Multithreading.interrupt_timeout;
+
+structure TimeLimit = Multithreading.TimeLimit;
 
