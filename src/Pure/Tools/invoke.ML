@@ -21,7 +21,7 @@ struct
 
 local
 
-fun gen_invoke prep_att prep_expr prep_terms add_fixes
+fun gen_invoke prep_att prep_expr parse_term add_fixes
     (prfx, raw_atts) raw_expr raw_insts fixes int state =
   let
     val _ = Proof.assert_forward_or_chain state;
@@ -45,10 +45,11 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
 
     val raw_insts' = zip_options params' raw_insts
       handle Library.UnequalLengths => error "Too many instantiations";
-    val insts = map #1 raw_insts' ~~
-      Variable.polymorphic ctxt'
-        (prep_terms ctxt' (map (fn (t, u) => (u, Term.fastype_of t)) raw_insts'));
 
+    fun prep_inst (t, u) =
+      TypeInfer.constrain (TypeInfer.paramify_vars (Term.fastype_of t)) (parse_term ctxt' u);
+    val insts = map #1 raw_insts' ~~
+      Variable.polymorphic ctxt' (Syntax.check_terms ctxt' (map prep_inst raw_insts'));
     val inst_rules =
       replicate (length types') Drule.termI @
       map (fn t =>
@@ -98,15 +99,11 @@ fun gen_invoke prep_att prep_expr prep_terms add_fixes
     |> Seq.hd
   end;
 
-fun infer_terms ctxt =
-  Syntax.check_terms ctxt o
-    (map (fn (t, T) => TypeInfer.constrain (TypeInfer.paramify_vars T) t));
-
 in
 
 fun invoke x =
-  gen_invoke Attrib.attribute Locale.read_expr ProofContext.read_termTs ProofContext.add_fixes x;
-fun invoke_i x = gen_invoke (K I) Locale.cert_expr infer_terms ProofContext.add_fixes_i x;
+  gen_invoke Attrib.attribute Locale.read_expr Syntax.parse_term ProofContext.add_fixes x;
+fun invoke_i x = gen_invoke (K I) Locale.cert_expr (K I) ProofContext.add_fixes_i x;
 
 end;
 

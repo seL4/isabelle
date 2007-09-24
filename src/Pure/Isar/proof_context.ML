@@ -65,7 +65,6 @@ sig
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
   val read_prop_legacy: Proof.context -> string -> term
-  val read_termTs: Proof.context -> (string * typ) list -> term list
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
   val infer_type: Proof.context -> string -> typ
@@ -543,10 +542,6 @@ fun read_def_termT freeze pp syn ctxt defaults fixed sT =
 fun read_prop_thy freeze pp syn thy defaults fixed s =
   #1 (read_def_termT freeze pp syn thy defaults fixed (s, propT));
 
-fun read_terms_thy freeze pp syn thy defaults fixed =
-  #1 o read_def_termTs freeze pp syn thy defaults fixed;
-
-
 fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 
 fun gen_read' read app schematic ctxt0 internal more_types more_sorts more_used s =
@@ -572,8 +567,6 @@ val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) true
 
 fun read_prop_legacy ctxt =
   gen_read' (read_prop_thy true) I false ctxt (K true) (K NONE) (K NONE) [];
-
-val read_termTs = gen_read (read_terms_thy true) map false;
 
 end;
 

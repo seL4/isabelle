@@ -2080,7 +2080,7 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note attrib std put_reg add_wit ad
       (* add witnesses of Assumed elements (only those generate proof obligations) *)
       |> fold (fn (id, thms) => fold (add_wit id) thms) (map fst propss ~~ thmss)
       (* add equations *)
-      |> fold (fn (id, thms) => fold (add_eqn id) thms) (map fst eq_props ~~ 
+      |> fold (fn (id, thms) => fold (add_eqn id) thms) (map fst eq_props ~~
           (map o map) (abs_eqn o LocalDefs.meta_rewrite_rule ctxt o
             Element.conclude_witness) eq_thms);
 
@@ -2133,6 +2133,9 @@ fun local_activate_facts_elemss x = gen_activate_facts_elemss
       add_local_equation
       x;
 
+fun read_termT ctxt (t, T) =
+  Syntax.parse_term ctxt t |> TypeInfer.constrain (TypeInfer.paramify_vars T);
+
 fun read_instantiations ctxt parms (insts, eqns) =
   let
     val thy = ProofContext.theory_of ctxt;
@@ -2149,11 +2152,9 @@ fun read_instantiations ctxt parms (insts, eqns) =
         | ((x, T), SOME inst) => SOME (x, (inst, T)));
     val (given_ps, given_insts) = split_list given;
 
-    (* equations *)
-    val max_eqs = length eqns;
-
     (* read given insts / eqns *)
-    val all_vs = ProofContext.read_termTs ctxt (given_insts @ (eqns ~~ replicate max_eqs propT));
+    val all_vs = (map (read_termT ctxt) given_insts @ map (Syntax.read_prop ctxt) eqns)
+      |> Syntax.check_terms ctxt;
     val ctxt' = ctxt |> fold Variable.declare_term all_vs;
     val (vs, eqns') = all_vs |> chop (length given_insts);
 
