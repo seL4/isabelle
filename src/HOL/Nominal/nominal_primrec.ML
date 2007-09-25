@@ -275,7 +275,7 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
       if alt_name = "" then (space_implode "_" (map (Sign.base_name o #1) defs)) else alt_name;
     val (defs_thms', thy') =
       thy
-      |> Theory.add_path primrec_name
+      |> Sign.add_path primrec_name
       |> fold_map def (map (fn ((name, t), _) => ((name, []), t)) defs');
     val cert = cterm_of thy';
 
@@ -369,7 +369,7 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
            thy'
            |> note (("simps", [Simplifier.simp_add]), simps'')
            |> snd
-           |> Theory.parent_path
+           |> Sign.parent_path
          end))
       [goals] |>
     Proof.apply (Method.Basic (fn _ => Method.RAW_METHOD (fn _ =>

@@ -292,14 +292,14 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val tnames = map (fn s => space_implode "_" (s ^ "T" :: vs)) rsets;
 
     val thy1 = thy |>
-      Theory.root_path |>
-      Theory.add_path (NameSpace.implode prfx);
+      Sign.root_path |>
+      Sign.add_path (NameSpace.implode prfx);
     val (ty_eqs, rlz_eqs) = split_list
       (map (fn (s, rs) => mk_realizes_eqn (not (s mem rsets)) vs nparms rs) rss);
 
     val thy1' = thy1 |>
       Theory.copy |>
-      Theory.add_types (map (fn s => (Sign.base_name s, ar, NoSyn)) tnames) |>
+      Sign.add_types (map (fn s => (Sign.base_name s, ar, NoSyn)) tnames) |>
       fold (fn s => AxClass.axiomatize_arity_i
         (s, replicate ar HOLogic.typeS, HOLogic.typeS)) tnames |>
         Extraction.add_typeof_eqns_i ty_eqs;
@@ -355,7 +355,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
           ((Sign.base_name (name_of_thm intr), []),
            subst_atomic rlzpreds' (Logic.unvarify rintr)))
              (rintrs ~~ maps snd rss)) [] ||>
-      Theory.absolute_path;
+      Sign.absolute_path;
     val thy3 = PureThy.hide_thms false
       (map name_of_thm (#intrs ind_info)) thy3';
 
@@ -480,7 +480,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         (HOLogic.dest_Trueprop (concl_of elim))))] p) (thy5,
            elimps ~~ get #case_thms dt_info ~~ case_names ~~ dummies)
 
-  in Theory.restore_naming thy thy6 end;
+  in Sign.restore_naming thy thy6 end;
 
 fun add_ind_realizers name rsets thy =
   let

@@ -61,7 +61,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val rec_base_names = map Sign.base_name rec_names
   val big_rec_base_name = space_implode "_" rec_base_names
 
-  val thy_path = thy |> Theory.add_path big_rec_base_name
+  val thy_path = thy |> Sign.add_path big_rec_base_name
 
   val big_rec_name = Sign.intern_const thy_path big_rec_base_name;
 
@@ -229,13 +229,13 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   fun add_recursor thy =
       if need_recursor then
-           thy |> Theory.add_consts_i
+           thy |> Sign.add_consts_i
                     [(recursor_base_name, recursor_typ, NoSyn)]
                |> (snd o PureThy.add_defs_i false [Thm.no_attributes recursor_def])
       else thy;
 
   val (con_defs, thy0) = thy_path
-             |> Theory.add_consts_i
+             |> Sign.add_consts_i
                  ((case_base_name, case_typ, NoSyn) ::
                   map #1 (List.concat con_ty_lists))
              |> PureThy.add_defs_i false
@@ -244,7 +244,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                    List.concat (ListPair.map mk_con_defs
                          (1 upto npart, con_ty_lists))))
              ||> add_recursor
-             ||> Theory.parent_path
+             ||> Sign.parent_path
 
   val intr_names = map #2 (List.concat con_ty_lists);
   val (thy1, ind_result) =
@@ -365,7 +365,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
  in
   (*Updating theory components: simprules and datatype info*)
-  (thy1 |> Theory.add_path big_rec_base_name
+  (thy1 |> Sign.add_path big_rec_base_name
         |> PureThy.add_thmss
          [(("simps", simps), [Simplifier.simp_add]),
           (("", intrs), [Classical.safe_intro NONE]),
@@ -376,7 +376,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           (("free_elims", free_SEs), [])] |> snd
         |> DatatypesData.map (Symtab.update (big_rec_name, dt_info))
         |> ConstructorsData.map (fold Symtab.update con_pairs)
-        |> Theory.parent_path,
+        |> Sign.parent_path,
    ind_result,
    {con_defs = con_defs,
     case_eqns = case_eqns,

@@ -176,7 +176,7 @@ fun add_primrec_i args thy =
     val def = process_fun thy (fname, ftype, ls, rs, con_info, eqns);
 
     val ([def_thm], thy1) = thy
-      |> Theory.add_path (Sign.base_name fname)
+      |> Sign.add_path (Sign.base_name fname)
       |> (PureThy.add_defs_i false o map Thm.no_attributes) [def];
 
     val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
@@ -192,7 +192,7 @@ fun add_primrec_i args thy =
     val (_, thy3) =
       thy2
       |> PureThy.add_thmss [(("simps", eqn_thms'), [Simplifier.simp_add])]
-      ||> Theory.parent_path;
+      ||> Sign.parent_path;
   in (thy3, eqn_thms') end;
 
 fun add_primrec args thy =

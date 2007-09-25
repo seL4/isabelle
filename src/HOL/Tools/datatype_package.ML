@@ -422,14 +422,14 @@ fun strip_case ctxt = DatatypeCase.strip_case
   (datatype_of_case (ProofContext.theory_of ctxt));
 
 fun add_case_tr' case_names thy =
-  Theory.add_advanced_trfuns ([], [],
+  Sign.add_advanced_trfuns ([], [],
     map (fn case_name =>
       let val case_name' = Sign.const_syntax_name thy case_name
       in (case_name', DatatypeCase.case_tr' datatype_of_case case_name')
       end) case_names, []) thy;
 
 val trfun_setup =
-  Theory.add_advanced_trfuns ([],
+  Sign.add_advanced_trfuns ([],
     [("_case_syntax", DatatypeCase.case_tr true datatype_of_constr)],
     [], []);
 
@@ -490,9 +490,9 @@ fun add_axioms label ts atts thy =
 fun add_and_get_axioms_atts label tnames ts attss =
   fold_map (fn (tname, (atts, t)) => fn thy =>
     thy
-    |> Theory.add_path tname
+    |> Sign.add_path tname
     |> add_axiom label t atts
-    ||> Theory.parent_path
+    ||> Sign.parent_path
     |-> (fn [ax] => pair ax)) (tnames ~~ (attss ~~ ts));
 
 fun add_and_get_axioms label tnames ts =
@@ -501,9 +501,9 @@ fun add_and_get_axioms label tnames ts =
 fun add_and_get_axiomss label tnames tss =
   fold_map (fn (tname, ts) => fn thy =>
     thy
-    |> Theory.add_path tname
+    |> Sign.add_path tname
     |> add_axioms label ts []
-    ||> Theory.parent_path
+    ||> Sign.parent_path
     |-> (fn [ax] => pair ax)) (tnames ~~ tss);
 
 fun gen_specify_consts add args thy =
@@ -594,10 +594,10 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val ((([induct], [rec_thms]), inject), thy3) =
       thy2
-      |> Theory.add_path (space_implode "_" new_type_names)
+      |> Sign.add_path (space_implode "_" new_type_names)
       |> add_axiom "induct" (DatatypeProp.make_ind descr sorts) [case_names_induct]
       ||>> add_axioms "recs" rec_axs []
-      ||> Theory.parent_path
+      ||> Sign.parent_path
       ||>> add_and_get_axiomss "inject" new_type_names
             (DatatypeProp.make_injs descr sorts);
     val (distinct, thy4) = add_and_get_axiomss "distinct" new_type_names
@@ -632,12 +632,12 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val thy12 =
       thy11
       |> add_case_tr' case_names'
-      |> Theory.add_path (space_implode "_" new_type_names)
+      |> Sign.add_path (space_implode "_" new_type_names)
       |> add_rules simps case_thms rec_thms inject distinct
           weak_case_congs Simplifier.cong_add
       |> put_dt_infos dt_infos
       |> add_cases_induct dt_infos induct
-      |> Theory.parent_path
+      |> Sign.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
       |> DatatypeInterpretation.data (map fst dt_infos);
@@ -690,12 +690,12 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
     val thy12 =
       thy10
       |> add_case_tr' case_names
-      |> Theory.add_path (space_implode "_" new_type_names)
+      |> Sign.add_path (space_implode "_" new_type_names)
       |> add_rules simps case_thms rec_thms inject distinct
           weak_case_congs (Simplifier.attrib (op addcongs))
       |> put_dt_infos dt_infos
       |> add_cases_induct dt_infos induct
-      |> Theory.parent_path
+      |> Sign.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
       |> DatatypeInterpretation.data (map fst dt_infos);
   in
@@ -778,7 +778,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       thy8
       |> store_thmss "inject" new_type_names inject
       ||>> store_thmss "distinct" new_type_names distinct
-      ||> Theory.add_path (space_implode "_" new_type_names)
+      ||> Sign.add_path (space_implode "_" new_type_names)
       ||>> PureThy.add_thms [(("induct", induction), [case_names_induct])];
 
     val dt_infos = map (make_dt_info (length descr) descr sorts induction'
@@ -795,7 +795,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
            weak_case_congs (Simplifier.attrib (op addcongs))
       |> put_dt_infos dt_infos
       |> add_cases_induct dt_infos induction'
-      |> Theory.parent_path
+      |> Sign.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
       |> DatatypeInterpretation.data (map fst dt_infos);
@@ -825,7 +825,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
 
     val tmp_thy = thy |>
       Theory.copy |>
-      Theory.add_types (map (fn (tvs, tname, mx, _) =>
+      Sign.add_types (map (fn (tvs, tname, mx, _) =>
         (tname, length tvs, mx)) dts);
 
     val (tyvars, _, _, _)::_ = dts;

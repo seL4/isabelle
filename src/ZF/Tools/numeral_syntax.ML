@@ -100,7 +100,7 @@ fun int_tr' _ _ (*"integ_of"*) [t] = Syntax.const "_Int" $ Syntax.free (show_int
 
 
 val setup =
- (Theory.add_trfuns ([], [("_Int", int_tr)], [], []) #>
-  Theory.add_trfunsT [("integ_of", int_tr'), ("Bin.integ_of", int_tr')]);
+ (Sign.add_trfuns ([], [("_Int", int_tr)], [], []) #>
+  Sign.add_trfunsT [("integ_of", int_tr'), ("Bin.integ_of", int_tr')]);
 
 end;

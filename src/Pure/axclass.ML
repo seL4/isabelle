@@ -382,9 +382,9 @@ fun define_class_params (name, raw_superclasses) raw_consts raw_dep_axioms other
         (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
   in
     thy
-    |> Theory.add_path prefix
+    |> Sign.add_path prefix
     |> fold_map add_const consts
-    ||> Theory.restore_naming thy
+    ||> Sign.restore_naming thy
     |-> (fn cs => mk_axioms cs
     #-> (fn axioms_prop => define_class (name, superclasses)
            (map fst cs @ other_consts) axioms_prop

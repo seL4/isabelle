@@ -236,7 +236,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
         val ([def_thm], thy') =
           thy
-          |> Theory.add_consts_i [(cname', constrT, mx)]
+          |> Sign.add_consts_i [(cname', constrT, mx)]
           |> (PureThy.add_defs_i false o map Thm.no_attributes) [(def_name, def)];
 
       in (thy', defs @ [def_thm], eqns @ [eqn], i + 1) end;
@@ -259,7 +259,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       end;
 
     val (thy4, constr_defs, constr_rep_eqns, rep_congs, dist_lemmas) = Library.foldl dt_constr_defs
-      ((thy3 |> Theory.add_consts_i iso_decls |> parent_path flat_names, [], [], [], []),
+      ((thy3 |> Sign.add_consts_i iso_decls |> parent_path flat_names, [], [], [], []),
         hd descr ~~ new_type_names ~~ newTs ~~ constr_syntax);
 
     (*********** isomorphisms for new types (introduced by typedef) ***********)
@@ -616,9 +616,9 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val ([dt_induct'], thy7) =
       thy6
-      |> Theory.add_path big_name
+      |> Sign.add_path big_name
       |> PureThy.add_thms [(("induct", dt_induct), [case_names_induct])]
-      ||> Theory.parent_path;
+      ||> Sign.parent_path;
 
   in
     ((constr_inject', distinct_thms', dist_rewrites, simproc_dists, dt_induct'), thy7)

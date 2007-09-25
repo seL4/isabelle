@@ -157,11 +157,11 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 
   in
     thy
-    |> Theory.add_path (Sign.base_name big_rec_name)
+    |> Sign.add_path (Sign.base_name big_rec_name)
     |> PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add])] |> snd
     |> DatatypesData.put (Symtab.update (big_rec_name, dt_info) (DatatypesData.get thy))
     |> ConstructorsData.put (fold_rev Symtab.update con_pairs (ConstructorsData.get thy))
-    |> Theory.parent_path
+    |> Sign.parent_path
   end;
 
 fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =

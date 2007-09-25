@@ -419,7 +419,7 @@ fun prove_strong_ind s avoids thy =
           else (strong_raw_induct RSN (2, rev_mp),
             [ind_case_names, RuleCases.consumes 1]);
         val ([strong_induct'], thy') = thy |>
-          Theory.add_path rec_name |>
+          Sign.add_path rec_name |>
           PureThy.add_thms [(("strong_induct", #1 strong_induct), #2 strong_induct)];
         val strong_inducts =
           ProjectRule.projects ctxt (1 upto length names) strong_induct'
@@ -427,7 +427,7 @@ fun prove_strong_ind s avoids thy =
         thy' |>
         PureThy.add_thmss [(("strong_inducts", strong_inducts),
           [ind_case_names, RuleCases.consumes 1])] |> snd |>
-        Theory.parent_path
+        Sign.parent_path
       end))
       (map (map (rulify_term thy #> rpair [])) vc_compat)
   end;
@@ -506,9 +506,9 @@ fun prove_eqvt s xatoms thy =
       end) atoms
   in
     fold (fn (name, ths) =>
-      Theory.add_path (Sign.base_name name) #>
+      Sign.add_path (Sign.base_name name) #>
       PureThy.add_thmss [(("eqvt", ths), [NominalThmDecls.eqvt_add])] #> snd #>
-      Theory.parent_path) (names ~~ transp thss) thy
+      Sign.parent_path) (names ~~ transp thss) thy
   end;
 
 

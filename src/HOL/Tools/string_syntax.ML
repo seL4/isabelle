@@ -77,7 +77,7 @@ fun list_ast_tr' [args] = Syntax.Appl [Syntax.Constant "_String",
 (* theory setup *)
 
 val setup =
-  Theory.add_trfuns
+  Sign.add_trfuns
     ([("_Char", char_ast_tr), ("_String", string_ast_tr)], [], [],
       [("Char", char_ast_tr'), ("@list", list_ast_tr')]);
 

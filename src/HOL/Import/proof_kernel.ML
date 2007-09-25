@@ -1928,7 +1928,7 @@ fun new_definition thyname constname rhs thy =
 	val csyn = mk_syn thy constname
 	val thy1 = case HOL4DefThy.get thy of
 		       Replaying _ => thy
-		     | _ => (ImportRecorder.add_consts [(constname, ctype, csyn)]; Theory.add_consts_i [(constname,ctype,csyn)] thy)
+		     | _ => (ImportRecorder.add_consts [(constname, ctype, csyn)]; Sign.add_consts_i [(constname,ctype,csyn)] thy)
 	val eq = mk_defeq constname rhs' thy1
 	val (thms, thy2) = PureThy.add_defs_i false [((thmname,eq),[])] thy1
 	val _ = ImportRecorder.add_defs thmname eq
@@ -2019,7 +2019,7 @@ fun new_specification thyname thmname names hth thy =
 			       val thy' = add_dump str thy
 			       val _ = ImportRecorder.add_consts consts
 			   in
-			       Theory.add_consts_i consts thy'
+			       Sign.add_consts_i consts thy'
 			   end
 
 	    val thy1 = foldr (fn(name,thy)=>

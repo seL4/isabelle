@@ -54,8 +54,8 @@ fun HOL_arity (raw_name, args, mx) thy =
 
 fun add_typedecls decls thy =
   if can (Theory.assert_super HOL.thy) thy then
-    thy |> Theory.add_typedecls decls |> fold HOL_arity decls
-  else thy |> Theory.add_typedecls decls;
+    thy |> Sign.add_typedecls decls |> fold HOL_arity decls
+  else thy |> Sign.add_typedecls decls;
 
 
 
@@ -151,7 +151,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
     fun typedef_result nonempty =
       add_typedecls [(t, vs, mx)]
-      #> Theory.add_consts_i
+      #> Sign.add_consts_i
        ((if def then [(name, setT', NoSyn)] else []) @
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)])
@@ -168,7 +168,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
           val ([Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
               Rep_cases, Abs_cases, Rep_induct, Abs_induct], thy2) =
             thy1
-            |> Theory.add_path name
+            |> Sign.add_path name
             |> PureThy.add_thms
               ([((Rep_name, make Rep), []),
                 ((Rep_name ^ "_inverse", make Rep_inverse), []),
@@ -183,7 +183,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
                   [RuleCases.case_names [Rep_name], InductAttrib.induct_set full_name]),
                 ((Abs_name ^ "_induct", make Abs_induct),
                   [RuleCases.case_names [Abs_name], InductAttrib.induct_type full_tname])])
-            ||> Theory.parent_path;
+            ||> Sign.parent_path;
           val info = {rep_type = oldT, abs_type = newT,
             Rep_name = full Rep_name, Abs_name = full Abs_name,
               type_definition = type_definition, set_def = set_def,

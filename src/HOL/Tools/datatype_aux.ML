@@ -70,26 +70,26 @@ struct
 val quiet_mode = ref false;
 fun message s = if !quiet_mode then () else writeln s;
 
-fun add_path flat_names s = if flat_names then I else Theory.add_path s;
-fun parent_path flat_names = if flat_names then I else Theory.parent_path;
+fun add_path flat_names s = if flat_names then I else Sign.add_path s;
+fun parent_path flat_names = if flat_names then I else Sign.parent_path;
 
 
 (* store theorems in theory *)
 
 fun store_thmss_atts label tnames attss thmss =
   fold_map (fn ((tname, atts), thms) =>
-    Theory.add_path tname
+    Sign.add_path tname
     #> PureThy.add_thmss [((label, thms), atts)]
-    #-> (fn thm::_ => Theory.parent_path #> pair thm)
+    #-> (fn thm::_ => Sign.parent_path #> pair thm)
   ) (tnames ~~ attss ~~ thmss);
 
 fun store_thmss label tnames = store_thmss_atts label tnames (replicate (length tnames) []);
 
 fun store_thms_atts label tnames attss thmss =
   fold_map (fn ((tname, atts), thms) =>
-    Theory.add_path tname
+    Sign.add_path tname
     #> PureThy.add_thms [((label, thms), atts)]
-    #-> (fn thm::_ => Theory.parent_path #> pair thm)
+    #-> (fn thm::_ => Sign.parent_path #> pair thm)
   ) (tnames ~~ attss ~~ thmss);
 
 fun store_thms label tnames = store_thms_atts label tnames (replicate (length tnames) []);

@@ -109,7 +109,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         theory
         |> AxClass.prove_arity (full_tname, lhs_sorts, ["Pcpo.cpo"])
           (Tactic.rtac (typedef_cpo OF cpo_thms) 1)
-        |> Theory.add_path name
+        |> Sign.add_path name
         |> PureThy.add_thms
             ([(("adm_" ^ name, admissible'), []),
               (("cont_" ^ Rep_name, cont_Rep OF cpo_thms), []),
@@ -118,7 +118,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
               (("thelub_"  ^ name, typedef_thelub  OF cpo_thms), []),
               (("compact_" ^ name, typedef_compact OF cpo_thms), [])])
         |> snd
-        |> Theory.parent_path
+        |> Sign.parent_path
       end;
 
     fun make_pcpo UUmem (type_def, less_def, set_def) theory =
@@ -129,7 +129,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         theory
         |> AxClass.prove_arity (full_tname, lhs_sorts, ["Pcpo.pcpo"])
           (Tactic.rtac (typedef_pcpo OF pcpo_thms) 1)
-        |> Theory.add_path name
+        |> Sign.add_path name
         |> PureThy.add_thms
             ([((Rep_name ^ "_strict", Rep_strict OF pcpo_thms), []),
               ((Abs_name ^ "_strict", Abs_strict OF pcpo_thms), []),
@@ -137,7 +137,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
               ((Abs_name ^ "_defined", Abs_defined OF pcpo_thms), [])
               ])
         |> snd
-        |> Theory.parent_path
+        |> Sign.parent_path
       end;
 
     fun pcpodef_result UUmem_admissible theory =

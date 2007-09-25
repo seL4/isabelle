@@ -45,7 +45,7 @@ val import_segment = P.name >> set_import_segment
 val import_theory = P.name >> (fn thyname =>
 			       fn thy =>
 				  thy |> set_generating_thy thyname
-				      |> Theory.add_path thyname
+				      |> Sign.add_path thyname
 				      |> add_dump (";setup_theory " ^ thyname))
 
 fun do_skip_import_dir s = (ImportRecorder.set_skip_import_dir (SOME s); I)
@@ -80,7 +80,7 @@ fun end_import toks =
 		    |> replay 
 		    |> clear_used_names
 		    |> export_hol4_pending
-		    |> Theory.parent_path
+		    |> Sign.parent_path
 		    |> dump_import_thy thyname
 		    |> add_dump ";end_setup"
 	    end) toks
@@ -175,7 +175,7 @@ fun import_thy s =
 	fun apply [] thy = thy
 	  | apply (f::fs) thy = apply fs (f thy)
     in
-	apply (set_replaying_thy s::Theory.add_path s::(fst (importP token_list)))
+	apply (set_replaying_thy s::Sign.add_path s::(fst (importP token_list)))
     end
 
 fun create_int_thms thyname thy =
@@ -215,7 +215,7 @@ fun end_setup toks =
 		thy |> set_segment thyname segname
 		    |> clear_import_thy
 		    |> clear_int_thms
-		    |> Theory.parent_path
+		    |> Sign.parent_path
 	    end) toks
 
 val set_dump  = P.string -- P.string   >> setup_dump

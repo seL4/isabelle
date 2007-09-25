@@ -88,7 +88,7 @@ end;
 (* theory setup *)
 
 val setup =
-  Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []) #>
-  Theory.add_trfunsT [(@{const_syntax Numeral.number_of}, numeral_tr')];
+  Sign.add_trfuns ([], [("_Numeral", numeral_tr)], [], []) #>
+  Sign.add_trfunsT [(@{const_syntax Numeral.number_of}, numeral_tr')];
 
 end;

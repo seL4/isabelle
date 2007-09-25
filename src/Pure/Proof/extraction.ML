@@ -37,7 +37,7 @@ open Proofterm;
 fun add_syntax thy =
   thy
   |> Theory.copy
-  |> Theory.root_path
+  |> Sign.root_path
   |> Sign.add_types [("Type", 0, NoSyn), ("Null", 0, NoSyn)]
   |> Sign.add_consts
       [("typeof", "'b::{} => Type", NoSyn),

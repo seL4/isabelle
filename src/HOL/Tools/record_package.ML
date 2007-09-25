@@ -1507,7 +1507,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     fun mk_defs () =
       thy
       |> extension_typedef name repT (alphas@[zeta])
-      ||> Theory.add_consts_i
+      ||> Sign.add_consts_i
             (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
       ||>> PureThy.add_defs_i false (map Thm.no_attributes (ext_spec::dest_specs))
       ||>> PureThy.add_defs_i false (map Thm.no_attributes upd_specs)
@@ -1780,7 +1780,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     (* 1st stage: extension_thy *)
     val (extension_thy,extT,ext_induct,ext_inject,ext_dest_convs,ext_split,u_convs) =
       thy
-      |> Theory.add_path bname
+      |> Sign.add_path bname
       |> extension_definition full extN fields names alphas_ext zeta moreT more vars;
 
     val _ = timing_msg "record preparing definitions";
@@ -1900,16 +1900,16 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     fun mk_defs () =
       extension_thy
-      |> Theory.add_trfuns
+      |> Sign.add_trfuns
           ([],[],field_tr's, [])
-      |> Theory.add_advanced_trfuns
+      |> Sign.add_advanced_trfuns
           ([],[],adv_ext_tr's @ adv_record_type_tr's @ adv_record_type_abbr_tr's,[])
-      |> Theory.parent_path
-      |> Theory.add_tyabbrs_i recordT_specs
-      |> Theory.add_path bname
-      |> Theory.add_consts_i
+      |> Sign.parent_path
+      |> Sign.add_tyabbrs_i recordT_specs
+      |> Sign.add_path bname
+      |> Sign.add_consts_i
           (map2 (fn (x, T) => fn mx => (x, T, mx)) sel_decls (field_syntax @ [Syntax.NoSyn]))
-      |> (Theory.add_consts_i o map Syntax.no_syn)
+      |> (Sign.add_consts_i o map Syntax.no_syn)
           (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
       |> ((PureThy.add_defs_i false o map Thm.no_attributes) sel_specs)
       ||>> ((PureThy.add_defs_i false o map Thm.no_attributes) upd_specs)
@@ -2169,7 +2169,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       |> add_record_splits extension_id (split_meta',split_object',split_ex',induct_scheme')
       |> add_extfields extension_name (fields @ [(full_moreN,moreT)])
       |> add_fieldext (extension_name,snd extension) (names @ [full_moreN])
-      |> Theory.parent_path;
+      |> Sign.parent_path;
 
   in final_thy
   end;
@@ -2263,8 +2263,8 @@ val add_record_i = gen_add_record cert_typ (K I);
 (* setup theory *)
 
 val setup =
-  Theory.add_trfuns ([], parse_translation, [], []) #>
-  Theory.add_advanced_trfuns ([], adv_parse_translation, [], []) #>
+  Sign.add_trfuns ([], parse_translation, [], []) #>
+  Sign.add_advanced_trfuns ([], adv_parse_translation, [], []) #>
   (fn thy => (Simplifier.change_simpset_of thy
     (fn ss => ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]); thy));
 

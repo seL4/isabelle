@@ -235,7 +235,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val tmp_thy = thy |>
       Theory.copy |>
-      Theory.add_types (map (fn (tvs, tname, mx, _) =>
+      Sign.add_types (map (fn (tvs, tname, mx, _) =>
         (tname, length tvs, mx)) dts);
 
     val atoms = atoms_of thy;
@@ -330,7 +330,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       end) descr);
 
     val (perm_simps, thy2) = thy1 |>
-      Theory.add_consts_i (map (fn (s, T) => (Sign.base_name s, T, NoSyn))
+      Sign.add_consts_i (map (fn (s, T) => (Sign.base_name s, T, NoSyn))
         (List.drop (perm_names_types, length new_type_names))) |>
       PrimrecPackage.add_primrec_unchecked_i "" perm_eqs;
 
@@ -820,7 +820,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (Const (rep_name, T --> T') $ lhs, rhs));
         val def_name = (Sign.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
-          Theory.add_consts_i [(cname', constrT, mx)] |>
+          Sign.add_consts_i [(cname', constrT, mx)] |>
           (PureThy.add_defs_i false o map Thm.no_attributes) [(def_name, def)]
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
@@ -831,7 +831,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
         val dist = standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns') = Library.foldl (make_constr_def tname T T')
-          ((Theory.add_path tname thy, defs, []), constrs ~~ constrs' ~~ constr_syntax)
+          ((Sign.add_path tname thy, defs, []), constrs ~~ constrs' ~~ constr_syntax)
       in
         (parent_path flat_names thy', defs', eqns @ [eqns'], dist_lemmas @ [dist])
       end;
@@ -1128,10 +1128,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val simp_eqvt_atts = replicate (length new_type_names) [Simplifier.simp_add, NominalThmDecls.eqvt_add];
  
     val (_, thy9) = thy8 |>
-      Theory.add_path big_name |>
+      Sign.add_path big_name |>
       PureThy.add_thms [(("weak_induct", dt_induct), [case_names_induct])] ||>>
       PureThy.add_thmss [(("weak_inducts", projections dt_induct), [case_names_induct])] ||>
-      Theory.parent_path ||>>
+      Sign.parent_path ||>>
       DatatypeAux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
       DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
       DatatypeAux.store_thmss_atts "perm" new_type_names simp_eqvt_atts perm_simps' ||>>
@@ -1409,7 +1409,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (etac meta_spec ORELSE' full_simp_tac (HOL_basic_ss addsimps [fresh_def]))) 1)])
 
     val (_, thy10) = thy9 |>
-      Theory.add_path big_name |>
+      Sign.add_path big_name |>
       PureThy.add_thms [(("induct'", induct_aux), [])] ||>>
       PureThy.add_thms [(("induct", induct), [case_names_induct])] ||>>
       PureThy.add_thmss [(("inducts", projections induct), [case_names_induct])];
@@ -2022,7 +2022,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val (reccomb_defs, thy12) =
       thy11
-      |> Theory.add_consts_i (map (fn ((name, T), T') =>
+      |> Sign.add_consts_i (map (fn ((name, T), T') =>
           (Sign.base_name name, rec_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
@@ -2067,7 +2067,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
          (("rec_fresh", List.concat rec_fresh_thms), []),
          (("rec_unique", map standard rec_unique_thms), []),
          (("recs", rec_thms), [])] ||>
-      Theory.parent_path ||>
+      Sign.parent_path ||>
       map_nominal_datatypes (fold Symtab.update dt_infos);
 
   in

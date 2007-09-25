@@ -285,7 +285,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
       if alt_name = "" then (space_implode "_" (map (Sign.base_name o #1) defs)) else alt_name;
     val (defs_thms', thy') =
       thy
-      |> Theory.add_path primrec_name
+      |> Sign.add_path primrec_name
       |> fold_map def (map (fn (name, t) => ((name, []), t)) defs');
     val rewrites = (map mk_meta_eq rec_rewrites) @ map snd defs_thms';
     val _ = message ("Proving equations for primrec function(s) " ^
@@ -302,7 +302,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
     |> snd
     |> note (("induct", []), [prepare_induct (#2 (hd dts)) rec_eqns])
     |> snd
-    |> Theory.parent_path
+    |> Sign.parent_path
     |> pair simps''
   end;
 

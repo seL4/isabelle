@@ -172,7 +172,7 @@ let
   (*add definitions of the inductive sets*)
   val (_, thy1) =
     thy
-    |> Theory.add_path big_rec_base_name
+    |> Sign.add_path big_rec_base_name
     |> PureThy.add_defs_i false (map Thm.no_attributes axpairs)
 
 
@@ -535,7 +535,7 @@ let
   val (intrs'', thy4) =
     thy3
     |> PureThy.add_thms ((intr_names ~~ intrs') ~~ map #2 intr_specs)
-    ||> Theory.parent_path;
+    ||> Sign.parent_path;
   in
     (thy4,
       {defs = defs',

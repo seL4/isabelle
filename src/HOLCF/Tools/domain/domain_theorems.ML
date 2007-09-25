@@ -556,7 +556,7 @@ val copy_rews = copy_strict :: copy_apps @ copy_stricts;
 
 in
   thy
-    |> Theory.add_path (Sign.base_name dname)
+    |> Sign.add_path (Sign.base_name dname)
     |> (snd o (PureThy.add_thmss (map Thm.no_attributes [
         ("iso_rews" , iso_rews  ),
         ("exhaust"  , [exhaust] ),
@@ -574,7 +574,7 @@ in
         ("copy_rews", copy_rews)])))
     |> (snd o PureThy.add_thmss
         [(("match_rews", mat_rews), [Simplifier.simp_add])])
-    |> Theory.parent_path
+    |> Sign.parent_path
     |> rpair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
         pat_rews @ dist_les @ dist_eqs @ copy_rews)
 end; (* let *)
@@ -941,7 +941,7 @@ in
     in pg [] goal tacs end;
 end; (* local *)
 
-in thy |> Theory.add_path comp_dnam
+in thy |> Sign.add_path comp_dnam
        |> (snd o (PureThy.add_thmss (map Thm.no_attributes [
 		("take_rews"  , take_rews  ),
 		("take_lemmas", take_lemmas),
@@ -949,7 +949,7 @@ in thy |> Theory.add_path comp_dnam
 		("finite_ind", [finite_ind]),
 		("ind"       , [ind       ]),
 		("coind"     , [coind     ])])))
-       |> Theory.parent_path |> rpair take_rews
+       |> Sign.parent_path |> rpair take_rews
 end; (* let *)
 end; (* local *)
 end; (* struct *)

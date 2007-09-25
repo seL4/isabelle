@@ -156,14 +156,14 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 					::map one_con cons))));
     in foldr1 mk_conj (mapn one_comp 0 eqs)end ));
   fun add_one (thy,(dnam,axs,dfs)) = thy
-	|> Theory.add_path dnam
+	|> Sign.add_path dnam
 	|> add_defs_infer dfs
 	|> add_axioms_infer axs
-	|> Theory.parent_path;
+	|> Sign.parent_path;
   val thy = Library.foldl add_one (thy', mapn (calc_axioms comp_dname eqs) 0 eqs);
-in thy |> Theory.add_path comp_dnam  
+in thy |> Sign.add_path comp_dnam  
        |> add_defs_infer (bisim_def::(if length eqs>1 then [copy_def] else []))
-       |> Theory.parent_path
+       |> Sign.parent_path
 end;
 
 end; (* local *)

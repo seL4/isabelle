@@ -234,7 +234,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val (reccomb_defs, thy2) =
       thy1
-      |> Theory.add_consts_i (map (fn ((name, T), T') =>
+      |> Sign.add_consts_i (map (fn ((name, T), T') =>
           (Sign.base_name name, reccomb_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
@@ -260,9 +260,9 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
   in
     thy2
-    |> Theory.add_path (space_implode "_" new_type_names)
+    |> Sign.add_path (space_implode "_" new_type_names)
     |> PureThy.add_thmss [(("recs", rec_thms), [])]
-    ||> Theory.parent_path
+    ||> Sign.parent_path
     |-> (fn thms => pair (reccomb_names, Library.flat thms))
   end;
 

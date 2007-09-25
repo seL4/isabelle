@@ -105,7 +105,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
     val cons''' = map snd eqs''';
     fun thy_type  (dname,tvars)  = (Sign.base_name dname, length tvars, NoSyn);
     fun thy_arity (dname,tvars)  = (dname, map (snd o dest_TFree) tvars, pcpoS);
-    val thy'' = thy''' |> Theory.add_types     (map thy_type  dtnvs)
+    val thy'' = thy''' |> Sign.add_types     (map thy_type  dtnvs)
 		       |> fold (AxClass.axiomatize_arity_i o thy_arity) dtnvs;
     val cons'' = map (map (upd_third (map (upd_third (prep_typ thy''))))) cons''';
     val eqs' = check_and_sort_domain (dtnvs,cons'') thy'';
@@ -133,9 +133,9 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
       |>>> Domain_Theorems.comp_theorems (comp_dnam, eqs);
   in
     theorems_thy
-    |> Theory.add_path (Sign.base_name comp_dnam)
+    |> Sign.add_path (Sign.base_name comp_dnam)
     |> (snd o (PureThy.add_thmss [(("rews", List.concat rewss @ take_rews), [])]))
-    |> Theory.parent_path
+    |> Sign.parent_path
   end;
 
 val add_domain_i = gen_add_domain Sign.certify_typ;

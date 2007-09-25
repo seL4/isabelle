@@ -334,7 +334,7 @@ fun replay_chached_thm int_thms thyname thmname =
 	    add_hol4_mapping thyname thmname isaname thy
 	  | delta (Hol_pending (thyname, thmname, th)) thy = 
 	    add_hol4_pending thyname thmname ([], th_of thy th) thy
-	  | delta (Consts cs) thy = Theory.add_consts_i cs thy
+	  | delta (Consts cs) thy = Sign.add_consts_i cs thy
 	  | delta (Hol_const_mapping (thyname, constname, fullcname)) thy = 
 	    add_hol4_const_mapping thyname constname true fullcname thy
 	  | delta (Hol_move (fullname, moved_thmname)) thy = 
