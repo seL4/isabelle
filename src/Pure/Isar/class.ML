@@ -216,11 +216,11 @@ fun add_def ((class, tyco), ((name, prop), atts)) thy =
   let
     val ((lhs as Const (c, ty), args), rhs) =
       (apfst Term.strip_comb o Logic.dest_equals) prop;
-    fun add_inst' def ([], (Const (c_inst, ty))) =
+    fun (*add_inst' def ([], (Const (c_inst, ty))) =
           if forall (fn TFree _ => true | _ => false) (Sign.const_typargs thy (c_inst, ty))
           then add_inst (c, tyco) (c_inst, def)
           else add_inst_def (class, tyco) (c, ty)
-      | add_inst' _ t = add_inst_def (class, tyco) (c, ty);
+      |*) add_inst' _ t = add_inst_def (class, tyco) (c, ty);
   in
     thy
     |> PureThy.add_defs_i true [((name, prop), map (Attrib.attribute thy) atts)]
