@@ -37,9 +37,9 @@ sig
 
   (* Tactics *)
   val partial_tac:
-    (theory -> term -> (term * string * term) option) -> less_arith -> int -> tactic
+    (theory -> term -> (term * string * term) option) -> less_arith -> thm list -> int -> tactic
   val linear_tac:
-    (theory -> term -> (term * string * term) option) -> less_arith -> int -> tactic
+    (theory -> term -> (term * string * term) option) -> less_arith -> thm list -> int -> tactic
 end;
 
 structure Order_Tac: ORDER_TAC =
@@ -411,7 +411,7 @@ fun mkconcl_linear decomp (less_thms : less_arith) sign t =
      where Rel is one of "<", "<=", "~<", "~<=", "=" and "~=",
      other relation symbols cause an error message *)
 
-fun gen_order_tac mkasm mkconcl decomp (less_thms : less_arith) =
+fun gen_order_tac mkasm mkconcl decomp (less_thms : less_arith) prems =
 
 let
 
@@ -1232,14 +1232,14 @@ in
     SUBGOAL (fn (A, n, sign) =>
      let
       val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
-      val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
+      val Hs = map prop_of prems @ map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
       val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
       val lesss = List.concat (ListPair.map (mkasm decomp less_thms sign) (Hs, 0 upto (length Hs - 1)))
       val prfs = gen_solve mkconcl sign (lesss, C);
       val (subgoals, prf) = mkconcl decomp less_thms sign C;
      in
       METAHYPS (fn asms =>
-	let val thms = map (prove asms) prfs
+	let val thms = map (prove (prems @ asms)) prfs
 	in rtac (prove thms prf) 1 end) n
      end
      handle Contr p => METAHYPS (fn asms => rtac (prove asms p) 1) n

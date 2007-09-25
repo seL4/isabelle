@@ -243,7 +243,7 @@ signature ORDERS =
 sig
   val print_structures: Proof.context -> unit
   val setup: theory -> theory
-  val order_tac: Proof.context -> int -> tactic
+  val order_tac: thm list -> Proof.context -> int -> tactic
 end;
 
 structure Orders: ORDERS =
@@ -283,7 +283,7 @@ fun print_structures ctxt =
 
 (** Method **)
 
-fun struct_tac ((s, [eq, le, less]), thms) =
+fun struct_tac ((s, [eq, le, less]), thms) prems =
   let
     fun decomp thy (Trueprop $ t) =
       let
@@ -306,13 +306,13 @@ fun struct_tac ((s, [eq, le, less]), thms) =
       in dec t end;
   in
     case s of
-      "order" => Order_Tac.partial_tac decomp thms
-    | "linorder" => Order_Tac.linear_tac decomp thms
+      "order" => Order_Tac.partial_tac decomp thms prems
+    | "linorder" => Order_Tac.linear_tac decomp thms prems
     | _ => error ("Unknown kind of order `" ^ s ^ "' encountered in transitivity reasoner.")
   end
 
-fun order_tac ctxt =
-  FIRST' (map (fn s => CHANGED o struct_tac s) (Data.get (Context.Proof ctxt)));
+fun order_tac prems ctxt =
+  FIRST' (map (fn s => CHANGED o struct_tac s prems) (Data.get (Context.Proof ctxt)));
 
 
 (** Attribute **)
@@ -349,7 +349,7 @@ val printP =
 (** Setup **)
 
 val setup = let val _ = OuterSyntax.add_parsers [printP] in
-    Method.add_methods [("order", Method.ctxt_args (Method.SIMPLE_METHOD' o order_tac),
+    Method.add_methods [("order", Method.ctxt_args (Method.SIMPLE_METHOD' o order_tac []),
       "normalisation of algebraic structure")] #>
     Attrib.add_attributes [("order", attribute, "theorems controlling transitivity reasoner")]
   end;
@@ -513,7 +513,7 @@ fun add_simprocs procs thy =
       Simplifier.simproc thy name raw_ts proc)) procs); thy);
 fun add_solver name tac thy =
   (Simplifier.change_simpset_of thy (fn ss => ss addSolver
-    (mk_solver' name (fn ss => tac (MetaSimplifier.the_context ss)))); thy);
+    (mk_solver' name (fn ss => tac (MetaSimplifier.prems_of_ss ss) (MetaSimplifier.the_context ss)))); thy);
 
 in
   add_simprocs [
