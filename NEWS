@@ -1164,12 +1164,10 @@ polymorphic versions (INCOMPATIBILITY):
 * ML basics: just one true type int, which coincides with IntInf.int
 (even on SML/NJ).
 
-* Generic arithmetic modules: Tools/rat.ML, Tools/float.ML
-
 * Context data interfaces (Theory/Proof/GenericDataFun): removed
 name/print, uninitialized data defaults to ad-hoc copy of empty value,
-init only required for impure data.  INCOMPATIBILITY: empty really
-need to be empty (no dependencies on theory content!)
+init only required for impure data. INCOMPATIBILITY: empty really need
+to be empty (no dependencies on theory content!)
 
 * ML within Isar: antiquotations allow to embed statically-checked
 formal entities in the source, referring to the context available at
@@ -1198,7 +1196,7 @@ ML {* @{clasimpset} *}
 The same works for sources being ``used'' within an Isar context.
 
 * ML in Isar: improved error reporting; extra verbosity with
-Toplevel.debug enabled.
+ML_Context.trace enabled.
 
 * Pure/library:
 
@@ -1210,12 +1208,6 @@ transforms a list of value, and apply it *simulatanously* to a list of
 list of values of the appropriate type". Compare this with "map" which
 would *not* apply its argument function simulatanously but in
 sequence; "fold_burrow" has an additional context.
-
-* Pure/library: functions map2 and fold2 with curried syntax for
-simultanous mapping and folding:
-
-    val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
-    val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
 
 * Pure/library: indexed lists - some functions in the Isabelle library
 treating lists over 'a as finite mappings from [0...n] to 'a have been
@@ -1229,11 +1221,8 @@ functions for alists, tables, etc:
 Note that fold_index starts counting at index 0, not 1 like foldln
 used to.
 
-* Pure/library: added general ``divide_and_conquer'' combinator on
-lists.
-
 * Pure/General/table.ML: the join operations now works via exceptions
-DUP/SAME instead of type option.  This is simpler in simple cases, and
+DUP/SAME instead of type option. This is simpler in simple cases, and
 admits slightly more efficient complex applications.
 
 * Pure: datatype Context.generic joins theory/Proof.context and
@@ -1244,24 +1233,24 @@ context, notably GenericDataFun for uniform theory and proof data.
 use Context.generic instead of just theory.
 
 * Pure: simplified internal attribute type, which is now always
-Context.generic * thm -> Context.generic * thm.  Global (theory)
-vs. local (Proof.context) attributes have been discontinued, while
-minimizing code duplication.  Thm.rule_attribute and
-Thm.declaration_attribute build canonical attributes; see also
-structure Context for further operations on Context.generic, notably
-GenericDataFun.  INCOMPATIBILITY, need to adapt attribute type
+Context.generic * thm -> Context.generic * thm. Global (theory) vs.
+local (Proof.context) attributes have been discontinued, while
+minimizing code duplication. Thm.rule_attribute and
+Thm.declaration_attribute build canonical attributes; see also structure
+Context for further operations on Context.generic, notably
+GenericDataFun. INCOMPATIBILITY, need to adapt attribute type
 declarations and definitions.
 
 * Pure/kernel: consts certification ignores sort constraints given in
-signature declarations.  (This information is not relevant to the
-logic, but only for type inference.)  IMPORTANT INTERNAL CHANGE,
-potential INCOMPATIBILITY.
+signature declarations. (This information is not relevant to the logic,
+but only for type inference.) IMPORTANT INTERNAL CHANGE, potential
+INCOMPATIBILITY.
 
 * Pure: axiomatic type classes are now purely definitional, with
 explicit proofs of class axioms and super class relations performed
-internally.  See Pure/axclass.ML for the main internal interfaces --
+internally. See Pure/axclass.ML for the main internal interfaces --
 notably AxClass.define_class supercedes AxClass.add_axclass, and
-AxClass.axiomatize_class/classrel/arity supercede
+AxClass.axiomatize_class/classrel/arity supersede
 Sign.add_classes/classrel/arities.
 
 * Pure/Isar: Args/Attrib parsers operate on Context.generic --
@@ -1318,6 +1307,11 @@ OldGoals.prove_goalw_cterm has long been obsolete, since it is
 ill-behaved in a local proof context (e.g. with local fixes/assumes or
 in a locale context).
 
+* Pure/Syntax: generic interfaces for parsing (Syntax.parse_term etc.)
+and type checking (Syntax.check_term etc.), with common combinations
+(Syntax.read_term etc.). These supersede former Sign.read_term etc.
+which are considered legacy and await removal.
+
 * Isar: simplified treatment of user-level errors, using exception
 ERROR of string uniformly.  Function error now merely raises ERROR,
 without any side effect on output channels.  The Isar toplevel takes
@@ -1340,8 +1334,8 @@ Context.PROOF, ProofContext.CONTEXT, Proof.STATE, ProofHistory.FAIL)
 * Isar: theory setup now has type (theory -> theory), instead of a
 list.  INCOMPATIBILITY, may use #> to compose setup functions.
 
-* Isar: installed ML toplevel pretty printer for type Proof.context,
-subject to ProofContext.debug/verbose flags.
+* Isar: ML toplevel pretty printer for type Proof.context, subject to
+ProofContext.debug/verbose flags.
 
 * Isar: Toplevel.theory_to_proof admits transactions that modify the
 theory before entering a proof state.  Transactions now always see a
