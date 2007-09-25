@@ -2596,6 +2596,8 @@ done
 
 text{* Now @{term"[i..j::int]"} is defined for integers. *}
 
+hide (open) const successor
+
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
 
