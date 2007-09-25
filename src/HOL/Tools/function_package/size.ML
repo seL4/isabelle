@@ -16,14 +16,14 @@ struct
 
 open DatatypeAux;
 
-structure SizeData = TheoryDataFun(
-struct
+structure SizeData = TheoryDataFun
+(
   type T = thm list Symtab.table;
   val empty = Symtab.empty;
   val copy = I
   val extend = I
   fun merge _ = Symtab.merge (K true);
-end);
+);
 
 fun specify_consts args thy =
   let
@@ -133,7 +133,7 @@ fun prove_size_thms (info : datatype_info) head_len thy =
 
     val (size_def_thms, thy') =
       thy
-      |> Theory.add_consts_i (map (fn (s, T) =>
+      |> Sign.add_consts_i (map (fn (s, T) =>
            (Sign.base_name s, T --> HOLogic.natT, NoSyn))
            (Library.drop (head_len, size_names ~~ recTs)))
       |> fold (fn (_, (name, _, _)) => instance_size_class name) descr'
@@ -190,11 +190,11 @@ fun add_size_thms (name :: _) thy =
   in if no_size then thy
     else
       thy
-      |> Theory.add_path prefix
+      |> Sign.add_path prefix
       |> (if ! quick_and_dirty
         then axiomatize_size_thms info head_len
         else prove_size_thms info head_len)
-      ||> Theory.parent_path
+      ||> Sign.parent_path
       |-> (fn thms => PureThy.add_thmss [(("", thms),
             [Simplifier.simp_add, Thm.declaration_attribute
               (fn thm => Context.mapping (Code.add_default_func thm) I)])])
