@@ -131,16 +131,16 @@ instance ml_int :: abs
   "\<bar>k\<bar> \<equiv> if k < 0 then -k else k" ..
 
 
-subsection {* Conversion to @{typ nat} *}
+subsection {* Conversion to and from @{typ nat} *}
 
 definition
   nat_of_ml_int :: "ml_int \<Rightarrow> nat"
 where
-  "nat_of_ml_int = nat o int_of_ml_int"
+  [code func del]: "nat_of_ml_int = nat o int_of_ml_int"
 
 definition
   nat_of_ml_int_aux :: "ml_int \<Rightarrow> nat \<Rightarrow> nat" where
-  "nat_of_ml_int_aux i n = nat_of_ml_int i + n"
+  [code func del]: "nat_of_ml_int_aux i n = nat_of_ml_int i + n"
 
 lemma nat_of_ml_int_aux_code [code]:
   "nat_of_ml_int_aux i n = (if i \<le> 0 then n else nat_of_ml_int_aux (i - 1) (Suc n))"
@@ -149,6 +149,21 @@ lemma nat_of_ml_int_aux_code [code]:
 lemma nat_of_ml_int_code [code]:
   "nat_of_ml_int i = nat_of_ml_int_aux i 0"
   by (simp add: nat_of_ml_int_aux_def)
+
+definition
+  ml_int_of_nat :: "nat \<Rightarrow> ml_int"
+where
+  [code func del]: "ml_int_of_nat = ml_int_of_int o of_nat"
+
+lemma ml_int_of_nat [code func]:
+  "ml_int_of_nat 0 = 0"
+  "ml_int_of_nat (Suc n) = ml_int_of_nat n + 1"
+  unfolding ml_int_of_nat_def by simp_all
+
+lemma ml_int_nat_id [simp]:
+  "nat_of_ml_int (ml_int_of_nat n) = n"
+  "ml_int_of_nat (nat_of_ml_int i) = (if i \<le> 0 then 0 else i)"
+  unfolding ml_int_of_nat_def nat_of_ml_int_def by simp_all
 
 
 subsection {* ML interface *}
@@ -170,7 +185,7 @@ code_type ml_int
 
 setup {*
   CodeTarget.add_pretty_numeral "SML" false
-    @{const_name ml_int_of_int}
+    @{const_name number_ml_int_inst.number_of_ml_int}
     @{const_name Numeral.B0} @{const_name Numeral.B1}
     @{const_name Numeral.Pls} @{const_name Numeral.Min}
     @{const_name Numeral.Bit}
@@ -200,5 +215,3 @@ code_const "op < \<Colon> ml_int \<Rightarrow> ml_int \<Rightarrow> bool"
   (SML "Int.< ((_), (_))")
 
 end
-
-
