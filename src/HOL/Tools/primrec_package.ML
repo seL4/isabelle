@@ -310,7 +310,7 @@ fun gen_primrec note def alt_name eqns thy =
   let
     val ((names, strings), srcss) = apfst split_list (split_list eqns);
     val atts = map (map (Attrib.attribute thy)) srcss;
-    val eqn_ts = map (fn s => term_of (Thm.read_cterm thy (s, propT))
+    val eqn_ts = map (fn s => Syntax.read_prop_global thy s
       handle ERROR msg => cat_error msg ("The error(s) above occurred for " ^ s)) strings;
     val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop eq)))
       handle TERM _ => primrec_eq_err thy "not a proper equation" eq) eqn_ts;

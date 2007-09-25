@@ -380,10 +380,9 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
 
 fun gen_primrec note def alt_name invs fctxt eqns thy =
   let
-    fun readt T s = term_of (Thm.read_cterm thy (s, T));
     val ((names, strings), srcss) = apfst split_list (split_list eqns);
     val atts = map (map (Attrib.attribute thy)) srcss;
-    val eqn_ts = map (fn s => readt propT s
+    val eqn_ts = map (fn s => Syntax.read_prop_global thy s
       handle ERROR msg => cat_error msg ("The error(s) above occurred for " ^ s)) strings;
     val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq
       (HOLogic.dest_Trueprop (Logic.strip_imp_concl eq))))
@@ -391,8 +390,8 @@ fun gen_primrec note def alt_name invs fctxt eqns thy =
     val (_, eqn_ts') = PrimrecPackage.unify_consts thy rec_ts eqn_ts
   in
     gen_primrec_i note def alt_name
-      (Option.map (map (readt dummyT)) invs)
-      (Option.map (readt dummyT) fctxt)
+      (Option.map (map (Syntax.read_term_global thy)) invs)
+      (Option.map (Syntax.read_term_global thy) fctxt)
       (names ~~ eqn_ts' ~~ atts) thy
   end;
 

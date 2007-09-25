@@ -121,7 +121,7 @@ fun process_spec axiomatic cos alt_props thy =
           | myfoldr f [] = error "SpecificationPackage.process_spec internal error"
 
         val rew_imps = alt_props |>
-          map (ObjectLogic.atomize o Thm.read_cterm thy o rpair Term.propT o snd)
+          map (ObjectLogic.atomize o Thm.cterm_of thy o Syntax.read_prop_global thy o snd)
         val props' = rew_imps |>
           map (HOLogic.dest_Trueprop o term_of o snd o Thm.dest_equals o cprop_of)
 
@@ -144,7 +144,7 @@ fun process_spec axiomatic cos alt_props thy =
         val thawed_prop_consts = collect_consts (prop_thawed,[])
         val (altcos,overloaded) = Library.split_list cos
         val (names,sconsts) = Library.split_list altcos
-        val consts = map (term_of o Thm.read_cterm thy o rpair dummyT) sconsts
+        val consts = map (Syntax.read_term_global thy) sconsts
         val _ = not (Library.exists (not o Term.is_Const) consts)
           orelse error "Specification: Non-constant found as parameter"
 

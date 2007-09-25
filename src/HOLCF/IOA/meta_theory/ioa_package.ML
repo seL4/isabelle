@@ -149,7 +149,7 @@ let
 fun hd_of (Const(a,_)) = a |
 hd_of (t $ _) = hd_of t |
 hd_of _ = raise malformed;
-val trm = Sign.simple_read_term thy (Sign.read_typ thy atypstr) s;
+val trm = Sign.simple_read_term thy (Syntax.read_typ_global thy atypstr) s;
 in
 hd_of trm handle malformed =>
 error("malformed constructor of datatype " ^ atypstr ^ ": " ^ s)
@@ -330,10 +330,10 @@ fun add_ioa automaton_name action_type inp out int statetupel ini trans thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val state_type_string = type_product_of_varlist(statetupel);
-val styp = Sign.read_typ thy state_type_string;
+val styp = Syntax.read_typ_global thy state_type_string;
 val state_vars_tupel = "(" ^ (comma_list_of_varlist statetupel) ^ ")";
 val state_vars_primed = "(" ^ (primed_comma_list_of_varlist statetupel) ^ ")";
-val atyp = Sign.read_typ thy action_type;
+val atyp = Syntax.read_typ_global thy action_type;
 val inp_set_string = action_set_string thy atyp inp;
 val out_set_string = action_set_string thy atyp out;
 val int_set_string = action_set_string thy atyp int;
@@ -426,7 +426,7 @@ automaton_name ^ " == hide " ^ aut_source ^ " " ^ hid_set)]
 end)
 
 fun ren_act_type_of thy funct =
-  (case Term.fastype_of (Sign.read_term thy funct) of
+  (case Term.fastype_of (Syntax.read_term_global thy funct) of
     Type ("fun", [a, b]) => a
   | _ => error "could not extract argument type of renaming function term");
  

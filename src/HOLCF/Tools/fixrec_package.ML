@@ -253,7 +253,7 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
     else thy'
   end;
 
-val add_fixrec = gen_add_fixrec Sign.read_prop Attrib.attribute;
+val add_fixrec = gen_add_fixrec Syntax.read_prop_global Attrib.attribute;
 val add_fixrec_i = gen_add_fixrec Sign.cert_prop (K I);
 
 
@@ -281,7 +281,7 @@ fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
     (snd o PureThy.add_thmss [((name, simps), atts)]) thy
   end;
 
-val add_fixpat = gen_add_fixpat Sign.read_term Attrib.attribute;
+val add_fixpat = gen_add_fixpat Syntax.read_term_global Attrib.attribute;
 val add_fixpat_i = gen_add_fixpat Sign.cert_term (K I);
 
 

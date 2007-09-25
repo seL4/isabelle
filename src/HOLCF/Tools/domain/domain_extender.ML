@@ -100,7 +100,7 @@ fun check_and_sort_domain (dtnvs: (string * typ list) list,
 fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
   let
     val dtnvs = map ((fn (dname,vs) => 
-			 (Sign.full_name thy''' dname, map (Sign.read_typ thy''') vs))
+			 (Sign.full_name thy''' dname, map (Syntax.read_typ_global thy''') vs))
                    o fst) eqs''';
     val cons''' = map snd eqs''';
     fun thy_type  (dname,tvars)  = (Sign.base_name dname, length tvars, NoSyn);
@@ -139,7 +139,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
   end;
 
 val add_domain_i = gen_add_domain Sign.certify_typ;
-val add_domain = gen_add_domain Sign.read_typ;
+val add_domain = gen_add_domain Syntax.read_typ_global;
 
 
 (** outer syntax **)

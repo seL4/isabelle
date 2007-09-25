@@ -10,7 +10,7 @@ sig
     type term
     type thm
     type ('a,'b) subst
-	 
+
     type proof_info
     datatype proof = Proof of proof_info * proof_content
 	 and proof_content
@@ -111,8 +111,8 @@ sig
     val new_type_definition : string -> string -> string -> thm -> theory -> theory * thm
     val new_axiom : string -> term -> theory -> theory * thm
 
-    val prin : term -> unit 
-    val protect_factname : string -> string 
+    val prin : term -> unit
+    val protect_factname : string -> string
     val replay_protect_varname : string -> string -> unit
     val replay_add_dump : string -> theory -> theory
 end
@@ -125,7 +125,7 @@ datatype tag = Tag of string list
 type ('a,'b) subst = ('a * 'b) list
 datatype thm = HOLThm of (Term.term * Term.term) list * Thm.thm
 
-fun hthm2thm (HOLThm (_, th)) = th 
+fun hthm2thm (HOLThm (_, th)) = th
 
 fun to_hol_thm th = HOLThm ([], th)
 
@@ -134,7 +134,7 @@ fun add_dump s thy = (ImportRecorder.add_dump s; replay_add_dump s thy)
 
 datatype proof_info
   = Info of {disk_info: (string * string) option ref}
-	    
+
 datatype proof = Proof of proof_info * proof_content
      and proof_content
        = PRefl of term
@@ -176,7 +176,7 @@ datatype proof = Proof of proof_info * proof_content
 exception PK of string * string
 fun ERR f mesg = PK (f,mesg)
 
-fun print_exn e = 
+fun print_exn e =
     case e of
 	PK (m,s) => (writeln ("PK (" ^ m ^ "): " ^ s); raise e)
       | _ => OldGoals.print_exn e
@@ -213,21 +213,23 @@ exception SMART_STRING
 fun smart_string_of_cterm ct =
     let
 	val {thy,t,T,...} = rep_cterm ct
+        val ctxt = ProofContext.init thy
         (* Hack to avoid parse errors with Trueprop *)
 	val ct  = (cterm_of thy (HOLogic.dest_Trueprop t)
 		   handle TERM _ => ct)
-	fun match cu = t aconv (term_of cu)
+	fun match u = t aconv u
 	fun G 0 = Library.setmp show_types true (Library.setmp show_sorts true)
 	  | G 1 = Library.setmp show_brackets true (G 0)
 	  | G 2 = Library.setmp show_all_types true (G 0)
 	  | G 3 = Library.setmp show_brackets true (G 2)
-          | G _ = raise SMART_STRING 
+          | G _ = raise SMART_STRING
 	fun F n =
 	    let
 		val str = Library.setmp show_brackets false (G n string_of_cterm) ct
-		val cu  = Thm.read_cterm thy (str,T)
+		val u = Syntax.parse_term ctxt str
+                  |> TypeInfer.constrain T |> Syntax.check_term ctxt
 	    in
-		if match cu
+		if match u
 		then quote str
 		else F (n+1)
 	    end
@@ -237,7 +239,7 @@ fun smart_string_of_cterm ct =
       PrintMode.setmp [] (Library.setmp Syntax.ambiguity_is_error true F) 0
     end
     handle ERROR mesg => simple_smart_string_of_cterm ct
- 
+
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
 fun prth th = writeln (PrintMode.setmp [] string_of_thm th)
@@ -272,20 +274,20 @@ fun assoc x =
     in
 	F
     end
-fun i mem L = 
-    let fun itr [] = false 
-	  | itr (a::rst) = i=a orelse itr rst 
+fun i mem L =
+    let fun itr [] = false
+	  | itr (a::rst) = i=a orelse itr rst
     in itr L end;
-    
+
 fun insert i L = if i mem L then L else i::L
-					
+
 fun mk_set [] = []
   | mk_set (a::rst) = insert a (mk_set rst)
-		      
+
 fun [] union S = S
   | S union [] = S
   | (a::rst) union S2 = rst union (insert a S2)
-			
+
 fun implode_subst [] = []
   | implode_subst (x::r::rest) = ((x,r)::(implode_subst rest))
   | implode_subst _ = raise ERR "implode_subst" "malformed substitution list"
@@ -300,7 +302,7 @@ fun read name = Tag [name]
 fun merge (Tag tag1) (Tag tag2) = Tag (Lib.union(tag1,tag2))
 end
 
-(* Acutal code. *)
+(* Actual code. *)
 
 fun get_segment thyname l = (Lib.assoc "s" l
 			     handle PK _ => thyname)
@@ -430,8 +432,8 @@ fun dom_rng (Type("fun",[dom,rng])) = (dom,rng)
 
 fun mk_thy_const thy Thy Nam Ty = Const(intern_const_name Thy Nam thy,Ty)
 
-local 
-  fun get_const sg thyname name = 
+local
+  fun get_const sg thyname name =
     (case Sign.const_type sg name of
       SOME ty => Const (name, ty)
     | NONE => raise ERR "get_type" (name ^ ": No such constant"))
@@ -472,16 +474,16 @@ fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_
 val check_name_thy = theory "Main"
 
 fun valid_boundvarname s =
-  can (fn () => Thm.read_cterm check_name_thy ("SOME "^s^". True", dummyT)) ();
+  can (fn () => Syntax.read_term_global check_name_thy ("SOME "^s^". True")) ();
 
 fun valid_varname s =
-  can (fn () => Thm.read_cterm check_name_thy (s, dummyT)) ();
+  can (fn () => Syntax.read_term_global check_name_thy s) ();
 
 fun protect_varname s =
     if innocent_varname s andalso valid_varname s then s else
     case Symtab.lookup (!protected_varnames) s of
       SOME t => t
-    | NONE => 
+    | NONE =>
       let
 	  val _ = inc invented_isavar
 	  val t = "u_" ^ string_of_int (!invented_isavar)
@@ -493,56 +495,56 @@ fun protect_varname s =
 
 exception REPLAY_PROTECT_VARNAME of string*string*string
 
-fun replay_protect_varname s t = 
+fun replay_protect_varname s t =
 	case Symtab.lookup (!protected_varnames) s of
 	  SOME t' => raise REPLAY_PROTECT_VARNAME (s, t, t')
-	| NONE => 	
+	| NONE =>
           let
 	      val _ = inc invented_isavar
 	      val t = "u_" ^ string_of_int (!invented_isavar)
               val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
           in
 	      ()
-          end	       	
-	 
+          end
+
 fun protect_boundvarname s = if innocent_varname s andalso valid_boundvarname s then s else "u"
 
 fun mk_lambda (v as Free (x, T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
   | mk_lambda (v as Var ((x, _), T)) t = Abs (protect_boundvarname x, T, abstract_over (v, t))
   | mk_lambda v t = raise TERM ("lambda", [v, t]);
- 
-fun replacestr x y s = 
+
+fun replacestr x y s =
 let
   val xl = explode x
   val yl = explode y
   fun isprefix [] ys = true
     | isprefix (x::xs) (y::ys) = if x = y then isprefix xs ys else false
-    | isprefix _ _ = false  
+    | isprefix _ _ = false
   fun isp s = isprefix xl s
   fun chg s = yl@(List.drop (s, List.length xl))
   fun r [] = []
-    | r (S as (s::ss)) = if isp S then r (chg S) else s::(r ss) 
+    | r (S as (s::ss)) = if isp S then r (chg S) else s::(r ss)
 in
   implode(r (explode s))
-end    
+end
 
 fun protect_factname s = replacestr "." "_dot_" s
-fun unprotect_factname s = replacestr "_dot_" "." s 
+fun unprotect_factname s = replacestr "_dot_" "." s
 
 val ty_num_prefix = "N_"
 
 fun startsWithDigit s = Char.isDigit (hd (String.explode s))
 
-fun protect_tyname tyn = 
+fun protect_tyname tyn =
   let
-    val tyn' = 
-      if String.isPrefix ty_num_prefix tyn then raise (ERR "protect_ty_name" ("type name '"^tyn^"' is reserved")) else 
+    val tyn' =
+      if String.isPrefix ty_num_prefix tyn then raise (ERR "protect_ty_name" ("type name '"^tyn^"' is reserved")) else
       (if startsWithDigit tyn then ty_num_prefix^tyn else tyn)
   in
     tyn'
   end
 
-fun protect_constname tcn = tcn 
+fun protect_constname tcn = tcn
  (* if tcn = ".." then "dotdot"
   else if tcn = "==" then "eqeq"
   else tcn*)
@@ -634,9 +636,9 @@ and get_term_from_xml thy thyname types terms =
 	    in
 		mk_comb(f,a)
 	    end
-	  | gtfx (Elem("tml",[("x",tmx),("a",tma)],[])) = 
-	    let		
-                val x = get_term_from_index thy thyname types terms tmx 
+	  | gtfx (Elem("tml",[("x",tmx),("a",tma)],[])) =
+	    let
+                val x = get_term_from_index thy thyname types terms tmx
                 val a = get_term_from_index thy thyname types terms tma
 	    in
 		mk_lambda x a
@@ -683,7 +685,7 @@ fun get_proof_dir (thyname:string) thy =
     in
 	Option.map (fn p => OS.Path.joinDirFile {dir = p, file = thyname}) (find path)
     end
-			   
+
 fun proof_file_name thyname thmname thy =
     let
 	val path = case get_proof_dir thyname thy of
@@ -693,7 +695,7 @@ fun proof_file_name thyname thmname thy =
     in
 	OS.Path.joinDirFile {dir = path, file = OS.Path.joinBaseExt {base = (unprotect_factname thmname), ext = SOME "prf"}}
     end
-	
+
 fun xml_to_proof thyname types terms prf thy =
     let
 	val xml_to_hol_type = TypeNet.get_type_from_xml thy thyname types
@@ -936,18 +938,18 @@ fun xml_to_proof thyname types terms prf thy =
 	x2p prf
     end
 
-fun import_proof_concl thyname thmname thy = 
+fun import_proof_concl thyname thmname thy =
     let
 	val is = TextIO.openIn(proof_file_name thyname thmname thy)
 	val (proof_xml,_) = scan_tag (LazySeq.of_instream is)
 	val _ = TextIO.closeIn is
-    in 
+    in
 	case proof_xml of
 	    Elem("proof",[],xtypes::xterms::prf::rest) =>
 	    let
 		val types = TypeNet.input_types thyname xtypes
 		val terms = TermNet.input_terms thyname types xterms
-                fun f xtm thy = TermNet.get_term_from_xml thy thyname types terms xtm               
+                fun f xtm thy = TermNet.get_term_from_xml thy thyname types terms xtm
 	    in
 		case rest of
 		    [] => NONE
@@ -962,7 +964,7 @@ fun import_proof thyname thmname thy =
 	val is = TextIO.openIn(proof_file_name thyname thmname thy)
 	val (proof_xml,_) = scan_tag (LazySeq.of_instream is)
 	val _ = TextIO.closeIn is
-    in 
+    in
 	case proof_xml of
 	    Elem("proof",[],xtypes::xterms::prf::rest) =>
 	    let
@@ -1068,7 +1070,7 @@ fun mk_GEN v th sg =
 	res
     end
 
-val permute_prems = Thm.permute_prems 
+val permute_prems = Thm.permute_prems
 
 fun rearrange sg tm th =
     let
@@ -1152,26 +1154,26 @@ fun disambiguate_frees thm =
         | name_of _ = ERR "name_of"
       fun new_name' bump map n =
           let val n' = n^bump in
-            if is_old_name n' orelse Symtab.lookup map n' <> NONE then 
+            if is_old_name n' orelse Symtab.lookup map n' <> NONE then
               new_name' (Symbol.bump_string bump) map n
             else
               n'
-          end              
+          end
       val new_name = new_name' "a"
       fun replace_name n' (Free (n, t)) = Free (n', t)
         | replace_name n' _ = ERR "replace_name"
-      (* map: old or fresh name -> old free, 
+      (* map: old or fresh name -> old free,
          invmap: old free which has fresh name assigned to it -> fresh name *)
       fun dis (v, mapping as (map,invmap)) =
           let val n = name_of v in
             case Symtab.lookup map n of
               NONE => (Symtab.update (n, v) map, invmap)
-            | SOME v' => 
-              if v=v' then 
-                mapping 
+            | SOME v' =>
+              if v=v' then
+                mapping
               else
                 let val n' = new_name map n in
-                  (Symtab.update (n', v) map, 
+                  (Symtab.update (n', v) map,
                    Termtab.update (v, n') invmap)
                 end
           end
@@ -1179,16 +1181,16 @@ fun disambiguate_frees thm =
       if (length freenames = length frees) then
         thm
       else
-        let 
-          val (_, invmap) = 
-              List.foldl dis (Symtab.empty, Termtab.empty) frees 
+        let
+          val (_, invmap) =
+              List.foldl dis (Symtab.empty, Termtab.empty) frees
           fun make_subst ((oldfree, newname), (intros, elims)) =
-              (cterm_of thy oldfree :: intros, 
+              (cterm_of thy oldfree :: intros,
                cterm_of thy (replace_name newname oldfree) :: elims)
           val (intros, elims) = List.foldl make_subst ([], []) (Termtab.dest invmap)
-        in 
+        in
           forall_elim_list elims (forall_intr_list intros thm)
-        end     
+        end
     end
 
 val debug = ref false
@@ -1201,7 +1203,7 @@ val conjE_helper = permute_prems 0 1 conjE
 fun get_hol4_thm thyname thmname thy =
     case get_hol4_theorem thyname thmname thy of
 	SOME hth => SOME (HOLThm hth)
-      | NONE => 
+      | NONE =>
 	let
 	    val pending = HOL4Pending.get thy
 	in
@@ -1215,7 +1217,7 @@ fun non_trivial_term_consts tm =
 			 c = "All" orelse
 			 c = "op -->" orelse
 			 c = "op &" orelse
-			 c = "op =")) (Term.term_consts tm) 
+			 c = "op =")) (Term.term_consts tm)
 
 fun match_consts t (* th *) =
     let
@@ -1291,7 +1293,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	    end
 	  | SOME NONE => error ("Trying to access ignored theorem " ^ thmname)
 	  | NONE =>
-	    let		
+	    let
 		val _ = (message "Looking for conclusion:";
 			 if_debug prin isaconc)
 		val cs = non_trivial_term_consts isaconc
@@ -1325,7 +1327,7 @@ fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
 	    val i2h_conc = symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
 	in
 	    case concl_of i2h_conc of
-		Const("==",_) $ lhs $ _ => 
+		Const("==",_) $ lhs $ _ =>
 		(warning ("Failed lookup of theorem '"^thmname^"':");
 	         writeln "Original conclusion:";
 		 prin hol4conc';
@@ -1334,10 +1336,10 @@ fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
 	      | _ => ()
 	end
   in
-      case b of 
+      case b of
 	  NONE => (warn () handle _ => (); (a,b))
 	| _ => (a, b)
-  end 
+  end
 
 fun get_thm thyname thmname thy =
     case get_hol4_thm thyname thmname thy of
@@ -1373,11 +1375,11 @@ fun intern_store_thm gen_output thyname thmname hth thy =
 	val rew = rewrite_hol4_term (concl_of th) thy
 	val th  = equal_elim rew th
 	val thy' = add_hol4_pending thyname thmname args thy
-	val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth') 
+	val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
         val th = disambiguate_frees th
 	val thy2 = if gen_output
-		   then add_dump ("lemma " ^ (quotename thmname) ^ ": " ^ 
-                                  (smart_string_of_thm th) ^ "\n  by (import " ^ 
+		   then add_dump ("lemma " ^ (quotename thmname) ^ ": " ^
+                                  (smart_string_of_thm th) ^ "\n  by (import " ^
                                   thyname ^ " " ^ (quotename thmname) ^ ")") thy'
 		   else thy'
     in
@@ -1768,7 +1770,7 @@ fun TRANS hth1 hth2 thy =
     in
 	(thy,res)
     end
-	
+
 
 fun CCONTR tm hth thy =
     let
@@ -1851,7 +1853,7 @@ fun GEN_ABS copt vlist hth thy =
 			      end) th vlist'
 		end
 	      | SOME _ => raise ERR "GEN_ABS" "Bad constant"
-	      | NONE => 
+	      | NONE =>
 		foldr (fn (v,th) => mk_ABS v th thy) th vlist'
 	val res = HOLThm(rens_of info',th1)
 	val _ = message "RESULT:"
@@ -1947,7 +1949,7 @@ fun new_definition thyname constname rhs thy =
 			    val p3 = string_of_mixfix csyn
 			    val p4 = smart_string_of_cterm crhs
 			in
-			    add_dump ("constdefs\n  " ^p1^ " :: \"" ^p2^ "\" "^p3^ "\n  " ^p4) thy''  
+			    add_dump ("constdefs\n  " ^p1^ " :: \"" ^p2^ "\" "^p3^ "\n  " ^p4) thy''
 			end
 		    else
 			(add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy'' ctype) ^
@@ -1958,7 +1960,7 @@ fun new_definition thyname constname rhs thy =
 		    | NONE => raise ERR "new_definition" "Bad conclusion"
 	val fullname = Sign.full_name thy22 thmname
 	val thy22' = case opt_get_output_thy thy22 of
-			 "" => (ImportRecorder.add_hol_mapping thyname thmname fullname; 
+			 "" => (ImportRecorder.add_hol_mapping thyname thmname fullname;
 				add_hol4_mapping thyname thmname fullname thy22)
 		       | output_thy =>
 			 let
@@ -1982,7 +1984,7 @@ in
 fun new_specification thyname thmname names hth thy =
     case HOL4DefThy.get thy of
 	Replaying _ => (thy,hth)
-      | _ => 
+      | _ =>
 	let
 	    val _ = message "NEW_SPEC:"
 	    val _ = if_debug pth hth
@@ -2005,7 +2007,7 @@ fun new_specification thyname thmname names hth thy =
 				   dest_eta_abs abody
 				 | dest_exists tm =
 				   raise ERR "new_specification" "Bad existential formula"
-					 
+
 			       val (consts,_) = Library.foldl (fn ((cs,ex),cname) =>
 							  let
 							      val (_,cT,p) = dest_exists ex
@@ -2056,11 +2058,11 @@ fun new_specification thyname thmname names hth thy =
 	    intern_store_thm false thyname thmname hth thy''
 	end
 	handle e => (message "exception in new_specification"; print_exn e)
-		    
+
 end
-			   
+
 fun new_axiom name tm thy = raise ERR "new_axiom" ("Oh, no you don't! (" ^ name ^ ")")
-				      
+
 fun to_isa_thm (hth as HOLThm(_,th)) =
     let
 	val (HOLThm args) = norm_hthm (theory_of_thm th) hth
@@ -2079,7 +2081,7 @@ in
 fun new_type_definition thyname thmname tycname hth thy =
     case HOL4DefThy.get thy of
 	Replaying _ => (thy,hth)
-      | _ => 
+      | _ =>
 	let
 	    val _ = message "TYPE_DEF:"
 	    val _ = if_debug pth hth
@@ -2093,9 +2095,9 @@ fun new_type_definition thyname thmname tycname hth thy =
 	    val tnames = map fst tfrees
 	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
-	    val ((_, typedef_info), thy') = TypedefPackage.add_typedef_i false (SOME thmname) typ c NONE (rtac th2 1) thy	    
+	    val ((_, typedef_info), thy') = TypedefPackage.add_typedef_i false (SOME thmname) typ c NONE (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
-				      
+
 	    val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
 
 	    val fulltyname = Sign.intern_type thy' tycname
@@ -2124,11 +2126,11 @@ fun new_type_definition thyname thmname tycname hth thy =
 	    val proc_prop = if null tnames
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
-	    val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " 
+	    val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of thy4 c)) ^ " "
 				 ^ (string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
-	    
+
 	    val thy6 = add_dump ("lemmas " ^ thmname ^ " = typedef_hol2hol4 [OF type_definition_" ^ tycname ^ "]") thy5
-              
+
 	    val _ = message "RESULT:"
 	    val _ = if_debug pth hth'
 	in
@@ -2145,19 +2147,19 @@ fun add_dump_constdefs thy defname constname rhs ty =
         val eq = quote (constname ^ " == "^rhs)
 	val d = case defname of NONE => "" | SOME defname => (quotename defname)^" : "
     in
-	add_dump ("constdefs\n  " ^ n ^ " :: \"" ^ t ^ "\" " ^ syn ^ "\n  " ^ d ^ eq) thy    
+	add_dump ("constdefs\n  " ^ n ^ " :: \"" ^ t ^ "\" " ^ syn ^ "\n  " ^ d ^ eq) thy
     end
 
-fun add_dump_syntax thy name = 
+fun add_dump_syntax thy name =
     let
       val n = quotename name
       val syn = string_of_mixfix (mk_syn thy name)
     in
       add_dump ("syntax\n  "^n^" :: _ "^syn) thy
     end
-      
+
 (*val type_intro_replay_history = ref (Symtab.empty:unit Symtab.table)
-fun choose_upon_replay_history thy s dth = 
+fun choose_upon_replay_history thy s dth =
     case Symtab.lookup (!type_intro_replay_history) s of
 	NONE => (type_intro_replay_history := Symtab.update (s, ()) (!type_intro_replay_history); dth)
       | SOME _ => HOLThm([], PureThy.get_thm thy (PureThy.Name s))
@@ -2167,7 +2169,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
     case HOL4DefThy.get thy of
 	Replaying _ => (thy,
           HOLThm([], PureThy.get_thm thy (PureThy.Name (thmname^"_@intern"))) handle ERROR _ => hth)
-      | _ => 
+      | _ =>
 	let
             val _ = message "TYPE_INTRO:"
 	    val _ = if_debug pth hth
@@ -2192,9 +2194,9 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val aty = Type (fulltyname, map mk_vartype tnames)
 	    val abs_ty = tT --> aty
 	    val rep_ty = aty --> tT
-            val typedef_hol2hollight' = 
-		Drule.instantiate' 
-		    [SOME (ctyp_of thy' aty), SOME (ctyp_of thy' tT)] 
+            val typedef_hol2hollight' =
+		Drule.instantiate'
+		    [SOME (ctyp_of thy' aty), SOME (ctyp_of thy' tT)]
 		    [NONE, NONE, NONE, SOME (cterm_of thy' (Free ("a", aty))), SOME (cterm_of thy' (Free ("r", tT)))]
                     typedef_hol2hollight
 	    val th4 = (#type_definition typedef_info) RS typedef_hol2hollight'
@@ -2209,7 +2211,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 	    val (hth' as HOLThm args) = norm_hthm thy'' (HOLThm(rens,th4))
 	    val thy4 = add_hol4_pending thyname thmname args thy''
 	    val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
-	   
+
 	    val P' = P (* why !? #2 (Logic.dest_equals (concl_of (rewrite_hol4_term P thy4))) *)
 	    val c   =
 		let
@@ -2217,27 +2219,27 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 		in
 		    Const("Collect",PT-->HOLogic.mk_setT (domain_type PT)) $ P'
 		end
-	    
+
 	    val tnames_string = if null tnames
 				then ""
 				else "(" ^ commas tnames ^ ") "
 	    val proc_prop = if null tnames
 			    then smart_string_of_cterm
 			    else Library.setmp show_all_types true smart_string_of_cterm
-	    val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ 
-              " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " ^ 
+	    val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^
+              " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " ^
 	      (string_of_mixfix tsyn) ^ " morphisms "^
-              (quote rep_name)^" "^(quote abs_name)^"\n"^ 
+              (quote rep_name)^" "^(quote abs_name)^"\n"^
 	      ("  apply (rule light_ex_imp_nonempty[where t="^
-              (proc_prop (cterm_of thy4 t))^"])\n"^              
+              (proc_prop (cterm_of thy4 t))^"])\n"^
 	      ("  by (import " ^ thyname ^ " " ^ (quotename thmname) ^ ")"))) thy4
 	    val str_aty = string_of_ctyp (ctyp_of thy aty)
-            val thy = add_dump_syntax thy rep_name 
+            val thy = add_dump_syntax thy rep_name
             val thy = add_dump_syntax thy abs_name
-	    val thy = add_dump ("lemmas " ^ (quote (thmname^"_@intern")) ^ 
+	    val thy = add_dump ("lemmas " ^ (quote (thmname^"_@intern")) ^
               " = typedef_hol2hollight \n"^
               "  [where a=\"a :: "^str_aty^"\" and r=r" ^
-	      " ,\n   OF "^(quotename ("type_definition_" ^ tycname)) ^ "]") thy 
+	      " ,\n   OF "^(quotename ("type_definition_" ^ tycname)) ^ "]") thy
 	    val _ = message "RESULT:"
 	    val _ = if_debug pth hth'
 	in

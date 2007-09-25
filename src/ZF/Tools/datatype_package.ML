@@ -335,7 +335,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     con1(x)=con1(y) ==> x=y, con1(x)=con1(y) <-> x=y, etc.  *)
   fun mk_free s =
     let val thy = theory_of_thm elim in (*Don't use thy1: it will be stale*)
-      Goal.prove_global thy [] [] (Sign.read_prop thy s)
+      Goal.prove_global thy [] [] (Syntax.read_prop_global thy s)
         (fn _ => EVERY
          [rewrite_goals_tac con_defs,
           fast_tac (ZF_cs addSEs free_SEs @ Su.free_SEs) 1])

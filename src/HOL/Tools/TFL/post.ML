@@ -245,7 +245,8 @@ fun define_i strict thy cs ss congs wfs fid R eqs =
   in (thy, {rules = rules', induct = induct, tcs = tcs}) end;
 
 fun define strict thy cs ss congs wfs fid R seqs =
-  define_i strict thy cs ss congs wfs fid (Sign.read_term thy R) (map (Sign.read_term thy) seqs)
+  define_i strict thy cs ss congs wfs fid
+      (Syntax.read_term_global thy R) (map (Syntax.read_term_global thy) seqs)
     handle U.ERR {mesg,...} => error mesg;
 
 
@@ -272,7 +273,7 @@ fun defer_i thy congs fid eqs =
  end
 
 fun defer thy congs fid seqs =
-  defer_i thy congs fid (map (Sign.read_term thy) seqs)
+  defer_i thy congs fid (map (Syntax.read_term_global thy) seqs)
     handle U.ERR {mesg,...} => error mesg;
 end;
 

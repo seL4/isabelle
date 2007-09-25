@@ -492,7 +492,7 @@ fun prep_arity prep_tycon prep_sort thy (t, Ss, S) =
   let val arity = (prep_tycon thy t, map (prep_sort thy) Ss, prep_sort thy S)
   in Type.add_arity (pp thy) arity (tsig_of thy); arity end;
 
-val read_arity = prep_arity intern_type Syntax.global_read_sort;
+val read_arity = prep_arity intern_type Syntax.read_sort_global;
 val cert_arity = prep_arity (K I) certify_sort;
 
 
@@ -613,7 +613,7 @@ fun read_prop thy = simple_read_term thy propT;
 fun gen_add_defsort prep_sort s thy =
   thy |> map_tsig (Type.set_defsort (prep_sort thy s));
 
-val add_defsort = gen_add_defsort Syntax.global_read_sort;
+val add_defsort = gen_add_defsort Syntax.read_sort_global;
 val add_defsort_i = gen_add_defsort certify_sort;
 
 
@@ -650,12 +650,13 @@ fun gen_add_tyabbr prep_typ (a, vs, rhs, mx) thy =
     let
       val syn' = Syntax.extend_type_gram [(a, length vs, mx)] syn;
       val a' = Syntax.type_name a mx;
-      val abbr = (a', vs, certify_typ_mode Type.mode_syntax thy (prep_typ thy rhs))
+      val abbr = (a', vs,
+          certify_typ_mode Type.mode_syntax thy (prep_typ (ProofContext.init thy) rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote a');
       val tsig' = Type.add_abbrevs naming [abbr] tsig;
     in (naming, syn', tsig', consts) end);
 
-val add_tyabbrs = fold (gen_add_tyabbr Syntax.global_parse_typ);
+val add_tyabbrs = fold (gen_add_tyabbr Syntax.parse_typ);
 val add_tyabbrs_i = fold (gen_add_tyabbr (K I));
 
 
@@ -663,18 +664,19 @@ val add_tyabbrs_i = fold (gen_add_tyabbr (K I));
 
 fun gen_syntax change_gram prep_typ mode args thy =
   let
-    fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (prep_typ thy T), mx)
+    fun prep (c, T, mx) = (c,
+        certify_typ_mode Type.mode_syntax thy (prep_typ (ProofContext.init thy) T), mx)
       handle ERROR msg =>
         cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name c mx));
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax Syntax.extend_const_gram x;
 
-val add_modesyntax = gen_add_syntax Syntax.global_parse_typ;
+val add_modesyntax = gen_add_syntax Syntax.parse_typ;
 val add_modesyntax_i = gen_add_syntax (K I);
 val add_syntax = add_modesyntax Syntax.default_mode;
 val add_syntax_i = add_modesyntax_i Syntax.default_mode;
-val del_modesyntax = gen_syntax Syntax.remove_const_gram Syntax.global_parse_typ;
+val del_modesyntax = gen_syntax Syntax.remove_const_gram Syntax.parse_typ;
 val del_modesyntax_i = gen_syntax Syntax.remove_const_gram (K I);
 
 fun const_syntax thy (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)

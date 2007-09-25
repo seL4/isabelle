@@ -232,9 +232,10 @@ fun add_def ((class, tyco), ((name, prop), atts)) thy =
 
 local
 
-fun gen_read_def thy prep_att read_def ((raw_name, raw_atts), raw_t) =
+fun gen_read_def thy prep_att parse_prop ((raw_name, raw_atts), raw_t) =
   let
-    val (_, t) = read_def thy (raw_name, raw_t);
+    val ctxt = ProofContext.init thy;
+    val t = parse_prop ctxt raw_t |> Syntax.check_prop ctxt;
     val ((c, ty), _) = Sign.cert_def (Sign.pp thy) t;
     val atts = map (prep_att thy) raw_atts;
     val insts = Consts.typargs (Sign.consts_of thy) (c, ty);
@@ -243,7 +244,7 @@ fun gen_read_def thy prep_att read_def ((raw_name, raw_atts), raw_t) =
       | _ => SOME raw_name;
   in (c, (insts, ((name, t), atts))) end;
 
-fun read_def_cmd thy = gen_read_def thy Attrib.intern_src Theory.read_axm;
+fun read_def_cmd thy = gen_read_def thy Attrib.intern_src Syntax.parse_prop;
 fun read_def thy = gen_read_def thy (K I) (K I);
 
 fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed theory =
@@ -544,9 +545,9 @@ val _ = Context.add_setup (Method.add_methods
 
 local
 
-fun read_param thy raw_t =
+fun read_param thy raw_t =  (* FIXME ProofContext.read_const (!?) *)
   let
-    val t = Sign.read_term thy raw_t
+    val t = Syntax.read_term_global thy raw_t
   in case try dest_Const t
    of SOME (c, _) => c
     | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)

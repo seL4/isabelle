@@ -646,7 +646,7 @@ fun mk_simproc name lhss proc =
 
 (* FIXME avoid global thy and Logic.varify *)
 fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify);
-fun simproc thy name = simproc_i thy name o map (Sign.read_term thy);
+fun simproc thy name = simproc_i thy name o map (Syntax.read_term_global thy);
 
 
 local

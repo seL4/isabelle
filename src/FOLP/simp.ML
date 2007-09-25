@@ -594,7 +594,7 @@ fun mk_typed_congs thy =
 let
   fun readfT(f,s) =
     let
-      val T = Logic.incr_tvar 9 (Sign.read_typ thy s);
+      val T = Logic.incr_tvar 9 (Syntax.read_typ_global thy s);
       val t = case Sign.const_type thy f of
                   SOME(_) => Const(f,T) | NONE => Free(f,T)
     in (t,T) end

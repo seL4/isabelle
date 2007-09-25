@@ -91,7 +91,7 @@ fun gen_add_consts prep_typ raw_decls thy =
     |> Sign.add_trrules_i (List.concat (map third transformed_decls))
   end;
 
-val add_consts = gen_add_consts Sign.read_typ;
+val add_consts = gen_add_consts Syntax.read_typ_global;
 val add_consts_i = gen_add_consts Sign.certify_typ;
 
 

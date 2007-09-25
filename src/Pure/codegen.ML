@@ -197,7 +197,7 @@ fun set_iterations iterations ({size, default_type, ...} : test_params) =
 
 fun set_default_type s thy ({size, iterations, ...} : test_params) =
   {size = size, iterations = iterations,
-   default_type = SOME (Sign.read_typ thy s)};
+   default_type = SOME (Syntax.read_typ_global thy s)};
 
 
 (* theory data *)
@@ -1112,7 +1112,7 @@ val assoc_typeP =
     (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => fold (assoc_type o
        (fn ((name, mfx), aux) => (name, (parse_mixfix
-         (Sign.read_typ thy) mfx, aux)))) xs thy)));
+         (Syntax.read_typ_global thy) mfx, aux)))) xs thy)));
 
 val assoc_constP =
   OuterSyntax.command "consts_code"
@@ -1171,7 +1171,7 @@ val parse_test_params = P.short_ident :|-- (fn s =>
 
 fun parse_tyinst xs =
   (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>
-    fn (x, ys) => (x, (v, Sign.read_typ thy s) :: ys))) xs;
+    fn (x, ys) => (x, (v, Syntax.read_typ_global thy s) :: ys))) xs;
 
 val test_paramsP =
   OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl

@@ -137,7 +137,7 @@ val const_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (P
 					 val thyname = get_import_thy thy
 				     in
 					 Library.foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol false isa thy
-						 | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol false isa (Sign.read_typ thy ty) thy) (thy,constmaps)
+						 | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol false isa (Syntax.read_typ_global thy ty) thy) (thy,constmaps)
 				     end)
 
 val const_moves = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (P.$$$ "::" |-- P.typ))
@@ -147,7 +147,7 @@ val const_moves = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (
 					  val thyname = get_import_thy thy
 				      in
 					  Library.foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol true isa thy
-						  | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol true isa (Sign.read_typ thy ty) thy) (thy,constmaps)
+						  | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol true isa (Syntax.read_typ_global thy ty) thy) (thy,constmaps)
 				      end)
 
 fun import_thy s =

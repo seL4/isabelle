@@ -60,7 +60,7 @@ fun no_args thy = length o fst o strip_type o Sign.the_const_type thy;
 
 fun read_bare_const thy raw_t =
   let
-    val t = Sign.read_term thy raw_t;
+    val t = Syntax.read_term_global thy raw_t;
   in case try dest_Const t
    of SOME c_ty => c_ty
     | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
