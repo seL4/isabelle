@@ -1743,20 +1743,26 @@ fun pretty_ml_string c_char c_nibbles c_nil c_cons target =
         | NONE => error "Illegal ml_string expression";
   in (1, pretty) end;
 
-val pretty_imperative_monad_bind =
+fun pretty_imperative_monad_bind bind' =
   let
-    fun pretty (pr : CodeName.var_ctxt -> fixity -> iterm -> Pretty.T)
-          vars fxy [(t1, _), ((v, ty) `|-> t2, _)] =
-            pr vars fxy (ICase (((t1, ty), ([(IVar v, t2)])), IVar ""))
-      | pretty pr vars fxy [(t1, _), (t2, ty2)] =
+    fun dest_abs ((v, ty) `|-> t, _) = ((v, ty), t)
+      | dest_abs (t, ty) =
           let
-            (*this code suffers from the lack of a proper concept for bindings*)
-            val vs = CodeThingol.fold_varnames cons t2 [];
+            val vs = CodeThingol.fold_varnames cons t [];
             val v = Name.variant vs "x";
-            val vars' = CodeName.intro_vars [v] vars;
-            val var = IVar v;
-            val ty = (hd o fst o CodeThingol.unfold_fun) ty2;
-          in pr vars' fxy (ICase (((t1, ty), ([(var, t2 `$ var)])), IVar "")) end;
+            val ty' = (hd o fst o CodeThingol.unfold_fun) ty;
+          in ((v, ty'), t `$ IVar v) end;
+    fun tr_bind [(t1, _), (t2, ty2)] =
+      let
+        val ((v, ty), t) = dest_abs (t2, ty2);
+      in ICase (((t1, ty), [(IVar v, tr_bind' t)]), IVar "") end
+    and tr_bind' (t as _ `$ _) = (case CodeThingol.unfold_app t
+         of (IConst (c, (_, ty1 :: ty2 :: _)), [x1, x2]) => if c = bind'
+              then tr_bind [(x1, ty1), (x2, ty2)]
+              else t
+          | _ => t)
+      | tr_bind' t = t;
+    fun pretty pr vars fxy ts = pr vars fxy (tr_bind ts);
   in (2, pretty) end;
 
 end; (*local*)
@@ -2015,12 +2021,8 @@ fun add_pretty_ml_string target charr nibbles nill cons str thy =
   end;
 
 fun add_pretty_imperative_monad_bind target bind thy =
-  let
-    val pr = pretty_imperative_monad_bind
-  in
-    thy
-    |> add_syntax_const target bind (SOME pr)
-  end;
+  add_syntax_const target bind (SOME (pretty_imperative_monad_bind
+    (CodeName.const thy bind))) thy;
 
 val add_haskell_monad = gen_add_haskell_monad CodeUnit.read_const;
 
