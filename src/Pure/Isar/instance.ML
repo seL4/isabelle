@@ -17,11 +17,11 @@ end;
 structure Instance : INSTANCE =
 struct
 
-structure Instantiation = ProofDataFun(
-struct
+structure Instantiation = ProofDataFun
+(
   type T = ((string * (string * sort) list) * sort) list * ((string * typ) * string) list;
   fun init _ = ([], []);
-end);
+);
 
 local
 

@@ -82,12 +82,12 @@ fun app (Abs ((1, f), xs)) x = f (x :: xs)
 (* global functions store *)
 
 structure Nbe_Functions = CodeDataFun
-(struct
+(
   type T = Univ Symtab.table;
   val empty = Symtab.empty;
   fun merge _ = Symtab.merge (K true);
   fun purge _ _ _ = Symtab.empty;
-end);
+);
 
 (* sandbox communication *)
 

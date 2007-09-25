@@ -328,7 +328,7 @@ fun raw_eval_term thy f =
 end; (*local*)
 
 structure Funcgr = CodeDataFun
-(struct
+(
   type T = T;
   val empty = Graph.empty;
   fun merge _ _ = Graph.empty;
@@ -336,7 +336,7 @@ structure Funcgr = CodeDataFun
     | purge _ (SOME cs) funcgr =
         Graph.del_nodes ((Graph.all_preds funcgr 
           o filter (can (Graph.get_node funcgr))) cs) funcgr;
-end);
+);
 
 fun make thy =
   Funcgr.change thy o ensure_consts thy (Code.coregular_algebra thy);

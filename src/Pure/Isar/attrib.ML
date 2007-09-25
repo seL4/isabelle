@@ -201,13 +201,13 @@ fun add_del_args add del x = syntax
 (* naming *)
 
 structure Configs = TheoryDataFun
-(struct
+(
   type T = Config.value Config.T Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
   fun merge _ = Symtab.merge (K true);
-end);
+);
 
 fun print_configs ctxt =
   let

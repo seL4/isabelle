@@ -147,7 +147,7 @@ val is_internal = has_internal o Thm.get_tags;
 (** dataype theorems **)
 
 structure TheoremsData = TheoryDataFun
-(struct
+(
   type T =
    {theorems: thm list NameSpace.table,
     index: FactIndex.T} ref;
@@ -159,7 +159,7 @@ structure TheoremsData = TheoryDataFun
   fun copy (ref x) = ref x;
   val extend = mk_empty;
   fun merge _ = mk_empty;
-end);
+);
 
 val get_theorems_ref = TheoremsData.get;
 val get_theorems = ! o get_theorems_ref;
