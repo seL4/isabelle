@@ -2,10 +2,10 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Built-in integers for ML *}
+header {* Built-in integers for code generation *}
 
 theory ML_Int
-imports List
+imports PreList
 begin
 
 subsection {* Datatype of built-in integers *}
@@ -46,13 +46,15 @@ subsection {* Built-in integers as datatype on numerals *}
 instance ml_int :: number
   "number_of \<equiv> ml_int_of_int" ..
 
-lemmas [code inline] = number_of_ml_int_def [symmetric]
-
 code_datatype "number_of \<Colon> int \<Rightarrow> ml_int"
 
 lemma number_of_ml_int_id [simp]:
   "number_of (int_of_ml_int k) = k"
   unfolding number_of_ml_int_def by simp
+
+lemma number_of_ml_int_shift:
+  "number_of k = ml_int_of_int (number_of k)"
+  by (simp add: number_of_is_id number_of_ml_int_def)
 
 
 subsection {* Basic arithmetic *}
@@ -130,6 +132,13 @@ lemma one_ml_int_code [code inline, code func]:
 instance ml_int :: abs
   "\<bar>k\<bar> \<equiv> if k < 0 then -k else k" ..
 
+lemma ml_int_of_int [code func]:
+  "ml_int_of_int k = (if k = 0 then 0
+    else if k = -1 then -1
+    else let (l, m) = divAlg (k, 2) in 2 * ml_int_of_int l +
+      (if m = 0 then 0 else 1))"
+  by (simp add: number_of_ml_int_shift Let_def split_def divAlg_mod_div) arith
+
 
 subsection {* Conversion to and from @{typ nat} *}
 
@@ -182,36 +191,60 @@ subsection {* Code serialization *}
 
 code_type ml_int
   (SML "int")
+  (OCaml "int")
+  (Haskell "Integer")
+
+code_instance ml_int :: eq
+  (Haskell -)
 
 setup {*
-  CodeTarget.add_pretty_numeral "SML" false
+  fold (fn target => CodeTarget.add_pretty_numeral target true
     @{const_name number_ml_int_inst.number_of_ml_int}
     @{const_name Numeral.B0} @{const_name Numeral.B1}
     @{const_name Numeral.Pls} @{const_name Numeral.Min}
     @{const_name Numeral.Bit}
+  ) ["SML", "OCaml", "Haskell"]
 *}
 
 code_reserved SML int
+code_reserved OCaml int
 
 code_const "op + \<Colon> ml_int \<Rightarrow> ml_int \<Rightarrow> ml_int"
   (SML "Int.+ ((_), (_))")
+  (OCaml "Pervasives.+")
+  (Haskell infixl 6 "+")
 
 code_const "uminus \<Colon> ml_int \<Rightarrow> ml_int"
   (SML "Int.~")
+  (OCaml "Pervasives.~-")
+  (Haskell "negate")
 
 code_const "op - \<Colon> ml_int \<Rightarrow> ml_int \<Rightarrow> ml_int"
   (SML "Int.- ((_), (_))")
+  (OCaml "Pervasives.-")
+  (Haskell infixl 6 "-")
 
 code_const "op * \<Colon> ml_int \<Rightarrow> ml_int \<Rightarrow> ml_int"
   (SML "Int.* ((_), (_))")
+  (OCaml "Pervasives.*")
+  (Haskell infixl 7 "*")
 
 code_const "op = \<Colon> ml_int \<Rightarrow> ml_int \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
+  (OCaml "!((_ : Pervasives.int) = _)")
+  (Haskell infixl 4 "==")
 
 code_const "op \<le> \<Colon> ml_int \<Rightarrow> ml_int \<Rightarrow> bool"
   (SML "Int.<= ((_), (_))")
+  (OCaml "!((_ : Pervasives.int) <= _)")
+  (Haskell infix 4 "<=")
 
 code_const "op < \<Colon> ml_int \<Rightarrow> ml_int \<Rightarrow> bool"
   (SML "Int.< ((_), (_))")
+  (OCaml "!((_ : Pervasives.int) < _)")
+  (Haskell infix 4 "<")
+
+code_reserved SML Int
+code_reserved OCaml Pervasives
 
 end
