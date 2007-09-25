@@ -9,7 +9,7 @@ Could <*> be generalized to a general summation (Sigma)?
 header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
-imports Nat Sum_Type
+imports Nat
 begin
 
 typedef (Node)
@@ -537,52 +537,7 @@ hide (open) const Push Node Atom Leaf Numb Lim Split Case
 
 section {* Datatypes *}
 
-subsection {* Representing primitive types *}
-
-rep_datatype bool
-  distinct True_not_False False_not_True
-  induction bool_induct
-
-declare case_split [cases type: bool]
-  -- "prefer plain propositional version"
-
-lemma size_bool [code func]:
-  "size (b\<Colon>bool) = 0" by (cases b) auto
-
-rep_datatype unit
-  induction unit_induct
-
-rep_datatype prod
-  inject Pair_eq
-  induction prod_induct
-
-declare prod.size [noatp]
-
-lemmas prod_caseI = prod.cases [THEN iffD2, standard]
-
-lemma prod_caseI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> prod_case c p"
-  by auto
-
-lemma prod_caseI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> prod_case c p x"
-  by (auto simp: split_tupled_all)
-
-lemma prod_caseE: "prod_case c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
-  by (induct p) auto
-
-lemma prod_caseE': "prod_case c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
-  by (induct p) auto
-
-lemma prod_case_unfold: "prod_case = (%c p. c (fst p) (snd p))"
-  by (simp add: expand_fun_eq)
-
-declare prod_caseI2' [intro!] prod_caseI2 [intro!] prod_caseI [intro!]
-declare prod_caseE' [elim!] prod_caseE [elim!]
-
-lemma prod_case_split [code post]:
-  "prod_case = split"
-  by (auto simp add: expand_fun_eq)
-
-lemmas [code inline] = prod_case_split [symmetric]
+subsection {* Representing sums *}
 
 rep_datatype sum
   distinct Inl_not_Inr Inr_not_Inl
@@ -635,49 +590,6 @@ lemma Sumr_inject: "Sumr f = Sumr g ==> f = g"
   by (unfold Sumr_def) (erule sum_case_inject)
 
 hide (open) const Suml Sumr
-
-
-subsection {* Further cases/induct rules for tuples *}
-
-lemma prod_cases3 [cases type]:
-  obtains (fields) a b c where "y = (a, b, c)"
-  by (cases y, case_tac b) blast
-
-lemma prod_induct3 [case_names fields, induct type]:
-    "(!!a b c. P (a, b, c)) ==> P x"
-  by (cases x) blast
-
-lemma prod_cases4 [cases type]:
-  obtains (fields) a b c d where "y = (a, b, c, d)"
-  by (cases y, case_tac c) blast
-
-lemma prod_induct4 [case_names fields, induct type]:
-    "(!!a b c d. P (a, b, c, d)) ==> P x"
-  by (cases x) blast
-
-lemma prod_cases5 [cases type]:
-  obtains (fields) a b c d e where "y = (a, b, c, d, e)"
-  by (cases y, case_tac d) blast
-
-lemma prod_induct5 [case_names fields, induct type]:
-    "(!!a b c d e. P (a, b, c, d, e)) ==> P x"
-  by (cases x) blast
-
-lemma prod_cases6 [cases type]:
-  obtains (fields) a b c d e f where "y = (a, b, c, d, e, f)"
-  by (cases y, case_tac e) blast
-
-lemma prod_induct6 [case_names fields, induct type]:
-    "(!!a b c d e f. P (a, b, c, d, e, f)) ==> P x"
-  by (cases x) blast
-
-lemma prod_cases7 [cases type]:
-  obtains (fields) a b c d e f g where "y = (a, b, c, d, e, f, g)"
-  by (cases y, case_tac f) blast
-
-lemma prod_induct7 [case_names fields, induct type]:
-    "(!!a b c d e f g. P (a, b, c, d, e, f, g)) ==> P x"
-  by (cases x) blast
 
 
 subsection {* The option datatype *}

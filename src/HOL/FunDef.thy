@@ -6,7 +6,7 @@
 header {* General recursive function definitions *}
 
 theory FunDef
-imports Datatype Accessible_Part
+imports Accessible_Part
 uses
   ("Tools/function_package/fundef_lib.ML")
   ("Tools/function_package/fundef_common.ML")
@@ -103,7 +103,7 @@ use "Tools/function_package/pattern_split.ML"
 use "Tools/function_package/auto_term.ML"
 use "Tools/function_package/fundef_package.ML"
 
-setup FundefPackage.setup
+setup {* FundefPackage.setup *}
 
 lemma let_cong [fundef_cong]:
   "M = N \<Longrightarrow> (\<And>x. x = N \<Longrightarrow> f x = g x) \<Longrightarrow> Let M f = Let N g"

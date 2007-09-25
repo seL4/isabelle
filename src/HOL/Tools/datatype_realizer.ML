@@ -8,8 +8,8 @@ Realizers for induction and case analysis
 
 signature DATATYPE_REALIZER =
 sig
-  val add_dt_realizers: (string * sort) list ->
-    DatatypeAux.datatype_info list -> theory -> theory
+  val add_dt_realizers: string list -> theory -> theory
+  val setup: theory -> theory
 end;
 
 structure DatatypeRealizer : DATATYPE_REALIZER =
@@ -40,7 +40,7 @@ fun tname_of (Type (s, _)) = s
 
 fun mk_realizes T = Const ("realizes", T --> HOLogic.boolT --> HOLogic.boolT);
 
-fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_info) (is, thy) =
+fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_info) is thy =
   let
     val recTs = get_rec_types descr sorts;
     val pnames = if length descr = 1 then ["P"]
@@ -160,7 +160,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
 
-fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, ...} : datatype_info, thy) =
+fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, ...} : datatype_info) thy =
   let
     val cert = cterm_of thy;
     val rT = TFree ("'P", HOLogic.typeS);
@@ -216,11 +216,18 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
      (exh_name, ([], Extraction.nullt, prf_of exhaustion))] thy'
   end;
 
+fun add_dt_realizers names thy =
+  if !proofs < 2 then thy
+  else let
+    val _ = message "Adding realizers for induction and case analysis ..."
+    val infos = map (DatatypePackage.the_datatype thy) names;
+    val info :: _ = infos;
+  in
+    thy
+    |> fold_rev (make_ind (#sorts info) info) (subsets 0 (length (#descr info) - 1))
+    |> fold_rev (make_casedists (#sorts info)) infos
+  end;
 
-fun add_dt_realizers sorts infos thy = if !proofs < 2 then thy else
-  (message "Adding realizers for induction and case analysis ..."; thy
-   |> curry (Library.foldr (make_ind sorts (hd infos)))
-     (subsets 0 (length (#descr (hd infos)) - 1))
-   |> curry (Library.foldr (make_casedists sorts)) infos);
+val setup = DatatypePackage.add_interpretator add_dt_realizers;
 
 end;

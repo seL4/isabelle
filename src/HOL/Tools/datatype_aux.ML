@@ -10,8 +10,6 @@ sig
   val quiet_mode : bool ref
   val message : string -> unit
   
-  val foldl1 : ('a * 'a -> 'a) -> 'a list -> 'a
-
   val add_path : bool -> string -> theory -> theory
   val parent_path : bool -> theory -> theory
 
@@ -71,9 +69,6 @@ struct
 
 val quiet_mode = ref false;
 fun message s = if !quiet_mode then () else writeln s;
-
-(* FIXME: move to library ? *)
-fun foldl1 f (x::xs) = Library.foldl f (x, xs);
 
 fun add_path flat_names s = if flat_names then I else Theory.add_path s;
 fun parent_path flat_names = if flat_names then I else Theory.parent_path;
@@ -184,6 +179,7 @@ type descr = (int * (string * dtyp list * (string * dtyp list) list)) list;
 
 type datatype_info =
   {index : int,
+   head_len : int,
    descr : descr,
    sorts : (string * sort) list,
    rec_names : string list,

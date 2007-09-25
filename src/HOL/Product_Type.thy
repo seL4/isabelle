@@ -7,9 +7,23 @@
 header {* Cartesian products *}
 
 theory Product_Type
-imports Typedef Fun
-uses ("Tools/split_rule.ML")
+imports Inductive
+uses
+  ("Tools/split_rule.ML")
+  ("Tools/inductive_set_package.ML")
+  ("Tools/inductive_realizer.ML")
+  ("Tools/datatype_realizer.ML")
 begin
+
+subsection {* @{typ bool} is a datatype *}
+
+rep_datatype bool
+  distinct True_not_False False_not_True
+  induction bool_induct
+
+declare case_split [cases type: bool]
+  -- "prefer plain propositional version"
+
 
 subsection {* Unit *}
 
@@ -18,9 +32,10 @@ proof
   show "True : ?unit" ..
 qed
 
-constdefs
+definition
   Unity :: unit    ("'(')")
-  "() == Abs_unit True"
+where
+  "() = Abs_unit True"
 
 lemma unit_eq [noatp]: "u = ()"
   by (induct u) (simp add: unit_def Unity_def)
@@ -32,22 +47,25 @@ text {*
 
 ML_setup {*
   val unit_eq_proc =
-    let val unit_meta_eq = mk_meta_eq (thm "unit_eq") in
-      Simplifier.simproc (the_context ()) "unit_eq" ["x::unit"]
+    let val unit_meta_eq = mk_meta_eq @{thm unit_eq} in
+      Simplifier.simproc @{theory} "unit_eq" ["x::unit"]
       (fn _ => fn _ => fn t => if HOLogic.is_unit t then NONE else SOME unit_meta_eq)
     end;
 
   Addsimprocs [unit_eq_proc];
 *}
 
+lemma unit_induct [noatp,induct type: unit]: "P () ==> P x"
+  by simp
+
+rep_datatype unit
+  induction unit_induct
+
 lemma unit_all_eq1: "(!!x::unit. PROP P x) == PROP P ()"
   by simp
 
 lemma unit_all_eq2: "(!!x::unit. PROP P) == PROP P"
   by (rule triv_forall_equality)
-
-lemma unit_induct [noatp,induct type: unit]: "P () ==> P x"
-  by simp
 
 text {*
   This rewrite counters the effect of @{text unit_eq_proc} on @{term
@@ -83,7 +101,6 @@ syntax (HTML output)
   "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 
 local
-
 
 subsubsection {* Definitions *}
 
@@ -342,6 +359,10 @@ lemma curry_conv [simp, code func]: "curry f a b = f (a,b)"
 
 lemma prod_induct [induct type: *]: "!!x. (!!a b. P (a, b)) ==> P x"
   by fast
+
+rep_datatype prod
+  inject Pair_eq
+  induction prod_induct
 
 lemma split_paired_Ex [simp]: "(EX x. P x) = (EX a b. P (a, b))"
   by fast
@@ -765,6 +786,77 @@ use "Tools/split_rule.ML"
 setup SplitRule.setup
 
 
+
+lemmas prod_caseI = prod.cases [THEN iffD2, standard]
+
+lemma prod_caseI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> prod_case c p"
+  by auto
+
+lemma prod_caseI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> prod_case c p x"
+  by (auto simp: split_tupled_all)
+
+lemma prod_caseE: "prod_case c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
+  by (induct p) auto
+
+lemma prod_caseE': "prod_case c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
+  by (induct p) auto
+
+lemma prod_case_unfold: "prod_case = (%c p. c (fst p) (snd p))"
+  by (simp add: expand_fun_eq)
+
+declare prod_caseI2' [intro!] prod_caseI2 [intro!] prod_caseI [intro!]
+declare prod_caseE' [elim!] prod_caseE [elim!]
+
+lemma prod_case_split [code post]:
+  "prod_case = split"
+  by (auto simp add: expand_fun_eq)
+
+lemmas [code inline] = prod_case_split [symmetric]
+
+
+subsection {* Further cases/induct rules for tuples *}
+
+lemma prod_cases3 [cases type]:
+  obtains (fields) a b c where "y = (a, b, c)"
+  by (cases y, case_tac b) blast
+
+lemma prod_induct3 [case_names fields, induct type]:
+    "(!!a b c. P (a, b, c)) ==> P x"
+  by (cases x) blast
+
+lemma prod_cases4 [cases type]:
+  obtains (fields) a b c d where "y = (a, b, c, d)"
+  by (cases y, case_tac c) blast
+
+lemma prod_induct4 [case_names fields, induct type]:
+    "(!!a b c d. P (a, b, c, d)) ==> P x"
+  by (cases x) blast
+
+lemma prod_cases5 [cases type]:
+  obtains (fields) a b c d e where "y = (a, b, c, d, e)"
+  by (cases y, case_tac d) blast
+
+lemma prod_induct5 [case_names fields, induct type]:
+    "(!!a b c d e. P (a, b, c, d, e)) ==> P x"
+  by (cases x) blast
+
+lemma prod_cases6 [cases type]:
+  obtains (fields) a b c d e f where "y = (a, b, c, d, e, f)"
+  by (cases y, case_tac e) blast
+
+lemma prod_induct6 [case_names fields, induct type]:
+    "(!!a b c d e f. P (a, b, c, d, e, f)) ==> P x"
+  by (cases x) blast
+
+lemma prod_cases7 [cases type]:
+  obtains (fields) a b c d e f g where "y = (a, b, c, d, e, f, g)"
+  by (cases y, case_tac f) blast
+
+lemma prod_induct7 [case_names fields, induct type]:
+    "(!!a b c d e f g. P (a, b, c, d, e, f, g)) ==> P x"
+  by (cases x) blast
+
+
 subsection {* Further lemmas *}
 
 lemma
@@ -914,6 +1006,9 @@ in
 end
 *}
 
+
+subsection {* Legacy bindings *}
+
 ML {*
 val Collect_split = thm "Collect_split";
 val Compl_Times_UNIV1 = thm "Compl_Times_UNIV1";
@@ -1010,5 +1105,17 @@ val unit_all_eq2 = thm "unit_all_eq2";
 val unit_eq = thm "unit_eq";
 val unit_induct = thm "unit_induct";
 *}
+
+
+subsection {* Further inductive packages *}
+
+use "Tools/inductive_realizer.ML"
+setup InductiveRealizer.setup
+
+use "Tools/inductive_set_package.ML"
+setup InductiveSetPackage.setup
+
+use "Tools/datatype_realizer.ML"
+setup DatatypeRealizer.setup
 
 end

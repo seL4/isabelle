@@ -118,7 +118,7 @@ apply simp
 apply (rule exec_all_trans)
 apply (simp only: append_Nil)
 apply (drule_tac x="[]" in spec)
-apply (simp only: list.simps)
+apply (simp only: list.simps list.size)
 apply blast
 apply (rule exec_instr_in_exec_all)
 apply auto

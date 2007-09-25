@@ -16,6 +16,7 @@ uses
   ("arith_data.ML")
   "~~/src/Provers/Arith/fast_lin_arith.ML"
   ("Tools/lin_arith.ML")
+  ("Tools/function_package/size.ML")
 begin
 
 subsection {* Type @{text ind} *}
@@ -111,8 +112,12 @@ lemma nat_not_singleton: "(\<forall>x. x = (0::nat)) = False"
 
 text {* size of a datatype value *}
 
+use "Tools/function_package/size.ML"
+
 class size = type +
   fixes size :: "'a \<Rightarrow> nat"
+
+setup Size.setup
 
 rep_datatype nat
   distinct  Suc_not_Zero Zero_not_Suc
@@ -1467,10 +1472,16 @@ instance nat :: distrib_lattice
 by intro_classes (auto simp add: inf_nat_def sup_nat_def)
 
 
-subsection {* Size function *}
+subsection {* Size function declarations *}
 
 lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
-by (induct n) simp_all
+  by (induct n) simp_all
+
+lemma size_bool [code func]:
+  "size (b\<Colon>bool) = 0" by (cases b) auto
+
+declare "*.size" [noatp]
+
 
 subsection {* legacy bindings *}
 

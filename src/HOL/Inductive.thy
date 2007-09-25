@@ -6,18 +6,17 @@
 header {* Support for inductive sets and types *}
 
 theory Inductive 
-imports FixedPoint Product_Type Sum_Type
+imports FixedPoint Sum_Type
 uses
   ("Tools/inductive_package.ML")
-  ("Tools/inductive_set_package.ML")
-  ("Tools/inductive_realizer.ML")
+  (*("Tools/inductive_set_package.ML")
+  ("Tools/inductive_realizer.ML")*)
   "Tools/dseq.ML"
   ("Tools/inductive_codegen.ML")
   ("Tools/datatype_aux.ML")
   ("Tools/datatype_prop.ML")
   ("Tools/datatype_rep_proofs.ML")
   ("Tools/datatype_abs_proofs.ML")
-  ("Tools/datatype_realizer.ML")
   ("Tools/datatype_case.ML")
   ("Tools/datatype_package.ML")
   ("Tools/datatype_codegen.ML")
@@ -108,24 +107,14 @@ use "Tools/datatype_prop.ML"
 use "Tools/datatype_rep_proofs.ML"
 use "Tools/datatype_abs_proofs.ML"
 use "Tools/datatype_case.ML"
-use "Tools/datatype_realizer.ML"
-
 use "Tools/datatype_package.ML"
 setup DatatypePackage.setup
-
+use "Tools/primrec_package.ML"
 use "Tools/datatype_codegen.ML"
 setup DatatypeCodegen.setup
 
-use "Tools/inductive_realizer.ML"
-setup InductiveRealizer.setup
-
 use "Tools/inductive_codegen.ML"
 setup InductiveCodegen.setup
-
-use "Tools/primrec_package.ML"
-
-use "Tools/inductive_set_package.ML"
-setup InductiveSetPackage.setup
 
 text{* Lambda-abstractions with pattern matching: *}
 

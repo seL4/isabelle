@@ -25,4 +25,3 @@ setup FundefDatatype.setup
 setup ResAxioms.setup
 
 end
-

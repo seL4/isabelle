@@ -10,8 +10,7 @@ injectivity / distinctness of constructors and induction)
  - characteristic equations for primrec combinators
  - characteristic equations for case combinators
  - equations for splitting "P (case ...)" expressions
- - datatype size function
- - "nchotomy" and "case_cong" theorems for TFL
+  - "nchotomy" and "case_cong" theorems for TFL
 
 *)
 
@@ -31,9 +30,6 @@ sig
     DatatypeAux.descr list -> (string * sort) list ->
       thm list list -> thm list list -> thm list -> thm list list -> theory ->
         (thm * thm) list * theory
-  val prove_size_thms : bool -> string list ->
-    DatatypeAux.descr list -> (string * sort) list ->
-      string list -> thm list -> theory -> thm list * theory
   val prove_nchotomys : string list -> DatatypeAux.descr list ->
     (string * sort) list -> thm list -> theory -> thm list * theory
   val prove_weak_case_congs : string list -> DatatypeAux.descr list ->
@@ -379,83 +375,6 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
     |> store_thms "split" new_type_names split_thms
     ||>> store_thms "split_asm" new_type_names split_asm_thms
     |-> (fn (thms1, thms2) => pair (thms1 ~~ thms2))
-  end;
-
-(******************************* size functions *******************************)
-
-fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_thms thy =
-  if exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
-    is_rec_type dt andalso not (null (fst (strip_dtyp dt)))) cargs) constrs)
-      (List.concat descr)
-  then
-    ([], thy)
-  else
-  let
-    val _ = message "Proving equations for size function ...";
-
-    val big_name = space_implode "_" new_type_names;
-    val thy1 = add_path flat_names big_name thy;
-
-    val descr' = flat descr;
-    val recTs = get_rec_types descr' sorts;
-
-    val Const (size_name, _) = HOLogic.size_const dummyT;
-    val size_names = replicate (length (hd descr)) size_name @
-      map (Sign.full_name thy1) (DatatypeProp.indexify_names
-        (map (fn T => name_of_typ T ^ "_size") (Library.drop (length (hd descr), recTs))));
-    val def_names = map (fn s => s ^ "_def") (DatatypeProp.indexify_names
-      (map (fn T => name_of_typ T ^ "_size") recTs));
-
-    fun plus (t1, t2) =
-      Const ("HOL.plus_class.plus", HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
-
-    fun make_sizefun (_, cargs) =
-      let
-        val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val k = length (filter is_rec_type cargs);
-        val t = if k = 0 then HOLogic.zero else
-          foldl1 plus (map Bound (k - 1 downto 0) @ [HOLogic.Suc_zero])
-      in
-        foldr (fn (T, t') => Abs ("x", T, t')) t (Ts @ replicate k HOLogic.natT)
-      end;
-
-    val fs = maps (fn (_, (_, _, constrs)) => map make_sizefun constrs) descr';
-    val fTs = map fastype_of fs;
-
-    fun instance_size_class tyco thy =
-      let
-        val n = Sign.arity_number thy tyco;
-      in
-        thy
-        |> Class.prove_instance (Class.intro_classes_tac [])
-            [(tyco, replicate n HOLogic.typeS, [HOLogic.class_size])] []
-        |> snd
-      end
-
-    val (size_def_thms, thy') =
-      thy1
-      |> Theory.add_consts_i (map (fn (s, T) =>
-           (Sign.base_name s, T --> HOLogic.natT, NoSyn))
-           (Library.drop (length (hd descr), size_names ~~ recTs)))
-      |> fold (fn (_, (name, _, _)) => instance_size_class name) descr'
-      |> PureThy.add_defs_i true (map (Thm.no_attributes o (fn (((s, T), def_name), rec_name) =>
-           (def_name, Logic.mk_equals (Const (s, T --> HOLogic.natT),
-            list_comb (Const (rec_name, fTs @ [T] ---> HOLogic.natT), fs)))))
-            (size_names ~~ recTs ~~ def_names ~~ reccomb_names))
-      ||> parent_path flat_names;
-
-    val rewrites = size_def_thms @ map mk_meta_eq primrec_thms;
-
-    val size_thms = map (fn t => Goal.prove_global thy' [] [] t
-      (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1]))
-        (DatatypeProp.make_size descr sorts thy')
-
-  in
-    thy'
-    |> Theory.add_path big_name
-    |> PureThy.add_thmss [(("size", size_thms), [])]
-    ||> Theory.parent_path
-    |-> (fn thmss => pair (flat thmss))
   end;
 
 fun prove_weak_case_congs new_type_names descr sorts thy =

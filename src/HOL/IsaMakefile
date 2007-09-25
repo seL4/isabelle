@@ -123,7 +123,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Tools/function_package/inductive_wrap.ML				\
   Tools/function_package/lexicographic_order.ML				\
   Tools/function_package/mutual.ML					\
-  Tools/function_package/pattern_split.ML Tools/inductive_codegen.ML	\
+  Tools/function_package/pattern_split.ML	\
+  Tools/function_package/size.ML Tools/inductive_codegen.ML	\
   Tools/inductive_package.ML Tools/inductive_realizer.ML		\
   Tools/inductive_set_package.ML Tools/lin_arith.ML Tools/meson.ML	\
   Tools/metis_tools.ML Tools/numeral.ML Tools/numeral_syntax.ML		\

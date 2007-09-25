@@ -5,7 +5,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Map 
+imports Map
 begin
 
 text {*

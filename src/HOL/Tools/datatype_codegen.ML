@@ -447,35 +447,6 @@ fun get_spec thy (dtco, true) =
   | get_spec thy (tyco, false) =
       TypecopyPackage.get_spec thy tyco;
 
-fun codetypes_dependency thy =
-  let
-    val names =
-      map (rpair true) (Symtab.keys (DatatypePackage.get_datatypes thy))
-        @ map (rpair false) (TypecopyPackage.get_typecopies thy);
-    fun add_node (name, is_dt) =
-      let
-        fun add_tycos (Type (tyco, tys)) = insert (op =) tyco #> fold add_tycos tys
-          | add_tycos _ = I;
-        val tys = if is_dt then
-            (maps snd o snd o the o DatatypePackage.get_datatype_spec thy) name
-          else
-            [(#typ o the o TypecopyPackage.get_typecopy_info thy) name]
-        val deps = (filter (AList.defined (op =) names) o maps (fn ty =>
-          add_tycos ty [])) tys;
-      in
-        Graph.default_node (name, ())
-        #> fold (fn name' =>
-             Graph.default_node (name', ())
-             #> Graph.add_edge (name', name)
-           ) deps
-      end
-  in
-    Graph.empty
-    |> fold add_node names
-    |> Graph.strong_conn
-    |> map (AList.make (the o AList.lookup (op =) names))
-  end;
-
 local
   fun get_eq_thms thy tyco = case DatatypePackage.get_datatype thy tyco
    of SOME _ => get_eq_datatype thy tyco
@@ -515,7 +486,6 @@ fun add_codetypes_hook hook thy =
       hook ([(tyco, (false, TypecopyPackage.get_spec thy tyco))]) thy;
   in
     thy
-    |> fold hook ((map o map) (add_spec thy) (codetypes_dependency thy))
     |> DatatypePackage.add_interpretator datatype_hook
     |> TypecopyPackage.add_interpretator typecopy_hook
   end;
