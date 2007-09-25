@@ -19,8 +19,7 @@ sig
     -> theory -> (string * info) * theory
   val get_typecopies: theory -> string list
   val get_typecopy_info: theory -> string -> info option
-  type interpretator = string * info -> theory -> theory
-  val add_interpretator: interpretator -> theory -> theory
+  val interpretation: (string * info -> theory -> theory) -> theory -> theory
   val get_spec: theory -> string -> (string * sort) list * (string * typ list) list
   val get_eq: theory -> string -> thm
   val print_typecopies: theory -> unit
@@ -40,8 +39,6 @@ type info = {
   proj: string * typ,
   proj_def: thm
 };
-
-structure TypecopyInterpretator = TheoryInterpretatorFun(struct type T = string; val eq = op = end);
 
 structure TypecopyData = TheoryDataFun
 (
@@ -71,12 +68,12 @@ val get_typecopies = Symtab.keys o TypecopyData.get;
 val get_typecopy_info = Symtab.lookup o TypecopyData.get;
 
 
-(* interpretator management *)
+(* interpretation *)
 
-type interpretator = string * info -> theory -> theory;
+structure TypecopyInterpretation = InterpretationFun(type T = string val eq = op =);
 
-fun add_interpretator interp = TypecopyInterpretator.add_interpretator
-  (fold (fn tyco => fn thy => interp (tyco, (the o get_typecopy_info thy) tyco) thy));
+fun interpretation interp = TypecopyInterpretation.interpretation
+  (fn tyco => fn thy => interp (tyco, (the o get_typecopy_info thy) tyco) thy);
 
 
 (* add a type copy *)
@@ -108,7 +105,7 @@ fun gen_add_typecopy prep_typ (raw_tyco, raw_vs) raw_ty constr_proj thy =
         in
           thy
           |> (TypecopyData.map o Symtab.update_new) (tyco, info)
-          |> TypecopyInterpretator.add_those [tyco]
+          |> TypecopyInterpretation.data tyco
           |> pair (tyco, info)
         end
   in
@@ -137,10 +134,10 @@ fun get_spec thy tyco =
   in (vs, [(constr, [typ])]) end;
 
 
-(* interpretator for projection function code *)
+(* interpretation for projection function code *)
 
-fun add_project (_ , {proj_def, ...} : info) = Code.add_default_func proj_def;
+fun add_project (_, {proj_def, ...} : info) = Code.add_default_func proj_def;
 
-val setup = TypecopyInterpretator.init #> add_interpretator add_project;
+val setup = TypecopyInterpretation.init #> interpretation add_project;
 
 end;

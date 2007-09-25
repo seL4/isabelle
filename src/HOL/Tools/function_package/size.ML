@@ -204,6 +204,6 @@ fun add_size_thms (name :: _) thy =
 
 fun size_thms thy = the o Symtab.lookup (SizeData.get thy);
 
-val setup = DatatypePackage.add_interpretator add_size_thms;
+val setup = DatatypePackage.interpretation add_size_thms;
 
 end;

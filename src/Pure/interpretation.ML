@@ -5,78 +5,47 @@
 Generic interpretation of theory data.
 *)
 
-signature THEORY_INTERPRETATOR =
+signature INTERPRETATION =
 sig
   type T
-  type interpretator = T list -> theory -> theory
-  val add_those: T list -> theory -> theory
-  val all_those: theory -> T list
-  val add_interpretator: interpretator -> theory -> theory
+  val result: theory -> T list
+  val interpretation: (T -> theory -> theory) -> theory -> theory
+  val data: T -> theory -> theory
   val init: theory -> theory
 end;
 
-signature THEORY_INTERPRETATOR_KEY =
-sig
-  type T
-  val eq: T * T -> bool
-end;
-
-functor TheoryInterpretatorFun(Key: THEORY_INTERPRETATOR_KEY) : THEORY_INTERPRETATOR =
+functor InterpretationFun(type T val eq: T * T -> bool): INTERPRETATION =
 struct
 
-open Key;
+type T = T;
 
-type interpretator = T list -> theory -> theory;
-
-fun apply ips x = fold_rev (fn (_, f) => f x) ips;
-
-structure InterpretatorData = TheoryDataFun
+structure Interp = TheoryDataFun
 (
-  type T = ((serial * interpretator) list * T list) * (theory -> theory) list;
-  val empty = (([], []), []);
+  type T = T list * (((T -> theory -> theory) * stamp) * T list) list;
+  val empty = ([], []);
   val extend = I;
   val copy = I;
-  fun merge pp (((interpretators1, done1), upd1), ((interpretators2, done2), upd2)) =
-    let
-      fun diff (interpretators1 : (serial * interpretator) list, done1)
-        (interpretators2, done2) = let
-          val interpretators = subtract (eq_fst (op =)) interpretators1 interpretators2;
-          val undone = subtract eq done2 done1;
-        in if null interpretators then [] else [apply interpretators undone] end;
-      val interpretators = AList.merge (op =) (K true) (interpretators1, interpretators2);
-      val done = Library.merge eq (done1, done2);
-      val upd_new = diff (interpretators2, done2) (interpretators1, done1)
-        @ diff (interpretators1, done1) (interpretators2, done2);
-      val upd = upd1 @ upd2 @ upd_new;
-    in ((interpretators, done), upd) end;
+  fun merge _ ((data1, interps1), (data2, interps2)) : T =
+    (Library.merge eq (data1, data2),
+     AList.join (eq_snd (op =)) (K (Library.merge eq)) (interps1, interps2));
 );
 
+val result = #1 o Interp.get;
+
 fun consolidate thy =
-  (case #2 (InterpretatorData.get thy) of
-    [] => NONE
-  | upd => SOME (thy |> Library.apply upd |> (InterpretatorData.map o apsnd) (K [])));
+  let
+    val (data, interps) = Interp.get thy;
+    val unfinished = map (fn ((f, _), xs) => (f, subtract eq xs data)) interps;
+    val finished = map (fn (interp, _) => (interp, data)) interps;
+  in
+    if forall (null o #2) unfinished then NONE
+    else SOME (thy |> fold_rev (uncurry fold_rev) unfinished |> Interp.put (data, finished))
+  end;
+
+fun interpretation f = Interp.map (apsnd (cons ((f, stamp ()), []))) #> perhaps consolidate;
+fun data x = Interp.map (apfst (cons x)) #> perhaps consolidate;
 
 val init = Theory.at_begin consolidate;
-
-fun add_those xs thy =
-  let
-    val ((interpretators, _), _) = InterpretatorData.get thy;
-  in
-    thy
-    |> apply interpretators xs
-    |> (InterpretatorData.map o apfst o apsnd) (append xs)
-  end;
-
-val all_those = snd o fst o InterpretatorData.get;
-
-fun add_interpretator interpretator thy =
-  let
-    val ((interpretators, xs), _) = InterpretatorData.get thy;
-  in
-    thy
-    |> interpretator (rev xs)
-    |> (InterpretatorData.map o apfst o apfst) (cons (serial (), interpretator))
-  end;
 
 end;
 

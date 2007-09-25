@@ -177,7 +177,7 @@ fun add_case_cong n thy =
 
 val case_cong = fold add_case_cong
 
-val setup_case_cong = DatatypePackage.add_interpretator case_cong
+val setup_case_cong = DatatypePackage.interpretation case_cong
 
 
 

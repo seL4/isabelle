@@ -228,6 +228,6 @@ fun add_dt_realizers names thy =
     |> fold_rev (make_casedists (#sorts info)) infos
   end;
 
-val setup = DatatypePackage.add_interpretator add_dt_realizers;
+val setup = DatatypePackage.interpretation add_dt_realizers;
 
 end;

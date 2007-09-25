@@ -65,7 +65,7 @@ sig
   val datatype_of_case : theory -> string -> DatatypeAux.datatype_info option
   val get_datatype_spec : theory -> string -> ((string * sort) list * (string * typ list) list) option
   val get_datatype_constrs : theory -> string -> (string * typ) list option
-  val add_interpretator: (string list -> theory -> theory) -> theory -> theory
+  val interpretation: (string list -> theory -> theory) -> theory -> theory
   val print_datatypes : theory -> unit
   val make_case :  Proof.context -> bool -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
@@ -134,7 +134,7 @@ val datatype_of_case = Symtab.lookup o #cases o DatatypesData.get;
 
 fun get_datatype_descr thy dtco =
   get_datatype thy dtco
-  |> Option.map (fn info as { descr, index, ... } => 
+  |> Option.map (fn info as { descr, index, ... } =>
        (info, (((fn SOME (_, dtys, cos) => (dtys, cos)) o AList.lookup (op =) descr) index)));
 
 fun get_datatype_spec thy dtco =
@@ -210,7 +210,7 @@ fun prep_inst (concl, xs) = (*exception Library.UnequalLengths*)
 
 in
 
-fun gen_induct_tac inst_tac (varss, opt_rule) i state = 
+fun gen_induct_tac inst_tac (varss, opt_rule) i state =
   SUBGOAL (fn (Bi,_) =>
   let
     val (rule, rule_name) =
@@ -219,7 +219,7 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
         | NONE =>
             let val tn = find_tname (hd (map_filter I (flat varss))) Bi
                 val thy = Thm.theory_of_thm state
-            in (#induction (the_datatype thy tn), "Induction rule for type " ^ tn) 
+            in (#induction (the_datatype thy tn), "Induction rule for type " ^ tn)
             end
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
     val insts = maps prep_inst (concls ~~ varss) handle Library.UnequalLengths =>
@@ -423,7 +423,7 @@ fun strip_case ctxt = DatatypeCase.strip_case
 
 fun add_case_tr' case_names thy =
   Theory.add_advanced_trfuns ([], [],
-    map (fn case_name => 
+    map (fn case_name =>
       let val case_name' = Sign.const_syntax_name thy case_name
       in (case_name', DatatypeCase.case_tr' datatype_of_case case_name')
       end) case_names, []) thy;
@@ -519,9 +519,8 @@ fun gen_specify_consts add args thy =
 val specify_consts = gen_specify_consts Sign.add_consts_i;
 val specify_consts_authentic = gen_specify_consts Sign.add_consts_authentic;
 
-structure DatatypeInterpretator = TheoryInterpretatorFun(struct type T = string list; val eq = op = end);
-
-fun add_interpretator interpretator = DatatypeInterpretator.add_interpretator (fold interpretator);
+structure DatatypeInterpretation = InterpretationFun(type T = string list val eq = op =);
+val interpretation = DatatypeInterpretation.interpretation;
 
 fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
     case_names_induct case_names_exhausts thy =
@@ -641,7 +640,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       |> Theory.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
-      |> DatatypeInterpretator.add_those [map fst dt_infos];
+      |> DatatypeInterpretation.data (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -698,7 +697,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       |> add_cases_induct dt_infos induct
       |> Theory.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
-      |> DatatypeInterpretator.add_those [map fst dt_infos];
+      |> DatatypeInterpretation.data (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -799,7 +798,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       |> Theory.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
-      |> DatatypeInterpretator.add_those [map fst dt_infos];
+      |> DatatypeInterpretation.data (map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -902,7 +901,7 @@ val setup =
   Method.add_methods tactic_emulations #>
   simproc_setup #>
   trfun_setup #>
-  DatatypeInterpretator.init;
+  DatatypeInterpretation.init;
 
 
 (* outer syntax *)

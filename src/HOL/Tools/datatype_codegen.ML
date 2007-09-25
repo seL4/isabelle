@@ -486,8 +486,8 @@ fun add_codetypes_hook hook thy =
       hook ([(tyco, (false, TypecopyPackage.get_spec thy tyco))]) thy;
   in
     thy
-    |> DatatypePackage.add_interpretator datatype_hook
-    |> TypecopyPackage.add_interpretator typecopy_hook
+    |> DatatypePackage.interpretation datatype_hook
+    |> TypecopyPackage.interpretation typecopy_hook
   end;
 
 fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
@@ -604,8 +604,8 @@ fun add_datatype_case_defs dtco thy =
 val setup = 
   add_codegen "datatype" datatype_codegen
   #> add_tycodegen "datatype" datatype_tycodegen
-  #> DatatypePackage.add_interpretator (fold add_datatype_case_const)
-  #> DatatypePackage.add_interpretator (fold add_datatype_case_defs)
+  #> DatatypePackage.interpretation (fold add_datatype_case_const)
+  #> DatatypePackage.interpretation (fold add_datatype_case_defs)
 
 val setup_hooks =
   add_codetypes_hook codetype_hook
