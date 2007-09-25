@@ -37,8 +37,6 @@ sig
   val at_end: (theory -> theory option) -> theory -> theory
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
-  val cert_axm: theory -> string * term -> string * term
-  val read_axm: theory -> string * string -> string * term
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
   val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
@@ -215,7 +213,7 @@ fun cert_axm thy (name, raw_tm) =
   end;
 
 fun read_axm thy (name, str) =
-  cert_axm thy (name, Sign.read_prop thy str)
+  cert_axm thy (name, Syntax.read_prop_global thy str)
     handle ERROR msg => err_in_axm msg name;
 
 
@@ -336,13 +334,14 @@ fun gen_add_finals prep_term overloaded args thy =
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
     fun specify (c, T) = dependencies thy false false (c ^ " axiom") (c, T) [];
-    val finalize = specify o check_overloading thy overloaded o const_of o prep_term thy;
+    val finalize = specify o check_overloading thy overloaded o const_of o
+      Sign.cert_term thy o prep_term thy;
   in thy |> map_defs (fold finalize args) end;
 
 in
 
-val add_finals = gen_add_finals Sign.read_term;
-val add_finals_i = gen_add_finals Sign.cert_term;
+val add_finals = gen_add_finals Syntax.read_term_global;
+val add_finals_i = gen_add_finals (K I);
 
 end;
 
