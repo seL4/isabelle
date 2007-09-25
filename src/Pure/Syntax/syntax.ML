@@ -95,10 +95,6 @@ sig
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
   val parse_prop: Proof.context -> string -> term
-  val global_parse_sort: theory -> string -> sort
-  val global_parse_typ: theory -> string -> typ
-  val global_parse_term: theory -> string -> term
-  val global_parse_prop: theory -> string -> term
   val check_sort: Proof.context -> sort -> sort
   val check_typ: Proof.context -> typ -> typ
   val check_term: Proof.context -> term -> term
@@ -116,10 +112,10 @@ sig
   val read_prop: Proof.context -> string -> term
   val read_terms: Proof.context -> string list -> term list
   val read_props: Proof.context -> string list -> term list
-  val global_read_sort: theory -> string -> sort
-  val global_read_typ: theory -> string -> typ
-  val global_read_term: theory -> string -> term
-  val global_read_prop: theory -> string -> term
+  val read_sort_global: theory -> string -> sort
+  val read_typ_global: theory -> string -> typ
+  val read_term_global: theory -> string -> term
+  val read_prop_global: theory -> string -> term
 end;
 
 structure Syntax: SYNTAX =
@@ -634,11 +630,6 @@ val parse_typ = parse #typ;
 val parse_term = parse #term;
 val parse_prop = parse #prop;
 
-val global_parse_sort = parse_sort o ProofContext.init;
-val global_parse_typ = parse_typ o ProofContext.init;
-val global_parse_term = parse_term o ProofContext.init;
-val global_parse_prop = parse_prop o ProofContext.init;
-
 
 (* checking types/terms *)
 
@@ -702,10 +693,10 @@ fun read_props ctxt = map (parse_prop ctxt) #> check_props ctxt;
 val read_term = singleton o read_terms;
 val read_prop = singleton o read_props;
 
-val global_read_sort = read_sort o ProofContext.init;
-val global_read_typ = read_typ o ProofContext.init;
-val global_read_term = read_term o ProofContext.init;
-val global_read_prop = read_prop o ProofContext.init;
+val read_sort_global = read_sort o ProofContext.init;
+val read_typ_global = read_typ o ProofContext.init;
+val read_term_global = read_term o ProofContext.init;
+val read_prop_global = read_prop o ProofContext.init;
 
 
 (*export parts of internal Syntax structures*)
