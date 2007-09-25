@@ -2578,10 +2578,7 @@ proof cases
     done
 next
   assume "~ i \<sqsubseteq> j" thus ?thesis
-    apply(simp add:upto_def atLeastAtMost_empty cong:conj_cong)
-    apply(subst atLeastAtMost_empty) apply simp
-    apply(simp cong:conj_cong)
-    done (* FIXME should reduce to the first simp alone *)
+    by(simp add:upto_def atLeastAtMost_empty cong:conj_cong)
 qed
 
 end
