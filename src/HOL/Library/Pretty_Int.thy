@@ -6,7 +6,7 @@
 header {* Pretty integer literals for code generation *}
 
 theory Pretty_Int
-imports IntArith
+imports IntArith ML_Int
 begin
 
 text {*
@@ -87,6 +87,11 @@ code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "IntInf.< ((_), (_))")
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
+
+code_const ml_int_of_int and int_of_ml_int
+  (SML "IntInf.toInt" and "IntInf.fromInt")
+  (OCaml "Big'_int.int'_of'_big'_int" and "Big'_int.big'_int'_of'_int")
+  (Haskell "_" and "_")
 
 code_reserved SML IntInf
 code_reserved OCaml Big_int

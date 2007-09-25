@@ -419,14 +419,14 @@ setup {*
 *}
 
 definition
-  int :: "nat \<Rightarrow> int" where
-  "int \<equiv> of_nat"
+  int_of_nat :: "nat \<Rightarrow> int" where
+  "int_of_nat = of_nat"
 
-export_code type_NF nat int in SML module_name Norm
+export_code type_NF nat int_of_nat in SML module_name Norm
 
 ML {*
 val nat_of_int = Norm.nat;
-val int_of_nat = Norm.int;
+val int_of_nat = Norm.int_of_nat;
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       Norm.Fun (dBtype_of_typ T, dBtype_of_typ U)
