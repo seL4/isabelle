@@ -47,6 +47,7 @@ subsection {* Code serialization *}
 
 code_type ml_string
   (SML "string")
+  (Haskell "String")
 
 setup {*
 let
@@ -65,9 +66,16 @@ in
 end
 *}
 
+code_const STR
+  (Haskell "_")
+
 code_reserved SML string
+
+code_instance ml_string :: eq
+  (Haskell -)
 
 code_const "op = \<Colon> ml_string \<Rightarrow> ml_string \<Rightarrow> bool"
   (SML "!((_ : string) = _)")
+  (Haskell infixl 4 "==")
 
 end
