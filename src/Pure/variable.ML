@@ -156,10 +156,13 @@ fun declare_names t =
 
 (* type occurrences *)
 
+fun decl_type_occsT T = fold_atyps (fn TFree (a, _) => Symtab.default (a, []) | _ => I) T;
+
 val decl_type_occs = fold_term_types
   (fn Free (x, _) => fold_atyps (fn TFree (a, _) => Symtab.insert_list (op =) (a, x) | _ => I)
-    | _ => fold_atyps (fn TFree (a, _) => Symtab.default (a, []) | _ => I));
+    | _ => decl_type_occsT);
 
+val declare_type_occsT = map_type_occs o fold_types decl_type_occsT;
 val declare_type_occs = map_type_occs o decl_type_occs;
 
 
@@ -179,6 +182,7 @@ fun declare_constraints t = map_constraints (fn (types, sorts) =>
         | TVar v => constrain_tvar v
         | _ => I)) t sorts;
   in (types', sorts') end)
+  #> declare_type_occsT t
   #> declare_type_names t;
 
 
