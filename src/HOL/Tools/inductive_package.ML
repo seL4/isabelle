@@ -843,22 +843,16 @@ fun gen_add_inductive_i mk_def verbose alt_name coind no_elim no_ind
     fold (snd oo LocalTheory.abbrev Syntax.default_mode) abbrevs''
   end;
 
-fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos ctxt =
+fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos lthy =
   let
-    val (_, ctxt') = Specification.read_specification (cnames_syn @ pnames_syn) [] ctxt;
-    val intrs = map (fn ((name, att), s) => apsnd hd (hd (snd (fst
-      (Specification.read_specification [] [((name, att), [s])] ctxt'))))
-      handle ERROR msg =>
-        cat_error msg ("The error(s) above occurred for\n" ^
-          (if name = "" then "" else name ^ ": ") ^ s)) intro_srcs;
-    val pnames = map (fn (s, _, _) =>
-      (s, SOME (ProofContext.infer_type ctxt' s))) pnames_syn;
-    val cnames_syn' = map (fn (s, _, mx) =>
-      (s, SOME (ProofContext.infer_type ctxt' s), mx)) cnames_syn;
-    val (monos, ctxt'') = LocalTheory.theory_result (IsarCmd.apply_theorems raw_monos) ctxt;
-  in
-    gen_add_inductive_i mk_def verbose "" coind false false cnames_syn' pnames intrs monos ctxt''
-  end;
+    val ((vars, specs), _) = lthy |> Specification.read_specification
+      (cnames_syn @ pnames_syn) (map (fn (a, s) => [(a, [s])]) intro_srcs);
+    val (cs, ps) = chop (length cnames_syn) vars;
+    val cnames = map (fn ((c, T), mx) => (c, SOME T, mx)) cs;
+    val pnames = map (fn ((x, T), _) => (x, SOME T)) ps;
+    val intrs = map (apsnd the_single) specs;
+    val monos = Attrib.eval_thms lthy raw_monos;
+  in gen_add_inductive_i mk_def verbose "" coind false false cnames pnames intrs monos lthy end;
 
 val add_inductive_i = gen_add_inductive_i add_ind_def;
 val add_inductive = gen_add_inductive add_ind_def;
