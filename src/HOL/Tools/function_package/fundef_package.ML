@@ -88,12 +88,12 @@ fun fundef_afterqed config fixes post defname cont sort_cont [[proof]] lthy =
     end (* FIXME: Add cases for induct and cases thm *)
 
 
-fun prepare_spec prep fixspec eqnss lthy = (* FIXME: obsolete when "read_specification" etc. is there *)
+fun prepare_spec prep fixspec eqnss lthy = (* FIXME: obsolete; use Specification.read/check_specification *)
     let
       val eqns = map (apsnd single) eqnss
 
       val ((fixes, _), ctxt') = prep fixspec [] lthy             
-      fun prep_eqn e = the_single (snd (fst (prep [] [e] ctxt')))
+      fun prep_eqn e = the_single (snd (fst (prep [] [[e]] ctxt')))
 
       val spec = map prep_eqn eqns
                  |> map (apsnd (map (fn t => fold_rev (mk_forall o Free) (frees_in_term ctxt' t) t))) (* Add quantifiers *)
@@ -162,7 +162,7 @@ fun setup_termination_proof term_opt lthy =
 
 
 val add_fundef = gen_add_fundef Specification.read_specification
-val add_fundef_i = gen_add_fundef Specification.cert_specification
+val add_fundef_i = gen_add_fundef Specification.check_specification
 
 
 (* Datatype hook to declare datatype congs as "fundef_congs" *)
