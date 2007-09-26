@@ -399,12 +399,19 @@ entities from a monomorphic theory.
 Presently, abbreviations are only available 'in' a target locale, but
 not inherited by general import expressions.  Also note that
 'abbreviation' may be used as a type-safe replacement for 'syntax' +
-'translations' in common applications.
+'translations' in common applications.  The "no_abbrevs" print mode
+prevents folding of abbreviations in term output.
 
 Concrete syntax is attached to specified constants in internal form,
 independently of name spaces.  The parse tree representation is
 slightly different -- use 'notation' instead of raw 'syntax', and
 'translations' with explicit "CONST" markup to accommodate this.
+
+* Pure/Isar: unified syntax for new-style specification mechanisms
+('definition', 'abbreviation', or 'inductive' in HOL) admits type
+inference and dummy patterns ("_"). For example:
+
+  definition "K x _ = x"
 
 * Pure: command 'print_abbrevs' prints all constant abbreviations of
 the current context.  Print mode "no_abbrevs" prevents inversion of
