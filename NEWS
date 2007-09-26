@@ -407,8 +407,8 @@ independently of name spaces.  The parse tree representation is
 slightly different -- use 'notation' instead of raw 'syntax', and
 'translations' with explicit "CONST" markup to accommodate this.
 
-* Pure/Isar: unified syntax for new-style specification mechanisms
-('definition', 'abbreviation', or 'inductive' in HOL) admits type
+* Pure/Isar: unified syntax for new-style specification mechanisms (e.g.
+'definition', 'abbreviation', or 'inductive' in HOL) admits type
 inference and dummy patterns ("_"). For example:
 
   definition "K x _ = x"
