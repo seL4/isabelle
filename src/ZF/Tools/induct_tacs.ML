@@ -165,14 +165,13 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
   end;
 
 fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
-  thy
-  |> IsarCmd.apply_theorems [raw_elim]
-  ||>> IsarCmd.apply_theorems [raw_induct]
-  ||>> IsarCmd.apply_theorems raw_case_eqns
-  ||>> IsarCmd.apply_theorems raw_recursor_eqns
-  |-> (fn (((elims, inducts), case_eqns), recursor_eqns) =>
-          rep_datatype_i (PureThy.single_thm "elimination" elims)
-            (PureThy.single_thm "induction" inducts) case_eqns recursor_eqns);
+  let
+    val ctxt = ProofContext.init thy;
+    val elim = PureThy.single_thm "elimination" (Attrib.eval_thms ctxt [raw_elim]);
+    val induct = PureThy.single_thm "induction" (Attrib.eval_thms ctxt [raw_induct]);
+    val case_eqns = Attrib.eval_thms ctxt raw_case_eqns;
+    val recursor_eqns = Attrib.eval_thms ctxt raw_recursor_eqns;
+  in rep_datatype_i elim induct case_eqns recursor_eqns thy end;
 
 
 (* theory setup *)

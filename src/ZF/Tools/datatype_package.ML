@@ -388,20 +388,18 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
 fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_type_elims) thy =
   let
+    val ctxt = ProofContext.init thy;
     val read_i = Sign.simple_read_term thy Ind_Syntax.iT;
     val rec_tms = map read_i srec_tms;
     val con_ty_lists = Ind_Syntax.read_constructs thy scon_ty_lists;
     val dom_sum =
       if sdom = "" then Ind_Syntax.data_domain coind (rec_tms, con_ty_lists)
       else read_i sdom;
-  in
-    thy
-    |> IsarCmd.apply_theorems raw_monos
-    ||>> IsarCmd.apply_theorems raw_type_intrs
-    ||>> IsarCmd.apply_theorems raw_type_elims
-    |-> (fn ((monos, type_intrs), type_elims) =>
-          add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims))
-  end;
+    val monos = Attrib.eval_thms ctxt raw_monos;
+    val type_intrs = Attrib.eval_thms ctxt raw_type_intrs;
+    val type_elims = Attrib.eval_thms ctxt raw_type_elims;
+  in add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims) thy end;
+
 
 (* outer syntax *)
 
