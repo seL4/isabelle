@@ -116,11 +116,15 @@ fun prep_spec prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
     val (xs, params_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
 
     val Asss = (map o map) (map (parse_prop params_ctxt) o snd) raw_specss;
-    val idx = (fold o fold o fold) Term.maxidx_term Asss ~1 + 1;
+    val names = Variable.names_of (params_ctxt |> (fold o fold o fold) Variable.declare_term Asss)
+      |> fold Name.declare xs;
+    val Asss' = #1 ((fold_map o fold_map o fold_map) Term.free_dummy_patterns Asss names);
+    val idx = (fold o fold o fold) Term.maxidx_term Asss' ~1 + 1;
     val specs =
       (if do_close then
-        #1 (fold_map (fn Ass => fn i => (burrow (close_forms params_ctxt i []) Ass, i + 1)) Asss idx)
-      else Asss)
+        #1 (fold_map
+            (fn Ass => fn i => (burrow (close_forms params_ctxt i []) Ass, i + 1)) Asss' idx)
+      else Asss')
       |> flat |> burrow (Syntax.check_props params_ctxt);
     val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
 
