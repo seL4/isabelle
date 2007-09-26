@@ -11,13 +11,21 @@ sig
   val quiet_mode: bool ref
   val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
   val read_specification: (string * string option * mixfix) list ->
-    ((string * Attrib.src list) * string list) list -> local_theory ->
+    ((string * Attrib.src list) * string list) list list -> Proof.context ->
     (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
-    local_theory
-  val cert_specification: (string * typ option * mixfix) list ->
-    ((string * Attrib.src list) * term list) list -> local_theory ->
+    Proof.context
+  val check_specification: (string * typ option * mixfix) list ->
+    ((string * Attrib.src list) * term list) list list -> Proof.context ->
     (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
-    local_theory
+    Proof.context
+  val read_free_specification: (string * string option * mixfix) list ->
+    ((string * Attrib.src list) * string list) list -> Proof.context ->
+    (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
+    Proof.context
+  val check_free_specification: (string * typ option * mixfix) list ->
+    ((string * Attrib.src list) * term list) list -> Proof.context ->
+    (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
+    Proof.context
   val axiomatization: (string * string option * mixfix) list ->
     ((bstring * Attrib.src list) * string list) list -> local_theory ->
     (term list * (bstring * thm list) list) * local_theory
@@ -69,51 +77,94 @@ fun present_results' ctxt kind res = present_results ctxt ((kind, ""), res);
 
 (* prepare specification *)
 
-fun prep_specification prep_vars prep_propp prep_att raw_vars raw_specs ctxt =
+local
+
+fun close_forms ctxt i xs As =
+  let
+    fun add_free (Free (x, _)) = if Variable.is_fixed ctxt x then I else insert (op =) x
+      | add_free _ = I;
+
+    val commons = map #1 xs;
+    val _ =
+      (case duplicates (op =) commons of [] => ()
+      | dups => error ("Duplicate local variables " ^ commas_quote dups));
+    val frees = rev ((fold o fold_aterms) add_free As (rev commons));
+    val types = map (TypeInfer.param i o rpair []) (Name.invents Name.context "'a" (length frees));
+    val uniform_typing = the o AList.lookup (op =) (frees ~~ types);
+
+    fun abs_body lev y (Abs (x, T, b)) = Abs (x, T, abs_body (lev + 1) y b)
+      | abs_body lev y (t $ u) = abs_body lev y t $ abs_body lev y u
+      | abs_body lev y (t as Free (x, T)) =
+          if x = y then TypeInfer.constrain (uniform_typing x) (TypeInfer.constrain T (Bound lev))
+          else t
+      | abs_body _ _ a = a;
+    fun close (y, U) B =
+      let val B' = abs_body 0 y (Term.incr_boundvars 1 B)
+      in if Term.loose_bvar1 (B', 0) then Term.all dummyT $ Abs (y, U, B') else B end;
+    fun close_form A =
+      let
+        val occ_frees = rev (fold_aterms add_free A []);
+        val bounds = xs @ map (rpair dummyT) (subtract (op =) commons occ_frees);
+      in fold_rev close bounds A end;
+  in map close_form As end;
+
+fun prep_spec prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
 
     val (vars, vars_ctxt) = ctxt |> prep_vars raw_vars;
     val (xs, params_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
-    val ((specs, vs), specs_ctxt) =
-      prep_propp (params_ctxt, map (map (rpair []) o snd) raw_specs)
-      |> swap |>> map (map fst)
-      ||>> fold_map ProofContext.inferred_param xs;
 
+    val Asss = (map o map) (map (parse_prop params_ctxt) o snd) raw_specss;
+    val idx = (fold o fold o fold) Term.maxidx_term Asss ~1 + 1;
+    val specs =
+      (if do_close then
+        #1 (fold_map (fn Ass => fn i => (burrow (close_forms params_ctxt i []) Ass, i + 1)) Asss idx)
+      else Asss)
+      |> flat |> burrow (Syntax.check_props params_ctxt);
+    val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
+
+    val vs = specs_ctxt |> fold_map ProofContext.inferred_param xs |> fst;
     val params = vs ~~ map #3 vars;
-    val names = map (fst o fst) raw_specs;
-    val atts = map (map (prep_att thy) o snd o fst) raw_specs;
-  in ((params, (names ~~ atts) ~~ specs), specs_ctxt) end;
+    val name_atts = map (fn ((name, atts), _) => (name, map (prep_att thy) atts)) (flat raw_specss);
+  in ((params, name_atts ~~ specs), specs_ctxt) end;
 
-fun read_specification x =
-  prep_specification ProofContext.read_vars ProofContext.read_propp Attrib.intern_src x;
+fun read_spec x = prep_spec ProofContext.read_vars Syntax.parse_prop Attrib.intern_src x;
+fun check_spec x = prep_spec ProofContext.cert_vars (K I) (K I) x;
 
-fun cert_specification x =
-  prep_specification ProofContext.cert_vars ProofContext.cert_propp (K I) x;
+in
+
+fun read_specification x = read_spec true x;
+fun check_specification x = check_spec true x;
+fun read_free_specification vars specs = read_spec false vars [specs];
+fun check_free_specification vars specs = check_spec false vars [specs];
+
+end;
 
 
 (* axiomatization *)
 
 fun gen_axioms prep raw_vars raw_specs lthy =
   let
-    val (vars, specs) = fst (prep raw_vars raw_specs lthy);
+    val (vars, specs) = fst (prep raw_vars [raw_specs] lthy);
     val cs = map fst vars;
-    val spec_frees = member (op =) (fold (fold Term.add_frees o snd) specs []);
+    val spec_frees = member (op =) ((fold (fold Term.add_frees o snd) specs []));
 
-    val ((consts, axioms), lthy') = lthy
+    val ((constants, axioms), lthy') = lthy
       |> LocalTheory.consts spec_frees vars
-      ||> fold (fold Variable.auto_fixes o snd) specs   (* FIXME !? *)
       ||>> LocalTheory.axioms Thm.axiomK specs;
+    val consts = map #1 constants;
+    val consts' = map (Morphism.term (LocalTheory.target_morphism lthy')) consts;
 
     (* FIXME generic target!? *)
-    val hs = map (Term.head_of o #2 o Logic.dest_equals o Thm.prop_of o #2) consts;
+    val hs = map (Term.head_of o #2 o Logic.dest_equals o Thm.prop_of o #2) constants;
     val lthy'' = lthy' |> LocalTheory.theory (Theory.add_finals_i false hs);
 
-    val _ = print_consts lthy' spec_frees cs;
-  in ((map #1 consts, axioms), lthy'') end;
+    val _ = print_consts lthy' (member (op =) (fold Term.add_frees consts' [])) cs;
+  in ((consts, axioms), lthy'') end;
 
 val axiomatization = gen_axioms read_specification;
-val axiomatization_i = gen_axioms cert_specification;
+val axiomatization_i = gen_axioms check_specification;
 
 
 (* definition *)
@@ -137,8 +188,8 @@ fun gen_def prep (raw_var, (raw_a, raw_prop)) lthy =
     val _ = print_consts lthy3 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
   in ((lhs, (b, th')), lthy3) end;
 
-val definition = gen_def read_specification;
-val definition_i = gen_def cert_specification;
+val definition = gen_def read_free_specification;
+val definition_i = gen_def check_free_specification;
 
 
 (* abbreviation *)
@@ -156,11 +207,12 @@ fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
       |> ProofContext.set_syntax_mode mode    (* FIXME !? *)
       |> LocalTheory.abbrev mode ((x, mx), rhs) |> snd
       |> ProofContext.restore_syntax_mode lthy;
+
     val _ = print_consts lthy' (K false) [(x, T)]
   in lthy' end;
 
-val abbreviation = gen_abbrev read_specification;
-val abbreviation_i = gen_abbrev cert_specification;
+val abbreviation = gen_abbrev read_free_specification;
+val abbreviation_i = gen_abbrev check_free_specification;
 
 
 (* notation *)
