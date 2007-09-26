@@ -19,6 +19,7 @@ sig
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
   val attribute: theory -> src -> attribute
   val attribute_i: theory -> src -> attribute
+  val eval_thms: Proof.context -> (thmref * src list) list -> thm list
   val map_specs: ('a -> 'att) ->
     (('c * 'a list) * 'd) list -> (('c * 'att list) * 'd) list
   val map_facts: ('a -> 'att) ->
@@ -105,6 +106,10 @@ fun attribute_i thy =
   in attr end;
 
 fun attribute thy = attribute_i thy o intern_src thy;
+
+fun eval_thms ctxt args = ProofContext.note_thmss Thm.theoremK
+  [(("", []), map (apsnd (map (attribute (ProofContext.theory_of ctxt)))) args)] ctxt
+  |> (flat o map snd o fst);
 
 
 (* attributed declarations *)
