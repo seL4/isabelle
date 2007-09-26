@@ -69,7 +69,7 @@ instance nat :: "{ord, zero, one}"
   less_def: "m < n == (m, n) : pred_nat^+"
   le_def:   "m \<le> (n::nat) == ~ (n < m)" ..
 
-lemmas [code func del] = Zero_nat_def One_nat_def less_def le_def
+lemmas [code func del] = Zero_nat_def less_def le_def
 
 text {* Induction *}
 
