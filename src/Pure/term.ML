@@ -190,6 +190,7 @@ sig
   val dummy_patternN: string
   val dummy_pattern: typ -> term
   val is_dummy_pattern: term -> bool
+  val free_dummy_patterns: term -> Name.context -> term * Name.context
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
   val is_replaced_dummy_pattern: indexname -> bool
@@ -1249,6 +1250,19 @@ fun is_dummy_pattern (Const ("dummy_pattern", _)) = true
 fun no_dummy_patterns tm =
   if not (fold_aterms (fn t => fn b => b orelse is_dummy_pattern t) tm false) then tm
   else raise TERM ("Illegal occurrence of '_' dummy pattern", [tm]);
+
+fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
+      let val [x] = Name.invents used "uu" 1
+      in (Free (Name.internal x, T), Name.declare x used) end
+  | free_dummy_patterns (Abs (x, T, b)) used =
+      let val (b', used') = free_dummy_patterns b used
+      in (Abs (x, T, b'), used') end
+  | free_dummy_patterns (t $ u) used =
+      let
+        val (t', used') = free_dummy_patterns t used;
+        val (u', used'') = free_dummy_patterns u used';
+      in (t' $ u', used'') end
+  | free_dummy_patterns a used = (a, used);
 
 fun replace_dummy Ts (i, Const ("dummy_pattern", T)) =
       (i + 1, list_comb (Var (("_dummy_", i), Ts ---> T), map Bound (0 upto length Ts - 1)))
