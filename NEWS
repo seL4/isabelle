@@ -413,6 +413,9 @@ inference and dummy patterns ("_"). For example:
 
   definition "K x _ = x"
 
+  inductive conj for A B
+  where "A ==> B ==> conj A B"
+
 * Pure: command 'print_abbrevs' prints all constant abbreviations of
 the current context.  Print mode "no_abbrevs" prevents inversion of
 abbreviations on output.
