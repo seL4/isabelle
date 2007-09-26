@@ -255,8 +255,6 @@ fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed the
      of [] => ()
       | dupl_tycos => error ("type constructors occur more than once in arities: "
           ^ (commas o map quote) dupl_tycos);
-    val super_sort =
-      (Graph.all_succs o #classes o Sorts.rep_algebra o Sign.classes_of) theory;
     fun get_consts_class tyco ty class =
       let
         val cs = (these o Option.map snd o try (AxClass.params_of_class theory)) class;
@@ -268,7 +266,7 @@ fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed the
       let
         val ty = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort))
           (Name.names Name.context "'a" asorts))
-      in maps (get_consts_class tyco ty) (super_sort sort) end;
+      in maps (get_consts_class tyco ty) (Sign.complete_sort theory sort) end;
     val cs = maps get_consts_sort arities;
     fun mk_typnorm thy (ty, ty_sc) =
       case try (Sign.typ_match thy (Logic.varifyT ty_sc, ty)) Vartab.empty
@@ -418,7 +416,7 @@ fun print_classes thy =
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
       (SOME o Pretty.str) ("class " ^ class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
-        (Sign.pretty_sort thy o Sign.certify_sort thy o Sign.super_classes thy) class],
+        (Sign.pretty_sort thy o Sign.minimize_sort thy o Sign.super_classes thy) class],
       Option.map (Pretty.str o prefix "locale: " o #locale) (lookup_class_data thy class),
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks) (Pretty.str "parameters:" :: ps)) o map mk_param
         o these o Option.map #params o try (AxClass.get_definition thy)) class,
@@ -575,8 +573,8 @@ fun gen_class add_locale prep_class prep_param bname
       | Locale.Expr i => apsnd (cons i)) raw_elems ([], []);
     val supclasses = map (prep_class thy) raw_supclasses;
     val sups = filter (is_some o lookup_class_data thy) supclasses
-      |> Sign.certify_sort thy;
-    val supsort = Sign.certify_sort thy supclasses;
+      |> Sign.minimize_sort thy;
+    val supsort = Sign.minimize_sort thy supclasses;
     val suplocales = map (Locale.Locale o #locale o the_class_data thy) sups;
     val supexpr = Locale.Merge (suplocales @ includes);
     val supparams = (map fst o Locale.parameters_of_expr thy)
@@ -721,8 +719,7 @@ fun gen_interpretation_in_class prep_class do_proof (raw_class, raw_superclass) 
     val loc_expr = (Locale.Locale o #locale o the_class_data theory) superclass;
     fun prove_classrel (class, superclass) thy =
       let
-        val classes = (Graph.all_succs o #classes o Sorts.rep_algebra
-              o Sign.classes_of) thy [superclass]
+        val classes = Sign.complete_sort thy [superclass]
           |> filter_out (fn class' => Sign.subsort thy ([class], [class']));
         fun instance_subclass (class1, class2) thy  =
           let
@@ -731,7 +728,7 @@ fun gen_interpretation_in_class prep_class do_proof (raw_class, raw_superclass) 
             val intro = #intro (AxClass.get_definition thy class2)
               |> Drule.instantiate' [SOME (Thm.ctyp_of thy
                   (TVar ((AxClass.param_tyvarname, 0), [class1])))] [];
-            val thm = 
+            val thm =
               intro
               |> OF_LAST (interp OF ax)
               |> strip_all_ofclass thy (Sign.super_classes thy class2);

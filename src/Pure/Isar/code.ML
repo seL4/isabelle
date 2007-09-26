@@ -541,7 +541,7 @@ fun specific_constraints thy (class, tyco) =
 
 fun weakest_constraints thy (class, tyco) =
   let
-    val all_superclasses = class :: Graph.all_succs ((#classes o Sorts.rep_algebra o Sign.classes_of) thy) [class];
+    val all_superclasses = Sign.complete_sort thy [class];
   in case inter_sorts thy (maps (fn class => specific_constraints thy (class, tyco)) all_superclasses)
    of SOME sorts => sorts
     | NONE => Sign.arity_sorts thy tyco [class]
@@ -555,7 +555,7 @@ fun strongest_constraints thy (class, tyco) =
   in case inter_sorts thy (maps (fn class => specific_constraints thy (class, tyco)) inst_subclasses)
    of SOME sorts => sorts
     | NONE => replicate
-        (Sign.arity_number thy tyco) (Sign.certify_sort thy (Sign.all_classes thy))
+        (Sign.arity_number thy tyco) (Sign.minimize_sort thy (Sign.all_classes thy))
   end;
 
 fun gen_classop_typ constr thy class (c, tyco) = 

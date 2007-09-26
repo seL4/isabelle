@@ -225,7 +225,7 @@ fun add_arity th thy =
     fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
     val prop = Thm.plain_prop_of (Thm.transfer thy th);
     val (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
-    val _ = if map (Sign.certify_sort thy) Ss = Ss then () else err ();
+    val _ = map (Sign.certify_sort thy) Ss = Ss orelse err ();
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
@@ -291,7 +291,7 @@ fun define_class (bclass, raw_super) params raw_specs thy =
 
     val bconst = Logic.const_of_class bclass;
     val class = Sign.full_name thy bclass;
-    val super = Sign.certify_sort thy raw_super;
+    val super = Sign.minimize_sort thy (Sign.certify_sort thy raw_super);
 
     fun prep_axiom t =
       (case Term.add_tfrees t [] of
@@ -420,7 +420,7 @@ fun class_const c =
 fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
   let
     val class = Sign.full_name thy bclass;
-    val super = map (prep_class thy) raw_super |> Sign.certify_sort thy;
+    val super = map (prep_class thy) raw_super |> Sign.minimize_sort thy;
   in
     thy
     |> Sign.primitive_class (bclass, super)
