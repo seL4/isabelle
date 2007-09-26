@@ -552,22 +552,23 @@ let
 fun add_inductive (srec_tms, sdom_sum) intr_srcs
     (raw_monos, raw_con_defs, raw_type_intrs, raw_type_elims) thy =
   let
+    val ctxt = ProofContext.init thy;
+    val read_terms = map (Syntax.parse_term ctxt #> TypeInfer.constrain Ind_Syntax.iT)
+      #> Syntax.check_terms ctxt;
+
     val intr_atts = map (map (Attrib.attribute thy) o snd) intr_srcs;
     val sintrs = map fst intr_srcs ~~ intr_atts;
-    val read = Sign.simple_read_term thy;
-    val rec_tms = map (read Ind_Syntax.iT) srec_tms;
-    val dom_sum = read Ind_Syntax.iT sdom_sum;
-    val intr_tms = map (read propT o snd o fst) sintrs;
+    val rec_tms = read_terms srec_tms;
+    val dom_sum = singleton read_terms sdom_sum;
+    val intr_tms = Syntax.read_props ctxt (map (snd o fst) sintrs);
     val intr_specs = (map (fst o fst) sintrs ~~ intr_tms) ~~ map snd sintrs;
+    val monos = Attrib.eval_thms ctxt raw_monos;
+    val con_defs = Attrib.eval_thms ctxt raw_con_defs;
+    val type_intrs = Attrib.eval_thms ctxt raw_type_intrs;
+    val type_elims = Attrib.eval_thms ctxt raw_type_elims;
   in
     thy
-    |> IsarCmd.apply_theorems raw_monos
-    ||>> IsarCmd.apply_theorems raw_con_defs
-    ||>> IsarCmd.apply_theorems raw_type_intrs
-    ||>> IsarCmd.apply_theorems raw_type_elims
-    |-> (fn (((monos, con_defs), type_intrs), type_elims) =>
-          add_inductive_i true (rec_tms, dom_sum) intr_specs
-            (monos, con_defs, type_intrs, type_elims))
+    |> add_inductive_i true (rec_tms, dom_sum) intr_specs (monos, con_defs, type_intrs, type_elims)
   end;
 
 
