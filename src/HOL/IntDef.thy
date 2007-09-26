@@ -11,7 +11,6 @@ theory IntDef
 imports Equiv_Relations Nat
 begin
 
-
 text {* the equivalence relation underlying the integers *}
 
 definition
@@ -577,6 +576,50 @@ qed
 lemma Ints_induct [case_names of_int, induct set: Ints]:
   "q \<in> \<int> ==> (!!z. P (of_int z)) ==> P q"
   by (rule Ints_cases) auto
+
+
+subsection {* @{term setsum} and @{term setprod} *}
+
+text {*By Jeremy Avigad*}
+
+lemma of_nat_setsum: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
+  apply (cases "finite A")
+  apply (erule finite_induct, auto)
+  done
+
+lemma of_int_setsum: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
+  apply (cases "finite A")
+  apply (erule finite_induct, auto)
+  done
+
+lemma of_nat_setprod: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
+  apply (cases "finite A")
+  apply (erule finite_induct, auto simp add: of_nat_mult)
+  done
+
+lemma of_int_setprod: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
+  apply (cases "finite A")
+  apply (erule finite_induct, auto)
+  done
+
+lemma setprod_nonzero_nat:
+    "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::nat)) ==> setprod f A \<noteq> 0"
+  by (rule setprod_nonzero, auto)
+
+lemma setprod_zero_eq_nat:
+    "finite A ==> (setprod f A = (0::nat)) = (\<exists>x \<in> A. f x = 0)"
+  by (rule setprod_zero_eq, auto)
+
+lemma setprod_nonzero_int:
+    "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::int)) ==> setprod f A \<noteq> 0"
+  by (rule setprod_nonzero, auto)
+
+lemma setprod_zero_eq_int:
+    "finite A ==> (setprod f A = (0::int)) = (\<exists>x \<in> A. f x = 0)"
+  by (rule setprod_zero_eq, auto)
+
+lemmas int_setsum = of_nat_setsum [where 'a=int]
+lemmas int_setprod = of_nat_setprod [where 'a=int]
 
 
 subsection {* Further properties *}

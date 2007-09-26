@@ -6,7 +6,7 @@
 header {* Equivalence Relations in Higher-Order Set Theory *}
 
 theory Equiv_Relations
-imports Relation
+imports Finite_Set Relation
 begin
 
 subsection {* Equivalence relations *}
@@ -291,5 +291,46 @@ lemma congruent2_commuteI:
        apply (assumption | rule congt |
          erule equivA [THEN equiv_type, THEN subsetD, THEN SigmaE2])+
   done
+
+
+subsection {* Quotients and finiteness *}
+
+text {*Suggested by Florian Kammüller*}
+
+lemma finite_quotient: "finite A ==> r \<subseteq> A \<times> A ==> finite (A//r)"
+  -- {* recall @{thm equiv_type} *}
+  apply (rule finite_subset)
+   apply (erule_tac [2] finite_Pow_iff [THEN iffD2])
+  apply (unfold quotient_def)
+  apply blast
+  done
+
+lemma finite_equiv_class:
+  "finite A ==> r \<subseteq> A \<times> A ==> X \<in> A//r ==> finite X"
+  apply (unfold quotient_def)
+  apply (rule finite_subset)
+   prefer 2 apply assumption
+  apply blast
+  done
+
+lemma equiv_imp_dvd_card:
+  "finite A ==> equiv A r ==> \<forall>X \<in> A//r. k dvd card X
+    ==> k dvd card A"
+  apply (rule Union_quotient [THEN subst])
+   apply assumption
+  apply (rule dvd_partition)
+     prefer 3 apply (blast dest: quotient_disj)
+    apply (simp_all add: Union_quotient equiv_type)
+  done
+
+lemma card_quotient_disjoint:
+ "\<lbrakk> finite A; inj_on (\<lambda>x. {x} // r) A \<rbrakk> \<Longrightarrow> card(A//r) = card A"
+apply(simp add:quotient_def)
+apply(subst card_UN_disjoint)
+   apply assumption
+  apply simp
+ apply(fastsimp simp add:inj_on_def)
+apply (simp add:setsum_constant)
+done
 
 end

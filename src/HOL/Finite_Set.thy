@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports IntDef Divides Datatype
+imports Divides
 begin
 
 subsection {* Definition and basic properties *}
@@ -2272,92 +2272,6 @@ apply(rule sup_ge2)
 apply(simp add: neq_commute less_le)
 done
 
-
-subsection {* Finiteness and quotients *}
-
-text {*Suggested by Florian Kammüller*}
-
-lemma finite_quotient: "finite A ==> r \<subseteq> A \<times> A ==> finite (A//r)"
-  -- {* recall @{thm equiv_type} *}
-  apply (rule finite_subset)
-   apply (erule_tac [2] finite_Pow_iff [THEN iffD2])
-  apply (unfold quotient_def)
-  apply blast
-  done
-
-lemma finite_equiv_class:
-  "finite A ==> r \<subseteq> A \<times> A ==> X \<in> A//r ==> finite X"
-  apply (unfold quotient_def)
-  apply (rule finite_subset)
-   prefer 2 apply assumption
-  apply blast
-  done
-
-lemma equiv_imp_dvd_card:
-  "finite A ==> equiv A r ==> \<forall>X \<in> A//r. k dvd card X
-    ==> k dvd card A"
-  apply (rule Union_quotient [THEN subst])
-   apply assumption
-  apply (rule dvd_partition)
-     prefer 3 apply (blast dest: quotient_disj)
-    apply (simp_all add: Union_quotient equiv_type)
-  done
-
-lemma card_quotient_disjoint:
- "\<lbrakk> finite A; inj_on (\<lambda>x. {x} // r) A \<rbrakk> \<Longrightarrow> card(A//r) = card A"
-apply(simp add:quotient_def)
-apply(subst card_UN_disjoint)
-   apply assumption
-  apply simp
- apply(fastsimp simp add:inj_on_def)
-apply (simp add:setsum_constant)
-done
-
-
-subsection {* @{term setsum} and @{term setprod} on integers *}
-
-text {*By Jeremy Avigad*}
-
-lemma of_nat_setsum: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
-  apply (cases "finite A")
-  apply (erule finite_induct, auto)
-  done
-
-lemma of_int_setsum: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
-  apply (cases "finite A")
-  apply (erule finite_induct, auto)
-  done
-
-lemma of_nat_setprod: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
-  apply (cases "finite A")
-  apply (erule finite_induct, auto simp add: of_nat_mult)
-  done
-
-lemma of_int_setprod: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
-  apply (cases "finite A")
-  apply (erule finite_induct, auto)
-  done
-
-lemma setprod_nonzero_nat:
-    "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::nat)) ==> setprod f A \<noteq> 0"
-  by (rule setprod_nonzero, auto)
-
-lemma setprod_zero_eq_nat:
-    "finite A ==> (setprod f A = (0::nat)) = (\<exists>x \<in> A. f x = 0)"
-  by (rule setprod_zero_eq, auto)
-
-lemma setprod_nonzero_int:
-    "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::int)) ==> setprod f A \<noteq> 0"
-  by (rule setprod_nonzero, auto)
-
-lemma setprod_zero_eq_int:
-    "finite A ==> (setprod f A = (0::int)) = (\<exists>x \<in> A. f x = 0)"
-  by (rule setprod_zero_eq, auto)
-
-lemmas int_setsum = of_nat_setsum [where 'a=int]
-lemmas int_setprod = of_nat_setprod [where 'a=int]
-
-
 context lattice
 begin
 
@@ -2748,22 +2662,6 @@ qed
 lemma univ_sum [noatp, code func]:
   "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) <+> (UNIV \<Colon> 'b\<Colon>finite set)"
   unfolding UNIV_Plus_UNIV ..
-
-lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
-  by (rule set_ext, case_tac x, auto)
-
-instance option :: (finite) finite
-proof
-  have "finite (UNIV :: 'a set)" by (rule finite)
-  hence "finite (insert None (Some ` (UNIV :: 'a set)))" by simp
-  also have "insert None (Some ` (UNIV :: 'a set)) = UNIV"
-    by (rule insert_None_conv_UNIV)
-  finally show "finite (UNIV :: 'a option set)" .
-qed
-
-lemma univ_option [noatp, code func]:
-  "UNIV = insert (None \<Colon> 'a\<Colon>finite option) (image Some UNIV)"
-  unfolding insert_None_conv_UNIV ..
 
 instance set :: (finite) finite
 proof

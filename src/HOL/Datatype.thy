@@ -9,7 +9,7 @@ Could <*> be generalized to a general summation (Sigma)?
 header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
-imports Nat
+imports Finite_Set
 begin
 
 typedef (Node)
@@ -613,6 +613,22 @@ lemma option_caseE:
   | (Some) y where "x = Some y" and "Q y"
   using c by (cases x) simp_all
 
+lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
+  by (rule set_ext, case_tac x) auto
+
+instance option :: (finite) finite
+proof
+  have "finite (UNIV :: 'a set)" by (rule finite)
+  hence "finite (insert None (Some ` (UNIV :: 'a set)))" by simp
+  also have "insert None (Some ` (UNIV :: 'a set)) = UNIV"
+    by (rule insert_None_conv_UNIV)
+  finally show "finite (UNIV :: 'a option set)" .
+qed
+
+lemma univ_option [noatp, code func]:
+  "UNIV = insert (None \<Colon> 'a\<Colon>finite option) (image Some UNIV)"
+  unfolding insert_None_conv_UNIV ..
+
 
 subsubsection {* Operations *}
 
@@ -637,7 +653,6 @@ lemma elem_o2s [iff]: "(x : o2s xo) = (xo = Some x)"
 
 lemma o2s_empty_eq [simp]: "(o2s xo = {}) = (xo = None)"
   by (cases xo) auto
-
 
 constdefs
   option_map :: "('a => 'b) => ('a option => 'b option)"

@@ -6,7 +6,7 @@
 header {* Partial orders *}
 
 theory Porder
-imports Finite_Set
+imports Datatype Finite_Set
 begin
 
 subsection {* Type class for partial orders *}
