@@ -36,6 +36,8 @@ sig
   val sort_le: algebra -> sort * sort -> bool
   val sorts_le: algebra -> sort list * sort list -> bool
   val inter_sort: algebra -> sort * sort -> sort
+  val minimize_sort: algebra -> sort -> sort
+  val complete_sort: algebra -> sort -> sort
   val certify_class: algebra -> class -> class    (*exception TYPE*)
   val certify_sort: algebra -> sort -> sort       (*exception TYPE*)
   val add_class: Pretty.pp -> class * class list -> algebra -> algebra
@@ -160,13 +162,16 @@ fun inter_sort algebra (S1, S2) =
   sort_strings (fold (inter_class algebra) S1 S2);
 
 
-(* normal form *)
+(* normal forms *)
 
-fun norm_sort _ [] = []
-  | norm_sort _ (S as [_]) = S
-  | norm_sort algebra S =
+fun minimize_sort _ [] = []
+  | minimize_sort _ (S as [_]) = S
+  | minimize_sort algebra S =
       filter (fn c => not (exists (fn c' => class_less algebra (c', c)) S)) S
       |> sort_distinct string_ord;
+
+fun complete_sort algebra =
+  Graph.all_succs (classes_of algebra) o minimize_sort algebra;
 
 
 (* certify *)
@@ -175,7 +180,7 @@ fun certify_class algebra c =
   if can (Graph.get_node (classes_of algebra)) c then c
   else raise TYPE ("Undeclared class: " ^ quote c, [], []);
 
-fun certify_sort classes = norm_sort classes o map (certify_class classes);
+fun certify_sort classes = minimize_sort classes o map (certify_class classes);
 
 
 
@@ -286,7 +291,7 @@ fun merge_algebra pp
 
 fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
   let
-    val restrict_sort = norm_sort algebra o filter P o Graph.all_succs classes;
+    val restrict_sort = minimize_sort algebra o filter P o Graph.all_succs classes;
     fun restrict_arity tyco (c, (_, Ss)) =
       if P c then
         SOME (c, (c, Ss |> map2 (curry (inter_sort algebra)) (sargs (c, tyco))

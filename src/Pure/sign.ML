@@ -75,17 +75,19 @@ sig
   val classes_of: theory -> Sorts.algebra
   val all_classes: theory -> class list
   val super_classes: theory -> class -> class list
+  val minimize_sort: theory -> sort -> sort
+  val complete_sort: theory -> sort -> sort
   val defaultS: theory -> sort
   val subsort: theory -> sort * sort -> bool
   val of_sort: theory -> typ * sort -> bool
   val witness_sorts: theory -> sort list -> sort list -> (typ * sort) list
   val universal_witness: theory -> (typ * sort) option
   val all_sorts_nonempty: theory -> bool
+  val is_logtype: theory -> string -> bool
   val typ_instance: theory -> typ * typ -> bool
   val typ_equiv: theory -> typ * typ -> bool
   val typ_match: theory -> typ * typ -> Type.tyenv -> Type.tyenv
   val typ_unify: theory -> typ * typ -> Type.tyenv * int -> Type.tyenv * int
-  val is_logtype: theory -> string -> bool
   val consts_of: theory -> Consts.T
   val const_constraint: theory -> string -> typ option
   val the_const_constraint: theory -> string -> typ
@@ -243,21 +245,26 @@ val syn_of = #syn o rep_sg;
 (* type signature *)
 
 val tsig_of = #tsig o rep_sg;
+
 val classes_of = #2 o #classes o Type.rep_tsig o tsig_of;
 val all_classes = Sorts.all_classes o classes_of;
 val minimal_classes = Sorts.minimal_classes o classes_of;
 val super_classes = Sorts.super_classes o classes_of;
+val minimize_sort = Sorts.minimize_sort o classes_of;
+val complete_sort = Sorts.complete_sort o classes_of;
+
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
 val universal_witness = Type.universal_witness o tsig_of;
 val all_sorts_nonempty = is_some o universal_witness;
+val is_logtype = member (op =) o Type.logical_types o tsig_of;
+
 val typ_instance = Type.typ_instance o tsig_of;
 fun typ_equiv thy (T, U) = typ_instance thy (T, U) andalso typ_instance thy (U, T);
 val typ_match = Type.typ_match o tsig_of;
 val typ_unify = Type.unify o tsig_of;
-val is_logtype = member (op =) o Type.logical_types o tsig_of;
 
 
 (* polymorphic constants *)
