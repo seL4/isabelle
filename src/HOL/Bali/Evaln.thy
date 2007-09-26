@@ -410,7 +410,7 @@ lemma evaln_eval:
   shows "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)"
 using evaln 
 proof (induct)
-  case (Loop s0 e n b s1 c s2 l s3)
+  case (Loop s0 e b n s1 c s2 l s3)
   note `G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1`
   moreover
   have "if the_Bool b

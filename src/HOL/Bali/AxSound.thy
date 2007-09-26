@@ -2017,7 +2017,7 @@ next
                 \<rbrakk>\<Longrightarrow> (P'\<leftarrow>=False\<down>=\<diamondsuit>) v s' Z"
 	  (is "PROP ?Hyp n t s v s'")
 	proof (induct)
-	  case (Loop s0' e' n' b s1' c' s2' l' s3' Y' T E)
+	  case (Loop s0' e' b n' s1' c' s2' l' s3' Y' T E)
 	  note while = `(\<langle>l'\<bullet> While(e') c'\<rangle>\<^sub>s::term) = \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s`
           hence eqs: "l'=l" "e'=e" "c'=c" by simp_all
 	  note valid_A = `\<forall>t\<in>A. G\<Turnstile>n'\<Colon>t`
