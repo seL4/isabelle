@@ -11,6 +11,7 @@ begin
 ML {* (*FIXME get rid of this*)
 nonfix union;
 nonfix inter;
+nonfix upto;
 *}
 
 export_code * in SML module_name CodegenTest
@@ -20,6 +21,7 @@ export_code * in SML module_name CodegenTest
 ML {*
 infix union;
 infix inter;
+infix 4 upto;
 *}
 
 end
