@@ -771,6 +771,15 @@ lemma insertCI [intro!]: "(a~:B ==> a = b) ==> a: insert b B"
 lemma subset_insert_iff: "(A \<subseteq> insert x B) = (if x:A then A - {x} \<subseteq> B else A \<subseteq> B)"
   by auto
 
+lemma set_insert:
+  assumes "x \<in> A"
+  obtains B where "A = insert x B" and "x \<notin> B"
+proof
+  from assms show "A = insert x (A - {x})" by blast
+next
+  show "x \<notin> A - {x}" by blast
+qed
+
 
 subsubsection {* Singletons, using insert *}
 
