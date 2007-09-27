@@ -24,8 +24,9 @@ local
 fun gen_invoke prep_att prep_expr parse_term add_fixes
     (prfx, raw_atts) raw_expr raw_insts fixes int state =
   let
-    val _ = Proof.assert_forward_or_chain state;
     val thy = Proof.theory_of state;
+    val _ = Proof.assert_forward_or_chain state;
+    val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
     val more_atts = map (prep_att thy) raw_atts;
     val (elems, _) = prep_expr raw_expr [] (ProofContext.init thy);
@@ -39,6 +40,7 @@ fun gen_invoke prep_att prep_expr parse_term add_fixes
     val types' = map (Logic.varifyT o TFree) types;
 
     val state' = state
+      |> Proof.enter_forward
       |> Proof.begin_block
       |> Proof.map_context (snd o add_fixes fixes);
     val ctxt' = Proof.context_of state';
@@ -90,6 +92,7 @@ fun gen_invoke prep_att prep_expr parse_term add_fixes
       Proof.put_facts NONE #> Seq.single;
   in
     state'
+    |> Proof.chain_facts chain_facts
     |> Proof.local_goal (K (K ())) (K I) ProofContext.bind_propp_schematic_i
       "invoke" NONE after_qed propp
     |> Element.refine_witness
