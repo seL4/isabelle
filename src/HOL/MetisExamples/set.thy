@@ -11,7 +11,7 @@ begin
 
 lemma "EX x X. ALL y. EX z Z. (~P(y,y) | P(x,x) | ~S(z,x)) &
                (S(x,y) | ~S(y,z) | Q(Z,Z))  &
-               (Q(X,y) | ~Q(y,Z) | S(X,X))"
+               (Q(X,y) | ~Q(y,Z) | S(X,X))" 
 by metis
 (*??But metis can't prove the single-step version...*)
 

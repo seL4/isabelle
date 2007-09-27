@@ -219,7 +219,7 @@ lemma ack_nest_bound: "ack(i1, ack (i2, j)) < ack (2 + (i1 + i2), j)"
 text {* PROPERTY A 11 *}
 
 lemma ack_add_bound: "ack (i1, j) + ack (i2, j) < ack (4 + (i1 + i2), j)"
-  apply (rule_tac j = "ack (Suc (Suc 0), ack (i1 + i2, j))" in less_trans)
+  apply (rule less_trans [of _ "ack (Suc (Suc 0), ack (i1 + i2, j))" _])
    prefer 2
    apply (rule ack_nest_bound [THEN less_le_trans])
    apply (simp add: Suc3_eq_add_3)
@@ -235,11 +235,10 @@ text {* PROPERTY A 12.  Article uses existential quantifier but the ALF proof
   "\<exists>k'. \<forall>i j. ..."} *}
 
 lemma ack_add_bound2: "i < ack (k, j) ==> i + j < ack (4 + k, j)"
-  apply (rule_tac j = "ack (k, j) + ack (0, j)" in less_trans)
-   prefer 2
+  apply (rule less_trans [of _ "ack (k, j) + ack (0, j)" _])
+   apply (blast intro: add_less_mono less_ack2) 
    apply (rule ack_add_bound [THEN less_le_trans])
    apply simp
-  apply (rule add_less_mono less_ack2 | assumption)+
   done
 
 
@@ -333,7 +332,7 @@ lemma ack_bounds_PRIMREC: "PRIMREC f ==> \<exists>k. \<forall>l. f l < ack (k, l
 lemma ack_not_PRIMREC: "\<not> PRIMREC (\<lambda>l. case l of [] => 0 | x # l' => ack (x, x))"
   apply (rule notI)
   apply (erule ack_bounds_PRIMREC [THEN exE])
-  apply (rule less_irrefl)
+  apply (rule Nat.less_irrefl)
   apply (drule_tac x = "[x]" in spec)
   apply simp
   done

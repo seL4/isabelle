@@ -21,18 +21,12 @@ sig
   val simpset_rules_of: Proof.context -> (string * thm) list  (*FIXME DELETE*)
   val atpset_rules_of: Proof.context -> (string * thm) list
   val meson_method_setup: theory -> theory
-  val clause_cache_setup: theory -> theory
+  val clause_cache_endtheory: theory -> theory option
   val setup: theory -> theory
 end;
 
 structure ResAxioms: RES_AXIOMS =
 struct
-
-(*For running the comparison between combinators and abstractions.
-  CANNOT be a ref, as the setting is used while Isabelle is built.
-  Currently TRUE: the combinator code cannot be used with proof reconstruction
-  because it is not performed by inference!!*)
-val abstract_lambdas = true;
 
 (* FIXME legacy *)
 fun freeze_thm th = #1 (Drule.freeze_thaw th);
@@ -74,21 +68,18 @@ fun transform_elim th =
            Thm.instantiate ([], [(cterm_of HOL.thy v, ctp_false)]) th
     | _ => th;
 
-(**** Transformation of Clasets and Simpsets into First-Order Axioms ****)
-
-(*Transfer a theorem into theory ATP_Linkup.thy if it is not already
-  inside that theory -- because it's needed for Skolemization *)
-
-(*This will refer to the final version of theory ATP_Linkup.*)
-val recon_thy_ref = Theory.check_thy @{theory}
-
-(*If called while ATP_Linkup is being created, it will transfer to the
-  current version. If called afterward, it will transfer to the final version.*)
-fun transfer_to_ATP_Linkup th =
-    transfer (Theory.deref recon_thy_ref) th handle THM _ => th;
-
+(*To enforce single-threading*)
+exception Clausify_failure of theory;
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
+
+fun rhs_extra_types lhsT rhs =
+  let val lhs_vars = Term.add_tfreesT lhsT []
+      fun add_new_TFrees (TFree v) =
+	    if member (op =) lhs_vars v then I else insert (op =) (TFree v)
+	| add_new_TFrees _ = I
+      val rhs_consts = fold_aterms (fn Const c => insert (op =) c | _ => I) rhs []
+  in fold (#2 #> Term.fold_atyps add_new_TFrees) rhs_consts [] end;
 
 (*Traverse a theorem, declaring Skolem function definitions. String s is the suggested
   prefix for the Skolem constant. Result is a new theory*)
@@ -97,18 +88,26 @@ fun declare_skofuns s th thy =
       fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (thy, axs) =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val cname = Name.internal ("sko_" ^ s ^ "_" ^ Int.toString (inc nref))
-                val args = term_frees xtp  (*get the formal parameter list*)
-                val Ts = map type_of args
-                val cT = Ts ---> T
+                val args0 = term_frees xtp  (*get the formal parameter list*)
+                val Ts = map type_of args0
+                val extraTs = rhs_extra_types (Ts ---> T) xtp
+                val _ = if null extraTs then () else
+                   warning ("Skolemization: extra type vars: " ^ 
+                            commas_quote (map (Sign.string_of_typ thy) extraTs)); 
+                val argsx = map (fn T => Free(gensym"vsk", T)) extraTs
+                val args = argsx @ args0
+                val cT = extraTs ---> Ts ---> T
                 val c = Const (Sign.full_name thy cname, cT)
                 val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
                         (*Forms a lambda-abstraction over the formal parameters*)
+                val _ = Output.debug (fn () => "declaring the constant " ^ cname)
                 val thy' = Sign.add_consts_authentic [(cname, cT, NoSyn)] thy
                            (*Theory is augmented with the constant, then its def*)
                 val cdef = cname ^ "_def"
                 val thy'' = Theory.add_defs_i false false [(cdef, equals cT $ c $ rhs)] thy'
+                            handle ERROR _ => raise Clausify_failure thy'
             in dec_sko (subst_bound (list_comb(c,args), p))
-                       (thy'', get_axiom thy'' cdef :: axs)
+			       (thy'', get_axiom thy'' cdef :: axs)
             end
         | dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) thx =
             (*Universal quant: insert a free variable into body and continue*)
@@ -280,6 +279,7 @@ fun declare_absfuns s th =
                           val cdef = cname ^ "_def"
                           val thy = Theory.add_defs_i false false
                                        [(cdef, equals cT $ c $ rhs)] thy
+                                    handle ERROR _ => raise Clausify_failure thy
                           val _ = Output.debug (fn()=> "Definition is " ^ string_of_thm (get_axiom thy cdef));
                           val ax = get_axiom thy cdef |> freeze_thm
                                      |> mk_object_eq |> strip_lambdas (length args)
@@ -402,6 +402,17 @@ fun skolem_of_def def =
        |> Thm.varifyT
   end;
 
+
+(*This will refer to the final version of theory ATP_Linkup.*)
+val atp_linkup_thy_ref = Theory.check_thy @{theory}
+
+(*Transfer a theorem into theory ATP_Linkup.thy if it is not already
+  inside that theory -- because it's needed for Skolemization.
+  If called while ATP_Linkup is being created, it will transfer to the
+  current version. If called afterward, it will transfer to the final version.*)
+fun transfer_to_ATP_Linkup th =
+    transfer (Theory.deref atp_linkup_thy_ref) th handle THM _ => th;
+
 (*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
 fun to_nnf th =
     th |> transfer_to_ATP_Linkup
@@ -423,25 +434,20 @@ fun assume_abstract s th =
           |> tap (fn ths => assert_lambda_free ths "assume_abstract: lambdas")
 
 (*Replace lambdas by assumed function definitions in the theorems*)
-fun assume_abstract_list s ths =
-  if abstract_lambdas then List.concat (map (assume_abstract s) ths)
-  else map Drule.eta_contraction_rule ths;
+fun assume_abstract_list s ths = List.concat (map (assume_abstract s) ths);
 
 (*Replace lambdas by declared function definitions in the theorems*)
-fun declare_abstract' s (thy, []) = (thy, [])
-  | declare_abstract' s (thy, th::ths) =
+fun declare_abstract s (thy, []) = (thy, [])
+  | declare_abstract s (thy, th::ths) =
       let val (thy', th_defs) =
             if lambda_free (prop_of th) then (thy, [th])
             else
                 th |> zero_var_indexes |> freeze_thm
                    |> Drule.eta_contraction_rule |> transfer thy |> declare_absfuns s
+                handle Clausify_failure thy_e => (thy_e,[])
           val _ = assert_lambda_free th_defs "declare_abstract: lambdas"
-          val (thy'', ths') = declare_abstract' s (thy', ths)
+          val (thy'', ths') = declare_abstract (s^"'") (thy', ths)
       in  (thy'', th_defs @ ths')  end;
-
-fun declare_abstract s (thy, ths) =
-  if abstract_lambdas then declare_abstract' s (thy, ths)
-  else (thy, map Drule.eta_contraction_rule ths);
 
 (*Keep the full complexity of the original name*)
 fun flatten_name s = space_implode "_X" (NameSpace.explode s);
@@ -449,6 +455,10 @@ fun flatten_name s = space_implode "_X" (NameSpace.explode s);
 fun fake_name th =
   if PureThy.has_name_hint th then flatten_name (PureThy.get_name_hint th)
   else gensym "unknown_thm_";
+
+fun name_or_string th =
+  if PureThy.has_name_hint th then PureThy.get_name_hint th
+  else string_of_thm th;
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm th =
@@ -461,62 +471,51 @@ fun skolem_thm th =
   It returns a modified theory, unless skolemization fails.*)
 fun skolem thy th =
      Option.map
-        (fn (nnfth, s) =>
-          let val _ = Output.debug (fn () => "skolemizing " ^ s ^ ": ")
+        (fn nnfth =>
+          let val _ = Output.debug (fn () => "skolemizing " ^ name_or_string th ^ ": ")
+              val _ = Output.debug (fn () => string_of_thm nnfth)
+              val s = fake_name th
               val (thy',defs) = declare_skofuns s nnfth thy
               val cnfs = Meson.make_cnf (map skolem_of_def defs) nnfth
+              val _ = Output.debug (fn () => Int.toString (length cnfs) ^ " clauses yielded")
               val (thy'',cnfs') = declare_abstract s (thy',cnfs)
-          in (map Goal.close_result (Meson.finish_cnf cnfs'), thy'')
-          end)
-      (SOME (to_nnf th, fake_name th)  handle THM _ => NONE);
-
-structure ThmCache = TheoryDataFun
-(
-  type T = (thm list) Thmtab.table ref;
-  val empty : T = ref Thmtab.empty;
-  fun copy (ref tab) : T = ref tab;
-  val extend = copy;
-  fun merge _ (ref tab1, ref tab2) : T = ref (Thmtab.merge (K true) (tab1, tab2));
-);
+          in (map Goal.close_result (Meson.finish_cnf cnfs'), thy'') end
+          handle Clausify_failure thy_e => ([],thy_e)
+        )
+      (try to_nnf th);
 
 (*The cache prevents repeated clausification of a theorem, and also repeated declaration of
-  Skolem functions. The global one holds theorems proved prior to this point. Theory data
-  holds the remaining ones.*)
-val global_clause_cache = ref (Thmtab.empty : (thm list) Thmtab.table);
+  Skolem functions.*)
+structure ThmCache = TheoryDataFun
+(
+  type T = (thm list) Thmtab.table;
+  val empty = Thmtab.empty;
+  fun copy tab : T = tab;
+  val extend = copy;
+  fun merge _ (tab1, tab2) : T = Thmtab.merge (K true) (tab1, tab2);
+);
 
 (*Populate the clause cache using the supplied theorem. Return the clausal form
   and modified theory.*)
-fun skolem_cache_thm clause_cache th thy =
-  case Thmtab.lookup (!clause_cache) th of
+fun skolem_cache_thm th thy =
+  case Thmtab.lookup (ThmCache.get thy) th of
       NONE =>
         (case skolem thy (Thm.transfer thy th) of
              NONE => ([th],thy)
            | SOME (cls,thy') =>
-                 (if null cls
-                  then warning ("skolem_cache: empty clause set for " ^ string_of_thm th)
-                  else ();
-                  change clause_cache (Thmtab.update (th, cls));
-                  (cls,thy')))
+                 (Output.debug (fn () => "skolem_cache_thm: " ^ Int.toString (length cls) ^ 
+                                         " clauses inserted into cache: " ^ name_or_string th);
+                  (cls, ThmCache.put (Thmtab.update (th,cls) (ThmCache.get thy')) thy')))
     | SOME cls => (cls,thy);
 
 (*Exported function to convert Isabelle theorems into axiom clauses*)
 fun cnf_axiom th =
-  let val cache = ThmCache.get (Thm.theory_of_thm th)
-                  handle ERROR _ => global_clause_cache
-      val in_cache = if cache = global_clause_cache then NONE else Thmtab.lookup (!cache) th
+  let val thy = Theory.merge (Theory.deref atp_linkup_thy_ref, Thm.theory_of_thm th)
   in
-     case in_cache of
-       NONE =>
-         (case Thmtab.lookup (!global_clause_cache) th of
-           NONE =>
-             let val cls = map Goal.close_result (skolem_thm th)
-             in Output.debug (fn () => Int.toString (length cls) ^ " clauses inserted into cache: " ^
-                                 (if PureThy.has_name_hint th then PureThy.get_name_hint th
-                                  else string_of_thm th));
-                change cache (Thmtab.update (th, cls)); cls
-             end
-         | SOME cls => cls)
-     | SOME cls => cls
+      case Thmtab.lookup (ThmCache.get thy) th of
+	  NONE => (Output.debug (fn () => "cnf_axiom: " ^ name_or_string th);
+		   map Goal.close_result (skolem_thm th))
+	| SOME cls => cls
   end;
 
 fun pairname th = (PureThy.get_name_hint th, th);
@@ -572,14 +571,23 @@ fun cnf_rules_pairs l = cnf_rules_pairs_aux [] (rev l);
 
 (*Setup function: takes a theory and installs ALL known theorems into the clause cache*)
 
-fun skolem_cache clause_cache th thy = #2 (skolem_cache_thm clause_cache th thy);
+val mark_skolemized = Sign.add_consts_i [("ResAxioms_endtheory", HOLogic.boolT, NoSyn)];
+
+fun skolem_cache th thy = #2 (skolem_cache_thm th thy);
+
+fun skolem_cache_all thy = fold skolem_cache (map #2 (PureThy.all_thms_of thy)) thy;
+
+fun skolem_cache_new thy = fold skolem_cache (map #2 (PureThy.thms_of thy)) thy;
 
 (*The cache can be kept smaller by inspecting the prop of each thm. Can ignore all that are
   lambda_free, but then the individual theory caches become much bigger.*)
 
-fun clause_cache_setup thy =
-  fold (skolem_cache global_clause_cache) (map #2 (PureThy.all_thms_of thy)) thy;
-
+(*The new constant is a hack to prevent multiple execution*)
+fun clause_cache_endtheory thy =
+  let val _ = Output.debug (fn () => "RexAxioms end theory action: " ^ Context.str_of_thy thy)
+  in
+    Option.map skolem_cache_new (try mark_skolemized thy)
+  end;
 
 (*** meson proof methods ***)
 
@@ -672,7 +680,7 @@ fun conj_rule []  = TrueI
   | conj_rule ths = foldr1 conj2_rule ths;
 
 fun skolem_attr (Context.Theory thy, th) =
-      let val (cls, thy') = skolem_cache_thm (ThmCache.get thy) th thy
+      let val (cls, thy') = skolem_cache_thm th thy
       in (Context.Theory thy', conj_rule cls) end
   | skolem_attr (context, th) = (context, th)
 
@@ -684,6 +692,6 @@ val setup_methods = Method.add_methods
   [("neg_clausify", Method.no_args (Method.SIMPLE_METHOD' neg_clausify_tac),
     "conversion of goal to conjecture clauses")];
 
-val setup = clause_cache_setup #> ThmCache.init #> setup_attrs #> setup_methods;
+val setup = mark_skolemized #> skolem_cache_all #> ThmCache.init #> setup_attrs #> setup_methods;
 
 end;

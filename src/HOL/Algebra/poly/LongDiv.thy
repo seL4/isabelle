@@ -44,7 +44,7 @@ lemma deg_lcoeff_cancel:
      [| deg p <= deg r; deg q <= deg r;  
         coeff p (deg r) = - (coeff q (deg r)); deg r ~= 0 |] ==>  
      deg (p + q) < deg r"
-  apply (rule_tac j = "deg r - 1" in le_less_trans)
+  apply (rule le_less_trans [of _ "deg r - 1"])
    prefer 2
    apply arith
   apply (rule deg_aboveI)
@@ -248,13 +248,8 @@ lemma long_div_rem_unique:
      f = q1 * g + r1; (r1 = 0 | deg r1 < deg g);  
      f = q2 * g + r2; (r2 = 0 | deg r2 < deg g) |] ==> r1 = r2"
   apply (subgoal_tac "q1 = q2")
-   apply clarify
-   apply (rule_tac a = "q2 * g + r1 - q2 * g" and b = "q2 * g + r2 - q2 * g" in box_equals)
-     apply simp
-    apply (simp (no_asm))
-   apply (simp (no_asm))
-  apply (rule long_div_quo_unique)
-  apply assumption+
+   apply (metis a_comm a_lcancel m_comm)
+  apply (metis a_comm l_zero long_div_quo_unique m_comm conc)
   done
 
 end

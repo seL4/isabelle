@@ -208,11 +208,8 @@ lemma new_tv_subst:
      addsimps [thm "free_tv_subst", thm "cod_def", thm "dom_def"])) 1 *})
   -- {* @{text \<Longleftarrow>} *}
   apply (unfold free_tv_subst cod_def dom_def)
-  apply (tactic "safe_tac set_cs")
-   apply (cut_tac m = m and n = n in less_linear)
-   apply (tactic "fast_tac (HOL_cs addSIs [@{thm less_or_eq_imp_le}]) 1")
-  apply (cut_tac m = ma and n = n in less_linear)
-  apply (fast intro!: less_or_eq_imp_le)
+  apply safe
+  apply (metis linorder_not_less)+
   done
 
 lemma new_tv_list: "new_tv n x = (\<forall>y \<in> set x. new_tv n y)"

@@ -7,7 +7,8 @@
 header{* The Isabelle-ATP Linkup *}
 
 theory ATP_Linkup
-imports Divides Record Hilbert_Choice
+imports Divides Record Hilbert_Choice Presburger Relation_Power SAT Recdef Extraction 
+   (*It must be a parent or a child of every other theory, to prevent theory-merge errors.*)
 uses
   "Tools/polyhash.ML"
   "Tools/res_clause.ML"
@@ -109,5 +110,12 @@ subsection {* The Metis prover *}
 
 use "Tools/metis_tools.ML"
 setup MetisTools.setup
+
+(*Sledgehammer*)
+setup ResAxioms.setup
+
+setup {*
+  Theory.at_end ResAxioms.clause_cache_endtheory
+*}
 
 end

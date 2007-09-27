@@ -205,15 +205,10 @@ lemma p_fac_forw_lemma:
 apply (rule notnotD)
 apply (rule notI)
 apply (drule contrapos_nn [OF _ leI, THEN notnotD], assumption)
-apply (drule_tac m = a in less_imp_le)
+apply (drule less_imp_le [of a])
 apply (drule le_imp_power_dvd)
 apply (drule_tac n = "p ^ r" in dvd_trans, assumption)
-apply (frule_tac m = k in less_imp_le)
-apply (drule_tac c = m in le_extend_mult, assumption)
-apply (drule_tac k = "p ^ a" and m = " (p ^ a) * m" in dvd_diffD1)
-prefer 2 apply assumption
-apply (rule dvd_refl [THEN dvd_mult2])
-apply (drule_tac n = k in dvd_imp_le, auto)
+apply (metis dvd_diffD1 dvd_triv_right le_extend_mult linorder_linear linorder_not_less mult_commute nat_dvd_not_less)
 done
 
 lemma p_fac_forw: "[| 0 < (m::nat); 0<k; k < p^a; (p^r) dvd (p^a)* m - k |]  

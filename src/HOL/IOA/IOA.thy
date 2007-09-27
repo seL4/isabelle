@@ -251,9 +251,7 @@ lemma reachable_n:
    apply (rule_tac x = "Suc n" in exI)
    apply (simp (no_asm))
   apply simp
-  apply (rule allI)
-  apply (cut_tac m = "na" and n = "n" in less_linear)
-  apply auto
+  apply (metis ioa_triple_proj less_antisym)
   done
 
 

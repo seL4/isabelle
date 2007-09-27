@@ -348,8 +348,8 @@ by intro_classes (transfer, simp)+
 
 instance star :: (semiring_0_cancel) semiring_0_cancel ..
 
-instance star :: (comm_semiring) comm_semiring
-by (intro_classes, transfer, rule distrib)
+instance star :: (comm_semiring) comm_semiring 
+by (intro_classes, transfer, rule left_distrib)
 
 instance star :: (comm_semiring_0) comm_semiring_0 ..
 instance star :: (comm_semiring_0_cancel) comm_semiring_0_cancel ..

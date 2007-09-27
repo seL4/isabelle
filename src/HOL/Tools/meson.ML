@@ -209,10 +209,10 @@ fun refl_clause th =
 
 (*** The basic CNF transformation ***)
 
-val max_clauses = ref 40;
+val max_clauses = 40;
 
-fun sum x y = if x < !max_clauses andalso y < !max_clauses then x+y else !max_clauses;
-fun prod x y = if x < !max_clauses andalso y < !max_clauses then x*y else !max_clauses;
+fun sum x y = if x < max_clauses andalso y < max_clauses then x+y else max_clauses;
+fun prod x y = if x < max_clauses andalso y < max_clauses then x*y else max_clauses;
 
 (*Estimate the number of clauses in order to detect infeasible theorems*)
 fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
@@ -239,7 +239,7 @@ fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
 
 val nclauses = signed_nclauses true;
 
-fun too_many_clauses t = nclauses t >= !max_clauses;
+fun too_many_clauses t = nclauses t >= max_clauses;
 
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, we call "generalize". *)
@@ -396,7 +396,7 @@ fun higher_inst_const thy (c,T) =
       [] => false (*not a function type, OK*)
     | Ts => length (binder_types (Sign.the_const_type thy c)) <> length Ts;
 
-(*Raises an exception if any Vars in the theorem mention type bool.
+(*Returns false if any Vars in the theorem mention type bool.
   Also rejects functions whose arguments are Booleans or other functions.*)
 fun is_fol_term thy t =
     Term.is_first_order ["all","All","Ex"] t andalso

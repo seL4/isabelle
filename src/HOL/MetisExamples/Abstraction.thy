@@ -90,13 +90,20 @@ lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in
 apply (metis Collect_mem_eq SigmaD2);
 done
 
-lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in> pset cl"proof (neg_clausify)
-assume 0: "(cl, f) \<in> CLF"
-assume 1: "CLF = Sigma CL llabs_subgoal_1"
-assume 2: "\<And>cl. llabs_subgoal_1 cl = Collect (llabs_Predicate_Xsup_Un_eq_1_ (pset cl))"
-assume 3: "f \<notin> pset cl"
+lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in> pset cl"
+proof (neg_clausify)
+assume 0: "\<And>cl\<Colon>'a\<Colon>type set.
+   (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> 'a\<Colon>type set) cl =
+   Collect (llabs_Set_XCollect_ex_eq_3_ op \<in> (pset cl))"
+assume 1: "(f\<Colon>'a\<Colon>type) \<notin> pset (cl\<Colon>'a\<Colon>type set)"
+assume 2: "(cl\<Colon>'a\<Colon>type set, f\<Colon>'a\<Colon>type) \<in> (CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set)"
+have 3: "llabs_Predicate_Xsup_Un_eq2_1_ (CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set)
+ (cl\<Colon>'a\<Colon>type set) (f\<Colon>'a\<Colon>type)"
+  by (metis acc_def 2)
+assume 4: "(CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set) =
+Sigma (CL\<Colon>'a\<Colon>type set set) (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> 'a\<Colon>type set)"
 show "False"
-  by (metis 0 1 SigmaD2 3 2 Collect_mem_eq)
+  by (metis 1 Collect_mem_eq 0 3 4 acc_def SigmaD2)
 qed finish_clausify (*ugly hack: combinators??*)
 
 ML{*ResAtp.problem_name := "Abstraction__Sigma_Collect_Pi"*}
@@ -110,15 +117,16 @@ lemma
     "(cl,f) \<in> (SIGMA cl::'a set : CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
     f \<in> pset cl \<rightarrow> pset cl"
 proof (neg_clausify)
-assume 0: "(cl, f) \<in> Sigma CL llabs_subgoal_1"
-assume 1: "\<And>cl. llabs_subgoal_1 cl =
-     Collect
-      (llabs_Predicate_Xsup_Un_eq_1_ (Pi (pset cl) (COMBK (pset cl))))"
-assume 2: "f \<notin> Pi (pset cl) (COMBK (pset cl))"
-have 3: "\<not> llabs_Predicate_Xsup_Un_eq_1_ (Pi (pset cl) (COMBK (pset cl))) f"
-  by (metis Collect_mem_eq 2)
+assume 0: "\<And>cl\<Colon>'a\<Colon>type set.
+   (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> ('a\<Colon>type \<Rightarrow> 'a\<Colon>type) set) cl =
+   Collect
+    (llabs_Set_XCollect_ex_eq_3_ op \<in> (Pi (pset cl) (COMBK (pset cl))))"
+assume 1: "(f\<Colon>'a\<Colon>type \<Rightarrow> 'a\<Colon>type) \<notin> Pi (pset (cl\<Colon>'a\<Colon>type set)) (COMBK (pset cl))"
+assume 2: "(cl\<Colon>'a\<Colon>type set, f\<Colon>'a\<Colon>type \<Rightarrow> 'a\<Colon>type)
+\<in> Sigma (CL\<Colon>'a\<Colon>type set set)
+   (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> ('a\<Colon>type \<Rightarrow> 'a\<Colon>type) set)"
 show "False"
-  by (metis acc_def 0 Collect_mem_eq SigmaD2 3 1 Collect_mem_eq)
+  by (metis 1 Collect_mem_eq 0 SigmaD2 2)
 qed finish_clausify
     (*Hack to prevent the "Additional hypotheses" error*)
 

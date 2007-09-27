@@ -7,7 +7,7 @@
 header {* A Basis for Building the Theory of Lists *}
 
 theory PreList
-imports Presburger Relation_Power SAT Recdef Extraction Record ATP_Linkup
+imports ATP_Linkup
 uses "Tools/function_package/lexicographic_order.ML"
      "Tools/function_package/fundef_datatype.ML"
 begin
@@ -20,8 +20,5 @@ text {*
 (* The lexicographic_order method and the "fun" command *)
 setup LexicographicOrder.setup
 setup FundefDatatype.setup
-
-(*Sledgehammer*)
-setup ResAxioms.setup
 
 end

@@ -215,8 +215,7 @@ lemma inj_injf_max: "\<forall>x. \<exists>y \<in> E. x < y ==> inj (%n. injf_max
 apply (rule inj_onI)
 apply (rule ccontr, auto)
 apply (drule injf_max_order_preserving2)
-apply (cut_tac m = x and n = y in less_linear, auto)
-apply (auto dest!: spec)
+apply (metis linorder_antisym_conv3 order_less_le)
 done
 
 lemma infinite_set_has_order_preserving_inj:

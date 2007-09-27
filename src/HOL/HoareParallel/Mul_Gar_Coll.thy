@@ -383,8 +383,7 @@ apply (force simp add:Blacks_def)
 apply force
 --{* 1 subgoal left *}
 apply clarify
-apply(drule le_imp_less_or_eq)
-apply(disjE_tac)
+apply(drule Nat.le_imp_less_or_eq)
 apply (simp_all add:Blacks_def)
 done
 

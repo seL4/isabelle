@@ -185,7 +185,7 @@ apply (case_tac "M x ! snd (E x ! ind x)=Black")
   apply (erule_tac x=i in allE , erule (1) notE impE)
   apply simp
   apply clarify
-  apply (drule le_imp_less_or_eq)
+  apply (drule Nat.le_imp_less_or_eq)
   apply (erule disjE)
    apply (subgoal_tac "Suc (ind x)\<le>r")
     apply fast
@@ -276,7 +276,7 @@ apply (case_tac "M x!k x=Black")
    apply (erule_tac x=i in allE , erule (1) notE impE)
    apply simp
    apply clarify
-   apply (drule le_imp_less_or_eq)
+   apply (drule Nat.le_imp_less_or_eq)
    apply (erule disjE)
     apply (subgoal_tac "Suc (ind x)\<le>r")
      apply fast
@@ -309,7 +309,7 @@ apply (erule less_SucE)
  apply (erule_tac x=i in allE , erule (1) notE impE)
  apply simp
  apply clarify
- apply (drule le_imp_less_or_eq)
+ apply (drule Nat.le_imp_less_or_eq)
  apply (erule disjE)
   apply (subgoal_tac "Suc (ind x)\<le>r")
    apply fast

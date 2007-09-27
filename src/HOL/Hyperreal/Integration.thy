@@ -553,18 +553,15 @@ apply (auto simp add: partition_rhs2)
 done
 
 lemma partition_lt_cancel: "[| partition(a,b) D; D m < D n |] ==> m < n"
-apply (cut_tac m = n and n = "psize D" in less_linear, auto)
-apply (cut_tac m = m and n = n in less_linear)
-apply (cut_tac m = m and n = "psize D" in less_linear)
+apply (cut_tac less_linear [of n "psize D"], auto)
+apply (cut_tac less_linear [of m n])
+apply (cut_tac less_linear [of m "psize D"])
 apply (auto dest: partition_gt)
 apply (drule_tac n = m in partition_lt_gen, auto)
 apply (frule partition_eq_bound)
 apply (drule_tac [2] partition_gt, auto)
-apply (rule ccontr, drule leI, drule le_imp_less_or_eq)
-apply (auto dest: partition_eq_bound)
-apply (rule ccontr, drule leI, drule le_imp_less_or_eq)
-apply (frule partition_eq_bound, assumption)
-apply (drule_tac m = m in partition_eq_bound, auto)
+apply (metis dense_linear_order_class.dlo_simps(8) le_def partition_rhs partition_rhs2)
+apply (metis Nat.le_less_trans dense_linear_order_class.dlo_simps(8) nat_le_linear partition_eq_bound partition_rhs2)
 done
 
 lemma lemma_additivity4_psize_eq:
@@ -577,7 +574,7 @@ apply (rule some_equality)
 apply (auto intro: partition_lt_Suc)
 apply (drule_tac n = n in partition_lt_gen, assumption)
 apply (arith, arith)
-apply (cut_tac m = na and n = "psize D" in less_linear)
+apply (cut_tac m = na and n = "psize D" in Nat.less_linear)
 apply (auto dest: partition_lt_cancel)
 apply (rule_tac x=N and y=n in linorder_cases)
 apply (drule_tac x = n and P="%m. N \<le> m --> ?f m = ?g m" in spec, simp)
@@ -609,12 +606,8 @@ lemma lemma_additivity3:
      "[| partition(a,b) D; D na < D n; D n < D (Suc na);
          n < psize D |]
       ==> False"
-apply (cut_tac m = n and n = "Suc na" in less_linear, auto)
-apply (drule_tac [2] n = n in partition_lt_gen, auto)
-apply (cut_tac m = "psize D" and n = na in less_linear)
-apply (auto simp add: partition_rhs2 less_Suc_eq)
-apply (drule_tac n = na in partition_lt_gen, auto)
-done
+by (metis not_less_eq partition_lt_cancel real_of_nat_less_iff)
+
 
 lemma psize_const [simp]: "psize (%x. k) = 0"
 by (auto simp add: psize_def)
