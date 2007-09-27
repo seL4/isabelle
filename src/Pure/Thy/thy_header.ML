@@ -54,7 +54,7 @@ fun read pos src =
     |> Symbol.source false
     |> T.source NONE (fn () => (header_lexicon, Scan.empty_lexicon)) pos
     |> T.source_proper
-    |> Source.source T.stopper (Scan.single (Scan.error header)) NONE
+    |> Source.source T.stopper (Scan.single (Scan.error (P.!!! header))) NONE
     |> Source.get_single;
   in
     (case res of SOME (x, _) => x
