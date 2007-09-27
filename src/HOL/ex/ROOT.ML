@@ -6,7 +6,16 @@ Miscellaneous examples for Higher-Order Logic.
 
 no_document use_thys [
   "Parity",
-  "GCD"
+  "GCD",
+  "Classpackage",
+  "Eval",
+  "State_Monad",
+  "Pretty_Int",
+  "Efficient_Nat",
+  "Codegenerator",
+  "Codegenerator_Pretty",
+  "FuncSet",
+  "Word"
 ];
 
 use_thys [
@@ -39,26 +48,16 @@ use_thys [
   "MT",
   "Unification",
   "Commutative_RingEx",
-  "Commutative_Ring_Complete"
+  "Commutative_Ring_Complete",
+  "Eval_Examples",
+  "Random",
+  "Primrec",
+  "Tarski",
+  "Adder"
 ];
-
-no_document time_use_thy "Classpackage";
-
-no_document time_use_thy "Eval";
-time_use_thy "Eval_Examples";
-
-no_document time_use_thy "State_Monad";
-no_document time_use_thy "Pretty_Int";
-time_use_thy "Random";
-
-no_document time_use_thy "Efficient_Nat";
-no_document time_use_thy "Codegenerator";
-no_document time_use_thy "Codegenerator_Pretty";
-
 
 setmp proofs 2 time_use_thy "Hilbert_Classical";
 
-time_use_thy "Primrec";
 time_use_thy "Classical";
 time_use_thy "set";
 
@@ -70,9 +69,6 @@ time_use_thy "Reflected_Presburger";
 time_use_thy "Reflection";
 
 time_use_thy "NBE";
-
-no_document use_thy "FuncSet";
-time_use_thy "Tarski";
 
 time_use_thy "SVC_Oracle";
 if_svc_enabled time_use_thy "svc_test";
@@ -90,9 +86,6 @@ else ();
 time_use_thy "Refute_Examples";
 time_use_thy "Quickcheck_Examples";
 no_document time_use_thy "NormalForm";
-
-no_document use_thy "Word";
-time_use_thy "Adder";
 
 HTML.with_charset "utf-8" (no_document time_use_thy) "Hebrew";
 HTML.with_charset "utf-8" (no_document time_use_thy) "Chinese";
