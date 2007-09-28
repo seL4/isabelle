@@ -19,11 +19,6 @@ val inductive_forall_name = "HOL.induct_forall";
 val inductive_forall_def = thm "induct_forall_def";
 val inductive_atomize = thms "induct_atomize";
 val inductive_rulify = thms "induct_rulify";
-val inductive_rulify_fallback = thms "induct_rulify_fallback";
-
-val rulify =
-  hol_simplify inductive_rulify
-  #> hol_simplify inductive_rulify_fallback;
 
 fun rulify_term thy = MetaSimplifier.rewrite_term thy inductive_rulify [];
 
@@ -412,7 +407,7 @@ fun prove_strong_ind s avoids thy =
         val ind_case_names = RuleCases.case_names induct_cases;
         val strong_raw_induct =
           mk_proof thy (map (map atomize_intr) thss) |>
-          rulify |> MetaSimplifier.norm_hhf;
+          InductivePackage.rulify;
         val strong_induct =
           if length names > 1 then
             (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
