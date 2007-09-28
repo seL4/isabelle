@@ -340,10 +340,10 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
             (Logic.strip_assums_concl rintr));
           val s' = Sign.base_name s;
           val T' = Logic.unvarifyT T
-        in ((s', SOME T', NoSyn),
+        in (((s', T'), NoSyn),
           (Const (s, T'), Free (s', T')))
         end) rintrs));
-    val rlzparams = map (fn Var ((s, _), T) => (s, SOME (Logic.unvarifyT T)))
+    val rlzparams = map (fn Var ((s, _), T) => (s, Logic.unvarifyT T))
       (List.take (snd (strip_comb
         (HOLogic.dest_Trueprop (Logic.strip_assums_concl (hd rintrs)))), nparms));
 

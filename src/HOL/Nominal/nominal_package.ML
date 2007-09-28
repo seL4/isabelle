@@ -596,7 +596,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
       setmp InductivePackage.quiet_mode false
         (InductivePackage.add_inductive_global false big_rep_name false true false
-           (map (fn (s, T) => (s, SOME (T --> HOLogic.boolT), NoSyn))
+           (map (fn (s, T) => ((s, T --> HOLogic.boolT), NoSyn))
               (rep_set_names' ~~ recTs'))
            [] (map (fn x => (("", []), x)) intr_ts) []) thy3;
 
@@ -1523,8 +1523,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       thy10 |>
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (InductivePackage.add_inductive_global false big_rec_name false false false
-           (map (fn (s, T) => (s, SOME T, NoSyn)) (rec_set_names' ~~ rec_set_Ts))
-           (map (apsnd SOME o dest_Free) rec_fns)
+           (map (fn (s, T) => ((s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
+           (map dest_Free rec_fns)
            (map (fn x => (("", []), x)) rec_intr_ts) []) ||>
       PureThy.hide_thms true [NameSpace.append
         (Sign.full_name thy10 big_rec_name) "induct"];

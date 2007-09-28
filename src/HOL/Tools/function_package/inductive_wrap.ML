@@ -45,7 +45,7 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
                                            false (* no coind *)
                                            false (* elims, please *)
                                            false (* induction thm please *)
-                                           [(R, SOME T, NoSyn)] (* the relation *)
+                                           [((R, T), NoSyn)] (* the relation *)
                                            [] (* no parameters *)
                                            (map (fn t => (("", []), t)) defs) (* the intros *)
                                            [] (* no special monos *)
