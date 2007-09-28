@@ -39,15 +39,15 @@ sig
   val inductive_cases_i: ((bstring * Attrib.src list) * term list) list ->
     Proof.context -> thm list list * local_theory
   val add_inductive_i: bool -> bstring -> bool -> bool -> bool ->
-    (string * typ option * mixfix) list ->
-    (string * typ option) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
+    ((string * typ) * mixfix) list ->
+    (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
       local_theory -> inductive_result * local_theory
   val add_inductive: bool -> bool -> (string * string option * mixfix) list ->
     (string * string option * mixfix) list ->
     ((bstring * Attrib.src list) * string) list -> (thmref * Attrib.src list) list ->
     local_theory -> inductive_result * local_theory
   val add_inductive_global: bool -> bstring -> bool -> bool -> bool ->
-    (string * typ option * mixfix) list -> (string * typ option) list ->
+    ((string * typ) * mixfix) list -> (string * typ) list ->
     ((bstring * Attrib.src list) * term) list -> thm list -> theory -> inductive_result * theory
   val arities_of: thm -> (string * int) list
   val params_of: thm -> term list
@@ -67,8 +67,8 @@ sig
   val add_ind_def: add_ind_def
   val gen_add_inductive_i: add_ind_def ->
     bool -> bstring -> bool -> bool -> bool ->
-    (string * typ option * mixfix) list ->
-    (string * typ option) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
+    ((string * typ) * mixfix) list ->
+    (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
       local_theory -> inductive_result * local_theory
   val gen_add_inductive: add_ind_def ->
     bool -> bool -> (string * string option * mixfix) list ->
@@ -307,11 +307,11 @@ fun check_rule ctxt cs params ((name, att), rule) =
     ((name, att), arule)
   end;
 
-val rulify =  (* FIXME norm_hhf *)
+val rulify =
   hol_simplify inductive_conj
   #> hol_simplify inductive_rulify
   #> hol_simplify inductive_rulify_fallback
-  (*#> standard*);
+  #> MetaSimplifier.norm_hhf;
 
 end;
 
@@ -695,7 +695,7 @@ fun declare_rules rec_name coind no_ind cnames intrs intr_names intr_atts
         (map (NameSpace.qualified rec_name) intr_names ~~
          intr_atts ~~ map (fn th => [([th],
            [Attrib.internal (K (ContextRules.intro_query NONE))])]) intrs) |>>
-      map (hd o snd); (* FIXME? *)
+      map (hd o snd);
     val (((_, elims'), (_, [induct'])), ctxt2) =
       ctxt1 |>
       note_theorem ((NameSpace.qualified rec_name "intros", []), intrs') ||>>
@@ -786,10 +786,6 @@ fun gen_add_inductive_i mk_def verbose alt_name coind no_elim no_ind
     val thy = ProofContext.theory_of ctxt;
     val _ = Theory.requires thy "Inductive" (coind_prefix coind ^ "inductive definitions");
 
-    val frees = fold (Term.add_frees o snd) pre_intros [];
-    fun type_of s = (case AList.lookup op = frees s of
-      NONE => error ("No such variable: " ^ s) | SOME T => T);
-
     fun is_abbrev ((name, atts), t) =
       can (Logic.strip_assums_concl #> Logic.dest_equals) t andalso
       (name = "" andalso null atts orelse
@@ -801,15 +797,15 @@ fun gen_add_inductive_i mk_def verbose alt_name coind no_elim no_ind
     fun expand [] r = r
       | expand tab r = Envir.beta_norm (Term.map_aterms (expand_atom tab) r);
 
-    val (_, ctxt') = Variable.add_fixes (map #1 cnames_syn) ctxt;
+    val (_, ctxt') = Variable.add_fixes (map (fst o fst) cnames_syn) ctxt;
 
     fun prep_abbrevs [] abbrevs' abbrevs'' = (rev abbrevs', rev abbrevs'')
       | prep_abbrevs ((_, abbrev) :: abbrevs) abbrevs' abbrevs'' =
           let val ((s, T), t) =
             LocalDefs.abs_def (snd (LocalDefs.cert_def ctxt' abbrev))
-          in case find_first (equal s o #1) cnames_syn of
+          in case find_first (equal s o fst o fst) cnames_syn of
               NONE => error ("Head of abbreviation " ^ quote s ^ " undeclared")
-            | SOME (_, _, mx) => prep_abbrevs abbrevs
+            | SOME (_, mx) => prep_abbrevs abbrevs
                 (((s, T), expand abbrevs' t) :: abbrevs')
                 (((s, mx), expand abbrevs' t) :: abbrevs'') (* FIXME: do not expand *)
           end;
@@ -821,21 +817,19 @@ fun gen_add_inductive_i mk_def verbose alt_name coind no_elim no_ind
         [] => ()
       | xs => error ("Bad abbreviation(s): " ^ commas (map fst xs)));
 
-    val params = map
-      (fn (s, SOME T) => Free (s, T) | (s, NONE) => Free (s, type_of s)) pnames;
-    val cnames_syn' = filter_out (fn (s, _, _) =>
+    val params = map Free pnames;
+    val cnames_syn' = filter_out (fn ((s, _), _) =>
       exists (equal s o fst o fst) abbrevs') cnames_syn;
-    val cs = map
-      (fn (s, SOME T, _) => Free (s, T) | (s, NONE, _) => Free (s, type_of s)) cnames_syn';
-    val cnames_syn'' = map (fn (s, _, mx) => (s, mx)) cnames_syn';
+    val cs = map (Free o fst) cnames_syn';
+    val cnames_syn'' = map (fn ((s, _), mx) => (s, mx)) cnames_syn';
 
     fun close_rule (x, r) = (x, list_all_free (rev (fold_aterms
       (fn t as Free (v as (s, _)) =>
-            if Variable.is_fixed ctxt s orelse member op = cs t orelse
+            if Variable.is_fixed ctxt' s orelse
               member op = params t then I else insert op = v
         | _ => I) r []), r));
 
-    val intros = map (apsnd (expand abbrevs') #> close_rule) pre_intros';
+    val intros = map (close_rule ##> expand abbrevs') pre_intros';
   in
     ctxt |>
     mk_def verbose alt_name coind no_elim no_ind cs intros monos
@@ -848,11 +842,9 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
     val ((vars, specs), _) = lthy |> Specification.read_specification
       (cnames_syn @ pnames_syn) (map (fn (a, s) => [(a, [s])]) intro_srcs);
     val (cs, ps) = chop (length cnames_syn) vars;
-    val cnames = map (fn ((c, T), mx) => (c, SOME T, mx)) cs;
-    val pnames = map (fn ((x, T), _) => (x, SOME T)) ps;
     val intrs = map (apsnd the_single) specs;
     val monos = Attrib.eval_thms lthy raw_monos;
-  in gen_add_inductive_i mk_def verbose "" coind false false cnames pnames intrs monos lthy end;
+  in gen_add_inductive_i mk_def verbose "" coind false false cs (map fst ps) intrs monos lthy end;
 
 val add_inductive_i = gen_add_inductive_i add_ind_def;
 val add_inductive = gen_add_inductive add_ind_def;
@@ -862,7 +854,7 @@ fun add_inductive_global verbose alt_name coind no_elim no_ind cnames_syn pnames
   add_inductive_i verbose alt_name coind no_elim no_ind cnames_syn pnames pre_intros monos #>
   (fn (_, lthy) =>
     (#2 (the_inductive (LocalTheory.target_of lthy)
-      (LocalTheory.target_name lthy (#1 (hd cnames_syn)))),
+      (LocalTheory.target_name lthy (fst (fst (hd cnames_syn))))),
     ProofContext.theory_of (LocalTheory.exit lthy)));
 
 
