@@ -12,8 +12,8 @@ sig
   val to_pred_att: thm list -> attribute
   val pred_set_conv_att: attribute
   val add_inductive_i: bool -> bstring -> bool -> bool -> bool ->
-    (string * typ option * mixfix) list ->
-    (string * typ option) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
+    ((string * typ) * mixfix) list ->
+    (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
       local_theory -> InductivePackage.inductive_result * local_theory
   val add_inductive: bool -> bool -> (string * string option * mixfix) list ->
     (string * string option * mixfix) list ->
