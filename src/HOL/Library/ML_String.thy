@@ -47,6 +47,7 @@ subsection {* Code serialization *}
 
 code_type ml_string
   (SML "string")
+  (OCaml "string")
   (Haskell "String")
 
 setup {*
@@ -63,6 +64,8 @@ let
 in
   CodeTarget.add_pretty_ml_string "SML"
     charr nibbles @{const_name Nil} @{const_name Cons} @{const_name STR}
+  #> CodeTarget.add_pretty_ml_string "OCaml"
+  charr nibbles @{const_name Nil} @{const_name Cons} @{const_name STR}
 end
 *}
 
@@ -70,12 +73,14 @@ code_const STR
   (Haskell "_")
 
 code_reserved SML string
+code_reserved OCaml string
 
 code_instance ml_string :: eq
   (Haskell -)
 
 code_const "op = \<Colon> ml_string \<Rightarrow> ml_string \<Rightarrow> bool"
   (SML "!((_ : string) = _)")
+  (OCaml "!((_ : string) = _)")
   (Haskell infixl 4 "==")
 
 end

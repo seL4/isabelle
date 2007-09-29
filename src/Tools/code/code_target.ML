@@ -1640,7 +1640,7 @@ val pretty : (string * {
   ("SML", { pretty_char = prefix "#" o quote o ML_Syntax.print_char,
       pretty_string = ML_Syntax.print_string,
       pretty_numeral = fn unbounded => fn k =>
-        if unbounded then "(" ^ string_of_int k ^ " : int)"
+        if unbounded then "(" ^ string_of_int k ^ " : IntInf.int)"
         else string_of_int k,
       pretty_list = Pretty.enum "," "[" "]",
       infix_cons = (7, "::")}),
@@ -1650,7 +1650,7 @@ val pretty : (string * {
             then prefix "\\" (string_of_int i)
             else c
           end),
-      pretty_string = (fn _ => error "OCaml: no pretty strings"),
+      pretty_string = ML_Syntax.print_string,
       pretty_numeral = fn unbounded => fn k => if k >= 0 then
             if unbounded then
               "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
