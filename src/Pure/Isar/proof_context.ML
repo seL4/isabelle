@@ -25,6 +25,9 @@ sig
   val full_name: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
+  val const_constraint: Proof.context -> string -> typ option
+  val the_const_constraint: Proof.context -> string -> typ
+  val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val theorems_of: Proof.context -> thm list NameSpace.table
@@ -266,6 +269,9 @@ val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
 
 val consts_of = #2 o #consts o rep_context;
 val const_syntax_name = Consts.syntax_name o consts_of;
+val const_constraint = try o Consts.the_constraint o consts_of;
+val the_const_constraint = Consts.the_constraint o consts_of;
+val add_const_constraint = map_consts o apsnd o Consts.constrain;
 
 val thms_of = #thms o rep_context;
 val theorems_of = #1 o thms_of;
