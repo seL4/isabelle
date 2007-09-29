@@ -89,7 +89,6 @@ sig
   val typ_match: theory -> typ * typ -> Type.tyenv -> Type.tyenv
   val typ_unify: theory -> typ * typ -> Type.tyenv * int -> Type.tyenv * int
   val consts_of: theory -> Consts.T
-  val const_constraint: theory -> string -> typ option
   val the_const_constraint: theory -> string -> typ
   val const_type: theory -> string -> typ option
   val the_const_type: theory -> string -> typ
@@ -166,8 +165,7 @@ sig
   val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_abbrev: string -> bstring * term -> theory -> (term * term) * theory
   include SIGN_THEORY
-  val add_const_constraint: xstring * string option -> theory -> theory
-  val add_const_constraint_i: string * typ option -> theory -> theory
+  val add_const_constraint: string * typ option -> theory -> theory
   val primitive_class: string * class list -> theory -> theory
   val primitive_classrel: class * class -> theory -> theory
   val primitive_arity: arity -> theory -> theory
@@ -271,7 +269,6 @@ val typ_unify = Type.unify o tsig_of;
 
 val consts_of = #consts o rep_sg;
 val the_const_constraint = Consts.the_constraint o consts_of;
-val const_constraint = try o the_const_constraint;
 val the_const_type = Consts.the_declaration o consts_of;
 val const_type = try o the_const_type;
 val const_monomorphic = Consts.is_monomorphic o consts_of;
@@ -280,7 +277,7 @@ val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
 
 val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
-val declared_const = is_some oo const_constraint;
+val declared_const = can o the_const_constraint;
 
 
 
@@ -577,7 +574,7 @@ fun read_def_terms'
       handle TYPE (msg, _, _) => error msg;
 
     fun infer args = TypeInfer.infer_types pp (tsig_of thy) check_typs
-        (try (Consts.the_constraint consts)) def_type used freeze args |>> map fst
+        (try (Consts.the_constraint consts)) def_type used ~1 (SOME freeze) args |>> map fst
       handle TYPE (msg, _, _) => error msg;
 
     fun check T t = Exn.Result (singleton (fst o infer) (t, T))
@@ -740,17 +737,13 @@ fun add_abbrev mode (c, raw_t) thy =
 
 (* add constraints *)
 
-fun gen_add_constraint int_const prep_typ (raw_c, opt_T) thy =
+fun add_const_constraint (c, opt_T) thy =
   let
-    val c = int_const thy raw_c;
     fun prepT raw_T =
-      let val T = Logic.varifyT (Type.no_tvars (Term.no_dummyT (prep_typ thy raw_T)))
+      let val T = Logic.varifyT (Type.no_tvars (Term.no_dummyT (certify_typ thy raw_T)))
       in cert_term thy (Const (c, T)); T end
       handle TYPE (msg, _, _) => error msg;
   in thy |> map_consts (Consts.constrain (c, Option.map prepT opt_T)) end;
-
-val add_const_constraint = gen_add_constraint intern_const read_typ;
-val add_const_constraint_i = gen_add_constraint (K I) certify_typ;
 
 
 (* primitive classes and arities *)
