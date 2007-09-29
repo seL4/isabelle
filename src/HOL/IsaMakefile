@@ -48,6 +48,8 @@ test: \
   HOL-ZF
     # ^ this is the sort position
 
+proofterms: HOL HOL-Extraction HOL-Lambda
+
 all: test images
 
 
