@@ -702,7 +702,7 @@ apply (metis UnCI UnE Un_commute analz.Inj)
 apply (metis MPair_synth UnCI UnE Un_commute Un_upper1 analz.Fst analz_increasing analz_mono insert_absorb insert_subset)
 apply (metis MPair_synth UnCI UnE Un_commute Un_upper1 analz.Snd analz_increasing analz_mono insert_absorb insert_subset)
 apply (blast intro: analz.Decrypt)
-apply (metis Diff_Int Diff_empty Diff_subset_conv Int_empty_right Un_commute Un_subset_iff Un_upper1 analz_increasing analz_mono synth_increasing)
+apply blast
 done
 
 

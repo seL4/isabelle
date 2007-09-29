@@ -416,7 +416,12 @@ lemma xzgcd_correct_aux1:
     z = s and aa = t' and ab = t in xzgcda.induct)
   apply (subst zgcd_eq)
   apply (subst xzgcda.simps, auto)
-  apply (metis abs_of_pos pos_mod_conj simps zgcd_0 zgcd_eq zle_refl zless_le)
+  apply (case_tac "r' mod r = 0")
+   prefer 2
+   apply (frule_tac a = "r'" in pos_mod_sign, auto)
+  apply (rule exI)
+  apply (rule exI)
+  apply (subst xzgcda.simps, auto)
   done
 
 lemma xzgcd_correct_aux2:
