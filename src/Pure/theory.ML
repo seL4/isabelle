@@ -270,10 +270,8 @@ fun add_deps a raw_lhs raw_rhs thy =
 
 fun check_overloading thy overloaded (c, T) =
   let
-    val declT =
-      (case Sign.const_constraint thy c of
-        NONE => error ("Undeclared constant " ^ quote c)
-      | SOME declT => declT);
+    val declT = Sign.the_const_constraint thy c
+      handle TYPE (msg, _, _) => error msg;
     val T' = Logic.varifyT T;
 
     fun message txt =
