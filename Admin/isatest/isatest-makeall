@@ -18,11 +18,14 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG settings1 [settings2 ...]"
+  echo "Usage: $PRG [-l logic targets] settings1 [settings2 ...]"
   echo
   echo "  Runs isatool makeall for specified settings."
   echo "  Leaves messages in ${ERRORLOG} and ${LOGPREFIX} if it fails."
   echo
+  echo "Examples:"
+  echo "  $PRG ~/settings/at-poly ~/settings/at-sml"
+  echo "  $PRG -l HOL \"HOL-Library HOL-Bali\" ~/settings/at-poly"
   exit 1
 }
 
@@ -83,6 +86,22 @@ case $HOSTNAME in
         ;;
 esac
 
+ISATOOL="$DISTPREFIX/Isabelle/bin/isatool"
+
+[ -x $ISATOOL ] || fail "Cannot run $ISATOOL"
+
+if [ "$1" = "-l" ]; then
+  shift
+  [ "$#" -lt "3" ] && usage
+  LOGIC="$1"
+  TARGETS="$2"
+  shift 2
+  ISABELLE_HOME="$($ISATOOL getenv -b ISABELLE_HOME)"
+  TOOL="cd $ISABELLE_HOME/$LOGIC; $NICE $ISATOOL make $MFLAGS $TARGETS"
+else
+  TOOL="$NICE $ISATOOL makeall $MFLAGS all"
+fi
+
 # main test loop
 
 for SETTINGS in $@; do
@@ -102,7 +121,7 @@ for SETTINGS in $@; do
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    (ulimit -t $MAXTIME; $NICE $DISTPREFIX/Isabelle/bin/isatool makeall $MFLAGS all >> $TESTLOG 2>&1)
+    (ulimit -t $MAXTIME; $TOOL >> $TESTLOG 2>&1)
 
     if [ $? -eq 0 ]
     then
