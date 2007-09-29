@@ -45,6 +45,7 @@ sig
   val map_elem: ('a -> 'b) -> 'a element -> 'b element
 
   val intern: theory -> xstring -> string
+  val intern_expr: theory -> expr -> expr
   val extern: theory -> string -> xstring
   val init: string -> theory -> Proof.context
 
