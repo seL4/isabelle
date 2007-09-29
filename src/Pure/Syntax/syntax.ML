@@ -86,15 +86,34 @@ sig
   val pretty_sort: Proof.context -> syntax -> sort -> Pretty.T
   val ambiguity_level: int ref
   val ambiguity_is_error: bool ref
-  val install_parsers:
-   {sort: Proof.context -> string -> sort,
-    typ: Proof.context -> string -> typ,
-    term: Proof.context -> string -> term,
-    prop: Proof.context -> string -> term} -> unit
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
   val parse_prop: Proof.context -> string -> term
+  val unparse_sort: Proof.context -> sort -> Pretty.T
+  val unparse_typ: Proof.context -> typ -> Pretty.T
+  val unparse_term: Proof.context -> term -> Pretty.T
+  val install_operations:
+   {parse_sort: Proof.context -> string -> sort,
+    parse_typ: Proof.context -> string -> typ,
+    parse_term: Proof.context -> string -> term,
+    parse_prop: Proof.context -> string -> term,
+    unparse_sort: Proof.context -> sort -> Pretty.T,
+    unparse_typ: Proof.context -> typ -> Pretty.T,
+    unparse_term: Proof.context -> term -> Pretty.T} -> unit
+  val print_checks: Proof.context -> unit
+  val add_typ_check: int -> string ->
+    (typ list -> Proof.context -> typ list * Proof.context) ->
+    Context.generic -> Context.generic
+  val add_term_check: int -> string ->
+    (term list -> Proof.context -> term list * Proof.context) ->
+    Context.generic -> Context.generic
+  val add_typ_uncheck: int -> string ->
+    (typ list -> Proof.context -> typ list * Proof.context) ->
+    Context.generic -> Context.generic
+  val add_term_uncheck: int -> string ->
+    (term list -> Proof.context -> term list * Proof.context) ->
+    Context.generic -> Context.generic
   val check_sort: Proof.context -> sort -> sort
   val check_typ: Proof.context -> typ -> typ
   val check_term: Proof.context -> term -> term
@@ -102,10 +121,8 @@ sig
   val check_typs: Proof.context -> typ list -> typ list
   val check_terms: Proof.context -> term list -> term list
   val check_props: Proof.context -> term list -> term list
-  val add_typ_check: (typ list -> Proof.context -> typ list * Proof.context) ->
-    Context.generic -> Context.generic
-  val add_term_check: (term list -> Proof.context -> term list * Proof.context) ->
-    Context.generic -> Context.generic
+  val uncheck_typs: Proof.context -> typ list -> typ list
+  val uncheck_terms: Proof.context -> term list -> term list
   val read_sort: Proof.context -> string -> sort
   val read_typ: Proof.context -> string -> typ
   val read_term: Proof.context -> string -> term
@@ -602,82 +619,124 @@ val remove_trrules_i = remove_syntax default_mode o SynExt.syn_ext_rules o cert_
 
 
 
-(** generic parsing and type-checking **)
+(** inner syntax operations **)
 
-(* parsing *)
-
-type parsers =
- {sort: Proof.context -> string -> sort,
-  typ: Proof.context -> string -> typ,
-  term: Proof.context -> string -> term,
-  prop: Proof.context -> string -> term};
+(* (un)parsing *)
 
 local
-  val parsers = ref (NONE: parsers option);
-in
-  fun install_parsers ps = CRITICAL (fn () =>
-    if is_some (! parsers) then error "Inner syntax parsers already installed"
-    else parsers := SOME ps);
+  type operations =
+   {parse_sort: Proof.context -> string -> sort,
+    parse_typ: Proof.context -> string -> typ,
+    parse_term: Proof.context -> string -> term,
+    parse_prop: Proof.context -> string -> term,
+    unparse_sort: Proof.context -> sort -> Pretty.T,
+    unparse_typ: Proof.context -> typ -> Pretty.T,
+    unparse_term: Proof.context -> term -> Pretty.T};
 
-  fun parse which ctxt s =
-    (case ! parsers of
-      NONE => error "Inner syntax parsers not yet installed"
-    | SOME ps => which ps ctxt s);
+  val operations = ref (NONE: operations option);
+
+  fun operation which ctxt x =
+    (case ! operations of
+      NONE => error "Inner syntax operations not yet installed"
+    | SOME ops => which ops ctxt x);
+in
+
+val parse_sort = operation #parse_sort;
+val parse_typ = operation #parse_typ;
+val parse_term = operation #parse_term;
+val parse_prop = operation #parse_prop;
+val unparse_sort = operation #unparse_sort;
+val unparse_typ = operation #unparse_typ;
+val unparse_term = operation #unparse_term;
+
+fun install_operations ops = CRITICAL (fn () =>
+  if is_some (! operations) then error "Inner syntax operations already installed"
+  else operations := SOME ops);
+
 end;
 
-val parse_sort = parse #sort;
-val parse_typ = parse #typ;
-val parse_term = parse #term;
-val parse_prop = parse #prop;
 
-
-(* checking types/terms *)
+(* context-sensitive (un)checking *)
 
 local
+
+type key = int * bool;
+type 'a check = 'a list -> Proof.context -> 'a list * Proof.context;
 
 structure Checks = GenericDataFun
 (
   type T =
-    ((typ list -> Proof.context -> typ list * Proof.context) * stamp) list *
-    ((term list -> Proof.context -> term list * Proof.context) * stamp) list;
+    ((key * ((string * typ check) * stamp) list) list *
+     (key * ((string * term check) * stamp) list) list);
   val empty = ([], []);
   val extend = I;
   fun merge _ ((typ_checks1, term_checks1), (typ_checks2, term_checks2)) : T =
-    (Library.merge (eq_snd op =) (typ_checks1, typ_checks2),
-     Library.merge (eq_snd op =) (term_checks1, term_checks2));
+    (AList.join (op =) (K (Library.merge (eq_snd (op =)))) (typ_checks1, typ_checks2),
+     AList.join (op =) (K (Library.merge (eq_snd (op =)))) (term_checks1, term_checks2));
 );
 
-fun gen_check which eq ctxt0 xs0 =
+fun gen_add which (key: key) name f =
+  Checks.map (which (AList.map_default op = (key, []) (cons ((name, f), stamp ()))));
+
+fun gen_check which uncheck eq ctxt0 xs0 =
   let
-    val funs = map fst (rev (which (Checks.get (Context.Proof ctxt0))));
+    val funs = which (Checks.get (Context.Proof ctxt0))
+      |> map_filter (fn ((i, u), fs) => if uncheck = u then SOME (i, map (snd o fst) fs) else NONE)
+      |> Library.sort (int_ord o pairself fst)
+      |> not uncheck ? map (apsnd rev);
 
-    fun check [] xs ctxt = (xs, ctxt)
-      | check (f :: fs) xs ctxt = f xs ctxt |-> check fs;
-
-    fun check_fixpoint xs ctxt =
-      let val (xs', ctxt') = check funs xs ctxt in
+    fun check_fixpoint fs (xs, ctxt) =
+      let val (xs', ctxt') = fold uncurry fs (xs, ctxt) in
         if eq_list eq (xs, xs') then (xs, ctxt)
-        else check_fixpoint xs' ctxt'
+        else check_fixpoint fs (xs', ctxt')
       end;
-  in #1 (case funs of [f] => f xs0 ctxt0 | _ => check_fixpoint xs0 ctxt0) end;
+  in #1 (fold (check_fixpoint o snd) funs (xs0, ctxt0)) end;
+
+fun map_sort f S =
+  (case f (TFree ("", S)) of
+    TFree ("", S') => S'
+  | T => raise TYPE ("map_sort", [TFree ("", S), T], []));
 
 in
 
-val check_typs = gen_check fst (op =);
-val check_terms = gen_check snd (op aconv);
+fun print_checks ctxt =
+  let
+    fun split_checks checks =
+      List.partition (fn ((_, un), _) => not un) checks
+      |> pairself (map (fn ((i, _), fs) => (i, map (fst o fst) fs))
+          #> sort (int_ord o pairself fst));
+    fun pretty_checks kind checks =
+      checks |> map (fn (i, names) => Pretty.block
+        [Pretty.str (kind ^ " (stage " ^ signed_string_of_int i ^ "):"),
+          Pretty.brk 1, Pretty.strs names]);
+
+    val (typs, terms) = Checks.get (Context.Proof ctxt);
+    val (typ_checks, typ_unchecks) = split_checks typs;
+    val (term_checks, term_unchecks) = split_checks terms;
+  in
+    pretty_checks "typ_checks" typ_checks @
+    pretty_checks "term_checks" term_checks @
+    pretty_checks "typ_unchecks" typ_unchecks @
+    pretty_checks "term_unchecks" term_unchecks
+  end |> Pretty.chunks |> Pretty.writeln;
+
+fun add_typ_check stage = gen_add apfst (stage, false);
+fun add_term_check stage = gen_add apsnd (stage, false);
+fun add_typ_uncheck stage = gen_add apfst (stage, true);
+fun add_term_uncheck stage = gen_add apsnd (stage, true);
+
+val check_typs = gen_check fst false (op =);
+val check_terms = gen_check snd false (op aconv);
 fun check_props ctxt = map (TypeInfer.constrain propT) #> check_terms ctxt;
 
 val check_typ = singleton o check_typs;
 val check_term = singleton o check_terms;
 val check_prop = singleton o check_props;
+val check_sort = map_sort o check_typ;
 
-fun check_sort ctxt S =
-  (case singleton (check_typs ctxt) (TFree ("", S)) of   (* FIXME TypeInfer.invent_type (!?) *)
-    TFree ("", S') => S'
-  | T => raise TYPE ("check_sort", [T], []));
-
-fun add_typ_check f = Checks.map (apfst (cons (f, stamp ())));
-fun add_term_check f = Checks.map (apsnd (cons (f, stamp ())));
+val uncheck_typs = gen_check fst true (op =);
+val uncheck_terms = gen_check snd true (op aconv);
+val uncheck_sort = map_sort o singleton o uncheck_typs;
 
 end;
 
