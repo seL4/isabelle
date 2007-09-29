@@ -401,33 +401,33 @@ lemma Sup_binary:
   "\<Squnion>{a, b} = a \<squnion> b"
   by (simp add: Sup_insert_simp)
 
-end
-
 definition
-  top :: "'a::complete_lattice"
+  top :: 'a
 where
   "top = Inf {}"
 
 definition
-  bot :: "'a::complete_lattice"
+  bot :: 'a
 where
   "bot = Sup {}"
 
-lemma top_greatest [simp]: "x \<le> top"
+lemma top_greatest [simp]: "x \<^loc>\<le> top"
   by (unfold top_def, rule Inf_greatest, simp)
 
-lemma bot_least [simp]: "bot \<le> x"
+lemma bot_least [simp]: "bot \<^loc>\<le> x"
   by (unfold bot_def, rule Sup_least, simp)
 
 definition
-  SUPR :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> 'b"
+  SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
   "SUPR A f == Sup (f ` A)"
 
 definition
-  INFI :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> 'b"
+  INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
   "INFI A f == Inf (f ` A)"
+
+end
 
 syntax
   "_SUP1"     :: "pttrns => 'b => 'b"           ("(3SUP _./ _)" [0, 10] 10)
