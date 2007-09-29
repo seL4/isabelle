@@ -2006,8 +2006,8 @@ declare
 subsubsection{* Semi-Lattices *}
 
 locale ACIfSL = ord + ACIf +
-  assumes below_def: "x \<sqsubseteq> y \<longleftrightarrow> x \<cdot> y = x"
-  and strict_below_def: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
+  assumes below_def: "less_eq x y \<longleftrightarrow> x \<cdot> y = x"
+  and strict_below_def: "less x y \<longleftrightarrow> less_eq x y \<and> x \<noteq> y"
 begin
 
 lemma below_refl [simp]: "x \<^loc>\<le> x"
@@ -2033,9 +2033,9 @@ proof -
   then show ?thesis by (simp add: below_def)
 qed
 
-lemma below_f_conv [simp,noatp]: "x \<sqsubseteq> y \<cdot> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
+lemma below_f_conv [simp,noatp]: "x \<^loc>\<le> y \<cdot> z = (x \<^loc>\<le> y \<and> x \<^loc>\<le> z)"
 proof
-  assume "x \<sqsubseteq> y \<cdot> z"
+  assume "x \<^loc>\<le> y \<cdot> z"
   hence xyzx: "x \<cdot> (y \<cdot> z) = x"  by(simp add: below_def)
   have "x \<cdot> y = x"
   proof -
@@ -2051,14 +2051,14 @@ proof
     also have "\<dots> = x" by(rule xyzx)
     finally show ?thesis .
   qed
-  ultimately show "x \<sqsubseteq> y \<and> x \<sqsubseteq> z" by(simp add: below_def)
+  ultimately show "x \<^loc>\<le> y \<and> x \<^loc>\<le> z" by(simp add: below_def)
 next
-  assume a: "x \<sqsubseteq> y \<and> x \<sqsubseteq> z"
+  assume a: "x \<^loc>\<le> y \<and> x \<^loc>\<le> z"
   hence y: "x \<cdot> y = x" and z: "x \<cdot> z = x" by(simp_all add: below_def)
   have "x \<cdot> (y \<cdot> z) = (x \<cdot> y) \<cdot> z" by(simp add:assoc)
   also have "x \<cdot> y = x" using a by(simp_all add: below_def)
   also have "x \<cdot> z = x" using a by(simp_all add: below_def)
-  finally show "x \<sqsubseteq> y \<cdot> z" by(simp_all add: below_def)
+  finally show "x \<^loc>\<le> y \<cdot> z" by(simp_all add: below_def)
 qed
 
 end
@@ -2072,38 +2072,38 @@ locale ACIfSLlin = ACIfSL +
 begin
 
 lemma above_f_conv:
- "x \<cdot> y \<sqsubseteq> z = (x \<sqsubseteq> z \<or> y \<sqsubseteq> z)"
+ "x \<cdot> y \<^loc>\<le> z = (x \<^loc>\<le> z \<or> y \<^loc>\<le> z)"
 proof
-  assume a: "x \<cdot> y \<sqsubseteq> z"
+  assume a: "x \<cdot> y \<^loc>\<le> z"
   have "x \<cdot> y = x \<or> x \<cdot> y = y" using lin[of x y] by simp
-  thus "x \<sqsubseteq> z \<or> y \<sqsubseteq> z"
+  thus "x \<^loc>\<le> z \<or> y \<^loc>\<le> z"
   proof
-    assume "x \<cdot> y = x" hence "x \<sqsubseteq> z" by(rule subst)(rule a) thus ?thesis ..
+    assume "x \<cdot> y = x" hence "x \<^loc>\<le> z" by(rule subst)(rule a) thus ?thesis ..
   next
-    assume "x \<cdot> y = y" hence "y \<sqsubseteq> z" by(rule subst)(rule a) thus ?thesis ..
+    assume "x \<cdot> y = y" hence "y \<^loc>\<le> z" by(rule subst)(rule a) thus ?thesis ..
   qed
 next
-  assume "x \<sqsubseteq> z \<or> y \<sqsubseteq> z"
-  thus "x \<cdot> y \<sqsubseteq> z"
+  assume "x \<^loc>\<le> z \<or> y \<^loc>\<le> z"
+  thus "x \<cdot> y \<^loc>\<le> z"
   proof
-    assume a: "x \<sqsubseteq> z"
+    assume a: "x \<^loc>\<le> z"
     have "(x \<cdot> y) \<cdot> z = (x \<cdot> z) \<cdot> y" by(simp add:ACI)
     also have "x \<cdot> z = x" using a by(simp add:below_def)
-    finally show "x \<cdot> y \<sqsubseteq> z" by(simp add:below_def)
+    finally show "x \<cdot> y \<^loc>\<le> z" by(simp add:below_def)
   next
-    assume a: "y \<sqsubseteq> z"
+    assume a: "y \<^loc>\<le> z"
     have "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)" by(simp add:ACI)
     also have "y \<cdot> z = y" using a by(simp add:below_def)
-    finally show "x \<cdot> y \<sqsubseteq> z" by(simp add:below_def)
+    finally show "x \<cdot> y \<^loc>\<le> z" by(simp add:below_def)
   qed
 qed
 
-lemma strict_below_f_conv[simp,noatp]: "x \<sqsubset> y \<cdot> z = (x \<sqsubset> y \<and> x \<sqsubset> z)"
+lemma strict_below_f_conv[simp,noatp]: "x \<^loc>< y \<cdot> z = (x \<^loc>< y \<and> x \<^loc>< z)"
 apply(simp add: strict_below_def)
 using lin[of y z] by (auto simp:below_def ACI)
 
 lemma strict_above_f_conv:
-  "x \<cdot> y \<sqsubset> z = (x \<sqsubset> z \<or> y \<sqsubset> z)"
+  "x \<cdot> y \<^loc>< z = (x \<^loc>< z \<or> y \<^loc>< z)"
 apply(simp add: strict_below_def above_f_conv)
 using lin[of y z] lin[of x z] by (auto simp:below_def ACI)
 
@@ -2150,18 +2150,18 @@ qed
 
 lemma (in ACIfSL) below_fold1_iff:
 assumes A: "finite A" "A \<noteq> {}"
-shows "x \<sqsubseteq> fold1 f A = (\<forall>a\<in>A. x \<sqsubseteq> a)"
+shows "x \<^loc>\<le> fold1 f A = (\<forall>a\<in>A. x \<^loc>\<le> a)"
 using A
 by(induct rule:finite_ne_induct) simp_all
 
 lemma (in ACIfSLlin) strict_below_fold1_iff:
-  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> x \<sqsubset> fold1 f A = (\<forall>a\<in>A. x \<sqsubset> a)"
+  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> x \<^loc>< fold1 f A = (\<forall>a\<in>A. x \<^loc>< a)"
 by(induct rule:finite_ne_induct) simp_all
 
 
 lemma (in ACIfSL) fold1_belowI:
 assumes A: "finite A" "A \<noteq> {}"
-shows "a \<in> A \<Longrightarrow> fold1 f A \<sqsubseteq> a"
+shows "a \<in> A \<Longrightarrow> fold1 f A \<^loc>\<le> a"
 using A
 proof (induct rule:finite_ne_induct)
   case singleton thus ?case by simp
@@ -2173,7 +2173,7 @@ next
     assume "a = x" thus ?thesis using insert by(simp add:below_def ACI)
   next
     assume "a \<in> F"
-    hence bel: "fold1 f F \<sqsubseteq> a" by(rule insert)
+    hence bel: "fold1 f F \<^loc>\<le> a" by(rule insert)
     have "fold1 f (insert x F) \<cdot> a = x \<cdot> (fold1 f F \<cdot> a)"
       using insert by(simp add:below_def ACI)
     also have "fold1 f F \<cdot> a = fold1 f F"
@@ -2186,19 +2186,19 @@ qed
 
 lemma (in ACIfSLlin) fold1_below_iff:
 assumes A: "finite A" "A \<noteq> {}"
-shows "fold1 f A \<sqsubseteq> x = (\<exists>a\<in>A. a \<sqsubseteq> x)"
+shows "fold1 f A \<^loc>\<le> x = (\<exists>a\<in>A. a \<^loc>\<le> x)"
 using A
 by(induct rule:finite_ne_induct)(simp_all add:above_f_conv)
 
 lemma (in ACIfSLlin) fold1_strict_below_iff:
 assumes A: "finite A" "A \<noteq> {}"
-shows "fold1 f A \<sqsubset> x = (\<exists>a\<in>A. a \<sqsubset> x)"
+shows "fold1 f A \<^loc>< x = (\<exists>a\<in>A. a \<^loc>< x)"
 using A
 by(induct rule:finite_ne_induct)(simp_all add:strict_above_f_conv)
 
 lemma (in ACIfSLlin) fold1_antimono:
 assumes "A \<noteq> {}" and "A \<subseteq> B" and "finite B"
-shows "fold1 f B \<sqsubseteq> fold1 f A"
+shows "fold1 f B \<^loc>\<le> fold1 f A"
 proof(cases)
   assume "A = B" thus ?thesis by simp
 next
@@ -2213,7 +2213,7 @@ next
     moreover have "A Int (B-A) = {}" using prems by blast
     ultimately show ?thesis using `A \<noteq> {}` by(rule_tac fold1_Un)
   qed
-  also have "\<dots> \<sqsubseteq> fold1 f A" by(simp add: above_f_conv)
+  also have "\<dots> \<^loc>\<le> fold1 f A" by(simp add: above_f_conv)
   finally show ?thesis .
 qed
 
@@ -2285,7 +2285,7 @@ definition
 where
   "Sup_fin = fold1 (op \<squnion>)"
 
-lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<sqsubseteq> \<Squnion>\<^bsub>fin\<^esub>A"
+lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<^loc>\<le> \<Squnion>\<^bsub>fin\<^esub>A"
 apply(unfold Sup_fin_def Inf_fin_def)
 apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast

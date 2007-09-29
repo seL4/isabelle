@@ -153,7 +153,7 @@ proof
 qed
 
 class field = comm_ring_1 + inverse +
-  assumes field_inverse:  "a \<noteq> 0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
+  assumes field_inverse:  "a \<noteq> \<^loc>0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
   assumes divide_inverse: "a \<^loc>/ b = a \<^loc>* inverse b"
 
 instance field \<subseteq> division_ring
@@ -211,8 +211,8 @@ also helps with inequalities. *}
 lemmas ring_simps = group_simps ring_distribs
 
 class mult_mono = times + zero + ord +
-  assumes mult_left_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> c \<^loc>* a \<sqsubseteq> c \<^loc>* b"
-  assumes mult_right_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> a \<^loc>* c \<sqsubseteq> b \<^loc>* c"
+  assumes mult_left_mono: "a \<^loc>\<le> b \<Longrightarrow> \<^loc>0 \<^loc>\<le> c \<Longrightarrow> c \<^loc>* a \<^loc>\<le> c \<^loc>* b"
+  assumes mult_right_mono: "a \<^loc>\<le> b \<Longrightarrow> \<^loc>0 \<^loc>\<le> c \<Longrightarrow> a \<^loc>* c \<^loc>\<le> b \<^loc>* c"
 
 class pordered_semiring = mult_mono + semiring_0 + pordered_ab_semigroup_add 
 
@@ -228,8 +228,8 @@ class ordered_semiring = semiring + comm_monoid_add + ordered_cancel_ab_semigrou
 instance ordered_semiring \<subseteq> pordered_cancel_semiring ..
 
 class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add +
-  assumes mult_strict_left_mono: "a \<sqsubset> b \<Longrightarrow> \<^loc>0 \<sqsubset> c \<Longrightarrow> c \<^loc>* a \<sqsubset> c \<^loc>* b"
-  assumes mult_strict_right_mono: "a \<sqsubset> b \<Longrightarrow> \<^loc>0 \<sqsubset> c \<Longrightarrow> a \<^loc>* c \<sqsubset> b \<^loc>* c"
+  assumes mult_strict_left_mono: "a \<^loc>< b \<Longrightarrow> \<^loc>0 \<^loc>< c \<Longrightarrow> c \<^loc>* a \<^loc>< c \<^loc>* b"
+  assumes mult_strict_right_mono: "a \<^loc>< b \<Longrightarrow> \<^loc>0 \<^loc>< c \<Longrightarrow> a \<^loc>* c \<^loc>< b \<^loc>* c"
 
 instance ordered_semiring_strict \<subseteq> semiring_0_cancel ..
 
@@ -246,7 +246,7 @@ proof
 qed
 
 class mult_mono1 = times + zero + ord +
-  assumes mult_mono: "a \<sqsubseteq> b \<Longrightarrow> \<^loc>0 \<sqsubseteq> c \<Longrightarrow> c \<^loc>* a \<sqsubseteq> c \<^loc>* b"
+  assumes mult_mono: "a \<^loc>\<le> b \<Longrightarrow> \<^loc>0 \<^loc>\<le> c \<Longrightarrow> c \<^loc>* a \<^loc>\<le> c \<^loc>* b"
 
 class pordered_comm_semiring = comm_semiring_0
   + pordered_ab_semigroup_add + mult_mono1
@@ -257,7 +257,7 @@ class pordered_cancel_comm_semiring = comm_semiring_0_cancel
 instance pordered_cancel_comm_semiring \<subseteq> pordered_comm_semiring ..
 
 class ordered_comm_semiring_strict = comm_semiring_0 + ordered_cancel_ab_semigroup_add +
-  assumes mult_strict_mono: "a \<sqsubset> b \<Longrightarrow> \<^loc>0 \<sqsubset> c \<Longrightarrow> c \<^loc>* a \<sqsubset> c \<^loc>* b"
+  assumes mult_strict_mono: "a \<^loc>< b \<Longrightarrow> \<^loc>0 \<^loc>< c \<Longrightarrow> c \<^loc>* a \<^loc>< c \<^loc>* b"
 
 instance pordered_comm_semiring \<subseteq> pordered_semiring
 proof
@@ -297,10 +297,10 @@ instance lordered_ring \<subseteq> lordered_ab_group_meet ..
 instance lordered_ring \<subseteq> lordered_ab_group_join ..
 
 class abs_if = minus + ord + zero + abs +
-  assumes abs_if: "abs a = (if a \<sqsubset> 0 then (uminus a) else a)"
+  assumes abs_if: "abs a = (if a \<^loc>< \<^loc>0 then (uminus a) else a)"
 
 class sgn_if = sgn + zero + one + minus + ord +
-assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 \<sqsubset> x then 1 else uminus 1)"
+  assumes sgn_if: "sgn x = (if x = \<^loc>0 then \<^loc>0 else if \<^loc>0 \<^loc>< x then \<^loc>1 else uminus \<^loc>1)"
 
 (* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.
    Basically, ordered_ring + no_zero_divisors = ordered_ring_strict.
@@ -327,7 +327,7 @@ instance pordered_comm_ring \<subseteq> pordered_cancel_comm_semiring ..
 
 class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
   (*previously ordered_semiring*)
-  assumes zero_less_one [simp]: "\<^loc>0 \<sqsubset> \<^loc>1"
+  assumes zero_less_one [simp]: "\<^loc>0 \<^loc>< \<^loc>1"
 
 lemma pos_add_strict:
   fixes a b c :: "'a\<Colon>ordered_semidom"

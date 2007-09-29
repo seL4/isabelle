@@ -359,15 +359,15 @@ fun begin loc ctxt =
     val thy = ProofContext.theory_of ctxt;
     val is_loc = loc <> "";
     val some_class = Class.class_of_locale thy loc;
-    fun class_init_exit (SOME class) =
-          Class.init class
-      | class_init_exit NONE =
-          pair I;
+    fun class_init (SOME class) =
+          Class.init [class]
+      | class_init NONE =
+          I;
   in
     ctxt
     |> Data.put (if is_loc then SOME loc else NONE)
-    |> class_init_exit some_class
-    |-> (fn exit => LocalTheory.init (NameSpace.base loc)
+    |> class_init some_class
+    |> LocalTheory.init (NameSpace.base loc)
      {pretty = pretty loc,
       consts = consts is_loc some_class,
       axioms = axioms,
@@ -382,7 +382,7 @@ fun begin loc ctxt =
       reinit = fn _ =>
         (if is_loc then Locale.init loc else ProofContext.init)
         #> begin loc,
-      exit = LocalTheory.target_of #> ProofContext.theory exit })
+      exit = LocalTheory.target_of }
   end;
 
 fun init_i NONE thy = begin "" (ProofContext.init thy)

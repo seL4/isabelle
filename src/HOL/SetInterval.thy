@@ -17,19 +17,19 @@ context ord
 begin
 definition
   lessThan    :: "'a => 'a set"	("(1\<^loc>{..<_})") where
-  "\<^loc>{..<u} == {x. x \<sqsubset> u}"
+  "\<^loc>{..<u} == {x. x \<^loc>< u}"
 
 definition
   atMost      :: "'a => 'a set"	("(1\<^loc>{.._})") where
-  "\<^loc>{..u} == {x. x \<sqsubseteq> u}"
+  "\<^loc>{..u} == {x. x \<^loc>\<le> u}"
 
 definition
   greaterThan :: "'a => 'a set"	("(1\<^loc>{_<..})") where
-  "\<^loc>{l<..} == {x. l\<sqsubset>x}"
+  "\<^loc>{l<..} == {x. l\<^loc><x}"
 
 definition
   atLeast     :: "'a => 'a set"	("(1\<^loc>{_..})") where
-  "\<^loc>{l..} == {x. l\<sqsubseteq>x}"
+  "\<^loc>{l..} == {x. l\<^loc>\<le>x}"
 
 definition
   greaterThanLessThan :: "'a => 'a => 'a set"  ("(1\<^loc>{_<..<_})") where

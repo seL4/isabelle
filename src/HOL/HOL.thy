@@ -244,8 +244,8 @@ notation (HTML output)
   abs  ("\<bar>_\<bar>")
 
 class ord = type +
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubseteq>" 50)
-    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubset>" 50)
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 begin
 
 notation

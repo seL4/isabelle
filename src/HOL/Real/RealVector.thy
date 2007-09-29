@@ -44,13 +44,19 @@ done
 subsection {* Real vector spaces *}
 
 class scaleR = type +
-  fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a"
-
-notation
-  scaleR (infixr "*#" 75)
+  fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<^loc>*#" 75)
+begin
 
 abbreviation
-  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a::scaleR" (infixl "'/#" 70) where
+  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a" (infixl "\<^loc>'/#" 70)
+where
+  "x \<^loc>/# r == scaleR (inverse r) x"
+
+end
+
+abbreviation
+  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a\<Colon>scaleR" (infixl "'/#" 70)
+where
   "x /# r == scaleR (inverse r) x"
 
 notation (xsymbols)
@@ -378,7 +384,7 @@ instance real :: norm
   real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>" ..
 
 class sgn_div_norm = scaleR + norm + sgn +
-  assumes sgn_div_norm: "sgn x = x /# norm x"
+  assumes sgn_div_norm: "sgn x = x \<^loc>/# norm x"
 
 class real_normed_vector = real_vector + sgn_div_norm +
   assumes norm_ge_zero [simp]: "0 \<le> norm x"

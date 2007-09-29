@@ -22,8 +22,8 @@ lemma add_idem2[simp]: "(x::'a::idem_add) + (x + y) = x + y"
   by simp
 
 class order_by_add = idem_add + ord +
-  assumes order_def: "a \<sqsubseteq> b \<longleftrightarrow> a \<^loc>+ b = b"
-  assumes strict_order_def: "a \<sqsubset> b \<longleftrightarrow> a \<sqsubseteq> b \<and> a \<noteq> b"
+  assumes order_def: "a \<^loc>\<le> b \<longleftrightarrow> a \<^loc>+ b = b"
+  assumes strict_order_def: "a \<^loc>< b \<longleftrightarrow> a \<^loc>\<le> b \<and> a \<noteq> b"
 
 lemma ord_simp1[simp]: "(x::'a::order_by_add) \<le> y \<Longrightarrow> x + y = y"
   unfolding order_def .
@@ -82,14 +82,14 @@ proof
 qed
 
 class kleene = pre_kleene + star +
-  assumes star1: "\<^loc>1 \<^loc>+ a \<^loc>* star a \<sqsubseteq> star a"
-  and star2: "\<^loc>1 \<^loc>+ star a \<^loc>* a \<sqsubseteq> star a"
-  and star3: "a \<^loc>* x \<sqsubseteq> x \<Longrightarrow> star a \<^loc>* x \<sqsubseteq> x"
-  and star4: "x \<^loc>* a \<sqsubseteq> x \<Longrightarrow> x \<^loc>* star a \<sqsubseteq> x"
+  assumes star1: "\<^loc>1 \<^loc>+ a \<^loc>* star a \<^loc>\<le> star a"
+  and star2: "\<^loc>1 \<^loc>+ star a \<^loc>* a \<^loc>\<le> star a"
+  and star3: "a \<^loc>* x \<^loc>\<le> x \<Longrightarrow> star a \<^loc>* x \<^loc>\<le> x"
+  and star4: "x \<^loc>* a \<^loc>\<le> x \<Longrightarrow> x \<^loc>* star a \<^loc>\<le> x"
 
-class kleene_by_complete_lattice =
-  pre_kleene + complete_lattice + recpower + star +
-  assumes star_cont: "a \<^loc>* star b \<^loc>* c = (SUP n. a \<^loc>* b ^ n \<^loc>* c)"
+class kleene_by_complete_lattice = pre_kleene
+  + complete_lattice + recpower + star +
+  assumes star_cont: "a \<^loc>* star b \<^loc>* c = SUPR UNIV (\<lambda>n. a \<^loc>* b \<^loc>^ n \<^loc>* c)"
 
 lemma plus_leI: 
   fixes x :: "'a :: order_by_add"

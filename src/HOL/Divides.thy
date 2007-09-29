@@ -29,7 +29,7 @@ where
   [code func del]: "m \<^loc>dvd n \<longleftrightarrow> (\<exists>k. n = m \<^loc>* k)"
 
 class dvd_mod = times + div + zero + -- {* for code generation *}
-  assumes dvd_def_mod [code func]: "times.dvd (op \<^loc>*) x y \<longleftrightarrow> y \<^loc>mod x = \<^loc>0"
+  assumes dvd_def_mod [code func]: "x \<^loc>dvd y \<longleftrightarrow> y \<^loc>mod x = \<^loc>0"
 
 definition
   quorem :: "(nat*nat) * (nat*nat) => bool" where
@@ -878,8 +878,6 @@ proof -
   moreover have "n mod k = n mod k" ..
   note that ultimately show thesis by blast
 qed
-
-
 
 
 subsection {* Code generation for div, mod and dvd on nat *}

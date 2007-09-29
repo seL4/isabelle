@@ -2542,9 +2542,9 @@ subsubsection {* @{text upto}: the generic interval-list *}
 
 class finite_intvl_succ = linorder +
 fixes successor :: "'a \<Rightarrow> 'a"
-assumes finite_intvl: "finite(ord.atLeastAtMost (op \<sqsubseteq>) a b)" (* FIXME should be finite({a..b}) *)
-and successor_incr: "a \<sqsubset> successor a"
-and ord_discrete: "\<not>(\<exists>x. a \<sqsubset> x & x \<sqsubset> successor a)"
+assumes finite_intvl: "finite(ord.atLeastAtMost (op \<^loc>\<le>) a b)" (* FIXME should be finite({a..b}) *)
+and successor_incr: "a \<^loc>< successor a"
+and ord_discrete: "\<not>(\<exists>x. a \<^loc>< x & x \<^loc>< successor a)"
 
 context finite_intvl_succ
 begin
@@ -2565,9 +2565,9 @@ apply(auto simp: atLeastAtMost_def atLeast_def atMost_def)
 apply (metis ord_discrete less_le not_le)
 done
 
-lemma upto_rec[code]: "\<^loc>[i..j] = (if i \<sqsubseteq> j then i # \<^loc>[successor i..j] else [])"
+lemma upto_rec[code]: "\<^loc>[i..j] = (if i \<^loc>\<le> j then i # \<^loc>[successor i..j] else [])"
 proof cases
-  assume "i \<sqsubseteq> j" thus ?thesis
+  assume "i \<^loc>\<le> j" thus ?thesis
     apply(simp add:upto_def)
     apply (rule the1_equality[OF finite_sorted_distinct_unique])
      apply (simp add:finite_intvl)
@@ -2577,7 +2577,7 @@ proof cases
     apply (metis successor_incr leD less_imp_le order_trans)
     done
 next
-  assume "~ i \<sqsubseteq> j" thus ?thesis
+  assume "~ i \<^loc>\<le> j" thus ?thesis
     by(simp add:upto_def atLeastAtMost_empty cong:conj_cong)
 qed
 

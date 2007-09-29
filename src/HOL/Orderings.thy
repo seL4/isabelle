@@ -14,12 +14,17 @@ begin
 subsection {* Partial orders *}
 
 class order = ord +
-  assumes less_le: "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
-  and order_refl [iff]: "x \<sqsubseteq> x"
-  and order_trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
-  assumes antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
+  assumes less_le: "x \<^loc>< y \<longleftrightarrow> x \<^loc>\<le> y \<and> x \<noteq> y"
+  and order_refl [iff]: "x \<^loc>\<le> x"
+  and order_trans: "x \<^loc>\<le> y \<Longrightarrow> y \<^loc>\<le> z \<Longrightarrow> x \<^loc>\<le> z"
+  assumes antisym: "x \<^loc>\<le> y \<Longrightarrow> y \<^loc>\<le> x \<Longrightarrow> x = y"
 
 begin
+
+notation (input)
+  less_eq (infix "\<sqsubseteq>" 50)
+and
+  less    (infix "\<sqsubset>" 50)
 
 text {* Reflexivity. *}
 

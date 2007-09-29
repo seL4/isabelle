@@ -415,14 +415,15 @@ val classP =
   OuterSyntax.command "class" "define type class" K.thy_decl (
     P.name
     -- Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") []
+    -- Scan.optional (P.$$$ "(" |-- (P.$$$ "local_syntax" >> K true) --| P.$$$ ")") false
     --| P.$$$ "=" -- (
       class_subP --| P.$$$ "+" -- class_bodyP
       || class_subP >> rpair []
       || class_bodyP >> pair [])
     -- P.opt_begin
-    >> (fn (((bname, add_consts), (supclasses, elems)), begin) =>
+    >> (fn ((((bname, add_consts), local_syntax), (supclasses, elems)), begin) =>
         Toplevel.begin_local_theory begin
-          (Class.class_cmd bname supclasses elems add_consts #-> TheoryTarget.begin)));
+          (Class.class_cmd false bname supclasses elems add_consts #-> TheoryTarget.begin)));
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal ((
@@ -985,7 +986,7 @@ val _ = OuterSyntax.add_keywords
   "advanced", "and", "assumes", "attach", "begin", "binder", "concl",
   "constrains", "defines", "fixes", "for", "identifier", "if",
   "imports", "in", "includes", "infix", "infixl", "infixr", "is",
-  "notes", "obtains", "open", "output", "overloaded", "shows",
+  "local_syntax", "notes", "obtains", "open", "output", "overloaded", "shows",
   "structure", "unchecked", "uses", "where", "|"];
 
 val _ = OuterSyntax.add_parsers [

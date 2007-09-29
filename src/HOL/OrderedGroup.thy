@@ -216,13 +216,13 @@ by (simp add: diff_minus add_commute)
 subsection {* (Partially) Ordered Groups *} 
 
 class pordered_ab_semigroup_add = order + ab_semigroup_add +
-  assumes add_left_mono: "a \<sqsubseteq> b \<Longrightarrow> c \<^loc>+ a \<sqsubseteq> c \<^loc>+ b"
+  assumes add_left_mono: "a \<^loc>\<le> b \<Longrightarrow> c \<^loc>+ a \<^loc>\<le> c \<^loc>+ b"
 
 class pordered_cancel_ab_semigroup_add =
   pordered_ab_semigroup_add + cancel_ab_semigroup_add
 
 class pordered_ab_semigroup_add_imp_le = pordered_cancel_ab_semigroup_add +
-  assumes add_le_imp_le_left: "c \<^loc>+ a \<sqsubseteq> c \<^loc>+ b \<Longrightarrow> a \<sqsubseteq> b"
+  assumes add_le_imp_le_left: "c \<^loc>+ a \<^loc>\<le> c \<^loc>+ b \<Longrightarrow> a \<^loc>\<le> b"
 
 class pordered_ab_group_add = ab_group_add + pordered_ab_semigroup_add
 
