@@ -14,10 +14,11 @@ sig
   val param: int -> string * sort -> typ
   val paramify_vars: typ -> typ
   val paramify_dummies: typ -> int -> typ * int
+  val fixate_params: Name.context -> term list -> term list
   val appl_error: Pretty.pp -> string -> term -> typ -> term -> typ -> string list
   val infer_types: Pretty.pp -> Type.tsig -> (typ list -> typ list) ->
-    (string -> typ option) -> (indexname -> typ option) ->
-    Name.context -> bool -> (term * typ) list -> (term * typ) list * (indexname * typ) list
+    (string -> typ option) -> (indexname -> typ option) -> Name.context -> int -> bool option ->
+    (term * typ) list -> (term * typ) list * (indexname * typ) list
 end;
 
 structure TypeInfer: TYPE_INFER =
@@ -54,6 +55,19 @@ val paramify_dummies =
           in (Type (a, Ts'), maxidx') end
       | paramify T maxidx = (T, maxidx);
   in paramify end;
+
+fun fixate_params name_context ts =
+  let
+    fun subst_param (xi, S) (inst, used) =
+      if is_param xi then
+        let
+          val [a] = Name.invents used "'a" 1;
+          val used' = Name.declare a used;
+        in (((xi, S), TFree (a, S)) :: inst, used') end
+      else (inst, used);
+    val name_context' = (fold o fold_types) Term.declare_typ_names ts name_context;
+    val (inst, _) = fold_rev subst_param (fold Term.add_tvars ts []) ([], name_context');
+  in (map o map_types) (TermSubst.instantiateT inst) ts end;
 
 
 
@@ -380,7 +394,7 @@ fun infer pp tsig =
 
 (* infer_types *)
 
-fun infer_types pp tsig check_typs const_type var_type used freeze args =
+fun infer_types pp tsig check_typs const_type var_type used maxidx freeze_mode args =
   let
     (*check types*)
     val (raw_ts, raw_Ts) = split_list args;
@@ -405,9 +419,10 @@ fun infer_types pp tsig check_typs const_type var_type used freeze args =
 
     (*convert back to terms/typs*)
     val mk_var =
-      if freeze then PTFree
-      else (fn (x, S) => PTVar ((x, 0), S));
-    val (final_Ts, final_ts) = typs_terms_of used mk_var "" (Ts', ts');
+      if the_default false freeze_mode then PTFree
+      else (fn (x, S) => PTVar ((x, maxidx + 1), S));
+    val prfx = if is_some freeze_mode then "" else "?";
+    val (final_Ts, final_ts) = typs_terms_of used mk_var prfx (Ts', ts');
 
     (*collect result unifier*)
     val redundant = fn (xi, TVar (yi, _)) => xi = yi | _ => false;
