@@ -105,7 +105,7 @@ fun get_remove_constraint c thy =
     val ty = Sign.the_const_constraint thy c;
   in
     thy
-    |> Sign.add_const_constraint_i (c, NONE)
+    |> Sign.add_const_constraint (c, NONE)
     |> pair (c, Logic.unvarifyT ty)
   end;
 
@@ -295,7 +295,7 @@ fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed the
     val (defs, other_cs) = read_defs raw_defs cs
       (fold Sign.primitive_arity arities (Theory.copy theory));
     fun after_qed' cs defs =
-      fold Sign.add_const_constraint_i (map (apsnd SOME) cs)
+      fold Sign.add_const_constraint (map (apsnd SOME) cs)
       #> after_qed defs;
   in
     theory
@@ -570,7 +570,7 @@ fun infer_constraints ctxt constraints ts =
     TypeInfer.infer_types (ProofContext.pp ctxt) (Sign.tsig_of (ProofContext.theory_of ctxt))
      (Syntax.check_typs ctxt)
       (default_typ ctxt constraints) (K NONE)
-      (Variable.names_of ctxt) true (map (rpair dummyT) ts)
+      (Variable.names_of ctxt) (Variable.maxidx_of ctxt) (SOME true) (map (rpair dummyT) ts)
     |> #1 |> map #1
   handle TYPE (msg, _, _) => error msg
 
@@ -618,9 +618,9 @@ fun init_default sort ctxt =
     ctxt
     |> remove_constraints sort
     ||> Variable.declare_term (Logic.mk_type (TFree (AxClass.param_tyvarname, sort)))
-    ||> Context.proof_map (Syntax.add_typ_check typ_check)
+    ||> Context.proof_map (Syntax.add_typ_check 0 "class" typ_check)
     |-> (fn constraints =>
-        Context.proof_map (Syntax.add_term_check (term_check constraints)))
+        Context.proof_map (Syntax.add_term_check 0 "class" (term_check constraints)))
   end;
 
 val init_ref = ref (K I : sort -> Proof.context -> Proof.context);
@@ -793,7 +793,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
     |> Sign.sticky_prefix prfx
     |> PureThy.add_defs_i false [(def, [])]
     |-> (fn [def] => interpret def)
-    |> Sign.add_const_constraint_i (c', SOME ty'')
+    |> Sign.add_const_constraint (c', SOME ty'')
     |> Sign.restore_naming thy
   end;
 
