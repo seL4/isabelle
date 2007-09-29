@@ -378,7 +378,7 @@ fun define_class_params (name, raw_superclasses) raw_consts raw_dep_axioms other
       |> (map o apsnd o map) (Sign.cert_prop thy)
       |> rpair thy;
     fun add_constraint class (c, ty) =
-      Sign.add_const_constraint_i (c, SOME
+      Sign.add_const_constraint (c, SOME
         (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
   in
     thy
