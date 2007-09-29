@@ -185,6 +185,7 @@ sig
   val maxidx_term: term -> int -> int
   val has_abs: term -> bool
   val dest_abs: string * typ * term -> string * term
+  val declare_typ_names: typ -> Name.context -> Name.context
   val declare_term_names: term -> Name.context -> Name.context
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
   val dummy_patternN: string
@@ -192,7 +193,7 @@ sig
   val is_dummy_pattern: term -> bool
   val free_dummy_patterns: term -> Name.context -> term * Name.context
   val no_dummy_patterns: term -> term
-  val replace_dummy_patterns: int * term -> int * term
+  val replace_dummy_patterns: term -> int -> term * int
   val is_replaced_dummy_pattern: indexname -> bool
   val show_dummy_patterns: term -> term
   val string_of_vname: indexname -> string
@@ -1225,12 +1226,14 @@ fun dest_abs (x, T, body) =
 
 (* renaming variables *)
 
+val declare_typ_names = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
+
 fun declare_term_names tm =
   fold_aterms
     (fn Const (a, _) => Name.declare (NameSpace.base a)
       | Free (a, _) => Name.declare a
       | _ => I) tm #>
-  fold_types (fold_atyps (fn TFree (a, _) => Name.declare a | _ => I)) tm;
+  fold_types declare_typ_names tm;
 
 fun variant_frees t frees =
   fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
@@ -1264,15 +1267,17 @@ fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
       in (t' $ u', used'') end
   | free_dummy_patterns a used = (a, used);
 
-fun replace_dummy Ts (i, Const ("dummy_pattern", T)) =
-      (i + 1, list_comb (Var (("_dummy_", i), Ts ---> T), map Bound (0 upto length Ts - 1)))
-  | replace_dummy Ts (i, Abs (x, T, t)) =
-      let val (i', t') = replace_dummy (T :: Ts) (i, t)
-      in (i', Abs (x, T, t')) end
-  | replace_dummy Ts (i, t $ u) =
-      let val (i', t') = replace_dummy Ts (i, t); val (i'', u') = replace_dummy Ts (i', u)
-      in (i'', t' $ u') end
-  | replace_dummy _ (i, a) = (i, a);
+fun replace_dummy Ts (Const ("dummy_pattern", T)) i =
+      (list_comb (Var (("_dummy_", i), Ts ---> T), map Bound (0 upto length Ts - 1)), i + 1)
+  | replace_dummy Ts (Abs (x, T, t)) i =
+      let val (t', i') = replace_dummy (T :: Ts) t i
+      in (Abs (x, T, t'), i') end
+  | replace_dummy Ts (t $ u) i =
+      let
+        val (t', i') = replace_dummy Ts t i;
+        val (u', i'') = replace_dummy Ts u i';
+      in (t' $ u', i'') end
+  | replace_dummy _ a i = (a, i);
 
 val replace_dummy_patterns = replace_dummy [];
 
