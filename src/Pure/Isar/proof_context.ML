@@ -25,9 +25,7 @@ sig
   val full_name: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
-  val const_constraint: Proof.context -> string -> typ option
   val the_const_constraint: Proof.context -> string -> typ
-  val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val theorems_of: Proof.context -> thm list NameSpace.table
@@ -151,6 +149,7 @@ sig
     Proof.context -> Proof.context
   val target_notation: Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
+  val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> bstring * term -> Proof.context -> (term * term) * Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
@@ -269,9 +268,7 @@ val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
 
 val consts_of = #2 o #consts o rep_context;
 val const_syntax_name = Consts.syntax_name o consts_of;
-val const_constraint = try o Consts.the_constraint o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
-val add_const_constraint = map_consts o apsnd o Consts.constrain;
 
 val thms_of = #thms o rep_context;
 val theorems_of = #1 o thms_of;
@@ -482,12 +479,7 @@ fun prepare_patternT ctxt =
 
 local
 
-val prepare_dummies =
-  let val next = ref 1 in
-    fn t => NAMED_CRITICAL "prepare_dummies" (fn () =>
-      let val (i, u) = Term.replace_dummy_patterns (! next, t)
-      in next := i; u end)
-  end;
+fun prepare_dummies ts = #1 (fold_map Term.replace_dummy_patterns ts 1);
 
 fun reject_dummies t = Term.no_dummy_patterns t
   handle TERM _ => error "Illegal dummy pattern(s) in term";
@@ -496,9 +488,10 @@ in
 
 fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
-    (if pattern then Variable.polymorphic ctxt else I) #>
+    TypeInfer.fixate_params (Variable.names_of ctxt) #>
+    pattern ? Variable.polymorphic ctxt #>
     (map o Term.map_types) (prepare_patternT ctxt) #>
-    map (if pattern then prepare_dummies else reject_dummies)
+    (if pattern then prepare_dummies else map reject_dummies)
   end;
 
 end;
@@ -602,29 +595,27 @@ fun standard_infer_types ctxt ts =
   let val Mode {pattern, ...} = get_mode ctxt in
     TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
       (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
-      (Variable.names_of ctxt) (not pattern) (map (rpair dummyT) ts)
+      (Variable.names_of ctxt) (Variable.maxidx_of ctxt) NONE (map (rpair dummyT) ts)
     |> #1 |> map #1
     handle TYPE (msg, _, _) => error msg
   end;
 
 local
 
-fun standard_term_check ctxt =
-  standard_infer_types ctxt #>
-  map (expand_abbrevs ctxt) #>
-  prepare_patterns ctxt;
-
 fun standard_typ_check ctxt =
   map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
   map (prepare_patternT ctxt);
 
+fun add_check add f = Context.add_setup
+  (Context.theory_map (add (fn xs => fn ctxt => (f ctxt xs, ctxt))));
+
 in
 
-val _ = Context.add_setup (Context.theory_map (Syntax.add_term_check
-    (fn ts => fn ctxt => (standard_term_check ctxt ts, ctxt))));
+val _ = add_check (Syntax.add_term_check 0 "standard") standard_infer_types;
+val _ = add_check (Syntax.add_term_check 50 "abbrevs") (map o expand_abbrevs);
+val _ = add_check (Syntax.add_term_check 100 "fixate") prepare_patterns;
 
-val _ = Context.add_setup (Context.theory_map (Syntax.add_typ_check
-    (fn Ts => fn ctxt => (standard_typ_check ctxt Ts, ctxt))));
+val _ = add_check (Syntax.add_typ_check 0 "standard") standard_typ_check;
 
 end;
 
@@ -657,7 +648,7 @@ fun read_const ctxt c =
 
 
 
-(** inner syntax parsers **)
+(** inner syntax operations **)
 
 local
 
@@ -686,8 +677,14 @@ fun parse_term T ctxt str =
 
 in
 
-val _ = Syntax.install_parsers
-  {sort = parse_sort, typ = parse_typ, term = parse_term dummyT, prop = parse_term propT};
+val _ = Syntax.install_operations
+  {parse_sort = parse_sort,
+   parse_typ = parse_typ,
+   parse_term = parse_term dummyT,
+   parse_prop = parse_term propT,
+   unparse_sort = undefined,
+   unparse_typ = undefined,
+   unparse_term = undefined};
 
 end;
 
@@ -1013,7 +1010,14 @@ fun target_notation mode args phi =
   in Context.mapping (Sign.add_notation mode args') (add_notation mode args') end;
 
 
-(* abbreviations *)
+(* local constants *)
+
+fun add_const_constraint (c, opt_T) ctxt =
+  let
+    fun prepT raw_T =
+      let val T = cert_typ ctxt raw_T
+      in cert_term ctxt (Const (c, T)); T end;
+  in ctxt |> map_consts (apsnd (Consts.constrain (c, Option.map prepT opt_T))) end;
 
 fun add_abbrev mode (c, raw_t) ctxt =
   let
