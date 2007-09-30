@@ -150,7 +150,8 @@ sig
   val target_notation: Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
-  val add_abbrev: string -> bstring * term -> Proof.context -> (term * term) * Proof.context
+  val add_abbrev: string -> Markup.property list ->
+    bstring * term -> Proof.context -> (term * term) * Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
@@ -1021,13 +1022,13 @@ fun add_const_constraint (c, opt_T) ctxt =
       in cert_term ctxt (Const (c, T)); T end;
   in ctxt |> map_consts (apsnd (Consts.constrain (c, Option.map prepT opt_T))) end;
 
-fun add_abbrev mode (c, raw_t) ctxt =
+fun add_abbrev mode tags (c, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
-      |> Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode (c, t);
+      |> Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (c, t);
   in
     ctxt
     |> map_consts (apsnd (K consts'))
