@@ -87,13 +87,13 @@ fun declare_skofuns s th thy =
   let val nref = ref 0
       fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (thy, axs) =
             (*Existential: declare a Skolem function, then insert into body and continue*)
-            let val cname = Name.internal ("sko_" ^ s ^ "_" ^ Int.toString (inc nref))
+            let val cname = "sko_" ^ s ^ "_" ^ Int.toString (inc nref)
                 val args0 = term_frees xtp  (*get the formal parameter list*)
                 val Ts = map type_of args0
                 val extraTs = rhs_extra_types (Ts ---> T) xtp
                 val _ = if null extraTs then () else
-                   warning ("Skolemization: extra type vars: " ^ 
-                            commas_quote (map (Sign.string_of_typ thy) extraTs)); 
+                   warning ("Skolemization: extra type vars: " ^
+                            commas_quote (map (Sign.string_of_typ thy) extraTs));
                 val argsx = map (fn T => Free(gensym"vsk", T)) extraTs
                 val args = argsx @ args0
                 val cT = extraTs ---> Ts ---> T
@@ -246,7 +246,7 @@ fun declare_absfuns s th =
         else
         case term_of ct of
           Abs _ =>
-            let val cname = Name.internal ("llabs_" ^ s ^ "_" ^ Int.toString (inc nref))
+            let val cname = "llabs_" ^ s ^ "_" ^ Int.toString (inc nref)
                 val _ = assert_eta_free ct;
                 val (cvs,cta) = dest_abs_list ct
                 val (vs,Tvs) = ListPair.unzip (map (dest_Free o term_of) cvs)
@@ -505,7 +505,7 @@ fun skolem_cache_thm th thy =
         (case skolem thy (Thm.transfer thy th) of
              NONE => ([th],thy)
            | SOME (cls,thy') =>
-                 (Output.debug (fn () => "skolem_cache_thm: " ^ Int.toString (length cls) ^ 
+                 (Output.debug (fn () => "skolem_cache_thm: " ^ Int.toString (length cls) ^
                                          " clauses inserted into cache: " ^ name_or_string th);
                   (cls, ThmCache.put (Thmtab.update (th,cls) (ThmCache.get thy')) thy')))
     | SOME cls => (cls,thy);
