@@ -548,8 +548,9 @@ local
 fun local_theory_presentation loc f g = app_current (fn int =>
   (fn Theory (gthy, _) =>
         let
+          val pos = ContextPosition.get (Context.proof_of gthy);
           val finish = loc_finish loc gthy;
-          val lthy' = f (loc_begin loc gthy);
+          val lthy' = f (ContextPosition.put pos (loc_begin loc gthy));
         in Theory (finish lthy', SOME lthy') end
     | _ => raise UNDEF) #> tap (g int));
 
@@ -597,12 +598,16 @@ fun begin_proof init finish = app_current (fn int =>
 
 in
 
-fun local_theory_to_proof' loc f = begin_proof (fn int => f int o loc_begin loc) (loc_finish loc);
+fun local_theory_to_proof' loc f = begin_proof
+  (fn int => fn gthy =>
+    f int (ContextPosition.put (ContextPosition.get (Context.proof_of gthy)) (loc_begin loc gthy)))
+  (loc_finish loc);
+
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
-    (K (fn Context.Theory thy => f thy | _ => raise UNDEF))
-    (K (Context.Theory o ProofContext.theory_of));
+  (K (fn Context.Theory thy => f thy | _ => raise UNDEF))
+  (K (Context.Theory o ProofContext.theory_of));
 
 end;
 
