@@ -161,9 +161,11 @@ sig
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
-  val add_consts_authentic: (bstring * typ * mixfix) list -> theory -> theory
+  val add_consts_authentic: Markup.property list ->
+    (bstring * typ * mixfix) list -> theory -> theory
   val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
-  val add_abbrev: string -> bstring * term -> theory -> (term * term) * theory
+  val add_abbrev: string -> Markup.property list ->
+    bstring * term -> theory -> (term * term) * theory
   include SIGN_THEORY
   val add_const_constraint: string * typ option -> theory -> theory
   val primitive_class: string * class list -> theory -> theory
@@ -694,7 +696,7 @@ fun add_notation mode args thy =
 
 local
 
-fun gen_add_consts prep_typ authentic raw_args thy =
+fun gen_add_consts prep_typ authentic tags raw_args thy =
   let
     val prepT = Compress.typ thy o Logic.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
     fun prep (raw_c, raw_T, raw_mx) =
@@ -703,18 +705,18 @@ fun gen_add_consts prep_typ authentic raw_args thy =
         val c' = if authentic then Syntax.constN ^ full_name thy c else c;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote c);
-      in (((c, T), authentic), (c', T, mx)) end;
+      in ((c, T), (c', T, mx)) end;
     val args = map prep raw_args;
   in
     thy
-    |> map_consts (fold (Consts.declare (naming_of thy) o #1) args)
+    |> map_consts (fold (Consts.declare authentic (naming_of thy) tags o #1) args)
     |> add_syntax_i (map #2 args)
   end;
 
 in
 
-val add_consts = gen_add_consts read_typ false;
-val add_consts_i = gen_add_consts certify_typ false;
+val add_consts = gen_add_consts read_typ false [];
+val add_consts_i = gen_add_consts certify_typ false [];
 val add_consts_authentic = gen_add_consts certify_typ true;
 
 end;
@@ -722,7 +724,7 @@ end;
 
 (* add abbreviations *)
 
-fun add_abbrev mode (c, raw_t) thy =
+fun add_abbrev mode tags (c, raw_t) thy =
   let
     val pp = pp thy;
     val prep_tm = Compress.term thy o no_frees pp o
@@ -731,7 +733,7 @@ fun add_abbrev mode (c, raw_t) thy =
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val (res, consts') = consts_of thy
-      |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode (c, t);
+      |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode tags (c, t);
   in (res, thy |> map_consts (K consts')) end;
 
 
