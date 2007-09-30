@@ -194,8 +194,8 @@ constdefs
   "Field A == union (Domain A) (Range A)"
 
 constdefs
-  "\<acute>"         :: "ZF \<Rightarrow> ZF => ZF"    (infixl 90) --{*function application*} 
-  app_def:  "f \<acute> x == (THE y. Elem (Opair x y) f)"
+  app :: "ZF \<Rightarrow> ZF => ZF"    (infixl "\<acute>" 90) --{*function application*} 
+  "f \<acute> x == (THE y. Elem (Opair x y) f)"
 
 constdefs
   isFun :: "ZF \<Rightarrow> bool"
