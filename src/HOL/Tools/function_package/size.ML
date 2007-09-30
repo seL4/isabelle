@@ -31,7 +31,7 @@ fun specify_consts args thy =
       Const (Sign.full_name thy (Syntax.const_name c mx), T)) args;
   in
     thy
-    |> Sign.add_consts_authentic args
+    |> Sign.add_consts_authentic [] args
     |> Theory.add_finals_i false specs
   end;
 

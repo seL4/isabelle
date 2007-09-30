@@ -499,7 +499,7 @@ fun simple_def (raw_name, atts) (((raw_c, ty, syn), ts), t) thy =
     val def = Logic.mk_equals (list_comb (Const (c, ty), ts), t);
   in
     thy
-    |> Sign.add_consts_authentic [(raw_c, ty, syn)]
+    |> Sign.add_consts_authentic [] [(raw_c, ty, syn)]
     |> add_defs_i false [((name, def), atts)]
     |-> (fn [thm] => pair (c, thm))
   end;

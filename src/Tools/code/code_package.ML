@@ -410,8 +410,7 @@ fun generate thy funcgr gen it =
   let
     val naming = NameSpace.qualified_names NameSpace.default_naming;
     val consttab = Consts.empty
-      |> fold (fn c => Consts.declare naming
-           ((c, CodeFuncgr.typ funcgr c), true))
+      |> fold (fn c => Consts.declare true naming [] (c, CodeFuncgr.typ funcgr c))
            (CodeFuncgr.all funcgr);
     val algbr = (Code.operational_algebra thy, consttab);
   in   

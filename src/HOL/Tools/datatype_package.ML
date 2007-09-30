@@ -517,7 +517,7 @@ fun gen_specify_consts add args thy =
   end;
 
 val specify_consts = gen_specify_consts Sign.add_consts_i;
-val specify_consts_authentic = gen_specify_consts Sign.add_consts_authentic;
+val specify_consts_authentic = gen_specify_consts (Sign.add_consts_authentic []);
 
 structure DatatypeInterpretation = InterpretationFun(type T = string list val eq = op =);
 val interpretation = DatatypeInterpretation.interpretation;

@@ -788,7 +788,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
   in
     thy
     |> Sign.add_path prfx
-    |> Sign.add_consts_authentic [(c, ty', syn')]
+    |> Sign.add_consts_authentic [] [(c, ty', syn')]
     |> Sign.parent_path
     |> Sign.sticky_prefix prfx
     |> PureThy.add_defs_i false [(def, [])]

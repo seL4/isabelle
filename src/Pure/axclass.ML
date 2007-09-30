@@ -371,7 +371,7 @@ fun define_class_params (name, raw_superclasses) raw_consts raw_dep_axioms other
     fun mk_const_name c = NameSpace.map_base (NameSpace.append prefix)
       (Sign.full_name thy c);
     fun add_const ((c, ty), syn) =
-      Sign.add_consts_authentic [(c, ty, syn)]
+      Sign.add_consts_authentic [] [(c, ty, syn)]
       #> pair (mk_const_name c, ty);
     fun mk_axioms cs thy =
       raw_dep_axioms thy cs
