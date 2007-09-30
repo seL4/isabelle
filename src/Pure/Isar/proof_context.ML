@@ -606,16 +606,18 @@ fun standard_typ_check ctxt =
   map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
   map (prepare_patternT ctxt);
 
+fun standard_term_check ctxt =
+  standard_infer_types ctxt #>
+  map (expand_abbrevs ctxt);
+  
 fun add_check add f = Context.add_setup
   (Context.theory_map (add (fn xs => fn ctxt => (f ctxt xs, ctxt))));
 
 in
 
-val _ = add_check (Syntax.add_term_check 0 "standard") standard_infer_types;
-val _ = add_check (Syntax.add_term_check 50 "abbrevs") (map o expand_abbrevs);
-val _ = add_check (Syntax.add_term_check 100 "fixate") prepare_patterns;
-
 val _ = add_check (Syntax.add_typ_check 0 "standard") standard_typ_check;
+val _ = add_check (Syntax.add_term_check 0 "standard") standard_term_check;
+val _ = add_check (Syntax.add_term_check 100 "fixate") prepare_patterns;
 
 end;
 
