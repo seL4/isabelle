@@ -181,7 +181,7 @@ val definitionK = "definition";
 val theoremK = "theorem";
 val lemmaK = "lemma";
 val corollaryK = "corollary";
-val internalK = "internal";
+val internalK = Markup.internalK;
 
 
 
