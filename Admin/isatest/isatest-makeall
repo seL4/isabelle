@@ -97,9 +97,11 @@ if [ "$1" = "-l" ]; then
   TARGETS="$2"
   shift 2
   ISABELLE_HOME="$($ISATOOL getenv -b ISABELLE_HOME)"
-  TOOL="cd $ISABELLE_HOME/$LOGIC; $NICE $ISATOOL make $MFLAGS $TARGETS"
+  DIR="$ISABELLE_HOME/$LOGIC"
+  TOOL="$ISATOOL make $MFLAGS $TARGETS"
 else
-  TOOL="$NICE $ISATOOL makeall $MFLAGS all"
+  DIR="."
+  TOOL="$ISATOOL makeall $MFLAGS all"
 fi
 
 # main test loop
@@ -121,7 +123,7 @@ for SETTINGS in $@; do
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    (ulimit -t $MAXTIME; $TOOL >> $TESTLOG 2>&1)
+    (ulimit -t $MAXTIME; cd $DIR; $NICE $TOOL >> $TESTLOG 2>&1)
 
     if [ $? -eq 0 ]
     then
