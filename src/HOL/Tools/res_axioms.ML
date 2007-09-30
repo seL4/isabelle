@@ -101,7 +101,8 @@ fun declare_skofuns s th thy =
                 val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
                         (*Forms a lambda-abstraction over the formal parameters*)
                 val _ = Output.debug (fn () => "declaring the constant " ^ cname)
-                val thy' = Sign.add_consts_authentic [(cname, cT, NoSyn)] thy
+                val thy' =
+                  Sign.add_consts_authentic [Markup.property_internal] [(cname, cT, NoSyn)] thy
                            (*Theory is augmented with the constant, then its def*)
                 val cdef = cname ^ "_def"
                 val thy'' = Theory.add_defs_i false false [(cdef, equals cT $ c $ rhs)] thy'
@@ -273,7 +274,8 @@ fun declare_absfuns s th =
                           val Ts = map type_of args
                           val cT = Ts ---> (Tvs ---> typ_of (ctyp_of_term cu'))
                           val c = Const (Sign.full_name thy cname, cT)
-                          val thy = Sign.add_consts_authentic [(cname, cT, NoSyn)] thy
+                          val thy =
+                            Sign.add_consts_authentic [Markup.property_internal] [(cname, cT, NoSyn)] thy
                                      (*Theory is augmented with the constant,
                                        then its definition*)
                           val cdef = cname ^ "_def"
