@@ -209,23 +209,25 @@ fun pretty_full_theory verbose thy =
     val (class_space, class_algebra) = classes;
     val {classes, arities} = Sorts.rep_algebra class_algebra;
 
-    fun prune xs = if verbose then xs else filter_out (can Name.dest_internal o fst) xs;
-    fun prune' xs = if verbose then xs else filter_out (can Name.dest_internal o fst o fst) xs;
-    fun dest_table tab = prune (NameSpace.dest_table tab);
-    fun extern_table tab = prune (NameSpace.extern_table tab);
+    val clsses = NameSpace.dest_table (class_space, Symtab.make (Graph.dest classes));
+    val tdecls = NameSpace.dest_table types;
+    val arties = NameSpace.dest_table (Sign.type_space thy, arities);
 
-    val clsses = dest_table (class_space, Symtab.make (Graph.dest classes));
-    val tdecls = dest_table types;
-    val arties = dest_table (Sign.type_space thy, arities);
-    val cnsts = extern_table constants;
+    fun prune_const c = not verbose andalso
+      member (op =) (Consts.the_tags consts c) Markup.property_internal;
+    val cnsts = NameSpace.extern_table (#1 constants,
+      Symtab.make (filter_out (prune_const o fst) (Symtab.dest (#2 constants))));
+
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME (t, _))) => SOME (c, (ty, t)) | _ => NONE) cnsts;
-    val cnstrs = extern_table constraints;
-    val axms = extern_table axioms;
-    val oras = extern_table oracles;
+    val cnstrs = NameSpace.extern_table constraints;
 
-    val (reds0, (reds1, reds2)) = prune' reducts |> map (fn (lhs, rhs) =>
-        (apfst extern_const lhs, map (apfst extern_const) (prune rhs)))
+    val axms = NameSpace.extern_table axioms;
+    val oras = NameSpace.extern_table oracles;
+
+    val (reds0, (reds1, reds2)) = filter_out (prune_const o fst o fst) reducts
+      |> map (fn (lhs, rhs) =>
+        (apfst extern_const lhs, map (apfst extern_const) (filter_out (prune_const o fst) rhs)))
       |> sort_wrt (#1 o #1)
       |> List.partition (null o #2)
       ||> List.partition (Defs.plain_args o #2 o #1);
