@@ -447,14 +447,14 @@ defs
   subcls1_def: "subcls1 G \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c\<in>class G C: super c = D)}"
 
 syntax
- "@subcls1" :: "prog => [qtname, qtname] => bool" ("_|-_<:C1_" [71,71,71] 70)
- "@subclseq":: "prog => [qtname, qtname] => bool" ("_|-_<=:C _"[71,71,71] 70)
- "@subcls"  :: "prog => [qtname, qtname] => bool" ("_|-_<:C _"[71,71,71] 70)
+ "_subcls1" :: "prog => [qtname, qtname] => bool" ("_|-_<:C1_" [71,71,71] 70)
+ "_subclseq":: "prog => [qtname, qtname] => bool" ("_|-_<=:C _"[71,71,71] 70)
+ "_subcls"  :: "prog => [qtname, qtname] => bool" ("_|-_<:C _"[71,71,71] 70)
 
 syntax (xsymbols)
-  "@subcls1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C\<^sub>1_"  [71,71,71] 70)
-  "@subclseq":: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70)
-  "@subcls"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
+  "_subcls1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C\<^sub>1_"  [71,71,71] 70)
+  "_subclseq":: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70)
+  "_subcls"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
 
 translations
         "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D" == "(C,D) \<in> subcls1 G"

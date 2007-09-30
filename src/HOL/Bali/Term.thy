@@ -203,7 +203,7 @@ and  stmt
         | Lab   jump stmt       ("_\<bullet> _" [      99,66]66)
                                 --{* labeled statement; handles break *}
 	| Comp  stmt stmt       ("_;; _"                  [      66,65]65)
-	| If_   expr stmt stmt  ("If'(_') _ Else _"       [   80,79,79]70)
+	| If'   expr stmt stmt  ("If'(_') _ Else _"       [   80,79,79]70)
 	| Loop  label expr stmt ("_\<bullet> While'(_') _"        [   99,80,79]70)
         | Jmp jump              --{* break, continue, return *}
 	| Throw expr

@@ -75,13 +75,13 @@ done
 lemma lam_sets: "f \<in> A->B ==> (\<lambda>x \<in> A. {f`x}): A -> {{b}. b \<in> B}"
 by (fast intro!: lam_type apply_type)
 
-lemma surj_imp_eq_: "f \<in> surj(A,B) ==> (\<Union>a \<in> A. {f`a}) = B"
+lemma surj_imp_eq': "f \<in> surj(A,B) ==> (\<Union>a \<in> A. {f`a}) = B"
 apply (unfold surj_def)
 apply (fast elim!: apply_type)
 done
 
 lemma surj_imp_eq: "[| f \<in> surj(A,B); Ord(A) |] ==> (\<Union>a<A. {f`a}) = B"
-by (fast dest!: surj_imp_eq_ intro!: ltI elim!: ltE)
+by (fast dest!: surj_imp_eq' intro!: ltI elim!: ltE)
 
 lemma WO1_WO4: "WO1 ==> WO4(1)"
 apply (unfold WO1_def WO4_def)

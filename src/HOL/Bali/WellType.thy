@@ -426,19 +426,19 @@ where
 
 
 syntax (* for purely static typing *)
-  wt_      :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_|-_::_" [51,51,51] 50)
-  wt_stmt_ :: "env \<Rightarrow>  stmt       \<Rightarrow> bool" ("_|-_:<>" [51,51   ] 50)
-  ty_expr_ :: "env \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_|-_:-_" [51,51,51] 50)
-  ty_var_  :: "env \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_|-_:=_" [51,51,51] 50)
-  ty_exprs_:: "env \<Rightarrow> [expr list,
+  "_wt"      :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_|-_::_" [51,51,51] 50)
+  "_wt_stmt" :: "env \<Rightarrow>  stmt       \<Rightarrow> bool" ("_|-_:<>" [51,51   ] 50)
+  "_ty_expr" :: "env \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_|-_:-_" [51,51,51] 50)
+  "_ty_var"  :: "env \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_|-_:=_" [51,51,51] 50)
+  "_ty_exprs":: "env \<Rightarrow> [expr list,
 		     \<spacespace> ty   list] \<Rightarrow> bool" ("_|-_:#_" [51,51,51] 50)
 
 syntax (xsymbols)
-  wt_      :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>_"  [51,51,51] 50)
-  wt_stmt_ ::  "env \<Rightarrow>  stmt       \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<surd>"  [51,51   ] 50)
-  ty_expr_ :: "env \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>-_" [51,51,51] 50)
-  ty_var_  :: "env \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>=_" [51,51,51] 50)
-  ty_exprs_ :: "env \<Rightarrow> [expr list,
+  "_wt"      :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>_"  [51,51,51] 50)
+  "_wt_stmt" ::  "env \<Rightarrow>  stmt       \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<surd>"  [51,51   ] 50)
+  "_ty_expr" :: "env \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>-_" [51,51,51] 50)
+  "_ty_var"  :: "env \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>=_" [51,51,51] 50)
+  "_ty_exprs" :: "env \<Rightarrow> [expr list,
 		    \<spacespace>  ty   list] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<doteq>_" [51,51,51] 50)
 
 translations

@@ -37,25 +37,25 @@ consts
 
 syntax
 
- "@subint1" :: "prog => [qtname, qtname] => bool" ("_|-_<:I1_" [71,71,71] 70)
- "@subint"  :: "prog => [qtname, qtname] => bool" ("_|-_<=:I _"[71,71,71] 70)
+ "_subint1" :: "prog => [qtname, qtname] => bool" ("_|-_<:I1_" [71,71,71] 70)
+ "_subint"  :: "prog => [qtname, qtname] => bool" ("_|-_<=:I _"[71,71,71] 70)
  (* Defined in Decl.thy:
- "@subcls1" :: "prog => [qtname, qtname] => bool" ("_|-_<:C1_" [71,71,71] 70)
- "@subclseq":: "prog => [qtname, qtname] => bool" ("_|-_<=:C _"[71,71,71] 70)
- "@subcls"  :: "prog => [qtname, qtname] => bool" ("_|-_<:C _"[71,71,71] 70)
+ "_subcls1" :: "prog => [qtname, qtname] => bool" ("_|-_<:C1_" [71,71,71] 70)
+ "_subclseq":: "prog => [qtname, qtname] => bool" ("_|-_<=:C _"[71,71,71] 70)
+ "_subcls"  :: "prog => [qtname, qtname] => bool" ("_|-_<:C _"[71,71,71] 70)
  *)
  "@implmt1" :: "prog => [qtname, qtname] => bool" ("_|-_~>1_"  [71,71,71] 70)
 
 syntax (xsymbols)
 
-  "@subint1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>I1_"  [71,71,71] 70)
-  "@subint"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70)
+  "_subint1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>I1_"  [71,71,71] 70)
+  "_subint"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70)
   (* Defined in Decl.thy:
-\  "@subcls1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C\<^sub>1_"  [71,71,71] 70)
-  "@subclseq":: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70)
-  "@subcls"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
+\  "_subcls1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C\<^sub>1_"  [71,71,71] 70)
+  "_subclseq":: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70)
+  "_subcls"  :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
   *)
-  "@implmt1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
+  "_implmt1" :: "prog \<Rightarrow> [qtname, qtname] \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
 
 translations
 

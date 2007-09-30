@@ -1908,7 +1908,7 @@ proof-
   from alluopairs_set1[where xs="?U"] have UpU: "set ?Up \<le> (set ?U \<times> set ?U)" by simp
   from uset_l[OF lq] have U_l: "\<forall> (t,n) \<in> set ?U. numbound0 t \<and> n > 0" .
   from U_l UpU 
-  have Up_: "\<forall> ((t,n),(s,m)) \<in> set ?Up. numbound0 t \<and> n> 0 \<and> numbound0 s \<and> m > 0" by auto
+  have "\<forall> ((t,n),(s,m)) \<in> set ?Up. numbound0 t \<and> n> 0 \<and> numbound0 s \<and> m > 0" by auto
   hence Snb: "\<forall> (t,n) \<in> set ?S. numbound0 t \<and> n > 0 "
     by (auto simp add: mult_pos_pos)
   have Y_l: "\<forall> (t,n) \<in> set ?Y. numbound0 t \<and> n > 0" 

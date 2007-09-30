@@ -1277,7 +1277,7 @@ proof (induct rule: full_nat_induct)
 	apply (fastsimp intro: eval.Comp) 
 	done
     next
-      case (If_ e c1 c2)
+      case (If' e c1 c2)
       thus "G,A\<turnstile>{=:n} \<langle>If(e) c1 Else c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
 	apply -
 	apply (rule MGFn_NormalI)

@@ -9,9 +9,9 @@ header {* \isaheader{Program State} *}
 theory State imports TypeRel Value begin
 
 types 
-  fields_ = "(vname \<times> cname \<rightharpoonup> val)"  -- "field name, defining class, value"
+  fields' = "(vname \<times> cname \<rightharpoonup> val)"  -- "field name, defining class, value"
 
-  obj = "cname \<times> fields_"    -- "class instance with class name and fields"
+  obj = "cname \<times> fields'"    -- "class instance with class name and fields"
 
 constdefs
   obj_ty  :: "obj => ty"

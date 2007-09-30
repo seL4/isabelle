@@ -97,7 +97,7 @@ by (cases s) (simp add: throw_def)
 section "result conformance"
 
 constdefs
-  assign_conforms :: "st \<Rightarrow> (val \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> ty \<Rightarrow> env_ \<Rightarrow> bool"
+  assign_conforms :: "st \<Rightarrow> (val \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> ty \<Rightarrow> env' \<Rightarrow> bool"
           ("_\<le>|_\<preceq>_\<Colon>\<preceq>_"                                        [71,71,71,71] 70)
 "s\<le>|f\<preceq>T\<Colon>\<preceq>E \<equiv>
  (\<forall>s' w. Norm s'\<Colon>\<preceq>E \<longrightarrow> fst E,s'\<turnstile>w\<Colon>\<preceq>T \<longrightarrow> s\<le>|s' \<longrightarrow> assign f w (Norm s')\<Colon>\<preceq>E) \<and>

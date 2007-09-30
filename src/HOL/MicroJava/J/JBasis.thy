@@ -56,14 +56,14 @@ apply (induct_tac "l")
 apply  auto
 done
 
-lemma Ball_set_table_: 
+lemma Ball_set_table': 
   "(\<forall>(x,y)\<in>set l. P x y) --> (\<forall>x. \<forall>y. map_of l x = Some y --> P x y)"
 apply(induct_tac "l")
 apply(simp_all (no_asm))
 apply safe
 apply auto
 done
-lemmas Ball_set_table = Ball_set_table_ [THEN mp];
+lemmas Ball_set_table = Ball_set_table' [THEN mp];
 
 lemma table_of_remap_SomeD [rule_format (no_asm)]: 
 "map_of (map (\<lambda>((k,k'),x). (k,(k',x))) t) k = Some (k',x) --> 

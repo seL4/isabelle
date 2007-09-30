@@ -94,10 +94,10 @@ lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in
 proof (neg_clausify)
 assume 0: "\<And>cl\<Colon>'a\<Colon>type set.
    (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> 'a\<Colon>type set) cl =
-   Collect (llabs_Set_XCollect_ex_eq_3_ op \<in> (pset cl))"
+   Collect (llabs_Set_XCollect_ex_eq_3 op \<in> (pset cl))"
 assume 1: "(f\<Colon>'a\<Colon>type) \<notin> pset (cl\<Colon>'a\<Colon>type set)"
 assume 2: "(cl\<Colon>'a\<Colon>type set, f\<Colon>'a\<Colon>type) \<in> (CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set)"
-have 3: "llabs_Predicate_Xsup_Un_eq2_1_ (CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set)
+have 3: "llabs_Predicate_Xsup_Un_eq2_1 (CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set)
  (cl\<Colon>'a\<Colon>type set) (f\<Colon>'a\<Colon>type)"
   by (metis acc_def 2)
 assume 4: "(CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set) =
@@ -120,7 +120,7 @@ proof (neg_clausify)
 assume 0: "\<And>cl\<Colon>'a\<Colon>type set.
    (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> ('a\<Colon>type \<Rightarrow> 'a\<Colon>type) set) cl =
    Collect
-    (llabs_Set_XCollect_ex_eq_3_ op \<in> (Pi (pset cl) (COMBK (pset cl))))"
+    (llabs_Set_XCollect_ex_eq_3 op \<in> (Pi (pset cl) (COMBK (pset cl))))"
 assume 1: "(f\<Colon>'a\<Colon>type \<Rightarrow> 'a\<Colon>type) \<notin> Pi (pset (cl\<Colon>'a\<Colon>type set)) (COMBK (pset cl))"
 assume 2: "(cl\<Colon>'a\<Colon>type set, f\<Colon>'a\<Colon>type \<Rightarrow> 'a\<Colon>type)
 \<in> Sigma (CL\<Colon>'a\<Colon>type set set)

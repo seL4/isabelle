@@ -8,7 +8,7 @@ header {* \isaheader{Conformity Relations for Type Soundness Proof} *}
 
 theory Conform imports State WellType Exceptions begin
 
-types 'c env_ = "'c prog \<times> (vname \<rightharpoonup> ty)"  -- "same as @{text env} of @{text WellType.thy}"
+types 'c env' = "'c prog \<times> (vname \<rightharpoonup> ty)"  -- "same as @{text env} of @{text WellType.thy}"
 
 constdefs
 
@@ -32,7 +32,7 @@ constdefs
   xconf :: "aheap \<Rightarrow> val option \<Rightarrow> bool"
   "xconf hp vo  == preallocated hp \<and> (\<forall> v. (vo = Some v) \<longrightarrow> (\<exists> xc. v = (Addr (XcptRef xc))))"
 
-  conforms :: "xstate => java_mb env_ => bool" ("_ ::<= _" [51,51] 50)
+  conforms :: "xstate => java_mb env' => bool" ("_ ::<= _" [51,51] 50)
  "s::<=E == prg E|-h heap (store s) [ok] \<and> 
             prg E,heap (store s)|-locals (store s)[::<=]localT E \<and> 
             xconf (heap (store s)) (abrupt s)"
@@ -54,7 +54,7 @@ syntax (xsymbols)
   hconf    :: "'c prog => aheap => bool"
               ("_ \<turnstile>h _ \<surd>" [51,51] 50)
 
-  conforms :: "state => java_mb env_ => bool"
+  conforms :: "state => java_mb env' => bool"
               ("_ ::\<preceq> _" [51,51] 50)
 
 

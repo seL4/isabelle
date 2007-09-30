@@ -49,9 +49,9 @@ translations
   "Vals x"     => "(In3 x)"
 
 syntax
-  "Val_"    :: "[pttrn] => pttrn"     ("Val:_"  [951] 950)
-  "Var_"    :: "[pttrn] => pttrn"     ("Var:_"  [951] 950)
-  "Vals_"   :: "[pttrn] => pttrn"     ("Vals:_" [951] 950)
+  "_Val"    :: "[pttrn] => pttrn"     ("Val:_"  [951] 950)
+  "_Var"    :: "[pttrn] => pttrn"     ("Var:_"  [951] 950)
+  "_Vals"   :: "[pttrn] => pttrn"     ("Vals:_" [951] 950)
 
 translations
   "\<lambda>Val:v . b"  == "(\<lambda>v. b) \<circ> the_In1"

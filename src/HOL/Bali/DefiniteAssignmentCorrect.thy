@@ -129,11 +129,11 @@ proof -
     ultimately show ?case
       by simp
   next
-    case (If_ e c1 c2 jmps' jmps)
-    from If_.prems 
-    have "jumpNestingOkS jmps c1" by - (rule If_.hyps,auto)
-    moreover from If_.prems 
-    have "jumpNestingOkS jmps c2" by - (rule If_.hyps,auto)
+    case (If' e c1 c2 jmps' jmps)
+    from If'.prems 
+    have "jumpNestingOkS jmps c1" by - (rule If'.hyps,auto)
+    moreover from If'.prems 
+    have "jumpNestingOkS jmps c2" by - (rule If'.hyps,auto)
     ultimately show ?case
       by simp
   next

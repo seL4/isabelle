@@ -62,7 +62,7 @@ types_code
   cname ("string")
   vnam ("string")
   mname ("string")
-  loc_ ("int")
+  loc' ("int")
 
 consts_code
   "new_Addr" ("\<module>new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *} {* Loc *}")

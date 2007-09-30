@@ -17,7 +17,7 @@ design issues:
 \end{itemize}
 *}
 
-types	env_ = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
+types	env' = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
 
 
 section "extension of global store"
@@ -388,7 +388,7 @@ section "state conformance"
 
 constdefs
 
-  conforms :: "state \<Rightarrow> env_ \<Rightarrow> bool"          (     "_\<Colon>\<preceq>_"   [71,71]      70)
+  conforms :: "state \<Rightarrow> env' \<Rightarrow> bool"          (     "_\<Colon>\<preceq>_"   [71,71]      70)
    "xs\<Colon>\<preceq>E \<equiv> let (G, L) = E; s = snd xs; l = locals s in
     (\<forall>r. \<forall>obj\<in>globs s r:           G,s\<turnstile>obj   \<Colon>\<preceq>\<surd>r) \<and>
                 \<spacespace>                   G,s\<turnstile>l    [\<sim>\<Colon>\<preceq>]L\<spacespace> \<and>

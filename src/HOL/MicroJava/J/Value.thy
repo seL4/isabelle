@@ -8,11 +8,11 @@ header {* \isaheader{Java Values} *}
 
 theory Value imports Type begin
 
-typedecl loc_ -- "locations, i.e. abstract references on objects" 
+typedecl loc' -- "locations, i.e. abstract references on objects" 
 
 datatype loc 
   = XcptRef xcpt -- "special locations for pre-allocated system exceptions"
-  | Loc loc_     -- "usual locations (references on objects)"
+  | Loc loc'     -- "usual locations (references on objects)"
 
 datatype val
   = Unit        -- "dummy result value of void methods"

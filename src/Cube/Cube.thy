@@ -14,7 +14,7 @@ typedecl "context"
 typedecl typing
 
 nonterminals
-  context_ typing_
+  context' typing'
 
 consts
   Abs           :: "[term, term => term] => term"
@@ -28,13 +28,13 @@ consts
   Has_type      :: "[term, term] => typing"
 
 syntax
-  Trueprop      :: "[context_, typing_] => prop"        ("(_/ |- _)")
-  Trueprop1     :: "typing_ => prop"                    ("(_)")
-  ""            :: "id => context_"                     ("_")
-  ""            :: "var => context_"                    ("_")
-  MT_context    :: "context_"                           ("")
-  Context       :: "[typing_, context_] => context_"    ("_ _")
-  Has_type      :: "[term, term] => typing_"            ("(_:/ _)" [0, 0] 5)
+  Trueprop      :: "[context', typing'] => prop"        ("(_/ |- _)")
+  Trueprop1     :: "typing' => prop"                    ("(_)")
+  ""            :: "id => context'"                     ("_")
+  ""            :: "var => context'"                    ("_")
+  MT_context    :: "context'"                           ("")
+  Context       :: "[typing', context'] => context'"    ("_ _")
+  Has_type      :: "[term, term] => typing'"            ("(_:/ _)" [0, 0] 5)
   Lam           :: "[idt, term, term] => term"          ("(3Lam _:_./ _)" [0, 0, 0] 10)
   Pi            :: "[idt, term, term] => term"          ("(3Pi _:_./ _)" [0, 0] 10)
   arrow         :: "[term, term] => term"               (infixr "->" 10)
@@ -46,7 +46,7 @@ translations
   "A -> B"       => "Prod(A, %_. B)"
 
 syntax (xsymbols)
-  Trueprop      :: "[context_, typing_] => prop"        ("(_/ \<turnstile> _)")
+  Trueprop      :: "[context', typing'] => prop"        ("(_/ \<turnstile> _)")
   box           :: "term"                               ("\<box>")
   Lam           :: "[idt, term, term] => term"          ("(3\<Lambda> _:_./ _)" [0, 0, 0] 10)
   Pi            :: "[idt, term, term] => term"          ("(3\<Pi> _:_./ _)" [0, 0] 10)

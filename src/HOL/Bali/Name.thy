@@ -43,8 +43,8 @@ done
 
 
 datatype tname	--{* type names for standard classes and other type names *}
-	= Object_
-	| SXcpt_   xname
+	= Object'
+	| SXcpt'   xname
 	| TName   tnam
 
 record   qtname = --{* qualified tname cf. 6.5.3, 6.5.4*}
@@ -90,8 +90,8 @@ consts
   Object :: qtname
   SXcpt  :: "xname \<Rightarrow> qtname"
 defs
-  Object_def: "Object  \<equiv> \<lparr>pid = java_lang, tid = Object_\<rparr>"
-  SXcpt_def:  "SXcpt   \<equiv> \<lambda>x.  \<lparr>pid = java_lang, tid = SXcpt_ x\<rparr>"
+  Object_def: "Object  \<equiv> \<lparr>pid = java_lang, tid = Object'\<rparr>"
+  SXcpt_def:  "SXcpt   \<equiv> \<lambda>x.  \<lparr>pid = java_lang, tid = SXcpt' x\<rparr>"
 
 lemma Object_neq_SXcpt [simp]: "Object \<noteq> SXcpt xn"
 by (simp add: Object_def SXcpt_def)
