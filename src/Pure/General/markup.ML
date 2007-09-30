@@ -15,6 +15,8 @@ sig
   val properties: (string * string) list -> T -> T
   val nameN: string
   val kindN: string
+  val internalK: string
+  val property_internal: property
   val lineN: string
   val fileN: string
   val positionN: string val position: T
@@ -84,7 +86,14 @@ fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
 fun markup_int elem prop = (elem, fn i => (elem, [(prop, Int.toString i)]): T);
 
 val nameN = "name";
+
+
+(* kind *)
+
 val kindN = "kind";
+
+val internalK = "internal";
+val property_internal = (kindN, internalK);
 
 
 (* position *)
