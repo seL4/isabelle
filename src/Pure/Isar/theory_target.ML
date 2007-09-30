@@ -64,16 +64,17 @@ fun target_abbrev prmode ((c, mx), rhs) phi =
       | _ => false);
   in
     eq_heads ? (Context.mapping_result
-      (Sign.add_abbrev Syntax.internalM arg') (ProofContext.add_abbrev Syntax.internalM arg')
+      (Sign.add_abbrev Syntax.internalM [] arg') (ProofContext.add_abbrev Syntax.internalM [] arg')
     #-> (fn (lhs, _) =>
       Term.equiv_types (rhs, rhs') ?
         Morphism.form (ProofContext.target_notation prmode [(lhs, mx)])))
   end;
 
-fun internal_abbrev prmode ((c, mx), t) =
+fun internal_abbrev prmode ((c, mx), t) lthy = lthy
   (* FIXME really permissive *)
-  LocalTheory.term_syntax (perhaps o try o target_abbrev prmode ((c, mx), t))
-  #> ProofContext.add_abbrev Syntax.internalM (c, t) #> snd;
+  |> LocalTheory.term_syntax (perhaps o try o target_abbrev prmode ((c, mx), t))
+  |> ProofContext.add_abbrev Syntax.internalM (ContextPosition.properties_of lthy) (c, t)
+  |> snd;
 
 fun consts is_loc some_class depends decls lthy =
   let
@@ -84,7 +85,7 @@ fun consts is_loc some_class depends decls lthy =
         val U = map #2 xs ---> T;
         val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
         val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
-        val thy' = Sign.add_consts_authentic [(c, U, mx1)] thy;
+        val thy' = Sign.add_consts_authentic (ContextPosition.properties_of lthy) [(c, U, mx1)] thy;
       in (((c, mx2), t), thy') end;
 
     fun const_class (SOME class) ((c, _), mx) (_, t) =
@@ -151,8 +152,8 @@ fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
     val U = Term.fastype_of u;
     val u' = singleton (Variable.export_terms (Variable.declare_term u target) thy_ctxt) u;
 
-    val ((lhs as Const (full_c, _), rhs), lthy1) = lthy
-      |> LocalTheory.theory_result (Sign.add_abbrev (#1 prmode) (c, u'));
+    val ((lhs as Const (full_c, _), rhs), lthy1) = lthy |> LocalTheory.theory_result
+      (Sign.add_abbrev (#1 prmode) (ContextPosition.properties_of lthy) (c, u'));
     val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
   in
     lthy1
@@ -267,6 +268,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val result = th''
       |> PureThy.name_thm true true ""
       |> Goal.close_result
+      |> fold PureThy.tag_rule (ContextPosition.properties_of ctxt)
       |> PureThy.name_thm true true name;
 
     (*import fixes*)
