@@ -210,9 +210,11 @@ val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_for
 val pretty_context = LocalTheory.pretty o Context.cases (loc_init NONE) I;
 
 fun print_state_context state =
-  (case try (node_case I (Context.Proof o Proof.context_of)) state of
+  (case try node_of state of
     NONE => []
-  | SOME gthy => pretty_context gthy)
+  | SOME (Theory (gthy, _)) => pretty_context gthy
+  | SOME (Proof (_, (_, gthy))) => pretty_context gthy
+  | SOME (SkipProof (_, (gthy, _))) => pretty_context gthy)
   |> Pretty.chunks |> Pretty.writeln;
 
 fun print_state prf_only state =
@@ -340,10 +342,9 @@ fun map_theory f = History.map_current
     | node => node);
 
 fun context_position pos = History.map_current
-  (fn Theory (Context.Proof lthy, ctxt) =>
-        Theory (Context.Proof (ContextPosition.put pos lthy), ctxt)
+  (fn Theory (gthy, ctxt) => Theory (ContextPosition.put pos gthy, ctxt)
     | Proof (prf, x) =>
-        Proof (ProofHistory.map_current (Proof.map_context (ContextPosition.put pos)) prf, x)
+        Proof (ProofHistory.map_current (Proof.map_context (ContextPosition.put_ctxt pos)) prf, x)
     | node => node);
 
 fun return (result, NONE) = result
@@ -362,6 +363,7 @@ fun transaction hist pos f (node, term) =
     val (result, err) =
       cont_node
       |> context_position pos
+      |> map_theory Theory.checkpoint
       |> (f
           |> (if hist then History.apply' (History.current back_node) else History.map_current)
           |> controlled_execution)
@@ -550,7 +552,7 @@ fun local_theory_presentation loc f g = app_current (fn int =>
         let
           val pos = ContextPosition.get (Context.proof_of gthy);
           val finish = loc_finish loc gthy;
-          val lthy' = f (ContextPosition.put pos (loc_begin loc gthy));
+          val lthy' = f (ContextPosition.put_ctxt pos (loc_begin loc gthy));
         in Theory (finish lthy', SOME lthy') end
     | _ => raise UNDEF) #> tap (g int));
 
@@ -565,7 +567,7 @@ end;
 (* proof transitions *)
 
 fun end_proof f = map_current (fn int =>
-  (fn Proof (prf, (finish, orig_gthy)) =>
+  (fn Proof (prf, (finish, _)) =>
         let val state = ProofHistory.current prf in
           if can (Proof.assert_bottom true) state then
             let
@@ -600,7 +602,8 @@ in
 
 fun local_theory_to_proof' loc f = begin_proof
   (fn int => fn gthy =>
-    f int (ContextPosition.put (ContextPosition.get (Context.proof_of gthy)) (loc_begin loc gthy)))
+    f int (ContextPosition.put_ctxt (ContextPosition.get (Context.proof_of gthy))
+      (loc_begin loc gthy)))
   (loc_finish loc);
 
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
