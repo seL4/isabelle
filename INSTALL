@@ -20,7 +20,8 @@ site installation of Isabelle on Linux/x86 works like this:
   tar -C /usr/local -xzf polyml_x86-linux.tar.gz
   tar -C /usr/local -xzf HOL_x86-linux.tar.gz
 
-The install prefix given above may be changed as appropriate.  By
+The install prefix given above may be changed as appropriate; there is
+no need to install into a system directory like /usr/local at all.  By
 default the ML system (and other contributed packages) are expected in
 any of the following locations:
 
