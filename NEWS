@@ -529,6 +529,11 @@ default; use '!' option for full details.
 
 *** HOL ***
 
+* New "auto_quickcheck" feature tests outermost goal statements for
+potential counter-examples.  Controlled by ML references
+auto_quickcheck (default true) and auto_quickcheck_time_limit (default
+5000 milliseconds).
+
 * Internal reorganisation of `size' of datatypes: size theorems
 "foo.size" are no longer subsumed by "foo.simps" (but are still
 simplification rules by default!); theorems "prod.size" now named
