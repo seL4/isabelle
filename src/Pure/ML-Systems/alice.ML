@@ -27,7 +27,16 @@ fun exit 0 = (OS.Process.exit OS.Process.success): unit
 (*low-level pointer equality*)
 fun pointer_eq (_: 'a, _: 'a) = false;
 
-(*downgraded IntInf*)
+
+(* integer compatibility -- downgraded IntInf *)
+
+structure Time =
+struct
+  open Time;
+  val fromMilliseconds = Time.fromMilliseconds o IntInf.fromInt;
+  val fromSeconds = Time.fromSeconds o IntInf.fromInt;
+end;
+
 structure IntInf =
 struct
   fun divMod (x, y) = (x div y, x mod y);
