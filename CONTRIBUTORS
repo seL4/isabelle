@@ -1,5 +1,5 @@
-For the purposes of the license agreement in the file COPYRIGHT, a 
-'contributor' is anybody who is listed in this file (CONTRIBUTORS) or 
+For the purposes of the license agreement in the file COPYRIGHT, a
+'contributor' is anybody who is listed in this file (CONTRIBUTORS) or
 who is listed as an author in one of the source files of this Isabelle
 distribution.
 
@@ -7,32 +7,40 @@ distribution.
 Contributions to Isabelle 2007
 ------------------------------
 
-* August 2007: Jeremy Dawson, NICTA,
-               Paul Graunke, Galois, 
-               Brian Huffman, PSU,
-               Gerwin Klein, NICTA, 
-               John Matthews, Galois
+* August 2007: Jeremy Dawson, NICTA and Paul Graunke, Galois and Brian
+    Huffman, PSU and Gerwin Klein, NICTA and John Matthews, Galois
   HOL-Word: a library for fixed-size machine words in Isabelle.
 
 * August 2007: Brian Huffman, PSU
-  HOL/Library/Boolean_Algebra and HOL/Library/Numeral_Type
+  HOL/Library/Boolean_Algebra and HOL/Library/Numeral_Type.
 
 * June 2007: Amine Chaieb, TUM
-  Semiring normalization and Groebner Bases
+  Semiring normalization and Groebner Bases.
+  Support for dens linear orders.
 
 * June 2007: Joe Hurd, Oxford
-  Metis theorem-prover
+  Metis theorem-prover.
 
-* 2006/2007: Kong W. Susanto, Cambridge
+* 2007: Kong W. Susanto, Cambridge
   HOL: Metis prover integration.
+
+* 2007: Stefan Berghofer, TUM
+  HOL: inductive predicates.
+
+* 2006/2007: Alexander Krauss, TUM
+  HOL: function package and related theories on termination.
 
 * 2006/2007: Florian Haftmann, TUM
   Pure: generic code generator framework.
   Pure: class package.
-  HOL: theory tuning, code generator setup.
+  HOL: theory reorganization, code generator setup.
+
+* 2006/2007: Christian Urban, TUM and Stefan Berghofer, TUM and Julien
+  Narboux, TUM
+  HOL/Nominal package and related tools.
 
 * November 2006: Lukas Bulwahn, TUM
-  HOL/function: method "lexicographic_order".
+  HOL: method "lexicographic_order" for function package.
 
 * October 2006: Stefan Hohe, TUM
   HOL-Algebra: ideals and quotients over rings.
