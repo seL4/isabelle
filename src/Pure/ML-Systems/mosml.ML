@@ -15,6 +15,9 @@ $ isabelle RAW_ML_SYSTEM
 > Session.finish ();
 > cd "../FOL";
 > use "ROOT.ML";
+> Session.finish ();
+> cd "../ZF";
+> use "ROOT.ML";
 *)
 
 (** ML system related **)
@@ -43,6 +46,7 @@ in fun pointer_eq (x:'a, y:'a) = (cast x = cast y) end;
 (*proper implementation available?*)
 structure IntInf =
 struct
+  fun divMod (x, y) = (x div y, x mod y);
   open Int;
 end;
 
@@ -145,18 +149,18 @@ end;
 (* ML command execution *)
 
 (*Can one redirect 'use' directly to an instream?*)
-fun use_text _ _ _ txt =
+fun use_text (tune: string -> string) _ _ _ txt =
   let
     val tmp_name = FileSys.tmpName ();
     val tmp_file = TextIO.openOut tmp_name;
   in
-    TextIO.output (tmp_file, txt);
+    TextIO.output (tmp_file, tune txt);
     TextIO.closeOut tmp_file;
     use tmp_name;
     FileSys.remove tmp_name
   end;
 
-fun use_file _ _ name = use name;
+fun use_file _ _ _ name = use name;
 
 
 
