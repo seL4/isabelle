@@ -8,17 +8,15 @@ NOTE: there is no wrapper script; may run it interactively as follows:
 $ cd Isabelle/src/Pure
 $ env ALICE_JIT_MODE=0 alice
 - val ml_system = "alice";
+- use "ML-Systems/exn.ML";
+- use "ML-Systems/multithreading.ML";
+- use "ML-Systems/time_limit.ML";
 - use "ML-Systems/alice.ML";
 - use "ROOT.ML";
 - Session.finish ();
 *)
 
 val ml_system_fix_ints = false;
-
-use "ML-Systems/exn.ML";
-use "ML-Systems/multithreading.ML";
-use "ML-Systems/time_limit.ML";
-
 
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
   | exit _ = OS.Process.exit OS.Process.failure;
@@ -28,6 +26,13 @@ fun exit 0 = (OS.Process.exit OS.Process.success): unit
 
 (*low-level pointer equality*)
 fun pointer_eq (_: 'a, _: 'a) = false;
+
+(*downgraded IntInf*)
+structure IntInf =
+struct
+  fun divMod (x, y) = (x div y, x mod y);
+  open Int;
+end;
 
 
 (* restore old-style character / string functions *)
@@ -102,9 +107,9 @@ fun install_pp (path, pp) = ();
 
 (* ML command execution *)
 
-fun use_text name (print, err) verbose txt = (Compiler.eval txt; ());
+fun use_text tune name (print, err) verbose txt = (Compiler.eval txt; ());
 
-fun use_file _ _ name = use name;
+fun use_file tune output verbose name = use name;
 
 
 
