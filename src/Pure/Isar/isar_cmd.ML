@@ -457,9 +457,9 @@ fun print_locale (show_facts, (imports, body)) = Toplevel.unknown_theory o
 
 fun print_registrations show_wits name = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case
-      (Context.cases (Locale.print_global_registrations show_wits name)
-        (Locale.print_local_registrations show_wits name))
-    (Locale.print_local_registrations show_wits name o Proof.context_of));
+      (Context.cases (Locale.print_registrations show_wits name o ProofContext.init)
+        (Locale.print_registrations show_wits name))
+    (Locale.print_registrations show_wits name o Proof.context_of));
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
