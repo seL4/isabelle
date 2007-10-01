@@ -1,30 +1,51 @@
-Subject: Announcing Isabelle2005
+Subject: Announcing Isabelle2007
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2005 is now available.
+Isabelle2007 is finally available.
 
-This release provides substantial advances over Isabelle2004, see the
-first 1000 lines of NEWS in the distribution for more details.  Some
-highlights are:
+This release introduces fundamental changes over Isabelle2005, see the
+NEWS file in the distribution for more details.  Numerous existing
+concepts have been generalized and re-implemented based on novel
+system architecture.  New theories and proof tools have been added
+(mostly for HOL).
 
-* Interpretation of locale expressions in theories, locales, and proof
-contexts.
+The main highlights are:
 
-* Substantial library improvements (HOL, HOL-Complex, HOLCF).
+* New 'function' package for general recursive function definitions.
 
-* Proof tools for transitivity reasoning.
+* New version of 'inductive' package for inductive predicates;
+separate variant 'inductive_set'.
 
-* General 'find_theorems' command (by term patterns, as
-intro/elim/simp rules etc.).
+* New basic specification elements 'definition', 'axiomatization',
+'abbreviation', 'notation'.
 
-* Commands for generating ad-hoc draft documents.
+* New 'class' package combination of axclass + locale interpretation.
 
-* Support for Unicode proof documents (UTF-8).
+* Fully featured support for nominal datatypes (binding structures)
+due to the HOL-Nominal logic.
 
-* Major internal reorganizations and performance improvements.
+* Various improvements in locale infrastructure (interpretation etc.)
+
+* Various improvements of Isar language elements and related proof
+tools.
+
+* Built-in Metis prover, external linkup for automated provers, and
+'sledghammer' command for automated proof synthesis.
+
+* General local theory infrastructure for specifications depending on
+parameters and assumptions (e.g. from locales, classes).
+
+* Second generation code-generator for a subset of HOL, targeting SML,
+Haskell, and OCaml.
+
+* Improved support for arbitrary ML operations depending on the
+logical context.
+
+* Parallel loading of theories based on native multicore support in
+Poly/ML 5.1.
 
 
-You may get Isabelle2005 from the following mirror sites:
+You may get Isabelle2007 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/Research/HVG/Isabelle/
   Munich (Germany)     http://isabelle.in.tum.de/
