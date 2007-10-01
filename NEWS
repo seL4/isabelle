@@ -1,8 +1,8 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2007
+-------------------
 
 *** General ***
 
@@ -1088,23 +1088,6 @@ subgoal. An Example is available in HOL/ex/ReflectionEx.thy.
 is available in HOL/ex/ReflectionEx.thy
 
 
-*** HOL-Algebra ***
-
-* Formalisation of ideals and the quotient construction over rings.
-
-* Order and lattice theory no longer based on records.
-INCOMPATIBILITY.
-
-* Renamed lemmas least_carrier -> least_closed and greatest_carrier ->
-greatest_closed.  INCOMPATIBILITY.
-
-* Method algebra is now set up via an attribute.  For examples see
-Ring.thy.  INCOMPATIBILITY: the method is now weaker on combinations
-of algebraic structures.
-
-* Renamed theory CRing to Ring.
-
-
 *** HOL-Complex ***
 
 * Hyperreal: Functions root and sqrt are now defined on negative real
@@ -1159,6 +1142,30 @@ polymorphic versions (INCOMPATIBILITY):
   (NS)LIM       <-- (NS)CLIM, (NS)CRLIM
   is(NS)Cont    <-- is(NS)Contc, is(NS)contCR
   (ns)deriv     <-- (ns)cderiv
+
+
+*** HOL-Algebra ***
+
+* Formalisation of ideals and the quotient construction over rings.
+
+* Order and lattice theory no longer based on records.
+INCOMPATIBILITY.
+
+* Renamed lemmas least_carrier -> least_closed and greatest_carrier ->
+greatest_closed.  INCOMPATIBILITY.
+
+* Method algebra is now set up via an attribute.  For examples see
+Ring.thy.  INCOMPATIBILITY: the method is now weaker on combinations
+of algebraic structures.
+
+* Renamed theory CRing to Ring.
+
+
+*** HOL-Nominal ***
+
+* Fully featured support for nominal datatypes (binding structures)
+due to the HOL-Nominal logic.  See HOL/Nominal, HOL/Nominal/Examples,
+and http://isabelle.in.tum.de/nominal/download.html
 
 
 *** ML ***
@@ -1353,7 +1360,7 @@ This simplifies use of multiple Isabelle installations.
 operations, notably runtime compilation and evaluation of ML source
 code.
 
-* Support for parall execution, using native multicore support of
+* Support for parallel execution, using native multicore support of
 Poly/ML 5.1.  The theory loader exploits parallelism when processing
 independent theories, according to the given theory header
 specifications. The maximum number of worker threads is specified via
