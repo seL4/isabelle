@@ -75,7 +75,7 @@ sig
   val test_fn: (int -> (string * term) list option) ref
   val test_term: theory -> bool -> int -> int -> term -> (string * term) list option
   val auto_quickcheck: bool ref
-  val auto_quickcheck_time_limit: Time.time ref
+  val auto_quickcheck_time_limit: int ref
   val eval_result: (unit -> term) ref
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
@@ -986,7 +986,7 @@ fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
             ProofContext.pretty_term ctxt t]) cex);
 
 val auto_quickcheck = ref true;
-val auto_quickcheck_time_limit = ref (Time.fromSeconds 5);
+val auto_quickcheck_time_limit = ref 5000;
 
 fun test_goal' int state =
   let
@@ -996,14 +996,15 @@ fun test_goal' int state =
   in
     if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
     then
-      (case try (fn state => TimeLimit.timeLimit (!auto_quickcheck_time_limit)
+      (case try (fn state =>
+          TimeLimit.timeLimit (Time.fromMilliseconds (!auto_quickcheck_time_limit))
            (test_goal true (params, []) 1 assms) state) state of
          SOME (cex as SOME _) =>
            Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
              Pretty.markup Markup.hilite [pretty_counterex ctxt cex]]) state
        | _ => state)
     else state
-  end handle TimeLimit.TimeOut => state;
+  end;
 
 val _ = Context.add_setup
   (Context.theory_map (Specification.add_theorem_hook test_goal'));
@@ -1200,3 +1201,7 @@ val _ = OuterSyntax.add_parsers
   [assoc_typeP, assoc_constP, code_libraryP, code_moduleP, test_paramsP, testP, valueP];
 
 end;
+
+val auto_quickcheck = Codegen.auto_quickcheck;
+val auto_quickcheck_time_limit = Codegen.auto_quickcheck_time_limit;
+
