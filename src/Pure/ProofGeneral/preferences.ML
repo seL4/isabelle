@@ -143,7 +143,10 @@ val tracing_preferences =
                 "Whether to enable debugging.",
      bool_pref Codegen.auto_quickcheck
                 "auto-quickcheck"
-                "Whether to enable quickcheck automatically."]
+                "Whether to enable quickcheck automatically.",
+     nat_pref Codegen.auto_quickcheck_time_limit
+                "auto-quickcheck-time-limit"
+                "Time limit for automatic quickcheck (in milliseconds)."]
 
 val proof_preferences =
     [bool_pref quick_and_dirty
