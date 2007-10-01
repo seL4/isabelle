@@ -389,7 +389,8 @@ fun apply_method current_context pos meth_fun state =
   let
     val (goal_ctxt, (_, {statement, messages = _, using, goal, before_qed, after_qed})) =
       find_goal state;
-    val ctxt = ContextPosition.put pos (if current_context then context_of state else goal_ctxt);
+    val ctxt = ContextPosition.put_ctxt pos
+      (if current_context then context_of state else goal_ctxt);
     val meth = meth_fun ctxt;
   in
     Method.apply meth using goal |> Seq.map (fn (meth_cases, goal') =>
