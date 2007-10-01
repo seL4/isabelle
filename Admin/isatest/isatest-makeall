@@ -97,7 +97,7 @@ if [ "$1" = "-l" ]; then
   TARGETS="$2"
   shift 2
   ISABELLE_HOME="$($ISATOOL getenv -b ISABELLE_HOME)"
-  DIR="$ISABELLE_HOME/$LOGIC"
+  DIR="$ISABELLE_HOME/src/$LOGIC"
   TOOL="$ISATOOL make $MFLAGS $TARGETS"
 else
   DIR="."
