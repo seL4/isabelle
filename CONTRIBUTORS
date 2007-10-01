@@ -27,6 +27,9 @@ Contributions to Isabelle 2007
 * 2007: Stefan Berghofer, TUM
   HOL: inductive predicates.
 
+* 2007: Norbert Schirmer, TUM
+  HOL/record: misc improvements.
+
 * 2006/2007: Alexander Krauss, TUM
   HOL: function package and related theories on termination.
 
