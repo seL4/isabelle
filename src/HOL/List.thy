@@ -1177,6 +1177,24 @@ by (blast dest!: set_update_subset_insert [THEN subsetD])
 lemma set_update_memI: "n < length xs \<Longrightarrow> x \<in> set (xs[n := x])"
 by (induct xs arbitrary: n) (auto split:nat.splits)
 
+lemma list_update_overwrite:
+  "xs [i := x, i := y] = xs [i := y]"
+apply (induct xs arbitrary: i)
+apply simp
+apply (case_tac i)
+apply simp_all
+done
+
+lemma list_update_swap:
+  "i \<noteq> i' \<Longrightarrow> xs [i := x, i' := x'] = xs [i' := x', i := x]"
+apply (induct xs arbitrary: i i')
+apply simp
+apply (case_tac i, case_tac i')
+apply auto
+apply (case_tac i')
+apply auto
+done
+
 
 subsubsection {* @{text last} and @{text butlast} *}
 
@@ -1236,6 +1254,7 @@ done
 
 lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
 by(induct xs)(auto simp:neq_Nil_conv)
+
 
 subsubsection {* @{text take} and @{text drop} *}
 
@@ -1436,6 +1455,16 @@ proof -
     using i by (simp add: list_update_append)
   finally show ?thesis .
 qed
+
+lemma nth_drop':
+  "i < length xs \<Longrightarrow> xs ! i # drop (Suc i) xs = drop i xs"
+apply (induct i arbitrary: xs)
+apply (simp add: neq_Nil_conv)
+apply (erule exE)+
+apply simp
+apply (case_tac xs)
+apply simp_all
+done
 
 
 subsubsection {* @{text takeWhile} and @{text dropWhile} *}
@@ -1982,6 +2011,10 @@ apply (frule nth_take_lemma [OF le_refl eq_imp_le])
 apply (simp_all add: take_all)
 done
 
+lemma map_nth:
+  "map (\<lambda>i. xs ! i) [0..<length xs] = xs"
+  by (rule nth_equalityI, auto)
+
 (* needs nth_equalityI *)
 lemma list_all2_antisym:
   "\<lbrakk> (\<And>x y. \<lbrakk>P x y; Q y x\<rbrakk> \<Longrightarrow> x = y); list_all2 P xs ys; list_all2 Q ys xs \<rbrakk> 
@@ -2268,6 +2301,14 @@ by auto
 
 lemma in_set_replicateD: "x : set (replicate n y) ==> x = y"
 by (simp add: set_replicate_conv_if split: split_if_asm)
+
+lemma replicate_append_same:
+  "replicate i x @ [x] = x # replicate i x"
+  by (induct i) simp_all
+
+lemma map_replicate_trivial:
+  "map (\<lambda>i. x) [0..<i] = replicate i x"
+  by (induct i) (simp_all add: replicate_append_same)
 
 
 subsubsection{*@{text rotate1} and @{text rotate}*}
