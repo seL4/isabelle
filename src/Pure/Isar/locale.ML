@@ -79,9 +79,7 @@ sig
   (* Diagnostic functions *)
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> expr -> Element.context list -> unit
-  val print_global_registrations: bool -> string -> theory -> unit
-  val print_local_registrations': bool -> string -> Proof.context -> unit
-  val print_local_registrations: bool -> string -> Proof.context -> unit
+  val print_registrations: bool -> string -> Proof.context -> unit
 
   val add_locale: string option -> bstring -> expr -> Element.context list -> theory
     -> string * Proof.context
@@ -308,16 +306,15 @@ struct
 end;
 
 
-(** theory data **)
+(** theory data : locales **)
 
-structure GlobalLocalesData = TheoryDataFun
+structure LocalesData = TheoryDataFun
 (
-  type T = NameSpace.T * locale Symtab.table * Registrations.T Symtab.table;
+  type T = NameSpace.T * locale Symtab.table;
     (* 1st entry: locale namespace,
-       2nd entry: locales of the theory,
-       3rd entry: registrations, indexed by locale name *)
+       2nd entry: locales of the theory *)
 
-  val empty = (NameSpace.empty, Symtab.empty, Symtab.empty);
+  val empty = (NameSpace.empty, Symtab.empty);
   val copy = I;
   val extend = I;
 
@@ -334,42 +331,43 @@ structure GlobalLocalesData = TheoryDataFun
         Library.merge (eq_snd (op =)) (decls2, decls2')),
       regs = merge_alists regs regs',
       intros = intros};
-  fun merge _ ((space1, locs1, regs1), (space2, locs2, regs2)) =
-    (NameSpace.merge (space1, space2), Symtab.join join_locales (locs1, locs2),
-     Symtab.join (K Registrations.join) (regs1, regs2));
+  fun merge _ ((space1, locs1), (space2, locs2)) =
+    (NameSpace.merge (space1, space2), Symtab.join join_locales (locs1, locs2));
 );
 
 
 
-(** context data **)
+(** context data : registrations **)
 
-structure LocalLocalesData = ProofDataFun
+structure RegistrationsData = GenericDataFun
 (
   type T = Registrations.T Symtab.table;  (*registrations, indexed by locale name*)
-  fun init _ = Symtab.empty;
+  val empty = Symtab.empty;
+  val extend = I;
+  fun merge _ = Symtab.join (K Registrations.join);
 );
 
 
-(* access locales *)
+(** access locales **)
 
 fun print_locales thy =
-  let val (space, locs, _) = GlobalLocalesData.get thy in
+  let val (space, locs) = LocalesData.get thy in
     Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (space, locs)))
     |> Pretty.writeln
   end;
 
-val intern = NameSpace.intern o #1 o GlobalLocalesData.get;
-val extern = NameSpace.extern o #1 o GlobalLocalesData.get;
+val intern = NameSpace.intern o #1 o LocalesData.get;
+val extern = NameSpace.extern o #1 o LocalesData.get;
 
 fun declare_locale name thy =
-  thy |> GlobalLocalesData.map (fn (space, locs, regs) =>
-    (Sign.declare_name thy name space, locs, regs));
+  thy |> LocalesData.map (fn (space, locs) =>
+    (Sign.declare_name thy name space, locs));
 
 fun put_locale name loc =
-  GlobalLocalesData.map (fn (space, locs, regs) =>
-    (space, Symtab.update (name, loc) locs, regs));
+  LocalesData.map (fn (space, locs) =>
+    (space, Symtab.update (name, loc) locs));
 
-fun get_locale thy name = Symtab.lookup (#2 (GlobalLocalesData.get thy)) name;
+fun get_locale thy name = Symtab.lookup (#2 (LocalesData.get thy)) name;
 
 fun the_locale thy name =
   (case get_locale thy name of
@@ -398,42 +396,32 @@ fun change_locale name f thy =
 
 (* retrieve registration from theory or context *)
 
-fun gen_get_registrations get thy_of thy_ctxt name =
-  case Symtab.lookup (get thy_ctxt) name of
+fun get_registrations ctxt name =
+  case Symtab.lookup (RegistrationsData.get ctxt) name of
       NONE => []
-    | SOME reg => Registrations.dest (thy_of thy_ctxt) reg;
+    | SOME reg => Registrations.dest (Context.theory_of ctxt) reg;
 
-val get_global_registrations =
-     gen_get_registrations (#3 o GlobalLocalesData.get) I;
-val get_local_registrations =
-     gen_get_registrations LocalLocalesData.get ProofContext.theory_of;
+fun get_global_registrations thy = get_registrations (Context.Theory thy);
+fun get_local_registrations ctxt = get_registrations (Context.Proof ctxt);
 
-fun gen_get_registration get thy_of thy_ctxt (name, ps) =
-  case Symtab.lookup (get thy_ctxt) name of
+
+fun get_registration ctxt (name, ps) =
+  case Symtab.lookup (RegistrationsData.get ctxt) name of
       NONE => NONE
-    | SOME reg => Registrations.lookup (thy_of thy_ctxt) (reg, ps);
+    | SOME reg => Registrations.lookup (Context.theory_of ctxt) (reg, ps);
 
-val get_global_registration =
-     gen_get_registration (#3 o GlobalLocalesData.get) I;
-val get_local_registration =
-     gen_get_registration LocalLocalesData.get ProofContext.theory_of;
+fun get_global_registration thy = get_registration (Context.Theory thy);
+fun get_local_registration ctxt = get_registration (Context.Proof ctxt);
 
 val test_global_registration = is_some oo get_global_registration;
 val test_local_registration = is_some oo get_local_registration;
-fun smart_test_registration ctxt id =
-  let
-    val thy = ProofContext.theory_of ctxt;
-  in
-    test_global_registration thy id orelse test_local_registration ctxt id
-  end;
-
 
 (* add registration to theory or context, ignored if subsumed *)
 
-fun gen_put_registration map_data thy_of (name, ps) attn thy_ctxt =
-  map_data (fn regs =>
+fun put_registration (name, ps) attn ctxt =
+  RegistrationsData.map (fn regs =>
     let
-      val thy = thy_of thy_ctxt;
+      val thy = Context.theory_of ctxt;
       val reg = the_default Registrations.empty (Symtab.lookup regs name);
       val (reg', sups) = Registrations.insert thy (ps, attn) reg;
       val _ = if not (null sups) then warning
@@ -442,13 +430,11 @@ fun gen_put_registration map_data thy_of (name, ps) attn thy_ctxt =
                  "\nwith the following prefix(es):" ^
                   commas_quote (map (fn (_, (((_, s), _), _)) => s) sups))
               else ();
-    in Symtab.update (name, reg') regs end) thy_ctxt;
+    in Symtab.update (name, reg') regs end) ctxt;
 
-val put_global_registration =
-     gen_put_registration (fn f =>
-       GlobalLocalesData.map (fn (space, locs, regs) => (space, locs, f regs))) I;
-val put_local_registration =
-     gen_put_registration LocalLocalesData.map ProofContext.theory_of;
+fun put_global_registration id attn = Context.theory_map (put_registration id attn);
+fun put_local_registration id attn = Context.proof_map (put_registration id attn);
+
 
 fun put_registration_in_locale name id =
   change_locale name (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
@@ -458,12 +444,11 @@ fun put_registration_in_locale name id =
 (* add witness theorem to registration, ignored if registration not present *)
 
 fun add_witness (name, ps) thm =
-  Symtab.map_entry name (Registrations.add_witness ps thm);
+  RegistrationsData.map (Symtab.map_entry name (Registrations.add_witness ps thm));
 
-fun add_global_witness id thm =
-  GlobalLocalesData.map (fn (space, locs, regs) => (space, locs, add_witness id thm regs));
+fun add_global_witness id thm = Context.theory_map (add_witness id thm);
+fun add_local_witness id thm = Context.proof_map (add_witness id thm);
 
-val add_local_witness = LocalLocalesData.map oo add_witness;
 
 fun add_witness_in_locale name id thm =
   change_locale name (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
@@ -476,19 +461,16 @@ fun add_witness_in_locale name id thm =
 (* add equation to registration, ignored if registration not present *)
 
 fun add_equation (name, ps) thm =
-  Symtab.map_entry name (Registrations.add_equation ps thm);
+  RegistrationsData.map (Symtab.map_entry name (Registrations.add_equation ps thm));
 
-fun add_global_equation id thm =
-  GlobalLocalesData.map (fn (space, locs, regs) => (space, locs, add_equation id thm regs));
-
-val add_local_equation = LocalLocalesData.map oo add_equation;
+fun add_global_equation id thm = Context.theory_map (add_equation id thm);
+fun add_local_equation id thm = Context.proof_map (add_equation id thm);
 
 
 (* printing of registrations *)
 
-fun gen_print_registrations get_regs mk_ctxt msg show_wits loc thy_ctxt =
+fun print_registrations show_wits loc ctxt =
   let
-    val ctxt = mk_ctxt thy_ctxt;
     val thy = ProofContext.theory_of ctxt;
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
     val prt_thm = prt_term o prop_of;
@@ -519,27 +501,17 @@ fun gen_print_registrations get_regs mk_ctxt msg show_wits loc thy_ctxt =
             [Pretty.str ":", Pretty.brk 1] @ prt_core ts eqns));
 
     val loc_int = intern thy loc;
-    val regs = get_regs thy_ctxt;
+    val regs = RegistrationsData.get (Context.Proof ctxt);
     val loc_regs = Symtab.lookup regs loc_int;
   in
     (case loc_regs of
-        NONE => Pretty.str ("no interpretations in " ^ msg)
+        NONE => Pretty.str ("no interpretations")
       | SOME r => let
             val r' = Registrations.dest thy r;
             val r'' = Library.sort_wrt (fn (_, (((_, prfx), _), _, _)) => prfx) r';
-          in Pretty.big_list ("interpretations in " ^ msg ^ ":") (map prt_reg r'') end)
+          in Pretty.big_list ("interpretations:") (map prt_reg r'') end)
     |> Pretty.writeln
   end;
-
-val print_global_registrations =
-     gen_print_registrations (#3 o GlobalLocalesData.get)
-       ProofContext.init "theory";
-val print_local_registrations' =
-     gen_print_registrations LocalLocalesData.get
-       I "context";
-fun print_local_registrations show_wits loc ctxt =
-  (print_global_registrations show_wits loc (ProofContext.theory_of ctxt);
-   print_local_registrations' show_wits loc ctxt);
 
 
 (* diagnostics *)
@@ -982,12 +954,15 @@ fun activate_elems ax_in_ctxt (((name, ps), mode), elems) ctxt =
     val ctxt'' = if name = "" then ctxt'
           else let
               val ps' = map (fn (n, SOME T) => Free (n, T)) ps;
-              val ctxt'' = put_local_registration (name, ps') ((true, ""), []) ctxt'
-            in case mode of
-                Assumed axs =>
-                  fold (add_local_witness (name, ps') o
-                    Element.assume_witness thy o Element.witness_prop) axs ctxt''
-              | Derived ths => fold (add_local_witness (name, ps')) ths ctxt''
+            in if test_local_registration ctxt' (name, ps') then ctxt'
+              else let
+                  val ctxt'' = put_local_registration (name, ps') ((true, ""), []) ctxt'
+                in case mode of
+                    Assumed axs =>
+                      fold (add_local_witness (name, ps') o
+                        Element.assume_witness thy o Element.witness_prop) axs ctxt''
+                  | Derived ths => fold (add_local_witness (name, ps')) ths ctxt''
+                end
             end
   in (ProofContext.restore_naming ctxt ctxt'', res) end;
 
@@ -1422,7 +1397,7 @@ fun global_asms_of thy name =
 end;
 
 fun intros thy =
-  #intros o the o Symtab.lookup (#2 (GlobalLocalesData.get thy));
+  #intros o the o Symtab.lookup (#2 (LocalesData.get thy));
     (*returns introduction rule for delta predicate and locale predicate
       as a pair of singleton lists*)
 
@@ -1952,10 +1927,10 @@ local
 
 fun locale_assm_intros thy =
   Symtab.fold (fn (_, {intros = (a, _), ...}) => fn intros => (a @ intros))
-    (#2 (GlobalLocalesData.get thy)) [];
+    (#2 (LocalesData.get thy)) [];
 fun locale_base_intros thy =
   Symtab.fold (fn (_, {intros = (_, b), ...}) => fn intros => (b @ intros))
-    (#2 (GlobalLocalesData.get thy)) [];
+    (#2 (LocalesData.get thy)) [];
 
 fun all_witnesses ctxt =
   let
@@ -1964,9 +1939,7 @@ fun all_witnesses ctxt =
         (Registrations.dest thy regs |> map (fn (_, (_, wits, _)) =>
           map Element.conclude_witness wits) |> flat) @ thms)
       registrations [];
-    val globals = get (#3 (GlobalLocalesData.get thy));
-    val locals = get (LocalLocalesData.get ctxt);
-  in globals @ locals end;
+  in get (RegistrationsData.get (Context.Proof ctxt)) end;
 (* FIXME: proper varification *)
 
 in
@@ -2249,7 +2222,7 @@ fun gen_prep_global_registration mk_ctxt = gen_prep_registration ProofContext.in
   global_activate_facts_elemss mk_ctxt;
 
 fun gen_prep_local_registration mk_ctxt = gen_prep_registration I
-  smart_test_registration
+  test_local_registration
   local_activate_facts_elemss mk_ctxt;
 
 val prep_global_registration = gen_prep_global_registration
