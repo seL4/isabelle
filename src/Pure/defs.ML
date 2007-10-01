@@ -98,7 +98,7 @@ val empty = Defs Symtab.empty;
 fun disjoint_specs c (i, {lhs = Ts, name = a, ...}: spec) =
   Inttab.forall (fn (j, {lhs = Us, name = b, ...}: spec) =>
     i = j orelse disjoint_args (Ts, Us) orelse
-      error ("Type clash in specifications " ^ quote a ^ " and " ^ quote b ^
+      error ("Clash of specifications " ^ quote a ^ " and " ^ quote b ^
         " for constant " ^ quote c));
 
 fun join_specs c ({specs = specs1, restricts, reducts}, {specs = specs2, ...}: def) =
