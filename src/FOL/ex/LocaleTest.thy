@@ -209,6 +209,7 @@ proof -
   interpret i9: ID [a beta _]
     apply - apply assumption
     apply unfold_locales
+    apply (rule refl) (*FIXME: should have been discharged by unfold_locales*)
     apply (rule refl) done
 qed rule
 
