@@ -184,13 +184,17 @@ datatype interval =
   From of int |
   Single of int;
 
-fun interval _ (FromTo (i, j)) = i upto j
-  | interval n (From i) = i upto n
-  | interval _ (Single i) = [i];
-
 fun string_of_interval (FromTo (i, j)) = string_of_int i ^ "-" ^ string_of_int j
   | string_of_interval (From i) = string_of_int i ^ "-"
   | string_of_interval (Single i) = string_of_int i;
+
+fun interval n iv =
+  let fun err () = raise Fail ("Bad interval specification " ^ string_of_interval iv) in
+    (case iv of
+      FromTo (i, j) => if i <= j then i upto j else err ()
+    | From i => if i <= n then i upto n else err ()
+    | Single i => [i])
+  end;
 
 
 (* datatype thmref *)
@@ -218,15 +222,15 @@ fun string_of_thmref (Name name) = name
 
 fun select_thm (Name _) thms = thms
   | select_thm (Fact _) thms = thms
-  | select_thm (NameSelection (name, is)) thms =
+  | select_thm (NameSelection (name, ivs)) thms =
       let
         val n = length thms;
+        fun err msg = error (msg ^ " for " ^ quote name ^ " (length " ^ string_of_int n ^ ")");
         fun select i =
-          if i < 1 orelse i > n then
-            error ("Bad subscript " ^ string_of_int i ^ " for " ^
-              quote name ^ " (length " ^ string_of_int n ^ ")")
-          else List.nth (thms, i - 1);
-      in map select (maps (interval n) is) end;
+          if i < 1 orelse i > n then err ("Bad subscript " ^ string_of_int i)
+          else nth thms (i - 1);
+        val is = maps (interval n) ivs handle Fail msg => err msg;
+      in map select is end;
 
 
 (* selections *)
