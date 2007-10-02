@@ -155,7 +155,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
-        (InductivePackage.add_inductive_global false big_rec_name' false false true
+        (InductivePackage.add_inductive_global {verbose = false, kind = Thm.internalK,
+            alt_name = big_rec_name', coind = false, no_elim = false, no_ind = true}
            (map (fn (s, T) => ((s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
            (map dest_Free rec_fns)
            (map (fn x => (("", []), x)) rec_intr_ts) []) thy0;

@@ -595,7 +595,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
       setmp InductivePackage.quiet_mode false
-        (InductivePackage.add_inductive_global false big_rep_name false true false
+        (InductivePackage.add_inductive_global {verbose = false, kind = Thm.internalK,
+            alt_name = big_rep_name, coind = false, no_elim = true, no_ind = false}
            (map (fn (s, T) => ((s, T --> HOLogic.boolT), NoSyn))
               (rep_set_names' ~~ recTs'))
            [] (map (fn x => (("", []), x)) intr_ts) []) thy3;
@@ -1522,7 +1523,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10 |>
       setmp InductivePackage.quiet_mode (!quiet_mode)
-        (InductivePackage.add_inductive_global false big_rec_name false false false
+        (InductivePackage.add_inductive_global {verbose = false, kind = Thm.internalK,
+            alt_name = big_rec_name, coind = false, no_elim = false, no_ind = false}
            (map (fn (s, T) => ((s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
            (map dest_Free rec_fns)
            (map (fn x => (("", []), x)) rec_intr_ts) []) ||>

@@ -177,7 +177,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
       setmp InductivePackage.quiet_mode (! quiet_mode)
-        (InductivePackage.add_inductive_global false big_rec_name false true false
+        (InductivePackage.add_inductive_global {verbose = false, kind = Thm.internalK,
+            alt_name = big_rec_name, coind = false, no_elim = true, no_ind = false}
            (map (fn s => ((s, UnivT'), NoSyn)) rep_set_names') []
            (map (fn x => (("", []), x)) intr_ts) []) thy1;
 
