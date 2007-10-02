@@ -321,8 +321,17 @@ lemma factor_unique [rule_format]:
   apply (rule perm.Cons)
   apply (case_tac "x = []")
    apply (simp add: perm_sing_eq primel_hd_tl)
-   apply (metis less_irrefl prime_g_zero primel_one_empty prod.simps(1))
-  apply (metis div_mult_self1_is_m nat_0_less_mult_iff perm_primel perm_prod perm_sym primel_prod_gz primel_prod_less primel_tl prod.simps(2))
+   apply (rule_tac p = a in prod_one_empty)
+     apply simp_all
+  apply (erule uniq_ex_aux)
+     apply (auto intro: primel_tl perm_primel simp add: primel_hd_tl)
+   apply (rule_tac k = a and n = "prod list" and m = "prod x" in mult_left_cancel)
+    apply (rule_tac [3] x = a in primel_prod_less)
+      apply (rule_tac [2] prod_xy_prod)
+      apply (rule_tac [2] s = "prod ys" in HOL.trans)
+       apply (erule_tac [3] perm_prod)
+      apply (erule_tac [5] perm_prod [symmetric])
+     apply (auto intro: perm_primel prime_g_zero)
   done
 
 lemma perm_nondec_unique:
