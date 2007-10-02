@@ -76,8 +76,8 @@ exception Clausify_failure of theory;
 fun rhs_extra_types lhsT rhs =
   let val lhs_vars = Term.add_tfreesT lhsT []
       fun add_new_TFrees (TFree v) =
-	    if member (op =) lhs_vars v then I else insert (op =) (TFree v)
-	| add_new_TFrees _ = I
+            if member (op =) lhs_vars v then I else insert (op =) (TFree v)
+        | add_new_TFrees _ = I
       val rhs_consts = fold_aterms (fn Const c => insert (op =) c | _ => I) rhs []
   in fold (#2 #> Term.fold_atyps add_new_TFrees) rhs_consts [] end;
 
@@ -105,10 +105,10 @@ fun declare_skofuns s th thy =
                   Sign.add_consts_authentic [Markup.property_internal] [(cname, cT, NoSyn)] thy
                            (*Theory is augmented with the constant, then its def*)
                 val cdef = cname ^ "_def"
-                val thy'' = Theory.add_defs_i false false [(cdef, equals cT $ c $ rhs)] thy'
+                val thy'' = Theory.add_defs_i true false [(cdef, equals cT $ c $ rhs)] thy'
                             handle ERROR _ => raise Clausify_failure thy'
             in dec_sko (subst_bound (list_comb(c,args), p))
-			       (thy'', get_axiom thy'' cdef :: axs)
+                               (thy'', Thm.get_axiom_i thy'' (Sign.full_name thy'' cdef) :: axs)
             end
         | dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) thx =
             (*Universal quant: insert a free variable into body and continue*)
@@ -279,11 +279,11 @@ fun declare_absfuns s th =
                                      (*Theory is augmented with the constant,
                                        then its definition*)
                           val cdef = cname ^ "_def"
-                          val thy = Theory.add_defs_i false false
+                          val thy = Theory.add_defs_i true false
                                        [(cdef, equals cT $ c $ rhs)] thy
                                     handle ERROR _ => raise Clausify_failure thy
-                          val _ = Output.debug (fn()=> "Definition is " ^ string_of_thm (get_axiom thy cdef));
-                          val ax = get_axiom thy cdef |> freeze_thm
+                          val ax = Thm.get_axiom_i thy (Sign.full_name thy cdef)
+                                     |> Drule.unvarify
                                      |> mk_object_eq |> strip_lambdas (length args)
                                      |> mk_meta_eq |> Meson.generalize
                           val (_,ax') = Option.valOf (match_rhs thy abs_v_u ax)
@@ -507,7 +507,7 @@ fun skolem_cache_thm th thy =
            | SOME (cls,thy') =>
                  (Output.debug (fn () => "skolem_cache_thm: " ^ Int.toString (length cls) ^
                                          " clauses inserted into cache: " ^ name_or_string th);
-                  (cls, ThmCache.put (Thmtab.update (th,cls) (ThmCache.get thy')) thy')))
+                  (cls, ThmCache.map (Thmtab.update (th,cls)) thy')))
     | SOME cls => (cls,thy);
 
 (*Exported function to convert Isabelle theorems into axiom clauses*)
@@ -515,9 +515,9 @@ fun cnf_axiom th =
   let val thy = Theory.merge (Theory.deref atp_linkup_thy_ref, Thm.theory_of_thm th)
   in
       case Thmtab.lookup (ThmCache.get thy) th of
-	  NONE => (Output.debug (fn () => "cnf_axiom: " ^ name_or_string th);
-		   map Goal.close_result (skolem_thm th))
-	| SOME cls => cls
+          NONE => (Output.debug (fn () => "cnf_axiom: " ^ name_or_string th);
+                   map Goal.close_result (skolem_thm th))
+        | SOME cls => cls
   end;
 
 fun pairname th = (PureThy.get_name_hint th, th);
@@ -575,11 +575,13 @@ fun cnf_rules_pairs l = cnf_rules_pairs_aux [] (rev l);
 
 val mark_skolemized = Sign.add_consts_i [("ResAxioms_endtheory", HOLogic.boolT, NoSyn)];
 
-fun skolem_cache th thy = #2 (skolem_cache_thm th thy);
+fun skolem_cache th thy =
+  if PureThy.is_internal th then thy
+  else #2 (skolem_cache_thm th thy);
 
-fun skolem_cache_all thy = fold skolem_cache (map #2 (PureThy.all_thms_of thy)) thy;
-
-fun skolem_cache_new thy = fold skolem_cache (map #2 (PureThy.thms_of thy)) thy;
+val skolem_cache_theorems_of = Symtab.fold (fold skolem_cache o snd) o #2 o PureThy.theorems_of;
+fun skolem_cache_node thy = skolem_cache_theorems_of thy thy;
+fun skolem_cache_all thy = fold skolem_cache_theorems_of (thy :: Theory.ancestors_of thy) thy;
 
 (*The cache can be kept smaller by inspecting the prop of each thm. Can ignore all that are
   lambda_free, but then the individual theory caches become much bigger.*)
@@ -588,7 +590,7 @@ fun skolem_cache_new thy = fold skolem_cache (map #2 (PureThy.thms_of thy)) thy;
 fun clause_cache_endtheory thy =
   let val _ = Output.debug (fn () => "RexAxioms end theory action: " ^ Context.str_of_thy thy)
   in
-    Option.map skolem_cache_new (try mark_skolemized thy)
+    Option.map skolem_cache_node (try mark_skolemized thy)
   end;
 
 (*** meson proof methods ***)
