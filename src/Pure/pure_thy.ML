@@ -94,10 +94,6 @@ sig
     theory -> thm list * theory
   val add_defs_unchecked_i: bool -> ((bstring * term) * attribute list) list ->
     theory -> thm list * theory
-  val add_defss: bool -> ((bstring * string list) * attribute list) list ->
-    theory -> thm list list * theory
-  val add_defss_i: bool -> ((bstring * term list) * attribute list) list ->
-    theory -> thm list list * theory
   val appl_syntax: (string * typ * mixfix) list
   val applC_syntax: (string * typ * mixfix) list
 end;
@@ -489,8 +485,6 @@ in
   val add_defs_i           = add_singles o Theory.add_defs_i false;
   val add_defs_unchecked   = add_singles o Theory.add_defs true;
   val add_defs_unchecked_i = add_singles o Theory.add_defs_i true;
-  val add_defss            = add_multis o Theory.add_defs false;
-  val add_defss_i          = add_multis o Theory.add_defs_i false;
 end;
 
 
