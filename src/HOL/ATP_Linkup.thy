@@ -23,33 +23,32 @@ uses
   ("Tools/metis_tools.ML")
 begin
 
-constdefs
-  COMBI :: "'a => 'a"
-    "COMBI P == P"
+definition COMBI :: "'a => 'a"
+  where "COMBI P == P"
 
-  COMBK :: "'a => 'b => 'a"
-    "COMBK P Q == P"
+definition COMBK :: "'a => 'b => 'a"
+  where "COMBK P Q == P"
 
-  COMBB :: "('b => 'c) => ('a => 'b) => 'a => 'c"
-    "COMBB P Q R == P (Q R)"
+definition COMBB :: "('b => 'c) => ('a => 'b) => 'a => 'c"
+  where "COMBB P Q R == P (Q R)"
 
-  COMBC :: "('a => 'b => 'c) => 'b => 'a => 'c"
-    "COMBC P Q R == P R Q"
+definition COMBC :: "('a => 'b => 'c) => 'b => 'a => 'c"
+  where "COMBC P Q R == P R Q"
 
-  COMBS :: "('a => 'b => 'c) => ('a => 'b) => 'a => 'c"
-    "COMBS P Q R == P R (Q R)"
+definition COMBS :: "('a => 'b => 'c) => ('a => 'b) => 'a => 'c"
+  where "COMBS P Q R == P R (Q R)"
 
-  COMBB' :: "('a => 'c) => ('b => 'a) => ('d => 'b) => 'd => 'c"
-    "COMBB' M P Q R == M (P (Q R))"
+definition COMBB' :: "('a => 'c) => ('b => 'a) => ('d => 'b) => 'd => 'c"
+  where "COMBB' M P Q R == M (P (Q R))"
 
-  COMBC' :: "('a => 'b => 'c) => ('d => 'a) => 'b => 'd => 'c"
-    "COMBC' M P Q R == M (P R) Q"
+definition COMBC' :: "('a => 'b => 'c) => ('d => 'a) => 'b => 'd => 'c"
+  where "COMBC' M P Q R == M (P R) Q"
 
-  COMBS' :: "('a => 'b => 'c) => ('d => 'a) => ('d => 'b) => 'd => 'c"
-    "COMBS' M P Q R == M (P R) (Q R)"
+definition COMBS' :: "('a => 'b => 'c) => ('d => 'a) => ('d => 'b) => 'd => 'c"
+  where "COMBS' M P Q R == M (P R) (Q R)"
 
-  fequal :: "'a => 'a => bool"
-    "fequal X Y == (X=Y)"
+definition fequal :: "'a => 'a => bool"
+  where "fequal X Y == (X=Y)"
 
 lemma fequal_imp_equal: "fequal X Y ==> X=Y"
   by (simp add: fequal_def)
