@@ -40,16 +40,18 @@ fun requantify ctxt lfix orig_def thm =
 fun inductive_def defs (((R, T), mixfix), lthy) =
     let
       val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
-          InductivePackage.add_inductive_i (! Toplevel.debug) (*verbose*)
-                                           "" (* no altname *)
-                                           false (* no coind *)
-                                           false (* elims, please *)
-                                           false (* induction thm please *)
-                                           [((R, T), NoSyn)] (* the relation *)
-                                           [] (* no parameters *)
-                                           (map (fn t => (("", []), t)) defs) (* the intros *)
-                                           [] (* no special monos *)
-                                           lthy
+          InductivePackage.add_inductive_i
+            {verbose = ! Toplevel.debug,
+              kind = Thm.theoremK,
+              alt_name = "",
+              coind = false,
+              no_elim = false,
+              no_ind = false}
+            [((R, T), NoSyn)] (* the relation *)
+            [] (* no parameters *)
+            (map (fn t => (("", []), t)) defs) (* the intros *)
+            [] (* no special monos *)
+            lthy
 
       val intrs = map2 (requantify lthy (R, T)) defs intrs_gen
                   
