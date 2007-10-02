@@ -11,18 +11,21 @@ system architecture.  New theories and proof tools have been added
 
 The main highlights are:
 
-* New 'function' package for general recursive function definitions.
+* Fully featured support for nominal datatypes (binding structures)
+due to the HOL-Nominal logic.
 
-* New version of 'inductive' package for inductive predicates;
-separate variant 'inductive_set'.
+* General local theory infrastructure for specifications depending on
+parameters and assumptions (e.g. from locales, classes).
 
 * New basic specification elements 'definition', 'axiomatization',
 'abbreviation', 'notation'.
 
-* New 'class' package combination of axclass + locale interpretation.
+* New version of 'inductive' package for inductive predicates;
+separate variant 'inductive_set'.
 
-* Fully featured support for nominal datatypes (binding structures)
-due to the HOL-Nominal logic.
+* New 'function' package for general recursive function definitions.
+
+* New 'class' package combination of axclass + locale interpretation.
 
 * Various improvements in locale infrastructure (interpretation etc.)
 
@@ -31,9 +34,6 @@ tools.
 
 * Built-in Metis prover, external linkup for automated provers, and
 'sledghammer' command for automated proof synthesis.
-
-* General local theory infrastructure for specifications depending on
-parameters and assumptions (e.g. from locales, classes).
 
 * Second generation code-generator for a subset of HOL, targeting SML,
 Haskell, and OCaml.
