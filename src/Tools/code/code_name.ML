@@ -99,19 +99,19 @@ fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
 
 (* identifier categories *)
 
-val idf_class = "class";
-val idf_classrel = "clsrel"
-val idf_tyco = "tyco";
-val idf_instance = "inst";
-val idf_const = "const";
+val suffix_class = "class";
+val suffix_classrel = "clsrel"
+val suffix_tyco = "tyco";
+val suffix_instance = "inst";
+val suffix_const = "const";
 
 fun string_of_classrel (class, superclass) = class ^ " < " ^ superclass;
 fun string_of_instance (class, tyco) = tyco ^ " :: " ^ class;
 
-fun add_idf nsp name =
+fun add_suffix nsp name =
   NameSpace.append name nsp;
 
-fun dest_idf nsp name =
+fun dest_suffix nsp name =
   if NameSpace.base name = nsp
   then SOME (NameSpace.qualifier name)
   else NONE;
@@ -119,11 +119,11 @@ fun dest_idf nsp name =
 local
 
 val name_mapping  = [
-  (idf_class,       "class"),
-  (idf_classrel,    "subclass relation"),
-  (idf_tyco,        "type constructor"),
-  (idf_instance,    "instance"),
-  (idf_const,       "constant")
+  (suffix_class,       "class"),
+  (suffix_classrel,    "subclass relation"),
+  (suffix_tyco,        "type constructor"),
+  (suffix_instance,    "instance"),
+  (suffix_const,       "constant")
 ]
 
 in
@@ -149,11 +149,6 @@ fun thyname_of thy f errmsg x =
 fun thyname_of_class thy =
   thyname_of thy (fn thy => member (op =) (Sign.all_classes thy))
     (fn class => "thyname_of_class: no such class: " ^ quote class);
-
-fun thyname_of_classrel thy =
-  thyname_of thy (fn thy => fn (class1, class2) => Sign.subsort thy ([class1], [class2]))
-    (fn (class1, class2) => "thyname_of_classrel: no such subclass relation: "
-      ^ (quote o string_of_classrel) (class1, class2));
 
 fun thyname_of_tyco thy =
   thyname_of thy Sign.declared_tyname
@@ -205,7 +200,7 @@ fun default_policy thy get_basename get_thyname name =
 
 fun class_policy thy = default_policy thy NameSpace.base thyname_of_class;
 fun classrel_policy thy = default_policy thy (fn (class1, class2) => 
-  NameSpace.base class2 ^ "_" ^ NameSpace.base class1) thyname_of_classrel;
+  NameSpace.base class2 ^ "_" ^ NameSpace.base class1) (fn thy => thyname_of_class thy o fst);
   (*order fits nicely with composed projections*)
 fun tyco_policy thy = default_policy thy NameSpace.base thyname_of_tyco;
 fun instance_policy thy = default_policy thy (fn (class, tyco) => 
@@ -368,54 +363,54 @@ fun rev_const thy name =
 
 fun class thy =
   get thy #class Symtab.lookup map_class Symtab.update class_policy
-  #> add_idf idf_class;
+  #> add_suffix suffix_class;
 fun classrel thy =
   get thy #classrel StringPairTab.lookup map_classrel StringPairTab.update classrel_policy
-  #> add_idf idf_classrel;
+  #> add_suffix suffix_classrel;
 fun tyco thy =
   get thy #tyco Symtab.lookup map_tyco Symtab.update tyco_policy
-  #> add_idf idf_tyco;
+  #> add_suffix suffix_tyco;
 fun instance thy =
   get thy #instance StringPairTab.lookup map_instance StringPairTab.update instance_policy
-  #> add_idf idf_instance;
+  #> add_suffix suffix_instance;
 fun const thy =
   get_const thy
-  #> add_idf idf_const;
+  #> add_suffix suffix_const;
 
 fun class_rev thy =
-  dest_idf idf_class
+  dest_suffix suffix_class
   #> Option.map (rev thy #class);
 fun classrel_rev thy =
-  dest_idf idf_classrel
+  dest_suffix suffix_classrel
   #> Option.map (rev thy #classrel);
 fun tyco_rev thy =
-  dest_idf idf_tyco
+  dest_suffix suffix_tyco
   #> Option.map (rev thy #tyco);
 fun instance_rev thy =
-  dest_idf idf_instance
+  dest_suffix suffix_instance
   #> Option.map (rev thy #instance);
 fun const_rev thy =
-  dest_idf idf_const
+  dest_suffix suffix_const
   #> Option.map (rev_const thy);
 
 local
 
 val f_mapping = [
-  (idf_class,       class_rev),
-  (idf_classrel,    Option.map string_of_classrel oo classrel_rev),
-  (idf_tyco,        tyco_rev),
-  (idf_instance,    Option.map string_of_instance oo instance_rev),
-  (idf_const,       fn thy => Option.map (CodeUnit.string_of_const thy) o const_rev thy)
+  (suffix_class,       class_rev),
+  (suffix_classrel,    Option.map string_of_classrel oo classrel_rev),
+  (suffix_tyco,        tyco_rev),
+  (suffix_instance,    Option.map string_of_instance oo instance_rev),
+  (suffix_const,       fn thy => Option.map (CodeUnit.string_of_const thy) o const_rev thy)
 ];
 
 in
 
-fun labelled_name thy idf =
+fun labelled_name thy suffix_name =
   let
-    val category = category_of idf;
-    val name = NameSpace.qualifier idf;
-    val f = (the o AList.lookup (op =) f_mapping o NameSpace.base) idf
-  in case f thy idf
+    val category = category_of suffix_name;
+    val name = NameSpace.qualifier suffix_name;
+    val suffix = NameSpace.base suffix_name
+  in case (the o AList.lookup (op =) f_mapping) suffix thy suffix_name
    of SOME thing => category ^ " " ^ quote thing
     | NONE => error ("Unknown name: " ^ quote name)
   end;

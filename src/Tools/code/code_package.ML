@@ -106,25 +106,34 @@ val value_name = "Isabelle_Eval.EVAL.EVAL";
 fun ensure_def thy = CodeThingol.ensure_def
   (fn s => if s = value_name then "<term>" else CodeName.labelled_name thy s);
 
+exception CONSTRAIN of (string * typ) * typ;
+
 fun ensure_def_class thy (algbr as ((_, algebra), _)) funcgr class =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
     val (v, cs) = AxClass.params_of_class thy class;
     val class' = CodeName.class thy class;
-    val classrels' = map (curry (CodeName.classrel thy) class) superclasses;
-    val classops' = map (CodeName.const thy o fst) cs;
     val defgen_class =
-      fold_map (ensure_def_class thy algbr funcgr) superclasses
-      ##>> (fold_map (exprgen_typ thy algbr funcgr) o map snd) cs
-      #>> (fn (superclasses, classoptyps) =>
-        CodeThingol.Class (superclasses ~~ classrels', (unprefix "'" v, classops' ~~ classoptyps)))
+      fold_map (fn superclass => ensure_def_class thy algbr funcgr superclass
+        ##>> ensure_def_classrel thy algbr funcgr (class, superclass)) superclasses
+      ##>> fold_map (fn (c, ty) => ensure_def_const thy algbr funcgr c
+        ##>> exprgen_typ thy algbr funcgr ty) cs
+      #>> (fn info => CodeThingol.Class (unprefix "'" v, info))
   in
-    ensure_def thy defgen_class ("generating class " ^ quote class) class'
+    ensure_def thy defgen_class class'
     #> pair class'
   end
 and ensure_def_classrel thy algbr funcgr (subclass, superclass) =
-  ensure_def_class thy algbr funcgr subclass
-  #>> (fn _ => CodeName.classrel thy (subclass, superclass))
+  let
+    val classrel' = CodeName.classrel thy (subclass, superclass);
+    val defgen_classrel =
+      ensure_def_class thy algbr funcgr subclass
+      ##>> ensure_def_class thy algbr funcgr superclass
+      #>> CodeThingol.Classrel;
+  in
+    ensure_def thy defgen_classrel classrel'
+    #> pair classrel'
+  end
 and ensure_def_tyco thy algbr funcgr "fun" =
       pair "fun"
   | ensure_def_tyco thy algbr funcgr tyco =
@@ -135,13 +144,13 @@ and ensure_def_tyco thy algbr funcgr "fun" =
           in
             fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
             ##>> fold_map (fn (c, tys) =>
-              fold_map (exprgen_typ thy algbr funcgr) tys
-              #>> (fn tys' => (CodeName.const thy c, tys'))) cos
-            #>> (fn (vs, cos) => CodeThingol.Datatype (vs, cos))
+              ensure_def_const thy algbr funcgr c
+              ##>> fold_map (exprgen_typ thy algbr funcgr) tys) cos
+            #>> CodeThingol.Datatype
           end;
         val tyco' = CodeName.tyco thy tyco;
       in
-        ensure_def thy defgen_datatype ("generating type constructor " ^ quote tyco) tyco'
+        ensure_def thy defgen_datatype tyco'
         #> pair tyco'
       end
 and exprgen_tyvar_sort thy (algbr as ((proj_sort, _), _)) funcgr (v, sort) =
@@ -153,11 +162,8 @@ and exprgen_typ thy algbr funcgr (TFree vs) =
   | exprgen_typ thy algbr funcgr (Type (tyco, tys)) =
       ensure_def_tyco thy algbr funcgr tyco
       ##>> fold_map (exprgen_typ thy algbr funcgr) tys
-      #>> (fn (tyco, tys) => tyco `%% tys);
-
-exception CONSTRAIN of (string * typ) * typ;
-
-fun exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr (ty_ctxt, sort_decl) =
+      #>> (fn (tyco, tys) => tyco `%% tys)
+and exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr (ty_ctxt, sort_decl) =
   let
     val pp = Sign.pp thy;
     datatype typarg =
@@ -241,7 +247,7 @@ and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
              CodeThingol.Classinst ((class, (tyco, arity)), (superarities, classops)));
     val inst = CodeName.instance thy (class, tyco);
   in
-    ensure_def thy defgen_inst ("generating instance " ^ quote class ^ " / " ^ quote tyco) inst
+    ensure_def thy defgen_inst inst
     #> pair inst
   end
 and ensure_def_const thy (algbr as (_, consts)) funcgr c =
@@ -249,10 +255,10 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr c =
     val c' = CodeName.const thy c;
     fun defgen_datatypecons tyco =
       ensure_def_tyco thy algbr funcgr tyco
-      #>> K CodeThingol.Bot;
+      #>> K (CodeThingol.Datatypecons c');
     fun defgen_classop class =
       ensure_def_class thy algbr funcgr class
-      #>> K CodeThingol.Bot;
+      #>> K (CodeThingol.Classop c');
     fun defgen_fun trns =
       let
         val raw_thms = CodeFuncgr.funcs funcgr c;
@@ -274,7 +280,7 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr c =
          of SOME class => defgen_classop class
           | NONE => defgen_fun)
   in
-    ensure_def thy defgen ("generating constant " ^ CodeUnit.string_of_const thy c) c'
+    ensure_def thy defgen c'
     #> pair c'
   end
 and exprgen_term thy algbr funcgr (Const (c, ty)) =
@@ -448,7 +454,7 @@ fun raw_eval f thy g =
             val code'' = CodeThingol.project_code false [] (SOME deps) code';
           in ((code'', ((vs, ty), t), deps), (dep, code')) end;
       in
-        ensure_def thy defgen_eval "evaluation" value_name
+        ensure_def thy defgen_eval value_name
         #> result
       end;
     fun h funcgr ct =

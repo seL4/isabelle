@@ -297,7 +297,7 @@ fun mk_modl_name_tab init_names prefix module_alias code =
 datatype ml_def =
     MLFuns of (string * (typscheme * (iterm list * iterm) list)) list
   | MLDatas of (string * ((vname * sort) list * (string * itype list) list)) list
-  | MLClass of string * ((class * string) list * (vname * (string * itype) list))
+  | MLClass of string * (vname * ((class * string) list * (string * itype) list))
   | MLClassinst of string * ((class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
       * (string * const) list));
@@ -491,7 +491,7 @@ fun pr_sml allows_exception tyco_syntax const_syntax labelled_name init_syms der
                   );
             val (ps, p) = split_last (pr_data "datatype" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";"])]) end
-     | pr_def (MLClass (class, (superclasses, (v, classops)))) =
+     | pr_def (MLClass (class, (v, (superclasses, classops)))) =
           let
             val w = first_upper v ^ "_";
             fun pr_superclass_field (class, classrel) =
@@ -788,7 +788,7 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
                   );
             val (ps, p) = split_last (pr_data "type" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";;"])]) end
-     | pr_def (MLClass (class, (superclasses, (v, classops)))) =
+     | pr_def (MLClass (class, (v, (superclasses, classops)))) =
           let
             val w = "_" ^ first_upper v;
             fun pr_superclass_field (class, classrel) =
@@ -948,7 +948,10 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
         val (modls, _) = (split_list o map dest_name) names;
         val modl' = (the_single o distinct (op =) o map name_modl) modls
           handle Empty =>
-            error ("Illegal mutual dependencies: " ^ commas (map labelled_name names));
+            error ("Different namespace prefixes for mutual dependencies:\n"
+              ^ commas (map labelled_name names)
+              ^ "\n"
+              ^ commas (map (NameSpace.qualifier o NameSpace.qualifier) names));
         val modl_explode = NameSpace.explode modl';
         fun add_dep name name'' =
           let
@@ -1232,7 +1235,7 @@ fun pr_haskell allows_exception class_syntax tyco_syntax const_syntax labelled_n
               @ (if deriving_show name then [str "deriving (Read, Show)"] else [])
             )
           end
-      | pr_def (name, CodeThingol.Class (superclasss, (v, classops))) =
+      | pr_def (name, CodeThingol.Class (v, (superclasses, classops))) =
           let
             val tyvars = CodeName.intro_vars [v] init_syms;
             fun pr_classop (classop, ty) =
@@ -1245,7 +1248,7 @@ fun pr_haskell allows_exception class_syntax tyco_syntax const_syntax labelled_n
             Pretty.block_enclose (
               Pretty.block [
                 str "class ",
-                pr_typparms tyvars [(v, map fst superclasss)],
+                pr_typparms tyvars [(v, map fst superclasses)],
                 str (deresolv_here name ^ " " ^ CodeName.lookup_var tyvars v),
                 str " where {"
               ],

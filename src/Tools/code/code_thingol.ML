@@ -63,7 +63,7 @@ sig
     | Fun of typscheme * ((iterm list * iterm) * thm) list
     | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
-    | Class of (class * string) list * (vname * (string * itype) list)
+    | Class of vname * ((class * string) list * (string * itype) list)
     | Classop of class
     | Classrel of class * class
     | Classinst of (class * (string * (vname * sort) list))
@@ -81,7 +81,7 @@ sig
   val add_eval_def: string (*bind name*) * (iterm * itype) -> code -> code;
 
   val ensure_def: (string -> string) -> (transact -> def * transact) -> string
-    -> string -> transact -> transact;
+    -> transact -> transact;
   val start_transact: (transact -> 'a * transact) -> code -> 'a * code;
 end;
 
@@ -250,7 +250,7 @@ datatype def =
   | Fun of typscheme * ((iterm list * iterm) * thm) list
   | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
-  | Class of (class * string) list * (vname * (string * itype) list)
+  | Class of vname * ((class * string) list * (string * itype) list)
   | Classop of class
   | Classrel of class * class
   | Classinst of (class * (string * (vname * sort) list))
@@ -276,8 +276,9 @@ fun add_def_incr (name, Bot) code =
         | SOME Bot => Graph.map_node name (K def) code
         | SOME _ => error ("Tried to overwrite definition " ^ quote name));
 
-fun add_dep (dep as (name1, name2)) =
-  if name1 = name2 then I else Graph.add_edge dep;
+fun add_dep (NONE, _) = I
+  | add_dep (SOME name1, name2) =
+      if name1 = name2 then I else Graph.add_edge (name1, name2);
 
 val merge_code : code * code -> code = Graph.merge (K true);
 
@@ -309,100 +310,21 @@ fun is_cons code name = case Graph.get_node code name
  of Datatypecons _ => true
   | _ => false;
 
-fun check_samemodule names =
-  fold (fn name =>
-    let
-      val module_name = (NameSpace.qualifier o NameSpace.qualifier) name
-    in
-     fn NONE => SOME module_name
-      | SOME module_name' => if module_name = module_name' then SOME module_name
-          else error ("Inconsistent name prefix for simultanous names: " ^ commas_quote names)
-    end
-  ) names NONE;
-
-fun check_funeqs eqs =
-  (fold (fn ((pats, _), _) =>
-    let
-      val l = length pats
-    in
-     fn NONE => SOME l
-      | SOME l' => if l = l' then SOME l
-          else error "Function definition with different number of arguments"
-    end
-  ) eqs NONE; eqs);
-
-fun check_prep_def code Bot =
-      Bot
-  | check_prep_def code (Fun (d, eqs)) =
-      Fun (d, check_funeqs eqs)
-  | check_prep_def code (d as Datatype _) =
-      d
-  | check_prep_def code (Datatypecons dtco) =
-      error "Attempted to add bare term constructor"
-  | check_prep_def code (d as Class _) =
-      d
-  | check_prep_def code (Classop _) =
-      error "Attempted to add bare class operation"
-  | check_prep_def code (Classrel _) =
-      error "Attempted to add bare class relation"
-  | check_prep_def code (d as Classinst ((class, (tyco, arity)), (_, inst_classops))) =
-      let
-        val Class (_, (_, classops)) = Graph.get_node code class;
-        val _ = if length inst_classops > length classops
-          then error "Too many class operations given"
-          else ();
-        fun check_classop (f, _) =
-          if AList.defined (op =) (map fst inst_classops) f
-          then () else error ("Missing definition for class operation " ^ quote f);
-        val _ = map check_classop classops;
-      in d end;
-
-fun postprocess_def (name, Datatype (_, constrs)) =
-      tap (fn _ => check_samemodule (name :: map fst constrs))
-      #> fold (fn (co, _) =>
-        add_def_incr (co, Datatypecons name)
-        #> add_dep (co, name)
-        #> add_dep (name, co)
-      ) constrs
-  | postprocess_def (name, Class (classrels, (_, classops))) =
-      tap (fn _ => check_samemodule (name :: map fst classops @ map snd classrels))
-      #> fold (fn (f, _) =>
-        add_def_incr (f, Classop name)
-        #> add_dep (f, name)
-        #> add_dep (name, f)
-      ) classops
-      #> fold (fn (superclass, classrel) =>
-        add_def_incr (classrel, Classrel (name, superclass))
-        #> add_dep (classrel, name)
-        #> add_dep (name, classrel)
-      ) classrels
-  | postprocess_def _ =
-      I;
-
 
 (* transaction protocol *)
 
 type transact = Graph.key option * code;
 
-fun ensure_def labelled_name defgen msg name (dep, code) =
+fun ensure_def labelled_name defgen name (dep, code) =
   let
-    val msg' = (case dep
-     of NONE => msg
-      | SOME dep => msg ^ ", required for " ^ labelled_name dep);
-    fun add_dp NONE = I
-      | add_dp (SOME dep) = add_dep (dep, name);
-    fun prep_def def code =
-      (check_prep_def code def, code);
     fun add_def false =
           ensure_bot name
-          #> add_dp dep
+          #> add_dep (dep, name)
           #> curry defgen (SOME name)
           ##> snd
-          #-> (fn def => prep_def def)
-          #-> (fn def => add_def_incr (name, def)
-          #> postprocess_def (name, def))
+          #-> (fn def => add_def_incr (name, def))
       | add_def true =
-          add_dp dep;
+          add_dep (dep, name);
   in
     code
     |> add_def (can (Graph.get_node code) name)
