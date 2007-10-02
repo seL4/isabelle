@@ -109,7 +109,7 @@ fun consts is_loc some_class depends decls lthy =
     val (abbrs, lthy') = lthy
       |> LocalTheory.theory_result (fold_map const decls)
     val defs = map (apsnd (pair ("", []))) abbrs;
-    
+
   in
     lthy'
     |> LocalTheory.raw_theory (fold2 (const_class some_class) decls abbrs)
@@ -178,6 +178,19 @@ fun expand_term ctxt t =
 fun add_def (name, prop) =
   Theory.add_defs_i false false [(name, prop)] #>
   (fn thy => (Drule.unvarify (Thm.get_axiom_i thy (Sign.full_name thy name)), thy));
+
+fun add_def_new (name, prop) thy =  (* FIXME inactive --- breaks codegen *)
+  let
+    val tfrees = rev (map TFree (Term.add_tfrees prop []));
+    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context "'a" (length tfrees));
+    val strip_sorts = tfrees ~~ tfrees';
+    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
+
+    val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
+    val thy' = Theory.add_defs_i false false [(name, prop')] thy;
+    val axm = Thm.get_axiom_i thy' (Sign.full_name thy' name);
+    val def = Thm.instantiate (recover_sorts, []) axm;
+  in (Drule.unvarify def, thy') end;
 
 in
 
