@@ -15,7 +15,7 @@ nonfix upto;
 *}
 
 export_code * in SML module_name CodegenTest
-  in OCaml file -
+  in OCaml module_name CodegenTest file -
   in Haskell file -
 
 ML {*
