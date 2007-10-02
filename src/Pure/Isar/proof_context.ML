@@ -10,6 +10,7 @@ elements.  See also structure Variable and Assumption.
 signature PROOF_CONTEXT =
 sig
   val theory_of: Proof.context -> theory
+  val tsig_of: Proof.context -> Type.tsig
   val init: theory -> Proof.context
   type mode
   val mode_default: mode
