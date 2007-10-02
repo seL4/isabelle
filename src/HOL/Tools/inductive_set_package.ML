@@ -11,7 +11,8 @@ sig
   val to_set_att: thm list -> attribute
   val to_pred_att: thm list -> attribute
   val pred_set_conv_att: attribute
-  val add_inductive_i: bool -> bstring -> bool -> bool -> bool ->
+  val add_inductive_i:
+    {verbose: bool, kind: string, alt_name: bstring, coind: bool, no_elim: bool, no_ind: bool} ->
     ((string * typ) * mixfix) list ->
     (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
       local_theory -> InductivePackage.inductive_result * local_theory
@@ -25,12 +26,7 @@ end;
 structure InductiveSetPackage: INDUCTIVE_SET_PACKAGE =
 struct
 
-val note_theorem = LocalTheory.note Thm.theoremK;
-
-
 (**** simplify {(x1, ..., xn). (x1, ..., xn) : S} to S ****)
-
-val subset_antisym = thm "subset_antisym";
 
 val collect_mem_simproc =
   Simplifier.simproc (theory "Set") "Collect_mem" ["Collect t"] (fn thy => fn ss =>
@@ -50,7 +46,7 @@ val collect_mem_simproc =
                       SOME (Goal.prove (Simplifier.the_context ss) [] []
                         (Const ("==", T --> T --> propT) $ S $ S')
                         (K (EVERY
-                          [rtac eq_reflection 1, rtac subset_antisym 1,
+                          [rtac eq_reflection 1, rtac @{thm subset_antisym} 1,
                            rtac subsetI 1, dtac CollectD 1, simp,
                            rtac subsetI 1, rtac CollectI 1, simp])))
                     end
@@ -403,8 +399,8 @@ fun code_ind_att optmod = to_pred_att [] #> InductiveCodegen.add optmod NONE;
 
 (**** definition of inductive sets ****)
 
-fun add_ind_set_def verbose alt_name coind no_elim no_ind cs
-    intros monos params cnames_syn ctxt =
+fun add_ind_set_def {verbose, kind, alt_name, coind, no_elim, no_ind}
+    cs intros monos params cnames_syn ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val {set_arities, pred_arities, to_pred_simps, ...} =
@@ -466,8 +462,10 @@ fun add_ind_set_def verbose alt_name coind no_elim no_ind cs
     val cnames_syn' = map (fn (s, _) => (s ^ "p", NoSyn)) cnames_syn;
     val monos' = map (to_pred [] (Context.Proof ctxt)) monos;
     val ({preds, intrs, elims, raw_induct, ...}, ctxt1) =
-      InductivePackage.add_ind_def verbose "" coind
-        no_elim no_ind cs' intros' monos' params1 cnames_syn' ctxt;
+      InductivePackage.add_ind_def {verbose = verbose, kind = kind,
+          alt_name = "",  (* FIXME pass alt_name (!?) *)
+          coind = coind, no_elim = no_elim, no_ind = no_ind}
+        cs' intros' monos' params1 cnames_syn' ctxt;
 
     (* define inductive sets using previously defined predicates *)
     val (defs, ctxt2) = LocalTheory.defs Thm.internalK
@@ -489,7 +487,7 @@ fun add_ind_set_def verbose alt_name coind no_elim no_ind cs
             (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
               [def, mem_Collect_eq, split_conv]) 1))
         in
-          ctxt |> note_theorem ((s ^ "p_" ^ s ^ "_eq",
+          ctxt |> LocalTheory.note kind ((s ^ "p_" ^ s ^ "_eq",
             [Attrib.internal (K pred_set_conv_att)]),
               [conv_thm]) |> snd
         end) (preds ~~ cs ~~ cs_info ~~ defs) ctxt2;
@@ -501,7 +499,7 @@ fun add_ind_set_def verbose alt_name coind no_elim no_ind cs
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof ctxt3) raw_induct;
     val (intrs', elims', induct, ctxt4) =
-      InductivePackage.declare_rules rec_name coind no_ind cnames
+      InductivePackage.declare_rules kind rec_name coind no_ind cnames
       (map (to_set [] (Context.Proof ctxt3)) intrs) intr_names intr_atts
       (map (fn th => (to_set [] (Context.Proof ctxt3) th,
          map fst (fst (RuleCases.get th)))) elims)
