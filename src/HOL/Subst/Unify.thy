@@ -26,24 +26,20 @@ SCP 1 (1981), 5-48
 L C Paulson, Verifying the Unification Algorithm in LCF. SCP 5 (1985), 143-170
 *}
 
-consts
-
-   unifyRel :: "(('a uterm * 'a uterm) * ('a uterm * 'a uterm)) set"
-   unify    :: "'a uterm * 'a uterm => ('a * 'a uterm) list option"
-
-defs
-  unifyRel_def:
-       "unifyRel == inv_image (finite_psubset <*lex*> measure uterm_size)
-                               (%(M,N). (vars_of M Un vars_of N, M))"
+definition
+   unifyRel :: "(('a uterm * 'a uterm) * ('a uterm * 'a uterm)) set" where
+  "unifyRel = inv_image (finite_psubset <*lex*> measure uterm_size)
+      (%(M,N). (vars_of M Un vars_of N, M))"
    --{*Termination relation for the Unify function:
          either the set of variables decreases,
          or the first argument does (in fact, both do) *}
 
+
 text{* Wellfoundedness of unifyRel *}
 lemma wf_unifyRel [iff]: "wf unifyRel"
-by (simp add: unifyRel_def wf_lex_prod wf_finite_psubset)
+  by (simp add: unifyRel_def wf_lex_prod wf_finite_psubset)
 
-
+consts unify :: "'a uterm * 'a uterm => ('a * 'a uterm) list option"
 recdef (permissive) unify "unifyRel"
  unify_CC: "unify(Const m, Const n)  = (if (m=n) then Some[] else None)"
  unify_CB: "unify(Const m, Comb M N) = None"
@@ -95,8 +91,8 @@ recdef_tc unify_tc1: unify (1)
 text{*Termination proof.*}
 
 lemma trans_unifyRel: "trans unifyRel"
-by (simp add: unifyRel_def measure_def trans_inv_image trans_lex_prod
-              trans_finite_psubset)
+  by (simp add: unifyRel_def measure_def trans_inv_image trans_lex_prod
+    trans_finite_psubset)
 
 
 text{*The following lemma is used in the last step of the termination proof
@@ -104,9 +100,8 @@ for the nested call in Unify.  Loosely, it says that unifyRel doesn't care
 about term structure.*}
 lemma Rassoc:
   "((X,Y), (Comb A (Comb B C), Comb D (Comb E F))) \<in> unifyRel  ==>
-   ((X,Y), (Comb (Comb A B) C, Comb (Comb D E) F)) \<in> unifyRel"
-by (simp add: less_eq add_assoc Un_assoc
-              unifyRel_def lex_prod_def)
+    ((X,Y), (Comb (Comb A B) C, Comb (Comb D E) F)) \<in> unifyRel"
+  by (simp add: less_eq add_assoc Un_assoc unifyRel_def lex_prod_def)
 
 
 text{*This lemma proves the nested termination condition for the base cases
@@ -117,7 +112,7 @@ lemma var_elimR:
   & ((N1 \<lhd> [(x,M)], N2 \<lhd> [(x,M)]), (Comb(Var x) N1, Comb M N2)) \<in> unifyRel"
 apply (case_tac "Var x = M", clarify, simp)
 apply (case_tac "x \<in> (vars_of N1 Un vars_of N2)")
-txt{*uterm_less case*}
+txt{*@{text uterm_less} case*}
 apply (simp add: less_eq unifyRel_def lex_prod_def)
 apply blast
 txt{*@{text finite_psubset} case*}
