@@ -11,20 +11,18 @@ header{*Mutual Induction via Iteratived Inductive Definitions*}
 theory Com imports Main begin
 
 typedecl loc
-
 types  state = "loc => nat"
-       n2n2n = "nat => nat => nat"
 
 datatype
   exp = N nat
       | X loc
-      | Op n2n2n exp exp
+      | Op "nat => nat => nat" exp exp
       | valOf com exp          ("VALOF _ RESULTIS _"  60)
 and
   com = SKIP
-      | ":="  loc exp          (infixl  60)
-      | Semi  com com          ("_;;_"  [60, 60] 60)
-      | Cond  exp com com      ("IF _ THEN _ ELSE _"  60)
+      | Assign loc exp         (infixl ":=" 60)
+      | Semi com com           ("_;;_"  [60, 60] 60)
+      | Cond exp com com       ("IF _ THEN _ ELSE _"  60)
       | While exp com          ("WHILE _ DO _"  60)
 
 

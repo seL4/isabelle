@@ -21,8 +21,10 @@ text {*
 
 subsection {* The datatype of propositions *}
 
-datatype
-    'a pl = false | var 'a ("#_" [1000]) | "->" "'a pl" "'a pl" (infixr 90)
+datatype 'a pl =
+  false |
+  var 'a ("#_" [1000]) |
+  imp "'a pl" "'a pl" (infixr "->" 90)
 
 subsection {* The proof system *}
 
