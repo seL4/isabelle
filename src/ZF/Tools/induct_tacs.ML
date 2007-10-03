@@ -72,7 +72,7 @@ fun datatype_info thy name =
 exception Find_tname of string
 
 fun find_tname var Bi =
-  let fun mk_pair (Const("op :",_) $ Free (v,_) $ A) =
+  let fun mk_pair (Const(@{const_name mem},_) $ Free (v,_) $ A) =
              (v, #1 (dest_Const (head_of A)))
         | mk_pair _ = raise Match
       val pairs = List.mapPartial (try (mk_pair o FOLogic.dest_Trueprop))
@@ -97,7 +97,7 @@ fun exhaust_induct_tac exh var i state =
     val rule =
         if exh then #exhaustion (datatype_info thy tn)
                else #induct  (datatype_info thy tn)
-    val (Const("op :",_) $ Var(ixn,_) $ _) =
+    val (Const(@{const_name mem},_) $ Var(ixn,_) $ _) =
         (case prems_of rule of
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
@@ -126,7 +126,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
         map (head_of o const_of o FOLogic.dest_Trueprop o
              #prop o rep_thm) case_eqns;
 
-    val Const ("op :", _) $ _ $ data =
+    val Const (@{const_name mem}, _) $ _ $ data =
         FOLogic.dest_Trueprop (hd (prems_of elim));
 
     val Const(big_rec_name, _) = head_of data;

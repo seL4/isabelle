@@ -24,7 +24,7 @@ fun traceIt msg thy t =
 
 val iT = Type("i",[]);
 
-val mem_const = Const("op :", [iT,iT]--->FOLogic.oT);
+val mem_const = @{term mem};
 
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) = 
@@ -34,7 +34,7 @@ fun mk_all_imp (A,P) =
 
 val Part_const = Const("Part", [iT,iT-->iT]--->iT);
 
-val apply_const = Const("op `", [iT,iT]--->iT);
+val apply_const = @{term apply};
 
 val Vrecursor_const = Const("Univ.Vrecursor", [[iT,iT]--->iT, iT]--->iT);
 
@@ -44,14 +44,14 @@ fun mk_Collect (a,D,t) = Collect_const $ D $ absfree(a, iT, t);
 (*simple error-checking in the premises of an inductive definition*)
 fun chk_prem rec_hd (Const("op &",_) $ _ $ _) =
         error"Premises may not be conjuctive"
-  | chk_prem rec_hd (Const("op :",_) $ t $ X) = 
+  | chk_prem rec_hd (Const(@{const_name mem},_) $ t $ X) = 
         (Logic.occs(rec_hd,t) andalso error "Recursion term on left of member symbol"; ())
   | chk_prem rec_hd t = 
         (Logic.occs(rec_hd,t) andalso error "Recursion term in side formula"; ());
 
 (*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl = 
-    let val Const("Trueprop",_) $ (Const("op :",_) $ t $ X) = 
+    let val Const("Trueprop",_) $ (Const(@{const_name mem},_) $ t $ X) = 
                 Logic.strip_imp_concl rl
     in  (t,X)  end;
 
@@ -74,7 +74,7 @@ val equals_CollectD =
 type constructor_spec = 
     ((string * typ * mixfix) * string * term list * term list);
 
-fun dest_mem (Const("op :",_) $ x $ A) = (x,A)
+fun dest_mem (Const(@{const_name mem},_) $ x $ A) = (x,A)
   | dest_mem _ = error "Constructor specifications must have the form x:A";
 
 (*read a constructor specification*)
@@ -102,7 +102,7 @@ fun mk_intr_tms sg (rec_tm, constructs) =
 
 fun mk_all_intr_tms sg arg = List.concat (ListPair.map (mk_intr_tms sg) arg);
 
-fun mk_Un (t1, t2) = Const("op Un", [iT,iT]--->iT) $ t1 $ t2;
+fun mk_Un (t1, t2) = Const(@{const_name Un}, [iT,iT]--->iT) $ t1 $ t2;
 
 val empty       = Const("0", iT)
 and univ        = Const("Univ.univ", iT-->iT)

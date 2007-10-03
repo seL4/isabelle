@@ -45,11 +45,11 @@ constdefs
     "i -- j == ordertype(i-j, Memrel(i))"
 
   
-syntax (xsymbols)
-  "op **"     :: "[i,i] => i"          (infixl "\<times>\<times>" 70)
+notation (xsymbols)
+  omult  (infixl "\<times>\<times>" 70)
 
-syntax (HTML output)
-  "op **"     :: "[i,i] => i"          (infixl "\<times>\<times>" 70)
+notation (HTML output)
+  omult  (infixl "\<times>\<times>" 70)
 
 
 subsection{*Proofs needing the combination of Ordinal.thy and Order.thy*}

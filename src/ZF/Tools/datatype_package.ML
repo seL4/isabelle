@@ -174,7 +174,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*Find each recursive argument and add a recursive call for it*)
   fun rec_args [] = []
-    | rec_args ((Const("op :",_)$arg$X)::prems) =
+    | rec_args ((Const(@{const_name mem},_)$arg$X)::prems) =
        (case head_of X of
             Const(a,_) => (*recursive occurrence?*)
                           if a mem_string rec_names
@@ -293,7 +293,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
    | SOME recursor_def =>
       let
         (*Replace subterms rec`x (where rec is a Free var) by recursor_tm(x) *)
-        fun subst_rec (Const("op `",_) $ Free _ $ arg) = recursor_tm $ arg
+        fun subst_rec (Const(@{const_name apply},_) $ Free _ $ arg) = recursor_tm $ arg
           | subst_rec tm =
               let val (head, args) = strip_comb tm
               in  list_comb (head, map subst_rec args)  end;

@@ -286,7 +286,7 @@ let
         ind_alist = [(rec_tm1,pred1),...] associates predicates with rec ops
         prem is a premise of an intr rule*)
      fun add_induct_prem ind_alist (prem as Const("Trueprop",_) $
-                      (Const("op :",_)$t$X), iprems) =
+                      (Const(@{const_name mem},_)$t$X), iprems) =
           (case AList.lookup (op aconv) ind_alist X of
                SOME pred => prem :: FOLogic.mk_Trueprop (pred $ t) :: iprems
              | NONE => (*possibly membership in M(rec_tm), for M monotone*)

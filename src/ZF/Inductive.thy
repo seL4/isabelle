@@ -54,7 +54,7 @@ structure Standard_CP = CartProd_Fun (Standard_Prod);
 
 structure Standard_Sum =
   struct
-  val sum       = Const("op +", [iT,iT]--->iT)
+  val sum       = Const(@{const_name sum}, [iT,iT]--->iT)
   val inl       = Const("Inl", iT-->iT)
   val inr       = Const("Inr", iT-->iT)
   val elim      = Const("case", [iT-->iT, iT-->iT, iT]--->iT)

@@ -23,7 +23,7 @@ fun atomize (conn_pairs, mem_pairs) th =
   in case concl_of th of
          Const("Trueprop",_) $ P =>
             (case P of
-                 Const("op :",_) $ a $ b => tryrules mem_pairs b
+                 Const(@{const_name mem},_) $ a $ b => tryrules mem_pairs b
                | Const("True",_)         => []
                | Const("False",_)        => []
                | A => tryrules conn_pairs A)
@@ -40,8 +40,8 @@ val ZF_conn_pairs =
 (*Analyse a:b, where b is rigid*)
 val ZF_mem_pairs =
   [("Collect",  [CollectD1,CollectD2]),
-   ("op -",     [DiffD1,DiffD2]),
-   ("op Int",   [IntD1,IntD2])];
+   (@{const_name Diff},     [DiffD1,DiffD2]),
+   (@{const_name Int},   [IntD1,IntD2])];
 
 val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
 

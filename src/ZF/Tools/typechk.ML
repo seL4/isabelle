@@ -76,7 +76,7 @@ fun net_res_tac maxr net =
          if length rls <= maxr then resolve_tac rls i else no_tac
       end);
 
-fun is_rigid_elem (Const("Trueprop",_) $ (Const("op :",_) $ a $ _)) =
+fun is_rigid_elem (Const("Trueprop",_) $ (Const(@{const_name mem},_) $ a $ _)) =
       not (is_Var (head_of a))
   | is_rigid_elem _ = false;
 
