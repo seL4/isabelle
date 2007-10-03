@@ -16,8 +16,8 @@ arities set :: ("term") "term"
 consts
   Collect       :: "['a => o] => 'a set"                    (*comprehension*)
   Compl         :: "('a set) => 'a set"                     (*complement*)
-  Int           :: "['a set, 'a set] => 'a set"         (infixl 70)
-  Un            :: "['a set, 'a set] => 'a set"         (infixl 65)
+  Int           :: "['a set, 'a set] => 'a set"         (infixl "Int" 70)
+  Un            :: "['a set, 'a set] => 'a set"         (infixl "Un" 65)
   Union         :: "(('a set)set) => 'a set"                (*...of a set*)
   Inter         :: "(('a set)set) => 'a set"                (*...of a set*)
   UNION         :: "['a set, 'a => 'b set] => 'b set"       (*general*)
@@ -25,11 +25,10 @@ consts
   Ball          :: "['a set, 'a => o] => o"                 (*bounded quants*)
   Bex           :: "['a set, 'a => o] => o"                 (*bounded quants*)
   mono          :: "['a set => 'b set] => o"                (*monotonicity*)
-  ":"           :: "['a, 'a set] => o"                  (infixl 50) (*membership*)
-  "<="          :: "['a set, 'a set] => o"              (infixl 50)
+  mem           :: "['a, 'a set] => o"                  (infixl ":" 50) (*membership*)
+  subset        :: "['a set, 'a set] => o"              (infixl "<=" 50)
   singleton     :: "'a => 'a set"                       ("{_}")
   empty         :: "'a set"                             ("{}")
-  "oo"          :: "['b => 'c, 'a => 'b, 'a] => 'c"     (infixr 50) (*composition*)
 
 syntax
   "@Coll"       :: "[idt, o] => 'a set"                 ("(1{_./ _})") (*collection*)

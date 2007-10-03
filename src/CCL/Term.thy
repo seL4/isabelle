@@ -31,7 +31,7 @@ consts
   nrec       :: "[i,i,[i,i]=>i]=>i"
 
   nil        :: "i"                        ("([])")
-  "$"        :: "[i,i]=>i"                 (infixr 80)
+  cons       :: "[i,i]=>i"                 (infixr "$" 80)
   lcase      :: "[i,i,[i,i]=>i]=>i"
   lrec       :: "[i,i,[i,i,i]=>i]=>i"
 
@@ -288,7 +288,7 @@ subsection {* Constructors are distinct *}
 ML_setup {*
 bind_thms ("term_dstncts",
   mkall_dstnct_thms (the_context ()) (thms "data_defs") (thms "ccl_injs" @ thms "term_injs")
-    [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","op $"]]);
+    [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","cons"]]);
 *}
 
 

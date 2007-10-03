@@ -20,7 +20,7 @@ text {*
 classes prog < "term"
 defaultsort prog
 
-arities fun :: (prog, prog) prog
+arities "fun" :: (prog, prog) prog
 
 typedecl i
 arities i :: prog
@@ -28,10 +28,10 @@ arities i :: prog
 
 consts
   (*** Evaluation Judgement ***)
-  "--->"      ::       "[i,i]=>prop"          (infixl 20)
+  Eval      ::       "[i,i]=>prop"          (infixl "--->" 20)
 
   (*** Bisimulations for pre-order and equality ***)
-  "[="        ::       "['a,'a]=>o"           (infixl 50)
+  po          ::       "['a,'a]=>o"           (infixl "[=" 50)
   SIM         ::       "[i,i,i set]=>o"
   POgen       ::       "i set => i set"
   EQgen       ::       "i set => i set"
@@ -44,7 +44,7 @@ consts
   pair        ::       "[i,i]=>i"             ("(1<_,/_>)")
   lambda      ::       "(i=>i)=>i"            (binder "lam " 55)
   "case"      ::       "[i,i,i,[i,i]=>i,(i=>i)=>i]=>i"
-  "`"         ::       "[i,i]=>i"             (infixl 56)
+  "apply"     ::       "[i,i]=>i"             (infixl "`" 56)
   bot         ::       "i"
   "fix"       ::       "(i=>i)=>i"
 
@@ -188,25 +188,19 @@ lemma eq_lemma: "[| x=a;  y=b;  x=y |] ==> a=b"
   by simp
 
 ML {*
-  local
-    val arg_cong = thm "arg_cong";
-    val eq_lemma = thm "eq_lemma";
-    val ss = simpset_of (the_context ());
-  in
-    fun mk_inj_rl thy rews s =
-      let
-        fun mk_inj_lemmas r = [arg_cong] RL [r RS (r RS eq_lemma)]
-        val inj_lemmas = List.concat (map mk_inj_lemmas rews)
-        val tac = REPEAT (ares_tac [iffI, allI, conjI] 1 ORELSE
-          eresolve_tac inj_lemmas 1 ORELSE
-          asm_simp_tac (Simplifier.theory_context thy ss addsimps rews) 1)
-      in prove_goal thy s (fn _ => [tac]) end  
-  end
+  fun mk_inj_rl thy rews s =
+    let
+      fun mk_inj_lemmas r = [@{thm arg_cong}] RL [r RS (r RS @{thm eq_lemma})]
+      val inj_lemmas = List.concat (map mk_inj_lemmas rews)
+      val tac = REPEAT (ares_tac [iffI, allI, conjI] 1 ORELSE
+        eresolve_tac inj_lemmas 1 ORELSE
+        asm_simp_tac (Simplifier.theory_context thy @{simpset} addsimps rews) 1)
+    in prove_goal thy s (fn _ => [tac]) end  
 *}
 
 ML {*
   bind_thms ("ccl_injs",
-    map (mk_inj_rl (the_context ()) (thms "caseBs"))
+    map (mk_inj_rl @{theory} @{thms caseBs})
       ["<a,b> = <a',b'> <-> (a=a' & b=b')",
        "(lam x. b(x) = lam x. b'(x)) <-> ((ALL z. b(z)=b'(z)))"])
 *}

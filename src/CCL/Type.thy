@@ -15,7 +15,7 @@ consts
   Subtype       :: "['a set, 'a => o] => 'a set"
   Bool          :: "i set"
   Unit          :: "i set"
-  "+"           :: "[i set, i set] => i set"         (infixr 55)
+  Plus           :: "[i set, i set] => i set"        (infixr "+" 55)
   Pi            :: "[i set, i => i set] => i set"
   Sigma         :: "[i set, i => i set] => i set"
   Nat           :: "i set"

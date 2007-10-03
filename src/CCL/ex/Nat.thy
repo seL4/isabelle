@@ -13,12 +13,12 @@ begin
 consts
 
   not   :: "i=>i"
-  "#+"  :: "[i,i]=>i"            (infixr 60)
-  "#*"  :: "[i,i]=>i"            (infixr 60)
-  "#-"  :: "[i,i]=>i"            (infixr 60)
-  "##"  :: "[i,i]=>i"            (infixr 60)
-  "#<"  :: "[i,i]=>i"            (infixr 60)
-  "#<=" :: "[i,i]=>i"            (infixr 60)
+  add   :: "[i,i]=>i"            (infixr "#+" 60)
+  mult  :: "[i,i]=>i"            (infixr "#*" 60)
+  sub   :: "[i,i]=>i"            (infixr "#-" 60)
+  div   :: "[i,i]=>i"            (infixr "##" 60)
+  lt    :: "[i,i]=>i"            (infixr "#<" 60)
+  le    :: "[i,i]=>i"            (infixr "#<=" 60)
   ackermann :: "[i,i]=>i"
 
 defs

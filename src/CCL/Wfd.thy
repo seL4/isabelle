@@ -16,11 +16,11 @@ consts
       (*** Relations ***)
   wf         ::       "[i set] => i set"
   wmap       ::       "[i=>i,i set] => i set"
-  "**"       ::       "[i set,i set] => i set"      (infixl 70)
+  lex        ::       "[i set,i set] => i set"      (infixl "**" 70)
   NatPR      ::       "i set"
   ListPR     ::       "i set => i set"
 
-axioms
+defs
 
   Wfd_def:
   "Wfd(R) == ALL P.(ALL x.(ALL y.<y,x> : R --> y:P) --> x:P) --> (ALL a. a:P)"
@@ -442,7 +442,7 @@ fun bvars (Const("all",_) $ Abs(s,_,t)) l = bvars t (s::l)
 fun get_bno l n (Const("all",_) $ Abs(s,_,t)) = get_bno (s::l) n t
   | get_bno l n (Const("Trueprop",_) $ t) = get_bno l n t
   | get_bno l n (Const("Ball",_) $ _ $ Abs(s,_,t)) = get_bno (s::l) (n+1) t
-  | get_bno l n (Const("op :",_) $ t $ _) = get_bno l n t
+  | get_bno l n (Const("mem",_) $ t $ _) = get_bno l n t
   | get_bno l n (t $ s) = get_bno l n t
   | get_bno l n (Bound m) = (m-length(l),n)
 
@@ -463,7 +463,7 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
 
 fun is_rigid_prog t =
      case (Logic.strip_assums_concl t) of
-        (Const("Trueprop",_) $ (Const("op :",_) $ a $ _)) => (term_vars a = [])
+        (Const("Trueprop",_) $ (Const("mem",_) $ a $ _)) => (term_vars a = [])
        | _ => false
 in
 

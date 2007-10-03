@@ -15,11 +15,11 @@ consts
   id      :: "i set"
   rtrancl :: "i set => i set"               ("(_^*)" [100] 100)
   trancl  :: "i set => i set"               ("(_^+)" [100] 100)
-  O       :: "[i set,i set] => i set"       (infixr 60)
+  relcomp :: "[i set,i set] => i set"       (infixr "O" 60)
 
 axioms
   trans_def:       "trans(r) == (ALL x y z. <x,y>:r --> <y,z>:r --> <x,z>:r)"
-  comp_def:        (*composition of relations*)
+  relcomp_def:     (*composition of relations*)
                    "r O s == {xz. EX x y z. xz = <x,z> & <x,y>:s & <y,z>:r}"
   id_def:          (*the identity relation*)
                    "id == {p. EX x. p = <x,x>}"
@@ -57,14 +57,14 @@ lemma idE:
 subsection {* Composition of two relations *}
 
 lemma compI: "[| <a,b>:s; <b,c>:r |] ==> <a,c> : r O s"
-  unfolding comp_def by blast
+  unfolding relcomp_def by blast
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
 lemma compE:
     "[| xz : r O s;
         !!x y z. [| xz = <x,z>;  <x,y>:s;  <y,z>:r |] ==> P
      |] ==> P"
-  unfolding comp_def by blast
+  unfolding relcomp_def by blast
 
 lemma compEpair:
   "[| <a,c> : r O s;

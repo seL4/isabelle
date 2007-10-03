@@ -12,9 +12,9 @@ begin
 
 consts
   map       :: "[i=>i,i]=>i"
-  "o"       :: "[i=>i,i=>i]=>i=>i"             (infixr 55)
-  "@"       :: "[i,i]=>i"             (infixr 55)
-  mem       :: "[i,i]=>i"             (infixr 55)
+  comp      :: "[i=>i,i=>i]=>i=>i"    (infixr "o" 55)
+  append    :: "[i,i]=>i"             (infixr "@" 55)
+  member    :: "[i,i]=>i"             (infixr "mem" 55)
   filter    :: "[i,i]=>i"
   flat      :: "i=>i"
   partition :: "[i,i]=>i"
@@ -27,7 +27,7 @@ axioms
   map_def:     "map(f,l)   == lrec(l,[],%x xs g. f(x)$g)"
   comp_def:    "f o g == (%x. f(g(x)))"
   append_def:  "l @ m == lrec(l,m,%x xs g. x$g)"
-  mem_def:     "a mem l == lrec(l,false,%h t g. if eq(a,h) then true else g)"
+  member_def:  "a mem l == lrec(l,false,%h t g. if eq(a,h) then true else g)"
   filter_def:  "filter(f,l) == lrec(l,[],%x xs g. if f`x then x$g else g)"
   flat_def:    "flat(l) == lrec(l,[],%h t g. h @ g)"
 
