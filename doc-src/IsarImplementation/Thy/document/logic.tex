@@ -329,7 +329,7 @@ The language of types is an uninterpreted order-sorted first-order
   \indexml{lambda}\verb|lambda: term -> term -> term| \\
   \indexml{betapply}\verb|betapply: term * term -> term| \\
   \indexml{Sign.add-consts-i}\verb|Sign.add_consts_i: (string * typ * mixfix) list -> theory -> theory| \\
-  \indexml{Sign.add-abbrev}\verb|Sign.add_abbrev: string -> bstring * term -> theory -> (term * term) * theory| \\
+  \indexml{Sign.add-abbrev}\verb|Sign.add_abbrev: string -> Markup.property list -> bstring * term -> theory -> (term * term) * theory| \\
   \indexml{Sign.const-typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
   \indexml{Sign.const-instance}\verb|Sign.const_instance: theory -> string * typ list -> typ| \\
   \end{mldecls}
@@ -369,7 +369,7 @@ The language of types is an uninterpreted order-sorted first-order
   \item \verb|Sign.add_consts_i|~\isa{{\isacharbrackleft}{\isacharparenleft}c{\isacharcomma}\ {\isasymsigma}{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares a
   new constant \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with optional mixfix syntax.
 
-  \item \verb|Sign.add_abbrev|~\isa{print{\isacharunderscore}mode\ {\isacharparenleft}c{\isacharcomma}\ t{\isacharparenright}}
+  \item \verb|Sign.add_abbrev|~\isa{print{\isacharunderscore}mode\ properties\ {\isacharparenleft}c{\isacharcomma}\ t{\isacharparenright}}
   introduces a new term abbreviation \isa{c\ {\isasymequiv}\ t}.
 
   \item \verb|Sign.const_typargs|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} and \verb|Sign.const_instance|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharbrackright}{\isacharparenright}}

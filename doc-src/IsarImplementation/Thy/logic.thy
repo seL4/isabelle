@@ -327,7 +327,7 @@ text %mlref {*
   @{index_ML lambda: "term -> term -> term"} \\
   @{index_ML betapply: "term * term -> term"} \\
   @{index_ML Sign.add_consts_i: "(string * typ * mixfix) list -> theory -> theory"} \\
-  @{index_ML Sign.add_abbrev: "string -> bstring * term -> theory -> (term * term) * theory"} \\
+  @{index_ML Sign.add_abbrev: "string -> Markup.property list -> bstring * term -> theory -> (term * term) * theory"} \\
   @{index_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
   @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
   \end{mldecls}
@@ -375,7 +375,7 @@ text %mlref {*
   \item @{ML Sign.add_consts_i}~@{text "[(c, \<sigma>, mx), \<dots>]"} declares a
   new constant @{text "c :: \<sigma>"} with optional mixfix syntax.
 
-  \item @{ML Sign.add_abbrev}~@{text "print_mode (c, t)"}
+  \item @{ML Sign.add_abbrev}~@{text "print_mode properties (c, t)"}
   introduces a new term abbreviation @{text "c \<equiv> t"}.
 
   \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML
