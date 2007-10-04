@@ -84,6 +84,7 @@ sig
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth: 'a list -> int -> 'a
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
+  val nth_drop: int -> 'a list -> 'a list
   val nth_list: 'a list list -> int -> 'a list
   val map_index: (int * 'a -> 'b) -> 'a list -> 'b list
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
@@ -432,6 +433,9 @@ fun nth_list xss i = nth xss i handle Subscript => [];
 fun nth_map 0 f (x :: xs) = f x :: xs
   | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs
   | nth_map (_: int) _ [] = raise Subscript;
+
+fun nth_drop n xs =
+  List.take (xs, n) @ List.drop (xs, n + 1);
 
 fun map_index f =
   let
