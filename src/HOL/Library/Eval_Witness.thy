@@ -57,12 +57,11 @@ let
     | dest_exs n (Const ("Ex", _) $ Abs (v,T,b)) = 
       Abs (v, check_type T, dest_exs (n - 1) b)
     | dest_exs _ _ = sys_error "dest_exs";
-
-  val ct = Thm.cterm_of thy (dest_exs (length ws) (HOLogic.dest_Trueprop goal))
+  val t = dest_exs (length ws) (HOLogic.dest_Trueprop goal);
 in
-  if CodePackage.satisfies thy ct ws
+  if CodePackage.satisfies thy t ws
   then goal
-  else HOLogic.Trueprop $ (HOLogic.true_const) (*dummy*)
+  else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
 end
 *}
 

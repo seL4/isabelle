@@ -136,7 +136,7 @@ setup {*
 subsection {* Evaluation oracle *}
 
 oracle eval_oracle ("term") = {* fn thy => fn t => 
-  if CodePackage.satisfies thy (Thm.cterm_of thy (HOLogic.dest_Trueprop t)) [] 
+  if CodePackage.satisfies thy (HOLogic.dest_Trueprop t) [] 
   then t
   else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
 *}
@@ -156,7 +156,7 @@ subsection {* Normalization by evaluation *}
 
 method_setup normalization = {*
   Method.no_args (Method.SIMPLE_METHOD'
-    (CONVERSION (ObjectLogic.judgment_conv Nbe.normalization_conv)
+    (CONVERSION (ObjectLogic.judgment_conv Nbe.norm_conv)
       THEN' resolve_tac [TrueI, refl]))
 *} "solve goal by normalization"
 

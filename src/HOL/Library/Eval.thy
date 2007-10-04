@@ -157,9 +157,10 @@ ML {*
 signature EVAL =
 sig
   val eval_ref: (unit -> term) option ref
-  val eval_conv: cterm -> thm
-  val eval_print: (cterm -> thm) -> Proof.context -> term -> unit
-  val eval_print_cmd: (cterm -> thm) -> string -> Toplevel.state -> unit
+  val eval_term: theory -> term -> term
+  val evaluate: Proof.context -> term -> unit
+  val evaluate': string -> Proof.context -> term -> unit
+  val evaluate_cmd: string option -> Toplevel.state -> unit
 end;
 
 structure Eval =
@@ -167,61 +168,46 @@ struct
 
 val eval_ref = ref (NONE : (unit -> term) option);
 
-end;
-*}
+fun eval_invoke thy code ((_, ty), t) deps _ =
+  CodePackage.eval_invoke thy ("Eval.eval_ref", eval_ref) code (t, ty) [];
 
-oracle eval_oracle ("term * CodeThingol.code * (CodeThingol.typscheme * CodeThingol.iterm) * cterm") =
-{* fn thy => fn (t0, code, ((vs, ty), t), ct) => 
-let
-  val _ = (Term.map_types o Term.map_atyps) (fn _ =>
-    error ("Term " ^ Sign.string_of_term thy t0 ^ " contains polymorphic type"))
-    t0;
-in
-  Logic.mk_equals (t0,
-    CodePackage.eval_invoke thy ("Eval.eval_ref", Eval.eval_ref) code (t, ty) [])
-end;
-*}
+fun eval_term thy =
+  TermOf.mk_term_of
+  #> CodePackage.eval_term thy (eval_invoke thy)
+  #> Code.postprocess_term thy;
 
-ML {*
-structure Eval : EVAL =
-struct
+val evaluators = [
+  ("code", eval_term),
+  ("SML", Codegen.eval_term),
+  ("normal_form", Nbe.norm_term)
+];
 
-open Eval;
-
-fun eval_invoke thy t0 code vs_ty_t _ ct = eval_oracle thy (t0, code, vs_ty_t, ct);
-
-fun eval_conv ct =
-  let
-    val thy = Thm.theory_of_cterm ct;
-    val ct' = (Thm.cterm_of thy o TermOf.mk_term_of o Thm.term_of) ct;
-  in
-    CodePackage.eval_term thy
-      (eval_invoke thy (Thm.term_of ct)) ct'
-  end;
-
-fun eval_print conv ctxt t =
+fun gen_evaluate evaluators ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val ct = Thm.cterm_of thy t;
-    val (_, t') = (Logic.dest_equals o Thm.prop_of o conv) ct;
-    val ty = Term.type_of t';
-    val p = 
-      Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt ty)];
+    val (evls, evl) = split_last evaluators;
+    val t' = case get_first (fn f => try (f thy) t) evls
+     of SOME t' => t'
+      | NONE => evl thy t;
+    val ty' = Term.type_of t';
+    val p = Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t'),
+      Pretty.fbrk, Pretty.str "::", Pretty.brk 1,
+      Pretty.quote (ProofContext.pretty_typ ctxt ty')];
   in Pretty.writeln p end;
 
-fun eval_print_cmd conv raw_t state =
+val evaluate = gen_evaluate (map snd evaluators);
+
+fun evaluate' name = gen_evaluate
+  [(the o AList.lookup (op =) evaluators) name];
+
+fun evaluate_cmd some_name raw_t state =
   let
     val ctxt = Toplevel.context_of state;
     val t = Syntax.read_term ctxt raw_t;
-    val thy = ProofContext.theory_of ctxt;
-    val ct = Thm.cterm_of thy t;
-    val (_, t') = (Logic.dest_equals o Thm.prop_of o conv) ct;
-    val ty = Term.type_of t';
-    val p = 
-      Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt ty)];
-  in Pretty.writeln p end;
+  in case some_name
+   of NONE => evaluate ctxt t
+    | SOME name => evaluate' name ctxt t
+  end;
 
 end;
 *}
@@ -229,11 +215,10 @@ end;
 ML {*
 val valueP =
   OuterSyntax.improper_command "value" "read, evaluate and print term" OuterKeyword.diag
-    (OuterParse.term
-      >> (fn t => Toplevel.no_timing o Toplevel.keep
-           (Eval.eval_print_cmd (fn ct => case try Eval.eval_conv ct
-     of SOME thm => thm
-      | NONE => Codegen.evaluation_conv ct) t)));
+    (Scan.option (OuterParse.$$$ "(" |-- OuterParse.name --| OuterParse.$$$ ")")
+    -- OuterParse.term
+      >> (fn (some_name, t) => Toplevel.no_timing o Toplevel.keep
+           (Eval.evaluate_cmd some_name t)));
 
 val _ = OuterSyntax.add_parsers [valueP];
 *}

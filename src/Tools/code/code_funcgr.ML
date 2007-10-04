@@ -17,7 +17,7 @@ sig
   val make: theory -> string list -> T
   val make_consts: theory -> string list -> string list * T
   val eval_conv: theory -> (T -> cterm -> thm) -> cterm -> thm
-  val eval_term: theory -> (T -> cterm -> 'a) -> cterm -> 'a
+  val eval_term: theory -> (T -> term -> 'a) -> term -> 'a
 end
 
 structure CodeFuncgr : CODE_FUNCGR =
@@ -155,7 +155,7 @@ fun resort_funcss thy algebra funcgr =
 fun instances_of thy algebra insts =
   let
     val thy_classes = (#classes o Sorts.rep_algebra o Sign.classes_of) thy;
-    fun all_classops tyco class =
+    fun all_classparams tyco class =
       try (AxClass.params_of_class thy) class
       |> Option.map snd
       |> these
@@ -164,7 +164,7 @@ fun instances_of thy algebra insts =
     Symtab.empty
     |> fold (fn (tyco, class) =>
         Symtab.map_default (tyco, []) (insert (op =) class)) insts
-    |> (fn tab => Symtab.fold (fn (tyco, classes) => append (maps (all_classops tyco)
+    |> (fn tab => Symtab.fold (fn (tyco, classes) => append (maps (all_classparams tyco)
          (Graph.all_succs thy_classes classes))) tab [])
   end;
 
@@ -320,10 +320,10 @@ fun raw_eval_conv thy conv =
       end;
   in raw_eval thy conv' end;
 
-fun raw_eval_term thy f =
+fun raw_eval_term thy f t =
   let
-    fun f' _ _ funcgr ct = f funcgr ct;
-  in raw_eval thy f' end;
+    fun f' _ _ funcgr ct = f funcgr (Thm.term_of ct);
+  in raw_eval thy f' (Thm.cterm_of thy t) end;
 
 end; (*local*)
 

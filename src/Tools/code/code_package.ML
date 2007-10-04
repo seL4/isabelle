@@ -13,10 +13,10 @@ sig
     -> cterm -> thm;
   val eval_term: theory
     -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
-       -> string list -> cterm -> 'a)
-    -> cterm -> 'a;
+       -> string list -> term -> 'a)
+    -> term -> 'a;
   val satisfies_ref: (unit -> bool) option ref;
-  val satisfies: theory -> cterm -> string list -> bool;
+  val satisfies: theory -> term -> string list -> bool;
   val eval_invoke: theory -> (string * (unit -> 'a) option ref) -> CodeThingol.code
     -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val codegen_command: theory -> string -> unit;
@@ -213,20 +213,20 @@ and exprgen_eq thy algbr funcgr thm =
 and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
-    val (var, classops) = try (AxClass.params_of_class thy) class |> the_default ("'a", [])
+    val (var, classparams) = try (AxClass.params_of_class thy) class |> the_default ("'a", [])
     val vs = Name.names Name.context "'a" (Sorts.mg_domain algebra tyco [class]);
     val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
     val vs' = map2 (fn (v, sort1) => fn sort2 => (v,
       Sorts.inter_sort (Sign.classes_of thy) (sort1, sort2))) vs sorts';
     val arity_typ = Type (tyco, map TFree vs);
     val arity_typ' = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort)) vs');
-    fun gen_superarity superclass =
+    fun exprgen_superarity superclass =
       ensure_def_class thy algbr funcgr superclass
       ##>> ensure_def_classrel thy algbr funcgr (class, superclass)
       ##>> exprgen_dicts thy algbr funcgr (arity_typ, [superclass])
       #>> (fn ((superclass, classrel), [DictConst (inst, dss)]) =>
             (superclass, (classrel, (inst, dss))));
-    fun gen_classop_def (c, ty) =
+    fun exprgen_classparam_inst (c, ty) =
       let
         val c_inst = Const (c, map_type_tfree (K arity_typ') ty);
         val thm = Class.unoverload thy (Thm.cterm_of thy c_inst);
@@ -241,10 +241,10 @@ and ensure_def_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
       ensure_def_class thy algbr funcgr class
       ##>> ensure_def_tyco thy algbr funcgr tyco
       ##>> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
-      ##>> fold_map gen_superarity superclasses
-      ##>> fold_map gen_classop_def classops
-      #>> (fn ((((class, tyco), arity), superarities), classops) =>
-             CodeThingol.Classinst ((class, (tyco, arity)), (superarities, classops)));
+      ##>> fold_map exprgen_superarity superclasses
+      ##>> fold_map exprgen_classparam_inst classparams
+      #>> (fn ((((class, tyco), arity), superarities), classparams) =>
+             CodeThingol.Classinst ((class, (tyco, arity)), (superarities, classparams)));
     val inst = CodeName.instance thy (class, tyco);
   in
     ensure_def thy defgen_inst inst
@@ -256,9 +256,9 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr c =
     fun defgen_datatypecons tyco =
       ensure_def_tyco thy algbr funcgr tyco
       #>> K (CodeThingol.Datatypecons c');
-    fun defgen_classop class =
+    fun defgen_classparam class =
       ensure_def_class thy algbr funcgr class
-      #>> K (CodeThingol.Classop c');
+      #>> K (CodeThingol.Classparam c');
     fun defgen_fun trns =
       let
         val raw_thms = CodeFuncgr.funcs funcgr c;
@@ -277,14 +277,14 @@ and ensure_def_const thy (algbr as (_, consts)) funcgr c =
     val defgen = case Code.get_datatype_of_constr thy c
      of SOME tyco => defgen_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
-         of SOME class => defgen_classop class
+         of SOME class => defgen_classparam class
           | NONE => defgen_fun)
   in
     ensure_def thy defgen c'
     #> pair c'
   end
 and exprgen_term thy algbr funcgr (Const (c, ty)) =
-      select_appgen thy algbr funcgr ((c, ty), [])
+      exprgen_app thy algbr funcgr ((c, ty), [])
   | exprgen_term thy algbr funcgr (Free (v, _)) =
       pair (IVar v)
   | exprgen_term thy algbr funcgr (Abs (abs as (_, ty, _))) =
@@ -298,7 +298,7 @@ and exprgen_term thy algbr funcgr (Const (c, ty)) =
   | exprgen_term thy algbr funcgr (t as _ $ _) =
       case strip_comb t
        of (Const (c, ty), ts) =>
-            select_appgen thy algbr funcgr ((c, ty), ts)
+            exprgen_app thy algbr funcgr ((c, ty), ts)
         | (t', ts) =>
             exprgen_term thy algbr funcgr t'
             ##>> fold_map (exprgen_term thy algbr funcgr) ts
@@ -313,7 +313,7 @@ and exprgen_app_default thy algbr funcgr (c_ty, ts) =
   exprgen_const thy algbr funcgr c_ty
   ##>> fold_map (exprgen_term thy algbr funcgr) ts
   #>> (fn (t, ts) => t `$$ ts)
-and select_appgen thy algbr funcgr ((c, ty), ts) =
+and exprgen_app thy algbr funcgr ((c, ty), ts) =
   case Symtab.lookup (Appgens.get thy) c
    of SOME (i, (appgen, _)) =>
         if length ts < i then
@@ -430,10 +430,10 @@ fun code thy permissive cs seris =
     val code = Program.get thy;
     val seris' = map (fn (((target, module), file), args) =>
       CodeTarget.get_serializer thy target permissive module file args
-        CodeName.labelled_name (K false) cs) seris;
+        CodeName.labelled_name cs) seris;
   in (map (fn f => f code) seris' : unit list; ()) end;
 
-fun raw_eval f thy g =
+fun raw_eval evaluate term_of thy g =
   let
     val value_name = "Isabelle_Eval.EVAL.EVAL";
     fun ensure_eval thy algbr funcgr t = 
@@ -459,23 +459,23 @@ fun raw_eval f thy g =
       end;
     fun h funcgr ct =
       let
-        val (code, vs_ty_t, deps) = generate thy funcgr ensure_eval (Thm.term_of ct);
+        val (code, vs_ty_t, deps) = generate thy funcgr ensure_eval (term_of ct);
       in g code vs_ty_t deps ct end;
-  in f thy h end;
+  in evaluate thy h end;
 
-fun eval_conv thy = raw_eval CodeFuncgr.eval_conv thy;
-fun eval_term thy = raw_eval CodeFuncgr.eval_term thy;
+fun eval_conv thy = raw_eval CodeFuncgr.eval_conv Thm.term_of thy;
+fun eval_term thy = raw_eval CodeFuncgr.eval_term I thy;
 
-fun eval_invoke thy = CodeTarget.eval_invoke thy CodeName.labelled_name (K false);
+fun eval_invoke thy = CodeTarget.eval_invoke thy CodeName.labelled_name;
 
 val satisfies_ref : (unit -> bool) option ref = ref NONE;
 
-fun satisfies thy ct witnesses =
+fun satisfies thy t witnesses =
   let
     fun evl code ((vs, ty), t) deps ct =
       eval_invoke thy ("CodePackage.satisfies_ref", satisfies_ref)
         code (t, ty) witnesses;
-  in eval_term thy evl ct end;
+  in eval_term thy evl t end;
 
 fun filter_generatable thy consts =
   let
