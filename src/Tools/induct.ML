@@ -522,15 +522,15 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
     | NONE => all_tac)
   end);
 
-fun miniscope_tac p =
-  CONVERSION (Conv.forall_conv p (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]));
+fun miniscope_tac p = CONVERSION o
+  Conv.forall_conv p (K (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]));
 
 in
 
 fun fix_tac _ _ [] = K all_tac
   | fix_tac ctxt n xs = SUBGOAL (fn (goal, i) =>
      (EVERY' (map (meta_spec_tac ctxt n) xs) THEN'
-      (miniscope_tac (goal_params n goal))) i);
+      (miniscope_tac (goal_params n goal) ctxt)) i);
 
 end;
 

@@ -26,8 +26,8 @@ val atomize_conv =
   MetaSimplifier.rewrite_cterm (true, false, false) (K (K NONE))
     (HOL_basic_ss addsimps inductive_atomize);
 val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
-val atomize_induct = Conv.fconv_rule (Conv.prems_conv ~1
-  (Conv.forall_conv ~1 (Conv.prems_conv ~1 atomize_conv)));
+fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
+  (Conv.forall_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
 
 val finite_Un = thm "finite_Un";
 val supp_prod = thm "supp_prod";
@@ -140,7 +140,7 @@ fun prove_strong_ind s avoids thy =
     val ctxt = ProofContext.init thy;
     val ({names, ...}, {raw_induct, ...}) =
       InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
-    val raw_induct = atomize_induct raw_induct;
+    val raw_induct = atomize_induct ctxt raw_induct;
     val monos = InductivePackage.get_monos ctxt;
     val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
     val _ = (case names \\ foldl (apfst prop_of #> add_term_consts) [] eqvt_thms of
@@ -432,8 +432,8 @@ fun prove_eqvt s xatoms thy =
     val ctxt = ProofContext.init thy;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
       InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
-    val raw_induct = atomize_induct raw_induct;
-    val elims = map atomize_induct elims;
+    val raw_induct = atomize_induct ctxt raw_induct;
+    val elims = map (atomize_induct ctxt) elims;
     val intrs = map atomize_intr intrs;
     val monos = InductivePackage.get_monos ctxt;
     val intrs' = InductivePackage.unpartition_rules intrs
