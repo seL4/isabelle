@@ -18,8 +18,7 @@ sig
   val every_conv: conv list -> conv
   val try_conv: conv -> conv
   val repeat_conv: conv -> conv
-  val cache_conv: conv -> conv
-  val abs_conv: conv -> conv
+  val abs_conv: (Proof.context -> conv) -> Proof.context -> conv
   val combination_conv: conv -> conv -> conv
   val comb_conv: conv -> conv
   val arg_conv: conv -> conv
@@ -27,7 +26,7 @@ sig
   val arg1_conv: conv -> conv
   val fun2_conv: conv -> conv
   val binop_conv: conv -> conv
-  val forall_conv: int -> conv -> conv
+  val forall_conv: int -> (Proof.context -> conv) -> Proof.context -> conv
   val concl_conv: int -> conv -> conv
   val prems_conv: int -> conv -> conv
   val fconv_rule: conv -> thm -> thm
@@ -65,29 +64,19 @@ fun every_conv cvs = fold_rev (curry op then_conv) cvs all_conv;
 fun try_conv cv = cv else_conv all_conv;
 fun repeat_conv cv ct = try_conv (cv then_conv repeat_conv cv) ct;
 
-fun cache_conv cv =
-  let
-    val cache = ref Termtab.empty;
-    fun conv ct =
-      (case Termtab.lookup (! cache) (Thm.term_of ct) of
-        SOME th => th
-      | NONE =>
-          let val th = cv ct
-          in change cache (Termtab.update (Thm.term_of ct, th)); th end);
- in conv end;
-
 
 
 (** Pure conversions **)
 
 (* lambda terms *)
 
-fun abs_conv cv ct =
+fun abs_conv cv ctxt ct =
   (case Thm.term_of ct of
     Abs (x, _, _) =>
       let
-        val (v, ct') = Thm.dest_abs (SOME (gensym "gensym_abs_")) ct;
-        val eq = cv ct';
+        val ([u], ctxt') = Variable.variant_fixes ["u"] ctxt;
+        val (v, ct') = Thm.dest_abs (SOME u) ct;
+        val eq = (cv ctxt') ct';
       in if Thm.is_reflexive eq then all_conv ct else Thm.abstract_rule x v eq end
   | _ => raise CTERM ("abs_conv", [ct]));
 
@@ -108,10 +97,10 @@ fun binop_conv cv = combination_conv (arg_conv cv) cv;
 (* logic *)
 
 (*rewrite B in !!x1 ... xn. B*)
-fun forall_conv n cv ct =
+fun forall_conv n cv ctxt ct =
   if n <> 0 andalso can Logic.dest_all (Thm.term_of ct)
-  then arg_conv (abs_conv (forall_conv (n - 1) cv)) ct
-  else cv ct;
+  then arg_conv (abs_conv (forall_conv (n - 1) cv) ctxt) ct
+  else cv ctxt ct;
 
 (*rewrite B in A1 ==> ... ==> An ==> B*)
 fun concl_conv 0 cv ct = cv ct
