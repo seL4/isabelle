@@ -17,6 +17,7 @@ sig
   val first_order_resolve: thm -> thm -> thm
   val flexflex_first_order: thm -> thm
   val size_of_subgoals: thm -> int
+  val too_many_clauses: term -> bool
   val make_cnf: thm list -> thm -> thm list
   val finish_cnf: thm list -> thm list
   val generalize: thm -> thm

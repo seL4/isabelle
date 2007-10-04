@@ -515,8 +515,11 @@ apply (rule lub_upper, fast)
 apply (rule_tac t = "H" in ssubst, assumption)
 apply (rule CollectI)
 apply (rule conjI)
-ML{*ResAtp.problem_name:="Tarski__CLF_flubH_le_lubH_simpler"*} 
-apply (metis CO_refl lubH_le_flubH lub_dual_glb monotoneE monotone_f reflD1 reflD2)
+ML{*ResAtp.problem_name:="Tarski__CLF_flubH_le_lubH_simpler"*}
+(*??no longer terminates, with combinators
+apply (metis CO_refl lubH_le_flubH monotone_def monotone_f reflD1 reflD2) 
+*)
+apply (metis CO_refl lubH_le_flubH lub_dual_glb monotoneE [OF monotone_f] reflD1 reflD2)
 apply (metis CO_refl lubH_le_flubH reflD2)
 done
   declare CLF.f_in_funcset[rule del] funcset_mem[rule del] 
@@ -529,51 +532,73 @@ done
 ML{*ResAtp.problem_name:="Tarski__CLF_lubH_is_fixp"*}
 (*Single-step version fails. The conjecture clauses refer to local abstraction
 functions (Frees), which prevents expand_defs_tac from removing those 
-"definitions" at the end of the proof. 
+"definitions" at the end of the proof. *)
 lemma (in CLF) lubH_is_fixp:
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> lub H cl \<in> fix f A"
 apply (simp add: fix_def)
 apply (rule conjI)
- proof (neg_clausify)
-assume 0: "H = Collect (llabs_local_Xcl_A_r_f_P_XlubH_le_flubH_1 A f r)"
-assume 1: "lub (Collect (llabs_local_Xcl_A_r_f_P_XlubH_le_flubH_1 A f r)) cl \<notin> A"
-have 2: "glb H (dual cl) \<notin> A"
-  by (metis 0 1 lub_dual_glb)
-have 3: "(glb H (dual cl), f (glb H (dual cl))) \<in> r"
-  by (metis 0 lubH_le_flubH lub_dual_glb)
-have 4: "(f (glb H (dual cl)), glb H (dual cl)) \<in> r"
-  by (metis 0 flubH_le_lubH lub_dual_glb)
-have 5: "glb H (dual cl) = f (glb H (dual cl)) \<or>
-(glb H (dual cl), f (glb H (dual cl))) \<notin> r"
-  by (metis 4 antisymE)
-have 6: "glb H (dual cl) = f (glb H (dual cl))"
-  by (metis 3 5)
-have 7: "(glb H (dual cl), glb H (dual cl)) \<in> r"
-  by (metis 4 6)
-have 8: "\<And>X1. glb H (dual cl) \<in> X1 \<or> \<not> refl X1 r"
-  by (metis reflD2 7)
-have 9: "\<not> refl A r"
-  by (metis 2 8)
-show "False"
-  by (metis 9 CO_refl)
 proof (neg_clausify)
-assume 0: "H = Collect (llabs_local_Xcl_A_r_f_P_XlubH_le_flubH_1 A f r)"
-assume 1: "f (lub (Collect (llabs_local_Xcl_A_r_f_P_XlubH_le_flubH_1 A f r)) cl) \<noteq>
-lub (Collect (llabs_local_Xcl_A_r_f_P_XlubH_le_flubH_1 A f r)) cl"
-have 2: "(glb H (dual cl), f (glb H (dual cl))) \<in> r"
-  by (metis 0 lubH_le_flubH lub_dual_glb lub_dual_glb)
-have 3: "f (glb H (dual cl)) \<noteq> glb H (dual cl)"
-  by (metis 0 1 lub_dual_glb)
-have 4: "(f (glb H (dual cl)), glb H (dual cl)) \<in> r"
-  by (metis lub_dual_glb flubH_le_lubH 0)
-have 5: "f (glb H (dual cl)) = glb H (dual cl) \<or>
-(f (glb H (dual cl)), glb H (dual cl)) \<notin> r"
-  by (metis antisymE 2)
-have 6: "f (glb H (dual cl)) = glb H (dual cl)"
-  by (metis 5 4)
+assume 0: "H =
+Collect
+ (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r)) (COMBC op \<in> A))"
+assume 1: "lub (Collect
+      (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
+        (COMBC op \<in> A)))
+ cl
+\<notin> A"
+have 2: "lub H cl \<notin> A"
+  by (metis 1 0)
+have 3: "(lub H cl, f (lub H cl)) \<in> r"
+  by (metis lubH_le_flubH 0)
+have 4: "(f (lub H cl), lub H cl) \<in> r"
+  by (metis flubH_le_lubH 0)
+have 5: "lub H cl = f (lub H cl) \<or> (lub H cl, f (lub H cl)) \<notin> r"
+  by (metis antisymE 4)
+have 6: "lub H cl = f (lub H cl)"
+  by (metis 5 3)
+have 7: "(lub H cl, lub H cl) \<in> r"
+  by (metis 6 4)
+have 8: "\<And>X1. lub H cl \<in> X1 \<or> \<not> refl X1 r"
+  by (metis 7 reflD2)
+have 9: "\<not> refl A r"
+  by (metis 8 2)
 show "False"
-  by (metis 3 6)
-*)
+  by (metis CO_refl 9);
+next --{*apparently the way to insert a second structured proof*}
+  show "H = {x. (x, f x) \<in> r \<and> x \<in> A} \<Longrightarrow>
+  f (lub {x. (x, f x) \<in> r \<and> x \<in> A} cl) = lub {x. (x, f x) \<in> r \<and> x \<in> A} cl"
+  proof (neg_clausify)
+  assume 0: "H =
+  Collect
+   (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r)) (COMBC op \<in> A))"
+  assume 1: "f (lub (Collect
+	   (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
+	     (COMBC op \<in> A)))
+      cl) \<noteq>
+  lub (Collect
+	(COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
+	  (COMBC op \<in> A)))
+   cl"
+  have 2: "f (lub H cl) \<noteq>
+  lub (Collect
+	(COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
+	  (COMBC op \<in> A)))
+   cl"
+    by (metis 1 0)
+  have 3: "f (lub H cl) \<noteq> lub H cl"
+    by (metis 2 0)
+  have 4: "(lub H cl, f (lub H cl)) \<in> r"
+    by (metis lubH_le_flubH 0)
+  have 5: "(f (lub H cl), lub H cl) \<in> r"
+    by (metis flubH_le_lubH 0)
+  have 6: "lub H cl = f (lub H cl) \<or> (lub H cl, f (lub H cl)) \<notin> r"
+    by (metis antisymE 5)
+  have 7: "lub H cl = f (lub H cl)"
+    by (metis 6 4)
+  show "False"
+    by (metis 3 7)
+  qed
+qed
 
 lemma (in CLF) lubH_is_fixp:
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> lub H cl \<in> fix f A"
@@ -616,9 +641,13 @@ apply (simp add: P_def)
 apply (rule lubI)
 ML{*ResAtp.problem_name:="Tarski__CLF_T_thm_1_lub_simpler"*}
 apply (metis P_def equalityE fix_subset subset_trans) 
-apply (metis P_def fix_subset lubH_is_fixp set_mp subset_refl subset_trans)
-apply (metis P_def fixf_le_lubH)
-apply (metis P_def lubH_is_fixp)
+apply (metis Collect_conj_eq Collect_mem_eq Int_commute Int_lower1 lub_in_lattice vimage_def)
+(*??no longer terminates, with combinators
+apply (metis P_def fix_def fixf_le_lubH)
+apply (metis P_def fix_def lubH_least_fixf)
+*)
+apply (simp add: fixf_le_lubH)
+apply (simp add: lubH_least_fixf)
 done
   declare CL.lubI[rule del] fix_subset[rule del] CL.lub_in_lattice[rule del] 
           CLF.fixf_le_lubH[simp del] CLF.lubH_least_fixf[simp del]
@@ -662,19 +691,16 @@ subsection {* interval *}
 ML{*ResAtp.problem_name:="Tarski__rel_imp_elem"*}
   declare (in CLF) CO_refl[simp] refl_def [simp]
 lemma (in CLF) rel_imp_elem: "(x, y) \<in> r ==> x \<in> A"
-apply (metis CO_refl reflD1)
-done
+by (metis CO_refl reflD1)
   declare (in CLF) CO_refl[simp del]  refl_def [simp del]
 
 ML{*ResAtp.problem_name:="Tarski__interval_subset"*}
   declare (in CLF) rel_imp_elem[intro] 
   declare interval_def [simp]
 lemma (in CLF) interval_subset: "[| a \<in> A; b \<in> A |] ==> interval r a b \<subseteq> A"
-apply (metis CO_refl interval_imp_mem reflD reflD2 rel_imp_elem subset_def)
-done
+by (metis CO_refl interval_imp_mem reflD reflD2 rel_imp_elem subset_def)
   declare (in CLF) rel_imp_elem[rule del] 
   declare interval_def [simp del]
-
 
 
 lemma (in CLF) intervalI:
@@ -966,8 +992,7 @@ done
 
 ML{*ResAtp.problem_name:="Tarski__intY1_func"*}  (*ALL THEOREMS*)
 lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 -> intY1" 
-apply (metis intY1_f_closed restrict_in_funcset)
-done
+by (metis intY1_f_closed restrict_in_funcset)
 
 ML{*ResAtp.problem_name:="Tarski__intY1_mono"*}  (*ALL THEOREMS*)
 lemma (in Tarski) intY1_mono [skolem]:

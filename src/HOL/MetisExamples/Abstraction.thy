@@ -67,74 +67,107 @@ Also, UN_eq is unnecessary*)
 by (meson CollectD SigmaD1 SigmaD2)
 
 
-
 (*single-step*)
 lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
+by (metis SigmaD1 SigmaD2 insert_def singleton_conv2 union_empty2 vimage_Collect_eq vimage_def vimage_singleton_eq)
+
+
+lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
 proof (neg_clausify)
-assume 0: "(a, b) \<in> Sigma A (llabs_subgoal_1 f)"
-assume 1: "\<And>f x. llabs_subgoal_1 f x = Collect (COMBB (op = x) f)"
-assume 2: "a \<notin> A \<or> a \<noteq> f b"
-have 3: "a \<in> A"
-  by (metis SigmaD1 0)
-have 4: "f b \<noteq> a"
-  by (metis 3 2)
-have 5: "f b = a"
-  by (metis Domain_Id Compl_UNIV_eq singleton_conv2 vimage_Collect_eq 1 vimage_singleton_eq SigmaD2 0)
+assume 0: "(a\<Colon>'a\<Colon>type, b\<Colon>'b\<Colon>type)
+\<in> Sigma (A\<Colon>'a\<Colon>type set)
+   (COMBB Collect (COMBC (COMBB COMBB op =) (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type)))"
+assume 1: "(a\<Colon>'a\<Colon>type) \<notin> (A\<Colon>'a\<Colon>type set) \<or> a \<noteq> (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type) (b\<Colon>'b\<Colon>type)"
+have 2: "(a\<Colon>'a\<Colon>type) \<in> (A\<Colon>'a\<Colon>type set)"
+  by (metis 0 SigmaD1)
+have 3: "(b\<Colon>'b\<Colon>type)
+\<in> COMBB Collect (COMBC (COMBB COMBB op =) (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type)) (a\<Colon>'a\<Colon>type)"
+  by (metis 0 SigmaD2) 
+have 4: "(b\<Colon>'b\<Colon>type) \<in> Collect (COMBB (op = (a\<Colon>'a\<Colon>type)) (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type))"
+  by (metis 3)
+have 5: "(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type) (b\<Colon>'b\<Colon>type) \<noteq> (a\<Colon>'a\<Colon>type)"
+  by (metis 1 2)
+have 6: "(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type) (b\<Colon>'b\<Colon>type) = (a\<Colon>'a\<Colon>type)"
+  by (metis 4 vimage_singleton_eq insert_def singleton_conv2 union_empty2 vimage_Collect_eq vimage_def)
 show "False"
-  by (metis 5 4)
-qed finish_clausify
+  by (metis 5 6)
+qed
+
+(*Alternative structured proof, untyped*)
+lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
+proof (neg_clausify)
+assume 0: "(a, b) \<in> Sigma A (COMBB Collect (COMBC (COMBB COMBB op =) f))"
+have 1: "b \<in> Collect (COMBB (op = a) f)"
+  by (metis 0 SigmaD2)
+have 2: "f b = a"
+  by (metis 1 vimage_Collect_eq singleton_conv2 insert_def union_empty2 vimage_singleton_eq vimage_def)
+assume 3: "a \<notin> A \<or> a \<noteq> f b"
+have 4: "a \<in> A"
+  by (metis 0 SigmaD1)
+have 5: "f b \<noteq> a"
+  by (metis 4 3)
+show "False"
+  by (metis 5 2)
+qed
 
 
 ML{*ResAtp.problem_name := "Abstraction__CLF_eq_in_pp"*}
 lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in> pset cl"
-apply (metis Collect_mem_eq SigmaD2);
-done
+by (metis Collect_mem_eq SigmaD2)
 
 lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in> pset cl"
 proof (neg_clausify)
-assume 0: "\<And>cl\<Colon>'a\<Colon>type set.
-   (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> 'a\<Colon>type set) cl =
-   Collect (llabs_Set_XCollect_ex_eq_3 op \<in> (pset cl))"
-assume 1: "(f\<Colon>'a\<Colon>type) \<notin> pset (cl\<Colon>'a\<Colon>type set)"
-assume 2: "(cl\<Colon>'a\<Colon>type set, f\<Colon>'a\<Colon>type) \<in> (CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set)"
-have 3: "llabs_Predicate_Xsup_Un_eq2_1 (CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set)
- (cl\<Colon>'a\<Colon>type set) (f\<Colon>'a\<Colon>type)"
-  by (metis acc_def 2)
-assume 4: "(CLF\<Colon>('a\<Colon>type set \<times> 'a\<Colon>type) set) =
-Sigma (CL\<Colon>'a\<Colon>type set set) (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> 'a\<Colon>type set)"
+assume 0: "(cl, f) \<in> CLF"
+assume 1: "CLF = Sigma CL (COMBB Collect (COMBB (COMBC op \<in>) pset))"
+assume 2: "f \<notin> pset cl"
+have 3: "\<And>X1 X2. X2 \<in> COMBB Collect (COMBB (COMBC op \<in>) pset) X1 \<or> (X1, X2) \<notin> CLF"
+  by (metis SigmaD2 1)
+have 4: "\<And>X1 X2. X2 \<in> pset X1 \<or> (X1, X2) \<notin> CLF"
+  by (metis 3 Collect_mem_eq)
+have 5: "(cl, f) \<notin> CLF"
+  by (metis 2 4)
 show "False"
-  by (metis 1 Collect_mem_eq 0 3 4 acc_def SigmaD2)
-qed finish_clausify (*ugly hack: combinators??*)
+  by (metis 5 0)
+qed
 
 ML{*ResAtp.problem_name := "Abstraction__Sigma_Collect_Pi"*}
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
     f \<in> pset cl \<rightarrow> pset cl"
-apply (metis Collect_mem_eq SigmaD2);
-done
-
-lemma
-    "(cl,f) \<in> (SIGMA cl::'a set : CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
-    f \<in> pset cl \<rightarrow> pset cl"
 proof (neg_clausify)
-assume 0: "\<And>cl\<Colon>'a\<Colon>type set.
-   (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> ('a\<Colon>type \<Rightarrow> 'a\<Colon>type) set) cl =
-   Collect
-    (llabs_Set_XCollect_ex_eq_3 op \<in> (Pi (pset cl) (COMBK (pset cl))))"
-assume 1: "(f\<Colon>'a\<Colon>type \<Rightarrow> 'a\<Colon>type) \<notin> Pi (pset (cl\<Colon>'a\<Colon>type set)) (COMBK (pset cl))"
-assume 2: "(cl\<Colon>'a\<Colon>type set, f\<Colon>'a\<Colon>type \<Rightarrow> 'a\<Colon>type)
-\<in> Sigma (CL\<Colon>'a\<Colon>type set set)
-   (llabs_subgoal_1\<Colon>'a\<Colon>type set \<Rightarrow> ('a\<Colon>type \<Rightarrow> 'a\<Colon>type) set)"
+assume 0: "f \<notin> Pi (pset cl) (COMBK (pset cl))"
+assume 1: "(cl, f)
+\<in> Sigma CL
+   (COMBB Collect
+     (COMBB (COMBC op \<in>) (COMBS (COMBB Pi pset) (COMBB COMBK pset))))"
 show "False"
-  by (metis 1 Collect_mem_eq 0 SigmaD2 2)
-qed finish_clausify
-    (*Hack to prevent the "Additional hypotheses" error*)
+(*  by (metis 0 Collect_mem_eq SigmaD2 1) ??doesn't terminate*)
+  by (insert 0 1, simp add: COMBB_def COMBS_def COMBC_def)
+qed
+
 
 ML{*ResAtp.problem_name := "Abstraction__Sigma_Collect_Int"*}
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
-by (metis Collect_mem_eq SigmaD2)
+proof (neg_clausify)
+assume 0: "(cl, f)
+\<in> Sigma CL
+   (COMBB Collect (COMBB (COMBC op \<in>) (COMBS (COMBB op \<inter> pset) COMBI)))"
+assume 1: "f \<notin> pset cl \<inter> cl"
+have 2: "f \<in> COMBB Collect (COMBB (COMBC op \<in>) (COMBS (COMBB op \<inter> pset) COMBI)) cl" 
+  by (insert 0, simp add: COMBB_def) 
+(*  by (metis SigmaD2 0)  ??doesn't terminate*)
+have 3: "f \<in> COMBS (COMBB op \<inter> pset) COMBI cl"
+  by (metis 2 Collect_mem_eq)
+have 4: "f \<notin> cl \<inter> pset cl"
+  by (metis 1 Int_commute)
+have 5: "f \<in> cl \<inter> pset cl"
+  by (metis 3 Int_commute)
+show "False"
+  by (metis 5 4)
+qed
+
 
 ML{*ResAtp.problem_name := "Abstraction__Sigma_Collect_Pi_mono"*}
 lemma
@@ -146,28 +179,40 @@ ML{*ResAtp.problem_name := "Abstraction__CLF_subset_Collect_Int"*}
 lemma "(cl,f) \<in> CLF ==> 
    CLF \<subseteq> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
+by auto
+(*??no longer terminates, with combinators
 by (metis Collect_mem_eq Int_def SigmaD2 UnCI Un_absorb1)
   --{*@{text Int_def} is redundant}
+*)
 
 ML{*ResAtp.problem_name := "Abstraction__CLF_eq_Collect_Int"*}
 lemma "(cl,f) \<in> CLF ==> 
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
+by auto
+(*??no longer terminates, with combinators
 by (metis Collect_mem_eq Int_commute SigmaD2)
+*)
 
 ML{*ResAtp.problem_name := "Abstraction__CLF_subset_Collect_Pi"*}
 lemma 
    "(cl,f) \<in> CLF ==> 
     CLF \<subseteq> (SIGMA cl': CL. {f. f \<in> pset cl' \<rightarrow> pset cl'}) ==> 
     f \<in> pset cl \<rightarrow> pset cl"
+by auto
+(*??no longer terminates, with combinators
 by (metis Collect_mem_eq SigmaD2 subsetD)
+*)
 
 ML{*ResAtp.problem_name := "Abstraction__CLF_eq_Collect_Pi"*}
 lemma 
   "(cl,f) \<in> CLF ==> 
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
    f \<in> pset cl \<rightarrow> pset cl"
+by auto
+(*??no longer terminates, with combinators
 by (metis Collect_mem_eq SigmaD2 contra_subsetD equalityE)
+*)
 
 ML{*ResAtp.problem_name := "Abstraction__CLF_eq_Collect_Pi_mono"*}
 lemma 

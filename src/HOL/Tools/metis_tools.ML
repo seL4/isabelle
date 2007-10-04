@@ -290,7 +290,10 @@ fun inst_excluded_middle th thy i_atm =
               let val v = find_var x
                   val t = fol_term_to_hol_RAW ctxt y
               in  SOME (cterm_of thy v, t)  end
-              handle Option => NONE (*List.find failed for the variable.*)
+              handle Option => 
+                  (Output.debug (fn() => "List.find failed for the variable " ^ x ^ 
+                                         " in " ^ string_of_thm i_th); 
+                   NONE) 
         fun remove_typeinst (a, t) =
               case Recon.strip_prefix ResClause.schematic_var_prefix a of
                   SOME b => SOME (b, t)
@@ -446,11 +449,11 @@ fun inst_excluded_middle th thy i_atm =
   val equal_imp_fequal' = cnf_th (thm"equal_imp_fequal");
   val fequal_imp_equal' = cnf_th (thm"fequal_imp_equal");
 
-  val comb_I  = ResHolClause.comb_I  RS meta_eq_to_obj_eq;
-  val comb_K  = ResHolClause.comb_K  RS meta_eq_to_obj_eq;
-  val comb_B  = ResHolClause.comb_B  RS meta_eq_to_obj_eq;
-
-  val ext_thm = cnf_th ResHolClause.ext;
+  val comb_I = cnf_th ResHolClause.comb_I;
+  val comb_K = cnf_th ResHolClause.comb_K;
+  val comb_B = cnf_th ResHolClause.comb_B;
+  val comb_C = cnf_th ResHolClause.comb_C;
+  val comb_S = cnf_th ResHolClause.comb_S;
 
   fun dest_Arity (ResClause.ArityClause{premLits,...}) =
         map ResClause.class_of_arityLit premLits;
@@ -509,10 +512,14 @@ fun inst_excluded_middle th thy i_atm =
         val clause_lists = map (Metis.Thm.clause o #1) (#axioms lmap)
         fun used c = exists (Metis.LiteralSet.exists (const_in_metis c)) clause_lists
         (*Now check for the existence of certain combinators*)
-        val IK    = if used "c_COMBI" orelse used "c_COMBK" then [comb_I,comb_K] else []
-        val BC    = if used "c_COMBB" then [comb_B] else []
-        val EQ    = if used "c_fequal" then [fequal_imp_equal', equal_imp_fequal'] else []
-        val lmap' = if isFO then lmap else foldl (add_thm ctxt) lmap ([ext_thm] @ EQ @ IK @ BC)
+        val thI  = if used "c_COMBI" then [comb_I] else []
+        val thK  = if used "c_COMBK" then [comb_K] else []
+        val thB   = if used "c_COMBB" then [comb_B] else []
+        val thC   = if used "c_COMBC" then [comb_C] else []
+        val thS   = if used "c_COMBS" then [comb_S] else []
+        val thEQ  = if used "c_fequal" then [fequal_imp_equal', equal_imp_fequal'] else []
+        val lmap' = if isFO then lmap 
+                    else foldl (add_thm ctxt) lmap (thEQ @ thS @ thC @ thB @ thK @ thI)
     in
         add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap'
     end;

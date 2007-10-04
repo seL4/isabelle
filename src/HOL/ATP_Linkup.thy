@@ -56,24 +56,6 @@ lemma fequal_imp_equal: "fequal X Y ==> X=Y"
 lemma equal_imp_fequal: "X=Y ==> fequal X Y"
   by (simp add: fequal_def)
 
-lemma K_simp: "COMBK P == (%Q. P)"
-apply (rule eq_reflection)
-apply (rule ext)
-apply (simp add: COMBK_def)
-done
-
-lemma I_simp: "COMBI == (%P. P)"
-apply (rule eq_reflection)
-apply (rule ext)
-apply (simp add: COMBI_def)
-done
-
-lemma B_simp: "COMBB P Q == %R. P (Q R)"
-apply (rule eq_reflection)
-apply (rule ext)
-apply (simp add: COMBB_def)
-done
-
 text{*These two represent the equivalence between Boolean equality and iff.
 They can't be converted to clauses automatically, as the iff would be
 expanded...*}
@@ -84,8 +66,41 @@ by blast
 lemma iff_negative: "~P | ~Q | P=Q"
 by blast
 
+text{*Theorems for translation to combinators*}
+
+lemma abs_S: "(%x. (f x) (g x)) == COMBS f g"
+apply (rule eq_reflection)
+apply (rule ext) 
+apply (simp add: COMBS_def) 
+done
+
+lemma abs_I: "(%x. x) == COMBI"
+apply (rule eq_reflection)
+apply (rule ext) 
+apply (simp add: COMBI_def) 
+done
+
+lemma abs_K: "(%x. y) == COMBK y"
+apply (rule eq_reflection)
+apply (rule ext) 
+apply (simp add: COMBK_def) 
+done
+
+lemma abs_B: "(%x. a (g x)) == COMBB a g"
+apply (rule eq_reflection)
+apply (rule ext) 
+apply (simp add: COMBB_def) 
+done
+
+lemma abs_C: "(%x. (f x) b) == COMBC f b"
+apply (rule eq_reflection)
+apply (rule ext) 
+apply (simp add: COMBC_def) 
+done
+
+
 use "Tools/res_axioms.ML"      --{*requires the combinators declared above*}
-use "Tools/res_hol_clause.ML"  --{*requires the combinators*}
+use "Tools/res_hol_clause.ML"
 use "Tools/res_reconstruct.ML"
 use "Tools/watcher.ML"
 use "Tools/res_atp.ML"
@@ -102,16 +117,13 @@ oracle eprover_oracle ("string * int") = {* ResAtpProvers.eprover_o *}
 oracle spass_oracle ("string * int") = {* ResAtpProvers.spass_o *}
 
 use "Tools/res_atp_methods.ML"
-setup ResAtpMethods.setup
-
+setup ResAtpMethods.setup      --{*Oracle ATP methods: still useful?*}
+setup ResAxioms.setup          --{*Sledgehammer*}
 
 subsection {* The Metis prover *}
 
 use "Tools/metis_tools.ML"
 setup MetisTools.setup
-
-(*Sledgehammer*)
-setup ResAxioms.setup
 
 setup {*
   Theory.at_end ResAxioms.clause_cache_endtheory
