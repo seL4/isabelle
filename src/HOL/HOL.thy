@@ -14,7 +14,6 @@ uses
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
   "~~/src/Provers/project_rule.ML"
-  "~~/src/Provers/induct_method.ML"
   "~~/src/Provers/hypsubst.ML"
   "~~/src/Provers/splitter.ML"
   "~~/src/Provers/classical.ML"
@@ -29,6 +28,7 @@ uses
   "~~/src/Tools/code/code_target.ML"
   "~~/src/Tools/code/code_package.ML"
   "~~/src/Tools/nbe.ML"
+  "~~/src/Tools/induct.ML"
 begin
 
 subsection {* Primitive logic *}
@@ -1545,17 +1545,16 @@ hide const induct_forall induct_implies induct_equal induct_conj
 text {* Method setup. *}
 
 ML {*
-  structure InductMethod = InductMethodFun
-  (struct
+  structure Induct = InductFun
+  (
     val cases_default = @{thm case_split}
     val atomize = @{thms induct_atomize}
     val rulify = @{thms induct_rulify}
     val rulify_fallback = @{thms induct_rulify_fallback}
-  end);
+  );
 *}
 
-setup InductMethod.setup
-
+setup Induct.setup
 
 
 subsection {* Other simple lemmas and lemma duplicates *}
@@ -1711,7 +1710,7 @@ end;
 val all_conj_distrib = thm "all_conj_distrib";
 val all_simps = thms "all_simps";
 val atomize_not = thm "atomize_not";
-val case_split = thm "case_split_thm";
+val case_split = thm "case_split";
 val case_split_thm = thm "case_split_thm"
 val cases_simp = thm "cases_simp";
 val choice_eq = thm "choice_eq"

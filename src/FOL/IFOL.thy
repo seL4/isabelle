@@ -15,7 +15,6 @@ uses
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
   "~~/src/Provers/eqsubst.ML"
-  "~~/src/Provers/induct_method.ML"
   "~~/src/Provers/quantifier1.ML"
   "~~/src/Provers/project_rule.ML"
   ("fologic.ML")

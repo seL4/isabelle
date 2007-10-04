@@ -176,13 +176,13 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
                 ((Rep_name ^ "_inject", make Rep_inject), []),
                 ((Abs_name ^ "_inject", abs_inject), []),
                 ((Rep_name ^ "_cases", make Rep_cases),
-                  [RuleCases.case_names [Rep_name], InductAttrib.cases_set full_name]),
+                  [RuleCases.case_names [Rep_name], Induct.cases_set full_name]),
                 ((Abs_name ^ "_cases", make Abs_cases),
-                  [RuleCases.case_names [Abs_name], InductAttrib.cases_type full_tname]),
+                  [RuleCases.case_names [Abs_name], Induct.cases_type full_tname]),
                 ((Rep_name ^ "_induct", make Rep_induct),
-                  [RuleCases.case_names [Rep_name], InductAttrib.induct_set full_name]),
+                  [RuleCases.case_names [Rep_name], Induct.induct_set full_name]),
                 ((Abs_name ^ "_induct", make Abs_induct),
-                  [RuleCases.case_names [Abs_name], InductAttrib.induct_type full_tname])])
+                  [RuleCases.case_names [Abs_name], Induct.induct_type full_tname])])
             ||> Sign.parent_path;
           val info = {rep_type = oldT, abs_type = newT,
             Rep_name = full Rep_name, Abs_name = full Abs_name,

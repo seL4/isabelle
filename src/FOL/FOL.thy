@@ -11,6 +11,7 @@ uses
   "~~/src/Provers/classical.ML"
   "~~/src/Provers/blast.ML"
   "~~/src/Provers/clasimp.ML"
+  "~~/src/Tools/induct.ML"
   ("cladata.ML")
   ("blastdata.ML")
   ("simpdata.ML")
@@ -74,7 +75,7 @@ lemma case_split_thm:
   apply (erule r1)
   done
 
-lemmas case_split = case_split_thm [case_names True False, cases type: o]
+lemmas case_split = case_split_thm [case_names True False]
 
 (*HOL's more natural case analysis tactic*)
 ML {*
@@ -273,15 +274,16 @@ hide const induct_forall induct_implies induct_equal induct_conj
 text {* Method setup. *}
 
 ML {*
-  structure InductMethod = InductMethodFun
-  (struct
+  structure Induct = InductFun
+  (
     val cases_default = @{thm case_split}
     val atomize = @{thms induct_atomize}
     val rulify = @{thms induct_rulify}
     val rulify_fallback = @{thms induct_rulify_fallback}
-  end);
+  );
 *}
 
-setup InductMethod.setup
+setup Induct.setup
+declare case_split [cases type: o]
 
 end

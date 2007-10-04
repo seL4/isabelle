@@ -85,7 +85,6 @@ sig
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_simpset: Toplevel.transition -> Toplevel.transition
   val print_rules: Toplevel.transition -> Toplevel.transition
-  val print_induct_rules: Toplevel.transition -> Toplevel.transition
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
@@ -471,9 +470,6 @@ val print_simpset = Toplevel.unknown_context o
 
 val print_rules = Toplevel.unknown_context o
   Toplevel.keep (ContextRules.print_rules o Toplevel.context_of);
-
-val print_induct_rules = Toplevel.unknown_context o
-  Toplevel.keep (InductAttrib.print_rules o Toplevel.context_of);
 
 val print_trans_rules = Toplevel.unknown_context o
   Toplevel.keep (Calculation.print_rules o Toplevel.context_of);

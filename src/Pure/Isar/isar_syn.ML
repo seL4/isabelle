@@ -799,10 +799,6 @@ val print_rulesP =
   OuterSyntax.improper_command "print_rules" "print intro/elim rules" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_rules));
 
-val print_induct_rulesP =
-  OuterSyntax.improper_command "print_induct_rules" "print induction and cases rules" K.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_induct_rules));
-
 val print_trans_rulesP =
   OuterSyntax.improper_command "print_trans_rules" "print transitivity rules" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_trans_rules));
@@ -1005,7 +1001,8 @@ val _ = OuterSyntax.add_parsers [
   simproc_setupP, parse_ast_translationP, parse_translationP,
   print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP, contextP,
-  localeP, classP, instanceP, instantiationP, instance_proofP, code_datatypeP,
+  localeP, classP, instanceP, instantiationP, instance_proofP,
+  code_datatypeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
   assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
@@ -1020,12 +1017,11 @@ val _ = OuterSyntax.add_parsers [
   print_configsP, print_contextP, print_theoryP, print_syntaxP,
   print_abbrevsP, print_factsP, print_theoremsP, print_localesP,
   print_localeP, print_registrationsP, print_attributesP,
-  print_simpsetP, print_rulesP, print_induct_rulesP,
-  print_trans_rulesP, print_methodsP, print_antiquotationsP,
-  thy_depsP, class_depsP, thm_depsP, find_theoremsP, print_bindsP,
-  print_casesP, print_stmtsP, print_thmsP, print_prfsP,
-  print_full_prfsP, print_propP, print_termP, print_typeP,
-  print_codesetupP,
+  print_simpsetP, print_rulesP, print_trans_rulesP, print_methodsP,
+  print_antiquotationsP, thy_depsP, class_depsP, thm_depsP,
+  find_theoremsP, print_bindsP, print_casesP, print_stmtsP,
+  print_thmsP, print_prfsP, print_full_prfsP, print_propP,
+  print_termP, print_typeP, print_codesetupP,
   (*system commands*)
   cdP, pwdP, use_thyP, touch_thyP, touch_child_thysP, remove_thyP,
   kill_thyP, display_draftsP, print_draftsP, prP, disable_prP,

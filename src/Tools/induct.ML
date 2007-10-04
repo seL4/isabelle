@@ -1,11 +1,11 @@
-(*  Title:      Provers/induct_method.ML
+(*  Title:      Tools/induct.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Proof by cases and induction on sets and types.
+Proof by cases and induction.
 *)
 
-signature INDUCT_METHOD_DATA =
+signature INDUCT_DATA =
 sig
   val cases_default: thm
   val atomize: thm list
@@ -13,8 +13,39 @@ sig
   val rulify_fallback: thm list
 end;
 
-signature INDUCT_METHOD =
+signature INDUCT =
 sig
+  (*rule declarations*)
+  val vars_of: term -> term list
+  val dest_rules: Proof.context ->
+    {type_cases: (string * thm) list, set_cases: (string * thm) list,
+      type_induct: (string * thm) list, set_induct: (string * thm) list,
+      type_coinduct: (string * thm) list, set_coinduct: (string * thm) list}
+  val print_rules: Proof.context -> unit
+  val lookup_casesT: Proof.context -> string -> thm option
+  val lookup_casesS: Proof.context -> string -> thm option
+  val lookup_inductT: Proof.context -> string -> thm option
+  val lookup_inductS: Proof.context -> string -> thm option
+  val lookup_coinductT: Proof.context -> string -> thm option
+  val lookup_coinductS: Proof.context -> string -> thm option
+  val find_casesT: Proof.context -> typ -> thm list
+  val find_casesS: Proof.context -> term -> thm list
+  val find_inductT: Proof.context -> typ -> thm list
+  val find_inductS: Proof.context -> term -> thm list
+  val find_coinductT: Proof.context -> typ -> thm list
+  val find_coinductS: Proof.context -> term -> thm list
+  val cases_type: string -> attribute
+  val cases_set: string -> attribute
+  val induct_type: string -> attribute
+  val induct_set: string -> attribute
+  val coinduct_type: string -> attribute
+  val coinduct_set: string -> attribute
+  val casesN: string
+  val inductN: string
+  val coinductN: string
+  val typeN: string
+  val setN: string
+  (*proof methods*)
   val fix_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
   val add_defs: (string option * term) option list -> Proof.context ->
     (term option list * thm list) * Proof.context
@@ -35,18 +66,196 @@ sig
   val setup: theory -> theory
 end;
 
-functor InductMethodFun(Data: INDUCT_METHOD_DATA): INDUCT_METHOD =
+functor InductFun(Data: INDUCT_DATA): INDUCT =
 struct
-
-val meta_spec = thm "Pure.meta_spec";
-val all_conjunction = thm "Pure.all_conjunction";
-val imp_conjunction = thm "Pure.imp_conjunction";
-val conjunction_imp = thm "Pure.conjunction_imp";
-val conjunction_congs = [all_conjunction, imp_conjunction];
-
 
 
 (** misc utils **)
+
+(* encode_type -- for indexing purposes *)
+
+fun encode_type (Type (c, Ts)) = Term.list_comb (Const (c, dummyT), map encode_type Ts)
+  | encode_type (TFree (a, _)) = Free (a, dummyT)
+  | encode_type (TVar (a, _)) = Var (a, dummyT);
+
+
+(* variables -- ordered left-to-right, preferring right *)
+
+fun vars_of tm =
+  rev (distinct (op =) (Term.fold_aterms (fn (t as Var _) => cons t | _ => I) tm []));
+
+local
+
+val mk_var = encode_type o #2 o Term.dest_Var;
+
+fun concl_var which thm = mk_var (which (vars_of (Thm.concl_of thm))) handle Empty =>
+  raise THM ("No variables in conclusion of rule", 0, [thm]);
+
+in
+
+fun left_var_prem thm = mk_var (hd (vars_of (hd (Thm.prems_of thm)))) handle Empty =>
+  raise THM ("No variables in major premise of rule", 0, [thm]);
+
+val left_var_concl = concl_var hd;
+val right_var_concl = concl_var List.last;
+
+end;
+
+
+
+(** induct data **)
+
+(* rules *)
+
+type rules = (string * thm) NetRules.T;
+
+val init_rules =
+  NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso
+    Thm.eq_thm_prop (th1, th2));
+
+fun lookup_rule (rs: rules) = AList.lookup (op =) (NetRules.rules rs);
+
+fun pretty_rules ctxt kind rs =
+  let val thms = map snd (NetRules.rules rs)
+  in Pretty.big_list kind (map (ProofContext.pretty_thm ctxt) thms) end;
+
+
+(* context data *)
+
+structure Induct = GenericDataFun
+(
+  type T = (rules * rules) * (rules * rules) * (rules * rules);
+  val empty =
+    ((init_rules (left_var_prem o #2), init_rules (Thm.major_prem_of o #2)),
+     (init_rules (right_var_concl o #2), init_rules (Thm.major_prem_of o #2)),
+     (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)));
+  val extend = I;
+  fun merge _ (((casesT1, casesS1), (inductT1, inductS1), (coinductT1, coinductS1)),
+      ((casesT2, casesS2), (inductT2, inductS2), (coinductT2, coinductS2))) =
+    ((NetRules.merge (casesT1, casesT2), NetRules.merge (casesS1, casesS2)),
+      (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)),
+      (NetRules.merge (coinductT1, coinductT2), NetRules.merge (coinductS1, coinductS2)));
+);
+
+val get_local = Induct.get o Context.Proof;
+
+fun dest_rules ctxt =
+  let val ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) = get_local ctxt in
+    {type_cases = NetRules.rules casesT,
+     set_cases = NetRules.rules casesS,
+     type_induct = NetRules.rules inductT,
+     set_induct = NetRules.rules inductS,
+     type_coinduct = NetRules.rules coinductT,
+     set_coinduct = NetRules.rules coinductS}
+  end;
+
+fun print_rules ctxt =
+  let val ((casesT, casesS), (inductT, inductS), (coinductT, coinductS)) = get_local ctxt in
+   [pretty_rules ctxt "coinduct type:" coinductT,
+    pretty_rules ctxt "coinduct set:" coinductS,
+    pretty_rules ctxt "induct type:" inductT,
+    pretty_rules ctxt "induct set:" inductS,
+    pretty_rules ctxt "cases type:" casesT,
+    pretty_rules ctxt "cases set:" casesS]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
+
+val _ = OuterSyntax.add_parsers [
+  OuterSyntax.improper_command "print_induct_rules" "print induction and cases rules"
+    OuterKeyword.diag (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+      Toplevel.keep (print_rules o Toplevel.context_of)))];
+
+
+(* access rules *)
+
+val lookup_casesT = lookup_rule o #1 o #1 o get_local;
+val lookup_casesS = lookup_rule o #2 o #1 o get_local;
+val lookup_inductT = lookup_rule o #1 o #2 o get_local;
+val lookup_inductS = lookup_rule o #2 o #2 o get_local;
+val lookup_coinductT = lookup_rule o #1 o #3 o get_local;
+val lookup_coinductS = lookup_rule o #2 o #3 o get_local;
+
+
+fun find_rules which how ctxt x =
+  map snd (NetRules.retrieve (which (get_local ctxt)) (how x));
+
+val find_casesT = find_rules (#1 o #1) encode_type;
+val find_casesS = find_rules (#2 o #1) I;
+val find_inductT = find_rules (#1 o #2) encode_type;
+val find_inductS = find_rules (#2 o #2) I;
+val find_coinductT = find_rules (#1 o #3) encode_type;
+val find_coinductS = find_rules (#2 o #3) I;
+
+
+
+(** attributes **)
+
+local
+
+fun mk_att f g name arg =
+  let val (x, thm) = g arg in (Induct.map (f (name, thm)) x, thm) end;
+
+fun map1 f (x, y, z) = (f x, y, z);
+fun map2 f (x, y, z) = (x, f y, z);
+fun map3 f (x, y, z) = (x, y, f z);
+
+fun add_casesT rule x = map1 (apfst (NetRules.insert rule)) x;
+fun add_casesS rule x = map1 (apsnd (NetRules.insert rule)) x;
+fun add_inductT rule x = map2 (apfst (NetRules.insert rule)) x;
+fun add_inductS rule x = map2 (apsnd (NetRules.insert rule)) x;
+fun add_coinductT rule x = map3 (apfst (NetRules.insert rule)) x;
+fun add_coinductS rule x = map3 (apsnd (NetRules.insert rule)) x;
+
+fun consumes0 x = RuleCases.consumes_default 0 x;
+fun consumes1 x = RuleCases.consumes_default 1 x;
+
+in
+
+val cases_type = mk_att add_casesT consumes0;
+val cases_set = mk_att add_casesS consumes1;
+val induct_type = mk_att add_inductT consumes0;
+val induct_set = mk_att add_inductS consumes1;
+val coinduct_type = mk_att add_coinductT consumes0;
+val coinduct_set = mk_att add_coinductS consumes1;
+
+end;
+
+
+
+(** attribute syntax **)
+
+val casesN = "cases";
+val inductN = "induct";
+val coinductN = "coinduct";
+
+val typeN = "type";
+val setN = "set";
+
+local
+
+fun spec k arg =
+  Scan.lift (Args.$$$ k -- Args.colon) |-- arg ||
+  Scan.lift (Args.$$$ k) >> K "";
+
+fun attrib add_type add_set =
+  Attrib.syntax (spec typeN Args.tyname >> add_type || spec setN Args.const >> add_set);
+
+val cases_att = attrib cases_type cases_set;
+val induct_att = attrib induct_type induct_set;
+val coinduct_att = attrib coinduct_type coinduct_set;
+
+in
+
+val attrib_setup = Attrib.add_attributes
+ [(casesN, cases_att, "declaration of cases rule for type or set"),
+  (inductN, induct_att, "declaration of induction rule for type or set"),
+  (coinductN, coinduct_att, "declaration of coinduction rule for type or set")];
+
+end;
+
+
+
+(** method utils **)
 
 (* alignment *)
 
@@ -77,7 +286,7 @@ fun prep_inst thy align tune (tm, ts) =
               Display.pretty_ctyp (#T (Thm.crep_cterm ct))]))
           end
       | prep_var (_, NONE) = NONE;
-    val xs = InductAttrib.vars_of tm;
+    val xs = vars_of tm;
   in
     align "Rule has fewer variables than instantiations given" xs ts
     |> map_filter prep_var
@@ -112,11 +321,11 @@ fun warn_open true = legacy_feature "open rule cases in proof method"
 
 local
 
-fun find_casesT ctxt ((SOME t :: _) :: _) = InductAttrib.find_casesT ctxt (Term.fastype_of t)
-  | find_casesT _ _ = [];
+fun get_casesT ctxt ((SOME t :: _) :: _) = find_casesT ctxt (Term.fastype_of t)
+  | get_casesT _ _ = [];
 
-fun find_casesS ctxt (fact :: _) = InductAttrib.find_casesS ctxt (Thm.concl_of fact)
-  | find_casesS _ _ = [];
+fun get_casesS ctxt (fact :: _) = find_casesS ctxt (Thm.concl_of fact)
+  | get_casesS _ _ = [];
 
 in
 
@@ -136,8 +345,8 @@ fun cases_tac ctxt is_open insts opt_rule facts =
       (case opt_rule of
         SOME r => Seq.single (inst_rule r)
       | NONE =>
-          (find_casesS ctxt facts @ find_casesT ctxt insts @ [Data.cases_default])
-          |> tap (trace_rules ctxt InductAttrib.casesN)
+          (get_casesS ctxt facts @ get_casesT ctxt insts @ [Data.cases_default])
+          |> tap (trace_rules ctxt casesN)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
   in
     fn i => fn st =>
@@ -153,6 +362,9 @@ end;
 
 
 (** induct method **)
+
+val conjunction_congs = [@{thm Pure.all_conjunction}, @{thm imp_conjunction}];
+
 
 (* atomize *)
 
@@ -185,7 +397,7 @@ val rulify_tac =
   Simplifier.rewrite_goal_tac (Data.rulify @ conjunction_congs) THEN'
   Simplifier.rewrite_goal_tac Data.rulify_fallback THEN'
   Goal.conjunction_tac THEN_ALL_NEW
-  (Simplifier.rewrite_goal_tac [conjunction_imp] THEN' Goal.norm_hhf_tac);
+  (Simplifier.rewrite_goal_tac [@{thm Pure.conjunction_imp}] THEN' Goal.norm_hhf_tac);
 
 
 (* prepare rule *)
@@ -288,7 +500,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
 
     val v = Free (x, T);
     fun spec_rule prfx (xs, body) =
-      meta_spec
+      @{thm Pure.meta_spec}
       |> Thm.rename_params_rule ([ProofContext.revert_skolem ctxt x], 1)
       |> Thm.lift_rule (cert prfx)
       |> `(Thm.prop_of #> Logic.strip_assums_concl)
@@ -346,13 +558,13 @@ fun add_defs def_insts =
 
 local
 
-fun find_inductT ctxt insts =
+fun get_inductT ctxt insts =
   fold_rev multiply (insts |> map_filter (fn [] => NONE | ts => List.last ts)
-    |> map (InductAttrib.find_inductT ctxt o Term.fastype_of)) [[]]
+    |> map (find_inductT ctxt o Term.fastype_of)) [[]]
   |> filter_out (forall PureThy.is_internal);
 
-fun find_inductS ctxt (fact :: _) = map single (InductAttrib.find_inductS ctxt (Thm.concl_of fact))
-  | find_inductS _ _ = [];
+fun get_inductS ctxt (fact :: _) = map single (find_inductS ctxt (Thm.concl_of fact))
+  | get_inductS _ _ = [];
 
 in
 
@@ -377,10 +589,10 @@ fun induct_tac ctxt is_open def_insts arbitrary taking opt_rule facts =
       (case opt_rule of
         SOME rs => Seq.single (inst_rule (RuleCases.strict_mutual_rule ctxt rs))
       | NONE =>
-          (find_inductS ctxt facts @
-            map (special_rename_params defs_ctxt insts) (find_inductT ctxt insts))
+          (get_inductS ctxt facts @
+            map (special_rename_params defs_ctxt insts) (get_inductT ctxt insts))
           |> map_filter (RuleCases.mutual_rule ctxt)
-          |> tap (trace_rules ctxt InductAttrib.inductN o map #2)
+          |> tap (trace_rules ctxt inductN o map #2)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
 
     fun rule_cases rule =
@@ -422,10 +634,10 @@ end;
 
 local
 
-fun find_coinductT ctxt (SOME t :: _) = InductAttrib.find_coinductT ctxt (Term.fastype_of t)
-  | find_coinductT _ _ = [];
+fun get_coinductT ctxt (SOME t :: _) = find_coinductT ctxt (Term.fastype_of t)
+  | get_coinductT _ _ = [];
 
-fun find_coinductS ctxt goal = InductAttrib.find_coinductS ctxt (Logic.strip_assums_concl goal);
+fun get_coinductS ctxt goal = find_coinductS ctxt (Logic.strip_assums_concl goal);
 
 in
 
@@ -444,8 +656,8 @@ fun coinduct_tac ctxt is_open inst taking opt_rule facts =
       (case opt_rule of
         SOME r => Seq.single (inst_rule r)
       | NONE =>
-          (find_coinductS ctxt goal @ find_coinductT ctxt inst)
-          |> tap (trace_rules ctxt InductAttrib.coinductN)
+          (get_coinductS ctxt goal @ get_coinductT ctxt inst)
+          |> tap (trace_rules ctxt coinductN)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
   in
     SUBGOAL_CASES (fn (goal, i) => fn st =>
@@ -482,14 +694,13 @@ fun named_rule k arg get =
       | NONE => error ("No rule for " ^ k ^ " " ^ quote name))))));
 
 fun rule get_type get_set =
-  named_rule InductAttrib.typeN Args.tyname get_type ||
-  named_rule InductAttrib.setN Args.const get_set ||
+  named_rule typeN Args.tyname get_type ||
+  named_rule setN Args.const get_set ||
   Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.thms;
 
-val cases_rule = rule InductAttrib.lookup_casesT InductAttrib.lookup_casesS >> single_rule;
-val induct_rule = rule InductAttrib.lookup_inductT InductAttrib.lookup_inductS;
-val coinduct_rule =
-  rule InductAttrib.lookup_coinductT InductAttrib.lookup_coinductS >> single_rule;
+val cases_rule = rule lookup_casesT lookup_casesS >> single_rule;
+val induct_rule = rule lookup_inductT lookup_inductS;
+val coinduct_rule = rule lookup_coinductT lookup_coinductS >> single_rule;
 
 val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.term >> SOME;
 
@@ -502,8 +713,8 @@ val free = Scan.state -- Args.term >> (fn (_, Free v) => v | (context, t) =>
   error ("Bad free variable: " ^ ProofContext.string_of_term (Context.proof_of context) t));
 
 fun unless_more_args scan = Scan.unless (Scan.lift
-  ((Args.$$$ arbitraryN || Args.$$$ takingN || Args.$$$ InductAttrib.typeN ||
-    Args.$$$ InductAttrib.setN || Args.$$$ ruleN) -- Args.colon)) scan;
+  ((Args.$$$ arbitraryN || Args.$$$ takingN || Args.$$$ typeN ||
+    Args.$$$ setN || Args.$$$ ruleN) -- Args.colon)) scan;
 
 val arbitrary = Scan.optional (Scan.lift (Args.$$$ arbitraryN -- Args.colon) |--
   Args.and_list1 (Scan.repeat (unless_more_args free))) [];
@@ -542,9 +753,10 @@ end;
 (** theory setup **)
 
 val setup =
+  attrib_setup #>
   Method.add_methods
-    [(InductAttrib.casesN, cases_meth, "case analysis on types or sets"),
-     (InductAttrib.inductN, induct_meth, "induction on types or sets"),
-     (InductAttrib.coinductN, coinduct_meth, "coinduction on types or sets")];
+    [(casesN, cases_meth, "case analysis on types or sets"),
+     (inductN, induct_meth, "induction on types or sets"),
+     (coinductN, coinduct_meth, "coinduction on types or sets")];
 
 end;

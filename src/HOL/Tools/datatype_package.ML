@@ -205,7 +205,7 @@ fun prep_var (Var (ixn, _), SOME x) = SOME (ixn, x)
   | prep_var _ = NONE;
 
 fun prep_inst (concl, xs) = (*exception Library.UnequalLengths*)
-  let val vs = InductAttrib.vars_of concl
+  let val vs = Induct.vars_of concl
   in map_filter prep_var (Library.drop (length vs - length xs, vs) ~~ xs) end;
 
 in
@@ -340,10 +340,10 @@ fun add_cases_induct infos induction thy =
     val inducts = ProjectRule.projections (ProofContext.init thy) induction;
 
     fun named_rules (name, {index, exhaustion, ...}: datatype_info) =
-      [(("", nth inducts index), [InductAttrib.induct_type name]),
-       (("", exhaustion), [InductAttrib.cases_type name])];
+      [(("", nth inducts index), [Induct.induct_type name]),
+       (("", exhaustion), [Induct.cases_type name])];
     fun unnamed_rule i =
-      (("", nth inducts i), [PureThy.kind_internal, InductAttrib.induct_type ""]);
+      (("", nth inducts i), [PureThy.kind_internal, Induct.induct_type ""]);
   in
     thy |> PureThy.add_thms
       (maps named_rules infos @

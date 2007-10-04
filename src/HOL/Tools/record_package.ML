@@ -1372,8 +1372,8 @@ fun cert_typ sign (env, raw_T) =
 (* attributes *)
 
 fun case_names_fields x = RuleCases.case_names ["fields"] x;
-fun induct_type_global name = [case_names_fields, InductAttrib.induct_type name];
-fun cases_type_global name = [case_names_fields, InductAttrib.cases_type name];
+fun induct_type_global name = [case_names_fields, Induct.induct_type name];
+fun cases_type_global name = [case_names_fields, Induct.cases_type name];
 
 (* tactics *)
 

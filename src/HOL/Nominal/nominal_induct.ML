@@ -43,7 +43,7 @@ fun inst_mutual_rule ctxt insts avoiding rules =
 
     fun subst inst concl =
       let
-        val vars = InductAttrib.vars_of concl;
+        val vars = Induct.vars_of concl;
         val m = length vars and n = length inst;
         val _ = if m >= n + 2 then () else error "Too few variables in conclusion of rule";
         val P :: x :: ys = vars;
@@ -87,13 +87,13 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
-    val ((insts, defs), defs_ctxt) = fold_map InductMethod.add_defs def_insts ctxt |>> split_list;
+    val ((insts, defs), defs_ctxt) = fold_map Induct.add_defs def_insts ctxt |>> split_list;
     val atomized_defs = map (map (Conv.fconv_rule ObjectLogic.atomize)) defs;
 
     val finish_rule =
       split_all_tuples
       #> rename_params_rule true (map (ProofContext.revert_skolem defs_ctxt o fst) avoiding);
-    fun rule_cases r = RuleCases.make_nested true (Thm.prop_of r) (InductMethod.rulified_term r);
+    fun rule_cases r = RuleCases.make_nested true (Thm.prop_of r) (Induct.rulified_term r);
   in
     (fn i => fn st =>
       rules
@@ -103,18 +103,18 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
         (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
           (CONJUNCTS (ALLGOALS
             (Method.insert_tac (more_facts @ nth_list atomized_defs (j - 1))
-              THEN' InductMethod.fix_tac defs_ctxt
+              THEN' Induct.fix_tac defs_ctxt
                 (nth concls (j - 1) + more_consumes)
                 (nth_list fixings (j - 1))))
-          THEN' InductMethod.inner_atomize_tac) j))
-        THEN' InductMethod.atomize_tac) i st |> Seq.maps (fn st' =>
-            InductMethod.guess_instance
-              (finish_rule (InductMethod.internalize more_consumes rule)) i st'
+          THEN' Induct.inner_atomize_tac) j))
+        THEN' Induct.atomize_tac) i st |> Seq.maps (fn st' =>
+            Induct.guess_instance
+              (finish_rule (Induct.internalize more_consumes rule)) i st'
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
                 (Tactic.rtac (rename_params_rule false [] rule') i THEN
                   PRIMITIVE (singleton (ProofContext.export defs_ctxt ctxt))) st'))))
-    THEN_ALL_NEW_CASES InductMethod.rulify_tac
+    THEN_ALL_NEW_CASES Induct.rulify_tac
   end;
 
 

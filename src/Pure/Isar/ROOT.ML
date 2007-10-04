@@ -41,7 +41,6 @@ use "method.ML";
 use "proof.ML";
 use "element.ML";
 use "net_rules.ML";
-use "induct_attrib.ML";
 
 (*derived theory and proof elements*)
 use "calculation.ML";
