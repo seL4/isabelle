@@ -263,15 +263,15 @@ notation (HTML output)
   less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
 
 abbreviation (input)
-  greater  (infix "\<^loc>>" 50) where
-  "x \<^loc>> y \<equiv> y \<^loc>< x"
-
-abbreviation (input)
   greater_eq  (infix "\<^loc>>=" 50) where
   "x \<^loc>>= y \<equiv> y \<^loc><= x"
 
 notation (input)
   greater_eq  (infix "\<^loc>\<ge>" 50)
+
+abbreviation (input)
+  greater  (infix "\<^loc>>" 50) where
+  "x \<^loc>> y \<equiv> y \<^loc>< x"
 
 definition
   Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "\<^loc>LEAST " 10)
@@ -294,15 +294,12 @@ notation (HTML output)
   less_eq  ("op \<le>") and
   less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
-abbreviation (input)
-  greater  (infix ">" 50) where
-  "x > y \<equiv> y < x"
-
-abbreviation (input)
-  greater_eq  (infix ">=" 50) where
-  "x >= y \<equiv> y <= x"
+notation (input)
+  greater  (infix ">" 50)
 
 notation (input)
+  greater_eq  (infix ">=" 50)
+and
   greater_eq  (infix "\<ge>" 50)
 
 syntax
