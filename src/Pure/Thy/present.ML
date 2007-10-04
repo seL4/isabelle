@@ -533,7 +533,9 @@ fun drafts doc_format src_paths =
       let
         val base = Path.base path;
         val name =
-          (case Path.implode (#1 (Path.split_ext base)) of "" => gensym "DUMMY" | s => s);
+          (case Path.implode (#1 (Path.split_ext base)) of
+            "" => "DUMMY" ^ serial_string ()
+          | s => s);
       in
         if File.exists path then
           (((name, base, File.read path), (i, Latex.theory_entry name)), i + 1)
