@@ -539,7 +539,7 @@ fun tm1 aconv tm2 =
 
 local
 
-val invent_names = Name.invents Name.context "'a";
+val invent_names = Name.invents Name.context Name.aT;
 
 fun standard_types t =
   let
@@ -740,10 +740,10 @@ end;
 
 (** Connectives of higher order logic **)
 
-fun aT S = TFree ("'a", S);
+fun aT S = TFree (Name.aT, S);
 
 fun itselfT ty = Type ("itself", [ty]);
-val a_itselfT = itselfT (TFree ("'a", []));
+val a_itselfT = itselfT (TFree (Name.aT, []));
 
 val propT : typ = Type("prop",[]);
 
@@ -949,12 +949,12 @@ fun lambda v t =
       Const (x, _) => NameSpace.base x
     | Free (x, _) => x
     | Var ((x, _), _) => x
-    | _ => "uu")
+    | _ => Name.uu)
   in Abs (x, fastype_of v, abstract_over (v, t)) end;
 
 (*Form an abstraction over a free variable.*)
 fun absfree (a,T,body) = Abs (a, T, abstract_over (Free (a, T), body));
-fun absdummy (T, body) = Abs (Name.internal "uu", T, body);
+fun absdummy (T, body) = Abs (Name.internal Name.uu, T, body);
 
 (*Abstraction over a list of free variables*)
 fun list_abs_free ([ ] ,     t) = t
@@ -1255,7 +1255,7 @@ fun no_dummy_patterns tm =
   else raise TERM ("Illegal occurrence of '_' dummy pattern", [tm]);
 
 fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
-      let val [x] = Name.invents used "uu" 1
+      let val [x] = Name.invents used Name.uu 1
       in (Free (Name.internal x, T), Name.declare x used) end
   | free_dummy_patterns (Abs (x, T, b)) used =
       let val (b', used') = free_dummy_patterns b used
