@@ -293,6 +293,8 @@ where
 end
 
 (*FIXME*)
+thm (no_abbrevs) pow_def
+thm (no_abbrevs) pow_def [folded monoid_class.npow]
 lemmas pow_def [code func] = pow_def [folded monoid_class.npow]
 
 context group begin
