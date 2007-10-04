@@ -23,7 +23,6 @@ sig
   val class_intros: theory -> thm list
   val class_of_param: theory -> string -> class option
   val params_of_class: theory -> class -> string * (string * typ) list
-  val param_tyvarname: string
   val print_axclasses: theory -> unit
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
@@ -64,8 +63,6 @@ fun merge_params _ ([], qs) = qs
 val introN = "intro";
 val superN = "super";
 val axiomsN = "axioms";
-
-val param_tyvarname = "'a";
 
 datatype axclass = AxClass of
  {def: thm,
@@ -139,8 +136,7 @@ fun all_params_of thy S = get_params thy (fn c => Sign.subsort thy (S, [c]));
 fun class_of_param thy =
   AList.lookup (op =) (#2 (get_axclasses thy));
 
-fun params_of_class thy class =
-  (param_tyvarname, (#params o get_definition thy) class);
+fun params_of_class thy class = (Name.aT, #params (get_definition thy class));
 
 
 (* maintain instances *)
@@ -341,8 +337,9 @@ fun define_class (bclass, raw_super) params raw_specs thy =
         val _ = case Term.typ_tvars ty
          of [_] => ()
           | _ => error ("Exactly one type variable required in parameter " ^ quote param);
-        val ty' = Term.map_type_tvar (fn _ => TFree (param_tyvarname, [class])) ty;
+        val ty' = Term.map_type_tvar (fn _ => TFree (Name.aT, [class])) ty;
       in (param, ty') end) params;
+
 
     (* result *)
 

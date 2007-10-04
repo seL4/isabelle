@@ -87,7 +87,7 @@ fun OF_LAST thm1 thm2 =
 
 fun strip_all_ofclass thy sort =
   let
-    val typ = TVar ((AxClass.param_tyvarname, 0), sort);
+    val typ = TVar ((Name.aT, 0), sort);
     fun prem_inclass t =
       case Logic.strip_imp_prems t
        of ofcls :: _ => try Logic.dest_inclass ofcls
@@ -264,7 +264,7 @@ fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed the
     fun get_consts_sort (tyco, asorts, sort) =
       let
         val ty = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort))
-          (Name.names Name.context "'a" asorts))
+          (Name.names Name.context Name.aT asorts))
       in maps (get_consts_class tyco ty) (Sign.complete_sort theory sort) end;
     val cs = maps get_consts_sort arities;
     fun mk_typnorm thy (ty, ty_sc) =
@@ -474,7 +474,7 @@ fun class_intro thy locale class sups =
      of SOME pred_intro => class_intro |> OF_LAST pred_intro
       | NONE => class_intro;
     val sort = Sign.super_classes thy class;
-    val typ = TVar ((AxClass.param_tyvarname, 0), sort);
+    val typ = TVar ((Name.aT, 0), sort);
     val defs = these_defs thy sups;
   in
     raw_intro
@@ -504,7 +504,7 @@ fun interpretation_in_rule thy (class1, class2) =
         Locale.global_asms_of thy locale
         |> maps snd
         |> (map o map_aterms) (fn Free (s, _) => (the o Symtab.lookup insttab) s | t => t)
-        |> (map o map_types o map_atyps) (fn TFree _ => TFree ("'a", [class1]) | T => T)
+        |> (map o map_types o map_atyps) (fn TFree _ => TFree (Name.aT, [class1]) | T => T)
         |> map (ObjectLogic.ensure_propT thy)
       end;
     val (prems, concls) = pairself mk_axioms (class1, class2);
@@ -578,7 +578,7 @@ fun sort_term_check thy sort constraints =
         |> fst |> map fst
       handle TYPE (msg, _, _) => error msg;
     fun check_typ c idx ty = case (nth (Sign.const_typargs thy (c, ty)) idx) (*FIXME localize*)
-     of TFree (v, _) => v = AxClass.param_tyvarname
+     of TFree (v, _) => v = Name.aT
       | TVar (vi, _) => TypeInfer.is_param vi (*FIXME substitute in all typs*)
       | _ => false;
     fun subst_operation (t as Const (c, ty)) = (case local_operation c
@@ -600,7 +600,7 @@ fun init_exp sort ctxt =
   in
     ctxt
     |> Variable.declare_term
-        (Logic.mk_type (TFree (AxClass.param_tyvarname, local_sort)))
+        (Logic.mk_type (TFree (Name.aT, local_sort)))
     |> get_remove_constraints sort
     |-> (fn constraints => Context.proof_map (Syntax.add_term_check 50 "class"
           (sort_term_check thy sort constraints)))
@@ -640,7 +640,7 @@ fun gen_class_spec prep_class prep_expr process_expr thy raw_supclasses raw_incl
       (map fst supparams);
     val mergeexpr = Locale.Merge (suplocales @ includes);
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
-      (fn TFree (_, sort) => TFree (AxClass.param_tyvarname, sort)) supparams);
+      (fn TFree (_, sort) => TFree (Name.aT, sort)) supparams);
   in
     ProofContext.init thy
     |> Locale.cert_expr supexpr [constrain]
@@ -662,7 +662,7 @@ fun gen_class prep_spec prep_param local_syntax bname
       prep_spec thy raw_supclasses raw_includes_elems;
     val other_consts = map (prep_param thy) raw_other_consts;
     fun mk_instT class = Symtab.empty
-      |> Symtab.update (AxClass.param_tyvarname, TFree (AxClass.param_tyvarname, [class]));
+      |> Symtab.update (Name.aT, TFree (Name.aT, [class]));
     fun mk_inst class param_names cs =
       Symtab.empty
       |> fold2 (fn v => fn (c, ty) => Symtab.update (v, Const
@@ -680,7 +680,7 @@ fun gen_class prep_spec prep_param local_syntax bname
             ^ Sign.string_of_sort thy supsort);
       in
         (local_sort, (map fst params, params
-        |> (map o apfst o apsnd o Term.map_type_tfree) (K (TFree (AxClass.param_tyvarname, local_sort)))
+        |> (map o apfst o apsnd o Term.map_type_tfree) (K (TFree (Name.aT, local_sort)))
         |> (map o apsnd) (fork_mixfix true NONE #> fst)
         |> chop (length supconsts)
         |> snd))
@@ -754,7 +754,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
     val constrain_sort = curry (Sorts.inter_sort (Sign.classes_of thy)) [class];
     val rhs' = export_fixes thy class rhs;
     val subst_typ = Term.map_type_tfree (fn var as (w, sort) =>
-      if w = AxClass.param_tyvarname then TFree (w, constrain_sort sort) else TFree var);
+      if w = Name.aT then TFree (w, constrain_sort sort) else TFree var);
     val ty' = Term.fastype_of rhs';
     val ty'' = subst_typ ty';
     val c' = mk_name c;
@@ -765,7 +765,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
         val def' = symmetric def;
         val def_eq = Thm.prop_of def';
         val typargs = Sign.const_typargs thy (c', fastype_of rhs);
-        val typidx = find_index (fn TFree (w, _) => AxClass.param_tyvarname = w | _ => false) typargs;
+        val typidx = find_index (fn TFree (w, _) => Name.aT = w | _ => false) typargs;
       in
         thy
         |> class_interpretation class [def'] [def_eq]
@@ -787,7 +787,7 @@ fun add_abbrev_in_class class ((c, rhs), syn) thy =
   let
     val local_sort = (#local_sort o the_class_data thy) class;
     val subst_typ = Term.map_type_tfree (fn var as (w, sort) =>
-      if w = AxClass.param_tyvarname then TFree (w, local_sort) else TFree var);
+      if w = Name.aT then TFree (w, local_sort) else TFree var);
     val ty = fastype_of rhs;
     val rhs' = map_types subst_typ rhs;
   in
@@ -821,7 +821,7 @@ fun gen_interpretation_in_class prep_class do_proof (raw_class, raw_superclass) 
             val ax = #axioms (AxClass.get_definition thy class1);
             val intro = #intro (AxClass.get_definition thy class2)
               |> Drule.instantiate' [SOME (Thm.ctyp_of thy
-                  (TVar ((AxClass.param_tyvarname, 0), [class1])))] [];
+                  (TVar ((Name.aT, 0), [class1])))] [];
             val thm =
               intro
               |> OF_LAST (interp OF ax)
