@@ -100,7 +100,7 @@ fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
 (* identifier categories *)
 
 val suffix_class = "class";
-val suffix_classrel = "clsrel"
+val suffix_classrel = "classrel"
 val suffix_tyco = "tyco";
 val suffix_instance = "inst";
 val suffix_const = "const";
