@@ -202,17 +202,11 @@ fun getenv var =
 
 (* profile execution *)
 
-local
-
-fun no_profile () =
-  RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler 0;
-
-in
-
 fun profile 0 f x = f x
   | profile n f x =
-     (RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler n;
-      let val y = f x handle exn => (no_profile (); raise exn)
-      in no_profile (); y end);
+      let
+        val _ = RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler n;
+        val res = Exn.capture f x;
+        val _ = RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler 0;
+      in Exn.release res end;
 
-end;
