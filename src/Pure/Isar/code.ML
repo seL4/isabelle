@@ -33,7 +33,9 @@ sig
   val default_typ: theory -> string -> typ
 
   val preprocess_conv: cterm -> thm
+  val preprocess_term: theory -> term -> term
   val postprocess_conv: cterm -> thm
+  val postprocess_term: theory -> term -> term
 
   val add_attribute: string * (Args.T list -> attribute * Args.T list) -> theory -> theory
 
@@ -526,9 +528,9 @@ fun inter_sorts thy =
 fun specific_constraints thy (class, tyco) =
   let
     val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
-    val clsops = (map fst o these o Option.map snd
+    val classparams = (map fst o these o Option.map snd
       o try (AxClass.params_of_class thy)) class;
-    val funcs = clsops
+    val funcs = classparams
       |> map (fn c => Class.inst_const thy (c, tyco))
       |> map (Symtab.lookup ((the_funcs o get_exec) thy))
       |> (map o Option.map) (Susp.force o fst)
@@ -558,7 +560,7 @@ fun strongest_constraints thy (class, tyco) =
         (Sign.arity_number thy tyco) (Sign.minimize_sort thy (Sign.all_classes thy))
   end;
 
-fun gen_classop_typ constr thy class (c, tyco) = 
+fun gen_classparam_typ constr thy class (c, tyco) = 
   let
     val (var, cs) = try (AxClass.params_of_class thy) class |> the_default ("'a", [])
     val ty = (the o AList.lookup (op =) cs) c;
@@ -582,18 +584,18 @@ fun operational_algebra thy =
     val operational_classes = fold add_iff_operational (Sign.all_classes thy) []
   in retrieve_algebra thy (member (op =) operational_classes) end;
 
-val classop_weakest_typ = gen_classop_typ weakest_constraints;
-val classop_strongest_typ = gen_classop_typ strongest_constraints;
+val classparam_weakest_typ = gen_classparam_typ weakest_constraints;
+val classparam_strongest_typ = gen_classparam_typ strongest_constraints;
 
 fun assert_func_typ thm =
   let
     val thy = Thm.theory_of_thm thm;
-    fun check_typ_classop tyco (c, thm) =
+    fun check_typ_classparam tyco (c, thm) =
           let
             val SOME class = AxClass.class_of_param thy c;
             val (_, ty) = CodeUnit.head_func thm;
-            val ty_decl = classop_weakest_typ thy class (c, tyco);
-            val ty_strongest = classop_strongest_typ thy class (c, tyco);
+            val ty_decl = classparam_weakest_typ thy class (c, tyco);
+            val ty_strongest = classparam_strongest_typ thy class (c, tyco);
             fun constrain thm = 
               let
                 val max = Thm.maxidx_of thm + 1;
@@ -632,7 +634,7 @@ fun assert_func_typ thm =
       end;
     fun check_typ (c, thm) =
       case Class.param_const thy c
-       of SOME (c, tyco) => check_typ_classop tyco (c, thm)
+       of SOME (c, tyco) => check_typ_classparam tyco (c, thm)
         | NONE => check_typ_fun (c, thm);
   in check_typ (const_of_func thy thm, thm) end;
 
@@ -837,6 +839,13 @@ fun rhs_conv conv thm =
     val thm' = (conv o Thm.rhs_of) thm;
   in Thm.transitive thm thm' end
 
+fun term_of_conv thy f =
+  Thm.cterm_of thy
+  #> f
+  #> Thm.prop_of
+  #> Logic.dest_equals
+  #> snd;
+
 in
 
 fun preprocess thy thms =
@@ -859,6 +868,8 @@ fun preprocess_conv ct =
     |> rhs_conv (Class.unoverload thy)
   end;
 
+fun preprocess_term thy = term_of_conv thy preprocess_conv;
+
 fun postprocess_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
@@ -868,10 +879,12 @@ fun postprocess_conv ct =
     |> rhs_conv (MetaSimplifier.rewrite false ((#posts o the_thmproc o get_exec) thy))
   end;
 
+fun postprocess_term thy = term_of_conv thy postprocess_conv;
+
 end; (*local*)
 
 fun default_typ_proto thy c = case Class.param_const thy c
- of SOME (c, tyco) => classop_weakest_typ thy ((the o AxClass.class_of_param thy) c)
+ of SOME (c, tyco) => classparam_weakest_typ thy ((the o AxClass.class_of_param thy) c)
       (c, tyco) |> SOME
   | NONE => (case AxClass.class_of_param thy c
      of SOME class => SOME (Term.map_type_tvar

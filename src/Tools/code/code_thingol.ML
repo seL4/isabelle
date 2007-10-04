@@ -64,8 +64,8 @@ sig
     | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
     | Class of vname * ((class * string) list * (string * itype) list)
-    | Classop of class
     | Classrel of class * class
+    | Classparam of class
     | Classinst of (class * (string * (vname * sort) list))
           * ((class * (string * (string * dict list list))) list
         * ((string * const) * thm) list);
@@ -135,12 +135,12 @@ datatype iterm =
     class names             class
     type constructor names  tyco
     datatype names          dtco
-    const names (general)   c
+    const names (general)   c (const)
     constructor names       co
-    class operation names   clsop (op)
+    class parameter names   classparam
     arbitrary name          s
 
-    v, c, co, clsop also annotated with types etc.
+    v, c, co, classparam also annotated with types etc.
 
   constructs:
     sort                    sort
@@ -251,8 +251,8 @@ datatype def =
   | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
   | Class of vname * ((class * string) list * (string * itype) list)
-  | Classop of class
   | Classrel of class * class
+  | Classparam of class
   | Classinst of (class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
       * ((string * const) * thm) list);
