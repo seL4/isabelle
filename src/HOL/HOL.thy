@@ -1687,6 +1687,23 @@ code_datatype Trueprop "prop"
 
 code_datatype "TYPE('a)"
 
+lemma Let_case_cert:
+  assumes "CASE \<equiv> (\<lambda>x. Let x f)"
+  shows "CASE x \<equiv> f x"
+  using assms by simp_all
+
+lemma If_case_cert:
+  includes meta_conjunction_syntax
+  assumes "CASE \<equiv> (\<lambda>b. If b f g)"
+  shows "(CASE True \<equiv> f) && (CASE False \<equiv> g)"
+  using assms by simp_all
+
+setup {*
+  Code.add_case @{thm Let_case_cert}
+  #> Code.add_case @{thm If_case_cert}
+  #> Code.add_undefined @{const_name undefined}
+*}
+
 
 subsection {* Legacy tactics and ML bindings *}
 

@@ -20,14 +20,6 @@ sig
   val eval_invoke: theory -> (string * (unit -> 'a) option ref) -> CodeThingol.code
     -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val codegen_command: theory -> string -> unit;
-
-  type appgen;
-  val add_appconst: string * appgen -> theory -> theory;
-  val appgen_let: appgen;
-  val appgen_if: appgen;
-  val appgen_case: (theory -> term
-    -> ((string * typ) list * ((term * typ) * (term * term) list)) option)
-    -> appgen;
 end;
 
 structure CodePackage : CODE_PACKAGE =
@@ -35,23 +27,7 @@ struct
 
 open BasicCodeThingol;
 
-(** code translation **)
-
-(* theory data *)
-
-type appgen = theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
-  -> CodeFuncgr.T
-  -> (string * typ) * term list -> CodeThingol.transact -> iterm * CodeThingol.transact;
-
-structure Appgens = TheoryDataFun
-(
-  type T = (int * (appgen * stamp)) Symtab.table;
-  val empty = Symtab.empty;
-  val copy = I;
-  val extend = I;
-  fun merge _ = Symtab.merge (fn ((bounds1, (_, stamp1)), (bounds2, (_, stamp2))) =>
-    bounds1 = bounds2 andalso stamp1 = stamp2);
-);
+(** code theorems **)
 
 fun code_depgr thy [] = CodeFuncgr.make thy []
   | code_depgr thy consts =
@@ -79,6 +55,9 @@ fun code_deps thy consts =
       end;
     val prgr = Graph.fold ((fn x => fn xs => xs @ [x]) o mk_entry) gr [];
   in Present.display_graph prgr end;
+
+
+(** code translation **)
 
 structure Program = CodeDataFun
 (
@@ -313,29 +292,55 @@ and exprgen_app_default thy algbr funcgr (c_ty, ts) =
   exprgen_const thy algbr funcgr c_ty
   ##>> fold_map (exprgen_term thy algbr funcgr) ts
   #>> (fn (t, ts) => t `$$ ts)
-and exprgen_app thy algbr funcgr ((c, ty), ts) =
-  case Symtab.lookup (Appgens.get thy) c
-   of SOME (i, (appgen, _)) =>
-        if length ts < i then
-          let
-            val k = length ts;
-            val tys = (curry Library.take (i - k) o curry Library.drop k o fst o strip_type) ty;
-            val ctxt = (fold o fold_aterms)
-              (fn Free (v, _) => Name.declare v | _ => I) ts Name.context;
-            val vs = Name.names ctxt "a" tys;
-          in
-            fold_map (exprgen_typ thy algbr funcgr) tys
-            ##>> appgen thy algbr funcgr ((c, ty), ts @ map Free vs)
-            #>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|--> t)
-          end
-        else if length ts > i then
-          appgen thy algbr funcgr ((c, ty), Library.take (i, ts))
-          ##>> fold_map (exprgen_term thy algbr funcgr) (Library.drop (i, ts))
-          #>> (fn (t, ts) => t `$$ ts)
-        else
-          appgen thy algbr funcgr ((c, ty), ts)
-    | NONE =>
-        exprgen_app_default thy algbr funcgr ((c, ty), ts);
+and exprgen_case thy algbr funcgr n cases (app as ((c, ty), ts)) =
+  let
+    (*FIXME rework this code*)
+    val (all_tys, _) = strip_type ty;
+    val (tys, _) = chop (1 + (if null cases then 1 else length cases)) all_tys;
+    val st = nth ts n;
+    val sty = nth tys n;
+    fun is_undefined (Const (c, _)) = Code.is_undefined thy c
+      | is_undefined _ = false;
+    fun mk_case (co, n) t =
+      let
+        val (vs, body) = Term.strip_abs_eta n t;
+        val selector = list_comb (Const (co, map snd vs ---> sty), map Free vs);
+      in if is_undefined body then NONE else SOME (selector, body) end;
+    val ds = case cases
+     of [] => let val ([v_ty], body) = Term.strip_abs_eta 1 (the_single (nth_drop n ts))
+          in [(Free v_ty, body)] end
+      | cases => map_filter (uncurry mk_case) (AList.make (CodeUnit.no_args thy) cases
+          ~~ nth_drop n ts);
+  in
+    exprgen_term thy algbr funcgr st
+    ##>> exprgen_typ thy algbr funcgr sty
+    ##>> fold_map (fn (pat, body) => exprgen_term thy algbr funcgr pat
+          ##>> exprgen_term thy algbr funcgr body) ds
+    ##>> exprgen_app_default thy algbr funcgr app
+    #>> (fn (((st, sty), ds), t0) => ICase (((st, sty), ds), t0))
+  end
+and exprgen_app thy algbr funcgr ((c, ty), ts) = case Code.get_case_data thy c
+ of SOME (n, cases) => let val i = 1 + (if null cases then 1 else length cases) in
+      if length ts < i then
+        let
+          val k = length ts;
+          val tys = (curry Library.take (i - k) o curry Library.drop k o fst o strip_type) ty;
+          val ctxt = (fold o fold_aterms)
+            (fn Free (v, _) => Name.declare v | _ => I) ts Name.context;
+          val vs = Name.names ctxt "a" tys;
+        in
+          fold_map (exprgen_typ thy algbr funcgr) tys
+          ##>> exprgen_case thy algbr funcgr n cases ((c, ty), ts @ map Free vs)
+          #>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|--> t)
+        end
+      else if length ts > i then
+        exprgen_case thy algbr funcgr n cases ((c, ty), Library.take (i, ts))
+        ##>> fold_map (exprgen_term thy algbr funcgr) (Library.drop (i, ts))
+        #>> (fn (t, ts) => t `$$ ts)
+      else
+        exprgen_case thy algbr funcgr n cases ((c, ty), ts)
+      end
+  | NONE => exprgen_app_default thy algbr funcgr ((c, ty), ts);
 
 
 (* entrance points into translation kernel *)
@@ -360,52 +365,6 @@ fun exprgen_term' thy algbr funcgr t trns =
     ^ CodeUnit.string_of_typ thy ty
     ^ "\noccurs with type\n"
     ^ CodeUnit.string_of_typ thy ty_decl);
-
-
-(* parametrized application generators, for instantiation in object logic *)
-(* (axiomatic extensions of translation kernel) *)
-
-fun appgen_case dest_case_expr thy algbr funcgr (app as (c_ty, ts)) =
-  let
-    val SOME ([], ((st, sty), ds)) = dest_case_expr thy (list_comb (Const c_ty, ts));
-    fun clause_gen (dt, bt) =
-      exprgen_term thy algbr funcgr
-        (map_aterms (fn Const (c_ty as (c, ty)) => Const
-          (Class.unoverload_const thy c_ty, ty) | t => t) dt)
-      ##>> exprgen_term thy algbr funcgr bt;
-  in
-    exprgen_term thy algbr funcgr st
-    ##>> exprgen_typ thy algbr funcgr sty
-    ##>> fold_map clause_gen ds
-    ##>> exprgen_app_default thy algbr funcgr app
-    #>> (fn (((se, sty), ds), t0) => ICase (((se, sty), ds), t0))
-  end;
-
-fun appgen_let thy algbr funcgr (app as (_, [st, ct])) =
-  exprgen_term thy algbr funcgr ct
-  ##>> exprgen_term thy algbr funcgr st
-  ##>> exprgen_app_default thy algbr funcgr app
-  #>> (fn (((v, ty) `|-> be, se), t0) =>
-            ICase (CodeThingol.collapse_let (((v, ty), se), be), t0)
-        | (_, t0) => t0);
-
-fun appgen_if thy algbr funcgr (app as (_, [tb, tt, tf])) =
-  exprgen_term thy algbr funcgr tb
-  ##>> exprgen_typ thy algbr funcgr (Type ("bool", []))
-  ##>> exprgen_term thy algbr funcgr (Const ("True", Type ("bool", [])))
-  ##>> exprgen_term thy algbr funcgr tt
-  ##>> exprgen_term thy algbr funcgr (Const ("False", Type ("bool", [])))
-  ##>> exprgen_term thy algbr funcgr tf
-  ##>> exprgen_app_default thy algbr funcgr app
-  #>> (fn ((((((tb, B), T), tt), F), tf), t0) => ICase (((tb, B), [(T, tt), (F, tf)]), t0));
-
-fun add_appconst (c, appgen) thy =
-  let
-    val i = (length o fst o strip_type o Sign.the_const_type thy) c;
-    val _ = Program.change thy (K CodeThingol.empty_code);
-  in
-    Appgens.map (Symtab.update (c, (i, (appgen, stamp ())))) thy
-  end;
 
 
 (** code generation interfaces **)

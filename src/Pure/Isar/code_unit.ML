@@ -2,11 +2,23 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Basic units of code generation.  Auxiliary.
+Basic notions of code generation.  Auxiliary.
 *)
 
 signature CODE_UNIT =
 sig
+  (*generic non-sense*)
+  val bad_thm: string -> 'a
+  val error_thm: (thm -> thm) -> thm -> thm
+  val warning_thm: (thm -> thm) -> thm -> thm option
+  val try_thm: (thm -> thm) -> thm -> thm option
+
+  (*typ instantiations*)
+  val typ_sort_inst: Sorts.algebra -> typ * sort
+    -> sort Vartab.table -> sort Vartab.table
+  val inst_thm: sort Vartab.table -> thm -> thm
+
+  (*constants*)
   val string_of_typ: theory -> typ -> string
   val string_of_const: theory -> string -> string
   val no_args: theory -> string -> int
@@ -15,25 +27,22 @@ sig
   val read_const_exprs: theory -> (string list -> string list)
     -> string list -> bool * string list
 
+  (*constructor sets*)
   val constrset_of_consts: theory -> (string * typ) list
     -> string * ((string * sort) list * (string * typ list) list)
-  val typ_sort_inst: Sorts.algebra -> typ * sort
-    -> sort Vartab.table -> sort Vartab.table
 
+  (*defining equations*)
   val assert_rew: thm -> thm
   val mk_rew: thm -> thm
   val mk_func: thm -> thm
   val head_func: thm -> string * typ
-  val bad_thm: string -> 'a
-  val error_thm: (thm -> thm) -> thm -> thm
-  val warning_thm: (thm -> thm) -> thm -> thm option
-  val try_thm: (thm -> thm) -> thm -> thm option
-
-  val inst_thm: sort Vartab.table -> thm -> thm
   val expand_eta: int -> thm -> thm
   val rewrite_func: thm list -> thm -> thm
   val norm_args: thm list -> thm list 
-  val norm_varnames: (string -> string) -> (string -> string) -> thm list -> thm list 
+  val norm_varnames: (string -> string) -> (string -> string) -> thm list -> thm list
+
+  (*case certificates*)
+  val case_cert: thm -> string * (int * string list)
 end;
 
 structure CodeUnit: CODE_UNIT =
@@ -359,5 +368,50 @@ fun norm_varnames purify_tvar purify_var thms =
     |> map (canonical_absvars purify_var)
     |> map Drule.zero_var_indexes
   end;
+
+
+(* case cerificates *)
+
+fun case_cert thm =
+  let
+    (*FIXME rework this code*)
+    val thy = Thm.theory_of_thm thm;
+    val (cas, t_pats) = (Logic.dest_implies o Thm.prop_of) thm;
+    val pats = Logic.dest_conjunctions t_pats;
+    val (head, proto_case_expr) = Logic.dest_equals cas;
+    val _ = case head of Free _ => true
+      | Var _ => true
+      | _ => raise TERM ("case_cert", []);
+    val ([(case_expr_v, _)], case_expr) = Term.strip_abs_eta 1 proto_case_expr;
+    val (Const (c_case, _), raw_params) = strip_comb case_expr;
+    val i = find_index
+      (fn Free (v, _) => v = case_expr_v | _ => false) raw_params;
+    val _ = if i = ~1 then raise TERM ("case_cert", []) else ();
+    val t_params = nth_drop i raw_params;
+    val params = map (fst o dest_Var) t_params;
+    fun dest_pat t =
+      let
+        val (head' $ t_co, rhs) = Logic.dest_equals t;
+        val _ = if head' = head then () else raise TERM ("case_cert", []);
+        val (Const (co, _), args) = strip_comb t_co;
+        val (Var (param, _), args') = strip_comb rhs;
+        val _ = if args' = args then () else raise TERM ("case_cert", []);
+      in (param, co) end;
+    fun analyze_pats pats =
+      let
+        val co_list = fold (AList.update (op =) o dest_pat) pats [];
+      in map (the o AList.lookup (op =) co_list) params end;
+    fun analyze_let t =
+      let
+        val (head' $ arg, Var (param', _) $ arg') = Logic.dest_equals t;
+        val _ = if head' = head then () else raise TERM ("case_cert", []);
+        val _ = if arg' = arg then () else raise TERM ("case_cert", []);
+        val _ = if [param'] = params then () else raise TERM ("case_cert", []);
+      in [] end;
+  in (c_case, (i, case pats
+   of [pat] => (analyze_pats pats handle Bind => analyze_let pat)
+    | _ :: _ => analyze_pats pats))
+  end handle Bind => error "bad case certificate"
+    | TERM _ => error "bad case certificate";
 
 end;

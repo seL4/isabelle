@@ -127,11 +127,6 @@ text {* Let and If *}
 
 lemmas [code func] = Let_def if_True if_False
 
-setup {*
-  CodePackage.add_appconst (@{const_name Let}, CodePackage.appgen_let)
-  #> CodePackage.add_appconst (@{const_name If}, CodePackage.appgen_if)
-*}
-
 
 subsection {* Evaluation oracle *}
 
@@ -159,6 +154,5 @@ method_setup normalization = {*
     (CONVERSION (ObjectLogic.judgment_conv Nbe.norm_conv)
       THEN' resolve_tac [TrueI, refl]))
 *} "solve goal by normalization"
-
 
 end

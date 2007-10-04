@@ -807,11 +807,9 @@ lemma prod_case_unfold: "prod_case = (%c p. c (fst p) (snd p))"
 declare prod_caseI2' [intro!] prod_caseI2 [intro!] prod_caseI [intro!]
 declare prod_caseE' [elim!] prod_caseE [elim!]
 
-lemma prod_case_split [code post]:
+lemma prod_case_split:
   "prod_case = split"
   by (auto simp add: expand_fun_eq)
-
-lemmas [code inline] = prod_case_split [symmetric]
 
 
 subsection {* Further cases/induct rules for tuples *}
@@ -901,6 +899,15 @@ instance * :: (eq, eq) eq ..
 
 lemma [code func]:
   "(x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) = (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by auto
+
+lemma split_case_cert:
+  assumes "CASE \<equiv> split f"
+  shows "CASE (a, b) \<equiv> f a b"
+  using assms by simp
+
+setup {*
+  Code.add_case @{thm split_case_cert}
+*}
 
 code_type *
   (SML infix 2 "*")

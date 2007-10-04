@@ -24,12 +24,16 @@ sig
   val del_post: thm -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
+  val add_case: thm -> theory -> theory
+  val add_undefined: string -> theory -> theory
 
   val coregular_algebra: theory -> Sorts.algebra
   val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
   val these_funcs: theory -> string -> thm list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> string -> string option
+  val get_case_data: theory -> string -> (int * string list) option
+  val is_undefined: theory -> string -> bool
   val default_typ: theory -> string -> typ
 
   val preprocess_conv: cterm -> thm
@@ -89,9 +93,9 @@ fun pretty_lthms ctxt r = case Susp.peek r
 fun certificate thy f r =
   case Susp.peek r
    of SOME thms => (Susp.value o f thy) thms
-     | NONE => let
-          val thy_ref = Theory.check_thy thy;
-        in Susp.delay (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
+    | NONE => let
+        val thy_ref = Theory.check_thy thy;
+      in Susp.delay (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
 
 fun merge' _ ([], []) = (false, [])
   | merge' _ ([], ys) = (true, ys)
@@ -231,10 +235,6 @@ fun join_func_thms (tabs as (tab1, tab2)) =
     fun merge c x = let val (touched, thms') = merge_sdthms x in
       (if touched then cs''' := cons c (!cs''') else (); thms') end;
   in (cs'' @ !cs''', Symtab.join merge tabs) end;
-fun merge_funcs (thms1, thms2) =
-  let
-    val (consts, thms) = join_func_thms (thms1, thms2);
-  in (SOME consts, thms) end;
 
 val eq_string = op = : string * string -> bool;
 fun eq_dtyp ((vs1, cs1), (vs2, cs2)) = 
@@ -253,22 +253,37 @@ fun merge_dtyps (tabs as (tab1, tab2)) =
       then raise Symtab.SAME else cos2;
   in ((new_types, diff_types), Symtab.join join tabs) end;
 
+fun merge_cases ((cases1, undefs1), (cases2, undefs2)) =
+  let
+    val touched1 = subtract (op =) (Symtab.keys cases1) (Symtab.keys cases2)
+      @ subtract (op =) (Symtab.keys cases2) (Symtab.keys cases1);
+    val touched2 = subtract (op =) (Symtab.keys undefs1) (Symtab.keys undefs2)
+      @ subtract (op =) (Symtab.keys undefs2) (Symtab.keys undefs1);
+    val touched = fold (insert (op =)) touched1 touched2;
+  in
+    (touched, (Symtab.merge (K true) (cases1, cases2),
+      Symtab.merge (K true) (undefs1, undefs2)))
+  end;
+
 datatype spec = Spec of {
   funcs: sdthms Symtab.table,
-  dtyps: ((string * sort) list * (string * typ list) list) Symtab.table
+  dtyps: ((string * sort) list * (string * typ list) list) Symtab.table,
+  cases: (int * string list) Symtab.table * unit Symtab.table
 };
 
-fun mk_spec (funcs, dtyps) =
-  Spec { funcs = funcs, dtyps = dtyps };
-fun map_spec f (Spec { funcs = funcs, dtyps = dtyps }) =
-  mk_spec (f (funcs, dtyps));
-fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1 },
-  Spec { funcs = funcs2, dtyps = dtyps2 }) =
+fun mk_spec (funcs, (dtyps, cases)) =
+  Spec { funcs = funcs, dtyps = dtyps, cases = cases };
+fun map_spec f (Spec { funcs = funcs, dtyps = dtyps, cases = cases }) =
+  mk_spec (f (funcs, (dtyps, cases)));
+fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1, cases = cases1 },
+  Spec { funcs = funcs2, dtyps = dtyps2, cases = cases2 }) =
   let
-    val (touched_cs, funcs) = merge_funcs (funcs1, funcs2);
+    val (touched_cs, funcs) = join_func_thms (funcs1, funcs2);
     val ((new_types, diff_types), dtyps) = merge_dtyps (dtyps1, dtyps2);
-    val touched = if new_types orelse diff_types then NONE else touched_cs;
-  in (touched, mk_spec (funcs, dtyps)) end;
+    val (touched_cases, cases) = merge_cases (cases1, cases2);
+    val touched = if new_types orelse diff_types then NONE else
+      SOME (fold (insert (op =)) touched_cases touched_cs);
+  in (touched, mk_spec (funcs, (dtyps, cases))) end;
 
 datatype exec = Exec of {
   thmproc: thmproc,
@@ -287,15 +302,17 @@ fun merge_exec (Exec { thmproc = thmproc1, spec = spec1 },
     val touched = if touched' then NONE else touched_cs;
   in (touched, mk_exec (thmproc, spec)) end;
 val empty_exec = mk_exec (mk_thmproc ((([], []), []), []),
-  mk_spec (Symtab.empty, Symtab.empty));
+  mk_spec (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty))));
 
 fun the_thmproc (Exec { thmproc = Preproc x, ...}) = x;
 fun the_spec (Exec { spec = Spec x, ...}) = x;
 val the_funcs = #funcs o the_spec;
 val the_dtyps = #dtyps o the_spec;
+val the_cases = #cases o the_spec;
 val map_thmproc = map_exec o apfst o map_thmproc;
 val map_funcs = map_exec o apsnd o map_spec o apfst;
-val map_dtyps = map_exec o apsnd o map_spec o apsnd;
+val map_dtyps = map_exec o apsnd o map_spec o apsnd o apfst;
+val map_cases = map_exec o apsnd o map_spec o apsnd o apsnd;
 
 
 (* data slots dependent on executable content *)
@@ -376,7 +393,7 @@ in
 
 (* access to executable content *)
 
-val get_exec = fst o CodeData.get;
+val the_exec = fst o CodeData.get;
 
 fun map_exec_purge touched f thy =
   CodeData.map (fn (exec, data) => 
@@ -413,7 +430,7 @@ end; (*local*)
 fun print_codesetup thy =
   let
     val ctxt = ProofContext.init thy;
-    val exec = get_exec thy;
+    val exec = the_exec thy;
     fun pretty_func (s, lthms) =
       (Pretty.block o Pretty.fbreaks) (
         Pretty.str s :: pretty_sdthms ctxt lthms
@@ -532,7 +549,7 @@ fun specific_constraints thy (class, tyco) =
       o try (AxClass.params_of_class thy)) class;
     val funcs = classparams
       |> map (fn c => Class.inst_const thy (c, tyco))
-      |> map (Symtab.lookup ((the_funcs o get_exec) thy))
+      |> map (Symtab.lookup ((the_funcs o the_exec) thy))
       |> (map o Option.map) (Susp.force o fst)
       |> maps these
       |> map (Thm.transfer thy)
@@ -653,7 +670,7 @@ fun delete_force msg key xs =
   else error ("No such " ^ msg ^ ": " ^ quote key);
 
 fun get_datatype thy tyco =
-  case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
+  case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
    of SOME spec => spec
     | NONE => Sign.arity_number thy tyco
         |> Name.invents Name.context "'a"
@@ -663,7 +680,7 @@ fun get_datatype thy tyco =
 fun get_datatype_of_constr thy c =
   case (snd o strip_type o Sign.the_const_type thy) c
    of Type (tyco, _) => if member (op =)
-       ((the_default [] o Option.map (map fst o snd) o Symtab.lookup ((the_dtyps o get_exec) thy)) tyco) c
+       ((the_default [] o Option.map (map fst o snd) o Symtab.lookup ((the_dtyps o the_exec) thy)) tyco) c
        then SOME tyco else NONE
     | _ => NONE;
 
@@ -675,6 +692,10 @@ fun get_constr_typ thy c =
           val ty = tys ---> Type (tyco, map TFree vs);
         in SOME (Logic.varifyT ty) end
     | NONE => NONE;
+
+val get_case_data = Symtab.lookup o fst o the_cases o the_exec;
+
+val is_undefined = Symtab.defined o snd o the_cases o the_exec;
 
 fun add_func thm thy =
   let
@@ -746,7 +767,7 @@ fun add_datatype raw_cs thy =
     val cs = map (fn c_ty as (_, ty) => (Class.unoverload_const thy c_ty, ty)) raw_cs;
     val (tyco, vs_cos) = CodeUnit.constrset_of_consts thy cs;
     val purge_cs = map fst (snd vs_cos);
-    val purge_cs' = case Symtab.lookup ((the_dtyps o get_exec) thy) tyco
+    val purge_cs' = case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
      of SOME (vs, cos) => if null cos then NONE else SOME (purge_cs @ map fst cos)
       | NONE => NONE;
   in
@@ -759,6 +780,16 @@ fun add_datatype_cmd raw_cs thy =
   let
     val cs = map (CodeUnit.read_bare_const thy) raw_cs;
   in add_datatype cs thy end;
+
+fun add_case thm thy =
+  let
+    val entry as (c, _) = CodeUnit.case_cert thm;
+  in
+    (map_exec_purge (SOME [c]) o map_cases o apfst) (Symtab.update entry) thy
+  end;
+
+fun add_undefined c thy =
+  (map_exec_purge (SOME [c]) o map_cases o apsnd) (Symtab.update (c, ())) thy;
 
 fun add_inline thm thy =
   (map_exec_purge NONE o map_thmproc o apfst o apfst o apfst)
@@ -850,9 +881,9 @@ in
 
 fun preprocess thy thms =
   thms
-  |> fold (fn (_, (_, f)) => apply_preproc thy f) ((#preprocs o the_thmproc o get_exec) thy)
-  |> map (CodeUnit.rewrite_func ((#inlines o the_thmproc o get_exec) thy))
-  |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o get_exec) thy)
+  |> fold (fn (_, (_, f)) => apply_preproc thy f) ((#preprocs o the_thmproc o the_exec) thy)
+  |> map (CodeUnit.rewrite_func ((#inlines o the_thmproc o the_exec) thy))
+  |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o the_exec) thy)
 (*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
   |> common_typ_funcs
   |> map (Conv.fconv_rule (Class.unoverload thy));
@@ -862,9 +893,9 @@ fun preprocess_conv ct =
     val thy = Thm.theory_of_cterm ct;
   in
     ct
-    |> MetaSimplifier.rewrite false ((#inlines o the_thmproc o get_exec) thy)
+    |> MetaSimplifier.rewrite false ((#inlines o the_thmproc o the_exec) thy)
     |> fold (fn (_, (_, f)) => rhs_conv (apply_inline_proc_cterm thy f))
-        ((#inline_procs o the_thmproc o get_exec) thy)
+        ((#inline_procs o the_thmproc o the_exec) thy)
     |> rhs_conv (Class.unoverload thy)
   end;
 
@@ -876,7 +907,7 @@ fun postprocess_conv ct =
   in
     ct
     |> Class.overload thy
-    |> rhs_conv (MetaSimplifier.rewrite false ((#posts o the_thmproc o get_exec) thy))
+    |> rhs_conv (MetaSimplifier.rewrite false ((#posts o the_thmproc o the_exec) thy))
   end;
 
 fun postprocess_term thy = term_of_conv thy postprocess_conv;
@@ -894,7 +925,7 @@ fun default_typ_proto thy c = case Class.param_const thy c
 local
 
 fun get_funcs thy const =
-  Symtab.lookup ((the_funcs o get_exec) thy) const
+  Symtab.lookup ((the_funcs o the_exec) thy) const
   |> Option.map (Susp.force o fst)
   |> these
   |> map (Thm.transfer thy);
