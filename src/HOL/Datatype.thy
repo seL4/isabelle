@@ -10,6 +10,7 @@ header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
 imports Finite_Set
+uses "Tools/datatype_codegen.ML"
 begin
 
 typedef (Node)
@@ -527,9 +528,6 @@ lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
 by auto
 
 
-subsection {* Finishing the datatype package setup *}
-
-setup "DatatypeCodegen.setup_hooks"
 text {* hides popular names *}
 hide (open) type node item
 hide (open) const Push Node Atom Leaf Numb Lim Split Case
@@ -684,6 +682,8 @@ lemma option_map_o_sum_case [simp]:
 
 
 subsubsection {* Code generator setup *}
+
+setup DatatypeCodegen.setup
 
 definition
   is_none :: "'a option \<Rightarrow> bool" where

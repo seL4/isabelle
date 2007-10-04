@@ -29,7 +29,6 @@ sig
     -> theory -> theory
 
   val setup: theory -> theory
-  val setup_hooks: theory -> theory
 end;
 
 structure DatatypeCodegen : DATATYPE_CODEGEN =
@@ -433,6 +432,7 @@ fun get_case_cert thy tyco =
     |> MetaSimplifier.rewrite_rule [(Thm.symmetric o Thm.assume) asm]
     |> Thm.implies_intr asm
     |> Thm.generalize ([], params) 0
+    |> Conv.fconv_rule (Class.unoverload thy)
     |> Thm.varifyT
   end;
 
@@ -587,13 +587,6 @@ fun eq_hook specs =
 
 (** theory setup **)
 
-fun add_datatype_case_const dtco thy =
-  let
-    val {case_name, index, descr, ...} = DatatypePackage.the_datatype thy dtco;
-  in
-    CodePackage.add_appconst (case_name, CodePackage.appgen_case dest_case_expr) thy
-  end;
-
 fun add_datatype_case_defs dtco thy =
   let
     val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
@@ -601,15 +594,15 @@ fun add_datatype_case_defs dtco thy =
     fold_rev Code.add_default_func case_rewrites thy
   end;
 
+fun add_datatype_case_certs dtco thy =
+  Code.add_case (get_case_cert thy dtco) thy;
+
 val setup = 
   add_codegen "datatype" datatype_codegen
   #> add_tycodegen "datatype" datatype_tycodegen
-  #> DatatypePackage.interpretation (fold add_datatype_case_const)
+  #> DatatypePackage.interpretation (fold add_datatype_case_certs)
   #> DatatypePackage.interpretation (fold add_datatype_case_defs)
-
-val setup_hooks =
-  add_codetypes_hook codetype_hook
+  #> add_codetypes_hook codetype_hook
   #> add_codetypes_hook eq_hook
-
 
 end;
