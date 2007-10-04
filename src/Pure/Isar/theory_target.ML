@@ -51,6 +51,36 @@ fun pretty loc ctxt =
   end;
 
 
+(* target declarations *)
+
+fun target_morphism loc lthy =
+  ProofContext.export_morphism lthy (LocalTheory.target_of lthy) $>
+  Morphism.thm_morphism Goal.norm_result;
+
+fun target_decl add loc d lthy =
+  let
+    val d' = Morphism.transform (target_morphism loc lthy) d;
+    val d0 = Morphism.form d';
+  in
+    if loc = "" then
+      lthy
+      |> LocalTheory.theory (Context.theory_map d0)
+      |> LocalTheory.target (Context.proof_map d0)
+    else
+      lthy
+      |> LocalTheory.target (add loc d')
+  end;
+
+val type_syntax = target_decl Locale.add_type_syntax;
+val term_syntax = target_decl Locale.add_term_syntax;
+val declaration = target_decl Locale.add_declaration;
+
+fun target_naming loc lthy =
+  (if loc = "" then Sign.naming_of (ProofContext.theory_of lthy)
+   else ProofContext.naming_of (LocalTheory.target_of lthy))
+  |> NameSpace.qualified_names;
+
+
 (* consts *)
 
 fun target_abbrev prmode ((c, mx), rhs) phi =
@@ -151,15 +181,14 @@ fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
     val u = fold_rev Term.lambda xs t;
     val U = Term.fastype_of u;
     val u' = singleton (Variable.export_terms (Variable.declare_term u target) thy_ctxt) u;
-
-    val ((lhs as Const (full_c, _), rhs), lthy1) = lthy |> LocalTheory.theory_result
-      (Sign.add_abbrev (#1 prmode) (ContextPosition.properties_of lthy) (c, u'));
     val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
   in
-    lthy1
-    |> LocalTheory.theory (Sign.add_notation prmode [(lhs, mx1)])
-    |> is_loc ? internal_abbrev prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
-    |> local_abbrev (c, rhs)
+    lthy
+    |> LocalTheory.theory_result
+        (Sign.add_abbrev (#1 prmode) (ContextPosition.properties_of lthy) (c, u'))
+    |-> (fn (lhs as Const (full_c, _), rhs) => LocalTheory.theory (Sign.add_notation prmode [(lhs, mx1)])
+    #> is_loc ? internal_abbrev prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
+    #> local_abbrev (c, rhs))
   end;
 
 
@@ -335,36 +364,6 @@ fun notes loc kind facts lthy =
     ||> ProofContext.restore_naming lthy
     ||> ProofContext.restore_mode lthy
   end;
-
-
-(* target declarations *)
-
-fun target_decl add loc d lthy =
-  let
-    val d' = Morphism.transform (LocalTheory.target_morphism lthy) d;
-    val d0 = Morphism.form d';
-  in
-    if loc = "" then
-      lthy
-      |> LocalTheory.theory (Context.theory_map d0)
-      |> LocalTheory.target (Context.proof_map d0)
-    else
-      lthy
-      |> LocalTheory.target (add loc d')
-  end;
-
-val type_syntax = target_decl Locale.add_type_syntax;
-val term_syntax = target_decl Locale.add_term_syntax;
-val declaration = target_decl Locale.add_declaration;
-
-fun target_morphism loc lthy =
-  ProofContext.export_morphism lthy (LocalTheory.target_of lthy) $>
-  Morphism.thm_morphism Goal.norm_result;
-
-fun target_naming loc lthy =
-  (if loc = "" then Sign.naming_of (ProofContext.theory_of lthy)
-   else ProofContext.naming_of (LocalTheory.target_of lthy))
-  |> NameSpace.qualified_names;
 
 
 (* init and exit *)
