@@ -5,20 +5,19 @@
 #
 # DESCRIPTION: Produce statistics from isatest session logs.
 
-ISATEST_LOG=~isatest/log
-
 ## platform settings
 
 case $(uname) in
-	SunOS)	
-		ZGREP=xgrep 
-		TE="png color"
-	;;
-	*)	
-		ZGREP=zgrep
-		TE="png"
-	;;
+  SunOS)	
+    ZGREP=xgrep 
+    TE="png color"
+    ;;
+  *)	
+    ZGREP=zgrep
+    TE="png"
+    ;;
 esac
+
 
 ## diagnostics
 
@@ -52,6 +51,14 @@ PLATFORM="$1"; shift
 TIMESPAN="$1"; shift
 SESSIONS="$@"
 
+if [ "$PLATFORM" = afp ]; then
+  LOG_DIR=~isatest/afp-log
+  LOG_NAME="afp-test-devel*"
+else
+  LOG_DIR=~isatest/log
+  LOG_NAME="isatest-makeall-${PLATFORM}*"
+fi
+
 
 ## main
 
@@ -60,10 +67,10 @@ SESSION_DATA="/tmp/isatest$$.dat"
 mkdir -p "$DIR" || fail "Bad directory: $DIR"
 
 $ZGREP "^Finished .*elapsed" \
-  $(find "$ISATEST_LOG" -name "isatest-makeall-${PLATFORM}*" -ctime "-${TIMESPAN}") | \
+  $(find "$LOG_DIR" -name "$LOG_NAME" -ctime "-${TIMESPAN}") | \
 perl -e '
   while (<>) {
-    if (m/isatest-makeall-.*-(\d+)-(\d+)-(\d+)-.*:Finished (\S+) \(.*, (\d+):(\d+):(\d+) cpu time\)/) {
+    if (m/(\d\d\d\d)-(\d\d)-(\d\d).*:Finished (\S+) \(.*, (\d+):(\d+):(\d+) cpu time\)/) {
         my $year = $1;
         my $month = $2;
         my $day = $3;

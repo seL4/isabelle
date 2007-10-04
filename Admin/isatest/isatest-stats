@@ -7,8 +7,9 @@
 
 THIS=$(cd "$(dirname "$0")"; pwd -P)
 
-PLATFORMS="at-poly at-sml-dev at-mac-poly-e at64-poly-e at-poly-5.1-para-e at64-poly-5.1-para-e at-mac-poly-5.1-para-e"
-SESSIONS="\
+PLATFORMS="at-poly at-sml-dev at64-poly-e at64-poly-5.1-para-e at-mac-poly-5.1-para-e afp"
+
+ISABELLE_SESSIONS="\
   HOL \
   HOL-Algebra \
   HOL-Auth \
@@ -30,8 +31,27 @@ SESSIONS="\
   ZF-Constructible\
   ZF-UNITY"
 
+AFP_SESSIONS="\
+  CoreC++\
+  HOL-DiskPaxos\
+  HOL-Fermat3_4\
+  HOL-Flyspeck-Tame\
+  HOL-Group-Ring-Module\
+  HOL-Jinja\
+  HOL-JiveDataStoreModel\
+  HOL-POPLmark-deBruijn\
+  HOL-RSAPSS\
+  HOL-SumSquares\
+  HOL-Valuation"
+
 for PLATFORM in $PLATFORMS
 do
+  if [ "$PLATFORM" = afp ]; then
+    SESSIONS="$AFP_SESSIONS"
+  else
+    SESSIONS="$ISABELLE_SESSIONS"
+  fi
+
   "$THIS/isatest-statistics" "stats/$PLATFORM" "$PLATFORM" ${1:-100} $SESSIONS
   cat > "stats/$PLATFORM.html" <<EOF
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
