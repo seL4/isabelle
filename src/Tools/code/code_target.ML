@@ -29,15 +29,17 @@ sig
     -> string -> string -> theory -> theory;
   val add_pretty_imperative_monad_bind: string -> string -> theory -> theory;
 
+  val allow_exception: string -> theory -> theory;
+
   type serializer;
   val add_serializer: string * serializer -> theory -> theory;
   val get_serializer: theory -> string -> bool -> string option -> string option -> Args.T list
-    -> (theory -> string -> string) -> (string -> bool) -> string list option
+    -> (theory -> string -> string) -> string list option
     -> CodeThingol.code -> unit;
   val assert_serializer: theory -> string -> string;
 
   val eval_verbose: bool ref;
-  val eval_invoke: theory -> (theory -> string -> string) -> (string -> bool)
+  val eval_invoke: theory -> (theory -> string -> string)
     -> (string * (unit -> 'a) option ref) -> CodeThingol.code
     -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val code_width: int ref;
@@ -302,10 +304,10 @@ datatype ml_def =
         * ((class * (string * (string * dict list list))) list
       * (string * const) list));
 
-fun pr_sml allows_exception tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
+fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
   let
     val pr_label_classrel = translate_string (fn "." => "__" | c => c) o NameSpace.qualifier;
-    val pr_label_classop = NameSpace.base o NameSpace.qualifier;
+    val pr_label_classparam = NameSpace.base o NameSpace.qualifier;
     fun pr_dicts fxy ds =
       let
         fun pr_dictvar (v, (_, 1)) = first_upper v ^ "_"
@@ -422,47 +424,65 @@ fun pr_sml allows_exception tyco_syntax const_syntax labelled_name init_syms der
           let
             val definer =
               let
-                fun mk [] [] = "val"
-                  | mk (_::_) _ = "fun"
-                  | mk [] vs = if (null o filter_out (null o snd)) vs then "val" else "fun";
-                fun chk (_, ((vs, _), (ts, _) :: _)) NONE = SOME (mk ts vs)
-                  | chk (_, ((vs, _), (ts, _) :: _)) (SOME defi) =
-                      if defi = mk ts vs then SOME defi
+                fun no_args _ ((ts, _) :: _) = length ts
+                  | no_args ty [] = (length o fst o CodeThingol.unfold_fun) ty;
+                fun mk 0 [] = "val"
+                  | mk 0 vs = if (null o filter_out (null o snd)) vs then "val" else "fun"
+                  | mk k _ = "fun";
+                fun chk (_, ((vs, ty), eqs)) NONE = SOME (mk (no_args ty eqs) vs)
+                  | chk (_, ((vs, ty), eqs)) (SOME defi) =
+                      if defi = mk (no_args ty eqs) vs then SOME defi
                       else error ("Mixing simultaneous vals and funs not implemented: "
                         ^ commas (map (labelled_name o fst) funns));
               in the (fold chk funns NONE) end;
-            fun pr_funn definer (name, ((raw_vs, ty), eqs as eq :: eqs')) =
-              let
-                val vs = filter_out (null o snd) raw_vs;
-                val shift = if null eqs' then I else
-                  map (Pretty.block o single o Pretty.block o single);
-                fun pr_eq definer (ts, t) =
+            fun pr_funn definer (name, ((raw_vs, ty), [])) =
                   let
-                    val consts = map_filter
-                      (fn c => if (is_some o const_syntax) c
-                        then NONE else (SOME o NameSpace.base o deresolv) c)
-                        ((fold o CodeThingol.fold_constnames) (insert (op =)) (t :: ts) []);
-                    val vars = init_syms
-                      |> CodeName.intro_vars consts
-                      |> CodeName.intro_vars ((fold o CodeThingol.fold_unbound_varnames)
-                           (insert (op =)) ts []);
+                    val vs = filter_out (null o snd) raw_vs;
+                    val n = length vs + (length o fst o CodeThingol.unfold_fun) ty;
                   in
                     concat (
-                      [str definer, (str o deresolv) name]
-                      @ (if null ts andalso null vs
-                         then [str ":", pr_typ NOBR ty]
-                         else
-                           pr_tyvars vs
-                           @ map (pr_term true vars BR) ts)
-                   @ [str "=", pr_term false vars NOBR t]
+                      str definer
+                      :: (str o deresolv) name
+                      :: map str (replicate n "_")
+                      @ str "="
+                      :: str "raise"
+                      :: str "(Fail"
+                      :: (str o ML_Syntax.print_string o NameSpace.base o NameSpace.qualifier) name
+                      @@ str ")"
                     )
                   end
-              in
-                (Pretty.block o Pretty.fbreaks o shift) (
-                  pr_eq definer eq
-                  :: map (pr_eq "|") eqs'
-                )
-              end;
+              | pr_funn definer (name, ((raw_vs, ty), eqs as eq :: eqs')) =
+                  let
+                    val vs = filter_out (null o snd) raw_vs;
+                    val shift = if null eqs' then I else
+                      map (Pretty.block o single o Pretty.block o single);
+                    fun pr_eq definer (ts, t) =
+                      let
+                        val consts = map_filter
+                          (fn c => if (is_some o const_syntax) c
+                            then NONE else (SOME o NameSpace.base o deresolv) c)
+                            ((fold o CodeThingol.fold_constnames) (insert (op =)) (t :: ts) []);
+                        val vars = init_syms
+                          |> CodeName.intro_vars consts
+                          |> CodeName.intro_vars ((fold o CodeThingol.fold_unbound_varnames)
+                               (insert (op =)) ts []);
+                      in
+                        concat (
+                          [str definer, (str o deresolv) name]
+                          @ (if null ts andalso null vs
+                             then [str ":", pr_typ NOBR ty]
+                             else
+                               pr_tyvars vs
+                               @ map (pr_term true vars BR) ts)
+                       @ [str "=", pr_term false vars NOBR t]
+                        )
+                      end
+                  in
+                    (Pretty.block o Pretty.fbreaks o shift) (
+                      pr_eq definer eq
+                      :: map (pr_eq "|") eqs'
+                    )
+                  end;
             val (ps, p) = split_last (pr_funn definer funn :: map (pr_funn "and") funns');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";"])]) end
      | pr_def (MLDatas (datas as (data :: datas'))) =
@@ -491,24 +511,24 @@ fun pr_sml allows_exception tyco_syntax const_syntax labelled_name init_syms der
                   );
             val (ps, p) = split_last (pr_data "datatype" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";"])]) end
-     | pr_def (MLClass (class, (v, (superclasses, classops)))) =
+     | pr_def (MLClass (class, (v, (superclasses, classparams)))) =
           let
             val w = first_upper v ^ "_";
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
                 pr_label_classrel classrel, ":", "'" ^ v, deresolv class
               ];
-            fun pr_classop_field (classop, ty) =
+            fun pr_classparam_field (classparam, ty) =
               concat [
-                (str o pr_label_classop) classop, str ":", pr_typ NOBR ty
+                (str o pr_label_classparam) classparam, str ":", pr_typ NOBR ty
               ];
-            fun pr_classop_proj (classop, _) =
+            fun pr_classparam_proj (classparam, _) =
               semicolon [
                 str "fun",
-                (str o deresolv) classop,
+                (str o deresolv) classparam,
                 Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
                 str "=",
-                str ("#" ^ pr_label_classop classop),
+                str ("#" ^ pr_label_classparam classparam),
                 str w
               ];
             fun pr_superclass_proj (_, classrel) =
@@ -527,14 +547,14 @@ fun pr_sml allows_exception tyco_syntax const_syntax labelled_name init_syms der
                 (str o deresolv) class,
                 str "=",
                 Pretty.enum "," "{" "};" (
-                  map pr_superclass_field superclasses @ map pr_classop_field classops
+                  map pr_superclass_field superclasses @ map pr_classparam_field classparams
                 )
               ]
               :: map pr_superclass_proj superclasses
-              @ map pr_classop_proj classops
+              @ map pr_classparam_proj classparams
             )
           end
-     | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classop_defs)))) =
+     | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
           let
             fun pr_superclass (_, (classrel, dss)) =
               concat [
@@ -542,9 +562,9 @@ fun pr_sml allows_exception tyco_syntax const_syntax labelled_name init_syms der
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
-            fun pr_classop (classop, c_inst) =
+            fun pr_classparam (classparam, c_inst) =
               concat [
-                (str o pr_label_classop) classop,
+                (str o pr_label_classparam) classparam,
                 str "=",
                 pr_app false init_syms NOBR (c_inst, [])
               ];
@@ -554,7 +574,7 @@ fun pr_sml allows_exception tyco_syntax const_syntax labelled_name init_syms der
               (str o deresolv) inst ] @
               pr_tyvars arity @ [
               str "=",
-              Pretty.enum "," "{" "}" (map pr_superclass superarities @ map pr_classop classop_defs),
+              Pretty.enum "," "{" "}" (map pr_superclass superarities @ map pr_classparam classparam_insts),
               str ":",
               pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
             ])
@@ -571,7 +591,7 @@ fun pr_sml_modl name content =
     str ("end; (*struct " ^ name ^ "*)")
   ]);
 
-fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
+fun pr_ocaml tyco_syntax const_syntax labelled_name
     init_syms deresolv is_cons ml_def =
   let
     fun pr_dicts fxy ds =
@@ -702,7 +722,18 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
                 str "->",
                 pr_term false vars NOBR t
               ] end;
-            fun pr_eqs [(ts, t)] =
+            fun pr_eqs name ty [] =
+                  let
+                    val n = (length o fst o CodeThingol.unfold_fun) ty;
+                  in
+                    concat (
+                      map str (replicate n "_")
+                      @ str "="
+                      :: str "failwith"
+                      @@ (str o ML_Syntax.print_string o NameSpace.base o NameSpace.qualifier) name
+                    )
+                  end
+              | pr_eqs _ _ [(ts, t)] =
                   let
                     val consts = map_filter
                       (fn c => if (is_some o const_syntax) c
@@ -719,7 +750,7 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
                       @@ pr_term false vars NOBR t
                     )
                   end
-              | pr_eqs (eqs as (eq as ([_], _)) :: eqs') =
+              | pr_eqs _ _ (eqs as (eq as ([_], _)) :: eqs') =
                   Pretty.block (
                     str "="
                     :: Pretty.brk 1
@@ -728,7 +759,7 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
                     :: pr_eq eq
                     :: maps (append [Pretty.fbrk, str "|", Pretty.brk 1] o single o pr_eq) eqs'
                   )
-              | pr_eqs (eqs as eq :: eqs') =
+              | pr_eqs _ _ (eqs as eq :: eqs') =
                   let
                     val consts = map_filter
                       (fn c => if (is_some o const_syntax) c
@@ -758,7 +789,7 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
                 str definer
                 :: (str o deresolv) name
                 :: pr_tyvars (filter_out (null o snd) vs)
-                @| pr_eqs eqs
+                @| pr_eqs name ty eqs
               );
             val (ps, p) = split_last (pr_funn "let rec" funn :: map (pr_funn "and") funns');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";;"])]) end
@@ -788,24 +819,24 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
                   );
             val (ps, p) = split_last (pr_data "type" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";;"])]) end
-     | pr_def (MLClass (class, (v, (superclasses, classops)))) =
+     | pr_def (MLClass (class, (v, (superclasses, classparams)))) =
           let
             val w = "_" ^ first_upper v;
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
                 deresolv classrel, ":", "'" ^ v, deresolv class
               ];
-            fun pr_classop_field (classop, ty) =
+            fun pr_classparam_field (classparam, ty) =
               concat [
-                (str o deresolv) classop, str ":", pr_typ NOBR ty
+                (str o deresolv) classparam, str ":", pr_typ NOBR ty
               ];
-            fun pr_classop_proj (classop, _) =
+            fun pr_classparam_proj (classparam, _) =
               concat [
                 str "let",
-                (str o deresolv) classop,
+                (str o deresolv) classparam,
                 str w,
                 str "=",
-                str (w ^ "." ^ deresolv classop ^ ";;")
+                str (w ^ "." ^ deresolv classparam ^ ";;")
               ];
           in Pretty.chunks (
             concat [
@@ -813,12 +844,12 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
               (str o deresolv) class,
               str "=",
               Pretty.enum ";" "{" "};;" (
-                map pr_superclass_field superclasses @ map pr_classop_field classops
+                map pr_superclass_field superclasses @ map pr_classparam_field classparams
               )
             ]
-            :: map pr_classop_proj classops
+            :: map pr_classparam_proj classparams
           ) end
-     | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classop_defs)))) =
+     | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
           let
             fun pr_superclass (_, (classrel, dss)) =
               concat [
@@ -826,9 +857,9 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
-            fun pr_classop_def (classop, c_inst) =
+            fun pr_classparam_inst (classparam, c_inst) =
               concat [
-                (str o deresolv) classop,
+                (str o deresolv) classparam,
                 str "=",
                 pr_app false init_syms NOBR (c_inst, [])
               ];
@@ -839,7 +870,7 @@ fun pr_ocaml allows_exception tyco_syntax const_syntax labelled_name
               :: pr_tyvars arity
               @ str "="
               @@ (Pretty.enclose "(" ");;" o Pretty.breaks) [
-                Pretty.enum ";" "{" "}" (map pr_superclass superarities @ map pr_classop_def classop_defs),
+                Pretty.enum ";" "{" "}" (map pr_superclass superarities @ map pr_classparam_inst classparam_insts),
                 str ":",
                 pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
               ]
@@ -861,7 +892,7 @@ val code_width = ref 80;
 fun code_output p = Pretty.setmp_margin (!code_width) Pretty.output p ^ "\n";
 
 fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_alias module_prolog
-  allows_exception (_ : string -> class_syntax option) tyco_syntax const_syntax code =
+  (_ : string -> class_syntax option) tyco_syntax const_syntax code =
   let
     val module_alias = if is_some module then K module else raw_module_alias;
     val is_cons = CodeThingol.is_cons code;
@@ -928,7 +959,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
               map_nsp_typ (name_def false name) >> (fn base => (base, SOME (name, info)))
           | (name, CodeThingol.Classrel _) =>
               map_nsp_fun (name_def false name) >> (fn base => (base, NONE))
-          | (name, CodeThingol.Classop _) =>
+          | (name, CodeThingol.Classparam _) =>
               map_nsp_fun (name_def false name) >> (fn base => (base, NONE))
           | (name, def) => error ("Class block containing illegal definition: " ^ labelled_name name)
         ) defs
@@ -990,7 +1021,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
           add_group mk_class defs
       | group_defs ((defs as (_, CodeThingol.Classrel _)::_)) =
           add_group mk_class defs
-      | group_defs ((defs as (_, CodeThingol.Classop _)::_)) =
+      | group_defs ((defs as (_, CodeThingol.Classparam _)::_)) =
           add_group mk_class defs
       | group_defs ((defs as [(_, CodeThingol.Classinst _)])) =
           add_group mk_inst defs
@@ -1020,7 +1051,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms raw_module_
     fun pr_node prefix (Def (_, NONE)) =
           NONE
       | pr_node prefix (Def (_, SOME def)) =
-          SOME (pr_def allows_exception tyco_syntax const_syntax labelled_name init_syms
+          SOME (pr_def tyco_syntax const_syntax labelled_name init_syms
             (deresolver prefix) is_cons def)
       | pr_node prefix (Module (dmodlname, (_, nodes))) =
           SOME (pr_modl dmodlname (the_prolog (NameSpace.implode (prefix @ [dmodlname]))
@@ -1070,17 +1101,17 @@ val pr_bind_haskell = gen_pr_bind pr_bind';
 
 in
 
-fun pr_haskell allows_exception class_syntax tyco_syntax const_syntax labelled_name
+fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
     init_syms deresolv_here deresolv is_cons deriving_show def =
   let
     fun class_name class = case class_syntax class
      of NONE => deresolv class
       | SOME (class, _) => class;
-    fun classop_name class classop = case class_syntax class
-     of NONE => deresolv_here classop
-      | SOME (_, classop_syntax) => case classop_syntax classop
-         of NONE => (snd o dest_name) classop
-          | SOME classop => classop
+    fun classparam_name class classparam = case class_syntax class
+     of NONE => deresolv_here classparam
+      | SOME (_, classparam_syntax) => case classparam_syntax classparam
+         of NONE => (snd o dest_name) classparam
+          | SOME classparam => classparam
     fun pr_typparms tyvars vs =
       case maps (fn (v, sort) => map (pair v) sort) vs
        of [] => str ""
@@ -1163,7 +1194,28 @@ fun pr_haskell allows_exception class_syntax tyco_syntax const_syntax labelled_n
             ) (map pr bs)
           end
       | pr_case vars fxy ((_, []), _) = str "error \"empty case\"";
-    fun pr_def (name, CodeThingol.Fun ((vs, ty), eqs)) =
+    fun pr_def (name, CodeThingol.Fun ((vs, ty), [])) =
+          let
+            val tyvars = CodeName.intro_vars (map fst vs) init_syms;
+            val n = (length o fst o CodeThingol.unfold_fun) ty;
+          in
+            Pretty.chunks [
+              Pretty.block [
+                (str o suffix " ::" o deresolv_here) name,
+                Pretty.brk 1,
+                pr_typscheme tyvars (vs, ty),
+                str ";"
+              ],
+              concat (
+                (str o deresolv_here) name
+                :: map str (replicate n "_")
+                @ str "="
+                :: str "error"
+                @@ (str o (fn s => s ^ ";") o ML_Syntax.print_string o NameSpace.base o NameSpace.qualifier) name
+              )
+            ]
+          end
+      | pr_def (name, CodeThingol.Fun ((vs, ty), eqs)) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
             fun pr_eq ((ts, t), _) =
@@ -1235,12 +1287,12 @@ fun pr_haskell allows_exception class_syntax tyco_syntax const_syntax labelled_n
               @ (if deriving_show name then [str "deriving (Read, Show)"] else [])
             )
           end
-      | pr_def (name, CodeThingol.Class (v, (superclasses, classops))) =
+      | pr_def (name, CodeThingol.Class (v, (superclasses, classparams))) =
           let
             val tyvars = CodeName.intro_vars [v] init_syms;
-            fun pr_classop (classop, ty) =
+            fun pr_classparam (classparam, ty) =
               semicolon [
-                (str o classop_name name) classop,
+                (str o classparam_name name) classparam,
                 str "::",
                 pr_typ tyvars NOBR ty
               ]
@@ -1253,14 +1305,14 @@ fun pr_haskell allows_exception class_syntax tyco_syntax const_syntax labelled_n
                 str " where {"
               ],
               str "};"
-            ) (map pr_classop classops)
+            ) (map pr_classparam classparams)
           end
-      | pr_def (_, CodeThingol.Classinst ((class, (tyco, vs)), (_, classop_defs))) =
+      | pr_def (_, CodeThingol.Classinst ((class, (tyco, vs)), (_, classparam_insts))) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
-            fun pr_instdef ((classop, c_inst), _) =
+            fun pr_instdef ((classparam, c_inst), _) =
               semicolon [
-                (str o classop_name class) classop,
+                (str o classparam_name class) classparam,
                 str "=",
                 pr_app false init_syms NOBR (c_inst, [])
               ];
@@ -1274,7 +1326,7 @@ fun pr_haskell allows_exception class_syntax tyco_syntax const_syntax labelled_n
                 str " where {"
               ],
               str "};"
-            ) (map pr_instdef classop_defs)
+            ) (map pr_instdef classparam_insts)
           end;
   in pr_def def end;
 
@@ -1301,7 +1353,7 @@ end; (*local*)
 
 fun seri_haskell module_prefix module destination string_classes labelled_name
     reserved_syms raw_module_alias module_prolog
-    allows_exception class_syntax tyco_syntax const_syntax code =
+    class_syntax tyco_syntax const_syntax code =
   let
     val _ = Option.map File.check destination;
     val is_cons = CodeThingol.is_cons code;
@@ -1328,7 +1380,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
             | CodeThingol.Datatypecons _ => add_fun true
             | CodeThingol.Class _ => add_typ
             | CodeThingol.Classrel _ => pair base
-            | CodeThingol.Classop _ => add_fun false
+            | CodeThingol.Classparam _ => add_fun false
             | CodeThingol.Classinst _ => pair base;
         val modlname' = name_modl modl;
         fun add_def base' =
@@ -1337,7 +1389,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
             | CodeThingol.Datatypecons _ =>
                 cons (name, ((NameSpace.append modlname' base', base'), NONE))
             | CodeThingol.Classrel _ => I
-            | CodeThingol.Classop _ =>
+            | CodeThingol.Classparam _ =>
                 cons (name, ((NameSpace.append modlname' base', base'), NONE))
             | _ => cons (name, ((NameSpace.append modlname' base', base'), SOME def));
       in
@@ -1372,7 +1424,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
-    fun seri_def qualified = pr_haskell allows_exception class_syntax tyco_syntax
+    fun seri_def qualified = pr_haskell class_syntax tyco_syntax
       const_syntax labelled_name init_syms
       deresolv_here (if qualified then deresolv else deresolv_here) is_cons
       (if string_classes then deriving_show else K false);
@@ -1436,7 +1488,7 @@ fun isar_seri_haskell module file =
 
 (** diagnosis serializer **)
 
-fun seri_diagnosis labelled_name _ _ _ _ _ _ _ code =
+fun seri_diagnosis labelled_name _ _ _ _ _ _ code =
   let
     val init_names = CodeName.make_vars [];
     fun pr_fun "fun" = SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
@@ -1446,7 +1498,7 @@ fun seri_diagnosis labelled_name _ _ _ _ _ _ _ code =
             pr_typ (INFX (1, R)) ty2
           ])
       | pr_fun _ = NONE
-    val pr = pr_haskell (K true) (K NONE) pr_fun (K NONE) labelled_name init_names I I (K false) (K false);
+    val pr = pr_haskell (K NONE) pr_fun (K NONE) labelled_name init_names I I (K false) (K false);
   in
     []
     |> Graph.fold (fn (name, (def, _)) => case try pr (name, def) of SOME p => cons p | NONE => I) code
@@ -1503,7 +1555,6 @@ type serializer =
   -> string list
   -> (string -> string option)
   -> (string -> Pretty.T option)
-  -> (string -> bool)
   -> (string -> class_syntax option)
   -> (string -> typ_syntax option)
   -> (string -> term_syntax option)
@@ -1512,9 +1563,9 @@ type serializer =
 datatype target = Target of {
   serial: serial,
   serializer: serializer,
+  reserved: string list,
   syntax_expr: syntax_expr,
-  syntax_modl: syntax_modl,
-  reserved: string list
+  syntax_modl: syntax_modl
 };
 
 fun mk_target (serial, ((serializer, reserved), (syntax_expr, syntax_modl))) =
@@ -1535,11 +1586,12 @@ fun merge_target target (Target { serial = serial1, serializer = serializer, res
 
 structure CodeTargetData = TheoryDataFun
 (
-  type T = target Symtab.table;
-  val empty = Symtab.empty;
+  type T = target Symtab.table * string list;
+  val empty = (Symtab.empty, []);
   val copy = I;
   val extend = I;
-  fun merge _ = Symtab.join merge_target;
+  fun merge _ ((target1, exc1), (target2, exc2)) =
+    (Symtab.join merge_target (target1, target2), Library.merge (op =) (exc1, exc2));
 );
 
 fun the_serializer (Target { serializer, ... }) = serializer;
@@ -1548,18 +1600,18 @@ fun the_syntax_expr (Target { syntax_expr = SyntaxExpr x, ... }) = x;
 fun the_syntax_modl (Target { syntax_modl = SyntaxModl x, ... }) = x;
 
 fun assert_serializer thy target =
-  case Symtab.lookup (CodeTargetData.get thy) target
+  case Symtab.lookup (fst (CodeTargetData.get thy)) target
    of SOME data => target
     | NONE => error ("Unknown code target language: " ^ quote target);
 
 fun add_serializer (target, seri) thy =
   let
-    val _ = case Symtab.lookup (CodeTargetData.get thy) target
+    val _ = case Symtab.lookup (fst (CodeTargetData.get thy)) target
      of SOME _ => warning ("overwriting existing serializer " ^ quote target)
       | NONE => ();
   in
     thy
-    |> (CodeTargetData.map oo Symtab.map_default)
+    |> (CodeTargetData.map o apfst oo Symtab.map_default)
           (target, mk_target (serial (), ((seri, []),
             (mk_syntax_expr ((Symtab.empty, Symtab.empty), (Symtab.empty, Symtab.empty)),
               mk_syntax_modl (Symtab.empty, Symtab.empty)))))
@@ -1571,7 +1623,7 @@ fun map_seri_data target f thy =
     val _ = assert_serializer thy target;
   in
     thy
-    |> (CodeTargetData.map o Symtab.map_entry target o map_target) f
+    |> (CodeTargetData.map o apfst o Symtab.map_entry target o map_target) f
   end;
 
 val target_SML = "SML";
@@ -1580,9 +1632,10 @@ val target_Haskell = "Haskell";
 val target_diag = "diag";
 
 fun get_serializer thy target permissive module file args
-    labelled_name allows_exception = fn cs =>
+    labelled_name = fn cs =>
   let
-    val data = case Symtab.lookup (CodeTargetData.get thy) target
+    val (seris, exc) = CodeTargetData.get thy;
+    val data = case Symtab.lookup seris target
      of SOME data => data
       | NONE => error ("Unknown code target language: " ^ quote target);
     val seri = the_serializer data;
@@ -1592,17 +1645,18 @@ fun get_serializer thy target permissive module file args
     val project = if target = target_diag then I
       else CodeThingol.project_code permissive
         (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const) cs;
-    fun check_empty_funs code = case CodeThingol.empty_funs code
+    fun check_empty_funs code = case (filter_out (member (op =) exc)
+        (CodeThingol.empty_funs code))
      of [] => code
       | names => error ("No defining equations for " ^ commas (map (labelled_name thy) names));
   in
     project
     #> check_empty_funs
     #> seri module file args (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
-      allows_exception (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
+      (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 
-fun eval_invoke thy labelled_name allows_exception (ref_name, reff) code (t, ty) args =
+fun eval_invoke thy labelled_name (ref_name, reff) code (t, ty) args =
   let
     val _ = if CodeThingol.contains_dictvar t then
       error "Term to be evaluated constains free dictionaries" else ();
@@ -1610,7 +1664,7 @@ fun eval_invoke thy labelled_name allows_exception (ref_name, reff) code (t, ty)
     val val_name' = "Isabelle_Eval.EVAL";
     val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
     val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE []
-      labelled_name allows_exception;
+      labelled_name;
     fun eval code = (
       reff := NONE;
       seri (SOME [val_name]) code;
@@ -1783,23 +1837,23 @@ fun map_reserveds target =
 
 fun gen_add_syntax_class prep_class prep_const target raw_class raw_syn thy =
   let
-    val cls = prep_class thy raw_class;
-    val class = CodeName.class thy cls;
-    fun mk_classop c = case AxClass.class_of_param thy c
-     of SOME class' => if cls = class' then CodeName.const thy c
+    val class = prep_class thy raw_class;
+    val class' = CodeName.class thy class;
+    fun mk_classparam c = case AxClass.class_of_param thy c
+     of SOME class'' => if class = class'' then CodeName.const thy c
           else error ("Not a class operation for class " ^ quote class ^ ": " ^ quote c)
       | NONE => error ("Not a class operation: " ^ quote c);
-    fun mk_syntax_ops raw_ops = AList.lookup (op =)
-      ((map o apfst) (mk_classop o prep_const thy) raw_ops);
+    fun mk_syntax_params raw_params = AList.lookup (op =)
+      ((map o apfst) (mk_classparam o prep_const thy) raw_params);
   in case raw_syn
-   of SOME (syntax, raw_ops) =>
+   of SOME (syntax, raw_params) =>
       thy
       |> (map_syntax_exprs target o apfst o apfst)
-           (Symtab.update (class, (syntax, mk_syntax_ops raw_ops)))
+           (Symtab.update (class', (syntax, mk_syntax_params raw_params)))
     | NONE =>
       thy
       |> (map_syntax_exprs target o apfst o apfst)
-           (Symtab.delete_safe class)
+           (Symtab.delete_safe class')
   end;
 
 fun gen_add_syntax_inst prep_class prep_tyco target (raw_tyco, raw_class) add_del thy =
@@ -1910,6 +1964,12 @@ fun add_modl_prolog target =
     (fn (modl, NONE) => Symtab.delete modl | (modl, SOME prolog) =>
       Symtab.update (modl, Pretty.str prolog));
 
+fun gen_allow_exception prep_cs raw_c thy =
+  let
+    val c = prep_cs thy raw_c;
+    val c' = CodeName.const thy c;
+  in thy |> (CodeTargetData.map o apsnd) (insert (op =) c') end;
+
 fun zip_list (x::xs) f g =
   f
   #-> (fn y =>
@@ -1937,9 +1997,9 @@ fun parse_syntax prep_arg xs =
       >> (fn (parse, s) => parse s)) xs;
 
 val (code_classK, code_instanceK, code_typeK, code_constK, code_monadK,
-  code_reservedK, code_modulenameK, code_moduleprologK) =
+  code_reservedK, code_modulenameK, code_moduleprologK, code_exceptionK) =
   ("code_class", "code_instance", "code_type", "code_const", "code_monad",
-    "code_reserved", "code_modulename", "code_moduleprolog");
+    "code_reserved", "code_modulename", "code_moduleprolog", "code_exception");
 
 in
 
@@ -1949,11 +2009,13 @@ val add_syntax_class = gen_add_syntax_class cert_class (K I);
 val add_syntax_inst = gen_add_syntax_inst cert_class cert_tyco;
 val add_syntax_tyco = gen_add_syntax_tyco cert_tyco;
 val add_syntax_const = gen_add_syntax_const (K I);
+val allow_exception = gen_allow_exception (K I);
 
 val add_syntax_class_cmd = gen_add_syntax_class read_class CodeUnit.read_const;
 val add_syntax_inst_cmd = gen_add_syntax_inst read_class read_tyco;
 val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
 val add_syntax_const_cmd = gen_add_syntax_const CodeUnit.read_const;
+val allow_exception_cmd = gen_allow_exception CodeUnit.read_const;
 
 fun add_syntax_tycoP target tyco = parse_syntax I >> add_syntax_tyco_cmd target tyco;
 fun add_syntax_constP target c = parse_syntax fst >> (add_syntax_const_cmd target c o no_bindings);
@@ -2071,24 +2133,29 @@ val code_reservedP =
   OuterSyntax.command code_reservedK "declare words as reserved for target language" K.thy_decl (
     P.name -- Scan.repeat1 P.name
     >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds)
-  )
+  );
 
 val code_modulenameP =
   OuterSyntax.command code_modulenameK "alias module to other name" K.thy_decl (
     P.name -- Scan.repeat1 (P.name -- P.name)
     >> (fn (target, modlnames) => (Toplevel.theory o fold (add_modl_alias target)) modlnames)
-  )
+  );
 
 val code_moduleprologP =
   OuterSyntax.command code_moduleprologK "add prolog to module" K.thy_decl (
     P.name -- Scan.repeat1 (P.name -- (P.text >> (fn "-" => NONE | s => SOME s)))
     >> (fn (target, prologs) => (Toplevel.theory o fold (add_modl_prolog target)) prologs)
-  )
+  );
+
+val code_exceptionP =
+  OuterSyntax.command code_exceptionK "permit exceptions for constant" K.thy_decl (
+    Scan.repeat1 P.term >> (Toplevel.theory o fold allow_exception_cmd)
+  );
 
 val _ = OuterSyntax.add_keywords [infixK, infixlK, infixrK];
 
 val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_constP,
-  code_reservedP, code_modulenameP, code_moduleprologP, code_monadP];
+  code_reservedP, code_modulenameP, code_moduleprologP, code_monadP, code_exceptionP];
 
 
 (*including serializer defaults*)
@@ -2096,7 +2163,7 @@ val setup =
   add_serializer (target_SML, isar_seri_sml)
   #> add_serializer (target_OCaml, isar_seri_ocaml)
   #> add_serializer (target_Haskell, isar_seri_haskell)
-  #> add_serializer (target_diag, fn _ => fn _ => fn _ => seri_diagnosis)
+  #> add_serializer (target_diag, fn _=> fn _ => fn _ => seri_diagnosis)
   #> add_syntax_tyco "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       (gen_brackify (case fxy of NOBR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
