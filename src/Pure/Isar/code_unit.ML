@@ -140,7 +140,7 @@ fun constrset_of_consts thy cs =
       in (c, (fst o strip_type) ty') end;
     val c' :: cs' = map ty_sorts cs;
     val ((tyco, sorts), cs'') = fold add cs' (apsnd single c');
-    val vs = Name.names Name.context "'a" sorts;
+    val vs = Name.names Name.context Name.aT sorts;
     val cs''' = map (inst vs) cs'';
   in (tyco, (vs, cs''')) end;
 

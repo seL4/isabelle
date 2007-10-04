@@ -30,7 +30,8 @@ fun gen_begin_instantiation prep_arity raw_arities thy =
     fun prep_arity' raw_arity names =
       let
         val arity as (tyco, sorts, sort) = prep_arity thy raw_arity;
-        val (vs, names') = Name.variants (replicate (length sorts) "'a") names;
+        val vs = Name.invents names Name.aT (length sorts);
+        val names' = fold Name.declare vs names;
       in (((tyco, vs ~~ sorts), sort), names') end;
     val (arities, _) = fold_map prep_arity' raw_arities Name.context;
     fun get_param tyco ty_subst (param, (c, ty)) =

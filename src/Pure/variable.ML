@@ -299,7 +299,7 @@ fun auto_fixes t ctxt =
 
 fun invent_types Ss ctxt =
   let
-    val tfrees = Name.invents (names_of ctxt) "'a" (length Ss) ~~ Ss;
+    val tfrees = Name.invents (names_of ctxt) Name.aT (length Ss) ~~ Ss;
     val ctxt' = fold (declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
   in (tfrees, ctxt') end;
 

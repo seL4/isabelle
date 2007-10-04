@@ -99,7 +99,7 @@ fun drop_judgment thy (Abs (x, T, t)) = Abs (x, T, drop_judgment thy t)
 fun fixed_judgment thy x =
   let  (*be robust wrt. low-level errors*)
     val c = judgment_name thy;
-    val aT = TFree ("'a", []);
+    val aT = TFree (Name.aT, []);
     val T =
       the_default (aT --> propT) (Sign.const_type thy c)
       |> Term.map_type_tvar (fn ((x, _), S) => TFree (x, S));

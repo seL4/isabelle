@@ -1144,7 +1144,7 @@ fun trivial (Cterm {thy_ref, t =A, T, maxidx, sorts}) =
 fun class_triv thy c =
   let
     val Cterm {t, maxidx, sorts, ...} =
-      cterm_of thy (Logic.mk_inclass (TVar (("'a", 0), [c]), Sign.certify_class thy c))
+      cterm_of thy (Logic.mk_inclass (TVar ((Name.aT, 0), [c]), Sign.certify_class thy c))
         handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
     val der = Pt.infer_derivs' I (false, Pt.PAxm ("ProtoPure.class_triv:" ^ c, t, SOME []));
   in

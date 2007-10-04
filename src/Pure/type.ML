@@ -396,7 +396,7 @@ fun devar tye (T as TVar v) =
 fun unify (tsig as TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
   let
     val tyvar_count = ref maxidx;
-    fun gen_tyvar S = TVar (("'a", inc tyvar_count), S);
+    fun gen_tyvar S = TVar ((Name.aT, inc tyvar_count), S);
 
     fun mg_domain a S = Sorts.mg_domain classes a S
       handle Sorts.CLASS_ERROR _ => raise TUNIFY;

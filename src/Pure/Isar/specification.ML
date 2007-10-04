@@ -89,7 +89,7 @@ fun close_forms ctxt i xs As =
       (case duplicates (op =) commons of [] => ()
       | dups => error ("Duplicate local variables " ^ commas_quote dups));
     val frees = rev ((fold o fold_aterms) add_free As (rev commons));
-    val types = map (TypeInfer.param i o rpair []) (Name.invents Name.context "'a" (length frees));
+    val types = map (TypeInfer.param i o rpair []) (Name.invents Name.context Name.aT (length frees));
     val uniform_typing = the o AList.lookup (op =) (frees ~~ types);
 
     fun abs_body lev y (Abs (x, T, b)) = Abs (x, T, abs_body (lev + 1) y b)

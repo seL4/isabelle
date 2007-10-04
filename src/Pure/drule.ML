@@ -272,7 +272,7 @@ fun sort_triv thy (T, S) =
     val cT = certT T;
     fun class_triv c =
       Thm.class_triv thy c
-      |> Thm.instantiate ([(certT (TVar (("'a", 0), [c])), cT)], []);
+      |> Thm.instantiate ([(certT (TVar ((Name.aT, 0), [c])), cT)], []);
   in map class_triv S end;
 
 fun unconstrainTs th =

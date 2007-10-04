@@ -211,7 +211,7 @@ fun add_def (name, prop) =
 fun add_def_new (name, prop) thy =  (* FIXME inactive --- breaks codegen *)
   let
     val tfrees = rev (map TFree (Term.add_tfrees prop []));
-    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context "'a" (length tfrees));
+    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
     val strip_sorts = tfrees ~~ tfrees';
     val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
 

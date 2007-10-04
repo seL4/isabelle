@@ -61,7 +61,7 @@ fun fixate_params name_context ts =
     fun subst_param (xi, S) (inst, used) =
       if is_param xi then
         let
-          val [a] = Name.invents used "'a" 1;
+          val [a] = Name.invents used Name.aT 1;
           val used' = Name.declare a used;
         in (((xi, S), TFree (a, S)) :: inst, used') end
       else (inst, used);
@@ -237,7 +237,7 @@ fun typs_terms_of used mk_var prfx (Ts, ts) =
 
     val used' = fold add_names ts (fold add_namesT Ts used);
     val parms = rev (fold add_parms ts (fold add_parmsT Ts []));
-    val names = Name.invents used' (prfx ^ "'a") (length parms);
+    val names = Name.invents used' (prfx ^ Name.aT) (length parms);
   in
     ListPair.app elim (parms, names);
     (map simple_typ_of Ts, map simple_term_of ts)

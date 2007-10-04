@@ -35,7 +35,7 @@ val proofT = Type ("proof", []);
 val paramT = Type ("param", []);
 val paramsT = Type ("params", []);
 val idtT = Type ("idt", []);
-val aT = TFree ("'a", []);
+val aT = TFree (Name.aT, []);
 
 (** constants for theorems and axioms **)
 

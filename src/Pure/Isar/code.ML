@@ -579,9 +579,9 @@ fun strongest_constraints thy (class, tyco) =
 
 fun gen_classparam_typ constr thy class (c, tyco) = 
   let
-    val (var, cs) = try (AxClass.params_of_class thy) class |> the_default ("'a", [])
+    val (var, cs) = try (AxClass.params_of_class thy) class |> the_default (Name.aT, [])
     val ty = (the o AList.lookup (op =) cs) c;
-    val sort_args = Name.names (Name.declare var Name.context) "'a"
+    val sort_args = Name.names (Name.declare var Name.context) Name.aT
       (constr thy (class, tyco));
     val ty_inst = Type (tyco, map TFree sort_args);
   in Logic.varifyT (map_type_tfree (K ty_inst) ty) end;
@@ -673,7 +673,7 @@ fun get_datatype thy tyco =
   case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
    of SOME spec => spec
     | NONE => Sign.arity_number thy tyco
-        |> Name.invents Name.context "'a"
+        |> Name.invents Name.context Name.aT
         |> map (rpair [])
         |> rpair [];
 
@@ -919,7 +919,7 @@ fun default_typ_proto thy c = case Class.param_const thy c
       (c, tyco) |> SOME
   | NONE => (case AxClass.class_of_param thy c
      of SOME class => SOME (Term.map_type_tvar
-          (K (TVar (("'a", 0), [class]))) (Sign.the_const_type thy c))
+          (K (TVar ((Name.aT, 0), [class]))) (Sign.the_const_type thy c))
       | NONE => get_constr_typ thy c);
 
 local
