@@ -62,8 +62,8 @@ fun secure_shell () = deny_secure "Cannot execute shell commands in secure mode"
 val orig_execute = execute;
 val orig_system = system;
 
-fun execute s = NAMED_CRITICAL "system" (fn () => (secure_shell (); orig_execute s));
-fun system s = NAMED_CRITICAL "system" (fn () => (secure_shell (); orig_system s));
+fun execute s = (secure_shell (); orig_execute s);
+fun system s = (secure_shell (); orig_system s);
 
 end;
 
