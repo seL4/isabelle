@@ -78,6 +78,7 @@ sig
   val flat: 'a list list -> 'a list
   val unflat: 'a list list -> 'b list -> 'b list list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
+  val burrow_options: ('a list -> 'b list) -> 'a option list -> 'b option list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
   val maps: ('a -> 'b list) -> 'a list -> 'b list
   val chop: int -> 'a list -> 'a list * 'a list
@@ -492,6 +493,8 @@ fun unflat (xs :: xss) ys =
   | unflat _ _ = raise UnequalLengths;
 
 fun burrow f xss = unflat xss (f (flat xss));
+
+fun burrow_options f os = map (try hd) (burrow f (map the_list os));
 
 fun fold_burrow f xss s =
   apfst (unflat xss) (f (flat xss) s);
