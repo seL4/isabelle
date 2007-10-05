@@ -11,10 +11,8 @@ begin
 
 subsection {* List constructors over the datatype universe *}
 
-definition
-  "NIL = Datatype.In0 (Datatype.Numb 0)"
-definition
-  "CONS M N = Datatype.In1 (Datatype.Scons M N)"
+definition "NIL = Datatype.In0 (Datatype.Numb 0)"
+definition "CONS M N = Datatype.In1 (Datatype.Scons M N)"
 
 lemma CONS_not_NIL [iff]: "CONS M N \<noteq> NIL"
   and NIL_not_CONS [iff]: "NIL \<noteq> CONS M N"
@@ -28,8 +26,7 @@ lemma CONS_UN1: "CONS M (\<Union>x. f x) = (\<Union>x. CONS M (f x))"
     -- {* A continuity result? *}
   by (simp add: CONS_def In1_UN1 Scons_UN1_y)
 
-definition
-  "List_case c h = Datatype.Case (\<lambda>_. c) (Datatype.Split h)"
+definition "List_case c h = Datatype.Case (\<lambda>_. c) (Datatype.Split h)"
 
 lemma List_case_NIL [simp]: "List_case c h NIL = c"
   and List_case_CONS [simp]: "List_case c h (CONS M N) = h M N"
@@ -38,11 +35,8 @@ lemma List_case_NIL [simp]: "List_case c h NIL = c"
 
 subsection {* Corecursive lists *}
 
-coinductive_set
-  LList  :: "'a Datatype.item set \<Rightarrow> 'a Datatype.item set"
-  for A :: "'a Datatype.item set"
-  where
-    NIL [intro]:  "NIL \<in> LList A"
+coinductive_set LList for A
+where NIL [intro]:  "NIL \<in> LList A"
   | CONS [intro]: "a \<in> A \<Longrightarrow> M \<in> LList A \<Longrightarrow> CONS a M \<in> LList A"
 
 lemma LList_mono:
@@ -70,8 +64,7 @@ primrec
       None \<Rightarrow> NIL
     | Some (z, w) \<Rightarrow> CONS z (LList_corec_aux k f w))"
 
-definition
-  "LList_corec a f = (\<Union>k. LList_corec_aux k f a)"
+definition "LList_corec a f = (\<Union>k. LList_corec_aux k f a)"
 
 text {*
   Note: the subsequent recursion equation for @{text LList_corec} may
@@ -127,8 +120,7 @@ qed
 
 subsection {* Abstract type definition *}
 
-typedef 'a llist =
-  "LList (range Datatype.Leaf) :: 'a Datatype.item set"
+typedef 'a llist = "LList (range Datatype.Leaf) :: 'a Datatype.item set"
 proof
   show "NIL \<in> ?llist" ..
 qed
@@ -155,10 +147,8 @@ proof -
   finally show ?thesis .
 qed
 
-definition
-  "LNil = Abs_llist NIL"
-definition
-  "LCons x xs = Abs_llist (CONS (Datatype.Leaf x) (Rep_llist xs))"
+definition "LNil = Abs_llist NIL"
+definition "LCons x xs = Abs_llist (CONS (Datatype.Leaf x) (Rep_llist xs))"
 
 lemma LCons_not_LNil [iff]: "LCons x xs \<noteq> LNil"
   apply (simp add: LNil_def LCons_def)
@@ -292,12 +282,8 @@ qed
 
 subsection {* Equality as greatest fixed-point -- the bisimulation principle *}
 
-coinductive_set
-  EqLList :: "('a Datatype.item \<times> 'a Datatype.item) set \<Rightarrow>
-    ('a Datatype.item \<times> 'a Datatype.item) set"
-  for r :: "('a Datatype.item \<times> 'a Datatype.item) set"
-  where
-    EqNIL: "(NIL, NIL) \<in> EqLList r"
+coinductive_set EqLList for r
+where EqNIL: "(NIL, NIL) \<in> EqLList r"
   | EqCONS: "(a, b) \<in> r \<Longrightarrow> (M, N) \<in> EqLList r \<Longrightarrow>
       (CONS a M, CONS b N) \<in> EqLList r"
 
@@ -542,8 +528,7 @@ subsection {* Derived operations -- both on the set and abstract type *}
 
 subsubsection {* @{text Lconst} *}
 
-definition
-  "Lconst M \<equiv> lfp (\<lambda>N. CONS M N)"
+definition "Lconst M \<equiv> lfp (\<lambda>N. CONS M N)"
 
 lemma Lconst_fun_mono: "mono (CONS M)"
   by (simp add: monoI CONS_mono)
@@ -669,10 +654,10 @@ lemma lmap_LNil [simp]: "lmap f LNil = LNil"
   by (simp_all add: lmap_def llist_corec)
 
 lemma lmap_compose [simp]: "lmap (f o g) l = lmap f (lmap g l)"
-  by (coinduct _ _ l rule: llist_fun_equalityI) auto
+  by (coinduct l rule: llist_fun_equalityI) auto
 
 lemma lmap_ident [simp]: "lmap (\<lambda>x. x) l = l"
-  by (coinduct _ _ l rule: llist_fun_equalityI) auto
+  by (coinduct l rule: llist_fun_equalityI) auto
 
 
 
@@ -742,16 +727,16 @@ lemma lappend_LNil_LNil [simp]: "lappend LNil LNil = LNil"
   by (simp_all add: lappend_def llist_corec)
 
 lemma lappend_LNil1 [simp]: "lappend LNil l = l"
-  by (coinduct _ _ l rule: llist_fun_equalityI) auto
+  by (coinduct l rule: llist_fun_equalityI) auto
 
 lemma lappend_LNil2 [simp]: "lappend l LNil = l"
-  by (coinduct _ _ l rule: llist_fun_equalityI) auto
+  by (coinduct l rule: llist_fun_equalityI) auto
 
 lemma lappend_assoc: "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)"
-  by (coinduct _ _ l1 rule: llist_fun_equalityI) auto
+  by (coinduct l1 rule: llist_fun_equalityI) auto
 
 lemma lmap_lappend_distrib: "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)"
-  by (coinduct _ _ l rule: llist_fun_equalityI) auto
+  by (coinduct l rule: llist_fun_equalityI) auto
 
 
 subsection{* iterates *}
