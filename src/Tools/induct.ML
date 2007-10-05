@@ -283,7 +283,7 @@ fun prep_inst thy align tune (tm, ts) =
             val {T = xT, thy, ...} = Thm.rep_cterm cx;
             val ct = cert (tune t);
           in
-            if Sign.typ_instance thy (#T (Thm.rep_cterm ct), xT) then SOME (cx, ct)
+            if Type.could_unify (#T (Thm.rep_cterm ct), xT) then SOME (cx, ct)
             else error (Pretty.string_of (Pretty.block
              [Pretty.str "Ill-typed instantiation:", Pretty.fbrk,
               Display.pretty_cterm ct, Pretty.str " ::", Pretty.brk 1,
@@ -615,7 +615,7 @@ fun induct_tac ctxt is_open def_insts arbitrary taking opt_rule facts =
           THEN' inner_atomize_tac) j))
         THEN' atomize_tac) i st |> Seq.maps (fn st' =>
             guess_instance (internalize more_consumes rule) i st'
-            |> Seq.map (rule_instance thy taking)
+            |> Seq.map (rule_instance thy (burrow_options (Variable.polymorphic ctxt) taking))
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
                 (Tactic.rtac rule' i THEN
@@ -672,7 +672,7 @@ fun coinduct_tac ctxt is_open inst taking opt_rule facts =
       |> Seq.maps (RuleCases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
         guess_instance rule i st
-        |> Seq.map (rule_instance thy taking)
+        |> Seq.map (rule_instance thy (burrow_options (Variable.polymorphic ctxt) taking))
         |> Seq.maps (fn rule' =>
           CASES (make_cases is_open rule' cases)
             (Method.insert_tac more_facts i THEN Tactic.rtac rule' i) st)))
