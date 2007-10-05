@@ -440,6 +440,10 @@ fun inst_excluded_middle th thy i_atm =
             translate isFO ctxt ((fol_th, th) :: thpairs) infpairs
         end;
 
+  (*Determining which axiom clauses are actually used*)
+  fun used_axioms axioms (th, Metis.Proof.Axiom _) = SOME (lookth axioms th) 
+    | used_axioms axioms _                         = NONE;
+
   (* ------------------------------------------------------------------------- *)
   (* Translation of HO Clauses                                                 *)
   (* ------------------------------------------------------------------------- *)
@@ -529,9 +533,13 @@ fun inst_excluded_middle th thy i_atm =
 
   fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 
+  fun common_thm ths1 ths2 = exists (member Thm.eq_thm ths1) (map Meson.make_meta_clause ths2);
+
   (* Main function to start metis prove and reconstruction *)
-  fun FOL_SOLVE mode ctxt cls ths =
+  fun FOL_SOLVE mode ctxt cls ths0 =
     let val thy = ProofContext.theory_of ctxt
+        val th_cls_pairs = map (fn th => (PureThy.get_name_hint th, ResAxioms.cnf_axiom th)) ths0
+        val ths = List.concat (map #2 th_cls_pairs)
         val _ = if exists(is_false o prop_of) cls then error "problem contains the empty clause"
                 else ();
         val _ = Output.debug (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
@@ -556,9 +564,15 @@ fun inst_excluded_middle th thy i_atm =
                             Metis.Thm.toString mth)
                   val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                                (*add constraints arising from converting goal to clause form*)
-                  val result = translate isFO ctxt' axioms (Metis.Proof.proof mth)
-                  val _ = Output.debug (fn () => "METIS COMPLETED")
+                  val proof = Metis.Proof.proof mth
+                  val result = translate isFO ctxt' axioms proof
+                  and used = List.mapPartial (used_axioms axioms) proof
+                  val _ = Output.debug (fn () => "METIS COMPLETED...clauses actually used:")
+	          val _ = app (fn th => Output.debug (fn () => string_of_thm th)) used
+	          val unused = filter (fn (a,cls) => not (common_thm used cls)) th_cls_pairs
               in
+                  if null unused then ()
+                  else warning ("Unused theorems: " ^ commas (map #1 unused));
                   case result of
                       (_,ith)::_ => (Output.debug (fn () => "success: " ^ string_of_thm ith); ith)
                     | _ => error "METIS: no result"
@@ -569,9 +583,8 @@ fun inst_excluded_middle th thy i_atm =
   fun metis_general_tac mode ctxt ths i st0 =
     let val _ = Output.debug (fn () =>
           "Metis called with theorems " ^ cat_lines (map string_of_thm ths))
-        val ths' = ResAxioms.cnf_rules_of_ths ths
     in
-       (Meson.MESON ResAxioms.neg_clausify (fn cls => rtac (FOL_SOLVE mode ctxt cls ths') 1) i
+       (Meson.MESON ResAxioms.neg_clausify (fn cls => rtac (FOL_SOLVE mode ctxt cls ths) 1) i
         THEN ResAxioms.expand_defs_tac st0) st0
     end;
 

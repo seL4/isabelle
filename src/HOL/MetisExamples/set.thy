@@ -113,21 +113,21 @@ have 8: "sup Y Z \<noteq> X \<or> \<not> X \<subseteq> x \<or> \<not> Y \<subset
 have 9: "\<And>X3. sup Y Z = X \<or> X \<subseteq> sup X3 Z \<or> \<not> Y \<subseteq> sup X3 Z"
   by (metis 5 sup_set_eq Un_upper2 sup_set_eq)
 have 10: "Z \<subseteq> x \<or> sup Y Z \<noteq> X \<or> \<not> Y \<subseteq> X"
-  by (metis 3 sup_set_eq Un_upper2 sup_set_eq 1 sup_set_eq)
+  by (metis 3 sup_set_eq Un_upper2 sup_set_eq sup_set_eq)
 have 11: "sup Y Z \<noteq> X \<or> \<not> X \<subseteq> x \<or> \<not> Y \<subseteq> X"
-  by (metis 8 Un_upper2 sup_set_eq 1 sup_set_eq)
+  by (metis 8 Un_upper2 sup_set_eq sup_set_eq)
 have 12: "Z \<subseteq> x \<or> sup Y Z \<noteq> X"
-  by (metis 10 Un_upper1 sup_set_eq 6)
+  by (metis 10 Un_upper1 sup_set_eq)
 have 13: "sup Y Z = X \<or> X \<subseteq> sup Y Z"
   by (metis 9 Un_upper1 sup_set_eq)
 have 14: "sup Y Z = X \<or> \<not> Z \<subseteq> X \<or> \<not> Y \<subseteq> X"
   by (metis equalityI 13 Un_least sup_set_eq)
 have 15: "sup Y Z = X"
-  by (metis 14 Un_upper2 sup_set_eq 1 sup_set_eq Un_upper1 sup_set_eq 6)
+  by (metis 14 sup_set_eq 1 sup_set_eq sup_set_eq 6)
 have 16: "Y \<subseteq> x"
-  by (metis 7 Un_upper2 sup_set_eq 1 sup_set_eq Un_upper1 sup_set_eq 6 15)
+  by (metis 7 Un_upper2 sup_set_eq sup_set_eq Un_upper1 sup_set_eq 15)
 have 17: "\<not> X \<subseteq> x"
-  by (metis 11 Un_upper1 sup_set_eq 6 15)
+  by (metis 11 Un_upper1 sup_set_eq 15)
 have 18: "X \<subseteq> x"
   by (metis Un_least sup_set_eq 15 12 15 16)
 show "False"
@@ -152,19 +152,19 @@ have 6: "Z \<subseteq> x \<or> sup Y Z \<noteq> X \<or> \<not> Y \<subseteq> X \
 have 7: "\<And>X3. sup Y Z = X \<or> X \<subseteq> sup X3 Z \<or> \<not> Y \<subseteq> sup X3 Z"
   by (metis 5 sup_set_eq Un_upper2 sup_set_eq)
 have 8: "Y \<subseteq> x \<or> sup Y Z \<noteq> X \<or> \<not> Y \<subseteq> X"
-  by (metis 2 sup_set_eq Un_upper2 sup_set_eq 1 sup_set_eq)
+  by (metis 2 sup_set_eq Un_upper2 sup_set_eq sup_set_eq)
 have 9: "Z \<subseteq> x \<or> sup Y Z \<noteq> X"
-  by (metis 6 Un_upper2 sup_set_eq 1 sup_set_eq Un_upper1 sup_set_eq 0 sup_set_eq)
+  by (metis 6 Un_upper2 sup_set_eq sup_set_eq Un_upper1 sup_set_eq sup_set_eq)
 have 10: "sup Y Z = X \<or> \<not> sup Y Z \<subseteq> X"
   by (metis equalityI 7 Un_upper1 sup_set_eq)
 have 11: "sup Y Z = X"
-  by (metis 10 Un_least sup_set_eq Un_upper2 sup_set_eq 1 sup_set_eq Un_upper1 sup_set_eq 0 sup_set_eq)
+  by (metis 10 Un_least sup_set_eq sup_set_eq 1 sup_set_eq sup_set_eq 0 sup_set_eq)
 have 12: "Z \<subseteq> x"
   by (metis 9 11)
 have 13: "X \<subseteq> x"
-  by (metis Un_least sup_set_eq 11 12 8 Un_upper1 sup_set_eq 0 sup_set_eq 11)
+  by (metis Un_least sup_set_eq 11 12 8 Un_upper1 sup_set_eq sup_set_eq 11)
 show "False"
-  by (metis 13 4 sup_set_eq Un_upper2 sup_set_eq 1 sup_set_eq Un_upper1 sup_set_eq 0 sup_set_eq 11)
+  by (metis 13 4 sup_set_eq Un_upper2 sup_set_eq sup_set_eq Un_upper1 sup_set_eq sup_set_eq 11)
 qed
 
 (*Example included in TPHOLs paper*)
@@ -185,9 +185,9 @@ assume 5: "\<And>A. ((\<not> Y \<subseteq> A \<or> \<not> Z \<subseteq> A) \<or>
 have 6: "sup Y Z \<noteq> X \<or> \<not> X \<subseteq> x \<or> \<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X"
   by (metis 4 sup_set_eq)
 have 7: "Z \<subseteq> x \<or> sup Y Z \<noteq> X \<or> \<not> Y \<subseteq> X"
-  by (metis 3 sup_set_eq Un_upper2 sup_set_eq 1 sup_set_eq)
+  by (metis 3 sup_set_eq Un_upper2 sup_set_eq sup_set_eq)
 have 8: "Z \<subseteq> x \<or> sup Y Z \<noteq> X"
-  by (metis 7 Un_upper1 sup_set_eq 0 sup_set_eq)
+  by (metis 7 Un_upper1 sup_set_eq sup_set_eq)
 have 9: "sup Y Z = X \<or> \<not> Z \<subseteq> X \<or> \<not> Y \<subseteq> X"
   by (metis equalityI 5 sup_set_eq Un_upper2 sup_set_eq Un_upper1 sup_set_eq Un_least sup_set_eq)
 have 10: "Y \<subseteq> x"
@@ -238,20 +238,19 @@ by (metis Set.subsetI Union_upper insertCI set_eq_subset)
 
 lemma (*singleton_example_2:*)
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-by (metis UnE Un_absorb Un_absorb2 Un_eq_Union Union_insert insertI1 insert_Diff insert_Diff_single subset_def)
-  --{*found by Vampire*}
+by (metis Un_absorb2 Union_insert insertI1 insert_Diff insert_Diff_single subset_def)
 
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 proof (neg_clausify)
-assume 0: "\<And>mes_ojD. \<not> S \<subseteq> {mes_ojD}"
-assume 1: "\<And>mes_ojE. mes_ojE \<notin> S \<or> \<Union>S \<subseteq> mes_ojE"
+assume 0: "\<And>A. \<not> S \<subseteq> {A}"
+assume 1: "\<And>A. A \<notin> S \<or> \<Union>S \<subseteq> A"
 have 2: "\<And>X3. X3 = \<Union>S \<or> \<not> X3 \<subseteq> \<Union>S \<or> X3 \<notin> S"
-  by (metis equalityI 1)
+  by (metis set_eq_subset 1)
 have 3: "\<And>X3. S \<subseteq> insert (\<Union>S) X3"
-  by (metis Set.subsetI 2 Union_upper Set.subsetI insertCI)
+  by (metis insert_iff Set.subsetI Union_upper 2 Set.subsetI)
 show "False"
-  by (metis 0 3)
+  by (metis 3 0)
 qed
 
 
@@ -272,14 +271,14 @@ lemma "\<exists>B. (\<forall>x \<in> B. x \<le> (0::int))"
       "P (f b) \<Longrightarrow> \<exists>s A. (\<forall>x \<in> A. P x) \<and> f s \<in> A"
       "\<exists>A. a \<notin> A"
       "(\<forall>C. (0, 0) \<in> C \<and> (\<forall>x y. (x, y) \<in> C \<longrightarrow> (Suc x, Suc y) \<in> C) \<longrightarrow> (n, m) \<in> C) \<and> Q n \<longrightarrow> Q m" 
-apply (metis atMost_iff);
+apply (metis atMost_iff)
 apply (metis emptyE)
 apply (metis insert_iff singletonE)
 apply (metis insertCI singletonE zless_le)
 apply (metis insert_iff singletonE)
 apply (metis insert_iff singletonE)
 apply (metis DiffE)
-apply (metis Suc_eq_add_numeral_1 nat_add_commute pair_in_Id_conv) 
+apply (metis pair_in_Id_conv) 
 done
 
 end

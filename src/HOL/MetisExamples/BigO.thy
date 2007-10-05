@@ -26,7 +26,6 @@ lemma bigo_pos_const: "(EX (c::'a::ordered_idom).
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
   apply (rule_tac x = "abs c" in exI, auto);
-txt{*Version 1: one-shot proof. MUCH SLOWER with types: 24 versus 6.7 seconds*}
   apply (metis abs_ge_minus_self abs_ge_zero abs_minus_cancel abs_of_nonneg equation_minus_iff Orderings.xt1(6) abs_le_mult)
   done
 
@@ -50,7 +49,7 @@ assume 2: "\<not> \<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>"
 have 3: "\<And>X1 X3. \<bar>h X3\<bar> < X1 \<or> \<not> c * \<bar>f X3\<bar> < X1"
   by (metis order_le_less_trans 0)
 have 4: "\<And>X3. (1\<Colon>'a) * X3 \<le> X3 \<or> \<not> (1\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis mult_le_cancel_right2 order_refl)
+  by (metis mult_le_cancel_right2)
 have 5: "\<And>X3. (1\<Colon>'a) * X3 \<le> X3"
   by (metis 4 order_refl)
 have 6: "\<And>X3. \<bar>0\<Colon>'a\<bar> = \<bar>X3\<bar> * (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (0\<Colon>'a)"
@@ -92,9 +91,9 @@ have 23: "\<And>X3. (0\<Colon>'a) = X3 \<or> (0\<Colon>'a) \<noteq> - X3"
 have 24: "\<And>X3. (0\<Colon>'a) = - X3 \<or> X3 \<noteq> (0\<Colon>'a)"
   by (metis 23 minus_equation_iff)
 have 25: "\<And>X3. \<bar>0\<Colon>'a\<bar> = \<bar>X3\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis abs_minus_cancel 24)
+  by metis
 have 26: "\<And>X3. (0\<Colon>'a) = \<bar>X3\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis 25 8)
+  by (metis 8)
 have 27: "\<And>X1 X3. (0\<Colon>'a) * \<bar>X1\<bar> = \<bar>X3 * X1\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
   by (metis abs_mult 26)
 have 28: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
@@ -108,7 +107,7 @@ have 31: "\<And>X1 X3. (0\<Colon>'a) = X1 * X3 \<or> X3 \<noteq> (0\<Colon>'a)"
 have 32: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<bar>X1\<bar> \<noteq> (0\<Colon>'a)"
   by (metis abs_mult 31)
 have 33: "\<And>X3::'a. \<bar>X3 * X3\<bar> = X3 * X3"
-  by (metis abs_mult_self abs_mult AC_mult.f.commute)
+  by (metis abs_mult_self abs_mult)
 have 34: "\<And>X3. (0\<Colon>'a) \<le> \<bar>X3\<bar> \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
   by (metis abs_ge_zero abs_mult_pos 20)
 have 35: "\<And>X3. (0\<Colon>'a) \<le> \<bar>X3\<bar>"
@@ -1096,13 +1095,11 @@ done
 lemma bigo_const1: "(%x. c) : O(%x. 1)"
 by (auto simp add: bigo_def mult_ac)
 
-declare bigo_const1 [skolem]
-
 ML{*ResAtp.problem_name:="BigO__bigo_const2"*}
 lemma (*bigo_const2 [intro]:*) "O(%x. c) <= O(%x. 1)"
 by (metis bigo_const1 bigo_elt_subset);
 
-lemma bigo_const2 [intro]: "O(%x. c) <= O(%x. 1)"; 
+lemma bigo_const2 [intro]: "O(%x. c::'b::ordered_idom) <= O(%x. 1)";
 (*??FAILS because the two occurrences of COMBK have different polymorphic types
 proof (neg_clausify)
 assume 0: "\<not> O(COMBK (c\<Colon>'b\<Colon>ordered_idom)) \<subseteq> O(COMBK (1\<Colon>'b\<Colon>ordered_idom))"
@@ -1120,8 +1117,6 @@ qed
   apply (rule bigo_elt_subset)
   apply (rule bigo_const1)
 done
-
-declare bigo_const2 [skolem]
 
 ML{*ResAtp.problem_name := "BigO__bigo_const3"*}
 lemma bigo_const3: "(c::'a::ordered_field) ~= 0 ==> (%x. 1) : O(%x. c)"
@@ -1535,7 +1530,7 @@ lemma bigo_lesso5: "f <o g =o O(h) ==>
     EX C. ALL x. f x <= g x + C * abs(h x)"
   apply (simp only: lesso_def bigo_alt_def)
   apply clarsimp
-  apply (metis abs_if abs_mult add_commute diff_le_eq less_not_permute mult_commute)  
+  apply (metis abs_if abs_mult add_commute diff_le_eq less_not_permute)  
 done
 
 end

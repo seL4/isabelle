@@ -51,14 +51,6 @@ constdefs
   interval :: "[('a*'a) set,'a, 'a ] => 'a set"
   "interval r a b == {x. (a,x): r & (x,b): r}"
 
-declare monotone_def [skolem]
-        lub_def [skolem]
-        glb_def [skolem]
-        isLub_def [skolem]
-        isGlb_def [skolem]
-        fix_def [skolem]
-        interval_def [skolem]
-
 constdefs
   Bot :: "'a potype => 'a"
   "Bot po == least (%x. True) po"
@@ -81,12 +73,6 @@ constdefs
 
   induced :: "['a set, ('a * 'a) set] => ('a *'a)set"
   "induced A r == {(a,b). a : A & b: A & (a,b): r}"
-
-declare Bot_def [skolem]
-        Top_def [skolem]
-        PartialOrder_def [skolem]
-        CompleteLattice_def [skolem]
-        CLF_def [skolem]
 
 constdefs
   sublattice :: "('a potype * 'a set)set"
@@ -204,12 +190,8 @@ declare (in CL) cl_co [simp]
 lemma isLub_lub: "(\<exists>L. isLub S cl L) = isLub S cl (lub S cl)"
 by (simp add: lub_def least_def isLub_def some_eq_ex [symmetric])
 
-declare isLub_lub [skolem]
-
 lemma isGlb_glb: "(\<exists>G. isGlb S cl G) = isGlb S cl (glb S cl)"
 by (simp add: glb_def greatest_def isGlb_def some_eq_ex [symmetric])
-
-declare isGlb_glb [skolem]
 
 lemma isGlb_dual_isLub: "isGlb S cl = isLub S (dual cl)"
 by (simp add: isLub_def isGlb_def dual_def converse_def)
@@ -234,8 +216,6 @@ apply (drule mp, fast)
 apply (simp add: isLub_lub isGlb_def)
 apply (simp add: isLub_def, blast)
 done
-
-declare Rdual [skolem]
 
 lemma lub_dual_glb: "lub S cl = glb S (dual cl)"
 by (simp add: lub_def glb_def least_def greatest_def dual_def converse_def)
@@ -267,8 +247,6 @@ lemma CompleteLatticeI:
       ==> po \<in> CompleteLattice"
 apply (unfold CompleteLattice_def, blast)
 done
-
-declare CompleteLatticeI [skolem]
 
 lemma (in CL) CL_dualCL: "dual cl \<in> CompleteLattice"
 apply (insert cl_co)
@@ -378,8 +356,6 @@ apply (rule lub_in_lattice, assumption)
 apply (simp add: lub_upper lub_least)
 done
 
-declare (in CL) lubI [skolem]
-
 lemma (in CL) lubIa: "[| S \<subseteq> A; isLub S cl L |] ==> L = lub S cl"
 by (simp add: lubI isLub_def A_def r_def)
 
@@ -398,8 +374,6 @@ lemma (in CL) isLubI:
          (\<forall>z \<in> A. (\<forall>y \<in> S. (y, z):r) --> (L, z) \<in> r)|] ==> isLub S cl L"
 by (simp add: isLub_def A_def r_def)
 
-declare (in CL) isLub_least [skolem]
-declare (in CL) isLubI [skolem]
 
 
 subsection {* glb *}
@@ -519,7 +493,7 @@ ML{*ResAtp.problem_name:="Tarski__CLF_flubH_le_lubH_simpler"*}
 (*??no longer terminates, with combinators
 apply (metis CO_refl lubH_le_flubH monotone_def monotone_f reflD1 reflD2) 
 *)
-apply (metis CO_refl lubH_le_flubH lub_dual_glb monotoneE [OF monotone_f] reflD1 reflD2)
+apply (metis CO_refl lubH_le_flubH monotoneE [OF monotone_f] reflD1 reflD2)
 apply (metis CO_refl lubH_le_flubH reflD2)
 done
   declare CLF.f_in_funcset[rule del] funcset_mem[rule del] 
@@ -605,7 +579,7 @@ lemma (in CLF) lubH_is_fixp:
 apply (simp add: fix_def)
 apply (rule conjI)
 ML{*ResAtp.problem_name:="Tarski__CLF_lubH_is_fixp_simpler"*} 
-apply (metis CO_refl Domain_iff lubH_le_flubH reflD1)
+apply (metis CO_refl lubH_le_flubH reflD1)
 apply (metis antisymE flubH_le_lubH lubH_le_flubH)
 done
 
@@ -640,7 +614,7 @@ apply (rule sym)
 apply (simp add: P_def)
 apply (rule lubI)
 ML{*ResAtp.problem_name:="Tarski__CLF_T_thm_1_lub_simpler"*}
-apply (metis P_def equalityE fix_subset subset_trans) 
+apply (metis P_def fix_subset) 
 apply (metis Collect_conj_eq Collect_mem_eq Int_commute Int_lower1 lub_in_lattice vimage_def)
 (*??no longer terminates, with combinators
 apply (metis P_def fix_def fixf_le_lubH)
@@ -720,14 +694,10 @@ lemma (in CLF) a_less_lub:
          \<forall>x \<in> S. (a,x) \<in> r; \<forall>y \<in> S. (y, L) \<in> r |] ==> (a,L) \<in> r"
 by (blast intro: transE)
 
-declare (in CLF) a_less_lub [skolem]
-
 lemma (in CLF) glb_less_b:
      "[| S \<subseteq> A; S \<noteq> {};
          \<forall>x \<in> S. (x,b) \<in> r; \<forall>y \<in> S. (G, y) \<in> r |] ==> (G,b) \<in> r"
 by (blast intro: transE)
-
-declare (in CLF) glb_less_b [skolem]
 
 lemma (in CLF) S_intv_cl:
      "[| a \<in> A; b \<in> A; S \<subseteq> interval r a b |]==> S \<subseteq> A"
@@ -995,7 +965,7 @@ lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 -> intY1"
 by (metis intY1_f_closed restrict_in_funcset)
 
 ML{*ResAtp.problem_name:="Tarski__intY1_mono"*}  (*ALL THEOREMS*)
-lemma (in Tarski) intY1_mono [skolem]:
+lemma (in Tarski) intY1_mono:
      "monotone (%x: intY1. f x) intY1 (induced intY1 r)"
 (*sledgehammer *)
 apply (auto simp add: monotone_def induced_def intY1_f_closed)
