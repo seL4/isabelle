@@ -35,8 +35,9 @@ val result = #1 o Interp.get;
 fun consolidate thy =
   let
     val (data, interps) = Interp.get thy;
-    val unfinished = map (fn ((f, _), xs) => (f, subtract eq xs data)) interps;
-    val finished = map (fn (interp, _) => (interp, data)) interps;
+    val unfinished = interps |> map (fn ((f, _), xs) =>
+      (f, if eq_list eq (xs, data) then [] else subtract eq xs data));
+    val finished = interps |> map (fn (interp, _) => (interp, data));
   in
     if forall (null o #2) unfinished then NONE
     else SOME (thy |> fold_rev (uncurry fold_rev) unfinished |> Interp.put (data, finished))
