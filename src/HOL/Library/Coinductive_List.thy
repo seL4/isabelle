@@ -440,7 +440,7 @@ proof -
     unfolding h'_def by (simp add: LList_corec)
   have "(h x, h' x) \<in> {(h u, h' u) | u. True}" by blast
   then show "h x = h' x"
-  proof (coinduct rule: LList_equalityI [where A = UNIV])
+  proof (coinduct taking: UNIV rule: LList_equalityI)
     case (EqLList M N)
     then obtain x where MN: "M = h x" "N = h' x" by blast
     show ?case
@@ -475,7 +475,7 @@ proof -
   with r have "(M, N) \<in> {(Rep_llist l1, Rep_llist l2) | l1 l2. (l1, l2) \<in> r}"
     by blast
   then have "M = N"
-  proof (coinduct rule: LList_equalityI [where A = UNIV])
+  proof (coinduct taking: UNIV rule: LList_equalityI)
     case (EqLList M N)
     then obtain l1 l2 where
         MN: "M = Rep_llist l1" "N = Rep_llist l2" and r: "(l1, l2) \<in> r"
@@ -609,8 +609,7 @@ proof -
   have "(?lhs M, ?rhs M) \<in> {(?lhs N, ?rhs N) | N. N \<in> LList A}"
     using M by blast
   then show ?thesis
-  proof (coinduct taking: "range (\<lambda>N :: 'a Datatype.item. N)"
-      rule: LList_equalityI)
+  proof (coinduct taking: "range (\<lambda>N. N)" rule: LList_equalityI)
     case (EqLList L M)
     then obtain N where LM: "L = ?lhs N" "M = ?rhs N" and N: "N \<in> LList A" by blast
     from N show ?case
@@ -632,8 +631,7 @@ lemma Lmap_ident:
 proof -
   have "(?lmap M, M) \<in> {(?lmap N, N) | N. N \<in> LList A}" using M by blast
   then show ?thesis
-  proof (coinduct taking: "range (\<lambda>N :: 'a Datatype.item. N)"
-      rule: LList_equalityI)
+  proof (coinduct taking: "range (\<lambda>N. N)" rule: LList_equalityI)
     case (EqLList L M)
     then obtain N where LM: "L = ?lmap N" "M = N" and N: "N \<in> LList A" by blast
     from N show ?case
