@@ -433,7 +433,7 @@ fun mk_cases ctxt prop =
       error (Pretty.string_of (Pretty.block
         [Pretty.str msg, Pretty.fbrk, ProofContext.pretty_term ctxt prop]));
 
-    val elims = Induct.find_casesS ctxt prop;
+    val elims = Induct.find_casesP ctxt prop;
 
     val cprop = Thm.cterm_of thy prop;
     val tac = ALLGOALS (simp_case_tac ss) THEN prune_params_tac;
@@ -679,7 +679,7 @@ fun declare_rules kind rec_name coind no_ind cnames intrs intr_names intr_atts
       if coind then
         (raw_induct, [RuleCases.case_names [rec_name],
           RuleCases.case_conclusion (rec_name, intr_names),
-          RuleCases.consumes 1, Induct.coinduct_set (hd cnames)])
+          RuleCases.consumes 1, Induct.coinduct_pred (hd cnames)])
       else if no_ind orelse length cnames > 1 then
         (raw_induct, [ind_case_names, RuleCases.consumes 0])
       else (raw_induct RSN (2, rev_mp), [ind_case_names, RuleCases.consumes 1]);
@@ -698,7 +698,7 @@ fun declare_rules kind rec_name coind no_ind cnames intrs intr_names intr_atts
         LocalTheory.note kind ((NameSpace.qualified (Sign.base_name name) "cases",
           [Attrib.internal (K (RuleCases.case_names cases)),
            Attrib.internal (K (RuleCases.consumes 1)),
-           Attrib.internal (K (Induct.cases_set name)),
+           Attrib.internal (K (Induct.cases_pred name)),
            Attrib.internal (K (ContextRules.elim_query NONE))]), [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
       LocalTheory.note kind ((NameSpace.qualified rec_name (coind_prefix coind ^ "induct"),
@@ -712,7 +712,7 @@ fun declare_rules kind rec_name coind no_ind cnames intrs intr_names intr_atts
           inducts |> map (fn (name, th) => ([th],
             [Attrib.internal (K ind_case_names),
              Attrib.internal (K (RuleCases.consumes 1)),
-             Attrib.internal (K (Induct.induct_set name))])))] |> snd
+             Attrib.internal (K (Induct.induct_pred name))])))] |> snd
       end
   in (intrs', elims', induct', ctxt3) end;
 

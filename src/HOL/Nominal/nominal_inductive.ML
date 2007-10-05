@@ -148,7 +148,7 @@ fun prove_strong_ind s avoids thy =
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
     val induct_cases = map fst (fst (RuleCases.get (the
-      (Induct.lookup_inductS ctxt (hd names)))));
+      (Induct.lookup_inductP ctxt (hd names)))));
     val raw_induct' = Logic.unvarify (prop_of raw_induct);
     val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>
       HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);

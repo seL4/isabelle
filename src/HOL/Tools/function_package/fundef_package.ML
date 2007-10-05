@@ -73,7 +73,7 @@ fun fundef_afterqed config fixes post defname cont sort_cont [[proof]] lthy =
             |> addsmps "psimps" [] psimps
             ||> fold_option (snd oo addsmps "simps" []) trsimps
             ||>> note_theorem ((qualify "pinduct",
-                                [Attrib.internal (K (Induct.induct_set ""))]), simple_pinducts)
+                                [Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
             ||>> note_theorem ((qualify "termination", []), [termination])
             ||> (snd o note_theorem ((qualify "cases", []), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
