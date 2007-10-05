@@ -12,7 +12,7 @@ DST="$2"
 
 mkdir -p "$DST"
 
-for FILE in "$SRC"/*
+for FILE in "$SRC"/*.gz
 do
   echo "$FILE"
   NAME="$(basename "$FILE" .gz)"
