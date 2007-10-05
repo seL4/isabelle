@@ -33,6 +33,7 @@ sig
   val consume: thm list -> thm list -> ('a * int) * thm ->
     (('a * (int * thm list)) * thm) Seq.seq
   val add_consumes: int -> thm -> thm
+  val get_consumes: thm -> int
   val consumes: int -> attribute
   val consumes_default: int -> attribute
   val name: string list -> thm -> thm
