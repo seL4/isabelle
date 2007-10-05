@@ -1660,13 +1660,14 @@ advanced case analysis later.
   coinduct & : & \isarmeth \\
 \end{matharray}
 
-The $cases$, $induct$, and $coinduct$ methods provide a uniform interface to
-common proof techniques over datatypes, inductive sets, recursive functions
-etc.  The corresponding rules may be specified and instantiated in a casual
-manner.  Furthermore, these methods provide named local contexts that may be
-invoked via the $\CASENAME$ proof command within the subsequent proof text.
-This accommodates compact proof texts even when reasoning about large
-specifications.
+The $cases$, $induct$, and $coinduct$ methods provide a uniform
+interface to common proof techniques over datatypes, inductive
+predicates (or sets), recursive functions etc.  The corresponding
+rules may be specified and instantiated in a casual manner.
+Furthermore, these methods provide named local contexts that may be
+invoked via the $\CASENAME$ proof command within the subsequent proof
+text.  This accommodates compact proof texts even when reasoning about
+large specifications.
 
 The $induct$ method also provides some additional infrastructure in order to
 be applicable to structure statements (either using explicit meta-level
@@ -1675,16 +1676,14 @@ cumbersome encoding of ``strengthened'' inductive statements within the
 object-logic.
 
 \begin{rail}
-  'cases' open? (insts * 'and') rule?
+  'cases' (insts * 'and') rule?
   ;
-  'induct' open? (definsts * 'and') \\ arbitrary? taking? rule?
+  'induct' (definsts * 'and') \\ arbitrary? taking? rule?
   ;
-  'coinduct' open? insts taking rule?
+  'coinduct' insts taking rule?
   ;
 
-  open: '(' 'open' ')'
-  ;
-  rule: ('type' | 'set') ':' (nameref +) | 'rule' ':' (thmref +)
+  rule: ('type' | 'pred' | 'set') ':' (nameref +) | 'rule' ':' (thmref +)
   ;
   definst: name ('==' | equiv) term | inst
   ;
@@ -1708,7 +1707,7 @@ object-logic.
     \Text{facts}    &       & \Text{arguments} & \Text{rule} \\\hline
                     & cases &           & \Text{classical case split} \\
                     & cases & t         & \Text{datatype exhaustion (type of $t$)} \\
-    \edrv a \in A   & cases & \dots     & \Text{inductive set elimination (of $A$)} \\
+    \edrv A\; t     & cases & \dots     & \Text{inductive predicate/set elimination (of $A$)} \\
     \dots           & cases & \dots ~ R & \Text{explicit rule $R$} \\
   \end{matharray}
 
@@ -1718,19 +1717,12 @@ object-logic.
   be specified; this refers to the first variable of the last premise (it is
   usually the same for all cases).
 
-  The ``$(open)$'' option causes the parameters of the new local contexts to
-  be exposed to the current proof context.  Thus local variables stemming from
-  distant parts of the theory development may be introduced in an implicit
-  manner, which can be quite confusing to the reader.  Furthermore, this
-  option may cause unwanted hiding of existing local variables, resulting in
-  less robust proof texts.
-
 \item [$induct~insts~R$] is analogous to the $cases$ method, but refers to
   induction rules, which are determined as follows:
   \begin{matharray}{llll}
     \Text{facts}    &        & \Text{arguments} & \Text{rule} \\\hline
                     & induct & P ~ x ~ \dots & \Text{datatype induction (type of $x$)} \\
-    \edrv x \in A   & induct & \dots         & \Text{set induction (of $A$)} \\
+    \edrv A\; x     & induct & \dots         & \Text{predicate/set induction (of $A$)} \\
     \dots           & induct & \dots ~ R     & \Text{explicit rule $R$} \\
   \end{matharray}
   
@@ -1758,30 +1750,28 @@ object-logic.
   instantiations of a prefix of pending variables in the rule.  Such schematic
   induction rules rarely occur in practice, though.
 
-  The ``$(open)$'' option works the same way as for $cases$.
-
 \item [$coinduct~inst~R$] is analogous to the $induct$ method, but refers to
   coinduction rules, which are determined as follows:
   \begin{matharray}{llll}
     \Text{goal}     &          & \Text{arguments} & \Text{rule} \\\hline
                     & coinduct & x ~ \dots        & \Text{type coinduction (type of $x$)} \\
-    x \in A         & coinduct & \dots            & \Text{set coinduction (of $A$)} \\
+    A\; x           & coinduct & \dots            & \Text{predicate/set coinduction (of $A$)} \\
     \dots           & coinduct & \dots ~ R        & \Text{explicit rule $R$} \\
   \end{matharray}
   
-  Coinduction is the dual of induction.  Induction essentially eliminates $x
-  \in A$ towards a generic result $P ~ x$, while coinduction introduces $x \in
-  A$ starting with $x \in B$, for a suitable ``bisimulation'' $B$.  The cases
-  of a coinduct rule are typically named after the sets being covered, while
-  the conclusions consist of several alternatives being named after the
+  Coinduction is the dual of induction.  Induction essentially
+  eliminates $A\; x$ towards a generic result $P\; x$, while
+  coinduction introduces $A\; x$ starting with $B\; x$, for a suitable
+  ``bisimulation'' $B$.  The cases of a coinduct rule are typically
+  named after the predicates or sets being covered, while the
+  conclusions consist of several alternatives being named after the
   individual destructor patterns.
   
-  The given instantiation refers to the \emph{prefix} of variables occurring
-  in the rule's conclusion.  An additional ``$taking: \vec t$'' specification
-  may be required in order to specify the bisimulation to be used in the
-  coinduction step.
-
-  The ``$(open)$'' option works the same way as for $cases$.
+  The given instantiation refers to the \emph{suffix} of variables
+  occurring in the rule's major premise, or conclusion if unavailable.
+  An additional ``$taking: \vec t$'' specification may be required in
+  order to specify the bisimulation to be used in the coinduction
+  step.
 
 \end{descr}
 
@@ -1819,11 +1809,12 @@ $c\mathord.prems$, as well as fact $c$ to hold the all-inclusive list.
 
 \medskip
 
-Facts presented to either method are consumed according to the number of
-``major premises'' of the rule involved, which is usually $0$ for plain cases
-and induction rules of datatypes etc.\ and $1$ for rules of inductive sets and
-the like.  The remaining facts are inserted into the goal verbatim before the
-actual $cases$, $induct$, or $coinduct$ rule is applied.
+Facts presented to either method are consumed according to the number
+of ``major premises'' of the rule involved, which is usually $0$ for
+plain cases and induction rules of datatypes etc.\ and $1$ for rules
+of inductive predicates or sets and the like.  The remaining facts are
+inserted into the goal verbatim before the actual $cases$, $induct$,
+or $coinduct$ rule is applied.
 
 
 \subsubsection{Declaring rules}
@@ -1844,25 +1835,27 @@ actual $cases$, $induct$, or $coinduct$ rule is applied.
   'coinduct' spec
   ;
 
-  spec: ('type' | 'set') ':' nameref
+  spec: ('type' | 'pred' | 'set') ':' nameref
   ;
 \end{rail}
 
 \begin{descr}
 
-\item [$\isarkeyword{print_induct_rules}$] prints cases and induct rules for
-  sets and types of the current context.
+\item [$\isarkeyword{print_induct_rules}$] prints cases and induct
+  rules for predicates (or sets) and types of the current context.
   
 \item [$cases$, $induct$, and $coinduct$] (as attributes) augment the
-  corresponding context of rules for reasoning about (co)inductive sets and
-  types, using the corresponding methods of the same name.  Certain
-  definitional packages of object-logics usually declare emerging cases and
-  induction rules as expected, so users rarely need to intervene.
+  corresponding context of rules for reasoning about (co)inductive
+  predicates (or sets) and types, using the corresponding methods of
+  the same name.  Certain definitional packages of object-logics
+  usually declare emerging cases and induction rules as expected, so
+  users rarely need to intervene.
   
-  Manual rule declarations usually refer to the $case_names$ and $params$
-  attributes to adjust names of cases and parameters of a rule; the $consumes$
-  declaration is taken care of automatically: $consumes~0$ is specified for
-  ``type'' rules and $consumes~1$ for ``set'' rules.
+  Manual rule declarations usually refer to the $case_names$ and
+  $params$ attributes to adjust names of cases and parameters of a
+  rule; the $consumes$ declaration is taken care of automatically:
+  $consumes~0$ is specified for ``type'' rules and $consumes~1$ for
+  ``predicate'' / ``set'' rules.
 
 \end{descr}
 

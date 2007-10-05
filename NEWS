@@ -458,7 +458,7 @@ Typically, the constant `partial_order.less' is created by a
 definition specification element in the context of locale
 partial_order.
 
-* Provers/induct: improved internal context management to support
+* Method "induct": improved internal context management to support
 local fixes and defines on-the-fly. Thus explicit meta-level
 connectives !!  and ==> are rarely required anymore in inductive goals
 (using object-logic connectives for this purpose has been long
@@ -466,27 +466,31 @@ obsolete anyway). Common proof patterns are explained in
 HOL/Induct/Common_Patterns.thy, see also HOL/Isar_examples/Puzzle.thy
 and src/HOL/Lambda for realistic examples.
 
-* Provers/induct: improved handling of simultaneous goals. Instead of
+* Method "induct": improved handling of simultaneous goals. Instead of
 introducing object-level conjunction, the statement is now split into
 several conclusions, while the corresponding symbolic cases are nested
 accordingly. INCOMPATIBILITY, proofs need to be structured explicitly,
 see HOL/Induct/Common_Patterns.thy, for example.
 
-* Provers/induct: mutual induction rules are now specified as a list
+* Method "induct": mutual induction rules are now specified as a list
 of rule sharing the same induction cases. HOL packages usually provide
 foo_bar.inducts for mutually defined items foo and bar (e.g. inductive
-sets or datatypes). INCOMPATIBILITY, users need to specify mutual
-induction rules differently, i.e. like this:
+predicates/sets or datatypes). INCOMPATIBILITY, users need to specify
+mutual induction rules differently, i.e. like this:
 
   (induct rule: foo_bar.inducts)
   (induct set: foo bar)
+  (induct pred: foo bar)
   (induct type: foo bar)
 
 The ML function ProjectRule.projections turns old-style rules into the
 new format.
 
-* Provers/induct: support coinduction as well. See
+* Method "coinduct": dual of induction, see
 src/HOL/Library/Coinductive_List.thy for various examples.
+
+* Method "cases", "induct", "coinduct": the ``(open)'' option is
+considered a legacy feature.
 
 * Attribute "symmetric" produces result with standardized schematic
 variables (index 0).  Potential INCOMPATIBILITY.
