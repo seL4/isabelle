@@ -414,11 +414,33 @@ lemma finite_atLeastAtMost [iff]:
 by (simp add: atLeastAtMost_def)
 
 lemma bounded_nat_set_is_finite:
-    "(ALL i:N. i < (n::nat)) ==> finite N"
+  "(ALL i:N. i < (n::nat)) ==> finite N"
   -- {* A bounded set of natural numbers is finite. *}
   apply (rule finite_subset)
    apply (rule_tac [2] finite_lessThan, auto)
   done
+
+text{* Any subset of an interval of natural numbers the size of the
+subset is exactly that interval. *}
+
+lemma subset_card_intvl_is_intvl:
+  "A <= {k..<k+card A} \<Longrightarrow> A = {k..<k+card A}" (is "PROP ?P")
+proof cases
+  assume "finite A"
+  thus "PROP ?P"
+  proof(induct A rule:finite_linorder_induct)
+    case empty thus ?case by auto
+  next
+    case (insert A b)
+    moreover hence "b ~: A" by auto
+    moreover have "A <= {k..<k+card A}" and "b = k+card A"
+      using `b ~: A` insert by fastsimp+
+    ultimately show ?case by auto
+  qed
+next
+  assume "~finite A" thus "PROP ?P" by simp
+qed
+
 
 subsubsection {* Cardinality *}
 
@@ -494,6 +516,7 @@ lemma finite_greaterThanAtMost_int [iff]: "finite {l<..(u::int)}"
 
 lemma finite_greaterThanLessThan_int [iff]: "finite {l<..<u::int}"
   by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
+
 
 subsubsection {* Cardinality *}
 

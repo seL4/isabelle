@@ -121,7 +121,7 @@ lemma Suc_metric: "~ s x ==> Suc (metric (s(x:=True))) = metric s"
 apply (unfold metric_def)
 apply (subgoal_tac "{v. ~ (s (x:=True)) v} = {v. ~ s v} - {x}")
  prefer 2 apply force
-apply (simp add: card_Suc_Diff1)
+apply (simp add: card_Suc_Diff1 del:card_Diff_insert)
 done
 
 lemma metric_less [intro!]: "~ s x ==> metric (s(x:=True)) < metric s"

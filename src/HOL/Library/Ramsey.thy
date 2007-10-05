@@ -64,7 +64,7 @@ lemma part_Suc_imp_part:
       ==> part r s (Y - {y}) (%u. f (insert y u))"
   apply(simp add: part_def, clarify)
   apply(drule_tac x="insert y X" in spec)
-  apply(force simp:card_Diff_singleton_if)
+  apply(force)
   done
 
 lemma part_subset: "part r s YY f ==> Y \<subseteq> YY ==> part r s Y f" 
@@ -82,7 +82,7 @@ lemma Ramsey_induction:
                   (\<forall>X. X \<subseteq> Y' & finite X & card X = r --> f X = t')"
 proof (induct r)
   case 0
-  thus ?case by (auto simp add: part_def card_eq_0_iff cong: conj_cong) 
+  thus ?case by (auto simp add: part_def card_eq_0_iff cong: conj_cong)
 next
   case (Suc r) 
   show ?case
@@ -187,7 +187,7 @@ next
              qed
              moreover
              have "card (X - {ya}) = r"
-               by (simp add: card_Diff_singleton_if cardX ya)
+               by (simp add: cardX ya)
              ultimately show ?thesis 
                using pg [of "LEAST x. x \<in> AA"] fields cardX
 	       by (clarsimp simp del:insert_Diff_single)
@@ -220,7 +220,7 @@ corollary Ramsey2:
    "\<exists>Y t. Y \<subseteq> Z & infinite Y & t < s & (\<forall>x\<in>Y. \<forall>y\<in>Y. x\<noteq>y --> f{x,y} = t)"
 proof -
   have part2: "\<forall>X. X \<subseteq> Z & finite X & card X = 2 --> f X < s"
-    by (auto simp add: numeral_2_eq_2 card_2_eq part) 
+    using part by (fastsimp simp add: nat_number card_Suc_eq)
   obtain Y t 
     where "Y \<subseteq> Z" "infinite Y" "t < s"
           "(\<forall>X. X \<subseteq> Y & finite X & card X = 2 --> f X = t)"

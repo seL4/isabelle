@@ -107,6 +107,39 @@ lemma measure_induct:
   shows "(\<And>x. \<forall>y. f y < f x \<longrightarrow> P y \<Longrightarrow> P x) \<Longrightarrow> P a"
   by (rule measure_induct_rule [of f P a]) iprover
 
+(* Should go into Finite_Set, but needs measure.
+   Maybe move Wf_Rel before Finite_Set and finite_psubset to Finite_set?
+*)
+lemma (in linorder)
+  finite_linorder_induct[consumes 1, case_names empty insert]:
+ "finite A \<Longrightarrow> P {} \<Longrightarrow>
+  (!!A b. finite A \<Longrightarrow> ALL a:A. a \<^loc>< b \<Longrightarrow> P A \<Longrightarrow> P(insert b A))
+  \<Longrightarrow> P A"
+proof (induct A rule: measure_induct[where f=card])
+  fix A :: "'a set"
+  assume IH: "ALL B. card B < card A \<longrightarrow> finite B \<longrightarrow> P {} \<longrightarrow>
+                 (\<forall>A b. finite A \<longrightarrow> (\<forall>a\<in>A. a\<^loc><b) \<longrightarrow> P A \<longrightarrow> P (insert b A))
+                  \<longrightarrow> P B"
+  and "finite A" and "P {}"
+  and step: "!!A b. \<lbrakk>finite A; \<forall>a\<in>A. a \<^loc>< b; P A\<rbrakk> \<Longrightarrow> P (insert b A)"
+  show "P A"
+  proof cases
+    assume "A = {}" thus "P A" using `P {}` by simp
+  next
+    let ?B = "A - {Max A}" let ?A = "insert (Max A) ?B"
+    assume "A \<noteq> {}"
+    with `finite A` have "Max A : A" by auto
+    hence A: "?A = A" using insert_Diff_single insert_absorb by auto
+    note card_Diff1_less[OF `finite A` `Max A : A`]
+    moreover have "finite ?B" using `finite A` by simp
+    ultimately have "P ?B" using `P {}` step IH by blast
+    moreover have "\<forall>a\<in>?B. a \<^loc>< Max A"
+      using Max_ge[OF `finite A` `A \<noteq> {}`] by fastsimp
+    ultimately show "P A"
+      using A insert_Diff_single step[OF `finite ?B`] by fastsimp
+  qed
+qed
+
 
 subsection{*Other Ways of Constructing Wellfounded Relations*}
 

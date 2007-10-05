@@ -1505,10 +1505,10 @@ constdefs
   "card A == setsum (%x. 1::nat) A"
 
 lemma card_empty [simp]: "card {} = 0"
-  by (simp add: card_def)
+by (simp add: card_def)
 
 lemma card_infinite [simp]: "~ finite A ==> card A = 0"
-  by (simp add: card_def)
+by (simp add: card_def)
 
 lemma card_eq_setsum: "card A = setsum (%x. 1) A"
 by (simp add: card_def)
@@ -1529,24 +1529,33 @@ lemma card_0_eq [simp,noatp]: "finite A ==> (card A = 0) = (A = {})"
 lemma card_eq_0_iff: "(card A = 0) = (A = {} | ~ finite A)"
 by auto
 
+
 lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
 apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
 apply(simp del:insert_Diff_single)
 done
 
 lemma card_Diff_singleton:
-    "finite A ==> x: A ==> card (A - {x}) = card A - 1"
-  by (simp add: card_Suc_Diff1 [symmetric])
+  "finite A ==> x: A ==> card (A - {x}) = card A - 1"
+by (simp add: card_Suc_Diff1 [symmetric])
 
 lemma card_Diff_singleton_if:
-    "finite A ==> card (A-{x}) = (if x : A then card A - 1 else card A)"
-  by (simp add: card_Diff_singleton)
+  "finite A ==> card (A-{x}) = (if x : A then card A - 1 else card A)"
+by (simp add: card_Diff_singleton)
+
+lemma card_Diff_insert[simp]:
+assumes "finite A" and "a:A" and "a ~: B"
+shows "card(A - insert a B) = card(A - B) - 1"
+proof -
+  have "A - insert a B = (A - B) - {a}" using assms by blast
+  then show ?thesis using assms by(simp add:card_Diff_singleton)
+qed
 
 lemma card_insert: "finite A ==> card (insert x A) = Suc (card (A - {x}))"
-  by (simp add: card_insert_if card_Suc_Diff1)
+by (simp add: card_insert_if card_Suc_Diff1 del:card_Diff_insert)
 
 lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
-  by (simp add: card_insert_if)
+by (simp add: card_insert_if)
 
 lemma card_mono: "\<lbrakk> finite B; A \<subseteq> B \<rbrakk> \<Longrightarrow> card A \<le> card B"
 by (simp add: card_def setsum_mono2)
@@ -1561,9 +1570,9 @@ lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
   done
 
 lemma psubset_card_mono: "finite B ==> A < B ==> card A < card B"
-  apply (simp add: psubset_def linorder_not_le [symmetric])
-  apply (blast dest: card_seteq)
-  done
+apply (simp add: psubset_def linorder_not_le [symmetric])
+apply (blast dest: card_seteq)
+done
 
 lemma card_Un_Int: "finite A ==> finite B
     ==> card A + card B = card (A Un B) + card (A Int B)"
@@ -1571,7 +1580,7 @@ by(simp add:card_def setsum_Un_Int)
 
 lemma card_Un_disjoint: "finite A ==> finite B
     ==> A Int B = {} ==> card (A Un B) = card A + card B"
-  by (simp add: card_Un_Int)
+by (simp add: card_Un_Int)
 
 lemma card_Diff_subset:
   "finite B ==> B <= A ==> card (A - B) = card A - card B"
@@ -1579,15 +1588,15 @@ by(simp add:card_def setsum_diff_nat)
 
 lemma card_Diff1_less: "finite A ==> x: A ==> card (A - {x}) < card A"
   apply (rule Suc_less_SucD)
-  apply (simp add: card_Suc_Diff1)
+  apply (simp add: card_Suc_Diff1 del:card_Diff_insert)
   done
 
 lemma card_Diff2_less:
     "finite A ==> x: A ==> y: A ==> card (A - {x} - {y}) < card A"
   apply (case_tac "x = y")
-   apply (simp add: card_Diff1_less)
+   apply (simp add: card_Diff1_less del:card_Diff_insert)
   apply (rule less_trans)
-   prefer 2 apply (auto intro!: card_Diff1_less)
+   prefer 2 apply (auto intro!: card_Diff1_less simp del:card_Diff_insert)
   done
 
 lemma card_Diff1_le: "finite A ==> card (A - {x}) <= card A"
@@ -1619,32 +1628,39 @@ done
 text{*The form of a finite set of given cardinality*}
 
 lemma card_eq_SucD:
-  assumes cardeq: "card A = Suc k" and fin: "finite A" 
-  shows "\<exists>b B. A = insert b B & b \<notin> B & card B = k"
+assumes "card A = Suc k"
+shows "\<exists>b B. A = insert b B & b \<notin> B & card B = k & (k=0 \<longrightarrow> B={})"
 proof -
-  have "card A \<noteq> 0" using cardeq by auto
-  then obtain b where b: "b \<in> A" using fin by auto
+  have fin: "finite A" using assms by (auto intro: ccontr)
+  moreover have "card A \<noteq> 0" using assms by auto
+  ultimately obtain b where b: "b \<in> A" by auto
   show ?thesis
   proof (intro exI conjI)
     show "A = insert b (A-{b})" using b by blast
     show "b \<notin> A - {b}" by blast
-    show "card (A - {b}) = k" by (simp add: fin cardeq b card_Diff_singleton) 
+    show "card (A - {b}) = k" and "k = 0 \<longrightarrow> A - {b} = {}"
+      using assms b fin by(fastsimp dest:mk_disjoint_insert)+
   qed
 qed
 
-
 lemma card_Suc_eq:
-  "finite A ==>
-   (card A = Suc k) = (\<exists>b B. A = insert b B & b \<notin> B & card B = k)"
-by (auto dest!: card_eq_SucD) 
-
+  "(card A = Suc k) =
+   (\<exists>b B. A = insert b B & b \<notin> B & card B = k & (k=0 \<longrightarrow> B={}))"
+apply(rule iffI)
+ apply(erule card_eq_SucD)
+apply(auto)
+apply(subst card_insert)
+ apply(auto intro:ccontr)
+done
+(*
 lemma card_1_eq:
-  "finite A ==> (card A = Suc 0) = (\<exists>x. A = {x})"
-by (auto dest!: card_eq_SucD) 
+  "(card A = Suc 0) = (\<exists>x. A = {x})"
+by (auto dest!: card_eq_SucD)
 
 lemma card_2_eq:
-  "finite A ==> (card A = Suc(Suc 0)) = (\<exists>x y. x\<noteq>y & A = {x,y})" 
-by (auto dest!: card_eq_SucD, blast) 
+ "(card A = Suc(Suc 0)) = (\<exists>x y. x\<noteq>y & A = {x,y})" 
+by (auto dest!: card_eq_SucD)
+*)
 
 
 lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"

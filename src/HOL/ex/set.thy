@@ -111,6 +111,51 @@ theorem Schroeder_Bernstein:
   done
 
 
+subsection {* A simple party theorem *}
+
+text{* \emph{At any party there are two people who know the same
+number of people}. Provided the party consists of at least two people
+and the knows relation is symmetric. Knowing yourself does not count
+--- otherwise knows needs to be reflexive. (From Freek Wiedijk's talk
+at TPHOLs 2007.) *}
+
+lemma equal_number_of_acquaintances:
+assumes "Domain R <= A" and "sym R" and "card A \<ge> 2"
+shows "\<not> inj_on (%a. card(R `` {a} - {a})) A"
+proof -
+  let ?N = "%a. card(R `` {a} - {a})"
+  let ?n = "card A"
+  have "finite A" using `card A \<ge> 2` by(auto intro:ccontr)
+  have 0: "R `` A <= A" using `sym R` `Domain R <= A`
+    unfolding Domain_def sym_def by blast
+  have h: "ALL a:A. R `` {a} <= A" using 0 by blast
+  hence 1: "ALL a:A. finite(R `` {a})" using `finite A`
+    by(blast intro: finite_subset)
+  have sub: "?N ` A <= {0..<?n}"
+  proof -
+    have "ALL a:A. R `` {a} - {a} < A" using h by blast
+    thus ?thesis using psubset_card_mono[OF `finite A`] by auto
+  qed
+  show "~ inj_on ?N A" (is "~ ?I")
+  proof
+    assume ?I
+    hence "?n = card(?N ` A)" by(rule card_image[symmetric])
+    with sub `finite A` have 2[simp]: "?N ` A = {0..<?n}"
+      using subset_card_intvl_is_intvl[of _ 0] by(auto)
+    have "0 : ?N ` A" and "?n - 1 : ?N ` A"  using `card A \<ge> 2` by simp+
+    then obtain a b where ab: "a:A" "b:A" and Na: "?N a = 0" and Nb: "?N b = ?n - 1"
+      by (auto simp del: 2)
+    have "a \<noteq> b" using Na Nb `card A \<ge> 2` by auto
+    have "R `` {a} - {a} = {}" by (metis 1 Na ab card_eq_0_iff finite_Diff)
+    hence "b \<notin> R `` {a}" using `a\<noteq>b` by blast
+    hence "a \<notin> R `` {b}" by (metis Image_singleton_iff assms(2) sym_def)
+    hence 3: "R `` {b} - {b} <= A - {a,b}" using 0 ab by blast
+    have 4: "finite (A - {a,b})" using `finite A` by simp
+    have "?N b <= ?n - 2" using ab `a\<noteq>b` `finite A` card_mono[OF 4 3] by simp
+    then show False using Nb `card A \<ge>  2` by arith
+  qed
+qed
+
 text {*
   From W. W. Bledsoe and Guohui Feng, SET-VAR. JAR 11 (3), 1993, pages
   293-314.
