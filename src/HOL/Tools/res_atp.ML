@@ -606,12 +606,9 @@ fun add_single_names ((a, []), pairs) = pairs
   | add_single_names ((a, [th]), pairs) = (a,th)::pairs
   | add_single_names ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
 
-val multi_base_blacklist =
-  ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
-
 (*Ignore blacklisted basenames*)
 fun add_multi_names ((a, ths), pairs) =
-  if (Sign.base_name a) mem_string multi_base_blacklist  then pairs
+  if (Sign.base_name a) mem_string ResAxioms.multi_base_blacklist  then pairs
   else add_single_names ((a, ths), pairs);
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;

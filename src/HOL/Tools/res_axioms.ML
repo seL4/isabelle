@@ -10,6 +10,7 @@ sig
   val cnf_axiom: thm -> thm list
   val meta_cnf_axiom: thm -> thm list
   val pairname: thm -> string * thm
+  val multi_base_blacklist: string list 
   val skolem_thm: thm -> thm list
   val cnf_rules_pairs: (string * thm) list -> (thm * (string * int)) list
   val cnf_rules_of_ths: thm list -> thm list
@@ -449,11 +450,18 @@ fun excessive_lambdas_fm Ts (Abs(_,T,t)) = excessive_lambdas_fm (T::Ts) t
 fun too_complex t = 
   Meson.too_many_clauses t orelse excessive_lambdas_fm [] t;
   
+val multi_base_blacklist =
+  ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
+
 fun skolem_cache th thy =
   if PureThy.is_internal th orelse too_complex (prop_of th) then thy
   else #2 (skolem_cache_thm th thy);
 
-val skolem_cache_theorems_of = Symtab.fold (fold skolem_cache o snd) o #2 o PureThy.theorems_of;
+fun skolem_cache_list (a,ths) thy =
+  if (Sign.base_name a) mem_string multi_base_blacklist then thy
+  else fold skolem_cache ths thy;
+
+val skolem_cache_theorems_of = Symtab.fold skolem_cache_list o #2 o PureThy.theorems_of;
 fun skolem_cache_node thy = skolem_cache_theorems_of thy thy;
 fun skolem_cache_all thy = fold skolem_cache_theorems_of (thy :: Theory.ancestors_of thy) thy;
 
