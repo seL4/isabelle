@@ -742,11 +742,11 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "help" "print outer syntax commands" K.diag
-    (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative OuterSyntax.print_outer_syntax));
 
 val _ =
   OuterSyntax.improper_command "print_commands" "print outer syntax commands" K.diag
-    (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative OuterSyntax.print_outer_syntax));
 
 val _ =
   OuterSyntax.improper_command "print_configs" "print configuration options" K.diag
