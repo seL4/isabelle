@@ -295,6 +295,8 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val _ = OuterSyntax.keywords ["permissive", "congs", "hints"];
+
 val hints =
   P.$$$ "(" |-- P.!!! (P.position (P.$$$ "hints" -- P.arguments) --| P.$$$ ")") >> Args.src;
 
@@ -303,7 +305,7 @@ val recdef_decl =
   P.name -- P.term -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop) -- Scan.option hints
   >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map P.triple_swap eqs) src);
 
-val recdefP =
+val _ =
   OuterSyntax.command "recdef" "define general recursive functions (TFL)" K.thy_decl
     (recdef_decl >> Toplevel.theory);
 
@@ -313,20 +315,16 @@ val defer_recdef_decl =
   Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (SpecParse.xthms1 --| P.$$$ ")")) []
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 
-val defer_recdefP =
+val _ =
   OuterSyntax.command "defer_recdef" "defer general recursive functions (TFL)" K.thy_decl
     (defer_recdef_decl >> Toplevel.theory);
 
-val recdef_tcP =
+val _ =
   OuterSyntax.command "recdef_tc" "recommence proof of termination condition (TFL)" K.thy_goal
     (P.opt_target --
       SpecParse.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
       >> (fn (((loc, thm_name), name), i) =>
         Toplevel.print o Toplevel.local_theory_to_proof' loc (recdef_tc thm_name name i)));
-
-
-val _ = OuterSyntax.add_keywords ["permissive", "congs", "hints"];
-val _ = OuterSyntax.add_parsers [recdefP, defer_recdefP, recdef_tcP];
 
 end;
 

@@ -146,6 +146,8 @@ val add_domain = gen_add_domain Syntax.read_typ_global;
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val _ = OuterSyntax.keywords ["lazy"];
+
 val dest_decl =
   P.$$$ "(" |-- Scan.optional (P.$$$ "lazy" >> K true) false --
     (P.name >> SOME) -- (P.$$$ "::" |-- P.typ)  --| P.$$$ ")" >> P.triple1
@@ -170,14 +172,10 @@ val domains_decl =
   >> (fn (opt_name, doms) =>
       (case opt_name of NONE => space_implode "_" (map (#1 o #1) doms) | SOME s => s, doms));
 
-val domainP =
+val _ =
   OuterSyntax.command "domain" "define recursive domains (HOLCF)" K.thy_decl
     (domains_decl >> (Toplevel.theory o add_domain));
 
-
-val _ = OuterSyntax.add_keywords ["lazy"];
-val _ = OuterSyntax.add_parsers [domainP];
-
-end; (* local structure *)
+end;
 
 end;

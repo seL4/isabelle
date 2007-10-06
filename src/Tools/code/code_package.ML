@@ -558,14 +558,14 @@ fun code_exprP cmd =
      -- Scan.optional (P.$$$ "(" |-- P.arguments --| P.$$$ ")") []
   ) >> (fn (raw_cs, seris) => cmd raw_cs seris));
 
-val _ = OuterSyntax.add_keywords [inK, module_nameK, fileK];
+val _ = OuterSyntax.keywords [inK, module_nameK, fileK];
 
 val (codeK, code_thmsK, code_depsK, code_propsK) =
   ("export_code", "code_thms", "code_deps", "code_props");
 
 in
 
-val codeP =
+val _ =
   OuterSyntax.improper_command codeK "generate executable code for constants"
     K.diag (P.!!! (code_exprP code_cmd) >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
@@ -574,23 +574,21 @@ fun codegen_command thy cmd =
    of SOME f => (writeln "Now generating code..."; f thy)
     | NONE => error ("Bad directive " ^ quote cmd);
 
-val code_thmsP =
+val _ =
   OuterSyntax.improper_command code_thmsK "print system of defining equations for code" OuterKeyword.diag
     (Scan.repeat P.term
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
 
-val code_depsP =
+val _ =
   OuterSyntax.improper_command code_depsK "visualize dependencies of defining equations for code" OuterKeyword.diag
     (Scan.repeat P.term
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
 
-val code_propsP =
+val _ =
   OuterSyntax.command code_propsK "generate characteristic properties for executable constants"
     K.thy_decl (P.!!! (code_exprP code_props_cmd) >> Toplevel.theory);
-
-val _ = OuterSyntax.add_parsers [codeP, code_thmsP, code_depsP, code_propsP];
 
 end; (*local*)
 

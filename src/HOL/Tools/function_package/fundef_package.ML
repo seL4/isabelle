@@ -268,23 +268,21 @@ val get_congs = FundefCtxTree.get_fundef_congs o Context.Theory
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val functionP =
+val _ = OuterSyntax.keywords ["sequential", "otherwise"];
+
+val _ =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
   (fundef_parser default_config
      >> (fn ((config, fixes), (flags, statements)) =>
             Toplevel.local_theory_to_proof (target_of config) (add_fundef fixes statements config flags)
             #> Toplevel.print));
 
-val terminationP =
+val _ =
   OuterSyntax.command "termination" "prove termination of a recursive function" K.thy_goal
   (P.opt_target -- Scan.option P.term
     >> (fn (target, name) =>
            Toplevel.print o
            Toplevel.local_theory_to_proof target (setup_termination_proof name)));
-
-val _ = OuterSyntax.add_parsers [functionP];
-val _ = OuterSyntax.add_parsers [terminationP];
-val _ = OuterSyntax.add_keywords ["sequential", "otherwise"];
 
 end;
 

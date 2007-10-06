@@ -1337,6 +1337,11 @@ theory before entering a proof state.  Transactions now always see a
 quasi-functional intermediate checkpoint, both in interactive and
 batch mode.
 
+* Isar: simplified interfaces for outer syntax.  Renamed
+OuterSyntax.add_keywords to OuterSyntax.keywords.  Removed
+OuterSyntax.add_parsers -- this functionality is now included in
+OuterSyntax.command etc.  INCOMPATIBILITY.
+
 * Simplifier: the simpset of a running simplification process now
 contains a proof context (cf. Simplifier.the_context), which is the
 very context that the initial simpset has been retrieved from (by

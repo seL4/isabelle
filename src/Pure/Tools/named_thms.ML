@@ -36,10 +36,10 @@ val del = Thm.declaration_attribute (Data.map o Thm.del_thm);
 val setup =
   Attrib.add_attributes [(name, Attrib.add_del_args add del, "declaration of " ^ description)];
 
-val _ = OuterSyntax.add_parsers
- [OuterSyntax.improper_command ("print_" ^ name ^ "_rules") ("print " ^ description)
+val _ =
+  OuterSyntax.improper_command ("print_" ^ name ^ "_rules") ("print " ^ description)
     OuterKeyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
-      Toplevel.keep (Pretty.writeln o pretty o Toplevel.context_of)))];
+      Toplevel.keep (Pretty.writeln o pretty o Toplevel.context_of)));
 
 end;

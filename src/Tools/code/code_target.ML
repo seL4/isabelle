@@ -2091,7 +2091,10 @@ fun add_pretty_imperative_monad_bind target bind thy =
 
 val add_haskell_monad = gen_add_haskell_monad CodeUnit.read_const;
 
-val code_classP =
+
+val _ = OuterSyntax.keywords [infixK, infixlK, infixrK];
+
+val _ =
   OuterSyntax.command code_classK "define code syntax for class" K.thy_decl (
     parse_multi_syntax P.xname
       (Scan.option (P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
@@ -2100,7 +2103,7 @@ val code_classP =
           fold (fn (raw_class, syn) => add_syntax_class_cmd target raw_class syn) syns)
   );
 
-val code_instanceP =
+val _ =
   OuterSyntax.command code_instanceK "define code syntax for instance" K.thy_decl (
     parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname)
       ((P.minus >> K true) || Scan.succeed false)
@@ -2108,54 +2111,49 @@ val code_instanceP =
           fold (fn (raw_inst, add_del) => add_syntax_inst_cmd target raw_inst add_del) syns)
   );
 
-val code_typeP =
+val _ =
   OuterSyntax.command code_typeK "define code syntax for type constructor" K.thy_decl (
     parse_multi_syntax P.xname (parse_syntax I)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_tyco, syn) => add_syntax_tyco_cmd target raw_tyco syn) syns)
   );
 
-val code_constP =
+val _ =
   OuterSyntax.command code_constK "define code syntax for constant" K.thy_decl (
     parse_multi_syntax P.term (parse_syntax fst)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_const, syn) => add_syntax_const_cmd target raw_const (no_bindings syn)) syns)
   );
 
-val code_monadP =
+val _ =
   OuterSyntax.command code_monadK "define code syntax for Haskell monads" K.thy_decl (
     P.term -- P.term -- P.term
     >> (fn ((raw_run, raw_mbind), raw_kbind) => Toplevel.theory 
           (add_haskell_monad raw_run raw_mbind raw_kbind))
   );
 
-val code_reservedP =
+val _ =
   OuterSyntax.command code_reservedK "declare words as reserved for target language" K.thy_decl (
     P.name -- Scan.repeat1 P.name
     >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds)
   );
 
-val code_modulenameP =
+val _ =
   OuterSyntax.command code_modulenameK "alias module to other name" K.thy_decl (
     P.name -- Scan.repeat1 (P.name -- P.name)
     >> (fn (target, modlnames) => (Toplevel.theory o fold (add_modl_alias target)) modlnames)
   );
 
-val code_moduleprologP =
+val _ =
   OuterSyntax.command code_moduleprologK "add prolog to module" K.thy_decl (
     P.name -- Scan.repeat1 (P.name -- (P.text >> (fn "-" => NONE | s => SOME s)))
     >> (fn (target, prologs) => (Toplevel.theory o fold (add_modl_prolog target)) prologs)
   );
 
-val code_exceptionP =
+val _ =
   OuterSyntax.command code_exceptionK "permit exceptions for constant" K.thy_decl (
     Scan.repeat1 P.term >> (Toplevel.theory o fold allow_exception_cmd)
   );
-
-val _ = OuterSyntax.add_keywords [infixK, infixlK, infixrK];
-
-val _ = OuterSyntax.add_parsers [code_classP, code_instanceP, code_typeP, code_constP,
-  code_reservedP, code_modulenameP, code_moduleprologP, code_monadP, code_exceptionP];
 
 
 (*including serializer defaults*)

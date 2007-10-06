@@ -576,6 +576,9 @@ fun add_inductive (srec_tms, sdom_sum) intr_srcs
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val _ = OuterSyntax.keywords
+  ["domains", "intros", "monos", "con_defs", "type_intros", "type_elims"];
+
 fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
   #1 o add_inductive doms (map P.triple_swap intrs) (monos, con_defs, type_intrs, type_elims);
 
@@ -590,12 +593,8 @@ val ind_decl =
   Scan.optional (P.$$$ "type_elims" |-- P.!!! SpecParse.xthms1) []
   >> (Toplevel.theory o mk_ind);
 
-val inductiveP = OuterSyntax.command (co_prefix ^ "inductive")
+val _ = OuterSyntax.command (co_prefix ^ "inductive")
   ("define " ^ co_prefix ^ "inductive sets") K.thy_decl ind_decl;
-
-val _ = OuterSyntax.add_keywords
-  ["domains", "intros", "monos", "con_defs", "type_intros", "type_elims"];
-val _ = OuterSyntax.add_parsers [inductiveP];
 
 end;
 

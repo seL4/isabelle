@@ -115,15 +115,13 @@ end;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val invokeP =
+val _ =
   OuterSyntax.command "invoke"
     "schematic invocation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
     (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts -- P.for_fixes
       >> (fn (((name, expr), (insts, _)), fixes) =>
           Toplevel.print o Toplevel.proof' (invoke name expr insts fixes)));
-
-val _ = OuterSyntax.add_parsers [invokeP];
 
 end;
 

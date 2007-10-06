@@ -346,7 +346,7 @@ val print = Toplevel.unknown_context o
     (Context.cases (print_structures o ProofContext.init) print_structures)
     (print_structures o Proof.context_of));
 
-val printP =
+val _ =
   OuterSyntax.improper_command "print_orders"
     "print order structures available to transitivity reasoner" OuterKeyword.diag
     (Scan.succeed (Toplevel.no_timing o print));
@@ -354,11 +354,10 @@ val printP =
 
 (** Setup **)
 
-val setup = let val _ = OuterSyntax.add_parsers [printP] in
-    Method.add_methods [("order", Method.ctxt_args (Method.SIMPLE_METHOD' o order_tac []),
-      "normalisation of algebraic structure")] #>
-    Attrib.add_attributes [("order", attribute, "theorems controlling transitivity reasoner")]
-  end;
+val setup =
+  Method.add_methods
+    [("order", Method.ctxt_args (Method.SIMPLE_METHOD' o order_tac []), "transitivity reasoner")] #>
+  Attrib.add_attributes [("order", attribute, "theorems controlling transitivity reasoner")];
 
 end;
 

@@ -607,7 +607,7 @@ fun gen_ext_type_tr sep mark sfx more ctxt t =
                        val types = map snd flds';
                        val (args,rest) = splitargs (map fst flds') fargs;
                        val argtypes = map (Sign.certify_typ thy o decode_type thy) args;
-                       val midx =  fold (fn T => fn i => Int.max (maxidx_of_typ T, i)) 
+                       val midx =  fold (fn T => fn i => Int.max (maxidx_of_typ T, i))
                                     argtypes 0;
                        val varifyT = varifyT midx;
                        val vartypes = map varifyT types;
@@ -654,12 +654,12 @@ val adv_record_type_scheme_tr =
       gen_adv_record_type_scheme_tr "_field_types" "_field_type" ext_typeN;
 
 
-val parse_translation = 
+val parse_translation =
  [("_record_update", record_update_tr),
   ("_update_name", update_name_tr)];
 
 
-val adv_parse_translation = 
+val adv_parse_translation =
  [("_record",adv_record_tr),
   ("_record_scheme",adv_record_scheme_tr),
   ("_record_type",adv_record_type_tr),
@@ -762,7 +762,7 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
           in Syntax.term_of_typ (! Syntax.show_sorts)
                (Sign.extern_typ thy (Envir.norm_type subst abbrT)) end;
 
-      fun match rT T = (Sign.typ_match thy (varifyT rT,T) 
+      fun match rT T = (Sign.typ_match thy (varifyT rT,T)
                                                 Vartab.empty);
 
    in if !print_record_type_abbr
@@ -876,8 +876,8 @@ fun abstract_over_fun_app (Abs (f,fT,t)) =
      val f_x = Free (f',fT)$(Free (x,T'));
      fun is_constr (Const (c,_)$_) = can (unsuffix extN) c
        | is_constr _ = false;
-     fun subst (t as u$w) = if Free (f',fT)=u 
-                            then if is_constr w then f_x 
+     fun subst (t as u$w) = if Free (f',fT)=u
+                            then if is_constr w then f_x
                                  else raise TERM ("abstract_over_fun_app",[t])
                             else subst u$subst w
        | subst (Abs (x,T,t)) = (Abs (x,T,subst t))
@@ -885,12 +885,12 @@ fun abstract_over_fun_app (Abs (f,fT,t)) =
      val t'' = abstract_over (f_x,subst t');
      val vars = strip_qnt_vars "all" t'';
      val bdy = strip_qnt_body "all" t'';
-     
+
   in list_abs ((x,T')::vars,bdy) end
   | abstract_over_fun_app t = raise TERM ("abstract_over_fun_app",[t]);
 (* Generates a theorem of the kind:
- * !!f x*. PROP P (f ( r x* ) x* == !!r x*. PROP P r x* 
- *) 
+ * !!f x*. PROP P (f ( r x* ) x* == !!r x*. PROP P r x*
+ *)
 fun mk_fun_apply_eq (Abs (f, fT, t)) thy =
   let
     val rT = domain_type fT;
@@ -900,16 +900,16 @@ fun mk_fun_apply_eq (Abs (f, fT, t)) thy =
     fun app_bounds 0 t = t$Bound 0
       | app_bounds n t = if n > 0 then app_bounds (n-1) (t$Bound n) else t
 
-   
+
     val [P,r] = Term.variant_frees t [("P",rT::Ts--->Term.propT),("r",Ts--->rT)];
     val prop = Logic.mk_equals
                 (list_all ((f,fT)::vars,
                            app_bounds (n - 1) ((Free P)$(Bound n$app_bounds (n-1) (Free r)))),
                  list_all ((fst r,rT)::vars,
-                           app_bounds (n - 1) ((Free P)$Bound n))); 
+                           app_bounds (n - 1) ((Free P)$Bound n)));
     val prove_standard = quick_and_dirty_prove true thy;
     val thm = prove_standard [] prop (fn prems =>
-	 EVERY [rtac equal_intr_rule 1, 
+	 EVERY [rtac equal_intr_rule 1,
                 Goal.norm_hhf_tac 1,REPEAT (etac meta_allE 1), atac 1,
                 Goal.norm_hhf_tac 1,REPEAT (etac meta_allE 1), atac 1]);
   in thm end
@@ -928,14 +928,14 @@ val record_split_f_more_simproc =
                   (trm as Abs _) =>
          (case rec_id (~1) T of
             "" => NONE
-          | n => if T=T'  
+          | n => if T=T'
                  then (let
-                        val P=cterm_of thy (abstract_over_fun_app trm); 
+                        val P=cterm_of thy (abstract_over_fun_app trm);
                         val thm = mk_fun_apply_eq trm thy;
                         val PV = cterm_of thy (hd (term_vars (prop_of thm)));
                         val thm' = cterm_instantiate [(PV,P)] thm;
                        in SOME  thm' end handle TERM _ => NONE)
-                else NONE) 
+                else NONE)
        | _ => NONE))
 end
 
@@ -951,7 +951,7 @@ fun prove_split_simp thy ss T prop =
                               (* [thm] is the same as all_thm *)
                  | NONE => extsplits)
     val thms'=K_comp_convs@thms;
-    val ss' = (Simplifier.inherit_context ss simpset 
+    val ss' = (Simplifier.inherit_context ss simpset
                 addsimps thms'
                 addsimprocs [record_split_f_more_simproc]);
   in
@@ -992,8 +992,8 @@ val record_simproc =
                      NONE => NONE
                    | SOME u_name
                      => if u_name = s
-                        then (case mk_eq_terms r of 
-                               NONE => 
+                        then (case mk_eq_terms r of
+                               NONE =>
                                  let
                                    val rv = ("r",rT)
                                    val rb = Bound 0
@@ -1064,7 +1064,7 @@ val record_upd_simproc =
                         in ((Const (u,uT)$k$sprout,Const (u,uT)$kb$skeleton),kv::vars) end
                    else ((sprout,skeleton),vars);
 
-             fun is_upd_same (sprout,skeleton) u 
+             fun is_upd_same (sprout,skeleton) u
                                 ((K_rec as Const ("Record.K_record",_))$
                                   ((sel as Const (s,_))$r)) =
                    if (unsuffix updateN u) = s andalso (seed s sprout) = r
@@ -1074,17 +1074,17 @@ val record_upd_simproc =
 
              fun init_seed r = ((r,Bound 0), [("r", rT)]);
 
-             fun add (n:string) f fmaps = 
+             fun add (n:string) f fmaps =
                (case AList.lookup (op =) fmaps n of
                   NONE => AList.update (op =) (n,[f]) fmaps
-                | SOME fs => AList.update (op =) (n,f::fs) fmaps) 
+                | SOME fs => AList.update (op =) (n,f::fs) fmaps)
 
-             fun comps (n:string) T fmaps = 
+             fun comps (n:string) T fmaps =
                (case AList.lookup (op =) fmaps n of
-                 SOME fs => 
+                 SOME fs =>
                    foldr1 (fn (f,g) => Const ("Fun.comp",(T-->T)-->(T-->T)-->(T-->T))$f$g) fs
                 | NONE => error ("record_upd_simproc.comps"))
-             
+
              (* mk_updterm returns either
               *  - Init (orig-term, orig-term-skeleton, vars) if no optimisation can be made,
               *     where vars are the bound variables in the skeleton
@@ -1119,7 +1119,7 @@ val record_upd_simproc =
                                    val kv = (n, kT);
                                    val kb = Bound (length vars);
                                    val (sprout',vars') = grow u uT k kT (kv::vars) sprout;
-                                 in Inter(upd$kb$trm,trm',kv::vars',add n kb fmaps,sprout') 
+                                 in Inter(upd$kb$trm,trm',kv::vars',add n kb fmaps,sprout')
                                  end)
                          else
                           (case rest (u::already) r of
@@ -1149,7 +1149,7 @@ val record_upd_simproc =
                                     val kv = (n, kT)
                                     val kb = Bound (length vars)
                                     val (sprout',vars') = grow u uT k kT (kv::vars) sprout
-                                    val fmaps' = add n kb fmaps 
+                                    val fmaps' = add n kb fmaps
                                   in Inter (upd$kb$trm,upd$comps n T fmaps'$trm'
                                            ,vars',fmaps',sprout') end))
                      end
@@ -1161,7 +1161,7 @@ val record_upd_simproc =
                 => SOME (prove_split_simp thy ss rT
                           (list_all(vars,(equals rT$trm$trm'))))
              | _ => NONE)
-         end 
+         end
        | _ => NONE))
 end
 
@@ -1625,7 +1625,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
         val refls = map mkrefl fields_more;
         val dest_convs' = map mk_meta_eq dest_convs;
         val map_eqs = map (uncurry Thm.combination) (refls ~~ dest_convs');
-        
+
         val constr_refl = Thm.reflexive (cterm_of defs_thy (head_of ext));
 
         fun mkthm (udef,(fld_refl,thms)) =
@@ -1664,7 +1664,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val split_meta = timeit_msg "record extension split_meta proof:" split_meta_prf;
 
 
-    val (([inject',induct',cases',surjective',split_meta'], 
+    val (([inject',induct',cases',surjective',split_meta'],
           [dest_convs',upd_convs']),
       thm_thy) =
       defs_thy
@@ -1915,7 +1915,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       ||>> ((PureThy.add_defs_i false o map Thm.no_attributes) upd_specs)
       ||>> ((PureThy.add_defs_i false o map Thm.no_attributes)
              [make_spec, fields_spec, extend_spec, truncate_spec])
-      |-> (fn defs as ((sel_defs, upd_defs), derived_defs) => 
+      |-> (fn defs as ((sel_defs, upd_defs), derived_defs) =>
           fold Code.add_default_func sel_defs
           #> fold Code.add_default_func upd_defs
           #> fold Code.add_default_func derived_defs
@@ -2276,11 +2276,9 @@ val record_decl =
   P.type_args -- P.name --
     (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+") -- Scan.repeat1 P.const);
 
-val recordP =  
+val _ =
   OuterSyntax.command "record" "define extensible record" K.thy_decl
     (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record x y z)));
-
-val _ = OuterSyntax.add_parsers [recordP];
 
 end;
 

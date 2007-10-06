@@ -511,21 +511,20 @@ fun prove_eqvt s xatoms thy =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val nominal_inductiveP =
+val _ = OuterSyntax.keywords ["avoids"];
+
+val _ =
   OuterSyntax.command "nominal_inductive"
     "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes" K.thy_goal
     (P.name -- Scan.optional (P.$$$ "avoids" |-- P.and_list1 (P.name --
       (P.$$$ ":" |-- Scan.repeat1 P.name))) [] >> (fn (name, avoids) =>
         Toplevel.print o Toplevel.theory_to_proof (prove_strong_ind name avoids)));
 
-val equivarianceP =
+val _ =
   OuterSyntax.command "equivariance"
     "prove equivariance for inductive predicate involving nominal datatypes" K.thy_decl
     (P.name -- Scan.optional (P.$$$ "[" |-- P.list1 P.name --| P.$$$ "]") [] >>
       (fn (name, atoms) => Toplevel.theory (prove_eqvt name atoms)));
-
-val _ = OuterSyntax.add_keywords ["avoids"];
-val _ = OuterSyntax.add_parsers [nominal_inductiveP, equivarianceP];
 
 end;
 

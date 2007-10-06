@@ -923,6 +923,8 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val _ = OuterSyntax.keywords ["monos"];
+
 (* FIXME tmp *)
 fun flatten_specification specs = specs |> maps
   (fn (a, (concl, [])) => concl |> map
@@ -945,21 +947,14 @@ fun gen_ind_decl mk_def coind =
 
 val ind_decl = gen_ind_decl add_ind_def;
 
-val inductiveP =
-  OuterSyntax.command "inductive" "define inductive predicates" K.thy_decl (ind_decl false);
+val _ = OuterSyntax.command "inductive" "define inductive predicates" K.thy_decl (ind_decl false);
+val _ = OuterSyntax.command "coinductive" "define coinductive predicates" K.thy_decl (ind_decl true);
 
-val coinductiveP =
-  OuterSyntax.command "coinductive" "define coinductive predicates" K.thy_decl (ind_decl true);
-
-
-val inductive_casesP =
+val _ =
   OuterSyntax.command "inductive_cases"
     "create simplified instances of elimination rules (improper)" K.thy_script
     (P.opt_target -- P.and_list1 SpecParse.spec
       >> (fn (loc, specs) => Toplevel.local_theory loc (snd o inductive_cases specs)));
-
-val _ = OuterSyntax.add_keywords ["monos"];
-val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP, inductive_casesP];
 
 end;
 

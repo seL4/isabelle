@@ -118,10 +118,10 @@ val typecheck_meth =
      Args.del -- Args.colon >> K (I, TC_del)]
   (fn ctxt => Method.SIMPLE_METHOD (CHANGED (typecheck_tac ctxt)));
 
-val _ = OuterSyntax.add_parsers
-  [OuterSyntax.improper_command "print_tcset" "print context of ZF typecheck" OuterKeyword.diag
+val _ =
+  OuterSyntax.improper_command "print_tcset" "print context of ZF typecheck" OuterKeyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
-      Toplevel.keep (print_tcset o Toplevel.context_of)))];
+      Toplevel.keep (print_tcset o Toplevel.context_of)));
 
 
 (* theory setup *)

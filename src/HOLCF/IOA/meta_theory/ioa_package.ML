@@ -481,9 +481,14 @@ fun mk_rename_decl (aut, (source_aut, rename_f)) =
   add_rename aut source_aut rename_f;
 
 
-(* parsers *)
+(* outer syntax *)
 
 local structure P = OuterParse and K = OuterKeyword in
+
+val _ = OuterSyntax.keywords ["signature", "actions", "inputs",
+  "outputs", "internals", "states", "initially", "transitions", "pre",
+  "post", "transrel", ":=", "compose", "hide_action", "in", "restrict", "to",
+  "rename"];
 
 val actionlist = P.list1 P.term;
 val inputslist = P.$$$ "inputs" |-- P.!!! actionlist;
@@ -520,21 +525,10 @@ val ioa_decl =
   (P.name -- (P.$$$ "=" |-- (P.$$$ "rename" |-- (P.!!! (P.name -- (P.$$$ "to" |-- P.term))))))
     >> mk_rename_decl;
 
-val automatonP =
+val _ =
   OuterSyntax.command "automaton" "define Lynch/Vaandrager-style I/O automaton" K.thy_decl
     (ioa_decl >> Toplevel.theory);
 
 end;
-
-
-(* setup outer syntax *)
-
-val _ = OuterSyntax.add_keywords ["signature", "actions", "inputs",
-  "outputs", "internals", "states", "initially", "transitions", "pre",
-  "post", "transrel", ":=", "compose", "hide_action", "in", "restrict", "to",
-  "rename"];
-
-val _ = OuterSyntax.add_parsers [automatonP];
-
 
 end;

@@ -416,6 +416,8 @@ end; (*local*)
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val _ = OuterSyntax.keywords ["invariant", "freshness_context"];
+
 val parser1 = P.$$$ "freshness_context" |-- P.$$$ ":" |-- (P.term >> SOME);
 val parser2 =
   P.$$$ "invariant" |-- P.$$$ ":" |--
@@ -434,15 +436,12 @@ val options =
 val primrec_decl =
   options -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop);
 
-val primrecP =
+val _ =
   OuterSyntax.command "nominal_primrec" "define primitive recursive functions on nominal datatypes" K.thy_goal
     (primrec_decl >> (fn ((unchecked, (alt_name, (invs, fctxt))), eqns) =>
       Toplevel.print o Toplevel.theory_to_proof
         ((if unchecked then add_primrec_unchecked else add_primrec) alt_name invs fctxt
           (map P.triple_swap eqns))));
-
-val _ = OuterSyntax.add_parsers [primrecP];
-val _ = OuterSyntax.add_keywords ["invariant", "freshness_context"];
 
 end;
 

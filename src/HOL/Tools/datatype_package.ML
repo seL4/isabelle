@@ -908,6 +908,8 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val _ = OuterSyntax.keywords ["distinct", "inject", "induction"];
+
 val datatype_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_infix --
     (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix));
@@ -919,7 +921,7 @@ fun mk_datatype args =
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
   in snd o add_datatype false names specs end;
 
-val datatypeP =
+val _ =
   OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
     (P.and_list1 datatype_decl >> (Toplevel.theory o mk_datatype));
 
@@ -932,13 +934,9 @@ val rep_datatype_decl =
 
 fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #2 o rep_datatype opt_ts dss iss ind;
 
-val rep_datatypeP =
+val _ =
   OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_decl
     (rep_datatype_decl >> (Toplevel.theory o mk_rep_datatype));
-
-
-val _ = OuterSyntax.add_keywords ["distinct", "inject", "induction"];
-val _ = OuterSyntax.add_parsers [datatypeP, rep_datatypeP];
 
 end;
 

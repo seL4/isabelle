@@ -1100,6 +1100,8 @@ val _ = Context.add_setup
 
 structure P = OuterParse and K = OuterKeyword;
 
+val _ = OuterSyntax.keywords ["attach", "file", "contains"];
+
 fun strip_whitespace s = implode (fst (take_suffix (equal "\n" orf equal " ")
   (snd (take_prefix (equal "\n" orf equal " ") (explode s))))) ^ "\n";
 
@@ -1107,7 +1109,7 @@ val parse_attach = Scan.repeat (P.$$$ "attach" |--
   Scan.optional (P.$$$ "(" |-- P.xname --| P.$$$ ")") "" --
     (P.verbatim >> strip_whitespace));
 
-val assoc_typeP =
+val _ =
   OuterSyntax.command "types_code"
   "associate types with target language types" K.thy_decl
     (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
@@ -1115,7 +1117,7 @@ val assoc_typeP =
        (fn ((name, mfx), aux) => (name, (parse_mixfix
          (Syntax.read_typ_global thy) mfx, aux)))) xs thy)));
 
-val assoc_constP =
+val _ =
   OuterSyntax.command "consts_code"
   "associate constants with target language code" K.thy_decl
     (Scan.repeat1
@@ -1152,12 +1154,12 @@ fun parse_code lib =
            else map_modules (Symtab.update (module, gr)) thy)
      end));
 
-val code_libraryP =
+val _ =
   OuterSyntax.command "code_library"
     "generates code for terms (one structure for each theory)" K.thy_decl
     (parse_code true);
 
-val code_moduleP =
+val _ =
   OuterSyntax.command "code_module"
     "generates code for terms (single structure, incremental)" K.thy_decl
     (parse_code false);
@@ -1174,13 +1176,13 @@ fun parse_tyinst xs =
   (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>
     fn (x, ys) => (x, (v, Syntax.read_typ_global thy s) :: ys))) xs;
 
-val test_paramsP =
+val _ =
   OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
     (P.$$$ "[" |-- P.list1 parse_test_params --| P.$$$ "]" >>
       (fn fs => Toplevel.theory (fn thy =>
          map_test_params (Library.apply (map (fn f => f thy) fs)) thy)));
 
-val testP =
+val _ =
   OuterSyntax.command "quickcheck" "try to find counterexample for subgoal" K.diag
   (Scan.option (P.$$$ "[" |-- P.list1
     (   parse_test_params >> (fn f => fn thy => apfst (f thy))
@@ -1191,14 +1193,9 @@ val testP =
         (get_test_params (Toplevel.theory_of st), [])) g [] |>
       pretty_counterex (Toplevel.context_of st) |> Pretty.writeln)));
 
-val valueP =
+val _ =
   OuterSyntax.improper_command "value" "read, evaluate and print term" K.diag
     (P.term >> (Toplevel.no_timing oo print_evaluated_term));
-
-val _ = OuterSyntax.add_keywords ["attach", "file", "contains"];
-
-val _ = OuterSyntax.add_parsers
-  [assoc_typeP, assoc_constP, code_libraryP, code_moduleP, test_paramsP, testP, valueP];
 
 end;
 

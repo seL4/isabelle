@@ -188,6 +188,8 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val _ = OuterSyntax.keywords ["elimination", "induction", "case_eqns", "recursor_eqns"];
+
 val rep_datatype_decl =
   (P.$$$ "elimination" |-- P.!!! SpecParse.xthm) --
   (P.$$$ "induction" |-- P.!!! SpecParse.xthm) --
@@ -195,12 +197,9 @@ val rep_datatype_decl =
   Scan.optional (P.$$$ "recursor_eqns" |-- P.!!! SpecParse.xthms1) []
   >> (fn (((x, y), z), w) => rep_datatype x y z w);
 
-val rep_datatypeP =
+val _ =
   OuterSyntax.command "rep_datatype" "represent existing set inductively" K.thy_decl
     (rep_datatype_decl >> Toplevel.theory);
-
-val _ = OuterSyntax.add_keywords ["elimination", "induction", "case_eqns", "recursor_eqns"];
-val _ = OuterSyntax.add_parsers [rep_datatypeP];
 
 end;
 

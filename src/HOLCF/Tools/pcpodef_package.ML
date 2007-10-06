@@ -184,7 +184,7 @@ fun cpodef_proof_i x = gen_pcpodef_proof Syntax.check_term false x;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-(* copied from HOL/Tools/typedef_package.ML *)
+(* cf. HOL/Tools/typedef_package.ML *)
 val typedef_proof_decl =
   Scan.optional (P.$$$ "(" |--
       ((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, SOME s)))
@@ -196,17 +196,15 @@ fun mk_pcpodef_proof pcpo ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
   (if pcpo then pcpodef_proof else cpodef_proof)
     ((def, the_default (Syntax.type_name t mx) opt_name), (t, vs, mx), A, morphs);
 
-val pcpodefP =
+val _ =
   OuterSyntax.command "pcpodef" "HOLCF type definition (requires admissibility proof)" K.thy_goal
     (typedef_proof_decl >>
       (Toplevel.print oo (Toplevel.theory_to_proof o mk_pcpodef_proof true)));
 
-val cpodefP =
+val _ =
   OuterSyntax.command "cpodef" "HOLCF type definition (requires admissibility proof)" K.thy_goal
     (typedef_proof_decl >>
       (Toplevel.print oo (Toplevel.theory_to_proof o mk_pcpodef_proof false)));
-
-val _ = OuterSyntax.add_parsers [pcpodefP, cpodefP];
 
 end;
 

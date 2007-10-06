@@ -76,15 +76,11 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val ind_cases =
-  P.and_list1 (SpecParse.opt_thm_name ":" -- Scan.repeat1 P.prop)
-  >> (Toplevel.theory o inductive_cases);
-
-val inductive_casesP =
+val _ =
   OuterSyntax.command "inductive_cases"
-    "create simplified instances of elimination rules (improper)" K.thy_script ind_cases;
-
-val _ = OuterSyntax.add_parsers [inductive_casesP];
+    "create simplified instances of elimination rules (improper)" K.thy_script
+    (P.and_list1 (SpecParse.opt_thm_name ":" -- Scan.repeat1 P.prop)
+      >> (Toplevel.theory o inductive_cases));
 
 end;
 

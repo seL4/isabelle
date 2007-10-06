@@ -350,14 +350,12 @@ val opt_unchecked_name =
 val primrec_decl =
   opt_unchecked_name -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop);
 
-val primrecP =
+val _ =
   OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl
     (primrec_decl >> (fn ((unchecked, alt_name), eqns) =>
       Toplevel.theory (snd o
         (if unchecked then add_primrec_unchecked else add_primrec) alt_name
           (map P.triple_swap eqns))));
-
-val _ = OuterSyntax.add_parsers [primrecP];
 
 end;
 

@@ -7,7 +7,7 @@ Adds the 'refute' and 'refute_params' commands to Isabelle/Isar's outer
 syntax.
 *)
 
-structure RefuteIsar =
+structure RefuteIsar: sig end =
 struct
 
 (* ------------------------------------------------------------------------- *)
@@ -56,7 +56,7 @@ struct
 
 	fun refute_parser tokens = (refute_scan_args tokens) |>> refute_trans;
 
-	val refute_cmd = OuterSyntax.improper_command "refute"
+	val _ = OuterSyntax.improper_command "refute"
 		"try to find a model that refutes a given subgoal"
 		OuterKeyword.diag refute_parser;
 
@@ -101,15 +101,9 @@ struct
 	fun refute_params_parser tokens =
 		(refute_params_scan_args tokens) |>> refute_params_trans;
 
-	val refute_params_cmd = OuterSyntax.command "refute_params"
+	val _ = OuterSyntax.command "refute_params"
 		"show/store default parameters for the 'refute' command"
 		OuterKeyword.thy_decl refute_params_parser;
 
 end;
 
-(* ------------------------------------------------------------------------- *)
-(* add the two new commands 'refute' and 'refute_params' to Isabelle/Isar's  *)
-(* outer syntax                                                              *)
-(* ------------------------------------------------------------------------- *)
-
-OuterSyntax.add_parsers [RefuteIsar.refute_cmd, RefuteIsar.refute_params_cmd];

@@ -273,7 +273,9 @@ end;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val typedeclP =
+val _ = OuterSyntax.keywords ["morphisms"];
+
+val _ =
   OuterSyntax.command "typedecl" "type declaration (HOL)" K.thy_decl
     (P.type_args -- P.name -- P.opt_infix >> (fn ((vs, t), mx) =>
       Toplevel.theory (add_typedecls [(t, vs, mx)])));
@@ -289,13 +291,9 @@ val typedef_decl =
 fun mk_typedef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
   typedef ((def, the_default (Syntax.type_name t mx) opt_name), (t, vs, mx), A, morphs);
 
-val typedefP =
+val _ =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal
     (typedef_decl >> (Toplevel.print oo (Toplevel.theory_to_proof o mk_typedef)));
-
-
-val _ = OuterSyntax.add_keywords ["morphisms"];
-val _ = OuterSyntax.add_parsers [typedeclP, typedefP];
 
 end;
 

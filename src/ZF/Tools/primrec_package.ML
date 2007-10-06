@@ -203,18 +203,12 @@ fun add_primrec args thy =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
+structure P = OuterParse and K = OuterKeyword;
 
-val primrec_decl = Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop);
-
-val primrecP =
+val _ =
   OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl
-    (primrec_decl >> (Toplevel.theory o (#1 oo (add_primrec o map P.triple_swap))));
-
-val _ = OuterSyntax.add_parsers [primrecP];
-
-end;
+    (Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop)
+      >> (Toplevel.theory o (#1 oo (add_primrec o map P.triple_swap))));
 
 end;
-
 

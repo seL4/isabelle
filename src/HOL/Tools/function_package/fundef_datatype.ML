@@ -302,13 +302,12 @@ fun fun_cmd config fixes statements flags lthy =
       |> by_pat_completeness_simp
       |> termination_by_lexicographic_order
 
-val funP =
+val _ =
   OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
   (fundef_parser fun_config
      >> (fn ((config, fixes), (flags, statements)) =>
             (Toplevel.local_theory (target_of config) (fun_cmd config fixes statements flags))));
 
-val _ = OuterSyntax.add_parsers [funP];
 end
 
 end

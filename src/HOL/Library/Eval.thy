@@ -213,14 +213,11 @@ end;
 *}
 
 ML {*
-val valueP =
   OuterSyntax.improper_command "value" "read, evaluate and print term" OuterKeyword.diag
     (Scan.option (OuterParse.$$$ "(" |-- OuterParse.name --| OuterParse.$$$ ")")
     -- OuterParse.term
       >> (fn (some_name, t) => Toplevel.no_timing o Toplevel.keep
            (Eval.evaluate_cmd some_name t)));
-
-val _ = OuterSyntax.add_parsers [valueP];
 *}
 
 end

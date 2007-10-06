@@ -1125,20 +1125,12 @@ in
 end
 
 
-local
 (* Extra command for embedding prover-control inside document (obscure/debug usage). *)
 
-val process_pgipP =
+fun init_outer_syntax () =
   OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" OuterKeyword.control
     (OuterParse.text >> (Toplevel.no_timing oo
       (fn txt => Toplevel.imperative (fn () => process_pgip_plain txt))));
-
-in
-
- fun init_outer_syntax () = OuterSyntax.add_parsers [process_pgipP];
-
-end
-
 
 
 (* init *)

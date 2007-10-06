@@ -410,11 +410,9 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
 
-val nbeP =
+val _ =
   OuterSyntax.improper_command "normal_form" "normalize term by evaluation" K.diag
     (opt_modes -- P.typ >> (Toplevel.keep o norm_print_term_cmd));
-
-val _ = OuterSyntax.add_parsers [nbeP];
 
 end;
 

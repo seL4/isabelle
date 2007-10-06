@@ -161,10 +161,10 @@ fun print_rules ctxt =
     |> Pretty.chunks |> Pretty.writeln
   end;
 
-val _ = OuterSyntax.add_parsers [
+val _ =
   OuterSyntax.improper_command "print_induct_rules" "print induction and cases rules"
     OuterKeyword.diag (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
-      Toplevel.keep (print_rules o Toplevel.context_of)))];
+      Toplevel.keep (print_rules o Toplevel.context_of)));
 
 
 (* access rules *)

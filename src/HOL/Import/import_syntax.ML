@@ -5,7 +5,7 @@
 
 signature HOL4_IMPORT_SYNTAX =
 sig
-    type token = OuterSyntax.token
+    type token = OuterLex.token
     type command  = token list -> (theory -> theory) * token list 
 
     val import_segment: token list -> (theory -> theory) * token list
@@ -32,7 +32,7 @@ end
 structure HOL4ImportSyntax :> HOL4_IMPORT_SYNTAX =
 struct
 
-type token = OuterSyntax.token
+type token = OuterLex.token
 type command  = token list -> (theory -> theory) * token list 
 
 local structure P = OuterParse and K = OuterKeyword in
@@ -222,61 +222,59 @@ val set_dump  = P.string -- P.string   >> setup_dump
 fun fl_dump toks  = Scan.succeed flush_dump toks
 val append_dump = (P.verbatim || P.string) >> add_dump
 
-val parsers = 
-  [OuterSyntax.command "import_segment"
+fun setup () =
+  (OuterSyntax.keywords[">"];
+   OuterSyntax.command "import_segment"
 		       "Set import segment name"
-		       K.thy_decl (import_segment >> Toplevel.theory),
+		       K.thy_decl (import_segment >> Toplevel.theory);
    OuterSyntax.command "import_theory"
 		       "Set default HOL4 theory name"
-		       K.thy_decl (import_theory >> Toplevel.theory),
+		       K.thy_decl (import_theory >> Toplevel.theory);
    OuterSyntax.command "end_import"
 		       "End HOL4 import"
-		       K.thy_decl (end_import >> Toplevel.theory),
+		       K.thy_decl (end_import >> Toplevel.theory);
    OuterSyntax.command "skip_import_dir" 
                        "Sets caching directory for skipping importing"
-                       K.thy_decl (skip_import_dir >> Toplevel.theory),
+                       K.thy_decl (skip_import_dir >> Toplevel.theory);
    OuterSyntax.command "skip_import" 
                        "Switches skipping importing on or off"
-                       K.thy_decl (skip_import >> Toplevel.theory),		      
+                       K.thy_decl (skip_import >> Toplevel.theory);		      
    OuterSyntax.command "setup_theory"
 		       "Setup HOL4 theory replaying"
-		       K.thy_decl (setup_theory >> Toplevel.theory),
+		       K.thy_decl (setup_theory >> Toplevel.theory);
    OuterSyntax.command "end_setup"
 		       "End HOL4 setup"
-		       K.thy_decl (end_setup >> Toplevel.theory),
+		       K.thy_decl (end_setup >> Toplevel.theory);
    OuterSyntax.command "setup_dump"
 		       "Setup the dump file name"
-		       K.thy_decl (set_dump >> Toplevel.theory),
+		       K.thy_decl (set_dump >> Toplevel.theory);
    OuterSyntax.command "append_dump"
 		       "Add text to dump file"
-		       K.thy_decl (append_dump >> Toplevel.theory),
+		       K.thy_decl (append_dump >> Toplevel.theory);
    OuterSyntax.command "flush_dump"
 		       "Write the dump to file"
-		       K.thy_decl (fl_dump >> Toplevel.theory),
+		       K.thy_decl (fl_dump >> Toplevel.theory);
    OuterSyntax.command "ignore_thms"
 		       "Theorems to ignore in next HOL4 theory import"
-		       K.thy_decl (ignore_thms >> Toplevel.theory),
+		       K.thy_decl (ignore_thms >> Toplevel.theory);
    OuterSyntax.command "type_maps"
 		       "Map HOL4 type names to existing Isabelle/HOL type names"
-		       K.thy_decl (type_maps >> Toplevel.theory),
+		       K.thy_decl (type_maps >> Toplevel.theory);
    OuterSyntax.command "def_maps"
 		       "Map HOL4 constant names to their primitive definitions"
-		       K.thy_decl (def_maps >> Toplevel.theory),
+		       K.thy_decl (def_maps >> Toplevel.theory);
    OuterSyntax.command "thm_maps"
 		       "Map HOL4 theorem names to existing Isabelle/HOL theorem names"
-		       K.thy_decl (thm_maps >> Toplevel.theory),
+		       K.thy_decl (thm_maps >> Toplevel.theory);
    OuterSyntax.command "const_renames"
 		       "Rename HOL4 const names"
-		       K.thy_decl (const_renames >> Toplevel.theory),
+		       K.thy_decl (const_renames >> Toplevel.theory);
    OuterSyntax.command "const_moves"
 		       "Rename HOL4 const names to other HOL4 constants"
-		       K.thy_decl (const_moves >> Toplevel.theory),
+		       K.thy_decl (const_moves >> Toplevel.theory);
    OuterSyntax.command "const_maps"
 		       "Map HOL4 const names to existing Isabelle/HOL const names"
-		       K.thy_decl (const_maps >> Toplevel.theory)]
-
-fun setup () = (OuterSyntax.add_keywords[">"];
-		OuterSyntax.add_parsers parsers)
+		       K.thy_decl (const_maps >> Toplevel.theory));
 
 end
 

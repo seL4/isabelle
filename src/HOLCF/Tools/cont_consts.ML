@@ -99,11 +99,9 @@ val add_consts_i = gen_add_consts Sign.certify_typ;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val constsP =
+val _ =
   OuterSyntax.command "consts" "declare constants (HOLCF)" K.thy_decl
     (Scan.repeat1 P.const >> (Toplevel.theory o add_consts));
-
-val _ = OuterSyntax.add_parsers [constsP];
 
 end;
 

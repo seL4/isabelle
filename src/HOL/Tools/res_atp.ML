@@ -969,8 +969,8 @@ fun sledgehammer state =
           isar_atp_writeonly (ctxt, chain_ths, goal))
   end;
 
-val _ = OuterSyntax.add_parsers
-  [OuterSyntax.command "sledgehammer" "call automatic theorem provers" OuterKeyword.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep sledgehammer))];
+val _ =
+  OuterSyntax.command "sledgehammer" "call automatic theorem provers" OuterKeyword.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep sledgehammer));
 
 end;

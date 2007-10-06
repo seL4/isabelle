@@ -2094,11 +2094,9 @@ fun mk_datatype args =
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
   in add_nominal_datatype false names specs end;
 
-val nominal_datatypeP =
+val _ =
   OuterSyntax.command "nominal_datatype" "define inductive datatypes" K.thy_decl
     (P.and_list1 datatype_decl >> (Toplevel.theory o mk_datatype));
-
-val _ = OuterSyntax.add_parsers [nominal_datatypeP];
 
 end;
 

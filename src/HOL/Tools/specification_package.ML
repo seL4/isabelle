@@ -244,7 +244,7 @@ val specification_decl =
   P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
           Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop)
 
-val specificationP =
+val _ =
   OuterSyntax.command "specification" "define constants by specification" K.thy_goal
     (specification_decl >> (fn (cos,alt_props) =>
                                Toplevel.print o (Toplevel.theory_to_proof
@@ -255,13 +255,11 @@ val ax_specification_decl =
     (P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
            Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop))
 
-val ax_specificationP =
+val _ =
   OuterSyntax.command "ax_specification" "define constants by specification" K.thy_goal
     (ax_specification_decl >> (fn (axname,(cos,alt_props)) =>
                                Toplevel.print o (Toplevel.theory_to_proof
                                                      (process_spec (SOME axname) cos alt_props))))
-
-val _ = OuterSyntax.add_parsers [specificationP,ax_specificationP]
 
 end
 

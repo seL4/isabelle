@@ -231,36 +231,36 @@ end;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val undoP = (*undo without output*)
+fun undoP () = (*undo without output*)
   OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
-val restartP =
+fun restartP () =
   OuterSyntax.improper_command "ProofGeneral.restart" "(internal)" K.control
     (P.opt_unit >> (Toplevel.no_timing oo K (Toplevel.imperative restart)));
 
-val kill_proofP =
+fun kill_proofP () =
   OuterSyntax.improper_command "ProofGeneral.kill_proof" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.kill_proof_notify tell_clear_goals));
 
-val inform_file_processedP =
+fun inform_file_processedP () =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
     (P.name >> (fn file => Toplevel.no_timing o
       Toplevel.init_empty (vacuous_inform_file_processed file) o
       Toplevel.kill o
       Toplevel.init_empty (proper_inform_file_processed file)));
 
-val inform_file_retractedP =
+fun inform_file_retractedP () =
   OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
     (P.name >> (Toplevel.no_timing oo
       (fn file => Toplevel.imperative (fn () => inform_file_retracted file))));
 
-val process_pgipP =
+fun process_pgipP () =
   OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" K.control
     (P.text >> (Toplevel.no_timing oo
       (fn txt => Toplevel.imperative (fn () => ProofGeneralPgip.process_pgip txt))));
 
-fun init_outer_syntax () = OuterSyntax.add_parsers
+fun init_outer_syntax () = List.app (fn f => f ())
  [undoP, restartP, kill_proofP, inform_file_processedP, inform_file_retractedP, process_pgipP];
 
 end;

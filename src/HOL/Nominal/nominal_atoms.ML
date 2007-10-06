@@ -947,10 +947,8 @@ fun create_nom_typedecls ak_names thy =
 (* syntax und parsing *)
 structure P = OuterParse and K = OuterKeyword;
 
-val atom_declP =
+val _ =
   OuterSyntax.command "atom_decl" "Declare new kinds of atoms" K.thy_decl
     (Scan.repeat1 P.name >> (Toplevel.theory o create_nom_typedecls));
-
-val _ = OuterSyntax.add_parsers [atom_declP];
 
 end;

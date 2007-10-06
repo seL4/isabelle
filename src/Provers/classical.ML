@@ -1084,15 +1084,12 @@ val setup = GlobalClaset.init #> setup_attrs #> setup_methods;
 
 (** outer syntax **)
 
-val print_clasetP =
+val _ =
   OuterSyntax.improper_command "print_claset" "print context of Classical Reasoner"
     OuterKeyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o (Toplevel.keep
       (Toplevel.node_case
         (Context.cases print_claset print_local_claset)
         (print_local_claset o Proof.context_of)))));
-
-val _ = OuterSyntax.add_parsers [print_clasetP];
-
 
 end;

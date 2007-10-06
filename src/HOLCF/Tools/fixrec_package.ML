@@ -299,19 +299,17 @@ val fixrec_decl = fixrec_strict -- P.and_list1 (Scan.repeat1 fixrec_eqn);
 
 (* this builds a parser for a new keyword, fixrec, whose functionality 
 is defined by add_fixrec *)
-val fixrecP =
+val _ =
   OuterSyntax.command "fixrec" "define recursive functions (HOLCF)" K.thy_decl
     (fixrec_decl >> (Toplevel.theory o uncurry add_fixrec));
 
 (* fixpat parser *)
 val fixpat_decl = SpecParse.opt_thm_name ":" -- Scan.repeat1 P.prop;
 
-val fixpatP =
+val _ =
   OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl
     (fixpat_decl >> (Toplevel.theory o add_fixpat));
 
-val _ = OuterSyntax.add_parsers [fixrecP, fixpatP];
+end;
 
-end; (* local structure *)
-
-end; (* struct *)
+end;

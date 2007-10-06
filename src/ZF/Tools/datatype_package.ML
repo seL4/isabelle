@@ -422,10 +422,8 @@ val datatype_decl =
 
 val coind_prefix = if coind then "co" else "";
 
-val inductiveP = OuterSyntax.command (coind_prefix ^ "datatype")
+val _ = OuterSyntax.command (coind_prefix ^ "datatype")
   ("define " ^ coind_prefix ^ "datatype") K.thy_decl datatype_decl;
-
-val _ = OuterSyntax.add_parsers [inductiveP];
 
 end;
 

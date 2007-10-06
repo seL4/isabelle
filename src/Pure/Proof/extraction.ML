@@ -759,7 +759,7 @@ structure P = OuterParse and K = OuterKeyword;
 
 val parse_vars = Scan.optional (P.$$$ "(" |-- P.list1 P.name --| P.$$$ ")") [];
 
-val realizersP =
+val _ =
   OuterSyntax.command "realizers"
   "specify realizers for primitive axioms / theorems, together with correctness proof"
   K.thy_decl
@@ -768,22 +768,20 @@ val realizersP =
        (map (fn (((a, vs), s1), s2) =>
          (PureThy.get_thm thy (Name a), (vs, s1, s2))) xs) thy)));
 
-val realizabilityP =
+val _ =
   OuterSyntax.command "realizability"
   "add equations characterizing realizability" K.thy_decl
   (Scan.repeat1 P.string >> (Toplevel.theory o add_realizes_eqns));
 
-val typeofP =
+val _ =
   OuterSyntax.command "extract_type"
   "add equations characterizing type of extracted program" K.thy_decl
   (Scan.repeat1 P.string >> (Toplevel.theory o add_typeof_eqns));
 
-val extractP =
+val _ =
   OuterSyntax.command "extract" "extract terms from proofs" K.thy_decl
     (Scan.repeat1 (P.xname -- parse_vars) >> (fn xs => Toplevel.theory
       (fn thy => extract (map (apfst (PureThy.get_thm thy o Name)) xs) thy)));
-
-val _ = OuterSyntax.add_parsers [realizersP, realizabilityP, typeofP, extractP];
 
 val etype_of = etype_of o add_syntax;
 
