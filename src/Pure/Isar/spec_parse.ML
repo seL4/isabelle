@@ -23,11 +23,9 @@ sig
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list * token list
   val locale_mixfix: token list -> mixfix * token list
   val locale_fixes: token list -> (string * string option * mixfix) list * token list
-  val locale_insts: token list ->
-    (string option list * string list) * token list
+  val locale_insts: token list -> (string option list * string list) * token list
+  val class_expr: token list -> string list * token list
   val locale_expr: token list -> Locale.expr * token list
-  val locale_expr_unless: (token list -> 'a * token list) ->
-    token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
   val locale_element: token list -> Element.context Locale.element * token list
   val context_element: token list -> Element.context * token list
@@ -108,21 +106,22 @@ val loc_element =
   P.$$$ "notes" |-- P.!!! (P.and_list1 (opt_thm_name "=" -- xthms1))
     >> (curry Element.Notes "");
 
-fun plus1 test scan =
+fun plus1_unless test scan =
   scan -- Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan)) >> op ::;
 
 val rename = P.name -- Scan.option P.mixfix;
 
-fun expr test =
+in
+
+val class_expr = plus1_unless loc_keyword P.xname;
+
+val locale_expr =
   let
     fun expr2 x = (P.xname >> Locale.Locale || P.$$$ "(" |-- P.!!! (expr0 --| P.$$$ ")")) x
     and expr1 x = (expr2 -- Scan.repeat1 (P.maybe rename) >> Locale.Rename || expr2) x
-    and expr0 x = (plus1 test expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
+    and expr0 x = (plus1_unless loc_keyword expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
   in expr0 end;
-in
 
-val locale_expr_unless = expr
-val locale_expr = expr loc_keyword;
 val locale_keyword = loc_keyword;
 
 val locale_element = P.group "locale element"
