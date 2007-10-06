@@ -6,7 +6,9 @@
 # DESCRIPTION: Update standard keyword files.
 
 cd "$(isatool getenv -b ISABELLE_HOME)"/etc
+LOG="$(isatool getenv -b ISABELLE_OUTPUT)"/log
 
-isabelle -qe 'ProofGeneral.write_keywords "";' IOA
-isabelle -qe 'ProofGeneral.write_keywords "HOL-Nominal";' HOL-Nominal
-isabelle -qe 'ProofGeneral.write_keywords "ZF";' ZF
+isatool keywords "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" "$LOG/IOA.gz"
+isatool keywords -k HOL-Nominal "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOL-Nominal.gz"
+isatool keywords -k ZF "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"
+
