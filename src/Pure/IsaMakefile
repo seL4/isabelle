@@ -8,7 +8,7 @@
 
 default: Pure
 images: Pure
-test: RAW
+test: RAW Pure-ProofGeneral
 all: images test
 
 
@@ -79,6 +79,12 @@ $(OUT)/Pure$(ML_SUFFIX): \
 
 ## special targets
 
+Pure-ProofGeneral: Pure $(LOG)/Pure-ProofGeneral.gz
+
+$(LOG)/Pure-ProofGeneral.gz: $(OUT)/Pure$(ML_SUFFIX) ProofGeneral/proof_general_keywords.ML
+	@$(ISATOOL) usedir -f proof_general_keywords.ML $(OUT)/Pure ProofGeneral
+
+
 RAW: $(OUT)/RAW
 
 $(OUT)/RAW: ML-Systems/alice.ML ML-Systems/exn.ML ML-Systems/multithreading.ML	\
@@ -94,4 +100,5 @@ $(OUT)/RAW: ML-Systems/alice.ML ML-Systems/exn.ML ML-Systems/multithreading.ML	\
 ## clean
 
 clean:
-	@rm -f $(OUT)/Pure$(ML_SUFFIX) $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz
+	@rm -f $(OUT)/Pure$(ML_SUFFIX) $(LOG)/Pure.gz $(LOG)/Pure-ProofGeneral.gz \
+          $(OUT)/RAW $(LOG)/RAW.gz
