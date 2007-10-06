@@ -43,6 +43,8 @@ sig
   val termN: string val term: T
   val keywordN: string val keyword: string -> T
   val commandN: string val command: string -> T
+  val keyword_declN: string val keyword_decl: string -> T
+  val command_declN: string val command_decl: string -> string -> T
   val stringN: string val string: T
   val altstringN: string val altstring: T
   val verbatimN: string val verbatim: T
@@ -144,6 +146,11 @@ val (termN, term) = markup "term";
 
 val (keywordN, keyword) = markup_string "keyword" nameN;
 val (commandN, command) = markup_string "command" nameN;
+
+val (keyword_declN, keyword_decl) = markup_string "keyword_decl" nameN;
+
+val command_declN = "command_decl";
+fun command_decl name kind : T = (command_declN, [(nameN, name), (kindN, kind)]);
 
 val (stringN, string) = markup "string";
 val (altstringN, altstring) = markup "altstring";
