@@ -60,7 +60,7 @@ SESSIONS=""
 for LOG in $LOGS
 do
   NAME="$(basename "$LOG" .gz)"
-  if [ "$NAME" != PG -a "$NAME" != Pure ]; then
+  if [ "$NAME" != Pure -a "$NAME" != Pure-ProofGeneral ]; then
     if [ -z "$SESSIONS" ]; then
       SESSIONS="$NAME"
     else
