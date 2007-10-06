@@ -38,7 +38,7 @@ sig
   val dest_keywords: unit -> string list
   val dest_parsers: unit -> (string * string * string * bool) list
   val print_outer_syntax: unit -> unit
-  val print_commands: Toplevel.transition -> Toplevel.transition
+  val report: unit -> unit
   val check_text: string * Position.T -> Toplevel.node option -> unit
   val scan: string -> OuterLex.token list
   val read: OuterLex.token list -> (string * OuterLex.token list * Toplevel.transition) list
@@ -53,6 +53,17 @@ structure P = OuterParse;
 
 
 (** outer syntax **)
+
+(* diagnostics *)
+
+fun report_keyword name =
+  Pretty.markup (Markup.keyword_decl name)
+    [Pretty.str ("Outer syntax keyword: " ^ quote name)];
+
+fun report_command name kind =
+  Pretty.markup (Markup.command_decl name kind)
+    [Pretty.str ("Outer syntax command: " ^ quote name ^ " (" ^ kind ^ ")")];
+
 
 (* parsers *)
 
@@ -142,14 +153,17 @@ fun is_markup kind name = AList.lookup (op =) (get_markups ()) name = SOME kind;
 
 (* augment syntax *)
 
-val keywords = change_lexicons o apfst o Scan.extend_lexicon o map Symbol.explode;
+fun keywords names =
+ (change_lexicons (apfst (Scan.extend_lexicon (map Symbol.explode names)));
+  List.app (Pretty.writeln o report_keyword) names);
 
 
-fun add_parser (name, parser) =
+fun add_parser (name, parser as Parser {kind, ...}) =
  (if not (Symtab.defined (get_parsers ()) name) then ()
   else warning ("Redefining outer syntax command " ^ quote name);
   change_parsers (Symtab.update (name, parser));
-  change_lexicons (apsnd (Scan.extend_lexicon [Symbol.explode name])));
+  change_lexicons (apsnd (Scan.extend_lexicon [Symbol.explode name]));
+  Pretty.writeln (report_command name (OuterKeyword.kind_of kind)));
 
 fun command name comment kind parse =
   add_parser (name, make_parser comment kind NONE false parse);
@@ -163,7 +177,7 @@ fun improper_command name comment kind parse =
 end;
 
 
-(* print syntax *)
+(* inspect syntax *)
 
 fun is_keyword s = Scan.is_literal (#1 (get_lexicons ())) (Symbol.explode s);
 fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
@@ -185,7 +199,10 @@ fun print_outer_syntax () =
     |> Pretty.chunks |> Pretty.writeln
   end;
 
-val print_commands = Toplevel.imperative print_outer_syntax;
+fun report () =
+  (map report_keyword (dest_keywords ()) @
+    map (fn (name, _, kind, _) => report_command name kind) (dest_parsers ()))
+  |> Pretty.chunks |> Pretty.writeln;
 
 
 
