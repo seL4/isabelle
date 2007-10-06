@@ -26,8 +26,6 @@ Pure-Cube: Pure $(LOG)/Pure-Cube.gz
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-Pure-Cube: Pure $(LOG)/Pure-Cube.gz
-
 $(LOG)/Pure-Cube.gz: $(OUT)/Pure Cube.thy Example.thy ROOT.ML
 	@cd ..; $(ISATOOL) usedir $(OUT)/Pure Cube
 
