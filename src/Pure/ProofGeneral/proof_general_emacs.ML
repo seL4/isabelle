@@ -9,6 +9,7 @@ See http://proofgeneral.inf.ed.ac.uk
 signature PROOF_GENERAL =
 sig
   val init: bool -> unit
+  val init_outer_syntax: unit -> unit
   val sendback: string -> Pretty.T list -> unit
   val write_keywords: string -> unit
 end;
