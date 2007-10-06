@@ -1,13 +1,11 @@
 Checklist for official releases
 ===============================
 
-- make sure that etc/isar-keywords.el and etc/isar-keywords-ZF.el are
-  up-to-date; in ML use ``ProofGeneral.write_keywords ""'' and
-  ``ProofGeneral.write_keywords "ZF"'';
+- Admin/update-keywords;
 
-- check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, Admin/website;
+- check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, ~isabelle/website;
 
-- run tests with *all* supported ML systems (yes this is tedious!);
+- run tests with all supported ML systems;
 
 - maintain Docs:
     Doc/Contents
@@ -23,7 +21,7 @@ Checklist for official releases
     Doc/Logics/logics.tex
 
 - after release: 
-    commit new Admin/website/include/documentationdist.include.html to CVS
+    commit new ~isabelle/website/include/documentationdist.include.html to CVS
     !!! commit new Admin/website/conf/distname.mak to CVS
     !!! this is currently not part of CVS, so ignore this description;
     !!! perhaps we will need to add it
