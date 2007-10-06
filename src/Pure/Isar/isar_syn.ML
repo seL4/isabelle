@@ -11,56 +11,72 @@ struct
 structure P = OuterParse and K = OuterKeyword;
 
 
+(** keywords **)
+
+(*keep keywords consistent with the parsers, otherwise be prepared for
+  unexpected errors*)
+
+val _ = OuterSyntax.keywords
+ ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
+  "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
+  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
+  "advanced", "and", "assumes", "attach", "begin", "binder", "concl",
+  "constrains", "defines", "fixes", "for", "identifier", "if",
+  "imports", "in", "includes", "infix", "infixl", "infixr", "is",
+  "local_syntax", "notes", "obtains", "open", "output", "overloaded", "shows",
+  "structure", "unchecked", "uses", "where", "|"];
+
+
 (** init and exit **)
 
-val theoryP =
+val _ =
   OuterSyntax.command "theory" "begin theory" (K.tag_theory K.thy_begin)
     (ThyHeader.args >> (Toplevel.print oo IsarCmd.theory));
 
-val endP =
+val _ =
   OuterSyntax.command "end" "end (local) theory" (K.tag_theory K.thy_end)
     (Scan.succeed (Toplevel.exit o Toplevel.end_local_theory));
 
 
 (** markup commands **)
 
-val headerP = OuterSyntax.markup_command ThyOutput.Markup "header" "theory header" K.diag
+val _ = OuterSyntax.markup_command ThyOutput.Markup "header" "theory header" K.diag
   (P.position P.text >> IsarCmd.add_header);
 
-val chapterP = OuterSyntax.markup_command ThyOutput.Markup "chapter" "chapter heading"
+val _ = OuterSyntax.markup_command ThyOutput.Markup "chapter" "chapter heading"
   K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_chapter);
 
-val sectionP = OuterSyntax.markup_command ThyOutput.Markup "section" "section heading"
+val _ = OuterSyntax.markup_command ThyOutput.Markup "section" "section heading"
   K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_section);
 
-val subsectionP = OuterSyntax.markup_command ThyOutput.Markup "subsection" "subsection heading"
+val _ = OuterSyntax.markup_command ThyOutput.Markup "subsection" "subsection heading"
   K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_subsection);
 
-val subsubsectionP =
+val _ =
   OuterSyntax.markup_command ThyOutput.Markup "subsubsection" "subsubsection heading"
   K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_subsubsection);
 
-val textP = OuterSyntax.markup_command ThyOutput.MarkupEnv "text" "formal comment (theory)"
+val _ = OuterSyntax.markup_command ThyOutput.MarkupEnv "text" "formal comment (theory)"
   K.thy_decl (P.opt_target -- P.position P.text >> IsarCmd.add_text);
 
-val text_rawP = OuterSyntax.markup_command ThyOutput.Verbatim "text_raw"
+val _ = OuterSyntax.markup_command ThyOutput.Verbatim "text_raw"
   "raw document preparation text"
   K.thy_decl (P.position P.text >> IsarCmd.add_text_raw);
 
-val sectP = OuterSyntax.markup_command ThyOutput.Markup "sect" "formal comment (proof)"
+val _ = OuterSyntax.markup_command ThyOutput.Markup "sect" "formal comment (proof)"
   (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.add_sect);
 
-val subsectP = OuterSyntax.markup_command ThyOutput.Markup "subsect" "formal comment (proof)"
+val _ = OuterSyntax.markup_command ThyOutput.Markup "subsect" "formal comment (proof)"
   (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.add_subsect);
 
-val subsubsectP = OuterSyntax.markup_command ThyOutput.Markup "subsubsect"
+val _ = OuterSyntax.markup_command ThyOutput.Markup "subsubsect"
   "formal comment (proof)" (K.tag_proof K.prf_heading)
   (P.position P.text >> IsarCmd.add_subsubsect);
 
-val txtP = OuterSyntax.markup_command ThyOutput.MarkupEnv "txt" "formal comment (proof)"
+val _ = OuterSyntax.markup_command ThyOutput.MarkupEnv "txt" "formal comment (proof)"
   (K.tag_proof K.prf_decl) (P.position P.text >> IsarCmd.add_txt);
 
-val txt_rawP = OuterSyntax.markup_command ThyOutput.Verbatim "txt_raw"
+val _ = OuterSyntax.markup_command ThyOutput.Verbatim "txt_raw"
   "raw document preparation text (proof)" (K.tag_proof K.prf_decl)
   (P.position P.text >> IsarCmd.add_txt_raw);
 
@@ -70,21 +86,21 @@ val txt_rawP = OuterSyntax.markup_command ThyOutput.Verbatim "txt_raw"
 
 (* classes and sorts *)
 
-val classesP =
+val _ =
   OuterSyntax.command "classes" "declare type classes" K.thy_decl
     (Scan.repeat1 (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []) >> (Toplevel.theory o fold AxClass.axiomatize_class));
 
-val classrelP =
+val _ =
   OuterSyntax.command "classrel" "state inclusion of type classes (axiomatic!)" K.thy_decl
     (P.and_list1 (P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname))
     >> (Toplevel.theory o AxClass.axiomatize_classrel));
 
-val defaultsortP =
+val _ =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
     (P.sort >> (Toplevel.theory o Sign.add_defsort));
 
-val axclassP =
+val _ =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
     (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []
@@ -94,40 +110,40 @@ val axclassP =
 
 (* types *)
 
-val typedeclP =
+val _ =
   OuterSyntax.command "typedecl" "type declaration" K.thy_decl
     (P.type_args -- P.name -- P.opt_infix >> (fn ((args, a), mx) =>
       Toplevel.theory (Sign.add_typedecls [(a, args, mx)])));
 
-val typeabbrP =
+val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
       (P.type_args -- P.name -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_infix')))
       >> (Toplevel.theory o Sign.add_tyabbrs o
         map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
 
-val nontermP =
+val _ =
   OuterSyntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
     K.thy_decl (Scan.repeat1 P.name >> (Toplevel.theory o Sign.add_nonterminals));
 
-val aritiesP =
+val _ =
   OuterSyntax.command "arities" "state type arities (axiomatic!)" K.thy_decl
     (Scan.repeat1 P.arity >> (Toplevel.theory o fold AxClass.axiomatize_arity));
 
 
 (* consts and syntax *)
 
-val judgmentP =
+val _ =
   OuterSyntax.command "judgment" "declare object-logic judgment" K.thy_decl
     (P.const >> (Toplevel.theory o ObjectLogic.add_judgment));
 
-val constsP =
+val _ =
   OuterSyntax.command "consts" "declare constants" K.thy_decl
     (Scan.repeat1 P.const >> (Toplevel.theory o Sign.add_consts));
 
 val opt_overloaded = P.opt_keyword "overloaded";
 
-val finalconstsP =
+val _ =
   OuterSyntax.command "finalconsts" "declare constants as final" K.thy_decl
     (opt_overloaded -- Scan.repeat1 P.term >> (uncurry (Toplevel.theory oo Theory.add_finals)));
 
@@ -137,11 +153,11 @@ val mode_spec =
 val opt_mode =
   Scan.optional (P.$$$ "(" |-- P.!!! (mode_spec --| P.$$$ ")")) Syntax.default_mode;
 
-val syntaxP =
+val _ =
   OuterSyntax.command "syntax" "declare syntactic constants" K.thy_decl
     (opt_mode -- Scan.repeat1 P.const >> (Toplevel.theory o uncurry Sign.add_modesyntax));
 
-val no_syntaxP =
+val _ =
   OuterSyntax.command "no_syntax" "delete syntax declarations" K.thy_decl
     (opt_mode -- Scan.repeat1 P.const >> (Toplevel.theory o uncurry Sign.del_modesyntax));
 
@@ -160,18 +176,18 @@ val trans_line =
   trans_pat -- P.!!! (trans_arrow -- trans_pat)
     >> (fn (left, (arr, right)) => arr (left, right));
 
-val translationsP =
+val _ =
   OuterSyntax.command "translations" "declare syntax translation rules" K.thy_decl
     (Scan.repeat1 trans_line >> (Toplevel.theory o Sign.add_trrules));
 
-val no_translationsP =
+val _ =
   OuterSyntax.command "no_translations" "remove syntax translation rules" K.thy_decl
     (Scan.repeat1 trans_line >> (Toplevel.theory o Sign.del_trrules));
 
 
 (* axioms and definitions *)
 
-val axiomsP =
+val _ =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" K.thy_decl
     (Scan.repeat1 SpecParse.spec_name >> (Toplevel.theory o IsarCmd.add_axioms));
 
@@ -180,7 +196,7 @@ val opt_unchecked_overloaded =
     (((P.$$$ "unchecked" >> K true) -- Scan.optional (P.$$$ "overloaded" >> K true) false ||
       P.$$$ "overloaded" >> K (false, true)) --| P.$$$ ")")) (false, false);
 
-val defsP =
+val _ =
   OuterSyntax.command "defs" "define constants" K.thy_decl
     (opt_unchecked_overloaded -- Scan.repeat1 SpecParse.spec_name
       >> (Toplevel.theory o IsarCmd.add_defs));
@@ -199,7 +215,7 @@ val old_constdef = Scan.option old_constdecl -- (SpecParse.opt_thm_name ":" -- P
 val structs =
   Scan.optional ((P.$$$ "(" -- P.$$$ "structure") |-- P.!!! (P.simple_fixes --| P.$$$ ")")) [];
 
-val constdefsP =
+val _ =
   OuterSyntax.command "constdefs" "old-style constant definition" K.thy_decl
     (structs -- Scan.repeat1 old_constdef >> (Toplevel.theory o Constdefs.add_constdefs));
 
@@ -215,18 +231,18 @@ val constdecl =
 
 val constdef = Scan.option constdecl -- (SpecParse.opt_thm_name ":" -- P.prop);
 
-val definitionP =
+val _ =
   OuterSyntax.command "definition" "constant definition" K.thy_decl
     (P.opt_target -- constdef
     >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition args)));
 
-val abbreviationP =
+val _ =
   OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
     (P.opt_target -- opt_mode -- (Scan.option constdecl -- P.prop)
     >> (fn ((loc, mode), args) =>
         Toplevel.local_theory loc (Specification.abbreviation mode args)));
 
-val notationP =
+val _ =
   OuterSyntax.command "notation" "variable/constant syntax" K.thy_decl
     (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn ((loc, mode), args) =>
@@ -235,7 +251,7 @@ val notationP =
 
 (* constant specifications *)
 
-val axiomatizationP =
+val _ =
   OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
     (P.opt_target --
      (Scan.optional P.fixes [] --
@@ -248,13 +264,13 @@ val axiomatizationP =
 fun theorems kind = P.opt_target -- SpecParse.name_facts
   >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.theorems kind args));
 
-val theoremsP =
+val _ =
   OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems Thm.theoremK);
 
-val lemmasP =
+val _ =
   OuterSyntax.command "lemmas" "define lemmas" K.thy_decl (theorems Thm.lemmaK);
 
-val declareP =
+val _ =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_decl
     (P.opt_target -- (P.and_list1 SpecParse.xthms1 >> flat)
       >> (fn (loc, args) => Toplevel.local_theory loc
@@ -263,15 +279,15 @@ val declareP =
 
 (* name space entry path *)
 
-val globalP =
+val _ =
   OuterSyntax.command "global" "disable prefixing of theory name" K.thy_decl
     (Scan.succeed (Toplevel.theory Sign.root_path));
 
-val localP =
+val _ =
   OuterSyntax.command "local" "enable prefixing of theory name" K.thy_decl
     (Scan.succeed (Toplevel.theory Sign.local_path));
 
-val hideP =
+val _ =
   OuterSyntax.command "hide" "hide names from given name space" K.thy_decl
     ((P.opt_keyword "open" >> not) -- (P.name -- Scan.repeat1 P.xname) >>
       (Toplevel.theory o uncurry Sign.hide_names));
@@ -279,37 +295,37 @@ val hideP =
 
 (* use ML text *)
 
-val useP =
+val _ =
   OuterSyntax.command "use" "eval ML text from file" (K.tag_ml K.diag)
     (P.path >> (Toplevel.no_timing oo IsarCmd.use));
 
-val mlP =
+val _ =
   OuterSyntax.command "ML" "eval ML text (diagnostic)" (K.tag_ml K.diag)
     (P.text >> IsarCmd.use_mltext true);
 
-val ml_commandP =
+val _ =
   OuterSyntax.command "ML_command" "eval ML text" (K.tag_ml K.diag)
     (P.text >> (Toplevel.no_timing oo IsarCmd.use_mltext false));
 
-val ml_setupP =
+val _ =
   OuterSyntax.command "ML_setup" "eval ML text (may change theory)" (K.tag_ml K.thy_decl)
     (P.text >> IsarCmd.use_mltext_theory);
 
-val setupP =
+val _ =
   OuterSyntax.command "setup" "apply ML theory setup" (K.tag_ml K.thy_decl)
     (Scan.option P.text >> (Toplevel.theory o IsarCmd.generic_setup));
 
-val method_setupP =
+val _ =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)
     (((P.name -- P.!!! (P.$$$ "=" |-- P.text -- P.text) >> P.triple2))
       >> (Toplevel.theory o Method.method_setup));
 
-val declarationP =
+val _ =
   OuterSyntax.command "declaration" "generic ML declaration" (K.tag_ml K.thy_decl)
     (P.opt_target -- P.text
     >> (fn (loc, txt) => Toplevel.local_theory loc (IsarCmd.declaration txt)));
 
-val simproc_setupP =
+val _ =
   OuterSyntax.command "simproc_setup" "define simproc in ML" (K.tag_ml K.thy_decl)
     (P.opt_target --
       P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") -- P.text --
@@ -321,32 +337,32 @@ val simproc_setupP =
 
 val trfun = P.opt_keyword "advanced" -- P.text;
 
-val parse_ast_translationP =
+val _ =
   OuterSyntax.command "parse_ast_translation" "install parse ast translation functions"
     (K.tag_ml K.thy_decl)
     (trfun >> (Toplevel.theory o IsarCmd.parse_ast_translation));
 
-val parse_translationP =
+val _ =
   OuterSyntax.command "parse_translation" "install parse translation functions"
     (K.tag_ml K.thy_decl)
     (trfun >> (Toplevel.theory o IsarCmd.parse_translation));
 
-val print_translationP =
+val _ =
   OuterSyntax.command "print_translation" "install print translation functions"
     (K.tag_ml K.thy_decl)
     (trfun >> (Toplevel.theory o IsarCmd.print_translation));
 
-val typed_print_translationP =
+val _ =
   OuterSyntax.command "typed_print_translation" "install typed print translation functions"
     (K.tag_ml K.thy_decl)
     (trfun >> (Toplevel.theory o IsarCmd.typed_print_translation));
 
-val print_ast_translationP =
+val _ =
   OuterSyntax.command "print_ast_translation" "install print ast translation functions"
     (K.tag_ml K.thy_decl)
     (trfun >> (Toplevel.theory o IsarCmd.print_ast_translation));
 
-val token_translationP =
+val _ =
   OuterSyntax.command "token_translation" "install token translation functions"
     (K.tag_ml K.thy_decl)
     (P.text >> (Toplevel.theory o IsarCmd.token_translation));
@@ -354,7 +370,7 @@ val token_translationP =
 
 (* oracles *)
 
-val oracleP =
+val _ =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
     (P.name -- (P.$$$ "(" |-- P.text --| P.$$$ ")" --| P.$$$ "=")
       -- P.text >> (fn ((x, y), z) => Toplevel.theory (IsarCmd.oracle x y z)));
@@ -362,7 +378,7 @@ val oracleP =
 
 (* local theories *)
 
-val contextP =
+val _ =
   OuterSyntax.command "context" "enter local theory context" K.thy_decl
     (P.name --| P.begin >> (fn name =>
       Toplevel.print o Toplevel.begin_local_theory true (TheoryTarget.init (SOME name))));
@@ -371,20 +387,19 @@ val contextP =
 (* locales *)
 
 val locale_val =
-  (SpecParse.locale_expr --
+  SpecParse.locale_expr --
     Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
-  Scan.repeat1 SpecParse.context_element >> pair Locale.empty);
+  Scan.repeat1 SpecParse.context_element >> pair Locale.empty;
 
-val localeP =
+val _ =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    ((P.opt_keyword "open" >> (fn true => NONE | false => SOME "")) -- P.name
-        -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, [])
-        -- P.opt_begin
+    ((P.opt_keyword "open" >> (fn true => NONE | false => SOME "")) --
+      P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, []) -- P.opt_begin
       >> (fn (((is_open, name), (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
             (Locale.add_locale is_open name expr elems #-> TheoryTarget.begin)));
 
-val interpretationP =
+val _ =
   OuterSyntax.command "interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr
@@ -393,7 +408,7 @@ val interpretationP =
         >> (fn ((x, y), z) => Toplevel.print o
             Toplevel.theory_to_proof (Locale.interpretation I (apfst (pair true) x) y z)));
 
-val interpretP =
+val _ =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
@@ -404,54 +419,44 @@ val interpretP =
 
 (* classes *)
 
-local
+val class_val =
+  SpecParse.class_expr --
+    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.locale_element)) [] ||
+  Scan.repeat1 SpecParse.locale_element >> pair [];
 
-val class_subP = P.name -- Scan.repeat (P.$$$ "+" |-- P.name) >> (op ::);
-val class_bodyP = P.!!! (Scan.repeat1 SpecParse.locale_element);
-
-in
-
-val classP =
-  OuterSyntax.command "class" "define type class" K.thy_decl (
-    P.name
-    -- Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") []
-    -- Scan.optional (P.$$$ "(" |-- (P.$$$ "local_syntax" >> K true) --| P.$$$ ")") false
-    --| P.$$$ "=" -- (
-      class_subP --| P.$$$ "+" -- class_bodyP
-      || class_subP >> rpair []
-      || class_bodyP >> pair [])
-    -- P.opt_begin
+val _ =
+  OuterSyntax.command "class" "define type class" K.thy_decl
+   (P.name --
+     Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") [] --  (* FIXME ?? *)
+     Scan.optional (P.$$$ "(" |-- (P.$$$ "local_syntax" >> K true) --| P.$$$ ")") false --  (* FIXME ?? *)
+     (P.$$$ "=" |-- class_val) -- P.opt_begin
     >> (fn ((((bname, add_consts), local_syntax), (supclasses, elems)), begin) =>
         Toplevel.begin_local_theory begin
           (Class.class_cmd false bname supclasses elems add_consts #-> TheoryTarget.begin)));
 
-val instanceP =
-  OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal ((
-      P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-           >> Class.classrel_cmd
-      || P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-           >> Class.interpretation_in_class_cmd
-      || P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-           >> (fn (arities, defs) => Class.instance_cmd arities defs (fold Code.add_default_func))
-    ) >> (Toplevel.print oo Toplevel.theory_to_proof));
+val _ =
+  OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
+  ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> Class.classrel_cmd ||
+    P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
+      >> Class.interpretation_in_class_cmd  || (* FIXME ?? *)
+    P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
+      >> (fn (arities, defs) => Class.instance_cmd arities defs (fold Code.add_default_func (* FIXME ? *))))
+    >> (Toplevel.print oo Toplevel.theory_to_proof));
 
-val instantiationP =
-  OuterSyntax.command "instantiation" "prove type arity" K.thy_decl (
-      P.and_list1 P.arity -- P.opt_begin
-           >> (fn (arities, begin) => (begin ? Toplevel.print)
-            o Toplevel.begin_local_theory begin
-                (Instance.begin_instantiation_cmd arities)));
+val _ =
+  OuterSyntax.command "instantiation" "prove type arity" K.thy_decl
+   (P.and_list1 P.arity -- P.opt_begin
+     >> (fn (arities, begin) => (begin ? Toplevel.print) o
+         Toplevel.begin_local_theory begin (Instance.begin_instantiation_cmd arities)));
 
-val instance_proofP =
+val _ =  (* FIXME incorporate into "instance" *)
   OuterSyntax.command "instance_proof" "prove type arity relation" K.thy_goal
-      (Scan.succeed ((Toplevel.print oo Toplevel.local_theory_to_proof NONE) Instance.proof_instantiation));
-
-end;
+    (Scan.succeed (Toplevel.print o Toplevel.local_theory_to_proof NONE Instance.proof_instantiation));
 
 
 (* code generation *)
 
-val code_datatypeP =
+val _ =
   OuterSyntax.command "code_datatype" "define set of code datatype constructors" K.thy_decl
     (Scan.repeat1 P.term >> (Toplevel.theory o Code.add_datatype_cmd));
 
@@ -470,26 +475,26 @@ fun gen_theorem kind =
        Toplevel.local_theory_to_proof' loc
          (Specification.theorem kind NONE (K I) a elems concl))));
 
-val theoremP = gen_theorem Thm.theoremK;
-val lemmaP = gen_theorem Thm.lemmaK;
-val corollaryP = gen_theorem Thm.corollaryK;
+val _ = gen_theorem Thm.theoremK;
+val _ = gen_theorem Thm.lemmaK;
+val _ = gen_theorem Thm.corollaryK;
 
-val haveP =
+val _ =
   OuterSyntax.command "have" "state local goal"
     (K.tag_proof K.prf_goal)
     (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));
 
-val henceP =
+val _ =
   OuterSyntax.command "hence" "abbreviates \"then have\""
     (K.tag_proof K.prf_goal)
     (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.hence));
 
-val showP =
+val _ =
   OuterSyntax.command "show" "state local goal, solving current obligation"
     (K.tag_proof K.prf_asm_goal)
     (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.show));
 
-val thusP =
+val _ =
   OuterSyntax.command "thus" "abbreviates \"then show\""
     (K.tag_proof K.prf_asm_goal)
     (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.thus));
@@ -499,32 +504,32 @@ val thusP =
 
 val facts = P.and_list1 SpecParse.xthms1;
 
-val thenP =
+val _ =
   OuterSyntax.command "then" "forward chaining"
     (K.tag_proof K.prf_chain)
     (Scan.succeed (Toplevel.print o Toplevel.proof Proof.chain));
 
-val fromP =
+val _ =
   OuterSyntax.command "from" "forward chaining from given facts"
     (K.tag_proof K.prf_chain)
     (facts >> (Toplevel.print oo (Toplevel.proof o Proof.from_thmss)));
 
-val withP =
+val _ =
   OuterSyntax.command "with" "forward chaining from given and current facts"
     (K.tag_proof K.prf_chain)
     (facts >> (Toplevel.print oo (Toplevel.proof o Proof.with_thmss)));
 
-val noteP =
+val _ =
   OuterSyntax.command "note" "define facts"
     (K.tag_proof K.prf_decl)
     (SpecParse.name_facts >> (Toplevel.print oo (Toplevel.proof o Proof.note_thmss)));
 
-val usingP =
+val _ =
   OuterSyntax.command "using" "augment goal facts"
     (K.tag_proof K.prf_decl)
     (facts >> (Toplevel.print oo (Toplevel.proof o Proof.using)));
 
-val unfoldingP =
+val _ =
   OuterSyntax.command "unfolding" "unfold definitions in goal and facts"
     (K.tag_proof K.prf_decl)
     (facts >> (Toplevel.print oo (Toplevel.proof o Proof.unfolding)));
@@ -532,22 +537,22 @@ val unfoldingP =
 
 (* proof context *)
 
-val fixP =
+val _ =
   OuterSyntax.command "fix" "fix local variables (Skolem constants)"
     (K.tag_proof K.prf_asm)
     (P.fixes >> (Toplevel.print oo (Toplevel.proof o Proof.fix)));
 
-val assumeP =
+val _ =
   OuterSyntax.command "assume" "assume propositions"
     (K.tag_proof K.prf_asm)
     (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume)));
 
-val presumeP =
+val _ =
   OuterSyntax.command "presume" "assume propositions, to be established later"
     (K.tag_proof K.prf_asm)
     (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume)));
 
-val defP =
+val _ =
   OuterSyntax.command "def" "local definition"
     (K.tag_proof K.prf_asm)
     (P.and_list1
@@ -555,18 +560,18 @@ val defP =
         ((P.name -- P.opt_mixfix) -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp)))
     >> (Toplevel.print oo (Toplevel.proof o Proof.def)));
 
-val obtainP =
+val _ =
   OuterSyntax.command "obtain" "generalized existence"
     (K.tag_proof K.prf_asm_goal)
     (P.parname -- Scan.optional (P.fixes --| P.where_) [] -- SpecParse.statement
       >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain x y z)));
 
-val guessP =
+val _ =
   OuterSyntax.command "guess" "wild guessing (unstructured)"
     (K.tag_proof K.prf_asm_goal)
     (Scan.optional P.fixes [] >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess)));
 
-val letP =
+val _ =
   OuterSyntax.command "let" "bind text variables"
     (K.tag_proof K.prf_decl)
     (P.and_list1 (P.enum1 "and" P.term -- (P.$$$ "=" |-- P.term))
@@ -576,7 +581,7 @@ val case_spec =
   (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 (P.maybe P.name) --| P.$$$ ")") ||
     P.xname >> rpair []) -- SpecParse.opt_attribs >> P.triple1;
 
-val caseP =
+val _ =
   OuterSyntax.command "case" "invoke local context"
     (K.tag_proof K.prf_asm)
     (case_spec >> (Toplevel.print oo (Toplevel.proof o Proof.invoke_case)));
@@ -584,17 +589,17 @@ val caseP =
 
 (* proof structure *)
 
-val begin_blockP =
+val _ =
   OuterSyntax.command "{" "begin explicit proof block"
     (K.tag_proof K.prf_open)
     (Scan.succeed (Toplevel.print o Toplevel.proof Proof.begin_block));
 
-val end_blockP =
+val _ =
   OuterSyntax.command "}" "end explicit proof block"
     (K.tag_proof K.prf_close)
     (Scan.succeed (Toplevel.print o Toplevel.proof Proof.end_block));
 
-val nextP =
+val _ =
   OuterSyntax.command "next" "enter next proof block"
     (K.tag_proof K.prf_block)
     (Scan.succeed (Toplevel.print o Toplevel.proof Proof.next_block));
@@ -602,37 +607,37 @@ val nextP =
 
 (* end proof *)
 
-val qedP =
+val _ =
   OuterSyntax.command "qed" "conclude (sub-)proof"
     (K.tag_proof K.qed_block)
     (Scan.option Method.parse >> (Toplevel.print3 oo IsarCmd.qed));
 
-val terminal_proofP =
+val _ =
   OuterSyntax.command "by" "terminal backward proof"
     (K.tag_proof K.qed)
     (Method.parse -- Scan.option Method.parse >> (Toplevel.print3 oo IsarCmd.terminal_proof));
 
-val default_proofP =
+val _ =
   OuterSyntax.command ".." "default proof"
     (K.tag_proof K.qed)
     (Scan.succeed (Toplevel.print3 o IsarCmd.default_proof));
 
-val immediate_proofP =
+val _ =
   OuterSyntax.command "." "immediate proof"
     (K.tag_proof K.qed)
     (Scan.succeed (Toplevel.print3 o IsarCmd.immediate_proof));
 
-val done_proofP =
+val _ =
   OuterSyntax.command "done" "done proof"
     (K.tag_proof K.qed)
     (Scan.succeed (Toplevel.print3 o IsarCmd.done_proof));
 
-val skip_proofP =
+val _ =
   OuterSyntax.improper_command "sorry" "skip proof (quick-and-dirty mode only!)"
     (K.tag_proof K.qed)
     (Scan.succeed (Toplevel.print3 o IsarCmd.skip_proof));
 
-val forget_proofP =
+val _ =
   OuterSyntax.command "oops" "forget proof"
     (K.tag_proof K.qed_global)
     (Scan.succeed Toplevel.forget_proof);
@@ -640,27 +645,27 @@ val forget_proofP =
 
 (* proof steps *)
 
-val deferP =
+val _ =
   OuterSyntax.command "defer" "shuffle internal proof state"
     (K.tag_proof K.prf_script)
     (Scan.option P.nat >> (Toplevel.print oo (Toplevel.proofs o Proof.defer)));
 
-val preferP =
+val _ =
   OuterSyntax.command "prefer" "shuffle internal proof state"
     (K.tag_proof K.prf_script)
     (P.nat >> (Toplevel.print oo (Toplevel.proofs o Proof.prefer)));
 
-val applyP =
+val _ =
   OuterSyntax.command "apply" "initial refinement step (unstructured)"
     (K.tag_proof K.prf_script)
     (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply)));
 
-val apply_endP =
+val _ =
   OuterSyntax.command "apply_end" "terminal refinement (unstructured)"
     (K.tag_proof K.prf_script)
     (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_end)));
 
-val proofP =
+val _ =
   OuterSyntax.command "proof" "backward proof"
     (K.tag_proof K.prf_block)
     (Scan.option Method.parse >> (fn m => Toplevel.print o
@@ -673,22 +678,22 @@ val proofP =
 val calc_args =
   Scan.option (P.$$$ "(" |-- P.!!! ((SpecParse.xthms1 --| P.$$$ ")")));
 
-val alsoP =
+val _ =
   OuterSyntax.command "also" "combine calculation and current facts"
     (K.tag_proof K.prf_decl)
     (calc_args >> (Toplevel.proofs' o Calculation.also));
 
-val finallyP =
+val _ =
   OuterSyntax.command "finally" "combine calculation and current facts, exhibit result"
     (K.tag_proof K.prf_chain)
     (calc_args >> (Toplevel.proofs' o Calculation.finally_));
 
-val moreoverP =
+val _ =
   OuterSyntax.command "moreover" "augment calculation by current facts"
     (K.tag_proof K.prf_decl)
     (Scan.succeed (Toplevel.proof' Calculation.moreover));
 
-val ultimatelyP =
+val _ =
   OuterSyntax.command "ultimately" "augment calculation by current facts, exhibit result"
     (K.tag_proof K.prf_chain)
     (Scan.succeed (Toplevel.proof' Calculation.ultimately));
@@ -696,7 +701,7 @@ val ultimatelyP =
 
 (* proof navigation *)
 
-val backP =
+val _ =
   OuterSyntax.command "back" "backtracking of proof command"
     (K.tag_proof K.prf_script)
     (Scan.succeed (Toplevel.print o IsarCmd.back));
@@ -704,23 +709,23 @@ val backP =
 
 (* history *)
 
-val cannot_undoP =
+val _ =
   OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
     (P.name >> (Toplevel.no_timing oo IsarCmd.cannot_undo));
 
-val redoP =
+val _ =
   OuterSyntax.improper_command "redo" "redo last command" K.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.redo));
 
-val undos_proofP =
+val _ =
   OuterSyntax.improper_command "undos_proof" "undo last proof commands" K.control
     (P.nat >> ((Toplevel.no_timing o Toplevel.print) oo IsarCmd.undos_proof));
 
-val undoP =
+val _ =
   OuterSyntax.improper_command "undo" "undo last command" K.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.undo));
 
-val killP =
+val _ =
   OuterSyntax.improper_command "kill" "kill current history node" K.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.kill));
 
@@ -731,95 +736,95 @@ val killP =
 val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
 val opt_bang = Scan.optional (P.$$$ "!" >> K true) false;
 
-val pretty_setmarginP =
+val _ =
   OuterSyntax.improper_command "pretty_setmargin" "change default margin for pretty printing"
     K.diag (P.nat >> (Toplevel.no_timing oo IsarCmd.pretty_setmargin));
 
-val helpP =
+val _ =
   OuterSyntax.improper_command "help" "print outer syntax commands" K.diag
     (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
 
-val print_commandsP =
+val _ =
   OuterSyntax.improper_command "print_commands" "print outer syntax commands" K.diag
     (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_commands));
 
-val print_configsP =
+val _ =
   OuterSyntax.improper_command "print_configs" "print configuration options" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_configs));
 
-val print_contextP =
+val _ =
   OuterSyntax.improper_command "print_context" "print theory context name" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_context));
 
-val print_theoryP =
+val _ =
   OuterSyntax.improper_command "print_theory" "print logical theory contents (verbose!)" K.diag
     (opt_bang >> (Toplevel.no_timing oo IsarCmd.print_theory));
 
-val print_syntaxP =
+val _ =
   OuterSyntax.improper_command "print_syntax" "print inner syntax of context (verbose!)" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_syntax));
 
-val print_abbrevsP =
+val _ =
   OuterSyntax.improper_command "print_abbrevs" "print constant abbreviation of context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_abbrevs));
 
-val print_theoremsP =
+val _ =
   OuterSyntax.improper_command "print_theorems"
       "print theorems of local theory or proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_theorems));
 
-val print_localesP =
+val _ =
   OuterSyntax.improper_command "print_locales" "print locales of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_locales));
 
-val print_classesP =
+val _ =
   OuterSyntax.improper_command "print_classes" "print classes of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory
       o Toplevel.keep (Class.print_classes o Toplevel.theory_of)));
 
-val print_localeP =
+val _ =
   OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
     (opt_bang -- locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
 
-val print_registrationsP =
+val _ =
   OuterSyntax.improper_command "print_interps"
     "print interpretations of named locale" K.diag
     (Scan.optional (P.$$$ "!" >> K true) false -- P.xname
       >> (Toplevel.no_timing oo uncurry IsarCmd.print_registrations));
 
-val print_attributesP =
+val _ =
   OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_attributes));
 
-val print_simpsetP =
+val _ =
   OuterSyntax.improper_command "print_simpset" "print context of Simplifier" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_simpset));
 
-val print_rulesP =
+val _ =
   OuterSyntax.improper_command "print_rules" "print intro/elim rules" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_rules));
 
-val print_trans_rulesP =
+val _ =
   OuterSyntax.improper_command "print_trans_rules" "print transitivity rules" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_trans_rules));
 
-val print_methodsP =
+val _ =
   OuterSyntax.improper_command "print_methods" "print methods of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_methods));
 
-val print_antiquotationsP =
+val _ =
   OuterSyntax.improper_command "print_antiquotations" "print antiquotations (global)" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
 
-val thy_depsP =
+val _ =
   OuterSyntax.improper_command "thy_deps" "visualize theory dependencies"
     K.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.thy_deps));
 
-val class_depsP =
+val _ =
   OuterSyntax.improper_command "class_deps" "visualize class dependencies"
     K.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.class_deps));
 
-val thm_depsP =
+val _ =
   OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"
     K.diag (SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
 
@@ -840,55 +845,55 @@ val options =
         --| P.$$$ ")")) (NONE, true);
 in
 
-val find_theoremsP =
+val _ =
   OuterSyntax.improper_command "find_theorems" "print theorems meeting specified criteria" K.diag
     (options -- Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
       >> (Toplevel.no_timing oo IsarCmd.find_theorems));
 
 end;
 
-val print_bindsP =
+val _ =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_binds));
 
-val print_factsP =
+val _ =
   OuterSyntax.improper_command "print_facts" "print facts of proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_facts));
 
-val print_casesP =
+val _ =
   OuterSyntax.improper_command "print_cases" "print cases of proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_cases));
 
-val print_stmtsP =
+val _ =
   OuterSyntax.improper_command "print_statement" "print theorems as long statements" K.diag
     (opt_modes -- SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_stmts));
 
-val print_thmsP =
+val _ =
   OuterSyntax.improper_command "thm" "print theorems" K.diag
     (opt_modes -- SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
 
-val print_prfsP =
+val _ =
   OuterSyntax.improper_command "prf" "print proof terms of theorems" K.diag
     (opt_modes -- Scan.option SpecParse.xthms1
       >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
 
-val print_full_prfsP =
+val _ =
   OuterSyntax.improper_command "full_prf" "print full proof terms of theorems" K.diag
     (opt_modes -- Scan.option SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs true));
 
-val print_propP =
+val _ =
   OuterSyntax.improper_command "prop" "read and print proposition" K.diag
     (opt_modes -- P.term >> (Toplevel.no_timing oo IsarCmd.print_prop));
 
-val print_termP =
+val _ =
   OuterSyntax.improper_command "term" "read and print term" K.diag
     (opt_modes -- P.term >> (Toplevel.no_timing oo IsarCmd.print_term));
 
-val print_typeP =
+val _ =
   OuterSyntax.improper_command "typ" "read and print type" K.diag
     (opt_modes -- P.typ >> (Toplevel.no_timing oo IsarCmd.print_type));
 
-val print_codesetupP =
+val _ =
   OuterSyntax.improper_command "print_codesetup" "print code generator setup of this theory" K.diag
     (Scan.succeed
       (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
@@ -897,134 +902,75 @@ val print_codesetupP =
 
 (** system commands (for interactive mode only) **)
 
-val cdP =
+val _ =
   OuterSyntax.improper_command "cd" "change current working directory" K.diag
     (P.path >> (Toplevel.no_timing oo IsarCmd.cd));
 
-val pwdP =
+val _ =
   OuterSyntax.improper_command "pwd" "print current working directory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.pwd));
 
-val use_thyP =
+val _ =
   OuterSyntax.improper_command "use_thy" "use theory file" K.diag
     (P.name >> (Toplevel.no_timing oo IsarCmd.use_thy));
 
-val touch_thyP =
+val _ =
   OuterSyntax.improper_command "touch_thy" "outdate theory, including descendants" K.diag
     (P.name >> (Toplevel.no_timing oo IsarCmd.touch_thy));
 
-val touch_child_thysP =
+val _ =
   OuterSyntax.improper_command "touch_child_thys" "outdate child theories" K.diag
     (P.name >> (Toplevel.no_timing oo IsarCmd.touch_child_thys));
 
-val remove_thyP =
+val _ =
   OuterSyntax.improper_command "remove_thy" "remove theory from loader database" K.diag
     (P.name >> (Toplevel.no_timing oo IsarCmd.remove_thy));
 
-val kill_thyP =
+val _ =
   OuterSyntax.improper_command "kill_thy" "kill theory -- try to remove from loader database"
     K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.kill_thy));
 
-val display_draftsP =
+val _ =
   OuterSyntax.improper_command "display_drafts" "display raw source files with symbols"
     K.diag (Scan.repeat1 P.path >> (Toplevel.no_timing oo IsarCmd.display_drafts));
 
-val print_draftsP =
+val _ =
   OuterSyntax.improper_command "print_drafts" "print raw source files with symbols"
     K.diag (Scan.repeat1 P.path >> (Toplevel.no_timing oo IsarCmd.print_drafts));
 
 val opt_limits =
   Scan.option P.nat -- Scan.option (P.$$$ "," |-- P.!!! P.nat);
 
-val prP =
+val _ =
   OuterSyntax.improper_command "pr" "print current proof state (if present)" K.diag
     (opt_modes -- opt_limits >> (Toplevel.no_timing oo IsarCmd.pr));
 
-val disable_prP =
+val _ =
   OuterSyntax.improper_command "disable_pr" "disable printing of toplevel state" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.disable_pr));
 
-val enable_prP =
+val _ =
   OuterSyntax.improper_command "enable_pr" "enable printing of toplevel state" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.enable_pr));
 
-val commitP =
+val _ =
   OuterSyntax.improper_command "commit" "commit current session to ML database" K.diag
     (P.opt_unit >> (Toplevel.no_timing oo K IsarCmd.use_commit));
 
-val quitP =
+val _ =
   OuterSyntax.improper_command "quit" "quit Isabelle" K.control
     (P.opt_unit >> (Toplevel.no_timing oo K IsarCmd.quit));
 
-val exitP =
+val _ =
   OuterSyntax.improper_command "exit" "exit Isar loop" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.exit));
 
-val init_toplevelP =
+val _ =
   OuterSyntax.improper_command "init_toplevel" "restart Isar toplevel loop" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.init_toplevel));
 
-val welcomeP =
+val _ =
   OuterSyntax.improper_command "welcome" "print welcome message" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.welcome));
-
-
-
-(** the Pure outer syntax **)
-
-(*keep keywords consistent with the parsers, otherwise be prepared for
-  unexpected errors*)
-
-val _ = OuterSyntax.add_keywords
- ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
-  "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
-  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
-  "advanced", "and", "assumes", "attach", "begin", "binder", "concl",
-  "constrains", "defines", "fixes", "for", "identifier", "if",
-  "imports", "in", "includes", "infix", "infixl", "infixr", "is",
-  "local_syntax", "notes", "obtains", "open", "output", "overloaded", "shows",
-  "structure", "unchecked", "uses", "where", "|"];
-
-val _ = OuterSyntax.add_parsers [
-  (*theory structure*)
-  theoryP, endP,
-  (*markup commands*)
-  headerP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
-  text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
-  (*theory sections*)
-  classesP, classrelP, defaultsortP, axclassP, typedeclP, typeabbrP,
-  nontermP, aritiesP, judgmentP, constsP, finalconstsP, syntaxP,
-  no_syntaxP, translationsP, no_translationsP, axiomsP, defsP,
-  constdefsP, definitionP, abbreviationP, notationP, axiomatizationP,
-  theoremsP, lemmasP, declareP, globalP, localP, hideP, useP, mlP,
-  ml_commandP, ml_setupP, setupP, method_setupP, declarationP,
-  simproc_setupP, parse_ast_translationP, parse_translationP,
-  print_translationP, typed_print_translationP,
-  print_ast_translationP, token_translationP, oracleP, contextP,
-  localeP, classP, instanceP, instantiationP, instance_proofP,
-  code_datatypeP,
-  (*proof commands*)
-  theoremP, lemmaP, corollaryP, haveP, henceP, showP, thusP, fixP,
-  assumeP, presumeP, defP, obtainP, guessP, letP, caseP, thenP, fromP,
-  withP, noteP, usingP, unfoldingP, begin_blockP, end_blockP, nextP,
-  qedP, terminal_proofP, default_proofP, immediate_proofP,
-  done_proofP, skip_proofP, forget_proofP, deferP, preferP, applyP,
-  apply_endP, proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
-  cannot_undoP, redoP, undos_proofP, undoP, killP, interpretationP,
-  interpretP,
-  (*diagnostic commands*)
-  pretty_setmarginP, helpP, print_classesP, print_commandsP,
-  print_configsP, print_contextP, print_theoryP, print_syntaxP,
-  print_abbrevsP, print_factsP, print_theoremsP, print_localesP,
-  print_localeP, print_registrationsP, print_attributesP,
-  print_simpsetP, print_rulesP, print_trans_rulesP, print_methodsP,
-  print_antiquotationsP, thy_depsP, class_depsP, thm_depsP,
-  find_theoremsP, print_bindsP, print_casesP, print_stmtsP,
-  print_thmsP, print_prfsP, print_full_prfsP, print_propP,
-  print_termP, print_typeP, print_codesetupP,
-  (*system commands*)
-  cdP, pwdP, use_thyP, touch_thyP, touch_child_thysP, remove_thyP,
-  kill_thyP, display_draftsP, print_draftsP, prP, disable_prP,
-  enable_prP, commitP, quitP, exitP, init_toplevelP, welcomeP];
 
 end;
