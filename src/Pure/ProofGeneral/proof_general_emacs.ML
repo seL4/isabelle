@@ -286,7 +286,7 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
 
 
 
- (** generate elisp file for keyword classification **)
+(** generate elisp file for keyword classification **)
 
 local
 
@@ -316,7 +316,7 @@ in
 
 fun write_keywords s =
  (init_outer_syntax ();
-  File.write (Path.explode ("isar-keywords" ^ (if s = "" then "" else "-" ^ s) ^".el"))
+  File.write (Path.explode ("isar-keywords" ^ (if s = "" then "" else "-" ^ s) ^ ".el"))
     (make_elisp_syntax (OuterSyntax.dest_keywords (), OuterSyntax.dest_parsers ())));
 
 end;
