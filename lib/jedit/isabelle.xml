@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE MODE SYSTEM "xmode.dtd">
+<!-- This file was generated from Pure + HOL + HOLCF + IOA + HOL-Nominal + FOL + ZF -->
 <MODE>
   <PROPS>
     <PROPERTY NAME="commentStart" VALUE="(*"/>

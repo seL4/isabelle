@@ -146,6 +146,9 @@ sub jedit_output {
   print <<'EOF';
 <?xml version="1.0"?>
 <!DOCTYPE MODE SYSTEM "xmode.dtd">
+EOF
+  print "<!-- This file was generated from ${sessions} -->\n";
+  print <<'EOF';
 <MODE>
   <PROPS>
     <PROPERTY NAME="commentStart" VALUE="(*"/>
