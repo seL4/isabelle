@@ -77,11 +77,12 @@ text {*
   Misc definitions.
 *}
 
-constdefs
-  I :: i
+definition
+  I :: i  where
   "I == S\<bullet>K\<bullet>K"
 
-  diamond :: "i => o"
+definition
+  diamond :: "i => o"  where
   "diamond(r) ==
     \<forall>x y. <x,y>\<in>r --> (\<forall>y'. <x,y'>\<in>r --> (\<exists>z. <y,z>\<in>r & <y',z> \<in> r))"
 

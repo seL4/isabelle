@@ -10,9 +10,8 @@ Some properties of the recursive definition of HH used in the proofs of
 
 theory HH imports AC_Equiv Hartog begin
 
-constdefs
- 
-  HH :: "[i, i, i] => i"
+definition
+  HH :: "[i, i, i] => i"  where
     "HH(f,x,a) == transrec(a, %b r. let z = x - (\<Union>c \<in> b. r`c)
                                     in  if f`z \<in> Pow(z)-{0} then f`z else {x})"
 
@@ -242,5 +241,4 @@ apply (blast dest: bijection)
 done
 
 end
-
 
