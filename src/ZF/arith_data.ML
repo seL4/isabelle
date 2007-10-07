@@ -119,22 +119,22 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 
 
 (*Simplify #1*n and n*#1 to n*)
-val add_0s = [add_0_natify, add_0_right_natify];
-val add_succs = [add_succ, add_succ_right];
-val mult_1s = [mult_1_natify, mult_1_right_natify];
-val tc_rules = [natify_in_nat, add_type, diff_type, mult_type];
-val natifys = [natify_0, natify_ident, add_natify1, add_natify2,
-               diff_natify1, diff_natify2];
+val add_0s = [@{thm add_0_natify}, @{thm add_0_right_natify}];
+val add_succs = [@{thm add_succ}, @{thm add_succ_right}];
+val mult_1s = [@{thm mult_1_natify}, @{thm mult_1_right_natify}];
+val tc_rules = [@{thm natify_in_nat}, @{thm add_type}, @{thm diff_type}, @{thm mult_type}];
+val natifys = [@{thm natify_0}, @{thm natify_ident}, @{thm add_natify1}, @{thm add_natify2},
+               @{thm diff_natify1}, @{thm diff_natify2}];
 
 (*Final simplification: cancel + and **)
 fun simplify_meta_eq rules =
   let val ss0 =
-    FOL_ss addeqcongs [eq_cong2, iff_cong2]
+    FOL_ss addeqcongs [@{thm eq_cong2}, @{thm iff_cong2}]
       delsimps iff_simps (*these could erase the whole rule!*)
       addsimps rules
   in fn ss => mk_meta_eq o simplify (Simplifier.inherit_context ss ss0) end;
 
-val final_rules = add_0s @ mult_1s @ [mult_0, mult_0_right];
+val final_rules = add_0s @ mult_1s @ [@{thm mult_0}, @{thm mult_0_right}];
 
 structure CancelNumeralsCommon =
   struct
@@ -144,8 +144,9 @@ structure CancelNumeralsCommon =
   val dest_coeff        = dest_coeff
   val find_first_coeff  = find_first_coeff []
 
-  val norm_ss1 = ZF_ss addsimps add_0s @ add_succs @ mult_1s @ add_ac
-  val norm_ss2 = ZF_ss addsimps add_0s @ mult_1s @ add_ac @ mult_ac @ tc_rules @ natifys
+  val norm_ss1 = ZF_ss addsimps add_0s @ add_succs @ mult_1s @ @{thms add_ac}
+  val norm_ss2 = ZF_ss addsimps add_0s @ mult_1s @ @{thms add_ac} @
+    @{thms mult_ac} @ tc_rules @ natifys
   fun norm_tac ss =
     ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -164,8 +165,8 @@ structure EqCancelNumeralsData =
   val prove_conv = prove_conv "nateq_cancel_numerals"
   val mk_bal   = FOLogic.mk_eq
   val dest_bal = FOLogic.dest_eq
-  val bal_add1 = eq_add_iff RS iff_trans
-  val bal_add2 = eq_add_iff RS iff_trans
+  val bal_add1 = @{thm eq_add_iff} RS iff_trans
+  val bal_add2 = @{thm eq_add_iff} RS iff_trans
   fun trans_tac _ = gen_trans_tac iff_trans
   end;
 
@@ -177,8 +178,8 @@ structure LessCancelNumeralsData =
   val prove_conv = prove_conv "natless_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel "Ordinal.lt"
   val dest_bal = FOLogic.dest_bin "Ordinal.lt" iT
-  val bal_add1 = less_add_iff RS iff_trans
-  val bal_add2 = less_add_iff RS iff_trans
+  val bal_add1 = @{thm less_add_iff} RS iff_trans
+  val bal_add2 = @{thm less_add_iff} RS iff_trans
   fun trans_tac _ = gen_trans_tac iff_trans
   end;
 
@@ -190,8 +191,8 @@ structure DiffCancelNumeralsData =
   val prove_conv = prove_conv "natdiff_cancel_numerals"
   val mk_bal   = FOLogic.mk_binop "Arith.diff"
   val dest_bal = FOLogic.dest_bin "Arith.diff" iT
-  val bal_add1 = diff_add_eq RS trans
-  val bal_add2 = diff_add_eq RS trans
+  val bal_add1 = @{thm diff_add_eq} RS trans
+  val bal_add2 = @{thm diff_add_eq} RS trans
   fun trans_tac _ = gen_trans_tac trans
   end;
 

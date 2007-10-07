@@ -10,7 +10,8 @@ header{*The Axiom of Choice*}
 theory AC imports Main begin
 
 text{*This definition comes from Halmos (1960), page 59.*}
-axioms AC: "[| a: A;  !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)"
+axiomatization where
+  AC: "[| a: A;  !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)"
 
 (*The same as AC, but no premise a \<in> A*)
 lemma AC_Pi: "[| !!x. x \<in> A ==> (\<exists>y. y \<in> B(x)) |] ==> \<exists>z. z \<in> Pi(A,B)"

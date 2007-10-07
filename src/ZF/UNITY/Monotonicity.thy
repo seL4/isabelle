@@ -8,17 +8,18 @@ Monotonicity of an operator (meta-function) with respect to arbitrary set relati
 
 header{*Monotonicity of an Operator WRT a Relation*}
 
-theory Monotonicity imports GenPrefix MultisetSum begin
+theory Monotonicity imports GenPrefix MultisetSum
+begin
 
-constdefs
-
-  mono1 :: "[i, i, i, i, i=>i] => o"
+definition
+  mono1 :: "[i, i, i, i, i=>i] => o"  where
   "mono1(A, r, B, s, f) ==
     (\<forall>x \<in> A. \<forall>y \<in> A. <x,y> \<in> r --> <f(x), f(y)> \<in> s) & (\<forall>x \<in> A. f(x) \<in> B)"
 
   (* monotonicity of a 2-place meta-function f *)
 
-  mono2 :: "[i, i, i, i, i, i, [i,i]=>i] => o"
+definition
+  mono2 :: "[i, i, i, i, i, i, [i,i]=>i] => o"  where
   "mono2(A, r, B, s, C, t, f) == 
     (\<forall>x \<in> A. \<forall>y \<in> A. \<forall>u \<in> B. \<forall>v \<in> B.
               <x,y> \<in> r & <u,v> \<in> s --> <f(x,u), f(y,v)> \<in> t) &
@@ -26,12 +27,13 @@ constdefs
 
  (* Internalized relations on sets and multisets *)
 
-  SetLe :: "i =>i"
+definition
+  SetLe :: "i =>i"  where
   "SetLe(A) == {<x,y> \<in> Pow(A)*Pow(A). x <= y}"
 
-  MultLe :: "[i,i] =>i"
+definition
+  MultLe :: "[i,i] =>i"  where
   "MultLe(A, r) == multirel(A, r - id(A)) Un id(Mult(A))"
-
 
 
 lemma mono1D: 
@@ -114,20 +116,5 @@ done
 
 lemma mono_succ [iff]: "mono1(nat, Le, nat, Le, succ)"
 by (unfold mono1_def Le_def, auto)
-
-ML{*
-val mono1D = thm "mono1D";
-val mono2D = thm "mono2D";
-val take_mono_left_lemma = thm "take_mono_left_lemma";
-val take_mono_left = thm "take_mono_left";
-val take_mono_right = thm "take_mono_right";
-val take_mono = thm "take_mono";
-val mono_take = thm "mono_take";
-val length_mono = thm "length_mono";
-val mono_length = thm "mono_length";
-val mono_Un = thm "mono_Un";
-val mono_munion = thm "mono_munion";
-val mono_succ = thm "mono_succ";
-*}
 
 end

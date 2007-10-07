@@ -17,20 +17,24 @@ text {*
 
 subsection {* Basic definitions *}
 
-constdefs
-  SC :: "i"
+definition
+  SC :: "i"  where
   "SC == \<lambda>l \<in> list(nat). list_case(0, \<lambda>x xs. succ(x), l)"
 
-  CONSTANT :: "i=>i"
+definition
+  CONSTANT :: "i=>i"  where
   "CONSTANT(k) == \<lambda>l \<in> list(nat). k"
 
-  PROJ :: "i=>i"
+definition
+  PROJ :: "i=>i"  where
   "PROJ(i) == \<lambda>l \<in> list(nat). list_case(0, \<lambda>x xs. x, drop(i,l))"
 
-  COMP :: "[i,i]=>i"
+definition
+  COMP :: "[i,i]=>i"  where
   "COMP(g,fs) == \<lambda>l \<in> list(nat). g ` List.map(\<lambda>f. f`l, fs)"
 
-  PREC :: "[i,i]=>i"
+definition
+  PREC :: "[i,i]=>i"  where
   "PREC(f,g) ==
      \<lambda>l \<in> list(nat). list_case(0,
                       \<lambda>x xs. rec(x, f`xs, \<lambda>y r. g ` Cons(r, Cons(y, xs))), l)"

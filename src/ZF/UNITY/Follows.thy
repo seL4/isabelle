@@ -10,8 +10,8 @@ header{*The "Follows" relation of Charpentier and Sivilotte*}
 
 theory Follows imports SubstAx Increasing begin
 
-constdefs
-  Follows :: "[i, i, i=>i, i=>i] => i"
+definition
+  Follows :: "[i, i, i=>i, i=>i] => i"  where
   "Follows(A, r, f, g) ==
             Increasing(A, r, g) Int
             Increasing(A, r,f) Int
@@ -472,59 +472,5 @@ apply (simp_all (no_asm_simp) add: FiniteFun.intros)
 apply auto
 apply (rule Follows_munion, auto)
 done
-
-ML
-{*
-val Follows_cong = thm "Follows_cong";
-val subset_Always_comp = thm "subset_Always_comp";
-val imp_Always_comp = thm "imp_Always_comp";
-val imp_Always_comp2 = thm "imp_Always_comp2";
-val subset_LeadsTo_comp = thm "subset_LeadsTo_comp";
-val imp_LeadsTo_comp = thm "imp_LeadsTo_comp";
-val imp_LeadsTo_comp_right = thm "imp_LeadsTo_comp_right";
-val imp_LeadsTo_comp_left = thm "imp_LeadsTo_comp_left";
-val imp_LeadsTo_comp2 = thm "imp_LeadsTo_comp2";
-val Follows_type = thm "Follows_type";
-val Follows_into_program = thm "Follows_into_program";
-val FollowsD = thm "FollowsD";
-val Follows_constantI = thm "Follows_constantI";
-val subset_Follows_comp = thm "subset_Follows_comp";
-val imp_Follows_comp = thm "imp_Follows_comp";
-val imp_Follows_comp2 = thm "imp_Follows_comp2";
-val Follows_trans = thm "Follows_trans";
-val Follows_imp_Increasing_left = thm "Follows_imp_Increasing_left";
-val Follows_imp_Increasing_right = thm "Follows_imp_Increasing_right";
-val Follows_imp_Always = thm "Follows_imp_Always";
-val Follows_imp_LeadsTo = thm "Follows_imp_LeadsTo";
-val Follows_LeadsTo_pfixLe = thm "Follows_LeadsTo_pfixLe";
-val Follows_LeadsTo_pfixGe = thm "Follows_LeadsTo_pfixGe";
-val Always_Follows1 = thm "Always_Follows1";
-val Always_Follows2 = thm "Always_Follows2";
-val refl_SetLe = thm "refl_SetLe";
-val trans_on_SetLe = thm "trans_on_SetLe";
-val antisym_SetLe = thm "antisym_SetLe";
-val part_order_SetLe = thm "part_order_SetLe";
-val increasing_Un = thm "increasing_Un";
-val Increasing_Un = thm "Increasing_Un";
-val Always_Un = thm "Always_Un";
-val Follows_Un = thm "Follows_Un";
-val refl_MultLe = thm "refl_MultLe";
-val MultLe_refl1 = thm "MultLe_refl1";
-val MultLe_refl2 = thm "MultLe_refl2";
-val trans_on_MultLe = thm "trans_on_MultLe";
-val MultLe_type = thm "MultLe_type";
-val MultLe_trans = thm "MultLe_trans";
-val part_order_imp_part_ord = thm "part_order_imp_part_ord";
-val antisym_MultLe = thm "antisym_MultLe";
-val part_order_MultLe = thm "part_order_MultLe";
-val empty_le_MultLe = thm "empty_le_MultLe";
-val empty_le_MultLe2 = thm "empty_le_MultLe2";
-val munion_mono = thm "munion_mono";
-val increasing_munion = thm "increasing_munion";
-val Increasing_munion = thm "Increasing_munion";
-val Always_munion = thm "Always_munion";
-val Follows_munion = thm "Follows_munion";
-val Follows_msetsum_UN = thm "Follows_msetsum_UN";
-*}
 
 end

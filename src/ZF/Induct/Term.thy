@@ -22,24 +22,29 @@ datatype "term(A)" = Apply ("a \<in> A", "l \<in> list(term(A))")
 
 declare Apply [TC]
 
-constdefs
-  term_rec :: "[i, [i, i, i] => i] => i"
+definition
+  term_rec :: "[i, [i, i, i] => i] => i"  where
   "term_rec(t,d) ==
     Vrec(t, \<lambda>t g. term_case(\<lambda>x zs. d(x, zs, map(\<lambda>z. g`z, zs)), t))"
 
-  term_map :: "[i => i, i] => i"
+definition
+  term_map :: "[i => i, i] => i"  where
   "term_map(f,t) == term_rec(t, \<lambda>x zs rs. Apply(f(x), rs))"
 
-  term_size :: "i => i"
+definition
+  term_size :: "i => i"  where
   "term_size(t) == term_rec(t, \<lambda>x zs rs. succ(list_add(rs)))"
 
-  reflect :: "i => i"
+definition
+  reflect :: "i => i"  where
   "reflect(t) == term_rec(t, \<lambda>x zs rs. Apply(x, rev(rs)))"
 
-  preorder :: "i => i"
+definition
+  preorder :: "i => i"  where
   "preorder(t) == term_rec(t, \<lambda>x zs rs. Cons(x, flat(rs)))"
 
-  postorder :: "i => i"
+definition
+  postorder :: "i => i"  where
   "postorder(t) == term_rec(t, \<lambda>x zs rs. flat(rs) @ [x])"
 
 lemma term_unfold: "term(A) = A * list(term(A))"

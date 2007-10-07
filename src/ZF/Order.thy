@@ -11,41 +11,48 @@ header{*Partial and Total Orderings: Basic Definitions and Properties*}
 
 theory Order imports WF Perm begin
 
-constdefs
-
-  part_ord :: "[i,i]=>o"          	(*Strict partial ordering*)
+definition
+  part_ord :: "[i,i]=>o"          	(*Strict partial ordering*)  where
    "part_ord(A,r) == irrefl(A,r) & trans[A](r)"
 
-  linear   :: "[i,i]=>o"          	(*Strict total ordering*)
+definition
+  linear   :: "[i,i]=>o"          	(*Strict total ordering*)  where
    "linear(A,r) == (ALL x:A. ALL y:A. <x,y>:r | x=y | <y,x>:r)"
 
-  tot_ord  :: "[i,i]=>o"          	(*Strict total ordering*)
+definition
+  tot_ord  :: "[i,i]=>o"          	(*Strict total ordering*)  where
    "tot_ord(A,r) == part_ord(A,r) & linear(A,r)"
 
-  well_ord :: "[i,i]=>o"          	(*Well-ordering*)
+definition
+  well_ord :: "[i,i]=>o"          	(*Well-ordering*)  where
    "well_ord(A,r) == tot_ord(A,r) & wf[A](r)"
 
-  mono_map :: "[i,i,i,i]=>i"      	(*Order-preserving maps*)
+definition
+  mono_map :: "[i,i,i,i]=>i"      	(*Order-preserving maps*)  where
    "mono_map(A,r,B,s) ==
 	      {f: A->B. ALL x:A. ALL y:A. <x,y>:r --> <f`x,f`y>:s}"
 
-  ord_iso  :: "[i,i,i,i]=>i"		(*Order isomorphisms*)
+definition
+  ord_iso  :: "[i,i,i,i]=>i"		(*Order isomorphisms*)  where
    "ord_iso(A,r,B,s) ==
 	      {f: bij(A,B). ALL x:A. ALL y:A. <x,y>:r <-> <f`x,f`y>:s}"
 
-  pred     :: "[i,i,i]=>i"		(*Set of predecessors*)
+definition
+  pred     :: "[i,i,i]=>i"		(*Set of predecessors*)  where
    "pred(A,x,r) == {y:A. <y,x>:r}"
 
-  ord_iso_map :: "[i,i,i,i]=>i"      	(*Construction for linearity theorem*)
+definition
+  ord_iso_map :: "[i,i,i,i]=>i"      	(*Construction for linearity theorem*)  where
    "ord_iso_map(A,r,B,s) ==
      \<Union>x\<in>A. \<Union>y\<in>B. \<Union>f \<in> ord_iso(pred(A,x,r), r, pred(B,y,s), s). {<x,y>}"
 
-  first :: "[i, i, i] => o"
+definition
+  first :: "[i, i, i] => o"  where
     "first(u, X, R) == u:X & (ALL v:X. v~=u --> <u,v> : R)"
 
 
-syntax (xsymbols)
-    ord_iso :: "[i,i,i,i]=>i"      ("(\<langle>_, _\<rangle> \<cong>/ \<langle>_, _\<rangle>)" 51)
+notation (xsymbols)
+  ord_iso  ("(\<langle>_, _\<rangle> \<cong>/ \<langle>_, _\<rangle>)" 51)
 
 
 subsection{*Immediate Consequences of the Definitions*}
@@ -157,7 +164,7 @@ apply (simp add: part_ord_Int_iff linear_Int_iff)
 done
 
 lemma wf_on_Int_iff: "wf[A](r Int A*A) <-> wf[A](r)"
-apply (unfold wf_on_def wf_def, fast) (*10 times faster than Blast_tac!*)
+apply (unfold wf_on_def wf_def, fast) (*10 times faster than blast!*)
 done
 
 lemma well_ord_Int_iff: "well_ord(A,r Int A*A) <-> well_ord(A,r)"
@@ -637,92 +644,5 @@ apply (drule well_ord_imp_ex1_first, assumption+)
 apply (rule first_is_elem)
 apply (erule theI)
 done
-
-ML {*
-val pred_def = thm "pred_def"
-val linear_def = thm "linear_def"
-val part_ord_def = thm "part_ord_def"
-val tot_ord_def = thm "tot_ord_def"
-val well_ord_def = thm "well_ord_def"
-val ord_iso_def = thm "ord_iso_def"
-val mono_map_def = thm "mono_map_def";
-
-val part_ord_Imp_asym = thm "part_ord_Imp_asym";
-val linearE = thm "linearE";
-val well_ordI = thm "well_ordI";
-val well_ord_is_wf = thm "well_ord_is_wf";
-val well_ord_is_trans_on = thm "well_ord_is_trans_on";
-val well_ord_is_linear = thm "well_ord_is_linear";
-val pred_iff = thm "pred_iff";
-val predI = thm "predI";
-val predE = thm "predE";
-val pred_subset_under = thm "pred_subset_under";
-val pred_subset = thm "pred_subset";
-val pred_pred_eq = thm "pred_pred_eq";
-val trans_pred_pred_eq = thm "trans_pred_pred_eq";
-val part_ord_subset = thm "part_ord_subset";
-val linear_subset = thm "linear_subset";
-val tot_ord_subset = thm "tot_ord_subset";
-val well_ord_subset = thm "well_ord_subset";
-val irrefl_Int_iff = thm "irrefl_Int_iff";
-val trans_on_Int_iff = thm "trans_on_Int_iff";
-val part_ord_Int_iff = thm "part_ord_Int_iff";
-val linear_Int_iff = thm "linear_Int_iff";
-val tot_ord_Int_iff = thm "tot_ord_Int_iff";
-val wf_on_Int_iff = thm "wf_on_Int_iff";
-val well_ord_Int_iff = thm "well_ord_Int_iff";
-val irrefl_0 = thm "irrefl_0";
-val trans_on_0 = thm "trans_on_0";
-val part_ord_0 = thm "part_ord_0";
-val linear_0 = thm "linear_0";
-val tot_ord_0 = thm "tot_ord_0";
-val wf_on_0 = thm "wf_on_0";
-val well_ord_0 = thm "well_ord_0";
-val tot_ord_unit = thm "tot_ord_unit";
-val well_ord_unit = thm "well_ord_unit";
-val mono_map_is_fun = thm "mono_map_is_fun";
-val mono_map_is_inj = thm "mono_map_is_inj";
-val ord_isoI = thm "ord_isoI";
-val ord_iso_is_mono_map = thm "ord_iso_is_mono_map";
-val ord_iso_is_bij = thm "ord_iso_is_bij";
-val ord_iso_apply = thm "ord_iso_apply";
-val ord_iso_converse = thm "ord_iso_converse";
-val ord_iso_refl = thm "ord_iso_refl";
-val ord_iso_sym = thm "ord_iso_sym";
-val mono_map_trans = thm "mono_map_trans";
-val ord_iso_trans = thm "ord_iso_trans";
-val mono_ord_isoI = thm "mono_ord_isoI";
-val well_ord_mono_ord_isoI = thm "well_ord_mono_ord_isoI";
-val part_ord_ord_iso = thm "part_ord_ord_iso";
-val linear_ord_iso = thm "linear_ord_iso";
-val wf_on_ord_iso = thm "wf_on_ord_iso";
-val well_ord_ord_iso = thm "well_ord_ord_iso";
-val well_ord_iso_predE = thm "well_ord_iso_predE";
-val well_ord_iso_pred_eq = thm "well_ord_iso_pred_eq";
-val ord_iso_image_pred = thm "ord_iso_image_pred";
-val ord_iso_restrict_pred = thm "ord_iso_restrict_pred";
-val well_ord_iso_preserving = thm "well_ord_iso_preserving";
-val well_ord_iso_unique = thm "well_ord_iso_unique";
-val ord_iso_map_subset = thm "ord_iso_map_subset";
-val domain_ord_iso_map = thm "domain_ord_iso_map";
-val range_ord_iso_map = thm "range_ord_iso_map";
-val converse_ord_iso_map = thm "converse_ord_iso_map";
-val function_ord_iso_map = thm "function_ord_iso_map";
-val ord_iso_map_fun = thm "ord_iso_map_fun";
-val ord_iso_map_mono_map = thm "ord_iso_map_mono_map";
-val ord_iso_map_ord_iso = thm "ord_iso_map_ord_iso";
-val domain_ord_iso_map_subset = thm "domain_ord_iso_map_subset";
-val domain_ord_iso_map_cases = thm "domain_ord_iso_map_cases";
-val range_ord_iso_map_cases = thm "range_ord_iso_map_cases";
-val well_ord_trichotomy = thm "well_ord_trichotomy";
-val irrefl_converse = thm "irrefl_converse";
-val trans_on_converse = thm "trans_on_converse";
-val part_ord_converse = thm "part_ord_converse";
-val linear_converse = thm "linear_converse";
-val tot_ord_converse = thm "tot_ord_converse";
-val first_is_elem = thm "first_is_elem";
-val well_ord_imp_ex1_first = thm "well_ord_imp_ex1_first";
-val the_first_in = thm "the_first_in";
-*}
 
 end

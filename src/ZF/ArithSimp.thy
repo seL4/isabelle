@@ -12,7 +12,6 @@ imports Arith
 uses "~~/src/Provers/Arith/cancel_numerals.ML"
       "~~/src/Provers/Arith/combine_numerals.ML"
       "arith_data.ML"
-
 begin
 
 subsection{*Difference*}
@@ -566,82 +565,5 @@ lemma diff_lt_iff_lt: "[|i\<le>k; j\<in>nat; k\<in>nat|] ==> (k#-i) < (k#-j) <->
 apply (frule le_in_nat, assumption)
 apply (blast intro: lt_imp_diff_lt diff_lt_imp_lt) 
 done
-
-
-ML
-{*
-val diff_self_eq_0 = thm "diff_self_eq_0";
-val add_diff_inverse = thm "add_diff_inverse";
-val add_diff_inverse2 = thm "add_diff_inverse2";
-val diff_succ = thm "diff_succ";
-val zero_less_diff = thm "zero_less_diff";
-val diff_mult_distrib = thm "diff_mult_distrib";
-val diff_mult_distrib2 = thm "diff_mult_distrib2";
-val div_termination = thm "div_termination";
-val raw_mod_type = thm "raw_mod_type";
-val mod_type = thm "mod_type";
-val DIVISION_BY_ZERO_DIV = thm "DIVISION_BY_ZERO_DIV";
-val DIVISION_BY_ZERO_MOD = thm "DIVISION_BY_ZERO_MOD";
-val raw_mod_less = thm "raw_mod_less";
-val mod_less = thm "mod_less";
-val raw_mod_geq = thm "raw_mod_geq";
-val mod_geq = thm "mod_geq";
-val raw_div_type = thm "raw_div_type";
-val div_type = thm "div_type";
-val raw_div_less = thm "raw_div_less";
-val div_less = thm "div_less";
-val raw_div_geq = thm "raw_div_geq";
-val div_geq = thm "div_geq";
-val mod_div_equality_natify = thm "mod_div_equality_natify";
-val mod_div_equality = thm "mod_div_equality";
-val mod_succ = thm "mod_succ";
-val mod_less_divisor = thm "mod_less_divisor";
-val mod_1_eq = thm "mod_1_eq";
-val mod2_cases = thm "mod2_cases";
-val mod2_succ_succ = thm "mod2_succ_succ";
-val mod2_add_more = thm "mod2_add_more";
-val mod2_add_self = thm "mod2_add_self";
-val add_le_self = thm "add_le_self";
-val add_le_self2 = thm "add_le_self2";
-val mult_le_mono1 = thm "mult_le_mono1";
-val mult_le_mono = thm "mult_le_mono";
-val mult_lt_mono2 = thm "mult_lt_mono2";
-val mult_lt_mono1 = thm "mult_lt_mono1";
-val add_eq_0_iff = thm "add_eq_0_iff";
-val zero_lt_mult_iff = thm "zero_lt_mult_iff";
-val mult_eq_1_iff = thm "mult_eq_1_iff";
-val mult_is_zero = thm "mult_is_zero";
-val mult_is_zero_natify = thm "mult_is_zero_natify";
-val mult_less_cancel2 = thm "mult_less_cancel2";
-val mult_less_cancel1 = thm "mult_less_cancel1";
-val mult_le_cancel2 = thm "mult_le_cancel2";
-val mult_le_cancel1 = thm "mult_le_cancel1";
-val mult_le_cancel_le1 = thm "mult_le_cancel_le1";
-val Ord_eq_iff_le = thm "Ord_eq_iff_le";
-val mult_cancel2 = thm "mult_cancel2";
-val mult_cancel1 = thm "mult_cancel1";
-val div_cancel_raw = thm "div_cancel_raw";
-val div_cancel = thm "div_cancel";
-val mult_mod_distrib_raw = thm "mult_mod_distrib_raw";
-val mod_mult_distrib2 = thm "mod_mult_distrib2";
-val mult_mod_distrib = thm "mult_mod_distrib";
-val mod_add_self2_raw = thm "mod_add_self2_raw";
-val mod_add_self2 = thm "mod_add_self2";
-val mod_add_self1 = thm "mod_add_self1";
-val mod_mult_self1_raw = thm "mod_mult_self1_raw";
-val mod_mult_self1 = thm "mod_mult_self1";
-val mod_mult_self2 = thm "mod_mult_self2";
-val mult_eq_self_implies_10 = thm "mult_eq_self_implies_10";
-val less_imp_succ_add = thm "less_imp_succ_add";
-val less_iff_succ_add = thm "less_iff_succ_add";
-val diff_is_0_iff = thm "diff_is_0_iff";
-val nat_lt_imp_diff_eq_0 = thm "nat_lt_imp_diff_eq_0";
-val nat_diff_split = thm "nat_diff_split";
-
-val add_lt_elim2 = thm "add_lt_elim2";
-val add_le_elim2 = thm "add_le_elim2";
-
-val diff_lt_iff_lt = thm "diff_lt_iff_lt";
-*}
 
 end

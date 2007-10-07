@@ -9,22 +9,24 @@ theory MultisetSum
 imports "../Induct/Multiset"
 begin
 
-constdefs
-
-  lcomm :: "[i, i, [i,i]=>i]=>o"
+definition
+  lcomm :: "[i, i, [i,i]=>i]=>o"  where
   "lcomm(A, B, f) ==
    (\<forall>x \<in> A. \<forall>y \<in> A. \<forall>z \<in> B. f(x, f(y, z))= f(y, f(x, z)))  &
    (\<forall>x \<in> A. \<forall>y \<in> B. f(x, y) \<in> B)"
 
-  general_setsum :: "[i,i,i, [i,i]=>i, i=>i] =>i"
+definition
+  general_setsum :: "[i,i,i, [i,i]=>i, i=>i] =>i"  where
    "general_setsum(C, B, e, f, g) ==
     if Finite(C) then fold[cons(e, B)](%x y. f(g(x), y), e, C) else e"
 
-  msetsum :: "[i=>i, i, i]=>i"
+definition
+  msetsum :: "[i=>i, i, i]=>i"  where
   "msetsum(g, C, B) == normalize(general_setsum(C, Mult(B), 0, op +#, g))"
 
-  (* sum for naturals *)
-  nsetsum :: "[i=>i, i] =>i"
+
+definition  (* sum for naturals *)
+  nsetsum :: "[i=>i, i] =>i"  where
   "nsetsum(g, C) == general_setsum(C, nat, 0, op #+, g)"
 
 
@@ -180,30 +182,5 @@ apply (case_tac "Finite (C) ")
  prefer 2 apply (simp add: nsetsum_def general_setsum_def)
 apply (erule Finite_induct, auto)
 done
-
-ML
-{*
-val mset_of_normalize = thm "mset_of_normalize";
-val general_setsum_0 = thm "general_setsum_0";
-val general_setsum_cons = thm "general_setsum_cons";
-val lcomm_mono = thm "lcomm_mono";
-val munion_lcomm = thm "munion_lcomm";
-val multiset_general_setsum = thm "multiset_general_setsum";
-val msetsum_0 = thm "msetsum_0";
-val msetsum_cons = thm "msetsum_cons";
-val msetsum_multiset = thm "msetsum_multiset";
-val mset_of_msetsum = thm "mset_of_msetsum";
-val msetsum_Un_Int = thm "msetsum_Un_Int";
-val msetsum_Un_disjoint = thm "msetsum_Un_disjoint";
-val UN_Fin_lemma = thm "UN_Fin_lemma";
-val msetsum_UN_disjoint = thm "msetsum_UN_disjoint";
-val msetsum_addf = thm "msetsum_addf";
-val msetsum_cong = thm "msetsum_cong";
-val multiset_union_diff = thm "multiset_union_diff";
-val msetsum_Un = thm "msetsum_Un";
-val nsetsum_0 = thm "nsetsum_0";
-val nsetsum_cons = thm "nsetsum_cons";
-val nsetsum_type = thm "nsetsum_type";
-*}
 
 end

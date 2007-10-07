@@ -9,21 +9,24 @@ header{*Transitive Sets and Ordinals*}
 
 theory Ordinal imports WF Bool equalities begin
 
-constdefs
-
-  Memrel        :: "i=>i"
+definition
+  Memrel        :: "i=>i"  where
     "Memrel(A)   == {z: A*A . EX x y. z=<x,y> & x:y }"
 
-  Transset  :: "i=>o"
+definition
+  Transset  :: "i=>o"  where
     "Transset(i) == ALL x:i. x<=i"
 
-  Ord  :: "i=>o"
+definition
+  Ord  :: "i=>o"  where
     "Ord(i)      == Transset(i) & (ALL x:i. Transset(x))"
 
-  lt        :: "[i,i] => o"  (infixl "<" 50)   (*less-than on ordinals*)
+definition
+  lt        :: "[i,i] => o"  (infixl "<" 50)   (*less-than on ordinals*)  where
     "i<j         == i:j & Ord(j)"
 
-  Limit         :: "i=>o"
+definition
+  Limit         :: "i=>o"  where
     "Limit(i)    == Ord(i) & 0<i & (ALL y. y<i --> succ(y)<i)"
 
 abbreviation
@@ -735,135 +738,5 @@ lemma Limit_Union [rule_format]: "[| I \<noteq> 0;  \<forall>i\<in>I. Limit(i) |
 apply (simp add: Limit_def lt_def)
 apply (blast intro!: equalityI)
 done
-
-ML 
-{*
-val Memrel_def = thm "Memrel_def";
-val Transset_def = thm "Transset_def";
-val Ord_def = thm "Ord_def";
-val lt_def = thm "lt_def";
-val Limit_def = thm "Limit_def";
-
-val Transset_iff_Pow = thm "Transset_iff_Pow";
-val Transset_iff_Union_succ = thm "Transset_iff_Union_succ";
-val Transset_iff_Union_subset = thm "Transset_iff_Union_subset";
-val Transset_doubleton_D = thm "Transset_doubleton_D";
-val Transset_Pair_D = thm "Transset_Pair_D";
-val Transset_includes_domain = thm "Transset_includes_domain";
-val Transset_includes_range = thm "Transset_includes_range";
-val Transset_0 = thm "Transset_0";
-val Transset_Un = thm "Transset_Un";
-val Transset_Int = thm "Transset_Int";
-val Transset_succ = thm "Transset_succ";
-val Transset_Pow = thm "Transset_Pow";
-val Transset_Union = thm "Transset_Union";
-val Transset_Union_family = thm "Transset_Union_family";
-val Transset_Inter_family = thm "Transset_Inter_family";
-val OrdI = thm "OrdI";
-val Ord_is_Transset = thm "Ord_is_Transset";
-val Ord_contains_Transset = thm "Ord_contains_Transset";
-val Ord_in_Ord = thm "Ord_in_Ord";
-val Ord_succD = thm "Ord_succD";
-val Ord_subset_Ord = thm "Ord_subset_Ord";
-val OrdmemD = thm "OrdmemD";
-val Ord_trans = thm "Ord_trans";
-val Ord_succ_subsetI = thm "Ord_succ_subsetI";
-val Ord_0 = thm "Ord_0";
-val Ord_succ = thm "Ord_succ";
-val Ord_1 = thm "Ord_1";
-val Ord_succ_iff = thm "Ord_succ_iff";
-val Ord_Un = thm "Ord_Un";
-val Ord_Int = thm "Ord_Int";
-val Ord_Inter = thm "Ord_Inter";
-val Ord_INT = thm "Ord_INT";
-val ON_class = thm "ON_class";
-val ltI = thm "ltI";
-val ltE = thm "ltE";
-val ltD = thm "ltD";
-val not_lt0 = thm "not_lt0";
-val lt_Ord = thm "lt_Ord";
-val lt_Ord2 = thm "lt_Ord2";
-val le_Ord2 = thm "le_Ord2";
-val lt0E = thm "lt0E";
-val lt_trans = thm "lt_trans";
-val lt_not_sym = thm "lt_not_sym";
-val lt_asym = thm "lt_asym";
-val lt_irrefl = thm "lt_irrefl";
-val lt_not_refl = thm "lt_not_refl";
-val le_iff = thm "le_iff";
-val leI = thm "leI";
-val le_eqI = thm "le_eqI";
-val le_refl = thm "le_refl";
-val le_refl_iff = thm "le_refl_iff";
-val leCI = thm "leCI";
-val leE = thm "leE";
-val le_anti_sym = thm "le_anti_sym";
-val le0_iff = thm "le0_iff";
-val le0D = thm "le0D";
-val Memrel_iff = thm "Memrel_iff";
-val MemrelI = thm "MemrelI";
-val MemrelE = thm "MemrelE";
-val Memrel_type = thm "Memrel_type";
-val Memrel_mono = thm "Memrel_mono";
-val Memrel_0 = thm "Memrel_0";
-val Memrel_1 = thm "Memrel_1";
-val wf_Memrel = thm "wf_Memrel";
-val trans_Memrel = thm "trans_Memrel";
-val Transset_Memrel_iff = thm "Transset_Memrel_iff";
-val Transset_induct = thm "Transset_induct";
-val Ord_induct = thm "Ord_induct";
-val trans_induct = thm "trans_induct";
-val Ord_linear = thm "Ord_linear";
-val Ord_linear_lt = thm "Ord_linear_lt";
-val Ord_linear2 = thm "Ord_linear2";
-val Ord_linear_le = thm "Ord_linear_le";
-val le_imp_not_lt = thm "le_imp_not_lt";
-val not_lt_imp_le = thm "not_lt_imp_le";
-val Ord_mem_iff_lt = thm "Ord_mem_iff_lt";
-val not_lt_iff_le = thm "not_lt_iff_le";
-val not_le_iff_lt = thm "not_le_iff_lt";
-val Ord_0_le = thm "Ord_0_le";
-val Ord_0_lt = thm "Ord_0_lt";
-val Ord_0_lt_iff = thm "Ord_0_lt_iff";
-val zero_le_succ_iff = thm "zero_le_succ_iff";
-val subset_imp_le = thm "subset_imp_le";
-val le_imp_subset = thm "le_imp_subset";
-val le_subset_iff = thm "le_subset_iff";
-val le_succ_iff = thm "le_succ_iff";
-val all_lt_imp_le = thm "all_lt_imp_le";
-val lt_trans1 = thm "lt_trans1";
-val lt_trans2 = thm "lt_trans2";
-val le_trans = thm "le_trans";
-val succ_leI = thm "succ_leI";
-val succ_leE = thm "succ_leE";
-val succ_le_iff = thm "succ_le_iff";
-val succ_le_imp_le = thm "succ_le_imp_le";
-val lt_subset_trans = thm "lt_subset_trans";
-val Un_upper1_le = thm "Un_upper1_le";
-val Un_upper2_le = thm "Un_upper2_le";
-val Un_least_lt = thm "Un_least_lt";
-val Un_least_lt_iff = thm "Un_least_lt_iff";
-val Un_least_mem_iff = thm "Un_least_mem_iff";
-val Int_greatest_lt = thm "Int_greatest_lt";
-val Ord_Union = thm "Ord_Union";
-val Ord_UN = thm "Ord_UN";
-val UN_least_le = thm "UN_least_le";
-val UN_succ_least_lt = thm "UN_succ_least_lt";
-val UN_upper_le = thm "UN_upper_le";
-val le_implies_UN_le_UN = thm "le_implies_UN_le_UN";
-val Ord_equality = thm "Ord_equality";
-val Ord_Union_subset = thm "Ord_Union_subset";
-val Limit_Union_eq = thm "Limit_Union_eq";
-val Limit_is_Ord = thm "Limit_is_Ord";
-val Limit_has_0 = thm "Limit_has_0";
-val Limit_has_succ = thm "Limit_has_succ";
-val non_succ_LimitI = thm "non_succ_LimitI";
-val succ_LimitE = thm "succ_LimitE";
-val not_succ_Limit = thm "not_succ_Limit";
-val Limit_le_succD = thm "Limit_le_succD";
-val Ord_cases_disj = thm "Ord_cases_disj";
-val Ord_cases = thm "Ord_cases";
-val trans_induct3 = thm "trans_induct3";
-*}
 
 end

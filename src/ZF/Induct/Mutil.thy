@@ -32,8 +32,8 @@ inductive
   type_intros empty_subsetI Union_upper Un_least PowI
   type_elims PowD [elim_format]
 
-constdefs
-  evnodd :: "[i, i] => i"
+definition
+  evnodd :: "[i, i] => i"  where
   "evnodd(A,b) == {z \<in> A. \<exists>i j. z = <i,j> \<and> (i #+ j) mod 2 = b}"
 
 

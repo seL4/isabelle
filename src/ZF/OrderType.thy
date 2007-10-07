@@ -13,35 +13,41 @@ text{*The order type of a well-ordering is the least ordinal isomorphic to it.
 Ordinal arithmetic is traditionally defined in terms of order types, as it is
 here.  But a definition by transfinite recursion would be much simpler!*}
 
-constdefs
-  
-  ordermap  :: "[i,i]=>i"
+definition  
+  ordermap  :: "[i,i]=>i"  where
    "ordermap(A,r) == lam x:A. wfrec[A](r, x, %x f. f `` pred(A,x,r))"
 
-  ordertype :: "[i,i]=>i"
+definition  
+  ordertype :: "[i,i]=>i"  where
    "ordertype(A,r) == ordermap(A,r)``A"
 
+definition  
   (*alternative definition of ordinal numbers*)
-  Ord_alt   :: "i => o"
+  Ord_alt   :: "i => o"  where
    "Ord_alt(X) == well_ord(X, Memrel(X)) & (ALL u:X. u=pred(X, u, Memrel(X)))"
 
+definition  
   (*coercion to ordinal: if not, just 0*)
-  ordify    :: "i=>i"
+  ordify    :: "i=>i"  where
     "ordify(x) == if Ord(x) then x else 0"
 
+definition  
   (*ordinal multiplication*)
-  omult      :: "[i,i]=>i"           (infixl "**" 70)
+  omult      :: "[i,i]=>i"           (infixl "**" 70)  where
    "i ** j == ordertype(j*i, rmult(j,Memrel(j),i,Memrel(i)))"
 
+definition  
   (*ordinal addition*)
-  raw_oadd   :: "[i,i]=>i"
+  raw_oadd   :: "[i,i]=>i"  where
     "raw_oadd(i,j) == ordertype(i+j, radd(i,Memrel(i),j,Memrel(j)))"
 
-  oadd      :: "[i,i]=>i"           (infixl "++" 65)
+definition  
+  oadd      :: "[i,i]=>i"           (infixl "++" 65)  where
     "i ++ j == raw_oadd(ordify(i),ordify(j))"
 
+definition  
   (*ordinal subtraction*)
-  odiff      :: "[i,i]=>i"           (infixl "--" 65)
+  odiff      :: "[i,i]=>i"           (infixl "--" 65)  where
     "i -- j == ordertype(i-j, Memrel(i))"
 
   
@@ -1006,122 +1012,5 @@ by (simp add: tot_ord_def linear_Lt part_ord_Lt)
 
 lemma well_ord_Lt: "well_ord(nat,Lt)"
 by (simp add: well_ord_def wf_Lt wf_imp_wf_on tot_ord_Lt)
-
-
-
-ML {*
-val ordermap_def = thm "ordermap_def";
-val ordertype_def = thm "ordertype_def";
-val Ord_alt_def = thm "Ord_alt_def";
-val ordify_def = thm "ordify_def";
-
-val Ord_in_Ord' = thm "Ord_in_Ord'";
-val le_well_ord_Memrel = thm "le_well_ord_Memrel";
-val well_ord_Memrel = thm "well_ord_Memrel";
-val lt_pred_Memrel = thm "lt_pred_Memrel";
-val pred_Memrel = thm "pred_Memrel";
-val Ord_iso_implies_eq = thm "Ord_iso_implies_eq";
-val ordermap_type = thm "ordermap_type";
-val ordermap_eq_image = thm "ordermap_eq_image";
-val ordermap_pred_unfold = thm "ordermap_pred_unfold";
-val ordermap_unfold = thm "ordermap_unfold";
-val Ord_ordermap = thm "Ord_ordermap";
-val Ord_ordertype = thm "Ord_ordertype";
-val ordermap_mono = thm "ordermap_mono";
-val converse_ordermap_mono = thm "converse_ordermap_mono";
-val ordermap_surj = thm "ordermap_surj";
-val ordermap_bij = thm "ordermap_bij";
-val ordertype_ord_iso = thm "ordertype_ord_iso";
-val ordertype_eq = thm "ordertype_eq";
-val ordertype_eq_imp_ord_iso = thm "ordertype_eq_imp_ord_iso";
-val le_ordertype_Memrel = thm "le_ordertype_Memrel";
-val ordertype_Memrel = thm "ordertype_Memrel";
-val ordertype_0 = thm "ordertype_0";
-val bij_ordertype_vimage = thm "bij_ordertype_vimage";
-val ordermap_pred_eq_ordermap = thm "ordermap_pred_eq_ordermap";
-val ordertype_unfold = thm "ordertype_unfold";
-val ordertype_pred_subset = thm "ordertype_pred_subset";
-val ordertype_pred_lt = thm "ordertype_pred_lt";
-val ordertype_pred_unfold = thm "ordertype_pred_unfold";
-val Ord_is_Ord_alt = thm "Ord_is_Ord_alt";
-val Ord_alt_is_Ord = thm "Ord_alt_is_Ord";
-val bij_sum_0 = thm "bij_sum_0";
-val ordertype_sum_0_eq = thm "ordertype_sum_0_eq";
-val bij_0_sum = thm "bij_0_sum";
-val ordertype_0_sum_eq = thm "ordertype_0_sum_eq";
-val pred_Inl_bij = thm "pred_Inl_bij";
-val ordertype_pred_Inl_eq = thm "ordertype_pred_Inl_eq";
-val pred_Inr_bij = thm "pred_Inr_bij";
-val ordertype_pred_Inr_eq = thm "ordertype_pred_Inr_eq";
-val Ord_ordify = thm "Ord_ordify";
-val ordify_idem = thm "ordify_idem";
-val Ord_raw_oadd = thm "Ord_raw_oadd";
-val Ord_oadd = thm "Ord_oadd";
-val raw_oadd_0 = thm "raw_oadd_0";
-val oadd_0 = thm "oadd_0";
-val raw_oadd_0_left = thm "raw_oadd_0_left";
-val oadd_0_left = thm "oadd_0_left";
-val oadd_eq_if_raw_oadd = thm "oadd_eq_if_raw_oadd";
-val raw_oadd_eq_oadd = thm "raw_oadd_eq_oadd";
-val lt_oadd1 = thm "lt_oadd1";
-val oadd_le_self = thm "oadd_le_self";
-val id_ord_iso_Memrel = thm "id_ord_iso_Memrel";
-val ordertype_sum_Memrel = thm "ordertype_sum_Memrel";
-val oadd_lt_mono2 = thm "oadd_lt_mono2";
-val oadd_lt_cancel2 = thm "oadd_lt_cancel2";
-val oadd_lt_iff2 = thm "oadd_lt_iff2";
-val oadd_inject = thm "oadd_inject";
-val lt_oadd_disj = thm "lt_oadd_disj";
-val oadd_assoc = thm "oadd_assoc";
-val oadd_unfold = thm "oadd_unfold";
-val oadd_1 = thm "oadd_1";
-val oadd_succ = thm "oadd_succ";
-val oadd_UN = thm "oadd_UN";
-val oadd_Limit = thm "oadd_Limit";
-val oadd_le_self2 = thm "oadd_le_self2";
-val oadd_le_mono1 = thm "oadd_le_mono1";
-val oadd_lt_mono = thm "oadd_lt_mono";
-val oadd_le_mono = thm "oadd_le_mono";
-val oadd_le_iff2 = thm "oadd_le_iff2";
-val bij_sum_Diff = thm "bij_sum_Diff";
-val ordertype_sum_Diff = thm "ordertype_sum_Diff";
-val Ord_odiff = thm "Ord_odiff";
-val raw_oadd_ordertype_Diff = thm "raw_oadd_ordertype_Diff";
-val oadd_odiff_inverse = thm "oadd_odiff_inverse";
-val odiff_oadd_inverse = thm "odiff_oadd_inverse";
-val odiff_lt_mono2 = thm "odiff_lt_mono2";
-val Ord_omult = thm "Ord_omult";
-val pred_Pair_eq = thm "pred_Pair_eq";
-val ordertype_pred_Pair_eq = thm "ordertype_pred_Pair_eq";
-val lt_omult = thm "lt_omult";
-val omult_oadd_lt = thm "omult_oadd_lt";
-val omult_unfold = thm "omult_unfold";
-val omult_0 = thm "omult_0";
-val omult_0_left = thm "omult_0_left";
-val omult_1 = thm "omult_1";
-val omult_1_left = thm "omult_1_left";
-val oadd_omult_distrib = thm "oadd_omult_distrib";
-val omult_succ = thm "omult_succ";
-val omult_assoc = thm "omult_assoc";
-val omult_UN = thm "omult_UN";
-val omult_Limit = thm "omult_Limit";
-val lt_omult1 = thm "lt_omult1";
-val omult_le_self = thm "omult_le_self";
-val omult_le_mono1 = thm "omult_le_mono1";
-val omult_lt_mono2 = thm "omult_lt_mono2";
-val omult_le_mono2 = thm "omult_le_mono2";
-val omult_le_mono = thm "omult_le_mono";
-val omult_lt_mono = thm "omult_lt_mono";
-val omult_le_self2 = thm "omult_le_self2";
-val omult_inject = thm "omult_inject";
-
-val wf_Lt = thm "wf_Lt";
-val irrefl_Lt = thm "irrefl_Lt";
-val trans_Lt = thm "trans_Lt";
-val part_ord_Lt = thm "part_ord_Lt";
-val linear_Lt = thm "linear_Lt";
-val tot_ord_Lt = thm "tot_ord_Lt";
-val well_ord_Lt = thm "well_ord_Lt";
-*}
 
 end

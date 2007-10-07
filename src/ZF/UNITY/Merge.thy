@@ -12,26 +12,29 @@ theory Merge imports AllocBase Follows  Guar GenPrefix begin
 (** Merge specification (the number of inputs is Nclients) ***)
 (** Parameter A represents the type of items to Merge **)
 
-constdefs
+definition
   (*spec (10)*)
-  merge_increasing :: "[i, i, i] =>i"
+  merge_increasing :: "[i, i, i] =>i"  where
     "merge_increasing(A, Out, iOut) == program guarantees
          (lift(Out) IncreasingWrt  prefix(A)/list(A)) Int
          (lift(iOut) IncreasingWrt prefix(nat)/list(nat))"
 
+definition
   (*spec (11)*)
-  merge_eq_Out :: "[i, i] =>i"
+  merge_eq_Out :: "[i, i] =>i"  where
   "merge_eq_Out(Out, iOut) == program guarantees
          Always({s \<in> state. length(s`Out) = length(s`iOut)})"
 
+definition
   (*spec (12)*)
-  merge_bounded :: "i=>i"
+  merge_bounded :: "i=>i"  where
   "merge_bounded(iOut) == program guarantees
          Always({s \<in> state. \<forall>elt \<in> set_of_list(s`iOut). elt<Nclients})"
   
+definition
   (*spec (13)*)
   (* Parameter A represents the type of tokens *)
-  merge_follows :: "[i, i=>i, i, i] =>i"
+  merge_follows :: "[i, i=>i, i, i] =>i"  where
     "merge_follows(A, In, Out, iOut) ==
      (\<Inter>n \<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))
 		   guarantees
@@ -40,18 +43,21 @@ constdefs
                       nth(k, s`iOut) = n})) Fols lift(In(n))
          Wrt prefix(A)/list(A))"
 
+definition
   (*spec: preserves part*)
-  merge_preserves :: "[i=>i] =>i"
+  merge_preserves :: "[i=>i] =>i"  where
     "merge_preserves(In) == \<Inter>n \<in> nat. preserves(lift(In(n)))"
 
+definition
 (* environmental constraints*)
-  merge_allowed_acts :: "[i, i] =>i"
+  merge_allowed_acts :: "[i, i] =>i"  where
   "merge_allowed_acts(Out, iOut) ==
          {F \<in> program. AllowedActs(F) =
             cons(id(state), (\<Union>G \<in> preserves(lift(Out)) \<inter>
                                    preserves(lift(iOut)). Acts(G)))}"
   
-  merge_spec :: "[i, i =>i, i, i]=>i"
+definition
+  merge_spec :: "[i, i =>i, i, i]=>i"  where
   "merge_spec(A, In, Out, iOut) ==
    merge_increasing(A, Out, iOut) \<inter> merge_eq_Out(Out, iOut) \<inter>
    merge_bounded(iOut) \<inter>  merge_follows(A, In, Out, iOut)
@@ -189,5 +195,3 @@ apply (simp cong add: Follows_cong
 done
 
 end
-
-  

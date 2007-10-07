@@ -19,29 +19,35 @@ header{*Well-Founded Recursion*}
 
 theory WF imports Trancl begin
 
-constdefs
-  wf           :: "i=>o"
+definition
+  wf           :: "i=>o"  where
     (*r is a well-founded relation*)
     "wf(r) == ALL Z. Z=0 | (EX x:Z. ALL y. <y,x>:r --> ~ y:Z)"
 
-  wf_on        :: "[i,i]=>o"                      ("wf[_]'(_')")
+definition
+  wf_on        :: "[i,i]=>o"                      ("wf[_]'(_')")  where
     (*r is well-founded on A*)
     "wf_on(A,r) == wf(r Int A*A)"
 
-  is_recfun    :: "[i, i, [i,i]=>i, i] =>o"
+definition
+  is_recfun    :: "[i, i, [i,i]=>i, i] =>o"  where
     "is_recfun(r,a,H,f) == (f = (lam x: r-``{a}. H(x, restrict(f, r-``{x}))))"
 
-  the_recfun   :: "[i, i, [i,i]=>i] =>i"
+definition
+  the_recfun   :: "[i, i, [i,i]=>i] =>i"  where
     "the_recfun(r,a,H) == (THE f. is_recfun(r,a,H,f))"
 
-  wftrec :: "[i, i, [i,i]=>i] =>i"
+definition
+  wftrec :: "[i, i, [i,i]=>i] =>i"  where
     "wftrec(r,a,H) == H(a, the_recfun(r,a,H))"
 
-  wfrec :: "[i, i, [i,i]=>i] =>i"
+definition
+  wfrec :: "[i, i, [i,i]=>i] =>i"  where
     (*public version.  Does not require r to be transitive*)
     "wfrec(r,a,H) == wftrec(r^+, a, %x f. H(x, restrict(f,r-``{x})))"
 
-  wfrec_on     :: "[i, i, i, [i,i]=>i] =>i"       ("wfrec[_]'(_,_,_')")
+definition
+  wfrec_on     :: "[i, i, i, [i,i]=>i] =>i"       ("wfrec[_]'(_,_,_')")  where
     "wfrec[A](r,a,H) == wfrec(r Int A*A, a, H)"
 
 
@@ -361,50 +367,5 @@ text{*Minimal-element characterization of well-foundedness*}
 lemma wf_eq_minimal:
      "wf(r) <-> (ALL Q x. x:Q --> (EX z:Q. ALL y. <y,z>:r --> y~:Q))"
 by (unfold wf_def, blast)
-
-
-ML
-{*
-val wf_def = thm "wf_def";
-val wf_on_def = thm "wf_on_def";
-
-val wf_imp_wf_on = thm "wf_imp_wf_on";
-val wf_on_field_imp_wf = thm "wf_on_field_imp_wf";
-val wf_iff_wf_on_field = thm "wf_iff_wf_on_field";
-val wf_on_subset_A = thm "wf_on_subset_A";
-val wf_on_subset_r = thm "wf_on_subset_r";
-val wf_onI = thm "wf_onI";
-val wf_onI2 = thm "wf_onI2";
-val wf_induct = thm "wf_induct";
-val wf_induct2 = thm "wf_induct2";
-val field_Int_square = thm "field_Int_square";
-val wf_on_induct = thm "wf_on_induct";
-val wfI = thm "wfI";
-val wf_not_refl = thm "wf_not_refl";
-val wf_not_sym = thm "wf_not_sym";
-val wf_asym = thm "wf_asym";
-val wf_on_not_refl = thm "wf_on_not_refl";
-val wf_on_not_sym = thm "wf_on_not_sym";
-val wf_on_asym = thm "wf_on_asym";
-val wf_on_chain3 = thm "wf_on_chain3";
-val wf_on_trancl = thm "wf_on_trancl";
-val wf_trancl = thm "wf_trancl";
-val underI = thm "underI";
-val underD = thm "underD";
-val is_recfun_type = thm "is_recfun_type";
-val apply_recfun = thm "apply_recfun";
-val is_recfun_equal = thm "is_recfun_equal";
-val is_recfun_cut = thm "is_recfun_cut";
-val is_recfun_functional = thm "is_recfun_functional";
-val is_the_recfun = thm "is_the_recfun";
-val unfold_the_recfun = thm "unfold_the_recfun";
-val the_recfun_cut = thm "the_recfun_cut";
-val wftrec = thm "wftrec";
-val wfrec = thm "wfrec";
-val def_wfrec = thm "def_wfrec";
-val wfrec_type = thm "wfrec_type";
-val wfrec_on = thm "wfrec_on";
-val wf_eq_minimal = thm "wf_eq_minimal";
-*}
 
 end

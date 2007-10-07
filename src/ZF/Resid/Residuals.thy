@@ -10,7 +10,6 @@ theory Residuals imports Substitution begin
 
 consts
   Sres          :: "i"
-  res_func      :: "[i,i]=>i"     (infixl "|>" 70)
 
 abbreviation
   "residuals(u,v,w) == <u,v,w> \<in> Sres"
@@ -29,8 +28,9 @@ inductive
                  residuals(App(b,Fun(u1),u2),App(1,Fun(v1),v2),w2/w1)"
   type_intros    subst_type nat_typechecks redexes.intros bool_typechecks
 
-defs
-  res_func_def:  "u |> v == THE w. residuals(u,v,w)"
+definition
+  res_func      :: "[i,i]=>i"     (infixl "|>" 70)  where
+  "u |> v == THE w. residuals(u,v,w)"
 
 
 subsection{*Setting up rule lists*}

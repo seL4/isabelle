@@ -31,13 +31,13 @@ datatype "maptree2(A, B)" = Sons2 ("a \<in> A", "h \<in> B -||> maptree2(A, B)")
   monos FiniteFun_mono [OF subset_refl]
   type_intros FiniteFun_in_univ'
 
-constdefs
-  ntree_rec :: "[[i, i, i] => i, i] => i"
+definition
+  ntree_rec :: "[[i, i, i] => i, i] => i"  where
   "ntree_rec(b) ==
     Vrecursor(\<lambda>pr. ntree_case(\<lambda>x h. b(x, h, \<lambda>i \<in> domain(h). pr`(h`i))))"
 
-constdefs
-  ntree_copy :: "i => i"
+definition
+  ntree_copy :: "i => i"  where
   "ntree_copy(z) == ntree_rec(\<lambda>x h r. Branch(x,r), z)"
 
 

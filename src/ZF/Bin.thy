@@ -91,8 +91,8 @@ primrec
 				x xor y)"
 *)
 
-constdefs
-  bin_add   :: "[i,i]=>i"
+definition
+  bin_add   :: "[i,i]=>i"  where
     "bin_add(v,w) == bin_adder(v)`w"
 
 
@@ -594,99 +594,5 @@ by auto
 lemma integ_of_mult_reorient [simp]:
      "(integ_of(w) = x $* y) <-> (x $* y = integ_of(w))"
 by auto
-
-ML
-{*
-val bin_pred_Pls = thm "bin_pred_Pls";
-val bin_pred_Min = thm "bin_pred_Min";
-val bin_minus_Pls = thm "bin_minus_Pls";
-val bin_minus_Min = thm "bin_minus_Min";
-
-val NCons_Pls_0 = thm "NCons_Pls_0";
-val NCons_Pls_1 = thm "NCons_Pls_1";
-val NCons_Min_0 = thm "NCons_Min_0";
-val NCons_Min_1 = thm "NCons_Min_1";
-val NCons_BIT = thm "NCons_BIT";
-val NCons_simps = thms "NCons_simps";
-val integ_of_type = thm "integ_of_type";
-val NCons_type = thm "NCons_type";
-val bin_succ_type = thm "bin_succ_type";
-val bin_pred_type = thm "bin_pred_type";
-val bin_minus_type = thm "bin_minus_type";
-val bin_add_type = thm "bin_add_type";
-val bin_mult_type = thm "bin_mult_type";
-val integ_of_NCons = thm "integ_of_NCons";
-val integ_of_succ = thm "integ_of_succ";
-val integ_of_pred = thm "integ_of_pred";
-val integ_of_minus = thm "integ_of_minus";
-val bin_add_Pls = thm "bin_add_Pls";
-val bin_add_Pls_right = thm "bin_add_Pls_right";
-val bin_add_Min = thm "bin_add_Min";
-val bin_add_Min_right = thm "bin_add_Min_right";
-val bin_add_BIT_Pls = thm "bin_add_BIT_Pls";
-val bin_add_BIT_Min = thm "bin_add_BIT_Min";
-val bin_add_BIT_BIT = thm "bin_add_BIT_BIT";
-val integ_of_add = thm "integ_of_add";
-val diff_integ_of_eq = thm "diff_integ_of_eq";
-val integ_of_mult = thm "integ_of_mult";
-val bin_succ_1 = thm "bin_succ_1";
-val bin_succ_0 = thm "bin_succ_0";
-val bin_pred_1 = thm "bin_pred_1";
-val bin_pred_0 = thm "bin_pred_0";
-val bin_minus_1 = thm "bin_minus_1";
-val bin_minus_0 = thm "bin_minus_0";
-val bin_add_BIT_11 = thm "bin_add_BIT_11";
-val bin_add_BIT_10 = thm "bin_add_BIT_10";
-val bin_add_BIT_0 = thm "bin_add_BIT_0";
-val bin_mult_1 = thm "bin_mult_1";
-val bin_mult_0 = thm "bin_mult_0";
-val int_of_0 = thm "int_of_0";
-val int_of_succ = thm "int_of_succ";
-val zminus_0 = thm "zminus_0";
-val zadd_0_intify = thm "zadd_0_intify";
-val zadd_0_right_intify = thm "zadd_0_right_intify";
-val zmult_1_intify = thm "zmult_1_intify";
-val zmult_1_right_intify = thm "zmult_1_right_intify";
-val zmult_0 = thm "zmult_0";
-val zmult_0_right = thm "zmult_0_right";
-val zmult_minus1 = thm "zmult_minus1";
-val zmult_minus1_right = thm "zmult_minus1_right";
-val eq_integ_of_eq = thm "eq_integ_of_eq";
-val iszero_integ_of_Pls = thm "iszero_integ_of_Pls";
-val nonzero_integ_of_Min = thm "nonzero_integ_of_Min";
-val iszero_integ_of_BIT = thm "iszero_integ_of_BIT";
-val iszero_integ_of_0 = thm "iszero_integ_of_0";
-val iszero_integ_of_1 = thm "iszero_integ_of_1";
-val less_integ_of_eq_neg = thm "less_integ_of_eq_neg";
-val not_neg_integ_of_Pls = thm "not_neg_integ_of_Pls";
-val neg_integ_of_Min = thm "neg_integ_of_Min";
-val neg_integ_of_BIT = thm "neg_integ_of_BIT";
-val le_integ_of_eq_not_less = thm "le_integ_of_eq_not_less";
-val bin_arith_extra_simps = thms "bin_arith_extra_simps";
-val bin_arith_simps = thms "bin_arith_simps";
-val bin_rel_simps = thms "bin_rel_simps";
-val add_integ_of_left = thm "add_integ_of_left";
-val mult_integ_of_left = thm "mult_integ_of_left";
-val add_integ_of_diff1 = thm "add_integ_of_diff1";
-val add_integ_of_diff2 = thm "add_integ_of_diff2";
-val zdiff0 = thm "zdiff0";
-val zdiff0_right = thm "zdiff0_right";
-val zdiff_self = thm "zdiff_self";
-val znegative_iff_zless_0 = thm "znegative_iff_zless_0";
-val zero_zless_imp_znegative_zminus = thm "zero_zless_imp_znegative_zminus";
-val zero_zle_int_of = thm "zero_zle_int_of";
-val nat_of_0 = thm "nat_of_0";
-val nat_le_int0 = thm "nat_le_int0";
-val int_of_eq_0_imp_natify_eq_0 = thm "int_of_eq_0_imp_natify_eq_0";
-val nat_of_zminus_int_of = thm "nat_of_zminus_int_of";
-val int_of_nat_of = thm "int_of_nat_of";
-val int_of_nat_of_if = thm "int_of_nat_of_if";
-val zless_nat_iff_int_zless = thm "zless_nat_iff_int_zless";
-val zless_nat_conj = thm "zless_nat_conj";
-val integ_of_minus_reorient = thm "integ_of_minus_reorient";
-val integ_of_add_reorient = thm "integ_of_add_reorient";
-val integ_of_diff_reorient = thm "integ_of_diff_reorient";
-val integ_of_mult_reorient = thm "integ_of_mult_reorient";
-*}
 
 end

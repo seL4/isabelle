@@ -21,45 +21,53 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 1966.
 *}
 
-constdefs
-  QPair     :: "[i, i] => i"                      ("<(_;/ _)>")
+definition
+  QPair     :: "[i, i] => i"                      ("<(_;/ _)>")  where
     "<a;b> == a+b"
 
-  qfst :: "i => i"
+definition
+  qfst :: "i => i"  where
     "qfst(p) == THE a. EX b. p=<a;b>"
 
-  qsnd :: "i => i"
+definition
+  qsnd :: "i => i"  where
     "qsnd(p) == THE b. EX a. p=<a;b>"
 
-  qsplit    :: "[[i, i] => 'a, i] => 'a::{}"  (*for pattern-matching*)
+definition
+  qsplit    :: "[[i, i] => 'a, i] => 'a::{}"  (*for pattern-matching*)  where
     "qsplit(c,p) == c(qfst(p), qsnd(p))"
 
-  qconverse :: "i => i"
+definition
+  qconverse :: "i => i"  where
     "qconverse(r) == {z. w:r, EX x y. w=<x;y> & z=<y;x>}"
 
-  QSigma    :: "[i, i => i] => i"
+definition
+  QSigma    :: "[i, i => i] => i"  where
     "QSigma(A,B)  ==  \<Union>x\<in>A. \<Union>y\<in>B(x). {<x;y>}"
 
 syntax
   "_QSUM"   :: "[idt, i, i] => i"               ("(3QSUM _:_./ _)" 10)
 translations
-  "QSUM x:A. B"  => "QSigma(A, %x. B)"
+  "QSUM x:A. B"  => "CONST QSigma(A, %x. B)"
 
 abbreviation
   qprod  (infixr "<*>" 80) where
   "A <*> B == QSigma(A, %_. B)"
 
-constdefs
-  qsum    :: "[i,i]=>i"                         (infixr "<+>" 65)
+definition
+  qsum    :: "[i,i]=>i"                         (infixr "<+>" 65)  where
     "A <+> B      == ({0} <*> A) Un ({1} <*> B)"
 
-  QInl :: "i=>i"
+definition
+  QInl :: "i=>i"  where
     "QInl(a)      == <0;a>"
 
-  QInr :: "i=>i"
+definition
+  QInr :: "i=>i"  where
     "QInr(b)      == <1;b>"
 
-  qcase     :: "[i=>i, i=>i, i]=>i"
+definition
+  qcase     :: "[i=>i, i=>i, i]=>i"  where
     "qcase(c,d)   == qsplit(%y z. cond(y, d(z), c(z)))"
 
 
@@ -315,72 +323,5 @@ by (simp add: QInr_def subset_refl [THEN QPair_mono])
 
 lemma qsum_mono: "[| A<=C;  B<=D |] ==> A <+> B <= C <+> D"
 by blast
-
-ML
-{*
-val qsum_defs = thms "qsum_defs";
-
-val QPair_empty = thm "QPair_empty";
-val QPair_iff = thm "QPair_iff";
-val QPair_inject = thm "QPair_inject";
-val QPair_inject1 = thm "QPair_inject1";
-val QPair_inject2 = thm "QPair_inject2";
-val QSigmaI = thm "QSigmaI";
-val QSigmaE = thm "QSigmaE";
-val QSigmaE = thm "QSigmaE";
-val QSigmaE2 = thm "QSigmaE2";
-val QSigmaD1 = thm "QSigmaD1";
-val QSigmaD2 = thm "QSigmaD2";
-val QSigma_cong = thm "QSigma_cong";
-val QSigma_empty1 = thm "QSigma_empty1";
-val QSigma_empty2 = thm "QSigma_empty2";
-val qfst_conv = thm "qfst_conv";
-val qsnd_conv = thm "qsnd_conv";
-val qfst_type = thm "qfst_type";
-val qsnd_type = thm "qsnd_type";
-val QPair_qfst_qsnd_eq = thm "QPair_qfst_qsnd_eq";
-val qsplit = thm "qsplit";
-val qsplit_type = thm "qsplit_type";
-val expand_qsplit = thm "expand_qsplit";
-val qsplitI = thm "qsplitI";
-val qsplitE = thm "qsplitE";
-val qsplitD = thm "qsplitD";
-val qconverseI = thm "qconverseI";
-val qconverseD = thm "qconverseD";
-val qconverseE = thm "qconverseE";
-val qconverse_qconverse = thm "qconverse_qconverse";
-val qconverse_type = thm "qconverse_type";
-val qconverse_prod = thm "qconverse_prod";
-val qconverse_empty = thm "qconverse_empty";
-val QInlI = thm "QInlI";
-val QInrI = thm "QInrI";
-val qsumE = thm "qsumE";
-val QInl_iff = thm "QInl_iff";
-val QInr_iff = thm "QInr_iff";
-val QInl_QInr_iff = thm "QInl_QInr_iff";
-val QInr_QInl_iff = thm "QInr_QInl_iff";
-val qsum_empty = thm "qsum_empty";
-val QInl_inject = thm "QInl_inject";
-val QInr_inject = thm "QInr_inject";
-val QInl_neq_QInr = thm "QInl_neq_QInr";
-val QInr_neq_QInl = thm "QInr_neq_QInl";
-val QInlD = thm "QInlD";
-val QInrD = thm "QInrD";
-val qsum_iff = thm "qsum_iff";
-val qsum_subset_iff = thm "qsum_subset_iff";
-val qsum_equal_iff = thm "qsum_equal_iff";
-val qcase_QInl = thm "qcase_QInl";
-val qcase_QInr = thm "qcase_QInr";
-val qcase_type = thm "qcase_type";
-val Part_QInl = thm "Part_QInl";
-val Part_QInr = thm "Part_QInr";
-val Part_QInr2 = thm "Part_QInr2";
-val Part_qsum_equality = thm "Part_qsum_equality";
-val QPair_mono = thm "QPair_mono";
-val QSigma_mono = thm "QSigma_mono";
-val QInl_mono = thm "QInl_mono";
-val QInr_mono = thm "QInr_mono";
-val qsum_mono = thm "qsum_mono";
-*}
 
 end

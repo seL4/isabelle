@@ -64,7 +64,7 @@ fun rule_concl_msg sign rl = rule_concl rl
   read_instantiate replaces a propositional variable by a formula variable*)
 val equals_CollectD = 
     read_instantiate [("W","?Q")]
-        (make_elim (equalityD1 RS subsetD RS CollectD2));
+        (make_elim (@{thm equalityD1} RS @{thm subsetD} RS @{thm CollectD2}));
 
 
 (** For datatype definitions **)

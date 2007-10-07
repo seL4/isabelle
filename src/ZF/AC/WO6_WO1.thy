@@ -13,17 +13,20 @@ Fortunately order types made this proof also very easy.
 
 theory WO6_WO1 imports Cardinal_aux begin
 
-constdefs
 (* Auxiliary definitions used in proof *)
-  NN  :: "i => i"
+definition
+  NN  :: "i => i"  where
     "NN(y) == {m \<in> nat. \<exists>a. \<exists>f. Ord(a) & domain(f)=a  &  
                         (\<Union>b<a. f`b) = y & (\<forall>b<a. f`b \<lesssim> m)}"
   
-  uu  :: "[i, i, i, i] => i"
+definition
+  uu  :: "[i, i, i, i] => i"  where
     "uu(f, beta, gamma, delta) == (f`beta * f`gamma) Int f`delta"
 
-  (** Definitions for case 1 **)
-  vv1 :: "[i, i, i] => i"
+
+(** Definitions for case 1 **)
+definition
+  vv1 :: "[i, i, i] => i"  where
      "vv1(f,m,b) ==                                                
            let g = LEAST g. (\<exists>d. Ord(d) & (domain(uu(f,b,g,d)) \<noteq> 0 & 
                                  domain(uu(f,b,g,d)) \<lesssim> m));      
@@ -31,21 +34,27 @@ constdefs
                             domain(uu(f,b,g,d)) \<lesssim> m         
            in  if f`b \<noteq> 0 then domain(uu(f,b,g,d)) else 0"
 
-  ww1 :: "[i, i, i] => i"
+definition
+  ww1 :: "[i, i, i] => i"  where
      "ww1(f,m,b) == f`b - vv1(f,m,b)"
 
-  gg1 :: "[i, i, i] => i"
+definition
+  gg1 :: "[i, i, i] => i"  where
      "gg1(f,a,m) == \<lambda>b \<in> a++a. if b<a then vv1(f,m,b) else ww1(f,m,b--a)"
 
-  (** Definitions for case 2 **)
-  vv2 :: "[i, i, i, i] => i"
+
+(** Definitions for case 2 **)
+definition
+  vv2 :: "[i, i, i, i] => i"  where
      "vv2(f,b,g,s) ==   
            if f`g \<noteq> 0 then {uu(f, b, g, LEAST d. uu(f,b,g,d) \<noteq> 0)`s} else 0"
 
-  ww2 :: "[i, i, i, i] => i"
+definition
+  ww2 :: "[i, i, i, i] => i"  where
      "ww2(f,b,g,s) == f`g - vv2(f,b,g,s)"
 
-  gg2 :: "[i, i, i, i] => i"
+definition
+  gg2 :: "[i, i, i, i] => i"  where
      "gg2(f,a,b,s) ==
 	      \<lambda>g \<in> a++a. if g<a then vv2(f,b,g,s) else ww2(f,b,g--a,s)"
 

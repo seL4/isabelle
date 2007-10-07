@@ -21,19 +21,20 @@ consts
   type_of :: "i=>i"
   default_val :: "i=>i"
 
-constdefs
-  state   :: i
-   "state == \<Pi> x \<in> var. cons(default_val(x), type_of(x))"
+definition
+  "state == \<Pi> x \<in> var. cons(default_val(x), type_of(x))"
 
-  st0     :: i
-   "st0 == \<lambda>x \<in> var. default_val(x)"
+definition
+  "st0 == \<lambda>x \<in> var. default_val(x)"
   
-  st_set  :: "i=>o"
+definition
+  st_set  :: "i=>o"  where
 (* To prevent typing conditions like `A<=state' from
    being used in combination with the rules `constrains_weaken', etc. *)
   "st_set(A) == A<=state"
 
-  st_compl :: "i=>i"
+definition
+  st_compl :: "i=>i"  where
   "st_compl(A) == state-A"
 
 
@@ -110,31 +111,5 @@ by (simp add: st_compl_def, auto)
 lemma UN_conj_eq:
      "\<forall>d\<in>D. f(d) \<in> A ==> (\<Union>k\<in>A. {d\<in>D. P(d) & f(d) = k}) = {d\<in>D. P(d)}"
 by blast
-
-
-ML
-{*
-val st_set_def = thm "st_set_def";
-val state_def = thm "state_def";
-
-val st0_in_state = thm "st0_in_state";
-val st_set_Collect = thm "st_set_Collect";
-val st_set_0 = thm "st_set_0";
-val st_set_state = thm "st_set_state";
-val st_set_Un_iff = thm "st_set_Un_iff";
-val st_set_Union_iff = thm "st_set_Union_iff";
-val st_set_Int = thm "st_set_Int";
-val st_set_Inter = thm "st_set_Inter";
-val st_set_DiffI = thm "st_set_DiffI";
-val Collect_Int_state = thm "Collect_Int_state";
-val state_Int_Collect = thm "state_Int_Collect";
-val st_setI = thm "st_setI";
-val st_setD = thm "st_setD";
-val st_set_subset = thm "st_set_subset";
-val state_update_type = thm "state_update_type";
-val st_set_compl = thm "st_set_compl";
-val st_compl_iff = thm "st_compl_iff";
-val st_compl_Collect = thm "st_compl_Collect";
-*}
 
 end

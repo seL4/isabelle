@@ -9,28 +9,33 @@ header{*Cardinal Numbers Without the Axiom of Choice*}
 
 theory Cardinal imports OrderType Finite Nat Sum begin
 
-constdefs
-
+definition
   (*least ordinal operator*)
-   Least    :: "(i=>o) => i"    (binder "LEAST " 10)
+   Least    :: "(i=>o) => i"    (binder "LEAST " 10)  where
      "Least(P) == THE i. Ord(i) & P(i) & (ALL j. j<i --> ~P(j))"
 
-  eqpoll   :: "[i,i] => o"     (infixl "eqpoll" 50)
+definition
+  eqpoll   :: "[i,i] => o"     (infixl "eqpoll" 50)  where
     "A eqpoll B == EX f. f: bij(A,B)"
 
-  lepoll   :: "[i,i] => o"     (infixl "lepoll" 50)
+definition
+  lepoll   :: "[i,i] => o"     (infixl "lepoll" 50)  where
     "A lepoll B == EX f. f: inj(A,B)"
 
-  lesspoll :: "[i,i] => o"     (infixl "lesspoll" 50)
+definition
+  lesspoll :: "[i,i] => o"     (infixl "lesspoll" 50)  where
     "A lesspoll B == A lepoll B & ~(A eqpoll B)"
 
-  cardinal :: "i=>i"           ("|_|")
+definition
+  cardinal :: "i=>i"           ("|_|")  where
     "|A| == LEAST i. i eqpoll A"
 
-  Finite   :: "i=>o"
+definition
+  Finite   :: "i=>o"  where
     "Finite(A) == EX n:nat. A eqpoll n"
 
-  Card     :: "i=>o"
+definition
+  Card     :: "i=>o"  where
     "Card(i) == (i = |i|)"
 
 notation (xsymbols)

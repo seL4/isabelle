@@ -21,146 +21,173 @@
 
 theory Limit  imports  Main begin
 
-constdefs
-
-  rel :: "[i,i,i]=>o"
+definition
+  rel :: "[i,i,i]=>o"  where
     "rel(D,x,y) == <x,y>:snd(D)"
 
-  set :: "i=>i"
+definition
+  set :: "i=>i"  where
     "set(D) == fst(D)"
 
-  po  :: "i=>o"
+definition
+  po  :: "i=>o"  where
     "po(D) ==
      (\<forall>x \<in> set(D). rel(D,x,x)) &
      (\<forall>x \<in> set(D). \<forall>y \<in> set(D). \<forall>z \<in> set(D).
        rel(D,x,y) --> rel(D,y,z) --> rel(D,x,z)) &
      (\<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) --> rel(D,y,x) --> x = y)"
 
-  chain :: "[i,i]=>o"
+definition
+  chain :: "[i,i]=>o"  where
     (* Chains are object level functions nat->set(D) *)
     "chain(D,X) == X \<in> nat->set(D) & (\<forall>n \<in> nat. rel(D,X`n,X`(succ(n))))"
 
-  isub :: "[i,i,i]=>o"
+definition
+  isub :: "[i,i,i]=>o"  where
     "isub(D,X,x) == x \<in> set(D) & (\<forall>n \<in> nat. rel(D,X`n,x))"
 
-  islub :: "[i,i,i]=>o"
+definition
+  islub :: "[i,i,i]=>o"  where
     "islub(D,X,x) == isub(D,X,x) & (\<forall>y. isub(D,X,y) --> rel(D,x,y))"
 
-  lub :: "[i,i]=>i"
+definition
+  lub :: "[i,i]=>i"  where
     "lub(D,X) == THE x. islub(D,X,x)"
 
-  cpo :: "i=>o"
+definition
+  cpo :: "i=>o"  where
     "cpo(D) == po(D) & (\<forall>X. chain(D,X) --> (\<exists>x. islub(D,X,x)))"
 
-  pcpo :: "i=>o"
+definition
+  pcpo :: "i=>o"  where
     "pcpo(D) == cpo(D) & (\<exists>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y))"
 
-  bot :: "i=>i"
+definition
+  bot :: "i=>i"  where
     "bot(D) == THE x. x \<in> set(D) & (\<forall>y \<in> set(D). rel(D,x,y))"
 
-  mono :: "[i,i]=>i"
+definition
+  mono :: "[i,i]=>i"  where
     "mono(D,E) ==
      {f \<in> set(D)->set(E).
       \<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) --> rel(E,f`x,f`y)}"
 
-  cont :: "[i,i]=>i"
+definition
+  cont :: "[i,i]=>i"  where
     "cont(D,E) ==
      {f \<in> mono(D,E).
       \<forall>X. chain(D,X) --> f`(lub(D,X)) = lub(E,\<lambda>n \<in> nat. f`(X`n))}"
 
-  cf :: "[i,i]=>i"
+definition
+  cf :: "[i,i]=>i"  where
     "cf(D,E) ==
      <cont(D,E),
       {y \<in> cont(D,E)*cont(D,E). \<forall>x \<in> set(D). rel(E,(fst(y))`x,(snd(y))`x)}>"
 
-  suffix :: "[i,i]=>i"
+definition
+  suffix :: "[i,i]=>i"  where
     "suffix(X,n) == \<lambda>m \<in> nat. X`(n #+ m)"
 
-  subchain :: "[i,i]=>o"
+definition
+  subchain :: "[i,i]=>o"  where
     "subchain(X,Y) == \<forall>m \<in> nat. \<exists>n \<in> nat. X`m = Y`(m #+ n)"
 
-  dominate :: "[i,i,i]=>o"
+definition
+  dominate :: "[i,i,i]=>o"  where
     "dominate(D,X,Y) == \<forall>m \<in> nat. \<exists>n \<in> nat. rel(D,X`m,Y`n)"
 
-  matrix :: "[i,i]=>o"
+definition
+  matrix :: "[i,i]=>o"  where
     "matrix(D,M) ==
      M \<in> nat -> (nat -> set(D)) &
      (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`succ(n)`m)) &
      (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`n`succ(m))) &
      (\<forall>n \<in> nat. \<forall>m \<in> nat. rel(D,M`n`m,M`succ(n)`succ(m)))"
 
-  projpair  :: "[i,i,i,i]=>o"
+definition
+  projpair  :: "[i,i,i,i]=>o"  where
     "projpair(D,E,e,p) ==
      e \<in> cont(D,E) & p \<in> cont(E,D) &
      p O e = id(set(D)) & rel(cf(E,E),e O p,id(set(E)))"
 
-  emb       :: "[i,i,i]=>o"
+definition
+  emb       :: "[i,i,i]=>o"  where
     "emb(D,E,e) == \<exists>p. projpair(D,E,e,p)"
 
-  Rp        :: "[i,i,i]=>i"
+definition
+  Rp        :: "[i,i,i]=>i"  where
     "Rp(D,E,e) == THE p. projpair(D,E,e,p)"
 
+definition
   (* Twice, constructions on cpos are more difficult. *)
-  iprod     :: "i=>i"
+  iprod     :: "i=>i"  where
     "iprod(DD) ==
      <(\<Pi> n \<in> nat. set(DD`n)),
       {x:(\<Pi> n \<in> nat. set(DD`n))*(\<Pi> n \<in> nat. set(DD`n)).
        \<forall>n \<in> nat. rel(DD`n,fst(x)`n,snd(x)`n)}>"
 
-  mkcpo     :: "[i,i=>o]=>i"
+definition
+  mkcpo     :: "[i,i=>o]=>i"  where
     (* Cannot use rel(D), is meta fun, need two more args *)
     "mkcpo(D,P) ==
      <{x \<in> set(D). P(x)},{x \<in> set(D)*set(D). rel(D,fst(x),snd(x))}>"
 
-  subcpo    :: "[i,i]=>o"
+definition
+  subcpo    :: "[i,i]=>o"  where
     "subcpo(D,E) ==
      set(D) \<subseteq> set(E) &
      (\<forall>x \<in> set(D). \<forall>y \<in> set(D). rel(D,x,y) <-> rel(E,x,y)) &
      (\<forall>X. chain(D,X) --> lub(E,X):set(D))"
 
-  subpcpo   :: "[i,i]=>o"
+definition
+  subpcpo   :: "[i,i]=>o"  where
     "subpcpo(D,E) == subcpo(D,E) & bot(E):set(D)"
 
-  emb_chain :: "[i,i]=>o"
+definition
+  emb_chain :: "[i,i]=>o"  where
     "emb_chain(DD,ee) ==
      (\<forall>n \<in> nat. cpo(DD`n)) & (\<forall>n \<in> nat. emb(DD`n,DD`succ(n),ee`n))"
 
-  Dinf      :: "[i,i]=>i"
+definition
+  Dinf      :: "[i,i]=>i"  where
     "Dinf(DD,ee) ==
      mkcpo(iprod(DD))
      (%x. \<forall>n \<in> nat. Rp(DD`n,DD`succ(n),ee`n)`(x`succ(n)) = x`n)"
 
-consts
-  e_less    :: "[i,i,i,i]=>i"
-  e_gr      :: "[i,i,i,i]=>i"
-
-defs  (*???NEEDS PRIMREC*)
-
-  e_less_def: (* Valid for m le n only. *)
+definition
+  e_less    :: "[i,i,i,i]=>i"  where
+  (* Valid for m le n only. *)
     "e_less(DD,ee,m,n) == rec(n#-m,id(set(DD`m)),%x y. ee`(m#+x) O y)"
 
-  e_gr_def: (* Valid for n le m only. *)
+
+definition
+  e_gr      :: "[i,i,i,i]=>i"  where
+  (* Valid for n le m only. *)
     "e_gr(DD,ee,m,n) ==
      rec(m#-n,id(set(DD`n)),
          %x y. y O Rp(DD`(n#+x),DD`(succ(n#+x)),ee`(n#+x)))"
 
 
-constdefs
-  eps       :: "[i,i,i,i]=>i"
+definition
+  eps       :: "[i,i,i,i]=>i"  where
     "eps(DD,ee,m,n) == if(m le n,e_less(DD,ee,m,n),e_gr(DD,ee,m,n))"
 
-  rho_emb   :: "[i,i,i]=>i"
+definition
+  rho_emb   :: "[i,i,i]=>i"  where
     "rho_emb(DD,ee,n) == \<lambda>x \<in> set(DD`n). \<lambda>m \<in> nat. eps(DD,ee,n,m)`x"
 
-  rho_proj  :: "[i,i,i]=>i"
+definition
+  rho_proj  :: "[i,i,i]=>i"  where
     "rho_proj(DD,ee,n) == \<lambda>x \<in> set(Dinf(DD,ee)). x`n"
 
-  commute   :: "[i,i,i,i=>i]=>o"
+definition
+  commute   :: "[i,i,i,i=>i]=>o"  where
     "commute(DD,ee,E,r) ==
      (\<forall>n \<in> nat. emb(DD`n,E,r(n))) &
      (\<forall>m \<in> nat. \<forall>n \<in> nat. m le n --> r(n) O eps(DD,ee,m,n) = r(m))"
 
-  mediating :: "[i,i,i=>i,i=>i,i]=>o"
+definition
+  mediating :: "[i,i,i=>i,i=>i,i]=>o"  where
     "mediating(E,G,r,f,t) == emb(E,G,t) & (\<forall>n \<in> nat. f(n) = t O r(n))"
 
 

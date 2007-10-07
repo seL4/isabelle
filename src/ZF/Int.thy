@@ -9,45 +9,56 @@ header{*The Integers as Equivalence Classes Over Pairs of Natural Numbers*}
 
 theory Int imports EquivClass ArithSimp begin
 
-constdefs
-  intrel :: i
+definition
+  intrel :: i  where
     "intrel == {p : (nat*nat)*(nat*nat).                 
                 \<exists>x1 y1 x2 y2. p=<<x1,y1>,<x2,y2>> & x1#+y2 = x2#+y1}"
 
-  int :: i
+definition
+  int :: i  where
     "int == (nat*nat)//intrel"  
 
-  int_of :: "i=>i" --{*coercion from nat to int*}    ("$# _" [80] 80)
+definition
+  int_of :: "i=>i" --{*coercion from nat to int*}    ("$# _" [80] 80)  where
     "$# m == intrel `` {<natify(m), 0>}"
 
-  intify :: "i=>i" --{*coercion from ANYTHING to int*}
+definition
+  intify :: "i=>i" --{*coercion from ANYTHING to int*}  where
     "intify(m) == if m : int then m else $#0"
 
-  raw_zminus :: "i=>i"
+definition
+  raw_zminus :: "i=>i"  where
     "raw_zminus(z) == \<Union><x,y>\<in>z. intrel``{<y,x>}"
 
-  zminus :: "i=>i"                                 ("$- _" [80] 80)
+definition
+  zminus :: "i=>i"                                 ("$- _" [80] 80)  where
     "$- z == raw_zminus (intify(z))"
 
-  znegative   ::      "i=>o"
+definition
+  znegative   ::      "i=>o"  where
     "znegative(z) == \<exists>x y. x<y & y\<in>nat & <x,y>\<in>z"
 
-  iszero      ::      "i=>o"
+definition
+  iszero      ::      "i=>o"  where
     "iszero(z) == z = $# 0"
     
-  raw_nat_of  :: "i=>i"
+definition
+  raw_nat_of  :: "i=>i"  where
   "raw_nat_of(z) == natify (\<Union><x,y>\<in>z. x#-y)"
 
-  nat_of  :: "i=>i"
+definition
+  nat_of  :: "i=>i"  where
   "nat_of(z) == raw_nat_of (intify(z))"
 
-  zmagnitude  ::      "i=>i"
+definition
+  zmagnitude  ::      "i=>i"  where
   --{*could be replaced by an absolute value function from int to int?*}
     "zmagnitude(z) ==
      THE m. m\<in>nat & ((~ znegative(z) & z = $# m) |
 		       (znegative(z) & $- z = $# m))"
 
-  raw_zmult   ::      "[i,i]=>i"
+definition
+  raw_zmult   ::      "[i,i]=>i"  where
     (*Cannot use UN<x1,y2> here or in zadd because of the form of congruent2.
       Perhaps a "curried" or even polymorphic congruent predicate would be
       better.*)
@@ -55,34 +66,40 @@ constdefs
        \<Union>p1\<in>z1. \<Union>p2\<in>z2.  split(%x1 y1. split(%x2 y2.        
                    intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1)"
 
-  zmult       ::      "[i,i]=>i"      (infixl "$*" 70)
+definition
+  zmult       ::      "[i,i]=>i"      (infixl "$*" 70)  where
      "z1 $* z2 == raw_zmult (intify(z1),intify(z2))"
 
-  raw_zadd    ::      "[i,i]=>i"
+definition
+  raw_zadd    ::      "[i,i]=>i"  where
      "raw_zadd (z1, z2) == 
        \<Union>z1\<in>z1. \<Union>z2\<in>z2. let <x1,y1>=z1; <x2,y2>=z2                 
                            in intrel``{<x1#+x2, y1#+y2>}"
 
-  zadd        ::      "[i,i]=>i"      (infixl "$+" 65)
+definition
+  zadd        ::      "[i,i]=>i"      (infixl "$+" 65)  where
      "z1 $+ z2 == raw_zadd (intify(z1),intify(z2))"
 
-  zdiff        ::      "[i,i]=>i"      (infixl "$-" 65)
+definition
+  zdiff        ::      "[i,i]=>i"      (infixl "$-" 65)  where
      "z1 $- z2 == z1 $+ zminus(z2)"
 
-  zless        ::      "[i,i]=>o"      (infixl "$<" 50)
+definition
+  zless        ::      "[i,i]=>o"      (infixl "$<" 50)  where
      "z1 $< z2 == znegative(z1 $- z2)"
   
-  zle          ::      "[i,i]=>o"      (infixl "$<=" 50)
+definition
+  zle          ::      "[i,i]=>o"      (infixl "$<=" 50)  where
      "z1 $<= z2 == z1 $< z2 | intify(z1)=intify(z2)"
   
 
-syntax (xsymbols)
-  zmult :: "[i,i]=>i"          (infixl "$\<times>" 70)
-  zle   :: "[i,i]=>o"          (infixl "$\<le>" 50)  --{*less than or equals*}
+notation (xsymbols)
+  zmult  (infixl "$\<times>" 70) and
+  zle  (infixl "$\<le>" 50)  --{*less than or equals*}
 
-syntax (HTML output)
-  zmult :: "[i,i]=>i"          (infixl "$\<times>" 70)
-  zle   :: "[i,i]=>o"          (infixl "$\<le>" 50)
+notation (HTML output)
+  zmult  (infixl "$\<times>" 70) and
+  zle  (infixl "$\<le>" 50)
 
 
 declare quotientE [elim!]
@@ -910,148 +927,5 @@ by (simp add: not_zless_iff_zle [THEN iff_sym] zminus_zless)
 
 lemma zminus_zle: "($- x $<= y) <-> ($- y $<= x)"
 by (simp add: not_zless_iff_zle [THEN iff_sym] zless_zminus)
-
-ML
-{*
-val zdiff_def = thm "zdiff_def";
-val int_of_type = thm "int_of_type";
-val int_of_eq = thm "int_of_eq";
-val int_of_inject = thm "int_of_inject";
-val intify_in_int = thm "intify_in_int";
-val intify_ident = thm "intify_ident";
-val intify_idem = thm "intify_idem";
-val int_of_natify = thm "int_of_natify";
-val zminus_intify = thm "zminus_intify";
-val zadd_intify1 = thm "zadd_intify1";
-val zadd_intify2 = thm "zadd_intify2";
-val zdiff_intify1 = thm "zdiff_intify1";
-val zdiff_intify2 = thm "zdiff_intify2";
-val zmult_intify1 = thm "zmult_intify1";
-val zmult_intify2 = thm "zmult_intify2";
-val zless_intify1 = thm "zless_intify1";
-val zless_intify2 = thm "zless_intify2";
-val zle_intify1 = thm "zle_intify1";
-val zle_intify2 = thm "zle_intify2";
-val zminus_congruent = thm "zminus_congruent";
-val zminus_type = thm "zminus_type";
-val zminus_inject_intify = thm "zminus_inject_intify";
-val zminus_inject = thm "zminus_inject";
-val zminus = thm "zminus";
-val zminus_zminus_intify = thm "zminus_zminus_intify";
-val zminus_int0 = thm "zminus_int0";
-val zminus_zminus = thm "zminus_zminus";
-val not_znegative_int_of = thm "not_znegative_int_of";
-val znegative_zminus_int_of = thm "znegative_zminus_int_of";
-val not_znegative_imp_zero = thm "not_znegative_imp_zero";
-val nat_of_intify = thm "nat_of_intify";
-val nat_of_int_of = thm "nat_of_int_of";
-val nat_of_type = thm "nat_of_type";
-val zmagnitude_int_of = thm "zmagnitude_int_of";
-val natify_int_of_eq = thm "natify_int_of_eq";
-val zmagnitude_zminus_int_of = thm "zmagnitude_zminus_int_of";
-val zmagnitude_type = thm "zmagnitude_type";
-val not_zneg_int_of = thm "not_zneg_int_of";
-val not_zneg_mag = thm "not_zneg_mag";
-val zneg_int_of = thm "zneg_int_of";
-val zneg_mag = thm "zneg_mag";
-val int_cases = thm "int_cases";
-val not_zneg_nat_of_intify = thm "not_zneg_nat_of_intify";
-val not_zneg_nat_of = thm "not_zneg_nat_of";
-val zneg_nat_of = thm "zneg_nat_of";
-val zadd_congruent2 = thm "zadd_congruent2";
-val zadd_type = thm "zadd_type";
-val zadd = thm "zadd";
-val zadd_int0_intify = thm "zadd_int0_intify";
-val zadd_int0 = thm "zadd_int0";
-val zminus_zadd_distrib = thm "zminus_zadd_distrib";
-val zadd_commute = thm "zadd_commute";
-val zadd_assoc = thm "zadd_assoc";
-val zadd_left_commute = thm "zadd_left_commute";
-val zadd_ac = thms "zadd_ac";
-val int_of_add = thm "int_of_add";
-val int_succ_int_1 = thm "int_succ_int_1";
-val int_of_diff = thm "int_of_diff";
-val zadd_zminus_inverse = thm "zadd_zminus_inverse";
-val zadd_zminus_inverse2 = thm "zadd_zminus_inverse2";
-val zadd_int0_right_intify = thm "zadd_int0_right_intify";
-val zadd_int0_right = thm "zadd_int0_right";
-val zmult_congruent2 = thm "zmult_congruent2";
-val zmult_type = thm "zmult_type";
-val zmult = thm "zmult";
-val zmult_int0 = thm "zmult_int0";
-val zmult_int1_intify = thm "zmult_int1_intify";
-val zmult_int1 = thm "zmult_int1";
-val zmult_commute = thm "zmult_commute";
-val zmult_zminus = thm "zmult_zminus";
-val zmult_zminus_right = thm "zmult_zminus_right";
-val zmult_assoc = thm "zmult_assoc";
-val zmult_left_commute = thm "zmult_left_commute";
-val zmult_ac = thms "zmult_ac";
-val zadd_zmult_distrib = thm "zadd_zmult_distrib";
-val zadd_zmult_distrib2 = thm "zadd_zmult_distrib2";
-val int_typechecks = thms "int_typechecks";
-val zdiff_type = thm "zdiff_type";
-val zminus_zdiff_eq = thm "zminus_zdiff_eq";
-val zdiff_zmult_distrib = thm "zdiff_zmult_distrib";
-val zdiff_zmult_distrib2 = thm "zdiff_zmult_distrib2";
-val zadd_zdiff_eq = thm "zadd_zdiff_eq";
-val zdiff_zadd_eq = thm "zdiff_zadd_eq";
-val zless_linear = thm "zless_linear";
-val zless_not_refl = thm "zless_not_refl";
-val neq_iff_zless = thm "neq_iff_zless";
-val zless_imp_intify_neq = thm "zless_imp_intify_neq";
-val zless_imp_succ_zadd = thm "zless_imp_succ_zadd";
-val zless_succ_zadd = thm "zless_succ_zadd";
-val zless_iff_succ_zadd = thm "zless_iff_succ_zadd";
-val zless_int_of = thm "zless_int_of";
-val zless_trans = thm "zless_trans";
-val zless_not_sym = thm "zless_not_sym";
-val zless_asym = thm "zless_asym";
-val zless_imp_zle = thm "zless_imp_zle";
-val zle_linear = thm "zle_linear";
-val zle_refl = thm "zle_refl";
-val zle_eq_refl = thm "zle_eq_refl";
-val zle_anti_sym_intify = thm "zle_anti_sym_intify";
-val zle_anti_sym = thm "zle_anti_sym";
-val zle_trans = thm "zle_trans";
-val zle_zless_trans = thm "zle_zless_trans";
-val zless_zle_trans = thm "zless_zle_trans";
-val not_zless_iff_zle = thm "not_zless_iff_zle";
-val not_zle_iff_zless = thm "not_zle_iff_zless";
-val zdiff_zdiff_eq = thm "zdiff_zdiff_eq";
-val zdiff_zdiff_eq2 = thm "zdiff_zdiff_eq2";
-val zdiff_zless_iff = thm "zdiff_zless_iff";
-val zless_zdiff_iff = thm "zless_zdiff_iff";
-val zdiff_eq_iff = thm "zdiff_eq_iff";
-val eq_zdiff_iff = thm "eq_zdiff_iff";
-val zdiff_zle_iff = thm "zdiff_zle_iff";
-val zle_zdiff_iff = thm "zle_zdiff_iff";
-val zcompare_rls = thms "zcompare_rls";
-val zadd_left_cancel = thm "zadd_left_cancel";
-val zadd_left_cancel_intify = thm "zadd_left_cancel_intify";
-val zadd_right_cancel = thm "zadd_right_cancel";
-val zadd_right_cancel_intify = thm "zadd_right_cancel_intify";
-val zadd_right_cancel_zless = thm "zadd_right_cancel_zless";
-val zadd_left_cancel_zless = thm "zadd_left_cancel_zless";
-val zadd_right_cancel_zle = thm "zadd_right_cancel_zle";
-val zadd_left_cancel_zle = thm "zadd_left_cancel_zle";
-val zadd_zless_mono1 = thm "zadd_zless_mono1";
-val zadd_zless_mono2 = thm "zadd_zless_mono2";
-val zadd_zle_mono1 = thm "zadd_zle_mono1";
-val zadd_zle_mono2 = thm "zadd_zle_mono2";
-val zadd_zle_mono = thm "zadd_zle_mono";
-val zadd_zless_mono = thm "zadd_zless_mono";
-val zminus_zless_zminus = thm "zminus_zless_zminus";
-val zminus_zle_zminus = thm "zminus_zle_zminus";
-val equation_zminus = thm "equation_zminus";
-val zminus_equation = thm "zminus_equation";
-val equation_zminus_intify = thm "equation_zminus_intify";
-val zminus_equation_intify = thm "zminus_equation_intify";
-val zless_zminus = thm "zless_zminus";
-val zminus_zless = thm "zminus_zless";
-val zle_zminus = thm "zle_zminus";
-val zminus_zle = thm "zminus_zle";
-*}
-
 
 end

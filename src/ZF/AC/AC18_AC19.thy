@@ -7,8 +7,8 @@ The proof of AC1 ==> AC18 ==> AC19 ==> AC1
 
 theory AC18_AC19 imports AC_Equiv begin
 
-constdefs
-  uu    :: "i => i"
+definition
+  uu    :: "i => i" where
     "uu(a) == {c Un {0}. c \<in> a}"
 
 

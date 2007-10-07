@@ -12,8 +12,9 @@ theory Distributor imports AllocBase Follows  Guar GenPrefix begin
 text{*Distributor specification (the number of outputs is Nclients)*}
 
 text{*spec (14)*}
-constdefs
-  distr_follows :: "[i, i, i, i =>i] =>i"
+
+definition
+  distr_follows :: "[i, i, i, i =>i] =>i"  where
     "distr_follows(A, In, iIn, Out) ==
      (lift(In) IncreasingWrt prefix(A)/list(A)) \<inter>
      (lift(iIn) IncreasingWrt prefix(nat)/list(nat)) \<inter>
@@ -25,12 +26,14 @@ constdefs
           (%s. sublist(s`In, {k \<in> nat. k<length(s`iIn) & nth(k, s`iIn) = n}))
 	  Wrt prefix(A)/list(A))"
 
-  distr_allowed_acts :: "[i=>i]=>i"
+definition
+  distr_allowed_acts :: "[i=>i]=>i"  where
     "distr_allowed_acts(Out) ==
      {D \<in> program. AllowedActs(D) =
      cons(id(state), \<Union>G \<in> (\<Inter>n\<in>nat. preserves(lift(Out(n)))). Acts(G))}"
 
-  distr_spec :: "[i, i, i, i =>i]=>i"
+definition
+  distr_spec :: "[i, i, i, i =>i]=>i"  where
     "distr_spec(A, In, iIn, Out) ==
      distr_follows(A, In, iIn, Out) \<inter> distr_allowed_acts(Out)"
 

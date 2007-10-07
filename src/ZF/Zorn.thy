@@ -12,22 +12,24 @@ theory Zorn imports OrderArith AC Inductive begin
 text{*Based upon the unpublished article ``Towards the Mechanization of the
 Proofs of Some Classical Theorems of Set Theory,'' by Abrial and Laffitte.*}
 
-constdefs
-  Subset_rel :: "i=>i"
+definition
+  Subset_rel :: "i=>i"  where
    "Subset_rel(A) == {z \<in> A*A . \<exists>x y. z=<x,y> & x<=y & x\<noteq>y}"
 
-  chain      :: "i=>i"
+definition
+  chain      :: "i=>i"  where
    "chain(A)      == {F \<in> Pow(A). \<forall>X\<in>F. \<forall>Y\<in>F. X<=Y | Y<=X}"
 
-  super      :: "[i,i]=>i"
+definition
+  super      :: "[i,i]=>i"  where
    "super(A,c)    == {d \<in> chain(A). c<=d & c\<noteq>d}"
 
-  maxchain   :: "i=>i"
+definition
+  maxchain   :: "i=>i"  where
    "maxchain(A)   == {c \<in> chain(A). super(A,c)=0}"
 
-
-constdefs
-  increasing :: "i=>i"
+definition
+  increasing :: "i=>i"  where
     "increasing(A) == {f \<in> Pow(A)->Pow(A). \<forall>x. x<=A --> x<=f`x}"
 
 

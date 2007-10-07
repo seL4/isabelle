@@ -310,7 +310,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                          args)),
              subst_rec (Term.betapplys (recursor_case, args))));
 
-        val recursor_trans = recursor_def RS def_Vrecursor RS trans;
+        val recursor_trans = recursor_def RS @{thm def_Vrecursor} RS trans;
 
         fun prove_recursor_eqn arg =
           Goal.prove_global thy1 [] []

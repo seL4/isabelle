@@ -9,40 +9,45 @@ header{*Cardinal Arithmetic Without the Axiom of Choice*}
 
 theory CardinalArith imports Cardinal OrderArith ArithSimp Finite begin
 
-constdefs
-
-  InfCard       :: "i=>o"
+definition
+  InfCard       :: "i=>o"  where
     "InfCard(i) == Card(i) & nat le i"
 
-  cmult         :: "[i,i]=>i"       (infixl "|*|" 70)
+definition
+  cmult         :: "[i,i]=>i"       (infixl "|*|" 70)  where
     "i |*| j == |i*j|"
   
-  cadd          :: "[i,i]=>i"       (infixl "|+|" 65)
+definition
+  cadd          :: "[i,i]=>i"       (infixl "|+|" 65)  where
     "i |+| j == |i+j|"
 
-  csquare_rel   :: "i=>i"
+definition
+  csquare_rel   :: "i=>i"  where
     "csquare_rel(K) ==   
 	  rvimage(K*K,   
 		  lam <x,y>:K*K. <x Un y, x, y>, 
 		  rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
 
-  jump_cardinal :: "i=>i"
+definition
+  jump_cardinal :: "i=>i"  where
     --{*This def is more complex than Kunen's but it more easily proved to
         be a cardinal*}
     "jump_cardinal(K) ==   
          \<Union>X\<in>Pow(K). {z. r: Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
   
-  csucc         :: "i=>i"
+definition
+  csucc         :: "i=>i"  where
     --{*needed because @{term "jump_cardinal(K)"} might not be the successor
         of @{term K}*}
     "csucc(K) == LEAST L. Card(L) & K<L"
 
-syntax (xsymbols)
-  "op |+|"     :: "[i,i] => i"          (infixl "\<oplus>" 65)
-  "op |*|"     :: "[i,i] => i"          (infixl "\<otimes>" 70)
-syntax (HTML output)
-  "op |+|"     :: "[i,i] => i"          (infixl "\<oplus>" 65)
-  "op |*|"     :: "[i,i] => i"          (infixl "\<otimes>" 70)
+notation (xsymbols output)
+  cadd  (infixl "\<oplus>" 65) and
+  cmult  (infixl "\<otimes>" 70)
+
+notation (HTML output)
+  cadd  (infixl "\<oplus>" 65) and
+  cmult  (infixl "\<otimes>" 70)
 
 
 lemma Card_Union [simp,intro,TC]: "(ALL x:A. Card(x)) ==> Card(Union(A))"

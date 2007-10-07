@@ -21,8 +21,8 @@ rep_datatype
   induction	TrueI
   case_eqns	qcase_QInl qcase_QInr
 
-constdefs
-  quniv :: "i => i"
+definition
+  quniv :: "i => i"  where
    "quniv(A) == Pow(univ(eclose(A)))"
 
 
@@ -201,47 +201,5 @@ apply (rule succI1 [THEN UN_upper])
 apply (simp del: UN_simps 
         add: Limit_Vfrom_eq Int_UN_distrib UN_mono QPair_Int_Vset_subset_trans)
 done
-
-ML
-{*
-val Transset_includes_summands = thm "Transset_includes_summands";
-val Transset_sum_Int_subset = thm "Transset_sum_Int_subset";
-val qunivI = thm "qunivI";
-val qunivD = thm "qunivD";
-val quniv_mono = thm "quniv_mono";
-val univ_eclose_subset_quniv = thm "univ_eclose_subset_quniv";
-val univ_subset_quniv = thm "univ_subset_quniv";
-val univ_into_quniv = thm "univ_into_quniv";
-val Pow_univ_subset_quniv = thm "Pow_univ_subset_quniv";
-val univ_subset_into_quniv = thm "univ_subset_into_quniv";
-val zero_in_quniv = thm "zero_in_quniv";
-val one_in_quniv = thm "one_in_quniv";
-val two_in_quniv = thm "two_in_quniv";
-val A_subset_quniv = thm "A_subset_quniv";
-val A_into_quniv = thm "A_into_quniv";
-val QPair_subset_univ = thm "QPair_subset_univ";
-val QInl_subset_univ = thm "QInl_subset_univ";
-val naturals_subset_nat = thm "naturals_subset_nat";
-val naturals_subset_univ = thm "naturals_subset_univ";
-val QInr_subset_univ = thm "QInr_subset_univ";
-val QPair_in_quniv = thm "QPair_in_quniv";
-val QSigma_quniv = thm "QSigma_quniv";
-val QSigma_subset_quniv = thm "QSigma_subset_quniv";
-val quniv_QPair_D = thm "quniv_QPair_D";
-val quniv_QPair_E = thm "quniv_QPair_E";
-val quniv_QPair_iff = thm "quniv_QPair_iff";
-val QInl_in_quniv = thm "QInl_in_quniv";
-val QInr_in_quniv = thm "QInr_in_quniv";
-val qsum_quniv = thm "qsum_quniv";
-val qsum_subset_quniv = thm "qsum_subset_quniv";
-val nat_subset_quniv = thm "nat_subset_quniv";
-val nat_into_quniv = thm "nat_into_quniv";
-val bool_subset_quniv = thm "bool_subset_quniv";
-val bool_into_quniv = thm "bool_into_quniv";
-val QPair_Int_Vfrom_succ_subset = thm "QPair_Int_Vfrom_succ_subset";
-val QPair_Int_Vfrom_subset = thm "QPair_Int_Vfrom_subset";
-val QPair_Int_Vset_subset_trans = thm "QPair_Int_Vset_subset_trans";
-val QPair_Int_Vset_subset_UN = thm "QPair_Int_Vset_subset_UN";
-*}
 
 end

@@ -18,8 +18,8 @@ axioms
 
 (*Its extension to environments*)
 
-constdefs
-  isofenv :: "[i,i] => o"
+definition
+  isofenv :: "[i,i] => o"  where
    "isofenv(ve,te) ==                
       ve_dom(ve) = te_dom(te) &            
       (\<forall>x \<in> ve_dom(ve).                          
@@ -64,21 +64,6 @@ inductive_cases
 declare ElabRel.dom_subset [THEN subsetD, dest]
 
 end
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

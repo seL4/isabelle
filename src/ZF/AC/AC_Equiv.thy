@@ -14,107 +14,108 @@ but slightly changed.
 
 theory AC_Equiv imports Main begin (*obviously not Main_ZFC*)
 
-constdefs
-  
 (* Well Ordering Theorems *)
-  WO1 :: o
+
+definition  
     "WO1 == \<forall>A. \<exists>R. well_ord(A,R)"
 
-  WO2 :: o
+definition  
     "WO2 == \<forall>A. \<exists>a. Ord(a) & A\<approx>a"
 
-  WO3 :: o
+definition  
     "WO3 == \<forall>A. \<exists>a. Ord(a) & (\<exists>b. b \<subseteq> a & A\<approx>b)"
 
-  WO4 :: "i => o"
+definition  
     "WO4(m) == \<forall>A. \<exists>a f. Ord(a) & domain(f)=a &   
 		         (\<Union>b<a. f`b) = A & (\<forall>b<a. f`b \<lesssim> m)"
 
-  WO5 :: o
+definition  
     "WO5 == \<exists>m \<in> nat. 1\<le>m & WO4(m)"
 
-  WO6 :: o
+definition  
     "WO6 == \<forall>A. \<exists>m \<in> nat. 1\<le>m & (\<exists>a f. Ord(a) & domain(f)=a
 		               & (\<Union>b<a. f`b) = A & (\<forall>b<a. f`b \<lesssim> m))"
 
-  WO7 :: o
+definition  
     "WO7 == \<forall>A. Finite(A) <-> (\<forall>R. well_ord(A,R) --> well_ord(A,converse(R)))"
 
-  WO8 :: o
+definition  
     "WO8 == \<forall>A. (\<exists>f. f \<in> (\<Pi> X \<in> A. X)) --> (\<exists>R. well_ord(A,R))"
 
 
+definition
 (* Auxiliary concepts needed below *)
-  pairwise_disjoint :: "i => o"
+  pairwise_disjoint :: "i => o"  where
     "pairwise_disjoint(A) == \<forall>A1 \<in> A. \<forall>A2 \<in> A. A1 Int A2 \<noteq> 0 --> A1=A2"
 
-  sets_of_size_between :: "[i, i, i] => o"
+definition
+  sets_of_size_between :: "[i, i, i] => o"  where
     "sets_of_size_between(A,m,n) == \<forall>B \<in> A. m \<lesssim> B & B \<lesssim> n"
 
 
 (* Axioms of Choice *)  
-  AC0 :: o
+definition
     "AC0 == \<forall>A. \<exists>f. f \<in> (\<Pi> X \<in> Pow(A)-{0}. X)"
 
-  AC1 :: o
+definition
     "AC1 == \<forall>A. 0\<notin>A --> (\<exists>f. f \<in> (\<Pi> X \<in> A. X))"
 
-  AC2 :: o
+definition
     "AC2 == \<forall>A. 0\<notin>A & pairwise_disjoint(A)   
 		   --> (\<exists>C. \<forall>B \<in> A. \<exists>y. B Int C = {y})"
-  AC3 :: o
+definition
     "AC3 == \<forall>A B. \<forall>f \<in> A->B. \<exists>g. g \<in> (\<Pi> x \<in> {a \<in> A. f`a\<noteq>0}. f`x)"
 
-  AC4 :: o
+definition
     "AC4 == \<forall>R A B. (R \<subseteq> A*B --> (\<exists>f. f \<in> (\<Pi> x \<in> domain(R). R``{x})))"
 
-  AC5 :: o
+definition
     "AC5 == \<forall>A B. \<forall>f \<in> A->B. \<exists>g \<in> range(f)->A. \<forall>x \<in> domain(g). f`(g`x) = x"
 
-  AC6 :: o
+definition
     "AC6 == \<forall>A. 0\<notin>A --> (\<Pi> B \<in> A. B)\<noteq>0"
 
-  AC7 :: o
+definition
     "AC7 == \<forall>A. 0\<notin>A & (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) --> (\<Pi> B \<in> A. B) \<noteq> 0"
 
-  AC8 :: o
+definition
     "AC8 == \<forall>A. (\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> & B1\<approx>B2)   
 		   --> (\<exists>f. \<forall>B \<in> A. f`B \<in> bij(fst(B),snd(B)))"
 
-  AC9 :: o
+definition
     "AC9 == \<forall>A. (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) -->   
 		   (\<exists>f. \<forall>B1 \<in> A. \<forall>B2 \<in> A. f`<B1,B2> \<in> bij(B1,B2))"
 
-  AC10 :: "i => o"
+definition
     "AC10(n) ==  \<forall>A. (\<forall>B \<in> A. ~Finite(B)) -->   
 		   (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) &   
 		   sets_of_size_between(f`B, 2, succ(n)) & Union(f`B)=B))"
 
-  AC11 :: o
+definition
     "AC11 == \<exists>n \<in> nat. 1\<le>n & AC10(n)"
 
-  AC12 :: o
+definition
     "AC12 == \<forall>A. (\<forall>B \<in> A. ~Finite(B)) -->
   	         (\<exists>n \<in> nat. 1\<le>n & (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) &   
 	              sets_of_size_between(f`B, 2, succ(n)) & Union(f`B)=B)))"
 
-  AC13 :: "i => o"
+definition
     "AC13(m) == \<forall>A. 0\<notin>A --> (\<exists>f. \<forall>B \<in> A. f`B\<noteq>0 & f`B \<subseteq> B & f`B \<lesssim> m)"
 
-  AC14 :: o
+definition
     "AC14 == \<exists>m \<in> nat. 1\<le>m & AC13(m)"
 
-  AC15 :: o
+definition
     "AC15 == \<forall>A. 0\<notin>A --> 
                  (\<exists>m \<in> nat. 1\<le>m & (\<exists>f. \<forall>B \<in> A. f`B\<noteq>0 & f`B \<subseteq> B & f`B \<lesssim> m))"
 
-  AC16 :: "[i, i] => o"
+definition
     "AC16(n, k)  == 
        \<forall>A. ~Finite(A) -->   
 	   (\<exists>T. T \<subseteq> {X \<in> Pow(A). X\<approx>succ(n)} &   
 	   (\<forall>X \<in> {X \<in> Pow(A). X\<approx>succ(k)}. \<exists>! Y. Y \<in> T & X \<subseteq> Y))"
 
-  AC17 :: o
+definition
     "AC17 == \<forall>A. \<forall>g \<in> (Pow(A)-{0} -> A) -> Pow(A)-{0}.   
 		   \<exists>f \<in> Pow(A)-{0} -> A. f`(g`f) \<in> g`f"
 
@@ -124,8 +125,7 @@ locale AC18 =
       (\<Union>f \<in> \<Pi> a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a)))"
   --"AC18 cannot be expressed within the object-logic"
 
-constdefs
-  AC19 :: o
+definition
     "AC19 == \<forall>A. A\<noteq>0 & 0\<notin>A --> ((\<Inter>a \<in> A. \<Union>b \<in> a. b) =   
 		   (\<Union>f \<in> (\<Pi> B \<in> A. B). \<Inter>a \<in> A. f`a))"
 

@@ -17,13 +17,13 @@ ML_setup {*
 structure Data_Arg =
   struct
   val intrs = 
-      [SigmaI, InlI, InrI,
-       Pair_in_univ, Inl_in_univ, Inr_in_univ, 
-       zero_in_univ, A_into_univ, nat_into_univ, UnCI];
+      [@{thm SigmaI}, @{thm InlI}, @{thm InrI},
+       @{thm Pair_in_univ}, @{thm Inl_in_univ}, @{thm Inr_in_univ}, 
+       @{thm zero_in_univ}, @{thm A_into_univ}, @{thm nat_into_univ}, @{thm UnCI}];
 
 
-  val elims = [make_elim InlD, make_elim InrD,   (*for mutual recursion*)
-               SigmaE, sumE];                    (*allows * and + in spec*)
+  val elims = [make_elim @{thm InlD}, make_elim @{thm InrD},   (*for mutual recursion*)
+               @{thm SigmaE}, @{thm sumE}];                    (*allows * and + in spec*)
   end;
 
 
@@ -40,12 +40,12 @@ structure Data_Package =
 structure CoData_Arg =
   struct
   val intrs = 
-      [QSigmaI, QInlI, QInrI,
-       QPair_in_quniv, QInl_in_quniv, QInr_in_quniv, 
-       zero_in_quniv, A_into_quniv, nat_into_quniv, UnCI];
+      [@{thm QSigmaI}, @{thm QInlI}, @{thm QInrI},
+       @{thm QPair_in_quniv}, @{thm QInl_in_quniv}, @{thm QInr_in_quniv}, 
+       @{thm zero_in_quniv}, @{thm A_into_quniv}, @{thm nat_into_quniv}, @{thm UnCI}];
 
-  val elims = [make_elim QInlD, make_elim QInrD,   (*for mutual recursion*)
-               QSigmaE, qsumE];                    (*allows * and + in spec*)
+  val elims = [make_elim @{thm QInlD}, make_elim @{thm QInrD},   (*for mutual recursion*)
+               @{thm QSigmaE}, @{thm qsumE}];                    (*allows * and + in spec*)
   end;
 
 structure CoData_Package = 

@@ -7,8 +7,8 @@ header{*Weak Safety Properties*}
 
 theory Constrains
 imports UNITY
-
 begin
+
 consts traces :: "[i, i] => i"
   (* Initial states and program => (final state, reversed trace to it)... 
       the domain may also be state*list(state) *)
@@ -39,23 +39,22 @@ inductive
   type_intros UnI1 UnI2 fieldI2 UN_I
 
   
-consts
-  Constrains :: "[i,i] => i"  (infixl "Co"     60)
-  op_Unless  :: "[i, i] => i"  (infixl "Unless" 60)
+definition
+  Constrains :: "[i,i] => i"  (infixl "Co" 60)  where
+  "A Co B == {F:program. F:(reachable(F) Int A) co B}"
 
-defs
-  Constrains_def:
-    "A Co B == {F:program. F:(reachable(F) Int A) co B}"
+definition
+  op_Unless  :: "[i, i] => i"  (infixl "Unless" 60)  where
+  "A Unless B == (A-B) Co (A Un B)"
 
-  Unless_def:
-    "A Unless B == (A-B) Co (A Un B)"
+definition
+  Stable     :: "i => i"  where
+  "Stable(A) == A Co A"
 
-constdefs
-  Stable     :: "i => i"
-    "Stable(A) == A Co A"
+definition
   (*Always is the weak form of "invariant"*)
-  Always :: "i => i"
-    "Always(A) == initially(A) Int Stable(A)"
+  Always :: "i => i"  where
+  "Always(A) == initially(A) Int Stable(A)"
 
 
 (*** traces and reachable ***)
@@ -330,8 +329,7 @@ done
 (** Unless **)
 
 lemma Unless_type: "A Unless B <=program"
-
-apply (unfold Unless_def)
+apply (unfold op_Unless_def)
 apply (rule Constrains_type)
 done
 
@@ -457,80 +455,11 @@ lemmas Always_thin = thin_rl [of "F \<in> Always(A)", standard]
 
 ML
 {*
-val reachable_type = thm "reachable_type";
-val st_set_reachable = thm "st_set_reachable";
-val reachable_Int_state = thm "reachable_Int_state";
-val state_Int_reachable = thm "state_Int_reachable";
-val reachable_equiv_traces = thm "reachable_equiv_traces";
-val Init_into_reachable = thm "Init_into_reachable";
-val stable_reachable = thm "stable_reachable";
-val invariant_reachable = thm "invariant_reachable";
-val invariant_includes_reachable = thm "invariant_includes_reachable";
-val constrains_reachable_Int = thm "constrains_reachable_Int";
-val Constrains_eq_constrains = thm "Constrains_eq_constrains";
-val Constrains_def2 = thm "Constrains_def2";
-val constrains_imp_Constrains = thm "constrains_imp_Constrains";
-val ConstrainsI = thm "ConstrainsI";
-val Constrains_type = thm "Constrains_type";
-val Constrains_empty = thm "Constrains_empty";
-val Constrains_state = thm "Constrains_state";
-val Constrains_weaken_R = thm "Constrains_weaken_R";
-val Constrains_weaken_L = thm "Constrains_weaken_L";
-val Constrains_weaken = thm "Constrains_weaken";
-val Constrains_Un = thm "Constrains_Un";
-val Constrains_UN = thm "Constrains_UN";
-val Constrains_Int = thm "Constrains_Int";
-val Constrains_INT = thm "Constrains_INT";
-val Constrains_imp_subset = thm "Constrains_imp_subset";
-val Constrains_trans = thm "Constrains_trans";
-val Constrains_cancel = thm "Constrains_cancel";
-val stable_imp_Stable = thm "stable_imp_Stable";
-val Stable_eq = thm "Stable_eq";
-val Stable_eq_stable = thm "Stable_eq_stable";
-val StableI = thm "StableI";
-val StableD = thm "StableD";
-val Stable_Un = thm "Stable_Un";
-val Stable_Int = thm "Stable_Int";
-val Stable_Constrains_Un = thm "Stable_Constrains_Un";
-val Stable_Constrains_Int = thm "Stable_Constrains_Int";
-val Stable_UN = thm "Stable_UN";
-val Stable_INT = thm "Stable_INT";
-val Stable_reachable = thm "Stable_reachable";
-val Stable_type = thm "Stable_type";
-val Elimination = thm "Elimination";
-val Elimination2 = thm "Elimination2";
-val Unless_type = thm "Unless_type";
-val AlwaysI = thm "AlwaysI";
-val AlwaysD = thm "AlwaysD";
-val AlwaysE = thm "AlwaysE";
-val Always_imp_Stable = thm "Always_imp_Stable";
-val Always_includes_reachable = thm "Always_includes_reachable";
-val invariant_imp_Always = thm "invariant_imp_Always";
-val Always_reachable = thm "Always_reachable";
-val Always_eq_invariant_reachable = thm "Always_eq_invariant_reachable";
-val Always_eq_includes_reachable = thm "Always_eq_includes_reachable";
-val Always_type = thm "Always_type";
-val Always_state_eq = thm "Always_state_eq";
-val state_AlwaysI = thm "state_AlwaysI";
-val Always_eq_UN_invariant = thm "Always_eq_UN_invariant";
-val Always_weaken = thm "Always_weaken";
-val Int_absorb2 = thm "Int_absorb2";
-val Always_Constrains_pre = thm "Always_Constrains_pre";
-val Always_Constrains_post = thm "Always_Constrains_post";
-val Always_ConstrainsI = thm "Always_ConstrainsI";
-val Always_ConstrainsD = thm "Always_ConstrainsD";
-val Always_Constrains_weaken = thm "Always_Constrains_weaken";
-val Always_Int_distrib = thm "Always_Int_distrib";
-val Always_INT_distrib = thm "Always_INT_distrib";
-val Always_Int_I = thm "Always_Int_I";
-val Always_Diff_Un_eq = thm "Always_Diff_Un_eq";
-val Always_thin = thm "Always_thin";
-
 (*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
-val Always_Int_tac = dtac Always_Int_I THEN' assume_tac THEN' etac Always_thin;
+val Always_Int_tac = dtac @{thm Always_Int_I} THEN' assume_tac THEN' etac @{thm Always_thin};
 
 (*Combines a list of invariance THEOREMS into one.*)
-val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Always_Int_I);
+val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS @{thm Always_Int_I});
 
 (*To allow expansion of the program's definition when appropriate*)
 structure ProgramDefs = NamedThmsFun(val name = "program" val description = "program definitions");
@@ -541,13 +470,13 @@ fun constrains_tac ctxt =
   let val css as (cs, ss) = local_clasimpset_of ctxt in
    SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
-              REPEAT (etac Always_ConstrainsI 1
+              REPEAT (etac @{thm Always_ConstrainsI} 1
                       ORELSE
-                      resolve_tac [StableI, stableI,
-                                   constrains_imp_Constrains] 1),
-              rtac constrainsI 1,
+                      resolve_tac [@{thm StableI}, @{thm stableI},
+                                   @{thm constrains_imp_Constrains}] 1),
+              rtac @{thm constrainsI} 1,
               (* Three subgoals *)
-              rewrite_goal_tac [st_set_def] 3,
+              rewrite_goal_tac [@{thm st_set_def}] 3,
               REPEAT (force_tac css 2),
               full_simp_tac (ss addsimps (ProgramDefs.get ctxt)) 1,
               ALLGOALS (clarify_tac cs),
@@ -561,7 +490,7 @@ fun constrains_tac ctxt =
 
 (*For proving invariants*)
 fun always_tac ctxt i = 
-    rtac AlwaysI i THEN force_tac (local_clasimpset_of ctxt) i THEN constrains_tac ctxt i;
+    rtac @{thm AlwaysI} i THEN force_tac (local_clasimpset_of ctxt) i THEN constrains_tac ctxt i;
 *}
 
 setup ProgramDefs.setup

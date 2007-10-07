@@ -33,20 +33,22 @@ header{*The Division Operators Div and Mod*}
 
 theory IntDiv imports IntArith OrderArith begin
 
-constdefs
-  quorem :: "[i,i] => o"
+definition
+  quorem :: "[i,i] => o"  where
     "quorem == %<a,b> <q,r>.
                       a = b$*q $+ r &
                       (#0$<b & #0$<=r & r$<b | ~(#0$<b) & b$<r & r $<= #0)"
 
-  adjust :: "[i,i] => i"
+definition
+  adjust :: "[i,i] => i"  where
     "adjust(b) == %<q,r>. if #0 $<= r$-b then <#2$*q $+ #1,r$-b>
                           else <#2$*q,r>"
 
 
 (** the division algorithm **)
 
-constdefs posDivAlg :: "i => i"
+definition
+  posDivAlg :: "i => i"  where
 (*for the case a>=0, b>0*)
 (*recdef posDivAlg "inv_image less_than (%(a,b). nat_of(a $- b $+ #1))"*)
     "posDivAlg(ab) ==
@@ -57,7 +59,8 @@ constdefs posDivAlg :: "i => i"
 
 
 (*for the case a<0, b>0*)
-constdefs negDivAlg :: "i => i"
+definition
+  negDivAlg :: "i => i"  where
 (*recdef negDivAlg "inv_image less_than (%(a,b). nat_of(- a $- b))"*)
     "negDivAlg(ab) ==
        wfrec(measure(int*int, %<a,b>. nat_of ($- a $- b)),
@@ -67,13 +70,14 @@ constdefs negDivAlg :: "i => i"
 
 (*for the general case b\<noteq>0*)
 
-constdefs
-  negateSnd :: "i => i"
+definition
+  negateSnd :: "i => i"  where
     "negateSnd == %<q,r>. <q, $-r>"
 
   (*The full division algorithm considers all possible signs for a, b
     including the special case a=0, b<0, because negDivAlg requires a<0*)
-  divAlg :: "i => i"
+definition
+  divAlg :: "i => i"  where
     "divAlg ==
        %<a,b>. if #0 $<= a then
                   if #0 $<= b then posDivAlg (<a,b>)
@@ -83,10 +87,12 @@ constdefs
                   if #0$<b then negDivAlg (<a,b>)
                   else         negateSnd (posDivAlg (<$-a,$-b>))"
 
-  zdiv  :: "[i,i]=>i"                    (infixl "zdiv" 70) 
+definition
+  zdiv  :: "[i,i]=>i"                    (infixl "zdiv" 70)  where
     "a zdiv b == fst (divAlg (<intify(a), intify(b)>))"
 
-  zmod  :: "[i,i]=>i"                    (infixl "zmod" 70)
+definition
+  zmod  :: "[i,i]=>i"                    (infixl "zmod" 70)  where
     "a zmod b == snd (divAlg (<intify(a), intify(b)>))"
 
 
@@ -1778,148 +1784,6 @@ done
 
  declare zmod_integ_of_BIT [simp]
 *)
-
-ML{*
-val zspos_add_zspos_imp_zspos = thm "zspos_add_zspos_imp_zspos";
-val zpos_add_zpos_imp_zpos = thm "zpos_add_zpos_imp_zpos";
-val zneg_add_zneg_imp_zneg = thm "zneg_add_zneg_imp_zneg";
-val zneg_or_0_add_zneg_or_0_imp_zneg_or_0 = thm "zneg_or_0_add_zneg_or_0_imp_zneg_or_0";
-val zero_lt_zmagnitude = thm "zero_lt_zmagnitude";
-val zless_add_succ_iff = thm "zless_add_succ_iff";
-val zadd_succ_zle_iff = thm "zadd_succ_zle_iff";
-val zless_add1_iff_zle = thm "zless_add1_iff_zle";
-val add1_zle_iff = thm "add1_zle_iff";
-val add1_left_zle_iff = thm "add1_left_zle_iff";
-val zmult_zle_mono1 = thm "zmult_zle_mono1";
-val zmult_zle_mono1_neg = thm "zmult_zle_mono1_neg";
-val zmult_zle_mono2 = thm "zmult_zle_mono2";
-val zmult_zle_mono2_neg = thm "zmult_zle_mono2_neg";
-val zmult_zle_mono = thm "zmult_zle_mono";
-val zmult_zless_mono2 = thm "zmult_zless_mono2";
-val zmult_zless_mono1 = thm "zmult_zless_mono1";
-val zmult_zless_mono = thm "zmult_zless_mono";
-val zmult_zless_mono1_neg = thm "zmult_zless_mono1_neg";
-val zmult_zless_mono2_neg = thm "zmult_zless_mono2_neg";
-val zmult_eq_0_iff = thm "zmult_eq_0_iff";
-val zmult_zless_cancel2 = thm "zmult_zless_cancel2";
-val zmult_zless_cancel1 = thm "zmult_zless_cancel1";
-val zmult_zle_cancel2 = thm "zmult_zle_cancel2";
-val zmult_zle_cancel1 = thm "zmult_zle_cancel1";
-val int_eq_iff_zle = thm "int_eq_iff_zle";
-val zmult_cancel2 = thm "zmult_cancel2";
-val zmult_cancel1 = thm "zmult_cancel1";
-val unique_quotient = thm "unique_quotient";
-val unique_remainder = thm "unique_remainder";
-val adjust_eq = thm "adjust_eq";
-val posDivAlg_termination = thm "posDivAlg_termination";
-val posDivAlg_unfold = thm "posDivAlg_unfold";
-val posDivAlg_eqn = thm "posDivAlg_eqn";
-val posDivAlg_induct = thm "posDivAlg_induct";
-val intify_eq_0_iff_zle = thm "intify_eq_0_iff_zle";
-val zmult_pos = thm "zmult_pos";
-val zmult_neg = thm "zmult_neg";
-val zmult_pos_neg = thm "zmult_pos_neg";
-val int_0_less_mult_iff = thm "int_0_less_mult_iff";
-val int_0_le_mult_iff = thm "int_0_le_mult_iff";
-val zmult_less_0_iff = thm "zmult_less_0_iff";
-val zmult_le_0_iff = thm "zmult_le_0_iff";
-val posDivAlg_type = thm "posDivAlg_type";
-val posDivAlg_correct = thm "posDivAlg_correct";
-val negDivAlg_termination = thm "negDivAlg_termination";
-val negDivAlg_unfold = thm "negDivAlg_unfold";
-val negDivAlg_eqn = thm "negDivAlg_eqn";
-val negDivAlg_induct = thm "negDivAlg_induct";
-val negDivAlg_type = thm "negDivAlg_type";
-val negDivAlg_correct = thm "negDivAlg_correct";
-val quorem_0 = thm "quorem_0";
-val posDivAlg_zero_divisor = thm "posDivAlg_zero_divisor";
-val posDivAlg_0 = thm "posDivAlg_0";
-val negDivAlg_minus1 = thm "negDivAlg_minus1";
-val negateSnd_eq = thm "negateSnd_eq";
-val negateSnd_type = thm "negateSnd_type";
-val quorem_neg = thm "quorem_neg";
-val divAlg_correct = thm "divAlg_correct";
-val divAlg_type = thm "divAlg_type";
-val zdiv_intify1 = thm "zdiv_intify1";
-val zdiv_intify2 = thm "zdiv_intify2";
-val zdiv_type = thm "zdiv_type";
-val zmod_intify1 = thm "zmod_intify1";
-val zmod_intify2 = thm "zmod_intify2";
-val zmod_type = thm "zmod_type";
-val DIVISION_BY_ZERO_ZDIV = thm "DIVISION_BY_ZERO_ZDIV";
-val DIVISION_BY_ZERO_ZMOD = thm "DIVISION_BY_ZERO_ZMOD";
-val zmod_zdiv_equality = thm "zmod_zdiv_equality";
-val pos_mod = thm "pos_mod";
-val pos_mod_sign = thm "pos_mod_sign";
-val neg_mod = thm "neg_mod";
-val neg_mod_sign = thm "neg_mod_sign";
-val quorem_div_mod = thm "quorem_div_mod";
-val quorem_div = thm "quorem_div";
-val quorem_mod = thm "quorem_mod";
-val zdiv_pos_pos_trivial = thm "zdiv_pos_pos_trivial";
-val zdiv_neg_neg_trivial = thm "zdiv_neg_neg_trivial";
-val zdiv_pos_neg_trivial = thm "zdiv_pos_neg_trivial";
-val zmod_pos_pos_trivial = thm "zmod_pos_pos_trivial";
-val zmod_neg_neg_trivial = thm "zmod_neg_neg_trivial";
-val zmod_pos_neg_trivial = thm "zmod_pos_neg_trivial";
-val zdiv_zminus_zminus = thm "zdiv_zminus_zminus";
-val zmod_zminus_zminus = thm "zmod_zminus_zminus";
-val self_quotient = thm "self_quotient";
-val self_remainder = thm "self_remainder";
-val zdiv_self = thm "zdiv_self";
-val zmod_self = thm "zmod_self";
-val zdiv_zero = thm "zdiv_zero";
-val zdiv_eq_minus1 = thm "zdiv_eq_minus1";
-val zmod_zero = thm "zmod_zero";
-val zdiv_minus1 = thm "zdiv_minus1";
-val zmod_minus1 = thm "zmod_minus1";
-val zdiv_pos_pos = thm "zdiv_pos_pos";
-val zmod_pos_pos = thm "zmod_pos_pos";
-val zdiv_neg_pos = thm "zdiv_neg_pos";
-val zmod_neg_pos = thm "zmod_neg_pos";
-val zdiv_pos_neg = thm "zdiv_pos_neg";
-val zmod_pos_neg = thm "zmod_pos_neg";
-val zdiv_neg_neg = thm "zdiv_neg_neg";
-val zmod_neg_neg = thm "zmod_neg_neg";
-val zmod_1 = thm "zmod_1";
-val zdiv_1 = thm "zdiv_1";
-val zmod_minus1_right = thm "zmod_minus1_right";
-val zdiv_minus1_right = thm "zdiv_minus1_right";
-val zdiv_mono1 = thm "zdiv_mono1";
-val zdiv_mono1_neg = thm "zdiv_mono1_neg";
-val zdiv_mono2 = thm "zdiv_mono2";
-val zdiv_mono2_neg = thm "zdiv_mono2_neg";
-val zdiv_zmult1_eq = thm "zdiv_zmult1_eq";
-val zmod_zmult1_eq = thm "zmod_zmult1_eq";
-val zmod_zmult1_eq' = thm "zmod_zmult1_eq'";
-val zmod_zmult_distrib = thm "zmod_zmult_distrib";
-val zdiv_zmult_self1 = thm "zdiv_zmult_self1";
-val zdiv_zmult_self2 = thm "zdiv_zmult_self2";
-val zmod_zmult_self1 = thm "zmod_zmult_self1";
-val zmod_zmult_self2 = thm "zmod_zmult_self2";
-val zdiv_zadd1_eq = thm "zdiv_zadd1_eq";
-val zmod_zadd1_eq = thm "zmod_zadd1_eq";
-val zmod_div_trivial = thm "zmod_div_trivial";
-val zmod_mod_trivial = thm "zmod_mod_trivial";
-val zmod_zadd_left_eq = thm "zmod_zadd_left_eq";
-val zmod_zadd_right_eq = thm "zmod_zadd_right_eq";
-val zdiv_zadd_self1 = thm "zdiv_zadd_self1";
-val zdiv_zadd_self2 = thm "zdiv_zadd_self2";
-val zmod_zadd_self1 = thm "zmod_zadd_self1";
-val zmod_zadd_self2 = thm "zmod_zadd_self2";
-val zdiv_zmult2_eq = thm "zdiv_zmult2_eq";
-val zmod_zmult2_eq = thm "zmod_zmult2_eq";
-val zdiv_zmult_zmult1 = thm "zdiv_zmult_zmult1";
-val zdiv_zmult_zmult2 = thm "zdiv_zmult_zmult2";
-val zmod_zmult_zmult1 = thm "zmod_zmult_zmult1";
-val zmod_zmult_zmult2 = thm "zmod_zmult_zmult2";
-val zdiv_neg_pos_less0 = thm "zdiv_neg_pos_less0";
-val zdiv_nonneg_neg_le0 = thm "zdiv_nonneg_neg_le0";
-val pos_imp_zdiv_nonneg_iff = thm "pos_imp_zdiv_nonneg_iff";
-val neg_imp_zdiv_nonneg_iff = thm "neg_imp_zdiv_nonneg_iff";
-val pos_imp_zdiv_neg_iff = thm "pos_imp_zdiv_neg_iff";
-val neg_imp_zdiv_neg_iff = thm "neg_imp_zdiv_neg_iff";
-*}
 
 end
 

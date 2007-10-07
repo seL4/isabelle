@@ -11,29 +11,33 @@ Theory ported form HOL..
 
 *)
 
-theory Union imports SubstAx FP begin
+theory Union imports SubstAx FP
+begin
 
-constdefs
-
+definition
   (*FIXME: conjoin Init(F) Int Init(G) \<noteq> 0 *) 
-  ok :: "[i, i] => o"     (infixl "ok" 65)
+  ok :: "[i, i] => o"     (infixl "ok" 65)  where
     "F ok G == Acts(F) \<subseteq> AllowedActs(G) &
                Acts(G) \<subseteq> AllowedActs(F)"
 
+definition
   (*FIXME: conjoin (\<Inter>i \<in> I. Init(F(i))) \<noteq> 0 *) 
-  OK  :: "[i, i=>i] => o"
+  OK  :: "[i, i=>i] => o"  where
     "OK(I,F) == (\<forall>i \<in> I. \<forall>j \<in> I-{i}. Acts(F(i)) \<subseteq> AllowedActs(F(j)))"
 
-   JOIN  :: "[i, i=>i] => i"
+definition
+  JOIN  :: "[i, i=>i] => i"  where
   "JOIN(I,F) == if I = 0 then SKIP else
                  mk_program(\<Inter>i \<in> I. Init(F(i)), \<Union>i \<in> I. Acts(F(i)),
                  \<Inter>i \<in> I. AllowedActs(F(i)))"
 
-  Join :: "[i, i] => i"    (infixl "Join" 65)
+definition
+  Join :: "[i, i] => i"    (infixl "Join" 65)  where
   "F Join G == mk_program (Init(F) Int Init(G), Acts(F) Un Acts(G),
 				AllowedActs(F) Int AllowedActs(G))"
+definition
   (*Characterizes safety properties.  Used with specifying AllowedActs*)
-  safety_prop :: "i => o"
+  safety_prop :: "i => o"  where
   "safety_prop(X) == X\<subseteq>program &
       SKIP \<in> X & (\<forall>G \<in> program. Acts(G) \<subseteq> (\<Union>F \<in> X. Acts(F)) --> G \<in> X)"
   
@@ -42,13 +46,15 @@ syntax
   "@JOIN"      :: "[pttrn, i, i] => i"       ("(3JN _:_./ _)" 10)
 
 translations
-  "JN x:A. B"   == "JOIN(A, (%x. B))"
+  "JN x:A. B"   == "CONST JOIN(A, (%x. B))"
   "JN x y. B"   == "JN x. JN y. B"
-  "JN x. B"     == "JOIN(state,(%x. B))"
+  "JN x. B"     == "CONST JOIN(CONST state,(%x. B))"
 
-syntax (symbols)
-   SKIP     :: i                      ("\<bottom>")
-  Join      :: "[i, i] => i"          (infixl "\<squnion>" 65)
+notation (xsymbols)
+  SKIP  ("\<bottom>") and
+  Join  (infixl "\<squnion>" 65)
+
+syntax (xsymbols)
   "@JOIN1"  :: "[pttrns, i] => i"     ("(3\<Squnion> _./ _)" 10)
   "@JOIN"   :: "[pttrn, i, i] => i"   ("(3\<Squnion> _ \<in> _./ _)" 10)
 
@@ -575,103 +581,5 @@ apply (drule_tac G = G in safety_prop_Acts_iff)
 apply (cut_tac F = G in AllowedActs_type)
 apply (cut_tac F = G in Acts_type, auto)
 done
-
-
-ML
-{*
-val safety_prop_def = thm "safety_prop_def";
-
-val reachable_SKIP = thm "reachable_SKIP";
-val ok_programify_left = thm "ok_programify_left";
-val ok_programify_right = thm "ok_programify_right";
-val Join_programify_left = thm "Join_programify_left";
-val Join_programify_right = thm "Join_programify_right";
-val SKIP_in_constrains_iff = thm "SKIP_in_constrains_iff";
-val SKIP_in_Constrains_iff = thm "SKIP_in_Constrains_iff";
-val SKIP_in_stable = thm "SKIP_in_stable";
-val SKIP_in_Stable = thm "SKIP_in_Stable";
-val Join_in_program = thm "Join_in_program";
-val JOIN_in_program = thm "JOIN_in_program";
-val Init_Join = thm "Init_Join";
-val Acts_Join = thm "Acts_Join";
-val AllowedActs_Join = thm "AllowedActs_Join";
-val Join_commute = thm "Join_commute";
-val Join_left_commute = thm "Join_left_commute";
-val Join_assoc = thm "Join_assoc";
-val cons_id = thm "cons_id";
-val Join_SKIP_left = thm "Join_SKIP_left";
-val Join_SKIP_right = thm "Join_SKIP_right";
-val Join_absorb = thm "Join_absorb";
-val Join_left_absorb = thm "Join_left_absorb";
-val OK_programify = thm "OK_programify";
-val JN_programify = thm "JN_programify";
-val JN_empty = thm "JN_empty";
-val Init_JN = thm "Init_JN";
-val Acts_JN = thm "Acts_JN";
-val AllowedActs_JN = thm "AllowedActs_JN";
-val JN_cons = thm "JN_cons";
-val JN_cong = thm "JN_cong";
-val JN_absorb = thm "JN_absorb";
-val JN_Un = thm "JN_Un";
-val JN_constant = thm "JN_constant";
-val JN_Join_distrib = thm "JN_Join_distrib";
-val JN_Join_miniscope = thm "JN_Join_miniscope";
-val JN_Join_diff = thm "JN_Join_diff";
-val JN_constrains = thm "JN_constrains";
-val Join_constrains = thm "Join_constrains";
-val Join_unless = thm "Join_unless";
-val Join_constrains_weaken = thm "Join_constrains_weaken";
-val JN_constrains_weaken = thm "JN_constrains_weaken";
-val JN_stable = thm "JN_stable";
-val initially_JN_I = thm "initially_JN_I";
-val invariant_JN_I = thm "invariant_JN_I";
-val Join_stable = thm "Join_stable";
-val initially_JoinI = thm "initially_JoinI";
-val invariant_JoinI = thm "invariant_JoinI";
-val FP_JN = thm "FP_JN";
-val JN_transient = thm "JN_transient";
-val Join_transient = thm "Join_transient";
-val Join_transient_I1 = thm "Join_transient_I1";
-val Join_transient_I2 = thm "Join_transient_I2";
-val JN_ensures = thm "JN_ensures";
-val Join_ensures = thm "Join_ensures";
-val stable_Join_constrains = thm "stable_Join_constrains";
-val stable_Join_Always1 = thm "stable_Join_Always1";
-val stable_Join_Always2 = thm "stable_Join_Always2";
-val stable_Join_ensures1 = thm "stable_Join_ensures1";
-val stable_Join_ensures2 = thm "stable_Join_ensures2";
-val ok_SKIP1 = thm "ok_SKIP1";
-val ok_SKIP2 = thm "ok_SKIP2";
-val ok_Join_commute = thm "ok_Join_commute";
-val ok_commute = thm "ok_commute";
-val ok_sym = thm "ok_sym";
-val ok_iff_OK = thm "ok_iff_OK";
-val ok_Join_iff1 = thm "ok_Join_iff1";
-val ok_Join_iff2 = thm "ok_Join_iff2";
-val ok_Join_commute_I = thm "ok_Join_commute_I";
-val ok_JN_iff1 = thm "ok_JN_iff1";
-val ok_JN_iff2 = thm "ok_JN_iff2";
-val OK_iff_ok = thm "OK_iff_ok";
-val OK_imp_ok = thm "OK_imp_ok";
-val Allowed_SKIP = thm "Allowed_SKIP";
-val Allowed_Join = thm "Allowed_Join";
-val Allowed_JN = thm "Allowed_JN";
-val ok_iff_Allowed = thm "ok_iff_Allowed";
-val OK_iff_Allowed = thm "OK_iff_Allowed";
-val safety_prop_Acts_iff = thm "safety_prop_Acts_iff";
-val safety_prop_AllowedActs_iff_Allowed = thm "safety_prop_AllowedActs_iff_Allowed";
-val Allowed_eq = thm "Allowed_eq";
-val def_prg_Allowed = thm "def_prg_Allowed";
-val safety_prop_constrains = thm "safety_prop_constrains";
-val safety_prop_constrainsI = thm "safety_prop_constrainsI";
-val safety_prop_stable = thm "safety_prop_stable";
-val safety_prop_stableI = thm "safety_prop_stableI";
-val safety_prop_Int = thm "safety_prop_Int";
-val safety_prop_Inter = thm "safety_prop_Inter";
-val def_UNION_ok_iff = thm "def_UNION_ok_iff";
-
-val Join_ac = thms "Join_ac";
-*}
-
 
 end

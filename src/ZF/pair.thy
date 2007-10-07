@@ -162,41 +162,6 @@ lemma split_paired_Ball_Sigma [simp]:
      "(\<forall>z \<in> Sigma(A,B). P(z)) <-> (\<forall>x \<in> A. \<forall>y \<in> B(x). P(<x,y>))"
 by blast
 
-ML
-{*
-val singleton_eq_iff = thm "singleton_eq_iff";
-val doubleton_eq_iff = thm "doubleton_eq_iff";
-val Pair_iff = thm "Pair_iff";
-val Pair_inject = thm "Pair_inject";
-val Pair_inject1 = thm "Pair_inject1";
-val Pair_inject2 = thm "Pair_inject2";
-val Pair_not_0 = thm "Pair_not_0";
-val Pair_neq_0 = thm "Pair_neq_0";
-val Pair_neq_fst = thm "Pair_neq_fst";
-val Pair_neq_snd = thm "Pair_neq_snd";
-val Sigma_iff = thm "Sigma_iff";
-val SigmaI = thm "SigmaI";
-val SigmaD1 = thm "SigmaD1";
-val SigmaD2 = thm "SigmaD2";
-val SigmaE = thm "SigmaE";
-val SigmaE2 = thm "SigmaE2";
-val Sigma_cong = thm "Sigma_cong";
-val Sigma_empty1 = thm "Sigma_empty1";
-val Sigma_empty2 = thm "Sigma_empty2";
-val Sigma_empty_iff = thm "Sigma_empty_iff";
-val fst_conv = thm "fst_conv";
-val snd_conv = thm "snd_conv";
-val fst_type = thm "fst_type";
-val snd_type = thm "snd_type";
-val Pair_fst_snd_eq = thm "Pair_fst_snd_eq";
-val split = thm "split";
-val split_type = thm "split_type";
-val expand_split = thm "expand_split";
-val splitI = thm "splitI";
-val splitE = thm "splitE";
-val splitD = thm "splitD";
-*}
-
 end
 
 

@@ -14,15 +14,15 @@ text{*This theory defines the operators transient, ensures and leadsTo,
 assuming weak fairness. From Misra, "A Logic for Concurrent Programming",
 1994.*}
 
-constdefs
-  
+definition
   (* This definition specifies weak fairness.  The rest of the theory
     is generic to all forms of fairness.*) 
- transient :: "i=>i"
+  transient :: "i=>i"  where
   "transient(A) =={F:program. (EX act: Acts(F). A<=domain(act) &
 			       act``A <= state-A) & st_set(A)}"
 
-  ensures :: "[i,i] => i"       (infixl "ensures" 60)
+definition
+  ensures :: "[i,i] => i"       (infixl "ensures" 60)  where
   "A ensures B == ((A-B) co (A Un B)) Int transient(A-B)"
   
 consts
@@ -42,18 +42,18 @@ inductive
   monos        Pow_mono
   type_intros  Union_Pow_iff [THEN iffD2] UnionI PowI
  
-constdefs
-
+definition
   (* The Visible version of the LEADS-TO relation*)
-  leadsTo :: "[i, i] => i"       (infixl "leadsTo" 60)
+  leadsTo :: "[i, i] => i"       (infixl "leadsTo" 60)  where
   "A leadsTo B == {F:program. <A,B>:leads(state, F)}"
   
+definition
   (* wlt(F, B) is the largest set that leads to B*)
-  wlt :: "[i, i] => i"
+  wlt :: "[i, i] => i"  where
     "wlt(F, B) == Union({A:Pow(state). F: A leadsTo B})"
 
-syntax (xsymbols)
-  "leadsTo" :: "[i, i] => i" (infixl "\<longmapsto>" 60)
+notation (xsymbols)
+  leadsTo  (infixl "\<longmapsto>" 60)
 
 (** Ad-hoc set-theory rules **)
 
@@ -707,94 +707,5 @@ apply (subgoal_tac "st_set (\<Inter>i \<in> I. A' (i))")
 prefer 2 apply (blast dest: leadsToD2)
 apply (rule_tac C1 = 0 in finite_completion [THEN leadsTo_weaken_R], auto) 
 done
-
-ML
-{*
-val Int_Union_Union = thm "Int_Union_Union";
-val Int_Union_Union2 = thm "Int_Union_Union2";
-val transient_type = thm "transient_type";
-val transientD2 = thm "transientD2";
-val stable_transient_empty = thm "stable_transient_empty";
-val transient_strengthen = thm "transient_strengthen";
-val transientI = thm "transientI";
-val transientE = thm "transientE";
-val transient_state = thm "transient_state";
-val transient_state2 = thm "transient_state2";
-val transient_empty = thm "transient_empty";
-val ensures_type = thm "ensures_type";
-val ensuresI = thm "ensuresI";
-val ensuresI2 = thm "ensuresI2";
-val ensuresD = thm "ensuresD";
-val ensures_weaken_R = thm "ensures_weaken_R";
-val stable_ensures_Int = thm "stable_ensures_Int";
-val stable_transient_ensures = thm "stable_transient_ensures";
-val ensures_eq = thm "ensures_eq";
-val subset_imp_ensures = thm "subset_imp_ensures";
-val leads_left = thm "leads_left";
-val leads_right = thm "leads_right";
-val leadsTo_type = thm "leadsTo_type";
-val leadsToD2 = thm "leadsToD2";
-val leadsTo_Basis = thm "leadsTo_Basis";
-val subset_imp_leadsTo = thm "subset_imp_leadsTo";
-val leadsTo_Trans = thm "leadsTo_Trans";
-val transient_imp_leadsTo = thm "transient_imp_leadsTo";
-val leadsTo_Un_duplicate = thm "leadsTo_Un_duplicate";
-val leadsTo_Un_duplicate2 = thm "leadsTo_Un_duplicate2";
-val leadsTo_Union = thm "leadsTo_Union";
-val leadsTo_Union_Int = thm "leadsTo_Union_Int";
-val leadsTo_UN = thm "leadsTo_UN";
-val leadsTo_Un = thm "leadsTo_Un";
-val single_leadsTo_I = thm "single_leadsTo_I";
-val leadsTo_refl = thm "leadsTo_refl";
-val leadsTo_refl_iff = thm "leadsTo_refl_iff";
-val empty_leadsTo = thm "empty_leadsTo";
-val leadsTo_state = thm "leadsTo_state";
-val leadsTo_weaken_R = thm "leadsTo_weaken_R";
-val leadsTo_weaken_L = thm "leadsTo_weaken_L";
-val leadsTo_weaken = thm "leadsTo_weaken";
-val transient_imp_leadsTo2 = thm "transient_imp_leadsTo2";
-val leadsTo_Un_distrib = thm "leadsTo_Un_distrib";
-val leadsTo_UN_distrib = thm "leadsTo_UN_distrib";
-val leadsTo_Union_distrib = thm "leadsTo_Union_distrib";
-val leadsTo_Diff = thm "leadsTo_Diff";
-val leadsTo_UN_UN = thm "leadsTo_UN_UN";
-val leadsTo_Un_Un = thm "leadsTo_Un_Un";
-val leadsTo_cancel2 = thm "leadsTo_cancel2";
-val leadsTo_cancel_Diff2 = thm "leadsTo_cancel_Diff2";
-val leadsTo_cancel1 = thm "leadsTo_cancel1";
-val leadsTo_cancel_Diff1 = thm "leadsTo_cancel_Diff1";
-val leadsTo_induct = thm "leadsTo_induct";
-val leadsTo_induct2 = thm "leadsTo_induct2";
-val leadsTo_induct_pre_aux = thm "leadsTo_induct_pre_aux";
-val leadsTo_induct_pre = thm "leadsTo_induct_pre";
-val leadsTo_empty = thm "leadsTo_empty";
-val psp_stable = thm "psp_stable";
-val psp_stable2 = thm "psp_stable2";
-val psp_ensures = thm "psp_ensures";
-val psp = thm "psp";
-val psp2 = thm "psp2";
-val psp_unless = thm "psp_unless";
-val leadsTo_wf_induct_aux = thm "leadsTo_wf_induct_aux";
-val leadsTo_wf_induct = thm "leadsTo_wf_induct";
-val nat_measure_field = thm "nat_measure_field";
-val Image_inverse_lessThan = thm "Image_inverse_lessThan";
-val lessThan_induct = thm "lessThan_induct";
-val wlt_type = thm "wlt_type";
-val wlt_st_set = thm "wlt_st_set";
-val wlt_leadsTo_iff = thm "wlt_leadsTo_iff";
-val wlt_leadsTo = thm "wlt_leadsTo";
-val leadsTo_subset = thm "leadsTo_subset";
-val leadsTo_eq_subset_wlt = thm "leadsTo_eq_subset_wlt";
-val wlt_increasing = thm "wlt_increasing";
-val leadsTo_123_aux = thm "leadsTo_123_aux";
-val leadsTo_123 = thm "leadsTo_123";
-val wlt_constrains_wlt = thm "wlt_constrains_wlt";
-val completion_aux = thm "completion_aux";
-val completion = thm "completion";
-val finite_completion_aux = thm "finite_completion_aux";
-val finite_completion = thm "finite_completion";
-val stable_completion = thm "stable_completion";
-val finite_stable_completion = thm "finite_stable_completion";
-*}
 
 end

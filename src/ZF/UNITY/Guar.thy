@@ -34,49 +34,57 @@ apply (blast intro: ensuresI [THEN leadsTo_Basis])
 done
 
 
-constdefs
-
   (*Existential and Universal properties.  We formalize the two-program
     case, proving equivalence with Chandy and Sanders's n-ary definitions*)
 
-   ex_prop :: "i => o"
+definition
+   ex_prop :: "i => o"  where
    "ex_prop(X) == X<=program &
     (\<forall>F \<in> program. \<forall>G \<in> program. F ok G --> F \<in> X | G \<in> X --> (F Join G) \<in> X)"
 
-  strict_ex_prop  :: "i => o"
+definition
+  strict_ex_prop  :: "i => o"  where
   "strict_ex_prop(X) == X<=program &
    (\<forall>F \<in> program. \<forall>G \<in> program. F ok G --> (F \<in> X | G \<in> X) <-> (F Join G \<in> X))"
 
-  uv_prop  :: "i => o"
+definition
+  uv_prop  :: "i => o"  where
    "uv_prop(X) == X<=program &
     (SKIP \<in> X & (\<forall>F \<in> program. \<forall>G \<in> program. F ok G --> F \<in> X & G \<in> X --> (F Join G) \<in> X))"
   
- strict_uv_prop  :: "i => o"
+definition
+ strict_uv_prop  :: "i => o"  where
    "strict_uv_prop(X) == X<=program &
     (SKIP \<in> X & (\<forall>F \<in> program. \<forall>G \<in> program. F ok G -->(F \<in> X & G \<in> X) <-> (F Join G \<in> X)))"
 
-  guar :: "[i, i] => i" (infixl "guarantees" 55)
+definition
+  guar :: "[i, i] => i" (infixl "guarantees" 55)  where
               (*higher than membership, lower than Co*)
   "X guarantees Y == {F \<in> program. \<forall>G \<in> program. F ok G --> F Join G \<in> X --> F Join G \<in> Y}"
   
+definition
   (* Weakest guarantees *)
-   wg :: "[i,i] => i"
+   wg :: "[i,i] => i"  where
   "wg(F,Y) == Union({X \<in> Pow(program). F:(X guarantees Y)})"
 
+definition
   (* Weakest existential property stronger than X *)
-   wx :: "i =>i"
+   wx :: "i =>i"  where
    "wx(X) == Union({Y \<in> Pow(program). Y<=X & ex_prop(Y)})"
 
+definition
   (*Ill-defined programs can arise through "Join"*)
-  welldef :: i
+  welldef :: i  where
   "welldef == {F \<in> program. Init(F) \<noteq> 0}"
   
-  refines :: "[i, i, i] => o" ("(3_ refines _ wrt _)" [10,10,10] 10)
+definition
+  refines :: "[i, i, i] => o" ("(3_ refines _ wrt _)" [10,10,10] 10)  where
   "G refines F wrt X ==
    \<forall>H \<in> program. (F ok H  & G ok H & F Join H \<in> welldef Int X)
     --> (G Join H \<in> welldef Int X)"
 
-  iso_refines :: "[i,i, i] => o"  ("(3_ iso'_refines _ wrt _)" [10,10,10] 10)
+definition
+  iso_refines :: "[i,i, i] => o"  ("(3_ iso'_refines _ wrt _)" [10,10,10] 10)  where
   "G iso_refines F wrt X ==  F \<in> welldef Int X --> G \<in> welldef Int X"
 
 

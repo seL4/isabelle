@@ -7,12 +7,13 @@
 
 theory Confluence imports Reduction begin
 
-constdefs
-  confluence    :: "i=>o"
+definition
+  confluence    :: "i=>o"  where
     "confluence(R) ==   
        \<forall>x y. <x,y> \<in> R --> (\<forall>z.<x,z> \<in> R --> (\<exists>u.<y,u> \<in> R & <z,u> \<in> R))"
 
-  strip         :: "o"
+definition
+  strip         :: "o"  where
     "strip == \<forall>x y. (x ===> y) --> 
                     (\<forall>z.(x =1=> z) --> (\<exists>u.(y =1=> u) & (z===>u)))" 
 

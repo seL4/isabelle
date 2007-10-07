@@ -94,7 +94,7 @@ fun typecheck_tac ctxt = REPEAT (typecheck_step_tac (tcset_of ctxt));
 
 (*Compiles a term-net for speed*)
 val basic_res_tac = net_resolve_tac [TrueI,refl,reflexive_thm,iff_refl,
-                                     ballI,allI,conjI,impI];
+                                     @{thm ballI},allI,conjI,impI];
 
 (*Instantiates variables in typing conditions.
   drawback: does not simplify conjunctions*)

@@ -200,37 +200,11 @@ done
 
 subsection{*The Contents of a Singleton Set*}
 
-constdefs
-  contents :: "i=>i"
+definition
+  contents :: "i=>i"  where
    "contents(X) == THE x. X = {x}"
 
 lemma contents_eq [simp]: "contents ({x}) = x"
 by (simp add: contents_def)
-
-
-ML
-{*
-val Fin_intros = thms "Fin.intros";
-
-val Fin_mono = thm "Fin_mono";
-val FinD = thm "FinD";
-val Fin_induct = thm "Fin_induct";
-val Fin_UnI = thm "Fin_UnI";
-val Fin_UnionI = thm "Fin_UnionI";
-val Fin_subset = thm "Fin_subset";
-val Fin_IntI1 = thm "Fin_IntI1";
-val Fin_IntI2 = thm "Fin_IntI2";
-val Fin_0_induct = thm "Fin_0_induct";
-val nat_fun_subset_Fin = thm "nat_fun_subset_Fin";
-val FiniteFun_mono = thm "FiniteFun_mono";
-val FiniteFun_mono1 = thm "FiniteFun_mono1";
-val FiniteFun_is_fun = thm "FiniteFun_is_fun";
-val FiniteFun_domain_Fin = thm "FiniteFun_domain_Fin";
-val FiniteFun_apply_type = thm "FiniteFun_apply_type";
-val FiniteFun_subset = thm "FiniteFun_subset";
-val fun_FiniteFunI = thm "fun_FiniteFunI";
-val lam_FiniteFun = thm "lam_FiniteFun";
-val FiniteFun_Collect_iff = thm "FiniteFun_Collect_iff";
-*}
 
 end

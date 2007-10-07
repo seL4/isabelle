@@ -19,23 +19,22 @@ abbreviation
 
 text{*2 is equal to bool, but is used as a number rather than a type.*}
 
-constdefs
-  bool        :: i
-    "bool == {0,1}"
+definition "bool == {0,1}"
 
-  cond        :: "[i,i,i]=>i"
-    "cond(b,c,d) == if(b=1,c,d)"
+definition "cond(b,c,d) == if(b=1,c,d)"
 
-  not         :: "i=>i"
-    "not(b) == cond(b,0,1)"
+definition "not(b) == cond(b,0,1)"
 
-  "and"       :: "[i,i]=>i"      (infixl "and" 70)
+definition
+  "and"       :: "[i,i]=>i"      (infixl "and" 70)  where
     "a and b == cond(a,b,0)"
 
-  or          :: "[i,i]=>i"      (infixl "or" 65)
+definition
+  or          :: "[i,i]=>i"      (infixl "or" 65)  where
     "a or b == cond(a,1,b)"
 
-  xor         :: "[i,i]=>i"      (infixl "xor" 65)
+definition
+  xor         :: "[i,i]=>i"      (infixl "xor" 65) where
     "a xor b == cond(a,not(b),b)"
 
 
@@ -154,7 +153,8 @@ lemma or_and_distrib: "[| a: bool; b: bool; c: bool |] ==>
 by (elim boolE, auto)
 
 
-constdefs bool_of_o :: "o=>i"
+definition
+  bool_of_o :: "o=>i" where
    "bool_of_o(P) == (if P then 1 else 0)"
 
 lemma [simp]: "bool_of_o(True) = 1"

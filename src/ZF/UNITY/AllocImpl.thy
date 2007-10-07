@@ -24,8 +24,7 @@ axioms
   alloc_default_val_assumes [simp]:
   "default_val(NbR)  = 0 & default_val(available_tok)=0"
 
-constdefs
-  alloc_giv_act :: i
+definition
   "alloc_giv_act ==
        {<s, t> \<in> state*state.
 	\<exists>k. k = length(s`giv) &
@@ -33,16 +32,16 @@ constdefs
 		  available_tok := s`available_tok #- nth(k, s`ask)) &
 	    k < length(s`ask) & nth(k, s`ask) le s`available_tok}"
 
-  alloc_rel_act :: i
+definition
   "alloc_rel_act ==
        {<s, t> \<in> state*state.
         t = s(available_tok := s`available_tok #+ nth(s`NbR, s`rel),
 	      NbR := succ(s`NbR)) &
   	s`NbR < length(s`rel)}"
 
+definition
   (*The initial condition s`giv=[] is missing from the
     original definition: S. O. Ehmety *)
-  alloc_prog :: i
   "alloc_prog ==
        mk_program({s:state. s`available_tok=NbT & s`NbR=0 & s`giv=Nil},
 		  {alloc_giv_act, alloc_rel_act},
@@ -658,7 +657,5 @@ apply (rule INT_I)
 apply (rule alloc_progress.final)
 apply (auto simp add: alloc_progress_def)
 done
-
-
 
 end

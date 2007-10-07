@@ -40,13 +40,12 @@ coinductive
 
 
 (*Lazy list functions; flip is not definitional!*)
+definition
+  lconst   :: "i => i"  where
+  "lconst(a) == lfp(univ(a), %l. LCons(a,l))"
+
 consts
-  lconst   :: "i => i"
   flip     :: "i => i"
-
-defs
-  lconst_def:  "lconst(a) == lfp(univ(a), %l. LCons(a,l))"
-
 axioms
   flip_LNil:   "flip(LNil) = LNil"
 
@@ -117,7 +116,8 @@ apply (rule ballI)
 apply (erule llist.cases)
 apply (simp_all add: QInl_def QInr_def llist.con_defs)
 (*LCons case: I simply can't get rid of the deepen_tac*)
-apply (tactic "deepen_tac (claset() addIs [Ord_trans] addIs [Int_lower1 RS subset_trans]) 2 1")
+apply (tactic "deepen_tac (@{claset} addIs [@{thm Ord_trans}]
+  addIs [@{thm Int_lower1} RS @{thm subset_trans}]) 2 1")
 done
 
 lemma llist_quniv: "llist(quniv(A)) \<subseteq> quniv(A)"
@@ -219,7 +219,8 @@ apply (rule ballI)
 apply (erule llist.cases, simp_all)
 apply (simp_all add: QInl_def QInr_def llist.con_defs)
 (*LCons case: I simply can't get rid of the deepen_tac*)
-apply (tactic "deepen_tac (claset() addIs [Ord_trans] addIs [Int_lower1 RS subset_trans]) 2 1")
+apply (tactic "deepen_tac (@{claset} addIs [@{thm Ord_trans}]
+  addIs [@{thm Int_lower1} RS @{thm subset_trans}]) 2 1")
 done
 
 lemma flip_in_quniv: "l \<in> llist(bool) ==> flip(l) \<in> quniv(bool)"

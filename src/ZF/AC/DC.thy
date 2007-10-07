@@ -78,18 +78,19 @@ lemma ex_in_domain: "[| R \<subseteq> A * B; R \<noteq> 0 |] ==> \<exists>x. x \
 by (fast elim!: not_emptyE)
 
 
-constdefs
-
-  DC  :: "i => o"
+definition
+  DC  :: "i => o"  where
     "DC(a) == \<forall>X R. R \<subseteq> Pow(X)*X  &
 		    (\<forall>Y \<in> Pow(X). Y \<prec> a --> (\<exists>x \<in> X. <Y,x> \<in> R)) 
 		    --> (\<exists>f \<in> a->X. \<forall>b<a. <f``b,f`b> \<in> R)"
 
-  DC0 :: o
+definition
+  DC0 :: o  where
     "DC0 == \<forall>A B R. R \<subseteq> A*B & R\<noteq>0 & range(R) \<subseteq> domain(R) 
                     --> (\<exists>f \<in> nat->domain(R). \<forall>n \<in> nat. <f`n,f`succ(n)>:R)"
 
-  ff  :: "[i, i, i, i] => i"
+definition
+  ff  :: "[i, i, i, i] => i"  where
     "ff(b, X, Q, R) ==
 	   transrec(b, %c r. THE x. first(x, {x \<in> X. <r``c, x> \<in> R}, Q))"
 

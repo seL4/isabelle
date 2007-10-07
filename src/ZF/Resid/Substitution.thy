@@ -19,8 +19,8 @@ primrec
 
   "lift_aux(App(b,f,a)) = (\<lambda>k \<in> nat. App(b, lift_aux(f)`k, lift_aux(a)`k))"
 
-constdefs
-  lift_rec      :: "[i,i]=> i"
+definition
+  lift_rec      :: "[i,i]=> i"  where
     "lift_rec(r,k) == lift_aux(r)`k"
 
 abbreviation
@@ -40,8 +40,8 @@ primrec
   "subst_aux(App(b,f,a)) =
      (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. App(b, subst_aux(f)`r`k, subst_aux(a)`r`k))"
 
-constdefs
-  subst_rec     :: "[i,i,i]=> i"	(**NOTE THE ARGUMENT ORDER BELOW**)
+definition
+  subst_rec     :: "[i,i,i]=> i"	(**NOTE THE ARGUMENT ORDER BELOW**)  where
     "subst_rec(u,r,k) == subst_aux(r)`u`k"
 
 abbreviation

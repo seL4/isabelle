@@ -45,31 +45,33 @@ consts all_distinct0 :: "i=>i"
   "all_distinct0(Cons(a, l)) =
      (if a \<in> set_of_list(l) then 0 else all_distinct0(l))"
 
-constdefs
-  all_distinct  :: "i=>o"
+definition
+  all_distinct  :: "i=>o"  where
    "all_distinct(l) == all_distinct0(l)=1"
   
-constdefs  
-  state_of :: "i =>i" --{* coersion from anyting to state *}
+definition  
+  state_of :: "i =>i" --{* coersion from anyting to state *}  where
    "state_of(s) == if s \<in> state then s else st0"
 
-  lift :: "i =>(i=>i)" --{* simplifies the expression of programs*}
+definition
+  lift :: "i =>(i=>i)" --{* simplifies the expression of programs*}  where
    "lift(x) == %s. s`x"
 
 text{* function to show that the set of variables is infinite *}
 consts
   nat_list_inj :: "i=>i"
-  nat_var_inj  :: "i=>i"
   var_inj      :: "i=>i"
 
-defs
-  nat_var_inj_def: "nat_var_inj(n) == Var(nat_list_inj(n))"
 primrec
   "nat_list_inj(0) = Nil"
   "nat_list_inj(succ(n)) = Cons(n, nat_list_inj(n))"
 
 primrec
   "var_inj(Var(l)) = length(l)"
+
+definition
+  nat_var_inj  :: "i=>i"  where
+  "nat_var_inj(n) == Var(nat_list_inj(n))"
 
 
 subsection{*Various simple lemmas*}

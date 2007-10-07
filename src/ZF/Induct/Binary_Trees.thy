@@ -88,8 +88,8 @@ lemma n_nodes_aux_eq:
   apply (atomize, simp)
   done
 
-constdefs
-  n_nodes_tail :: "i => i"
+definition
+  n_nodes_tail :: "i => i"  where
   "n_nodes_tail(t) == n_nodes_aux(t) ` 0"
 
 lemma "t \<in> bt(A) ==> n_nodes_tail(t) = n_nodes(t)"

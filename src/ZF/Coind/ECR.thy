@@ -26,8 +26,8 @@ coinductive
   
 (* Pointwise extension to environments *)
  
-constdefs
-  hastyenv :: "[i,i] => o"
+definition
+  hastyenv :: "[i,i] => o"  where
     "hastyenv(ve,te) ==                        
 	 ve_dom(ve) = te_dom(te) &          
 	 (\<forall>x \<in> ve_dom(ve). <ve_app(ve,x),te_app(te,x)> \<in> HasTyRel)"

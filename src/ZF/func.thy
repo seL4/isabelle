@@ -443,8 +443,8 @@ by (simp add: succ_def mem_not_refl cons_fun_eq)
 
 subsection{*Function Updates*}
 
-constdefs
-  update  :: "[i,i,i] => i"
+definition
+  update  :: "[i,i,i] => i"  where
    "update(f,a,b) == lam x: cons(a, domain(f)). if(x=a, b, f`x)"
 
 nonterminals
@@ -461,7 +461,7 @@ syntax
 
 translations
   "_Update (f, _updbinds(b,bs))"  == "_Update (_Update(f,b), bs)"
-  "f(x:=y)"                       == "update(f,x,y)"
+  "f(x:=y)"                       == "CONST update(f,x,y)"
 
 
 lemma update_apply [simp]: "f(x:=y) ` z = (if z=x then y else f`z)"
@@ -591,115 +591,5 @@ by blast
 (*Used in intr_elim.ML and in individual datatype definitions*)
 lemmas basic_monos = subset_refl imp_refl disj_mono conj_mono ex_mono 
                      Collect_mono Part_mono in_mono
-
-ML
-{*
-val Pi_iff = thm "Pi_iff";
-val Pi_iff_old = thm "Pi_iff_old";
-val fun_is_function = thm "fun_is_function";
-val fun_is_rel = thm "fun_is_rel";
-val Pi_cong = thm "Pi_cong";
-val fun_weaken_type = thm "fun_weaken_type";
-val apply_equality2 = thm "apply_equality2";
-val function_apply_equality = thm "function_apply_equality";
-val apply_equality = thm "apply_equality";
-val apply_0 = thm "apply_0";
-val Pi_memberD = thm "Pi_memberD";
-val function_apply_Pair = thm "function_apply_Pair";
-val apply_Pair = thm "apply_Pair";
-val apply_type = thm "apply_type";
-val apply_funtype = thm "apply_funtype";
-val apply_iff = thm "apply_iff";
-val Pi_type = thm "Pi_type";
-val Pi_Collect_iff = thm "Pi_Collect_iff";
-val Pi_weaken_type = thm "Pi_weaken_type";
-val domain_type = thm "domain_type";
-val range_type = thm "range_type";
-val Pair_mem_PiD = thm "Pair_mem_PiD";
-val lamI = thm "lamI";
-val lamE = thm "lamE";
-val lamD = thm "lamD";
-val lam_type = thm "lam_type";
-val lam_funtype = thm "lam_funtype";
-val beta = thm "beta";
-val lam_empty = thm "lam_empty";
-val domain_lam = thm "domain_lam";
-val lam_cong = thm "lam_cong";
-val lam_theI = thm "lam_theI";
-val lam_eqE = thm "lam_eqE";
-val Pi_empty1 = thm "Pi_empty1";
-val singleton_fun = thm "singleton_fun";
-val Pi_empty2 = thm "Pi_empty2";
-val fun_space_empty_iff = thm "fun_space_empty_iff";
-val fun_subset = thm "fun_subset";
-val fun_extension = thm "fun_extension";
-val eta = thm "eta";
-val fun_extension_iff = thm "fun_extension_iff";
-val fun_subset_eq = thm "fun_subset_eq";
-val Pi_lamE = thm "Pi_lamE";
-val image_lam = thm "image_lam";
-val image_fun = thm "image_fun";
-val Pi_image_cons = thm "Pi_image_cons";
-val restrict_subset = thm "restrict_subset";
-val function_restrictI = thm "function_restrictI";
-val restrict_type2 = thm "restrict_type2";
-val restrict = thm "restrict";
-val restrict_empty = thm "restrict_empty";
-val domain_restrict_lam = thm "domain_restrict_lam";
-val restrict_restrict = thm "restrict_restrict";
-val domain_restrict = thm "domain_restrict";
-val restrict_idem = thm "restrict_idem";
-val restrict_if = thm "restrict_if";
-val restrict_lam_eq = thm "restrict_lam_eq";
-val fun_cons_restrict_eq = thm "fun_cons_restrict_eq";
-val function_Union = thm "function_Union";
-val fun_Union = thm "fun_Union";
-val fun_disjoint_Un = thm "fun_disjoint_Un";
-val fun_disjoint_apply1 = thm "fun_disjoint_apply1";
-val fun_disjoint_apply2 = thm "fun_disjoint_apply2";
-val domain_of_fun = thm "domain_of_fun";
-val apply_rangeI = thm "apply_rangeI";
-val range_of_fun = thm "range_of_fun";
-val fun_extend = thm "fun_extend";
-val fun_extend3 = thm "fun_extend3";
-val fun_extend_apply = thm "fun_extend_apply";
-val singleton_apply = thm "singleton_apply";
-val cons_fun_eq = thm "cons_fun_eq";
-
-val update_def = thm "update_def";
-val update_apply = thm "update_apply";
-val update_idem = thm "update_idem";
-val domain_update = thm "domain_update";
-val update_type = thm "update_type";
-
-val Replace_mono = thm "Replace_mono";
-val RepFun_mono = thm "RepFun_mono";
-val Pow_mono = thm "Pow_mono";
-val Union_mono = thm "Union_mono";
-val UN_mono = thm "UN_mono";
-val Inter_anti_mono = thm "Inter_anti_mono";
-val cons_mono = thm "cons_mono";
-val Un_mono = thm "Un_mono";
-val Int_mono = thm "Int_mono";
-val Diff_mono = thm "Diff_mono";
-val Sigma_mono = thm "Sigma_mono";
-val sum_mono = thm "sum_mono";
-val Pi_mono = thm "Pi_mono";
-val lam_mono = thm "lam_mono";
-val converse_mono = thm "converse_mono";
-val domain_mono = thm "domain_mono";
-val domain_rel_subset = thm "domain_rel_subset";
-val range_mono = thm "range_mono";
-val range_rel_subset = thm "range_rel_subset";
-val field_mono = thm "field_mono";
-val field_rel_subset = thm "field_rel_subset";
-val image_pair_mono = thm "image_pair_mono";
-val vimage_pair_mono = thm "vimage_pair_mono";
-val image_mono = thm "image_mono";
-val vimage_mono = thm "vimage_mono";
-val Collect_mono = thm "Collect_mono";
-
-val basic_monos = thms "basic_monos";
-*}
 
 end

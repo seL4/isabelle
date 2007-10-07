@@ -7,8 +7,8 @@ Hartog's function.
 
 theory Hartog imports AC_Equiv begin
 
-constdefs
-  Hartog :: "i => i"
+definition
+  Hartog :: "i => i"  where
    "Hartog(X) == LEAST i. ~ i \<lesssim> X"
 
 lemma Ords_in_set: "\<forall>a. Ord(a) --> a \<in> X ==> P"

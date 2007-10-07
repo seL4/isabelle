@@ -17,11 +17,12 @@ theory Arith imports Univ begin
 
 text{*Proofs about elementary arithmetic: addition, multiplication, etc.*}
 
-constdefs
-  pred   :: "i=>i"    (*inverse of succ*)
+definition
+  pred   :: "i=>i"    (*inverse of succ*)  where
     "pred(y) == nat_case(0, %x. x, y)"
 
-  natify :: "i=>i"    (*coerces non-nats to nats*)
+definition
+  natify :: "i=>i"    (*coerces non-nats to nats*)  where
     "natify == Vrecursor(%f a. if a = succ(pred(a)) then succ(f`pred(a))
                                                     else 0)"
 
@@ -43,36 +44,41 @@ primrec
   "raw_mult(0, n) = 0"
   "raw_mult(succ(m), n) = raw_add (n, raw_mult(m, n))"
 
-constdefs
-  add :: "[i,i]=>i"                    (infixl "#+" 65)
+definition
+  add :: "[i,i]=>i"                    (infixl "#+" 65)  where
     "m #+ n == raw_add (natify(m), natify(n))"
 
-  diff :: "[i,i]=>i"                    (infixl "#-" 65)
+definition
+  diff :: "[i,i]=>i"                    (infixl "#-" 65)  where
     "m #- n == raw_diff (natify(m), natify(n))"
 
-  mult :: "[i,i]=>i"                    (infixl "#*" 70)
+definition
+  mult :: "[i,i]=>i"                    (infixl "#*" 70)  where
     "m #* n == raw_mult (natify(m), natify(n))"
 
-  raw_div  :: "[i,i]=>i"
+definition
+  raw_div  :: "[i,i]=>i"  where
     "raw_div (m, n) ==
        transrec(m, %j f. if j<n | n=0 then 0 else succ(f`(j#-n)))"
 
-  raw_mod  :: "[i,i]=>i"
+definition
+  raw_mod  :: "[i,i]=>i"  where
     "raw_mod (m, n) ==
        transrec(m, %j f. if j<n | n=0 then j else f`(j#-n))"
 
-  div  :: "[i,i]=>i"                    (infixl "div" 70)
+definition
+  div  :: "[i,i]=>i"                    (infixl "div" 70)  where
     "m div n == raw_div (natify(m), natify(n))"
 
-  mod  :: "[i,i]=>i"                    (infixl "mod" 70)
+definition
+  mod  :: "[i,i]=>i"                    (infixl "mod" 70)  where
     "m mod n == raw_mod (natify(m), natify(n))"
 
-syntax (xsymbols)
-  "mult"      :: "[i,i] => i"               (infixr "#\<times>" 70)
+notation (xsymbols)
+  mult  (infixr "#\<times>" 70)
 
-syntax (HTML output)
-  "mult"      :: "[i, i] => i"               (infixr "#\<times>" 70)
-
+notation (HTML output)
+  mult  (infixr "#\<times>" 70)
 
 declare rec_type [simp]
         nat_0_le [simp]
@@ -547,95 +553,5 @@ lemma less_diff_conv [rule_format]:
 by (erule_tac m = k in diff_induct, auto)
 
 lemmas nat_typechecks = rec_type nat_0I nat_1I nat_succI Ord_nat
-
-ML
-{*
-val pred_def = thm "pred_def";
-val raw_div_def = thm "raw_div_def";
-val raw_mod_def = thm "raw_mod_def";
-val div_def = thm "div_def";
-val mod_def = thm "mod_def";
-
-val zero_lt_natE = thm "zero_lt_natE";
-val pred_succ_eq = thm "pred_succ_eq";
-val natify_succ = thm "natify_succ";
-val natify_0 = thm "natify_0";
-val natify_non_succ = thm "natify_non_succ";
-val natify_in_nat = thm "natify_in_nat";
-val natify_ident = thm "natify_ident";
-val natify_eqE = thm "natify_eqE";
-val natify_idem = thm "natify_idem";
-val add_natify1 = thm "add_natify1";
-val add_natify2 = thm "add_natify2";
-val mult_natify1 = thm "mult_natify1";
-val mult_natify2 = thm "mult_natify2";
-val diff_natify1 = thm "diff_natify1";
-val diff_natify2 = thm "diff_natify2";
-val mod_natify1 = thm "mod_natify1";
-val mod_natify2 = thm "mod_natify2";
-val div_natify1 = thm "div_natify1";
-val div_natify2 = thm "div_natify2";
-val raw_add_type = thm "raw_add_type";
-val add_type = thm "add_type";
-val raw_mult_type = thm "raw_mult_type";
-val mult_type = thm "mult_type";
-val raw_diff_type = thm "raw_diff_type";
-val diff_type = thm "diff_type";
-val diff_0_eq_0 = thm "diff_0_eq_0";
-val diff_succ_succ = thm "diff_succ_succ";
-val diff_0 = thm "diff_0";
-val diff_le_self = thm "diff_le_self";
-val add_0_natify = thm "add_0_natify";
-val add_succ = thm "add_succ";
-val add_0 = thm "add_0";
-val add_assoc = thm "add_assoc";
-val add_0_right_natify = thm "add_0_right_natify";
-val add_succ_right = thm "add_succ_right";
-val add_0_right = thm "add_0_right";
-val add_commute = thm "add_commute";
-val add_left_commute = thm "add_left_commute";
-val raw_add_left_cancel = thm "raw_add_left_cancel";
-val add_left_cancel_natify = thm "add_left_cancel_natify";
-val add_left_cancel = thm "add_left_cancel";
-val add_le_elim1_natify = thm "add_le_elim1_natify";
-val add_le_elim1 = thm "add_le_elim1";
-val add_lt_elim1_natify = thm "add_lt_elim1_natify";
-val add_lt_elim1 = thm "add_lt_elim1";
-val add_lt_mono1 = thm "add_lt_mono1";
-val add_lt_mono2 = thm "add_lt_mono2";
-val add_lt_mono = thm "add_lt_mono";
-val Ord_lt_mono_imp_le_mono = thm "Ord_lt_mono_imp_le_mono";
-val add_le_mono1 = thm "add_le_mono1";
-val add_le_mono = thm "add_le_mono";
-val diff_add_inverse = thm "diff_add_inverse";
-val diff_add_inverse2 = thm "diff_add_inverse2";
-val diff_cancel = thm "diff_cancel";
-val diff_cancel2 = thm "diff_cancel2";
-val diff_add_0 = thm "diff_add_0";
-val eq_add_iff = thm "eq_add_iff";
-val less_add_iff = thm "less_add_iff";
-val diff_add_eq = thm "diff_add_eq";
-val eq_cong2 = thm "eq_cong2";
-val iff_cong2 = thm "iff_cong2";
-val mult_0 = thm "mult_0";
-val mult_succ = thm "mult_succ";
-val mult_0_right = thm "mult_0_right";
-val mult_succ_right = thm "mult_succ_right";
-val mult_1_natify = thm "mult_1_natify";
-val mult_1_right_natify = thm "mult_1_right_natify";
-val mult_1 = thm "mult_1";
-val mult_1_right = thm "mult_1_right";
-val mult_commute = thm "mult_commute";
-val add_mult_distrib = thm "add_mult_distrib";
-val add_mult_distrib_left = thm "add_mult_distrib_left";
-val mult_assoc = thm "mult_assoc";
-val mult_left_commute = thm "mult_left_commute";
-val lt_succ_eq_0_disj = thm "lt_succ_eq_0_disj";
-val less_diff_conv = thm "less_diff_conv";
-
-val add_ac = thms "add_ac";
-val mult_ac = thms "mult_ac";
-val nat_typechecks = thms "nat_typechecks";
-*}
 
 end

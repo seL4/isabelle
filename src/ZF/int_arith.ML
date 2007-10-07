@@ -11,38 +11,38 @@ Simprocs for linear arithmetic.
     such as -x = #3
 **)
 
-Addsimps [inst "y" "integ_of(?w)" zminus_equation,
-          inst "x" "integ_of(?w)" equation_zminus];
+Addsimps [inst "y" "integ_of(?w)" @{thm zminus_equation},
+          inst "x" "integ_of(?w)" @{thm equation_zminus}];
 
-AddIffs [inst "y" "integ_of(?w)" zminus_zless,
-         inst "x" "integ_of(?w)" zless_zminus];
+AddIffs [inst "y" "integ_of(?w)" @{thm zminus_zless},
+         inst "x" "integ_of(?w)" @{thm zless_zminus}];
 
-AddIffs [inst "y" "integ_of(?w)" zminus_zle,
-         inst "x" "integ_of(?w)" zle_zminus];
+AddIffs [inst "y" "integ_of(?w)" @{thm zminus_zle},
+         inst "x" "integ_of(?w)" @{thm zle_zminus}];
 
-Addsimps [inst "s" "integ_of(?w)" (thm "Let_def")];
+Addsimps [inst "s" "integ_of(?w)" @{thm Let_def}];
 
 (*** Simprocs for numeric literals ***)
 
 (** Combining of literal coefficients in sums of products **)
 
 Goal "(x $< y) <-> (x$-y $< #0)";
-by (simp_tac (simpset() addsimps zcompare_rls) 1);
+by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
 qed "zless_iff_zdiff_zless_0";
 
 Goal "[| x: int; y: int |] ==> (x = y) <-> (x$-y = #0)";
-by (asm_simp_tac (simpset() addsimps zcompare_rls) 1);
+by (asm_simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
 qed "eq_iff_zdiff_eq_0";
 
 Goal "(x $<= y) <-> (x$-y $<= #0)";
-by (asm_simp_tac (simpset() addsimps zcompare_rls) 1);
+by (asm_simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
 qed "zle_iff_zdiff_zle_0";
 
 
 (** For combine_numerals **)
 
 Goal "i$*u $+ (j$*u $+ k) = (i$+j)$*u $+ k";
-by (simp_tac (simpset() addsimps [zadd_zmult_distrib]@zadd_ac) 1);
+by (simp_tac (simpset() addsimps [@{thm zadd_zmult_distrib}]@ @{thms zadd_ac}) 1);
 qed "left_zadd_zmult_distrib";
 
 
@@ -56,37 +56,37 @@ val rel_iff_rel_0_rls = map (inst "y" "?u$+?v")
                            zle_iff_zdiff_zle_0];
 
 Goal "(i$*u $+ m = j$*u $+ n) <-> ((i$-j)$*u $+ m = intify(n))";
-by (simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]) 1);
-by (simp_tac (simpset() addsimps zcompare_rls) 1);
-by (simp_tac (simpset() addsimps zadd_ac) 1);
+by (simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]) 1);
+by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
+by (simp_tac (simpset() addsimps @{thms zadd_ac}) 1);
 qed "eq_add_iff1";
 
 Goal "(i$*u $+ m = j$*u $+ n) <-> (intify(m) = (j$-i)$*u $+ n)";
-by (simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]) 1);
-by (simp_tac (simpset() addsimps zcompare_rls) 1);
-by (simp_tac (simpset() addsimps zadd_ac) 1);
+by (simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]) 1);
+by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
+by (simp_tac (simpset() addsimps @{thms zadd_ac}) 1);
 qed "eq_add_iff2";
 
 Goal "(i$*u $+ m $< j$*u $+ n) <-> ((i$-j)$*u $+ m $< n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]@
-                                     zadd_ac@rel_iff_rel_0_rls) 1);
+by (asm_simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]@
+                                     @{thms zadd_ac} @ rel_iff_rel_0_rls) 1);
 qed "less_add_iff1";
 
 Goal "(i$*u $+ m $< j$*u $+ n) <-> (m $< (j$-i)$*u $+ n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]@
-                                     zadd_ac@rel_iff_rel_0_rls) 1);
+by (asm_simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]@
+                                     @{thms zadd_ac} @ rel_iff_rel_0_rls) 1);
 qed "less_add_iff2";
 
 Goal "(i$*u $+ m $<= j$*u $+ n) <-> ((i$-j)$*u $+ m $<= n)";
-by (simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]) 1);
-by (simp_tac (simpset() addsimps zcompare_rls) 1);
-by (simp_tac (simpset() addsimps zadd_ac) 1);
+by (simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]) 1);
+by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
+by (simp_tac (simpset() addsimps @{thms zadd_ac}) 1);
 qed "le_add_iff1";
 
 Goal "(i$*u $+ m $<= j$*u $+ n) <-> (m $<= (j$-i)$*u $+ n)";
-by (simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]) 1);
-by (simp_tac (simpset() addsimps zcompare_rls) 1);
-by (simp_tac (simpset() addsimps zadd_ac) 1);
+by (simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]) 1);
+by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
+by (simp_tac (simpset() addsimps @{thms zadd_ac}) 1);
 qed "le_add_iff2";
 
 
@@ -178,41 +178,41 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 
 
 (*Simplify #1*n and n*#1 to n*)
-val add_0s = [zadd_0_intify, zadd_0_right_intify];
+val add_0s = [@{thm zadd_0_intify}, @{thm zadd_0_right_intify}];
 
-val mult_1s = [zmult_1_intify, zmult_1_right_intify,
-               zmult_minus1, zmult_minus1_right];
+val mult_1s = [@{thm zmult_1_intify}, @{thm zmult_1_right_intify},
+               @{thm zmult_minus1}, @{thm zmult_minus1_right}];
 
-val tc_rules = [integ_of_type, intify_in_int,
-                int_of_type, zadd_type, zdiff_type, zmult_type] @ 
-               thms "bin.intros";
-val intifys = [intify_ident, zadd_intify1, zadd_intify2,
-               zdiff_intify1, zdiff_intify2, zmult_intify1, zmult_intify2,
-               zless_intify1, zless_intify2, zle_intify1, zle_intify2];
+val tc_rules = [@{thm integ_of_type}, @{thm intify_in_int},
+                @{thm int_of_type}, @{thm zadd_type}, @{thm zdiff_type}, @{thm zmult_type}] @ 
+               @{thms bin.intros};
+val intifys = [@{thm intify_ident}, @{thm zadd_intify1}, @{thm zadd_intify2},
+               @{thm zdiff_intify1}, @{thm zdiff_intify2}, @{thm zmult_intify1}, @{thm zmult_intify2},
+               @{thm zless_intify1}, @{thm zless_intify2}, @{thm zle_intify1}, @{thm zle_intify2}];
 
 (*To perform binary arithmetic*)
-val bin_simps = [add_integ_of_left] @ bin_arith_simps @ bin_rel_simps;
+val bin_simps = [@{thm add_integ_of_left}] @ @{thms bin_arith_simps} @ @{thms bin_rel_simps};
 
 (*To evaluate binary negations of coefficients*)
-val zminus_simps = NCons_simps @
-                   [integ_of_minus RS sym,
-                    bin_minus_1, bin_minus_0, bin_minus_Pls, bin_minus_Min,
-                    bin_pred_1, bin_pred_0, bin_pred_Pls, bin_pred_Min];
+val zminus_simps = @{thms NCons_simps} @
+                   [@{thm integ_of_minus} RS sym,
+                    @{thm bin_minus_1}, @{thm bin_minus_0}, @{thm bin_minus_Pls}, @{thm bin_minus_Min},
+                    @{thm bin_pred_1}, @{thm bin_pred_0}, @{thm bin_pred_Pls}, @{thm bin_pred_Min}];
 
 (*To let us treat subtraction as addition*)
-val diff_simps = [zdiff_def, zminus_zadd_distrib, zminus_zminus];
+val diff_simps = [@{thm zdiff_def}, @{thm zminus_zadd_distrib}, @{thm zminus_zminus}];
 
 (*push the unary minus down: - x * y = x * - y *)
 val int_minus_mult_eq_1_to_2 =
-    [zmult_zminus, zmult_zminus_right RS sym] MRS trans |> standard;
+    [@{thm zmult_zminus}, @{thm zmult_zminus_right} RS sym] MRS trans |> standard;
 
 (*to extract again any uncancelled minuses*)
 val int_minus_from_mult_simps =
-    [zminus_zminus, zmult_zminus, zmult_zminus_right];
+    [@{thm zminus_zminus}, @{thm zmult_zminus}, @{thm zmult_zminus_right}];
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val int_mult_minus_simps =
-    [zmult_assoc, zmult_zminus RS sym, int_minus_mult_eq_1_to_2];
+    [@{thm zmult_assoc}, @{thm zmult_zminus} RS sym, int_minus_mult_eq_1_to_2];
 
 fun prep_simproc (name, pats, proc) =
   Simplifier.simproc (the_context ()) name pats proc;
@@ -226,9 +226,9 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
   fun trans_tac _       = ArithData.gen_trans_tac iff_trans
 
-  val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ zadd_ac
+  val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac}
   val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
-  val norm_ss3 = ZF_ss addsimps int_minus_from_mult_simps @ zadd_ac @ zmult_ac @ tc_rules @ intifys
+  val norm_ss3 = ZF_ss addsimps int_minus_from_mult_simps @ @{thms zadd_ac} @ @{thms zmult_ac} @ tc_rules @ intifys
   fun norm_tac ss =
     ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -304,9 +304,9 @@ structure CombineNumeralsData =
   val prove_conv        = prove_conv_nohyps "int_combine_numerals"
   fun trans_tac _       = ArithData.gen_trans_tac trans
 
-  val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ zadd_ac @ intifys
+  val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac} @ intifys
   val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
-  val norm_ss3 = ZF_ss addsimps int_minus_from_mult_simps @ zadd_ac @ zmult_ac @ tc_rules @ intifys
+  val norm_ss3 = ZF_ss addsimps int_minus_from_mult_simps @ @{thms zadd_ac} @ @{thms zmult_ac} @ tc_rules @ intifys
   fun norm_tac ss =
     ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -341,15 +341,15 @@ structure CombineNumeralsProdData =
   fun mk_coeff(k,t) = if t=one then mk_numeral k
                       else raise TERM("mk_coeff", [])
   fun dest_coeff t = (dest_numeral t, one)  (*We ONLY want pure numerals.*)
-  val left_distrib      = zmult_assoc RS sym RS trans
+  val left_distrib      = @{thm zmult_assoc} RS sym RS trans
   val prove_conv        = prove_conv_nohyps "int_combine_numerals_prod"
   fun trans_tac _       = ArithData.gen_trans_tac trans
 
 
 
 val norm_ss1 = ZF_ss addsimps mult_1s @ diff_simps @ zminus_simps
-  val norm_ss2 = ZF_ss addsimps [zmult_zminus_right RS sym] @
-    bin_simps @ zmult_ac @ tc_rules @ intifys
+  val norm_ss2 = ZF_ss addsimps [@{thm zmult_zminus_right} RS sym] @
+    bin_simps @ @{thms zmult_ac} @ tc_rules @ intifys
   fun norm_tac ss =
     ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))

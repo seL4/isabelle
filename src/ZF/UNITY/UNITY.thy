@@ -17,65 +17,81 @@ consts
   "constrains" :: "[i, i] => i"  (infixl "co"     60)
   op_unless    :: "[i, i] => i"  (infixl "unless" 60)
 
-constdefs
-   program  :: i
+definition
+  program  :: i  where
   "program == {<init, acts, allowed>:
 	       Pow(state) * Pow(Pow(state*state)) * Pow(Pow(state*state)).
 	       id(state) \<in> acts & id(state) \<in> allowed}"
 
-  mk_program :: "[i,i,i]=>i"
+definition
+  mk_program :: "[i,i,i]=>i"  where
   --{* The definition yields a program thanks to the coercions
        init \<inter> state, acts \<inter> Pow(state*state), etc. *}
   "mk_program(init, acts, allowed) ==
     <init \<inter> state, cons(id(state), acts \<inter> Pow(state*state)),
               cons(id(state), allowed \<inter> Pow(state*state))>"
 
-  SKIP :: i
+definition
+  SKIP :: i  where
   "SKIP == mk_program(state, 0, Pow(state*state))"
 
   (* Coercion from anything to program *)
-  programify :: "i=>i"
+definition
+  programify :: "i=>i"  where
   "programify(F) == if F \<in> program then F else SKIP"
 
-  RawInit :: "i=>i"
+definition
+  RawInit :: "i=>i"  where
   "RawInit(F) == fst(F)"
 
-  Init :: "i=>i"
+definition
+  Init :: "i=>i"  where
   "Init(F) == RawInit(programify(F))"
 
-  RawActs :: "i=>i"
+definition
+  RawActs :: "i=>i"  where
   "RawActs(F) == cons(id(state), fst(snd(F)))"
 
-  Acts :: "i=>i"
+definition
+  Acts :: "i=>i"  where
   "Acts(F) == RawActs(programify(F))"
 
-  RawAllowedActs :: "i=>i"
+definition
+  RawAllowedActs :: "i=>i"  where
   "RawAllowedActs(F) == cons(id(state), snd(snd(F)))"
 
-  AllowedActs :: "i=>i"
+definition
+  AllowedActs :: "i=>i"  where
   "AllowedActs(F) == RawAllowedActs(programify(F))"
 
 
-  Allowed :: "i =>i"
+definition
+  Allowed :: "i =>i"  where
   "Allowed(F) == {G \<in> program. Acts(G) \<subseteq> AllowedActs(F)}"
 
-  initially :: "i=>i"
+definition
+  initially :: "i=>i"  where
   "initially(A) == {F \<in> program. Init(F)\<subseteq>A}"
 
-  stable     :: "i=>i"
+definition
+  stable     :: "i=>i"  where
    "stable(A) == A co A"
 
-  strongest_rhs :: "[i, i] => i"
+definition
+  strongest_rhs :: "[i, i] => i"  where
   "strongest_rhs(F, A) == Inter({B \<in> Pow(state). F \<in> A co B})"
 
-  invariant :: "i => i"
+definition
+  invariant :: "i => i"  where
   "invariant(A) == initially(A) \<inter> stable(A)"
 
   (* meta-function composition *)
-  metacomp :: "[i=>i, i=>i] => (i=>i)" (infixl "comp" 65)
+definition
+  metacomp :: "[i=>i, i=>i] => (i=>i)" (infixl "comp" 65)  where
   "f comp g == %x. f(g(x))"
 
-  pg_compl :: "i=>i"
+definition
+  pg_compl :: "i=>i"  where
   "pg_compl(X)== program - X"
 
 defs
@@ -607,101 +623,9 @@ lemma strongest_rhs_is_strongest:
      "[| F \<in> A co B; st_set(B) |] ==> strongest_rhs(F,A) \<subseteq> B"
 by (auto simp add: constrains_def strongest_rhs_def st_set_def)
 
-ML
-{*
-val constrains_def = thm "constrains_def";
-val stable_def = thm "stable_def";
-val invariant_def = thm "invariant_def";
-val unless_def = thm "unless_def";
-val initially_def = thm "initially_def";
-val SKIP_def = thm "SKIP_def";
-val Allowed_def = thm "Allowed_def";
-val programify_def = thm "programify_def";
-val metacomp_def = thm "metacomp_def";
-
-val id_in_Acts = thm "id_in_Acts";
-val id_in_RawAllowedActs = thm "id_in_RawAllowedActs";
-val id_in_AllowedActs = thm "id_in_AllowedActs";
-val cons_id_Acts = thm "cons_id_Acts";
-val cons_id_AllowedActs = thm "cons_id_AllowedActs";
-val Init_type = thm "Init_type";
-val st_set_Init = thm "st_set_Init";
-val Acts_type = thm "Acts_type";
-val AllowedActs_type = thm "AllowedActs_type";
-val ActsD = thm "ActsD";
-val AllowedActsD = thm "AllowedActsD";
-val mk_program_in_program = thm "mk_program_in_program";
-val Init_eq = thm "Init_eq";
-val Acts_eq = thm "Acts_eq";
-val AllowedActs_eq = thm "AllowedActs_eq";
-val Init_SKIP = thm "Init_SKIP";
-val Acts_SKIP = thm "Acts_SKIP";
-val AllowedActs_SKIP = thm "AllowedActs_SKIP";
-val raw_surjective_mk_program = thm "raw_surjective_mk_program";
-val surjective_mk_program = thm "surjective_mk_program";
-val program_equalityI = thm "program_equalityI";
-val program_equalityE = thm "program_equalityE";
-val program_equality_iff = thm "program_equality_iff";
-val def_prg_Init = thm "def_prg_Init";
-val def_prg_Acts = thm "def_prg_Acts";
-val def_prg_AllowedActs = thm "def_prg_AllowedActs";
-val def_prg_simps = thm "def_prg_simps";
-val def_act_simp = thm "def_act_simp";
-val def_set_simp = thm "def_set_simp";
-val constrains_type = thm "constrains_type";
-val constrainsI = thm "constrainsI";
-val constrainsD = thm "constrainsD";
-val constrainsD2 = thm "constrainsD2";
-val constrains_empty = thm "constrains_empty";
-val constrains_empty2 = thm "constrains_empty2";
-val constrains_state = thm "constrains_state";
-val constrains_state2 = thm "constrains_state2";
-val constrains_weaken_R = thm "constrains_weaken_R";
-val constrains_weaken_L = thm "constrains_weaken_L";
-val constrains_weaken = thm "constrains_weaken";
-val constrains_Un = thm "constrains_Un";
-val constrains_UN = thm "constrains_UN";
-val constrains_Un_distrib = thm "constrains_Un_distrib";
-val constrains_UN_distrib = thm "constrains_UN_distrib";
-val constrains_Int_distrib = thm "constrains_Int_distrib";
-val constrains_INT_distrib = thm "constrains_INT_distrib";
-val constrains_Int = thm "constrains_Int";
-val constrains_INT = thm "constrains_INT";
-val constrains_All = thm "constrains_All";
-val constrains_imp_subset = thm "constrains_imp_subset";
-val constrains_trans = thm "constrains_trans";
-val constrains_cancel = thm "constrains_cancel";
-val unless_type = thm "unless_type";
-val unlessI = thm "unlessI";
-val unlessD = thm "unlessD";
-val initially_type = thm "initially_type";
-val initiallyI = thm "initiallyI";
-val initiallyD = thm "initiallyD";
-val stable_type = thm "stable_type";
-val stableI = thm "stableI";
-val stableD = thm "stableD";
-val stableD2 = thm "stableD2";
-val stable_state = thm "stable_state";
-val stable_unless = thm "stable_unless";
-val stable_Un = thm "stable_Un";
-val stable_UN = thm "stable_UN";
-val stable_Int = thm "stable_Int";
-val stable_INT = thm "stable_INT";
-val stable_All = thm "stable_All";
-val stable_constrains_Un = thm "stable_constrains_Un";
-val stable_constrains_Int = thm "stable_constrains_Int";
-val invariant_type = thm "invariant_type";
-val invariantI = thm "invariantI";
-val invariantD = thm "invariantD";
-val invariantD2 = thm "invariantD2";
-val invariant_Int = thm "invariant_Int";
-val elimination = thm "elimination";
-val elimination2 = thm "elimination2";
-val constrains_strongest_rhs = thm "constrains_strongest_rhs";
-val strongest_rhs_is_strongest = thm "strongest_rhs_is_strongest";
-
-fun simp_of_act def = def RS def_act_simp;
-fun simp_of_set def = def RS def_set_simp;
+ML {*
+fun simp_of_act def = def RS @{thm def_act_simp};
+fun simp_of_set def = def RS @{thm def_set_simp};
 *}
 
 end

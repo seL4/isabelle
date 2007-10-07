@@ -9,17 +9,20 @@ header{*Epsilon Induction and Recursion*}
 
 theory Epsilon imports Nat begin
 
-constdefs
-  eclose    :: "i=>i"
+definition
+  eclose    :: "i=>i"  where
     "eclose(A) == \<Union>n\<in>nat. nat_rec(n, A, %m r. Union(r))"
 
-  transrec  :: "[i, [i,i]=>i] =>i"
+definition
+  transrec  :: "[i, [i,i]=>i] =>i"  where
     "transrec(a,H) == wfrec(Memrel(eclose({a})), a, H)"
  
-  rank      :: "i=>i"
+definition
+  rank      :: "i=>i"  where
     "rank(a) == transrec(a, %x f. \<Union>y\<in>x. succ(f`y))"
 
-  transrec2 :: "[i, i, [i,i]=>i] =>i"
+definition
+  transrec2 :: "[i, i, [i,i]=>i] =>i"  where
     "transrec2(k, a, b) ==                     
        transrec(k, 
                 %i r. if(i=0, a, 
@@ -27,10 +30,12 @@ constdefs
                            b(THE j. i=succ(j), r`(THE j. i=succ(j))),   
                            \<Union>j<i. r`j)))"
 
-  recursor  :: "[i, [i,i]=>i, i]=>i"
+definition
+  recursor  :: "[i, [i,i]=>i, i]=>i"  where
     "recursor(a,b,k) ==  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"
 
-  rec  :: "[i, i, [i,i]=>i]=>i"
+definition
+  rec  :: "[i, i, [i,i]=>i]=>i"  where
     "rec(k,a,b) == recursor(a,b,k)"
 
 

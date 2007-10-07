@@ -82,8 +82,8 @@ lemma counit2_Int_Vset_subset [rule_format]:
   apply (erule counit2.cases)
   apply (unfold counit2.con_defs)
   apply (tactic {* fast_tac (subset_cs
-    addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
-    addSEs [Ord_in_Ord, Pair_inject]) 1 *})
+    addSIs [@{thm QPair_Int_Vset_subset_UN} RS @{thm subset_trans}, @{thm QPair_mono}]
+    addSEs [@{thm Ord_in_Ord}, @{thm Pair_inject}]) 1 *})
   done
 
 lemma counit2_implies_equal: "[| x \<in> counit2;  y \<in> counit2 |] ==> x = y"

@@ -9,15 +9,16 @@ header{*Equivalence Relations*}
 
 theory EquivClass imports Trancl Perm begin
 
-constdefs
-
-  quotient   :: "[i,i]=>i"    (infixl "'/'/" 90)  (*set of equiv classes*)
+definition
+  quotient   :: "[i,i]=>i"    (infixl "'/'/" 90)  (*set of equiv classes*)  where
       "A//r == {r``{x} . x:A}"
 
-  congruent  :: "[i,i=>i]=>o"
+definition
+  congruent  :: "[i,i=>i]=>o"  where
       "congruent(r,b) == ALL y z. <y,z>:r --> b(y)=b(z)"
 
-  congruent2 :: "[i,i,[i,i]=>i]=>o"
+definition
+  congruent2 :: "[i,i,[i,i]=>i]=>o"  where
       "congruent2(r1,r2,b) == ALL y1 z1 y2 z2.
            <y1,z1>:r1 --> <y2,z2>:r2 --> b(y1,y2) = b(z1,z2)"
 
@@ -230,37 +231,5 @@ apply (frule equiv_type [THEN subsetD], assumption)
 apply (simp add: UN_equiv_class [of A r]) 
 apply (simp add: congruent_def) 
 done
-
-ML
-{*
-val sym_trans_comp_subset = thm "sym_trans_comp_subset";
-val refl_comp_subset = thm "refl_comp_subset";
-val equiv_comp_eq = thm "equiv_comp_eq";
-val comp_equivI = thm "comp_equivI";
-val equiv_class_subset = thm "equiv_class_subset";
-val equiv_class_eq = thm "equiv_class_eq";
-val equiv_class_self = thm "equiv_class_self";
-val subset_equiv_class = thm "subset_equiv_class";
-val eq_equiv_class = thm "eq_equiv_class";
-val equiv_class_nondisjoint = thm "equiv_class_nondisjoint";
-val equiv_type = thm "equiv_type";
-val equiv_class_eq_iff = thm "equiv_class_eq_iff";
-val eq_equiv_class_iff = thm "eq_equiv_class_iff";
-val quotientI = thm "quotientI";
-val quotientE = thm "quotientE";
-val Union_quotient = thm "Union_quotient";
-val quotient_disj = thm "quotient_disj";
-val UN_equiv_class = thm "UN_equiv_class";
-val UN_equiv_class_type = thm "UN_equiv_class_type";
-val UN_equiv_class_inject = thm "UN_equiv_class_inject";
-val congruent2_implies_congruent = thm "congruent2_implies_congruent";
-val congruent2_implies_congruent_UN = thm "congruent2_implies_congruent_UN";
-val congruent_commuteI = thm "congruent_commuteI";
-val UN_equiv_class2 = thm "UN_equiv_class2";
-val UN_equiv_class_type2 = thm "UN_equiv_class_type2";
-val congruent2I = thm "congruent2I";
-val congruent2_commuteI = thm "congruent2_commuteI";
-val congruent_commuteI = thm "congruent_commuteI";
-*}
 
 end

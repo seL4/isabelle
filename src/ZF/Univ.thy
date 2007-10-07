@@ -13,8 +13,8 @@ header{*The Cumulative Hierarchy and a Small Universe for Recursive Types*}
 
 theory Univ imports Epsilon Cardinal begin
 
-constdefs
-  Vfrom       :: "[i,i]=>i"
+definition
+  Vfrom       :: "[i,i]=>i"  where
     "Vfrom(A,i) == transrec(i, %x f. A Un (\<Union>y\<in>x. Pow(f`y)))"
 
 abbreviation
@@ -22,16 +22,18 @@ abbreviation
   "Vset(x) == Vfrom(0,x)"
 
 
-constdefs
-  Vrec        :: "[i, [i,i]=>i] =>i"
+definition
+  Vrec        :: "[i, [i,i]=>i] =>i"  where
     "Vrec(a,H) == transrec(rank(a), %x g. lam z: Vset(succ(x)).
  		 	   H(z, lam w:Vset(x). g`rank(w)`w)) ` a"
 
-  Vrecursor   :: "[[i,i]=>i, i] =>i"
+definition
+  Vrecursor   :: "[[i,i]=>i, i] =>i"  where
     "Vrecursor(H,a) == transrec(rank(a), %x g. lam z: Vset(succ(x)).
 				H(lam w:Vset(x). g`rank(w)`w, z)) ` a"
 
-  univ        :: "i=>i"
+definition
+  univ        :: "i=>i"  where
     "univ(A) == Vfrom(A,nat)"
 
 
@@ -787,115 +789,8 @@ by (blast dest!: Pair_in_Vfrom_D)
 
 ML
 {*
-
-val Vfrom = thm "Vfrom";
-val Vfrom_mono = thm "Vfrom_mono";
-val Vfrom_rank_subset1 = thm "Vfrom_rank_subset1";
-val Vfrom_rank_subset2 = thm "Vfrom_rank_subset2";
-val Vfrom_rank_eq = thm "Vfrom_rank_eq";
-val zero_in_Vfrom = thm "zero_in_Vfrom";
-val i_subset_Vfrom = thm "i_subset_Vfrom";
-val A_subset_Vfrom = thm "A_subset_Vfrom";
-val subset_mem_Vfrom = thm "subset_mem_Vfrom";
-val singleton_in_Vfrom = thm "singleton_in_Vfrom";
-val doubleton_in_Vfrom = thm "doubleton_in_Vfrom";
-val Pair_in_Vfrom = thm "Pair_in_Vfrom";
-val succ_in_Vfrom = thm "succ_in_Vfrom";
-val Vfrom_0 = thm "Vfrom_0";
-val Vfrom_succ = thm "Vfrom_succ";
-val Vfrom_Union = thm "Vfrom_Union";
-val Limit_Vfrom_eq = thm "Limit_Vfrom_eq";
-val zero_in_VLimit = thm "zero_in_VLimit";
-val singleton_in_VLimit = thm "singleton_in_VLimit";
-val Vfrom_UnI1 = thm "Vfrom_UnI1";
-val Vfrom_UnI2 = thm "Vfrom_UnI2";
-val doubleton_in_VLimit = thm "doubleton_in_VLimit";
-val Pair_in_VLimit = thm "Pair_in_VLimit";
-val product_VLimit = thm "product_VLimit";
-val Sigma_subset_VLimit = thm "Sigma_subset_VLimit";
-val nat_subset_VLimit = thm "nat_subset_VLimit";
-val nat_into_VLimit = thm "nat_into_VLimit";
-val zero_in_VLimit = thm "zero_in_VLimit";
-val one_in_VLimit = thm "one_in_VLimit";
-val Inl_in_VLimit = thm "Inl_in_VLimit";
-val Inr_in_VLimit = thm "Inr_in_VLimit";
-val sum_VLimit = thm "sum_VLimit";
-val sum_subset_VLimit = thm "sum_subset_VLimit";
-val Transset_Vfrom = thm "Transset_Vfrom";
-val Transset_Vfrom_succ = thm "Transset_Vfrom_succ";
-val Transset_Pair_subset = thm "Transset_Pair_subset";
-val Union_in_Vfrom = thm "Union_in_Vfrom";
-val Union_in_VLimit = thm "Union_in_VLimit";
-val in_VLimit = thm "in_VLimit";
-val prod_in_Vfrom = thm "prod_in_Vfrom";
-val prod_in_VLimit = thm "prod_in_VLimit";
-val sum_in_Vfrom = thm "sum_in_Vfrom";
-val sum_in_VLimit = thm "sum_in_VLimit";
-val fun_in_Vfrom = thm "fun_in_Vfrom";
-val fun_in_VLimit = thm "fun_in_VLimit";
-val Pow_in_Vfrom = thm "Pow_in_Vfrom";
-val Pow_in_VLimit = thm "Pow_in_VLimit";
-val Vset = thm "Vset";
-val Vset_succ = thm "Vset_succ";
-val Transset_Vset = thm "Transset_Vset";
-val VsetD = thm "VsetD";
-val VsetI = thm "VsetI";
-val Vset_Ord_rank_iff = thm "Vset_Ord_rank_iff";
-val Vset_rank_iff = thm "Vset_rank_iff";
-val rank_Vset = thm "rank_Vset";
-val arg_subset_Vset_rank = thm "arg_subset_Vset_rank";
-val Int_Vset_subset = thm "Int_Vset_subset";
-val rank_Inl = thm "rank_Inl";
-val rank_Inr = thm "rank_Inr";
-val Vrec = thm "Vrec";
-val def_Vrec = thm "def_Vrec";
-val Vrecursor = thm "Vrecursor";
-val def_Vrecursor = thm "def_Vrecursor";
-val univ_mono = thm "univ_mono";
-val Transset_univ = thm "Transset_univ";
-val univ_eq_UN = thm "univ_eq_UN";
-val subset_univ_eq_Int = thm "subset_univ_eq_Int";
-val univ_Int_Vfrom_subset = thm "univ_Int_Vfrom_subset";
-val univ_Int_Vfrom_eq = thm "univ_Int_Vfrom_eq";
-val zero_in_univ = thm "zero_in_univ";
-val A_subset_univ = thm "A_subset_univ";
-val A_into_univ = thm "A_into_univ";
-val singleton_in_univ = thm "singleton_in_univ";
-val doubleton_in_univ = thm "doubleton_in_univ";
-val Pair_in_univ = thm "Pair_in_univ";
-val Union_in_univ = thm "Union_in_univ";
-val product_univ = thm "product_univ";
-val nat_subset_univ = thm "nat_subset_univ";
-val nat_into_univ = thm "nat_into_univ";
-val one_in_univ = thm "one_in_univ";
-val two_in_univ = thm "two_in_univ";
-val bool_subset_univ = thm "bool_subset_univ";
-val bool_into_univ = thm "bool_into_univ";
-val Inl_in_univ = thm "Inl_in_univ";
-val Inr_in_univ = thm "Inr_in_univ";
-val sum_univ = thm "sum_univ";
-val sum_subset_univ = thm "sum_subset_univ";
-val Fin_VLimit = thm "Fin_VLimit";
-val Fin_subset_VLimit = thm "Fin_subset_VLimit";
-val Fin_univ = thm "Fin_univ";
-val nat_fun_VLimit = thm "nat_fun_VLimit";
-val nat_fun_subset_VLimit = thm "nat_fun_subset_VLimit";
-val nat_fun_univ = thm "nat_fun_univ";
-val FiniteFun_VLimit1 = thm "FiniteFun_VLimit1";
-val FiniteFun_univ1 = thm "FiniteFun_univ1";
-val FiniteFun_VLimit = thm "FiniteFun_VLimit";
-val FiniteFun_univ = thm "FiniteFun_univ";
-val FiniteFun_in_univ = thm "FiniteFun_in_univ";
-val FiniteFun_in_univ' = thm "FiniteFun_in_univ'";
-val doubleton_in_Vfrom_D = thm "doubleton_in_Vfrom_D";
-val Vfrom_doubleton_D = thm "Vfrom_doubleton_D";
-val Pair_in_Vfrom_D = thm "Pair_in_Vfrom_D";
-val product_Int_Vfrom_subset = thm "product_Int_Vfrom_subset";
-
-val rank_rls = thms "rank_rls";
-val rank_ss = simpset() addsimps [VsetI] 
-              addsimps rank_rls @ (rank_rls RLN (2, [lt_trans]));
-
+val rank_ss = @{simpset} addsimps [@{thm VsetI}] 
+              addsimps @{thms rank_rls} @ (@{thms rank_rls} RLN (2, [@{thm lt_trans}]));
 *}
 
 end

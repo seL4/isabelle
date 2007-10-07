@@ -11,14 +11,14 @@ header{*Charpentier's "Increasing" Relation*}
 
 theory Increasing imports Constrains Monotonicity begin
 
-constdefs
-
-  increasing :: "[i, i, i=>i] => i" ("increasing[_]'(_, _')")
+definition
+  increasing :: "[i, i, i=>i] => i" ("increasing[_]'(_, _')")  where
   "increasing[A](r, f) ==
     {F \<in> program. (\<forall>k \<in> A. F \<in> stable({s \<in> state. <k, f(s)> \<in> r})) &
                 (\<forall>x \<in> state. f(x):A)}"
   
-  Increasing :: "[i, i, i=>i] => i" ("Increasing[_]'(_, _')")
+definition
+  Increasing :: "[i, i, i=>i] => i" ("Increasing[_]'(_, _')")  where
   "Increasing[A](r, f) ==
     {F \<in> program. (\<forall>k \<in> A. F \<in> Stable({s \<in> state. <k, f(s)> \<in> r})) &
                 (\<forall>x \<in> state. f(x):A)}"
@@ -225,5 +225,4 @@ apply (rule_tac b = "h (f (xa), g (xa))" and A = C in trans_onD)
 apply simp_all
 done
 
-  
 end

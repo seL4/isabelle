@@ -17,50 +17,57 @@ abbreviation (input)
   Mult :: "i=>i" where
   "Mult(A) == A -||> nat-{0}"
 
-constdefs
-
+definition
   (* This is the original "restrict" from ZF.thy.
      Restricts the function f to the domain A
      FIXME: adapt Multiset to the new "restrict". *)
-
-  funrestrict :: "[i,i] => i"
+  funrestrict :: "[i,i] => i"  where
   "funrestrict(f,A) == \<lambda>x \<in> A. f`x"
 
+definition
   (* M is a multiset *)
-  multiset :: "i => o"
+  multiset :: "i => o"  where
   "multiset(M) == \<exists>A. M \<in> A -> nat-{0} & Finite(A)"
 
-  mset_of :: "i=>i"
+definition
+  mset_of :: "i=>i"  where
   "mset_of(M) == domain(M)"
 
-  munion    :: "[i, i] => i" (infixl "+#" 65)
+definition
+  munion    :: "[i, i] => i" (infixl "+#" 65)  where
   "M +# N == \<lambda>x \<in> mset_of(M) Un mset_of(N).
      if x \<in> mset_of(M) Int mset_of(N) then  (M`x) #+ (N`x)
      else (if x \<in> mset_of(M) then M`x else N`x)"
 
+definition
   (*convert a function to a multiset by eliminating 0*)
-  normalize :: "i => i"
+  normalize :: "i => i"  where
   "normalize(f) ==
        if (\<exists>A. f \<in> A -> nat & Finite(A)) then
             funrestrict(f, {x \<in> mset_of(f). 0 < f`x})
        else 0"
 
-  mdiff  :: "[i, i] => i" (infixl "-#" 65)
+definition
+  mdiff  :: "[i, i] => i" (infixl "-#" 65)  where
   "M -# N ==  normalize(\<lambda>x \<in> mset_of(M).
 			if x \<in> mset_of(N) then M`x #- N`x else M`x)"
 
+definition
   (* set of elements of a multiset *)
-  msingle :: "i => i"    ("{#_#}")
+  msingle :: "i => i"    ("{#_#}")  where
   "{#a#} == {<a, 1>}"
 
-  MCollect :: "[i, i=>o] => i"  (*comprehension*)
+definition
+  MCollect :: "[i, i=>o] => i"  (*comprehension*)  where
   "MCollect(M, P) == funrestrict(M, {x \<in> mset_of(M). P(x)})"
 
+definition
   (* Counts the number of occurences of an element in a multiset *)
-  mcount :: "[i, i] => i"
+  mcount :: "[i, i] => i"  where
   "mcount(M, a) == if a \<in> mset_of(M) then  M`a else 0"
 
-  msize :: "i => i"
+definition
+  msize :: "i => i"  where
   "msize(M) == setsum(%a. $# mcount(M,a), mset_of(M))"
 
 abbreviation
@@ -72,32 +79,35 @@ syntax
 syntax (xsymbols)
   "@MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
 translations
-  "{#x \<in> M. P#}" == "MCollect(M, %x. P)"
+  "{#x \<in> M. P#}" == "CONST MCollect(M, %x. P)"
 
   (* multiset orderings *)
 
-constdefs
+definition
    (* multirel1 has to be a set (not a predicate) so that we can form
       its transitive closure and reason about wf(.) and acc(.) *)
-
-  multirel1 :: "[i,i]=>i"
+  multirel1 :: "[i,i]=>i"  where
   "multirel1(A, r) ==
      {<M, N> \<in> Mult(A)*Mult(A).
       \<exists>a \<in> A. \<exists>M0 \<in> Mult(A). \<exists>K \<in> Mult(A).
       N=M0 +# {#a#} & M=M0 +# K & (\<forall>b \<in> mset_of(K). <b,a> \<in> r)}"
 
-  multirel :: "[i, i] => i"
+definition
+  multirel :: "[i, i] => i"  where
   "multirel(A, r) == multirel1(A, r)^+" 		
 
   (* ordinal multiset orderings *)
 
-  omultiset :: "i => o"
+definition
+  omultiset :: "i => o"  where
   "omultiset(M) == \<exists>i. Ord(i) & M \<in> Mult(field(Memrel(i)))"
 
-  mless :: "[i, i] => o" (infixl "<#" 50)
+definition
+  mless :: "[i, i] => o" (infixl "<#" 50)  where
   "M <# N ==  \<exists>i. Ord(i) & <M, N> \<in> multirel(field(Memrel(i)), Memrel(i))"
 
-  mle  :: "[i, i] => o"  (infixl "<#=" 50)
+definition
+  mle  :: "[i, i] => o"  (infixl "<#=" 50)  where
   "M <#= N == (omultiset(M) & M = N) | M <# N"
 
 
@@ -1282,148 +1292,5 @@ lemma munion_upper1: "[| omultiset(M); omultiset(N) |] ==> M <#= M +# N"
 apply (subgoal_tac "M +# 0 <#= M +# N")
 apply (rule_tac [2] mle_mono, auto)
 done
-
-ML
-{*
-val munion_ac = thms "munion_ac";
-val funrestrict_subset = thm "funrestrict_subset";
-val funrestrict_type = thm "funrestrict_type";
-val funrestrict_type2 = thm "funrestrict_type2";
-val funrestrict = thm "funrestrict";
-val funrestrict_empty = thm "funrestrict_empty";
-val domain_funrestrict = thm "domain_funrestrict";
-val fun_cons_funrestrict_eq = thm "fun_cons_funrestrict_eq";
-val multiset_fun_iff = thm "multiset_fun_iff";
-val multiset_into_Mult = thm "multiset_into_Mult";
-val Mult_into_multiset = thm "Mult_into_multiset";
-val Mult_iff_multiset = thm "Mult_iff_multiset";
-val multiset_iff_Mult_mset_of = thm "multiset_iff_Mult_mset_of";
-val multiset_0 = thm "multiset_0";
-val multiset_set_of_Finite = thm "multiset_set_of_Finite";
-val mset_of_0 = thm "mset_of_0";
-val mset_is_0_iff = thm "mset_is_0_iff";
-val mset_of_single = thm "mset_of_single";
-val mset_of_union = thm "mset_of_union";
-val mset_of_diff = thm "mset_of_diff";
-val msingle_not_0 = thm "msingle_not_0";
-val msingle_eq_iff = thm "msingle_eq_iff";
-val msingle_multiset = thm "msingle_multiset";
-val Collect_Finite = thms "Collect_Finite";
-val normalize_idem = thm "normalize_idem";
-val normalize_multiset = thm "normalize_multiset";
-val multiset_normalize = thm "multiset_normalize";
-val munion_multiset = thm "munion_multiset";
-val mdiff_multiset = thm "mdiff_multiset";
-val munion_0 = thm "munion_0";
-val munion_commute = thm "munion_commute";
-val munion_assoc = thm "munion_assoc";
-val munion_lcommute = thm "munion_lcommute";
-val mdiff_self_eq_0 = thm "mdiff_self_eq_0";
-val mdiff_0 = thm "mdiff_0";
-val mdiff_0_right = thm "mdiff_0_right";
-val mdiff_union_inverse2 = thm "mdiff_union_inverse2";
-val mcount_type = thm "mcount_type";
-val mcount_0 = thm "mcount_0";
-val mcount_single = thm "mcount_single";
-val mcount_union = thm "mcount_union";
-val mcount_diff = thm "mcount_diff";
-val mcount_elem = thm "mcount_elem";
-val msize_0 = thm "msize_0";
-val msize_single = thm "msize_single";
-val msize_type = thm "msize_type";
-val msize_zpositive = thm "msize_zpositive";
-val msize_int_of_nat = thm "msize_int_of_nat";
-val not_empty_multiset_imp_exist = thm "not_empty_multiset_imp_exist";
-val msize_eq_0_iff = thm "msize_eq_0_iff";
-val setsum_mcount_Int = thm "setsum_mcount_Int";
-val msize_union = thm "msize_union";
-val msize_eq_succ_imp_elem = thm "msize_eq_succ_imp_elem";
-val multiset_equality = thm "multiset_equality";
-val munion_eq_0_iff = thm "munion_eq_0_iff";
-val empty_eq_munion_iff = thm "empty_eq_munion_iff";
-val munion_right_cancel = thm "munion_right_cancel";
-val munion_left_cancel = thm "munion_left_cancel";
-val nat_add_eq_1_cases = thm "nat_add_eq_1_cases";
-val munion_is_single = thm "munion_is_single";
-val msingle_is_union = thm "msingle_is_union";
-val setsum_decr = thm "setsum_decr";
-val setsum_decr2 = thm "setsum_decr2";
-val setsum_decr3 = thm "setsum_decr3";
-val nat_le_1_cases = thm "nat_le_1_cases";
-val succ_pred_eq_self = thm "succ_pred_eq_self";
-val multiset_funrestict = thm "multiset_funrestict";
-val multiset_induct_aux = thm "multiset_induct_aux";
-val multiset_induct2 = thm "multiset_induct2";
-val munion_single_case1 = thm "munion_single_case1";
-val munion_single_case2 = thm "munion_single_case2";
-val multiset_induct = thm "multiset_induct";
-val MCollect_multiset = thm "MCollect_multiset";
-val mset_of_MCollect = thm "mset_of_MCollect";
-val MCollect_mem_iff = thm "MCollect_mem_iff";
-val mcount_MCollect = thm "mcount_MCollect";
-val multiset_partition = thm "multiset_partition";
-val natify_elem_is_self = thm "natify_elem_is_self";
-val munion_eq_conv_diff = thm "munion_eq_conv_diff";
-val melem_diff_single = thm "melem_diff_single";
-val munion_eq_conv_exist = thm "munion_eq_conv_exist";
-val multirel1_type = thm "multirel1_type";
-val multirel1_0 = thm "multirel1_0";
-val multirel1_iff = thm "multirel1_iff";
-val multirel1_mono1 = thm "multirel1_mono1";
-val multirel1_mono2 = thm "multirel1_mono2";
-val multirel1_mono = thm "multirel1_mono";
-val not_less_0 = thm "not_less_0";
-val less_munion = thm "less_munion";
-val multirel1_base = thm "multirel1_base";
-val acc_0 = thm "acc_0";
-val all_accessible = thm "all_accessible";
-val wf_on_multirel1 = thm "wf_on_multirel1";
-val wf_multirel1 = thm "wf_multirel1";
-val multirel_type = thm "multirel_type";
-val multirel_mono = thm "multirel_mono";
-val add_diff_eq = thm "add_diff_eq";
-val mdiff_union_single_conv = thm "mdiff_union_single_conv";
-val diff_add_commute = thm "diff_add_commute";
-val multirel_implies_one_step = thm "multirel_implies_one_step";
-val melem_imp_eq_diff_union = thm "melem_imp_eq_diff_union";
-val msize_eq_succ_imp_eq_union = thm "msize_eq_succ_imp_eq_union";
-val one_step_implies_multirel = thm "one_step_implies_multirel";
-val irrefl_on_multirel = thm "irrefl_on_multirel";
-val trans_on_multirel = thm "trans_on_multirel";
-val multirel_trans = thm "multirel_trans";
-val trans_multirel = thm "trans_multirel";
-val part_ord_multirel = thm "part_ord_multirel";
-val munion_multirel1_mono = thm "munion_multirel1_mono";
-val munion_multirel_mono2 = thm "munion_multirel_mono2";
-val munion_multirel_mono1 = thm "munion_multirel_mono1";
-val munion_multirel_mono = thm "munion_multirel_mono";
-val field_Memrel_mono = thms "field_Memrel_mono";
-val multirel_Memrel_mono = thms "multirel_Memrel_mono";
-val omultiset_is_multiset = thm "omultiset_is_multiset";
-val munion_omultiset = thm "munion_omultiset";
-val mdiff_omultiset = thm "mdiff_omultiset";
-val irrefl_Memrel = thm "irrefl_Memrel";
-val trans_iff_trans_on = thm "trans_iff_trans_on";
-val part_ord_Memrel = thm "part_ord_Memrel";
-val part_ord_mless = thms "part_ord_mless";
-val mless_not_refl = thm "mless_not_refl";
-val mless_irrefl = thms "mless_irrefl";
-val mless_trans = thm "mless_trans";
-val mless_not_sym = thm "mless_not_sym";
-val mless_asym = thm "mless_asym";
-val mle_refl = thm "mle_refl";
-val mle_antisym = thm "mle_antisym";
-val mle_trans = thm "mle_trans";
-val mless_le_iff = thm "mless_le_iff";
-val munion_less_mono2 = thm "munion_less_mono2";
-val munion_less_mono1 = thm "munion_less_mono1";
-val mless_imp_omultiset = thm "mless_imp_omultiset";
-val munion_less_mono = thm "munion_less_mono";
-val mle_imp_omultiset = thm "mle_imp_omultiset";
-val mle_mono = thm "mle_mono";
-val omultiset_0 = thm "omultiset_0";
-val empty_leI = thm "empty_leI";
-val munion_upper1 = thm "munion_upper1";
-*}
 
 end

@@ -18,29 +18,34 @@ header{*Composition*}
 
 theory Comp imports Union Increasing begin
 
-constdefs
-
-  component :: "[i,i]=>o"  (infixl "component" 65) 
+definition
+  component :: "[i,i]=>o"  (infixl "component" 65)  where
   "F component H == (EX G. F Join G = H)"
 
-  strict_component :: "[i,i]=>o" (infixl "strict'_component" 65)
+definition
+  strict_component :: "[i,i]=>o" (infixl "strict'_component" 65)  where
   "F strict_component H == F component H & F~=H"
 
+definition
   (* A stronger form of the component relation *)
-  component_of :: "[i,i]=>o"   (infixl "component'_of" 65)
+  component_of :: "[i,i]=>o"   (infixl "component'_of" 65)  where
   "F component_of H  == (EX G. F ok G & F Join G = H)"
   
-  strict_component_of :: "[i,i]=>o" (infixl "strict'_component'_of" 65)
+definition
+  strict_component_of :: "[i,i]=>o" (infixl "strict'_component'_of" 65)  where
   "F strict_component_of H  == F component_of H  & F~=H"
 
+definition
   (* Preserves a state function f, in particular a variable *)
-  preserves :: "(i=>i)=>i"
+  preserves :: "(i=>i)=>i"  where
   "preserves(f) == {F:program. ALL z. F: stable({s:state. f(s) = z})}"
 
-  fun_pair :: "[i=>i, i =>i] =>(i=>i)"
+definition
+  fun_pair :: "[i=>i, i =>i] =>(i=>i)"  where
   "fun_pair(f, g) == %x. <f(x), g(x)>"
 
-  localize  :: "[i=>i, i] => i"
+definition
+  localize  :: "[i=>i, i] => i"  where
   "localize(f,F) == mk_program(Init(F), Acts(F),
 		       AllowedActs(F) Int (UN G:preserves(f). Acts(G)))"
 

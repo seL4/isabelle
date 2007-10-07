@@ -12,11 +12,12 @@ header{*Fixed Point of a Program*}
 
 theory FP imports UNITY begin
 
-constdefs   
-  FP_Orig :: "i=>i"
+definition   
+  FP_Orig :: "i=>i"  where
     "FP_Orig(F) == Union({A \<in> Pow(state). \<forall>B. F \<in> stable(A Int B)})"
 
-  FP :: "i=>i"
+definition
+  FP :: "i=>i"  where
     "FP(F) == {s\<in>state. F \<in> stable({s})}"
 
 
@@ -79,21 +80,5 @@ lemma Diff_FP:
      "[| F \<in> program;  st_set(A) |] 
       ==> A-FP(F) = (\<Union>act \<in> Acts(F). A - {s \<in> state. act``{s} \<subseteq> {s}})"
 by (unfold FP_def stable_def constrains_def st_set_def, blast)
-
-ML
-{*
-val FP_Orig_type = thm "FP_Orig_type";
-val st_set_FP_Orig = thm "st_set_FP_Orig";
-val FP_type = thm "FP_type";
-val st_set_FP = thm "st_set_FP";
-val stable_FP_Orig_Int = thm "stable_FP_Orig_Int";
-val FP_Orig_weakest2 = thm "FP_Orig_weakest2";
-val stable_FP_Int = thm "stable_FP_Int";
-val FP_subset_FP_Orig = thm "FP_subset_FP_Orig";
-val FP_Orig_subset_FP = thm "FP_Orig_subset_FP";
-val FP_equivalence = thm "FP_equivalence";
-val FP_weakest = thm "FP_weakest";
-val Diff_FP = thm "Diff_FP";
-*}
 
 end

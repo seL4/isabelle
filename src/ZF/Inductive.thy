@@ -32,10 +32,10 @@ structure Lfp =
   struct
   val oper      = Const("Fixedpt.lfp", [iT,iT-->iT]--->iT)
   val bnd_mono  = Const("Fixedpt.bnd_mono", [iT,iT-->iT]--->oT)
-  val bnd_monoI = bnd_monoI
-  val subs      = def_lfp_subset
-  val Tarski    = def_lfp_unfold
-  val induct    = def_induct
+  val bnd_monoI = @{thm bnd_monoI}
+  val subs      = @{thm def_lfp_subset}
+  val Tarski    = @{thm def_lfp_unfold}
+  val induct    = @{thm def_induct}
   end;
 
 structure Standard_Prod =
@@ -43,11 +43,11 @@ structure Standard_Prod =
   val sigma     = Const("Sigma", [iT, iT-->iT]--->iT)
   val pair      = Const("Pair", [iT,iT]--->iT)
   val split_name = "split"
-  val pair_iff  = Pair_iff
-  val split_eq  = split
-  val fsplitI   = splitI
-  val fsplitD   = splitD
-  val fsplitE   = splitE
+  val pair_iff  = @{thm Pair_iff}
+  val split_eq  = @{thm split}
+  val fsplitI   = @{thm splitI}
+  val fsplitD   = @{thm splitD}
+  val fsplitE   = @{thm splitE}
   end;
 
 structure Standard_CP = CartProd_Fun (Standard_Prod);
@@ -58,12 +58,12 @@ structure Standard_Sum =
   val inl       = Const("Inl", iT-->iT)
   val inr       = Const("Inr", iT-->iT)
   val elim      = Const("case", [iT-->iT, iT-->iT, iT]--->iT)
-  val case_inl  = case_Inl
-  val case_inr  = case_Inr
-  val inl_iff   = Inl_iff
-  val inr_iff   = Inr_iff
-  val distinct  = Inl_Inr_iff
-  val distinct' = Inr_Inl_iff
+  val case_inl  = @{thm case_Inl}
+  val case_inr  = @{thm case_Inr}
+  val inl_iff   = @{thm Inl_iff}
+  val inr_iff   = @{thm Inr_iff}
+  val distinct  = @{thm Inl_Inr_iff}
+  val distinct' = @{thm Inr_Inl_iff}
   val free_SEs  = Ind_Syntax.mk_free_SEs
             [distinct, distinct', inl_iff, inr_iff, Standard_Prod.pair_iff]
   end;
@@ -79,10 +79,10 @@ structure Gfp =
   struct
   val oper      = Const("Fixedpt.gfp", [iT,iT-->iT]--->iT)
   val bnd_mono  = Const("Fixedpt.bnd_mono", [iT,iT-->iT]--->oT)
-  val bnd_monoI = bnd_monoI
-  val subs      = def_gfp_subset
-  val Tarski    = def_gfp_unfold
-  val induct    = def_Collect_coinduct
+  val bnd_monoI = @{thm bnd_monoI}
+  val subs      = @{thm def_gfp_subset}
+  val Tarski    = @{thm def_gfp_unfold}
+  val induct    = @{thm def_Collect_coinduct}
   end;
 
 structure Quine_Prod =
@@ -90,11 +90,11 @@ structure Quine_Prod =
   val sigma     = Const("QPair.QSigma", [iT, iT-->iT]--->iT)
   val pair      = Const("QPair.QPair", [iT,iT]--->iT)
   val split_name = "QPair.qsplit"
-  val pair_iff  = QPair_iff
-  val split_eq  = qsplit
-  val fsplitI   = qsplitI
-  val fsplitD   = qsplitD
-  val fsplitE   = qsplitE
+  val pair_iff  = @{thm QPair_iff}
+  val split_eq  = @{thm qsplit}
+  val fsplitI   = @{thm qsplitI}
+  val fsplitD   = @{thm qsplitD}
+  val fsplitE   = @{thm qsplitE}
   end;
 
 structure Quine_CP = CartProd_Fun (Quine_Prod);
@@ -105,12 +105,12 @@ structure Quine_Sum =
   val inl       = Const("QPair.QInl", iT-->iT)
   val inr       = Const("QPair.QInr", iT-->iT)
   val elim      = Const("QPair.qcase", [iT-->iT, iT-->iT, iT]--->iT)
-  val case_inl  = qcase_QInl
-  val case_inr  = qcase_QInr
-  val inl_iff   = QInl_iff
-  val inr_iff   = QInr_iff
-  val distinct  = QInl_QInr_iff
-  val distinct' = QInr_QInl_iff
+  val case_inl  = @{thm qcase_QInl}
+  val case_inr  = @{thm qcase_QInr}
+  val inl_iff   = @{thm QInl_iff}
+  val inr_iff   = @{thm QInr_iff}
+  val distinct  = @{thm QInl_QInr_iff}
+  val distinct' = @{thm QInr_QInl_iff}
   val free_SEs  = Ind_Syntax.mk_free_SEs
             [distinct, distinct', inl_iff, inr_iff, Quine_Prod.pair_iff]
   end;

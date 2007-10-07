@@ -8,16 +8,17 @@ header{*Least and Greatest Fixed Points; the Knaster-Tarski Theorem*}
 
 theory Fixedpt imports equalities begin
 
-constdefs
-  
+definition 
   (*monotone operator from Pow(D) to itself*)
-  bnd_mono :: "[i,i=>i]=>o"
+  bnd_mono :: "[i,i=>i]=>o"  where
      "bnd_mono(D,h) == h(D)<=D & (ALL W X. W<=X --> X<=D --> h(W) <= h(X))"
 
-  lfp      :: "[i,i=>i]=>i"
+definition 
+  lfp      :: "[i,i=>i]=>i"  where
      "lfp(D,h) == Inter({X: Pow(D). h(X) <= X})"
 
-  gfp      :: "[i,i=>i]=>i"
+definition 
+  gfp      :: "[i,i=>i]=>i"  where
      "gfp(D,h) == Union({X: Pow(D). X <= h(X)})"
 
 text{*The theorem is proved in the lattice of subsets of @{term D}, 
@@ -300,43 +301,5 @@ apply (rule gfp_lemma2 [THEN subset_trans], assumption)
 apply (blast del: subsetI intro: gfp_subset) 
 apply (blast del: subsetI intro: subset_trans gfp_subset) 
 done
-
-ML
-{*
-val bnd_mono_def = thm "bnd_mono_def";
-val lfp_def = thm "lfp_def";
-val gfp_def = thm "gfp_def";
-
-val bnd_monoI = thm "bnd_monoI";
-val bnd_monoD1 = thm "bnd_monoD1";
-val bnd_monoD2 = thm "bnd_monoD2";
-val bnd_mono_subset = thm "bnd_mono_subset";
-val bnd_mono_Un = thm "bnd_mono_Un";
-val bnd_mono_Int = thm "bnd_mono_Int";
-val lfp_lowerbound = thm "lfp_lowerbound";
-val lfp_subset = thm "lfp_subset";
-val def_lfp_subset = thm "def_lfp_subset";
-val lfp_greatest = thm "lfp_greatest";
-val lfp_unfold = thm "lfp_unfold";
-val def_lfp_unfold = thm "def_lfp_unfold";
-val Collect_is_pre_fixedpt = thm "Collect_is_pre_fixedpt";
-val induct = thm "induct";
-val def_induct = thm "def_induct";
-val lfp_Int_lowerbound = thm "lfp_Int_lowerbound";
-val lfp_mono = thm "lfp_mono";
-val lfp_mono2 = thm "lfp_mono2";
-val gfp_upperbound = thm "gfp_upperbound";
-val gfp_subset = thm "gfp_subset";
-val def_gfp_subset = thm "def_gfp_subset";
-val gfp_least = thm "gfp_least";
-val gfp_unfold = thm "gfp_unfold";
-val def_gfp_unfold = thm "def_gfp_unfold";
-val weak_coinduct = thm "weak_coinduct";
-val coinduct = thm "coinduct";
-val def_coinduct = thm "def_coinduct";
-val def_Collect_coinduct = thm "def_Collect_coinduct";
-val gfp_mono = thm "gfp_mono";
-*}
-
 
 end

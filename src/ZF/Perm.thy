@@ -13,27 +13,30 @@ header{*Injections, Surjections, Bijections, Composition*}
 
 theory Perm imports func begin
 
-constdefs
-
+definition
   (*composition of relations and functions; NOT Suppes's relative product*)
-  comp     :: "[i,i]=>i"      (infixr "O" 60)
+  comp     :: "[i,i]=>i"      (infixr "O" 60)  where
     "r O s == {xz : domain(s)*range(r) . 
                EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
 
+definition
   (*the identity function for A*)
-  id    :: "i=>i"
+  id    :: "i=>i"  where
     "id(A) == (lam x:A. x)"
 
+definition
   (*one-to-one functions from A to B*)
-  inj   :: "[i,i]=>i"
+  inj   :: "[i,i]=>i"  where
     "inj(A,B) == { f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x}"
 
+definition
   (*onto functions from A to B*)
-  surj  :: "[i,i]=>i"
+  surj  :: "[i,i]=>i"  where
     "surj(A,B) == { f: A->B . ALL y:B. EX x:A. f`x=y}"
 
+definition
   (*one-to-one and onto functions*)
-  bij   :: "[i,i]=>i"
+  bij   :: "[i,i]=>i"  where
     "bij(A,B) == inj(A,B) Int surj(A,B)"
 
 
@@ -546,92 +549,5 @@ lemma inj_extend:
 apply (unfold inj_def)
 apply (force intro: apply_type  simp add: fun_extend)
 done
-
-
-ML
-{*
-val comp_def = thm "comp_def";
-val id_def = thm "id_def";
-val inj_def = thm "inj_def";
-val surj_def = thm "surj_def";
-val bij_def = thm "bij_def";
-
-val surj_is_fun = thm "surj_is_fun";
-val fun_is_surj = thm "fun_is_surj";
-val surj_range = thm "surj_range";
-val f_imp_surjective = thm "f_imp_surjective";
-val lam_surjective = thm "lam_surjective";
-val cantor_surj = thm "cantor_surj";
-val inj_is_fun = thm "inj_is_fun";
-val inj_equality = thm "inj_equality";
-val inj_apply_equality = thm "inj_apply_equality";
-val f_imp_injective = thm "f_imp_injective";
-val lam_injective = thm "lam_injective";
-val bij_is_inj = thm "bij_is_inj";
-val bij_is_surj = thm "bij_is_surj";
-val bij_is_fun = thm "bij_is_fun";
-val lam_bijective = thm "lam_bijective";
-val RepFun_bijective = thm "RepFun_bijective";
-val idI = thm "idI";
-val idE = thm "idE";
-val id_type = thm "id_type";
-val id_conv = thm "id_conv";
-val id_mono = thm "id_mono";
-val id_subset_inj = thm "id_subset_inj";
-val id_inj = thm "id_inj";
-val id_surj = thm "id_surj";
-val id_bij = thm "id_bij";
-val subset_iff_id = thm "subset_iff_id";
-val inj_converse_fun = thm "inj_converse_fun";
-val left_inverse = thm "left_inverse";
-val left_inverse_bij = thm "left_inverse_bij";
-val right_inverse = thm "right_inverse";
-val right_inverse_bij = thm "right_inverse_bij";
-val inj_converse_inj = thm "inj_converse_inj";
-val inj_converse_surj = thm "inj_converse_surj";
-val bij_converse_bij = thm "bij_converse_bij";
-val compI = thm "compI";
-val compE = thm "compE";
-val compEpair = thm "compEpair";
-val converse_comp = thm "converse_comp";
-val range_comp = thm "range_comp";
-val range_comp_eq = thm "range_comp_eq";
-val domain_comp = thm "domain_comp";
-val domain_comp_eq = thm "domain_comp_eq";
-val image_comp = thm "image_comp";
-val comp_mono = thm "comp_mono";
-val comp_rel = thm "comp_rel";
-val comp_assoc = thm "comp_assoc";
-val left_comp_id = thm "left_comp_id";
-val right_comp_id = thm "right_comp_id";
-val comp_function = thm "comp_function";
-val comp_fun = thm "comp_fun";
-val comp_fun_apply = thm "comp_fun_apply";
-val comp_lam = thm "comp_lam";
-val comp_inj = thm "comp_inj";
-val comp_surj = thm "comp_surj";
-val comp_bij = thm "comp_bij";
-val comp_mem_injD1 = thm "comp_mem_injD1";
-val comp_mem_injD2 = thm "comp_mem_injD2";
-val comp_mem_surjD1 = thm "comp_mem_surjD1";
-val comp_mem_surjD2 = thm "comp_mem_surjD2";
-val left_comp_inverse = thm "left_comp_inverse";
-val right_comp_inverse = thm "right_comp_inverse";
-val comp_eq_id_iff = thm "comp_eq_id_iff";
-val fg_imp_bijective = thm "fg_imp_bijective";
-val nilpotent_imp_bijective = thm "nilpotent_imp_bijective";
-val invertible_imp_bijective = thm "invertible_imp_bijective";
-val inj_disjoint_Un = thm "inj_disjoint_Un";
-val surj_disjoint_Un = thm "surj_disjoint_Un";
-val bij_disjoint_Un = thm "bij_disjoint_Un";
-val surj_image = thm "surj_image";
-val restrict_image = thm "restrict_image";
-val restrict_inj = thm "restrict_inj";
-val restrict_surj = thm "restrict_surj";
-val restrict_bij = thm "restrict_bij";
-val inj_weaken_type = thm "inj_weaken_type";
-val inj_succ_restrict = thm "inj_succ_restrict";
-val inj_extend = thm "inj_extend";
-*}
 
 end

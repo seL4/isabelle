@@ -7,23 +7,28 @@
 header{*The Divides Relation and Euclid's algorithm for the GCD*}
 
 theory Primes imports Main begin
-constdefs
-  divides :: "[i,i]=>o"              (infixl "dvd" 50) 
+
+definition
+  divides :: "[i,i]=>o"              (infixl "dvd" 50)  where
     "m dvd n == m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"
 
-  is_gcd  :: "[i,i,i]=>o"     --{*definition of great common divisor*}
+definition
+  is_gcd  :: "[i,i,i]=>o"     --{*definition of great common divisor*}  where
     "is_gcd(p,m,n) == ((p dvd m) & (p dvd n))   &
                        (\<forall>d\<in>nat. (d dvd m) & (d dvd n) --> d dvd p)"
 
-  gcd     :: "[i,i]=>i"       --{*Euclid's algorithm for the gcd*}
+definition
+  gcd     :: "[i,i]=>i"       --{*Euclid's algorithm for the gcd*}  where
     "gcd(m,n) == transrec(natify(n),
 			%n f. \<lambda>m \<in> nat.
 			        if n=0 then m else f`(m mod n)`n) ` natify(m)"
 
-  coprime :: "[i,i]=>o"       --{*the coprime relation*}
+definition
+  coprime :: "[i,i]=>o"       --{*the coprime relation*}  where
     "coprime(m,n) == gcd(m,n) = 1"
   
-  prime   :: i                --{*the set of prime numbers*}
+definition
+  prime   :: i                --{*the set of prime numbers*}  where
    "prime == {p \<in> nat. 1<p & (\<forall>m \<in> nat. m dvd p --> m=1 | m=p)}"
 
 

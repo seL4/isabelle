@@ -9,36 +9,45 @@ header{*Relations: Their General Properties and Transitive Closure*}
 
 theory Trancl imports Fixedpt Perm begin
 
-constdefs
-  refl     :: "[i,i]=>o"
+definition
+  refl     :: "[i,i]=>o"  where
     "refl(A,r) == (ALL x: A. <x,x> : r)"
 
-  irrefl   :: "[i,i]=>o"
+definition
+  irrefl   :: "[i,i]=>o"  where
     "irrefl(A,r) == ALL x: A. <x,x> ~: r"
 
-  sym      :: "i=>o"
+definition
+  sym      :: "i=>o"  where
     "sym(r) == ALL x y. <x,y>: r --> <y,x>: r"
 
-  asym     :: "i=>o"
+definition
+  asym     :: "i=>o"  where
     "asym(r) == ALL x y. <x,y>:r --> ~ <y,x>:r"
 
-  antisym  :: "i=>o"
+definition
+  antisym  :: "i=>o"  where
     "antisym(r) == ALL x y.<x,y>:r --> <y,x>:r --> x=y"
 
-  trans    :: "i=>o"
+definition
+  trans    :: "i=>o"  where
     "trans(r) == ALL x y z. <x,y>: r --> <y,z>: r --> <x,z>: r"
 
-  trans_on :: "[i,i]=>o"  ("trans[_]'(_')")
+definition
+  trans_on :: "[i,i]=>o"  ("trans[_]'(_')")  where
     "trans[A](r) == ALL x:A. ALL y:A. ALL z:A.       
                           <x,y>: r --> <y,z>: r --> <x,z>: r"
 
-  rtrancl :: "i=>i"  ("(_^*)" [100] 100)  (*refl/transitive closure*)
+definition
+  rtrancl :: "i=>i"  ("(_^*)" [100] 100)  (*refl/transitive closure*)  where
     "r^* == lfp(field(r)*field(r), %s. id(field(r)) Un (r O s))"
 
-  trancl  :: "i=>i"  ("(_^+)" [100] 100)  (*transitive closure*)
+definition
+  trancl  :: "i=>i"  ("(_^+)" [100] 100)  (*transitive closure*)  where
     "r^+ == r O r^*"
 
-  equiv    :: "[i,i]=>o"
+definition
+  equiv    :: "[i,i]=>o"  where
     "equiv(A,r) == r <= A*A & refl(A,r) & sym(r) & trans(r)"
 
 
@@ -363,60 +372,5 @@ apply (simp (no_asm_use) add: trancl_converse [symmetric])
 apply (erule trancl_induct)
 apply (auto simp add: trancl_converse)
 done
-
-ML
-{*
-val refl_def = thm "refl_def";
-val irrefl_def = thm "irrefl_def";
-val equiv_def = thm "equiv_def";
-val sym_def = thm "sym_def";
-val asym_def = thm "asym_def";
-val antisym_def = thm "antisym_def";
-val trans_def = thm "trans_def";
-val trans_on_def = thm "trans_on_def";
-
-val irreflI = thm "irreflI";
-val symI = thm "symI";
-val symI = thm "symI";
-val antisymI = thm "antisymI";
-val antisymE = thm "antisymE";
-val transD = thm "transD";
-val trans_onD = thm "trans_onD";
-
-val rtrancl_bnd_mono = thm "rtrancl_bnd_mono";
-val rtrancl_mono = thm "rtrancl_mono";
-val rtrancl_unfold = thm "rtrancl_unfold";
-val rtrancl_type = thm "rtrancl_type";
-val rtrancl_refl = thm "rtrancl_refl";
-val rtrancl_into_rtrancl = thm "rtrancl_into_rtrancl";
-val r_into_rtrancl = thm "r_into_rtrancl";
-val r_subset_rtrancl = thm "r_subset_rtrancl";
-val rtrancl_field = thm "rtrancl_field";
-val rtrancl_full_induct = thm "rtrancl_full_induct";
-val rtrancl_induct = thm "rtrancl_induct";
-val trans_rtrancl = thm "trans_rtrancl";
-val rtrancl_trans = thm "rtrancl_trans";
-val rtranclE = thm "rtranclE";
-val trans_trancl = thm "trans_trancl";
-val trancl_trans = thm "trancl_trans";
-val trancl_into_rtrancl = thm "trancl_into_rtrancl";
-val r_into_trancl = thm "r_into_trancl";
-val r_subset_trancl = thm "r_subset_trancl";
-val rtrancl_into_trancl1 = thm "rtrancl_into_trancl1";
-val rtrancl_into_trancl2 = thm "rtrancl_into_trancl2";
-val trancl_induct = thm "trancl_induct";
-val tranclE = thm "tranclE";
-val trancl_type = thm "trancl_type";
-val trancl_mono = thm "trancl_mono";
-val rtrancl_idemp = thm "rtrancl_idemp";
-val rtrancl_subset = thm "rtrancl_subset";
-val rtrancl_converseD = thm "rtrancl_converseD";
-val rtrancl_converseI = thm "rtrancl_converseI";
-val rtrancl_converse = thm "rtrancl_converse";
-val trancl_converseD = thm "trancl_converseD";
-val trancl_converseI = thm "trancl_converseI";
-val trancl_converse = thm "trancl_converse";
-val converse_trancl_induct = thm "converse_trancl_induct";
-*}
 
 end

@@ -8,28 +8,31 @@
 header{*Combining Orderings: Foundations of Ordinal Arithmetic*}
 
 theory OrderArith imports Order Sum Ordinal begin
-constdefs
 
+definition
   (*disjoint sum of two relations; underlies ordinal addition*)
-  radd    :: "[i,i,i,i]=>i"
+  radd    :: "[i,i,i,i]=>i"  where
     "radd(A,r,B,s) == 
                 {z: (A+B) * (A+B).  
                     (EX x y. z = <Inl(x), Inr(y)>)   |   
                     (EX x' x. z = <Inl(x'), Inl(x)> & <x',x>:r)   |      
                     (EX y' y. z = <Inr(y'), Inr(y)> & <y',y>:s)}"
 
+definition
   (*lexicographic product of two relations; underlies ordinal multiplication*)
-  rmult   :: "[i,i,i,i]=>i"
+  rmult   :: "[i,i,i,i]=>i"  where
     "rmult(A,r,B,s) == 
                 {z: (A*B) * (A*B).  
                     EX x' y' x y. z = <<x',y'>, <x,y>> &         
                        (<x',x>: r | (x'=x & <y',y>: s))}"
 
+definition
   (*inverse image of a relation*)
-  rvimage :: "[i,i,i]=>i"
+  rvimage :: "[i,i,i]=>i"  where
     "rvimage(A,f,r) == {z: A*A. EX x y. z = <x,y> & <f`x,f`y>: r}"
 
-  measure :: "[i, i\<Rightarrow>i] \<Rightarrow> i"
+definition
+  measure :: "[i, i\<Rightarrow>i] \<Rightarrow> i"  where
     "measure(A,f) == {<x,y>: A*A. f(x) < f(y)}"
 
 
@@ -406,12 +409,12 @@ lemma wf_rvimage_Ord: "Ord(i) \<Longrightarrow> wf(rvimage(A, f, Memrel(i)))"
 by (blast intro: wf_rvimage wf_Memrel)
 
 
-constdefs
-  wfrank :: "[i,i]=>i"
+definition
+  wfrank :: "[i,i]=>i"  where
     "wfrank(r,a) == wfrec(r, a, %x f. \<Union>y \<in> r-``{x}. succ(f`y))"
 
-constdefs
-  wftype :: "i=>i"
+definition
+  wftype :: "i=>i"  where
     "wftype(r) == \<Union>y \<in> range(r). succ(wfrank(r,y))"
 
 lemma wfrank: "wf(r) ==> wfrank(r,a) = (\<Union>y \<in> r-``{a}. succ(wfrank(r,y)))"
@@ -563,61 +566,5 @@ apply (blast dest: apply_type, simp_all)
 apply fast (*strange, but blast can't do it*)
 apply (rule fun_extension, auto)
 by blast
-
-
-ML {*
-val measure_def = thm "measure_def";
-val radd_Inl_Inr_iff = thm "radd_Inl_Inr_iff";
-val radd_Inl_iff = thm "radd_Inl_iff";
-val radd_Inr_iff = thm "radd_Inr_iff";
-val radd_Inr_Inl_iff = thm "radd_Inr_Inl_iff";
-val raddE = thm "raddE";
-val radd_type = thm "radd_type";
-val field_radd = thm "field_radd";
-val linear_radd = thm "linear_radd";
-val wf_on_radd = thm "wf_on_radd";
-val wf_radd = thm "wf_radd";
-val well_ord_radd = thm "well_ord_radd";
-val sum_bij = thm "sum_bij";
-val sum_ord_iso_cong = thm "sum_ord_iso_cong";
-val sum_disjoint_bij = thm "sum_disjoint_bij";
-val sum_assoc_bij = thm "sum_assoc_bij";
-val sum_assoc_ord_iso = thm "sum_assoc_ord_iso";
-val rmult_iff = thm "rmult_iff";
-val rmultE = thm "rmultE";
-val rmult_type = thm "rmult_type";
-val field_rmult = thm "field_rmult";
-val linear_rmult = thm "linear_rmult";
-val wf_on_rmult = thm "wf_on_rmult";
-val wf_rmult = thm "wf_rmult";
-val well_ord_rmult = thm "well_ord_rmult";
-val prod_bij = thm "prod_bij";
-val prod_ord_iso_cong = thm "prod_ord_iso_cong";
-val singleton_prod_bij = thm "singleton_prod_bij";
-val singleton_prod_ord_iso = thm "singleton_prod_ord_iso";
-val prod_sum_singleton_bij = thm "prod_sum_singleton_bij";
-val prod_sum_singleton_ord_iso = thm "prod_sum_singleton_ord_iso";
-val sum_prod_distrib_bij = thm "sum_prod_distrib_bij";
-val sum_prod_distrib_ord_iso = thm "sum_prod_distrib_ord_iso";
-val prod_assoc_bij = thm "prod_assoc_bij";
-val prod_assoc_ord_iso = thm "prod_assoc_ord_iso";
-val rvimage_iff = thm "rvimage_iff";
-val rvimage_type = thm "rvimage_type";
-val field_rvimage = thm "field_rvimage";
-val rvimage_converse = thm "rvimage_converse";
-val irrefl_rvimage = thm "irrefl_rvimage";
-val trans_on_rvimage = thm "trans_on_rvimage";
-val part_ord_rvimage = thm "part_ord_rvimage";
-val linear_rvimage = thm "linear_rvimage";
-val tot_ord_rvimage = thm "tot_ord_rvimage";
-val wf_rvimage = thm "wf_rvimage";
-val wf_on_rvimage = thm "wf_on_rvimage";
-val well_ord_rvimage = thm "well_ord_rvimage";
-val ord_iso_rvimage = thm "ord_iso_rvimage";
-val ord_iso_rvimage_eq = thm "ord_iso_rvimage_eq";
-val measure_eq_rvimage_Memrel = thm "measure_eq_rvimage_Memrel";
-val wf_measure = thm "wf_measure";
-val measure_iff = thm "measure_iff";
-*}
 
 end

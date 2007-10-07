@@ -20,12 +20,12 @@ inductive
 		==>  <cons(x,C), f(x,y)>\<in>fold_set(A, B, f, e)"
   type_intros Fin.intros
   
-constdefs
-  
-  fold :: "[i, [i,i]=>i, i, i] => i"  ("fold[_]'(_,_,_')")
+definition
+  fold :: "[i, [i,i]=>i, i, i] => i"  ("fold[_]'(_,_,_')")  where
    "fold[B](f,e, A) == THE x. <A, x>\<in>fold_set(A, B, f,e)"
 
-   setsum :: "[i=>i, i] => i"
+definition
+   setsum :: "[i=>i, i] => i"  where
    "setsum(g, C) == if Finite(C) then
                      fold[int](%x y. g(x) $+ y, #0, C) else #0"
 
@@ -394,33 +394,5 @@ lemma setsum_Diff [rule_format]:
 apply (erule Finite_induct) 
 apply (simp_all add: Diff_cons_eq Finite_Diff) 
 done
-
-ML
-{*
-val fold_set_mono = thm "fold_set_mono";
-val Diff1_fold_set = thm "Diff1_fold_set";
-val Diff_sing_imp = thm "Diff_sing_imp";
-val fold_0 = thm "fold_0";
-val setsum_0 = thm "setsum_0";
-val setsum_cons = thm "setsum_cons";
-val setsum_K0 = thm "setsum_K0";
-val setsum_Un_Int = thm "setsum_Un_Int";
-val setsum_type = thm "setsum_type";
-val setsum_Un_disjoint = thm "setsum_Un_disjoint";
-val Finite_RepFun = thm "Finite_RepFun";
-val setsum_UN_disjoint = thm "setsum_UN_disjoint";
-val setsum_addf = thm "setsum_addf";
-val fold_set_cong = thm "fold_set_cong";
-val fold_cong = thm "fold_cong";
-val setsum_cong = thm "setsum_cong";
-val setsum_Un = thm "setsum_Un";
-val setsum_zneg_or_0 = thm "setsum_zneg_or_0";
-val setsum_succD = thm "setsum_succD";
-val g_zpos_imp_setsum_zpos = thm "g_zpos_imp_setsum_zpos";
-val g_zpos_imp_setsum_zpos2 = thm "g_zpos_imp_setsum_zpos2";
-val g_zspos_imp_setsum_zspos = thm "g_zspos_imp_setsum_zspos";
-val setsum_Diff = thm "setsum_Diff";
-*}
-
 
 end

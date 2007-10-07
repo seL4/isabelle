@@ -9,36 +9,44 @@ header{*The Natural numbers As a Least Fixed Point*}
 
 theory Nat imports OrdQuant Bool begin
 
-constdefs
-  nat :: i
+definition
+  nat :: i  where
     "nat == lfp(Inf, %X. {0} Un {succ(i). i:X})"
 
-  quasinat :: "i => o"
+definition
+  quasinat :: "i => o"  where
     "quasinat(n) == n=0 | (\<exists>m. n = succ(m))"
 
+definition
   (*Has an unconditional succ case, which is used in "recursor" below.*)
-  nat_case :: "[i, i=>i, i]=>i"
+  nat_case :: "[i, i=>i, i]=>i"  where
     "nat_case(a,b,k) == THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))"
 
-  nat_rec :: "[i, i, [i,i]=>i]=>i"
+definition
+  nat_rec :: "[i, i, [i,i]=>i]=>i"  where
     "nat_rec(k,a,b) ==   
           wfrec(Memrel(nat), k, %n f. nat_case(a, %m. b(m, f`m), n))"
 
   (*Internalized relations on the naturals*)
   
-  Le :: i
+definition
+  Le :: i  where
     "Le == {<x,y>:nat*nat. x le y}"
 
-  Lt :: i
+definition
+  Lt :: i  where
     "Lt == {<x, y>:nat*nat. x < y}"
   
-  Ge :: i
+definition
+  Ge :: i  where
     "Ge == {<x,y>:nat*nat. y le x}"
 
-  Gt :: i
+definition
+  Gt :: i  where
     "Gt == {<x,y>:nat*nat. y < x}"
 
-  greater_than :: "i=>i"
+definition
+  greater_than :: "i=>i"  where
     "greater_than(n) == {i:nat. n < i}"
 
 text{*No need for a less-than operator: a natural number is its list of
@@ -290,48 +298,5 @@ done
 
 lemma Le_iff [iff]: "<x,y> : Le <-> x le y & x : nat & y : nat"
 by (force simp add: Le_def)
-
-ML
-{*
-val Le_def = thm "Le_def";
-val Lt_def = thm "Lt_def";
-val Ge_def = thm "Ge_def";
-val Gt_def = thm "Gt_def";
-val greater_than_def = thm "greater_than_def";
-
-val nat_bnd_mono = thm "nat_bnd_mono";
-val nat_unfold = thm "nat_unfold";
-val nat_0I = thm "nat_0I";
-val nat_succI = thm "nat_succI";
-val nat_1I = thm "nat_1I";
-val nat_2I = thm "nat_2I";
-val bool_subset_nat = thm "bool_subset_nat";
-val bool_into_nat = thm "bool_into_nat";
-val nat_induct = thm "nat_induct";
-val natE = thm "natE";
-val nat_into_Ord = thm "nat_into_Ord";
-val nat_0_le = thm "nat_0_le";
-val nat_le_refl = thm "nat_le_refl";
-val Ord_nat = thm "Ord_nat";
-val Limit_nat = thm "Limit_nat";
-val succ_natD = thm "succ_natD";
-val nat_succ_iff = thm "nat_succ_iff";
-val nat_le_Limit = thm "nat_le_Limit";
-val succ_in_naturalD = thm "succ_in_naturalD";
-val lt_nat_in_nat = thm "lt_nat_in_nat";
-val le_in_nat = thm "le_in_nat";
-val complete_induct = thm "complete_induct";
-val nat_induct_from = thm "nat_induct_from";
-val diff_induct = thm "diff_induct";
-val succ_lt_induct = thm "succ_lt_induct";
-val nat_case_0 = thm "nat_case_0";
-val nat_case_succ = thm "nat_case_succ";
-val nat_case_type = thm "nat_case_type";
-val nat_rec_0 = thm "nat_rec_0";
-val nat_rec_succ = thm "nat_rec_succ";
-val Un_nat_type = thm "Un_nat_type";
-val Int_nat_type = thm "Int_nat_type";
-val nat_nonempty = thm "nat_nonempty";
-*}
 
 end

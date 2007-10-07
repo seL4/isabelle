@@ -15,8 +15,8 @@ theory GenPrefix
 imports Main
 begin
 
-constdefs (*really belongs in ZF/Trancl*)
-  part_order :: "[i, i] => o"
+definition (*really belongs in ZF/Trancl*)
+  part_order :: "[i, i] => o"  where
   "part_order(A, r) == refl(A,r) & trans[A](r) & antisym(r)"
 
 consts
@@ -37,11 +37,12 @@ inductive
 	      ==> <xs, ys@zs>:gen_prefix(A, r)"
     type_intros app_type list.Nil list.Cons
 
-constdefs
-   prefix :: "i=>i"
+definition
+  prefix :: "i=>i"  where
   "prefix(A) == gen_prefix(A, id(A))"
 
-   strict_prefix :: "i=>i"
+definition
+  strict_prefix :: "i=>i"  where
   "strict_prefix(A) == prefix(A) - id(list(A))"
 
 

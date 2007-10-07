@@ -9,17 +9,18 @@ theory OrdQuant imports Ordinal begin
 
 subsection {*Quantifiers and union operator for ordinals*}
 
-constdefs
-
+definition
   (* Ordinal Quantifiers *)
-  oall :: "[i, i => o] => o"
+  oall :: "[i, i => o] => o"  where
     "oall(A, P) == ALL x. x<A --> P(x)"
 
-  oex :: "[i, i => o] => o"
+definition
+  oex :: "[i, i => o] => o"  where
     "oex(A, P)  == EX x. x<A & P(x)"
 
+definition
   (* Ordinal Union *)
-  OUnion :: "[i, i => i] => i"
+  OUnion :: "[i, i => i] => i"  where
     "OUnion(i,B) == {z: \<Union>x\<in>i. B(x). Ord(i)}"
 
 syntax
@@ -28,9 +29,9 @@ syntax
   "@OUNION"   :: "[idt, i, i] => i"        ("(3UN _<_./ _)" 10)
 
 translations
-  "ALL x<a. P"  == "oall(a, %x. P)"
-  "EX x<a. P"   == "oex(a, %x. P)"
-  "UN x<a. B"   == "OUnion(a, %x. B)"
+  "ALL x<a. P"  == "CONST oall(a, %x. P)"
+  "EX x<a. P"   == "CONST oex(a, %x. P)"
+  "UN x<a. B"   == "CONST OUnion(a, %x. B)"
 
 syntax (xsymbols)
   "@oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
@@ -194,11 +195,12 @@ done
 
 subsection {*Quantification over a class*}
 
-constdefs
-  "rall"     :: "[i=>o, i=>o] => o"
+definition
+  "rall"     :: "[i=>o, i=>o] => o"  where
     "rall(M, P) == ALL x. M(x) --> P(x)"
 
-  "rex"      :: "[i=>o, i=>o] => o"
+definition
+  "rex"      :: "[i=>o, i=>o] => o"  where
     "rex(M, P) == EX x. M(x) & P(x)"
 
 syntax
@@ -213,8 +215,8 @@ syntax (HTML output)
   "@rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
 
 translations
-  "ALL x[M]. P"  == "rall(M, %x. P)"
-  "EX x[M]. P"   == "rex(M, %x. P)"
+  "ALL x[M]. P"  == "CONST rall(M, %x. P)"
+  "EX x[M]. P"   == "CONST rex(M, %x. P)"
 
 
 subsubsection{*Relativized universal quantifier*}
@@ -340,7 +342,8 @@ by blast
 
 subsubsection{*Sets as Classes*}
 
-constdefs setclass :: "[i,i] => o"       ("##_" [40] 40)
+definition
+  setclass :: "[i,i] => o"       ("##_" [40] 40)  where
    "setclass(A) == %x. x : A"
 
 lemma setclass_iff [simp]: "setclass(A,x) <-> x : A"
@@ -355,41 +358,8 @@ by auto
 
 ML
 {*
-val oall_def = thm "oall_def"
-val oex_def = thm "oex_def"
-val OUnion_def = thm "OUnion_def"
-
-val oallI = thm "oallI";
-val ospec = thm "ospec";
-val oallE = thm "oallE";
-val rev_oallE = thm "rev_oallE";
-val oall_simp = thm "oall_simp";
-val oall_cong = thm "oall_cong";
-val oexI = thm "oexI";
-val oexCI = thm "oexCI";
-val oexE = thm "oexE";
-val oex_cong = thm "oex_cong";
-val OUN_I = thm "OUN_I";
-val OUN_E = thm "OUN_E";
-val OUN_iff = thm "OUN_iff";
-val OUN_cong = thm "OUN_cong";
-val lt_induct = thm "lt_induct";
-
-val rall_def = thm "rall_def"
-val rex_def = thm "rex_def"
-
-val rallI = thm "rallI";
-val rspec = thm "rspec";
-val rallE = thm "rallE";
-val rev_oallE = thm "rev_oallE";
-val rall_cong = thm "rall_cong";
-val rexI = thm "rexI";
-val rexCI = thm "rexCI";
-val rexE = thm "rexE";
-val rex_cong = thm "rex_cong";
-
 val Ord_atomize =
-    atomize ([("OrdQuant.oall", [ospec]),("OrdQuant.rall", [rspec])]@
+    atomize ([("OrdQuant.oall", [@{thm ospec}]),("OrdQuant.rall", [@{thm rspec}])]@
                  ZF_conn_pairs,
              ZF_mem_pairs);
 change_simpset (fn ss => ss setmksimps (map mk_eq o Ord_atomize o gen_all));
@@ -400,19 +370,19 @@ text {* Setting up the one-point-rule simproc *}
 ML_setup {*
 local
 
-val unfold_rex_tac = unfold_tac [rex_def];
+val unfold_rex_tac = unfold_tac [@{thm rex_def}];
 fun prove_rex_tac ss = unfold_rex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
 val rearrange_bex = Quantifier1.rearrange_bex prove_rex_tac;
 
-val unfold_rall_tac = unfold_tac [rall_def];
+val unfold_rall_tac = unfold_tac [@{thm rall_def}];
 fun prove_rall_tac ss = unfold_rall_tac ss THEN Quantifier1.prove_one_point_all_tac;
 val rearrange_ball = Quantifier1.rearrange_ball prove_rall_tac;
 
 in
 
-val defREX_regroup = Simplifier.simproc (the_context ())
+val defREX_regroup = Simplifier.simproc @{theory}
   "defined REX" ["EX x[M]. P(x) & Q(x)"] rearrange_bex;
-val defRALL_regroup = Simplifier.simproc (the_context ())
+val defRALL_regroup = Simplifier.simproc @{theory}
   "defined RALL" ["ALL x[M]. P(x) --> Q(x)"] rearrange_ball;
 
 end;

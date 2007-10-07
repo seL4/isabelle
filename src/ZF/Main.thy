@@ -15,14 +15,14 @@ primrec
     "F^0 (x) = x"
     "F^(succ(n)) (x) = F(F^n (x))"
 
-constdefs
-  iterates_omega :: "[i=>i,i] => i"
+definition
+  iterates_omega :: "[i=>i,i] => i"  where
     "iterates_omega(F,x) == \<Union>n\<in>nat. F^n (x)"
 
-syntax (xsymbols)
-  iterates_omega :: "[i=>i,i] => i"   ("(_^\<omega> '(_'))" [60,1000] 60)
-syntax (HTML output)
-  iterates_omega :: "[i=>i,i] => i"   ("(_^\<omega> '(_'))" [60,1000] 60)
+notation (xsymbols)
+  iterates_omega  ("(_^\<omega> '(_'))" [60,1000] 60)
+notation (HTML output)
+  iterates_omega  ("(_^\<omega> '(_'))" [60,1000] 60)
 
 lemma iterates_triv:
      "[| n\<in>nat;  F(x) = x |] ==> F^n (x) = x"  
@@ -51,8 +51,8 @@ subsection{* Transfinite Recursion *}
 text{*Transfinite recursion for definitions based on the 
     three cases of ordinals*}
 
-constdefs
-  transrec3 :: "[i, i, [i,i]=>i, [i,i]=>i] =>i"
+definition
+  transrec3 :: "[i, i, [i,i]=>i, [i,i]=>i] =>i" where
     "transrec3(k, a, b, c) ==                     
        transrec(k, \<lambda>x r.
          if x=0 then a

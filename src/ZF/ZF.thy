@@ -655,100 +655,14 @@ subsection{*Cantor's Theorem: There is no surjection from a set to its powerset.
 lemma cantor: "\<exists>S \<in> Pow(A). \<forall>x\<in>A. b(x) ~= S"
 by (best elim!: equalityCE del: ReplaceI RepFun_eqI)
 
-ML
-{*
-val lam_def = thm "lam_def";
-val domain_def = thm "domain_def";
-val range_def = thm "range_def";
-val image_def = thm "image_def";
-val vimage_def = thm "vimage_def";
-val field_def = thm "field_def";
-val Inter_def = thm "Inter_def";
-val Ball_def = thm "Ball_def";
-val Bex_def = thm "Bex_def";
-
-val ballI = thm "ballI";
-val bspec = thm "bspec";
-val rev_ballE = thm "rev_ballE";
-val ballE = thm "ballE";
-val rev_bspec = thm "rev_bspec";
-val ball_triv = thm "ball_triv";
-val ball_cong = thm "ball_cong";
-val bexI = thm "bexI";
-val rev_bexI = thm "rev_bexI";
-val bexCI = thm "bexCI";
-val bexE = thm "bexE";
-val bex_triv = thm "bex_triv";
-val bex_cong = thm "bex_cong";
-val subst_elem = thm "subst_elem";
-val subsetI = thm "subsetI";
-val subsetD = thm "subsetD";
-val subsetCE = thm "subsetCE";
-val rev_subsetD = thm "rev_subsetD";
-val contra_subsetD = thm "contra_subsetD";
-val rev_contra_subsetD = thm "rev_contra_subsetD";
-val subset_refl = thm "subset_refl";
-val subset_trans = thm "subset_trans";
-val subset_iff = thm "subset_iff";
-val equalityI = thm "equalityI";
-val equality_iffI = thm "equality_iffI";
-val equalityD1 = thm "equalityD1";
-val equalityD2 = thm "equalityD2";
-val equalityE = thm "equalityE";
-val equalityCE = thm "equalityCE";
-val Replace_iff = thm "Replace_iff";
-val ReplaceI = thm "ReplaceI";
-val ReplaceE = thm "ReplaceE";
-val ReplaceE2 = thm "ReplaceE2";
-val Replace_cong = thm "Replace_cong";
-val RepFunI = thm "RepFunI";
-val RepFun_eqI = thm "RepFun_eqI";
-val RepFunE = thm "RepFunE";
-val RepFun_cong = thm "RepFun_cong";
-val RepFun_iff = thm "RepFun_iff";
-val triv_RepFun = thm "triv_RepFun";
-val separation = thm "separation";
-val CollectI = thm "CollectI";
-val CollectE = thm "CollectE";
-val CollectD1 = thm "CollectD1";
-val CollectD2 = thm "CollectD2";
-val Collect_cong = thm "Collect_cong";
-val UnionI = thm "UnionI";
-val UnionE = thm "UnionE";
-val UN_iff = thm "UN_iff";
-val UN_I = thm "UN_I";
-val UN_E = thm "UN_E";
-val UN_cong = thm "UN_cong";
-val Inter_iff = thm "Inter_iff";
-val InterI = thm "InterI";
-val InterD = thm "InterD";
-val InterE = thm "InterE";
-val INT_iff = thm "INT_iff";
-val INT_I = thm "INT_I";
-val INT_E = thm "INT_E";
-val INT_cong = thm "INT_cong";
-val PowI = thm "PowI";
-val PowD = thm "PowD";
-val Pow_bottom = thm "Pow_bottom";
-val Pow_top = thm "Pow_top";
-val not_mem_empty = thm "not_mem_empty";
-val emptyE = thm "emptyE";
-val empty_subsetI = thm "empty_subsetI";
-val equals0I = thm "equals0I";
-val equals0D = thm "equals0D";
-val not_emptyI = thm "not_emptyI";
-val not_emptyE = thm "not_emptyE";
-val cantor = thm "cantor";
-*}
-
 (*Functions for ML scripts*)
 ML
 {*
 (*Converts A<=B to x\<in>A ==> x\<in>B*)
-fun impOfSubs th = th RSN (2, rev_subsetD);
+fun impOfSubs th = th RSN (2, @{thm rev_subsetD});
 
 (*Takes assumptions \<forall>x\<in>A.P(x) and a\<in>A; creates assumption P(a)*)
-val ball_tac = dtac bspec THEN' assume_tac
+val ball_tac = dtac @{thm bspec} THEN' assume_tac
 *}
 
 end

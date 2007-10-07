@@ -9,19 +9,19 @@ header{*Weak LeadsTo relation (restricted to the set of reachable states)*}
 
 theory SubstAx
 imports WFair Constrains 
-
 begin
 
-constdefs
-  (* The definitions below are not `conventional', but yields simpler rules *)
-   Ensures :: "[i,i] => i"            (infixl "Ensures" 60)
-    "A Ensures B == {F:program. F : (reachable(F) Int A) ensures (reachable(F) Int B) }"
+definition
+  (* The definitions below are not `conventional', but yield simpler rules *)
+  Ensures :: "[i,i] => i"            (infixl "Ensures" 60)  where
+  "A Ensures B == {F:program. F : (reachable(F) Int A) ensures (reachable(F) Int B) }"
 
-  LeadsTo :: "[i, i] => i"            (infixl "LeadsTo" 60)
-    "A LeadsTo B == {F:program. F:(reachable(F) Int A) leadsTo (reachable(F) Int B)}"
+definition
+  LeadsTo :: "[i, i] => i"            (infixl "LeadsTo" 60)  where
+  "A LeadsTo B == {F:program. F:(reachable(F) Int A) leadsTo (reachable(F) Int B)}"
 
-syntax (xsymbols)
-  "LeadsTo" :: "[i, i] => i" (infixl " \<longmapsto>w " 60)
+notation (xsymbols)
+  LeadsTo  (infixl " \<longmapsto>w " 60)
 
 
 
@@ -260,7 +260,7 @@ by (simp (no_asm_simp) add: PSP Int_ac)
 
 lemma PSP_Unless: 
 "[| F \<in> A LeadsTo A'; F \<in> B Unless B'|]==> F:(A Int B) LeadsTo ((A' Int B) Un B')"
-apply (unfold Unless_def)
+apply (unfold op_Unless_def)
 apply (drule PSP, assumption)
 apply (blast intro: LeadsTo_Diff LeadsTo_weaken subset_imp_LeadsTo)
 done
@@ -348,82 +348,29 @@ apply (rule_tac C1 = 0 in Finite_completion [THEN LeadsTo_weaken_R], simp_all)
 apply (rule_tac [3] subset_refl, auto) 
 done
 
-ML
-{*
-val LeadsTo_eq = thm "LeadsTo_eq";
-val LeadsTo_type = thm "LeadsTo_type";
-val Always_LeadsTo_pre = thm "Always_LeadsTo_pre";
-val Always_LeadsTo_post = thm "Always_LeadsTo_post";
-val Always_LeadsToI = thm "Always_LeadsToI";
-val Always_LeadsToD = thm "Always_LeadsToD";
-val LeadsTo_Basis = thm "LeadsTo_Basis";
-val LeadsTo_Trans = thm "LeadsTo_Trans";
-val LeadsTo_Union = thm "LeadsTo_Union";
-val leadsTo_imp_LeadsTo = thm "leadsTo_imp_LeadsTo";
-val LeadsTo_Un_duplicate = thm "LeadsTo_Un_duplicate";
-val LeadsTo_Un_duplicate2 = thm "LeadsTo_Un_duplicate2";
-val LeadsTo_UN = thm "LeadsTo_UN";
-val LeadsTo_Un = thm "LeadsTo_Un";
-val single_LeadsTo_I = thm "single_LeadsTo_I";
-val subset_imp_LeadsTo = thm "subset_imp_LeadsTo";
-val empty_LeadsTo = thm "empty_LeadsTo";
-val LeadsTo_state = thm "LeadsTo_state";
-val LeadsTo_weaken_R = thm "LeadsTo_weaken_R";
-val LeadsTo_weaken_L = thm "LeadsTo_weaken_L";
-val LeadsTo_weaken = thm "LeadsTo_weaken";
-val Always_LeadsTo_weaken = thm "Always_LeadsTo_weaken";
-val LeadsTo_Un_post = thm "LeadsTo_Un_post";
-val LeadsTo_Trans_Un = thm "LeadsTo_Trans_Un";
-val LeadsTo_Un_distrib = thm "LeadsTo_Un_distrib";
-val LeadsTo_UN_distrib = thm "LeadsTo_UN_distrib";
-val LeadsTo_Union_distrib = thm "LeadsTo_Union_distrib";
-val EnsuresI = thm "EnsuresI";
-val Always_LeadsTo_Basis = thm "Always_LeadsTo_Basis";
-val LeadsTo_Diff = thm "LeadsTo_Diff";
-val LeadsTo_UN_UN = thm "LeadsTo_UN_UN";
-val LeadsTo_Un_Un = thm "LeadsTo_Un_Un";
-val LeadsTo_cancel2 = thm "LeadsTo_cancel2";
-val Un_Diff = thm "Un_Diff";
-val LeadsTo_cancel_Diff2 = thm "LeadsTo_cancel_Diff2";
-val LeadsTo_cancel1 = thm "LeadsTo_cancel1";
-val Diff_Un2 = thm "Diff_Un2";
-val LeadsTo_cancel_Diff1 = thm "LeadsTo_cancel_Diff1";
-val LeadsTo_empty = thm "LeadsTo_empty";
-val PSP_Stable = thm "PSP_Stable";
-val PSP_Stable2 = thm "PSP_Stable2";
-val PSP = thm "PSP";
-val PSP2 = thm "PSP2";
-val PSP_Unless = thm "PSP_Unless";
-val LeadsTo_wf_induct = thm "LeadsTo_wf_induct";
-val LessThan_induct = thm "LessThan_induct";
-val Completion = thm "Completion";
-val Finite_completion = thm "Finite_completion";
-val Stable_completion = thm "Stable_completion";
-val Finite_stable_completion = thm "Finite_stable_completion";
-
-
+ML {*
 (*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac ctxt sact =
   let val css as (cs, ss) = local_clasimpset_of ctxt in
     SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
-              etac Always_LeadsTo_Basis 1 
+              etac @{thm Always_LeadsTo_Basis} 1 
                   ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
-                  REPEAT (ares_tac [LeadsTo_Basis, leadsTo_Basis,
-                                    EnsuresI, ensuresI] 1),
+                  REPEAT (ares_tac [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},
+                                    @{thm EnsuresI}, @{thm ensuresI}] 1),
               (*now there are two subgoals: co & transient*)
               simp_tac (ss addsimps (ProgramDefs.get ctxt)) 2,
-              res_inst_tac [("act", sact)] transientI 2,
+              res_inst_tac [("act", sact)] @{thm transientI} 2,
                  (*simplify the command's domain*)
-              simp_tac (ss addsimps [domain_def]) 3, 
+              simp_tac (ss addsimps [@{thm domain_def}]) 3, 
               (* proving the domain part *)
              clarify_tac cs 3, dtac Cla.swap 3, force_tac css 4,
-             rtac ReplaceI 3, force_tac css 3, force_tac css 4,
+             rtac @{thm ReplaceI} 3, force_tac css 3, force_tac css 4,
              asm_full_simp_tac ss 3, rtac conjI 3, simp_tac ss 4,
-             REPEAT (rtac state_update_type 3),
+             REPEAT (rtac @{thm state_update_type} 3),
              constrains_tac ctxt 1,
              ALLGOALS (clarify_tac cs),
-             ALLGOALS (asm_full_simp_tac (ss addsimps [st_set_def])),
+             ALLGOALS (asm_full_simp_tac (ss addsimps [@{thm st_set_def}])),
                         ALLGOALS (clarify_tac cs),
             ALLGOALS (asm_lr_simp_tac ss)])
   end;

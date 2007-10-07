@@ -11,8 +11,7 @@ Also, WO1 <-> WO8
 
 theory WO1_WO7 imports AC_Equiv begin
 
-constdefs
-  LEMMA :: o
+definition
     "LEMMA ==
      \<forall>X. ~Finite(X) --> (\<exists>R. well_ord(X,R) & ~well_ord(X,converse(R)))"
 

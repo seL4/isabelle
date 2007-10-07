@@ -18,8 +18,8 @@ theory WO2_AC16 imports AC_Equiv AC16_lemmas Cardinal_aux begin
 
 (**** A recursive definition used in the proof of WO2 ==> AC16 ****)
 
-constdefs
-  recfunAC16 :: "[i,i,i,i] => i"
+definition
+  recfunAC16 :: "[i,i,i,i] => i"  where
     "recfunAC16(f,h,i,a) == 
          transrec2(i, 0, 
               %g r. if (\<exists>y \<in> r. h`g \<subseteq> y) then r

@@ -62,8 +62,8 @@ primrec
   "is_true_fun(Var(v), t) = (if v \<in> t then 1 else 0)"
   "is_true_fun(p=>q, t) = (if is_true_fun(p,t) = 1 then is_true_fun(q,t) else 1)"
 
-constdefs
-  is_true :: "[i,i] => o"
+definition
+  is_true :: "[i,i] => o"  where
   "is_true(p,t) == is_true_fun(p,t) = 1"
   -- {* this definition is required since predicates can't be recursive *}
 
@@ -84,8 +84,8 @@ text {*
   is @{text p}.
 *}
 
-constdefs
-  logcon :: "[i,i] => o"    (infixl "|=" 50)
+definition
+  logcon :: "[i,i] => o"    (infixl "|=" 50)  where
   "H |= p == \<forall>t. (\<forall>q \<in> H. is_true(q,t)) --> is_true(p,t)"
 
 

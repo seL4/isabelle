@@ -92,19 +92,21 @@ primrec
 
 (*** Thanks to Sidi Ehmety for the following ***)
 
-constdefs
+definition
 (* Function `take' returns the first n elements of a list *)
-  take     :: "[i,i]=>i"
+  take     :: "[i,i]=>i"  where
   "take(n, as) == list_rec(lam n:nat. [],
 		%a l r. lam n:nat. nat_case([], %m. Cons(a, r`m), n), as)`n"
 
-  nth :: "[i, i]=>i"
+definition
+  nth :: "[i, i]=>i"  where
   --{*returns the (n+1)th element of a list, or 0 if the
    list is too short.*}
   "nth(n, as) == list_rec(lam n:nat. 0,
  		          %a l r. lam n:nat. nat_case(a, %m. r`m, n), as) ` n"
 
-  list_update :: "[i, i, i]=>i"
+definition
+  list_update :: "[i, i, i]=>i"  where
   "list_update(xs, i, v) == list_rec(lam n:nat. Nil,
       %u us vs. lam n:nat. nat_case(Cons(v, us), %m. Cons(u, vs`m), n), xs)`i"
 
@@ -121,11 +123,12 @@ primrec
   "upt(i, 0) = Nil"
   "upt(i, succ(j)) = (if i le j then upt(i, j)@[j] else Nil)"
 
-constdefs
-  min :: "[i,i] =>i"
+definition
+  min :: "[i,i] =>i"  where
     "min(x, y) == (if x le y then x else y)"
 
-  max :: "[i, i] =>i"
+definition
+  max :: "[i, i] =>i"  where
     "max(x, y) == (if x le y then y else x)"
 
 (*** Aspects of the datatype definition ***)
@@ -852,8 +855,8 @@ primrec (*explicit lambda is required because both arguments of "un" vary*)
      (\<lambda>ys \<in> list(B).
         list_case(Nil, %y zs. Cons(<x,y>, zip_aux(B,l)`zs), ys))"
 
-constdefs
-  zip :: "[i, i]=>i"
+definition
+  zip :: "[i, i]=>i"  where
    "zip(xs, ys) == zip_aux(set_of_list(ys),xs)`ys"
 
 
@@ -1157,8 +1160,8 @@ done
 
 (** sublist (a generalization of nth to sets) **)
 
-constdefs
-  sublist :: "[i, i] => i"
+definition
+  sublist :: "[i, i] => i"  where
     "sublist(xs, A)==
      map(fst, (filter(%p. snd(p): A, zip(xs, upt(0,length(xs))))))"
 
@@ -1244,171 +1247,5 @@ done
 
 lemma repeat_type [TC]: "[|a \<in> A; n \<in> nat|] ==> repeat(a,n) \<in> list(A)"
 by (induct_tac n, auto)
-
-
-ML
-{*
-val ConsE = thm "ConsE";
-val Cons_iff = thm "Cons_iff";
-val Nil_Cons_iff = thm "Nil_Cons_iff";
-val list_unfold = thm "list_unfold";
-val list_mono = thm "list_mono";
-val list_univ = thm "list_univ";
-val list_subset_univ = thm "list_subset_univ";
-val list_into_univ = thm "list_into_univ";
-val list_case_type = thm "list_case_type";
-val tl_type = thm "tl_type";
-val drop_Nil = thm "drop_Nil";
-val drop_succ_Cons = thm "drop_succ_Cons";
-val drop_type = thm "drop_type";
-val list_rec_type = thm "list_rec_type";
-val map_type = thm "map_type";
-val map_type2 = thm "map_type2";
-val length_type = thm "length_type";
-val lt_length_in_nat = thm "lt_length_in_nat";
-val app_type = thm "app_type";
-val rev_type = thm "rev_type";
-val flat_type = thm "flat_type";
-val set_of_list_type = thm "set_of_list_type";
-val set_of_list_append = thm "set_of_list_append";
-val list_add_type = thm "list_add_type";
-val map_ident = thm "map_ident";
-val map_compose = thm "map_compose";
-val map_app_distrib = thm "map_app_distrib";
-val map_flat = thm "map_flat";
-val list_rec_map = thm "list_rec_map";
-val list_CollectD = thm "list_CollectD";
-val map_list_Collect = thm "map_list_Collect";
-val length_map = thm "length_map";
-val length_app = thm "length_app";
-val length_rev = thm "length_rev";
-val length_flat = thm "length_flat";
-val drop_length_Cons = thm "drop_length_Cons";
-val drop_length = thm "drop_length";
-val app_right_Nil = thm "app_right_Nil";
-val app_assoc = thm "app_assoc";
-val flat_app_distrib = thm "flat_app_distrib";
-val rev_map_distrib = thm "rev_map_distrib";
-val rev_app_distrib = thm "rev_app_distrib";
-val rev_rev_ident = thm "rev_rev_ident";
-val rev_flat = thm "rev_flat";
-val list_add_app = thm "list_add_app";
-val list_add_rev = thm "list_add_rev";
-val list_add_flat = thm "list_add_flat";
-val list_append_induct = thm "list_append_induct";
-val min_sym = thm "min_sym";
-val min_type = thm "min_type";
-val min_0 = thm "min_0";
-val min_02 = thm "min_02";
-val lt_min_iff = thm "lt_min_iff";
-val min_succ_succ = thm "min_succ_succ";
-val filter_append = thm "filter_append";
-val filter_type = thm "filter_type";
-val length_filter = thm "length_filter";
-val filter_is_subset = thm "filter_is_subset";
-val filter_False = thm "filter_False";
-val filter_True = thm "filter_True";
-val length_is_0_iff = thm "length_is_0_iff";
-val length_is_0_iff2 = thm "length_is_0_iff2";
-val length_tl = thm "length_tl";
-val length_greater_0_iff = thm "length_greater_0_iff";
-val length_succ_iff = thm "length_succ_iff";
-val append_is_Nil_iff = thm "append_is_Nil_iff";
-val append_is_Nil_iff2 = thm "append_is_Nil_iff2";
-val append_left_is_self_iff = thm "append_left_is_self_iff";
-val append_left_is_self_iff2 = thm "append_left_is_self_iff2";
-val append_left_is_Nil_iff = thm "append_left_is_Nil_iff";
-val append_left_is_Nil_iff2 = thm "append_left_is_Nil_iff2";
-val append_eq_append_iff = thm "append_eq_append_iff";
-val append_eq_append = thm "append_eq_append";
-val append_eq_append_iff2 = thm "append_eq_append_iff2";
-val append_self_iff = thm "append_self_iff";
-val append_self_iff2 = thm "append_self_iff2";
-val append1_eq_iff = thm "append1_eq_iff";
-val append_right_is_self_iff = thm "append_right_is_self_iff";
-val append_right_is_self_iff2 = thm "append_right_is_self_iff2";
-val hd_append = thm "hd_append";
-val tl_append = thm "tl_append";
-val rev_is_Nil_iff = thm "rev_is_Nil_iff";
-val Nil_is_rev_iff = thm "Nil_is_rev_iff";
-val rev_is_rev_iff = thm "rev_is_rev_iff";
-val rev_list_elim = thm "rev_list_elim";
-val length_drop = thm "length_drop";
-val drop_all = thm "drop_all";
-val drop_append = thm "drop_append";
-val drop_drop = thm "drop_drop";
-val take_0 = thm "take_0";
-val take_succ_Cons = thm "take_succ_Cons";
-val take_Nil = thm "take_Nil";
-val take_all = thm "take_all";
-val take_type = thm "take_type";
-val take_append = thm "take_append";
-val take_take = thm "take_take";
-val take_add = thm "take_add";
-val take_succ = thm "take_succ";
-val nth_0 = thm "nth_0";
-val nth_Cons = thm "nth_Cons";
-val nth_type = thm "nth_type";
-val nth_append = thm "nth_append";
-val set_of_list_conv_nth = thm "set_of_list_conv_nth";
-val nth_take_lemma = thm "nth_take_lemma";
-val nth_equalityI = thm "nth_equalityI";
-val take_equalityI = thm "take_equalityI";
-val nth_drop = thm "nth_drop";
-val list_on_set_of_list = thm "list_on_set_of_list";
-val zip_Nil = thm "zip_Nil";
-val zip_Nil2 = thm "zip_Nil2";
-val zip_Cons_Cons = thm "zip_Cons_Cons";
-val zip_type = thm "zip_type";
-val length_zip = thm "length_zip";
-val zip_append1 = thm "zip_append1";
-val zip_append2 = thm "zip_append2";
-val zip_append = thm "zip_append";
-val zip_rev = thm "zip_rev";
-val nth_zip = thm "nth_zip";
-val set_of_list_zip = thm "set_of_list_zip";
-val list_update_Nil = thm "list_update_Nil";
-val list_update_Cons_0 = thm "list_update_Cons_0";
-val list_update_Cons_succ = thm "list_update_Cons_succ";
-val list_update_type = thm "list_update_type";
-val length_list_update = thm "length_list_update";
-val nth_list_update = thm "nth_list_update";
-val nth_list_update_eq = thm "nth_list_update_eq";
-val nth_list_update_neq = thm "nth_list_update_neq";
-val list_update_overwrite = thm "list_update_overwrite";
-val list_update_same_conv = thm "list_update_same_conv";
-val update_zip = thm "update_zip";
-val set_update_subset_cons = thm "set_update_subset_cons";
-val set_of_list_update_subsetI = thm "set_of_list_update_subsetI";
-val upt_rec = thm "upt_rec";
-val upt_conv_Nil = thm "upt_conv_Nil";
-val upt_succ_append = thm "upt_succ_append";
-val upt_conv_Cons = thm "upt_conv_Cons";
-val upt_type = thm "upt_type";
-val upt_add_eq_append = thm "upt_add_eq_append";
-val length_upt = thm "length_upt";
-val nth_upt = thm "nth_upt";
-val take_upt = thm "take_upt";
-val map_succ_upt = thm "map_succ_upt";
-val nth_map = thm "nth_map";
-val nth_map_upt = thm "nth_map_upt";
-val sublist_0 = thm "sublist_0";
-val sublist_Nil = thm "sublist_Nil";
-val sublist_shift_lemma = thm "sublist_shift_lemma";
-val sublist_type = thm "sublist_type";
-val upt_add_eq_append2 = thm "upt_add_eq_append2";
-val sublist_append = thm "sublist_append";
-val sublist_Cons = thm "sublist_Cons";
-val sublist_singleton = thm "sublist_singleton";
-val sublist_upt_eq_take = thm "sublist_upt_eq_take";
-val sublist_Int_eq = thm "sublist_Int_eq";
-
-structure list =
-struct
-val induct = thm "list.induct"
-val elim   = thm "list.cases"
-val intrs  = thms "list.intros"
-end;  
-*}
 
 end

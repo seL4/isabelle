@@ -24,10 +24,8 @@ axioms
 
 (*Array indexing is translated to list indexing as A[n] == nth(n-1,A). *)
 
-constdefs
+definition
  (** Release some client_tokens **)
-  
-  client_rel_act ::i
     "client_rel_act ==
      {<s,t> \<in> state*state.
       \<exists>nrel \<in> nat. nrel = length(s`rel) &
@@ -38,15 +36,14 @@ constdefs
   (** Choose a new token requirement **)
   (** Including t=s suppresses fairness, allowing the non-trivial part
       of the action to be ignored **)
-
-  client_tok_act :: i
- "client_tok_act == {<s,t> \<in> state*state. t=s |
+definition
+  "client_tok_act == {<s,t> \<in> state*state. t=s |
 		     t = s(tok:=succ(s`tok mod NbT))}"
 
-  client_ask_act :: i
+definition
   "client_ask_act == {<s,t> \<in> state*state. t=s | (t=s(ask:=s`ask@[s`tok]))}"
   
-  client_prog :: i
+definition
   "client_prog ==
    mk_program({s \<in> state. s`tok \<le> NbT & s`giv = Nil &
 	               s`ask = Nil & s`rel = Nil},

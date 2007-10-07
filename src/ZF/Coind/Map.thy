@@ -10,22 +10,26 @@ Some sample proofs of inclusions for the final coalgebra "U" (by lcp)
 
 theory Map imports Main begin
 
-constdefs
-  TMap :: "[i,i] => i"
+definition
+  TMap :: "[i,i] => i"  where
    "TMap(A,B) == {m \<in> Pow(A*Union(B)).\<forall>a \<in> A. m``{a} \<in> B}"
 
-  PMap :: "[i,i] => i"
+definition
+  PMap :: "[i,i] => i"  where
    "PMap(A,B) == TMap(A,cons(0,B))"
 
 (* Note: 0 \<in> B ==> TMap(A,B) = PMap(A,B) *)
   
-  map_emp :: i
+definition
+  map_emp :: i  where
    "map_emp == 0"
 
-  map_owr :: "[i,i,i]=>i"
+definition
+  map_owr :: "[i,i,i]=>i"  where
    "map_owr(m,a,b) == \<Sigma> x \<in> {a} Un domain(m). if x=a then b else m``{x}"
 
-  map_app :: "[i,i]=>i"
+definition
+  map_app :: "[i,i]=>i"  where
    "map_app(m,a) == m``{a}"
   
 lemma "{0,1} \<subseteq> {1} Un TMap(I, {0,1})"

@@ -189,8 +189,8 @@ let
   val bnd_mono =
     Goal.prove_global thy1 [] [] (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs))
       (fn _ => EVERY
-        [rtac (Collect_subset RS bnd_monoI) 1,
-         REPEAT (ares_tac (basic_monos @ monos) 1)]);
+        [rtac (@{thm Collect_subset} RS @{thm bnd_monoI}) 1,
+         REPEAT (ares_tac (@{thms basic_monos} @ monos) 1)]);
 
   val dom_subset = standard (big_rec_def RS Fp.subs);
 
@@ -204,19 +204,19 @@ let
   val Part_trans =
       case rec_names of
            [_] => asm_rl
-         | _   => standard (Part_subset RS subset_trans);
+         | _   => standard (@{thm Part_subset} RS @{thm subset_trans});
 
   (*To type-check recursive occurrences of the inductive sets, possibly
     enclosed in some monotonic operator M.*)
   val rec_typechecks =
      [dom_subset] RL (asm_rl :: ([Part_trans] RL monos))
-     RL [subsetD];
+     RL [@{thm subsetD}];
 
   (*Type-checking is hardest aspect of proof;
     disjIn selects the correct disjunct after unfolding*)
   fun intro_tacsf disjIn =
     [DETERM (stac unfold 1),
-     REPEAT (resolve_tac [Part_eqI,CollectI] 1),
+     REPEAT (resolve_tac [@{thm Part_eqI}, @{thm CollectI}] 1),
      (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
      rtac disjIn 2,
      (*Not ares_tac, since refl must be tried before equality assumptions;
@@ -229,12 +229,12 @@ let
      if !Ind_Syntax.trace then print_tac "The type-checking subgoal:"
      else all_tac,
      REPEAT (FIRSTGOAL (        dresolve_tac rec_typechecks
-                        ORELSE' eresolve_tac (asm_rl::PartE::SigmaE2::
+                        ORELSE' eresolve_tac (asm_rl::@{thm PartE}::@{thm SigmaE2}::
                                               type_elims)
                         ORELSE' hyp_subst_tac)),
      if !Ind_Syntax.trace then print_tac "The subgoal after monos, type_elims:"
      else all_tac,
-     DEPTH_SOLVE (swap_res_tac (SigmaI::subsetI::type_intrs) 1)];
+     DEPTH_SOLVE (swap_res_tac (@{thm SigmaI}::@{thm subsetI}::type_intrs) 1)];
 
   (*combines disjI1 and disjI2 to get the corresponding nested disjunct...*)
   val mk_disj_rls = BalancedTree.accesses
@@ -341,12 +341,12 @@ let
             rtac (impI RS allI) 1,
             DETERM (etac raw_induct 1),
             (*Push Part inside Collect*)
-            full_simp_tac (min_ss addsimps [Part_Collect]) 1,
+            full_simp_tac (min_ss addsimps [@{thm Part_Collect}]) 1,
             (*This CollectE and disjE separates out the introduction rules*)
-            REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE])),
+            REPEAT (FIRSTGOAL (eresolve_tac [@{thm CollectE}, disjE])),
             (*Now break down the individual cases.  No disjE here in case
               some premise involves disjunction.*)
-            REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE]
+            REPEAT (FIRSTGOAL (eresolve_tac [@{thm CollectE}, exE, conjE]
                                ORELSE' bound_hyp_subst_tac)),
             ind_tac (rev (map (rewrite_rule part_rec_defs) prems)) (length prems)]);
 
@@ -409,8 +409,8 @@ let
              else ();
 
 
-     val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, PartE, mp],
-                             resolve_tac [allI, impI, conjI, Part_eqI],
+     val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, @{thm PartE}, mp],
+                             resolve_tac [allI, impI, conjI, @{thm Part_eqI}],
                              dresolve_tac [spec, mp, Pr.fsplitD]];
 
      val need_mutual = length rec_names > 1;
@@ -445,8 +445,8 @@ let
        where t==Part(tf,Inl) and f==Part(tf,Inr) to  list({v: tf. P_t(v)}).
        Instead the following rules extract the relevant conjunct.
      *)
-     val cmonos = [subset_refl RS Collect_mono] RL monos
-                   RLN (2,[rev_subsetD]);
+     val cmonos = [@{thm subset_refl} RS @{thm Collect_mono}] RL monos
+                   RLN (2,[@{thm rev_subsetD}]);
 
      (*Minimizes backtracking by delivering the correct premise to each goal*)
      fun mutual_ind_tac [] 0 = all_tac
@@ -458,7 +458,7 @@ let
                   using freeness of the Sum constructors; proves all but one
                   conjunct by contradiction*)
                 rewrite_goals_tac all_defs  THEN
-                simp_tac (mut_ss addsimps [Part_iff]) 1  THEN
+                simp_tac (mut_ss addsimps [@{thm Part_iff}]) 1  THEN
                 IF_UNSOLVED (*simp_tac may have finished it off!*)
                   ((*simplify assumptions*)
                    (*some risk of excessive simplification here -- might have

@@ -33,8 +33,8 @@ primrec "ve_dom(ve_mk(m)) = domain(m)"
 
 primrec "ve_app(ve_mk(m), a) = map_app(m,a)"
 
-constdefs
-  ve_emp :: i
+definition
+  ve_emp :: i  where
    "ve_emp == ve_mk(map_emp)"
 
 
