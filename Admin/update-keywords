@@ -5,10 +5,28 @@
 #
 # DESCRIPTION: Update standard keyword files.
 
-cd "$(isatool getenv -b ISABELLE_HOME)"/etc
+ISABELLE_HOME="$(isatool getenv -b ISABELLE_HOME)"
 LOG="$(isatool getenv -b ISABELLE_OUTPUT)"/log
 
-isatool keywords "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" "$LOG/IOA.gz"
-isatool keywords -k HOL-Nominal "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOL-Nominal.gz"
-isatool keywords -k ZF "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"
+
+## Emacs ProofGeneral
+
+cd "$ISABELLE_HOME/etc"
+
+isatool keywords -t emacs \
+  "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" "$LOG/IOA.gz"
+
+isatool keywords -t emacs -k HOL-Nominal \
+  "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOL-Nominal.gz"
+
+isatool keywords -t emacs -k ZF \
+  "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"
+
+
+## jEdit
+
+cd "$ISABELLE_HOME/lib/jedit"
+
+isatool keywords -t jedit \
+  "$LOG/Pure.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" "$LOG/IOA.gz" "$LOG/HOL-Nominal.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"
 
