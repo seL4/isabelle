@@ -1374,6 +1374,8 @@ This simplifies use of multiple Isabelle installations.
 operations, notably runtime compilation and evaluation of ML source
 code.
 
+* Basic Isabelle mode for jEdit, see Isabelle/lib/jedit/.
+
 * Support for parallel execution, using native multicore support of
 Poly/ML 5.1.  The theory loader exploits parallelism when processing
 independent theories, according to the given theory header
