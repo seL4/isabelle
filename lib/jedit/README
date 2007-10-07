@@ -1,0 +1,22 @@
+Basic Isabelle mode for jEdit -- http://www.jedit.org/
+======================================================
+
+INSTALLATION
+
+1) Copy or symlink [ISABELLE_HOME]/lib/jedit/isabelle.xml to
+[JEDIT_SETTINGS]/modes/
+
+2) Add the following entry [JEDIT_SETTINGS]/modes/catalog
+
+<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>
+
+Example catalog file:
+
+<?xml version="1.0"?>
+<!DOCTYPE MODES SYSTEM "catalog.dtd">
+<MODES>
+  <MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>
+</MODES>
+
+:mode=text:wrap=hard:maxLineLen=72:
+$Id$
