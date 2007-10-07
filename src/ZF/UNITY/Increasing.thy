@@ -23,11 +23,9 @@ constdefs
     {F \<in> program. (\<forall>k \<in> A. F \<in> Stable({s \<in> state. <k, f(s)> \<in> r})) &
                 (\<forall>x \<in> state. f(x):A)}"
 
-syntax
-  IncWrt ::  "[i=>i, i, i] => i" ("(_ IncreasingWrt _ '/ _)" [60, 0, 60] 60)
-
-translations
-  "IncWrt(f,r,A)" => "Increasing[A](r,f)"
+abbreviation (input)
+  IncWrt ::  "[i=>i, i, i] => i" ("(_ IncreasingWrt _ '/ _)" [60, 0, 60] 60)  where
+  "f IncreasingWrt r/A == Increasing[A](r,f)"
 
 
 (** increasing **)

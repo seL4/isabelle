@@ -9,14 +9,13 @@ Charpentier and Chandy, section 7 (page 17).
 
 theory AllocImpl imports ClientImpl begin
 
-consts
+abbreviation
+  NbR :: i            (*number of consumed messages*)  where
+  "NbR == Var([succ(2)])"
 
-  NbR :: i            (*number of consumed messages*)
-  available_tok :: i  (*number of free tokens (T in paper)*)
-
-translations
-  "NbR" == "Var([succ(2)])"
-  "available_tok" == "Var([succ(succ(2))])"
+abbreviation
+  available_tok :: i  (*number of free tokens (T in paper)*)  where
+  "available_tok == Var([succ(succ(2))])"
 
 axioms
   alloc_type_assumes [simp]:

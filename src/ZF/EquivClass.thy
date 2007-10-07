@@ -21,14 +21,15 @@ constdefs
       "congruent2(r1,r2,b) == ALL y1 z1 y2 z2.
            <y1,z1>:r1 --> <y2,z2>:r2 --> b(y1,y2) = b(z1,z2)"
 
-syntax
-  RESPECTS ::"[i=>i, i] => o"  (infixr "respects" 80)
-  RESPECTS2 ::"[i=>i, i] => o"  (infixr "respects2 " 80)
+abbreviation
+  RESPECTS ::"[i=>i, i] => o"  (infixr "respects" 80) where
+  "f respects r == congruent(r,f)"
+
+abbreviation
+  RESPECTS2 ::"[i=>i=>i, i] => o"  (infixr "respects2 " 80) where
+  "f respects2 r == congruent2(r,r,f)"
     --{*Abbreviation for the common case where the relations are identical*}
 
-translations
-  "f respects r" == "congruent(r,f)"
-  "f respects2 r" => "congruent2(r,r,f)"
 
 subsection{*Suppes, Theorem 70:
     @{term r} is an equiv relation iff @{term "converse(r) O r = r"}*}

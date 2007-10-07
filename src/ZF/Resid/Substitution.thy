@@ -7,27 +7,11 @@
 
 theory Substitution imports Redex begin
 
-consts
-  lift_aux      :: "i=>i"
-  lift          :: "i=>i"
-  subst_aux     :: "i=>i"
-  subst         :: "[i,i]=>i"  (infixl "'/" 70)
-
-constdefs
-  lift_rec      :: "[i,i]=> i"
-    "lift_rec(r,k) == lift_aux(r)`k"
-
-  subst_rec     :: "[i,i,i]=> i"	(**NOTE THE ARGUMENT ORDER BELOW**)
-    "subst_rec(u,r,k) == subst_aux(r)`u`k"
-
-translations
-  "lift(r)"  == "lift_rec(r,0)"
-  "u/v"      == "subst_rec(u,v,0)"
-  
-
 (** The clumsy _aux functions are required because other arguments vary
     in the recursive calls ***)
 
+consts
+  lift_aux      :: "i=>i"
 primrec
   "lift_aux(Var(i)) = (\<lambda>k \<in> nat. if i<k then Var(i) else Var(succ(i)))"
 
@@ -35,17 +19,35 @@ primrec
 
   "lift_aux(App(b,f,a)) = (\<lambda>k \<in> nat. App(b, lift_aux(f)`k, lift_aux(a)`k))"
 
+constdefs
+  lift_rec      :: "[i,i]=> i"
+    "lift_rec(r,k) == lift_aux(r)`k"
 
-  
+abbreviation
+  lift :: "i=>i" where
+  "lift(r) == lift_rec(r,0)"
+
+
+consts
+  subst_aux     :: "i=>i"
 primrec
   "subst_aux(Var(i)) =
-     (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. if k<i then Var(i #- 1) 
+     (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. if k<i then Var(i #- 1)
 				else if k=i then r else Var(i))"
   "subst_aux(Fun(t)) =
      (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. Fun(subst_aux(t) ` lift(r) ` succ(k)))"
 
-  "subst_aux(App(b,f,a)) = 
+  "subst_aux(App(b,f,a)) =
      (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. App(b, subst_aux(f)`r`k, subst_aux(a)`r`k))"
+
+constdefs
+  subst_rec     :: "[i,i,i]=> i"	(**NOTE THE ARGUMENT ORDER BELOW**)
+    "subst_rec(u,r,k) == subst_aux(r)`u`k"
+
+abbreviation
+  subst :: "[i,i]=>i"  (infixl "'/" 70)  where
+  "u/v == subst_rec(u,v,0)"
+
 
 
 (* ------------------------------------------------------------------------- *)
@@ -100,8 +102,8 @@ by (simp add: lift_rec_def)
 (* ------------------------------------------------------------------------- *)
 
 lemma subst_Var:
-     "[|k \<in> nat; u \<in> redexes|]   
-      ==> subst_rec(u,Var(i),k) =   
+     "[|k \<in> nat; u \<in> redexes|]
+      ==> subst_rec(u,Var(i),k) =
           (if k<i then Var(i #- 1) else if k=i then u else Var(i))"
 by (simp add: subst_rec_def gt_not_eq leI)
 
@@ -148,8 +150,8 @@ done
 
 (*The i\<in>nat is redundant*)
 lemma lift_lift_rec [rule_format]:
-     "u \<in> redexes 
-      ==> \<forall>n \<in> nat. \<forall>i \<in> nat. i\<le>n -->    
+     "u \<in> redexes
+      ==> \<forall>n \<in> nat. \<forall>i \<in> nat. i\<le>n -->
            (lift_rec(lift_rec(u,i),succ(n)) = lift_rec(lift_rec(u,n),i))"
 apply (erule redexes.induct, auto)
 apply (case_tac "n < i")
@@ -158,7 +160,7 @@ apply (simp_all add: lift_rec_Var leI)
 done
 
 lemma lift_lift:
-     "[|u \<in> redexes; n \<in> nat|] 
+     "[|u \<in> redexes; n \<in> nat|]
       ==> lift_rec(lift(u),succ(n)) = lift(lift_rec(u,n))"
 by (simp add: lift_lift_rec)
 
@@ -166,13 +168,13 @@ lemma lt_not_m1_lt: "\<lbrakk>m < n; n \<in> nat; m \<in> nat\<rbrakk>\<Longrigh
 by (erule natE, auto)
 
 lemma lift_rec_subst_rec [rule_format]:
-     "v \<in> redexes ==>   
-       \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. n\<le>m--> 
-          lift_rec(subst_rec(u,v,n),m) =  
+     "v \<in> redexes ==>
+       \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. n\<le>m-->
+          lift_rec(subst_rec(u,v,n),m) =
                subst_rec(lift_rec(u,m),lift_rec(v,succ(m)),n)"
 apply (erule redexes.induct, simp_all (no_asm_simp) add: lift_lift)
 apply safe
-apply (rename_tac n n' m u) 
+apply (rename_tac n n' m u)
 apply (case_tac "n < n'")
  apply (frule_tac j = n' in lt_trans2, assumption)
  apply (simp add: leI, simp)
@@ -182,19 +184,19 @@ done
 
 
 lemma lift_subst:
-     "[|v \<in> redexes; u \<in> redexes; n \<in> nat|] 
+     "[|v \<in> redexes; u \<in> redexes; n \<in> nat|]
       ==> lift_rec(u/v,n) = lift_rec(u,n)/lift_rec(v,succ(n))"
 by (simp add: lift_rec_subst_rec)
 
 
 lemma lift_rec_subst_rec_lt [rule_format]:
-     "v \<in> redexes ==>   
-       \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. m\<le>n--> 
-          lift_rec(subst_rec(u,v,n),m) =  
+     "v \<in> redexes ==>
+       \<forall>n \<in> nat. \<forall>m \<in> nat. \<forall>u \<in> redexes. m\<le>n-->
+          lift_rec(subst_rec(u,v,n),m) =
                subst_rec(lift_rec(u,m),lift_rec(v,m),succ(n))"
 apply (erule redexes.induct, simp_all (no_asm_simp) add: lift_lift)
 apply safe
-apply (rename_tac n n' m u) 
+apply (rename_tac n n' m u)
 apply (case_tac "n < n'")
 apply (case_tac "n < m")
 apply (simp_all add: leI)
@@ -205,20 +207,20 @@ done
 
 
 lemma subst_rec_lift_rec [rule_format]:
-     "u \<in> redexes ==>   
+     "u \<in> redexes ==>
         \<forall>n \<in> nat. \<forall>v \<in> redexes. subst_rec(v,lift_rec(u,n),n) = u"
 apply (erule redexes.induct, auto)
 apply (case_tac "n < na", auto)
 done
 
 lemma subst_rec_subst_rec [rule_format]:
-     "v \<in> redexes ==>   
-        \<forall>m \<in> nat. \<forall>n \<in> nat. \<forall>u \<in> redexes. \<forall>w \<in> redexes. m\<le>n -->  
-	  subst_rec(subst_rec(w,u,n),subst_rec(lift_rec(w,m),v,succ(n)),m) = 
+     "v \<in> redexes ==>
+        \<forall>m \<in> nat. \<forall>n \<in> nat. \<forall>u \<in> redexes. \<forall>w \<in> redexes. m\<le>n -->
+	  subst_rec(subst_rec(w,u,n),subst_rec(lift_rec(w,m),v,succ(n)),m) =
 	  subst_rec(w,subst_rec(u,v,m),n)"
 apply (erule redexes.induct)
 apply (simp_all add: lift_lift [symmetric] lift_rec_subst_rec_lt, safe)
-apply (rename_tac n' u w) 
+apply (rename_tac n' u w)
 apply (case_tac "n \<le> succ(n') ")
  apply (erule_tac i = n in leE)
  apply (simp_all add: succ_pred subst_rec_lift_rec leI)
@@ -231,7 +233,7 @@ apply (case_tac "n \<le> succ(n') ")
 apply (frule nat_into_Ord [THEN le_refl, THEN lt_trans], assumption)
 apply (erule leE)
  apply (frule succ_leI [THEN lt_trans], assumption)
- apply (frule_tac i = m in nat_into_Ord [THEN le_refl, THEN lt_trans], 
+ apply (frule_tac i = m in nat_into_Ord [THEN le_refl, THEN lt_trans],
         assumption)
  apply (simp_all add: succ_pred lt_pred)
 done
@@ -254,9 +256,9 @@ lemma lift_rec_preserve_comp [rule_format, simp]:
 by (erule Scomp.induct, simp_all add: comp_refl)
 
 lemma subst_rec_preserve_comp [rule_format, simp]:
-     "u2 ~ v2 ==> \<forall>m \<in> nat. \<forall>u1 \<in> redexes. \<forall>v1 \<in> redexes. 
+     "u2 ~ v2 ==> \<forall>m \<in> nat. \<forall>u1 \<in> redexes. \<forall>v1 \<in> redexes.
                   u1 ~ v1--> subst_rec(u1,u2,m) ~ subst_rec(v1,v2,m)"
-by (erule Scomp.induct, 
+by (erule Scomp.induct,
     simp_all add: subst_Var lift_rec_preserve_comp comp_refl)
 
 lemma lift_rec_preserve_reg [simp]:
@@ -264,7 +266,7 @@ lemma lift_rec_preserve_reg [simp]:
 by (erule Sreg.induct, simp_all add: lift_rec_Var)
 
 lemma subst_rec_preserve_reg [simp]:
-     "regular(v) ==>   
+     "regular(v) ==>
         \<forall>m \<in> nat. \<forall>u \<in> redexes. regular(u)-->regular(subst_rec(u,v,m))"
 by (erule Sreg.induct, simp_all add: subst_Var lift_rec_preserve_reg)
 

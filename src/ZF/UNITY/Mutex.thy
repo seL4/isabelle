@@ -15,27 +15,19 @@ Variables' types are introduced globally so that type verification reduces to
 the usual ZF typechecking: an ill-tyed expressions reduce to the empty set.
 *}
 
-consts
-  p :: i
-  m :: i
-  n :: i
-  u :: i
-  v :: i
-  
-translations
-  "p" == "Var([0])"
-  "m" == "Var([1])"
-  "n" == "Var([0,0])"
-  "u" == "Var([0,1])"
-  "v" == "Var([1,0])"
-  
+abbreviation "p == Var([0])"
+abbreviation "m == Var([1])"
+abbreviation "n == Var([0,0])"
+abbreviation "u == Var([0,1])"
+abbreviation "v == Var([1,0])"
+
 axioms --{** Type declarations  **}
   p_type:  "type_of(p)=bool & default_val(p)=0"
   m_type:  "type_of(m)=int  & default_val(m)=#0"
   n_type:  "type_of(n)=int  & default_val(n)=#0"
   u_type:  "type_of(u)=bool & default_val(u)=0"
   v_type:  "type_of(v)=bool & default_val(v)=0"
-  
+
 constdefs
   (** The program for process U **)
    U0 :: i
@@ -53,9 +45,9 @@ constdefs
   U4 :: i
     "U4 == {<s,t>:state*state. t = s(p:=1, m:=#0) & s`m = #4}"
 
-  
+
    (** The program for process V **)
-  
+
   V0 :: i
     "V0 == {<s,t>:state*state. t = s (v:=1, n:=#1) & s`n = #0}"
 
@@ -180,18 +172,18 @@ declare  IV_def [THEN def_set_simp, simp]
 declare  bad_IU_def [THEN def_set_simp, simp]
 
 lemma IU: "Mutex \<in> Always(IU)"
-apply (rule AlwaysI, force) 
-apply (unfold Mutex_def, safety, auto) 
+apply (rule AlwaysI, force)
+apply (unfold Mutex_def, safety, auto)
 done
 
 lemma IV: "Mutex \<in> Always(IV)"
-apply (rule AlwaysI, force) 
-apply (unfold Mutex_def, safety) 
+apply (rule AlwaysI, force)
+apply (unfold Mutex_def, safety)
 done
 
 (*The safety property: mutual exclusion*)
 lemma mutual_exclusion: "Mutex \<in> Always({s \<in> state. ~(s`m = #3 & s`n = #3)})"
-apply (rule Always_weaken) 
+apply (rule Always_weaken)
 apply (rule Always_Int_I [OF IU IV], auto)
 done
 
@@ -203,13 +195,13 @@ apply (drule_tac [2] j = x in zle_zless_trans, auto)
 done
 
 lemma "Mutex \<in> Always(bad_IU)"
-apply (rule AlwaysI, force) 
+apply (rule AlwaysI, force)
 apply (unfold Mutex_def, safety, auto)
 apply (subgoal_tac "#1 $<= #3")
 apply (drule_tac x = "#1" and y = "#3" in zle_trans, auto)
 apply (simp (no_asm) add: not_zless_iff_zle [THEN iff_sym])
 apply auto
-(*Resulting state: n=1, p=false, m=4, u=false.  
+(*Resulting state: n=1, p=false, m=4, u=false.
   Execution of V1 (the command of process v guarded by n=1) sets p:=true,
   violating the invariant!*)
 oops
@@ -291,7 +283,7 @@ done
 lemma V_lemma2: "Mutex \<in> {s \<in> state. s`n = #2} LeadsTo {s \<in> state. s`p=0}"
 apply (rule LeadsTo_Diff [OF LeadsTo_weaken_L
                              Int_lower2 [THEN subset_imp_LeadsTo]])
-apply (rule LeadsTo_Trans [OF V_F2 V_F3], auto) 
+apply (rule LeadsTo_Trans [OF V_F2 V_F3], auto)
 apply (auto dest!: p_value_type simp add: bool_def)
 done
 

@@ -42,10 +42,9 @@ primrec
   "ACK(0) = SC"
   "ACK(succ(i)) = PREC (CONSTANT (ACK(i) ` [1]), COMP(ACK(i), [PROJ(0)]))"
 
-syntax
-  ack :: "[i,i]=>i"
-translations
-  "ack(x,y)" == "ACK(x) ` [y]"
+abbreviation
+  ack :: "[i,i]=>i" where
+  "ack(x,y) == ACK(x) ` [y]"
 
 
 text {*

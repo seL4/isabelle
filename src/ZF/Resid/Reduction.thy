@@ -12,10 +12,10 @@ theory Reduction imports Residuals begin
 consts
   lambda        :: "i"
   unmark        :: "i=>i"
-  Apl           :: "[i,i]=>i"
 
-translations
-  "Apl(n,m)" == "App(0,n,m)"
+abbreviation
+  Apl :: "[i,i]=>i" where
+  "Apl(n,m) == App(0,n,m)"
   
 inductive
   domains       "lambda" <= redexes

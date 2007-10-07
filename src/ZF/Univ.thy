@@ -17,9 +17,9 @@ constdefs
   Vfrom       :: "[i,i]=>i"
     "Vfrom(A,i) == transrec(i, %x f. A Un (\<Union>y\<in>x. Pow(f`y)))"
 
-syntax   Vset :: "i=>i"
-translations
-    "Vset(x)"   ==      "Vfrom(0,x)"
+abbreviation
+  Vset :: "i=>i" where
+  "Vset(x) == Vfrom(0,x)"
 
 
 constdefs

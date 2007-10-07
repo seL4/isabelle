@@ -9,13 +9,13 @@ header{*Booleans in Zermelo-Fraenkel Set Theory*}
 
 theory Bool imports pair begin
 
-syntax
-    "1"         :: i             ("1")
-    "2"         :: i             ("2")
+abbreviation
+  one  ("1") where
+  "1 == succ(0)"
 
-translations
-   "1"  == "succ(0)"
-   "2"  == "succ(1)"
+abbreviation
+  two  ("2") where
+  "2 == succ(1)"
 
 text{*2 is equal to bool, but is used as a number rather than a type.*}
 
@@ -60,7 +60,7 @@ lemmas one_neq_0 = one_not_0 [THEN notE, standard]
 
 lemma boolE:
     "[| c: bool;  c=1 ==> P;  c=0 ==> P |] ==> P"
-by (simp add: bool_defs, blast)  
+by (simp add: bool_defs, blast)
 
 (** cond **)
 
@@ -134,7 +134,7 @@ by (elim boolE, auto)
 lemma and_assoc: "a: bool ==> (a and b) and c  =  a and (b and c)"
 by (elim boolE, auto)
 
-lemma and_or_distrib: "[| a: bool; b:bool; c:bool |] ==>  
+lemma and_or_distrib: "[| a: bool; b:bool; c:bool |] ==>
        (a or b) and c  =  (a and c) or (b and c)"
 by (elim boolE, auto)
 
@@ -149,7 +149,7 @@ by (elim boolE, auto)
 lemma or_assoc: "a: bool ==> (a or b) or c  =  a or (b or c)"
 by (elim boolE, auto)
 
-lemma or_and_distrib: "[| a: bool; b: bool; c: bool |] ==>  
+lemma or_and_distrib: "[| a: bool; b: bool; c: bool |] ==>
            (a and b) or c  =  (a or c) and (b or c)"
 by (elim boolE, auto)
 
@@ -158,19 +158,19 @@ constdefs bool_of_o :: "o=>i"
    "bool_of_o(P) == (if P then 1 else 0)"
 
 lemma [simp]: "bool_of_o(True) = 1"
-by (simp add: bool_of_o_def) 
+by (simp add: bool_of_o_def)
 
 lemma [simp]: "bool_of_o(False) = 0"
-by (simp add: bool_of_o_def) 
+by (simp add: bool_of_o_def)
 
 lemma [simp,TC]: "bool_of_o(P) \<in> bool"
-by (simp add: bool_of_o_def) 
+by (simp add: bool_of_o_def)
 
 lemma [simp]: "(bool_of_o(P) = 1) <-> P"
-by (simp add: bool_of_o_def) 
+by (simp add: bool_of_o_def)
 
 lemma [simp]: "(bool_of_o(P) = 0) <-> ~P"
-by (simp add: bool_of_o_def) 
+by (simp add: bool_of_o_def)
 
 ML
 {*

@@ -10,11 +10,13 @@ header{*Common declarations for Chandy and Charpentier's Allocator*}
 theory AllocBase imports Follows MultisetSum Guar begin
 
 consts
-  tokbag   :: i  (* tokbags could be multisets...or any ordered type?*)
   NbT      :: i  (* Number of tokens in system *)
   Nclients :: i  (* Number of clients *)
 
-translations "tokbag" => "nat" 
+abbreviation (input)
+  tokbag   :: i  (* tokbags could be multisets...or any ordered type?*)
+where
+  "tokbag == nat"
 
 axioms
   NbT_pos:      "NbT \<in> nat-{0}"

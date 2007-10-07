@@ -6,20 +6,12 @@
 Distributed Resource Management System:  Client Implementation
 *)
 
-
 theory ClientImpl imports AllocBase Guar begin
 
-consts
-  ask :: i (* input history:  tokens requested *)
-  giv :: i (* output history: tokens granted *)
-  rel :: i (* input history: tokens released *)
-  tok :: i (* the number of available tokens *)
-
-translations
-  "ask" == "Var(Nil)"
-  "giv" == "Var([0])"
-  "rel" == "Var([1])"
-  "tok" == "Var([2])"
+abbreviation "ask == Var(Nil)" (* input history:  tokens requested *)
+abbreviation "giv == Var([0])" (* output history: tokens granted *)
+abbreviation "rel == Var([1])" (* input history: tokens released *)
+abbreviation "tok == Var([2])" (* the number of available tokens *)
 
 axioms
   type_assumes:

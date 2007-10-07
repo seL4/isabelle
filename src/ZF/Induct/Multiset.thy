@@ -12,11 +12,10 @@ theory Multiset
 imports FoldSet Acc
 begin
 
-consts
-  (* Short cut for multiset space *)
-  Mult :: "i=>i"
-translations
-  "Mult(A)" => "A -||> nat-{0}"
+abbreviation (input)
+  -- {* Short cut for multiset space *}
+  Mult :: "i=>i" where
+  "Mult(A) == A -||> nat-{0}"
 
 constdefs
 
@@ -64,15 +63,15 @@ constdefs
   msize :: "i => i"
   "msize(M) == setsum(%a. $# mcount(M,a), mset_of(M))"
 
-syntax
-  melem :: "[i,i] => o"    ("(_/ :# _)" [50, 51] 50)
-  "@MColl" :: "[pttrn, i, o] => i" ("(1{# _ : _./ _#})")
+abbreviation
+  melem :: "[i,i] => o"    ("(_/ :# _)" [50, 51] 50)  where
+  "a :# M == a \<in> mset_of(M)"
 
+syntax
+  "@MColl" :: "[pttrn, i, o] => i" ("(1{# _ : _./ _#})")
 syntax (xsymbols)
   "@MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
-
 translations
-  "a :# M" == "a \<in> mset_of(M)"
   "{#x \<in> M. P#}" == "MCollect(M, %x. P)"
 
   (* multiset orderings *)
