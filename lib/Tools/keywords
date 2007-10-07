@@ -17,9 +17,9 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -k NAME      specific name of keywords collection (default: empty)"
+  echo "    -t TARGET    target tool (default: emacs)"
   echo
   echo "  Generate outer syntax keyword files from (compressed) session LOGS."
-  echo "  Targets Emacs Proof General."
   echo
   exit 1
 }
@@ -30,12 +30,16 @@ function usage()
 # options
 
 KEYWORDS_NAME=""
+TARGET_TOOL="emacs"
 
-while getopts "k:" OPT
+while getopts "k:t:" OPT
 do
   case "$OPT" in
     k)
       KEYWORDS_NAME="$OPTARG"
+      ;;
+    t)
+      TARGET_TOOL="$OPTARG"
       ;;
     \?)
       usage
@@ -60,12 +64,10 @@ SESSIONS=""
 for LOG in $LOGS
 do
   NAME="$(basename "$LOG" .gz)"
-  if [ "$NAME" != Pure -a "$NAME" != Pure-ProofGeneral ]; then
-    if [ -z "$SESSIONS" ]; then
-      SESSIONS="$NAME"
-    else
-      SESSIONS="$SESSIONS + $NAME"
-    fi
+  if [ -z "$SESSIONS" ]; then
+    SESSIONS="$NAME"
+  else
+    SESSIONS="$SESSIONS + $NAME"
   fi
 done
 
@@ -77,4 +79,5 @@ do
     gzip -dc "$LOG"
   fi
   echo
-done | "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/keywords.pl" "$KEYWORDS_NAME" "$SESSIONS"
+done | \
+"$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/keywords.pl" "$KEYWORDS_NAME" "$TARGET_TOOL" "$SESSIONS"
