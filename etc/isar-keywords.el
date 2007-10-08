@@ -198,6 +198,7 @@
     "sledgehammer"
     "sorry"
     "specification"
+    "subclass"
     "subsect"
     "subsection"
     "subsubsect"
@@ -506,6 +507,7 @@
     "pcpodef"
     "recdef_tc"
     "specification"
+    "subclass"
     "termination"
     "theorem"
     "typedef"))

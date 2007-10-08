@@ -159,6 +159,7 @@
     "show"
     "simproc_setup"
     "sorry"
+    "subclass"
     "subsect"
     "subsection"
     "subsubsect"
@@ -407,6 +408,7 @@
     "instance_proof"
     "interpretation"
     "lemma"
+    "subclass"
     "theorem"))
 
 (defconst isar-keywords-qed
