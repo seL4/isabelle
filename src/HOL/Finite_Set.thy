@@ -2622,11 +2622,11 @@ lemma card_code [code func]:
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
 class finite (attach UNIV) = type +
-  assumes finite_UNIV: "finite UNIV"
+  assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
 setup {* Sign.parent_path *}
 hide const finite
 
-lemma finite [simp]: "finite (A::'a::finite set)"
+lemma finite [simp]: "finite (A \<Colon> 'a\<Colon>finite set)"
   by (rule finite_subset [OF subset_UNIV finite_UNIV])
 
 lemma univ_unit [noatp]:
@@ -2709,13 +2709,14 @@ subsection {* Equality and order on functions *}
 instance "fun" :: (finite, eq) eq ..
 
 lemma eq_fun [code func]:
-  "f = g \<longleftrightarrow> (\<forall>x\<Colon>'a\<Colon>finite \<in> UNIV. (f x \<Colon> 'b\<Colon>eq) = g x)"
+  fixes f g :: "'a\<Colon>finite \<Rightarrow> 'b\<Colon>eq"
+  shows "f = g \<longleftrightarrow> (\<forall>x\<in>UNIV. f x = g x)"
   unfolding expand_fun_eq by auto
 
 lemma order_fun [code func]:
-  "f \<le> g \<longleftrightarrow> (\<forall>x\<Colon>'a\<Colon>finite \<in> UNIV. (f x \<Colon> 'b\<Colon>order) \<le> g x)"
-  "f < g \<longleftrightarrow> f \<le> g \<and> (\<exists>x\<Colon>'a\<Colon>finite \<in> UNIV. (f x \<Colon> 'b\<Colon>order) < g x)"
-  unfolding le_fun_def less_fun_def less_le
-  by (auto simp add: expand_fun_eq)
+  fixes f g :: "'a\<Colon>finite \<Rightarrow> 'b\<Colon>order"
+  shows "f \<le> g \<longleftrightarrow> (\<forall>x\<in>UNIV. f x \<le> g x)"
+    and "f < g \<longleftrightarrow> f \<le> g \<and> (\<exists>x\<in>UNIV. f x \<noteq> g x)"
+  by (auto simp add: expand_fun_eq le_fun_def less_fun_def order_less_le)
 
 end
