@@ -215,9 +215,9 @@ fun infer_types ctxt =
                        else error ("Constant " ^ c ^ " expects " ^ Int.toString ntyargs ^
                                    " but gets " ^ Int.toString (length tys) ^
                                    " type arguments\n" ^
-                                   space_implode "\n" (map (ProofContext.string_of_typ ctxt) tys) ^
+                                   space_implode "\n" (map (Syntax.string_of_typ ctxt) tys) ^
                                    " the terms are \n" ^
-                                   space_implode "\n" (map (ProofContext.string_of_term ctxt) (terms_of tts)))
+                                   space_implode "\n" (map (Syntax.string_of_term ctxt) (terms_of tts)))
                        end
                 | NONE => (*Not a constant. Is it a type constructor?*)
               case Recon.strip_prefix ResClause.tconst_prefix a of
@@ -236,11 +236,11 @@ fun infer_types ctxt =
   fun fol_terms_to_hol ctxt fol_tms =
     let val ts = map (fol_term_to_hol_RAW ctxt) fol_tms
         val _ = Output.debug (fn () => "  calling type inference:")
-        val _ = app (fn t => Output.debug (fn () => ProofContext.string_of_term ctxt t)) ts
+        val _ = app (fn t => Output.debug (fn () => Syntax.string_of_term ctxt t)) ts
         val ts' = infer_types ctxt ts;
         val _ = app (fn t => Output.debug
-                      (fn () => "  final term: " ^ ProofContext.string_of_term ctxt t ^
-                                "  of type  " ^ ProofContext.string_of_typ ctxt (type_of t)))
+                      (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
+                                "  of type  " ^ Syntax.string_of_typ ctxt (type_of t)))
                     ts'
     in  ts'  end;
 
@@ -338,7 +338,7 @@ fun inst_excluded_middle th thy i_atm =
       else
         let
           val i_atm = singleton (fol_terms_to_hol ctxt) (Metis.Term.Fn atm)
-          val _ = Output.debug (fn () => "  atom: " ^ ProofContext.string_of_term ctxt i_atm)
+          val _ = Output.debug (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atm)
           val prems_th1 = prems_of i_th1
           val prems_th2 = prems_of i_th2
           val index_th1 = get_index (mk_not i_atm) prems_th1
@@ -373,10 +373,11 @@ fun inst_excluded_middle th thy i_atm =
                   val adjustment = get_ty_arg_size thy tm1
                   val p' = if adjustment > p then p else p-adjustment
                   val tm_p = List.nth(args,p')
-                    handle Subscript => error ("equality_inf: " ^ Int.toString p ^ " adj " ^ Int.toString adjustment  ^ " term " ^  ProofContext.string_of_term ctxt tm)
+                    handle Subscript => error ("equality_inf: " ^ Int.toString p ^ " adj " ^
+                      Int.toString adjustment  ^ " term " ^  Syntax.string_of_term ctxt tm)
               in
                   Output.debug (fn () => "path_finder: " ^ Int.toString p ^
-                                        "  " ^ ProofContext.string_of_term ctxt tm_p);
+                                        "  " ^ Syntax.string_of_term ctxt tm_p);
                   if null ps   (*FIXME: why not use pattern-matching and avoid repetition*)
                   then (tm_p, list_comb (tm1, replace_item_list (Term.Bound 0) p' args))
                   else let val (r,t) = path_finder_FO tm_p ps
@@ -398,9 +399,9 @@ fun inst_excluded_middle th thy i_atm =
           | path_finder_lit tm_a idx = path_finder isFO tm_a idx
         val (tm_subst, body) = path_finder_lit i_atm fp
         val tm_abs = Term.Abs("x", Term.type_of tm_subst, body)
-        val _ = Output.debug (fn () => "abstraction: " ^ ProofContext.string_of_term ctxt tm_abs)
-        val _ = Output.debug (fn () => "i_tm: " ^ ProofContext.string_of_term ctxt i_tm)
-        val _ = Output.debug (fn () => "located term: " ^ ProofContext.string_of_term ctxt tm_subst)
+        val _ = Output.debug (fn () => "abstraction: " ^ Syntax.string_of_term ctxt tm_abs)
+        val _ = Output.debug (fn () => "i_tm: " ^ Syntax.string_of_term ctxt i_tm)
+        val _ = Output.debug (fn () => "located term: " ^ Syntax.string_of_term ctxt tm_subst)
         val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill typed but gives right max*)
         val subst' = incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
         val _ = Output.debug (fn () => "subst' " ^ string_of_thm subst')

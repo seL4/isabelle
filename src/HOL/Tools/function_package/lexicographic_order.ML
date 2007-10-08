@@ -252,7 +252,7 @@ fun pr_unprovable_subgoals ctxt table =
 
 fun no_order_msg ctxt table tl measure_funs =
     let
-      val prterm = ProofContext.string_of_term ctxt
+      val prterm = Syntax.string_of_term ctxt
       fun pr_fun t i = string_of_int i ^ ") " ^ prterm t
 
       fun pr_goal t i =
@@ -292,7 +292,7 @@ fun lexicographic_order_tac ctxt solve_tac (st: thm) =
       val clean_table = map (fn x => map (nth x) order) table
 
       val relation = mk_measures domT (map (nth measure_funs) order)
-      val _ = writeln ("Found termination order: " ^ quote (ProofContext.string_of_term ctxt relation))
+      val _ = writeln ("Found termination order: " ^ quote (Syntax.string_of_term ctxt relation))
 
     in (* 4: proof reconstruction *)
       st |> (PRIMITIVE (cterm_instantiate [(cterm_of thy rel, cterm_of thy relation)])

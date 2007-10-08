@@ -55,14 +55,14 @@ fun style_binargs ctxt t =
       (Logic.strip_imp_concl t)
   in
     case concl of (_ $ l $ r) => (l, r)
-    | _ => error ("Binary operator expected in term: " ^ ProofContext.string_of_term ctxt concl)
+    | _ => error ("Binary operator expected in term: " ^ Syntax.string_of_term ctxt concl)
   end;
 
 fun style_parm_premise i ctxt t =
   let val prems = Logic.strip_imp_prems t in
     if i <= length prems then nth prems (i - 1)
     else error ("Not enough premises for prem" ^ string_of_int i ^
-      " in propositon: " ^ ProofContext.string_of_term ctxt t)
+      " in propositon: " ^ Syntax.string_of_term ctxt t)
   end;
 
 val _ = Context.add_setup

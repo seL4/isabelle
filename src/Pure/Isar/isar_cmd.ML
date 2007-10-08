@@ -562,7 +562,7 @@ fun string_of_prop state s =
   let
     val ctxt = Proof.context_of state;
     val prop = Syntax.read_prop ctxt s;
-  in Pretty.string_of (Pretty.quote (ProofContext.pretty_term ctxt prop)) end;
+  in Pretty.string_of (Pretty.quote (Syntax.pretty_term ctxt prop)) end;
 
 fun string_of_term state s =
   let
@@ -571,15 +571,15 @@ fun string_of_term state s =
     val T = Term.type_of t;
   in
     Pretty.string_of
-      (Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)])
+      (Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt T)])
   end;
 
 fun string_of_type state s =
   let
     val ctxt = Proof.context_of state;
     val T = ProofContext.read_typ ctxt s;
-  in Pretty.string_of (Pretty.quote (ProofContext.pretty_typ ctxt T)) end;
+  in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt T)) end;
 
 fun print_item string_of (modes, arg) = Toplevel.keep (fn state =>
   PrintMode.with_modes modes (fn () =>

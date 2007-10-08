@@ -656,7 +656,7 @@ in
     (* implemented above, or 'is_split_thm' should be modified to filter it  *)
     (* out                                                                   *)
     | (t, ts) => (
-      warning ("Lin. Arith.: split rule for " ^ ProofContext.string_of_term ctxt t ^
+      warning ("Lin. Arith.: split rule for " ^ Syntax.string_of_term ctxt t ^
                " (with " ^ string_of_int (length ts) ^
                " argument(s)) not implemented; proof reconstruction is likely to fail");
       NONE

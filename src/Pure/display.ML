@@ -146,12 +146,14 @@ val print_syntax = Syntax.print_syntax o Sign.syn_of;
 
 fun pretty_full_theory verbose thy =
   let
-    fun prt_cls c = Sign.pretty_sort thy [c];
-    fun prt_sort S = Sign.pretty_sort thy S;
-    fun prt_arity t (c, (_, Ss)) = Sign.pretty_arity thy (t, Ss, [c]);
-    fun prt_typ ty = Pretty.quote (Sign.pretty_typ thy ty);
+    val ctxt = ProofContext.init thy;
+
+    fun prt_cls c = Syntax.pretty_sort ctxt [c];
+    fun prt_sort S = Syntax.pretty_sort ctxt S;
+    fun prt_arity t (c, (_, Ss)) = Syntax.pretty_arity ctxt (t, Ss, [c]);
+    fun prt_typ ty = Pretty.quote (Syntax.pretty_typ ctxt ty);
     val prt_typ_no_tvars = prt_typ o Logic.unvarifyT;
-    fun prt_term t = Pretty.quote (Sign.pretty_term thy t);
+    fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
     val prt_term_no_vars = prt_term o Logic.unvarify;
     fun prt_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
     val prt_const' = Defs.pretty_const (Sign.pp thy);

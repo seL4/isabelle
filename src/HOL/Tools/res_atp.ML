@@ -960,8 +960,7 @@ fun sledgehammer state =
     val thy = ProofContext.theory_of ctxt;
   in
     Output.debug (fn () => "subgoals in isar_atp:\n" ^
-                  Pretty.string_of (ProofContext.pretty_term ctxt
-                    (Logic.mk_conjunction_list (Thm.prems_of goal))));
+                  Syntax.string_of_term ctxt (Logic.mk_conjunction_list (Thm.prems_of goal)));
     Output.debug (fn () => "current theory: " ^ Context.theory_name thy);
     app (fn th => Output.debug (fn _ => "chained: " ^ string_of_thm th)) chain_ths;
     if !time_limit > 0 then isar_atp (ctxt, chain_ths, goal)

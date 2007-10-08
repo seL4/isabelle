@@ -393,8 +393,8 @@ fun norm_print_term ctxt modes t =
     val t' = norm_term thy t;
     val ty' = Term.type_of t';
     val p = PrintMode.with_modes modes (fn () =>
-      Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt ty')]) ();
+      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt ty')]) ();
   in Pretty.writeln p end;
 
 

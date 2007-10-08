@@ -413,6 +413,8 @@ fun local_syntax thy = #local_syntax o the_class_data thy;
 
 fun print_classes thy =
   let
+    val ctxt = ProofContext.init thy;
+
     val algebra = Sign.classes_of thy;
     val arities =
       Symtab.empty
@@ -423,13 +425,13 @@ fun print_classes thy =
     fun mk_arity class tyco =
       let
         val Ss = Sorts.mg_domain algebra tyco [class];
-      in Sign.pretty_arity thy (tyco, Ss, [class]) end;
+      in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
     fun mk_param (c, ty) = Pretty.str (Sign.extern_const thy c ^ " :: "
-      ^ setmp show_sorts false (Sign.string_of_typ thy o Type.strip_sorts) ty);
+      ^ setmp show_sorts false (Syntax.string_of_typ ctxt o Type.strip_sorts) ty);
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
       (SOME o Pretty.str) ("class " ^ class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
-        (Sign.pretty_sort thy o Sign.minimize_sort thy o Sign.super_classes thy) class],
+        (Syntax.pretty_sort ctxt o Sign.minimize_sort thy o Sign.super_classes thy) class],
       Option.map (Pretty.str o prefix "locale: " o #locale) (lookup_class_data thy class),
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks) (Pretty.str "parameters:" :: ps)) o map mk_param
         o these o Option.map #params o try (AxClass.get_definition thy)) class,

@@ -76,7 +76,7 @@ fun output_named_list pretty src ctxt xs =
     #> space_implode "\\par\\smallskip%\n"
     #> enclose "\\isa{" "}");
 
-fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.revert_skolems ctxt;
+fun pretty_term ctxt = Syntax.pretty_term ctxt o ProofContext.revert_skolems ctxt;
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 in

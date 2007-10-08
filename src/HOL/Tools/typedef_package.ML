@@ -108,7 +108,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val rhs_tfrees = Term.add_tfrees set [];
     val rhs_tfreesT = Term.add_tfreesT setT [];
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
-      error ("Not a set type: " ^ quote (ProofContext.string_of_typ ctxt setT));
+      error ("Not a set type: " ^ quote (Syntax.string_of_typ ctxt setT));
     fun mk_nonempty A =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
     val goal = mk_nonempty set;
@@ -232,7 +232,7 @@ local
 
 fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
   let
-    val string_of_term = ProofContext.string_of_term (ProofContext.init thy);
+    val string_of_term = Sign.string_of_term thy;
     val name = the_default (#1 typ) opt_name;
     val (set, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;

@@ -148,7 +148,8 @@ fun map_instances f = AxClassData.map (apsnd f);
 fun the_classrel thy (c1, c2) =
   (case AList.lookup (op =) (#1 (get_instances thy)) (c1, c2) of
     SOME th => Thm.transfer thy th
-  | NONE => error ("Unproven class relation " ^ Sign.string_of_classrel thy [c1, c2]));
+  | NONE => error ("Unproven class relation " ^
+      Syntax.string_of_classrel (ProofContext.init thy) [c1, c2]));
 
 fun put_classrel arg = map_instances (fn (classrel, arities) =>
   (insert (eq_fst op =) arg classrel, arities));
@@ -157,7 +158,8 @@ fun put_classrel arg = map_instances (fn (classrel, arities) =>
 fun the_arity thy a (c, Ss) =
   (case AList.lookup (op =) (Symtab.lookup_list (#2 (get_instances thy)) a) (c, Ss)  of
     SOME th => Thm.transfer thy th
-  | NONE => error ("Unproven type arity " ^ Sign.string_of_arity thy (a, Ss, [c])));
+  | NONE => error ("Unproven type arity " ^
+      Syntax.string_of_arity (ProofContext.init thy) (a, Ss, [c])));
 
 fun put_arity ((t, Ss, c), th) = map_instances (fn (classrel, arities) =>
   (classrel, arities |> Symtab.insert_list (eq_fst op =) (t, ((c, Ss), th))));
@@ -173,7 +175,7 @@ fun print_axclasses thy =
     fun pretty_axclass (class, AxClass {def, intro, axioms, params}) =
       Pretty.block (Pretty.fbreaks
        [Pretty.block
-          [Pretty.str "class ", ProofContext.pretty_sort ctxt [class], Pretty.str ":"],
+          [Pretty.str "class ", Syntax.pretty_sort ctxt [class], Pretty.str ":"],
         Pretty.strs ("parameters:" :: params_of thy class),
         ProofContext.pretty_fact ctxt ("def", [def]),
         ProofContext.pretty_fact ctxt (introN, [intro]),
@@ -233,11 +235,12 @@ fun add_arity th thy =
 
 fun prove_classrel raw_rel tac thy =
   let
+    val ctxt = ProofContext.init thy;
     val (c1, c2) = cert_classrel thy raw_rel;
-    val th = Goal.prove (ProofContext.init thy) [] []
+    val th = Goal.prove ctxt [] []
         (Logic.mk_classrel (c1, c2)) (fn _ => tac) handle ERROR msg =>
       cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
-        quote (Sign.string_of_classrel thy [c1, c2]));
+        quote (Syntax.string_of_classrel ctxt [c1, c2]));
   in
     thy
     |> PureThy.add_thms [((prefix classrel_prefix (Logic.name_classrel (c1, c2)), th), [])]
@@ -246,13 +249,14 @@ fun prove_classrel raw_rel tac thy =
 
 fun prove_arity raw_arity tac thy =
   let
+    val ctxt = ProofContext.init thy;
     val arity = Sign.cert_arity thy raw_arity;
     val names = map (prefix arity_prefix) (Logic.name_arities arity);
     val props = Logic.mk_arities arity;
-    val ths = Goal.prove_multi (ProofContext.init thy) [] [] props
+    val ths = Goal.prove_multi ctxt [] [] props
       (fn _ => Goal.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
         cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
-          quote (Sign.string_of_arity thy arity));
+          quote (Syntax.string_of_arity ctxt arity));
   in
     thy
     |> PureThy.add_thms (map (rpair []) (names ~~ ths))

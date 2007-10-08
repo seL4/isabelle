@@ -170,8 +170,8 @@ fun pretty_src ctxt src =
   let
     val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
     fun prt (Arg (_, Value (SOME (Text s)))) = Pretty.str (quote s)
-      | prt (Arg (_, Value (SOME (Typ T)))) = ProofContext.pretty_typ ctxt T
-      | prt (Arg (_, Value (SOME (Term t)))) = ProofContext.pretty_term ctxt t
+      | prt (Arg (_, Value (SOME (Typ T)))) = Syntax.pretty_typ ctxt T
+      | prt (Arg (_, Value (SOME (Term t)))) = Syntax.pretty_term ctxt t
       | prt (Arg (_, Value (SOME (Fact ths)))) =
           Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
       | prt arg = Pretty.str (string_of arg);

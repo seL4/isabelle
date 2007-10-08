@@ -175,7 +175,7 @@ fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_
 
 fun split_def ctxt geq =
     let
-      fun input_error msg = cat_lines [msg, ProofContext.string_of_term ctxt geq]
+      fun input_error msg = cat_lines [msg, Syntax.string_of_term ctxt geq]
       val (qs, imp) = open_all_all geq
 
       val gs = Logic.strip_imp_prems imp
@@ -214,7 +214,7 @@ fun check_defs ctxt fixes eqs =
                                 
       fun check geq = 
           let
-            fun input_error msg = cat_lines [msg, ProofContext.string_of_term ctxt geq]
+            fun input_error msg = cat_lines [msg, Syntax.string_of_term ctxt geq]
                                   
             val fqgar as (fname, qs, gs, args, rhs) = split_def ctxt geq
                                  

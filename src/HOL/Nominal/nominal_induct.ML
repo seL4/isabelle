@@ -134,7 +134,7 @@ val def_inst =
     inst >> Option.map (pair NONE);
 
 val free = Scan.state -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
-  error ("Bad free variable: " ^ ProofContext.string_of_term (Context.proof_of ctxt) t));
+  error ("Bad free variable: " ^ Syntax.string_of_term (Context.proof_of ctxt) t));
 
 fun unless_more_args scan = Scan.unless (Scan.lift
   ((Args.$$$ avoidingN || Args.$$$ fixingN || Args.$$$ ruleN) -- Args.colon)) scan;

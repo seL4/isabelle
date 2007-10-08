@@ -43,8 +43,8 @@ fun pprint_context ctxt = Pretty.pprint
 
 fun pprint pretty thy = Pretty.pprint o Pretty.quote o pretty (ProofContext.init thy);
 
-val pprint_typ = pprint ProofContext.pretty_typ;
-val pprint_term = pprint ProofContext.pretty_term;
+val pprint_typ = pprint Syntax.pretty_typ;
+val pprint_term = pprint Syntax.pretty_term;
 fun pprint_ctyp cT = pprint_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
 fun pprint_cterm ct = pprint_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
 val pprint_thm = Pretty.pprint o ProofContext.pretty_thm_legacy;
@@ -136,7 +136,7 @@ local
 
 fun pretty_var ctxt (x, T) =
   Pretty.block [Pretty.str x, Pretty.str " ::", Pretty.brk 1,
-    Pretty.quote (ProofContext.pretty_typ ctxt T)];
+    Pretty.quote (Syntax.pretty_typ ctxt T)];
 
 fun pretty_vars ctxt kind vs = Pretty.big_list kind (map (pretty_var ctxt) vs);
 

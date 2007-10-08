@@ -190,9 +190,9 @@ fun gen_evaluate evaluators ctxt t =
      of SOME t' => t'
       | NONE => evl thy t;
     val ty' = Term.type_of t';
-    val p = Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t'),
+    val p = Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t'),
       Pretty.fbrk, Pretty.str "::", Pretty.brk 1,
-      Pretty.quote (ProofContext.pretty_typ ctxt ty')];
+      Pretty.quote (Syntax.pretty_typ ctxt ty')];
   in Pretty.writeln p end;
 
 val evaluate = gen_evaluate (map snd evaluators);

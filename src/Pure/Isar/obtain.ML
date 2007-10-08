@@ -71,7 +71,7 @@ fun eliminate_term ctxt xs tm =
       if member (op =) vs v then insert (op aconv) t else I | _ => I) tm [];
     val _ = null bads orelse
       error ("Result contains obtained parameters: " ^
-        space_implode " " (map (ProofContext.string_of_term ctxt) bads));
+        space_implode " " (map (Syntax.string_of_term ctxt) bads));
   in tm end;
 
 fun eliminate fix_ctxt rule xs As thm =
@@ -217,8 +217,8 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val thy = ProofContext.theory_of ctxt;
     val certT = Thm.ctyp_of thy;
     val cert = Thm.cterm_of thy;
-    val string_of_typ = ProofContext.string_of_typ ctxt;
-    val string_of_term = setmp show_types true (ProofContext.string_of_term ctxt);
+    val string_of_typ = Syntax.string_of_typ ctxt;
+    val string_of_term = setmp show_types true (Syntax.string_of_term ctxt);
 
     fun err msg th = error (msg ^ ":\n" ^ ProofContext.string_of_thm ctxt th);
 

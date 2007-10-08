@@ -40,9 +40,9 @@ fun pretty_criterion ctxt (b, c) =
     | Elim => Pretty.str (prfx "elim")
     | Dest => Pretty.str (prfx "dest")
     | Simp pat => Pretty.block [Pretty.str (prfx "simp:"), Pretty.brk 1,
-        Pretty.quote (ProofContext.pretty_term ctxt (Term.show_dummy_patterns pat))]
+        Pretty.quote (Syntax.pretty_term ctxt (Term.show_dummy_patterns pat))]
     | Pattern pat => Pretty.enclose (prfx " \"") "\""
-        [ProofContext.pretty_term ctxt (Term.show_dummy_patterns pat)])
+        [Syntax.pretty_term ctxt (Term.show_dummy_patterns pat)])
   end;
 
 

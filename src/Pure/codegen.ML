@@ -982,8 +982,7 @@ fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
   | pretty_counterex ctxt (SOME cex) =
       Pretty.chunks (Pretty.str "Counterexample found:\n" ::
         map (fn (s, t) =>
-          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1,
-            ProofContext.pretty_term ctxt t]) cex);
+          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) cex);
 
 val auto_quickcheck = ref true;
 val auto_quickcheck_time_limit = ref 5000;
@@ -1043,8 +1042,8 @@ fun print_evaluated_term s = Toplevel.keep (fn state =>
     val T = Term.type_of t;
   in
     Pretty.writeln
-      (Pretty.block [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (ProofContext.pretty_typ ctxt T)])
+      (Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt T)])
   end);
 
 exception Evaluation of term;

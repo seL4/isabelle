@@ -273,10 +273,10 @@ fun exn_msg _ TERMINATE = "Exit."
       raised "AST" (msg :: map (Pretty.string_of o Syntax.pretty_ast) asts)
   | exn_msg false (TYPE (msg, _, _)) = raised "TYPE" [msg]
   | exn_msg true (TYPE (msg, Ts, ts)) = raised "TYPE" (msg ::
-        with_context ProofContext.string_of_typ Ts @ with_context ProofContext.string_of_term ts)
+        with_context Syntax.string_of_typ Ts @ with_context Syntax.string_of_term ts)
   | exn_msg false (TERM (msg, _)) = raised "TERM" [msg]
   | exn_msg true (TERM (msg, ts)) =
-      raised "TERM" (msg :: with_context ProofContext.string_of_term ts)
+      raised "TERM" (msg :: with_context Syntax.string_of_term ts)
   | exn_msg false (THM (msg, _, _)) = raised "THM" [msg]
   | exn_msg true (THM (msg, i, thms)) =
       raised ("THM " ^ string_of_int i) (msg :: with_context ProofContext.string_of_thm thms)

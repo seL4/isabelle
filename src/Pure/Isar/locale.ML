@@ -472,7 +472,7 @@ fun add_local_equation id thm = Context.proof_map (add_equation id thm);
 fun print_registrations show_wits loc ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
+    val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_thm = prt_term o prop_of;
     fun prt_inst ts =
         Pretty.enclose "(" ")" (Pretty.breaks (map prt_term ts));
@@ -1545,7 +1545,7 @@ fun join_eqns get_reg prep_id ctxt id eqns =
 	| SOME (_, _, eqns') => Termtab.join (fn t => fn (_, e) => e) (eqns, eqns')
             handle Termtab.DUP t =>
 	      error ("Conflicting interpreting equations for term " ^
-		quote (ProofContext.string_of_term ctxt t))
+		quote (Syntax.string_of_term ctxt t))
   in ((id', eqns'), eqns') end;
 
 

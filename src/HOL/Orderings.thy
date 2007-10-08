@@ -275,9 +275,9 @@ fun print_structures ctxt =
   let
     val structs = Data.get (Context.Proof ctxt);
     fun pretty_term t = Pretty.block
-      [Pretty.quote (ProofContext.pretty_term ctxt t), Pretty.brk 1,
+      [Pretty.quote (Syntax.pretty_term ctxt t), Pretty.brk 1,
         Pretty.str "::", Pretty.brk 1,
-        Pretty.quote (ProofContext.pretty_typ ctxt (type_of t))];
+        Pretty.quote (Syntax.pretty_typ ctxt (type_of t))];
     fun pretty_struct ((s, ts), _) = Pretty.block
       [Pretty.str s, Pretty.str ":", Pretty.brk 1,
        Pretty.enclose "(" ")" (Pretty.breaks (map pretty_term ts))];

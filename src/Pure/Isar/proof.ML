@@ -465,7 +465,7 @@ fun conclude_goal state goal propss =
   let
     val thy = theory_of state;
     val ctxt = context_of state;
-    val string_of_term = ProofContext.string_of_term ctxt;
+    val string_of_term = Syntax.string_of_term ctxt;
     val string_of_thm = ProofContext.string_of_thm ctxt;
 
     val ngoals = Thm.nprems_of goal;

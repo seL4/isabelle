@@ -67,7 +67,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
     val setT = Term.fastype_of set;
     val rhs_tfrees = term_tfrees set;
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
-      error ("Not a set type: " ^ quote (ProofContext.string_of_typ ctxt setT));
+      error ("Not a set type: " ^ quote (Syntax.string_of_typ ctxt setT));
     fun mk_nonempty A =
       HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A));
     fun mk_admissible A =

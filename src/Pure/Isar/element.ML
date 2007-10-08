@@ -164,8 +164,8 @@ fun pretty_name_atts ctxt (name, atts) sep =
 
 fun pretty_stmt ctxt =
   let
-    val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
-    val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
+    val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
+    val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_terms = separate (Pretty.keyword "and") o map prt_term;
     val prt_name_atts = pretty_name_atts ctxt;
 
@@ -189,8 +189,8 @@ fun pretty_stmt ctxt =
 
 fun pretty_ctxt ctxt =
   let
-    val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
-    val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
+    val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
+    val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
     val prt_name_atts = pretty_name_atts ctxt;
 
@@ -310,7 +310,7 @@ val refine_witness =
         (CONJUNCTS (TRYALL (Tactic.rtac Drule.protectI)))))))), Position.none));
 
 fun pretty_witness ctxt witn =
-  let val prt_term = Pretty.quote o ProofContext.pretty_term ctxt in
+  let val prt_term = Pretty.quote o Syntax.pretty_term ctxt in
     Pretty.block (prt_term (witness_prop witn) ::
       (if ! show_hyps then [Pretty.brk 2, Pretty.list "[" "]"
          (map prt_term (witness_hyps witn))] else []))

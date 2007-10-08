@@ -25,7 +25,7 @@ fun check_pats ctxt geq =
     let 
       fun err str = error (cat_lines ["Malformed definition:",
                                       str ^ " not allowed in sequential mode.",
-                                      ProofContext.string_of_term ctxt geq])
+                                      Syntax.string_of_term ctxt geq])
       val thy = ProofContext.theory_of ctxt
                 
       fun check_constr_pattern (Bound _) = ()
@@ -235,7 +235,7 @@ fun add_catchall ctxt fixes spec =
 
 fun warn_if_redundant ctxt origs tss =
     let
-        fun msg t = "Ignoring redundant equation: " ^ quote (ProofContext.string_of_term ctxt t)
+        fun msg t = "Ignoring redundant equation: " ^ quote (Syntax.string_of_term ctxt t)
                     
         val (tss', _) = chop (length origs) tss
         fun check ((_, t), []) = (Output.warning (msg t); [])

@@ -247,11 +247,11 @@ local
 
 fun err_in_rule ctxt name t msg =
   error (cat_lines ["Ill-formed introduction rule " ^ quote name,
-    ProofContext.string_of_term ctxt t, msg]);
+    Syntax.string_of_term ctxt t, msg]);
 
 fun err_in_prem ctxt name t p msg =
-  error (cat_lines ["Ill-formed premise", ProofContext.string_of_term ctxt p,
-    "in introduction rule " ^ quote name, ProofContext.string_of_term ctxt t, msg]);
+  error (cat_lines ["Ill-formed premise", Syntax.string_of_term ctxt p,
+    "in introduction rule " ^ quote name, Syntax.string_of_term ctxt t, msg]);
 
 val bad_concl = "Conclusion of introduction rule must be an inductive predicate";
 
@@ -275,7 +275,7 @@ fun check_rule ctxt cs params ((name, att), rule) =
 
     fun check_ind err t = case dest_predicate cs params t of
         NONE => err (bad_app ^
-          commas (map (ProofContext.string_of_term ctxt) params))
+          commas (map (Syntax.string_of_term ctxt) params))
       | SOME (_, _, ys, _) =>
           if exists (fn c => exists (fn t => Logic.occs (c, t)) ys) cs
           then err bad_ind_occ else ();
@@ -431,7 +431,7 @@ fun mk_cases ctxt prop =
 
     fun err msg =
       error (Pretty.string_of (Pretty.block
-        [Pretty.str msg, Pretty.fbrk, ProofContext.pretty_term ctxt prop]));
+        [Pretty.str msg, Pretty.fbrk, Syntax.pretty_term ctxt prop]));
 
     val elims = Induct.find_casesP ctxt prop;
 

@@ -247,7 +247,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                 in (pat_rect1, tree)
                 end)
             | SOME (t, i) => raise CASE_ERROR ("Not a datatype constructor: " ^
-                ProofContext.string_of_term ctxt t, i)
+                Syntax.string_of_term ctxt t, i)
           end
       | mk _ = raise CASE_ERROR ("Malformed row matrix", ~1)
   in mk
@@ -260,13 +260,13 @@ fun no_repeat_vars ctxt pat = fold_aterms
   (fn x as Free (s, _) => (fn xs =>
         if member op aconv xs x then
           case_error (quote s ^ " occurs repeatedly in the pattern " ^
-            quote (ProofContext.string_of_term ctxt pat))
+            quote (Syntax.string_of_term ctxt pat))
         else x :: xs)
     | _ => I) pat [];
 
 fun gen_make_case ty_match ty_inst type_of tab ctxt err used x clauses =
   let
-    fun string_of_clause (pat, rhs) = ProofContext.string_of_term ctxt
+    fun string_of_clause (pat, rhs) = Syntax.string_of_term ctxt
       (Syntax.const "_case1" $ pat $ rhs);
     val _ = map (no_repeat_vars ctxt o fst) clauses;
     val rows = map_index (fn (i, (pat, rhs)) =>
@@ -333,8 +333,7 @@ fun case_tr err tab_of ctxt [t, u] =
             in
               (t' $ u', used'')
             end
-        | prep_pat t used = case_error ("Bad pattern: " ^
-            ProofContext.string_of_term ctxt t);
+        | prep_pat t used = case_error ("Bad pattern: " ^ Syntax.string_of_term ctxt t);
       fun dest_case1 (t as Const ("_case1", _) $ l $ r) =
             let val (l', cnstrts) = strip_constraints l
             in ((fst (prep_pat l' (add_term_free_names (t, []))), r), cnstrts)

@@ -416,7 +416,7 @@ fun trace_thm msg th =
   (if !trace then (tracing msg; tracing (Display.string_of_thm th)) else (); th);
 
 fun trace_term ctxt msg t =
-  (if !trace then tracing (cat_lines [msg, ProofContext.string_of_term ctxt t]) else (); t)
+  (if !trace then tracing (cat_lines [msg, Syntax.string_of_term ctxt t]) else (); t)
 
 fun trace_msg msg =
   if !trace then tracing msg else ();
@@ -562,7 +562,7 @@ fun trace_ex ctxt params atoms discr n (hist: history) =
   | (v, lineqs) :: hist' =>
       let
         val frees = map Free params
-        fun show_term t = ProofContext.string_of_term ctxt (subst_bounds (frees, t))
+        fun show_term t = Syntax.string_of_term ctxt (subst_bounds (frees, t))
         val start =
           if v = ~1 then (hist', findex0 discr n lineqs)
           else (hist, replicate n Rat.zero)

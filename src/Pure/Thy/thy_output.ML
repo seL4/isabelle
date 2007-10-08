@@ -429,22 +429,23 @@ fun tweak_line s =
 
 val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.split_lines;
 
-fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.revert_skolems ctxt;
+fun pretty_term ctxt = Syntax.pretty_term ctxt o ProofContext.revert_skolems ctxt;
+
 fun pretty_term_abbrev ctxt =
   ProofContext.pretty_term_abbrev ctxt o ProofContext.revert_skolems ctxt;
 
 fun pretty_term_typ ctxt t =
-  ProofContext.pretty_term ctxt (TypeInfer.constrain (Term.fastype_of t) t);
+  Syntax.pretty_term ctxt (TypeInfer.constrain (Term.fastype_of t) t);
 
-fun pretty_term_typeof ctxt = ProofContext.pretty_typ ctxt o Term.fastype_of;
+fun pretty_term_typeof ctxt = Syntax.pretty_typ ctxt o Term.fastype_of;
 
 fun pretty_term_const ctxt t =
   if Term.is_Const t then pretty_term ctxt t
-  else error ("Logical constant expected: " ^ ProofContext.string_of_term ctxt t);
+  else error ("Logical constant expected: " ^ Syntax.string_of_term ctxt t);
 
 fun pretty_abbrev ctxt t =
   let
-    fun err () = error ("Abbreviated constant expected: " ^ ProofContext.string_of_term ctxt t);
+    fun err () = error ("Abbreviated constant expected: " ^ Syntax.string_of_term ctxt t);
     val (head, args) = Term.strip_comb t;
     val (c, T) = Term.dest_Const head handle TERM _ => err ();
     val (U, (u, _)) = Consts.the_abbreviation (ProofContext.consts_of ctxt) c
@@ -519,7 +520,7 @@ val _ = add_commands
   ("typeof", args Args.term (output pretty_term_typeof)),
   ("const", args Args.term (output pretty_term_const)),
   ("abbrev", args Args.term_abbrev (output pretty_abbrev)),
-  ("typ", args Args.typ_abbrev (output ProofContext.pretty_typ)),
+  ("typ", args Args.typ_abbrev (output Syntax.pretty_typ)),
   ("text", args (Scan.lift Args.name) (output (K pretty_text))),
   ("goals", output_goals true),
   ("subgoals", output_goals false),

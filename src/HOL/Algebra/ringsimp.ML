@@ -34,7 +34,7 @@ structure Data = GenericDataFun
 fun print_structures ctxt =
   let
     val structs = Data.get (Context.Proof ctxt);
-    val pretty_term = Pretty.quote o ProofContext.pretty_term ctxt;
+    val pretty_term = Pretty.quote o Syntax.pretty_term ctxt;
     fun pretty_struct ((s, ts), _) = Pretty.block
       [Pretty.str s, Pretty.str ":", Pretty.brk 1,
        Pretty.enclose "(" ")" (Pretty.breaks (map pretty_term ts))];
