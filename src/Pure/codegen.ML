@@ -64,7 +64,7 @@ sig
   val if_library: 'a -> 'a -> 'a
   val get_defn: theory -> deftab -> string -> typ ->
     ((typ * (string * (term list * term))) * int option) option
-  val is_instance: theory -> typ -> typ -> bool
+  val is_instance: typ -> typ -> bool
   val parens: Pretty.T -> Pretty.T
   val mk_app: bool -> Pretty.T -> Pretty.T list -> Pretty.T
   val eta_expand: term -> term list -> int -> term
@@ -530,11 +530,11 @@ val rename_term = hd o rename_terms o single;
 
 (**** retrieve definition of constant ****)
 
-fun is_instance thy T1 T2 =
-  Sign.typ_instance thy (T1, Logic.legacy_varifyT T2);
+fun is_instance T1 T2 =
+  Type.raw_instance (T1, Logic.legacy_varifyT T2);
 
 fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
-  s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
+  s = s' andalso is_instance T T') (#consts (CodegenData.get thy)));
 
 fun get_aux_code xs = map_filter (fn (m, code) =>
   if m = "" orelse member (op =) (!mode) m then SOME code else NONE) xs;
@@ -554,7 +554,7 @@ fun mk_deftab thy =
       end handle TERM _ => NONE;
     fun add_def thyname (name, t) = (case dest t of
         NONE => I
-      | SOME _ => (case dest (prep_def (Thm.get_axiom thy name)) of
+      | SOME _ => (case dest (prep_def (Thm.get_axiom_i thy name)) of
           NONE => I
         | SOME (s, (T, (args, rhs))) => Symtab.map_default (s, [])
             (cons (T, (thyname, split_last (rename_terms (args @ [rhs])))))))
@@ -565,7 +565,7 @@ fun mk_deftab thy =
 fun get_defn thy defs s T = (case Symtab.lookup defs s of
     NONE => NONE
   | SOME ds =>
-      let val i = find_index (is_instance thy T o fst) ds
+      let val i = find_index (is_instance T o fst) ds
       in if i >= 0 then
           SOME (List.nth (ds, i), if length ds = 1 then NONE else SOME i)
         else NONE
