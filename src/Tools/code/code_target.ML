@@ -34,14 +34,12 @@ sig
   type serializer;
   val add_serializer: string * serializer -> theory -> theory;
   val get_serializer: theory -> string -> bool -> string option -> string option -> Args.T list
-    -> (theory -> string -> string) -> string list option
-    -> CodeThingol.code -> unit;
+    -> string list option -> CodeThingol.code -> unit;
   val assert_serializer: theory -> string -> string;
 
   val eval_verbose: bool ref;
-  val eval_invoke: theory -> (theory -> string -> string)
-    -> (string * (unit -> 'a) option ref) -> CodeThingol.code
-    -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
+  val eval_invoke: theory -> (string * (unit -> 'a) option ref)
+    -> CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val code_width: int ref;
 
   val setup: theory -> theory;
@@ -1632,7 +1630,7 @@ val target_Haskell = "Haskell";
 val target_diag = "diag";
 
 fun get_serializer thy target permissive module file args
-    labelled_name = fn cs =>
+    = fn cs =>
   let
     val (seris, exc) = CodeTargetData.get thy;
     val data = case Symtab.lookup seris target
@@ -1648,28 +1646,26 @@ fun get_serializer thy target permissive module file args
     fun check_empty_funs code = case (filter_out (member (op =) exc)
         (CodeThingol.empty_funs code))
      of [] => code
-      | names => error ("No defining equations for " ^ commas (map (labelled_name thy) names));
+      | names => error ("No defining equations for " ^ commas (map (CodeName.labelled_name thy) names));
   in
     project
     #> check_empty_funs
-    #> seri module file args (labelled_name thy) reserved (Symtab.lookup alias) (Symtab.lookup prolog)
-      (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
+    #> seri module file args (CodeName.labelled_name thy) reserved (Symtab.lookup alias)
+      (Symtab.lookup prolog) (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 
-fun eval_invoke thy labelled_name (ref_name, reff) code (t, ty) args =
+fun eval_invoke thy (ref_name, reff) code (t, ty) args =
   let
     val _ = if CodeThingol.contains_dictvar t then
       error "Term to be evaluated constains free dictionaries" else ();
-    val val_name = "Isabelle_Eval.EVAL.EVAL";
-    val val_name' = "Isabelle_Eval.EVAL";
-    val val_name'_args = space_implode " " (val_name' :: map (enclose "(" ")") args);
-    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE []
-      labelled_name;
+    val val_args = space_implode " "
+      (NameSpace.qualifier CodeName.value_name :: map (enclose "(" ")") args);
+    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [];
     fun eval code = (
       reff := NONE;
-      seri (SOME [val_name]) code;
+      seri (SOME [CodeName.value_name]) code;
       use_text "generated code for evaluation" Output.ml_output (!eval_verbose)
-        ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ val_name'_args ^ "))");
+        ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ val_args ^ "))");
       case !reff
        of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
             ^ " (reference probably has been shadowed)")
@@ -1677,7 +1673,7 @@ fun eval_invoke thy labelled_name (ref_name, reff) code (t, ty) args =
       );
   in
     code
-    |> CodeThingol.add_eval_def (val_name, (t, ty))
+    |> CodeThingol.add_value_stmt (t, ty)
     |> eval
   end;
 
