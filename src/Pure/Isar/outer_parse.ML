@@ -159,7 +159,7 @@ fun $$$ x =
 
 fun reserved x =
   group ("Reserved identifier " ^ quote x)
-    (Scan.one (T.ident_with (equal x)) >> T.val_of);
+    (Scan.one (T.ident_with (fn y => x = y)) >> T.val_of);
 
 val semicolon = $$$ ";";
 
