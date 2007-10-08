@@ -34,21 +34,14 @@ sig
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
-  val pretty_term: Proof.context -> term -> Pretty.T
-  val pretty_term_abbrev: Proof.context -> term -> Pretty.T
-  val pretty_typ: Proof.context -> typ -> Pretty.T
-  val pretty_sort: Proof.context -> sort -> Pretty.T
-  val pretty_classrel: Proof.context -> class list -> Pretty.T
-  val pretty_arity: Proof.context -> arity -> Pretty.T
   val pp: Proof.context -> Pretty.pp
+  val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_thm_legacy: thm -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
   val pretty_proof_of: Proof.context -> bool -> thm -> Pretty.T
-  val string_of_typ: Proof.context -> typ -> string
-  val string_of_term: Proof.context -> term -> string
   val string_of_thm: Proof.context -> thm -> string
   val read_typ: Proof.context -> string -> typ
   val read_typ_syntax: Proof.context -> string -> typ
@@ -301,38 +294,15 @@ fun theory_result f ctxt =
 
 (** pretty printing **)
 
-local
+(*pp operations -- deferred evaluation*)
+fun pp ctxt = Pretty.pp
+ (fn x => Syntax.pretty_term ctxt x,
+  fn x => Syntax.pretty_typ ctxt x,
+  fn x => Syntax.pretty_sort ctxt x,
+  fn x => Syntax.pretty_classrel ctxt x,
+  fn x => Syntax.pretty_arity ctxt x);
 
-fun rewrite_term thy rews t =
-  if can Term.type_of t then Pattern.rewrite_term thy rews [] t else t;
-
-fun pretty_term' abbrevs ctxt t =
-  let
-    val thy = theory_of ctxt;
-    val syntax = syntax_of ctxt;
-    val consts = consts_of ctxt;
-    val do_abbrevs = abbrevs andalso not (print_mode_active "no_abbrevs");
-    val t' = t
-      |> do_abbrevs ? rewrite_term thy (Consts.abbrevs_of consts (print_mode_value () @ [""]))
-      |> do_abbrevs ? rewrite_term thy (Consts.abbrevs_of consts [Syntax.internalM])
-      |> Sign.extern_term (Consts.extern_early consts) thy
-      |> LocalSyntax.extern_term syntax;
-  in Sign.pretty_term' ctxt (LocalSyntax.syn_of syntax) (Consts.extern consts) t' end;
-
-in
-
-val pretty_term = pretty_term' true;
-val pretty_term_abbrev = pretty_term' false;
-
-end;
-
-fun pretty_typ ctxt T = Sign.pretty_typ (theory_of ctxt) T;
-fun pretty_sort ctxt S = Sign.pretty_sort (theory_of ctxt) S;
-fun pretty_classrel ctxt cs = Sign.pretty_classrel (theory_of ctxt) cs;
-fun pretty_arity ctxt ar = Sign.pretty_arity (theory_of ctxt) ar;
-
-fun pp ctxt = Pretty.pp (pretty_term ctxt, pretty_typ ctxt, pretty_sort ctxt,
-  pretty_classrel ctxt, pretty_arity ctxt);
+fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
 fun pretty_thm_legacy th =
   let val thy = Thm.theory_of_thm th
@@ -358,8 +328,6 @@ fun pretty_proof ctxt prf =
 fun pretty_proof_of ctxt full th =
   pretty_proof ctxt (ProofSyntax.proof_of full th);
 
-val string_of_typ = Pretty.string_of oo pretty_typ;
-val string_of_term = Pretty.string_of oo pretty_term;
 val string_of_thm = Pretty.string_of oo pretty_thm;
 
 
@@ -463,6 +431,21 @@ in
 fun expand_abbrevs ctxt = certify_consts ctxt #> expand_binds ctxt;
 
 end;
+
+
+fun contract_abbrevs ctxt t =
+  let
+    val thy = theory_of ctxt;
+    val consts = consts_of ctxt;
+    val Mode {abbrev, ...} = get_mode ctxt;
+  in
+    if abbrev orelse print_mode_active "no_abbrevs" orelse not (can Term.type_of t)
+    then t
+    else
+      t
+      |> Pattern.rewrite_term thy (Consts.abbrevs_of consts (print_mode_value () @ [""])) []
+      |> Pattern.rewrite_term thy (Consts.abbrevs_of consts [Syntax.internalM]) []
+  end;
 
 
 (* patterns *)
@@ -611,15 +594,20 @@ fun standard_typ_check ctxt =
 fun standard_term_check ctxt =
   standard_infer_types ctxt #>
   map (expand_abbrevs ctxt);
-  
-fun add_check add f = Context.add_setup
-  (Context.theory_map (add (fn xs => fn ctxt => (f ctxt xs, ctxt))));
+
+fun standard_term_uncheck ctxt =
+  map (contract_abbrevs ctxt);
+
+fun add what f = Context.add_setup
+  (Context.theory_map (what (fn xs => fn ctxt => (f ctxt xs, ctxt))));
 
 in
 
-val _ = add_check (Syntax.add_typ_check 0 "standard") standard_typ_check;
-val _ = add_check (Syntax.add_term_check 0 "standard") standard_term_check;
-val _ = add_check (Syntax.add_term_check 100 "fixate") prepare_patterns;
+val _ = add (Syntax.add_typ_check 0 "standard") standard_typ_check;
+val _ = add (Syntax.add_term_check 0 "standard") standard_term_check;
+val _ = add (Syntax.add_term_check 100 "fixate") prepare_patterns;
+
+val _ = add (Syntax.add_term_uncheck 0 "standard") standard_term_uncheck;
 
 end;
 
@@ -679,6 +667,26 @@ fun parse_term T ctxt str =
       map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) ((#1 (TypeInfer.paramify_dummies T 0)));
   in read str end;
 
+
+fun unparse_sort ctxt S =
+  Syntax.standard_unparse_sort ctxt (syn_of ctxt) (Sign.extern_sort (theory_of ctxt) S);
+
+fun unparse_typ ctxt T =
+  Syntax.standard_unparse_typ ctxt (syn_of ctxt) (Sign.extern_typ (theory_of ctxt) T);
+
+fun unparse_term ctxt t =
+  let
+    val thy = theory_of ctxt;
+    val syntax = syntax_of ctxt;
+    val consts = consts_of ctxt;
+  in
+    t
+    |> Sign.extern_term (Consts.extern_early consts) thy
+    |> LocalSyntax.extern_term syntax
+    |> Syntax.standard_unparse_term (Consts.extern consts) ctxt (LocalSyntax.syn_of syntax)
+        (Context.exists_name Context.CPureN thy)
+  end;
+
 in
 
 val _ = Syntax.install_operations
@@ -686,9 +694,9 @@ val _ = Syntax.install_operations
    parse_typ = parse_typ,
    parse_term = parse_term dummyT,
    parse_prop = parse_term propT,
-   unparse_sort = undefined,
-   unparse_typ = undefined,
-   unparse_term = undefined};
+   unparse_sort = unparse_sort,
+   unparse_typ = unparse_typ,
+   unparse_term = unparse_term};
 
 end;
 
@@ -1239,7 +1247,7 @@ val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
 fun pretty_cases ctxt =
   let
-    val prt_term = pretty_term ctxt;
+    val prt_term = Syntax.pretty_term ctxt;
 
     fun prt_let (xi, t) = Pretty.block
       [Pretty.quote (prt_term (Var (xi, Term.fastype_of t))), Pretty.str " =", Pretty.brk 1,
@@ -1281,7 +1289,7 @@ fun pretty_ctxt ctxt =
   if ! prems_limit < 0 andalso not (! debug) then []
   else
     let
-      val prt_term = pretty_term ctxt;
+      val prt_term = Syntax.pretty_term ctxt;
 
       (*structures*)
       val structs = LocalSyntax.structs_of (syntax_of ctxt);
@@ -1314,9 +1322,9 @@ fun pretty_ctxt ctxt =
 
 fun pretty_context ctxt =
   let
-    val prt_term = pretty_term ctxt;
-    val prt_typ = pretty_typ ctxt;
-    val prt_sort = pretty_sort ctxt;
+    val prt_term = Syntax.pretty_term ctxt;
+    val prt_typ = Syntax.pretty_typ ctxt;
+    val prt_sort = Syntax.pretty_sort ctxt;
 
     (*theory*)
     val pretty_thy = Pretty.block
