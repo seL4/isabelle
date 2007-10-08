@@ -81,9 +81,9 @@ sig
   val standard_parse_typ: Proof.context -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
     (sort -> sort) -> string -> typ
   val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
-  val pretty_term: (string -> xstring) -> Proof.context -> syntax -> bool -> term -> Pretty.T
-  val pretty_typ: Proof.context -> syntax -> typ -> Pretty.T
-  val pretty_sort: Proof.context -> syntax -> sort -> Pretty.T
+  val standard_unparse_term: (string -> xstring) -> Proof.context -> syntax -> bool -> term -> Pretty.T
+  val standard_unparse_typ: Proof.context -> syntax -> typ -> Pretty.T
+  val standard_unparse_sort: Proof.context -> syntax -> sort -> Pretty.T
   val ambiguity_level: int ref
   val ambiguity_is_error: bool ref
   val parse_sort: Proof.context -> string -> sort
@@ -91,6 +91,8 @@ sig
   val parse_term: Proof.context -> string -> term
   val parse_prop: Proof.context -> string -> term
   val unparse_sort: Proof.context -> sort -> Pretty.T
+  val unparse_classrel: Proof.context -> class list -> Pretty.T
+  val unparse_arity: Proof.context -> arity -> Pretty.T
   val unparse_typ: Proof.context -> typ -> Pretty.T
   val unparse_term: Proof.context -> term -> Pretty.T
   val install_operations:
@@ -121,6 +123,9 @@ sig
   val check_typs: Proof.context -> typ list -> typ list
   val check_terms: Proof.context -> term list -> term list
   val check_props: Proof.context -> term list -> term list
+  val uncheck_sort: Proof.context -> sort -> sort
+  val uncheck_arity: Proof.context -> arity -> arity
+  val uncheck_classrel: Proof.context -> class list -> class list
   val uncheck_typs: Proof.context -> typ list -> typ list
   val uncheck_terms: Proof.context -> term list -> term list
   val read_sort: Proof.context -> string -> sort
@@ -133,6 +138,16 @@ sig
   val read_typ_global: theory -> string -> typ
   val read_term_global: theory -> string -> term
   val read_prop_global: theory -> string -> term
+  val pretty_term: Proof.context -> term -> Pretty.T
+  val pretty_typ: Proof.context -> typ -> Pretty.T
+  val pretty_sort: Proof.context -> sort -> Pretty.T
+  val pretty_classrel: Proof.context -> class list -> Pretty.T
+  val pretty_arity: Proof.context -> arity -> Pretty.T
+  val string_of_term: Proof.context -> term -> string
+  val string_of_typ: Proof.context -> typ -> string
+  val string_of_sort: Proof.context -> sort -> string
+  val string_of_classrel: Proof.context -> class list -> string
+  val string_of_arity: Proof.context -> arity -> string
 end;
 
 structure Syntax: SYNTAX =
@@ -537,7 +552,6 @@ fun check_rule (rule as (lhs, rhs)) =
         Ast.str_of_ast lhs ^ "  ->  " ^ Ast.str_of_ast rhs)
   | NONE => rule);
 
-
 fun read_pattern ctxt is_logtype syn (root, str) =
   let
     val Syntax ({consts, ...}, _) = syn;
@@ -572,9 +586,11 @@ end;
 
 
 
-(** pretty terms, typs, sorts **)
+(** unparse terms, typs, sorts **)
 
-fun pretty_t t_to_ast prt_t markup ctxt (syn as Syntax (tabs, _)) curried t =
+local
+
+fun unparse_t t_to_ast prt_t markup ctxt (syn as Syntax (tabs, _)) curried t =
   let
     val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
     val ast = t_to_ast ctxt (lookup_tr' print_trtab) t;
@@ -584,12 +600,18 @@ fun pretty_t t_to_ast prt_t markup ctxt (syn as Syntax (tabs, _)) curried t =
       (Ast.normalize_ast (Symtab.lookup_list print_ruletab) ast))
   end;
 
-fun pretty_term extern =
-  pretty_t Printer.term_to_ast (Printer.pretty_term_ast extern) Markup.term;
-fun pretty_typ ctxt syn =
-  pretty_t Printer.typ_to_ast Printer.pretty_typ_ast Markup.typ ctxt syn false;
-fun pretty_sort ctxt syn =
-  pretty_t Printer.sort_to_ast Printer.pretty_typ_ast Markup.sort ctxt syn false;
+in
+
+fun standard_unparse_term extern =
+  unparse_t Printer.term_to_ast (Printer.pretty_term_ast extern) Markup.term;
+
+fun standard_unparse_typ ctxt syn =
+  unparse_t Printer.typ_to_ast Printer.pretty_typ_ast Markup.typ ctxt syn false;
+
+fun standard_unparse_sort ctxt syn =
+  unparse_t Printer.sort_to_ast Printer.pretty_typ_ast Markup.sort ctxt syn false;
+
+end;
 
 
 
@@ -695,7 +717,7 @@ fun gen_check which uncheck eq ctxt0 xs0 =
 fun map_sort f S =
   (case f (TFree ("", S)) of
     TFree ("", S') => S'
-  | T => raise TYPE ("map_sort", [TFree ("", S), T], []));
+  | _ => raise TYPE ("map_sort", [TFree ("", S)], []));
 
 in
 
@@ -741,7 +763,33 @@ val uncheck_sort = map_sort o singleton o uncheck_typs;
 end;
 
 
-(* combined operations *)
+(* derived operations for classrel and arity *)
+
+val uncheck_classrel = map o singleton o uncheck_sort;
+
+fun unparse_classrel ctxt cs = Pretty.block (flat
+  (separate [Pretty.str " <", Pretty.brk 1] (map (single o unparse_sort ctxt o single) cs)));
+
+fun uncheck_arity ctxt (a, Ss, S) =
+  let
+    val T = Type (a, replicate (length Ss) dummyT);
+    val a' =
+      (case singleton (uncheck_typs ctxt) T of
+        Type (a', _) => a'
+      | T => raise TYPE ("uncheck_arity", [T], []));
+    val Ss' = map (uncheck_sort ctxt) Ss;
+    val S' = uncheck_sort ctxt S;
+  in (a', Ss', S') end;
+
+fun unparse_arity ctxt (a, Ss, S) =
+  let
+    val dom =
+      if null Ss then []
+      else [Pretty.list "(" ")" (map (unparse_sort ctxt) Ss), Pretty.brk 1];
+  in Pretty.block ([Pretty.str (a ^ " ::"), Pretty.brk 1] @ dom @ [unparse_sort ctxt S]) end;
+
+
+(* read = parse + check *)
 
 fun read_sort ctxt = parse_sort ctxt #> check_sort ctxt;
 fun read_typ ctxt = parse_typ ctxt #> singleton (check_typs ctxt);
@@ -756,6 +804,21 @@ val read_sort_global = read_sort o ProofContext.init;
 val read_typ_global = read_typ o ProofContext.init;
 val read_term_global = read_term o ProofContext.init;
 val read_prop_global = read_prop o ProofContext.init;
+
+
+(* pretty = uncheck + unparse *)
+
+fun pretty_sort ctxt = uncheck_sort ctxt #> unparse_sort ctxt;
+fun pretty_classrel ctxt = uncheck_classrel ctxt #> unparse_classrel ctxt;
+fun pretty_arity ctxt = uncheck_arity ctxt #> unparse_arity ctxt;
+fun pretty_typ ctxt = singleton (uncheck_typs ctxt) #> unparse_typ ctxt;
+fun pretty_term ctxt = singleton (uncheck_terms ctxt) #> unparse_term ctxt;
+
+val string_of_sort = Pretty.string_of oo pretty_sort;
+val string_of_classrel = Pretty.string_of oo pretty_classrel;
+val string_of_arity = Pretty.string_of oo pretty_arity;
+val string_of_typ = Pretty.string_of oo pretty_typ;
+val string_of_term = Pretty.string_of oo pretty_term;
 
 
 (*export parts of internal Syntax structures*)
