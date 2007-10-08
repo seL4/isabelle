@@ -357,7 +357,7 @@ fun grobner_weak vars pols =
 
 fun grobner_ideal vars pols pol =
   let val (pol',h) = reduce (grobner pols) (grob_neg pol,Start(~1)) in
-  if not (null pol) then error "grobner_ideal: not in the ideal" else
+  if not (null pol') then error "grobner_ideal: not in the ideal" else
   resolve_proof vars h end;
 
 (* ------------------------------------------------------------------------- *)
