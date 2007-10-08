@@ -58,6 +58,7 @@ use "theory_target.ML";
 use "instance.ML";
 use "spec_parse.ML";
 use "specification.ML";
+use "subclass.ML"; (*FIXME improve structure*)
 use "constdefs.ML";
 
 (*toplevel environment*)

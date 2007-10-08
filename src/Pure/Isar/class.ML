@@ -13,18 +13,22 @@ sig
     -> ((bstring * Attrib.src list) * string list) list
     -> theory -> class * theory
   val classrel_cmd: xstring * xstring -> theory -> Proof.state
+
   val class: bool -> bstring -> class list -> Element.context_i Locale.element list
     -> string list -> theory -> string * Proof.context
   val class_cmd: bool -> bstring -> xstring list -> Element.context Locale.element list
     -> xstring list -> theory -> string * Proof.context
+  val init: class -> Proof.context -> Proof.context;
   val add_const_in_class: string -> (string * term) * Syntax.mixfix
-    -> theory -> theory
-  val interpretation_in_class: class * class -> theory -> Proof.state
-  val interpretation_in_class_cmd: xstring * xstring -> theory -> Proof.state
-  val prove_interpretation_in_class: tactic -> class * class -> theory -> theory
+    -> theory -> string * theory
+  val add_abbrev_in_class: string -> Syntax.mode -> (string * term) * mixfix
+    -> theory -> string * theory
+  val remove_constraint: sort -> string -> Proof.context -> Proof.context
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
   val class_of_locale: theory -> string -> class option
+  val locale_of_class: theory -> class -> string
+  val local_syntax: theory -> class -> bool
   val print_classes: theory -> unit
 
   val instance_arity: (theory -> theory) -> arity list -> theory -> Proof.state
@@ -44,11 +48,6 @@ sig
   val inst_const: theory -> string * string -> string
   val param_const: theory -> string -> (string * string) option
   val params_of_sort: theory -> sort -> (string * (string * typ)) list
-
-  val init: class -> Proof.context -> Proof.context;
-  val local_syntax: theory -> class -> bool
-  val add_abbrev_in_class: string -> Syntax.mode -> (string * term) * mixfix
-    -> theory -> theory
 end;
 
 structure Class : CLASS =
@@ -66,13 +65,6 @@ fun fork_mixfix is_loc some_class mx =
 
 fun prove_interpretation tac prfx_atts expr insts =
   Locale.interpretation_i I prfx_atts expr insts
-  #> Proof.global_terminal_proof
-      (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
-  #> ProofContext.theory_of;
-
-fun prove_interpretation_in tac after_qed (name, expr) =
-  Locale.interpretation_in_locale
-      (ProofContext.theory after_qed) (name, expr)
   #> Proof.global_terminal_proof
       (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
   #> ProofContext.theory_of;
@@ -331,22 +323,30 @@ datatype class_data = ClassData of {
   intro: thm,
   local_syntax: bool,
   defs: thm list,
-  operations: (string * (term * int) option) list
+  operations: (string * (term * int) option) list,
     (*constant name ~> (locale term, instantiaton index of class typ)*)
+  constraints: (string * typ) list
 };
 
 fun rep_class_data (ClassData d) = d;
-fun mk_class_data ((locale, consts, local_sort, inst, intro, local_syntax), (defs, operations)) =
-  ClassData { locale = locale, consts = consts, local_sort = local_sort, inst = inst, intro = intro,
-    local_syntax = local_syntax, defs = defs, operations = operations };
-fun map_class_data f (ClassData { locale, consts, local_sort, inst, intro, local_syntax, defs, operations }) =
-  mk_class_data (f ((locale, consts, local_sort, inst, intro, local_syntax), (defs, operations)))
-fun merge_class_data _ (ClassData { locale = locale, consts = consts, local_sort = local_sort, inst = inst,
-    intro = intro, local_syntax = local_syntax, defs = defs1, operations = operations1 },
+fun mk_class_data ((locale, consts, local_sort, inst, intro, local_syntax),
+    (defs, (operations, constraints))) =
+  ClassData { locale = locale, consts = consts, local_sort = local_sort, inst = inst,
+    intro = intro, local_syntax = local_syntax, defs = defs, operations = operations,
+    constraints = constraints };
+fun map_class_data f (ClassData { locale, consts, local_sort, inst, intro,
+    local_syntax, defs, operations, constraints }) =
+  mk_class_data (f ((locale, consts, local_sort, inst, intro, local_syntax),
+    (defs, (operations, constraints))));
+fun merge_class_data _ (ClassData { locale = locale, consts = consts,
+    local_sort = local_sort, inst = inst, intro = intro, local_syntax = local_syntax,
+    defs = defs1, operations = operations1, constraints = constraints1 },
   ClassData { locale = _, consts = _, local_sort = _, inst = _, intro = _, local_syntax = _,
-    defs = defs2, operations = operations2 }) =
+    defs = defs2, operations = operations2, constraints = constraints2 }) =
   mk_class_data ((locale, consts, local_sort, inst, intro, local_syntax),
-    (Thm.merge_thms (defs1, defs2), AList.merge (op =) (K true) (operations1, operations2)));
+    (Thm.merge_thms (defs1, defs2),
+      (AList.merge (op =) (K true) (operations1, operations2),
+      AList.merge (op =) (K true) (constraints1, constraints2))));
 
 fun merge_pair f1 f2 ((x1, y1), (x2, y2)) = (f1 (x1, x2), f2 (y1, y2));
 
@@ -371,6 +371,8 @@ fun the_class_data thy class = case lookup_class_data thy class
  of NONE => error ("undeclared class " ^ quote class)
   | SOME data => data;
 
+val locale_of_class = #locale oo the_class_data;
+
 val ancestry = Graph.all_succs o fst o ClassData.get;
 
 fun params_of_sort thy =
@@ -392,6 +394,9 @@ fun these_intros thy =
 
 fun these_operations thy =
   maps (#operations o the_class_data thy) o ancestry thy;
+
+fun these_constraints thy =
+  maps (#constraints o the_class_data thy) o ancestry thy;
 
 fun local_operation thy = Option.join oo AList.lookup (op =) o these_operations thy;
 
@@ -444,8 +449,9 @@ fun print_classes thy =
 fun add_class_data ((class, superclasses), (locale, consts, local_sort, inst, intro, local_syntax)) =
   ClassData.map (fn (gr, tab) => (
     gr
-    |> Graph.new_node (class, mk_class_data ((locale, (map o apfst) fst consts, local_sort, inst,
-         intro, local_syntax), ([], map (apsnd (SOME o rpair 0 o Free) o swap) consts)))
+    |> Graph.new_node (class, mk_class_data ((locale, (map o pairself) fst consts,
+        local_sort, inst, intro, local_syntax),
+          ([], (map (apfst fst o apsnd (SOME o rpair 0 o Free) o swap) consts, map snd consts))))
     |> fold (curry Graph.add_edge class) superclasses,
     tab
     |> Symtab.update (locale, class)
@@ -453,11 +459,12 @@ fun add_class_data ((class, superclasses), (locale, consts, local_sort, inst, in
 
 fun register_const class (entry, def) =
   (ClassData.map o apfst o Graph.map_node class o map_class_data o apsnd)
-    (fn (defs, operations) => (def :: defs, apsnd SOME entry :: operations));
+    (fn (defs, (operations, constraints)) =>
+      (def :: defs, (apsnd (SOME o snd) entry :: operations, apsnd fst entry :: constraints)));
 
-fun register_abbrev class abbrev =
+fun register_abbrev class (abbrev, ty) =
   (ClassData.map o apfst o Graph.map_node class o map_class_data o apsnd o apsnd)
-    (cons (abbrev, NONE));
+    (fn (operations, constraints) => ((abbrev, NONE) :: operations, (abbrev, ty) :: constraints));
 
 
 (** rule calculation, tactics and methods **)
@@ -553,28 +560,21 @@ val _ = Context.add_setup (Method.add_methods
 
 (* class context initialization *)
 
-fun get_remove_constraints sups local_sort ctxt =
+fun remove_constraint local_sort c ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
-    val operations = these_operations thy sups;
-    fun get_remove (c, _) ctxt =
-      let
-        val ty = ProofContext.the_const_constraint ctxt c;
-        val ty' = map_atyps (fn ty as TFree (v, _) => if v = Name.aT
-          then TFree (v, local_sort) else ty | ty => ty) ty;
-      in
-        ctxt
-        |> ProofContext.add_const_constraint (c, SOME ty')
-        |> pair (c, ty)
-      end;
+    val ty = ProofContext.the_const_constraint ctxt c;
+    val ty' = map_atyps (fn ty as TFree (v, _) => if v = Name.aT
+      then TFree (v, local_sort) else ty | ty => ty) ty;
   in
     ctxt
-    |> fold_map get_remove operations
+    |> ProofContext.add_const_constraint (c, SOME ty')
   end;
 
-fun sort_term_check thy sups local_sort constraints ts ctxt =
+fun sort_term_check sups local_sort ts ctxt =
   let
+    val thy = ProofContext.theory_of ctxt;
     val local_operation = local_operation thy sups;
+    val constraints = these_constraints thy sups;
     val consts = ProofContext.consts_of ctxt;
     fun check_typ (c, ty) (t', idx) = case nth (Consts.typargs consts (c, ty)) idx
      of TFree (v, _) => if v = Name.aT
@@ -595,20 +595,22 @@ fun sort_term_check thy sups local_sort constraints ts ctxt =
     val ctxt' = fold (ProofContext.add_const_constraint o apsnd SOME) constraints ctxt;
   in (ts', ctxt') end;
 
-fun init_class_ctxt thy sups local_sort ctxt =
-  ctxt
-  |> Variable.declare_term
-      (Logic.mk_type (TFree (Name.aT, local_sort)))
-  |> get_remove_constraints sups local_sort
-  |-> (fn constraints => Context.proof_map (Syntax.add_term_check 50 "class"
-        (sort_term_check thy sups local_sort constraints)));
+fun init_class_ctxt sups local_sort ctxt =
+  let
+    val operations = these_operations (ProofContext.theory_of ctxt) sups;
+  in
+    ctxt
+    |> Variable.declare_term
+        (Logic.mk_type (TFree (Name.aT, local_sort)))
+    |> fold (remove_constraint local_sort o fst) operations
+    |> Context.proof_map (Syntax.add_term_check 50 "class"
+        (sort_term_check sups local_sort))
+  end;
 
 fun init class ctxt =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val local_sort = (#local_sort o the_class_data thy) class;
-  in init_class_ctxt thy [class] local_sort ctxt end;
-  
+  init_class_ctxt [class]
+    ((#local_sort o the_class_data (ProofContext.theory_of ctxt)) class) ctxt;
+
 
 (* class definition *)
 
@@ -641,7 +643,7 @@ fun gen_class_spec prep_class prep_expr process_expr thy raw_supclasses raw_incl
     ProofContext.init thy
     |> Locale.cert_expr supexpr [constrain]
     |> snd
-    |> init_class_ctxt thy sups local_sort
+    |> init_class_ctxt sups local_sort
     |> process_expr Locale.empty raw_elems
     |> fst
     |> (fn elems => ((((sups, supconsts), (supsort, local_sort, mergeexpr)),
@@ -706,7 +708,7 @@ fun gen_class prep_spec prep_param local_syntax bname
         `(fn thy => class_intro thy name_locale name_axclass sups)
       #-> (fn class_intro =>
         add_class_data ((name_axclass, sups),
-          (name_locale, map fst params ~~ map fst consts, local_sort,
+          (name_locale, map fst params ~~ consts, local_sort,
             (mk_instT name_axclass, mk_inst name_axclass (map fst globals)
               (map snd supconsts @ consts)), class_intro, local_syntax))
       #> note_intro name_axclass class_intro
@@ -736,9 +738,10 @@ fun export_fixes thy class =
 
 fun mk_operation_entry thy (c, rhs) =
   let
-    val typargs = Sign.const_typargs thy (c, fastype_of rhs);
+    val ty = fastype_of rhs;
+    val typargs = Sign.const_typargs thy (c, ty);
     val typidx = find_index (fn TFree (w, _) => Name.aT = w | _ => false) typargs;
-  in (c, (rhs, typidx)) end;
+  in (c, (ty, (rhs, typidx))) end;
 
 fun add_const_in_class class ((c, rhs), syn) thy =
   let
@@ -778,6 +781,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
     |-> (fn [def] => interpret def)
     |> Sign.add_const_constraint (c', SOME ty'')
     |> Sign.restore_naming thy
+    |> pair c'
   end;
 
 
@@ -798,55 +802,8 @@ fun add_abbrev_in_class class prmode ((c, rhs), syn) thy =
   in
     thy
     |> Sign.add_notation prmode [(Const (c', ty'), syn)]
-    |> register_abbrev class c'
+    |> register_abbrev class (c', ty')
+    |> pair c'
   end;
-
-
-(* interpretation in class target *)
-
-local
-
-fun gen_interpretation_in_class prep_class do_proof (raw_class, raw_superclass) theory =
-  let
-    val class = prep_class theory raw_class;
-    val superclass = prep_class theory raw_superclass;
-    val loc_name = (#locale o the_class_data theory) class;
-    val loc_expr = (Locale.Locale o #locale o the_class_data theory) superclass;
-    fun prove_classrel (class, superclass) thy =
-      let
-        val classes = Sign.complete_sort thy [superclass]
-          |> filter_out (fn class' => Sign.subsort thy ([class], [class']));
-        fun instance_subclass (class1, class2) thy  =
-          let
-            val interp = interpretation_in_rule thy (class1, class2);
-            val ax = #axioms (AxClass.get_definition thy class1);
-            val intro = #intro (AxClass.get_definition thy class2)
-              |> Drule.instantiate' [SOME (Thm.ctyp_of thy
-                  (TVar ((Name.aT, 0), [class1])))] [];
-            val thm =
-              intro
-              |> OF_LAST (interp OF ax)
-              |> strip_all_ofclass thy (Sign.super_classes thy class2);
-          in
-            thy |> AxClass.add_classrel thm
-          end;
-      in
-        thy |> fold_rev (curry instance_subclass class) classes
-      end;
-  in
-    theory
-    |> do_proof (prove_classrel (class, superclass)) (loc_name, loc_expr)
-  end;
-
-in
-
-val interpretation_in_class = gen_interpretation_in_class Sign.certify_class
-  (Locale.interpretation_in_locale o ProofContext.theory);
-val interpretation_in_class_cmd = gen_interpretation_in_class Sign.read_class
-  (Locale.interpretation_in_locale o ProofContext.theory);
-val prove_interpretation_in_class = gen_interpretation_in_class Sign.certify_class
-  o prove_interpretation_in;
-
-end; (*local*)
 
 end;

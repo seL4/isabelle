@@ -5,7 +5,7 @@
 header {* Test and examples for Isar class package *}
 
 theory Classpackage
-imports Main
+imports List
 begin
 
 class semigroup = type +
@@ -192,13 +192,17 @@ next
   thus "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z" by simp
 qed
 
-lemma neutr:
-  "x \<^loc>\<otimes> \<^loc>\<one> = x"
-proof -
+subclass monoid
+proof unfold_locales
+  fix x
   from invl have "\<^loc>\<div> x \<^loc>\<otimes> x = \<^loc>\<one>" by simp
   with assoc [symmetric] neutl invl have "\<^loc>\<div> x \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<one>) = \<^loc>\<div> x \<^loc>\<otimes> x" by simp
-  with cancel show ?thesis by simp
+  with cancel show "x \<^loc>\<otimes> \<^loc>\<one> = x" by simp
 qed
+
+end context group begin
+
+find_theorems name: neut
 
 lemma invr:
   "x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<one>"
@@ -208,27 +212,6 @@ proof -
   with assoc have "\<^loc>\<div> x \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<div> x) = \<^loc>\<div> x \<^loc>\<otimes> \<^loc>\<one> " by simp
   with cancel show ?thesis ..
 qed
-
-end
-
-instance advanced group < monoid
-proof unfold_locales
-  fix x
-  from neutr show "x \<^loc>\<otimes> \<^loc>\<one> = x" .
-qed
-
-hide const npow (*FIXME*)
-lemmas neutr = monoid_class.mult_one.neutr
-lemmas inv_obtain = monoid_class.inv_obtain
-lemmas inv_unique = monoid_class.inv_unique
-lemmas nat_pow_mult = monoid_class.nat_pow_mult
-lemmas nat_pow_one = monoid_class.nat_pow_one
-lemmas nat_pow_pow = monoid_class.nat_pow_pow
-lemmas units_def = monoid_class.units_def
-lemmas mult_one_def = monoid_class.units_inv_comm
-
-context group
-begin
 
 lemma all_inv [intro]:
   "(x\<Colon>'a) \<in> units"
@@ -290,15 +273,6 @@ where
   "pow k x = (if k < 0 then \<^loc>\<div> (npow (nat (-k)) x)
     else (npow (nat k) x))"
 
-end
-
-(*FIXME*)
-thm (no_abbrevs) pow_def
-thm (no_abbrevs) pow_def [folded monoid_class.npow]
-lemmas pow_def [code func] = pow_def [folded monoid_class.npow]
-
-context group begin
-
 abbreviation
   pow_syn :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>\<up>" 75)
 where
@@ -340,7 +314,7 @@ definition "x1 = X (1::nat) 2 3"
 definition "x2 = X (1::int) 2 3"
 definition "y2 = Y (1::int) 2 3"
 
-export_code mult x1 x2 y2 in SML module_name Classpackage
+export_code x1 x2 y2 pow in SML module_name Classpackage
   in OCaml file -
   in Haskell file -
 

@@ -118,9 +118,10 @@ fun consts is_loc some_class depends decls lthy =
         val mx3 = if is_loc then NoSyn else mx1;
         val thy' = Sign.add_consts_authentic (ContextPosition.properties_of lthy) [(c, U, mx3)] thy;
       in (((c, mx2), t), thy') end;
-
     fun const_class (SOME class) ((c, _), mx) (_, t) =
-          Class.add_const_in_class class ((c, t), mx)
+          LocalTheory.raw_theory_result
+            (Class.add_const_in_class class ((c, t), mx))
+          #-> (fn c => Class.remove_constraint [class] c)
       | const_class NONE _ _ = I;
     fun hide_abbrev (SOME class) abbrs thy =
           let
@@ -137,13 +138,14 @@ fun consts is_loc some_class depends decls lthy =
             Sign.hide_consts_i true cs thy
           end
       | hide_abbrev NONE _ thy = thy;
+
     val (abbrs, lthy') = lthy
       |> LocalTheory.theory_result (fold_map const decls)
     val defs = map (apsnd (pair ("", []))) abbrs;
 
   in
     lthy'
-    |> LocalTheory.raw_theory (fold2 (const_class some_class) decls abbrs)
+    |> fold2 (const_class some_class) decls abbrs
     |> is_loc ? fold (internal_abbrev Syntax.default_mode) abbrs
     |> LocalTheory.raw_theory (hide_abbrev some_class abbrs)
         (*FIXME abbreviations should never occur*)
@@ -184,17 +186,17 @@ fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
     val u' = singleton (Variable.export_terms (Variable.declare_term u target) thy_ctxt) u;
     val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
     val mx3 = if is_loc then NoSyn else mx1;
-    fun add_abbrev_in_class NONE = K I
-      | add_abbrev_in_class (SOME class) =
-          Class.add_abbrev_in_class class prmode;
+    fun add_abbrev_in_class (SOME class) abbr =
+          LocalTheory.raw_theory_result (Class.add_abbrev_in_class class prmode abbr)
+          #-> (fn c => Class.remove_constraint [class] c)
+      | add_abbrev_in_class NONE _ = I;
   in
     lthy
     |> LocalTheory.theory_result
         (Sign.add_abbrev (#1 prmode) (ContextPosition.properties_of lthy) (c, u'))
     |-> (fn (lhs as Const (full_c, _), rhs) => LocalTheory.theory (Sign.add_notation prmode [(lhs, mx3)])
     #> is_loc ? internal_abbrev prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
-    #> LocalTheory.raw_theory
-         (add_abbrev_in_class some_class ((c, Term.list_comb (Const (full_c, U), xs)), mx1))
+    #> add_abbrev_in_class some_class ((c, Term.list_comb (Const (full_c, U), xs)), mx1)
     #> local_abbrev (c, rhs))
   end;
 

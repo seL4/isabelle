@@ -404,18 +404,12 @@ class constr_dense_linear_order = linorder_no_lb + linorder_no_ub +
   fixes between
   assumes between_less: "x \<^loc>< y \<Longrightarrow> x \<^loc>< between x y \<and> between x y \<^loc>< y"
      and  between_same: "between x x = x"
+begin
 
-instance advanced constr_dense_linear_order < dense_linear_order
+subclass dense_linear_order
   apply unfold_locales
   using gt_ex lt_ex between_less
     by (auto, rule_tac x="between x y" in exI, simp)
-(*FIXME*)
-lemmas gt_ex = dense_linear_order_class.less_eq_less.gt_ex
-lemmas lt_ex = dense_linear_order_class.less_eq_less.lt_ex
-lemmas dense = dense_linear_order_class.less_eq_less.dense
-
-context constr_dense_linear_order
-begin
 
 lemma rinf_U:
   assumes fU: "finite U"

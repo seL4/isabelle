@@ -435,10 +435,13 @@ val _ =
           (Class.class_cmd false bname supclasses elems add_consts #-> TheoryTarget.begin)));
 
 val _ =
+  OuterSyntax.command "subclass" "prove a subclass relation" K.thy_goal
+    (P.opt_target -- P.xname >> (fn (loc, class) =>
+      Toplevel.print o Toplevel.local_theory_to_proof loc (Subclass.subclass_cmd class)));
+
+val _ =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
   ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> Class.classrel_cmd ||
-    P.$$$ "advanced" |-- P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname)
-      >> Class.interpretation_in_class_cmd  || (* FIXME ?? *)
     P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
       >> (fn (arities, defs) => Class.instance_cmd arities defs (fold Code.add_default_func (* FIXME ? *))))
     >> (Toplevel.print oo Toplevel.theory_to_proof));

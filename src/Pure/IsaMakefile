@@ -43,7 +43,7 @@ $(OUT)/Pure$(ML_SUFFIX): \
   Isar/proof.ML Isar/proof_context.ML Isar/proof_display.ML			\
   Isar/proof_history.ML Isar/rule_cases.ML Isar/rule_insts.ML			\
   Isar/session.ML Isar/skip_proof.ML Isar/spec_parse.ML				\
-  Isar/specification.ML Isar/theory_target.ML Isar/toplevel.ML			\
+  Isar/specification.ML Isar/subclass.ML Isar/theory_target.ML Isar/toplevel.ML	\
   ML-Systems/alice.ML ML-Systems/exn.ML						\
   ML-Systems/multithreading.ML ML-Systems/multithreading_polyml.ML		\
   ML-Systems/overloading_smlnj.ML ML-Systems/polyml-4.1.3.ML			\
