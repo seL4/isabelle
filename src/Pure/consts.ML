@@ -46,14 +46,13 @@ struct
 
 (* datatype T *)
 
-datatype kind =
-  LogicalConst of int list list |      (*typargs positions*)
-  Abbreviation of term * term * bool   (*rhs, normal rhs, force_expand*);
+type decl = {T: typ, typargs: int list list, tags: Markup.property list, authentic: bool};
 
-type decl = {T: typ, kind: kind, tags: Markup.property list, authentic: bool};
+type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
+fun dest_abbrev ({rhs, normal_rhs, ...}: abbrev) = (rhs, normal_rhs);
 
 datatype T = Consts of
- {decls: (decl * serial) NameSpace.table,
+ {decls: ((decl * abbrev option) * serial) NameSpace.table,
   constraints: typ Symtab.table,
   rev_abbrevs: (term * term) list Symtab.table} * stamp;
 
@@ -71,13 +70,10 @@ fun abbrevs_of (Consts ({rev_abbrevs, ...}, _)) modes =
 
 (* dest consts *)
 
-fun dest_kind (LogicalConst _) = NONE
-  | dest_kind (Abbreviation (t, t', _)) = SOME (t, t');
-
 fun dest (Consts ({decls = (space, decls), constraints, ...}, _)) =
  {constants = (space,
-    Symtab.fold (fn (c, ({T, kind, ...}, _)) =>
-      Symtab.update (c, (T, dest_kind kind))) decls Symtab.empty),
+    Symtab.fold (fn (c, (({T, ...}, abbr), _)) =>
+      Symtab.update (c, (T, Option.map dest_abbrev abbr))) decls Symtab.empty),
   constraints = (space, constraints)};
 
 
@@ -88,26 +84,25 @@ fun the_const (Consts ({decls = (_, tab), ...}, _)) c =
     SOME (decl, _) => decl
   | NONE => raise TYPE ("Undeclared constant: " ^ quote c, [], []));
 
-fun logical_const consts c =
+fun the_declaration consts c =
   (case the_const consts c of
-    {T, kind = LogicalConst ps, ...} => (T, ps)
+    ({T, ...}, NONE) => T
   | _ => raise TYPE ("Not a logical constant: " ^ quote c, [], []));
 
 fun the_abbreviation consts c =
   (case the_const consts c of
-    {T, kind = Abbreviation (t, t', _), ...} => (T, (t, t'))
+    ({T, ...}, SOME abbr) => (T, dest_abbrev abbr)
   | _ => raise TYPE ("Not an abbreviated constant: " ^ quote c, [], []));
 
-val the_declaration = #1 oo logical_const;
-val type_arguments = #2 oo logical_const;
+val type_arguments = (#typargs o #1) oo the_const;
 val is_monomorphic = null oo type_arguments;
 
 fun the_constraint (consts as Consts ({constraints, ...}, _)) c =
   (case Symtab.lookup constraints c of
     SOME T => T
-  | NONE => #T (the_const consts c));
+  | NONE => #T (#1 (the_const consts c)));
 
-val the_tags = #tags oo the_const;
+val the_tags = (#tags o #1) oo the_const;
 
 
 (* name space and syntax *)
@@ -119,12 +114,12 @@ val extern = NameSpace.extern o space_of;
 
 fun extern_early consts c =
   (case try (the_const consts) c of
-    SOME {authentic = true, ...} => Syntax.constN ^ c
+    SOME ({authentic = true, ...}, _) => Syntax.constN ^ c
   | _ => extern consts c);
 
 fun syntax consts (c, mx) =
   let
-    val {T, authentic, ...} = the_const consts c handle TYPE (msg, _, _) => error msg;
+    val ({T, authentic, ...}, _) = the_const consts c handle TYPE (msg, _, _) => error msg;
     val c' = if authentic then Syntax.constN ^ c else NameSpace.base c;
   in (c', T, mx) end;
 
@@ -136,7 +131,7 @@ fun syntax_name consts c = #1 (syntax consts (c, NoSyn));
 fun read_const consts raw_c =
   let
     val c = intern consts raw_c;
-    val {T, ...} = the_const consts c handle TYPE (msg, _, _) => error msg;
+    val ({T, ...}, _) = the_const consts c handle TYPE (msg, _, _) => error msg;
   in Const (c, T) end;
 
 
@@ -158,13 +153,13 @@ fun certify pp tsig do_expand consts =
         | Const (c, T) =>
             let
               val T' = certT T;
-              val {T = U, kind, ...} = the_const consts c;
+              val ({T = U, ...}, abbr) = the_const consts c;
             in
               if not (Type.raw_instance (T', U)) then
                 err "Illegal type for constant" (c, T)
               else
-                (case kind of
-                  Abbreviation (_, u, force_expand) =>
+                (case abbr of
+                  SOME {normal_rhs = u, force_expand, ...} =>
                     if do_expand orelse force_expand then
                       Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
                         err "Illegal type for abbreviation" (c, T), args')
@@ -178,11 +173,25 @@ fun certify pp tsig do_expand consts =
 
 (* typargs -- view actual const type as instance of declaration *)
 
+local
+
+fun args_of (Type (_, Ts)) pos = args_of_list Ts 0 pos
+  | args_of (TVar v) pos = insert (eq_fst op =) (v, rev pos)
+  | args_of (TFree _) _ = I
+and args_of_list (T :: Ts) i is = args_of T (i :: is) #> args_of_list Ts (i + 1) is
+  | args_of_list [] _ _ = I;
+
 fun subscript (Type (_, Ts)) (i :: is) = subscript (nth Ts i) is
   | subscript T [] = T
   | subscript T _ = raise Subscript;
 
+in
+
+fun typargs_of T = map #2 (rev (args_of T [] []));
+
 fun typargs consts (c, T) = map (subscript T) (type_arguments consts c);
+
+end;
 
 fun instance consts (c, Ts) =
   let
@@ -216,15 +225,8 @@ fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
 
 fun declare authentic naming tags (c, declT) = map_consts (fn (decls, constraints, rev_abbrevs) =>
   let
-    fun args_of (Type (_, Ts)) pos = args_of_list Ts 0 pos
-      | args_of (TVar v) pos = insert (eq_fst op =) (v, rev pos)
-      | args_of (TFree _) _ = I
-    and args_of_list (T :: Ts) i is = args_of T (i :: is) #> args_of_list Ts (i + 1) is
-      | args_of_list [] _ _ = I;
-    val decl =
-      {T = declT, kind = LogicalConst (map #2 (rev (args_of declT [] []))),
-        tags = tags, authentic = authentic};
-    val decls' = decls |> extend_decls naming (c, (decl, serial ()));
+    val decl = {T = declT, typargs = typargs_of declT, tags = tags, authentic = authentic};
+    val decls' = decls |> extend_decls naming (c, ((decl, NONE), serial ()));
   in (decls', constraints, rev_abbrevs) end);
 
 
@@ -279,10 +281,10 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
   in
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
-        val decl =
-          {T = T, kind = Abbreviation (rhs, rhs', force_expand), tags = tags, authentic = true};
+        val decl = {T = T, typargs = typargs_of T, tags = tags, authentic = true};
+        val abbr = {rhs = rhs, normal_rhs = rhs', force_expand = force_expand};
         val decls' = decls
-          |> extend_decls naming (c, (decl, serial ()));
+          |> extend_decls naming (c, ((decl, SOME abbr), serial ()));
         val rev_abbrevs' = rev_abbrevs
           |> fold (curry Symtab.update_list mode) (rev_abbrev lhs rhs);
       in (decls', constraints, rev_abbrevs') end)
