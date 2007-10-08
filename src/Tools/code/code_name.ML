@@ -27,6 +27,7 @@ sig
   val instance_rev: theory -> string -> (class * string) option
   val const: theory -> string -> string
   val const_rev: theory -> string -> string option
+  val value_name: string
   val labelled_name: theory -> string -> string
 
   val setup: theory -> theory
@@ -405,7 +406,9 @@ val f_mapping = [
 
 in
 
-fun labelled_name thy suffix_name =
+val value_name = "Isabelle_Eval.EVAL.EVAL"
+
+fun labelled_name thy suffix_name = if suffix_name = value_name then "<term>" else
   let
     val category = category_of suffix_name;
     val name = NameSpace.qualifier suffix_name;

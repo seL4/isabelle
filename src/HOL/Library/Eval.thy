@@ -169,7 +169,7 @@ struct
 val eval_ref = ref (NONE : (unit -> term) option);
 
 fun eval_invoke thy code ((_, ty), t) deps _ =
-  CodePackage.eval_invoke thy ("Eval.eval_ref", eval_ref) code (t, ty) [];
+  CodeTarget.eval_invoke thy ("Eval.eval_ref", eval_ref) code (t, ty) [];
 
 fun eval_term thy =
   TermOf.mk_term_of
