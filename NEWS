@@ -1311,8 +1311,8 @@ which are considered legacy and await removal.
 (Syntax.uncheck_terms etc.) and unparsing (Syntax.unparse_term etc.),
 with common combinations (Syntax.pretty_term, Syntax.string_of_term
 etc.).  Former Sign.pretty_term, Sign.string_of_term etc. are still
-available for convenience, but refer to the very same operations
-(using a mere theory instead of a full context).
+available for convenience, but refer to the very same operations using
+a mere theory instead of a full context.
 
 * Isar: simplified treatment of user-level errors, using exception
 ERROR of string uniformly.  Function error now merely raises ERROR,
