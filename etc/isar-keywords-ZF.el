@@ -1,6 +1,7 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; This file was generated from FOL + ZF -- DO NOT EDIT!
+;; Generated from Pure + Pure-ProofGeneral + FOL + ZF
+;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 ;; $Id$
 ;;

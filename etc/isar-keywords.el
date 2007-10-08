@@ -1,6 +1,7 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; This file was generated from HOL + HOLCF + IOA -- DO NOT EDIT!
+;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Nominal
+;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 ;; $Id$
 ;;
@@ -23,6 +24,7 @@
     "apply_end"
     "arities"
     "assume"
+    "atom_decl"
     "automaton"
     "ax_specification"
     "axclass"
@@ -77,6 +79,7 @@
     "done"
     "enable_pr"
     "end"
+    "equivariance"
     "exit"
     "export_code"
     "extract"
@@ -121,6 +124,9 @@
     "next"
     "no_syntax"
     "no_translations"
+    "nominal_datatype"
+    "nominal_inductive"
+    "nominal_primrec"
     "nonterminals"
     "normal_form"
     "notation"
@@ -240,6 +246,7 @@
     "and"
     "assumes"
     "attach"
+    "avoids"
     "begin"
     "binder"
     "compose"
@@ -399,6 +406,7 @@
   '("ML_setup"
     "abbreviation"
     "arities"
+    "atom_decl"
     "automaton"
     "axclass"
     "axiomatization"
@@ -433,6 +441,7 @@
     "definition"
     "defs"
     "domain"
+    "equivariance"
     "extract"
     "extract_type"
     "finalconsts"
@@ -451,6 +460,7 @@
     "method_setup"
     "no_syntax"
     "no_translations"
+    "nominal_datatype"
     "nonterminals"
     "notation"
     "oracle"
@@ -491,6 +501,8 @@
     "instance_proof"
     "interpretation"
     "lemma"
+    "nominal_inductive"
+    "nominal_primrec"
     "pcpodef"
     "recdef_tc"
     "specification"

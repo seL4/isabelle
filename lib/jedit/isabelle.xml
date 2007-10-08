@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE MODE SYSTEM "xmode.dtd">
-<!-- This file was generated from Pure + HOL + HOLCF + IOA + HOL-Nominal + FOL + ZF -->
+<!-- Generated from Pure + HOL + HOLCF + IOA + HOL-Nominal + FOL + ZF -->
+<!-- *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT *** -->
 <MODE>
   <PROPS>
     <PROPERTY NAME="commentStart" VALUE="(*"/>
@@ -131,7 +132,6 @@
       <OPERATOR>fixpat</OPERATOR>
       <OPERATOR>fixrec</OPERATOR>
       <KEYWORD4>for</KEYWORD4>
-      <KEYWORD4>freshness_context</KEYWORD4>
       <OPERATOR>from</OPERATOR>
       <LABEL>full_prf</LABEL>
       <OPERATOR>fun</OPERATOR>
@@ -168,7 +168,6 @@
       <OPERATOR>interpret</OPERATOR>
       <OPERATOR>interpretation</OPERATOR>
       <KEYWORD4>intros</KEYWORD4>
-      <KEYWORD4>invariant</KEYWORD4>
       <OPERATOR>invoke</OPERATOR>
       <KEYWORD4>is</KEYWORD4>
       <OPERATOR>judgment</OPERATOR>
