@@ -115,7 +115,8 @@ fun consts is_loc some_class depends decls lthy =
         val U = map #2 xs ---> T;
         val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
         val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
-        val thy' = Sign.add_consts_authentic (ContextPosition.properties_of lthy) [(c, U, mx1)] thy;
+        val mx3 = if is_loc then NoSyn else mx1;
+        val thy' = Sign.add_consts_authentic (ContextPosition.properties_of lthy) [(c, U, mx3)] thy;
       in (((c, mx2), t), thy') end;
 
     fun const_class (SOME class) ((c, _), mx) (_, t) =
@@ -182,12 +183,18 @@ fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
     val U = Term.fastype_of u;
     val u' = singleton (Variable.export_terms (Variable.declare_term u target) thy_ctxt) u;
     val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
+    val mx3 = if is_loc then NoSyn else mx1;
+    fun add_abbrev_in_class NONE = K I
+      | add_abbrev_in_class (SOME class) =
+          Class.add_abbrev_in_class class prmode;
   in
     lthy
     |> LocalTheory.theory_result
         (Sign.add_abbrev (#1 prmode) (ContextPosition.properties_of lthy) (c, u'))
-    |-> (fn (lhs as Const (full_c, _), rhs) => LocalTheory.theory (Sign.add_notation prmode [(lhs, mx1)])
+    |-> (fn (lhs as Const (full_c, _), rhs) => LocalTheory.theory (Sign.add_notation prmode [(lhs, mx3)])
     #> is_loc ? internal_abbrev prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
+    #> LocalTheory.raw_theory
+         (add_abbrev_in_class some_class ((c, Term.list_comb (Const (full_c, U), xs)), mx1))
     #> local_abbrev (c, rhs))
   end;
 
@@ -373,14 +380,10 @@ fun begin loc ctxt =
     val thy = ProofContext.theory_of ctxt;
     val is_loc = loc <> "";
     val some_class = Class.class_of_locale thy loc;
-    fun class_init (SOME class) =
-          Class.init [class]
-      | class_init NONE =
-          I;
   in
     ctxt
     |> Data.put (if is_loc then SOME loc else NONE)
-    |> class_init some_class
+    |> the_default I (Option.map Class.init some_class)
     |> LocalTheory.init (NameSpace.base loc)
      {pretty = pretty loc,
       consts = consts is_loc some_class,

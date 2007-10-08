@@ -22,13 +22,13 @@ uses
   "~~/src/Provers/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
   ("simpdata.ML")
+  "~~/src/Tools/induct.ML"
   "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_funcgr.ML"
   "~~/src/Tools/code/code_thingol.ML"
   "~~/src/Tools/code/code_target.ML"
   "~~/src/Tools/code/code_package.ML"
   "~~/src/Tools/nbe.ML"
-  "~~/src/Tools/induct.ML"
 begin
 
 subsection {* Primitive logic *}
@@ -205,13 +205,13 @@ axiomatization where
 subsubsection {* Generic classes and algebraic operations *}
 
 class default = type +
-  fixes default :: "'a"
+  fixes default :: 'a
 
 class zero = type + 
-  fixes zero :: "'a"  ("\<^loc>0")
+  fixes zero :: 'a  ("\<^loc>0")
 
 class one = type +
-  fixes one  :: "'a"  ("\<^loc>1")
+  fixes one  :: 'a  ("\<^loc>1")
 
 hide (open) const zero one
 
@@ -295,11 +295,6 @@ notation (HTML output)
   less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
 notation (input)
-  greater  (infix ">" 50)
-
-notation (input)
-  greater_eq  (infix ">=" 50)
-and
   greater_eq  (infix "\<ge>" 50)
 
 syntax

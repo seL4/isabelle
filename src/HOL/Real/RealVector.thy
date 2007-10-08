@@ -54,11 +54,6 @@ where
 
 end
 
-abbreviation
-  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a\<Colon>scaleR" (infixl "'/#" 70)
-where
-  "x /# r == scaleR (inverse r) x"
-
 notation (xsymbols)
   scaleR (infixr "*\<^sub>R" 75) and
   divideR (infixl "'/\<^sub>R" 70)
