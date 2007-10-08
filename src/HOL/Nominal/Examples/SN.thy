@@ -211,10 +211,8 @@ lemma double_SN_aux:
   assumes a: "SN a"
   and b: "SN b"
   and hyp: "\<And>x z.
-    (\<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> SN y) \<Longrightarrow>
-    (\<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> P y z) \<Longrightarrow>
-    (\<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> SN u) \<Longrightarrow>
-    (\<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> P x u) \<Longrightarrow> P x z"
+    \<lbrakk>\<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> SN y; \<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> P y z;
+     \<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> SN u; \<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> P x u\<rbrakk> \<Longrightarrow> P x z"
   shows "P a b"
 proof -
   from a
@@ -259,6 +257,7 @@ nominal_primrec
   "RED (\<tau>\<rightarrow>\<sigma>) =   {t. \<forall>u. (u\<in>RED \<tau> \<longrightarrow> (App t u)\<in>RED \<sigma>)}"
 by (rule TrueI)+
 
+(* neutral terms *)
 constdefs
   NEUT :: "lam \<Rightarrow> bool"
   "NEUT t \<equiv> (\<exists>a. t = Var a) \<or> (\<exists>t1 t2. t = App t1 t2)" 
@@ -270,15 +269,32 @@ inductive
 where
   fst[intro!]:  "(App t s) \<guillemotright> t"
 
+consts
+  fst_app_aux::"lam\<Rightarrow>lam option"
+
+nominal_primrec
+  "fst_app_aux (Var a)     = None"
+  "fst_app_aux (App t1 t2) = Some t1"
+  "fst_app_aux (Lam [x].t) = None"
+apply(finite_guess)+
+apply(rule TrueI)+
+apply(simp add: fresh_none)
+apply(fresh_guess)+
+done
+
+definition
+  fst_app_def[simp]: "fst_app t = the (fst_app_aux t)"
+
 lemma SN_of_FST_of_App: 
   assumes a: "SN (App t s)"
-  shows "SN t"
+  shows "SN (fst_app (App t s))"
 using a
 proof - 
   from a have "\<forall>z. (App t s \<guillemotright> z) \<longrightarrow> SN z"
     by (induct rule: SN.SN.induct)
        (blast elim: FST.cases intro: SN_intro)
-  then show "SN t" by blast
+  then have "SN t" by blast
+  then show "SN (fst_app (App t s))" by simp
 qed
 
 section {* Candidates *}
@@ -378,7 +394,7 @@ next
       ultimately have "(Var a)\<in> RED \<tau>1" by (simp add: CR4_def)
       with a have "App t (Var a) \<in> RED \<tau>2" by simp
       hence "SN (App t (Var a))" using ih_CR1_\<tau>2 by (simp add: CR1_def)
-      thus "SN(t)" by (rule SN_of_FST_of_App)
+      thus "SN(t)" by (auto dest: SN_of_FST_of_App)
     qed
   next
     case 2
@@ -522,10 +538,8 @@ proof(nominal_induct  avoiding: \<theta> rule: typing.strong_induct)
   have ih: "\<And>\<theta>. \<theta> closes ((a,\<sigma>)#\<Gamma>) \<Longrightarrow> \<theta><t> \<in> RED \<tau>" by fact
   have \<theta>_cond: "\<theta> closes \<Gamma>" by fact
   have fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" by fact+
-  from ih have "\<forall>s\<in>RED \<sigma>. ((a,s)#\<theta>)<t> \<in> RED \<tau>" 
-    using fresh \<theta>_cond fresh_context by simp
-  then have "\<forall>s\<in>RED \<sigma>. \<theta><t>[a::=s] \<in> RED \<tau>" 
-    using fresh by (simp add: psubst_subst)
+  from ih have "\<forall>s\<in>RED \<sigma>. ((a,s)#\<theta>)<t> \<in> RED \<tau>" using fresh \<theta>_cond fresh_context by simp
+  then have "\<forall>s\<in>RED \<sigma>. \<theta><t>[a::=s] \<in> RED \<tau>" using fresh by (simp add: psubst_subst)
   then have "Lam [a].(\<theta><t>) \<in> RED (\<sigma> \<rightarrow> \<tau>)" by (simp only: abs_RED)
   then show "\<theta><(Lam [a].t)> \<in> RED (\<sigma> \<rightarrow> \<tau>)" using fresh by simp
 qed auto
