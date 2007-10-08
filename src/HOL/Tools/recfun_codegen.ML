@@ -67,7 +67,7 @@ fun get_equations thy defs (s, T) =
      NONE => ([], "")
    | SOME thms => 
        let val thms' = del_redundant thy []
-         (filter (fn (thm, _) => is_instance thy T
+         (filter (fn (thm, _) => is_instance T
            (snd (const_of (prop_of thm)))) thms)
        in if null thms' then ([], "")
          else (preprocess thy (map fst thms'),
