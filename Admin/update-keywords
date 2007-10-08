@@ -14,10 +14,7 @@ LOG="$(isatool getenv -b ISABELLE_OUTPUT)"/log
 cd "$ISABELLE_HOME/etc"
 
 isatool keywords -t emacs \
-  "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" "$LOG/IOA.gz"
-
-isatool keywords -t emacs -k HOL-Nominal \
-  "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOL-Nominal.gz"
+  "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" "$LOG/IOA.gz" "$LOG/HOL-Nominal.gz"
 
 isatool keywords -t emacs -k ZF \
   "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"
