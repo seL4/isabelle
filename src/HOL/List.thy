@@ -3077,14 +3077,21 @@ setup {*
 let
 
 fun list_codegen thy defs gr dep thyname b t =
-  let val (gr', ps) = foldl_map (Codegen.invoke_codegen thy defs dep thyname false)
-    (gr, HOLogic.dest_list t)
-  in SOME (gr', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
+  let
+    val ts = HOLogic.dest_list t;
+    val (gr', _) = Codegen.invoke_tycodegen thy defs dep thyname false
+      (gr, fastype_of t);
+    val (gr'', ps) = foldl_map
+      (Codegen.invoke_codegen thy defs dep thyname false) (gr', ts)
+  in SOME (gr'', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
 
 fun char_codegen thy defs gr dep thyname b t =
-  case Option.map chr (try HOLogic.dest_char t) of
-      SOME c => SOME (gr, Pretty.quote (Pretty.str (ML_Syntax.print_char c)))
-    | NONE => NONE;
+  let
+    val i = HOLogic.dest_char t;
+    val (gr', _) = Codegen.invoke_tycodegen thy defs dep thyname false
+      (gr, fastype_of t)
+  in SOME (gr', Pretty.str (ML_Syntax.print_string (chr i)))
+  end handle TERM _ => NONE;
 
 in
   Codegen.add_codegen "list_codegen" list_codegen
