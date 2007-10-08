@@ -1,6 +1,6 @@
 (* $Id$ *)
 
-theory VC_NonCompatible
+theory VC_Compatible
 imports "../Nominal" 
 begin
 

@@ -17,8 +17,8 @@ use_thys [
   "Weakening",
   "Crary",
   "SOS",
-  "LocalWeakening"
+  "LocalWeakening",
   "Support"
 ];
 
-setmp quick_and_dirty true use_thy "VC-Compatible";
+setmp quick_and_dirty true use_thy "VC_Compatible";
