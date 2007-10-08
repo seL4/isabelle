@@ -7,7 +7,7 @@
 header {* Relations *}
 
 theory Relation
-imports Product_Type FixedPoint
+imports Product_Type
 begin
 
 subsection {* Definitions *}

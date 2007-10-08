@@ -589,7 +589,7 @@ fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
 fun mk_ind_def alt_name coind cs intr_ts monos
       params cnames_syn ctxt =
   let
-    val fp_name = if coind then @{const_name FixedPoint.gfp} else @{const_name FixedPoint.lfp};
+    val fp_name = if coind then @{const_name Inductive.gfp} else @{const_name Inductive.lfp};
 
     val argTs = fold (fn c => fn Ts => Ts @
       (List.drop (binder_types (fastype_of c), length params) \\ Ts)) cs [];
