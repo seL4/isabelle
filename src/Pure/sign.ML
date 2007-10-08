@@ -114,17 +114,12 @@ sig
   val intern_term: theory -> term -> term
   val extern_term: (string -> xstring) -> theory -> term -> term
   val intern_tycons: theory -> typ -> typ
-  val pretty_term': Proof.context -> Syntax.syntax -> (string -> xstring) -> term -> Pretty.T
   val pretty_term: theory -> term -> Pretty.T
   val pretty_typ: theory -> typ -> Pretty.T
   val pretty_sort: theory -> sort -> Pretty.T
-  val pretty_classrel: theory -> class list -> Pretty.T
-  val pretty_arity: theory -> arity -> Pretty.T
   val string_of_term: theory -> term -> string
   val string_of_typ: theory -> typ -> string
   val string_of_sort: theory -> sort -> string
-  val string_of_classrel: theory -> class list -> string
-  val string_of_arity: theory -> arity -> string
   val pp: theory -> Pretty.pp
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
@@ -354,39 +349,21 @@ end;
 
 (** pretty printing of terms, types etc. **)
 
-fun pretty_term' ctxt syn ext t =
-  let val curried = Context.exists_name Context.CPureN (ProofContext.theory_of ctxt)
-  in Syntax.pretty_term ext ctxt syn curried t end;
+val pretty_term = Syntax.pretty_term o ProofContext.init;
+val pretty_typ = Syntax.pretty_typ o ProofContext.init;
+val pretty_sort = Syntax.pretty_sort o ProofContext.init;
 
-fun pretty_term thy t =
-  pretty_term' (ProofContext.init thy) (syn_of thy) (Consts.extern (consts_of thy))
-    (extern_term (Consts.extern_early (consts_of thy)) thy t);
+val string_of_term = Syntax.string_of_term o ProofContext.init;
+val string_of_typ = Syntax.string_of_typ o ProofContext.init;
+val string_of_sort = Syntax.string_of_sort o ProofContext.init;
 
-fun pretty_typ thy T =
-  Syntax.pretty_typ (ProofContext.init thy) (syn_of thy) (extern_typ thy T);
-
-fun pretty_sort thy S =
-  Syntax.pretty_sort (ProofContext.init thy) (syn_of thy) (extern_sort thy S);
-
-fun pretty_classrel thy cs = Pretty.block (flat
-  (separate [Pretty.str " <", Pretty.brk 1] (map (single o pretty_sort thy o single) cs)));
-
-fun pretty_arity thy (a, Ss, S) =
-  let
-    val a' = extern_type thy a;
-    val dom =
-      if null Ss then []
-      else [Pretty.list "(" ")" (map (pretty_sort thy) Ss), Pretty.brk 1];
-  in Pretty.block ([Pretty.str (a' ^ " ::"), Pretty.brk 1] @ dom @ [pretty_sort thy S]) end;
-
-val string_of_term = Pretty.string_of oo pretty_term;
-val string_of_typ = Pretty.string_of oo pretty_typ;
-val string_of_sort = Pretty.string_of oo pretty_sort;
-val string_of_classrel = Pretty.string_of oo pretty_classrel;
-val string_of_arity = Pretty.string_of oo pretty_arity;
-
-fun pp thy = Pretty.pp (pretty_term thy, pretty_typ thy, pretty_sort thy,
-  pretty_classrel thy, pretty_arity thy);
+(*pp operations -- deferred evaluation*)
+fun pp thy = Pretty.pp
+ (fn x => pretty_term thy x,
+  fn x => pretty_typ thy x,
+  fn x => pretty_sort thy x,
+  fn x => Syntax.pretty_classrel (ProofContext.init thy) x,
+  fn x => Syntax.pretty_arity (ProofContext.init thy) x);
 
 
 
