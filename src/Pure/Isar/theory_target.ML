@@ -211,11 +211,7 @@ fun expand_term ctxt t =
     val (defs, ct') = LocalDefs.export ctxt thy_ctxt (Drule.mk_term ct) ||> Drule.dest_term;
   in (Thm.term_of ct', MetaSimplifier.rewrite true defs ct) end;
 
-fun add_def (name, prop) =
-  Theory.add_defs_i false false [(name, prop)] #>
-  (fn thy => (Drule.unvarify (Thm.get_axiom_i thy (Sign.full_name thy name)), thy));
-
-fun add_def_new (name, prop) thy =  (* FIXME inactive --- breaks codegen *)
+fun add_def (name, prop) thy =
   let
     val tfrees = rev (map TFree (Term.add_tfrees prop []));
     val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
@@ -224,8 +220,8 @@ fun add_def_new (name, prop) thy =  (* FIXME inactive --- breaks codegen *)
 
     val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
     val thy' = Theory.add_defs_i false false [(name, prop')] thy;
-    val axm = Thm.get_axiom_i thy' (Sign.full_name thy' name);
-    val def = Thm.instantiate (recover_sorts, []) axm;
+    val axm' = Thm.get_axiom_i thy' (Sign.full_name thy' name);
+    val def = Thm.instantiate (recover_sorts, []) axm';
   in (Drule.unvarify def, thy') end;
 
 in
