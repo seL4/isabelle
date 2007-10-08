@@ -807,7 +807,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/SOS.thy \
   Nominal/Examples/LocalWeakening.thy \
   Nominal/Examples/Support.thy \
-  Nominal/Examples/VC-Compatible.thy
+  Nominal/Examples/VC_Compatible.thy
 	@cd Nominal; $(ISATOOL) usedir $(OUT)/HOL-Nominal Examples
 
 
