@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <!DOCTYPE MODE SYSTEM "xmode.dtd">
-<!-- Generated from Pure + HOL + HOLCF + IOA + HOL-Nominal + FOL + ZF -->
+<!-- Generated from Pure + HOL + HOLCF + IOA + HOL-Nominal + FOL + ZF. -->
 <!-- *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT *** -->
+<!-- $Id$ -->
 <MODE>
   <PROPS>
     <PROPERTY NAME="commentStart" VALUE="(*"/>

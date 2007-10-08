@@ -72,7 +72,7 @@ sub emacs_output {
 
   print ";;\n";
   print ";; Keyword classification tables for Isabelle/Isar.\n";
-  print ";; Generated from ${sessions}\n";
+  print ";; Generated from ${sessions}.\n";
   print ";; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***\n";
   print ";;\n";
   print ";; \$", "Id\$\n";
@@ -148,8 +148,9 @@ sub jedit_output {
 <?xml version="1.0"?>
 <!DOCTYPE MODE SYSTEM "xmode.dtd">
 EOF
-  print "<!-- Generated from ${sessions} -->\n";
+  print "<!-- Generated from ${sessions}. -->\n";
   print "<!-- *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT *** -->\n";
+  print "<!-- \$", "Id\$ -->\n";
   print <<'EOF';
 <MODE>
   <PROPS>
