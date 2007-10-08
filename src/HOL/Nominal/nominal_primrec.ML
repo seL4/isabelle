@@ -416,15 +416,17 @@ end; (*local*)
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["invariant", "freshness_context"];
+val freshness_context = P.reserved "freshness_context";
+val invariant = P.reserved "invariant";
 
-val parser1 = P.$$$ "freshness_context" |-- P.$$$ ":" |-- (P.term >> SOME);
-val parser2 =
-  P.$$$ "invariant" |-- P.$$$ ":" |--
-    (Scan.repeat1 P.term >> SOME) -- Scan.optional parser1 NONE ||
+fun unless_flag scan = Scan.unless ((freshness_context || invariant) -- P.$$$ ":") scan;
+
+val parser1 = (freshness_context -- P.$$$ ":") |-- unless_flag P.term >> SOME;
+val parser2 = (invariant -- P.$$$ ":") |--
+    (Scan.repeat1 (unless_flag P.term) >> SOME) -- Scan.optional parser1 NONE ||
   (parser1 >> pair NONE);
 val parser3 =
-  P.name -- Scan.optional parser2 (NONE, NONE) ||
+  unless_flag P.name -- Scan.optional parser2 (NONE, NONE) ||
   (parser2 >> pair "");
 val parser4 =
   (P.$$$ "unchecked" >> K true) -- Scan.optional parser3 ("", (NONE, NONE)) ||
