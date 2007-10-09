@@ -89,12 +89,12 @@ val _ = OuterSyntax.markup_command ThyOutput.Verbatim "txt_raw"
 val _ =
   OuterSyntax.command "classes" "declare type classes" K.thy_decl
     (Scan.repeat1 (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
-        P.!!! (P.list1 P.xname)) []) >> (Toplevel.theory o fold AxClass.axiomatize_class));
+        P.!!! (P.list1 P.xname)) []) >> (Toplevel.theory o fold AxClass.axiomatize_class_cmd));
 
 val _ =
   OuterSyntax.command "classrel" "state inclusion of type classes (axiomatic!)" K.thy_decl
     (P.and_list1 (P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname))
-    >> (Toplevel.theory o AxClass.axiomatize_classrel));
+    >> (Toplevel.theory o AxClass.axiomatize_classrel_cmd));
 
 val _ =
   OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
@@ -128,7 +128,7 @@ val _ =
 
 val _ =
   OuterSyntax.command "arities" "state type arities (axiomatic!)" K.thy_decl
-    (Scan.repeat1 P.arity >> (Toplevel.theory o fold AxClass.axiomatize_arity));
+    (Scan.repeat1 P.arity >> (Toplevel.theory o fold AxClass.axiomatize_arity_cmd));
 
 
 (* consts and syntax *)
@@ -234,19 +234,19 @@ val constdef = Scan.option constdecl -- (SpecParse.opt_thm_name ":" -- P.prop);
 val _ =
   OuterSyntax.command "definition" "constant definition" K.thy_decl
     (P.opt_target -- constdef
-    >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition args)));
+    >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition_cmd args)));
 
 val _ =
   OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
     (P.opt_target -- opt_mode -- (Scan.option constdecl -- P.prop)
     >> (fn ((loc, mode), args) =>
-        Toplevel.local_theory loc (Specification.abbreviation mode args)));
+        Toplevel.local_theory loc (Specification.abbreviation_cmd mode args)));
 
 val _ =
   OuterSyntax.command "notation" "variable/constant syntax" K.thy_decl
     (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn ((loc, mode), args) =>
-        Toplevel.local_theory loc (Specification.notation mode args)));
+        Toplevel.local_theory loc (Specification.notation_cmd mode args)));
 
 
 (* constant specifications *)
@@ -256,13 +256,13 @@ val _ =
     (P.opt_target --
      (Scan.optional P.fixes [] --
       Scan.optional (P.where_ |-- P.!!! (P.and_list1 SpecParse.spec)) [])
-    >> (fn (loc, (x, y)) => Toplevel.local_theory loc (#2 o Specification.axiomatization x y)));
+    >> (fn (loc, (x, y)) => Toplevel.local_theory loc (#2 o Specification.axiomatization_cmd x y)));
 
 
 (* theorems *)
 
 fun theorems kind = P.opt_target -- SpecParse.name_facts
-  >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.theorems kind args));
+  >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.theorems_cmd kind args));
 
 val _ =
   OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems Thm.theoremK);
@@ -274,7 +274,7 @@ val _ =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_decl
     (P.opt_target -- (P.and_list1 SpecParse.xthms1 >> flat)
       >> (fn (loc, args) => Toplevel.local_theory loc
-          (#2 o Specification.theorems "" [(("", []), args)])));
+          (#2 o Specification.theorems_cmd "" [(("", []), args)])));
 
 
 (* name space entry path *)
@@ -381,7 +381,7 @@ val _ =
 val _ =
   OuterSyntax.command "context" "enter local theory context" K.thy_decl
     (P.name --| P.begin >> (fn name =>
-      Toplevel.print o Toplevel.begin_local_theory true (TheoryTarget.init (SOME name))));
+      Toplevel.print o Toplevel.begin_local_theory true (TheoryTarget.init_cmd (SOME name))));
 
 
 (* locales *)
@@ -476,7 +476,7 @@ fun gen_theorem kind =
       SpecParse.general_statement >> (fn ((loc, a), (elems, concl)) =>
       (Toplevel.print o
        Toplevel.local_theory_to_proof' loc
-         (Specification.theorem kind NONE (K I) a elems concl))));
+         (Specification.theorem_cmd kind NONE (K I) a elems concl))));
 
 val _ = gen_theorem Thm.theoremK;
 val _ = gen_theorem Thm.lemmaK;
