@@ -40,149 +40,64 @@ lemma bigo_pos_const: "(EX (c::'a::ordered_idom).
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
   apply (rule_tac x = "abs c" in exI, auto)
-(*hand-modified to give 'a sort ordered_idom and X3 type 'a*)
 proof (neg_clausify)
 fix c x
-assume 0: "\<And>A. \<bar>h A\<bar> \<le> c * \<bar>f A\<bar>"
-assume 1: "c \<noteq> (0\<Colon>'a::ordered_idom)"
-assume 2: "\<not> \<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>"
-have 3: "\<And>X1 X3. \<bar>h X3\<bar> < X1 \<or> \<not> c * \<bar>f X3\<bar> < X1"
-  by (metis order_le_less_trans 0)
-have 4: "\<And>X3. (1\<Colon>'a) * X3 \<le> X3 \<or> \<not> (1\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis mult_le_cancel_right2)
-have 5: "\<And>X3. (1\<Colon>'a) * X3 \<le> X3"
-  by (metis 4 order_refl)
-have 6: "\<And>X3. \<bar>0\<Colon>'a\<bar> = \<bar>X3\<bar> * (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (0\<Colon>'a)"
-  by (metis abs_mult_pos mult_cancel_right1)
-have 7: "\<bar>0\<Colon>'a\<bar> = (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (0\<Colon>'a)"
-  by (metis 6 mult_cancel_right1)
-have 8: "\<bar>0\<Colon>'a\<bar> = (0\<Colon>'a)"
-  by (metis 7 order_refl)
-have 9: "\<not> (0\<Colon>'a) < (0\<Colon>'a)"
-  by (metis abs_not_less_zero 8)
-have 10: "\<bar>(1\<Colon>'a) * (0\<Colon>'a)\<bar> = - ((1\<Colon>'a) * (0\<Colon>'a))"
-  by (metis abs_of_nonpos 5)
-have 11: "(0\<Colon>'a) = - ((1\<Colon>'a) * (0\<Colon>'a))"
-  by (metis 10 mult_cancel_right1 8)
-have 12: "(0\<Colon>'a) = - (0\<Colon>'a)"
-  by (metis 11 mult_cancel_right1)
-have 13: "\<And>X3. \<bar>X3\<bar> = X3 \<or> X3 \<le> (0\<Colon>'a)"
-  by (metis abs_of_nonneg linorder_linear)
-have 14: "c \<le> (0\<Colon>'a) \<or> \<not> \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  by (metis 2 13)
-have 15: "c \<le> (0\<Colon>'a)"
-  by (metis 14 0)
-have 16: "c = (0\<Colon>'a) \<or> c < (0\<Colon>'a)"
-  by (metis linorder_antisym_conv2 15)
-have 17: "\<bar>c\<bar> = - c"
-  by (metis abs_of_nonpos 15)
-have 18: "c < (0\<Colon>'a)"
-  by (metis 16 1)
-have 19: "\<not> \<bar>h x\<bar> \<le> - c * \<bar>f x\<bar>"
-  by (metis 2 17)
-have 20: "\<And>X3. X3 * (1\<Colon>'a) = X3"
-  by (metis mult_cancel_right1 AC_mult.f.commute)
-have 21: "\<And>X3. (0\<Colon>'a) \<le> X3 * X3"
-  by (metis zero_le_square AC_mult.f.commute)
-have 22: "(0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis 21 mult_cancel_left1)
-have 23: "\<And>X3. (0\<Colon>'a) = X3 \<or> (0\<Colon>'a) \<noteq> - X3"
-  by (metis neg_equal_iff_equal 12)
-have 24: "\<And>X3. (0\<Colon>'a) = - X3 \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis 23 minus_equation_iff)
-have 25: "\<And>X3. \<bar>0\<Colon>'a\<bar> = \<bar>X3\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by metis
-have 26: "\<And>X3. (0\<Colon>'a) = \<bar>X3\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis 8)
-have 27: "\<And>X1 X3. (0\<Colon>'a) * \<bar>X1\<bar> = \<bar>X3 * X1\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis abs_mult 26)
-have 28: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis 27 mult_cancel_left1)
-have 29: "\<And>X1 X3. (0\<Colon>'a) = X3 * X1 \<or> (0\<Colon>'a) < (0\<Colon>'a) \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis zero_less_abs_iff 28)
-have 30: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis 29 9)
-have 31: "\<And>X1 X3. (0\<Colon>'a) = X1 * X3 \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis AC_mult.f.commute 30)
-have 32: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<bar>X1\<bar> \<noteq> (0\<Colon>'a)"
-  by (metis abs_mult 31)
-have 33: "\<And>X3::'a. \<bar>X3 * X3\<bar> = X3 * X3"
-  by (metis abs_mult_self abs_mult)
-have 34: "\<And>X3. (0\<Colon>'a) \<le> \<bar>X3\<bar> \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_ge_zero abs_mult_pos 20)
-have 35: "\<And>X3. (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis 34 22)
-have 36: "\<And>X3. X3 * (1\<Colon>'a) = (0\<Colon>'a) \<or> \<bar>X3\<bar> \<noteq> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_eq_0 abs_mult_pos 20)
-have 37: "\<And>X3. X3 = (0\<Colon>'a) \<or> \<bar>X3\<bar> \<noteq> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis 36 20)
-have 38: "\<And>X3. X3 = (0\<Colon>'a) \<or> \<bar>X3\<bar> \<noteq> (0\<Colon>'a)"
-  by (metis 37 22)
-have 39: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> \<bar>X1\<bar> \<noteq> (0\<Colon>'a)"
-  by (metis 38 32)
-have 40: "\<And>X3::'a. \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar> \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_idempotent abs_mult_pos 20)
-have 41: "\<And>X3::'a. \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar>"
-  by (metis 40 22)
-have 42: "\<And>X3. \<not> \<bar>X3\<bar> < (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_not_less_zero abs_mult_pos 20)
-have 43: "\<And>X3. \<not> \<bar>X3\<bar> < (0\<Colon>'a)"
-  by (metis 42 22)
-have 44: "\<And>X3. X3 * (1\<Colon>'a) = (0\<Colon>'a) \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_le_zero_iff abs_mult_pos 20)
-have 45: "\<And>X3. X3 = (0\<Colon>'a) \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis 44 20)
-have 46: "\<And>X3. X3 = (0\<Colon>'a) \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a)"
-  by (metis 45 22)
-have 47: "\<And>X3. X3 * X3 = (0\<Colon>'a) \<or> \<not> X3 * X3 \<le> (0\<Colon>'a)"
-  by (metis 46 33)
-have 48: "\<And>X3. X3 * X3 = (0\<Colon>'a) \<or> \<not> X3 \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> X3"
-  by (metis 47 mult_le_0_iff)
-have 49: "\<And>X3. \<bar>X3\<bar> = (0\<Colon>'a) \<or> \<not> X3 \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> X3"
-  by (metis mult_eq_0_iff abs_mult_self 48)
-have 50: "\<And>X1 X3.
-   (0\<Colon>'a) * \<bar>X1\<bar> = \<bar>\<bar>X3 * X1\<bar>\<bar> \<or>
-   \<not> (0\<Colon>'a) \<le> \<bar>X1\<bar> \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis abs_mult_pos abs_mult 49)
-have 51: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> \<not> X1 \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> X1"
-  by (metis 39 49)
-have 52: "\<And>X1 X3.
-   (0\<Colon>'a) = \<bar>\<bar>X3 * X1\<bar>\<bar> \<or>
-   \<not> (0\<Colon>'a) \<le> \<bar>X1\<bar> \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis 50 mult_cancel_left1)
-have 53: "\<And>X1 X3.
-   (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<not> (0\<Colon>'a) \<le> \<bar>X1\<bar> \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis 52 41)
-have 54: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis 53 35)
-have 55: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a)"
-  by (metis 54 35)
-have 56: "\<And>X1 X3. \<bar>X1 * X3\<bar> = (0\<Colon>'a) \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a)"
-  by (metis 55 AC_mult.f.commute)
-have 57: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> \<not> \<bar>X1\<bar> \<le> (0\<Colon>'a)"
-  by (metis 38 56)
-have 58: "\<And>X3. \<bar>h X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> \<bar>f X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> \<bar>f X3\<bar>"
-  by (metis 0 51)
-have 59: "\<And>X3. \<bar>h X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> \<bar>f X3\<bar> \<le> (0\<Colon>'a)"
-  by (metis 58 35)
-have 60: "\<And>X3. \<bar>h X3\<bar> \<le> (0\<Colon>'a) \<or> (0\<Colon>'a) < \<bar>f X3\<bar>"
-  by (metis 59 linorder_not_le)
-have 61: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> (0\<Colon>'a) < \<bar>X1\<bar>"
-  by (metis 57 linorder_not_le)
-have 62: "(0\<Colon>'a) < \<bar>\<bar>f x\<bar>\<bar> \<or> \<not> \<bar>h x\<bar> \<le> (0\<Colon>'a)"
-  by (metis 19 61)
-have 63: "(0\<Colon>'a) < \<bar>f x\<bar> \<or> \<not> \<bar>h x\<bar> \<le> (0\<Colon>'a)"
-  by (metis 62 41)
-have 64: "(0\<Colon>'a) < \<bar>f x\<bar>"
-  by (metis 63 60)
-have 65: "\<And>X3. \<bar>h X3\<bar> < (0\<Colon>'a) \<or> \<not> c < (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) < \<bar>f X3\<bar>"
-  by (metis 3 mult_less_0_iff)
-have 66: "\<And>X3. \<bar>h X3\<bar> < (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) < \<bar>f X3\<bar>"
-  by (metis 65 18)
-have 67: "\<And>X3. \<not> (0\<Colon>'a) < \<bar>f X3\<bar>"
-  by (metis 66 43)
+have 0: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom. \<bar>X1 * X2\<bar> = \<bar>X2 * X1\<bar>"
+  by (metis abs_mult mult_commute)
+have 1: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom.
+   X1 \<le> (0\<Colon>'a\<Colon>ordered_idom) \<or> \<bar>X2\<bar> * X1 = \<bar>X2 * X1\<bar>"
+  by (metis abs_mult_pos linorder_linear)
+have 2: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom.
+   \<not> (0\<Colon>'a\<Colon>ordered_idom) < X1 * X2 \<or>
+   \<not> (0\<Colon>'a\<Colon>ordered_idom) \<le> X2 \<or> \<not> X1 \<le> (0\<Colon>'a\<Colon>ordered_idom)"
+  by (metis linorder_not_less mult_nonneg_nonpos2)
+assume 3: "\<And>x\<Colon>'b\<Colon>type.
+   \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>
+   \<le> (c\<Colon>'a\<Colon>ordered_idom) * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>"
+assume 4: "\<not> \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>
+  \<le> \<bar>c\<Colon>'a\<Colon>ordered_idom\<bar> * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>"
+have 5: "\<not> \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>
+  \<le> \<bar>(c\<Colon>'a\<Colon>ordered_idom) * (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>"
+  by (metis 4 abs_mult)
+have 6: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom.
+   \<not> X1 \<le> (0\<Colon>'a\<Colon>ordered_idom) \<or> X1 \<le> \<bar>X2\<bar>"
+  by (metis abs_ge_zero xt1(6))
+have 7: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom.
+   X1 \<le> \<bar>X2\<bar> \<or> (0\<Colon>'a\<Colon>ordered_idom) < X1"
+  by (metis not_leE 6)
+have 8: "(0\<Colon>'a\<Colon>ordered_idom) < \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>"
+  by (metis 5 7)
+have 9: "\<And>X1\<Colon>'a\<Colon>ordered_idom.
+   \<not> \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar> \<le> X1 \<or>
+   (0\<Colon>'a\<Colon>ordered_idom) < X1"
+  by (metis 8 order_less_le_trans)
+have 10: "(0\<Colon>'a\<Colon>ordered_idom)
+< (c\<Colon>'a\<Colon>ordered_idom) * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>"
+  by (metis 3 9)
+have 11: "\<not> (c\<Colon>'a\<Colon>ordered_idom) \<le> (0\<Colon>'a\<Colon>ordered_idom)"
+  by (metis abs_ge_zero 2 10)
+have 12: "\<And>X1\<Colon>'a\<Colon>ordered_idom. (c\<Colon>'a\<Colon>ordered_idom) * \<bar>X1\<bar> = \<bar>X1 * c\<bar>"
+  by (metis mult_commute 1 11)
+have 13: "\<And>X1\<Colon>'b\<Colon>type.
+   - (h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1
+   \<le> (c\<Colon>'a\<Colon>ordered_idom) * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1\<bar>"
+  by (metis 3 abs_le_D2)
+have 14: "\<And>X1\<Colon>'b\<Colon>type.
+   - (h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1
+   \<le> \<bar>(c\<Colon>'a\<Colon>ordered_idom) * (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1\<bar>"
+  by (metis 0 12 13)
+have 15: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom. \<bar>X1 * \<bar>X2\<bar>\<bar> = \<bar>X1 * X2\<bar>"
+  by (metis abs_mult abs_mult_pos abs_ge_zero)
+have 16: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom. X1 \<le> \<bar>X2\<bar> \<or> \<not> X1 \<le> X2"
+  by (metis xt1(6) abs_ge_self)
+have 17: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom. \<not> \<bar>X1\<bar> \<le> X2 \<or> X1 \<le> \<bar>X2\<bar>"
+  by (metis 16 abs_le_D1)
+have 18: "\<And>X1\<Colon>'b\<Colon>type.
+   (h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1
+   \<le> \<bar>(c\<Colon>'a\<Colon>ordered_idom) * (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1\<bar>"
+  by (metis 17 3 15)
 show "False"
-  by (metis 67 64)
+  by (metis abs_le_iff 5 18 14)
 qed
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
@@ -195,76 +110,34 @@ lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom).
 ML{*ResReconstruct.modulus:=2*}
 proof (neg_clausify)
 fix c x
-assume 0: "\<And>A. \<bar>h A\<bar> \<le> c * \<bar>f A\<bar>"
-assume 1: "c \<noteq> (0\<Colon>'a::ordered_idom)"
-assume 2: "\<not> \<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>"
-have 3: "\<And>X3. (1\<Colon>'a) * X3 \<le> X3"
-  by (metis mult_le_cancel_right2 order_refl order_refl)
-have 4: "\<bar>0\<Colon>'a\<bar> = (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (0\<Colon>'a)"
-  by (metis abs_mult_pos mult_cancel_right1 mult_cancel_right1)
-have 5: "\<not> (0\<Colon>'a) < (0\<Colon>'a)"
-  by (metis abs_not_less_zero 4 order_refl)
-have 6: "(0\<Colon>'a) = - ((1\<Colon>'a) * (0\<Colon>'a))"
-  by (metis abs_of_nonpos 3 mult_cancel_right1 4 order_refl)
-have 7: "\<And>X3. \<bar>X3\<bar> = X3 \<or> X3 \<le> (0\<Colon>'a)"
-  by (metis abs_of_nonneg linorder_linear)
-have 8: "c \<le> (0\<Colon>'a)"
-  by (metis 2 7 0)
-have 9: "\<bar>c\<bar> = - c"
-  by (metis abs_of_nonpos 8)
-have 10: "\<not> \<bar>h x\<bar> \<le> - c * \<bar>f x\<bar>"
-  by (metis 2 9)
-have 11: "\<And>X3. X3 * (1\<Colon>'a) = X3"
-  by (metis mult_cancel_right1 AC_mult.f.commute)
-have 12: "(0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis zero_le_square AC_mult.f.commute mult_cancel_left1)
-have 13: "\<And>X3. (0\<Colon>'a) = - X3 \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis neg_equal_iff_equal 6 mult_cancel_right1 minus_equation_iff)
-have 14: "\<And>X3. (0\<Colon>'a) = \<bar>X3\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis abs_minus_cancel 13 4 order_refl)
-have 15: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis abs_mult 14 mult_cancel_left1)
-have 16: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis zero_less_abs_iff 15 5)
-have 17: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<bar>X1\<bar> \<noteq> (0\<Colon>'a)"
-  by (metis abs_mult AC_mult.f.commute 16)
-have 18: "\<And>X3. (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis abs_ge_zero abs_mult_pos 11 12)
-have 19: "\<And>X3. X3 * (1\<Colon>'a) = (0\<Colon>'a) \<or> \<bar>X3\<bar> \<noteq> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_eq_0 abs_mult_pos 11)
-have 20: "\<And>X3. X3 = (0\<Colon>'a) \<or> \<bar>X3\<bar> \<noteq> (0\<Colon>'a)"
-  by (metis 19 11 12)
-have 21: "\<And>X3::'a. \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar> \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_idempotent abs_mult_pos 11)
-have 22: "\<And>X3. \<not> \<bar>X3\<bar> < (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_not_less_zero abs_mult_pos 11)
-have 23: "\<And>X3. X3 = (0\<Colon>'a) \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_le_zero_iff abs_mult_pos 11 11)
-have 24: "\<And>X3. X3 * X3 = (0\<Colon>'a) \<or> \<not> X3 * X3 \<le> (0\<Colon>'a)"
-  by (metis 23 12 abs_mult_self abs_mult AC_mult.f.commute)
-have 25: "\<And>X3. \<bar>X3\<bar> = (0\<Colon>'a) \<or> \<not> X3 \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> X3"
-  by (metis mult_eq_0_iff abs_mult_self 24 mult_le_0_iff)
-have 26: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> \<not> X1 \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> X1"
-  by (metis 20 17 25)
-have 27: "\<And>X1 X3.
-   (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<not> (0\<Colon>'a) \<le> \<bar>X1\<bar> \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis abs_mult_pos abs_mult 25 mult_cancel_left1 21 12)
-have 28: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a)"
-  by (metis 27 18 18)
-have 29: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> \<not> \<bar>X1\<bar> \<le> (0\<Colon>'a)"
-  by (metis 20 28 AC_mult.f.commute)
-have 30: "\<And>X3. \<bar>h X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> \<bar>f X3\<bar> \<le> (0\<Colon>'a)"
-  by (metis 0 26 18)
-have 31: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> (0\<Colon>'a) < \<bar>X1\<bar>"
-  by (metis 29 linorder_not_le)
-have 32: "(0\<Colon>'a) < \<bar>f x\<bar> \<or> \<not> \<bar>h x\<bar> \<le> (0\<Colon>'a)"
-  by (metis 10 31 21 12)
-have 33: "\<And>X3. \<bar>h X3\<bar> < (0\<Colon>'a) \<or> \<not> c < (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) < \<bar>f X3\<bar>"
-  by (metis order_le_less_trans 0 mult_less_0_iff)
-have 34: "\<And>X3. \<not> (0\<Colon>'a) < \<bar>f X3\<bar>"
-  by (metis 33 linorder_antisym_conv2 8 1 22 12)
+have 0: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom. \<bar>X1 * X2\<bar> = \<bar>X2 * X1\<bar>"
+  by (metis abs_mult mult_commute)
+assume 1: "\<And>x\<Colon>'b\<Colon>type.
+   \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>
+   \<le> (c\<Colon>'a\<Colon>ordered_idom) * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>"
+assume 2: "\<not> \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>
+  \<le> \<bar>c\<Colon>'a\<Colon>ordered_idom\<bar> * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>"
+have 3: "\<not> \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>
+  \<le> \<bar>(c\<Colon>'a\<Colon>ordered_idom) * (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>"
+  by (metis 2 abs_mult)
+have 4: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom.
+   \<not> X1 \<le> (0\<Colon>'a\<Colon>ordered_idom) \<or> X1 \<le> \<bar>X2\<bar>"
+  by (metis abs_ge_zero xt1(6))
+have 5: "(0\<Colon>'a\<Colon>ordered_idom) < \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>"
+  by (metis not_leE 4 3)
+have 6: "(0\<Colon>'a\<Colon>ordered_idom)
+< (c\<Colon>'a\<Colon>ordered_idom) * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>"
+  by (metis 1 order_less_le_trans 5)
+have 7: "\<And>X1\<Colon>'a\<Colon>ordered_idom. (c\<Colon>'a\<Colon>ordered_idom) * \<bar>X1\<bar> = \<bar>X1 * c\<bar>"
+  by (metis abs_ge_zero linorder_not_less mult_nonneg_nonpos2 6 linorder_linear abs_mult_pos mult_commute)
+have 8: "\<And>X1\<Colon>'b\<Colon>type.
+   - (h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1
+   \<le> \<bar>(c\<Colon>'a\<Colon>ordered_idom) * (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1\<bar>"
+  by (metis 0 7 abs_le_D2 1)
+have 9: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom. \<not> \<bar>X1\<bar> \<le> X2 \<or> X1 \<le> \<bar>X2\<bar>"
+  by (metis abs_ge_self xt1(6) abs_le_D1)
 show "False"
-  by (metis 34 32 30 linorder_not_le)
+  by (metis 8 abs_ge_zero abs_mult_pos abs_mult 1 9 3 abs_le_iff)
 qed
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
@@ -277,133 +150,24 @@ lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom).
 ML{*ResReconstruct.modulus:=3*}
 proof (neg_clausify)
 fix c x
-assume 0: "\<And>A\<Colon>'b\<Colon>type.
-   \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) A\<bar>
-   \<le> (c\<Colon>'a\<Colon>ordered_idom) * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) A\<bar>"
-assume 1: "(c\<Colon>'a\<Colon>ordered_idom) \<noteq> (0\<Colon>'a\<Colon>ordered_idom)"
-assume 2: "\<not> \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>
+assume 0: "\<And>x\<Colon>'b\<Colon>type.
+   \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>
+   \<le> (c\<Colon>'a\<Colon>ordered_idom) * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>"
+assume 1: "\<not> \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar>
   \<le> \<bar>c\<Colon>'a\<Colon>ordered_idom\<bar> * \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar>"
-have 3: "\<And>X3\<Colon>'a\<Colon>ordered_idom. (1\<Colon>'a\<Colon>ordered_idom) * X3 \<le> X3"
-  by (metis mult_le_cancel_right2 order_refl order_refl)
-have 4: "\<bar>0\<Colon>'a\<Colon>ordered_idom\<bar> = (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis abs_mult_pos mult_cancel_right1 mult_cancel_right1 order_refl)
-have 5: "(0\<Colon>'a\<Colon>ordered_idom) = - ((1\<Colon>'a\<Colon>ordered_idom) * (0\<Colon>'a\<Colon>ordered_idom))"
-  by (metis abs_of_nonpos 3 mult_cancel_right1 4)
-have 6: "(c\<Colon>'a\<Colon>ordered_idom) \<le> (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis 2 abs_of_nonneg linorder_linear 0)
-have 7: "(c\<Colon>'a\<Colon>ordered_idom) < (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis linorder_antisym_conv2 6 1)
-have 8: "\<And>X3\<Colon>'a\<Colon>ordered_idom. X3 * (1\<Colon>'a\<Colon>ordered_idom) = X3"
-  by (metis mult_cancel_right1 AC_mult.f.commute)
-have 9: "\<And>X3\<Colon>'a\<Colon>ordered_idom. (0\<Colon>'a\<Colon>ordered_idom) = X3 \<or> (0\<Colon>'a\<Colon>ordered_idom) \<noteq> - X3"
-  by (metis neg_equal_iff_equal 5 mult_cancel_right1)
-have 10: "\<And>X3\<Colon>'a\<Colon>ordered_idom. (0\<Colon>'a\<Colon>ordered_idom) = \<bar>X3\<bar> \<or> X3 \<noteq> (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis abs_minus_cancel 9 minus_equation_iff 4)
-have 11: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X3\<Colon>'a\<Colon>ordered_idom.
-   (0\<Colon>'a\<Colon>ordered_idom) * \<bar>X1\<bar> = \<bar>X3 * X1\<bar> \<or> X3 \<noteq> (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis abs_mult 10)
-have 12: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X3\<Colon>'a\<Colon>ordered_idom.
-   X3 * X1 = (0\<Colon>'a\<Colon>ordered_idom) \<or> X3 \<noteq> (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis zero_less_abs_iff 11 mult_cancel_left1 abs_not_less_zero 4)
-have 13: "\<And>X3\<Colon>'a\<Colon>ordered_idom. \<bar>X3 * X3\<bar> = X3 * X3"
-  by (metis abs_mult_self abs_mult AC_mult.f.commute)
-have 14: "\<And>X3\<Colon>'a\<Colon>ordered_idom. (0\<Colon>'a\<Colon>ordered_idom) \<le> \<bar>X3\<bar>"
-  by (metis abs_ge_zero abs_mult_pos 8 zero_le_square AC_mult.f.commute mult_cancel_left1)
-have 15: "\<And>X3\<Colon>'a\<Colon>ordered_idom.
-   X3 = (0\<Colon>'a\<Colon>ordered_idom) \<or>
-   \<bar>X3\<bar> \<noteq> (0\<Colon>'a\<Colon>ordered_idom) \<or> \<not> (0\<Colon>'a\<Colon>ordered_idom) \<le> (1\<Colon>'a\<Colon>ordered_idom)"
-  by (metis abs_eq_0 abs_mult_pos 8 8)
-have 16: "\<And>X3\<Colon>'a\<Colon>ordered_idom.
-   \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar> \<or> \<not> (0\<Colon>'a\<Colon>ordered_idom) \<le> (1\<Colon>'a\<Colon>ordered_idom)"
-  by (metis abs_idempotent abs_mult_pos 8)
-have 17: "\<And>X3\<Colon>'a\<Colon>ordered_idom. \<not> \<bar>X3\<bar> < (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis abs_not_less_zero abs_mult_pos 8 zero_le_square AC_mult.f.commute mult_cancel_left1)
-have 18: "\<And>X3\<Colon>'a\<Colon>ordered_idom.
-   X3 = (0\<Colon>'a\<Colon>ordered_idom) \<or>
-   \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a\<Colon>ordered_idom) \<or>
-   \<not> (0\<Colon>'a\<Colon>ordered_idom) \<le> (1\<Colon>'a\<Colon>ordered_idom)"
-  by (metis abs_le_zero_iff abs_mult_pos 8 8)
-have 19: "\<And>X3\<Colon>'a\<Colon>ordered_idom.
-   X3 * X3 = (0\<Colon>'a\<Colon>ordered_idom) \<or>
-   \<not> X3 \<le> (0\<Colon>'a\<Colon>ordered_idom) \<or> \<not> (0\<Colon>'a\<Colon>ordered_idom) \<le> X3"
-  by (metis 18 zero_le_square AC_mult.f.commute mult_cancel_left1 13 mult_le_0_iff)
-have 20: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X3\<Colon>'a\<Colon>ordered_idom.
-   X3 * X1 = (0\<Colon>'a\<Colon>ordered_idom) \<or>
-   \<not> X1 \<le> (0\<Colon>'a\<Colon>ordered_idom) \<or> \<not> (0\<Colon>'a\<Colon>ordered_idom) \<le> X1"
-  by (metis 15 zero_le_square AC_mult.f.commute mult_cancel_left1 abs_mult AC_mult.f.commute 12 mult_eq_0_iff abs_mult_self 19)
-have 21: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X3\<Colon>'a\<Colon>ordered_idom.
-   (0\<Colon>'a\<Colon>ordered_idom) = \<bar>X3 * X1\<bar> \<or>
-   \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a\<Colon>ordered_idom) \<or> \<not> (0\<Colon>'a\<Colon>ordered_idom) \<le> \<bar>X3\<bar>"
-  by (metis abs_mult_pos abs_mult mult_eq_0_iff abs_mult_self 19 mult_cancel_left1 16 zero_le_square AC_mult.f.commute mult_cancel_left1 14)
-have 22: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X3\<Colon>'a\<Colon>ordered_idom.
-   X3 * X1 = (0\<Colon>'a\<Colon>ordered_idom) \<or> \<not> \<bar>X1\<bar> \<le> (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis 15 zero_le_square AC_mult.f.commute mult_cancel_left1 21 14 AC_mult.f.commute)
-have 23: "\<And>X3\<Colon>'b\<Colon>type.
-   \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X3\<bar> \<le> (0\<Colon>'a\<Colon>ordered_idom) \<or>
-   (0\<Colon>'a\<Colon>ordered_idom) < \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X3\<bar>"
-  by (metis 0 20 14 linorder_not_le)
-have 24: "(0\<Colon>'a\<Colon>ordered_idom) < \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) (x\<Colon>'b\<Colon>type)\<bar> \<or>
-\<not> \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) x\<bar> \<le> (0\<Colon>'a\<Colon>ordered_idom)"
-  by (metis 2 abs_of_nonpos 6 22 linorder_not_le 16 zero_le_square AC_mult.f.commute mult_cancel_left1)
-have 25: "\<And>X3\<Colon>'b\<Colon>type.
-   \<bar>(h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X3\<bar> < (0\<Colon>'a\<Colon>ordered_idom) \<or>
-   \<not> (0\<Colon>'a\<Colon>ordered_idom) < \<bar>(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X3\<bar>"
-  by (metis order_le_less_trans 0 mult_less_0_iff 7)
+have 2: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom.
+   X1 \<le> \<bar>X2\<bar> \<or> (0\<Colon>'a\<Colon>ordered_idom) < X1"
+  by (metis abs_ge_zero xt1(6) not_leE)
+have 3: "\<not> (c\<Colon>'a\<Colon>ordered_idom) \<le> (0\<Colon>'a\<Colon>ordered_idom)"
+  by (metis abs_ge_zero mult_nonneg_nonpos2 linorder_not_less order_less_le_trans 1 abs_mult 2 0)
+have 4: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom. \<bar>X1 * \<bar>X2\<bar>\<bar> = \<bar>X1 * X2\<bar>"
+  by (metis abs_ge_zero abs_mult_pos abs_mult)
+have 5: "\<And>X1\<Colon>'b\<Colon>type.
+   (h\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1
+   \<le> \<bar>(c\<Colon>'a\<Colon>ordered_idom) * (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>ordered_idom) X1\<bar>"
+  by (metis 4 0 xt1(6) abs_ge_self abs_le_D1)
 show "False"
-  by (metis 25 17 24 23)
-qed
-
-lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
-    ALL x. (abs (h x)) <= (c * (abs (f x))))
-      = (EX c. 0 < c & (ALL x. (abs(h x)) <= (c * (abs (f x)))))"
-  apply auto
-  apply (case_tac "c = 0", simp)
-  apply (rule_tac x = "1" in exI, simp)
-  apply (rule_tac x = "abs c" in exI, auto);
-ML{*ResReconstruct.modulus:=4*}
-ML{*ResReconstruct.recon_sorts:=false*}
-proof (neg_clausify)
-fix c x
-assume 0: "\<And>A. \<bar>h A\<bar> \<le> c * \<bar>f A\<bar>"
-assume 1: "c \<noteq> (0\<Colon>'a)"
-assume 2: "\<not> \<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>"
-have 3: "\<And>X3. (1\<Colon>'a) * X3 \<le> X3"
-  by (metis mult_le_cancel_right2 order_refl order_refl)
-have 4: "\<not> (0\<Colon>'a) < (0\<Colon>'a)"
-  by (metis abs_not_less_zero abs_mult_pos mult_cancel_right1 mult_cancel_right1 order_refl)
-have 5: "c \<le> (0\<Colon>'a)"
-  by (metis 2 abs_of_nonneg linorder_linear 0)
-have 6: "\<not> \<bar>h x\<bar> \<le> - c * \<bar>f x\<bar>"
-  by (metis 2 abs_of_nonpos 5)
-have 7: "(0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis zero_le_square AC_mult.f.commute mult_cancel_left1)
-have 8: "\<And>X3. (0\<Colon>'a) = \<bar>X3\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis abs_minus_cancel neg_equal_iff_equal abs_of_nonpos 3 mult_cancel_right1 abs_mult_pos mult_cancel_right1 mult_cancel_right1 order_refl mult_cancel_right1 minus_equation_iff abs_mult_pos mult_cancel_right1 mult_cancel_right1 order_refl)
-have 9: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> X3 \<noteq> (0\<Colon>'a)"
-  by (metis abs_mult 8 mult_cancel_left1)
-have 10: "\<And>X1 X3. (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<bar>X1\<bar> \<noteq> (0\<Colon>'a)"
-  by (metis abs_mult AC_mult.f.commute zero_less_abs_iff 9 4)
-have 11: "\<And>X3. (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis abs_ge_zero abs_mult_pos mult_cancel_right1 AC_mult.f.commute 7)
-have 12: "\<And>X3. X3 = (0\<Colon>'a) \<or> \<bar>X3\<bar> \<noteq> (0\<Colon>'a)"
-  by (metis abs_eq_0 abs_mult_pos mult_cancel_right1 AC_mult.f.commute mult_cancel_right1 AC_mult.f.commute 7)
-have 13: "\<And>X3. \<not> \<bar>X3\<bar> < (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_not_less_zero abs_mult_pos mult_cancel_right1 AC_mult.f.commute)
-have 14: "\<And>X3. X3 = (0\<Colon>'a) \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> (1\<Colon>'a)"
-  by (metis abs_le_zero_iff abs_mult_pos mult_cancel_right1 AC_mult.f.commute mult_cancel_right1 AC_mult.f.commute)
-have 15: "\<And>X3. \<bar>X3\<bar> = (0\<Colon>'a) \<or> \<not> X3 \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> X3"
-  by (metis mult_eq_0_iff abs_mult_self 14 7 abs_mult_self abs_mult AC_mult.f.commute mult_le_0_iff)
-have 16: "\<And>X1 X3.
-   (0\<Colon>'a) = \<bar>X3 * X1\<bar> \<or> \<not> (0\<Colon>'a) \<le> \<bar>X1\<bar> \<or> \<not> \<bar>X3\<bar> \<le> (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) \<le> \<bar>X3\<bar>"
-  by (metis abs_mult_pos abs_mult 15 mult_cancel_left1 abs_idempotent abs_mult_pos mult_cancel_right1 AC_mult.f.commute 7)
-have 17: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> \<not> \<bar>X1\<bar> \<le> (0\<Colon>'a)"
-  by (metis 12 16 11 11 AC_mult.f.commute)
-have 18: "\<And>X1 X3. X3 * X1 = (0\<Colon>'a) \<or> (0\<Colon>'a) < \<bar>X1\<bar>"
-  by (metis 17 linorder_not_le)
-have 19: "\<And>X3. \<bar>h X3\<bar> < (0\<Colon>'a) \<or> \<not> c < (0\<Colon>'a) \<or> \<not> (0\<Colon>'a) < \<bar>f X3\<bar>"
-  by (metis order_le_less_trans 0 mult_less_0_iff)
-show "False"
-  by (metis 19 linorder_antisym_conv2 5 1 13 7 6 18 abs_idempotent abs_mult_pos mult_cancel_right1 AC_mult.f.commute 7 0 12 10 15 11 linorder_not_le)
+  by (metis abs_mult mult_commute 3 abs_mult_pos linorder_linear 0 abs_le_D2 5 1 abs_le_iff)
 qed
 
 
@@ -474,14 +238,12 @@ lemma bigo_refl [intro]: "f : O(f)"
   apply(auto simp add: bigo_def)
 proof (neg_clausify)
 fix x
-assume 0: "\<And>mes_pSG\<Colon>'b\<Colon>ordered_idom.
-   \<not> \<bar>(f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) mes_pSG)\<bar>
-     \<le> mes_pSG * \<bar>f (x mes_pSG)\<bar>"
-have 1: "\<And>X3\<Colon>'b. X3 \<le> (1\<Colon>'b) * X3 \<or> \<not> (1\<Colon>'b) \<le> (1\<Colon>'b)"
-  by (metis Ring_and_Field.mult_le_cancel_right1 order_refl)
-have 2: "\<And>X3\<Colon>'b. X3 \<le> (1\<Colon>'b) * X3"
-  by (metis 1 order_refl)
-show 3: "False"
+assume 0: "\<And>xa. \<not> \<bar>f (x xa)\<bar> \<le> xa * \<bar>f (x xa)\<bar>"
+have 1: "\<And>X2. X2 \<le> (1\<Colon>'b) * X2 \<or> \<not> (1\<Colon>'b) \<le> (1\<Colon>'b)"
+  by (metis mult_le_cancel_right1 order_eq_iff)
+have 2: "\<And>X2. X2 \<le> (1\<Colon>'b) * X2"
+  by (metis order_eq_iff 1)
+show "False"
   by (metis 0 2)
 qed
 
@@ -490,15 +252,11 @@ lemma bigo_zero: "0 : O(g)"
   apply (auto simp add: bigo_def func_zero)
 proof (neg_clausify)
 fix x
-assume 0: "\<And>mes_mVM\<Colon>'b\<Colon>ordered_idom.
-   \<not> (0\<Colon>'b\<Colon>ordered_idom)
-     \<le> mes_mVM *
-       \<bar>(g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom)
-         ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) mes_mVM)\<bar>"
-have 1: "(0\<Colon>'b\<Colon>ordered_idom) < (0\<Colon>'b\<Colon>ordered_idom)"
-  by (metis 0 Ring_and_Field.mult_le_cancel_left1)
-show 2: "False"
-  by (metis Orderings.linorder_class.neq_iff 1)
+assume 0: "\<And>xa. \<not> (0\<Colon>'b) \<le> xa * \<bar>g (x xa)\<bar>"
+have 1: "\<not> (0\<Colon>'b) \<le> (0\<Colon>'b)"
+  by (metis 0 mult_eq_0_iff)
+show "False"
+  by (metis 1 linorder_neq_iff linorder_antisym_conv1)
 qed
 
 lemma bigo_zero2: "O(%x.0) = {%x.0}"
@@ -637,70 +395,48 @@ lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==>
 (*Version 2: single-step proof*)
 proof (neg_clausify)
 fix x
-assume 0: "\<And>mes_mbt\<Colon>'a.
-   (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) mes_mbt
-   \<le> (c\<Colon>'b\<Colon>ordered_idom) * (g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) mes_mbt"
-assume 1: "\<And>mes_mbs\<Colon>'b\<Colon>ordered_idom.
-   \<not> (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) mes_mbs)
-     \<le> mes_mbs * \<bar>(g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x mes_mbs)\<bar>"
-have 2: "\<And>X3\<Colon>'a.
-   (c\<Colon>'b\<Colon>ordered_idom) * (g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) X3 =
-   (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) X3 \<or>
-   \<not> c * g X3 \<le> f X3"
-  by (metis Lattices.min_max.less_eq_less_inf.antisym_intro 0)
-have 3: "\<And>X3\<Colon>'b\<Colon>ordered_idom.
-   \<not> (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) \<bar>X3\<bar>)
-     \<le> \<bar>X3 * (g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>X3\<bar>)\<bar>"
-  by (metis 1 Ring_and_Field.abs_mult)
-have 4: "\<And>X3\<Colon>'b\<Colon>ordered_idom. (1\<Colon>'b\<Colon>ordered_idom) * X3 = X3"
-  by (metis Ring_and_Field.mult_cancel_left2 Finite_Set.AC_mult.f.commute)
-have 5: "\<And>X3\<Colon>'b\<Colon>ordered_idom. X3 * (1\<Colon>'b\<Colon>ordered_idom) = X3"
-  by (metis Ring_and_Field.mult_cancel_right2 Finite_Set.AC_mult.f.commute)
-have 6: "\<And>X3\<Colon>'b\<Colon>ordered_idom. \<bar>X3\<bar> * \<bar>X3\<bar> = X3 * X3"
-  by (metis Ring_and_Field.abs_mult_self Finite_Set.AC_mult.f.commute)
-have 7: "\<And>X3\<Colon>'b\<Colon>ordered_idom. (0\<Colon>'b\<Colon>ordered_idom) \<le> X3 * X3"
-  by (metis Ring_and_Field.zero_le_square Finite_Set.AC_mult.f.commute)
-have 8: "(0\<Colon>'b\<Colon>ordered_idom) \<le> (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis 7 Ring_and_Field.mult_cancel_left2)
-have 9: "\<And>X3\<Colon>'b\<Colon>ordered_idom. X3 * X3 = \<bar>X3 * X3\<bar>"
-  by (metis Ring_and_Field.abs_mult 6)
-have 10: "\<bar>1\<Colon>'b\<Colon>ordered_idom\<bar> = (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis 9 4)
-have 11: "\<And>X3\<Colon>'b\<Colon>ordered_idom. \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar> * \<bar>1\<Colon>'b\<Colon>ordered_idom\<bar>"
-  by (metis Ring_and_Field.abs_mult OrderedGroup.abs_idempotent 5)
-have 12: "\<And>X3\<Colon>'b\<Colon>ordered_idom. \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar>"
-  by (metis 11 10 5)
-have 13: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom.
-   X3 * (1\<Colon>'b\<Colon>ordered_idom) \<le> X1 \<or>
-   \<not> \<bar>X3\<bar> \<le> X1 \<or> \<not> (0\<Colon>'b\<Colon>ordered_idom) \<le> (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis OrderedGroup.abs_le_D1 Ring_and_Field.abs_mult_pos 5)
-have 14: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom.
-   X3 \<le> X1 \<or> \<not> \<bar>X3\<bar> \<le> X1 \<or> \<not> (0\<Colon>'b\<Colon>ordered_idom) \<le> (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis 13 5)
-have 15: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. X3 \<le> X1 \<or> \<not> \<bar>X3\<bar> \<le> X1"
-  by (metis 14 8)
-have 16: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. X3 \<le> X1 \<or> X1 \<le> \<bar>X3\<bar>"
-  by (metis 15 Orderings.linorder_class.less_eq_less.linear)
-have 17: "\<And>X3\<Colon>'b\<Colon>ordered_idom.
-   X3 * (g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) \<bar>X3\<bar>)
-   \<le> (f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>X3\<bar>)"
-  by (metis 3 16)
-have 18: "(c\<Colon>'b\<Colon>ordered_idom) *
-(g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) \<bar>c\<bar>) =
-(f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>c\<bar>)"
-  by (metis 2 17)
-have 19: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. \<bar>X3 * X1\<bar> \<le> \<bar>\<bar>X3\<bar>\<bar> * \<bar>\<bar>X1\<bar>\<bar>"
-  by (metis 15 Ring_and_Field.abs_le_mult Ring_and_Field.abs_mult)
-have 20: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. \<bar>X3 * X1\<bar> \<le> \<bar>X3\<bar> * \<bar>X1\<bar>"
-  by (metis 19 12 12)
-have 21: "\<And>(X1\<Colon>'b\<Colon>ordered_idom) X3\<Colon>'b\<Colon>ordered_idom. X3 * X1 \<le> \<bar>X3\<bar> * \<bar>X1\<bar>"
-  by (metis 15 20)
-have 22: "(f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom)
- ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) \<bar>c\<Colon>'b\<Colon>ordered_idom\<bar>)
-\<le> \<bar>c\<bar> * \<bar>(g\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) (x \<bar>c\<bar>)\<bar>"
-  by (metis 21 18)
-show 23: "False"
-  by (metis 22 1)
+assume 0: "\<And>x. f x \<le> c * g x"
+assume 1: "\<And>xa. \<not> f (x xa) \<le> xa * \<bar>g (x xa)\<bar>"
+have 2: "\<And>X3. c * g X3 = f X3 \<or> \<not> c * g X3 \<le> f X3"
+  by (metis 0 order_antisym_conv)
+have 3: "\<And>X3. \<not> f (x \<bar>X3\<bar>) \<le> \<bar>X3 * g (x \<bar>X3\<bar>)\<bar>"
+  by (metis 1 abs_mult)
+have 4: "\<And>X1 X3\<Colon>'b\<Colon>ordered_idom. X3 \<le> X1 \<or> X1 \<le> \<bar>X3\<bar>"
+  by (metis linorder_linear abs_le_D1)
+have 5: "\<And>X3::'b. \<bar>X3\<bar> * \<bar>X3\<bar> = X3 * X3"
+  by (metis abs_mult_self AC_mult.f.commute)
+have 6: "\<And>X3. \<not> X3 * X3 < (0\<Colon>'b\<Colon>ordered_idom)"
+  by (metis not_square_less_zero AC_mult.f.commute)
+have 7: "\<And>X1 X3::'b. \<bar>X1\<bar> * \<bar>X3\<bar> = \<bar>X3 * X1\<bar>"
+  by (metis abs_mult AC_mult.f.commute)
+have 8: "\<And>X3::'b. X3 * X3 = \<bar>X3 * X3\<bar>"
+  by (metis abs_mult 5)
+have 9: "\<And>X3. X3 * g (x \<bar>X3\<bar>) \<le> f (x \<bar>X3\<bar>)"
+  by (metis 3 4)
+have 10: "c * g (x \<bar>c\<bar>) = f (x \<bar>c\<bar>)"
+  by (metis 2 9)
+have 11: "\<And>X3::'b. \<bar>X3\<bar> * \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar> * \<bar>X3\<bar>"
+  by (metis abs_idempotent abs_mult 8)
+have 12: "\<And>X3::'b. \<bar>X3 * \<bar>X3\<bar>\<bar> = \<bar>X3\<bar> * \<bar>X3\<bar>"
+  by (metis AC_mult.f.commute 7 11)
+have 13: "\<And>X3::'b. \<bar>X3 * \<bar>X3\<bar>\<bar> = X3 * X3"
+  by (metis 8 7 12)
+have 14: "\<And>X3. X3 \<le> \<bar>X3\<bar> \<or> X3 < (0\<Colon>'b)"
+  by (metis abs_ge_self abs_le_D1 abs_if)
+have 15: "\<And>X3. X3 \<le> \<bar>X3\<bar> \<or> \<bar>X3\<bar> < (0\<Colon>'b)"
+  by (metis abs_ge_self abs_le_D1 abs_if)
+have 16: "\<And>X3. X3 * X3 < (0\<Colon>'b) \<or> X3 * \<bar>X3\<bar> \<le> X3 * X3"
+  by (metis 15 13)
+have 17: "\<And>X3::'b. X3 * \<bar>X3\<bar> \<le> X3 * X3"
+  by (metis 16 6)
+have 18: "\<And>X3. X3 \<le> \<bar>X3\<bar> \<or> \<not> X3 < (0\<Colon>'b)"
+  by (metis mult_le_cancel_left 17)
+have 19: "\<And>X3::'b. X3 \<le> \<bar>X3\<bar>"
+  by (metis 18 14)
+have 20: "\<not> f (x \<bar>c\<bar>) \<le> \<bar>f (x \<bar>c\<bar>)\<bar>"
+  by (metis 3 10)
+show "False"
+  by (metis 20 19)
 qed
 
 
@@ -781,16 +517,11 @@ lemma bigo_abs: "(%x. abs(f x)) =o O(f)"
   apply auto
 proof (neg_clausify)
 fix x
-assume 0: "!!mes_o43::'b::ordered_idom.
-   ~ abs ((f::'a::type => 'b::ordered_idom)
-           ((x::'b::ordered_idom => 'a::type) mes_o43))
-     <= mes_o43 * abs (f (x mes_o43))"
-have 1: "!!X3::'b::ordered_idom.
-   X3 <= (1::'b::ordered_idom) * X3 |
-   ~ (1::'b::ordered_idom) <= (1::'b::ordered_idom)"
-  by (metis mult_le_cancel_right1 order_refl)
-have 2: "!!X3::'b::ordered_idom. X3 <= (1::'b::ordered_idom) * X3"
-  by (metis 1 order_refl)
+assume 0: "\<And>xa. \<not> \<bar>f (x xa)\<bar> \<le> xa * \<bar>f (x xa)\<bar>"
+have 1: "\<And>X2. X2 \<le> (1\<Colon>'b) * X2 \<or> \<not> (1\<Colon>'b) \<le> (1\<Colon>'b)"
+  by (metis mult_le_cancel_right1 order_eq_iff)
+have 2: "\<And>X2. X2 \<le> (1\<Colon>'b) * X2"
+  by (metis order_eq_iff 1)
 show "False"
   by (metis 0 2)
 qed
@@ -801,15 +532,11 @@ lemma bigo_abs2: "f =o O(%x. abs(f x))"
   apply auto
 proof (neg_clausify)
 fix x
-assume 0: "\<And>mes_o4C\<Colon>'b\<Colon>ordered_idom.
-   \<not> \<bar>(f\<Colon>'a \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a) mes_o4C)\<bar>
-     \<le> mes_o4C * \<bar>f (x mes_o4C)\<bar>"
-have 1: "\<And>X3\<Colon>'b\<Colon>ordered_idom.
-   X3 \<le> (1\<Colon>'b\<Colon>ordered_idom) * X3 \<or>
-   \<not> (1\<Colon>'b\<Colon>ordered_idom) \<le> (1\<Colon>'b\<Colon>ordered_idom)"
-  by (metis mult_le_cancel_right1 order_refl)
-have 2: "\<And>X3\<Colon>'b\<Colon>ordered_idom. X3 \<le> (1\<Colon>'b\<Colon>ordered_idom) * X3"
-  by (metis 1 order_refl)
+assume 0: "\<And>xa. \<not> \<bar>f (x xa)\<bar> \<le> xa * \<bar>f (x xa)\<bar>"
+have 1: "\<And>X2. X2 \<le> (1\<Colon>'b) * X2 \<or> \<not> (1\<Colon>'b) \<le> (1\<Colon>'b)"
+  by (metis mult_le_cancel_right1 order_eq_iff)
+have 2: "\<And>X2. X2 \<le> (1\<Colon>'b) * X2"
+  by (metis order_eq_iff 1)
 show "False"
   by (metis 0 2)
 qed
@@ -1144,17 +871,14 @@ by (rule equalityI, rule bigo_const2, rule bigo_const4, assumption)
 
 ML{*ResAtp.problem_name := "BigO__bigo_const_mult1"*}
 lemma bigo_const_mult1: "(%x. c * f x) : O(f)"
-  apply (simp add: bigo_def abs_mult) 
+  apply (simp add: bigo_def abs_mult)
 proof (neg_clausify)
 fix x
-assume 0: "\<And>mes_vAL\<Colon>'b.
-   \<not> \<bar>c\<Colon>'b\<bar> *
-     \<bar>(f\<Colon>'a \<Rightarrow> 'b) ((x\<Colon>'b \<Rightarrow> 'a) mes_vAL)\<bar>
-     \<le> mes_vAL * \<bar>f (x mes_vAL)\<bar>"
-have 1: "\<And>Y\<Colon>'b. Y \<le> Y"
-  by (metis order_refl)
-show 2: "False"
-  by (metis 0 1)
+assume 0: "\<And>xa. \<not> \<bar>c\<bar> * \<bar>f (x xa)\<bar> \<le> xa * \<bar>f (x xa)\<bar>"
+have 1: "\<And>X2. \<not> \<bar>c * f (x X2)\<bar> \<le> X2 * \<bar>f (x X2)\<bar>"
+  by (metis 0 abs_mult)
+show "False"
+  by (metis 1 abs_le_mult)
 qed
 
 lemma bigo_const_mult2: "O(%x. c * f x) <= O(f)"
@@ -1435,16 +1159,8 @@ ML{*ResAtp.problem_name:="BigO__bigo_lesso1"*}
 lemma bigo_lesso1: "ALL x. f x <= g x ==> f <o g =o O(h)"
   apply (unfold lesso_def)
   apply (subgoal_tac "(%x. max (f x - g x) 0) = 0")
-(*
-?? abstractions don't work: abstraction function gets the wrong type?
-proof (neg_clausify)
-assume 0: "llabs_subgoal_1 f g = 0"
-assume 1: "llabs_subgoal_1 f g \<notin> O(h)"
-show "False"
-  by (metis 1 0 bigo_zero)
-*)
-  apply (erule ssubst)
-  apply (rule bigo_zero)
+(*??Translation of TSTP raised an exception: Type unification failed: Variable ?'X2.0::type not of sort ord*)
+apply (metis bigo_zero ord_class.max)
   apply (unfold func_zero)
   apply (rule ext)
   apply (simp split: split_max)

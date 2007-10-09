@@ -8,7 +8,6 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 signature RES_AXIOMS =
 sig
   val cnf_axiom: thm -> thm list
-  val meta_cnf_axiom: thm -> thm list
   val pairname: thm -> string * thm
   val multi_base_blacklist: string list 
   val skolem_thm: thm -> thm list
@@ -294,13 +293,14 @@ fun transfer_to_ATP_Linkup th =
     transfer (Theory.deref atp_linkup_thy_ref) th handle THM _ => th;
 
 (*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
-fun to_nnf th =
-    th |> transfer_to_ATP_Linkup
-       |> transform_elim |> zero_var_indexes |> freeze_thm
-       |> Conv.fconv_rule ObjectLogic.atomize |> Meson.make_nnf |> strip_lambdas ~1;
+fun to_nnf th ctxt0 =
+  let val th1 = th |> transfer_to_ATP_Linkup |> transform_elim |> zero_var_indexes
+      val ((_,[th2]),ctxt) = Variable.import_thms false [th1] ctxt0
+      val th3 = th2 |> Conv.fconv_rule ObjectLogic.atomize |> Meson.make_nnf |> strip_lambdas ~1
+  in  (th3, ctxt)  end;
 
 (*Generate Skolem functions for a theorem supplied in nnf*)
-fun skolem_of_nnf s th =
+fun assume_skolem_of_def s th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
 
 fun assert_lambda_free ths msg =
@@ -321,27 +321,32 @@ fun name_or_string th =
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm th =
-  let val nnfth = to_nnf th and s = fake_name th
-  in  Meson.make_cnf (skolem_of_nnf s nnfth) nnfth |>  map combinators |> Meson.finish_cnf
-  end
+  let val ctxt0 = Variable.thm_context th
+      val (nnfth,ctxt1) = to_nnf th ctxt0 and s = fake_name th
+      val (cnfs,ctxt2) = Meson.make_cnf (assume_skolem_of_def s nnfth) nnfth ctxt1
+  in  cnfs |> map combinators |> Variable.export ctxt2 ctxt0 |> Meson.finish_cnf  end
   handle THM _ => [];
 
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)
 fun skolem thy th =
+  let val ctxt0 = Variable.thm_context th
+  in
      Option.map
-        (fn nnfth =>
+        (fn (nnfth,ctxt1) =>
           let val _ = Output.debug (fn () => "skolemizing " ^ name_or_string th ^ ": ")
               val _ = Output.debug (fn () => string_of_thm nnfth)
               val s = fake_name th
               val (thy',defs) = declare_skofuns s nnfth thy
-              val cnfs = Meson.make_cnf (map skolem_of_def defs) nnfth
+              val (cnfs,ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1
               val _ = Output.debug (fn () => Int.toString (length cnfs) ^ " clauses yielded")
-              val cnfs' = map combinators cnfs
-          in (map Goal.close_result (Meson.finish_cnf cnfs'), thy') end
+              val cnfs' = cnfs |> map combinators |> Variable.export ctxt2 ctxt0 
+                               |> Meson.finish_cnf |> map Goal.close_result
+          in (cnfs', thy') end
           handle Clausify_failure thy_e => ([],thy_e)
         )
-      (try to_nnf th);
+      (try (to_nnf th) ctxt0)
+  end;
 
 (*The cache prevents repeated clausification of a theorem, and also repeated declaration of
   Skolem functions.*)
@@ -529,12 +534,8 @@ val clausify = Attrib.syntax (Scan.lift Args.nat
 
 val neg_skolemize_tac = EVERY' [rtac ccontr, ObjectLogic.atomize_prems_tac, Meson.skolemize_tac];
 
-(*finish_cnf removes tautologies and functional reflexivity axioms, but by calling Thm.varifyT
-  it can introduce TVars, which are useless in conjecture clauses.*)
-val no_tvars = null o term_tvars o prop_of;
-
-val neg_clausify =
-  filter no_tvars o Meson.finish_cnf o map combinators o Meson.make_clauses;
+fun neg_clausify sts =
+  sts |> Meson.make_clauses |> map combinators |> Meson.finish_cnf;
 
 fun neg_conjecture_clauses st0 n =
   let val st = Seq.hd (neg_skolemize_tac n st0)

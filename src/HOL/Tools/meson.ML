@@ -6,9 +6,6 @@
 The MESON resolution proof procedure for HOL.
 
 When making clauses, avoids using the rewriter -- instead uses RS recursively
-
-NEED TO SORT LITERALS BY # OF VARS, USING ==>I/E.  ELIMINATES NEED FOR
-FUNCTION nodups -- if done to goal clauses too!
 *)
 
 signature MESON =
@@ -18,9 +15,8 @@ sig
   val flexflex_first_order: thm -> thm
   val size_of_subgoals: thm -> int
   val too_many_clauses: term -> bool
-  val make_cnf: thm list -> thm -> thm list
+  val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
-  val generalize: thm -> thm
   val make_nnf: thm -> thm
   val make_nnf1: thm -> thm
   val skolemize: thm -> thm
@@ -102,10 +98,15 @@ fun flexflex_first_order th =
         in  th'  end
         handle THM _ => th;
 
-(*raises exception if no rules apply -- unlike RL*)
+(*Forward proof while preserving bound variables names*)
+fun rename_bvs_RS th rl =
+  let val th' = th RS rl
+  in  Thm.rename_boundvars (concl_of th') (concl_of th) th' end;
+
+(*raises exception if no rules apply*)
 fun tryres (th, rls) =
   let fun tryall [] = raise THM("tryres", 0, th::rls)
-        | tryall (rl::rls) = (th RS rl handle THM _ => tryall rls)
+        | tryall (rl::rls) = (rename_bvs_RS th rl handle THM _ => tryall rls)
   in  tryall rls  end;
 
 (*Permits forward proof from rules that discharge assumptions. The supplied proof state st,
@@ -208,6 +209,32 @@ fun refl_clause th =
   handle TERM _ => th;  (*probably dest_Trueprop on a weird theorem*)
 
 
+(*** Removal of duplicate literals ***)
+
+(*Forward proof, passing extra assumptions as theorems to the tactic*)
+fun forward_res2 nf hyps st =
+  case Seq.pull
+        (REPEAT
+         (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
+         st)
+  of SOME(th,_) => th
+   | NONE => raise THM("forward_res2", 0, [st]);
+
+(*Remove duplicates in P|Q by assuming ~P in Q
+  rls (initially []) accumulates assumptions of the form P==>False*)
+fun nodups_aux rls th = nodups_aux rls (th RS disj_assoc)
+    handle THM _ => tryres(th,rls)
+    handle THM _ => tryres(forward_res2 nodups_aux rls (th RS disj_forward2),
+                           [disj_FalseD1, disj_FalseD2, asm_rl])
+    handle THM _ => th;
+
+(*Remove duplicate literals, if there are any*)
+fun nodups th =
+  if has_duplicates (op =) (literals (prop_of th))
+    then nodups_aux [] th
+    else th;
+
+
 (*** The basic CNF transformation ***)
 
 val max_clauses = 40;
@@ -243,11 +270,19 @@ val nclauses = signed_nclauses true;
 fun too_many_clauses t = nclauses t >= max_clauses;
 
 (*Replaces universally quantified variables by FREE variables -- because
-  assumptions may not contain scheme variables.  Later, we call "generalize". *)
-fun freeze_spec th =
-  let val newname = gensym "mes_"
-      val spec' = read_instantiate [("x", newname)] spec
-  in  th RS spec'  end;
+  assumptions may not contain scheme variables.  Later, generalize using Variable.export. *)
+local  
+  val spec_var = Thm.dest_arg (Thm.dest_arg (#2 (Thm.dest_implies (Thm.cprop_of spec))));
+  val spec_varT = #T (Thm.rep_cterm spec_var);
+  fun name_of (Const ("All", _) $ Abs(x,_,_)) = x | name_of _ = Name.uu;
+in  
+  fun freeze_spec th ctxt =
+    let
+      val cert = Thm.cterm_of (ProofContext.theory_of ctxt);
+      val ([x], ctxt') = Variable.variant_fixes [name_of (HOLogic.dest_Trueprop (concl_of th))] ctxt;
+      val spec' = Thm.instantiate ([], [(spec_var, cert (Free (x, spec_varT)))]) spec;
+    in (th RS spec', ctxt') end
+end;
 
 (*Used with METAHYPS below. There is one assumption, which gets bound to prem
   and then normalized via function nf. The normal form is given to resolve_tac,
@@ -268,16 +303,18 @@ fun apply_skolem_ths (th, rls) =
 (*Conjunctive normal form, adding clauses from th in front of ths (for foldr).
   Strips universal quantifiers and breaks up conjunctions.
   Eliminates existential quantifiers using skoths: Skolemization theorems.*)
-fun cnf skoths (th,ths) =
-  let fun cnf_aux (th,ths) =
+fun cnf skoths ctxt (th,ths) =
+  let val ctxtr = ref ctxt
+      fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
         else if not (has_conns ["All","Ex","op &"] (prop_of th))
-        then th::ths (*no work to do, terminate*)
+        then nodups th :: ths (*no work to do, terminate*)
         else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
             Const ("op &", _) => (*conjunction*)
                 cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
           | Const ("All", _) => (*universal quantifier*)
-                cnf_aux (freeze_spec th, ths)
+                let val (th',ctxt') = freeze_spec th (!ctxtr)
+                in  ctxtr := ctxt'; cnf_aux (th', ths) end
           | Const ("Ex", _) =>
               (*existential quantifier: Insert Skolem functions*)
               cnf_aux (apply_skolem_ths (th,skoths), ths)
@@ -288,62 +325,18 @@ fun cnf skoths (th,ths) =
                   (METAHYPS (resop cnf_nil) 1) THEN
                    (fn st' => st' |> METAHYPS (resop cnf_nil) 1)
               in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
-          | _ => (*no work to do*) th::ths
+          | _ => nodups th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th,[])
-  in
-    if too_many_clauses (concl_of th)
-    then (Output.debug (fn () => ("cnf is ignoring: " ^ string_of_thm th)); ths)
-    else cnf_aux (th,ths)
-  end;
+      val cls = 
+	    if too_many_clauses (concl_of th)
+	    then (Output.debug (fn () => ("cnf is ignoring: " ^ string_of_thm th)); ths)
+	    else cnf_aux (th,ths)
+  in  (cls, !ctxtr)  end;
 
-fun all_names (Const ("all", _) $ Abs(x,_,P)) = x :: all_names P
-  | all_names _ = [];
-
-fun new_names n [] = []
-  | new_names n (x::xs) =
-      if String.isPrefix "mes_" x then (x, radixstring(26,"A",n)) :: new_names (n+1) xs
-      else new_names n xs;
-
-(*The gensym names are ugly, so don't let the user see them. When forall_elim_vars
-  is called, it will ensure that no name clauses ensue.*)
-fun nice_names th =
-  let val old_names = all_names (prop_of th)
-  in  Drule.rename_bvars (new_names 0 old_names) th  end;
-
-(*Convert all suitable free variables to schematic variables,
-  but don't discharge assumptions.*)
-fun generalize th = Thm.varifyT (forall_elim_vars 0 (nice_names (forall_intr_frees th)));
-
-fun make_cnf skoths th = cnf skoths (th, []);
+fun make_cnf skoths th ctxt = cnf skoths ctxt (th, []);
 
 (*Generalization, removal of redundant equalities, removal of tautologies.*)
-fun finish_cnf ths = filter (not o is_taut) (map (refl_clause o generalize) ths);
-
-
-(**** Removal of duplicate literals ****)
-
-(*Forward proof, passing extra assumptions as theorems to the tactic*)
-fun forward_res2 nf hyps st =
-  case Seq.pull
-        (REPEAT
-         (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
-         st)
-  of SOME(th,_) => th
-   | NONE => raise THM("forward_res2", 0, [st]);
-
-(*Remove duplicates in P|Q by assuming ~P in Q
-  rls (initially []) accumulates assumptions of the form P==>False*)
-fun nodups_aux rls th = nodups_aux rls (th RS disj_assoc)
-    handle THM _ => tryres(th,rls)
-    handle THM _ => tryres(forward_res2 nodups_aux rls (th RS disj_forward2),
-                           [disj_FalseD1, disj_FalseD2, asm_rl])
-    handle THM _ => th;
-
-(*Remove duplicate literals, if there are any*)
-fun nodups th =
-  if has_duplicates (op =) (literals (prop_of th))
-    then nodups_aux [] th
-    else th;
+fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);
 
 
 (**** Generation of contrapositives ****)
@@ -530,13 +523,16 @@ fun skolemize th =
     handle THM _ =>
         skolemize (forward_res skolemize
                    (tryres (th, [conj_forward, disj_forward, all_forward])))
-    handle THM _ => forward_res skolemize (th RS ex_forward);
+    handle THM _ => forward_res skolemize (rename_bvs_RS th ex_forward);
 
+fun add_clauses (th,cls) =
+  let val ctxt0 = Variable.thm_context th
+      val (cnfs,ctxt) = make_cnf [] th ctxt0
+  in Variable.export ctxt ctxt0 cnfs @ cls end;
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
-fun make_clauses ths =
-    (sort_clauses (map (generalize o nodups) (foldr (cnf[]) [] ths)));
+fun make_clauses ths = sort_clauses (foldr add_clauses [] ths);
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =

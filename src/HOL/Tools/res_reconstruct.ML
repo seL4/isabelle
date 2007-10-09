@@ -404,7 +404,7 @@ fun add_nonnull_prfline ((lno, t, []), lines) = (*no dependencies, so a conjectu
   | add_nonnull_prfline ((lno, t, deps), lines) = (lno, t, deps) :: lines
 and delete_dep lno lines = foldr add_nonnull_prfline [] (map (replace_deps (lno, [])) lines);
 
-fun bad_free (Free (a,_)) = String.isPrefix "llabs_" a orelse String.isPrefix "sko_" a
+fun bad_free (Free (a,_)) = String.isPrefix "sko_" a
   | bad_free _ = false;
 
 (*TVars are forbidden in goals. Also, we don't want lines with <2 dependencies.
@@ -414,11 +414,11 @@ fun bad_free (Free (a,_)) = String.isPrefix "llabs_" a orelse String.isPrefix "s
   phase may delete some dependencies, hence this phase comes later.*)
 fun add_wanted_prfline ((lno, t, []), (nlines, lines)) =
       (nlines, (lno, t, []) :: lines)   (*conjecture clauses must be kept*)
-  | add_wanted_prfline (line, (nlines, [])) = (nlines, [line])   (*final line must be kept*)
   | add_wanted_prfline ((lno, t, deps), (nlines, lines)) =
       if eq_types t orelse not (null (term_tvars t)) orelse
-         length deps < 2 orelse nlines mod !modulus <> 0 orelse
-         exists bad_free (term_frees t)
+         exists bad_free (term_frees t) orelse
+         (not (null lines) andalso   (*final line can't be deleted for these reasons*)
+          (length deps < 2 orelse nlines mod !modulus <> 0))   
       then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)
       else (nlines+1, (lno, t, deps) :: lines);
 

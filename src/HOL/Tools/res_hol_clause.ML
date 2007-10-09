@@ -97,9 +97,7 @@ datatype clause =
                     th: thm,
                     kind: RC.kind,
                     literals: literal list,
-                    ctypes_sorts: (RC.typ_var * Term.sort) list,
-                    ctvar_type_literals: RC.type_literal list,
-                    ctfree_type_literals: RC.type_literal list};
+                    ctypes_sorts: (RC.typ_var * Term.sort) list};
 
 
 (*********************************************************************)
@@ -177,15 +175,12 @@ fun literals_of_term thy P = literals_of_term1 thy ([],[]) P;
 (* making axiom and conjecture clauses *)
 fun make_clause thy (clause_id,axiom_name,kind,th) =
     let val (lits,ctypes_sorts) = literals_of_term thy (prop_of th)
-        val (ctvar_lits,ctfree_lits) = RC.add_typs_aux ctypes_sorts
     in
         if forall isFalse lits
         then error "Problem too trivial for resolution (empty clause)"
         else
             Clause {clause_id = clause_id, axiom_name = axiom_name, th = th, kind = kind,
-                    literals = lits, ctypes_sorts = ctypes_sorts,
-                    ctvar_type_literals = ctvar_lits,
-                    ctfree_type_literals = ctfree_lits}
+                    literals = lits, ctypes_sorts = ctypes_sorts}
     end;
 
 
@@ -302,34 +297,24 @@ fun tptp_literal (Literal(pol, CombApp(CombApp(CombConst("equal",_,_), t1), t2))
 
 (*Given a clause, returns its literals paired with a list of literals concerning TFrees;
   the latter should only occur in conjecture clauses.*)
-fun tptp_type_lits (Clause cls) =
-    let val lits = map tptp_literal (#literals cls)
-        val ctvar_lits_strs = map RC.tptp_of_typeLit (#ctvar_type_literals cls)
-        val ctfree_lits = map RC.tptp_of_typeLit (#ctfree_type_literals cls)
-    in
-        (ctvar_lits_strs @ lits, ctfree_lits)
-    end;
+fun tptp_type_lits pos (Clause{literals, ctypes_sorts, ...}) =
+      (map tptp_literal literals, 
+       map (RC.tptp_of_typeLit pos) (RC.add_typs ctypes_sorts));
 
 fun clause2tptp (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
-    let val (lits,ctfree_lits) = tptp_type_lits cls
-        val cls_str = RC.gen_tptp_cls(clause_id,axiom_name,kind,lits)
-    in
-        (cls_str,ctfree_lits)
-    end;
+  let val (lits,tylits) = tptp_type_lits (kind = RC.Conjecture) cls
+  in
+      (RC.gen_tptp_cls(clause_id,axiom_name,kind,lits,tylits), tylits)
+  end;
 
 
 (*** dfg format ***)
 
 fun dfg_literal (Literal(pol,pred)) = RC.dfg_sign pol (string_of_predicate pred);
 
-fun dfg_clause_aux (Clause{literals, ctypes_sorts, ...}) =
-  let val lits = map dfg_literal literals
-      val (tvar_lits,tfree_lits) = RC.add_typs_aux ctypes_sorts
-      val tvar_lits_strs = map RC.dfg_of_typeLit tvar_lits
-      val tfree_lits = map RC.dfg_of_typeLit tfree_lits
-  in
-      (tvar_lits_strs @ lits, tfree_lits)
-  end;
+fun dfg_type_lits pos (Clause{literals, ctypes_sorts, ...}) =
+      (map dfg_literal literals, 
+       map (RC.dfg_of_typeLit pos) (RC.add_typs ctypes_sorts));
 
 fun get_uvars (CombConst _) vars = vars
   | get_uvars (CombVar(v,_)) vars = (v::vars)
@@ -340,13 +325,13 @@ fun get_uvars_l (Literal(_,c)) = get_uvars c [];
 fun dfg_vars (Clause {literals,...}) = RC.union_all (map get_uvars_l literals);
 
 fun clause2dfg (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
-    let val (lits,tfree_lits) = dfg_clause_aux cls
-        val vars = dfg_vars cls
-        val tvars = RC.get_tvar_strs ctypes_sorts
-        val knd = RC.name_of_kind kind
-        val lits_str = commas lits
-        val cls_str = RC.gen_dfg_cls(clause_id, axiom_name, knd, lits_str, tvars@vars)
-    in (cls_str, tfree_lits) end;
+  let val (lits,tylits) = dfg_type_lits (kind = RC.Conjecture) cls
+      val vars = dfg_vars cls
+      val tvars = RC.get_tvar_strs ctypes_sorts
+  in
+      (RC.gen_dfg_cls(clause_id, axiom_name, kind, lits, tylits, tvars@vars), tylits)
+  end;
+
 
 (** For DFG format: accumulate function and predicate declarations **)
 
@@ -507,7 +492,6 @@ fun tptp_write_file thy isFO thms filename (ax_tuples,classrel_clauses,arity_cla
         TextIO.closeOut out;
         clnames
     end;
-
 
 
 (* dfg format *)

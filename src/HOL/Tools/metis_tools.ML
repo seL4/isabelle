@@ -97,18 +97,32 @@ struct
         let val (lits, types_sorts) = ResHolClause.literals_of_term thy t
         in  (map (hol_literal_to_fol isFO) lits, types_sorts) end;
 
-  fun metis_of_typeLit (ResClause.LTVar (s,x))  = metis_lit false s [Metis.Term.Var x]
-    | metis_of_typeLit (ResClause.LTFree (s,x)) = metis_lit true  s [Metis.Term.Fn(x,[])];
+  (*Sign should be "true" for conjecture type constraints, "false" for type lits in clauses.*)
+  fun metis_of_typeLit pos (ResClause.LTVar (s,x))  = metis_lit pos s [Metis.Term.Var x]
+    | metis_of_typeLit pos (ResClause.LTFree (s,x)) = metis_lit pos s [Metis.Term.Fn(x,[])];
 
-  fun metis_of_tfree tf = Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_typeLit tf));
+  fun default_sort ctxt (ResClause.FOLTVar _, _) = false
+    | default_sort ctxt (ResClause.FOLTFree x, ss) = (ss = Option.getOpt (Variable.def_sort ctxt (x,~1), []));
 
-  fun hol_thm_to_fol ctxt isFO th =
+  fun metis_of_tfree tf = 
+    Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_typeLit true tf));
+
+  fun hol_thm_to_fol is_conjecture ctxt isFO th =
     let val thy = ProofContext.theory_of ctxt
         val (mlits, types_sorts) =
                (literals_of_hol_thm thy isFO o HOLogic.dest_Trueprop o prop_of) th
-        val (tvar_lits,tfree_lits) = ResClause.add_typs_aux types_sorts
-        val tlits = if Config.get ctxt type_lits then map metis_of_typeLit tvar_lits else []
-    in  (Metis.Thm.axiom (Metis.LiteralSet.fromList(tlits@mlits)), tfree_lits)  end;
+    in  
+        if is_conjecture then
+            (Metis.Thm.axiom (Metis.LiteralSet.fromList mlits), ResClause.add_typs types_sorts) 
+        else
+          let val tylits = ResClause.add_typs 
+                             (filter (not o default_sort ctxt) types_sorts)
+              val mtylits = if Config.get ctxt type_lits 
+                            then map (metis_of_typeLit false) tylits else []
+          in
+            (Metis.Thm.axiom (Metis.LiteralSet.fromList(mtylits @ mlits)), [])
+          end
+    end;
 
   (* ARITY CLAUSE *)
 
@@ -118,8 +132,9 @@ struct
         metis_lit false (ResClause.make_type_class c) [Metis.Term.Var str];
 
   (*TrueI is returned as the Isabelle counterpart because there isn't any.*)
-  fun arity_cls (ResClause.ArityClause{kind,conclLit,premLits,...}) =
-    (TrueI, Metis.Thm.axiom (Metis.LiteralSet.fromList (map m_arity_cls (conclLit :: premLits))));
+  fun arity_cls (ResClause.ArityClause{conclLit,premLits,...}) =
+    (TrueI, 
+     Metis.Thm.axiom (Metis.LiteralSet.fromList (map m_arity_cls (conclLit :: premLits))));
 
   (* CLASSREL CLAUSE *)
 
@@ -460,9 +475,6 @@ fun inst_excluded_middle th thy i_atm =
   val comb_C = cnf_th ResHolClause.comb_C;
   val comb_S = cnf_th ResHolClause.comb_S;
 
-  fun dest_Arity (ResClause.ArityClause{premLits,...}) =
-        map ResClause.class_of_arityLit premLits;
-
   fun type_ext thy tms =
     let val subs = ResAtp.tfree_classes_of_terms tms
         val supers = ResAtp.tvar_classes_of_terms tms
@@ -489,16 +501,17 @@ fun inst_excluded_middle th thy i_atm =
         | in_mterm (Metis.Term.Fn (nm, tm_list)) = c=nm orelse exists in_mterm tm_list
     in  c=pred orelse exists in_mterm tm_list  end;
 
+  (*Extract TFree constraints from context to include as conjecture clauses*)
+  fun init_tfrees ctxt =
+    let fun add ((a,i),s) ys = if i = ~1 then (ResClause.FOLTFree a,s) :: ys else ys
+    in  ResClause.add_typs (Vartab.fold add (#2 (Variable.constraints_of ctxt)) []) end;
+
   (*transform isabelle clause to metis clause *)
-  fun add_thm ctxt (ith, {isFO, axioms, tfrees}) : logic_map =
-    let val (mth, tfree_lits) = hol_thm_to_fol ctxt isFO ith
-        fun add_tfree (tf, axs) =
-              if member (op=) tfrees tf then axs
-              else (metis_of_tfree tf, TrueI) :: axs
-        val new_axioms = foldl add_tfree [] tfree_lits
+  fun add_thm is_conjecture ctxt (ith, {isFO, axioms, tfrees}) : logic_map =
+    let val (mth, tfree_lits) = hol_thm_to_fol is_conjecture ctxt isFO ith
     in
        {isFO = isFO,
-        axioms = (mth, Meson.make_meta_clause ith) :: (new_axioms @ axioms),
+        axioms = (mth, Meson.make_meta_clause ith) :: axioms,
         tfrees = tfree_lits union tfrees}
     end;
 
@@ -509,11 +522,19 @@ fun inst_excluded_middle th thy i_atm =
                           axioms = (mth, ith) :: axioms,
                           tfrees = tfrees}
 
+  (*Insert non-logical axioms corresponding to all accumulated TFrees*)
+  fun add_tfrees {isFO, axioms, tfrees} : logic_map =
+       {isFO = isFO,
+        axioms = (map (fn tf => (metis_of_tfree tf, TrueI)) (distinct op= tfrees)) @ axioms,
+        tfrees = tfrees};
+        
   (* Function to generate metis clauses, including comb and type clauses *)
   fun build_map mode thy ctxt cls ths =
     let val isFO = (mode = ResAtp.Fol) orelse
                     (mode <> ResAtp.Hol andalso ResAtp.is_fol_thms (cls @ ths))
-        val lmap = foldl (add_thm ctxt) {isFO = isFO, axioms = [], tfrees = []} (cls @ ths)
+        val lmap0 = foldl (add_thm true ctxt) 
+                          {isFO = isFO, axioms = [], tfrees = init_tfrees ctxt} cls
+        val lmap = foldl (add_thm false ctxt) (add_tfrees lmap0) ths
         val clause_lists = map (Metis.Thm.clause o #1) (#axioms lmap)
         fun used c = exists (Metis.LiteralSet.exists (const_in_metis c)) clause_lists
         (*Now check for the existence of certain combinators*)
@@ -524,7 +545,7 @@ fun inst_excluded_middle th thy i_atm =
         val thS   = if used "c_COMBS" then [comb_S] else []
         val thEQ  = if used "c_fequal" then [fequal_imp_equal', equal_imp_fequal'] else []
         val lmap' = if isFO then lmap 
-                    else foldl (add_thm ctxt) lmap (thEQ @ thS @ thC @ thB @ thK @ thI)
+                    else foldl (add_thm false ctxt) lmap (thEQ @ thS @ thC @ thB @ thK @ thI)
     in
         add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap'
     end;
@@ -550,7 +571,7 @@ fun inst_excluded_middle th thy i_atm =
         val {isFO,axioms,tfrees} = build_map mode thy ctxt cls ths
         val _ = if null tfrees then ()
                 else (Output.debug (fn () => "TFREE CLAUSES");
-                      app (fn tf => Output.debug (fn _ => ResClause.tptp_of_typeLit tf)) tfrees)
+                      app (fn tf => Output.debug (fn _ => ResClause.tptp_of_typeLit true tf)) tfrees)
         val _ = Output.debug (fn () => "CLAUSES GIVEN TO METIS")
         val thms = map #1 axioms
         val _ = app (fn th => Output.debug (fn () => Metis.Thm.toString th)) thms

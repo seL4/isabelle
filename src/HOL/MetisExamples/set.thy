@@ -33,7 +33,7 @@ assume 1: "Z \<subseteq> X \<or> X = Y \<union> Z"
 assume 2: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> Y \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
 assume 3: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> Z \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
 assume 4: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> \<not> X \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
-assume 5: "\<And>A. ((\<not> Y \<subseteq> A \<or> \<not> Z \<subseteq> A) \<or> X \<subseteq> A) \<or> X = Y \<union> Z"
+assume 5: "\<And>V. ((\<not> Y \<subseteq> V \<or> \<not> Z \<subseteq> V) \<or> X \<subseteq> V) \<or> X = Y \<union> Z"
 have 6: "sup Y Z = X \<or> Y \<subseteq> X"
   by (metis 0 sup_set_eq)
 have 7: "sup Y Z = X \<or> Z \<subseteq> X"
@@ -103,7 +103,7 @@ assume 1: "Z \<subseteq> X \<or> X = Y \<union> Z"
 assume 2: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> Y \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
 assume 3: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> Z \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
 assume 4: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> \<not> X \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
-assume 5: "\<And>A. ((\<not> Y \<subseteq> A \<or> \<not> Z \<subseteq> A) \<or> X \<subseteq> A) \<or> X = Y \<union> Z"
+assume 5: "\<And>V. ((\<not> Y \<subseteq> V \<or> \<not> Z \<subseteq> V) \<or> X \<subseteq> V) \<or> X = Y \<union> Z"
 have 6: "sup Y Z = X \<or> Y \<subseteq> X"
   by (metis 0 sup_set_eq)
 have 7: "Y \<subseteq> x \<or> sup Y Z \<noteq> X \<or> \<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X"
@@ -146,7 +146,7 @@ assume 1: "Z \<subseteq> X \<or> X = Y \<union> Z"
 assume 2: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> Y \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
 assume 3: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> Z \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
 assume 4: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> \<not> X \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
-assume 5: "\<And>A. ((\<not> Y \<subseteq> A \<or> \<not> Z \<subseteq> A) \<or> X \<subseteq> A) \<or> X = Y \<union> Z"
+assume 5: "\<And>V. ((\<not> Y \<subseteq> V \<or> \<not> Z \<subseteq> V) \<or> X \<subseteq> V) \<or> X = Y \<union> Z"
 have 6: "Z \<subseteq> x \<or> sup Y Z \<noteq> X \<or> \<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X"
   by (metis 3 sup_set_eq)
 have 7: "\<And>X3. sup Y Z = X \<or> X \<subseteq> sup X3 Z \<or> \<not> Y \<subseteq> sup X3 Z"
@@ -181,7 +181,7 @@ assume 1: "Z \<subseteq> X \<or> X = Y \<union> Z"
 assume 2: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> Y \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
 assume 3: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> Z \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
 assume 4: "(\<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X \<or> \<not> X \<subseteq> x) \<or> X \<noteq> Y \<union> Z"
-assume 5: "\<And>A. ((\<not> Y \<subseteq> A \<or> \<not> Z \<subseteq> A) \<or> X \<subseteq> A) \<or> X = Y \<union> Z"
+assume 5: "\<And>V. ((\<not> Y \<subseteq> V \<or> \<not> Z \<subseteq> V) \<or> X \<subseteq> V) \<or> X = Y \<union> Z"
 have 6: "sup Y Z \<noteq> X \<or> \<not> X \<subseteq> x \<or> \<not> Y \<subseteq> X \<or> \<not> Z \<subseteq> X"
   by (metis 4 sup_set_eq)
 have 7: "Z \<subseteq> x \<or> sup Y Z \<noteq> X \<or> \<not> Y \<subseteq> X"
@@ -221,9 +221,9 @@ lemma fixedpoint:
 proof (neg_clausify)
 fix x xa
 assume 0: "f (g x) = x"
-assume 1: "\<And>A. A = x \<or> f (g A) \<noteq> A"
-assume 2: "\<And>A. g (f (xa A)) = xa A \<or> g (f A) \<noteq> A"
-assume 3: "\<And>A. g (f A) \<noteq> A \<or> xa A \<noteq> A"
+assume 1: "\<And>y. y = x \<or> f (g y) \<noteq> y"
+assume 2: "\<And>x. g (f (xa x)) = xa x \<or> g (f x) \<noteq> x"
+assume 3: "\<And>x. g (f x) \<noteq> x \<or> xa x \<noteq> x"
 have 4: "\<And>X1. g (f X1) \<noteq> X1 \<or> g x \<noteq> X1"
   by (metis 3 1 2)
 show "False"
@@ -243,8 +243,8 @@ by (metis Un_absorb2 Union_insert insertI1 insert_Diff insert_Diff_single subset
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 proof (neg_clausify)
-assume 0: "\<And>A. \<not> S \<subseteq> {A}"
-assume 1: "\<And>A. A \<notin> S \<or> \<Union>S \<subseteq> A"
+assume 0: "\<And>x. \<not> S \<subseteq> {x}"
+assume 1: "\<And>x. x \<notin> S \<or> \<Union>S \<subseteq> x"
 have 2: "\<And>X3. X3 = \<Union>S \<or> \<not> X3 \<subseteq> \<Union>S \<or> X3 \<notin> S"
   by (metis set_eq_subset 1)
 have 3: "\<And>X3. S \<subseteq> insert (\<Union>S) X3"
