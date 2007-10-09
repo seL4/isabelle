@@ -27,15 +27,13 @@ sig
     (bstring * thm list) list * local_theory
   val abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val defs: string -> ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list ->
-    local_theory -> (term * (bstring * thm)) list * local_theory
+  val def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
+    local_theory -> (term * (bstring * thm)) * local_theory
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory
   val type_syntax: declaration -> local_theory -> local_theory
   val term_syntax: declaration -> local_theory -> local_theory
   val declaration: declaration -> local_theory -> local_theory
-  val def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
-    local_theory -> (term * (bstring * thm)) * local_theory
   val note: string -> (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * local_theory
   val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
@@ -62,15 +60,14 @@ type operations =
   axioms: string -> ((bstring * Attrib.src list) * term list) list -> local_theory ->
     (bstring * thm list) list * local_theory,
   abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> (term * term) * local_theory,
-  defs: string -> ((bstring * mixfix) * ((bstring * Attrib.src list) * term)) list ->
-    local_theory -> (term * (bstring * thm)) list * local_theory,
+  def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
+    local_theory -> (term * (bstring * thm)) * local_theory,
   notes: string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory,
   type_syntax: declaration -> local_theory -> local_theory,
   term_syntax: declaration -> local_theory -> local_theory,
   declaration: declaration -> local_theory -> local_theory,
-  target_morphism: local_theory -> morphism,
   target_naming: local_theory -> NameSpace.naming,
   reinit: local_theory -> theory -> local_theory,
   exit: local_theory -> Proof.context};
@@ -157,16 +154,18 @@ val pretty = operation #pretty;
 val consts = operation2 #consts;
 val axioms = operation2 #axioms;
 val abbrev = operation2 #abbrev;
-val defs = operation2 #defs;
+val def = operation2 #def;
 val notes = operation2 #notes;
 val type_syntax = operation1 #type_syntax;
 val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
-val target_morphism = operation #target_morphism;
 val target_naming = operation #target_naming;
 
-fun def kind arg lthy = lthy |> defs kind [arg] |>> hd;
 fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
+
+fun target_morphism lthy =
+  ProofContext.export_morphism lthy (target_of lthy) $>
+  Morphism.thm_morphism Goal.norm_result;
 
 fun notation mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
