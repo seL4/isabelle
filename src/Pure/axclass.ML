@@ -18,7 +18,7 @@ sig
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
-  val get_definition: theory -> class -> {def: thm, intro: thm, axioms: thm list,
+  val get_info: theory -> class -> {def: thm, intro: thm, axioms: thm list,
     params: (string * typ) list}
   val class_intros: theory -> thm list
   val class_of_param: theory -> string -> class option
@@ -26,15 +26,15 @@ sig
   val print_axclasses: theory -> unit
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
-  val axiomatize_class: bstring * xstring list -> theory -> theory
-  val axiomatize_class_i: bstring * class list -> theory -> theory
-  val axiomatize_classrel: (xstring * xstring) list -> theory -> theory
-  val axiomatize_classrel_i: (class * class) list -> theory -> theory
-  val axiomatize_arity: xstring * string list * string -> theory -> theory
-  val axiomatize_arity_i: arity -> theory -> theory
+  val axiomatize_class: bstring * class list -> theory -> theory
+  val axiomatize_class_cmd: bstring * xstring list -> theory -> theory
+  val axiomatize_classrel: (class * class) list -> theory -> theory
+  val axiomatize_classrel_cmd: (xstring * xstring) list -> theory -> theory
+  val axiomatize_arity: arity -> theory -> theory
+  val axiomatize_arity_cmd: xstring * string list * string -> theory -> theory
   type cache
-  val cache: cache
   val of_sort: theory -> typ * sort -> cache -> thm list * cache  (*exception Sorts.CLASS_ERROR*)
+  val cache: cache
 end;
 
 structure AxClass: AX_CLASS =
@@ -113,7 +113,7 @@ fun map_axclasses f = AxClassData.map (apfst f);
 
 val lookup_def = Symtab.lookup o #1 o get_axclasses;
 
-fun get_definition thy c =
+fun get_info thy c =
   (case lookup_def thy c of
     SOME (AxClass info) => info
   | NONE => error ("No such axclass: " ^ quote c));
@@ -136,7 +136,7 @@ fun all_params_of thy S = get_params thy (fn c => Sign.subsort thy (S, [c]));
 fun class_of_param thy =
   AList.lookup (op =) (#2 (get_axclasses thy));
 
-fun params_of_class thy class = (Name.aT, #params (get_definition thy class));
+fun params_of_class thy class = (Name.aT, #params (get_info thy class));
 
 
 (* maintain instances *)
@@ -156,7 +156,7 @@ fun put_classrel arg = map_instances (fn (classrel, arities) =>
 
 
 fun the_arity thy a (c, Ss) =
-  (case AList.lookup (op =) (Symtab.lookup_list (#2 (get_instances thy)) a) (c, Ss)  of
+  (case AList.lookup (op =) (Symtab.lookup_list (#2 (get_instances thy)) a) (c, Ss) of
     SOME th => Thm.transfer thy th
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (ProofContext.init thy) (a, Ss, [c])));
@@ -389,7 +389,7 @@ fun define_class_params (name, raw_superclasses) raw_consts raw_dep_axioms other
     |-> (fn cs => mk_axioms cs
     #-> (fn axioms_prop => define_class (name, superclasses)
            (map fst cs @ other_consts) axioms_prop
-    #-> (fn class => `(fn thy => get_definition thy class)
+    #-> (fn class => `(fn thy => get_info thy class)
     #-> (fn {axioms, ...} => fold (add_constraint class) cs
     #> pair (class, (cs, axioms))))))
   end;
@@ -431,12 +431,12 @@ fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
 
 in
 
-val axiomatize_class = ax_class Sign.read_class read_classrel;
-val axiomatize_class_i = ax_class Sign.certify_class cert_classrel;
-val axiomatize_classrel = ax_classrel read_classrel;
-val axiomatize_classrel_i = ax_classrel cert_classrel;
-val axiomatize_arity = ax_arity Sign.read_arity;
-val axiomatize_arity_i = ax_arity Sign.cert_arity;
+val axiomatize_class = ax_class Sign.certify_class cert_classrel;
+val axiomatize_class_cmd = ax_class Sign.read_class read_classrel;
+val axiomatize_classrel = ax_classrel cert_classrel;
+val axiomatize_classrel_cmd = ax_classrel read_classrel;
+val axiomatize_arity = ax_arity Sign.cert_arity;
+val axiomatize_arity_cmd = ax_arity Sign.read_arity;
 
 end;
 
@@ -445,7 +445,6 @@ end;
 (** explicit derivations -- cached **)
 
 datatype cache = Types of (class * thm) list Typtab.table;
-val cache = Types Typtab.empty;
 
 local
 
@@ -489,5 +488,7 @@ fun of_sort thy (typ, sort) cache =
   in (ths, cache') end;
 
 end;
+
+val cache = Types Typtab.empty;
 
 end;
