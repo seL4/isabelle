@@ -1903,13 +1903,13 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
 
 fun cert_class thy class =
   let
-    val _ = AxClass.get_definition thy class;
+    val _ = AxClass.get_info thy class;
   in class end;
 
 fun read_class thy raw_class =
   let
     val class = Sign.intern_class thy raw_class;
-    val _ = AxClass.get_definition thy class;
+    val _ = AxClass.get_info thy class;
   in class end;
 
 fun cert_tyco thy tyco =

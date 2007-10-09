@@ -597,7 +597,7 @@ fun coregular_algebra thy = retrieve_algebra thy (K true) |> snd;
 fun operational_algebra thy =
   let
     fun add_iff_operational class =
-      can (AxClass.get_definition thy) class ? cons class;
+      can (AxClass.get_info thy) class ? cons class;
     val operational_classes = fold add_iff_operational (Sign.all_classes thy) []
   in retrieve_algebra thy (member (op =) operational_classes) end;
 
