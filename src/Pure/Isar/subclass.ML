@@ -82,8 +82,8 @@ fun gen_subclass prep_class raw_sup lthy =
           |> filter_out (fn class' => Sign.subsort thy ([sub], [class']));
         fun instance_subclass (class1, class2) thy  =
           let
-            val ax = #axioms (AxClass.get_definition thy class1);
-            val intro = #intro (AxClass.get_definition thy class2)
+            val ax = #axioms (AxClass.get_info thy class1);
+            val intro = #intro (AxClass.get_info thy class2)
               |> Drule.instantiate' [SOME (Thm.ctyp_of thy
                   (TVar ((Name.aT, 0), [class1])))] [];
             val thm =
@@ -96,9 +96,9 @@ fun gen_subclass prep_class raw_sup lthy =
       in
         thy |> fold_rev (curry instance_subclass sub) classes
       end;
-    fun after_qed thmss =
+    fun after_qed [thms] =
       let
-        val thm = Conjunction.intr_balanced (the_single thmss);;
+        val thm = Conjunction.intr_balanced thms;
         val interp = export thm;
       in
         LocalTheory.theory (prove_classrel interp
@@ -106,11 +106,8 @@ fun gen_subclass prep_class raw_sup lthy =
              I (loc_name, loc_expr))
         (*#> (fn lthy => LocalTheory.reinit lthy thy) FIXME does not work as expected*)
       end;
-    val goal = Element.Shows
-      [(("", []), map (rpair []) (mk_subclass_rule lthy sup))];
-  in 
-    Specification.theorem_i Thm.internalK NONE after_qed ("", []) [] goal true lthy
-  end;
+
+  in Proof.theorem_i NONE after_qed [map (rpair []) (mk_subclass_rule lthy sup)] lthy end;
 
 in
 
