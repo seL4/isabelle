@@ -271,7 +271,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in
-    Specification.theorem_i Thm.internalK NONE (K I) (bname, atts)
+    Specification.theorem Thm.internalK NONE (K I) (bname, atts)
       [] (Element.Shows [(("", []), [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;
 

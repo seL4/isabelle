@@ -10,49 +10,49 @@ signature SPECIFICATION =
 sig
   val quiet_mode: bool ref
   val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
-  val read_specification: (string * string option * mixfix) list ->
-    ((string * Attrib.src list) * string list) list list -> Proof.context ->
-    (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
-    Proof.context
   val check_specification: (string * typ option * mixfix) list ->
     ((string * Attrib.src list) * term list) list list -> Proof.context ->
     (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
     Proof.context
-  val read_free_specification: (string * string option * mixfix) list ->
-    ((string * Attrib.src list) * string list) list -> Proof.context ->
+  val read_specification: (string * string option * mixfix) list ->
+    ((string * Attrib.src list) * string list) list list -> Proof.context ->
     (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
     Proof.context
   val check_free_specification: (string * typ option * mixfix) list ->
     ((string * Attrib.src list) * term list) list -> Proof.context ->
     (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
     Proof.context
-  val axiomatization: (string * string option * mixfix) list ->
-    ((bstring * Attrib.src list) * string list) list -> local_theory ->
-    (term list * (bstring * thm list) list) * local_theory
-  val axiomatization_i: (string * typ option * mixfix) list ->
+  val read_free_specification: (string * string option * mixfix) list ->
+    ((string * Attrib.src list) * string list) list -> Proof.context ->
+    (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
+    Proof.context
+  val axiomatization: (string * typ option * mixfix) list ->
     ((bstring * Attrib.src list) * term list) list -> local_theory ->
     (term list * (bstring * thm list) list) * local_theory
+  val axiomatization_cmd: (string * string option * mixfix) list ->
+    ((bstring * Attrib.src list) * string list) list -> local_theory ->
+    (term list * (bstring * thm list) list) * local_theory
   val definition:
-    (string * string option * mixfix) option * ((string * Attrib.src list) * string) ->
-    local_theory -> (term * (bstring * thm)) * local_theory
-  val definition_i:
     (string * typ option * mixfix) option * ((string * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory
-  val abbreviation: Syntax.mode -> (string * string option * mixfix) option * string ->
+  val definition_cmd:
+    (string * string option * mixfix) option * ((string * Attrib.src list) * string) ->
+    local_theory -> (term * (bstring * thm)) * local_theory
+  val abbreviation: Syntax.mode -> (string * typ option * mixfix) option * term ->
     local_theory -> local_theory
-  val abbreviation_i: Syntax.mode -> (string * typ option * mixfix) option * term ->
+  val abbreviation_cmd: Syntax.mode -> (string * string option * mixfix) option * string ->
     local_theory -> local_theory
-  val notation: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
-  val notation_i: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val theorems: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
+  val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
+  val notation_cmd: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val theorems: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list
     -> local_theory -> (bstring * thm list) list * local_theory
-  val theorems_i: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list
+  val theorems_cmd: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
     -> local_theory -> (bstring * thm list) list * local_theory
   val theorem: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
-    string * Attrib.src list -> Element.context Locale.element list -> Element.statement ->
-    bool -> local_theory -> Proof.state
-  val theorem_i: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
     string * Attrib.src list -> Element.context_i Locale.element list -> Element.statement_i ->
+    bool -> local_theory -> Proof.state
+  val theorem_cmd: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
+    string * Attrib.src list -> Element.context Locale.element list -> Element.statement ->
     bool -> local_theory -> Proof.state
   val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic
 end;
@@ -167,8 +167,8 @@ fun gen_axioms prep raw_vars raw_specs lthy =
     val _ = print_consts lthy' (member (op =) (fold Term.add_frees consts' [])) cs;
   in ((consts, axioms), lthy'') end;
 
-val axiomatization = gen_axioms read_specification;
-val axiomatization_i = gen_axioms check_specification;
+val axiomatization = gen_axioms check_specification;
+val axiomatization_cmd = gen_axioms read_specification;
 
 
 (* definition *)
@@ -192,8 +192,8 @@ fun gen_def prep (raw_var, (raw_a, raw_prop)) lthy =
     val _ = print_consts lthy3 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
   in ((lhs, (b, th')), lthy3) end;
 
-val definition = gen_def read_free_specification;
-val definition_i = gen_def check_free_specification;
+val definition = gen_def check_free_specification;
+val definition_cmd = gen_def read_free_specification;
 
 
 (* abbreviation *)
@@ -215,8 +215,8 @@ fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
     val _ = print_consts lthy' (K false) [(x, T)]
   in lthy' end;
 
-val abbreviation = gen_abbrev read_free_specification;
-val abbreviation_i = gen_abbrev check_free_specification;
+val abbreviation = gen_abbrev check_free_specification;
+val abbreviation_cmd = gen_abbrev read_free_specification;
 
 
 (* notation *)
@@ -224,8 +224,8 @@ val abbreviation_i = gen_abbrev check_free_specification;
 fun gen_notation prep_const mode args lthy =
   lthy |> LocalTheory.notation mode (map (apfst (prep_const lthy)) args);
 
-val notation = gen_notation ProofContext.read_const;
-val notation_i = gen_notation (K I);
+val notation = gen_notation (K I);
+val notation_cmd = gen_notation ProofContext.read_const;
 
 
 (* fact statements *)
@@ -240,8 +240,8 @@ fun gen_theorems prep_thms prep_att kind raw_facts lthy =
     val _ = present_results' lthy' kind res;
   in (res, lthy') end;
 
-val theorems = gen_theorems ProofContext.get_thms Attrib.intern_src;
-val theorems_i = gen_theorems (K I) (K I);
+val theorems = gen_theorems (K I) (K I);
+val theorems_cmd = gen_theorems ProofContext.get_thms Attrib.intern_src;
 
 
 (* complex goal statements *)
@@ -351,8 +351,8 @@ fun gen_theorem prep_att prep_stmt
 
 in
 
-val theorem = gen_theorem Attrib.intern_src Locale.read_context_statement_i;
-val theorem_i = gen_theorem (K I) Locale.cert_context_statement;
+val theorem = gen_theorem (K I) Locale.cert_context_statement;
+val theorem_cmd = gen_theorem Attrib.intern_src Locale.read_context_statement_i;
 
 fun add_theorem_hook f = TheoremHook.map (cons (f, stamp ()));
 
