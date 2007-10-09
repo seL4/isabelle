@@ -34,20 +34,20 @@ val peek = Data.get;
 fun pretty loc ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
+    val loc_kind = if is_some (Class.class_of_locale thy loc) then "class" else "locale";
+    val loc_name = Locale.extern thy loc;
+
     val fixes = map (fn (x, T) => (x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
     val assumes = map (fn A => (("", []), [(A, [])])) (map Thm.term_of (Assumption.assms_of ctxt));
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
   in
-    if loc = "" then
-      [Pretty.block
-        [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy),
-          Pretty.str " =", Pretty.brk 1, ThyInfo.pretty_theory thy]]
-    else if null elems then [Pretty.str ("locale " ^ Locale.extern thy loc)]
-    else
-      [Pretty.big_list ("locale " ^ Locale.extern thy loc ^ " =")
-        (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)]
+    Pretty.block [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy)] ::
+     (if loc = "" then []
+      else if null elems then [Pretty.str (loc_kind ^ " " ^ loc_name)]
+      else [Pretty.big_list (loc_kind ^ " " ^ loc_name ^ " =")
+        (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)])
   end;
 
 
@@ -76,211 +76,6 @@ fun target_naming loc lthy =
    else ProofContext.naming_of (LocalTheory.target_of lthy))
   |> NameSpace.qualified_names;
 
-
-(* consts *)
-
-fun target_abbrev prmode ((c, mx), rhs) phi =
-  let
-    val c' = Morphism.name phi c;
-    val rhs' = Morphism.term phi rhs;
-    val arg' = (c', rhs');
-    val eq_heads =
-      (case pairself Term.head_of (rhs, rhs') of
-        (Const (a, _), Const (a', _)) => a = a'
-      | _ => false);
-  in
-    eq_heads ? (Context.mapping_result
-      (Sign.add_abbrev Syntax.internalM [] arg') (ProofContext.add_abbrev Syntax.internalM [] arg')
-    #-> (fn (lhs, _) =>
-      Term.equiv_types (rhs, rhs') ?
-        Morphism.form (ProofContext.target_notation prmode [(lhs, mx)])))
-  end;
-
-fun internal_abbrev prmode ((c, mx), t) lthy = lthy
-  (* FIXME really permissive *)
-  |> LocalTheory.term_syntax (perhaps o try o target_abbrev prmode ((c, mx), t))
-  |> ProofContext.add_abbrev Syntax.internalM (ContextPosition.properties_of lthy) (c, t)
-  |> snd;
-
-fun consts is_loc some_class depends decls lthy =
-  let
-    val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
-
-    fun const ((c, T), mx) thy =
-      let
-        val U = map #2 xs ---> T;
-        val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
-        val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
-        val mx3 = if is_loc then NoSyn else mx1;
-        val thy' = Sign.add_consts_authentic (ContextPosition.properties_of lthy) [(c, U, mx3)] thy;
-      in (((c, mx2), t), thy') end;
-    fun const_class (SOME class) ((c, _), mx) (_, t) =
-          LocalTheory.raw_theory_result
-            (Class.add_const_in_class class ((c, t), mx))
-          #-> (fn c => Class.remove_constraint [class] c)
-      | const_class NONE _ _ = I;
-    fun hide_abbrev (SOME class) abbrs thy =
-          let
-            val raw_cs = map (fst o fst) abbrs;
-            val prfx = (Logic.const_of_class o NameSpace.base) class;
-            fun mk_name c =
-              let
-                val n1 = Sign.full_name thy c;
-                val n2 = NameSpace.qualifier n1;
-                val n3 = NameSpace.base n1;
-              in NameSpace.implode [n2, prfx, prfx, n3] end;
-            val cs = map mk_name raw_cs;
-          in
-            Sign.hide_consts_i true cs thy
-          end
-      | hide_abbrev NONE _ thy = thy;
-
-    val (abbrs, lthy') = lthy
-      |> LocalTheory.theory_result (fold_map const decls)
-    val defs = map (apsnd (pair ("", []))) abbrs;
-
-  in
-    lthy'
-    |> fold2 (const_class some_class) decls abbrs
-    |> is_loc ? fold (internal_abbrev Syntax.default_mode) abbrs
-    |> LocalTheory.raw_theory (hide_abbrev some_class abbrs)
-        (*FIXME abbreviations should never occur*)
-    |> LocalDefs.add_defs defs
-    |>> map (apsnd snd)
-  end;
-
-
-(* abbrev *)
-
-fun occ_params ctxt ts =
-  #1 (ProofContext.inferred_fixes ctxt)
-  |> filter (member (op =) (fold (Variable.add_fixed ctxt) ts []));
-
-fun local_abbrev (x, rhs) =
-  Variable.add_fixes [x] #-> (fn [x'] =>
-    let
-      val T = Term.fastype_of rhs;
-      val lhs = Free (x', T);
-    in
-      Variable.declare_term lhs #>
-      Variable.declare_term rhs #>
-      Assumption.add_assms (K (K (I, Envir.expand_term_frees [((x', T), rhs)]))) [] #> snd #>
-      pair (lhs, rhs)
-    end);
-
-fun abbrev is_loc some_class prmode ((raw_c, mx), raw_t) lthy =
-  let
-    val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
-    val target = LocalTheory.target_of lthy;
-    val target_morphism = LocalTheory.target_morphism lthy;
-
-    val c = Morphism.name target_morphism raw_c;
-    val t = Morphism.term target_morphism raw_t;
-    val xs = map Free (occ_params target [t]);
-    val u = fold_rev Term.lambda xs t;
-    val U = Term.fastype_of u;
-    val u' = singleton (Variable.export_terms (Variable.declare_term u target) thy_ctxt) u;
-    val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
-    val mx3 = if is_loc then NoSyn else mx1;
-    fun add_abbrev_in_class (SOME class) abbr =
-          LocalTheory.raw_theory_result (Class.add_abbrev_in_class class prmode abbr)
-          #-> (fn c => Class.remove_constraint [class] c)
-      | add_abbrev_in_class NONE _ = I;
-  in
-    lthy
-    |> LocalTheory.theory_result
-        (Sign.add_abbrev (#1 prmode) (ContextPosition.properties_of lthy) (c, u'))
-    |-> (fn (lhs as Const (full_c, _), rhs) => LocalTheory.theory (Sign.add_notation prmode [(lhs, mx3)])
-    #> is_loc ? internal_abbrev prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
-    #> add_abbrev_in_class some_class ((c, Term.list_comb (Const (full_c, U), xs)), mx1)
-    #> local_abbrev (c, rhs))
-  end;
-
-
-(* defs *)
-
-local
-
-fun expand_term ctxt t =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val thy_ctxt = ProofContext.init thy;
-    val ct = Thm.cterm_of thy t;
-    val (defs, ct') = LocalDefs.export ctxt thy_ctxt (Drule.mk_term ct) ||> Drule.dest_term;
-  in (Thm.term_of ct', MetaSimplifier.rewrite true defs ct) end;
-
-fun add_def (name, prop) thy =
-  let
-    val tfrees = rev (map TFree (Term.add_tfrees prop []));
-    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
-    val strip_sorts = tfrees ~~ tfrees';
-    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
-
-    val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
-    val thy' = Theory.add_defs_i false false [(name, prop')] thy;
-    val axm' = Thm.get_axiom_i thy' (Sign.full_name thy' name);
-    val def = Thm.instantiate (recover_sorts, []) axm';
-  in (Drule.unvarify def, thy') end;
-
-in
-
-fun local_def kind ((c, mx), ((name, atts), rhs)) lthy1 =
-  let
-    val (rhs', rhs_conv) = expand_term lthy1 rhs;
-    val xs = Variable.add_fixed (LocalTheory.target_of lthy1) rhs' [];
-    val T = Term.fastype_of rhs;
-
-    (*consts*)
-    val ([(lhs, lhs_def)], lthy2) = lthy1
-      |> LocalTheory.consts (member (op =) xs) [((c, T), mx)];
-    val (_, lhs') = Logic.dest_equals (Thm.prop_of lhs_def);
-
-    (*def*)
-    val name' = Thm.def_name_optional c name;
-    val (def, lthy3) = lthy2
-      |> LocalTheory.theory_result (add_def (name', Logic.mk_equals (lhs', rhs')));
-    val eq = LocalDefs.trans_terms lthy3
-      [(*c == loc.c xs*) lhs_def,
-       (*lhs' == rhs'*)  def,
-       (*rhs' == rhs*)   Thm.symmetric rhs_conv];
-
-    (*notes*)
-    val ([(res_name, [res])], lthy4) = lthy3
-      |> LocalTheory.notes kind [((name', atts), [([eq], [])])];
-  in ((lhs, (res_name, res)), lthy4) end;
-
-end;
-
-
-(* axioms *)
-
-local
-
-fun add_axiom hyps (name, prop) thy =
-  let
-    val name' = if name = "" then "axiom_" ^ serial_string () else name;
-    val prop' = Logic.list_implies (hyps, prop);
-    val thy' = thy |> Theory.add_axioms_i [(name', prop')];
-    val axm = Drule.unvarify (Thm.get_axiom_i thy' (Sign.full_name thy' name'));
-    val prems = map (Thm.assume o Thm.cterm_of thy') hyps;
-  in (Drule.implies_elim_list axm prems, thy') end;
-
-in
-
-fun axioms kind specs lthy =
-  let
-    val hyps = map Thm.term_of (Assumption.assms_of lthy);
-    fun axiom ((name, atts), props) thy = thy
-      |> fold_map (add_axiom hyps) (PureThy.name_multi name props)
-      |-> (fn ths => pair ((name, atts), [(ths, [])]));
-  in
-    lthy
-    |> fold (fold Variable.declare_term o snd) specs
-    |> LocalTheory.theory_result (fold_map axiom specs)
-    |-> LocalTheory.notes kind
-  end;
-
-end;
 
 
 (* notes *)
@@ -335,7 +130,7 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
-fun notes loc kind facts lthy =
+fun local_notes loc kind facts lthy =
   let
     val is_loc = loc <> "";
     val thy = ProofContext.theory_of lthy;
@@ -364,24 +159,236 @@ fun notes loc kind facts lthy =
   end;
 
 
+(* consts *)
+
+fun target_abbrev prmode ((c, mx), rhs) phi =
+  let
+    val c' = Morphism.name phi c;
+    val rhs' = Morphism.term phi rhs;
+    val arg' = (c', rhs');
+    val eq_heads =
+      (case pairself Term.head_of (rhs, rhs') of
+        (Const (a, _), Const (a', _)) => a = a'
+      | _ => false);
+  in
+    eq_heads ? (Context.mapping_result
+      (Sign.add_abbrev Syntax.internalM [] arg') (ProofContext.add_abbrev Syntax.internalM [] arg')
+    #-> (fn (lhs, _) =>
+      Term.equiv_types (rhs, rhs') ?
+        Morphism.form (ProofContext.target_notation prmode [(lhs, mx)])))
+  end;
+
+fun internal_abbrev loc prmode ((c, mx), t) lthy = lthy
+  (* FIXME really permissive *)
+  |> term_syntax loc (perhaps o try o target_abbrev prmode ((c, mx), t))
+  |> ProofContext.add_abbrev Syntax.internalM (ContextPosition.properties_of lthy) (c, t)
+  |> snd;
+
+fun declare_consts loc depends decls lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val is_loc = loc <> "";
+    val some_class = Class.class_of_locale thy loc;
+
+    val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
+
+    fun const ((c, T), mx) thy =
+      let
+        val U = map #2 xs ---> T;
+        val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
+        val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
+        val mx3 = if is_loc then NoSyn else mx1;
+        val thy' = Sign.add_consts_authentic (ContextPosition.properties_of lthy) [(c, U, mx3)] thy;
+      in (((c, mx2), t), thy') end;
+    fun const_class (SOME class) ((c, _), mx) (_, t) =
+          LocalTheory.raw_theory_result (Class.add_const_in_class class ((c, t), mx))
+          #-> Class.remove_constraint [class]
+      | const_class NONE _ _ = I;
+    fun hide_abbrev (SOME class) abbrs thy =
+          let
+            val raw_cs = map (fst o fst) abbrs;
+            val prfx = (Logic.const_of_class o NameSpace.base) class;
+            fun mk_name c =
+              let
+                val n1 = Sign.full_name thy c;
+                val n2 = NameSpace.qualifier n1;
+                val n3 = NameSpace.base n1;
+              in NameSpace.implode [n2, prfx, prfx, n3] end;
+            val cs = map mk_name raw_cs;
+          in
+            Sign.hide_consts_i true cs thy
+          end
+      | hide_abbrev NONE _ thy = thy;
+
+    val (abbrs, lthy') = lthy
+      |> LocalTheory.theory_result (fold_map const decls)
+    val defs = map (apsnd (pair ("", []))) abbrs;
+
+  in
+    lthy'
+    |> fold2 (const_class some_class) decls abbrs
+    |> is_loc ? fold (internal_abbrev loc Syntax.default_mode) abbrs
+    |> LocalTheory.raw_theory (hide_abbrev some_class abbrs)
+        (*FIXME abbreviations should never occur*)
+    |> LocalDefs.add_defs defs
+    |>> map (apsnd snd)
+  end;
+
+
+(* abbrev *)
+
+fun occ_params ctxt ts =
+  #1 (ProofContext.inferred_fixes ctxt)
+  |> filter (member (op =) (fold (Variable.add_fixed ctxt) ts []));
+
+fun local_abbrev (x, rhs) =
+  Variable.add_fixes [x] #-> (fn [x'] =>
+    let
+      val T = Term.fastype_of rhs;
+      val lhs = Free (x', T);
+    in
+      Variable.declare_term lhs #>
+      Variable.declare_term rhs #>
+      Assumption.add_assms (K (K (I, Envir.expand_term_frees [((x', T), rhs)]))) [] #> snd #>
+      pair (lhs, rhs)
+    end);
+
+fun abbrev loc prmode ((raw_c, mx), raw_t) lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val is_loc = loc <> "";
+    val some_class = Class.class_of_locale thy loc;
+
+    val thy_ctxt = ProofContext.init thy;
+    val target = LocalTheory.target_of lthy;
+    val target_morphism = LocalTheory.target_morphism lthy;
+
+    val c = Morphism.name target_morphism raw_c;
+    val t = Morphism.term target_morphism raw_t;
+    val xs = map Free (occ_params target [t]);
+    val u = fold_rev Term.lambda xs t;
+    val U = Term.fastype_of u;
+    val u' = singleton (Variable.export_terms (Variable.declare_term u target) thy_ctxt) u;
+    val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
+    val mx3 = if is_loc then NoSyn else mx1;
+    fun add_abbrev_in_class (SOME class) abbr =
+          LocalTheory.raw_theory_result (Class.add_abbrev_in_class class prmode abbr)
+          #-> (fn c => Class.remove_constraint [class] c)
+      | add_abbrev_in_class NONE _ = I;
+  in
+    lthy
+    |> LocalTheory.theory_result
+        (Sign.add_abbrev (#1 prmode) (ContextPosition.properties_of lthy) (c, u'))
+    |-> (fn (lhs as Const (full_c, _), rhs) => LocalTheory.theory (Sign.add_notation prmode [(lhs, mx3)])
+    #> is_loc ? internal_abbrev loc prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
+    #> add_abbrev_in_class some_class ((c, Term.list_comb (Const (full_c, U), xs)), mx1)
+    #> local_abbrev (c, rhs))
+  end;
+
+
+(* defs *)
+
+local
+
+fun expand_term ctxt t =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val thy_ctxt = ProofContext.init thy;
+    val ct = Thm.cterm_of thy t;
+    val (defs, ct') = LocalDefs.export ctxt thy_ctxt (Drule.mk_term ct) ||> Drule.dest_term;
+  in (Thm.term_of ct', MetaSimplifier.rewrite true defs ct) end;
+
+fun add_def (name, prop) thy =
+  let
+    val tfrees = rev (map TFree (Term.add_tfrees prop []));
+    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
+    val strip_sorts = tfrees ~~ tfrees';
+    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
+
+    val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
+    val thy' = Theory.add_defs_i false false [(name, prop')] thy;
+    val axm' = Thm.get_axiom_i thy' (Sign.full_name thy' name);
+    val def = Thm.instantiate (recover_sorts, []) axm';
+  in (Drule.unvarify def, thy') end;
+
+in
+
+fun local_def loc kind ((c, mx), ((name, atts), rhs)) lthy1 =
+  let
+    val (rhs', rhs_conv) = expand_term lthy1 rhs;
+    val xs = Variable.add_fixed (LocalTheory.target_of lthy1) rhs' [];
+    val T = Term.fastype_of rhs;
+
+    (*consts*)
+    val ([(lhs, lhs_def)], lthy2) = lthy1
+      |> declare_consts loc (member (op =) xs) [((c, T), mx)];
+    val (_, lhs') = Logic.dest_equals (Thm.prop_of lhs_def);
+
+    (*def*)
+    val name' = Thm.def_name_optional c name;
+    val (def, lthy3) = lthy2
+      |> LocalTheory.theory_result (add_def (name', Logic.mk_equals (lhs', rhs')));
+    val eq = LocalDefs.trans_terms lthy3
+      [(*c == loc.c xs*) lhs_def,
+       (*lhs' == rhs'*)  def,
+       (*rhs' == rhs*)   Thm.symmetric rhs_conv];
+
+    (*notes*)
+    val ([(res_name, [res])], lthy4) = lthy3
+      |> local_notes loc kind [((name', atts), [([eq], [])])];
+  in ((lhs, (res_name, res)), lthy4) end;
+
+end;
+
+
+(* axioms *)
+
+local
+
+fun add_axiom hyps (name, prop) thy =
+  let
+    val name' = if name = "" then "axiom_" ^ serial_string () else name;
+    val prop' = Logic.list_implies (hyps, prop);
+    val thy' = thy |> Theory.add_axioms_i [(name', prop')];
+    val axm = Drule.unvarify (Thm.get_axiom_i thy' (Sign.full_name thy' name'));
+    val prems = map (Thm.assume o Thm.cterm_of thy') hyps;
+  in (Drule.implies_elim_list axm prems, thy') end;
+
+in
+
+fun axioms loc kind specs lthy =
+  let
+    val hyps = map Thm.term_of (Assumption.assms_of lthy);
+    fun axiom ((name, atts), props) thy = thy
+      |> fold_map (add_axiom hyps) (PureThy.name_multi name props)
+      |-> (fn ths => pair ((name, atts), [(ths, [])]));
+  in
+    lthy
+    |> fold (fold Variable.declare_term o snd) specs
+    |> LocalTheory.theory_result (fold_map axiom specs)
+    |-> local_notes loc kind
+  end;
+
+end;
+
+
 (* init and exit *)
 
 fun begin loc ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val is_loc = loc <> "";
-    val some_class = Class.class_of_locale thy loc;
   in
     ctxt
     |> Data.put (if is_loc then SOME loc else NONE)
-    |> fold Class.init (the_list some_class)
+    |> fold Class.init (the_list (Class.class_of_locale thy loc))
     |> LocalTheory.init (NameSpace.base loc)
      {pretty = pretty loc,
-      consts = consts is_loc some_class,
-      axioms = axioms,
-      abbrev = abbrev is_loc some_class,
-      def = local_def,
-      notes = notes loc,
+      consts = declare_consts loc,
+      axioms = axioms loc,
+      abbrev = abbrev loc,
+      def = local_def loc,
+      notes = local_notes loc,
       type_syntax = type_syntax loc,
       term_syntax = term_syntax loc,
       declaration = declaration loc,
