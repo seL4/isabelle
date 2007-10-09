@@ -662,7 +662,7 @@ fun mk_ind_def alt_name coind cs intr_ts monos
             (list_comb (rec_const, params @ make_bool_args' bs i @
               make_args argTs (xs ~~ Ts)))))
         end) (cnames_syn ~~ cs);
-    val (consts_defs, ctxt'') = LocalTheory.defs Thm.internalK specs ctxt';
+    val (consts_defs, ctxt'') = fold_map (LocalTheory.def Thm.internalK) specs ctxt';
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
     val mono = prove_mono predT fp_fun monos ctxt''
