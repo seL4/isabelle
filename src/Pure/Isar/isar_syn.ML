@@ -430,9 +430,9 @@ val _ =
      Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") [] --  (* FIXME ?? *)
      Scan.optional (P.$$$ "(" |-- (P.$$$ "local_syntax" >> K true) --| P.$$$ ")") false --  (* FIXME ?? *)
      (P.$$$ "=" |-- class_val) -- P.opt_begin
-    >> (fn ((((bname, add_consts), local_syntax), (supclasses, elems)), begin) =>
-        Toplevel.begin_local_theory begin
-          (Class.class_cmd false bname supclasses elems add_consts #-> TheoryTarget.begin)));
+    >> (fn ((((name, add_consts), local_syntax), (supclasses, elems)), begin) =>
+        (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
+          (Class.class_cmd false name supclasses elems add_consts #-> TheoryTarget.begin)));
 
 val _ =
   OuterSyntax.command "subclass" "prove a subclass relation" K.thy_goal
