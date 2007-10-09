@@ -114,7 +114,7 @@ exception UNDEF;
 
 type generic_theory = Context.generic;    (*theory or local_theory*)
 
-val loc_init = TheoryTarget.init;
+val loc_init = TheoryTarget.init_cmd;
 
 val loc_exit = ProofContext.theory_of o LocalTheory.exit;
 
