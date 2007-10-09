@@ -48,7 +48,7 @@ val Abs_induct = thm "type_definition.Abs_induct";
 (** type declarations **)
 
 fun HOL_arity (raw_name, args, mx) thy =
-  thy |> AxClass.axiomatize_arity_i
+  thy |> AxClass.axiomatize_arity
     (Sign.full_name thy (Syntax.type_name raw_name mx),
       replicate (length args) HOLogic.typeS, HOLogic.typeS);
 

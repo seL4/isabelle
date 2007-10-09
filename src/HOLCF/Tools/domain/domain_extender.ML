@@ -106,7 +106,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
     fun thy_type  (dname,tvars)  = (Sign.base_name dname, length tvars, NoSyn);
     fun thy_arity (dname,tvars)  = (dname, map (snd o dest_TFree) tvars, pcpoS);
     val thy'' = thy''' |> Sign.add_types     (map thy_type  dtnvs)
-		       |> fold (AxClass.axiomatize_arity_i o thy_arity) dtnvs;
+		       |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
     val cons'' = map (map (upd_third (map (upd_third (prep_typ thy''))))) cons''';
     val eqs' = check_and_sort_domain (dtnvs,cons'') thy'';
     val thy' = thy'' |> Domain_Syntax.add_syntax (comp_dnam,eqs');
