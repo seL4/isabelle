@@ -379,7 +379,7 @@ fun params_of_sort thy =
   let
     fun params class =
       let
-        val const_typs = (#params o AxClass.get_definition thy) class;
+        val const_typs = (#params o AxClass.get_info thy) class;
         val const_names = (#consts o the_class_data thy) class;
       in
         (map o apsnd) (fn c => (c, (the o AList.lookup (op =) const_typs) c)) const_names
@@ -434,7 +434,7 @@ fun print_classes thy =
         (Syntax.pretty_sort ctxt o Sign.minimize_sort thy o Sign.super_classes thy) class],
       Option.map (Pretty.str o prefix "locale: " o #locale) (lookup_class_data thy class),
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks) (Pretty.str "parameters:" :: ps)) o map mk_param
-        o these o Option.map #params o try (AxClass.get_definition thy)) class,
+        o these o Option.map #params o try (AxClass.get_info thy)) class,
       (SOME o Pretty.block o Pretty.breaks) [
         Pretty.str "instances:",
         Pretty.list "" "" (map (mk_arity class) (the_arities class))
@@ -474,7 +474,7 @@ fun register_abbrev class (abbrev, ty) =
 fun class_intro thy locale class sups =
   let
     fun class_elim class =
-      case (map Drule.unconstrainTs o #axioms o AxClass.get_definition thy) class
+      case (map Drule.unconstrainTs o #axioms o AxClass.get_info thy) class
        of [thm] => SOME thm
         | [] => NONE;
     val pred_intro = case Locale.intros thy locale
@@ -484,7 +484,7 @@ fun class_intro thy locale class sups =
       | _ => NONE;
     val pred_intro' = pred_intro
       |> Option.map (fn intro => intro OF map_filter class_elim sups);
-    val class_intro = (#intro o AxClass.get_definition thy) class;
+    val class_intro = (#intro o AxClass.get_info thy) class;
     val raw_intro = case pred_intro'
      of SOME pred_intro => class_intro |> OF_LAST pred_intro
       | NONE => class_intro;
@@ -534,18 +534,15 @@ fun intro_classes_tac facts st =
     val classes = Sign.all_classes thy;
     val class_trivs = map (Thm.class_triv thy) classes;
     val class_intros = these_intros thy;
-    fun add_axclass_intro class =
-      case try (AxClass.get_definition thy) class of SOME {intro, ...} => cons intro | _ => I;
-    val axclass_intros = fold add_axclass_intro classes [];
+    val axclass_intros = map_filter (try (#intro o AxClass.get_info thy)) classes;
   in
-    st
-    |> ((ALLGOALS (Method.insert_tac facts THEN'
-          REPEAT_ALL_NEW (resolve_tac (class_trivs @ class_intros @ axclass_intros))))
-            THEN Tactic.distinct_subgoals_tac)
+    (ALLGOALS (Method.insert_tac facts THEN'
+      REPEAT_ALL_NEW (resolve_tac (class_trivs @ class_intros @ axclass_intros)))
+    THEN Tactic.distinct_subgoals_tac) st
   end;
 
 fun default_intro_classes_tac [] = intro_classes_tac []
-  | default_intro_classes_tac _ = Tactical.no_tac;    (*no error message!*)
+  | default_intro_classes_tac _ = no_tac;
 
 fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
