@@ -472,12 +472,12 @@ subsubsection {* Total order @{text "<="} on @{typ int} *}
 
 interpretation int: dpo ["op <= :: [int, int] => bool"]
   where "(dpo.less (op <=) (x::int) y) = (x < y)"
-  txt {* We give interpretation for less, but not is\_inf and is\_sub. *}
+  txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op <= :: [int, int] => bool)"
     by unfold_locales auto
   then interpret int: dpo ["op <= :: [int, int] => bool"] .
-    txt {* Gives interpreted version of less\_def (without condition). *}
+    txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "(dpo.less (op <=) (x::int) y) = (x < y)"
     by (unfold int.less_def) auto
 qed
@@ -528,12 +528,12 @@ subsubsection {* Total order @{text "<="} on @{typ nat} *}
 
 interpretation nat: dpo ["op <= :: [nat, nat] => bool"]
   where "dpo.less (op <=) (x::nat) y = (x < y)"
-  txt {* We give interpretation for less, but not is\_inf and is\_sub. *}
+  txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op <= :: [nat, nat] => bool)"
     by unfold_locales auto
   then interpret nat: dpo ["op <= :: [nat, nat] => bool"] .
-    txt {* Gives interpreted version of less\_def (without condition). *}
+    txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "dpo.less (op <=) (x::nat) y = (x < y)"
     apply (unfold nat.less_def)
     apply auto
@@ -579,12 +579,12 @@ subsubsection {* Lattice @{text "dvd"} on @{typ nat} *}
 
 interpretation nat_dvd: dpo ["op dvd :: [nat, nat] => bool"]
   where "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
-  txt {* We give interpretation for less, but not is\_inf and is\_sub. *}
+  txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op dvd :: [nat, nat] => bool)"
     by unfold_locales (auto simp: dvd_def)
   then interpret nat_dvd: dpo ["op dvd :: [nat, nat] => bool"] .
-    txt {* Gives interpreted version of less\_def (without condition). *}
+    txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
     apply (unfold nat_dvd.less_def)
     apply auto
