@@ -2107,45 +2107,48 @@ fun local_activate_facts_elemss x = gen_activate_facts_elemss
       add_local_equation
       x;
 
-fun read_termT ctxt (t, T) =
-  Syntax.parse_term ctxt t |> TypeInfer.constrain (TypeInfer.paramify_vars T);
-
-fun read_instantiations ctxt parms (insts, eqns) =
+fun prep_instantiations parse_term parse_prop ctxt parms (insts, eqns) =
   let
-    val thy = ProofContext.theory_of ctxt;
+    (* parameters *)
+    val (parm_names, parm_types) = parms |> split_list
+      ||> map (TypeInfer.paramify_vars o Logic.varifyT);
+    val type_parms = fold Term.add_tvarsT parm_types [] |> map TVar;
+    val type_parm_names = fold Term.add_tfreesT (map snd parms) [] |> map fst;
 
     (* parameter instantiations *)
-    val parms' = map (apsnd Logic.varifyT) parms;
     val d = length parms - length insts;
     val insts =
       if d < 0 then error "More arguments than parameters in instantiation."
       else insts @ replicate d NONE;
+    val (given_ps, given_insts) =
+      ((parm_names ~~ parm_types) ~~ insts) |> map_filter
+          (fn (_, NONE) => NONE
+            | ((n, T), SOME inst) => SOME ((n, T), inst))
+        |> split_list;
+    val (given_parm_names, given_parm_types) = given_ps |> split_list;
 
-    val given = (parms' ~~ insts) |> map_filter
-      (fn (_, NONE) => NONE
-        | ((x, T), SOME inst) => SOME (x, (inst, T)));
-    val (given_ps, given_insts) = split_list given;
+    (* prepare insts / eqns *)
+    val given_insts' = map (parse_term ctxt) given_insts;
+    val eqns' = map (parse_prop ctxt) eqns;
 
-    (* read given insts / eqns *)
-    val all_vs = (map (read_termT ctxt) given_insts @ map (Syntax.read_prop ctxt) eqns)
-      |> Syntax.check_terms ctxt;
-    val ctxt' = ctxt |> fold Variable.declare_term all_vs;
-    val (vs, eqns') = all_vs |> chop (length given_insts);
+    (* infer types *)
+    val res = Syntax.check_terms ctxt
+      (map Logic.mk_type type_parms @
+       map (uncurry TypeInfer.constrain) (given_parm_types ~~ given_insts') @
+       eqns');
+    val ctxt' = ctxt |> fold Variable.auto_fixes res;
 
-    (* infer parameter types *)
-    val tyenv = fold (fn ((_, T), t) => Sign.typ_match thy (T, Term.fastype_of t))
-      (given_insts ~~ vs) Vartab.empty;
-    val looseTs = fold (Term.add_tvarsT o Envir.typ_subst_TVars tyenv o #2) parms' [];
-    val (fixedTs, _) = Variable.invent_types (map #2 looseTs) ctxt';
-    val tyenv' =
-      fold (fn ((xi, S), v) => Vartab.update_new (xi, (S, TFree v))) (looseTs ~~ fixedTs) tyenv;
+    (* results *)
+    val (type_parms'', res') = chop (length type_parms) res;
+    val (given_insts'', eqns'') = chop (length given_insts) res';
+    val instT = Symtab.make (type_parm_names ~~ map Logic.dest_type type_parms'');
+    val inst = Symtab.make (given_parm_names ~~ given_insts'');
+    val standard = Variable.export_morphism ctxt' ctxt;
+  in ((instT, inst), eqns'') end;
 
-    (*results*)
-    val instT = Vartab.fold (fn ((a, 0), (S, T)) =>
-      if T = TFree (a, S) then I else Symtab.update (a, T)) tyenv' Symtab.empty;
-    val inst = Symtab.make (given_ps ~~ vs);
-  in ((instT, inst), eqns') end;
 
+val read_instantiations = prep_instantiations Syntax.parse_term Syntax.parse_prop;
+val cert_instantiations = prep_instantiations Syntax.check_term Syntax.check_prop;
 
 fun gen_prep_registration mk_ctxt test_reg activate
     prep_attr prep_expr prep_insts
@@ -2227,11 +2230,19 @@ fun gen_prep_local_registration mk_ctxt = gen_prep_registration I
 
 val prep_global_registration = gen_prep_global_registration
   Attrib.intern_src intern_expr read_instantiations;
+(* FIXME: NEW
+val prep_global_registration_i = gen_prep_global_registration
+  (K I) (K I) cert_instantiations;
+*)
 val prep_global_registration_i = gen_prep_global_registration
   (K I) (K I) ((K o K) I);
 
 val prep_local_registration = gen_prep_local_registration
   Attrib.intern_src intern_expr read_instantiations;
+(* FIXME: NEW
+val prep_local_registration_i = gen_prep_local_registration
+  (K I) (K I) cert_instantiations;
+*)
 val prep_local_registration_i = gen_prep_local_registration
   (K I) (K I) ((K o K) I);
 
