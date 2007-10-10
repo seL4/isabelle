@@ -187,6 +187,7 @@
       <OPERATOR>moreover</OPERATOR>
       <KEYWORD4>morphisms</KEYWORD4>
       <OPERATOR>next</OPERATOR>
+      <OPERATOR>no_notation</OPERATOR>
       <OPERATOR>no_syntax</OPERATOR>
       <OPERATOR>no_translations</OPERATOR>
       <OPERATOR>nominal_datatype</OPERATOR>
