@@ -98,8 +98,12 @@ fun update_syntax add thy raw_decls
     [] => syntax
   | decls =>
       let
-        val mixfixes' = rev (map_filter (prep_mixfix (add, mode)) decls) @ mixfixes;
-        val structs' = structs @ map_filter prep_struct decls;
+        val new_mixfixes = map_filter (prep_mixfix (add, mode)) decls;
+        val new_structs = map_filter prep_struct decls;
+        val mixfixes' = rev new_mixfixes @ mixfixes;
+        val structs' =
+          if add then structs @ new_structs
+          else subtract (op =) new_structs structs;
         val fixes' = fold (fn ((x, true), _) => cons x | _ => I) mixfixes' [];
       in build_syntax thy mode mixfixes' (structs', fixes') end);
 
