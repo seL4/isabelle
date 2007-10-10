@@ -28,7 +28,7 @@ sig
     | CombApp of combterm * combterm
   datatype literal = Literal of polarity * combterm
   val strip_comb: combterm -> combterm * combterm list
-  val literals_of_term: theory -> term -> literal list * (ResClause.typ_var * sort) list
+  val literals_of_term: theory -> term -> literal list * typ list
   val tptp_write_file: theory -> bool -> thm list -> string ->
     (thm * (axiom_name * clause_id)) list * ResClause.classrelClause list *
       ResClause.arityClause list -> string list -> axiom_name list
@@ -97,7 +97,7 @@ datatype clause =
                     th: thm,
                     kind: RC.kind,
                     literals: literal list,
-                    ctypes_sorts: (RC.typ_var * Term.sort) list};
+                    ctypes_sorts: typ list};
 
 
 (*********************************************************************)
@@ -120,9 +120,9 @@ fun type_of (Type (a, Ts)) =
       let val (folTypes,ts) = types_of Ts
       in  (RC.Comp(RC.make_fixed_type_const a, folTypes), ts)  end
   | type_of (tp as (TFree(a,s))) =
-      (RC.AtomF (RC.make_fixed_type_var a), [RC.mk_typ_var_sort tp])
+      (RC.AtomF (RC.make_fixed_type_var a), [tp])
   | type_of (tp as (TVar(v,s))) =
-      (RC.AtomV (RC.make_schematic_type_var v), [RC.mk_typ_var_sort tp])
+      (RC.AtomV (RC.make_schematic_type_var v), [tp])
 and types_of Ts =
       let val (folTyps,ts) = ListPair.unzip (map type_of Ts)
       in  (folTyps, RC.union_all ts)  end;

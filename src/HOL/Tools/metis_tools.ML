@@ -101,8 +101,8 @@ struct
   fun metis_of_typeLit pos (ResClause.LTVar (s,x))  = metis_lit pos s [Metis.Term.Var x]
     | metis_of_typeLit pos (ResClause.LTFree (s,x)) = metis_lit pos s [Metis.Term.Fn(x,[])];
 
-  fun default_sort ctxt (ResClause.FOLTVar _, _) = false
-    | default_sort ctxt (ResClause.FOLTFree x, ss) = (ss = Option.getOpt (Variable.def_sort ctxt (x,~1), []));
+  fun default_sort ctxt (TVar _) = false
+    | default_sort ctxt (TFree(x,s)) = (s = Option.getOpt (Variable.def_sort ctxt (x,~1), []));
 
   fun metis_of_tfree tf = 
     Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_typeLit true tf));
@@ -503,7 +503,7 @@ fun inst_excluded_middle th thy i_atm =
 
   (*Extract TFree constraints from context to include as conjecture clauses*)
   fun init_tfrees ctxt =
-    let fun add ((a,i),s) ys = if i = ~1 then (ResClause.FOLTFree a,s) :: ys else ys
+    let fun add ((a,i),s) Ts = if i = ~1 then TFree(a,s) :: Ts else Ts
     in  ResClause.add_typs (Vartab.fold add (#2 (Variable.constraints_of ctxt)) []) end;
 
   (*transform isabelle clause to metis clause *)

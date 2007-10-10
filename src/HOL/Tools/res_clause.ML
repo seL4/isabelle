@@ -33,18 +33,16 @@ sig
   val make_type_class : string -> string
   datatype kind = Axiom | Conjecture
   type axiom_name = string
-  datatype typ_var = FOLTVar of indexname | FOLTFree of string
   datatype fol_type =
       AtomV of string
     | AtomF of string
     | Comp of string * fol_type list
   val string_of_fol_type : fol_type -> string
   datatype type_literal = LTVar of string * string | LTFree of string * string
-  val mk_typ_var_sort: typ -> typ_var * sort
   exception CLAUSE of string * term
   val isMeta : string -> bool
-  val add_typs : (typ_var * string list) list -> type_literal list
-  val get_tvar_strs: (typ_var * sort) list -> string list
+  val add_typs : typ list -> type_literal list
+  val get_tvar_strs: typ list -> string list
   datatype arLit =
       TConsLit of class * string * string list
     | TVarLit of class * string
@@ -54,7 +52,7 @@ sig
    {axiom_name: axiom_name, subclass: class, superclass: class}
   val make_classrel_clauses: theory -> class list -> class list -> classrelClause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arityClause list
-  val add_type_sort_preds: (typ_var * string list) * int Symtab.table -> int Symtab.table
+  val add_type_sort_preds: typ * int Symtab.table -> int Symtab.table
   val add_classrelClause_preds : classrelClause * int Symtab.table -> int Symtab.table
   val class_of_arityLit: arLit -> class
   val add_arityClause_preds: arityClause * int Symtab.table -> int Symtab.table
@@ -234,8 +232,6 @@ type axiom_name = string;
 
 (**** Isabelle FOL clauses ****)
 
-datatype typ_var = FOLTVar of indexname | FOLTFree of string;
-
 (*FIXME: give the constructors more sensible names*)
 datatype fol_type = AtomV of string
                   | AtomF of string
@@ -249,12 +245,10 @@ fun string_of_fol_type (AtomV x) = x
 (*First string is the type class; the second is a TVar or TFfree*)
 datatype type_literal = LTVar of string * string | LTFree of string * string;
 
-fun mk_typ_var_sort (TFree(a,s)) = (FOLTFree a,s)
-  | mk_typ_var_sort (TVar(v,s)) = (FOLTVar v,s);
-
-
 exception CLAUSE of string * term;
 
+fun atomic_type (TFree (a,_)) = AtomF(make_fixed_type_var a)
+  | atomic_type (TVar (v,_))  = AtomV(make_schematic_type_var v);
 
 (*Flatten a type to a fol_type while accumulating sort constraints on the TFrees and
   TVars it contains.*)
@@ -262,8 +256,7 @@ fun type_of (Type (a, Ts)) =
       let val (folTyps, ts) = types_of Ts
           val t = make_fixed_type_const a
       in (Comp(t,folTyps), ts) end
-  | type_of (TFree (a,s)) = (AtomF(make_fixed_type_var a), [(FOLTFree a, s)])
-  | type_of (TVar (v, s)) = (AtomV(make_schematic_type_var v), [(FOLTVar v, s)])
+  | type_of T = (atomic_type T, [T])
 and types_of Ts =
       let val (folTyps,ts) = ListPair.unzip (map type_of Ts)
       in (folTyps, union_all ts) end;
@@ -274,28 +267,30 @@ and types_of Ts =
 val isMeta = String.isPrefix "METAHYP1_"
 
 (*Make literals for sorted type variables*)
-fun sorts_on_typs (_, [])   = []
-  | sorts_on_typs (v,  s::ss) =
-      let val sorts = sorts_on_typs (v, ss)
+fun sorts_on_typs_aux (_, [])   = []
+  | sorts_on_typs_aux ((x,i),  s::ss) =
+      let val sorts = sorts_on_typs_aux ((x,i), ss)
       in
           if s = "HOL.type" then sorts
-          else case v of
-              FOLTVar indx => LTVar(make_type_class s, make_schematic_type_var indx) :: sorts
-            | FOLTFree x => LTFree(make_type_class s, make_fixed_type_var x) :: sorts
+          else if i = ~1 then LTFree(make_type_class s, make_fixed_type_var x) :: sorts
+          else LTVar(make_type_class s, make_schematic_type_var (x,i)) :: sorts
       end;
+
+fun sorts_on_typs (TFree (a,s)) = sorts_on_typs_aux ((a,~1),s)
+  | sorts_on_typs (TVar (v,s))  = sorts_on_typs_aux (v,s);
 
 fun pred_of_sort (LTVar (s,ty)) = (s,1)
   | pred_of_sort (LTFree (s,ty)) = (s,1)
 
 (*Given a list of sorted type variables, return a list of type literals.*)
-fun add_typs tss = foldl (op union) [] (map sorts_on_typs tss);
+fun add_typs Ts = foldl (op union) [] (map sorts_on_typs Ts);
 
 (** make axiom and conjecture clauses. **)
 
 fun get_tvar_strs [] = []
-  | get_tvar_strs ((FOLTVar indx,s)::tss) =
-      insert (op =) (make_schematic_type_var indx) (get_tvar_strs tss)
-  | get_tvar_strs((FOLTFree x,s)::tss) = get_tvar_strs tss
+  | get_tvar_strs ((TVar (indx,s))::Ts) =
+      insert (op =) (make_schematic_type_var indx) (get_tvar_strs Ts)
+  | get_tvar_strs((TFree _)::Ts) = get_tvar_strs Ts
 
 
 
@@ -405,10 +400,8 @@ fun make_arity_clauses thy tycons classes =
 
 fun update_many (tab, keypairs) = foldl (uncurry Symtab.update) tab keypairs;
 
-fun add_type_sort_preds ((FOLTVar indx,s), preds) =
-      update_many (preds, map pred_of_sort (sorts_on_typs (FOLTVar indx, s)))
-  | add_type_sort_preds ((FOLTFree x,s), preds) =
-      update_many (preds, map pred_of_sort (sorts_on_typs (FOLTFree x, s)));
+fun add_type_sort_preds (T, preds) =
+      update_many (preds, map pred_of_sort (sorts_on_typs T));
 
 fun add_classrelClause_preds (ClassrelClause {subclass,superclass,...}, preds) =
   Symtab.update (subclass,1) (Symtab.update (superclass,1) preds);
@@ -429,8 +422,8 @@ fun add_foltype_funcs (AtomV _, funcs) = funcs
       foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
 
 (*TFrees are recorded as constants*)
-fun add_type_sort_funcs ((FOLTVar _, _), funcs) = funcs
-  | add_type_sort_funcs ((FOLTFree a, _), funcs) =
+fun add_type_sort_funcs (TVar _, funcs) = funcs
+  | add_type_sort_funcs (TFree (a, _), funcs) =
       Symtab.update (make_fixed_type_var a, 0) funcs
 
 fun add_arityClause_funcs (ArityClause {conclLit,...}, funcs) =
