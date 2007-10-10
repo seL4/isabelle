@@ -139,9 +139,8 @@ sig
   val add_cases: bool -> (string * RuleCases.T option) list -> Proof.context -> Proof.context
   val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context
   val get_case: Proof.context -> string -> string option list -> RuleCases.T
-  val add_notation: Syntax.mode -> (term * mixfix) list ->
-    Proof.context -> Proof.context
-  val target_notation: Syntax.mode -> (term * mixfix) list -> morphism ->
+  val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
+  val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> Markup.property list ->
@@ -991,11 +990,6 @@ end;
 
 (* authentic constants *)
 
-fun const_syntax ctxt (Free (x, T), mx) = SOME (true, (x, T, mx))
-  | const_syntax ctxt (Const (c, _), mx) =
-      Option.map (pair false) (try (Consts.syntax (consts_of ctxt)) (c, mx))
-  | const_syntax _ _ = NONE;
-
 fun context_const_ast_tr ctxt [Syntax.Variable c] =
       let
         val consts = consts_of ctxt;
@@ -1013,13 +1007,24 @@ val _ = Context.add_setup
 
 (* notation *)
 
-fun add_notation mode args ctxt =
-  ctxt |> map_syntax
-    (LocalSyntax.add_modesyntax (theory_of ctxt) mode (map_filter (const_syntax ctxt) args));
+local
 
-fun target_notation mode args phi =
+fun const_syntax ctxt (Free (x, T), mx) = SOME (true, (x, T, mx))
+  | const_syntax ctxt (Const (c, _), mx) =
+      Option.map (pair false) (try (Consts.syntax (consts_of ctxt)) (c, mx))
+  | const_syntax _ _ = NONE;
+
+in
+
+fun notation add mode args ctxt =
+  ctxt |> map_syntax
+    (LocalSyntax.update_modesyntax (theory_of ctxt) add mode (map_filter (const_syntax ctxt) args));
+
+fun target_notation add mode args phi =
   let val args' = filter (fn (t, _) => Term.equiv_types (t, Morphism.term phi t)) args;
-  in Context.mapping (Sign.add_notation mode args') (add_notation mode args') end;
+  in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
+
+end;
 
 
 (* local constants *)

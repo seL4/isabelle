@@ -42,8 +42,8 @@ sig
     local_theory -> local_theory
   val abbreviation_cmd: Syntax.mode -> (string * string option * mixfix) option * string ->
     local_theory -> local_theory
-  val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val notation_cmd: Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
+  val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list
     -> local_theory -> (bstring * thm list) list * local_theory
   val theorems_cmd: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
@@ -221,8 +221,8 @@ val abbreviation_cmd = gen_abbrev read_free_specification;
 
 (* notation *)
 
-fun gen_notation prep_const mode args lthy =
-  lthy |> LocalTheory.notation mode (map (apfst (prep_const lthy)) args);
+fun gen_notation prep_const add mode args lthy =
+  lthy |> LocalTheory.notation add mode (map (apfst (prep_const lthy)) args);
 
 val notation = gen_notation (K I);
 val notation_cmd = gen_notation ProofContext.read_const;

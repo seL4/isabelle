@@ -175,7 +175,7 @@ fun target_abbrev prmode ((c, mx), rhs) phi =
       (Sign.add_abbrev Syntax.internalM [] arg') (ProofContext.add_abbrev Syntax.internalM [] arg')
     #-> (fn (lhs, _) =>
       Term.equiv_types (rhs, rhs') ?
-        Morphism.form (ProofContext.target_notation prmode [(lhs, mx)])))
+        Morphism.form (ProofContext.target_notation true prmode [(lhs, mx)])))
   end;
 
 fun internal_abbrev loc prmode ((c, mx), t) lthy = lthy
@@ -279,10 +279,11 @@ fun abbrev loc prmode ((raw_c, mx), raw_t) lthy =
     lthy
     |> LocalTheory.theory_result
         (Sign.add_abbrev (#1 prmode) (ContextPosition.properties_of lthy) (c, u'))
-    |-> (fn (lhs as Const (full_c, _), rhs) => LocalTheory.theory (Sign.add_notation prmode [(lhs, mx3)])
-    #> is_loc ? internal_abbrev loc prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
-    #> add_abbrev_in_class some_class ((c, Term.list_comb (Const (full_c, U), xs)), mx1)
-    #> local_abbrev (c, rhs))
+    |-> (fn (lhs as Const (full_c, _), rhs) =>
+          LocalTheory.theory (Sign.notation true prmode [(lhs, mx3)])
+          #> is_loc ? internal_abbrev loc prmode ((c, mx2), Term.list_comb (Const (full_c, U), xs))
+          #> add_abbrev_in_class some_class ((c, Term.list_comb (Const (full_c, U), xs)), mx1)
+          #> local_abbrev (c, rhs))
   end;
 
 

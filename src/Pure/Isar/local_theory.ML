@@ -36,7 +36,7 @@ sig
   val declaration: declaration -> local_theory -> local_theory
   val note: string -> (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * local_theory
-  val notation: Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
+  val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
   val target_naming: local_theory -> NameSpace.naming
   val target_name: local_theory -> bstring -> string
@@ -167,9 +167,9 @@ fun target_morphism lthy =
   ProofContext.export_morphism lthy (target_of lthy) $>
   Morphism.thm_morphism Goal.norm_result;
 
-fun notation mode raw_args lthy =
+fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
-  in term_syntax (ProofContext.target_notation mode args) lthy end;
+  in term_syntax (ProofContext.target_notation add mode args) lthy end;
 
 val target_name = NameSpace.full o target_naming;
 

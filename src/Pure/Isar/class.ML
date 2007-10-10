@@ -800,7 +800,7 @@ fun add_abbrev_in_class class prmode ((c, rhs), syn) thy =
     val ty' = fastype_of rhs';
   in
     thy
-    |> Sign.add_notation prmode [(Const (c', ty'), syn)]
+    |> Sign.notation true prmode [(Const (c', ty'), syn)]
     |> register_abbrev class (c', ty')
     |> pair c'
   end;

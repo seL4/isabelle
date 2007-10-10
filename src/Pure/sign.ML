@@ -158,7 +158,7 @@ sig
   val read_prop: theory -> string -> term
   val add_consts_authentic: Markup.property list ->
     (bstring * typ * mixfix) list -> theory -> theory
-  val add_notation: Syntax.mode -> (term * mixfix) list -> theory -> theory
+  val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_abbrev: string -> Markup.property list ->
     bstring * term -> theory -> (term * term) * theory
   include SIGN_THEORY
@@ -665,8 +665,8 @@ val del_modesyntax_i = gen_syntax Syntax.remove_const_gram (K I);
 fun const_syntax thy (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)
   | const_syntax _ _ = NONE;
 
-fun add_notation mode args thy =
-  thy |> add_modesyntax_i mode (map_filter (const_syntax thy) args);
+fun notation add mode args thy = thy
+  |> (if add then add_modesyntax_i else del_modesyntax_i) mode (map_filter (const_syntax thy) args);
 
 
 (* add constants *)
