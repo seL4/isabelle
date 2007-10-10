@@ -1982,36 +1982,6 @@ structure Idtab =
   TableFun(type key = string * term list
     val ord = prod_ord string_ord (list_ord Term.fast_term_ord));
 
-(* abstraction of equations *)
-
-(* maps f(t1,...,tn)  to  (f(t1,...,tk), [tk+1,...,tn]) where tk is not a variable and all ti with i>k are *)
-fun strip_vars ct =
-  let
-    fun stripc (p as (ct, cts)) =
-      let val (ct1, ct2) = Thm.dest_comb ct
-      in
-	case Thm.term_of ct2 of
-	   Var _ => stripc (ct1, ct2 :: cts)
-	 | Free _ => stripc (ct1, ct2 :: cts)
-	 | _ => raise CTERM ("", [])
-      end handle CTERM _ => p
-  in stripc (ct, []) end;
-
-fun abs_eqn th =
-  let
-    fun contract_lhs th =
-      Thm.transitive (Thm.symmetric (Drule.beta_eta_conversion
-	(fst (Thm.dest_equals (cprop_of th))))) th;
-    fun abstract cx th = Thm.abstract_rule
-	(case Thm.term_of cx of Var ((x, _), _) => x | Free (x, _) => x | _ => "x") cx th
-      handle THM _ => raise THM ("Malformed definitional equation", 0, [th]);
-  in
-    th |> contract_lhs
-     |> `(snd o strip_vars o fst o Thm.dest_equals o cprop_of)
-     |-> fold_rev abstract
-     |> contract_lhs
-  end;
-
 fun gen_activate_facts_elemss mk_ctxt get_reg note attrib std put_reg add_wit add_eqn
         attn all_elemss new_elemss propss thmss thy_ctxt =
   let
@@ -2055,7 +2025,7 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note attrib std put_reg add_wit ad
       |> fold (fn (id, thms) => fold (add_wit id) thms) (map fst propss ~~ thmss)
       (* add equations *)
       |> fold (fn (id, thms) => fold (add_eqn id) thms) (map fst eq_props ~~
-          (map o map) (abs_eqn o LocalDefs.meta_rewrite_rule ctxt o
+          (map o map) (Drule.abs_def o LocalDefs.meta_rewrite_rule ctxt o
             Element.conclude_witness) eq_thms);
 
     val prems = flat (map_filter
@@ -2148,7 +2118,7 @@ fun prep_instantiations parse_term parse_prop ctxt parms (insts, eqns) =
 
 
 val read_instantiations = prep_instantiations Syntax.parse_term Syntax.parse_prop;
-val cert_instantiations = prep_instantiations Syntax.check_term Syntax.check_prop;
+val check_instantiations = prep_instantiations (K I) (K I);
 
 fun gen_prep_registration mk_ctxt test_reg activate
     prep_attr prep_expr prep_insts
@@ -2232,7 +2202,7 @@ val prep_global_registration = gen_prep_global_registration
   Attrib.intern_src intern_expr read_instantiations;
 (* FIXME: NEW
 val prep_global_registration_i = gen_prep_global_registration
-  (K I) (K I) cert_instantiations;
+  (K I) (K I) check_instantiations;
 *)
 val prep_global_registration_i = gen_prep_global_registration
   (K I) (K I) ((K o K) I);
@@ -2241,7 +2211,7 @@ val prep_local_registration = gen_prep_local_registration
   Attrib.intern_src intern_expr read_instantiations;
 (* FIXME: NEW
 val prep_local_registration_i = gen_prep_local_registration
-  (K I) (K I) cert_instantiations;
+  (K I) (K I) check_instantiations;
 *)
 val prep_local_registration_i = gen_prep_local_registration
   (K I) (K I) ((K o K) I);
