@@ -244,13 +244,13 @@ val _ =
 
 val _ =
   OuterSyntax.command "notation" "add notation for constants / fixed variables" K.thy_decl
-    (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
     >> (fn ((loc, mode), args) =>
         Toplevel.local_theory loc (Specification.notation_cmd true mode args)));
 
 val _ =
   OuterSyntax.command "no_notation" "delete notation for constants / fixed variables" K.thy_decl
-    (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
     >> (fn ((loc, mode), args) =>
         Toplevel.local_theory loc (Specification.notation_cmd false mode args)));
 
