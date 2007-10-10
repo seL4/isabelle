@@ -17,7 +17,8 @@ sig
   val add_syntax: theory -> (bool * (string * typ * mixfix)) list -> T -> T
   val set_mode: Syntax.mode -> T -> T
   val restore_mode: T -> T -> T
-  val add_modesyntax: theory -> Syntax.mode -> (bool * (string * typ * mixfix)) list -> T -> T
+  val update_modesyntax: theory -> bool -> Syntax.mode ->
+    (bool * (string * typ * mixfix)) list -> T -> T
   val extern_term: T -> term -> term
 end;
 
@@ -27,8 +28,8 @@ struct
 (* datatype T *)
 
 type local_mixfix =
-  (string * bool) *                           (*name, fixed?*)
-  (Syntax.mode * (string * typ * mixfix));    (*mode, declaration*)
+  (string * bool) *                                    (*name, fixed?*)
+  ((bool * Syntax.mode) * (string * typ * mixfix));    (*add?, mode, declaration*)
 
 datatype T = Syntax of
  {thy_syntax: Syntax.syntax,
@@ -58,13 +59,14 @@ fun build_syntax thy mode mixfixes (idents as (structs, _)) =
   let
     val thy_syntax = Sign.syn_of thy;
     val is_logtype = Sign.is_logtype thy;
+    fun const_gram ((true, m), decls) = Syntax.extend_const_gram is_logtype m decls
+      | const_gram ((false, m), decls) = Syntax.remove_const_gram is_logtype m decls;
     val (atrs, trs, trs', atrs') = Syntax.struct_trfuns structs;
     val local_syntax = thy_syntax
       |> Syntax.extend_trfuns
           (map Syntax.mk_trfun atrs, map Syntax.mk_trfun trs,
            map Syntax.mk_trfun trs', map Syntax.mk_trfun atrs')
-      |> fold (uncurry (Syntax.extend_const_gram is_logtype))
-          (AList.coalesce (op =) (rev (map snd mixfixes)));
+      |> fold const_gram (AList.coalesce (op =) (rev (map snd mixfixes)));
   in make_syntax (thy_syntax, local_syntax, mode, mixfixes, idents) end;
 
 fun init thy = build_syntax thy Syntax.default_mode [] ([], []);
@@ -78,29 +80,30 @@ fun rebuild thy (syntax as Syntax {mode, mixfixes, idents, ...}) =
 
 local
 
-fun mixfix_nosyn (_, (_, _, mx)) = mx = NoSyn;
-fun mixfix_struct (_, (_, _, mx)) = mx = Structure;
-
-fun add_mixfix mode (fixed, (x, T, mx)) =
-  let val c = if fixed then Syntax.fixedN ^ x else x
-  in cons ((x, fixed), (mode, (c, T, mx))) end;
+fun prep_mixfix _ (_, (_, _, Structure)) = NONE
+  | prep_mixfix mode (fixed, (x, T, mx)) =
+      let val c = if fixed then Syntax.fixedN ^ x else x
+      in SOME ((x, fixed), (mode, (c, T, mx))) end;
 
 fun prep_struct (fixed, (c, _, Structure)) =
       if fixed then SOME c
-      else error ("Bad mixfix declaration for const: " ^ quote c)
+      else error ("Bad mixfix declaration for constant: " ^ quote c)
   | prep_struct _ = NONE;
 
 in
 
-fun add_syntax thy raw_decls (syntax as (Syntax {mode, mixfixes, idents = (structs, _), ...})) =
-  (case filter_out mixfix_nosyn raw_decls of
+fun update_syntax add thy raw_decls
+    (syntax as (Syntax {mode, mixfixes, idents = (structs, _), ...})) =
+  (case filter_out (fn (_, (_, _, mx)) => mx = NoSyn) raw_decls of
     [] => syntax
   | decls =>
       let
-        val mixfixes' = mixfixes |> fold (add_mixfix mode) (filter_out mixfix_struct decls);
-        val fixes' = fold (fn ((x, true), _) => cons x | _ => I) mixfixes' [];
+        val mixfixes' = rev (map_filter (prep_mixfix (add, mode)) decls) @ mixfixes;
         val structs' = structs @ map_filter prep_struct decls;
+        val fixes' = fold (fn ((x, true), _) => cons x | _ => I) mixfixes' [];
       in build_syntax thy mode mixfixes' (structs', fixes') end);
+
+val add_syntax = update_syntax true;
 
 end;
 
@@ -112,8 +115,8 @@ fun set_mode mode = map_syntax (fn (thy_syntax, local_syntax, _, mixfixes, ident
 
 fun restore_mode (Syntax {mode, ...}) = set_mode mode;
 
-fun add_modesyntax thy mode args syntax =
-  syntax |> set_mode mode |> add_syntax thy args |> restore_mode syntax;
+fun update_modesyntax thy add mode args syntax =
+  syntax |> set_mode mode |> update_syntax add thy args |> restore_mode syntax;
 
 
 (* extern_term *)
