@@ -10,7 +10,7 @@ infix aconvc;
 signature THM =
 sig
   include THM
-  val aconvc : cterm * cterm -> bool
+  val aconvc: cterm * cterm -> bool
   val add_cterm_frees: cterm -> cterm list -> cterm list
   val mk_binop: cterm -> cterm -> cterm -> cterm
   val dest_binop: cterm -> cterm * cterm
