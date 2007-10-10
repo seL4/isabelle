@@ -602,20 +602,39 @@ fun eta_long_conversion ct = transitive (beta_eta_conversion ct)
 fun eta_contraction_rule th =
   equal_elim (eta_conversion (cprop_of th)) th;
 
-val abs_def =
+
+(* abs_def *)
+
+(*
+   f ?x1 ... ?xn == u
+  --------------------
+   f == %x1 ... xn. u
+*)
+
+local
+
+fun contract_lhs th =
+  Thm.transitive (Thm.symmetric (beta_eta_conversion
+    (fst (Thm.dest_equals (cprop_of th))))) th;
+
+fun var_args ct =
+  (case try Thm.dest_comb ct of
+    SOME (f, arg) =>
+      (case Thm.term_of arg of
+        Var ((x, _), _) => update (eq_snd (op aconvc)) (x, arg) (var_args f)
+      | _ => [])
+  | NONE => []);
+
+in
+
+fun abs_def th =
   let
-    fun contract_lhs th =
-      Thm.transitive (Thm.symmetric (beta_eta_conversion
-        (fst (Thm.dest_equals (cprop_of th))))) th;
-    fun abstract cx th = Thm.abstract_rule
-        (case Thm.term_of cx of Var ((x, _), _) => x | Free (x, _) => x | _ => "x") cx th
-      handle THM _ => raise THM ("Malformed definitional equation", 0, [th]);
-  in
-    contract_lhs
-    #> `(snd o strip_comb o fst o Thm.dest_equals o cprop_of)
-    #-> fold_rev abstract
-    #> contract_lhs
-  end;
+    val th' = contract_lhs th;
+    val args = var_args (Thm.lhs_of th');
+  in contract_lhs (fold (uncurry Thm.abstract_rule) args th') end;
+
+end;
+
 
 
 (*** Some useful meta-theorems ***)
