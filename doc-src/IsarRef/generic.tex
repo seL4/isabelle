@@ -7,7 +7,7 @@
 \indexisarcmd{axiomatization}
 \indexisarcmd{definition}\indexisaratt{defn}
 \indexisarcmd{abbreviation}\indexisarcmd{print-abbrevs}
-\indexisarcmd{notation}
+\indexisarcmd{notation}\indexisarcmd{no-notation}
 \begin{matharray}{rcll}
   \isarcmd{axiomatization} & : & \isarkeep{local{\dsh}theory} & (axiomatic!)\\
   \isarcmd{definition} & : & \isarkeep{local{\dsh}theory} \\
@@ -15,6 +15,7 @@
   \isarcmd{abbreviation} & : & \isarkeep{local{\dsh}theory} \\
   \isarcmd{print_abbrevs}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{notation} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{no_notation} & : & \isarkeep{local{\dsh}theory} \\
 \end{matharray}
 
 These specification mechanisms provide a slightly more abstract view
@@ -30,7 +31,7 @@ available, and result names need not be given.
   ;
   'abbreviation' target? mode? (decl 'where')? prop
   ;
-  'notation' target? mode? (nameref mixfix + 'and')
+  ('notation' | 'no\_notation') target? mode? (nameref mixfix + 'and')
   ;
 
   fixes: ((name ('::' type)? mixfix? | vars) + 'and')
@@ -92,9 +93,13 @@ available, and result names need not be given.
   (\S\ref{sec:syn-trans}).  Type declaration and internal syntactic
   representation of the given entity is retrieved from the context.
   
+\item $\isarkeyword{no_notation}$ is similar to
+$\isarkeyword{notation}$, but removes the specified syntax annotation
+from the present context.
+
 \end{descr}
 
-All of these specifications support local theory targets (cf.\ 
+All of these specifications support local theory targets (cf.\
 \S\ref{sec:target}).
 
 
