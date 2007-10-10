@@ -243,10 +243,16 @@ val _ =
         Toplevel.local_theory loc (Specification.abbreviation_cmd mode args)));
 
 val _ =
-  OuterSyntax.command "notation" "variable/constant syntax" K.thy_decl
+  OuterSyntax.command "notation" "add notation for constants / fixed variables" K.thy_decl
     (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn ((loc, mode), args) =>
-        Toplevel.local_theory loc (Specification.notation_cmd mode args)));
+        Toplevel.local_theory loc (Specification.notation_cmd true mode args)));
+
+val _ =
+  OuterSyntax.command "no_notation" "delete notation for constants / fixed variables" K.thy_decl
+    (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- P.mixfix)
+    >> (fn ((loc, mode), args) =>
+        Toplevel.local_theory loc (Specification.notation_cmd false mode args)));
 
 
 (* constant specifications *)

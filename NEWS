@@ -371,8 +371,10 @@ in the same context.  INCOMPATIBILITY.
 
 * Isar/locales: 'notation' provides a robust interface to the 'syntax'
 primitive that also works in a locale context (both for constants and
-fixed variables).  Type declaration and internal syntactic
-representation of given constants retrieved from the context.
+fixed variables). Type declaration and internal syntactic representation
+of given constants retrieved from the context. Likewise, the
+'no_notation' command allows to remove given syntax annotations from the
+current context.
 
 * Isar/locales: new derived specification elements 'axiomatization',
 'definition', 'abbreviation', which support type-inference, admit
