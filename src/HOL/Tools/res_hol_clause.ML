@@ -2,10 +2,6 @@
    Author: Jia Meng, NICTA
 
 FOL clauses translated from HOL formulae.
-
-The combinator code needs to be deleted after the translation paper has been published.
-It cannot be used with proof reconstruction because combinators are not introduced by proof.
-The Turner combinators (B', C', S') yield no improvement and should be deleted.
 *)
 
 signature RES_HOL_CLAUSE =
@@ -49,9 +45,6 @@ val comb_K = thm "ATP_Linkup.COMBK_def";
 val comb_B = thm "ATP_Linkup.COMBB_def";
 val comb_C = thm "ATP_Linkup.COMBC_def";
 val comb_S = thm "ATP_Linkup.COMBS_def";
-val comb_B' = thm "ATP_Linkup.COMBB'_def";
-val comb_C' = thm "ATP_Linkup.COMBC'_def";
-val comb_S' = thm "ATP_Linkup.COMBS'_def";
 val fequal_imp_equal = thm "ATP_Linkup.fequal_imp_equal";
 val equal_imp_fequal = thm "ATP_Linkup.equal_imp_fequal";
 
@@ -387,8 +380,7 @@ fun preds_of_clauses clauses clsrel_clauses arity_clauses =
 val init_counters =
     Symtab.make [("c_COMBI", 0), ("c_COMBK", 0),
                  ("c_COMBB", 0), ("c_COMBC", 0),
-                 ("c_COMBS", 0), ("c_COMBB_e", 0),
-                 ("c_COMBC_e", 0), ("c_COMBS_e", 0)];
+                 ("c_COMBS", 0)];
 
 fun count_combterm (CombConst(c,tp,_), ct) =
      (case Symtab.lookup ct c of NONE => ct  (*no counter*)
@@ -421,15 +413,9 @@ fun get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas) =
         val S = if needed "c_COMBS"
                 then (Output.debug (fn () => "Include combinator S"); cnf_helper_thms [comb_S])
                 else []
-        val B'C' = if needed "c_COMBB_e" orelse needed "c_COMBC_e"
-                   then (Output.debug (fn () => "Include combinator B' C'"); cnf_helper_thms [comb_B', comb_C'])
-                   else []
-        val S' = if needed "c_COMBS_e"
-                 then (Output.debug (fn () => "Include combinator S'"); cnf_helper_thms [comb_S'])
-                 else []
         val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
     in
-        map #2 (make_axiom_clauses thy (other @ IK @ BC @ S @ B'C' @ S'))
+        map #2 (make_axiom_clauses thy (other @ IK @ BC @ S))
     end;
 
 (*Find the minimal arity of each function mentioned in the term. Also, note which uses

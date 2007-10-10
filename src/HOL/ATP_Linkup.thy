@@ -38,15 +38,6 @@ definition COMBC :: "('a => 'b => 'c) => 'b => 'a => 'c"
 definition COMBS :: "('a => 'b => 'c) => ('a => 'b) => 'a => 'c"
   where "COMBS P Q R == P R (Q R)"
 
-definition COMBB' :: "('a => 'c) => ('b => 'a) => ('d => 'b) => 'd => 'c"
-  where "COMBB' M P Q R == M (P (Q R))"
-
-definition COMBC' :: "('a => 'b => 'c) => ('d => 'a) => 'b => 'd => 'c"
-  where "COMBC' M P Q R == M (P R) Q"
-
-definition COMBS' :: "('a => 'b => 'c) => ('d => 'a) => ('d => 'b) => 'd => 'c"
-  where "COMBS' M P Q R == M (P R) (Q R)"
-
 definition fequal :: "'a => 'a => bool"
   where "fequal X Y == (X=Y)"
 
