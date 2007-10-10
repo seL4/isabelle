@@ -31,7 +31,7 @@ available, and result names need not be given.
   ;
   'abbreviation' target? mode? (decl 'where')? prop
   ;
-  ('notation' | 'no\_notation') target? mode? (nameref mixfix + 'and')
+  ('notation' | 'no\_notation') target? mode? (nameref structmixfix + 'and')
   ;
 
   fixes: ((name ('::' type)? mixfix? | vars) + 'and')
@@ -94,8 +94,8 @@ available, and result names need not be given.
   representation of the given entity is retrieved from the context.
   
 \item $\isarkeyword{no_notation}$ is similar to
-$\isarkeyword{notation}$, but removes the specified syntax annotation
-from the present context.
+  $\isarkeyword{notation}$, but removes the specified syntax
+  annotation from the present context.
 
 \end{descr}
 
