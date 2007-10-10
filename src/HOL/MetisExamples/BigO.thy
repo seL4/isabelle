@@ -173,7 +173,6 @@ qed
 
 ML{*ResReconstruct.modulus:=1*}
 
-(*Vampire finds this structured proof*)
 lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
       = (EX c. 0 < c & (ALL x. (abs(h x)) <= (c * (abs (f x)))))"
@@ -368,17 +367,9 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply assumption+
   apply (rule add_mono)
 ML{*ResAtp.problem_name := "BigO__bigo_plus_eq_simpler"*} 
-(*sledgehammer...fails*); 
-  apply (subgoal_tac "c * f xa <= max c ca * f xa")
-  apply (blast intro: order_trans)
-  apply (rule mult_right_mono)
-  apply (rule le_maxI1)
-  apply assumption
-  apply (subgoal_tac "ca * g xa <= max c ca * g xa")
-  apply (blast intro: order_trans)
-  apply (rule mult_right_mono)
-  apply (rule le_maxI2)
-  apply assumption
+(*Found by SPASS; SLOW*)
+apply (metis le_maxI2 linorder_linear linorder_not_le min_max.less_eq_less_sup.sup_absorb1 mult_le_cancel_right xt1(6))
+apply (metis le_maxI2 linorder_not_le mult_le_cancel_right xt1(6))
 done
 
 ML{*ResAtp.problem_name := "BigO__bigo_bounded_alt"*}
@@ -386,7 +377,7 @@ lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==>
     f : O(g)" 
   apply (auto simp add: bigo_def)
 (*Version 1: one-shot proof*)
-  apply (metis OrderedGroup.abs_ge_self  OrderedGroup.abs_le_D1  OrderedGroup.abs_of_nonneg  Orderings.linorder_class.not_less  order_less_le  Orderings.xt1(12)  Ring_and_Field.abs_mult)
+  apply (metis OrderedGroup.abs_le_D1 Orderings.linorder_class.not_less  order_less_le  Orderings.xt1(12)  Ring_and_Field.abs_mult)
   done
 
 lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> 
@@ -681,7 +672,7 @@ lemma bigo_mult2 [intro]: "f *o O(g) <= O(f * g)"
   apply clarify
   apply (drule_tac x = x in spec)
 ML{*ResAtp.problem_name := "BigO__bigo_mult2_simpler"*}
-(*sledgehammer*); 
+(*sledgehammer [no luck]*); 
   apply (subgoal_tac "abs(f x) * abs(b x) <= abs(f x) * (c * abs(g x))")
   apply (simp add: mult_ac)
   apply (rule mult_left_mono, assumption)
@@ -887,7 +878,7 @@ by (rule bigo_elt_subset, rule bigo_const_mult1)
 ML{*ResAtp.problem_name := "BigO__bigo_const_mult3"*}
 lemma bigo_const_mult3: "(c::'a::ordered_field) ~= 0 ==> f : O(%x. c * f x)"
   apply (simp add: bigo_def)
-(*sledgehammer*); 
+(*sledgehammer [no luck]*); 
   apply (rule_tac x = "abs(inverse c)" in exI)
   apply (simp only: abs_mult [symmetric] mult_assoc [symmetric])
 apply (subst left_inverse) 
@@ -911,17 +902,14 @@ lemma bigo_const_mult5 [simp]: "(c::'a::ordered_field) ~= 0 ==>
   apply (simp add: func_times)
   apply (auto intro!: subsetI simp add: bigo_def elt_set_times_def func_times)
   apply (rule_tac x = "%y. inverse c * x y" in exI)
-apply (rename_tac g d) 
-apply safe;
-apply (rule_tac [2] ext) 
-(*sledgehammer*); 
-  apply (simp_all del: mult_assoc add: mult_assoc [symmetric] abs_mult)
-  apply (rule_tac x = "abs (inverse c) * d" in exI)
-  apply (rule allI)
-  apply (subst mult_assoc)
-  apply (rule mult_left_mono)
-  apply (erule spec)
-apply (simp add: ); 
+  apply (rename_tac g d) 
+  apply safe
+  apply (rule_tac [2] ext) 
+   prefer 2 
+   apply (metis AC_mult.f_e.left_ident mult_assoc right_inverse)
+  apply (simp add: mult_assoc [symmetric] abs_mult)
+  (*couldn't get this proof without the step above; SLOW*)
+  apply (metis AC_mult.f.assoc abs_ge_zero mult_left_mono)
 done
 
 
@@ -1042,10 +1030,7 @@ lemma bigo_setsum5: "f =o O(h) ==> ALL x y. 0 <= l x y ==>
   apply (rule ext)
   apply (rule setsum_cong2)
   apply (thin_tac "f \<in> O(h)") 
-(*sledgehammer*); 
-  apply (subst abs_of_nonneg)
-  apply (rule mult_nonneg_nonneg)
-  apply auto
+apply (metis abs_of_nonneg zero_le_mult_iff)
 done
 
 lemma bigo_setsum6: "f =o g +o O(h) ==> ALL x y. 0 <= l x y ==>
