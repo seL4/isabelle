@@ -1013,7 +1013,7 @@ fun notation add mode args ctxt =
     (LocalSyntax.update_modesyntax (theory_of ctxt) add mode (map_filter (const_syntax ctxt) args));
 
 fun target_notation add mode args phi =
-  let val args' = filter (fn (t, _) => Term.equiv_types (t, Morphism.term phi t)) args;
+  let val args' = filter (fn (t, _) => Type.similar_types (t, Morphism.term phi t)) args;
   in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
 
 end;
