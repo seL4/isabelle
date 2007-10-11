@@ -31,6 +31,7 @@ sig
   val mk_not: term -> term
   val dest_conj: term -> term list
   val dest_disj: term -> term list
+  val disjuncts: term -> term list
   val dest_imp: term -> term * term
   val dest_not: term -> term
   val dest_concls: term -> term list
@@ -183,6 +184,12 @@ fun dest_conj (Const ("op &", _) $ t $ t') = t :: dest_conj t'
 
 fun dest_disj (Const ("op |", _) $ t $ t') = t :: dest_disj t'
   | dest_disj t = [t];
+
+(*Like dest_disj, but flattens disjunctions however nested*)
+fun disjuncts_aux (Const ("op |", _) $ t $ t') disjs = disjuncts_aux t (disjuncts_aux t' disjs)
+  | disjuncts_aux t disjs = t::disjs;
+
+fun disjuncts t = disjuncts_aux t [];
 
 fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);

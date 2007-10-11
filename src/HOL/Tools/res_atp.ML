@@ -36,7 +36,6 @@ sig
   val rm_simpset : unit -> unit
   val rm_atpset : unit -> unit
   val rm_clasimp : unit -> unit
-  val is_fol_thms : thm list -> bool
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
@@ -137,128 +136,9 @@ fun rm_clasimp() = (include_simpset:=false;include_claset:=false);
 fun add_atpset() = include_atpset:=true;
 fun rm_atpset() = include_atpset:=false;
 
+fun strip_Trueprop (Const("Trueprop",_) $ t) = t
+  | strip_Trueprop t = t;
 
-(******************************************************************)
-(* detect whether a given problem (clauses) is FOL/HOL/HOLC/HOLCS *)
-(******************************************************************)
-
-datatype logic = FOL | HOL | HOLC | HOLCS;
-
-fun string_of_logic FOL = "FOL"
-  | string_of_logic HOL = "HOL"
-  | string_of_logic HOLC = "HOLC"
-  | string_of_logic HOLCS = "HOLCS";
-
-fun is_fol_logic FOL = true
-  | is_fol_logic  _ = false
-
-(*HOLCS will not occur here*)
-fun upgrade_lg HOLC _ = HOLC
-  | upgrade_lg HOL HOLC = HOLC
-  | upgrade_lg HOL _ = HOL
-  | upgrade_lg FOL lg = lg;
-
-(* check types *)
-fun has_bool_hfn (Type("bool",_)) = true
-  | has_bool_hfn (Type("fun",_)) = true
-  | has_bool_hfn (Type(_, Ts)) = exists has_bool_hfn Ts
-  | has_bool_hfn _ = false;
-
-fun is_hol_fn tp =
-    let val (targs,tr) = strip_type tp
-    in
-        exists (has_bool_hfn) (tr::targs)
-    end;
-
-fun is_hol_pred tp =
-    let val (targs,tr) = strip_type tp
-    in
-        exists (has_bool_hfn) targs
-    end;
-
-exception FN_LG of term;
-
-fun fn_lg (t as Const(f,tp)) (lg,seen) =
-    if is_hol_fn tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg, insert (op =) t seen)
-  | fn_lg (t as Free(f,tp)) (lg,seen) =
-    if is_hol_fn tp then (upgrade_lg HOL lg, insert (op =) t seen) else (lg, insert (op =) t seen)
-  | fn_lg (t as Var(f,tp)) (lg,seen) =
-    if is_hol_fn tp then (upgrade_lg HOL lg,insert (op =) t seen) else (lg,insert (op =) t seen)
-  | fn_lg (t as Abs(_,_,_)) (lg,seen) = (upgrade_lg HOLC lg,insert (op =) t seen)
-  | fn_lg f _ = raise FN_LG(f);
-
-
-fun term_lg [] (lg,seen) = (lg,seen)
-  | term_lg (tm::tms) (FOL,seen) =
-      let val (f,args) = strip_comb tm
-          val (lg',seen') = if f mem seen then (FOL,seen)
-                            else fn_lg f (FOL,seen)
-      in
-        if is_fol_logic lg' then ()
-        else Output.debug (fn () => ("Found a HOL term: " ^ Display.raw_string_of_term f));
-        term_lg (args@tms) (lg',seen')
-      end
-  | term_lg _ (lg,seen) = (lg,seen)
-
-exception PRED_LG of term;
-
-fun pred_lg (t as Const(P,tp)) (lg,seen)=
-      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen)
-      else (lg,insert (op =) t seen)
-  | pred_lg (t as Free(P,tp)) (lg,seen) =
-      if is_hol_pred tp then (upgrade_lg HOL lg, insert (op =) t seen)
-      else (lg,insert (op =) t seen)
-  | pred_lg (t as Var(_,_)) (lg,seen) = (upgrade_lg HOL lg, insert (op =) t seen)
-  | pred_lg P _ = raise PRED_LG(P);
-
-
-fun lit_lg (Const("Not",_) $ P) (lg,seen) = lit_lg P (lg,seen)
-  | lit_lg P (lg,seen) =
-      let val (pred,args) = strip_comb P
-          val (lg',seen') = if pred mem seen then (lg,seen)
-                            else pred_lg pred (lg,seen)
-      in
-        if is_fol_logic lg' then ()
-        else Output.debug (fn () => ("Found a HOL predicate: " ^ Display.raw_string_of_term pred));
-        term_lg args (lg',seen')
-      end;
-
-fun lits_lg [] (lg,seen) = (lg,seen)
-  | lits_lg (lit::lits) (FOL,seen) =
-      let val (lg,seen') = lit_lg lit (FOL,seen)
-      in
-        if is_fol_logic lg then ()
-        else Output.debug (fn () => ("Found a HOL literal: " ^ Display.raw_string_of_term lit));
-        lits_lg lits (lg,seen')
-      end
-  | lits_lg lits (lg,seen) = (lg,seen);
-
-fun dest_disj_aux (Const("Trueprop",_) $ t) disjs = dest_disj_aux t disjs
-  | dest_disj_aux (Const ("op |", _) $ t $ t') disjs = dest_disj_aux t (dest_disj_aux t' disjs)
-  | dest_disj_aux t disjs = t::disjs;
-
-fun dest_disj t = dest_disj_aux t [];
-
-fun logic_of_clause tm = lits_lg (dest_disj tm);
-
-fun logic_of_clauses [] (lg,seen) = (lg,seen)
-  | logic_of_clauses (cls::clss) (FOL,seen) =
-    let val (lg,seen') = logic_of_clause cls (FOL,seen)
-        val _ =
-          if is_fol_logic lg then ()
-          else Output.debug (fn () => ("Found a HOL clause: " ^ Display.raw_string_of_term cls))
-    in
-        logic_of_clauses clss (lg,seen')
-    end
-  | logic_of_clauses (cls::clss) (lg,seen) = (lg,seen);
-
-fun problem_logic_goals_aux [] (lg,seen) = lg
-  | problem_logic_goals_aux (subgoal::subgoals) (lg,seen) =
-    problem_logic_goals_aux subgoals (logic_of_clauses subgoal (lg,seen));
-
-fun problem_logic_goals subgoals = problem_logic_goals_aux subgoals (FOL,[]);
-
-fun is_fol_thms ths = ((fst(logic_of_clauses (map prop_of ths) (FOL,[]))) = FOL);
 
 (***************************************************************)
 (* Relevance Filtering                                         *)
@@ -544,7 +424,7 @@ fun hashw_term ((Const(c,_)), w) = Polyhash.hashw_string (c,w)
 fun hash_literal (Const("Not",_)$P) = Word.notb(hashw_term(P,0w0))
   | hash_literal P = hashw_term(P,0w0);
 
-fun hash_term t = Word.toIntX (xor_words (map hash_literal (dest_disj t)));
+fun hash_term t = Word.toIntX (xor_words (map hash_literal (HOLogic.disjuncts (strip_Trueprop t))));
 
 fun equal_thm (thm1,thm2) = Term.aconv(prop_of thm1, prop_of thm2);
 
@@ -705,9 +585,8 @@ datatype mode = Auto | Fol | Hol;
 val linkup_logic_mode = ref Auto;
 
 (*Ensures that no higher-order theorems "leak out"*)
-fun restrict_to_logic thy logic cls =
-  if is_fol_logic logic then filter (Meson.is_fol_term thy o prop_of o fst) cls
-                        else cls;
+fun restrict_to_logic thy true cls = filter (Meson.is_fol_term thy o prop_of o fst) cls
+  | restrict_to_logic thy false cls = cls;
 
 (**** Predicates to detect unwanted clauses (prolific or likely to cause unsoundness) ****)
 
@@ -752,16 +631,12 @@ fun has_typed_var tycons =
 val unwanted_types = ["Product_Type.unit","bool"];
 
 fun unwanted t =
-    is_taut t orelse has_typed_var unwanted_types t orelse
-    forall too_general_equality (dest_disj t);
+  is_taut t orelse has_typed_var unwanted_types t orelse
+  forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t));
 
 (*Clauses containing variables of type "unit" or "bool" are unlikely to be useful and
   likely to lead to unsound proofs.*)
 fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
-
-fun tptp_writer thy logic = ResHolClause.tptp_write_file thy (logic=FOL);
-
-fun dfg_writer thy logic = ResHolClause.dfg_write_file thy (logic=FOL);
 
 (*Called by the oracle-based methods declared in res_atp_methods.ML*)
 fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
@@ -771,14 +646,14 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         val goal_cls = conj_cls@hyp_cls
         val goal_tms = map prop_of goal_cls
         val thy = ProofContext.theory_of ctxt
-        val logic = case mode of
-                            Auto => problem_logic_goals [goal_tms]
-                          | Fol => FOL
-                          | Hol => HOL
+        val isFO = case mode of
+                            Auto => forall (Meson.is_fol_term thy) goal_tms
+                          | Fol => true
+                          | Hol => false
         val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
         val cla_simp_atp_clauses = included_thms
                                      |> ResAxioms.cnf_rules_pairs |> make_unique
-                                     |> restrict_to_logic thy logic
+                                     |> restrict_to_logic thy isFO
                                      |> remove_unwanted_clauses
         val user_cls = ResAxioms.cnf_rules_pairs user_rules
         val axclauses = make_unique (user_cls @ relevance_filter thy cla_simp_atp_clauses goal_tms)
@@ -789,11 +664,11 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
         (*TFrees in conjecture clauses; TVars in axiom clauses*)
         val (supers',arity_clauses) = ResClause.make_arity_clauses thy tycons supers
         val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
-        val writer = if dfg then dfg_writer else tptp_writer
+        val writer = if dfg then ResHolClause.dfg_write_file else ResHolClause.tptp_write_file
         and file = atp_input_file()
         and user_lemmas_names = map #1 user_rules
     in
-        writer thy logic goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
+        writer thy isFO goal_cls file (axclauses,classrel_clauses,arity_clauses) user_lemmas_names;
         Output.debug (fn () => "Writing to " ^ file);
         file
     end;
@@ -866,13 +741,13 @@ fun write_problem_files probfile (ctxt, chain_ths, th) =
         | get_neg_subgoals (gl::gls) n = #1 (ResAxioms.neg_conjecture_clauses th n) ::
                                          get_neg_subgoals gls (n+1)
       val goal_cls = get_neg_subgoals goals 1
-      val logic = case !linkup_logic_mode of
-                Auto => problem_logic_goals (map (map prop_of) goal_cls)
-              | Fol => FOL
-              | Hol => HOL
+      val isFO = case !linkup_logic_mode of
+			  Auto => forall (Meson.is_fol_term thy) (map prop_of (List.concat goal_cls))
+			| Fol => true
+			| Hol => false
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt chain_ths
       val included_cls = included_thms |> ResAxioms.cnf_rules_pairs |> make_unique
-                                       |> restrict_to_logic thy logic
+                                       |> restrict_to_logic thy isFO
                                        |> remove_unwanted_clauses
       val _ = Output.debug (fn () => "included clauses = " ^ Int.toString(length included_cls))
       val white_cls = ResAxioms.cnf_rules_pairs white_thms
@@ -880,7 +755,7 @@ fun write_problem_files probfile (ctxt, chain_ths, th) =
       val axcls_list = map (fn ngcls => white_cls @ relevance_filter thy included_cls (map prop_of ngcls)) goal_cls
       val _ = app (fn axcls => Output.debug (fn () => "filtered clauses = " ^ Int.toString(length axcls)))
                   axcls_list
-      val writer = if !prover = Recon.SPASS then dfg_writer else tptp_writer
+      val writer = if !prover = Recon.SPASS then ResHolClause.dfg_write_file else ResHolClause.tptp_write_file
       fun write_all [] [] _ = []
         | write_all (ccls::ccls_list) (axcls::axcls_list) k =
             let val fname = probfile k
@@ -901,7 +776,7 @@ fun write_problem_files probfile (ctxt, chain_ths, th) =
                 val _ = Output.debug (fn () => "arity clauses = " ^ Int.toString (length arity_clauses))
                 val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
                 val _ = Output.debug (fn () => "classrel clauses = " ^ Int.toString (length classrel_clauses))
-                val clnames = writer thy logic ccls fname (axcls,classrel_clauses,arity_clauses) []
+                val clnames = writer thy isFO ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Vector.fromList clnames
                 val _ = if !Output.debugging then trace_vector fname thm_names else ()
             in  (thm_names,fname) :: write_all ccls_list axcls_list (k+1)  end

@@ -529,9 +529,11 @@ fun inst_excluded_middle th thy i_atm =
         tfrees = tfrees};
         
   (* Function to generate metis clauses, including comb and type clauses *)
-  fun build_map mode thy ctxt cls ths =
-    let val isFO = (mode = ResAtp.Fol) orelse
-                    (mode <> ResAtp.Hol andalso ResAtp.is_fol_thms (cls @ ths))
+  fun build_map mode ctxt cls ths =
+    let val thy = ProofContext.theory_of ctxt
+        val all_thms_FO = forall (Meson.is_fol_term thy o prop_of)
+        val isFO = (mode = ResAtp.Fol) orelse
+                   (mode <> ResAtp.Hol andalso all_thms_FO (cls @ ths))
         val lmap0 = foldl (add_thm true ctxt) 
                           {isFO = isFO, axioms = [], tfrees = init_tfrees ctxt} cls
         val lmap = foldl (add_thm false ctxt) (add_tfrees lmap0) ths
@@ -559,8 +561,7 @@ fun inst_excluded_middle th thy i_atm =
 
   (* Main function to start metis prove and reconstruction *)
   fun FOL_SOLVE mode ctxt cls ths0 =
-    let val thy = ProofContext.theory_of ctxt
-        val th_cls_pairs = map (fn th => (PureThy.get_name_hint th, ResAxioms.cnf_axiom th)) ths0
+    let val th_cls_pairs = map (fn th => (PureThy.get_name_hint th, ResAxioms.cnf_axiom th)) ths0
         val ths = List.concat (map #2 th_cls_pairs)
         val _ = if exists(is_false o prop_of) cls then error "problem contains the empty clause"
                 else ();
@@ -568,7 +569,7 @@ fun inst_excluded_middle th thy i_atm =
         val _ = app (fn th => Output.debug (fn () => string_of_thm th)) cls
         val _ = Output.debug (fn () => "THEOREM CLAUSES")
         val _ = app (fn th => Output.debug (fn () => string_of_thm th)) ths
-        val {isFO,axioms,tfrees} = build_map mode thy ctxt cls ths
+        val {isFO,axioms,tfrees} = build_map mode ctxt cls ths
         val _ = if null tfrees then ()
                 else (Output.debug (fn () => "TFREE CLAUSES");
                       app (fn tf => Output.debug (fn _ => ResClause.tptp_of_typeLit true tf)) tfrees)

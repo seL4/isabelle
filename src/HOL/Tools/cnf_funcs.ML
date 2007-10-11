@@ -4,6 +4,8 @@
     Author:     Tjark Weber
     Copyright   2005-2006
 
+  FIXME: major overlaps with the code in meson.ML
+
   Description:
   This file contains functions and tactics to transform a formula into
   Conjunctive Normal Form (CNF).
@@ -122,9 +124,6 @@ fun is_clause (Const ("op |", _) $ x $ y) = is_clause x andalso is_clause y
 
 fun clause_is_trivial c =
 	let
-		(* Term.term -> Term.term list -> Term.term list *)
-		fun collect_literals (Const ("op |", _) $ x $ y) ls = collect_literals x (collect_literals y ls)
-		  | collect_literals x                           ls = x :: ls
 		(* Term.term -> Term.term *)
 		fun dual (Const ("Not", _) $ x) = x
 		  | dual x                      = HOLogic.Not $ x
@@ -132,7 +131,7 @@ fun clause_is_trivial c =
 		fun has_duals []      = false
 		  | has_duals (x::xs) = (dual x) mem xs orelse has_duals xs
 	in
-		has_duals (collect_literals c [])
+		has_duals (HOLogic.disjuncts c)
 	end;
 
 (* ------------------------------------------------------------------------- *)

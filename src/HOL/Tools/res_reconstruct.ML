@@ -282,12 +282,6 @@ fun decode_tstp_list ctxt tuples =
   let val vt0 = tfree_constraints_of_clauses Vartab.empty (map #3 tuples)
   in  map (decode_tstp ctxt vt0) tuples  end;
 
-(*FIXME: simmilar function in res_atp. Move to HOLogic?*)
-fun dest_disj_aux (Const ("op |", _) $ t $ t') disjs = dest_disj_aux t (dest_disj_aux t' disjs)
-  | dest_disj_aux t disjs = t::disjs;
-
-fun dest_disj t = dest_disj_aux t [];
-
 (** Finding a matching assumption. The literals may be permuted, and variable names
     may disagree. We have to try all combinations of literals (quadratic!) and 
     match up the variable names consistently. **)
@@ -339,10 +333,10 @@ fun matches (lits1,lits2) =
   matches_aux [] (map Envir.eta_contract lits1) (map Envir.eta_contract lits2);
 
 fun permuted_clause t =
-  let val lits = dest_disj t
+  let val lits = HOLogic.disjuncts t
       fun perm [] = NONE
         | perm (ctm::ctms) =
-            if matches (lits, dest_disj (HOLogic.dest_Trueprop (strip_alls ctm)))
+            if matches (lits, HOLogic.disjuncts (HOLogic.dest_Trueprop (strip_alls ctm)))
             then SOME ctm else perm ctms
   in perm end;
 
