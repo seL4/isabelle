@@ -218,7 +218,7 @@ fun gen_read_def thy prep_att parse_prop ((raw_name, raw_atts), raw_t) =
   let
     val ctxt = ProofContext.init thy;
     val t = parse_prop ctxt raw_t |> Syntax.check_prop ctxt;
-    val ((c, ty), _) = Sign.cert_def (Sign.pp thy) t;
+    val ((c, ty), _) = Sign.cert_def ctxt t;
     val atts = map (prep_att thy) raw_atts;
     val insts = Consts.typargs (Sign.consts_of thy) (c, ty);
     val name = case raw_name

@@ -40,12 +40,11 @@ struct
 
 fun cert_def ctxt eq =
   let
-    val pp = Syntax.pp ctxt;
-    val display_term = quote o Pretty.string_of_term pp;
+    val display_term = quote o Syntax.string_of_term ctxt;
     fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^ display_term eq);
     val ((lhs, _), eq') = eq
-      |> Sign.no_vars pp
-      |> PrimitiveDefs.dest_def pp Term.is_Free (Variable.is_fixed ctxt) (K true)
+      |> Sign.no_vars (Syntax.pp ctxt)
+      |> PrimitiveDefs.dest_def ctxt Term.is_Free (Variable.is_fixed ctxt) (K true)
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
   in (Term.dest_Free (Term.head_of lhs), eq') end;
 

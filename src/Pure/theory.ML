@@ -294,8 +294,9 @@ fun check_overloading thy overloaded (c, T) =
 
 fun check_def thy unchecked overloaded (bname, tm) defs =
   let
+    val ctxt = ProofContext.init thy;
     val name = Sign.full_name thy bname;
-    val (lhs_const, rhs) = Sign.cert_def (Sign.pp thy) tm;
+    val (lhs_const, rhs) = Sign.cert_def ctxt tm;
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded lhs_const;
   in defs |> dependencies thy unchecked true name lhs_const rhs_consts end

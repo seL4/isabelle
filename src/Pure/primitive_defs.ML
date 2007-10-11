@@ -7,7 +7,7 @@ Primitive definition forms.
 
 signature PRIMITIVE_DEFS =
 sig
-  val dest_def: Pretty.pp -> (term -> bool) -> (string -> bool) -> (string -> bool) ->
+  val dest_def: Proof.context -> (term -> bool) -> (string -> bool) -> (string -> bool) ->
     term -> (term * term) * term
   val abs_def: term -> term * term
   val mk_defpair: term * term -> string * term
@@ -22,15 +22,15 @@ fun term_kind (Const _) = "existing constant "
   | term_kind _ = "";
 
 (*c x == t[x] to !!x. c x == t[x]*)
-fun dest_def pp check_head is_fixed is_fixedT eq =
+fun dest_def ctxt check_head is_fixed is_fixedT eq =
   let
     fun err msg = raise TERM (msg, [eq]);
     val eq_vars = Term.strip_all_vars eq;
     val eq_body = Term.strip_all_body eq;
 
     val display_terms =
-      commas_quote o map (Pretty.string_of_term pp o Syntax.bound_vars eq_vars);
-    val display_types = commas_quote o map (Pretty.string_of_typ pp);
+      commas_quote o map (Syntax.string_of_term ctxt o Syntax.bound_vars eq_vars);
+    val display_types = commas_quote o map (Syntax.string_of_typ ctxt);
 
     val (raw_lhs, rhs) = Logic.dest_equals eq_body handle TERM _ => err "Not a meta-equality (==)";
     val lhs = Envir.beta_eta_contract raw_lhs;
