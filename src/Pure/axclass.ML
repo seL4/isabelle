@@ -2,28 +2,22 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Type classes as parameter records and predicates, with explicit
-definitions and proofs.
+Type classes defined as predicates, associated with a record of
+parameters.
 *)
 
 signature AX_CLASS =
 sig
   val define_class: bstring * class list -> string list ->
     ((bstring * attribute list) * term list) list -> theory -> class * theory
-  val define_class_params: bstring * class list -> ((bstring * typ) * mixfix) list ->
-    (theory -> (string * typ) list -> ((bstring * attribute list) * term list) list) ->
-    string list -> theory ->
-    (class * ((string * typ) list * thm list)) * theory
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
-  val get_info: theory -> class -> {def: thm, intro: thm, axioms: thm list,
-    params: (string * typ) list}
+  val get_info: theory -> class ->
+    {def: thm, intro: thm, axioms: thm list, params: (string * typ) list}
   val class_intros: theory -> thm list
   val class_of_param: theory -> string -> class option
-  val params_of_class: theory -> class -> string * (string * typ) list
-  val print_axclasses: theory -> unit
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
   val axiomatize_class: bstring * class list -> theory -> theory
@@ -133,10 +127,7 @@ fun get_params thy pred =
 fun params_of thy c = get_params thy (fn c' => c' = c);
 fun all_params_of thy S = get_params thy (fn c => Sign.subsort thy (S, [c]));
 
-fun class_of_param thy =
-  AList.lookup (op =) (#2 (get_axclasses thy));
-
-fun params_of_class thy class = (Name.aT, #params (get_info thy class));
+fun class_of_param thy = AList.lookup (op =) (#2 (get_axclasses thy));
 
 
 (* maintain instances *)
@@ -163,24 +154,6 @@ fun the_arity thy a (c, Ss) =
 
 fun put_arity ((t, Ss, c), th) = map_instances (fn (classrel, arities) =>
   (classrel, arities |> Symtab.insert_list (eq_fst op =) (t, ((c, Ss), th))));
-
-
-(* print data *)
-
-fun print_axclasses thy =
-  let
-    val axclasses = #1 (get_axclasses thy);
-    val ctxt = ProofContext.init thy;
-
-    fun pretty_axclass (class, AxClass {def, intro, axioms, params}) =
-      Pretty.block (Pretty.fbreaks
-       [Pretty.block
-          [Pretty.str "class ", Syntax.pretty_sort ctxt [class], Pretty.str ":"],
-        Pretty.strs ("parameters:" :: params_of thy class),
-        ProofContext.pretty_fact ctxt ("def", [def]),
-        ProofContext.pretty_fact ctxt (introN, [intro]),
-        ProofContext.pretty_fact ctxt (axiomsN, axioms)]);
-  in Pretty.writeln (Pretty.chunks (map pretty_axclass (Symtab.dest axclasses))) end;
 
 
 
@@ -281,29 +254,48 @@ fun split_defined n eq =
           (th RS Conjunction.conjunctionD1, th RS Conjunction.conjunctionD2)) n;
   in (intro, dests) end;
 
-fun define_class (bclass, raw_super) params raw_specs thy =
+fun define_class (bclass, raw_super) raw_params raw_specs thy =
   let
     val ctxt = ProofContext.init thy;
-    val pp = ProofContext.pp ctxt;
+    val pp = Syntax.pp ctxt;
 
 
-    (* prepare specification *)
+    (* class *)
 
     val bconst = Logic.const_of_class bclass;
     val class = Sign.full_name thy bclass;
     val super = Sign.minimize_sort thy (Sign.certify_sort thy raw_super);
 
+    fun check_constraint (a, S) =
+      if Sign.subsort thy (super, S) then ()
+      else error ("Sort constraint of type variable " ^
+        setmp show_sorts true (Pretty.string_of_typ pp) (TFree (a, S)) ^
+        " needs to be weaker than " ^ Pretty.string_of_sort pp super);
+
+
+    (* params *)
+
+    val params = raw_params |> map (fn p =>
+      let
+        val T = Sign.the_const_type thy p;
+        val _ =
+          (case Term.add_tvarsT T [] of
+            [((a, _), S)] => check_constraint (a, S)
+          | _ => error ("Exactly one type variable expected in class parameter " ^ quote p));
+        val T' = Term.map_type_tvar (fn _ => TFree (Name.aT, [class])) T;
+      in (p, T') end);
+
+
+    (* axioms *)
+
     fun prep_axiom t =
       (case Term.add_tfrees t [] of
-        [(a, S)] =>
-          if Sign.subsort thy (super, S) then t
-          else error ("Sort constraint of type variable " ^
-            setmp show_sorts true (Pretty.string_of_typ pp) (TFree (a, S)) ^
-            " needs to be weaker than " ^ Pretty.string_of_sort pp super)
-      | [] => t
-      | _ => error ("Multiple type variables in class axiom:\n" ^ Pretty.string_of_term pp t))
-      |> map_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
-      |> Logic.close_form;
+        [(a, S)] => check_constraint (a, S)
+      | [] => ()
+      | _ => error ("Multiple type variables in class axiom:\n" ^ Pretty.string_of_term pp t);
+      t
+      |> Term.map_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
+      |> Logic.close_form);
 
     val axiomss = map (map (prep_axiom o Sign.cert_prop thy) o snd) raw_specs;
     val name_atts = map fst raw_specs;
@@ -333,21 +325,10 @@ fun define_class (bclass, raw_super) params raw_specs thy =
          ((superN, []), [(map Drule.standard raw_classrel, [])]),
          ((axiomsN, []), [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])];
 
-    (* params *)
-
-    val params_typs = map (fn param =>
-      let
-        val ty = Sign.the_const_type thy param;
-        val _ = case Term.typ_tvars ty
-         of [_] => ()
-          | _ => error ("Exactly one type variable required in parameter " ^ quote param);
-        val ty' = Term.map_type_tvar (fn _ => TFree (Name.aT, [class])) ty;
-      in (param, ty') end) params;
-
 
     (* result *)
 
-    val axclass = make_axclass ((def, intro, axioms), params_typs);
+    val axclass = make_axclass ((def, intro, axioms), params);
     val result_thy =
       facts_thy
       |> fold put_classrel (map (pair class) super ~~ classrel)
@@ -356,43 +337,9 @@ fun define_class (bclass, raw_super) params raw_specs thy =
       |> Sign.restore_naming facts_thy
       |> map_axclasses (fn (axclasses, parameters) =>
         (Symtab.update (class, axclass) axclasses,
-          fold (fn x => add_param pp (x, class)) params parameters));
+          fold (fn (x, _) => add_param pp (x, class)) params parameters));
 
   in (class, result_thy) end;
-
-
-
-(** axclasses with implicit parameter handling **)
-
-fun define_class_params (name, raw_superclasses) raw_consts raw_dep_axioms other_consts thy =
-  let
-    val superclasses = map (Sign.certify_class thy) raw_superclasses;
-    val consts = (map o apfst o apsnd) (Sign.certify_typ thy) raw_consts;
-    val prefix = Logic.const_of_class name;
-    fun mk_const_name c = NameSpace.map_base (NameSpace.append prefix)
-      (Sign.full_name thy c);
-    fun add_const ((c, ty), syn) =
-      Sign.add_consts_authentic [] [(c, ty, syn)]
-      #> pair (mk_const_name c, ty);
-    fun mk_axioms cs thy =
-      raw_dep_axioms thy cs
-      |> (map o apsnd o map) (Sign.cert_prop thy)
-      |> rpair thy;
-    fun add_constraint class (c, ty) =
-      Sign.add_const_constraint (c, SOME
-        (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
-  in
-    thy
-    |> Sign.add_path prefix
-    |> fold_map add_const consts
-    ||> Sign.restore_naming thy
-    |-> (fn cs => mk_axioms cs
-    #-> (fn axioms_prop => define_class (name, superclasses)
-           (map fst cs @ other_consts) axioms_prop
-    #-> (fn class => `(fn thy => get_info thy class)
-    #-> (fn {axioms, ...} => fold (add_constraint class) cs
-    #> pair (class, (cs, axioms))))))
-  end;
 
 
 
