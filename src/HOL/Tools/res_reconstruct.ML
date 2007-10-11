@@ -622,7 +622,8 @@ fun checkVampProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, 
      if any_substring [start_V8,start_TSTP] thisLine
      then startTransfer end_V8 arg
      else if (String.isSubstring "Satisfiability detected" thisLine) orelse
-             (String.isSubstring "Refutation not found" thisLine)
+             (String.isSubstring "Refutation not found" thisLine) orelse
+             (String.isSubstring "CANNOT PROVE" thisLine)
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
      else checkVampProofFound arg);
@@ -637,7 +638,8 @@ fun checkEProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgn
      else if String.isSubstring "SZS status: Satisfiable" thisLine
      then (signal_parent (toParent, ppid, "Invalid\n", probfile);
 	   true)
-     else if String.isSubstring "SZS status: ResourceOut" thisLine
+     else if String.isSubstring "SZS status: ResourceOut" thisLine orelse
+             String.isSubstring "# Cannot determine problem status" thisLine
      then (signal_parent (toParent, ppid, "Failure\n", probfile);
 	   true)
      else checkEProofFound arg);
