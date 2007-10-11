@@ -51,6 +51,10 @@ sig
     string list -> bool -> (string * typ)list
     -> cterm list * (indexname * typ)list
   val read_cterm: theory -> string * typ -> cterm
+  val elim_implies: thm -> thm -> thm
+  val unvarify: thm -> thm
+  val add_axiom: term list -> bstring * term -> theory -> thm * theory
+  val add_def: bool -> bstring * term -> theory -> thm * theory
 end;
 
 structure Thm: THM =
@@ -217,6 +221,61 @@ fun read_cterm thy sT =
   let val ([ct], _) = read_def_cterms (thy, K NONE, K NONE) [] true [sT]
   in ct end;
 
+
+
+(** basic derived rules **)
+
+(*Elimination of implication
+  A    A ==> B
+  ------------
+        B
+*)
+fun elim_implies thA thAB = Thm.implies_elim thAB thA;
+
+(*global schematic variables*)
+fun unvarify th =
+  let
+    val thy = Thm.theory_of_thm th;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
+
+    val prop = Thm.full_prop_of th;
+    val _ = map Logic.unvarify (prop :: Thm.hyps_of th)
+      handle TERM (msg, _) => raise THM (msg, 0, [th]);
+
+    val instT0 = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
+    val instT = map (fn (v, T) => (certT (TVar v), certT T)) instT0;
+    val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
+      let val T' = TermSubst.instantiateT instT0 T
+      in (cert (Var ((a, i), T')), cert (Free ((a, T')))) end);
+  in Thm.instantiate (instT, inst) th end;
+
+
+
+(** specification primitives **)
+
+fun add_axiom hyps (name, prop) thy =
+  let
+    val name' = if name = "" then "axiom_" ^ serial_string () else name;
+    val prop' = Logic.list_implies (hyps, prop);
+    val thy' = thy |> Theory.add_axioms_i [(name', prop')];
+    val axm = unvarify (Thm.get_axiom_i thy' (Sign.full_name thy' name'));
+    val prems = map (Thm.assume o Thm.cterm_of thy') hyps;
+    val thm = fold elim_implies prems axm;
+  in (thm, thy') end;
+
+fun add_def overloaded (name, prop) thy =
+  let
+    val tfrees = rev (map TFree (Term.add_tfrees prop []));
+    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
+    val strip_sorts = tfrees ~~ tfrees';
+    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
+
+    val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
+    val thy' = Theory.add_defs_i false overloaded [(name, prop')] thy;
+    val axm' = Thm.get_axiom_i thy' (Sign.full_name thy' name);
+    val thm = unvarify (Thm.instantiate (recover_sorts, []) axm');
+  in (thm, thy') end;
 
 open Thm;
 
