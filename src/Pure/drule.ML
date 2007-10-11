@@ -104,7 +104,6 @@ sig
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
   val norm_hhf_cterm: cterm -> cterm
-  val unvarify: thm -> thm
   val protect: cterm -> cterm
   val protectI: thm
   val protectD: thm
@@ -338,7 +337,7 @@ val forall_elim_list = fold forall_elim;
 val implies_intr_list = fold_rev implies_intr;
 
 (*maps [| A1;...;An |] ==> B and [A1,...,An]  to  B*)
-fun implies_elim_list impth ths = Library.foldl (uncurry implies_elim) (impth,ths);
+fun implies_elim_list impth ths = fold Thm.elim_implies ths impth;
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
 fun zero_var_indexes_list [] = []
@@ -848,32 +847,12 @@ fun cterm_instantiate [] th = th
 end;
 
 
-(* global schematic variables *)
-
-fun unvarify th =
-  let
-    val thy = Thm.theory_of_thm th;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
-
-    val prop = Thm.full_prop_of th;
-    val _ = map Logic.unvarify (prop :: Thm.hyps_of th)
-      handle TERM (msg, _) => raise THM (msg, 0, [th]);
-
-    val instT0 = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
-    val instT = map (fn (v, T) => (certT (TVar v), certT T)) instT0;
-    val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
-      let val T' = TermSubst.instantiateT instT0 T
-      in (cert (Var ((a, i), T')), cert (Free ((a, T')))) end);
-  in Thm.instantiate (instT, inst) th end;
-
-
 (** protected propositions and embedded terms **)
 
 local
   val A = cert (Free ("A", propT));
-  val prop_def = unvarify ProtoPure.prop_def;
-  val term_def = unvarify ProtoPure.term_def;
+  val prop_def = Thm.unvarify ProtoPure.prop_def;
+  val term_def = Thm.unvarify ProtoPure.term_def;
 in
   val protect = Thm.capply (cert Logic.protectC);
   val protectI = store_thm "protectI" (PureThy.kind_rule Thm.internalK (standard
