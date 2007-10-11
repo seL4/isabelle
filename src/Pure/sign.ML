@@ -156,7 +156,7 @@ sig
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
-  val declare_const: Markup.property list -> (bstring * typ * mixfix) -> theory -> term * theory
+  val declare_const: Markup.property list -> bstring * typ * mixfix -> theory -> term * theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_abbrev: string -> Markup.property list ->
     bstring * term -> theory -> (term * term) * theory
