@@ -11,7 +11,6 @@ use "rule_cases.ML";
 use "auto_bind.ML";
 use "local_syntax.ML";
 use "proof_context.ML";
-use "../axclass.ML";
 use "local_defs.ML";
 
 (*outer syntax*)
@@ -55,10 +54,10 @@ use "code.ML";
 (*local theories and specifications*)
 use "local_theory.ML";
 use "theory_target.ML";
+use "subclass.ML";
 use "instance.ML";
 use "spec_parse.ML";
 use "specification.ML";
-use "subclass.ML"; (*FIXME improve structure*)
 use "constdefs.ML";
 
 (*toplevel environment*)
