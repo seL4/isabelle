@@ -38,6 +38,7 @@ function usage()
   echo "  information (HTML etc.) according to settings."
   echo
   echo "  ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
+  echo "  HOL_USEDIR_OPTIONS=$HOL_USEDIR_OPTIONS"
   echo
   exit 1
 }
