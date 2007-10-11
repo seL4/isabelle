@@ -39,8 +39,8 @@ sig
   val eq_syntax: syntax * syntax -> bool
   val is_keyword: syntax -> string -> bool
   type mode
-  val default_mode: mode
-  val input_mode: mode
+  val mode_default: mode
+  val mode_input: mode
   val internalM: string
   val extend_type_gram: (string * int * mixfix) list -> syntax -> syntax
   val extend_const_gram: (string -> bool) ->
@@ -148,6 +148,7 @@ sig
   val string_of_sort: Proof.context -> sort -> string
   val string_of_classrel: Proof.context -> class list -> string
   val string_of_arity: Proof.context -> arity -> string
+  val pp: Proof.context -> Pretty.pp
 end;
 
 structure Syntax: SYNTAX =
@@ -252,8 +253,8 @@ fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 
 type mode = string * bool;
-val default_mode = ("", true);
-val input_mode = ("input", true);
+val mode_default = ("", true);
+val mode_input = ("input", true);
 val internalM = "internal";
 
 
@@ -373,8 +374,8 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 
 val basic_syn =
   empty_syntax
-  |> extend_syntax default_mode TypeExt.type_ext
-  |> extend_syntax default_mode SynExt.pure_ext;
+  |> extend_syntax mode_default TypeExt.type_ext
+  |> extend_syntax mode_default SynExt.pure_ext;
 
 val basic_nonterms =
   (Lexicon.terminals @ [SynExt.logic, "type", "types", "sort", "classes",
@@ -618,7 +619,7 @@ end;
 (** modify syntax **)
 
 fun ext_syntax' f is_logtype prmode decls = extend_syntax prmode (f is_logtype decls);
-fun ext_syntax f = ext_syntax' (K f) (K false) default_mode;
+fun ext_syntax f = ext_syntax' (K f) (K false) mode_default;
 
 val extend_type_gram       = ext_syntax Mixfix.syn_ext_types;
 val extend_const_gram      = ext_syntax' Mixfix.syn_ext_consts;
@@ -634,10 +635,10 @@ fun extend_trrules ctxt is_logtype syn =
   ext_syntax SynExt.syn_ext_rules o read_rules ctxt is_logtype syn;
 
 fun remove_trrules ctxt is_logtype syn =
-  remove_syntax default_mode o SynExt.syn_ext_rules o read_rules ctxt is_logtype syn;
+  remove_syntax mode_default o SynExt.syn_ext_rules o read_rules ctxt is_logtype syn;
 
 val extend_trrules_i = ext_syntax SynExt.syn_ext_rules o cert_rules;
-val remove_trrules_i = remove_syntax default_mode o SynExt.syn_ext_rules o cert_rules;
+val remove_trrules_i = remove_syntax mode_default o SynExt.syn_ext_rules o cert_rules;
 
 
 
@@ -820,6 +821,13 @@ val string_of_arity = Pretty.string_of oo pretty_arity;
 val string_of_typ = Pretty.string_of oo pretty_typ;
 val string_of_term = Pretty.string_of oo pretty_term;
 
+(*pp operations -- deferred evaluation*)
+fun pp ctxt = Pretty.pp
+ (fn x => pretty_term ctxt x,
+  fn x => pretty_typ ctxt x,
+  fn x => pretty_sort ctxt x,
+  fn x => pretty_classrel ctxt x,
+  fn x => pretty_arity ctxt x);
 
 (*export parts of internal Syntax structures*)
 open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
