@@ -199,11 +199,10 @@ fun add_codeprops all_cs sel_cs thy =
         val _ = warning ("Adding theorem " ^ quote (PureThy.string_of_thmref thmref)
           ^ " as code property " ^ quote raw_c);
         val ([raw_c'], names') = Name.variants [raw_c] names;
-      in
-        thy
-        |> PureThy.simple_def ("", []) (((raw_c', ty, Syntax.NoSyn), ts), t)
-        ||> pair names'
-      end;
+        val (const as Const (c, _), thy') = thy |> Sign.declare_const [] (raw_c', ty, NoSyn);
+        val eq = Logic.mk_equals (list_comb (const, ts), t);
+        val ([def], thy'') = thy' |> PureThy.add_defs_i false [((Thm.def_name raw_c', eq), [])];
+      in ((c, def), (names', thy'')) end;
   in
     thy
     |> Sign.sticky_prefix "codeprop"
