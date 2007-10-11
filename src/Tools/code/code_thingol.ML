@@ -346,14 +346,14 @@ fun transact f code =
 fun ensure_class thy (algbr as ((_, algebra), _)) funcgr class =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
-    val (v, cs) = AxClass.params_of_class thy class;
+    val cs = #params (AxClass.get_info thy class);
     val class' = CodeName.class thy class;
     val stmt_class =
       fold_map (fn superclass => ensure_class thy algbr funcgr superclass
         ##>> ensure_classrel thy algbr funcgr (class, superclass)) superclasses
       ##>> fold_map (fn (c, ty) => ensure_const thy algbr funcgr c
         ##>> exprgen_typ thy algbr funcgr ty) cs
-      #>> (fn info => Class (unprefix "'" v, info))
+      #>> (fn info => Class (unprefix "'" Name.aT, info))
   in
     ensure_stmt stmt_class class'
   end
@@ -445,7 +445,7 @@ and exprgen_eq thy algbr funcgr thm =
 and ensure_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
-    val (var, classparams) = try (AxClass.params_of_class thy) class |> the_default ("'a", [])
+    val classparams = these (try (#params o AxClass.get_info thy) class);
     val vs = Name.names Name.context "'a" (Sorts.mg_domain algebra tyco [class]);
     val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
     val vs' = map2 (fn (v, sort1) => fn sort2 => (v,

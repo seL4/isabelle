@@ -156,9 +156,7 @@ fun instances_of thy algebra insts =
   let
     val thy_classes = (#classes o Sorts.rep_algebra o Sign.classes_of) thy;
     fun all_classparams tyco class =
-      try (AxClass.params_of_class thy) class
-      |> Option.map snd
-      |> these
+      these (try (#params o AxClass.get_info thy) class)
       |> map (fn (c, _) => Class.inst_const thy (c, tyco))
   in
     Symtab.empty

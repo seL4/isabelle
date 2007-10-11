@@ -545,8 +545,7 @@ fun inter_sorts thy =
 fun specific_constraints thy (class, tyco) =
   let
     val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
-    val classparams = (map fst o these o Option.map snd
-      o try (AxClass.params_of_class thy)) class;
+    val classparams = (map fst o these o try (#params o AxClass.get_info thy)) class;
     val funcs = classparams
       |> map (fn c => Class.inst_const thy (c, tyco))
       |> map (Symtab.lookup ((the_funcs o the_exec) thy))
@@ -579,9 +578,9 @@ fun strongest_constraints thy (class, tyco) =
 
 fun gen_classparam_typ constr thy class (c, tyco) = 
   let
-    val (var, cs) = try (AxClass.params_of_class thy) class |> the_default (Name.aT, [])
+    val cs = these (try (#params o AxClass.get_info thy) class);
     val ty = (the o AList.lookup (op =) cs) c;
-    val sort_args = Name.names (Name.declare var Name.context) Name.aT
+    val sort_args = Name.names (Name.declare Name.aT Name.context) Name.aT
       (constr thy (class, tyco));
     val ty_inst = Type (tyco, map TFree sort_args);
   in Logic.varifyT (map_type_tfree (K ty_inst) ty) end;
