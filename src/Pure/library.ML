@@ -22,7 +22,6 @@ sig
   val undefined: 'a -> 'b
   val I: 'a -> 'a
   val K: 'a -> 'b -> 'a
-  val flip: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
   val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
   val uncurry: ('a -> 'b -> 'c) -> 'a * 'b -> 'c
   val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
@@ -244,7 +243,6 @@ fun undefined _ = raise Match;
 
 fun I x = x;
 fun K x = fn _ => x;
-fun flip f x y = f y x;
 fun curry f x y = f (x, y);
 fun uncurry f (x, y) = f x y;
 
