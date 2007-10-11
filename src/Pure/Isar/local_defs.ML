@@ -40,7 +40,7 @@ struct
 
 fun cert_def ctxt eq =
   let
-    val pp = ProofContext.pp ctxt;
+    val pp = Syntax.pp ctxt;
     val display_term = quote o Pretty.string_of_term pp;
     fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^ display_term eq);
     val ((lhs, _), eq') = eq

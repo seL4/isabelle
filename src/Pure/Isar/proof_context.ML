@@ -34,7 +34,6 @@ sig
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
-  val pp: Proof.context -> Pretty.pp
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_thm_legacy: thm -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -293,23 +292,15 @@ fun theory_result f ctxt =
 
 (** pretty printing **)
 
-(*pp operations -- deferred evaluation*)
-fun pp ctxt = Pretty.pp
- (fn x => Syntax.pretty_term ctxt x,
-  fn x => Syntax.pretty_typ ctxt x,
-  fn x => Syntax.pretty_sort ctxt x,
-  fn x => Syntax.pretty_classrel ctxt x,
-  fn x => Syntax.pretty_arity ctxt x);
-
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
 fun pretty_thm_legacy th =
   let val thy = Thm.theory_of_thm th
-  in Display.pretty_thm_aux (pp (init thy)) true false [] th end;
+  in Display.pretty_thm_aux (Syntax.pp (init thy)) true false [] th end;
 
 fun pretty_thm ctxt th =
   let val asms = map Thm.term_of (Assumption.assms_of ctxt)
-  in Display.pretty_thm_aux (pp ctxt) false true asms th end;
+  in Display.pretty_thm_aux (Syntax.pp ctxt) false true asms th end;
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
@@ -411,7 +402,7 @@ local
 
 fun certify_consts ctxt =
   let val Mode {abbrev, ...} = get_mode ctxt
-  in Consts.certify (pp ctxt) (tsig_of ctxt) (not abbrev) (consts_of ctxt) end;
+  in Consts.certify (Syntax.pp ctxt) (tsig_of ctxt) (not abbrev) (consts_of ctxt) end;
 
 fun reject_schematic (Var (xi, _)) =
       error ("Unbound schematic variable: " ^ Term.string_of_vname xi)
@@ -534,7 +525,7 @@ fun gen_read' read app schematic ctxt0 internal more_types more_sorts more_used 
     val sorts = append_env (Variable.def_sort ctxt) more_sorts;
     val used = fold Name.declare more_used (Variable.names_of ctxt);
   in
-    (read (pp ctxt) (syn_of ctxt) ctxt (types, sorts, used)
+    (read (Syntax.pp ctxt) (syn_of ctxt) ctxt (types, sorts, used)
         (legacy_intern_skolem ctxt internal types) s
       handle TERM (msg, _) => error msg)
     |> app (expand_abbrevs ctxt)
@@ -561,7 +552,7 @@ local
 fun gen_cert prop ctxt t =
   t
   |> expand_abbrevs ctxt
-  |> (fn t' => #1 (Sign.certify' prop (pp ctxt) false (consts_of ctxt) (theory_of ctxt) t')
+  |> (fn t' => #1 (Sign.certify' prop (Syntax.pp ctxt) false (consts_of ctxt) (theory_of ctxt) t')
     handle TYPE (msg, _, _) => error msg
       | TERM (msg, _) => error msg);
 
@@ -577,7 +568,7 @@ end;
 
 fun standard_infer_types ctxt ts =
   let val Mode {pattern, ...} = get_mode ctxt in
-    TypeInfer.infer_types (pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
+    TypeInfer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
       (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
       (Variable.names_of ctxt) (Variable.maxidx_of ctxt) NONE (map (rpair dummyT) ts)
     |> #1 |> map #1
@@ -662,8 +653,9 @@ fun parse_term T ctxt str =
       TypeInfer.constrain T;
     fun check t = Exn.Result (infer t) handle ERROR msg => Exn.Exn (ERROR msg);
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
-    val read = Syntax.standard_parse_term (pp ctxt) check get_sort map_const map_free map_type
-      map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) ((#1 (TypeInfer.paramify_dummies T 0)));
+    val read = Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort
+      map_const map_free map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt)
+      ((#1 (TypeInfer.paramify_dummies T 0)));
   in read str end;
 
 
@@ -1042,7 +1034,7 @@ fun add_abbrev mode tags (c, raw_t) ctxt =
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
-      |> Consts.abbreviate (pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (c, t);
+      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (c, t);
   in
     ctxt
     |> map_consts (apsnd (K consts'))
