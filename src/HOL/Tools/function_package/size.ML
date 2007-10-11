@@ -25,16 +25,6 @@ structure SizeData = TheoryDataFun
   fun merge _ = Symtab.merge (K true);
 );
 
-fun specify_consts args thy =
-  let
-    val specs = map (fn (c, T, mx) =>
-      Const (Sign.full_name thy (Syntax.const_name c mx), T)) args;
-  in
-    thy
-    |> Sign.add_consts_authentic [] args
-    |> Theory.add_finals_i false specs
-  end;
-
 fun add_axioms label ts atts thy =
   thy
   |> PureThy.add_axiomss_i [((label, ts), atts)];
@@ -165,10 +155,9 @@ fun axiomatize_size_thms (info : datatype_info) head_len thy =
     val size_names = DatatypeProp.indexify_names
       (map (fn T => name_of_typ T ^ size_suffix) (Library.drop (head_len, recTs)));
 
-    val thy' = thy
-      |> specify_consts (map (fn (s, T) =>
-        (Sign.base_name s, T --> HOLogic.natT, NoSyn))
-          (size_names ~~ Library.drop (head_len, recTs)))
+    val thy' = thy |> fold (fn (s, T) =>
+        snd o Theory.specify_const [] (Sign.base_name s, T --> HOLogic.natT, NoSyn))
+      (size_names ~~ Library.drop (head_len, recTs))
     val size_axs = make_size head_len descr' sorts recTs thy';
   in
     thy'
