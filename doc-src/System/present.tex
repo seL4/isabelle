@@ -381,6 +381,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
   information (HTML etc.) according to settings.
 
   ISABELLE_USEDIR_OPTIONS=
+  HOL_USEDIR_OPTIONS=
 \end{ttbox}
 
 Note that the value of the \settdx{ISABELLE_USEDIR_OPTIONS} setting is
@@ -389,6 +390,10 @@ implicitly prefixed to \emph{any} \texttt{usedir} call. Since the
 invoke \texttt{usedir} for the real work, one may control compilation options
 globally via above variable. In particular, generation of \rmindex{HTML}
 browsing information and document preparation is controlled here.
+
+The \settdx{HOL_USEDIR_OPTIONS} setting is specific to the main
+Isabelle/HOL image; its value is appended to
+\verb,ISABELLE_USEDIR_OPTIONS, for that particular session only.
 
 
 \subsection*{Options}
