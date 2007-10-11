@@ -411,7 +411,7 @@ fun get_case_cert thy tyco =
       (#case_rewrites o DatatypePackage.the_datatype thy) tyco;
     val thms as hd_thm :: _ = raw_thms
       |> Conjunction.intr_balanced
-      |> Drule.unvarify
+      |> Thm.unvarify
       |> Conjunction.elim_balanced (length raw_thms)
       |> map Simpdata.mk_meta_eq
       |> map Drule.zero_var_indexes

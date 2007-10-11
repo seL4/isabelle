@@ -69,7 +69,7 @@ val C = read_prop "C";
 val ABC = read_prop "A ==> B ==> C";
 val A_B = read_prop "A && B";
 
-val conjunction_def = Drule.unvarify ProtoPure.conjunction_def;
+val conjunction_def = Thm.unvarify ProtoPure.conjunction_def;
 
 fun conjunctionD which =
   Drule.implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP

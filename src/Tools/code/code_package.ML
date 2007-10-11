@@ -157,7 +157,7 @@ fun generate_const_exprs thy raw_cs =
 
 fun mk_codeprops thy all_cs sel_cs =
   let
-    fun select (thmref, thm) = case try (Drule.unvarify o Drule.zero_var_indexes) thm
+    fun select (thmref, thm) = case try (Thm.unvarify o Drule.zero_var_indexes) thm
      of NONE => NONE
       | SOME thm => let
           val t = (ObjectLogic.drop_judgment thy o Thm.prop_of) thm;
