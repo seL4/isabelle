@@ -15,6 +15,7 @@ sig
   val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
     (term * (bstring * thm)) list * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
+  val export_cterm: Proof.context -> Proof.context -> cterm -> cterm * thm
   val trans_terms: Proof.context -> thm list -> thm
   val trans_props: Proof.context -> thm list -> thm
   val print_rules: Proof.context -> unit
@@ -100,9 +101,16 @@ fun add_defs defs ctxt =
   end;
 
 
-(* specific export -- result based on educated guessing (beware of closure sizes) *)
+(* specific export -- result based on educated guessing *)
 
-fun export inner outer =
+(*
+  [xs, xs == as]
+        :
+       B xs
+  --------------
+       B as
+*)
+fun export inner outer =    (*beware of closure sizes*)
   let
     val exp = Assumption.export false inner outer;
     val prems = Assumption.prems_of inner;
@@ -116,6 +124,17 @@ fun export inner outer =
         | NONE => true));
     in (map Drule.abs_def defs, th') end
   end;
+
+(*
+  [xs, xs == as]
+        :
+     TERM b xs
+  --------------  and  --------------
+     TERM b as          b xs == b as
+*)
+fun export_cterm inner outer ct =
+  let val (defs, ct') = export inner outer (Drule.mk_term ct) ||> Drule.dest_term
+  in (ct', MetaSimplifier.rewrite true defs ct) end;
 
 
 (* basic transitivity reasoning -- modulo beta-eta *)
