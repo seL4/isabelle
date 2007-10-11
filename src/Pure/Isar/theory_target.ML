@@ -16,6 +16,7 @@ end;
 structure TheoryTarget: THEORY_TARGET =
 struct
 
+
 (** locale targets **)
 
 (* context data *)
@@ -289,26 +290,18 @@ fun abbrev loc prmode ((raw_c, mx), raw_t) lthy =
 
 (* defs *)
 
-local
-
-fun expand_term ctxt t =
+fun local_def loc kind ((c, mx), ((name, atts), rhs)) lthy =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;
-    val ct = Thm.cterm_of thy t;
-    val (defs, ct') = LocalDefs.export ctxt thy_ctxt (Drule.mk_term ct) ||> Drule.dest_term;
-  in (Thm.term_of ct', MetaSimplifier.rewrite true defs ct) end;
 
-in
-
-fun local_def loc kind ((c, mx), ((name, atts), rhs)) lthy1 =
-  let
-    val (rhs', rhs_conv) = expand_term lthy1 rhs;
-    val xs = Variable.add_fixed (LocalTheory.target_of lthy1) rhs' [];
+    val (rhs', rhs_conv) =
+      LocalDefs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
+    val xs = Variable.add_fixed (LocalTheory.target_of lthy) rhs' [];
     val T = Term.fastype_of rhs;
 
     (*consts*)
-    val ([(lhs, lhs_def)], lthy2) = lthy1
+    val ([(lhs, lhs_def)], lthy2) = lthy
       |> declare_consts loc (member (op =) xs) [((c, T), mx)];
     val (_, lhs') = Logic.dest_equals (Thm.prop_of lhs_def);
 
@@ -326,22 +319,26 @@ fun local_def loc kind ((c, mx), ((name, atts), rhs)) lthy1 =
       |> local_notes loc kind [((name', atts), [([eq], [])])];
   in ((lhs, (res_name, res)), lthy4) end;
 
-end;
-
 
 (* axioms *)
 
-fun axioms loc kind specs lthy =
+fun local_axioms loc kind (vars, specs) lthy =
   let
     val hyps = map Thm.term_of (Assumption.assms_of lthy);
     fun axiom ((name, atts), props) thy = thy
       |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi name props)
       |-> (fn ths => pair ((name, atts), [(ths, [])]));
+
+    val spec_frees = member (op =) (fold (fold Term.add_frees o snd) specs []);
+    val (consts, lthy') = declare_consts loc spec_frees vars lthy;
+    val heads = map (Term.head_of o Thm.term_of o Thm.rhs_of o #2) consts;
   in
-    lthy
+    lthy'
+    |> LocalTheory.theory (Theory.add_finals_i false heads)
     |> fold (fold Variable.declare_term o snd) specs
     |> LocalTheory.theory_result (fold_map axiom specs)
     |-> local_notes loc kind
+    |>> pair (map #1 consts)
   end;
 
 
@@ -357,8 +354,7 @@ fun begin loc ctxt =
     |> fold Class.init (the_list (Class.class_of_locale thy loc))
     |> LocalTheory.init (NameSpace.base loc)
      {pretty = pretty loc,
-      consts = declare_consts loc,
-      axioms = axioms loc,
+      axioms = local_axioms loc,
       abbrev = abbrev loc,
       def = local_def loc,
       notes = local_notes loc,
