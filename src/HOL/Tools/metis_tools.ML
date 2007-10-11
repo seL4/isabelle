@@ -24,8 +24,7 @@ struct
   (* ------------------------------------------------------------------------- *)
   (* Useful Theorems                                                           *)
   (* ------------------------------------------------------------------------- *)
-  val EXCLUDED_MIDDLE' = read_instantiate [("R","False")] notE;
-  val EXCLUDED_MIDDLE  = rotate_prems 1 EXCLUDED_MIDDLE';
+  val EXCLUDED_MIDDLE  = rotate_prems 1 (read_instantiate [("R","False")] notE);
   val REFL_THM         = incr_indexes 2 (Meson.make_meta_clause refl);  (*Rename from 0,1*)
   val subst_em  = zero_var_indexes (subst RS EXCLUDED_MIDDLE);
   val ssubst_em  = read_instantiate [("t","?s"),("s","?t")] (sym RS subst_em);
@@ -278,7 +277,9 @@ fun infer_types ctxt =
 
   fun is_TrueI th = Thm.eq_thm(TrueI,th);
 
-fun inst_excluded_middle th thy i_atm =
+  fun cterm_incr_types thy idx = cterm_of thy o (map_types (Logic.incr_tvar idx));
+
+  fun inst_excluded_middle th thy i_atm =
     let val vx = hd (term_vars (prop_of th))
         val substs = [(cterm_of thy vx, cterm_of thy i_atm)]
     in  cterm_instantiate substs th  end;
@@ -319,7 +320,7 @@ fun inst_excluded_middle th thy i_atm =
         val substs = List.mapPartial remove_typeinst (Metis.Subst.toList fsubst)
         val (vars,rawtms) = ListPair.unzip (List.mapPartial subst_translation substs)
         val tms = infer_types ctxt rawtms;
-        val ctm_of = cterm_of thy o (map_types o Logic.incr_tvar) (1 + Thm.maxidx_of i_th)
+        val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
         val substs' = ListPair.zip (vars, map ctm_of tms)
         val _ = Output.debug (fn() => "subst_translations:")
         val _ = app (fn (x,y) => Output.debug (fn () => string_of_cterm x ^ " |-> " ^
@@ -366,11 +367,15 @@ fun inst_excluded_middle th thy i_atm =
     end;
 
   (* INFERENCE RULE: REFL *)
-  fun refl_inf ctxt lit =
+  val refl_x = cterm_of @{theory} (hd (term_vars (prop_of REFL_THM)));
+  val refl_idx = 1 + Thm.maxidx_of REFL_THM;
+  
+  fun refl_inf ctxt t =
     let val thy = ProofContext.theory_of ctxt
-        val v_x = hd (term_vars (prop_of REFL_THM))
-        val i_lit = singleton (fol_terms_to_hol ctxt) lit
-    in  cterm_instantiate [(cterm_of thy v_x, cterm_of thy i_lit)] REFL_THM  end;
+        val i_t = singleton (fol_terms_to_hol ctxt) t
+        val _ = Output.debug (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
+        val c_t = cterm_incr_types thy refl_idx i_t
+    in  cterm_instantiate [(refl_x, c_t)] REFL_THM  end;
 
   fun get_ty_arg_size thy (Const("op =",_)) = 0  (*equality has no type arguments*)
     | get_ty_arg_size thy (Const(c,_))      = (Recon.num_typargs thy c handle TYPE _ => 0)
