@@ -221,7 +221,7 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
       val ags = map (assume o cterm_of thy) gs
 
       val import = fold forall_elim cqs
-                   #> fold (flip implies_elim) ags
+                   #> fold Thm.elim_implies ags
 
       val export = fold_rev (implies_intr o cprop_of) ags
                    #> fold_rev forall_intr_rename (oqnames ~~ cqs)

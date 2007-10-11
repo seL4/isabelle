@@ -196,7 +196,7 @@ fun export_thm thy (fixes, assumes) =
 
 fun import_thm thy (fixes, athms) =
     fold (forall_elim o cterm_of thy o Free) fixes
- #> fold (flip implies_elim) athms
+ #> fold Thm.elim_implies athms
 
 fun assume_in_ctxt thy (fixes, athms) prop =
     let

@@ -202,7 +202,7 @@ fun insert_int_goal thy subg st =
 
       val t' = new_subg
                 |> fold forall_elim cps
-                |> flip implies_elim (fold forall_elim cps sg2)
+                |> Thm.elim_implies (fold forall_elim cps sg2)
                 |> fold_rev forall_intr cps
 
       val st' = implies_elim st t'

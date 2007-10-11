@@ -215,10 +215,10 @@ fun nsearch_table table = bfs_search_table [([], table)]
 (* prove row :: cell list -> tactic *)
 fun prove_row (Less less_thm :: _) =
     (rtac @{thm "mlex_less"} 1)
-    THEN PRIMITIVE (flip implies_elim less_thm)
+    THEN PRIMITIVE (Thm.elim_implies less_thm)
   | prove_row (LessEq (lesseq_thm, _) :: tail) =
     (rtac @{thm "mlex_leq"} 1)
-    THEN PRIMITIVE (flip implies_elim lesseq_thm)
+    THEN PRIMITIVE (Thm.elim_implies lesseq_thm)
     THEN prove_row tail
   | prove_row _ = sys_error "lexicographic_order"
 

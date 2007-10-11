@@ -204,15 +204,15 @@ fun mk_clause_info globals G f no cdata qglr tree RCs GIntro_thm RIntro_thms =
         val lGI = GIntro_thm
                     |> forall_elim (cert f)
                     |> fold forall_elim cqs
-                    |> fold (flip implies_elim) ags
+                    |> fold Thm.elim_implies ags
 
         fun mk_call_info (rcfix, rcassm, rcarg) RI =
             let
                 val llRI = RI
                              |> fold forall_elim cqs
                              |> fold (forall_elim o cert o Free) rcfix
-                             |> fold (flip implies_elim) ags
-                             |> fold (flip implies_elim) rcassm
+                             |> fold Thm.elim_implies ags
+                             |> fold Thm.elim_implies rcassm
 
                 val h_assum =
                     HOLogic.mk_Trueprop (G $ rcarg $ (h $ rcarg))
@@ -271,9 +271,9 @@ fun get_compat_thm thy cts i j ctxi ctxj =
          in
            compat         (* "!!qj qi. Gsj => Gsi => lhsj = lhsi ==> rhsj = rhsi" *)
                 |> fold forall_elim (cqsj @ cqsi) (* "Gsj => Gsi => lhsj = lhsi ==> rhsj = rhsi" *)
-                |> fold (flip implies_elim) agsj
-                |> fold (flip implies_elim) agsi
-                |> flip implies_elim ((assume lhsi_eq_lhsj) RS sym) (* "Gsj, Gsi, lhsi = lhsj |-- rhsj = rhsi" *)
+                |> fold Thm.elim_implies agsj
+                |> fold Thm.elim_implies agsi
+                |> Thm.elim_implies ((assume lhsi_eq_lhsj) RS sym) (* "Gsj, Gsi, lhsi = lhsj |-- rhsj = rhsi" *)
          end
        else
          let
@@ -281,9 +281,9 @@ fun get_compat_thm thy cts i j ctxi ctxj =
          in
                compat        (* "!!qi qj. Gsi => Gsj => lhsi = lhsj ==> rhsi = rhsj" *)
                  |> fold forall_elim (cqsi @ cqsj) (* "Gsi => Gsj => lhsi = lhsj ==> rhsi = rhsj" *)
-                 |> fold (flip implies_elim) agsi
-                 |> fold (flip implies_elim) agsj
-                 |> flip implies_elim (assume lhsi_eq_lhsj)
+                 |> fold Thm.elim_implies agsi
+                 |> fold Thm.elim_implies agsj
+                 |> Thm.elim_implies (assume lhsi_eq_lhsj)
                  |> (fn thm => thm RS sym) (* "Gsi, Gsj, lhsi = lhsj |-- rhsj = rhsi" *)
          end
     end
@@ -331,8 +331,8 @@ fun mk_uniqueness_clause thy globals f compat_store clausei clausej RLj =
 
         val RLj_import = 
             RLj |> fold forall_elim cqsj'
-                |> fold (flip implies_elim) agsj'
-                |> fold (flip implies_elim) Ghsj'
+                |> fold Thm.elim_implies agsj'
+                |> fold Thm.elim_implies Ghsj'
 
         val y_eq_rhsj'h = assume (cterm_of thy (HOLogic.mk_Trueprop (mk_eq (y, rhsj'h))))
         val lhsi_eq_lhsj' = assume (cterm_of thy (HOLogic.mk_Trueprop (mk_eq (lhsi, lhsj')))) (* lhs_i = lhs_j' |-- lhs_i = lhs_j' *)
@@ -373,8 +373,8 @@ fun mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_cases compat_store c
                            |> forall_elim (cterm_of thy lhs)
                            |> forall_elim (cterm_of thy y)
                            |> forall_elim P
-                           |> flip implies_elim G_lhs_y
-                           |> fold (flip implies_elim) unique_clauses
+                           |> Thm.elim_implies G_lhs_y
+                           |> fold Thm.elim_implies unique_clauses
                            |> implies_intr (cprop_of G_lhs_y)
                            |> forall_intr (cterm_of thy y)
 
@@ -612,7 +612,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
           
     fun mk_Prec (RCInfo {llRI, RIvs, CCas, rcarg, ...}) =
         sih |> forall_elim (cterm_of thy rcarg)
-            |> flip implies_elim llRI
+            |> Thm.elim_implies llRI
             |> fold_rev (implies_intr o cprop_of) CCas
             |> fold_rev (forall_intr o cterm_of thy o Free) RIvs
         
@@ -627,9 +627,9 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
          
     val P_lhs = assume step
            |> fold forall_elim cqs
-           |> flip implies_elim lhs_D 
-           |> fold (flip implies_elim) ags
-           |> fold (flip implies_elim) P_recs
+           |> Thm.elim_implies lhs_D 
+           |> fold Thm.elim_implies ags
+           |> fold Thm.elim_implies P_recs
           
     val res = cterm_of thy (HOLogic.mk_Trueprop (P $ x))
            |> Simplifier.rewrite replace_x_ss
@@ -728,9 +728,9 @@ fun mk_nest_term_case thy globals R' ihyp clause =
                       
             val thm = assume hyp
                       |> fold forall_elim cqs
-                      |> fold (flip implies_elim) ags
+                      |> fold Thm.elim_implies ags
                       |> FundefCtxTree.import_thm thy (fixes, assumes) (*  "(arg, lhs) : R'"  *)
-                      |> fold (flip implies_elim) used
+                      |> fold Thm.elim_implies used
                       
             val acc = thm COMP ih_case
                       
