@@ -83,7 +83,9 @@ if getenv "ZCHAFF_HOME" <> "" then
   time_use_thy "Sudoku"
 else ();
 
+(*
 time_use_thy "Refute_Examples";
+*)
 time_use_thy "Quickcheck_Examples";
 no_document time_use_thy "NormalForm";
 
