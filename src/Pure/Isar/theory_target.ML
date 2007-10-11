@@ -174,7 +174,7 @@ fun target_abbrev prmode ((c, mx), rhs) phi =
     eq_heads ? (Context.mapping_result
       (Sign.add_abbrev Syntax.internalM [] arg') (ProofContext.add_abbrev Syntax.internalM [] arg')
     #-> (fn (lhs, _) =>
-      Term.equiv_types (rhs, rhs') ?
+      Type.similar_types (rhs, rhs') ?
         Morphism.form (ProofContext.target_notation true prmode [(lhs, mx)])))
   end;
 
@@ -299,19 +299,6 @@ fun expand_term ctxt t =
     val (defs, ct') = LocalDefs.export ctxt thy_ctxt (Drule.mk_term ct) ||> Drule.dest_term;
   in (Thm.term_of ct', MetaSimplifier.rewrite true defs ct) end;
 
-fun add_def (name, prop) thy =
-  let
-    val tfrees = rev (map TFree (Term.add_tfrees prop []));
-    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
-    val strip_sorts = tfrees ~~ tfrees';
-    val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
-
-    val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
-    val thy' = Theory.add_defs_i false false [(name, prop')] thy;
-    val axm' = Thm.get_axiom_i thy' (Sign.full_name thy' name);
-    val def = Thm.instantiate (recover_sorts, []) axm';
-  in (Drule.unvarify def, thy') end;
-
 in
 
 fun local_def loc kind ((c, mx), ((name, atts), rhs)) lthy1 =
@@ -328,7 +315,7 @@ fun local_def loc kind ((c, mx), ((name, atts), rhs)) lthy1 =
     (*def*)
     val name' = Thm.def_name_optional c name;
     val (def, lthy3) = lthy2
-      |> LocalTheory.theory_result (add_def (name', Logic.mk_equals (lhs', rhs')));
+      |> LocalTheory.theory_result (Thm.add_def false (name', Logic.mk_equals (lhs', rhs')));
     val eq = LocalDefs.trans_terms lthy3
       [(*c == loc.c xs*) lhs_def,
        (*lhs' == rhs'*)  def,
@@ -344,24 +331,11 @@ end;
 
 (* axioms *)
 
-local
-
-fun add_axiom hyps (name, prop) thy =
-  let
-    val name' = if name = "" then "axiom_" ^ serial_string () else name;
-    val prop' = Logic.list_implies (hyps, prop);
-    val thy' = thy |> Theory.add_axioms_i [(name', prop')];
-    val axm = Drule.unvarify (Thm.get_axiom_i thy' (Sign.full_name thy' name'));
-    val prems = map (Thm.assume o Thm.cterm_of thy') hyps;
-  in (Drule.implies_elim_list axm prems, thy') end;
-
-in
-
 fun axioms loc kind specs lthy =
   let
     val hyps = map Thm.term_of (Assumption.assms_of lthy);
     fun axiom ((name, atts), props) thy = thy
-      |> fold_map (add_axiom hyps) (PureThy.name_multi name props)
+      |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi name props)
       |-> (fn ths => pair ((name, atts), [(ths, [])]));
   in
     lthy
@@ -369,8 +343,6 @@ fun axioms loc kind specs lthy =
     |> LocalTheory.theory_result (fold_map axiom specs)
     |-> local_notes loc kind
   end;
-
-end;
 
 
 (* init and exit *)
