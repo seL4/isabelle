@@ -324,14 +324,14 @@ fun local_def loc kind ((c, mx), ((name, atts), rhs)) lthy =
 
 fun local_axioms loc kind (vars, specs) lthy =
   let
-    val hyps = map Thm.term_of (Assumption.assms_of lthy);
-    fun axiom ((name, atts), props) thy = thy
-      |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi name props)
-      |-> (fn ths => pair ((name, atts), [(ths, [])]));
-
     val spec_frees = member (op =) (fold (fold Term.add_frees o snd) specs []);
     val (consts, lthy') = declare_consts loc spec_frees vars lthy;
     val heads = map (Term.head_of o Thm.term_of o Thm.rhs_of o #2) consts;
+
+    val hyps = map Thm.term_of (Assumption.assms_of lthy');
+    fun axiom ((name, atts), props) thy = thy
+      |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi name props)
+      |-> (fn ths => pair ((name, atts), [(ths, [])]));
   in
     lthy'
     |> LocalTheory.theory (Theory.add_finals_i false heads)
