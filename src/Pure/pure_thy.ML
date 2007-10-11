@@ -71,7 +71,7 @@ sig
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
-  val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory 
+  val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
   val note_thmss: string -> ((bstring * attribute list) *
     (thmref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_i: string -> ((bstring * attribute list) *
@@ -84,8 +84,6 @@ sig
     theory -> thm list list * theory
   val add_axiomss_i: ((bstring * term list) * attribute list) list ->
     theory -> thm list list * theory
-  val simple_def: bstring * attribute list ->
-    ((bstring * typ * mixfix) * term list) * term -> theory -> (string * thm) * theory
   val add_defs: bool -> ((bstring * string) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_i: bool -> ((bstring * term) * attribute list) list ->
@@ -486,21 +484,6 @@ in
   val add_defs_unchecked   = add_singles o Theory.add_defs true;
   val add_defs_unchecked_i = add_singles o Theory.add_defs_i true;
 end;
-
-
-(* simple interface for simple definitions *)
-
-fun simple_def (raw_name, atts) (((raw_c, ty, syn), ts), t) thy =
-  let
-    val c = Sign.full_name thy raw_c;
-    val name = if raw_name = "" then Thm.def_name raw_c else raw_name;
-    val def = Logic.mk_equals (list_comb (Const (c, ty), ts), t);
-  in
-    thy
-    |> Sign.add_consts_authentic [] [(raw_c, ty, syn)]
-    |> add_defs_i false [((name, def), atts)]
-    |-> (fn [thm] => pair (c, thm))
-  end;
 
 
 
