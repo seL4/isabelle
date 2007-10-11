@@ -8,7 +8,6 @@ toplevel polymorphism.
 
 signature SPECIFICATION =
 sig
-  val quiet_mode: bool ref
   val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
   val check_specification: (string * typ option * mixfix) list ->
     ((string * Attrib.src list) * term list) list list -> Proof.context ->
@@ -48,10 +47,12 @@ sig
     -> local_theory -> (bstring * thm list) list * local_theory
   val theorems_cmd: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
     -> local_theory -> (bstring * thm list) list * local_theory
-  val theorem: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
+  val theorem: string -> Method.text option ->
+    (thm list list -> local_theory -> local_theory) ->
     string * Attrib.src list -> Element.context_i Locale.element list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
-  val theorem_cmd: string -> Method.text option -> (thm list list -> local_theory -> local_theory) ->
+  val theorem_cmd: string -> Method.text option ->
+    (thm list list -> local_theory -> local_theory) ->
     string * Attrib.src list -> Element.context Locale.element list -> Element.statement ->
     bool -> local_theory -> Proof.state
   val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic
@@ -63,16 +64,8 @@ struct
 
 (* diagnostics *)
 
-val quiet_mode = ref false;
-
 fun print_consts _ _ [] = ()
-  | print_consts ctxt pred cs =
-      if ! quiet_mode then () else Pretty.writeln (ProofDisplay.pretty_consts ctxt pred cs);
-
-fun present_results ctxt res =
-  if ! quiet_mode then () else ProofDisplay.present_results ctxt res;
-
-fun present_results' ctxt kind res = present_results ctxt ((kind, ""), res);
+  | print_consts ctxt pred cs = Pretty.writeln (ProofDisplay.pretty_consts ctxt pred cs);
 
 
 (* prepare specification *)
@@ -150,22 +143,11 @@ end;
 
 fun gen_axioms prep raw_vars raw_specs lthy =
   let
-    val (vars, specs) = fst (prep raw_vars [raw_specs] lthy);
-    val cs = map fst vars;
-    val spec_frees = member (op =) ((fold (fold Term.add_frees o snd) specs []));
-
-    val ((constants, axioms), lthy') = lthy
-      |> LocalTheory.consts spec_frees vars
-      ||>> LocalTheory.axioms Thm.axiomK specs;
-    val consts = map #1 constants;
+    val ((vars, specs), _) = prep raw_vars [raw_specs] lthy;
+    val ((consts, axioms), lthy') = LocalTheory.axioms Thm.axiomK (vars, specs) lthy;
     val consts' = map (Morphism.term (LocalTheory.target_morphism lthy')) consts;
-
-    (* FIXME generic target!? *)
-    val hs = map (Term.head_of o #2 o Logic.dest_equals o Thm.prop_of o #2) constants;
-    val lthy'' = lthy' |> LocalTheory.theory (Theory.add_finals_i false hs);
-
-    val _ = print_consts lthy' (member (op =) (fold Term.add_frees consts' [])) cs;
-  in ((consts, axioms), lthy'') end;
+    val _ = print_consts lthy' (member (op =) (fold Term.add_frees consts' [])) (map fst vars);
+  in ((consts, axioms), lthy') end;
 
 val axiomatization = gen_axioms check_specification;
 val axiomatization_cmd = gen_axioms read_specification;
@@ -208,7 +190,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
       if x = y then mx
       else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
     val lthy' = lthy
-      |> ProofContext.set_syntax_mode mode    (* FIXME !? *)
+      |> ProofContext.set_syntax_mode mode    (* FIXME ?!? *)
       |> LocalTheory.abbrev mode ((x, mx), rhs) |> snd
       |> ProofContext.restore_syntax_mode lthy;
 
@@ -237,7 +219,7 @@ fun gen_theorems prep_thms prep_att kind raw_facts lthy =
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_thms lthy b, map attrib more_atts))));
     val (res, lthy') = lthy |> LocalTheory.notes kind facts;
-    val _ = present_results' lthy' kind res;
+    val _ = ProofDisplay.present_results lthy' ((kind, ""), res);
   in (res, lthy') end;
 
 val theorems = gen_theorems (K I) (K I);
@@ -335,7 +317,7 @@ fun gen_theorem prep_att prep_stmt
         lthy
         |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
-          (present_results lthy' ((kind, name), res);
+          (ProofDisplay.present_results lthy' ((kind, name), res);
             if name = "" andalso null atts then lthy'
             else #2 (LocalTheory.notes kind [((name, atts), [(maps #2 res, [])])] lthy')))
         |> after_qed results'
