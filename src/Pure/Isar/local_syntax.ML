@@ -69,7 +69,7 @@ fun build_syntax thy mode mixfixes (idents as (structs, _)) =
       |> fold const_gram (AList.coalesce (op =) (rev (map snd mixfixes)));
   in make_syntax (thy_syntax, local_syntax, mode, mixfixes, idents) end;
 
-fun init thy = build_syntax thy Syntax.default_mode [] ([], []);
+fun init thy = build_syntax thy Syntax.mode_default [] ([], []);
 
 fun rebuild thy (syntax as Syntax {mode, mixfixes, idents, ...}) =
   if is_consistent thy syntax then syntax

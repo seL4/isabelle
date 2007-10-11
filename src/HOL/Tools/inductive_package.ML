@@ -829,7 +829,7 @@ fun gen_add_inductive_i mk_def (flags as {verbose, kind, alt_name, coind, no_eli
   in
     ctxt
     |> mk_def flags cs intros monos params cnames_syn''
-    ||> fold (snd oo LocalTheory.abbrev Syntax.default_mode) abbrevs''
+    ||> fold (snd oo LocalTheory.abbrev Syntax.mode_default) abbrevs''
   end;
 
 fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos lthy =
