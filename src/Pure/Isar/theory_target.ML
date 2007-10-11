@@ -195,10 +195,10 @@ fun declare_consts loc depends decls lthy =
     fun const ((c, T), mx) thy =
       let
         val U = map #2 xs ---> T;
-        val t = Term.list_comb (Const (Sign.full_name thy c, U), map Free xs);
         val (mx1, mx2) = Class.fork_mixfix is_loc some_class mx;
         val mx3 = if is_loc then NoSyn else mx1;
-        val thy' = Sign.add_consts_authentic (ContextPosition.properties_of lthy) [(c, U, mx3)] thy;
+        val (const, thy') = Sign.declare_const (ContextPosition.properties_of lthy) (c, U, mx3) thy;
+        val t = Term.list_comb (const, map Free xs);
       in (((c, mx2), t), thy') end;
     fun const_class (SOME class) ((c, _), mx) (_, t) =
           LocalTheory.raw_theory_result (Class.add_const_in_class class ((c, t), mx))
@@ -227,7 +227,7 @@ fun declare_consts loc depends decls lthy =
   in
     lthy'
     |> fold2 (const_class some_class) decls abbrs
-    |> is_loc ? fold (internal_abbrev loc Syntax.default_mode) abbrs
+    |> is_loc ? fold (internal_abbrev loc Syntax.mode_default) abbrs
     |> LocalTheory.raw_theory (hide_abbrev some_class abbrs)
         (*FIXME abbreviations should never occur*)
     |> LocalDefs.add_defs defs

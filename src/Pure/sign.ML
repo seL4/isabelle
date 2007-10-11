@@ -156,8 +156,7 @@ sig
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
-  val add_consts_authentic: Markup.property list ->
-    (bstring * typ * mixfix) list -> theory -> theory
+  val declare_const: Markup.property list -> (bstring * typ * mixfix) -> theory -> term * theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_abbrev: string -> Markup.property list ->
     bstring * term -> theory -> (term * term) * theory
@@ -657,8 +656,8 @@ fun gen_add_syntax x = gen_syntax Syntax.extend_const_gram x;
 
 val add_modesyntax = gen_add_syntax Syntax.parse_typ;
 val add_modesyntax_i = gen_add_syntax (K I);
-val add_syntax = add_modesyntax Syntax.default_mode;
-val add_syntax_i = add_modesyntax_i Syntax.default_mode;
+val add_syntax = add_modesyntax Syntax.mode_default;
+val add_syntax_i = add_modesyntax_i Syntax.mode_default;
 val del_modesyntax = gen_syntax Syntax.remove_const_gram Syntax.parse_typ;
 val del_modesyntax_i = gen_syntax Syntax.remove_const_gram (K I);
 
@@ -675,26 +674,30 @@ local
 
 fun gen_add_consts prep_typ authentic tags raw_args thy =
   let
-    val prepT = Compress.typ thy o Logic.varifyT o Type.no_tvars o Term.no_dummyT o prep_typ thy;
+    val prepT = Type.no_tvars o Term.no_dummyT o prep_typ thy;
     fun prep (raw_c, raw_T, raw_mx) =
       let
         val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
-        val c' = if authentic then Syntax.constN ^ full_name thy c else c;
+        val full_c = full_name thy c;
+        val c' = if authentic then Syntax.constN ^ full_c else c;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote c);
-      in ((c, T), (c', T, mx)) end;
+        val T' = Compress.typ thy (Logic.varifyT T);
+      in ((c, T'), (c', T', mx), Const (full_c, T)) end;
     val args = map prep raw_args;
   in
     thy
     |> map_consts (fold (Consts.declare authentic (naming_of thy) tags o #1) args)
     |> add_syntax_i (map #2 args)
+    |> pair (map #3 args)
   end;
 
 in
 
-val add_consts = gen_add_consts read_typ false [];
-val add_consts_i = gen_add_consts certify_typ false [];
-val add_consts_authentic = gen_add_consts certify_typ true;
+val add_consts = snd oo gen_add_consts read_typ false [];
+val add_consts_i = snd oo gen_add_consts certify_typ false [];
+
+fun declare_const tags arg = gen_add_consts certify_typ true tags [arg] #>> the_single;
 
 end;
 

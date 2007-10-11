@@ -77,12 +77,11 @@ fun declare_skofuns s th thy =
                 val argsx = map (fn T => Free(gensym"vsk", T)) extraTs
                 val args = argsx @ args0
                 val cT = extraTs ---> Ts ---> T
-                val c = Const (Sign.full_name thy cname, cT)
                 val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
                         (*Forms a lambda-abstraction over the formal parameters*)
                 val _ = Output.debug (fn () => "declaring the constant " ^ cname)
-                val thy' =
-                  Sign.add_consts_authentic [Markup.property_internal] [(cname, cT, NoSyn)] thy
+                val (c, thy') =
+                  Sign.declare_const [Markup.property_internal] (cname, cT, NoSyn) thy
                            (*Theory is augmented with the constant, then its def*)
                 val cdef = cname ^ "_def"
                 val thy'' = Theory.add_defs_i true false [(cdef, equals cT $ c $ rhs)] thy'
