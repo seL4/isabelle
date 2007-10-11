@@ -21,10 +21,9 @@ sig
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val affirm: local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
-  val consts: (string * typ -> bool) ->
-    ((bstring * typ) * mixfix) list -> local_theory -> (term * thm) list * local_theory
-  val axioms: string -> ((bstring * Attrib.src list) * term list) list -> local_theory ->
-    (bstring * thm list) list * local_theory
+  val axioms: string ->
+    ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
+    -> (term list * (bstring * thm list) list) * local_theory
   val abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory ->
     (term * term) * local_theory
   val def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
@@ -55,10 +54,9 @@ struct
 
 type operations =
  {pretty: local_theory -> Pretty.T list,
-  consts: (string * typ -> bool) -> ((bstring * typ) * mixfix) list -> local_theory ->
-    (term * thm) list * local_theory,
-  axioms: string -> ((bstring * Attrib.src list) * term list) list -> local_theory ->
-    (bstring * thm list) list * local_theory,
+  axioms: string ->
+    ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
+    -> (term list * (bstring * thm list) list) * local_theory,
   abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> (term * term) * local_theory,
   def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
     local_theory -> (term * (bstring * thm)) * local_theory,
@@ -151,7 +149,6 @@ fun operation1 f x = operation (fn ops => f ops x);
 fun operation2 f x y = operation (fn ops => f ops x y);
 
 val pretty = operation #pretty;
-val consts = operation2 #consts;
 val axioms = operation2 #axioms;
 val abbrev = operation2 #abbrev;
 val def = operation2 #def;

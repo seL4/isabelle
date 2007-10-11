@@ -47,7 +47,6 @@ fun gen_begin_instantiation prep_arity raw_arities thy =
     val thy_target = TheoryTarget.begin "" ctxt;
     val operations = {
         pretty = LocalTheory.pretty,
-        consts = LocalTheory.consts,
         axioms = LocalTheory.axioms,
         abbrev = LocalTheory.abbrev,
         def = LocalTheory.def,
