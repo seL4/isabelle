@@ -179,9 +179,11 @@ fun add_inst_def (class, tyco) (c, ty) thy =
   in
     thy
     |> Sign.sticky_prefix name_inst
-    |> PureThy.simple_def ("", [])
-         (((c_inst_base, ty, Syntax.NoSyn), []), Const (c, ty))
-    |-> (fn (c_inst, thm) => add_inst (c, tyco) (c_inst, symmetric thm))
+    |> Sign.declare_const [] (c_inst_base, ty, Syntax.NoSyn)
+    |-> (fn const as Const (c_inst, _) =>
+      PureThy.add_defs_i false
+        [((Thm.def_name c_inst_base, Logic.mk_equals (const, Const (c, ty))), [])]
+      #-> (fn [thm] => add_inst (c, tyco) (c_inst, Thm.symmetric thm)))
     |> Sign.restore_naming thy
   end;
 
@@ -245,7 +247,7 @@ fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed the
       end;
     fun get_consts_class tyco ty class =
       let
-        val cs = (these o Option.map snd o try (AxClass.params_of_class theory)) class;
+        val cs = (these o try (#params o AxClass.get_info theory)) class;
         val subst_ty = map_type_tfree (K ty);
       in
         map (fn (c, ty) => (c, ((class, tyco), subst_ty ty))) cs
@@ -615,14 +617,6 @@ fun init class ctxt =
 
 local
 
-fun read_param thy raw_t =  (* FIXME ProofContext.read_const (!?) *)
-  let
-    val t = Syntax.read_term_global thy raw_t
-  in case try dest_Const t
-   of SOME (c, _) => c
-    | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
-  end;
-
 fun gen_class_spec prep_class prep_expr process_expr thy raw_supclasses raw_includes_elems =
   let
     val supclasses = map (prep_class thy) raw_supclasses;
@@ -652,12 +646,38 @@ fun gen_class_spec prep_class prep_expr process_expr thy raw_supclasses raw_incl
 val read_class_spec = gen_class_spec Sign.intern_class Locale.intern_expr Locale.read_expr;
 val check_class_spec = gen_class_spec (K I) (K I) Locale.cert_expr;
 
+
+fun define_class_params (name, raw_superclasses) raw_consts raw_dep_axioms other_consts thy =
+  let
+    val superclasses = map (Sign.certify_class thy) raw_superclasses;
+    val consts = (map o apfst o apsnd) (Sign.certify_typ thy) raw_consts;
+    fun add_const ((c, ty), syn) = Sign.declare_const [] (c, ty, syn) #>> Term.dest_Const;
+    fun mk_axioms cs thy =
+      raw_dep_axioms thy cs
+      |> (map o apsnd o map) (Sign.cert_prop thy)
+      |> rpair thy;
+    fun add_constraint class (c, ty) =
+      Sign.add_const_constraint (c, SOME
+        (Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty));
+  in
+    thy
+    |> Sign.add_path (Logic.const_of_class name)
+    |> fold_map add_const consts
+    ||> Sign.restore_naming thy
+    |-> (fn cs => mk_axioms cs
+    #-> (fn axioms_prop => AxClass.define_class (name, superclasses)
+           (map fst cs @ other_consts) axioms_prop
+    #-> (fn class => `(fn thy => AxClass.get_info thy class)
+    #-> (fn {axioms, ...} => fold (add_constraint class) cs
+    #> pair (class, (cs, axioms))))))
+  end;
+
 fun gen_class prep_spec prep_param local_syntax bname
     raw_supclasses raw_includes_elems raw_other_consts thy =
   let
     val (((sups, supconsts), (supsort, local_sort, mergeexpr)), elems) =
       prep_spec thy raw_supclasses raw_includes_elems;
-    val other_consts = map (prep_param thy) raw_other_consts;
+    val other_consts = map (tap (Sign.the_const_type thy) o prep_param thy) raw_other_consts;
     fun mk_instT class = Symtab.empty
       |> Symtab.update (Name.aT, TFree (Name.aT, [class]));
     fun mk_inst class param_names cs =
@@ -701,7 +721,7 @@ fun gen_class prep_spec prep_param local_syntax bname
     |-> (fn name_locale => ProofContext.theory_result (
       `(fn thy => extract_params thy name_locale)
       #-> (fn (globals, params) =>
-        AxClass.define_class_params (bname, supsort) params
+        define_class_params (bname, supsort) params
           (extract_assumes name_locale params) other_consts
       #-> (fn (name_axclass, (consts, axioms)) =>
         `(fn thy => class_intro thy name_locale name_axclass sups)
@@ -718,7 +738,7 @@ fun gen_class prep_spec prep_param local_syntax bname
 
 in
 
-val class_cmd = gen_class read_class_spec read_param;
+val class_cmd = gen_class read_class_spec ((#1 o Term.dest_Const) oo Sign.read_const);
 val class = gen_class check_class_spec (K I);
 
 end; (*local*)
@@ -773,7 +793,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
   in
     thy
     |> Sign.add_path prfx
-    |> Sign.add_consts_authentic [] [(c, ty', syn')]
+    |> Sign.declare_const [] (c, ty', syn') |> snd
     |> Sign.parent_path
     |> Sign.sticky_prefix prfx
     |> PureThy.add_defs_i false [(def, [])]
