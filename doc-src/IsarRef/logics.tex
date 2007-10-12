@@ -953,7 +953,7 @@ of code theorems, \emph{translation} into an abstract executable view
 and \emph{serialization} to a specific \emph{target language}.
 See \cite{isabelle-codegen} for an introduction on how to use it.
 
-\indexisarcmd{code-gen}
+\indexisarcmd{export-code}
 \indexisarcmd{code-thms}
 \indexisarcmd{code-deps}
 \indexisarcmd{code-datatype}
@@ -963,9 +963,9 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
 \indexisarcmd{code-instance}
 \indexisarcmd{code-monad}
 \indexisarcmd{code-reserved}
+\indexisarcmd{code-include}
 \indexisarcmd{code-modulename}
-\indexisarcmd{code-moduleprolog}
-\indexisarcmd{code-abstype}
+\indexisarcmd{code-exception}
 \indexisarcmd{print-codesetup}
 \indexisaratt{code func}
 \indexisaratt{code inline}
@@ -981,9 +981,9 @@ See \cite{isabelle-codegen} for an introduction on how to use it.
   \isarcmd{code_instance} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_monad} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_reserved} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_include} & : & \isartrans{theory}{theory} \\
   \isarcmd{code_modulename} & : & \isartrans{theory}{theory} \\
-  \isarcmd{code_moduleprolog} & : & \isartrans{theory}{theory} \\
-  \isarcmd{code_abstype} & : & \isartrans{theory}{theory} \\
+  \isarcmd{code_exception} & : & \isartrans{theory}{theory} \\
   \isarcmd{print_codesetup}^* & : & \isarkeep{theory~|~proof} \\
   code\ func & : & \isaratt \\
   code\ inline & : & \isaratt \\
@@ -1024,15 +1024,15 @@ target : 'OCaml' | 'SML' | 'Haskell';
 'code\_instance' (( typeconstructor '::' class ) + 'and') \\
   ( ( '(' target ( '-' ? + 'and' ) ')' ) + );
 
-'code\_monad' term term term;
+'code\_monad' const const target;
 
 'code\_reserved' target ( string + );
 
+'code\_include' target ( string ( string | '-') );
+
 'code\_modulename' target ( ( string string ) + );
 
-'code\_moduleprolog' target ( ( string ( string | '-') ) + );
-
-'code\_abstype' typ typ 'where' ( const ( '==' | equiv ) const + );
+'code\_exception' ( const + );
 
 syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
 
@@ -1102,20 +1102,21 @@ syntax : string | ( 'infix' | 'infixl' | 'infixr' ) nat string;
   Applies only to \emph{Haskell}.
 
 \item [$\isarcmd{code_monad}$] provides an auxiliary mechanism
-  to generate monad code in \emph{Haskell}.
+  to generate monadic code.
 
 \item [$\isarcmd{code_reserved}$] declares a list of names
   as reserved for a given target, preventing it to be shadowed
   by any generated code.
 
+\item [$\isarcmd{code_include}$] adds arbitrary named content (''include``)
+  to generated code. A as last argument ``-'' will remove an already added ''include``.
+
 \item [$\isarcmd{code_modulename}$] declares aliasings from one module name
   onto another.
 
-\item [$\isarcmd{code_moduleprolog}$] adds an arbitrary content (''prolog``)
-  to a specified module. A ``-'' will remove an already given prolog.
-
-\item [$\isarcmd{code_abstype}$] offers an interface for implementing
-  an abstract type plus operations by executable counterparts.
+\item [$\isarcmd{code_exception}$] declares constants which are not required
+  to have a definition by a defining equations; these are mapped on exceptions
+  instead.
 
 \item [$code\ func$] selects (or with option ''del``, deselects) explicitly
   a defining equation for code generation.  Usually packages introducing
