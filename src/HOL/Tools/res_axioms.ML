@@ -10,7 +10,6 @@ sig
   val cnf_axiom: thm -> thm list
   val pairname: thm -> string * thm
   val multi_base_blacklist: string list 
-  val skolem_thm: thm -> thm list
   val cnf_rules_pairs: (string * thm) list -> (thm * (string * int)) list
   val cnf_rules_of_ths: thm list -> thm list
   val neg_clausify: thm list -> thm list
@@ -154,12 +153,6 @@ fun strip_lambdas 0 th = th
               strip_lambdas (n-1) (freeze_thm (th RS xfun_cong x))
         | _ => th;
 
-fun assert_eta_free ct =
-  let val t = term_of ct
-  in if (t aconv Envir.eta_contract t) then ()
-     else error ("Eta redex in term: " ^ string_of_cterm ct)
-  end;
-
 val lambda_free = not o Term.has_abs;
 
 val monomorphic = not o Term.exists_type (Term.exists_subtype Term.is_TVar);
@@ -224,8 +217,7 @@ fun combinators_aux ct =
   else
   case term_of ct of
       Abs _ =>
-	let val _ = assert_eta_free ct;
-	    val (cv,cta) = Thm.dest_abs NONE ct
+	let val (cv,cta) = Thm.dest_abs NONE ct
 	    val (v,Tv) = (dest_Free o term_of) cv
 	    val _ = Output.debug (fn()=>"  recursion: " ^ string_of_cterm cta);
 	    val u_th = combinators_aux cta
@@ -307,6 +299,30 @@ fun assert_lambda_free ths msg =
       [] => ()
     | ths' => error (msg ^ "\n" ^ cat_lines (map string_of_thm ths'));
 
+
+(*** Blacklisting (duplicated in ResAtp? ***)
+
+val max_lambda_nesting = 3;
+     
+fun excessive_lambdas (f$t, k) = excessive_lambdas (f,k) orelse excessive_lambdas (t,k)
+  | excessive_lambdas (Abs(_,_,t), k) = k=0 orelse excessive_lambdas (t,k-1)
+  | excessive_lambdas _ = false;
+
+fun is_formula_type T = (T = HOLogic.boolT orelse T = propT);
+
+(*Don't count nested lambdas at the level of formulas, as they are quantifiers*)
+fun excessive_lambdas_fm Ts (Abs(_,T,t)) = excessive_lambdas_fm (T::Ts) t
+  | excessive_lambdas_fm Ts t =
+      if is_formula_type (fastype_of1 (Ts, t))
+      then exists (excessive_lambdas_fm Ts) (#2 (strip_comb t))
+      else excessive_lambdas (t, max_lambda_nesting);
+
+fun too_complex t = 
+  Meson.too_many_clauses t orelse excessive_lambdas_fm [] t;
+  
+val multi_base_blacklist =
+  ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
+
 (*Keep the full complexity of the original name*)
 fun flatten_name s = space_implode "_X" (NameSpace.explode s);
 
@@ -317,14 +333,6 @@ fun fake_name th =
 fun name_or_string th =
   if PureThy.has_name_hint th then PureThy.get_name_hint th
   else string_of_thm th;
-
-(*Skolemize a named theorem, with Skolem functions as additional premises.*)
-fun skolem_thm th =
-  let val ctxt0 = Variable.thm_context th
-      val (nnfth,ctxt1) = to_nnf th ctxt0 and s = fake_name th
-      val (cnfs,ctxt2) = Meson.make_cnf (assume_skolem_of_def s nnfth) nnfth ctxt1
-  in  cnfs |> map combinators |> Variable.export ctxt2 ctxt0 |> Meson.finish_cnf  end
-  handle THM _ => [];
 
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)
@@ -371,13 +379,24 @@ fun skolem_cache_thm th thy =
                   (cls, ThmCache.map (Thmtab.update (th,cls)) thy')))
     | SOME cls => (cls,thy);
 
+(*Skolemize a named theorem, with Skolem functions as additional premises.*)
+fun skolem_thm (s,th) =
+  if (Sign.base_name s) mem_string multi_base_blacklist orelse 
+     PureThy.is_internal th orelse too_complex (prop_of th) then []
+  else 
+      let val ctxt0 = Variable.thm_context th
+	  val (nnfth,ctxt1) = to_nnf th ctxt0
+	  val (cnfs,ctxt2) = Meson.make_cnf (assume_skolem_of_def s nnfth) nnfth ctxt1
+      in  cnfs |> map combinators |> Variable.export ctxt2 ctxt0 |> Meson.finish_cnf  end
+      handle THM _ => [];
+
 (*Exported function to convert Isabelle theorems into axiom clauses*)
 fun cnf_axiom th =
   let val thy = Theory.merge (Theory.deref atp_linkup_thy_ref, Thm.theory_of_thm th)
   in
       case Thmtab.lookup (ThmCache.get thy) th of
           NONE => (Output.debug (fn () => "cnf_axiom: " ^ name_or_string th);
-                   map Goal.close_result (skolem_thm th))
+                   map Goal.close_result (skolem_thm (fake_name th, th)))
         | SOME cls => cls
   end;
 
@@ -411,12 +430,6 @@ fun atpset_rules_of ctxt = map pairname (ResAtpset.get ctxt);
 
 (**** Translate a set of theorems into CNF ****)
 
-(* classical rules: works for both FOL and HOL *)
-fun cnf_rules [] err_list = ([],err_list)
-  | cnf_rules ((name,th) :: ths) err_list =
-      let val (ts,es) = cnf_rules ths err_list
-      in  (cnf_axiom th :: ts,es) handle  _ => (ts, (th::es))  end;
-
 fun pair_name_cls k (n, []) = []
   | pair_name_cls k (n, cls::clss) = (cls, (n,k)) :: pair_name_cls (k+1) (n, clss)
 
@@ -435,27 +448,6 @@ fun cnf_rules_pairs l = cnf_rules_pairs_aux [] (rev l);
 (*Setup function: takes a theory and installs ALL known theorems into the clause cache*)
 
 val mark_skolemized = Sign.add_consts_i [("ResAxioms_endtheory", HOLogic.boolT, NoSyn)];
-
-val max_lambda_nesting = 3;
-     
-fun excessive_lambdas (f$t, k) = excessive_lambdas (f,k) orelse excessive_lambdas (t,k)
-  | excessive_lambdas (Abs(_,_,t), k) = k=0 orelse excessive_lambdas (t,k-1)
-  | excessive_lambdas _ = false;
-
-fun is_formula_type T = (T = HOLogic.boolT orelse T = propT);
-
-(*Don't count nested lambdas at the level of formulas, as they are quantifiers*)
-fun excessive_lambdas_fm Ts (Abs(_,T,t)) = excessive_lambdas_fm (T::Ts) t
-  | excessive_lambdas_fm Ts t =
-      if is_formula_type (fastype_of1 (Ts, t))
-      then exists (excessive_lambdas_fm Ts) (#2 (strip_comb t))
-      else excessive_lambdas (t, max_lambda_nesting);
-
-fun too_complex t = 
-  Meson.too_many_clauses t orelse excessive_lambdas_fm [] t;
-  
-val multi_base_blacklist =
-  ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
 
 fun skolem_cache th thy =
   if PureThy.is_internal th orelse too_complex (prop_of th) then thy
