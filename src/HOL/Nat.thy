@@ -49,29 +49,17 @@ proof
   show "Zero_Rep : Nat" by (rule Nat.Zero_RepI)
 qed
 
-text {* Abstract constants and syntax *}
-
 consts
   Suc :: "nat => nat"
 
 local
 
+instance nat :: zero
+  Zero_nat_def: "0 == Abs_Nat Zero_Rep" ..
+lemmas [code func del] = Zero_nat_def
+
 defs
   Suc_def:      "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
-
-definition
-  pred_nat :: "(nat * nat) set" where
-  "pred_nat = {(m, n). n = Suc m}"
-
-instance nat :: "{ord, zero, one}"
-  Zero_nat_def: "0 == Abs_Nat Zero_Rep"
-  One_nat_def [simp]: "1 == Suc 0"
-  less_def: "m < n == (m, n) : pred_nat^+"
-  le_def:   "m \<le> (n::nat) == ~ (n < m)" ..
-
-lemmas [code func del] = Zero_nat_def less_def le_def
-
-text {* Induction *}
 
 theorem nat_induct: "P 0 ==> (!!n. P n ==> P (Suc n)) ==> P n"
   apply (unfold Zero_nat_def Suc_def)
@@ -80,8 +68,6 @@ theorem nat_induct: "P 0 ==> (!!n. P n ==> P (Suc n)) ==> P n"
   apply (iprover elim: Abs_Nat_inverse [THEN subst])
   done
 
-text {* Distinctness of constructors *}
-
 lemma Suc_not_Zero [iff]: "Suc m \<noteq> 0"
   by (simp add: Zero_nat_def Suc_def Abs_Nat_inject Rep_Nat Suc_RepI Zero_RepI
                 Suc_Rep_not_Zero_Rep)
@@ -89,35 +75,12 @@ lemma Suc_not_Zero [iff]: "Suc m \<noteq> 0"
 lemma Zero_not_Suc [iff]: "0 \<noteq> Suc m"
   by (rule not_sym, rule Suc_not_Zero not_sym)
 
-lemma Suc_neq_Zero: "Suc m = 0 ==> R"
-  by (rule notE, rule Suc_not_Zero)
-
-lemma Zero_neq_Suc: "0 = Suc m ==> R"
-  by (rule Suc_neq_Zero, erule sym)
-
-text {* Injectiveness of @{term Suc} *}
-
 lemma inj_Suc[simp]: "inj_on Suc N"
   by (simp add: Suc_def inj_on_def Abs_Nat_inject Rep_Nat Suc_RepI
                 inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject)
 
-lemma Suc_inject: "Suc x = Suc y ==> x = y"
-  by (rule inj_Suc [THEN injD])
-
 lemma Suc_Suc_eq [iff]: "(Suc m = Suc n) = (m = n)"
   by (rule inj_Suc [THEN inj_eq])
-
-lemma nat_not_singleton: "(\<forall>x. x = (0::nat)) = False"
-  by auto
-
-text {* size of a datatype value *}
-
-use "Tools/function_package/size.ML"
-
-class size = type +
-  fixes size :: "'a \<Rightarrow> nat"
-
-setup Size.setup
 
 rep_datatype nat
   distinct  Suc_not_Zero Zero_not_Suc
@@ -133,11 +96,27 @@ lemmas nat_rec_0 = nat.recs(1)
 lemmas nat_case_0 = nat.cases(1)
   and nat_case_Suc = nat.cases(2)
 
+
+text {* Injectiveness and distinctness lemmas *}
+
+lemma Suc_neq_Zero: "Suc m = 0 ==> R"
+  by (rule notE, rule Suc_not_Zero)
+
+lemma Zero_neq_Suc: "0 = Suc m ==> R"
+  by (rule Suc_neq_Zero, erule sym)
+
+lemma Suc_inject: "Suc x = Suc y ==> x = y"
+  by (rule inj_Suc [THEN injD])
+
+lemma nat_not_singleton: "(\<forall>x. x = (0::nat)) = False"
+  by auto
+
 lemma n_not_Suc_n: "n \<noteq> Suc n"
   by (induct n) simp_all
 
 lemma Suc_n_not_n: "Suc t \<noteq> t"
   by (rule not_sym, rule n_not_Suc_n)
+
 
 text {* A special form of induction for reasoning
   about @{term "m < n"} and @{term "m - n"} *}
@@ -151,7 +130,36 @@ theorem diff_induct: "(!!x. P x 0) ==> (!!y. P 0 (Suc y)) ==>
   apply (induct_tac x, iprover+)
   done
 
-subsection {* Basic properties of "less than" *}
+
+subsection {* Arithmetic operators *}
+
+instance nat :: "{one, plus, minus, times}"
+  One_nat_def [simp]: "1 == Suc 0" ..
+
+primrec
+  add_0:    "0 + n = n"
+  add_Suc:  "Suc m + n = Suc (m + n)"
+
+primrec
+  diff_0:   "m - 0 = m"
+  diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
+
+primrec
+  mult_0:   "0 * n = 0"
+  mult_Suc: "Suc m * n = n + (m * n)"
+
+
+subsection {* Orders on @{typ nat} *}
+
+definition
+  pred_nat :: "(nat * nat) set" where
+  "pred_nat = {(m, n). n = Suc m}"
+
+instance nat :: ord
+  less_def: "m < n == (m, n) : pred_nat^+"
+  le_def:   "m \<le> (n::nat) == ~ (n < m)" ..
+
+lemmas [code func del] = less_def le_def
 
 lemma wf_pred_nat: "wf pred_nat"
   apply (unfold wf_def pred_nat_def, clarify)
@@ -338,7 +346,7 @@ lemma nat_less_induct:
 lemmas less_induct = nat_less_induct [rule_format, case_names less]
 
 
-subsection {* Properties of "less than or equal" *}
+text {* Properties of "less than or equal" *}
 
 text {* Was @{text le_eq_less_Suc}, but this orientation is more useful *}
 lemma less_Suc_eq_le: "(m < Suc n) = (m \<le> n)"
@@ -439,7 +447,7 @@ lemma nat_le_linear: "(m::nat) \<le> n | n \<le> m"
   apply (simp add: le_eq_less_or_eq)
   using less_linear by blast
 
-text {* Type {@typ nat} is a wellfounded linear order *}
+text {* Type @{typ nat} is a wellfounded linear order *}
 
 instance nat :: wellorder
   by intro_classes
@@ -474,28 +482,6 @@ lemma zero_reorient: "(0 = x) = (x = 0)"
 
 lemma one_reorient: "(1 = x) = (x = 1)"
   by auto
-
-
-subsection {* Arithmetic operators *}
-
-class power = type +
-  fixes power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"            (infixr "\<^loc>^" 80)
-
-text {* arithmetic operators @{text "+ -"} and @{text "*"} *}
-
-instance nat :: "{plus, minus, times}" ..
-
-primrec
-  add_0:    "0 + n = n"
-  add_Suc:  "Suc m + n = Suc (m + n)"
-
-primrec
-  diff_0:   "m - 0 = m"
-  diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
-
-primrec
-  mult_0:   "0 * n = 0"
-  mult_Suc: "Suc m * n = n + (m * n)"
 
 text {* These two rules ease the use of primitive recursion.
 NOTE USE OF @{text "=="} *}
@@ -1121,6 +1107,24 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   done
 
 
+subsection {* size of a datatype value *}
+
+class size = type +
+  fixes size :: "'a \<Rightarrow> nat"
+
+use "Tools/function_package/size.ML"
+
+setup Size.setup
+
+lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
+  by (induct n) simp_all
+
+lemma size_bool [code func]:
+  "size (b\<Colon>bool) = 0" by (cases b) auto
+
+declare "*.size" [noatp]
+
+
 subsection {* Code generator setup *}
 
 lemma one_is_Suc_zero [code inline]: "1 = Suc 0"
@@ -1466,21 +1470,13 @@ lemma of_nat_eq_id [simp]: "of_nat = (id :: nat => nat)"
 by (auto simp add: expand_fun_eq)
 
 
+text {* the lattice order on @{typ nat} *}
+
 instance nat :: distrib_lattice
   "inf \<equiv> min"
   "sup \<equiv> max"
-by intro_classes (auto simp add: inf_nat_def sup_nat_def)
-
-
-subsection {* Size function declarations *}
-
-lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
-  by (induct n) simp_all
-
-lemma size_bool [code func]:
-  "size (b\<Colon>bool) = 0" by (cases b) auto
-
-declare "*.size" [noatp]
+  by intro_classes
+    (simp_all add: inf_nat_def sup_nat_def)
 
 
 subsection {* legacy bindings *}
