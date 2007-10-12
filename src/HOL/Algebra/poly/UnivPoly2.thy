@@ -82,6 +82,7 @@ instance up :: (one) one ..
 instance up :: (plus) plus ..
 instance up :: (minus) minus ..
 instance up :: (times) times ..
+instance up :: (Divides.div) Divides.div ..
 instance up :: (inverse) inverse ..
 instance up :: (power) power ..
 
@@ -96,7 +97,7 @@ defs
                 (* note: - 1 is different from -1; latter is of class number *)
 
   up_minus_def:   "(a::'a::{plus, minus} up) - b == a + (-b)"
-  up_inverse_def: "inverse (a::'a::{zero, one, times, inverse} up) == 
+  up_inverse_def: "inverse (a::'a::{zero, one, Divides.div, inverse} up) == 
                      (if a dvd 1 then THE x. a*x = 1 else 0)"
   up_divide_def:  "(a::'a::{times, inverse} up) / b == a * inverse b"
   up_power_def:   "(a::'a::{one, times, power} up) ^ n ==

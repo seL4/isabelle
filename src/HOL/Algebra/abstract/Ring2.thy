@@ -15,15 +15,15 @@ section {* Constants *}
 text {* Most constants are already declared by HOL. *}
 
 consts
-  assoc         :: "['a::times, 'a] => bool"              (infixl "assoc" 50)
-  irred         :: "'a::{zero, one, times} => bool"
-  prime         :: "'a::{zero, one, times} => bool"
+  assoc         :: "['a::Divides.div, 'a] => bool"              (infixl "assoc" 50)
+  irred         :: "'a::{zero, one, Divides.div} => bool"
+  prime         :: "'a::{zero, one, Divides.div} => bool"
 
 section {* Axioms *}
 
 subsection {* Ring axioms *}
 
-axclass ring < zero, one, plus, minus, times, inverse, power
+axclass ring < zero, one, plus, minus, times, inverse, power, Divides.div
 
   a_assoc:      "(a + b) + c = a + (b + c)"
   l_zero:       "0 + a = a"

@@ -11,9 +11,7 @@ imports Power
 uses "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
 
-(*We use the same class for div and mod;
-  moreover, dvd is defined whenever multiplication is*)
-class div = type +
+class div = times +
   fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>div" 70)
   fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>mod" 70)
 
@@ -23,12 +21,12 @@ instance nat :: Divides.div
   mod_def: "m mod n == wfrec (pred_nat^+)
                           (%f j. if j<n | n=0 then j else f (j-n)) m" ..
 
-definition (in times)
+definition (in div)
   dvd  :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<^loc>dvd" 50)
 where
   [code func del]: "m \<^loc>dvd n \<longleftrightarrow> (\<exists>k. n = m \<^loc>* k)"
 
-class dvd_mod = times + div + zero + -- {* for code generation *}
+class dvd_mod = div + zero + -- {* for code generation *}
   assumes dvd_def_mod [code func]: "x \<^loc>dvd y \<longleftrightarrow> y \<^loc>mod x = \<^loc>0"
 
 definition
@@ -903,7 +901,7 @@ lemma mod_divmod [code]: "m mod n = snd (divmod m n)"
   unfolding divmod_def by simp
 
 instance nat :: dvd_mod
-  by default (simp add: times_class.dvd [symmetric] dvd_eq_mod_eq_0)
+  by default (simp add: dvd_eq_mod_eq_0)
 
 code_modulename SML
   Divides Nat

@@ -535,6 +535,9 @@ default; use '!' option for full details.
 
 *** HOL ***
 
+* class "div" now inherits from class "times" rather than "type".
+INCOMPATIBILITY.
+
 * New "auto_quickcheck" feature tests outermost goal statements for
 potential counter-examples.  Controlled by ML references
 auto_quickcheck (default true) and auto_quickcheck_time_limit (default
@@ -574,12 +577,12 @@ numerals on all operations.
 * Library/Numeral_Type: numbers as types, e.g. TYPE(32).
 
 * Code generator library theories:
-  - Pretty_Int represents HOL integers by big integer literals in target
+  - Code_Integer represents HOL integers by big integer literals in target
     languages.
-  - Pretty_Char represents HOL characters by character literals in target
+  - Code_Char represents HOL characters by character literals in target
     languages.
-  - Pretty_Char_chr like Pretty_Char, but also offers treatment of character
-    codes; includes Pretty_Int.
+  - Code_Char_chr like Code_Char, but also offers treatment of character
+    codes; includes Code_Integer.
   - Executable_Set allows to generate code for finite sets using lists.
   - Executable_Rat implements rational numbers as triples (sign, enumerator,
     denominator).
@@ -587,12 +590,11 @@ numerals on all operations.
     representable by rational numbers.
   - Efficient_Nat implements natural numbers by integers, which in general will
     result in higher efficency; pattern matching with 0/Suc is eliminated;
-    includes Pretty_Int.
-  - ML_String provides an additional datatype ml_string; in the HOL default
-    setup, strings in HOL are mapped to lists of HOL characters in SML; values
-    of type ml_string are mapped to strings in SML.
-  - ML_Int provides an additional datatype ml_int which is mapped to to SML
-    built-in integers.
+    includes Code_Integer.
+  - Code_Index provides an additional datatype index which is mapped to
+    target-language built-in integers.
+  - Code_Message provides an additional datatype message_string} which is isomorphic to
+    strings; messages are mapped to target-language strings.
 
 * New package for inductive predicates
 
@@ -786,12 +788,6 @@ positive/negative (in inequations).
 have been improved and renamed to ring_simps, group_simps and
 ring_distribs.  Removed lemmas field_xyz in theory Ring_and_Field
 because they were subsumed by lemmas xyz.  INCOMPATIBILITY.
-
-* Library/Pretty_Int.thy: maps HOL numerals on target language integer
-literals when generating code.
-
-* Library/Pretty_Char.thy: maps HOL characters on target language
-character literals when generating code.
 
 * Library/Commutative_Ring.thy: switched from recdef to function
 package; constants add, mul, pow now curried.  Infix syntax for
