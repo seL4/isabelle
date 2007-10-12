@@ -109,15 +109,8 @@ apply (drule_tac x = n and P="%k. k<Suc m --> difg k 0 = 0" in spec)
 apply (rule DERIV_unique)
 prefer 2 apply assumption
 apply force
-apply (subgoal_tac "\<forall>ta. 0 \<le> ta & ta \<le> t --> (difg (Suc n)) differentiable ta")
-apply (simp add: differentiable_def)
-apply (blast dest!: DERIV_isCont)
-apply (simp add: differentiable_def, clarify)
-apply (rule_tac x = "difg (Suc (Suc n)) ta" in exI)
-apply force
-apply (simp add: differentiable_def, clarify)
-apply (rule_tac x = "difg (Suc (Suc n)) x" in exI)
-apply force
+apply (metis DERIV_isCont dlo_simps(4) dlo_simps(9) less_trans_Suc nat_less_le not_less_eq real_le_trans)
+apply (metis Suc_less_eq differentiableI dlo_simps(7) dlo_simps(8) dlo_simps(9)   real_le_trans xt1(8))
 done
 
 lemma Maclaurin:
@@ -183,15 +176,8 @@ prefer 2 apply blast
 apply force
 apply (rule allI, induct_tac "ma")
 apply (rule impI, rule Rolle, assumption, simp, simp)
-apply (subgoal_tac "\<forall>t. 0 \<le> t & t \<le> h --> g differentiable t")
-apply (simp add: differentiable_def)
-apply (blast dest: DERIV_isCont)
-apply (simp add: differentiable_def, clarify)
-apply (rule_tac x = "difg (Suc 0) t" in exI)
-apply force
-apply (simp add: differentiable_def, clarify)
-apply (rule_tac x = "difg (Suc 0) x" in exI)
-apply force
+apply (metis DERIV_isCont zero_less_Suc)
+apply (metis One_nat_def differentiableI dlo_simps(7))
 apply safe
 apply force
 apply (frule Maclaurin_lemma3, assumption+, safe)
