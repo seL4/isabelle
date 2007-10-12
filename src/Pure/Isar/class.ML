@@ -7,7 +7,7 @@ Type classes derived from primitive axclasses and locales.
 
 signature CLASS =
 sig
-  val fork_mixfix: bool -> string option -> mixfix -> mixfix * mixfix
+  val fork_mixfix: bool -> bool -> mixfix -> mixfix * mixfix
 
   val axclass_cmd: bstring * xstring list
     -> ((bstring * Attrib.src list) * string list) list
@@ -55,12 +55,12 @@ struct
 
 (** auxiliary **)
 
-fun fork_mixfix is_loc some_class mx =
+fun fork_mixfix is_locale is_class mx =
   let
     val mx' = Syntax.unlocalize_mixfix mx;
-    val mx_global = if not is_loc orelse (is_some some_class andalso not (mx = mx'))
+    val mx_global = if not is_locale orelse (is_class andalso not (mx = mx'))
       then mx' else NoSyn;
-    val mx_local = if is_loc then mx else NoSyn;
+    val mx_local = if is_locale then mx else NoSyn;
   in (mx_global, mx_local) end;
 
 fun prove_interpretation tac prfx_atts expr inst =
@@ -718,7 +718,7 @@ fun gen_class prep_spec prep_param bname
       in
         (map fst params, params
         |> (map o apfst o apsnd o Term.map_type_tfree) (K (TFree (Name.aT, local_sort)))
-        |> (map o apsnd) (fork_mixfix true (SOME "") #> fst)
+        |> (map o apsnd) (fork_mixfix true true #> fst)
         |> chop (length supconsts)
         |> snd)
       end;
@@ -802,7 +802,7 @@ fun add_const_in_class class ((c, rhs), syn) thy =
     val ty'' = subst_typ ty';
     val c' = mk_name c;
     val def = (c, Logic.mk_equals (Const (c', ty'), rhs'));
-    val (syn', _) = fork_mixfix true (SOME class) syn;
+    val (syn', _) = fork_mixfix true true syn;
     fun interpret def thy =
       let
         val def' = symmetric def;
