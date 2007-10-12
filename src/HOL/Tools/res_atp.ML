@@ -577,7 +577,7 @@ fun type_consts_of_terms thy ts =
 
 fun cnf_hyps_thms ctxt =
     let val ths = Assumption.prems_of ctxt
-    in fold (fold (insert Thm.eq_thm) o ResAxioms.skolem_thm) ths [] end;
+    in fold (fold (insert Thm.eq_thm) o ResAxioms.cnf_axiom) ths [] end;
 
 (*Translation mode can be auto-detected, or forced to be first-order or higher-order*)
 datatype mode = Auto | Fol | Hol;
