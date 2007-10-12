@@ -75,11 +75,11 @@
       <OPERATOR>code_datatype</OPERATOR>
       <LABEL>code_deps</LABEL>
       <OPERATOR>code_exception</OPERATOR>
+      <OPERATOR>code_include</OPERATOR>
       <OPERATOR>code_instance</OPERATOR>
       <OPERATOR>code_library</OPERATOR>
       <OPERATOR>code_module</OPERATOR>
       <OPERATOR>code_modulename</OPERATOR>
-      <OPERATOR>code_moduleprolog</OPERATOR>
       <OPERATOR>code_monad</OPERATOR>
       <OPERATOR>code_props</OPERATOR>
       <OPERATOR>code_reserved</OPERATOR>
