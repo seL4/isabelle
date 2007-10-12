@@ -38,7 +38,7 @@ fun gen_begin_instantiation prep_arity raw_arities thy =
       ((param ^ "_" ^ NameSpace.base tyco, map_atyps (K ty_subst) ty),
         Class.unoverload_const thy (c, ty));
     fun get_params ((tyco, vs), sort) =
-      Class.params_of_sort thy sort
+      Class.these_params thy sort
       |> map (get_param tyco (Type (tyco, map TFree vs)));
     val params = maps get_params arities;
     val ctxt =

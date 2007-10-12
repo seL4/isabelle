@@ -2104,7 +2104,7 @@ fun prep_instantiations parse_term parse_prop ctxt parms (insts, eqns) =
     (* infer types *)
     val res = Syntax.check_terms ctxt
       (map Logic.mk_type type_parms @
-       map (uncurry TypeInfer.constrain) (given_parm_types ~~ given_insts') @
+       map2 TypeInfer.constrain given_parm_types given_insts' @
        eqns');
     val ctxt' = ctxt |> fold Variable.auto_fixes res;
 

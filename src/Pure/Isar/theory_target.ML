@@ -203,7 +203,7 @@ fun declare_consts loc depends decls lthy =
       in (((c, mx2), t), thy') end;
     fun const_class (SOME class) ((c, _), mx) (_, t) =
           LocalTheory.raw_theory_result (Class.add_const_in_class class ((c, t), mx))
-          #-> Class.remove_constraint [class]
+          #-> Class.remove_constraint class
       | const_class NONE _ _ = I;
     fun hide_abbrev (SOME class) abbrs thy =
           let
@@ -274,7 +274,7 @@ fun abbrev loc prmode ((raw_c, mx), raw_t) lthy =
     val mx3 = if is_loc then NoSyn else mx1;
     fun add_abbrev_in_class (SOME class) abbr =
           LocalTheory.raw_theory_result (Class.add_abbrev_in_class class prmode abbr)
-          #-> (fn c => Class.remove_constraint [class] c)
+          #-> Class.remove_constraint class
       | add_abbrev_in_class NONE _ = I;
   in
     lthy
