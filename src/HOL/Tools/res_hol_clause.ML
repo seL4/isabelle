@@ -152,7 +152,7 @@ fun combterm_of thy (Const(c,t)) =
   | combterm_of thy (t as Abs _) = raise RC.CLAUSE("HOL CLAUSE",t);
 
 fun predicate_of thy ((Const("Not",_) $ P), polarity) = predicate_of thy (P, not polarity)
-  | predicate_of thy (t,polarity) = (combterm_of thy t, polarity);
+  | predicate_of thy (t,polarity) = (combterm_of thy (Envir.eta_contract t), polarity);
 
 fun literals_of_term1 thy args (Const("Trueprop",_) $ P) = literals_of_term1 thy args P
   | literals_of_term1 thy args (Const("op |",_) $ P $ Q) =
