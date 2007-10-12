@@ -23,7 +23,7 @@ val _ = OuterSyntax.keywords
   "advanced", "and", "assumes", "attach", "begin", "binder", "concl",
   "constrains", "defines", "fixes", "for", "identifier", "if",
   "imports", "in", "includes", "infix", "infixl", "infixr", "is",
-  "local_syntax", "notes", "obtains", "open", "output", "overloaded", "shows",
+  "notes", "obtains", "open", "output", "overloaded", "shows",
   "structure", "unchecked", "uses", "where", "|"];
 
 
@@ -434,11 +434,10 @@ val _ =
   OuterSyntax.command "class" "define type class" K.thy_decl
    (P.name --
      Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") [] --  (* FIXME ?? *)
-     Scan.optional (P.$$$ "(" |-- (P.$$$ "local_syntax" >> K true) --| P.$$$ ")") false --  (* FIXME ?? *)
      (P.$$$ "=" |-- class_val) -- P.opt_begin
-    >> (fn ((((name, add_consts), local_syntax), (supclasses, elems)), begin) =>
+    >> (fn (((name, add_consts), (supclasses, elems)), begin) =>
         (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-          (Class.class_cmd false name supclasses elems add_consts #-> TheoryTarget.begin)));
+          (Class.class_cmd name supclasses elems add_consts #-> TheoryTarget.begin)));
 
 val _ =
   OuterSyntax.command "subclass" "prove a subclass relation" K.thy_goal
