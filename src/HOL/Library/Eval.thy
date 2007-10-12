@@ -146,9 +146,9 @@ instance int :: term_of
   "term_of k \<equiv> STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k" ..
 
 
-text {* Adaption for @{typ ml_string}s *}
+text {* Adaption for @{typ message_string}s *}
 
-lemmas [code func, code func del] = term_of_ml_string_def
+lemmas [code func, code func del] = term_of_message_string_def
 
 
 subsection {* Evaluation infrastructure *}

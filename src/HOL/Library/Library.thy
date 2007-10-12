@@ -8,6 +8,8 @@ imports
   Binomial
   Boolean_Algebra
   Char_ord
+  Code_Index
+  Code_Message
   Coinductive_List
   Commutative_Ring
   Continuity
@@ -18,7 +20,6 @@ imports
   FuncSet
   GCD
   Infinite_Set
-  ML_String
   Multiset
   NatPair
   Nat_Infinity
@@ -27,8 +28,8 @@ imports
   OptionalSugar
   Parity
   Permutation
-  Pretty_Char_chr
-  Pretty_Int
+  Code_Integer
+  Code_Char_chr
   Primes
   Quicksort
   Quotient

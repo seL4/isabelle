@@ -5,7 +5,7 @@
 header {* Quatifier elimination for R(0,1,+,floor,<) *}
 
 theory MIR
-  imports Real GCD Pretty_Int
+  imports Real GCD Code_Integer
   uses ("mireif.ML") ("mirtac.ML")
   begin
 

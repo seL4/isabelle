@@ -462,25 +462,25 @@ text {*
 
   \begin{description}
 
-    \item[@{text "Pretty_Int"}] represents @{text HOL} integers by big
+    \item[@{text "Code_Integer"}] represents @{text HOL} integers by big
        integer literals in target languages.
-    \item[@{text "Pretty_Char"}] represents @{text HOL} characters by 
+    \item[@{text "Code_Char"}] represents @{text HOL} characters by 
        character literals in target languages.
-    \item[@{text "Pretty_Char_chr"}] like @{text "Pretty_Char"},
+    \item[@{text "Code_Char_chr"}] like @{text "Code_Char"},
        but also offers treatment of character codes; includes
-       @{text "Pretty_Int"}.
-    \item[@{text "Executable_Rat"}] implements rational
-       numbers.
-    \item[@{text "Executable_Real"}] implements a subset of real numbers,
-       namly those representable by rational numbers.
+       @{text "Code_Integer"}.
     \item[@{text "Efficient_Nat"}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with @{const "0\<Colon>nat"} / @{const "Suc"}
-       is eliminated;  includes @{text "Pretty_Int"}.
-    \item[@{text "ML_String"}] provides an additional datatype @{text "mlstring"};
-       in the @{text HOL} default setup, strings in HOL are mapped to list
-       of @{text HOL} characters in SML; values of type @{text "mlstring"} are
-       mapped to strings in SML.
+       is eliminated;  includes @{text "Code_Integer"}.
+    \item[@{text "Code_Index"}] provides an additional datatype
+       @{text index} which is mapped to target-language built-in integers.
+       Useful for code setups which involve e.g. indexing of
+       target-language arrays.
+    \item[@{text "Code_Message"}] provides an additional datatype
+       @{text message_string} which is isomorphic to strings;
+       @{text message_string}s are mapped to target-language strings.
+       Useful for code setups which involve e.g. printing (error) messages.
 
   \end{description}
 

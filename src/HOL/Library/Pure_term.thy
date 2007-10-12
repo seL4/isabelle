@@ -6,17 +6,17 @@
 header {* Embedding (a subset of) the Pure term algebra in HOL *}
 
 theory Pure_term
-imports ML_String
+imports Code_Message
 begin
 
 subsection {* Definitions *}
 
-types vname = ml_string;
-types "class" = ml_string;
+types vname = message_string;
+types "class" = message_string;
 types sort = "class list"
 
 datatype "typ" =
-    Type ml_string "typ list" (infix "{\<struct>}" 120)
+    Type message_string "typ list" (infix "{\<struct>}" 120)
   | TFix vname sort (infix "\<Colon>\<epsilon>" 117)
 
 abbreviation
@@ -27,7 +27,7 @@ abbreviation
   "tys {\<rightarrow>} ty \<equiv> foldr (op \<rightarrow>) tys ty"
 
 datatype "term" =
-    Const ml_string "typ" (infix "\<Colon>\<subseteq>" 112)
+    Const message_string "typ" (infix "\<Colon>\<subseteq>" 112)
   | Fix   vname "typ" (infix ":\<epsilon>" 112)
   | App   "term" "term" (infixl "\<bullet>" 110)
   | Abs   "vname \<times> typ" "term" (infixr "\<mapsto>" 111)
@@ -47,16 +47,16 @@ ML {*
 structure Pure_term =
 struct
 
-val mk_sort = HOLogic.mk_list @{typ class} o map ML_String.mk;
+val mk_sort = HOLogic.mk_list @{typ class} o map Message_String.mk;
 
 fun mk_typ f (Type (tyco, tys)) =
-      @{term Type} $ ML_String.mk tyco
+      @{term Type} $ Message_String.mk tyco
         $ HOLogic.mk_list @{typ typ} (map (mk_typ f) tys)
   | mk_typ f (TFree v) =
       f v;
 
 fun mk_term f g (Const (c, ty)) =
-      @{term Const} $ ML_String.mk c $ g ty
+      @{term Const} $ Message_String.mk c $ g ty
   | mk_term f g (t1 $ t2) =
       @{term App} $ mk_term f g t1 $ mk_term f g t2
   | mk_term f g (Free v) = f v;

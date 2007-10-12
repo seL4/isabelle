@@ -10,7 +10,7 @@ no_document use_thys [
   "Classpackage",
   "Eval",
   "State_Monad",
-  "Pretty_Int",
+  "Code_Integer",
   "Efficient_Nat",
   "Codegenerator",
   "Codegenerator_Pretty",

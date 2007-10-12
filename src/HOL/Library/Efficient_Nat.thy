@@ -6,7 +6,7 @@
 header {* Implementation of natural numbers by integers *}
 
 theory Efficient_Nat
-imports Main Pretty_Int
+imports Main Code_Integer
 begin
 
 text {*
@@ -165,13 +165,13 @@ proof -
   then show ?thesis unfolding int_aux_def int_of_nat_def by auto
 qed
 
-lemma ml_int_of_nat_code [code func, code inline]:
-  "ml_int_of_nat n = ml_int_of_int (int_of_nat n)"
-  unfolding ml_int_of_nat_def int_of_nat_def by simp
+lemma index_of_nat_code [code func, code inline]:
+  "index_of_nat n = index_of_int (int_of_nat n)"
+  unfolding index_of_nat_def int_of_nat_def by simp
 
-lemma nat_of_mlt_int_code [code func, code inline]:
-  "nat_of_ml_int k = nat (int_of_ml_int k)"
-  unfolding nat_of_ml_int_def by simp
+lemma nat_of_index_code [code func, code inline]:
+  "nat_of_index k = nat (int_of_index k)"
+  unfolding nat_of_index_def by simp
 
 
 subsection {* Code generator setup for basic functions *}
