@@ -31,6 +31,7 @@ sig
   val get_parents: string -> string list
   val pretty_theory: theory -> Pretty.T
   val touch_child_thys: string -> unit
+  val provide_file: Path.T -> string -> unit
   val load_file: bool -> Path.T -> unit
   val use: string -> unit
   val time_use: string -> unit
@@ -243,7 +244,7 @@ fun is_outdated name =
     SOME (SOME {update_time, ...}) => update_time < 0
   | _ => false);
 
-fun check_unfinished name =
+fun unfinished name =
   if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); NONE)
   else SOME name;
 
@@ -256,7 +257,7 @@ fun outdate_thy name =
     make_deps ~1 master text parents files)); perform Outdate name));
 
 fun touch_thys names =
-  List.app outdate_thy (thy_graph Graph.all_succs (map_filter check_unfinished names));
+  List.app outdate_thy (thy_graph Graph.all_succs (map_filter unfinished names));
 
 fun touch_thy name = touch_thys [name];
 fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
@@ -286,6 +287,16 @@ fun run_file path =
       | NONE => (ThyLoad.load_ml Path.current path; ())));
 
 in
+
+fun provide_file path name =
+  let
+    val deps = get_deps name;
+    val _ = check_unfinished error name;
+  in
+    (case ThyLoad.check_file (master_dir' deps) path of
+      SOME path_info => change_deps name (provide path name path_info)
+    | NONE => error ("Could not find file " ^ quote (Path.implode path)))
+  end;
 
 fun load_file time path =
   if time then
