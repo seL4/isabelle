@@ -195,7 +195,7 @@ end;
 
 fun instance consts (c, Ts) =
   let
-    val declT = the_declaration consts c;
+    val ({ T = declT, ... }, _) = the_const consts c;
     val vars = map Term.dest_TVar (typargs consts (c, declT));
     val inst = vars ~~ Ts handle UnequalLengths =>
       raise TYPE ("Consts.instance", Ts, [Const (c, dummyT)]);
@@ -208,8 +208,10 @@ fun instance consts (c, Ts) =
 fun err_dup_const c =
   error ("Duplicate declaration of constant " ^ quote c);
 
-fun err_inconsistent_constraints c =
-  error ("Inconsistent type constraints for constant " ^ quote c);
+fun err_inconsistent_constraints (constr1 : typ Symtab.table, constr2 : typ Symtab.table) c =
+  error ("Inconsistent type constraints for constant " ^ quote c ^ "\n"
+    ^ (setmp show_sorts true makestring o the o Symtab.lookup constr1) c ^ "\n"
+    ^ (setmp show_sorts true makestring o the o Symtab.lookup constr2) c); (*FIXME*)
 
 fun extend_decls naming decl tab = NameSpace.extend_table naming [decl] tab
   handle Symtab.DUP c => err_dup_const c;
@@ -304,8 +306,8 @@ fun merge
   let
     val decls' = NameSpace.merge_tables (eq_snd (op =)) (decls1, decls2)
       handle Symtab.DUP c => err_dup_const c;
-    val constraints' = Symtab.merge (op =) (constraints1, constraints2)
-      handle Symtab.DUP c => err_inconsistent_constraints c;
+    val constraints' = (*Symtab.merge (op =)*)Symtab.join (K snd)(*FIXME*) (constraints1, constraints2)
+      handle Symtab.DUP c => err_inconsistent_constraints (constraints1, constraints2) c;
     val rev_abbrevs' = (rev_abbrevs1, rev_abbrevs2) |> Symtab.join
       (K (Library.merge (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u')));
   in make_consts (decls', constraints', rev_abbrevs') end;
