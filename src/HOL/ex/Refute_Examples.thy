@@ -23,7 +23,7 @@ lemma "P \<and> Q"
   refute [satsolver="dpll"] 2  -- {* ... and specify a subgoal at the same time *}
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsection {* Examples and Test Cases *}
 
@@ -66,7 +66,7 @@ lemma "(P | Q) \<longrightarrow> (P & Q)"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Predicate logic *}
 
@@ -82,7 +82,7 @@ lemma "P (f (f x)) \<longrightarrow> P x \<longrightarrow> P (f x)"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Equality *}
 
@@ -116,7 +116,7 @@ lemma "distinct [a,b]"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* First-Order Logic *}
 
@@ -210,7 +210,7 @@ lemma "((P::('a\<Rightarrow>'b)\<Rightarrow>bool) f = P g) \<longrightarrow> (f 
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Higher-Order Logic *}
 
@@ -311,7 +311,7 @@ lemma "(\<forall>x. EX!y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))
   apply (fast intro: ext)
 done
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Meta-logic *}
 
@@ -343,7 +343,7 @@ lemma "(x == (op \<Longrightarrow>)) \<Longrightarrow> False"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Schematic variables *}
 
@@ -374,7 +374,7 @@ lemma "(\<lambda>x. x) = (\<lambda>y. y)"
   apply simp
 done
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Sets *}
 
@@ -419,7 +419,7 @@ lemma "Ball A P \<longrightarrow> Bex A P"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* arbitrary *}
 
@@ -439,7 +439,7 @@ lemma "arbitrary arbitrary"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* The *}
 
@@ -463,7 +463,7 @@ lemma "Ex P \<longrightarrow> P (The P)"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Eps *}
 
@@ -488,7 +488,7 @@ lemma "Ex P \<longrightarrow> P (Eps P)"
   apply (auto simp add: someI)
 done
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Subtypes (typedef), typedecl *}
 
@@ -510,13 +510,15 @@ lemma "P (f::(myTdecl myTdef) T_bij)"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Inductive datatypes *}
 
 text {* With @{text quick_and_dirty} set, the datatype package does
   not generate certain axioms for recursion operators.  Without these
   axioms, refute may find spurious countermodels. *}
+
+ML {* val Refute_Examples_qnd = !quick_and_dirty; reset quick_and_dirty; *}
 
 text {* unit *}
 
@@ -531,6 +533,11 @@ oops
 lemma "P ()"
   refute
 oops
+
+lemma "unit_rec u x = u"
+  refute
+  apply simp
+done
 
 lemma "P (unit_rec u x)"
   refute
@@ -558,6 +565,16 @@ lemma "P (Some x)"
   refute
 oops
 
+lemma "option_rec n s None = n"
+  refute
+  apply simp
+done
+
+lemma "option_rec n s (Some x) = s x"
+  refute [maxsize=4]
+  apply simp
+done
+
 lemma "P (option_rec n s x)"
   refute
 oops
@@ -576,7 +593,7 @@ lemma "\<forall>x::'a*'b. P x"
   refute
 oops
 
-lemma "P (x,y)"
+lemma "P (x, y)"
   refute
 oops
 
@@ -590,6 +607,11 @@ oops
 
 lemma "P Pair"
   refute
+oops
+
+lemma "prod_rec p (a, b) = p a b"
+  refute [maxsize=2]
+  apply simp
 oops
 
 lemma "P (prod_rec p x)"
@@ -622,6 +644,16 @@ lemma "P Inl"
   refute
 oops
 
+lemma "sum_rec l r (Inl x) = l x"
+  refute [maxsize=3]
+  apply simp
+done
+
+lemma "sum_rec l r (Inr x) = r x"
+  refute [maxsize=3]
+  apply simp
+done
+
 lemma "P (sum_rec l r x)"
   refute
 oops
@@ -646,6 +678,20 @@ lemma "P A"
   refute
 oops
 
+lemma "P B"
+  refute
+oops
+
+lemma "T1_rec a b A = a"
+  refute
+  apply simp
+done
+
+lemma "T1_rec a b B = b"
+  refute
+  apply simp
+done
+
 lemma "P (T1_rec a b x)"
   refute
 oops
@@ -668,6 +714,16 @@ lemma "P D"
   refute
 oops
 
+lemma "T2_rec c d (C x) = c x"
+  refute [maxsize=4]
+  apply simp
+done
+
+lemma "T2_rec c d (D x) = d x"
+  refute [maxsize=4]
+  apply simp
+done
+
 lemma "P (T2_rec c d x)"
   refute
 oops
@@ -689,6 +745,11 @@ oops
 lemma "P E"
   refute
 oops
+
+lemma "T3_rec e (E x) = e x"
+  refute [maxsize=2]
+  apply simp
+done
 
 lemma "P (T3_rec e x)"
   refute
@@ -720,6 +781,16 @@ lemma "P Suc"
                 model will be found *}
 oops
 
+lemma "nat_rec zero suc 0 = zero"
+  refute
+  apply simp
+done
+
+lemma "nat_rec zero suc (Suc x) = suc x (nat_rec zero suc x)"
+  refute [maxsize=2]
+  apply simp
+done
+
 lemma "P (nat_rec zero suc x)"
   refute
 oops
@@ -742,6 +813,16 @@ lemma "P [x, y]"
   refute
 oops
 
+lemma "list_rec nil cons [] = nil"
+  refute [maxsize=3]
+  apply simp
+done
+
+lemma "list_rec nil cons (x#xs) = cons x xs (list_rec nil cons xs)"
+  refute [maxsize=2]
+  apply simp
+done
+
 lemma "P (list_rec nil cons xs)"
   refute
 oops
@@ -758,6 +839,39 @@ lemma "a # xs = b # xs"
   refute
 oops
 
+datatype BitList = BitListNil | Bit0 BitList | Bit1 BitList
+
+lemma "P (x::BitList)"
+  refute
+oops
+
+lemma "\<forall>x::BitList. P x"
+  refute
+oops
+
+lemma "P (Bit0 (Bit1 BitListNil))"
+  refute
+oops
+
+lemma "BitList_rec nil bit0 bit1 BitListNil = nil"
+  refute [maxsize=4]
+  apply simp
+done
+
+lemma "BitList_rec nil bit0 bit1 (Bit0 xs) = bit0 xs (BitList_rec nil bit0 bit1 xs)"
+  refute [maxsize=2]
+  apply simp
+done
+
+lemma "BitList_rec nil bit0 bit1 (Bit1 xs) = bit1 xs (BitList_rec nil bit0 bit1 xs)"
+  refute [maxsize=2]
+  apply simp
+done
+
+lemma "P (BitList_rec nil bit0 bit1 x)"
+  refute
+oops
+
 datatype 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
 
 lemma "P (x::'a BinTree)"
@@ -771,6 +885,19 @@ oops
 lemma "P (Node (Leaf x) (Leaf y))"
   refute
 oops
+
+lemma "BinTree_rec l n (Leaf x) = l x"
+  refute [maxsize=1]  (* The "maxsize=1" tests are a bit pointless: for some formulae
+                         below, refute will find no countermodel simply because this
+                         size makes involved terms undefined.  Unfortunately, any
+                         larger size already takes too long. *)
+  apply simp
+done
+
+lemma "BinTree_rec l n (Node x y) = n x y (BinTree_rec l n x) (BinTree_rec l n y)"
+  refute [maxsize=1]
+  apply simp
+done
 
 lemma "P (BinTree_rec l n x)"
   refute
@@ -805,6 +932,16 @@ lemma "\<forall>x::'a bexp. P x"
   refute
 oops
 
+lemma "aexp_bexp_rec_1 number ite equal (Number x) = number x"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "aexp_bexp_rec_1 number ite equal (ITE x y z) = ite x y z (aexp_bexp_rec_2 number ite equal x) (aexp_bexp_rec_1 number ite equal y) (aexp_bexp_rec_1 number ite equal z)"
+  refute [maxsize=1]
+  apply simp
+done
+
 lemma "P (aexp_bexp_rec_1 number ite equal x)"
   refute
 oops
@@ -812,6 +949,11 @@ oops
 lemma "P (case x of Number a \<Rightarrow> number a | ITE b a1 a2 \<Rightarrow> ite b a1 a2)"
   refute
 oops
+
+lemma "aexp_bexp_rec_2 number ite equal (Equal x y) = equal x y (aexp_bexp_rec_1 number ite equal x) (aexp_bexp_rec_1 number ite equal y)"
+  refute [maxsize=1]
+  apply simp
+done
 
 lemma "P (aexp_bexp_rec_2 number ite equal x)"
   refute
@@ -821,7 +963,187 @@ lemma "P (case x of Equal a1 a2 \<Rightarrow> equal a1 a2)"
   refute
 oops
 
+datatype X = A | B X | C Y
+     and Y = D X | E Y | F
+
+lemma "P (x::X)"
+  refute
+oops
+
+lemma "P (y::Y)"
+  refute
+oops
+
+lemma "P (B (B A))"
+  refute
+oops
+
+lemma "P (B (C F))"
+  refute
+oops
+
+lemma "P (C (D A))"
+  refute
+oops
+
+lemma "P (C (E F))"
+  refute
+oops
+
+lemma "P (D (B A))"
+  refute
+oops
+
+lemma "P (D (C F))"
+  refute
+oops
+
+lemma "P (E (D A))"
+  refute
+oops
+
+lemma "P (E (E F))"
+  refute
+oops
+
+lemma "P (C (D (C F)))"
+  refute
+oops
+
+lemma "X_Y_rec_1 a b c d e f A = a"
+  refute [maxsize=3]
+  apply simp
+done
+
+lemma "X_Y_rec_1 a b c d e f (B x) = b x (X_Y_rec_1 a b c d e f x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "X_Y_rec_1 a b c d e f (C y) = c y (X_Y_rec_2 a b c d e f y)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "X_Y_rec_2 a b c d e f (D x) = d x (X_Y_rec_1 a b c d e f x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "X_Y_rec_2 a b c d e f (E y) = e y (X_Y_rec_2 a b c d e f y)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "X_Y_rec_2 a b c d e f F = f"
+  refute [maxsize=3]
+  apply simp
+done
+
+lemma "P (X_Y_rec_1 a b c d e f x)"
+  refute
+oops
+
+lemma "P (X_Y_rec_2 a b c d e f y)"
+  refute
+oops
+
 text {* Other datatype examples *}
+
+text {* Indirect recursion is implemented via mutual recursion. *}
+
+datatype XOpt = CX "XOpt option" | DX "bool \<Rightarrow> XOpt option"
+
+lemma "P (x::XOpt)"
+  refute
+oops
+
+lemma "P (CX None)"
+  refute
+oops
+
+lemma "P (CX (Some (CX None)))"
+  refute
+oops
+
+lemma "XOpt_rec_1 cx dx n1 s1 n2 s2 (CX x) = cx x (XOpt_rec_2 cx dx n1 s1 n2 s2 x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "XOpt_rec_1 cx dx n1 s1 n2 s2 (DX x) = dx x (\<lambda>b. XOpt_rec_3 cx dx n1 s1 n2 s2 (x b))"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "XOpt_rec_2 cx dx n1 s1 n2 s2 None = n1"
+  refute [maxsize=2]
+  apply simp
+done
+
+lemma "XOpt_rec_2 cx dx n1 s1 n2 s2 (Some x) = s1 x (XOpt_rec_1 cx dx n1 s1 n2 s2 x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "XOpt_rec_3 cx dx n1 s1 n2 s2 None = n2"
+  refute [maxsize=2]
+  apply simp
+done
+
+lemma "XOpt_rec_3 cx dx n1 s1 n2 s2 (Some x) = s2 x (XOpt_rec_1 cx dx n1 s1 n2 s2 x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "P (XOpt_rec_1 cx dx n1 s1 n2 s2 x)"
+  refute
+oops
+
+lemma "P (XOpt_rec_2 cx dx n1 s1 n2 s2 x)"
+  refute
+oops
+
+lemma "P (XOpt_rec_3 cx dx n1 s1 n2 s2 x)"
+  refute
+oops
+
+datatype 'a YOpt = CY "('a \<Rightarrow> 'a YOpt) option"
+
+lemma "P (x::'a YOpt)"
+  refute
+oops
+
+lemma "P (CY None)"
+  refute
+oops
+
+lemma "P (CY (Some (\<lambda>a. CY None)))"
+  refute
+oops
+
+lemma "YOpt_rec_1 cy n s (CY x) = cy x (YOpt_rec_2 cy n s x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "YOpt_rec_2 cy n s None = n"
+  refute [maxsize=2]
+  apply simp
+done
+
+lemma "YOpt_rec_2 cy n s (Some x) = s x (\<lambda>a. YOpt_rec_1 cy n s (x a))"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "P (YOpt_rec_1 cy n s x)"
+  refute
+oops
+
+lemma "P (YOpt_rec_2 cy n s x)"
+  refute
+oops
 
 datatype Trie = TR "Trie list"
 
@@ -837,11 +1159,26 @@ lemma "P (TR [TR []])"
   refute
 oops
 
-lemma "P (Trie_rec_1 a b c x)"
+lemma "Trie_rec_1 tr nil cons (TR x) = tr x (Trie_rec_2 tr nil cons x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "Trie_rec_2 tr nil cons [] = nil"
+  refute [maxsize=3]
+  apply simp
+done
+
+lemma "Trie_rec_2 tr nil cons (x#xs) = cons x xs (Trie_rec_1 tr nil cons x) (Trie_rec_2 tr nil cons xs)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "P (Trie_rec_1 tr nil cons x)"
   refute
 oops
 
-lemma "P (Trie_rec_2 a b c x)"
+lemma "P (Trie_rec_2 tr nil cons x)"
   refute
 oops
 
@@ -858,6 +1195,16 @@ oops
 lemma "P (Node (\<lambda>n. Leaf))"
   refute
 oops
+
+lemma "InfTree_rec leaf node Leaf = leaf"
+  refute [maxsize=2]
+  apply simp
+done
+
+lemma "InfTree_rec leaf node (Node x) = node x (\<lambda>n. InfTree_rec leaf node (x n))"
+  refute [maxsize=1]
+  apply simp
+done
 
 lemma "P (InfTree_rec leaf node x)"
   refute
@@ -876,6 +1223,21 @@ oops
 lemma "P (Lam (\<lambda>a. Var a))"
   refute
 oops
+
+lemma "lambda_rec var app lam (Var x) = var x"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "lambda_rec var app lam (App x y) = app x y (lambda_rec var app lam x) (lambda_rec var app lam y)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "lambda_rec var app lam (Lam x) = lam x (\<lambda>a. lambda_rec var app lam (x a))"
+  refute [maxsize=1]
+  apply simp
+done
 
 lemma "P (lambda_rec v a l x)"
   refute
@@ -898,19 +1260,46 @@ lemma "P (E (C (\<lambda>a. True)))"
   refute
 oops
 
-lemma "P (U_rec_1 e f g h i x)"
+lemma "U_rec_1 e c d nil cons (E x) = e x (U_rec_2 e c d nil cons x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "U_rec_2 e c d nil cons (C x) = c x"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "U_rec_2 e c d nil cons (D x) = d x (U_rec_3 e c d nil cons x)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "U_rec_3 e c d nil cons [] = nil"
+  refute [maxsize=2]
+  apply simp
+done
+
+lemma "U_rec_3 e c d nil cons (x#xs) = cons x xs (U_rec_1 e c d nil cons x) (U_rec_3 e c d nil cons xs)"
+  refute [maxsize=1]
+  apply simp
+done
+
+lemma "P (U_rec_1 e c d nil cons x)"
   refute
 oops
 
-lemma "P (U_rec_2 e f g h i x)"
+lemma "P (U_rec_2 e c d nil cons x)"
   refute
 oops
 
-lemma "P (U_rec_3 e f g h i x)"
+lemma "P (U_rec_3 e c d nil cons x)"
   refute
 oops
 
-(******************************************************************************)
+ML {* quick_and_dirty := Refute_Examples_qnd; *}
+
+(*****************************************************************************)
 
 subsubsection {* Records *}
 
@@ -931,7 +1320,7 @@ lemma "(x::('a, 'b, 'c) extpoint) = y"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Inductively defined sets *}
 
@@ -961,10 +1350,25 @@ where
 | "n : odd \<Longrightarrow> Suc n : even"
 
 lemma "n : odd"
-  (*refute*)  -- {* unfortunately, this little example already takes too long *}
+  (*refute*)  (* TODO: there seems to be an issue here with undefined terms
+                       because of the recursive datatype "nat" *)
 oops
 
-(******************************************************************************)
+consts f :: "'a \<Rightarrow> 'a"
+
+inductive_set
+  a_even :: "'a set"
+  and a_odd :: "'a set"
+where
+  "arbitrary : a_even"
+| "x : a_even \<Longrightarrow> f x : a_odd"
+| "x : a_odd \<Longrightarrow> f x : a_even"
+
+lemma "x : a_odd"
+  refute  -- {* finds a model of size 2, as expected *}
+oops
+
+(*****************************************************************************)
 
 subsubsection {* Examples involving special functions *}
 
@@ -996,6 +1400,7 @@ lemma "(x::nat) < x + y"
   refute
 oops
 
+(* TODO: an efficient interpreter for @ is needed here
 lemma "xs @ [] = ys @ []"
   refute
 oops
@@ -1003,6 +1408,7 @@ oops
 lemma "xs @ ys = ys @ xs"
   refute
 oops
+*)
 
 lemma "f (lfp f) = lfp f"
   refute
@@ -1016,7 +1422,7 @@ lemma "lfp f = gfp f"
   refute
 oops
 
-(******************************************************************************)
+(*****************************************************************************)
 
 subsubsection {* Axiomatic type classes and overloading *}
 
