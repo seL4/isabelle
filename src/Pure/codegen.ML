@@ -1013,26 +1013,28 @@ val _ = Context.add_setup
 
 val eval_result = ref (fn () => Bound 0);
 
-fun eval_term thy = PrintMode.setmp [] (fn t =>
-  let
-    val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
-      error "Term to be evaluated contains type variables";
-    val _ = (null (term_vars t) andalso null (term_frees t)) orelse
-      error "Term to be evaluated contains variables";
-    val (code, gr) = setmp mode ["term_of"]
-      (generate_code_i thy [] "Generated")
-      [("result", Abs ("x", TFree ("'a", []), t))];
-    val s = "structure EvalTerm =\nstruct\n\n" ^
-      space_implode "\n" (map snd code) ^
-      "\nopen Generated;\n\n" ^ Pretty.string_of
-        (Pretty.block [Pretty.str "val () = Codegen.eval_result := (fn () =>",
-          Pretty.brk 1,
-          mk_app false (mk_term_of gr "Generated" false (fastype_of t))
-            [Pretty.str "(result ())"],
-          Pretty.str ");"]) ^
-      "\n\nend;\n";
-    val _ = ML_Context.use_mltext s false (SOME (Context.Theory thy))
-  in !eval_result () end);
+fun eval_term thy t =
+  let val e = PrintMode.setmp [] (fn () =>
+    let
+      val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
+        error "Term to be evaluated contains type variables";
+      val _ = (null (term_vars t) andalso null (term_frees t)) orelse
+        error "Term to be evaluated contains variables";
+      val (code, gr) = setmp mode ["term_of"]
+        (generate_code_i thy [] "Generated")
+        [("result", Abs ("x", TFree ("'a", []), t))];
+      val s = "structure EvalTerm =\nstruct\n\n" ^
+        space_implode "\n" (map snd code) ^
+        "\nopen Generated;\n\n" ^ Pretty.string_of
+          (Pretty.block [Pretty.str "val () = Codegen.eval_result := (fn () =>",
+            Pretty.brk 1,
+            mk_app false (mk_term_of gr "Generated" false (fastype_of t))
+              [Pretty.str "(result ())"],
+            Pretty.str ");"]) ^
+        "\n\nend;\n";
+      val _ = ML_Context.use_mltext s false (SOME (Context.Theory thy))
+    in !eval_result end) ();
+  in e () end;
 
 fun print_evaluated_term s = Toplevel.keep (fn state =>
   let
