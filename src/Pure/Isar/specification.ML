@@ -299,8 +299,9 @@ fun gen_theorem prep_att prep_stmt
 
     val (loc, ctxt, lthy) =
       (case (TheoryTarget.peek lthy0, exists (fn Locale.Expr _ => true | _ => false) raw_elems) of
-        (SOME loc, true) => (* workaround non-modularity of in/includes *)  (* FIXME *)
-          (SOME loc, ProofContext.init thy, LocalTheory.restore lthy0)
+        ({target, is_locale = true, ...}, true) =>
+          (*temporary workaround for non-modularity of in/includes*)  (* FIXME *)
+          (SOME target, ProofContext.init thy, LocalTheory.restore lthy0)
       | _ => (NONE, lthy0, lthy0));
 
     val attrib = prep_att thy;

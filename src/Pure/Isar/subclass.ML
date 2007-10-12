@@ -54,9 +54,9 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val thy = ProofContext.theory_of ctxt;
     val ctxt_thy = ProofContext.init thy;
     val sup = prep_class thy raw_sup;
-    val sub = case Option.mapPartial (Class.class_of_locale thy) (TheoryTarget.peek lthy)
-     of NONE => error "not in class context"
-      | SOME sub => sub;
+    val sub = case TheoryTarget.peek lthy
+     of {is_class = false, ...} => error "No class context"
+      | {target, ...} => target;
     val sub_params = map fst (Class.these_params thy [sub]);
     val sup_params = map fst (Class.these_params thy [sup]);
     val err_params = subtract (op =) sub_params sup_params;
