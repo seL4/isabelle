@@ -187,7 +187,7 @@ let
          '1 / t' if the numerator can be reduced, but the denominator cannot. *)
       (* FIXME: Currently we even treat the whole fraction as atomic unless the
          denominator can be reduced to a numeric constant.  It might be better
-         to use the partially reduced denominator (i.e. 's / (2* t)' could be
+         to use the partially reduced denominator (i.e. 's / (2*t)' could be
          demult'ed to 's / t' with multiplicity .5).   This would require a
          very simple change only below, but it breaks existing proofs. *)
       (* quotient 's / t', where the denominator t can be NONE *)
