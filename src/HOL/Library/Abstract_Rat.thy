@@ -10,10 +10,14 @@ imports GCD
 begin
 
 types Num = "int \<times> int"
-syntax "_Num0" :: "Num" ("0\<^sub>N")
-translations "0\<^sub>N" \<rightleftharpoons> "(0, 0)"
-syntax "_Numi" :: "int \<Rightarrow> Num" ("_\<^sub>N")
-translations "i\<^sub>N" \<rightleftharpoons> "(i, 1) \<Colon> Num"
+
+abbreviation
+  Num0_syn :: Num ("0\<^sub>N")
+where "0\<^sub>N \<equiv> (0, 0)"
+
+abbreviation
+  Numi_syn :: "int \<Rightarrow> Num" ("_\<^sub>N")
+where "i\<^sub>N \<equiv> (i, 1)"
 
 definition
   isnormNum :: "Num \<Rightarrow> bool"
@@ -131,8 +135,8 @@ proof-
 qed
 
 lemma Ninv_normN[simp]: "isnormNum x \<Longrightarrow> isnormNum (Ninv x)"
-by (simp add: Ninv_def isnormNum_def split_def)
-(cases "fst x = 0",auto simp add: igcd_commute)
+  by (simp add: Ninv_def isnormNum_def split_def)
+    (cases "fst x = 0", auto simp add: igcd_commute)
 
 lemma isnormNum_int[simp]: 
   "isnormNum 0\<^sub>N" "isnormNum (1::int)\<^sub>N" "i \<noteq> 0 \<Longrightarrow> isnormNum i\<^sub>N"
