@@ -2,7 +2,7 @@
 
 (*<*)
 theory Classes
-imports Main Pretty_Int
+imports Main Code_Integer
 begin
 
 ML {*
@@ -110,7 +110,7 @@ text {*
   From a software enigineering point of view, type classes
   correspond to interfaces in object-oriented languages like Java;
   so, it is naturally desirable that type classes do not only
-  provide functions (class operations) but also state specifications
+  provide functions (class parameters) but also state specifications
   implementations must obey.  For example, the @{text "class eq"}
   above could be given the following specification, demanding that
   @{text "class eq"} is an equivalence relation obeying reflexivity,
@@ -130,9 +130,9 @@ text {*
   all those aspects together:
 
   \begin{enumerate}
-    \item specifying abstract operations togehter with
+    \item specifying abstract parameters together with
        corresponding specifications,
-    \item instantating those abstract operations by a particular
+    \item instantating those abstract parameters by a particular
        type
     \item in connection with a ``less ad-hoc'' approach to overloading,
     \item with a direct link to the Isabelle module system
@@ -159,7 +159,7 @@ subsection {* Class definition *}
 
 text {*
   Depending on an arbitrary type @{text "\<alpha>"}, class @{text
-  "semigroup"} introduces a binary operation @{text "\<circ>"} that is
+  "semigroup"} introduces a binary operator @{text "\<otimes>"} that is
   assumed to be associative:
 *}
 
@@ -169,11 +169,11 @@ text {*
 
 text {*
   \noindent This @{text "\<CLASS>"} specification consists of two
-  parts: the \qn{operational} part names the class operation (@{text
+  parts: the \qn{operational} part names the class parameter (@{text
   "\<FIXES>"}), the \qn{logical} part specifies properties on them
   (@{text "\<ASSUMES>"}).  The local @{text "\<FIXES>"} and @{text
   "\<ASSUMES>"} are lifted to the theory toplevel, yielding the global
-  operation @{term [source] "mult \<Colon> \<alpha>\<Colon>semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
+  parameter @{term [source] "mult \<Colon> \<alpha>\<Colon>semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
   global theorem @{text "semigroup.assoc:"}~@{prop [source] "\<And>x y
   z \<Colon> \<alpha>\<Colon>semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
 *}
@@ -183,7 +183,7 @@ subsection {* Class instantiation \label{sec:class_inst} *}
 
 text {*
   The concrete type @{text "int"} is made a @{text "semigroup"}
-  instance by providing a suitable definition for the class operation
+  instance by providing a suitable definition for the class parameter
   @{text "mult"} and a proof for the specification of @{text "assoc"}.
 *}
 
@@ -217,7 +217,7 @@ text {*
 
 text {*
   \noindent Also @{text "list"}s form a semigroup with @{const "op @"} as
-  operation:
+  parameter:
 *}
 
     instance list :: (type) semigroup
@@ -237,7 +237,7 @@ subsection {* Subclasses *}
 text {*
   We define a subclass @{text "monoidl"} (a semigroup with a left-hand neutral)
   by extending @{text "semigroup"}
-  with one additional operation @{text "neutral"} together
+  with one additional parameter @{text "neutral"} together
   with its property:
 *}
 
@@ -247,7 +247,7 @@ text {*
 
 text {*
   \noindent Again, we make some instances, by
-  providing suitable operation definitions and proofs for the
+  providing suitable parameter definitions and proofs for the
   additional specifications.
 *}
 
@@ -279,7 +279,7 @@ text {*
 
 text {*
   \noindent Fully-fledged monoids are modelled by another subclass
-  which does not add new operations but tightens the specification:
+  which does not add new parameters but tightens the specification:
 *}
 
     class monoid = monoidl +
@@ -429,7 +429,7 @@ text {*
 *}
 
 
-(*subsection {* Additional subclass relations *}
+subsection {* Additional subclass relations *}
 
 text {*
   Any @{text "group"} is also a @{text "monoid"};  this
@@ -437,7 +437,7 @@ text {*
   together with a proof of the logical difference:
 *}
 
-    instance advanced group < monoid
+    subclass (in group) monoid
     proof unfold_locales
       fix x
       from invl have "x\<^loc>\<div> \<^loc>\<otimes> x = \<^loc>\<one>" by simp
@@ -452,7 +452,7 @@ text {*
   open to proof to the user.  After the proof it is propagated
   to the type system, making @{text group} an instance of
   @{text monoid}.  For illustration, a derived definition
-  in @{text group} which uses @{text of_nat}:
+  in @{text group} which uses @{text pow_nat}:
 *}
 
     definition (in group)
@@ -465,7 +465,7 @@ text {*
   yields the global definition of
   @{term [source] "pow_int \<Colon> int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group"}
   with the corresponding theorem @{thm pow_int_def [no_vars]}.
-*} *)
+*}
 
 
 section {* Further issues *}
@@ -484,7 +484,7 @@ text {*
   For example, lets go back to the power function:
 *}
 
-    fun
+(*    fun
       pow_nat :: "nat \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group" where
       "pow_nat 0 x = \<one>"
       | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
@@ -493,7 +493,7 @@ text {*
       pow_int :: "int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group" where
       "pow_int k x = (if k >= 0
         then pow_nat (nat k) x
-        else (pow_nat (nat (- k)) x)\<div>)"
+        else (pow_nat (nat (- k)) x)\<div>)"*)
 
     definition
       example :: int where

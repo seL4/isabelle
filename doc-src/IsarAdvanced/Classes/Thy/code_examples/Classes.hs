@@ -20,7 +20,10 @@ class (Classes.Semigroup a) => Monoidl a where {
   neutral :: a;
 };
 
-class (Classes.Monoidl a) => Group a where {
+class (Classes.Monoidl a) => Monoid a where {
+};
+
+class (Classes.Monoid a) => Group a where {
   inverse :: a -> a;
 };
 
@@ -41,11 +44,14 @@ instance Classes.Monoidl Integer where {
   neutral = Classes.neutral_int;
 };
 
+instance Classes.Monoid Integer where {
+};
+
 instance Classes.Group Integer where {
   inverse = Classes.inverse_int;
 };
 
-pow_nat :: (Classes.Group b) => Classes.Nat -> b -> b;
+pow_nat :: (Classes.Monoid a) => Classes.Nat -> a -> a;
 pow_nat (Classes.Suc n) x = Classes.mult x (Classes.pow_nat n x);
 pow_nat Classes.Zero_nat x = Classes.neutral;
 

@@ -519,24 +519,21 @@ introduction on type classes.
 \indexisarcmd{instance}\indexisarcmd{class}\indexisarcmd{print-classes}
 \begin{matharray}{rcl}
   \isarcmd{class} & : & \isartrans{theory}{local{\dsh}theory} \\
+  \isarcmd{subclass} & : & \isartrans{local{\dsh}theory}{local{\dsh}theory} \\
   \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
   \isarcmd{print_classes}^* & : & \isarkeep{theory~|~proof} \\
 \end{matharray}
 
 \begin{rail}
-  'class' name '=' classexpr 'begin'?
+  'class' name '=' ((superclassexpr '+' (contextelem+)) | superclassexpr | (contextelem+)) 'begin'?
   ;
-  'instance' (instarity | instsubsort)
+  'subclass' target? nameref
+  ;
+  'instance' (nameref '::' arity + 'and') (axmdecl prop +)?
   ;
   'print\_classes'
   ;
 
-  classexpr: ((superclassexpr '+' (contextelem+)) | superclassexpr | (contextelem+))
-  ;
-  instarity: (nameref '::' arity + 'and') (axmdecl prop +)?
-  ;
-  instsubsort: nameref ('<' | subseteq) sort
-  ;
   superclassexpr: nameref | (nameref '+' superclassexpr)
   ;
 \end{rail}
@@ -555,12 +552,12 @@ introduction on type classes.
   constraining
   the free type variable to sort $c$.
 
-\item [$\INSTANCE~a: \vec{arity}~\vec{defs}$]
+\item [$\INSTANCE~~t :: (\vec s)s \vec{defs}$]
   sets up a goal stating type arities.  The proof would usually
   proceed by $intro_classes$, and then establish the characteristic theorems
   of the type classes involved.
   The $defs$, if given, must correspond to the class parameters
-  involved in the $arities$ and are introduces in the theory
+  involved in the $arities$ and are introduced in the theory
   before proof.
   After finishing the proof, the theory will be
   augmented by a type signature declaration corresponding to the
@@ -568,12 +565,10 @@ introduction on type classes.
   This $\isarcmd{instance}$ command is actually an extension
   of primitive axclass $\isarcmd{instance}$ (see \ref{sec:axclass}).
   
-\item [$\INSTANCE~c \subseteq \vec{c}$] sets up a
-  goal stating 
-  the interpretation of the locale corresponding to $c$
-  in the merge of all locales corresponding to $\vec{c}$.
-  After finishing the proof, it is automatically lifted to
-  prove the additional class relation $c \subseteq \vec{c}$.
+\item [$\SUBCLASS~c$] in a class context for class $d$
+  sets up a goal stating that class $c$ is logically
+  contained in class $d$.  After finishing the proof, class $d$ is proven
+  to be subclass $c$ and the locale $c$ is interpreted into $d$ simultaneously.
 
 \item [$\isarkeyword{print_classes}$] prints all classes
   in the current theory.

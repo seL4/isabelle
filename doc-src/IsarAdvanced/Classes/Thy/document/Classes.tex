@@ -89,7 +89,7 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
   From a software enigineering point of view, type classes
   correspond to interfaces in object-oriented languages like Java;
   so, it is naturally desirable that type classes do not only
-  provide functions (class operations) but also state specifications
+  provide functions (class parameters) but also state specifications
   implementations must obey.  For example, the \isa{class\ eq}
   above could be given the following specification, demanding that
   \isa{class\ eq} is an equivalence relation obeying reflexivity,
@@ -109,9 +109,9 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
   all those aspects together:
 
   \begin{enumerate}
-    \item specifying abstract operations togehter with
+    \item specifying abstract parameters togehter with
        corresponding specifications,
-    \item instantating those abstract operations by a particular
+    \item instantating those abstract parameters by a particular
        type
     \item in connection with a ``less ad-hoc'' approach to overloading,
     \item with a direct link to the Isabelle module system
@@ -142,7 +142,7 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Depending on an arbitrary type \isa{{\isasymalpha}}, class \isa{semigroup} introduces a binary operation \isa{{\isasymcirc}} that is
+Depending on an arbitrary type \isa{{\isasymalpha}}, class \isa{semigroup} introduces a binary operator \isa{{\isasymotimes}} that is
   assumed to be associative:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -152,9 +152,9 @@ Depending on an arbitrary type \isa{{\isasymalpha}}, class \isa{semigroup} intro
 \ \ \ \ \ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ \isactrlloc {\isasymotimes}\ y{\isacharparenright}\ \isactrlloc {\isasymotimes}\ z\ {\isacharequal}\ x\ \isactrlloc {\isasymotimes}\ {\isacharparenleft}y\ \isactrlloc {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent This \isa{{\isasymCLASS}} specification consists of two
-  parts: the \qn{operational} part names the class operation (\isa{{\isasymFIXES}}), the \qn{logical} part specifies properties on them
+  parts: the \qn{operational} part names the class parameter (\isa{{\isasymFIXES}}), the \qn{logical} part specifies properties on them
   (\isa{{\isasymASSUMES}}).  The local \isa{{\isasymFIXES}} and \isa{{\isasymASSUMES}} are lifted to the theory toplevel, yielding the global
-  operation \isa{{\isachardoublequote}mult\ {\isasymColon}\ {\isasymalpha}{\isasymColon}semigroup\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequote}} and the
+  parameter \isa{{\isachardoublequote}mult\ {\isasymColon}\ {\isasymalpha}{\isasymColon}semigroup\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequote}} and the
   global theorem \isa{semigroup{\isachardot}assoc{\isacharcolon}}~\isa{{\isachardoublequote}{\isasymAnd}x\ y\ z\ {\isasymColon}\ {\isasymalpha}{\isasymColon}semigroup{\isachardot}\ {\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isasymotimes}\ z\ {\isacharequal}\ x\ {\isasymotimes}\ {\isacharparenleft}y\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequote}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -165,7 +165,7 @@ Depending on an arbitrary type \isa{{\isasymalpha}}, class \isa{semigroup} intro
 %
 \begin{isamarkuptext}%
 The concrete type \isa{int} is made a \isa{semigroup}
-  instance by providing a suitable definition for the class operation
+  instance by providing a suitable definition for the class parameter
   \isa{mult} and a proof for the specification of \isa{assoc}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -240,7 +240,7 @@ The concrete type \isa{int} is made a \isa{semigroup}
 %
 \begin{isamarkuptext}%
 \noindent Also \isa{list}s form a semigroup with \isa{op\ {\isacharat}} as
-  operation:%
+  parameter:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
@@ -285,7 +285,7 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \begin{isamarkuptext}%
 We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
   by extending \isa{semigroup}
-  with one additional operation \isa{neutral} together
+  with one additional parameter \isa{neutral} together
   with its property:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -295,7 +295,7 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \ \ \ \ \ \ \isakeyword{assumes}\ neutl{\isacharcolon}\ {\isachardoublequoteopen}\isactrlloc {\isasymone}\ \isactrlloc {\isasymotimes}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Again, we make some instances, by
-  providing suitable operation definitions and proofs for the
+  providing suitable parameter definitions and proofs for the
   additional specifications.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -396,7 +396,7 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 %
 \begin{isamarkuptext}%
 \noindent Fully-fledged monoids are modelled by another subclass
-  which does not add new operations but tightens the specification:%
+  which does not add new parameters but tightens the specification:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{class}\isamarkupfalse%
@@ -691,6 +691,72 @@ pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Additional subclass relations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Any \isa{group} is also a \isa{monoid};  this
+  can be made explicit by claiming an additional subclass relation,
+  together with a proof of the logical difference:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ \ \ \isacommand{subclass}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{in}\ group{\isacharparenright}\ monoid\isanewline
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ unfold{\isacharunderscore}locales\isanewline
+\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\isanewline
+\ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
+\ invl\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x\ {\isacharequal}\ \isactrlloc {\isasymone}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}\ neutl\ invl\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ {\isacharparenleft}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}{\isacharparenright}\ {\isacharequal}\ x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ left{\isacharunderscore}cancel\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The logical proof is carried out on the locale level
+  and thus conveniently is opened using the \isa{unfold{\isacharunderscore}locales}
+  method which only leaves the logical differences still
+  open to proof to the user.  After the proof it is propagated
+  to the type system, making \isa{group} an instance of
+  \isa{monoid}.  For illustration, a derived definition
+  in \isa{group} which uses \isa{pow{\isacharunderscore}nat}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ \ \ \isacommand{definition}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{in}\ group{\isacharparenright}\isanewline
+\ \ \ \ \ \ pow{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\ {\isacharparenleft}if\ k\ {\isachargreater}{\isacharequal}\ {\isadigit{0}}\isanewline
+\ \ \ \ \ \ \ \ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\isanewline
+\ \ \ \ \ \ \ \ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}\isactrlloc {\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+yields the global definition of
+  \isa{{\isachardoublequote}pow{\isacharunderscore}int\ {\isasymColon}\ int\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group{\isachardoublequote}}
+  with the corresponding theorem \isa{pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{0}}\ {\isasymle}\ k\ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isasymdiv}{\isacharparenright}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Further issues%
 }
 \isamarkuptrue%
@@ -711,19 +777,6 @@ Turning back to the first motivation for type classes,
   For example, lets go back to the power function:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{fun}\isamarkupfalse%
-\isanewline
-\ \ \ \ \ \ pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ {\isacharbar}\ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x{\isachardoublequoteclose}\isanewline
-\isanewline
-\ \ \ \ \isacommand{definition}\isamarkupfalse%
-\isanewline
-\ \ \ \ \ \ pow{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\ {\isacharparenleft}if\ k\ {\isachargreater}{\isacharequal}\ {\isadigit{0}}\isanewline
-\ \ \ \ \ \ \ \ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\isanewline
-\ \ \ \ \ \ \ \ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
 \ \ \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ example\ {\isacharcolon}{\isacharcolon}\ int\ \isakeyword{where}\isanewline
