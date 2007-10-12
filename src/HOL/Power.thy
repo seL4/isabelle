@@ -11,6 +11,9 @@ theory Power
 imports Nat
 begin
 
+class power = type +
+  fixes power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"            (infixr "\<^loc>^" 80)
+
 subsection{*Powers for Arbitrary Monoids*}
 
 class recpower = monoid_mult + power +

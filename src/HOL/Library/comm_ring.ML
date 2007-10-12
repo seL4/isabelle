@@ -61,7 +61,7 @@ fun reif_polex T vs (Const (@{const_name HOL.plus}, _) $ a $ b) =
       polex_mul T $ reif_polex T vs a $ reif_polex T vs b
   | reif_polex T vs (Const (@{const_name HOL.uminus}, _) $ a) =
       polex_neg T $ reif_polex T vs a
-  | reif_polex T vs (Const (@{const_name Nat.power}, _) $ a $ n) =
+  | reif_polex T vs (Const (@{const_name Power.power}, _) $ a $ n) =
       polex_pow T $ reif_polex T vs a $ n
   | reif_polex T vs t = polex_pol T $ reif_pol T vs t;
 

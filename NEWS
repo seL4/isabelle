@@ -741,19 +741,21 @@ the new 'class' package:
 
     HOL.abs ~> HOL.minus_class.abs
     HOL.divide ~> HOL.divide_class.divide
-    Nat.power ~> Nat.power_class.power
+    Nat.power ~> Power.power_class.power
     Nat.size ~> Nat.size_class.size
     Numeral.number_of ~> Numeral.number_class.number_of
-    FixedPoint.Inf ~> FixedPoint.complete_lattice_class.Inf
-    FixedPoint.Sup ~> FixedPoint.complete_lattice_class.Sup
+    FixedPoint.Inf ~> Lattices.complete_lattice_class.Inf
+    FixedPoint.Sup ~> Lattices.complete_lattice_class.Sup
     Orderings.min ~> Orderings.ord_class.min
     Orderings.max ~> Orderings.ord_class.max
+
+INCOMPATIBILITY.
 
 * New class "default" with associated constant "default".
 
 * New constant "undefined" with axiom "undefined x = undefined".
 
-* primrec: missing cases mapped to "undefined" instead of "arbitrary"
+* primrec: missing cases mapped to "undefined" instead of "arbitrary".
 
 * New function listsum :: 'a list => 'a for arbitrary monoids.
 Special syntax: "SUM x <- xs. f x" (and latex variants)

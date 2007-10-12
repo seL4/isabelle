@@ -7,7 +7,7 @@
 header{*Powers of Relations and Functions*}
 
 theory Relation_Power
-imports Nat
+imports Power
 begin
 
 instance

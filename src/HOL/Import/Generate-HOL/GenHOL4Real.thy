@@ -54,7 +54,7 @@ const_maps
   real_lte    > HOL.ord_class.less_eq :: "[real,real] => bool"
   real_sub    > HOL.minus    :: "[real,real] => real"
   "/"         > HOL.divide   :: "[real,real] => real"
-  pow         > Nat.power    :: "[real,nat] => real"
+  pow         > Power.power_class.power    :: "[real,nat] => real"
   abs         > HOL.abs      :: "real => real"
   real_of_num > RealDef.real :: "nat => real";
 

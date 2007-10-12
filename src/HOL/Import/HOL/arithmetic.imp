@@ -17,7 +17,7 @@ const_maps
   "MIN" > "Orderings.ord_class.min" :: "nat => nat => nat"
   "MAX" > "Orderings.ord_class.max" :: "nat => nat => nat"
   "FUNPOW" > "HOL4Compat.FUNPOW"
-  "EXP" > "Nat.power_class.power" :: "nat => nat => nat"
+  "EXP" > "Power.power_class.power" :: "nat => nat => nat"
   "DIV" > "Divides.div_class.div" :: "nat => nat => nat"
   "MOD" > "Divides.div_class.mod" :: "nat => nat => nat"
   "ALT_ZERO" > "HOL4Compat.ALT_ZERO"

@@ -15,7 +15,7 @@ const_maps
   "real_lte" > "HOL.ord_class.less_eq" :: "real => real => bool"
   "real_gt" > "HOL4Compat.real_gt"
   "real_ge" > "HOL4Compat.real_ge"
-  "pow" > "Nat.power_class.power" :: "real => nat => real"
+  "pow" > "Power.power_class.power" :: "real => nat => real"
   "abs" > "HOL.minus_class.abs" :: "real => real"
   "/" > "HOL.divides_class.divide" :: "real => real => real"
 

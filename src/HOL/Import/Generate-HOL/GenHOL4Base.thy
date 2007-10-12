@@ -189,7 +189,7 @@ const_maps
   MAX          > Orderings.ord_class.max    :: "[nat,nat]=>nat"
   DIV          > Divides.div_class.div :: "[nat,nat]=>nat"
   MOD          > Divides.div_class.mod :: "[nat,nat]=>nat"
-  EXP          > Nat.power_class.power :: "[nat,nat]=>nat";
+  EXP          > Power.power_class.power :: "[nat,nat]=>nat";
 
 end_import;
 
