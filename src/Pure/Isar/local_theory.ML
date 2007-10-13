@@ -159,7 +159,7 @@ val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
 val target_naming = operation #target_naming;
 
-fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> hd;
+fun note kind (a, ths) lthy = lthy |> notes kind [(a, [(ths, [])])] |>> the_single;
 
 fun target_morphism lthy =
   ProofContext.export_morphism lthy (target_of lthy) $>
