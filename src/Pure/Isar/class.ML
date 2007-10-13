@@ -19,13 +19,11 @@ sig
   val class_cmd: bstring -> xstring list -> Element.context Locale.element list
     -> xstring list -> theory -> string * Proof.context
   val init: class -> Proof.context -> Proof.context;
-  val add_const_in_class: string -> (string * term) * Syntax.mixfix
-    -> theory -> string * theory
-  val add_abbrev_in_class: string -> Syntax.mode -> (string * term) * mixfix
-    -> theory -> string * theory
+  val add_const_in_class: string -> (string * mixfix) * term -> theory -> string * theory
+  val add_abbrev_in_class: string -> Syntax.mode -> (string * mixfix) * term -> theory ->
+    string * theory
   val remove_constraint: class -> string -> Proof.context -> Proof.context
-  val class_of_locale: theory -> string -> class option
-  val locale_of_class: theory -> class -> string
+  val is_class: theory -> string -> bool
   val these_params: theory -> sort -> (string * (string * typ)) list
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
@@ -170,9 +168,9 @@ val param_const = Symtab.lookup o snd o InstData.get;
 
 fun add_inst_def (class, tyco) (c, ty) thy =
   let
-    val tyco_base = NameSpace.base tyco;
-    val name_inst = NameSpace.base class ^ "_" ^ tyco_base ^ "_inst";
-    val c_inst_base = NameSpace.base c ^ "_" ^ tyco_base;
+    val tyco_base = Sign.base_name tyco;
+    val name_inst = Sign.base_name class ^ "_" ^ tyco_base ^ "_inst";
+    val c_inst_base = Sign.base_name c ^ "_" ^ tyco_base;
   in
     thy
     |> Sign.sticky_prefix name_inst
@@ -362,15 +360,14 @@ structure ClassData = TheoryDataFun
 
 (* queries *)
 
+val is_class = Symtab.defined o snd o ClassData.get;
+
 val lookup_class_data = Option.map rep_class_data oo try o Graph.get_node
   o fst o ClassData.get;
-fun class_of_locale thy = Symtab.lookup ((snd o ClassData.get) thy);
 
 fun the_class_data thy class = case lookup_class_data thy class
  of NONE => error ("Undeclared class " ^ quote class)
   | SOME data => data;
-
-val locale_of_class = #locale oo the_class_data;
 
 val ancestry = Graph.all_succs o fst o ClassData.get;
 
@@ -469,6 +466,8 @@ fun register_operation class (entry, some_def) =
 
 (** rule calculation, tactics and methods **)
 
+val class_prefix = Logic.const_of_class o Sign.base_name;
+
 fun class_intro thy locale class sups =
   let
     fun class_elim class =
@@ -500,11 +499,10 @@ fun class_intro thy locale class sups =
 
 fun class_interpretation class facts defs thy =
   let
-    val { locale, inst, ... } = the_class_data thy class;
+    val inst = #inst (the_class_data thy class);
     val tac = ALLGOALS (ProofContext.fact_tac facts);
-    val prfx = Logic.const_of_class (NameSpace.base class);
   in
-    prove_interpretation tac ((false, prfx), []) (Locale.Locale locale)
+    prove_interpretation tac ((false, class_prefix class), []) (Locale.Locale class)
       (inst, defs) thy
   end;
 
@@ -727,14 +725,14 @@ fun gen_class prep_spec prep_param bname
               Const ((fst o the o AList.lookup (op =) consts) c, ty)
           | subst t = t;
         fun prep_asm ((name, atts), ts) =
-          ((NameSpace.base name, map (Attrib.attribute_i thy) atts),
+          ((Sign.base_name name, map (Attrib.attribute_i thy) atts),
             (map o map_aterms) subst ts);
       in
         Locale.global_asms_of thy name_locale
         |> map prep_asm
       end;
     fun note_intro name_axclass class_intro =
-      PureThy.note_thmss_qualified "" ((Logic.const_of_class o NameSpace.base) name_axclass)
+      PureThy.note_thmss_qualified "" (class_prefix name_axclass)
         [(("intro", []), [([class_intro], [])])]
       #> snd
   in
@@ -784,23 +782,19 @@ fun mk_operation_entry thy (c, rhs) =
     val typidx = find_index (fn TFree (w, _) => Name.aT = w | _ => false) typargs;
   in (c, (rhs, (ty, typidx))) end;
 
-fun add_const_in_class class ((c, rhs), syn) thy =
+fun add_const_in_class class ((c, mx), rhs) thy =
   let
-    val prfx = (Logic.const_of_class o NameSpace.base) class;
-    fun mk_name c =
-      let
-        val n1 = Sign.full_name thy c;
-        val n2 = NameSpace.qualifier n1;
-        val n3 = NameSpace.base n1;
-      in NameSpace.implode [n2, prfx, n3] end;
-    val rhs' = export_fixes thy class rhs;
+    val prfx = class_prefix class;
+    val thy' = thy |> Sign.add_path prfx;
+
+    val rhs' = export_fixes thy' class rhs;
     val subst_typ = Term.map_type_tfree (fn var as (w, sort) =>
       if w = Name.aT then TFree (w, [class]) else TFree var);
     val ty' = Term.fastype_of rhs';
     val ty'' = subst_typ ty';
-    val c' = mk_name c;
+    val c' = Sign.full_name thy' c;
     val def = (c, Logic.mk_equals (Const (c', ty'), rhs'));
-    val (syn', _) = fork_mixfix true true syn;
+    val (mx', _) = fork_mixfix true true mx;
     fun interpret def thy =
       let
         val def' = symmetric def;
@@ -813,9 +807,8 @@ fun add_const_in_class class ((c, rhs), syn) thy =
         |-> (fn entry => register_operation class (entry, SOME def'))
       end;
   in
-    thy
-    |> Sign.add_path prfx
-    |> Sign.declare_const [] (c, ty', syn') |> snd
+    thy'
+    |> Sign.declare_const [] (c, ty', mx') |> snd
     |> Sign.parent_path
     |> Sign.sticky_prefix prfx
     |> PureThy.add_defs_i false [(def, [])]
@@ -827,22 +820,17 @@ fun add_const_in_class class ((c, rhs), syn) thy =
 
 (* abbreviation in class target *)
 
-fun add_abbrev_in_class class prmode ((c, rhs), syn) thy =
+fun add_abbrev_in_class class prmode ((c, mx), rhs) thy =
   let
-    val prfx = (Logic.const_of_class o NameSpace.base) class;
-    fun mk_name c =
-      let
-        val n1 = Sign.full_name thy c;
-        val n2 = NameSpace.qualifier n1;
-        val n3 = NameSpace.base n1;
-      in NameSpace.implode [n2, prfx, prfx, n3] end;
-    val c' = mk_name c;
+    val prfx = class_prefix class;
+    val naming = Sign.naming_of thy |> NameSpace.add_path prfx |> NameSpace.add_path prfx; (* FIXME !? *)
+    val c' = NameSpace.full naming c;
     val rhs' = export_fixes thy class rhs;
     val ty' = Term.fastype_of rhs';
     val entry = mk_operation_entry thy (c', rhs);
   in
     thy
-    |> Sign.notation true prmode [(Const (c', ty'), syn)]
+    |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> register_operation class (entry, NONE)
     |> pair c'
   end;
