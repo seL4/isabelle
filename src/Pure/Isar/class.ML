@@ -69,10 +69,7 @@ fun prove_interpretation tac prfx_atts expr inst =
       (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
   #> ProofContext.theory_of;
 
-fun OF_LAST thm1 thm2 =
-  let
-    val n = (length o Logic.strip_imp_prems o prop_of) thm2;
-  in (thm1 RSN (n, thm2)) end;
+fun OF_LAST thm1 thm2 = thm1 RSN (Thm.nprems_of thm2, thm2);
 
 fun strip_all_ofclass thy sort =
   let
@@ -148,14 +145,14 @@ structure InstData = TheoryDataFun
       Symtab.merge (K true) (tabb1, tabb2));
 );
 
-fun inst_thms f thy = (Symtab.fold (Symtab.fold (cons o f o snd o snd) o snd) o fst)
+fun inst_thms thy = (Symtab.fold (Symtab.fold (cons o snd o snd) o snd) o fst)
     (InstData.get thy) [];
 fun add_inst (c, tyco) inst = (InstData.map o apfst
       o Symtab.map_default (c, Symtab.empty)) (Symtab.update_new (tyco, inst))
   #> (InstData.map o apsnd) (Symtab.update_new (fst inst, (c, tyco)));
 
-fun unoverload thy = MetaSimplifier.rewrite false (inst_thms I thy);
-fun overload thy = MetaSimplifier.rewrite false (inst_thms symmetric thy);
+fun unoverload thy = MetaSimplifier.rewrite true (inst_thms thy);
+fun overload thy = MetaSimplifier.rewrite true (map Thm.symmetric (inst_thms thy));
 
 fun inst_const thy (c, tyco) =
   (fst o the o Symtab.lookup ((the o Symtab.lookup (fst (InstData.get thy))) c)) tyco;
@@ -179,7 +176,7 @@ fun add_inst_def (class, tyco) (c, ty) thy =
   in
     thy
     |> Sign.sticky_prefix name_inst
-    |> Sign.declare_const [] (c_inst_base, ty, Syntax.NoSyn)
+    |> Sign.declare_const [] (c_inst_base, ty, NoSyn)
     |-> (fn const as Const (c_inst, _) =>
       PureThy.add_defs_i false
         [((Thm.def_name c_inst_base, Logic.mk_equals (const, Const (c, ty))), [])]
@@ -205,7 +202,7 @@ fun add_def ((class, tyco), ((name, prop), atts)) thy =
       |*) add_inst' _ t = add_inst_def (class, tyco) (c, ty);
   in
     thy
-    |> PureThy.add_defs_i true [((name, prop), map (Attrib.attribute thy) atts)]
+    |> PureThy.add_defs_i true [((name, prop), map (Attrib.attribute_i thy) atts)]
     |-> (fn [def] => add_inst' def (args, rhs) #> pair def)
   end;
 
@@ -232,11 +229,11 @@ fun read_def thy = gen_read_def thy (K I) (K I);
 fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed theory =
   let
     val arities = map (prep_arity theory) raw_arities;
-    val _ = if null arities then error "at least one arity must be given" else ();
+    val _ = if null arities then error "At least one arity must be given" else ();
     val _ = case (duplicates (op =) o map #1) arities
      of [] => ()
-      | dupl_tycos => error ("type constructors occur more than once in arities: "
-          ^ (commas o map quote) dupl_tycos);
+      | dupl_tycos => error ("Type constructors occur more than once in arities: "
+          ^ commas_quote dupl_tycos);
     fun get_remove_constraint c thy =
       let
         val ty = Sign.the_const_constraint thy c;
@@ -269,13 +266,13 @@ fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed the
             val (c, (inst, ((name_opt, t), atts))) = read_def thy_read raw_def;
             val ty = Consts.instance (Sign.consts_of thy_read) (c, inst);
             val ((class, tyco), ty') = case AList.lookup (op =) cs c
-             of NONE => error ("illegal definition for constant " ^ quote c)
+             of NONE => error ("Illegal definition for constant " ^ quote c)
               | SOME class_ty => class_ty;
             val name = case name_opt
              of NONE => Thm.def_name (Logic.name_arity (tyco, [], c))
               | SOME name => name;
             val t' = case mk_typnorm thy_read (ty', ty)
-             of NONE => error ("illegal definition for constant " ^
+             of NONE => error ("Illegal definition for constant " ^
                   quote (c ^ "::" ^ setmp show_sorts true
                     (Sign.string_of_typ thy_read) ty))
               | SOME norm => map_types norm t
@@ -370,7 +367,7 @@ val lookup_class_data = Option.map rep_class_data oo try o Graph.get_node
 fun class_of_locale thy = Symtab.lookup ((snd o ClassData.get) thy);
 
 fun the_class_data thy class = case lookup_class_data thy class
- of NONE => error ("undeclared class " ^ quote class)
+ of NONE => error ("Undeclared class " ^ quote class)
   | SOME data => data;
 
 val locale_of_class = #locale oo the_class_data;
@@ -475,8 +472,8 @@ fun register_operation class (entry, some_def) =
 fun class_intro thy locale class sups =
   let
     fun class_elim class =
-      case (map Drule.unconstrainTs o #axioms o AxClass.get_info thy) class
-       of [thm] => SOME thm
+      case (#axioms o AxClass.get_info thy) class
+       of [thm] => SOME (Drule.unconstrainTs thm)
         | [] => NONE;
     val pred_intro = case Locale.intros thy locale
      of ([ax_intro], [intro]) => intro |> OF_LAST ax_intro |> SOME
@@ -504,7 +501,7 @@ fun class_intro thy locale class sups =
 fun class_interpretation class facts defs thy =
   let
     val { locale, inst, ... } = the_class_data thy class;
-    val tac = (ALLGOALS o ProofContext.fact_tac) facts;
+    val tac = ALLGOALS (ProofContext.fact_tac facts);
     val prfx = Logic.const_of_class (NameSpace.base class);
   in
     prove_interpretation tac ((false, prfx), []) (Locale.Locale locale)
@@ -513,6 +510,7 @@ fun class_interpretation class facts defs thy =
 
 fun interpretation_in_rule thy (class1, class2) =
   let
+    val ctxt = ProofContext.init thy;
     fun mk_axioms class =
       let
         val { locale, inst = (_, insttab), ... } = the_class_data thy class;
@@ -526,7 +524,7 @@ fun interpretation_in_rule thy (class1, class2) =
     val (prems, concls) = pairself mk_axioms (class1, class2);
   in
     Goal.prove_global thy [] prems (Logic.mk_conjunction_list concls)
-      (Locale.intro_locales_tac true (ProofContext.init thy))
+      (Locale.intro_locales_tac true ctxt)
   end;
 
 fun intro_classes_tac facts st =
@@ -729,7 +727,7 @@ fun gen_class prep_spec prep_param bname
               Const ((fst o the o AList.lookup (op =) consts) c, ty)
           | subst t = t;
         fun prep_asm ((name, atts), ts) =
-          ((NameSpace.base name, map (Attrib.attribute thy) atts),
+          ((NameSpace.base name, map (Attrib.attribute_i thy) atts),
             (map o map_aterms) subst ts);
       in
         Locale.global_asms_of thy name_locale
@@ -840,7 +838,7 @@ fun add_abbrev_in_class class prmode ((c, rhs), syn) thy =
       in NameSpace.implode [n2, prfx, prfx, n3] end;
     val c' = mk_name c;
     val rhs' = export_fixes thy class rhs;
-    val ty' = fastype_of rhs';
+    val ty' = Term.fastype_of rhs';
     val entry = mk_operation_entry thy (c', rhs);
   in
     thy
