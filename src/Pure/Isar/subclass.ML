@@ -64,7 +64,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
       error ("Class " ^ Sign.string_of_sort thy [sub] ^ " lacks parameter(s) " ^
           commas_quote err_params ^ " of " ^ Sign.string_of_sort thy [sup]);
     val sublocale_prop =
-      Locale.global_asms_of thy (Class.locale_of_class thy sup)
+      Locale.global_asms_of thy sup
       |> maps snd
       |> map (ObjectLogic.ensure_propT thy);
     val supclasses = Sign.complete_sort thy [sup]
@@ -77,8 +77,6 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
       (*FIXME*)
     val sub_ax = #axioms (AxClass.get_info thy sub);
     val sub_inst = Thm.ctyp_of thy (TVar ((Name.aT, 0), [sub]));
-    val loc_name = Class.locale_of_class thy sub;
-    val loc_expr = Locale.Locale (Class.locale_of_class thy sup);
     fun prove_classrel subclass_rule =
       let
         fun add_classrel sup' thy  =
@@ -96,7 +94,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
       end;
     fun prove_interpretation sublocale_rule =
       prove_interpretation_in (ProofContext.fact_tac [sublocale_rule] 1)
-        I (loc_name, loc_expr)
+        I (sub, Locale.Locale sup)
     fun after_qed thms =
       let
         val sublocale_rule = Conjunction.intr_balanced thms;
