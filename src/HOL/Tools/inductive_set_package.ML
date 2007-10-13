@@ -468,7 +468,7 @@ fun add_ind_set_def {verbose, kind, alt_name, coind, no_elim, no_ind}
         cs' intros' monos' params1 cnames_syn' ctxt;
 
     (* define inductive sets using previously defined predicates *)
-    val (defs, ctxt2) = fold_map (LocalTheory.def Thm.internalK)
+    val (defs, ctxt2) = fold_map (LocalTheory.define Thm.internalK)
       (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (("", []),
          fold_rev lambda params (HOLogic.Collect_const U $
            HOLogic.ap_split' fs U HOLogic.boolT (list_comb (p, params3))))))

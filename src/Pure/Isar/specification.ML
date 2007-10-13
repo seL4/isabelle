@@ -165,7 +165,7 @@ fun gen_def prep (raw_var, (raw_a, raw_prop)) lthy =
       if x = x' then mx
       else error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote x'));
     val ((lhs, (_, th)), lthy2) = lthy
-      |> LocalTheory.def Thm.definitionK ((x, mx), ((name ^ "_raw", []), rhs));
+      |> LocalTheory.define Thm.definitionK ((x, mx), ((name ^ "_raw", []), rhs));
     val ((b, [th']), lthy3) = lthy2
       |> LocalTheory.note Thm.definitionK
           ((name, Code.add_default_func_attr :: atts), [prove lthy2 th]);

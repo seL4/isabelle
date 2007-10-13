@@ -645,7 +645,7 @@ fun mk_ind_def alt_name coind cs intr_ts monos
       space_implode "_" (map fst cnames_syn) else alt_name;
 
     val ((rec_const, (_, fp_def)), ctxt') = ctxt |>
-      LocalTheory.def Thm.internalK
+      LocalTheory.define Thm.internalK
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
          (("", []), fold_rev lambda params
            (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)));
@@ -662,7 +662,7 @@ fun mk_ind_def alt_name coind cs intr_ts monos
             (list_comb (rec_const, params @ make_bool_args' bs i @
               make_args argTs (xs ~~ Ts)))))
         end) (cnames_syn ~~ cs);
-    val (consts_defs, ctxt'') = fold_map (LocalTheory.def Thm.internalK) specs ctxt';
+    val (consts_defs, ctxt'') = fold_map (LocalTheory.define Thm.internalK) specs ctxt';
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
     val mono = prove_mono predT fp_fun monos ctxt''

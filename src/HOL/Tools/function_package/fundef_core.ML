@@ -482,7 +482,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
               |> Syntax.check_term lthy
 
       val ((f, (_, f_defthm)), lthy) =
-        LocalTheory.def Thm.internalK ((function_name fname, mixfix), ((fdefname, []), f_def)) lthy
+        LocalTheory.define Thm.internalK ((function_name fname, mixfix), ((fdefname, []), f_def)) lthy
     in
       ((f, f_defthm), lthy)
     end
