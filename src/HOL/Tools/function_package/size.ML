@@ -156,7 +156,7 @@ fun axiomatize_size_thms (info : datatype_info) head_len thy =
       (map (fn T => name_of_typ T ^ size_suffix) (Library.drop (head_len, recTs)));
 
     val thy' = thy |> fold (fn (s, T) =>
-        snd o Theory.specify_const [] (Sign.base_name s, T --> HOLogic.natT, NoSyn))
+        snd o Theory.specify_const [] (Sign.base_name s, T --> HOLogic.natT, NoSyn) [])
       (size_names ~~ Library.drop (head_len, recTs))
     val size_axs = make_size head_len descr' sorts recTs thy';
   in

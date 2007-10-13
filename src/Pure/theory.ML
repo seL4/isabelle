@@ -44,7 +44,8 @@ sig
   val add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
-  val specify_const: Markup.property list -> bstring * typ * mixfix -> theory -> term * theory
+  val specify_const: Markup.property list -> bstring * typ * mixfix -> (string * typ) list ->
+   theory -> term * theory
   val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
 end
 
@@ -266,6 +267,10 @@ fun add_deps a raw_lhs raw_rhs thy =
     val name = if a = "" then (#1 lhs ^ " axiom") else a;
   in thy |> map_defs (dependencies thy false false name lhs rhs) end;
 
+fun specify_const tags decl deps thy =
+  let val (t as Const const, thy') = Sign.declare_const tags decl thy
+  in (t, add_deps "" const deps thy') end;
+
 
 (* check_overloading *)
 
@@ -344,10 +349,6 @@ val add_finals = gen_add_finals Syntax.read_term_global;
 val add_finals_i = gen_add_finals (K I);
 
 end;
-
-fun specify_const tags decl thy =
-  let val (const, thy') = Sign.declare_const tags decl thy
-  in (const, add_finals_i false [const] thy') end;
 
 
 
