@@ -16,9 +16,6 @@ end;
 structure TheoryTarget: THEORY_TARGET =
 struct
 
-
-(** locale targets **)
-
 (* context data *)
 
 datatype target = Target of {target: string, is_locale: bool, is_class: bool};
@@ -203,7 +200,7 @@ fun declare_consts (ta as Target {target, is_locale, is_class}) depends decls lt
         val t = Term.list_comb (const, map Free xs);
       in (((c, mx2), t), thy') end;
     fun const_class ((c, _), mx) (_, t) =
-      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, t), mx))
+      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, mx), t))
       #-> Class.remove_constraint target;
 
     val (abbrs, lthy') = lthy
@@ -212,7 +209,7 @@ fun declare_consts (ta as Target {target, is_locale, is_class}) depends decls lt
     lthy'
     |> is_class ? fold2 const_class decls abbrs
     |> is_locale ? fold (internal_abbrev ta Syntax.mode_default) abbrs
-    |> LocalDefs.add_defs (map (apsnd (pair ("", []))) abbrs) |>> map (apsnd snd)
+    |> fold_map (apfst (apsnd snd) oo LocalDefs.add_def) abbrs
   end;
 
 
@@ -244,8 +241,8 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((raw_c, mx), raw
     |-> (fn (lhs, rhs) =>
           LocalTheory.theory (Sign.notation true prmode [(lhs, mx3)])
           #> is_locale ? internal_abbrev ta prmode ((c, mx2), Term.list_comb (lhs, xs))
-          #> is_class ? add_abbrev_in_class ((c, Term.list_comb (lhs, xs)), mx1))
-    |> LocalDefs.add_defs [((c, NoSyn), (("", []), raw_t))] |>> the_single
+          #> is_class ? add_abbrev_in_class ((c, mx1), Term.list_comb (lhs, xs)))
+    |> LocalDefs.add_def ((c, NoSyn), raw_t)
   end;
 
 
@@ -315,7 +312,7 @@ fun begin target ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val is_locale = target <> "";
-    val is_class = is_some (Class.class_of_locale thy target);
+    val is_class = Class.is_class thy target;
     val ta = Target {target = target, is_locale = is_locale, is_class = is_class};
   in
     ctxt
@@ -332,8 +329,7 @@ fun begin target ctxt =
       declaration = declaration ta,
       target_naming = target_naming ta,
       reinit = fn _ =>
-        (if is_locale then Locale.init target else ProofContext.init)
-        #> begin target,
+        begin target o (if is_locale then Locale.init target else ProofContext.init),
       exit = LocalTheory.target_of}
   end;
 
