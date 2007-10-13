@@ -714,7 +714,7 @@ fun add_abbrev mode tags (c, raw_t) thy =
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val (res, consts') = consts_of thy
       |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode tags (c, t);
-  in (res, thy |> map_consts (K consts')) end;
+  in (pairself Logic.unvarify res, thy |> map_consts (K consts')) end;
 
 
 (* add constraints *)
