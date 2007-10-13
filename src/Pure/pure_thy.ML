@@ -580,12 +580,11 @@ val proto_pure =
     ("prop", typ "prop => prop", NoSyn),
     ("TYPE", typ "'a itself", NoSyn),
     (Term.dummy_patternN, typ "'a", Delimfix "'_")]
-  |> Theory.add_finals_i false
-    [Const ("==", typ "'a => 'a => prop"),
-     Const ("==>", typ "prop => prop => prop"),
-     Const ("all", typ "('a => prop) => prop"),
-     Const ("TYPE", typ "'a itself"),
-     Const (Term.dummy_patternN, typ "'a")]
+  |> Theory.add_deps "==" ("==", typ "'a => 'a => prop") []
+  |> Theory.add_deps "==>" ("==>", typ "prop => prop => prop") []
+  |> Theory.add_deps "all" ("all", typ "('a => prop) => prop") []
+  |> Theory.add_deps "TYPE" ("TYPE", typ "'a itself") []
+  |> Theory.add_deps Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
   |> Sign.add_trfuns Syntax.pure_trfuns
   |> Sign.add_trfunsT Syntax.pure_trfunsT
   |> Sign.local_path

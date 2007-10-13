@@ -69,7 +69,7 @@ fun gen_add_judgment add_consts (bname, T, mx) thy =
   let val c = Sign.full_name thy (Syntax.const_name bname mx) in
     thy
     |> add_consts [(bname, T, mx)]
-    |> (fn thy' => Theory.add_finals_i false [(Const (c, Sign.the_const_type thy' c))] thy')
+    |> (fn thy' => Theory.add_deps c (c, Sign.the_const_type thy' c) [] thy')
     |> ObjectLogicData.map (new_judgment c)
   end;
 
