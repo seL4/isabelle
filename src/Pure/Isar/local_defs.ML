@@ -14,6 +14,7 @@ sig
   val def_export: Assumption.export
   val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
     (term * (bstring * thm)) list * Proof.context
+  val add_def: (string * mixfix) * term -> Proof.context -> (term * (bstring * thm)) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
   val export_cterm: Proof.context -> Proof.context -> cterm -> cterm * thm
   val trans_terms: Proof.context -> thm list -> thm
@@ -41,8 +42,8 @@ struct
 
 fun cert_def ctxt eq =
   let
-    val display_term = quote o Syntax.string_of_term ctxt;
-    fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^ display_term eq);
+    fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^
+      quote (Syntax.string_of_term ctxt eq));
     val ((lhs, _), eq') = eq
       |> Sign.no_vars (Syntax.pp ctxt)
       |> PrimitiveDefs.dest_def ctxt Term.is_Free (Variable.is_fixed ctxt) (K true)
@@ -99,6 +100,8 @@ fun add_defs defs ctxt =
       (map2 (fn a => fn eq => (a, [(eq, [])])) (names' ~~ atts) eqs)
     |>> map2 (fn lhs => fn (name, [th]) => (lhs, (name, th))) lhss
   end;
+
+fun add_def (var, rhs) = add_defs [(var, (("", []), rhs))] #>> the_single;
 
 
 (* specific export -- result based on educated guessing *)
