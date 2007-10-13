@@ -25,9 +25,9 @@ sig
     ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
     -> (term list * (bstring * thm list) list) * local_theory
   val abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory ->
-    (term * term) * local_theory
-  val def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
-    local_theory -> (term * (bstring * thm)) * local_theory
+    (term * (bstring * thm)) * local_theory
+  val define: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
+    (term * (bstring * thm)) * local_theory
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory
   val type_syntax: declaration -> local_theory -> local_theory
@@ -57,9 +57,10 @@ type operations =
   axioms: string ->
     ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
     -> (term list * (bstring * thm list) list) * local_theory,
-  abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> (term * term) * local_theory,
-  def: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) ->
-    local_theory -> (term * (bstring * thm)) * local_theory,
+  abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory ->
+    (term * (bstring * thm)) * local_theory,
+  define: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
+    (term * (bstring * thm)) * local_theory,
   notes: string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory,
@@ -151,7 +152,7 @@ fun operation2 f x y = operation (fn ops => f ops x y);
 val pretty = operation #pretty;
 val axioms = operation2 #axioms;
 val abbrev = operation2 #abbrev;
-val def = operation2 #def;
+val define = operation2 #define;
 val notes = operation2 #notes;
 val type_syntax = operation1 #type_syntax;
 val term_syntax = operation1 #term_syntax;
