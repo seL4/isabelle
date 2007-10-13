@@ -8,10 +8,13 @@ use "ML-Systems/exn.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 
-val ml_system_fix_ints = false;
-
 
 (** ML system and platform related **)
+
+val ml_system_fix_ints = false;
+
+PolyML.Compiler.maxInlineSize := 80;
+
 
 (* String compatibility *)
 
