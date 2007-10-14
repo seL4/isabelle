@@ -518,7 +518,9 @@ text {* With @{text quick_and_dirty} set, the datatype package does
   not generate certain axioms for recursion operators.  Without these
   axioms, refute may find spurious countermodels. *}
 
-ML {* val Refute_Examples_qnd = !quick_and_dirty; reset quick_and_dirty; *}
+(*
+ML {* reset quick_and_dirty; *}
+*)
 
 text {* unit *}
 
@@ -1296,8 +1298,6 @@ oops
 lemma "P (U_rec_3 e c d nil cons x)"
   refute
 oops
-
-ML {* quick_and_dirty := Refute_Examples_qnd; *}
 
 (*****************************************************************************)
 
