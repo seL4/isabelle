@@ -423,10 +423,12 @@ fun check_deps dir name =
             val current = update_time >= 0 andalso can get_theory name
               andalso forall (is_some o snd) files';
             val update_time' = if current then update_time else ~1;
-            val text' = if current then text else explode (File.read thy_path);
-            val deps' = SOME (make_deps update_time' master' text' parents files');
+            val deps' = SOME (make_deps update_time' master' text parents files');
           in (current, deps', parents) end
       end);
+
+fun read_text (SOME {update_time, master = master as SOME (path, _), text = _, parents, files}) =
+  SOME (make_deps update_time master (explode (File.read path)) parents files);
 
 in
 
@@ -454,9 +456,11 @@ and require_thy time initiators dir str tasks =
               (Path.append dir (master_dir' deps)) parents tasks;
 
           val all_current = current andalso parents_current;
-          val theory = if all_current then SOME (get_theory name) else NONE;
           val _ = if not all_current andalso known_thy name then outdate_thy name else ();
-          val _ = change_thys (new_deps name parent_names (deps, theory));
+          val entry =
+            if all_current then (deps, SOME (get_theory name))
+            else (read_text deps, NONE);
+          val _ = change_thys (new_deps name parent_names entry);
 
           val upd_time = serial ();
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
