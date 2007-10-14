@@ -1400,7 +1400,6 @@ lemma "(x::nat) < x + y"
   refute
 oops
 
-(* TODO: an efficient interpreter for @ is needed here
 lemma "xs @ [] = ys @ []"
   refute
 oops
@@ -1408,7 +1407,6 @@ oops
 lemma "xs @ ys = ys @ xs"
   refute
 oops
-*)
 
 lemma "f (lfp f) = lfp f"
   refute

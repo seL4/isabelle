@@ -705,7 +705,7 @@ struct
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
       | Const (@{const_name HOL.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      (*| Const ("List.", _)        => t*)
+      | Const ("List.append", _)        => t
       | Const ("Lfp.lfp", _)            => t
       | Const ("Gfp.gfp", _)            => t
       | Const ("fst", _)                => t
@@ -896,7 +896,7 @@ struct
       | Const (@{const_name HOL.times}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms (axs, T)
-      (*| Const ("List.append", T)        => collect_type_axioms (axs, T)*)
+      | Const ("List.append", T)        => collect_type_axioms (axs, T)
       | Const ("Lfp.lfp", T)            => collect_type_axioms (axs, T)
       | Const ("Gfp.gfp", T)            => collect_type_axioms (axs, T)
       | Const ("fst", T)                => collect_type_axioms (axs, T)
@@ -2838,13 +2838,13 @@ struct
         (* int -> int -> interpretation *)
         fun plus m n =
           let
-            val element = (m+n)+1
+            val element = m + n
           in
-            if element > size_of_nat then
+            if element > size_of_nat - 1 then
               Leaf (replicate size_of_nat False)
             else
-              Leaf ((replicate (element-1) False) @ True ::
-                (replicate (size_of_nat - element) False))
+              Leaf ((replicate element False) @ True ::
+                (replicate (size_of_nat - element - 1) False))
           end
       in
         SOME (Node (map (fn m => Node (map (plus m) (0 upto size_of_nat-1)))
@@ -2869,10 +2869,10 @@ struct
         (* int -> int -> interpretation *)
         fun minus m n =
           let
-            val element = Int.max (m-n, 0) + 1
+            val element = Int.max (m-n, 0)
           in
-            Leaf ((replicate (element-1) False) @ True ::
-              (replicate (size_of_nat - element) False))
+            Leaf ((replicate element False) @ True ::
+              (replicate (size_of_nat - element - 1) False))
           end
       in
         SOME (Node (map (fn m => Node (map (minus m) (0 upto size_of_nat-1)))
@@ -2897,13 +2897,13 @@ struct
         (* nat -> nat -> interpretation *)
         fun mult m n =
           let
-            val element = (m*n)+1
+            val element = m * n
           in
-            if element > size_of_nat then
+            if element > size_of_nat - 1 then
               Leaf (replicate size_of_nat False)
             else
-              Leaf ((replicate (element-1) False) @ True ::
-                (replicate (size_of_nat - element) False))
+              Leaf ((replicate element False) @ True ::
+                (replicate (size_of_nat - element - 1) False))
           end
       in
         SOME (Node (map (fn m => Node (map (mult m) (0 upto size_of_nat-1)))
@@ -2919,47 +2919,92 @@ struct
   (* interpreters available already (using its definition), but the code   *)
   (* below is more efficient                                               *)
 
-(* TODO: invalidated by the change in the order in which we enumerate elements
-         of recursive datatypes
   fun List_append_interpreter thy model args t =
     case t of
       Const ("List.append", Type ("fun", [Type ("List.list", [T]), Type ("fun",
         [Type ("List.list", [_]), Type ("List.list", [_])])])) =>
       let
-        val size_elem = size_of_type thy model T
-        val size_list = size_of_type thy model (Type ("List.list", [T]))
-        (* log (a, b) computes floor(log_a(b)), i.e. the largest integer x *)
-        (* s.t. a^x <= b, for a>=2, b>=1                                   *)
-        (* int * int -> int *)
-        fun log (a, b) =
-          let
-            fun logloop (ax, x) =
-              if ax > b then x-1 else logloop (a * ax, x+1)
+        val size_elem   = size_of_type thy model T
+        val size_list   = size_of_type thy model (Type ("List.list", [T]))
+        (* maximal length of lists; 0 if we only consider the empty list *)
+        val list_length = let
+            (* int -> int -> int -> int *)
+            fun list_length_acc len lists total =
+              if lists = total then
+                len
+              else if lists < total then
+                list_length_acc (len+1) (lists*size_elem) (total-lists)
+              else
+                raise REFUTE ("List_append_interpreter",
+                  "size_list not equal to 1 + size_elem + ... + " ^
+                    "size_elem^len, for some len")
           in
-            logloop (1, 0)
+            list_length_acc 0 1 size_list
           end
+        val elements = 0 upto (size_list-1)
+        (* FIXME: there should be a nice formula, which computes the same as *)
+        (*        the following, but without all this intermediate tree      *)
+        (*        length/offset stuff                                        *)
+        (* associate each list with its length and offset in a complete tree *)
+        (* of width 'size_elem' and depth 'length_list' (with 'size_list'    *)
+        (* nodes total)                                                      *)
+        (* (int * (int * int)) list *)
+        val (_, lenoff_lists) = foldl_map (fn ((offsets, off), elem) =>
+          (* corresponds to a pre-order traversal of the tree *)
+          let
+            val len = length offsets
+            (* associate the given element with len/off *)
+            val assoc = (elem, (len, off))
+          in
+            if len < list_length then
+              (* go to first child node *)
+              ((off :: offsets, off * size_elem), assoc)
+            else if off mod size_elem < size_elem - 1 then
+              (* go to next sibling node *)
+              ((offsets, off + 1), assoc)
+            else
+              (* go back up the stack until we find a level where we can go *)
+              (* to the next sibling node                                   *)
+              let
+                val offsets' = Library.dropwhile
+                  (fn off' => off' mod size_elem = size_elem - 1) offsets
+              in
+                case offsets' of
+                  [] =>
+                  (* we're at the last node in the tree; the next value *)
+                  (* won't be used anyway                               *)
+                  (([], 0), assoc)
+                | off'::offs' =>
+                  (* go to next sibling node *)
+                  ((offs', off' + 1), assoc)
+              end
+          end) (([], 0), elements)
+        (* we also need the reverse association (from length/offset to *)
+        (* index)                                                      *)
+        val lenoff'_lists = map Library.swap lenoff_lists
+        (* returns the interpretation for "(list no. m) @ (list no. n)" *)
         (* nat -> nat -> interpretation *)
         fun append m n =
           let
-            (* The following formula depends on the order in which lists are *)
-            (* enumerated by the 'IDT_constructor_interpreter'.  It took me  *)
-            (* a little while to come up with this formula.                  *)
-            val element = n + m * (if size_elem = 1 then 1
-              else power (size_elem, log (size_elem, n+1))) + 1
+            val (len_m, off_m) = lookup lenoff_lists m
+            val (len_n, off_n) = lookup lenoff_lists n
+            val len_elem = len_m + len_n
+            val off_elem = off_m * power (size_elem, len_n) + off_n
           in
-            if element > size_list then
+            case AList.lookup op= lenoff'_lists (len_elem, off_elem)  of
+              NONE =>
+              (* undefined *)
               Leaf (replicate size_list False)
-            else
-              Leaf ((replicate (element-1) False) @ True ::
-                (replicate (size_list - element) False))
+            | SOME element =>
+              Leaf ((replicate element False) @ True ::
+                (replicate (size_list - element - 1) False))
           end
       in
-        SOME (Node (map (fn m => Node (map (append m) (0 upto size_list-1)))
-          (0 upto size_list-1)), model, args)
+        SOME (Node (map (fn m => Node (map (append m) elements)) elements),
+          model, args)
       end
     | _ =>
       NONE;
-*)
 
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
@@ -3343,7 +3388,7 @@ struct
      add_interpreter "Nat_HOL.plus"       Nat_plus_interpreter #>
      add_interpreter "Nat_HOL.minus"      Nat_minus_interpreter #>
      add_interpreter "Nat_HOL.times"      Nat_times_interpreter #>
-     (*add_interpreter "List.append" List_append_interpreter #>*)
+     add_interpreter "List.append" List_append_interpreter #>
      add_interpreter "Lfp.lfp" Lfp_lfp_interpreter #>
      add_interpreter "Gfp.gfp" Gfp_gfp_interpreter #>
      add_interpreter "fst" Product_Type_fst_interpreter #>
