@@ -2622,6 +2622,7 @@ lemma card_code [code func]:
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
 class finite (attach UNIV) = type +
+  fixes itself :: "'a itself"
   assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
 setup {* Sign.parent_path *}
 hide const finite
@@ -2633,6 +2634,7 @@ lemma univ_unit [noatp]:
   "UNIV = {()}" by auto
 
 instance unit :: finite
+  "Finite_Set.itself \<equiv> TYPE(unit)"
 proof
   have "finite {()}" by simp
   also note univ_unit [symmetric]
@@ -2645,6 +2647,7 @@ lemma univ_bool [noatp]:
   "UNIV = {False, True}" by auto
 
 instance bool :: finite
+  "itself \<equiv> TYPE(bool)"
 proof
   have "finite {False, True}" by simp
   also note univ_bool [symmetric]
@@ -2654,6 +2657,7 @@ qed
 lemmas [code func] = univ_bool
 
 instance * :: (finite, finite) finite
+  "itself \<equiv> TYPE('a\<Colon>finite)"
 proof
   show "finite (UNIV :: ('a \<times> 'b) set)"
   proof (rule finite_Prod_UNIV)
@@ -2667,6 +2671,7 @@ lemma univ_prod [noatp, code func]:
   unfolding UNIV_Times_UNIV ..
 
 instance "+" :: (finite, finite) finite
+  "itself \<equiv> TYPE('a\<Colon>finite + 'b\<Colon>finite)"
 proof
   have a: "finite (UNIV :: 'a set)" by (rule finite)
   have b: "finite (UNIV :: 'b set)" by (rule finite)
@@ -2680,6 +2685,7 @@ lemma univ_sum [noatp, code func]:
   unfolding UNIV_Plus_UNIV ..
 
 instance set :: (finite) finite
+  "itself \<equiv> TYPE('a\<Colon>finite set)"
 proof
   have "finite (UNIV :: 'a set)" by (rule finite)
   hence "finite (Pow (UNIV :: 'a set))"
@@ -2694,6 +2700,7 @@ lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
 
 instance "fun" :: (finite, finite) finite
+  "itself \<equiv> TYPE('a\<Colon>finite \<Rightarrow> 'b\<Colon>finite)"
 proof
   show "finite (UNIV :: ('a => 'b) set)"
   proof (rule finite_imageD)
@@ -2703,6 +2710,7 @@ proof
   qed
 qed
 
+hide (open) const itself
 
 subsection {* Equality and order on functions *}
 
