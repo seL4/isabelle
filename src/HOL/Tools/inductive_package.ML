@@ -925,7 +925,6 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val _ = OuterSyntax.keywords ["monos"];
 
-(* FIXME tmp *)
 fun flatten_specification specs = specs |> maps
   (fn (a, (concl, [])) => concl |> map
         (fn ((b, atts), [B]) =>
