@@ -193,7 +193,7 @@ datatype ctxt =
    {mode: mode,                                       (*inner syntax mode*)
     naming: NameSpace.naming,                         (*local naming conventions*)
     syntax: LocalSyntax.T,                            (*local syntax*)
-    consts: Consts.T * Consts.T,                      (*global/local consts*)
+    consts: Consts.T * Consts.T,                      (*local/global consts*)
     thms: thm list NameSpace.table * FactIndex.T,     (*local thms*)
     cases: (string * (RuleCases.T * bool)) list};     (*local contexts*)
 
@@ -259,7 +259,7 @@ val syn_of = LocalSyntax.syn_of o syntax_of;
 val set_syntax_mode = map_syntax o LocalSyntax.set_mode;
 val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
 
-val consts_of = #2 o #consts o rep_context;
+val consts_of = fst o #consts o rep_context;
 val const_syntax_name = Consts.syntax_name o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
 
@@ -274,10 +274,10 @@ val cases_of = #cases o rep_context;
 
 fun transfer_syntax thy =
   map_syntax (LocalSyntax.rebuild thy) #>
-  map_consts (fn consts as (global_consts, local_consts) =>
+  map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
       if Consts.eq_consts (thy_consts, global_consts) then consts
-      else (thy_consts, Consts.merge (thy_consts, local_consts))
+      else (Consts.merge (local_consts, thy_consts), thy_consts)
     end);
 
 fun transfer thy = Context.transfer_proof thy #> transfer_syntax thy;
@@ -1026,7 +1026,7 @@ fun add_const_constraint (c, opt_T) ctxt =
     fun prepT raw_T =
       let val T = cert_typ ctxt raw_T
       in cert_term ctxt (Const (c, T)); T end;
-  in ctxt |> map_consts (apsnd (Consts.constrain (c, Option.map prepT opt_T))) end;
+  in ctxt |> (map_consts o apfst) (Consts.constrain (c, Option.map prepT opt_T)) end;
 
 fun add_abbrev mode tags (c, raw_t) ctxt =
   let
@@ -1037,7 +1037,7 @@ fun add_abbrev mode tags (c, raw_t) ctxt =
       |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (c, t);
   in
     ctxt
-    |> map_consts (apsnd (K consts'))
+    |> (map_consts o apfst) (K consts')
     |> Variable.declare_term rhs
     |> pair (lhs, rhs)
   end;
