@@ -53,6 +53,15 @@ syntax module and improves flexibility by separating parsing and
 type-checking. INCOMPATIBILITY: additional type-constraints (explicit
 'fixes' etc.) are required in rare situations.
 
+* Syntax: constants introduced by new-style packages ('definition',
+'abbreviation' etc.) are passed through the syntax module in
+``authentic mode''. This means that associated mixfix annotations
+really stick to such constants, independently of potential name space
+ambiguities introduced later on. INCOMPATIBILITY: constants in parse
+trees are represented slightly differently, may need to adapt syntax
+translations accordingly. Use CONST marker in 'translations' and
+@{const_syntax} antiquotation in 'parse_translation' etc.
+
 * Legacy goal package: reduced interface to the bare minimum required
 to keep existing proof scripts running.  Most other user-level
 functions are now part of the OldGoals structure, which is *not* open
