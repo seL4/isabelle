@@ -784,10 +784,11 @@ fun uncheck_arity ctxt (a, Ss, S) =
 
 fun unparse_arity ctxt (a, Ss, S) =
   let
+    val prtT = unparse_typ ctxt (Type (a, []));
     val dom =
       if null Ss then []
       else [Pretty.list "(" ")" (map (unparse_sort ctxt) Ss), Pretty.brk 1];
-  in Pretty.block ([Pretty.str (a ^ " ::"), Pretty.brk 1] @ dom @ [unparse_sort ctxt S]) end;
+  in Pretty.block ([prtT, Pretty.str " ::", Pretty.brk 1] @ dom @ [unparse_sort ctxt S]) end;
 
 
 (* read = parse + check *)
