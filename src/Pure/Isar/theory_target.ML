@@ -38,7 +38,6 @@ fun pretty (Target {target, is_locale, is_class}) ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name = (if is_class then "class " else "locale ") ^ Locale.extern thy target;
-
     val fixes = map (fn (x, T) => (x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
     val assumes = map (fn A => (("", []), [(A, [])])) (map Thm.term_of (Assumption.assms_of ctxt));
     val elems =
@@ -199,16 +198,17 @@ fun declare_consts (ta as Target {target, is_locale, is_class}) depends decls lt
         val (const, thy') = Sign.declare_const (ContextPosition.properties_of lthy) (c, U, mx3) thy;
         val t = Term.list_comb (const, map Free xs);
       in (((c, mx2), t), thy') end;
-    fun const_class ((c, _), mx) (_, t) =
-      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, mx), t))
+    val local_const = NameSpace.full (LocalTheory.target_naming lthy);
+    fun class_const ((c, _), mx) (_, t) =
+      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, mx), (local_const c, t)))
       #-> Class.remove_constraint target;
 
     val (abbrs, lthy') = lthy
       |> LocalTheory.theory_result (fold_map const decls)
   in
     lthy'
-    |> is_class ? fold2 const_class decls abbrs
     |> is_locale ? fold (internal_abbrev ta Syntax.mode_default) abbrs
+    |> is_class ? fold2 class_const decls abbrs
     |> fold_map (apfst (apsnd snd) oo LocalDefs.add_def) abbrs
   end;
 
@@ -227,12 +227,14 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((raw_c, mx), raw
     val xs = map Free (Variable.add_fixed target_ctxt t []);
     val u = fold_rev lambda xs t;
     val U = Term.fastype_of u;
-
     val u' = singleton (Variable.export_terms (Variable.declare_term u target_ctxt) thy_ctxt) u;
     val (mx1, mx2) = Class.fork_mixfix is_locale is_class mx;
     val mx3 = if is_locale then NoSyn else mx1;
-    fun add_abbrev_in_class abbr =
-      LocalTheory.raw_theory_result (Class.add_abbrev_in_class target prmode abbr)
+
+    val local_const = NameSpace.full (LocalTheory.target_naming lthy);
+    fun class_abbrev ((c, mx), t) =
+      LocalTheory.raw_theory_result (Class.add_abbrev_in_class target prmode
+        ((c, mx), (local_const c, t)))
       #-> Class.remove_constraint target;
   in
     lthy
@@ -241,7 +243,7 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((raw_c, mx), raw
     |-> (fn (lhs, rhs) =>
           LocalTheory.theory (Sign.notation true prmode [(lhs, mx3)])
           #> is_locale ? internal_abbrev ta prmode ((c, mx2), Term.list_comb (lhs, xs))
-          #> is_class ? add_abbrev_in_class ((c, mx1), Term.list_comb (lhs, xs)))
+          #> is_class ? class_abbrev ((c, mx1), Term.list_comb (lhs, xs)))
     |> LocalDefs.add_def ((c, NoSyn), raw_t)
   end;
 
