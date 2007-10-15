@@ -99,7 +99,7 @@ sig
 
   val interpretation_i: (Proof.context -> Proof.context) ->
     (bool * string) * Attrib.src list -> expr ->
-    (typ Symtab.table * term Symtab.table) * term list ->
+    term option list * term list ->
     theory -> Proof.state
   val interpretation: (Proof.context -> Proof.context) ->
     (bool * string) * Attrib.src list -> expr ->
@@ -109,7 +109,7 @@ sig
     xstring * expr -> theory -> Proof.state
   val interpret_i: (Proof.state -> Proof.state Seq.seq) ->
     (bool * string) * Attrib.src list -> expr ->
-    (typ Symtab.table * term Symtab.table) * term list ->
+    term option list * term list ->
     bool -> Proof.state -> Proof.state
   val interpret: (Proof.state -> Proof.state Seq.seq) ->
     (bool * string) * Attrib.src list -> expr ->
@@ -2077,13 +2077,21 @@ fun local_activate_facts_elemss x = gen_activate_facts_elemss
       add_local_equation
       x;
 
-fun prep_instantiations parse_term parse_prop ctxt parms (insts, eqns) =
+fun prep_instantiations prep_term prep_prop ctxt parms (insts, eqns) =
   let
     (* parameters *)
     val (parm_names, parm_types) = parms |> split_list
       ||> map (TypeInfer.paramify_vars o Logic.varifyT);
-    val type_parms = fold Term.add_tvarsT parm_types [] |> map TVar;
+    val type_parms = fold Term.add_tvarsT parm_types [] |> map (Logic.mk_type o TVar);
     val type_parm_names = fold Term.add_tfreesT (map snd parms) [] |> map fst;
+
+    (*(* type instantiations *)
+    val dT = length type_parms - length instsT;
+    val instsT =
+      if dT < 0 then error "More type arguments than type parameters in instantiation."
+      else instsT @ replicate dT NONE;
+    val type_terms = map2 (fn t => fn SOME T => TypeInfer.constrain (Term.itselfT T) t
+      | NONE => t) type_parms instsT;*)
 
     (* parameter instantiations *)
     val d = length parms - length insts;
@@ -2098,12 +2106,12 @@ fun prep_instantiations parse_term parse_prop ctxt parms (insts, eqns) =
     val (given_parm_names, given_parm_types) = given_ps |> split_list;
 
     (* prepare insts / eqns *)
-    val given_insts' = map (parse_term ctxt) given_insts;
-    val eqns' = map (parse_prop ctxt) eqns;
+    val given_insts' = map (prep_term ctxt) given_insts;
+    val eqns' = map (prep_prop ctxt) eqns;
 
     (* infer types *)
     val res = Syntax.check_terms ctxt
-      (map Logic.mk_type type_parms @
+      (type_parms @
        map2 TypeInfer.constrain given_parm_types given_insts' @
        eqns');
     val ctxt' = ctxt |> fold Variable.auto_fixes res;
@@ -2116,9 +2124,8 @@ fun prep_instantiations parse_term parse_prop ctxt parms (insts, eqns) =
     val standard = Variable.export_morphism ctxt' ctxt;
   in ((instT, inst), eqns'') end;
 
-
 val read_instantiations = prep_instantiations Syntax.parse_term Syntax.parse_prop;
-val check_instantiations = prep_instantiations (K I) (K I);
+val cert_instantiations = prep_instantiations (K I) (K I);
 
 fun gen_prep_registration mk_ctxt test_reg activate
     prep_attr prep_expr prep_insts
@@ -2200,21 +2207,13 @@ fun gen_prep_local_registration mk_ctxt = gen_prep_registration I
 
 val prep_global_registration = gen_prep_global_registration
   Attrib.intern_src intern_expr read_instantiations;
-(* FIXME: NEW
 val prep_global_registration_i = gen_prep_global_registration
-  (K I) (K I) check_instantiations;
-*)
-val prep_global_registration_i = gen_prep_global_registration
-  (K I) (K I) ((K o K) I);
+  (K I) (K I) cert_instantiations;
 
 val prep_local_registration = gen_prep_local_registration
   Attrib.intern_src intern_expr read_instantiations;
-(* FIXME: NEW
 val prep_local_registration_i = gen_prep_local_registration
-  (K I) (K I) check_instantiations;
-*)
-val prep_local_registration_i = gen_prep_local_registration
-  (K I) (K I) ((K o K) I);
+  (K I) (K I) cert_instantiations;
 
 fun prep_registration_in_locale target expr thy =
   (* target already in internal form *)
