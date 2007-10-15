@@ -14,11 +14,12 @@ sig
   val dest: T ->
    {constants: (typ * (term * term) option) NameSpace.table,
     constraints: typ NameSpace.table}
+  val the_type: T -> string -> typ                                  (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * (term * term)          (*exception TYPE*)
-  val the_declaration: T -> string -> typ                           (*exception TYPE*)
+  val type_scheme: T -> string -> typ                               (*exception TYPE*)
+  val the_tags: T -> string -> Markup.property list                 (*exception TYPE*)
   val is_monomorphic: T -> string -> bool                           (*exception TYPE*)
   val the_constraint: T -> string -> typ                            (*exception TYPE*)
-  val the_tags: T -> string -> Markup.property list                 (*exception TYPE*)
   val space_of: T -> NameSpace.T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
@@ -82,9 +83,9 @@ fun dest (Consts ({decls = (space, decls), constraints, ...}, _)) =
 fun the_const (Consts ({decls = (_, tab), ...}, _)) c =
   (case Symtab.lookup tab c of
     SOME (decl, _) => decl
-  | NONE => raise TYPE ("Undeclared constant: " ^ quote c, [], []));
+  | NONE => raise TYPE ("Unknown constant: " ^ quote c, [], []));
 
-fun the_declaration consts c =
+fun the_type consts c =
   (case the_const consts c of
     ({T, ...}, NONE) => T
   | _ => raise TYPE ("Not a logical constant: " ^ quote c, [], []));
@@ -94,15 +95,17 @@ fun the_abbreviation consts c =
     ({T, ...}, SOME abbr) => (T, dest_abbrev abbr)
   | _ => raise TYPE ("Not an abbreviated constant: " ^ quote c, [], []));
 
-val type_arguments = (#typargs o #1) oo the_const;
+val the_decl = #1 oo the_const;
+val type_scheme = #T oo the_decl;
+val type_arguments = #typargs oo the_decl;
+val the_tags = #tags oo the_decl;
+
 val is_monomorphic = null oo type_arguments;
 
 fun the_constraint (consts as Consts ({constraints, ...}, _)) c =
   (case Symtab.lookup constraints c of
     SOME T => T
-  | NONE => #T (#1 (the_const consts c)));
-
-val the_tags = (#tags o #1) oo the_const;
+  | NONE => type_scheme consts c);
 
 
 (* name space and syntax *)
@@ -131,7 +134,7 @@ fun syntax_name consts c = #1 (syntax consts (c, NoSyn));
 fun read_const consts raw_c =
   let
     val c = intern consts raw_c;
-    val ({T, ...}, _) = the_const consts c handle TYPE (msg, _, _) => error msg;
+    val T = type_scheme consts c handle TYPE (msg, _, _) => error msg;
   in Const (c, T) end;
 
 
@@ -195,7 +198,7 @@ end;
 
 fun instance consts (c, Ts) =
   let
-    val ({ T = declT, ... }, _) = the_const consts c;
+    val declT = type_scheme consts c;
     val vars = map Term.dest_TVar (typargs consts (c, declT));
     val inst = vars ~~ Ts handle UnequalLengths =>
       raise TYPE ("Consts.instance", Ts, [Const (c, dummyT)]);
