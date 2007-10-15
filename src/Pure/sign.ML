@@ -265,7 +265,7 @@ val typ_unify = Type.unify o tsig_of;
 
 val consts_of = #consts o rep_sg;
 val the_const_constraint = Consts.the_constraint o consts_of;
-val the_const_type = Consts.the_declaration o consts_of;
+val the_const_type = Consts.the_type o consts_of;
 val const_type = try o the_const_type;
 val const_monomorphic = Consts.is_monomorphic o consts_of;
 val const_syntax_name = Consts.syntax_name o consts_of;

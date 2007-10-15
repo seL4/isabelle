@@ -427,7 +427,7 @@ and exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr (ty_ctxt,
   end
 and exprgen_dict_parms thy (algbr as (_, consts)) funcgr (c, ty_ctxt) =
   let
-    val ty_decl = Consts.the_declaration consts c;
+    val ty_decl = Consts.the_type consts c;
     val (tys, tys_decl) = pairself (curry (Consts.typargs consts) c) (ty_ctxt, ty_decl);
     val sorts = map (snd o dest_TVar) tys_decl;
   in
