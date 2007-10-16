@@ -161,7 +161,7 @@ sig
   val add_tfreesT: typ -> (string * sort) list -> (string * sort) list
   val add_tfrees: term -> (string * sort) list -> (string * sort) list
   val add_frees: term -> (string * typ) list -> (string * typ) list
-  val hidden_polymorphism: term -> typ -> (indexname * sort) list
+  val hidden_polymorphism: term -> (indexname * sort) list
   val strip_abs_eta: int -> term -> (string * typ) list * term
   val fast_indexname_ord: indexname * indexname -> order
   val indexname_ord: indexname * indexname -> order
@@ -179,6 +179,7 @@ sig
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
   val tvar_ord: (indexname * sort) * (indexname * sort) -> order
   val var_ord: (indexname * typ) * (indexname * typ) -> order
+  val close_schematic_term: term -> term
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
@@ -513,13 +514,15 @@ val add_tfreesT = fold_atyps (fn TFree v => insert (op =) v | _ => I);
 val add_tfrees = fold_types add_tfreesT;
 val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
 
-(*extra type variables in a term, not covered by the type*)
-fun hidden_polymorphism t T =
+(*extra type variables in a term, not covered by its type*)
+fun hidden_polymorphism t =
   let
+    val T = fastype_of t;
     val tvarsT = add_tvarsT T [];
     val extra_tvars = fold_types (fold_atyps
       (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
   in extra_tvars end;
+
 
 
 (** Comparing terms, types, sorts etc. **)
@@ -1002,6 +1005,13 @@ fun subst_vars ([], []) tm = tm
           | subst (Abs (a, T, t)) = Abs (a, typ_subst_TVars instT T, subst t)
           | subst (t $ u) = subst t $ subst u;
       in subst tm end;
+
+fun close_schematic_term t =
+  let
+    val extra_types = map (fn v => Const ("TYPE", itselfT (TVar v))) (hidden_polymorphism t);
+    val extra_terms = map Var (rev (add_vars t []));
+  in fold_rev lambda (extra_types @ extra_terms) t end;
+
 
 
 (** Identifying first-order terms **)
