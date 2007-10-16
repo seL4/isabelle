@@ -25,6 +25,7 @@ sig
   val pass_mark    : real ref
   val convergence  : real ref
   val max_new      : int ref
+  val max_sledgehammers : int ref
   val follow_defs  : bool ref
   val add_all : unit -> unit
   val add_claset : unit -> unit
@@ -57,6 +58,8 @@ fun timestamp s = Output.debug (fn () => ("At " ^ Time.toString (Time.now()) ^ "
 val run_blacklist_filter = ref true;
 val time_limit = ref 60;
 val prover = ref Recon.E;
+val max_sledgehammers = ref 1;
+
 
 (*** relevance filter parameters ***)
 val run_relevance_filter = ref true;
@@ -734,7 +737,7 @@ fun trace_vector fname =
   FIXME: does not cope with &&, and it isn't easy because one could have multiple
   subgoals, each involving &&.*)
 fun write_problem_files probfile (ctxt, chain_ths, th) =
-  let val goals = Thm.prems_of th
+  let val goals = Library.take (!max_sledgehammers, Thm.prems_of th)  (*raises no exception*)
       val _ = Output.debug (fn () => "number of subgoals = " ^ Int.toString (length goals))
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals [] _ = []
@@ -799,7 +802,7 @@ fun kill_last_watcher () =
 
 (*writes out the current problems and calls ATPs*)
 fun isar_atp (ctxt, chain_ths, th) =
-  if Thm.no_prems th then ()
+  if Thm.no_prems th then warning "Nothing to prove"
   else
     let
       val _ = kill_last_watcher()
@@ -820,7 +823,7 @@ fun callatp () =
 
 val isar_atp_writeonly = PrintMode.setmp []
       (fn (ctxt, chain_ths, th) =>
-       if Thm.no_prems th then ()
+       if Thm.no_prems th then warning "Nothing to prove"
        else
          let val probfile = if Thm.nprems_of th = 1 then probfile_nosuffix
                             else prob_pathname
