@@ -186,15 +186,13 @@ fun declare_consts (ta as Target {target, is_locale, is_class}) depends decls lt
     fun const ((c, T), mx) thy =
       let
         val U = map #2 xs ---> T;
-        val (mx1, mx2) = Class.fork_mixfix is_locale is_class mx;
-        val mx3 = if is_locale then NoSyn else mx1;
+        val ((mx1, mx2), mx3) = Class.fork_mixfix is_locale is_class mx;
         val (const, thy') = Sign.declare_const pos (c, U, mx3) thy;
         val t = Term.list_comb (const, map Free xs);
       in (((c, mx2), t), thy') end;
-    val local_const = NameSpace.full (LocalTheory.target_naming lthy);
     fun class_const ((c, _), mx) (_, t) =
-      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, mx), (local_const c, t)))
-      #-> Class.remove_constraint target;
+      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, mx), t))
+      #-> LocalTheory.target o Class.remove_constraint target;
 
     val (abbrs, lthy') = lthy
       |> LocalTheory.theory_result (fold_map const decls)
@@ -216,8 +214,8 @@ fun context_abbrev pos (c, t) lthy = lthy
 
 fun class_abbrev target prmode ((c, mx), rhs) lthy = lthy   (* FIXME pos *)
   |> LocalTheory.raw_theory_result (Class.add_abbrev_in_class target prmode
-      ((c, mx), (NameSpace.full (LocalTheory.target_naming lthy) c, rhs)))
-  |-> Class.remove_constraint target;
+      ((c, mx), rhs))
+  |-> LocalTheory.target o Class.remove_constraint target;
 
 in
 
@@ -230,11 +228,12 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((raw_c, mx), raw
     val c = Morphism.name target_morphism raw_c;
     val t = Morphism.term target_morphism raw_t;
 
-    val xs = map Free (rev (Variable.add_fixed target_ctxt t []));
+    val xs = map Free (Variable.add_fixed target_ctxt t []);
+    val ((mx1, mx2), mx3) = Class.fork_mixfix is_locale is_class mx;
+
     val global_rhs =
       singleton (Variable.export_terms (Variable.declare_term t target_ctxt) thy_ctxt)
         (fold_rev lambda xs t);
-    val (mx1, mx2) = Class.fork_mixfix is_locale is_class mx;
   in
     if is_locale then
       lthy
@@ -249,7 +248,7 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((raw_c, mx), raw
       lthy
       |> LocalTheory.theory
         (Sign.add_abbrev (#1 prmode) pos (c, global_rhs)
-          #-> (fn (lhs, _) => Sign.notation true prmode [(lhs, mx1)]))
+          #-> (fn (lhs, _) => Sign.notation true prmode [(lhs, mx3)]))
       |> context_abbrev pos (c, raw_t)
   end;
 
