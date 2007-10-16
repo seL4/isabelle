@@ -83,26 +83,12 @@ fun requires thy name what =
 
 
 
-(** theory wrappers **)
+(** datatype thy **)
 
 type wrapper = (theory -> theory option) * stamp;
 
 fun apply_wrappers (wrappers: wrapper list) =
-  let
-    fun app [] res = res
-      | app ((f, _) :: fs) (changed, thy) =
-          (case f thy of
-            NONE => app fs (changed, thy)
-          | SOME thy' => app fs (true, thy'));
-    fun app_fixpoint thy =
-      (case app wrappers (false, thy) of
-        (false, _) => thy
-      | (true, thy') => app_fixpoint thy');
-  in app_fixpoint end;
-
-
-
-(** datatype thy **)
+  perhaps (perhaps_loop (perhaps_apply (map fst wrappers)));
 
 datatype thy = Thy of
  {axioms: term NameSpace.table,
