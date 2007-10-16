@@ -14,12 +14,12 @@ sig
   val dest: T ->
    {constants: (typ * (term * term) option) NameSpace.table,
     constraints: typ NameSpace.table}
-  val the_type: T -> string -> typ                                  (*exception TYPE*)
-  val the_abbreviation: T -> string -> typ * (term * term)          (*exception TYPE*)
-  val type_scheme: T -> string -> typ                               (*exception TYPE*)
-  val the_tags: T -> string -> Markup.property list                 (*exception TYPE*)
-  val is_monomorphic: T -> string -> bool                           (*exception TYPE*)
-  val the_constraint: T -> string -> typ                            (*exception TYPE*)
+  val the_type: T -> string -> typ                             (*exception TYPE*)
+  val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
+  val type_scheme: T -> string -> typ                          (*exception TYPE*)
+  val the_tags: T -> string -> Markup.property list            (*exception TYPE*)
+  val is_monomorphic: T -> string -> bool                      (*exception TYPE*)
+  val the_constraint: T -> string -> typ                       (*exception TYPE*)
   val space_of: T -> NameSpace.T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
@@ -34,6 +34,7 @@ sig
   val constrain: string * typ option -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string -> Markup.property list ->
     bstring * term -> T -> (term * term) * T
+  val revert_abbrev: string -> string -> T -> T
   val hide: bool -> string -> T -> T
   val empty: T
   val merge: T * T -> T
@@ -41,7 +42,6 @@ end;
 
 structure Consts: CONSTS =
 struct
-
 
 (** consts type **)
 
@@ -92,7 +92,7 @@ fun the_type consts c =
 
 fun the_abbreviation consts c =
   (case the_const consts c of
-    ({T, ...}, SOME abbr) => (T, dest_abbrev abbr)
+    ({T, ...}, SOME {rhs, ...}) => (T, rhs)
   | _ => raise TYPE ("Not an abbreviated constant: " ^ quote c, [], []));
 
 val the_decl = #1 oo the_const;
@@ -157,15 +157,17 @@ fun certify pp tsig do_expand consts =
             let
               val T' = certT T;
               val ({T = U, ...}, abbr) = the_const consts c;
+              fun expand u =
+                Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
+                  err "Illegal type for abbreviation" (c, T), args');
             in
               if not (Type.raw_instance (T', U)) then
                 err "Illegal type for constant" (c, T)
               else
                 (case abbr of
-                  SOME {normal_rhs = u, force_expand, ...} =>
-                    if do_expand orelse force_expand then
-                      Term.betapplys (Envir.expand_atom T' (U, u) handle TYPE _ =>
-                        err "Illegal type for abbreviation" (c, T), args')
+                  SOME {rhs, normal_rhs, force_expand} =>
+                    if do_expand then expand normal_rhs
+                    else if force_expand then expand rhs
                     else comb head
                 | _ => comb head)
             end
@@ -276,8 +278,8 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
 
     fun err msg = error (msg ^ " on rhs of abbreviation:\n" ^
       Pretty.string_of_term pp (Logic.mk_equals (lhs, rhs)));
-    val _ = Term.exists_subterm Term.is_Var rhs andalso err "Illegal schematic variables"
-    val _ = null (Term.hidden_polymorphism rhs T) orelse err "Extra type variables";
+    val _ = Term.exists_subterm Term.is_Var rhs andalso err "Illegal schematic variables";
+    val _ = null (Term.hidden_polymorphism rhs) orelse err "Extra type variables";
   in
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
@@ -290,6 +292,13 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
       in (decls', constraints, rev_abbrevs') end)
     |> pair (lhs, rhs)
   end;
+
+fun revert_abbrev mode c consts = consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
+  let
+    val (T, rhs) = the_abbreviation consts c;
+    val rev_abbrevs' = rev_abbrevs
+      |> fold (curry Symtab.update_list mode) (rev_abbrev (Const (c, T)) rhs);
+  in (decls, constraints, rev_abbrevs') end);
 
 end;
 
