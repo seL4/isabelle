@@ -144,6 +144,7 @@ sig
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> Markup.property list ->
     bstring * term -> Proof.context -> (term * term) * Proof.context
+  val standard_infer_types: Proof.context -> term list -> term list
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
