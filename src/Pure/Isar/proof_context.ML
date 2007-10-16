@@ -585,16 +585,17 @@ fun standard_term_check ctxt =
 fun standard_term_uncheck ctxt =
   map (contract_abbrevs ctxt);
 
-fun add what f = Context.add_setup
-  (Context.theory_map (what (fn xs => fn ctxt => (f ctxt xs, ctxt))));
+fun add eq what f = Context.add_setup
+  (Context.theory_map (what (fn xs => fn ctxt =>
+    let val xs' = f ctxt xs in if eq_list eq (xs, xs') then NONE else SOME (xs', ctxt) end)));
 
 in
 
-val _ = add (Syntax.add_typ_check 0 "standard") standard_typ_check;
-val _ = add (Syntax.add_term_check 0 "standard") standard_term_check;
-val _ = add (Syntax.add_term_check 100 "fixate") prepare_patterns;
+val _ = add (op =) (Syntax.add_typ_check 0 "standard") standard_typ_check;
+val _ = add (op aconv) (Syntax.add_term_check 0 "standard") standard_term_check;
+val _ = add (op aconv) (Syntax.add_term_check 100 "fixate") prepare_patterns;
 
-val _ = add (Syntax.add_term_uncheck 0 "standard") standard_term_uncheck;
+val _ = add (op aconv) (Syntax.add_term_uncheck 0 "standard") standard_term_uncheck;
 
 end;
 

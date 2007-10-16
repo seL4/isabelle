@@ -18,7 +18,7 @@ sig
     -> string list -> theory -> string * Proof.context
   val class_cmd: bstring -> xstring list -> Element.context Locale.element list
     -> xstring list -> theory -> string * Proof.context
-  val init: class -> Proof.context -> Proof.context;
+  val init: class -> Proof.context -> Proof.context
   val add_const_in_class: string -> (string * mixfix) * (string * term)
     -> theory -> string * theory
   val add_abbrev_in_class: string -> Syntax.mode -> (string * mixfix) * (string * term)
@@ -588,7 +588,7 @@ fun sort_term_check sups local_sort ts ctxt =
       #> (map_types o map_type_tvar) (fn var as (vi, _) => if member (op =) typarams vi
            then TFree (Name.aT, local_sort) else TVar var)) ts;
     val ctxt' = fold (ProofContext.add_const_constraint o apsnd SOME) constraints ctxt;
-  in (ts', ctxt') end;
+  in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', ctxt') end;
 
 val uncheck = ref false;
 
@@ -605,7 +605,7 @@ fun sort_term_uncheck sups ts ctxt =
           | NONE => t)
       | globalize t = t;
     val ts' = if ! uncheck then (map o map_aterms) globalize ts else ts;
-  in (ts', ctxt) end;
+  in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', ctxt) end;
 
 fun init_class_ctxt sups local_sort ctxt =
   let

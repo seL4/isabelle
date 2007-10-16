@@ -105,16 +105,16 @@ sig
     unparse_term: Proof.context -> term -> Pretty.T} -> unit
   val print_checks: Proof.context -> unit
   val add_typ_check: int -> string ->
-    (typ list -> Proof.context -> typ list * Proof.context) ->
+    (typ list -> Proof.context -> (typ list * Proof.context) option) ->
     Context.generic -> Context.generic
   val add_term_check: int -> string ->
-    (term list -> Proof.context -> term list * Proof.context) ->
+    (term list -> Proof.context -> (term list * Proof.context) option) ->
     Context.generic -> Context.generic
   val add_typ_uncheck: int -> string ->
-    (typ list -> Proof.context -> typ list * Proof.context) ->
+    (typ list -> Proof.context -> (typ list * Proof.context) option) ->
     Context.generic -> Context.generic
   val add_term_uncheck: int -> string ->
-    (term list -> Proof.context -> term list * Proof.context) ->
+    (term list -> Proof.context -> (term list * Proof.context) option) ->
     Context.generic -> Context.generic
   val check_sort: Proof.context -> sort -> sort
   val check_typ: Proof.context -> typ -> typ
@@ -684,7 +684,7 @@ end;
 local
 
 type key = int * bool;
-type 'a check = 'a list -> Proof.context -> 'a list * Proof.context;
+type 'a check = 'a list -> Proof.context -> ('a list * Proof.context) option;
 
 structure Checks = GenericDataFun
 (
@@ -701,19 +701,16 @@ structure Checks = GenericDataFun
 fun gen_add which (key: key) name f =
   Checks.map (which (AList.map_default op = (key, []) (cons ((name, f), stamp ()))));
 
-fun gen_check which uncheck eq ctxt0 xs0 =
+fun check_stage fs = perhaps_loop (perhaps_apply (map uncurry fs));
+
+fun gen_check which uncheck ctxt0 xs0 =
   let
     val funs = which (Checks.get (Context.Proof ctxt0))
       |> map_filter (fn ((i, u), fs) => if uncheck = u then SOME (i, map (snd o fst) fs) else NONE)
-      |> Library.sort (int_ord o pairself fst)
-      |> not uncheck ? map (apsnd rev);
-
-    fun check_fixpoint fs (xs, ctxt) =
-      let val (xs', ctxt') = fold uncurry fs (xs, ctxt) in
-        if eq_list eq (xs, xs') then (xs, ctxt)
-        else check_fixpoint fs (xs', ctxt')
-      end;
-  in #1 (fold (check_fixpoint o snd) funs (xs0, ctxt0)) end;
+      |> Library.sort (int_ord o pairself fst) |> map snd
+      |> not uncheck ? map rev;
+    val check_all = perhaps_apply (map check_stage funs);
+  in #1 (perhaps check_all (xs0, ctxt0)) end;
 
 fun map_sort f S =
   (case f (TFree ("", S)) of
@@ -748,8 +745,8 @@ fun add_term_check stage = gen_add apsnd (stage, false);
 fun add_typ_uncheck stage = gen_add apfst (stage, true);
 fun add_term_uncheck stage = gen_add apsnd (stage, true);
 
-val check_typs = gen_check fst false (op =);
-val check_terms = gen_check snd false (op aconv);
+val check_typs = gen_check fst false;
+val check_terms = gen_check snd false;
 fun check_props ctxt = map (TypeInfer.constrain propT) #> check_terms ctxt;
 
 val check_typ = singleton o check_typs;
@@ -757,8 +754,8 @@ val check_term = singleton o check_terms;
 val check_prop = singleton o check_props;
 val check_sort = map_sort o check_typ;
 
-val uncheck_typs = gen_check fst true (op =);
-val uncheck_terms = gen_check snd true (op aconv);
+val uncheck_typs = gen_check fst true;
+val uncheck_terms = gen_check snd true;
 val uncheck_sort = map_sort o singleton o uncheck_typs;
 
 end;
