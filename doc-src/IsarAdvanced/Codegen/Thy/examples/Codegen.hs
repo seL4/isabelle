@@ -10,8 +10,11 @@ heada :: (Codegen.Null b) => [b] -> b;
 heada (x : xs) = x;
 heada [] = Codegen.nulla;
 
+null_option :: Maybe a;
+null_option = Nothing;
+
 instance Codegen.Null (Maybe a) where {
-  nulla = Nothing;
+  nulla = Codegen.null_option;
 };
 
 dummy :: Maybe Nat.Nat;

@@ -14,9 +14,11 @@ let null _A = _A.null;;
 let rec head _B = function x :: xs -> x
                   | [] -> null _B;;
 
-let null_option () = ({null = None} : ('a option) null);;
+let rec null_option = None;;
+
+let null_optiona () = ({null = null_option} : ('a option) null);;
 
 let rec dummy
-  = head (null_option ()) [Some (Nat.Suc Nat.Zero_nat); None];;
+  = head (null_optiona ()) [Some (Nat.Suc Nat.Zero_nat); None];;
 
 end;; (*struct Codegen*)

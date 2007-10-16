@@ -11,9 +11,14 @@ fun eqop_nat Zero_nat (Suc m) = false
 fun plus_nat (Suc m) n = plus_nat m (Suc n)
   | plus_nat Zero_nat n = n;
 
-fun prod_case f1 (a, b) = f1 a b;
-
 end; (*struct Nat*)
+
+structure Product_Type = 
+struct
+
+fun split c (a, b) = c a b;
+
+end; (*struct Product_Type*)
 
 structure List = 
 struct

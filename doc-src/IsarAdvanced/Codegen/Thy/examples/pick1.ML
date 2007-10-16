@@ -19,9 +19,14 @@ fun minus_nat (Suc m) (Suc n) = minus_nat m n
   | minus_nat Zero_nat n = Zero_nat
   | minus_nat m Zero_nat = m;
 
-fun prod_case f1 (a, b) = f1 a b;
-
 end; (*struct Nat*)
+
+structure Product_Type = 
+struct
+
+fun split c (a, b) = c a b;
+
+end; (*struct Product_Type*)
 
 structure Codegen = 
 struct
@@ -30,7 +35,8 @@ fun pick ((k, v) :: xs) n =
   (if Nat.less_nat n k then v else pick xs (Nat.minus_nat n k))
   | pick (x :: xs) n =
     let
-      val (k, v) = x;
+      val a = x;
+      val (k, v) = a;
     in
       (if Nat.less_nat n k then v else pick xs (Nat.minus_nat n k))
     end;
