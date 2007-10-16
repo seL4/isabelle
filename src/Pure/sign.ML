@@ -160,6 +160,7 @@ sig
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_abbrev: string -> Markup.property list ->
     bstring * term -> theory -> (term * term) * theory
+  val revert_abbrev: string -> string -> theory -> theory
   include SIGN_THEORY
   val add_const_constraint: string * typ option -> theory -> theory
   val primitive_class: string * class list -> theory -> theory
@@ -702,19 +703,19 @@ fun declare_const tags arg = gen_add_consts certify_typ true tags [arg] #>> the_
 end;
 
 
-(* add abbreviations *)
+(* abbreviations *)
 
 fun add_abbrev mode tags (c, raw_t) thy =
   let
     val pp = pp thy;
-    val prep_tm = Compress.term thy o no_frees pp o
-      map_types Logic.legacy_varifyT (* FIXME tmp *) o
-      Term.no_dummy_patterns o cert_term_abbrev thy;
+    val prep_tm = Compress.term thy o no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val (res, consts') = consts_of thy
       |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode tags (c, t);
-  in (pairself Logic.unvarify res, thy |> map_consts (K consts')) end;
+  in (res, thy |> map_consts (K consts')) end;
+
+fun revert_abbrev mode c = map_consts (Consts.revert_abbrev mode c);
 
 
 (* add constraints *)
