@@ -286,18 +286,19 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, RST, parts, ...})
                       |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
                       |> full_simplify (HOL_basic_ss addsimps all_f_defs)
           
-      fun project rule (MutualPart {cargTs, i, ...}) =
+      fun project rule (MutualPart {cargTs, i, ...}) k =
           let
-            val afs = map_index (fn (j,T) => Free ("a" ^ string_of_int j, T)) cargTs
+            val afs = map_index (fn (j,T) => Free ("a" ^ string_of_int (j + k), T)) cargTs (* FIXME! *)
             val inj = mk_inj ST n i (foldr1 HOLogic.mk_prod afs)
           in
-            rule
+            (rule
               |> forall_elim (cert inj)
               |> full_simplify (HOL_basic_ss addsimps (split_apply :: sum_case_rules))
-              |> fold_rev (forall_intr o cert) (afs @ newPs)
+              |> fold_rev (forall_intr o cert) (afs @ newPs),
+             k + length cargTs)
           end
     in
-      map (project induct_inst) parts
+      fst (fold_map (project induct_inst) parts 0)
     end
     
 
