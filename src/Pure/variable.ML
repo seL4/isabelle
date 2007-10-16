@@ -228,11 +228,9 @@ fun variant_frees ctxt ts frees =
 fun add_bind (xi, NONE) = map_binds (Vartab.delete_safe xi)
   | add_bind ((x, i), SOME t) =
       let
-        val T = Term.fastype_of t;
-        val t' =
-          if null (Term.hidden_polymorphism t T) then t
-          else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
-      in declare_term t' #> map_binds (Vartab.update ((x, i), (T, t'))) end;
+        val u = Term.close_schematic_term t;
+        val U = Term.fastype_of u;
+      in declare_term u #> map_binds (Vartab.update ((x, i), (U, u))) end;
 
 val add_binds = fold add_bind;
 
