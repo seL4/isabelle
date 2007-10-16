@@ -448,7 +448,7 @@ fun pretty_abbrev ctxt t =
     fun err () = error ("Abbreviated constant expected: " ^ Syntax.string_of_term ctxt t);
     val (head, args) = Term.strip_comb t;
     val (c, T) = Term.dest_Const head handle TERM _ => err ();
-    val (U, (u, _)) = Consts.the_abbreviation (ProofContext.consts_of ctxt) c
+    val (U, u) = Consts.the_abbreviation (ProofContext.consts_of ctxt) c
       handle TYPE _ => err ();
     val t' = Term.betapplys (Envir.expand_atom T (U, u), args);
   in pretty_term_abbrev ctxt (Logic.mk_equals (t, t')) end;
