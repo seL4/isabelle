@@ -72,6 +72,8 @@ sig
   val the_single: 'a list -> 'a
   val singleton: ('a list -> 'b list) -> 'a -> 'b
   val apply: ('a -> 'a) list -> 'a -> 'a
+  val perhaps_apply: ('a -> 'a option) list -> 'a -> 'a option
+  val perhaps_loop: ('a -> 'a option) -> 'a -> 'a option
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val flat: 'a list list -> 'a list
@@ -356,6 +358,23 @@ fun singleton f x = the_single (f [x]);
 
 fun apply [] x = x
   | apply (f :: fs) x = apply fs (f x);
+
+fun perhaps_apply funs arg =
+  let
+    fun app [] res = res
+      | app (f :: fs) (changed, x) =
+          (case f x of
+            NONE => app fs (changed, x)
+          | SOME x' => app fs (true, x'));
+  in (case app funs (false, arg) of (false, _) => NONE | (true, arg') => SOME arg') end;
+
+fun perhaps_loop f arg =
+  let
+    fun loop (changed, x) =
+      (case f x of
+        NONE => (changed, x)
+      | SOME x' => loop (true, x'));
+  in (case loop (false, arg) of (false, _) => NONE | (true, arg') => SOME arg') end;
 
 
 (* fold -- old versions *)
