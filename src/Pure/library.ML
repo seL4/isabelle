@@ -71,6 +71,7 @@ sig
   val single: 'a -> 'a list
   val the_single: 'a list -> 'a
   val singleton: ('a list -> 'b list) -> 'a -> 'b
+  val yield_singleton: ('a list -> 'c -> 'b list * 'c) -> 'a -> 'c -> 'b * 'c
   val apply: ('a -> 'a) list -> 'a -> 'a
   val perhaps_apply: ('a -> 'a option) list -> 'a -> 'a option
   val perhaps_loop: ('a -> 'a option) -> 'a -> 'a option
@@ -355,6 +356,8 @@ fun the_single [x] = x
   | the_single _ = raise Empty;
 
 fun singleton f x = the_single (f [x]);
+
+fun yield_singleton f x = f [x] #>> the_single;
 
 fun apply [] x = x
   | apply (f :: fs) x = apply fs (f x);
