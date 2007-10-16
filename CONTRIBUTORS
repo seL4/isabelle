@@ -7,6 +7,9 @@ distribution.
 Contributions to Isabelle 2007
 ------------------------------
 
+* October 2007: Mark A. Hillebrand, DFKI
+  Robust sub/superscripts in LaTeX document output.
+
 * August 2007: Jeremy Dawson, NICTA and Paul Graunke, Galois and Brian
     Huffman, PSU and Gerwin Klein, NICTA and John Matthews, Galois
   HOL-Word: a library for fixed-size machine words in Isabelle.
