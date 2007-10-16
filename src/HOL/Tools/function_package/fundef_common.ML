@@ -294,9 +294,7 @@ val set_preproc = Preprocessor.map o K
 local 
   structure P = OuterParse and K = OuterKeyword 
 
-  val opt_sequential = Scan.optional ((P.$$$ "(" |-- P.$$$ "sequential" --| P.$$$ ")") >> K true) false
-                       
-  val option_parser = (P.$$$ "sequential" >> K Sequential)
+  val option_parser = (P.reserved "sequential" >> K Sequential)
                    || ((P.reserved "default" |-- P.term) >> Default)
                    || (P.reserved "domintros" >> K DomIntros)
                    || (P.reserved "tailrec" >> K Tailrec)

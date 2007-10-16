@@ -268,7 +268,7 @@ val get_congs = FundefCtxTree.get_fundef_congs o Context.Theory
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["sequential", "otherwise"];
+val _ = OuterSyntax.keywords ["otherwise"];
 
 val _ =
   OuterSyntax.command "function" "define general recursive functions" K.thy_goal
