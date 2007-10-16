@@ -14,10 +14,10 @@ begin
 subsection {* Partial orders *}
 
 class order = ord +
-  assumes less_le: "x \<^loc>< y \<longleftrightarrow> x \<^loc>\<le> y \<and> x \<noteq> y"
-  and order_refl [iff]: "x \<^loc>\<le> x"
-  and order_trans: "x \<^loc>\<le> y \<Longrightarrow> y \<^loc>\<le> z \<Longrightarrow> x \<^loc>\<le> z"
-  assumes antisym: "x \<^loc>\<le> y \<Longrightarrow> y \<^loc>\<le> x \<Longrightarrow> x = y"
+  assumes less_le: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
+  and order_refl [iff]: "x \<le> x"
+  and order_trans: "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
+  assumes antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
 
 begin
 
@@ -28,94 +28,94 @@ and
 
 text {* Reflexivity. *}
 
-lemma eq_refl: "x = y \<Longrightarrow> x \<^loc>\<le> y"
+lemma eq_refl: "x = y \<Longrightarrow> x \<le> y"
     -- {* This form is useful with the classical reasoner. *}
 by (erule ssubst) (rule order_refl)
 
-lemma less_irrefl [iff]: "\<not> x \<^loc>< x"
+lemma less_irrefl [iff]: "\<not> x < x"
 by (simp add: less_le)
 
-lemma le_less: "x \<^loc>\<le> y \<longleftrightarrow> x \<^loc>< y \<or> x = y"
+lemma le_less: "x \<le> y \<longleftrightarrow> x < y \<or> x = y"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
 by (simp add: less_le) blast
 
-lemma le_imp_less_or_eq: "x \<^loc>\<le> y \<Longrightarrow> x \<^loc>< y \<or> x = y"
+lemma le_imp_less_or_eq: "x \<le> y \<Longrightarrow> x < y \<or> x = y"
 unfolding less_le by blast
 
-lemma less_imp_le: "x \<^loc>< y \<Longrightarrow> x \<^loc>\<le> y"
+lemma less_imp_le: "x < y \<Longrightarrow> x \<le> y"
 unfolding less_le by blast
 
-lemma less_imp_neq: "x \<^loc>< y \<Longrightarrow> x \<noteq> y"
+lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
 by (erule contrapos_pn, erule subst, rule less_irrefl)
 
 
 text {* Useful for simplification, but too risky to include by default. *}
 
-lemma less_imp_not_eq: "x \<^loc>< y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
+lemma less_imp_not_eq: "x < y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
 by auto
 
-lemma less_imp_not_eq2: "x \<^loc>< y \<Longrightarrow> (y = x) \<longleftrightarrow> False"
+lemma less_imp_not_eq2: "x < y \<Longrightarrow> (y = x) \<longleftrightarrow> False"
 by auto
 
 
 text {* Transitivity rules for calculational reasoning *}
 
-lemma neq_le_trans: "a \<noteq> b \<Longrightarrow> a \<^loc>\<le> b \<Longrightarrow> a \<^loc>< b"
+lemma neq_le_trans: "a \<noteq> b \<Longrightarrow> a \<le> b \<Longrightarrow> a < b"
 by (simp add: less_le)
 
-lemma le_neq_trans: "a \<^loc>\<le> b \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<^loc>< b"
+lemma le_neq_trans: "a \<le> b \<Longrightarrow> a \<noteq> b \<Longrightarrow> a < b"
 by (simp add: less_le)
 
 
 text {* Asymmetry. *}
 
-lemma less_not_sym: "x \<^loc>< y \<Longrightarrow> \<not> (y \<^loc>< x)"
+lemma less_not_sym: "x < y \<Longrightarrow> \<not> (y < x)"
 by (simp add: less_le antisym)
 
-lemma less_asym: "x \<^loc>< y \<Longrightarrow> (\<not> P \<Longrightarrow> y \<^loc>< x) \<Longrightarrow> P"
+lemma less_asym: "x < y \<Longrightarrow> (\<not> P \<Longrightarrow> y < x) \<Longrightarrow> P"
 by (drule less_not_sym, erule contrapos_np) simp
 
-lemma eq_iff: "x = y \<longleftrightarrow> x \<^loc>\<le> y \<and> y \<^loc>\<le> x"
+lemma eq_iff: "x = y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
 by (blast intro: antisym)
 
-lemma antisym_conv: "y \<^loc>\<le> x \<Longrightarrow> x \<^loc>\<le> y \<longleftrightarrow> x = y"
+lemma antisym_conv: "y \<le> x \<Longrightarrow> x \<le> y \<longleftrightarrow> x = y"
 by (blast intro: antisym)
 
-lemma less_imp_neq: "x \<^loc>< y \<Longrightarrow> x \<noteq> y"
+lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
 by (erule contrapos_pn, erule subst, rule less_irrefl)
 
 
 text {* Transitivity. *}
 
-lemma less_trans: "x \<^loc>< y \<Longrightarrow> y \<^loc>< z \<Longrightarrow> x \<^loc>< z"
+lemma less_trans: "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"
 by (simp add: less_le) (blast intro: order_trans antisym)
 
-lemma le_less_trans: "x \<^loc>\<le> y \<Longrightarrow> y \<^loc>< z \<Longrightarrow> x \<^loc>< z"
+lemma le_less_trans: "x \<le> y \<Longrightarrow> y < z \<Longrightarrow> x < z"
 by (simp add: less_le) (blast intro: order_trans antisym)
 
-lemma less_le_trans: "x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> z \<Longrightarrow> x \<^loc>< z"
+lemma less_le_trans: "x < y \<Longrightarrow> y \<le> z \<Longrightarrow> x < z"
 by (simp add: less_le) (blast intro: order_trans antisym)
 
 
 text {* Useful for simplification, but too risky to include by default. *}
 
-lemma less_imp_not_less: "x \<^loc>< y \<Longrightarrow> (\<not> y \<^loc>< x) \<longleftrightarrow> True"
+lemma less_imp_not_less: "x < y \<Longrightarrow> (\<not> y < x) \<longleftrightarrow> True"
 by (blast elim: less_asym)
 
-lemma less_imp_triv: "x \<^loc>< y \<Longrightarrow> (y \<^loc>< x \<longrightarrow> P) \<longleftrightarrow> True"
+lemma less_imp_triv: "x < y \<Longrightarrow> (y < x \<longrightarrow> P) \<longleftrightarrow> True"
 by (blast elim: less_asym)
 
 
 text {* Transitivity rules for calculational reasoning *}
 
-lemma less_asym': "a \<^loc>< b \<Longrightarrow> b \<^loc>< a \<Longrightarrow> P"
+lemma less_asym': "a < b \<Longrightarrow> b < a \<Longrightarrow> P"
 by (rule less_asym)
 
 
 text {* Reverse order *}
 
 lemma order_reverse:
-  "order (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
+  "order (\<lambda>x y. y \<le> x) (\<lambda>x y. y < x)"
 by unfold_locales
    (simp add: less_le, auto intro: antisym order_trans)
 
@@ -128,67 +128,67 @@ class linorder = order +
   assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 begin
 
-lemma less_linear: "x \<^loc>< y \<or> x = y \<or> y \<^loc>< x"
+lemma less_linear: "x < y \<or> x = y \<or> y < x"
 unfolding less_le using less_le linear by blast
 
-lemma le_less_linear: "x \<^loc>\<le> y \<or> y \<^loc>< x"
+lemma le_less_linear: "x \<le> y \<or> y < x"
 by (simp add: le_less less_linear)
 
 lemma le_cases [case_names le ge]:
-  "(x \<^loc>\<le> y \<Longrightarrow> P) \<Longrightarrow> (y \<^loc>\<le> x \<Longrightarrow> P) \<Longrightarrow> P"
+  "(x \<le> y \<Longrightarrow> P) \<Longrightarrow> (y \<le> x \<Longrightarrow> P) \<Longrightarrow> P"
 using linear by blast
 
 lemma linorder_cases [case_names less equal greater]:
-  "(x \<^loc>< y \<Longrightarrow> P) \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> (y \<^loc>< x \<Longrightarrow> P) \<Longrightarrow> P"
+  "(x < y \<Longrightarrow> P) \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> (y < x \<Longrightarrow> P) \<Longrightarrow> P"
 using less_linear by blast
 
-lemma not_less: "\<not> x \<^loc>< y \<longleftrightarrow> y \<^loc>\<le> x"
+lemma not_less: "\<not> x < y \<longleftrightarrow> y \<le> x"
 apply (simp add: less_le)
 using linear apply (blast intro: antisym)
 done
 
 lemma not_less_iff_gr_or_eq:
- "\<not>(x \<^loc>< y) \<longleftrightarrow> (x \<^loc>> y | x = y)"
+ "\<not>(x < y) \<longleftrightarrow> (x > y | x = y)"
 apply(simp add:not_less le_less)
 apply blast
 done
 
-lemma not_le: "\<not> x \<^loc>\<le> y \<longleftrightarrow> y \<^loc>< x"
+lemma not_le: "\<not> x \<le> y \<longleftrightarrow> y < x"
 apply (simp add: less_le)
 using linear apply (blast intro: antisym)
 done
 
-lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x \<^loc>< y \<or> y \<^loc>< x"
+lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x < y \<or> y < x"
 by (cut_tac x = x and y = y in less_linear, auto)
 
-lemma neqE: "x \<noteq> y \<Longrightarrow> (x \<^loc>< y \<Longrightarrow> R) \<Longrightarrow> (y \<^loc>< x \<Longrightarrow> R) \<Longrightarrow> R"
+lemma neqE: "x \<noteq> y \<Longrightarrow> (x < y \<Longrightarrow> R) \<Longrightarrow> (y < x \<Longrightarrow> R) \<Longrightarrow> R"
 by (simp add: neq_iff) blast
 
-lemma antisym_conv1: "\<not> x \<^loc>< y \<Longrightarrow> x \<^loc>\<le> y \<longleftrightarrow> x = y"
+lemma antisym_conv1: "\<not> x < y \<Longrightarrow> x \<le> y \<longleftrightarrow> x = y"
 by (blast intro: antisym dest: not_less [THEN iffD1])
 
-lemma antisym_conv2: "x \<^loc>\<le> y \<Longrightarrow> \<not> x \<^loc>< y \<longleftrightarrow> x = y"
+lemma antisym_conv2: "x \<le> y \<Longrightarrow> \<not> x < y \<longleftrightarrow> x = y"
 by (blast intro: antisym dest: not_less [THEN iffD1])
 
-lemma antisym_conv3: "\<not> y \<^loc>< x \<Longrightarrow> \<not> x \<^loc>< y \<longleftrightarrow> x = y"
+lemma antisym_conv3: "\<not> y < x \<Longrightarrow> \<not> x < y \<longleftrightarrow> x = y"
 by (blast intro: antisym dest: not_less [THEN iffD1])
 
 text{*Replacing the old Nat.leI*}
-lemma leI: "\<not> x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> x"
+lemma leI: "\<not> x < y \<Longrightarrow> y \<le> x"
 unfolding not_less .
 
-lemma leD: "y \<^loc>\<le> x \<Longrightarrow> \<not> x \<^loc>< y"
+lemma leD: "y \<le> x \<Longrightarrow> \<not> x < y"
 unfolding not_less .
 
 (*FIXME inappropriate name (or delete altogether)*)
-lemma not_leE: "\<not> y \<^loc>\<le> x \<Longrightarrow> x \<^loc>< y"
+lemma not_leE: "\<not> y \<le> x \<Longrightarrow> x < y"
 unfolding not_le .
 
 
 text {* Reverse order *}
 
 lemma linorder_reverse:
-  "linorder (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x)"
+  "linorder (\<lambda>x y. y \<le> x) (\<lambda>x y. y < x)"
 by unfold_locales
   (simp add: less_le, auto intro: antisym order_trans simp add: linear)
 
@@ -199,42 +199,42 @@ text {* for historic reasons, definitions are done in context ord *}
 
 definition (in ord)
   min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  [code unfold, code inline del]: "min a b = (if a \<^loc>\<le> b then a else b)"
+  [code unfold, code inline del]: "min a b = (if a \<le> b then a else b)"
 
 definition (in ord)
   max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  [code unfold, code inline del]: "max a b = (if a \<^loc>\<le> b then b else a)"
+  [code unfold, code inline del]: "max a b = (if a \<le> b then b else a)"
 
 lemma min_le_iff_disj:
-  "min x y \<^loc>\<le> z \<longleftrightarrow> x \<^loc>\<le> z \<or> y \<^loc>\<le> z"
+  "min x y \<le> z \<longleftrightarrow> x \<le> z \<or> y \<le> z"
 unfolding min_def using linear by (auto intro: order_trans)
 
 lemma le_max_iff_disj:
-  "z \<^loc>\<le> max x y \<longleftrightarrow> z \<^loc>\<le> x \<or> z \<^loc>\<le> y"
+  "z \<le> max x y \<longleftrightarrow> z \<le> x \<or> z \<le> y"
 unfolding max_def using linear by (auto intro: order_trans)
 
 lemma min_less_iff_disj:
-  "min x y \<^loc>< z \<longleftrightarrow> x \<^loc>< z \<or> y \<^loc>< z"
+  "min x y < z \<longleftrightarrow> x < z \<or> y < z"
 unfolding min_def le_less using less_linear by (auto intro: less_trans)
 
 lemma less_max_iff_disj:
-  "z \<^loc>< max x y \<longleftrightarrow> z \<^loc>< x \<or> z \<^loc>< y"
+  "z < max x y \<longleftrightarrow> z < x \<or> z < y"
 unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
 lemma min_less_iff_conj [simp]:
-  "z \<^loc>< min x y \<longleftrightarrow> z \<^loc>< x \<and> z \<^loc>< y"
+  "z < min x y \<longleftrightarrow> z < x \<and> z < y"
 unfolding min_def le_less using less_linear by (auto intro: less_trans)
 
 lemma max_less_iff_conj [simp]:
-  "max x y \<^loc>< z \<longleftrightarrow> x \<^loc>< z \<and> y \<^loc>< z"
+  "max x y < z \<longleftrightarrow> x < z \<and> y < z"
 unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
 lemma split_min [noatp]:
-  "P (min i j) \<longleftrightarrow> (i \<^loc>\<le> j \<longrightarrow> P i) \<and> (\<not> i \<^loc>\<le> j \<longrightarrow> P j)"
+  "P (min i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P i) \<and> (\<not> i \<le> j \<longrightarrow> P j)"
 by (simp add: min_def)
 
 lemma split_max [noatp]:
-  "P (max i j) \<longleftrightarrow> (i \<^loc>\<le> j \<longrightarrow> P j) \<and> (\<not> i \<^loc>\<le> j \<longrightarrow> P i)"
+  "P (max i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P j) \<and> (\<not> i \<le> j \<longrightarrow> P i)"
 by (simp add: max_def)
 
 end
@@ -371,109 +371,109 @@ text {* Declarations to set up transitivity reasoner of partial and linear order
 (* The type constraint on @{term op =} below is necessary since the operation
    is not a parameter of the locale. *)
 lemmas (in order)
-  [order add less_reflE: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_reflE: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_irrefl [THEN notE]
 lemmas (in order)
-  [order add le_refl: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add le_refl: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   order_refl
 lemmas (in order)
-  [order add less_imp_le: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_imp_le: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_imp_le
 lemmas (in order)
-  [order add eqI: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add eqI: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   antisym
 lemmas (in order)
-  [order add eqD1: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add eqD1: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   eq_refl
 lemmas (in order)
-  [order add eqD2: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add eqD2: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   sym [THEN eq_refl]
 lemmas (in order)
-  [order add less_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_trans
 lemmas (in order)
-  [order add less_le_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_le_trans
 lemmas (in order)
-  [order add le_less_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add le_less_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   le_less_trans
 lemmas (in order)
-  [order add le_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   order_trans
 lemmas (in order)
-  [order add le_neq_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add le_neq_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   le_neq_trans
 lemmas (in order)
-  [order add neq_le_trans: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add neq_le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   neq_le_trans
 lemmas (in order)
-  [order add less_imp_neq: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_imp_neq: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_imp_neq
 lemmas (in order)
-  [order add eq_neq_eq_imp_neq: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add eq_neq_eq_imp_neq: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
    eq_neq_eq_imp_neq
 lemmas (in order)
-  [order add not_sym: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add not_sym: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_sym
 
-lemmas (in linorder) [order del: order "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] = _
+lemmas (in linorder) [order del: order "op = :: 'a => 'a => bool" "op <=" "op <"] = _
 
 lemmas (in linorder)
-  [order add less_reflE: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_reflE: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_irrefl [THEN notE]
 lemmas (in linorder)
-  [order add le_refl: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add le_refl: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   order_refl
 lemmas (in linorder)
-  [order add less_imp_le: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_imp_le: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_imp_le
 lemmas (in linorder)
-  [order add not_lessI: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add not_lessI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_less [THEN iffD2]
 lemmas (in linorder)
-  [order add not_leI: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add not_leI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_le [THEN iffD2]
 lemmas (in linorder)
-  [order add not_lessD: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add not_lessD: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_less [THEN iffD1]
 lemmas (in linorder)
-  [order add not_leD: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add not_leD: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_le [THEN iffD1]
 lemmas (in linorder)
-  [order add eqI: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add eqI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   antisym
 lemmas (in linorder)
-  [order add eqD1: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add eqD1: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   eq_refl
 lemmas (in linorder)
-  [order add eqD2: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add eqD2: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   sym [THEN eq_refl]
 lemmas (in linorder)
-  [order add less_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_trans
 lemmas (in linorder)
-  [order add less_le_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_le_trans
 lemmas (in linorder)
-  [order add le_less_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add le_less_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   le_less_trans
 lemmas (in linorder)
-  [order add le_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   order_trans
 lemmas (in linorder)
-  [order add le_neq_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add le_neq_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   le_neq_trans
 lemmas (in linorder)
-  [order add neq_le_trans: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add neq_le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   neq_le_trans
 lemmas (in linorder)
-  [order add less_imp_neq: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add less_imp_neq: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_imp_neq
 lemmas (in linorder)
-  [order add eq_neq_eq_imp_neq: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add eq_neq_eq_imp_neq: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   eq_neq_eq_imp_neq
 lemmas (in linorder)
-  [order add not_sym: linorder "op = :: 'a => 'a => bool" "op \<^loc><=" "op \<^loc><"] =
+  [order add not_sym: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_sym
 
 

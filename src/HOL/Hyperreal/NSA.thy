@@ -87,7 +87,7 @@ by transfer (rule norm_triangle_ineq3)
 
 lemma hnorm_scaleR:
   "\<And>x::'a::real_normed_vector star.
-   hnorm (a *# x) = \<bar>star_of a\<bar> * hnorm x"
+   hnorm (a *\<^sub>R x) = \<bar>star_of a\<bar> * hnorm x"
 by transfer (rule norm_scaleR)
 
 lemma hnorm_scaleHR:
@@ -429,7 +429,7 @@ apply (erule order_le_less_trans [OF hnorm_ge_zero])
 done
 
 lemma Infinitesimal_scaleR2:
-  "x \<in> Infinitesimal ==> a *# x \<in> Infinitesimal"
+  "x \<in> Infinitesimal ==> a *\<^sub>R x \<in> Infinitesimal"
 apply (case_tac "a = 0", simp)
 apply (rule InfinitesimalI)
 apply (drule InfinitesimalD)
@@ -853,7 +853,7 @@ lemma scaleHR_left_diff_distrib:
 by transfer (rule scaleR_left_diff_distrib)
 
 lemma approx_scaleR1:
-  "[| a @= star_of b; c: HFinite|] ==> scaleHR a c @= b *# c"
+  "[| a @= star_of b; c: HFinite|] ==> scaleHR a c @= b *\<^sub>R c"
 apply (unfold approx_def)
 apply (drule (1) Infinitesimal_HFinite_scaleHR)
 apply (simp only: scaleHR_left_diff_distrib)
@@ -861,12 +861,12 @@ apply (simp add: scaleHR_def star_scaleR_def [symmetric])
 done
 
 lemma approx_scaleR2:
-  "a @= b ==> c *# a @= c *# b"
+  "a @= b ==> c *\<^sub>R a @= c *\<^sub>R b"
 by (simp add: approx_def Infinitesimal_scaleR2
               scaleR_right_diff_distrib [symmetric])
 
 lemma approx_scaleR_HFinite:
-  "[|a @= star_of b; c @= d; d: HFinite|] ==> scaleHR a c @= b *# d"
+  "[|a @= star_of b; c @= d; d: HFinite|] ==> scaleHR a c @= b *\<^sub>R d"
 apply (rule approx_trans)
 apply (rule_tac [2] approx_scaleR2)
 apply (rule approx_scaleR1)

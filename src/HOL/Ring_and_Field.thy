@@ -24,12 +24,12 @@ text {*
 *}
 
 class semiring = ab_semigroup_add + semigroup_mult +
-  assumes left_distrib: "(a \<^loc>+ b) \<^loc>* c = a \<^loc>* c \<^loc>+ b \<^loc>* c"
-  assumes right_distrib: "a \<^loc>* (b \<^loc>+ c) = a \<^loc>* b \<^loc>+ a \<^loc>* c"
+  assumes left_distrib: "(a + b) * c = a * c + b * c"
+  assumes right_distrib: "a * (b + c) = a * b + a * c"
 
 class mult_zero = times + zero +
-  assumes mult_zero_left [simp]: "\<^loc>0 \<^loc>* a = \<^loc>0"
-  assumes mult_zero_right [simp]: "a \<^loc>* \<^loc>0 = \<^loc>0"
+  assumes mult_zero_left [simp]: "0 * a = 0"
+  assumes mult_zero_right [simp]: "a * 0 = 0"
 
 class semiring_0 = semiring + comm_monoid_add + mult_zero
 
@@ -50,7 +50,7 @@ proof
 qed
 
 class comm_semiring = ab_semigroup_add + ab_semigroup_mult +
-  assumes distrib: "(a \<^loc>+ b) \<^loc>* c = a \<^loc>* c \<^loc>+ b \<^loc>* c"
+  assumes distrib: "(a + b) * c = a * c + b * c"
 
 instance comm_semiring \<subseteq> semiring
 proof
@@ -73,7 +73,7 @@ instance comm_semiring_0_cancel \<subseteq> semiring_0_cancel ..
 instance comm_semiring_0_cancel \<subseteq> comm_semiring_0 ..
 
 class zero_neq_one = zero + one +
-  assumes zero_neq_one [simp]: "\<^loc>0 \<noteq> \<^loc>1"
+  assumes zero_neq_one [simp]: "0 \<noteq> 1"
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 
@@ -83,7 +83,7 @@ class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult
 instance comm_semiring_1 \<subseteq> semiring_1 ..
 
 class no_zero_divisors = zero + times +
-  assumes no_zero_divisors: "a \<noteq> \<^loc>0 \<Longrightarrow> b \<noteq> \<^loc>0 \<Longrightarrow> a \<^loc>* b \<noteq> \<^loc>0"
+  assumes no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
 
 class semiring_1_cancel = semiring + comm_monoid_add + zero_neq_one
   + cancel_ab_semigroup_add + monoid_mult
@@ -131,8 +131,8 @@ class idom = comm_ring_1 + no_zero_divisors
 instance idom \<subseteq> ring_1_no_zero_divisors ..
 
 class division_ring = ring_1 + inverse +
-  assumes left_inverse [simp]:  "a \<noteq> \<^loc>0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
-  assumes right_inverse [simp]: "a \<noteq> \<^loc>0 \<Longrightarrow> a \<^loc>* inverse a = \<^loc>1"
+  assumes left_inverse [simp]:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
+  assumes right_inverse [simp]: "a \<noteq> 0 \<Longrightarrow> a * inverse a = 1"
 
 instance division_ring \<subseteq> ring_1_no_zero_divisors
 proof
@@ -153,8 +153,8 @@ proof
 qed
 
 class field = comm_ring_1 + inverse +
-  assumes field_inverse:  "a \<noteq> \<^loc>0 \<Longrightarrow> inverse a \<^loc>* a = \<^loc>1"
-  assumes divide_inverse: "a \<^loc>/ b = a \<^loc>* inverse b"
+  assumes field_inverse:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
+  assumes divide_inverse: "a / b = a * inverse b"
 
 instance field \<subseteq> division_ring
 proof
@@ -167,7 +167,7 @@ qed
 instance field \<subseteq> idom ..
 
 class division_by_zero = zero + inverse +
-  assumes inverse_zero [simp]: "inverse \<^loc>0 = \<^loc>0"
+  assumes inverse_zero [simp]: "inverse 0 = 0"
 
 
 subsection {* Distribution rules *}
@@ -211,8 +211,8 @@ also helps with inequalities. *}
 lemmas ring_simps = group_simps ring_distribs
 
 class mult_mono = times + zero + ord +
-  assumes mult_left_mono: "a \<^loc>\<le> b \<Longrightarrow> \<^loc>0 \<^loc>\<le> c \<Longrightarrow> c \<^loc>* a \<^loc>\<le> c \<^loc>* b"
-  assumes mult_right_mono: "a \<^loc>\<le> b \<Longrightarrow> \<^loc>0 \<^loc>\<le> c \<Longrightarrow> a \<^loc>* c \<^loc>\<le> b \<^loc>* c"
+  assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
+  assumes mult_right_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * c"
 
 class pordered_semiring = mult_mono + semiring_0 + pordered_ab_semigroup_add 
 
@@ -228,8 +228,8 @@ class ordered_semiring = semiring + comm_monoid_add + ordered_cancel_ab_semigrou
 instance ordered_semiring \<subseteq> pordered_cancel_semiring ..
 
 class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add +
-  assumes mult_strict_left_mono: "a \<^loc>< b \<Longrightarrow> \<^loc>0 \<^loc>< c \<Longrightarrow> c \<^loc>* a \<^loc>< c \<^loc>* b"
-  assumes mult_strict_right_mono: "a \<^loc>< b \<Longrightarrow> \<^loc>0 \<^loc>< c \<Longrightarrow> a \<^loc>* c \<^loc>< b \<^loc>* c"
+  assumes mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+  assumes mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
 
 instance ordered_semiring_strict \<subseteq> semiring_0_cancel ..
 
@@ -246,7 +246,7 @@ proof
 qed
 
 class mult_mono1 = times + zero + ord +
-  assumes mult_mono: "a \<^loc>\<le> b \<Longrightarrow> \<^loc>0 \<^loc>\<le> c \<Longrightarrow> c \<^loc>* a \<^loc>\<le> c \<^loc>* b"
+  assumes mult_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
 
 class pordered_comm_semiring = comm_semiring_0
   + pordered_ab_semigroup_add + mult_mono1
@@ -257,7 +257,7 @@ class pordered_cancel_comm_semiring = comm_semiring_0_cancel
 instance pordered_cancel_comm_semiring \<subseteq> pordered_comm_semiring ..
 
 class ordered_comm_semiring_strict = comm_semiring_0 + ordered_cancel_ab_semigroup_add +
-  assumes mult_strict_mono: "a \<^loc>< b \<Longrightarrow> \<^loc>0 \<^loc>< c \<Longrightarrow> c \<^loc>* a \<^loc>< c \<^loc>* b"
+  assumes mult_strict_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
 
 instance pordered_comm_semiring \<subseteq> pordered_semiring
 proof
@@ -297,10 +297,10 @@ instance lordered_ring \<subseteq> lordered_ab_group_meet ..
 instance lordered_ring \<subseteq> lordered_ab_group_join ..
 
 class abs_if = minus + ord + zero + abs +
-  assumes abs_if: "abs a = (if a \<^loc>< \<^loc>0 then (uminus a) else a)"
+  assumes abs_if: "abs a = (if a < 0 then (uminus a) else a)"
 
 class sgn_if = sgn + zero + one + minus + ord +
-  assumes sgn_if: "sgn x = (if x = \<^loc>0 then \<^loc>0 else if \<^loc>0 \<^loc>< x then \<^loc>1 else uminus \<^loc>1)"
+  assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else uminus 1)"
 
 (* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.
    Basically, ordered_ring + no_zero_divisors = ordered_ring_strict.
@@ -327,7 +327,7 @@ instance pordered_comm_ring \<subseteq> pordered_cancel_comm_semiring ..
 
 class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
   (*previously ordered_semiring*)
-  assumes zero_less_one [simp]: "\<^loc>0 \<^loc>< \<^loc>1"
+  assumes zero_less_one [simp]: "0 < 1"
 
 lemma pos_add_strict:
   fixes a b c :: "'a\<Colon>ordered_semidom"

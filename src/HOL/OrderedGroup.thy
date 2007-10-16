@@ -27,58 +27,75 @@ text {*
 subsection {* Semigroups and Monoids *}
 
 class semigroup_add = plus +
-  assumes add_assoc: "(a \<^loc>+ b) \<^loc>+ c = a \<^loc>+ (b \<^loc>+ c)"
+  assumes add_assoc: "(a + b) + c = a + (b + c)"
 
 class ab_semigroup_add = semigroup_add +
-  assumes add_commute: "a \<^loc>+ b = b \<^loc>+ a"
+  assumes add_commute: "a + b = b + a"
+begin
 
-lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::ab_semigroup_add))"
-  by (rule mk_left_commute [of "op +", OF add_assoc add_commute])
+lemma add_left_commute: "a + (b + c) = b + (a + c)"
+  by (rule mk_left_commute [of "plus", OF add_assoc add_commute])
+  (*FIXME term_check*)
+
+theorems add_ac = add_assoc add_commute add_left_commute
+
+end
 
 theorems add_ac = add_assoc add_commute add_left_commute
 
 class semigroup_mult = times +
-  assumes mult_assoc: "(a \<^loc>* b) \<^loc>* c = a \<^loc>* (b \<^loc>* c)"
+  assumes mult_assoc: "(a * b) * c = a * (b * c)"
 
 class ab_semigroup_mult = semigroup_mult +
-  assumes mult_commute: "a \<^loc>* b = b \<^loc>* a"
+  assumes mult_commute: "a * b = b * a"
 begin
 
-lemma mult_left_commute: "a \<^loc>* (b \<^loc>* c) = b \<^loc>* (a \<^loc>* c)"
-  by (rule mk_left_commute [of "op \<^loc>*", OF mult_assoc mult_commute])
+lemma mult_left_commute: "a * (b * c) = b * (a * c)"
+  by (rule mk_left_commute [of "times", OF mult_assoc mult_commute])
+  (*FIXME term_check*)
+
+theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
 end
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
 class monoid_add = zero + semigroup_add +
-  assumes add_0_left [simp]: "\<^loc>0 \<^loc>+ a = a" and add_0_right [simp]: "a \<^loc>+ \<^loc>0 = a"
+  assumes add_0_left [simp]: "0 + a = a"
+    and add_0_right [simp]: "a + 0 = a"
 
 class comm_monoid_add = zero + ab_semigroup_add +
-  assumes add_0: "\<^loc>0 \<^loc>+ a = a"
+  assumes add_0: "0 + a = a"
+begin
 
-instance comm_monoid_add < monoid_add
-by intro_classes (insert comm_monoid_add_class.zero_plus.add_0, simp_all add: add_commute, auto)
+subclass monoid_add
+  by unfold_locales (insert add_0, simp_all add: add_commute)
+
+end
 
 class monoid_mult = one + semigroup_mult +
-  assumes mult_1_left [simp]: "\<^loc>1 \<^loc>* a  = a"
-  assumes mult_1_right [simp]: "a \<^loc>* \<^loc>1 = a"
+  assumes mult_1_left [simp]: "1 * a  = a"
+  assumes mult_1_right [simp]: "a * 1 = a"
 
 class comm_monoid_mult = one + ab_semigroup_mult +
-  assumes mult_1: "\<^loc>1 \<^loc>* a = a"
+  assumes mult_1: "1 * a = a"
+begin
 
-instance comm_monoid_mult \<subseteq> monoid_mult
-  by intro_classes (insert mult_1, simp_all add: mult_commute, auto)
+subclass monoid_mult
+  by unfold_locales (insert mult_1, simp_all add: mult_commute) 
+
+end
 
 class cancel_semigroup_add = semigroup_add +
-  assumes add_left_imp_eq: "a \<^loc>+ b = a \<^loc>+ c \<Longrightarrow> b = c"
-  assumes add_right_imp_eq: "b \<^loc>+ a = c \<^loc>+ a \<Longrightarrow> b = c"
+  assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
+  assumes add_right_imp_eq: "b + a = c + a \<Longrightarrow> b = c"
 
 class cancel_ab_semigroup_add = ab_semigroup_add +
-  assumes add_imp_eq: "a \<^loc>+ b = a \<^loc>+ c \<Longrightarrow> b = c"
+  assumes add_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
+begin
 
-instance cancel_ab_semigroup_add \<subseteq> cancel_semigroup_add
-proof intro_classes
+subclass cancel_semigroup_add
+proof unfold_locales
   fix a b c :: 'a
   assume "a + b = a + c" 
   then show "b = c" by (rule add_imp_eq)
@@ -89,60 +106,50 @@ next
   then show "b = c" by (rule add_imp_eq)
 qed
 
+end context cancel_ab_semigroup_add begin
+
 lemma add_left_cancel [simp]:
-  "a + b = a + c \<longleftrightarrow> b = (c \<Colon> 'a\<Colon>cancel_semigroup_add)"
+  "a + b = a + c \<longleftrightarrow> b = c"
   by (blast dest: add_left_imp_eq)
 
 lemma add_right_cancel [simp]:
-  "b + a = c + a \<longleftrightarrow> b = (c \<Colon> 'a\<Colon>cancel_semigroup_add)"
+  "b + a = c + a \<longleftrightarrow> b = c"
   by (blast dest: add_right_imp_eq)
+
+end
 
 subsection {* Groups *}
 
-class ab_group_add = minus + comm_monoid_add +
-  assumes ab_left_minus: "uminus a \<^loc>+ a = \<^loc>0"
-  assumes ab_diff_minus: "a \<^loc>- b = a \<^loc>+ (uminus b)"
-
 class group_add = minus + monoid_add +
-  assumes left_minus [simp]: "uminus a \<^loc>+ a = \<^loc>0"
-  assumes diff_minus: "a \<^loc>- b = a \<^loc>+ (uminus b)"
+  assumes left_minus [simp]: "- a + a = 0"
+  assumes diff_minus: "a - b = a + (- b)"
+begin
 
-instance ab_group_add < group_add
-by intro_classes (simp_all add: ab_left_minus ab_diff_minus)
+lemma minus_add_cancel: "- a + (a + b) = b"
+  by (simp add: add_assoc[symmetric])
 
-instance ab_group_add \<subseteq> cancel_ab_semigroup_add
-proof intro_classes
-  fix a b c :: 'a
-  assume "a + b = a + c"
-  then have "uminus a + a + b = uminus a + a + c" unfolding add_assoc by simp
-  then show "b = c" by simp
-qed
-
-lemma minus_add_cancel: "-(a::'a::group_add) + (a+b) = b"
-by(simp add:add_assoc[symmetric])
-
-lemma minus_zero[simp]: "-(0::'a::group_add) = 0"
+lemma minus_zero [simp]: "- 0 = 0"
 proof -
-  have "-(0::'a::group_add) = - 0 + (0+0)" by(simp only: add_0_right)
-  also have "\<dots> = 0" by(rule minus_add_cancel)
+  have "- 0 = - 0 + (0 + 0)" by (simp only: add_0_right)
+  also have "\<dots> = 0" by (rule minus_add_cancel)
   finally show ?thesis .
 qed
 
-lemma minus_minus[simp]: "- (-(a::'a::group_add)) = a"
+lemma minus_minus [simp]: "- (- a) = a"
 proof -
-  have "-(-a) = -(-a) + (-a + a)" by simp
-  also have "\<dots> = a" by(rule minus_add_cancel)
+  have "- (- a) = - (- a) + (- a + a)" by simp
+  also have "\<dots> = a" by (rule minus_add_cancel)
   finally show ?thesis .
 qed
 
-lemma right_minus[simp]: "a + - a = (0::'a::group_add)"
+lemma right_minus [simp]: "a + - a = 0"
 proof -
-  have "a + -a = -(-a) + -a" by simp
-  also have "\<dots> = 0" thm group_add.left_minus by(rule left_minus)
+  have "a + - a = - (- a) + - a" by simp
+  also have "\<dots> = 0" by (rule left_minus)
   finally show ?thesis .
 qed
 
-lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::group_add))"
+lemma right_minus_eq: "a - b = 0 \<longleftrightarrow> a = b"
 proof
   assume "a - b = 0"
   have "a = (a - b) + b" by (simp add:diff_minus add_assoc)
@@ -152,154 +159,173 @@ next
   assume "a = b" thus "a - b = 0" by (simp add: diff_minus)
 qed
 
-lemma equals_zero_I: assumes "a+b = 0" shows "-a = (b::'a::group_add)"
+lemma equals_zero_I:
+  assumes "a + b = 0"
+  shows "- a = b"
 proof -
-  have "- a = -a + (a+b)" using assms by simp
-  also have "\<dots> = b" by(simp add:add_assoc[symmetric])
+  have "- a = - a + (a + b)" using assms by simp
+  also have "\<dots> = b" by (simp add: add_assoc[symmetric])
   finally show ?thesis .
 qed
 
-lemma diff_self[simp]: "(a::'a::group_add) - a = 0"
-by(simp add: diff_minus)
+lemma diff_self [simp]: "a - a = 0"
+  by (simp add: diff_minus)
 
-lemma diff_0 [simp]: "(0::'a::group_add) - a = -a"
-by (simp add: diff_minus)
+lemma diff_0 [simp]: "0 - a = - a"
+  by (simp add: diff_minus)
 
-lemma diff_0_right [simp]: "a - (0::'a::group_add) = a" 
-by (simp add: diff_minus)
+lemma diff_0_right [simp]: "a - 0 = a" 
+  by (simp add: diff_minus)
 
-lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::group_add)"
-by (simp add: diff_minus)
+lemma diff_minus_eq_add [simp]: "a - - b = a + b"
+  by (simp add: diff_minus)
 
-lemma uminus_add_conv_diff: "-a + b = b - (a::'a::ab_group_add)"
-by(simp add:diff_minus add_commute)
-
-lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::group_add))" 
+lemma neg_equal_iff_equal [simp]:
+  "- a = - b \<longleftrightarrow> a = b" 
 proof 
   assume "- a = - b"
   hence "- (- a) = - (- b)"
     by simp
-  thus "a=b" by simp
+  thus "a = b" by simp
 next
-  assume "a=b"
-  thus "-a = -b" by simp
+  assume "a = b"
+  thus "- a = - b" by simp
 qed
 
-lemma neg_equal_0_iff_equal [simp]: "(-a = 0) = (a = (0::'a::group_add))"
-by (subst neg_equal_iff_equal [symmetric], simp)
+lemma neg_equal_0_iff_equal [simp]:
+  "- a = 0 \<longleftrightarrow> a = 0"
+  by (subst neg_equal_iff_equal [symmetric], simp)
 
-lemma neg_0_equal_iff_equal [simp]: "(0 = -a) = (0 = (a::'a::group_add))"
-by (subst neg_equal_iff_equal [symmetric], simp)
+lemma neg_0_equal_iff_equal [simp]:
+  "0 = - a \<longleftrightarrow> 0 = a"
+  by (subst neg_equal_iff_equal [symmetric], simp)
 
 text{*The next two equations can make the simplifier loop!*}
 
-lemma equation_minus_iff: "(a = - b) = (b = - (a::'a::group_add))"
+lemma equation_minus_iff:
+  "a = - b \<longleftrightarrow> b = - a"
 proof -
-  have "(- (-a) = - b) = (- a = b)" by (rule neg_equal_iff_equal)
+  have "- (- a) = - b \<longleftrightarrow> - a = b" by (rule neg_equal_iff_equal)
   thus ?thesis by (simp add: eq_commute)
 qed
 
-lemma minus_equation_iff: "(- a = b) = (- (b::'a::group_add) = a)"
+lemma minus_equation_iff:
+  "- a = b \<longleftrightarrow> - b = a"
 proof -
-  have "(- a = - (-b)) = (a = -b)" by (rule neg_equal_iff_equal)
+  have "- a = - (- b) \<longleftrightarrow> a = -b" by (rule neg_equal_iff_equal)
   thus ?thesis by (simp add: eq_commute)
 qed
 
-lemma minus_add_distrib [simp]: "- (a + b) = -a + -(b::'a::ab_group_add)"
-apply (rule equals_zero_I)
-apply (simp add: add_ac)
-done
+end
 
-lemma minus_diff_eq [simp]: "- (a - b) = b - (a::'a::ab_group_add)"
-by (simp add: diff_minus add_commute)
+class ab_group_add = minus + comm_monoid_add +
+  assumes ab_left_minus: "- a + a = 0"
+  assumes ab_diff_minus: "a - b = a + (- b)"
+
+subclass (in ab_group_add) group_add
+  by unfold_locales (simp_all add: ab_left_minus ab_diff_minus)
+
+subclass (in ab_group_add) cancel_semigroup_add
+proof unfold_locales
+  fix a b c :: 'a
+  assume "a + b = a + c"
+  then have "- a + a + b = - a + a + c"
+    unfolding add_assoc by simp
+  then show "b = c" by simp
+next
+  fix a b c :: 'a
+  assume "b + a = c + a"
+  then have "b + (a + - a) = c + (a + - a)"
+    unfolding add_assoc [symmetric] by simp
+  then show "b = c" by simp
+qed
+
+subclass (in ab_group_add) cancel_ab_semigroup_add
+proof unfold_locales
+  fix a b c :: 'a
+  assume "a + b = a + c"
+  then have "- a + a + b = - a + a + c"
+    unfolding add_assoc by simp
+  then show "b = c" by simp
+qed
+
+context ab_group_add
+begin
+
+lemma uminus_add_conv_diff:
+  "- a + b = b - a"
+  by (simp add:diff_minus add_commute)
+
+lemma minus_add_distrib [simp]:
+  "- (a + b) = - a + - b"
+  by (rule equals_zero_I) (simp add: add_ac)
+
+lemma minus_diff_eq [simp]:
+  "- (a - b) = b - a"
+  by (simp add: diff_minus add_commute)
+
+end
 
 subsection {* (Partially) Ordered Groups *} 
 
 class pordered_ab_semigroup_add = order + ab_semigroup_add +
-  assumes add_left_mono: "a \<^loc>\<le> b \<Longrightarrow> c \<^loc>+ a \<^loc>\<le> c \<^loc>+ b"
+  assumes add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
+begin
 
-class pordered_cancel_ab_semigroup_add =
-  pordered_ab_semigroup_add + cancel_ab_semigroup_add
-
-class pordered_ab_semigroup_add_imp_le = pordered_cancel_ab_semigroup_add +
-  assumes add_le_imp_le_left: "c \<^loc>+ a \<^loc>\<le> c \<^loc>+ b \<Longrightarrow> a \<^loc>\<le> b"
-
-class pordered_ab_group_add = ab_group_add + pordered_ab_semigroup_add
-
-instance pordered_ab_group_add \<subseteq> pordered_ab_semigroup_add_imp_le
-proof
-  fix a b c :: 'a
-  assume "c + a \<le> c + b"
-  hence "(-c) + (c + a) \<le> (-c) + (c + b)" by (rule add_left_mono)
-  hence "((-c) + c) + a \<le> ((-c) + c) + b" by (simp only: add_assoc)
-  thus "a \<le> b" by simp
-qed
-
-class ordered_ab_semigroup_add =
-  linorder + pordered_ab_semigroup_add
-
-class ordered_cancel_ab_semigroup_add =
-  linorder + pordered_cancel_ab_semigroup_add
-
-instance ordered_cancel_ab_semigroup_add \<subseteq> ordered_ab_semigroup_add ..
-
-instance ordered_cancel_ab_semigroup_add \<subseteq> pordered_ab_semigroup_add_imp_le
-proof
-  fix a b c :: 'a
-  assume le: "c + a <= c + b"  
-  show "a <= b"
-  proof (rule ccontr)
-    assume w: "~ a \<le> b"
-    hence "b <= a" by (simp add: linorder_not_le)
-    hence le2: "c+b <= c+a" by (rule add_left_mono)
-    have "a = b" 
-      apply (insert le)
-      apply (insert le2)
-      apply (drule order_antisym, simp_all)
-      done
-    with w  show False 
-      by (simp add: linorder_not_le [symmetric])
-  qed
-qed
-
-lemma add_right_mono: "a \<le> (b::'a::pordered_ab_semigroup_add) ==> a + c \<le> b + c"
+lemma add_right_mono:
+  "a \<le> b \<Longrightarrow> a + c \<le> b + c"
   by (simp add: add_commute [of _ c] add_left_mono)
 
 text {* non-strict, in both arguments *}
 lemma add_mono:
-     "[|a \<le> b;  c \<le> d|] ==> a + c \<le> b + (d::'a::pordered_ab_semigroup_add)"
+  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c \<le> b + d"
   apply (erule add_right_mono [THEN order_trans])
   apply (simp add: add_commute add_left_mono)
   done
 
+end
+
+class pordered_cancel_ab_semigroup_add =
+  pordered_ab_semigroup_add + cancel_ab_semigroup_add
+begin
+
 lemma add_strict_left_mono:
-     "a < b ==> c + a < c + (b::'a::pordered_cancel_ab_semigroup_add)"
- by (simp add: order_less_le add_left_mono) 
+  "a < b \<Longrightarrow> c + a < c + b"
+  by (auto simp add: less_le add_left_mono)
 
 lemma add_strict_right_mono:
-     "a < b ==> a + c < b + (c::'a::pordered_cancel_ab_semigroup_add)"
- by (simp add: add_commute [of _ c] add_strict_left_mono)
+  "a < b \<Longrightarrow> a + c < b + c"
+  by (simp add: add_commute [of _ c] add_strict_left_mono)
 
 text{*Strict monotonicity in both arguments*}
-lemma add_strict_mono: "[|a<b; c<d|] ==> a + c < b + (d::'a::pordered_cancel_ab_semigroup_add)"
-apply (erule add_strict_right_mono [THEN order_less_trans])
+lemma add_strict_mono:
+  "a < b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d"
+apply (erule add_strict_right_mono [THEN less_trans])
 apply (erule add_strict_left_mono)
 done
 
 lemma add_less_le_mono:
-     "[| a<b; c\<le>d |] ==> a + c < b + (d::'a::pordered_cancel_ab_semigroup_add)"
-apply (erule add_strict_right_mono [THEN order_less_le_trans])
-apply (erule add_left_mono) 
+  "a < b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c < b + d"
+apply (erule add_strict_right_mono [THEN less_le_trans])
+apply (erule add_left_mono)
 done
 
 lemma add_le_less_mono:
-     "[| a\<le>b; c<d |] ==> a + c < b + (d::'a::pordered_cancel_ab_semigroup_add)"
-apply (erule add_right_mono [THEN order_le_less_trans])
+  "a \<le> b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d"
+apply (erule add_right_mono [THEN le_less_trans])
 apply (erule add_strict_left_mono) 
 done
 
+end
+
+class pordered_ab_semigroup_add_imp_le =
+  pordered_cancel_ab_semigroup_add +
+  assumes add_le_imp_le_left: "c + a \<le> c + b \<Longrightarrow> a \<le> b"
+begin
+
 lemma add_less_imp_less_left:
-      assumes less: "c + a < c + b"  shows "a < (b::'a::pordered_ab_semigroup_add_imp_le)"
+   assumes less: "c + a < c + b"
+   shows "a < b"
 proof -
   from less have le: "c + a <= c + b" by (simp add: order_le_less)
   have "a <= b" 
@@ -317,30 +343,90 @@ proof -
 qed
 
 lemma add_less_imp_less_right:
-      "a + c < b + c ==> a < (b::'a::pordered_ab_semigroup_add_imp_le)"
+  "a + c < b + c \<Longrightarrow> a < b"
 apply (rule add_less_imp_less_left [of c])
 apply (simp add: add_commute)  
 done
 
 lemma add_less_cancel_left [simp]:
-    "(c+a < c+b) = (a < (b::'a::pordered_ab_semigroup_add_imp_le))"
-by (blast intro: add_less_imp_less_left add_strict_left_mono) 
+  "c + a < c + b \<longleftrightarrow> a < b"
+  by (blast intro: add_less_imp_less_left add_strict_left_mono) 
 
 lemma add_less_cancel_right [simp]:
-    "(a+c < b+c) = (a < (b::'a::pordered_ab_semigroup_add_imp_le))"
-by (blast intro: add_less_imp_less_right add_strict_right_mono)
+  "a + c < b + c \<longleftrightarrow> a < b"
+  by (blast intro: add_less_imp_less_right add_strict_right_mono)
 
 lemma add_le_cancel_left [simp]:
-    "(c+a \<le> c+b) = (a \<le> (b::'a::pordered_ab_semigroup_add_imp_le))"
-by (auto, drule add_le_imp_le_left, simp_all add: add_left_mono) 
+  "c + a \<le> c + b \<longleftrightarrow> a \<le> b"
+  by (auto, drule add_le_imp_le_left, simp_all add: add_left_mono) 
 
 lemma add_le_cancel_right [simp]:
-    "(a+c \<le> b+c) = (a \<le> (b::'a::pordered_ab_semigroup_add_imp_le))"
-by (simp add: add_commute[of a c] add_commute[of b c])
+  "a + c \<le> b + c \<longleftrightarrow> a \<le> b"
+  by (simp add: add_commute [of a c] add_commute [of b c])
 
 lemma add_le_imp_le_right:
-      "a + c \<le> b + c ==> a \<le> (b::'a::pordered_ab_semigroup_add_imp_le)"
-by simp
+  "a + c \<le> b + c \<Longrightarrow> a \<le> b"
+  by simp
+
+end
+
+class pordered_ab_group_add =
+  ab_group_add + pordered_ab_semigroup_add
+begin
+
+subclass pordered_cancel_ab_semigroup_add
+  by unfold_locales
+
+subclass pordered_ab_semigroup_add_imp_le
+proof unfold_locales
+  fix a b c :: 'a
+  assume "c + a \<le> c + b"
+  hence "(-c) + (c + a) \<le> (-c) + (c + b)" by (rule add_left_mono)
+  hence "((-c) + c) + a \<le> ((-c) + c) + b" by (simp only: add_assoc)
+  thus "a \<le> b" by simp
+qed
+
+end
+
+class ordered_ab_semigroup_add =
+  linorder + pordered_ab_semigroup_add
+
+class ordered_cancel_ab_semigroup_add =
+  linorder + pordered_cancel_ab_semigroup_add
+
+subclass (in ordered_cancel_ab_semigroup_add) ordered_ab_semigroup_add
+  by unfold_locales
+
+subclass (in ordered_cancel_ab_semigroup_add) pordered_ab_semigroup_add_imp_le
+proof unfold_locales
+  fix a b c :: 'a
+  assume le: "c + a <= c + b"  
+  show "a <= b"
+  proof (rule ccontr)
+    assume w: "~ a \<le> b"
+    hence "b <= a" by (simp add: linorder_not_le)
+    hence le2: "c + b <= c + a" by (rule add_left_mono)
+    have "a = b" 
+      apply (insert le)
+      apply (insert le2)
+      apply (drule antisym, simp_all)
+      done
+    with w show False 
+      by (simp add: linorder_not_le [symmetric])
+  qed
+qed
+
+-- {* FIXME continue localization here *}
+
+lemma max_add_distrib_left:
+  fixes z :: "'a::pordered_ab_semigroup_add_imp_le"
+  shows  "(max x y) + z = max (x+z) (y+z)"
+by (rule max_of_mono [THEN sym], rule add_le_cancel_right)
+
+lemma min_add_distrib_left:
+  fixes z :: "'a::pordered_ab_semigroup_add_imp_le"
+  shows  "(min x y) + z = min (x+z) (y+z)"
+by (rule min_of_mono [THEN sym], rule add_le_cancel_right)
 
 lemma add_increasing:
   fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
@@ -361,16 +447,6 @@ lemma add_strict_increasing2:
   fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
   shows "[|0\<le>a; b<c|] ==> b < a + c"
 by (insert add_le_less_mono [of 0 a b c], simp)
-
-lemma max_add_distrib_left:
-  fixes z :: "'a::pordered_ab_semigroup_add_imp_le"
-  shows  "(max x y) + z = max (x+z) (y+z)"
-by (rule max_of_mono [THEN sym], rule add_le_cancel_right)
-
-lemma min_add_distrib_left:
-  fixes z :: "'a::pordered_ab_semigroup_add_imp_le"
-  shows  "(min x y) + z = min (x+z) (y+z)"
-by (rule min_of_mono [THEN sym], rule add_le_cancel_right)
 
 lemma max_diff_distrib_left:
   fixes z :: "'a::pordered_ab_group_add"

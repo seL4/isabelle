@@ -109,6 +109,24 @@ arguments may be given on the LHS.)
 
 *** Pure ***
 
+* Class-context aware syntax for class target ("user space type system"):
+Local operations in class context (fixes, definitions, axiomatizations,
+abbreviations) are identified with their global counterparts during reading and
+printing of terms.  Practically, this allows to use the same syntax for
+both local *and* global operations.  Syntax declarations referring directly to
+local fixes, definitions, axiomatizations and abbreviations are applied to their
+global counterparts instead (but explicit notation declarations still are local);
+the special treatment of \<^loc> in local syntax declarations has been abandoned.
+INCOMPATIBILITY.  Most affected theories shall work after the following
+purgatory:
+
+    perl -i -pe 's/\\<\^loc>//g;' THYFILENAME1 THYFILENAME2 ...
+
+Current limitations:
+- printing of local abbreviations sometimes yields unexpected results.
+- some facilities (e.g. attribute of, legacy tac-methods) still do not use
+canonical interfaces for printing and reading terms.
+
 * Code generator: consts in 'consts_code' Isar commands are now
 referred to by usual term syntax (including optional type
 annotations).
@@ -116,7 +134,7 @@ annotations).
 * Code generator: basic definitions (from 'definition', 'constdefs',
 or primitive 'instance' definitions) are added automatically to the
 table of defining equations.  Primitive defs are not used as defining
-equations by default any longer.  defining equations are now definitly
+equations by default any longer.  Defining equations are now definitly
 restricted to meta "==" and object equality "=".
 
 * The 'class' package offers a combination of axclass and locale to

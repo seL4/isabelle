@@ -52,12 +52,12 @@ lemma NSLIM_mult:
 by (auto simp add: NSLIM_def intro!: approx_mult_HFinite)
 
 lemma starfun_scaleR [simp]:
-  "starfun (\<lambda>x. f x *# g x) = (\<lambda>x. scaleHR (starfun f x) (starfun g x))"
+  "starfun (\<lambda>x. f x *\<^sub>R g x) = (\<lambda>x. scaleHR (starfun f x) (starfun g x))"
 by transfer (rule refl)
 
 lemma NSLIM_scaleR:
   "[| f -- x --NS> l; g -- x --NS> m |]
-      ==> (%x. f(x) *# g(x)) -- x --NS> (l *# m)"
+      ==> (%x. f(x) *\<^sub>R g(x)) -- x --NS> (l *\<^sub>R m)"
 by (auto simp add: NSLIM_def intro!: approx_scaleR_HFinite)
 
 lemma NSLIM_add:

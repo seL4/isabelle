@@ -218,11 +218,11 @@ not for efficient implementations. *}
 fun (in linorder) sorted :: "'a list \<Rightarrow> bool" where
 "sorted [] \<longleftrightarrow> True" |
 "sorted [x] \<longleftrightarrow> True" |
-"sorted (x#y#zs) \<longleftrightarrow> x \<^loc><= y \<and> sorted (y#zs)"
+"sorted (x#y#zs) \<longleftrightarrow> x <= y \<and> sorted (y#zs)"
 
 fun (in linorder) insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "insort x [] = [x]" |
-"insort x (y#ys) = (if x \<^loc><= y then (x#y#ys) else y#(insort x ys))"
+"insort x (y#ys) = (if x <= y then (x#y#ys) else y#(insort x ys))"
 
 fun (in linorder) sort :: "'a list \<Rightarrow> 'a list" where
 "sort [] = []" |
@@ -1816,11 +1816,11 @@ lemma foldr_cong [fundef_cong, recdef_cong]:
 by (induct k arbitrary: a b l) simp_all
 
 lemma (in semigroup_add) foldl_assoc:
-shows "foldl op\<^loc>+ (x\<^loc>+y) zs = x \<^loc>+ (foldl op\<^loc>+ y zs)"
+shows "foldl op+ (x+y) zs = x + (foldl op+ y zs)"
 by (induct zs arbitrary: y) (simp_all add:add_assoc)
 
 lemma (in monoid_add) foldl_absorb0:
-shows "x \<^loc>+ (foldl op\<^loc>+ \<^loc>0 zs) = foldl op\<^loc>+ x zs"
+shows "x + (foldl op+ 0 zs) = foldl op+ x zs"
 by (induct zs) (simp_all add:foldl_assoc)
 
 
@@ -1843,7 +1843,7 @@ by (induct xs) auto
 lemma foldl_foldr: "foldl f a xs = foldr (%x y. f y x) (rev xs) a"
 by (simp add: foldr_foldl [of "%x y. f y x" "rev xs"])
 
-lemma (in ab_semigroup_add) foldr_conv_foldl: "foldr op \<^loc>+ xs a = foldl op \<^loc>+ a xs"
+lemma (in ab_semigroup_add) foldr_conv_foldl: "foldr op + xs a = foldl op + a xs"
   by (induct xs, auto simp add: foldl_assoc add_commute)
 
 text {*
@@ -2526,12 +2526,12 @@ that instead of multisets to state the correctness property. *}
 context linorder
 begin
 
-lemma sorted_Cons: "sorted (x#xs) = (sorted xs & (ALL y:set xs. x \<^loc><= y))"
+lemma sorted_Cons: "sorted (x#xs) = (sorted xs & (ALL y:set xs. x <= y))"
 apply(induct xs arbitrary: x) apply simp
 by simp (blast intro: order_trans)
 
 lemma sorted_append:
-  "sorted (xs@ys) = (sorted xs & sorted ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<^loc>\<le>y))"
+  "sorted (xs@ys) = (sorted xs & sorted ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
 by (induct xs) (auto simp add:sorted_Cons)
 
 lemma set_insort: "set(insort x xs) = insert x (set xs)"
@@ -2583,32 +2583,32 @@ subsubsection {* @{text upto}: the generic interval-list *}
 
 class finite_intvl_succ = linorder +
 fixes successor :: "'a \<Rightarrow> 'a"
-assumes finite_intvl: "finite(ord.atLeastAtMost (op \<^loc>\<le>) a b)" (* FIXME should be finite({a..b}) *)
-and successor_incr: "a \<^loc>< successor a"
-and ord_discrete: "\<not>(\<exists>x. a \<^loc>< x & x \<^loc>< successor a)"
+assumes finite_intvl: "finite(ord.atLeastAtMost (op \<le>) a b)" (* FIXME should be finite({a..b}) *)
+and successor_incr: "a < successor a"
+and ord_discrete: "\<not>(\<exists>x. a < x & x < successor a)"
 
 context finite_intvl_succ
 begin
 
 definition
- upto :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list" ("(1\<^loc>[_../_])") where
-"upto i j == THE is. set is = \<^loc>{i..j} & sorted is & distinct is"
+ upto :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list" ("(1[_../_])") where
+"upto i j == THE is. set is = {i..j} & sorted is & distinct is"
 
-lemma set_upto[simp]: "set\<^loc>[a..b] = \<^loc>{a..b}"
+lemma set_upto[simp]: "set[a..b] = {a..b}"
 apply(simp add:upto_def)
 apply(rule the1I2)
 apply(simp_all add: finite_sorted_distinct_unique finite_intvl)
 done
 
-lemma insert_intvl: "i \<^loc>\<le> j \<Longrightarrow> insert i \<^loc>{successor i..j} = \<^loc>{i..j}"
+lemma insert_intvl: "i \<le> j \<Longrightarrow> insert i {successor i..j} = {i..j}"
 apply(insert successor_incr[of i])
 apply(auto simp: atLeastAtMost_def atLeast_def atMost_def)
 apply (metis ord_discrete less_le not_le)
 done
 
-lemma upto_rec[code]: "\<^loc>[i..j] = (if i \<^loc>\<le> j then i # \<^loc>[successor i..j] else [])"
+lemma upto_rec[code]: "[i..j] = (if i \<le> j then i # [successor i..j] else [])"
 proof cases
-  assume "i \<^loc>\<le> j" thus ?thesis
+  assume "i \<le> j" thus ?thesis
     apply(simp add:upto_def)
     apply (rule the1_equality[OF finite_sorted_distinct_unique])
      apply (simp add:finite_intvl)
@@ -2618,7 +2618,7 @@ proof cases
     apply (metis successor_incr leD less_imp_le order_trans)
     done
 next
-  assume "~ i \<^loc>\<le> j" thus ?thesis
+  assume "~ i \<le> j" thus ?thesis
     by(simp add:upto_def atLeastAtMost_empty cong:conj_cong)
 qed
 

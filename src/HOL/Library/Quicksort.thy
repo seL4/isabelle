@@ -14,7 +14,7 @@ begin
 
 function quicksort :: "'a list \<Rightarrow> 'a list" where
 "quicksort []     = []" |
-"quicksort (x#xs) = quicksort([y\<leftarrow>xs. ~ x\<^loc>\<le>y]) @ [x] @ quicksort([y\<leftarrow>xs. x\<^loc>\<le>y])"
+"quicksort (x#xs) = quicksort([y\<leftarrow>xs. ~ x\<le>y]) @ [x] @ quicksort([y\<leftarrow>xs. x\<le>y])"
 by pat_completeness auto
 
 termination

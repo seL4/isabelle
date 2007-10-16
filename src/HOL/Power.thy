@@ -12,13 +12,13 @@ imports Nat
 begin
 
 class power = type +
-  fixes power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"            (infixr "\<^loc>^" 80)
+  fixes power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"            (infixr "^" 80)
 
 subsection{*Powers for Arbitrary Monoids*}
 
 class recpower = monoid_mult + power +
-  assumes power_0 [simp]: "a \<^loc>^ 0       = \<^loc>1"
-  assumes power_Suc:      "a \<^loc>^ Suc n = a \<^loc>* (a \<^loc>^ n)"
+  assumes power_0 [simp]: "a ^ 0       = 1"
+  assumes power_Suc:      "a ^ Suc n = a * (a ^ n)"
 
 lemma power_0_Suc [simp]: "(0::'a::{recpower,semiring_0}) ^ (Suc n) = 0"
   by (simp add: power_Suc)

@@ -15,15 +15,15 @@ class star = type +
   fixes star :: "'a \<Rightarrow> 'a"
 
 class idem_add = ab_semigroup_add +
-  assumes add_idem [simp]: "x \<^loc>+ x = x"
+  assumes add_idem [simp]: "x + x = x"
 
 lemma add_idem2[simp]: "(x::'a::idem_add) + (x + y) = x + y"
   unfolding add_assoc[symmetric]
   by simp
 
 class order_by_add = idem_add + ord +
-  assumes order_def: "a \<^loc>\<le> b \<longleftrightarrow> a \<^loc>+ b = b"
-  assumes strict_order_def: "a \<^loc>< b \<longleftrightarrow> a \<^loc>\<le> b \<and> a \<noteq> b"
+  assumes order_def: "a \<le> b \<longleftrightarrow> a + b = b"
+  assumes strict_order_def: "a < b \<longleftrightarrow> a \<le> b \<and> a \<noteq> b"
 
 lemma ord_simp1[simp]: "(x::'a::order_by_add) \<le> y \<Longrightarrow> x + y = y"
   unfolding order_def .
@@ -82,14 +82,14 @@ proof
 qed
 
 class kleene = pre_kleene + star +
-  assumes star1: "\<^loc>1 \<^loc>+ a \<^loc>* star a \<^loc>\<le> star a"
-  and star2: "\<^loc>1 \<^loc>+ star a \<^loc>* a \<^loc>\<le> star a"
-  and star3: "a \<^loc>* x \<^loc>\<le> x \<Longrightarrow> star a \<^loc>* x \<^loc>\<le> x"
-  and star4: "x \<^loc>* a \<^loc>\<le> x \<Longrightarrow> x \<^loc>* star a \<^loc>\<le> x"
+  assumes star1: "1 + a * star a \<le> star a"
+  and star2: "1 + star a * a \<le> star a"
+  and star3: "a * x \<le> x \<Longrightarrow> star a * x \<le> x"
+  and star4: "x * a \<le> x \<Longrightarrow> x * star a \<le> x"
 
 class kleene_by_complete_lattice = pre_kleene
   + complete_lattice + recpower + star +
-  assumes star_cont: "a \<^loc>* star b \<^loc>* c = SUPR UNIV (\<lambda>n. a \<^loc>* b \<^loc>^ n \<^loc>* c)"
+  assumes star_cont: "a * star b * c = SUPR UNIV (\<lambda>n. a * b ^ n * c)"
 
 lemma plus_leI: 
   fixes x :: "'a :: order_by_add"

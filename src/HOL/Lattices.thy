@@ -33,18 +33,20 @@ begin
 lemmas antisym_intro [intro!] = antisym
 lemmas (in -) [rule del] = antisym_intro
 
-lemma le_infI1[intro]: "a \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
-apply(subgoal_tac "a \<sqinter> b \<sqsubseteq> a")
- apply(blast intro: order_trans)
-apply simp
-done
+lemma le_infI1[intro]:
+  assumes "a \<sqsubseteq> x"
+  shows "a \<sqinter> b \<sqsubseteq> x"
+proof (rule order_trans)
+  show "a \<sqinter> b \<sqsubseteq> a" and "a \<sqsubseteq> x" using assms by simp
+qed
 lemmas (in -) [rule del] = le_infI1
 
-lemma le_infI2[intro]: "b \<sqsubseteq> x \<Longrightarrow> a \<sqinter> b \<sqsubseteq> x"
-apply(subgoal_tac "a \<sqinter> b \<sqsubseteq> b")
- apply(blast intro: order_trans)
-apply simp
-done
+lemma le_infI2[intro]:
+  assumes "b \<sqsubseteq> x"
+  shows "a \<sqinter> b \<sqsubseteq> x"
+proof (rule order_trans)
+  show "a \<sqinter> b \<sqsubseteq> b" and "b \<sqsubseteq> x" using assms by simp
+qed
 lemmas (in -) [rule del] = le_infI2
 
 lemma le_infI[intro!]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<sqinter> b"
@@ -75,17 +77,11 @@ lemmas antisym_intro [intro!] = antisym
 lemmas (in -) [rule del] = antisym_intro
 
 lemma le_supI1[intro]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
-apply(subgoal_tac "a \<sqsubseteq> a \<squnion> b")
- apply(blast intro: order_trans)
-apply simp
-done
+  by (rule order_trans) auto
 lemmas (in -) [rule del] = le_supI1
 
 lemma le_supI2[intro]: "x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
-apply(subgoal_tac "b \<sqsubseteq> a \<squnion> b")
- apply(blast intro: order_trans)
-apply simp
-done
+  by (rule order_trans) auto 
 lemmas (in -) [rule del] = le_supI2
 
 lemma le_supI[intro!]: "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> a \<squnion> b \<sqsubseteq> x"
@@ -255,26 +251,26 @@ subsection {* Uniqueness of inf and sup *}
 
 lemma (in lower_semilattice) inf_unique:
   fixes f (infixl "\<triangle>" 70)
-  assumes le1: "\<And>x y. x \<triangle> y \<^loc>\<le> x" and le2: "\<And>x y. x \<triangle> y \<^loc>\<le> y"
-  and greatest: "\<And>x y z. x \<^loc>\<le> y \<Longrightarrow> x \<^loc>\<le> z \<Longrightarrow> x \<^loc>\<le> y \<triangle> z"
+  assumes le1: "\<And>x y. x \<triangle> y \<le> x" and le2: "\<And>x y. x \<triangle> y \<le> y"
+  and greatest: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z"
   shows "x \<sqinter> y = x \<triangle> y"
 proof (rule antisym)
-  show "x \<triangle> y \<^loc>\<le> x \<sqinter> y" by (rule le_infI) (rule le1, rule le2)
+  show "x \<triangle> y \<le> x \<sqinter> y" by (rule le_infI) (rule le1, rule le2)
 next
-  have leI: "\<And>x y z. x \<^loc>\<le> y \<Longrightarrow> x \<^loc>\<le> z \<Longrightarrow> x \<^loc>\<le> y \<triangle> z" by (blast intro: greatest)
-  show "x \<sqinter> y \<^loc>\<le> x \<triangle> y" by (rule leI) simp_all
+  have leI: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z" by (blast intro: greatest)
+  show "x \<sqinter> y \<le> x \<triangle> y" by (rule leI) simp_all
 qed
 
 lemma (in upper_semilattice) sup_unique:
   fixes f (infixl "\<nabla>" 70)
-  assumes ge1 [simp]: "\<And>x y. x \<^loc>\<le> x \<nabla> y" and ge2: "\<And>x y. y \<^loc>\<le> x \<nabla> y"
-  and least: "\<And>x y z. y \<^loc>\<le> x \<Longrightarrow> z \<^loc>\<le> x \<Longrightarrow> y \<nabla> z \<^loc>\<le> x"
+  assumes ge1 [simp]: "\<And>x y. x \<le> x \<nabla> y" and ge2: "\<And>x y. y \<le> x \<nabla> y"
+  and least: "\<And>x y z. y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> y \<nabla> z \<le> x"
   shows "x \<squnion> y = x \<nabla> y"
 proof (rule antisym)
-  show "x \<squnion> y \<^loc>\<le> x \<nabla> y" by (rule le_supI) (rule ge1, rule ge2)
+  show "x \<squnion> y \<le> x \<nabla> y" by (rule le_supI) (rule ge1, rule ge2)
 next
-  have leI: "\<And>x y z. x \<^loc>\<le> z \<Longrightarrow> y \<^loc>\<le> z \<Longrightarrow> x \<nabla> y \<^loc>\<le> z" by (blast intro: least)
-  show "x \<nabla> y \<^loc>\<le> x \<squnion> y" by (rule leI) simp_all
+  have leI: "\<And>x y z. x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<nabla> y \<le> z" by (blast intro: least)
+  show "x \<nabla> y \<le> x \<squnion> y" by (rule leI) simp_all
 qed
   
 
@@ -282,9 +278,9 @@ subsection {* @{const min}/@{const max} on linear orders as
   special case of @{const inf}/@{const sup} *}
 
 lemma (in linorder) distrib_lattice_min_max:
-  "distrib_lattice (op \<^loc>\<le>) (op \<^loc><) min max"
+  "distrib_lattice (op \<le>) (op <) min max"
 proof unfold_locales
-  have aux: "\<And>x y \<Colon> 'a. x \<^loc>< y \<Longrightarrow> y \<^loc>\<le> x \<Longrightarrow> x = y"
+  have aux: "\<And>x y \<Colon> 'a. x < y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
     by (auto simp add: less_le antisym)
   fix x y z
   show "max x (min y z) = min (max x y) (max x z)"
@@ -333,10 +329,10 @@ class complete_lattice = lattice +
      and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
 begin
 
-lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<^loc>\<le> a}"
+lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
   by (auto intro: Inf_lower Inf_greatest Sup_upper Sup_least)
 
-lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<^loc>\<le> b}"
+lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
   by (auto intro: Inf_lower Inf_greatest Sup_upper Sup_least)
 
 lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
@@ -411,10 +407,10 @@ definition
 where
   "bot = Sup {}"
 
-lemma top_greatest [simp]: "x \<^loc>\<le> top"
+lemma top_greatest [simp]: "x \<le> top"
   by (unfold top_def, rule Inf_greatest, simp)
 
-lemma bot_least [simp]: "bot \<^loc>\<le> x"
+lemma bot_least [simp]: "bot \<le> x"
   by (unfold bot_def, rule Sup_least, simp)
 
 definition
@@ -583,5 +579,17 @@ text {* redundant bindings *}
 
 lemmas inf_aci = inf_ACI
 lemmas sup_aci = sup_ACI
+
+no_notation
+  inf (infixl "\<sqinter>" 70)
+
+no_notation
+  sup (infixl "\<squnion>" 65)
+
+no_notation
+  Inf ("\<Sqinter>_" [900] 900)
+
+no_notation
+  Sup ("\<Squnion>_" [900] 900)
 
 end

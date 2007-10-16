@@ -2026,6 +2026,20 @@ locale ACIfSL = ord + ACIf +
   and strict_below_def: "less x y \<longleftrightarrow> less_eq x y \<and> x \<noteq> y"
 begin
 
+notation
+  less_eq  ("op \<^loc><=") and
+  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50) and
+  less  ("op \<^loc><") and
+  less  ("(_/ \<^loc>< _)"  [51, 51] 50)
+  
+notation (xsymbols)
+  less_eq  ("op \<^loc>\<le>") and
+  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
+
+notation (HTML output)
+  less_eq  ("op \<^loc>\<le>") and
+  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
+
 lemma below_refl [simp]: "x \<^loc>\<le> x"
   by (simp add: below_def idem)
 
@@ -2242,27 +2256,27 @@ text{*
   over (non-empty) sets by means of @{text fold1}.
 *}
 
-lemma (in lower_semilattice) ACf_inf: "ACf (op \<sqinter>)"
+lemma (in lower_semilattice) ACf_inf: "ACf inf"
   by (blast intro: ACf.intro inf_commute inf_assoc)
 
-lemma (in upper_semilattice) ACf_sup: "ACf (op \<squnion>)"
+lemma (in upper_semilattice) ACf_sup: "ACf sup"
   by (blast intro: ACf.intro sup_commute sup_assoc)
 
-lemma (in lower_semilattice) ACIf_inf: "ACIf (op \<sqinter>)"
+lemma (in lower_semilattice) ACIf_inf: "ACIf inf"
 apply(rule ACIf.intro)
 apply(rule ACf_inf)
 apply(rule ACIf_axioms.intro)
 apply(rule inf_idem)
 done
 
-lemma (in upper_semilattice) ACIf_sup: "ACIf (op \<squnion>)"
+lemma (in upper_semilattice) ACIf_sup: "ACIf sup"
 apply(rule ACIf.intro)
 apply(rule ACf_sup)
 apply(rule ACIf_axioms.intro)
 apply(rule sup_idem)
 done
 
-lemma (in lower_semilattice) ACIfSL_inf: "ACIfSL (op \<^loc>\<le>) (op \<^loc><) (op \<sqinter>)"
+lemma (in lower_semilattice) ACIfSL_inf: "ACIfSL (op \<le>) (op <) inf"
 apply(rule ACIfSL.intro)
 apply(rule ACIf.intro)
 apply(rule ACf_inf)
@@ -2275,7 +2289,7 @@ apply(rule inf_le2)
 apply(rule less_le)
 done
 
-lemma (in upper_semilattice) ACIfSL_sup: "ACIfSL (%x y. y \<^loc>\<le> x) (%x y. y \<^loc>< x) (op \<squnion>)"
+lemma (in upper_semilattice) ACIfSL_sup: "ACIfSL (%x y. y \<le> x) (%x y. y < x) sup"
 apply(rule ACIfSL.intro)
 apply(rule ACIf.intro)
 apply(rule ACf_sup)
@@ -2294,14 +2308,14 @@ begin
 definition
   Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^bsub>fin\<^esub>_" [900] 900)
 where
-  "Inf_fin = fold1 (op \<sqinter>)"
+  "Inf_fin = fold1 inf"
 
 definition
   Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^bsub>fin\<^esub>_" [900] 900)
 where
-  "Sup_fin = fold1 (op \<squnion>)"
+  "Sup_fin = fold1 sup"
 
-lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<^loc>\<le> \<Squnion>\<^bsub>fin\<^esub>A"
+lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<le> \<Squnion>\<^bsub>fin\<^esub>A"
 apply(unfold Sup_fin_def Inf_fin_def)
 apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast
@@ -2312,13 +2326,13 @@ apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_sup])
 done
 
 lemma sup_Inf_absorb [simp]:
-  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<squnion> \<Sqinter>\<^bsub>fin\<^esub>A) = a"
+  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (sup a (\<Sqinter>\<^bsub>fin\<^esub>A)) = a"
 apply(subst sup_commute)
 apply(simp add: Inf_fin_def sup_absorb2 ACIfSL.fold1_belowI [OF ACIfSL_inf])
 done
 
 lemma inf_Sup_absorb [simp]:
-  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<sqinter> \<Squnion>\<^bsub>fin\<^esub>A) = a"
+  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (inf a (\<Squnion>\<^bsub>fin\<^esub>A)) = a"
 by(simp add: Sup_fin_def inf_absorb1 ACIfSL.fold1_belowI [OF ACIfSL_sup])
 
 end
@@ -2327,7 +2341,7 @@ context distrib_lattice
 begin
 
 lemma sup_Inf1_distrib:
- "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<squnion> \<Sqinter>\<^bsub>fin\<^esub>A) = \<Sqinter>\<^bsub>fin\<^esub>{x \<squnion> a|a. a \<in> A}"
+  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> sup x (\<Sqinter>\<^bsub>fin\<^esub>A) = \<Sqinter>\<^bsub>fin\<^esub>{sup x a|a. a \<in> A}"
 apply(simp add: Inf_fin_def image_def
   ACIf.hom_fold1_commute[OF ACIf_inf, where h="sup x", OF sup_inf_distrib1])
 apply(rule arg_cong, blast)
@@ -2335,38 +2349,38 @@ done
 
 lemma sup_Inf2_distrib:
   assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
-  shows "(\<Sqinter>\<^bsub>fin\<^esub>A \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B) = \<Sqinter>\<^bsub>fin\<^esub>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
+  shows "sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B) = \<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B}"
 using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
     by (simp add: sup_Inf1_distrib [OF B] fold1_singleton_def [OF Inf_fin_def])
 next
   case (insert x A)
-  have finB: "finite {x \<squnion> b |b. b \<in> B}"
-    by(rule finite_surj[where f = "%b. x \<squnion> b", OF B(1)], auto)
-  have finAB: "finite {a \<squnion> b |a b. a \<in> A \<and> b \<in> B}"
+  have finB: "finite {sup x b |b. b \<in> B}"
+    by(rule finite_surj[where f = "sup x", OF B(1)], auto)
+  have finAB: "finite {sup a b |a b. a \<in> A \<and> b \<in> B}"
   proof -
-    have "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {a \<squnion> b})"
+    have "{sup a b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {sup a b})"
       by blast
     thus ?thesis by(simp add: insert(1) B(1))
   qed
-  have ne: "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
-  have "\<Sqinter>\<^bsub>fin\<^esub>(insert x A) \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B = (x \<sqinter> \<Sqinter>\<^bsub>fin\<^esub>A) \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B"
+  have ne: "{sup a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
+  have "sup (\<Sqinter>\<^bsub>fin\<^esub>(insert x A)) (\<Sqinter>\<^bsub>fin\<^esub>B) = sup (inf x (\<Sqinter>\<^bsub>fin\<^esub>A)) (\<Sqinter>\<^bsub>fin\<^esub>B)"
     using insert
  by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_fin_def])
-  also have "\<dots> = (x \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B) \<sqinter> (\<Sqinter>\<^bsub>fin\<^esub>A \<squnion> \<Sqinter>\<^bsub>fin\<^esub>B)" by(rule sup_inf_distrib2)
-  also have "\<dots> = \<Sqinter>\<^bsub>fin\<^esub>{x \<squnion> b|b. b \<in> B} \<sqinter> \<Sqinter>\<^bsub>fin\<^esub>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
+  also have "\<dots> = inf (sup x (\<Sqinter>\<^bsub>fin\<^esub>B)) (sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B))" by(rule sup_inf_distrib2)
+  also have "\<dots> = inf (\<Sqinter>\<^bsub>fin\<^esub>{sup x b|b. b \<in> B}) (\<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:sup_Inf1_distrib[OF B])
-  also have "\<dots> = \<Sqinter>\<^bsub>fin\<^esub>({x\<squnion>b |b. b \<in> B} \<union> {a\<squnion>b |a b. a \<in> A \<and> b \<in> B})"
+  also have "\<dots> = \<Sqinter>\<^bsub>fin\<^esub>({sup x b |b. b \<in> B} \<union> {sup a b |a b. a \<in> A \<and> b \<in> B})"
     (is "_ = \<Sqinter>\<^bsub>fin\<^esub>?M")
     using B insert
     by (simp add: Inf_fin_def ACIf.fold1_Un2[OF ACIf_inf finB _ finAB ne])
-  also have "?M = {a \<squnion> b |a b. a \<in> insert x A \<and> b \<in> B}"
+  also have "?M = {sup a b |a b. a \<in> insert x A \<and> b \<in> B}"
     by blast
   finally show ?case .
 qed
 
 lemma inf_Sup1_distrib:
- "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (x \<sqinter> \<Squnion>\<^bsub>fin\<^esub>A) = \<Squnion>\<^bsub>fin\<^esub>{x \<sqinter> a|a. a \<in> A}"
+  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> inf x (\<Squnion>\<^bsub>fin\<^esub>A) = \<Squnion>\<^bsub>fin\<^esub>{inf x a|a. a \<in> A}"
 apply (simp add: Sup_fin_def image_def
   ACIf.hom_fold1_commute[OF ACIf_sup, where h="inf x", OF inf_sup_distrib1])
 apply (rule arg_cong, blast)
@@ -2374,31 +2388,31 @@ done
 
 lemma inf_Sup2_distrib:
   assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
-  shows "(\<Squnion>\<^bsub>fin\<^esub>A \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B) = \<Squnion>\<^bsub>fin\<^esub>{a \<sqinter> b|a b. a \<in> A \<and> b \<in> B}"
+  shows "inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B) = \<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B}"
 using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
     by(simp add: inf_Sup1_distrib [OF B] fold1_singleton_def [OF Sup_fin_def])
 next
   case (insert x A)
-  have finB: "finite {x \<sqinter> b |b. b \<in> B}"
-    by(rule finite_surj[where f = "%b. x \<sqinter> b", OF B(1)], auto)
-  have finAB: "finite {a \<sqinter> b |a b. a \<in> A \<and> b \<in> B}"
+  have finB: "finite {inf x b |b. b \<in> B}"
+    by(rule finite_surj[where f = "%b. inf x b", OF B(1)], auto)
+  have finAB: "finite {inf a b |a b. a \<in> A \<and> b \<in> B}"
   proof -
-    have "{a \<sqinter> b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {a \<sqinter> b})"
+    have "{inf a b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {inf a b})"
       by blast
     thus ?thesis by(simp add: insert(1) B(1))
   qed
-  have ne: "{a \<sqinter> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
-  have "\<Squnion>\<^bsub>fin\<^esub>(insert x A) \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B = (x \<squnion> \<Squnion>\<^bsub>fin\<^esub>A) \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B"
+  have ne: "{inf a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
+  have "inf (\<Squnion>\<^bsub>fin\<^esub>(insert x A)) (\<Squnion>\<^bsub>fin\<^esub>B) = inf (sup x (\<Squnion>\<^bsub>fin\<^esub>A)) (\<Squnion>\<^bsub>fin\<^esub>B)"
     using insert by (simp add: ACIf.fold1_insert_idem_def [OF ACIf_sup Sup_fin_def])
-  also have "\<dots> = (x \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B) \<squnion> (\<Squnion>\<^bsub>fin\<^esub>A \<sqinter> \<Squnion>\<^bsub>fin\<^esub>B)" by(rule inf_sup_distrib2)
-  also have "\<dots> = \<Squnion>\<^bsub>fin\<^esub>{x \<sqinter> b|b. b \<in> B} \<squnion> \<Squnion>\<^bsub>fin\<^esub>{a \<sqinter> b|a b. a \<in> A \<and> b \<in> B}"
+  also have "\<dots> = sup (inf x (\<Squnion>\<^bsub>fin\<^esub>B)) (inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B))" by(rule inf_sup_distrib2)
+  also have "\<dots> = sup (\<Squnion>\<^bsub>fin\<^esub>{inf x b|b. b \<in> B}) (\<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:inf_Sup1_distrib[OF B])
-  also have "\<dots> = \<Squnion>\<^bsub>fin\<^esub>({x\<sqinter>b |b. b \<in> B} \<union> {a\<sqinter>b |a b. a \<in> A \<and> b \<in> B})"
+  also have "\<dots> = \<Squnion>\<^bsub>fin\<^esub>({inf x b |b. b \<in> B} \<union> {inf a b |a b. a \<in> A \<and> b \<in> B})"
     (is "_ = \<Squnion>\<^bsub>fin\<^esub>?M")
     using B insert
     by (simp add: Sup_fin_def ACIf.fold1_Un2[OF ACIf_sup finB _ finAB ne])
-  also have "?M = {a \<sqinter> b |a b. a \<in> insert x A \<and> b \<in> B}"
+  also have "?M = {inf a b |a b. a \<in> insert x A \<and> b \<in> B}"
     by blast
   finally show ?case .
 qed
@@ -2413,12 +2427,12 @@ text {*
 *}
 
 lemma Inf_fin_Inf:
-  "finite A \<Longrightarrow>  A \<noteq> {} \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A = \<Sqinter>A"
+  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A = Inf A"
 unfolding Inf_fin_def by (induct A set: finite)
    (simp_all add: Inf_insert_simp ACIf.fold1_insert_idem [OF ACIf_inf])
 
 lemma Sup_fin_Sup:
-  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Squnion>\<^bsub>fin\<^esub>A = \<Squnion>A"
+  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Squnion>\<^bsub>fin\<^esub>A = Sup A"
 unfolding Sup_fin_def by (induct A set: finite)
    (simp_all add: Sup_insert_simp ACIf.fold1_insert_idem [OF ACIf_sup])
 
@@ -2462,13 +2476,13 @@ lemma ACf_min: "ACf min"
     rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
-lemma ACIfSL_min: "ACIfSL (op \<^loc>\<le>) (op \<^loc><) min"
+lemma ACIfSL_min: "ACIfSL (op \<le>) (op <) min"
   by (rule lower_semilattice.ACIfSL_inf,
     rule lattice.axioms,
     rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
-lemma ACIfSLlin_min: "ACIfSLlin (op \<^loc>\<le>) (op \<^loc><) min"
+lemma ACIfSLlin_min: "ACIfSLlin (op \<le>) (op <) min"
   by (rule ACIfSLlin.intro,
     rule lower_semilattice.ACIfSL_inf,
     rule lattice.axioms,
@@ -2488,13 +2502,13 @@ lemma ACf_max: "ACf max"
     rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
-lemma ACIfSL_max: "ACIfSL (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x) max"
+lemma ACIfSL_max: "ACIfSL (\<lambda>x y. y \<le> x) (\<lambda>x y. y < x) max"
   by (rule upper_semilattice.ACIfSL_sup,
     rule lattice.axioms,
     rule distrib_lattice.axioms,
     rule distrib_lattice_min_max)
 
-lemma ACIfSLlin_max: "ACIfSLlin (\<lambda>x y. y \<^loc>\<le> x) (\<lambda>x y. y \<^loc>< x) max"
+lemma ACIfSLlin_max: "ACIfSLlin (\<lambda>x y. y \<le> x) (\<lambda>x y. y < x) max"
   by (rule ACIfSLlin.intro,
     rule upper_semilattice.ACIfSL_sup,
     rule lattice.axioms,
@@ -2517,48 +2531,48 @@ lemma Max_in [simp]:
   using ACf.fold1_in [OF ACf_max]
   by (fastsimp simp: Max_def max_def)
 
-lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Min N \<^loc>\<le> Min M"
+lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Min N \<le> Min M"
   by (simp add: Min_def ACIfSLlin.fold1_antimono [OF ACIfSLlin_min])
 
-lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<^loc>\<le> Max N"
+lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<le> Max N"
   by (simp add: Max_def ACIfSLlin.fold1_antimono [OF ACIfSLlin_max])
 
-lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x"
+lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<le> x"
   by (simp add: Min_def ACIfSL.fold1_belowI [OF ACIfSL_min])
 
-lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A"
+lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<le> Max A"
   by (simp add: Max_def ACIfSL.fold1_belowI [OF ACIfSL_max])
 
 lemma Min_ge_iff [simp,noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<^loc>\<le> a)"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
   by (simp add: Min_def ACIfSL.below_fold1_iff [OF ACIfSL_min])
 
 lemma Max_le_iff [simp,noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A \<^loc>\<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<^loc>\<le> x)"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
   by (simp add: Max_def ACIfSL.below_fold1_iff [OF ACIfSL_max])
 
 lemma Min_gr_iff [simp,noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>< Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<^loc>< a)"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
   by (simp add: Min_def ACIfSLlin.strict_below_fold1_iff [OF ACIfSLlin_min])
 
 lemma Max_less_iff [simp,noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A \<^loc>< x \<longleftrightarrow> (\<forall>a\<in>A. a \<^loc>< x)"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
   by (simp add: Max_def ACIfSLlin.strict_below_fold1_iff [OF ACIfSLlin_max])
 
 lemma Min_le_iff [noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<^loc>\<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<^loc>\<le> x)"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
   by (simp add: Min_def ACIfSLlin.fold1_below_iff [OF ACIfSLlin_min])
 
 lemma Max_ge_iff [noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>\<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<^loc>\<le> a)"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
   by (simp add: Max_def ACIfSLlin.fold1_below_iff [OF ACIfSLlin_max])
 
 lemma Min_less_iff [noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<^loc>< x \<longleftrightarrow> (\<exists>a\<in>A. a \<^loc>< x)"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
   by (simp add: Min_def ACIfSLlin.fold1_strict_below_iff [OF ACIfSLlin_min])
 
 lemma Max_gr_iff [noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<^loc>< Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<^loc>< a)"
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
   by (simp add: Max_def ACIfSLlin.fold1_strict_below_iff [OF ACIfSLlin_max])
 
 lemma Min_Un: "\<lbrakk>finite A; A \<noteq> {}; finite B; B \<noteq> {}\<rbrakk>
@@ -2586,23 +2600,29 @@ begin
 
 lemma add_Min_commute:
   fixes k
-  shows "finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> k \<^loc>+ Min N = Min {k \<^loc>+ m | m. m \<in> N}"
-  apply (subgoal_tac "\<And>x y. k \<^loc>+ min x y = min (k \<^loc>+ x) (k \<^loc>+ y)")
-  using hom_Min_commute [of "(op \<^loc>+) k" N]
-  apply simp apply (rule arg_cong [where f = Min]) apply blast
-  apply (simp add: min_def not_le)
-  apply (blast intro: antisym less_imp_le add_left_mono)
-  done
+  assumes "finite N" and "N \<noteq> {}"
+  shows "k + Min N = Min {k + m | m. m \<in> N}"
+proof -
+  have "\<And>x y. k + min x y = min (k + x) (k + y)"
+    by (simp add: min_def not_le)
+      (blast intro: antisym less_imp_le add_left_mono)
+  with assms show ?thesis
+    using hom_Min_commute [of "plus k" N]
+    by simp (blast intro: arg_cong [where f = Min])
+qed
 
 lemma add_Max_commute:
   fixes k
-  shows "finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> k \<^loc>+ Max N = Max {k \<^loc>+ m | m. m \<in> N}"
-  apply (subgoal_tac "\<And>x y. k \<^loc>+ max x y = max (k \<^loc>+ x) (k \<^loc>+ y)")
-  using hom_Max_commute [of "(op \<^loc>+) k" N]
-  apply simp apply (rule arg_cong [where f = Max]) apply blast
-  apply (simp add: max_def not_le)
-  apply (blast intro: antisym less_imp_le add_left_mono)
-  done
+  assumes "finite N" and "N \<noteq> {}"
+  shows "k + Max N = Max {k + m | m. m \<in> N}"
+proof -
+  have "\<And>x y. k + max x y = max (k + x) (k + y)"
+    by (simp add: max_def not_le)
+      (blast intro: antisym less_imp_le add_left_mono)
+  with assms show ?thesis
+    using hom_Max_commute [of "plus k" N]
+    by simp (blast intro: arg_cong [where f = Max])
+qed
 
 end
 

@@ -113,15 +113,15 @@ lemma measure_induct:
 lemma (in linorder)
   finite_linorder_induct[consumes 1, case_names empty insert]:
  "finite A \<Longrightarrow> P {} \<Longrightarrow>
-  (!!A b. finite A \<Longrightarrow> ALL a:A. a \<^loc>< b \<Longrightarrow> P A \<Longrightarrow> P(insert b A))
+  (!!A b. finite A \<Longrightarrow> ALL a:A. a < b \<Longrightarrow> P A \<Longrightarrow> P(insert b A))
   \<Longrightarrow> P A"
 proof (induct A rule: measure_induct[where f=card])
   fix A :: "'a set"
   assume IH: "ALL B. card B < card A \<longrightarrow> finite B \<longrightarrow> P {} \<longrightarrow>
-                 (\<forall>A b. finite A \<longrightarrow> (\<forall>a\<in>A. a\<^loc><b) \<longrightarrow> P A \<longrightarrow> P (insert b A))
+                 (\<forall>A b. finite A \<longrightarrow> (\<forall>a\<in>A. a<b) \<longrightarrow> P A \<longrightarrow> P (insert b A))
                   \<longrightarrow> P B"
   and "finite A" and "P {}"
-  and step: "!!A b. \<lbrakk>finite A; \<forall>a\<in>A. a \<^loc>< b; P A\<rbrakk> \<Longrightarrow> P (insert b A)"
+  and step: "!!A b. \<lbrakk>finite A; \<forall>a\<in>A. a < b; P A\<rbrakk> \<Longrightarrow> P (insert b A)"
   show "P A"
   proof cases
     assume "A = {}" thus "P A" using `P {}` by simp
@@ -133,7 +133,7 @@ proof (induct A rule: measure_induct[where f=card])
     note card_Diff1_less[OF `finite A` `Max A : A`]
     moreover have "finite ?B" using `finite A` by simp
     ultimately have "P ?B" using `P {}` step IH by blast
-    moreover have "\<forall>a\<in>?B. a \<^loc>< Max A"
+    moreover have "\<forall>a\<in>?B. a < Max A"
       using Max_ge[OF `finite A` `A \<noteq> {}`] by fastsimp
     ultimately show "P A"
       using A insert_Diff_single step[OF `finite ?B`] by fastsimp

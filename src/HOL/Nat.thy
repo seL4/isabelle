@@ -1154,7 +1154,7 @@ context semiring_1
 begin
 
 definition
-  of_nat_def: "of_nat = nat_rec \<^loc>0 (\<lambda>_. (op \<^loc>+) \<^loc>1)"
+  of_nat_def: "of_nat = nat_rec 0 (\<lambda>_. (op +) 1)"
 
 end
 
@@ -1340,8 +1340,8 @@ context semiring_1
 begin
 
 lemma of_nat_simps [simp, code]:
-  shows of_nat_0:   "of_nat 0 = \<^loc>0"
-    and of_nat_Suc: "of_nat (Suc m) = \<^loc>1 \<^loc>+ of_nat m"
+  shows of_nat_0:   "of_nat 0 = 0"
+    and of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
   unfolding of_nat_def by simp_all
 
 end
@@ -1405,7 +1405,7 @@ text{*Class for unital semirings with characteristic zero.
 
 class semiring_char_0 = semiring_1 +
   assumes of_nat_eq_iff [simp]:
-    "(Nat.semiring_1.of_nat \<^loc>1 \<^loc>0 (op \<^loc>+) m = Nat.semiring_1.of_nat \<^loc>1 \<^loc>0 (op \<^loc>+)  n) = (m = n)"
+    "of_nat m = of_nat n \<longleftrightarrow> m = n"
 
 text{*Every @{text ordered_semidom} has characteristic zero.*}
 instance ordered_semidom < semiring_char_0

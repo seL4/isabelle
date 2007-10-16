@@ -22,12 +22,12 @@ text {*
 *}
 
 class eqv = type +
-  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<^loc>\<sim>" 50)
+  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<sim>" 50)
 
 class equiv = eqv +
-  assumes equiv_refl [intro]: "x \<^loc>\<sim> x"
-  assumes equiv_trans [trans]: "x \<^loc>\<sim> y \<Longrightarrow> y \<^loc>\<sim> z \<Longrightarrow> x \<^loc>\<sim> z"
-  assumes equiv_sym [sym]: "x \<^loc>\<sim> y \<Longrightarrow> y \<^loc>\<sim> x"
+  assumes equiv_refl [intro]: "x \<sim> x"
+  assumes equiv_trans [trans]: "x \<sim> y \<Longrightarrow> y \<sim> z \<Longrightarrow> x \<sim> z"
+  assumes equiv_sym [sym]: "x \<sim> y \<Longrightarrow> y \<sim> x"
 
 lemma equiv_not_sym [sym]: "\<not> (x \<sim> y) ==> \<not> (y \<sim> (x::'a::equiv))"
 proof -

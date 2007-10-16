@@ -16,36 +16,36 @@ begin
 context ord
 begin
 definition
-  lessThan    :: "'a => 'a set"	("(1\<^loc>{..<_})") where
-  "\<^loc>{..<u} == {x. x \<^loc>< u}"
+  lessThan    :: "'a => 'a set"	("(1{..<_})") where
+  "{..<u} == {x. x < u}"
 
 definition
-  atMost      :: "'a => 'a set"	("(1\<^loc>{.._})") where
-  "\<^loc>{..u} == {x. x \<^loc>\<le> u}"
+  atMost      :: "'a => 'a set"	("(1{.._})") where
+  "{..u} == {x. x \<le> u}"
 
 definition
-  greaterThan :: "'a => 'a set"	("(1\<^loc>{_<..})") where
-  "\<^loc>{l<..} == {x. l\<^loc><x}"
+  greaterThan :: "'a => 'a set"	("(1{_<..})") where
+  "{l<..} == {x. l<x}"
 
 definition
-  atLeast     :: "'a => 'a set"	("(1\<^loc>{_..})") where
-  "\<^loc>{l..} == {x. l\<^loc>\<le>x}"
+  atLeast     :: "'a => 'a set"	("(1{_..})") where
+  "{l..} == {x. l\<le>x}"
 
 definition
-  greaterThanLessThan :: "'a => 'a => 'a set"  ("(1\<^loc>{_<..<_})") where
-  "\<^loc>{l<..<u} == \<^loc>{l<..} Int \<^loc>{..<u}"
+  greaterThanLessThan :: "'a => 'a => 'a set"  ("(1{_<..<_})") where
+  "{l<..<u} == {l<..} Int {..<u}"
 
 definition
-  atLeastLessThan :: "'a => 'a => 'a set"      ("(1\<^loc>{_..<_})") where
-  "\<^loc>{l..<u} == \<^loc>{l..} Int \<^loc>{..<u}"
+  atLeastLessThan :: "'a => 'a => 'a set"      ("(1{_..<_})") where
+  "{l..<u} == {l..} Int {..<u}"
 
 definition
-  greaterThanAtMost :: "'a => 'a => 'a set"    ("(1\<^loc>{_<.._})") where
-  "\<^loc>{l<..u} == \<^loc>{l<..} Int \<^loc>{..u}"
+  greaterThanAtMost :: "'a => 'a => 'a set"    ("(1{_<.._})") where
+  "{l<..u} == {l<..} Int {..u}"
 
 definition
-  atLeastAtMost :: "'a => 'a => 'a set"        ("(1\<^loc>{_.._})") where
-  "\<^loc>{l..u} == \<^loc>{l..} Int \<^loc>{..u}"
+  atLeastAtMost :: "'a => 'a => 'a set"        ("(1{_.._})") where
+  "{l..u} == {l..} Int {..u}"
 
 end
 (*
@@ -106,7 +106,7 @@ translations
 
 subsection {* Various equivalences *}
 
-lemma (in ord) lessThan_iff [iff]: "(i: lessThan k) = (i\<^loc><k)"
+lemma (in ord) lessThan_iff [iff]: "(i: lessThan k) = (i<k)"
 by (simp add: lessThan_def)
 
 lemma Compl_lessThan [simp]:
@@ -117,7 +117,7 @@ done
 lemma single_Diff_lessThan [simp]: "!!k:: 'a::order. {k} - lessThan k = {k}"
 by auto
 
-lemma (in ord) greaterThan_iff [iff]: "(i: greaterThan k) = (k\<^loc><i)"
+lemma (in ord) greaterThan_iff [iff]: "(i: greaterThan k) = (k<i)"
 by (simp add: greaterThan_def)
 
 lemma Compl_greaterThan [simp]:
@@ -130,7 +130,7 @@ apply (subst Compl_greaterThan [symmetric])
 apply (rule double_complement)
 done
 
-lemma (in ord) atLeast_iff [iff]: "(i: atLeast k) = (k\<^loc><=i)"
+lemma (in ord) atLeast_iff [iff]: "(i: atLeast k) = (k<=i)"
 by (simp add: atLeast_def)
 
 lemma Compl_atLeast [simp]:
@@ -138,7 +138,7 @@ lemma Compl_atLeast [simp]:
 apply (simp add: lessThan_def atLeast_def le_def, auto)
 done
 
-lemma (in ord) atMost_iff [iff]: "(i: atMost k) = (i\<^loc><=k)"
+lemma (in ord) atMost_iff [iff]: "(i: atMost k) = (i<=k)"
 by (simp add: atMost_def)
 
 lemma atMost_Int_atLeast: "!!n:: 'a::order. atMost n Int atLeast n = {n}"
@@ -194,19 +194,19 @@ context ord
 begin
 
 lemma greaterThanLessThan_iff [simp,noatp]:
-  "(i : \<^loc>{l<..<u}) = (l \<^loc>< i & i \<^loc>< u)"
+  "(i : {l<..<u}) = (l < i & i < u)"
 by (simp add: greaterThanLessThan_def)
 
 lemma atLeastLessThan_iff [simp,noatp]:
-  "(i : \<^loc>{l..<u}) = (l \<^loc><= i & i \<^loc>< u)"
+  "(i : {l..<u}) = (l <= i & i < u)"
 by (simp add: atLeastLessThan_def)
 
 lemma greaterThanAtMost_iff [simp,noatp]:
-  "(i : \<^loc>{l<..u}) = (l \<^loc>< i & i \<^loc><= u)"
+  "(i : {l<..u}) = (l < i & i <= u)"
 by (simp add: greaterThanAtMost_def)
 
 lemma atLeastAtMost_iff [simp,noatp]:
-  "(i : \<^loc>{l..u}) = (l \<^loc><= i & i \<^loc><= u)"
+  "(i : {l..u}) = (l <= i & i <= u)"
 by (simp add: atLeastAtMost_def)
 
 text {* The above four lemmas could be declared as iffs.
@@ -219,19 +219,19 @@ subsubsection{* Emptyness and singletons *}
 context order
 begin
 
-lemma atLeastAtMost_empty [simp]: "n \<^loc>< m ==> \<^loc>{m..n} = {}";
+lemma atLeastAtMost_empty [simp]: "n < m ==> {m..n} = {}";
 by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
 
-lemma atLeastLessThan_empty[simp]: "n \<^loc>\<le> m ==> \<^loc>{m..<n} = {}"
+lemma atLeastLessThan_empty[simp]: "n \<le> m ==> {m..<n} = {}"
 by (auto simp add: atLeastLessThan_def)
 
-lemma greaterThanAtMost_empty[simp]:"l \<^loc>\<le> k ==> \<^loc>{k<..l} = {}"
+lemma greaterThanAtMost_empty[simp]:"l \<le> k ==> {k<..l} = {}"
 by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
 
-lemma greaterThanLessThan_empty[simp]:"l \<^loc>\<le> k ==> \<^loc>{k<..l} = {}"
+lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..l} = {}"
 by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
 
-lemma atLeastAtMost_singleton [simp]: "\<^loc>{a..a} = {a}"
+lemma atLeastAtMost_singleton [simp]: "{a..a} = {a}"
 by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
 
 end

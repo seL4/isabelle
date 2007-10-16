@@ -44,32 +44,28 @@ done
 subsection {* Real vector spaces *}
 
 class scaleR = type +
-  fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<^loc>*#" 75)
+  fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "*\<^sub>R" 75)
 begin
 
 abbreviation
-  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a" (infixl "\<^loc>'/#" 70)
+  divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a" (infixl "'/\<^sub>R" 70)
 where
-  "x \<^loc>/# r == scaleR (inverse r) x"
+  "x /\<^sub>R r == scaleR (inverse r) x"
 
 end
-
-notation (xsymbols)
-  scaleR (infixr "*\<^sub>R" 75) and
-  divideR (infixl "'/\<^sub>R" 70)
 
 instance real :: scaleR
   real_scaleR_def [simp]: "scaleR a x \<equiv> a * x" ..
 
 class real_vector = scaleR + ab_group_add +
-  assumes scaleR_right_distrib: "scaleR a (x \<^loc>+ y) = scaleR a x \<^loc>+ scaleR a y"
-  and scaleR_left_distrib: "scaleR (a + b) x = scaleR a x \<^loc>+ scaleR b x"
+  assumes scaleR_right_distrib: "scaleR a (x + y) = scaleR a x + scaleR a y"
+  and scaleR_left_distrib: "scaleR (a + b) x = scaleR a x + scaleR b x"
   and scaleR_scaleR [simp]: "scaleR a (scaleR b x) = scaleR (a * b) x"
   and scaleR_one [simp]: "scaleR 1 x = x"
 
 class real_algebra = real_vector + ring +
-  assumes mult_scaleR_left [simp]: "scaleR a x \<^loc>* y = scaleR a (x \<^loc>* y)"
-  and mult_scaleR_right [simp]: "x \<^loc>* scaleR a y = scaleR a (x \<^loc>* y)"
+  assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
+  and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
 
 class real_algebra_1 = real_algebra + ring_1
 
@@ -379,22 +375,22 @@ instance real :: norm
   real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>" ..
 
 class sgn_div_norm = scaleR + norm + sgn +
-  assumes sgn_div_norm: "sgn x = x \<^loc>/# norm x"
+  assumes sgn_div_norm: "sgn x = x /\<^sub>R norm x"
 
 class real_normed_vector = real_vector + sgn_div_norm +
   assumes norm_ge_zero [simp]: "0 \<le> norm x"
-  and norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = \<^loc>0"
-  and norm_triangle_ineq: "norm (x \<^loc>+ y) \<le> norm x + norm y"
+  and norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = 0"
+  and norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
   and norm_scaleR: "norm (scaleR a x) = \<bar>a\<bar> * norm x"
 
 class real_normed_algebra = real_algebra + real_normed_vector +
-  assumes norm_mult_ineq: "norm (x \<^loc>* y) \<le> norm x * norm y"
+  assumes norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
 
 class real_normed_algebra_1 = real_algebra_1 + real_normed_algebra +
-  assumes norm_one [simp]: "norm \<^loc>1 = 1"
+  assumes norm_one [simp]: "norm 1 = 1"
 
 class real_normed_div_algebra = real_div_algebra + real_normed_vector +
-  assumes norm_mult: "norm (x \<^loc>* y) = norm x * norm y"
+  assumes norm_mult: "norm (x * y) = norm x * norm y"
 
 class real_normed_field = real_field + real_normed_div_algebra
 

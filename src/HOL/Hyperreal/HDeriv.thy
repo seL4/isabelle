@@ -369,7 +369,7 @@ done
 
 subsubsection {* Equivalence of NS and Standard definitions *}
 
-lemma divideR_eq_divide: "x /# y = x / y"
+lemma divideR_eq_divide: "x /\<^sub>R y = x / y"
 by (simp add: real_scaleR_def divide_inverse mult_commute)
 
 text{*Now equivalence between NSDERIV and DERIV*}

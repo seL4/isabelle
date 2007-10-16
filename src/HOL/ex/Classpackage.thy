@@ -9,8 +9,8 @@ imports List
 begin
 
 class semigroup = type +
-  fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^loc>\<otimes>" 70)
-  assumes assoc: "x \<^loc>\<otimes> y \<^loc>\<otimes> z = x \<^loc>\<otimes> (y \<^loc>\<otimes> z)"
+  fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<otimes>" 70)
+  assumes assoc: "x \<otimes> y \<otimes> z = x \<otimes> (y \<otimes> z)"
 
 instance nat :: semigroup
   "m \<otimes> n \<equiv> m + n"
@@ -43,8 +43,8 @@ proof
 qed
 
 class monoidl = semigroup +
-  fixes one :: 'a ("\<^loc>\<one>")
-  assumes neutl: "\<^loc>\<one> \<^loc>\<otimes> x = x"
+  fixes one :: 'a ("\<one>")
+  assumes neutl: "\<one> \<otimes> x = x"
 
 instance nat :: monoidl and int :: monoidl
   "\<one> \<equiv> 0"
@@ -74,66 +74,66 @@ proof
 qed  
 
 class monoid = monoidl +
-  assumes neutr: "x \<^loc>\<otimes> \<^loc>\<one> = x"
+  assumes neutr: "x \<otimes> \<one> = x"
 begin
 
 definition
   units :: "'a set" where
-  "units = {y. \<exists>x. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one>}"
+  "units = {y. \<exists>x. x \<otimes> y = \<one> \<and> y \<otimes> x = \<one>}"
 
 lemma inv_obtain:
   assumes "x \<in> units"
-  obtains y where "y \<^loc>\<otimes> x = \<^loc>\<one>" and "x \<^loc>\<otimes> y = \<^loc>\<one>"
+  obtains y where "y \<otimes> x = \<one>" and "x \<otimes> y = \<one>"
 proof -
   from assms units_def obtain y
-    where "y \<^loc>\<otimes> x = \<^loc>\<one>" and "x \<^loc>\<otimes> y = \<^loc>\<one>" by auto
+    where "y \<otimes> x = \<one>" and "x \<otimes> y = \<one>" by auto
   thus ?thesis ..
 qed
 
 lemma inv_unique:
-  assumes "y \<^loc>\<otimes> x = \<^loc>\<one>" "x \<^loc>\<otimes> y' = \<^loc>\<one>"
+  assumes "y \<otimes> x = \<one>" "x \<otimes> y' = \<one>"
   shows "y = y'"
 proof -
-  from assms neutr have "y = y \<^loc>\<otimes> (x \<^loc>\<otimes> y')" by simp
-  also with assoc have "... = (y \<^loc>\<otimes> x) \<^loc>\<otimes> y'" by simp
+  from assms neutr have "y = y \<otimes> (x \<otimes> y')" by simp
+  also with assoc have "... = (y \<otimes> x) \<otimes> y'" by simp
   also with assms neutl have "... = y'" by simp
   finally show ?thesis .
 qed
 
 lemma units_inv_comm:
-  assumes inv: "x \<^loc>\<otimes> y = \<^loc>\<one>"
+  assumes inv: "x \<otimes> y = \<one>"
     and G: "x \<in> units"
-  shows "y \<^loc>\<otimes> x = \<^loc>\<one>"
+  shows "y \<otimes> x = \<one>"
 proof -
   from G inv_obtain obtain z
-    where z_choice: "z \<^loc>\<otimes> x = \<^loc>\<one>" by blast
-  from inv neutl neutr have "x \<^loc>\<otimes> y \<^loc>\<otimes> x = x \<^loc>\<otimes> \<^loc>\<one>" by simp
-  with assoc have "z \<^loc>\<otimes> x \<^loc>\<otimes> y \<^loc>\<otimes> x = z \<^loc>\<otimes> x \<^loc>\<otimes> \<^loc>\<one>" by simp
+    where z_choice: "z \<otimes> x = \<one>" by blast
+  from inv neutl neutr have "x \<otimes> y \<otimes> x = x \<otimes> \<one>" by simp
+  with assoc have "z \<otimes> x \<otimes> y \<otimes> x = z \<otimes> x \<otimes> \<one>" by simp
   with neutl z_choice show ?thesis by simp
 qed
 
 fun
   npow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
 where
-  "npow 0 x = \<^loc>\<one>"
-  | "npow (Suc n) x = x \<^loc>\<otimes> npow n x"
+  "npow 0 x = \<one>"
+  | "npow (Suc n) x = x \<otimes> npow n x"
 
 abbreviation
-  npow_syn :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<^loc>\<up>" 75) where
-  "x \<^loc>\<up> n \<equiv> npow n x"
+  npow_syn :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infix "\<up>" 75) where
+  "x \<up> n \<equiv> npow n x"
 
 lemma nat_pow_one:
-  "\<^loc>\<one> \<^loc>\<up> n = \<^loc>\<one>"
+  "\<one> \<up> n = \<one>"
 using neutl by (induct n) simp_all
 
-lemma nat_pow_mult: "x \<^loc>\<up> n \<^loc>\<otimes> x \<^loc>\<up> m = x \<^loc>\<up> (n + m)"
+lemma nat_pow_mult: "x \<up> n \<otimes> x \<up> m = x \<up> (n + m)"
 proof (induct n)
   case 0 with neutl show ?case by simp
 next
   case (Suc n) with Suc.hyps assoc show ?case by simp
 qed
 
-lemma nat_pow_pow: "(x \<^loc>\<up> m) \<^loc>\<up> n = x \<^loc>\<up> (n * m)"
+lemma nat_pow_pow: "(x \<up> m) \<up> n = x \<up> (n * m)"
 using nat_pow_mult by (induct n) simp_all
 
 end
@@ -153,7 +153,7 @@ proof
 qed  
 
 class monoid_comm = monoid +
-  assumes comm: "x \<^loc>\<otimes> y = y \<^loc>\<otimes> x"
+  assumes comm: "x \<otimes> y = y \<otimes> x"
 
 instance nat :: monoid_comm and int :: monoid_comm
 proof
@@ -174,30 +174,30 @@ instance * :: (monoid_comm, monoid_comm) monoid_comm
 by default (simp_all add: split_paired_all mult_prod_def comm)
 
 class group = monoidl +
-  fixes inv :: "'a \<Rightarrow> 'a" ("\<^loc>\<div> _" [81] 80)
-  assumes invl: "\<^loc>\<div> x \<^loc>\<otimes> x = \<^loc>\<one>"
+  fixes inv :: "'a \<Rightarrow> 'a" ("\<div> _" [81] 80)
+  assumes invl: "\<div> x \<otimes> x = \<one>"
 begin
 
 lemma cancel:
-  "(x \<^loc>\<otimes> y = x \<^loc>\<otimes> z) = (y = z)"
+  "(x \<otimes> y = x \<otimes> z) = (y = z)"
 proof
   fix x y z :: 'a
-  assume eq: "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z"
-  hence "\<^loc>\<div> x \<^loc>\<otimes> (x \<^loc>\<otimes> y) = \<^loc>\<div> x \<^loc>\<otimes> (x \<^loc>\<otimes> z)" by simp
-  with assoc have "\<^loc>\<div> x \<^loc>\<otimes> x \<^loc>\<otimes> y = \<^loc>\<div> x \<^loc>\<otimes> x \<^loc>\<otimes> z" by simp
+  assume eq: "x \<otimes> y = x \<otimes> z"
+  hence "\<div> x \<otimes> (x \<otimes> y) = \<div> x \<otimes> (x \<otimes> z)" by simp
+  with assoc have "\<div> x \<otimes> x \<otimes> y = \<div> x \<otimes> x \<otimes> z" by simp
   with neutl invl show "y = z" by simp
 next
   fix x y z :: 'a
   assume eq: "y = z"
-  thus "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z" by simp
+  thus "x \<otimes> y = x \<otimes> z" by simp
 qed
 
 subclass monoid
 proof unfold_locales
   fix x
-  from invl have "\<^loc>\<div> x \<^loc>\<otimes> x = \<^loc>\<one>" by simp
-  with assoc [symmetric] neutl invl have "\<^loc>\<div> x \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<one>) = \<^loc>\<div> x \<^loc>\<otimes> x" by simp
-  with cancel show "x \<^loc>\<otimes> \<^loc>\<one> = x" by simp
+  from invl have "\<div> x \<otimes> x = \<one>" by simp
+  with assoc [symmetric] neutl invl have "\<div> x \<otimes> (x \<otimes> \<one>) = \<div> x \<otimes> x" by simp
+  with cancel show "x \<otimes> \<one> = x" by simp
 qed
 
 end context group begin
@@ -205,11 +205,11 @@ end context group begin
 find_theorems name: neut
 
 lemma invr:
-  "x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<one>"
+  "x \<otimes> \<div> x = \<one>"
 proof -
-  from neutl invl have "\<^loc>\<div> x \<^loc>\<otimes> x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<div> x" by simp
-  with neutr have "\<^loc>\<div> x \<^loc>\<otimes> x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<div> x \<^loc>\<otimes> \<^loc>\<one> " by simp
-  with assoc have "\<^loc>\<div> x \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<div> x) = \<^loc>\<div> x \<^loc>\<otimes> \<^loc>\<one> " by simp
+  from neutl invl have "\<div> x \<otimes> x \<otimes> \<div> x = \<div> x" by simp
+  with neutr have "\<div> x \<otimes> x \<otimes> \<div> x = \<div> x \<otimes> \<one> " by simp
+  with assoc have "\<div> x \<otimes> (x \<otimes> \<div> x) = \<div> x \<otimes> \<one> " by simp
   with cancel show ?thesis ..
 qed
 
@@ -218,72 +218,72 @@ lemma all_inv [intro]:
   unfolding units_def
 proof -
   fix x :: "'a"
-  from invl invr have "\<^loc>\<div> x \<^loc>\<otimes> x = \<^loc>\<one>" and "x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<one>" . 
-  then obtain y where "y \<^loc>\<otimes> x = \<^loc>\<one>" and "x \<^loc>\<otimes> y = \<^loc>\<one>" ..
-  hence "\<exists>y\<Colon>'a. y \<^loc>\<otimes> x = \<^loc>\<one> \<and> x \<^loc>\<otimes> y = \<^loc>\<one>" by blast
-  thus "x \<in> {y\<Colon>'a. \<exists>x\<Colon>'a. x \<^loc>\<otimes> y = \<^loc>\<one> \<and> y \<^loc>\<otimes> x = \<^loc>\<one>}" by simp
+  from invl invr have "\<div> x \<otimes> x = \<one>" and "x \<otimes> \<div> x = \<one>" . 
+  then obtain y where "y \<otimes> x = \<one>" and "x \<otimes> y = \<one>" ..
+  hence "\<exists>y\<Colon>'a. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>" by blast
+  thus "x \<in> {y\<Colon>'a. \<exists>x\<Colon>'a. x \<otimes> y = \<one> \<and> y \<otimes> x = \<one>}" by simp
 qed
 
 lemma cancer:
-  "(y \<^loc>\<otimes> x = z \<^loc>\<otimes> x) = (y = z)"
+  "(y \<otimes> x = z \<otimes> x) = (y = z)"
 proof
-  assume eq: "y \<^loc>\<otimes> x = z \<^loc>\<otimes> x"
-  with assoc [symmetric] have "y \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<div> x) = z \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<div> x)" by (simp del: invr)
+  assume eq: "y \<otimes> x = z \<otimes> x"
+  with assoc [symmetric] have "y \<otimes> (x \<otimes> \<div> x) = z \<otimes> (x \<otimes> \<div> x)" by (simp del: invr)
   with invr neutr show "y = z" by simp
 next
   assume eq: "y = z"
-  thus "y \<^loc>\<otimes> x = z \<^loc>\<otimes> x" by simp
+  thus "y \<otimes> x = z \<otimes> x" by simp
 qed
 
 lemma inv_one:
-  "\<^loc>\<div> \<^loc>\<one> = \<^loc>\<one>"
+  "\<div> \<one> = \<one>"
 proof -
-  from neutl have "\<^loc>\<div> \<^loc>\<one> = \<^loc>\<one> \<^loc>\<otimes> (\<^loc>\<div> \<^loc>\<one>)" ..
-  moreover from invr have "... = \<^loc>\<one>" by simp
+  from neutl have "\<div> \<one> = \<one> \<otimes> (\<div> \<one>)" ..
+  moreover from invr have "... = \<one>" by simp
   finally show ?thesis .
 qed
 
 lemma inv_inv:
-  "\<^loc>\<div> (\<^loc>\<div> x) = x"
+  "\<div> (\<div> x) = x"
 proof -
   from invl invr neutr
-    have "\<^loc>\<div> (\<^loc>\<div> x) \<^loc>\<otimes> \<^loc>\<div> x \<^loc>\<otimes> x = x \<^loc>\<otimes> \<^loc>\<div> x \<^loc>\<otimes> x" by simp
+    have "\<div> (\<div> x) \<otimes> \<div> x \<otimes> x = x \<otimes> \<div> x \<otimes> x" by simp
   with assoc [symmetric]
-    have "\<^loc>\<div> (\<^loc>\<div> x) \<^loc>\<otimes> (\<^loc>\<div> x \<^loc>\<otimes> x) = x \<^loc>\<otimes> (\<^loc>\<div> x \<^loc>\<otimes> x)" by simp
+    have "\<div> (\<div> x) \<otimes> (\<div> x \<otimes> x) = x \<otimes> (\<div> x \<otimes> x)" by simp
   with invl neutr show ?thesis by simp
 qed
 
 lemma inv_mult_group:
-  "\<^loc>\<div> (x \<^loc>\<otimes> y) = \<^loc>\<div> y \<^loc>\<otimes> \<^loc>\<div> x"
+  "\<div> (x \<otimes> y) = \<div> y \<otimes> \<div> x"
 proof -
-  from invl have "\<^loc>\<div> (x \<^loc>\<otimes> y) \<^loc>\<otimes> (x \<^loc>\<otimes> y) = \<^loc>\<one>" by simp
-  with assoc have "\<^loc>\<div> (x \<^loc>\<otimes> y) \<^loc>\<otimes> x \<^loc>\<otimes> y = \<^loc>\<one>" by simp
-  with neutl have "\<^loc>\<div> (x \<^loc>\<otimes> y) \<^loc>\<otimes> x \<^loc>\<otimes> y \<^loc>\<otimes> \<^loc>\<div> y \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<div> y \<^loc>\<otimes> \<^loc>\<div> x" by simp
-  with assoc have "\<^loc>\<div> (x \<^loc>\<otimes> y) \<^loc>\<otimes> (x \<^loc>\<otimes> (y \<^loc>\<otimes> \<^loc>\<div> y) \<^loc>\<otimes> \<^loc>\<div> x) = \<^loc>\<div> y \<^loc>\<otimes> \<^loc>\<div> x" by simp
+  from invl have "\<div> (x \<otimes> y) \<otimes> (x \<otimes> y) = \<one>" by simp
+  with assoc have "\<div> (x \<otimes> y) \<otimes> x \<otimes> y = \<one>" by simp
+  with neutl have "\<div> (x \<otimes> y) \<otimes> x \<otimes> y \<otimes> \<div> y \<otimes> \<div> x = \<div> y \<otimes> \<div> x" by simp
+  with assoc have "\<div> (x \<otimes> y) \<otimes> (x \<otimes> (y \<otimes> \<div> y) \<otimes> \<div> x) = \<div> y \<otimes> \<div> x" by simp
   with invr neutr show ?thesis by simp
 qed
 
 lemma inv_comm:
-  "x \<^loc>\<otimes> \<^loc>\<div> x = \<^loc>\<div> x \<^loc>\<otimes> x"
+  "x \<otimes> \<div> x = \<div> x \<otimes> x"
 using invr invl by simp
 
 definition
   pow :: "int \<Rightarrow> 'a \<Rightarrow> 'a"
 where
-  "pow k x = (if k < 0 then \<^loc>\<div> (npow (nat (-k)) x)
+  "pow k x = (if k < 0 then \<div> (npow (nat (-k)) x)
     else (npow (nat k) x))"
 
 abbreviation
-  pow_syn :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<^loc>\<up>\<up>" 75)
+  pow_syn :: "'a \<Rightarrow> int \<Rightarrow> 'a" (infix "\<up>\<up>" 75)
 where
-  "x \<^loc>\<up>\<up> k \<equiv> pow k x"
+  "x \<up>\<up> k \<equiv> pow k x"
 
 lemma int_pow_zero:
-  "x \<^loc>\<up>\<up> (0\<Colon>int) = \<^loc>\<one>"
+  "x \<up>\<up> (0\<Colon>int) = \<one>"
 using pow_def by simp
 
 lemma int_pow_one:
-  "\<^loc>\<one> \<^loc>\<up>\<up> (k\<Colon>int) = \<^loc>\<one>"
+  "\<one> \<up>\<up> (k\<Colon>int) = \<one>"
 using pow_def nat_pow_one inv_one by simp
 
 end

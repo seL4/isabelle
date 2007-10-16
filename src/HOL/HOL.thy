@@ -208,75 +208,55 @@ class default = type +
   fixes default :: 'a
 
 class zero = type + 
-  fixes zero :: 'a  ("\<^loc>0")
+  fixes zero :: 'a  ("0")
 
 class one = type +
-  fixes one  :: 'a  ("\<^loc>1")
+  fixes one  :: 'a  ("1")
 
 hide (open) const zero one
 
 class plus = type +
-  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>+" 65)
+  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
 
 class minus = type +
-  fixes uminus :: "'a \<Rightarrow> 'a" 
-    and minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>-" 65)
+  fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
+    and minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
 
 class times = type +
-  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>*" 70)
+  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
 
 class inverse = type +
   fixes inverse :: "'a \<Rightarrow> 'a"
-    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^loc>'/" 70)
+    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
 
 class abs = type +
   fixes abs :: "'a \<Rightarrow> 'a"
-
-class sgn = type +
-  fixes sgn :: "'a \<Rightarrow> 'a"
-
-notation
-  uminus  ("- _" [81] 80)
 
 notation (xsymbols)
   abs  ("\<bar>_\<bar>")
 notation (HTML output)
   abs  ("\<bar>_\<bar>")
+
+class sgn = type +
+  fixes sgn :: "'a \<Rightarrow> 'a"
 
 class ord = type +
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
     and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 begin
 
-notation
-  less_eq  ("op \<^loc><=") and
-  less_eq  ("(_/ \<^loc><= _)" [51, 51] 50) and
-  less  ("op \<^loc><") and
-  less  ("(_/ \<^loc>< _)"  [51, 51] 50)
-  
-notation (xsymbols)
-  less_eq  ("op \<^loc>\<le>") and
-  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
-
-notation (HTML output)
-  less_eq  ("op \<^loc>\<le>") and
-  less_eq  ("(_/ \<^loc>\<le> _)"  [51, 51] 50)
+abbreviation (input)
+  greater_eq  (infix ">=" 50) where
+  "x >= y \<equiv> less_eq y x"
 
 abbreviation (input)
-  greater_eq  (infix "\<^loc>>=" 50) where
-  "x \<^loc>>= y \<equiv> y \<^loc><= x"
-
-notation (input)
-  greater_eq  (infix "\<^loc>\<ge>" 50)
-
-abbreviation (input)
-  greater  (infix "\<^loc>>" 50) where
-  "x \<^loc>> y \<equiv> y \<^loc>< x"
+  greater  (infix ">" 50) where
+  "x > y \<equiv> less y x"
 
 definition
-  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "\<^loc>LEAST " 10)
+  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "LEAST " 10)
 where
-  "Least P == (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<^loc>\<le> y))"
+  "Least P == (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> less_eq x y))"
 
 end
 

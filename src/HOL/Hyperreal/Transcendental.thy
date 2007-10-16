@@ -437,7 +437,7 @@ subsection{*Exponential Function*}
 
 definition
   exp :: "'a \<Rightarrow> 'a::{recpower,real_normed_field,banach}" where
-  "exp x = (\<Sum>n. x ^ n /# real (fact n))"
+  "exp x = (\<Sum>n. x ^ n /\<^sub>R real (fact n))"
 
 definition
   sin :: "real => real" where
@@ -451,10 +451,10 @@ definition
 
 lemma summable_exp_generic:
   fixes x :: "'a::{real_normed_algebra_1,recpower,banach}"
-  defines S_def: "S \<equiv> \<lambda>n. x ^ n /# real (fact n)"
+  defines S_def: "S \<equiv> \<lambda>n. x ^ n /\<^sub>R real (fact n)"
   shows "summable S"
 proof -
-  have S_Suc: "\<And>n. S (Suc n) = (x * S n) /# real (Suc n)"
+  have S_Suc: "\<And>n. S (Suc n) = (x * S n) /\<^sub>R real (Suc n)"
     unfolding S_def by (simp add: power_Suc del: mult_Suc)
   obtain r :: real where r0: "0 < r" and r1: "r < 1"
     using dense [OF zero_less_one] by fast
@@ -481,12 +481,12 @@ qed
 
 lemma summable_norm_exp:
   fixes x :: "'a::{real_normed_algebra_1,recpower,banach}"
-  shows "summable (\<lambda>n. norm (x ^ n /# real (fact n)))"
+  shows "summable (\<lambda>n. norm (x ^ n /\<^sub>R real (fact n)))"
 proof (rule summable_norm_comparison_test [OF exI, rule_format])
-  show "summable (\<lambda>n. norm x ^ n /# real (fact n))"
+  show "summable (\<lambda>n. norm x ^ n /\<^sub>R real (fact n))"
     by (rule summable_exp_generic)
 next
-  fix n show "norm (x ^ n /# real (fact n)) \<le> norm x ^ n /# real (fact n)"
+  fix n show "norm (x ^ n /\<^sub>R real (fact n)) \<le> norm x ^ n /\<^sub>R real (fact n)"
     by (simp add: norm_scaleR norm_power_ineq)
 qed
 
@@ -536,7 +536,7 @@ apply (induct "n")
 apply (case_tac [2] "n", auto)
 done
 
-lemma exp_converges: "(\<lambda>n. x ^ n /# real (fact n)) sums exp x"
+lemma exp_converges: "(\<lambda>n. x ^ n /\<^sub>R real (fact n)) sums exp x"
 unfolding exp_def by (rule summable_exp_generic [THEN summable_sums])
 
 lemma sin_converges: 
@@ -604,7 +604,7 @@ lemma lemma_sin_minus:
                   else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * x ^ n))"
 by (auto intro!: sums_unique sums_minus sin_converges)
 
-lemma lemma_exp_ext: "exp = (\<lambda>x. \<Sum>n. x ^ n /# real (fact n))"
+lemma lemma_exp_ext: "exp = (\<lambda>x. \<Sum>n. x ^ n /\<^sub>R real (fact n))"
 by (auto intro!: ext simp add: exp_def)
 
 lemma DERIV_exp [simp]: "DERIV exp x :> exp(x)"
@@ -680,7 +680,7 @@ by (simp add: setsum_head2 setsum_shift_bounds_cl_Suc_ivl
 
 lemma exp_series_add:
   fixes x y :: "'a::{real_field,recpower}"
-  defines S_def: "S \<equiv> \<lambda>x n. x ^ n /# real (fact n)"
+  defines S_def: "S \<equiv> \<lambda>x n. x ^ n /\<^sub>R real (fact n)"
   shows "S (x + y) n = (\<Sum>i=0..n. S x i * S y (n - i))"
 proof (induct n)
   case 0
@@ -688,12 +688,12 @@ proof (induct n)
     unfolding S_def by simp
 next
   case (Suc n)
-  have S_Suc: "\<And>x n. S x (Suc n) = (x * S x n) /# real (Suc n)"
+  have S_Suc: "\<And>x n. S x (Suc n) = (x * S x n) /\<^sub>R real (Suc n)"
     unfolding S_def by (simp add: power_Suc del: mult_Suc)
-  hence times_S: "\<And>x n. x * S x n = real (Suc n) *# S x (Suc n)"
+  hence times_S: "\<And>x n. x * S x n = real (Suc n) *\<^sub>R S x (Suc n)"
     by simp
 
-  have "real (Suc n) *# S (x + y) (Suc n) = (x + y) * S (x + y) n"
+  have "real (Suc n) *\<^sub>R S (x + y) (Suc n) = (x + y) * S (x + y) n"
     by (simp only: times_S)
   also have "\<dots> = (x + y) * (\<Sum>i=0..n. S x i * S y (n-i))"
     by (simp only: Suc)
@@ -703,21 +703,21 @@ next
   also have "\<dots> = (\<Sum>i=0..n. (x * S x i) * S y (n-i))
                 + (\<Sum>i=0..n. S x i * (y * S y (n-i)))"
     by (simp only: setsum_right_distrib mult_ac)
-  also have "\<dots> = (\<Sum>i=0..n. real (Suc i) *# (S x (Suc i) * S y (n-i)))
-                + (\<Sum>i=0..n. real (Suc n-i) *# (S x i * S y (Suc n-i)))"
+  also have "\<dots> = (\<Sum>i=0..n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n-i)))
+                + (\<Sum>i=0..n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i)))"
     by (simp add: times_S Suc_diff_le)
-  also have "(\<Sum>i=0..n. real (Suc i) *# (S x (Suc i) * S y (n-i))) =
-             (\<Sum>i=0..Suc n. real i *# (S x i * S y (Suc n-i)))"
+  also have "(\<Sum>i=0..n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n-i))) =
+             (\<Sum>i=0..Suc n. real i *\<^sub>R (S x i * S y (Suc n-i)))"
     by (subst setsum_cl_ivl_Suc2, simp)
-  also have "(\<Sum>i=0..n. real (Suc n-i) *# (S x i * S y (Suc n-i))) =
-             (\<Sum>i=0..Suc n. real (Suc n-i) *# (S x i * S y (Suc n-i)))"
+  also have "(\<Sum>i=0..n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i))) =
+             (\<Sum>i=0..Suc n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i)))"
     by (subst setsum_cl_ivl_Suc, simp)
-  also have "(\<Sum>i=0..Suc n. real i *# (S x i * S y (Suc n-i))) +
-             (\<Sum>i=0..Suc n. real (Suc n-i) *# (S x i * S y (Suc n-i))) =
-             (\<Sum>i=0..Suc n. real (Suc n) *# (S x i * S y (Suc n-i)))"
+  also have "(\<Sum>i=0..Suc n. real i *\<^sub>R (S x i * S y (Suc n-i))) +
+             (\<Sum>i=0..Suc n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i))) =
+             (\<Sum>i=0..Suc n. real (Suc n) *\<^sub>R (S x i * S y (Suc n-i)))"
     by (simp only: setsum_addf [symmetric] scaleR_left_distrib [symmetric]
               real_of_nat_add [symmetric], simp)
-  also have "\<dots> = real (Suc n) *# (\<Sum>i=0..Suc n. S x i * S y (Suc n-i))"
+  also have "\<dots> = real (Suc n) *\<^sub>R (\<Sum>i=0..Suc n. S x i * S y (Suc n-i))"
     by (simp only: scaleR_right.setsum)
   finally show
     "S (x + y) (Suc n) = (\<Sum>i=0..Suc n. S x i * S y (Suc n - i))"
