@@ -144,6 +144,7 @@ sig
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> Markup.property list ->
     bstring * term -> Proof.context -> (term * term) * Proof.context
+  val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
@@ -259,7 +260,7 @@ val syn_of = LocalSyntax.syn_of o syntax_of;
 val set_syntax_mode = map_syntax o LocalSyntax.set_mode;
 val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
 
-val consts_of = fst o #consts o rep_context;
+val consts_of = #1 o #consts o rep_context;
 val const_syntax_name = Consts.syntax_name o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
 
@@ -429,12 +430,8 @@ fun contract_abbrevs ctxt t =
     val consts = consts_of ctxt;
     val Mode {abbrev, ...} = get_mode ctxt;
   in
-    if abbrev orelse print_mode_active "no_abbrevs" orelse not (can Term.type_of t)
-    then t
-    else
-      t
-      |> Pattern.rewrite_term thy (Consts.abbrevs_of consts (print_mode_value () @ [""])) []
-      |> Pattern.rewrite_term thy (Consts.abbrevs_of consts [Syntax.internalM]) []
+    if abbrev orelse print_mode_active "no_abbrevs" orelse not (can Term.type_of t) then t
+    else t |> Pattern.rewrite_term thy (Consts.abbrevs_of consts (print_mode_value () @ [""])) []
   end;
 
 
@@ -1042,6 +1039,8 @@ fun add_abbrev mode tags (c, raw_t) ctxt =
     |> pair (lhs, rhs)
   end;
 
+fun revert_abbrev mode c = (map_consts o apfst) (Consts.revert_abbrev mode c);
+
 
 (* fixes *)
 
@@ -1195,7 +1194,7 @@ val print_syntax = Syntax.print_syntax o syn_of;
 
 fun pretty_abbrevs show_globals ctxt =
   let
-    val ((_, globals), (space, consts)) =
+    val ((space, consts), (_, globals)) =
       pairself (#constants o Consts.dest) (#consts (rep_context ctxt));
     fun add_abbr (_, (_, NONE)) = I
       | add_abbr (c, (T, SOME (t, _))) =
