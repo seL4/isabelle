@@ -2579,11 +2579,43 @@ done
 end
 
 
+subsubsection {* @{text sorted_list_of_set} *}
+
+text{* This function maps (finite) linearly ordered sets to sorted
+lists. Warning: in most cases it is not a good idea to convert from
+sets to lists but one should convert in the other direction (via
+@{const set}). *}
+
+
+context linorder
+begin
+
+definition
+ sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
+"sorted_list_of_set A == THE xs. set xs = A & sorted xs & distinct xs"
+
+lemma sorted_list_of_set[simp]: "finite A \<Longrightarrow>
+  set(sorted_list_of_set A) = A &
+  sorted(sorted_list_of_set A) & distinct(sorted_list_of_set A)"
+apply(simp add:sorted_list_of_set_def)
+apply(rule the1I2)
+ apply(simp_all add: finite_sorted_distinct_unique)
+done
+
+lemma sorted_list_of_empty[simp]: "sorted_list_of_set {} = []"
+unfolding sorted_list_of_set_def
+apply(subst the_equality[of _ "[]"])
+apply simp_all
+done
+
+end
+
+
 subsubsection {* @{text upto}: the generic interval-list *}
 
 class finite_intvl_succ = linorder +
 fixes successor :: "'a \<Rightarrow> 'a"
-assumes finite_intvl: "finite(ord.atLeastAtMost (op \<le>) a b)" (* FIXME should be finite({a..b}) *)
+assumes finite_intvl: "finite{a..b}"
 and successor_incr: "a < successor a"
 and ord_discrete: "\<not>(\<exists>x. a < x & x < successor a)"
 
@@ -2592,13 +2624,10 @@ begin
 
 definition
  upto :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list" ("(1[_../_])") where
-"upto i j == THE is. set is = {i..j} & sorted is & distinct is"
+"upto i j == sorted_list_of_set {i..j}"
 
-lemma set_upto[simp]: "set[a..b] = {a..b}"
-apply(simp add:upto_def)
-apply(rule the1I2)
-apply(simp_all add: finite_sorted_distinct_unique finite_intvl)
-done
+lemma upto[simp]: "set[a..b] = {a..b} & sorted[a..b] & distinct[a..b]"
+by(simp add:upto_def finite_intvl)
 
 lemma insert_intvl: "i \<le> j \<Longrightarrow> insert i {successor i..j} = {i..j}"
 apply(insert successor_incr[of i])
@@ -2606,21 +2635,19 @@ apply(auto simp: atLeastAtMost_def atLeast_def atMost_def)
 apply (metis ord_discrete less_le not_le)
 done
 
+lemma sorted_list_of_set_rec: "i \<le> j \<Longrightarrow>
+  sorted_list_of_set {i..j} = i # sorted_list_of_set {successor i..j}"
+apply(simp add:sorted_list_of_set_def upto_def)
+apply (rule the1_equality[OF finite_sorted_distinct_unique])
+ apply (simp add:finite_intvl)
+apply(rule the1I2[OF finite_sorted_distinct_unique])
+ apply (simp add:finite_intvl)
+apply (simp add: sorted_Cons insert_intvl Ball_def)
+apply (metis successor_incr leD less_imp_le order_trans)
+done
+
 lemma upto_rec[code]: "[i..j] = (if i \<le> j then i # [successor i..j] else [])"
-proof cases
-  assume "i \<le> j" thus ?thesis
-    apply(simp add:upto_def)
-    apply (rule the1_equality[OF finite_sorted_distinct_unique])
-     apply (simp add:finite_intvl)
-    apply(rule the1I2[OF finite_sorted_distinct_unique])
-     apply (simp add:finite_intvl)
-    apply (simp add: sorted_Cons insert_intvl Ball_def)
-    apply (metis successor_incr leD less_imp_le order_trans)
-    done
-next
-  assume "~ i \<le> j" thus ?thesis
-    by(simp add:upto_def atLeastAtMost_empty cong:conj_cong)
-qed
+by(simp add: upto_def sorted_list_of_set_rec)
 
 end
 
