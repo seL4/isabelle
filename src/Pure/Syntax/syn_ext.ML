@@ -53,7 +53,6 @@ sig
   val mfix_delims: string -> string list
   val mfix_args: string -> int
   val escape_mfix: string -> string
-  val unlocalize_mfix: string -> string
   val syn_ext': bool -> (string -> bool) -> mfix list ->
     string list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
@@ -231,14 +230,6 @@ val mfix_args = length o List.filter is_argument o read_mfix;
 val escape_mfix = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
 
 end;
-
-val unlocalize_mfix =
-  let
-    fun unloc ("'" :: "\\<^loc>" :: ss) = unloc ss
-      | unloc ("\\<^loc>" :: ss) = unloc ss
-      | unloc (s :: ss) = s :: unloc ss
-      | unloc [] = [];
-  in Symbol.explode #> unloc #> implode end;  
 
 
 (* mfix_to_xprod *)
