@@ -1724,9 +1724,11 @@ fun meta_to_obj_all thm =
 
 
 (* record_definition *)
+
 fun record_definition (args, bname) parent (parents: parent_info list) raw_fields thy =
-  (* smlnj needs type annotation of parents *)
   let
+    val external_names = NameSpace.external_names (Sign.naming_of thy);
+
     val alphas = map fst args;
     val name = Sign.full_name thy bname;
     val full = Sign.full_name_path thy bname;
@@ -1823,22 +1825,21 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* prepare print translation functions *)
     val field_tr's =
-      print_translation (distinct (op =)
-        (List.concat (map NameSpace.accesses' (full_moreN :: names))));
+      print_translation (distinct (op =) (maps external_names (full_moreN :: names)));
 
     val adv_ext_tr's =
     let
-      val trnames = NameSpace.accesses' extN;
+      val trnames = external_names extN;
     in map (gen_record_tr') trnames end;
 
     val adv_record_type_abbr_tr's =
-      let val trnames = NameSpace.accesses' (hd extension_names);
-          val lastExt = (unsuffix ext_typeN (fst extension));
+      let val trnames = external_names (hd extension_names);
+          val lastExt = unsuffix ext_typeN (fst extension);
       in map (gen_record_type_abbr_tr' name alphas zeta lastExt rec_schemeT0) trnames
       end;
 
     val adv_record_type_tr's =
-      let val trnames = if parent_len > 0 then NameSpace.accesses' extN else [];
+      let val trnames = if parent_len > 0 then external_names extN else [];
                         (* avoid conflict with adv_record_type_abbr_tr's *)
       in map (gen_record_type_tr') trnames
       end;
