@@ -179,7 +179,6 @@
       <OPERATOR>lemmas</OPERATOR>
       <OPERATOR>let</OPERATOR>
       <OPERATOR>local</OPERATOR>
-      <KEYWORD4>local_syntax</KEYWORD4>
       <OPERATOR>locale</OPERATOR>
       <OPERATOR>method_setup</OPERATOR>
       <KEYWORD4>module_name</KEYWORD4>
@@ -272,7 +271,6 @@
       <KEYWORD4>restrict</KEYWORD4>
       <OPERATOR>sect</OPERATOR>
       <OPERATOR>section</OPERATOR>
-      <KEYWORD4>sequential</KEYWORD4>
       <OPERATOR>setup</OPERATOR>
       <KEYWORD2>show</KEYWORD2>
       <KEYWORD4>shows</KEYWORD4>

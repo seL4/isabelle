@@ -230,7 +230,6 @@
     "infixr"
     "intros"
     "is"
-    "local_syntax"
     "monos"
     "notes"
     "obtains"
