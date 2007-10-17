@@ -29,19 +29,15 @@ sig
   val base: string -> string
   val qualifier: string -> string
   val map_base: (string -> string) -> string -> string
-  val suffixes_prefixes: 'a list -> 'a list list
-  val suffixes_prefixes_split: int -> int -> 'a list -> 'a list list
-  val accesses: string -> string list
-  val accesses': string -> string list
   type T
   val empty: T
-  val valid_accesses: T -> string -> xstring list
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
   val path_of: naming -> string
+  val external_names: naming -> string -> string list
   val full: naming -> bstring -> string
   val declare: naming -> string -> T -> T
   val default_naming: naming
@@ -49,8 +45,6 @@ sig
   val no_base_names: naming -> naming
   val qualified_names: naming -> naming
   val sticky_prefix: string -> naming -> naming
-  val set_policy: (string -> bstring -> string) * (string list -> string list list) ->
-    naming -> naming
   type 'a table = T * 'a Symtab.table
   val empty_table: 'a table
   val extend_table: naming -> (bstring * 'a) list -> 'a table -> 'a table
@@ -93,7 +87,7 @@ fun map_base _ "" = ""
       in implode_name (nth_map (length names - 1) f names) end;
 
 
-(* accesses *)
+(* standard accesses *)
 
 infixr 6 @@;
 fun ([] @@ yss) = []
@@ -104,7 +98,7 @@ fun suffixes_prefixes list =
     val (xs, ws) = chop (length list - 1) list;
     val sfxs = suffixes xs @@ [ws];
     val pfxs = prefixes1 xs @@ [ws];
-  in sfxs @ pfxs end;
+  in (sfxs @ pfxs, sfxs) end;
 
 fun suffixes_prefixes_split i k list =
   let
@@ -115,10 +109,7 @@ fun suffixes_prefixes_split i k list =
     val pfxs =
       prefixes1 xs @@ [ys @ ws] @
       [xs @ ys] @@ prefixes1 zs @@ [ws];
-  in sfxs @ pfxs end;
-
-val accesses = map implode_name o suffixes_prefixes o explode_name;
-val accesses' = map implode_name o Library.suffixes1 o explode_name;
+  in (sfxs @ pfxs, sfxs) end;
 
 
 
@@ -127,11 +118,13 @@ val accesses' = map implode_name o Library.suffixes1 o explode_name;
 (* datatype T *)
 
 datatype T =
-  NameSpace of ((string list * string list) * stamp) Symtab.table;
+  NameSpace of
+    ((string list * string list) * stamp) Symtab.table *   (*internals, hidden internals*)
+    (string list * stamp) Symtab.table;                    (*externals*)
 
-val empty = NameSpace Symtab.empty;
+val empty = NameSpace (Symtab.empty, Symtab.empty);
 
-fun lookup (NameSpace tab) xname =
+fun lookup (NameSpace (tab, _)) xname =
   (case Symtab.lookup tab xname of
     NONE => (xname, true)
   | SOME (([], []), _) => (xname, true)
@@ -139,7 +132,15 @@ fun lookup (NameSpace tab) xname =
   | SOME ((name :: _, _), _) => (name, false)
   | SOME (([], name' :: _), _) => (hidden name', true));
 
-fun valid_accesses (NameSpace tab) name = Symtab.fold (fn (xname, ((names, _), _)) =>
+fun get_accesses (NameSpace (_, tab)) name =
+  (case Symtab.lookup tab name of
+    NONE => [name]
+  | SOME (xnames, _) => xnames);
+
+fun put_accesses name xnames (NameSpace (tab, xtab)) =
+  NameSpace (tab, Symtab.update (name, (xnames, stamp ())) xtab);
+
+fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, ((names, _), _)) =>
   if not (null names) andalso hd names = name then cons xname else I) tab [];
 
 
@@ -162,22 +163,28 @@ fun extern space name =
   in
     if ! long_names then name
     else if ! short_names then base name
-    else ex (accesses' name)
+    else ex (get_accesses space name)
   end;
 
 
 (* basic operations *)
 
-fun map_space f xname (NameSpace tab) =
+local
+
+fun map_space f xname (NameSpace (tab, xtab)) =
   NameSpace (Symtab.map_default (xname, (([], []), stamp ()))
-    (fn (entry, _) => (f entry, stamp ())) tab);
+    (fn (entry, _) => (f entry, stamp ())) tab, xtab);
 
 fun del (name: string) = remove (op =) name;
 fun add name names = name :: del name names;
 
+in
+
 val del_name = map_space o apfst o del;
 val add_name = map_space o apfst o add;
 val add_name' = map_space o apsnd o add;
+
+end;
 
 
 (* hide *)
@@ -197,14 +204,21 @@ fun hide fully name space =
 
 (* merge *)
 
-fun merge (NameSpace tab1, NameSpace tab2) =
-  NameSpace ((tab1, tab2) |> Symtab.join
-    (K (fn (((names1, names1'), stamp1), ((names2, names2'), stamp2)) =>
-      if stamp1 = stamp2 then raise Symtab.SAME
-      else
-        ((Library.merge (op =) (names2, names1),
-          Library.merge (op =) (names2', names1')), stamp ()))));
+(* FIXME non-canonical merge order!? *)
 
+fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
+  let
+    val tab' = (tab1, tab2) |> Symtab.join
+      (K (fn (((names1, names1'), stamp1), ((names2, names2'), stamp2)) =>
+        if stamp1 = stamp2 then raise Symtab.SAME
+        else
+          ((Library.merge (op =) (names2, names1),
+            Library.merge (op =) (names2', names1')), stamp ())));
+    val xtab' = (xtab1, xtab2) |> Symtab.join
+      (K (fn ((xnames1, stamp1), (xnames2, stamp2)) =>
+        if stamp1 = stamp2 then raise Symtab.SAME
+        else (Library.merge (op =) (xnames2, xnames1), stamp ())));
+  in NameSpace (tab', xtab') end;
 
 
 (** naming contexts **)
@@ -212,16 +226,21 @@ fun merge (NameSpace tab1, NameSpace tab2) =
 (* datatype naming *)
 
 datatype naming = Naming of
-  string * ((string -> string -> string) * (string list -> string list list));
+  string *                                                 (*path*)
+  ((string -> string -> string) *                          (*qualify*)
+   (string list -> string list list * string list list));  (*accesses*)
 
 fun path_of (Naming (path, _)) = path;
+fun accesses (Naming (_, (_, accs))) = accs;
+
+fun external_names naming = map implode_name o #2 o accesses naming o explode_name;
 
 
 (* declarations *)
 
 fun full (Naming (path, (qualify, _))) = qualify path;
 
-fun declare (Naming (_, (_, accs))) name space =
+fun declare naming name space =
   if is_hidden name then
     error ("Attempt to declare hidden name " ^ quote name)
   else
@@ -230,7 +249,8 @@ fun declare (Naming (_, (_, accs))) name space =
       val _ = (null names orelse exists (fn s => s = "") names
           orelse exists_string (fn s => s = "\"") name) andalso
         error ("Bad name declaration " ^ quote name);
-    in fold (add_name name) (map implode_name (accs names)) space end;
+      val (accs, accs') = pairself (map implode_name) (accesses naming names);
+    in space |> fold (add_name name) accs |> put_accesses name accs' end;
 
 
 (* manipulate namings *)
@@ -250,15 +270,13 @@ fun add_path elems (Naming (path, policy)) =
   else Naming (append path elems, policy);
 
 fun no_base_names (Naming (path, (qualify, accs))) =
-  Naming (path, (qualify, filter_out (fn [_] => true | _ => false) o accs));
+  Naming (path, (qualify, pairself (filter_out (fn [_] => true | _ => false)) o accs));
 
 fun qualified_names (Naming (path, (_, accs))) = Naming (path, (qualified, accs));
 
 fun sticky_prefix prfx (Naming (path, (qualify, _))) =
   Naming (append path prfx,
     (qualify, suffixes_prefixes_split (length (explode_name path)) (length (explode_name prfx))));
-
-fun set_policy policy (Naming (path, _)) = Naming (path, policy);
 
 
 
