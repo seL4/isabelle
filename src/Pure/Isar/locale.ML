@@ -2077,7 +2077,7 @@ fun local_activate_facts_elemss x = gen_activate_facts_elemss
       add_local_equation
       x;
 
-fun prep_instantiations prep_term prep_prop ctxt parms (insts, eqns) =
+fun prep_instantiations parse_term parse_prop ctxt parms (insts, eqns) =
   let
     (* parameters *)
     val (parm_names, parm_types) = parms |> split_list
@@ -2105,11 +2105,11 @@ fun prep_instantiations prep_term prep_prop ctxt parms (insts, eqns) =
         |> split_list;
     val (given_parm_names, given_parm_types) = given_ps |> split_list;
 
-    (* prepare insts / eqns *)
-    val given_insts' = map (prep_term ctxt) given_insts;
-    val eqns' = map (prep_prop ctxt) eqns;
+    (* parse insts / eqns *)
+    val given_insts' = map (parse_term ctxt) given_insts;
+    val eqns' = map (parse_prop ctxt) eqns;
 
-    (* infer types *)
+    (* type inference etc. *)
     val res = Syntax.check_terms ctxt
       (type_parms @
        map2 TypeInfer.constrain given_parm_types given_insts' @
@@ -2125,7 +2125,7 @@ fun prep_instantiations prep_term prep_prop ctxt parms (insts, eqns) =
   in ((instT, inst), eqns'') end;
 
 val read_instantiations = prep_instantiations Syntax.parse_term Syntax.parse_prop;
-val cert_instantiations = prep_instantiations (K I) (K I);
+val check_instantiations = prep_instantiations (K I) (K I);
 
 fun gen_prep_registration mk_ctxt test_reg activate
     prep_attr prep_expr prep_insts
@@ -2208,12 +2208,12 @@ fun gen_prep_local_registration mk_ctxt = gen_prep_registration I
 val prep_global_registration = gen_prep_global_registration
   Attrib.intern_src intern_expr read_instantiations;
 val prep_global_registration_i = gen_prep_global_registration
-  (K I) (K I) cert_instantiations;
+  (K I) (K I) check_instantiations;
 
 val prep_local_registration = gen_prep_local_registration
   Attrib.intern_src intern_expr read_instantiations;
 val prep_local_registration_i = gen_prep_local_registration
-  (K I) (K I) cert_instantiations;
+  (K I) (K I) check_instantiations;
 
 fun prep_registration_in_locale target expr thy =
   (* target already in internal form *)
