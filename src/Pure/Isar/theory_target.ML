@@ -161,6 +161,10 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
 
 (* consts *)
 
+fun fork_mixfix false _ mx = (NoSyn, NoSyn, mx)
+  | fork_mixfix true false mx = (NoSyn, mx, NoSyn)
+  | fork_mixfix true true mx = (mx, NoSyn, NoSyn);
+
 fun locale_const (prmode as (mode, _)) pos ((c, mx), rhs) phi =
   let
     val c' = Morphism.name phi c;
@@ -186,7 +190,7 @@ fun declare_consts (ta as Target {target, is_locale, is_class}) depends decls lt
     fun const ((c, T), mx) thy =
       let
         val U = map #2 xs ---> T;
-        val ((mx1, mx2), mx3) = Class.fork_mixfix is_locale is_class mx;
+        val (mx1, mx2, mx3) = fork_mixfix is_locale is_class mx;
         val (const, thy') = Sign.declare_const pos (c, U, mx3) thy;
         val t = Term.list_comb (const, map Free xs);
       in (((c, mx2), t), thy') end;
@@ -228,8 +232,8 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((raw_c, mx), raw
     val c = Morphism.name target_morphism raw_c;
     val t = Morphism.term target_morphism raw_t;
 
-    val xs = map Free (Variable.add_fixed target_ctxt t []);
-    val ((mx1, mx2), mx3) = Class.fork_mixfix is_locale is_class mx;
+    val xs = map Free (rev (Variable.add_fixed target_ctxt t []));
+    val (mx1, mx2, mx3) = fork_mixfix is_locale is_class mx;
 
     val global_rhs =
       singleton (Variable.export_terms (Variable.declare_term t target_ctxt) thy_ctxt)
