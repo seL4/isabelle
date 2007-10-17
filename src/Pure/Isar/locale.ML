@@ -1677,8 +1677,10 @@ fun atomize_spec thy ts =
     else (body, bodyT, ObjectLogic.atomize (Thm.cterm_of thy t))
   end;
 
-fun aprop_tr' n c = (c, fn args =>
-  if length args = n then Syntax.const "_aprop" $ Term.list_comb (Syntax.free c, args)
+fun aprop_tr' n c = (Syntax.constN ^ c, fn ctxt => fn args =>
+  if length args = n then
+    Syntax.const "_aprop" $
+      Term.list_comb (Syntax.free (Consts.extern (ProofContext.consts_of ctxt) c), args)
   else raise Match);
 
 (* CB: define one predicate including its intro rule and axioms
@@ -1708,9 +1710,8 @@ fun def_pred bname parms defs ts norm_ts thy =
 
     val ([pred_def], defs_thy) =
       thy
-      |> (if bodyT <> propT then I else
-        Sign.add_trfuns ([], [], map (aprop_tr' (length args)) (NameSpace.accesses' name), []))
-      |> Sign.add_consts_i [(bname, predT, NoSyn)]
+      |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
+      |> Sign.declare_const [] (bname, predT, NoSyn) |> snd
       |> PureThy.add_defs_i false [((Thm.def_name bname, Logic.mk_equals (head, body)), [])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
