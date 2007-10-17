@@ -7,8 +7,6 @@ Type classes derived from primitive axclasses and locales.
 
 signature CLASS =
 sig
-  val fork_mixfix: bool -> bool -> mixfix -> (mixfix * mixfix) * mixfix
-
   val axclass_cmd: bstring * xstring list
     -> ((bstring * Attrib.src list) * string list) list
     -> theory -> class * theory
@@ -56,13 +54,6 @@ struct
 
 val classN = "class";
 val introN = "intro";
-
-fun fork_mixfix false _ mx = ((NoSyn, NoSyn), mx)
-  | fork_mixfix true false mx = ((NoSyn, mx), NoSyn)
-  | fork_mixfix true true mx = ((mx, NoSyn), NoSyn);
-      (*let
-        val mx' = Syntax.unlocalize_mixfix mx;
-      in if mx' = mx then ((NoSyn, mx), NoSyn) else ((mx', mx), NoSyn) end;*)
 
 fun prove_interpretation tac prfx_atts expr inst =
   Locale.interpretation_i I prfx_atts expr inst
@@ -789,7 +780,6 @@ fun add_const_in_class class ((c, mx), rhs) thy =
     val phi = morphism thy' class;
 
     val c' = Sign.full_name thy' c;
-    val ((mx', _), _) = fork_mixfix true true mx;
     val rhs' = (map_types Logic.unvarifyT o Morphism.term phi) rhs;
     val ty' = Term.fastype_of rhs';
     val def = (c, Logic.mk_equals (Const (c', ty'), rhs'));
@@ -797,7 +787,7 @@ fun add_const_in_class class ((c, mx), rhs) thy =
   in
     thy'
     |> Sign.hide_consts_i false [c'']
-    |> Sign.declare_const [] (c, ty', mx') |> snd
+    |> Sign.declare_const [] (c, ty', mx) |> snd
     |> Sign.parent_path
     |> Sign.sticky_prefix prfx
     |> yield_singleton (PureThy.add_defs_i false) (def, [])
