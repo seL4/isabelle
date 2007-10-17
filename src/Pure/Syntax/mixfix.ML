@@ -31,7 +31,6 @@ sig
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
   val const_mixfix: string -> mixfix -> string * mixfix
-  val unlocalize_mixfix: mixfix -> mixfix
   val mixfix_args: mixfix -> int
   val mixfixT: mixfix -> typ
 end;
@@ -139,8 +138,6 @@ fun map_mixfix _ NoSyn = NoSyn
   | map_mixfix f (Binder (sy, p, q)) = Binder (f sy, p, q)
   | map_mixfix _ Structure = Structure
   | map_mixfix _ _ = raise Fail ("map_mixfix: illegal occurrence of unnamed infix");
-
-val unlocalize_mixfix = map_mixfix SynExt.unlocalize_mfix;
 
 fun mixfix_args NoSyn = 0
   | mixfix_args (Mixfix (sy, _, _)) = SynExt.mfix_args sy
