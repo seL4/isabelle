@@ -324,10 +324,7 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
   apply (rule mult_left_mono)
   apply (rule abs_triangle_ineq)
   apply (simp add: order_less_le)
-  apply (rule mult_nonneg_nonneg)
-  apply (rule add_nonneg_nonneg)
-  apply (erule order_less_imp_le)+
-  apply simp
+apply (metis abs_not_less_zero double_less_0_iff less_not_permute linorder_not_less mult_less_0_iff)
   apply (rule ext)
   apply (auto simp add: if_splits linorder_not_le)
 done
@@ -349,10 +346,7 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
 (*sledgehammer*); 
   apply (rule_tac x = "max c ca" in exI)
   apply (rule conjI)
-  apply (subgoal_tac "c <= max c ca")
-  apply (erule order_less_le_trans)
-  apply assumption
-  apply (rule le_maxI1)
+   apply (metis Orderings.less_max_iff_disj)
   apply clarify
   apply (drule_tac x = "xa" in spec)+
   apply (subgoal_tac "0 <= f xa + g xa")
@@ -363,8 +357,7 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (blast intro: order_trans)
   defer 1
   apply (rule abs_triangle_ineq)
-  apply (rule add_nonneg_nonneg)
-  apply assumption+
+  apply (metis add_nonneg_nonneg)
   apply (rule add_mono)
 ML{*ResAtp.problem_name := "BigO__bigo_plus_eq_simpler"*} 
 (*Found by SPASS; SLOW*)
