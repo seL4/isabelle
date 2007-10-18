@@ -689,41 +689,28 @@ fun cond_rm_tmp file =
 (***************************************************************)
 
 (* call prover with settings and problem file for the current subgoal *)
-fun watcher_call_provers sign sg_terms (childin, childout, pid) =
-  let
-    fun make_atp_list [] n = []
-      | make_atp_list (sg_term::xs) n =
-          let
-            val probfile = prob_pathname n
-            val time = Int.toString (!time_limit)
-          in
-            Output.debug (fn () => "problem file in watcher_call_provers is " ^ probfile);
-            (*options are separated by Watcher.setting_sep, currently #"%"*)
-            case !prover of
-                Recon.SPASS =>
+fun watcher_call_provers files (childin, childout, pid) =
+  let val time = Int.toString (!time_limit)
+      fun make_atp_list [] = []
+	| make_atp_list (file::files) =
+	   (Output.debug (fn () => "problem file in watcher_call_provers is " ^ file);
+	    (*options are separated by Watcher.setting_sep, currently #"%"*)
+	    case !prover of
+		Recon.SPASS =>
 		  let val spass = helper_path "SPASS_HOME" "SPASS"
 		      val sopts =
        "-Auto%-SOS=1%-PGiven=0%-PProblem=0%-Splits=0%-FullRed=0%-DocProof%-TimeLimit=" ^ time
-		  in
-		      ("spass", spass, sopts, probfile) :: make_atp_list xs (n+1)
-		  end
-              | Recon.Vampire =>
+		  in  ("spass", spass, sopts, file) :: make_atp_list files  end
+	      | Recon.Vampire =>
 		  let val vampire = helper_path "VAMPIRE_HOME" "vampire"
 		      val vopts = "--output_syntax tptp%--mode casc%-t " ^ time
-		  in
-		      ("vampire", vampire, vopts, probfile) :: make_atp_list xs (n+1)
-		  end
-              | Recon.E =>
+		  in  ("vampire", vampire, vopts, file) :: make_atp_list files  end
+	      | Recon.E =>
 		  let val eproof = helper_path "E_HOME" "eproof"
-                      val eopts = "--tstp-in%--tstp-out%-l5%-xAutoDev%-tAutoDev%--silent%--cpu-limit=" ^ time
-		  in
-		     ("E", eproof, eopts, probfile) :: make_atp_list xs (n+1)
-		  end
-          end
-
-    val atp_list = make_atp_list sg_terms 1
+		      val eopts = "--tstp-in%--tstp-out%-l5%-xAutoDev%-tAutoDev%--silent%--cpu-limit=" ^ time
+		  in  ("E", eproof, eopts, file) :: make_atp_list files  end)
   in
-    Watcher.callResProvers(childout,atp_list);
+    Watcher.callResProvers(childout, make_atp_list files);
     Output.debug (fn () => "Sent commands to watcher!")
   end
 
@@ -812,7 +799,7 @@ fun isar_atp (ctxt, chain_ths, th) =
       last_watcher_pid := SOME (childin, childout, pid, files);
       Output.debug (fn () => "problem files: " ^ space_implode ", " files);
       Output.debug (fn () => "pid: " ^ string_of_pid pid);
-      watcher_call_provers (Thm.theory_of_thm th) (Thm.prems_of th) (childin, childout, pid)
+      watcher_call_provers files (childin, childout, pid)
     end;
 
 (*For ML scripts, and primarily, for debugging*)
