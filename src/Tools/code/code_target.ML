@@ -1694,8 +1694,8 @@ fun get_serializer thy target permissive module file args
   in
     project
     #> check_empty_funs
-    #> seri module file args (CodeName.labelled_name thy) reserved includes (Symtab.lookup alias)
-        (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
+    #> seri module file args (CodeName.labelled_name thy) reserved includes
+        (Symtab.lookup alias) (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 
 fun eval_invoke thy (ref_name, reff) code (t, ty) args =
@@ -1705,21 +1705,18 @@ fun eval_invoke thy (ref_name, reff) code (t, ty) args =
     val val_args = space_implode " "
       (NameSpace.qualifier CodeName.value_name :: map (enclose "(" ")") args);
     val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [];
-    fun eval code = (
+    val code' = CodeThingol.add_value_stmt (t, ty) code;
+    fun eval () = (
       reff := NONE;
-      seri (SOME [CodeName.value_name]) code;
+      seri (SOME [CodeName.value_name]) code';
       use_text "generated code for evaluation" Output.ml_output (!eval_verbose)
         ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ val_args ^ "))");
       case !reff
        of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
             ^ " (reference probably has been shadowed)")
-        | SOME f => f ()
+        | SOME f => f
       );
-  in
-    code
-    |> CodeThingol.add_value_stmt (t, ty)
-    |> eval
-  end;
+  in CRITICAL eval () end;
 
 
 
