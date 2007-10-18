@@ -549,6 +549,9 @@ lemma Least_Suc2:
 
 subsection {* @{term min} and @{term max} *}
 
+lemma mono_Suc: "mono Suc"
+  by (rule monoI) simp
+
 lemma min_0L [simp]: "min 0 n = (0::nat)"
   by (rule min_leastL) simp
 
@@ -556,7 +559,7 @@ lemma min_0R [simp]: "min n 0 = (0::nat)"
   by (rule min_leastR) simp
 
 lemma min_Suc_Suc [simp]: "min (Suc m) (Suc n) = Suc (min m n)"
-  by (simp add: min_of_mono)
+  by (simp add: mono_Suc min_of_mono)
 
 lemma min_Suc1:
    "min (Suc n) m = (case m of 0 => 0 | Suc m' => Suc(min n m'))"
@@ -573,7 +576,7 @@ lemma max_0R [simp]: "max n 0 = (n::nat)"
   by (rule max_leastR) simp
 
 lemma max_Suc_Suc [simp]: "max (Suc m) (Suc n) = Suc(max m n)"
-  by (simp add: max_of_mono)
+  by (simp add: mono_Suc max_of_mono)
 
 lemma max_Suc1:
    "max (Suc n) m = (case m of 0 => Suc n | Suc m' => Suc(max n m'))"

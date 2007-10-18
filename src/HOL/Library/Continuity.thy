@@ -153,7 +153,7 @@ done
 
 lemma up_cont_mono: "up_cont f ==> mono f"
 apply (rule monoI)
-apply (drule_tac F = "\<lambda>i. if i = 0 then A else B" in up_contD)
+apply (drule_tac F = "\<lambda>i. if i = 0 then x else y" in up_contD)
  apply (rule up_chainI)
  apply simp
 apply (drule Un_absorb1)
@@ -181,10 +181,11 @@ lemma down_contD: "down_cont f ==> down_chain F ==>
 
 lemma down_cont_mono: "down_cont f ==> mono f"
 apply (rule monoI)
-apply (drule_tac F = "\<lambda>i. if i = 0 then B else A" in down_contD)
+apply (drule_tac F = "\<lambda>i. if i = 0 then y else x" in down_contD)
  apply (rule down_chainI)
  apply simp
 apply (drule Int_absorb1)
+apply auto
 apply (auto simp add: nat_not_singleton)
 done
 

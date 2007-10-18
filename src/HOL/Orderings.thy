@@ -18,7 +18,6 @@ class order = ord +
   and order_refl [iff]: "x \<le> x"
   and order_trans: "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
   assumes antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
-
 begin
 
 notation (input)
@@ -368,113 +367,125 @@ setup Orders.setup
 
 text {* Declarations to set up transitivity reasoner of partial and linear orders. *}
 
+context order
+begin
+
 (* The type constraint on @{term op =} below is necessary since the operation
    is not a parameter of the locale. *)
-lemmas (in order)
-  [order add less_reflE: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
+
+lemmas
+  [order add less_reflE: order "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool" "op <=" "op <"] =
   less_irrefl [THEN notE]
-lemmas (in order)
+lemmas
   [order add le_refl: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   order_refl
-lemmas (in order)
+lemmas
   [order add less_imp_le: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_imp_le
-lemmas (in order)
+lemmas
   [order add eqI: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   antisym
-lemmas (in order)
+lemmas
   [order add eqD1: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   eq_refl
-lemmas (in order)
+lemmas
   [order add eqD2: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   sym [THEN eq_refl]
-lemmas (in order)
+lemmas
   [order add less_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_trans
-lemmas (in order)
+lemmas
   [order add less_le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_le_trans
-lemmas (in order)
+lemmas
   [order add le_less_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   le_less_trans
-lemmas (in order)
+lemmas
   [order add le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   order_trans
-lemmas (in order)
+lemmas
   [order add le_neq_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   le_neq_trans
-lemmas (in order)
+lemmas
   [order add neq_le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   neq_le_trans
-lemmas (in order)
+lemmas
   [order add less_imp_neq: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_imp_neq
-lemmas (in order)
+lemmas
   [order add eq_neq_eq_imp_neq: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
    eq_neq_eq_imp_neq
-lemmas (in order)
+lemmas
   [order add not_sym: order "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_sym
 
-lemmas (in linorder) [order del: order "op = :: 'a => 'a => bool" "op <=" "op <"] = _
+end
 
-lemmas (in linorder)
+context linorder
+begin
+
+lemmas
+  [order del: order "op = :: 'a => 'a => bool" "op <=" "op <"] = _
+
+lemmas
   [order add less_reflE: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_irrefl [THEN notE]
-lemmas (in linorder)
+lemmas
   [order add le_refl: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   order_refl
-lemmas (in linorder)
+lemmas
   [order add less_imp_le: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_imp_le
-lemmas (in linorder)
+lemmas
   [order add not_lessI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_less [THEN iffD2]
-lemmas (in linorder)
+lemmas
   [order add not_leI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_le [THEN iffD2]
-lemmas (in linorder)
+lemmas
   [order add not_lessD: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_less [THEN iffD1]
-lemmas (in linorder)
+lemmas
   [order add not_leD: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_le [THEN iffD1]
-lemmas (in linorder)
+lemmas
   [order add eqI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   antisym
-lemmas (in linorder)
+lemmas
   [order add eqD1: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   eq_refl
-lemmas (in linorder)
+lemmas
   [order add eqD2: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   sym [THEN eq_refl]
-lemmas (in linorder)
+lemmas
   [order add less_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_trans
-lemmas (in linorder)
+lemmas
   [order add less_le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_le_trans
-lemmas (in linorder)
+lemmas
   [order add le_less_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   le_less_trans
-lemmas (in linorder)
+lemmas
   [order add le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   order_trans
-lemmas (in linorder)
+lemmas
   [order add le_neq_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   le_neq_trans
-lemmas (in linorder)
+lemmas
   [order add neq_le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   neq_le_trans
-lemmas (in linorder)
+lemmas
   [order add less_imp_neq: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   less_imp_neq
-lemmas (in linorder)
+lemmas
   [order add eq_neq_eq_imp_neq: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   eq_neq_eq_imp_neq
-lemmas (in linorder)
+lemmas
   [order add not_sym: linorder "op = :: 'a => 'a => bool" "op <=" "op <"] =
   not_sym
+
+end
 
 
 setup {*
@@ -537,16 +548,17 @@ end
 subsection {* Dense orders *}
 
 class dense_linear_order = linorder + 
-  assumes gt_ex: "\<exists>y. x \<sqsubset> y" 
-  and lt_ex: "\<exists>y. y \<sqsubset> x"
-  and dense: "x \<sqsubset> y \<Longrightarrow> (\<exists>z. x \<sqsubset> z \<and> z \<sqsubset> y)"
+  assumes gt_ex: "\<exists>y. x < y" 
+  and lt_ex: "\<exists>y. y < x"
+  and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
   (*see further theory Dense_Linear_Order*)
-
+begin
 
 lemma interval_empty_iff:
-  fixes x y z :: "'a\<Colon>dense_linear_order"
-  shows "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
+  "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
   by (auto dest: dense)
+
+end
 
 subsection {* Name duplicates *}
 
@@ -860,7 +872,7 @@ lemma xt1:
   "a > b ==> f b = c ==> (!!x y. x > y ==> f x > f y) ==> f a > c"
   "a = f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
   "a >= b ==> f b = c ==> (!! x y. x >= y ==> f x >= f y) ==> f a >= c"
-by auto
+  by auto
 
 lemma xt2:
   "(a::'a::order) >= f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
@@ -1027,12 +1039,40 @@ lemma rev_predicate2D: "P x y ==> P <= Q ==> Q x y"
 
 subsection {* Monotonicity, least value operator and min/max *}
 
-locale mono =
-  fixes f
-  assumes mono: "A \<le> B \<Longrightarrow> f A \<le> f B"
+context order
+begin
 
-lemmas monoI [intro?] = mono.intro
-  and monoD [dest?] = mono.mono
+definition
+  mono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool"
+where
+  "mono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<le> f y)"
+
+lemma monoI [intro?]:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  shows "(\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y) \<Longrightarrow> mono f"
+  unfolding mono_def by iprover
+
+lemma monoD [dest?]:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  shows "mono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
+  unfolding mono_def by iprover
+
+end
+
+context linorder
+begin
+
+lemma min_of_mono:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
+  shows "mono f \<Longrightarrow> Orderings.min (f m) (f n) = f (min m n)"
+  by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)
+
+lemma max_of_mono:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
+  shows "mono f \<Longrightarrow> Orderings.max (f m) (f n) = f (max m n)"
+  by (auto simp: mono_def Orderings.max_def max_def intro: Orderings.antisym)
+
+end
 
 lemma LeastI2_order:
   "[| P (x::'a::order);
@@ -1076,15 +1116,6 @@ lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightar
 apply (simp add: max_def)
 apply (blast intro: order_antisym)
 done
-
-lemma min_of_mono:
-  "(!!x y. (f x <= f y) = (x <= y)) ==> min (f m) (f n) = f (min m n)"
-by (simp add: min_def)
-
-lemma max_of_mono:
-  "(!!x y. (f x <= f y) = (x <= y)) ==> max (f m) (f n) = f (max m n)"
-by (simp add: max_def)
-
 
 subsection {* legacy ML bindings *}
 

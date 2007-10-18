@@ -562,6 +562,10 @@ default; use '!' option for full details.
 
 *** HOL ***
 
+* localized monotonicity predicate in theory "Orderings";
+integrated lemmas max_of_mono and min_of_mono with this predicate.
+INCOMPATIBILITY.
+
 * class "div" now inherits from class "times" rather than "type".
 INCOMPATIBILITY.
 
