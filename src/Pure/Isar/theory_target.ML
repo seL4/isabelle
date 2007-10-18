@@ -195,8 +195,9 @@ fun declare_consts (ta as Target {target, is_locale, is_class}) depends decls lt
         val t = Term.list_comb (const, map Free xs);
       in (((c, mx12), t), thy') end;
     fun class_const ((c, _), _) ((_, (mx1, _)), t) =
-      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, mx1), t))
-      #-> LocalTheory.target o Class.remove_constraint target;
+      LocalTheory.raw_theory_result (Class.add_logical_const target ((c, mx1), t))
+      #> snd
+      #> LocalTheory.target (Class.refresh_syntax target);
 
     val (abbrs, lthy') = lthy
       |> LocalTheory.theory_result (fold_map const decls)
@@ -218,9 +219,10 @@ fun context_abbrev pos (c, t) lthy = lthy
   |> LocalDefs.add_def ((c, NoSyn), t);
 
 fun class_abbrev target prmode ((c, mx), rhs) lthy = lthy   (* FIXME pos *)
-  |> LocalTheory.raw_theory_result (Class.add_abbrev_in_class target prmode
+  |> LocalTheory.raw_theory_result (Class.add_syntactic_const target prmode
       ((c, mx), rhs))
-  |-> LocalTheory.target o Class.remove_constraint target;
+  |> snd
+  |> LocalTheory.target (Class.refresh_syntax target);
 
 in
 
