@@ -103,6 +103,17 @@ local
 
 val gr_ref = ref NONE : Nbe_Functions.T option ref;
 
+fun compile tab raw_s () =
+  let
+    val _ = univs_ref := (fn () => []);
+    val s = "Nbe.univs_ref := " ^ raw_s;
+    val _ = tracing (fn () => "\n--- generated code:\n" ^ s) ();
+    val _ = gr_ref := SOME tab;
+    val _ = use_text "" (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
+      Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
+      (!trace) s;
+    val _ = gr_ref := NONE;
+  in !univs_ref end;
 in
 
 fun lookup_fun s = case ! gr_ref
@@ -110,18 +121,9 @@ fun lookup_fun s = case ! gr_ref
   | SOME gr => Graph.get_node gr s;
 
 fun compile_univs tab ([], _) = []
-  | compile_univs tab (cs, raw_s) =
-      let
-        val _ = univs_ref := (fn () => []);
-        val s = "Nbe.univs_ref := " ^ raw_s;
-        val _ = tracing (fn () => "\n--- generated code:\n" ^ s) ();
-        val _ = gr_ref := SOME tab;
-        val _ = use_text "" (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
-          Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
-          (!trace) s;
-        val _ = gr_ref := NONE;
-        val univs = case !univs_ref () of [] => error "compile_univs" | univs => univs;
-      in cs ~~ univs end;
+  | compile_univs tab (cs, raw_s) = case CRITICAL (compile tab raw_s) ()
+     of [] => error "compile_univs"
+      | univs => cs ~~ univs;
 
 end; (*local*)
 
