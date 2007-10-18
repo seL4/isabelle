@@ -161,9 +161,9 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
 
 (* consts *)
 
-fun fork_mixfix false _ mx = (NoSyn, NoSyn, mx)
-  | fork_mixfix true false mx = (NoSyn, mx, NoSyn)
-  | fork_mixfix true true mx = (mx, NoSyn, NoSyn);
+fun fork_mixfix false _ mx = ((NoSyn, NoSyn), mx)
+  | fork_mixfix true false mx = ((NoSyn, mx), NoSyn)
+  | fork_mixfix true true mx = ((mx, NoSyn), NoSyn);
 
 fun locale_const (prmode as (mode, _)) pos ((c, mx), rhs) phi =
   let
@@ -190,21 +190,22 @@ fun declare_consts (ta as Target {target, is_locale, is_class}) depends decls lt
     fun const ((c, T), mx) thy =
       let
         val U = map #2 xs ---> T;
-        val (mx1, mx2, mx3) = fork_mixfix is_locale is_class mx;
+        val (mx12, mx3) = fork_mixfix is_locale is_class mx;
         val (const, thy') = Sign.declare_const pos (c, U, mx3) thy;
         val t = Term.list_comb (const, map Free xs);
-      in (((c, mx2), t), thy') end;
-    fun class_const ((c, _), mx) (_, t) =
-      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, mx), t))
+      in (((c, mx12), t), thy') end;
+    fun class_const ((c, _), _) ((_, (mx1, _)), t) =
+      LocalTheory.raw_theory_result (Class.add_const_in_class target ((c, mx1), t))
       #-> LocalTheory.target o Class.remove_constraint target;
 
     val (abbrs, lthy') = lthy
       |> LocalTheory.theory_result (fold_map const decls)
+    val abbrs' = (map o apfst o apsnd) snd abbrs;
   in
     lthy'
-    |> is_locale ? fold (term_syntax ta o locale_const Syntax.mode_default pos) abbrs
+    |> is_locale ? fold (term_syntax ta o locale_const Syntax.mode_default pos) abbrs'
     |> is_class ? fold2 class_const decls abbrs
-    |> fold_map (apfst (apsnd snd) oo LocalDefs.add_def) abbrs
+    |> fold_map (apfst (apsnd snd) oo LocalDefs.add_def) abbrs'
   end;
 
 
@@ -233,7 +234,7 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((raw_c, mx), raw
     val t = Morphism.term target_morphism raw_t;
 
     val xs = map Free (rev (Variable.add_fixed target_ctxt t []));
-    val (mx1, mx2, mx3) = fork_mixfix is_locale is_class mx;
+    val ((mx1, mx2), mx3) = fork_mixfix is_locale is_class mx;
 
     val global_rhs =
       singleton (Variable.export_terms (Variable.declare_term t target_ctxt) thy_ctxt)
