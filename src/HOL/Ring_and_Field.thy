@@ -1977,8 +1977,8 @@ proof -
       apply (insert prems)
       apply (auto simp add: 
 	ring_simps 
-	iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
-	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id])
+	iffD1[OF zero_le_iff_zero_nprt] iffD1[OF le_zero_iff_zero_pprt]
+	iffD1[OF le_zero_iff_pprt_id] iffD1[OF zero_le_iff_nprt_id])
 	apply(drule (1) mult_nonneg_nonpos[of a b], simp)
 	apply(drule (1) mult_nonneg_nonpos2[of b a], simp)
       done
@@ -2126,26 +2126,5 @@ proof -
     by (simp only: minus_le_iff)
   then show ?thesis by simp
 qed
-
-
-subsection {* Theorems for proof tools *}
-
-lemma add_mono_thms_ordered_semiring [noatp]:
-  fixes i j k :: "'a\<Colon>pordered_ab_semigroup_add"
-  shows "i \<le> j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
-    and "i = j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
-    and "i \<le> j \<and> k = l \<Longrightarrow> i + k \<le> j + l"
-    and "i = j \<and> k = l \<Longrightarrow> i + k = j + l"
-by (rule add_mono, clarify+)+
-
-lemma add_mono_thms_ordered_field [noatp]:
-  fixes i j k :: "'a\<Colon>pordered_cancel_ab_semigroup_add"
-  shows "i < j \<and> k = l \<Longrightarrow> i + k < j + l"
-    and "i = j \<and> k < l \<Longrightarrow> i + k < j + l"
-    and "i < j \<and> k \<le> l \<Longrightarrow> i + k < j + l"
-    and "i \<le> j \<and> k < l \<Longrightarrow> i + k < j + l"
-    and "i < j \<and> k < l \<Longrightarrow> i + k < j + l"
-by (auto intro: add_strict_right_mono add_strict_left_mono
-  add_less_le_mono add_le_less_mono add_strict_mono)
 
 end
