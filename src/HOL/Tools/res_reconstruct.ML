@@ -253,9 +253,10 @@ fun ints_of_stree_aux (Int n, ns) = n::ns
 
 fun ints_of_stree t = ints_of_stree_aux (t, []);
 
-fun decode_tstp ctxt vt0 (name, role, ts, annots) =
+fun decode_tstp vt0 (name, role, ts, annots) ctxt =
   let val deps = case annots of NONE => [] | SOME (source,_) => ints_of_stree source
-  in  (name, role, clause_of_strees ctxt vt0 ts, deps)  end;
+      val cl = clause_of_strees ctxt vt0 ts
+  in  ((name, role, cl, deps), fold Variable.declare_term (term_frees cl) ctxt)  end;
 
 fun dest_tstp ((((name, role), ts), annots), chs) =
   case chs of
@@ -280,7 +281,7 @@ fun tfree_constraints_of_clauses vt [] = vt
 
 fun decode_tstp_list ctxt tuples =
   let val vt0 = tfree_constraints_of_clauses Vartab.empty (map #3 tuples)
-  in  map (decode_tstp ctxt vt0) tuples  end;
+  in  #1 (fold_map (decode_tstp vt0) tuples ctxt) end;
 
 (** Finding a matching assumption. The literals may be permuted, and variable names
     may disagree. We have to try all combinations of literals (quadratic!) and 
