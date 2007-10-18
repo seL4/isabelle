@@ -2655,9 +2655,7 @@ text{* The integers are an instance of the above class: *}
 
 instance int:: finite_intvl_succ
   successor_int_def: "successor == (%i. i+1)"
-apply(intro_classes)
-apply(simp_all add: successor_int_def ord_class.atLeastAtMost[symmetric])
-done
+by intro_classes (simp_all add: successor_int_def)
 
 text{* Now @{term"[i..j::int]"} is defined for integers. *}
 

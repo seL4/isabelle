@@ -1145,7 +1145,7 @@ lemma bigo_lesso1: "ALL x. f x <= g x ==> f <o g =o O(h)"
   apply (unfold lesso_def)
   apply (subgoal_tac "(%x. max (f x - g x) 0) = 0")
 (*??Translation of TSTP raised an exception: Type unification failed: Variable ?'X2.0::type not of sort ord*)
-apply (metis bigo_zero ord_class.max)
+apply (metis bigo_zero)
   apply (unfold func_zero)
   apply (rule ext)
   apply (simp split: split_max)
