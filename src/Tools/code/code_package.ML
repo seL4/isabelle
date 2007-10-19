@@ -262,7 +262,7 @@ val (codeK, code_thmsK, code_depsK, code_propsK) =
 in
 
 val _ =
-  OuterSyntax.improper_command codeK "generate executable code for constants"
+  OuterSyntax.command codeK "generate executable code for constants"
     K.diag (P.!!! (code_exprP code_cmd) >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 fun codegen_command thy cmd =
