@@ -195,7 +195,7 @@ fun declare_consts (ta as Target {target, is_locale, is_class}) depends decls lt
         val t = Term.list_comb (const, map Free xs);
       in (((c, mx12), t), thy') end;
     fun class_const ((c, _), _) ((_, (mx1, _)), t) =
-      LocalTheory.raw_theory_result (Class.add_logical_const target ((c, mx1), t))
+      LocalTheory.raw_theory_result (Class.add_logical_const target pos ((c, mx1), t))
       #> snd
       #> LocalTheory.target (Class.refresh_syntax target);
 
@@ -218,9 +218,9 @@ fun context_abbrev pos (c, t) lthy = lthy
   |> ProofContext.add_abbrev Syntax.internalM pos (c, t) |> snd
   |> LocalDefs.add_def ((c, NoSyn), t);
 
-fun class_abbrev target prmode ((c, mx), rhs) lthy = lthy   (* FIXME pos *)
-  |> LocalTheory.raw_theory_result (Class.add_syntactic_const target prmode
-      ((c, mx), rhs))
+fun class_abbrev target prmode pos ((c, mx), rhs) lthy = lthy
+  |> LocalTheory.raw_theory_result
+       (Class.add_syntactic_const target prmode pos ((c, mx), rhs))
   |> snd
   |> LocalTheory.target (Class.refresh_syntax target);
 
@@ -248,7 +248,7 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((raw_c, mx), raw
       |-> (fn (lhs, _) =>
         let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
           term_syntax ta (locale_const prmode pos ((c, mx2), lhs')) #>
-          is_class ? class_abbrev target prmode ((c, mx1), lhs')
+          is_class ? class_abbrev target prmode pos ((c, mx1), lhs')
         end)
       |> context_abbrev pos (c, raw_t)
     else

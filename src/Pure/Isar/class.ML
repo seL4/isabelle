@@ -19,10 +19,10 @@ sig
   val is_class: theory -> class -> bool
   val these_params: theory -> sort -> (string * (string * typ)) list
   val init: class -> Proof.context -> Proof.context
-  val add_logical_const: string -> (string * mixfix) * term
-    -> theory -> string * theory
-  val add_syntactic_const: string -> Syntax.mode -> (string * mixfix) * term
-    -> theory -> string * theory
+  val add_logical_const: string -> Markup.property list
+    -> (string * mixfix) * term -> theory -> string * theory
+  val add_syntactic_const: string -> Syntax.mode -> Markup.property list
+    -> (string * mixfix) * term -> theory -> string * theory
   val refresh_syntax: class -> Proof.context -> Proof.context
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
@@ -315,9 +315,9 @@ datatype class_data = ClassData of {
     (*partial morphism of canonical interpretation*)
   intro: thm,
   defs: thm list,
-  operations: (string * ((term * typ) * (typ * int))) list
-    (*constant name ~> (locale term & typ,
-        (constant constraint, instantiaton index of class typ))*)
+  operations: (string * (((term * typ) * (typ * int)) * term)) list
+    (*constant name ~> ((locale term & typ,
+        (constant constraint, instantiaton index of class typ)), locale term for uncheck)*)
 };
 
 fun rep_class_data (ClassData d) = d;
@@ -439,7 +439,7 @@ fun add_class_data ((class, superclasses), (cs, base_sort, insttab, phi, intro))
       (SOME o the o Symtab.lookup insttab o fst o fst)
         (Locale.parameters_of_expr thy (Locale.Locale class));
     val operations = map (fn (v_ty as (_, ty'), (c, ty)) =>
-      (c, ((Free v_ty, ty'), (Logic.varifyT ty, 0)))) cs;
+      (c, (((Free v_ty, ty'), (Logic.varifyT ty, 0)), Free v_ty))) cs;
     val cs = (map o pairself) fst cs;
     val add_class = Graph.new_node (class,
         mk_class_data ((cs, base_sort, inst, phi, intro), ([], operations)))
@@ -448,18 +448,18 @@ fun add_class_data ((class, superclasses), (cs, base_sort, insttab, phi, intro))
     ClassData.map add_class thy
   end;
 
-fun register_operation class ((c, rhs), some_def) thy =
+fun register_operation class ((c, (dict, dict_rev)), some_def) thy =
   let
     val ty = Sign.the_const_constraint thy c;
     val typargs = Sign.const_typargs thy (c, ty);
     val typidx = find_index (fn TVar ((v, _), _) => Name.aT = v | _ => false) typargs;
-    val ty' = Term.fastype_of rhs;
+    val ty' = Term.fastype_of dict;
   in
     thy
     |> (ClassData.map o Graph.map_node class o map_class_data o apsnd)
       (fn (defs, operations) =>
-        (case some_def of NONE => defs | SOME def => def :: defs,
-          (c, ((rhs, ty'), (ty, typidx))) :: operations))
+        (fold cons (the_list some_def) defs,
+          (c, (((dict, ty'), (ty, typidx)), dict_rev)) :: operations))
   end;
 
 
@@ -572,24 +572,24 @@ fun synchronize_syntax thy sups base_sort ctxt =
     val operations = these_operations thy sups;
 
     (* constraints *)
-    fun local_constraint (c, (_, (ty, _))) =
+    fun local_constraint (c, ((_, (ty, _)),_ )) =
       let
         val ty' = ty
           |> map_atyps (fn ty as TVar ((v, 0), _) =>
                if v = Name.aT then TVar ((v, 0), base_sort) else ty)
           |> SOME;
       in (c, ty') end
-    val constraints = (map o apsnd) (fst o snd) operations;
+    val constraints = (map o apsnd) (fst o snd o fst) operations;
 
     (* check phase *)
     val typargs = Consts.typargs (ProofContext.consts_of ctxt);
-    fun check_const (c, ty) ((t, _), (_, idx)) =
+    fun check_const (c, ty) (((t, _), (_, idx)), _) =
       ((nth (typargs (c, ty)) idx), t);
     fun local_operation (c_ty as (c, _)) = AList.lookup (op =) operations c
       |> Option.map (check_const c_ty);
 
     (* uncheck phase *)
-    val proto_rews = map (fn (c, ((t, ty), _)) => (t, Const (c, ty))) operations;
+    val proto_rews = map (fn (c, (((t, ty), _), _)) => (t, Const (c, ty))) operations;
     fun rew_app f (t1 $ t2) = rew_app f t1 $ f t2
       | rew_app f t = t;
     val rews = (map o apfst o rew_app)
@@ -804,7 +804,7 @@ end; (*local*)
 
 (* definition in class target *)
 
-fun add_logical_const class ((c, mx), dict) thy =
+fun add_logical_const class pos ((c, mx), dict) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
@@ -815,17 +815,18 @@ fun add_logical_const class ((c, mx), dict) thy =
     val ty' = Term.fastype_of dict';
     val ty'' = Type.strip_sorts ty';
     val def_eq = Logic.mk_equals (Const (c', ty'), dict');
+
     val c'' = NameSpace.full (Sign.naming_of thy' |> NameSpace.add_path prfx) c;
   in
     thy'
-    |> Sign.hide_consts_i false [c'']
-    |> Sign.declare_const [] (c, ty'', mx) |> snd
+    |> Sign.hide_consts_i false [c''] (*FIXME*)
+    |> Sign.declare_const pos (c, ty'', mx) |> snd
     |> Sign.parent_path
     |> Sign.sticky_prefix prfx
     |> Thm.add_def false (c, def_eq)
     |>> Thm.symmetric
     |-> (fn def => class_interpretation class [def] [Thm.prop_of def]
-          #> register_operation class ((c', dict), SOME (Thm.varifyT def)))
+          #> register_operation class ((c', (dict, dict')), SOME (Thm.varifyT def)))
     |> Sign.restore_naming thy
     |> Sign.add_const_constraint (c', SOME ty')
     |> pair c'
@@ -834,20 +835,40 @@ fun add_logical_const class ((c, mx), dict) thy =
 
 (* abbreviation in class target *)
 
-fun add_syntactic_const class prmode ((c, mx), rhs) thy =
+fun expand_aux_abbrev thy class t =
+  let
+    val rews = map (Logic.dest_equals o Thm.prop_of) (these_defs thy [class]);
+    val (head, ts) = strip_comb t;
+    val tys = (fst o chop (length ts) o fst o strip_type o Term.fastype_of) head;
+    val head' = head
+      |> Pattern.eta_long tys
+      |> Consts.certify (Sign.pp thy) (Sign.tsig_of thy) true (Sign.consts_of thy);
+    val ts' = ts
+      |> map (Pattern.rewrite_term thy rews []);
+  in Term.betapplys (head', ts') end;
+
+fun add_syntactic_const class prmode pos ((c, mx), dict) thy =
   let
     val prfx = class_prefix class;
+    val thy' = thy |> Sign.add_path prfx;
     val phi = morphism thy class;
 
-    val naming = Sign.naming_of thy |> NameSpace.add_path prfx |> NameSpace.add_path prfx;
-      (*FIXME*)
-    val c' = NameSpace.full naming c;
-    val rhs' = (map_types Logic.unvarifyT o Morphism.term phi) rhs;
-    val ty' = Term.fastype_of rhs';
+    val c' = Sign.full_name thy' c;
+    val dict' = (expand_aux_abbrev thy' class o Morphism.term phi) dict;
+    val dict'' = map_types Logic.unvarifyT dict';
+    val ty' = Term.fastype_of dict'';
+
+    val c'' = NameSpace.full (Sign.naming_of thy' |> NameSpace.add_path prfx) c;
+    val ty'' = (Type.strip_sorts o Logic.unvarifyT) (Sign.the_const_constraint thy' c'');
   in
-    thy
+    thy'
+    |> Sign.add_const_constraint (c'', SOME ty'') (*FIXME*)
+    |> Sign.hide_consts_i false [c''] (*FIXME*)
+    |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts dict') |> snd
+    |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
-    |> register_operation class ((c', rhs), NONE)
+    |> register_operation class ((c', (dict, dict'')), NONE)
+    |> Sign.restore_naming thy
     |> pair c'
   end;
 
