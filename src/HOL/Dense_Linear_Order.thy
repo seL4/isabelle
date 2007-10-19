@@ -221,8 +221,9 @@ proof (simp only: atomize_eq, rule iffI)
   assume H: "\<exists>x. (\<forall>y\<in>L. y < x) \<and> (\<forall>y\<in>U. x < y)"
   then obtain x where xL: "\<forall>y\<in>L. y < x" and xU: "\<forall>y\<in>U. x < y" by blast
   {fix l u assume l: "l \<in> L" and u: "u \<in> U"
-    from less_trans[OF xL[rule_format, OF l] xU[rule_format, OF u]]
-    have "l < u" .}
+    have "l < x" using xL l by blast
+    also have "x < u" using xU u by blast
+    finally (less_trans) have "l < u" .}
   thus "\<forall>l\<in>L. \<forall>u\<in>U. l < u" by blast
 next
   assume H: "\<forall>l\<in>L. \<forall>u\<in>U. l < u"
@@ -241,7 +242,7 @@ lemma dlo_qe_noub:
   assumes ne: "L \<noteq> {}" and fL: "finite L"
   shows "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> {}. x < y)) \<equiv> True"
 proof(simp add: atomize_eq)
-  from gt_ex[rule_format, of "Max L"] obtain M where M: "Max L < M" by blast
+  from gt_ex[of "Max L"] obtain M where M: "Max L < M" by blast
   from ne fL have "\<forall>x \<in> L. x \<le> Max L" by simp
   with M have "\<forall>x\<in>L. x < M" by (auto intro: le_less_trans)
   thus "\<exists>x. \<forall>y\<in>L. y < x" by blast
@@ -251,19 +252,19 @@ lemma dlo_qe_nolb:
   assumes ne: "U \<noteq> {}" and fU: "finite U"
   shows "(\<exists>x. (\<forall>y \<in> {}. y < x) \<and> (\<forall>y \<in> U. x < y)) \<equiv> True"
 proof(simp add: atomize_eq)
-  from lt_ex[rule_format, of "Min U"] obtain M where M: "M < Min U" by blast
+  from lt_ex[of "Min U"] obtain M where M: "M < Min U" by blast
   from ne fU have "\<forall>x \<in> U. Min U \<le> x" by simp
   with M have "\<forall>x\<in>U. M < x" by (auto intro: less_le_trans)
   thus "\<exists>x. \<forall>y\<in>U. x < y" by blast
 qed
 
 lemma exists_neq: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t \<noteq> x" 
-  using gt_ex[rule_format, of t] by auto
+  using gt_ex[of t] by auto
 
 lemmas dlo_simps = order_refl less_irrefl not_less not_le exists_neq 
   le_less neq_iff linear less_not_permute
 
-lemma axiom: "dense_linear_order (op \<le>) (op <)" .
+lemma axiom: "dense_linear_order (op \<le>) (op <)" by fact
 lemma atoms:
   includes meta_term_syntax
   shows "TERM (less :: 'a \<Rightarrow> _)"
@@ -448,7 +449,7 @@ proof-
       from less_trans[OF t1x xt2] have t1t2: "t1 < t2" .
       let ?u = "between t1 t2"
       from between_less t1t2 have t1lu: "t1 < ?u" and ut2: "?u < t2" by auto
-      from lin_dense[rule_format, OF] noM t1x xt2 px t1lu ut2 have "P ?u" by blast
+      from lin_dense noM t1x xt2 px t1lu ut2 have "P ?u" by blast
       with t1M t2M have ?thesis by blast}
     ultimately show ?thesis by blast
   qed
