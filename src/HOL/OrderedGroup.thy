@@ -674,26 +674,34 @@ done
 subsection {* Lattice Ordered (Abelian) Groups *}
 
 class lordered_ab_group_meet = pordered_ab_group_add + lower_semilattice
+begin
 
-class lordered_ab_group_join = pordered_ab_group_add + upper_semilattice
-
-class lordered_ab_group = pordered_ab_group_add + lattice
-
-instance lordered_ab_group \<subseteq> lordered_ab_group_meet by default
-instance lordered_ab_group \<subseteq> lordered_ab_group_join by default
-
-lemma add_inf_distrib_left: "a + inf b c = inf (a + b) (a + (c::'a::{pordered_ab_group_add, lower_semilattice}))"
-apply (rule order_antisym)
+lemma add_inf_distrib_left:
+  "a + inf b c = inf (a + b) (a + c)"
+apply (rule antisym)
 apply (simp_all add: le_infI)
-apply (rule add_le_imp_le_left [of "-a"])
-apply (simp only: add_assoc[symmetric], simp)
+apply (rule add_le_imp_le_left [of "uminus a"])
+apply (simp only: add_assoc [symmetric], simp)
 apply rule
 apply (rule add_le_imp_le_left[of "a"], simp only: add_assoc[symmetric], simp)+
 done
 
-lemma add_sup_distrib_left: "a + sup b c = sup (a + b) (a+ (c::'a::{pordered_ab_group_add, upper_semilattice}))" 
-apply (rule order_antisym)
-apply (rule add_le_imp_le_left [of "-a"])
+lemma add_inf_distrib_right:
+  "inf a b + c = inf (a + c) (b + c)"
+proof -
+  have "c + inf a b = inf (c+a) (c+b)" by (simp add: add_inf_distrib_left)
+  thus ?thesis by (simp add: add_commute)
+qed
+
+end
+
+class lordered_ab_group_join = pordered_ab_group_add + upper_semilattice
+begin
+
+lemma add_sup_distrib_left:
+  "a + sup b c = sup (a + b) (a + c)" 
+apply (rule antisym)
+apply (rule add_le_imp_le_left [of "uminus a"])
 apply (simp only: add_assoc[symmetric], simp)
 apply rule
 apply (rule add_le_imp_le_left [of "a"], simp only: add_assoc[symmetric], simp)+
@@ -701,29 +709,39 @@ apply (rule le_supI)
 apply (simp_all)
 done
 
-lemma add_inf_distrib_right: "inf a b + (c::'a::lordered_ab_group) = inf (a+c) (b+c)"
-proof -
-  have "c + inf a b = inf (c+a) (c+b)" by (simp add: add_inf_distrib_left)
-  thus ?thesis by (simp add: add_commute)
-qed
-
-lemma add_sup_distrib_right: "sup a b + (c::'a::lordered_ab_group) = sup (a+c) (b+c)"
+lemma add_sup_distrib_right:
+  "sup a b + c = sup (a+c) (b+c)"
 proof -
   have "c + sup a b = sup (c+a) (c+b)" by (simp add: add_sup_distrib_left)
   thus ?thesis by (simp add: add_commute)
 qed
 
+end
+
+class lordered_ab_group = pordered_ab_group_add + lattice
+begin
+
+subclass lordered_ab_group_meet by unfold_locales
+subclass lordered_ab_group_join by unfold_locales
+
+end
+
+context lordered_ab_group
+begin
+
 lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
-lemma inf_eq_neg_sup: "inf a (b\<Colon>'a\<Colon>lordered_ab_group) = - sup (-a) (-b)"
+lemma inf_eq_neg_sup: "inf a b = - sup (-a) (-b)"
 proof (rule inf_unique)
   fix a b :: 'a
-  show "- sup (-a) (-b) \<le> a" by (rule add_le_imp_le_right [of _ "sup (-a) (-b)"])
-    (simp, simp add: add_sup_distrib_left)
+  show "- sup (-a) (-b) \<le> a"
+    by (rule add_le_imp_le_right [of _ "sup (uminus a) (uminus b)"])
+      (simp, simp add: add_sup_distrib_left)
 next
   fix a b :: 'a
-  show "- sup (-a) (-b) \<le> b" by (rule add_le_imp_le_right [of _ "sup (-a) (-b)"])
-    (simp, simp add: add_sup_distrib_left)
+  show "- sup (-a) (-b) \<le> b"
+    by (rule add_le_imp_le_right [of _ "sup (uminus a) (uminus b)"])
+      (simp, simp add: add_sup_distrib_left)
 next
   fix a b c :: 'a
   assume "a \<le> b" "a \<le> c"
@@ -731,15 +749,17 @@ next
     (simp add: le_supI)
 qed
   
-lemma sup_eq_neg_inf: "sup a (b\<Colon>'a\<Colon>lordered_ab_group) = - inf (-a) (-b)"
+lemma sup_eq_neg_inf: "sup a b = - inf (-a) (-b)"
 proof (rule sup_unique)
   fix a b :: 'a
-  show "a \<le> - inf (-a) (-b)" by (rule add_le_imp_le_right [of _ "inf (-a) (-b)"])
-    (simp, simp add: add_inf_distrib_left)
+  show "a \<le> - inf (-a) (-b)"
+    by (rule add_le_imp_le_right [of _ "inf (uminus a) (uminus b)"])
+      (simp, simp add: add_inf_distrib_left)
 next
   fix a b :: 'a
-  show "b \<le> - inf (-a) (-b)" by (rule add_le_imp_le_right [of _ "inf (-a) (-b)"])
-    (simp, simp add: add_inf_distrib_left)
+  show "b \<le> - inf (-a) (-b)"
+    by (rule add_le_imp_le_right [of _ "inf (uminus a) (uminus b)"])
+      (simp, simp add: add_inf_distrib_left)
 next
   fix a b c :: 'a
   assume "a \<le> c" "b \<le> c"
@@ -747,7 +767,7 @@ next
     (simp add: le_infI)
 qed
 
-lemma add_eq_inf_sup: "a + b = sup a b + inf a (b\<Colon>'a\<Colon>lordered_ab_group)"
+lemma add_eq_inf_sup: "a + b = sup a b + inf a b"
 proof -
   have "0 = - inf 0 (a-b) + inf (a-b) 0" by (simp add: inf_commute)
   hence "0 = sup 0 (b-a) + inf (a-b) 0" by (simp add: inf_eq_neg_sup)
@@ -756,7 +776,7 @@ proof -
     by (simp add: diff_minus add_commute)
   thus ?thesis
     apply (simp add: compare_rls)
-    apply (subst add_left_cancel[symmetric, of "a+b" "sup a b + inf a b" "-a"])
+    apply (subst add_left_cancel [symmetric, of "plus a b" "plus (sup a b) (inf a b)" "uminus a"])
     apply (simp only: add_assoc, simp add: add_assoc[symmetric])
     done
 qed
@@ -764,27 +784,27 @@ qed
 subsection {* Positive Part, Negative Part, Absolute Value *}
 
 definition
-  nprt :: "'a \<Rightarrow> ('a::lordered_ab_group)" where
+  nprt :: "'a \<Rightarrow> 'a" where
   "nprt x = inf x 0"
 
 definition
-  pprt :: "'a \<Rightarrow> ('a::lordered_ab_group)" where
+  pprt :: "'a \<Rightarrow> 'a" where
   "pprt x = sup x 0"
 
 lemma prts: "a = pprt a + nprt a"
-by (simp add: pprt_def nprt_def add_eq_inf_sup[symmetric])
+  by (simp add: pprt_def nprt_def add_eq_inf_sup[symmetric])
 
 lemma zero_le_pprt[simp]: "0 \<le> pprt a"
-by (simp add: pprt_def)
+  by (simp add: pprt_def)
 
 lemma nprt_le_zero[simp]: "nprt a \<le> 0"
-by (simp add: nprt_def)
+  by (simp add: nprt_def)
 
-lemma le_eq_neg: "(a \<le> -b) = (a + b \<le> (0::_::lordered_ab_group))" (is "?l = ?r")
+lemma le_eq_neg: "a \<le> - b \<longleftrightarrow> a + b \<le> 0" (is "?l = ?r")
 proof -
   have a: "?l \<longrightarrow> ?r"
     apply (auto)
-    apply (rule add_le_imp_le_right[of _ "-b" _])
+    apply (rule add_le_imp_le_right[of _ "uminus b" _])
     apply (simp add: add_assoc)
     done
   have b: "?r \<longrightarrow> ?l"
@@ -798,19 +818,19 @@ qed
 lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
-lemma pprt_eq_id[simp,noatp]: "0 <= x \<Longrightarrow> pprt x = x"
-  by (simp add: pprt_def le_iff_sup sup_aci)
+lemma pprt_eq_id [simp, noatp]: "0 \<le> x \<Longrightarrow> pprt x = x"
+  by (simp add: pprt_def le_iff_sup sup_ACI)
 
-lemma nprt_eq_id[simp,noatp]: "x <= 0 \<Longrightarrow> nprt x = x"
-  by (simp add: nprt_def le_iff_inf inf_aci)
+lemma nprt_eq_id [simp, noatp]: "x \<le> 0 \<Longrightarrow> nprt x = x"
+  by (simp add: nprt_def le_iff_inf inf_ACI)
 
-lemma pprt_eq_0[simp,noatp]: "x <= 0 \<Longrightarrow> pprt x = 0"
-  by (simp add: pprt_def le_iff_sup sup_aci)
+lemma pprt_eq_0 [simp, noatp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
+  by (simp add: pprt_def le_iff_sup sup_ACI)
 
-lemma nprt_eq_0[simp,noatp]: "0 <= x \<Longrightarrow> nprt x = 0"
-  by (simp add: nprt_def le_iff_inf inf_aci)
+lemma nprt_eq_0 [simp, noatp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
+  by (simp add: nprt_def le_iff_inf inf_ACI)
 
-lemma sup_0_imp_0: "sup a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
+lemma sup_0_imp_0: "sup a (- a) = 0 \<Longrightarrow> a = 0"
 proof -
   {
     fix a::'a
@@ -826,23 +846,25 @@ proof -
   from p[OF hyp] p[OF hyp2] show "a = 0" by simp
 qed
 
-lemma inf_0_imp_0: "inf a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
+lemma inf_0_imp_0: "inf a (-a) = 0 \<Longrightarrow> a = 0"
 apply (simp add: inf_eq_neg_sup)
 apply (simp add: sup_commute)
 apply (erule sup_0_imp_0)
 done
 
-lemma inf_0_eq_0[simp,noatp]: "(inf a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
-by (auto, erule inf_0_imp_0)
+lemma inf_0_eq_0 [simp, noatp]: "inf a (- a) = 0 \<longleftrightarrow> a = 0"
+  by (rule, erule inf_0_imp_0) simp
 
-lemma sup_0_eq_0[simp,noatp]: "(sup a (-a) = 0) = (a = (0::'a::lordered_ab_group))"
-by (auto, erule sup_0_imp_0)
+lemma sup_0_eq_0 [simp, noatp]: "sup a (- a) = 0 \<longleftrightarrow> a = 0"
+  by (rule, erule sup_0_imp_0) simp
 
-lemma zero_le_double_add_iff_zero_le_single_add[simp]: "(0 \<le> a + a) = (0 \<le> (a::'a::lordered_ab_group))"
+lemma zero_le_double_add_iff_zero_le_single_add [simp]:
+  "0 \<le> a + a \<longleftrightarrow> 0 \<le> a"
 proof
   assume "0 <= a + a"
   hence a:"inf (a+a) 0 = 0" by (simp add: le_iff_inf inf_commute)
-  have "(inf a 0)+(inf a 0) = inf (inf (a+a) 0) a" (is "?l=_") by (simp add: add_sup_inf_distribs inf_aci)
+  have "(inf a 0)+(inf a 0) = inf (inf (a+a) 0) a" (is "?l=_")
+    by (simp add: add_sup_inf_distribs inf_ACI)
   hence "?l = 0 + inf a 0" by (simp add: a, simp add: inf_commute)
   hence "inf a 0 = 0" by (simp only: add_right_cancel)
   then show "0 <= a" by (simp add: le_iff_inf inf_commute)    
@@ -851,182 +873,206 @@ next
   show "0 <= a + a" by (simp add: add_mono[OF a a, simplified])
 qed
 
-lemma double_add_le_zero_iff_single_add_le_zero[simp]: "(a + a <= 0) = ((a::'a::lordered_ab_group) <= 0)" 
+lemma double_zero: "a + a = 0 \<longleftrightarrow> a = 0"
+proof
+  assume assm: "a + a = 0"
+  then have "a + a + - a = - a" by simp
+  then have "a + (a + - a) = - a" by (simp only: add_assoc)
+  then have a: "- a = a" by simp (*FIXME tune proof*)
+  show "a = 0" apply rule
+  apply (unfold neg_le_iff_le [symmetric, of a])
+  unfolding a apply simp
+  unfolding zero_le_double_add_iff_zero_le_single_add [symmetric, of a]
+  unfolding assm unfolding le_less apply simp_all done
+next
+  assume "a = 0" then show "a + a = 0" by simp
+qed
+
+lemma zero_less_double_add_iff_zero_less_single_add:
+  "0 < a + a \<longleftrightarrow> 0 < a"
+proof (cases "a = 0")
+  case True then show ?thesis by auto
+next
+  case False then show ?thesis (*FIXME tune proof*)
+  unfolding less_le apply simp apply rule
+  apply clarify
+  apply rule
+  apply assumption
+  apply (rule notI)
+  unfolding double_zero [symmetric, of a] apply simp
+  done
+qed
+
+lemma double_add_le_zero_iff_single_add_le_zero [simp]:
+  "a + a \<le> 0 \<longleftrightarrow> a \<le> 0" 
 proof -
-  have "(a + a <= 0) = (0 <= -(a+a))" by (subst le_minus_iff, simp)
-  moreover have "\<dots> = (a <= 0)" by (simp add: zero_le_double_add_iff_zero_le_single_add)
+  have "a + a \<le> 0 \<longleftrightarrow> 0 \<le> - (a + a)" by (subst le_minus_iff, simp)
+  moreover have "\<dots> \<longleftrightarrow> a \<le> 0" by (simp add: zero_le_double_add_iff_zero_le_single_add)
   ultimately show ?thesis by blast
 qed
 
-lemma double_add_less_zero_iff_single_less_zero[simp]: "(a+a<0) = ((a::'a::{pordered_ab_group_add,linorder}) < 0)" (is ?s)
-proof cases
-  assume a: "a < 0"
-  thus ?s by (simp add:  add_strict_mono[OF a a, simplified])
-next
-  assume "~(a < 0)" 
-  hence a:"0 <= a" by (simp)
-  hence "0 <= a+a" by (simp add: add_mono[OF a a, simplified])
-  hence "~(a+a < 0)" by simp
-  with a show ?thesis by simp 
+lemma double_add_less_zero_iff_single_less_zero [simp]:
+  "a + a < 0 \<longleftrightarrow> a < 0"
+proof -
+  have "a + a < 0 \<longleftrightarrow> 0 < - (a + a)" by (subst less_minus_iff, simp)
+  moreover have "\<dots> \<longleftrightarrow> a < 0" by (simp add: zero_less_double_add_iff_zero_less_single_add)
+  ultimately show ?thesis by blast
 qed
 
+end
+
+lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
+
 class lordered_ab_group_abs = lordered_ab_group + abs +
-  assumes abs_lattice: "abs x = sup x (uminus x)"
+  assumes abs_lattice: "\<bar>x\<bar> = sup x (- x)"
+begin
 
-lemma abs_zero[simp]: "abs 0 = (0::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice)
+lemma abs_zero [simp]: "\<bar>0\<bar> = 0"
+  by (simp add: abs_lattice)
 
-lemma abs_eq_0[simp]: "(abs a = 0) = (a = (0::'a::lordered_ab_group_abs))"
-by (simp add: abs_lattice)
+lemma abs_eq_0 [simp]: "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
+  by (simp add: abs_lattice)
 
-lemma abs_0_eq[simp]: "(0 = abs a) = (a = (0::'a::lordered_ab_group_abs))"
+lemma abs_0_eq [simp, noatp]: "0 = \<bar>a\<bar> \<longleftrightarrow> a = 0"
 proof -
   have "(0 = abs a) = (abs a = 0)" by (simp only: eq_ac)
   thus ?thesis by simp
 qed
 
-declare abs_0_eq [noatp] (*essentially the same as the other one*)
+lemma neg_inf_eq_sup [simp]: "- inf a b = sup (-a) (-b)"
+  by (simp add: inf_eq_neg_sup)
 
-lemma neg_inf_eq_sup[simp]: "- inf a (b::_::lordered_ab_group) = sup (-a) (-b)"
-by (simp add: inf_eq_neg_sup)
+lemma neg_sup_eq_inf [simp]: "- sup a b = inf (-a) (-b)"
+  by (simp del: neg_inf_eq_sup add: sup_eq_neg_inf)
 
-lemma neg_sup_eq_inf[simp]: "- sup a (b::_::lordered_ab_group) = inf (-a) (-b)"
-by (simp del: neg_inf_eq_sup add: sup_eq_neg_inf)
-
-lemma sup_eq_if: "sup a (-a) = (if a < 0 then -a else (a::'a::{lordered_ab_group, linorder}))"
+lemma abs_ge_zero [simp]: "0 \<le> \<bar>a\<bar>"
 proof -
-  note b = add_le_cancel_right[of a a "-a",symmetric,simplified]
-  have c: "a + a = 0 \<Longrightarrow> -a = a" by (rule add_right_imp_eq[of _ a], simp)
-  show ?thesis by (auto simp add: max_def b linorder_not_less sup_max)
-qed
-
-lemma abs_if_lattice: "\<bar>a\<bar> = (if a < 0 then -a else (a::'a::{lordered_ab_group_abs, linorder}))"
-proof -
-  show ?thesis by (simp add: abs_lattice sup_eq_if)
-qed
-
-lemma abs_ge_zero[simp]: "0 \<le> abs (a::'a::lordered_ab_group_abs)"
-proof -
-  have a:"a <= abs a" and b:"-a <= abs a" by (auto simp add: abs_lattice)
-  show ?thesis by (rule add_mono[OF a b, simplified])
+  have a: "a \<le> \<bar>a\<bar>" and b: "- a \<le> \<bar>a\<bar>" by (auto simp add: abs_lattice)
+  show ?thesis by (rule add_mono [OF a b, simplified])
 qed
   
-lemma abs_le_zero_iff [simp]: "(abs a \<le> (0::'a::lordered_ab_group_abs)) = (a = 0)" 
+lemma abs_le_zero_iff [simp]: "\<bar>a\<bar> \<le> 0 \<longleftrightarrow> a = 0" 
 proof
-  assume "abs a <= 0"
-  hence "abs a = 0" by (auto dest: order_antisym)
+  assume "\<bar>a\<bar> \<le> 0"
+  then have "\<bar>a\<bar> = 0" by (rule antisym) simp
   thus "a = 0" by simp
 next
   assume "a = 0"
-  thus "abs a <= 0" by simp
+  thus "\<bar>a\<bar> \<le> 0" by simp
 qed
 
-lemma zero_less_abs_iff [simp]: "(0 < abs a) = (a \<noteq> (0::'a::lordered_ab_group_abs))"
-by (simp add: order_less_le)
+lemma zero_less_abs_iff [simp]: "0 < \<bar>a\<bar> \<longleftrightarrow> a \<noteq> 0"
+  by (simp add: less_le)
 
-lemma abs_not_less_zero [simp]: "~ abs a < (0::'a::lordered_ab_group_abs)"
+lemma abs_not_less_zero [simp]: "\<not> \<bar>a\<bar> < 0"
 proof -
-  have a:"!! x (y::_::order). x <= y \<Longrightarrow> ~(y < x)" by auto
+  have a: "\<And>x y. x \<le> y \<Longrightarrow> \<not> y < x" by auto
   show ?thesis by (simp add: a)
 qed
 
-lemma abs_ge_self: "a \<le> abs (a::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice)
+lemma abs_ge_self: "a \<le> \<bar>a\<bar>"
+  by (auto simp add: abs_lattice)
 
-lemma abs_ge_minus_self: "-a \<le> abs (a::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice)
+lemma abs_ge_minus_self: "- a \<le> \<bar>a\<bar>"
+  by (auto simp add: abs_lattice)
 
-lemma abs_prts: "abs (a::_::lordered_ab_group_abs) = pprt a - nprt a"
-apply (simp add: pprt_def nprt_def diff_minus)
-apply (simp add: add_sup_inf_distribs sup_aci abs_lattice[symmetric])
-apply (subst sup_absorb2, auto)
-done
+lemma abs_minus_cancel [simp]: "\<bar>-a\<bar> = \<bar>a\<bar>"
+  by (simp add: abs_lattice sup_commute)
 
-lemma abs_minus_cancel [simp]: "abs (-a) = abs(a::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice sup_commute)
-
-lemma abs_idempotent [simp]: "abs (abs a) = abs (a::'a::lordered_ab_group_abs)"
-apply (simp add: abs_lattice[of "abs a"])
+lemma abs_idempotent [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
+apply (simp add: abs_lattice [of "abs a"])
 apply (subst sup_absorb1)
-apply (rule order_trans[of _ 0])
+apply (rule order_trans [of _ zero])
 by auto
 
 lemma abs_minus_commute: 
-  fixes a :: "'a::lordered_ab_group_abs"
-  shows "abs (a-b) = abs(b-a)"
+  "\<bar>a - b\<bar> = \<bar>b - a\<bar>"
 proof -
-  have "abs (a-b) = abs (- (a-b))" by (simp only: abs_minus_cancel)
-  also have "... = abs(b-a)" by simp
+  have "\<bar>a - b\<bar> = \<bar>- (a - b)\<bar>" by (simp only: abs_minus_cancel)
+  also have "... = \<bar>b - a\<bar>" by simp
   finally show ?thesis .
 qed
 
-lemma zero_le_iff_zero_nprt: "(0 \<le> a) = (nprt a = 0)"
-by (simp add: le_iff_inf nprt_def inf_commute)
-
-lemma le_zero_iff_zero_pprt: "(a \<le> 0) = (pprt a = 0)"
-by (simp add: le_iff_sup pprt_def sup_commute)
-
-lemma le_zero_iff_pprt_id: "(0 \<le> a) = (pprt a = a)"
-by (simp add: le_iff_sup pprt_def sup_commute)
-
-lemma zero_le_iff_nprt_id: "(a \<le> 0) = (nprt a = a)"
-by (simp add: le_iff_inf nprt_def inf_commute)
-
-lemma pprt_mono[simp,noatp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> pprt a <= pprt b"
-  by (simp add: le_iff_sup pprt_def sup_aci)
-
-lemma nprt_mono[simp,noatp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> nprt a <= nprt b"
-  by (simp add: le_iff_inf nprt_def inf_aci)
-
-lemma pprt_neg: "pprt (-x) = - nprt x"
-  by (simp add: pprt_def nprt_def)
-
-lemma nprt_neg: "nprt (-x) = - pprt x"
-  by (simp add: pprt_def nprt_def)
-
-lemma abs_of_nonneg [simp]: "0 \<le> a \<Longrightarrow> abs a = (a::'a::lordered_ab_group_abs)"
-by (simp add: iffD1[OF zero_le_iff_zero_nprt] iffD1[OF le_zero_iff_pprt_id] abs_prts)
-
-lemma abs_of_pos: "0 < (x::'a::lordered_ab_group_abs) ==> abs x = x";
-by (rule abs_of_nonneg, rule order_less_imp_le);
-
-lemma abs_of_nonpos [simp]: "a \<le> 0 \<Longrightarrow> abs a = -(a::'a::lordered_ab_group_abs)"
-by (simp add: iffD1[OF le_zero_iff_zero_pprt] iffD1[OF zero_le_iff_nprt_id] abs_prts)
-
-lemma abs_of_neg: "(x::'a::lordered_ab_group_abs) <  0 ==> 
-  abs x = - x"
-by (rule abs_of_nonpos, rule order_less_imp_le)
-
-lemma abs_leI: "[|a \<le> b; -a \<le> b|] ==> abs a \<le> (b::'a::lordered_ab_group_abs)"
-by (simp add: abs_lattice le_supI)
-
-lemma le_minus_self_iff: "(a \<le> -a) = (a \<le> (0::'a::lordered_ab_group))"
+lemma abs_prts: "\<bar>a\<bar> = pprt a - nprt a"
 proof -
-  from add_le_cancel_left[of "-a" "a+a" "0"] have "(a <= -a) = (a+a <= 0)" 
+  have "0 \<le> \<bar>a\<bar>" by simp
+  then have "0 \<le> sup a (- a)" unfolding abs_lattice .
+  then have "sup (sup a (- a)) 0 = sup a (- a)" by (rule sup_absorb1)
+  then show ?thesis
+    by (simp add: add_sup_inf_distribs sup_ACI
+      pprt_def nprt_def diff_minus abs_lattice)
+qed
+  
+lemma zero_le_iff_zero_nprt: "0 \<le> a \<longleftrightarrow> nprt a = 0"
+  by (simp add: le_iff_inf nprt_def inf_commute)
+
+lemma le_zero_iff_zero_pprt: "a \<le> 0 \<longleftrightarrow> pprt a = 0"
+  by (simp add: le_iff_sup pprt_def sup_commute)
+
+lemma le_zero_iff_pprt_id: "0 \<le> a \<longleftrightarrow> pprt a = a"
+  by (simp add: le_iff_sup pprt_def sup_commute)
+
+lemma zero_le_iff_nprt_id: "a \<le> 0 \<longleftrightarrow> nprt a = a"
+by (simp add: le_iff_inf nprt_def inf_commute)
+
+lemma pprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> pprt a \<le> pprt b"
+  by (simp add: le_iff_sup pprt_def sup_ACI sup_assoc [symmetric, of a])
+
+lemma nprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> nprt a \<le> nprt b"
+  by (simp add: le_iff_inf nprt_def inf_ACI inf_assoc [symmetric, of a])
+
+lemma pprt_neg: "pprt (- x) = - nprt x"
+  by (simp add: pprt_def nprt_def)
+
+lemma nprt_neg: "nprt (- x) = - pprt x"
+  by (simp add: pprt_def nprt_def)
+
+lemma abs_of_nonneg [simp]: "0 \<le> a \<Longrightarrow> \<bar>a\<bar> = a"
+  by (simp add: iffD1 [OF zero_le_iff_zero_nprt]
+    iffD1[OF le_zero_iff_pprt_id] abs_prts)
+
+lemma abs_of_pos: "0 < x \<Longrightarrow> \<bar>x\<bar> = x"
+  by (rule abs_of_nonneg, rule less_imp_le)
+
+lemma abs_of_nonpos [simp]: "a \<le> 0 \<Longrightarrow> \<bar>a\<bar> = - a"
+  by (simp add: iffD1 [OF le_zero_iff_zero_pprt]
+    iffD1 [OF zero_le_iff_nprt_id] abs_prts)
+
+lemma abs_of_neg: "x < 0 \<Longrightarrow> \<bar>x\<bar> = - x"
+  by (rule abs_of_nonpos, rule less_imp_le)
+
+lemma abs_leI: "a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
+  by (simp add: abs_lattice le_supI)
+
+lemma le_minus_self_iff: "a \<le> - a \<longleftrightarrow> a \<le> 0"
+proof -
+  from add_le_cancel_left [of "uminus a" "plus a a" zero]
+  have "(a <= -a) = (a+a <= 0)" 
     by (simp add: add_assoc[symmetric])
   thus ?thesis by simp
 qed
 
-lemma minus_le_self_iff: "(-a \<le> a) = (0 \<le> (a::'a::lordered_ab_group))"
+lemma minus_le_self_iff: "- a \<le> a \<longleftrightarrow> 0 \<le> a"
 proof -
-  from add_le_cancel_left[of "-a" "0" "a+a"] have "(-a <= a) = (0 <= a+a)" 
+  from add_le_cancel_left [of "uminus a" zero "plus a a"]
+  have "(-a <= a) = (0 <= a+a)" 
     by (simp add: add_assoc[symmetric])
   thus ?thesis by simp
 qed
 
-lemma abs_le_D1: "abs a \<le> b ==> a \<le> (b::'a::lordered_ab_group_abs)"
-by (insert abs_ge_self, blast intro: order_trans)
+lemma abs_le_D1: "\<bar>a\<bar> \<le> b \<Longrightarrow> a \<le> b"
+  by (insert abs_ge_self, blast intro: order_trans)
 
-lemma abs_le_D2: "abs a \<le> b ==> -a \<le> (b::'a::lordered_ab_group_abs)"
-by (insert abs_le_D1 [of "-a"], simp)
+lemma abs_le_D2: "\<bar>a\<bar> \<le> b \<Longrightarrow> - a \<le> b"
+  by (insert abs_le_D1 [of "uminus a"], simp)
 
-lemma abs_le_iff: "(abs a \<le> b) = (a \<le> b & -a \<le> (b::'a::lordered_ab_group_abs))"
-by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
+lemma abs_le_iff: "\<bar>a\<bar> \<le> b \<longleftrightarrow> a \<le> b \<and> - a \<le> b"
+  by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
 
-lemma abs_triangle_ineq: "abs(a+b) \<le> abs a + abs(b::'a::lordered_ab_group_abs)"
+lemma abs_triangle_ineq: "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
 proof -
   have g:"abs a + abs b = sup (a+b) (sup (-a-b) (sup (-a+b) (a + (-b))))" (is "_=sup ?m ?n")
-    by (simp add: abs_lattice add_sup_inf_distribs sup_aci diff_minus)
+    by (simp add: abs_lattice add_sup_inf_distribs sup_ACI diff_minus)
   have a:"a+b <= sup ?m ?n" by (simp)
   have b:"-a-b <= ?n" by (simp) 
   have c:"?n <= sup ?m ?n" by (simp)
@@ -1037,18 +1083,16 @@ proof -
   with g[symmetric] show ?thesis by simp
 qed
 
-lemma abs_triangle_ineq2: "abs (a::'a::lordered_ab_group_abs) - 
-    abs b <= abs (a - b)"
+lemma abs_triangle_ineq2: "\<bar>a\<bar> - \<bar>b\<bar> \<le> \<bar>a - b\<bar>"
   apply (simp add: compare_rls)
-  apply (subgoal_tac "abs a = abs (a - b + b)")
+  apply (subgoal_tac "abs a = abs (plus (minus a b) b)")
   apply (erule ssubst)
   apply (rule abs_triangle_ineq)
-  apply (rule arg_cong);back;
+  apply (rule arg_cong) back
   apply (simp add: compare_rls)
 done
 
-lemma abs_triangle_ineq3: 
-    "abs(abs (a::'a::lordered_ab_group_abs) - abs b) <= abs (a - b)"
+lemma abs_triangle_ineq3: "\<bar>\<bar>a\<bar> - \<bar>b\<bar>\<bar> \<le> \<bar>a - b\<bar>"
   apply (subst abs_le_iff)
   apply auto
   apply (rule abs_triangle_ineq2)
@@ -1056,9 +1100,8 @@ lemma abs_triangle_ineq3:
   apply (rule abs_triangle_ineq2)
 done
 
-lemma abs_triangle_ineq4: "abs ((a::'a::lordered_ab_group_abs) - b) <= 
-    abs a + abs b"
-proof -;
+lemma abs_triangle_ineq4: "\<bar>a - b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
+proof -
   have "abs(a - b) = abs(a + - b)"
     by (subst diff_minus, rule refl)
   also have "... <= abs a + abs (- b)"
@@ -1067,8 +1110,7 @@ proof -;
     by simp
 qed
 
-lemma abs_diff_triangle_ineq:
-     "\<bar>(a::'a::lordered_ab_group_abs) + b - (c+d)\<bar> \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>"
+lemma abs_diff_triangle_ineq: "\<bar>a + b - (c + d)\<bar> \<le> \<bar>a - c\<bar> + \<bar>b - d\<bar>"
 proof -
   have "\<bar>a + b - (c+d)\<bar> = \<bar>(a-c) + (b-d)\<bar>" by (simp add: diff_minus add_ac)
   also have "... \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>" by (rule abs_triangle_ineq)
@@ -1076,15 +1118,31 @@ proof -
 qed
 
 lemma abs_add_abs[simp]:
-fixes a:: "'a::{lordered_ab_group_abs}"
-shows "abs(abs a + abs b) = abs a + abs b" (is "?L = ?R")
-proof (rule order_antisym)
+  "\<bar>\<bar>a\<bar> + \<bar>b\<bar>\<bar> = \<bar>a\<bar> + \<bar>b\<bar>" (is "?L = ?R")
+proof (rule antisym)
   show "?L \<ge> ?R" by(rule abs_ge_self)
 next
   have "?L \<le> \<bar>\<bar>a\<bar>\<bar> + \<bar>\<bar>b\<bar>\<bar>" by(rule abs_triangle_ineq)
   also have "\<dots> = ?R" by simp
   finally show "?L \<le> ?R" .
 qed
+
+end
+
+lemma sup_eq_if:
+  fixes a :: "'a\<Colon>{lordered_ab_group, linorder}"
+  shows "sup a (- a) = (if a < 0 then - a else a)"
+proof -
+  note add_le_cancel_right [of a a "- a", symmetric, simplified]
+  moreover note add_le_cancel_right [of "-a" a a, symmetric, simplified]
+  then show ?thesis by (auto simp: sup_max max_def)
+qed
+
+lemma abs_if_lattice:
+  fixes a :: "'a\<Colon>{lordered_ab_group_abs, linorder}"
+  shows "\<bar>a\<bar> = (if a < 0 then - a else a)"
+  by auto
+
 
 text {* Needed for abelian cancellation simprocs: *}
 
@@ -1116,7 +1174,7 @@ by (simp add: diff_minus)
 lemma add_minus_cancel: "(a::'a::ab_group_add) + (-a + b) = b"
 by (simp add: add_assoc[symmetric])
 
-lemma  le_add_right_mono: 
+lemma le_add_right_mono: 
   assumes 
   "a <= b + (c::'a::pordered_ab_group_add)"
   "c <= d"    
@@ -1129,7 +1187,7 @@ lemmas group_simps =
   mult_ac
   add_ac
   add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-  diff_eq_eq eq_diff_eq  diff_minus[symmetric] uminus_add_conv_diff
+  diff_eq_eq eq_diff_eq diff_minus [symmetric] uminus_add_conv_diff
   diff_less_eq less_diff_eq diff_le_eq le_diff_eq
 
 lemma estimate_by_abs:
@@ -1140,6 +1198,8 @@ proof -
   have 3: "(-b) <= abs b" by (rule abs_ge_minus_self)
   show ?thesis by (rule le_add_right_mono[OF 2 3])
 qed
+
+subsection {* Tools setup *}
 
 lemma add_mono_thms_ordered_semiring [noatp]:
   fixes i j k :: "'a\<Colon>pordered_ab_semigroup_add"
@@ -1158,9 +1218,6 @@ lemma add_mono_thms_ordered_field [noatp]:
     and "i < j \<and> k < l \<Longrightarrow> i + k < j + l"
 by (auto intro: add_strict_right_mono add_strict_left_mono
   add_less_le_mono add_le_less_mono add_strict_mono)
-
-
-subsection {* Tools setup *}
 
 text{*Simplification of @{term "x-y < 0"}, etc.*}
 lemmas diff_less_0_iff_less [simp] = less_iff_diff_less_0 [symmetric]
