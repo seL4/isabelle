@@ -302,7 +302,7 @@ fun raw_eval thy f ct funcgr =
     val drop = drop_classes thy tfrees;
     val instdefs = instances_of_consts thy algebra funcgr' c_exprs;
     val funcgr'' = ensure_consts thy algebra instdefs funcgr';
-  in (f drop thm5 funcgr'' ct'' , funcgr'') end;
+  in (f drop thm5 funcgr'' ct'', funcgr'') end;
 
 fun raw_eval_conv thy conv =
   let

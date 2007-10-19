@@ -664,7 +664,7 @@ fun init_ctxt thy sups base_sort ctxt =
   |> synchronize_syntax thy sups base_sort
   |> Context.proof_map (
       Syntax.add_term_check 0 "class" sort_term_check
-      #> Syntax.add_term_uncheck (~10) "class" sort_term_uncheck)
+      #> Syntax.add_term_uncheck 0 "class" sort_term_uncheck)
 
 fun init class ctxt =
   let
@@ -821,8 +821,6 @@ fun add_logical_const class pos ((c, mx), dict) thy =
     thy'
     |> Sign.hide_consts_i false [c''] (*FIXME*)
     |> Sign.declare_const pos (c, ty'', mx) |> snd
-    |> Sign.parent_path
-    |> Sign.sticky_prefix prfx
     |> Thm.add_def false (c, def_eq)
     |>> Thm.symmetric
     |-> (fn def => class_interpretation class [def] [Thm.prop_of def]
@@ -847,14 +845,19 @@ fun expand_aux_abbrev thy class t =
       |> map (Pattern.rewrite_term thy rews []);
   in Term.betapplys (head', ts') end;
 
-fun add_syntactic_const class prmode pos ((c, mx), dict) thy =
+fun fold_aux_defs thy class =
+  let
+    val rews = map (Logic.dest_equals o Thm.prop_of) (these_defs thy [class])
+  in Pattern.rewrite_term thy rews [] end;
+
+fun add_syntactic_const class prmode pos ((c, mx), rhs) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
     val phi = morphism thy class;
 
     val c' = Sign.full_name thy' c;
-    val dict' = (expand_aux_abbrev thy' class o Morphism.term phi) dict;
+    val dict' = (expand_aux_abbrev thy' class o Morphism.term phi) rhs;
     val dict'' = map_types Logic.unvarifyT dict';
     val ty' = Term.fastype_of dict'';
 
@@ -867,7 +870,7 @@ fun add_syntactic_const class prmode pos ((c, mx), dict) thy =
     |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts dict') |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
-    |> register_operation class ((c', (dict, dict'')), NONE)
+    |> register_operation class ((c', (dict', dict'')), NONE)
     |> Sign.restore_naming thy
     |> pair c'
   end;

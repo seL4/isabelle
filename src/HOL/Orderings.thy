@@ -114,7 +114,7 @@ by (rule less_asym)
 text {* Reverse order *}
 
 lemma order_reverse:
-  "order (\<lambda>x y. y \<le> x) (\<lambda>x y. y < x)"
+  "order (op \<ge>) (op >)"
 by unfold_locales
    (simp add: less_le, auto intro: antisym order_trans)
 
@@ -187,7 +187,7 @@ unfolding not_le .
 text {* Reverse order *}
 
 lemma linorder_reverse:
-  "linorder (\<lambda>x y. y \<le> x) (\<lambda>x y. y < x)"
+  "linorder (op \<ge>) (op >)"
 by unfold_locales
   (simp add: less_le, auto intro: antisym order_trans simp add: linear)
 
@@ -596,15 +596,6 @@ lemmas linorder_neqE = linorder_class.neqE
 lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
 lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
 lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
-
-lemmas min_le_iff_disj = linorder_class.min_le_iff_disj
-lemmas le_max_iff_disj = linorder_class.le_max_iff_disj
-lemmas min_less_iff_disj = linorder_class.min_less_iff_disj
-lemmas less_max_iff_disj = linorder_class.less_max_iff_disj
-lemmas min_less_iff_conj [simp] = linorder_class.min_less_iff_conj
-lemmas max_less_iff_conj [simp] = linorder_class.max_less_iff_conj
-lemmas split_min = linorder_class.split_min
-lemmas split_max = linorder_class.split_max
 
 
 subsection {* Bounded quantifiers *}
