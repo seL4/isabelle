@@ -145,8 +145,8 @@ proof (induct arbitrary: s s' x)
   ultimately show ?case by simp (rule lemma1')
 next
   case (Abs r r' ss ss')
-  have "lift s 0 \<rightarrow>\<^sub>s lift s' 0" by (rule sred_lift)
-  hence "r[lift s 0/Suc x] \<rightarrow>\<^sub>s r'[lift s' 0/Suc x]" by (fast intro: Abs)
+  from Abs(4) have "lift s 0 \<rightarrow>\<^sub>s lift s' 0" by (rule sred_lift)
+  hence "r[lift s 0/Suc x] \<rightarrow>\<^sub>s r'[lift s' 0/Suc x]" by (fast intro: Abs.hyps)
   moreover from Abs(3) have "map (\<lambda>t. t[s/x]) ss [\<rightarrow>\<^sub>s] map (\<lambda>t. t[s'/x]) ss'"
     by induct (auto intro: listrelp.intros Abs)
   ultimately show ?case by simp (rule sred.Abs)
@@ -223,7 +223,7 @@ next
     with Abs(3) obtain u us where
       ss: "ss = u # us" and u: "u \<rightarrow>\<^sub>s u'" and us: "us [\<rightarrow>\<^sub>s] us'"
       by cases (auto dest!: listrelp_conj1)
-    have "r[u/0] \<rightarrow>\<^sub>s r'[u'/0]" by (rule lemma3)
+    have "r[u/0] \<rightarrow>\<^sub>s r'[u'/0]" using Abs(1) and u by (rule lemma3)
     with us have "r[u/0] \<degree>\<degree> us \<rightarrow>\<^sub>s r'[u'/0] \<degree>\<degree> us'" by (rule lemma1')
     hence "Abs r \<degree> u \<degree>\<degree> us \<rightarrow>\<^sub>s r'[u'/0] \<degree>\<degree> us'" by (rule sred.Beta)
     moreover assume "Abs r' = Abs t" and "r'' = t[u'/0] \<degree>\<degree> us'"
