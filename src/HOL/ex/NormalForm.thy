@@ -65,8 +65,9 @@ lemma "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z)) = Z" by normaliza
 lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalization
 
 lemma "[] @ [] = []" by normalization
-lemma "[] @ xs = xs" by normalization
+normal_form "map f [x,y,z::'x] = [f x, f y, f z]"
 normal_form "[a, b, c] @ xs = a # b # c # xs"
+lemma "[] @ xs = xs" by normalization
 normal_form "map f [x,y,z::'x] = [f x, f y, f z]"
 normal_form "map (%f. f True) [id, g, Not] = [True, g True, False]"
 normal_form "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
@@ -87,7 +88,7 @@ normal_form "filter Not ([True,False,x]@xs)"
 
 normal_form "[x,y,z] @ [a,b,c] = [x, y, z, a, b ,c]"
 normal_form "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]"
-normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]"
+lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]" by normalization
 
 lemma "last [a, b, c] = c"
   by normalization
@@ -107,6 +108,8 @@ lemma "4 - 42 * abs (3 + (-7\<Colon>int)) = -164" by normalization
 lemma "(if (0\<Colon>nat) \<le> (x\<Colon>nat) then 0\<Colon>nat else x) = 0" by normalization
 lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
+lemma "[Suc 0, 0] = [Suc 0, 0]" by normalization
+lemma "max (Suc 0) 0 = Suc 0" by normalization
 
 normal_form "Suc 0 \<in> set ms"
 
@@ -123,3 +126,4 @@ normal_form "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 normal_form "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 
 end
+
