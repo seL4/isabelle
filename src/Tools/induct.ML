@@ -308,8 +308,9 @@ fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
 fun make_cases is_open rule =
   RuleCases.make_common is_open (Thm.theory_of_thm rule, Thm.prop_of rule);
 
-fun warn_open true = legacy_feature "open rule cases in proof method"
-  | warn_open false = ();
+fun warn_open ctxt true =
+      legacy_feature ("open rule cases in proof method" ^ ContextPosition.str_of ctxt)
+  | warn_open _ false = ();
 
 
 
@@ -335,7 +336,7 @@ in
 
 fun cases_tac ctxt is_open insts opt_rule facts =
   let
-    val _ = warn_open is_open;
+    val _ = warn_open ctxt is_open;
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
@@ -574,7 +575,7 @@ in
 
 fun induct_tac ctxt is_open def_insts arbitrary taking opt_rule facts =
   let
-    val _ = warn_open is_open;
+    val _ = warn_open ctxt is_open;
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
@@ -650,7 +651,7 @@ in
 
 fun coinduct_tac ctxt is_open inst taking opt_rule facts =
   let
-    val _ = warn_open is_open;
+    val _ = warn_open ctxt is_open;
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
