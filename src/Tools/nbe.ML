@@ -103,7 +103,7 @@ local
 
 val gr_ref = ref NONE : Nbe_Functions.T option ref;
 
-fun compile tab raw_s () =
+fun compile tab raw_s = NAMED_CRITICAL "nbe" (fn () =>
   let
     val _ = univs_ref := (fn () => []);
     val s = "Nbe.univs_ref := " ^ raw_s;
@@ -113,15 +113,16 @@ fun compile tab raw_s () =
       Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
       (!trace) s;
     val _ = gr_ref := NONE;
-  in !univs_ref end;
+  in !univs_ref end);
 in
 
-fun lookup_fun s = case ! gr_ref
+fun lookup_fun s = NAMED_CRITICAL "nbe" (fn () =>
+ case ! gr_ref
  of NONE => error "compile_univs"
-  | SOME gr => Graph.get_node gr s;
+  | SOME gr => Graph.get_node gr s);
 
 fun compile_univs tab ([], _) = []
-  | compile_univs tab (cs, raw_s) = case CRITICAL (compile tab raw_s) ()
+  | compile_univs tab (cs, raw_s) = case compile tab raw_s ()
      of [] => error "compile_univs"
       | univs => cs ~~ univs;
 
