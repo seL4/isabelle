@@ -23,7 +23,8 @@ sig
     ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list * token list
   val locale_mixfix: token list -> mixfix * token list
   val locale_fixes: token list -> (string * string option * mixfix) list * token list
-  val locale_insts: token list -> (string option list * string list) * token list
+  val locale_insts: token list ->
+    (string option list * ((bstring * Attrib.src list) * string) list) * token list
   val class_expr: token list -> string list * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
@@ -88,7 +89,7 @@ val locale_fixes =
 
 val locale_insts =
   Scan.optional (P.$$$ "[" |-- P.!!! (Scan.repeat1 (P.maybe P.term) --| P.$$$ "]")) []
-  -- Scan.optional (P.$$$ "where" |-- P.and_list1 P.term) [];
+  -- Scan.optional (P.$$$ "where" |-- P.and_list1 (opt_thm_name ":" -- P.prop)) [];
 
 local
 

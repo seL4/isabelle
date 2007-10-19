@@ -394,8 +394,10 @@ contexts ($\isarcmd{interpret}$).
   ;
   printinterps '!'? name
   ;
-  interp: thmdecl? \\ (contextexpr ('[' (inst+) ']')? |
-    name ('[' (inst+) ']')? 'where' (prop + 'and'))
+  instantiation: ('[' (inst+) ']')?
+  ;
+  interp: thmdecl? \\ (contextexpr instantiation |
+    name instantiation 'where' (thmdecl? prop + 'and'))
   ;
 \end{rail}
 
