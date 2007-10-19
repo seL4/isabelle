@@ -14,7 +14,7 @@ sig
   val def_export: Assumption.export
   val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
     (term * (bstring * thm)) list * Proof.context
-  val add_def: (string * mixfix) * term -> Proof.context -> (term * (bstring * thm)) * Proof.context
+  val add_def: (string * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
   val export_cterm: Proof.context -> Proof.context -> cterm -> cterm * thm
   val trans_terms: Proof.context -> thm list -> thm
@@ -101,7 +101,9 @@ fun add_defs defs ctxt =
     |>> map2 (fn lhs => fn (name, [th]) => (lhs, (name, th))) lhss
   end;
 
-fun add_def (var, rhs) = add_defs [(var, (("", []), rhs))] #>> the_single;
+fun add_def (var, rhs) ctxt =
+  let val ([(lhs, (_, th))], ctxt') = add_defs [(var, (("", []), rhs))] ctxt
+  in ((lhs, th), ctxt') end;
 
 
 (* specific export -- result based on educated guessing *)

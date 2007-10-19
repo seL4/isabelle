@@ -20,9 +20,9 @@ sig
   val these_params: theory -> sort -> (string * (string * typ)) list
   val init: class -> Proof.context -> Proof.context
   val add_logical_const: string -> Markup.property list
-    -> (string * mixfix) * term -> theory -> string * theory
+    -> (string * mixfix) * term -> theory -> theory
   val add_syntactic_const: string -> Syntax.mode -> Markup.property list
-    -> (string * mixfix) * term -> theory -> string * theory
+    -> (string * mixfix) * term -> theory -> theory
   val refresh_syntax: class -> Proof.context -> Proof.context
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
@@ -827,7 +827,6 @@ fun add_logical_const class pos ((c, mx), dict) thy =
           #> register_operation class ((c', (dict, dict')), SOME (Thm.varifyT def)))
     |> Sign.restore_naming thy
     |> Sign.add_const_constraint (c', SOME ty')
-    |> pair c'
   end;
 
 
@@ -872,7 +871,6 @@ fun add_syntactic_const class prmode pos ((c, mx), rhs) thy =
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> register_operation class ((c', (dict', dict'')), NONE)
     |> Sign.restore_naming thy
-    |> pair c'
   end;
 
 end;
