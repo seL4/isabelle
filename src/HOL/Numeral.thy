@@ -325,13 +325,7 @@ lemma nonzero_number_of_Min:
 
 subsection {* Comparisons, for Ordered Rings *}
 
-lemma double_eq_0_iff:
-  "(a + a = 0) = (a = (0::'a::ordered_idom))"
-proof -
-  have "a + a = (1 + 1) * a" unfolding left_distrib by simp
-  with zero_less_two [where 'a = 'a]
-  show ?thesis by force
-qed
+lemmas double_eq_0_iff = double_zero
 
 lemma le_imp_0_less: 
   assumes le: "0 \<le> z"
