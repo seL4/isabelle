@@ -30,9 +30,6 @@ subsubsection{* Intro and elim rules*}
 context lower_semilattice
 begin
 
-lemmas antisym_intro [intro!] = antisym
-lemmas (in -) [rule del] = antisym_intro
-
 lemma le_infI1[intro]:
   assumes "a \<sqsubseteq> x"
   shows "a \<sqinter> b \<sqsubseteq> x"
@@ -58,11 +55,11 @@ lemma le_infE [elim!]: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sq
 lemmas (in -) [rule del] = le_infE
 
 lemma le_inf_iff [simp]:
- "x \<sqsubseteq> y \<sqinter> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
+  "x \<sqsubseteq> y \<sqinter> z = (x \<sqsubseteq> y \<and> x \<sqsubseteq> z)"
 by blast
 
 lemma le_iff_inf: "(x \<sqsubseteq> y) = (x \<sqinter> y = x)"
-by(blast dest:eq_iff[THEN iffD1])
+  by (blast intro: antisym dest: eq_iff [THEN iffD1])
 
 end
 
@@ -72,9 +69,6 @@ lemma mono_inf: "mono f \<Longrightarrow> f (inf A B) \<le> inf (f A) (f B)"
 
 context upper_semilattice
 begin
-
-lemmas antisym_intro [intro!] = antisym
-lemmas (in -) [rule del] = antisym_intro
 
 lemma le_supI1[intro]: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> a \<squnion> b"
   by (rule order_trans) auto
@@ -92,13 +86,12 @@ lemma le_supE[elim!]: "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqs
   by (blast intro: order_trans)
 lemmas (in -) [rule del] = le_supE
 
-
 lemma ge_sup_conv[simp]:
- "x \<squnion> y \<sqsubseteq> z = (x \<sqsubseteq> z \<and> y \<sqsubseteq> z)"
+  "x \<squnion> y \<sqsubseteq> z = (x \<sqsubseteq> z \<and> y \<sqsubseteq> z)"
 by blast
 
 lemma le_iff_sup: "(x \<sqsubseteq> y) = (x \<squnion> y = y)"
-by(blast dest:eq_iff[THEN iffD1])
+  by (blast intro: antisym dest: eq_iff [THEN iffD1])
 
 end
 
@@ -113,25 +106,25 @@ context lower_semilattice
 begin
 
 lemma inf_commute: "(x \<sqinter> y) = (y \<sqinter> x)"
-by blast
+  by (blast intro: antisym)
 
 lemma inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
-by blast
+  by (blast intro: antisym)
 
 lemma inf_idem[simp]: "x \<sqinter> x = x"
-by blast
+  by (blast intro: antisym)
 
 lemma inf_left_idem[simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
-by blast
+  by (blast intro: antisym)
 
 lemma inf_absorb1: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
-by blast
+  by (blast intro: antisym)
 
 lemma inf_absorb2: "y \<sqsubseteq> x \<Longrightarrow> x \<sqinter> y = y"
-by blast
+  by (blast intro: antisym)
 
 lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
-by blast
+  by (blast intro: antisym)
 
 lemmas inf_ACI = inf_commute inf_assoc inf_left_commute inf_left_idem
 
@@ -142,25 +135,25 @@ context upper_semilattice
 begin
 
 lemma sup_commute: "(x \<squnion> y) = (y \<squnion> x)"
-by blast
+  by (blast intro: antisym)
 
 lemma sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
-by blast
+  by (blast intro: antisym)
 
 lemma sup_idem[simp]: "x \<squnion> x = x"
-by blast
+  by (blast intro: antisym)
 
 lemma sup_left_idem[simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
-by blast
+  by (blast intro: antisym)
 
 lemma sup_absorb1: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion> y = x"
-by blast
+  by (blast intro: antisym)
 
 lemma sup_absorb2: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
-by blast
+  by (blast intro: antisym)
 
 lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
-by blast
+  by (blast intro: antisym)
 
 lemmas sup_ACI = sup_commute sup_assoc sup_left_commute sup_left_idem
 
@@ -170,10 +163,10 @@ context lattice
 begin
 
 lemma inf_sup_absorb: "x \<sqinter> (x \<squnion> y) = x"
-by(blast intro: antisym inf_le1 inf_greatest sup_ge1)
+  by (blast intro: antisym inf_le1 inf_greatest sup_ge1)
 
 lemma sup_inf_absorb: "x \<squnion> (x \<sqinter> y) = x"
-by(blast intro: antisym sup_ge1 sup_least inf_le1)
+  by (blast intro: antisym sup_ge1 sup_least inf_le1)
 
 lemmas ACI = inf_ACI sup_ACI
 
@@ -182,10 +175,10 @@ lemmas inf_sup_ord = inf_le1 inf_le2 sup_ge1 sup_ge2
 text{* Towards distributivity *}
 
 lemma distrib_sup_le: "x \<squnion> (y \<sqinter> z) \<sqsubseteq> (x \<squnion> y) \<sqinter> (x \<squnion> z)"
-by blast
+  by blast
 
 lemma distrib_inf_le: "(x \<sqinter> y) \<squnion> (x \<sqinter> z) \<sqsubseteq> x \<sqinter> (y \<squnion> z)"
-by blast
+  by blast
 
 
 text{* If you have one of them, you have them all. *}
@@ -293,10 +286,10 @@ interpretation min_max:
   by (rule distrib_lattice_min_max)
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
-  by (rule ext)+ auto
+  by (rule ext)+ (auto intro: antisym)
 
 lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{upper_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
-  by (rule ext)+ auto
+  by (rule ext)+ (auto intro: antisym)
 
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
@@ -313,7 +306,7 @@ text {*
   undesirable.
 *}
 
-lemmas [rule del] = min_max.antisym_intro min_max.le_infI min_max.le_supI
+lemmas [rule del] = min_max.le_infI min_max.le_supI
   min_max.le_supE min_max.le_infE min_max.le_supI1 min_max.le_supI2
   min_max.le_infI1 min_max.le_infI2
 
@@ -330,10 +323,10 @@ class complete_lattice = lattice +
 begin
 
 lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
-  by (auto intro: Inf_lower Inf_greatest Sup_upper Sup_least)
+  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
 lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
-  by (auto intro: Inf_lower Inf_greatest Sup_upper Sup_least)
+  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
 lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
   unfolding Sup_Inf by auto
@@ -453,6 +446,9 @@ in
 end
 *}
 
+context complete_lattice
+begin
+
 lemma le_SUPI: "i : A \<Longrightarrow> M i \<le> (SUP i:A. M i)"
   by (auto simp add: SUPR_def intro: Sup_upper)
 
@@ -466,10 +462,12 @@ lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<le> M i) \<Longrightarrow>
   by (auto simp add: INFI_def intro: Inf_greatest)
 
 lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
-  by (auto intro: order_antisym SUP_leI le_SUPI)
+  by (auto intro: antisym SUP_leI le_SUPI)
 
 lemma INF_const[simp]: "A \<noteq> {} \<Longrightarrow> (INF i:A. M) = M"
-  by (auto intro: order_antisym INF_leI le_INFI)
+  by (auto intro: antisym INF_leI le_INFI)
+
+end
 
 
 subsection {* Bool as lattice *}

@@ -879,7 +879,7 @@ proof
   then have "a + a + - a = - a" by simp
   then have "a + (a + - a) = - a" by (simp only: add_assoc)
   then have a: "- a = a" by simp (*FIXME tune proof*)
-  show "a = 0" apply rule
+  show "a = 0" apply (rule antisym)
   apply (unfold neg_le_iff_le [symmetric, of a])
   unfolding a apply simp
   unfolding zero_le_double_add_iff_zero_le_single_add [symmetric, of a]
