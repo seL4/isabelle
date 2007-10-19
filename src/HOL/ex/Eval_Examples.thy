@@ -8,6 +8,14 @@ theory Eval_Examples
 imports Eval "~~/src/HOL/Real/Rational"
 begin
 
+text {* evaluation oracle *}
+
+lemma "True \<or> False" by eval
+lemma "\<not> (Suc 0 = Suc 1)" by eval
+lemma "[] = ([]\<Colon> int list)" by eval
+lemma "[()] = [()]" by eval
+lemma "fst ([]::nat list, Suc 0) = []" by eval
+
 text {* SML evaluation oracle *}
 
 lemma "True \<or> False" by evaluation
@@ -16,13 +24,13 @@ lemma "[] = ([]\<Colon> int list)" by evaluation
 lemma "[()] = [()]" by evaluation
 lemma "fst ([]::nat list, Suc 0) = []" by evaluation
 
-text {* evaluation oracle *}
+text {* normalization *}
 
-lemma "True \<or> False" by eval
-lemma "\<not> (Suc 0 = Suc 1)" by eval
-lemma "[] = ([]\<Colon> int list)" by eval
-lemma "[()] = [()]" by eval
-lemma "fst ([]::nat list, Suc 0) = []" by eval
+lemma "True \<or> False" by normalization
+lemma "\<not> (Suc 0 = Suc 1)" by normalization
+lemma "[] = ([]\<Colon> int list)" by normalization
+lemma "[()] = [()]" by normalization
+lemma "fst ([]::nat list, Suc 0) = []" by normalization
 
 text {* term evaluation *}
 
@@ -58,12 +66,12 @@ value ("normal_form") "of_int 2 / of_int 4 * (1::rat)"
 
 value "[]::nat list"
 value (code) "[]::nat list"
-(*value (SML) "[]::nat list" FIXME*)
+value (SML) "[]::nat list"
 value ("normal_form") "[]::nat list"
 
 value "[(nat 100, ())]"
 value (code) "[(nat 100, ())]"
-(*value (SML) "[(nat 100, ())]" FIXME*)
+value (SML) "[(nat 100, ())]"
 value ("normal_form") "[(nat 100, ())]"
 
 
