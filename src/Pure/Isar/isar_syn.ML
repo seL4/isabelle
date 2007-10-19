@@ -641,7 +641,7 @@ val _ =
     (Scan.succeed (Toplevel.print3 o IsarCmd.done_proof));
 
 val _ =
-  OuterSyntax.improper_command "sorry" "skip proof (quick-and-dirty mode only!)"
+  OuterSyntax.command "sorry" "skip proof (quick-and-dirty mode only!)"
     (K.tag_proof K.qed)
     (Scan.succeed (Toplevel.print3 o IsarCmd.skip_proof));
 
