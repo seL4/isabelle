@@ -36,8 +36,11 @@ In most cases, defining a recursive function is just as simple as other definiti
 {\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ n\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The syntax is rather self-explanatory: We introduce a function by
-  giving its name, its type and a set of defining recursive
-  equations.%
+  giving its name, its type, 
+  and a set of defining recursive equations.
+  If we leave out the type, the most general type will be
+  inferred, which can sometimes lead to surprises: Since both \isa{{\isadigit{1}}} and \isa{plus} are overloaded, we would end up
+  with \isa{fib\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ {\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}one{\isacharcomma}plus{\isacharbraceright}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

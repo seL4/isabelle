@@ -23,8 +23,12 @@ where
 
 text {*
   The syntax is rather self-explanatory: We introduce a function by
-  giving its name, its type and a set of defining recursive
-  equations.
+  giving its name, its type, 
+  and a set of defining recursive equations.
+  If we leave out the type, the most general type will be
+  inferred, which can sometimes lead to surprises: Since both @{term
+  "1::nat"} and @{text plus} are overloaded, we would end up
+  with @{text "fib :: nat \<Rightarrow> 'a::{one,plus}"}.
 *}
 
 text {*
