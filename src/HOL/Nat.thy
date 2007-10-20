@@ -497,7 +497,7 @@ lemma not0_implies_Suc: "n \<noteq> 0 ==> \<exists>m. n = Suc m"
 lemma gr_implies_not0: fixes n :: nat shows "m<n ==> n \<noteq> 0"
   by (cases n) simp_all
 
-lemma neq0_conv [iff]: fixes n :: nat shows "(n \<noteq> 0) = (0 < n)"
+lemma neq0_conv: fixes n :: nat shows "(n \<noteq> 0) = (0 < n)"
   by (cases n) simp_all
 
 text {* This theorem is useful with @{text blast} *}
@@ -510,7 +510,7 @@ lemma gr0_conv_Suc: "(0 < n) = (\<exists>m. n = Suc m)"
 lemma not_gr0 [iff,noatp]: "!!n::nat. (~ (0 < n)) = (n = 0)"
   apply (rule iffI)
   apply (rule ccontr)
-  apply simp_all
+  apply (simp_all add: neq0_conv)
   done
 
 lemma Suc_le_D: "(Suc n \<le> m') ==> (? m. m' = Suc m)"
@@ -604,7 +604,7 @@ text {*
   and I dread to think what happens if I put them in
 *}
 lemma Suc_pred [simp]: "0 < n ==> Suc (n - Suc 0) = n"
-  by (simp split add: nat.split)
+  by (simp add: neq0_conv split add: nat.split)
 
 declare diff_Suc [simp del, code del]
 
@@ -1084,7 +1084,7 @@ lemma mult_le_cancel2 [simp]: "((m::nat) * k \<le> n * k) = (0 < k --> m \<le> n
 by (simp add: linorder_not_less [symmetric], auto)
 
 lemma mult_cancel2 [simp]: "(m * k = n * k) = (m = n | (k = (0::nat)))"
-  apply (cut_tac less_linear, safe, auto)
+  apply (cut_tac less_linear, safe, auto simp add: neq0_conv)
   apply (drule mult_less_mono1, assumption, simp)+
   done
 
@@ -1105,8 +1105,8 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (drule sym)
   apply (rule disjCI)
   apply (rule nat_less_cases, erule_tac [2] _)
-  apply (fastsimp elim!: less_SucE)
-  apply (fastsimp dest: mult_less_mono2)
+  apply (fastsimp simp add: neq0_conv elim!: less_SucE)
+  apply (fastsimp simp add: neq0_conv dest: mult_less_mono2)
   done
 
 
