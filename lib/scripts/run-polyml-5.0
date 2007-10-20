@@ -67,7 +67,7 @@ fi
 
 ## run it!
 
-MLTEXT="PolyML.Compiler.printInAlphabeticalOrder := false; $EXIT $COMMIT $MLTEXT"
+MLTEXT="$EXIT $COMMIT $MLTEXT"
 MLEXIT="commit();"
 
 if [ -z "$TERMINATE" ]; then
