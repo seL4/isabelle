@@ -25,7 +25,7 @@ sig
     ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
     -> (term list * (bstring * thm list) list) * local_theory
   val abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory ->
-    (term * thm) * local_theory
+    (term * term) * local_theory
   val define: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
     (term * (bstring * thm)) * local_theory
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
@@ -57,7 +57,7 @@ type operations =
   axioms: string ->
     ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
     -> (term list * (bstring * thm list) list) * local_theory,
-  abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> (term * thm) * local_theory,
+  abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> (term * term) * local_theory,
   define: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
     (term * (bstring * thm)) * local_theory,
   notes: string ->
