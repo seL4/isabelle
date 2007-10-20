@@ -61,14 +61,7 @@ if [ -z "$INFILE" ]; then
   check_file "$ML_DBASE_PREFIX$ML_DBASE"
   INFILE="$ML_DBASE"
   MLTEXT="val use = PolyML.use; $EXIT $MLTEXT"
-  case "$ML_SYSTEM" in
-    polyml-4.1.[12])
-      DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S 180"
-      ;;
-    polyml-4.1.[34] | polyml-4.2.*)
-      DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S max"
-      ;;
-  esac
+  DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S max"
 else
   COPYDB=true
 fi
@@ -92,14 +85,6 @@ fi
 
 
 ## run it!
-
-case "$ML_SYSTEM" in
-  polyml-4.1.[12])
-    ;;
-  polyml-4.1.[34] | polyml-4.2.*)
-    MLTEXT="PolyML.Compiler.printInAlphabeticalOrder := false; $MLTEXT"
-    ;;
-esac
 
 if [ -z "$TERMINATE" ]; then
   FEEDER_OPTS=""
