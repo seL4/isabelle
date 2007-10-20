@@ -177,8 +177,8 @@ fun locale_const (prmode as (mode, _)) pos ((c, mx), rhs) phi =
     val arg = (c', Term.close_schematic_term rhs');
   in
     Context.mapping_result
-      (Sign.add_abbrev Syntax.internalM pos legacy_arg)
-      (ProofContext.add_abbrev Syntax.internalM pos arg)
+      (Sign.add_abbrev PrintMode.internal pos legacy_arg)
+      (ProofContext.add_abbrev PrintMode.internal pos arg)
     #-> (fn (lhs' as Const (d, _), _) =>
         Type.similar_types (rhs, rhs') ?
           (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
@@ -215,25 +215,22 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((c, mx), t) lthy
     val u = fold_rev lambda xs t';
     val global_rhs =
       singleton (Variable.export_terms (Variable.declare_term u target_ctxt) thy_ctxt) u;
-
-    val lthy' =
-      if is_locale then
-        lthy
-        |> LocalTheory.theory_result (Sign.add_abbrev Syntax.internalM pos (c, global_rhs))
-        |-> (fn (lhs, _) =>
+  in
+    lthy |>
+     (if is_locale then
+        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal pos (c, global_rhs))
+        #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const prmode pos ((c, mx2), lhs')) #>
-            is_class ? class_target ta (Class.add_syntactic_const target prmode pos ((c, mx1), lhs'))
+            is_class ?
+              class_target ta (Class.add_syntactic_const target prmode pos ((c, mx1), lhs'))
           end)
       else
-        lthy
-        |> LocalTheory.theory
+        LocalTheory.theory
           (Sign.add_abbrev (#1 prmode) pos (c, global_rhs) #-> (fn (lhs, _) =>
-           Sign.notation true prmode [(lhs, mx3)]))
-  in
-    lthy'
-    |> ProofContext.add_abbrev Syntax.internalM pos (c, t) |> snd
-    |> LocalDefs.add_def ((c, NoSyn), t)
+           Sign.notation true prmode [(lhs, mx3)])))
+    |> ProofContext.add_abbrev PrintMode.internal pos (c, t) |> snd
+    |> LocalDefs.fixed_abbrev ((c, NoSyn), t)
   end;
 
 
