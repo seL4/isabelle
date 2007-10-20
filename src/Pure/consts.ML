@@ -267,7 +267,7 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
   let
     val cert_term = certify pp tsig false consts;
     val expand_term = certify pp tsig true consts;
-    val force_expand = mode = Syntax.internalM;
+    val force_expand = mode = PrintMode.internal;
 
     val rhs = raw_rhs
       |> Term.map_types (Type.cert_typ tsig)
