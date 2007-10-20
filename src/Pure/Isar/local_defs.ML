@@ -15,6 +15,7 @@ sig
   val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
     (term * (bstring * thm)) list * Proof.context
   val add_def: (string * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
+  val fixed_abbrev: (string * mixfix) * term -> Proof.context -> (term * term) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
   val export_cterm: Proof.context -> Proof.context -> cterm -> cterm * thm
   val trans_terms: Proof.context -> thm list -> thm
@@ -104,6 +105,21 @@ fun add_defs defs ctxt =
 fun add_def (var, rhs) ctxt =
   let val ([(lhs, (_, th))], ctxt') = add_defs [(var, (("", []), rhs))] ctxt
   in ((lhs, th), ctxt') end;
+
+
+(* fixed_abbrev *)
+
+fun fixed_abbrev ((x, mx), rhs) ctxt =
+  let
+    val T = Term.fastype_of rhs;
+    val ([x'], ctxt') = ctxt
+      |> Variable.declare_term rhs
+      |> ProofContext.add_fixes_i [(x, SOME T, mx)];
+    val lhs = Free (x', T);
+    val _ = cert_def ctxt' (Logic.mk_equals (lhs, rhs));
+    fun abbrev_export _ _ = (I, Envir.expand_term_frees [((x', T), rhs)]);
+    val (_, ctxt'') = Assumption.add_assms abbrev_export [] ctxt';
+  in ((lhs, rhs), ctxt'') end;
 
 
 (* specific export -- result based on educated guessing *)
