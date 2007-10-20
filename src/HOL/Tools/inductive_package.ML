@@ -815,8 +815,8 @@ fun gen_add_inductive_i mk_def (flags as {verbose, kind, alt_name, coind, no_eli
 
     val ctxt2 = lthy
       |> Variable.add_fixes (map (fst o fst) cnames_syn') |> snd
-      |> fold (snd oo LocalDefs.add_def) abbrevs;
-    val expand = Assumption.export_term ctxt2 lthy;
+      |> fold (snd oo LocalDefs.fixed_abbrev) abbrevs;
+    val expand = Assumption.export_term ctxt2 lthy #> ProofContext.cert_term lthy;
 
     fun close_rule r = list_all_free (rev (fold_aterms
       (fn t as Free (v as (s, _)) =>
@@ -834,8 +834,9 @@ fun gen_add_inductive_i mk_def (flags as {verbose, kind, alt_name, coind, no_eli
 
 fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos lthy =
   let
-    val ((vars, specs), _) = lthy |> Specification.read_specification
-      (cnames_syn @ pnames_syn) (map (fn (a, s) => [(a, [s])]) intro_srcs);
+    val ((vars, specs), _) = lthy |> ProofContext.set_mode ProofContext.mode_abbrev
+      |> Specification.read_specification
+          (cnames_syn @ pnames_syn) (map (fn (a, s) => [(a, [s])]) intro_srcs);
     val (cs, ps) = chop (length cnames_syn) vars;
     val intrs = map (apsnd the_single) specs;
     val monos = Attrib.eval_thms lthy raw_monos;
