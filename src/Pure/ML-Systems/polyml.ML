@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
     ID:         $Id$
 
-Compatibility file for Poly/ML (version 4.1.x and 4.2.0).
+Compatibility file for Poly/ML (version 4.1.3, 4.1.4 and 4.2.0).
 *)
 
 use "ML-Systems/exn.ML";
@@ -11,8 +11,11 @@ use "ML-Systems/time_limit.ML";
 
 (** ML system and platform related **)
 
+(* Compiler options *)
+
 val ml_system_fix_ints = false;
 
+PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
 
 
