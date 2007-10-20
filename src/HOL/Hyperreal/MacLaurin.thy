@@ -279,11 +279,11 @@ lemma Maclaurin_bi_le:
 apply (case_tac "n = 0", force)
 apply (case_tac "x = 0")
 apply (rule_tac x = 0 in exI)
-apply (force simp add: Maclaurin_bi_le_lemma)
-apply (cut_tac x = x and y = 0 in linorder_less_linear, auto)
+apply (force simp add: neq0_conv Maclaurin_bi_le_lemma)
+apply (cut_tac x = x and y = 0 in linorder_less_linear, auto simp add: neq0_conv)
 txt{*Case 1, where @{term "x < 0"}*}
 apply (cut_tac f = "diff 0" and diff = diff and h = x and n = n in Maclaurin_minus_objl, safe)
-apply (simp add: abs_if)
+apply (simp add: abs_if neq0_conv)
 apply (rule_tac x = t in exI)
 apply (simp add: abs_if)
 txt{*Case 2, where @{term "0 < x"}*}

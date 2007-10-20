@@ -189,13 +189,13 @@ fun   numsubst0:: "num \<Rightarrow> num \<Rightarrow> num" where
 
 lemma numsubst0_I:
   shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b#bs) a)#bs) t"
-  by (induct t rule: numsubst0.induct,auto simp add: gr0_conv_Suc)
+  by (induct t rule: numsubst0.induct,auto simp add: gr0_conv_Suc neq0_conv)
 
 lemma numsubst0_I':
   assumes nb: "numbound0 a"
   shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b'#bs) a)#bs) t"
   using nb
-  by (induct t rule: numsubst0.induct, auto simp add: gr0_conv_Suc numbound0_I[where b="b" and b'="b'"])
+  by (induct t rule: numsubst0.induct, auto simp add: neq0_conv gr0_conv_Suc numbound0_I[where b="b" and b'="b'"])
 
 primrec
   "subst0 t T = T"

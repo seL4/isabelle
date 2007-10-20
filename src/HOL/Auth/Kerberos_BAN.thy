@@ -133,7 +133,7 @@ apply (intro exI bexI)
 apply (rule_tac [2]
            bankerberos.Nil [THEN bankerberos.BK1, THEN bankerberos.BK2,
                              THEN bankerberos.BK3, THEN bankerberos.BK4])
-apply (possibility, simp_all (no_asm_simp) add: used_Cons)
+apply (possibility, simp_all (no_asm_simp) add: used_Cons neq0_conv)
 done
 
 subsection{*Lemmas for reasoning about predicate "Issues"*}

@@ -149,12 +149,13 @@ lemma partition_lb_lt: "[| partition(a,b) D; psize D ~= 0 |] ==> a < D(Suc n)"
 apply (rule_tac t = a in partition_lhs [THEN subst], assumption)
 apply (cut_tac x = "Suc n" and y = "psize D" in linorder_le_less_linear)
 apply (frule partition [THEN iffD1], safe)
+using neq0_conv
  apply (blast intro: partition_lt less_le_trans)
 apply (rotate_tac 3)
 apply (drule_tac x = "Suc n" in spec)
 apply (erule impE)
 apply (erule less_imp_le)
-apply (frule partition_rhs)
+apply (frule partition_rhs, simp only: neq0_conv)
 apply (drule partition_gt, assumption)
 apply (simp (no_asm_simp))
 done

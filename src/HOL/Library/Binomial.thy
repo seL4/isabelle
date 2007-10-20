@@ -50,11 +50,11 @@ lemma zero_less_binomial: "k \<le> n ==> 0 < (n choose k)"
 lemma binomial_eq_0_iff: "(n choose k = 0) = (n<k)"
   apply (safe intro!: binomial_eq_0)
   apply (erule contrapos_pp)
-  apply (simp add: zero_less_binomial)
+  apply (simp add: neq0_conv zero_less_binomial)
   done
 
 lemma zero_less_binomial_iff: "(0 < n choose k) = (k\<le>n)"
-  by (simp add: linorder_not_less [symmetric] binomial_eq_0_iff [symmetric])
+  by (simp add: neq0_conv  linorder_not_less [symmetric] binomial_eq_0_iff [symmetric])
 
 (*Might be more useful if re-oriented*)
 lemma Suc_times_binomial_eq:

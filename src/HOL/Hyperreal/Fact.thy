@@ -20,7 +20,7 @@ lemma fact_gt_zero [simp]: "0 < fact n"
   by (induct n) auto
 
 lemma fact_not_eq_zero [simp]: "fact n \<noteq> 0"
-  by simp
+  by (simp add: neq0_conv)
 
 lemma real_of_nat_fact_not_zero [simp]: "real (fact n) \<noteq> 0"
   by auto

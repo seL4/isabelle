@@ -795,8 +795,8 @@ done
 lemma real_of_nat_div2:
   "0 <= real (n::nat) / real (x) - real (n div x)"
   apply(case_tac "x = 0")
-  apply simp
-  apply (simp add: compare_rls)
+  apply (simp add: neq0_conv)
+  apply (simp add: neq0_conv  compare_rls)
   apply (subst real_of_nat_div_aux)
   apply assumption
   apply simp
@@ -807,8 +807,8 @@ done
 lemma real_of_nat_div3:
   "real (n::nat) / real (x) - real (n div x) <= 1"
   apply(case_tac "x = 0")
-  apply simp
-  apply (simp add: compare_rls)
+  apply (simp add: neq0_conv )
+  apply (simp add: compare_rls neq0_conv )
   apply (subst real_of_nat_div_aux)
   apply assumption
   apply simp

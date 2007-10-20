@@ -117,7 +117,7 @@ lemmas unat_eq_0 = unat_0_iff
 lemmas unat_eq_zero = unat_0_iff
 
 lemma unat_gt_0: "(0 < unat x) = (x ~= 0)"
-  by (simp add : unat_0_iff [symmetric])
+  by (simp add : neq0_conv unat_0_iff [symmetric])
 
 lemma ucast_0 [simp] : "ucast 0 = 0"
   unfolding ucast_def
@@ -1245,7 +1245,7 @@ lemma finite_word_UNIV: "finite (UNIV :: 'a :: len word set)"
   apply (rule contrapos_np)
    prefer 2
    apply (erule card_infinite)
-  apply (simp add : card_word)
+  apply (simp add : card_word neq0_conv)
   done
 
 lemma card_word_size: 

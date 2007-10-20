@@ -1103,7 +1103,7 @@ lemma bin_rsplit_aux_len_le [rule_format] :
     (length ws <= m) = (nw + length bs * n <= m * n)"
   apply (rule_tac u=n and v=bs and w=nw and x=w in bin_rsplit_aux.induct)
   apply (subst bin_rsplit_aux.simps)
-  apply (clarsimp simp: Let_def split: ls_splits)
+  apply (clarsimp simp: Let_def neq0_conv split: ls_splits )
   apply (erule lrlem)
   done
 

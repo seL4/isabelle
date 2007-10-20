@@ -99,7 +99,7 @@ lemma Infty_eq [simp]: "(n < \<infinity>) = (n \<noteq> \<infinity>)"
   by (simp add: inat_defs split:inat_splits)
 
 lemma i0_eq [simp]: "((0::inat) < n) = (n \<noteq> 0)"
-  by (simp add: inat_defs split:inat_splits)
+  by (simp add: neq0_conv inat_defs split:inat_splits)
 
 lemma i0_iless_iSuc [simp]: "0 < iSuc n"
   by (simp add: inat_defs split:inat_splits)

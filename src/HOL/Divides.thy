@@ -275,12 +275,14 @@ lemma quorem_mult1_eq:
   by (auto simp add: split_ifs mult_ac quorem_def add_mult_distrib2)
 
 lemma div_mult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::nat)"
-  apply (cases "c = 0", simp)
+  apply (cases "c = 0", simp  add: neq0_conv)
+  using neq0_conv
   apply (blast intro: quorem_div_mod [THEN quorem_mult1_eq, THEN quorem_div])
   done
 
 lemma mod_mult1_eq: "(a*b) mod c = a*(b mod c) mod (c::nat)"
-  apply (cases "c = 0", simp)
+  apply (cases "c = 0", simp add: neq0_conv)
+  using neq0_conv
   apply (blast intro: quorem_div_mod [THEN quorem_mult1_eq, THEN quorem_mod])
   done
 
@@ -307,11 +309,13 @@ lemma quorem_add1_eq:
 lemma div_add1_eq:
      "(a+b) div (c::nat) = a div c + b div c + ((a mod c + b mod c) div c)"
   apply (cases "c = 0", simp)
+  using neq0_conv
   apply (blast intro: quorem_add1_eq [THEN quorem_div] quorem_div_mod quorem_div_mod)
   done
 
 lemma mod_add1_eq: "(a+b) mod (c::nat) = (a mod c + b mod c) mod c"
   apply (cases "c = 0", simp)
+  using neq0_conv
   apply (blast intro: quorem_div_mod quorem_div_mod quorem_add1_eq [THEN quorem_mod])
   done
 

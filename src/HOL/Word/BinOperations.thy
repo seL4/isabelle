@@ -353,7 +353,6 @@ lemma bin_sc_sc_diff:
   "!!w m. m ~= n ==> 
     bin_sc m c (bin_sc n b w) = bin_sc n b (bin_sc m c w)"
   apply (induct n)
-   apply safe
    apply (case_tac [!] m)
      apply auto
   done

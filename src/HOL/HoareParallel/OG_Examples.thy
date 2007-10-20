@@ -439,7 +439,7 @@ apply(tactic {*ALLGOALS (conjI_Tac (K all_tac)) *})
 apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 apply(simp_all (asm_lr) only:length_0_conv [THEN sym])
 --{* 44 subgoals left *}
-apply (simp_all (asm_lr) del:length_0_conv add: nth_list_update mod_less_divisor mod_lemma)
+apply (simp_all (asm_lr) del:length_0_conv add: neq0_conv nth_list_update mod_less_divisor mod_lemma)
 --{* 32 subgoals left *}
 apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
 

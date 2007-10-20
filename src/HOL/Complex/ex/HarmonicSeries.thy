@@ -80,7 +80,7 @@ proof
       then have
         "inverse (real x) = 1 / (real x)"
         by (rule nonzero_inverse_eq_divide)
-      moreover from mgt0 have "real tm \<noteq> 0" by (simp add: tmdef)
+      moreover from mgt0 have "real tm \<noteq> 0" by (simp add: tmdef neq0_conv)
       then have
         "inverse (real tm) = 1 / (real tm)"
         by (rule nonzero_inverse_eq_divide)

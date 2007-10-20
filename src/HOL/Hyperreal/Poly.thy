@@ -595,6 +595,7 @@ by (induct "p", auto)
 lemma pderiv_aux_iszero_num: "(number_of n :: nat) \<noteq> 0
       ==> (list_all (%c. c = 0) (pderiv_aux (number_of n) p) =
       list_all (%c. c = 0) p)"
+unfolding neq0_conv
 apply (rule_tac n1 = "number_of n" and m1 = 0 in less_imp_Suc_add [THEN exE], force)
 apply (rule_tac n1 = "0 + x" in pderiv_aux_iszero [THEN subst])
 apply (simp (no_asm_simp) del: pderiv_aux_iszero)
@@ -793,7 +794,8 @@ apply (case_tac "poly p = poly []", auto)
 apply (simp add: poly_linear_divides del: pmult_Cons, safe)
 apply (drule_tac [!] a = a in order2)
 apply (rule ccontr)
-apply (simp add: divides_def poly_mult fun_eq del: pmult_Cons, blast)
+apply (simp add: divides_def poly_mult fun_eq neq0_conv del: pmult_Cons, blast)
+using neq0_conv 
 apply (blast intro: lemma_order_root)
 done
 
@@ -883,7 +885,7 @@ done
 lemma order_pderiv: "[| poly (pderiv p) \<noteq> poly []; order a p \<noteq> 0 |]
       ==> (order a p = Suc (order a (pderiv p)))"
 apply (case_tac "poly p = poly []")
-apply (auto dest: pderiv_zero)
+apply (auto simp add: neq0_conv  dest: pderiv_zero)
 apply (drule_tac a = a and p = p in order_decomp)
 apply (blast intro: lemma_order_pderiv)
 done
@@ -951,7 +953,6 @@ apply (cut_tac p = "[h]" and a = a in order_root)
 apply (simp add: fun_eq)
 apply (blast intro: order_poly)
 apply (auto simp add: order_root order_pderiv2)
-apply (drule spec, auto)
 done
 
 lemma pmult_one: "[1] *** p = p"

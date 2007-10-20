@@ -1339,7 +1339,7 @@ theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
   apply simp
   apply (case_tac "0 \<le> k")
   apply iprover
-  apply (simp add: linorder_not_le)
+  apply (simp add: neq0_conv linorder_not_le)
   apply (drule mult_strict_left_mono_neg [OF iffD2 [OF zero_less_int_conv]])
   apply assumption
   apply (simp add: mult_ac)

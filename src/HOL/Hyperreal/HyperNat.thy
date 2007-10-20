@@ -331,8 +331,7 @@ lemma HNatInfinite_FreeUltrafilterNat_lemma:
      "\<forall>N::nat. {n. f n \<noteq> N} \<in> FreeUltrafilterNat
       ==> {n. N < f n} \<in> FreeUltrafilterNat"
 apply (induct_tac N)
-apply (drule_tac x = 0 in spec)
-apply (rule ccontr, drule FreeUltrafilterNat.not_memD, drule FreeUltrafilterNat.Int, assumption, simp)
+apply (drule_tac x = 0 in spec, simp add: neq0_conv)
 apply (drule_tac x = "Suc n" in spec)
 apply (elim ultra, auto)
 done

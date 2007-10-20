@@ -420,7 +420,7 @@ proof -
     apply (simp only: nat_to_bv_helper.simps [of n])
     apply (subst unfold_nat_to_bv_helper)
     using prems
-    apply simp
+    apply (simp add: neq0_conv)
     apply (subst nat_to_bv_def [of "n div 2"])
     apply auto
     done
@@ -474,7 +474,7 @@ proof (induct n rule: less_induct)
       apply (fold nat_to_bv_def)
       apply (simp add: ind' split del: split_if)
       apply (cases "n mod 2 = 0")
-      proof simp_all
+      proof (simp_all add: neq0_conv)
         assume "n mod 2 = 0"
         with mod_div_equality [of n 2]
         show "n div 2 * 2 = n"
@@ -554,7 +554,7 @@ lemma norm_unsigned_append2 [simp]:
 
 lemma bv_to_nat_zero_imp_empty:
     "bv_to_nat w = 0 \<Longrightarrow> norm_unsigned w = []"
-  by (atomize (full), induct w rule: bit_list_induct) simp_all
+  by (atomize (full), induct w rule: bit_list_induct) (simp_all add: neq0_conv)
 
 lemma bv_to_nat_nzero_imp_nempty:
   "bv_to_nat w \<noteq> 0 \<Longrightarrow> norm_unsigned w \<noteq> []"

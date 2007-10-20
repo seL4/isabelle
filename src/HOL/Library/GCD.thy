@@ -396,7 +396,7 @@ lemma div_igcd_relprime:
   assumes nz: "a \<noteq> 0 \<or> b \<noteq> 0"
   shows "igcd (a div (igcd a b)) (b div (igcd a b)) = 1"
 proof -
-  from nz have nz': "nat \<bar>a\<bar> \<noteq> 0 \<or> nat \<bar>b\<bar> \<noteq> 0" by simp
+  from nz have nz': "nat \<bar>a\<bar> \<noteq> 0 \<or> nat \<bar>b\<bar> \<noteq> 0" by arith 
   let ?g = "igcd a b"
   let ?a' = "a div ?g"
   let ?b' = "b div ?g"
