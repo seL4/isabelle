@@ -442,9 +442,9 @@ end;
 fun no_variables kind add addT mk mkT pp tm =
   (case (add tm [], addT tm []) of
     ([], []) => tm
-  | (frees, tfrees) => error (Pretty.string_of (Pretty.block (Pretty.breaks
-      (Pretty.str ("Illegal " ^ kind ^ " variable(s) in term:") ::
-       map (Pretty.term pp o mk) frees @ map (Pretty.typ pp o mkT) tfrees)))));
+  | (frees, tfrees) => error (Pretty.string_of (Pretty.block
+      (Pretty.str ("Illegal " ^ kind ^ " variable(s) in term:") :: Pretty.brk 1 ::
+       Pretty.commas (map (Pretty.term pp o mk) frees @ map (Pretty.typ pp o mkT) tfrees)))));
 
 val no_frees = no_variables "free" Term.add_frees Term.add_tfrees Free TFree;
 val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
