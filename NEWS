@@ -1209,10 +1209,14 @@ of algebraic structures.
 
 *** HOL-Nominal ***
 
-* Fully featured support for nominal datatypes (binding structures)
-due to the HOL-Nominal logic.  See HOL/Nominal, HOL/Nominal/Examples,
-and http://isabelle.in.tum.de/nominal/download.html
+* Not yet complete support for nominal datatypes (binding structures)
+based on HOL-Nominal logic. See HOL/Nominal and HOL/Nominal/Examples.
+If you plan to use nominal datatypes you are strongly advised to
+visit 
 
+ http://isabelle.in.tum.de/nominal/
+
+and look there for up-to-date information.
 
 *** ML ***
 
