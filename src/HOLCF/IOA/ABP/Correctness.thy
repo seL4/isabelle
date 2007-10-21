@@ -20,22 +20,23 @@ primrec
                               then reduce xs
                               else (x#(reduce xs))))"
 
-constdefs
+definition
   abs where
-    "abs  ==
+    "abs  =
       (%p.(fst(p),(fst(snd(p)),(fst(snd(snd(p))),
        (reduce(fst(snd(snd(snd(p))))),reduce(snd(snd(snd(snd(p))))))))))"
 
-  system_ioa       :: "('m action, bool * 'm impl_state)ioa"
-  "system_ioa == (env_ioa || impl_ioa)"
+definition
+  system_ioa :: "('m action, bool * 'm impl_state)ioa" where
+  "system_ioa = (env_ioa || impl_ioa)"
 
-  system_fin_ioa   :: "('m action, bool * 'm impl_state)ioa"
-  "system_fin_ioa == (env_ioa || impl_fin_ioa)"
+definition
+  system_fin_ioa :: "('m action, bool * 'm impl_state)ioa" where
+  "system_fin_ioa = (env_ioa || impl_fin_ioa)"
 
 
-axioms
-
-  sys_IOA:     "IOA system_ioa"
+axiomatization where
+  sys_IOA: "IOA system_ioa" and
   sys_fin_IOA: "IOA system_fin_ioa"
 
 

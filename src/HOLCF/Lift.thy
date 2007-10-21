@@ -16,9 +16,9 @@ by simp
 
 lemmas inst_lift_pcpo = Abs_lift_strict [symmetric]
 
-constdefs
-  Def :: "'a \<Rightarrow> 'a lift"
-  "Def x \<equiv> Abs_lift (up\<cdot>(Discr x))"
+definition
+  Def :: "'a \<Rightarrow> 'a lift" where
+  "Def x = Abs_lift (up\<cdot>(Discr x))"
 
 subsection {* Lift as a datatype *}
 
@@ -110,15 +110,17 @@ by (rule cont_Rep_CFun_app [THEN cont2cont_fun])
 
 subsection {* Further operations *}
 
-constdefs
-  flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)" (binder "FLIFT " 10)
-  "flift1 \<equiv> \<lambda>f. (\<Lambda> x. lift_case \<bottom> f x)"
+definition
+  flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)"  (binder "FLIFT " 10)  where
+  "flift1 = (\<lambda>f. (\<Lambda> x. lift_case \<bottom> f x))"
 
-  flift2 :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lift \<rightarrow> 'b lift)"
-  "flift2 f \<equiv> FLIFT x. Def (f x)"
+definition
+  flift2 :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lift \<rightarrow> 'b lift)" where
+  "flift2 f = (FLIFT x. Def (f x))"
 
-  liftpair :: "'a lift \<times> 'b lift \<Rightarrow> ('a \<times> 'b) lift"
-  "liftpair x \<equiv> csplit\<cdot>(FLIFT x y. Def (x, y))\<cdot>x"
+definition
+  liftpair :: "'a lift \<times> 'b lift \<Rightarrow> ('a \<times> 'b) lift" where
+  "liftpair x = csplit\<cdot>(FLIFT x y. Def (x, y))\<cdot>x"
 
 subsection {* Continuity Proofs for flift1, flift2 *}
 

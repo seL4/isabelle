@@ -22,7 +22,7 @@ notation (xsymbols)
 
 axclass po < sq_ord
   refl_less [iff]: "x \<sqsubseteq> x"
-  antisym_less:    "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> x = y"    
+  antisym_less:    "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> x = y"
   trans_less:      "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
 
 text {* minimal fixes least element *}
@@ -58,32 +58,38 @@ lemmas HOLCF_trans_rules [trans] =
 
 subsection {* Chains and least upper bounds *}
 
-constdefs  
+text {* class definitions *}
 
-  -- {* class definitions *}
-  is_ub :: "['a set, 'a::po] \<Rightarrow> bool"       (infixl "<|" 55)
-  "S <| x \<equiv> \<forall>y. y \<in> S \<longrightarrow> y \<sqsubseteq> x"
+definition
+  is_ub :: "['a set, 'a::po] \<Rightarrow> bool"  (infixl "<|" 55)  where
+  "(S <| x) = (\<forall>y. y \<in> S \<longrightarrow> y \<sqsubseteq> x)"
 
-  is_lub :: "['a set, 'a::po] \<Rightarrow> bool"       (infixl "<<|" 55)
-  "S <<| x \<equiv> S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u)"
+definition
+  is_lub :: "['a set, 'a::po] \<Rightarrow> bool"  (infixl "<<|" 55)  where
+  "(S <<| x) = (S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u))"
 
+definition
   -- {* Arbitrary chains are total orders *}
-  tord :: "'a::po set \<Rightarrow> bool"
-  "tord S \<equiv> \<forall>x y. x \<in> S \<and> y \<in> S \<longrightarrow> (x \<sqsubseteq> y \<or> y \<sqsubseteq> x)"
+  tord :: "'a::po set \<Rightarrow> bool" where
+  "tord S = (\<forall>x y. x \<in> S \<and> y \<in> S \<longrightarrow> (x \<sqsubseteq> y \<or> y \<sqsubseteq> x))"
 
+definition
   -- {* Here we use countable chains and I prefer to code them as functions! *}
-  chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool"
-  "chain F \<equiv> \<forall>i. F i \<sqsubseteq> F (Suc i)"
+  chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
+  "chain F = (\<forall>i. F i \<sqsubseteq> F (Suc i))"
 
+definition
   -- {* finite chains, needed for monotony of continuous functions *}
-  max_in_chain :: "[nat, nat \<Rightarrow> 'a::po] \<Rightarrow> bool"
-  "max_in_chain i C \<equiv> \<forall>j. i \<le> j \<longrightarrow> C i = C j" 
+  max_in_chain :: "[nat, nat \<Rightarrow> 'a::po] \<Rightarrow> bool" where
+  "max_in_chain i C = (\<forall>j. i \<le> j \<longrightarrow> C i = C j)"
 
-  finite_chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool"
-  "finite_chain C \<equiv> chain(C) \<and> (\<exists>i. max_in_chain i C)"
+definition
+  finite_chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
+  "finite_chain C = (chain C \<and> (\<exists>i. max_in_chain i C))"
 
-  lub :: "'a set \<Rightarrow> 'a::po"
-  "lub S \<equiv> THE x. S <<| x"
+definition
+  lub :: "'a set \<Rightarrow> 'a::po" where
+  "lub S = (THE x. S <<| x)"
 
 abbreviation
   Lub  (binder "LUB " 10) where
@@ -123,8 +129,6 @@ apply (fast intro: chain_mono)+
 done
 
 text {* technical lemmas about @{term lub} and @{term is_lub} *}
-
-lemmas lub = lub_def [THEN meta_eq_to_obj_eq, standard]
 
 lemma lubI: "M <<| x \<Longrightarrow> M <<| lub M"
 apply (unfold lub_def)
@@ -201,7 +205,7 @@ apply (erule (1) chain_mono3)
 apply (erule ub_rangeD)
 done
 
-lemma lub_finch2: 
+lemma lub_finch2:
         "finite_chain C \<Longrightarrow> range C <<| C (LEAST i. max_in_chain i C)"
 apply (unfold finite_chain_def)
 apply (erule conjE)

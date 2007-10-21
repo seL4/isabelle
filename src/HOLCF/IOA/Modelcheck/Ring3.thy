@@ -11,9 +11,9 @@ datatype Comm =
   Zero_One token | One_Two token | Two_Zero token |
   Leader_Zero | Leader_One | Leader_Two
 
-constdefs
-  Greater :: "[token, token] => bool"
-  "Greater x y ==
+definition
+  Greater :: "[token, token] => bool" where
+  "Greater x y =
     (x~=Leader & x~=id0 & y=id0) | (x=id4 & y~=id4 & y~=Leader) |
     (x=id2 & y=id1) | (x=id3 & y=id1) | (x=id3 & y=id2)"
 

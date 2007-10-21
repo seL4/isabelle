@@ -11,13 +11,13 @@ begin
 
 defaultsort type
 
-constdefs
-  sim_relation   :: "((nat * bool) * (nat set * bool)) set"
-  "sim_relation == {qua. let c = fst qua; a = snd qua ;
-                             k = fst c;   b = snd c;
-                             used = fst a; c = snd a
-                         in
-                         (! l:used. l < k) & b=c }"
+definition
+  sim_relation :: "((nat * bool) * (nat set * bool)) set" where
+  "sim_relation = {qua. let c = fst qua; a = snd qua ;
+                            k = fst c;   b = snd c;
+                            used = fst a; c = snd a
+                        in
+                        (! l:used. l < k) & b=c}"
 
 declare split_paired_All [simp]
 declare split_paired_Ex [simp del]

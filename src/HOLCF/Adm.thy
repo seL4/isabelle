@@ -13,12 +13,13 @@ defaultsort cpo
 
 subsection {* Definitions *}
 
-constdefs
-  adm :: "('a::cpo \<Rightarrow> bool) \<Rightarrow> bool"
-  "adm P \<equiv> \<forall>Y. chain Y \<longrightarrow> (\<forall>i. P (Y i)) \<longrightarrow> P (\<Squnion>i. Y i)"
+definition
+  adm :: "('a::cpo \<Rightarrow> bool) \<Rightarrow> bool" where
+  "adm P = (\<forall>Y. chain Y \<longrightarrow> (\<forall>i. P (Y i)) \<longrightarrow> P (\<Squnion>i. Y i))"
 
-  compact :: "'a::cpo \<Rightarrow> bool"
-  "compact k \<equiv> adm (\<lambda>x. \<not> k \<sqsubseteq> x)"
+definition
+  compact :: "'a::cpo \<Rightarrow> bool" where
+  "compact k = adm (\<lambda>x. \<not> k \<sqsubseteq> x)"
 
 lemma admI:
    "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)) \<Longrightarrow> adm P"

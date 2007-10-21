@@ -49,9 +49,9 @@ by (rule chain_iterate2 [OF minimal])
 
 subsection {* Least fixed point operator *}
 
-constdefs
-  "fix" :: "('a \<rightarrow> 'a) \<rightarrow> 'a"
-  "fix \<equiv> \<Lambda> F. \<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>"
+definition
+  "fix" :: "('a \<rightarrow> 'a) \<rightarrow> 'a" where
+  "fix = (\<Lambda> F. \<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 
 text {* Binder syntax for @{term fix} *}
 
@@ -62,7 +62,7 @@ syntax (xsymbols)
   "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3\<mu>_./ _)" [1000, 10] 10)
 
 translations
-  "\<mu> x. t" == "fix\<cdot>(\<Lambda> x. t)"
+  "\<mu> x. t" == "CONST fix\<cdot>(\<Lambda> x. t)"
 
 text {* Properties of @{term fix} *}
 
@@ -164,9 +164,9 @@ by (simp add: fix_ind)
 
 subsection {* Recursive let bindings *}
 
-constdefs
-  CLetrec :: "('a \<rightarrow> 'a \<times> 'b) \<rightarrow> 'b"
-  "CLetrec \<equiv> \<Lambda> F. csnd\<cdot>(F\<cdot>(\<mu> x. cfst\<cdot>(F\<cdot>x)))"
+definition
+  CLetrec :: "('a \<rightarrow> 'a \<times> 'b) \<rightarrow> 'b" where
+  "CLetrec = (\<Lambda> F. csnd\<cdot>(F\<cdot>(\<mu> x. cfst\<cdot>(F\<cdot>x))))"
 
 nonterminals
   recbinds recbindt recbind
@@ -181,12 +181,12 @@ syntax
 
 translations
   (recbindt) "x = a, \<langle>y,ys\<rangle> = \<langle>b,bs\<rangle>" == (recbindt) "\<langle>x,y,ys\<rangle> = \<langle>a,b,bs\<rangle>"
-  (recbindt) "x = a, y = b"           == (recbindt) "\<langle>x,y\<rangle> = \<langle>a,b\<rangle>"
+  (recbindt) "x = a, y = b"          == (recbindt) "\<langle>x,y\<rangle> = \<langle>a,b\<rangle>"
 
 translations
   "_Letrec (_recbinds b bs) e" == "_Letrec b (_Letrec bs e)"
-  "Letrec xs = a in \<langle>e,es\<rangle>"    == "CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e,es\<rangle>)"
-  "Letrec xs = a in e"         == "CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e\<rangle>)"
+  "Letrec xs = a in \<langle>e,es\<rangle>"    == "CONST CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e,es\<rangle>)"
+  "Letrec xs = a in e"         == "CONST CLetrec\<cdot>(\<Lambda> xs. \<langle>a,e\<rangle>)"
 
 text {*
   Bekic's Theorem: Simultaneous fixed points over pairs
@@ -222,9 +222,9 @@ qed
 
 subsection {* Weak admissibility *}
 
-constdefs
-  admw :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
-  "admw P \<equiv> \<forall>F. (\<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)) \<longrightarrow> P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
+definition
+  admw :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "admw P = (\<forall>F. (\<forall>n. P (iterate n\<cdot>F\<cdot>\<bottom>)) \<longrightarrow> P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>))"
 
 text {* an admissible formula is also weak admissible *}
 

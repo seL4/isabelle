@@ -27,24 +27,23 @@ consts
 
   Filter2          ::"('a => bool)  => 'a Seq -> 'a Seq"
 
-syntax
+abbreviation
+  Consq_syn  ("(_/>>_)"  [66,65] 65) where
+  "a>>s == Consq a$s"
 
- "@Consq"         ::"'a => 'a Seq => 'a Seq"       ("(_/>>_)"  [66,65] 65)
- (* list Enumeration *)
+notation (xsymbols)
+  Consq_syn  ("(_\<leadsto>_)"  [66,65] 65)
+
+
+(* list Enumeration *)
+syntax
   "_totlist"      :: "args => 'a Seq"              ("[(_)!]")
   "_partlist"     :: "args => 'a Seq"              ("[(_)?]")
-
-
-syntax (xsymbols)
-  "@Consq"     ::"'a => 'a Seq => 'a Seq"       ("(_\<leadsto>_)"  [66,65] 65)
-
-
 translations
-  "a>>s"         == "Consq a$s"
   "[x, xs!]"     == "x>>[xs!]"
-  "[x!]"         == "x>>nil"
+  "[x!]"         == "x>>CONST nil"
   "[x, xs?]"     == "x>>[xs?]"
-  "[x?]"         == "x>>UU"
+  "[x?]"         == "x>>CONST UU"
 
 defs
 

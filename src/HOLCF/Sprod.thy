@@ -48,10 +48,10 @@ syntax
 
 translations
   "(:x, y, z:)" == "(:x, (:y, z:):)"
-  "(:x, y:)"    == "spair\<cdot>x\<cdot>y"
+  "(:x, y:)"    == "CONST spair\<cdot>x\<cdot>y"
 
 translations
-  "\<Lambda>(spair\<cdot>x\<cdot>y). t" == "ssplit\<cdot>(\<Lambda> x y. t)"
+  "\<Lambda>(CONST spair\<cdot>x\<cdot>y). t" == "CONST ssplit\<cdot>(\<Lambda> x y. t)"
 
 subsection {* Case analysis *}
 

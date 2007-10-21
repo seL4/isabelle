@@ -9,10 +9,10 @@ theory Correctness
 imports Impl Spec
 begin
 
-constdefs
-  hom :: "'m impl_state => 'm list"
-  "hom(s) == rq(rec(s)) @ (if rbit(rec s) = sbit(sen s) then sq(sen s)
-                           else tl(sq(sen s)))"
+definition
+  hom :: "'m impl_state => 'm list" where
+  "hom s = rq(rec(s)) @ (if rbit(rec s) = sbit(sen s) then sq(sen s)
+                         else tl(sq(sen s)))"
 
 ML_setup {*
 (* repeated from Traces.ML *)

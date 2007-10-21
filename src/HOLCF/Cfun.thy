@@ -28,14 +28,14 @@ by (simp add: Ex_cont adm_cont)
 syntax (xsymbols)
   "->"     :: "[type, type] => type"      ("(_ \<rightarrow>/ _)" [1,0]0)
 
-syntax
-  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_$/_)" [999,1000] 999)
+notation
+  Rep_CFun  ("(_$/_)" [999,1000] 999)
 
-syntax (xsymbols)
-  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>/_)" [999,1000] 999)
+notation (xsymbols)
+  Rep_CFun  ("(_\<cdot>/_)" [999,1000] 999)
 
-syntax (HTML output)
-  Rep_CFun :: "('a \<rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" ("(_\<cdot>/_)" [999,1000] 999)
+notation (HTML output)
+  Rep_CFun  ("(_\<cdot>/_)" [999,1000] 999)
 
 subsection {* Syntax for continuous lambda abstraction *}
 
@@ -43,7 +43,7 @@ syntax "_cabs" :: "'a"
 
 parse_translation {*
 (* rewrites (_cabs x t) => (Abs_CFun (%x. t)) *)
-  [mk_binder_tr ("_cabs", "Abs_CFun")];
+  [mk_binder_tr ("_cabs", @{const_syntax Abs_CFun})];
 *}
 
 text {* To avoid eta-contraction of body: *}
@@ -59,7 +59,7 @@ typed_print_translation {*
           val (x,t') = atomic_abs_tr' abs';
         in Syntax.const "_cabs" $ x $ t' end;
 
-  in [("Abs_CFun", cabs_tr')] end;
+  in [(@{const_syntax Abs_CFun}, cabs_tr')] end;
 *}
 
 text {* Syntax for nested abstractions *}
@@ -95,7 +95,7 @@ print_ast_translation {*
 
 text {* Dummy patterns for continuous abstraction *}
 translations
-  "\<Lambda> _. t" => "Abs_CFun (\<lambda> _. t)"
+  "\<Lambda> _. t" => "CONST Abs_CFun (\<lambda> _. t)"
 
 
 subsection {* Continuous function space is pointed *}
@@ -439,9 +439,9 @@ consts
   ID      :: "'a \<rightarrow> 'a"
   cfcomp  :: "('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'c"
 
-syntax  "@oo" :: "['b \<rightarrow> 'c, 'a \<rightarrow> 'b] \<Rightarrow> 'a \<rightarrow> 'c" (infixr "oo" 100)
-     
-translations  "f oo g" == "cfcomp\<cdot>f\<cdot>g"
+abbreviation
+  cfcomp_syn :: "['b \<rightarrow> 'c, 'a \<rightarrow> 'b] \<Rightarrow> 'a \<rightarrow> 'c"  (infixr "oo" 100)  where
+  "f oo g == cfcomp\<cdot>f\<cdot>g"
 
 defs
   ID_def: "ID \<equiv> (\<Lambda> x. x)"
@@ -481,9 +481,9 @@ subsection {* Strictified functions *}
 
 defaultsort pcpo
 
-constdefs
-  strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b"
-  "strictify \<equiv> (\<Lambda> f x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
+definition
+  strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b" where
+  "strictify = (\<Lambda> f x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 
 text {* results about strictify *}
 
@@ -526,15 +526,15 @@ by (simp add: strictify_conv_if)
 
 subsection {* Continuous let-bindings *}
 
-constdefs
-  CLet :: "'a \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'b"
-  "CLet \<equiv> \<Lambda> s f. f\<cdot>s"
+definition
+  CLet :: "'a \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'b" where
+  "CLet = (\<Lambda> s f. f\<cdot>s)"
 
 syntax
   "_CLet" :: "[letbinds, 'a] => 'a" ("(Let (_)/ in (_))" 10)
 
 translations
   "_CLet (_binds b bs) e" == "_CLet b (_CLet bs e)"
-  "Let x = a in e" == "CLet\<cdot>a\<cdot>(\<Lambda> x. e)"
+  "Let x = a in e" == "CONST CLet\<cdot>a\<cdot>(\<Lambda> x. e)"
 
 end

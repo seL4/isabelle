@@ -12,30 +12,32 @@ begin
 types
   'm env_state = bool   -- {* give next bit to system *}
 
-constdefs
-env_asig   :: "'m action signature"
-"env_asig == ({Next},
-               UN m. {S_msg(m)},
-               {})"
+definition
+  env_asig :: "'m action signature" where
+  "env_asig == ({Next},
+                 UN m. {S_msg(m)},
+                 {})"
 
-env_trans  :: "('m action, 'm env_state)transition set"
-"env_trans ==
- {tr. let s = fst(tr);
-          t = snd(snd(tr))
-      in case fst(snd(tr))
-      of
-      Next       => t=True |
-      S_msg(m)   => s=True & t=False |
-      R_msg(m)   => False |
-      S_pkt(pkt) => False |
-      R_pkt(pkt) => False |
-      S_ack(b)   => False |
-      R_ack(b)   => False}"
+definition
+  env_trans :: "('m action, 'm env_state)transition set" where
+  "env_trans =
+   {tr. let s = fst(tr);
+            t = snd(snd(tr))
+        in case fst(snd(tr))
+        of
+        Next       => t=True |
+        S_msg(m)   => s=True & t=False |
+        R_msg(m)   => False |
+        S_pkt(pkt) => False |
+        R_pkt(pkt) => False |
+        S_ack(b)   => False |
+        R_ack(b)   => False}"
 
-env_ioa    :: "('m action, 'm env_state)ioa"
-"env_ioa == (env_asig, {True}, env_trans,{},{})"
+definition
+  env_ioa :: "('m action, 'm env_state)ioa" where
+  "env_ioa = (env_asig, {True}, env_trans,{},{})"
 
-consts
-  "next"     :: "'m env_state => bool"
+axiomatization
+  "next" :: "'m env_state => bool"
 
 end

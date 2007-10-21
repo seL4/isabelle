@@ -27,12 +27,13 @@ syntax (HTML output)
 
 subsection {* Definitions of constructors *}
 
-constdefs
-  sinl :: "'a \<rightarrow> ('a ++ 'b)"
-  "sinl \<equiv> \<Lambda> a. Abs_Ssum <a, \<bottom>>"
+definition
+  sinl :: "'a \<rightarrow> ('a ++ 'b)" where
+  "sinl = (\<Lambda> a. Abs_Ssum <a, \<bottom>>)"
 
-  sinr :: "'b \<rightarrow> ('a ++ 'b)"
-  "sinr \<equiv> \<Lambda> b. Abs_Ssum <\<bottom>, b>"
+definition
+  sinr :: "'b \<rightarrow> ('a ++ 'b)" where
+  "sinr = (\<Lambda> b. Abs_Ssum <\<bottom>, b>)"
 
 subsection {* Properties of @{term sinl} and @{term sinr} *}
 
@@ -169,11 +170,11 @@ done
 
 subsection {* Definitions of constants *}
 
-constdefs
-  Iwhen :: "['a \<rightarrow> 'c, 'b \<rightarrow> 'c, 'a ++ 'b] \<Rightarrow> 'c"
-  "Iwhen \<equiv> \<lambda>f g s.
+definition
+  Iwhen :: "['a \<rightarrow> 'c, 'b \<rightarrow> 'c, 'a ++ 'b] \<Rightarrow> 'c" where
+  "Iwhen = (\<lambda>f g s.
     if cfst\<cdot>(Rep_Ssum s) \<noteq> \<bottom> then f\<cdot>(cfst\<cdot>(Rep_Ssum s)) else
-    if csnd\<cdot>(Rep_Ssum s) \<noteq> \<bottom> then g\<cdot>(csnd\<cdot>(Rep_Ssum s)) else \<bottom>"
+    if csnd\<cdot>(Rep_Ssum s) \<noteq> \<bottom> then g\<cdot>(csnd\<cdot>(Rep_Ssum s)) else \<bottom>)"
 
 text {* rewrites for @{term Iwhen} *}
 
@@ -213,16 +214,16 @@ done
 
 subsection {* Continuous versions of constants *}
 
-constdefs
-  sscase :: "('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a ++ 'b) \<rightarrow> 'c"
-  "sscase \<equiv> \<Lambda> f g s. Iwhen f g s"
+definition
+  sscase :: "('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a ++ 'b) \<rightarrow> 'c" where
+  "sscase = (\<Lambda> f g s. Iwhen f g s)"
 
 translations
-  "case s of sinl\<cdot>x \<Rightarrow> t1 | sinr\<cdot>y \<Rightarrow> t2" == "sscase\<cdot>(\<Lambda> x. t1)\<cdot>(\<Lambda> y. t2)\<cdot>s"
+  "case s of CONST sinl\<cdot>x \<Rightarrow> t1 | CONST sinr\<cdot>y \<Rightarrow> t2" == "CONST sscase\<cdot>(\<Lambda> x. t1)\<cdot>(\<Lambda> y. t2)\<cdot>s"
 
 translations
-  "\<Lambda>(sinl\<cdot>x). t" == "sscase\<cdot>(\<Lambda> x. t)\<cdot>\<bottom>"
-  "\<Lambda>(sinr\<cdot>y). t" == "sscase\<cdot>\<bottom>\<cdot>(\<Lambda> y. t)"
+  "\<Lambda>(CONST sinl\<cdot>x). t" == "CONST sscase\<cdot>(\<Lambda> x. t)\<cdot>\<bottom>"
+  "\<Lambda>(CONST sinr\<cdot>y). t" == "CONST sscase\<cdot>\<bottom>\<cdot>(\<Lambda> y. t)"
 
 text {* continuous versions of lemmas for @{term sscase} *}
 

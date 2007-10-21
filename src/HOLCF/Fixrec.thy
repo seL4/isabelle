@@ -21,11 +21,13 @@ constdefs
   fail :: "'a maybe"
   "fail \<equiv> Abs_maybe (sinl\<cdot>ONE)"
 
-  return :: "'a \<rightarrow> 'a maybe"
+constdefs
+  return :: "'a \<rightarrow> 'a maybe" where
   "return \<equiv> \<Lambda> x. Abs_maybe (sinr\<cdot>(up\<cdot>x))"
 
-  maybe_when :: "'b \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a maybe \<rightarrow> 'b::pcpo"
-  "maybe_when \<equiv> \<Lambda> f r m. sscase\<cdot>(\<Lambda> x. f)\<cdot>(fup\<cdot>r)\<cdot>(Rep_maybe m)"
+definition
+  maybe_when :: "'b \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a maybe \<rightarrow> 'b::pcpo" where
+  "maybe_when = (\<Lambda> f r m. sscase\<cdot>(\<Lambda> x. f)\<cdot>(fup\<cdot>r)\<cdot>(Rep_maybe m))"
 
 lemma maybeE:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = fail \<Longrightarrow> Q; \<And>x. p = return\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
@@ -57,14 +59,14 @@ by (simp_all add: return_def fail_def maybe_when_def cont_Rep_maybe
                   cont_Abs_maybe Abs_maybe_inverse Rep_maybe_strict)
 
 translations
-  "case m of fail \<Rightarrow> t1 | return\<cdot>x \<Rightarrow> t2" == "maybe_when\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
+  "case m of fail \<Rightarrow> t1 | return\<cdot>x \<Rightarrow> t2" == "CONST maybe_when\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
 
 
 subsubsection {* Monadic bind operator *}
 
-constdefs
-  bind :: "'a maybe \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> 'b maybe"
-  "bind \<equiv> \<Lambda> m f. case m of fail \<Rightarrow> fail | return\<cdot>x \<Rightarrow> f\<cdot>x"
+definition
+  bind :: "'a maybe \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> 'b maybe" where
+  "bind = (\<Lambda> m f. case m of fail \<Rightarrow> fail | return\<cdot>x \<Rightarrow> f\<cdot>x)"
 
 text {* monad laws *}
 
@@ -86,9 +88,9 @@ by (rule_tac p=m in maybeE, simp_all)
 
 subsubsection {* Run operator *}
 
-constdefs
-  run:: "'a maybe \<rightarrow> 'a::pcpo"
-  "run \<equiv> maybe_when\<cdot>\<bottom>\<cdot>ID"
+definition
+  run:: "'a maybe \<rightarrow> 'a::pcpo" where
+  "run = maybe_when\<cdot>\<bottom>\<cdot>ID"
 
 text {* rewrite rules for run *}
 
@@ -103,12 +105,13 @@ by (simp add: run_def)
 
 subsubsection {* Monad plus operator *}
 
-constdefs
-  mplus :: "'a maybe \<rightarrow> 'a maybe \<rightarrow> 'a maybe"
-  "mplus \<equiv> \<Lambda> m1 m2. case m1 of fail \<Rightarrow> m2 | return\<cdot>x \<Rightarrow> m1"
+definition
+  mplus :: "'a maybe \<rightarrow> 'a maybe \<rightarrow> 'a maybe" where
+  "mplus = (\<Lambda> m1 m2. case m1 of fail \<Rightarrow> m2 | return\<cdot>x \<Rightarrow> m1)"
 
-syntax "+++" :: "['a maybe, 'a maybe] \<Rightarrow> 'a maybe" (infixr "+++" 65)
-translations "m1 +++ m2" == "mplus\<cdot>m1\<cdot>m2"
+abbreviation
+  mplus_syn :: "['a maybe, 'a maybe] \<Rightarrow> 'a maybe"  (infixr "+++" 65)  where
+  "m1 +++ m2 == mplus\<cdot>m1\<cdot>m2"
 
 text {* rewrite rules for mplus *}
 
@@ -129,14 +132,13 @@ by (rule_tac p=x in maybeE, simp_all)
 
 subsubsection {* Fatbar combinator *}
 
-constdefs
-  fatbar :: "('a \<rightarrow> 'b maybe) \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> ('a \<rightarrow> 'b maybe)"
-  "fatbar \<equiv> \<Lambda> a b x. a\<cdot>x +++ b\<cdot>x"
+definition
+  fatbar :: "('a \<rightarrow> 'b maybe) \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> ('a \<rightarrow> 'b maybe)" where
+  "fatbar = (\<Lambda> a b x. a\<cdot>x +++ b\<cdot>x)"
 
-syntax
-  "\<parallel>" :: "['a \<rightarrow> 'b maybe, 'a \<rightarrow> 'b maybe] \<Rightarrow> 'a \<rightarrow> 'b maybe" (infixr "\<parallel>" 60)
-translations
-  "m1 \<parallel> m2" == "fatbar\<cdot>m1\<cdot>m2"
+abbreviation
+  fatbar_syn :: "['a \<rightarrow> 'b maybe, 'a \<rightarrow> 'b maybe] \<Rightarrow> 'a \<rightarrow> 'b maybe" (infixr "\<parallel>" 60)  where
+  "m1 \<parallel> m2 == fatbar\<cdot>m1\<cdot>m2"
 
 lemma fatbar1: "m\<cdot>x = \<bottom> \<Longrightarrow> (m \<parallel> ms)\<cdot>x = \<bottom>"
 by (simp add: fatbar_def)
@@ -201,15 +203,15 @@ syntax
   "_var" :: "'a"
 
 translations
-  "_Case1 p r" => "branch (_pat p)\<cdot>(_var p r)"
-  "_var (_args x y) r" => "csplit\<cdot>(_var x (_var y r))"
-  "_var () r" => "unit_when\<cdot>r"
+  "_Case1 p r" => "CONST branch (_pat p)\<cdot>(_var p r)"
+  "_var (_args x y) r" => "CONST csplit\<cdot>(_var x (_var y r))"
+  "_var () r" => "CONST unit_when\<cdot>r"
 
 parse_translation {*
 (* rewrites (_pat x) => (return) *)
 (* rewrites (_var x t) => (Abs_CFun (%x. t)) *)
   [("_pat", K (Syntax.const "Fixrec.return")),
-   mk_binder_tr ("_var", "Abs_CFun")];
+   mk_binder_tr ("_var", @{const_syntax Abs_CFun})];
 *}
 
 text {* Printing Case expressions *}
@@ -219,14 +221,14 @@ syntax
 
 print_translation {*
   let
-    fun dest_LAM (Const ("Rep_CFun",_) $ Const ("unit_when",_) $ t) =
-          (Syntax.const "Unity", t)
-    |   dest_LAM (Const ("Rep_CFun",_) $ Const ("csplit",_) $ t) =
+    fun dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax unit_when},_) $ t) =
+          (Syntax.const @{const_syntax Unity}, t)
+    |   dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax csplit},_) $ t) =
           let
             val (v1, t1) = dest_LAM t;
             val (v2, t2) = dest_LAM t1;
           in (Syntax.const "_args" $ v1 $ v2, t2) end 
-    |   dest_LAM (Const ("Abs_CFun",_) $ t) =
+    |   dest_LAM (Const (@{const_syntax Abs_CFun},_) $ t) =
           let
             val abs = case t of Abs abs => abs
                 | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
@@ -234,11 +236,11 @@ print_translation {*
           in (Syntax.const "_var" $ x, t') end
     |   dest_LAM _ = raise Match; (* too few vars: abort translation *)
 
-    fun Case1_tr' [Const("branch",_) $ p, r] =
+    fun Case1_tr' [Const(@{const_syntax branch},_) $ p, r] =
           let val (v, t) = dest_LAM r;
           in Syntax.const "_Case1" $ (Syntax.const "_match" $ p $ v) $ t end;
 
-  in [("Rep_CFun", Case1_tr')] end;
+  in [(@{const_syntax Rep_CFun}, Case1_tr')] end;
 *}
 
 translations
@@ -249,67 +251,74 @@ subsection {* Pattern combinators for data constructors *}
 
 types ('a, 'b) pat = "'a \<rightarrow> 'b maybe"
 
-constdefs
-  cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat"
-  "cpair_pat p1 p2 \<equiv> \<Lambda>\<langle>x, y\<rangle>.
-    bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. return\<cdot>\<langle>a, b\<rangle>))"
+definition
+  cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat" where
+  "cpair_pat p1 p2 = (\<Lambda>\<langle>x, y\<rangle>.
+    bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. return\<cdot>\<langle>a, b\<rangle>)))"
 
+definition
   spair_pat ::
-  "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a::pcpo \<otimes> 'b::pcpo, 'c \<times> 'd) pat"
-  "spair_pat p1 p2 \<equiv> \<Lambda>(:x, y:). cpair_pat p1 p2\<cdot>\<langle>x, y\<rangle>"
+  "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a::pcpo \<otimes> 'b::pcpo, 'c \<times> 'd) pat" where
+  "spair_pat p1 p2 = (\<Lambda>(:x, y:). cpair_pat p1 p2\<cdot>\<langle>x, y\<rangle>)"
 
-  sinl_pat :: "('a, 'c) pat \<Rightarrow> ('a::pcpo \<oplus> 'b::pcpo, 'c) pat"
-  "sinl_pat p \<equiv> sscase\<cdot>p\<cdot>(\<Lambda> x. fail)"
+definition
+  sinl_pat :: "('a, 'c) pat \<Rightarrow> ('a::pcpo \<oplus> 'b::pcpo, 'c) pat" where
+  "sinl_pat p = sscase\<cdot>p\<cdot>(\<Lambda> x. fail)"
 
-  sinr_pat :: "('b, 'c) pat \<Rightarrow> ('a::pcpo \<oplus> 'b::pcpo, 'c) pat"
-  "sinr_pat p \<equiv> sscase\<cdot>(\<Lambda> x. fail)\<cdot>p"
+definition
+  sinr_pat :: "('b, 'c) pat \<Rightarrow> ('a::pcpo \<oplus> 'b::pcpo, 'c) pat" where
+  "sinr_pat p = sscase\<cdot>(\<Lambda> x. fail)\<cdot>p"
 
-  up_pat :: "('a, 'b) pat \<Rightarrow> ('a u, 'b) pat"
-  "up_pat p \<equiv> fup\<cdot>p"
+definition
+  up_pat :: "('a, 'b) pat \<Rightarrow> ('a u, 'b) pat" where
+  "up_pat p = fup\<cdot>p"
 
-  TT_pat :: "(tr, unit) pat"
-  "TT_pat \<equiv> \<Lambda> b. If b then return\<cdot>() else fail fi"
+definition
+  TT_pat :: "(tr, unit) pat" where
+  "TT_pat = (\<Lambda> b. If b then return\<cdot>() else fail fi)"
 
-  FF_pat :: "(tr, unit) pat"
-  "FF_pat \<equiv> \<Lambda> b. If b then fail else return\<cdot>() fi"
+definition
+  FF_pat :: "(tr, unit) pat" where
+  "FF_pat = (\<Lambda> b. If b then fail else return\<cdot>() fi)"
 
-  ONE_pat :: "(one, unit) pat"
-  "ONE_pat \<equiv> \<Lambda> ONE. return\<cdot>()"
+definition
+  ONE_pat :: "(one, unit) pat" where
+  "ONE_pat = (\<Lambda> ONE. return\<cdot>())"
 
 text {* Parse translations (patterns) *}
 translations
-  "_pat (cpair\<cdot>x\<cdot>y)" => "cpair_pat (_pat x) (_pat y)"
-  "_pat (spair\<cdot>x\<cdot>y)" => "spair_pat (_pat x) (_pat y)"
-  "_pat (sinl\<cdot>x)" => "sinl_pat (_pat x)"
-  "_pat (sinr\<cdot>x)" => "sinr_pat (_pat x)"
-  "_pat (up\<cdot>x)" => "up_pat (_pat x)"
-  "_pat TT" => "TT_pat"
-  "_pat FF" => "FF_pat"
-  "_pat ONE" => "ONE_pat"
+  "_pat (CONST cpair\<cdot>x\<cdot>y)" => "CONST cpair_pat (_pat x) (_pat y)"
+  "_pat (CONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
+  "_pat (CONST sinl\<cdot>x)" => "CONST sinl_pat (_pat x)"
+  "_pat (CONST sinr\<cdot>x)" => "CONST sinr_pat (_pat x)"
+  "_pat (CONST up\<cdot>x)" => "CONST up_pat (_pat x)"
+  "_pat (CONST TT)" => "CONST TT_pat"
+  "_pat (CONST FF)" => "CONST FF_pat"
+  "_pat (CONST ONE)" => "CONST ONE_pat"
 
 text {* Parse translations (variables) *}
 translations
-  "_var (cpair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
-  "_var (spair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
-  "_var (sinl\<cdot>x) r" => "_var x r"
-  "_var (sinr\<cdot>x) r" => "_var x r"
-  "_var (up\<cdot>x) r" => "_var x r"
-  "_var TT r" => "_var () r"
-  "_var FF r" => "_var () r"
-  "_var ONE r" => "_var () r"
+  "_var (CONST cpair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
+  "_var (CONST spair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
+  "_var (CONST sinl\<cdot>x) r" => "_var x r"
+  "_var (CONST sinr\<cdot>x) r" => "_var x r"
+  "_var (CONST up\<cdot>x) r" => "_var x r"
+  "_var (CONST TT) r" => "_var () r"
+  "_var (CONST FF) r" => "_var () r"
+  "_var (CONST ONE) r" => "_var () r"
 
 text {* Print translations *}
 translations
-  "cpair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
-      <= "_match (cpair_pat p1 p2) (_args v1 v2)"
-  "spair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
-      <= "_match (spair_pat p1 p2) (_args v1 v2)"
-  "sinl\<cdot>(_match p1 v1)" <= "_match (sinl_pat p1) v1"
-  "sinr\<cdot>(_match p1 v1)" <= "_match (sinr_pat p1) v1"
-  "up\<cdot>(_match p1 v1)" <= "_match (up_pat p1) v1"
-  "TT" <= "_match TT_pat ()"
-  "FF" <= "_match FF_pat ()"
-  "ONE" <= "_match ONE_pat ()"
+  "CONST cpair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
+      <= "_match (CONST cpair_pat p1 p2) (_args v1 v2)"
+  "CONST spair\<cdot>(_match p1 v1)\<cdot>(_match p2 v2)"
+      <= "_match (CONST spair_pat p1 p2) (_args v1 v2)"
+  "CONST sinl\<cdot>(_match p1 v1)" <= "_match (CONST sinl_pat p1) v1"
+  "CONST sinr\<cdot>(_match p1 v1)" <= "_match (CONST sinr_pat p1) v1"
+  "CONST up\<cdot>(_match p1 v1)" <= "_match (CONST up_pat p1) v1"
+  "CONST TT" <= "_match (CONST TT_pat) ()"
+  "CONST FF" <= "_match (CONST FF_pat) ()"
+  "CONST ONE" <= "_match (CONST ONE_pat) ()"
 
 lemma cpair_pat1:
   "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = \<bottom>"
@@ -382,21 +391,23 @@ syntax
   "_as_pat" :: "[idt, 'a] \<Rightarrow> 'a" (infixr "\<as>" 10)
   "_lazy_pat" :: "'a \<Rightarrow> 'a" ("\<lazy> _" [1000] 1000)
 
-constdefs
-  wild_pat :: "'a \<rightarrow> unit maybe"
-  "wild_pat \<equiv> \<Lambda> x. return\<cdot>()"
+definition
+  wild_pat :: "'a \<rightarrow> unit maybe" where
+  "wild_pat = (\<Lambda> x. return\<cdot>())"
 
-  as_pat :: "('a \<rightarrow> 'b maybe) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) maybe"
-  "as_pat p \<equiv> \<Lambda> x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. return\<cdot>\<langle>x, a\<rangle>)"
+definition
+  as_pat :: "('a \<rightarrow> 'b maybe) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) maybe" where
+  "as_pat p = (\<Lambda> x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. return\<cdot>\<langle>x, a\<rangle>))"
 
-  lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)"
-  "lazy_pat p \<equiv> \<Lambda> x. return\<cdot>(run\<cdot>(p\<cdot>x))"
+definition
+  lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)" where
+  "lazy_pat p = (\<Lambda> x. return\<cdot>(run\<cdot>(p\<cdot>x)))"
 
 text {* Parse translations (patterns) *}
 translations
-  "_pat _" => "wild_pat"
-  "_pat (_as_pat x y)" => "as_pat (_pat y)"
-  "_pat (_lazy_pat x)" => "lazy_pat (_pat x)"
+  "_pat _" => "CONST wild_pat"
+  "_pat (_as_pat x y)" => "CONST as_pat (_pat y)"
+  "_pat (_lazy_pat x)" => "CONST lazy_pat (_pat x)"
 
 text {* Parse translations (variables) *}
 translations
@@ -406,13 +417,13 @@ translations
 
 text {* Print translations *}
 translations
-  "_" <= "_match wild_pat ()"
-  "_as_pat x (_match p v)" <= "_match (as_pat p) (_args (_var x) v)"
-  "_lazy_pat (_match p v)" <= "_match (lazy_pat p) v"
+  "_" <= "_match (CONST wild_pat) ()"
+  "_as_pat x (_match p v)" <= "_match (CONST as_pat p) (_args (_var x) v)"
+  "_lazy_pat (_match p v)" <= "_match (CONST lazy_pat p) v"
 
 text {* Lazy patterns in lambda abstractions *}
 translations
-  "_cabs (_lazy_pat p) r" == "run oo (_Case1 (_lazy_pat p) r)"
+  "_cabs (_lazy_pat p) r" == "CONST run oo (_Case1 (_lazy_pat p) r)"
 
 lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = return\<cdot>r"
 by (simp add: branch_def wild_pat_def)
@@ -436,33 +447,41 @@ subsection {* Match functions for built-in types *}
 
 defaultsort pcpo
 
-constdefs
-  match_UU :: "'a \<rightarrow> unit maybe"
-  "match_UU \<equiv> \<Lambda> x. fail"
+definition
+  match_UU :: "'a \<rightarrow> unit maybe" where
+  "match_UU = (\<Lambda> x. fail)"
 
-  match_cpair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<times> 'b) maybe"
-  "match_cpair \<equiv> csplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
+definition
+  match_cpair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<times> 'b) maybe" where
+  "match_cpair = csplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
 
-  match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<times> 'b) maybe"
-  "match_spair \<equiv> ssplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
+definition
+  match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<times> 'b) maybe" where
+  "match_spair = ssplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
 
-  match_sinl :: "'a \<oplus> 'b \<rightarrow> 'a maybe"
-  "match_sinl \<equiv> sscase\<cdot>return\<cdot>(\<Lambda> y. fail)"
+definition
+  match_sinl :: "'a \<oplus> 'b \<rightarrow> 'a maybe" where
+  "match_sinl = sscase\<cdot>return\<cdot>(\<Lambda> y. fail)"
 
-  match_sinr :: "'a \<oplus> 'b \<rightarrow> 'b maybe"
-  "match_sinr \<equiv> sscase\<cdot>(\<Lambda> x. fail)\<cdot>return"
+definition
+  match_sinr :: "'a \<oplus> 'b \<rightarrow> 'b maybe" where
+  "match_sinr = sscase\<cdot>(\<Lambda> x. fail)\<cdot>return"
 
-  match_up :: "'a::cpo u \<rightarrow> 'a maybe"
-  "match_up \<equiv> fup\<cdot>return"
+definition
+  match_up :: "'a::cpo u \<rightarrow> 'a maybe" where
+  "match_up = fup\<cdot>return"
 
-  match_ONE :: "one \<rightarrow> unit maybe"
-  "match_ONE \<equiv> \<Lambda> ONE. return\<cdot>()"
+definition
+  match_ONE :: "one \<rightarrow> unit maybe" where
+  "match_ONE = (\<Lambda> ONE. return\<cdot>())"
  
-  match_TT :: "tr \<rightarrow> unit maybe"
-  "match_TT \<equiv> \<Lambda> b. If b then return\<cdot>() else fail fi"
+definition
+  match_TT :: "tr \<rightarrow> unit maybe" where
+  "match_TT = (\<Lambda> b. If b then return\<cdot>() else fail fi)"
  
-  match_FF :: "tr \<rightarrow> unit maybe"
-  "match_FF \<equiv> \<Lambda> b. If b then fail else return\<cdot>() fi"
+definition
+  match_FF :: "tr \<rightarrow> unit maybe" where
+  "match_FF = (\<Lambda> b. If b then fail else return\<cdot>() fi)"
 
 lemma match_UU_simps [simp]:
   "match_UU\<cdot>x = fail"
@@ -532,13 +551,6 @@ text {* lemma for proving rewrite rules *}
 lemma ssubst_lhs: "\<lbrakk>t = s; P s = Q\<rbrakk> \<Longrightarrow> P t = Q"
 by simp
 
-ML {*
-val cpair_equalI = thm "cpair_equalI";
-val cpair_eqD1 = thm "cpair_eqD1";
-val cpair_eqD2 = thm "cpair_eqD2";
-val ssubst_lhs = thm "ssubst_lhs";
-val branch_def = thm "branch_def";
-*}
 
 subsection {* Initializing the fixrec package *}
 

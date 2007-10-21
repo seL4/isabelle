@@ -29,12 +29,12 @@ by intro_classes (simp add: is_lub_def is_ub_def)
 instance unit :: pcpo
 by intro_classes simp
 
-constdefs
-  unit_when :: "'a \<rightarrow> unit \<rightarrow> 'a"
-  "unit_when \<equiv> \<Lambda> a _. a"
+definition
+  unit_when :: "'a \<rightarrow> unit \<rightarrow> 'a" where
+  "unit_when = (\<Lambda> a _. a)"
 
 translations
-  "\<Lambda>(). t" == "unit_when\<cdot>t"
+  "\<Lambda>(). t" == "CONST unit_when\<cdot>t"
 
 lemma unit_when [simp]: "unit_when\<cdot>a\<cdot>u = a"
 by (simp add: unit_when_def)
@@ -192,18 +192,21 @@ done
 
 subsection {* Continuous versions of constants *}
 
-constdefs
-  cpair :: "'a \<rightarrow> 'b \<rightarrow> ('a * 'b)" (* continuous pairing *)
-  "cpair \<equiv> (\<Lambda> x y. (x, y))"
+definition
+  cpair :: "'a \<rightarrow> 'b \<rightarrow> ('a * 'b)"  -- {* continuous pairing *}  where
+  "cpair = (\<Lambda> x y. (x, y))"
 
-  cfst :: "('a * 'b) \<rightarrow> 'a"
-  "cfst \<equiv> (\<Lambda> p. fst p)"
+definition
+  cfst :: "('a * 'b) \<rightarrow> 'a" where
+  "cfst = (\<Lambda> p. fst p)"
 
-  csnd :: "('a * 'b) \<rightarrow> 'b"
-  "csnd \<equiv> (\<Lambda> p. snd p)"      
+definition
+  csnd :: "('a * 'b) \<rightarrow> 'b" where
+  "csnd = (\<Lambda> p. snd p)"      
 
-  csplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a * 'b) \<rightarrow> 'c"
-  "csplit \<equiv> (\<Lambda> f p. f\<cdot>(cfst\<cdot>p)\<cdot>(csnd\<cdot>p))"
+definition
+  csplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a * 'b) \<rightarrow> 'c" where
+  "csplit = (\<Lambda> f p. f\<cdot>(cfst\<cdot>p)\<cdot>(csnd\<cdot>p))"
 
 syntax
   "_ctuple" :: "['a, args] \<Rightarrow> 'a * 'b"  ("(1<_,/ _>)")
@@ -213,10 +216,10 @@ syntax (xsymbols)
 
 translations
   "\<langle>x, y, z\<rangle>" == "\<langle>x, \<langle>y, z\<rangle>\<rangle>"
-  "\<langle>x, y\<rangle>"    == "cpair\<cdot>x\<cdot>y"
+  "\<langle>x, y\<rangle>"    == "CONST cpair\<cdot>x\<cdot>y"
 
 translations
-  "\<Lambda>(cpair\<cdot>x\<cdot>y). t" == "csplit\<cdot>(\<Lambda> x y. t)"
+  "\<Lambda>(CONST cpair\<cdot>x\<cdot>y). t" == "CONST csplit\<cdot>(\<Lambda> x y. t)"
 
 
 subsection {* Convert all lemmas to the continuous versions *}

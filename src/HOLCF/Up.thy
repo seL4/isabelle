@@ -115,7 +115,7 @@ lemma up_lemma5:
 by (rule ext, rule up_lemma3 [symmetric])
 
 lemma up_lemma6:
-  "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk>  
+  "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk>
       \<Longrightarrow> range Y <<| Iup (\<Squnion>i. THE a. Iup a = Y(i + j))"
 apply (rule_tac j1 = j in is_lub_range_shift [THEN iffD1])
 apply assumption
@@ -197,16 +197,17 @@ done
 
 subsection {* Continuous versions of constants *}
 
-constdefs  
-  up  :: "'a \<rightarrow> 'a u"
-  "up \<equiv> \<Lambda> x. Iup x"
+definition
+  up  :: "'a \<rightarrow> 'a u" where
+  "up = (\<Lambda> x. Iup x)"
 
-  fup :: "('a \<rightarrow> 'b::pcpo) \<rightarrow> 'a u \<rightarrow> 'b"
-  "fup \<equiv> \<Lambda> f p. Ifup f p"
+definition
+  fup :: "('a \<rightarrow> 'b::pcpo) \<rightarrow> 'a u \<rightarrow> 'b" where
+  "fup = (\<Lambda> f p. Ifup f p)"
 
 translations
-  "case l of up\<cdot>x \<Rightarrow> t" == "fup\<cdot>(\<Lambda> x. t)\<cdot>l"
-  "\<Lambda>(up\<cdot>x). t" == "fup\<cdot>(\<Lambda> x. t)"
+  "case l of CONST up\<cdot>x \<Rightarrow> t" == "CONST fup\<cdot>(\<Lambda> x. t)\<cdot>l"
+  "\<Lambda>(CONST up\<cdot>x). t" == "CONST fup\<cdot>(\<Lambda> x. t)"
 
 text {* continuous versions of lemmas for @{typ "('a)u"} *}
 

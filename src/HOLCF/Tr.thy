@@ -28,16 +28,18 @@ consts
   neg    :: "tr \<rightarrow> tr"
   If2    :: "[tr, 'c, 'c] \<Rightarrow> 'c"
 
-syntax
-  "@cifte"   :: "[tr, 'c, 'c] \<Rightarrow> 'c" ("(3If _/ (then _/ else _) fi)" 60)
-  "@andalso" :: "tr \<Rightarrow> tr \<Rightarrow> tr"     ("_ andalso _" [36,35] 35)
-  "@orelse"  :: "tr \<Rightarrow> tr \<Rightarrow> tr"     ("_ orelse _"  [31,30] 30)
- 
-translations
-  "x andalso y" == "trand\<cdot>x\<cdot>y"
-  "x orelse y"  == "tror\<cdot>x\<cdot>y"
-  "If b then e1 else e2 fi" == "trifte\<cdot>e1\<cdot>e2\<cdot>b"
+abbreviation
+  cifte_syn :: "[tr, 'c, 'c] \<Rightarrow> 'c"  ("(3If _/ (then _/ else _) fi)" 60)  where
+  "If b then e1 else e2 fi == trifte\<cdot>e1\<cdot>e2\<cdot>b"
 
+abbreviation
+  andalso_syn :: "tr \<Rightarrow> tr \<Rightarrow> tr"  ("_ andalso _" [36,35] 35)  where
+  "x andalso y == trand\<cdot>x\<cdot>y"
+
+abbreviation
+  orelse_syn :: "tr \<Rightarrow> tr \<Rightarrow> tr"  ("_ orelse _"  [31,30] 30)  where
+  "x orelse y == tror\<cdot>x\<cdot>y"
+ 
 translations
   "\<Lambda> TT. t" == "trifte\<cdot>t\<cdot>\<bottom>"
   "\<Lambda> FF. t" == "trifte\<cdot>\<bottom>\<cdot>t"

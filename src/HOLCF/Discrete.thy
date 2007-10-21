@@ -56,9 +56,9 @@ by intro_classes (rule discr_cpo)
 
 subsection {* @{term undiscr} *}
 
-constdefs
-   undiscr :: "('a::type)discr => 'a"
-  "undiscr x == (case x of Discr y => y)"
+definition
+  undiscr :: "('a::type)discr => 'a" where
+  "undiscr x = (case x of Discr y => y)"
 
 lemma undiscr_Discr [simp]: "undiscr(Discr x) = x"
 by (simp add: undiscr_def)

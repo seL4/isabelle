@@ -12,13 +12,12 @@ imports Lift
 begin
 
 types one = "unit lift"
+translations
+  "one" <= (type) "unit lift" 
 
 constdefs
   ONE :: "one"
-  "ONE \<equiv> Def ()"
-
-translations
-  "one" <= (type) "unit lift" 
+  "ONE == Def ()"
 
 text {* Exhaustion and Elimination for type @{typ one} *}
 
@@ -50,13 +49,13 @@ by (rule compact_chfin)
 
 text {* Case analysis function for type @{typ one} *}
 
-constdefs
-  one_when :: "'a::pcpo \<rightarrow> one \<rightarrow> 'a"
-  "one_when \<equiv> \<Lambda> a. strictify\<cdot>(\<Lambda> _. a)"
+definition
+  one_when :: "'a::pcpo \<rightarrow> one \<rightarrow> 'a" where
+  "one_when = (\<Lambda> a. strictify\<cdot>(\<Lambda> _. a))"
 
 translations
-  "case x of ONE \<Rightarrow> t" == "one_when\<cdot>t\<cdot>x"
-  "\<Lambda> ONE. t" == "one_when\<cdot>t"
+  "case x of CONST ONE \<Rightarrow> t" == "CONST one_when\<cdot>t\<cdot>x"
+  "\<Lambda> (CONST ONE). t" == "CONST one_when\<cdot>t"
 
 lemma one_when1 [simp]: "(case \<bottom> of ONE \<Rightarrow> t) = \<bottom>"
 by (simp add: one_when_def)

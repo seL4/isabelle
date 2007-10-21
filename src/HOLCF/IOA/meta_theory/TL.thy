@@ -30,10 +30,10 @@ Diamond      ::"'a temporal => 'a temporal"   ("<> (_)" [80] 80)
 Next         ::"'a temporal => 'a temporal"
 Leadsto      ::"'a temporal => 'a temporal => 'a temporal"  (infixr "~>" 22)
 
-syntax (xsymbols)
-   "Box"        ::"'a temporal => 'a temporal"   ("\<box> (_)" [80] 80)
-   "Diamond"    ::"'a temporal => 'a temporal"   ("\<diamond> (_)" [80] 80)
-   "Leadsto"    ::"'a temporal => 'a temporal => 'a temporal"  (infixr "\<leadsto>" 22)
+notation (xsymbols)
+  Box  ("\<box> (_)" [80] 80) and
+  Diamond  ("\<diamond> (_)" [80] 80) and
+  Leadsto  (infixr "\<leadsto>" 22)
 
 defs
 

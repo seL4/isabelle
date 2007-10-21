@@ -171,12 +171,12 @@ text {* The class pcpo of pointed cpos *}
 axclass pcpo < cpo
   least: "\<exists>x. \<forall>y. x \<sqsubseteq> y"
 
-constdefs
-  UU :: "'a::pcpo"
-  "UU \<equiv> THE x. \<forall>y. x \<sqsubseteq> y"
+definition
+  UU :: "'a::pcpo" where
+  "UU = (THE x. \<forall>y. x \<sqsubseteq> y)"
 
-syntax (xsymbols)
-  UU :: "'a::pcpo" ("\<bottom>")
+notation (xsymbols)
+  UU  ("\<bottom>")
 
 text {* derive the old rule minimal *}
  

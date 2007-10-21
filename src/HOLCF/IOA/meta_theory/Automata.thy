@@ -68,23 +68,6 @@ consts
   rename_set    :: "'a set => ('c => 'a option) => 'c set"
   rename        :: "('a, 'b)ioa => ('c => 'a option) => ('c,'b)ioa"
 
-
-syntax
-
-  "_trans_of"  :: "'s => 'a => ('a,'s)ioa => 's => bool"  ("_ -_--_-> _" [81,81,81,81] 100)
-  "act"        :: "('a,'s)ioa => 'a set"
-  "ext"        :: "('a,'s)ioa => 'a set"
-  "int"        :: "('a,'s)ioa => 'a set"
-  "inp"        :: "('a,'s)ioa => 'a set"
-  "out"        :: "('a,'s)ioa => 'a set"
-  "local"      :: "('a,'s)ioa => 'a set"
-
-
-syntax (xsymbols)
-
-  "_trans_of"  :: "'s => 'a => ('a,'s)ioa => 's => bool"
-                  ("_ \<midarrow>_\<midarrow>_\<longrightarrow> _" [81,81,81,81] 100)
-
 notation (xsymbols)
   par  (infixr "\<parallel>" 10)
 
@@ -96,15 +79,19 @@ inductive
     reachable_0:  "s : starts_of C ==> reachable C s"
   | reachable_n:  "[| reachable C s; (s, a, t) : trans_of C |] ==> reachable C t"
 
+abbreviation
+  trans_of_syn  ("_ -_--_-> _" [81,81,81,81] 100) where
+  "s -a--A-> t == (s,a,t):trans_of A"
 
-translations
-  "s -a--A-> t"   == "(s,a,t):trans_of A"
-  "act A"         == "actions (asig_of A)"
-  "ext A"         == "externals (asig_of A)"
-  "int A"         == "internals (asig_of A)"
-  "inp A"         == "inputs (asig_of A)"
-  "out A"         == "outputs (asig_of A)"
-  "local A"       == "locals (asig_of A)"
+notation (xsymbols)
+  trans_of_syn  ("_ \<midarrow>_\<midarrow>_\<longrightarrow> _" [81,81,81,81] 100)
+
+abbreviation "act A == actions (asig_of A)"
+abbreviation "ext A == externals (asig_of A)"
+abbreviation int where "int A == internals (asig_of A)"
+abbreviation "inp A == inputs (asig_of A)"
+abbreviation "out A == outputs (asig_of A)"
+abbreviation "local A == locals (asig_of A)"
 
 defs
 

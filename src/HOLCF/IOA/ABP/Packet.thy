@@ -12,11 +12,12 @@ begin
 types
   'msg packet = "bool * 'msg"
 
-constdefs
-  hdr  :: "'msg packet => bool"
-  "hdr == fst"
+definition
+  hdr :: "'msg packet => bool" where
+  "hdr = fst"
 
-  msg :: "'msg packet => 'msg"
-  "msg == snd"
+definition
+  msg :: "'msg packet => 'msg" where
+  "msg = snd"
 
 end
