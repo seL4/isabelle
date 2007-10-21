@@ -759,7 +759,7 @@ lemma surj_multiset_of: "surj multiset_of"
   apply (rule_tac x = "x # xa" in exI, auto)
   done
 
-lemma set_count_greater_0: "set x = {a. 0 < count (multiset_of x) a}"
+lemma set_count_greater_0: "set x = {a. count (multiset_of x) a \<noteq> 0}"
   by (induct x) auto
 
 lemma distinct_count_atmost_1:

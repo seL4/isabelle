@@ -500,6 +500,8 @@ lemma gr_implies_not0: fixes n :: nat shows "m<n ==> n \<noteq> 0"
 lemma neq0_conv: fixes n :: nat shows "(n \<noteq> 0) = (0 < n)"
   by (cases n) simp_all
 
+lemmas gr0_conv = neq0_conv[symmetric]
+
 text {* This theorem is useful with @{text blast} *}
 lemma gr0I: "((n::nat) = 0 ==> False) ==> 0 < n"
   by (rule iffD1, rule neq0_conv, iprover)
@@ -655,8 +657,8 @@ lemma add_is_1: "(m+n= Suc 0) = (m= Suc 0 & n=0 | m=0 & n= Suc 0)"
 lemma one_is_add: "(Suc 0 = m + n) = (m = Suc 0 & n = 0 | m = 0 & n = Suc 0)"
   by (rule trans, rule eq_commute, rule add_is_1)
 
-lemma add_gr_0 [iff]: "!!m::nat. (m + n \<noteq> 0) = (m\<noteq>0 | n\<noteq>0)"
-by simp
+lemma add_gr_0 [iff]: "!!m::nat. (m + n > 0) = (m\<noteq>0 | n\<noteq>0)"
+by (simp add:gr0_conv)
 
 lemma add_eq_self_zero: "!!m::nat. m + n = m ==> n = 0"
   apply (drule add_0_right [THEN ssubst])
