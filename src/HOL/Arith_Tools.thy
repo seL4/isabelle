@@ -584,10 +584,11 @@ fun numeral_is_const ct =
  | Const (@{const_name "HOL.uminus"},_)$t => numeral_is_const (Thm.dest_arg ct)
  | t => can HOLogic.dest_number t
 
-fun dest_const ct = case term_of ct of
+fun dest_const ct = ((case term_of ct of
    Const (@{const_name "HOL.divide"},_) $ a $ b=>
     Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
- | t => Rat.rat_of_int (snd (HOLogic.dest_number t))
+ | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
+   handle TERM _ => error "ring_dest_const")
 
 fun mk_const phi cT x =
  let val (a, b) = Rat.quotient_of_rat x
