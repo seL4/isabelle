@@ -109,37 +109,15 @@ arguments may be given on the LHS.)
 
 *** Pure ***
 
-* Class-context aware syntax for class target ("user space type system"):
-Local operations in class context (fixes, definitions, axiomatizations,
-abbreviations) are identified with their global counterparts during reading and
-printing of terms.  Practically, this allows to use the same syntax for
-both local *and* global operations.  Syntax declarations referring directly to
-local fixes, definitions, axiomatizations and abbreviations are applied to their
-global counterparts instead (but explicit notation declarations still are local);
-the special treatment of \<^loc> in local syntax declarations has been abandoned.
-INCOMPATIBILITY.  Most affected theories shall work after the following
-purgatory:
-
-    perl -i -pe 's/\\<\^loc>//g;' THYFILENAME1 THYFILENAME2 ...
-
-Current limitations:
-- printing of local abbreviations sometimes yields unexpected results.
-- some facilities (e.g. attribute of, legacy tac-methods) still do not use
-canonical interfaces for printing and reading terms.
-
-* Code generator: consts in 'consts_code' Isar commands are now
-referred to by usual term syntax (including optional type
-annotations).
-
-* Code generator: basic definitions (from 'definition', 'constdefs',
-or primitive 'instance' definitions) are added automatically to the
-table of defining equations.  Primitive defs are not used as defining
-equations by default any longer.  Defining equations are now definitly
-restricted to meta "==" and object equality "=".
-
 * The 'class' package offers a combination of axclass and locale to
-achieve Haskell-like type classes in Isabelle.  See
-HOL/ex/Classpackage.thy for examples.
+achieve Haskell-like type classes in Isabelle.  Definitions and
+theorems within a class context produce both relative results (with
+implicit parameters according to the locale context), and polymorphic
+constants with qualified polymorphism (according to the class
+context).  Within the body context of a 'class' target, a separate
+syntax layer ("user space type system") takes care of converting
+between global polymorphic consts and internal locale representation.
+See HOL/ex/Classpackage.thy for examples (as well as main HOL).
 
 * Yet another code generator framework allows to generate executable
 code for ML and Haskell (including Isabelle classes).  A short usage
@@ -185,6 +163,16 @@ For example usage see HOL/ex/Codegenerator.thy and
 HOL/ex/Codegenerator_Pretty.thy.  A separate tutorial on code
 generation from Isabelle/HOL theories is available via "isatool doc
 codegen".
+
+* Code generator: consts in 'consts_code' Isar commands are now
+referred to by usual term syntax (including optional type
+annotations).
+
+* Code generator: basic definitions (from 'definition', 'constdefs',
+or primitive 'instance' definitions) are added automatically to the
+table of defining equations.  Primitive defs are not used as defining
+equations by default any longer.  Defining equations are now definitly
+restricted to meta "==" and object equality "=".
 
 * Command 'no_translations' removes translation rules from theory
 syntax.
@@ -562,17 +550,30 @@ default; use '!' option for full details.
 
 *** HOL ***
 
-* localized monotonicity predicate in theory "Orderings";
-integrated lemmas max_of_mono and min_of_mono with this predicate.
+* Method "metis" proves goals by applying the Metis general-purpose
+resolution prover (see also http://gilith.com/software/metis/).
+Examples are in the directory MetisExamples.  WARNING: the
+Isabelle/HOL-Metis integration does not yet work properly with
+multi-threading.
+  
+* Command 'sledgehammer' invokes external automatic theorem provers as
+background processes.  It generates calls to the "metis" method if
+successful. These can be pasted into the proof.  Users do not have to
+wait for the automatic provers to return.  WARNING: does not really
+work with multi-threading.
+
+* Localized monotonicity predicate in theory "Orderings"; integrated
+lemmas max_of_mono and min_of_mono with this predicate.
 INCOMPATIBILITY.
 
-* class "div" now inherits from class "times" rather than "type".
+* Class "div" now inherits from class "times" rather than "type".
 INCOMPATIBILITY.
 
 * New "auto_quickcheck" feature tests outermost goal statements for
 potential counter-examples.  Controlled by ML references
 auto_quickcheck (default true) and auto_quickcheck_time_limit (default
-5000 milliseconds).
+5000 milliseconds).  Fails silently if statements is outside of
+executable fragment, or any other codgenerator problem occurs.
 
 * Internal reorganisation of `size' of datatypes: size theorems
 "foo.size" are no longer subsumed by "foo.simps" (but are still
@@ -594,6 +595,8 @@ with new class dense_linear_order.
 * HOL/Finite_Set: "name-space" locales Lattice, Distrib_lattice,
 Linorder etc.  have disappeared; operations defined in terms of
 fold_set now are named Inf_fin, Sup_fin.  INCOMPATIBILITY.
+
+* HOL/Nat: neq0_conv no longer declared as iff.  INCOMPATIBILITY.
 
 * HOL-Word: New extensive library and type for generic, fixed size
 machine words, with arithemtic, bit-wise, shifting and rotating
@@ -723,18 +726,6 @@ numerals on all operations.
   - The elimination or case analysis rules for (mutually) inductive
     sets or predicates are now called "p_1.cases" ... "p_k.cases". The
     list of rules "p_1_..._p_k.elims" is no longer available.
-
-* Method "metis" proves goals by applying the Metis general-purpose
-resolution prover.  Examples are in the directory MetisExamples.  See
-also http://gilith.com/software/metis/
-
-WARNING: the Isabelle/HOL-Metis integration does not yet work properly
-with multi-threading.
-  
-* Command 'sledgehammer' invokes external automatic theorem provers as
-background processes.  It generates calls to the "metis" method if
-successful. These can be pasted into the proof.  Users do not have to
-wait for the automatic provers to return.
 
 * Case-expressions allow arbitrary constructor-patterns (including
 "_") and take their order into account, like in functional
