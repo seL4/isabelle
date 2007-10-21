@@ -4,7 +4,7 @@ theory Dagstuhl
 imports Stream
 begin
 
-consts
+axiomatization
   y  :: "'a"
 
 definition

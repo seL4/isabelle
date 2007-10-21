@@ -14,28 +14,9 @@ text {*
   that has the same trace as ex, but its schedule ends with an external action.
 *}
 
-consts
-
-(*  LastActExtex      ::"('a,'s)ioa => ('a,'s) pairs  => bool"*)
-  LastActExtsch     ::"('a,'s)ioa => 'a Seq         => bool"
-
-  Cut               ::"('a => bool) => 'a Seq    => 'a Seq"
-
-  oraclebuild       ::"('a => bool) => 'a Seq -> 'a Seq -> 'a Seq"
-
-defs
-
-LastActExtsch_def:
-  "LastActExtsch A sch == (Cut (%x. x: ext A) sch = sch)"
-
-(* LastActExtex_def:
-  "LastActExtex A ex == LastActExtsch A (filter_act$ex)" *)
-
-Cut_def:
-  "Cut P s == oraclebuild P$s$(Filter P$s)"
-
-oraclebuild_def:
-  "oraclebuild P == (fix$(LAM h s t. case t of
+definition
+  oraclebuild :: "('a => bool) => 'a Seq -> 'a Seq -> 'a Seq" where
+  "oraclebuild P = (fix$(LAM h s t. case t of
        nil => nil
     | x##xs =>
       (case x of
@@ -45,18 +26,26 @@ oraclebuild_def:
       )
     ))"
 
+definition
+  Cut :: "('a => bool) => 'a Seq => 'a Seq" where
+  "Cut P s = oraclebuild P$s$(Filter P$s)"
 
-axioms
+definition
+  LastActExtsch :: "('a,'s)ioa => 'a Seq => bool" where
+  "LastActExtsch A sch = (Cut (%x. x: ext A) sch = sch)"
 
-Cut_prefixcl_Finite:
-  "Finite s ==> (? y. s = Cut P s @@ y)"
+(* LastActExtex      ::"('a,'s)ioa => ('a,'s) pairs  => bool"*)
+(* LastActExtex_def:
+  "LastActExtex A ex == LastActExtsch A (filter_act$ex)" *)
 
-LastActExtsmall1:
-  "LastActExtsch A sch ==> LastActExtsch A (TL$(Dropwhile P$sch))"
+axiomatization where
+  Cut_prefixcl_Finite: "Finite s ==> (? y. s = Cut P s @@ y)"
 
-LastActExtsmall2:
-  "[| Finite sch1; LastActExtsch A (sch1 @@ sch2) |] ==> LastActExtsch A sch2"
+axiomatization where
+  LastActExtsmall1: "LastActExtsch A sch ==> LastActExtsch A (TL$(Dropwhile P$sch))"
 
+axiomatization where
+  LastActExtsmall2: "[| Finite sch1; LastActExtsch A (sch1 @@ sch2) |] ==> LastActExtsch A sch2"
 
 
 ML {*
@@ -71,9 +60,9 @@ subsection "oraclebuild rewrite rules"
 
 
 lemma oraclebuild_unfold:
-"oraclebuild P = (LAM s t. case t of 
+"oraclebuild P = (LAM s t. case t of
        nil => nil
-    | x##xs => 
+    | x##xs =>
       (case x of
         UU => UU
       | Def y => (Takewhile (%a.~ P a)$s)
@@ -82,7 +71,7 @@ lemma oraclebuild_unfold:
     )"
 apply (rule trans)
 apply (rule fix_eq2)
-apply (rule oraclebuild_def)
+apply (simp only: oraclebuild_def)
 apply (rule beta_cfun)
 apply simp
 done
@@ -97,8 +86,8 @@ apply (subst oraclebuild_unfold)
 apply simp
 done
 
-lemma oraclebuild_cons: "oraclebuild P$s$(x>>t) =  
-          (Takewhile (%a.~ P a)$s)    
+lemma oraclebuild_cons: "oraclebuild P$s$(x>>t) =
+          (Takewhile (%a.~ P a)$s)
            @@ (x>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$t))"
 apply (rule trans)
 apply (subst oraclebuild_unfold)
@@ -109,8 +98,8 @@ done
 
 subsection "Cut rewrite rules"
 
-lemma Cut_nil: 
-"[| Forall (%a.~ P a) s; Finite s|]  
+lemma Cut_nil:
+"[| Forall (%a.~ P a) s; Finite s|]
             ==> Cut P s =nil"
 apply (unfold Cut_def)
 apply (subgoal_tac "Filter P$s = nil")
@@ -119,8 +108,8 @@ apply (rule ForallQFilterPnil)
 apply assumption+
 done
 
-lemma Cut_UU: 
-"[| Forall (%a.~ P a) s; ~Finite s|]  
+lemma Cut_UU:
+"[| Forall (%a.~ P a) s; ~Finite s|]
             ==> Cut P s =UU"
 apply (unfold Cut_def)
 apply (subgoal_tac "Filter P$s= UU")
@@ -129,9 +118,9 @@ apply (rule ForallQFilterPUU)
 apply assumption+
 done
 
-lemma Cut_Cons: 
-"[| P t;  Forall (%x.~ P x) ss; Finite ss|]  
-            ==> Cut P (ss @@ (t>> rs))  
+lemma Cut_Cons:
+"[| P t;  Forall (%x.~ P x) ss; Finite ss|]
+            ==> Cut P (ss @@ (t>> rs))
                  = ss @@ (t >> Cut P rs)"
 apply (unfold Cut_def)
 apply (simp add: ForallQFilterPnil oraclebuild_cons TakewhileConc DropwhileConc)
@@ -227,10 +216,10 @@ done
 
 subsection "Main Cut Theorem"
 
-lemma exists_LastActExtsch: 
- "[|sch : schedules A ; tr = Filter (%a. a:ext A)$sch|]  
-    ==> ? sch. sch : schedules A &  
-               tr = Filter (%a. a:ext A)$sch & 
+lemma exists_LastActExtsch:
+ "[|sch : schedules A ; tr = Filter (%a. a:ext A)$sch|]
+    ==> ? sch. sch : schedules A &
+               tr = Filter (%a. a:ext A)$sch &
                LastActExtsch A sch"
 
 apply (unfold schedules_def has_schedule_def)
@@ -265,8 +254,8 @@ done
 
 subsection "Further Cut lemmas"
 
-lemma LastActExtimplnil: 
-  "[| LastActExtsch A sch; Filter (%x. x:ext A)$sch = nil |]  
+lemma LastActExtimplnil:
+  "[| LastActExtsch A sch; Filter (%x. x:ext A)$sch = nil |]
     ==> sch=nil"
 apply (unfold LastActExtsch_def)
 apply (drule FilternPnilForallP)
@@ -276,8 +265,8 @@ apply assumption
 apply simp
 done
 
-lemma LastActExtimplUU: 
-  "[| LastActExtsch A sch; Filter (%x. x:ext A)$sch = UU |]  
+lemma LastActExtimplUU:
+  "[| LastActExtsch A sch; Filter (%x. x:ext A)$sch = UU |]
     ==> sch=UU"
 apply (unfold LastActExtsch_def)
 apply (drule FilternPUUForallP)

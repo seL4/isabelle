@@ -10,11 +10,9 @@ theory Fix2
 imports HOLCF
 begin
 
-consts
-  gix     :: "('a->'a)->'a"
-
-axioms
-  gix1_def: "F$(gix$F) = gix$F"
+axiomatization
+  gix :: "('a->'a)->'a" where
+  gix1_def: "F$(gix$F) = gix$F" and
   gix2_def: "F$y=y ==> gix$F << y"
 
 

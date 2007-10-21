@@ -17,47 +17,55 @@ types
   tr = "bool lift"
 
 translations
-  "tr" <= (type) "bool lift" 
+  "tr" <= (type) "bool lift"
 
-consts
-  TT     :: "tr"
-  FF     :: "tr"
-  trifte :: "'c \<rightarrow> 'c \<rightarrow> tr \<rightarrow> 'c"
-  trand  :: "tr \<rightarrow> tr \<rightarrow> tr"
-  tror   :: "tr \<rightarrow> tr \<rightarrow> tr"
-  neg    :: "tr \<rightarrow> tr"
-  If2    :: "[tr, 'c, 'c] \<Rightarrow> 'c"
+definition
+  TT :: "tr" where
+  "TT = Def True"
 
+definition
+  FF :: "tr" where
+  "FF = Def False"
+
+definition
+  trifte :: "'c \<rightarrow> 'c \<rightarrow> tr \<rightarrow> 'c" where
+  ifte_def: "trifte = (\<Lambda> t e. FLIFT b. if b then t else e)"
 abbreviation
   cifte_syn :: "[tr, 'c, 'c] \<Rightarrow> 'c"  ("(3If _/ (then _/ else _) fi)" 60)  where
   "If b then e1 else e2 fi == trifte\<cdot>e1\<cdot>e2\<cdot>b"
 
+definition
+  trand :: "tr \<rightarrow> tr \<rightarrow> tr" where
+  andalso_def: "trand = (\<Lambda> x y. If x then y else FF fi)"
 abbreviation
   andalso_syn :: "tr \<Rightarrow> tr \<Rightarrow> tr"  ("_ andalso _" [36,35] 35)  where
   "x andalso y == trand\<cdot>x\<cdot>y"
 
+definition
+  tror :: "tr \<rightarrow> tr \<rightarrow> tr" where
+  orelse_def: "tror = (\<Lambda> x y. If x then TT else y fi)"
 abbreviation
   orelse_syn :: "tr \<Rightarrow> tr \<Rightarrow> tr"  ("_ orelse _"  [31,30] 30)  where
   "x orelse y == tror\<cdot>x\<cdot>y"
- 
-translations
-  "\<Lambda> TT. t" == "trifte\<cdot>t\<cdot>\<bottom>"
-  "\<Lambda> FF. t" == "trifte\<cdot>\<bottom>\<cdot>t"
 
-defs
-  TT_def:      "TT \<equiv> Def True"
-  FF_def:      "FF \<equiv> Def False"
-  neg_def:     "neg \<equiv> flift2 Not"
-  ifte_def:    "trifte \<equiv> \<Lambda> t e. FLIFT b. if b then t else e"
-  andalso_def: "trand \<equiv> \<Lambda> x y. If x then y else FF fi"
-  orelse_def:  "tror \<equiv> \<Lambda> x y. If x then TT else y fi"
-  If2_def:     "If2 Q x y \<equiv> If Q then x else y fi"
+definition
+  neg :: "tr \<rightarrow> tr" where
+  "neg = flift2 Not"
+
+definition
+  If2 :: "[tr, 'c, 'c] \<Rightarrow> 'c" where
+  "If2 Q x y = (If Q then x else y fi)"
+
+translations
+  "\<Lambda> (CONST TT). t" == "CONST trifte\<cdot>t\<cdot>\<bottom>"
+  "\<Lambda> (CONST FF). t" == "CONST trifte\<cdot>\<bottom>\<cdot>t"
+
 
 text {* Exhaustion and Elimination for type @{typ tr} *}
 
 lemma Exh_tr: "t = \<bottom> \<or> t = TT \<or> t = FF"
 apply (unfold FF_def TT_def)
-apply (induct_tac "t")
+apply (induct t)
 apply fast
 apply fast
 done
@@ -78,7 +86,7 @@ fun prover t =  prove_goal thy t
  (fn prems =>
         [
         (res_inst_tac [("p","y")] trE 1),
-	(REPEAT(asm_simp_tac (simpset() addsimps 
+	(REPEAT(asm_simp_tac (simpset() addsimps
 		[o_def,flift1_def,flift2_def,inst_lift_po]@tr_defs) 1))
 	])
 *)
@@ -129,8 +137,8 @@ lemma neg_thms [simp]:
 by (simp_all add: neg_def TT_def FF_def)
 
 text {* split-tac for If via If2 because the constant has to be a constant *}
-  
-lemma split_If2: 
+
+lemma split_If2:
   "P (If2 Q x y) = ((Q = \<bottom> \<longrightarrow> P \<bottom>) \<and> (Q = TT \<longrightarrow> P x) \<and> (Q = FF \<longrightarrow> P y))"
 apply (unfold If2_def)
 apply (rule_tac p = "Q" in trE)
@@ -139,13 +147,13 @@ done
 
 ML {*
 val split_If_tac =
-  simp_tac (HOL_basic_ss addsimps [symmetric (thm "If2_def")])
-    THEN' (split_tac [thm "split_If2"])
+  simp_tac (HOL_basic_ss addsimps [@{thm If2_def} RS sym])
+    THEN' (split_tac [@{thm split_If2}])
 *}
 
 subsection "Rewriting of HOLCF operations to HOL functions"
 
-lemma andalso_or: 
+lemma andalso_or:
   "t \<noteq> \<bottom> \<Longrightarrow> ((t andalso s) = FF) = (t = FF \<or> s = FF)"
 apply (rule_tac p = "t" in trE)
 apply simp_all
@@ -169,7 +177,7 @@ by (simp add: TT_def)
 lemma Def_bool4 [simp]: "(Def x \<noteq> TT) = (\<not> x)"
 by (simp add: TT_def)
 
-lemma If_and_if: 
+lemma If_and_if:
   "(If Def P then A else B fi) = (if P then A else B)"
 apply (rule_tac p = "Def P" in trE)
 apply (auto simp add: TT_def[symmetric] FF_def[symmetric])

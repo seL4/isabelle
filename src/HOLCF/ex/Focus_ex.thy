@@ -107,7 +107,7 @@ begin
 typedecl ('a, 'b) tc
 arities tc:: (pcpo, pcpo) pcpo
 
-consts
+axiomatization
   Rf :: "('b stream * ('b,'c) tc stream * 'c stream * ('b,'c) tc stream) => bool"
 
 definition

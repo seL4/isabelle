@@ -9,25 +9,11 @@ theory SimCorrectness
 imports Simulations
 begin
 
-consts
-
-  corresp_ex_sim   ::"('a,'s2)ioa => (('s1 *'s2)set) =>
-                      ('a,'s1)execution => ('a,'s2)execution"
+definition
   (* Note: s2 instead of s1 in last argument type !! *)
-  corresp_ex_simC  ::"('a,'s2)ioa => (('s1 * 's2)set) => ('a,'s1)pairs
-                   -> ('s2 => ('a,'s2)pairs)"
-
-
-defs
-
-corresp_ex_sim_def:
-  "corresp_ex_sim A R ex == let S'= (@s'.(fst ex,s'):R & s': starts_of A)
-                            in
-                               (S',(corresp_ex_simC A R$(snd ex)) S')"
-
-
-corresp_ex_simC_def:
-  "corresp_ex_simC A R  == (fix$(LAM h ex. (%s. case ex of
+  corresp_ex_simC :: "('a,'s2)ioa => (('s1 * 's2)set) => ('a,'s1)pairs
+                   -> ('s2 => ('a,'s2)pairs)" where
+  "corresp_ex_simC A R = (fix$(LAM h ex. (%s. case ex of
       nil =>  nil
     | x##xs => (flift1 (%pr. let a = (fst pr); t = (snd pr);
                                  T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'
@@ -36,20 +22,27 @@ corresp_ex_simC_def:
                                  @@ ((h$xs) T'))
                         $x) )))"
 
+definition
+  corresp_ex_sim :: "('a,'s2)ioa => (('s1 *'s2)set) =>
+                      ('a,'s1)execution => ('a,'s2)execution" where
+  "corresp_ex_sim A R ex == let S'= (@s'.(fst ex,s'):R & s': starts_of A)
+                            in
+                               (S',(corresp_ex_simC A R$(snd ex)) S')"
+
 
 subsection "corresp_ex_sim"
 
-lemma corresp_ex_simC_unfold: "corresp_ex_simC A R  = (LAM ex. (%s. case ex of  
-       nil =>  nil    
-     | x##xs => (flift1 (%pr. let a = (fst pr); t = (snd pr);  
-                                  T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'  
-                              in  
-                                 (@cex. move A cex s a T')   
-                               @@ ((corresp_ex_simC A R $xs) T'))    
+lemma corresp_ex_simC_unfold: "corresp_ex_simC A R  = (LAM ex. (%s. case ex of
+       nil =>  nil
+     | x##xs => (flift1 (%pr. let a = (fst pr); t = (snd pr);
+                                  T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'
+                              in
+                                 (@cex. move A cex s a T')
+                               @@ ((corresp_ex_simC A R $xs) T'))
                          $x) ))"
 apply (rule trans)
 apply (rule fix_eq2)
-apply (rule corresp_ex_simC_def)
+apply (simp only: corresp_ex_simC_def)
 apply (rule beta_cfun)
 apply (simp add: flift1_def)
 done
@@ -64,10 +57,10 @@ apply (subst corresp_ex_simC_unfold)
 apply simp
 done
 
-lemma corresp_ex_simC_cons: "(corresp_ex_simC A R$((a,t)>>xs)) s =  
-           (let T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'  
-            in   
-             (@cex. move A cex s a T')   
+lemma corresp_ex_simC_cons: "(corresp_ex_simC A R$((a,t)>>xs)) s =
+           (let T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'
+            in
+             (@cex. move A cex s a T')
               @@ ((corresp_ex_simC A R$xs) T'))"
 apply (rule trans)
 apply (subst corresp_ex_simC_unfold)
@@ -83,9 +76,9 @@ subsection "properties of move"
 
 declare Let_def [simp del]
 
-lemma move_is_move_sim: 
-   "[|is_simulation R C A; reachable C s; s -a--C-> t; (s,s'):R|] ==> 
-      let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in  
+lemma move_is_move_sim:
+   "[|is_simulation R C A; reachable C s; s -a--C-> t; (s,s'):R|] ==>
+      let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
       (t,T'): R & move A (@ex2. move A ex2 s' a T') s' a T'"
 apply (unfold is_simulation_def)
 
@@ -113,9 +106,9 @@ done
 
 declare Let_def [simp]
 
-lemma move_subprop1_sim: 
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==> 
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in  
+lemma move_subprop1_sim:
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
      is_exec_frag A (s',@x. move A x s' a T')"
 apply (cut_tac move_is_move_sim)
 defer
@@ -123,9 +116,9 @@ apply assumption+
 apply (simp add: move_def)
 done
 
-lemma move_subprop2_sim: 
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==> 
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in  
+lemma move_subprop2_sim:
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
     Finite (@x. move A x s' a T')"
 apply (cut_tac move_is_move_sim)
 defer
@@ -133,9 +126,9 @@ apply assumption+
 apply (simp add: move_def)
 done
 
-lemma move_subprop3_sim: 
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==> 
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in  
+lemma move_subprop3_sim:
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
      laststate (s',@x. move A x s' a T') = T'"
 apply (cut_tac move_is_move_sim)
 defer
@@ -143,10 +136,10 @@ apply assumption+
 apply (simp add: move_def)
 done
 
-lemma move_subprop4_sim: 
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==> 
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in  
-      mk_trace A$((@x. move A x s' a T')) =  
+lemma move_subprop4_sim:
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
+      mk_trace A$((@x. move A x s' a T')) =
         (if a:ext A then a>>nil else nil)"
 apply (cut_tac move_is_move_sim)
 defer
@@ -154,9 +147,9 @@ apply assumption+
 apply (simp add: move_def)
 done
 
-lemma move_subprop5_sim: 
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==> 
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in  
+lemma move_subprop5_sim:
+   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
       (t,T'):R"
 apply (cut_tac move_is_move_sim)
 defer
@@ -174,9 +167,9 @@ subsubsection "Lemmata for <=="
    ------------------------------------------------------- *)
 
 declare split_if [split del]
-lemma traces_coincide_sim [rule_format (no_asm)]: 
-  "[|is_simulation R C A; ext C = ext A|] ==>   
-         !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'): R -->  
+lemma traces_coincide_sim [rule_format (no_asm)]:
+  "[|is_simulation R C A; ext C = ext A|] ==>
+         !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'): R -->
              mk_trace C$ex = mk_trace A$((corresp_ex_simC A R$ex) s')"
 
 apply (tactic {* pair_induct_tac "ex" [thm "is_exec_frag_def"] 1 *})
@@ -200,9 +193,9 @@ declare split_if [split]
 (* ----------------------------------------------------------- *)
 
 
-lemma correspsim_is_execution [rule_format (no_asm)]: 
- "[| is_simulation R C A |] ==> 
-  !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'):R   
+lemma correspsim_is_execution [rule_format (no_asm)]:
+ "[| is_simulation R C A |] ==>
+  !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'):R
   --> is_exec_frag A (s',(corresp_ex_simC A R$ex) s')"
 
 apply (tactic {* pair_induct_tac "ex" [thm "is_exec_frag_def"] 1 *})
@@ -244,9 +237,9 @@ subsection "Main Theorem: TRACE - INCLUSION"
      traces_coincide_sim, the second for the start state case.
      S':= @s'. (s,s'):R & s':starts_of A, where s:starts_of C  *)
 
-lemma simulation_starts: 
-"[| is_simulation R C A; s:starts_of C |]  
-  ==> let S' = @s'. (s,s'):R & s':starts_of A in  
+lemma simulation_starts:
+"[| is_simulation R C A; s:starts_of C |]
+  ==> let S' = @s'. (s,s'):R & s':starts_of A in
       (s,S'):R & S':starts_of A"
   apply (simp add: is_simulation_def corresp_ex_sim_def Int_non_empty Image_def)
   apply (erule conjE)+
@@ -262,8 +255,8 @@ lemmas sim_starts1 = simulation_starts [unfolded Let_def, THEN conjunct1, standa
 lemmas sim_starts2 = simulation_starts [unfolded Let_def, THEN conjunct2, standard]
 
 
-lemma trace_inclusion_for_simulations: 
-  "[| ext C = ext A; is_simulation R C A |]  
+lemma trace_inclusion_for_simulations:
+  "[| ext C = ext A; is_simulation R C A |]
            ==> traces C <= traces A"
 
   apply (unfold traces_def)

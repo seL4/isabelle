@@ -9,48 +9,42 @@ theory RefCorrectness
 imports RefMappings
 begin
 
-consts
-
-  corresp_ex   ::"('a,'s2)ioa => ('s1 => 's2) =>
-                  ('a,'s1)execution => ('a,'s2)execution"
-  corresp_exC  ::"('a,'s2)ioa => ('s1 => 's2) => ('a,'s1)pairs
-                   -> ('s1 => ('a,'s2)pairs)"
-  is_fair_ref_map  :: "('s1 => 's2) => ('a,'s1)ioa => ('a,'s2)ioa => bool"
-
-defs
-
-corresp_ex_def:
-  "corresp_ex A f ex == (f (fst ex),(corresp_exC A f$(snd ex)) (fst ex))"
-
-
-corresp_exC_def:
-  "corresp_exC A f  == (fix$(LAM h ex. (%s. case ex of
+definition
+  corresp_exC :: "('a,'s2)ioa => ('s1 => 's2) => ('a,'s1)pairs
+                   -> ('s1 => ('a,'s2)pairs)" where
+  "corresp_exC A f = (fix$(LAM h ex. (%s. case ex of
       nil =>  nil
     | x##xs => (flift1 (%pr. (@cex. move A cex (f s) (fst pr) (f (snd pr)))
                               @@ ((h$xs) (snd pr)))
                         $x) )))"
+definition
+  corresp_ex :: "('a,'s2)ioa => ('s1 => 's2) =>
+                  ('a,'s1)execution => ('a,'s2)execution" where
+  "corresp_ex A f ex = (f (fst ex),(corresp_exC A f$(snd ex)) (fst ex))"
 
-is_fair_ref_map_def:
-  "is_fair_ref_map f C A ==
-       is_ref_map f C A &
-       (! ex : executions(C). fair_ex C ex --> fair_ex A (corresp_ex A f ex))"
+definition
+  is_fair_ref_map :: "('s1 => 's2) => ('a,'s1)ioa => ('a,'s2)ioa => bool" where
+  "is_fair_ref_map f C A =
+      (is_ref_map f C A &
+       (! ex : executions(C). fair_ex C ex --> fair_ex A (corresp_ex A f ex)))"
 
-
-
-axioms
 (* Axioms for fair trace inclusion proof support, not for the correctness proof
    of refinement mappings!
    Note: Everything is superseded by LiveIOA.thy! *)
 
+axiomatization where
 corresp_laststate:
   "Finite ex ==> laststate (corresp_ex A f (s,ex)) = f (laststate (s,ex))"
 
+axiomatization where
 corresp_Finite:
   "Finite (snd (corresp_ex A f (s,ex))) = Finite ex"
 
+axiomatization where
 FromAtoC:
   "fin_often (%x. P (snd x)) (snd (corresp_ex A f (s,ex))) ==> fin_often (%y. P (f (snd y))) ex"
 
+axiomatization where
 FromCtoA:
   "inf_often (%y. P (fst y)) ex ==> inf_often (%x. P (fst x)) (snd (corresp_ex A f (s,ex)))"
 
@@ -59,10 +53,12 @@ FromCtoA:
    an index i from which on no W in ex. But W inf enabled, ie at least once after i
    W is enabled. As W does not occur after i and W is enabling_persistent, W keeps
    enabled until infinity, ie. indefinitely *)
+axiomatization where
 persistent:
   "[|inf_often (%x. Enabled A W (snd x)) ex; en_persistent A W|]
    ==> inf_often (%x. fst x :W) ex | fin_often (%x. ~Enabled A W (snd x)) ex"
 
+axiomatization where
 infpostcond:
   "[| is_exec_frag A (s,ex); inf_often (%x. fst x:W) ex|]
     ==> inf_often (% x. set_was_enabled A W (snd x)) ex"
@@ -70,14 +66,14 @@ infpostcond:
 
 subsection "corresp_ex"
 
-lemma corresp_exC_unfold: "corresp_exC A f  = (LAM ex. (%s. case ex of  
-       nil =>  nil    
-     | x##xs => (flift1 (%pr. (@cex. move A cex (f s) (fst pr) (f (snd pr)))    
-                               @@ ((corresp_exC A f $xs) (snd pr)))    
+lemma corresp_exC_unfold: "corresp_exC A f  = (LAM ex. (%s. case ex of
+       nil =>  nil
+     | x##xs => (flift1 (%pr. (@cex. move A cex (f s) (fst pr) (f (snd pr)))
+                               @@ ((corresp_exC A f $xs) (snd pr)))
                          $x) ))"
 apply (rule trans)
 apply (rule fix_eq2)
-apply (rule corresp_exC_def)
+apply (simp only: corresp_exC_def)
 apply (rule beta_cfun)
 apply (simp add: flift1_def)
 done
@@ -92,8 +88,8 @@ apply (subst corresp_exC_unfold)
 apply simp
 done
 
-lemma corresp_exC_cons: "(corresp_exC A f$(at>>xs)) s =  
-           (@cex. move A cex (f s) (fst at) (f (snd at)))   
+lemma corresp_exC_cons: "(corresp_exC A f$(at>>xs)) s =
+           (@cex. move A cex (f s) (fst at) (f (snd at)))
            @@ ((corresp_exC A f$xs) (snd at))"
 apply (rule trans)
 apply (subst corresp_exC_unfold)
@@ -108,8 +104,8 @@ declare corresp_exC_UU [simp] corresp_exC_nil [simp] corresp_exC_cons [simp]
 
 subsection "properties of move"
 
-lemma move_is_move: 
-   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==> 
+lemma move_is_move:
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>
       move A (@x. move A x (f s) a (f t)) (f s) a (f t)"
 apply (unfold is_ref_map_def)
 apply (subgoal_tac "? ex. move A ex (f s) a (f t) ")
@@ -120,8 +116,8 @@ apply (rule someI)
 apply assumption
 done
 
-lemma move_subprop1: 
-   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==> 
+lemma move_subprop1:
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>
      is_exec_frag A (f s,@x. move A x (f s) a (f t))"
 apply (cut_tac move_is_move)
 defer
@@ -129,8 +125,8 @@ apply assumption+
 apply (simp add: move_def)
 done
 
-lemma move_subprop2: 
-   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==> 
+lemma move_subprop2:
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>
      Finite ((@x. move A x (f s) a (f t)))"
 apply (cut_tac move_is_move)
 defer
@@ -138,8 +134,8 @@ apply assumption+
 apply (simp add: move_def)
 done
 
-lemma move_subprop3: 
-   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==> 
+lemma move_subprop3:
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>
      laststate (f s,@x. move A x (f s) a (f t)) = (f t)"
 apply (cut_tac move_is_move)
 defer
@@ -147,9 +143,9 @@ apply assumption+
 apply (simp add: move_def)
 done
 
-lemma move_subprop4: 
-   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==> 
-      mk_trace A$((@x. move A x (f s) a (f t))) =  
+lemma move_subprop4:
+   "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>
+      mk_trace A$((@x. move A x (f s) a (f t))) =
         (if a:ext A then a>>nil else nil)"
 apply (cut_tac move_is_move)
 defer
@@ -180,9 +176,9 @@ done
    ------------------------------------------------------- *)
 declare split_if [split del]
 
-lemma lemma_1: 
-  "[|is_ref_map f C A; ext C = ext A|] ==>   
-         !s. reachable C s & is_exec_frag C (s,xs) -->  
+lemma lemma_1:
+  "[|is_ref_map f C A; ext C = ext A|] ==>
+         !s. reachable C s & is_exec_frag C (s,xs) -->
              mk_trace C$xs = mk_trace A$(snd (corresp_ex A f (s,xs)))"
 apply (unfold corresp_ex_def)
 apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def"] 1 *})
@@ -209,10 +205,10 @@ section "Lemmata for ==>"
 (*                   Lemma 2.1                        *)
 (* -------------------------------------------------- *)
 
-lemma lemma_2_1 [rule_format (no_asm)]: 
-"Finite xs -->  
- (!s .is_exec_frag A (s,xs) & is_exec_frag A (t,ys) &  
-      t = laststate (s,xs)  
+lemma lemma_2_1 [rule_format (no_asm)]:
+"Finite xs -->
+ (!s .is_exec_frag A (s,xs) & is_exec_frag A (t,ys) &
+      t = laststate (s,xs)
   --> is_exec_frag A (s,xs @@ ys))"
 
 apply (rule impI)
@@ -229,9 +225,9 @@ done
 
 
 
-lemma lemma_2: 
- "[| is_ref_map f C A |] ==> 
-  !s. reachable C s & is_exec_frag C (s,xs)  
+lemma lemma_2:
+ "[| is_ref_map f C A |] ==>
+  !s. reachable C s & is_exec_frag C (s,xs)
   --> is_exec_frag A (corresp_ex A f (s,xs))"
 
 apply (unfold corresp_ex_def)
@@ -267,8 +263,8 @@ done
 
 subsection "Main Theorem: TRACE - INCLUSION"
 
-lemma trace_inclusion: 
-  "[| ext C = ext A; is_ref_map f C A |]  
+lemma trace_inclusion:
+  "[| ext C = ext A; is_ref_map f C A |]
            ==> traces C <= traces A"
 
   apply (unfold traces_def)
@@ -305,14 +301,14 @@ apply auto
 done
 
 
-lemma WF_alt: "is_wfair A W (s,ex) =  
+lemma WF_alt: "is_wfair A W (s,ex) =
   (fin_often (%x. ~Enabled A W (snd x)) ex --> inf_often (%x. fst x :W) ex)"
 apply (simp add: is_wfair_def fin_often_def)
 apply auto
 done
 
-lemma WF_persistent: "[|is_wfair A W (s,ex); inf_often (%x. Enabled A W (snd x)) ex;  
-          en_persistent A W|]  
+lemma WF_persistent: "[|is_wfair A W (s,ex); inf_often (%x. Enabled A W (snd x)) ex;
+          en_persistent A W|]
     ==> inf_often (%x. fst x :W) ex"
 apply (drule persistent)
 apply assumption
@@ -321,9 +317,9 @@ apply auto
 done
 
 
-lemma fair_trace_inclusion: "!! C A.  
-          [| is_ref_map f C A; ext C = ext A;  
-          !! ex. [| ex:executions C; fair_ex C ex|] ==> fair_ex A (corresp_ex A f ex) |]  
+lemma fair_trace_inclusion: "!! C A.
+          [| is_ref_map f C A; ext C = ext A;
+          !! ex. [| ex:executions C; fair_ex C ex|] ==> fair_ex A (corresp_ex A f ex) |]
           ==> fairtraces C <= fairtraces A"
 apply (simp (no_asm) add: fairtraces_def fairexecutions_def)
 apply (tactic "safe_tac set_cs")
@@ -350,9 +346,9 @@ apply (tactic "safe_tac set_cs")
 apply auto
 done
 
-lemma fair_trace_inclusion2: "!! C A.  
-          [| inp(C) = inp(A); out(C)=out(A);  
-             is_fair_ref_map f C A |]  
+lemma fair_trace_inclusion2: "!! C A.
+          [| inp(C) = inp(A); out(C)=out(A);
+             is_fair_ref_map f C A |]
           ==> fair_implements C A"
 apply (simp add: is_fair_ref_map_def fair_implements_def fairtraces_def fairexecutions_def)
 apply (tactic "safe_tac set_cs")

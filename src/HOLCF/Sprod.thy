@@ -30,28 +30,32 @@ by (simp add: Sprod_def strictify_conv_if cpair_strict)
 
 subsection {* Definitions of constants *}
 
-consts
-  sfst :: "('a ** 'b) \<rightarrow> 'a"
-  ssnd :: "('a ** 'b) \<rightarrow> 'b"
-  spair :: "'a \<rightarrow> 'b \<rightarrow> ('a ** 'b)"
-  ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a ** 'b) \<rightarrow> 'c"
+definition
+  sfst :: "('a ** 'b) \<rightarrow> 'a" where
+  "sfst = (\<Lambda> p. cfst\<cdot>(Rep_Sprod p))"
 
-defs
-  sfst_def: "sfst \<equiv> \<Lambda> p. cfst\<cdot>(Rep_Sprod p)"
-  ssnd_def: "ssnd \<equiv> \<Lambda> p. csnd\<cdot>(Rep_Sprod p)"
-  spair_def: "spair \<equiv> \<Lambda> a b. Abs_Sprod
-                <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>"
-  ssplit_def: "ssplit \<equiv> \<Lambda> f. strictify\<cdot>(\<Lambda> p. f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p))"
+definition
+  ssnd :: "('a ** 'b) \<rightarrow> 'b" where
+  "ssnd = (\<Lambda> p. csnd\<cdot>(Rep_Sprod p))"
 
-syntax  
+definition
+  spair :: "'a \<rightarrow> 'b \<rightarrow> ('a ** 'b)" where
+  "spair = (\<Lambda> a b. Abs_Sprod
+             <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>)"
+
+definition
+  ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a ** 'b) \<rightarrow> 'c" where
+  "ssplit = (\<Lambda> f. strictify\<cdot>(\<Lambda> p. f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p)))"
+
+syntax
   "@stuple" :: "['a, args] => 'a ** 'b"  ("(1'(:_,/ _:'))")
-
 translations
   "(:x, y, z:)" == "(:x, (:y, z:):)"
   "(:x, y:)"    == "CONST spair\<cdot>x\<cdot>y"
 
 translations
   "\<Lambda>(CONST spair\<cdot>x\<cdot>y). t" == "CONST ssplit\<cdot>(\<Lambda> x y. t)"
+
 
 subsection {* Case analysis *}
 
@@ -92,7 +96,7 @@ by auto
 lemma spair_strict_rev: "(:x, y:) \<noteq> \<bottom> \<Longrightarrow> x \<noteq> \<bottom> \<and> y \<noteq> \<bottom>"
 by (erule contrapos_np, auto)
 
-lemma spair_defined [simp]: 
+lemma spair_defined [simp]:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<noteq> \<bottom>"
 by (simp add: spair_Abs_Sprod Abs_Sprod_defined Sprod_def)
 

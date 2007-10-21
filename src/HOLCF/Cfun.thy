@@ -435,17 +435,17 @@ done
 
 subsection {* Identity and composition *}
 
-consts
-  ID      :: "'a \<rightarrow> 'a"
-  cfcomp  :: "('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'c"
+definition
+  ID :: "'a \<rightarrow> 'a" where
+  "ID = (\<Lambda> x. x)"
+
+definition
+  cfcomp  :: "('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'c" where
+  oo_def: "cfcomp = (\<Lambda> f g x. f\<cdot>(g\<cdot>x))"
 
 abbreviation
   cfcomp_syn :: "['b \<rightarrow> 'c, 'a \<rightarrow> 'b] \<Rightarrow> 'a \<rightarrow> 'c"  (infixr "oo" 100)  where
   "f oo g == cfcomp\<cdot>f\<cdot>g"
-
-defs
-  ID_def: "ID \<equiv> (\<Lambda> x. x)"
-  oo_def: "cfcomp \<equiv> (\<Lambda> f g x. f\<cdot>(g\<cdot>x))" 
 
 lemma ID1 [simp]: "ID\<cdot>x = x"
 by (simp add: ID_def)

@@ -11,62 +11,48 @@ begin
 
 datatype action = INC
 
-consts
+definition
+  C_asig :: "action signature" where
+  "C_asig = ({},{INC},{})"
+definition
+  C_trans :: "(action, nat)transition set" where
+  "C_trans =
+   {tr. let s = fst(tr);
+            t = snd(snd(tr))
+        in case fst(snd(tr))
+        of
+        INC       => t = Suc(s)}"
+definition
+  C_ioa :: "(action, nat)ioa" where
+  "C_ioa = (C_asig, {0}, C_trans,{},{})"
+definition
+  C_live_ioa :: "(action, nat)live_ioa" where
+  "C_live_ioa = (C_ioa, WF C_ioa {INC})"
 
-C_asig   ::  "action signature"
-C_trans  :: "(action, nat)transition set"
-C_ioa    :: "(action, nat)ioa"
-C_live_ioa :: "(action, nat)live_ioa"
+definition
+  A_asig :: "action signature" where
+  "A_asig = ({},{INC},{})"
+definition
+  A_trans :: "(action, bool)transition set" where
+  "A_trans =
+   {tr. let s = fst(tr);
+            t = snd(snd(tr))
+        in case fst(snd(tr))
+        of
+        INC       => t = True}"
+definition
+  A_ioa :: "(action, bool)ioa" where
+  "A_ioa = (A_asig, {False}, A_trans,{},{})"
+definition
+  A_live_ioa :: "(action, bool)live_ioa" where
+  "A_live_ioa = (A_ioa, WF A_ioa {INC})"
 
-A_asig   :: "action signature"
-A_trans  :: "(action, bool)transition set"
-A_ioa    :: "(action, bool)ioa"
-A_live_ioa :: "(action, bool)live_ioa"
+definition
+  h_abs :: "nat => bool" where
+  "h_abs n = (n~=0)"
 
-h_abs    :: "nat => bool"
-
-defs
-
-C_asig_def:
-  "C_asig == ({},{INC},{})"
-
-C_trans_def: "C_trans ==
- {tr. let s = fst(tr);
-          t = snd(snd(tr))
-      in case fst(snd(tr))
-      of
-      INC       => t = Suc(s)}"
-
-C_ioa_def: "C_ioa ==
- (C_asig, {0}, C_trans,{},{})"
-
-C_live_ioa_def:
-  "C_live_ioa == (C_ioa, WF C_ioa {INC})"
-
-A_asig_def:
-  "A_asig == ({},{INC},{})"
-
-A_trans_def: "A_trans ==
- {tr. let s = fst(tr);
-          t = snd(snd(tr))
-      in case fst(snd(tr))
-      of
-      INC       => t = True}"
-
-A_ioa_def: "A_ioa ==
- (A_asig, {False}, A_trans,{},{})"
-
-A_live_ioa_def:
-  "A_live_ioa == (A_ioa, WF A_ioa {INC})"
-
-
-h_abs_def:
-  "h_abs n == n~=0"
-
-axioms
-
-MC_result:
-  "validLIOA (A_ioa,WF A_ioa {INC}) (<>[] <%(b,a,c). b>)"
+axiomatization where
+  MC_result: "validLIOA (A_ioa,WF A_ioa {INC}) (<>[] <%(b,a,c). b>)"
 
 
 lemma h_abs_is_abstraction:

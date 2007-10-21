@@ -24,9 +24,9 @@ theory Hoare
 imports HOLCF
 begin
 
-consts
-  b1 :: "'a -> tr"
-  b2 :: "'a -> tr"
+axiomatization
+  b1 :: "'a -> tr" and
+  b2 :: "'a -> tr" and
   g :: "'a -> 'a"
 
 definition

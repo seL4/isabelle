@@ -12,69 +12,57 @@ begin
 
 defaultsort type
 
-consts
+definition
+  cex_abs :: "('s1 => 's2) => ('a,'s1)execution => ('a,'s2)execution" where
+  "cex_abs f ex = (f (fst ex), Map (%(a,t). (a,f t))$(snd ex))"
+definition
+  -- {* equals cex_abs on Sequences -- after ex2seq application *}
+  cex_absSeq :: "('s1 => 's2) => ('a option,'s1)transition Seq => ('a option,'s2)transition Seq" where
+  "cex_absSeq f = (%s. Map (%(s,a,t). (f s,a,f t))$s)"
 
-  cex_abs      ::"('s1 => 's2) => ('a,'s1)execution => ('a,'s2)execution"
-  cex_absSeq   ::"('s1 => 's2) => ('a option,'s1)transition Seq => ('a option,'s2)transition Seq"
-
-  is_abstraction ::"[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool"
-
-  weakeningIOA       :: "('a,'s2)ioa => ('a,'s1)ioa => ('s1 => 's2) => bool"
-  temp_weakening     :: "('a,'s2)ioa_temp => ('a,'s1)ioa_temp => ('s1 => 's2) => bool"
-  temp_strengthening :: "('a,'s2)ioa_temp => ('a,'s1)ioa_temp => ('s1 => 's2) => bool"
-
-  state_weakening       :: "('a,'s2)step_pred => ('a,'s1)step_pred => ('s1 => 's2) => bool"
-  state_strengthening   :: "('a,'s2)step_pred => ('a,'s1)step_pred => ('s1 => 's2) => bool"
-
-  is_live_abstraction  :: "('s1 => 's2) => ('a,'s1)live_ioa => ('a,'s2)live_ioa => bool"
-
-
-defs
-
-is_abstraction_def:
-  "is_abstraction f C A ==
-   (!s:starts_of(C). f(s):starts_of(A)) &
+definition
+  is_abstraction ::"[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool" where
+  "is_abstraction f C A =
+   ((!s:starts_of(C). f(s):starts_of(A)) &
    (!s t a. reachable C s & s -a--C-> t
-            --> (f s) -a--A-> (f t))"
+            --> (f s) -a--A-> (f t)))"
 
-is_live_abstraction_def:
-  "is_live_abstraction h CL AM ==
-      is_abstraction h (fst CL) (fst AM) &
-      temp_weakening (snd AM) (snd CL) h"
+definition
+  weakeningIOA :: "('a,'s2)ioa => ('a,'s1)ioa => ('s1 => 's2) => bool" where
+  "weakeningIOA A C h = (!ex. ex : executions C --> cex_abs h ex : executions A)"
+definition
+  temp_strengthening :: "('a,'s2)ioa_temp => ('a,'s1)ioa_temp => ('s1 => 's2) => bool" where
+  "temp_strengthening Q P h = (!ex. (cex_abs h ex |== Q) --> (ex |== P))"
+definition
+  temp_weakening :: "('a,'s2)ioa_temp => ('a,'s1)ioa_temp => ('s1 => 's2) => bool" where
+  "temp_weakening Q P h = temp_strengthening (.~ Q) (.~ P) h"
 
-cex_abs_def:
-  "cex_abs f ex == (f (fst ex), Map (%(a,t). (a,f t))$(snd ex))"
+definition
+  state_strengthening :: "('a,'s2)step_pred => ('a,'s1)step_pred => ('s1 => 's2) => bool" where
+  "state_strengthening Q P h = (!s t a.  Q (h(s),a,h(t)) --> P (s,a,t))"
+definition
+  state_weakening :: "('a,'s2)step_pred => ('a,'s1)step_pred => ('s1 => 's2) => bool" where
+  "state_weakening Q P h = state_strengthening (.~Q) (.~P) h"
 
-(* equals cex_abs on Sequneces -- after ex2seq application -- *)
-cex_absSeq_def:
-  "cex_absSeq f == % s. Map (%(s,a,t). (f s,a,f t))$s"
+definition
+  is_live_abstraction :: "('s1 => 's2) => ('a,'s1)live_ioa => ('a,'s2)live_ioa => bool" where
+  "is_live_abstraction h CL AM =
+     (is_abstraction h (fst CL) (fst AM) &
+      temp_weakening (snd AM) (snd CL) h)"
 
-weakeningIOA_def:
-   "weakeningIOA A C h == ! ex. ex : executions C --> cex_abs h ex : executions A"
 
-temp_weakening_def:
-   "temp_weakening Q P h == temp_strengthening (.~ Q) (.~ P) h"
-
-temp_strengthening_def:
-   "temp_strengthening Q P h == ! ex. (cex_abs h ex |== Q) --> (ex |== P)"
-
-state_weakening_def:
-  "state_weakening Q P h == state_strengthening (.~Q) (.~P) h"
-
-state_strengthening_def:
-  "state_strengthening Q P h == ! s t a.  Q (h(s),a,h(t)) --> P (s,a,t)"
-
-axioms
-
+axiomatization where
 (* thm about ex2seq which is not provable by induction as ex2seq is not continous *)
 ex2seq_abs_cex:
   "ex2seq (cex_abs h ex) = cex_absSeq h (ex2seq ex)"
 
+axiomatization where
 (* analog to the proved thm strength_Box - proof skipped as trivial *)
 weak_Box:
 "temp_weakening P Q h
  ==> temp_weakening ([] P) ([] Q) h"
 
+axiomatization where
 (* analog to the proved thm strength_Next - proof skipped as trivial *)
 weak_Next:
 "temp_weakening P Q h
@@ -82,7 +70,7 @@ weak_Next:
 
 
 subsection "cex_abs"
-	
+
 lemma cex_abs_UU: "cex_abs f (s,UU) = (f s, UU)"
   by (simp add: cex_abs_def)
 
@@ -94,7 +82,7 @@ lemma cex_abs_cons: "cex_abs f (s,(a,t)>>ex) = (f s, (a,f t) >> (snd (cex_abs f 
 
 declare cex_abs_UU [simp] cex_abs_nil [simp] cex_abs_cons [simp]
 
- 
+
 subsection "lemmas"
 
 lemma temp_weakening_def2: "temp_weakening Q P h = (! ex. (ex |== P) --> (cex_abs h ex |== Q))"
@@ -110,9 +98,9 @@ lemma state_weakening_def2: "state_weakening Q P h = (! s t a. P (s,a,t) --> Q (
 
 subsection "Abstraction Rules for Properties"
 
-lemma exec_frag_abstraction [rule_format]: 
- "[| is_abstraction h C A |] ==> 
-  !s. reachable C s & is_exec_frag C (s,xs)  
+lemma exec_frag_abstraction [rule_format]:
+ "[| is_abstraction h C A |] ==>
+  !s. reachable C s & is_exec_frag C (s,xs)
   --> is_exec_frag A (cex_abs h (s,xs))"
 apply (unfold cex_abs_def)
 apply simp
@@ -139,7 +127,7 @@ apply (simp add: reachable.reachable_0)
 done
 
 
-lemma AbsRuleT1: "[|is_abstraction h C A; validIOA A Q; temp_strengthening Q P h |]  
+lemma AbsRuleT1: "[|is_abstraction h C A; validIOA A Q; temp_strengthening Q P h |]
           ==> validIOA C P"
 apply (drule abs_is_weakening)
 apply (simp add: weakeningIOA_def validIOA_def temp_strengthening_def)
@@ -165,9 +153,9 @@ lemma NOT_temp_sat: "(ex |== .~ P) = (~ (ex |== P))"
 declare IMPLIES_temp_sat [simp] AND_temp_sat [simp] OR_temp_sat [simp] NOT_temp_sat [simp]
 
 
-lemma AbsRuleT2: 
-   "[|is_live_abstraction h (C,L) (A,M);  
-          validLIOA (A,M) Q;  temp_strengthening Q P h |]  
+lemma AbsRuleT2:
+   "[|is_live_abstraction h (C,L) (A,M);
+          validLIOA (A,M) Q;  temp_strengthening Q P h |]
           ==> validLIOA (C,L) P"
 apply (unfold is_live_abstraction_def)
 apply auto
@@ -178,10 +166,10 @@ apply (tactic {* pair_tac "ex" 1 *})
 done
 
 
-lemma AbsRuleTImprove: 
-   "[|is_live_abstraction h (C,L) (A,M);  
-          validLIOA (A,M) (H1 .--> Q);  temp_strengthening Q P h;  
-          temp_weakening H1 H2 h; validLIOA (C,L) H2 |]  
+lemma AbsRuleTImprove:
+   "[|is_live_abstraction h (C,L) (A,M);
+          validLIOA (A,M) (H1 .--> Q);  temp_strengthening Q P h;
+          temp_weakening H1 H2 h; validLIOA (C,L) H2 |]
           ==> validLIOA (C,L) P"
 apply (unfold is_live_abstraction_def)
 apply auto
@@ -194,7 +182,7 @@ done
 
 subsection "Correctness of safe abstraction"
 
-lemma abstraction_is_ref_map: 
+lemma abstraction_is_ref_map:
 "is_abstraction h C A ==> is_ref_map h C A"
 apply (unfold is_abstraction_def is_ref_map_def)
 apply (tactic "safe_tac set_cs")
@@ -203,8 +191,8 @@ apply (simp add: move_def)
 done
 
 
-lemma abs_safety: "[| inp(C)=inp(A); out(C)=out(A);  
-                   is_abstraction h C A |]  
+lemma abs_safety: "[| inp(C)=inp(A); out(C)=out(A);
+                   is_abstraction h C A |]
                 ==> C =<| A"
 apply (simp add: ioa_implements_def)
 apply (rule trace_inclusion)
@@ -218,8 +206,8 @@ subsection "Correctness of life abstraction"
 
 (* Reduces to Filter (Map fst x) = Filter (Map fst (Map (%(a,t). (a,x)) x),
    that is to special Map Lemma *)
-lemma traces_coincide_abs: 
-  "ext C = ext A  
+lemma traces_coincide_abs:
+  "ext C = ext A
          ==> mk_trace C$xs = mk_trace A$(snd (cex_abs f (s,xs)))"
 apply (unfold cex_abs_def mk_trace_def filter_act_def)
 apply simp
@@ -231,8 +219,8 @@ done
    is_live_abstraction includes temp_strengthening which is necessarily based
    on cex_abs and not on corresp_ex. Thus, the proof is redoone in a more specific
    way for cex_abs *)
-lemma abs_liveness: "[| inp(C)=inp(A); out(C)=out(A);  
-                   is_live_abstraction h (C,M) (A,L) |]  
+lemma abs_liveness: "[| inp(C)=inp(A); out(C)=out(A);
+                   is_live_abstraction h (C,M) (A,L) |]
                 ==> live_implements (C,M) (A,L)"
 apply (simp add: is_live_abstraction_def live_implements_def livetraces_def liveexecutions_def)
 apply (tactic "safe_tac set_cs")
@@ -243,25 +231,25 @@ apply (tactic "safe_tac set_cs")
   apply (rule traces_coincide_abs)
   apply (simp (no_asm) add: externals_def)
   apply (auto)[1]
- 
+
   (* cex_abs is execution *)
   apply (tactic {* pair_tac "ex" 1 *})
   apply (simp add: executions_def)
-  (* start state *) 
+  (* start state *)
   apply (rule conjI)
   apply (simp add: is_abstraction_def cex_abs_def)
   (* is-execution-fragment *)
   apply (erule exec_frag_abstraction)
   apply (simp add: reachable.reachable_0)
 
- (* Liveness *) 
+ (* Liveness *)
 apply (simp add: temp_weakening_def2)
  apply (tactic {* pair_tac "ex" 1 *})
 done
 
 (* FIX: NAch Traces.ML bringen *)
 
-lemma implements_trans: 
+lemma implements_trans:
 "[| A =<| B; B =<| C|] ==> A =<| C"
 apply (unfold ioa_implements_def)
 apply auto
@@ -270,11 +258,11 @@ done
 
 subsection "Abstraction Rules for Automata"
 
-lemma AbsRuleA1: "[| inp(C)=inp(A); out(C)=out(A);  
-                   inp(Q)=inp(P); out(Q)=out(P);  
-                   is_abstraction h1 C A;  
-                   A =<| Q ;  
-                   is_abstraction h2 Q P |]  
+lemma AbsRuleA1: "[| inp(C)=inp(A); out(C)=out(A);
+                   inp(Q)=inp(P); out(Q)=out(P);
+                   is_abstraction h1 C A;
+                   A =<| Q ;
+                   is_abstraction h2 Q P |]
                 ==> C =<| P"
 apply (drule abs_safety)
 apply assumption+
@@ -286,11 +274,11 @@ apply assumption
 done
 
 
-lemma AbsRuleA2: "!!LC. [| inp(C)=inp(A); out(C)=out(A);  
-                   inp(Q)=inp(P); out(Q)=out(P);  
-                   is_live_abstraction h1 (C,LC) (A,LA);  
-                   live_implements (A,LA) (Q,LQ) ;  
-                   is_live_abstraction h2 (Q,LQ) (P,LP) |]  
+lemma AbsRuleA2: "!!LC. [| inp(C)=inp(A); out(C)=out(A);
+                   inp(Q)=inp(P); out(Q)=out(P);
+                   is_live_abstraction h1 (C,LC) (A,LA);
+                   live_implements (A,LA) (Q,LQ) ;
+                   is_live_abstraction h2 (Q,LQ) (P,LP) |]
                 ==> live_implements (C,LC) (P,LP)"
 apply (drule abs_liveness)
 apply assumption+
@@ -307,64 +295,64 @@ declare split_paired_All [simp del]
 
 subsection "Localizing Temporal Strengthenings and Weakenings"
 
-lemma strength_AND: 
-"[| temp_strengthening P1 Q1 h;  
-          temp_strengthening P2 Q2 h |]  
+lemma strength_AND:
+"[| temp_strengthening P1 Q1 h;
+          temp_strengthening P2 Q2 h |]
        ==> temp_strengthening (P1 .& P2) (Q1 .& Q2) h"
 apply (unfold temp_strengthening_def)
 apply auto
 done
 
-lemma strength_OR: 
-"[| temp_strengthening P1 Q1 h;  
-          temp_strengthening P2 Q2 h |]  
+lemma strength_OR:
+"[| temp_strengthening P1 Q1 h;
+          temp_strengthening P2 Q2 h |]
        ==> temp_strengthening (P1 .| P2) (Q1 .| Q2) h"
 apply (unfold temp_strengthening_def)
 apply auto
 done
 
-lemma strength_NOT: 
-"[| temp_weakening P Q h |]  
+lemma strength_NOT:
+"[| temp_weakening P Q h |]
        ==> temp_strengthening (.~ P) (.~ Q) h"
 apply (unfold temp_strengthening_def)
 apply (simp add: temp_weakening_def2)
 apply auto
 done
 
-lemma strength_IMPLIES: 
-"[| temp_weakening P1 Q1 h;  
-          temp_strengthening P2 Q2 h |]  
+lemma strength_IMPLIES:
+"[| temp_weakening P1 Q1 h;
+          temp_strengthening P2 Q2 h |]
        ==> temp_strengthening (P1 .--> P2) (Q1 .--> Q2) h"
 apply (unfold temp_strengthening_def)
 apply (simp add: temp_weakening_def2)
 done
 
 
-lemma weak_AND: 
-"[| temp_weakening P1 Q1 h;  
-          temp_weakening P2 Q2 h |]  
+lemma weak_AND:
+"[| temp_weakening P1 Q1 h;
+          temp_weakening P2 Q2 h |]
        ==> temp_weakening (P1 .& P2) (Q1 .& Q2) h"
 apply (simp add: temp_weakening_def2)
 done
 
-lemma weak_OR: 
-"[| temp_weakening P1 Q1 h;  
-          temp_weakening P2 Q2 h |]  
+lemma weak_OR:
+"[| temp_weakening P1 Q1 h;
+          temp_weakening P2 Q2 h |]
        ==> temp_weakening (P1 .| P2) (Q1 .| Q2) h"
 apply (simp add: temp_weakening_def2)
 done
 
-lemma weak_NOT: 
-"[| temp_strengthening P Q h |]  
+lemma weak_NOT:
+"[| temp_strengthening P Q h |]
        ==> temp_weakening (.~ P) (.~ Q) h"
 apply (unfold temp_strengthening_def)
 apply (simp add: temp_weakening_def2)
 apply auto
 done
 
-lemma weak_IMPLIES: 
-"[| temp_strengthening P1 Q1 h;  
-          temp_weakening P2 Q2 h |]  
+lemma weak_IMPLIES:
+"[| temp_strengthening P1 Q1 h;
+          temp_weakening P2 Q2 h |]
        ==> temp_weakening (P1 .--> P2) (Q1 .--> Q2) h"
 apply (unfold temp_strengthening_def)
 apply (simp add: temp_weakening_def2)
@@ -379,7 +367,7 @@ apply (tactic {* Seq_case_simp_tac "x" 1 *})
 done
 
 lemma ex2seqConc [rule_format]:
-"Finite s1 -->  
+"Finite s1 -->
   (! ex. (s~=nil & s~=UU & ex2seq ex = s1 @@ s) --> (? ex'. s = ex2seq ex'))"
 apply (rule impI)
 apply (tactic {* Seq_Finite_induct_tac 1 *})
@@ -399,7 +387,7 @@ done
 
 (* important property of ex2seq: can be shiftet, as defined "pointwise" *)
 
-lemma ex2seq_tsuffix: 
+lemma ex2seq_tsuffix:
 "tsuffix s (ex2seq ex) ==> ? ex'. s = (ex2seq ex')"
 apply (unfold tsuffix_def suffix_def)
 apply auto
@@ -419,10 +407,10 @@ apply (tactic {* Seq_case_simp_tac "s" 1 *})
 done
 
 
-(* important property of cex_absSeq: As it is a 1to1 correspondence, 
+(* important property of cex_absSeq: As it is a 1to1 correspondence,
   properties carry over *)
 
-lemma cex_absSeq_tsuffix: 
+lemma cex_absSeq_tsuffix:
 "tsuffix s t ==> tsuffix (cex_absSeq h s) (cex_absSeq h t)"
 apply (unfold tsuffix_def suffix_def cex_absSeq_def)
 apply auto
@@ -433,8 +421,8 @@ apply (simp add: Map2Finite MapConc)
 done
 
 
-lemma strength_Box: 
-"[| temp_strengthening P Q h |] 
+lemma strength_Box:
+"[| temp_strengthening P Q h |]
        ==> temp_strengthening ([] P) ([] Q) h"
 apply (unfold temp_strengthening_def state_strengthening_def temp_sat_def satisfies_def Box_def)
 apply (tactic "clarify_tac set_cs 1")
@@ -447,10 +435,10 @@ done
 
 subsubsection {* Init *}
 
-lemma strength_Init: 
-"[| state_strengthening P Q h |] 
+lemma strength_Init:
+"[| state_strengthening P Q h |]
        ==> temp_strengthening (Init P) (Init Q) h"
-apply (unfold temp_strengthening_def state_strengthening_def 
+apply (unfold temp_strengthening_def state_strengthening_def
   temp_sat_def satisfies_def Init_def unlift_def)
 apply (tactic "safe_tac set_cs")
 apply (tactic {* pair_tac "ex" 1 *})
@@ -461,7 +449,7 @@ done
 
 subsubsection {* Next *}
 
-lemma TL_ex2seq_UU: 
+lemma TL_ex2seq_UU:
 "(TL$(ex2seq (cex_abs h ex))=UU) = (TL$(ex2seq ex)=UU)"
 apply (tactic {* pair_tac "ex" 1 *})
 apply (tactic {* Seq_case_simp_tac "y" 1 *})
@@ -470,7 +458,7 @@ apply (tactic {* Seq_case_simp_tac "s" 1 *})
 apply (tactic {* pair_tac "a" 1 *})
 done
 
-lemma TL_ex2seq_nil: 
+lemma TL_ex2seq_nil:
 "(TL$(ex2seq (cex_abs h ex))=nil) = (TL$(ex2seq ex)=nil)"
 apply (tactic {* pair_tac "ex" 1 *})
 apply (tactic {* Seq_case_simp_tac "y" 1 *})
@@ -484,10 +472,10 @@ lemma MapTL: "Map f$(TL$s) = TL$(Map f$s)"
 apply (tactic {* Seq_induct_tac "s" [] 1 *})
 done
 
-(* important property of cex_absSeq: As it is a 1to1 correspondence, 
+(* important property of cex_absSeq: As it is a 1to1 correspondence,
   properties carry over *)
 
-lemma cex_absSeq_TL: 
+lemma cex_absSeq_TL:
 "cex_absSeq h (TL$s) = (TL$(cex_absSeq h s))"
 apply (unfold cex_absSeq_def)
 apply (simp add: MapTL)
@@ -502,7 +490,7 @@ apply (tactic {* pair_tac "a" 1 *})
 apply auto
 done
 
- 
+
 lemma ex2seqnilTL: "(TL$(ex2seq ex)~=nil) = ((snd ex)~=nil & (snd ex)~=UU)"
 apply (tactic {* pair_tac "ex" 1 *})
 apply (tactic {* Seq_case_simp_tac "y" 1 *})
@@ -512,8 +500,8 @@ apply (tactic {* pair_tac "a" 1 *})
 done
 
 
-lemma strength_Next: 
-"[| temp_strengthening P Q h |] 
+lemma strength_Next:
+"[| temp_strengthening P Q h |]
        ==> temp_strengthening (Next P) (Next Q) h"
 apply (unfold temp_strengthening_def state_strengthening_def temp_sat_def satisfies_def Next_def)
 apply simp
@@ -533,8 +521,8 @@ done
 
 text {* Localizing Temporal Weakenings     - 2 *}
 
-lemma weak_Init: 
-"[| state_weakening P Q h |] 
+lemma weak_Init:
+"[| state_weakening P Q h |]
        ==> temp_weakening (Init P) (Init Q) h"
 apply (simp add: temp_weakening_def2 state_weakening_def2
   temp_sat_def satisfies_def Init_def unlift_def)
@@ -547,8 +535,8 @@ done
 
 text {* Localizing Temproal Strengthenings - 3 *}
 
-lemma strength_Diamond: 
-"[| temp_strengthening P Q h |] 
+lemma strength_Diamond:
+"[| temp_strengthening P Q h |]
        ==> temp_strengthening (<> P) (<> Q) h"
 apply (unfold Diamond_def)
 apply (rule strength_NOT)
@@ -556,9 +544,9 @@ apply (rule weak_Box)
 apply (erule weak_NOT)
 done
 
-lemma strength_Leadsto: 
-"[| temp_weakening P1 P2 h; 
-          temp_strengthening Q1 Q2 h |] 
+lemma strength_Leadsto:
+"[| temp_weakening P1 P2 h;
+          temp_strengthening Q1 Q2 h |]
        ==> temp_strengthening (P1 ~> Q1) (P2 ~> Q2) h"
 apply (unfold Leadsto_def)
 apply (rule strength_Box)
@@ -569,8 +557,8 @@ done
 
 text {* Localizing Temporal Weakenings - 3 *}
 
-lemma weak_Diamond: 
-"[| temp_weakening P Q h |] 
+lemma weak_Diamond:
+"[| temp_weakening P Q h |]
        ==> temp_weakening (<> P) (<> Q) h"
 apply (unfold Diamond_def)
 apply (rule weak_NOT)
@@ -578,9 +566,9 @@ apply (rule strength_Box)
 apply (erule strength_NOT)
 done
 
-lemma weak_Leadsto: 
-"[| temp_strengthening P1 P2 h; 
-          temp_weakening Q1 Q2 h |] 
+lemma weak_Leadsto:
+"[| temp_strengthening P1 P2 h;
+          temp_weakening Q1 Q2 h |]
        ==> temp_weakening (P1 ~> Q1) (P2 ~> Q2) h"
 apply (unfold Leadsto_def)
 apply (rule weak_Box)
@@ -588,8 +576,8 @@ apply (erule weak_IMPLIES)
 apply (erule weak_Diamond)
 done
 
-lemma weak_WF: 
-  " !!A. [| !! s. Enabled A acts (h s) ==> Enabled C acts s|]   
+lemma weak_WF:
+  " !!A. [| !! s. Enabled A acts (h s) ==> Enabled C acts s|]
     ==> temp_weakening (WF A acts) (WF C acts) h"
 apply (unfold WF_def)
 apply (rule weak_IMPLIES)
@@ -603,8 +591,8 @@ apply (auto simp add: state_weakening_def state_strengthening_def
   xt2_def plift_def option_lift_def NOT_def)
 done
 
-lemma weak_SF: 
-  " !!A. [| !! s. Enabled A acts (h s) ==> Enabled C acts s|]   
+lemma weak_SF:
+  " !!A. [| !! s. Enabled A acts (h s) ==> Enabled C acts s|]
     ==> temp_weakening (SF A acts) (SF C acts) h"
 apply (unfold SF_def)
 apply (rule weak_IMPLIES)
@@ -626,18 +614,10 @@ lemmas weak_strength_lemmas =
   strength_Diamond strength_Leadsto weak_WF weak_SF
 
 ML {*
-
-local
-  val weak_strength_lemmas = thms "weak_strength_lemmas"
-  val state_strengthening_def = thm "state_strengthening_def"
-  val state_weakening_def = thm "state_weakening_def"
-in
-
-fun abstraction_tac i = 
+fun abstraction_tac i =
     SELECT_GOAL (CLASIMPSET (fn (cs, ss) =>
-      auto_tac (cs addSIs weak_strength_lemmas,
-        ss addsimps [state_strengthening_def, state_weakening_def]))) i
-end
+      auto_tac (cs addSIs @{thms weak_strength_lemmas},
+        ss addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}]))) i
 *}
 
 use "ioa_package.ML"
