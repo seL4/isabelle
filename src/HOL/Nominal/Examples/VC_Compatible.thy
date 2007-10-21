@@ -5,17 +5,15 @@ imports "../Nominal"
 begin
 
 text {* 
-  We show here two examples where using the variable  
-  convention carelessly in rule inductions, we end 
+  We give here two examples that show if we use the variable  
+  convention carelessly in rule inductions, we might end 
   up with faulty lemmas. The point is that the examples
-  are not variable-convention compatible and therefore
-  in the nominal package one is protected from such
-  bogus reasoning.
+  are not variable-convention compatible and therefore in the 
+  nominal package one is protected from such bogus reasoning.
 *}
 
 text {* 
-  We define alpha-equated lambda-terms as usual. 
-*}
+  We define alpha-equated lambda-terms as usual. *}
 atom_decl name 
 
 nominal_datatype lam = 
@@ -27,10 +25,9 @@ text {*
   The inductive relation 'unbind' unbinds the top-most  
   binders of a lambda-term; this relation is obviously  
   not a function, since it does not respect alpha-      
-  equivalence. However as a relation unbind is ok and     
+  equivalence. However as a relation 'unbind' is ok and     
   a similar relation has been used in our formalisation 
-  of the algorithm W.
-*}
+  of the algorithm W. *}
 inductive
   unbind :: "lam \<Rightarrow> name list \<Rightarrow> lam \<Rightarrow> bool" ("_ \<mapsto> _,_" [60,60,60] 60)
 where
@@ -39,10 +36,9 @@ where
 | u_lam: "t\<mapsto>xs,t' \<Longrightarrow> (Lam [x].t) \<mapsto> (x#xs),t'"
 
 text {*
-  We can show that Lam [x]. Lam [x]. Var x unbinds to [x,x],Var x 
+  We can show that Lam [x].Lam [x].Var x unbinds to [x,x],Var x 
   and also to [z,y],Var y (though the proof for the second is a 
-  bit clumsy).                                
-*} 
+  bit clumsy). *} 
 lemma unbind_lambda_lambda1: 
   shows "Lam [x].Lam [x].(Var x)\<mapsto>[x,x],(Var x)"
 by (auto intro: unbind.intros)
@@ -65,21 +61,21 @@ equivariance unbind
 text {*
   ... but it is not variable-convention compatible (see Urban, 
   Berghofer, Norrish [2007] for more details). This condition 
-  requires for rule u_lam, that the binder x is not a free variable 
+  requires for rule u_lam to have the binder x being not a free variable 
   in the rule's conclusion. Because this condition is not satisfied, 
-  Isabelle will not derive a strong induction principle for unbind 
-  - that means Isabelle does not allow you to use the variable 
-  convention in induction proofs involving unbind. We can, however,  
-  force Isabelle to derive the strengthening induction principle. 
-*}
+  Isabelle will not derive a strong induction principle for 'unbind' 
+  - that means Isabelle does not allow us to use the variable 
+  convention in induction proofs over 'unbind'. We can, however,  
+  force Isabelle to derive the strengthening induction principle
+  and see what happens. *}
+
 nominal_inductive unbind
   sorry
 
 text {*
-  To obtain our faulty lemma, we introduce the function 'bind'
+  To obtain a faulty lemma, we introduce the function 'bind'
   which takes a list of names and abstracts away these names in 
-  a given lambda-term.                                     
-*}
+  a given lambda-term. *}
 fun 
   bind :: "name list \<Rightarrow> lam \<Rightarrow> lam"
 where
@@ -88,8 +84,7 @@ where
 
 text {*
   Although not necessary for our main argument below, we can 
-  easily prove that bind undoes the unbinding.               
-*}
+  easily prove that bind undoes the unbinding. *}
 lemma bind_unbind:
   assumes a: "t \<mapsto> xs,t'"
   shows "t = bind xs t'"
@@ -99,8 +94,7 @@ text {*
   The next lemma shows by induction on xs that if x is a free 
   variable in t and x does not occur in xs, then x is a free 
   variable in bind xs t. In the nominal tradition we formulate    
-  'is a free variable in' as 'is not fresh for'.         
-*}
+  'is a free variable in' as 'is not fresh for'. *}
 lemma free_variable:
   fixes x::"name"
   assumes a: "\<not>(x\<sharp>t)" and b: "x\<sharp>xs"
@@ -111,13 +105,12 @@ by (induct xs)
 
 text {*
   Now comes the faulty lemma. It is derived using the     
-  variable convention, that means using the strong induction 
-  principle we 'proved' above by using sorry. This faulty    
-  lemma states that if t unbinds to x::xs and t', and x is a 
-  free variable in t', then it is also a free variable in    
-  bind xs t'. We show this lemma by assuming that the binder 
-  x is fresh w.r.t. to the xs unbound previously.            
-*}   
+  variable convention (i.e. our strong induction principle). 
+  This faulty lemma states that if t unbinds to x::xs and t', 
+  and x is a free variable in t', then it is also a free 
+  variable in bind xs t'. We show this lemma by assuming that 
+  the binder x is fresh w.r.t. to the xs unbound previously. *}   
+
 lemma faulty1:
   assumes a: "t\<mapsto>(x#xs),t'"
   shows "\<not>(x\<sharp>t') \<Longrightarrow> \<not>(x\<sharp>bind xs t')"
@@ -128,8 +121,8 @@ by (nominal_induct t xs'\<equiv>"x#xs" t' avoiding: xs rule: unbind.strong_induc
 text {*
   Obviously the faulty lemma does not hold, for example, in 
   case Lam [x].Lam [x].(Var x) \<mapsto> [x,x],(Var x). Therefore,
-  we can prove False.             
-*}
+  we can prove False. *}
+
 lemma false1:
   shows "False"
 proof -
@@ -145,8 +138,7 @@ qed
 text {* 
   The next example is slightly simpler, but looks more
   contrived than 'unbind'. This example, caled 'strip' just 
-  strips off the top-most binders from lambdas. 
-*}
+  strips off the top-most binders from lambdas. *}
 
 inductive
   strip :: "lam \<Rightarrow> lam \<Rightarrow> bool" ("_ \<rightarrow> _" [60,60] 60)
@@ -157,8 +149,8 @@ where
 
 text {* 
   The relation is equivariant but we have to use again 
-  sorry to derive a strong induction principle.
-*}
+  sorry to derive a strong induction principle. *}
+
 equivariance strip
 
 nominal_inductive strip
@@ -166,8 +158,8 @@ nominal_inductive strip
 
 text {*
   The faulty lemma shows that a variable that is fresh
-  for a term is also fresh for the term after striping.
-*}
+  for a term is also fresh for the term after striping. *}
+
 lemma faulty2:
   fixes x::"name"
   assumes a: "t \<rightarrow> t'"
@@ -177,8 +169,8 @@ by (nominal_induct t t'\<equiv>t' avoiding: t' rule: strip.strong_induct)
    (auto simp add: abs_fresh)
 
 text {*
-  Obviously Lam [x].Var x is a counter example to this lemma.
-*}
+  Obviously Lam [x].Var x is a counter example to this lemma. *}
+
 lemma false2:
   shows "False"
 proof -

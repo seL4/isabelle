@@ -5,17 +5,15 @@ imports "../Nominal"
 begin
 
 text {* 
-  
   An example showing that in general
 
   x\<sharp>(A \<union> B) does not imply  x\<sharp>A and  x\<sharp>B
 
-  The example shows that with A set to the set of 
-  even atoms and B to the set of odd even atoms. 
-  Then A \<union> B, that is the set of all atoms, has 
-  empty support. The sets A, respectively B, have 
-  the set of all atoms as support. 
-
+  For this we set A to the set of even atoms 
+  and B to the set of odd even atoms. Then A \<union> B, 
+  that is the set of all atoms, has empty support. 
+  The sets A, respectively B, have the set of all atoms 
+  as support. 
 *}
 
 atom_decl atom
@@ -37,6 +35,7 @@ lemma even_or_odd:
 
 lemma EVEN_union_ODD:
   shows "EVEN \<union> ODD = UNIV"
+  using even_or_odd
 proof -
   have "EVEN \<union> ODD = (\<lambda>n. atom n) ` {n. \<exists>i. n = 2*i} \<union> (\<lambda>n. atom n) ` {n. \<exists>i. n = 2*i+1}" by auto
   also have "\<dots> = (\<lambda>n. atom n) ` ({n. \<exists>i. n = 2*i} \<union> {n. \<exists>i. n = 2*i+1})" by auto
@@ -69,7 +68,9 @@ apply(rule_tac x="\<lambda>n. atom (2*n+1)" in exI)
 apply(auto simp add: inj_on_def)
 done
 
-(* A set S that is infinite and coinfinite has all atoms as its support *)
+text {* 
+  A set S that is infinite and coinfinite 
+  has all atoms as its support. *}
 lemma supp_infinite_coinfinite:
   fixes S::"atom set"
   assumes a: "infinite S"
