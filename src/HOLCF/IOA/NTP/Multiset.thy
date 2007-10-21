@@ -85,7 +85,7 @@ lemma countm_done_delm:
    "!!P. P(x) ==> 0<count M x --> countm (delm M x) P = countm M P - 1"
   apply (rule_tac M = "M" in Multiset.induction)
   apply (simp (no_asm) add: Multiset.delm_empty_def Multiset.countm_empty_def)
-  apply (simp (no_asm_simp) add: count_addm_simp Multiset.delm_nonempty_def Multiset.countm_nonempty_def pos_count_imp_pos_countm)
+  apply (simp (no_asm_simp) add: neq0_conv count_addm_simp Multiset.delm_nonempty_def Multiset.countm_nonempty_def pos_count_imp_pos_countm)
   apply auto
   done
 
