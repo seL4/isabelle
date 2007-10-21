@@ -98,7 +98,7 @@ fun add_fixdefs eqs thy =
     val fixdefs = map (apsnd (legacy_infer_prop thy)) pre_fixdefs;
     val (fixdef_thms, thy') =
       PureThy.add_defs_i false (map Thm.no_attributes fixdefs) thy;
-    val ctuple_fixdef_thm = foldr1 (fn (x,y) => cpair_equalI OF [x,y]) fixdef_thms;
+    val ctuple_fixdef_thm = foldr1 (fn (x,y) => @{thm cpair_equalI} OF [x,y]) fixdef_thms;
     
     val ctuple_unfold = legacy_infer_term thy' (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
     val ctuple_unfold_thm = Goal.prove_global thy' [] [] ctuple_unfold
@@ -110,8 +110,8 @@ fun add_fixdefs eqs thy =
     fun unfolds [] thm = []
       | unfolds (n::[]) thm = [(n^"_unfold", thm)]
       | unfolds (n::ns) thm = let
-          val thmL = thm RS cpair_eqD1;
-          val thmR = thm RS cpair_eqD2;
+          val thmL = thm RS @{thm cpair_eqD1};
+          val thmR = thm RS @{thm cpair_eqD2};
         in (n^"_unfold", thmL) :: unfolds ns thmR end;
     val unfold_thms = unfolds names ctuple_unfold_thm;
     val thms = ctuple_induct_thm :: unfold_thms;
@@ -210,7 +210,7 @@ fun compile_pats eqs =
 (* proves a block of pattern matching equations as theorems, using unfold *)
 fun make_simps thy (unfold_thm, eqns) =
   let
-    val tacs = [rtac (unfold_thm RS ssubst_lhs) 1, asm_simp_tac (simpset_of thy) 1];
+    val tacs = [rtac (unfold_thm RS @{thm ssubst_lhs}) 1, asm_simp_tac (simpset_of thy) 1];
     fun prove_term t = Goal.prove_global thy [] [] t (K (EVERY tacs));
     fun prove_eqn ((name, eqn_t), atts) = ((name, prove_term eqn_t), atts);
   in

@@ -316,14 +316,14 @@ local
 
   fun pat_strict c =
     let
-      val axs = branch_def :: axs_pat_def;
+      val axs = @{thm branch_def} :: axs_pat_def;
       val goal = mk_trp (strict (pat_lhs c ` (%:"rhs")));
       val tacs = [simp_tac (HOLCF_ss addsimps [when_strict]) 1];
     in pg axs goal tacs end;
 
   fun pat_app c (con, args) =
     let
-      val axs = branch_def :: axs_pat_def;
+      val axs = @{thm branch_def} :: axs_pat_def;
       val lhs = (pat_lhs c)`(%:"rhs")`(con_app con args);
       val rhs = if con = fst c then pat_rhs c else %%:failN;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
