@@ -985,7 +985,7 @@ fun context_const_ast_tr ctxt [Syntax.Variable c] =
         val consts = consts_of ctxt;
         val c' = Consts.intern consts c;
         val _ = Consts.the_constraint consts c' handle TYPE (msg, _, _) => error msg;
-      in Syntax.Constant (Syntax.constN ^ c') end
+      in Syntax.Constant (const_syntax_name ctxt c') end
   | context_const_ast_tr _ asts = raise Syntax.AST ("const_ast_tr", asts);
 
 val _ = Context.add_setup
