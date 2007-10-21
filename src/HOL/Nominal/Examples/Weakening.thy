@@ -155,7 +155,7 @@ proof (induct arbitrary: \<Gamma>2)
   have ih: "\<And>\<Gamma>3. \<lbrakk>valid \<Gamma>3; (x,T1)#\<Gamma>1 \<subseteq> \<Gamma>3\<rbrakk> \<Longrightarrow> \<Gamma>3 \<turnstile> t : T2" by fact
   obtain c::"name" where fc1: "c\<sharp>(x,t,\<Gamma>1,\<Gamma>2)"  (* we obtain a fresh name *)
     by (rule exists_fresh) (auto simp add: fs_name1)
-  have "Lam [c].([(c,x)]\<bullet>t) = Lam [x].t" using fc1 (* we alpha-rename the lambda-abstraction *)
+  have "Lam [c].([(c,x)]\<bullet>t) = Lam [x].t" using fc1 (* we then alpha-rename the lambda-abstraction *)
     by (auto simp add: lam.inject alpha fresh_prod fresh_atm)
   moreover
   have "\<Gamma>2 \<turnstile> Lam [c].([(c,x)]\<bullet>t) : T1 \<rightarrow> T2" (* we can then alpha-rename our original goal *)
@@ -177,7 +177,7 @@ proof (induct arbitrary: \<Gamma>2)
     qed
     (* these two facts give us by induction hypothesis the following *)
     ultimately have "(x,T1)#([(c,x)]\<bullet>\<Gamma>2) \<turnstile> t : T2" using ih by simp 
-    (* we now apply renamings to get our goal *)
+    (* we now apply renamings to get to our goal *)
     then have "[(c,x)]\<bullet>((x,T1)#([(c,x)]\<bullet>\<Gamma>2) \<turnstile> t : T2)" by (rule perm_boolI)
     then have "(c,T1)#\<Gamma>2 \<turnstile> ([(c,x)]\<bullet>t) : T2" using fc1 
       by (perm_simp add: eqvts calc_atm perm_fresh_fresh ty_fresh)
@@ -185,5 +185,10 @@ proof (induct arbitrary: \<Gamma>2)
   qed
   ultimately show "\<Gamma>2 \<turnstile> Lam [x].t : T1 \<rightarrow> T2" by simp
 qed (auto)
+
+text {*
+  Compare the proof with explicit renamings to version1 and version2,
+  and imagine you are proving something more substantial than the
+  weakening lemma. *}
 
 end
