@@ -2152,7 +2152,11 @@ apply (metis Zero_neq_Suc gr0_conv_Suc in_set_conv_nth lessI less_trans_Suc nth_
  apply (clarsimp simp add: set_conv_nth)
  apply (erule_tac x = 0 in allE, simp)
  apply (erule_tac x = "Suc i" in allE, simp, clarsimp)
+(*TOO SLOW
 apply (metis Suc_Suc_eq lessI less_trans_Suc nth_Cons_Suc)
+*)
+apply (erule_tac x = "Suc i" in allE, simp)
+apply (erule_tac x = "Suc j" in allE, simp)
 done
 
 lemma nth_eq_iff_index_eq:
