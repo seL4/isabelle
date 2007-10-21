@@ -508,10 +508,7 @@ lemma gr0_conv_Suc: "(0 < n) = (\<exists>m. n = Suc m)"
   by (fast intro: not0_implies_Suc)
 
 lemma not_gr0 [iff,noatp]: "!!n::nat. (~ (0 < n)) = (n = 0)"
-  apply (rule iffI)
-  apply (rule ccontr)
-  apply (simp_all add: neq0_conv)
-  done
+using neq0_conv by blast
 
 lemma Suc_le_D: "(Suc n \<le> m') ==> (? m. m' = Suc m)"
   by (induct m') simp_all
@@ -603,8 +600,8 @@ text {*
   However, none of the generalizations are currently in the simpset,
   and I dread to think what happens if I put them in
 *}
-lemma Suc_pred [simp]: "0 < n ==> Suc (n - Suc 0) = n"
-  by (simp add: neq0_conv split add: nat.split)
+lemma Suc_pred [simp]: "0 \<noteq> n ==> Suc (n - Suc 0) = n"
+by (simp split add: nat.split)
 
 declare diff_Suc [simp del, code del]
 
@@ -658,8 +655,8 @@ lemma add_is_1: "(m+n= Suc 0) = (m= Suc 0 & n=0 | m=0 & n= Suc 0)"
 lemma one_is_add: "(Suc 0 = m + n) = (m = Suc 0 & n = 0 | m = 0 & n = Suc 0)"
   by (rule trans, rule eq_commute, rule add_is_1)
 
-lemma add_gr_0 [iff]: "!!m::nat. (0 < m + n) = (0 < m | 0 < n)"
-  by (simp del: neq0_conv add: neq0_conv [symmetric])
+lemma add_gr_0 [iff]: "!!m::nat. (m + n \<noteq> 0) = (m\<noteq>0 | n\<noteq>0)"
+by simp
 
 lemma add_eq_self_zero: "!!m::nat. m + n = m ==> n = 0"
   apply (drule add_0_right [THEN ssubst])
@@ -743,11 +740,11 @@ lemma less_imp_Suc_add: "m < n ==> (\<exists>k. n = Suc (m + k))"
   done
 
 text {* strict, in 1st argument; proof is by induction on @{text "k > 0"} *}
-lemma mult_less_mono2: "(i::nat) < j ==> 0 < k ==> k * i < k * j"
-  apply (erule_tac m1 = 0 in less_imp_Suc_add [THEN exE], simp)
-  apply (induct_tac x)
-  apply (simp_all add: add_less_mono)
-  done
+lemma mult_less_mono2: "(i::nat) < j ==> 0<k ==> k * i < k * j"
+apply(auto simp: gr0_conv_Suc)
+apply (induct_tac m)
+apply (simp_all add: add_less_mono)
+done
 
 
 text{*The naturals form an ordered @{text comm_semiring_1_cancel}*}
@@ -1084,9 +1081,9 @@ lemma mult_le_cancel2 [simp]: "((m::nat) * k \<le> n * k) = (0 < k --> m \<le> n
 by (simp add: linorder_not_less [symmetric], auto)
 
 lemma mult_cancel2 [simp]: "(m * k = n * k) = (m = n | (k = (0::nat)))"
-  apply (cut_tac less_linear, safe, auto simp add: neq0_conv)
-  apply (drule mult_less_mono1, assumption, simp)+
-  done
+apply (cut_tac less_linear, safe, auto simp add: neq0_conv)
+apply (drule mult_less_mono1, assumption, simp)+
+done
 
 lemma mult_cancel1 [simp]: "(k * m = k * n) = (m = n | (k = (0::nat)))"
 by (simp add: mult_commute [of k])
@@ -1105,8 +1102,8 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (drule sym)
   apply (rule disjCI)
   apply (rule nat_less_cases, erule_tac [2] _)
-  apply (fastsimp simp add: neq0_conv elim!: less_SucE)
-  apply (fastsimp simp add: neq0_conv dest: mult_less_mono2)
+  apply (fastsimp elim!: less_SucE)
+  apply (auto simp add: neq0_conv dest: mult_less_mono2)
   done
 
 

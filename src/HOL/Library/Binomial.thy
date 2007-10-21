@@ -21,50 +21,50 @@ primrec
                  (if k = 0 then 1 else (n choose (k - 1)) + (n choose k))"
 
 lemma binomial_n_0 [simp]: "(n choose 0) = 1"
-  by (cases n) simp_all
+by (cases n) simp_all
 
 lemma binomial_0_Suc [simp]: "(0 choose Suc k) = 0"
-  by simp
+by simp
 
 lemma binomial_Suc_Suc [simp]:
-    "(Suc n choose Suc k) = (n choose k) + (n choose Suc k)"
-  by simp
+  "(Suc n choose Suc k) = (n choose k) + (n choose Suc k)"
+by simp
 
 lemma binomial_eq_0: "!!k. n < k ==> (n choose k) = 0"
-  by (induct n) auto
+by (induct n) auto
 
 declare binomial_0 [simp del] binomial_Suc [simp del]
 
 lemma binomial_n_n [simp]: "(n choose n) = 1"
-  by (induct n) (simp_all add: binomial_eq_0)
+by (induct n) (simp_all add: binomial_eq_0)
 
 lemma binomial_Suc_n [simp]: "(Suc n choose n) = Suc n"
-  by (induct n) simp_all
+by (induct n) simp_all
 
 lemma binomial_1 [simp]: "(n choose Suc 0) = n"
-  by (induct n) simp_all
+by (induct n) simp_all
 
-lemma zero_less_binomial: "k \<le> n ==> 0 < (n choose k)"
-  by (induct n k rule: diff_induct) simp_all
+lemma zero_less_binomial: "k \<le> n ==> (n choose k) \<noteq> 0"
+by (induct n k rule: diff_induct) simp_all
 
 lemma binomial_eq_0_iff: "(n choose k = 0) = (n<k)"
-  apply (safe intro!: binomial_eq_0)
-  apply (erule contrapos_pp)
-  apply (simp add: neq0_conv zero_less_binomial)
-  done
+apply (safe intro!: binomial_eq_0)
+apply (erule contrapos_pp)
+apply (simp add: zero_less_binomial)
+done
 
-lemma zero_less_binomial_iff: "(0 < n choose k) = (k\<le>n)"
-  by (simp add: neq0_conv  linorder_not_less [symmetric] binomial_eq_0_iff [symmetric])
+lemma zero_less_binomial_iff: "(n choose k \<noteq> 0) = (k\<le>n)"
+by (simp add: linorder_not_less binomial_eq_0_iff)
 
 (*Might be more useful if re-oriented*)
 lemma Suc_times_binomial_eq:
-    "!!k. k \<le> n ==> Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
-  apply (induct n)
-  apply (simp add: binomial_0)
-  apply (case_tac k)
-  apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq
+  "!!k. k \<le> n ==> Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
+apply (induct n)
+apply (simp add: binomial_0)
+apply (case_tac k)
+apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq
     binomial_eq_0)
-  done
+done
 
 text{*This is the well-known version, but it's harder to use because of the
   need to reason about division.*}

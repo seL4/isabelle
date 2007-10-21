@@ -1316,34 +1316,34 @@ by (auto simp: zdvd_zmult_mono dest: zdvd_mult_cancel)
 
 
 theorem ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat x))"
-  apply (simp split add: split_nat)
-  apply (rule iffI)
-  apply (erule exE)
-  apply (rule_tac x = "int x" in exI)
-  apply simp
-  apply (erule exE)
-  apply (rule_tac x = "nat x" in exI)
-  apply (erule conjE)
-  apply (erule_tac x = "nat x" in allE)
-  apply simp
-  done
+apply (simp split add: split_nat)
+apply (rule iffI)
+apply (erule exE)
+apply (rule_tac x = "int x" in exI)
+apply simp
+apply (erule exE)
+apply (rule_tac x = "nat x" in exI)
+apply (erule conjE)
+apply (erule_tac x = "nat x" in allE)
+apply simp
+done
 
 theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
-  apply (simp only: dvd_def ex_nat int_int_eq [symmetric] zmult_int [symmetric]
+apply (simp only: dvd_def ex_nat int_int_eq [symmetric] zmult_int [symmetric]
     nat_0_le cong add: conj_cong)
-  apply (rule iffI)
-  apply iprover
-  apply (erule exE)
-  apply (case_tac "x=0")
-  apply (rule_tac x=0 in exI)
-  apply simp
-  apply (case_tac "0 \<le> k")
-  apply iprover
-  apply (simp add: neq0_conv linorder_not_le)
-  apply (drule mult_strict_left_mono_neg [OF iffD2 [OF zero_less_int_conv]])
-  apply assumption
-  apply (simp add: mult_ac)
-  done
+apply (rule iffI)
+apply iprover
+apply (erule exE)
+apply (case_tac "x=0")
+apply (rule_tac x=0 in exI)
+apply simp
+apply (case_tac "0 \<le> k")
+apply iprover
+apply (simp add: neq0_conv linorder_not_le)
+apply (drule mult_strict_left_mono_neg [OF iffD2 [OF zero_less_int_conv]])
+apply assumption
+apply (simp add: mult_ac)
+done
 
 lemma zdvd1_eq[simp]: "(x::int) dvd 1 = ( \<bar>x\<bar> = 1)"
 proof

@@ -250,13 +250,13 @@ lemma unique_remainder:
   apply (simp add: quorem_def)
   done
 
-lemma quorem_div_mod: "0 < b ==> quorem ((a, b), (a div b, a mod b))"
+lemma quorem_div_mod: "b \<noteq> 0 ==> quorem ((a, b), (a div b, a mod b))"
   unfolding quorem_def by simp
 
-lemma quorem_div: "[| quorem((a,b),(q,r));  0 < b |] ==> a div b = q"
+lemma quorem_div: "[| quorem((a,b),(q,r));  b \<noteq> 0 |] ==> a div b = q"
   by (simp add: quorem_div_mod [THEN unique_quotient])
 
-lemma quorem_mod: "[| quorem((a,b),(q,r));  0 < b |] ==> a mod b = r"
+lemma quorem_mod: "[| quorem((a,b),(q,r));  b \<noteq> 0 |] ==> a mod b = r"
   by (simp add: quorem_div_mod [THEN unique_remainder])
 
 (** A dividend of zero **)
@@ -270,21 +270,19 @@ lemma mod_0 [simp]: "0 mod m = (0::nat)"
 (** proving (a*b) div c = a * (b div c) + a * (b mod c) **)
 
 lemma quorem_mult1_eq:
-     "[| quorem((b,c),(q,r));  0 < c |]
+     "[| quorem((b,c),(q,r)); c \<noteq> 0 |]
       ==> quorem ((a*b, c), (a*q + a*r div c, a*r mod c))"
   by (auto simp add: split_ifs mult_ac quorem_def add_mult_distrib2)
 
 lemma div_mult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::nat)"
-  apply (cases "c = 0", simp  add: neq0_conv)
-  using neq0_conv
-  apply (blast intro: quorem_div_mod [THEN quorem_mult1_eq, THEN quorem_div])
-  done
+apply (cases "c = 0", simp)
+apply (blast intro: quorem_div_mod [THEN quorem_mult1_eq, THEN quorem_div])
+done
 
 lemma mod_mult1_eq: "(a*b) mod c = a*(b mod c) mod (c::nat)"
-  apply (cases "c = 0", simp add: neq0_conv)
-  using neq0_conv
-  apply (blast intro: quorem_div_mod [THEN quorem_mult1_eq, THEN quorem_mod])
-  done
+apply (cases "c = 0", simp)
+apply (blast intro: quorem_div_mod [THEN quorem_mult1_eq, THEN quorem_mod])
+done
 
 lemma mod_mult1_eq': "(a*b) mod (c::nat) = ((a mod c) * b) mod c"
   apply (rule trans)
@@ -301,23 +299,21 @@ lemma mod_mult_distrib_mod: "(a*b) mod (c::nat) = ((a mod c) * (b mod c)) mod c"
 (** proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) **)
 
 lemma quorem_add1_eq:
-     "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  0 < c |]
+     "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  c \<noteq> 0 |]
       ==> quorem ((a+b, c), (aq + bq + (ar+br) div c, (ar+br) mod c))"
   by (auto simp add: split_ifs mult_ac quorem_def add_mult_distrib2)
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma div_add1_eq:
-     "(a+b) div (c::nat) = a div c + b div c + ((a mod c + b mod c) div c)"
-  apply (cases "c = 0", simp)
-  using neq0_conv
-  apply (blast intro: quorem_add1_eq [THEN quorem_div] quorem_div_mod quorem_div_mod)
-  done
+  "(a+b) div (c::nat) = a div c + b div c + ((a mod c + b mod c) div c)"
+apply (cases "c = 0", simp)
+apply (blast intro: quorem_add1_eq [THEN quorem_div] quorem_div_mod)
+done
 
 lemma mod_add1_eq: "(a+b) mod (c::nat) = (a mod c + b mod c) mod c"
-  apply (cases "c = 0", simp)
-  using neq0_conv
-  apply (blast intro: quorem_div_mod quorem_div_mod quorem_add1_eq [THEN quorem_mod])
-  done
+apply (cases "c = 0", simp)
+apply (blast intro: quorem_div_mod quorem_add1_eq [THEN quorem_mod])
+done
 
 
 subsection{*Proving @{term "a div (b*c) = (a div b) div c"}*}

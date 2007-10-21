@@ -589,15 +589,14 @@ done
 declare real_mult_zero_disj_iff [simp]
 
 lemma pderiv_aux_iszero [rule_format, simp]:
-    "\<forall>n. list_all (%c. c = 0) (pderiv_aux (Suc n) p) = list_all (%c. c = 0) p"
+  "\<forall>n. list_all (%c. c = 0) (pderiv_aux (Suc n) p) = list_all (%c. c = 0) p"
 by (induct "p", auto)
 
 lemma pderiv_aux_iszero_num: "(number_of n :: nat) \<noteq> 0
-      ==> (list_all (%c. c = 0) (pderiv_aux (number_of n) p) =
+  ==> (list_all (%c. c = 0) (pderiv_aux (number_of n) p) =
       list_all (%c. c = 0) p)"
-unfolding neq0_conv
-apply (rule_tac n1 = "number_of n" and m1 = 0 in less_imp_Suc_add [THEN exE], force)
-apply (rule_tac n1 = "0 + x" in pderiv_aux_iszero [THEN subst])
+apply(drule  not0_implies_Suc, clarify)
+apply (rule_tac n1 = "m" in pderiv_aux_iszero [THEN subst])
 apply (simp (no_asm_simp) del: pderiv_aux_iszero)
 done
 
@@ -783,7 +782,7 @@ done
 declare pexp_one [simp]
 
 lemma lemma_order_root [rule_format]:
-     "\<forall>p a. 0 < n & [- a, 1] %^ n divides p & ~ [- a, 1] %^ (Suc n) divides p
+     "\<forall>p a. n \<noteq> 0 & [- a, 1] %^ n divides p & ~ [- a, 1] %^ (Suc n) divides p
              --> poly p a = 0"
 apply (induct "n", blast)
 apply (auto simp add: divides_def poly_mult simp del: pmult_Cons)
@@ -794,8 +793,7 @@ apply (case_tac "poly p = poly []", auto)
 apply (simp add: poly_linear_divides del: pmult_Cons, safe)
 apply (drule_tac [!] a = a in order2)
 apply (rule ccontr)
-apply (simp add: divides_def poly_mult fun_eq neq0_conv del: pmult_Cons, blast)
-using neq0_conv 
+apply (simp add: divides_def poly_mult fun_eq del: pmult_Cons, blast)
 apply (blast intro: lemma_order_root)
 done
 
@@ -845,7 +843,7 @@ done
 
 (* FIXME: too too long! *)
 lemma lemma_order_pderiv [rule_format]:
-     "\<forall>p q a. 0 < n &
+     "\<forall>p q a. n \<noteq> 0 &
        poly (pderiv p) \<noteq> poly [] &
        poly p = poly ([- a, 1] %^ n *** q) & ~ [- a, 1] divides q
        --> n = Suc (order a (pderiv p))"
@@ -876,7 +874,7 @@ apply (subgoal_tac "real (Suc n) * (poly ([- a, 1] %^ n) xa * poly q xa) =
           (poly qa xa + - poly (pderiv q) xa) *
           (poly ([- a, 1] %^ n) xa *
            ((- a + xa) * (inverse (real (Suc n)) * real (Suc n))))")
-apply (simp only: mult_ac)  
+apply (simp only: mult_ac)
 apply (rotate_tac 2)
 apply (drule_tac x = xa in spec)
 apply (simp add: left_distrib mult_ac del: pmult_Cons)
@@ -885,7 +883,7 @@ done
 lemma order_pderiv: "[| poly (pderiv p) \<noteq> poly []; order a p \<noteq> 0 |]
       ==> (order a p = Suc (order a (pderiv p)))"
 apply (case_tac "poly p = poly []")
-apply (auto simp add: neq0_conv  dest: pderiv_zero)
+apply (auto dest: pderiv_zero)
 apply (drule_tac a = a and p = p in order_decomp)
 apply (blast intro: lemma_order_pderiv)
 done

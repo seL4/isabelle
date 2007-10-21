@@ -106,7 +106,7 @@ recdef fmsize "measure size"
   "fmsize (A p) = 4+ fmsize p"
   "fmsize p = 1"
   (* several lemmas about fmsize *)
-lemma fmsize_pos: "fmsize p > 0"	
+lemma fmsize_pos: "fmsize p \<noteq> 0"
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
@@ -917,7 +917,7 @@ recdef prep "measure fmsize"
   "prep (Imp p q) = prep (Or (NOT p) q)"
   "prep (Iff p q) = disj (prep (And p q)) (prep (And (NOT p) (NOT q)))"
   "prep p = p"
-(hints simp add: fmsize_pos)
+(hints simp add: fmsize_pos neq0_conv[symmetric])
 lemma prep: "\<And> bs. Ifm bs (prep p) = Ifm bs p"
 by (induct p rule: prep.induct, auto)
 

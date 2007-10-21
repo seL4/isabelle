@@ -63,7 +63,7 @@ recdef fmsize "measure size"
   "fmsize (NDvd i t) = 2"
   "fmsize p = 1"
   (* several lemmas about fmsize *)
-lemma fmsize_pos: "fmsize p > 0"	
+lemma fmsize_pos: "fmsize p \<noteq> 0"	
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
@@ -114,7 +114,7 @@ recdef prep "measure fmsize"
   "prep (Imp p q) = prep (Or (NOT p) q)"
   "prep (Iff p q) = Or (prep (And p q)) (prep (And (NOT p) (NOT q)))"
   "prep p = p"
-(hints simp add: fmsize_pos)
+(hints simp add: fmsize_pos neq0_conv[symmetric])
 lemma prep: "Ifm bbs bs (prep p) = Ifm bbs bs p"
 by (induct p arbitrary: bs rule: prep.induct, auto)
 
@@ -188,14 +188,12 @@ fun   numsubst0:: "num \<Rightarrow> num \<Rightarrow> num" where
 | "numsubst0 t (Mul i a) = Mul i (numsubst0 t a)"
 
 lemma numsubst0_I:
-  shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b#bs) a)#bs) t"
-  by (induct t rule: numsubst0.induct,auto simp add: gr0_conv_Suc neq0_conv)
+  "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b#bs) a)#bs) t"
+by (induct t rule: numsubst0.induct,auto dest: not0_implies_Suc)
 
 lemma numsubst0_I':
-  assumes nb: "numbound0 a"
-  shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b'#bs) a)#bs) t"
-  using nb
-  by (induct t rule: numsubst0.induct, auto simp add: neq0_conv gr0_conv_Suc numbound0_I[where b="b" and b'="b'"])
+  "numbound0 a \<Longrightarrow> Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b'#bs) a)#bs) t"
+by (induct t rule: numsubst0.induct, auto dest: not0_implies_Suc simp: numbound0_I[where b="b" and b'="b'"])
 
 primrec
   "subst0 t T = T"

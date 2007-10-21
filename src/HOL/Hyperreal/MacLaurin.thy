@@ -114,7 +114,7 @@ apply (metis Suc_less_eq differentiableI dlo_simps(7) dlo_simps(8) dlo_simps(9) 
 done
 
 lemma Maclaurin:
-   "[| 0 < h; 0 < n; diff 0 = f;
+   "[| 0 < h; n \<noteq> 0; diff 0 = f;
        \<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (diff m) t :> diff (Suc m) t |]
     ==> \<exists>t. 0 < t &
               t < h &
@@ -185,13 +185,11 @@ apply (rule_tac x = ta in exI, force)
 done
 
 lemma Maclaurin_objl:
-     "0 < h & 0 < n & diff 0 = f &
-       (\<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (diff m) t :> diff (Suc m) t)
-    --> (\<exists>t. 0 < t &
-              t < h &
-              f h =
-              (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
-              diff n t / real (fact n) * h ^ n)"
+  "0 < h & n\<noteq>0 & diff 0 = f &
+  (\<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (diff m) t :> diff (Suc m) t)
+   --> (\<exists>t. 0 < t & t < h &
+            f h = (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
+                  diff n t / real (fact n) * h ^ n)"
 by (blast intro: Maclaurin)
 
 
@@ -220,7 +218,7 @@ lemma Maclaurin2_objl:
 by (blast intro: Maclaurin2)
 
 lemma Maclaurin_minus:
-   "[| h < 0; 0 < n; diff 0 = f;
+   "[| h < 0; n \<noteq> 0; diff 0 = f;
        \<forall>m t. m < n & h \<le> t & t \<le> 0 --> DERIV (diff m) t :> diff (Suc m) t |]
     ==> \<exists>t. h < t &
               t < 0 &
@@ -247,7 +245,7 @@ apply (auto simp add: divide_inverse power_mult_distrib [symmetric])
 done
 
 lemma Maclaurin_minus_objl:
-     "(h < 0 & 0 < n & diff 0 = f &
+     "(h < 0 & n \<noteq> 0 & diff 0 = f &
        (\<forall>m t.
           m < n & h \<le> t & t \<le> 0 --> DERIV (diff m) t :> diff (Suc m) t))
     --> (\<exists>t. h < t &
@@ -263,10 +261,10 @@ subsection{*More Convenient "Bidirectional" Version.*}
 (* not good for PVS sin_approx, cos_approx *)
 
 lemma Maclaurin_bi_le_lemma [rule_format]:
-     "0 < n \<longrightarrow>
-       diff 0 0 =
-       (\<Sum>m = 0..<n. diff m 0 * 0 ^ m / real (fact m)) +
-       diff n 0 * 0 ^ n / real (fact n)"
+  "n\<noteq>0 \<longrightarrow>
+   diff 0 0 =
+   (\<Sum>m = 0..<n. diff m 0 * 0 ^ m / real (fact m)) +
+   diff n 0 * 0 ^ n / real (fact n)"
 by (induct "n", auto)
 
 lemma Maclaurin_bi_le:
@@ -278,17 +276,17 @@ lemma Maclaurin_bi_le:
               diff n t / real (fact n) * x ^ n"
 apply (case_tac "n = 0", force)
 apply (case_tac "x = 0")
-apply (rule_tac x = 0 in exI)
-apply (force simp add: neq0_conv Maclaurin_bi_le_lemma)
-apply (cut_tac x = x and y = 0 in linorder_less_linear, auto simp add: neq0_conv)
-txt{*Case 1, where @{term "x < 0"}*}
-apply (cut_tac f = "diff 0" and diff = diff and h = x and n = n in Maclaurin_minus_objl, safe)
-apply (simp add: abs_if neq0_conv)
-apply (rule_tac x = t in exI)
-apply (simp add: abs_if)
+ apply (rule_tac x = 0 in exI)
+ apply (force simp add: Maclaurin_bi_le_lemma)
+apply (cut_tac x = x and y = 0 in linorder_less_linear, auto)
+ txt{*Case 1, where @{term "x < 0"}*}
+ apply (cut_tac f = "diff 0" and diff = diff and h = x and n = n in Maclaurin_minus_objl, safe)
+  apply (simp add: abs_if)
+ apply (rule_tac x = t in exI)
+ apply (simp add: abs_if)
 txt{*Case 2, where @{term "0 < x"}*}
 apply (cut_tac f = "diff 0" and diff = diff and h = x and n = n in Maclaurin_objl, safe)
-apply (simp add: abs_if)
+ apply (simp add: abs_if)
 apply (rule_tac x = t in exI)
 apply (simp add: abs_if)
 done
@@ -296,7 +294,7 @@ done
 lemma Maclaurin_all_lt:
      "[| diff 0 = f;
          \<forall>m x. DERIV (diff m) x :> diff(Suc m) x;
-        x ~= 0; 0 < n
+        x ~= 0; n \<noteq> 0
       |] ==> \<exists>t. 0 < abs t & abs t < abs x &
                f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                      (diff n t / real (fact n)) * x ^ n"
@@ -310,7 +308,7 @@ done
 lemma Maclaurin_all_lt_objl:
      "diff 0 = f &
       (\<forall>m x. DERIV (diff m) x :> diff(Suc m) x) &
-      x ~= 0 & 0 < n
+      x ~= 0 & n \<noteq> 0
       --> (\<exists>t. 0 < abs t & abs t < abs x &
                f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                      (diff n t / real (fact n)) * x ^ n)"
@@ -318,7 +316,7 @@ by (blast intro: Maclaurin_all_lt)
 
 lemma Maclaurin_zero [rule_format]:
      "x = (0::real)
-      ==> 0 < n -->
+      ==> n \<noteq> 0 -->
           (\<Sum>m=0..<n. (diff m (0::real) / real (fact m)) * x ^ m) =
           diff 0 0"
 by (induct n, auto)
@@ -328,11 +326,11 @@ lemma Maclaurin_all_le: "[| diff 0 = f;
       |] ==> \<exists>t. abs t \<le> abs x &
               f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                     (diff n t / real (fact n)) * x ^ n"
-apply (insert linorder_le_less_linear [of n 0])
-apply (erule disjE, force)
+apply(cases "n=0")
+apply (force)
 apply (case_tac "x = 0")
 apply (frule_tac diff = diff and n = n in Maclaurin_zero, assumption)
-apply (drule gr_implies_not0 [THEN not0_implies_Suc])
+apply (drule not0_implies_Suc)
 apply (rule_tac x = 0 in exI, force)
 apply (frule_tac diff = diff and n = n in Maclaurin_all_lt, auto)
 apply (rule_tac x = t in exI, auto)
@@ -348,7 +346,7 @@ by (blast intro: Maclaurin_all_le)
 
 subsection{*Version for Exponential Function*}
 
-lemma Maclaurin_exp_lt: "[| x ~= 0; 0 < n |]
+lemma Maclaurin_exp_lt: "[| x ~= 0; n \<noteq> 0 |]
       ==> (\<exists>t. 0 < abs t &
                 abs t < abs x &
                 exp x = (\<Sum>m=0..<n. (x ^ m) / real (fact m)) +
@@ -375,19 +373,19 @@ apply (blast dest: DERIV_unique order_less_imp_le)
 done
 
 lemma mod_exhaust_less_4:
-     "m mod 4 = 0 | m mod 4 = 1 | m mod 4 = 2 | m mod 4 = (3::nat)"
+  "m mod 4 = 0 | m mod 4 = 1 | m mod 4 = 2 | m mod 4 = (3::nat)"
 by auto
 
 lemma Suc_Suc_mult_two_diff_two [rule_format, simp]:
-     "0 < n --> Suc (Suc (2 * n - 2)) = 2*n"
+  "n\<noteq>0 --> Suc (Suc (2 * n - 2)) = 2*n"
 by (induct "n", auto)
 
 lemma lemma_Suc_Suc_4n_diff_2 [rule_format, simp]:
-     "0 < n --> Suc (Suc (4*n - 2)) = 4*n"
+  "n\<noteq>0 --> Suc (Suc (4*n - 2)) = 4*n"
 by (induct "n", auto)
 
 lemma Suc_mult_two_diff_one [rule_format, simp]:
-      "0 < n --> Suc (2 * n - 1) = 2*n"
+  "n\<noteq>0 --> Suc (2 * n - 1) = 2*n"
 by (induct "n", auto)
 
 
@@ -427,7 +425,7 @@ done
 
 
 lemma Maclaurin_sin_expansion3:
-     "[| 0 < n; 0 < x |] ==>
+     "[| n \<noteq> 0; 0 < x |] ==>
        \<exists>t. 0 < t & t < x &
        sin x =
        (\<Sum>m=0..<n. (if even m then 0
@@ -493,7 +491,7 @@ apply (auto simp add: cos_zero_iff even_mult_two_ex)
 done
 
 lemma Maclaurin_cos_expansion2:
-     "[| 0 < x; 0 < n |] ==>
+     "[| 0 < x; n \<noteq> 0 |] ==>
        \<exists>t. 0 < t & t < x &
        cos x =
        (\<Sum>m=0..<n. (if even m
@@ -512,7 +510,7 @@ apply (auto simp add: cos_zero_iff even_mult_two_ex)
 done
 
 lemma Maclaurin_minus_cos_expansion:
-     "[| x < 0; 0 < n |] ==>
+     "[| x < 0; n \<noteq> 0 |] ==>
        \<exists>t. x < t & t < 0 &
        cos x =
        (\<Sum>m=0..<n. (if even m

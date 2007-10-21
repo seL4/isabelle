@@ -412,21 +412,22 @@ proof -
   thus ?thesis ..
 qed
 
-lemma nat_to_bv_non0 [simp]: "0 < n ==> nat_to_bv n = nat_to_bv (n div 2) @ [if n mod 2 = 0 then \<zero> else \<one>]"
+lemma nat_to_bv_non0 [simp]: "n\<noteq>0 ==> nat_to_bv n = nat_to_bv (n div 2) @ [if n mod 2 = 0 then \<zero> else \<one>]"
 proof -
-  assume [simp]: "0 < n"
+  assume [simp]: "n\<noteq>0"
   show ?thesis
     apply (subst nat_to_bv_def [of n])
     apply (simp only: nat_to_bv_helper.simps [of n])
     apply (subst unfold_nat_to_bv_helper)
     using prems
-    apply (simp add: neq0_conv)
+    apply (simp)
     apply (subst nat_to_bv_def [of "n div 2"])
     apply auto
     done
 qed
 
-lemma bv_to_nat_dist_append: "bv_to_nat (l1 @ l2) = bv_to_nat l1 * 2 ^ length l2 + bv_to_nat l2"
+lemma bv_to_nat_dist_append:
+  "bv_to_nat (l1 @ l2) = bv_to_nat l1 * 2 ^ length l2 + bv_to_nat l2"
 proof -
   have "\<forall>l2. bv_to_nat (l1 @ l2) = bv_to_nat l1 * 2 ^ length l2 + bv_to_nat l2"
   proof (induct l1,simp_all)
@@ -457,8 +458,7 @@ proof (induct n rule: less_induct)
   assume ind: "!!j. j < n \<Longrightarrow> bv_to_nat (nat_to_bv j) = j"
   show "bv_to_nat (nat_to_bv n) = n"
   proof (rule n_div_2_cases [of n])
-    assume "n = 0"
-    then show ?thesis by simp
+    assume "n = 0" then show ?thesis by simp
   next
     assume nn: "n div 2 < n"
     assume n0: "0 < n"
@@ -474,16 +474,14 @@ proof (induct n rule: less_induct)
       apply (fold nat_to_bv_def)
       apply (simp add: ind' split del: split_if)
       apply (cases "n mod 2 = 0")
-      proof (simp_all add: neq0_conv)
+      proof (simp_all)
         assume "n mod 2 = 0"
         with mod_div_equality [of n 2]
-        show "n div 2 * 2 = n"
-          by simp
+        show "n div 2 * 2 = n" by simp
       next
-        assume "n mod 2 = Suc 0"
+        assume "n mod 2 \<noteq> 0"
         with mod_div_equality [of n 2]
-        show "Suc (n div 2 * 2) = n"
-          by simp
+        show "Suc (n div 2 * 2) = n" by arith
       qed
   qed
 qed
@@ -536,29 +534,30 @@ qed
 lemmas [simp del] = nat_to_bv_non0
 
 lemma norm_unsigned_length [intro!]: "length (norm_unsigned w) \<le> length w"
-  by (subst norm_unsigned_def,rule rem_initial_length)
+by (subst norm_unsigned_def,rule rem_initial_length)
 
-lemma norm_unsigned_equal: "length (norm_unsigned w) = length w ==> norm_unsigned w = w"
-  by (simp add: norm_unsigned_def,rule rem_initial_equal)
+lemma norm_unsigned_equal:
+  "length (norm_unsigned w) = length w ==> norm_unsigned w = w"
+by (simp add: norm_unsigned_def,rule rem_initial_equal)
 
 lemma bv_extend_norm_unsigned: "bv_extend (length w) \<zero> (norm_unsigned w) = w"
-  by (simp add: norm_unsigned_def,rule bv_extend_rem_initial)
+by (simp add: norm_unsigned_def,rule bv_extend_rem_initial)
 
 lemma norm_unsigned_append1 [simp]:
-    "norm_unsigned xs \<noteq> [] ==> norm_unsigned (xs @ ys) = norm_unsigned xs @ ys"
-  by (simp add: norm_unsigned_def,rule rem_initial_append1)
+  "norm_unsigned xs \<noteq> [] ==> norm_unsigned (xs @ ys) = norm_unsigned xs @ ys"
+by (simp add: norm_unsigned_def,rule rem_initial_append1)
 
 lemma norm_unsigned_append2 [simp]:
-    "norm_unsigned xs = [] ==> norm_unsigned (xs @ ys) = norm_unsigned ys"
-  by (simp add: norm_unsigned_def,rule rem_initial_append2)
+  "norm_unsigned xs = [] ==> norm_unsigned (xs @ ys) = norm_unsigned ys"
+by (simp add: norm_unsigned_def,rule rem_initial_append2)
 
 lemma bv_to_nat_zero_imp_empty:
-    "bv_to_nat w = 0 \<Longrightarrow> norm_unsigned w = []"
-  by (atomize (full), induct w rule: bit_list_induct) (simp_all add: neq0_conv)
+  "bv_to_nat w = 0 \<Longrightarrow> norm_unsigned w = []"
+by (atomize (full), induct w rule: bit_list_induct) simp_all
 
 lemma bv_to_nat_nzero_imp_nempty:
   "bv_to_nat w \<noteq> 0 \<Longrightarrow> norm_unsigned w \<noteq> []"
-  by (induct w rule: bit_list_induct) simp_all
+by (induct w rule: bit_list_induct) simp_all
 
 lemma nat_helper1:
   assumes ass: "nat_to_bv (bv_to_nat w) = norm_unsigned w"
@@ -1855,8 +1854,8 @@ proof -
   qed
 qed
 
-lemma bv_msb_one: "bv_msb w = \<one> ==> 0 < bv_to_nat w"
-  by (cases w) simp_all
+lemma bv_msb_one: "bv_msb w = \<one> ==> bv_to_nat w \<noteq> 0"
+by (cases w) simp_all
 
 lemma bv_smult_length_utos: "length (bv_smult (utos w1) w2) \<le> length w1 + length w2"
 proof -
@@ -2064,7 +2063,7 @@ lemma length_nat_0 [simp]: "length_nat 0 = 0"
   by (simp add: length_nat_def Least_equality)
 
 lemma length_nat_non0:
-  assumes n0: "0 < n"
+  assumes n0: "n \<noteq> 0"
   shows       "length_nat n = Suc (length_nat (n div 2))"
   apply (simp add: length_nat [symmetric])
   apply (subst nat_to_bv_non0 [of n])

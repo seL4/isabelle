@@ -15,7 +15,7 @@ to prove Taylor's theorem.
 *}
 
 lemma taylor_up: 
-  assumes INIT: "0 < n" "diff 0 = f"
+  assumes INIT: "n\<noteq>0" "diff 0 = f"
   and DERIV: "(\<forall> m t. m < n & a \<le> t & t \<le> b \<longrightarrow> DERIV (diff m) t :> (diff (Suc m) t))"
   and INTERV: "a \<le> c" "c < b" 
   shows "\<exists> t. c < t & t < b & 
@@ -24,7 +24,7 @@ lemma taylor_up:
 proof -
   from INTERV have "0 < b-c" by arith
   moreover 
-  from INIT have "0<n" "((\<lambda>m x. diff m (x + c)) 0) = (\<lambda>x. f (x + c))" by auto
+  from INIT have "n\<noteq>0" "((\<lambda>m x. diff m (x + c)) 0) = (\<lambda>x. f (x + c))" by auto
   moreover
   have "ALL m t. m < n & 0 <= t & t <= b - c --> DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c)"  
   proof (intro strip)
@@ -57,7 +57,7 @@ proof -
 qed
 
 lemma taylor_down:
-  assumes INIT: "0 < n" "diff 0 = f"
+  assumes INIT: "n\<noteq>0" "diff 0 = f"
   and DERIV: "(\<forall> m t. m < n & a \<le> t & t \<le> b \<longrightarrow> DERIV (diff m) t :> (diff (Suc m) t))"
   and INTERV: "a < c" "c \<le> b"
   shows "\<exists> t. a < t & t < c & 
@@ -66,7 +66,7 @@ lemma taylor_down:
 proof -
   from INTERV have "a-c < 0" by arith
   moreover 
-  from INIT have "0<n" "((\<lambda>m x. diff m (x + c)) 0) = (\<lambda>x. f (x + c))" by auto
+  from INIT have "n\<noteq>0" "((\<lambda>m x. diff m (x + c)) 0) = (\<lambda>x. f (x + c))" by auto
   moreover
   have "ALL m t. m < n & a-c <= t & t <= 0 --> DERIV (%x. diff m (x + c)) t :> diff (Suc m) (t + c)"
   proof (rule allI impI)+
@@ -97,7 +97,7 @@ proof -
 qed
 
 lemma taylor:
-  assumes INIT: "0 < n" "diff 0 = f"
+  assumes INIT: "n\<noteq>0" "diff 0 = f"
   and DERIV: "(\<forall> m t. m < n & a \<le> t & t \<le> b \<longrightarrow> DERIV (diff m) t :> (diff (Suc m) t))"
   and INTERV: "a \<le> c " "c \<le> b" "a \<le> x" "x \<le> b" "x \<noteq> c" 
   shows "\<exists> t. (if x<c then (x < t & t < c) else (c < t & t < x)) &

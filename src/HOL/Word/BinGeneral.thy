@@ -457,7 +457,7 @@ lemmas sbintrunc_sbintrunc_l' = le_add1 [THEN sbintrunc_sbintrunc_l]
   we get a version for when the word length is given literally *)
 
 lemmas nat_non0_gr = 
-  trans [OF iszero_def [THEN Not_eq_iff [THEN iffD2]] neq0_conv, standard]
+  trans [OF iszero_def [THEN Not_eq_iff [THEN iffD2]] refl, standard]
 
 lemmas bintrunc_pred_simps [simp] = 
   bintrunc_minus_simps [of "number_of bin", simplified nobm1, standard]

@@ -140,16 +140,13 @@ apply (auto simp add: mult_strict_mono zero_le_power power_Suc
 done
 
 lemma power_eq_0_iff [simp]:
-     "(a^n = 0) = (a = (0::'a::{ring_1_no_zero_divisors,recpower}) & 0<n)"
+  "(a^n = 0) = (a = (0::'a::{ring_1_no_zero_divisors,recpower}) & n\<noteq>0)"
 apply (induct "n")
 apply (auto simp add: power_Suc zero_neq_one [THEN not_sym])
 done
 
-lemma field_power_eq_0_iff:
-     "(a^n = 0) = (a = (0::'a::{division_ring,recpower}) & 0<n)"
-by simp (* TODO: delete *)
-
-lemma field_power_not_zero: "a \<noteq> (0::'a::{ring_1_no_zero_divisors,recpower}) ==> a^n \<noteq> 0"
+lemma field_power_not_zero:
+  "a \<noteq> (0::'a::{ring_1_no_zero_divisors,recpower}) ==> a^n \<noteq> 0"
 by force
 
 lemma nonzero_power_inverse:
@@ -279,26 +276,26 @@ apply (auto simp add: order_less_trans [OF zero_less_one] zero_le_power
                  order_less_imp_le)
 done
 
-lemma power_increasing_iff [simp]: 
-     "1 < (b::'a::{ordered_semidom,recpower}) ==> (b ^ x \<le> b ^ y) = (x \<le> y)"
-  by (blast intro: power_le_imp_le_exp power_increasing order_less_imp_le) 
+lemma power_increasing_iff [simp]:
+  "1 < (b::'a::{ordered_semidom,recpower}) ==> (b ^ x \<le> b ^ y) = (x \<le> y)"
+by (blast intro: power_le_imp_le_exp power_increasing order_less_imp_le) 
 
 lemma power_strict_increasing_iff [simp]:
-     "1 < (b::'a::{ordered_semidom,recpower}) ==> (b ^ x < b ^ y) = (x < y)"
-  by (blast intro: power_less_imp_less_exp power_strict_increasing) 
+  "1 < (b::'a::{ordered_semidom,recpower}) ==> (b ^ x < b ^ y) = (x < y)"
+by (blast intro: power_less_imp_less_exp power_strict_increasing) 
 
 lemma power_le_imp_le_base:
-  assumes le: "a ^ Suc n \<le> b ^ Suc n"
-      and ynonneg: "(0::'a::{ordered_semidom,recpower}) \<le> b"
-  shows "a \<le> b"
- proof (rule ccontr)
-   assume "~ a \<le> b"
-   then have "b < a" by (simp only: linorder_not_le)
-   then have "b ^ Suc n < a ^ Suc n"
-     by (simp only: prems power_strict_mono)
-   from le and this show "False"
-      by (simp add: linorder_not_less [symmetric])
- qed
+assumes le: "a ^ Suc n \<le> b ^ Suc n"
+    and ynonneg: "(0::'a::{ordered_semidom,recpower}) \<le> b"
+shows "a \<le> b"
+proof (rule ccontr)
+  assume "~ a \<le> b"
+  then have "b < a" by (simp only: linorder_not_le)
+  then have "b ^ Suc n < a ^ Suc n"
+    by (simp only: prems power_strict_mono)
+  from le and this show "False"
+    by (simp add: linorder_not_less [symmetric])
+qed
 
 lemma power_less_imp_less_base:
   fixes a b :: "'a::{ordered_semidom,recpower}"
@@ -345,7 +342,7 @@ by (induct n, simp_all add: power_Suc of_nat_mult)
 lemma nat_one_le_power [simp]: "1 \<le> i ==> Suc 0 \<le> i^n"
 by (insert one_le_power [of i n], simp)
 
-lemma nat_zero_less_power_iff [simp]: "(0 < x^n) = (x \<noteq> (0::nat) | n=0)"
+lemma nat_zero_less_power_iff [simp]: "(x^n = 0) = (x = (0::nat) & n\<noteq>0)"
 by (induct "n", auto)
 
 text{*Valid for the naturals, but what if @{text"0<i<1"}?
@@ -393,7 +390,7 @@ val power_less_imp_less_exp = thm"power_less_imp_less_exp";
 val power_mono = thm"power_mono";
 val power_strict_mono = thm"power_strict_mono";
 val power_eq_0_iff = thm"power_eq_0_iff";
-val field_power_eq_0_iff = thm"field_power_eq_0_iff";
+val field_power_eq_0_iff = thm"power_eq_0_iff";
 val field_power_not_zero = thm"field_power_not_zero";
 val power_inverse = thm"power_inverse";
 val nonzero_power_divide = thm"nonzero_power_divide";

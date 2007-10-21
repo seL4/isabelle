@@ -35,7 +35,7 @@ specification (sesKlife)
 
 text{*The authenticator only for one journey*}
 specification (authlife)
-  authlife_LB [iff]:    "0 < authlife"
+  authlife_LB [iff]:    "authlife \<noteq> 0"
     by blast
 
 abbreviation
@@ -133,7 +133,7 @@ apply (intro exI bexI)
 apply (rule_tac [2]
            bankerberos.Nil [THEN bankerberos.BK1, THEN bankerberos.BK2,
                              THEN bankerberos.BK3, THEN bankerberos.BK4])
-apply (possibility, simp_all (no_asm_simp) add: used_Cons neq0_conv)
+apply (possibility, simp_all (no_asm_simp) add: used_Cons)
 done
 
 subsection{*Lemmas for reasoning about predicate "Issues"*}

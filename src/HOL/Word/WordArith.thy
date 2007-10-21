@@ -117,28 +117,28 @@ lemmas unat_eq_0 = unat_0_iff
 lemmas unat_eq_zero = unat_0_iff
 
 lemma unat_gt_0: "(0 < unat x) = (x ~= 0)"
-  by (simp add : neq0_conv unat_0_iff [symmetric])
+by (auto simp: unat_0_iff [symmetric])
 
 lemma ucast_0 [simp] : "ucast 0 = 0"
-  unfolding ucast_def
-  by simp (simp add: word_0_wi)
+unfolding ucast_def
+by simp (simp add: word_0_wi)
 
 lemma sint_0 [simp] : "sint 0 = 0"
-  unfolding sint_uint
-  by (simp add: Pls_def [symmetric])
+unfolding sint_uint
+by (simp add: Pls_def [symmetric])
 
 lemma scast_0 [simp] : "scast 0 = 0"
-  apply (unfold scast_def)
-  apply simp
-  apply (simp add: word_0_wi)
-  done
+apply (unfold scast_def)
+apply simp
+apply (simp add: word_0_wi)
+done
 
 lemma sint_n1 [simp] : "sint -1 = -1"
-  apply (unfold word_m1_wi_Min)
-  apply (simp add: word_sbin.eq_norm)
-  apply (unfold Min_def number_of_eq)
-  apply simp
-  done
+apply (unfold word_m1_wi_Min)
+apply (simp add: word_sbin.eq_norm)
+apply (unfold Min_def number_of_eq)
+apply simp
+done
 
 lemma scast_n1 [simp] : "scast -1 = -1"
   apply (unfold scast_def sint_n1)
@@ -1242,15 +1242,15 @@ lemmas card_eq = word_unat.Abs_inj_on [THEN card_image,
 lemmas card_word = trans [OF card_eq card_lessThan', standard]
 
 lemma finite_word_UNIV: "finite (UNIV :: 'a :: len word set)"
-  apply (rule contrapos_np)
-   prefer 2
-   apply (erule card_infinite)
-  apply (simp add : card_word neq0_conv)
-  done
+apply (rule contrapos_np)
+ prefer 2
+ apply (erule card_infinite)
+apply (simp add: card_word)
+done
 
 lemma card_word_size: 
   "card (UNIV :: 'a :: len word set) = (2 ^ size (x :: 'a word))"
-  unfolding word_size by (rule card_word)
+unfolding word_size by (rule card_word)
 
 end 
 

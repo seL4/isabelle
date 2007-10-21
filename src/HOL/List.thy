@@ -950,9 +950,7 @@ next
   proof (cases)
     assume "p x"
     hence eq: "?S' = insert 0 (Suc ` ?S)"
-      apply (auto simp add:  nth_Cons image_def neq0_conv split:nat.split elim:lessE)
-      apply (rule_tac x="xa - 1" in exI, auto)
-      done
+      by(auto simp: nth_Cons image_def split:nat.split dest:not0_implies_Suc)
     have "length (filter p (x # xs)) = Suc(card ?S)"
       using Cons `p x` by simp
     also have "\<dots> = Suc(card(Suc ` ?S))" using fin
@@ -2460,12 +2458,7 @@ done
 
 lemma set_sublist: "set(sublist xs I) = {xs!i|i. i<size xs \<and> i \<in> I}"
 apply(induct xs arbitrary: I)
- apply simp
-apply(auto simp add: neq0_conv sublist_Cons nth_Cons split:nat.split elim: lessE)
- apply(erule lessE)
-  apply auto
-apply(erule lessE)
-apply auto
+apply(auto simp: sublist_Cons nth_Cons split:nat.split dest!: not0_implies_Suc)
 done
 
 lemma set_sublist_subset: "set(sublist xs I) \<subseteq> set xs"

@@ -126,7 +126,7 @@ apply (unfold order_def)
 apply (blast intro: one_closed zero_less_card_empty)
 done
 
-lemma (in sylow) zero_less_m: "0 < m"
+lemma (in sylow) zero_less_m: "m \<noteq> 0"
 apply (cut_tac zero_less_o_G)
 apply (simp add: order_G)
 done
@@ -134,7 +134,7 @@ done
 lemma (in sylow) card_calM: "card(calM) = (p^a) * m choose p^a"
 by (simp add: calM_def n_subsets order_G [symmetric] order_def)
 
-lemma (in sylow) zero_less_card_calM: "0 < card calM"
+lemma (in sylow) zero_less_card_calM: "card calM \<noteq> 0"
 by (simp add: card_calM zero_less_binomial le_extend_mult zero_less_m)
 
 lemma (in sylow) max_p_div_calM:

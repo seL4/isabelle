@@ -51,132 +51,132 @@ text {*
 subsection "Constructors"
 
 lemma Fin_0: "Fin 0 = 0"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Infty_ne_i0 [simp]: "\<infinity> \<noteq> 0"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma i0_ne_Infty [simp]: "0 \<noteq> \<infinity>"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iSuc_Fin [simp]: "iSuc (Fin n) = Fin (Suc n)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iSuc_Infty [simp]: "iSuc \<infinity> = \<infinity>"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iSuc_ne_0 [simp]: "iSuc n \<noteq> 0"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iSuc_inject [simp]: "(iSuc x = iSuc y) = (x = y)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 
 subsection "Ordering relations"
 
 lemma Infty_ilessE [elim!]: "\<infinity> < Fin m ==> R"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iless_linear: "m < n \<or> m = n \<or> n < (m::inat)"
-  by (simp add: inat_defs split:inat_splits, arith)
+by (simp add: inat_defs split:inat_splits, arith)
 
 lemma iless_not_refl [simp]: "\<not> n < (n::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iless_trans: "i < j ==> j < k ==> i < (k::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iless_not_sym: "n < m ==> \<not> m < (n::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Fin_iless_mono [simp]: "(Fin n < Fin m) = (n < m)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Fin_iless_Infty [simp]: "Fin n < \<infinity>"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Infty_eq [simp]: "(n < \<infinity>) = (n \<noteq> \<infinity>)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma i0_eq [simp]: "((0::inat) < n) = (n \<noteq> 0)"
-  by (simp add: neq0_conv inat_defs split:inat_splits)
+by (fastsimp simp: inat_defs split:inat_splits)
 
 lemma i0_iless_iSuc [simp]: "0 < iSuc n"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma not_ilessi0 [simp]: "\<not> n < (0::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Fin_iless: "n < Fin m ==> \<exists>k. n = Fin k"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iSuc_mono [simp]: "(iSuc n < iSuc m) = (n < m)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 
 
 lemma ile_def2: "(m \<le> n) = (m < n \<or> m = (n::inat))"
-  by (simp add: inat_defs split:inat_splits, arith)
+by (simp add: inat_defs split:inat_splits, arith)
 
 lemma ile_refl [simp]: "n \<le> (n::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma ile_trans: "i \<le> j ==> j \<le> k ==> i \<le> (k::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma ile_iless_trans: "i \<le> j ==> j < k ==> i < (k::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iless_ile_trans: "i < j ==> j \<le> k ==> i < (k::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Infty_ub [simp]: "n \<le> \<infinity>"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma i0_lb [simp]: "(0::inat) \<le> n"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Infty_ileE [elim!]: "\<infinity> \<le> Fin m ==> R"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Fin_ile_mono [simp]: "(Fin n \<le> Fin m) = (n \<le> m)"
-  by (simp add: inat_defs split:inat_splits, arith)
+by (simp add: inat_defs split:inat_splits, arith)
 
 lemma ilessI1: "n \<le> m ==> n \<noteq> m ==> n < (m::inat)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma ileI1: "m < n ==> iSuc m \<le> n"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Suc_ile_eq: "(Fin (Suc m) \<le> n) = (Fin m < n)"
-  by (simp add: inat_defs split:inat_splits, arith)
+by (simp add: inat_defs split:inat_splits, arith)
 
 lemma iSuc_ile_mono [simp]: "(iSuc n \<le> iSuc m) = (n \<le> m)"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma iless_Suc_eq [simp]: "(Fin m < iSuc n) = (Fin m \<le> n)"
-  by (simp add: inat_defs split:inat_splits, arith)
+by (simp add: inat_defs split:inat_splits, arith)
 
 lemma not_iSuc_ilei0 [simp]: "\<not> iSuc n \<le> 0"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma ile_iSuc [simp]: "n \<le> iSuc n"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma Fin_ile: "n \<le> Fin m ==> \<exists>k. n = Fin k"
-  by (simp add: inat_defs split:inat_splits)
+by (simp add: inat_defs split:inat_splits)
 
 lemma chain_incr: "\<forall>i. \<exists>j. Y i < Y j ==> \<exists>j. Fin k < Y j"
-  apply (induct_tac k)
-   apply (simp (no_asm) only: Fin_0)
-   apply (fast intro: ile_iless_trans i0_lb)
-  apply (erule exE)
-  apply (drule spec)
-  apply (erule exE)
-  apply (drule ileI1)
-  apply (rule iSuc_Fin [THEN subst])
-  apply (rule exI)
-  apply (erule (1) ile_iless_trans)
-  done
+apply (induct_tac k)
+ apply (simp (no_asm) only: Fin_0)
+ apply (fast intro: ile_iless_trans i0_lb)
+apply (erule exE)
+apply (drule spec)
+apply (erule exE)
+apply (drule ileI1)
+apply (rule iSuc_Fin [THEN subst])
+apply (rule exI)
+apply (erule (1) ile_iless_trans)
+done
 
 end

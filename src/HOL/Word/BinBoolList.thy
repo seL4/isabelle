@@ -1099,20 +1099,19 @@ lemma bin_rsplit_rcat [rule_format] :
   done
 
 lemma bin_rsplit_aux_len_le [rule_format] :
-  "ALL ws m. n > 0 --> ws = bin_rsplit_aux (n, bs, nw, w) --> 
+  "ALL ws m. n \<noteq> 0 --> ws = bin_rsplit_aux (n, bs, nw, w) --> 
     (length ws <= m) = (nw + length bs * n <= m * n)"
   apply (rule_tac u=n and v=bs and w=nw and x=w in bin_rsplit_aux.induct)
   apply (subst bin_rsplit_aux.simps)
-  apply (clarsimp simp: Let_def neq0_conv split: ls_splits )
-  apply (erule lrlem)
+  apply (simp add:lrlem Let_def split: ls_splits )
   done
 
 lemma bin_rsplit_len_le: 
-  "n > 0 --> ws = bin_rsplit n (nw, w) --> (length ws <= m) = (nw <= m * n)"
+  "n \<noteq> 0 --> ws = bin_rsplit n (nw, w) --> (length ws <= m) = (nw <= m * n)"
   unfolding bin_rsplit_def by (clarsimp simp add : bin_rsplit_aux_len_le)
  
 lemma bin_rsplit_aux_len [rule_format] :
-  "0 < n --> length (bin_rsplit_aux (n, cs, nw, w)) = 
+  "n\<noteq>0 --> length (bin_rsplit_aux (n, cs, nw, w)) = 
     (nw + n - 1) div n + length cs"
   apply (rule_tac u=n and v=cs and w=nw and x=w in bin_rsplit_aux.induct)
   apply (subst bin_rsplit_aux.simps)
@@ -1126,11 +1125,11 @@ lemma bin_rsplit_aux_len [rule_format] :
   done
 
 lemma bin_rsplit_len: 
-  "0 < n ==> length (bin_rsplit n (nw, w)) = (nw + n - 1) div n"
+  "n\<noteq>0 ==> length (bin_rsplit n (nw, w)) = (nw + n - 1) div n"
   unfolding bin_rsplit_def by (clarsimp simp add : bin_rsplit_aux_len)
 
 lemma bin_rsplit_aux_len_indep [rule_format] :
-  "0 < n ==> (ALL v bs. length bs = length cs --> 
+  "n\<noteq>0 ==> (ALL v bs. length bs = length cs --> 
     length (bin_rsplit_aux (n, bs, nw, v)) = 
     length (bin_rsplit_aux (n, cs, nw, w)))"
   apply (rule_tac u=n and v=cs and w=nw and x=w in bin_rsplit_aux.induct)
@@ -1148,7 +1147,7 @@ lemma bin_rsplit_aux_len_indep [rule_format] :
   done
 
 lemma bin_rsplit_len_indep: 
-  "0 < n ==> length (bin_rsplit n (nw, v)) = length (bin_rsplit n (nw, w))"
+  "n\<noteq>0 ==> length (bin_rsplit n (nw, v)) = length (bin_rsplit n (nw, w))"
   apply (unfold bin_rsplit_def)
   apply (erule bin_rsplit_aux_len_indep)
   apply (rule refl)

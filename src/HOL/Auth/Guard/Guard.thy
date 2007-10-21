@@ -187,7 +187,7 @@ recdef crypt_nb "measure size"
 
 subsection{*basic facts about @{term crypt_nb}*}
 
-lemma non_empty_crypt_msg: "Crypt K Y:parts {X} ==> 0 < crypt_nb X"
+lemma non_empty_crypt_msg: "Crypt K Y:parts {X} ==> crypt_nb X \<noteq> 0"
 by (induct X, simp_all, safe, simp_all)
 
 subsection{*number of Crypt's in a message list*}
@@ -216,7 +216,7 @@ lemma parts_cnb: "Z:parts (set l) ==>
 cnb l = (cnb l - crypt_nb Z) + crypt_nb Z"
 by (erule parts.induct, auto simp: in_set_conv_decomp)
 
-lemma non_empty_crypt: "Crypt K Y:parts (set l) ==> 0 < cnb l"
+lemma non_empty_crypt: "Crypt K Y:parts (set l) ==> cnb l \<noteq> 0"
 by (induct l, auto dest: non_empty_crypt_msg parts_insert_substD)
 
 subsection{*list of kparts*}

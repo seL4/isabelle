@@ -11,7 +11,7 @@ begin
 
 subsection {* The type of multisets *}
 
-typedef 'a multiset = "{f::'a => nat. finite {x . 0 < f x}}"
+typedef 'a multiset = "{f::'a => nat. finite {x . f x \<noteq> 0}}"
 proof
   show "(\<lambda>x. 0::nat) \<in> ?multiset" by simp
 qed
@@ -38,7 +38,7 @@ definition
 
 abbreviation
   Melem :: "'a => 'a multiset => bool"  ("(_/ :# _)" [50, 51] 50) where
-  "a :# M == 0 < count M a"
+  "a :# M == count M a \<noteq> 0"
 
 syntax
   "_MCollect" :: "pttrn => 'a multiset => bool => 'a multiset"    ("(1{# _ : _./ _#})")
@@ -300,7 +300,7 @@ lemma setsum_decr:
 lemma rep_multiset_induct_aux:
   assumes 1: "P (\<lambda>a. (0::nat))"
     and 2: "!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))"
-  shows "\<forall>f. f \<in> multiset --> setsum f {x. 0 < f x} = n --> P f"
+  shows "\<forall>f. f \<in> multiset --> setsum f {x. f x \<noteq> 0} = n --> P f"
   apply (unfold multiset_def)
   apply (induct_tac n, simp, clarify)
    apply (subgoal_tac "f = (\<lambda>a.0)")
@@ -309,7 +309,7 @@ lemma rep_multiset_induct_aux:
    apply (rule ext, force, clarify)
   apply (frule setsum_SucD, clarify)
   apply (rename_tac a)
-  apply (subgoal_tac "finite {x. 0 < (f (a := f a - 1)) x}")
+  apply (subgoal_tac "finite {x. (f (a := f a - 1)) x \<noteq> 0}")
    prefer 2
    apply (rule finite_subset)
     prefer 2
@@ -323,10 +323,10 @@ lemma rep_multiset_induct_aux:
    apply (erule ssubst, rule 2 [unfolded multiset_def], blast)
   apply (erule allE, erule impE, erule_tac [2] mp, blast)
   apply (simp (no_asm_simp) add: setsum_decr del: fun_upd_apply One_nat_def)
-  apply (subgoal_tac "{x. x \<noteq> a --> 0 < f x} = {x. 0 < f x}")
+  apply (subgoal_tac "{x. x \<noteq> a --> f x \<noteq> 0} = {x. f x \<noteq> 0}")
    prefer 2
    apply blast
-  apply (subgoal_tac "{x. x \<noteq> a \<and> 0 < f x} = {x. 0 < f x} - {a}")
+  apply (subgoal_tac "{x. x \<noteq> a \<and> f x \<noteq> 0} = {x. f x \<noteq> 0} - {a}")
    prefer 2
    apply blast
   apply (simp add: le_imp_diff_is_add setsum_diff1_nat cong: conj_cong)
