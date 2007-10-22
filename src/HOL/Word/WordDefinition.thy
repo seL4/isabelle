@@ -414,7 +414,7 @@ lemma uint_bintrunc: "uint (number_of bin :: 'a word) =
 lemma sint_sbintrunc: "sint (number_of bin :: 'a word) = 
     number_of (sbintrunc (len_of TYPE ('a :: len) - 1) bin)" 
   unfolding word_number_of_def number_of_eq
-  by (auto intro!: word_sbin.eq_norm simp del: one_is_Suc_zero)
+  by (subst word_sbin.eq_norm) simp
 
 lemma unat_bintrunc: 
   "unat (number_of bin :: 'a :: len0 word) =
