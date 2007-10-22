@@ -11,8 +11,8 @@ system architecture.  New theories and proof tools have been added
 
 The main highlights are:
 
-* Fully featured support for nominal datatypes (binding structures)
-due to the HOL-Nominal logic.
+* Support for nominal datatypes (binding structures) due to the
+HOL-Nominal logic.
 
 * General local theory infrastructure for specifications depending on
 parameters and assumptions (e.g. from locales, classes).
