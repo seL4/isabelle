@@ -794,8 +794,7 @@ inductive
 where
   "G\<turnstile>membr of cls accessible_from accclass \<equiv> accessible_fromR G accclass membr cls"
 
-| "G\<turnstile>Method m of cls accessible_from accclass \<equiv>
-   G\<turnstile>methdMembr m of cls accessible_from accclass"  
+| "G\<turnstile>Method m of cls accessible_from accclass \<equiv> accessible_fromR G accclass (methdMembr m) cls"
 
 | Immediate:  "\<lbrakk>G\<turnstile>membr member_of class;
                 G\<turnstile>(Class class) accessible_in (pid accclass);
@@ -838,8 +837,7 @@ inductive
 where
   "G\<turnstile>membr in C dyn_accessible_from accC \<equiv> dyn_accessible_fromR G accC membr C"
 
-| "G\<turnstile>Method m in C dyn_accessible_from accC \<equiv>
-   G\<turnstile>methdMembr m in C dyn_accessible_from accC"
+| "G\<turnstile>Method m in C dyn_accessible_from accC \<equiv> dyn_accessible_fromR G accC (methdMembr m) C"
 
 | Immediate:  "\<lbrakk>G\<turnstile>membr member_in class;
                 G\<turnstile>membr in class permits_acc_from accclass 

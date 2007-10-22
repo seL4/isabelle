@@ -813,10 +813,10 @@ fun gen_add_inductive_i mk_def (flags as {verbose, kind, alt_name, coind, no_eli
     val cs = map (Free o fst) cnames_syn';
     val ps = map Free pnames;
 
-    val ctxt2 = lthy
-      |> Variable.add_fixes (map (fst o fst) cnames_syn') |> snd
-      |> fold (snd oo LocalDefs.fixed_abbrev) abbrevs;
-    val expand = Assumption.export_term ctxt2 lthy #> ProofContext.cert_term lthy;
+    val (_, ctxt2) = lthy |> Variable.add_fixes (map (fst o fst) cnames_syn');
+    val _ = map (fn abbr => LocalDefs.fixed_abbrev abbr ctxt2) abbrevs;
+    val ctxt3 = ctxt2 |> fold (snd oo LocalDefs.fixed_abbrev) abbrevs;
+    val expand = Assumption.export_term ctxt3 lthy #> ProofContext.cert_term lthy;
 
     fun close_rule r = list_all_free (rev (fold_aterms
       (fn t as Free (v as (s, _)) =>
