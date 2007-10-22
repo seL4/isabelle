@@ -587,7 +587,7 @@ lemma [code]:
   "int_aux (Suc n) i = int_aux n (i + 1)" -- {* tail recursive *}
   by (simp add: int_aux_def)+
 
-lemma [code unfold]:
+lemma [code, code unfold, code inline del]:
   "int n = int_aux n 0"
   by (simp add: int_aux_def)
 

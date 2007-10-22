@@ -1129,23 +1129,20 @@ declare "*.size" [noatp]
 
 subsection {* Code generator setup *}
 
-lemma one_is_Suc_zero [code inline]: "1 = Suc 0"
-by simp
-
 instance nat :: eq ..
 
 lemma [code func]:
-    "(0\<Colon>nat) = 0 \<longleftrightarrow> True"
-    "Suc n = Suc m \<longleftrightarrow> n = m"
-    "Suc n = 0 \<longleftrightarrow> False"
-    "0 = Suc m \<longleftrightarrow> False"
-by auto
+  "(0\<Colon>nat) = 0 \<longleftrightarrow> True"
+  "Suc n = Suc m \<longleftrightarrow> n = m"
+  "Suc n = 0 \<longleftrightarrow> False"
+  "0 = Suc m \<longleftrightarrow> False"
+  by auto
 
 lemma [code func]:
-    "(0\<Colon>nat) \<le> m \<longleftrightarrow> True"
-    "Suc (n\<Colon>nat) \<le> m \<longleftrightarrow> n < m"
-    "(n\<Colon>nat) < 0 \<longleftrightarrow> False"
-    "(n\<Colon>nat) < Suc m \<longleftrightarrow> n \<le> m"
+  "(0\<Colon>nat) \<le> m \<longleftrightarrow> True"
+  "Suc (n\<Colon>nat) \<le> m \<longleftrightarrow> n < m"
+  "(n\<Colon>nat) < 0 \<longleftrightarrow> False"
+  "(n\<Colon>nat) < Suc m \<longleftrightarrow> n \<le> m"
   using Suc_le_eq less_Suc_eq_le by simp_all
 
 
