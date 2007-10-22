@@ -198,7 +198,14 @@ fun use path = eval_wrapper (Path.implode path) true (File.read path);
 
 (* basic antiquotations *)
 
+local
+
+fun context x = (Scan.state >> Context.proof_of) x;
+
 val _ = value_antiq "context" (Scan.succeed ("context", "ML_Context.the_local_context ()"));
+
+val _ = inline_antiq "sort" (context -- Scan.lift Args.name >> (fn (ctxt, s) =>
+  ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))));
 
 val _ = inline_antiq "typ" (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ));
 val _ = inline_antiq "term" (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term));
@@ -216,10 +223,13 @@ val _ = value_antiq "cprop" (Args.prop >> (fn t =>
   ("cprop",
     "Thm.cterm_of (ML_Context.the_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
 
-val _ = inline_antiq "type_name"
-  ((Scan.state >> Context.proof_of) -- Scan.lift Args.name >> (fn (ctxt, c) =>
+fun type_ syn = (context -- Scan.lift Args.name >> (fn (ctxt, c) =>
     #1 (Term.dest_Type (ProofContext.read_tyname ctxt c))
+    |> syn ? Sign.base_name
     |> ML_Syntax.print_string));
+
+val _ = inline_antiq "type_name" (type_ false);
+val _ = inline_antiq "type_syntax" (type_ true);
 
 fun const syn = (Scan.state >> Context.proof_of) -- Scan.lift Args.name >> (fn (ctxt, c) =>
   #1 (Term.dest_Const (Consts.read_const (ProofContext.consts_of ctxt) c))
@@ -229,6 +239,7 @@ fun const syn = (Scan.state >> Context.proof_of) -- Scan.lift Args.name >> (fn (
 val _ = inline_antiq "const_name" (const false);
 val _ = inline_antiq "const_syntax" (const true);
 
+in val _ = () end;
 
 
 (** fact references **)

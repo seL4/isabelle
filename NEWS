@@ -1218,6 +1218,7 @@ and look there for up-to-date information.
 formal entities in the source, referring to the context available at
 compile-time.  For example:
 
+ML {* @{sort "{zero,one}"} *}
 ML {* @{typ "'a => 'b"} *}
 ML {* @{term "%x. x"} *}
 ML {* @{prop "x == y"} *}
@@ -1227,6 +1228,7 @@ ML {* @{cprop "x == y"} *}
 ML {* @{thm asm_rl} *}
 ML {* @{thms asm_rl} *}
 ML {* @{type_name c} *}
+ML {* @{type_syntax c} *}
 ML {* @{const_name c} *}
 ML {* @{const_syntax c} *}
 ML {* @{context} *}
