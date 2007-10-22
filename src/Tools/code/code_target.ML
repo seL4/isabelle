@@ -1394,7 +1394,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
     fun add_def (name, (def, deps)) =
       let
         val (modl, base) = dest_name name;
-        fun name_def base = Name.variants [base] #>> the_single;
+        val name_def = yield_singleton Name.variants;
         fun add_fun upper (nsp_fun, nsp_typ) =
           let
             val (base', nsp_fun') =
@@ -1490,6 +1490,7 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
           |> remove (op =) modlname';
         val qualified =
           imports @ map fst defs
+          |> distinct (op =)
           |> map_filter (try deresolv)
           |> map NameSpace.base
           |> has_duplicates (op =);
