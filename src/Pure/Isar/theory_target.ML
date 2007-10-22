@@ -215,7 +215,6 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((c, mx), t) lthy
     val u = fold_rev lambda xs t';
     val global_rhs =
       singleton (Variable.export_terms (Variable.declare_term u target_ctxt) thy_ctxt) u;
-    val class_t = Morphism.term (LocalTheory.target_morphism lthy) t;
   in
     lthy |>
      (if is_locale then
@@ -223,8 +222,7 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((c, mx), t) lthy
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const prmode pos ((c, mx2), lhs')) #>
-            is_class ?
-              class_target ta (Class.add_syntactic_const target prmode pos ((c, mx1), class_t))
+            is_class ? class_target ta (Class.add_syntactic_const target prmode pos ((c, mx1), t'))
           end)
       else
         LocalTheory.theory
