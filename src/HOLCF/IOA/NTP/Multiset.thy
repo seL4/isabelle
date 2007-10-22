@@ -75,7 +75,7 @@ lemma countm_spurious_delm: "!!P. ~P(obj) ==> countm M P = countm (delm M obj) P
   done
 
 
-lemma pos_count_imp_pos_countm [rule_format (no_asm)]: "!!P. P(x) ==> 0<count M x --> 0<countm M P"
+lemma pos_count_imp_pos_countm [rule_format (no_asm)]: "!!P. P(x) ==> 0<count M x --> countm M P \<noteq> 0"
   apply (rule_tac M = "M" in Multiset.induction)
   apply (simp (no_asm) add: Multiset.delm_empty_def Multiset.count_def Multiset.countm_empty_def)
   apply (simp (no_asm_simp) add: Multiset.count_def Multiset.delm_nonempty_def Multiset.countm_nonempty_def)
