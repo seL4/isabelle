@@ -193,7 +193,7 @@ syntax (xsymbols)
   "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
 
 translations
-  "_Case_syntax x ms" == "Fixrec.run\<cdot>(ms\<cdot>x)"
+  "_Case_syntax x ms" == "CONST Fixrec.run\<cdot>(ms\<cdot>x)"
   "_Case2 m ms" == "m \<parallel> ms"
 
 text {* Parsing Case expressions *}
@@ -203,15 +203,15 @@ syntax
   "_var" :: "'a"
 
 translations
-  "_Case1 p r" => "CONST branch (_pat p)\<cdot>(_var p r)"
-  "_var (_args x y) r" => "CONST csplit\<cdot>(_var x (_var y r))"
-  "_var () r" => "CONST unit_when\<cdot>r"
+  "_Case1 p r" => "XCONST branch (_pat p)\<cdot>(_var p r)"
+  "_var (_args x y) r" => "XCONST csplit\<cdot>(_var x (_var y r))"
+  "_var () r" => "XCONST unit_when\<cdot>r"
 
 parse_translation {*
 (* rewrites (_pat x) => (return) *)
 (* rewrites (_var x t) => (Abs_CFun (%x. t)) *)
   [("_pat", K (Syntax.const "Fixrec.return")),
-   mk_binder_tr ("_var", @{const_syntax Abs_CFun})];
+   mk_binder_tr ("_var", "Abs_CFun")];
 *}
 
 text {* Printing Case expressions *}
@@ -287,25 +287,25 @@ definition
 
 text {* Parse translations (patterns) *}
 translations
-  "_pat (CONST cpair\<cdot>x\<cdot>y)" => "CONST cpair_pat (_pat x) (_pat y)"
-  "_pat (CONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
-  "_pat (CONST sinl\<cdot>x)" => "CONST sinl_pat (_pat x)"
-  "_pat (CONST sinr\<cdot>x)" => "CONST sinr_pat (_pat x)"
-  "_pat (CONST up\<cdot>x)" => "CONST up_pat (_pat x)"
-  "_pat (CONST TT)" => "CONST TT_pat"
-  "_pat (CONST FF)" => "CONST FF_pat"
-  "_pat (CONST ONE)" => "CONST ONE_pat"
+  "_pat (XCONST cpair\<cdot>x\<cdot>y)" => "XCONST cpair_pat (_pat x) (_pat y)"
+  "_pat (XCONST spair\<cdot>x\<cdot>y)" => "XCONST spair_pat (_pat x) (_pat y)"
+  "_pat (XCONST sinl\<cdot>x)" => "XCONST sinl_pat (_pat x)"
+  "_pat (XCONST sinr\<cdot>x)" => "XCONST sinr_pat (_pat x)"
+  "_pat (XCONST up\<cdot>x)" => "XCONST up_pat (_pat x)"
+  "_pat (XCONST TT)" => "XCONST TT_pat"
+  "_pat (XCONST FF)" => "XCONST FF_pat"
+  "_pat (XCONST ONE)" => "XCONST ONE_pat"
 
 text {* Parse translations (variables) *}
 translations
-  "_var (CONST cpair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
-  "_var (CONST spair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
-  "_var (CONST sinl\<cdot>x) r" => "_var x r"
-  "_var (CONST sinr\<cdot>x) r" => "_var x r"
-  "_var (CONST up\<cdot>x) r" => "_var x r"
-  "_var (CONST TT) r" => "_var () r"
-  "_var (CONST FF) r" => "_var () r"
-  "_var (CONST ONE) r" => "_var () r"
+  "_var (XCONST cpair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
+  "_var (XCONST spair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
+  "_var (XCONST sinl\<cdot>x) r" => "_var x r"
+  "_var (XCONST sinr\<cdot>x) r" => "_var x r"
+  "_var (XCONST up\<cdot>x) r" => "_var x r"
+  "_var (XCONST TT) r" => "_var () r"
+  "_var (XCONST FF) r" => "_var () r"
+  "_var (XCONST ONE) r" => "_var () r"
 
 text {* Print translations *}
 translations
@@ -405,9 +405,9 @@ definition
 
 text {* Parse translations (patterns) *}
 translations
-  "_pat _" => "CONST wild_pat"
-  "_pat (_as_pat x y)" => "CONST as_pat (_pat y)"
-  "_pat (_lazy_pat x)" => "CONST lazy_pat (_pat x)"
+  "_pat _" => "XCONST wild_pat"
+  "_pat (_as_pat x y)" => "XCONST as_pat (_pat y)"
+  "_pat (_lazy_pat x)" => "XCONST lazy_pat (_pat x)"
 
 text {* Parse translations (variables) *}
 translations
@@ -423,7 +423,7 @@ translations
 
 text {* Lazy patterns in lambda abstractions *}
 translations
-  "_cabs (_lazy_pat p) r" == "CONST run oo (_Case1 (_lazy_pat p) r)"
+  "_cabs (_lazy_pat p) r" == "CONST Fixrec.run oo (_Case1 (_lazy_pat p) r)"
 
 lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = return\<cdot>r"
 by (simp add: branch_def wild_pat_def)
