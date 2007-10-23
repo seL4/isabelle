@@ -339,8 +339,6 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexml{op |$>$ }\verb|op |\verb,|,\verb|> : 'a * ('a -> 'b) -> 'b| \\
-  \indexml{fold}\verb|fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b| \\
-  \indexml{fold-rev}\verb|fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -371,22 +369,30 @@ Many problems in functional programming can be thought of
   particular value \isa{x\ {\isasymColon}\ foo} which is then transformed
   by application of a function \isa{f\ {\isasymColon}\ foo\ {\isasymRightarrow}\ foo},
   continued by an application of a function \isa{g\ {\isasymColon}\ foo\ {\isasymRightarrow}\ bar},
-  and so on.  As a canoncial example, take primitive functions enriching
-  theories by constants and definitions:
-  \verb|Sign.add_consts_i: (string * typ * mixfix) list -> theory|\isasep\isanewline%
-\verb|-> theory|
-  and \verb|Theory.add_defs_i: bool -> bool|\isasep\isanewline%
-\verb|-> (bstring * term) list -> theory -> theory|.
-  Written with naive application, an addition of a constant with
-  a corresponding definition would look like:
-  \verb|Theory.add_defs_i false false [dummy_def]|\isasep\isanewline%
-\verb|  (Sign.add_consts_i [dummy_const] thy)|.
-  With increasing numbers of applications, this code gets quite unreadable.
-  Using composition, at least the nesting of brackets may be reduced:
-  \verb|(Theory.add_defs_i false false [dummy_def] o Sign.add_consts_i|\isasep\isanewline%
-\verb|  [dummy_const]) thy|.
-  What remains unsatisfactory is that things are written down in the opposite order
-  as they actually ``happen''.%
+  and so on.  As a canoncial example, take functions enriching
+  a theory by constant declararion and primitive definitions:
+
+  \begin{quotation}
+    \verb|Sign.declare_const: Markup.property list -> bstring * typ * mixfix|\isasep\isanewline%
+\verb|       -> theory -> term * theory|
+
+    \verb|Thm.add_def: bool -> bstring * term -> theory -> thm * theory|
+  \end{quotation}
+
+  Written with naive application, an addition of constant
+  \isa{bar} with type \isa{foo\ {\isasymRightarrow}\ foo} and
+  a corresponding definition \isa{bar\ {\isasymequiv}\ {\isasymlambda}x{\isachardot}\ x} would look like:
+
+  \begin{quotation}
+  \verb|(fn (t, thy) => Thm.add_def false|\isasep\isanewline%
+\verb|  ("bar_def", Logic.mk_equals (t, @{term "%x. x"})) thy)|\isasep\isanewline%
+\verb|    (Sign.declare_const []|\isasep\isanewline%
+\verb|      ("bar", @{typ "foo => foo"}, NoSyn) thy)|.
+  \end{quotation}
+
+  With increasing numbers of applications, this code gets quite
+  unreadable.  Further, it is unintuitive that things are
+  written down in the opposite order as they actually ``happen''.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -404,19 +410,15 @@ Many problems in functional programming can be thought of
 \endisadelimML
 %
 \begin{isamarkuptext}%
-At this stage, Isabelle offers some combinators which allow for more convenient
-  notation, most notably reverse application:
-  \isasep\isanewline%
+\noindent At this stage, Isabelle offers some combinators which allow
+  for more convenient notation, most notably reverse application:
+  \begin{quotation}
 \verb|thy|\isasep\isanewline%
-\verb||\verb,|,\verb|> Sign.add_consts_i [dummy_const]|\isasep\isanewline%
-\verb||\verb,|,\verb|> Theory.add_defs_i false false [dummy_def]|%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\noindent When iterating over a list of parameters \isa{{\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymColon}\ {\isacharprime}a\ list},
-  the \verb|fold| combinator lifts a single function \isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b}:
-  \isa{y\ {\isacharbar}{\isachargreater}\ fold\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub n}%
+\verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|> (fn (t, thy) => thy|\isasep\isanewline%
+\verb||\verb,|,\verb|> Thm.add_def false|\isasep\isanewline%
+\verb|     ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|
+  \end{quotation}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -432,6 +434,72 @@ At this stage, Isabelle offers some combinators which allow for more convenient
   \indexml{op |$>$$>$ }\verb|op |\verb,|,\verb|>> : ('a * 'c) * ('a -> 'b) -> 'b * 'c| \\
   \indexml{op ||$>$ }\verb|op |\verb,|,\verb||\verb,|,\verb|> : ('c * 'a) * ('a -> 'b) -> 'c * 'b| \\
   \indexml{op ||$>$$>$ }\verb|op |\verb,|,\verb||\verb,|,\verb|>> : ('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b| \\
+  \end{mldecls}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\begin{isamarkuptext}%
+\noindent Usually, functions involving theory updates also return
+  side results; to use these conveniently, yet another
+  set of combinators is at hand, most notably \verb|op |\verb,|,\verb|->|
+  which allows curried access to side results:
+  \begin{quotation}
+\verb|thy|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn t => Thm.add_def false|\isasep\isanewline%
+\verb|      ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
+
+  \end{quotation}
+
+  \noindent \verb|op |\verb,|,\verb|>>| allows for processing side results on their own:
+  \begin{quotation}
+\verb|thy|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|>> (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn def => Thm.add_def false ("bar_def", def))|\isasep\isanewline%
+
+  \end{quotation}
+
+  \noindent Orthogonally, \verb|op |\verb,|,\verb||\verb,|,\verb|>| applies a transformation
+  in the presence of side results which are left unchanged:
+  \begin{quotation}
+\verb|thy|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb||\verb,|,\verb|> Sign.add_path "foobar"|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn t => Thm.add_def false|\isasep\isanewline%
+\verb|      ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
+\verb||\verb,|,\verb||\verb,|,\verb|> Sign.restore_naming thy|\isasep\isanewline%
+
+  \end{quotation}
+
+  \noindent \indexml{op ||$>$$>$}\verb|op |\verb,|,\verb||\verb,|,\verb|>>| accumulates side results:
+  \begin{quotation}
+\verb|thy|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb||\verb,|,\verb|>> Sign.declare_const [] ("foobar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn (t1, t2) => Thm.add_def false|\isasep\isanewline%
+\verb|      ("bar_def", Logic.mk_equals (t1, t2)))|\isasep\isanewline%
+
+  \end{quotation}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{fold}\verb|fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b| \\
   \indexml{fold-map}\verb|fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b| \\
   \end{mldecls}%
 \end{isamarkuptext}%
@@ -445,7 +513,21 @@ At this stage, Isabelle offers some combinators which allow for more convenient
 \endisadelimmlref
 %
 \begin{isamarkuptext}%
-\noindent FIXME transformations involving side results%
+\noindent This principles naturally lift to \isa{lists} using
+  the \verb|fold| and \verb|fold_map| combinators.
+  The first lifts a single function
+  \isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b} to \isa{{\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b}
+  such that
+  \isa{y\ {\isacharbar}{\isachargreater}\ fold\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub n};
+  the second accumulates side results in a list by lifting
+  a single function
+  \isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}c\ {\isasymtimes}\ {\isacharprime}b} to \isa{{\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}c\ list\ {\isasymtimes}\ {\isacharprime}b}
+  such that
+  \isa{y\ {\isacharbar}{\isachargreater}\ fold{\isacharunderscore}map\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ f\ x\isactrlisub n\ {\isacharbar}{\isacharbar}{\isachargreater}\ {\isacharparenleft}fn\ {\isacharparenleft}{\isacharparenleft}z\isactrlisub {\isadigit{1}}{\isacharcomma}\ z\isactrlisub {\isadigit{2}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}\ z\isactrlisub n{\isacharparenright}\ {\isacharequal}{\isachargreater}\ {\isacharbrackleft}z\isactrlisub {\isadigit{1}}{\isacharcomma}\ z\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ z\isactrlisub n{\isacharbrackright}{\isacharparenright}};
+
+  Example: FIXME
+  \begin{quotation}
+  \end{quotation}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -568,7 +650,7 @@ Standard selector functions on \isa{option}s are provided.  The
 %
 \begin{isamarkuptext}%
 Lists are often used as set-like data structures -- set-like in
-  then sense that they support notion of \verb|member|-ship,
+  the sense that they support a notion of \verb|member|-ship,
   \verb|insert|-ing and \verb|remove|-ing, but are order-sensitive.
   This is convenient when implementing a history-like mechanism:
   \verb|insert| adds an element \emph{to the front} of a list,

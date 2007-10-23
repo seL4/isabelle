@@ -296,8 +296,6 @@ section {* Linear transformations *}
 text %mlref {*
   \begin{mldecls}
   @{index_ML "op |> ": "'a * ('a -> 'b) -> 'b"} \\
-  @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
-  @{index_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
   \end{mldecls}
 *}
 
@@ -305,8 +303,6 @@ text %mlref {*
 typedecl foo
 consts foo :: foo
 ML {*
-val dummy_const = ("bar", @{typ foo}, NoSyn)
-val dummy_def = ("bar", @{term foo})
 val thy = Theory.copy @{theory}
 *}
 (*>*)
@@ -317,22 +313,30 @@ text {*
   particular value @{text "x \<Colon> foo"} which is then transformed
   by application of a function @{text "f \<Colon> foo \<Rightarrow> foo"},
   continued by an application of a function @{text "g \<Colon> foo \<Rightarrow> bar"},
-  and so on.  As a canoncial example, take primitive functions enriching
-  theories by constants and definitions:
-  @{ML "Sign.add_consts_i: (string * typ * mixfix) list -> theory
--> theory"}
-  and @{ML "Theory.add_defs_i: bool -> bool
--> (bstring * term) list -> theory -> theory"}.
-  Written with naive application, an addition of a constant with
-  a corresponding definition would look like:
-  @{ML "Theory.add_defs_i false false [dummy_def]
-  (Sign.add_consts_i [dummy_const] thy)"}.
-  With increasing numbers of applications, this code gets quite unreadable.
-  Using composition, at least the nesting of brackets may be reduced:
-  @{ML "(Theory.add_defs_i false false [dummy_def] o Sign.add_consts_i
-  [dummy_const]) thy"}.
-  What remains unsatisfactory is that things are written down in the opposite order
-  as they actually ``happen''.
+  and so on.  As a canoncial example, take functions enriching
+  a theory by constant declararion and primitive definitions:
+
+  \begin{quotation}
+    @{ML "Sign.declare_const: Markup.property list -> bstring * typ * mixfix
+       -> theory -> term * theory"}
+
+    @{ML "Thm.add_def: bool -> bstring * term -> theory -> thm * theory"}
+  \end{quotation}
+
+  Written with naive application, an addition of constant
+  @{text bar} with type @{typ "foo \<Rightarrow> foo"} and
+  a corresponding definition @{term "bar \<equiv> \<lambda>x. x"} would look like:
+
+  \begin{quotation}
+  @{ML "(fn (t, thy) => Thm.add_def false
+  (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})) thy)
+    (Sign.declare_const []
+      (\"bar\", @{typ \"foo => foo\"}, NoSyn) thy)"}.
+  \end{quotation}
+
+  With increasing numbers of applications, this code gets quite
+  unreadable.  Further, it is unintuitive that things are
+  written down in the opposite order as they actually ``happen''.
 *}
 
 (*<*)
@@ -342,18 +346,15 @@ val thy = Theory.copy @{theory}
 (*>*)
 
 text {*
-  At this stage, Isabelle offers some combinators which allow for more convenient
-  notation, most notably reverse application:
-  @{ML "
-thy
-|> Sign.add_consts_i [dummy_const]
-|> Theory.add_defs_i false false [dummy_def]"}
-*}
-
-text {*
-  \noindent When iterating over a list of parameters @{text "[x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<Colon> 'a list"},
-  the @{ML fold} combinator lifts a single function @{text "f \<Colon> 'a -> 'b -> 'b"}:
-  @{text "y |> fold f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 |> f x\<^isub>2 |> \<dots> |> f x\<^isub>n"}
+  \noindent At this stage, Isabelle offers some combinators which allow
+  for more convenient notation, most notably reverse application:
+  \begin{quotation}
+@{ML "thy
+|> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
+|> (fn (t, thy) => thy
+|> Thm.add_def false
+     (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))"}
+  \end{quotation}
 *}
 
 text %mlref {*
@@ -362,12 +363,78 @@ text %mlref {*
   @{index_ML "op |>> ": "('a * 'c) * ('a -> 'b) -> 'b * 'c"} \\
   @{index_ML "op ||> ": "('c * 'a) * ('a -> 'b) -> 'c * 'b"} \\
   @{index_ML "op ||>> ": "('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b"} \\
+  \end{mldecls}
+*}
+
+text {*
+  \noindent Usually, functions involving theory updates also return
+  side results; to use these conveniently, yet another
+  set of combinators is at hand, most notably @{ML "op |->"}
+  which allows curried access to side results:
+  \begin{quotation}
+@{ML "thy
+|> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
+|-> (fn t => Thm.add_def false
+      (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
+"}
+  \end{quotation}
+
+  \noindent @{ML "op |>>"} allows for processing side results on their own:
+  \begin{quotation}
+@{ML "thy
+|> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
+|>> (fn t => Logic.mk_equals (t, @{term \"%x. x\"}))
+|-> (fn def => Thm.add_def false (\"bar_def\", def))
+"}
+  \end{quotation}
+
+  \noindent Orthogonally, @{ML "op ||>"} applies a transformation
+  in the presence of side results which are left unchanged:
+  \begin{quotation}
+@{ML "thy
+|> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
+||> Sign.add_path \"foobar\"
+|-> (fn t => Thm.add_def false
+      (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
+||> Sign.restore_naming thy
+"}
+  \end{quotation}
+
+  \noindent @{index_ML "op ||>>"} accumulates side results:
+  \begin{quotation}
+@{ML "thy
+|> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
+||>> Sign.declare_const [] (\"foobar\", @{typ \"foo => foo\"}, NoSyn)
+|-> (fn (t1, t2) => Thm.add_def false
+      (\"bar_def\", Logic.mk_equals (t1, t2)))
+"}
+  \end{quotation}
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
   @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
   \end{mldecls}
 *}
 
 text {*
-  \noindent FIXME transformations involving side results
+  \noindent This principles naturally lift to @{text lists} using
+  the @{ML fold} and @{ML fold_map} combinators.
+  The first lifts a single function
+  @{text "f \<Colon> 'a -> 'b -> 'b"} to @{text "'a list -> 'b -> 'b"}
+  such that
+  @{text "y |> fold f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 |> f x\<^isub>2 |> \<dots> |> f x\<^isub>n"};
+  the second accumulates side results in a list by lifting
+  a single function
+  @{text "f \<Colon> 'a -> 'b -> 'c \<times> 'b"} to @{text "'a list -> 'b -> 'c list \<times> 'b"}
+  such that
+  @{text "y |> fold_map f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 ||>> f x\<^isub>2 ||>> \<dots> ||>> f x\<^isub>n
+    ||> (fn ((z\<^isub>1, z\<^isub>2), \<dots> z\<^isub>n) => [z\<^isub>1, z\<^isub>2, \<dots> z\<^isub>n])"};
+
+  Example: FIXME
+  \begin{quotation}
+  \end{quotation}
 *}
 
 text %mlref {*
@@ -438,7 +505,7 @@ text {*
 
 text {*
   Lists are often used as set-like data structures -- set-like in
-  then sense that they support notion of @{ML member}-ship,
+  the sense that they support a notion of @{ML member}-ship,
   @{ML insert}-ing and @{ML remove}-ing, but are order-sensitive.
   This is convenient when implementing a history-like mechanism:
   @{ML insert} adds an element \emph{to the front} of a list,
