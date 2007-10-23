@@ -693,8 +693,7 @@ by (drule mono_stream_take_pred,simp)
 lemma take_i_rt_prefix_lemma:
 "[| stream_take n$s1 << stream_take n$s2; i_rt n s1 << i_rt n s2 |] ==> s1 << s2"
 apply (case_tac "n=0",simp)
-apply (insert neq0_conv [of n])
-apply (insert not0_implies_Suc [of n],auto)
+apply (auto)
 apply (subgoal_tac "stream_take 0$s1 << stream_take 0$s2 &
                     i_rt 0 s1 << i_rt 0 s2")
  defer 1

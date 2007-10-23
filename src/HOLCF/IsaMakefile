@@ -34,7 +34,7 @@ $(OUT)/HOLCF: $(OUT)/HOL Adm.thy Cfun.thy Cont.thy Cprod.thy			\
   Tools/domain/domain_extender.ML Tools/domain/domain_axioms.ML			\
   Tools/domain/domain_library.ML Tools/domain/domain_syntax.ML			\
   Tools/domain/domain_theorems.ML Tools/fixrec_package.ML			\
-  Tools/pcpodef_package.ML Tr.thy Up.thy document/root.tex ex/Stream.thy	\
+  Tools/pcpodef_package.ML Tr.thy Up.thy document/root.tex	\
   holcf_logic.ML
 	@$(ISATOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 
@@ -52,7 +52,7 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
 
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
-$(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.thy \
+$(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Stream.thy ex/Dagstuhl.thy \
   ex/Dnat.thy ex/Fix2.thy ex/Focus_ex.thy ex/Hoare.thy ex/Loop.thy \
   ex/ROOT.ML ex/Fixrec_ex.thy ../HOL/Library/Nat_Infinity.thy
 	@$(ISATOOL) usedir $(OUT)/HOLCF ex

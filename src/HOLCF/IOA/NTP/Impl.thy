@@ -168,7 +168,7 @@ apply (tactic "tac_ren 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp add: Impl.hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
-  Multiset.delm_nonempty_def neq0_conv split add: split_if)
+  Multiset.delm_nonempty_def split add: split_if)
 apply (rule allI)
 apply (rule conjI)
 apply (rule impI)
