@@ -46,19 +46,10 @@ fun instance_size_class tyco thy =
 fun plus (t1, t2) = Const ("HOL.plus_class.plus",
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
-fun indexify_names names =
-  let
-    fun index (x :: xs) tab =
-      (case AList.lookup (op =) tab x of
-        NONE => if member (op =) xs x then (x ^ "1") :: index xs ((x, 2) :: tab) else x :: index xs tab
-      | SOME i => (x ^ string_of_int i) :: index xs ((x, i + 1) :: tab))
-    | index [] _ = [];
-  in index names [] end;
-
 fun make_size head_len descr' sorts recTs thy =
   let
     val size_names = replicate head_len size_name @
-      map (Sign.intern_const thy) (indexify_names
+      map (Sign.intern_const thy) (DatatypeProp.indexify_names
         (map (fn T => name_of_typ T ^ size_suffix) (Library.drop (head_len, recTs))));
     val size_consts = map2 (fn s => fn T => Const (s, T --> HOLogic.natT))
       size_names recTs;
@@ -69,7 +60,7 @@ fun make_size head_len descr' sorts recTs thy =
           | type_name (Type (name, _)) = 
               let val name' = Sign.base_name name
               in if Syntax.is_identifier name' then name' else "x" end;
-      in indexify_names (map type_name Ts) end;
+      in DatatypeProp.indexify_names (map type_name Ts) end;
 
     fun make_size_eqn size_const T (cname, cargs) =
       let
