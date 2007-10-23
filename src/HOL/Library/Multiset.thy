@@ -11,7 +11,7 @@ begin
 
 subsection {* The type of multisets *}
 
-typedef 'a multiset = "{f::'a => nat. finite {x . f x \<noteq> 0}}"
+typedef 'a multiset = "{f::'a => nat. finite {x . f x > 0}}"
 proof
   show "(\<lambda>x. 0::nat) \<in> ?multiset" by simp
 qed
@@ -38,7 +38,7 @@ definition
 
 abbreviation
   Melem :: "'a => 'a multiset => bool"  ("(_/ :# _)" [50, 51] 50) where
-  "a :# M == count M a \<noteq> 0"
+  "a :# M == count M a > 0"
 
 syntax
   "_MCollect" :: "pttrn => 'a multiset => bool => 'a multiset"    ("(1{# _ : _./ _#})")
@@ -309,7 +309,7 @@ lemma rep_multiset_induct_aux:
    apply (rule ext, force, clarify)
   apply (frule setsum_SucD, clarify)
   apply (rename_tac a)
-  apply (subgoal_tac "finite {x. (f (a := f a - 1)) x \<noteq> 0}")
+  apply (subgoal_tac "finite {x. (f (a := f a - 1)) x > 0}")
    prefer 2
    apply (rule finite_subset)
     prefer 2
@@ -759,7 +759,7 @@ lemma surj_multiset_of: "surj multiset_of"
   apply (rule_tac x = "x # xa" in exI, auto)
   done
 
-lemma set_count_greater_0: "set x = {a. count (multiset_of x) a \<noteq> 0}"
+lemma set_count_greater_0: "set x = {a. count (multiset_of x) a > 0}"
   by (induct x) auto
 
 lemma distinct_count_atmost_1:

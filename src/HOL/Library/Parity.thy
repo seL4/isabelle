@@ -222,7 +222,7 @@ lemma zero_le_odd_power: "odd n ==>
   apply (subst power_add)
   apply (subst zero_le_mult_iff)
   apply auto
-  apply (subgoal_tac "x = 0 & y \<noteq> 0")
+  apply (subgoal_tac "x = 0 & y > 0")
   apply (erule conjE, assumption)
   apply (subst power_eq_0_iff [symmetric])
   apply (subgoal_tac "0 <= x^y * x^y")

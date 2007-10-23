@@ -398,6 +398,15 @@ apply (rule iffI)
  apply (frule pos_zmult_eq_1_iff_lemma, auto) 
 done
 
+(* Could be simplified but Presburger only becomes available too late *)
+lemma infinite_UNIV_int: "~finite(UNIV::int set)"
+proof
+  assume "finite(UNIV::int set)"
+  moreover have "~(EX i::int. 2*i = 1)"
+    by (auto simp: pos_zmult_eq_1_iff)
+  ultimately show False using finite_UNIV_inj_surj[of "%n::int. n+n"]
+    by (simp add:inj_on_def surj_def) (blast intro:sym)
+qed
 
 subsection {* Legacy ML bindings *}
 

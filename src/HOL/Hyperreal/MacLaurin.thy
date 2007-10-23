@@ -114,7 +114,7 @@ apply (metis Suc_less_eq differentiableI dlo_simps(7) dlo_simps(8) dlo_simps(9) 
 done
 
 lemma Maclaurin:
-   "[| 0 < h; n \<noteq> 0; diff 0 = f;
+   "[| 0 < h; n > 0; diff 0 = f;
        \<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (diff m) t :> diff (Suc m) t |]
     ==> \<exists>t. 0 < t &
               t < h &
@@ -185,7 +185,7 @@ apply (rule_tac x = ta in exI, force)
 done
 
 lemma Maclaurin_objl:
-  "0 < h & n\<noteq>0 & diff 0 = f &
+  "0 < h & n>0 & diff 0 = f &
   (\<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (diff m) t :> diff (Suc m) t)
    --> (\<exists>t. 0 < t & t < h &
             f h = (\<Sum>m=0..<n. diff m 0 / real (fact m) * h ^ m) +
@@ -218,7 +218,7 @@ lemma Maclaurin2_objl:
 by (blast intro: Maclaurin2)
 
 lemma Maclaurin_minus:
-   "[| h < 0; n \<noteq> 0; diff 0 = f;
+   "[| h < 0; n > 0; diff 0 = f;
        \<forall>m t. m < n & h \<le> t & t \<le> 0 --> DERIV (diff m) t :> diff (Suc m) t |]
     ==> \<exists>t. h < t &
               t < 0 &
@@ -245,7 +245,7 @@ apply (auto simp add: divide_inverse power_mult_distrib [symmetric])
 done
 
 lemma Maclaurin_minus_objl:
-     "(h < 0 & n \<noteq> 0 & diff 0 = f &
+     "(h < 0 & n > 0 & diff 0 = f &
        (\<forall>m t.
           m < n & h \<le> t & t \<le> 0 --> DERIV (diff m) t :> diff (Suc m) t))
     --> (\<exists>t. h < t &
@@ -261,7 +261,7 @@ subsection{*More Convenient "Bidirectional" Version.*}
 (* not good for PVS sin_approx, cos_approx *)
 
 lemma Maclaurin_bi_le_lemma [rule_format]:
-  "n\<noteq>0 \<longrightarrow>
+  "n>0 \<longrightarrow>
    diff 0 0 =
    (\<Sum>m = 0..<n. diff m 0 * 0 ^ m / real (fact m)) +
    diff n 0 * 0 ^ n / real (fact n)"
@@ -294,7 +294,7 @@ done
 lemma Maclaurin_all_lt:
      "[| diff 0 = f;
          \<forall>m x. DERIV (diff m) x :> diff(Suc m) x;
-        x ~= 0; n \<noteq> 0
+        x ~= 0; n > 0
       |] ==> \<exists>t. 0 < abs t & abs t < abs x &
                f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                      (diff n t / real (fact n)) * x ^ n"
@@ -308,7 +308,7 @@ done
 lemma Maclaurin_all_lt_objl:
      "diff 0 = f &
       (\<forall>m x. DERIV (diff m) x :> diff(Suc m) x) &
-      x ~= 0 & n \<noteq> 0
+      x ~= 0 & n > 0
       --> (\<exists>t. 0 < abs t & abs t < abs x &
                f x = (\<Sum>m=0..<n. (diff m 0 / real (fact m)) * x ^ m) +
                      (diff n t / real (fact n)) * x ^ n)"
@@ -346,7 +346,7 @@ by (blast intro: Maclaurin_all_le)
 
 subsection{*Version for Exponential Function*}
 
-lemma Maclaurin_exp_lt: "[| x ~= 0; n \<noteq> 0 |]
+lemma Maclaurin_exp_lt: "[| x ~= 0; n > 0 |]
       ==> (\<exists>t. 0 < abs t &
                 abs t < abs x &
                 exp x = (\<Sum>m=0..<n. (x ^ m) / real (fact m)) +
@@ -423,9 +423,8 @@ apply (blast intro: elim:);
 done
 
 
-
 lemma Maclaurin_sin_expansion3:
-     "[| n \<noteq> 0; 0 < x |] ==>
+     "[| n > 0; 0 < x |] ==>
        \<exists>t. 0 < t & t < x &
        sin x =
        (\<Sum>m=0..<n. (if even m then 0
@@ -491,7 +490,7 @@ apply (auto simp add: cos_zero_iff even_mult_two_ex)
 done
 
 lemma Maclaurin_cos_expansion2:
-     "[| 0 < x; n \<noteq> 0 |] ==>
+     "[| 0 < x; n > 0 |] ==>
        \<exists>t. 0 < t & t < x &
        cos x =
        (\<Sum>m=0..<n. (if even m
@@ -510,7 +509,7 @@ apply (auto simp add: cos_zero_iff even_mult_two_ex)
 done
 
 lemma Maclaurin_minus_cos_expansion:
-     "[| x < 0; n \<noteq> 0 |] ==>
+     "[| x < 0; n > 0 |] ==>
        \<exists>t. x < t & t < 0 &
        cos x =
        (\<Sum>m=0..<n. (if even m

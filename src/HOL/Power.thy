@@ -140,7 +140,7 @@ apply (auto simp add: mult_strict_mono zero_le_power power_Suc
 done
 
 lemma power_eq_0_iff [simp]:
-  "(a^n = 0) = (a = (0::'a::{ring_1_no_zero_divisors,recpower}) & n\<noteq>0)"
+  "(a^n = 0) = (a = (0::'a::{ring_1_no_zero_divisors,recpower}) & n>0)"
 apply (induct "n")
 apply (auto simp add: power_Suc zero_neq_one [THEN not_sym])
 done
@@ -342,7 +342,7 @@ by (induct n, simp_all add: power_Suc of_nat_mult)
 lemma nat_one_le_power [simp]: "1 \<le> i ==> Suc 0 \<le> i^n"
 by (insert one_le_power [of i n], simp)
 
-lemma nat_zero_less_power_iff [simp]: "(x^n = 0) = (x = (0::nat) & n\<noteq>0)"
+lemma nat_zero_less_power_iff [simp]: "(x^n > 0) = (x > (0::nat) | n=0)"
 by (induct "n", auto)
 
 text{*Valid for the naturals, but what if @{text"0<i<1"}?

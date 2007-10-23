@@ -1652,16 +1652,6 @@ apply(auto)
 apply(subst card_insert)
  apply(auto intro:ccontr)
 done
-(*
-lemma card_1_eq:
-  "(card A = Suc 0) = (\<exists>x. A = {x})"
-by (auto dest!: card_eq_SucD)
-
-lemma card_2_eq:
- "(card A = Suc(Suc 0)) = (\<exists>x y. x\<noteq>y & A = {x,y})" 
-by (auto dest!: card_eq_SucD)
-*)
-
 
 lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"
 apply (cases "finite A")
@@ -1725,7 +1715,7 @@ lemma card_image: "inj_on f A ==> card (f ` A) = card A"
 by(simp add:card_def setsum_reindex o_def del:setsum_constant)
 
 lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A = A"
-  by (simp add: card_seteq card_image)
+by (simp add: card_seteq card_image)
 
 lemma eq_card_imp_inj_on:
   "[| finite A; card(f ` A) = card A |] ==> inj_on f A"
@@ -1804,6 +1794,32 @@ apply(rotate_tac -1)
   apply (subst card_Un_disjoint)
   apply (auto simp add: dvd_add disjoint_eq_subset_Compl)
   done
+
+
+subsubsection {* Relating injectivity and surjectivity *}
+
+lemma finite_surj_inj: "finite(A) \<Longrightarrow> A <= f`A \<Longrightarrow> inj_on f A"
+apply(rule eq_card_imp_inj_on, assumption)
+apply(frule finite_imageI)
+apply(drule (1) card_seteq)
+apply(erule card_image_le)
+apply simp
+done
+
+lemma finite_UNIV_surj_inj: fixes f :: "'a \<Rightarrow> 'a"
+shows "finite(UNIV:: 'a set) \<Longrightarrow> surj f \<Longrightarrow> inj f"
+by (blast intro: finite_surj_inj subset_UNIV dest:surj_range)
+
+lemma finite_UNIV_inj_surj: fixes f :: "'a \<Rightarrow> 'a"
+shows "finite(UNIV:: 'a set) \<Longrightarrow> inj f \<Longrightarrow> surj f"
+by(fastsimp simp:surj_def dest!: endo_inj_surj)
+
+corollary infinite_UNIV_nat: "~finite(UNIV::nat set)"
+proof
+  assume "finite(UNIV::nat set)"
+  with finite_UNIV_inj_surj[of Suc]
+  show False by simp (blast dest: Suc_neq_Zero surjD)
+qed
 
 
 subsection{* A fold functional for non-empty sets *}

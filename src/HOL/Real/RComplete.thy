@@ -1208,10 +1208,10 @@ lemma natceiling_subtract [simp]: "real a <= x ==>
   apply simp
 done
 
-lemma natfloor_div_nat: "1 <= x ==> y \<noteq> 0 ==>
+lemma natfloor_div_nat: "1 <= x ==> y > 0 ==>
   natfloor (x / real y) = natfloor x div y"
 proof -
-  assume "1 <= (x::real)" and "(y::nat) \<noteq> 0"
+  assume "1 <= (x::real)" and "(y::nat) > 0"
   have "natfloor x = (natfloor x) div y * y + (natfloor x) mod y"
     by simp
   then have a: "real(natfloor x) = real ((natfloor x) div y) * real y +

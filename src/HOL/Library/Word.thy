@@ -479,7 +479,7 @@ proof (induct n rule: less_induct)
         with mod_div_equality [of n 2]
         show "n div 2 * 2 = n" by simp
       next
-        assume "n mod 2 \<noteq> 0"
+        assume "n mod 2 = Suc 0"
         with mod_div_equality [of n 2]
         show "Suc (n div 2 * 2) = n" by arith
       qed

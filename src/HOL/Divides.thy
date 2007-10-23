@@ -250,14 +250,14 @@ lemma unique_remainder:
   apply (simp add: quorem_def)
   done
 
-lemma quorem_div_mod: "b \<noteq> 0 ==> quorem ((a, b), (a div b, a mod b))"
-  unfolding quorem_def by simp
+lemma quorem_div_mod: "b > 0 ==> quorem ((a, b), (a div b, a mod b))"
+unfolding quorem_def by simp
 
-lemma quorem_div: "[| quorem((a,b),(q,r));  b \<noteq> 0 |] ==> a div b = q"
-  by (simp add: quorem_div_mod [THEN unique_quotient])
+lemma quorem_div: "[| quorem((a,b),(q,r));  b > 0 |] ==> a div b = q"
+by (simp add: quorem_div_mod [THEN unique_quotient])
 
-lemma quorem_mod: "[| quorem((a,b),(q,r));  b \<noteq> 0 |] ==> a mod b = r"
-  by (simp add: quorem_div_mod [THEN unique_remainder])
+lemma quorem_mod: "[| quorem((a,b),(q,r));  b > 0 |] ==> a mod b = r"
+by (simp add: quorem_div_mod [THEN unique_remainder])
 
 (** A dividend of zero **)
 
@@ -270,9 +270,9 @@ lemma mod_0 [simp]: "0 mod m = (0::nat)"
 (** proving (a*b) div c = a * (b div c) + a * (b mod c) **)
 
 lemma quorem_mult1_eq:
-     "[| quorem((b,c),(q,r)); c \<noteq> 0 |]
-      ==> quorem ((a*b, c), (a*q + a*r div c, a*r mod c))"
-  by (auto simp add: split_ifs mult_ac quorem_def add_mult_distrib2)
+  "[| quorem((b,c),(q,r)); c > 0 |]
+   ==> quorem ((a*b, c), (a*q + a*r div c, a*r mod c))"
+by (auto simp add: split_ifs mult_ac quorem_def add_mult_distrib2)
 
 lemma div_mult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::nat)"
 apply (cases "c = 0", simp)
@@ -291,17 +291,18 @@ lemma mod_mult1_eq': "(a*b) mod (c::nat) = ((a mod c) * b) mod c"
    apply (simp_all add: mult_commute)
   done
 
-lemma mod_mult_distrib_mod: "(a*b) mod (c::nat) = ((a mod c) * (b mod c)) mod c"
-  apply (rule mod_mult1_eq' [THEN trans])
-  apply (rule mod_mult1_eq)
-  done
+lemma mod_mult_distrib_mod:
+  "(a*b) mod (c::nat) = ((a mod c) * (b mod c)) mod c"
+apply (rule mod_mult1_eq' [THEN trans])
+apply (rule mod_mult1_eq)
+done
 
 (** proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) **)
 
 lemma quorem_add1_eq:
-     "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  c \<noteq> 0 |]
-      ==> quorem ((a+b, c), (aq + bq + (ar+br) div c, (ar+br) mod c))"
-  by (auto simp add: split_ifs mult_ac quorem_def add_mult_distrib2)
+  "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  c > 0 |]
+   ==> quorem ((a+b, c), (aq + bq + (ar+br) div c, (ar+br) mod c))"
+by (auto simp add: split_ifs mult_ac quorem_def add_mult_distrib2)
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma div_add1_eq:
@@ -621,7 +622,7 @@ lemma le_imp_power_dvd: "!!i::nat. m \<le> n ==> i^m dvd i^n"
   apply (simp add: power_add)
   done
 
-lemma nat_zero_less_power_iff [simp]: "(0 < x^n) = (x \<noteq> (0::nat) | n=0)"
+lemma nat_zero_less_power_iff [simp]: "(x^n > 0) = (x > (0::nat) | n=0)"
   by (induct n) auto
 
 lemma power_le_dvd [rule_format]: "k^j dvd n --> i\<le>j --> k^i dvd (n::nat)"
@@ -690,19 +691,20 @@ qed
 
 lemma split_div_lemma:
   "0 < n \<Longrightarrow> (n * q \<le> m \<and> m < n * (Suc q)) = (q = ((m::nat) div n))"
-  apply (rule iffI)
-  apply (rule_tac a=m and r = "m - n * q" and r' = "m mod n" in unique_quotient)
-prefer 3; apply assumption
-  apply (simp_all add: quorem_def) apply arith
-  apply (rule conjI)
-  apply (rule_tac P="%x. n * (m div n) \<le> x" in
+apply (rule iffI)
+ apply (rule_tac a=m and r = "m - n * q" and r' = "m mod n" in unique_quotient)
+   prefer 3; apply assumption
+  apply (simp_all add: quorem_def)
+ apply arith
+apply (rule conjI)
+ apply (rule_tac P="%x. n * (m div n) \<le> x" in
     subst [OF mod_div_equality [of _ n]])
-  apply (simp only: add: mult_ac)
-  apply (rule_tac P="%x. x < n + n * (m div n)" in
+ apply (simp only: add: mult_ac)
+ apply (rule_tac P="%x. x < n + n * (m div n)" in
     subst [OF mod_div_equality [of _ n]])
-  apply (simp only: add: mult_ac add_ac)
-  apply (rule add_less_mono1, simp)
-  done
+apply (simp only: add: mult_ac add_ac)
+apply (rule add_less_mono1, simp)
+done
 
 theorem split_div':
   "P ((m::nat) div n) = ((n = 0 \<and> P 0) \<or>

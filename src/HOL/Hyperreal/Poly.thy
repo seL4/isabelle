@@ -782,7 +782,7 @@ done
 declare pexp_one [simp]
 
 lemma lemma_order_root [rule_format]:
-     "\<forall>p a. n \<noteq> 0 & [- a, 1] %^ n divides p & ~ [- a, 1] %^ (Suc n) divides p
+     "\<forall>p a. n > 0 & [- a, 1] %^ n divides p & ~ [- a, 1] %^ (Suc n) divides p
              --> poly p a = 0"
 apply (induct "n", blast)
 apply (auto simp add: divides_def poly_mult simp del: pmult_Cons)
@@ -792,8 +792,9 @@ lemma order_root: "(poly p a = 0) = ((poly p = poly []) | order a p \<noteq> 0)"
 apply (case_tac "poly p = poly []", auto)
 apply (simp add: poly_linear_divides del: pmult_Cons, safe)
 apply (drule_tac [!] a = a in order2)
+apply (rule ccontr)
 apply (simp add: divides_def poly_mult fun_eq del: pmult_Cons, blast)
-apply (metis gr0_conv lemma_order_root)
+apply (blast intro: lemma_order_root)
 done
 
 lemma order_divides: "(([-a, 1] %^ n) divides p) = ((poly p = poly []) | n \<le> order a p)"
@@ -842,7 +843,7 @@ done
 
 (* FIXME: too too long! *)
 lemma lemma_order_pderiv [rule_format]:
-     "\<forall>p q a. n \<noteq> 0 &
+     "\<forall>p q a. n > 0 &
        poly (pderiv p) \<noteq> poly [] &
        poly p = poly ([- a, 1] %^ n *** q) & ~ [- a, 1] divides q
        --> n = Suc (order a (pderiv p))"

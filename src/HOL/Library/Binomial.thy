@@ -44,7 +44,7 @@ by (induct n) simp_all
 lemma binomial_1 [simp]: "(n choose Suc 0) = n"
 by (induct n) simp_all
 
-lemma zero_less_binomial: "k \<le> n ==> (n choose k) \<noteq> 0"
+lemma zero_less_binomial: "k \<le> n ==> (n choose k) > 0"
 by (induct n k rule: diff_induct) simp_all
 
 lemma binomial_eq_0_iff: "(n choose k = 0) = (n<k)"
@@ -53,8 +53,9 @@ apply (erule contrapos_pp)
 apply (simp add: zero_less_binomial)
 done
 
-lemma zero_less_binomial_iff: "(n choose k \<noteq> 0) = (k\<le>n)"
-by (simp add: linorder_not_less binomial_eq_0_iff)
+lemma zero_less_binomial_iff: "(n choose k > 0) = (k\<le>n)"
+by(simp add: linorder_not_less binomial_eq_0_iff neq0_conv[symmetric]
+        del:neq0_conv)
 
 (*Might be more useful if re-oriented*)
 lemma Suc_times_binomial_eq:
