@@ -3,6 +3,8 @@ struct
 
 datatype nat = Suc of nat | Zero_nat;
 
+val one_nat : nat = Suc Zero_nat;
+
 fun nat_case f1 f2 Zero_nat = f1
   | nat_case f1 f2 (Suc nat) = f2 nat;
 
@@ -18,7 +20,7 @@ structure Codegen =
 struct
 
 fun fac n =
-  (case n of Nat.Zero_nat => Nat.Suc Nat.Zero_nat
+  (case n of Nat.Zero_nat => Nat.one_nat
      | Nat.Suc m => Nat.times_nat n (fac m));
 
 end; (*struct Codegen*)
