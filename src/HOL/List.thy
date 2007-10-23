@@ -961,9 +961,7 @@ next
   next
     assume "\<not> p x"
     hence eq: "?S' = Suc ` ?S"
-      apply(auto simp add: nth_Cons image_def split:nat.split elim:lessE)
-      apply (rule_tac x="xa - 1" in exI, auto)
-      done
+      by(auto simp add: image_def neq0_conv split:nat.split elim:lessE)
     have "length (filter p (x # xs)) = card ?S"
       using Cons `\<not> p x` by simp
     also have "\<dots> = card(Suc ` ?S)" using fin

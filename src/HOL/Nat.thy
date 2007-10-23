@@ -1104,8 +1104,8 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (drule sym)
   apply (rule disjCI)
   apply (rule nat_less_cases, erule_tac [2] _)
-  apply (fastsimp elim!: less_SucE)
-  apply (auto simp add: neq0_conv dest: mult_less_mono2)
+   apply (drule_tac [2] mult_less_mono2)
+    apply (auto simp add: neq0_conv)
   done
 
 

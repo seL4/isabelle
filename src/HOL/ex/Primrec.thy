@@ -140,7 +140,7 @@ text {* PROPERTY A 6 *}
 lemma ack2_le_ack1 [iff]: "ack (i, Suc j) \<le> ack (Suc i, j)"
   apply (induct j)
    apply simp_all
-  apply (blast intro: ack_le_mono2 less_ack2 [THEN Suc_leI] le_trans)
+  apply (metis Suc_leI Suc_lessI ack_le_mono2 le_def less_ack2)
   done
 
 

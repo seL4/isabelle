@@ -792,9 +792,8 @@ lemma order_root: "(poly p a = 0) = ((poly p = poly []) | order a p \<noteq> 0)"
 apply (case_tac "poly p = poly []", auto)
 apply (simp add: poly_linear_divides del: pmult_Cons, safe)
 apply (drule_tac [!] a = a in order2)
-apply (rule ccontr)
 apply (simp add: divides_def poly_mult fun_eq del: pmult_Cons, blast)
-apply (blast intro: lemma_order_root)
+apply (metis gr0_conv lemma_order_root)
 done
 
 lemma order_divides: "(([-a, 1] %^ n) divides p) = ((poly p = poly []) | n \<le> order a p)"
@@ -885,7 +884,7 @@ lemma order_pderiv: "[| poly (pderiv p) \<noteq> poly []; order a p \<noteq> 0 |
 apply (case_tac "poly p = poly []")
 apply (auto dest: pderiv_zero)
 apply (drule_tac a = a and p = p in order_decomp)
-apply (blast intro: lemma_order_pderiv)
+apply (metis lemma_order_pderiv length_0_conv length_greater_0_conv)
 done
 
 text{*Now justify the standard squarefree decomposition, i.e. f / gcd(f,f').    *)
@@ -934,8 +933,7 @@ by (rule order_root [THEN ssubst], auto)
 
 lemma order_pderiv2: "[| poly (pderiv p) \<noteq> poly []; order a p \<noteq> 0 |]
       ==> (order a (pderiv p) = n) = (order a p = Suc n)"
-apply (auto dest: order_pderiv)
-done
+by (metis Suc_Suc_eq order_pderiv)
 
 lemma rsquarefree_roots:
   "rsquarefree p = (\<forall>a. ~(poly p a = 0 & poly (pderiv p) a = 0))"
@@ -950,7 +948,7 @@ apply (rule allI)
 apply (cut_tac p = "[h]" and a = a in order_root)
 apply (simp add: fun_eq)
 apply (blast intro: order_poly)
-apply (auto simp add: order_root order_pderiv2)
+apply (metis One_nat_def order_pderiv2 order_root rsquarefree_def)
 done
 
 lemma pmult_one: "[1] *** p = p"
