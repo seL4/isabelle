@@ -980,19 +980,29 @@ end;
 
 (* authentic constants *)
 
-fun context_const_ast_tr ctxt [Syntax.Variable c] =
+local
+
+fun const_ast_tr intern ctxt [Syntax.Variable c] =
       let
         val consts = consts_of ctxt;
         val c' = Consts.intern consts c;
         val _ = Consts.the_constraint consts c' handle TYPE (msg, _, _) => error msg;
-      in Syntax.Constant (const_syntax_name ctxt c') end
-  | context_const_ast_tr _ asts = raise Syntax.AST ("const_ast_tr", asts);
+        val d = if intern then const_syntax_name ctxt c' else c;
+      in Syntax.Constant d end
+  | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
+
+in
 
 val _ = Context.add_setup
  (Sign.add_syntax
    [("_context_const", "id => 'a", Delimfix "CONST _"),
-    ("_context_const", "longid => 'a", Delimfix "CONST _")] #>
-  Sign.add_advanced_trfuns ([("_context_const", context_const_ast_tr)], [], [], []));
+    ("_context_const", "longid => 'a", Delimfix "CONST _"),
+    ("_context_xconst", "id => 'a", Delimfix "XCONST _"),
+    ("_context_xconst", "longid => 'a", Delimfix "XCONST _")] #>
+  Sign.add_advanced_trfuns
+    ([("_context_const", const_ast_tr true), ("_context_xconst", const_ast_tr false)], [], [], []));
+
+end;
 
 
 (* notation *)
