@@ -33,7 +33,7 @@ lemma lemma_realpow_diff_sumr2:
   fixes y :: "'a::{recpower,comm_ring}" shows
      "x ^ (Suc n) - y ^ (Suc n) =  
       (x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
-apply (induct "n", simp add: power_Suc)
+apply (induct n, simp add: power_Suc)
 apply (simp add: power_Suc del: setsum_op_ivl_Suc)
 apply (subst setsum_op_ivl_Suc)
 apply (subst lemma_realpow_diff_sumr)
