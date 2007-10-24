@@ -852,7 +852,7 @@ HOL-Statespace: HOL $(LOG)/HOL-Statespace.gz
 
 $(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/DistinctTreeProver.thy \
   Statespace/StateFun.thy Statespace/StateSpaceLocale.thy \
-  Statespace/StateSpaceSyntax.thy StateSpace/StateSpaceEx.thy \
+  Statespace/StateSpaceSyntax.thy Statespace/StateSpaceEx.thy \
   Statespace/distinct_tree_prover.ML Statespace/state_space.ML \
   Statespace/state_fun.ML \
   Statespace/document/root.tex
