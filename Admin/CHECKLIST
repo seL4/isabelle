@@ -3,7 +3,7 @@ Checklist for official releases
 
 - Admin/update-keywords;
 
-- check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, ~isabelle/website;
+- check ANNOUNCE, README.html, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, ~isabelle/website;
 
 - run tests with all supported ML systems;
 
