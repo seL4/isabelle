@@ -433,16 +433,13 @@ fun print_classes thy =
 
 (* updaters *)
 
-fun add_class_data ((class, superclasses), (cs, base_sort, insttab, phi, intro)) thy =
+fun add_class_data ((class, superclasses), (cs, base_sort, inst, phi, intro)) thy =
   let
-    val inst = map
-      (SOME o the o Symtab.lookup insttab o fst o fst)
-        (Locale.parameters_of_expr thy (Locale.Locale class));
     val operations = map (fn (v_ty as (_, ty'), (c, ty)) =>
       (c, ((Free v_ty, (Logic.varifyT ty, 0)), (Free v_ty, ty')))) cs;
     val cs = (map o pairself) fst cs;
     val add_class = Graph.new_node (class,
-        mk_class_data ((cs, base_sort, inst, phi, intro), ([], operations)))
+        mk_class_data ((cs, base_sort, map (SOME o Const) inst, phi, intro), ([], operations)))
       #> fold (curry Graph.add_edge class) superclasses;
   in
     ClassData.map add_class thy
@@ -738,10 +735,8 @@ fun gen_class prep_spec prep_param bname
     val (((sups, supconsts), (supsort, base_sort, mergeexpr)), elems_syn) =
       prep_spec thy raw_supclasses raw_includes_elems;
     val other_consts = map (tap (Sign.the_const_type thy) o prep_param thy) raw_other_consts;
-    fun mk_inst class param_names cs =
-      Symtab.empty
-      |> fold2 (fn v => fn (c, ty) => Symtab.update (v, Const
-           (c, Term.map_type_tfree (fn (v, _) => TFree (v, [class])) ty))) param_names cs;
+    fun mk_inst class cs =
+      (map o apsnd o Term.map_type_tfree) (fn (v, _) => TFree (v, [class])) cs;
     fun fork_syntax (Element.Fixes xs) =
           fold_map (fn (c, ty, syn) => cons (c, syn) #> pair (c, ty, NoSyn)) xs
           #>> Element.Fixes
@@ -785,7 +780,7 @@ fun gen_class prep_spec prep_param bname
       #-> (fn [(_, [class_intro])] =>
         add_class_data ((class, sups),
           (map fst params ~~ consts, base_sort,
-            mk_inst class (map fst all_params) (map snd supconsts @ consts),
+            mk_inst class (map snd supconsts @ consts),
               calculate_morphism class (supconsts @ (map (fst o fst) params ~~ consts)), class_intro))
       #> class_interpretation class axioms []
       )))))

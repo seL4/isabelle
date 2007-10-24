@@ -823,7 +823,7 @@ because they were subsumed by lemmas xyz.  INCOMPATIBILITY.
 package; constants add, mul, pow now curried.  Infix syntax for
 algebraic operations.
 
-* Some steps towards more uniform lattice theory development in HOL.
+* More uniform lattice theory development in HOL.
 
     constants "meet" and "join" now named "inf" and "sup"
     constant "Meet" now named "Inf"
@@ -946,6 +946,9 @@ clashes with HOL "refl" and "trans".  INCOMPATIBILITY.
 * Classes "order" and "linorder": potential INCOMPATIBILITY due to
 changed order of proof goals instance proofs.
 
+* Locale "partial_order" now unified with class "order" (cf. theory
+Orderings), added parameter "less".  INCOMPATIBILITY.
+
 * Dropped redundant lemma def_imp_eq in favor of meta_eq_to_obj_eq.
 INCOMPATIBILITY.
 
@@ -977,10 +980,7 @@ there is more to prove, but this is mostly trivial.
 
 * Class "recpower" is generalized to arbitrary monoids, not just
 commutative semirings.  INCOMPATIBILITY: may need to incorporate
-commutativity or a semiring properties additionally.
-
-* Unified locale "partial_order" with class definition (cf. theory
-Orderings), added parameter "less".  INCOMPATIBILITY.
+commutativity or semiring properties additionally.
 
 * Constant "List.list_all2" in List.thy now uses authentic syntax.
 INCOMPATIBILITY: translations containing list_all2 may go wrong,
@@ -1005,11 +1005,12 @@ significant changes for setting up numeral syntax for types:
 
 See HOL/Integ/IntArith.thy for an example setup.
 
-* New top level command 'normal_form' computes the normal form of a
-term that may contain free variables.  For example ``normal_form
-"rev[a,b,c]"'' produces ``[b,c,a]'' (without proof).  This command is
-suitable for heavy-duty computations because the functions are
-compiled to ML first.
+* Command 'normal_form' computes the normal form of a
+term that may contain free variables.  For example
+``normal_form "rev [a, b, c]"'' produces ``[b, c, a]'' (without proof).
+This command is suitable for heavy-duty computations because the functions
+are compiled to ML first.  Correspondingly, a method ``normalization''
+is provided.  See further HOL/ex/NormalForm.thy and Tools/nbe.ML.
 
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
