@@ -10,6 +10,7 @@ sig
   val subclass: class -> local_theory -> Proof.state
   val subclass_cmd: xstring -> local_theory -> Proof.state
   val prove_subclass: tactic -> class -> local_theory -> local_theory
+  val subclass_rule: theory -> class * class -> thm
 end;
 
 structure Subclass : SUBCLASS =
@@ -42,6 +43,25 @@ fun strip_all_ofclass thy sort =
      of SOME (_, class) => thm |> strip_ofclass class |> strip
       | NONE => thm;
   in strip end;
+
+fun subclass_rule thy (class1, class2) =
+  let
+    val ctxt = ProofContext.init thy;
+    fun mk_axioms class =
+      let
+        val params = Class.these_params thy [class];
+      in
+        Locale.global_asms_of thy class
+        |> maps snd
+        |> (map o map_aterms) (fn Free (v, _) => (Const o the o AList.lookup (op =) params) v | t => t)
+        |> (map o map_types o map_atyps) (fn TFree _ => TFree (Name.aT, [class1]) | ty => ty)
+        |> map (ObjectLogic.ensure_propT thy)
+      end;
+    val (prems, concls) = pairself mk_axioms (class1, class2);
+  in
+    Goal.prove_global thy [] prems (Logic.mk_conjunction_list concls)
+      (Locale.intro_locales_tac true ctxt)
+  end;
 
 
 (** subclassing **)
