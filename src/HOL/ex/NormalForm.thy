@@ -5,7 +5,7 @@
 header {* Test of normalization function *}
 
 theory NormalForm
-imports Main
+imports Main "~~/src/HOL/Real/Rational"
 begin
 
 lemma "True" by normalization
@@ -110,6 +110,7 @@ lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "[Suc 0, 0] = [Suc 0, 0]" by normalization
 lemma "max (Suc 0) 0 = Suc 0" by normalization
+lemma "(42::rat) / 1704 = 7 / 284" by normalization
 
 normal_form "Suc 0 \<in> set ms"
 
