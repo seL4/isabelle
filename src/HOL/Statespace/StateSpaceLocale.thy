@@ -6,7 +6,7 @@
 header {* Setup for State Space Locales \label{sec:StateSpaceLocale}*}
 
 theory StateSpaceLocale imports StateFun 
-uses "state_space.ML" "state_fun"
+uses "state_space.ML" "state_fun.ML"
 begin
 
 setup StateFun.setup
