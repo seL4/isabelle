@@ -184,7 +184,7 @@ open BasicCodeThingol;
 fun assemble_idict (DictConst (inst, dss)) =
       nbe_apps (nbe_fun inst) ((maps o map) assemble_idict dss)
   | assemble_idict (DictVar (supers, (v, (n, _)))) =
-      fold (fn super => nbe_apps (nbe_fun super) o single) supers (nbe_dict v n);
+      fold_rev (fn super => nbe_apps (nbe_fun super) o single) supers (nbe_dict v n);
 
 fun assemble_iterm is_fun num_args =
   let
@@ -380,13 +380,14 @@ fun eval thy code t vs_ty_t deps =
     fun check_tvars t = if null (Term.term_tvars t) then t else
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Sign.string_of_term thy) t);
+    val string_of_term = setmp show_types true (Sign.string_of_term thy);
   in
     compile_eval thy code vs_ty_t deps
-    |> tracing (fn t => "Normalized:\n" ^ setmp show_types true Display.raw_string_of_term t)
+    |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
     |> anno_vars
-    |> tracing (fn t => "Vars typed:\n" ^ setmp show_types true Display.raw_string_of_term t)
+    |> tracing (fn t => "Vars typed:\n" ^ string_of_term t)
     |> constrain
-    |> tracing (fn t => "Types inferred:\n" ^ setmp show_types true Display.raw_string_of_term t)
+    |> tracing (fn t => "Types inferred:\n" ^ string_of_term t)
     |> tracing (fn t => "---\n")
     |> check_tvars
   end;
