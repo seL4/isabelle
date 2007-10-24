@@ -31,7 +31,7 @@ thm fib.induct
 
 subsection {* Currying *}
 
-fun add :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+fun add
 where
   "add 0 y = y"
 | "add (Suc x) y = Suc (add x y)"
@@ -42,7 +42,7 @@ thm add.induct -- {* Note the curried induction predicate *}
 
 subsection {* Nested recursion *}
 
-function nz :: "nat \<Rightarrow> nat"
+function nz 
 where
   "nz 0 = 0"
 | "nz (Suc x) = nz (nz x)"
@@ -182,9 +182,6 @@ fixes opr :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 assumes assoc: "opr (opr x y) z = opr x (opr y z)"
   and lunit: "opr un x = x"
   and runit: "opr x un = x"
-
-
-context my_monoid
 begin
 
 fun foldR :: "'a list \<Rightarrow> 'a"
@@ -362,7 +359,7 @@ fun
   f4 :: "nat \<Rightarrow> nat \<Rightarrow> bool" 
 where
   "f4 0 0 = True"
-| "f4 x y = False"
+| "f4 _ _ = False"
 
 
 end
