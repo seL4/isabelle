@@ -329,12 +329,11 @@ fun ap_split T T3 u =
   in ap [T] end;
 
 
-(***********************************************************)
-(*       operations on tuples with specific arities        *)
-(*                                                         *)
-(* an "arity" of a tuple is a list of lists of integers    *)
-(* ("factors"), denoting paths to subterms that are pairs  *)
-(***********************************************************)
+(* operations on tuples with specific arities *)
+(*
+  an "arity" of a tuple is a list of lists of integers
+  ("factors"), denoting paths to subterms that are pairs
+*)
 
 fun prod_err s = raise TERM (s ^ ": inconsistent use of products", []);
 

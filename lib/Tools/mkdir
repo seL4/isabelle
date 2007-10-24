@@ -251,6 +251,7 @@ else
 
 \tableofcontents
 
+% sane default for proof documents
 %\parindent 0pt\parskip 0.5ex
 
 % generated text of all theories
