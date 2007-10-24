@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Nominal.
+;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Nominal + HOL-Statespace.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 ;; $Id$
@@ -199,6 +199,7 @@
     "sledgehammer"
     "sorry"
     "specification"
+    "statespace"
     "subclass"
     "subsect"
     "subsection"
@@ -479,6 +480,7 @@
     "rep_datatype"
     "setup"
     "simproc_setup"
+    "statespace"
     "syntax"
     "text"
     "text_raw"
