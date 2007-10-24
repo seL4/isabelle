@@ -384,7 +384,7 @@ subsection {* Constants @{term neg} and @{term iszero} *}
 definition
   neg  :: "'a\<Colon>ordered_idom \<Rightarrow> bool"
 where
-  [code inline]: "neg Z \<longleftrightarrow> Z < 0"
+  "neg Z \<longleftrightarrow> Z < 0"
 
 definition (*for simplifying equalities*)
   iszero :: "'a\<Colon>semiring_1 \<Rightarrow> bool"
