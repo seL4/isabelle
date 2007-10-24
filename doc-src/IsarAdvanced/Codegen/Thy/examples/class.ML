@@ -11,8 +11,8 @@ struct
 type 'a null = {null : 'a};
 fun null (A_:'a null) = #null A_;
 
-fun head B_ (x :: xs) = x
-  | head B_ [] = null B_;
+fun head A_ (x :: xs) = x
+  | head A_ [] = null A_;
 
 val null_option : 'a option = NONE;
 

@@ -54,15 +54,15 @@ datatype ('a, 'b) searchtree =
   Branch of ('a, 'b) searchtree * 'a * ('a, 'b) searchtree |
   Leaf of 'a * 'b;
 
-fun update (C1_, C2_) (it, entry) (Branch (t1, key, t2)) =
-  (if HOL.less_eq ((Orderings.ord_order o Orderings.order_linorder) C2_)
+fun update (A1_, A2_) (it, entry) (Branch (t1, key, t2)) =
+  (if HOL.less_eq ((Orderings.ord_order o Orderings.order_linorder) A2_)
         it key
-    then Branch (update (C1_, C2_) (it, entry) t1, key, t2)
-    else Branch (t1, key, update (C1_, C2_) (it, entry) t2))
-  | update (C1_, C2_) (it, entry) (Leaf (key, vala)) =
-    (if HOL.eqop C1_ it key then Leaf (key, entry)
+    then Branch (update (A1_, A2_) (it, entry) t1, key, t2)
+    else Branch (t1, key, update (A1_, A2_) (it, entry) t2))
+  | update (A1_, A2_) (it, entry) (Leaf (key, vala)) =
+    (if HOL.eqop A1_ it key then Leaf (key, entry)
       else (if HOL.less_eq
-                 ((Orderings.ord_order o Orderings.order_linorder) C2_) it
+                 ((Orderings.ord_order o Orderings.order_linorder) A2_) it
                  key
              then Branch (Leaf (it, entry), it, Leaf (key, vala))
              else Branch (Leaf (key, vala), it, Leaf (it, entry))));
