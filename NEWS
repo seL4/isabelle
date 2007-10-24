@@ -117,7 +117,7 @@ constants with qualified polymorphism (according to the class
 context).  Within the body context of a 'class' target, a separate
 syntax layer ("user space type system") takes care of converting
 between global polymorphic consts and internal locale representation.
-See HOL/ex/Classpackage.thy for examples (as well as main HOL).
+See src/HOL/ex/Classpackage.thy for examples (as well as main HOL).
 
 * Yet another code generator framework allows to generate executable
 code for ML and Haskell (including Isabelle classes).  A short usage
@@ -159,8 +159,8 @@ User-defined serializations (target in {SML, OCaml, Haskell}):
 
 code_instance and code_class only apply to target Haskell.
 
-For example usage see HOL/ex/Codegenerator.thy and
-HOL/ex/Codegenerator_Pretty.thy.  A separate tutorial on code
+For example usage see src/HOL/ex/Codegenerator.thy and
+src/HOL/ex/Codegenerator_Pretty.thy.  A separate tutorial on code
 generation from Isabelle/HOL theories is available via "isatool doc
 codegen".
 
@@ -412,7 +412,7 @@ constants being introduced depend on certain fixed parameters, and the
 constant name is qualified by the locale base name.  An internal
 abbreviation takes care for convenient input and output, making the
 parameters implicit and using the original short name.  See also
-HOL/ex/Abstract_NAT.thy for an example of deriving polymorphic
+src/HOL/ex/Abstract_NAT.thy for an example of deriving polymorphic
 entities from a monomorphic theory.
 
 Presently, abbreviations are only available 'in' a target locale, but
@@ -480,14 +480,15 @@ local fixes and defines on-the-fly. Thus explicit meta-level
 connectives !!  and ==> are rarely required anymore in inductive goals
 (using object-logic connectives for this purpose has been long
 obsolete anyway). Common proof patterns are explained in
-HOL/Induct/Common_Patterns.thy, see also HOL/Isar_examples/Puzzle.thy
-and src/HOL/Lambda for realistic examples.
+src/HOL/Induct/Common_Patterns.thy, see also
+src/HOL/Isar_examples/Puzzle.thy and src/HOL/Lambda for realistic
+examples.
 
 * Method "induct": improved handling of simultaneous goals. Instead of
 introducing object-level conjunction, the statement is now split into
 several conclusions, while the corresponding symbolic cases are nested
 accordingly. INCOMPATIBILITY, proofs need to be structured explicitly,
-see HOL/Induct/Common_Patterns.thy, for example.
+see src/HOL/Induct/Common_Patterns.thy, for example.
 
 * Method "induct": mutual induction rules are now specified as a list
 of rule sharing the same induction cases. HOL packages usually provide
@@ -676,8 +677,8 @@ numerals on all operations.
 
   if the additional syntax "p ..." is required.
 
-  Numerous examples can be found in the subdirectories HOL/Auth, HOL/Bali,
-  HOL/Induct, and HOL/MicroJava.
+  Numerous examples can be found in the subdirectories src/HOL/Auth,
+  src/HOL/Bali, src/HOL/Induct, and src/HOL/MicroJava.
 
   INCOMPATIBILITIES:
 
@@ -789,7 +790,7 @@ INCOMPATIBILITY.
 Special syntax: "SUM x <- xs. f x" (and latex variants)
 
 * New syntax for Haskell-like list comprehension (input only), eg.
-[(x,y). x <- xs, y <- ys, x ~= y], see also HOL/List.thy.
+[(x,y). x <- xs, y <- ys, x ~= y], see also src/HOL/List.thy.
 
 * The special syntax for function "filter" has changed from [x :
 xs. P] to [x <- xs. P] to avoid an ambiguity caused by list
@@ -801,7 +802,7 @@ INCOMPATIBILITY.
 
 * Renamed lemma "set_take_whileD"  to "set_takeWhileD".
 
-* New functions "sorted" and "sort" in HOL/List.thy.
+* New functions "sorted" and "sort" in src/HOL/List.thy.
 
 * Function "sgn" is now overloaded and available on int, real, complex
 (and other numeric types), using class "sgn".  Two possible defs of
@@ -819,7 +820,7 @@ have been improved and renamed to ring_simps, group_simps and
 ring_distribs.  Removed lemmas field_xyz in theory Ring_and_Field
 because they were subsumed by lemmas xyz.  INCOMPATIBILITY.
 
-* Library/Commutative_Ring.thy: switched from recdef to function
+* Theory Library/Commutative_Ring: switched from recdef to function
 package; constants add, mul, pow now curried.  Infix syntax for
 algebraic operations.
 
@@ -1003,14 +1004,14 @@ significant changes for setting up numeral syntax for types:
   - Numeral simplification theorems named Numeral.numeral_simps instead of Bin_simps.
   - ML structure Bin_Simprocs now named Int_Numeral_Base_Simprocs.
 
-See HOL/Integ/IntArith.thy for an example setup.
+See src/HOL/Integ/IntArith.thy for an example setup.
 
-* Command 'normal_form' computes the normal form of a
-term that may contain free variables.  For example
-``normal_form "rev [a, b, c]"'' produces ``[b, c, a]'' (without proof).
-This command is suitable for heavy-duty computations because the functions
-are compiled to ML first.  Correspondingly, a method ``normalization''
-is provided.  See further HOL/ex/NormalForm.thy and Tools/nbe.ML.
+* Command 'normal_form' computes the normal form of a term that may
+contain free variables.  For example ``normal_form "rev [a, b, c]"''
+produces ``[b, c, a]'' (without proof).  This command is suitable for
+heavy-duty computations because the functions are compiled to ML
+first.  Correspondingly, a method "normalization" is provided.  See
+further src/HOL/ex/NormalForm.thy and src/Tools/nbe.ML.
 
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
@@ -1120,10 +1121,10 @@ where f is supposed to be a computable function (in the sense of code
 generattion). The method uses reify to compute s and xs as above then
 applies corr_thm and uses normalization by evaluation to "prove" f s =
 r and finally gets the theorem t = r, which is again applied to the
-subgoal. An Example is available in HOL/ex/ReflectionEx.thy.
+subgoal. An Example is available in src/HOL/ex/ReflectionEx.thy.
 
-* Reflection: Automatic reification now handels binding, an example
-is available in HOL/ex/ReflectionEx.thy
+* Reflection: Automatic reification now handels binding, an example is
+available in src/HOL/ex/ReflectionEx.thy
 
 
 *** HOL-Complex ***
@@ -1202,8 +1203,8 @@ of algebraic structures.
 *** HOL-Nominal ***
 
 * Substantial, yet incomplete support for nominal datatypes (binding
-structures) based on HOL-Nominal logic.  See HOL/Nominal and
-HOL/Nominal/Examples.  Prespective users should consult
+structures) based on HOL-Nominal logic.  See src/HOL/Nominal and
+src/HOL/Nominal/Examples.  Prospective users should consult
 http://isabelle.in.tum.de/nominal/
 
 
