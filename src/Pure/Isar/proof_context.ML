@@ -563,6 +563,8 @@ end;
 
 (* type checking/inference *)
 
+local
+
 fun standard_infer_types ctxt ts =
   let val Mode {pattern, ...} = get_mode ctxt in
     TypeInfer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
@@ -571,8 +573,6 @@ fun standard_infer_types ctxt ts =
     |> #1 |> map #1
     handle TYPE (msg, _, _) => error msg
   end;
-
-local
 
 fun standard_typ_check ctxt =
   map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
@@ -647,13 +647,12 @@ fun parse_typ ctxt str =
 fun parse_term T ctxt str =
   let
     val thy = theory_of ctxt;
-    val infer = singleton (standard_infer_types (Type.set_mode Type.mode_default ctxt)) o
-      TypeInfer.constrain T;
-    fun check t = Exn.Result (infer t) handle ERROR msg => Exn.Exn (ERROR msg);
+    val (T', _) = TypeInfer.paramify_dummies T 0;
+    fun check t = Exn.Result (Syntax.check_term ctxt (TypeInfer.constrain T' t))
+      handle ERROR msg => Exn.Exn (ERROR msg);
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
     val read = Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort
-      map_const map_free map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt)
-      ((#1 (TypeInfer.paramify_dummies T 0)));
+      map_const map_free map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) T';
   in read str end;
 
 
