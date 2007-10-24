@@ -80,11 +80,9 @@ fun fundef_afterqed config fixes post defname cont sort_cont [[proof]] lthy =
 
       val cdata = FundefCtxData { add_simps=addsmps, psimps=psimps',
                                   pinducts=snd pinducts', termination=termination', fs=fs, R=R, defname=defname }
-      val cdata' = cdata |> morph_fundef_data (LocalTheory.target_morphism lthy);  (* FIXME !? *)
     in
       lthy 
-        |> LocalTheory.declaration (fn phi => add_fundef_data (morph_fundef_data phi cdata)) (* save in target *)
-        |> Context.proof_map (add_fundef_data cdata') (* also save in local context *)
+        |> LocalTheory.declaration (fn phi => add_fundef_data (morph_fundef_data phi cdata))
     end (* FIXME: Add cases for induct and cases thm *)
 
 
