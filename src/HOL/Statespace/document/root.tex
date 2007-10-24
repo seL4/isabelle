@@ -1,0 +1,83 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage[greek,english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+%\usepackage[latin1]{inputenc}
+  %for \<onesuperior>, \<onequarter>, \<twosuperior>, \<onehalf>,
+  %\<threesuperior>, \<threequarters>, \<degree>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<cent>, \<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{State Spaces: The Locale Way}
+\author{Norbert Schirmer}
+\maketitle
+
+\tableofcontents
+
+%\parindent 0pt\parskip 0.5ex
+
+\section{Introduction}
+
+These theories introduce a new command called \isacommand{statespace}. 
+It's usage is similar to \isacommand{record}s. However, the command does not introduce a new type but an
+abstract specification based on the locale infrastructure. This leads
+to extra flexibility in composing state space components, in particular
+multiple inheritance and renaming of components.
+
+The state space infrastructure basically manages the following things:
+\begin{itemize}
+\item distinctness of field names
+\item projections~/ injections from~/ to an abstract \emph{value} type
+\item syntax translations for lookup and update, hiding the projections and injections
+\item simplification procedure for lookups~/ updates, similar to records
+\end{itemize}
+
+
+\paragraph{Overview}
+In Section \ref{sec:DistinctTreeProver} we define distinctness of the nodes in a binary tree and provide the basic prover tools to support efficient distinctness reasoning for field names managed by 
+state spaces. The state is represented as a function from (abstract) names to (abstract) values as
+introduced in Section \ref{sec:StateFun}. The basic setup for state spaces is in Section 
+\ref{sec:StateSpaceLocale}. Some syntax for lookup and updates is added in Section \ref{sec:StateSpaceSyntax}. Finally Section \ref{sec:Examples} explains the usage of state spaces by examples.
+
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+%\bibliographystyle{abbrv}
+%\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
