@@ -25,6 +25,7 @@ signature RECORD_PACKAGE =
 sig
   include BASIC_RECORD_PACKAGE
   val quiet_mode: bool ref
+  val timing: bool ref
   val record_quick_and_dirty_sensitive: bool ref
   val updateN: string
   val updN: string
@@ -121,6 +122,7 @@ fun trace_term str t =
 
 (* timing *)
 
+val timing = ref false;
 fun timeit_msg s x = if !timing then (warning s; timeit x) else x ();
 fun timing_msg s = if !timing then warning s else ();
 
