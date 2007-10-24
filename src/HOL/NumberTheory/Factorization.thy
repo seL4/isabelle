@@ -291,7 +291,8 @@ lemma perm_primel_ex:
 lemma primel_prod_less:
   "primel (x # xs) ==>
     primel ys ==> prod (x # xs) = prod ys ==> prod xs < prod ys"
-  by (metis Nat.less_asym linorder_neqE_nat mult_less_cancel2 nat_0_less_mult_iff nat_less_le nat_mult_1 prime_def primel_hd_tl primel_prod_gz prod.simps(2))
+  by (metis Nat.less_asym linorder_neqE_nat mult_less_cancel2 nat_0_less_mult_iff
+    nat_less_le nat_mult_1 prime_def primel_hd_tl primel_prod_gz prod.simps(2))
 
 lemma prod_one_empty:
     "primel xs ==> p * prod xs = p ==> prime p ==> xs = []"
@@ -322,7 +323,15 @@ lemma factor_unique [rule_format]:
    apply (simp add: perm_sing_eq primel_hd_tl)
    apply (rule_tac p = a in prod_one_empty)
      apply simp_all
-  apply (metis nat_0_less_mult_iff nat_mult_eq_cancel1 perm_primel perm_prod primel_prod_gz primel_prod_less primel_tl prod.simps(2))
+  apply (erule uniq_ex_aux)
+     apply (auto intro: primel_tl perm_primel simp add: primel_hd_tl)
+   apply (rule_tac k = a and n = "prod list" and m = "prod x" in mult_left_cancel)
+    apply (rule_tac [3] x = a in primel_prod_less)
+      apply (rule_tac [2] prod_xy_prod)
+      apply (rule_tac [2] s = "prod ys" in HOL.trans)
+       apply (erule_tac [3] perm_prod)
+      apply (erule_tac [5] perm_prod [symmetric])
+     apply (auto intro: perm_primel prime_g_zero)
   done
 
 lemma perm_nondec_unique:
