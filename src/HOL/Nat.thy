@@ -1147,8 +1147,8 @@ lemma [code func]:
   using Suc_le_eq less_Suc_eq_le by simp_all
 
 
-subsection{*Embedding of the Naturals into any
-  @{text semiring_1}: @{term of_nat}*}
+subsection {* Embedding of the Naturals into any
+  @{text semiring_1}: @{term of_nat} *}
 
 context semiring_1
 begin
@@ -1156,7 +1156,101 @@ begin
 definition
   of_nat_def: "of_nat = nat_rec 0 (\<lambda>_. (op +) 1)"
 
+lemma of_nat_simps [simp, code]:
+  shows of_nat_0:   "of_nat 0 = 0"
+    and of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
+  unfolding of_nat_def by simp_all
+
+lemma of_nat_1 [simp]: "of_nat 1 = 1"
+  by simp
+
+lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
+  by (induct m) (simp_all add: add_ac)
+
+lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
+  by (induct m) (simp_all add: add_ac left_distrib)
+
 end
+
+context ordered_semidom
+begin
+
+lemma zero_le_imp_of_nat: "0 \<le> of_nat m"
+  apply (induct m, simp_all)
+  apply (erule order_trans)
+  apply (rule ord_le_eq_trans [OF _ add_commute])
+  apply (rule less_add_one [THEN less_imp_le])
+  done
+
+lemma less_imp_of_nat_less: "m < n \<Longrightarrow> of_nat m < of_nat n"
+  apply (induct m n rule: diff_induct, simp_all)
+  apply (insert add_less_le_mono [OF zero_less_one zero_le_imp_of_nat], force)
+  done
+
+lemma of_nat_less_imp_less: "of_nat m < of_nat n \<Longrightarrow> m < n"
+  apply (induct m n rule: diff_induct, simp_all)
+  apply (insert zero_le_imp_of_nat)
+  apply (force simp add: not_less [symmetric])
+  done
+
+lemma of_nat_less_iff [simp]: "of_nat m < of_nat n \<longleftrightarrow> m < n"
+  by (blast intro: of_nat_less_imp_less less_imp_of_nat_less)
+
+text{*Special cases where either operand is zero*}
+
+lemma of_nat_0_less_iff [simp]: "0 < of_nat n \<longleftrightarrow> 0 < n"
+  by (rule of_nat_less_iff [of 0, simplified])
+
+lemma of_nat_less_0_iff [simp]: "\<not> of_nat m < 0"
+  by (rule of_nat_less_iff [of _ 0, simplified])
+
+lemma of_nat_le_iff [simp]:
+  "of_nat m \<le> of_nat n \<longleftrightarrow> m \<le> n"
+  by (simp add: not_less [symmetric] linorder_not_less [symmetric])
+
+text{*Special cases where either operand is zero*}
+
+lemma of_nat_0_le_iff [simp]: "0 \<le> of_nat n"
+  by (rule of_nat_le_iff [of 0, simplified])
+
+lemma of_nat_le_0_iff [simp, noatp]: "of_nat m \<le> 0 \<longleftrightarrow> m = 0"
+  by (rule of_nat_le_iff [of _ 0, simplified])
+
+end
+
+lemma of_nat_id [simp]: "of_nat n = n"
+  by (induct n) auto
+
+lemma of_nat_eq_id [simp]: "of_nat = id"
+  by (auto simp add: expand_fun_eq)
+
+text{*Class for unital semirings with characteristic zero.
+ Includes non-ordered rings like the complex numbers.*}
+
+class semiring_char_0 = semiring_1 +
+  assumes of_nat_eq_iff [simp]: "of_nat m = of_nat n \<longleftrightarrow> m = n"
+
+text{*Every @{text ordered_semidom} has characteristic zero.*}
+
+subclass (in ordered_semidom) semiring_char_0
+  by unfold_locales (simp add: eq_iff order_eq_iff)
+
+context semiring_char_0
+begin
+
+text{*Special cases where either operand is zero*}
+
+lemma of_nat_0_eq_iff [simp, noatp]: "0 = of_nat n \<longleftrightarrow> 0 = n"
+  by (rule of_nat_eq_iff [of 0, simplified])
+
+lemma of_nat_eq_0_iff [simp, noatp]: "of_nat m = 0 \<longleftrightarrow> m = 0"
+  by (rule of_nat_eq_iff [of _ 0, simplified])
+
+lemma inj_of_nat: "inj of_nat"
+  by (simp add: inj_on_def)
+
+end
+
 
 subsection {* Further Arithmetic Facts Concerning the Natural Numbers *}
 
@@ -1164,7 +1258,6 @@ lemma subst_equals:
   assumes 1: "t = s" and 2: "u = t"
   shows "u = s"
   using 2 1 by (rule trans)
-
 
 use "arith_data.ML"
 declaration {* K arith_data_setup *}
@@ -1185,6 +1278,18 @@ lemma nat_diff_split:
   "P(a - b::nat) = ((a<b --> P 0) & (ALL d. a = b + d --> P d))"
     -- {* elimination of @{text -} on @{text nat} *}
 by (cases "a<b" rule: case_split) (auto simp add: diff_is_0_eq [THEN iffD2])
+
+context ring_1
+begin
+
+lemma of_nat_diff: "n \<le> m \<Longrightarrow> of_nat (m - n) = of_nat m - of_nat n"
+  by (simp del: of_nat_add
+    add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
+
+end
+
+lemma abs_of_nat [simp]: "\<bar>of_nat n::'a::ordered_idom\<bar> = of_nat n"
+  by (rule of_nat_0_le_iff [THEN abs_of_nonneg])
 
 lemma nat_diff_split_asm:
   "P(a - b::nat) = (~ (a < b & ~ P 0 | (EX d. a = b + d & ~ P d)))"
@@ -1333,141 +1438,52 @@ text{*At present we prove no analogue of @{text not_less_Least} or @{text
 Least_Suc}, since there appears to be no need.*}
 
 
-subsection{*Embedding of the Naturals into any
-  @{text semiring_1}: @{term of_nat}*}
+subsection {*The Set of Natural Numbers*}
 
 context semiring_1
 begin
 
-lemma of_nat_simps [simp, code]:
-  shows of_nat_0:   "of_nat 0 = 0"
-    and of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
-  unfolding of_nat_def by simp_all
-
-end
-
-lemma of_nat_id [simp]: "(of_nat n \<Colon> nat) = n"
-by (induct n) auto
-
-lemma of_nat_1 [simp]: "of_nat 1 = 1"
-by simp
-
-lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
-by (induct m) (simp_all add: add_ac)
-
-lemma of_nat_mult: "of_nat (m*n) = of_nat m * of_nat n"
-by (induct m) (simp_all add: add_ac left_distrib)
-
-lemma zero_le_imp_of_nat: "0 \<le> (of_nat m::'a::ordered_semidom)"
-  apply (induct m, simp_all)
-  apply (erule order_trans)
-  apply (rule ord_le_eq_trans [OF _ add_commute])
-  apply (rule less_add_one [THEN order_less_imp_le])
-  done
-
-lemma less_imp_of_nat_less:
-    "m < n ==> of_nat m < (of_nat n::'a::ordered_semidom)"
-  apply (induct m n rule: diff_induct, simp_all)
-  apply (insert add_less_le_mono [OF zero_less_one zero_le_imp_of_nat], force)
-  done
-
-lemma of_nat_less_imp_less:
-    "of_nat m < (of_nat n::'a::ordered_semidom) ==> m < n"
-  apply (induct m n rule: diff_induct, simp_all)
-  apply (insert zero_le_imp_of_nat)
-  apply (force simp add: linorder_not_less [symmetric])
-  done
-
-lemma of_nat_less_iff [simp]:
-  "(of_nat m < (of_nat n::'a::ordered_semidom)) = (m<n)"
-by (blast intro: of_nat_less_imp_less less_imp_of_nat_less)
-
-text{*Special cases where either operand is zero*}
-
-lemma of_nat_0_less_iff [simp]: "((0::'a::ordered_semidom) < of_nat n) = (0 < n)"
-by (rule of_nat_less_iff [of 0, simplified])
-
-lemma of_nat_less_0_iff [simp]: "\<not> of_nat m < (0::'a::ordered_semidom)"
-by (rule of_nat_less_iff [of _ 0, simplified])
-
-lemma of_nat_le_iff [simp]:
-  "(of_nat m \<le> (of_nat n::'a::ordered_semidom)) = (m \<le> n)"
-by (simp add: linorder_not_less [symmetric])
-
-text{*Special cases where either operand is zero*}
-lemma of_nat_0_le_iff [simp]: "(0::'a::ordered_semidom) \<le> of_nat n"
-by (rule of_nat_le_iff [of 0, simplified])
-lemma of_nat_le_0_iff [simp,noatp]: "(of_nat m \<le> (0::'a::ordered_semidom)) = (m = 0)"
-by (rule of_nat_le_iff [of _ 0, simplified])
-
-text{*Class for unital semirings with characteristic zero.
- Includes non-ordered rings like the complex numbers.*}
-
-class semiring_char_0 = semiring_1 +
-  assumes of_nat_eq_iff [simp]:
-    "of_nat m = of_nat n \<longleftrightarrow> m = n"
-
-text{*Every @{text ordered_semidom} has characteristic zero.*}
-instance ordered_semidom < semiring_char_0
-by intro_classes (simp add: order_eq_iff)
-
-text{*Special cases where either operand is zero*}
-lemma of_nat_0_eq_iff [simp,noatp]: "((0::'a::semiring_char_0) = of_nat n) = (0 = n)"
-by (rule of_nat_eq_iff [of 0, simplified])
-lemma of_nat_eq_0_iff [simp,noatp]: "(of_nat m = (0::'a::semiring_char_0)) = (m = 0)"
-by (rule of_nat_eq_iff [of _ 0, simplified])
-
-lemma inj_of_nat: "inj (of_nat :: nat \<Rightarrow> 'a::semiring_char_0)"
-by (simp add: inj_on_def)
-
-lemma of_nat_diff:
-  "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::ring_1)"
-by (simp del: of_nat_add
-    add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
-
-lemma abs_of_nat [simp]: "\<bar>of_nat n::'a::ordered_idom\<bar> = of_nat n"
-by (rule of_nat_0_le_iff [THEN abs_of_nonneg])
-
-
-subsection {*The Set of Natural Numbers*}
-
 definition
-  Nats  :: "'a::semiring_1 set"
+  Nats  :: "'a set"
 where
   "Nats = range of_nat"
+
+end
 
 notation (xsymbols)
   Nats  ("\<nat>")
 
-lemma of_nat_in_Nats [simp]: "of_nat n \<in> Nats"
-by (simp add: Nats_def)
+context semiring_1
+begin
 
-lemma Nats_0 [simp]: "0 \<in> Nats"
+lemma of_nat_in_Nats [simp]: "of_nat n \<in> \<nat>"
+  by (simp add: Nats_def)
+
+lemma Nats_0 [simp]: "0 \<in> \<nat>"
 apply (simp add: Nats_def)
 apply (rule range_eqI)
 apply (rule of_nat_0 [symmetric])
 done
 
-lemma Nats_1 [simp]: "1 \<in> Nats"
+lemma Nats_1 [simp]: "1 \<in> \<nat>"
 apply (simp add: Nats_def)
 apply (rule range_eqI)
 apply (rule of_nat_1 [symmetric])
 done
 
-lemma Nats_add [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> a+b \<in> Nats"
+lemma Nats_add [simp]: "a \<in> \<nat> \<Longrightarrow> b \<in> \<nat> \<Longrightarrow> a + b \<in> \<nat>"
 apply (auto simp add: Nats_def)
 apply (rule range_eqI)
 apply (rule of_nat_add [symmetric])
 done
 
-lemma Nats_mult [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> a*b \<in> Nats"
+lemma Nats_mult [simp]: "a \<in> \<nat> \<Longrightarrow> b \<in> \<nat> \<Longrightarrow> a * b \<in> \<nat>"
 apply (auto simp add: Nats_def)
 apply (rule range_eqI)
 apply (rule of_nat_mult [symmetric])
 done
 
-lemma of_nat_eq_id [simp]: "of_nat = (id :: nat => nat)"
-by (auto simp add: expand_fun_eq)
+end
 
 
 text {* the lattice order on @{typ nat} *}

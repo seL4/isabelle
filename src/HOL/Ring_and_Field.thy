@@ -1908,15 +1908,20 @@ declare times_divide_eq [simp]
 
 subsection {* Ordered Fields are Dense *}
 
-lemma less_add_one: "a < (a+1::'a::ordered_semidom)"
+context ordered_semidom
+begin
+
+lemma less_add_one: "a < a + 1"
 proof -
-  have "a+0 < (a+1::'a::ordered_semidom)"
+  have "a + 0 < a + 1"
     by (blast intro: zero_less_one add_strict_left_mono)
   thus ?thesis by simp
 qed
 
-lemma zero_less_two: "0 < (1+1::'a::ordered_semidom)"
-by (blast intro: order_less_trans zero_less_one less_add_one)
+lemma zero_less_two: "0 < 1 + 1"
+  by (blast intro: less_trans zero_less_one less_add_one)
+
+end
 
 lemma less_half_sum: "a < b ==> a < (a+b) / (1+1::'a::ordered_field)"
 by (simp add: field_simps zero_less_two)

@@ -426,8 +426,11 @@ by (simp add: linorder_not_less neg_def)
 
 subsection{*Embedding of the Integers into any @{text ring_1}: @{term of_int}*}
 
+context ring_1
+begin
+
 definition
-  of_int :: "int \<Rightarrow> 'a\<Colon>ring_1"
+  of_int :: "int \<Rightarrow> 'a"
 where
   "of_int z = contents (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 lemmas [code func del] = of_int_def
@@ -453,14 +456,20 @@ by (cases w, cases z, simp add: compare_rls of_int add)
 lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
 by (cases z, simp add: compare_rls of_int minus)
 
-lemma of_int_diff [simp]: "of_int (w-z) = of_int w - of_int z"
-by (simp add: diff_minus)
-
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
 apply (cases w, cases z)
 apply (simp add: compare_rls of_int left_diff_distrib right_diff_distrib
                  mult add_ac of_nat_mult)
 done
+
+text{*Collapse nested embeddings*}
+lemma of_int_of_nat_eq [simp]: "of_int (Nat.of_nat n) = of_nat n"
+  by (induct n, auto)
+
+end
+
+lemma of_int_diff [simp]: "of_int (w-z) = of_int w - of_int z"
+by (simp add: diff_minus)
 
 lemma of_int_le_iff [simp]:
      "(of_int w \<le> (of_int z::'a::ordered_idom)) = (w \<le> z)"
@@ -474,7 +483,6 @@ text{*Special cases where either operand is zero*}
 lemmas of_int_0_le_iff [simp] = of_int_le_iff [of 0, simplified]
 lemmas of_int_le_0_iff [simp] = of_int_le_iff [of _ 0, simplified]
 
-
 lemma of_int_less_iff [simp]:
      "(of_int w < (of_int z::'a::ordered_idom)) = (w < z)"
 by (simp add: linorder_not_le [symmetric])
@@ -486,82 +494,82 @@ lemmas of_int_less_0_iff [simp] = of_int_less_iff [of _ 0, simplified]
 text{*Class for unital rings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}
 class ring_char_0 = ring_1 + semiring_char_0
+begin
 
 lemma of_int_eq_iff [simp]:
-   "of_int w = (of_int z \<Colon> 'a\<Colon>ring_char_0) \<longleftrightarrow> w = z"
+   "of_int w = of_int z \<longleftrightarrow> w = z"
 apply (cases w, cases z, simp add: of_int)
 apply (simp only: diff_eq_eq diff_add_eq eq_diff_eq)
 apply (simp only: of_nat_add [symmetric] of_nat_eq_iff)
 done
 
-text{*Every @{text ordered_idom} has characteristic zero.*}
-instance ordered_idom < ring_char_0 ..
-
 text{*Special cases where either operand is zero*}
 lemmas of_int_0_eq_iff [simp] = of_int_eq_iff [of 0, simplified]
 lemmas of_int_eq_0_iff [simp] = of_int_eq_iff [of _ 0, simplified]
 
-lemma of_int_eq_id [simp]: "of_int = (id :: int => int)"
+end
+
+text{*Every @{text ordered_idom} has characteristic zero.*}
+instance ordered_idom \<subseteq> ring_char_0 ..
+
+lemma of_int_eq_id [simp]: "of_int = id"
 proof
-  fix z
-  show "of_int z = id z"
-    by (cases z)
-      (simp add: of_int add minus int_def diff_minus)
+  fix z show "of_int z = id z"
+    by (cases z) (simp add: of_int add minus int_def diff_minus)
 qed
 
-lemma of_nat_nat: "0 \<le> z ==> of_nat (nat z) = of_int z"
+lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
 by (cases z rule: eq_Abs_Integ)
    (simp add: nat le of_int Zero_int_def of_nat_diff)
 
 
 subsection{*The Set of Integers*}
 
-constdefs
-  Ints  :: "'a::ring_1 set"
-  "Ints == range of_int"
+context ring_1
+begin
+
+definition
+  Ints  :: "'a set"
+where
+  "Ints = range of_int"
+
+end
 
 notation (xsymbols)
   Ints  ("\<int>")
 
-lemma Ints_0 [simp]: "0 \<in> Ints"
+context ring_1
+begin
+
+lemma Ints_0 [simp]: "0 \<in> \<int>"
 apply (simp add: Ints_def)
 apply (rule range_eqI)
 apply (rule of_int_0 [symmetric])
 done
 
-lemma Ints_1 [simp]: "1 \<in> Ints"
+lemma Ints_1 [simp]: "1 \<in> \<int>"
 apply (simp add: Ints_def)
 apply (rule range_eqI)
 apply (rule of_int_1 [symmetric])
 done
 
-lemma Ints_add [simp]: "[|a \<in> Ints; b \<in> Ints|] ==> a+b \<in> Ints"
+lemma Ints_add [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a + b \<in> \<int>"
 apply (auto simp add: Ints_def)
 apply (rule range_eqI)
 apply (rule of_int_add [symmetric])
 done
 
-lemma Ints_minus [simp]: "a \<in> Ints ==> -a \<in> Ints"
+lemma Ints_minus [simp]: "a \<in> \<int> \<Longrightarrow> -a \<in> \<int>"
 apply (auto simp add: Ints_def)
 apply (rule range_eqI)
 apply (rule of_int_minus [symmetric])
 done
 
-lemma Ints_diff [simp]: "[|a \<in> Ints; b \<in> Ints|] ==> a-b \<in> Ints"
-apply (auto simp add: Ints_def)
-apply (rule range_eqI)
-apply (rule of_int_diff [symmetric])
-done
-
-lemma Ints_mult [simp]: "[|a \<in> Ints; b \<in> Ints|] ==> a*b \<in> Ints"
+lemma Ints_mult [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a * b \<in> \<int>"
 apply (auto simp add: Ints_def)
 apply (rule range_eqI)
 apply (rule of_int_mult [symmetric])
 done
-
-text{*Collapse nested embeddings*}
-lemma of_int_of_nat_eq [simp]: "of_int (of_nat n) = of_nat n"
-by (induct n, auto)
 
 lemma Ints_cases [cases set: Ints]:
   assumes "q \<in> \<int>"
@@ -574,8 +582,16 @@ proof -
 qed
 
 lemma Ints_induct [case_names of_int, induct set: Ints]:
-  "q \<in> \<int> ==> (!!z. P (of_int z)) ==> P q"
+  "q \<in> \<int> \<Longrightarrow> (\<And>z. P (of_int z)) \<Longrightarrow> P q"
   by (rule Ints_cases) auto
+
+end
+
+lemma Ints_diff [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a-b \<in> \<int>"
+apply (auto simp add: Ints_def)
+apply (rule range_eqI)
+apply (rule of_int_diff [symmetric])
+done
 
 
 subsection {* @{term setsum} and @{term setprod} *}

@@ -685,17 +685,22 @@ in [tr' All_binder, tr' Ex_binder] end
 
 subsection {* Transitivity reasoning *}
 
-lemma ord_le_eq_trans: "a <= b ==> b = c ==> a <= c"
-by (rule subst)
+context ord
+begin
 
-lemma ord_eq_le_trans: "a = b ==> b <= c ==> a <= c"
-by (rule ssubst)
+lemma ord_le_eq_trans: "a \<le> b \<Longrightarrow> b = c \<Longrightarrow> a \<le> c"
+  by (rule subst)
 
-lemma ord_less_eq_trans: "a < b ==> b = c ==> a < c"
-by (rule subst)
+lemma ord_eq_le_trans: "a = b \<Longrightarrow> b \<le> c \<Longrightarrow> a \<le> c"
+  by (rule ssubst)
 
-lemma ord_eq_less_trans: "a = b ==> b < c ==> a < c"
-by (rule ssubst)
+lemma ord_less_eq_trans: "a < b \<Longrightarrow> b = c \<Longrightarrow> a < c"
+  by (rule subst)
+
+lemma ord_eq_less_trans: "a = b \<Longrightarrow> b < c \<Longrightarrow> a < c"
+  by (rule ssubst)
+
+end
 
 lemma order_less_subst2: "(a::'a::order) < b ==> f b < (c::'c::order) ==>
   (!!x y. x < y ==> f x < f y) ==> f a < c"
