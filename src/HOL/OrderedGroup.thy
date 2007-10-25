@@ -90,9 +90,8 @@ class cancel_semigroup_add = semigroup_add +
 
 class cancel_ab_semigroup_add = ab_semigroup_add +
   assumes add_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
-begin
 
-subclass cancel_semigroup_add
+subclass (in cancel_ab_semigroup_add) cancel_semigroup_add
 proof unfold_locales
   fix a b c :: 'a
   assume "a + b = a + c" 
@@ -104,7 +103,8 @@ next
   then show "b = c" by (rule add_imp_eq)
 qed
 
-end context cancel_ab_semigroup_add begin
+context cancel_ab_semigroup_add
+begin
 
 lemma add_left_cancel [simp]:
   "a + b = a + c \<longleftrightarrow> b = c"
@@ -222,21 +222,6 @@ class ab_group_add = minus + comm_monoid_add +
 
 subclass (in ab_group_add) group_add
   by unfold_locales (simp_all add: ab_left_minus ab_diff_minus)
-
-subclass (in ab_group_add) cancel_semigroup_add
-proof unfold_locales
-  fix a b c :: 'a
-  assume "a + b = a + c"
-  then have "- a + a + b = - a + a + c"
-    unfolding add_assoc by simp
-  then show "b = c" by simp
-next
-  fix a b c :: 'a
-  assume "b + a = c + a"
-  then have "b + (a + - a) = c + (a + - a)"
-    unfolding add_assoc [symmetric] by simp
-  then show "b = c" by simp
-qed
 
 subclass (in ab_group_add) cancel_ab_semigroup_add
 proof unfold_locales
