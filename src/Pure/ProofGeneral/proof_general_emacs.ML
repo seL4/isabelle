@@ -231,7 +231,7 @@ end;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-fun undoP () = (*undo without output*)
+fun undoP () = (*undo without output -- historical*)
   OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 

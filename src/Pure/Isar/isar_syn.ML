@@ -731,7 +731,7 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "undo" "undo last command" K.control
-    (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.undo));
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
 val _ =
   OuterSyntax.improper_command "kill" "kill current history node" K.control
