@@ -42,9 +42,10 @@ class mult_zero = times + zero +
 class semiring_0 = semiring + comm_monoid_add + mult_zero
 
 class semiring_0_cancel = semiring + comm_monoid_add + cancel_ab_semigroup_add
+begin
 
-instance semiring_0_cancel \<subseteq> semiring_0
-proof
+subclass semiring_0
+proof unfold_locales
   fix a :: 'a
   have "0 * a + 0 * a = 0 * a + 0"
     by (simp add: left_distrib [symmetric])
@@ -58,20 +59,7 @@ next
     by (simp only: add_left_cancel)
 qed
 
-interpretation semiring_0_cancel \<subseteq> semiring_0
-proof unfold_locales
-  fix a :: 'a
-  have "plus (times zero a) (times zero a) = plus (times zero a) zero"
-    by (simp add: left_distrib [symmetric])
-  thus "times zero a = zero"
-    by (simp only: add_left_cancel)
-next
-  fix a :: 'a
-  have "plus (times a zero) (times a zero) = plus (times a zero) zero"
-    by (simp add: right_distrib [symmetric])
-  thus "times a zero = zero"
-    by (simp only: add_left_cancel)
-qed
+end
 
 class comm_semiring = ab_semigroup_add + ab_semigroup_mult +
   assumes distrib: "(a + b) * c = a * c + b * c"
@@ -97,10 +85,11 @@ subclass semiring_0 by unfold_locales
 end
 
 class comm_semiring_0_cancel = comm_semiring + comm_monoid_add + cancel_ab_semigroup_add
+begin
 
-instance comm_semiring_0_cancel \<subseteq> semiring_0_cancel ..
+subclass semiring_0_cancel by unfold_locales
 
-interpretation comm_semiring_0_cancel \<subseteq> semiring_0_cancel by unfold_locales
+end
 
 class zero_neq_one = zero + one +
   assumes zero_neq_one [simp]: "0 \<noteq> 1"
@@ -121,30 +110,20 @@ class no_zero_divisors = zero + times +
 class semiring_1_cancel = semiring + comm_monoid_add + zero_neq_one
   + cancel_ab_semigroup_add + monoid_mult
 
-instance semiring_1_cancel \<subseteq> semiring_0_cancel ..
-
-interpretation semiring_1_cancel \<subseteq> semiring_0_cancel by unfold_locales
+subclass (in semiring_1_cancel) semiring_0_cancel by unfold_locales
 
 subclass (in semiring_1_cancel) semiring_1 by unfold_locales
 
 class comm_semiring_1_cancel = comm_semiring + comm_monoid_add + comm_monoid_mult
   + zero_neq_one + cancel_ab_semigroup_add
 
-instance comm_semiring_1_cancel \<subseteq> semiring_1_cancel ..
-
-interpretation comm_semiring_1_cancel \<subseteq> semiring_1_cancel by unfold_locales
-
+subclass (in comm_semiring_1_cancel) semiring_1_cancel by unfold_locales
 subclass (in comm_semiring_1_cancel) comm_semiring_0_cancel by unfold_locales
-
-instance comm_semiring_1_cancel \<subseteq> comm_semiring_1 ..
-
-interpretation comm_semiring_1_cancel \<subseteq> comm_semiring_1 by unfold_locales
+subclass (in comm_semiring_1_cancel) comm_semiring_1 by unfold_locales
 
 class ring = semiring + ab_group_add
 
-instance ring \<subseteq> semiring_0_cancel ..
-
-interpretation ring \<subseteq> semiring_0_cancel by unfold_locales
+subclass (in ring) semiring_0_cancel by unfold_locales
 
 context ring
 begin
@@ -187,47 +166,37 @@ lemmas ring_simps = group_simps ring_distribs
 
 class comm_ring = comm_semiring + ab_group_add
 
-instance comm_ring \<subseteq> ring ..
-
-interpretation comm_ring \<subseteq> ring by unfold_locales
-
-instance comm_ring \<subseteq> comm_semiring_0 ..
-
-interpretation comm_ring \<subseteq> comm_semiring_0 by unfold_locales
+subclass (in comm_ring) ring by unfold_locales
+subclass (in comm_ring) comm_semiring_0 by unfold_locales
 
 class ring_1 = ring + zero_neq_one + monoid_mult
 
-instance ring_1 \<subseteq> semiring_1_cancel ..
-
-interpretation ring_1 \<subseteq> semiring_1_cancel by unfold_locales
+subclass (in ring_1) semiring_1_cancel by unfold_locales
 
 class comm_ring_1 = comm_ring + zero_neq_one + comm_monoid_mult
   (*previously ring*)
 
-instance comm_ring_1 \<subseteq> ring_1 ..
-
-interpretation comm_ring_1 \<subseteq> ring_1 by unfold_locales
-
-instance comm_ring_1 \<subseteq> comm_semiring_1_cancel ..
-
-interpretation comm_ring_1 \<subseteq> comm_semiring_1_cancel by unfold_locales
+subclass (in comm_ring_1) ring_1 by unfold_locales
+subclass (in comm_ring_1) comm_semiring_1_cancel by unfold_locales
 
 class ring_no_zero_divisors = ring + no_zero_divisors
 
 class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors
 
 class idom = comm_ring_1 + no_zero_divisors
+begin
 
-instance idom \<subseteq> ring_1_no_zero_divisors ..
+subclass ring_1_no_zero_divisors by unfold_locales
 
-interpretation idom \<subseteq> ring_1_no_zero_divisors by unfold_locales
+end
 
 class division_ring = ring_1 + inverse +
   assumes left_inverse [simp]:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
   assumes right_inverse [simp]: "a \<noteq> 0 \<Longrightarrow> a * inverse a = 1"
+begin
 
-instance division_ring \<subseteq> ring_1_no_zero_divisors
-proof
+subclass ring_1_no_zero_divisors
+proof unfold_locales
   fix a b :: 'a
   assume a: "a \<noteq> 0" and b: "b \<noteq> 0"
   show "a * b \<noteq> 0"
@@ -244,44 +213,19 @@ proof
   qed
 qed
 
-interpretation division_ring \<subseteq> ring_1_no_zero_divisors
-proof unfold_locales
-  fix a b :: 'a
-  assume a: "a \<noteq> zero" and b: "b \<noteq> zero"
-  show "times a b \<noteq> zero"
-  proof
-    assume ab: "times a b = zero"
-    hence "zero = times (times (inverse a) (times a b)) (inverse b)"
-      by simp
-    also have "\<dots> = times (times (inverse a) a) (times b (inverse b))"
-      by (simp only: mult_assoc)
-    also have "\<dots> = one"
-      using a b by simp
-    finally show False
-      by simp
-  qed
-qed
+end
 
 class field = comm_ring_1 + inverse +
   assumes field_inverse:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
   assumes divide_inverse: "a / b = a * inverse b"
 
-instance field \<subseteq> division_ring
-proof
+subclass (in field) division_ring
+proof unfold_locales
   fix a :: 'a
   assume "a \<noteq> 0"
   thus "inverse a * a = 1" by (rule field_inverse)
   thus "a * inverse a = 1" by (simp only: mult_commute)
 qed
-
-interpretation field \<subseteq> division_ring
-proof unfold_locales
-  fix a :: 'a
-  assume "a \<noteq> zero"
-  thus "times (inverse a) a = one" by (rule field_inverse)
-  thus "times a (inverse a) = one" by (simp only: mult_commute)
-qed
-
 subclass (in field) idom by unfold_locales
 
 class division_by_zero = zero + inverse +
@@ -296,48 +240,32 @@ class pordered_semiring = mult_mono + semiring_0 + pordered_ab_semigroup_add
 class pordered_cancel_semiring = mult_mono + pordered_ab_semigroup_add
   + semiring + comm_monoid_add + cancel_ab_semigroup_add
 
-instance pordered_cancel_semiring \<subseteq> semiring_0_cancel ..
-
-interpretation pordered_cancel_semiring \<subseteq> semiring_0_cancel by unfold_locales
-
+subclass (in pordered_cancel_semiring) semiring_0_cancel by unfold_locales
 subclass (in pordered_cancel_semiring) pordered_semiring by unfold_locales
 
 class ordered_semiring = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add + mult_mono
+begin
 
-instance ordered_semiring \<subseteq> pordered_cancel_semiring ..
+subclass pordered_cancel_semiring by unfold_locales
 
-interpretation ordered_semiring \<subseteq> pordered_cancel_semiring by unfold_locales
+end
 
 class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add +
   assumes mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
   assumes mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
 
-instance ordered_semiring_strict \<subseteq> semiring_0_cancel ..
+subclass (in ordered_semiring_strict) semiring_0_cancel by unfold_locales
 
-interpretation ordered_semiring_strict \<subseteq> semiring_0_cancel by unfold_locales
-
-instance ordered_semiring_strict \<subseteq> ordered_semiring
-proof
+subclass (in ordered_semiring_strict) ordered_semiring
+proof unfold_locales
   fix a b c :: 'a
   assume A: "a \<le> b" "0 \<le> c"
   from A show "c * a \<le> c * b"
-    unfolding order_le_less
-    using mult_strict_left_mono by auto
-  from A show "a * c \<le> b * c"
-    unfolding order_le_less
-    using mult_strict_right_mono by auto
-qed
-
-interpretation ordered_semiring_strict \<subseteq> ordered_semiring
-proof unfold_locales
-  fix a b c :: 'a
-  assume A: "less_eq a b" "less_eq zero c"
-  from A show "less_eq (times c a) (times c b)"
-    unfolding le_less  
-    using mult_strict_left_mono by (cases "c = zero") auto
-  from A show "less_eq (times a c) (times b c)"
     unfolding le_less
-    using mult_strict_right_mono by (cases "c = zero") auto
+    using mult_strict_left_mono by (cases "c = 0") auto
+  from A show "a * c \<le> b * c"
+    unfolding le_less
+    using mult_strict_right_mono by (cases "c = 0") auto
 qed
 
 class mult_mono1 = times + zero + ord +
@@ -348,64 +276,70 @@ class pordered_comm_semiring = comm_semiring_0
 
 class pordered_cancel_comm_semiring = comm_semiring_0_cancel
   + pordered_ab_semigroup_add + mult_mono1
+begin
 
--- {*FIXME: continue localization here*}
+subclass pordered_comm_semiring by unfold_locales
 
-instance pordered_cancel_comm_semiring \<subseteq> pordered_comm_semiring ..
+end
 
 class ordered_comm_semiring_strict = comm_semiring_0 + ordered_cancel_ab_semigroup_add +
   assumes mult_strict_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
 
-instance pordered_comm_semiring \<subseteq> pordered_semiring
-proof
+subclass (in pordered_comm_semiring) pordered_semiring
+proof unfold_locales
   fix a b c :: 'a
   assume "a \<le> b" "0 \<le> c"
   thus "c * a \<le> c * b" by (rule mult_mono)
   thus "a * c \<le> b * c" by (simp only: mult_commute)
 qed
 
-instance pordered_cancel_comm_semiring \<subseteq> pordered_cancel_semiring ..
+subclass (in pordered_cancel_comm_semiring) pordered_cancel_semiring
+  by unfold_locales
 
-instance ordered_comm_semiring_strict \<subseteq> ordered_semiring_strict
-proof
+subclass (in ordered_comm_semiring_strict) ordered_semiring_strict
+proof unfold_locales
   fix a b c :: 'a
   assume "a < b" "0 < c"
   thus "c * a < c * b" by (rule mult_strict_mono)
   thus "a * c < b * c" by (simp only: mult_commute)
 qed
 
-instance ordered_comm_semiring_strict \<subseteq> pordered_cancel_comm_semiring
-proof
+subclass (in ordered_comm_semiring_strict) pordered_cancel_comm_semiring
+proof unfold_locales
   fix a b c :: 'a
   assume "a \<le> b" "0 \<le> c"
   thus "c * a \<le> c * b"
-    unfolding order_le_less
-    using mult_strict_mono by auto
+    unfolding le_less
+    using mult_strict_mono by (cases "c = 0") auto
 qed
 
 class pordered_ring = ring + pordered_cancel_semiring 
+begin
 
-instance pordered_ring \<subseteq> pordered_ab_group_add ..
+subclass pordered_ab_group_add by unfold_locales
+
+end
 
 class lordered_ring = pordered_ring + lordered_ab_group_abs
 
-instance lordered_ring \<subseteq> lordered_ab_group_meet ..
-
-instance lordered_ring \<subseteq> lordered_ab_group_join ..
+subclass (in lordered_ring) lordered_ab_group_meet by unfold_locales
+subclass (in lordered_ring) lordered_ab_group_join by unfold_locales
 
 class abs_if = minus + ord + zero + abs +
-  assumes abs_if: "abs a = (if a < 0 then (uminus a) else a)"
+  assumes abs_if: "\<bar>a\<bar> = (if a < 0 then (- a) else a)"
 
 class sgn_if = sgn + zero + one + minus + ord +
-  assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else uminus 1)"
+  assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
 
 (* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.
    Basically, ordered_ring + no_zero_divisors = ordered_ring_strict.
  *)
 class ordered_ring = ring + ordered_semiring + lordered_ab_group + abs_if
 
+-- {*FIXME: continue localization here*}
+
 instance ordered_ring \<subseteq> lordered_ring
-proof
+proof 
   fix x :: 'a
   show "\<bar>x\<bar> = sup x (- x)"
     by (simp only: abs_if sup_eq_if)
