@@ -110,8 +110,7 @@ lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "[Suc 0, 0] = [Suc 0, 0]" by normalization
 lemma "max (Suc 0) 0 = Suc 0" by normalization
-lemma "(42::rat) / 1704 = 7 / 284" by normalization
-
+lemma "(42::rat) / 1704 = 1 / 284 + 3 / 142" by normalization
 normal_form "Suc 0 \<in> set ms"
 
 normal_form "f"
