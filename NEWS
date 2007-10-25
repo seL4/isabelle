@@ -118,6 +118,7 @@ context).  Within the body context of a 'class' target, a separate
 syntax layer ("user space type system") takes care of converting
 between global polymorphic consts and internal locale representation.
 See src/HOL/ex/Classpackage.thy for examples (as well as main HOL).
+"isatool doc classes" provides a tutorial.
 
 * Yet another code generator framework allows to generate executable
 code for ML and Haskell (including Isabelle classes).  A short usage
@@ -132,7 +133,10 @@ sketch:
     writing Haskell code to a bunch of files:
         code_gen <list of constants (term syntax)> in Haskell <filename>
 
-Reasonable default setup of framework in HOL/Main.
+    evaluating propositions to True/False using code generation:
+        method ``eval''
+
+Reasonable default setup of framework in HOL.
 
 Theorem attributs for selecting and transforming function equations theorems:
 
@@ -167,12 +171,6 @@ codegen".
 * Code generator: consts in 'consts_code' Isar commands are now
 referred to by usual term syntax (including optional type
 annotations).
-
-* Code generator: basic definitions (from 'definition', 'constdefs',
-or primitive 'instance' definitions) are added automatically to the
-table of defining equations.  Primitive defs are not used as defining
-equations by default any longer.  Defining equations are now definitly
-restricted to meta "==" and object equality "=".
 
 * Command 'no_translations' removes translation rules from theory
 syntax.
@@ -563,35 +561,221 @@ successful. These can be pasted into the proof.  Users do not have to
 wait for the automatic provers to return.  WARNING: does not really
 work with multi-threading.
 
-* Localized monotonicity predicate in theory "Orderings"; integrated
-lemmas max_of_mono and min_of_mono with this predicate.
-INCOMPATIBILITY.
-
-* Class "div" now inherits from class "times" rather than "type".
-INCOMPATIBILITY.
-
 * New "auto_quickcheck" feature tests outermost goal statements for
 potential counter-examples.  Controlled by ML references
 auto_quickcheck (default true) and auto_quickcheck_time_limit (default
 5000 milliseconds).  Fails silently if statements is outside of
 executable fragment, or any other codgenerator problem occurs.
 
-* Internal reorganisation of `size' of datatypes: size theorems
-"foo.size" are no longer subsumed by "foo.simps" (but are still
-simplification rules by default!); theorems "prod.size" now named
-"*.size"
+* New constant "undefined" with axiom "undefined x = undefined".
+
+* Added class "HOL.eq", allowing for code generation with polymorphic
+equality.
+
+* Some renaming of class constants due to canonical name prefixing in
+the new 'class' package:
+
+    HOL.abs ~> HOL.abs_class.abs
+    HOL.divide ~> HOL.divide_class.divide
+    0 ~> HOL.zero_class.zero
+    1 ~> HOL.one_class.one
+    op + ~> HOL.plus_class.plus
+    op - ~> HOL.minus_class.minus
+    uminus ~> HOL.minus_class.uminus
+    op * ~> HOL.times_class.times
+    op < ~> HOL.ord_class.less
+    op <= > HOL.ord_class.less_eq
+    Nat.power ~> Power.power_class.power
+    Nat.size ~> Nat.size_class.size
+    Numeral.number_of ~> Numeral.number_class.number_of
+    FixedPoint.Inf ~> Lattices.complete_lattice_class.Inf
+    FixedPoint.Sup ~> Lattices.complete_lattice_class.Sup
+    Orderings.min ~> Orderings.ord_class.min
+    Orderings.max ~> Orderings.ord_class.max
+    Divides.op div ~> Divides.div_class.div
+    Divides.op mod ~> Divides.div_class.mod
+    Divides.op dvd ~> Divides.div_class.dvd
+
+INCOMPATIBILITY.  Adaptions may be required in the following cases:
+
+a) User-defined constants using any of the names "plus", "minus",
+"times", "less" or "less_eq". The standard syntax translations for
+"+", "-" and "*" may go wrong.  INCOMPATIBILITY: use more specific
+names.
+
+b) Variables named "plus", "minus", "times", "less", "less_eq"
+INCOMPATIBILITY: use more specific names.
+
+c) Permutative equations (e.g. "a + b = b + a")
+Since the change of names also changes the order of terms, permutative
+rewrite rules may get applied in a different order. Experience shows
+that this is rarely the case (only two adaptions in the whole Isabelle
+distribution).  INCOMPATIBILITY: rewrite proofs
+
+d) ML code directly refering to constant names
+This in general only affects hand-written proof tactics, simprocs and
+so on.  INCOMPATIBILITY: grep your sourcecode and replace names.
+Consider using @{const_name} antiquotation.
+
+* New class "default" with associated constant "default".
+
+* Function "sgn" is now overloaded and available on int, real, complex
+(and other numeric types), using class "sgn".  Two possible defs of
+sgn are given as equational assumptions in the classes sgn_if and
+sgn_div_norm; ordered_idom now also inherits from sgn_if.
+INCOMPATIBILITY.
+
+* Locale "partial_order" now unified with class "order" (cf. theory
+Orderings), added parameter "less".  INCOMPATIBILITY.
+
+* Renamings in classes "order" and "linorder": facts "refl", "trans" and
+"cases" to "order_refl", "order_trans" and "linorder_cases", to avoid
+clashes with HOL "refl" and "trans".  INCOMPATIBILITY.
+
+* Classes "order" and "linorder": potential INCOMPATIBILITY due to
+changed order of proof goals in instance proofs.
 
 * The transitivity reasoner for partial and linear orders is set up
-for locales "order" and "linorder" generated by the new class package
-(instead of axiomatic type classes used before).  Instances of the
-reasoner are available in all contexts importing or interpreting these
-locales.  Method "order" invokes the reasoner separately; the reasoner
+for classes "order" and "linorder".  Instances of the reasoner are available
+in all contexts importing or interpreting the corresponding locales.
+Method "order" invokes the reasoner separately; the reasoner
 is also integrated with the Simplifier as a solver.  Diagnostic
 command 'print_orders' shows the available instances of the reasoner
 in the current context.
 
+* Localized monotonicity predicate in theory "Orderings"; integrated
+lemmas max_of_mono and min_of_mono with this predicate.
+INCOMPATIBILITY.
+
 * Formulation of theorem "dense" changed slightly due to integration
 with new class dense_linear_order.
+
+* Uniform lattice theory development in HOL.
+
+    constants "meet" and "join" now named "inf" and "sup"
+    constant "Meet" now named "Inf"
+
+    classes "meet_semilorder" and "join_semilorder" now named
+      "lower_semilattice" and "upper_semilattice"
+    class "lorder" now named "lattice"
+    class "comp_lat" now named "complete_lattice"
+
+    Instantiation of lattice classes allows explicit definitions
+    for "inf" and "sup" operations (or "Inf" and "Sup" for complete lattices).
+
+  INCOMPATIBILITY.  Theorem renames:
+
+    meet_left_le            ~> inf_le1
+    meet_right_le           ~> inf_le2
+    join_left_le            ~> sup_ge1
+    join_right_le           ~> sup_ge2
+    meet_join_le            ~> inf_sup_ord
+    le_meetI                ~> le_infI
+    join_leI                ~> le_supI
+    le_meet                 ~> le_inf_iff
+    le_join                 ~> ge_sup_conv
+    meet_idempotent         ~> inf_idem
+    join_idempotent         ~> sup_idem
+    meet_comm               ~> inf_commute
+    join_comm               ~> sup_commute
+    meet_leI1               ~> le_infI1
+    meet_leI2               ~> le_infI2
+    le_joinI1               ~> le_supI1
+    le_joinI2               ~> le_supI2
+    meet_assoc              ~> inf_assoc
+    join_assoc              ~> sup_assoc
+    meet_left_comm          ~> inf_left_commute
+    meet_left_idempotent    ~> inf_left_idem
+    join_left_comm          ~> sup_left_commute
+    join_left_idempotent    ~> sup_left_idem
+    meet_aci                ~> inf_aci
+    join_aci                ~> sup_aci
+    le_def_meet             ~> le_iff_inf
+    le_def_join             ~> le_iff_sup
+    join_absorp2            ~> sup_absorb2
+    join_absorp1            ~> sup_absorb1
+    meet_absorp1            ~> inf_absorb1
+    meet_absorp2            ~> inf_absorb2
+    meet_join_absorp        ~> inf_sup_absorb
+    join_meet_absorp        ~> sup_inf_absorb
+    distrib_join_le         ~> distrib_sup_le
+    distrib_meet_le         ~> distrib_inf_le
+
+    add_meet_distrib_left   ~> add_inf_distrib_left
+    add_join_distrib_left   ~> add_sup_distrib_left
+    is_join_neg_meet        ~> is_join_neg_inf
+    is_meet_neg_join        ~> is_meet_neg_sup
+    add_meet_distrib_right  ~> add_inf_distrib_right
+    add_join_distrib_right  ~> add_sup_distrib_right
+    add_meet_join_distribs  ~> add_sup_inf_distribs
+    join_eq_neg_meet        ~> sup_eq_neg_inf
+    meet_eq_neg_join        ~> inf_eq_neg_sup
+    add_eq_meet_join        ~> add_eq_inf_sup
+    meet_0_imp_0            ~> inf_0_imp_0
+    join_0_imp_0            ~> sup_0_imp_0
+    meet_0_eq_0             ~> inf_0_eq_0
+    join_0_eq_0             ~> sup_0_eq_0
+    neg_meet_eq_join        ~> neg_inf_eq_sup
+    neg_join_eq_meet        ~> neg_sup_eq_inf
+    join_eq_if              ~> sup_eq_if
+
+    mono_meet               ~> mono_inf
+    mono_join               ~> mono_sup
+    meet_bool_eq            ~> inf_bool_eq
+    join_bool_eq            ~> sup_bool_eq
+    meet_fun_eq             ~> inf_fun_eq
+    join_fun_eq             ~> sup_fun_eq
+    meet_set_eq             ~> inf_set_eq
+    join_set_eq             ~> sup_set_eq
+    meet1_iff               ~> inf1_iff
+    meet2_iff               ~> inf2_iff
+    meet1I                  ~> inf1I
+    meet2I                  ~> inf2I
+    meet1D1                 ~> inf1D1
+    meet2D1                 ~> inf2D1
+    meet1D2                 ~> inf1D2
+    meet2D2                 ~> inf2D2
+    meet1E                  ~> inf1E
+    meet2E                  ~> inf2E
+    join1_iff               ~> sup1_iff
+    join2_iff               ~> sup2_iff
+    join1I1                 ~> sup1I1
+    join2I1                 ~> sup2I1
+    join1I1                 ~> sup1I1
+    join2I2                 ~> sup1I2
+    join1CI                 ~> sup1CI
+    join2CI                 ~> sup2CI
+    join1E                  ~> sup1E
+    join2E                  ~> sup2E
+
+    is_meet_Meet            ~> is_meet_Inf
+    Meet_bool_def           ~> Inf_bool_def
+    Meet_fun_def            ~> Inf_fun_def
+    Meet_greatest           ~> Inf_greatest
+    Meet_lower              ~> Inf_lower
+    Meet_set_def            ~> Inf_set_def
+
+    Sup_def                 ~> Sup_Inf
+    Sup_bool_eq             ~> Sup_bool_def
+    Sup_fun_eq              ~> Sup_fun_def
+    Sup_set_eq              ~> Sup_set_def
+
+    listsp_meetI            ~> listsp_infI
+    listsp_meet_eq          ~> listsp_inf_eq
+
+    meet_min                ~> inf_min
+    join_max                ~> sup_max
+
+* Added syntactic class "size"; overloaded constant "size" now has
+type "'a::size ==> bool"
+
+* Internal reorganisation of `size' of datatypes: size theorems
+"foo.size" are no longer subsumed by "foo.simps" (but are still
+simplification rules by default!); theorems "prod.size" now named
+"*.size".
+
+* Class "div" now inherits from class "times" rather than "type".
+INCOMPATIBILITY.
 
 * HOL/Finite_Set: "name-space" locales Lattice, Distrib_lattice,
 Linorder etc.  have disappeared; operations defined in terms of
@@ -765,25 +949,6 @@ rat, etc.
 antiquotations @{const_name List.append} or @{term " ... @ ... "} to
 circumvent possible incompatibilities when working on ML level.
 
-* Some renaming of class constants due to canonical name prefixing in
-the new 'class' package:
-
-    HOL.abs ~> HOL.minus_class.abs
-    HOL.divide ~> HOL.divide_class.divide
-    Nat.power ~> Power.power_class.power
-    Nat.size ~> Nat.size_class.size
-    Numeral.number_of ~> Numeral.number_class.number_of
-    FixedPoint.Inf ~> Lattices.complete_lattice_class.Inf
-    FixedPoint.Sup ~> Lattices.complete_lattice_class.Sup
-    Orderings.min ~> Orderings.ord_class.min
-    Orderings.max ~> Orderings.ord_class.max
-
-INCOMPATIBILITY.
-
-* New class "default" with associated constant "default".
-
-* New constant "undefined" with axiom "undefined x = undefined".
-
 * primrec: missing cases mapped to "undefined" instead of "arbitrary".
 
 * New function listsum :: 'a list => 'a for arbitrary monoids.
@@ -804,12 +969,6 @@ INCOMPATIBILITY.
 
 * New functions "sorted" and "sort" in src/HOL/List.thy.
 
-* Function "sgn" is now overloaded and available on int, real, complex
-(and other numeric types), using class "sgn".  Two possible defs of
-sgn are given as equational assumptions in the classes sgn_if and
-sgn_div_norm; ordered_idom now also inherits from sgn_if.
-INCOMPATIBILITY.
-
 * New lemma collection field_simps (an extension of ring_simps) for
 manipulating (in)equations involving division. Multiplies with all
 denominators that can be proved to be non-zero (in equations) or
@@ -824,144 +983,11 @@ because they were subsumed by lemmas xyz.  INCOMPATIBILITY.
 package; constants add, mul, pow now curried.  Infix syntax for
 algebraic operations.
 
-* More uniform lattice theory development in HOL.
-
-    constants "meet" and "join" now named "inf" and "sup"
-    constant "Meet" now named "Inf"
-
-    classes "meet_semilorder" and "join_semilorder" now named
-      "lower_semilattice" and "upper_semilattice"
-    class "lorder" now named "lattice"
-    class "comp_lat" now named "complete_lattice"
-
-    Instantiation of lattice classes allows explicit definitions
-    for "inf" and "sup" operations (or "Inf" and "Sup" for complete lattices).
-
-  INCOMPATIBILITY.  Theorem renames:
-
-    meet_left_le            ~> inf_le1
-    meet_right_le           ~> inf_le2
-    join_left_le            ~> sup_ge1
-    join_right_le           ~> sup_ge2
-    meet_join_le            ~> inf_sup_ord
-    le_meetI                ~> le_infI
-    join_leI                ~> le_supI
-    le_meet                 ~> le_inf_iff
-    le_join                 ~> ge_sup_conv
-    meet_idempotent         ~> inf_idem
-    join_idempotent         ~> sup_idem
-    meet_comm               ~> inf_commute
-    join_comm               ~> sup_commute
-    meet_leI1               ~> le_infI1
-    meet_leI2               ~> le_infI2
-    le_joinI1               ~> le_supI1
-    le_joinI2               ~> le_supI2
-    meet_assoc              ~> inf_assoc
-    join_assoc              ~> sup_assoc
-    meet_left_comm          ~> inf_left_commute
-    meet_left_idempotent    ~> inf_left_idem
-    join_left_comm          ~> sup_left_commute
-    join_left_idempotent    ~> sup_left_idem
-    meet_aci                ~> inf_aci
-    join_aci                ~> sup_aci
-    le_def_meet             ~> le_iff_inf
-    le_def_join             ~> le_iff_sup
-    join_absorp2            ~> sup_absorb2
-    join_absorp1            ~> sup_absorb1
-    meet_absorp1            ~> inf_absorb1
-    meet_absorp2            ~> inf_absorb2
-    meet_join_absorp        ~> inf_sup_absorb
-    join_meet_absorp        ~> sup_inf_absorb
-    distrib_join_le         ~> distrib_sup_le
-    distrib_meet_le         ~> distrib_inf_le
-
-    add_meet_distrib_left   ~> add_inf_distrib_left
-    add_join_distrib_left   ~> add_sup_distrib_left
-    is_join_neg_meet        ~> is_join_neg_inf
-    is_meet_neg_join        ~> is_meet_neg_sup
-    add_meet_distrib_right  ~> add_inf_distrib_right
-    add_join_distrib_right  ~> add_sup_distrib_right
-    add_meet_join_distribs  ~> add_sup_inf_distribs
-    join_eq_neg_meet        ~> sup_eq_neg_inf
-    meet_eq_neg_join        ~> inf_eq_neg_sup
-    add_eq_meet_join        ~> add_eq_inf_sup
-    meet_0_imp_0            ~> inf_0_imp_0
-    join_0_imp_0            ~> sup_0_imp_0
-    meet_0_eq_0             ~> inf_0_eq_0
-    join_0_eq_0             ~> sup_0_eq_0
-    neg_meet_eq_join        ~> neg_inf_eq_sup
-    neg_join_eq_meet        ~> neg_sup_eq_inf
-    join_eq_if              ~> sup_eq_if
-
-    mono_meet               ~> mono_inf
-    mono_join               ~> mono_sup
-    meet_bool_eq            ~> inf_bool_eq
-    join_bool_eq            ~> sup_bool_eq
-    meet_fun_eq             ~> inf_fun_eq
-    join_fun_eq             ~> sup_fun_eq
-    meet_set_eq             ~> inf_set_eq
-    join_set_eq             ~> sup_set_eq
-    meet1_iff               ~> inf1_iff
-    meet2_iff               ~> inf2_iff
-    meet1I                  ~> inf1I
-    meet2I                  ~> inf2I
-    meet1D1                 ~> inf1D1
-    meet2D1                 ~> inf2D1
-    meet1D2                 ~> inf1D2
-    meet2D2                 ~> inf2D2
-    meet1E                  ~> inf1E
-    meet2E                  ~> inf2E
-    join1_iff               ~> sup1_iff
-    join2_iff               ~> sup2_iff
-    join1I1                 ~> sup1I1
-    join2I1                 ~> sup2I1
-    join1I1                 ~> sup1I1
-    join2I2                 ~> sup1I2
-    join1CI                 ~> sup1CI
-    join2CI                 ~> sup2CI
-    join1E                  ~> sup1E
-    join2E                  ~> sup2E
-
-    is_meet_Meet            ~> is_meet_Inf
-    Meet_bool_def           ~> Inf_bool_def
-    Meet_fun_def            ~> Inf_fun_def
-    Meet_greatest           ~> Inf_greatest
-    Meet_lower              ~> Inf_lower
-    Meet_set_def            ~> Inf_set_def
-
-    Sup_def                 ~> Sup_Inf
-    Sup_bool_eq             ~> Sup_bool_def
-    Sup_fun_eq              ~> Sup_fun_def
-    Sup_set_eq              ~> Sup_set_def
-
-    listsp_meetI            ~> listsp_infI
-    listsp_meet_eq          ~> listsp_inf_eq
-
-    meet_min                ~> inf_min
-    join_max                ~> sup_max
-
-* Renamed classes "order" and "linorder": facts "refl", "trans" and
-"cases" to "order_refl", "order_trans" and "linorder_cases", to avoid
-clashes with HOL "refl" and "trans".  INCOMPATIBILITY.
-
-* Classes "order" and "linorder": potential INCOMPATIBILITY due to
-changed order of proof goals instance proofs.
-
-* Locale "partial_order" now unified with class "order" (cf. theory
-Orderings), added parameter "less".  INCOMPATIBILITY.
-
 * Dropped redundant lemma def_imp_eq in favor of meta_eq_to_obj_eq.
 INCOMPATIBILITY.
 
 * Dropped redundant lemma if_def2 in favor of if_bool_eq_conj.
 INCOMPATIBILITY.
-
-* Added syntactic class "size"; overloaded constant "size" now has
-type "'a::size ==> bool"
-
-* Renamed constants "Divides.op div", "Divides.op mod" and "Divides.op
-dvd" to "Divides.div_class.div", "Divides.div_class.mod" and
-"Divides.dvd". INCOMPATIBILITY.
 
 * Method "lexicographic_order" automatically synthesizes termination
 relations as lexicographic combinations of size measures -- 'function'
@@ -989,12 +1015,6 @@ better use 'abbreviation'.
 
 * Renamed constant "List.op mem" to "List.member".  INCOMPATIBILITY.
 
-* Renamed constants "0" to "HOL.zero_class.zero" and "1" to
-"HOL.one_class.one".  INCOMPATIBILITY.
-
-* Added class "HOL.eq", allowing for code generation with polymorphic
-equality.
-
 * Numeral syntax: type 'bin' which was a mere type copy of 'int' has
 been abandoned in favour of plain 'int'.  INCOMPATIBILITY --
 significant changes for setting up numeral syntax for types:
@@ -1016,36 +1036,6 @@ further src/HOL/ex/NormalForm.thy and src/Tools/nbe.ML.
 * Alternative iff syntax "A <-> B" for equality on bool (with priority
 25 like -->); output depends on the "iff" print_mode, the default is
 "A = B" (with priority 50).
-
-* Renamed constants in HOL.thy and Orderings.thy:
-    op +   ~> HOL.plus_class.plus
-    op -   ~> HOL.minus_class.minus
-    uminus ~> HOL.minus_class.uminus
-    abs    ~> HOL.abs_class.abs
-    op *   ~> HOL.times_class.times
-    op <   ~> HOL.ord_class.less
-    op <=  ~> HOL.ord_class.less_eq
-
-Adaptions may be required in the following cases:
-
-a) User-defined constants using any of the names "plus", "minus",
-"times", "less" or "less_eq". The standard syntax translations for
-"+", "-" and "*" may go wrong.  INCOMPATIBILITY: use more specific
-names.
-
-b) Variables named "plus", "minus", "times", "less", "less_eq"
-INCOMPATIBILITY: use more specific names.
-
-c) Permutative equations (e.g. "a + b = b + a")
-Since the change of names also changes the order of terms, permutative
-rewrite rules may get applied in a different order. Experience shows
-that this is rarely the case (only two adaptions in the whole Isabelle
-distribution).  INCOMPATIBILITY: rewrite proofs
-
-d) ML code directly refering to constant names
-This in general only affects hand-written proof tactics, simprocs and
-so on.  INCOMPATIBILITY: grep your sourcecode and replace names.
-Consider using @{const_name} antiquotation.
 
 * Relations less (<) and less_eq (<=) are also available on type bool.
 Modified syntax to disallow nesting without explicit parentheses,
