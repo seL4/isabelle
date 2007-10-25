@@ -10,7 +10,6 @@ sig
   val subclass: class -> local_theory -> Proof.state
   val subclass_cmd: xstring -> local_theory -> Proof.state
   val prove_subclass: tactic -> class -> local_theory -> local_theory
-  val subclass_rule: theory -> class * class -> thm
 end;
 
 structure Subclass : SUBCLASS =
@@ -44,24 +43,55 @@ fun strip_all_ofclass thy sort =
       | NONE => thm;
   in strip end;
 
-fun subclass_rule thy (class1, class2) =
+fun subclass_rule thy (sub, sup) =
   let
-    val ctxt = ProofContext.init thy;
-    fun mk_axioms class =
-      let
-        val params = Class.these_params thy [class];
-      in
-        Locale.global_asms_of thy class
-        |> maps snd
-        |> (map o map_aterms) (fn Free (v, _) => (Const o the o AList.lookup (op =) params) v | t => t)
-        |> (map o map_types o map_atyps) (fn TFree _ => TFree (Name.aT, [class1]) | ty => ty)
-        |> map (ObjectLogic.ensure_propT thy)
-      end;
-    val (prems, concls) = pairself mk_axioms (class1, class2);
+    val ctxt = Locale.init sub thy;
+    val ctxt_thy = ProofContext.init thy;
+    val params = Class.these_params thy [sup];
+    val props =
+      Locale.global_asms_of thy sup
+      |> maps snd
+      |> map (ObjectLogic.ensure_propT thy);
+    fun tac { prems, context } =
+      Locale.intro_locales_tac true context prems
+        ORELSE ALLGOALS assume_tac;
   in
-    Goal.prove_global thy [] prems (Logic.mk_conjunction_list concls)
-      (Locale.intro_locales_tac true ctxt)
+    Goal.prove_multi ctxt [] [] props tac
+    |> map (Assumption.export false ctxt ctxt_thy)
+    |> Variable.export ctxt ctxt_thy
   end;
+
+fun prove_single_subclass (sub, sup) thms ctxt thy =
+  let
+    val ctxt_thy = ProofContext.init thy;
+    val subclass_rule = Conjunction.intr_balanced thms
+      |> Assumption.export false ctxt ctxt_thy
+      |> singleton (Variable.export ctxt ctxt_thy);
+    val sub_inst = Thm.ctyp_of thy (TVar ((Name.aT, 0), [sub]));
+    val sub_ax = #axioms (AxClass.get_info thy sub);
+    val classrel =
+      #intro (AxClass.get_info thy sup)
+      |> Drule.instantiate' [SOME sub_inst] []
+      |> OF_LAST (subclass_rule OF sub_ax)
+      |> strip_all_ofclass thy (Sign.super_classes thy sup)
+      |> Thm.strip_shyps
+  in
+    thy
+    |> AxClass.add_classrel classrel
+    |> prove_interpretation_in (ALLGOALS (ProofContext.fact_tac thms))
+         I (sub, Locale.Locale sup)
+  end;
+
+fun prove_subclass (sub, sup) thms ctxt thy =
+  let
+    val supclasses = Sign.complete_sort thy [sup]
+      |> filter_out (fn class => Sign.subsort thy ([sub], [class]));
+    fun transform sup' = subclass_rule thy (sup, sup') |> map (fn thm => thm OF thms);
+  in
+    thy
+    |> fold_rev (fn sup' => prove_single_subclass (sub, sup')
+         (transform sup') ctxt) supclasses
+ end;
 
 
 (** subclassing **)
@@ -70,9 +100,9 @@ local
 
 fun gen_subclass prep_class do_proof raw_sup lthy =
   let
+    (*FIXME make more use of local context; drop redundancies*)
     val ctxt = LocalTheory.target_of lthy;
     val thy = ProofContext.theory_of ctxt;
-    val ctxt_thy = ProofContext.init thy;
     val sup = prep_class thy raw_sup;
     val sub = case TheoryTarget.peek lthy
      of {is_class = false, ...} => error "No class context"
@@ -87,45 +117,9 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
       Locale.global_asms_of thy sup
       |> maps snd
       |> map (ObjectLogic.ensure_propT thy);
-    val supclasses = Sign.complete_sort thy [sup]
-      |> filter_out (fn class => Sign.subsort thy ([sub], [class]));
-    val supclasses' = remove (op =) sup supclasses;
-    val _ = if null supclasses' then () else
-      error ("The following superclasses of " ^ sup
-        ^ " are no superclass of " ^ sub ^ ": "
-        ^ commas supclasses');
-      (*FIXME*)
-    val sub_ax = #axioms (AxClass.get_info thy sub);
-    val sub_inst = Thm.ctyp_of thy (TVar ((Name.aT, 0), [sub]));
-    fun prove_classrel subclass_rule =
-      let
-        fun add_classrel sup' thy  =
-          let
-            val classrel =
-              #intro (AxClass.get_info thy sup')
-              |> Drule.instantiate' [SOME sub_inst] []
-              |> OF_LAST (subclass_rule OF sub_ax)
-              |> strip_all_ofclass thy (Sign.super_classes thy sup');
-          in
-            AxClass.add_classrel classrel thy
-          end;
-      in
-        fold_rev add_classrel supclasses
-      end;
-    fun prove_interpretation sublocale_rule =
-      prove_interpretation_in (ProofContext.fact_tac [sublocale_rule] 1)
-        I (sub, Locale.Locale sup)
     fun after_qed thms =
-      let
-        val sublocale_rule = Conjunction.intr_balanced thms;
-        val subclass_rule = sublocale_rule
-          |> Assumption.export false ctxt ctxt_thy
-          |> singleton (Variable.export ctxt ctxt_thy);
-      in
-        LocalTheory.theory (prove_classrel subclass_rule
-          #> prove_interpretation sublocale_rule)
-        (*#> (fn lthy => LocalTheory.reinit lthy thy) FIXME does not work as expected*)
-      end;
+      LocalTheory.theory (prove_subclass (sub, sup) thms ctxt)
+      (*#> (fn lthy => LocalTheory.reinit lthy thy) FIXME does not work as expected*);
   in
     do_proof after_qed sublocale_prop lthy
   end;
