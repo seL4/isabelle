@@ -328,22 +328,16 @@ text {*
   a corresponding definition @{term "bar \<equiv> \<lambda>x. x"} would look like:
 
   \begin{quotation}
-  @{ML "(fn (t, thy) => Thm.add_def false
+   @{ML "(fn (t, thy) => Thm.add_def false
   (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})) thy)
     (Sign.declare_const []
-      (\"bar\", @{typ \"foo => foo\"}, NoSyn) thy)"}.
+      (\"bar\", @{typ \"foo => foo\"}, NoSyn) thy)"}
   \end{quotation}
 
   With increasing numbers of applications, this code gets quite
   unreadable.  Further, it is unintuitive that things are
   written down in the opposite order as they actually ``happen''.
 *}
-
-(*<*)
-ML {*
-val thy = Theory.copy @{theory}
-*}
-(*>*)
 
 text {*
   \noindent At this stage, Isabelle offers some combinators which allow
@@ -422,18 +416,37 @@ text {*
   \noindent This principles naturally lift to @{text lists} using
   the @{ML fold} and @{ML fold_map} combinators.
   The first lifts a single function
-  @{text "f \<Colon> 'a -> 'b -> 'b"} to @{text "'a list -> 'b -> 'b"}
+  \[
+    \mbox{@{text "f \<Colon> 'a -> 'b -> 'b"} to @{text "'a list -> 'b -> 'b"}}
+  \]
   such that
-  @{text "y |> fold f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 |> f x\<^isub>2 |> \<dots> |> f x\<^isub>n"};
-  the second accumulates side results in a list by lifting
+  \[
+    \mbox{@{text "y |> fold f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 |> f x\<^isub>2 |> \<dots> |> f x\<^isub>n"}}
+  \]
+  The second accumulates side results in a list by lifting
   a single function
-  @{text "f \<Colon> 'a -> 'b -> 'c \<times> 'b"} to @{text "'a list -> 'b -> 'c list \<times> 'b"}
+  \[
+    \mbox{@{text "f \<Colon> 'a -> 'b -> 'c \<times> 'b"} to @{text "'a list -> 'b -> 'c list \<times> 'b"}}
+  \]
   such that
-  @{text "y |> fold_map f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 ||>> f x\<^isub>2 ||>> \<dots> ||>> f x\<^isub>n
-    ||> (fn ((z\<^isub>1, z\<^isub>2), \<dots> z\<^isub>n) => [z\<^isub>1, z\<^isub>2, \<dots> z\<^isub>n])"};
-
-  Example: FIXME
+  \[
+    \mbox{@{text "y |> fold_map f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv>"}} \\
+    ~~\mbox{@{text "y |> f x\<^isub>1 ||>> f x\<^isub>2 ||>> \<dots> ||>> f x\<^isub>n ||> (fn ((z\<^isub>1, z\<^isub>2), \<dots> z\<^isub>n) => [z\<^isub>1, z\<^isub>2, \<dots> z\<^isub>n])"}}
+  \]
+  
+  Example:
   \begin{quotation}
+@{ML "let
+  val consts = [\"foo\", \"bar\"];
+in
+  thy
+  |> fold_map (fn const => Sign.declare_const []
+       (const, @{typ \"foo => foo\"}, NoSyn)) consts
+  |>> map (fn t => Logic.mk_equals (t, @{term \"%x. x\"}))
+  |-> (fn defs => fold_map (fn def =>
+       Thm.add_def false (\"\", def)) defs)
+end
+"}
   \end{quotation}
 *}
 
@@ -461,7 +474,20 @@ text %mlref {*
 *}
 
 text {*
-  \noindent FIXME
+  \noindent These operators allow to ``query'' a context
+  in a series of context transformations:
+
+  \begin{quotation}
+@{ML "thy
+|> tap (fn _ => writeln \"now adding constant\")
+|> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
+||>> `(fn thy => Sign.declared_const thy
+         (Sign.full_name thy \"foobar\"))
+|-> (fn (t, b) => if b then I
+       else Sign.declare_const []
+         (\"foobar\", @{typ \"foo => foo\"}, NoSyn) #> snd)
+"}
+  \end{quotation}
 *}
 
 section {* Options and partiality *}

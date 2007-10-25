@@ -384,10 +384,10 @@ Many problems in functional programming can be thought of
   a corresponding definition \isa{bar\ {\isasymequiv}\ {\isasymlambda}x{\isachardot}\ x} would look like:
 
   \begin{quotation}
-  \verb|(fn (t, thy) => Thm.add_def false|\isasep\isanewline%
+   \verb|(fn (t, thy) => Thm.add_def false|\isasep\isanewline%
 \verb|  ("bar_def", Logic.mk_equals (t, @{term "%x. x"})) thy)|\isasep\isanewline%
 \verb|    (Sign.declare_const []|\isasep\isanewline%
-\verb|      ("bar", @{typ "foo => foo"}, NoSyn) thy)|.
+\verb|      ("bar", @{typ "foo => foo"}, NoSyn) thy)|
   \end{quotation}
 
   With increasing numbers of applications, this code gets quite
@@ -395,19 +395,6 @@ Many problems in functional programming can be thought of
   written down in the opposite order as they actually ``happen''.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
 %
 \begin{isamarkuptext}%
 \noindent At this stage, Isabelle offers some combinators which allow
@@ -516,17 +503,37 @@ Many problems in functional programming can be thought of
 \noindent This principles naturally lift to \isa{lists} using
   the \verb|fold| and \verb|fold_map| combinators.
   The first lifts a single function
-  \isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b} to \isa{{\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b}
+  \[
+    \mbox{\isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b} to \isa{{\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b}}
+  \]
   such that
-  \isa{y\ {\isacharbar}{\isachargreater}\ fold\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub n};
-  the second accumulates side results in a list by lifting
+  \[
+    \mbox{\isa{y\ {\isacharbar}{\isachargreater}\ fold\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub n}}
+  \]
+  The second accumulates side results in a list by lifting
   a single function
-  \isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}c\ {\isasymtimes}\ {\isacharprime}b} to \isa{{\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}c\ list\ {\isasymtimes}\ {\isacharprime}b}
+  \[
+    \mbox{\isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}c\ {\isasymtimes}\ {\isacharprime}b} to \isa{{\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}c\ list\ {\isasymtimes}\ {\isacharprime}b}}
+  \]
   such that
-  \isa{y\ {\isacharbar}{\isachargreater}\ fold{\isacharunderscore}map\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ f\ x\isactrlisub n\ {\isacharbar}{\isacharbar}{\isachargreater}\ {\isacharparenleft}fn\ {\isacharparenleft}{\isacharparenleft}z\isactrlisub {\isadigit{1}}{\isacharcomma}\ z\isactrlisub {\isadigit{2}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}\ z\isactrlisub n{\isacharparenright}\ {\isacharequal}{\isachargreater}\ {\isacharbrackleft}z\isactrlisub {\isadigit{1}}{\isacharcomma}\ z\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ z\isactrlisub n{\isacharbrackright}{\isacharparenright}};
-
-  Example: FIXME
+  \[
+    \mbox{\isa{y\ {\isacharbar}{\isachargreater}\ fold{\isacharunderscore}map\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}}} \\
+    ~~\mbox{\isa{y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ f\ x\isactrlisub n\ {\isacharbar}{\isacharbar}{\isachargreater}\ {\isacharparenleft}fn\ {\isacharparenleft}{\isacharparenleft}z\isactrlisub {\isadigit{1}}{\isacharcomma}\ z\isactrlisub {\isadigit{2}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}\ z\isactrlisub n{\isacharparenright}\ {\isacharequal}{\isachargreater}\ {\isacharbrackleft}z\isactrlisub {\isadigit{1}}{\isacharcomma}\ z\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ z\isactrlisub n{\isacharbrackright}{\isacharparenright}}}
+  \]
+  
+  Example:
   \begin{quotation}
+\verb|let|\isasep\isanewline%
+\verb|  val consts = ["foo", "bar"];|\isasep\isanewline%
+\verb|in|\isasep\isanewline%
+\verb|  thy|\isasep\isanewline%
+\verb|  |\verb,|,\verb|> fold_map (fn const => Sign.declare_const []|\isasep\isanewline%
+\verb|       (const, @{typ "foo => foo"}, NoSyn)) consts|\isasep\isanewline%
+\verb|  |\verb,|,\verb|>> map (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
+\verb|  |\verb,|,\verb|-> (fn defs => fold_map (fn def =>|\isasep\isanewline%
+\verb|       Thm.add_def false ("", def)) defs)|\isasep\isanewline%
+\verb|end|\isasep\isanewline%
+
   \end{quotation}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -584,7 +591,20 @@ Many problems in functional programming can be thought of
 \endisadelimmlref
 %
 \begin{isamarkuptext}%
-\noindent FIXME%
+\noindent These operators allow to ``query'' a context
+  in a series of context transformations:
+
+  \begin{quotation}
+\verb|thy|\isasep\isanewline%
+\verb||\verb,|,\verb|> tap (fn _ => writeln "now adding constant")|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb||\verb,|,\verb|>> `(fn thy => Sign.declared_const thy|\isasep\isanewline%
+\verb|         (Sign.full_name thy "foobar"))|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn (t, b) => if b then I|\isasep\isanewline%
+\verb|       else Sign.declare_const []|\isasep\isanewline%
+\verb|         ("foobar", @{typ "foo => foo"}, NoSyn) #> snd)|\isasep\isanewline%
+
+  \end{quotation}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
