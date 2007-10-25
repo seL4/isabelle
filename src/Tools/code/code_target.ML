@@ -1707,17 +1707,10 @@ fun eval_invoke thy (ref_name, reff) code (t, ty) args =
       (NameSpace.qualifier CodeName.value_name :: map (enclose "(" ")") args);
     val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [];
     val code' = CodeThingol.add_value_stmt (t, ty) code;
-    fun eval () = (
-      reff := NONE;
-      seri (SOME [CodeName.value_name]) code';
-      use_text "generated code for evaluation" Output.ml_output (!eval_verbose)
-        ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ val_args ^ "))");
-      case !reff
-       of NONE => error ("Could not retrieve value of ML reference " ^ quote ref_name
-            ^ " (reference probably has been shadowed)")
-        | SOME f => f
-      );
-  in CRITICAL eval () end;
+    val label = "evaluation in SML";
+    fun eval () = (seri (SOME [CodeName.value_name]) code';
+      evaluate (ref_name, reff) label Output.ml_output (!eval_verbose) val_args);
+  in NAMED_CRITICAL label eval end;
 
 
 
