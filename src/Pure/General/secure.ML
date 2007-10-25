@@ -10,6 +10,8 @@ sig
   val set_secure: unit -> unit
   val is_secure: unit -> bool
   val use_text: string -> (string -> unit) * (string -> 'a) -> bool -> string -> unit
+  val evaluate: string * (unit -> 'a) option ref -> string
+    -> (string -> unit) * (string -> 'b) -> bool -> string  -> 'a
   val use_file: (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use_noncritical: string -> unit
   val use: string -> unit
@@ -43,6 +45,18 @@ fun orig_use_file x = use_file ML_Parse.fix_ints x;
 fun use_text name pr verbose txt = NAMED_CRITICAL "ML" (fn () =>
   (secure_mltext (); orig_use_text name pr verbose txt));
 
+(* compiler invocation as evaluation *)
+fun evaluate (ref_name, reff) name pr verbose txt = NAMED_CRITICAL name (fn () =>
+  let
+    val _ = secure_mltext ();
+    val txt' = "val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))";
+    val _ = reff := NONE;
+    val _ = orig_use_text name pr verbose txt';
+  in case !reff
+    of NONE => error ("evaluate (" ^ ref_name ^ ")")
+     | SOME f => f
+  end) ();
+
 fun use_file pr verbose name = NAMED_CRITICAL "ML" (fn () =>
   (secure_mltext (); orig_use_file pr verbose name));
 
@@ -69,6 +83,7 @@ end;
 
 (*override previous toplevel bindings!*)
 val use_text = Secure.use_text;
+val evaluate = Secure.evaluate;
 val use_file = Secure.use_file;
 fun use s = Secure.use s handle ERROR msg => (writeln msg; raise Fail "ML error");
 val execute = Secure.execute;
