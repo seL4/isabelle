@@ -291,10 +291,11 @@ fun assume_witness thy t =
   Witness (t, Goal.protect (Thm.assume (Thm.cterm_of thy t)));
 
 fun prove_witness ctxt t tac =
-  Witness (t, Goal.prove ctxt [] [] (Logic.protect t) (fn _ =>
-    Tactic.rtac Drule.protectI 1 THEN tac));
+  Witness (t, Goal.close_result (Goal.prove ctxt [] [] (Logic.protect t) (fn _ =>
+    Tactic.rtac Drule.protectI 1 THEN tac)));
 
-fun conclude_witness (Witness (_, th)) = MetaSimplifier.norm_hhf_protect (Goal.conclude th);
+fun conclude_witness (Witness (_, th)) =
+  Goal.close_result (MetaSimplifier.norm_hhf_protect (Goal.conclude th));
 
 val mark_witness = Logic.protect;
 
