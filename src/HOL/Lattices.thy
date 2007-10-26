@@ -11,6 +11,11 @@ begin
 
 subsection{* Lattices *}
 
+notation
+  less_eq (infix "\<sqsubseteq>" 50)
+and
+  less    (infix "\<sqsubset>" 50)
+
 class lower_semilattice = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
   assumes inf_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x"
@@ -61,11 +66,12 @@ by blast
 lemma le_iff_inf: "(x \<sqsubseteq> y) = (x \<sqinter> y = x)"
   by (blast intro: antisym dest: eq_iff [THEN iffD1])
 
+lemma mono_inf:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>lower_semilattice"
+  shows "mono f \<Longrightarrow> f (A \<sqinter> B) \<le> f A \<sqinter> f B"
+  by (auto simp add: mono_def intro: Lattices.inf_greatest)
+
 end
-
-lemma mono_inf: "mono f \<Longrightarrow> f (inf A B) \<le> inf (f A) (f B)"
-  by (auto simp add: mono_def)
-
 
 context upper_semilattice
 begin
@@ -93,14 +99,15 @@ by blast
 lemma le_iff_sup: "(x \<sqsubseteq> y) = (x \<squnion> y = y)"
   by (blast intro: antisym dest: eq_iff [THEN iffD1])
 
-end
+lemma mono_sup:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>upper_semilattice"
+  shows "mono f \<Longrightarrow> f A \<squnion> f B \<le> f (A \<squnion> B)"
+  by (auto simp add: mono_def intro: Lattices.sup_least)
 
-lemma mono_sup: "mono f \<Longrightarrow> sup (f A) (f B) \<le> f (sup A B)"
-  by (auto simp add: mono_def)
+end
 
 
 subsubsection{* Equational laws *}
-
 
 context lower_semilattice
 begin
@@ -393,12 +400,12 @@ lemma Sup_binary:
 definition
   top :: 'a
 where
-  "top = Inf {}"
+  "top = \<Sqinter>{}"
 
 definition
   bot :: 'a
 where
-  "bot = Sup {}"
+  "bot = \<Squnion>{}"
 
 lemma top_greatest [simp]: "x \<le> top"
   by (unfold top_def, rule Inf_greatest, simp)
@@ -409,12 +416,12 @@ lemma bot_least [simp]: "bot \<le> x"
 definition
   SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
-  "SUPR A f == Sup (f ` A)"
+  "SUPR A f == \<Squnion> (f ` A)"
 
 definition
   INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
-  "INFI A f == Inf (f ` A)"
+  "INFI A f == \<Sqinter> (f ` A)"
 
 end
 
@@ -473,17 +480,17 @@ end
 subsection {* Bool as lattice *}
 
 instance bool :: distrib_lattice
-  inf_bool_eq: "inf P Q \<equiv> P \<and> Q"
-  sup_bool_eq: "sup P Q \<equiv> P \<or> Q"
+  inf_bool_eq: "P \<sqinter> Q \<equiv> P \<and> Q"
+  sup_bool_eq: "P \<squnion> Q \<equiv> P \<or> Q"
   by intro_classes (auto simp add: inf_bool_eq sup_bool_eq le_bool_def)
 
 instance bool :: complete_lattice
-  Inf_bool_def: "Inf A \<equiv> \<forall>x\<in>A. x"
-  Sup_bool_def: "Sup A \<equiv> \<exists>x\<in>A. x"
+  Inf_bool_def: "\<Sqinter>A \<equiv> \<forall>x\<in>A. x"
+  Sup_bool_def: "\<Squnion>A \<equiv> \<exists>x\<in>A. x"
   by intro_classes (auto simp add: Inf_bool_def Sup_bool_def le_bool_def)
 
 lemma Inf_empty_bool [simp]:
-  "Inf {}"
+  "\<Sqinter>{}"
   unfolding Inf_bool_def by auto
 
 lemma not_Sup_empty_bool [simp]:
@@ -500,8 +507,8 @@ lemma bot_bool_eq: "bot = False"
 subsection {* Set as lattice *}
 
 instance set :: (type) distrib_lattice
-  inf_set_eq: "inf A B \<equiv> A \<inter> B"
-  sup_set_eq: "sup A B \<equiv> A \<union> B"
+  inf_set_eq: "A \<sqinter> B \<equiv> A \<inter> B"
+  sup_set_eq: "A \<squnion> B \<equiv> A \<union> B"
   by intro_classes (auto simp add: inf_set_eq sup_set_eq)
 
 lemmas [code func del] = inf_set_eq sup_set_eq
@@ -517,8 +524,8 @@ lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<uni
   done
 
 instance set :: (type) complete_lattice
-  Inf_set_def: "Inf S \<equiv> \<Inter>S"
-  Sup_set_def: "Sup S \<equiv> \<Union>S"
+  Inf_set_def: "\<Sqinter>S \<equiv> \<Inter>S"
+  Sup_set_def: "\<Squnion>S \<equiv> \<Union>S"
   by intro_classes (auto simp add: Inf_set_def Sup_set_def)
 
 lemmas [code func del] = Inf_set_def Sup_set_def
@@ -533,8 +540,8 @@ lemma bot_set_eq: "bot = {}"
 subsection {* Fun as lattice *}
 
 instance "fun" :: (type, lattice) lattice
-  inf_fun_eq: "inf f g \<equiv> (\<lambda>x. inf (f x) (g x))"
-  sup_fun_eq: "sup f g \<equiv> (\<lambda>x. sup (f x) (g x))"
+  inf_fun_eq: "f \<sqinter> g \<equiv> (\<lambda>x. f x \<sqinter> g x)"
+  sup_fun_eq: "f \<squnion> g \<equiv> (\<lambda>x. f x \<squnion> g x)"
 apply intro_classes
 unfolding inf_fun_eq sup_fun_eq
 apply (auto intro: le_funI)
@@ -550,8 +557,8 @@ instance "fun" :: (type, distrib_lattice) distrib_lattice
   by default (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
 
 instance "fun" :: (type, complete_lattice) complete_lattice
-  Inf_fun_def: "Inf A \<equiv> (\<lambda>x. Inf {y. \<exists>f\<in>A. y = f x})"
-  Sup_fun_def: "Sup A \<equiv> (\<lambda>x. Sup {y. \<exists>f\<in>A. y = f x})"
+  Inf_fun_def: "\<Sqinter>A \<equiv> (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
+  Sup_fun_def: "\<Squnion>A \<equiv> (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
   by intro_classes
     (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
       intro: Inf_lower Sup_upper Inf_greatest Sup_least)
@@ -559,11 +566,11 @@ instance "fun" :: (type, complete_lattice) complete_lattice
 lemmas [code func del] = Inf_fun_def Sup_fun_def
 
 lemma Inf_empty_fun:
-  "Inf {} = (\<lambda>_. Inf {})"
+  "\<Sqinter>{} = (\<lambda>_. \<Sqinter>{})"
   by rule (auto simp add: Inf_fun_def)
 
 lemma Sup_empty_fun:
-  "Sup {} = (\<lambda>_. Sup {})"
+  "\<Squnion>{} = (\<lambda>_. \<Squnion>{})"
   by rule (auto simp add: Sup_fun_def)
 
 lemma top_fun_eq: "top = (\<lambda>x. top)"
@@ -579,15 +586,16 @@ lemmas inf_aci = inf_ACI
 lemmas sup_aci = sup_ACI
 
 no_notation
-  inf (infixl "\<sqinter>" 70)
-
-no_notation
-  sup (infixl "\<squnion>" 65)
-
-no_notation
-  Inf ("\<Sqinter>_" [900] 900)
-
-no_notation
-  Sup ("\<Squnion>_" [900] 900)
+  less_eq (infix "\<sqsubseteq>" 50)
+and
+  less    (infix "\<sqsubset>" 50)
+and
+  inf     (infixl "\<sqinter>" 70)
+and
+  sup     (infixl "\<squnion>" 65)
+and
+  Inf     ("\<Sqinter>_" [900] 900)
+and
+  Sup     ("\<Squnion>_" [900] 900)
 
 end
