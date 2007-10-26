@@ -10,7 +10,7 @@ sig
   val norm_conv: cterm -> thm
   val norm_term: theory -> term -> term
 
-  datatype Univ = 
+  datatype Univ =
       Const of string * Univ list            (*named (uninterpreted) constants*)
     | Free of string * Univ list
     | DFree of string                        (*free (uninterpreted) dictionary parameters*)
@@ -21,7 +21,7 @@ sig
   val abs: int -> (Univ list -> Univ) -> Univ
                                              (*abstractions as closures*)
 
-  val univs_ref: (unit -> Univ list -> Univ list) option ref 
+  val univs_ref: (unit -> Univ list -> Univ list) option ref
   val trace: bool ref
   val setup: theory -> theory
 end;
@@ -55,7 +55,7 @@ fun tracing f x = if !trace then (Output.tracing (f x); x) else x;
    and the number of arguments we're still waiting for.
 *)
 
-datatype Univ = 
+datatype Univ =
     Const of string * Univ list        (*named (uninterpreted) constants*)
   | Free of string * Univ list         (*free variables*)
   | DFree of string                    (*free (uninterpreted) dictionary parameters*)
@@ -145,12 +145,12 @@ open BasicCodeThingol;
 
 val univs_ref = ref (NONE : (unit -> Univ list -> Univ list) option);
 
-val compile = 
+val compile =
   tracing (fn s => "\n--- code to be evaluated:\n" ^ s)
-  #> evaluate ("Nbe.univs_ref", univs_ref) "normalization by evaluation"
+  #> ML_Context.evaluate
       (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
       Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
-      (!trace);
+      (!trace) ("Nbe.univs_ref", univs_ref);
 
 (* code generation with greetings to Tarski *)
 

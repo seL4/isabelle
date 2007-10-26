@@ -1709,7 +1709,7 @@ fun eval_invoke thy (ref_name, reff) code (t, ty) args =
     val code' = CodeThingol.add_value_stmt (t, ty) code;
     val label = "evaluation in SML";
     fun eval () = (seri (SOME [CodeName.value_name]) code';
-      evaluate (ref_name, reff) label Output.ml_output (!eval_verbose) val_args);
+      ML_Context.evaluate Output.ml_output (!eval_verbose) (ref_name, reff) val_args);
   in NAMED_CRITICAL label eval end;
 
 

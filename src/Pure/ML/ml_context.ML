@@ -10,7 +10,7 @@ sig
   val the_context: unit -> theory
   val thm: xstring -> thm
   val thms: xstring -> thm list
-end;
+end
 
 signature ML_CONTEXT =
 sig
@@ -37,7 +37,9 @@ sig
   val use_mltext_update: string -> bool -> Context.generic -> Context.generic
   val use_let: string -> string -> string -> Context.generic -> Context.generic
   val use: Path.T -> unit
-end;
+  val evaluate: (string -> unit) * (string -> 'b) -> bool ->
+    string * (unit -> 'a) option ref -> string -> 'a
+end
 
 structure ML_Context: ML_CONTEXT =
 struct
@@ -162,19 +164,20 @@ fun eval_antiquotes txt = CRITICAL (fn () =>
       |> #1 |> split_list |> pairself implode;
   in (isabelle_struct decls, body) end);
 
-fun eval name verbose txt = use_text name Output.ml_output verbose txt;
-
 in
 
 val eval_antiquotes_fn = ref eval_antiquotes;
 
 val trace = ref false;
 
-fun eval_wrapper name verbose txt =
+fun eval_wrapper name pr verbose txt =
   let
-    val (txt1, txt2) = ! eval_antiquotes_fn txt;
+    val (txt1, txt2) = ! eval_antiquotes_fn txt;  (* FIXME tmp hook *)
     val _ = if ! trace then tracing (cat_lines [txt1, txt2]) else ();
+    fun eval nm = use_text nm pr;
   in eval "" false txt1; eval name verbose txt2; eval "" false isabelle_struct0 end;
+
+fun ML_wrapper pr = eval_wrapper "ML" pr;
 
 end;
 
@@ -182,10 +185,10 @@ end;
 (* ML evaluation *)
 
 fun use_mltext txt verbose opt_context =
-  setmp opt_context (fn () => eval_wrapper "ML" verbose txt) ();
+  setmp opt_context (fn () => ML_wrapper Output.ml_output verbose txt) ();
 
 fun use_mltext_update txt verbose context =
-  #2 (pass_context context (eval_wrapper "ML" verbose) txt);
+  #2 (pass_context context (ML_wrapper Output.ml_output verbose) txt);
 
 fun use_context txt = use_mltext_update
   ("ML_Context.set_context (SOME ((" ^ txt ^ ") (ML_Context.the_generic_context ())));") false;
@@ -193,7 +196,13 @@ fun use_context txt = use_mltext_update
 fun use_let bind body txt =
   use_context ("let " ^ bind ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
 
-fun use path = eval_wrapper (Path.implode path) true (File.read path);
+fun use path = eval_wrapper (Path.implode path) Output.ml_output true (File.read path);
+
+fun evaluate pr verbose (ref_name, r) txt = CRITICAL (fn () =>
+  let
+    val _ = r := NONE;
+    val _ = ML_wrapper pr verbose ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))");
+  in (case ! r of NONE => error ("Bad evaluation for " ^ ref_name) | SOME e => e) end) ();
 
 
 (* basic antiquotations *)
