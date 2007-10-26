@@ -1285,8 +1285,10 @@ fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
 
 (*Rewrite subgoal i only.*)
-fun asm_rewrite_goal_tac mode prover_tac ss i =
-  PRIMITIVE (rewrite_goal_rule mode (SINGLE o prover_tac) ss i);
+fun asm_rewrite_goal_tac mode prover_tac ss i thm =
+  if 0 < i andalso i <= Thm.nprems_of thm then
+    Seq.single (Conv.gconv_rule (rewrite_cterm mode (SINGLE o prover_tac) ss) i thm)
+  else Seq.empty;
 
 fun rewrite_goal_tac rews =
   let val ss = empty_ss addsimps rews in
