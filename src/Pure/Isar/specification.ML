@@ -204,7 +204,16 @@ val abbreviation_cmd = gen_abbrev read_free_specification;
 (* notation *)
 
 fun gen_notation prep_const add mode args lthy =
-  lthy |> LocalTheory.notation add mode (map (apfst (prep_const lthy)) args);
+  let
+    val ctxt = ProofContext.set_mode ProofContext.mode_abbrev lthy;
+    fun prep_arg (s, mx) =
+      let
+        val t = Syntax.check_term ctxt
+          (case prep_const ctxt s of Const (c, _) => Const (c, dummyT) | a => a);
+        val [t'] = Syntax.uncheck_terms ctxt [t];
+        val u = if Term.is_Const t' orelse Term.is_Free t' then t' else t;
+      in (u, mx) end;
+  in lthy |> LocalTheory.notation add mode (map prep_arg args) end;
 
 val notation = gen_notation (K I);
 val notation_cmd = gen_notation ProofContext.read_const;
