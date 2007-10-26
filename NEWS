@@ -120,20 +120,20 @@ between global polymorphic consts and internal locale representation.
 See src/HOL/ex/Classpackage.thy for examples (as well as main HOL).
 "isatool doc classes" provides a tutorial.
 
-* Yet another code generator framework allows to generate executable
+* Generic code generator framework allows to generate executable
 code for ML and Haskell (including Isabelle classes).  A short usage
 sketch:
 
     internal compilation:
-        code_gen <list of constants (term syntax)> in SML
+        export_code <list of constants (term syntax)> in SML
     writing SML code to a file:
-        code_gen <list of constants (term syntax)> in SML <filename>
+        export_code <list of constants (term syntax)> in SML <filename>
     writing OCaml code to a file:
-        code_gen <list of constants (term syntax)> in OCaml <filename>
+        export_code <list of constants (term syntax)> in OCaml <filename>
     writing Haskell code to a bunch of files:
-        code_gen <list of constants (term syntax)> in Haskell <filename>
+        export_code <list of constants (term syntax)> in Haskell <filename>
 
-    evaluating propositions to True/False using code generation:
+    evaluating closed propositions to True/False using code generation:
         method ``eval''
 
 Reasonable default setup of framework in HOL.
@@ -161,7 +161,7 @@ User-defined serializations (target in {SML, OCaml, Haskell}):
       {(target) <and-list of class target syntax>}+
         where class target syntax ::= <class name> {where {<classop> == <target syntax>}+}?
 
-code_instance and code_class only apply to target Haskell.
+code_instance and code_class only are effective to target Haskell.
 
 For example usage see src/HOL/ex/Codegenerator.thy and
 src/HOL/ex/Codegenerator_Pretty.thy.  A separate tutorial on code
