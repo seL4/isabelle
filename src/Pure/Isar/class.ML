@@ -29,6 +29,7 @@ sig
   val prove_subclass: class * class -> thm list -> Proof.context
     -> theory -> theory
   val print_classes: theory -> unit
+  val class_prefix: string -> string
   val uncheck: bool ref
 
   val instance_arity: (theory -> theory) -> arity list -> theory -> Proof.state
@@ -870,11 +871,8 @@ fun add_logical_const class pos ((c, mx), dict) thy =
     val ty' = Term.fastype_of dict';
     val ty'' = Type.strip_sorts ty';
     val def_eq = Logic.mk_equals (Const (c', ty'), dict');
-
-    val c'' = NameSpace.full (Sign.naming_of thy' |> NameSpace.add_path prfx) c;
   in
     thy'
-    |> Sign.hide_consts_i false [c''] (*FIXME*)
     |> Sign.declare_const pos (c, ty'', mx) |> snd
     |> Thm.add_def false (c, def_eq)
     |>> Thm.symmetric
@@ -897,13 +895,8 @@ fun add_syntactic_const class prmode pos ((c, mx), rhs) thy =
     val rews = map (Logic.dest_equals o Thm.prop_of) (these_defs thy' [class])
     val rhs' = (Pattern.rewrite_term thy rews [] o Morphism.term phi) rhs;
     val ty' = (Logic.unvarifyT o Term.fastype_of) rhs';
-
-    val c'' = NameSpace.full (Sign.naming_of thy' |> NameSpace.add_path prfx) c;
-    val ty'' = (Type.strip_sorts o Logic.unvarifyT) (Sign.the_const_constraint thy' c'');
   in
     thy'
-    |> Sign.add_const_constraint (c'', SOME ty'') (*FIXME*)
-    |> Sign.hide_consts_i false [c''] (*FIXME*)
     |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts rhs') |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
