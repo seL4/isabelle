@@ -397,16 +397,6 @@ fun these_operations thy =
 fun these_unchecks thy =
   maps (#unchecks o the_class_data thy) o ancestry thy;
 
-fun sups_base_sort thy sort =
-  let
-    val sups = filter (is_class thy) sort
-      |> Sign.minimize_sort thy;
-    val base_sort = case sups
-     of _ :: _ => maps (#base_sort o the_class_data thy) sups
-          |> Sign.minimize_sort thy
-      | [] => sort;
-  in (sups, base_sort) end;
-
 fun print_classes thy =
   let
     val ctxt = ProofContext.init thy;
@@ -493,8 +483,7 @@ fun calculate_morphism class cs =
       | subst_aterm t = t;
     val subst_term = map_aterms subst_aterm #> map_types subst_typ;
   in
-    Morphism.identity
-    $> Morphism.term_morphism subst_term
+    Morphism.term_morphism subst_term
     $> Morphism.typ_morphism subst_typ
   end;
 
@@ -648,8 +637,7 @@ fun synchronize_syntax thy sups base_sort ctxt =
 
     (* check phase *)
     val typargs = Consts.typargs (ProofContext.consts_of ctxt);
-    fun check_const (c, ty) (t, (_, idx)) =
-      ((nth (typargs (c, ty)) idx), t);
+    fun check_const (c, ty) (t, (_, typidx)) = ((nth (typargs (c, ty)) typidx), t);
     fun local_operation (c_ty as (c, _)) = AList.lookup (op =) operations c
       |> Option.map (check_const c_ty);
 
@@ -662,13 +650,13 @@ fun synchronize_syntax thy sups base_sort ctxt =
   in
     ctxt
     |> fold (ProofContext.add_const_constraint o local_constraint) operations
-    |> ClassSyntax.map (K (SOME {
+    |> ClassSyntax.put (SOME {
         constraints = constraints,
         base_sort = base_sort,
         local_operation = local_operation,
         unchecks = unchecks,
         passed = false
-      }))
+      })
   end;
 
 fun refresh_syntax class ctxt =
@@ -715,7 +703,6 @@ val uncheck = ref true;
 
 fun sort_term_uncheck ts ctxt =
   let
-    (*FIXME abbreviations*)
     val thy = ProofContext.theory_of ctxt;
     val unchecks = (#unchecks o the o ClassSyntax.get) ctxt;
     val ts' = if ! uncheck
@@ -746,7 +733,11 @@ local
 fun gen_class_spec prep_class prep_expr process_expr thy raw_supclasses raw_includes_elems =
   let
     val supclasses = map (prep_class thy) raw_supclasses;
-    val (sups, base_sort) = sups_base_sort thy supclasses;
+    val sups = filter (is_class thy) supclasses;
+    fun the_base_sort class = lookup_class_data thy class
+      |> Option.map #base_sort
+      |> the_default [class];
+    val base_sort = Sign.minimize_sort thy (maps the_base_sort supclasses);
     val supsort = Sign.minimize_sort thy supclasses;
     val suplocales = map Locale.Locale sups;
     val (raw_elems, includes) = fold_rev (fn Locale.Elem e => apfst (cons e)
