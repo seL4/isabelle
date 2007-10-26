@@ -912,6 +912,16 @@ numerals on all operations.
     sets or predicates are now called "p_1.cases" ... "p_k.cases". The
     list of rules "p_1_..._p_k.elims" is no longer available.
 
+* New package "function"/"fun" for general recursive functions,
+supporting mutual and nested recursion, definitions in local contexts,
+more general pattern matching and partiality. See HOL/ex/Fundefs.thy
+for small examples, and the separate tutorial on the function
+package. The old recdef "package" is still available as before, but
+users are encouraged to use the new package.
+
+* Method "lexicographic_order" automatically synthesizes termination
+relations as lexicographic combinations of size measures. 
+
 * Case-expressions allow arbitrary constructor-patterns (including
 "_") and take their order into account, like in functional
 programming.  Internally, this is translated into nested
@@ -988,10 +998,6 @@ INCOMPATIBILITY.
 
 * Dropped redundant lemma if_def2 in favor of if_bool_eq_conj.
 INCOMPATIBILITY.
-
-* Method "lexicographic_order" automatically synthesizes termination
-relations as lexicographic combinations of size measures -- 'function'
-package.
 
 * HOL/records: generalised field-update to take a function on the
 field rather than the new value: r(|A := x|) is translated to A_update
