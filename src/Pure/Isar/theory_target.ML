@@ -169,20 +169,23 @@ fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
   else if not is_class then (NoSyn, mx, NoSyn)
   else (mx, NoSyn, NoSyn);
 
-fun locale_const (prmode as (mode, _)) pos ((c, mx), rhs) phi =
+fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c, mx), rhs) phi =
   let
     val c' = Morphism.name phi c;
     val rhs' = Morphism.term phi rhs;
     val legacy_arg = (c', Term.close_schematic_term (Logic.legacy_varify rhs'));
     val arg = (c', Term.close_schematic_term rhs');
+    (* FIXME workaround based on educated guess *)
+    val in_class = is_class andalso c' = NameSpace.qualified (Class.class_prefix target) c;
   in
-    Context.mapping_result
-      (Sign.add_abbrev PrintMode.internal pos legacy_arg)
-      (ProofContext.add_abbrev PrintMode.internal pos arg)
-    #-> (fn (lhs' as Const (d, _), _) =>
-        Type.similar_types (rhs, rhs') ?
-          (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
-           Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)])))
+    not in_class ?
+      (Context.mapping_result
+        (Sign.add_abbrev PrintMode.internal pos legacy_arg)
+        (ProofContext.add_abbrev PrintMode.internal pos arg)
+      #-> (fn (lhs' as Const (d, _), _) =>
+          Type.similar_types (rhs, rhs') ?
+            (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
+             Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
   end;
 
 fun declare_const (ta as Target {target, is_locale, is_class}) depends ((c, T), mx) lthy =
@@ -195,7 +198,7 @@ fun declare_const (ta as Target {target, is_locale, is_class}) depends ((c, T), 
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
-    |> is_locale ? term_syntax ta (locale_const Syntax.mode_default pos ((c, mx2), t))
+    |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default pos ((c, mx2), t))
     |> is_class ? class_target ta (Class.add_logical_const target pos ((c, mx1), t))
     |> LocalDefs.add_def ((c, NoSyn), t)
   end;
@@ -221,7 +224,7 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((c, mx), t) lthy
         LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal pos (c, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
-            term_syntax ta (locale_const prmode pos ((c, mx2), lhs')) #>
+            term_syntax ta (locale_const ta prmode pos ((c, mx2), lhs')) #>
             is_class ? class_target ta (Class.add_syntactic_const target prmode pos ((c, mx1), t'))
           end)
       else
