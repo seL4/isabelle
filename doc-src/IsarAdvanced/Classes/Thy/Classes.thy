@@ -12,16 +12,6 @@ CodeTarget.code_width := 74;
 syntax
   "_alpha" :: "type"  ("\<alpha>")
   "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>()\<Colon>_" [0] 1000)
-  "_beta" :: "type"  ("\<beta>")
-  "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>()\<Colon>_" [0] 1000)
-  "_gamma" :: "type"  ("\<gamma>")
-  "_gamma_ofsort" :: "sort \<Rightarrow> type"  ("\<gamma>()\<Colon>_" [0] 1000)
-  "_alpha_f" :: "type"  ("\<alpha>\<^sub>f")
-  "_alpha_f_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>\<^sub>f()\<Colon>_" [0] 1000)
-  "_beta_f" :: "type"  ("\<beta>\<^sub>f")
-  "_beta_f_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>\<^sub>f()\<Colon>_" [0] 1000)
-  "_gamma_f" :: "type"  ("\<gamma>\<^sub>f")
-  "_gamma_ofsort_f" :: "sort \<Rightarrow> type"  ("\<gamma>\<^sub>f()\<Colon>_" [0] 1000)
 
 parse_ast_translation {*
   let
@@ -30,38 +20,8 @@ parse_ast_translation {*
     fun alpha_ofsort_ast_tr [ast] =
       Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'a", ast]
       | alpha_ofsort_ast_tr asts = raise Syntax.AST ("alpha_ast_tr", asts);
-    fun beta_ast_tr [] = Syntax.Variable "'b"
-      | beta_ast_tr asts = raise Syntax.AST ("beta_ast_tr", asts);
-    fun beta_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'b", ast]
-      | beta_ofsort_ast_tr asts = raise Syntax.AST ("beta_ast_tr", asts);
-    fun gamma_ast_tr [] = Syntax.Variable "'c"
-      | gamma_ast_tr asts = raise Syntax.AST ("gamma_ast_tr", asts);
-    fun gamma_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'c", ast]
-      | gamma_ofsort_ast_tr asts = raise Syntax.AST ("gamma_ast_tr", asts);
-    fun alpha_f_ast_tr [] = Syntax.Variable "'a_f"
-      | alpha_f_ast_tr asts = raise Syntax.AST ("alpha_f_ast_tr", asts);
-    fun alpha_f_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'a_f", ast]
-      | alpha_f_ofsort_ast_tr asts = raise Syntax.AST ("alpha_f_ast_tr", asts);
-    fun beta_f_ast_tr [] = Syntax.Variable "'b_f"
-      | beta_f_ast_tr asts = raise Syntax.AST ("beta_f_ast_tr", asts);
-    fun beta_f_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'b_f", ast]
-      | beta_f_ofsort_ast_tr asts = raise Syntax.AST ("beta_f_ast_tr", asts);
-    fun gamma_f_ast_tr [] = Syntax.Variable "'c_f"
-      | gamma_f_ast_tr asts = raise Syntax.AST ("gamma_f_ast_tr", asts);
-    fun gamma_f_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'c_f", ast]
-      | gamma_f_ofsort_ast_tr asts = raise Syntax.AST ("gamma_f_ast_tr", asts);
   in [
-    ("_alpha", alpha_ast_tr), ("_alpha_ofsort", alpha_ofsort_ast_tr),
-    ("_beta", beta_ast_tr), ("_beta_ofsort", beta_ofsort_ast_tr),
-    ("_gamma", gamma_ast_tr), ("_gamma_ofsort", gamma_ofsort_ast_tr),
-    ("_alpha_f", alpha_f_ast_tr), ("_alpha_f_ofsort", alpha_f_ofsort_ast_tr),
-    ("_beta_f", beta_f_ast_tr), ("_beta_f_ofsort", beta_f_ofsort_ast_tr),
-    ("_gamma_f", gamma_f_ast_tr), ("_gamma_f_ofsort", gamma_f_ofsort_ast_tr)
+    ("_alpha", alpha_ast_tr), ("_alpha_ofsort", alpha_ofsort_ast_tr)
   ] end
 *}
 (*>*)
@@ -164,8 +124,8 @@ text {*
 *}
 
     class semigroup = type +
-      fixes mult :: "\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"    (infixl "\<^loc>\<otimes>" 70)
-      assumes assoc: "(x \<^loc>\<otimes> y) \<^loc>\<otimes> z = x \<^loc>\<otimes> (y \<^loc>\<otimes> z)"
+      fixes mult :: "\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"    (infixl "\<otimes>" 70)
+      assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
 text {*
   \noindent This @{text "\<CLASS>"} specification consists of two
@@ -242,8 +202,8 @@ text {*
 *}
 
     class monoidl = semigroup +
-      fixes neutral :: "\<alpha>" ("\<^loc>\<one>")
-      assumes neutl: "\<^loc>\<one> \<^loc>\<otimes> x = x"
+      fixes neutral :: "\<alpha>" ("\<one>")
+      assumes neutl: "\<one> \<otimes> x = x"
 
 text {*
   \noindent Again, we make some instances, by
@@ -283,7 +243,7 @@ text {*
 *}
 
     class monoid = monoidl +
-      assumes neutr: "x \<^loc>\<otimes> \<^loc>\<one> = x"
+      assumes neutr: "x \<otimes> \<one> = x"
 
 text {*
   \noindent Instantiations may also be given simultaneously for different
@@ -313,8 +273,8 @@ text {*
 *}
 
     class group = monoidl +
-      fixes inverse :: "\<alpha> \<Rightarrow> \<alpha>"    ("(_\<^loc>\<div>)" [1000] 999)
-      assumes invl: "x\<^loc>\<div> \<^loc>\<otimes> x = \<^loc>\<one>"
+      fixes inverse :: "\<alpha> \<Rightarrow> \<alpha>"    ("(_\<div>)" [1000] 999)
+      assumes invl: "x\<div> \<otimes> x = \<one>"
 
     instance int :: group
       inverse_int_def: "i\<div> \<equiv> - i"
@@ -381,15 +341,15 @@ text {*
   states that the function @{text "(x \<circ>)"} is injective:
 *}
 
-    lemma (in group) left_cancel: "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z \<longleftrightarrow> y = z"
+    lemma (in group) left_cancel: "x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"
     proof
-    assume "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z"
-      then have "x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> y) = x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> z)" by simp
-      then have "(x\<^loc>\<div> \<^loc>\<otimes> x) \<^loc>\<otimes> y = (x\<^loc>\<div> \<^loc>\<otimes> x) \<^loc>\<otimes> z" using assoc by simp
+    assume "x \<otimes> y = x \<otimes> z"
+      then have "x\<div> \<otimes> (x \<otimes> y) = x\<div> \<otimes> (x \<otimes> z)" by simp
+      then have "(x\<div> \<otimes> x) \<otimes> y = (x\<div> \<otimes> x) \<otimes> z" using assoc by simp
       then show "y = z" using neutl and invl by simp
     next
     assume "y = z"
-      then show "x \<^loc>\<otimes> y = x \<^loc>\<otimes> z" by simp
+      then show "x \<otimes> y = x \<otimes> z" by simp
     qed
 
 text {*
@@ -412,8 +372,8 @@ text {*
 
     fun (in monoid)
       pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
-      "pow_nat 0 x = \<^loc>\<one>"
-      | "pow_nat (Suc n) x = x \<^loc>\<otimes> pow_nat n x"
+      "pow_nat 0 x = \<one>"
+      | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
 text {*
   \noindent If the locale @{text group} is also a class, this local
@@ -440,16 +400,16 @@ text {*
     subclass (in group) monoid
     proof unfold_locales
       fix x
-      from invl have "x\<^loc>\<div> \<^loc>\<otimes> x = \<^loc>\<one>" by simp
-      with assoc [symmetric] neutl invl have "x\<^loc>\<div> \<^loc>\<otimes> (x \<^loc>\<otimes> \<^loc>\<one>) = x\<^loc>\<div> \<^loc>\<otimes> x" by simp
-      with left_cancel show "x \<^loc>\<otimes> \<^loc>\<one> = x" by simp
+      from invl have "x\<div> \<otimes> x = \<one>" by simp
+      with assoc [symmetric] neutl invl have "x\<div> \<otimes> (x \<otimes> \<one>) = x\<div> \<otimes> x" by simp
+      with left_cancel show "x \<otimes> \<one> = x" by simp
     qed
 
 text {*
-  The logical proof is carried out on the locale level
+  \noindent The logical proof is carried out on the locale level
   and thus conveniently is opened using the @{text unfold_locales}
   method which only leaves the logical differences still
-  open to proof to the user.  After the proof it is propagated
+  open to proof to the user.  Afterwards it is propagated
   to the type system, making @{text group} an instance of
   @{text monoid}.  For illustration, a derived definition
   in @{text group} which uses @{text pow_nat}:
@@ -459,10 +419,10 @@ text {*
       pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
       "pow_int k x = (if k >= 0
         then pow_nat (nat k) x
-        else (pow_nat (nat (- k)) x)\<^loc>\<div>)"
+        else (pow_nat (nat (- k)) x)\<div>)"
 
 text {*
-  yields the global definition of
+  \noindent   yields the global definition of
   @{term [source] "pow_int \<Colon> int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group"}
   with the corresponding theorem @{thm pow_int_def [no_vars]}.
 *}

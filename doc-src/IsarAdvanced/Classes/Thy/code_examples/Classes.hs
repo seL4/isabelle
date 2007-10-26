@@ -1,29 +1,28 @@
 module Classes where {
 
 
-data Nat = Suc Classes.Nat | Zero_nat;
+data Nat = Suc Nat | Zero_nat;
 
 data Bit = B1 | B0;
 
-nat_aux :: Integer -> Classes.Nat -> Classes.Nat;
-nat_aux i n =
-  (if i <= 0 then n else Classes.nat_aux (i - 1) (Classes.Suc n));
+nat_aux :: Integer -> Nat -> Nat;
+nat_aux i n = (if i <= 0 then n else nat_aux (i - 1) (Suc n));
 
-nat :: Integer -> Classes.Nat;
-nat i = Classes.nat_aux i Classes.Zero_nat;
+nat :: Integer -> Nat;
+nat i = nat_aux i Zero_nat;
 
 class Semigroup a where {
   mult :: a -> a -> a;
 };
 
-class (Classes.Semigroup a) => Monoidl a where {
+class (Semigroup a) => Monoidl a where {
   neutral :: a;
 };
 
-class (Classes.Monoidl a) => Monoid a where {
+class (Monoidl a) => Monoid a where {
 };
 
-class (Classes.Monoid a) => Group a where {
+class (Monoid a) => Group a where {
   inverse :: a -> a;
 };
 
@@ -36,31 +35,31 @@ neutral_int = 0;
 mult_int :: Integer -> Integer -> Integer;
 mult_int i j = i + j;
 
-instance Classes.Semigroup Integer where {
-  mult = Classes.mult_int;
+instance Semigroup Integer where {
+  mult = mult_int;
 };
 
-instance Classes.Monoidl Integer where {
-  neutral = Classes.neutral_int;
+instance Monoidl Integer where {
+  neutral = neutral_int;
 };
 
-instance Classes.Monoid Integer where {
+instance Monoid Integer where {
 };
 
-instance Classes.Group Integer where {
-  inverse = Classes.inverse_int;
+instance Group Integer where {
+  inverse = inverse_int;
 };
 
-pow_nat :: (Classes.Monoid a) => Classes.Nat -> a -> a;
-pow_nat (Classes.Suc n) x = Classes.mult x (Classes.pow_nat n x);
-pow_nat Classes.Zero_nat x = Classes.neutral;
+pow_nat :: (Monoid a) => Nat -> a -> a;
+pow_nat (Suc n) x = mult x (pow_nat n x);
+pow_nat Zero_nat x = neutral;
 
-pow_int :: (Classes.Group a) => Integer -> a -> a;
+pow_int :: (Group a) => Integer -> a -> a;
 pow_int k x =
-  (if 0 <= k then Classes.pow_nat (Classes.nat k) x
-    else Classes.inverse (Classes.pow_nat (Classes.nat (negate k)) x));
+  (if 0 <= k then pow_nat (nat k) x
+    else inverse (pow_nat (nat (negate k)) x));
 
 example :: Integer;
-example = Classes.pow_int 10 (-2);
+example = pow_int 10 (-2);
 
 }

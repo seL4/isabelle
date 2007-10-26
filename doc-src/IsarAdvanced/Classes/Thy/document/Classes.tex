@@ -148,8 +148,8 @@ Depending on an arbitrary type \isa{{\isasymalpha}}, class \isa{semigroup} intro
 \isamarkuptrue%
 \ \ \ \ \isacommand{class}\isamarkupfalse%
 \ semigroup\ {\isacharequal}\ type\ {\isacharplus}\isanewline
-\ \ \ \ \ \ \isakeyword{fixes}\ mult\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}\isactrlloc {\isasymotimes}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ \isactrlloc {\isasymotimes}\ y{\isacharparenright}\ \isactrlloc {\isasymotimes}\ z\ {\isacharequal}\ x\ \isactrlloc {\isasymotimes}\ {\isacharparenleft}y\ \isactrlloc {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}%
+\ \ \ \ \ \ \isakeyword{fixes}\ mult\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymotimes}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isasymotimes}\ z\ {\isacharequal}\ x\ {\isasymotimes}\ {\isacharparenleft}y\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent This \isa{{\isasymCLASS}} specification consists of two
   parts: the \qn{operational} part names the class parameter (\isa{{\isasymFIXES}}), the \qn{logical} part specifies properties on them
@@ -291,8 +291,8 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \isamarkuptrue%
 \ \ \ \ \isacommand{class}\isamarkupfalse%
 \ monoidl\ {\isacharequal}\ semigroup\ {\isacharplus}\isanewline
-\ \ \ \ \ \ \isakeyword{fixes}\ neutral\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}\isactrlloc {\isasymone}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \isakeyword{assumes}\ neutl{\isacharcolon}\ {\isachardoublequoteopen}\isactrlloc {\isasymone}\ \isactrlloc {\isasymotimes}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}%
+\ \ \ \ \ \ \isakeyword{fixes}\ neutral\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymone}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isakeyword{assumes}\ neutl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Again, we make some instances, by
   providing suitable parameter definitions and proofs for the
@@ -401,7 +401,7 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \isamarkuptrue%
 \ \ \ \ \isacommand{class}\isamarkupfalse%
 \ monoid\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
-\ \ \ \ \ \ \isakeyword{assumes}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}%
+\ \ \ \ \ \ \isakeyword{assumes}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Instantiations may also be given simultaneously for different
   type constructors:%
@@ -470,8 +470,8 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \isamarkuptrue%
 \ \ \ \ \isacommand{class}\isamarkupfalse%
 \ group\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
-\ \ \ \ \ \ \isakeyword{fixes}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}\isactrlloc {\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \isakeyword{assumes}\ invl{\isacharcolon}\ {\isachardoublequoteopen}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x\ {\isacharequal}\ \isactrlloc {\isasymone}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isakeyword{fixes}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}{\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isakeyword{assumes}\ invl{\isacharcolon}\ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
 \isanewline
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 \ int\ {\isacharcolon}{\isacharcolon}\ group\isanewline
@@ -612,7 +612,7 @@ Isabelle locales enable reasoning at a general level, while results
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{lemma}\isamarkupfalse%
-\ {\isacharparenleft}\isakeyword{in}\ group{\isacharparenright}\ left{\isacharunderscore}cancel{\isacharcolon}\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ y\ {\isacharequal}\ x\ \isactrlloc {\isasymotimes}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
+\ {\isacharparenleft}\isakeyword{in}\ group{\isacharparenright}\ left{\isacharunderscore}cancel{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -622,14 +622,14 @@ Isabelle locales enable reasoning at a general level, while results
 \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ y\ {\isacharequal}\ x\ \isactrlloc {\isasymotimes}\ z{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ {\isacharparenleft}x\ \isactrlloc {\isasymotimes}\ y{\isacharparenright}\ {\isacharequal}\ x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ {\isacharparenleft}x\ \isactrlloc {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ {\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isacharequal}\ x{\isasymdiv}\ {\isasymotimes}\ {\isacharparenleft}x\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x{\isacharparenright}\ \isactrlloc {\isasymotimes}\ y\ {\isacharequal}\ {\isacharparenleft}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x{\isacharparenright}\ \isactrlloc {\isasymotimes}\ z{\isachardoublequoteclose}\ \isacommand{using}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}x{\isasymdiv}\ {\isasymotimes}\ x{\isacharparenright}\ {\isasymotimes}\ y\ {\isacharequal}\ {\isacharparenleft}x{\isasymdiv}\ {\isasymotimes}\ x{\isacharparenright}\ {\isasymotimes}\ z{\isachardoublequoteclose}\ \isacommand{using}\isamarkupfalse%
 \ assoc\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
@@ -643,7 +643,7 @@ Isabelle locales enable reasoning at a general level, while results
 \ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ y\ {\isacharequal}\ x\ \isactrlloc {\isasymotimes}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 %
@@ -674,8 +674,8 @@ Isabelle locales support a concept of local definitions
 \ \ \ \ \isacommand{fun}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ monoid{\isacharparenright}\isanewline
 \ \ \ \ \ \ pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ \isactrlloc {\isasymone}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ {\isacharbar}\ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ \isactrlloc {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x{\isachardoublequoteclose}%
+\ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ {\isacharbar}\ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent If the locale \isa{group} is also a class, this local
   definition is propagated onto a global definition of
@@ -715,15 +715,15 @@ Any \isa{group} is also a \isa{monoid};  this
 \ x\isanewline
 \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ invl\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x\ {\isacharequal}\ \isactrlloc {\isasymone}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
 \ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}\ neutl\ invl\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ {\isacharparenleft}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}{\isacharparenright}\ {\isacharequal}\ x\isactrlloc {\isasymdiv}\ \isactrlloc {\isasymotimes}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ {\isacharparenleft}x\ {\isasymotimes}\ {\isasymone}{\isacharparenright}\ {\isacharequal}\ x{\isasymdiv}\ {\isasymotimes}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
 \ left{\isacharunderscore}cancel\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ \isactrlloc {\isasymotimes}\ \isactrlloc {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 %
@@ -735,10 +735,10 @@ Any \isa{group} is also a \isa{monoid};  this
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-The logical proof is carried out on the locale level
+\noindent The logical proof is carried out on the locale level
   and thus conveniently is opened using the \isa{unfold{\isacharunderscore}locales}
   method which only leaves the logical differences still
-  open to proof to the user.  After the proof it is propagated
+  open to proof to the user.  Afterwards it is propagated
   to the type system, making \isa{group} an instance of
   \isa{monoid}.  For illustration, a derived definition
   in \isa{group} which uses \isa{pow{\isacharunderscore}nat}:%
@@ -749,9 +749,9 @@ The logical proof is carried out on the locale level
 \ \ \ \ \ \ pow{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}int\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\ {\isacharparenleft}if\ k\ {\isachargreater}{\isacharequal}\ {\isadigit{0}}\isanewline
 \ \ \ \ \ \ \ \ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\isanewline
-\ \ \ \ \ \ \ \ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}\isactrlloc {\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}%
+\ \ \ \ \ \ \ \ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-yields the global definition of
+\noindent   yields the global definition of
   \isa{{\isachardoublequote}pow{\isacharunderscore}int\ {\isasymColon}\ int\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group{\isachardoublequote}}
   with the corresponding theorem \isa{pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{0}}\ {\isasymle}\ k\ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isasymdiv}{\isacharparenright}}.%
 \end{isamarkuptext}%
