@@ -851,19 +851,17 @@ apply (rule mset_le_trans)
  apply auto
 done
 
-interpretation mset_order: order["op \<le>#" "op <#"]
-by(auto intro: order.intro mset_le_refl mset_le_antisym mset_le_trans
-        simp:mset_less_def)
+interpretation mset_order:
+  order ["op \<le>#" "op <#"]
+  by (auto intro: order.intro mset_le_refl mset_le_antisym
+    mset_le_trans simp: mset_less_def)
 
 interpretation mset_order_cancel_semigroup:
-  pordered_cancel_ab_semigroup_add["op +" "op \<le>#" "op <#"]
-apply(unfold_locales)
-apply(erule mset_le_mono_add[OF mset_le_refl])
-done
+  pordered_cancel_ab_semigroup_add ["op \<le>#" "op <#" "op +"]
+  by unfold_locales (erule mset_le_mono_add [OF mset_le_refl])
 
 interpretation mset_order_semigroup_cancel:
-  pordered_ab_semigroup_add_imp_le["op +" "op \<le>#" "op <#"]
-by (unfold_locales) simp
-
+  pordered_ab_semigroup_add_imp_le ["op \<le>#" "op <#" "op +"]
+  by (unfold_locales) simp
 
 end
