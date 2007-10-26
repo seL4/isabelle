@@ -80,9 +80,10 @@ fun fundef_afterqed config fixes post defname cont sort_cont [[proof]] lthy =
 
       val cdata = FundefCtxData { add_simps=addsmps, psimps=psimps',
                                   pinducts=snd pinducts', termination=termination', fs=fs, R=R, defname=defname }
+      val _ = Specification.print_consts lthy (K false) (map fst fixes)
     in
       lthy 
-        |> LocalTheory.declaration (fn phi => add_fundef_data (morph_fundef_data phi cdata))
+        |> LocalTheory.declaration (add_fundef_data o morph_fundef_data cdata)
     end (* FIXME: Add cases for induct and cases thm *)
 
 

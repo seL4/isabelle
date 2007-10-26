@@ -61,7 +61,7 @@ datatype fundef_context_data =
       termination: thm
      }
 
-fun morph_fundef_data phi (FundefCtxData {add_simps, fs, R, psimps, pinducts, termination, defname}) =
+fun morph_fundef_data (FundefCtxData {add_simps, fs, R, psimps, pinducts, termination, defname}) phi =
     let
       val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
       val name = Morphism.name phi
@@ -98,8 +98,8 @@ fun import_fundef_data t ctxt =
       val ct = cterm_of thy t
       val inst_morph = lift_morphism thy o Thm.instantiate 
 
-      fun match data = 
-          SOME (morph_fundef_data (inst_morph (Thm.match (cterm_of thy (fst data), ct))) (snd data))
+      fun match (trm, data) = 
+          SOME (morph_fundef_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
           handle Pattern.MATCH => NONE
     in 
       get_first match (NetRules.retrieve (FundefData.get ctxt) t)
