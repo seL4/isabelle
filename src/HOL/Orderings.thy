@@ -20,11 +20,6 @@ class order = ord +
   assumes antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
 begin
 
-notation (input)
-  less_eq (infix "\<sqsubseteq>" 50)
-and
-  less    (infix "\<sqsubset>" 50)
-
 text {* Reflexivity. *}
 
 lemma eq_refl: "x = y \<Longrightarrow> x \<le> y"
@@ -124,7 +119,7 @@ end
 subsection {* Linear (total) orders *}
 
 class linorder = order +
-  assumes linear: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
+  assumes linear: "x \<le> y \<or> y \<le> x"
 begin
 
 lemma less_linear: "x < y \<or> x = y \<or> y < x"

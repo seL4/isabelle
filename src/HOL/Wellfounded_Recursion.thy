@@ -41,7 +41,7 @@ abbreviation acyclicP :: "('a => 'a => bool) => bool" where
   "acyclicP r == acyclic {(x, y). r x y}"
 
 class wellorder = linorder +
-  assumes wf: "wf {(x, y). x \<sqsubset> y}"
+  assumes wf: "wf {(x, y). x < y}"
 
 
 lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
