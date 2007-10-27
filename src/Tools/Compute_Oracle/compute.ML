@@ -35,11 +35,15 @@ signature COMPUTE = sig
 
     val setup_compute : theory -> theory
 
+    val print_encoding : bool ref
+
 end
 
 structure Compute :> COMPUTE = struct
 
 open Report;
+
+val print_encoding = ref false
 
 datatype machine = BARRAS | BARRAS_COMPILED | HASKELL | SML	 
 

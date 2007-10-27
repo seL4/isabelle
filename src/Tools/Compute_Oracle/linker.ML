@@ -189,7 +189,6 @@ fun add_instances thy (Instances (cfilter, ctab,minsets,substs)) cs =
         (added_substs, Instances (cfilter, ctab, minsets, substs))
     end
 
-
 fun substs_of (Instances (_,_,_,substs)) = Substtab.keys substs
 
 local
@@ -216,16 +215,20 @@ end
 
 signature PCOMPUTE =
 sig
-
     type pcomputer
 
     val make : Compute.machine -> theory -> thm list -> Linker.constant list -> pcomputer
-
-(*    val add_thms : pcomputer -> thm list -> bool*)
-
-    val add_instances : pcomputer -> Linker.constant list -> bool
+    
+    val add_instances : pcomputer -> Linker.constant list -> bool 
+    val add_instances' : pcomputer -> term list -> bool
 
     val rewrite : pcomputer -> cterm list -> thm list
+    val simplify : pcomputer -> Compute.theorem -> thm
+
+    val make_theorem : pcomputer -> thm -> string list -> Compute.theorem
+    val instantiate : pcomputer -> (string * cterm) list -> Compute.theorem -> Compute.theorem
+    val evaluate_prem : pcomputer -> int -> Compute.theorem -> Compute.theorem
+    val modus_ponens : pcomputer -> int -> thm -> Compute.theorem -> Compute.theorem 
 
 end
 
@@ -235,7 +238,7 @@ exception PCompute of string
 
 datatype theorem = MonoThm of thm | PolyThm of thm * Linker.instances * thm list
 
-datatype pcomputer = PComputer of Compute.machine * theory_ref * Compute.computer ref * theorem list ref
+datatype pcomputer = PComputer of theory_ref * Compute.computer * theorem list ref
 
 (*fun collect_consts (Var x) = []
   | collect_consts (Bound _) = []
@@ -243,7 +246,9 @@ datatype pcomputer = PComputer of Compute.machine * theory_ref * Compute.compute
   | collect_consts (Abs (_, _, body)) = collect_consts body
   | collect_consts t = [Linker.constant_of t]*)
 
-fun collect_consts_of_thm th =
+fun computer_of (PComputer (_,computer,_)) = computer
+
+fun collect_consts_of_thm th = 
     let
         val th = prop_of th
         val (prems, th) = (Logic.strip_imp_prems th, Logic.strip_imp_concl th)
@@ -285,6 +290,15 @@ fun create_computer machine thy ths =
         val ths = fold_rev add ths []
     in
         Compute.make machine thy ths
+    end
+
+fun update_computer computer ths = 
+    let
+	fun add (MonoThm th) ths = th::ths
+	  | add (PolyThm (_, _, ths')) ths = ths'@ths
+	val ths = fold_rev add ths []
+    in
+	Compute.update computer ths
     end
 
 fun conv_subst thy (subst : Type.tyenv) =
@@ -356,40 +370,70 @@ fun remove_duplicates ths =
         map snd (Inttab.dest (!thstab))
     end
 
-
 fun make machine thy ths cs =
     let
-        val ths = remove_duplicates ths
-        val (monocs, ths) = fold_rev (fn th =>
-                                      fn (monocs, ths) =>
-                                         let val (m, t) = create_theorem th in
-                                             (m@monocs, t::ths)
-                                         end)
-                                     ths (cs, [])
-        val (_, ths) = add_monos thy monocs ths
-  val computer = create_computer machine thy ths
+	val ths = remove_duplicates ths
+	val (monocs, ths) = fold_rev (fn th => 
+				      fn (monocs, ths) => 
+					 let val (m, t) = create_theorem th in 
+					     (m@monocs, t::ths)
+					 end)
+				     ths (cs, [])
+	val (_, ths) = add_monos thy monocs ths
+	val computer = create_computer machine thy ths
     in
-        PComputer (machine, Theory.check_thy thy, ref computer, ref ths)
+	PComputer (Theory.check_thy thy, computer, ref ths)
     end
 
-fun add_instances (PComputer (machine, thyref, rcomputer, rths)) cs =
+fun add_instances (PComputer (thyref, computer, rths)) cs = 
     let
         val thy = Theory.deref thyref
         val (changed, ths) = add_monos thy cs (!rths)
     in
-        if changed then
-            (rcomputer := create_computer machine thy ths;
-             rths := ths;
-             true)
-        else
-            false
+	if changed then
+	    (update_computer computer ths;
+	     rths := ths;
+	     true)
+	else
+	    false
+
     end
 
-fun rewrite (pc as PComputer (_, _, rcomputer, _)) cts =
+fun add_instances' pc ts = add_instances pc (Linker.collect_consts ts)
+
+fun rewrite pc cts =
     let
-        val _ = map (fn ct => add_instances pc (Linker.collect_consts [term_of ct])) cts
+	val _ = add_instances' pc (map term_of cts)
+	val computer = (computer_of pc)
     in
-        map (fn ct => Compute.rewrite (!rcomputer) ct) cts
+	map (fn ct => Compute.rewrite computer ct) cts
     end
+
+fun simplify pc th = Compute.simplify (computer_of pc) th
+
+fun make_theorem pc th vars = 
+    let
+	val _ = add_instances' pc [prop_of th]
+
+    in
+	Compute.make_theorem (computer_of pc) th vars
+    end
+
+fun instantiate pc insts th = 
+    let
+	val _ = add_instances' pc (map (term_of o snd) insts)
+    in
+	Compute.instantiate (computer_of pc) insts th
+    end
+
+fun evaluate_prem pc prem_no th = Compute.evaluate_prem (computer_of pc) prem_no th
+
+fun modus_ponens pc prem_no th' th =
+    let
+	val _ = add_instances' pc [prop_of th']
+    in
+	Compute.modus_ponens (computer_of pc) prem_no th' th
+    end    
+		 							      			    
 
 end
