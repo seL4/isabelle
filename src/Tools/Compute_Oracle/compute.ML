@@ -6,32 +6,40 @@
 signature COMPUTE = sig
 
     type computer
+    type theorem
+    type naming = int -> string
 
     datatype machine = BARRAS | BARRAS_COMPILED | HASKELL | SML
 
+    (* Functions designated with a ! in front of them actually update the computer parameter *)
+
     exception Make of string
     val make : machine -> theory -> thm list -> computer
-
-    exception Compute of string
-    val compute : computer -> (int -> string) -> cterm -> term
     val theory_of : computer -> theory
     val hyps_of : computer -> term list
     val shyps_of : computer -> sort list
+    (* ! *) val update : computer -> thm list -> unit
+    (* ! *) val discard : computer -> unit
+    
+    (* ! *) val set_naming : computer -> naming -> unit
+    val naming_of : computer -> naming
+    
+    exception Compute of string    
+    val simplify : computer -> theorem -> thm 
+    val rewrite : computer -> cterm -> thm 
 
-    val rewrite_param : computer -> (int -> string) -> cterm -> thm
-    val rewrite : computer -> cterm -> thm
+    val make_theorem : computer -> thm -> string list -> theorem
+    (* ! *) val instantiate : computer -> (string * cterm) list -> theorem -> theorem
+    (* ! *) val evaluate_prem : computer -> int -> theorem -> theorem
+    (* ! *) val modus_ponens : computer -> int -> thm -> theorem -> theorem
 
-    val discard : computer -> unit
-
-    val setup : theory -> theory
-
-    val print_encoding : bool ref
+    val setup_compute : theory -> theory
 
 end
 
 structure Compute :> COMPUTE = struct
 
-val print_encoding = ref false
+open Report;
 
 datatype machine = BARRAS | BARRAS_COMPILED | HASKELL | SML	 
 
@@ -72,7 +80,6 @@ fun remove_term t (e as (count, term2int, int2term)) =
 fun fold f (_, term2int, _) = Termtab.fold f term2int 
 
 end
-
 
 exception Make of string;
 exception Compute of string;
@@ -156,9 +163,34 @@ datatype prog =
        | ProgHaskell of AM_GHC.program
        | ProgSML of AM_SML.program
 
+fun machine_of_prog (ProgBarras _) = BARRAS
+  | machine_of_prog (ProgBarrasC _) = BARRAS_COMPILED
+  | machine_of_prog (ProgHaskell _) = HASKELL
+  | machine_of_prog (ProgSML _) = SML
+
 structure Sorttab = TableFun(type key = sort val ord = Term.sort_ord)
 
-datatype computer = Computer of theory_ref * Encode.encoding * term list * unit Sorttab.table * prog
+type naming = int -> string
+
+fun default_naming i = "v_" ^ Int.toString i
+
+datatype computer = Computer of (theory_ref * Encode.encoding * term list * unit Sorttab.table * prog * unit ref * naming) 
+                    option ref
+
+fun theory_of (Computer (ref (SOME (rthy,_,_,_,_,_,_)))) = Theory.deref rthy
+fun hyps_of (Computer (ref (SOME (_,_,hyps,_,_,_,_)))) = hyps
+fun shyps_of (Computer (ref (SOME (_,_,_,shyptable,_,_,_)))) = Sorttab.keys (shyptable)
+fun shyptab_of (Computer (ref (SOME (_,_,_,shyptable,_,_,_)))) = shyptable
+fun stamp_of (Computer (ref (SOME (_,_,_,_,_,stamp,_)))) = stamp
+fun prog_of (Computer (ref (SOME (_,_,_,_,prog,_,_)))) = prog
+fun encoding_of (Computer (ref (SOME (_,encoding,_,_,_,_,_)))) = encoding
+fun set_encoding (Computer (r as ref (SOME (p1,encoding,p2,p3,p4,p5,p6)))) encoding' = 
+    (r := SOME (p1,encoding',p2,p3,p4,p5,p6))
+fun naming_of (Computer (ref (SOME (_,_,_,_,_,_,n)))) = n
+fun set_naming (Computer (r as ref (SOME (p1,p2,p3,p4,p5,p6,naming)))) naming'= 
+    (r := SOME (p1,p2,p3,p4,p5,p6,naming'))
+
+fun ref_of (Computer r) = r
 
 datatype cthm = ComputeThm of term list * sort list * term
 
@@ -170,7 +202,7 @@ fun thm2cthm th =
 	ComputeThm (hyps, shyps, prop)
     end
 
-fun make machine thy raw_ths =
+fun make_internal machine thy stamp encoding raw_ths =
     let
 	fun transfer (x:thm) = Thm.transfer thy x
 	val ths = map (thm2cthm o Thm.strip_shyps o transfer) raw_ths
@@ -256,7 +288,7 @@ fun make machine thy raw_ths =
             let
               val (encoding_hyptable, rule) = thm2rule encoding_hyptable th
             in (encoding_hyptable, rule::rules) end)
-          ths ((Encode.empty, Termtab.empty, Sorttab.empty), [])
+          ths ((encoding, Termtab.empty, Sorttab.empty), [])
 
         val prog = 
 	    case machine of 
@@ -269,97 +301,358 @@ fun make machine thy raw_ths =
 
 	val shyptable = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptable))) shyptable
 
-    in Computer (Theory.check_thy thy, encoding, Termtab.keys hyptable, shyptable, prog) end
+    in (Theory.check_thy thy, encoding, Termtab.keys hyptable, shyptable, prog, stamp, default_naming) end
 
-(*fun timeit f =
-    let
-	val t1 = Time.toMicroseconds (Time.now ())
-	val x = f ()
-	val t2 = Time.toMicroseconds (Time.now ())
-	val _ = writeln ("### time = "^(Real.toString ((Real.fromLargeInt t2 - Real.fromLargeInt t1)/(1000000.0)))^"s")
+fun make machine thy raw_thms = Computer (ref (SOME (make_internal machine thy (ref ()) Encode.empty raw_thms)))
+
+fun update computer raw_thms =
+    let 
+	val c = make_internal (machine_of_prog (prog_of computer)) (theory_of computer) (stamp_of computer) 
+			      (encoding_of computer) raw_thms
+	val _ = (ref_of computer) := SOME c	
     in
-	x
-    end*)
+	()
+    end
 
-fun report s f = f () (*writeln s; timeit f*)
-
-fun compute (Computer (rthy, encoding, hyps, shyptable, prog)) naming ct =
+fun discard computer =
     let
-	fun run (ProgBarras p) = AM_Interpreter.run p
-	  | run (ProgBarrasC p) = AM_Compiler.run p
-	  | run (ProgHaskell p) = AM_GHC.run p
-	  | run (ProgSML p) = AM_SML.run p	    
-        val {t=t, T=ty, thy=ctthy, ...} = rep_cterm ct
-        val thy = Theory.merge (Theory.deref rthy, ctthy)
-        val (encoding, t) = report "remove_types" (fn () => remove_types encoding t)
-	val _ = if (!print_encoding) then writeln (makestring ("encoding: ",Encode.fold (fn x => fn s => x::s) encoding [])) else ()
-        val t = report "run" (fn () => run prog t)
-        val t = report "infer_types" (fn () => infer_types naming encoding ty t)
+	val _ = 
+	    case prog_of computer of
+		ProgBarras p => AM_Interpreter.discard p
+	      | ProgBarrasC p => AM_Compiler.discard p
+	      | ProgHaskell p => AM_GHC.discard p
+	      | ProgSML p => AM_SML.discard p
+	val _ = (ref_of computer) := NONE
+    in
+	()
+    end 
+					      
+fun runprog (ProgBarras p) = AM_Interpreter.run p
+  | runprog (ProgBarrasC p) = AM_Compiler.run p
+  | runprog (ProgHaskell p) = AM_GHC.run p
+  | runprog (ProgSML p) = AM_SML.run p	  
+
+(* ------------------------------------------------------------------------------------- *)
+(* An oracle for exporting theorems; must only be accessible from inside this structure! *)
+(* ------------------------------------------------------------------------------------- *)
+
+exception ExportThm of term list * sort list * term
+
+fun merge_hyps hyps1 hyps2 = 
+let
+    fun add hyps tab = fold (fn h => fn tab => Termtab.update (h, ()) tab) hyps tab
+in
+    Termtab.keys (add hyps2 (add hyps1 Termtab.empty))
+end
+
+fun add_shyps shyps tab = fold (fn h => fn tab => Sorttab.update (h, ()) tab) shyps tab
+
+fun merge_shyps shyps1 shyps2 = Sorttab.keys (add_shyps shyps2 (add_shyps shyps1 Sorttab.empty))
+
+fun export_oracle (thy, ExportThm (hyps, shyps, prop)) =
+    let
+	val shyptab = add_shyps shyps Sorttab.empty
+	fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab
+	fun delete_term t shyptab = fold delete (Sorts.insert_term t []) shyptab
+	fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
+	val shyptab = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptab))) shyptab
+	val shyps = if Sorttab.is_empty shyptab then [] else Sorttab.keys (fold delete_term (prop::hyps) shyptab)
+	val _ = if not (null shyps) then raise Compute ("dangling sort hypotheses: "^(makestring shyps)) else ()
+    in
+	fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop
+    end
+  | export_oracle _ = raise Match
+
+val setup_compute = (fn thy => Theory.add_oracle ("compute", export_oracle) thy)
+
+fun export_thm thy hyps shyps prop =
+    let
+	val th = invoke_oracle_i thy "Compute_Oracle.compute" (thy, ExportThm (hyps, shyps, prop))
+	val hyps = map (fn h => assume (cterm_of thy h)) hyps
+    in
+	fold (fn h => fn p => implies_elim p h) hyps th 
+    end
+	
+(* --------- Rewrite ----------- *)
+
+fun rewrite computer ct =
+    let
+	val {t=t',T=ty,thy=thy,...} = rep_cterm ct
+	val _ = Theory.assert_super (theory_of computer) thy
+	val naming = naming_of computer
+        val (encoding, t) = remove_types (encoding_of computer) t'
+	(*val _ = if (!print_encoding) then writeln (makestring ("encoding: ",Encode.fold (fn x => fn s => x::s) encoding [])) else ()*)
+        val t = runprog (prog_of computer) t
+        val t = infer_types naming encoding ty t
+	val eq = Logic.mk_equals (t', t)
+    in
+        export_thm thy (hyps_of computer) (Sorttab.keys (shyptab_of computer)) eq
+    end
+
+(* --------- Simplify ------------ *)
+
+datatype prem = EqPrem of AbstractMachine.term * AbstractMachine.term * Term.typ * int 
+	      | Prem of AbstractMachine.term
+datatype theorem = Theorem of theory_ref * unit ref * (int * typ) Symtab.table * (AbstractMachine.term option) Inttab.table  
+               * prem list * AbstractMachine.term * term list * sort list
+
+
+exception ParamSimplify of computer * theorem
+
+fun make_theorem computer th vars =
+let
+    val _ = Theory.assert_super (theory_of computer) (theory_of_thm th)
+
+    val (ComputeThm (hyps, shyps, prop)) = thm2cthm th 
+
+    val encoding = encoding_of computer
+ 
+    (* variables in the theorem are identified upfront *)
+    fun collect_vars (Abs (_, _, t)) tab = collect_vars t tab
+      | collect_vars (a $ b) tab = collect_vars b (collect_vars a tab)
+      | collect_vars (Const _) tab = tab
+      | collect_vars (Free _) tab = tab
+      | collect_vars (Var ((s, i), ty)) tab = 
+	    if List.find (fn x => x=s) vars = NONE then 
+		tab
+	    else		
+		(case Symtab.lookup tab s of
+		     SOME ((s',i'),ty') => 
+	             if s' <> s orelse i' <> i orelse ty <> ty' then 
+			 raise Compute ("make_theorem: variable name '"^s^"' is not unique")
+		     else 
+			 tab
+		   | NONE => Symtab.update (s, ((s, i), ty)) tab)
+    val vartab = collect_vars prop Symtab.empty 
+    fun encodevar (s, t as (_, ty)) (encoding, tab) = 
+	let
+	    val (x, encoding) = Encode.insert (Var t) encoding
+	in
+	    (encoding, Symtab.update (s, (x, ty)) tab)
+	end
+    val (encoding, vartab) = Symtab.fold encodevar vartab (encoding, Symtab.empty)  					 	       
+    val varsubst = Inttab.make (map (fn (s, (x, _)) => (x, NONE)) (Symtab.dest vartab))
+
+    (* make the premises and the conclusion *)
+    fun mk_prem encoding t = 
+	(let
+	     val (a, b) = Logic.dest_equals t
+	     val ty = type_of a
+	     val (encoding, a) = remove_types encoding a
+	     val (encoding, b) = remove_types encoding b
+	     val (eq, encoding) = Encode.insert (Const ("==", ty --> ty --> @{typ "prop"})) encoding 
+	 in
+	     (encoding, EqPrem (a, b, ty, eq))
+	 end handle TERM _ => let val (encoding, t) = remove_types encoding t in (encoding, Prem t) end)
+    val (encoding, prems) = 
+	(fold_rev (fn t => fn (encoding, l) => 
+	    case mk_prem encoding t  of 
+                (encoding, t) => (encoding, t::l)) (Logic.strip_imp_prems prop) (encoding, []))
+    val (encoding, concl) = remove_types encoding (Logic.strip_imp_concl prop)
+    val _ = set_encoding computer encoding
+in
+    Theorem (Theory.check_thy (theory_of_thm th), stamp_of computer, vartab, varsubst, 
+	     prems, concl, hyps, shyps)
+end
+    
+fun theory_of_theorem (Theorem (rthy,_,_,_,_,_,_,_)) = Theory.deref rthy
+fun update_theory thy (Theorem (_,p0,p1,p2,p3,p4,p5,p6)) =
+    Theorem (Theory.check_thy thy,p0,p1,p2,p3,p4,p5,p6)
+fun stamp_of_theorem (Theorem (_,s, _, _, _, _, _, _)) = s     
+fun vartab_of_theorem (Theorem (_,_,vt,_,_,_,_,_)) = vt
+fun varsubst_of_theorem (Theorem (_,_,_,vs,_,_,_,_)) = vs 
+fun update_varsubst vs (Theorem (p0,p1,p2,_,p3,p4,p5,p6)) = Theorem (p0,p1,p2,vs,p3,p4,p5,p6)
+fun prems_of_theorem (Theorem (_,_,_,_,prems,_,_,_)) = prems
+fun update_prems prems (Theorem (p0,p1,p2,p3,_,p4,p5,p6)) = Theorem (p0,p1,p2,p3,prems,p4,p5,p6)
+fun concl_of_theorem (Theorem (_,_,_,_,_,concl,_,_)) = concl
+fun hyps_of_theorem (Theorem (_,_,_,_,_,_,hyps,_)) = hyps
+fun update_hyps hyps (Theorem (p0,p1,p2,p3,p4,p5,_,p6)) = Theorem (p0,p1,p2,p3,p4,p5,hyps,p6)
+fun shyps_of_theorem (Theorem (_,_,_,_,_,_,_,shyps)) = shyps
+fun update_shyps shyps (Theorem (p0,p1,p2,p3,p4,p5,p6,_)) = Theorem (p0,p1,p2,p3,p4,p5,p6,shyps)
+
+fun check_compatible computer th s = 
+    if stamp_of computer <> stamp_of_theorem th then
+	raise Compute (s^": computer and theorem are incompatible")
+    else ()
+
+fun instantiate computer insts th =
+let
+    val _ = check_compatible computer th
+
+    val thy = theory_of computer
+
+    val vartab = vartab_of_theorem th
+
+    fun rewrite computer t =
+    let  
+	val naming = naming_of computer
+        val (encoding, t) = remove_types (encoding_of computer) t
+        val t = runprog (prog_of computer) t
+	val _ = set_encoding computer encoding
     in
         t
     end
 
-fun discard (Computer (rthy, encoding, hyps, shyptable, prog)) = 
-    (case prog of
-	 ProgBarras p => AM_Interpreter.discard p
-       | ProgBarrasC p => AM_Compiler.discard p
-       | ProgHaskell p => AM_GHC.discard p
-       | ProgSML p => AM_SML.discard p)
+    fun assert_varfree vs t = 
+	if AbstractMachine.forall_consts (fn x => Inttab.lookup vs x = NONE) t then
+	    ()
+	else
+	    raise Compute "instantiate: assert_varfree failed"
 
-fun theory_of (Computer (rthy, _, _,_,_)) = Theory.deref rthy
-fun hyps_of (Computer (_, _, hyps, _, _)) = hyps
-fun shyps_of (Computer (_, _, _, shyptable, _)) = Sorttab.keys (shyptable)
-fun shyptab_of (Computer (_, _, _, shyptable, _)) = shyptable
+    fun assert_closed t =
+	if AbstractMachine.closed t then
+	    ()
+	else 
+	    raise Compute "instantiate: not a closed term"
 
-fun default_naming i = "v_" ^ Int.toString i
+    fun compute_inst (s, ct) vs =
+	let
+	    val _ = Theory.assert_super (theory_of_cterm ct) thy
+	    val ty = typ_of (ctyp_of_term ct) 
+	in	    
+	    (case Symtab.lookup vartab s of 
+		 NONE => raise Compute ("instantiate: variable '"^s^"' not found in theorem")
+	       | SOME (x, ty') => 
+		 (case Inttab.lookup vs x of 
+		      SOME (SOME _) => raise Compute ("instantiate: variable '"^s^"' has already been instantiated")
+		    | SOME NONE => 
+		      if ty <> ty' then 
+			  raise Compute ("instantiate: wrong type for variable '"^s^"'")
+		      else
+			  let
+			      val t = rewrite computer (term_of ct)
+			      val _ = assert_varfree vs t 
+			      val _ = assert_closed t
+			  in
+			      Inttab.update (x, SOME t) vs
+			  end
+		    | NONE => raise Compute "instantiate: internal error"))
+	end
 
-exception Param of computer * (int -> string) * cterm;
+    val vs = fold compute_inst insts (varsubst_of_theorem th)
+in
+    update_varsubst vs th
+end
 
-fun rewrite_param r n ct =
-    let 
-	val thy = theory_of_cterm ct 
-	val th = timeit (fn () => invoke_oracle_i thy "Compute_Oracle.compute" (thy, Param (r, n, ct)))
-	val hyps = map (fn h => assume (cterm_of thy h)) (hyps_of r)
-    in
-	fold (fn h => fn p => implies_elim p h) hyps th 
-    end
-
-(*fun rewrite_param r n ct =
+fun match_aterms subst =
     let	
-	val hyps = hyps_of r
-	val shyps = shyps_of r
-	val thy = theory_of_cterm ct
-	val _ = Theory.assert_super (theory_of r) thy
-	val t' = timeit (fn () => compute r n ct)
-	val eq = Logic.mk_equals (term_of ct, t')
+	exception no_match
+	open AbstractMachine
+	fun match subst (b as (Const c)) a = 
+	    if a = b then subst
+	    else 
+		(case Inttab.lookup subst c of 
+		     SOME (SOME a') => if a=a' then subst else raise no_match
+		   | SOME NONE => if AbstractMachine.closed a then 
+				      Inttab.update (c, SOME a) subst 
+				  else raise no_match
+		   | NONE => raise no_match)
+	  | match subst (b as (Var _)) a = if a=b then subst else raise no_match
+	  | match subst (App (u, v)) (App (u', v')) = match (match subst u u') v v'
+	  | match subst (Abs u) (Abs u') = match subst u u'
+	  | match subst _ _ = raise no_match
     in
-	Thm.unchecked_oracle thy "Compute.compute" (eq, hyps, shyps)
-    end*)
-
-fun rewrite r ct = rewrite_param r default_naming ct
-
-(* theory setup *)
-
-fun compute_oracle (thy, Param (r, naming, ct)) =
-    let
-        val _ = Theory.assert_super (theory_of r) thy
-        val t' = timeit (fn () => compute r naming ct)
-	val eq = Logic.mk_equals (term_of ct, t')
-	val hyps = hyps_of r
-	val shyptab = shyptab_of r
-	fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab
-	fun delete_term t shyptab = fold delete (Sorts.insert_term t []) shyptab
-	val shyps = if Sorttab.is_empty shyptab then [] else Sorttab.keys (fold delete_term (eq::hyps) shyptab)
-	val _ = if not (null shyps) then raise Compute ("dangling sort hypotheses: "^(makestring shyps)) else ()
-    in
-        fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps eq
+	fn b => fn a => (SOME (match subst b a) handle no_match => NONE)
     end
-  | compute_oracle _ = raise Match
 
+fun apply_subst vars_allowed subst =
+    let
+	open AbstractMachine
+	fun app (t as (Const c)) = 
+	    (case Inttab.lookup subst c of 
+		 NONE => t 
+	       | SOME (SOME t) => Computed t
+	       | SOME NONE => if vars_allowed then t else raise Compute "apply_subst: no vars allowed")
+	  | app (t as (Var _)) = t
+	  | app (App (u, v)) = App (app u, app v)
+	  | app (Abs m) = Abs (app m)
+    in
+	app
+    end
 
-val setup = (fn thy => (writeln "install oracle"; Theory.add_oracle ("compute", compute_oracle) thy))
+fun splicein n l L = List.take (L, n) @ l @ List.drop (L, n+1)
 
-(*val _ = Context.add_setup (Theory.add_oracle ("compute", compute_oracle))*)
+fun evaluate_prem computer prem_no th =
+let
+    val _ = check_compatible computer th
+    val prems = prems_of_theorem th
+    val varsubst = varsubst_of_theorem th
+    fun run vars_allowed t = 
+	runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
+in
+    case List.nth (prems, prem_no) of
+	Prem _ => raise Compute "evaluate_prem: no equality premise"
+      | EqPrem (a, b, ty, _) => 	
+	let
+	    val a' = run false a
+	    val b' = run true b
+	in
+	    case match_aterms varsubst b' a' of
+		NONE => 
+		let
+		    fun mk s = makestring (infer_types (naming_of computer) (encoding_of computer) ty s)
+		    val left = "computed left side: "^(mk a')
+		    val right = "computed right side: "^(mk b')
+		in
+		    raise Compute ("evaluate_prem: cannot assign computed left to right hand side\n"^left^"\n"^right^"\n")
+		end
+	      | SOME varsubst => 
+		update_prems (splicein prem_no [] prems) (update_varsubst varsubst th)
+	end
+end
+
+fun prem2term (Prem t) = t
+  | prem2term (EqPrem (a,b,_,eq)) = 
+    AbstractMachine.App (AbstractMachine.App (AbstractMachine.Const eq, a), b)
+
+fun modus_ponens computer prem_no th' th = 
+let
+    val _ = check_compatible computer th
+    val thy = 
+	let
+	    val thy1 = theory_of_theorem th
+	    val thy2 = theory_of_thm th'
+	in
+	    if Context.subthy (thy1, thy2) then thy2 
+	    else if Context.subthy (thy2, thy1) then thy1 else
+	    raise Compute "modus_ponens: theorems are not compatible with each other"
+	end 
+    val th' = make_theorem computer th' []
+    val varsubst = varsubst_of_theorem th
+    fun run vars_allowed t =
+	runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
+    val prems = prems_of_theorem th
+    val prem = run true (prem2term (List.nth (prems, prem_no)))
+    val concl = run false (concl_of_theorem th')    
+in
+    case match_aterms varsubst prem concl of
+	NONE => raise Compute "modus_ponens: conclusion does not match premise"
+      | SOME varsubst =>
+	let
+	    val th = update_varsubst varsubst th
+	    val th = update_prems (splicein prem_no (prems_of_theorem th') prems) th
+	    val th = update_hyps (merge_hyps (hyps_of_theorem th) (hyps_of_theorem th')) th
+	    val th = update_shyps (merge_shyps (shyps_of_theorem th) (shyps_of_theorem th')) th
+	in
+	    update_theory thy th
+	end
+end
+                     
+fun simplify computer th =
+let
+    val _ = check_compatible computer th
+    val varsubst = varsubst_of_theorem th
+    val encoding = encoding_of computer
+    val naming = naming_of computer
+    fun infer t = infer_types naming encoding @{typ "prop"} t
+    fun run t = infer (runprog (prog_of computer) (apply_subst true varsubst t))
+    fun runprem p = run (prem2term p)
+    val prop = Logic.list_implies (map runprem (prems_of_theorem th), run (concl_of_theorem th))
+    val hyps = merge_hyps (hyps_of computer) (hyps_of_theorem th)
+    val shyps = merge_shyps (shyps_of_theorem th) (Sorttab.keys (shyptab_of computer))
+in
+    export_thm (theory_of_theorem th) hyps shyps prop
+end
 
 end
 

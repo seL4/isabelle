@@ -27,6 +27,7 @@ fun clos_of_term (Var x) = CVar x
   | clos_of_term (Const c) = CConst c
   | clos_of_term (App (u, v)) = CApp (clos_of_term u, clos_of_term v)
   | clos_of_term (Abs u) = CAbs (clos_of_term u)
+  | clos_of_term (Computed t) = clos_of_term t
 
 fun term_of_clos (CVar x) = Var x
   | term_of_clos (CConst c) = Const c
@@ -98,6 +99,7 @@ fun check_freevars free (Var x) = x < free
   | check_freevars free (Const c) = true
   | check_freevars free (App (u, v)) = check_freevars free u andalso check_freevars free v
   | check_freevars free (Abs m) = check_freevars (free+1) m
+  | check_freevars free (Computed t) = check_freevars free t
 
 fun compile eqs =
     let

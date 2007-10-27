@@ -34,18 +34,6 @@ val compiled_rewriter = ref (NONE:(term -> term)Option.option)
 
 fun set_compiled_rewriter r = (compiled_rewriter := SOME r)
 
-fun importable (Var _) = false
-  | importable (Const _) = true			   
-  | importable (App (a, b)) = importable a andalso importable b
-  | importable (Abs _) = false
-
-(*Returns true iff at most 0 .. (free-1) occur unbound. therefore
-  check_freevars 0 t iff t is closed*)
-fun check_freevars free (Var x) = x < free
-  | check_freevars free (Const c) = true
-  | check_freevars free (App (u, v)) = check_freevars free u andalso check_freevars free v
-  | check_freevars free (Abs m) = check_freevars (free+1) m
-
 fun count_patternvars PVar = 1
   | count_patternvars (PConst (_, ps)) =
       List.foldl (fn (p, count) => (count_patternvars p)+count) 0 ps
@@ -85,6 +73,7 @@ fun beta (Const c) = Const c
 	 Abs m => beta (App (Abs m, b))
        | a => App (a, beta b))
   | beta (Abs m) = Abs (beta m)
+  | beta (Computed t) = Computed t
 and subst x (Const c) t = Const c
   | subst x (Var i) t = if i = x then t else Var i
   | subst x (App (a,b)) t = App (subst x a t, subst x b t)
@@ -361,6 +350,23 @@ fun sml_prog name code rules =
 	    in
 		map eval_rule (rev (section (arity + 1)))
 	    end
+
+	fun (convert_computed_rules : int -> string list) c = 
+	    let
+		val arity = the (arity_of c)
+		fun eval_rule () = 
+		    let
+			val sc = string_of_int c
+			val left = fold (fn i => fn s => "AbstractMachine.App ("^s^(indexed ", x" i)^")") (section arity) ("AbstractMachine.Const "^sc)
+                        fun arg i = "(convert_computed "^(indexed "x" i)^")" 
+			val right = "C"^sc^" "^(string_of_tuple (map arg (section arity)))		
+			val right = if arity > 0 then right else "C"^sc
+		    in
+			"  | convert_computed ("^left^") = "^right
+		    end
+	    in
+		[eval_rule ()]
+	    end
         
 	fun mk_constr_type_args n = if n > 0 then " of Term "^(rep_str " * Term" (n-1)) else ""
 	val _ = writelist [                   
@@ -444,6 +450,15 @@ fun sml_prog name code rules =
 		"  | convert (C"^(str c)^" "^leftargs^") = "^right
 	    end 		
 	val _ = writelist (map make_convert constants)
+        val _ = writelist [
+                "",
+                "fun convert_computed (AbstractMachine.Abs b) = raise AM_SML.Run \"no abstraction in convert_computed allowed\"",
+                "  | convert_computed (AbstractMachine.Var i) = raise AM_SML.Run \"no bound variables in convert_computed allowed\""]
+        val _ = map (writelist o convert_computed_rules) constants
+        val _ = writelist [
+                "  | convert_computed (AbstractMachine.Const c) = Const c",
+                "  | convert_computed (AbstractMachine.App (a, b)) = App (convert_computed a, convert_computed b)",
+                "  | convert_computed (AbstractMachine.Computed a) = raise AM_SML.Run \"no nesting in convert_computed allowed\""] 
 	val _ = writelist [
 		"",
 		"fun eval bounds (AbstractMachine.Abs m) = Abs (fn b => eval (b::bounds) m)",
@@ -451,7 +466,8 @@ fun sml_prog name code rules =
 	val _ = map (writelist o eval_rules) constants
 	val _ = writelist [
                 "  | eval bounds (AbstractMachine.App (a, b)) = app (eval bounds a) (eval bounds b)",
-                "  | eval bounds (AbstractMachine.Const c) = Const c"]                
+                "  | eval bounds (AbstractMachine.Const c) = Const c",
+                "  | eval bounds (AbstractMachine.Computed t) = convert_computed t"]                
 	val _ = writelist [		
 		"",
 		"fun export term = AM_SML.save_result (\""^code^"\", convert term)",
@@ -483,7 +499,7 @@ fun compile eqs =
 	val code = Real.toString (random ())
 	val module = "AMSML_"^guid
 	val (arity, toplevel_arity, inlinetab, source) = sml_prog module code eqs
-(*	val _ = writeTextFile "Gencode.ML" source*)
+	val _ = writeTextFile "Gencode.ML" source
 	val _ = compiled_rewriter := NONE
 	val _ = use_source source
     in
@@ -521,6 +537,7 @@ fun run (module, code, arity, toplevel_arity, inlinetab, compiled_fun) t =
 	  | inline (Var i) = Var i
 	  | inline (App (a, b)) = App (inline a, inline b)
 	  | inline (Abs m) = Abs (inline m)
+	  | inline (Computed t) = Computed t
     in
 	compiled_fun (beta (inline t))
     end	

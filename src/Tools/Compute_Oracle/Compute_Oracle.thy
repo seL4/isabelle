@@ -6,9 +6,9 @@ Steven Obua's evaluator.
 *)
 
 theory Compute_Oracle imports CPure
-uses "am.ML" "am_compiler.ML" "am_interpreter.ML" "am_ghc.ML" "am_sml.ML" "compute.ML" "linker.ML"
+uses "am.ML" "am_compiler.ML" "am_interpreter.ML" "am_ghc.ML" "am_sml.ML" "report.ML" "compute.ML" "linker.ML"
 begin
 
-setup {* Compute.setup; *}
+setup {* Compute.setup_compute; *}
 
 end

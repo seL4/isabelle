@@ -25,14 +25,6 @@ fun set_compiled_rewriter r = (compiled_rewriter := SOME r)
 
 type program = (term -> term)
 
-
-(*Returns true iff at most 0 .. (free-1) occur unbound. therefore
-  check_freevars 0 t iff t is closed*)
-fun check_freevars free (Var x) = x < free
-  | check_freevars free (Const c) = true
-  | check_freevars free (App (u, v)) = check_freevars free u andalso check_freevars free v
-  | check_freevars free (Abs m) = check_freevars (free+1) m
-
 fun count_patternvars PVar = 1
   | count_patternvars (PConst (_, ps)) =
       List.foldl (fn (p, count) => (count_patternvars p)+count) 0 ps
@@ -66,6 +58,7 @@ fun print_rule (p, t) =
 	  | print_term d (Const c) = "c" ^ str c
 	  | print_term d (App (a,b)) = "App (" ^ print_term d a ^ ", " ^ print_term d b ^ ")"
 	  | print_term d (Abs c) = "Abs (" ^ print_term (d + 1) c ^ ")"
+          | print_term d (Computed c) = print_term d c
 
 	fun listvars n = if n = 0 then "x0" else "x"^(str n)^", "^(listvars (n-1))
 
@@ -85,6 +78,7 @@ fun constants_of_term (Var _) = []
   | constants_of_term (Abs m) = constants_of_term m
   | constants_of_term (App (a,b)) = (constants_of_term a)@(constants_of_term b)
   | constants_of_term (Const c) = [c]
+  | constants_of_term (Computed c) = constants_of_term c
     
 fun load_rules sname name prog = 
     let

@@ -9,14 +9,6 @@ open AbstractMachine;
 
 type program = string * string * (int Inttab.table)
 
-
-(*Returns true iff at most 0 .. (free-1) occur unbound. therefore
-  check_freevars 0 t iff t is closed*)
-fun check_freevars free (Var x) = x < free
-  | check_freevars free (Const c) = true
-  | check_freevars free (App (u, v)) = check_freevars free u andalso check_freevars free v
-  | check_freevars free (Abs m) = check_freevars (free+1) m
-
 fun count_patternvars PVar = 1
   | count_patternvars (PConst (_, ps)) =
       List.foldl (fn (p, count) => (count_patternvars p)+count) 0 ps
