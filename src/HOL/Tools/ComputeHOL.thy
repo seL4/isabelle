@@ -1,4 +1,4 @@
-theory ComputeHOL 
+theory ComputeHOL
 imports Main "~~/src/Tools/Compute_Oracle/Compute_Oracle"
 begin
 
