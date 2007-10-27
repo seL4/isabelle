@@ -3127,7 +3127,6 @@ end;
 subsubsection {* Generation of efficient code *}
 
 consts
-  member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
   null:: "'a list \<Rightarrow> bool"
   list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -3135,9 +3134,11 @@ consts
   filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
   map_filter :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list"
 
-primrec
+(* "fun" is used for authentic syntax. Revert to primrec later. *)
+fun member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
+where
   "x mem [] = False"
-  "x mem (y#ys) = (x = y \<or> x mem ys)"
+| "x mem (y#ys) = (x = y \<or> x mem ys)"
 
 primrec
   "null [] = True"
