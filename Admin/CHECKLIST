@@ -3,7 +3,7 @@ Checklist for official releases
 
 - Admin/update-keywords;
 
-- check ANNOUNCE, README.html, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, ~isabelle/website;
+- check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, ~isabelle/website;
 
 - run tests with all supported ML systems;
 
@@ -21,7 +21,7 @@ Checklist for official releases
     Doc/Logics/logics.tex
 
 - after release: 
-    commit new ~isabelle/website/include/documentationdist.include.html to CVS
+    commit new ~isabelle/website/include/documentationdist.include.html to website SVN
     !!! commit new Admin/website/conf/distname.mak to CVS
     !!! this is currently not part of CVS, so ignore this description;
     !!! perhaps we will need to add it

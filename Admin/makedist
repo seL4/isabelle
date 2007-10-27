@@ -46,7 +46,7 @@ Usage: $PRG VERSION [NAME]
 
     * Symlink website to Admin/website
     * Check Admin/website contents.
-    * Check ANNOUNCE, README.html, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS.
+    * Check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS.
     * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
     * Tag the current repository version, e.g.:
         cvs -d /usr/proj/isabelle-repository/archive rtag IsabelleXXXX isabelle
@@ -192,8 +192,7 @@ fi
 
 perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/index.html
 perl -pi -e "s/Isabelle repository version/$DISTVERSION/" src/Pure/ROOT.ML lib/Tools/version
-perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README.html
-lynx -dump README.html >README
+perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README
 
 ( cd src; ../Admin/maketags; )
 
@@ -241,7 +240,7 @@ rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
 mv "$DISTNAME" "${DISTNAME}-old"
 mkdir "$DISTNAME"
 
-mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" \
+mv "${DISTNAME}-old/README" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" \
   "${DISTNAME}-old/ANNOUNCE" "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" \
   "$DISTNAME"
 mkdir "$DISTNAME/doc"
