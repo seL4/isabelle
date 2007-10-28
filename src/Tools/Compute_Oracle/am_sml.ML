@@ -351,7 +351,7 @@ fun sml_prog name code rules =
 		map eval_rule (rev (section (arity + 1)))
 	    end
 
-	fun (convert_computed_rules : int -> string list) c = 
+	fun convert_computed_rules (c: int) : string list = 
 	    let
 		val arity = the (arity_of c)
 		fun eval_rule () = 
