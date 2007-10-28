@@ -104,12 +104,11 @@ primrec
   "map f [] = []"
   "map f (x#xs) = f(x)#map f xs"
 
-fun (*authentic syntax for append -- revert to primrec
-  as soon as "authentic" primrec is available*)
-  append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65)
-where
-  append_Nil: "[] @ ys = ys"
-  | append_Cons: "(x # xs) @ ys = x # (xs @ ys)"
+setup {* snd o Sign.declare_const [] (*authentic syntax*)
+  ("append", @{typ "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"}, InfixrName ("@", 65)) *}
+primrec
+  append_Nil:"[]@ys = ys"
+  append_Cons: "(x#xs)@ys = x#(xs@ys)"
 
 primrec
   "rev([]) = []"
@@ -215,18 +214,23 @@ primrec
 text{* The following simple sort functions are intended for proofs,
 not for efficient implementations. *}
 
-fun (in linorder) sorted :: "'a list \<Rightarrow> bool" where
+context linorder
+begin
+
+fun sorted :: "'a list \<Rightarrow> bool" where
 "sorted [] \<longleftrightarrow> True" |
 "sorted [x] \<longleftrightarrow> True" |
 "sorted (x#y#zs) \<longleftrightarrow> x <= y \<and> sorted (y#zs)"
 
-fun (in linorder) insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+fun insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "insort x [] = [x]" |
 "insort x (y#ys) = (if x <= y then (x#y#ys) else y#(insort x ys))"
 
-fun (in linorder) sort :: "'a list \<Rightarrow> 'a list" where
+fun sort :: "'a list \<Rightarrow> 'a list" where
 "sort [] = []" |
 "sort (x#xs) = insort x (sort xs)"
+
+end
 
 
 subsubsection {* List comprehension *}
@@ -411,13 +415,10 @@ apply (induct xs, simp, simp)
 apply blast
 done
 
-lemma impossible_Cons [rule_format]: 
-  "length xs <= length ys --> xs = x # ys = False"
-apply (induct xs)
-apply auto
-done
+lemma impossible_Cons: "length xs <= length ys ==> xs = x # ys = False"
+  by (induct xs) auto
 
-lemma list_induct2[consumes 1]:
+lemma list_induct2 [consumes 1]:
   "\<lbrakk> length xs = length ys;
    P [] [];
    \<And>x xs y ys. \<lbrakk> length xs = length ys; P xs ys \<rbrakk> \<Longrightarrow> P (x#xs) (y#ys) \<rbrakk>
@@ -426,7 +427,7 @@ apply(induct xs arbitrary: ys)
  apply simp
 apply(case_tac ys)
  apply simp
-apply(simp)
+apply simp
 done
 
 lemma list_induct2': 
@@ -503,7 +504,7 @@ by (induct xs) auto
 lemma self_append_conv [iff]: "(xs = xs @ ys) = (ys = [])"
 by (induct xs) auto
 
-lemma append_eq_append_conv [simp,noatp]:
+lemma append_eq_append_conv [simp, noatp]:
  "length xs = length ys \<or> length us = length vs
  ==> (xs@us = ys@vs) = (xs=ys \<and> us=vs)"
 apply (induct xs arbitrary: ys)
@@ -779,8 +780,6 @@ apply(simplesubst rev_rev_ident[symmetric])
 apply(rule_tac list = "rev xs" in list.induct, simp_all)
 done
 
-ML {* val rev_induct_tac = induct_thm_tac (thm "rev_induct") *}-- "compatibility"
-
 lemma rev_exhaust [case_names Nil snoc]:
   "(xs = [] ==> P) ==>(!!ys y. xs = ys @ [y] ==> P) ==> P"
 by (induct xs rule: rev_induct) auto
@@ -831,46 +830,50 @@ done
 lemma in_set_conv_decomp: "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs)"
 proof (induct xs)
   case Nil show ?case by simp
+next
   case (Cons a xs)
   show ?case
   proof 
     assume "x \<in> set (a # xs)"
-    with prems show "\<exists>ys zs. a # xs = ys @ x # zs"
-      by (simp, blast intro: Cons_eq_appendI)
+    with Cons show "\<exists>ys zs. a # xs = ys @ x # zs"
+      by (auto intro: Cons_eq_appendI)
   next
     assume "\<exists>ys zs. a # xs = ys @ x # zs"
     then obtain ys zs where eq: "a # xs = ys @ x # zs" by blast
     show "x \<in> set (a # xs)" 
-      by (cases ys, auto simp add: eq)
+      by (cases ys) (auto simp add: eq)
   qed
 qed
 
+lemma split_list: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs"
+  by (rule in_set_conv_decomp [THEN iffD1])
+
 lemma in_set_conv_decomp_first:
- "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys)"
+  "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys)"
 proof (induct xs)
   case Nil show ?case by simp
 next
   case (Cons a xs)
   show ?case
   proof cases
-    assume "x = a" thus ?case using Cons by force
+    assume "x = a" thus ?case using Cons by fastsimp
   next
     assume "x \<noteq> a"
     show ?case
     proof
       assume "x \<in> set (a # xs)"
-      from prems show "\<exists>ys zs. a # xs = ys @ x # zs \<and> x \<notin> set ys"
-	by(fastsimp intro!: Cons_eq_appendI)
+      with Cons and `x \<noteq> a` show "\<exists>ys zs. a # xs = ys @ x # zs \<and> x \<notin> set ys"
+	by (fastsimp intro!: Cons_eq_appendI)
     next
       assume "\<exists>ys zs. a # xs = ys @ x # zs \<and> x \<notin> set ys"
       then obtain ys zs where eq: "a # xs = ys @ x # zs" by blast
-      show "x \<in> set (a # xs)" by (cases ys, auto simp add: eq)
+      show "x \<in> set (a # xs)" by (cases ys) (auto simp add: eq)
     qed
   qed
 qed
 
-lemmas split_list       = in_set_conv_decomp[THEN iffD1, standard]
-lemmas split_list_first = in_set_conv_decomp_first[THEN iffD1, standard]
+lemma split_list_first: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys"
+  by (rule in_set_conv_decomp_first [THEN iffD1])
 
 
 lemma finite_list: "finite A ==> EX l. set l = A"
@@ -985,17 +988,18 @@ next
     assume Py: "P y"
     show ?thesis
     proof cases
-      assume xy: "x = y"
-      show ?thesis
-      proof from Py xy Cons(2) show "?Q []" by simp qed
+      assume "x = y"
+      with Py Cons.prems have "?Q []" by simp
+      then show ?thesis ..
     next
-      assume "x \<noteq> y" with Py Cons(2) show ?thesis by simp
+      assume "x \<noteq> y"
+      with Py Cons.prems show ?thesis by simp
     qed
   next
-    assume Py: "\<not> P y"
-    with Cons obtain us vs where 1 : "?P (y#ys) (y#us) vs" by fastsimp
-    show ?thesis (is "? us. ?Q us")
-    proof show "?Q (y#us)" using 1 by simp qed
+    assume "\<not> P y"
+    with Cons obtain us vs where "?P (y#ys) (y#us) vs" by fastsimp
+    then have "?Q (y#us)" by simp
+    then show ?thesis ..
   qed
 qed
 
@@ -1065,10 +1069,10 @@ apply (case_tac n, auto)
 done
 
 lemma nth_append_length [simp]: "(xs @ x # ys) ! length xs = x"
-by (induct "xs") auto
+by (induct xs) auto
 
 lemma nth_append_length_plus[simp]: "(xs @ ys) ! (length xs + n) = ys ! n"
-by (induct "xs") auto
+by (induct xs) auto
 
 lemma nth_map [simp]: "n < length xs ==> (map f xs)!n = f(xs!n)"
 apply (induct xs arbitrary: n, simp)
@@ -3134,11 +3138,11 @@ consts
   filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
   map_filter :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list"
 
-(* "fun" is used for authentic syntax. Revert to primrec later. *)
-fun member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
-where
+setup {* snd o Sign.declare_const [] (*authentic syntax*)
+  ("member", @{typ "'a \<Rightarrow> 'a list \<Rightarrow> bool"}, InfixlName ("mem", 55)) *}
+primrec
   "x mem [] = False"
-| "x mem (y#ys) = (x = y \<or> x mem ys)"
+  "x mem (y#ys) = (if y=x then True else x mem ys)"
 
 primrec
   "null [] = True"
