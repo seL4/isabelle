@@ -306,8 +306,8 @@ fun debugging f x =
   else f x;
 
 fun interruptible f x =
-  let val y = ref x
-  in raise_interrupt (fn () => y := f x) (); ! y end;
+  let val y = ref NONE
+  in raise_interrupt (fn () => y := SOME (f x)) (); the (! y) end;
 
 fun toplevel_error f x = f x
   handle exn => (Output.error_msg (exn_message exn); raise TOPLEVEL_ERROR);
@@ -401,7 +401,7 @@ fun undo_limit int = if int then NONE else SOME 0;
 
 fun safe_exit (Toplevel (SOME (node, (exit, _)))) =
     (case try the_global_theory (History.current node) of
-      SOME thy => exit thy
+      SOME thy => controlled_execution exit thy
     | NONE => ())
   | safe_exit _ = ();
 
