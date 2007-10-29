@@ -258,14 +258,14 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
           val eqs = map the_single eqss
                     
           val feqs = eqs
-                           |> tap (check_defs ctxt fixes) (* Standard checks *)
-                           |> tap (map (check_pats ctxt))    (* More checks for sequential mode *)
-                           |> curry op ~~ flags'
+                      |> tap (check_defs ctxt fixes) (* Standard checks *)
+                      |> tap (map (check_pats ctxt))    (* More checks for sequential mode *)
+                      |> curry op ~~ flags'
 
-    val compleqs = add_catchall ctxt fixes feqs   (* Completion *)
+          val compleqs = add_catchall ctxt fixes feqs   (* Completion *)
 
-    val spliteqs = warn_if_redundant ctxt feqs
-             (FundefSplit.split_some_equations ctxt compleqs)
+          val spliteqs = warn_if_redundant ctxt feqs
+                           (FundefSplit.split_some_equations ctxt compleqs)
 
           fun restore_spec thms =
               nas ~~ Library.take (length nas, Library.unflat spliteqs thms)
@@ -277,8 +277,14 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
           fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1) (indices ~~ xs)
                                        |> map (map snd)
 
+
+          val nas' = nas @ replicate (length spliteqs - length nas) ("",[])
+
+          val case_names = map_index (fn (i, ((n, _), es)) => mk_case_names i n (length es)) 
+                                     (nas' ~~ spliteqs)
+                           |> flat
         in
-          (flat spliteqs, restore_spec, sort)
+          (flat spliteqs, restore_spec, sort, case_names)
         end
       else
         FundefCommon.empty_preproc check_defs config flags ctxt fixes spec

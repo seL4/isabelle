@@ -59,7 +59,7 @@ fun add_simps fnames post sort label moreatts simps lthy =
        fold2 add_for_f fnames simps_by_f lthy)
     end
 
-fun fundef_afterqed config fixes post defname cont sort_cont [[proof]] lthy =
+fun fundef_afterqed config fixes post defname cont sort_cont cnames [[proof]] lthy =
     let
       val FundefResult {fs, R, psimps, trsimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = 
           cont (Goal.close_result proof)
@@ -73,31 +73,34 @@ fun fundef_afterqed config fixes post defname cont sort_cont [[proof]] lthy =
             |> addsmps "psimps" [] psimps
             ||> fold_option (snd oo addsmps "simps" []) trsimps
             ||>> note_theorem ((qualify "pinduct",
-                                [Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
+                   [Attrib.internal (K (RuleCases.case_names cnames)),
+                    Attrib.internal (K (RuleCases.consumes 1)),
+                    Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
             ||>> note_theorem ((qualify "termination", []), [termination])
-            ||> (snd o note_theorem ((qualify "cases", []), [cases]))
+            ||> (snd o note_theorem ((qualify "cases", 
+                   [Attrib.internal (K (RuleCases.case_names cnames))]), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
-      val cdata = FundefCtxData { add_simps=addsmps, psimps=psimps',
+      val cdata = FundefCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
                                   pinducts=snd pinducts', termination=termination', fs=fs, R=R, defname=defname }
       val _ = Specification.print_consts lthy (K false) (map fst fixes)
     in
       lthy 
         |> LocalTheory.declaration (add_fundef_data o morph_fundef_data cdata)
-    end (* FIXME: Add cases for induct and cases thm *)
+    end
 
 
 fun gen_add_fundef prep fixspec eqnss config flags lthy =
     let
       val ((fixes, spec), ctxt') = prep fixspec (map (fn (n_a, eq) => [(n_a, [eq])]) eqnss) lthy
-      val (eqs, post, sort_cont) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
+      val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
 
       val defname = mk_defname fixes
 
       val ((goalstate, cont), lthy) =
           FundefMutual.prepare_fundef_mutual config defname fixes eqs lthy
 
-      val afterqed = fundef_afterqed config fixes post defname cont sort_cont
+      val afterqed = fundef_afterqed config fixes post defname cont sort_cont cnames
     in
       lthy
         |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
@@ -106,7 +109,7 @@ fun gen_add_fundef prep fixspec eqnss config flags lthy =
 
 fun total_termination_afterqed data [[totality]] lthy =
     let
-      val FundefCtxData { add_simps, psimps, pinducts, defname, ... } = data
+      val FundefCtxData { add_simps, case_names, psimps, pinducts, defname, ... } = data
 
       val totality = Goal.close_result totality
 
@@ -122,7 +125,7 @@ fun total_termination_afterqed data [[totality]] lthy =
     in
       lthy
         |> add_simps "simps" allatts tsimps |> snd
-        |> note_theorem ((qualify "induct", []), tinduct) |> snd
+        |> note_theorem ((qualify "induct", [Attrib.internal (K (RuleCases.case_names case_names))]), tinduct) |> snd
     end
 
 

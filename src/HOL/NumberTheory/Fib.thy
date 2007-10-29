@@ -43,7 +43,7 @@ proof (induct n rule: fib.induct)
 next
   case 2 show ?case  by (simp add: fib_2)
 next
-  case 3 thus ?case by (simp add: fib_2 add_mult_distrib2)
+  case fib_2 thus ?case by (simp add: fib.simps add_mult_distrib2)
 qed
 
 lemma fib_Suc_neq_0: "fib (Suc n) \<noteq> 0"
@@ -72,9 +72,9 @@ proof(induct n rule: fib.induct)
 next
   case 2 thus ?case by (simp add: fib_2 mod_Suc)
 next 
-  case (3 x) 
+  case (fib_2 x) 
   have "Suc 0 \<noteq> x mod 2 \<longrightarrow> x mod 2 = 0" by presburger
-  with "3.hyps" show ?case by (simp add: fib_2 add_mult_distrib add_mult_distrib2)
+  with "fib_2.hyps" show ?case by (simp add: fib.simps add_mult_distrib add_mult_distrib2)
 qed
 
 text{*We now obtain a version for the natural numbers via the coercion 

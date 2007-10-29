@@ -52,6 +52,7 @@ datatype fundef_context_data =
 
       (* contains no logical entities: invariant under morphisms *)
       add_simps : string -> Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+      case_names : string list,
 
       fs : term list,
       R : term,
@@ -61,12 +62,13 @@ datatype fundef_context_data =
       termination: thm
      }
 
-fun morph_fundef_data (FundefCtxData {add_simps, fs, R, psimps, pinducts, termination, defname}) phi =
+fun morph_fundef_data (FundefCtxData {add_simps, case_names, fs, R, 
+                                      psimps, pinducts, termination, defname}) phi =
     let
       val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
       val name = Morphism.name phi
     in
-      FundefCtxData { add_simps = add_simps,
+      FundefCtxData { add_simps = add_simps, case_names = case_names,
                       fs = map term fs, R = term R, psimps = fact psimps, 
                       pinducts = fact pinducts, termination = thm termination,
                       defname = name defname }
@@ -260,22 +262,29 @@ fun check_defs ctxt fixes eqs =
 type fixes = ((string * typ) * mixfix) list
 type 'a spec = ((bstring * Attrib.src list) * 'a list) list
 type preproc = fundef_config -> bool list -> Proof.context -> fixes -> term spec 
-               -> (term list * (thm list -> thm spec) * (thm list -> thm list list))
+               -> (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
 
 val fname_of = fst o dest_Free o fst o strip_comb o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Logic.strip_imp_concl o snd o dest_all_all
+
+fun mk_case_names i "" k = mk_case_names i (string_of_int (i + 1)) k
+  | mk_case_names _ n 0 = []
+  | mk_case_names _ n 1 = [n]
+  | mk_case_names _ n k = map (fn i => n ^ "_" ^ string_of_int i) (1 upto k)
 
 fun empty_preproc check _ _ ctxt fixes spec =
     let 
       val (nas,tss) = split_list spec
-      val _ = check ctxt fixes (flat tss)
       val ts = flat tss
+      val _ = check ctxt fixes ts
       val fnames = map (fst o fst) fixes
       val indices = map (fn eq => find_index (curry op = (fname_of eq)) fnames) ts
 
       fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1) (indices ~~ xs)
                         |> map (map snd)
+
+      val cnames = map_index (fn (i, (n,_)) => mk_case_names i n 1) nas |> flat
     in
-      (ts, curry op ~~ nas o Library.unflat tss, sort)
+      (ts, curry op ~~ nas o Library.unflat tss, sort, cnames)
     end
 
 structure Preprocessor = GenericDataFun
