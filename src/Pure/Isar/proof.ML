@@ -939,7 +939,6 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     val test_proof =
       (Seq.pull oo local_skip_proof) true
       |> setmp testing true
-      |> setmp proofs 0
       |> Exn.capture;
 
     fun after_qed' results =
