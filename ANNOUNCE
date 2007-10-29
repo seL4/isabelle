@@ -40,6 +40,9 @@ tools.
 * Second generation code-generator for a subset of HOL, targeting SML,
 Haskell, and OCaml.
 
+* Command 'normal_form' and method 'normalization'
+for evaluating terms with free variables.
+
 * Improved support for arbitrary ML operations depending on the
 logical context.
 
