@@ -20,6 +20,7 @@ signature NAME_SPACE =
 sig
   include BASIC_NAME_SPACE
   val hidden: string -> string
+  val is_hidden: string -> bool
   val separator: string                 (*single char*)
   val is_qualified: string -> bool
   val implode: string list -> string
