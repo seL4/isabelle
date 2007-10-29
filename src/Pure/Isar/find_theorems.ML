@@ -233,16 +233,30 @@ end;
 
 (* removing duplicates, preferring nicer names, roughly n log n *)
 
+local
+
+val hidden_ord = bool_ord o pairself NameSpace.is_hidden;
+val qual_ord = int_ord o pairself (length o NameSpace.explode);
+val txt_ord = int_ord o pairself size;
+
+fun nicer_name x y =
+  (case hidden_ord (x, y) of
+    EQUAL => (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
+  | ord => ord) <> GREATER;
+
+in
+
+fun nicer (Fact _) _ = true
+  | nicer (PureThy.Name x) (PureThy.Name y) = nicer_name x y
+  | nicer (PureThy.Name _) (Fact _) = false
+  | nicer (PureThy.Name _) _ = true
+  | nicer (NameSelection (x, _)) (NameSelection (y, _)) = nicer_name x y
+  | nicer (NameSelection _) _ = false;
+
+end;
+
 fun rem_thm_dups xs =
   let
-    fun nicer (Fact x) (Fact y) = size x <= size y
-      | nicer (Fact _) _        = true
-      | nicer (PureThy.Name x) (PureThy.Name y) = size x <= size y
-      | nicer (PureThy.Name _) (Fact _) = false
-      | nicer (PureThy.Name _) _ = true
-      | nicer (NameSelection (x, _)) (NameSelection (y, _)) = size x <= size y
-      | nicer (NameSelection _) _ = false;
-
     fun rem_cdups xs =
       let
         fun rem_c rev_seen [] = rev rev_seen
