@@ -28,7 +28,7 @@ separate variant 'inductive_set'.
 * New 'class' package combination of axclass + locale interpretation.
 
 * Built-in Metis prover, external linkup for automated provers, and
-'sledghammer' command for automated proof synthesis.
+'sledgehammer' command for automated proof synthesis.
 
 * Full list comprehension syntax.
 
