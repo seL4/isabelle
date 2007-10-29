@@ -57,8 +57,8 @@ val bool_pref =
 
 val proof_pref =
     let
-        fun get () = PgipTypes.bool_to_pgstring (! proofs >= 2)
-        fun set s = proofs := (if PgipTypes.read_pgipbool s then 2 else 1)
+        fun get () = PgipTypes.bool_to_pgstring (! Proofterm.proofs >= 2)
+        fun set s = Proofterm.proofs := (if PgipTypes.read_pgipbool s then 2 else 1)
     in
         mkpref get set PgipTypes.Pgipbool "full-proofs"
                "Record full proof objects internally"

@@ -44,4 +44,4 @@ install_pp (make_pp ["File", "ident"] (Pretty.pprint o Pretty.str o quote o File
 val cd = File.cd o Path.explode;
 ml_prompts "ML> " "ML# ";
 
-proofs := 0;
+Proofterm.proofs := 0;

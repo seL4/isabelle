@@ -579,7 +579,7 @@ fun set_proverflag_pgmlsymbols b =
 
 fun set_proverflag_thmdeps b =
     (show_theorem_dependencies := b;
-     proofs := (if b then 1 else 2))
+     Proofterm.proofs := (if b then 1 else 2))
 
 fun setproverflag (Setproverflag vs) =
     let 

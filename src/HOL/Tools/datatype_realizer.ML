@@ -217,7 +217,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
   end;
 
 fun add_dt_realizers names thy =
-  if !proofs < 2 then thy
+  if ! Proofterm.proofs < 2 then thy
   else let
     val _ = message "Adding realizers for induction and case analysis ..."
     val infos = map (DatatypePackage.the_datatype thy) names;

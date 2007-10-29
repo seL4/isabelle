@@ -13,6 +13,6 @@ text {*
   PreList} already includes most HOL theories.
 *}
 
-ML {* val HOL_proofs = !proofs *}
+ML {* val HOL_proofs = ! Proofterm.proofs *}
 
 end

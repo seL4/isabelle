@@ -15,7 +15,7 @@ use "pgip.ML";
 
 use "pgip_isabelle.ML";
 use "pgml_isabelle.ML";
-(use |> setmp proofs 1 |> setmp quick_and_dirty true) "preferences.ML";
+(use |> setmp Proofterm.proofs 1 |> setmp quick_and_dirty true) "preferences.ML";
 use "pgip_parser.ML";
 
 use "parsing.ML";   (* old version *)
