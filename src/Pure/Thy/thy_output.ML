@@ -440,8 +440,9 @@ fun pretty_term_typ ctxt t =
 fun pretty_term_typeof ctxt = Syntax.pretty_typ ctxt o Term.fastype_of;
 
 fun pretty_term_const ctxt t =
-  if Term.is_Const t then pretty_term ctxt t
-  else error ("Logical constant expected: " ^ Syntax.string_of_term ctxt t);
+  if Term.is_Const (singleton (Syntax.uncheck_terms ctxt) t)
+    then pretty_term ctxt t
+    else error ("Constant expected: " ^ Syntax.string_of_term ctxt t);
 
 fun pretty_abbrev ctxt t =
   let
