@@ -154,7 +154,9 @@ fun proof_of_term thy tab ty =
       | prf_of Ts (Const ("Hyp", _) $ prop) = Hyp prop
       | prf_of Ts (v as Var ((_, Type ("proof", _)))) = Hyp v
       | prf_of [] (Const ("Abst", _) $ Abs (s, T, prf)) =
-          Abst (s, if ty then SOME T else NONE,
+          if T = proofT then
+            error ("Term variable abstraction may not bind proof variable " ^ quote s)
+          else Abst (s, if ty then SOME T else NONE,
             incr_pboundvars (~1) 0 (prf_of [] prf))
       | prf_of [] (Const ("AbsP", _) $ t $ Abs (s, _, prf)) =
           AbsP (s, case t of
