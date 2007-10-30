@@ -429,6 +429,8 @@ subsection{*Embedding of the Integers into any @{text ring_1}: @{term of_int}*}
 context ring_1
 begin
 
+term of_nat
+
 definition
   of_int :: "int \<Rightarrow> 'a"
 where
@@ -518,9 +520,14 @@ proof
     by (cases z) (simp add: of_int add minus int_def diff_minus)
 qed
 
+context ring_1
+begin
+
 lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
-by (cases z rule: eq_Abs_Integ)
+  by (cases z rule: eq_Abs_Integ)
    (simp add: nat le of_int Zero_int_def of_nat_diff)
+
+end
 
 
 subsection{*The Set of Integers*}

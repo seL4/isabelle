@@ -208,9 +208,20 @@ next
   with False show ?thesis by simp
 qed
 
-lemma of_int_of_nat: "of_int k = (if k < 0 then - of_nat (nat (- k))
-  else of_nat (nat k))"
-  by (auto simp add: of_nat_nat)
+context ring_1
+begin
+
+lemma of_int_of_nat:
+  "of_int k = (if k < 0 then - of_nat (nat (- k)) else of_nat (nat k))"
+proof (cases "k < 0")
+  case True then have "0 \<le> - k" by simp
+  then have "of_nat (nat (- k)) = of_int (- k)" by (rule of_nat_nat)
+  with True show ?thesis by simp
+next
+  case False then show ?thesis by (simp add: not_less of_nat_nat)
+qed
+
+end
 
 lemma nat_mult_distrib: "(0::int) \<le> z ==> nat (z*z') = nat z * nat z'"
 apply (cases "0 \<le> z'")

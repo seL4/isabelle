@@ -703,6 +703,8 @@ lemmas less_numeral_code [code func] = less_Pls_Pls less_Pls_Min less_Pls_Bit0
   less_Bit0_Min less_Bit1_Min less_Bit_Bit0 less_Bit1_Bit less_Bit0_Bit1
   less_number_of
 
+context ring_1
+begin
 
 lemma of_int_num [code func]:
   "of_int k = (if k = 0 then 0 else if k < 0 then
@@ -735,5 +737,7 @@ proof -
   qed
   from aux1 show ?thesis by (auto simp add: divAlg_mod_div Let_def aux2 aux3)
 qed
+
+end
 
 end

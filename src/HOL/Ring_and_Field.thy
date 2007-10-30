@@ -153,16 +153,24 @@ lemma left_diff_distrib: "(a - b) * c = a * c - b * c"
 lemmas ring_distribs =
   right_distrib left_distrib left_diff_distrib right_diff_distrib
 
+lemmas ring_simps =
+  add_ac
+  add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
+  diff_eq_eq eq_diff_eq diff_minus [symmetric] uminus_add_conv_diff
+  ring_distribs
+
+lemma eq_add_iff1:
+  "a * e + c = b * e + d \<longleftrightarrow> (a - b) * e + c = d"
+  by (simp add: ring_simps)
+
+lemma eq_add_iff2:
+  "a * e + c = b * e + d \<longleftrightarrow> c = (b - a) * e + d"
+  by (simp add: ring_simps)
+
 end
 
 lemmas ring_distribs =
   right_distrib left_distrib left_diff_distrib right_diff_distrib
-
-text{*This list of rewrites simplifies ring terms by multiplying
-everything out and bringing sums and products into a canonical form
-(by ordered rewriting). As a result it decides ring equalities but
-also helps with inequalities. *}
-lemmas ring_simps = group_simps ring_distribs
 
 class comm_ring = comm_semiring + ab_group_add
 
@@ -180,6 +188,18 @@ subclass (in comm_ring_1) ring_1 by unfold_locales
 subclass (in comm_ring_1) comm_semiring_1_cancel by unfold_locales
 
 class ring_no_zero_divisors = ring + no_zero_divisors
+begin
+
+lemma mult_eq_0_iff [simp]:
+  shows "a * b = 0 \<longleftrightarrow> (a = 0 \<or> b = 0)"
+proof (cases "a = 0 \<or> b = 0")
+  case False then have "a \<noteq> 0" and "b \<noteq> 0" by auto
+    then show ?thesis using no_zero_divisors by simp
+next
+  case True then show ?thesis by auto
+qed
+
+end
 
 class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors
 
@@ -226,16 +246,75 @@ proof unfold_locales
   thus "inverse a * a = 1" by (rule field_inverse)
   thus "a * inverse a = 1" by (simp only: mult_commute)
 qed
+
 subclass (in field) idom by unfold_locales
+
+context field
+begin
+
+lemma right_inverse_eq: "b \<noteq> 0 \<Longrightarrow> a / b = 1 \<longleftrightarrow> a = b"
+proof
+  assume neq: "b \<noteq> 0"
+  {
+    hence "a = (a / b) * b" by (simp add: divide_inverse mult_ac)
+    also assume "a / b = 1"
+    finally show "a = b" by simp
+  next
+    assume "a = b"
+    with neq show "a / b = 1" by (simp add: divide_inverse)
+  }
+qed
+
+lemma nonzero_inverse_eq_divide: "a \<noteq> 0 \<Longrightarrow> inverse a = 1 / a"
+  by (simp add: divide_inverse)
+
+lemma divide_self [simp]: "a \<noteq> 0 \<Longrightarrow> a / a = 1"
+  by (simp add: divide_inverse)
+
+lemma divide_zero_left [simp]: "0 / a = 0"
+  by (simp add: divide_inverse)
+
+lemma inverse_eq_divide: "inverse a = 1 / a"
+  by (simp add: divide_inverse)
+
+lemma add_divide_distrib: "(a+b) / c = a/c + b/c"
+  by (simp add: divide_inverse ring_distribs) 
+
+end
 
 class division_by_zero = zero + inverse +
   assumes inverse_zero [simp]: "inverse 0 = 0"
+
+lemma divide_zero [simp]:
+  "a / 0 = (0::'a::{field,division_by_zero})"
+  by (simp add: divide_inverse)
+
+lemma divide_self_if [simp]:
+  "a / (a::'a::{field,division_by_zero}) = (if a=0 then 0 else 1)"
+  by (simp add: divide_self)
 
 class mult_mono = times + zero + ord +
   assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
   assumes mult_right_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * c"
 
 class pordered_semiring = mult_mono + semiring_0 + pordered_ab_semigroup_add 
+begin
+
+lemma mult_mono:
+  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> c
+     \<Longrightarrow> a * c \<le> b * d"
+apply (erule mult_right_mono [THEN order_trans], assumption)
+apply (erule mult_left_mono, assumption)
+done
+
+lemma mult_mono':
+  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c
+     \<Longrightarrow> a * c \<le> b * d"
+apply (rule mult_mono)
+apply (fast intro: order_trans)+
+done
+
+end
 
 class pordered_cancel_semiring = mult_mono + pordered_ab_semigroup_add
   + semiring + comm_monoid_add + cancel_ab_semigroup_add
@@ -243,10 +322,37 @@ class pordered_cancel_semiring = mult_mono + pordered_ab_semigroup_add
 subclass (in pordered_cancel_semiring) semiring_0_cancel by unfold_locales
 subclass (in pordered_cancel_semiring) pordered_semiring by unfold_locales
 
-class ordered_semiring = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add + mult_mono
+context pordered_cancel_semiring
 begin
 
-subclass pordered_cancel_semiring by unfold_locales
+lemma mult_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * b"
+  by (drule mult_left_mono [of zero b], auto)
+
+lemma mult_nonneg_nonpos: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> a * b \<le> 0"
+  by (drule mult_left_mono [of b zero], auto)
+
+lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0" 
+  by (drule mult_right_mono [of b zero], auto)
+
+lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> (0::_::pordered_cancel_semiring)" 
+  by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
+
+end
+
+class ordered_semiring = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add + mult_mono
+
+subclass (in ordered_semiring) pordered_cancel_semiring by unfold_locales
+
+context ordered_semiring
+begin
+
+lemma mult_left_less_imp_less:
+  "c * a < c * b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
+  by (force simp add: mult_left_mono not_le [symmetric])
+ 
+lemma mult_right_less_imp_less:
+  "a * c < b * c \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
+  by (force simp add: mult_right_mono not_le [symmetric])
 
 end
 
@@ -268,8 +374,49 @@ proof unfold_locales
     using mult_strict_right_mono by (cases "c = 0") auto
 qed
 
+context ordered_semiring_strict
+begin
+
+lemma mult_left_le_imp_le:
+  "c * a \<le> c * b \<Longrightarrow> 0 < c \<Longrightarrow> a \<le> b"
+  by (force simp add: mult_strict_left_mono _not_less [symmetric])
+ 
+lemma mult_right_le_imp_le:
+  "a * c \<le> b * c \<Longrightarrow> 0 < c \<Longrightarrow> a \<le> b"
+  by (force simp add: mult_strict_right_mono not_less [symmetric])
+
+lemma mult_pos_pos:
+  "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a * b"
+  by (drule mult_strict_left_mono [of zero b], auto)
+
+lemma mult_pos_neg:
+  "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> a * b < 0"
+  by (drule mult_strict_left_mono [of b zero], auto)
+
+lemma mult_pos_neg2:
+  "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0" 
+  by (drule mult_strict_right_mono [of b zero], auto)
+
+lemma zero_less_mult_pos:
+  "0 < a * b \<Longrightarrow> 0 < a \<Longrightarrow> 0 < b"
+apply (cases "b\<le>0") 
+ apply (auto simp add: le_less not_less)
+apply (drule_tac mult_pos_neg [of a b]) 
+ apply (auto dest: less_not_sym)
+done
+
+lemma zero_less_mult_pos2:
+  "0 < b * a \<Longrightarrow> 0 < a \<Longrightarrow> 0 < b"
+apply (cases "b\<le>0") 
+ apply (auto simp add: le_less not_less)
+apply (drule_tac mult_pos_neg2 [of a b]) 
+ apply (auto dest: less_not_sym)
+done
+
+end
+
 class mult_mono1 = times + zero + ord +
-  assumes mult_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
+  assumes mult_mono1: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
 
 class pordered_comm_semiring = comm_semiring_0
   + pordered_ab_semigroup_add + mult_mono1
@@ -289,7 +436,7 @@ subclass (in pordered_comm_semiring) pordered_semiring
 proof unfold_locales
   fix a b c :: 'a
   assume "a \<le> b" "0 \<le> c"
-  thus "c * a \<le> c * b" by (rule mult_mono)
+  thus "c * a \<le> c * b" by (rule mult_mono1)
   thus "a * c \<le> b * c" by (simp only: mult_commute)
 qed
 
@@ -314,9 +461,49 @@ proof unfold_locales
 qed
 
 class pordered_ring = ring + pordered_cancel_semiring 
+
+subclass (in pordered_ring) pordered_ab_group_add by unfold_locales
+
+context pordered_ring
 begin
 
-subclass pordered_ab_group_add by unfold_locales
+lemmas ring_simps = ring_simps group_simps
+
+lemma less_add_iff1:
+  "a * e + c < b * e + d \<longleftrightarrow> (a - b) * e + c < d"
+  by (simp add: ring_simps)
+
+lemma less_add_iff2:
+  "a * e + c < b * e + d \<longleftrightarrow> c < (b - a) * e + d"
+  by (simp add: ring_simps)
+
+lemma le_add_iff1:
+  "a * e + c \<le> b * e + d \<longleftrightarrow> (a - b) * e + c \<le> d"
+  by (simp add: ring_simps)
+
+lemma le_add_iff2:
+  "a * e + c \<le> b * e + d \<longleftrightarrow> c \<le> (b - a) * e + d"
+  by (simp add: ring_simps)
+
+lemma mult_left_mono_neg:
+  "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> c * a \<le> c * b"
+  apply (drule mult_left_mono [of _ _ "uminus c"])
+  apply (simp_all add: minus_mult_left [symmetric]) 
+  done
+
+lemma mult_right_mono_neg:
+  "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> a * c \<le> b * c"
+  apply (drule mult_right_mono [of _ _ "uminus c"])
+  apply (simp_all add: minus_mult_right [symmetric]) 
+  done
+
+lemma mult_nonpos_nonpos:
+  "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> 0 \<le> a * b"
+  by (drule mult_right_mono_neg [of a zero b]) auto
+
+lemma split_mult_pos_le:
+  "(0 \<le> a \<and> 0 \<le> b) \<or> (a \<le> 0 \<and> b \<le> 0) \<Longrightarrow> 0 \<le> a * b"
+  by (auto simp add: mult_nonneg_nonneg mult_nonpos_nonpos)
 
 end
 
@@ -331,12 +518,10 @@ class abs_if = minus + ord + zero + abs +
 class sgn_if = sgn + zero + one + minus + ord +
   assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
 
-(* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.
-   Basically, ordered_ring + no_zero_divisors = ordered_ring_strict.
- *)
-class ordered_ring = ring + ordered_semiring + lordered_ab_group + abs_if
-
--- {*FIXME: continue localization here*}
+class ordered_ring = ring + ordered_semiring
+  + lordered_ab_group + abs_if
+  -- {*FIXME: should inherit from ordered_ab_group_add rather than
+         lordered_ab_group*}
 
 instance ordered_ring \<subseteq> lordered_ring
 proof 
@@ -345,167 +530,44 @@ proof
     by (simp only: abs_if sup_eq_if)
 qed
 
-class ordered_ring_strict =
-  ring + ordered_semiring_strict + lordered_ab_group + abs_if
+(* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.
+   Basically, ordered_ring + no_zero_divisors = ordered_ring_strict.
+ *)
+class ordered_ring_strict = ring + ordered_semiring_strict
+  + lordered_ab_group + abs_if
+  -- {*FIXME: should inherit from ordered_ab_group_add rather than
+         lordered_ab_group*}
 
-instance ordered_ring_strict \<subseteq> ordered_ring ..
+instance ordered_ring_strict \<subseteq> ordered_ring by intro_classes
 
-class pordered_comm_ring = comm_ring + pordered_comm_semiring
-
-instance pordered_comm_ring \<subseteq> pordered_ring ..
-
-instance pordered_comm_ring \<subseteq> pordered_cancel_comm_semiring ..
-
-class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
-  (*previously ordered_semiring*)
-  assumes zero_less_one [simp]: "0 < 1"
-
-lemma pos_add_strict:
-  fixes a b c :: "'a\<Colon>ordered_semidom"
-  shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
-  using add_strict_mono [of 0 a b c] by simp
-
-class ordered_idom =
-  comm_ring_1 +
-  ordered_comm_semiring_strict +
-  lordered_ab_group +
-  abs_if + sgn_if
-  (*previously ordered_ring*)
-
-instance ordered_idom \<subseteq> ordered_ring_strict ..
-
-instance ordered_idom \<subseteq> pordered_comm_ring ..
-
-class ordered_field = field + ordered_idom
-
-lemma linorder_neqE_ordered_idom:
-  fixes x y :: "'a :: ordered_idom"
-  assumes "x \<noteq> y" obtains "x < y" | "y < x"
-  using assms by (rule linorder_neqE)
-
-lemma eq_add_iff1:
-  "(a*e + c = b*e + d) = ((a-b)*e + c = (d::'a::ring))"
-by (simp add: ring_simps)
-
-lemma eq_add_iff2:
-  "(a*e + c = b*e + d) = (c = (b-a)*e + (d::'a::ring))"
-by (simp add: ring_simps)
-
-lemma less_add_iff1:
-  "(a*e + c < b*e + d) = ((a-b)*e + c < (d::'a::pordered_ring))"
-by (simp add: ring_simps)
-
-lemma less_add_iff2:
-  "(a*e + c < b*e + d) = (c < (b-a)*e + (d::'a::pordered_ring))"
-by (simp add: ring_simps)
-
-lemma le_add_iff1:
-  "(a*e + c \<le> b*e + d) = ((a-b)*e + c \<le> (d::'a::pordered_ring))"
-by (simp add: ring_simps)
-
-lemma le_add_iff2:
-  "(a*e + c \<le> b*e + d) = (c \<le> (b-a)*e + (d::'a::pordered_ring))"
-by (simp add: ring_simps)
-
-
-subsection {* Ordering Rules for Multiplication *}
-
-lemma mult_left_le_imp_le:
-  "[|c*a \<le> c*b; 0 < c|] ==> a \<le> (b::'a::ordered_semiring_strict)"
-by (force simp add: mult_strict_left_mono linorder_not_less [symmetric])
- 
-lemma mult_right_le_imp_le:
-  "[|a*c \<le> b*c; 0 < c|] ==> a \<le> (b::'a::ordered_semiring_strict)"
-by (force simp add: mult_strict_right_mono linorder_not_less [symmetric])
-
-lemma mult_left_less_imp_less:
-  "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
-by (force simp add: mult_left_mono linorder_not_le [symmetric])
- 
-lemma mult_right_less_imp_less:
-  "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
-by (force simp add: mult_right_mono linorder_not_le [symmetric])
+context ordered_ring_strict
+begin
 
 lemma mult_strict_left_mono_neg:
-  "[|b < a; c < 0|] ==> c * a < c * (b::'a::ordered_ring_strict)"
-apply (drule mult_strict_left_mono [of _ _ "-c"])
-apply (simp_all add: minus_mult_left [symmetric]) 
-done
-
-lemma mult_left_mono_neg:
-  "[|b \<le> a; c \<le> 0|] ==> c * a \<le>  c * (b::'a::pordered_ring)"
-apply (drule mult_left_mono [of _ _ "-c"])
-apply (simp_all add: minus_mult_left [symmetric]) 
-done
+  "b < a \<Longrightarrow> c < 0 \<Longrightarrow> c * a < c * b"
+  apply (drule mult_strict_left_mono [of _ _ "uminus c"])
+  apply (simp_all add: minus_mult_left [symmetric]) 
+  done
 
 lemma mult_strict_right_mono_neg:
-  "[|b < a; c < 0|] ==> a * c < b * (c::'a::ordered_ring_strict)"
-apply (drule mult_strict_right_mono [of _ _ "-c"])
-apply (simp_all add: minus_mult_right [symmetric]) 
-done
+  "b < a \<Longrightarrow> c < 0 \<Longrightarrow> a * c < b * c"
+  apply (drule mult_strict_right_mono [of _ _ "uminus c"])
+  apply (simp_all add: minus_mult_right [symmetric]) 
+  done
 
-lemma mult_right_mono_neg:
-  "[|b \<le> a; c \<le> 0|] ==> a * c \<le>  (b::'a::pordered_ring) * c"
-apply (drule mult_right_mono [of _ _ "-c"])
-apply (simp)
-apply (simp_all add: minus_mult_right [symmetric]) 
-done
+lemma mult_neg_neg:
+  "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> 0 < a * b"
+  by (drule mult_strict_right_mono_neg, auto)
 
-
-subsection{* Products of Signs *}
-
-lemma mult_pos_pos: "[| (0::'a::ordered_semiring_strict) < a; 0 < b |] ==> 0 < a*b"
-by (drule mult_strict_left_mono [of 0 b], auto)
-
-lemma mult_nonneg_nonneg: "[| (0::'a::pordered_cancel_semiring) \<le> a; 0 \<le> b |] ==> 0 \<le> a*b"
-by (drule mult_left_mono [of 0 b], auto)
-
-lemma mult_pos_neg: "[| (0::'a::ordered_semiring_strict) < a; b < 0 |] ==> a*b < 0"
-by (drule mult_strict_left_mono [of b 0], auto)
-
-lemma mult_nonneg_nonpos: "[| (0::'a::pordered_cancel_semiring) \<le> a; b \<le> 0 |] ==> a*b \<le> 0"
-by (drule mult_left_mono [of b 0], auto)
-
-lemma mult_pos_neg2: "[| (0::'a::ordered_semiring_strict) < a; b < 0 |] ==> b*a < 0" 
-by (drule mult_strict_right_mono[of b 0], auto)
-
-lemma mult_nonneg_nonpos2: "[| (0::'a::pordered_cancel_semiring) \<le> a; b \<le> 0 |] ==> b*a \<le> 0" 
-by (drule mult_right_mono[of b 0], auto)
-
-lemma mult_neg_neg: "[| a < (0::'a::ordered_ring_strict); b < 0 |] ==> 0 < a*b"
-by (drule mult_strict_right_mono_neg, auto)
-
-lemma mult_nonpos_nonpos: "[| a \<le> (0::'a::pordered_ring); b \<le> 0 |] ==> 0 \<le> a*b"
-by (drule mult_right_mono_neg[of a 0 b ], auto)
-
-lemma zero_less_mult_pos:
-     "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::ordered_semiring_strict)"
-apply (cases "b\<le>0") 
- apply (auto simp add: order_le_less linorder_not_less)
-apply (drule_tac mult_pos_neg [of a b]) 
- apply (auto dest: order_less_not_sym)
-done
-
-lemma zero_less_mult_pos2:
-     "[| 0 < b*a; 0 < a|] ==> 0 < (b::'a::ordered_semiring_strict)"
-apply (cases "b\<le>0") 
- apply (auto simp add: order_le_less linorder_not_less)
-apply (drule_tac mult_pos_neg2 [of a b]) 
- apply (auto dest: order_less_not_sym)
-done
+end
 
 lemma zero_less_mult_iff:
-     "((0::'a::ordered_ring_strict) < a*b) = (0 < a & 0 < b | a < 0 & b < 0)"
-apply (auto simp add: order_le_less linorder_not_less mult_pos_pos 
-  mult_neg_neg)
-apply (blast dest: zero_less_mult_pos) 
-apply (blast dest: zero_less_mult_pos2)
-done
-
-lemma mult_eq_0_iff [simp]:
-  fixes a b :: "'a::ring_no_zero_divisors"
-  shows "(a * b = 0) = (a = 0 \<or> b = 0)"
-by (cases "a = 0 \<or> b = 0", auto dest: no_zero_divisors)
+  fixes a :: "'a::ordered_ring_strict"
+  shows "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
+  apply (auto simp add: le_less not_less mult_pos_pos mult_neg_neg)
+  apply (blast dest: zero_less_mult_pos) 
+  apply (blast dest: zero_less_mult_pos2)
+  done
 
 instance ordered_ring_strict \<subseteq> ring_no_zero_divisors
 apply intro_classes
@@ -530,17 +592,56 @@ apply (insert zero_le_mult_iff [of "-a" b])
 apply (force simp add: minus_mult_left[symmetric]) 
 done
 
-lemma split_mult_pos_le: "(0 \<le> a & 0 \<le> b) | (a \<le> 0 & b \<le> 0) \<Longrightarrow> 0 \<le> a * (b::_::pordered_ring)"
-by (auto simp add: mult_nonneg_nonneg mult_nonpos_nonpos)
-
-lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> (0::_::pordered_cancel_semiring)" 
-by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
-
 lemma zero_le_square[simp]: "(0::'a::ordered_ring_strict) \<le> a*a"
 by (simp add: zero_le_mult_iff linorder_linear)
 
 lemma not_square_less_zero[simp]: "\<not> (a * a < (0::'a::ordered_ring_strict))"
 by (simp add: not_less)
+
+text{*This list of rewrites simplifies ring terms by multiplying
+everything out and bringing sums and products into a canonical form
+(by ordered rewriting). As a result it decides ring equalities but
+also helps with inequalities. *}
+lemmas ring_simps = group_simps ring_distribs
+
+
+class pordered_comm_ring = comm_ring + pordered_comm_semiring
+
+subclass (in pordered_comm_ring) pordered_ring by unfold_locales
+
+subclass (in pordered_comm_ring) pordered_cancel_comm_semiring by unfold_locales
+
+class ordered_semidom = comm_semiring_1_cancel + ordered_comm_semiring_strict +
+  (*previously ordered_semiring*)
+  assumes zero_less_one [simp]: "0 < 1"
+begin
+
+lemma pos_add_strict:
+  shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
+  using add_strict_mono [of zero a b c] by simp
+
+end
+
+class ordered_idom =
+  comm_ring_1 +
+  ordered_comm_semiring_strict +
+  lordered_ab_group +
+  abs_if + sgn_if
+  (*previously ordered_ring*)
+
+instance ordered_idom \<subseteq> ordered_ring_strict ..
+
+instance ordered_idom \<subseteq> pordered_comm_ring ..
+
+class ordered_field = field + ordered_idom
+
+lemma linorder_neqE_ordered_idom:
+  fixes x y :: "'a :: ordered_idom"
+  assumes "x \<noteq> y" obtains "x < y" | "y < x"
+  using assms by (rule linorder_neqE)
+
+-- {* FIXME continue localization here *}
+
 
 text{*Proving axiom @{text zero_less_one} makes all @{text ordered_semidom}
       theorems available to members of @{term ordered_idom} *}
@@ -585,20 +686,6 @@ lemma mult_strict_mono':
      "[| a<b; c<d; 0 \<le> a; 0 \<le> c|] ==> a * c < b * (d::'a::ordered_semiring_strict)"
 apply (rule mult_strict_mono)
 apply (blast intro: order_le_less_trans)+
-done
-
-lemma mult_mono:
-     "[|a \<le> b; c \<le> d; 0 \<le> b; 0 \<le> c|] 
-      ==> a * c  \<le>  b * (d::'a::pordered_semiring)"
-apply (erule mult_right_mono [THEN order_trans], assumption)
-apply (erule mult_left_mono, assumption)
-done
-
-lemma mult_mono':
-     "[|a \<le> b; c \<le> d; 0 \<le> a; 0 \<le> c|] 
-      ==> a * c  \<le>  b * (d::'a::pordered_semiring)"
-apply (rule mult_mono)
-apply (fast intro: order_trans)+
 done
 
 lemma less_1_mult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::'a::ordered_semidom)"
@@ -804,43 +891,6 @@ lemmas mult_compare_simps =
     mult_cancel_right1 mult_cancel_right2
     mult_cancel_left1 mult_cancel_left2
 
-
-subsection {* Fields *}
-
-lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = 1) = (a = (b::'a::field))"
-proof
-  assume neq: "b \<noteq> 0"
-  {
-    hence "a = (a / b) * b" by (simp add: divide_inverse mult_ac)
-    also assume "a / b = 1"
-    finally show "a = b" by simp
-  next
-    assume "a = b"
-    with neq show "a / b = 1" by (simp add: divide_inverse)
-  }
-qed
-
-lemma nonzero_inverse_eq_divide: "a \<noteq> 0 ==> inverse (a::'a::field) = 1/a"
-by (simp add: divide_inverse)
-
-lemma divide_self[simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
-  by (simp add: divide_inverse)
-
-lemma divide_zero [simp]: "a / 0 = (0::'a::{field,division_by_zero})"
-by (simp add: divide_inverse)
-
-lemma divide_self_if [simp]:
-     "a / (a::'a::{field,division_by_zero}) = (if a=0 then 0 else 1)"
-  by (simp add: divide_self)
-
-lemma divide_zero_left [simp]: "0/a = (0::'a::field)"
-by (simp add: divide_inverse)
-
-lemma inverse_eq_divide: "inverse (a::'a::field) = 1/a"
-by (simp add: divide_inverse)
-
-lemma add_divide_distrib: "(a+b)/(c::'a::field) = a/c + b/c"
-by (simp add: divide_inverse ring_distribs) 
 
 (* what ordering?? this is a straight instance of mult_eq_0_iff
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
@@ -1871,9 +1921,11 @@ by(simp add:field_simps)
 lemma frac_le: "(0::'a::ordered_field) <= x ==> 
     x <= y ==> 0 < w ==> w <= z  ==> x / z <= y / w"
   apply (rule mult_imp_div_pos_le)
-  apply simp;
-  apply (subst times_divide_eq_left);
+  apply simp
+  apply (subst times_divide_eq_left)
   apply (rule mult_imp_le_div_pos, assumption)
+  thm mult_mono
+  thm mult_mono'
   apply (rule mult_mono)
   apply simp_all
 done

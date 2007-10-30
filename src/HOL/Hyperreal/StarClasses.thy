@@ -403,7 +403,7 @@ apply (transfer, erule (1) mult_strict_right_mono)
 done
 
 instance star :: (pordered_comm_semiring) pordered_comm_semiring
-by (intro_classes, transfer, rule mult_mono1_class.times_zero_less_eq_less.mult_mono)
+by (intro_classes, transfer, rule mult_mono1_class.times_zero_less_eq_less.mult_mono1)
 
 instance star :: (pordered_cancel_comm_semiring) pordered_cancel_comm_semiring ..
 
@@ -451,7 +451,7 @@ qed
 subsection {* Number classes *}
 
 lemma star_of_nat_def [transfer_unfold]: "of_nat n = star_of (of_nat n)"
-by (induct_tac n, simp_all)
+by (induct n, simp_all)
 
 lemma Standard_of_nat [simp]: "of_nat n \<in> Standard"
 by (simp add: star_of_nat_def)
