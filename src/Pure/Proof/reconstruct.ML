@@ -103,7 +103,8 @@ fun infer_type thy (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
           let val (env3, V) = mk_tvar (env2, [])
           in (t' $ u', V, vTs2, unifyT thy env3 T (U --> V)) end)
       end
-  | infer_type thy env Ts vTs (t as Bound i) = (t, List.nth (Ts, i), vTs, env);
+  | infer_type thy env Ts vTs (t as Bound i) = ((t, List.nth (Ts, i), vTs, env)
+      handle Subscript => error ("infer_type: bad variable index " ^ string_of_int i));
 
 fun cantunify thy (t, u) = error ("Non-unifiable terms:\n" ^
   Sign.string_of_term thy t ^ "\n\n" ^ Sign.string_of_term thy u);
@@ -157,7 +158,8 @@ fun make_constraints_cprf thy env cprf =
     fun head_norm (prop, prf, cnstrts, env, vTs) =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);
 
-    fun mk_cnstrts env _ Hs vTs (PBound i) = (List.nth (Hs, i), PBound i, [], env, vTs)
+    fun mk_cnstrts env _ Hs vTs (PBound i) = ((List.nth (Hs, i), PBound i, [], env, vTs)
+          handle Subscript => error ("mk_cnstrts: bad variable index " ^ string_of_int i))
       | mk_cnstrts env Ts Hs vTs (Abst (s, opT, cprf)) =
           let
             val (env', T) = (case opT of
