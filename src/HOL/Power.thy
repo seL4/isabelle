@@ -194,7 +194,8 @@ proof (induct "n")
     show ?case by (simp add: zero_less_one)
 next
   case (Suc n)
-    show ?case by (force simp add: prems power_Suc zero_less_mult_iff)
+    show ?case by (auto simp add: prems power_Suc zero_less_mult_iff
+      abs_zero)
 qed
 
 lemma zero_le_power_abs [simp]:

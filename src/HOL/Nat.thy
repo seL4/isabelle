@@ -1289,7 +1289,7 @@ lemma of_nat_diff: "n \<le> m \<Longrightarrow> of_nat (m - n) = of_nat m - of_n
 end
 
 lemma abs_of_nat [simp]: "\<bar>of_nat n::'a::ordered_idom\<bar> = of_nat n"
-  by (rule of_nat_0_le_iff [THEN abs_of_nonneg])
+  unfolding abs_if by auto
 
 lemma nat_diff_split_asm:
   "P(a - b::nat) = (~ (a < b & ~ P 0 | (EX d. a = b + d & ~ P d)))"
