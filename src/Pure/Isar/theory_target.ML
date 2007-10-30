@@ -176,9 +176,9 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c,
     val legacy_arg = (c', Term.close_schematic_term (Logic.legacy_varify rhs'));
     val arg = (c', Term.close_schematic_term rhs');
     (* FIXME workaround based on educated guess *)
-    val in_class = is_class andalso c' = NameSpace.qualified (Class.class_prefix target) c;
+    val class_global = is_class andalso c' = NameSpace.qualified (Class.class_prefix target) c;
   in
-    not in_class ?
+    not class_global ?
       (Context.mapping_result
         (Sign.add_abbrev PrintMode.internal pos legacy_arg)
         (ProofContext.add_abbrev PrintMode.internal pos arg)
