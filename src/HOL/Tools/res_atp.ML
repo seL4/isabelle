@@ -468,8 +468,8 @@ fun all_valid_thms ctxt =
         val xname = NameSpace.extern space name;
       in
         if blacklisted name then I
-        else if is_valid (xname, ths) then cons (xname, ths)
-        else if is_valid (name, ths) then cons (name, ths)
+        else if is_valid (xname, ths) then cons (xname, filter_out ResAxioms.bad_for_atp ths)
+        else if is_valid (name, ths) then cons (name, filter_out ResAxioms.bad_for_atp ths)
         else I
       end;
     val thy = ProofContext.theory_of ctxt;
@@ -731,6 +731,8 @@ fun write_problem_files probfile (ctxt, chain_ths, th) =
         | get_neg_subgoals (gl::gls) n = #1 (ResAxioms.neg_conjecture_clauses th n) ::
                                          get_neg_subgoals gls (n+1)
       val goal_cls = get_neg_subgoals goals 1
+                     handle THM ("assume: variables", _, _) => 
+                       error "Sledgehammer: Goal contains type variables (TVars)"                       
       val isFO = case !linkup_logic_mode of
 			  Auto => forall (Meson.is_fol_term thy) (map prop_of (List.concat goal_cls))
 			| Fol => true

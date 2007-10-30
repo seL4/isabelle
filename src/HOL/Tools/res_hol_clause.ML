@@ -138,8 +138,7 @@ fun combterm_of thy (Const(c,t)) =
       in  (c',ts)  end
   | combterm_of thy (Free(v,t)) =
       let val (tp,ts) = type_of t
-          val v' = if RC.isMeta v then CombVar(RC.make_schematic_var(v,0),tp)
-                   else CombConst(RC.make_fixed_var v, tp, [])
+          val v' = CombConst(RC.make_fixed_var v, tp, [])
       in  (v',ts)  end
   | combterm_of thy (Var(v,t)) =
       let val (tp,ts) = type_of t

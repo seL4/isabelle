@@ -10,6 +10,7 @@ sig
   val cnf_axiom: thm -> thm list
   val pairname: thm -> string * thm
   val multi_base_blacklist: string list 
+  val bad_for_atp: thm -> bool
   val cnf_rules_pairs: (string * thm) list -> (thm * (string * int)) list
   val cnf_rules_of_ths: thm list -> thm list
   val neg_clausify: thm list -> thm list
@@ -320,6 +321,14 @@ fun excessive_lambdas_fm Ts (Abs(_,T,t)) = excessive_lambdas_fm (T::Ts) t
 fun too_complex t = 
   Meson.too_many_clauses t orelse excessive_lambdas_fm [] t;
   
+fun is_strange_thm th =
+  case head_of (concl_of th) of
+      Const (a,_) => (a <> "Trueprop" andalso a <> "==")
+    | _ => false;
+
+fun bad_for_atp th = 
+  PureThy.is_internal th orelse too_complex (prop_of th) orelse is_strange_thm th;
+
 val multi_base_blacklist =
   ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
 
@@ -381,8 +390,7 @@ fun skolem_cache_thm th thy =
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm (s,th) =
-  if (Sign.base_name s) mem_string multi_base_blacklist orelse 
-     PureThy.is_internal th orelse too_complex (prop_of th) then []
+  if (Sign.base_name s) mem_string multi_base_blacklist orelse bad_for_atp th then []
   else 
       let val ctxt0 = Variable.thm_context th
 	  val (nnfth,ctxt1) = to_nnf th ctxt0
@@ -450,8 +458,7 @@ fun cnf_rules_pairs l = cnf_rules_pairs_aux [] (rev l);
 val mark_skolemized = Sign.add_consts_i [("ResAxioms_endtheory", HOLogic.boolT, NoSyn)];
 
 fun skolem_cache th thy =
-  if PureThy.is_internal th orelse too_complex (prop_of th) then thy
-  else #2 (skolem_cache_thm th thy);
+  if bad_for_atp th then thy else #2 (skolem_cache_thm th thy);
 
 fun skolem_cache_list (a,ths) thy =
   if (Sign.base_name a) mem_string multi_base_blacklist then thy

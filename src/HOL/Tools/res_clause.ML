@@ -40,7 +40,6 @@ sig
   val string_of_fol_type : fol_type -> string
   datatype type_literal = LTVar of string * string | LTFree of string * string
   exception CLAUSE of string * term
-  val isMeta : string -> bool
   val add_typs : typ list -> type_literal list
   val get_tvar_strs: typ list -> string list
   datatype arLit =
@@ -260,11 +259,6 @@ fun type_of (Type (a, Ts)) =
 and types_of Ts =
       let val (folTyps,ts) = ListPair.unzip (map type_of Ts)
       in (folTyps, union_all ts) end;
-
-
-(* Any variables created via the METAHYPS tactical should be treated as
-   universal vars, although it is represented as "Free(...)" by Isabelle *)
-val isMeta = String.isPrefix "METAHYP1_"
 
 (*Make literals for sorted type variables*)
 fun sorts_on_typs_aux (_, [])   = []
