@@ -37,7 +37,7 @@ separate variant 'inductive_set'.
 * Various improvements of Isar language elements and related proof
 tools.
 
-* Second generation code-generator for a subset of HOL, targeting SML,
+* Second generation code generator for a subset of HOL, targeting SML,
 Haskell, and OCaml.
 
 * Command 'normal_form' and method 'normalization'
