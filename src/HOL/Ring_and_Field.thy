@@ -520,8 +520,8 @@ class sgn_if = sgn + zero + one + minus + ord +
 
 class ordered_ring = ring + ordered_semiring
   + lordered_ab_group + abs_if
-  -- {*FIXME: should inherit from ordered_ab_group_add rather than
-         lordered_ab_group*}
+  -- {*FIXME: should inherit from @{text ordered_ab_group_add} rather than
+         @{text lordered_ab_group}*}
 
 instance ordered_ring \<subseteq> lordered_ring
 proof 
@@ -535,8 +535,8 @@ qed
  *)
 class ordered_ring_strict = ring + ordered_semiring_strict
   + lordered_ab_group + abs_if
-  -- {*FIXME: should inherit from ordered_ab_group_add rather than
-         lordered_ab_group*}
+  -- {*FIXME: should inherit from @{text ordered_ab_group_add} rather than
+         @{text lordered_ab_group}*}
 
 instance ordered_ring_strict \<subseteq> ordered_ring by intro_classes
 
