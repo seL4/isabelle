@@ -44,13 +44,16 @@ Usage: $PRG VERSION [NAME]
 
   Checklist for official releases (before running this script):
 
-    * Symlink website to Admin/website
-    * Check Admin/website contents.
     * Check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS.
     * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
     * Tag the current repository version, e.g.:
         cvs -d /usr/proj/isabelle-repository/archive rtag IsabelleXXXX isabelle
       PLEASE DO NOT DO THIS UNLESS YOU KNOW WHAT YOU ARE DOING!
+
+   After running this script:
+
+    * Symlink generated files in website/ directory to their appropriate
+      places in the isabelle website sources.
 
 EOF
   exit 1
@@ -153,15 +156,16 @@ echo "###"
 
 cd "$DISTBASE/$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
 
-cp -R Admin/website ..
-mkdir -p ../website/conf
-cat > ../website/conf/distinfo.mak <<EOF
+mkdir -p ../website
+cat > ../website/distinfo.mak <<EOF
 # this is a generated file - do not edit unless you know what you are doing!
 
 DISTNAME=$DISTNAME
 DISTIDENT=$DISTIDENT
 DISTBASE=$DISTBASE
 EOF
+
+cp Distribution/lib/html/library_index_content.template ../website/
 
 MOVE=$($FIND Doc \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
@@ -190,7 +194,7 @@ if [ -n "$UNOFFICIAL" ]; then
   } >ANNOUNCE
 fi
 
-perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/library_index_header.html
+perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/library_index_header.template
 perl -pi -e "s/Isabelle repository version/$DISTVERSION/" src/Pure/ROOT.ML lib/Tools/version
 perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README
 
