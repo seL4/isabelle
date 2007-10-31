@@ -22,6 +22,7 @@ sig
   val atpset_rules_of: Proof.context -> (string * thm) list
   val meson_method_setup: theory -> theory
   val clause_cache_endtheory: theory -> theory option
+  val suppress_endtheory: bool ref     (*for emergency use where endtheory causes problems*)
   val setup: theory -> theory
 end;
 
@@ -170,7 +171,8 @@ val [f_S,g_S] = map (cterm_of @{theory}) (term_vars (prop_of abs_S));
 
 (*FIXME: requires more use of cterm constructors*)
 fun abstract ct =
-  let val Abs(x,_,body) = term_of ct
+  let val _ = Output.debug (fn()=>"  abstraction: " ^ string_of_cterm ct)
+      val Abs(x,_,body) = term_of ct
       val thy = theory_of_cterm ct
       val Type("fun",[xT,bodyT]) = typ_of (ctyp_of_term ct)
       val cxT = ctyp_of thy xT and cbodyT = ctyp_of thy bodyT
@@ -202,7 +204,8 @@ fun abstract ct =
 	       if rand = Bound 0 then eta_conversion ct
 	       else (*B*)
 	         let val crand = cterm_of thy (Abs(x,xT,rand))
-	             val abs_B' = cterm_instantiate [(f_B, cterm_of thy rator),(g_B,crand)] abs_B
+	             val crator = cterm_of thy rator
+	             val abs_B' = cterm_instantiate [(f_B,crator),(g_B,crand)] abs_B
 	             val (_,rhs) = Thm.dest_equals (cprop_of abs_B') 
 	         in
 	           Thm.transitive abs_B' (Conv.arg_conv abstract rhs)
@@ -238,7 +241,11 @@ fun combinators th =
 	val th = Drule.eta_contraction_rule th
 	val eqth = combinators_aux (cprop_of th)
 	val _ = Output.debug (fn()=>"Conversion result: " ^ string_of_thm eqth);
-    in  equal_elim eqth th   end;
+    in  equal_elim eqth th   end
+    handle THM (msg,_,_) => 
+      (warning ("Error in the combinator translation of " ^ string_of_thm th);
+       warning ("  Exception message: " ^ msg);
+       TrueI);  (*A type variable of sort {} will cause make abstraction fail.*)
 
 (*cterms are used throughout for efficiency*)
 val cTrueprop = Thm.cterm_of HOL.thy HOLogic.Trueprop;
@@ -318,8 +325,17 @@ fun excessive_lambdas_fm Ts (Abs(_,T,t)) = excessive_lambdas_fm (T::Ts) t
       then exists (excessive_lambdas_fm Ts) (#2 (strip_comb t))
       else excessive_lambdas (t, max_lambda_nesting);
 
+(*The max apply_depth of any metis call in MetisExamples (on 31-10-2007) was 11.*)
+val max_apply_depth = 15;
+     
+fun apply_depth (f$t) = Int.max (apply_depth f, apply_depth t + 1)
+  | apply_depth (Abs(_,_,t)) = apply_depth t
+  | apply_depth _ = 0;
+
 fun too_complex t = 
-  Meson.too_many_clauses t orelse excessive_lambdas_fm [] t;
+  apply_depth t > max_apply_depth orelse 
+  Meson.too_many_clauses t orelse
+  excessive_lambdas_fm [] t;
   
 fun is_strange_thm th =
   case head_of (concl_of th) of
@@ -330,7 +346,8 @@ fun bad_for_atp th =
   PureThy.is_internal th orelse too_complex (prop_of th) orelse is_strange_thm th;
 
 val multi_base_blacklist =
-  ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm"];
+  ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm",
+   "cases","ext_cases"];  (*FIXME: put other record thms here, or use the "Internal" marker*)
 
 (*Keep the full complexity of the original name*)
 fun flatten_name s = space_implode "_X" (NameSpace.explode s);
@@ -347,11 +364,12 @@ fun name_or_string th =
   It returns a modified theory, unless skolemization fails.*)
 fun skolem thy th =
   let val ctxt0 = Variable.thm_context th
+      val _ = Output.debug (fn () => "skolemizing " ^ name_or_string th)
   in
      Option.map
         (fn (nnfth,ctxt1) =>
-          let val _ = Output.debug (fn () => "skolemizing " ^ name_or_string th ^ ": ")
-              val _ = Output.debug (fn () => string_of_thm nnfth)
+          let 
+              val _ = Output.debug (fn () => "  initial nnf: " ^ string_of_thm nnfth)
               val s = fake_name th
               val (thy',defs) = declare_skofuns s nnfth thy
               val (cnfs,ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1
@@ -471,12 +489,14 @@ fun skolem_cache_all thy = fold skolem_cache_theorems_of (thy :: Theory.ancestor
 (*The cache can be kept smaller by inspecting the prop of each thm. Can ignore all that are
   lambda_free, but then the individual theory caches become much bigger.*)
 
+val suppress_endtheory = ref false;
+
 (*The new constant is a hack to prevent multiple execution*)
 fun clause_cache_endtheory thy =
-  let val _ = Output.debug (fn () => "RexAxioms end theory action: " ^ Context.str_of_thy thy)
-  in
-    Option.map skolem_cache_node (try mark_skolemized thy)
-  end;
+  if !suppress_endtheory then NONE
+  else
+   (Output.debug (fn () => "RexAxioms end theory action: " ^ Context.str_of_thy thy);
+    Option.map skolem_cache_node (try mark_skolemized thy) );
 
 (*** meson proof methods ***)
 
