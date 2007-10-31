@@ -6,7 +6,7 @@
 header {* Groebner Basis Examples *}
 
 theory Groebner_Examples
-imports Main
+imports Groebner_Basis
 begin
 
 subsection {* Basic examples *}
@@ -97,5 +97,9 @@ lemma collinear_inv_rotation:
     (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
   using assms 
   by (algebra add: collinear_def split_def fst_conv snd_conv)
+
+lemma "EX (d::int). a*y - a*x = n*d \<Longrightarrow> EX u v. a*u + n*v = 1 \<Longrightarrow> EX e. y - x = n*e"
+  apply algebra
+  done
 
 end
