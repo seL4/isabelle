@@ -20,9 +20,28 @@ end
 structure Normalizer: NORMALIZER = 
 struct
 
-open Conv Misc;
+open Conv;
 
 (* Very basic stuff for terms *)
+
+fun is_comb ct =
+  (case Thm.term_of ct of
+    _ $ _ => true
+  | _ => false);
+
+val concl = Thm.cprop_of #> Thm.dest_arg;
+
+fun is_binop ct ct' =
+  (case Thm.term_of ct' of
+    c $ _ $ _ => term_of ct aconv c
+  | _ => false);
+
+fun dest_binop ct ct' =
+  if is_binop ct ct' then Thm.dest_binop ct'
+  else raise CTERM ("dest_binop: bad binop", [ct, ct'])
+
+fun inst_thm inst = Thm.instantiate ([], inst);
+
 val dest_numeral = term_of #> HOLogic.dest_number #> snd;
 val is_numeral = can dest_numeral;
 
@@ -593,7 +612,7 @@ val nat_exp_ss = HOL_basic_ss addsimps (nat_number @ nat_arith @ arith_simps @ r
                               addsimps [Let_def, if_False, if_True, @{thm add_0}, @{thm add_Suc}];
 
 fun simple_cterm_ord t u = Term.term_ord (term_of t, term_of u) = LESS;
-fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, idom}, 
+fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, idom, ideal}, 
                                      {conv, dest_const, mk_const, is_const}) ord =
   let
     val pow_conv =
