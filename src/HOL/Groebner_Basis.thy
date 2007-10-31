@@ -301,6 +301,12 @@ proof(clarify)
   thus "False" using add_mul_solve nz cnd by simp
 qed
 
+lemma add_r0_iff: " x = add x a \<longleftrightarrow> a = r0"
+proof-
+  have "a = r0 \<longleftrightarrow> add x a = add x r0" by (simp add: add_cancel)
+  thus "x = add x a \<longleftrightarrow> a = r0" by (auto simp add: add_c add_0)
+qed
+
 declare "axioms" [normalizer del]
 
 lemma "axioms" [normalizer
@@ -311,7 +317,8 @@ lemma "axioms" [normalizer
 
 end
 
-locale ringb = semiringb + gb_ring
+locale ringb = semiringb + gb_ring + 
+  assumes subr0_iff: "sub x y = r0 \<longleftrightarrow> x = y"
 begin
 
 declare "axioms" [normalizer del]
@@ -321,10 +328,12 @@ lemma "axioms" [normalizer
   semiring rules: semiring_rules
   ring ops: ring_ops
   ring rules: ring_rules
-  idom rules: noteq_reduce add_scale_eq_noteq]:
+  idom rules: noteq_reduce add_scale_eq_noteq
+  ideal rules: subr0_iff add_r0_iff]:
   "ringb add mul pwr r0 r1 sub neg" by fact
 
 end
+
 
 lemma no_zero_divirors_neq0:
   assumes az: "(a::'a::no_zero_divisors) \<noteq> 0"
@@ -348,7 +357,6 @@ proof(unfold_locales, simp add: ring_simps power_Suc, auto)
   have "w - x = 0" by blast
   thus "w = x"  by simp
 qed
-
 
 declaration {* normalizer_funs @{thm class_ringb.axioms} *}
 
@@ -386,7 +394,8 @@ lemma "axioms" [normalizer
   semiring rules: semiring_rules
   ring ops: ring_ops
   ring rules: ring_rules
-  idom rules: noteq_reduce add_scale_eq_noteq]:
+  idom rules: noteq_reduce add_scale_eq_noteq
+  ideal rules: subr0_iff add_r0_iff]:
   "fieldgb add mul pwr r0 r1 sub neg divide inverse" by unfold_locales
 end
 
@@ -424,8 +433,8 @@ fn src => Method.syntax
     ((Scan.optional (keyword addN |-- thms) []) -- 
     (Scan.optional (keyword delN |-- thms) [])) src 
  #> (fn ((add_ths, del_ths), ctxt) => 
-       Method.SIMPLE_METHOD' (Groebner.ring_tac add_ths del_ths ctxt))
+       Method.SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
 end
-*} "solve polynomial equations over (semi)rings using Groebner bases"
+*} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
 
 end
