@@ -151,7 +151,8 @@ text {*
       mult_int_def: "i \<otimes> j \<equiv> i + j"
     proof
       fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
-      then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)" unfolding mult_int_def .
+      then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
+	unfolding mult_int_def .
     qed
 
 text {*
@@ -172,27 +173,41 @@ text {*
       mult_nat_def: "m \<otimes> n \<equiv> m + n"
     proof
       fix m n q :: nat 
-      show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)" unfolding mult_nat_def by simp
+      show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
+	unfolding mult_nat_def by simp
     qed
+
+
+subsection {* Lifting and parametric types *}
 
 text {*
-  \noindent Also @{text "list"}s form a semigroup with @{const "op @"} as
-  parameter:
+  Overloaded definitions giving on class instantiation
+  may include recursion over the syntactic structure of types.
+  As a canonical example, we model product semigroups
+  using our simple algebra:
 *}
 
-    instance list :: (type) semigroup
-      mult_list_def: "xs \<otimes> ys \<equiv> xs @ ys"
+    instance * :: (semigroup, semigroup) semigroup
+      mult_prod_def: "p\<^isub>1 \<otimes> p\<^isub>2 \<equiv> (fst p\<^isub>1 \<otimes> fst p\<^isub>2, snd p\<^isub>1 \<otimes> snd p\<^isub>2)"
     proof
-      fix xs ys zs :: "\<alpha> list"
-      show "xs \<otimes> ys \<otimes> zs = xs \<otimes> (ys \<otimes> zs)"
-      proof -
-        from mult_list_def have "\<And>xs ys\<Colon>\<alpha> list. xs \<otimes> ys \<equiv> xs @ ys" .
-        thus ?thesis by simp
-      qed
-    qed
+      fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "'a\<Colon>semigroup \<times> 'b\<Colon>semigroup"
+      show "p\<^isub>1 \<otimes> p\<^isub>2 \<otimes> p\<^isub>3 = p\<^isub>1 \<otimes> (p\<^isub>2 \<otimes> p\<^isub>3)"
+	unfolding mult_prod_def by (simp add: assoc)
+    qed      
+
+text {*
+  \noindent Associativity from product semigroups is
+  established using
+  the definition of @{text \<otimes>} on products and the hypothetical
+  associativety of the type components;  these hypothesis
+  are facts due to the @{text semigroup} constraints imposed
+  on the type components by the @{text instance} proposition.
+  Indeed, this pattern often occurs with parametric types
+  and type classes.
+*}
 
 
-subsection {* Subclasses *}
+subsection {* Subclassing *}
 
 text {*
   We define a subclass @{text "monoidl"} (a semigroup with a left-hand neutral)
@@ -206,36 +221,34 @@ text {*
       assumes neutl: "\<one> \<otimes> x = x"
 
 text {*
-  \noindent Again, we make some instances, by
+  \noindent Again, we prove some instances, by
   providing suitable parameter definitions and proofs for the
-  additional specifications.
+  additional specifications:
 *}
 
     instance nat :: monoidl
       neutral_nat_def: "\<one> \<equiv> 0"
     proof
       fix n :: nat
-      show "\<one> \<otimes> n = n" unfolding neutral_nat_def mult_nat_def by simp
+      show "\<one> \<otimes> n = n"
+	unfolding neutral_nat_def mult_nat_def by simp
     qed
 
     instance int :: monoidl
       neutral_int_def: "\<one> \<equiv> 0"
     proof
       fix k :: int
-      show "\<one> \<otimes> k = k" unfolding neutral_int_def mult_int_def by simp
+      show "\<one> \<otimes> k = k"
+	unfolding neutral_int_def mult_int_def by simp
     qed
 
-    instance list :: (type) monoidl
-      neutral_list_def: "\<one> \<equiv> []"
+    instance * :: (monoidl, monoidl) monoidl
+      neutral_prod_def: "\<one> \<equiv> (\<one>, \<one>)"
     proof
-      fix xs :: "\<alpha> list"
-      show "\<one> \<otimes> xs = xs"
-      proof -
-	from mult_list_def have "\<And>xs ys\<Colon>\<alpha> list. xs \<otimes> ys \<equiv> xs @ ys" .
-	moreover from mult_list_def neutral_list_def have "\<one> \<equiv> []\<Colon>\<alpha> list" by simp
-	ultimately show ?thesis by simp
-      qed
-    qed  
+      fix p :: "'a\<Colon>monoidl \<times> 'b\<Colon>monoidl"
+      show "\<one> \<otimes> p = p"
+	unfolding neutral_prod_def mult_prod_def by (simp add: neutl)
+    qed
 
 text {*
   \noindent Fully-fledged monoids are modelled by another subclass
@@ -245,26 +258,25 @@ text {*
     class monoid = monoidl +
       assumes neutr: "x \<otimes> \<one> = x"
 
-text {*
-  \noindent Instantiations may also be given simultaneously for different
-  type constructors:
-*}
-
-    instance nat :: monoid and int :: monoid and list :: (type) monoid
+    instance nat :: monoid 
     proof
       fix n :: nat
-      show "n \<otimes> \<one> = n" unfolding neutral_nat_def mult_nat_def by simp
-    next
+      show "n \<otimes> \<one> = n"
+	unfolding neutral_nat_def mult_nat_def by simp
+    qed
+
+    instance int :: monoid
+    proof
       fix k :: int
-      show "k \<otimes> \<one> = k" unfolding neutral_int_def mult_int_def by simp
-    next
-      fix xs :: "\<alpha> list"
-      show "xs \<otimes> \<one> = xs"
-      proof -
-	from mult_list_def have "\<And>xs ys\<Colon>\<alpha> list. xs \<otimes> ys \<equiv> xs @ ys" .
-	moreover from mult_list_def neutral_list_def have "\<one> \<equiv> []\<Colon>\<alpha> list" by simp
-	ultimately show ?thesis by simp
-      qed
+      show "k \<otimes> \<one> = k"
+	unfolding neutral_int_def mult_int_def by simp
+    qed
+
+    instance * :: (monoid, monoid) monoid
+    proof 
+      fix p :: "'a\<Colon>monoid \<times> 'b\<Colon>monoid"
+      show "p \<otimes> \<one> = p"
+	unfolding neutral_prod_def mult_prod_def by (simp add: neutr)
     qed
 
 text {*
@@ -282,7 +294,7 @@ text {*
       fix i :: int
       have "-i + i = 0" by simp
       then show "i\<div> \<otimes> i = \<one>"
-      unfolding mult_int_def and neutral_int_def and inverse_int_def .
+	unfolding mult_int_def neutral_int_def inverse_int_def .
     qed
 
 section {* Type classes as locales *}
@@ -338,17 +350,17 @@ text {*
   Isabelle locales enable reasoning at a general level, while results
   are implicitly transferred to all instances.  For example, we can
   now establish the @{text "left_cancel"} lemma for groups, which
-  states that the function @{text "(x \<circ>)"} is injective:
+  states that the function @{text "(x \<otimes>)"} is injective:
 *}
 
     lemma (in group) left_cancel: "x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"
     proof
-    assume "x \<otimes> y = x \<otimes> z"
+      assume "x \<otimes> y = x \<otimes> z"
       then have "x\<div> \<otimes> (x \<otimes> y) = x\<div> \<otimes> (x \<otimes> z)" by simp
       then have "(x\<div> \<otimes> x) \<otimes> y = (x\<div> \<otimes> x) \<otimes> z" using assoc by simp
       then show "y = z" using neutl and invl by simp
     next
-    assume "y = z"
+      assume "y = z"
       then show "x \<otimes> y = x \<otimes> z" by simp
     qed
 
@@ -389,11 +401,56 @@ text {*
 *}
 
 
+subsection {* A functor analogy *}
+
+text {*
+  We introduced Isar classes by analogy to type classes
+  functional programming;  if we reconsider this in the
+  context of what has been said about type classes and locales,
+  we can drive this analogy further by stating that type
+  classes essentially correspond to functors which have
+  a canonical interpretation as type classes.
+  Anyway, there is also the possibility of other interpretations.
+  For example, also @{text "list"}s form a monoid with
+  @{const "op @"} and @{const "[]"} as operations, but it
+  seems inappropriate to apply to lists
+  the same operations as for genuinly algebraic types.
+  In such a case, we simply can do a particular interpretation
+  of monoids for lists:
+*}
+
+    interpretation list_monoid: monoid ["op @" "[]"]
+      by unfold_locales auto
+
+text {*
+  \noindent This enables us to apply facts on monoids
+  to lists, e.g. @{thm list_monoid.neutl [no_vars]}.
+
+  When using this interpretation pattern, it may also
+  be appropriate to map derived definitions accordingly:
+*}
+
+    fun
+      replicate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+    where
+      "replicate 0 _ = []"
+      | "replicate (Suc n) xs = xs @ replicate n xs"
+
+    interpretation list_monoid: monoid ["op @" "[]"] where
+      "monoid.pow_nat (op @) [] = replicate"
+    proof
+      fix n :: nat
+      show "monoid.pow_nat (op @) [] n = replicate n"
+	by (induct n) auto
+    qed
+
+
 subsection {* Additional subclass relations *}
 
 text {*
   Any @{text "group"} is also a @{text "monoid"};  this
-  can be made explicit by claiming an additional subclass relation,
+  can be made explicit by claiming an additional
+  subclass relation,
   together with a proof of the logical difference:
 *}
 
@@ -411,7 +468,41 @@ text {*
   method which only leaves the logical differences still
   open to proof to the user.  Afterwards it is propagated
   to the type system, making @{text group} an instance of
-  @{text monoid}.  For illustration, a derived definition
+  @{text monoid} by adding an additional edge
+  to the graph of subclass relations
+  (cf.\ \figref{fig:subclass}).
+
+  \begin{figure}[htbp]
+   \begin{center}
+     \small
+     \unitlength 0.6mm
+     \begin{picture}(40,60)(0,0)
+       \put(20,60){\makebox(0,0){@{text semigroup}}}
+       \put(20,40){\makebox(0,0){@{text monoidl}}}
+       \put(00,20){\makebox(0,0){@{text monoid}}}
+       \put(40,00){\makebox(0,0){@{text group}}}
+       \put(20,55){\vector(0,-1){10}}
+       \put(15,35){\vector(-1,-1){10}}
+       \put(25,35){\vector(1,-3){10}}
+     \end{picture}
+     \hspace{8em}
+     \begin{picture}(40,60)(0,0)
+       \put(20,60){\makebox(0,0){@{text semigroup}}}
+       \put(20,40){\makebox(0,0){@{text monoidl}}}
+       \put(00,20){\makebox(0,0){@{text monoid}}}
+       \put(40,00){\makebox(0,0){@{text group}}}
+       \put(20,55){\vector(0,-1){10}}
+       \put(15,35){\vector(-1,-1){10}}
+       \put(05,15){\vector(3,-1){30}}
+     \end{picture}
+     \caption{Subclass relationship of monoids and groups:
+        before and after establishing the relationship
+        @{text "group \<subseteq> monoid"};  transitive edges left out.}
+     \label{fig:subclass}
+   \end{center}
+  \end{figure}
+
+  For illustration, a derived definition
   in @{text group} which uses @{text pow_nat}:
 *}
 
@@ -422,15 +513,13 @@ text {*
         else (pow_nat (nat (- k)) x)\<div>)"
 
 text {*
-  \noindent   yields the global definition of
+  \noindent yields the global definition of
   @{term [source] "pow_int \<Colon> int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group"}
   with the corresponding theorem @{thm pow_int_def [no_vars]}.
 *}
 
 
-section {* Further issues *}
-
-subsection {* Code generation *}
+section {* Type classes and code generation *}
 
 text {*
   Turning back to the first motivation for type classes,
