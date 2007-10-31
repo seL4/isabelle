@@ -7,17 +7,40 @@ signature GROEBNER =
 sig
   val ring_and_ideal_conv :
     {idom: thm list, ring: cterm list * thm list, vars: cterm list,
-     semiring: Thm.cterm list * thm list} ->
+     semiring: cterm list * thm list, ideal : thm list} ->
     (cterm -> Rat.rat) -> (Rat.rat -> cterm) ->
     conv ->  conv ->
-    conv * (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list)
+ {ring_conv : conv, 
+ simple_ideal: (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list),
+ multi_ideal: cterm list -> cterm list -> cterm list -> (cterm * cterm) list,
+ poly_eq_ss: simpset, unwind_conv : conv}
     val ring_tac: thm list -> thm list -> Proof.context -> int -> tactic
+    val ideal_tac: thm list -> thm list -> Proof.context -> int -> tactic
+    val algebra_tac: thm list -> thm list -> Proof.context -> int -> tactic
 end
 
-structure Groebner: GROEBNER =
+structure Groebner : GROEBNER =
 struct
 
-open Conv Misc Normalizer;
+open Conv Normalizer Drule Thm;
+
+fun is_comb ct =
+  (case Thm.term_of ct of
+    _ $ _ => true
+  | _ => false);
+
+val concl = Thm.cprop_of #> Thm.dest_arg;
+
+fun is_binop ct ct' =
+  (case Thm.term_of ct' of
+    c $ _ $ _ => term_of ct aconv c
+  | _ => false);
+
+fun dest_binary ct ct' =
+  if is_binop ct ct' then Thm.dest_binop ct'
+  else raise CTERM ("dest_binary: bad binop", [ct, ct'])
+
+fun inst_thm inst = Thm.instantiate ([], inst);
 
 val rat_0 = Rat.zero;
 val rat_1 = Rat.one;
@@ -36,9 +59,7 @@ val (PFalse, PFalse') =
  in (PFalse_eq RS iffD1, PFalse_eq RS iffD2) end;
 
 
-(* ------------------------------------------------------------------------- *)
-(* Type for recording history, i.e. how a polynomial was obtained.           *)
-(* ------------------------------------------------------------------------- *)
+(* Type for recording history, i.e. how a polynomial was obtained. *)
 
 datatype history =
    Start of int
@@ -237,9 +258,8 @@ fun criterion2 basis (lcm,((p1,h1),(p2,h2))) opairs =
 fun constant_poly p =
   length p = 1 andalso forall (fn x => x = 0) (snd(hd p));
 
-(* ------------------------------------------------------------------------- *)
 (* Grobner basis algorithm.                                                  *)
-(* ------------------------------------------------------------------------- *)
+
 (* FIXME: try to get rid of mergesort? *)
 fun merge ord l1 l2 =
  case l1 of
@@ -262,28 +282,26 @@ fun mergesort ord l =
 
 
 fun grobner_basis basis pairs =
-  ((* writeln (Int.toString(length basis)^" basis elements and "^
-               Int.toString(length pairs)^" critical pairs"); *)
-  case pairs of
-    [] => basis
-  | (l,(p1,p2))::opairs =>
-        let val (sph as (sp,hist)) = monic (reduce basis (spoly l p1 p2))
-        in if null sp orelse criterion2 basis (l,(p1,p2)) opairs
-           then grobner_basis basis opairs
-           else if constant_poly sp then grobner_basis (sph::basis) []
-           else let val rawcps = map (fn p => (mlcm (hd(fst p)) (hd sp),align(p,sph)))
-                                     basis
-                    val newcps = filter
-                                     (fn (l,(p,q)) => not(orthogonal l (fst p) (fst q)))
-                                     rawcps
-                in grobner_basis (sph::basis)
-                                 (merge forder opairs (mergesort forder newcps))
-                end
-        end);
+ case pairs of
+   [] => basis
+ | (l,(p1,p2))::opairs =>
+   let val (sph as (sp,hist)) = monic (reduce basis (spoly l p1 p2))
+   in 
+    if null sp orelse criterion2 basis (l,(p1,p2)) opairs
+    then grobner_basis basis opairs
+    else if constant_poly sp then grobner_basis (sph::basis) []
+    else 
+     let 
+      val rawcps = map (fn p => (mlcm (hd(fst p)) (hd sp),align(p,sph)))
+                              basis
+      val newcps = filter (fn (l,(p,q)) => not(orthogonal l (fst p) (fst q)))
+                        rawcps
+     in grobner_basis (sph::basis)
+                 (merge forder opairs (mergesort forder newcps))
+     end
+   end;
 
-(* ------------------------------------------------------------------------- *)
 (* Interreduce initial polynomials.                                          *)
-(* ------------------------------------------------------------------------- *)
 
 fun grobner_interreduce rpols ipols =
   case ipols of
@@ -292,9 +310,7 @@ fun grobner_interreduce rpols ipols =
              if null (fst p') then grobner_interreduce rpols ps
              else grobner_interreduce (p'::rpols) ps end;
 
-(* ------------------------------------------------------------------------- *)
 (* Overall function.                                                         *)
-(* ------------------------------------------------------------------------- *)
 
 fun grobner pols =
     let val npols = map2 (fn p => fn n => (p,Start n)) pols (0 upto (length pols - 1))
@@ -307,9 +323,8 @@ fun grobner pols =
             filter (fn (l,(p,q)) => not(orthogonal l (fst p) (fst q))) prs2 in
         grobner_basis bas (mergesort forder prs3) end;
 
-(* ------------------------------------------------------------------------- *)
 (* Get proof of contradiction from Grobner basis.                            *)
-(* ------------------------------------------------------------------------- *)
+
 fun find p l =
   case l of
       [] => error "find"
@@ -320,12 +335,10 @@ fun grobner_refute pols =
   snd(find (fn (p,h) => length p = 1 andalso forall (fn x=> x=0) (snd(hd p))) gb)
   end;
 
-(* ------------------------------------------------------------------------- *)
 (* Turn proof into a certificate as sum of multipliers.                      *)
-(*                                                                           *)
 (* In principle this is very inefficient: in a heavily shared proof it may   *)
 (* make the same calculation many times. Could put in a cache or something.  *)
-(* ------------------------------------------------------------------------- *)
+
 fun resolve_proof vars prf =
   case prf of
     Start(~1) => []
@@ -342,27 +355,22 @@ fun resolve_proof vars prf =
                              val b = these (AList.lookup (op =) lis2 n)
                          in (n,grob_add a b) end) dom end;
 
-(* ------------------------------------------------------------------------- *)
 (* Run the procedure and produce Weak Nullstellensatz certificate.           *)
-(* ------------------------------------------------------------------------- *)
+
 fun grobner_weak vars pols =
     let val cert = resolve_proof vars (grobner_refute pols)
         val l =
             fold_rev (fold_rev (lcm_rat o denominator_rat o fst) o snd) cert (rat_1) in
         (l,map (fn (i,p) => (i,map (fn (d,m) => (l*/d,m)) p)) cert) end;
 
-(* ------------------------------------------------------------------------- *)
 (* Prove a polynomial is in ideal generated by others, using Grobner basis.  *)
-(* ------------------------------------------------------------------------- *)
 
 fun grobner_ideal vars pols pol =
   let val (pol',h) = reduce (grobner pols) (grob_neg pol,Start(~1)) in
   if not (null pol') then error "grobner_ideal: not in the ideal" else
   resolve_proof vars h end;
 
-(* ------------------------------------------------------------------------- *)
 (* Produce Strong Nullstellensatz certificate for a power of pol.            *)
-(* ------------------------------------------------------------------------- *)
 
 fun grobner_strong vars pols pol =
     let val vars' = @{cterm "True"}::vars
@@ -382,21 +390,19 @@ fun grobner_strong vars pols pol =
         (d,l,cert') end;
 
 
-(* ------------------------------------------------------------------------- *)
 (* Overall parametrized universal procedure for (semi)rings.                 *)
 (* We return an ideal_conv and the actual ring prover.                       *)
-(* ------------------------------------------------------------------------- *)
+
 fun refute_disj rfn tm =
  case term_of tm of
   Const("op |",_)$l$r =>
-   Drule.compose_single(refute_disj rfn (Thm.dest_arg tm),2,Drule.compose_single(refute_disj rfn (Thm.dest_arg1 tm),2,disjE))
+   compose_single(refute_disj rfn (dest_arg tm),2,compose_single(refute_disj rfn (dest_arg1 tm),2,disjE))
   | _ => rfn tm ;
 
 val notnotD = @{thm "notnotD"};
-fun mk_binop ct x y =
-  Thm.capply (Thm.capply ct x) y
+fun mk_binop ct x y = capply (capply ct x) y
 
-val mk_comb = Thm.capply;
+val mk_comb = capply;
 fun is_neg t =
     case term_of t of
       (Const("Not",_)$p) => true
@@ -416,7 +422,7 @@ val list_mk_binop = fn b => end_itlist (mk_binop b);
 
 val list_dest_binop = fn b =>
  let fun h acc t =
-  ((let val (l,r) = dest_binop b t in h (h acc r) l end)
+  ((let val (l,r) = dest_binary b t in h (h acc r) l end)
    handle CTERM _ => (t::acc)) (* Why had I handle _ => ? *)
  in h []
  end;
@@ -424,7 +430,7 @@ val list_dest_binop = fn b =>
 val strip_exists =
  let fun h (acc, t) =
       case (term_of t) of
-       Const("Ex",_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+       Const("Ex",_)$Abs(x,T,p) => h (dest_abs NONE (dest_arg t) |>> (fn v => v::acc))
      | _ => (acc,t)
  in fn t => h ([],t)
  end;
@@ -454,62 +460,180 @@ val list_mk_conj = list_mk_binop cConj;
 val conjs = list_dest_binop cConj;
 val mk_neg = mk_comb cNot;
 
+fun striplist dest = 
+ let
+  fun h acc x = case try dest x of
+    SOME (a,b) => h (h acc b) a
+  | NONE => x::acc
+ in h [] end;
+fun list_mk_binop b = foldr1 (fn (s,t) => Thm.capply (Thm.capply b s) t);
+
+val eq_commute = mk_meta_eq @{thm eq_commute};
+
+fun sym_conv eq = 
+ let val (l,r) = Thm.dest_binop eq
+ in instantiate' [SOME (ctyp_of_term l)] [SOME l, SOME r] eq_commute
+ end;
+
+  (* FIXME : copied from cqe.ML -- complex QE*)
+fun conjuncts ct =
+ case term_of ct of
+  @{term "op &"}$_$_ => (Thm.dest_arg1 ct)::(conjuncts (Thm.dest_arg ct))
+| _ => [ct];
+
+fun fold1 f = foldr1 (uncurry f);
+
+val list_conj = fold1 (fn c => fn c' => Thm.capply (Thm.capply @{cterm "op &"} c) c') ;
+
+fun mk_conj_tab th = 
+ let fun h acc th = 
+   case prop_of th of
+   @{term "Trueprop"}$(@{term "op &"}$p$q) => 
+     h (h acc (th RS conjunct2)) (th RS conjunct1)
+  | @{term "Trueprop"}$p => (p,th)::acc
+in fold (Termtab.insert Thm.eq_thm) (h [] th) Termtab.empty end;
+
+fun is_conj (@{term "op &"}$_$_) = true
+  | is_conj _ = false;
+
+fun prove_conj tab cjs = 
+ case cjs of 
+   [c] => if is_conj (term_of c) then prove_conj tab (conjuncts c) else tab c
+ | c::cs => conjI OF [prove_conj tab [c], prove_conj tab cs];
+
+fun conj_ac_rule eq = 
+ let 
+  val (l,r) = Thm.dest_equals eq
+  val ctabl = mk_conj_tab (assume (Thm.capply @{cterm Trueprop} l))
+  val ctabr = mk_conj_tab (assume (Thm.capply @{cterm Trueprop} r))
+  fun tabl c = valOf (Termtab.lookup ctabl (term_of c))
+  fun tabr c = valOf (Termtab.lookup ctabr (term_of c))
+  val thl  = prove_conj tabl (conjuncts r) |> implies_intr_hyps
+  val thr  = prove_conj tabr (conjuncts l) |> implies_intr_hyps
+  val eqI = instantiate' [] [SOME l, SOME r] @{thm iffI}
+ in implies_elim (implies_elim eqI thl) thr |> mk_meta_eq end;
+
+ (* END FIXME.*)
+
+   (* Conversion for the equivalence of existential statements where 
+      EX quantifiers are rearranged differently *)
+ fun ext T = cterm_rule (instantiate' [SOME T] []) @{cpat Ex}
+ fun mk_ex v t = Thm.capply (ext (ctyp_of_term v)) (Thm.cabs v t)
+
+fun choose v th th' = case concl_of th of 
+  @{term Trueprop} $ (Const("Ex",_)$_) => 
+   let
+    val p = (funpow 2 Thm.dest_arg o cprop_of) th
+    val T = (hd o Thm.dest_ctyp o ctyp_of_term) p
+    val th0 = fconv_rule (Thm.beta_conversion true)
+        (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o cprop_of) th'] exE)
+    val pv = (Thm.rhs_of o Thm.beta_conversion true) 
+          (Thm.capply @{cterm Trueprop} (Thm.capply p v))
+    val th1 = forall_intr v (implies_intr pv th')
+   in implies_elim (implies_elim th0 th) th1  end
+| _ => error ""
+
+fun simple_choose v th = 
+   choose v (assume ((Thm.capply @{cterm Trueprop} o mk_ex v) ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
+
+
+ fun mkexi v th = 
+  let 
+   val p = Thm.cabs v (Thm.dest_arg (Thm.cprop_of th))
+  in implies_elim 
+    (fconv_rule (Thm.beta_conversion true) (instantiate' [SOME (ctyp_of_term v)] [SOME p, SOME v] @{thm exI}))
+      th
+  end
+ fun ex_eq_conv t = 
+  let 
+  val (p0,q0) = Thm.dest_binop t
+  val (vs',P) = strip_exists p0 
+  val (vs,_) = strip_exists q0 
+   val th = assume (Thm.capply @{cterm Trueprop} P)
+   val th1 =  implies_intr_hyps (fold simple_choose vs' (fold mkexi vs th))
+   val th2 =  implies_intr_hyps (fold simple_choose vs (fold mkexi vs' th))
+   val p = (Thm.dest_arg o Thm.dest_arg1 o cprop_of) th1
+   val q = (Thm.dest_arg o Thm.dest_arg o cprop_of) th1
+  in implies_elim (implies_elim (instantiate' [] [SOME p, SOME q] iffI) th1) th2
+     |> mk_meta_eq
+  end;
+
+
+ fun getname v = case term_of v of 
+  Free(s,_) => s
+ | Var ((s,_),_) => s
+ | _ => "x"
+ fun mk_eq s t = Thm.capply (Thm.capply @{cterm "op == :: bool => _"} s) t
+ fun mkeq s t = Thm.capply @{cterm Trueprop} (Thm.capply (Thm.capply @{cterm "op = :: bool => _"} s) t)
+ fun mk_exists v th = arg_cong_rule (ext (ctyp_of_term v))
+   (Thm.abstract_rule (getname v) v th)
+ val simp_ex_conv = 
+     Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms(39)})
+
+fun frees t = Thm.add_cterm_frees t [];
+fun free_in v t = member op aconvc (frees t) v;
+
+val vsubst = let
+ fun vsubst (t,v) tm =  
+   (Thm.rhs_of o Thm.beta_conversion false) (Thm.capply (Thm.cabs v tm) t)
+in fold vsubst end;
 
 
 (** main **)
 
 fun ring_and_ideal_conv
-  {vars, semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom}
+  {vars, semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom, ideal}
   dest_const mk_const ring_eq_conv ring_normalize_conv =
 let
   val [add_pat, mul_pat, pow_pat, zero_tm, one_tm] = sr_ops;
   val [ring_add_tm, ring_mul_tm, ring_pow_tm] =
-    map (Thm.dest_fun o Thm.dest_fun) [add_pat, mul_pat, pow_pat];
+    map dest_fun2 [add_pat, mul_pat, pow_pat];
 
   val (ring_sub_tm, ring_neg_tm) =
     (case r_ops of
       [] => (@{cterm "True"}, @{cterm "True"})
-    | [sub_pat, neg_pat] => (Thm.dest_fun (Thm.dest_fun sub_pat), Thm.dest_fun neg_pat));
+    | [sub_pat, neg_pat] => (dest_fun2 sub_pat, dest_fun neg_pat));
 
   val [idom_thm, neq_thm] = idom;
-
+  val [idl_sub, idl_add0] = 
+     if length ideal = 2 then ideal else [eq_commute, eq_commute]
   val ring_dest_neg =
-    fn t => let val (l,r) = Thm.dest_comb t in
+    fn t => let val (l,r) = dest_comb t in
         if could_unify(term_of l,term_of ring_neg_tm) then r else raise CTERM ("ring_dest_neg", [t])
       end
 
  val ring_mk_neg = fn tm => mk_comb (ring_neg_tm) (tm);
 (*
  fun ring_dest_inv t =
-    let val (l,r) = Thm.dest_comb t in
+    let val (l,r) = dest_comb t in
         if could_unify(term_of l, term_of ring_inv_tm) then r else raise CTERM "ring_dest_inv"
     end
 *)
- val ring_dest_add = dest_binop ring_add_tm;
+ val ring_dest_add = dest_binary ring_add_tm;
  val ring_mk_add = mk_binop ring_add_tm;
- val ring_dest_sub = dest_binop ring_sub_tm;
+ val ring_dest_sub = dest_binary ring_sub_tm;
  val ring_mk_sub = mk_binop ring_sub_tm;
- val ring_dest_mul = dest_binop ring_mul_tm;
+ val ring_dest_mul = dest_binary ring_mul_tm;
  val ring_mk_mul = mk_binop ring_mul_tm;
-(* val ring_dest_div = dest_binop ring_div_tm;
+(* val ring_dest_div = dest_binary ring_div_tm;
  val ring_mk_div = mk_binop ring_div_tm;*)
- val ring_dest_pow = dest_binop ring_pow_tm;
+ val ring_dest_pow = dest_binary ring_pow_tm;
  val ring_mk_pow = mk_binop ring_pow_tm ;
  fun grobvars tm acc =
     if can dest_const tm then acc
-    else if can ring_dest_neg tm then grobvars (Thm.dest_arg tm) acc
-    else if can ring_dest_pow tm then grobvars (Thm.dest_arg1 tm) acc
+    else if can ring_dest_neg tm then grobvars (dest_arg tm) acc
+    else if can ring_dest_pow tm then grobvars (dest_arg1 tm) acc
     else if can ring_dest_add tm orelse can ring_dest_sub tm
             orelse can ring_dest_mul tm
-    then grobvars (Thm.dest_arg1 tm) (grobvars (Thm.dest_arg tm) acc)
+    then grobvars (dest_arg1 tm) (grobvars (dest_arg tm) acc)
 (*    else if can ring_dest_inv tm
        then
-             let val gvs = grobvars (Thm.dest_arg tm) [] in
+             let val gvs = grobvars (dest_arg tm) [] in
              if gvs = [] then acc else tm::acc
              end
     else if can ring_dest_div tm then
-              let val lvs = grobvars (Thm.dest_arg1 tm) acc
-                val gvs = grobvars (Thm.dest_arg tm) []
+              let val lvs = grobvars (dest_arg1 tm) acc
+                val gvs = grobvars (dest_arg tm) []
               in if gvs = [] then lvs else tm::acc
              end *)
     else tm::acc ;
@@ -548,13 +672,13 @@ handle  CTERM _ =>
           in grob_pow vars (grobify_term vars l) ((term_of #> HOLogic.dest_number #> snd) r)
           end)
            handle CTERM _ => error "grobify_term: unknown or invalid term")))))))));
-val eq_tm = idom_thm |> concl |> Thm.dest_arg |> Thm.dest_arg |> Thm.dest_fun |> Thm.dest_fun ;
-(*ring_integral |> hd |> concl |> Thm.dest_arg
-                          |> Thm.dest_abs NONE |> snd |> Thm.dest_fun |> Thm.dest_fun; *)
-val dest_eq = dest_binop eq_tm;
+val eq_tm = idom_thm |> concl |> dest_arg |> dest_arg |> dest_fun2;
+(*ring_integral |> hd |> concl |> dest_arg
+                          |> dest_abs NONE |> snd |> dest_fun |> dest_fun; *)
+val dest_eq = dest_binary eq_tm;
 
 fun grobify_equation vars tm =
-    let val (l,r) = dest_binop eq_tm tm
+    let val (l,r) = dest_binary eq_tm tm
     in grob_sub (grobify_term vars l) (grobify_term vars r)
     end;
 
@@ -562,7 +686,7 @@ fun grobify_equations tm =
  let
   val cjs = conjs tm
   val  rawvars = fold_rev (fn eq => fn a =>
-                                       grobvars (Thm.dest_arg1 eq) (grobvars (Thm.dest_arg eq) a)) cjs []
+                                       grobvars (dest_arg1 eq) (grobvars (dest_arg eq) a)) cjs []
   val vars = sort (fn (x, y) => Term.term_ord(term_of x,term_of y))
                   (distinct (op aconvc) rawvars)
  in (vars,map (grobify_equation vars) cjs)
@@ -585,13 +709,13 @@ fun prove_nz n = eqF_elim
                  (ring_eq_conv(mk_binop eq_tm (mk_const n) (mk_const(rat_0))));
 val neq_01 = prove_nz (rat_1);
 fun neq_rule n th = [prove_nz n, th] MRS neq_thm;
-fun mk_add th1 = combination(Drule.arg_cong_rule ring_add_tm th1);
+fun mk_add th1 = combination(arg_cong_rule ring_add_tm th1);
 
 fun refute tm =
  if tm aconvc false_tm then assume_Trueprop tm else
   let
    val (nths0,eths0) = List.partition (is_neg o concl) (HOLogic.conj_elims (assume_Trueprop tm))
-   val  nths = filter (is_eq o Thm.dest_arg o concl) nths0
+   val  nths = filter (is_eq o dest_arg o concl) nths0
    val eths = filter (is_eq o concl) eths0
   in
    if null eths then
@@ -600,10 +724,10 @@ fun refute tm =
       val th2 = Conv.fconv_rule
                 ((arg_conv #> arg_conv)
                      (binop_conv ring_normalize_conv)) th1
-      val conc = th2 |> concl |> Thm.dest_arg
+      val conc = th2 |> concl |> dest_arg
       val (l,r) = conc |> dest_eq
     in implies_intr (mk_comb cTrp tm)
-                    (equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th2))
+                    (equal_elim (arg_cong_rule cTrp (eqF_intr th2))
                            (reflexive l |> mk_object_eq))
     end
    else
@@ -618,13 +742,12 @@ fun refute tm =
       let
        val nth = end_itlist (fn th1 => fn th2 => idom_rule(HOLogic.conj_intr th1 th2)) nths
        val (vars,pol::pols) =
-          grobify_equations(list_mk_conj(Thm.dest_arg(concl nth)::map concl eths))
+          grobify_equations(list_mk_conj(dest_arg(concl nth)::map concl eths))
        val (deg,l,cert) = grobner_strong vars pols pol
        val th1 = Conv.fconv_rule((arg_conv o arg_conv)(binop_conv ring_normalize_conv)) nth
        val th2 = funpow deg (idom_rule o HOLogic.conj_intr th1) neq_01
       in (vars,l,cert,th2)
       end)
-(*    val _ = writeln ("Translating certificate to HOL inferences") *)
     val cert_pos = map (fn (i,p) => (i,filter (fn (c,m) => c >/ rat_0) p)) cert
     val cert_neg = map (fn (i,p) => (i,map (fn (c,m) => (minus_rat c,m))
                                             (filter (fn (c,m) => c </ rat_0) p))) cert
@@ -633,16 +756,16 @@ fun refute tm =
     fun thm_fn pols =
         if null pols then reflexive(mk_const rat_0) else
         end_itlist mk_add
-            (map (fn (i,p) => Drule.arg_cong_rule (mk_comb ring_mul_tm p)
+            (map (fn (i,p) => arg_cong_rule (mk_comb ring_mul_tm p)
               (nth eths i |> mk_meta_eq)) pols)
     val th1 = thm_fn herts_pos
     val th2 = thm_fn herts_neg
     val th3 = HOLogic.conj_intr(mk_add (symmetric th1) th2 |> mk_object_eq) noteqth
     val th4 = Conv.fconv_rule ((arg_conv o arg_conv o binop_conv) ring_normalize_conv)
                                (neq_rule l th3)
-    val (l,r) = dest_eq(Thm.dest_arg(concl th4))
+    val (l,r) = dest_eq(dest_arg(concl th4))
    in implies_intr (mk_comb cTrp tm)
-                        (equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th4))
+                        (equal_elim (arg_cong_rule cTrp (eqF_intr th4))
                    (reflexive l |> mk_object_eq))
    end
   end
@@ -650,12 +773,12 @@ fun refute tm =
 fun ring tm =
  let
   fun mk_forall x p =
-      mk_comb (Drule.cterm_rule (instantiate' [SOME (ctyp_of_term x)] []) @{cpat "All:: (?'a => bool) => _"}) (Thm.cabs x p)
-  val avs = Thm.add_cterm_frees tm []
+      mk_comb (cterm_rule (instantiate' [SOME (ctyp_of_term x)] []) @{cpat "All:: (?'a => bool) => _"}) (cabs x p)
+  val avs = add_cterm_frees tm []
   val P' = fold mk_forall avs tm
   val th1 = initial_conv(mk_neg P')
   val (evs,bod) = strip_exists(concl th1) in
-   if is_forall bod then error "ring: non-universal formula"
+   if is_forall bod then raise CTERM("ring: non-universal formula",[tm])
    else
    let
     val th1a = weak_dnf_conv bod
@@ -680,7 +803,117 @@ fun ideal tms tm ord =
  in map (fn n => these (AList.lookup (op =) cert n) |> holify_polynomial vars)
         (0 upto (length pols - 1))
  end
-in (ring,ideal)
+
+fun poly_eq_conv t = 
+ let val (a,b) = Thm.dest_binop t
+ in fconv_rule (arg_conv (arg1_conv ring_normalize_conv)) 
+     (instantiate' [] [SOME a, SOME b] idl_sub)
+ end
+ val poly_eq_simproc = 
+  let 
+   fun proc phi  ss t = 
+    let val th = poly_eq_conv t
+    in if Thm.is_reflexive th then NONE else SOME th
+    end
+   in make_simproc {lhss = [Thm.lhs_of idl_sub], 
+                name = "poly_eq_simproc", proc = proc, identifier = []}
+   end;
+  val poly_eq_ss = HOL_basic_ss addsimps simp_thms 
+                        addsimprocs [poly_eq_simproc]
+
+ local
+  fun is_defined v t =
+  let 
+   val mons = striplist(dest_binary ring_add_tm) t 
+  in member (op aconvc) mons v andalso 
+    forall (fn m => v aconvc m 
+          orelse not(member (op aconvc) (Thm.add_cterm_frees m []) v)) mons
+  end
+
+  fun isolate_variable vars tm =
+  let 
+   val th = poly_eq_conv tm
+   val th' = (sym_conv then_conv poly_eq_conv) tm
+   val (v,th1) = 
+   case find_first(fn v=> is_defined v (Thm.dest_arg1 (Thm.rhs_of th))) vars of
+    SOME v => (v,th')
+   | NONE => (valOf (find_first 
+          (fn v => is_defined v (Thm.dest_arg1 (Thm.rhs_of th'))) vars) ,th)
+   val th2 = transitive th1 
+        (instantiate' []  [(SOME o Thm.dest_arg1 o Thm.rhs_of) th1, SOME v] 
+          idl_add0)
+   in fconv_rule(funpow 2 arg_conv ring_normalize_conv) th2
+   end
+ in
+ fun unwind_polys_conv tm =
+ let 
+  val (vars,bod) = strip_exists tm
+  val cjs = striplist (dest_binary @{cterm "op &"}) bod
+  val th1 = (valOf (get_first (try (isolate_variable vars)) cjs) 
+             handle Option => raise CTERM ("unwind_polys_conv",[tm]))
+  val eq = Thm.lhs_of th1
+  val bod' = list_mk_binop @{cterm "op &"} (eq::(remove op aconvc eq cjs))
+  val th2 = conj_ac_rule (mk_eq bod bod')
+  val th3 = transitive th2 
+         (Drule.binop_cong_rule @{cterm "op &"} th1 
+                (reflexive (Thm.dest_arg (Thm.rhs_of th2))))
+  val v = Thm.dest_arg1(Thm.dest_arg1(Thm.rhs_of th3))
+  val vars' = (remove op aconvc v vars) @ [v]
+  val th4 = fconv_rule (arg_conv simp_ex_conv) (mk_exists v th3)
+  val th5 = ex_eq_conv (mk_eq tm (fold mk_ex (remove op aconvc v vars) (Thm.lhs_of th4)))
+ in transitive th5 (fold mk_exists (remove op aconvc v vars) th4)
+ end;
+end
+
+local
+ fun scrub_var v m =
+  let 
+   val ps = striplist ring_dest_mul m 
+   val ps' = remove op aconvc v ps
+  in if null ps' then one_tm else fold1 ring_mk_mul ps'
+  end
+ fun find_multipliers v mons =
+  let 
+   val mons1 = filter (fn m => free_in v m) mons 
+   val mons2 = map (scrub_var v) mons1 
+   in  if null mons2 then zero_tm else fold1 ring_mk_add mons2
+  end
+
+ fun isolate_monomials vars tm =
+ let 
+  val (cmons,vmons) =
+    List.partition (fn m => null (gen_inter op aconvc (frees m, vars)))
+                   (striplist ring_dest_add tm)
+  val cofactors = map (fn v => find_multipliers v vmons) vars
+  val cnc = if null cmons then zero_tm
+             else Thm.capply ring_neg_tm
+                    (list_mk_binop ring_add_tm cmons) 
+  in (cofactors,cnc)
+  end;
+
+fun isolate_variables evs ps eq =
+ let 
+  val vars = filter (fn v => free_in v eq) evs
+  val (qs,p) = isolate_monomials vars eq
+  val rs = ideal (qs @ ps) p 
+              (fn (s,t) => Term.term_ord (term_of s, term_of t))
+ in (eq,Library.take (length qs, rs) ~~ vars)
+ end;
+ fun subst_in_poly i p = Thm.rhs_of (ring_normalize_conv (vsubst i p));
+in
+ fun solve_idealism evs ps eqs =
+  if null evs then [] else
+  let 
+   val (eq,cfs) = get_first (try (isolate_variables evs ps)) eqs |> valOf
+   val evs' = subtract op aconvc evs (map snd cfs)
+   val eqs' = map (subst_in_poly cfs) (remove op aconvc eq eqs)
+  in cfs @ solve_idealism evs' ps eqs'
+  end;
+end;
+
+
+in {ring_conv = ring, simple_ideal = ideal, multi_ideal = solve_idealism, 
+    poly_eq_ss = poly_eq_ss, unwind_conv = unwind_polys_conv}
 end;
 
 
@@ -688,20 +921,36 @@ fun find_term bounds tm =
   (case term_of tm of
     Const ("op =", T) $ _ $ _ =>
       if domain_type T = HOLogic.boolT then find_args bounds tm
-      else Thm.dest_arg tm
-  | Const ("Not", _) $ _ => find_term bounds (Thm.dest_arg tm)
-  | Const ("All", _) $ _ => find_body bounds (Thm.dest_arg tm)
-  | Const ("Ex", _) $ _ => find_body bounds (Thm.dest_arg tm)
+      else dest_arg tm
+  | Const ("Not", _) $ _ => find_term bounds (dest_arg tm)
+  | Const ("All", _) $ _ => find_body bounds (dest_arg tm)
+  | Const ("Ex", _) $ _ => find_body bounds (dest_arg tm)
   | Const ("op &", _) $ _ $ _ => find_args bounds tm
   | Const ("op |", _) $ _ $ _ => find_args bounds tm
   | Const ("op -->", _) $ _ $ _ => find_args bounds tm
+  | @{term "op ==>"} $_$_ => find_args bounds tm
+  | Const("op ==",_)$_$_ => find_args bounds tm
+  | @{term Trueprop}$_ => find_term bounds (dest_arg tm)
   | _ => raise TERM ("find_term", []))
 and find_args bounds tm =
   let val (t, u) = Thm.dest_binop tm
   in (find_term bounds t handle TERM _ => find_term bounds u) end
 and find_body bounds b =
-  let val (_, b') = Thm.dest_abs (SOME (Name.bound bounds)) b
+  let val (_, b') = dest_abs (SOME (Name.bound bounds)) b
   in find_term (bounds + 1) b' end;
+
+
+fun get_ring_ideal_convs ctxt form = 
+ case try (find_term 0) form of
+  NONE => NONE
+| SOME tm =>
+  (case NormalizerData.match ctxt tm of
+    NONE => NONE
+  | SOME (res as (theory, {is_const, dest_const, 
+          mk_const, conv = ring_eq_conv})) =>
+     SOME (ring_and_ideal_conv theory
+          dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
+          (semiring_normalize_wrapper ctxt res)))
 
 fun ring_solve ctxt form =
   (case try (find_term 0 (* FIXME !? *)) form of
@@ -710,17 +959,60 @@ fun ring_solve ctxt form =
       (case NormalizerData.match ctxt tm of
         NONE => reflexive form
       | SOME (res as (theory, {is_const, dest_const, mk_const, conv = ring_eq_conv})) =>
-        fst (ring_and_ideal_conv theory
-          dest_const (mk_const (Thm.ctyp_of_term tm)) (ring_eq_conv ctxt)
+        #ring_conv (ring_and_ideal_conv theory
+          dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
           (semiring_normalize_wrapper ctxt res)) form));
 
 fun ring_tac add_ths del_ths ctxt =
   ObjectLogic.full_atomize_tac
   THEN' simp_tac (fst (NormalizerData.get ctxt) delsimps del_ths addsimps add_ths)
   THEN' CSUBGOAL (fn (p, i) =>
-    rtac (ring_solve ctxt (ObjectLogic.dest_judgment p)) i
+    rtac (let val form = (ObjectLogic.dest_judgment p)
+          in case get_ring_ideal_convs ctxt form of
+           NONE => reflexive form
+          | SOME thy => #ring_conv thy form
+          end) i
       handle TERM _ => no_tac
         | CTERM _ => no_tac
         | THM _ => no_tac);
+
+local
+ fun lhs t = case term_of t of
+  Const("op =",_)$_$_ => Thm.dest_arg1 t
+ | _=> raise CTERM ("ideal_tac - lhs",[t])
+ fun exitac NONE = no_tac
+   | exitac (SOME y) = rtac (instantiate' [SOME (ctyp_of_term y)] [NONE,SOME y] exI) 1
+in 
+fun ideal_tac add_ths del_ths ctxt = 
+ CSUBGOAL (fn (p, i) =>
+  case get_ring_ideal_convs ctxt p of
+   NONE => no_tac
+ | SOME thy => 
+  let
+   fun poly_exists_tac {asms = asms, concl = concl, prems = prems,
+            params = params, context = ctxt, schematics = scs} = 
+    let
+     val (evs,bod) = strip_exists (Thm.dest_arg concl)
+     val ps = map_filter (try (lhs o Thm.dest_arg)) asms 
+     val cfs = (map swap o #multi_ideal thy evs ps) 
+                   (map Thm.dest_arg1 (conjuncts bod))
+     val ws = map (exitac o AList.lookup op aconvc cfs) evs
+    in EVERY (rev ws) THEN Method.insert_tac prems 1 
+        THEN ring_tac add_ths del_ths ctxt 1
+   end
+  in full_simp_tac (#poly_eq_ss thy) i 
+     THEN clarify_tac HOL_cs i 
+     THEN (REPEAT (CONVERSION (#unwind_conv thy) i))
+     THEN SUBPROOF poly_exists_tac ctxt i
+  end
+ handle TERM _ => no_tac
+     | CTERM _ => no_tac
+     | THM _ => no_tac); 
+end;
+
+fun algebra_tac add_ths del_ths ctxt i = 
+ ring_tac add_ths del_ths ctxt i ORELSE ideal_tac add_ths del_ths ctxt i
+ 
+ 
 
 end;
