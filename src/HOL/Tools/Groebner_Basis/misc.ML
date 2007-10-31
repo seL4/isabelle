@@ -17,7 +17,7 @@ val concl = Thm.cprop_of #> Thm.dest_arg;
 
 fun is_binop ct ct' =
   (case Thm.term_of ct' of
-    c $ _ $ _ => Thm.term_of ct aconv c
+    c $ _ $ _ => term_of ct aconv c
   | _ => false);
 
 fun dest_binop ct ct' =
