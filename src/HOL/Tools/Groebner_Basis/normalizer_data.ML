@@ -11,7 +11,7 @@ sig
   val get: Proof.context -> simpset * (thm * entry) list
   val match: Proof.context -> cterm -> entry option
   val del: attribute
-  val add: {semiring: cterm list * thm list, ring: cterm list * thm list, idom: thm list}
+  val add: {semiring: cterm list * thm list, ring: cterm list * thm list, idom: thm list, ideal: thm list}
     -> attribute
   val funs: thm -> {is_const: morphism -> cterm -> bool,
     dest_const: morphism -> cterm -> Rat.rat,
@@ -29,7 +29,8 @@ type entry =
  {vars: cterm list,
   semiring: cterm list * thm list,
   ring: cterm list * thm list,
-  idom: thm list} *
+  idom: thm list,
+  ideal: thm list} *
  {is_const: cterm -> bool,
   dest_const: cterm -> Rat.rat,
   mk_const: ctyp -> Rat.rat -> cterm,
@@ -55,7 +56,8 @@ val get = Data.get o Context.Proof;
 fun match ctxt tm =
   let
     fun match_inst
-        ({vars, semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom},
+        ({vars, semiring = (sr_ops, sr_rules), 
+          ring = (r_ops, r_rules), idom, ideal},
          fns as {is_const, dest_const, mk_const, conv}) pat =
        let
         fun h instT =
@@ -67,8 +69,10 @@ fun match ctxt tm =
             val semiring' = (map substT_cterm sr_ops, map substT sr_rules);
             val ring' = (map substT_cterm r_ops, map substT r_rules);
             val idom' = map substT idom;
+            val ideal' = map substT ideal;
 
-            val result = ({vars = vars', semiring = semiring', ring = ring', idom = idom'}, fns);
+            val result = ({vars = vars', semiring = semiring', 
+                           ring = ring', idom = idom', ideal = ideal'}, fns);
           in SOME result end
       in (case try Thm.match (pat, tm) of
            NONE => NONE
@@ -86,6 +90,7 @@ fun match ctxt tm =
 val semiringN = "semiring";
 val ringN = "ring";
 val idomN = "idom";
+val idealN = "ideal";
 
 fun undefined _ = raise Match;
 
@@ -98,7 +103,7 @@ val add_ss = Thm.declaration_attribute
 val del_ss = Thm.declaration_attribute 
    (fn th => Data.map (fn (ss,data) => (ss delsimps [th], data)));
 
-fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom} =
+fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom, ideal} =
   Thm.declaration_attribute (fn key => fn context => context |> Data.map
     let
       val ctxt = Context.proof_of context;
@@ -135,9 +140,11 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom} =
       val vars = [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry];
       val semiring = (sr_ops, sr_rules');
       val ring = (r_ops, r_rules');
+      val ideal' = map (symmetric o mk_meta) ideal
     in
       del_data key #>
-      apsnd (cons (key, ({vars = vars, semiring = semiring, ring = ring, idom = idom},
+      apsnd (cons (key, ({vars = vars, semiring = semiring, 
+                          ring = ring, idom = idom, ideal = ideal'},
              {is_const = undefined, dest_const = undefined, mk_const = undefined,
              conv = undefined})))
     end);
@@ -175,7 +182,7 @@ val delN = "del";
 val any_keyword =
   keyword2 semiringN opsN || keyword2 semiringN rulesN ||
   keyword2 ringN opsN || keyword2 ringN rulesN ||
-  keyword2 idomN rulesN;
+  keyword2 idomN rulesN || keyword2 idealN rulesN;
 
 val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
 val terms = thms >> map Drule.dest_term;
@@ -190,8 +197,10 @@ fun att_syntax src = src |> Attrib.syntax
      (keyword2 semiringN rulesN |-- thms)) --
     (optional (keyword2 ringN opsN |-- terms) --
      optional (keyword2 ringN rulesN |-- thms)) --
-    optional (keyword2 idomN rulesN |-- thms)
-    >> (fn ((sr, r), id) => add {semiring = sr, ring = r, idom = id}));
+    optional (keyword2 idomN rulesN |-- thms) --
+    optional (keyword2 idealN rulesN |-- thms)
+    >> (fn (((sr, r), id), idl) => 
+          add {semiring = sr, ring = r, idom = id, ideal = idl}));
 
 end;
 
