@@ -5,7 +5,6 @@ Learning and using Isabelle
   classes         Tutorial on Type Classes
   functions       Tutorial on Function Definitions
   codegen         Tutorial on Code Generation
-  axclass         Tutorial on Axiomatic Type Classes
   sugar           LaTeX sugar for proof documents
   ind-defs        (Co)Inductive Definitions in ZF
 
