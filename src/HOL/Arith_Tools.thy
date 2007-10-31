@@ -417,8 +417,9 @@ lemma add_frac_num: "y\<noteq> 0 \<Longrightarrow> (x::'a::{field, division_by_z
 lemma add_num_frac: "y\<noteq> 0 \<Longrightarrow> z + (x::'a::{field, division_by_zero}) / y = (x + z*y) / y"
   by (simp add: add_divide_distrib)
 
-declaration{*
-let
+
+ML{* 
+local
  val zr = @{cpat "0"}
  val zT = ctyp_of_term zr
  val geq = @{cpat "op ="}
@@ -427,9 +428,7 @@ let
  val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
  val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
 
- fun prove_nz ctxt =
-  let val ss = local_simpset_of ctxt
-  in fn T => fn t =>
+ fun prove_nz ss T t =
     let
       val z = instantiate_cterm ([(zT,T)],[]) zr
       val eq = instantiate_cterm ([(eqT,T)],[]) geq
@@ -438,21 +437,20 @@ let
                   (Thm.capply (Thm.capply eq t) z)))
     in equal_elim (symmetric th) TrueI
     end
-  end
 
- fun proc ctxt phi ss ct =
+ fun proc phi ss ct =
   let
     val ((x,y),(w,z)) =
          (Thm.dest_binop #> (fn (a,b) => (Thm.dest_binop a, Thm.dest_binop b))) ct
     val _ = map (HOLogic.dest_number o term_of) [x,y,z,w]
     val T = ctyp_of_term x
-    val [y_nz, z_nz] = map (prove_nz ctxt T) [y, z]
+    val [y_nz, z_nz] = map (prove_nz ss T) [y, z]
     val th = instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
   in SOME (implies_elim (implies_elim th y_nz) z_nz)
   end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
 
- fun proc2 ctxt phi ss ct =
+ fun proc2 phi ss ct =
   let
     val (l,r) = Thm.dest_binop ct
     val T = ctyp_of_term l
@@ -460,13 +458,13 @@ let
       (Const(@{const_name "HOL.divide"},_)$_$_, _) =>
         let val (x,y) = Thm.dest_binop l val z = r
             val _ = map (HOLogic.dest_number o term_of) [x,y,z]
-            val ynz = prove_nz ctxt T y
+            val ynz = prove_nz ss T y
         in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
         end
      | (_, Const (@{const_name "HOL.divide"},_)$_$_) =>
         let val (x,y) = Thm.dest_binop r val z = l
             val _ = map (HOLogic.dest_number o term_of) [x,y,z]
-            val ynz = prove_nz ctxt T y
+            val ynz = prove_nz ss T y
         in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
         end
      | _ => NONE)
@@ -525,15 +523,15 @@ let
   | _ => NONE)
   handle TERM _ => NONE | CTERM _ => NONE | THM _ => NONE
 
-fun add_frac_frac_simproc ctxt =
+val add_frac_frac_simproc =
        make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + (?w::?'a::field)/?z"}],
                      name = "add_frac_frac_simproc",
-                     proc = proc ctxt, identifier = []}
+                     proc = proc, identifier = []}
 
-fun add_frac_num_simproc ctxt =
+val add_frac_num_simproc =
        make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + ?z"}, @{cpat "?z + (?x::?'a::field)/?y"}],
                      name = "add_frac_num_simproc",
-                     proc = proc2 ctxt, identifier = []}
+                     proc = proc2, identifier = []}
 
 val ord_frac_simproc =
   make_simproc
@@ -566,11 +564,11 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
 local
 open Conv
 in
-fun comp_conv ctxt = (Simplifier.rewrite
+val comp_conv = (Simplifier.rewrite
 (HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"}
               addsimps ths addsimps comp_arith addsimps simp_thms
               addsimprocs field_cancel_numeral_factors
-               addsimprocs [add_frac_frac_simproc ctxt, add_frac_num_simproc ctxt,
+               addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
                             ord_frac_simproc]
                 addcongs [@{thm "if_weak_cong"}]))
 then_conv (Simplifier.rewrite (HOL_basic_ss addsimps
@@ -600,14 +598,17 @@ fun mk_const phi cT x =
   end
 
 in
- NormalizerData.funs @{thm class_fieldgb.axioms}
+ val field_comp_conv = comp_conv;
+ val fieldgb_declaration = 
+  NormalizerData.funs @{thm class_fieldgb.axioms}
    {is_const = K numeral_is_const,
     dest_const = K dest_const,
     mk_const = mk_const,
-    conv = K comp_conv}
-end
-
+    conv = K (K comp_conv)}
+end;
 *}
+
+declaration{* fieldgb_declaration *}
 
 
 subsection {* Ferrante and Rackoff algorithm over ordered fields *}
