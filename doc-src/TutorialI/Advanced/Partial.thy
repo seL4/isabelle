@@ -22,7 +22,7 @@ alternative.
 
 We have already seen an instance of underdefinedness by means of
 non-exhaustive pattern matching: the definition of @{term last} in
-\S\ref{sec:recdef-examples}. The same is allowed for \isacommand{primrec}
+\S\ref{sec:fun}. The same is allowed for \isacommand{primrec}
 *}
 
 consts hd :: "'a list \<Rightarrow> 'a"

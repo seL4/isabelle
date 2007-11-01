@@ -875,9 +875,9 @@ techniques for ordered pairs in more detail.
 
 \index{relations!well-founded|(}%
 A well-founded relation captures the notion of a terminating process. 
-Each \commdx{recdef}
-declaration must specify a well-founded relation that
-justifies the termination of the desired recursive function.  Most of the
+Complex recursive functions definitions \ref{sec:?????TN}
+must specify a well-founded relation that
+justifies their termination.  Most of the
 forms of induction found in mathematics are merely special cases of
 induction over a well-founded relation.
 
@@ -898,7 +898,7 @@ we write this particular relation as
 You may want to skip the rest of this section until you need to perform a
 complex recursive function definition or induction.  The induction rule
 returned by
-\isacommand{recdef} is good enough for most purposes.  We use an explicit
+\isacommand{fun} is good enough for most purposes.  We use an explicit
 well-founded induction only in {\S}\ref{sec:CTL-revisited}.
 \end{warn}
 
@@ -956,9 +956,9 @@ ra\ <*lex*>\ rb\ \isasymequiv \isanewline
 \rulenamedx{wf_lex_prod}
 \end{isabelle}
 
-These constructions can be used in a
-\textbf{recdef} declaration ({\S}\ref{sec:recdef-simplification}) to define
-the well-founded relation used to prove termination.
+%These constructions can be used in a
+%\textbf{recdef} declaration ({\S}\ref{sec:recdef-simplification}) to define
+%the well-founded relation used to prove termination.
 
 The \bfindex{multiset ordering}, useful for hard termination proofs, is
 available in the Library~\cite{HOL-Library}.

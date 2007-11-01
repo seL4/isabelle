@@ -155,7 +155,7 @@ lemma f_incr_lem: "\<forall>i. k = f i \<longrightarrow> i \<le> f i";
 txt{*\noindent
 To perform induction on @{term k} using @{thm[source]nat_less_induct}, we use
 the same general induction method as for recursion induction (see
-\S\ref{sec:recdef-induction}):
+\S\ref{sec:fun-induction}):
 *};
 
 apply(induct_tac k rule: nat_less_induct);

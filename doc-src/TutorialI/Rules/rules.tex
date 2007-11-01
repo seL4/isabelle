@@ -1841,7 +1841,7 @@ an equation, so it too is a forward step.
 \label{sec:THEN}
 
 Let us reproduce our examples in Isabelle.  Recall that in
-{\S}\ref{sec:recdef-simplification} we declared the recursive function
+{\S}\ref{sec:fun-simplification} we declared the recursive function
 \isa{gcd}:\index{*gcd (constant)|(}
 \begin{isabelle}
 \isacommand{consts}\ gcd\ ::\ "nat*nat\ \isasymRightarrow\ nat"\isanewline
@@ -2473,7 +2473,7 @@ divisor of its two arguments.
 %
 We use induction: \isa{gcd.induct} is the
 induction rule returned by \isa{recdef}.  We simplify using
-rules proved in {\S}\ref{sec:recdef-simplification}, since rewriting by the
+rules proved in {\S}\ref{sec:fun-simplification}, since rewriting by the
 definition of \isa{gcd} can loop.
 \begin{isabelle}
 \isacommand{lemma}\ gcd_dvd_both:\ "(gcd(m,n)\ dvd\ m)\ \isasymand\ (gcd(m,n)\ dvd\
