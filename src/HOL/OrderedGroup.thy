@@ -90,8 +90,9 @@ class cancel_semigroup_add = semigroup_add +
 
 class cancel_ab_semigroup_add = ab_semigroup_add +
   assumes add_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
+begin
 
-subclass (in cancel_ab_semigroup_add) cancel_semigroup_add
+subclass cancel_semigroup_add
 proof unfold_locales
   fix a b c :: 'a
   assume "a + b = a + c" 
@@ -102,6 +103,8 @@ next
   then have "a + b = a + c" by (simp only: add_commute)
   then show "b = c" by (rule add_imp_eq)
 qed
+
+end
 
 context cancel_ab_semigroup_add
 begin
@@ -219,11 +222,12 @@ end
 class ab_group_add = minus + comm_monoid_add +
   assumes ab_left_minus: "- a + a = 0"
   assumes ab_diff_minus: "a - b = a + (- b)"
+begin
 
-subclass (in ab_group_add) group_add
+subclass group_add
   by unfold_locales (simp_all add: ab_left_minus ab_diff_minus)
 
-subclass (in ab_group_add) cancel_ab_semigroup_add
+subclass cancel_ab_semigroup_add
 proof unfold_locales
   fix a b c :: 'a
   assume "a + b = a + c"
@@ -231,9 +235,6 @@ proof unfold_locales
     unfolding add_assoc by simp
   then show "b = c" by simp
 qed
-
-context ab_group_add
-begin
 
 lemma uminus_add_conv_diff:
   "- a + b = b - a"
@@ -409,11 +410,6 @@ proof unfold_locales
   thus "a \<le> b" by simp
 qed
 
-end
-
-context pordered_ab_group_add
-begin
-
 lemma max_diff_distrib_left:
   shows "max x y - z = max (x - z) (y - z)"
   by (simp add: diff_minus, rule max_add_distrib_left) 
@@ -555,11 +551,12 @@ class ordered_ab_semigroup_add =
 
 class ordered_cancel_ab_semigroup_add =
   linorder + pordered_cancel_ab_semigroup_add
+begin
 
-subclass (in ordered_cancel_ab_semigroup_add) ordered_ab_semigroup_add
+subclass ordered_ab_semigroup_add
   by unfold_locales
 
-subclass (in ordered_cancel_ab_semigroup_add) pordered_ab_semigroup_add_imp_le
+subclass pordered_ab_semigroup_add_imp_le
 proof unfold_locales
   fix a b c :: 'a
   assume le: "c + a <= c + b"  
@@ -578,11 +575,16 @@ proof unfold_locales
   qed
 qed
 
+end
+
 class ordered_ab_group_add =
   linorder + pordered_ab_group_add
+begin
 
-subclass (in ordered_ab_group_add) ordered_cancel_ab_semigroup_add 
+subclass ordered_cancel_ab_semigroup_add 
   by unfold_locales
+
+end
 
 -- {* FIXME localize the following *}
 
@@ -727,11 +729,6 @@ begin
 
 subclass lordered_ab_group_meet by unfold_locales
 subclass lordered_ab_group_join by unfold_locales
-
-end
-
-context lordered_ab_group
-begin
 
 lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
