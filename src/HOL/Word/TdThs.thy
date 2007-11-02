@@ -10,6 +10,8 @@ header {* Type Definition Theorems *}
 
 theory TdThs imports Main begin
 
+section "More lemmas about normal type definitions"
+
 lemma
   tdD1: "type_definition Rep Abs A \<Longrightarrow> \<forall>x. Rep x \<in> A" and
   tdD2: "type_definition Rep Abs A \<Longrightarrow> \<forall>x. Abs (Rep x) = x" and

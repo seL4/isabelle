@@ -5,6 +5,8 @@
   Examples demonstrating and testing various word operations.
 *)
 
+header "Examples of word operations"
+
 theory WordExamples imports WordMain
 begin
 

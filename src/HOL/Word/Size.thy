@@ -5,6 +5,9 @@
     A typeclass for parameterizing types by size.
     Used primarily to parameterize machine word sizes. 
 *)
+
+header "The size class"
+
 theory Size
 imports Numeral_Type
 begin
