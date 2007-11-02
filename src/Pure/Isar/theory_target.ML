@@ -8,9 +8,9 @@ Common theory/locale/class targets.
 signature THEORY_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool, is_class: bool}
-  val begin: string -> Proof.context -> local_theory
   val init: string option -> theory -> local_theory
-  val init_cmd: xstring option -> theory -> local_theory
+  val init_cmd: xstring -> theory -> local_theory
+  val begin: string -> Proof.context -> local_theory
 end;
 
 structure TheoryTarget: THEORY_TARGET =
@@ -20,13 +20,15 @@ struct
 
 datatype target = Target of {target: string, is_locale: bool, is_class: bool};
 
-fun make_target target is_locale is_class =
-  Target {target = target, is_locale = is_locale, is_class = is_class};
+fun make_target thy NONE =
+      Target {target = "", is_locale = false, is_class = false}
+  | make_target thy (SOME target) =
+      Target {target = target, is_locale = true, is_class = Class.is_class thy target};
 
 structure Data = ProofDataFun
 (
   type T = target;
-  fun init _ = make_target "" false false;
+  fun init thy = make_target thy NONE;
 );
 
 val peek = (fn Target args => args) o Data.get;
@@ -297,17 +299,21 @@ fun axioms ta kind (vars, specs) lthy =
 
 (* init and exit *)
 
-fun begin target ctxt =
+fun init_ctxt ta thy =
   let
-    val thy = ProofContext.theory_of ctxt;
-    val is_locale = target <> "";
-    val is_class = Class.is_class thy target;
-    val ta = Target {target = target, is_locale = is_locale, is_class = is_class};
+    val Target {target = target, is_locale = is_locale, is_class = is_class} = ta
   in
-    ctxt
-    |> Data.put ta
+    thy
+    |> (if is_locale then Locale.init target else ProofContext.init)
     |> is_class ? Class.init target
-    |> LocalTheory.init (NameSpace.base target)
+  end;
+
+fun init_ops ta init_ctxt =
+  let
+    val Target {target = target, ...} = ta;
+  in
+    Data.put ta
+    #> LocalTheory.init (NameSpace.base target)
      {pretty = pretty ta,
       axioms = axioms ta,
       abbrev = abbrev ta,
@@ -317,15 +323,30 @@ fun begin target ctxt =
       term_syntax = term_syntax ta,
       declaration = declaration ta,
       target_naming = target_naming ta,
-      reinit = fn _ =>
-        begin target o (if is_locale then Locale.init target else ProofContext.init),
+      reinit = fn _ => init_ops ta init_ctxt o init_ctxt,
       exit = LocalTheory.target_of}
   end;
 
-fun init NONE thy = begin "" (ProofContext.init thy)
-  | init (SOME target) thy = begin target (Locale.init target thy);
+fun init target thy =
+  let
+    val ta = make_target thy target;
+    val init_ctxt = init_ctxt ta;
+  in
+    thy
+    |> init_ctxt
+    |> init_ops ta init_ctxt
+  end;
 
-fun init_cmd (SOME "-") thy = init NONE thy
-  | init_cmd target thy = init (Option.map (Locale.intern thy) target) thy;
+fun begin target ctxt =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val ta = make_target thy (SOME target);
+  in
+    ctxt
+    |> init_ops ta (init_ctxt ta)
+  end;
+
+fun init_cmd "-" thy = init NONE thy
+  | init_cmd target thy = init (SOME (Locale.intern thy target)) thy;
 
 end;

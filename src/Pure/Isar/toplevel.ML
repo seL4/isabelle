@@ -118,9 +118,10 @@ val loc_init = TheoryTarget.init_cmd;
 
 val loc_exit = ProofContext.theory_of o LocalTheory.exit;
 
-fun loc_begin loc (Context.Theory thy) = loc_init loc thy
+fun loc_begin NONE (Context.Theory thy) = loc_init "-" thy
+  | loc_begin (SOME loc) (Context.Theory thy) = loc_init loc thy
   | loc_begin NONE (Context.Proof lthy) = lthy
-  | loc_begin loc (Context.Proof lthy) = loc_init loc (loc_exit lthy);
+  | loc_begin (SOME loc) (Context.Proof lthy) = loc_init loc (loc_exit lthy);
 
 fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
   | loc_finish NONE (Context.Proof _) = Context.Proof o LocalTheory.restore
@@ -147,7 +148,7 @@ fun cases_node f _ (Theory (gthy, _)) = f gthy
 fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
   | presentation_context (SOME node) NONE = cases_node Context.proof_of Proof.context_of node
   | presentation_context (SOME node) (SOME loc) =
-      loc_init (SOME loc) (cases_node Context.theory_of Proof.theory_of node)
+      loc_init loc (cases_node Context.theory_of Proof.theory_of node)
   | presentation_context NONE _ = raise UNDEF;
 
 
@@ -207,7 +208,7 @@ val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_for
 
 (* print state *)
 
-val pretty_context = LocalTheory.pretty o Context.cases (loc_init NONE) I;
+val pretty_context = LocalTheory.pretty o Context.cases (loc_init "-") I;
 
 fun print_state_context state =
   (case try node_of state of

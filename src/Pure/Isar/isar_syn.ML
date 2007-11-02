@@ -387,7 +387,7 @@ val _ =
 val _ =
   OuterSyntax.command "context" "enter local theory context" K.thy_decl
     (P.name --| P.begin >> (fn name =>
-      Toplevel.print o Toplevel.begin_local_theory true (TheoryTarget.init_cmd (SOME name))));
+      Toplevel.print o Toplevel.begin_local_theory true (TheoryTarget.init_cmd name)));
 
 
 (* locales *)
