@@ -4,11 +4,9 @@
 (*Euclid's algorithm 
   This material now appears AFTER that of Forward.thy *)
 theory Primes imports Main begin
-consts
-  gcd     :: "nat*nat \<Rightarrow> nat"
 
-recdef gcd "measure snd"
-    "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
+fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+  "gcd m n = (if n=0 then m else gcd n (m mod n))"
 
 
 ML "Pretty.setmargin 64"
@@ -23,18 +21,18 @@ text {*Now in Basic.thy!
 
 (*** Euclid's Algorithm ***)
 
-lemma gcd_0 [simp]: "gcd(m,0) = m"
+lemma gcd_0 [simp]: "gcd m 0 = m"
 apply (simp);
 done
 
-lemma gcd_non_0 [simp]: "0<n \<Longrightarrow> gcd(m,n) = gcd (n, m mod n)"
+lemma gcd_non_0 [simp]: "0<n \<Longrightarrow> gcd m n = gcd n (m mod n)"
 apply (simp)
 done;
 
 declare gcd.simps [simp del];
 
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
-lemma gcd_dvd_both: "(gcd(m,n) dvd m) \<and> (gcd(m,n) dvd n)"
+lemma gcd_dvd_both: "(gcd m n dvd m) \<and> (gcd m n dvd n)"
 apply (induct_tac m n rule: gcd.induct)
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (case_tac "n=0")
@@ -72,7 +70,7 @@ text {*
 (*Maximality: for all m,n,k naturals, 
                 if k divides m and k divides n then k divides gcd(m,n)*)
 lemma gcd_greatest [rule_format]:
-      "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd(m,n)"
+      "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd m n"
 apply (induct_tac m n rule: gcd.induct)
 apply (case_tac "n=0")
 txt{*subgoals after the case tac
@@ -87,7 +85,7 @@ text {*
 *}
 
 (*just checking the claim that case_tac "n" works too*)
-lemma "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd(m,n)"
+lemma "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd m n"
 apply (induct_tac m n rule: gcd.induct)
 apply (case_tac "n")
 apply (simp_all add: dvd_mod)
@@ -95,7 +93,7 @@ done
 
 
 theorem gcd_greatest_iff [iff]: 
-        "(k dvd gcd(m,n)) = (k dvd m \<and> k dvd n)"
+        "(k dvd gcd m n) = (k dvd m \<and> k dvd n)"
 by (blast intro!: gcd_greatest intro: dvd_trans)
 
 
@@ -107,7 +105,7 @@ constdefs
                      (ALL d. d dvd m \<and> d dvd n \<longrightarrow> d dvd p)"
 
 (*Function gcd yields the Greatest Common Divisor*)
-lemma is_gcd: "is_gcd (gcd(m,n)) m n"
+lemma is_gcd: "is_gcd (gcd m n) m n"
 apply (simp add: is_gcd_def gcd_greatest);
 done
 
@@ -133,12 +131,12 @@ goal\ (lemma\ is_gcd_unique):\isanewline
 \end{isabelle}
 *};
 
-lemma gcd_assoc: "gcd(gcd(k,m),n) = gcd(k,gcd(m,n))"
+lemma gcd_assoc: "gcd (gcd k m) n = gcd k (gcd m n)"
   apply (rule is_gcd_unique)
   apply (rule is_gcd)
   apply (simp add: is_gcd_def);
   apply (blast intro: dvd_trans);
-  done 
+  done
 
 text{*
 \begin{isabelle}
@@ -152,12 +150,12 @@ gcd\ (gcd\ (k,\ m),\ n)\ =\ gcd\ (k,\ gcd\ (m,\ n))\isanewline
 *}
 
 
-lemma gcd_dvd_gcd_mult: "gcd(m,n) dvd gcd(k*m, n)"
+lemma gcd_dvd_gcd_mult: "gcd m n dvd gcd (k*m) n"
   apply (blast intro: dvd_trans);
   done
 
 (*This is half of the proof (by dvd_anti_sym) of*)
-lemma gcd_mult_cancel: "gcd(k,n) = 1 \<Longrightarrow> gcd(k*m, n) = gcd(m,n)"
+lemma gcd_mult_cancel: "gcd k n = 1 \<Longrightarrow> gcd (k*m) n = gcd m n"
   oops
 
 end

@@ -14,18 +14,18 @@ lemma is_gcd_commute: "is_gcd k m n = is_gcd k n m"
 apply (auto simp add: is_gcd_def);
 done
 
-lemma gcd_commute: "gcd(m,n) = gcd(n,m)"
+lemma gcd_commute: "gcd m n = gcd n m"
 apply (rule is_gcd_unique)
 apply (rule is_gcd)
 apply (subst is_gcd_commute)
 apply (simp add: is_gcd)
 done
 
-lemma gcd_1 [simp]: "gcd(m, Suc 0) = Suc 0"
+lemma gcd_1 [simp]: "gcd m (Suc 0) = Suc 0"
 apply simp
 done
 
-lemma gcd_1_left [simp]: "gcd(Suc 0, m) = Suc 0"
+lemma gcd_1_left [simp]: "gcd (Suc 0) m = Suc 0"
 apply (simp add: gcd_commute [of "Suc 0"])
 done
 
@@ -37,7 +37,7 @@ text{*\noindent
 SKIP THIS PROOF
 *}
 
-lemma gcd_mult_distrib2: "k * gcd(m,n) = gcd(k*m, k*n)"
+lemma gcd_mult_distrib2: "k * gcd m n = gcd (k*m) (k*n)"
 apply (induct_tac m n rule: gcd.induct)
 apply (case_tac "n=0")
 apply simp
@@ -94,7 +94,7 @@ text {*
 more legible, and variables properly generalized
 *};
 
-lemma gcd_mult [simp]: "gcd(k, k*n) = k"
+lemma gcd_mult [simp]: "gcd k (k*n) = k"
 by (rule gcd_mult_distrib2 [of k 1, simplified, THEN sym])
 
 
@@ -116,7 +116,7 @@ text {*
 again: more legible, and variables properly generalized
 *};
 
-lemma gcd_self [simp]: "gcd(k,k) = k"
+lemma gcd_self [simp]: "gcd k k = k"
 by (rule gcd_mult [of k 1, simplified])
 
 
@@ -159,7 +159,7 @@ example of "insert"
 *}
 
 lemma relprime_dvd_mult: 
-      "\<lbrakk> gcd(k,n)=1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m"
+      "\<lbrakk> gcd k n = 1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m"
 apply (insert gcd_mult_distrib2 [of m k n])
 apply simp
 apply (erule_tac t="m" in ssubst);
@@ -178,11 +178,11 @@ Another example of "insert"
 lemma div_mult_self_is_m: "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
 *)
 
-lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> (k dvd m*n) = (k dvd m)";
+lemma relprime_dvd_mult_iff: "gcd k n = 1 \<Longrightarrow> (k dvd m*n) = (k dvd m)";
 by (blast intro: relprime_dvd_mult dvd_trans)
 
 
-lemma relprime_20_81: "gcd(20,81) = 1";
+lemma relprime_20_81: "gcd 20 81 = 1";
 by (simp add: gcd.simps)
 
 text {*

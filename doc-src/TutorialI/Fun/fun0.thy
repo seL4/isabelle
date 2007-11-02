@@ -88,9 +88,9 @@ of lists. A recursive function is accepted if \isacommand{fun} can
 show that the size of one fixed argument becomes smaller with each
 recursive call.
 
-More generally, @{text fun} allows any \emph{lexicographic
+More generally, \isacommand{fun} allows any \emph{lexicographic
 combination} of size measures in case there are multiple
-arguments. For example the following version of \rmindex{Ackermann's
+arguments. For example, the following version of \rmindex{Ackermann's
 function} is accepted: *}
 
 fun ack2 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
@@ -114,8 +114,8 @@ terminate because of automatic splitting of @{text "if"}.
 Let us look at an example:
 *}
 
-fun gcd :: "nat \<times> nat \<Rightarrow> nat" where
-  "gcd(m,n) = (if n=0 then m else gcd(n, m mod n))"
+fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+  "gcd m n = (if n=0 then m else gcd n (m mod n))"
 
 text{*\noindent
 The second argument decreases with each recursive call.
@@ -130,12 +130,12 @@ something else that leads to the same problem: it splits
 each @{text "if"}-expression unless its
 condition simplifies to @{term True} or @{term False}.  For
 example, simplification reduces
-@{prop[display]"gcd(m,n) = k"}
+@{prop[display]"gcd m n = k"}
 in one step to
-@{prop[display]"(if n=0 then m else gcd(n, m mod n)) = k"}
+@{prop[display]"(if n=0 then m else gcd n (m mod n)) = k"}
 where the condition cannot be reduced further, and splitting leads to
-@{prop[display]"(n=0 --> m=k) & (n ~= 0 --> gcd(n, m mod n)=k)"}
-Since the recursive call @{term"gcd(n, m mod n)"} is no longer protected by
+@{prop[display]"(n=0 --> m=k) & (n ~= 0 --> gcd n (m mod n)=k)"}
+Since the recursive call @{term"gcd n (m mod n)"} is no longer protected by
 an @{text "if"}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
@@ -176,11 +176,11 @@ derived conditional ones. For @{term gcd} it means we have to prove
 these lemmas:
 *}
 
-lemma [simp]: "gcd(m,0) = m"
+lemma [simp]: "gcd m 0 = m"
 apply(simp)
 done
 
-lemma [simp]: "n \<noteq> 0 \<Longrightarrow> gcd(m,n) = gcd(n, m mod n)"
+lemma [simp]: "n \<noteq> 0 \<Longrightarrow> gcd m n = gcd n (m mod n)"
 apply(simp)
 done
 

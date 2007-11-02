@@ -104,9 +104,9 @@ of lists. A recursive function is accepted if \isacommand{fun} can
 show that the size of one fixed argument becomes smaller with each
 recursive call.
 
-More generally, \isa{fun} allows any \emph{lexicographic
+More generally, \isacommand{fun} allows any \emph{lexicographic
 combination} of size measures in case there are multiple
-arguments. For example the following version of \rmindex{Ackermann's
+arguments. For example, the following version of \rmindex{Ackermann's
 function} is accepted:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -133,8 +133,8 @@ Let us look at an example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
-\ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}gcd{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ n{\isacharequal}{\isadigit{0}}\ then\ m\ else\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}gcd\ m\ n\ {\isacharequal}\ {\isacharparenleft}if\ n{\isacharequal}{\isadigit{0}}\ then\ m\ else\ gcd\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The second argument decreases with each recursive call.
@@ -152,17 +152,17 @@ each \isa{if}-expression unless its
 condition simplifies to \isa{True} or \isa{False}.  For
 example, simplification reduces
 \begin{isabelle}%
-\ \ \ \ \ gcd\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ k%
+\ \ \ \ \ gcd\ m\ n\ {\isacharequal}\ k%
 \end{isabelle}
 in one step to
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}if\ n\ {\isacharequal}\ {\isadigit{0}}\ then\ m\ else\ gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ k%
+\ \ \ \ \ {\isacharparenleft}if\ n\ {\isacharequal}\ {\isadigit{0}}\ then\ m\ else\ gcd\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ k%
 \end{isabelle}
 where the condition cannot be reduced further, and splitting leads to
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}n\ {\isacharequal}\ {\isadigit{0}}\ {\isasymlongrightarrow}\ m\ {\isacharequal}\ k{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymlongrightarrow}\ gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}\ {\isacharequal}\ k{\isacharparenright}%
+\ \ \ \ \ {\isacharparenleft}n\ {\isacharequal}\ {\isadigit{0}}\ {\isasymlongrightarrow}\ m\ {\isacharequal}\ k{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymlongrightarrow}\ gcd\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}\ {\isacharequal}\ k{\isacharparenright}%
 \end{isabelle}
-Since the recursive call \isa{gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}} is no longer protected by
+Since the recursive call \isa{gcd\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}} is no longer protected by
 an \isa{if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
@@ -206,7 +206,7 @@ these lemmas:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}gcd{\isacharparenleft}m{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
+\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}gcd\ m\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -226,7 +226,7 @@ these lemmas:%
 \endisadelimproof
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ gcd{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ gcd\ m\ n\ {\isacharequal}\ gcd\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
