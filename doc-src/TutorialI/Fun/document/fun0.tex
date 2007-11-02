@@ -73,7 +73,7 @@ by the two possibilities that are left: \isa{sep{\isadigit{1}}\ a\ {\isacharbrac
 \isa{sep{\isadigit{1}}\ a\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}}.  Thus the functions \isa{sep} and
 \isa{sep{\isadigit{1}}} are identical.
 
-Because of its pattern-matching syntax, \isacommand{fun} is also useful
+Because of its pattern matching syntax, \isacommand{fun} is also useful
 for the definition of non-recursive functions:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -116,7 +116,7 @@ function} is accepted:%
 \ \ {\isachardoublequoteopen}ack{\isadigit{2}}\ {\isadigit{0}}\ {\isacharparenleft}Suc\ m{\isacharparenright}\ {\isacharequal}\ ack{\isadigit{2}}\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ m{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 \ \ {\isachardoublequoteopen}ack{\isadigit{2}}\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharparenleft}Suc\ m{\isacharparenright}\ {\isacharequal}\ ack{\isadigit{2}}\ {\isacharparenleft}ack{\isadigit{2}}\ n\ {\isacharparenleft}Suc\ m{\isacharparenright}{\isacharparenright}\ m{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-Thus the order of arguments has no influence on whether
+The order of arguments has no influence on whether
 \isacommand{fun} can prove termination of a function. For more details
 see elsewhere~\cite{bulwahnKN07}.
 
@@ -185,8 +185,8 @@ following alternative definition suggests itself:%
 \begin{isamarkuptext}%
 \noindent
 The order of equations is important: it hides the side condition
-\isa{n\ {\isasymnoteq}\ {\isadigit{0}}}.  Unfortunately, in general the case distinction
-may not be expressible by pattern matching.
+\isa{n\ {\isasymnoteq}\ {\isadigit{0}}}.  Unfortunately, not all conditionals can be
+expressed by pattern matching.
 
 A simple alternative is to replace \isa{if} by \isa{case}, 
 which is also available for \isa{bool} and is not split automatically:%
@@ -316,16 +316,18 @@ The rest is pure simplification:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-Try proving the above lemma by structural induction, and you find that you
-need an additional case distinction.
+\noindent The proof goes smoothly because the induction rule
+follows the recursion of \isa{sep}.  Try proving the above lemma by
+structural induction, and you find that you need an additional case
+distinction.
 
 In general, the format of invoking recursion induction is
 \begin{quote}
 \isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $x@1 \dots x@n$ \isa{rule{\isacharcolon}} $f$\isa{{\isachardot}induct{\isacharparenright}}
 \end{quote}\index{*induct_tac (method)}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
-name of a function that takes an $n$-tuple. Usually the subgoal will
-contain the term $f(x@1,\dots,x@n)$ but this need not be the case. The
+name of a function that takes an $n$ arguments. Usually the subgoal will
+contain the term $f x@1 \dots x@n$ but this need not be the case. The
 induction rules do not mention $f$ at all. Here is \isa{sep{\isachardot}induct}:
 \begin{isabelle}
 {\isasymlbrakk}~{\isasymAnd}a.~P~a~[];\isanewline

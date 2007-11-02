@@ -57,7 +57,7 @@ by the two possibilities that are left: @{prop"sep1 a [] = []"} and
 @{prop"sep1 a [x] = [x]"}.  Thus the functions @{const sep} and
 @{const sep1} are identical.
 
-Because of its pattern-matching syntax, \isacommand{fun} is also useful
+Because of its pattern matching syntax, \isacommand{fun} is also useful
 for the definition of non-recursive functions:
 *}
 
@@ -98,7 +98,7 @@ fun ack2 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "ack2 0 (Suc m) = ack2 (Suc 0) m" |
   "ack2 (Suc n) (Suc m) = ack2 (ack2 n (Suc m)) m"
 
-text{* Thus the order of arguments has no influence on whether
+text{* The order of arguments has no influence on whether
 \isacommand{fun} can prove termination of a function. For more details
 see elsewhere~\cite{bulwahnKN07}.
 
@@ -157,8 +157,8 @@ fun gcd1 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 
 text{*\noindent
 The order of equations is important: it hides the side condition
-@{prop"n ~= (0::nat)"}.  Unfortunately, in general the case distinction
-may not be expressible by pattern matching.
+@{prop"n ~= (0::nat)"}.  Unfortunately, not all conditionals can be
+expressed by pattern matching.
 
 A simple alternative is to replace @{text "if"} by @{text case}, 
 which is also available for @{typ bool} and is not split automatically:
@@ -233,17 +233,18 @@ The rest is pure simplification:
 apply simp_all;
 done
 
-text{*
-Try proving the above lemma by structural induction, and you find that you
-need an additional case distinction.
+text{*\noindent The proof goes smoothly because the induction rule
+follows the recursion of @{const sep}.  Try proving the above lemma by
+structural induction, and you find that you need an additional case
+distinction.
 
 In general, the format of invoking recursion induction is
 \begin{quote}
 \isacommand{apply}@{text"(induct_tac"} $x@1 \dots x@n$ @{text"rule:"} $f$@{text".induct)"}
 \end{quote}\index{*induct_tac (method)}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
-name of a function that takes an $n$-tuple. Usually the subgoal will
-contain the term $f(x@1,\dots,x@n)$ but this need not be the case. The
+name of a function that takes an $n$ arguments. Usually the subgoal will
+contain the term $f x@1 \dots x@n$ but this need not be the case. The
 induction rules do not mention $f$ at all. Here is @{thm[source]sep.induct}:
 \begin{isabelle}
 {\isasymlbrakk}~{\isasymAnd}a.~P~a~[];\isanewline
