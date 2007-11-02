@@ -102,6 +102,14 @@ lemmas gcd_self0 = gcd_mult [of k 1, simplified];
 
 
 text {*
+@{thm[display] gcd_mult}
+\rulename{gcd_mult}
+
+@{thm[display] gcd_self0}
+\rulename{gcd_self0}
+*};
+
+text {*
 Rules handy with THEN
 
 @{thm[display] iffD1}
@@ -161,13 +169,18 @@ example of "insert"
 lemma relprime_dvd_mult: 
       "\<lbrakk> gcd k n = 1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m"
 apply (insert gcd_mult_distrib2 [of m k n])
+txt{*@{subgoals[display,indent=0,margin=65]}*}
 apply simp
+txt{*@{subgoals[display,indent=0,margin=65]}*}
 apply (erule_tac t="m" in ssubst);
 apply simp
 done
 
 
 text {*
+@{thm[display] relprime_dvd_mult}
+\rulename{relprime_dvd_mult}
+
 Another example of "insert"
 
 @{thm[display] mod_div_equality}
