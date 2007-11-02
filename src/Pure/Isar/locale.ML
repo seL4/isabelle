@@ -1955,9 +1955,7 @@ fun intro_locales_tac eager ctxt facts st =
     val thy = ProofContext.theory_of ctxt;
     val intros = locale_base_intros thy @ (if eager then locale_assm_intros thy else []);
   in
-    (ALLGOALS (Method.insert_tac facts THEN'
-        REPEAT_ALL_NEW (resolve_tac (wits @ intros)))
-      THEN Tactic.distinct_subgoals_tac) st
+    Method.intros_tac (wits @ intros) facts st
   end;
 
 val _ = Context.add_setup (Method.add_methods

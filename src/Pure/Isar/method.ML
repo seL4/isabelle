@@ -45,6 +45,7 @@ sig
   val trace: Proof.context -> thm list -> unit
   val rule_tac: thm list -> thm list -> int -> tactic
   val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
+  val intros_tac: thm list -> thm list -> tactic
   val rule: thm list -> method
   val erule: int -> thm list -> method
   val drule: int -> thm list -> method
@@ -286,6 +287,14 @@ val drule = meth' (gen_arule_tac Tactic.dresolve_tac);
 val frule = meth' (gen_arule_tac Tactic.forward_tac);
 
 end;
+
+
+(* intros_tac -- pervasive search spanned by intro rules *)
+
+fun intros_tac intros facts =
+  ALLGOALS (insert_tac facts THEN'
+      REPEAT_ALL_NEW (resolve_tac intros))
+    THEN Tactic.distinct_subgoals_tac;
 
 
 (* iprover -- intuitionistic proof search *)
