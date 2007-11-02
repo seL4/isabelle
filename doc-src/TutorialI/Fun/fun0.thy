@@ -105,7 +105,7 @@ see elsewhere~\cite{bulwahnKN07}.
 \subsection{Simplification}
 \label{sec:fun-simplification}
 
-Upon successful termination proof, the recursion equations become
+Upon a successful termination proof, the recursion equations become
 simplification rules, just as with \isacommand{primrec}.
 In most cases this works fine, but there is a subtle
 problem that must be mentioned: simplification may not
