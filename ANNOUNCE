@@ -30,27 +30,18 @@ separate variant 'inductive_set'.
 * Built-in Metis prover, external linkup for automated provers, and
 'sledgehammer' command for automated proof synthesis.
 
-* Full list comprehension syntax.
-
-* Various improvements in locale infrastructure (interpretation etc.)
-
-* Various improvements of Isar language elements and related proof
-tools.
-
 * Second generation code generator for a subset of HOL, targeting SML,
 Haskell, and OCaml.
 
 * Command 'normal_form' and method 'normalization'
 for evaluating terms with free variables.
 
-* Improved support for arbitrary ML operations depending on the
-logical context.
+* Full list comprehension syntax.
 
 * Parallel loading of theories based on native multicore support in
 Poly/ML 5.1.
 
-* Improved algebraic capabilities by means of semiring normalization,
-Groebner bases and Ferrante/Rackoff algorithm.
+* Much improved algebraic capabilities, including Groebner bases.
 
 
 You may get Isabelle2007 from the following mirror sites:
