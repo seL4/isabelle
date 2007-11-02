@@ -537,9 +537,7 @@ fun intro_classes_tac facts st =
     val class_intros = these_intros thy;
     val axclass_intros = map_filter (try (#intro o AxClass.get_info thy)) classes;
   in
-    (ALLGOALS (Method.insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac (class_trivs @ class_intros @ axclass_intros)))
-    THEN Tactic.distinct_subgoals_tac) st
+    Method.intros_tac (class_trivs @ class_intros @ axclass_intros) facts st
   end;
 
 fun default_intro_classes_tac [] = intro_classes_tac []
@@ -596,8 +594,9 @@ fun prove_single_subclass (sub, sup) thms ctxt thy =
 
 fun prove_subclass (sub, sup) thms ctxt thy =
   let
-    val supclasses = Sign.complete_sort thy [sup]
-      |> filter_out (fn class => Sign.subsort thy ([sub], [class]));
+    val classes = ClassData.get thy;
+    val is_sup = not o null o curry (Graph.irreducible_paths classes) sub;
+    val supclasses = Graph.all_succs classes [sup] |> filter_out is_sup;
     fun transform sup' = subclass_rule thy (sup, sup') |> map (fn thm => thm OF thms);
   in
     thy
@@ -844,6 +843,7 @@ fun gen_class prep_spec prep_param bname
               calculate_morphism class (supconsts @ (map (fst o fst) params ~~ consts)), class_intro))
       #> class_interpretation class axioms []
       )))))
+    |> init class
     |> pair class
   end;
 
