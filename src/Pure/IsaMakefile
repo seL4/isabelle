@@ -57,7 +57,7 @@ $(OUT)/Pure$(ML_SUFFIX): \
   ProofGeneral/parsing.ML ProofGeneral/pgip.ML ProofGeneral/pgip_input.ML	\
   ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML			\
   ProofGeneral/pgip_output.ML ProofGeneral/pgip_parser.ML			\
-  ProofGeneral/pgip_tests.ML ProofGeneral/pgip_types.ML				\
+  ProofGeneral/pgip_tests.ML ProofGeneral/pgip_types.ML ProofGeneral/pgml_isabelle.ML				\
   ProofGeneral/preferences.ML ProofGeneral/proof_general_emacs.ML 		\
   ProofGeneral/proof_general_pgip.ML Pure.thy ROOT.ML Syntax/ast.ML		\
   Syntax/lexicon.ML Syntax/mixfix.ML Syntax/parser.ML Syntax/printer.ML		\
