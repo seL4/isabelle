@@ -18,6 +18,7 @@ struct
 val pgmlN = "PGML";
 fun pgml_mode f x = PrintMode.with_modes [pgmlN] f x;
 
+val _ = Output.add_mode pgmlN Output.default_output Output.default_escape;
 val _ = Markup.add_mode pgmlN (fn markup as (name, _) => ("", ""));
 
 end;
