@@ -7,9 +7,7 @@ This release introduces fundamental changes over Isabelle2005, see the
 NEWS file in the distribution for more details.  Numerous existing
 concepts have been generalized and re-implemented based on novel
 system architecture.  New theories and proof tools have been added
-(mostly for HOL).
-
-The main highlights are:
+(mostly for HOL).  Some highlights are:
 
 * Support for nominal datatypes (binding structures) due to the
 HOL-Nominal logic.
@@ -33,15 +31,18 @@ separate variant 'inductive_set'.
 * Second generation code generator for a subset of HOL, targeting SML,
 Haskell, and OCaml.
 
-* Command 'normal_form' and method 'normalization'
-for evaluating terms with free variables.
+* Embedding of ML code into theories with static references to the
+logical context (via antiquotations).
 
-* Full list comprehension syntax.
+* Command 'normal_form' and method "normalization" for evaluating
+terms with free variables.
+
+* Full list comprehension syntax for HOL.
+
+* Much improved algebraic capabilities, including Groebner bases.
 
 * Parallel loading of theories based on native multicore support in
 Poly/ML 5.1.
-
-* Much improved algebraic capabilities, including Groebner bases.
 
 
 You may get Isabelle2007 from the following mirror sites:
