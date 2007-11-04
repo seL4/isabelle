@@ -108,14 +108,14 @@ val _ = ()
 end
 
 
-(** parsing.ML **)
+(** pgip_parser.ML **)
 local
 open PgipMarkup
-open OldPgipParser
+open PgipParser
 open PgipIsabelle
 
 fun asseqp a b =
-    if pgip_parser a = b then ()
+    if pgip_parser Position.none a = b then ()
     else error("PGIP test: expected two parses to be equal, for input:\n" ^ a)
 
 in

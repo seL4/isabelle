@@ -1140,7 +1140,6 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
   | init_pgip true =
       (! initialized orelse
         (Output.no_warnings init_outer_syntax ();
-          OldPgipParser.init ();
           setup_preferences_tweak ();
           setup_proofgeneral_output ();
           setup_messages ();

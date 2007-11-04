@@ -18,8 +18,6 @@ use "pgml_isabelle.ML";
 (use |> setmp Proofterm.proofs 1 |> setmp quick_and_dirty true) "preferences.ML";
 use "pgip_parser.ML";
 
-use "parsing.ML";   (* old version *)
-
 use "pgip_tests.ML";
 
 use "proof_general_pgip.ML";
