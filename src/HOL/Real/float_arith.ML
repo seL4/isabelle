@@ -87,6 +87,7 @@ exception Floating_point of string;
 val ln2_10 = Math.ln 10.0 / Math.ln 2.0;
 fun exp5 x = Integer.pow x 5;
 fun exp10 x = Integer.pow x 10;
+fun exp2 x = Integer.pow x 2;
 
 fun find_most_significant q r =
   let
@@ -101,7 +102,7 @@ fun find_most_significant q r =
         (q * exp10 (r - r') - q', r')
     fun bin2dec d =
       if 0 <= d then
-        (Integer.square d, 0)
+        (exp2 d, 0)
       else
         (exp5 (~ d), d)
 
@@ -133,7 +134,7 @@ fun find_most_significant q r =
 fun approx_dec_by_bin n (q,r) =
   let
     fun addseq acc d' [] = acc
-      | addseq acc d' (d::ds) = addseq (acc + Integer.square (d - d')) d' ds
+      | addseq acc d' (d::ds) = addseq (acc + exp2 (d - d')) d' ds
 
     fun seq2bin [] = (0, 0)
       | seq2bin (d::ds) = (addseq 0 d ds + 1, d)
@@ -151,7 +152,7 @@ fun approx_dec_by_bin n (q,r) =
             let
               val d' = d0 - precision
               val x1 = seq2bin (d_seq)
-              val x2 = (fst x1 * Integer.square (snd x1 - d') + 1,  d') (* = seq2bin (d'::d_seq) *)
+              val x2 = (fst x1 * exp2 (snd x1 - d') + 1,  d') (* = seq2bin (d'::d_seq) *)
             in
               (x1, x2)
             end
