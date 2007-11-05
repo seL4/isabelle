@@ -490,8 +490,8 @@ lemma "(op < :: [int, int] => bool) = op <"
   apply (rule int.abs_test) done
 
 interpretation int: dlat ["op <= :: [int, int] => bool"]
-  where "dlat.meet (op <=) (x::int) y = min x y"
-    and "dlat.join (op <=) (x::int) y = max x y"
+  where meet_eq: "dlat.meet (op <=) (x::int) y = min x y"
+    and join_eq: "dlat.join (op <=) (x::int) y = max x y"
 proof -
   show "dlat (op <= :: [int, int] => bool)"
     apply unfold_locales
