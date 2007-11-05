@@ -128,6 +128,22 @@ lemma rel_pow_imp_rtrancl: "!!p. p:R^n ==> p:R^*"
 lemma rtrancl_is_UN_rel_pow: "R^* = (UN n. R^n)"
   by (blast intro: rtrancl_imp_UN_rel_pow rel_pow_imp_rtrancl)
 
+lemma trancl_power:
+  "x \<in> r^+ = (\<exists>n > 0. x \<in> r^n)"
+  apply (cases x)
+  apply simp
+  apply (rule iffI)
+   apply (drule tranclD2)
+   apply (clarsimp simp: rtrancl_is_UN_rel_pow)
+   apply (rule_tac x="Suc x" in exI)
+   apply (clarsimp simp: rel_comp_def)
+   apply fastsimp
+  apply clarsimp
+  apply (case_tac n, simp)
+  apply clarsimp
+  apply (drule rel_pow_imp_rtrancl)
+  apply fastsimp
+  done
 
 lemma single_valued_rel_pow:
     "!!r::('a * 'a)set. single_valued r ==> single_valued (r^n)"

@@ -449,6 +449,10 @@ lemma tranclpD: "R^++ x y ==> EX z. R x z \<and> R^** z y"
 
 lemmas tranclD = tranclpD [to_set]
 
+lemma tranclD2:
+  "(x, y) \<in> R\<^sup>+ \<Longrightarrow> \<exists>z. (x, z) \<in> R\<^sup>* \<and> (z, y) \<in> R"
+  by (blast elim: tranclE intro: trancl_into_rtrancl)
+
 lemma irrefl_tranclI: "r^-1 \<inter> r^* = {} ==> (x, x) \<notin> r^+"
   by (blast elim: tranclE dest: trancl_into_rtrancl)
 
