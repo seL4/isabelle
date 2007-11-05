@@ -41,7 +41,7 @@ sig
   val target_name: local_theory -> bstring -> string
   val init: string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
-  val reinit: local_theory -> theory -> local_theory
+  val reinit: local_theory -> local_theory
   val exit: local_theory -> Proof.context
 end;
 
@@ -67,7 +67,7 @@ type operations =
   term_syntax: declaration -> local_theory -> local_theory,
   declaration: declaration -> local_theory -> local_theory,
   target_naming: local_theory -> NameSpace.naming,
-  reinit: local_theory -> theory -> local_theory,
+  reinit: local_theory -> local_theory,
   exit: local_theory -> Proof.context};
 
 datatype lthy = LThy of

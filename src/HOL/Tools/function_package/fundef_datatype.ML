@@ -306,7 +306,7 @@ fun fun_cmd config fixes statements flags lthy =
     lthy
       |> FundefPackage.add_fundef fixes statements config flags
       |> by_pat_completeness_simp
-      |> (fn lthy => LocalTheory.reinit lthy (ProofContext.theory_of lthy))
+      |> LocalTheory.reinit
       |> termination_by_lexicographic_order
 
 val _ =
