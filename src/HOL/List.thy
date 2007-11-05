@@ -1118,6 +1118,25 @@ lemma all_set_conv_all_nth:
 "(\<forall>x \<in> set xs. P x) = (\<forall>i. i < length xs --> P (xs ! i))"
 by (auto simp add: set_conv_nth)
 
+lemma rev_nth:
+  "n < size xs \<Longrightarrow> rev xs ! n = xs ! (length xs - Suc n)"
+proof (induct xs arbitrary: n)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  hence n: "n < Suc (length xs)" by simp
+  moreover
+  { assume "n < length xs"
+    with n obtain n' where "length xs - n = Suc n'"
+      by (cases "length xs - n", auto)
+    moreover
+    then have "length xs - Suc n = n'" by simp
+    ultimately
+    have "xs ! (length xs - Suc n) = (x # xs) ! (length xs - n)" by simp
+  }
+  ultimately
+  show ?case by (clarsimp simp add: Cons nth_append)
+qed
 
 subsubsection {* @{text list_update} *}
 
