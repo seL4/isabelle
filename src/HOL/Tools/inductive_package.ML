@@ -725,6 +725,7 @@ type add_ind_def =
 fun add_ind_def {verbose, kind, alt_name, coind, no_elim, no_ind}
     cs intros monos params cnames_syn ctxt =
   let
+    val _ = null cnames_syn andalso error "No inductive predicates given";
     val _ =
       if verbose then message ("Proofs for " ^ coind_prefix coind ^ "inductive predicate(s) " ^
         commas_quote (map fst cnames_syn)) else ();
