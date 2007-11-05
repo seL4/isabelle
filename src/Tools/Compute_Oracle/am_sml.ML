@@ -499,7 +499,7 @@ fun compile eqs =
 	val code = Real.toString (random ())
 	val module = "AMSML_"^guid
 	val (arity, toplevel_arity, inlinetab, source) = sml_prog module code eqs
-	val _ = writeTextFile "Gencode.ML" source
+	(*val _ = writeTextFile "Gencode.ML" source*)
 	val _ = compiled_rewriter := NONE
 	val _ = use_source source
     in
