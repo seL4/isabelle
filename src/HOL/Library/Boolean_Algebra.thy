@@ -31,11 +31,11 @@ begin
 
 lemmas disj_ac =
   disj_assoc disj_commute
-  mk_left_commute [of "disj", OF disj_assoc disj_commute]
+  mk_left_commute [where 'a = 'a, of "disj", OF disj_assoc disj_commute]
 
 lemmas conj_ac =
   conj_assoc conj_commute
-  mk_left_commute [of "conj", OF conj_assoc conj_commute]
+  mk_left_commute [where 'a = 'a, of "conj", OF conj_assoc conj_commute]
 
 lemma dual: "boolean disj conj compl one zero"
 apply (rule boolean.intro)
@@ -206,7 +206,7 @@ qed
 
 lemmas xor_ac =
   xor_assoc xor_commute
-  mk_left_commute [of "xor", OF xor_assoc xor_commute]
+  mk_left_commute [where 'a = 'a, of "xor", OF xor_assoc xor_commute]
 
 lemma xor_zero_right [simp]: "x \<oplus> \<zero> = x"
 by (simp only: xor_def compl_zero conj_one_right conj_zero_right disj_zero_right)
