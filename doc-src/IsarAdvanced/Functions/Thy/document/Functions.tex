@@ -39,7 +39,7 @@ The syntax is rather self-explanatory: We introduce a function by
   giving its name, its type, 
   and a set of defining recursive equations.
   If we leave out the type, the most general type will be
-  inferred, which can sometimes lead to surprises: Since both \isa{{\isadigit{1}}} and \isa{plus} are overloaded, we would end up
+  inferred, which can sometimes lead to surprises: Since both \isa{{\isadigit{1}}} and \isa{{\isacharplus}} are overloaded, we would end up
   with \isa{fib\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ {\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}one{\isacharcomma}plus{\isacharbraceright}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1788,15 +1788,15 @@ Higher-order recursion occurs when recursive calls
 \ \ Leaf\ {\isacharprime}a\ \isanewline
 {\isacharbar}\ Branch\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ list{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-\noindent We can define a map function for trees, using the predefined
-  map function for lists.%
+\noindent We can define a function which swaps the left and right subtrees recursively, using the 
+  list functions \isa{rev} and \isa{map}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ treemap\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
+\ mirror\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}treemap\ f\ {\isacharparenleft}Leaf\ n{\isacharparenright}\ {\isacharequal}\ Leaf\ {\isacharparenleft}f\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}treemap\ f\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}map\ {\isacharparenleft}treemap\ f{\isacharparenright}\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Leaf\ n{\isacharparenright}\ {\isacharequal}\ Leaf\ n{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}rev\ {\isacharparenleft}map\ mirror\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -1834,17 +1834,17 @@ As usual, we have to give a wellfounded relation, such that the
 
   \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ wf\ {\isacharquery}R\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}f\ l\ x{\isachardot}\ x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}{\isacharcomma}\ f{\isacharcomma}\ Branch\ l{\isacharparenright}\ {\isasymin}\ {\isacharquery}R%
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}l\ x{\isachardot}\ x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ Branch\ l{\isacharparenright}\ {\isasymin}\ {\isacharquery}R%
 \end{isabelle} 
 
   So Isabelle seems to know that \isa{map} behaves nicely and only
-  applies the recursive call \isa{treemap\ f} to elements
+  applies the recursive call \isa{mirror} to elements
   of \isa{l}. Before we discuss where this knowledge comes from,
   let us finish the termination proof:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}wf\ {\isacharparenleft}measure\ {\isacharparenleft}size\ o\ snd{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}wf\ {\isacharparenleft}measure\ size{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
@@ -1853,7 +1853,7 @@ As usual, we have to give a wellfounded relation, such that the
 \ \ \isacommand{assume}\isamarkupfalse%
 \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ l{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}f{\isacharcomma}\ Branch\ l{\isacharparenright}{\isacharparenright}\ {\isasymin}\ measure\ {\isacharparenleft}size\ o\ snd{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}\ Branch\ l{\isacharparenright}\ {\isasymin}\ measure\ size{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ simp%
 \begin{isamarkuptxt}%
@@ -1876,11 +1876,12 @@ Simplification returns the following subgoal:
 %
 \endisadelimproof
 \isanewline
-\ \ \isacommand{lemma}\isamarkupfalse%
-\ tree{\isacharunderscore}list{\isacharunderscore}size{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ size\ x\ {\isacharless}\ Suc\ {\isacharparenleft}tree{\isacharunderscore}list{\isacharunderscore}size\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ tree{\isacharunderscore}list{\isacharunderscore}size{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ \isanewline
+\ \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ size\ x\ {\isacharless}\ Suc\ {\isacharparenleft}tree{\isacharunderscore}list{\isacharunderscore}size\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
-\ \ \ \ %
+%
 \endisadelimproof
 %
 \isatagproof
@@ -1897,11 +1898,11 @@ Simplification returns the following subgoal:
 Now the whole termination proof is automatic:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \isacommand{termination}\isamarkupfalse%
+\isacommand{termination}\isamarkupfalse%
 \ \isanewline
 %
 \isadelimproof
-\ \ \ \ %
+\ \ %
 \endisadelimproof
 %
 \isatagproof

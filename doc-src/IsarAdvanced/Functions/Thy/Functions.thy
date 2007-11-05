@@ -27,7 +27,7 @@ text {*
   and a set of defining recursive equations.
   If we leave out the type, the most general type will be
   inferred, which can sometimes lead to surprises: Since both @{term
-  "1::nat"} and @{text plus} are overloaded, we would end up
+  "1::nat"} and @{text "+"} are overloaded, we would end up
   with @{text "fib :: nat \<Rightarrow> 'a::{one,plus}"}.
 *}
 
@@ -1149,13 +1149,13 @@ datatype 'a tree =
 | Branch "'a tree list"
 
 
-text {* \noindent We can define a map function for trees, using the predefined
-  map function for lists. *}
+text {* \noindent We can define a function which swaps the left and right subtrees recursively, using the 
+  list functions @{const rev} and @{const map}: *}
   
-function treemap :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a tree \<Rightarrow> 'a tree"
+function mirror :: "'a tree \<Rightarrow> 'a tree"
 where
-  "treemap f (Leaf n) = Leaf (f n)"
-| "treemap f (Branch l) = Branch (map (treemap f) l)"
+  "mirror (Leaf n) = Leaf n"
+| "mirror (Branch l) = Branch (rev (map mirror l))"
 by pat_completeness auto
 
 text {*
@@ -1174,16 +1174,16 @@ termination proof
   @{subgoals[display,indent=0]} 
 
   So Isabelle seems to know that @{const map} behaves nicely and only
-  applies the recursive call @{term "treemap f"} to elements
+  applies the recursive call @{term "mirror"} to elements
   of @{term "l"}. Before we discuss where this knowledge comes from,
   let us finish the termination proof:
   *}
 
-  show "wf (measure (size o snd))" by simp
+  show "wf (measure size)" by simp
 next
   fix f l and x :: "'a tree"
   assume "x \<in> set l"
-  thus "((f, x), (f, Branch l)) \<in> measure (size o snd)"
+  thus "(x, Branch l) \<in> measure size"
     apply simp
     txt {*
       Simplification returns the following subgoal: 
@@ -1197,17 +1197,27 @@ next
       *}
     (*<*)oops(*>*)
 
-  lemma tree_list_size[simp]: "x \<in> set l \<Longrightarrow> size x < Suc (tree_list_size l)"
-    by (induct l) auto
+lemma tree_list_size[simp]: 
+  "x \<in> set l \<Longrightarrow> size x < Suc (tree_list_size l)"
+by (induct l) auto
 
-  text {* 
+text {* 
     Now the whole termination proof is automatic:
-    *}
+  *}
 
-  termination 
-    by lexicographic_order
-  
+termination 
+  by lexicographic_order
 
+(*
+lemma "mirror (mirror t) = t"
+proof (induct t rule:mirror.induct)
+  case 1 show ?case by simp
+next
+  case (2 l)
+  thus "mirror (mirror (Branch l)) = Branch l"
+    by (induct l) (auto simp: rev_map)
+qed
+*)
 subsection {* Congruence Rules *}
 
 text {*
@@ -1302,36 +1312,4 @@ text {*
   works well.
 *}
 
-(*
-text {*
-Since the structure of
-  congruence rules is a little unintuitive, here are some exercises:
-*}
-
-fun mapeven :: "(nat \<Rightarrow> nat) \<Rightarrow> nat list \<Rightarrow> nat list"
-where
-  "mapeven f [] = []"
-| "mapeven f (x#xs) = (if x mod 2 = 0 then f x # mapeven f xs else x #
-  mapeven f xs)"
-
-
-text {*
-
-  \begin{exercise}
-    Find a suitable congruence rule for the following function which
-  maps only over the even numbers in a list:
-
-  @{thm[display] mapeven.simps}
-  \end{exercise}
-  
-  \begin{exercise}
-  Try what happens if the congruence rule for @{const If} is
-  disabled by declaring @{text "if_cong[fundef_cong del]"}?
-  \end{exercise}
-
-  Note that in some cases there is no \qt{best} congruence rule.
-  \fixme{}
-
-*}
-*)
 end
