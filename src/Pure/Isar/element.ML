@@ -64,7 +64,6 @@ sig
   val inst_term: typ Symtab.table * term Symtab.table -> term -> term
   val inst_thm: theory -> typ Symtab.table * term Symtab.table -> thm -> thm
   val inst_morphism: theory -> typ Symtab.table * term Symtab.table -> morphism
-  val inst_morphism': theory -> typ Symtab.table * term Symtab.table -> typ Symtab.table * term Symtab.table -> morphism
   val satisfy_thm: witness list -> thm -> thm
   val satisfy_morphism: witness list -> morphism
   val satisfy_facts: witness list ->
@@ -470,23 +469,15 @@ fun inst_morphism thy envs =
       fact = map (fn th => inst_thm (Theory.deref thy_ref) envs th)}
   end;
 
-(* separate instantiation for theorems -- cannot have vars *)
-fun inst_morphism' thy envs envs' =
-  let val thy_ref = Theory.check_thy thy in
-    Morphism.morphism
-     {name = I, var = I,
-      typ = instT_type (#1 envs),
-      term = inst_term envs,
-      fact = map (fn th => inst_thm (Theory.deref thy_ref) envs' th)}
-  end;
-
 
 (* satisfy hypotheses *)
 
 fun satisfy_thm witns thm = thm |> fold (fn hyp =>
     (case find_first (fn Witness (t, _) => Thm.term_of hyp aconv t) witns of
       NONE => I
-    | SOME (Witness (_, th)) => Drule.implies_intr_protected [hyp] #> Goal.comp_hhf th))
+    | SOME (Witness (_, th)) => Drule.implies_intr_protected [hyp] #> 
+          (fn thm' => Thm.implies_elim thm'
+            (Thm.instantiate (Thm.match (cprop_of th, Drule.protect hyp)) th))))
   (#hyps (Thm.crep_thm thm));
 
 fun satisfy_morphism witns = Morphism.thm_morphism (satisfy_thm witns);
