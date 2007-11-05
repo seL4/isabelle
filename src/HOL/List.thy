@@ -2581,6 +2581,9 @@ done
 
 end
 
+lemma sorted_upt[simp]: "sorted[i..<j]"
+by (induct j) (simp_all add:sorted_append)
+
 
 subsubsection {* @{text sorted_list_of_set} *}
 

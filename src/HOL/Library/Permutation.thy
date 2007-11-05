@@ -46,9 +46,6 @@ lemma perm_empty_imp: "[] <~~> xs ==> xs = []"
 lemma perm_sym: "xs <~~> ys ==> ys <~~> xs"
   by (erule perm.induct) auto
 
-lemma perm_mem [rule_format]: "xs <~~> ys ==> x mem xs --> x mem ys"
-  by (erule perm.induct) auto
-
 
 subsection {* Ways of making new permutations *}
 
@@ -171,5 +168,15 @@ lemma multiset_of_le_perm_append:
   apply (insert surj_multiset_of, drule surjD)
   apply (blast intro: sym)+
   done
+
+lemma perm_set_eq: "xs <~~> ys ==> set xs = set ys"
+by (metis multiset_of_eq_perm multiset_of_eq_setD)
+
+lemma perm_distinct_iff: "xs <~~> ys ==> distinct xs = distinct ys"
+apply(induct rule:perm.induct)
+   apply simp_all
+ apply fastsimp
+apply (metis perm_set_eq)
+done
 
 end
