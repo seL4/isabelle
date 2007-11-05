@@ -114,18 +114,17 @@ exception UNDEF;
 
 type generic_theory = Context.generic;    (*theory or local_theory*)
 
-val loc_init = TheoryTarget.init_cmd;
-
+val loc_init = TheoryTarget.context;
 val loc_exit = ProofContext.theory_of o LocalTheory.exit;
 
-fun loc_begin NONE (Context.Theory thy) = loc_init "-" thy
-  | loc_begin (SOME loc) (Context.Theory thy) = loc_init loc thy
+fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
   | loc_begin NONE (Context.Proof lthy) = lthy
   | loc_begin (SOME loc) (Context.Proof lthy) = loc_init loc (loc_exit lthy);
 
 fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
   | loc_finish NONE (Context.Proof _) = Context.Proof o LocalTheory.restore
-  | loc_finish (SOME _) (Context.Proof lthy) = Context.Proof o LocalTheory.reinit lthy o loc_exit;
+  | loc_finish (SOME _) (Context.Proof lthy) = fn lthy' =>
+      Context.Proof (LocalTheory.reinit (LocalTheory.raw_theory (K (loc_exit lthy')) lthy));
 
 
 (* datatype node *)
@@ -208,7 +207,7 @@ val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_for
 
 (* print state *)
 
-val pretty_context = LocalTheory.pretty o Context.cases (loc_init "-") I;
+val pretty_context = LocalTheory.pretty o Context.cases (TheoryTarget.init NONE) I;
 
 fun print_state_context state =
   (case try node_of state of
