@@ -296,6 +296,12 @@ fun prove_witness ctxt t tac =
 fun conclude_witness (Witness (_, th)) =
   Goal.close_result (MetaSimplifier.norm_hhf_protect (Goal.conclude th));
 
+fun compose_witness (Witness (_, th)) r =
+  let
+    val th' = Goal.conclude th;
+    val A = Thm.cprem_of r 1;
+  in Thm.implies_elim r (Thm.instantiate (Thm.match (Thm.cprop_of th', A)) th') end;
+
 val mark_witness = Logic.protect;
 
 fun make_witness t th = Witness (t, th);
@@ -475,10 +481,7 @@ fun inst_morphism thy envs =
 fun satisfy_thm witns thm = thm |> fold (fn hyp =>
     (case find_first (fn Witness (t, _) => Thm.term_of hyp aconv t) witns of
       NONE => I
-    | SOME (Witness (_, th)) => Drule.implies_intr_protected [hyp] #> 
-          (fn thm' => Thm.implies_elim thm'
-            (Thm.instantiate (Thm.match (cprop_of th, Drule.protect hyp)) th))))
-  (#hyps (Thm.crep_thm thm));
+    | SOME w => Thm.implies_intr hyp #> compose_witness w)) (#hyps (Thm.crep_thm thm));
 
 fun satisfy_morphism witns = Morphism.thm_morphism (satisfy_thm witns);
 
