@@ -2069,6 +2069,12 @@ by (induct xs) (auto simp add: insert_absorb)
 lemma distinct_remdups [iff]: "distinct (remdups xs)"
 by (induct xs) auto
 
+lemma distinct_remdups_id: "distinct xs ==> remdups xs = xs"
+by (induct xs, auto)
+
+lemma remdups_id_iff_distinct[simp]: "(remdups xs = xs) = distinct xs"
+by(metis distinct_remdups distinct_remdups_id)
+
 lemma finite_distinct_list: "finite A \<Longrightarrow> EX xs. set xs = A & distinct xs"
 by (metis distinct_remdups finite_list set_remdups)
 
@@ -2184,6 +2190,12 @@ next
   qed
 qed
 
+lemma not_distinct_decomp: "~ distinct ws ==> EX xs ys zs y. ws = xs@[y]@ys@[y]@zs"
+apply (induct n == "length ws" arbitrary:ws) apply simp
+apply(case_tac ws) apply simp
+apply (simp split:split_if_asm)
+apply (metis Cons_eq_appendI eq_Nil_appendI split_list)
+done
 
 lemma length_remdups_concat:
  "length(remdups(concat xss)) = card(\<Union>xs \<in> set xss. set xs)"

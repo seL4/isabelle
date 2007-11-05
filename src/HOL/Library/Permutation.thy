@@ -179,4 +179,25 @@ apply(induct rule:perm.induct)
 apply (metis perm_set_eq)
 done
 
+lemma eq_set_perm_remdups: "set xs = set ys ==> remdups xs <~~> remdups ys"
+apply(induct xs arbitrary: ys rule:length_induct)
+apply (case_tac "remdups xs", simp, simp)
+apply(subgoal_tac "a : set (remdups ys)")
+ prefer 2 apply (metis set.simps(2) insert_iff set_remdups)
+apply(drule split_list) apply(elim exE conjE)
+apply(drule_tac x=list in spec) apply(erule impE) prefer 2
+ apply(drule_tac x="ysa@zs" in spec) apply(erule impE) prefer 2
+  apply simp
+  apply(subgoal_tac "a#list <~~> a#ysa@zs")
+   apply (metis Cons_eq_appendI perm_append_Cons trans)
+  apply (metis Cons Cons_eq_appendI distinct.simps(2) distinct_remdups distinct_remdups_id perm_append_swap perm_distinct_iff)
+ apply(subgoal_tac "set (a#list) = set (ysa@a#zs) & distinct (a#list) & distinct (ysa@a#zs)")
+  apply(fastsimp simp add: insert_ident)
+ apply (metis distinct_remdups set_remdups)
+apply (metis Nat.le_less_trans Suc_length_conv le_def length_remdups_leq less_Suc_eq)
+done
+
+lemma perm_remdups_iff_eq_set: "remdups x <~~> remdups y = (set x = set y)"
+by (metis List.set_remdups perm_set_eq eq_set_perm_remdups)
+
 end

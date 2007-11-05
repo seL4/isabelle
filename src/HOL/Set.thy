@@ -780,6 +780,8 @@ next
   show "x \<notin> A - {x}" by blast
 qed
 
+lemma insert_ident: "x ~: A ==> x ~: B ==> (insert x A = insert x B) = (A = B)"
+by auto
 
 subsubsection {* Singletons, using insert *}
 
