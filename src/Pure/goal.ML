@@ -33,9 +33,7 @@ sig
   val precise_conjunction_tac: int -> int -> tactic
   val recover_conjunction_tac: tactic
   val norm_hhf_tac: int -> tactic
-  val compose_hhf: thm -> int -> thm -> thm Seq.seq
   val compose_hhf_tac: thm -> int -> tactic
-  val comp_hhf: thm -> thm -> thm
   val assume_rule_tac: Proof.context -> int -> tactic
 end;
 
@@ -215,16 +213,8 @@ val norm_hhf_tac =
     if Drule.is_norm_hhf t then all_tac
     else MetaSimplifier.rewrite_goal_tac [Drule.norm_hhf_eq] i);
 
-fun compose_hhf tha i thb =
-  Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of thb i) tha, 0) i thb;
-
-fun compose_hhf_tac th i = PRIMSEQ (compose_hhf th i);
-
-fun comp_hhf tha thb =
-  (case Seq.chop 2 (compose_hhf tha 1 thb) of
-    ([th], _) => th
-  | ([], _) => raise THM ("comp_hhf: no unifiers", 1, [tha, thb])
-  | _  => raise THM ("comp_hhf: multiple unifiers", 1, [tha, thb]));
+fun compose_hhf_tac th i st =
+  PRIMSEQ (Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of st i) th, 0) i) st;
 
 
 (* non-atomic goal assumptions *)
