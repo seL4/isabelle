@@ -142,17 +142,17 @@ simplification rule:
 
 declare subst_App [simp del]
 
-text{*\noindent
-The advantage is that now we have replaced @{const substs} by
-@{term map}, we can profit from the large number of pre-proved lemmas
-about @{term map}.  Unfortunately inductive proofs about type
-@{text term} are still awkward because they expect a conjunction. One
-could derive a new induction principle as well (see
-\S\ref{sec:derive-ind}), but simpler is to stop using \isacommand{primrec}
-and to define functions with \isacommand{fun} instead.
-Simple uses of \isacommand{fun} are described in \S\ref{sec:fun} below,
-and later (\S\ref{sec:nested-recdef}) we shall see how \isacommand{fun} can 
-handle nested recursion.
+text{*\noindent The advantage is that now we have replaced @{const
+substs} by @{const map}, we can profit from the large number of
+pre-proved lemmas about @{const map}.  Unfortunately, inductive proofs
+about type @{text term} are still awkward because they expect a
+conjunction. One could derive a new induction principle as well (see
+\S\ref{sec:derive-ind}), but simpler is to stop using
+\isacommand{primrec} and to define functions with \isacommand{fun}
+instead.  Simple uses of \isacommand{fun} are described in
+\S\ref{sec:fun} below.  Advanced applications, including functions
+over nested datatypes like @{text term}, are discussed in a
+separate tutorial~\cite{isabelle-function}.
 
 Of course, you may also combine mutual and nested recursion of datatypes. For example,
 constructor @{text Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
