@@ -155,6 +155,91 @@ lemma set_mono_prefix:
     "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
   by (auto simp add: prefix_def)
 
+lemma take_is_prefix:
+  "take n xs \<le> xs"
+  apply (simp add: prefix_def)
+  apply (rule_tac x="drop n xs" in exI)
+  apply simp
+  done
+
+lemma prefix_length_less:
+  "xs < ys \<Longrightarrow> length xs < length ys"
+  apply (clarsimp simp: strict_prefix_def)
+  apply (frule prefix_length_le)
+  apply (rule ccontr, simp)
+  apply (clarsimp simp: prefix_def)
+  done
+
+lemma strict_prefix_simps [simp]:
+  "xs < [] = False"
+  "[] < (x # xs) = True"
+  "(x # xs) < (y # ys) = (x = y \<and> xs < ys)"
+  by (simp_all add: strict_prefix_def cong: conj_cong)
+
+lemma take_strict_prefix:
+  "xs < ys \<Longrightarrow> take n xs < ys"
+  apply (induct n arbitrary: xs ys)
+   apply (case_tac ys, simp_all)[1]
+  apply (case_tac xs, simp)
+  apply (case_tac ys, simp_all)
+  done
+
+lemma not_prefix_cases: 
+  assumes pfx: "\<not> ps \<le> ls"
+  and c1: "\<lbrakk> ps \<noteq> []; ls = [] \<rbrakk> \<Longrightarrow> R"
+  and c2: "\<And>a as x xs. \<lbrakk> ps = a#as; ls = x#xs; x = a; \<not> as \<le> xs\<rbrakk> \<Longrightarrow> R"
+  and c3: "\<And>a as x xs. \<lbrakk> ps = a#as; ls = x#xs; x \<noteq> a\<rbrakk> \<Longrightarrow> R"
+  shows "R"  
+proof (cases ps)
+  case Nil thus ?thesis using pfx by simp
+next
+  case (Cons a as)
+  
+  hence c: "ps = a#as" .
+  
+  show ?thesis
+  proof (cases ls)
+    case Nil thus ?thesis 
+      by (intro c1, simp add: Cons)
+  next
+    case (Cons x xs)
+    show ?thesis
+    proof (cases "x = a")
+      case True 
+      show ?thesis 
+      proof (intro c2) 
+     	  show "\<not> as \<le> xs" using pfx c Cons True
+	        by simp
+      qed
+    next 
+      case False 
+      show ?thesis by (rule c3)
+    qed
+  qed
+qed
+
+lemma not_prefix_induct [consumes 1, case_names Nil Neq Eq]:
+  assumes np: "\<not> ps \<le> ls"
+  and base:   "\<And>x xs. P (x#xs) []"
+  and r1:     "\<And>x xs y ys. x \<noteq> y \<Longrightarrow> P (x#xs) (y#ys)"
+  and r2:     "\<And>x xs y ys. \<lbrakk> x = y; \<not> xs \<le> ys; P xs ys \<rbrakk> \<Longrightarrow> P (x#xs) (y#ys)"
+  shows "P ps ls"
+  using np
+proof (induct ls arbitrary: ps)
+  case Nil thus ?case  
+    by (auto simp: neq_Nil_conv elim!: not_prefix_cases intro!: base)
+next
+  case (Cons y ys)  
+  hence npfx: "\<not> ps \<le> (y # ys)" by simp
+  then obtain x xs where pv: "ps = x # xs" 
+    by (rule not_prefix_cases) auto
+
+  from Cons
+  have ih: "\<And>ps. \<not>ps \<le> ys \<Longrightarrow> P ps ys" by simp
+  
+  show ?case using npfx
+    by (simp only: pv) (erule not_prefix_cases, auto intro: r1 r2 ih)
+qed
 
 subsection {* Parallel lists *}
 
@@ -214,6 +299,19 @@ next
   qed
 qed
 
+lemma parallel_append:
+  "a \<parallel> b \<Longrightarrow> a @ c \<parallel> b @ d"
+  by (rule parallelI) 
+     (erule parallelE, erule conjE, 
+            induct rule: not_prefix_induct, simp+)+
+
+lemma parallel_appendI: 
+  "\<lbrakk> xs \<parallel> ys; x = xs @ xs' ; y = ys @ ys' \<rbrakk> \<Longrightarrow> x \<parallel> y"
+  by simp (rule parallel_append)
+
+lemma parallel_commute:
+  "(a \<parallel> b) = (b \<parallel> a)" 
+  unfolding parallel_def by auto
 
 subsection {* Postfix order on lists *}
 
@@ -280,6 +378,74 @@ next
   then show "xs >>= ys" ..
 qed
 
+lemma distinct_postfix:
+  assumes dx: "distinct xs"
+  and     pf: "xs >>= ys"
+  shows   "distinct ys"
+  using dx pf by (clarsimp elim!: postfixE)
+
+lemma postfix_map:
+  assumes pf: "xs >>= ys" 
+  shows   "map f xs >>= map f ys"
+  using pf by (auto elim!: postfixE intro: postfixI)
+
+lemma postfix_drop:
+  "as >>= drop n as"
+  unfolding postfix_def
+  by (rule exI [where x = "take n as"]) simp
+
+lemma postfix_take:
+  "xs >>= ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
+  by (clarsimp elim!: postfixE)
+
+lemma parallelD1: 
+  "x \<parallel> y \<Longrightarrow> \<not> x \<le> y" by blast
+
+lemma parallelD2: 
+  "x \<parallel> y \<Longrightarrow> \<not> y \<le> x" by blast
+  
+lemma parallel_Nil1 [simp]: "\<not> x \<parallel> []" 
+  unfolding parallel_def by simp
+  
+lemma parallel_Nil2 [simp]: "\<not> [] \<parallel> x"
+  unfolding parallel_def by simp
+
+lemma Cons_parallelI1:
+  "a \<noteq> b \<Longrightarrow> a # as \<parallel> b # bs" by auto
+
+lemma Cons_parallelI2:
+  "\<lbrakk> a = b; as \<parallel> bs \<rbrakk> \<Longrightarrow> a # as \<parallel> b # bs" 
+  apply simp
+  apply (rule parallelI)
+   apply simp
+   apply (erule parallelD1)
+  apply simp
+  apply (erule parallelD2)
+ done
+
+lemma not_equal_is_parallel:
+  assumes neq: "xs \<noteq> ys"
+  and     len: "length xs = length ys"
+  shows   "xs \<parallel> ys"
+  using len neq
+proof (induct rule: list_induct2) 
+  case 1 thus ?case by simp
+next
+  case (2 a as b bs)
+
+  have ih: "as \<noteq> bs \<Longrightarrow> as \<parallel> bs" .
+  
+  show ?case
+  proof (cases "a = b")
+    case True 
+    hence "as \<noteq> bs" using 2 by simp
+   
+    thus ?thesis by (rule Cons_parallelI2 [OF True ih])
+  next
+    case False
+    thus ?thesis by (rule Cons_parallelI1)
+  qed
+qed
 
 subsection {* Exeuctable code *}
 
