@@ -46,6 +46,8 @@ arities
   bool :: type
   "fun" :: (type, type) type
 
+  itself :: (type) type
+
 judgment
   Trueprop      :: "bool => prop"                   ("(_)" 5)
 
