@@ -52,11 +52,12 @@ locale LT = var mult (infixl "**" 60) +
 locale LU = LT mult (infixl "**" 60) + LT add (infixl "++" 55) + var h +
   assumes hom: "h(x ** y) = h(x) ++ h(y)"
 
-(*
-FIXME: graceful handling of type errors?
+
+(* FIXME: graceful handling of type errors?
 locale LY = LT mult (infixl "**" 60) + LT add (binder "++" 55) + var h +
   assumes "mult(x) == add"
 *)
+
 
 locale LV = LU _ add
 
@@ -156,11 +157,6 @@ print_interps IB  (* output: i1 *)
 print_interps IC  (* output: <no prefix, i1 *)
 print_interps ID  (* output: i2, i3 *)
 
-(* schematic vars in instantiation not permitted *)
-(*
-interpretation i4: IA ["?x::?'a1"] apply (rule IA.intro) apply rule done
-print_interps IA
-*)
 
 interpretation i10: ID + ID a' b' d' [X "Y::i" _ u "v::i" _] .
 
@@ -189,17 +185,19 @@ subsection {* Interpretation in Proof Contexts *}
 
 locale IF = fixes f assumes asm_F: "f & f --> f"
 
+consts default :: "'a"
+
 theorem True
 proof -
-  fix alpha::i and beta and gamma::o
-  have alpha_A: "IA(alpha)" by unfold_locales simp
+  fix alpha::i and beta
+  have alpha_A: "IA(alpha)" by unfold_locales
   interpret i5: IA [alpha] .  (* subsumed *)
   print_interps IA  (* output: <no prefix>, i1 *)
   interpret i6: IC [alpha beta] by unfold_locales auto
   print_interps IA   (* output: <no prefix>, i1 *)
   print_interps IC   (* output: <no prefix>, i1, i6 *)
-  interpret i11: IF [gamma] by (fast intro: IF.intro)
-  thm i11.asm_F      (* gamma is a Free *)
+  interpret i11: IF ["default = default"] by (fast intro: IF.intro)
+  thm i11.asm_F [where 'a = i]     (* default has schematic type *)
 qed rule
 
 theorem (in IA) True
@@ -209,7 +207,6 @@ proof -
   interpret i9: ID [a beta _]
     apply - apply assumption
     apply unfold_locales
-    apply (rule refl) (*FIXME: should have been discharged by unfold_locales*)
     apply (rule refl) done
 qed rule
 
