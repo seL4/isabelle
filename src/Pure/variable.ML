@@ -31,6 +31,8 @@ sig
   val variant_frees: Proof.context -> term list -> (string * 'a) list -> (string * 'a) list
   val add_binds: (indexname * term option) list -> Proof.context -> Proof.context
   val expand_binds: Proof.context -> term -> term
+  val is_const: Proof.context -> string -> bool
+  val declare_const: string -> Proof.context -> Proof.context
   val add_fixes: string list -> Proof.context -> string list * Proof.context
   val add_fixes_direct: string list -> Proof.context -> Proof.context
   val auto_fixes: term -> Proof.context -> Proof.context
@@ -68,6 +70,7 @@ struct
 datatype data = Data of
  {is_body: bool,                        (*inner body mode*)
   names: Name.context,                  (*type/term variable names*)
+  scope: bool Symtab.table,             (*local scope of fixes/consts*)
   fixes: (string * string) list,        (*term fixes -- extern/intern*)
   binds: (typ * term) Vartab.table,     (*term bindings*)
   type_occs: string list Symtab.table,  (*type variables -- possibly within term variables*)
@@ -76,46 +79,56 @@ datatype data = Data of
     typ Vartab.table *                  (*type constraints*)
     sort Vartab.table};                 (*default sorts*)
 
-fun make_data (is_body, names, fixes, binds, type_occs, maxidx, constraints) =
-  Data {is_body = is_body, names = names, fixes = fixes, binds = binds,
+fun make_data (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints) =
+  Data {is_body = is_body, names = names, scope = scope, fixes = fixes, binds = binds,
     type_occs = type_occs, maxidx = maxidx, constraints = constraints};
 
 structure Data = ProofDataFun
 (
   type T = data;
   fun init thy =
-    make_data (false, Name.context, [], Vartab.empty, Symtab.empty,
+    make_data (false, Name.context, Symtab.empty, [], Vartab.empty, Symtab.empty,
       ~1, (Vartab.empty, Vartab.empty));
 );
 
 fun map_data f =
-  Data.map (fn Data {is_body, names, fixes, binds, type_occs, maxidx, constraints} =>
-    make_data (f (is_body, names, fixes, binds, type_occs, maxidx, constraints)));
+  Data.map (fn Data {is_body, names, scope, fixes, binds, type_occs, maxidx, constraints} =>
+    make_data (f (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints)));
 
-fun map_names f = map_data (fn (is_body, names, fixes, binds, type_occs, maxidx, constraints) =>
-  (is_body, f names, fixes, binds, type_occs, maxidx, constraints));
+fun map_names f =
+  map_data (fn (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints) =>
+    (is_body, f names, scope, fixes, binds, type_occs, maxidx, constraints));
 
-fun map_fixes f = map_data (fn (is_body, names, fixes, binds, type_occs, maxidx, constraints) =>
-  (is_body, names, f fixes, binds, type_occs, maxidx, constraints));
+fun map_scope f =
+  map_data (fn (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints) =>
+    (is_body, names, f scope, fixes, binds, type_occs, maxidx, constraints));
 
-fun map_binds f = map_data (fn (is_body, names, fixes, binds, type_occs, maxidx, constraints) =>
-  (is_body, names, fixes, f binds, type_occs, maxidx, constraints));
+fun map_fixes f =
+  map_data (fn (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints) =>
+    (is_body, names, scope, f fixes, binds, type_occs, maxidx, constraints));
 
-fun map_type_occs f = map_data (fn (is_body, names, fixes, binds, type_occs, maxidx, constraints) =>
-  (is_body, names, fixes, binds, f type_occs, maxidx, constraints));
+fun map_binds f =
+  map_data (fn (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints) =>
+    (is_body, names, scope, fixes, f binds, type_occs, maxidx, constraints));
 
-fun map_maxidx f = map_data (fn (is_body, names, fixes, binds, type_occs, maxidx, constraints) =>
-  (is_body, names, fixes, binds, type_occs, f maxidx, constraints));
+fun map_type_occs f =
+  map_data (fn (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints) =>
+    (is_body, names, scope, fixes, binds, f type_occs, maxidx, constraints));
 
-fun map_constraints f = map_data (fn (is_body, names, fixes, binds, type_occs, maxidx, constraints) =>
-  (is_body, names, fixes, binds, type_occs, maxidx, f constraints));
+fun map_maxidx f =
+  map_data (fn (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints) =>
+    (is_body, names, scope, fixes, binds, type_occs, f maxidx, constraints));
+
+fun map_constraints f =
+  map_data (fn (is_body, names, scope, fixes, binds, type_occs, maxidx, constraints) =>
+    (is_body, names, scope, fixes, binds, type_occs, maxidx, f constraints));
 
 fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);
 
 val is_body = #is_body o rep_data;
 
-fun set_body b = map_data (fn (_, names, fixes, binds, type_occs, maxidx, constraints) =>
-  (b, names, fixes, binds, type_occs, maxidx, constraints));
+fun set_body b = map_data (fn (_, names, scope, fixes, binds, type_occs, maxidx, constraints) =>
+  (b, names, scope, fixes, binds, type_occs, maxidx, constraints));
 
 fun restore_body ctxt = set_body (is_body ctxt);
 
@@ -242,6 +255,15 @@ fun expand_binds ctxt =
 
 
 
+(** local scope **)
+
+fun is_const ctxt x = the_default false (Symtab.lookup (#scope (rep_data ctxt)) x);
+
+fun declare_fixed x = map_scope (Symtab.update (x, false));
+fun declare_const c = map_scope (Symtab.update (c, true));
+
+
+
 (** fixes **)
 
 local
@@ -251,6 +273,7 @@ fun no_dups [] = ()
 
 fun new_fixes names' xs xs' =
   map_names (K names') #>
+  fold declare_fixed xs #>
   map_fixes (fn fixes => (rev (xs ~~ xs') @ fixes)) #>
   fold (declare_constraints o Syntax.free) xs' #>
   pair xs';
