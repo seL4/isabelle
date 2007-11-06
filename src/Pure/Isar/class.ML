@@ -634,7 +634,11 @@ fun synchronize_syntax thy sups base_sort ctxt =
     val constraints = (map o apsnd) (fst o snd) operations;
 
     (* check phase *)
-    val typargs = Consts.typargs (ProofContext.consts_of ctxt);
+    val consts = ProofContext.consts_of ctxt;
+    fun declare_const (c, _) =
+      let val b = Sign.base_name c
+      in if Consts.intern consts b = c then Variable.declare_const b else I end;
+    val typargs = Consts.typargs consts;
     fun check_const (c, ty) (t, (_, typidx)) = ((nth (typargs (c, ty)) typidx), t);
     fun local_operation (c_ty as (c, _)) = AList.lookup (op =) operations c
       |> Option.map (check_const c_ty);
@@ -647,6 +651,7 @@ fun synchronize_syntax thy sups base_sort ctxt =
       |> (map o pairself o map_types) basify;
   in
     ctxt
+(*    |> fold declare_const operations  FIXME *)
     |> fold (ProofContext.add_const_constraint o local_constraint) operations
     |> ClassSyntax.put (SOME {
         constraints = constraints,
@@ -871,7 +876,7 @@ fun add_logical_const class pos ((c, mx), dict) thy =
   in
     thy'
     |> Sign.declare_const pos (c, ty'', mx) |> snd
-    |> Thm.add_def false (c, def_eq)
+    |> Thm.add_def false (c, def_eq)    (* FIXME PureThy.add_defs_i *)
     |>> Thm.symmetric
     |-> (fn def => class_interpretation class [def] [Thm.prop_of def]
           #> register_operation class (c', ((dict, dict'), SOME (Thm.varifyT def))))
