@@ -28,6 +28,9 @@ separate variant 'inductive_set'.
 * Built-in Metis prover, external linkup for automated provers, and
 'sledgehammer' command for automated proof synthesis.
 
+* Autoquickcheck: lemmas are tested for counterexamples
+automatically when they are stated. 
+
 * Second generation code generator for a subset of HOL, targeting SML,
 Haskell, and OCaml.
 
