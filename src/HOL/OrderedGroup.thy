@@ -746,13 +746,39 @@ by (insert add_le_less_mono [of 0 a b c], simp)
 class pordered_ab_group_add_abs = pordered_ab_group_add + abs +
   assumes abs_ge_zero [simp]: "\<bar>a\<bar> \<ge> 0"
     and abs_ge_self: "a \<le> \<bar>a\<bar>"
-    and abs_of_nonneg [simp]: "0 \<le> a \<Longrightarrow> \<bar>a\<bar> = a"
     and abs_leI: "a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
-    and abs_eq_0 [simp]: "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
     and abs_minus_cancel [simp]: "\<bar>-a\<bar> = \<bar>a\<bar>"
-    and abs_idempotent [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
     and abs_triangle_ineq: "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
 begin
+
+lemma abs_minus_le_zero: "- \<bar>a\<bar> \<le> 0"
+  unfolding neg_le_0_iff_le by simp
+
+lemma abs_of_nonneg [simp]:
+  assumes nonneg: "0 \<le> a"
+  shows "\<bar>a\<bar> = a"
+proof (rule antisym)
+  from nonneg le_imp_neg_le have "- a \<le> 0" by simp
+  from this nonneg have "- a \<le> a" by (rule order_trans)
+  then show "\<bar>a\<bar> \<le> a" by (auto intro: abs_leI)
+qed (rule abs_ge_self)
+
+lemma abs_idempotent [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
+  by (rule antisym)
+    (auto intro!: abs_ge_self abs_leI order_trans [of "uminus (abs a)" zero "abs a"])
+
+lemma abs_eq_0 [simp]: "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
+proof -
+  have "\<bar>a\<bar> = 0 \<Longrightarrow> a = 0"
+  proof (rule antisym)
+    assume zero: "\<bar>a\<bar> = 0"
+    with abs_ge_self show "a \<le> 0" by auto
+    from zero have "\<bar>-a\<bar> = 0" by simp
+    with abs_ge_self [of "uminus a"] have "- a \<le> 0" by auto
+    with neg_le_0_iff_le show "0 \<le> a" by auto
+  qed
+  then show ?thesis by auto
+qed
 
 lemma abs_zero [simp]: "\<bar>0\<bar> = 0"
   by simp
@@ -1213,25 +1239,8 @@ proof -
       by (auto simp add: abs_lattice)
   next
     fix a
-    show "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
-      by (simp add: abs_lattice)
-  next
-    fix a
     show "\<bar>-a\<bar> = \<bar>a\<bar>"
       by (simp add: abs_lattice sup_commute)
-  next
-    fix a
-    show "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
-    apply (simp add: abs_lattice [of "abs a"])
-    apply (subst sup_absorb1)
-    apply (rule order_trans [of _ zero])
-    apply auto
-    done
-  next
-    fix a
-    show "0 \<le> a \<Longrightarrow> \<bar>a\<bar> = a"
-      by (simp add: iffD1 [OF zero_le_iff_zero_nprt]
-        iffD1[OF le_zero_iff_pprt_id] abs_prts)
   next
     fix a b
     show "a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b" by (erule abs_leI)
