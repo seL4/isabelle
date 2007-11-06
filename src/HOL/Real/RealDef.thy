@@ -418,6 +418,8 @@ proof
     by (simp only: real_sgn_def)
 qed
 
+instance real :: lordered_ab_group_add ..
+
 text{*The function @{term real_of_preal} requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
 positive reals.*}

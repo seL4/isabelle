@@ -387,8 +387,8 @@ lemma sorted_spmat_mult_spmat[rule_format]:
   done
 
 consts
-  add_spvec :: "('a::lordered_ab_group) spvec * 'a spvec \<Rightarrow> 'a spvec"
-  add_spmat :: "('a::lordered_ab_group) spmat * 'a spmat \<Rightarrow> 'a spmat"
+  add_spvec :: "('a::lordered_ab_group_add) spvec * 'a spvec \<Rightarrow> 'a spvec"
+  add_spmat :: "('a::lordered_ab_group_add) spmat * 'a spmat \<Rightarrow> 'a spmat"
 
 recdef add_spvec "measure (% (a, b). length a + (length b))"
   "add_spvec (arr, []) = arr"
@@ -569,8 +569,8 @@ lemma sorted_spmat_add_spmat[rule_format]: "sorted_spmat A \<longrightarrow> sor
   done
 
 consts
-  le_spvec :: "('a::lordered_ab_group) spvec * 'a spvec \<Rightarrow> bool" 
-  le_spmat :: "('a::lordered_ab_group) spmat * 'a spmat \<Rightarrow> bool" 
+  le_spvec :: "('a::lordered_ab_group_add) spvec * 'a spvec \<Rightarrow> bool" 
+  le_spmat :: "('a::lordered_ab_group_add) spmat * 'a spmat \<Rightarrow> bool" 
 
 recdef le_spvec "measure (% (a,b). (length a) + (length b))" 
   "le_spvec ([], []) = True"
@@ -610,7 +610,7 @@ lemma disj_matrices_contr2: "disj_matrices A B \<Longrightarrow> Rep_matrix B j 
 
 
 lemma disj_matrices_add: "disj_matrices A B \<Longrightarrow> disj_matrices C D \<Longrightarrow> disj_matrices A D \<Longrightarrow> disj_matrices B C \<Longrightarrow> 
-  (A + B <= C + D) = (A <= C & B <= (D::('a::lordered_ab_group) matrix))"
+  (A + B <= C + D) = (A <= C & B <= (D::('a::lordered_ab_group_add) matrix))"
   apply (auto)
   apply (simp (no_asm_use) only: le_matrix_def disj_matrices_def)
   apply (intro strip)
@@ -640,19 +640,19 @@ lemma disj_matrices_commute: "disj_matrices A B = disj_matrices B A"
 by (auto simp add: disj_matrices_def)
 
 lemma disj_matrices_add_le_zero: "disj_matrices A B \<Longrightarrow>
-  (A + B <= 0) = (A <= 0 & (B::('a::lordered_ab_group) matrix) <= 0)"
+  (A + B <= 0) = (A <= 0 & (B::('a::lordered_ab_group_add) matrix) <= 0)"
 by (rule disj_matrices_add[of A B 0 0, simplified])
  
 lemma disj_matrices_add_zero_le: "disj_matrices A B \<Longrightarrow>
-  (0 <= A + B) = (0 <= A & 0 <= (B::('a::lordered_ab_group) matrix))"
+  (0 <= A + B) = (0 <= A & 0 <= (B::('a::lordered_ab_group_add) matrix))"
 by (rule disj_matrices_add[of 0 0 A B, simplified])
 
 lemma disj_matrices_add_x_le: "disj_matrices A B \<Longrightarrow> disj_matrices B C \<Longrightarrow> 
-  (A <= B + C) = (A <= C & 0 <= (B::('a::lordered_ab_group) matrix))"
+  (A <= B + C) = (A <= C & 0 <= (B::('a::lordered_ab_group_add) matrix))"
 by (auto simp add: disj_matrices_add[of 0 A B C, simplified])
 
 lemma disj_matrices_add_le_x: "disj_matrices A B \<Longrightarrow> disj_matrices B C \<Longrightarrow> 
-  (B + A <= C) = (A <= C &  (B::('a::lordered_ab_group) matrix) <= 0)"
+  (B + A <= C) = (A <= C &  (B::('a::lordered_ab_group_add) matrix) <= 0)"
 by (auto simp add: disj_matrices_add[of B A 0 C,simplified] disj_matrices_commute)
 
 lemma disj_sparse_row_singleton: "i <= j \<Longrightarrow> sorted_spvec((j,y)#v) \<Longrightarrow> disj_matrices (sparse_row_vector v) (singleton_matrix 0 i x)"
@@ -668,7 +668,7 @@ lemma disj_sparse_row_singleton: "i <= j \<Longrightarrow> sorted_spvec((j,y)#v)
   apply (simp_all)
   done 
 
-lemma disj_matrices_x_add: "disj_matrices A B \<Longrightarrow> disj_matrices A C \<Longrightarrow> disj_matrices (A::('a::lordered_ab_group) matrix) (B+C)"
+lemma disj_matrices_x_add: "disj_matrices A B \<Longrightarrow> disj_matrices A C \<Longrightarrow> disj_matrices (A::('a::lordered_ab_group_add) matrix) (B+C)"
   apply (simp add: disj_matrices_def)
   apply (auto)
   apply (drule_tac j=j and i=i in spec2)+
@@ -677,7 +677,7 @@ lemma disj_matrices_x_add: "disj_matrices A B \<Longrightarrow> disj_matrices A 
   apply (simp_all)
   done
 
-lemma disj_matrices_add_x: "disj_matrices A B \<Longrightarrow> disj_matrices A C \<Longrightarrow> disj_matrices (B+C) (A::('a::lordered_ab_group) matrix)" 
+lemma disj_matrices_add_x: "disj_matrices A B \<Longrightarrow> disj_matrices A C \<Longrightarrow> disj_matrices (B+C) (A::('a::lordered_ab_group_add) matrix)" 
   by (simp add: disj_matrices_x_add disj_matrices_commute)
 
 lemma disj_singleton_matrices[simp]: "disj_matrices (singleton_matrix j i x) (singleton_matrix u v y) = (j \<noteq> u | i \<noteq> v | x = 0 | y = 0)" 
@@ -897,10 +897,10 @@ lemmas boolarith = bool1 bool2 bool3 bool4 bool5 bool6 bool7 bool8 bool9 bool10
 lemma if_case_eq: "(if b then x else y) = (case b of True => x | False => y)" by simp
 
 consts
-  pprt_spvec :: "('a::{lordered_ab_group}) spvec \<Rightarrow> 'a spvec"
-  nprt_spvec :: "('a::{lordered_ab_group}) spvec \<Rightarrow> 'a spvec"
-  pprt_spmat :: "('a::{lordered_ab_group}) spmat \<Rightarrow> 'a spmat"
-  nprt_spmat :: "('a::{lordered_ab_group}) spmat \<Rightarrow> 'a spmat"
+  pprt_spvec :: "('a::{lordered_ab_group_add}) spvec \<Rightarrow> 'a spvec"
+  nprt_spvec :: "('a::{lordered_ab_group_add}) spvec \<Rightarrow> 'a spvec"
+  pprt_spmat :: "('a::{lordered_ab_group_add}) spmat \<Rightarrow> 'a spmat"
+  nprt_spmat :: "('a::{lordered_ab_group_add}) spmat \<Rightarrow> 'a spmat"
 
 primrec
   "pprt_spvec [] = []"

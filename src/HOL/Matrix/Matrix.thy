@@ -22,12 +22,12 @@ instance matrix :: ("{minus, zero}") minus
 instance matrix :: ("{plus, times, zero}") times
   times_matrix_def: "A * B \<equiv> mult_matrix (op *) (op +) A B" ..
 
-instance matrix :: (lordered_ab_group) abs
+instance matrix :: (lordered_ab_group_add) abs
   abs_matrix_def: "abs A \<equiv> sup A (- A)" ..
 
-instance matrix :: (lordered_ab_group) lordered_ab_group_meet
+instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_meet
 proof 
-  fix A B C :: "('a::lordered_ab_group) matrix"
+  fix A B C :: "('a::lordered_ab_group_add) matrix"
   show "A + B + C = A + (B + C)"    
     apply (simp add: plus_matrix_def)
     apply (rule combine_matrix_assoc[simplified associative_def, THEN spec, THEN spec, THEN spec])
@@ -89,7 +89,8 @@ proof
     done
 qed 
 
-lemma Rep_matrix_add[simp]: "Rep_matrix ((a::('a::lordered_ab_group)matrix)+b) j i  = (Rep_matrix a j i) + (Rep_matrix b j i)"
+lemma Rep_matrix_add[simp]:
+  "Rep_matrix ((a::('a::lordered_ab_group_add)matrix)+b) j i  = (Rep_matrix a j i) + (Rep_matrix b j i)"
 by (simp add: plus_matrix_def)
 
 lemma Rep_matrix_mult: "Rep_matrix ((a::('a::lordered_ring) matrix) * b) j i = 
@@ -98,13 +99,13 @@ apply (simp add: times_matrix_def)
 apply (simp add: Rep_mult_matrix)
 done
 
-lemma apply_matrix_add: "! x y. f (x+y) = (f x) + (f y) \<Longrightarrow> f 0 = (0::'a) \<Longrightarrow> apply_matrix f ((a::('a::lordered_ab_group) matrix) + b) = (apply_matrix f a) + (apply_matrix f b)"
+lemma apply_matrix_add: "! x y. f (x+y) = (f x) + (f y) \<Longrightarrow> f 0 = (0::'a) \<Longrightarrow> apply_matrix f ((a::('a::lordered_ab_group_add) matrix) + b) = (apply_matrix f a) + (apply_matrix f b)"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (simp)
 done
 
-lemma singleton_matrix_add: "singleton_matrix j i ((a::_::lordered_ab_group)+b) = (singleton_matrix j i a) + (singleton_matrix j i b)"
+lemma singleton_matrix_add: "singleton_matrix j i ((a::_::lordered_ab_group_add)+b) = (singleton_matrix j i a) + (singleton_matrix j i b)"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (simp)
@@ -162,10 +163,10 @@ apply (subst transpose_mult_matrix)
 apply (simp_all add: mult_commute)
 done
 
-lemma transpose_matrix_add: "transpose_matrix ((A::('a::lordered_ab_group) matrix)+B) = transpose_matrix A + transpose_matrix B"
+lemma transpose_matrix_add: "transpose_matrix ((A::('a::lordered_ab_group_add) matrix)+B) = transpose_matrix A + transpose_matrix B"
 by (simp add: plus_matrix_def transpose_combine_matrix)
 
-lemma transpose_matrix_diff: "transpose_matrix ((A::('a::lordered_ab_group) matrix)-B) = transpose_matrix A - transpose_matrix B"
+lemma transpose_matrix_diff: "transpose_matrix ((A::('a::lordered_ab_group_add) matrix)-B) = transpose_matrix A - transpose_matrix B"
 by (simp add: diff_matrix_def transpose_combine_matrix)
 
 lemma transpose_matrix_minus: "transpose_matrix (-(A::('a::lordered_ring) matrix)) = - transpose_matrix (A::('a::lordered_ring) matrix)"
@@ -252,7 +253,7 @@ apply (rule nrows_move_matrix_le)
 apply (simp add: max2)
 done
 
-lemma move_matrix_add: "((move_matrix (A + B) j i)::(('a::lordered_ab_group) matrix)) = (move_matrix A j i) + (move_matrix B j i)" 
+lemma move_matrix_add: "((move_matrix (A + B) j i)::(('a::lordered_ab_group_add) matrix)) = (move_matrix A j i) + (move_matrix B j i)" 
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (simp)
@@ -280,7 +281,7 @@ apply (rule ext)+
 apply (auto)
 done
 
-lemma Rep_minus[simp]: "Rep_matrix (-(A::_::lordered_ab_group)) x y = - (Rep_matrix A x y)"
+lemma Rep_minus[simp]: "Rep_matrix (-(A::_::lordered_ab_group_add)) x y = - (Rep_matrix A x y)"
 by (simp add: minus_matrix_def)
 
 lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lordered_ring)) x y = abs (Rep_matrix A x y)"

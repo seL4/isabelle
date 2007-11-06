@@ -1199,7 +1199,7 @@ next
 qed
 
 lemma setsum_abs[iff]: 
-  fixes f :: "'a => ('b::lordered_ab_group_abs)"
+  fixes f :: "'a => ('b::pordered_ab_group_add_abs)"
   shows "abs (setsum f A) \<le> setsum (%i. abs(f i)) A"
 proof (cases "finite A")
   case True
@@ -1215,7 +1215,7 @@ next
 qed
 
 lemma setsum_abs_ge_zero[iff]: 
-  fixes f :: "'a => ('b::lordered_ab_group_abs)"
+  fixes f :: "'a => ('b::pordered_ab_group_add_abs)"
   shows "0 \<le> setsum (%i. abs(f i)) A"
 proof (cases "finite A")
   case True
@@ -1230,7 +1230,7 @@ next
 qed
 
 lemma abs_setsum_abs[simp]: 
-  fixes f :: "'a => ('b::lordered_ab_group_abs)"
+  fixes f :: "'a => ('b::pordered_ab_group_add_abs)"
   shows "abs (\<Sum>a\<in>A. abs(f a)) = (\<Sum>a\<in>A. abs(f a))"
 proof (cases "finite A")
   case True

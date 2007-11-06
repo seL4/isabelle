@@ -394,6 +394,78 @@ lemma min_add_distrib_left:
 
 end
 
+subsection {* Support for reasoning about signs *}
+
+class pordered_comm_monoid_add =
+  pordered_cancel_ab_semigroup_add + comm_monoid_add
+begin
+
+lemma add_pos_nonneg:
+  assumes "0 < a" and "0 \<le> b"
+    shows "0 < a + b"
+proof -
+  have "0 + 0 < a + b" 
+    using assms by (rule add_less_le_mono)
+  then show ?thesis by simp
+qed
+
+lemma add_pos_pos:
+  assumes "0 < a" and "0 < b"
+    shows "0 < a + b"
+  by (rule add_pos_nonneg) (insert assms, auto)
+
+lemma add_nonneg_pos:
+  assumes "0 \<le> a" and "0 < b"
+    shows "0 < a + b"
+proof -
+  have "0 + 0 < a + b" 
+    using assms by (rule add_le_less_mono)
+  then show ?thesis by simp
+qed
+
+lemma add_nonneg_nonneg:
+  assumes "0 \<le> a" and "0 \<le> b"
+    shows "0 \<le> a + b"
+proof -
+  have "0 + 0 \<le> a + b" 
+    using assms by (rule add_mono)
+  then show ?thesis by simp
+qed
+
+lemma add_neg_nonpos: 
+  assumes "a < 0" and "b \<le> 0"
+  shows "a + b < 0"
+proof -
+  have "a + b < 0 + 0"
+    using assms by (rule add_less_le_mono)
+  then show ?thesis by simp
+qed
+
+lemma add_neg_neg: 
+  assumes "a < 0" and "b < 0"
+  shows "a + b < 0"
+  by (rule add_neg_nonpos) (insert assms, auto)
+
+lemma add_nonpos_neg:
+  assumes "a \<le> 0" and "b < 0"
+  shows "a + b < 0"
+proof -
+  have "a + b < 0 + 0"
+    using assms by (rule add_le_less_mono)
+  then show ?thesis by simp
+qed
+
+lemma add_nonpos_nonpos:
+  assumes "a \<le> 0" and "b \<le> 0"
+  shows "a + b \<le> 0"
+proof -
+  have "a + b \<le> 0 + 0"
+    using assms by (rule add_mono)
+  then show ?thesis by simp
+qed
+
+end
+
 class pordered_ab_group_add =
   ab_group_add + pordered_ab_semigroup_add
 begin
@@ -409,6 +481,9 @@ proof unfold_locales
   hence "((-c) + c) + a \<le> ((-c) + c) + b" by (simp only: add_assoc)
   thus "a \<le> b" by simp
 qed
+
+subclass pordered_comm_monoid_add
+  by unfold_locales
 
 lemma max_diff_distrib_left:
   shows "max x y - z = max (x - z) (y - z)"
@@ -584,6 +659,65 @@ begin
 subclass ordered_cancel_ab_semigroup_add 
   by unfold_locales
 
+lemma neg_less_eq_nonneg:
+  "- a \<le> a \<longleftrightarrow> 0 \<le> a"
+proof
+  assume A: "- a \<le> a" show "0 \<le> a"
+  proof (rule classical)
+    assume "\<not> 0 \<le> a"
+    then have "a < 0" by auto
+    with A have "- a < 0" by (rule le_less_trans)
+    then show ?thesis by auto
+  qed
+next
+  assume A: "0 \<le> a" show "- a \<le> a"
+  proof (rule order_trans)
+    show "- a \<le> 0" using A by (simp add: minus_le_iff)
+  next
+    show "0 \<le> a" using A .
+  qed
+qed
+  
+lemma less_eq_neg_nonpos:
+  "a \<le> - a \<longleftrightarrow> a \<le> 0"
+proof
+  assume A: "a \<le> - a" show "a \<le> 0"
+  proof (rule classical)
+    assume "\<not> a \<le> 0"
+    then have "0 < a" by auto
+    then have "0 < - a" using A by (rule less_le_trans)
+    then show ?thesis by auto
+  qed
+next
+  assume A: "a \<le> 0" show "a \<le> - a"
+  proof (rule order_trans)
+    show "0 \<le> - a" using A by (simp add: minus_le_iff)
+  next
+    show "a \<le> 0" using A .
+  qed
+qed
+
+lemma equal_neg_zero:
+  "a = - a \<longleftrightarrow> a = 0"
+proof
+  assume "a = 0" then show "a = - a" by simp
+next
+  assume A: "a = - a" show "a = 0"
+  proof (cases "0 \<le> a")
+    case True with A have "0 \<le> - a" by auto
+    with le_minus_iff have "a \<le> 0" by simp
+    with True show ?thesis by (auto intro: order_trans)
+  next
+    case False then have B: "a \<le> 0" by auto
+    with A have "- a \<le> 0" by auto
+    with B show ?thesis by (auto intro: order_trans)
+  qed
+qed
+
+lemma neg_equal_zero:
+  "- a = a \<longleftrightarrow> a = 0"
+  unfolding equal_neg_zero [symmetric] by auto
+
 end
 
 -- {* FIXME localize the following *}
@@ -609,77 +743,136 @@ lemma add_strict_increasing2:
 by (insert add_le_less_mono [of 0 a b c], simp)
 
 
-subsection {* Support for reasoning about signs *}
+class pordered_ab_group_add_abs = pordered_ab_group_add + abs +
+  assumes abs_ge_zero [simp]: "\<bar>a\<bar> \<ge> 0"
+    and abs_ge_self: "a \<le> \<bar>a\<bar>"
+    and abs_of_nonneg [simp]: "0 \<le> a \<Longrightarrow> \<bar>a\<bar> = a"
+    and abs_leI: "a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
+    and abs_eq_0 [simp]: "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
+    and abs_minus_cancel [simp]: "\<bar>-a\<bar> = \<bar>a\<bar>"
+    and abs_idempotent [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
+    and abs_triangle_ineq: "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
+begin
 
-lemma add_pos_pos: "0 < 
-    (x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) 
-      ==> 0 < y ==> 0 < x + y"
-apply (subgoal_tac "0 + 0 < x + y")
-apply simp
-apply (erule add_less_le_mono)
-apply (erule order_less_imp_le)
+lemma abs_zero [simp]: "\<bar>0\<bar> = 0"
+  by simp
+
+lemma abs_0_eq [simp, noatp]: "0 = \<bar>a\<bar> \<longleftrightarrow> a = 0"
+proof -
+  have "0 = \<bar>a\<bar> \<longleftrightarrow> \<bar>a\<bar> = 0" by (simp only: eq_ac)
+  thus ?thesis by simp
+qed
+
+lemma abs_le_zero_iff [simp]: "\<bar>a\<bar> \<le> 0 \<longleftrightarrow> a = 0" 
+proof
+  assume "\<bar>a\<bar> \<le> 0"
+  then have "\<bar>a\<bar> = 0" by (rule antisym) simp
+  thus "a = 0" by simp
+next
+  assume "a = 0"
+  thus "\<bar>a\<bar> \<le> 0" by simp
+qed
+
+lemma zero_less_abs_iff [simp]: "0 < \<bar>a\<bar> \<longleftrightarrow> a \<noteq> 0"
+  by (simp add: less_le)
+
+lemma abs_not_less_zero [simp]: "\<not> \<bar>a\<bar> < 0"
+proof -
+  have a: "\<And>x y. x \<le> y \<Longrightarrow> \<not> y < x" by auto
+  show ?thesis by (simp add: a)
+qed
+
+lemma abs_ge_minus_self: "- a \<le> \<bar>a\<bar>"
+proof -
+  have "- a \<le> \<bar>-a\<bar>" by (rule abs_ge_self)
+  then show ?thesis by simp
+qed
+
+lemma abs_minus_commute: 
+  "\<bar>a - b\<bar> = \<bar>b - a\<bar>"
+proof -
+  have "\<bar>a - b\<bar> = \<bar>- (a - b)\<bar>" by (simp only: abs_minus_cancel)
+  also have "... = \<bar>b - a\<bar>" by simp
+  finally show ?thesis .
+qed
+
+lemma abs_of_pos: "0 < a \<Longrightarrow> \<bar>a\<bar> = a"
+  by (rule abs_of_nonneg, rule less_imp_le)
+
+lemma abs_of_nonpos [simp]:
+  assumes "a \<le> 0"
+  shows "\<bar>a\<bar> = - a"
+proof -
+  let ?b = "- a"
+  have "- ?b \<le> 0 \<Longrightarrow> \<bar>- ?b\<bar> = - (- ?b)"
+  unfolding abs_minus_cancel [of "?b"]
+  unfolding neg_le_0_iff_le [of "?b"]
+  unfolding minus_minus by (erule abs_of_nonneg)
+  then show ?thesis using assms by auto
+qed
+  
+lemma abs_of_neg: "a < 0 \<Longrightarrow> \<bar>a\<bar> = - a"
+  by (rule abs_of_nonpos, rule less_imp_le)
+
+lemma abs_le_D1: "\<bar>a\<bar> \<le> b \<Longrightarrow> a \<le> b"
+  by (insert abs_ge_self, blast intro: order_trans)
+
+lemma abs_le_D2: "\<bar>a\<bar> \<le> b \<Longrightarrow> - a \<le> b"
+  by (insert abs_le_D1 [of "uminus a"], simp)
+
+lemma abs_le_iff: "\<bar>a\<bar> \<le> b \<longleftrightarrow> a \<le> b \<and> - a \<le> b"
+  by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
+
+lemma abs_triangle_ineq2: "\<bar>a\<bar> - \<bar>b\<bar> \<le> \<bar>a - b\<bar>"
+  apply (simp add: compare_rls)
+  apply (subgoal_tac "abs a = abs (plus (minus a b) b)")
+  apply (erule ssubst)
+  apply (rule abs_triangle_ineq)
+  apply (rule arg_cong) back
+  apply (simp add: compare_rls)
 done
 
-lemma add_pos_nonneg: "0 < 
-    (x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) 
-      ==> 0 <= y ==> 0 < x + y"
-apply (subgoal_tac "0 + 0 < x + y")
-apply simp
-apply (erule add_less_le_mono, assumption)
+lemma abs_triangle_ineq3: "\<bar>\<bar>a\<bar> - \<bar>b\<bar>\<bar> \<le> \<bar>a - b\<bar>"
+  apply (subst abs_le_iff)
+  apply auto
+  apply (rule abs_triangle_ineq2)
+  apply (subst abs_minus_commute)
+  apply (rule abs_triangle_ineq2)
 done
 
-lemma add_nonneg_pos: "0 <= 
-    (x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) 
-      ==> 0 < y ==> 0 < x + y"
-apply (subgoal_tac "0 + 0 < x + y")
-apply simp
-apply (erule add_le_less_mono, assumption)
-done
+lemma abs_triangle_ineq4: "\<bar>a - b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
+proof -
+  have "abs(a - b) = abs(a + - b)"
+    by (subst diff_minus, rule refl)
+  also have "... <= abs a + abs (- b)"
+    by (rule abs_triangle_ineq)
+  finally show ?thesis
+    by simp
+qed
 
-lemma add_nonneg_nonneg: "0 <= 
-    (x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) 
-      ==> 0 <= y ==> 0 <= x + y"
-apply (subgoal_tac "0 + 0 <= x + y")
-apply simp
-apply (erule add_mono, assumption)
-done
+lemma abs_diff_triangle_ineq: "\<bar>a + b - (c + d)\<bar> \<le> \<bar>a - c\<bar> + \<bar>b - d\<bar>"
+proof -
+  have "\<bar>a + b - (c+d)\<bar> = \<bar>(a-c) + (b-d)\<bar>" by (simp add: diff_minus add_ac)
+  also have "... \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>" by (rule abs_triangle_ineq)
+  finally show ?thesis .
+qed
 
-lemma add_neg_neg: "(x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add})
-    < 0 ==> y < 0 ==> x + y < 0"
-apply (subgoal_tac "x + y < 0 + 0")
-apply simp
-apply (erule add_less_le_mono)
-apply (erule order_less_imp_le)
-done
+lemma abs_add_abs [simp]:
+  "\<bar>\<bar>a\<bar> + \<bar>b\<bar>\<bar> = \<bar>a\<bar> + \<bar>b\<bar>" (is "?L = ?R")
+proof (rule antisym)
+  show "?L \<ge> ?R" by(rule abs_ge_self)
+next
+  have "?L \<le> \<bar>\<bar>a\<bar>\<bar> + \<bar>\<bar>b\<bar>\<bar>" by(rule abs_triangle_ineq)
+  also have "\<dots> = ?R" by simp
+  finally show "?L \<le> ?R" .
+qed
 
-lemma add_neg_nonpos: 
-    "(x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) < 0 
-      ==> y <= 0 ==> x + y < 0"
-apply (subgoal_tac "x + y < 0 + 0")
-apply simp
-apply (erule add_less_le_mono, assumption)
-done
-
-lemma add_nonpos_neg: 
-    "(x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) <= 0 
-      ==> y < 0 ==> x + y < 0"
-apply (subgoal_tac "x + y < 0 + 0")
-apply simp
-apply (erule add_le_less_mono, assumption)
-done
-
-lemma add_nonpos_nonpos: 
-    "(x::'a::{comm_monoid_add,pordered_cancel_ab_semigroup_add}) <= 0 
-      ==> y <= 0 ==> x + y <= 0"
-apply (subgoal_tac "x + y <= 0 + 0")
-apply simp
-apply (erule add_mono, assumption)
-done
+end
 
 
 subsection {* Lattice Ordered (Abelian) Groups *}
 
-class lordered_ab_group_meet = pordered_ab_group_add + lower_semilattice
+class lordered_ab_group_add_meet = pordered_ab_group_add + lower_semilattice
 begin
 
 lemma add_inf_distrib_left:
@@ -701,7 +894,7 @@ qed
 
 end
 
-class lordered_ab_group_join = pordered_ab_group_add + upper_semilattice
+class lordered_ab_group_add_join = pordered_ab_group_add + upper_semilattice
 begin
 
 lemma add_sup_distrib_left:
@@ -724,11 +917,11 @@ qed
 
 end
 
-class lordered_ab_group = pordered_ab_group_add + lattice
+class lordered_ab_group_add = pordered_ab_group_add + lattice
 begin
 
-subclass lordered_ab_group_meet by unfold_locales
-subclass lordered_ab_group_join by unfold_locales
+subclass lordered_ab_group_add_meet by unfold_locales
+subclass lordered_ab_group_add_join by unfold_locales
 
 lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
@@ -982,134 +1175,7 @@ end
 lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
 
-class pordered_ab_group_add_abs = pordered_ab_group_add + abs +
-  assumes abs_ge_zero [simp]: "\<bar>a\<bar> \<ge> 0"
-    and abs_ge_self: "a \<le> \<bar>a\<bar>"
-    and abs_of_nonneg [simp]: "0 \<le> a \<Longrightarrow> \<bar>a\<bar> = a"
-    and abs_leI: "a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
-    and abs_eq_0 [simp]: "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
-    and abs_minus_cancel [simp]: "\<bar>-a\<bar> = \<bar>a\<bar>"
-    and abs_idempotent [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
-    and abs_triangle_ineq: "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
-begin
-
-lemma abs_zero [simp]: "\<bar>0\<bar> = 0"
-  by simp
-
-lemma abs_0_eq [simp, noatp]: "0 = \<bar>a\<bar> \<longleftrightarrow> a = 0"
-proof -
-  have "0 = \<bar>a\<bar> \<longleftrightarrow> \<bar>a\<bar> = 0" by (simp only: eq_ac)
-  thus ?thesis by simp
-qed
-
-lemma abs_le_zero_iff [simp]: "\<bar>a\<bar> \<le> 0 \<longleftrightarrow> a = 0" 
-proof
-  assume "\<bar>a\<bar> \<le> 0"
-  then have "\<bar>a\<bar> = 0" by (rule antisym) simp
-  thus "a = 0" by simp
-next
-  assume "a = 0"
-  thus "\<bar>a\<bar> \<le> 0" by simp
-qed
-
-lemma zero_less_abs_iff [simp]: "0 < \<bar>a\<bar> \<longleftrightarrow> a \<noteq> 0"
-  by (simp add: less_le)
-
-lemma abs_not_less_zero [simp]: "\<not> \<bar>a\<bar> < 0"
-proof -
-  have a: "\<And>x y. x \<le> y \<Longrightarrow> \<not> y < x" by auto
-  show ?thesis by (simp add: a)
-qed
-
-lemma abs_ge_minus_self: "- a \<le> \<bar>a\<bar>"
-proof -
-  have "- a \<le> \<bar>-a\<bar>" by (rule abs_ge_self)
-  then show ?thesis by simp
-qed
-
-lemma abs_minus_commute: 
-  "\<bar>a - b\<bar> = \<bar>b - a\<bar>"
-proof -
-  have "\<bar>a - b\<bar> = \<bar>- (a - b)\<bar>" by (simp only: abs_minus_cancel)
-  also have "... = \<bar>b - a\<bar>" by simp
-  finally show ?thesis .
-qed
-
-lemma abs_of_pos: "0 < a \<Longrightarrow> \<bar>a\<bar> = a"
-  by (rule abs_of_nonneg, rule less_imp_le)
-
-lemma abs_of_nonpos [simp]:
-  assumes "a \<le> 0"
-  shows "\<bar>a\<bar> = - a"
-proof -
-  let ?b = "- a"
-  have "- ?b \<le> 0 \<Longrightarrow> \<bar>- ?b\<bar> = - (- ?b)"
-  unfolding abs_minus_cancel [of "?b"]
-  unfolding neg_le_0_iff_le [of "?b"]
-  unfolding minus_minus by (erule abs_of_nonneg)
-  then show ?thesis using assms by auto
-qed
-  
-lemma abs_of_neg: "a < 0 \<Longrightarrow> \<bar>a\<bar> = - a"
-  by (rule abs_of_nonpos, rule less_imp_le)
-
-lemma abs_le_D1: "\<bar>a\<bar> \<le> b \<Longrightarrow> a \<le> b"
-  by (insert abs_ge_self, blast intro: order_trans)
-
-lemma abs_le_D2: "\<bar>a\<bar> \<le> b \<Longrightarrow> - a \<le> b"
-  by (insert abs_le_D1 [of "uminus a"], simp)
-
-lemma abs_le_iff: "\<bar>a\<bar> \<le> b \<longleftrightarrow> a \<le> b \<and> - a \<le> b"
-  by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
-
-lemma abs_triangle_ineq2: "\<bar>a\<bar> - \<bar>b\<bar> \<le> \<bar>a - b\<bar>"
-  apply (simp add: compare_rls)
-  apply (subgoal_tac "abs a = abs (plus (minus a b) b)")
-  apply (erule ssubst)
-  apply (rule abs_triangle_ineq)
-  apply (rule arg_cong) back
-  apply (simp add: compare_rls)
-done
-
-lemma abs_triangle_ineq3: "\<bar>\<bar>a\<bar> - \<bar>b\<bar>\<bar> \<le> \<bar>a - b\<bar>"
-  apply (subst abs_le_iff)
-  apply auto
-  apply (rule abs_triangle_ineq2)
-  apply (subst abs_minus_commute)
-  apply (rule abs_triangle_ineq2)
-done
-
-lemma abs_triangle_ineq4: "\<bar>a - b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
-proof -
-  have "abs(a - b) = abs(a + - b)"
-    by (subst diff_minus, rule refl)
-  also have "... <= abs a + abs (- b)"
-    by (rule abs_triangle_ineq)
-  finally show ?thesis
-    by simp
-qed
-
-lemma abs_diff_triangle_ineq: "\<bar>a + b - (c + d)\<bar> \<le> \<bar>a - c\<bar> + \<bar>b - d\<bar>"
-proof -
-  have "\<bar>a + b - (c+d)\<bar> = \<bar>(a-c) + (b-d)\<bar>" by (simp add: diff_minus add_ac)
-  also have "... \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>" by (rule abs_triangle_ineq)
-  finally show ?thesis .
-qed
-
-lemma abs_add_abs [simp]:
-  "\<bar>\<bar>a\<bar> + \<bar>b\<bar>\<bar> = \<bar>a\<bar> + \<bar>b\<bar>" (is "?L = ?R")
-proof (rule antisym)
-  show "?L \<ge> ?R" by(rule abs_ge_self)
-next
-  have "?L \<le> \<bar>\<bar>a\<bar>\<bar> + \<bar>\<bar>b\<bar>\<bar>" by(rule abs_triangle_ineq)
-  also have "\<dots> = ?R" by simp
-  finally show "?L \<le> ?R" .
-qed
-
-end
-
-
-class lordered_ab_group_abs = lordered_ab_group + abs +
+class lordered_ab_group_add_abs = lordered_ab_group_add + abs +
   assumes abs_lattice: "\<bar>a\<bar> = sup a (- a)"
 begin
 
@@ -1190,7 +1256,7 @@ qed
 end
 
 lemma sup_eq_if:
-  fixes a :: "'a\<Colon>{lordered_ab_group, linorder}"
+  fixes a :: "'a\<Colon>{lordered_ab_group_add, linorder}"
   shows "sup a (- a) = (if a < 0 then - a else a)"
 proof -
   note add_le_cancel_right [of a a "- a", symmetric, simplified]
@@ -1199,7 +1265,7 @@ proof -
 qed
 
 lemma abs_if_lattice:
-  fixes a :: "'a\<Colon>{lordered_ab_group_abs, linorder}"
+  fixes a :: "'a\<Colon>{lordered_ab_group_add_abs, linorder}"
   shows "\<bar>a\<bar> = (if a < 0 then - a else a)"
   by auto
 
@@ -1244,7 +1310,7 @@ lemma le_add_right_mono:
   done
 
 lemma estimate_by_abs:
-  "a + b <= (c::'a::lordered_ab_group_abs) \<Longrightarrow> a <= c + abs b" 
+  "a + b <= (c::'a::lordered_ab_group_add_abs) \<Longrightarrow> a <= c + abs b" 
 proof -
   assume "a+b <= c"
   hence 2: "a <= c+(-b)" by (simp add: group_simps)
