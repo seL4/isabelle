@@ -6,7 +6,7 @@
 header "Size-Change Termination"
 
 theory Size_Change_Termination
-imports SCT_Theorem SCT_Interpretation SCT_Implementation 
+imports Correctness Interpretation Implementation 
 uses "sct.ML"
 begin
 

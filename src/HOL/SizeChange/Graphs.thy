@@ -6,7 +6,7 @@
 header {* General Graphs as Sets *}
 
 theory Graphs
-imports Main SCT_Misc Kleene_Algebras
+imports Main Misc_Tools Kleene_Algebras
 begin
 
 subsection {* Basic types, Size Change Graphs *}

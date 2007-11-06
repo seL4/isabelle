@@ -5,7 +5,7 @@
 
 header {* The Size-Change Principle (Definition) *}
 
-theory SCT_Definition
+theory Criterion
 imports Graphs Infinite_Set
 begin
 

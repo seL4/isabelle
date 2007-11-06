@@ -5,8 +5,8 @@
 
 header {* Implemtation of the SCT criterion *}
 
-theory SCT_Implementation
-imports SCT_Definition SCT_Theorem
+theory Implementation
+imports Correctness
 begin
 
 fun edges_match :: "('n \<times> 'e \<times> 'n) \<times> ('n \<times> 'e \<times> 'n) \<Rightarrow> bool"
@@ -188,7 +188,7 @@ qed
 code_modulename SML
   Graphs SCT
   Kleene_Algebras SCT
-  SCT_Implementation SCT
+  Implementation SCT
 
 export_code test_SCT in SML
 

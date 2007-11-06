@@ -26,8 +26,8 @@ fun graphT nT eT = Type ("Graphs.graph", [nT, eT])
 
 fun graph_const nT eT = Const ("Graphs.graph.Graph", HOLogic.mk_setT (edgeT nT eT) --> graphT nT eT)
 
-val stepP_const = "SCT_Interpretation.stepP"
-val stepP_def = thm "SCT_Interpretation.stepP.simps"
+val stepP_const = "Interpretation.stepP"
+val stepP_def = thm "Interpretation.stepP.simps"
 
 fun mk_stepP RD1 RD2 M1 M2 Rel =
     let val RDT = fastype_of RD1
@@ -37,20 +37,20 @@ fun mk_stepP RD1 RD2 M1 M2 Rel =
             $ RD1 $ RD2 $ M1 $ M2 $ Rel
     end
 
-val no_stepI = thm "SCT_Interpretation.no_stepI"
+val no_stepI = thm "Interpretation.no_stepI"
 
-val approx_const = "SCT_Interpretation.approx"
-val approx_empty = thm "SCT_Interpretation.approx_empty"
-val approx_less = thm "SCT_Interpretation.approx_less"
-val approx_leq = thm "SCT_Interpretation.approx_leq"
+val approx_const = "Interpretation.approx"
+val approx_empty = thm "Interpretation.approx_empty"
+val approx_less = thm "Interpretation.approx_less"
+val approx_leq = thm "Interpretation.approx_leq"
 
 fun mk_approx G RD1 RD2 Ms1 Ms2 =
     let val RDT = fastype_of RD1
       val MsT = fastype_of Ms1
     in Const (approx_const, scgT --> RDT --> RDT --> MsT --> MsT --> HOLogic.boolT) $ G $ RD1 $ RD2 $ Ms1 $ Ms2 end
 
-val sound_int_const = "SCT_Interpretation.sound_int"
-val sound_int_def = thm "SCT_Interpretation.sound_int_def"
+val sound_int_const = "Interpretation.sound_int"
+val sound_int_def = thm "Interpretation.sound_int_def"
 fun mk_sound_int A RDs M =
     let val RDsT = fastype_of RDs
       val MT = fastype_of M
@@ -68,8 +68,8 @@ val lesseq_nat_const = Const (@{const_name HOL.less_eq}, HOLogic.natT --> HOLogi
 
 val has_edge_simps = [thm "Graphs.has_edge_def", thm "Graphs.dest_graph.simps"]
 
-val all_less_zero = thm "SCT_Interpretation.all_less_zero"
-val all_less_Suc = thm "SCT_Interpretation.all_less_Suc"
+val all_less_zero = thm "Interpretation.all_less_zero"
+val all_less_Suc = thm "Interpretation.all_less_Suc"
 
 (* --> Library? *)
 fun del_index n [] = []
@@ -299,7 +299,7 @@ fun all_less_tac [] = rtac all_less_zero 1
 
 
 fun mk_length l = HOLogic.size_const (fastype_of l) $ l;
-val length_simps = thms "SCT_Interpretation.length_simps"
+val length_simps = thms "Interpretation.length_simps"
 
 
 

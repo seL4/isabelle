@@ -512,6 +512,18 @@ $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
   Modelcheck/ROOT.ML Modelcheck/mucke_oracle.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
 
+## HOL-SizeChange
+
+HOL-SizeChange: HOL $(LOG)/HOL-SizeChange.gz
+
+$(LOG)/HOL-SizeChange.gz: $(OUT)/HOL \
+	SizeChange/Kleene_Algebras.thy SizeChange/Graphs.thy \
+	SizeChange/Misc_Tools.thy SizeChange/Criterion \
+	SizeChange/Correctness SizeChange/Interpretation \
+	SizeChange/Implementation SizeChange/Size_Change_Termination \
+	SizeChange/Examples	SizeChange/sct.ML \
+	SizeChange/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOL SizeChange
 
 ## HOL-Lambda
 

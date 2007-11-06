@@ -5,7 +5,7 @@
 
 header {* Miscellaneous Tools for Size-Change Termination *}
 
-theory SCT_Misc   (* FIXME proper name *)
+theory Misc_Tools
 imports Main
 begin
 

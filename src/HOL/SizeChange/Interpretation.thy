@@ -5,8 +5,8 @@
 
 header {* Applying SCT to function definitions *}
 
-theory SCT_Interpretation
-imports Main SCT_Misc SCT_Definition
+theory Interpretation
+imports Main Misc_Tools Criterion
 begin
 
 definition

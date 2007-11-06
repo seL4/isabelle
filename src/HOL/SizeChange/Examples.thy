@@ -5,7 +5,7 @@
 
 header {* Examples for Size-Change Termination *}
 
-theory SCT_Examples
+theory Examples
 imports Size_Change_Termination
 begin
 

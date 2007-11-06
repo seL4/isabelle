@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header ""
+header "Kleene Algebras"
 
 theory Kleene_Algebras
 imports Main 

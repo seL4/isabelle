@@ -5,11 +5,11 @@
 
 header "Proof of the Size-Change Principle"
 
-theory SCT_Theorem
-imports Main Ramsey SCT_Misc SCT_Definition
+theory Correctness
+imports Main Ramsey Misc_Tools Criterion
 begin
 
-subsection {* The size change criterion SCT *}
+subsection {* Auxiliary definitions *}
 
 definition is_thread :: "nat \<Rightarrow> 'a sequence \<Rightarrow> ('a, 'a scg) ipath \<Rightarrow> bool"
 where
