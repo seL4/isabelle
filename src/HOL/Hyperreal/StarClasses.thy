@@ -326,13 +326,19 @@ instance star :: (pordered_cancel_ab_semigroup_add) pordered_cancel_ab_semigroup
 instance star :: (pordered_ab_semigroup_add_imp_le) pordered_ab_semigroup_add_imp_le
 by (intro_classes, transfer, rule add_le_imp_le_left)
 
+instance star :: (pordered_comm_monoid_add) pordered_comm_monoid_add ..
 instance star :: (pordered_ab_group_add) pordered_ab_group_add ..
-instance star :: (ordered_cancel_ab_semigroup_add) ordered_cancel_ab_semigroup_add ..
-instance star :: (lordered_ab_group_meet) lordered_ab_group_meet ..
-instance star :: (lordered_ab_group_meet) lordered_ab_group_meet ..
-instance star :: (lordered_ab_group) lordered_ab_group ..
 
-instance star :: (lordered_ab_group_abs) lordered_ab_group_abs
+instance star :: (pordered_ab_group_add_abs) pordered_ab_group_add_abs 
+  by intro_classes (transfer,
+    simp add: abs_ge_self abs_leI abs_triangle_ineq)+
+
+instance star :: (ordered_cancel_ab_semigroup_add) ordered_cancel_ab_semigroup_add ..
+instance star :: (lordered_ab_group_add_meet) lordered_ab_group_add_meet ..
+instance star :: (lordered_ab_group_add_meet) lordered_ab_group_add_meet ..
+instance star :: (lordered_ab_group_add) lordered_ab_group_add ..
+
+instance star :: (lordered_ab_group_add_abs) lordered_ab_group_add_abs
 by (intro_classes, transfer, rule abs_lattice)
 
 subsection {* Ring and field classes *}
@@ -411,6 +417,8 @@ instance star :: (ordered_comm_semiring_strict) ordered_comm_semiring_strict
 by (intro_classes, transfer, rule ordered_comm_semiring_strict_class.plus_times_zero_less_eq_less.mult_strict_mono)
 
 instance star :: (pordered_ring) pordered_ring ..
+instance star :: (pordered_ring_abs) pordered_ring_abs
+  by intro_classes  (transfer, rule abs_eq_mult)
 instance star :: (lordered_ring) lordered_ring ..
 
 instance star :: (abs_if) abs_if

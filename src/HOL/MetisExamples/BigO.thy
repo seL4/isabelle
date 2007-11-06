@@ -25,8 +25,8 @@ lemma bigo_pos_const: "(EX (c::'a::ordered_idom).
   apply auto
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
-  apply (rule_tac x = "abs c" in exI, auto);
-  apply (metis abs_ge_minus_self abs_ge_zero abs_minus_cancel abs_of_nonneg equation_minus_iff Orderings.xt1(6) abs_le_mult)
+  apply (rule_tac x = "abs c" in exI, auto)
+  apply (metis abs_ge_minus_self abs_ge_zero abs_minus_cancel abs_of_nonneg equation_minus_iff Orderings.xt1(6) abs_mult)
   done
 
 (*** Now various verions with an increasing modulus ***)
@@ -858,11 +858,12 @@ lemma bigo_const_mult1: "(%x. c * f x) : O(f)"
   apply (simp add: bigo_def abs_mult)
 proof (neg_clausify)
 fix x
-assume 0: "\<And>xa. \<not> \<bar>c\<bar> * \<bar>f (x xa)\<bar> \<le> xa * \<bar>f (x xa)\<bar>"
-have 1: "\<And>X2. \<not> \<bar>c * f (x X2)\<bar> \<le> X2 * \<bar>f (x X2)\<bar>"
-  by (metis 0 abs_mult)
+assume 0: "\<And>xa\<Colon>'b\<Colon>ordered_idom.
+   \<not> \<bar>c\<Colon>'b\<Colon>ordered_idom\<bar> *
+     \<bar>(f\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>ordered_idom) ((x\<Colon>'b\<Colon>ordered_idom \<Rightarrow> 'a\<Colon>type) xa)\<bar>
+     \<le> xa * \<bar>f (x xa)\<bar>"
 show "False"
-  by (metis 1 abs_le_mult)
+  by (metis linorder_neq_iff linorder_antisym_conv1 0)
 qed
 
 lemma bigo_const_mult2: "O(%x. c * f x) <= O(f)"

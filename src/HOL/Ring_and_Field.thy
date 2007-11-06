@@ -353,6 +353,8 @@ begin
 
 subclass pordered_cancel_semiring by unfold_locales
 
+subclass pordered_comm_monoid_add by unfold_locales
+
 lemma mult_left_less_imp_less:
   "c * a < c * b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
   by (force simp add: mult_left_mono not_le [symmetric])
@@ -514,14 +516,6 @@ lemma split_mult_pos_le:
 
 end
 
-class lordered_ring = pordered_ring + lordered_ab_group_abs
-begin
-
-subclass lordered_ab_group_meet by unfold_locales
-subclass lordered_ab_group_join by unfold_locales
-
-end
-
 class abs_if = minus + ord + zero + abs +
   assumes abs_if: "\<bar>a\<bar> = (if a < 0 then (- a) else a)"
 
@@ -529,29 +523,31 @@ class sgn_if = sgn + zero + one + minus + ord +
   assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
 
 class ordered_ring = ring + ordered_semiring
-  + lordered_ab_group + abs_if
-  -- {*FIXME: should inherit from @{text ordered_ab_group_add} rather than
-         @{text lordered_ab_group}*}
+  + ordered_ab_group_add + abs_if
+begin
 
-instance ordered_ring \<subseteq> lordered_ring
-proof 
-  fix x :: 'a
-  show "\<bar>x\<bar> = sup x (- x)"
-    by (simp only: abs_if sup_eq_if)
-qed
+subclass pordered_ring by unfold_locales
+
+subclass pordered_ab_group_add_abs
+proof unfold_locales
+  fix a b
+  show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
+  by (auto simp add: abs_if not_less neg_less_eq_nonneg less_eq_neg_nonpos)
+   (auto simp del: minus_add_distrib simp add: minus_add_distrib [symmetric]
+     neg_less_eq_nonneg less_eq_neg_nonpos, auto intro: add_nonneg_nonneg,
+      auto intro!: less_imp_le add_neg_neg)
+qed (auto simp add: abs_if less_eq_neg_nonpos neg_equal_zero)
+
+end
 
 (* The "strict" suffix can be seen as describing the combination of ordered_ring and no_zero_divisors.
    Basically, ordered_ring + no_zero_divisors = ordered_ring_strict.
  *)
 class ordered_ring_strict = ring + ordered_semiring_strict
-  + lordered_ab_group + abs_if
-  -- {*FIXME: should inherit from @{text ordered_ab_group_add} rather than
-         @{text lordered_ab_group}*}
-
-instance ordered_ring_strict \<subseteq> ordered_ring by intro_classes
-
-context ordered_ring_strict
+  + ordered_ab_group_add + abs_if
 begin
+
+subclass ordered_ring by unfold_locales
 
 lemma mult_strict_left_mono_neg:
   "b < a \<Longrightarrow> c < 0 \<Longrightarrow> c * a < c * b"
@@ -571,6 +567,12 @@ lemma mult_neg_neg:
 
 end
 
+instance ordered_ring_strict \<subseteq> ring_no_zero_divisors
+apply intro_classes
+apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
+apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono)+
+done
+
 lemma zero_less_mult_iff:
   fixes a :: "'a::ordered_ring_strict"
   shows "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
@@ -578,12 +580,6 @@ lemma zero_less_mult_iff:
   apply (blast dest: zero_less_mult_pos) 
   apply (blast dest: zero_less_mult_pos2)
   done
-
-instance ordered_ring_strict \<subseteq> ring_no_zero_divisors
-apply intro_classes
-apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
-apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono)+
-done
 
 lemma zero_le_mult_iff:
      "((0::'a::ordered_ring_strict) \<le> a*b) = (0 \<le> a & 0 \<le> b | a \<le> 0 & b \<le> 0)"
@@ -637,7 +633,7 @@ end
 class ordered_idom =
   comm_ring_1 +
   ordered_comm_semiring_strict +
-  lordered_ab_group +
+  ordered_ab_group_add +
   abs_if + sgn_if
   (*previously ordered_ring*)
 
@@ -651,8 +647,6 @@ lemma linorder_neqE_ordered_idom:
   fixes x y :: "'a :: ordered_idom"
   assumes "x \<noteq> y" obtains "x < y" | "y < x"
   using assms by (rule linorder_neqE)
-
--- {* FIXME continue localization here *}
 
 
 text{*Proving axiom @{text zero_less_one} makes all @{text ordered_semidom}
@@ -2006,12 +2000,29 @@ qed
 
 subsection {* Absolute Value *}
 
-lemma mult_sgn_abs: "sgn x * abs x = (x::'a::{ordered_idom,linorder})"
-using less_linear[of x 0]
-by(auto simp: sgn_if abs_if)
+context ordered_idom
+begin
+
+lemma mult_sgn_abs: "sgn x * abs x = x"
+  unfolding abs_if sgn_if by auto
+
+end
 
 lemma abs_one [simp]: "abs 1 = (1::'a::ordered_idom)"
-by (simp add: abs_if zero_less_one [THEN order_less_not_sym])
+  by (simp add: abs_if zero_less_one [THEN order_less_not_sym])
+
+class pordered_ring_abs = pordered_ring + pordered_ab_group_add_abs +
+  assumes abs_eq_mult:
+    "(0 \<le> a \<or> a \<le> 0) \<and> (0 \<le> b \<or> b \<le> 0) \<Longrightarrow> \<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>"
+
+
+class lordered_ring = pordered_ring + lordered_ab_group_add_abs
+begin
+
+subclass lordered_ab_group_add_meet by unfold_locales
+subclass lordered_ab_group_add_join by unfold_locales
+
+end
 
 lemma abs_le_mult: "abs (a * b) \<le> (abs a) * (abs (b::'a::lordered_ring))" 
 proof -
@@ -2054,9 +2065,11 @@ proof -
     done
 qed
 
-lemma abs_eq_mult: 
-  assumes "(0 \<le> a \<or> a \<le> 0) \<and> (0 \<le> b \<or> b \<le> 0)"
-  shows "abs (a*b) = abs a * abs (b::'a::lordered_ring)"
+instance lordered_ring \<subseteq> pordered_ring_abs
+proof
+  fix a b :: "'a\<Colon> lordered_ring"
+  assume "(0 \<le> a \<or> a \<le> 0) \<and> (0 \<le> b \<or> b \<le> 0)"
+  show "abs (a*b) = abs a * abs b"
 proof -
   have s: "(0 <= a*b) | (a*b <= 0)"
     apply (auto)    
@@ -2094,12 +2107,17 @@ proof -
       done
   qed
 qed
+qed
+
+instance ordered_idom \<subseteq> pordered_ring_abs
+by default (auto simp add: abs_if not_less
+  equal_neg_zero neg_equal_zero mult_less_0_iff)
 
 lemma abs_mult: "abs (a * b) = abs a * abs (b::'a::ordered_idom)" 
-by (simp add: abs_eq_mult linorder_linear)
+  by (simp add: abs_eq_mult linorder_linear)
 
 lemma abs_mult_self: "abs a * abs a = a * (a::'a::ordered_idom)"
-by (simp add: abs_if) 
+  by (simp add: abs_if) 
 
 lemma nonzero_abs_inverse:
      "a \<noteq> 0 ==> abs (inverse (a::'a::ordered_field)) = inverse (abs a)"
@@ -2134,29 +2152,27 @@ proof -
   thus ?thesis by (simp add: ac cpos mult_strict_mono) 
 qed
 
-lemma eq_minus_self_iff: "(a = -a) = (a = (0::'a::ordered_idom))"
-by (force simp add: order_eq_iff le_minus_self_iff minus_le_self_iff)
+lemmas eq_minus_self_iff = equal_neg_zero
 
 lemma less_minus_self_iff: "(a < -a) = (a < (0::'a::ordered_idom))"
-by (simp add: order_less_le le_minus_self_iff eq_minus_self_iff)
+  unfolding order_less_le less_eq_neg_nonpos equal_neg_zero ..
 
 lemma abs_less_iff: "(abs a < b) = (a < b & -a < (b::'a::ordered_idom))" 
 apply (simp add: order_less_le abs_le_iff)  
-apply (auto simp add: abs_if minus_le_self_iff eq_minus_self_iff)
-apply (simp add: le_minus_self_iff linorder_neq_iff) 
+apply (auto simp add: abs_if neg_less_eq_nonneg less_eq_neg_nonpos)
 done
 
 lemma abs_mult_pos: "(0::'a::ordered_idom) <= x ==> 
-    (abs y) * x = abs (y * x)";
-  apply (subst abs_mult);
-  apply simp;
-done;
+    (abs y) * x = abs (y * x)"
+  apply (subst abs_mult)
+  apply simp
+done
 
 lemma abs_div_pos: "(0::'a::{division_by_zero,ordered_field}) < y ==> 
-    abs x / y = abs (x / y)";
-  apply (subst abs_divide);
-  apply (simp add: order_less_imp_le);
-done;
+    abs x / y = abs (x / y)"
+  apply (subst abs_divide)
+  apply (simp add: order_less_imp_le)
+done
 
 
 subsection {* Bounds of products via negative and positive Part *}
