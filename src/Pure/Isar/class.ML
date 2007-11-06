@@ -18,7 +18,7 @@ sig
     -> xstring list -> theory -> string * Proof.context
   val is_class: theory -> class -> bool
   val these_params: theory -> sort -> (string * (string * typ)) list
-  val init: class -> Proof.context -> Proof.context
+  val init: class -> theory -> Proof.context
   val add_logical_const: string -> Markup.property list
     -> (string * mixfix) * term -> theory -> theory
   val add_syntactic_const: string -> Syntax.mode -> Markup.property list
@@ -716,12 +716,10 @@ fun init_ctxt thy sups base_sort ctxt =
       Syntax.add_term_check 0 "class" sort_term_check
       #> Syntax.add_term_uncheck 0 "class" sort_term_uncheck)
 
-fun init class ctxt =
-  let
-    val thy = ProofContext.theory_of ctxt;
-  in
-    init_ctxt thy [class] ((#base_sort o the_class_data thy) class) ctxt
-  end;
+fun init class thy =
+  thy
+  |> Locale.init class
+  |> init_ctxt thy [class] ((#base_sort o the_class_data thy) class);
 
 
 (* class definition *)
@@ -827,8 +825,9 @@ fun gen_class prep_spec prep_param bname
     thy
     |> Locale.add_locale_i (SOME "") bname mergeexpr elems
     |> snd
-    |> ProofContext.theory (`extract_params
-      #-> (fn (all_params, params) =>
+    |> ProofContext.theory_of
+    |> `extract_params
+    |-> (fn (all_params, params) =>
         define_class_params (bname, supsort) params
           (extract_assumes params) other_consts
       #-> (fn (_, (consts, axioms)) =>
@@ -842,7 +841,7 @@ fun gen_class prep_spec prep_param bname
             mk_inst class (map snd supconsts @ consts),
               calculate_morphism class (supconsts @ (map (fst o fst) params ~~ consts)), class_intro))
       #> class_interpretation class axioms []
-      )))))
+      ))))
     |> init class
     |> pair class
   end;

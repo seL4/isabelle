@@ -305,8 +305,8 @@ fun init_target _ NONE = global_target
   | init_target thy (SOME target) = make_target target true (Class.is_class thy target);
 
 fun init_ctxt (Target {target, is_locale, is_class}) =
-  (if is_locale then Locale.init target else ProofContext.init) #>
-  is_class ? Class.init target;
+  if is_locale then if is_class then Class.init target
+    else Locale.init target else ProofContext.init;
 
 fun init_lthy (ta as Target {target, ...}) =
   Data.put ta #>
