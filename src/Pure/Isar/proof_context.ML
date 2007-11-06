@@ -475,7 +475,8 @@ fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mes
   let
     val sko = lookup_skolem ctxt x;
     val is_const = can (Consts.read_const (consts_of ctxt)) x;
-    val is_free = is_some sko orelse not is_const;
+    val is_scoped_const = Variable.is_const ctxt x;
+    val is_free = (is_some sko orelse not is_const) andalso not is_scoped_const;
     val is_internal = internal x;
     val is_declared = is_some (def_type (x, ~1));
     val res =
@@ -483,7 +484,10 @@ fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mes
       else ((no_skolem false x; ()) handle ERROR msg =>
           legacy_feature (msg ^ ContextPosition.str_of ctxt);
         if is_internal andalso is_declared then SOME x else NONE);
-  in if is_some res then res else if is_declared then SOME x else NONE end;
+  in
+    if is_some res then res
+    else if is_declared andalso not is_scoped_const then SOME x else NONE
+  end;
 
 fun term_context ctxt =
   let val thy = theory_of ctxt in
@@ -622,9 +626,9 @@ fun read_tyname ctxt c =
   else Sign.read_tyname (theory_of ctxt) c;
 
 fun read_const ctxt c =
-  (case lookup_skolem ctxt c of
-    SOME x => Free (x, infer_type ctxt x)
-  | NONE => Consts.read_const (consts_of ctxt) c);
+  (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
+    (SOME x, false) => Free (x, infer_type ctxt x)
+  | _ => Consts.read_const (consts_of ctxt) c);
 
 
 
