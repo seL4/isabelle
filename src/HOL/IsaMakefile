@@ -226,11 +226,6 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/List_lexord.thy Library/Commutative_Ring.thy Library/comm_ring.ML \
   Library/Coinductive_List.thy Library/AssocList.thy \
   Library/Parity.thy Library/GCD.thy Library/Binomial.thy \
-  Library/Graphs.thy Library/Kleene_Algebras.thy Library/SCT_Misc.thy \
-  Library/SCT_Definition.thy Library/SCT_Theorem.thy \
-  Library/SCT_Interpretation.thy \
-  Library/SCT_Implementation.thy Library/Size_Change_Termination.thy \
-  Library/SCT_Examples.thy Library/sct.ML \
   Library/Pure_term.thy Library/Eval.thy Library/Eval_Witness.thy \
   Library/Code_Index.thy Library/Code_Char.thy Library/Code_Char_chr.thy \
   Library/Code_Integer.thy Library/Code_Message.thy \
