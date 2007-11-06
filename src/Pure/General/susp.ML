@@ -28,19 +28,15 @@ fun value v = ref (Value v);
 
 fun delay f = ref (Delay f);
 
-fun force susp =
-  let
-    fun forc () = case ! susp
-     of Value v => v
+fun force (ref (Value v)) = v
+  | force susp = NAMED_CRITICAL "susp" (fn () =>
+      (case ! susp of
+        Value v => v   (*race wrt. parallel force*)
       | Delay f =>
           let
             val v = f ();
             val _ = susp := Value v;
-          in v end;
-  in case ! susp
-   of Value v => v
-    | Delay _ => NAMED_CRITICAL "sups" forc
-  end;
+          in v end));
 
 fun peek susp =
   (case ! susp of
