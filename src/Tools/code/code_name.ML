@@ -4,7 +4,8 @@
 
 Naming policies for code generation: prefixing any name by corresponding
 theory name, conversion to alphanumeric representation.
-Mappings are incrementally cached.
+Mappings are incrementally cached.  Assumes non-concurrent processing
+inside a single theory.
 *)
 
 signature CODE_NAME =
