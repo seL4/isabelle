@@ -28,14 +28,11 @@ separate variant 'inductive_set'.
 * Built-in Metis prover, external linkup for automated provers, and
 'sledgehammer' command for automated proof synthesis.
 
-* Autoquickcheck: lemmas are tested for counterexamples
-automatically when they are stated. 
+* Auto quickcheck: toplevel goals are tested for counterexamples
+automatically when they are stated.
 
 * Second generation code generator for a subset of HOL, targeting SML,
 Haskell, and OCaml.
-
-* Embedding of ML code into theories with static references to the
-logical context (via antiquotations).
 
 * Command 'normal_form' and method "normalization" for evaluating
 terms with free variables.
@@ -43,6 +40,9 @@ terms with free variables.
 * Full list comprehension syntax for HOL.
 
 * Much improved algebraic capabilities, including Groebner bases.
+
+* Embedding of ML code into theories with static references to the
+logical context (via antiquotations).
 
 * Parallel loading of theories based on native multicore support in
 Poly/ML 5.1.
