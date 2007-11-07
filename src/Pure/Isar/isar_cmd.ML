@@ -578,7 +578,7 @@ fun string_of_term state s =
 fun string_of_type state s =
   let
     val ctxt = Proof.context_of state;
-    val T = ProofContext.read_typ ctxt s;
+    val T = Syntax.read_typ ctxt s;
   in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt T)) end;
 
 fun print_item string_of (modes, arg) = Toplevel.keep (fn state =>
