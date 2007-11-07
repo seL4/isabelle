@@ -57,6 +57,18 @@ fun make_inst f v =
 
 in
 
+fun read_termTs ctxt ss Ts =
+  let
+    fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
+    val ts = map2 parse Ts ss;
+    val ts' =
+      map2 (TypeInfer.constrain o TypeInfer.paramify_vars) Ts ts
+      |> Syntax.check_terms (ProofContext.set_mode ProofContext.mode_schematic ctxt)  (* FIXME !? *)
+      |> Variable.polymorphic ctxt;
+    val Ts' = map Term.fastype_of ts';
+    val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
+  in (ts', map (apsnd snd) (Vartab.dest tyenv)) end;
+
 fun read_insts ctxt mixed_insts (tvars, vars) =
   let
     val thy = ProofContext.theory_of ctxt;
@@ -105,8 +117,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val (xs, strs) = split_list external_insts;
     val Ts = map (the_type vars2) xs;
-    val (ts, inferred) =   (* FIXME polymorphic!? schematic vs. 'for' context!? *)
-      ProofContext.read_termTs_schematic ctxt (K false) (K NONE) (K NONE) [] (strs ~~ Ts);
+    val (ts, inferred) = read_termTs ctxt strs Ts;
 
     val instT3 = Term.typ_subst_TVars inferred;
     val vars3 = map (apsnd instT3) vars2;
