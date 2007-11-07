@@ -61,8 +61,7 @@ fun gen_constdefs prep_vars prep_prop prep_att (raw_structs, specs) thy =
     val (decls, thy') = fold_map (gen_constdef prep_vars prep_prop prep_att structs) specs thy;
   in Pretty.writeln (ProofDisplay.pretty_consts ctxt (K true) decls); thy' end;
 
-val add_constdefs = gen_constdefs ProofContext.read_vars_legacy
-  ProofContext.read_prop_legacy Attrib.attribute;
+val add_constdefs = gen_constdefs ProofContext.read_vars_legacy Syntax.read_prop Attrib.attribute;
 val add_constdefs_i = gen_constdefs ProofContext.cert_vars_legacy ProofContext.cert_prop (K I);
 
 end;
