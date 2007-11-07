@@ -241,7 +241,7 @@ val _ = inline_antiq "type_name" (type_ false);
 val _ = inline_antiq "type_syntax" (type_ true);
 
 fun const syn = (Scan.state >> Context.proof_of) -- Scan.lift Args.name >> (fn (ctxt, c) =>
-  #1 (Term.dest_Const (Consts.read_const (ProofContext.consts_of ctxt) c))
+  #1 (Term.dest_Const (ProofContext.read_const' ctxt c))
   |> syn ? ProofContext.const_syntax_name ctxt
   |> ML_Syntax.print_string);
 
