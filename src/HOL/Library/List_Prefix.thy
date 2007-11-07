@@ -162,6 +162,10 @@ lemma take_is_prefix:
   apply simp
   done
 
+lemma map_prefixI: 
+  "xs \<le> ys \<Longrightarrow> map f xs \<le> map f ys"
+  by (clarsimp simp: prefix_def)
+
 lemma prefix_length_less:
   "xs < ys \<Longrightarrow> length xs < length ys"
   apply (clarsimp simp: strict_prefix_def)
