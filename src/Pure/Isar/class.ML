@@ -637,7 +637,7 @@ fun synchronize_syntax thy sups base_sort ctxt =
     val consts = ProofContext.consts_of ctxt;
     fun declare_const (c, _) =
       let val b = Sign.base_name c
-      in if Consts.intern consts b = c then Variable.declare_const b else I end;
+      in Consts.intern consts b = c ? Variable.declare_const (b, c) end;
     val typargs = Consts.typargs consts;
     fun check_const (c, ty) (t, (_, typidx)) = ((nth (typargs (c, ty)) typidx), t);
     fun local_operation (c_ty as (c, _)) = AList.lookup (op =) operations c
@@ -804,7 +804,7 @@ fun gen_class prep_spec prep_param bname
           #>> Element.Fixes
       | fork_syntax x = pair x;
     val (elems, global_syn) = fold_map fork_syntax elems_syn [];
-    fun globalize (c, ty) = 
+    fun globalize (c, ty) =
       ((c, Term.map_type_tfree (K (TFree (Name.aT, base_sort))) ty),
         (the_default NoSyn o AList.lookup (op =) global_syn) c);
     fun extract_params thy =
@@ -851,9 +851,11 @@ fun gen_class prep_spec prep_param bname
     |> pair class
   end;
 
+fun read_const thy = #1 o Term.dest_Const o ProofContext.read_const (ProofContext.init thy);
+
 in
 
-val class_cmd = gen_class read_class_spec ((#1 o Term.dest_Const) oo Sign.read_const);
+val class_cmd = gen_class read_class_spec read_const;
 val class = gen_class check_class_spec (K I);
 
 end; (*local*)
