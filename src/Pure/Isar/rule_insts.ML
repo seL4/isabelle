@@ -57,13 +57,13 @@ fun make_inst f v =
 
 in
 
-fun read_termTs ctxt ss Ts =
+fun read_termTs ctxt schematic ss Ts =
   let
     fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
     val ts = map2 parse Ts ss;
     val ts' =
       map2 (TypeInfer.constrain o TypeInfer.paramify_vars) Ts ts
-      |> Syntax.check_terms (ProofContext.set_mode ProofContext.mode_schematic ctxt)  (* FIXME !? *)
+      |> Syntax.check_terms ((schematic ? ProofContext.set_mode ProofContext.mode_schematic) ctxt)
       |> Variable.polymorphic ctxt;
     val Ts' = map Term.fastype_of ts';
     val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
@@ -91,7 +91,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
         val S = the_sort tvars xi;
         val T =
           (case arg of
-            Args.Text s => ProofContext.read_typ ctxt s
+            Args.Text s => Syntax.read_typ ctxt s
           | Args.Typ T => T
           | _ => error_var "Type argument expected for " xi);
       in
@@ -117,7 +117,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val (xs, strs) = split_list external_insts;
     val Ts = map (the_type vars2) xs;
-    val (ts, inferred) = read_termTs ctxt strs Ts;
+    val (ts, inferred) = read_termTs ctxt true (* FIXME false *) strs Ts;
 
     val instT3 = Term.typ_subst_TVars inferred;
     val vars3 = map (apsnd instT3) vars2;
@@ -236,47 +236,42 @@ fun bires_inst_tac bires_flag ctxt insts thm =
           "'"::cs => true | cs => false);
     val Tinsts = List.filter has_type_var insts;
     val tinsts = filter_out has_type_var insts;
+
     (* Tactic *)
     fun tac i st =
       let
-        (* Preprocess state: extract environment information:
-           - variables and their types
-           - type variables and their sorts
-           - parameters and their types *)
-        val (types, sorts) = types_sorts st;
-    (* Process type insts: Tinsts_env *)
-    fun absent xi = error
-          ("No such variable in theorem: " ^ Term.string_of_vname xi);
-    val (rtypes, rsorts) = types_sorts thm;
-    fun readT (xi, s) =
-        let val S = case rsorts xi of SOME S => S | NONE => absent xi;
-            val T = Sign.read_def_typ (thy, sorts) s;
-            val U = TVar (xi, S);
-        in if Sign.typ_instance thy (T, U) then (U, T)
-           else error ("Instantiation of " ^ Term.string_of_vname xi ^ " fails")
-        end;
-    val Tinsts_env = map readT Tinsts;
-    (* Preprocess rule: extract vars and their types, apply Tinsts *)
-    fun get_typ xi =
-      (case rtypes xi of
-           SOME T => typ_subst_atomic Tinsts_env T
-         | NONE => absent xi);
-    val (xis, ss) = Library.split_list tinsts;
-    val Ts = map get_typ xis;
-        val (_, _, Bi, _) = dest_state(st,i)
-        val params = Logic.strip_params Bi
-                             (* params of subgoal i as string typ pairs *)
-        val params = rev(Term.rename_wrt_term Bi params)
-                           (* as they are printed: bound variables with *)
-                           (* the same name are renamed during printing *)
-        fun types' (a, ~1) = (case AList.lookup (op =) params a of
-                NONE => types (a, ~1)
-              | some => some)
-          | types' xi = types xi;
-        fun internal x = is_some (types' (x, ~1));
-        val used = Drule.add_used thm (Drule.add_used st []);
-        val (ts, envT) =
-          ProofContext.read_termTs_schematic ctxt internal types' sorts used (ss ~~ Ts);
+        val (_, _, Bi, _) = Thm.dest_state (st, i);
+        val params = Logic.strip_params Bi;  (*params of subgoal i as string typ pairs*)
+        val params = rev (Term.rename_wrt_term Bi params)
+          (*as they are printed: bound variables with*)
+          (*the same name are renamed during printing*)
+
+        val (param_names, ctxt') = ctxt
+          |> Variable.declare_thm thm
+          |> Thm.fold_terms Variable.declare_constraints st
+          |> ProofContext.add_fixes_i (map (fn (x, T) => (x, SOME T, NoSyn)) params);
+
+        (* Process type insts: Tinsts_env *)
+        fun absent xi = error
+              ("No such variable in theorem: " ^ Term.string_of_vname xi);
+        val (rtypes, rsorts) = Drule.types_sorts thm;
+        fun readT (xi, s) =
+            let val S = case rsorts xi of SOME S => S | NONE => absent xi;
+                val T = Syntax.read_typ ctxt' s;
+                val U = TVar (xi, S);
+            in if Sign.typ_instance thy (T, U) then (U, T)
+               else error ("Instantiation of " ^ Term.string_of_vname xi ^ " fails")
+            end;
+        val Tinsts_env = map readT Tinsts;
+        (* Preprocess rule: extract vars and their types, apply Tinsts *)
+        fun get_typ xi =
+          (case rtypes xi of
+               SOME T => typ_subst_atomic Tinsts_env T
+             | NONE => absent xi);
+        val (xis, ss) = Library.split_list tinsts;
+        val Ts = map get_typ xis;
+
+        val (ts, envT) = read_termTs ctxt' true ss Ts;
         val envT' = map (fn (ixn, T) =>
           (TVar (ixn, the (rsorts ixn)), T)) envT @ Tinsts_env;
         val cenv =
@@ -294,7 +289,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
               Var((a, j+inc), paramTs ---> Logic.incr_tvar inc T)
           | liftvar t = raise TERM("Variable expected", [t]);
         fun liftterm t = list_abs_free
-              (params, Logic.incr_indexes(paramTs,inc) t)
+              (param_names ~~ paramTs, Logic.incr_indexes(paramTs,inc) t)
         fun liftpair (cv,ct) =
               (cterm_fun liftvar cv, cterm_fun liftterm ct)
         val lifttvar = pairself (ctyp_of thy o Logic.incr_tvar inc);
