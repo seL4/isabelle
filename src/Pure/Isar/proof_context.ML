@@ -55,6 +55,7 @@ sig
   val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
   val read_tyname: Proof.context -> string -> typ
+  val read_const': Proof.context -> string -> term
   val read_const: Proof.context -> string -> term
   val decode_term: Proof.context -> term -> term
   val read_term_pattern: Proof.context -> string -> term
@@ -985,9 +986,7 @@ local
 
 fun const_ast_tr intern ctxt [Syntax.Variable c] =
       let
-        val consts = consts_of ctxt;
-        val c' = Consts.intern consts c;
-        val _ = Consts.the_constraint consts c' handle TYPE (msg, _, _) => error msg;
+        val Const (c', _) = read_const' ctxt c;
         val d = if intern then const_syntax_name ctxt c' else c;
       in Syntax.Constant d end
   | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
