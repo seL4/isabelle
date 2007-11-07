@@ -41,9 +41,9 @@ of @{term S}, @{term A} and~@{term B}:
 *}
 
 inductive_set
-  S :: "alfa list set"
-  and A :: "alfa list set"
-  and B :: "alfa list set"
+  S :: "alfa list set" and
+  A :: "alfa list set" and
+  B :: "alfa list set"
 where
   "[] \<in> S"
 | "w \<in> A \<Longrightarrow> b#w \<in> S"

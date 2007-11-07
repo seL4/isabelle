@@ -40,10 +40,9 @@ a set of natural numbers with the desired properties.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
-\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-\ \ zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
+\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 An inductive definition consists of introduction rules.  The first one
 above states that 0 is even; the second states that if $n$ is even, then so

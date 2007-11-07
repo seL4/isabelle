@@ -9,8 +9,8 @@ natural numbers:
 *}
 
 inductive_set
-  Even :: "nat set"
-  and Odd  :: "nat set"
+  Even :: "nat set" and
+  Odd  :: "nat set"
 where
   zero:  "0 \<in> Even"
 | EvenI: "n \<in> Odd \<Longrightarrow> Suc n \<in> Even"
@@ -54,7 +54,27 @@ apply(rule_tac x = "Suc k" in exI)
 apply simp
 done
 (*>*)
-(*
-Exercise: 1 : odd
-*)
+
+subsection{*Inductively Defined Predicates\label{sec:ind-predicates}*}
+
+text{*\index{inductive predicates|(}
+Instead of a set of even numbers one can also define a predicate on @{typ nat}:
+*}
+
+inductive evn :: "nat \<Rightarrow> bool" where
+zero: "evn 0" |
+step: "evn n \<Longrightarrow> evn(Suc(Suc n))"
+
+text{*\noindent Everything works as before, except that
+you write \commdx{inductive} instead of \isacommand{inductive\_set} and
+@{prop"evn n"} instead of @{prop"n : even"}. The notation is more
+lightweight but the usual set-theoretic operations, e.g. @{term"Even \<union> Odd"},
+are not directly available on predicates.
+
+When defining an n-ary relation as a predicate it is recommended to curry
+the predicate: its type should be @{text"\<tau>\<^isub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^isub>n \<Rightarrow> bool"} rather than
+@{text"\<tau>\<^isub>1 \<times> \<dots> \<times> \<tau>\<^isub>n \<Rightarrow> bool"}. The curried version facilitates inductions.
+\index{inductive predicates|)}
+*}
+
 (*<*)end(*>*)

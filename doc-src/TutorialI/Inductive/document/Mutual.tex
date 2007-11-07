@@ -27,8 +27,8 @@ natural numbers:%
 \isamarkuptrue%
 \isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
 \isanewline
-\ \ Even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{and}\ Odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\ \ Even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ Odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
 \isakeyword{where}\isanewline
 \ \ zero{\isacharcolon}\ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
 {\isacharbar}\ EvenI{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ Odd\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
@@ -84,6 +84,33 @@ We do not show the proof script.%
 \isadelimproof
 %
 \endisadelimproof
+%
+\isamarkupsubsection{Inductively Defined Predicates\label{sec:ind-predicates}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\index{inductive predicates|(}
+Instead of a set of even numbers one can also define a predicate on \isa{nat}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{inductive}\isamarkupfalse%
+\ evn\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+zero{\isacharcolon}\ {\isachardoublequoteopen}evn\ {\isadigit{0}}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+step{\isacharcolon}\ {\isachardoublequoteopen}evn\ n\ {\isasymLongrightarrow}\ evn{\isacharparenleft}Suc{\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Everything works as before, except that
+you write \commdx{inductive} instead of \isacommand{inductive\_set} and
+\isa{evn\ n} instead of \isa{n\ {\isasymin}\ even}. The notation is more
+lightweight but the usual set-theoretic operations, e.g. \isa{Even\ {\isasymunion}\ Odd},
+are not directly available on predicates.
+
+When defining an n-ary relation as a predicate it is recommended to curry
+the predicate: its type should be \isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymtau}\isactrlisub n\ {\isasymRightarrow}\ bool} rather than
+\isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymtimes}\ {\isasymdots}\ {\isasymtimes}\ {\isasymtau}\isactrlisub n\ {\isasymRightarrow}\ bool}. The curried version facilitates inductions.
+\index{inductive predicates|)}%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %

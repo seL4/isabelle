@@ -20,10 +20,9 @@ Using \commdx{inductive\protect\_set}, we declare the constant @{text even} to b
 a set of natural numbers with the desired properties.
 *}
 
-inductive_set even :: "nat set"
-where
-  zero[intro!]: "0 \<in> even"
-| step[intro!]: "n \<in> even \<Longrightarrow> (Suc (Suc n)) \<in> even"
+inductive_set even :: "nat set" where
+zero[intro!]: "0 \<in> even" |
+step[intro!]: "n \<in> even \<Longrightarrow> (Suc (Suc n)) \<in> even"
 
 text {*
 An inductive definition consists of introduction rules.  The first one
