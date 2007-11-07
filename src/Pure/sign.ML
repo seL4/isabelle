@@ -142,8 +142,6 @@ sig
   val read_typ: theory -> string -> typ
   val read_typ_syntax: theory -> string -> typ
   val read_typ_abbrev: theory -> string -> typ
-  val read_tyname: theory -> string -> typ
-  val read_const: theory -> string -> term
   val read_def_terms': Pretty.pp -> (string -> bool) -> Syntax.syntax -> Consts.T ->
     (string -> string option) -> Proof.context ->
     (indexname -> typ option) * (indexname -> sort option) ->
@@ -522,16 +520,6 @@ val read_typ_syntax  = gen_read_typ Type.mode_syntax o no_def_sort;
 val read_typ_abbrev  = gen_read_typ Type.mode_abbrev o no_def_sort;
 
 end;
-
-
-(* type and constant names *)
-
-fun read_tyname thy raw_c =
-  let val c = intern_type thy raw_c
-  in Type (c, replicate (arity_number thy c) dummyT) end;
-
-val read_const = Consts.read_const o consts_of;
-
 
 
 (* read_def_terms -- read terms and infer types *)    (*exception ERROR*)

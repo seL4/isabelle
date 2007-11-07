@@ -330,10 +330,10 @@ val prop = Scan.peek (named_term o Syntax.read_prop o Context.proof_of);
 
 (* type and constant names *)
 
-val tyname = Scan.peek (named_typ o Context.cases Sign.read_tyname ProofContext.read_tyname)
+val tyname = Scan.peek (named_typ o ProofContext.read_tyname o Context.proof_of)
   >> (fn Type (c, _) => c | TFree (a, _) => a | _ => "");
 
-val const = Scan.peek (named_term o Context.cases Sign.read_const ProofContext.read_const)
+val const = Scan.peek (named_term o ProofContext.read_const o Context.proof_of)
   >> (fn Const (c, _) => c | Free (x, _) => x | _ => "");
 
 
