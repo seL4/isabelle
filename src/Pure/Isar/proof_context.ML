@@ -51,6 +51,11 @@ sig
   val get_skolem: Proof.context -> string -> string
   val revert_skolem: Proof.context -> string -> string
   val revert_skolems: Proof.context -> term -> term
+  val infer_type: Proof.context -> string -> typ
+  val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
+  val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
+  val read_tyname: Proof.context -> string -> typ
+  val read_const: Proof.context -> string -> term
   val decode_term: Proof.context -> term -> term
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
@@ -58,14 +63,8 @@ sig
   val read_termTs_schematic: Proof.context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
-  val read_prop_legacy: Proof.context -> string -> term
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
-  val infer_type: Proof.context -> string -> typ
-  val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
-  val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
-  val read_tyname: Proof.context -> string -> typ
-  val read_const: Proof.context -> string -> term
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
@@ -388,6 +387,44 @@ fun revert_skolems ctxt =
 
 (** prepare terms and propositions **)
 
+(* inferred types of parameters *)
+
+fun infer_type ctxt x =
+  Term.fastype_of (singleton (Syntax.check_terms (set_mode mode_schematic ctxt))
+    (Free (x, dummyT)));
+
+fun inferred_param x ctxt =
+  let val T = infer_type ctxt x
+  in ((x, T), ctxt |> Variable.declare_term (Free (x, T))) end;
+
+fun inferred_fixes ctxt =
+  fold_map inferred_param (rev (map #2 (Variable.fixes_of ctxt))) ctxt;
+
+
+(* type and constant names *)
+
+(* type and constant names *)
+
+fun read_tyname ctxt c =
+  if Syntax.is_tid c then
+    TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (Variable.def_sort ctxt (c, ~1)))
+  else
+    let
+      val thy = theory_of ctxt;
+      val d = Sign.intern_type thy c;
+    in Type (d, replicate (Sign.arity_number thy d) dummyT) end;
+
+fun read_const' ctxt c =
+  (case Variable.lookup_const ctxt c of
+    SOME d => Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => error msg)
+  | NONE => Consts.read_const (consts_of ctxt) c);
+
+fun read_const ctxt c =
+  (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
+    (SOME x, false) => Free (x, infer_type ctxt x)
+  | _ => read_const' ctxt c);
+
+
 (* read_term *)
 
 fun read_term_mode mode ctxt = Syntax.read_term (set_mode mode ctxt);
@@ -474,7 +511,7 @@ end;
 fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mess *)
   let
     val sko = lookup_skolem ctxt x;
-    val is_const = can (Consts.read_const (consts_of ctxt)) x;
+    val is_const = can (read_const' ctxt) x;
     val is_scoped_const = Variable.is_const ctxt x;
     val is_free = (is_some sko orelse not is_const) andalso not is_scoped_const;
     val is_internal = internal x;
@@ -492,7 +529,7 @@ fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mes
 fun term_context ctxt =
   let val thy = theory_of ctxt in
    {get_sort = Sign.get_sort thy (Variable.def_sort ctxt),
-    map_const = try (#1 o Term.dest_Const o Consts.read_const (consts_of ctxt)),
+    map_const = try (#1 o Term.dest_Const o read_const' ctxt),
     map_free = legacy_intern_skolem ctxt (K false) (Variable.def_type ctxt false),
     map_type = Sign.intern_tycons thy,
     map_sort = Sign.intern_sort thy}
@@ -511,12 +548,6 @@ fun read_def_termTs freeze pp syn ctxt (types, sorts, used) fixed sTs =
   Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt) fixed
     ctxt (types, sorts) used freeze sTs;
 
-fun read_def_termT freeze pp syn ctxt defaults fixed sT =
-  apfst hd (read_def_termTs freeze pp syn ctxt defaults fixed [sT]);
-
-fun read_prop_thy freeze pp syn thy defaults fixed s =
-  #1 (read_def_termT freeze pp syn thy defaults fixed (s, propT));
-
 fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
 
 fun gen_read' read app schematic ctxt0 internal more_types more_sorts more_used s =
@@ -533,15 +564,9 @@ fun gen_read' read app schematic ctxt0 internal more_types more_sorts more_used 
     |> app (singleton (prepare_patterns ctxt))
   end;
 
-fun gen_read read app schematic ctxt =
-  gen_read' read app schematic ctxt (K false) (K NONE) (K NONE) [];
-
 in
 
 val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) true;
-
-fun read_prop_legacy ctxt =
-  gen_read' (read_prop_thy true) I false ctxt (K true) (K NONE) (K NONE) [];
 
 end;
 
@@ -602,33 +627,6 @@ val _ = add (op aconv) (Syntax.add_term_check 100 "fixate") prepare_patterns;
 val _ = add (op aconv) (Syntax.add_term_uncheck 0 "standard") standard_term_uncheck;
 
 end;
-
-
-(* inferred types of parameters *)
-
-fun infer_type ctxt x =
-  Term.fastype_of (singleton (Syntax.check_terms (set_mode mode_schematic ctxt))
-    (Free (x, dummyT)));
-
-fun inferred_param x ctxt =
-  let val T = infer_type ctxt x
-  in ((x, T), ctxt |> Variable.declare_term (Free (x, T))) end;
-
-fun inferred_fixes ctxt =
-  fold_map inferred_param (rev (map #2 (Variable.fixes_of ctxt))) ctxt;
-
-
-(* type and constant names *)
-
-fun read_tyname ctxt c =
-  if Syntax.is_tid c then
-    TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (Variable.def_sort ctxt (c, ~1)))
-  else Sign.read_tyname (theory_of ctxt) c;
-
-fun read_const ctxt c =
-  (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
-    (SOME x, false) => Free (x, infer_type ctxt x)
-  | _ => Consts.read_const (consts_of ctxt) c);
 
 
 
