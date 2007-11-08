@@ -79,12 +79,8 @@ simplification rules.
 Isabelle's automatic termination prover for \isacommand{fun} has a
 fixed notion of the \emph{size} (of type @{typ nat}) of an
 argument. The size of a natural number is the number itself. The size
-of a list is its length. In general, every datatype @{text t} comes
-with its own size function (named @{text"t.size"}) which counts the
-number of constructors in a term of type @{text t} --- more precisely
-those constructors where one of the arguments is of the type itself:
-@{const Suc} in the case of @{typ nat} and @{const "op #"} in the case
-of lists. A recursive function is accepted if \isacommand{fun} can
+of a list is its length. For the general case see \S\ref{sec:general-datatype}.
+A recursive function is accepted if \isacommand{fun} can
 show that the size of one fixed argument becomes smaller with each
 recursive call.
 
