@@ -34,7 +34,7 @@ the matching private key, and vice versa:
 *}
 
 types key = nat
-consts invKey :: "key=>key"
+consts invKey :: "key \<Rightarrow> key"
 (*<*)
 consts all_symmetric :: bool        --{*true if all keys are symmetric*}
 

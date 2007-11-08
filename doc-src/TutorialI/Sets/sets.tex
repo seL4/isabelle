@@ -322,17 +322,13 @@ R\isasymrbrakk\ \isasymLongrightarrow\ R%
 \rulenamedx{UN_E}
 \end{isabelle}
 %
-The following built-in syntax translation (see {\S}\ref{sec:syntax-translations})
+The following built-in abbreviation (see {\S}\ref{sec:abbreviations})
 lets us express the union over a \emph{type}:
 \begin{isabelle}
 \ \ \ \ \
-({\isasymUnion}x.\ B\ x)\ {\isasymrightleftharpoons}\
+({\isasymUnion}x.\ B\ x)\ {\isasymequiv}\
 ({\isasymUnion}x{\isasymin}UNIV. B\ x)
 \end{isabelle}
-%Abbreviations work as you might expect.  The term on the left-hand side of
-%the \isasymrightleftharpoons\ symbol is automatically translated to the right-hand side when the
-%term is parsed, the reverse translation being done when the term is
-%displayed.
 
 We may also express the union of a set of sets, written \isa{Union\ C} in
 \textsc{ascii}: 

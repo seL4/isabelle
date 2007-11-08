@@ -14,15 +14,14 @@ begin
 text {*
 The function
 @{text pubK} maps agents to their public keys.  The function
-@{text priK} maps agents to their private keys.  It is defined in terms of
-@{text invKey} and @{text pubK} by a translation; therefore @{text priK} is
-not a proper constant, so we declare it using \isacommand{syntax}
-(cf.\ \S\ref{sec:syntax-translations}).
+@{text priK} maps agents to their private keys.  It is merely
+an abbreviation (cf.\ \S\ref{sec:abbreviations}) defined in terms of
+@{text invKey} and @{text pubK}.
 *}
 
-consts pubK :: "agent => key"
-syntax priK :: "agent => key"
-translations "priK x" \<rightleftharpoons> "invKey(pubK x)"
+consts pubK :: "agent \<Rightarrow> key"
+abbreviation priK :: "agent \<Rightarrow> key"
+where "priK x  \<equiv>  invKey(pubK x)"
 (*<*)
 primrec
         (*Agents know their private key and all public keys*)
@@ -46,7 +45,7 @@ any public key.
 
 axioms
   inj_pubK:        "inj pubK"
-  priK_neq_pubK:   "priK A ~= pubK B"
+  priK_neq_pubK:   "priK A \<noteq> pubK B"
 (*<*)
 lemmas [iff] = inj_pubK [THEN inj_eq]
 
@@ -64,7 +63,7 @@ lemma not_symKeys_pubK[iff]: "pubK A \<notin> symKeys"
 lemma not_symKeys_priK[iff]: "priK A \<notin> symKeys"
   by (simp add: symKeys_def)
 
-lemma symKeys_neq_imp_neq: "(K \<in> symKeys) \<noteq> (K' \<in> symKeys) ==> K \<noteq> K'"
+lemma symKeys_neq_imp_neq: "(K \<in> symKeys) \<noteq> (K' \<in> symKeys) \<Longrightarrow> K \<noteq> K'"
   by blast
 
 lemma analz_symKeys_Decrypt: "[| Crypt K X \<in> analz H;  K \<in> symKeys;  Key K \<in> analz H |]
