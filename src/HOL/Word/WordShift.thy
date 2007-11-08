@@ -171,7 +171,7 @@ lemma sshiftr_div_2n: "sint (sshiftr w n) = sint w div 2 ^ n"
 subsubsection "shift functions in terms of lists of bools"
 
 lemmas bshiftr1_no_bin [simp] = 
-  bshiftr1_def [where w="number_of ?w", unfolded to_bl_no_bin]
+  bshiftr1_def [where w="number_of w", unfolded to_bl_no_bin, standard]
 
 lemma bshiftr1_bl: "to_bl (bshiftr1 b w) = b # butlast (to_bl w)"
   unfolding bshiftr1_def by (rule word_bl.Abs_inverse) simp
@@ -180,8 +180,12 @@ lemma shiftl1_of_bl: "shiftl1 (of_bl bl) = of_bl (bl @ [False])"
   unfolding uint_bl of_bl_no 
   by (simp add: bl_to_bin_aux_append bl_to_bin_def)
 
-lemmas shiftl1_bl = shiftl1_of_bl 
-  [where bl = "to_bl (?w :: ?'a :: len0 word)", simplified]
+lemma shiftl1_bl: "shiftl1 (w::'a::len0 word) = of_bl (to_bl w @ [False])"
+proof -
+  have "shiftl1 w = shiftl1 (of_bl (to_bl w))" by simp
+  also have "\<dots> = of_bl (to_bl w @ [False])" by (rule shiftl1_of_bl)
+  finally show ?thesis .
+qed
 
 lemma bl_shiftl1:
   "to_bl (shiftl1 (w :: 'a :: len word)) = tl (to_bl w) @ [False]"
@@ -220,7 +224,7 @@ lemma shiftl_rev:
   done
 
 lemmas rev_shiftl =
-  shiftl_rev [where w = "word_reverse ?w1", simplified, standard]
+  shiftl_rev [where w = "word_reverse w", simplified, standard]
 
 lemmas shiftr_rev = rev_shiftl [THEN word_rev_gal', standard]
 lemmas rev_shiftr = shiftl_rev [THEN word_rev_gal', standard]
@@ -301,10 +305,15 @@ lemma shiftl_of_bl: "of_bl bl << n = of_bl (bl @ replicate n False)"
   unfolding shiftl_def
   by (induct n) (auto simp: shiftl1_of_bl replicate_app_Cons_same)
 
-lemmas shiftl_bl =
-  shiftl_of_bl [where bl = "to_bl (?w :: ?'a :: len0 word)", simplified]
+lemma shiftl_bl:
+  "(w::'a::len0 word) << (n::nat) = of_bl (to_bl w @ replicate n False)"
+proof -
+  have "w << n = of_bl (to_bl w) << n" by simp
+  also have "\<dots> = of_bl (to_bl w @ replicate n False)" by (rule shiftl_of_bl)
+  finally show ?thesis .
+qed
 
-lemmas shiftl_number [simp] = shiftl_def [where w="number_of ?w"]
+lemmas shiftl_number [simp] = shiftl_def [where w="number_of w", standard]
 
 lemma bl_shiftl:
   "to_bl (w << n) = drop n (to_bl w) @ replicate (min (size w) n) False"
@@ -366,10 +375,10 @@ lemma sshiftr_no':
   done
 
 lemmas sshiftr_no [simp] = 
-  sshiftr_no' [where w = "number_of ?w", OF refl, unfolded word_size]
+  sshiftr_no' [where w = "number_of w", OF refl, unfolded word_size, standard]
 
 lemmas shiftr_no [simp] = 
-  shiftr_no' [where w = "number_of ?w", OF refl, unfolded word_size]
+  shiftr_no' [where w = "number_of w", OF refl, unfolded word_size, standard]
 
 lemma shiftr1_bl_of': 
   "us = shiftr1 (of_bl bl) ==> length bl <= size us ==> 
@@ -597,7 +606,7 @@ subsubsection "Revcast"
 lemmas revcast_def' = revcast_def [simplified]
 lemmas revcast_def'' = revcast_def' [simplified word_size]
 lemmas revcast_no_def [simp] =
-  revcast_def' [where w="number_of ?w", unfolded word_size]
+  revcast_def' [where w="number_of w", unfolded word_size, standard]
 
 lemma to_bl_revcast: 
   "to_bl (revcast w :: 'a :: len0 word) = 
@@ -618,7 +627,7 @@ lemma revcast_rev_ucast':
 lemmas revcast_rev_ucast = revcast_rev_ucast' [OF refl refl refl]
 
 lemmas revcast_ucast = revcast_rev_ucast
-  [where w = "word_reverse ?w1", simplified word_rev_rev, standard]
+  [where w = "word_reverse w", simplified word_rev_rev, standard]
 
 lemmas ucast_revcast = revcast_rev_ucast [THEN word_rev_gal', standard]
 lemmas ucast_rev_revcast = revcast_ucast [THEN word_rev_gal', standard]
@@ -718,7 +727,7 @@ lemmas ucast_down =
 subsubsection "Slices"
 
 lemmas slice1_no_bin [simp] =
-  slice1_def [where w="number_of ?w", unfolded to_bl_no_bin]
+  slice1_def [where w="number_of w", unfolded to_bl_no_bin, standard]
 
 lemmas slice_no_bin [simp] = 
    trans [OF slice_def [THEN meta_eq_to_obj_eq] 
@@ -1066,12 +1075,12 @@ lemma word_split_cat_alt:
   done
 
 lemmas word_cat_bl_no_bin [simp] =
-  word_cat_bl [where a="number_of ?a" 
-                 and b="number_of ?b", 
-               unfolded to_bl_no_bin]
+  word_cat_bl [where a="number_of a" 
+                 and b="number_of b", 
+               unfolded to_bl_no_bin, standard]
 
 lemmas word_split_bl_no_bin [simp] =
-  word_split_bl_eq [where c="number_of ?c", unfolded to_bl_no_bin]
+  word_split_bl_eq [where c="number_of c", unfolded to_bl_no_bin, standard]
 
 -- {* this odd result arises from the fact that the statement of the
       result implies that the decoded words are of the same type, 
@@ -1288,7 +1297,7 @@ lemma rotater1_rev': "rotater1 (rev xs) = rev (rotate1 xs)"
 lemma rotater_rev': "rotater n (rev xs) = rev (rotate n xs)"
   unfolding rotater_def by (induct n) (auto intro: rotater1_rev')
 
-lemmas rotater_rev = rotater_rev' [where xs = "rev ?ys", simplified]
+lemmas rotater_rev = rotater_rev' [where xs = "rev ys", simplified, standard]
 
 lemma rotater_drop_take: 
   "rotater n xs = 
@@ -1588,10 +1597,10 @@ lemma word_roti_0' [simp] : "word_roti n 0 = 0"
   unfolding word_roti_def by auto
 
 lemmas word_rotr_dt_no_bin' [simp] = 
-  word_rotr_dt [where w="number_of ?w", unfolded to_bl_no_bin]
+  word_rotr_dt [where w="number_of w", unfolded to_bl_no_bin, standard]
 
 lemmas word_rotl_dt_no_bin' [simp] = 
-  word_rotl_dt [where w="number_of ?w", unfolded to_bl_no_bin]
+  word_rotl_dt [where w="number_of w", unfolded to_bl_no_bin, standard]
 
 declare word_roti_def [simp]
 

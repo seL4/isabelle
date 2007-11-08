@@ -281,7 +281,7 @@ lemma nth_rev [rule_format] :
   apply arith
   done
 
-lemmas nth_rev_alt = nth_rev [where xs = "rev ?ys", simplified]
+lemmas nth_rev_alt = nth_rev [where xs = "rev ys", simplified, standard]
 
 lemma nth_bin_to_bl_aux [rule_format] : 
   "ALL w n bl. n < m + length bl --> (bin_to_bl_aux m w bl) ! n = 
@@ -346,7 +346,7 @@ lemma butlast_rest_bin:
   done
 
 lemmas butlast_bin_rest = butlast_rest_bin
-  [where w="bl_to_bin ?bl" and n="length ?bl", simplified]
+  [where w="bl_to_bin bl" and n="length bl", simplified, standard]
 
 lemma butlast_rest_bl2bin_aux [rule_format] :
   "ALL w. bl ~= [] --> 
@@ -924,7 +924,7 @@ lemma if_bool_simps:
 
 lemmas if_simps = if_x_Not if_Not_x if_cancel if_True if_False if_bool_simps
 
-lemmas seqr = eq_reflection [where x = "size ?w"]
+lemmas seqr = eq_reflection [where x = "size w", standard]
 
 lemmas tl_Nil = tl.simps (1)
 lemmas tl_Cons = tl.simps (2)
@@ -963,9 +963,9 @@ lemma bin_rcat_bl:
 lemmas bin_rsplit_aux_simps = bin_rsplit_aux.simps bin_rsplitl_aux.simps
 lemmas rsplit_aux_simps = bin_rsplit_aux_simps
 
-lemmas th_if_simp1 = split_if [where P = "op = ?l",
+lemmas th_if_simp1 = split_if [where P = "op = l",
   THEN iffD1, THEN conjunct1, THEN mp, standard]
-lemmas th_if_simp2 = split_if [where P = "op = ?l",
+lemmas th_if_simp2 = split_if [where P = "op = l",
   THEN iffD1, THEN conjunct2, THEN mp, standard]
 
 lemmas rsplit_aux_simp1s = rsplit_aux_simps [THEN th_if_simp1]

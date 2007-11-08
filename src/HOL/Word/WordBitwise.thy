@@ -22,10 +22,10 @@ lemmas word_log_binary_defs =
   word_and_def word_or_def word_xor_def
 
 lemmas word_no_log_defs [simp] = 
-  word_not_def  [where a="number_of ?a", 
-                 unfolded word_no_wi wils1, folded word_no_wi]
-  word_log_binary_defs [where a="number_of ?a" and b="number_of ?b",
-                        unfolded word_no_wi wils1, folded word_no_wi]
+  word_not_def  [where a="number_of a", 
+                 unfolded word_no_wi wils1, folded word_no_wi, standard]
+  word_log_binary_defs [where a="number_of a" and b="number_of b",
+                        unfolded word_no_wi wils1, folded word_no_wi, standard]
 
 lemmas word_wi_log_defs = word_no_log_defs [unfolded word_no_wi]
 

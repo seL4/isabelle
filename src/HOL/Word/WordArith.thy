@@ -34,22 +34,22 @@ lemma udvdI:
   by (auto simp: udvd_def)
 
 lemmas word_div_no [simp] = 
-  word_div_def [of "number_of ?a" "number_of ?b"]
+  word_div_def [of "number_of a" "number_of b", standard]
 
 lemmas word_mod_no [simp] = 
-  word_mod_def [of "number_of ?a" "number_of ?b"]
+  word_mod_def [of "number_of a" "number_of b", standard]
 
 lemmas word_less_no [simp] = 
-  word_less_def [of "number_of ?a" "number_of ?b"]
+  word_less_def [of "number_of a" "number_of b", standard]
 
 lemmas word_le_no [simp] = 
-  word_le_def [of "number_of ?a" "number_of ?b"]
+  word_le_def [of "number_of a" "number_of b", standard]
 
 lemmas word_sless_no [simp] = 
-  word_sless_def [of "number_of ?a" "number_of ?b"]
+  word_sless_def [of "number_of a" "number_of b", standard]
 
 lemmas word_sle_no [simp] = 
-  word_sle_def [of "number_of ?a" "number_of ?b"]
+  word_sle_def [of "number_of a" "number_of b", standard]
 
 (* following two are available in class number_ring, 
   but convenient to have them here here;
@@ -351,7 +351,7 @@ lemmas word_not_simps [simp] =
 lemma word_gt_0: "0 < y = (0 ~= (y :: 'a :: len0 word))"
   unfolding word_less_def by auto
 
-lemmas word_gt_0_no [simp] = word_gt_0 [of "number_of ?y"]
+lemmas word_gt_0_no [simp] = word_gt_0 [of "number_of y", standard]
 
 lemma word_sless_alt: "(a <s b) == (sint a < sint b)"
   unfolding word_sle_def word_sless_def
@@ -1165,10 +1165,10 @@ lemmas plus_minus_no_overflow =
 lemmas mcs = word_less_minus_cancel word_less_minus_mono_left
   word_le_minus_cancel word_le_minus_mono_left
 
-lemmas word_l_diffs = mcs [where y = "?w + ?x", unfolded add_diff_cancel]
-lemmas word_diff_ls = mcs [where z = "?w + ?x", unfolded add_diff_cancel]
+lemmas word_l_diffs = mcs [where y = "w + x", unfolded add_diff_cancel, standard]
+lemmas word_diff_ls = mcs [where z = "w + x", unfolded add_diff_cancel, standard]
 lemmas word_plus_mcs = word_diff_ls 
-  [where y = "?v + ?x", unfolded add_diff_cancel]
+  [where y = "v + x", unfolded add_diff_cancel, standard]
 
 lemmas le_unat_uoi = unat_le [THEN word_unat.Abs_inverse]
 
