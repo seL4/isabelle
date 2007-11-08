@@ -55,12 +55,13 @@ sig
   val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
   val read_tyname: Proof.context -> string -> typ
-  val read_const': Proof.context -> string -> term
+  val read_const_proper: Proof.context -> string -> term
   val read_const: Proof.context -> string -> term
   val decode_term: Proof.context -> term -> term
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
   val read_term_abbrev: Proof.context -> string -> term
+  val expand_abbrevs: Proof.context -> term -> term
   val read_termTs_schematic: Proof.context -> (string -> bool) -> (indexname -> typ option)
     -> (indexname -> sort option) -> string list -> (string * typ) list
     -> term list * (indexname * typ) list
@@ -415,7 +416,7 @@ fun read_tyname ctxt c =
       val d = Sign.intern_type thy c;
     in Type (d, replicate (Sign.arity_number thy d) dummyT) end;
 
-fun read_const' ctxt c =
+fun read_const_proper ctxt c =
   (case Variable.lookup_const ctxt c of
     SOME d => Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => error msg)
   | NONE => Consts.read_const (consts_of ctxt) c);
@@ -423,7 +424,7 @@ fun read_const' ctxt c =
 fun read_const ctxt c =
   (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
     (SOME x, false) => Free (x, infer_type ctxt x)
-  | _ => read_const' ctxt c);
+  | _ => read_const_proper ctxt c);
 
 
 (* read_term *)
@@ -512,7 +513,7 @@ end;
 fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mess *)
   let
     val sko = lookup_skolem ctxt x;
-    val is_const = can (read_const' ctxt) x;
+    val is_const = can (read_const_proper ctxt) x;
     val is_scoped_const = Variable.is_const ctxt x;
     val is_free = (is_some sko orelse not is_const) andalso not is_scoped_const;
     val is_internal = internal x;
@@ -530,7 +531,7 @@ fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mes
 fun term_context ctxt =
   let val thy = theory_of ctxt in
    {get_sort = Sign.get_sort thy (Variable.def_sort ctxt),
-    map_const = try (#1 o Term.dest_Const o read_const' ctxt),
+    map_const = try (#1 o Term.dest_Const o read_const_proper ctxt),
     map_free = legacy_intern_skolem ctxt (K false) (Variable.def_type ctxt false),
     map_type = Sign.intern_tycons thy,
     map_sort = Sign.intern_sort thy}
@@ -986,7 +987,7 @@ local
 
 fun const_ast_tr intern ctxt [Syntax.Variable c] =
       let
-        val Const (c', _) = read_const' ctxt c;
+        val Const (c', _) = read_const_proper ctxt c;
         val d = if intern then const_syntax_name ctxt c' else c;
       in Syntax.Constant d end
   | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
