@@ -444,10 +444,10 @@ fun get_global_registrations thy = get_registrations (Context.Theory thy);
 fun get_local_registrations ctxt = get_registrations (Context.Proof ctxt);
 
 
-fun get_registration ctxt import (name, ps) =
+fun get_registration ctxt imprt (name, ps) =
   case Symtab.lookup (RegistrationsData.get ctxt) name of
       NONE => NONE
-    | SOME reg => Registrations.lookup (Context.theory_of ctxt) (reg, (ps, import));
+    | SOME reg => Registrations.lookup (Context.theory_of ctxt) (reg, (ps, imprt));
 
 fun get_global_registration thy = get_registration (Context.Theory thy);
 fun get_local_registration ctxt = get_registration (Context.Proof ctxt);
@@ -1606,7 +1606,7 @@ fun join_eqns get_reg prep_id ctxt id eqns =
    registration; requires parameters and flattened list of identifiers
    instead of recomputing it from the target *)
 
-fun collect_global_witnesses thy import parms ids vts = let
+fun collect_global_witnesses thy imprt parms ids vts = let
     val ts = map Logic.unvarify vts;
     val (parms, parmTs) = split_list parms;
     val parmvTs = map Logic.varifyT parmTs;
@@ -1619,11 +1619,11 @@ fun collect_global_witnesses thy import parms ids vts = let
     val inst = Symtab.make (parms ~~ ts);
     val inst_ids = map (apfst (apsnd vinst_names)) ids;
     val assumed_ids' = map_filter (fn (id, (_, Assumed _)) => SOME id | _ => NONE) inst_ids;
-    val wits = maps (#2 o the o get_global_registration thy import) assumed_ids';
+    val wits = maps (#2 o the o get_global_registration thy imprt) assumed_ids';
 
     val ids' = map fst inst_ids;
     val eqns =
-      fold_map (join_eqns (get_global_registration thy import) I (ProofContext.init thy))
+      fold_map (join_eqns (get_global_registration thy imprt) I (ProofContext.init thy))
         ids' Termtab.empty |> snd |> Termtab.dest |> map snd;
   in ((tinst, inst), wits, eqns) end;
 
@@ -2186,12 +2186,12 @@ fun prep_instantiations parse_term parse_prop ctxt parms (insts, eqns) =
                | _ => error "internal: illegal export in interpretation")
       |> Vartab.make;
     val dom = fold Term.add_frees res [] |> map Free;
-    val import = dom |> map (fn x => (Morphism.term export x, x))
+    val imprt = dom |> map (fn x => (Morphism.term export x, x))
       |> map_filter (fn (Free _, _) => NONE  (* fixed point of export *)
                | (Var y, x) => SOME (fst y, x)
                | _ => error "internal: illegal export in interpretation")
       |> Vartab.make;
-  in (((instT, inst), eqns''), (export, ((importT, domT), (import, dom)))) end;
+  in (((instT, inst), eqns''), (export, ((importT, domT), (imprt, dom)))) end;
 
 val read_instantiations = prep_instantiations Syntax.parse_term Syntax.parse_prop;
 val check_instantiations = prep_instantiations (K I) (K I);
