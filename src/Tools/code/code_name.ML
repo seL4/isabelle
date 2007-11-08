@@ -12,6 +12,7 @@ signature CODE_NAME =
 sig
   val purify_var: string -> string
   val purify_tvar: string -> string
+  val purify_sym: string -> string
   val check_modulename: string -> string
   type var_ctxt;
   val make_vars: string list -> var_ctxt;
@@ -39,7 +40,7 @@ struct
 
 (** purification **)
 
-fun purify_name upper_else_lower =
+fun purify_name upper lower =
   let
     fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
     val is_junk = not o is_valid andf Symbol.is_regular;
@@ -49,9 +50,10 @@ fun purify_name upper_else_lower =
         (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
         --| junk))
       -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
-    fun upper_lower cs = if upper_else_lower then nth_map 0 Symbol.to_ascii_upper cs
-      else (if forall Symbol.is_ascii_upper cs
-        then map else nth_map 0) Symbol.to_ascii_lower cs;
+    fun upper_lower cs = if upper then nth_map 0 Symbol.to_ascii_upper cs
+      else if lower then (if forall Symbol.is_ascii_upper cs
+        then map else nth_map 0) Symbol.to_ascii_lower cs
+      else cs;
   in
     explode
     #> scan_valids
@@ -62,7 +64,7 @@ fun purify_name upper_else_lower =
   end;
 
 fun purify_var "" = "x"
-  | purify_var v = purify_name false v;
+  | purify_var v = purify_name false true v;
 
 fun purify_tvar "" = "'a"
   | purify_tvar v =
@@ -71,7 +73,7 @@ fun purify_tvar "" = "'a"
 fun check_modulename mn =
   let
     val mns = NameSpace.explode mn;
-    val mns' = map (purify_name true) mns;
+    val mns' = map (purify_name true false) mns;
   in
     if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
       ^ "perhaps try " ^ quote (NameSpace.implode mns'))
@@ -179,25 +181,27 @@ val purify_prefix =
       (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.is_regular))
   #> implode
   #> NameSpace.explode
-  #> map (purify_name true);
+  #> map (purify_name true false);
 
-fun purify_base "op &" = "and"
-  | purify_base "op |" = "or"
-  | purify_base "op -->" = "implies"
-  | purify_base "{}" = "empty"
-  | purify_base "op :" = "member"
-  | purify_base "op Int" = "intersect"
-  | purify_base "op Un" = "union"
-  | purify_base "*" = "product"
-  | purify_base "+" = "sum"
-  | purify_base s = if String.isPrefix "op =" s
-      then "eq" ^ purify_name false s
-      else purify_name false s;
+fun purify_base _ "op &" = "and"
+  | purify_base _ "op |" = "or"
+  | purify_base _ "op -->" = "implies"
+  | purify_base _ "{}" = "empty"
+  | purify_base _ "op :" = "member"
+  | purify_base _ "op Int" = "intersect"
+  | purify_base _ "op Un" = "union"
+  | purify_base _ "*" = "product"
+  | purify_base _ "+" = "sum"
+  | purify_base lower s = if String.isPrefix "op =" s
+      then "eq" ^ purify_name false lower s
+      else purify_name false lower s;
+
+val purify_sym = purify_base false;
 
 fun default_policy thy get_basename get_thyname name =
   let
     val prefix = (purify_prefix o get_thyname thy) name;
-    val base = (purify_base o get_basename) name;
+    val base = (purify_base true o get_basename) name;
   in NameSpace.implode (prefix @ [base]) end;
 
 fun class_policy thy = default_policy thy NameSpace.base thyname_of_class;
@@ -222,7 +226,7 @@ fun const_policy thy c =
    of NONE => default_policy thy NameSpace.base thyname_of_const c
     | SOME thyname => let
         val prefix = purify_prefix thyname;
-        val base = (purify_base o NameSpace.base) c;
+        val base = (purify_base true o NameSpace.base) c;
       in NameSpace.implode (prefix @ [base]) end;
 
 
