@@ -996,9 +996,9 @@ fun test_goal' int state =
       let val _ = Output.priority "Auto quickcheck ..." in
         case try (TimeLimit.timeLimit (Time.fromMilliseconds (!auto_quickcheck_time_limit))
             (test_goal true (params, []) 1 assms)) state of
-          SOME cex => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
+          SOME (cex as SOME _) => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
             Pretty.markup Markup.hilite [pretty_counterex ctxt cex]]) state
-        | _ => (Output.priority "Auto quickcheck: no counterexample found"; state)
+        | _ => (Output.priority "Auto quickcheck: no counterexamples found."; state)
       end;
   in
     if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
