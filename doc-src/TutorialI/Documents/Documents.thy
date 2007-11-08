@@ -11,13 +11,13 @@ text {*
   for the parser and output templates for the pretty printer.
 
   In full generality, parser and pretty printer configuration is a
-  subtle affair \cite{isabelle-ref}.  Your syntax specifications need
+  subtle affair~\cite{isabelle-ref}.  Your syntax specifications need
   to interact properly with the existing setup of Isabelle/Pure and
   Isabelle/HOL\@.  To avoid creating ambiguities with existing
   elements, it is particularly important to give new syntactic
   constructs the right precedence.
 
-  \medskip Subsequently we introduce a few simple syntax declaration
+  Below we introduce a few simple syntax declaration
   forms that already cover many common situations fairly well.
 *}
 
@@ -50,7 +50,7 @@ text {*
   @{text "op [+]"}; together with ordinary function application, this
   turns @{text "xor A"} into @{text "op [+] A"}.
 
-  \medskip The keyword \isakeyword{infixl} seen above specifies an
+  The keyword \isakeyword{infixl} seen above specifies an
   infix operator that is nested to the \emph{left}: in iterated
   applications the more complex expression appears on the left-hand
   side, and @{term "A [+] B [+] C"} stands for @{text "(A [+] B) [+]
@@ -134,7 +134,7 @@ text {*
   by Isabelle. Note that @{text "\<Pi>\<^isup>\<A>"} is a single
   syntactic entity, not an exponentiation.
 
-  \medskip Replacing our previous definition of @{text xor} by the
+  Replacing our previous definition of @{text xor} by the
   following specifies an Isabelle symbol for the new operator:
 *}
 
@@ -155,7 +155,7 @@ text {*
   just type a named entity \verb,\,\verb,<oplus>, by hand; the
   corresponding symbol will be displayed after further input.
 
-  \medskip More flexible is to provide alternative syntax forms
+  More flexible is to provide alternative syntax forms
   through the \bfindex{print mode} concept~\cite{isabelle-ref}.  By
   convention, the mode of ``$xsymbols$'' is enabled whenever
   Proof~General's X-Symbol mode or {\LaTeX} output is active.  Now
@@ -170,26 +170,20 @@ constdefs
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
   "A [+]\<ignore> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
-syntax (xsymbols)
-  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>\<ignore>" 60)
+notation (xsymbols) xor (infixl "\<oplus>\<ignore>" 60)
 (*<*)
 local
 (*>*)
 
-text {*
-  The \commdx{syntax} command introduced here acts like
-  \isakeyword{consts}, but without declaring a logical constant.  The
-  print mode specification of \isakeyword{syntax}, here @{text
-  "(xsymbols)"}, is optional.  Also note that its type merely serves
-  for syntactic purposes, and is \emph{not} checked for consistency
-  with the real constant.
+text {*The \commdx{notation} command associates a mixfix
+annotation with a logical constant.  The print mode specification of
+\isakeyword{syntax}, here @{text "(xsymbols)"}, is optional.
 
-  \medskip We may now write @{text "A [+] B"} or @{text "A \<oplus> B"} in
-  input, while output uses the nicer syntax of $xsymbols$ whenever
-  that print mode is active.  Such an arrangement is particularly
-  useful for interactive development, where users may type ASCII text
-  and see mathematical symbols displayed during proofs.
-*}
+We may now write @{text "A [+] B"} or @{text "A \<oplus> B"} in input, while
+output uses the nicer syntax of $xsymbols$ whenever that print mode is
+active.  Such an arrangement is particularly useful for interactive
+development, where users may type ASCII text and see mathematical
+symbols displayed during proofs.  *}
 
 
 subsection {* Prefix Annotations *}
@@ -223,64 +217,57 @@ text {*
 *}
 
 
-subsection {* Syntax Translations \label{sec:syntax-translations} *}
+subsection {* Abbreviations \label{sec:abbreviations} *}
 
-text{*
-  Mixfix syntax annotations merely decorate particular constant
-  application forms with concrete syntax, for instance replacing \
-  @{text "xor A B"} by @{text "A \<oplus> B"}.  Occasionally, the
-  relationship between some piece of notation and its internal form is
-  more complicated.  Here we need \bfindex{syntax translations}.
+text{* Mixfix syntax annotations merely decorate particular constant
+application forms with concrete syntax, for instance replacing
+@{text "xor A B"} by @{text "A \<oplus> B"}.  Occasionally, the relationship
+between some piece of notation and its internal form is more
+complicated.  Here we need \emph{abbreviations}.
 
-  Using the \isakeyword{syntax}\index{syntax (command)}, command we
-  introduce uninterpreted notational elements.  Then
-  \commdx{translations} relate input forms to complex logical
-  expressions.  This provides a simple mechanism for syntactic macros;
-  even heavier transformations may be written in ML
-  \cite{isabelle-ref}.
+Command \commdx{abbreviation} introduces an uninterpreted notational
+constant as an abbreviation for a complex term. Abbreviations are
+unfolded upon parsing and re-introduced upon printing. This provides a
+simple mechanism for syntactic macros.
 
-  \medskip A typical use of syntax translations is to introduce
-  relational notation for membership in a set of pair, replacing \
-  @{text "(x, y) \<in> sim"} by @{text "x \<approx> y"}.
+A typical use of abbreviations is to introduce relational notation for
+membership in a set of pairs, replacing @{text "(x, y) \<in> sim"} by
+@{text "x \<approx> y"}.  *}
+
+consts sim :: "('a \<times> 'a) set"
+
+abbreviation sim2 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"   (infix "\<approx>" 50)
+where "x \<approx> y  \<equiv>  (x, y) \<in> sim"
+
+text {* \noindent The given meta-equality is used as a rewrite rule
+after parsing (replacing \mbox{@{prop"x \<approx> y"}} by @{text"(x,y) \<in>
+sim"}) and before printing (turning @{text"(x,y) \<in> sim"} back into
+\mbox{@{prop"x \<approx> y"}}). The name of the dummy constant @{text "sim2"}
+does not matter, as long as it is unique.
+
+Another common application of abbreviations is to
+provide variant versions of fundamental relational expressions, such
+as @{text \<noteq>} for negated equalities.  The following declaration
+stems from Isabelle/HOL itself:
 *}
 
-consts
-  sim :: "('a \<times> 'a) set"
+abbreviation not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "~=\<ignore>" 50)
+where "x ~=\<ignore> y  \<equiv>  \<not> (x = y)"
 
-syntax
-  "_sim" :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infix "\<approx>" 50)
-translations
-  "x \<approx> y" \<rightleftharpoons> "(x, y) \<in> sim"
+notation (xsymbols) not_equal (infix "\<noteq>\<ignore>" 50)
 
-text {*
-  \noindent Here the name of the dummy constant @{text "_sim"} does
-  not matter, as long as it is not used elsewhere.  Prefixing an
-  underscore is a common convention.  The \isakeyword{translations}
-  declaration already uses concrete syntax on the left-hand side;
-  internally we relate a raw application @{text "_sim x y"} with
-  @{text "(x, y) \<in> sim"}.
+text {* \noindent The notation @{text \<noteq>} is introduced separately to restrict it
+to the \emph{xsymbols} mode.
 
-  \medskip Another common application of syntax translations is to
-  provide variant versions of fundamental relational expressions, such
-  as @{text \<noteq>} for negated equalities.  The following declaration
-  stems from Isabelle/HOL itself:
-*}
+ Abbreviations are appropriate when the defined concept is a
+simple variation on an existing one.  But because of the automatic
+folding and unfolding of abbreviations, they do not scale up well to
+large hierarchies of concepts. Abbreviations do not replace
+definitions.
 
-syntax "_not_equal" :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<noteq>\<ignore>" 50)
-translations "x \<noteq>\<ignore> y" \<rightleftharpoons> "\<not> (x = y)"
-
-text {*
-  \noindent Normally one would introduce derived concepts like this
-  within the logic, using \isakeyword{consts} + \isakeyword{defs}
-  instead of \isakeyword{syntax} + \isakeyword{translations}.  The
-  present formulation has the virtue that expressions are immediately
-  replaced by the ``definition'' upon parsing; the effect is reversed
-  upon printing.
-
-  This sort of translation is appropriate when the defined concept is
-  a trivial variation on an existing one.  On the other hand, syntax
-  translations do not scale up well to large hierarchies of concepts.
-  Translations do not replace definitions!
+Abbreviations are a simplified form of the general concept of
+\emph{syntax translations}; even heavier transformations may be
+written in ML \cite{isabelle-ref}.
 *}
 
 
@@ -643,6 +630,7 @@ text {\ttlbrace}*
 
   \begin{tabular}{ll}
   \texttt{\at}\verb,{typ,~$\tau$\verb,}, & print type $\tau$ \\
+  \texttt{\at}\verb,{const,~$c$\verb,}, & check existence of $c$ and print it \\
   \texttt{\at}\verb,{term,~$t$\verb,}, & print term $t$ \\
   \texttt{\at}\verb,{prop,~$\phi$\verb,}, & print proposition $\phi$ \\
   \texttt{\at}\verb,{prop [display],~$\phi$\verb,}, & print large proposition $\phi$ (with linebreaks) \\
