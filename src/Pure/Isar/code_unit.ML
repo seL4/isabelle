@@ -262,42 +262,38 @@ fun expand_eta k thm =
       then (length o fst o strip_abs) rhs
       else Int.max (0, k - length args);
     val used = Name.make_context (map (fst o fst) (Term.add_vars lhs []));
-    fun get_name _ 0 used = ([], used)
-      | get_name (Abs (v, ty, t)) k used =
-          used
-          |> Name.variants [v]
-          ||>> get_name t (k - 1)
-          |>> (fn ([v'], vs') => (v', ty) :: vs')
-      | get_name t k used = 
+    fun get_name _ 0 = pair []
+      | get_name (Abs (v, ty, t)) k =
+          Name.variants [v]
+          ##>> get_name t (k - 1)
+          #>> (fn ([v'], vs') => (v', ty) :: vs')
+      | get_name t k = 
           let
             val (tys, _) = (strip_type o fastype_of) t
           in case tys
            of [] => raise TERM ("expand_eta", [t])
             | ty :: _ =>
-                used
-                |> Name.variants [""]
-                |-> (fn [v] => get_name (t $ Var ((v, 0), ty)) (k - 1)
+                Name.variants [""]
+                #-> (fn [v] => get_name (t $ Var ((v, 0), ty)) (k - 1)
                 #>> (fn vs' => (v, ty) :: vs'))
           end;
     val (vs, _) = get_name rhs l used;
-    val vs_refl = map (fn (v, ty) => Thm.reflexive (Thm.cterm_of thy (Var ((v, 0), ty)))) vs;
+    fun expand (v, ty) thm = Drule.fun_cong_rule thm
+      (Thm.cterm_of thy (Var ((v, 0), ty)));
   in
     thm
-    |> fold (fn refl => fn thm => Thm.combination thm refl) vs_refl
+    |> fold expand vs
     |> Conv.fconv_rule Drule.beta_eta_conversion
   end;
 
-fun rewrite_func rewrites thm =
+fun func_conv conv =
   let
-    val rewrite = MetaSimplifier.rewrite false rewrites;
-    val (ct_eq, [ct_lhs, ct_rhs]) = (Drule.strip_comb o Thm.cprop_of) thm;
-    val Const ("==", _) = Thm.term_of ct_eq;
-    val (ct_f, ct_args) = Drule.strip_comb ct_lhs;
-    val rhs' = rewrite ct_rhs;
-    val args' = map rewrite ct_args;
-    val lhs' = Thm.symmetric (fold (fn th1 => fn th2 => Thm.combination th2 th1)
-      args' (Thm.reflexive ct_f));
-  in Thm.transitive (Thm.transitive lhs' thm) rhs' end;
+    fun lhs_conv ct = if can Thm.dest_comb ct
+      then (Conv.combination_conv lhs_conv conv) ct
+      else Conv.all_conv ct;
+  in Conv.combination_conv (Conv.arg_conv lhs_conv) conv end;
+
+val rewrite_func = Conv.fconv_rule o func_conv o MetaSimplifier.rewrite false;
 
 fun norm_args thms =
   let
