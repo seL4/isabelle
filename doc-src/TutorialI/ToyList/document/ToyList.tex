@@ -133,12 +133,44 @@ dropped, unless the identifier happens to be a keyword, as in%
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
 the \textbf{inner syntax} and the enclosing theory language as the \textbf{outer syntax}.
 
+\section{Evaluation}
+\index{evaluation}
+
+Assuming you have processed the declarations and definitions of
+\texttt{ToyList} presented so far, you may want to test your
+functions by running them. For example, what is the value of
+\isa{rev\ {\isacharparenleft}True\ {\isacharhash}\ False\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}}? Command%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{value}\isamarkupfalse%
+\ {\isachardoublequoteopen}rev\ {\isacharparenleft}True\ {\isacharhash}\ False\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent yields the correct result \isa{False\ {\isacharhash}\ True\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}.
+But we can go beyond mere functional programming and evaluate terms with
+variables in them, executing functions symbolically:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{normal{\isacharunderscore}form}\isamarkupfalse%
+\ {\isachardoublequoteopen}rev\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ c\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent yields \isa{c\ {\isacharhash}\ b\ {\isacharhash}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}.
+Command \commdx{normal\protect\_form} works for arbitrary terms
+but can be slower than command \commdx{value},
+which is restricted to variable-free terms and executable functions.
+To appreciate the subtleties of evaluating terms with variables,
+try this one:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{normal{\isacharunderscore}form}\isamarkupfalse%
+\ {\isachardoublequoteopen}rev\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ c\ {\isacharhash}\ xs{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Chances are that the result will at first puzzle you.
 
 \section{An Introductory Proof}
 \label{sec:intro-proof}
 
-Assuming you have processed the declarations and definitions of
-\texttt{ToyList} presented so far, we are ready to prove a few simple
+Having convinced ourselves (as well as one can by testing) that our
+definitions capture our intentions, we are ready to prove a few simple
 theorems. This will illustrate not just the basic proof commands but
 also the typical proof process.
 
