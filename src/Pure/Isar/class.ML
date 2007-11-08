@@ -620,8 +620,10 @@ structure ClassSyntax = ProofDataFun(
   fun init _ = NONE;
 );
 
-fun synchronize_syntax thy sups base_sort ctxt =
+fun synchronize_syntax sups base_sort ctxt =
   let
+    val thy = ProofContext.theory_of ctxt;
+
     (* constraints *)
     val operations = these_operations thy sups;
     fun local_constraint (c, (_, (ty, _))) =
@@ -637,7 +639,7 @@ fun synchronize_syntax thy sups base_sort ctxt =
     val consts = ProofContext.consts_of ctxt;
     fun declare_const (c, _) =
       let val b = Sign.base_name c
-      in Consts.intern consts b = c ? Variable.declare_const (b, c) end;
+      in Sign.intern_const thy b = c ? Variable.declare_const (b, c) end;
     val typargs = Consts.typargs consts;
     fun check_const (c, ty) (t, (_, typidx)) = ((nth (typargs (c, ty)) typidx), t);
     fun local_operation (c_ty as (c, _)) = AList.lookup (op =) operations c
@@ -666,7 +668,7 @@ fun refresh_syntax class ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val base_sort = (#base_sort o the_class_data thy) class;
-  in synchronize_syntax thy [class] base_sort ctxt end;
+  in synchronize_syntax [class] base_sort ctxt end;
 
 val mark_passed = (ClassSyntax.map o Option.map)
   (fn { constraints, base_sort, local_operation, unchecks, passed } =>
@@ -712,11 +714,11 @@ fun sort_term_uncheck ts ctxt =
       then map (Pattern.rewrite_term thy unchecks []) ts else ts;
   in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', ctxt) end;
 
-fun init_ctxt thy sups base_sort ctxt =
+fun init_ctxt sups base_sort ctxt =
   ctxt
   |> Variable.declare_term
       (Logic.mk_type (TFree (Name.aT, base_sort)))
-  |> synchronize_syntax thy sups base_sort
+  |> synchronize_syntax sups base_sort
   |> Context.proof_map (
       Syntax.add_term_check 0 "class" sort_term_check
       #> Syntax.add_term_uncheck 0 "class" sort_term_uncheck)
@@ -724,7 +726,7 @@ fun init_ctxt thy sups base_sort ctxt =
 fun init class thy =
   thy
   |> Locale.init class
-  |> init_ctxt thy [class] ((#base_sort o the_class_data thy) class);
+  |> init_ctxt [class] ((#base_sort o the_class_data thy) class);
 
 
 (* class definition *)
@@ -754,7 +756,7 @@ fun gen_class_spec prep_class prep_expr process_expr thy raw_supclasses raw_incl
     ProofContext.init thy
     |> Locale.cert_expr supexpr [constrain]
     |> snd
-    |> init_ctxt thy sups base_sort
+    |> init_ctxt sups base_sort
     |> process_expr Locale.empty raw_elems
     |> fst
     |> (fn elems => ((((sups, supconsts), (supsort, base_sort, mergeexpr)),
