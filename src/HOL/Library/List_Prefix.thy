@@ -190,12 +190,13 @@ lemma take_strict_prefix:
 
 lemma not_prefix_cases:
   assumes pfx: "\<not> ps \<le> ls"
-  and c1: "\<lbrakk> ps \<noteq> []; ls = [] \<rbrakk> \<Longrightarrow> R"
-  and c2: "\<And>a as x xs. \<lbrakk> ps = a#as; ls = x#xs; x = a; \<not> as \<le> xs\<rbrakk> \<Longrightarrow> R"
-  and c3: "\<And>a as x xs. \<lbrakk> ps = a#as; ls = x#xs; x \<noteq> a\<rbrakk> \<Longrightarrow> R"
-  shows "R"
+  obtains
+    (c1) "ps \<noteq> []" and "ls = []"
+  | (c2) a as x xs where "ps = a#as" and "ls = x#xs" and "x = a" and "\<not> as \<le> xs"
+  | (c3) a as x xs where "ps = a#as" and "ls = x#xs" and "x \<noteq> a"
 proof (cases ps)
-  case Nil then show ?thesis using pfx by simp
+  case Nil
+  then show ?thesis using pfx by simp
 next
   case (Cons a as)
   then have c: "ps = a#as" .
@@ -221,11 +222,10 @@ qed
 
 lemma not_prefix_induct [consumes 1, case_names Nil Neq Eq]:
   assumes np: "\<not> ps \<le> ls"
-  and base:   "\<And>x xs. P (x#xs) []"
-  and r1:     "\<And>x xs y ys. x \<noteq> y \<Longrightarrow> P (x#xs) (y#ys)"
-  and r2:     "\<And>x xs y ys. \<lbrakk> x = y; \<not> xs \<le> ys; P xs ys \<rbrakk> \<Longrightarrow> P (x#xs) (y#ys)"
-  shows "P ps ls"
-  using np
+    and base: "\<And>x xs. P (x#xs) []"
+    and r1: "\<And>x xs y ys. x \<noteq> y \<Longrightarrow> P (x#xs) (y#ys)"
+    and r2: "\<And>x xs y ys. \<lbrakk> x = y; \<not> xs \<le> ys; P xs ys \<rbrakk> \<Longrightarrow> P (x#xs) (y#ys)"
+  shows "P ps ls" using np
 proof (induct ls arbitrary: ps)
   case Nil then show ?case
     by (auto simp: neq_Nil_conv elim!: not_prefix_cases intro!: base)
@@ -241,6 +241,7 @@ next
   show ?case using npfx
     by (simp only: pv) (erule not_prefix_cases, auto intro: r1 r2 ih)
 qed
+
 
 subsection {* Parallel lists *}
 
@@ -310,9 +311,9 @@ lemma parallel_appendI:
   "\<lbrakk> xs \<parallel> ys; x = xs @ xs' ; y = ys @ ys' \<rbrakk> \<Longrightarrow> x \<parallel> y"
   by simp (rule parallel_append)
 
-lemma parallel_commute:
-  "(a \<parallel> b) = (b \<parallel> a)"
+lemma parallel_commute: "(a \<parallel> b) = (b \<parallel> a)"
   unfolding parallel_def by auto
+
 
 subsection {* Postfix order on lists *}
 
@@ -380,30 +381,29 @@ next
 qed
 
 lemma distinct_postfix:
-  assumes dx: "distinct xs"
-  and     pf: "xs >>= ys"
-  shows   "distinct ys"
-  using dx pf by (clarsimp elim!: postfixE)
+  assumes "distinct xs"
+    and "xs >>= ys"
+  shows "distinct ys"
+  using assms by (clarsimp elim!: postfixE)
 
 lemma postfix_map:
-  assumes pf: "xs >>= ys"
-  shows   "map f xs >>= map f ys"
-  using pf by (auto elim!: postfixE intro: postfixI)
+  assumes "xs >>= ys"
+  shows "map f xs >>= map f ys"
+  using assms by (auto elim!: postfixE intro: postfixI)
 
-lemma postfix_drop:
-  "as >>= drop n as"
+lemma postfix_drop: "as >>= drop n as"
   unfolding postfix_def
   by (rule exI [where x = "take n as"]) simp
 
 lemma postfix_take:
-  "xs >>= ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
+    "xs >>= ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
   by (clarsimp elim!: postfixE)
 
-lemma parallelD1:
-  "x \<parallel> y \<Longrightarrow> \<not> x \<le> y" by blast
+lemma parallelD1: "x \<parallel> y \<Longrightarrow> \<not> x \<le> y"
+  by blast
 
-lemma parallelD2:
-  "x \<parallel> y \<Longrightarrow> \<not> y \<le> x" by blast
+lemma parallelD2: "x \<parallel> y \<Longrightarrow> \<not> y \<le> x"
+  by blast
 
 lemma parallel_Nil1 [simp]: "\<not> x \<parallel> []"
   unfolding parallel_def by simp
@@ -426,11 +426,12 @@ lemma Cons_parallelI2:
 
 lemma not_equal_is_parallel:
   assumes neq: "xs \<noteq> ys"
-  and     len: "length xs = length ys"
-  shows   "xs \<parallel> ys"
+    and len: "length xs = length ys"
+  shows "xs \<parallel> ys"
   using len neq
 proof (induct rule: list_induct2)
-  case 1 then show ?case by simp
+  case 1
+  then show ?case by simp
 next
   case (2 a as b bs)
   have ih: "as \<noteq> bs \<Longrightarrow> as \<parallel> bs" by fact
@@ -447,18 +448,18 @@ next
 qed
 
 
-subsection {* Exeuctable code *}
+subsection {* Executable code *}
 
 lemma less_eq_code [code func]:
-  "([]\<Colon>'a\<Colon>{eq, ord} list) \<le> xs \<longleftrightarrow> True"
-  "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> [] \<longleftrightarrow> False"
-  "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
+    "([]\<Colon>'a\<Colon>{eq, ord} list) \<le> xs \<longleftrightarrow> True"
+    "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> [] \<longleftrightarrow> False"
+    "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
   by simp_all
 
 lemma less_code [code func]:
-  "xs < ([]\<Colon>'a\<Colon>{eq, ord} list) \<longleftrightarrow> False"
-  "[] < (x\<Colon>'a\<Colon>{eq, ord})# xs \<longleftrightarrow> True"
-  "(x\<Colon>'a\<Colon>{eq, ord}) # xs < y # ys \<longleftrightarrow> x = y \<and> xs < ys"
+    "xs < ([]\<Colon>'a\<Colon>{eq, ord} list) \<longleftrightarrow> False"
+    "[] < (x\<Colon>'a\<Colon>{eq, ord})# xs \<longleftrightarrow> True"
+    "(x\<Colon>'a\<Colon>{eq, ord}) # xs < y # ys \<longleftrightarrow> x = y \<and> xs < ys"
   unfolding strict_prefix_def by auto
 
 lemmas [code func] = postfix_to_prefix
