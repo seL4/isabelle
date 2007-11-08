@@ -142,10 +142,6 @@ sig
   val read_typ: theory -> string -> typ
   val read_typ_syntax: theory -> string -> typ
   val read_typ_abbrev: theory -> string -> typ
-  val read_def_terms': Pretty.pp -> (string -> bool) -> Syntax.syntax -> Consts.T ->
-    (string -> string option) -> Proof.context ->
-    (indexname -> typ option) * (indexname -> sort option) ->
-    Name.context -> bool -> (string * typ) list -> term list * (indexname * typ) list
   val read_def_terms:
     theory * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
