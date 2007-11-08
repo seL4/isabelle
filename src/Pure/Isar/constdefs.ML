@@ -34,7 +34,7 @@ fun gen_constdef prep_vars prep_prop prep_att
         NONE => ((NONE, NoSyn), struct_ctxt)
       | SOME raw_var =>
           struct_ctxt |> prep_vars [raw_var] |-> (fn [(x, T, mx)] =>
-            ProofContext.add_fixes_legacy [(x, T, mx)] #> snd #> pair (SOME x, mx)));
+            ProofContext.add_fixes_i [(x, T, mx)] #> snd #> pair (SOME x, mx)));
 
     val prop = prep_prop var_ctxt raw_prop;
     val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
@@ -61,7 +61,7 @@ fun gen_constdefs prep_vars prep_prop prep_att (raw_structs, specs) thy =
     val (decls, thy') = fold_map (gen_constdef prep_vars prep_prop prep_att structs) specs thy;
   in Pretty.writeln (ProofDisplay.pretty_consts ctxt (K true) decls); thy' end;
 
-val add_constdefs = gen_constdefs ProofContext.read_vars_legacy Syntax.read_prop Attrib.attribute;
-val add_constdefs_i = gen_constdefs ProofContext.cert_vars_legacy ProofContext.cert_prop (K I);
+val add_constdefs = gen_constdefs ProofContext.read_vars Syntax.read_prop Attrib.attribute;
+val add_constdefs_i = gen_constdefs ProofContext.cert_vars ProofContext.cert_prop (K I);
 
 end;
