@@ -2,9 +2,9 @@
 theory case_exprs imports Main begin
 (*>*)
 
-subsection{*Case Expressions*}
-
-text{*\label{sec:case-expressions}\index{*case expressions}%
+text{*
+\subsection{Case Expressions}
+\label{sec:case-expressions}\index{*case expressions}%
 HOL also features \isa{case}-expressions for analyzing
 elements of a datatype. For example,
 @{term[display]"case xs of [] => [] | y#ys => y"}
@@ -13,36 +13,38 @@ evaluates to @{term"[]"} if @{term"xs"} is @{term"[]"} and to @{term"y"} if
 the same type, it follows that @{term y} is of type @{typ"'a list"} and hence
 that @{term xs} is of type @{typ"'a list list"}.)
 
-In general, if $e$ is a term of the datatype $t$ defined in
-\S\ref{sec:general-datatype} above, the corresponding
-@{text"case"}-expression analyzing $e$ is
+In general, case expressions are of the form
 \[
-\begin{array}{rrcl}
-@{text"case"}~e~@{text"of"} & C@1~x@ {11}~\dots~x@ {1k@1} & \To & e@1 \\
-                           \vdots \\
-                           \mid & C@m~x@ {m1}~\dots~x@ {mk@m} & \To & e@m
+\begin{array}{c}
+@{text"case"}~e~@{text"of"}\ pattern@1~@{text"\<Rightarrow>"}~e@1\ @{text"|"}\ \dots\
+ @{text"|"}~pattern@m~@{text"\<Rightarrow>"}~e@m
 \end{array}
 \]
+Like in functional programming, patterns are expressions consisting of
+datatype constructors (e.g. @{term"[]"} and @{text"#"})
+and variables, including the wildcard ``\verb$_$''.
+Not all cases need to be covered and the order of cases matters.
+However, one is well-advised not to wallow in complex patterns because
+complex case distinctions tend to induce complex proofs.
 
 \begin{warn}
-\emph{All} constructors must be present, their order is fixed, and nested
-patterns are not supported.  Violating these restrictions results in strange
-error messages.
+Internally Isabelle only knows about exhaustive case expressions with
+non-nested patterns: $pattern@i$ must be of the form
+$C@i~x@ {i1}~\dots~x@ {ik@i}$ and $C@1, \dots, C@m$ must be exactly the
+constructors of the type of $e$.
+%
+More complex case expressions are automatically
+translated into the simpler form upon parsing but are not translated
+back for printing. This may lead to surprising output.
 \end{warn}
-\noindent
-Nested patterns can be simulated by nested @{text"case"}-expressions: instead
-of
-@{text[display]"case xs of [] => [] | [x] => x | x # (y # zs) => y"}
-write
-@{term[display,eta_contract=false,margin=50]"case xs of [] => [] | x#ys => (case ys of [] => x | y#zs => y)"}
 
-Note that @{text"case"}-expressions may need to be enclosed in parentheses to
-indicate their scope
-*}
+\begin{warn}
+Like @{text"if"}, @{text"case"}-expressions may need to be enclosed in
+parentheses to indicate their scope.
+\end{warn}
 
-subsection{*Structural Induction and Case Distinction*}
-
-text{*\label{sec:struct-ind-case}
+\subsection{Structural Induction and Case Distinction}
+\label{sec:struct-ind-case}
 \index{case distinctions}\index{induction!structural}%
 Induction is invoked by \methdx{induct_tac}, as we have seen above; 
 it works for any datatype.  In some cases, induction is overkill and a case

@@ -15,11 +15,8 @@
 %
 \endisadelimtheory
 %
-\isamarkupsubsection{Case Expressions%
-}
-\isamarkuptrue%
-%
 \begin{isamarkuptext}%
+\subsection{Case Expressions}
 \label{sec:case-expressions}\index{*case expressions}%
 HOL also features \isa{case}-expressions for analyzing
 elements of a datatype. For example,
@@ -31,43 +28,37 @@ evaluates to \isa{{\isacharbrackleft}{\isacharbrackright}} if \isa{xs} is \isa{{
 the same type, it follows that \isa{y} is of type \isa{{\isacharprime}a\ list} and hence
 that \isa{xs} is of type \isa{{\isacharprime}a\ list\ list}.)
 
-In general, if $e$ is a term of the datatype $t$ defined in
-\S\ref{sec:general-datatype} above, the corresponding
-\isa{case}-expression analyzing $e$ is
+In general, case expressions are of the form
 \[
-\begin{array}{rrcl}
-\isa{case}~e~\isa{of} & C@1~x@ {11}~\dots~x@ {1k@1} & \To & e@1 \\
-                           \vdots \\
-                           \mid & C@m~x@ {m1}~\dots~x@ {mk@m} & \To & e@m
+\begin{array}{c}
+\isa{case}~e~\isa{of}\ pattern@1~\isa{{\isasymRightarrow}}~e@1\ \isa{{\isacharbar}}\ \dots\
+ \isa{{\isacharbar}}~pattern@m~\isa{{\isasymRightarrow}}~e@m
 \end{array}
 \]
+Like in functional programming, patterns are expressions consisting of
+datatype constructors (e.g. \isa{{\isacharbrackleft}{\isacharbrackright}} and \isa{{\isacharhash}})
+and variables, including the wildcard ``\verb$_$''.
+Not all cases need to be covered and the order of cases matters.
+However, one is well-advised not to wallow in complex patterns because
+complex case distinctions tend to induce complex proofs.
 
 \begin{warn}
-\emph{All} constructors must be present, their order is fixed, and nested
-patterns are not supported.  Violating these restrictions results in strange
-error messages.
+Internally Isabelle only knows about exhaustive case expressions with
+non-nested patterns: $pattern@i$ must be of the form
+$C@i~x@ {i1}~\dots~x@ {ik@i}$ and $C@1, \dots, C@m$ must be exactly the
+constructors of the type of $e$.
+%
+More complex case expressions are automatically
+translated into the simpler form upon parsing but are not translated
+back for printing. This may lead to surprising output.
 \end{warn}
-\noindent
-Nested patterns can be simulated by nested \isa{case}-expressions: instead
-of
-\begin{isabelle}%
-\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ x\ {\isacharbar}\ x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ zs{\isacharparenright}\ {\isacharequal}{\isachargreater}\ y%
-\end{isabelle}
-write
-\begin{isabelle}%
-\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ x\ {\isacharhash}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y%
-\end{isabelle}
 
-Note that \isa{case}-expressions may need to be enclosed in parentheses to
-indicate their scope%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Structural Induction and Case Distinction%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
+\begin{warn}
+Like \isa{if}, \isa{case}-expressions may need to be enclosed in
+parentheses to indicate their scope.
+\end{warn}
+
+\subsection{Structural Induction and Case Distinction}
 \label{sec:struct-ind-case}
 \index{case distinctions}\index{induction!structural}%
 Induction is invoked by \methdx{induct_tac}, as we have seen above; 
