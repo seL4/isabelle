@@ -61,6 +61,10 @@ lemma number_of_index_shift:
   "number_of k = index_of_int (number_of k)"
   by (simp add: number_of_is_id number_of_index_def)
 
+lemma int_of_index_number_of [simp]:
+  "int_of_index (number_of k) = number_of k"
+  unfolding number_of_index_def number_of_is_id by simp
+
 
 subsection {* Basic arithmetic *}
 
@@ -108,6 +112,10 @@ lemma less_index_code [code func]:
   "index_of_int k < index_of_int l \<longleftrightarrow> k < l"
   unfolding less_index_def by simp
 
+instance index :: "Divides.div"
+  [simp]: "k div l \<equiv> index_of_int (int_of_index k div int_of_index l)"
+  [simp]: "k mod l \<equiv> index_of_int (int_of_index k mod int_of_index l)" ..
+
 instance index :: ring_1
   by default (auto simp add: left_distrib right_distrib)
 
@@ -143,6 +151,13 @@ lemma index_of_int [code func]:
     else let (l, m) = divAlg (k, 2) in 2 * index_of_int l +
       (if m = 0 then 0 else 1))"
   by (simp add: number_of_index_shift Let_def split_def divAlg_mod_div) arith
+
+lemma int_of_index [code func]:
+  "int_of_index k = (if k = 0 then 0
+    else if k = -1 then -1
+    else let l = k div 2; m = k mod 2 in 2 * int_of_index l +
+      (if m = 0 then 0 else 1))"
+  by (auto simp add: number_of_index_shift Let_def split_def) arith
 
 
 subsection {* Conversion to and from @{typ nat} *}
