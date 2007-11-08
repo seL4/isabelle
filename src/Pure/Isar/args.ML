@@ -81,6 +81,7 @@ sig
   val prop: Context.generic * T list -> term * (Context.generic * T list)
   val tyname: Context.generic * T list -> string * (Context.generic * T list)
   val const: Context.generic * T list -> string * (Context.generic * T list)
+  val const_proper: Context.generic * T list -> string * (Context.generic * T list)
   val thm_sel: T list -> PureThy.interval list * T list
   val bang_facts: Context.generic * T list -> thm list * (Context.generic * T list)
   val goal_spec: ((int -> tactic) -> tactic) -> ('a * T list)
@@ -335,6 +336,9 @@ val tyname = Scan.peek (named_typ o ProofContext.read_tyname o Context.proof_of)
 
 val const = Scan.peek (named_term o ProofContext.read_const o Context.proof_of)
   >> (fn Const (c, _) => c | Free (x, _) => x | _ => "");
+
+val const_proper = Scan.peek (named_term o ProofContext.read_const_proper o Context.proof_of)
+  >> (fn Const (c, _) => c | _ => "");
 
 
 (* misc *)
