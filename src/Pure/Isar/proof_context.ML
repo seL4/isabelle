@@ -62,9 +62,6 @@ sig
   val read_term_schematic: Proof.context -> string -> term
   val read_term_abbrev: Proof.context -> string -> term
   val expand_abbrevs: Proof.context -> term -> term
-  val read_termTs_schematic: Proof.context -> (string -> bool) -> (indexname -> typ option)
-    -> (indexname -> sort option) -> string list -> (string * typ) list
-    -> term list * (indexname * typ) list
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
@@ -118,15 +115,9 @@ sig
     (string * typ option * mixfix) list * Proof.context
   val cert_vars: (string * typ option * mixfix) list -> Proof.context ->
     (string * typ option * mixfix) list * Proof.context
-  val read_vars_legacy: (string * string option * mixfix) list -> Proof.context ->
-    (string * typ option * mixfix) list * Proof.context
-  val cert_vars_legacy: (string * typ option * mixfix) list -> Proof.context ->
-    (string * typ option * mixfix) list * Proof.context
   val add_fixes: (string * string option * mixfix) list ->
     Proof.context -> string list * Proof.context
   val add_fixes_i: (string * typ option * mixfix) list ->
-    Proof.context -> string list * Proof.context
-  val add_fixes_legacy: (string * typ option * mixfix) list ->
     Proof.context -> string list * Proof.context
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
   val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
@@ -405,8 +396,6 @@ fun inferred_fixes ctxt =
 
 (* type and constant names *)
 
-(* type and constant names *)
-
 fun read_tyname ctxt c =
   if Syntax.is_tid c then
     TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (Variable.def_sort ctxt (c, ~1)))
@@ -510,29 +499,28 @@ end;
 
 (* decoding raw terms (syntax trees) *)
 
-fun legacy_intern_skolem ctxt internal def_type x =    (* FIXME cleanup this mess *)
+local
+
+fun intern_skolem ctxt def_type x =
   let
+    val _ = no_skolem false x;
     val sko = lookup_skolem ctxt x;
     val is_const = can (read_const_proper ctxt) x;
-    val is_scoped_const = Variable.is_const ctxt x;
-    val is_free = (is_some sko orelse not is_const) andalso not is_scoped_const;
-    val is_internal = internal x;
     val is_declared = is_some (def_type (x, ~1));
-    val res =
-      if is_free andalso not is_internal then (no_skolem false x; sko)
-      else ((no_skolem false x; ()) handle ERROR msg =>
-          legacy_feature (msg ^ ContextPosition.str_of ctxt);
-        if is_internal andalso is_declared then SOME x else NONE);
   in
-    if is_some res then res
-    else if is_declared andalso not is_scoped_const then SOME x else NONE
+    if Variable.is_const ctxt x then NONE
+    else if is_some sko then sko
+    else if not is_const orelse is_declared then SOME x
+    else NONE
   end;
+
+in
 
 fun term_context ctxt =
   let val thy = theory_of ctxt in
    {get_sort = Sign.get_sort thy (Variable.def_sort ctxt),
     map_const = try (#1 o Term.dest_Const o read_const_proper ctxt),
-    map_free = legacy_intern_skolem ctxt (K false) (Variable.def_type ctxt false),
+    map_free = intern_skolem ctxt (Variable.def_type ctxt false),
     map_type = Sign.intern_tycons thy,
     map_sort = Sign.intern_sort thy}
   end;
@@ -540,35 +528,6 @@ fun term_context ctxt =
 fun decode_term ctxt =
   let val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt
   in Syntax.decode_term get_sort map_const map_free map_type map_sort end;
-
-
-(* read terms -- legacy *)
-
-local
-
-fun read_def_termTs freeze pp syn ctxt (types, sorts, used) fixed sTs =
-  Sign.read_def_terms' pp (Sign.is_logtype (theory_of ctxt)) syn (consts_of ctxt) fixed
-    ctxt (types, sorts) used freeze sTs;
-
-fun append_env e1 e2 x = (case e2 x of NONE => e1 x | some => some);
-
-fun gen_read' read app schematic ctxt0 internal more_types more_sorts more_used s =
-  let
-    val ctxt = if schematic then set_mode mode_schematic ctxt0 else ctxt0;
-    val types = append_env (Variable.def_type ctxt false) more_types;
-    val sorts = append_env (Variable.def_sort ctxt) more_sorts;
-    val used = fold Name.declare more_used (Variable.names_of ctxt);
-  in
-    (read (Syntax.pp ctxt) (syn_of ctxt) ctxt (types, sorts, used)
-        (legacy_intern_skolem ctxt internal types) s
-      handle TERM (msg, _) => error msg)
-    |> app (expand_abbrevs ctxt)
-    |> app (singleton (prepare_patterns ctxt))
-  end;
-
-in
-
-val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) true;
 
 end;
 
@@ -955,14 +914,12 @@ fun declare_var (x, opt_T, mx) ctxt =
 
 local
 
-fun prep_vars prep_typ internal legacy =
+fun prep_vars prep_typ internal =
   fold_map (fn (raw_x, raw_T, raw_mx) => fn ctxt =>
     let
       val (x, mx) = Syntax.const_mixfix raw_x raw_mx;
-      val _ =
-        if not legacy andalso not (Syntax.is_identifier (no_skolem internal x)) then
-          error ("Illegal variable name: " ^ quote x)
-        else ();
+      val _ = Syntax.is_identifier (no_skolem internal x) orelse
+        error ("Illegal variable name: " ^ quote x);
 
       fun cond_tvars T =
         if internal then T
@@ -973,10 +930,8 @@ fun prep_vars prep_typ internal legacy =
 
 in
 
-val read_vars        = prep_vars Syntax.parse_typ false false;
-val cert_vars        = prep_vars (K I) true false;
-val read_vars_legacy = prep_vars Syntax.parse_typ true true;
-val cert_vars_legacy = prep_vars (K I) true true;
+val read_vars = prep_vars Syntax.parse_typ false;
+val cert_vars = prep_vars (K I) true;
 
 end;
 
@@ -1079,7 +1034,6 @@ in
 
 val add_fixes = gen_fixes read_vars;
 val add_fixes_i = gen_fixes cert_vars;
-val add_fixes_legacy = gen_fixes cert_vars_legacy;
 
 end;
 
