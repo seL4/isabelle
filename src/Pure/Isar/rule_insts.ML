@@ -117,7 +117,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val (xs, strs) = split_list external_insts;
     val Ts = map (the_type vars2) xs;
-    val (ts, inferred) = read_termTs ctxt true (* FIXME false *) strs Ts;
+    val (ts, inferred) = read_termTs ctxt false strs Ts;
 
     val instT3 = Term.typ_subst_TVars inferred;
     val vars3 = map (apsnd instT3) vars2;
