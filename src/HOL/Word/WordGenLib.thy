@@ -263,9 +263,9 @@ lemma word_le_sub1:
   by (simp add: unat_sub_if_size order_le_less word_less_nat_alt)
 
 lemmas word_less_sub1_numberof [simp] =
-  word_less_sub1 [of "number_of ?w"]
+  word_less_sub1 [of "number_of w", standard]
 lemmas word_le_sub1_numberof [simp] =
-  word_le_sub1 [of "number_of ?w"]
+  word_le_sub1 [of "number_of w", standard]
   
 lemma word_of_int_minus: 
   "word_of_int (2^len_of TYPE('a) - i) = (word_of_int (-i)::'a::len word)"
@@ -396,7 +396,7 @@ apply (rule_tac t="1 + n - m" and s="1 + (n - m)" in subst)
  apply simp
 apply (case_tac "1 + (n - m) = 0")
  apply (simp add: word_rec_0)
- apply (rule arg_cong[where f="word_rec ?a ?b"])
+ apply (rule_tac f = "word_rec ?a ?b" in arg_cong)
  apply (rule_tac t="m" and s="m + (1 + (n - m))" in subst)
   apply simp
  apply (simp (no_asm_use))

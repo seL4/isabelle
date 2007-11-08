@@ -304,42 +304,42 @@ lemma sbintrunc_sbintrunc_min [simp]:
   done
 
 lemmas bintrunc_Pls = 
-  bintrunc.Suc [where bin="Numeral.Pls", simplified bin_last_simps bin_rest_simps]
+  bintrunc.Suc [where bin="Numeral.Pls", simplified bin_last_simps bin_rest_simps, standard]
 
 lemmas bintrunc_Min [simp] = 
-  bintrunc.Suc [where bin="Numeral.Min", simplified bin_last_simps bin_rest_simps]
+  bintrunc.Suc [where bin="Numeral.Min", simplified bin_last_simps bin_rest_simps, standard]
 
 lemmas bintrunc_BIT  [simp] = 
-  bintrunc.Suc [where bin="?w BIT ?b", simplified bin_last_simps bin_rest_simps]
+  bintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps, standard]
 
 lemmas bintrunc_Sucs = bintrunc_Pls bintrunc_Min bintrunc_BIT
 
 lemmas sbintrunc_Suc_Pls = 
-  sbintrunc.Suc [where bin="Numeral.Pls", simplified bin_last_simps bin_rest_simps]
+  sbintrunc.Suc [where bin="Numeral.Pls", simplified bin_last_simps bin_rest_simps, standard]
 
 lemmas sbintrunc_Suc_Min = 
-  sbintrunc.Suc [where bin="Numeral.Min", simplified bin_last_simps bin_rest_simps]
+  sbintrunc.Suc [where bin="Numeral.Min", simplified bin_last_simps bin_rest_simps, standard]
 
 lemmas sbintrunc_Suc_BIT [simp] = 
-  sbintrunc.Suc [where bin="?w BIT ?b", simplified bin_last_simps bin_rest_simps]
+  sbintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps, standard]
 
 lemmas sbintrunc_Sucs = sbintrunc_Suc_Pls sbintrunc_Suc_Min sbintrunc_Suc_BIT
 
 lemmas sbintrunc_Pls = 
   sbintrunc.Z [where bin="Numeral.Pls", 
-               simplified bin_last_simps bin_rest_simps bit.simps]
+               simplified bin_last_simps bin_rest_simps bit.simps, standard]
 
 lemmas sbintrunc_Min = 
   sbintrunc.Z [where bin="Numeral.Min", 
-               simplified bin_last_simps bin_rest_simps bit.simps]
+               simplified bin_last_simps bin_rest_simps bit.simps, standard]
 
 lemmas sbintrunc_0_BIT_B0 [simp] = 
-  sbintrunc.Z [where bin="?w BIT bit.B0", 
-               simplified bin_last_simps bin_rest_simps bit.simps]
+  sbintrunc.Z [where bin="w BIT bit.B0", 
+               simplified bin_last_simps bin_rest_simps bit.simps, standard]
 
 lemmas sbintrunc_0_BIT_B1 [simp] = 
-  sbintrunc.Z [where bin="?w BIT bit.B1", 
-               simplified bin_last_simps bin_rest_simps bit.simps]
+  sbintrunc.Z [where bin="w BIT bit.B1", 
+               simplified bin_last_simps bin_rest_simps bit.simps, standard]
 
 lemmas sbintrunc_0_simps =
   sbintrunc_Pls sbintrunc_Min sbintrunc_0_BIT_B0 sbintrunc_0_BIT_B1
@@ -369,7 +369,7 @@ lemma sbintrunc_n_PM [simp]:
   "sbintrunc n Numeral.Min = Numeral.Min"
   by (induct n) auto
 
-lemmas thobini1 = arg_cong [where f = "%w. w BIT ?b"]
+lemmas thobini1 = arg_cong [where f = "%w. w BIT b", standard]
 
 lemmas bintrunc_BIT_I = trans [OF bintrunc_BIT thobini1]
 lemmas bintrunc_Min_I = trans [OF bintrunc_Min thobini1]
@@ -500,29 +500,35 @@ lemma range_sbintrunc:
   apply (auto intro: int_mod_lem [THEN iffD1, symmetric])
   done
 
-lemmas sb_inc_lem = int_mod_ge' 
-  [where n = "2 ^ (Suc ?k)" and b = "?a + 2 ^ ?k", 
-   simplified zless2p, OF _ TrueI]
+lemma sb_inc_lem:
+  "(a::int) + 2^k < 0 \<Longrightarrow> a + 2^k + 2^(Suc k) <= (a + 2^k) mod 2^(Suc k)"
+  apply (erule int_mod_ge' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k", simplified zless2p])
+  apply (rule TrueI)
+  done
 
-lemmas sb_inc_lem' = 
-  iffD1 [OF less_diff_eq, THEN sb_inc_lem, simplified OrderedGroup.diff_0]
+lemma sb_inc_lem':
+  "(a::int) < - (2^k) \<Longrightarrow> a + 2^k + 2^(Suc k) <= (a + 2^k) mod 2^(Suc k)"
+  by (rule iffD1 [OF less_diff_eq, THEN sb_inc_lem, simplified OrderedGroup.diff_0])
 
 lemma sbintrunc_inc:
-  "x < - (2 ^ n) ==> x + 2 ^ (Suc n) <= sbintrunc n x"
+  "x < - (2^n) ==> x + 2^(Suc n) <= sbintrunc n x"
   unfolding no_sbintr_alt2 by (drule sb_inc_lem') simp
 
-lemmas sb_dec_lem = int_mod_le' 
-  [where n = "2 ^ (Suc ?k)" and b = "?a + 2 ^ ?k", 
-  simplified zless2p, OF _ TrueI, simplified]
+lemma sb_dec_lem:
+  "(0::int) <= - (2^k) + a ==> (a + 2^k) mod (2 * 2 ^ k) <= - (2 ^ k) + a"
+  by (rule int_mod_le' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k",
+    simplified zless2p, OF _ TrueI, simplified])
 
-lemmas sb_dec_lem' = iffD1 [OF diff_le_eq', THEN sb_dec_lem, simplified]
+lemma sb_dec_lem':
+  "(2::int) ^ k <= a ==> (a + 2 ^ k) mod (2 * 2 ^ k) <= - (2 ^ k) + a"
+  by (rule iffD1 [OF diff_le_eq', THEN sb_dec_lem, simplified])
 
 lemma sbintrunc_dec:
   "x >= (2 ^ n) ==> x - 2 ^ (Suc n) >= sbintrunc n x"
   unfolding no_sbintr_alt2 by (drule sb_dec_lem') simp
 
-lemmas zmod_uminus' = zmod_uminus [where b="?c"]
-lemmas zpower_zmod' = zpower_zmod [where m="?c" and y="?k"]
+lemmas zmod_uminus' = zmod_uminus [where b="c", standard]
+lemmas zpower_zmod' = zpower_zmod [where m="c" and y="k", standard]
 
 lemmas brdmod1s' [symmetric] = 
   zmod_zadd_left_eq zmod_zadd_right_eq 
@@ -539,11 +545,11 @@ lemmas brdmods' [symmetric] =
   zmod_zsub_left_eq [where b = "1"]
 
 lemmas bintr_arith1s =
-  brdmod1s' [where c="2^?n", folded pred_def succ_def bintrunc_mod2p]
+  brdmod1s' [where c="2^n", folded pred_def succ_def bintrunc_mod2p, standard]
 lemmas bintr_ariths =
-  brdmods' [where c="2^?n", folded pred_def succ_def bintrunc_mod2p]
+  brdmods' [where c="2^n", folded pred_def succ_def bintrunc_mod2p, standard]
 
-lemmas m2pths [OF zless2p, standard] = pos_mod_sign pos_mod_bound
+lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p, standard] 
 
 lemma bintr_ge0: "(0 :: int) <= number_of (bintrunc n w)"
   by (simp add : no_bintr m2pths)
@@ -666,14 +672,14 @@ lemmas replicate_minus_simp =
 lemmas replicate_pred_simp [simp] =
   replicate_minus_simp [of "number_of bin", simplified nobm1, standard]
 
-lemmas power_Suc_no [simp] = power_Suc [of "number_of ?a"]
+lemmas power_Suc_no [simp] = power_Suc [of "number_of a", standard]
 
 lemmas power_minus_simp = 
   trans [OF gen_minus [where f = "power f"] power_Suc, standard]
 
 lemmas power_pred_simp = 
   power_minus_simp [of "number_of bin", simplified nobm1, standard]
-lemmas power_pred_simp_no [simp] = power_pred_simp [where f= "number_of ?f"]
+lemmas power_pred_simp_no [simp] = power_pred_simp [where f= "number_of f", standard]
 
 lemma list_exhaust_size_gt0:
   assumes y: "\<And>a list. y = a # list \<Longrightarrow> P"

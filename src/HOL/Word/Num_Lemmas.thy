@@ -288,9 +288,9 @@ lemma zmod_zsub_right_eq: "((a::int) - b) mod c = (a - b mod c) mod c"
   apply (simp add : zmod_uminus zmod_zadd_right_eq [symmetric])
   done
 
-lemmas zmod_zsub_left_eq = 
-  zmod_zadd_left_eq [where b = "- ?b", simplified diff_int_def [symmetric]]
-  
+lemma zmod_zsub_left_eq: "((a::int) - b) mod c = (a mod c - b) mod c"
+  by (rule zmod_zadd_left_eq [where b = "- b", simplified diff_int_def [symmetric]])
+
 lemma zmod_zsub_self [simp]: 
   "((b :: int) - a) mod a = b mod a"
   by (simp add: zmod_zsub_right_eq)
@@ -378,7 +378,8 @@ lemma int_mod_le: "0 <= a ==> 0 < (n :: int) ==> a mod n <= a"
    apply (auto dest: mod_pos_pos_trivial pos_mod_bound [where a=a])
   done
 
-lemmas int_mod_le' = int_mod_le [where a = "?b - ?n", simplified]
+lemma int_mod_le': "0 <= b - n ==> 0 < (n :: int) ==> b mod n <= b - n"
+  by (rule int_mod_le [where a = "b - n" and n = n, simplified])
 
 lemma int_mod_ge: "a < n ==> 0 < (n :: int) ==> a <= a mod n"
   apply (cases "0 <= a")
@@ -389,7 +390,8 @@ lemma int_mod_ge: "a < n ==> 0 < (n :: int) ==> a <= a mod n"
   apply assumption
   done
 
-lemmas int_mod_ge' = int_mod_ge [where a = "?b + ?n", simplified]
+lemma int_mod_ge': "b < 0 ==> 0 < (n :: int) ==> b + n <= b mod n"
+  by (rule int_mod_ge [where a = "b + n" and n = n, simplified])
 
 lemma mod_add_if_z:
   "(x :: int) < z ==> y < z ==> 0 <= y ==> 0 <= x ==> 0 <= z ==> 

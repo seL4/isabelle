@@ -402,7 +402,7 @@ lemma to_bl_def':
     bin_to_bl (len_of TYPE('a)) o uint"
   by (auto simp: to_bl_def intro: ext)
 
-lemmas word_reverse_no_def [simp] = word_reverse_def [of "number_of ?w"]
+lemmas word_reverse_no_def [simp] = word_reverse_def [of "number_of w", standard]
 
 lemmas uints_mod = uints_def [unfolded no_bintr_alt1]
 
@@ -673,8 +673,7 @@ lemma uints_unats: "uints n = int ` unats n"
   done
 
 lemma unats_uints: "unats n = nat ` uints n"
-  apply (auto simp add : uints_unats image_iff)
-  done
+  by (auto simp add : uints_unats image_iff)
 
 lemmas bintr_num = word_ubin.norm_eq_iff 
   [symmetric, folded word_number_of_def, standard]
