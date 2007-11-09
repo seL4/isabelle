@@ -6,7 +6,7 @@
 
 header {* \isaheader{The Java Type System as Semilattice} *}
 
-theory JType imports WellForm Err begin
+theory JType imports "../J/WellForm" Err begin
 
 constdefs
   super :: "'a prog \<Rightarrow> cname \<Rightarrow> cname"
