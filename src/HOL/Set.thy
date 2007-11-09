@@ -2255,6 +2255,7 @@ lemma Union_code [code func]:
   "Union A = UNION A (\<lambda>x. x)"
   by auto
 
+code_reserved SML union inter (* Avoid clashes with ML infixes *)
 
 subsection {* Basic ML bindings *}
 
