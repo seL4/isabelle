@@ -610,13 +610,13 @@ fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 
 (* add type abbreviations *)
 
-fun gen_add_tyabbr prep_typ (a, vs, rhs, mx) thy =
+fun gen_add_tyabbr parse_typ (a, vs, rhs, mx) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
+      val ctxt = ProofContext.init thy;
       val syn' = Syntax.extend_type_gram [(a, length vs, mx)] syn;
       val a' = Syntax.type_name a mx;
-      val abbr = (a', vs,
-          certify_typ_mode Type.mode_syntax thy (prep_typ (ProofContext.init thy) rhs))
+      val abbr = (a', vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote a');
       val tsig' = Type.add_abbrevs naming [abbr] tsig;
     in (naming, syn', tsig', consts) end);
@@ -627,10 +627,10 @@ val add_tyabbrs_i = fold (gen_add_tyabbr (K I));
 
 (* modify syntax *)
 
-fun gen_syntax change_gram prep_typ mode args thy =
+fun gen_syntax change_gram parse_typ mode args thy =
   let
-    fun prep (c, T, mx) = (c,
-        certify_typ_mode Type.mode_syntax thy (prep_typ (ProofContext.init thy) T), mx)
+    val ctxt = ProofContext.init thy;
+    fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt T), mx)
       handle ERROR msg =>
         cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name c mx));
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
@@ -655,9 +655,10 @@ fun notation add mode args thy = thy
 
 local
 
-fun gen_add_consts prep_typ authentic tags raw_args thy =
+fun gen_add_consts parse_typ authentic tags raw_args thy =
   let
-    val prepT = Type.no_tvars o Term.no_dummyT o prep_typ thy;
+    val ctxt = ProofContext.init thy;
+    val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
     fun prep (raw_c, raw_T, raw_mx) =
       let
         val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
@@ -677,10 +678,10 @@ fun gen_add_consts prep_typ authentic tags raw_args thy =
 
 in
 
-val add_consts = snd oo gen_add_consts read_typ false [];
-val add_consts_i = snd oo gen_add_consts certify_typ false [];
+val add_consts = snd oo gen_add_consts Syntax.parse_typ false [];
+val add_consts_i = snd oo gen_add_consts (K I) false [];
 
-fun declare_const tags arg = gen_add_consts certify_typ true tags [arg] #>> the_single;
+fun declare_const tags arg = gen_add_consts (K I) true tags [arg] #>> the_single;
 
 end;
 
