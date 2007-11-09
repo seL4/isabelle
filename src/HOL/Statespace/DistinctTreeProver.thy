@@ -120,7 +120,7 @@ proof (induct t)
   case Tip thus ?case by simp
 next
   case (Node l y d r)
-  have del: "delete x (Node l y d r) = Some t'".
+  have del: "delete x (Node l y d r) = Some t'" by fact
   show ?case
   proof (cases "delete x l")
     case (Some l')
@@ -170,8 +170,8 @@ proof (induct t)
   case Tip thus ?case by simp
 next
   case (Node l y d r)
-  have del: "delete x (Node l y d r) = Some t'".
-  have "all_distinct (Node l y d r)".
+  have del: "delete x (Node l y d r) = Some t'" by fact
+  have "all_distinct (Node l y d r)" by fact
   then obtain
     dist_l: "all_distinct l" and
     dist_r: "all_distinct r" and
@@ -243,7 +243,7 @@ proof (induct t)
   case Tip thus ?case by simp
 next
   case (Node l y d r)
-  have del: "delete x (Node l y d r) = Some t'".
+  have del: "delete x (Node l y d r) = Some t'" by fact
   show ?case
   proof (cases "delete x l")
     case (Some l')
@@ -310,7 +310,7 @@ proof (induct t\<^isub>1)
   case Tip thus ?case by simp
 next
   case (Node l x b r)
-  have sub: "subtract (Node l x b r) t\<^isub>2 = Some t".
+  have sub: "subtract (Node l x b r) t\<^isub>2 = Some t" by fact
   show ?case
   proof (cases "delete x t\<^isub>2")
     case (Some t\<^isub>2')
@@ -355,7 +355,7 @@ proof (induct t\<^isub>1)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t".
+  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
   show ?case
   proof (cases "delete x t\<^isub>2")
     case (Some t\<^isub>2')
@@ -405,8 +405,8 @@ proof (induct t\<^isub>1)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t".
-  have dist_t2: "all_distinct t\<^isub>2".
+  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
+  have dist_t2: "all_distinct t\<^isub>2" by fact
   show ?case
   proof (cases "delete x t\<^isub>2")
     case (Some t\<^isub>2')
@@ -507,8 +507,8 @@ proof (induct t\<^isub>1)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t".
-  have dist_t2: "all_distinct t\<^isub>2".
+  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
+  have dist_t2: "all_distinct t\<^isub>2" by fact
   show ?case
   proof (cases "delete x t\<^isub>2")
     case (Some t\<^isub>2')
