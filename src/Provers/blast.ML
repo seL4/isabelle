@@ -1293,7 +1293,7 @@ fun Blast_tac i = blast_tac (Data.claset()) i;
 val fullTrace = ref ([]: branch list list);
 
 (*Read a string to make an initial, singleton branch*)
-fun readGoal thy s = Sign.read_prop thy s |> fromTerm thy |> rand |> mkGoal;
+fun readGoal thy s = Syntax.read_prop_global thy s |> fromTerm thy |> rand |> mkGoal;
 
 fun tryInThy thy lim s =
   let
