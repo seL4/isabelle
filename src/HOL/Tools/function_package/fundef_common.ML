@@ -282,7 +282,8 @@ fun empty_preproc check _ _ ctxt fixes spec =
       fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1) (indices ~~ xs)
                         |> map (map snd)
 
-      val cnames = map_index (fn (i, (n,_)) => mk_case_names i n 1) nas |> flat
+      (* using theorem names for case name currently disabled *)
+      val cnames = map_index (fn (i, (n,_)) => mk_case_names i "" 1) nas |> flat
     in
       (ts, curry op ~~ nas o Library.unflat tss, sort, cnames)
     end

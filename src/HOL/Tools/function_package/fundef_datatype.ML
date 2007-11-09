@@ -280,7 +280,8 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
 
           val nas' = nas @ replicate (length spliteqs - length nas) ("",[])
 
-          val case_names = map_index (fn (i, ((n, _), es)) => mk_case_names i n (length es)) 
+          (* using theorem names for case name currently disabled *)
+          val case_names = map_index (fn (i, ((n, _), es)) => mk_case_names i "" (length es)) 
                                      (nas' ~~ spliteqs)
                            |> flat
         in
