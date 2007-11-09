@@ -317,11 +317,11 @@ proof -
     { 
       fix b
       have "?Q (l#ls) b"
-      proof (cases (open) b)
+      proof (cases b)
         case Nil
         thus ?thesis by (auto dest: sup_loc_length)
       next
-        case Cons 
+        case (Cons a list)
         show ?thesis
         proof
           assume "G \<turnstile> (l # ls) <=l b"

@@ -16,14 +16,14 @@ lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
 lemma sup_loc_some [rule_format]:
 "\<forall>y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = OK t \<longrightarrow> 
   (\<exists>t. b!n = OK t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
-proof (induct (open) ?P b)
+proof (induct ?P b)
   show "?P []" by simp
-
-  case Cons
+next
+  case (Cons a list)
   show "?P (a#list)" 
   proof (clarsimp simp add: list_all2_Cons1 sup_loc_def Listn.le_def lesub_def)
     fix z zs n
-    assume * : 
+    assume *: 
       "G \<turnstile> a <=o z" "list_all2 (sup_ty_opt G) list zs" 
       "n < Suc (length list)" "(z # zs) ! n = OK t"
 
@@ -61,9 +61,9 @@ qed
 
 lemma append_length_n [rule_format]: 
 "\<forall>n. n \<le> length x \<longrightarrow> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
-proof (induct (open) ?P x)
+proof (induct ?P x)
   show "?P []" by simp
-
+next
   fix l ls assume Cons: "?P ls"
 
   show "?P (l#ls)"
@@ -119,7 +119,7 @@ proof -
     note [simp] = sup_loc_length sup_loc_length_map
 
     have "app i G m rT pc et (Some s2)"
-    proof (cases (open) i)
+    proof (cases i)
       case Load
     
       from G Load app
@@ -130,19 +130,19 @@ proof -
     next
       case Store
       with G app show ?thesis
-        by (cases s2, auto simp add: sup_loc_Cons2 sup_state_conv)
+        by (cases s2) (auto simp add: sup_loc_Cons2 sup_state_conv)
     next
       case LitPush
-      with G app show ?thesis by (cases s2, auto simp add: sup_state_conv)
+      with G app show ?thesis by (cases s2) (auto simp add: sup_state_conv)
     next
       case New
-      with G app show ?thesis by (cases s2, auto simp add: sup_state_conv)
+      with G app show ?thesis by (cases s2) (auto simp add: sup_state_conv)
     next
       case Getfield
       with app G show ?thesis
         by (cases s2) (clarsimp simp add: sup_state_Cons2, rule widen_trans) 
     next
-      case Putfield
+      case (Putfield vname cname)
       
       with app 
       obtain vT oT ST LT b
@@ -171,7 +171,7 @@ proof -
     next
       case Checkcast
       with app G show ?thesis 
-        by (cases s2, auto intro!: widen_RefT2 simp add: sup_state_Cons2)
+        by (cases s2) (auto intro!: widen_RefT2 simp add: sup_state_Cons2)
     next
       case Return
       with app G show ?thesis
@@ -179,39 +179,39 @@ proof -
     next
       case Pop
       with app G show ?thesis
-        by (cases s2, clarsimp simp add: sup_state_Cons2)
+        by (cases s2) (clarsimp simp add: sup_state_Cons2)
     next
       case Dup
       with app G show ?thesis
-        by (cases s2, clarsimp simp add: sup_state_Cons2,
+        by (cases s2) (clarsimp simp add: sup_state_Cons2,
             auto dest: sup_state_length)
     next
       case Dup_x1
       with app G show ?thesis
-        by (cases s2, clarsimp simp add: sup_state_Cons2, 
+        by (cases s2) (clarsimp simp add: sup_state_Cons2, 
             auto dest: sup_state_length)
     next
       case Dup_x2
       with app G show ?thesis
-        by (cases s2, clarsimp simp add: sup_state_Cons2,
+        by (cases s2) (clarsimp simp add: sup_state_Cons2,
             auto dest: sup_state_length)
     next
       case Swap
       with app G show ?thesis
-        by (cases s2, clarsimp simp add: sup_state_Cons2)
+        by (cases s2) (auto simp add: sup_state_Cons2)
     next
       case IAdd
       with app G show ?thesis
-        by (cases s2, auto simp add: sup_state_Cons2 PrimT_PrimT)
+        by (cases s2) (auto simp add: sup_state_Cons2 PrimT_PrimT)
     next
       case Goto 
       with app show ?thesis by simp
     next
       case Ifcmpeq
       with app G show ?thesis
-        by (cases s2, auto simp add: sup_state_Cons2 PrimT_PrimT widen_RefT2)
+        by (cases s2) (auto simp add: sup_state_Cons2 PrimT_PrimT widen_RefT2)
     next
-      case Invoke
+      case (Invoke cname mname list)
       
       with app
       obtain apTs X ST LT mD' rT' b' where
@@ -234,7 +234,7 @@ proof -
         hence "\<exists>a b c. (fst s2) = rev a @ b # c \<and> length a = length list"
           by (rule rev_append_cons [rule_format])
         thus ?thesis
-          by -  (cases s2, elim exE conjE, simp, rule that) 
+          by (cases s2) (elim exE conjE, simp, rule that)
       qed
 
       from l l'
@@ -296,16 +296,16 @@ proof (cases s1, cases s2)
   have app1: "app i G m rT pc et (Some s1)" by (rule app_mono)
 
   show ?thesis
-  proof (cases (open) i)
-    case Load
+  proof (cases i)
+    case (Load n)
 
     with s app1
     obtain y where
-       y:  "nat < length b1" "b1 ! nat = OK y" by clarsimp
+       y:  "n < length b1" "b1 ! n = OK y" by clarsimp
 
     from Load s app2
     obtain y' where
-       y': "nat < length b2" "b2 ! nat = OK y'" by clarsimp
+       y': "n < length b2" "b2 ! n = OK y'" by clarsimp
 
     from G s 
     have "G \<turnstile> b1 <=l b2" by (simp add: sup_state_conv)
@@ -347,7 +347,7 @@ proof (cases s1, cases s2)
     show ?thesis
       by (clarsimp simp add: sup_state_Cons1)
   next
-    case Invoke
+    case (Invoke cname mname list)
 
     with s app1
     obtain a X ST where

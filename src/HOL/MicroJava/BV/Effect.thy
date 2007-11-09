@@ -304,16 +304,16 @@ lemma appDup_x2[simp]:
 
 lemma appSwap[simp]:
 "app Swap G maxs rT pc et (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
-  by (cases s, cases "2 <length (fst s)", auto dest: 1 2)
+  by (cases s, cases "2 <length (fst s)") (auto dest: 1 2)
 
 
 lemma appIAdd[simp]:
 "app IAdd G maxs rT pc et (Some s) = (\<exists> ST LT. s = (PrimT Integer#PrimT Integer#ST,LT))"
   (is "?app s = ?P s")
-proof (cases (open) s)
-  case Pair
+proof (cases s)
+  case (Pair a b)
   have "?app (a,b) = ?P (a,b)"
-  proof (cases "a")
+  proof (cases a)
     fix t ts assume a: "a = t#ts"
     show ?thesis
     proof (cases t)
@@ -328,7 +328,7 @@ proof (cases (open) s)
           proof (cases t')
             fix p' assume "t' = PrimT p'"
             with t' ip p a
-            show ?thesis by - (cases p', auto)
+            show ?thesis by (cases p') auto
           qed (auto simp add: a p ip t')
         qed (auto simp add: a p ip)
       qed (auto simp add: a p)
@@ -363,9 +363,9 @@ lemma appInvoke[simp]:
   G \<turnstile> X \<preceq> Class C \<and> (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT) \<and> 
   method (G,C) (mn,fpTs) = Some (mD', rT', b') \<and> 
   (\<forall>C \<in> set (match_any G pc et). is_class G C))" (is "?app s = ?P s")
-proof (cases (open) s)
+proof (cases s)
   note list_all2_def [simp]
-  case Pair
+  case (Pair a b)
   have "?app (a,b) \<Longrightarrow> ?P (a,b)"
   proof -
     assume app: "?app (a,b)"
