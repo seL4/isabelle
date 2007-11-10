@@ -22,15 +22,8 @@ lemma perm_refl [iff]: "l <~~> l"
 
 subsection {* Some examples of rule induction on permutations *}
 
-lemma xperm_empty_imp_aux: "xs <~~> ys ==> xs = [] --> ys = []"
-    -- {*the form of the premise lets the induction bind @{term xs}
-         and @{term ys} *}
-  apply (erule perm.induct)
-     apply (simp_all (no_asm_simp))
-  done
-
 lemma xperm_empty_imp: "[] <~~> ys ==> ys = []"
-  using xperm_empty_imp_aux by blast
+  by (induct xs == "[]::'a list" ys pred: perm) simp_all
 
 
 text {*
@@ -38,13 +31,13 @@ text {*
   *}
 
 lemma perm_length: "xs <~~> ys ==> length xs = length ys"
-  by (erule perm.induct) simp_all
+  by (induct pred: perm) simp_all
 
 lemma perm_empty_imp: "[] <~~> xs ==> xs = []"
   by (drule perm_length) auto
 
 lemma perm_sym: "xs <~~> ys ==> ys <~~> xs"
-  by (erule perm.induct) auto
+  by (induct pred: perm) auto
 
 
 subsection {* Ways of making new permutations *}
@@ -88,8 +81,8 @@ lemma perm_empty2 [iff]: "(xs <~~> []) = (xs = [])"
   apply (erule perm_sym [THEN perm_empty_imp])
   done
 
-lemma perm_sing_imp [rule_format]: "ys <~~> xs ==> xs = [y] --> ys = [y]"
-  by (erule perm.induct) auto
+lemma perm_sing_imp: "ys <~~> xs ==> xs = [y] ==> ys = [y]"
+  by (induct pred: perm) auto
 
 lemma perm_sing_eq [iff]: "(ys <~~> [y]) = (ys = [y])"
   by (blast intro: perm_sing_imp)
@@ -112,7 +105,7 @@ lemma perm_remove: "x \<in> set ys ==> ys <~~> x # remove x ys"
 lemma remove_commute: "remove x (remove y l) = remove y (remove x l)"
   by (induct l) auto
 
-lemma multiset_of_remove[simp]:
+lemma multiset_of_remove [simp]:
     "multiset_of (remove a x) = multiset_of x - {#a#}"
   apply (induct x)
    apply (auto simp: multiset_eq_conv_count_eq)
@@ -122,7 +115,7 @@ lemma multiset_of_remove[simp]:
 text {* \medskip Congruence rule *}
 
 lemma perm_remove_perm: "xs <~~> ys ==> remove z xs <~~> remove z ys"
-  by (erule perm.induct) auto
+  by (induct pred: perm) auto
 
 lemma remove_hd [simp]: "remove z (z # xs) = xs"
   by auto
@@ -133,8 +126,8 @@ lemma cons_perm_imp_perm: "z # xs <~~> z # ys ==> xs <~~> ys"
 lemma cons_perm_eq [iff]: "(z#xs <~~> z#ys) = (xs <~~> ys)"
   by (blast intro: cons_perm_imp_perm)
 
-lemma append_perm_imp_perm: "!!xs ys. zs @ xs <~~> zs @ ys ==> xs <~~> ys"
-  apply (induct zs rule: rev_induct)
+lemma append_perm_imp_perm: "zs @ xs <~~> zs @ ys ==> xs <~~> ys"
+  apply (induct zs arbitrary: xs ys rule: rev_induct)
    apply (simp_all (no_asm_use))
   apply blast
   done
@@ -170,34 +163,35 @@ lemma multiset_of_le_perm_append:
   done
 
 lemma perm_set_eq: "xs <~~> ys ==> set xs = set ys"
-by (metis multiset_of_eq_perm multiset_of_eq_setD)
+  by (metis multiset_of_eq_perm multiset_of_eq_setD)
 
 lemma perm_distinct_iff: "xs <~~> ys ==> distinct xs = distinct ys"
-apply(induct rule:perm.induct)
-   apply simp_all
- apply fastsimp
-apply (metis perm_set_eq)
-done
+  apply (induct pred: perm)
+     apply simp_all
+   apply fastsimp
+  apply (metis perm_set_eq)
+  done
 
 lemma eq_set_perm_remdups: "set xs = set ys ==> remdups xs <~~> remdups ys"
-apply(induct xs arbitrary: ys rule:length_induct)
-apply (case_tac "remdups xs", simp, simp)
-apply(subgoal_tac "a : set (remdups ys)")
- prefer 2 apply (metis set.simps(2) insert_iff set_remdups)
-apply(drule split_list) apply(elim exE conjE)
-apply(drule_tac x=list in spec) apply(erule impE) prefer 2
- apply(drule_tac x="ysa@zs" in spec) apply(erule impE) prefer 2
-  apply simp
-  apply(subgoal_tac "a#list <~~> a#ysa@zs")
-   apply (metis Cons_eq_appendI perm_append_Cons trans)
-  apply (metis Cons Cons_eq_appendI distinct.simps(2) distinct_remdups distinct_remdups_id perm_append_swap perm_distinct_iff)
- apply(subgoal_tac "set (a#list) = set (ysa@a#zs) & distinct (a#list) & distinct (ysa@a#zs)")
-  apply(fastsimp simp add: insert_ident)
- apply (metis distinct_remdups set_remdups)
-apply (metis Nat.le_less_trans Suc_length_conv le_def length_remdups_leq less_Suc_eq)
-done
+  apply (induct xs arbitrary: ys rule: length_induct)
+  apply (case_tac "remdups xs", simp, simp)
+  apply (subgoal_tac "a : set (remdups ys)")
+   prefer 2 apply (metis set.simps(2) insert_iff set_remdups)
+  apply (drule split_list) apply(elim exE conjE)
+  apply (drule_tac x=list in spec) apply(erule impE) prefer 2
+   apply (drule_tac x="ysa@zs" in spec) apply(erule impE) prefer 2
+    apply simp
+    apply (subgoal_tac "a#list <~~> a#ysa@zs")
+     apply (metis Cons_eq_appendI perm_append_Cons trans)
+    apply (metis Cons Cons_eq_appendI distinct.simps(2)
+      distinct_remdups distinct_remdups_id perm_append_swap perm_distinct_iff)
+   apply (subgoal_tac "set (a#list) = set (ysa@a#zs) & distinct (a#list) & distinct (ysa@a#zs)")
+    apply (fastsimp simp add: insert_ident)
+   apply (metis distinct_remdups set_remdups)
+  apply (metis Nat.le_less_trans Suc_length_conv le_def length_remdups_leq less_Suc_eq)
+  done
 
 lemma perm_remdups_iff_eq_set: "remdups x <~~> remdups y = (set x = set y)"
-by (metis List.set_remdups perm_set_eq eq_set_perm_remdups)
+  by (metis List.set_remdups perm_set_eq eq_set_perm_remdups)
 
 end
