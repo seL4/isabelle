@@ -644,11 +644,12 @@ val add_syntax_i = add_modesyntax_i Syntax.mode_default;
 val del_modesyntax = gen_syntax Syntax.remove_const_gram Syntax.parse_typ;
 val del_modesyntax_i = gen_syntax Syntax.remove_const_gram (K I);
 
-fun const_syntax thy (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)
-  | const_syntax _ _ = NONE;
-
-fun notation add mode args thy = thy
-  |> (if add then add_modesyntax_i else del_modesyntax_i) mode (map_filter (const_syntax thy) args);
+fun notation add mode args thy =
+  let
+    val change_gram = if add then Syntax.update_const_gram else Syntax.remove_const_gram;
+    fun const_syntax (Const (c, _), mx) = try (Consts.syntax (consts_of thy)) (c, mx)
+      | const_syntax _ = NONE;
+  in gen_syntax change_gram (K I) mode (map_filter const_syntax args) thy end;
 
 
 (* add constants *)
