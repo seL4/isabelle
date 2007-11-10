@@ -18,18 +18,16 @@
 \begin{isamarkuptext}%
 The function
 \isa{pubK} maps agents to their public keys.  The function
-\isa{priK} maps agents to their private keys.  It is defined in terms of
-\isa{invKey} and \isa{pubK} by a translation; therefore \isa{priK} is
-not a proper constant, so we declare it using \isacommand{syntax}
-(cf.\ \S\ref{sec:syntax-translations}).%
+\isa{priK} maps agents to their private keys.  It is merely
+an abbreviation (cf.\ \S\ref{sec:abbreviations}) defined in terms of
+\isa{invKey} and \isa{pubK}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isamarkupfalse%
-\ pubK\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}agent\ {\isacharequal}{\isachargreater}\ key{\isachardoublequoteclose}\isanewline
-\isacommand{syntax}\isamarkupfalse%
-\ priK\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}agent\ {\isacharequal}{\isachargreater}\ key{\isachardoublequoteclose}\isanewline
-\isacommand{translations}\isamarkupfalse%
-\ {\isachardoublequoteopen}priK\ x{\isachardoublequoteclose}\ {\isasymrightleftharpoons}\ {\isachardoublequoteopen}invKey{\isacharparenleft}pubK\ x{\isacharparenright}{\isachardoublequoteclose}%
+\ pubK\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}agent\ {\isasymRightarrow}\ key{\isachardoublequoteclose}\isanewline
+\isacommand{abbreviation}\isamarkupfalse%
+\ priK\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}agent\ {\isasymRightarrow}\ key{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\ {\isachardoublequoteopen}priK\ x\ \ {\isasymequiv}\ \ invKey{\isacharparenleft}pubK\ x{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The set \isa{bad} consists of those agents whose private keys are known to
@@ -43,7 +41,7 @@ any public key.%
 \isacommand{axioms}\isamarkupfalse%
 \isanewline
 \ \ inj{\isacharunderscore}pubK{\isacharcolon}\ \ \ \ \ \ \ \ {\isachardoublequoteopen}inj\ pubK{\isachardoublequoteclose}\isanewline
-\ \ priK{\isacharunderscore}neq{\isacharunderscore}pubK{\isacharcolon}\ \ \ {\isachardoublequoteopen}priK\ A\ {\isachartilde}{\isacharequal}\ pubK\ B{\isachardoublequoteclose}%
+\ \ priK{\isacharunderscore}neq{\isacharunderscore}pubK{\isacharcolon}\ \ \ {\isachardoublequoteopen}priK\ A\ {\isasymnoteq}\ pubK\ B{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof

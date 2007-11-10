@@ -12,7 +12,8 @@ struct
 fun foldr f (x :: xs) a = f x (foldr f xs a)
   | foldr f [] a = a;
 
-fun member A_ x (y :: ys) = HOL.eqop A_ x y orelse member A_ x ys
+fun member A_ x (y :: ys) =
+  (if HOL.eqop A_ y x then true else member A_ x ys)
   | member A_ x [] = false;
 
 end; (*struct List*)
@@ -26,10 +27,10 @@ val empty : 'a set = Set [];
 
 fun insert x (Set xs) = Set (x :: xs);
 
-fun union xs (Set ys) = List.foldr insert ys xs;
+fun uniona xs (Set ys) = List.foldr insert ys xs;
 
 fun member A_ x (Set xs) = List.member A_ x xs;
 
-fun uniona (Set xs) = List.foldr union xs empty;
+fun unionaa (Set xs) = List.foldr uniona xs empty;
 
 end; (*struct Set*)

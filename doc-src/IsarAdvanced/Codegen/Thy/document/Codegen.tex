@@ -583,25 +583,25 @@ The \isa{HOL} \isa{Main} theory already provides a code
 
   \begin{description}
 
-    \item[\isa{Pretty{\isacharunderscore}Int}] represents \isa{HOL} integers by big
+    \item[\isa{Code{\isacharunderscore}Integer}] represents \isa{HOL} integers by big
        integer literals in target languages.
-    \item[\isa{Pretty{\isacharunderscore}Char}] represents \isa{HOL} characters by 
+    \item[\isa{Code{\isacharunderscore}Char}] represents \isa{HOL} characters by 
        character literals in target languages.
-    \item[\isa{Pretty{\isacharunderscore}Char{\isacharunderscore}chr}] like \isa{Pretty{\isacharunderscore}Char},
+    \item[\isa{Code{\isacharunderscore}Char{\isacharunderscore}chr}] like \isa{Code{\isacharunderscore}Char},
        but also offers treatment of character codes; includes
-       \isa{Pretty{\isacharunderscore}Int}.
-    \item[\isa{Executable{\isacharunderscore}Rat}] implements rational
-       numbers.
-    \item[\isa{Executable{\isacharunderscore}Real}] implements a subset of real numbers,
-       namly those representable by rational numbers.
+       \isa{Code{\isacharunderscore}Integer}.
     \item[\isa{Efficient{\isacharunderscore}Nat}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
        matching with \isa{{\isadigit{0}}} / \isa{Suc}
-       is eliminated;  includes \isa{Pretty{\isacharunderscore}Int}.
-    \item[\isa{ML{\isacharunderscore}String}] provides an additional datatype \isa{mlstring};
-       in the \isa{HOL} default setup, strings in HOL are mapped to list
-       of \isa{HOL} characters in SML; values of type \isa{mlstring} are
-       mapped to strings in SML.
+       is eliminated;  includes \isa{Code{\isacharunderscore}Integer}.
+    \item[\isa{Code{\isacharunderscore}Index}] provides an additional datatype
+       \isa{index} which is mapped to target-language built-in integers.
+       Useful for code setups which involve e.g. indexing of
+       target-language arrays.
+    \item[\isa{Code{\isacharunderscore}Message}] provides an additional datatype
+       \isa{message{\isacharunderscore}string} which is isomorphic to strings;
+       \isa{message{\isacharunderscore}string}s are mapped to target-language strings.
+       Useful for code setups which involve e.g. printing (error) messages.
 
   \end{description}
 
@@ -1507,7 +1507,7 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Code.add-func}\verb|Code.add_func: bool -> thm -> theory -> theory| \\
+  \indexml{Code.add-func}\verb|Code.add_func: thm -> theory -> theory| \\
   \indexml{Code.del-func}\verb|Code.del_func: thm -> theory -> theory| \\
   \indexml{Code.add-funcl}\verb|Code.add_funcl: string * thm list Susp.T -> theory -> theory| \\
   \indexml{Code.add-inline}\verb|Code.add_inline: thm -> theory -> theory| \\

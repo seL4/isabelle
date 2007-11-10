@@ -9,7 +9,8 @@ end; (*struct HOL*)
 structure List = 
 struct
 
-fun member A_ x (y :: ys) = HOL.eqop A_ x y orelse member A_ x ys
+fun member A_ x (y :: ys) =
+  (if HOL.eqop A_ y x then true else member A_ x ys)
   | member A_ x [] = false;
 
 end; (*struct List*)

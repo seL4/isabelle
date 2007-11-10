@@ -20,15 +20,15 @@
 %symbol markup -- \emph achieves decent spacing via italic corrections
 \newcommand{\isamath}[1]{\emph{$#1$}}
 \newcommand{\isatext}[1]{\emph{#1}}
-\newcommand{\isascriptstyle}{\def\isamath##1{##1}\def\isatext##1{\mbox{\isastylescript##1}}}
+\DeclareRobustCommand{\isascriptstyle}{\def\isamath##1{##1}\def\isatext##1{\mbox{\isastylescript##1}}}
 \newcommand{\isactrlsub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
 \newcommand{\isactrlsup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
 \newcommand{\isactrlisub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
 \newcommand{\isactrlisup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
-\newcommand{\isactrlbsub}{\emph\bgroup\begin{math}{}\sb\bgroup\mbox\bgroup\isastylescript}
-\newcommand{\isactrlesub}{\egroup\egroup\end{math}\egroup}
-\newcommand{\isactrlbsup}{\emph\bgroup\begin{math}{}\sp\bgroup\mbox\bgroup\isastylescript}
-\newcommand{\isactrlesup}{\egroup\egroup\end{math}\egroup}
+\DeclareRobustCommand{\isactrlbsub}{\emph\bgroup\math{}\sb\bgroup\mbox\bgroup\isastylescript}
+\DeclareRobustCommand{\isactrlesub}{\egroup\egroup\endmath\egroup}
+\DeclareRobustCommand{\isactrlbsup}{\emph\bgroup\math{}\sp\bgroup\mbox\bgroup\isastylescript}
+\DeclareRobustCommand{\isactrlesup}{\egroup\egroup\endmath\egroup}
 \newcommand{\isactrlbold}[1]{{\bfseries\upshape\boldmath#1}}
 \newcommand{\isactrlloc}[1]{{\bfseries\upshape\boldmath#1}}
 \newenvironment{isaantiq}{{\isacharat\isacharbraceleft}}{{\isacharbraceright}}
