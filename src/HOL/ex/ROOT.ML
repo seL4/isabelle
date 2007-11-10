@@ -56,7 +56,7 @@ use_thys [
   "Adder"
 ];
 
-setmp proofs 2 time_use_thy "Hilbert_Classical";
+setmp Proofterm.proofs 2 time_use_thy "Hilbert_Classical";
 
 time_use_thy "Classical";
 time_use_thy "set";
