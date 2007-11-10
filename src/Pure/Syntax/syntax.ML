@@ -42,8 +42,6 @@ sig
   val mode_default: mode
   val mode_input: mode
   val extend_type_gram: (string * int * mixfix) list -> syntax -> syntax
-  val extend_const_gram: (string -> bool) ->
-    mode -> (string * typ * mixfix) list -> syntax -> syntax
   val extend_consts: string list -> syntax -> syntax
   val extend_trfuns:
     (string * ((ast list -> ast) * stamp)) list *
@@ -56,7 +54,11 @@ sig
     (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> ast list -> ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (string -> output * int)) list -> syntax -> syntax
+  val extend_const_gram: (string -> bool) ->
+    mode -> (string * typ * mixfix) list -> syntax -> syntax
   val remove_const_gram: (string -> bool) ->
+    mode -> (string * typ * mixfix) list -> syntax -> syntax
+  val update_const_gram: (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
   val extend_trrules: Proof.context -> (string -> bool) -> syntax ->
     (string * string) trrule list -> syntax -> syntax
@@ -315,12 +317,13 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
       print_ast_trtab, tokentrtab, prtabs} = tabs;
     val input' = if inout then subtract (op =) xprods input else input;
+    val changed = input <> input';
     fun if_inout xs = if inout then xs else [];
   in
     Syntax
     ({input = input',
-      lexicon = if inout then Scan.make_lexicon (SynExt.delims_of input') else lexicon,
-      gram = if inout then Parser.make_gram input' else gram,
+      lexicon = if changed then Scan.make_lexicon (SynExt.delims_of input') else lexicon,
+      gram = if changed then Parser.make_gram input' else gram,
       consts = consts,
       prmodes = prmodes,
       parse_ast_trtab = remove_trtab (if_inout parse_ast_translation) parse_ast_trtab,
@@ -616,18 +619,23 @@ end;
 
 (** modify syntax **)
 
-fun ext_syntax' f is_logtype prmode decls = extend_syntax prmode (f is_logtype decls);
-fun ext_syntax f = ext_syntax' (K f) (K false) mode_default;
+fun ext_syntax f decls = extend_syntax mode_default (f decls);
 
 val extend_type_gram       = ext_syntax Mixfix.syn_ext_types;
-val extend_const_gram      = ext_syntax' Mixfix.syn_ext_consts;
 val extend_consts          = ext_syntax SynExt.syn_ext_const_names;
 val extend_trfuns          = ext_syntax SynExt.syn_ext_trfuns;
 val extend_advanced_trfuns = ext_syntax SynExt.syn_ext_advanced_trfuns;
 val extend_tokentrfuns     = ext_syntax SynExt.syn_ext_tokentrfuns;
 
+fun extend_const_gram is_logtype prmode decls =
+  extend_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
+
 fun remove_const_gram is_logtype prmode decls =
   remove_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
+
+fun update_const_gram is_logtype prmode decls =
+  let val syn_ext = Mixfix.syn_ext_consts is_logtype decls
+  in remove_syntax prmode syn_ext #> extend_syntax prmode syn_ext end;
 
 fun extend_trrules ctxt is_logtype syn =
   ext_syntax SynExt.syn_ext_rules o read_rules ctxt is_logtype syn;
