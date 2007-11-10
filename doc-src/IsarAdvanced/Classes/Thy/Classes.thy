@@ -412,7 +412,7 @@ text {*
   a canonical interpretation as type classes.
   Anyway, there is also the possibility of other interpretations.
   For example, also @{text "list"}s form a monoid with
-  @{const "op @"} and @{const "[]"} as operations, but it
+  @{term "op @"} and @{term "[]"} as operations, but it
   seems inappropriate to apply to lists
   the same operations as for genuinly algebraic types.
   In such a case, we simply can do a particular interpretation

@@ -471,7 +471,7 @@ text {*
        @{text "Code_Integer"}.
     \item[@{text "Efficient_Nat"}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficency; pattern
-       matching with @{const "0\<Colon>nat"} / @{const "Suc"}
+       matching with @{term "0\<Colon>nat"} / @{const "Suc"}
        is eliminated;  includes @{text "Code_Integer"}.
     \item[@{text "Code_Index"}] provides an additional datatype
        @{text index} which is mapped to target-language built-in integers.
@@ -548,13 +548,13 @@ text {*
   theorems written in ML -- rewrite rules are generated dependent
   on the function theorems for a certain function.  One
   application is the implicit expanding of @{typ nat} numerals
-  to @{const "0\<Colon>nat"} / @{const Suc} representation.  See further
+  to @{term "0\<Colon>nat"} / @{const Suc} representation.  See further
   \secref{sec:ml}
 
   \emph{Generic preprocessors} provide a most general interface,
   transforming a list of function theorems to another
   list of function theorems, provided that neither the heading
-  constant nor its type change.  The @{const "0\<Colon>nat"} / @{const Suc}
+  constant nor its type change.  The @{term "0\<Colon>nat"} / @{const Suc}
   pattern elimination implemented in
   theory @{text "EfficientNat"} (\secref{eff_nat}) uses this
   interface.
@@ -646,7 +646,7 @@ lemma ord_prod [code func(*<*), code func del(*>*)]:
 
 text {*
   Then code generation will fail.  Why?  The definition
-  of @{const "op \<le>"} depends on equality on both arguments,
+  of @{term "op \<le>"} depends on equality on both arguments,
   which are polymorphic and impose an additional @{text eq}
   class constraint, thus violating the type discipline
   for class operations.
@@ -740,7 +740,7 @@ code_thms "op mod :: nat \<Rightarrow> nat \<Rightarrow> nat"
 
 text {*
   \noindent prints a table with \emph{all} defining equations
-  for @{const "op mod :: nat \<Rightarrow> nat \<Rightarrow> nat"}, including
+  for @{term "op mod :: nat \<Rightarrow> nat \<Rightarrow> nat"}, including
   \emph{all} defining equations those equations depend
   on recursivly.  @{text "\<CODETHMS>"} provides a convenient
   mechanism to inspect the impact of a preprocessor setup
@@ -1027,7 +1027,7 @@ subsubsection {* Managing executable content *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML Code.add_func: "bool -> thm -> theory -> theory"} \\
+  @{index_ML Code.add_func: "thm -> theory -> theory"} \\
   @{index_ML Code.del_func: "thm -> theory -> theory"} \\
   @{index_ML Code.add_funcl: "string * thm list Susp.T -> theory -> theory"} \\
   @{index_ML Code.add_inline: "thm -> theory -> theory"} \\
