@@ -155,9 +155,8 @@ fun the_inductive ctxt name =
     NONE => error ("Unknown (co)inductive predicate " ^ quote name)
   | SOME info => info);
 
-fun put_inductives names info = InductiveData.map (apfst (fn tab =>
-  fold (fn name => Symtab.update_new (name, info)) names tab
-    handle Symtab.DUP d => error ("Duplicate definition of (co)inductive predicate " ^ quote d)));
+fun put_inductives names info = InductiveData.map
+  (apfst (fold (fn name => Symtab.update (name, info)) names));
 
 
 
@@ -321,7 +320,7 @@ fun prove_mono predT fp_fun monos ctxt =
   Goal.prove ctxt [] []   (*NO quick_and_dirty here!*)
     (HOLogic.mk_Trueprop
       (Const (@{const_name Orderings.mono}, (predT --> predT) --> HOLogic.boolT) $ fp_fun))
-    (fn _ => EVERY [rtac monoI 1,
+    (fn _ => EVERY [rtac @{thm monoI} 1,
       REPEAT (resolve_tac [le_funI, le_boolI'] 1),
       REPEAT (FIRST
         [atac 1,
@@ -765,12 +764,9 @@ fun add_ind_def {verbose, kind, alt_name, coind, no_elim, no_ind}
        induct = induct};
 
     val ctxt3 = ctxt2
-      |> Context.proof_map (put_inductives names ({names = names, coind = coind}, result))
       |> LocalTheory.declaration (fn phi =>
-        let
-          val names' = map (LocalTheory.target_name ctxt2 o Morphism.name phi) names;
-          val result' = morph_result phi result;
-        in put_inductives names' ({names = names', coind = coind}, result') end);
+        let val result' = morph_result phi result;
+        in put_inductives cnames (*global names!?*) ({names = cnames, coind = coind}, result') end);
   in (result, ctxt3) end;
 
 
@@ -847,13 +843,15 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
 val add_inductive_i = gen_add_inductive_i add_ind_def;
 val add_inductive = gen_add_inductive add_ind_def;
 
-fun add_inductive_global flags cnames_syn pnames pre_intros monos =
-  TheoryTarget.init NONE #>
-  add_inductive_i flags cnames_syn pnames pre_intros monos #>
-  (fn (_, lthy) =>
-    (#2 (the_inductive (LocalTheory.target_of lthy)
-      (LocalTheory.target_name lthy (fst (fst (hd cnames_syn))))),
-    ProofContext.theory_of (LocalTheory.exit lthy)));
+fun add_inductive_global flags cnames_syn pnames pre_intros monos thy =
+  let
+    val name = Sign.full_name thy (fst (fst (hd cnames_syn)));
+    val ctxt' = thy
+      |> TheoryTarget.init NONE
+      |> add_inductive_i flags cnames_syn pnames pre_intros monos |> snd
+      |> LocalTheory.exit;
+    val info = #2 (the_inductive ctxt' name);
+  in (info, ProofContext.theory_of ctxt') end;
 
 
 (* read off arities of inductive predicates from raw induction rule *)
