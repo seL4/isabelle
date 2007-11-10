@@ -177,15 +177,16 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c,
     val rhs' = Morphism.term phi rhs;
     val legacy_arg = (c', Term.close_schematic_term (Logic.legacy_varify rhs'));
     val arg = (c', Term.close_schematic_term rhs');
+    val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
-    val class_global = is_class andalso c' = NameSpace.qualified (Class.class_prefix target) c;
+    val class_global = c' = NameSpace.qualified (Class.class_prefix target) c;
   in
-    not class_global ?
+    not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
         (Sign.add_abbrev PrintMode.internal pos legacy_arg)
         (ProofContext.add_abbrev PrintMode.internal pos arg)
       #-> (fn (lhs' as Const (d, _), _) =>
-          Type.similar_types (rhs, rhs') ?
+          similar_body ?
             (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
              Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
   end;
