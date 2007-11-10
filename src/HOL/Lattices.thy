@@ -12,9 +12,8 @@ begin
 subsection{* Lattices *}
 
 notation
-  less_eq (infix "\<sqsubseteq>" 50)
-and
-  less    (infix "\<sqsubset>" 50)
+  less_eq  (infix "\<sqsubseteq>" 50) and
+  less  (infix "\<sqsubset>" 50)
 
 class lower_semilattice = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
@@ -29,6 +28,7 @@ class upper_semilattice = order +
   and sup_least: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
 
 class lattice = lower_semilattice + upper_semilattice
+
 
 subsubsection{* Intro and elim rules*}
 
@@ -398,13 +398,11 @@ lemma Sup_binary:
   by (simp add: Sup_insert_simp)
 
 definition
-  top :: 'a
-where
+  top :: 'a where
   "top = \<Sqinter>{}"
 
 definition
-  bot :: 'a
-where
+  bot :: 'a where
   "bot = \<Squnion>{}"
 
 lemma top_greatest [simp]: "x \<le> top"
@@ -586,16 +584,11 @@ lemmas inf_aci = inf_ACI
 lemmas sup_aci = sup_ACI
 
 no_notation
-  less_eq (infix "\<sqsubseteq>" 50)
-and
-  less    (infix "\<sqsubset>" 50)
-and
-  inf     (infixl "\<sqinter>" 70)
-and
-  sup     (infixl "\<squnion>" 65)
-and
-  Inf     ("\<Sqinter>_" [900] 900)
-and
-  Sup     ("\<Squnion>_" [900] 900)
+  less_eq  (infix "\<sqsubseteq>" 50) and
+  less (infix "\<sqsubset>" 50) and
+  inf  (infixl "\<sqinter>" 70) and
+  sup  (infixl "\<squnion>" 65) and
+  Inf  ("\<Sqinter>_" [900] 900) and
+  Sup  ("\<Squnion>_" [900] 900)
 
 end

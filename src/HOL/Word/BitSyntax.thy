@@ -25,15 +25,9 @@ text {*
 *}
 
 notation
-  bitNOT  ("NOT _" [70] 71)
-
-notation
-  bitAND  (infixr "AND" 64)
-
-notation
-  bitOR   (infixr "OR"  59)
-
-notation
+  bitNOT  ("NOT _" [70] 71) and
+  bitAND  (infixr "AND" 64) and
+  bitOR   (infixr "OR"  59) and
   bitXOR  (infixr "XOR" 59)
 
 text {*

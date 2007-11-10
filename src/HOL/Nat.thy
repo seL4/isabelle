@@ -1444,14 +1444,13 @@ context semiring_1
 begin
 
 definition
-  Nats  :: "'a set"
-where
+  Nats  :: "'a set" where
   "Nats = range of_nat"
-
-end
 
 notation (xsymbols)
   Nats  ("\<nat>")
+
+end
 
 context semiring_1
 begin

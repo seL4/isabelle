@@ -22,14 +22,14 @@ primrec
 definition
   subst_eq :: "[('a*('a uterm)) list,('a*('a uterm)) list] => bool"  (infixr "=$=" 52) where
   "r =$= s \<longleftrightarrow> (\<forall>t. t \<lhd> r = t \<lhd> s)"
-notation
+notation (xsymbols)
   subst_eq  (infixr "\<doteq>" 52)
 
 definition
   comp :: "[('a*('a uterm)) list, ('a*('a uterm)) list] => ('a*('a uterm)) list"
     (infixl "<>" 56) where
   "al <> bl = alist_rec al bl (%x y xs g. (x,y \<lhd> bl)#g)"
-notation
+notation (xsymbols)
   comp  (infixl "\<lozenge>" 56)
 
 definition
