@@ -82,7 +82,7 @@ lemma times_binomial_minus1_eq:
   done
 
 
-subsubsection {* Theorems about @{text "choose"} *}
+subsection {* Theorems about @{text "choose"} *}
 
 text {*
   \medskip Basic theorem about @{text "choose"}.  By Florian

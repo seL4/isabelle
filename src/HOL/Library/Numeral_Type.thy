@@ -85,6 +85,7 @@ lemma card_set: "CARD('a::finite set) = 2 ^ CARD('a)"
   unfolding univ_set
   by (simp only: card_Pow finite numeral_2_eq_2)
 
+
 subsection {* Numeral Types *}
 
 typedef (open) num0 = "UNIV :: nat set" ..
@@ -140,8 +141,8 @@ lemmas card_univ_simps [simp] =
   card_bit1
   card_num0
 
-subsection {* Syntax *}
 
+subsection {* Syntax *}
 
 syntax
   "_NumeralType" :: "num_const => type"  ("_")
@@ -204,7 +205,7 @@ in [("bit0", bit_tr' 0), ("bit1", bit_tr' 1)] end;
 *}
 
 
-subsection {* Classes with at values least 1 and 2  *}
+subsection {* Classes with at least 1 and 2  *}
 
 text {* Class finite already captures "at least 1" *}
 
