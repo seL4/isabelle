@@ -54,7 +54,6 @@ fun gen_begin_instantiation prep_arity raw_arities thy =
         type_syntax = LocalTheory.type_syntax,
         term_syntax = LocalTheory.term_syntax,
         declaration = LocalTheory.pretty,
-        target_naming = LocalTheory.target_naming,
         reinit = LocalTheory.reinit,
         exit = LocalTheory.exit
       };

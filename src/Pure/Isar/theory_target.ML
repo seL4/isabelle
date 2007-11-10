@@ -74,11 +74,6 @@ val type_syntax = target_decl Locale.add_type_syntax;
 val term_syntax = target_decl Locale.add_term_syntax;
 val declaration = target_decl Locale.add_declaration;
 
-fun target_naming (Target {target, ...}) lthy =
-  (if target = "" then Sign.naming_of (ProofContext.theory_of lthy)
-   else ProofContext.naming_of (LocalTheory.target_of lthy))
-  |> NameSpace.qualified_names;
-
 fun class_target (Target {target, ...}) f =
   LocalTheory.raw_theory f #>
   LocalTheory.target (Class.refresh_syntax target);
@@ -321,7 +316,6 @@ fun init_lthy (ta as Target {target, ...}) =
     type_syntax = type_syntax ta,
     term_syntax = term_syntax ta,
     declaration = declaration ta,
-    target_naming = target_naming ta,
     reinit = fn lthy => init_lthy_ctxt ta (ProofContext.theory_of lthy),
     exit = LocalTheory.target_of}
 and init_lthy_ctxt ta = init_lthy ta o init_ctxt ta;
