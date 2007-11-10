@@ -59,7 +59,7 @@ fun build_syntax thy mode mixfixes (idents as (structs, _)) =
   let
     val thy_syntax = Sign.syn_of thy;
     val is_logtype = Sign.is_logtype thy;
-    fun const_gram ((true, m), decls) = Syntax.extend_const_gram is_logtype m decls
+    fun const_gram ((true, m), decls) = Syntax.update_const_gram is_logtype m decls
       | const_gram ((false, m), decls) = Syntax.remove_const_gram is_logtype m decls;
     val (atrs, trs, trs', atrs') = Syntax.struct_trfuns structs;
     val local_syntax = thy_syntax
