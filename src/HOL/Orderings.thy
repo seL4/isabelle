@@ -1055,12 +1055,12 @@ begin
 
 lemma min_of_mono:
   fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
-  shows "mono f \<Longrightarrow> Orderings.min (f m) (f n) = f (min m n)"
+  shows "mono f \<Longrightarrow> min (f m) (f n) = f (min m n)"
   by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)
 
 lemma max_of_mono:
   fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
-  shows "mono f \<Longrightarrow> Orderings.max (f m) (f n) = f (max m n)"
+  shows "mono f \<Longrightarrow> max (f m) (f n) = f (max m n)"
   by (auto simp: mono_def Orderings.max_def max_def intro: Orderings.antisym)
 
 end
@@ -1107,11 +1107,5 @@ lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightar
 apply (simp add: max_def)
 apply (blast intro: order_antisym)
 done
-
-subsection {* legacy ML bindings *}
-
-ML {*
-val monoI = @{thm monoI};
-*}
 
 end
