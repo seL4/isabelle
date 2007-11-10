@@ -439,10 +439,12 @@ fun pretty_term_typ ctxt t =
 
 fun pretty_term_typeof ctxt = Syntax.pretty_typ ctxt o Term.fastype_of;
 
-fun pretty_term_const ctxt t =
-  if Term.is_Const (singleton (Syntax.uncheck_terms ctxt) t)
-    then pretty_term ctxt t
-    else error ("Constant expected: " ^ Syntax.string_of_term ctxt t);
+fun pretty_const ctxt c =
+  let
+    val t = Const (c, Consts.type_scheme (ProofContext.consts_of ctxt) c)
+      handle TYPE (msg, _, _) => error msg;
+    val ([t'], _) = Variable.import_terms true [t] ctxt;
+  in pretty_term ctxt t' end;
 
 fun pretty_abbrev ctxt t =
   let
@@ -519,7 +521,7 @@ val _ = add_commands
   ("term_style", args (Scan.lift Args.liberal_name -- Args.term) (output pretty_term_style)),
   ("term_type", args Args.term (output pretty_term_typ)),
   ("typeof", args Args.term (output pretty_term_typeof)),
-  ("const", args Args.term (output pretty_term_const)),
+  ("const", args Args.const_proper (output pretty_const)),
   ("abbrev", args Args.term_abbrev (output pretty_abbrev)),
   ("typ", args Args.typ_abbrev (output Syntax.pretty_typ)),
   ("text", args (Scan.lift Args.name) (output (K pretty_text))),
