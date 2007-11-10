@@ -984,26 +984,30 @@ fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
         map (fn (s, t) =>
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) cex);
 
-val auto_quickcheck = ref true;
+val auto_quickcheck = ref false;
 val auto_quickcheck_time_limit = ref 5000;
 
 fun test_goal' int state =
   let
     val ctxt = Proof.context_of state;
-    val assms = map term_of (Assumption.assms_of ctxt)
-    val params = get_test_params (Proof.theory_of state)
-    fun test state =
-      let val _ = Output.priority "Auto quickcheck ..." in
-        case try (TimeLimit.timeLimit (Time.fromMilliseconds (!auto_quickcheck_time_limit))
-            (try ((test_goal true (params, []) 1 assms)))) state of
-          SOME NONE => (Output.priority "Cannot auto quickcheck."; state)
-        | SOME (SOME (cex as SOME _)) => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
+    val assms = map term_of (Assumption.assms_of ctxt);
+    val params = get_test_params (Proof.theory_of state);
+    fun report msg = (Output.priority ("Auto quickcheck: " ^ msg); state);
+    fun test () =
+      let
+        val _ = Output.priority "Auto quickcheck ...";
+        val res = TimeLimit.timeLimit (Time.fromMilliseconds (!auto_quickcheck_time_limit))
+          (try (test_goal true (params, []) 1 assms)) state;
+      in
+        case res of
+          NONE => report "failed."
+        | SOME NONE => report "no counterexamples found."
+        | SOME cex => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
             Pretty.markup Markup.hilite [pretty_counterex ctxt cex]]) state
-        | _ => (Output.priority "Auto quickcheck: no counterexamples found."; state)
-      end;
+      end handle TimeLimit.TimeOut => report "timeout.";
   in
     if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
-    then test state
+    then test ()
     else state
   end;
 
@@ -1126,7 +1130,7 @@ val _ =
     (Scan.repeat1
        (P.term --|
         P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
-     (fn xs => Toplevel.theory (fn thy => fold (assoc_const o 
+     (fn xs => Toplevel.theory (fn thy => fold (assoc_const o
        (fn ((const, mfx), aux) =>
          (const, (parse_mixfix (Sign.read_term thy) mfx, aux)))) xs thy)));
 
