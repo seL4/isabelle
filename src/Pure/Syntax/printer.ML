@@ -239,14 +239,22 @@ fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = NONE
 
 val empty_prtabs = [];
 
-fun change_prtabs f mode xprods prtabs =
+fun extend_prtabs mode xprods prtabs =
   let
     val fmts = map_filter xprod_to_fmt xprods;
-    val tab = fold f fmts (mode_tab prtabs mode);
-  in AList.update (op =) (mode, tab) prtabs end;
+    val tab' = fold Symtab.update_list fmts (mode_tab prtabs mode);
+  in AList.update (op =) (mode, tab') prtabs end;
 
-fun extend_prtabs m = change_prtabs Symtab.update_list m;
-fun remove_prtabs m = change_prtabs (Symtab.remove_list (op =)) m;
+fun remove_prtabs mode xprods prtabs =
+  let
+    val tab = mode_tab prtabs mode;
+    val fmts = map_filter (fn xprod as SynExt.XProd (_, _, c, _) =>
+      if null (Symtab.lookup_list tab c) then NONE
+      else xprod_to_fmt xprod) xprods;
+  in
+    if null fmts then prtabs
+    else AList.update (op =) (mode, fold (Symtab.remove_list (op =)) fmts tab) prtabs
+  end;
 
 fun merge_prtabs prtabs1 prtabs2 =
   let
