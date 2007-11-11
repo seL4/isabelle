@@ -23,14 +23,6 @@ sig
   include SYN_TRANS1
   include MIXFIX1
   include PRINTER0
-  val extend_trtab: string -> (string * ('a * stamp)) list ->
-    ('a * stamp) Symtab.table -> ('a * stamp) Symtab.table
-  val merge_trtabs: string -> ('a * stamp) Symtab.table -> ('a * stamp) Symtab.table ->
-    ('a * stamp) Symtab.table
-  val merge_tr'tabs: ('a * stamp) list Symtab.table -> ('a * stamp) list Symtab.table
-    -> ('a * stamp) list Symtab.table
-  val extend_tr'tab: (string * ('a * stamp)) list ->
-    ('a * stamp) list Symtab.table -> ('a * stamp) list Symtab.table
   datatype 'a trrule =
     ParseRule of 'a * 'a |
     PrintRule of 'a * 'a |
@@ -41,30 +33,28 @@ sig
   type mode
   val mode_default: mode
   val mode_input: mode
-  val extend_type_gram: (string * int * mixfix) list -> syntax -> syntax
-  val extend_consts: string list -> syntax -> syntax
-  val extend_trfuns:
+  val update_type_gram: (string * int * mixfix) list -> syntax -> syntax
+  val update_consts: string list -> syntax -> syntax
+  val update_trfuns:
     (string * ((ast list -> ast) * stamp)) list *
     (string * ((term list -> term) * stamp)) list *
     (string * ((bool -> typ -> term list -> term) * stamp)) list *
     (string * ((ast list -> ast) * stamp)) list -> syntax -> syntax
-  val extend_advanced_trfuns:
+  val update_advanced_trfuns:
     (string * ((Proof.context -> ast list -> ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> ast list -> ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (string -> output * int)) list -> syntax -> syntax
-  val extend_const_gram: (string -> bool) ->
+  val update_const_gram: (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
   val remove_const_gram: (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_const_gram: (string -> bool) ->
-    mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val extend_trrules: Proof.context -> (string -> bool) -> syntax ->
+  val update_trrules: Proof.context -> (string -> bool) -> syntax ->
     (string * string) trrule list -> syntax -> syntax
   val remove_trrules: Proof.context -> (string -> bool) -> syntax ->
     (string * string) trrule list -> syntax -> syntax
-  val extend_trrules_i: ast trrule list -> syntax -> syntax
+  val update_trrules_i: ast trrule list -> syntax -> syntax
   val remove_trrules_i: ast trrule list -> syntax -> syntax
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val merge_syntaxes: syntax -> syntax -> syntax
@@ -79,10 +69,11 @@ sig
     (string -> string option) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> Proof.context ->
     (string -> bool) -> syntax -> typ -> string -> term
-  val standard_parse_typ: Proof.context -> syntax -> ((indexname * sort) list -> indexname -> sort) ->
-    (sort -> sort) -> string -> typ
+  val standard_parse_typ: Proof.context -> syntax ->
+    ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) -> string -> typ
   val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
-  val standard_unparse_term: (string -> xstring) -> Proof.context -> syntax -> bool -> term -> Pretty.T
+  val standard_unparse_term: (string -> xstring) ->
+    Proof.context -> syntax -> bool -> term -> Pretty.T
   val standard_unparse_typ: Proof.context -> syntax -> typ -> Pretty.T
   val standard_unparse_sort: Proof.context -> syntax -> sort -> Pretty.T
   val ambiguity_level: int ref
@@ -166,7 +157,7 @@ fun err_dup_trfun name c =
 
 fun remove_trtab trfuns = fold (Symtab.remove SynExt.eq_trfun) trfuns;
 
-fun extend_trtab name trfuns tab = Symtab.extend (remove_trtab trfuns tab, trfuns)
+fun update_trtab name trfuns tab = Symtab.extend (remove_trtab trfuns tab, trfuns)
   handle Symtab.DUP c => err_dup_trfun name c;
 
 fun merge_trtabs name tab1 tab2 = Symtab.merge SynExt.eq_trfun (tab1, tab2)
@@ -176,7 +167,7 @@ fun merge_trtabs name tab1 tab2 = Symtab.merge SynExt.eq_trfun (tab1, tab2)
 (* print (ast) translations *)
 
 fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
-fun extend_tr'tab trfuns = fold_rev Symtab.update_list trfuns;
+fun update_tr'tab trfuns = fold_rev (Symtab.update_list SynExt.eq_trfun) trfuns;
 fun remove_tr'tab trfuns = fold (Symtab.remove_list SynExt.eq_trfun) trfuns;
 fun merge_tr'tabs tab1 tab2 = Symtab.merge_list SynExt.eq_trfun (tab1, tab2);
 
@@ -223,9 +214,9 @@ type ruletab = (Ast.ast * Ast.ast) list Symtab.table;
 fun dest_ruletab tab = maps snd (Symtab.dest tab);
 
 
-(* empty, extend, merge ruletabs *)
+(* empty, update, merge ruletabs *)
 
-val extend_ruletab = fold_rev (fn r => Symtab.update_list (Ast.head_of_rule r, r));
+val update_ruletab = fold_rev (fn r => Symtab.update_list (op =) (Ast.head_of_rule r, r));
 val remove_ruletab = fold (fn r => Symtab.remove_list (op =) (Ast.head_of_rule r, r));
 fun merge_ruletabs tab1 tab2 = Symtab.merge_list (op =) (tab1, tab2);
 
@@ -276,9 +267,9 @@ val empty_syntax = Syntax
     prtabs = Printer.empty_prtabs}, stamp ());
 
 
-(* extend_syntax *)
+(* update_syntax *)
 
-fun extend_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
+fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
     val {input, lexicon, gram, consts = consts1, prmodes = prmodes1,
       parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
@@ -286,23 +277,25 @@ fun extend_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     val SynExt.SynExt {xprods, consts = consts2, prmodes = prmodes2,
       parse_ast_translation, parse_rules, parse_translation, print_translation, print_rules,
       print_ast_translation, token_translation} = syn_ext;
+    val input' = if inout then fold (insert (op =)) xprods input else input;
+    val changed = length input <> length input';
     fun if_inout xs = if inout then xs else [];
   in
     Syntax
-    ({input = if_inout xprods @ input,
-      lexicon = Scan.extend_lexicon (if_inout (SynExt.delims_of xprods)) lexicon,
-      gram = Parser.extend_gram gram (if_inout xprods),
+    ({input = input',
+      lexicon = if changed then Scan.extend_lexicon (SynExt.delims_of xprods) lexicon else lexicon,
+      gram = if changed then Parser.extend_gram gram xprods else gram,
       consts = Library.merge (op =) (consts1, filter_out NameSpace.is_qualified consts2),
       prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
       parse_ast_trtab =
-        extend_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
-      parse_ruletab = extend_ruletab (if_inout parse_rules) parse_ruletab,
-      parse_trtab = extend_trtab "parse translation" (if_inout parse_translation) parse_trtab,
-      print_trtab = extend_tr'tab print_translation print_trtab,
-      print_ruletab = extend_ruletab print_rules print_ruletab,
-      print_ast_trtab = extend_tr'tab print_ast_translation print_ast_trtab,
+        update_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
+      parse_ruletab = update_ruletab (if_inout parse_rules) parse_ruletab,
+      parse_trtab = update_trtab "parse translation" (if_inout parse_translation) parse_trtab,
+      print_trtab = update_tr'tab print_translation print_trtab,
+      print_ruletab = update_ruletab print_rules print_ruletab,
+      print_ast_trtab = update_tr'tab print_ast_translation print_ast_trtab,
       tokentrtab = extend_tokentrtab token_translation tokentrtab,
-      prtabs = Printer.extend_prtabs mode xprods prtabs}, stamp ())
+      prtabs = Printer.update_prtabs mode xprods prtabs}, stamp ())
   end;
 
 
@@ -317,7 +310,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
       print_ast_trtab, tokentrtab, prtabs} = tabs;
     val input' = if inout then subtract (op =) xprods input else input;
-    val changed = input <> input';
+    val changed = length input <> length input';
     fun if_inout xs = if inout then xs else [];
   in
     Syntax
@@ -375,8 +368,8 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 
 val basic_syn =
   empty_syntax
-  |> extend_syntax mode_default TypeExt.type_ext
-  |> extend_syntax mode_default SynExt.pure_ext;
+  |> update_syntax mode_default TypeExt.type_ext
+  |> update_syntax mode_default SynExt.pure_ext;
 
 val basic_nonterms =
   (Lexicon.terminals @ [SynExt.logic, "type", "types", "sort", "classes",
@@ -619,31 +612,27 @@ end;
 
 (** modify syntax **)
 
-fun ext_syntax f decls = extend_syntax mode_default (f decls);
+fun ext_syntax f decls = update_syntax mode_default (f decls);
 
-val extend_type_gram       = ext_syntax Mixfix.syn_ext_types;
-val extend_consts          = ext_syntax SynExt.syn_ext_const_names;
-val extend_trfuns          = ext_syntax SynExt.syn_ext_trfuns;
-val extend_advanced_trfuns = ext_syntax SynExt.syn_ext_advanced_trfuns;
+val update_type_gram       = ext_syntax Mixfix.syn_ext_types;
+val update_consts          = ext_syntax SynExt.syn_ext_const_names;
+val update_trfuns          = ext_syntax SynExt.syn_ext_trfuns;
+val update_advanced_trfuns = ext_syntax SynExt.syn_ext_advanced_trfuns;
 val extend_tokentrfuns     = ext_syntax SynExt.syn_ext_tokentrfuns;
 
-fun extend_const_gram is_logtype prmode decls =
-  extend_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
+fun update_const_gram is_logtype prmode decls =
+  update_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
 
 fun remove_const_gram is_logtype prmode decls =
   remove_syntax prmode (Mixfix.syn_ext_consts is_logtype decls);
 
-fun update_const_gram is_logtype prmode decls =
-  let val syn_ext = Mixfix.syn_ext_consts is_logtype decls
-  in remove_syntax prmode syn_ext #> extend_syntax prmode syn_ext end;
-
-fun extend_trrules ctxt is_logtype syn =
+fun update_trrules ctxt is_logtype syn =
   ext_syntax SynExt.syn_ext_rules o read_rules ctxt is_logtype syn;
 
 fun remove_trrules ctxt is_logtype syn =
   remove_syntax mode_default o SynExt.syn_ext_rules o read_rules ctxt is_logtype syn;
 
-val extend_trrules_i = ext_syntax SynExt.syn_ext_rules o cert_rules;
+val update_trrules_i = ext_syntax SynExt.syn_ext_rules o cert_rules;
 val remove_trrules_i = remove_syntax mode_default o SynExt.syn_ext_rules o cert_rules;
 
 
