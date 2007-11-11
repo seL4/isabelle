@@ -219,7 +219,7 @@ fun abbrev (ta as Target {target, is_locale, is_class}) prmode ((c, mx), t) lthy
   in
     lthy |>
      (if is_locale then
-        LocalTheory.theory_result (Sign.add_abbrev PrintMode.input pos (c, global_rhs))
+        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal pos (c, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const ta prmode pos ((c, mx2), lhs')) #>
