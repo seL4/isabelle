@@ -233,11 +233,15 @@ class inverse = type +
 
 class abs = type +
   fixes abs :: "'a \<Rightarrow> 'a"
+begin
 
 notation (xsymbols)
   abs  ("\<bar>_\<bar>")
+
 notation (HTML output)
   abs  ("\<bar>_\<bar>")
+
+end
 
 class sgn = type +
   fixes sgn :: "'a \<Rightarrow> 'a"
@@ -246,21 +250,6 @@ class ord = type +
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
     and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 begin
-
-abbreviation (input)
-  greater_eq  (infix ">=" 50) where
-  "x >= y \<equiv> less_eq y x"
-
-abbreviation (input)
-  greater  (infix ">" 50) where
-  "x > y \<equiv> less y x"
-
-definition
-  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "LEAST " 10)
-where
-  "Least P == (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> less_eq x y))"
-
-end
 
 notation
   less_eq  ("op <=") and
@@ -276,8 +265,22 @@ notation (HTML output)
   less_eq  ("op \<le>") and
   less_eq  ("(_/ \<le> _)"  [51, 51] 50)
 
+abbreviation (input)
+  greater_eq  (infix ">=" 50) where
+  "x >= y \<equiv> y <= x"
+
 notation (input)
   greater_eq  (infix "\<ge>" 50)
+
+abbreviation (input)
+  greater  (infix ">" 50) where
+  "x > y \<equiv> y < x"
+
+definition
+  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "LEAST " 10) where
+  "Least P == (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> less_eq x y))"
+
+end
 
 syntax
   "_index1"  :: index    ("\<^sub>1")
@@ -918,9 +921,9 @@ structure ResAtpset = NamedThmsFun(val name = "atp" val description = "ATP rules
 structure ResBlacklist = NamedThmsFun(val name = "noatp" val description = "Theorems blacklisted for ATP");
 *}
 
-(*ResBlacklist holds theorems blacklisted to sledgehammer. 
+text {*ResBlacklist holds theorems blacklisted to sledgehammer. 
   These theorems typically produce clauses that are prolific (match too many equality or
-  membership literals) and relate to seldom-used facts. Some duplicate other rules.*)
+  membership literals) and relate to seldom-used facts. Some duplicate other rules.*}
 
 setup {*
 let
@@ -986,8 +989,8 @@ apply iprover
 done
 
 ML {*
-structure Blast = BlastFun(
-struct
+structure Blast = BlastFun
+(
   type claset = Classical.claset
   val equality_name = @{const_name "op ="}
   val not_name = @{const_name Not}
@@ -1000,7 +1003,7 @@ struct
   val rep_cs = Classical.rep_cs
   val cla_modifiers = Classical.cla_modifiers
   val cla_meth' = Classical.cla_meth'
-end);
+);
 val Blast_tac = Blast.Blast_tac;
 val blast_tac = Blast.blast_tac;
 *}
@@ -1216,7 +1219,7 @@ lemma simp_impliesI:
   done
 
 lemma simp_impliesE:
-  assumes PQ:"PROP P =simp=> PROP Q"
+  assumes PQ: "PROP P =simp=> PROP Q"
   and P: "PROP P"
   and QR: "PROP Q \<Longrightarrow> PROP R"
   shows "PROP R"
@@ -1462,11 +1465,11 @@ text {* Rule projections: *}
 
 ML {*
 structure ProjectRule = ProjectRuleFun
-(struct
+(
   val conjunct1 = @{thm conjunct1};
   val conjunct2 = @{thm conjunct2};
   val mp = @{thm mp};
-end)
+)
 *}
 
 constdefs
