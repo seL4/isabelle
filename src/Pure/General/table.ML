@@ -49,9 +49,10 @@ sig
   val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
   val remove: ('b * 'a -> bool) -> key * 'b -> 'a table -> 'a table
   val lookup_list: 'a list table -> key -> 'a list
-  val update_list: (key * 'a) -> 'a list table -> 'a list table
+  val cons_list: (key * 'a) -> 'a list table -> 'a list table
   val insert_list: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
   val remove_list: ('b * 'a -> bool) -> key * 'b -> 'a list table -> 'a list table
+  val update_list: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
   val make_list: (key * 'a) list -> 'a list table
   val dest_list: 'a list table -> (key * 'a) list
   val merge_list: ('a * 'a -> bool) ->
@@ -362,16 +363,21 @@ fun merge eq = join (fn key => fn xy => if eq xy then raise SAME else raise DUP 
 (* list tables *)
 
 fun lookup_list tab key = these (lookup tab key);
-fun update_list (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
+
+fun cons_list (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
 
 fun insert_list eq (key, x) =
   modify key (fn NONE => [x] | SOME xs => if Library.member eq xs x then raise SAME else x :: xs);
-  
+
 fun remove_list eq (key, x) tab =
   map_entry key (fn xs => (case Library.remove eq x xs of [] => raise UNDEF key | ys => ys)) tab
   handle UNDEF _ => delete key tab;
 
-fun make_list args = fold_rev update_list args empty;
+fun update_list eq (key, x) =
+  modify key (fn NONE => [x] | SOME [] => [x] | SOME (xs as y :: _) =>
+    if eq (x, y) then raise SAME else Library.update eq x xs);
+
+fun make_list args = fold_rev cons_list args empty;
 fun dest_list tab = maps (fn (key, xs) => map (pair key) xs) (dest tab);
 fun merge_list eq = join (fn _ => Library.merge eq);
 
