@@ -58,6 +58,7 @@ sig
   val read_const_proper: Proof.context -> string -> term
   val read_const: Proof.context -> string -> term
   val decode_term: Proof.context -> term -> term
+  val standard_infer_types: Proof.context -> term list -> term list
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
   val read_term_abbrev: Proof.context -> string -> term
@@ -553,8 +554,6 @@ end;
 
 (* type checking/inference *)
 
-local
-
 fun standard_infer_types ctxt ts =
   let val Mode {pattern, ...} = get_mode ctxt in
     TypeInfer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
@@ -563,6 +562,8 @@ fun standard_infer_types ctxt ts =
     |> #1 |> map #1
     handle TYPE (msg, _, _) => error msg
   end;
+
+local
 
 fun standard_typ_check ctxt =
   map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
@@ -1163,7 +1164,7 @@ fun pretty_abbrevs show_globals ctxt =
     val ((space, consts), (_, globals)) =
       pairself (#constants o Consts.dest) (#consts (rep_context ctxt));
     fun add_abbr (_, (_, NONE)) = I
-      | add_abbr (c, (T, SOME (t, _))) =
+      | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
     val abbrevs = NameSpace.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
