@@ -221,7 +221,7 @@ fun pretty_full_theory verbose thy =
       Symtab.make (filter_out (prune_const o fst) (Symtab.dest (#2 constants))));
 
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
-    val abbrevs = map_filter (fn (c, (ty, SOME (t, _))) => SOME (c, (ty, t)) | _ => NONE) cnsts;
+    val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
     val cnstrs = NameSpace.extern_table constraints;
 
     val axms = NameSpace.extern_table axioms;
