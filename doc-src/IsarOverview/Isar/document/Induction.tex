@@ -165,15 +165,10 @@ naming those variables: replace the anonymous \isa{Cons} by
 In each \isakeyword{case} the assumption can be
 referred to inside the proof by the name of the constructor. In
 Section~\ref{sec:full-Ind} below we will come across an example
-of this.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Structural induction%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
+of this.
+
+\subsection{Structural induction}
+
 We start with an inductive proof where both cases are proved automatically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -311,33 +306,82 @@ in the induction step because it has not been introduced via \isakeyword{fix}
 \begin{isamarkuptext}%
 \noindent Of course we could again have written
 \isakeyword{thus}~\isa{{\isacharquery}case} instead of giving the term explicitly
-but we wanted to use \isa{i} somewhere.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Induction formulae involving \isa{{\isasymAnd}} or \isa{{\isasymLongrightarrow}}\label{sec:full-Ind}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Let us now consider the situation where the goal to be proved contains
-\isa{{\isasymAnd}} or \isa{{\isasymLongrightarrow}}, say \isa{{\isasymAnd}x{\isachardot}\ P\ x\ {\isasymLongrightarrow}\ Q\ x} --- motivation and a
-real example follow shortly.  This means that in each case of the induction,
-\isa{{\isacharquery}case} would be of the form \isa{{\isasymAnd}x{\isachardot}\ P{\isacharprime}\ x\ {\isasymLongrightarrow}\ Q{\isacharprime}\ x}.  Thus the
-first proof steps will be the canonical ones, fixing \isa{x} and assuming
-\isa{P{\isacharprime}\ x}. To avoid this tedium, induction performs these steps
-automatically: for example in case \isa{{\isacharparenleft}Suc\ n{\isacharparenright}}, \isa{{\isacharquery}case} is only
-\isa{Q{\isacharprime}\ x} whereas the assumptions (named \isa{Suc}!) contain both the
-usual induction hypothesis \emph{and} \isa{P{\isacharprime}\ x}.
-It should be clear how this generalises to more complex formulae.
+but we wanted to use \isa{i} somewhere.
 
-As an example we will now prove complete induction via
-structural induction.%
+\subsection{Generalization via \isa{arbitrary}}
+
+It is frequently necessary to generalize a claim before it becomes
+provable by induction. The tutorial~\cite{LNCS2283} demonstrates this
+with \isa{itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys}, where \isa{ys}
+needs to be universally quantified before induction succeeds.\footnote{\isa{rev\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}},\quad \isa{rev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs\ {\isacharat}\ {\isacharbrackleft}x{\isacharbrackright}},\\ \isa{itrev\ {\isacharbrackleft}{\isacharbrackright}\ ys\ {\isacharequal}\ ys},\quad \isa{itrev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ ys\ {\isacharequal}\ itrev\ xs\ {\isacharparenleft}x\ {\isacharhash}\ ys{\isacharparenright}}} But
+strictly speaking, this quantification step is already part of the
+proof and the quantifiers should not clutter the original claim. This
+is how the quantification step can be combined with induction:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isacharparenleft}{\isasymAnd}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P\ m{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}P{\isacharparenleft}n{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs\ arbitrary{\isacharcolon}\ ys{\isacharparenright}\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent The annotation \isa{arbitrary{\isacharcolon}}~\emph{vars}
+universally quantifies all \emph{vars} before the induction.  Hence
+they can be replaced by \emph{arbitrary} values in the proof.
+This proof also demonstrates that \isakeyword{by} can take two arguments,
+one to start and one to finish the proof --- the latter is optional.
+
+The nice thing about generalization via \isa{arbitrary{\isacharcolon}} is that in
+the induction step the claim is available in unquantified form but
+with the generalized variables replaced by \isa{{\isacharquery}}-variables, ready
+for instantiation. In the above example the
+induction hypothesis is \isa{itrev\ xs\ {\isacharquery}ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ {\isacharquery}ys}.
+
+For the curious: \isa{arbitrary{\isacharcolon}} introduces \isa{{\isasymAnd}}
+behind the scenes.
+
+\subsection{Inductive proofs of conditional formulae}
+
+Induction also copes well with formulae involving \isa{{\isasymLongrightarrow}}, for example%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs{\isacharparenright}\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent This is an improvement over that style the
+tutorial~\cite{LNCS2283} advises, which requires \isa{{\isasymlongrightarrow}}.
+A further improvement is shown in the following proof:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \ {\isachardoublequoteopen}map\ f\ xs\ {\isacharequal}\ map\ f\ ys\ {\isasymLongrightarrow}\ length\ xs\ {\isacharequal}\ length\ ys{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -345,52 +389,41 @@ structural induction.%
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ A{\isacharparenright}\isanewline
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymAnd}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P\ m{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
-\ \ \ \ \isacommand{case}\isamarkupfalse%
-\ {\isadigit{0}}\ \isacommand{thus}\isamarkupfalse%
+\ {\isacharparenleft}induct\ ys\ arbitrary{\isacharcolon}\ xs{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ Nil\ \isacommand{thus}\isamarkupfalse%
 \ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}Cons\ y\ ys{\isacharparenright}\ \ \isacommand{note}\isamarkupfalse%
+\ Asm\ {\isacharequal}\ Cons\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}cases\ xs{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ Nil\isanewline
+\ \ \ \ \isacommand{hence}\isamarkupfalse%
+\ False\ \isacommand{using}\isamarkupfalse%
+\ Asm{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \isacommand{thus}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
 \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{case}\isamarkupfalse%
-\ {\isacharparenleft}Suc\ n{\isacharparenright}\ \ \ %
-\isamarkupcmt{\isakeyword{fix} \isa{m} \isakeyword{assume} \isa{Suc}: \isa{{\isachardoublequote}{\isacharquery}m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P\ {\isacharquery}m{\isachardoublequote}} \isa{{\isachardoublequote}m\ {\isacharless}\ Suc\ n{\isachardoublequote}}%
-}
-\isanewline
-\ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}case\ \ \ \ %
-\isamarkupcmt{\isa{P\ m}%
-}
-\isanewline
-\ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ cases\isanewline
-\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ eq{\isacharcolon}\ {\isachardoublequoteopen}m\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ Suc\ \isakeyword{and}\ A\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}P\ n{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ blast\isanewline
-\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ eq\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}P\ m{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}Cons\ x\ xs{\isacharprime}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{with}\isamarkupfalse%
+\ Asm{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}map\ f\ xs{\isacharprime}\ {\isacharequal}\ map\ f\ ys{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ Asm{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharbrackleft}OF\ this{\isacharbrackright}\ {\isacharbackquoteopen}xs\ {\isacharequal}\ x{\isacharhash}xs{\isacharprime}{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{next}\isamarkupfalse%
-\isanewline
-\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}m\ {\isasymnoteq}\ n{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ Suc\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}m\ {\isacharless}\ n{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ arith\isanewline
-\ \ \ \ \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}P\ m{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}rule\ Suc{\isacharparenright}\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
@@ -403,29 +436,41 @@ structural induction.%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent Given the explanations above and the comments in the
-proof text (only necessary for novices), the proof should be quite
-readable.
+\noindent
+The base case is trivial. In the step case Isar assumes
+(under the name \isa{Cons}) two propositions:
+\begin{center}
+\begin{tabular}{l}
+\isa{map\ f\ {\isacharquery}xs\ {\isacharequal}\ map\ f\ ys\ {\isasymLongrightarrow}\ length\ {\isacharquery}xs\ {\isacharequal}\ length\ ys}\\
+\isa{map\ f\ xs\ {\isacharequal}\ map\ f\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}}
+\end{tabular}
+\end{center}
+The first is the induction hypothesis, the second, and this is new,
+is the premise of the induction step. The actual goal at this point is merely
+\isa{length\ xs\ {\isacharequal}\ length\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}}. The assumptions are given the new name
+\isa{Asm} to avoid a name clash further down. The proof procedes with a case distinction on \isa{xs}. In the case \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}}, the second of our two
+assumptions (\isa{Asm{\isacharparenleft}{\isadigit{2}}{\isacharparenright}}) implies the contradiction \isa{{\isadigit{0}}\ {\isacharequal}\ Suc{\isacharparenleft}{\isasymdots}{\isacharparenright}}.
+ In the case \isa{xs\ {\isacharequal}\ x\ {\isacharhash}\ xs{\isacharprime}}, we first obtain
+\isa{map\ f\ xs{\isacharprime}\ {\isacharequal}\ map\ f\ ys}, from which a forward step with the first assumption (\isa{Asm{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharbrackleft}OF\ this{\isacharbrackright}}) yields \isa{length\ xs{\isacharprime}\ {\isacharequal}\ length\ ys}. Together
+with \isa{xs\ {\isacharequal}\ x\ {\isacharhash}\ xs} this yields the goal
+\isa{length\ xs\ {\isacharequal}\ length\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}}.
 
-The statement of the lemma is interesting because it deviates from the style in
-the Tutorial~\cite{LNCS2283}, which suggests to introduce \isa{{\isasymforall}} or
-\isa{{\isasymlongrightarrow}} into a theorem to strengthen it for induction. In Isar
-proofs we can use \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} instead. This simplifies the
-proof and means we do not have to convert between the two kinds of
-connectives.
 
-Note that in a nested induction over the same data type, the inner
-case labels hide the outer ones of the same name. If you want to refer
-to the outer ones inside, you need to name them on the outside, e.g.\
-\isakeyword{note}~\isa{outer{\isacharunderscore}IH\ {\isacharequal}\ Suc}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Rule induction%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
+\subsection{Induction formulae involving \isa{{\isasymAnd}} or \isa{{\isasymLongrightarrow}}}
+\label{sec:full-Ind}
+
+Let us now consider abstractly the situation where the goal to be proved
+contains both \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}, say \isa{{\isasymAnd}x{\isachardot}\ P\ x\ {\isasymLongrightarrow}\ Q\ x}.
+This means that in each case of the induction,
+\isa{{\isacharquery}case} would be of the form \isa{{\isasymAnd}x{\isachardot}\ P{\isacharprime}\ x\ {\isasymLongrightarrow}\ Q{\isacharprime}\ x}.  Thus the
+first proof steps will be the canonical ones, fixing \isa{x} and assuming
+\isa{P{\isacharprime}\ x}. To avoid this tedium, induction performs the canonical steps
+automatically: in each step case, the assumptions contain both the
+usual induction hypothesis and \isa{P{\isacharprime}\ x}, whereas \isa{{\isacharquery}case} is only
+\isa{Q{\isacharprime}\ x}.
+
+\subsection{Rule induction}
+
 HOL also supports inductively defined sets. See \cite{LNCS2283}
 for details. As an example we define our own version of the reflexive
 transitive closure of a relation --- HOL provides a predefined one as well.%
@@ -487,44 +532,38 @@ However, this proof is rather terse. Here is a more readable version:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{and}\ B{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
+\ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
 \endisadelimproof
 %
 \isatagproof
+\isacommand{using}\isamarkupfalse%
+\ assms\isanewline
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
-\ \ \isacommand{from}\isamarkupfalse%
-\ A\ B\ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\isanewline
-\ \ \isacommand{proof}\isamarkupfalse%
 \ induct\isanewline
-\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ x\ \isacommand{assume}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \ %
 \isamarkupcmt{\isa{B}[\isa{y} := \isa{x}]%
 }
 \isanewline
-\ \ \ \ \isacommand{thus}\isamarkupfalse%
+\ \ \isacommand{thus}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
-\ \ \isacommand{next}\isamarkupfalse%
+\isacommand{next}\isamarkupfalse%
 \isanewline
-\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ x{\isacharprime}\ x\ y\isanewline
-\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ \ \isacommand{assume}\isamarkupfalse%
 \ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharprime}{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ IH{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ B{\isacharcolon}\ \ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ \ \ \ \ \ \ \ \ IH{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ B{\isacharcolon}\ \ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
 \ {\isadigit{1}}\ IH{\isacharbrackleft}OF\ B{\isacharbrackright}\ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharprime}{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 {\isacharparenleft}rule\ rtc{\isachardot}step{\isacharparenright}\isanewline
-\ \ \isacommand{qed}\isamarkupfalse%
-\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -535,29 +574,28 @@ However, this proof is rather terse. Here is a more readable version:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent We start the proof with \isakeyword{from}~\isa{A\ B}. Only \isa{A} is ``consumed'' by the induction step.
-Since \isa{B} is left over we don't just prove \isa{{\isacharquery}thesis} but \isa{B\ {\isasymLongrightarrow}\ {\isacharquery}thesis}, just as in the previous proof. The
-base case is trivial. In the assumptions for the induction step we can
+\noindent
+This time, merely for a change, we start the proof with by feeding both
+assumptions into the inductive proof. Only the first assumption is
+``consumed'' by the induction.
+Since the second one is left over we don't just prove \isa{{\isacharquery}thesis} but
+\isa{{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharquery}thesis}, just as in the previous proof.
+The base case is trivial. In the assumptions for the induction step we can
 see very clearly how things fit together and permit ourselves the
 obvious forward step \isa{IH{\isacharbrackleft}OF\ B{\isacharbrackright}}.
 
-The notation `\isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)}'
-is also supported for inductive definitions. The \emph{constructor} is (the
-name of) the rule and the \emph{vars} fix the free variables in the
+The notation \isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)}
+is also supported for inductive definitions. The \emph{constructor} is the
+name of the rule and the \emph{vars} fix the free variables in the
 rule; the order of the \emph{vars} must correspond to the
-\emph{alphabetical order} of the variables as they appear in the rule.
+left-to-right order of the variables as they appear in the rule.
 For example, we could start the above detailed proof of the induction
-with \isakeyword{case}~\isa{(step x' x y)}. However, we can then only
-refer to the assumptions named \isa{step} collectively and not
-individually, as the above proof requires.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{More induction%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
+with \isakeyword{case}~\isa{(step x' x y)}. In that case we don't need
+to spell out the assumptions but can refer to them by \isa{step{\isacharparenleft}{\isachardot}{\isacharparenright}},
+although the resulting text will be quite cryptic.
+
+\subsection{More induction}
+
 We close the section by demonstrating how arbitrary induction
 rules are applied. As a simple example we have chosen recursion
 induction, i.e.\ induction based on a recursive function
@@ -567,25 +605,20 @@ general.
 The example is an unusual definition of rotation:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ rot\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\isanewline
-\isacommand{recdef}\isamarkupfalse%
-\ rot\ {\isachardoublequoteopen}measure\ length{\isachardoublequoteclose}\ \ %
-\isamarkupcmt{for the internal termination proof%
-}
-\isanewline
-{\isachardoublequoteopen}rot\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}rot\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ rot\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}rot\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}rot\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}rot\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y\ {\isacharhash}\ rot{\isacharparenleft}x{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent This yields, among other things, the induction rule
 \isa{rot{\isachardot}induct}: \begin{isabelle}%
-{\isasymlbrakk}P\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ P\ {\isacharbrackleft}x{\isacharbrackright}{\isacharsemicolon}\ {\isasymAnd}x\ y\ zs{\isachardot}\ P\ {\isacharparenleft}x\ {\isacharhash}\ zs{\isacharparenright}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x%
+{\isasymlbrakk}P\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ P\ {\isacharbrackleft}x{\isacharbrackright}{\isacharsemicolon}\ {\isasymAnd}x\ y\ zs{\isachardot}\ P\ {\isacharparenleft}x\ {\isacharhash}\ zs{\isacharparenright}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a{\isadigit{0}}%
 \end{isabelle}
-In the following proof we rely on a default naming scheme for cases: they are
+The following proof relies on a default naming scheme for cases: they are
 called 1, 2, etc, unless they have been named explicitly. The latter happens
-only with datatypes and inductively defined sets, but not with recursive
-functions.%
+only with datatypes and inductively defined sets, but (usually)
+not with recursive functions.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
@@ -640,11 +673,11 @@ functions.%
 \noindent
 The third case is only shown in gory detail (see \cite{BauerW-TPHOLs01}
 for how to reason with chains of equations) to demonstrate that the
-`\isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)}' notation also
+\isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)} notation also
 works for arbitrary induction theorems with numbered cases. The order
 of the \emph{vars} corresponds to the order of the
 \isa{{\isasymAnd}}-quantified variables in each case of the induction
-theorem. For induction theorems produced by \isakeyword{recdef} it is
+theorem. For induction theorems produced by \isakeyword{fun} it is
 the order in which the variables appear on the left-hand side of the
 equation.
 
