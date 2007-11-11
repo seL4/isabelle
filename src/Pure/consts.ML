@@ -12,7 +12,7 @@ sig
   val eq_consts: T * T -> bool
   val abbrevs_of: T -> string list -> (term * term) list
   val dest: T ->
-   {constants: (typ * (term * term) option) NameSpace.table,
+   {constants: (typ * term option) NameSpace.table,
     constraints: typ NameSpace.table}
   val the_type: T -> string -> typ                             (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
@@ -48,9 +48,7 @@ struct
 (* datatype T *)
 
 type decl = {T: typ, typargs: int list list, tags: Markup.property list, authentic: bool};
-
 type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
-fun dest_abbrev ({rhs, normal_rhs, ...}: abbrev) = (rhs, normal_rhs);
 
 datatype T = Consts of
  {decls: ((decl * abbrev option) * serial) NameSpace.table,
@@ -74,7 +72,7 @@ fun abbrevs_of (Consts ({rev_abbrevs, ...}, _)) modes =
 fun dest (Consts ({decls = (space, decls), constraints, ...}, _)) =
  {constants = (space,
     Symtab.fold (fn (c, (({T, ...}, abbr), _)) =>
-      Symtab.update (c, (T, Option.map dest_abbrev abbr))) decls Symtab.empty),
+      Symtab.update (c, (T, Option.map #rhs abbr))) decls Symtab.empty),
   constraints = (space, constraints)};
 
 
@@ -272,9 +270,9 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
     val rhs = raw_rhs
       |> Term.map_types (Type.cert_typ tsig)
       |> cert_term;
+    val normal_rhs = expand_term rhs;
     val T = Term.fastype_of rhs;
     val lhs = Const (NameSpace.full naming c, T);
-    val rhs' = expand_term rhs;
 
     fun err msg = error (msg ^ " on rhs of abbreviation:\n" ^
       Pretty.string_of_term pp (Logic.mk_equals (lhs, rhs)));
@@ -284,7 +282,7 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
         val decl = {T = T, typargs = typargs_of T, tags = tags, authentic = true};
-        val abbr = {rhs = rhs, normal_rhs = rhs', force_expand = force_expand};
+        val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
         val decls' = decls
           |> extend_decls naming (c, ((decl, SOME abbr), serial ()));
         val rev_abbrevs' = rev_abbrevs
