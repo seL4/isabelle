@@ -992,19 +992,17 @@ fun test_goal' int state =
     val ctxt = Proof.context_of state;
     val assms = map term_of (Assumption.assms_of ctxt);
     val params = get_test_params (Proof.theory_of state);
-    fun report msg = (Output.priority ("Auto quickcheck: " ^ msg); state);
     fun test () =
       let
-        val _ = Output.priority "Auto quickcheck ...";
         val res = TimeLimit.timeLimit (Time.fromMilliseconds (!auto_quickcheck_time_limit))
           (try (test_goal true (params, []) 1 assms)) state;
       in
         case res of
-          NONE => report "failed."
-        | SOME NONE => report "no counterexamples found."
+          NONE => state
+        | SOME NONE => state
         | SOME cex => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
             Pretty.markup Markup.hilite [pretty_counterex ctxt cex]]) state
-      end handle TimeLimit.TimeOut => report "timeout.";
+      end handle TimeLimit.TimeOut => (warning "Auto quickcheck: timeout."; state);
   in
     if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
     then test ()
