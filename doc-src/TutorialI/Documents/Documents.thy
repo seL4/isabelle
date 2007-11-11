@@ -176,7 +176,7 @@ local
 (*>*)
 
 text {*The \commdx{notation} command associates a mixfix
-annotation with a logical constant.  The print mode specification of
+annotation with a known constant.  The print mode specification of
 \isakeyword{syntax}, here @{text "(xsymbols)"}, is optional.
 
 We may now write @{text "A [+] B"} or @{text "A \<oplus> B"} in input, while
