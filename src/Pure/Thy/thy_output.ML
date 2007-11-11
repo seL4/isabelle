@@ -446,8 +446,9 @@ fun pretty_const ctxt c =
     val ([t'], _) = Variable.import_terms true [t] ctxt;
   in pretty_term ctxt t' end;
 
-fun pretty_abbrev ctxt t =
+fun pretty_abbrev ctxt s =
   let
+    val t = Syntax.parse_term ctxt s |> singleton (ProofContext.standard_infer_types ctxt);
     fun err () = error ("Abbreviated constant expected: " ^ Syntax.string_of_term ctxt t);
     val (head, args) = Term.strip_comb t;
     val (c, T) = Term.dest_Const head handle TERM _ => err ();
@@ -522,7 +523,7 @@ val _ = add_commands
   ("term_type", args Args.term (output pretty_term_typ)),
   ("typeof", args Args.term (output pretty_term_typeof)),
   ("const", args Args.const_proper (output pretty_const)),
-  ("abbrev", args Args.term_abbrev (output pretty_abbrev)),
+  ("abbrev", args (Scan.lift Args.name) (output pretty_abbrev)),
   ("typ", args Args.typ_abbrev (output Syntax.pretty_typ)),
   ("text", args (Scan.lift Args.name) (output (K pretty_text))),
   ("goals", output_goals true),
