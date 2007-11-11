@@ -48,7 +48,7 @@ if [ -z "$INFILE" ]; then
   EXIT="fun exit 0 = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
 else
   check_file "$INFILE"
-  INIT="PolyML.SaveState.loadState \"$INFILE\";"
+  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\");"
   EXIT=""
 fi
 
