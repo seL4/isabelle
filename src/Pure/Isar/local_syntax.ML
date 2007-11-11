@@ -63,7 +63,7 @@ fun build_syntax thy mode mixfixes (idents as (structs, _)) =
       | const_gram ((false, m), decls) = Syntax.remove_const_gram is_logtype m decls;
     val (atrs, trs, trs', atrs') = Syntax.struct_trfuns structs;
     val local_syntax = thy_syntax
-      |> Syntax.extend_trfuns
+      |> Syntax.update_trfuns
           (map Syntax.mk_trfun atrs, map Syntax.mk_trfun trs,
            map Syntax.mk_trfun trs', map Syntax.mk_trfun atrs')
       |> fold const_gram (AList.coalesce (op =) (rev (map snd mixfixes)));

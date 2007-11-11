@@ -586,7 +586,7 @@ val add_defsort_i = gen_add_defsort certify_sort;
 
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.extend_type_gram types syn;
+    val syn' = Syntax.update_type_gram types syn;
     val decls = map (fn (a, n, mx) => (Syntax.type_name a mx, n)) types;
     val tsig' = Type.add_types naming decls tsig;
   in (naming, syn', tsig', consts) end);
@@ -603,7 +603,7 @@ fun add_typedecls decls thy =
 
 fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.extend_consts ns syn;
+    val syn' = Syntax.update_consts ns syn;
     val tsig' = Type.add_nonterminals naming ns tsig;
   in (naming, syn', tsig', consts) end);
 
@@ -614,7 +614,7 @@ fun gen_add_tyabbr parse_typ (a, vs, rhs, mx) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val ctxt = ProofContext.init thy;
-      val syn' = Syntax.extend_type_gram [(a, length vs, mx)] syn;
+      val syn' = Syntax.update_type_gram [(a, length vs, mx)] syn;
       val a' = Syntax.type_name a mx;
       val abbr = (a', vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote a');
@@ -635,7 +635,7 @@ fun gen_syntax change_gram parse_typ mode args thy =
         cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name c mx));
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
-fun gen_add_syntax x = gen_syntax Syntax.extend_const_gram x;
+fun gen_add_syntax x = gen_syntax Syntax.update_const_gram x;
 
 val add_modesyntax = gen_add_syntax Syntax.parse_typ;
 val add_modesyntax_i = gen_add_syntax (K I);
@@ -718,7 +718,7 @@ fun add_const_constraint (c, opt_T) thy =
 fun primitive_class (bclass, classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
-      val syn' = Syntax.extend_consts [bclass] syn;
+      val syn' = Syntax.update_consts [bclass] syn;
       val tsig' = Type.add_class (pp thy) naming (bclass, classes) tsig;
     in (naming, syn', tsig', consts) end)
   |> add_consts_i [(Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
@@ -740,10 +740,10 @@ fun gen_add_trfunsT ext tr's = map_syn (ext ([], [], mk tr's, []));
 
 in
 
-val add_trfuns = gen_add_trfuns Syntax.extend_trfuns Syntax.non_typed_tr';
-val add_trfunsT = gen_add_trfunsT Syntax.extend_trfuns;
-val add_advanced_trfuns = gen_add_trfuns Syntax.extend_advanced_trfuns Syntax.non_typed_tr'';
-val add_advanced_trfunsT = gen_add_trfunsT Syntax.extend_advanced_trfuns;
+val add_trfuns = gen_add_trfuns Syntax.update_trfuns Syntax.non_typed_tr';
+val add_trfunsT = gen_add_trfunsT Syntax.update_trfuns;
+val add_advanced_trfuns = gen_add_trfuns Syntax.update_advanced_trfuns Syntax.non_typed_tr'';
+val add_advanced_trfunsT = gen_add_trfunsT Syntax.update_advanced_trfuns;
 
 end;
 
@@ -757,9 +757,9 @@ fun gen_trrules f args thy = thy |> map_syn (fn syn =>
   let val rules = map (Syntax.map_trrule (apfst (intern_type thy))) args
   in f (ProofContext.init thy) (is_logtype thy) syn rules syn end);
 
-val add_trrules = gen_trrules Syntax.extend_trrules;
+val add_trrules = gen_trrules Syntax.update_trrules;
 val del_trrules = gen_trrules Syntax.remove_trrules;
-val add_trrules_i = map_syn o Syntax.extend_trrules_i;
+val add_trrules_i = map_syn o Syntax.update_trrules_i;
 val del_trrules_i = map_syn o Syntax.remove_trrules_i;
 
 
