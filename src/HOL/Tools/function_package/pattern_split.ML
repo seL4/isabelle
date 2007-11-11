@@ -42,7 +42,7 @@ fun saturate ctx vs t =
 fun inst_constrs_of thy (T as Type (name, _)) =
     map (fn (Cn,CT) => Envir.subst_TVars (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
         (the (DatatypePackage.get_datatype_constrs thy name))
-  | inst_constrs_of thy t = (print t; sys_error "inst_constrs_of")
+  | inst_constrs_of thy T = raise TYPE ("inst_constrs_of", [T], [])
                             
                             
                             
