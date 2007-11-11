@@ -288,7 +288,7 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
         val decls' = decls
           |> extend_decls naming (c, ((decl, SOME abbr), serial ()));
         val rev_abbrevs' = rev_abbrevs
-          |> fold (curry Symtab.update_list mode) (rev_abbrev lhs rhs);
+          |> fold (curry Symtab.cons_list mode) (rev_abbrev lhs rhs);
       in (decls', constraints, rev_abbrevs') end)
     |> pair (lhs, rhs)
   end;
@@ -297,7 +297,7 @@ fun revert_abbrev mode c consts = consts |> map_consts (fn (decls, constraints, 
   let
     val (T, rhs) = the_abbreviation consts c;
     val rev_abbrevs' = rev_abbrevs
-      |> fold (curry Symtab.update_list mode) (rev_abbrev (Const (c, T)) rhs);
+      |> fold (curry Symtab.cons_list mode) (rev_abbrev (Const (c, T)) rhs);
   in (decls, constraints, rev_abbrevs') end);
 
 end;

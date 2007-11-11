@@ -294,7 +294,7 @@ fun gen_add_realizers prep_rlz rs thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
-       realizers = fold (Symtab.update_list o prep_rlz thy) rs realizers,
+       realizers = fold (Symtab.cons_list o prep_rlz thy) rs realizers,
        defs = defs, expand = expand, prep = prep} thy
   end
 

@@ -67,8 +67,8 @@ fun add_local do_props do_index (fact as (_, ths)) (Index {facts, consts, frees,
     val (facts', consts', frees') =
       if do_index then
        (fact :: facts,
-        consts |> fold (fn c => Symtab.update_list (c, entry)) cs,
-        frees |> fold (fn x => Symtab.update_list (x, entry)) xs)
+        consts |> fold (fn c => Symtab.cons_list (c, entry)) cs,
+        frees |> fold (fn x => Symtab.cons_list (x, entry)) xs)
       else (facts, consts, frees);
     val props' =
       if do_props then props |> fold (fn th => Net.insert_term (K false) (Thm.prop_of th, th)) ths

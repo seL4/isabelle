@@ -37,7 +37,7 @@ fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
 fun add_thm opt_module thm =
   if Pattern.pattern (lhs_of thm) then
     RecCodegenData.map
-      (Symtab.update_list ((fst o const_of o prop_of) thm, (thm, opt_module)))
+      (Symtab.cons_list ((fst o const_of o prop_of) thm, (thm, opt_module)))
   else tap (fn _ => warn thm)
   handle TERM _ => tap (fn _ => warn thm);
 
