@@ -1008,6 +1008,140 @@ As told in \secref{sec:concept}, code generation is based
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Constructor sets for datatypes%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Conceptually, any datatype is spanned by a set of
+  \emph{constructors} of type \isa{{\isasymtau}\ {\isacharequal}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymkappa}\ {\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymdots}\ {\isasymalpha}\isactrlisub n}
+  where \isa{{\isacharbraceleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub n{\isacharbraceright}} is excactly the set of \emph{all}
+  type variables in \isa{{\isasymtau}}.  The HOL datatype package
+  by default registers any new datatype in the table
+  of datatypes, which may be inspected using
+  the \isa{{\isasymPRINTCODESETUP}} command.
+
+  In some cases, it may be convenient to alter or
+  extend this table;  as an example, we show
+  how to implement finite sets by lists
+  using the conversion \isa{{\isachardoublequote}set\ {\isasymColon}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardoublequote}}
+  as constructor:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ %
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
+\isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
+\ set\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}\ {\isacharequal}\ set\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}insert\ x\ {\isacharparenleft}set\ xs{\isacharparenright}\ {\isacharequal}\ set\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ x\ mem\ xs{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isasymunion}\ set\ ys\ {\isacharequal}\ foldr\ insert\ ys\ xs{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ ys{\isacharparenright}\ simp{\isacharunderscore}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymUnion}set\ xs\ {\isacharequal}\ foldr\ {\isacharparenleft}op\ {\isasymunion}{\isacharparenright}\ xs\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\ insert\ {\isachardoublequoteopen}op\ {\isasymin}{\isachardoublequoteclose}\ {\isachardoublequoteopen}op\ {\isasymunion}{\isachardoublequoteclose}\ {\isachardoublequoteopen}Union{\isachardoublequoteclose}\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}set{\isacharunderscore}list{\isachardot}ML{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\lstsml{Thy/examples/set_list.ML}
+
+  \medskip
+
+  Changing the representation of existing datatypes requires
+  some care with respect to pattern matching and such.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Customizing serialization%
 }
 \isamarkuptrue%
@@ -1167,8 +1301,7 @@ The initial bang ``\verb|!|'' tells the serializer to never put
   second ``\verb|_|'' is a placeholder.
 
   The HOL theories provide further
-  examples for custom serializations and form
-  a recommended tutorial on how to use them properly.%
+  examples for custom serializations.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1282,140 +1415,6 @@ The serializer provides ML interfaces to set up
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Constructor sets for datatypes%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Conceptually, any datatype is spanned by a set of
-  \emph{constructors} of type \isa{{\isasymtau}\ {\isacharequal}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymkappa}\ {\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymdots}\ {\isasymalpha}\isactrlisub n}
-  where \isa{{\isacharbraceleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub n{\isacharbraceright}} is excactly the set of \emph{all}
-  type variables in \isa{{\isasymtau}}.  The HOL datatype package
-  by default registers any new datatype in the table
-  of datatypes, which may be inspected using
-  the \isa{{\isasymPRINTCODESETUP}} command.
-
-  In some cases, it may be convenient to alter or
-  extend this table;  as an example, we show
-  how to implement finite sets by lists
-  using the conversion \isa{{\isachardoublequote}set\ {\isasymColon}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardoublequote}}
-  as constructor:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\ %
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-\isanewline
-\isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
-\ set\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}\ {\isacharequal}\ set\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ simp%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}insert\ x\ {\isacharparenleft}set\ xs{\isacharparenright}\ {\isacharequal}\ set\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ simp%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ x\ mem\ xs{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isasymunion}\ set\ ys\ {\isacharequal}\ foldr\ insert\ ys\ xs{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ ys{\isacharparenright}\ simp{\isacharunderscore}all%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymUnion}set\ xs\ {\isacharequal}\ foldr\ {\isacharparenleft}op\ {\isasymunion}{\isacharparenright}\ xs\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\ insert\ {\isachardoublequoteopen}op\ {\isasymin}{\isachardoublequoteclose}\ {\isachardoublequoteopen}op\ {\isasymunion}{\isachardoublequoteclose}\ {\isachardoublequoteopen}Union{\isachardoublequoteclose}\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}set{\isacharunderscore}list{\isachardot}ML{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-\lstsml{Thy/examples/set_list.ML}
-
-  \medskip
-
-  Changing the representation of existing datatypes requires
-  some care with respect to pattern matching and such.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsubsection{Cyclic module dependencies%
 }
 \isamarkuptrue%
@@ -1461,15 +1460,6 @@ Code generation is \emph{incremental}: theorems
   and \isa{{\isasymEXPORTCODE}} commands: the list of constants
   may be omitted.  Then, all constants with code theorems
   in the current cache are referred to.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Code generation and proof extraction%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\fixme%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

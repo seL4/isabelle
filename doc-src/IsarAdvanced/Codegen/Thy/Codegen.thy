@@ -751,6 +751,48 @@ text {*
 *}
 
 
+subsection {* Constructor sets for datatypes *}
+
+text {*
+  Conceptually, any datatype is spanned by a set of
+  \emph{constructors} of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^isub>1 \<dots> \<alpha>\<^isub>n"}
+  where @{text "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is excactly the set of \emph{all}
+  type variables in @{text "\<tau>"}.  The HOL datatype package
+  by default registers any new datatype in the table
+  of datatypes, which may be inspected using
+  the @{text "\<PRINTCODESETUP>"} command.
+
+  In some cases, it may be convenient to alter or
+  extend this table;  as an example, we show
+  how to implement finite sets by lists
+  using the conversion @{term [source] "set \<Colon> 'a list \<Rightarrow> 'a set"}
+  as constructor:
+*} (*<*)ML {* nonfix union *} lemmas [code func del] = in_code union_empty1 union_empty2 union_insert Union_code(*>*)
+
+code_datatype set
+
+lemma [code func]: "{} = set []" by simp
+
+lemma [code func]: "insert x (set xs) = set (x#xs)" by simp
+
+lemma [code func]: "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
+
+lemma [code func]: "xs \<union> set ys = foldr insert ys xs" by (induct ys) simp_all
+
+lemma [code func]: "\<Union>set xs = foldr (op \<union>) xs {}" by (induct xs) simp_all
+
+export_code "{}" insert "op \<in>" "op \<union>" "Union" (*<*)in SML(*>*) in SML file "examples/set_list.ML"
+
+text {*
+  \lstsml{Thy/examples/set_list.ML}
+
+  \medskip
+
+  Changing the representation of existing datatypes requires
+  some care with respect to pattern matching and such.
+*}
+
+
 subsection {* Customizing serialization  *}
 
 subsubsection {* Basics *}
@@ -862,8 +904,7 @@ text {*
   second ``@{verbatim "_"}'' is a placeholder.
 
   The HOL theories provide further
-  examples for custom serializations and form
-  a recommended tutorial on how to use them properly.
+  examples for custom serializations.
 *}
 
 
@@ -917,46 +958,6 @@ text {*
   theories introduces in \secref{sec:library}.
 *}
 
-subsection {* Constructor sets for datatypes *}
-
-text {*
-  Conceptually, any datatype is spanned by a set of
-  \emph{constructors} of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^isub>1 \<dots> \<alpha>\<^isub>n"}
-  where @{text "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is excactly the set of \emph{all}
-  type variables in @{text "\<tau>"}.  The HOL datatype package
-  by default registers any new datatype in the table
-  of datatypes, which may be inspected using
-  the @{text "\<PRINTCODESETUP>"} command.
-
-  In some cases, it may be convenient to alter or
-  extend this table;  as an example, we show
-  how to implement finite sets by lists
-  using the conversion @{term [source] "set \<Colon> 'a list \<Rightarrow> 'a set"}
-  as constructor:
-*} (*<*)ML {* nonfix union *} lemmas [code func del] = in_code union_empty1 union_empty2 union_insert Union_code(*>*)
-
-code_datatype set
-
-lemma [code func]: "{} = set []" by simp
-
-lemma [code func]: "insert x (set xs) = set (x#xs)" by simp
-
-lemma [code func]: "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
-
-lemma [code func]: "xs \<union> set ys = foldr insert ys xs" by (induct ys) simp_all
-
-lemma [code func]: "\<Union>set xs = foldr (op \<union>) xs {}" by (induct xs) simp_all
-
-export_code "{}" insert "op \<in>" "op \<union>" "Union" (*<*)in SML(*>*) in SML file "examples/set_list.ML"
-
-text {*
-  \lstsml{Thy/examples/set_list.ML}
-
-  \medskip
-
-  Changing the representation of existing datatypes requires
-  some care with respect to pattern matching and such.
-*}
 
 subsection {* Cyclic module dependencies *}
 
@@ -1000,11 +1001,11 @@ text {*
   in the current cache are referred to.
 *}
 
-subsection {* Code generation and proof extraction *}
+(*subsection {* Code generation and proof extraction *}
 
 text {*
   \fixme
-*}
+*}*)
 
 
 section {* ML interfaces \label{sec:ml} *}
