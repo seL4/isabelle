@@ -467,7 +467,7 @@ fun signal_success probfile toParent ppid msg =
     TextIO.output (toParent, "Success.\n");
     TextIO.output (toParent, probfile ^ "\n");
     TextIO.flushOut toParent;
-    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr1);
     (*Give the parent time to respond before possibly sending another signal*)
     OS.Process.sleep (Time.fromMilliseconds 600)
   end;
@@ -603,7 +603,7 @@ fun signal_parent (toParent, ppid, msg, probfile) =
   TextIO.output (toParent, probfile ^ "\n");
   TextIO.flushOut toParent;
   trace ("\nSignalled parent: " ^ msg ^ probfile);
-  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
+  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr1);
   (*Give the parent time to respond before possibly sending another signal*)
   OS.Process.sleep (Time.fromMilliseconds 600));
 
