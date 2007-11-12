@@ -12,7 +12,8 @@ System requirements
      * A full Standard ML Compiler (e.g. Poly/ML 5.x, 4.x).
      * The GNU bash shell (version 3.x, 2.x).
      * Perl (version 5.x).
-     * XEmacs (version 21.4.x) -- for the ProofGeneral interface.
+     * XEmacs (version 21.4.x) or GNU Emacs (version 21, 22)
+       -- for the ProofGeneral interface.
      * A complete LaTeX installation -- for document preparation.
 
 Installation
@@ -28,7 +29,7 @@ Installation
 
 User interface
 
-   The canonical Isabelle user interface is [1]Proof General by David
+   The canonical Isabelle user interface is Proof General by David
    Aspinall and others. It is a generic (X)Emacs interface for proof
    assistants, including Isabelle (both for the classic and Isar
    version). Proof General is suitable for use by pacifists and Emacs
@@ -37,7 +38,7 @@ User interface
    recently gained a rather large following of both beginning and expert
    users of Isabelle.
 
-   Proof General is distributed together with the XEmacs [2]X-Symbol
+   Proof General is distributed together with the XEmacs X-Symbol
    package, which provides a nice way to get proper mathematical symbols
    displayed on screen.
 
@@ -46,36 +47,36 @@ Other sources of information
   The Isabelle Page
 
    The Isabelle home page may be accessed both from Cambridge and Munich:
-     * [3]http://www.cl.cam.ac.uk/Research/HVG/Isabelle/
-     * [4]http://isabelle.in.tum.de
+     * http://www.cl.cam.ac.uk/Research/HVG/Isabelle/
+     * http://isabelle.in.tum.de
 
   Mailing list
 
    The electronic mailing list isabelle-users@cl.cam.ac.uk provides a
    forum for Isabelle users to discuss problems and exchange information.
-   To join, send a message to [5]isabelle-users-request@cl.cam.ac.uk.
+   To join, send a message to isabelle-users-request@cl.cam.ac.uk.
 
   Personal mail
 
-   [6]Lawrence C Paulson
+   Lawrence C Paulson
    Computer Laboratory
    University of Cambridge
    JJ Thomson Avenue
    Cambridge CB3 0FD
    England
-   E-mail: [7]lcp@cl.cam.ac.uk
+   E-mail: lcp@cl.cam.ac.uk
    Phone: +44-223-763500
    Fax: +44-223-334748
 
    or
 
-   [8]Tobias Nipkow
-   Institut für Informatik
-   Technische Universität München
+   Tobias Nipkow
+   Institut fuer Informatik
+   Technische Universitaet Muenchen
    Boltzmannstr. 3
    D-85748 Garching
    Germany
-   E-mail: [9]nipkow@in.tum.de
+   E-mail: nipkow@in.tum.de
    Phone: +49-89-289-17302
    Fax: +49-89-289-17307
      _________________________________________________________________
