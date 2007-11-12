@@ -1123,7 +1123,7 @@ subgoal. An Example is available in src/HOL/ex/ReflectionEx.thy.
 available in src/HOL/ex/ReflectionEx.thy
 
 * HOL-Statespace: ``State Spaces: The Locale Way'' introduces a
-command 'statespace' that is simular to 'record', but introduces an
+command 'statespace' that is similar to 'record', but introduces an
 abstract specification based on the locale infrastructure instead of
 HOL types.  This leads to extra flexibility in composing state spaces,
 in particular multiple inheritance and renaming of components.
