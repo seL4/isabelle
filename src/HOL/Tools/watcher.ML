@@ -407,7 +407,7 @@ fun createWatcher (ctxt, th, thm_names_list) =
 	       decr_watched())
        end
  in Output.debug (fn () => ("subgoals forked to createWatcher: "^ prems_string_of th));
-    IsaSignal.signal (IsaSignal.usr1, IsaSignal.SIG_HANDLE proofHandler);
+    IsaSignal.signal (IsaSignal.usr2, IsaSignal.SIG_HANDLE proofHandler);
     (childin, childout, childpid)
   end
 
