@@ -396,90 +396,36 @@ we have proved intermediate propositions (\isakeyword{have}) on the
 way to the final \isakeyword{show}. This is the norm in nontrivial
 proofs where one cannot bridge the gap between the assumptions and the
 conclusion in one step. To understand how the proof works we need to
-explain more Isar details.
-
+explain more Isar details:
+\begin{itemize}
+\item
 Method \isa{rule} can be given a list of rules, in which case
 \isa{{\isacharparenleft}rule}~\textit{rules}\isa{{\isacharparenright}} applies the first matching
-rule in the list \textit{rules}. Command \isakeyword{from} can be
+rule in the list \textit{rules}.
+\item Command \isakeyword{from} can be
 followed by any number of facts.  Given \isakeyword{from}~\isa{f}$_1$~\dots~\isa{f}$_n$, the proof step
 \isa{{\isacharparenleft}rule}~\textit{rules}\isa{{\isacharparenright}} following a \isakeyword{have}
 or \isakeyword{show} searches \textit{rules} for a rule whose first
 $n$ premises can be proved by \isa{f}$_1$~\dots~\isa{f}$_n$ in the
-given order. Finally one needs to know that ``..'' is short for
-\isa{by{\isacharparenleft}rule}~\textit{elim-rules intro-rules}\isa{{\isacharparenright}} (or
-\isa{by{\isacharparenleft}rule}~\textit{intro-rules}\isa{{\isacharparenright}} if there are no facts
-fed into the proof), i.e.\ elimination rules are tried before
-introduction rules.
-
-Thus in the above proof both \isakeyword{have}s are proved via
+given order.
+\item ``..'' is short for
+\isa{by{\isacharparenleft}rule}~\textit{elim-rules intro-rules}\isa{{\isacharparenright}}\footnote{or
+merely \isa{{\isacharparenleft}rule}~\textit{intro-rules}\isa{{\isacharparenright}} if there are no facts
+fed into the proof}, where \textit{elim-rules} and \textit{intro-rules}
+are the predefined elimination and introduction rule. Thus
+elimination rules are tried first (if there are incoming facts).
+\end{itemize}
+Hence in the above proof both \isakeyword{have}s are proved via
 \isa{conjE} triggered by \isakeyword{from}~\isa{ab} whereas
 in the \isakeyword{show} step no elimination rule is applicable and
 the proof succeeds with \isa{conjI}. The latter would fail had
 we written \isakeyword{from}~\isa{a\ b} instead of
 \isakeyword{from}~\isa{b\ a}.
 
-Proofs starting with a plain \isa{proof} behave the same because the
-latter is short for \isa{proof\ {\isacharparenleft}rule}~\textit{elim-rules
-intro-rules}\isa{{\isacharparenright}} (or \isa{proof\ {\isacharparenleft}rule}~\textit{intro-rules}\isa{{\isacharparenright}} if there are no facts fed into
-the proof).%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{More constructs%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-In the previous proof of \isa{A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A} we needed to feed
-more than one fact into a proof step, a frequent situation. Then the
-UNIX-pipe model appears to break down and we need to name the different
-facts to refer to them. But this can be avoided:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
-\isanewline
-\ \ \isacommand{assume}\isamarkupfalse%
-\ ab{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{from}\isamarkupfalse%
-\ ab\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-\isanewline
-\ \ \isacommand{moreover}\isamarkupfalse%
-\isanewline
-\ \ \isacommand{from}\isamarkupfalse%
-\ ab\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-\isanewline
-\ \ \isacommand{ultimately}\isamarkupfalse%
-\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-\isanewline
-\isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-\noindent You can combine any number of facts \isa{A{\isadigit{1}}} \dots\ \isa{An} into a sequence by separating their proofs with
-\isakeyword{moreover}. After the final fact, \isakeyword{ultimately} stands
-for \isakeyword{from}~\isa{A{\isadigit{1}}}~\dots~\isa{An}.  This avoids having to
-introduce names for all of the sequence elements.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
+A plain \isakeyword{proof} with no argument is short for
+\isakeyword{proof}~\isa{{\isacharparenleft}rule}~\textit{elim-rules intro-rules}\isa{{\isacharparenright}}\footnotemark[1].
+This means that the matching rule is selected by the incoming facts and the goal exactly as just explained.
+
 Although we have only seen a few introduction and elimination rules so
 far, Isar's predefined rules include all the usual natural deduction
 rules. We conclude our exposition of propositional logic with an extended
@@ -795,6 +741,47 @@ trigger $\lor$-introduction, requiring us to prove \isa{A}. A simple
 \endisadelimproof
 %
 \begin{isamarkuptext}%
+\noindent Alternatively one can feed \isa{A\ {\isasymor}\ B} directly
+into the proof, thus triggering the elimination rule:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}B\ {\isasymor}\ A{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ AB\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ A\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ B\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent Remember that eliminations have priority over
+introductions.
+
+\subsection{Avoiding names}
+
 Too many names can easily clutter a proof.  We already learned
 about \isa{this} as a means of avoiding explicit names. Another
 handy device is to refer to a fact not by name but by contents: for
@@ -812,11 +799,8 @@ of the previous proof%
 \endisadelimproof
 %
 \isatagproof
-\isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
-\ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}A\ {\isasymor}\ B{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis%
+\isacommand{using}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ {\isasymor}\ B{\isacharbackquoteclose}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -830,15 +814,67 @@ of the previous proof%
 Clearly, this device of quoting facts by contents is only advisable
 for small formulae. In such cases it is superior to naming because the
 reader immediately sees what the fact is without needing to search for
-it in the preceding proof text.%
+it in the preceding proof text.
+
+The assumptions of a lemma can also be referred to via their
+predefined name \isa{assms}. Hence the \isa{{\isacharbackquote}A\ {\isasymor}\ B{\isacharbackquote}} in the
+previous proof can also be replaced by \isa{assms}. Note that \isa{assms} refers to the list of \emph{all} assumptions. To pick out a
+specific one, say the second, write \isa{assms{\isacharparenleft}{\isadigit{2}}{\isacharparenright}}.
+
+This indexing notation $name(.)$ works for any $name$ that stands for
+a list of facts, for example $f$\isa{{\isachardot}simps}, the equations of the
+recursively defined function $f$. You may also select sublists by writing
+$name(2-3)$.
+
+Above we recommended the UNIX-pipe model (i.e. \isa{this}) to avoid
+the need to name propositions. But frequently we needed to feed more
+than one previously derived fact into a proof step. Then the UNIX-pipe
+model appears to break down and we need to name the different facts to
+refer to them. But this can be avoided:%
 \end{isamarkuptext}%
 \isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ \isakeyword{assumes}\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\isanewline
 %
-\isamarkupsubsection{Predicate calculus%
-}
-\isamarkuptrue%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ {\isasymand}\ B{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ {\isasymand}\ B{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{ultimately}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 %
 \begin{isamarkuptext}%
+\noindent You can combine any number of facts \isa{A{\isadigit{1}}} \dots\ \isa{An} into a sequence by separating their proofs with
+\isakeyword{moreover}. After the final fact, \isakeyword{ultimately} stands
+for \isakeyword{from}~\isa{A{\isadigit{1}}}~\dots~\isa{An}.  This avoids having to
+introduce names for all of the sequence elements.
+
+
+\subsection{Predicate calculus}
+
 Command \isakeyword{fix} introduces new local variables into a
 proof. The pair \isakeyword{fix}-\isakeyword{show} corresponds to \isa{{\isasymAnd}}
 (the universal quantifier at the

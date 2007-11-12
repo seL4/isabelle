@@ -156,57 +156,38 @@ we have proved intermediate propositions (\isakeyword{have}) on the
 way to the final \isakeyword{show}. This is the norm in nontrivial
 proofs where one cannot bridge the gap between the assumptions and the
 conclusion in one step. To understand how the proof works we need to
-explain more Isar details.
-
+explain more Isar details:
+\begin{itemize}
+\item
 Method @{text rule} can be given a list of rules, in which case
 @{text"(rule"}~\textit{rules}@{text")"} applies the first matching
-rule in the list \textit{rules}. Command \isakeyword{from} can be
+rule in the list \textit{rules}.
+\item Command \isakeyword{from} can be
 followed by any number of facts.  Given \isakeyword{from}~@{text
 f}$_1$~\dots~@{text f}$_n$, the proof step
 @{text"(rule"}~\textit{rules}@{text")"} following a \isakeyword{have}
 or \isakeyword{show} searches \textit{rules} for a rule whose first
 $n$ premises can be proved by @{text f}$_1$~\dots~@{text f}$_n$ in the
-given order. Finally one needs to know that ``..'' is short for
-@{text"by(rule"}~\textit{elim-rules intro-rules}@{text")"} (or
-@{text"by(rule"}~\textit{intro-rules}@{text")"} if there are no facts
-fed into the proof), i.e.\ elimination rules are tried before
-introduction rules.
-
-Thus in the above proof both \isakeyword{have}s are proved via
+given order.
+\item ``..'' is short for
+@{text"by(rule"}~\textit{elim-rules intro-rules}@{text")"}\footnote{or
+merely @{text"(rule"}~\textit{intro-rules}@{text")"} if there are no facts
+fed into the proof}, where \textit{elim-rules} and \textit{intro-rules}
+are the predefined elimination and introduction rule. Thus
+elimination rules are tried first (if there are incoming facts).
+\end{itemize}
+Hence in the above proof both \isakeyword{have}s are proved via
 @{thm[source]conjE} triggered by \isakeyword{from}~@{text ab} whereas
 in the \isakeyword{show} step no elimination rule is applicable and
 the proof succeeds with @{thm[source]conjI}. The latter would fail had
 we written \isakeyword{from}~@{text"a b"} instead of
 \isakeyword{from}~@{text"b a"}.
 
-Proofs starting with a plain @{text proof} behave the same because the
-latter is short for @{text"proof (rule"}~\textit{elim-rules
-intro-rules}@{text")"} (or @{text"proof
-(rule"}~\textit{intro-rules}@{text")"} if there are no facts fed into
-the proof). *}
+A plain \isakeyword{proof} with no argument is short for
+\isakeyword{proof}~@{text"(rule"}~\textit{elim-rules intro-rules}@{text")"}\footnotemark[1].
+This means that the matching rule is selected by the incoming facts and the goal exactly as just explained.
 
-subsection{*More constructs*}
-
-text{* In the previous proof of @{prop"A \<and> B \<longrightarrow> B \<and> A"} we needed to feed
-more than one fact into a proof step, a frequent situation. Then the
-UNIX-pipe model appears to break down and we need to name the different
-facts to refer to them. But this can be avoided:
-*}
-lemma "A \<and> B \<longrightarrow> B \<and> A"
-proof
-  assume ab: "A \<and> B"
-  from ab have "B" ..
-  moreover
-  from ab have "A" ..
-  ultimately show "B \<and> A" ..
-qed
-text{*\noindent You can combine any number of facts @{term A1} \dots\ @{term
-An} into a sequence by separating their proofs with
-\isakeyword{moreover}. After the final fact, \isakeyword{ultimately} stands
-for \isakeyword{from}~@{term A1}~\dots~@{term An}.  This avoids having to
-introduce names for all of the sequence elements.  *}
-
-text{* Although we have only seen a few introduction and elimination rules so
+Although we have only seen a few introduction and elimination rules so
 far, Isar's predefined rules include all the usual natural deduction
 rules. We conclude our exposition of propositional logic with an extended
 example --- which rules are used implicitly where? *}
@@ -346,8 +327,21 @@ proof -
     assume B show ?thesis ..
   qed
 qed
+text{*\noindent Alternatively one can feed @{prop"A \<or> B"} directly
+into the proof, thus triggering the elimination rule: *}
+lemma assumes AB: "A \<or> B" shows "B \<or> A"
+using AB
+proof
+  assume A show ?thesis ..
+next
+  assume B show ?thesis ..
+qed
+text{* \noindent Remember that eliminations have priority over
+introductions.
 
-text{* Too many names can easily clutter a proof.  We already learned
+\subsection{Avoiding names}
+
+Too many names can easily clutter a proof.  We already learned
 about @{text this} as a means of avoiding explicit names. Another
 handy device is to refer to a fact not by name but by contents: for
 example, writing @{text "`A \<or> B`"} (enclosing the formula in back quotes)
@@ -356,19 +350,48 @@ without the need to name it. Here is a simple example, a revised version
 of the previous proof *}
 
 lemma assumes "A \<or> B" shows "B \<or> A"
-proof -
-  from `A \<or> B` show ?thesis
+using `A \<or> B`
 (*<*)oops(*>*)
 text{*\noindent which continues as before.
 
 Clearly, this device of quoting facts by contents is only advisable
 for small formulae. In such cases it is superior to naming because the
 reader immediately sees what the fact is without needing to search for
-it in the preceding proof text. *}
+it in the preceding proof text.
 
-subsection{*Predicate calculus*}
+The assumptions of a lemma can also be referred to via their
+predefined name @{text assms}. Hence the @{text"`A \<or> B`"} in the
+previous proof can also be replaced by @{text assms}. Note that @{text
+assms} refers to the list of \emph{all} assumptions. To pick out a
+specific one, say the second, write @{text"assms(2)"}.
 
-text{* Command \isakeyword{fix} introduces new local variables into a
+This indexing notation $name(.)$ works for any $name$ that stands for
+a list of facts, for example $f$@{text".simps"}, the equations of the
+recursively defined function $f$. You may also select sublists by writing
+$name(2-3)$.
+
+Above we recommended the UNIX-pipe model (i.e. @{text this}) to avoid
+the need to name propositions. But frequently we needed to feed more
+than one previously derived fact into a proof step. Then the UNIX-pipe
+model appears to break down and we need to name the different facts to
+refer to them. But this can be avoided: *}
+lemma assumes "A \<and> B" shows "B \<and> A"
+proof -
+  from `A \<and> B` have "B" ..
+  moreover
+  from `A \<and> B` have "A" ..
+  ultimately show "B \<and> A" ..
+qed
+text{*\noindent You can combine any number of facts @{term A1} \dots\ @{term
+An} into a sequence by separating their proofs with
+\isakeyword{moreover}. After the final fact, \isakeyword{ultimately} stands
+for \isakeyword{from}~@{term A1}~\dots~@{term An}.  This avoids having to
+introduce names for all of the sequence elements.
+
+
+\subsection{Predicate calculus}
+
+Command \isakeyword{fix} introduces new local variables into a
 proof. The pair \isakeyword{fix}-\isakeyword{show} corresponds to @{text"\<And>"}
 (the universal quantifier at the
 meta-level) just like \isakeyword{assume}-\isakeyword{show} corresponds to

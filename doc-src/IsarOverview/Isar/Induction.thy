@@ -45,8 +45,8 @@ qed
 
 text{*\noindent which is like the previous proof but instantiates
 @{text ?P} right away with @{term A}. Thus we could prove the two
-cases in any order. The phrase `\isakeyword{case}~@{text True}'
-abbreviates `\isakeyword{assume}~@{text"True: A"}' and analogously for
+cases in any order. The phrase \isakeyword{case}~@{text True}
+abbreviates \isakeyword{assume}~@{text"True: A"} and analogously for
 @{text"False"} and @{prop"\<not>A"}.
 
 The same game can be played with other datatypes, for example lists,
@@ -60,19 +60,18 @@ proof (cases xs)
 next
   case Cons thus ?thesis by simp
 qed
-text{*\noindent Here `\isakeyword{case}~@{text Nil}' abbreviates
-`\isakeyword{assume}~@{text"Nil:"}~@{prop"xs = []"}' and
-`\isakeyword{case}~@{text Cons}'
-abbreviates `\isakeyword{fix}~@{text"? ??"}
-\isakeyword{assume}~@{text"Cons:"}~@{text"xs = ? # ??"}'
+text{*\noindent Here \isakeyword{case}~@{text Nil} abbreviates
+\isakeyword{assume}~@{text"Nil:"}~@{prop"xs = []"} and
+\isakeyword{case}~@{text Cons} abbreviates \isakeyword{fix}~@{text"? ??"}
+\isakeyword{assume}~@{text"Cons:"}~@{text"xs = ? # ??"},
 where @{text"?"} and @{text"??"}
 stand for variable names that have been chosen by the system.
 Therefore we cannot refer to them.
 Luckily, this proof is simple enough we do not need to refer to them.
 However, sometimes one may have to. Hence Isar offers a simple scheme for
 naming those variables: replace the anonymous @{text Cons} by
-@{text"(Cons y ys)"}, which abbreviates `\isakeyword{fix}~@{text"y ys"}
-\isakeyword{assume}~@{text"Cons:"}~@{text"xs = y # ys"}'.
+@{text"(Cons y ys)"}, which abbreviates \isakeyword{fix}~@{text"y ys"}
+\isakeyword{assume}~@{text"Cons:"}~@{text"xs = y # ys"}.
 In each \isakeyword{case} the assumption can be
 referred to inside the proof by the name of the constructor. In
 Section~\ref{sec:full-Ind} below we will come across an example
@@ -154,6 +153,7 @@ For the curious: @{text"arbitrary:"} introduces @{text"\<And>"}
 behind the scenes.
 
 \subsection{Inductive proofs of conditional formulae}
+\label{sec:full-Ind}
 
 Induction also copes well with formulae involving @{text"\<Longrightarrow>"}, for example
 *}
@@ -204,7 +204,6 @@ with @{prop"xs = x#xs"} this yields the goal
 
 
 \subsection{Induction formulae involving @{text"\<And>"} or @{text"\<Longrightarrow>"}}
-\label{sec:full-Ind}
 
 Let us now consider abstractly the situation where the goal to be proved
 contains both @{text"\<And>"} and @{text"\<Longrightarrow>"}, say @{prop"\<And>x. P x \<Longrightarrow> Q x"}.
@@ -331,7 +330,7 @@ The proof is so simple that it can be condensed to
 *}
 
 (*<*)lemma "xs \<noteq> [] \<Longrightarrow> rot xs = tl xs @ [hd xs]"(*>*)
-by (induct xs rule: rot.induct, simp_all)
+by (induct xs rule: rot.induct) simp_all
 
 (*<*)end(*>*)
 (*

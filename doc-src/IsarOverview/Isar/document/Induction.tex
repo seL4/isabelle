@@ -110,8 +110,8 @@ be avoided by the following idiom%
 \begin{isamarkuptext}%
 \noindent which is like the previous proof but instantiates
 \isa{{\isacharquery}P} right away with \isa{A}. Thus we could prove the two
-cases in any order. The phrase `\isakeyword{case}~\isa{True}'
-abbreviates `\isakeyword{assume}~\isa{True{\isacharcolon}\ A}' and analogously for
+cases in any order. The phrase \isakeyword{case}~\isa{True}
+abbreviates \isakeyword{assume}~\isa{True{\isacharcolon}\ A} and analogously for
 \isa{False} and \isa{{\isasymnot}\ A}.
 
 The same game can be played with other datatypes, for example lists,
@@ -149,19 +149,18 @@ natural number (remember: $0-1=0$):%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent Here `\isakeyword{case}~\isa{Nil}' abbreviates
-`\isakeyword{assume}~\isa{Nil{\isacharcolon}}~\isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}}' and
-`\isakeyword{case}~\isa{Cons}'
-abbreviates `\isakeyword{fix}~\isa{{\isacharquery}\ {\isacharquery}{\isacharquery}}
-\isakeyword{assume}~\isa{Cons{\isacharcolon}}~\isa{xs\ {\isacharequal}\ {\isacharquery}\ {\isacharhash}\ {\isacharquery}{\isacharquery}}'
+\noindent Here \isakeyword{case}~\isa{Nil} abbreviates
+\isakeyword{assume}~\isa{Nil{\isacharcolon}}~\isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}} and
+\isakeyword{case}~\isa{Cons} abbreviates \isakeyword{fix}~\isa{{\isacharquery}\ {\isacharquery}{\isacharquery}}
+\isakeyword{assume}~\isa{Cons{\isacharcolon}}~\isa{xs\ {\isacharequal}\ {\isacharquery}\ {\isacharhash}\ {\isacharquery}{\isacharquery}},
 where \isa{{\isacharquery}} and \isa{{\isacharquery}{\isacharquery}}
 stand for variable names that have been chosen by the system.
 Therefore we cannot refer to them.
 Luckily, this proof is simple enough we do not need to refer to them.
 However, sometimes one may have to. Hence Isar offers a simple scheme for
 naming those variables: replace the anonymous \isa{Cons} by
-\isa{{\isacharparenleft}Cons\ y\ ys{\isacharparenright}}, which abbreviates `\isakeyword{fix}~\isa{y\ ys}
-\isakeyword{assume}~\isa{Cons{\isacharcolon}}~\isa{xs\ {\isacharequal}\ y\ {\isacharhash}\ ys}'.
+\isa{{\isacharparenleft}Cons\ y\ ys{\isacharparenright}}, which abbreviates \isakeyword{fix}~\isa{y\ ys}
+\isakeyword{assume}~\isa{Cons{\isacharcolon}}~\isa{xs\ {\isacharequal}\ y\ {\isacharhash}\ ys}.
 In each \isakeyword{case} the assumption can be
 referred to inside the proof by the name of the constructor. In
 Section~\ref{sec:full-Ind} below we will come across an example
@@ -353,6 +352,7 @@ For the curious: \isa{arbitrary{\isacharcolon}} introduces \isa{{\isasymAnd}}
 behind the scenes.
 
 \subsection{Inductive proofs of conditional formulae}
+\label{sec:full-Ind}
 
 Induction also copes well with formulae involving \isa{{\isasymLongrightarrow}}, for example%
 \end{isamarkuptext}%
@@ -457,7 +457,6 @@ with \isa{xs\ {\isacharequal}\ x\ {\isacharhash}\ xs} this yields the goal
 
 
 \subsection{Induction formulae involving \isa{{\isasymAnd}} or \isa{{\isasymLongrightarrow}}}
-\label{sec:full-Ind}
 
 Let us now consider abstractly the situation where the goal to be proved
 contains both \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}, say \isa{{\isasymAnd}x{\isachardot}\ P\ x\ {\isasymLongrightarrow}\ Q\ x}.
@@ -691,7 +690,7 @@ The proof is so simple that it can be condensed to%
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs\ rule{\isacharcolon}\ rot{\isachardot}induct{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\ {\isacharparenleft}induct\ xs\ rule{\isacharcolon}\ rot{\isachardot}induct{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
 %
 \endisatagproof
 {\isafoldproof}%
