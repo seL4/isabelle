@@ -3,7 +3,76 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-structure StateSpace =
+signature STATE_SPACE =
+  sig
+    val KN : string
+    val distinct_compsN : string
+    val getN : string
+    val putN : string
+    val injectN : string
+    val namespaceN : string
+    val projectN : string
+    val valuetypesN : string
+
+    val quiet_mode : bool ref
+
+    val namespace_definition :
+       bstring ->
+       Term.typ ->
+       Locale.expr ->
+       string list -> string list -> Context.theory -> Context.theory
+
+    val define_statespace :
+       string list ->
+       string ->
+       (string list * bstring * (string * string) list) list ->
+       (string * string) list -> Context.theory -> Context.theory
+    val define_statespace_i :
+       string option ->
+       string list ->
+       string ->
+       (Term.typ list * bstring * (string * string) list) list ->
+       (string * Term.typ) list -> Context.theory -> Context.theory
+
+    val statespace_decl :
+       OuterParse.token list -> 
+       ((string list * bstring) *
+         ((string list * xstring * (bstring * bstring) list) list *
+          (bstring * string) list)) * OuterParse.token list
+
+
+    val neq_x_y : Context.proof -> Term.term -> Term.term -> Thm.thm option
+    val distinctNameSolver : MetaSimplifier.solver
+    val distinctTree_tac :
+       Context.proof -> Term.term * int -> Tactical.tactic
+    val distinct_simproc : MetaSimplifier.simproc
+
+
+    val change_simpset : (MetaSimplifier.simpset -> MetaSimplifier.simpset) ->
+       Context.generic -> Context.generic
+
+    val get_comp : Context.generic -> string -> (Term.typ * string) Option.option
+    val get_silent : Context.generic -> bool
+    val set_silent : bool -> Context.generic -> Context.generic
+
+    val read_typ :
+       Context.theory ->
+       string ->
+       (string * Term.sort) list -> Term.typ * (string * Term.sort) list
+
+    val gen_lookup_tr : Context.proof -> Term.term -> string -> Term.term
+    val lookup_swap_tr : Context.proof -> Term.term list -> Term.term
+    val lookup_tr : Context.proof -> Term.term list -> Term.term
+    val lookup_tr' : Context.proof -> Term.term list -> Term.term
+
+    val gen_update_tr :
+       bool -> Context.proof -> string -> Term.term -> Term.term -> Term.term
+    val update_tr : Context.proof -> Term.term list -> Term.term
+    val update_tr' : Context.proof -> Term.term list -> Term.term
+  end;
+
+
+structure StateSpace: STATE_SPACE =
 struct
 
 (* Theorems *)

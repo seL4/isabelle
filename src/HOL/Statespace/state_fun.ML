@@ -3,31 +3,31 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
+signature STATE_FUN =
+sig
+  val lookupN : string
+  val updateN : string
 
-structure StateFun =
+  val mk_constr : Context.theory -> Term.typ -> Term.term
+  val mk_destr : Context.theory -> Term.typ -> Term.term
+
+  val lookup_simproc : MetaSimplifier.simproc
+  val update_simproc : MetaSimplifier.simproc
+  val ex_lookup_eq_simproc : MetaSimplifier.simproc
+  val ex_lookup_ss : MetaSimplifier.simpset
+  val lazy_conj_simproc : MetaSimplifier.simproc
+  val string_eq_simp_tac : int -> Tactical.tactic
+
+  val setup : Context.theory -> Context.theory
+end;
+
+structure StateFun: STATE_FUN = 
 struct
 
 val lookupN = "StateFun.lookup";
 val updateN = "StateFun.update";
 
-
-fun dest_nib c =
-     let val h = List.last (String.explode c) 
-     in if #"0" <= h andalso h <= #"9" then Char.ord h - Char.ord #"0"
-        else if #"A" <= h andalso h <= #"F" then Char.ord h - Char.ord #"A" + 10
-        else raise Match
-     end;
-
-fun dest_chr (Const ("List.char.Char",_)$Const (c1,_)$(Const (c2,_))) = 
-    let val c = Char.chr (dest_nib c1 * 16 + dest_nib c2)
-    in if Char.isPrint c then c else raise Match end
-  | dest_chr _ = raise Match;
-
-fun dest_string (Const ("List.list.Nil",_)) = []
-  | dest_string (Const ("List.list.Cons",_)$c$cs) = dest_chr c::dest_string cs
-  | dest_string _ = raise TERM ("dest_string",[]);
-
-fun sel_name n = String.implode (dest_string n);
+val sel_name = HOLogic.dest_string;
 
 fun mk_name i t =
   (case try sel_name t of

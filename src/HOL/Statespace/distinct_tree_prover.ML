@@ -3,7 +3,29 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-structure DistinctTreeProver =
+signature DISTINCT_TREE_PROVER =
+sig
+  datatype Direction = Left | Right
+  val mk_tree : ('a -> Term.term) -> Term.typ -> 'a list -> Term.term
+  val dest_tree : Term.term -> Term.term list
+  val find_tree :
+       Term.term -> Term.term -> Direction list option 
+
+  val neq_to_eq_False : Thm.thm
+  val distinctTreeProver : Thm.thm -> Direction list -> Direction list -> Thm.thm
+  val neq_x_y :
+       Proof.context -> Term.term -> Term.term -> string -> Thm.thm option   
+  val distinctFieldSolver : string list -> MetaSimplifier.solver
+  val distinctTree_tac :
+       string list -> Proof.context -> Term.term * int -> Tactical.tactic
+  val distinct_implProver : Thm.thm -> Thm.cterm -> Thm.thm
+  val subtractProver : Term.term -> Thm.cterm -> Thm.thm -> Thm.thm
+  val distinct_simproc : string list -> MetaSimplifier.simproc
+  
+  val discharge : Thm.thm list -> Thm.thm -> Thm.thm
+end;
+
+structure DistinctTreeProver : DISTINCT_TREE_PROVER =
 struct
 val all_distinct_left = thm "DistinctTreeProver.all_distinct_left";
 val all_distinct_right = thm "DistinctTreeProver.all_distinct_right";
@@ -17,6 +39,8 @@ val in_set_right = thm "DistinctTreeProver.in_set_right";
 
 val swap_neq = thm "DistinctTreeProver.swap_neq";
 val neq_to_eq_False = thm "DistinctTreeProver.neq_to_eq_False"
+
+datatype Direction = Left | Right 
 
 fun treeT T = Type ("DistinctTreeProver.tree",[T]);
 fun mk_tree' e T n []     = Const ("DistinctTreeProver.tree.Tip",treeT T)
@@ -37,7 +61,7 @@ fun dest_tree (Const ("DistinctTreeProver.tree.Tip",_)) = []
   | dest_tree (Const ("DistinctTreeProver.tree.Node",_)$l$e$_$r) = dest_tree l @ e :: dest_tree r
   | dest_tree t = raise TERM ("DistinctTreeProver.dest_tree",[t]);
 
-datatype Direction = Left | Right 
+
 
 fun lin_find_tree e (Const ("DistinctTreeProver.tree.Tip",_)) = NONE
   | lin_find_tree e (Const ("DistinctTreeProver.tree.Node",_) $ l$ x $ _ $ r) =

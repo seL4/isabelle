@@ -6,7 +6,6 @@
 header {* State Space Representation as Function \label{sec:StateFun}*}
 
 theory StateFun imports DistinctTreeProver 
-(*uses "state_space.ML" ("state_fun.ML")*)
 begin
 
 
@@ -109,7 +108,4 @@ lemma "update d c n (K_statespace (lookup d n s)) s = s"
   apply simp
   oops
 
-(*use "state_fun.ML"
-setup StateFun.setup
-*)
 end
