@@ -1,8 +1,8 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in Isabelle2007
--------------------
+New in Isabelle2007 (November 2007)
+-----------------------------------
 
 *** General ***
 
@@ -104,7 +104,6 @@ check the given source text as ML type/structure, printing verbatim.
 * Added antiquotation @{abbrev "c args"} which prints the abbreviation
 "c args == rhs" given in the current context.  (Any number of
 arguments may be given on the LHS.)
-
 
 
 *** Pure ***
@@ -1127,7 +1126,6 @@ command 'statespace' that is similar to 'record', but introduces an
 abstract specification based on the locale infrastructure instead of
 HOL types.  This leads to extra flexibility in composing state spaces,
 in particular multiple inheritance and renaming of components.
-
 
 
 *** HOL-Complex ***
