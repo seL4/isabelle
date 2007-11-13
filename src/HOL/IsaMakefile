@@ -625,8 +625,9 @@ $(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
 HOL-Extraction: HOL $(LOG)/HOL-Extraction.gz
 
 $(LOG)/HOL-Extraction.gz: $(OUT)/HOL Library/Efficient_Nat.thy \
-  Extraction/Higman.thy Extraction/ROOT.ML Extraction/Pigeonhole.thy \
-  Extraction/QuotRem.thy \
+  Extraction/Euclid.thy Extraction/Greatest_Common_Divisor.thy \
+  Extraction/Higman.thy Extraction/Pigeonhole.thy Extraction/QuotRem.thy \
+  Extraction/ROOT.ML Extraction/Util.thy \
   Extraction/Warshall.thy Extraction/document/root.tex \
   Extraction/document/root.bib
 	@$(ISATOOL) usedir $(OUT)/HOL Extraction
