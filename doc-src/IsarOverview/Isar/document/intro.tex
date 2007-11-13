@@ -1,57 +1,11 @@
 \section{Introduction}
 
-Isabelle is a generic proof assistant.  Isar is an extension of
-Isabelle with structured proofs in a stylised language of mathematics.
-These proofs are readable for both a human and a machine.
-Isabelle/HOL~\cite{LNCS2283} is a specialisation of Isabelle with
-higher-order logic (HOL). This paper is a compact introduction to
-structured proofs in Isar/HOL, an extension of Isabelle/HOL. We
-intentionally do not present the full language but concentrate on the
-essentials. Neither do we give a formal semantics of Isar. Instead we
-introduce Isar by example. We believe that the language ``speaks for
-itself'' in the same way that traditional mathematical proofs do,
-which are also introduced by example rather than by teaching students
-logic first. A detailed exposition of Isar can be found in Markus
-Wenzel's PhD thesis~\cite{Wenzel-PhD} (which also discusses related
-work) and the Isar reference manual~\cite{Isar-Ref-Man}.
-
-\subsection{Background}
-
-Interactive theorem proving has been dominated by a model of proof
-that goes back to the LCF system~\cite{LCF}: a proof is a more or less
-structured sequence of commands that manipulate an implicit proof
-state. Thus the proof text is only suitable for the machine; for a
-human, the proof only comes alive when he can see the state changes
-caused by the stepwise execution of the commands. Such proofs are like
-uncommented assembly language programs. We call them
-\emph{tactic-style} proofs because LCF proof commands were called
-tactics.
-
-A radically different approach was taken by the Mizar
-system~\cite{Rudnicki92} where proofs are written in a stylised language akin
-to that used in ordinary mathematics texts. The most important argument in
-favour of a mathematics-like proof language is communication: as soon as not
-just the theorem but also the proof becomes an object of interest, it should
-be readable.  From a system development point of view there is a second
-important argument against tactic-style proofs: they are much harder to
-maintain when the system is modified.
-%The reason is as follows. Since it is
-%usually quite unclear what exactly is proved at some point in the middle of a
-%command sequence, updating a failed proof often requires executing the proof
-%up to the point of failure using the old version of the system.  In contrast,
-%mathematics-like proofs contain enough information to tell you what is proved
-%at any point.
-
-For these reasons the Isabelle system, originally firmly in the
-LCF-tradition, was extended with a language for writing structured
-proofs in a mathematics-like style. As the name already indicates,
-Isar was certainly inspired by Mizar. However, there are many
-differences. For a start, Isar is generic: only a few of the language
-constructs described below are specific to HOL; many are generic and
-thus available for any logic defined in Isabelle, e.g.\ ZF.
-Furthermore, we have Isabelle's powerful automatic proof procedures at
-our disposal.  A closer comparison of Isar and Mizar can be found
-elsewhere~\cite{WenzelW-JAR}.
+This is a tutorial introduction to structured proofs in Isabelle/HOL.
+It introduces the core of the proof language Isar by example. Isar is
+an extension of the \isa{apply}-style proofs introduced in the
+Isabelle/HOL tutorial~\cite{LNCS2283} with structured proofs in a
+stylised language of mathematics.  These proofs are readable for both
+human and machine.
 
 \subsection{A first glimpse of Isar}
 Below you find a simplified grammar for Isar proofs.
@@ -64,7 +18,7 @@ Parentheses are used for grouping and $^?$ indicates an optional item:
                  &$\mid$& \isakeyword{by} \emph{method}\\[1ex]
 \emph{statement} &::= & \isakeyword{fix} \emph{variables} \\
              &$\mid$& \isakeyword{assume} \emph{propositions} \\
-             &$\mid$& (\isakeyword{from} \emph{facts})$^?$ 
+             &$\mid$& (\isakeyword{from} \emph{fact}*)$^?$ 
                     (\isakeyword{show} $\mid$ \isakeyword{have})
                       \emph{propositions} \emph{proof} \\[1ex]
 \emph{proposition} &::=& (\emph{label}{\bf:})$^?$ \emph{string} \\[1ex]
@@ -73,8 +27,7 @@ Parentheses are used for grouping and $^?$ indicates an optional item:
 \end{center}
 A proof can be either compound (\isakeyword{proof} --
 \isakeyword{qed}) or atomic (\isakeyword{by}). A \emph{method} is a
-proof method (tactic) offered by the underlying theorem prover.
-Thus this grammar is generic both w.r.t.\ the logic and the theorem prover.
+proof method.
 
 This is a typical proof skeleton:
 \begin{center}
@@ -94,11 +47,33 @@ there to bridge the gap between the assumption and the conclusion and
 do not contribute to the theorem being proved. In contrast,
 \isakeyword{show} establishes the conclusion of the theorem.
 
-\subsection{Bits of Isabelle}
+\subsection{Background}
 
-We recall some basic notions and notation from Isabelle. For more
-details and for instructions how to run examples see
-elsewhere~\cite{LNCS2283}.
+Interactive theorem proving has been dominated by a model of proof
+that goes back to the LCF system~\cite{LCF}: a proof is a more or less
+structured sequence of commands that manipulate an implicit proof
+state. Thus the proof text is only suitable for the machine; for a
+human, the proof only comes alive when he can see the state changes
+caused by the stepwise execution of the commands. Such proofs are like
+uncommented assembly language programs. Their Isabelle incarnation are
+sequences of \isa{apply}-commands.
+
+In contrast there is the model of a mathematics-like proof language
+pioneered in the Mizar system~\cite{Rudnicki92} and followed by
+Isar~\cite{WenzelW-JAR}.
+The most important arguments in favour of this style are
+\emph{communication} and \emph{maintainance}: structured proofs are
+immensly more readable and maintainable than \isa{apply}-scripts.
+
+For reading this tutorial you should be familiar with natural
+deduction and the basics of Isabelle/HOL~\cite{LNCS2283} although we
+summarize the most important aspects of Isabelle below.  The
+definitive Isar reference is its manual~\cite{Isar-Ref-Man}. For an
+example-based account of Isar's support for reasoning by chains of
+(in)equations see~\cite{BauerW-TPHOLs01}.
+
+
+\subsection{Bits of Isabelle}
 
 Isabelle's meta-logic comes with a type of \emph{propositions} with
 implication $\Longrightarrow$ and a universal quantifier $\bigwedge$ for expressing
@@ -128,33 +103,25 @@ current subgoal and replacing the subgoal by the premises of the
 rule), \isa{simp} (for simplification) and \isa{blast} (for predicate
 calculus reasoning).
 
-\subsection{Overview of the paper}
+\subsection{Advice}
 
-The rest of the paper is divided into two parts.
+A word of warning for potential writers of Isar proofs.  It
+is easier to write obscure rather than readable texts.  Similarly,
+\isa{apply}-style proofs are sometimes easier to write than readable
+ones: structure does not emerge automatically but needs to be
+understood and imposed. If the precise structure of the proof is
+unclear at beginning, it can be useful to start with \isa{apply} for
+exploratory purposes until one has found a proof which can be
+converted into a structured text in a second step. Top down conversion
+is possible because Isar allows \isa{apply}-style proofs as components
+of structured ones.
+
+Finally, do not be mislead by the simplicity of the formulae being proved,
+especially in the beginning. Isar has been used very successfully in
+large applications, for example the formalisation of Java
+dialects~\cite{KleinN-TOPLAS}.
+\medskip
+
+The rest of this tutorial is divided into two parts.
 Section~\ref{sec:Logic} introduces proofs in pure logic based on
-natural deduction. Section~\ref{sec:Induct} is dedicated to induction,
-the key reasoning principle for computer science applications.
-
-There are two further areas where Isar provides specific support, but
-which we do not document here. Reasoning by chains of (in)equations is
-described elsewhere~\cite{BauerW-TPHOLs01}.  Reasoning about
-axiomatically defined structures by means of so called ``locales'' was
-first described in \cite{KWP-TPHOLs99} but has evolved much since
-then.
-
-Finally, a word of warning for potential writers of Isar proofs.  It
-has always been easier to write obscure rather than readable texts.
-Similarly, tactic-style proofs are often (though by no means always!)
-easier to write than readable ones: structure does not emerge
-automatically but needs to be understood and imposed. If the precise
-structure of the proof is unclear at beginning, it can be useful to
-start in a tactic-based style for exploratory purposes until one has
-found a proof which can be converted into a structured text in a
-second step.
-% Top down conversion is possible because Isar
-%allows tactic-style proofs as components of structured ones.
-
-%Do not be mislead by the simplicity of the formulae being proved,
-%especially in the beginning. Isar has been used very successfully in
-%large applications, for example the formalisation of Java, in
-%particular the verification of the bytecode verifier~\cite{KleinN-TCS}.
+natural deduction. Section~\ref{sec:Induct} is dedicated to induction.

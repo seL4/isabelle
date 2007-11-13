@@ -579,11 +579,11 @@ duplication. Note that the conclusion of a raw proof block is stated with
 conclusion of some pending goal but some independent claim.
 
 The general idea demonstrated in this subsection is very
-important in Isar and distinguishes it from tactic-style proofs:
+important in Isar and distinguishes it from \isa{apply}-style proofs:
 \begin{quote}\em
 Do not manipulate the proof state into a particular form by applying
-tactics but state the desired form explicitly and let the tactic verify
-that from this form the original goal follows.
+proof methods but state the desired form explicitly and let the proof
+methods verify that from this form the original goal follows.
 \end{quote}
 This yields more readable and also more robust proofs.
 
@@ -692,9 +692,8 @@ containing @{text"\<exists>"} as we saw in the proof of Cantor's theorem.
 
 subsubsection{*Combining proof styles*}
 
-text{* Finally, whole ``scripts'' (tactic-based proofs in the style of
-\cite{LNCS2283}) may appear in the leaves of the proof tree, although this is
-best avoided.  Here is a contrived example: *}
+text{* Finally, whole \isa{apply}-scripts may appear in the leaves of the
+proof tree, although this is best avoided.  Here is a contrived example: *}
 
 lemma "A \<longrightarrow> (A \<longrightarrow> B) \<longrightarrow> B"
 proof
@@ -710,7 +709,7 @@ qed
 text{*\noindent You may need to resort to this technique if an
 automatic step fails to prove the desired proposition.
 
-When converting a proof from tactic-style into Isar you can proceed
+When converting a proof from \isa{apply}-style into Isar you can proceed
 in a top-down manner: parts of the proof can be left in script form
 while the outer structure is already expressed in Isar. *}
 

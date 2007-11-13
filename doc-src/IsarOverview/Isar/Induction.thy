@@ -81,10 +81,12 @@ of this.
 
 We start with an inductive proof where both cases are proved automatically: *}
 lemma "2 * (\<Sum>i::nat\<le>n. i) = n*(n+1)"
-by (induct n, simp_all)
+by (induct n) simp_all
 
 text{*\noindent The constraint @{text"::nat"} is needed because all of
 the operations involved are overloaded.
+This proof also demonstrates that \isakeyword{by} can take two arguments,
+one to start and one to finish the proof --- the latter is optional.
 
 If we want to expose more of the structure of the
 proof, we can use pattern matching to avoid having to repeat the goal
@@ -136,12 +138,10 @@ strictly speaking, this quantification step is already part of the
 proof and the quantifiers should not clutter the original claim. This
 is how the quantification step can be combined with induction: *}
 lemma "itrev xs ys = rev xs @ ys"
-by (induct xs arbitrary: ys) auto
+by (induct xs arbitrary: ys) simp_all
 text{*\noindent The annotation @{text"arbitrary:"}~\emph{vars}
 universally quantifies all \emph{vars} before the induction.  Hence
 they can be replaced by \emph{arbitrary} values in the proof.
-This proof also demonstrates that \isakeyword{by} can take two arguments,
-one to start and one to finish the proof --- the latter is optional.
 
 The nice thing about generalization via @{text"arbitrary:"} is that in
 the induction step the claim is available in unquantified form but
@@ -159,7 +159,7 @@ Induction also copes well with formulae involving @{text"\<Longrightarrow>"}, fo
 *}
 
 lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) = last xs"
-by (induct xs) auto
+by (induct xs) simp_all
 
 text{*\noindent This is an improvement over that style the
 tutorial~\cite{LNCS2283} advises, which requires @{text"\<longrightarrow>"}.
@@ -178,7 +178,7 @@ next
     thus ?thesis ..
   next
     case (Cons x xs')
-    with Asm(2) have "map f xs' = map f ys" by auto
+    with Asm(2) have "map f xs' = map f ys" by simp
     from Asm(1)[OF this] `xs = x#xs'` show ?thesis by simp
   qed
 qed
