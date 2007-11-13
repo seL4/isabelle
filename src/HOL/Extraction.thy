@@ -55,7 +55,7 @@ lemmas [extraction_expand] =
   induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
   induct_atomize induct_rulify induct_rulify_fallback
-  True_implies_equals
+  True_implies_equals TrueE
 
 datatype sumbool = Left | Right
 
