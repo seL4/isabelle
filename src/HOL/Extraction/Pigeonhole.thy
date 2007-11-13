@@ -6,7 +6,7 @@
 header {* The pigeonhole principle *}
 
 theory Pigeonhole
-imports Efficient_Nat
+imports Util Efficient_Nat
 begin
 
 text {*
@@ -15,71 +15,6 @@ to extracted programs of quite different complexity. The original
 formalization of these proofs in {\sc Nuprl} is due to
 Aleksey Nogin \cite{Nogin-ENTCS-2000}.
 
-We need decidability of equality on natural numbers:
-*}
-
-lemma nat_eq_dec: "(m\<Colon>nat) = n \<or> m \<noteq> n"
-  apply (induct m arbitrary: n)
-  apply (case_tac n)
-  apply (case_tac [3] n)
-  apply (simp only: nat.simps, iprover?)+
-  done
-
-text {*
-We can decide whether an array @{term "f"} of length @{term "l"}
-contains an element @{term "x"}.
-*}
-
-lemma search: "(\<exists>j<(l::nat). (x::nat) = f j) \<or> \<not> (\<exists>j<l. x = f j)"
-proof (induct l)
-  case 0
-  have "\<not> (\<exists>j<0. x = f j)"
-  proof
-    assume "\<exists>j<0. x = f j"
-    then obtain j where j: "j < (0::nat)" by iprover
-    thus "False" by simp
-  qed
-  thus ?case ..
-next
-  case (Suc l)
-  thus ?case
-  proof
-    assume "\<exists>j<l. x = f j"
-    then obtain j where j: "j < l"
-      and eq: "x = f j" by iprover
-    from j have "j < Suc l" by simp
-    with eq show ?case by iprover
-  next
-    assume nex: "\<not> (\<exists>j<l. x = f j)"
-    from nat_eq_dec show ?case
-    proof
-      assume eq: "x = f l"
-      have "l < Suc l" by simp
-      with eq show ?case by iprover
-    next
-      assume neq: "x \<noteq> f l"
-      have "\<not> (\<exists>j<Suc l. x = f j)"
-      proof
-	assume "\<exists>j<Suc l. x = f j"
-	then obtain j where j: "j < Suc l"
-	  and eq: "x = f j" by iprover
-	show False
-	proof cases
-	  assume "j = l"
-	  with eq have "x = f l" by simp
-	  with neq show False ..
-	next
-	  assume "j \<noteq> l"
-	  with j have "j < l" by simp
-	  with nex and eq show False by iprover
-	qed
-      qed
-      thus ?case ..
-    qed
-  qed
-qed
-
-text {*
 This proof yields a polynomial program.
 *}
 
@@ -163,7 +98,7 @@ next
       ultimately show ?case ..
     next
       case (Suc k)
-      from search show ?case
+      from search [OF nat_eq_dec] show ?case
       proof
 	assume "\<exists>j<Suc k. f (Suc k) = f j"
 	thus ?case by (iprover intro: le_refl)
@@ -212,7 +147,7 @@ proof (induct n)
   ultimately show ?case by iprover
 next
   case (Suc n)
-  from search show ?case
+  from search [OF nat_eq_dec] show ?case
   proof
     assume "\<exists>j < Suc (Suc n). f (Suc (Suc n)) = f j"
     thus ?case by (iprover intro: le_refl)
@@ -293,15 +228,22 @@ definition
 
 
 consts_code
+  "arbitrary :: nat" ("{* 0::nat *}")
   "arbitrary :: nat \<times> nat" ("{* (0::nat, 0::nat) *}")
 
 definition
   arbitrary_nat_pair :: "nat \<times> nat" where
   [symmetric, code inline]: "arbitrary_nat_pair = arbitrary"
 
+definition
+  arbitrary_nat :: nat where
+  [symmetric, code inline]: "arbitrary_nat = arbitrary"
+
 code_const arbitrary_nat_pair (SML "(~1, ~1)")
   (* this is justified since for valid inputs this "arbitrary" will be dropped
      in the next recursion step in pigeonhole_def *)
+
+code_const  arbitrary_nat (SML "~1")
 
 code_module PH1
 contains
