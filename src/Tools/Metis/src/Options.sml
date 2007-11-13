@@ -47,7 +47,7 @@ local
     | range NONE (SOME j) = "{n IN Z | n <= " ^ Int.toString j ^ "}"
     | range (SOME i) (SOME j) =
     "{n IN Z | " ^ Int.toString i ^ " <= n <= " ^ Int.toString j ^ "}";
-  fun oLeq (SOME (x: int)) (SOME y) = x <= y | oLeq _ _ = true;
+  fun oLeq (SOME x) (SOME y) = x <= y | oLeq _ _ = true;
   fun argToInt arg omin omax x =
     (case Int.fromString x of
        SOME i =>
@@ -115,12 +115,6 @@ val basicOptions : opt list =
   [{switches = ["--"], arguments = [],
     description = "no more options",
     processor = fn _ => raise Fail "basicOptions: --"},
-   {switches = ["--verbose"], arguments = ["0..10"],
-    description = "the degree of verbosity",
-    processor = intOpt (SOME 0, SOME 10) endOpt (fn i => traceLevel := i)},
-   {switches = ["--secret"], arguments = [],
-    description = "process then hide the next option",
-    processor = fn _ => raise Fail "basicOptions: --secret"},
    {switches = ["-?","-h","--help"], arguments = [],
     description = "display all options and exit",
     processor = fn _ => raise OptionExit
@@ -144,10 +138,6 @@ fun versionInformation ({version, ...} : allOptions) = version;
 
 fun usageInformation ({name,version,header,footer,options} : allOptions) =
   let
-    fun filt ["--verbose"] = false
-      | filt ["--secret"] = false
-      | filt _ = true
-
     fun listOpts {switches = n, arguments = r, description = s,
                   processor = _} =
         let
@@ -158,8 +148,6 @@ fun usageInformation ({name,version,header,footer,options} : allOptions) =
         in
           [res ^ " ...", " " ^ s]
         end
-
-    val options = List.filter (filt o #switches) options
 
     val alignment =
         [{leftAlign = true, padChar = #"."},
@@ -227,7 +215,6 @@ fun processOptions (allopts : allOptions) =
 
     fun process [] = ([], [])
       | process ("--" :: xs) = ([("--",[])], xs)
-      | process ("--secret" :: xs) = (tl ## I) (process xs)
       | process ("-v" :: _) = version allopts
       | process ("--version" :: _) = version allopts
       | process (x :: xs) =

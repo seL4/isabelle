@@ -25,7 +25,7 @@ fun checkFormula {models,checks} exp fm =
       fun check 0 = true
         | check n =
           let
-            val N = 3 + random 3
+            val N = 3 + Portable.randomInt 3
             val M = Model.new {size = N, fixed = Model.fixedPure}
             val {T,F} = Model.checkFormula {maxChecks = checks} M fm
           in

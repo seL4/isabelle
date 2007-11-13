@@ -1,25 +1,25 @@
 (* ========================================================================= *)
 (* ML SPECIFIC FUNCTIONS                                                     *)
-(* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Portable =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* The ML implementation                                                     *)
+(* The ML implementation.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 val ml : string
 
 (* ------------------------------------------------------------------------- *)
-(* Pointer equality using the run-time system                                *)
+(* Pointer equality using the run-time system.                               *)
 (* ------------------------------------------------------------------------- *)
 
 val pointerEqual : 'a * 'a -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Timing function applications                                              *)
+(* Timing function applications.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 val time : ('a -> 'b) -> 'a -> 'b
@@ -29,5 +29,17 @@ val time : ('a -> 'b) -> 'a -> 'b
 (* ------------------------------------------------------------------------- *)
 
 val CRITICAL: (unit -> 'a) -> 'a
+
+(* ------------------------------------------------------------------------- *)
+(* Generating random values.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val randomBool : unit -> bool
+
+val randomInt : int -> int  (* n |-> [0,n) *)
+
+val randomReal : unit -> real  (* () |-> [0,1] *)
+
+val randomWord : unit -> Word.word
 
 end

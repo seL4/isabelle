@@ -129,6 +129,7 @@ fun ppPair ppA ppB = ppBracket "(" ")" (ppBinop "," ppA ppB);
 
 fun ppTriple ppA ppB ppC = ppBracket "(" ")" (ppTrinop "," "," ppA ppB ppC);
 
+(* Keep eta expanded to evaluate lineLength when supplied with a *)
 fun toString ppA a = PP.pp_to_string (!lineLength) ppA a;
 
 fun fromString toS = ppMap toS ppString;

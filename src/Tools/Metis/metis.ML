@@ -7,32 +7,127 @@
 
 print_depth 0;
 
-structure Metis = struct end;
+structure Metis = struct structure Word = Word structure Array = Array end;
+
+(**** Original file: Random.sig ****)
+
+(* Random -- random number generator *)
+
+signature Random =
+sig
+
+type generator
+
+val newgenseed : real -> generator
+val newgen     : unit -> generator
+val random     : generator -> real
+val randomlist : int * generator -> real list
+val range      : int * int -> generator -> int
+val rangelist  : int * int -> int * generator -> int list
+
+end
+
+(* 
+   [generator] is the type of random number generators, here the
+   linear congruential generators from Paulson 1991, 1996.
+
+   [newgenseed seed] returns a random number generator with the given seed.
+
+   [newgen ()] returns a random number generator, taking the seed from
+   the system clock.
+
+   [random gen] returns a random number in the interval [0..1).
+
+   [randomlist (n, gen)] returns a list of n random numbers in the
+   interval [0,1).
+
+   [range (min, max) gen] returns an integral random number in the
+   range [min, max).  Raises Fail if min > max.
+
+   [rangelist (min, max) (n, gen)] returns a list of n integral random
+   numbers in the range [min, max).  Raises Fail if min > max.  
+*)
+
+(**** Original file: Random.sml ****)
+
+structure Metis = struct open Metis
+(* Metis-specific ML environment *)
+nonfix ++ -- RL mem union subset;
+val explode = String.explode;
+val implode = String.implode;
+val print = TextIO.print;
+(* Random -- Moscow ML library 1995-04-23, 1999-02-24 *)
+
+structure Random :> Random =
+struct
+
+type generator = {seedref : real ref}
+
+(* Generating random numbers.  Paulson, page 96 *)
+
+val a = 16807.0 
+val m = 2147483647.0 
+fun nextrand seed = 
+    let val t = a*seed 
+    in t - m * real(floor(t/m)) end
+
+fun newgenseed seed =
+    {seedref = ref (nextrand seed)};
+
+fun newgen () = newgenseed (Time.toReal (Time.now ()));
+
+fun random {seedref} = CRITICAL (fn () => 
+    (seedref := nextrand (! seedref); ! seedref / m));
+
+fun randomlist (n, {seedref}) = CRITICAL (fn () =>
+    let val seed0 = ! seedref
+        fun h 0 seed res = (seedref := seed; res)
+	  | h i seed res = h (i-1) (nextrand seed) (seed / m :: res)
+    in h n seed0 [] end);
+
+fun range (min, max) = 
+    if min > max then raise Fail "Random.range: empty range" 
+    else 
+	fn {seedref} => CRITICAL (fn () =>
+	(seedref := nextrand (! seedref); min + (floor(real(max-min) * ! seedref / m))));
+
+fun rangelist (min, max) =
+    if min > max then raise Fail "Random.rangelist: empty range" 
+    else 
+	fn (n, {seedref}) => CRITICAL (fn () => 
+	let val seed0 = ! seedref
+            fun h 0 seed res = (seedref := seed; res)
+	      | h i seed res = h (i-1) (nextrand seed) 
+		               (min + floor(real(max-min) * seed / m) :: res)
+	in h n seed0 [] end)
+
+end
+end;
 
 (**** Original file: Portable.sig ****)
 
 (* ========================================================================= *)
 (* ML SPECIFIC FUNCTIONS                                                     *)
-(* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
 signature Portable =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* The ML implementation                                                     *)
+(* The ML implementation.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 val ml : string
 
 (* ------------------------------------------------------------------------- *)
-(* Pointer equality using the run-time system                                *)
+(* Pointer equality using the run-time system.                               *)
 (* ------------------------------------------------------------------------- *)
 
 val pointerEqual : 'a * 'a -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Timing function applications                                              *)
+(* Timing function applications.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 val time : ('a -> 'b) -> 'a -> 'b
@@ -42,6 +137,18 @@ val time : ('a -> 'b) -> 'a -> 'b
 (* ------------------------------------------------------------------------- *)
 
 val CRITICAL: (unit -> 'a) -> 'a
+
+(* ------------------------------------------------------------------------- *)
+(* Generating random values.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val randomBool : unit -> bool
+
+val randomInt : int -> int  (* n |-> [0,n) *)
+
+val randomReal : unit -> real  (* () |-> [0,1] *)
+
+val randomWord : unit -> Metis.Word.word
 
 end
 
@@ -83,6 +190,32 @@ val time = timeap;
 (* ------------------------------------------------------------------------- *)
 
 fun CRITICAL e = NAMED_CRITICAL "metis" e;
+
+(* ------------------------------------------------------------------------- *)
+(* Generating random values.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+(* ------------------------------------------------------------------------- *)
+(* Generating random values.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  val gen = Random.newgenseed 1.0;
+in
+  fun randomInt max = Random.range (0,max) gen;
+
+  fun randomReal () = Random.random gen;
+end;
+
+fun randomBool () = randomInt 2 = 0;
+
+fun randomWord () =
+    let
+      val h = Word.fromInt (randomInt 65536)
+      and l = Word.fromInt (randomInt 65536)
+    in
+      Word.orb (Word.<< (h,0w16), l)
+    end;
 
 end
 
@@ -947,101 +1080,6 @@ fun pp_to_string linewidth ppfn ob =
 end
 end;
 
-(**** Original file: Random.sig ****)
-
-(* Random -- random number generator *)
-
-signature Random =
-sig
-
-type generator
-
-val newgenseed : real -> generator
-val newgen     : unit -> generator
-val random     : generator -> real
-val randomlist : int * generator -> real list
-val range      : int * int -> generator -> int
-val rangelist  : int * int -> int * generator -> int list
-
-end
-
-(* 
-   [generator] is the type of random number generators, here the
-   linear congruential generators from Paulson 1991, 1996.
-
-   [newgenseed seed] returns a random number generator with the given seed.
-
-   [newgen ()] returns a random number generator, taking the seed from
-   the system clock.
-
-   [random gen] returns a random number in the interval [0..1).
-
-   [randomlist (n, gen)] returns a list of n random numbers in the
-   interval [0,1).
-
-   [range (min, max) gen] returns an integral random number in the
-   range [min, max).  Raises Fail if min > max.
-
-   [rangelist (min, max) (n, gen)] returns a list of n integral random
-   numbers in the range [min, max).  Raises Fail if min > max.  
-*)
-
-(**** Original file: Random.sml ****)
-
-structure Metis = struct open Metis
-(* Metis-specific ML environment *)
-nonfix ++ -- RL mem union subset;
-val explode = String.explode;
-val implode = String.implode;
-val print = TextIO.print;
-(* Random -- Moscow ML library 1995-04-23, 1999-02-24 *)
-
-structure Random :> Random =
-struct
-
-type generator = {seedref : real ref}
-
-(* Generating random numbers.  Paulson, page 96 *)
-
-val a = 16807.0 
-val m = 2147483647.0 
-fun nextrand seed = 
-    let val t = a*seed 
-    in t - m * real(floor(t/m)) end
-
-fun newgenseed seed =
-    {seedref = ref (nextrand seed)};
-
-fun newgen () = newgenseed (Time.toReal (Time.now ()));
-
-fun random {seedref} = CRITICAL (fn () => 
-    (seedref := nextrand (! seedref); ! seedref / m));
-
-fun randomlist (n, {seedref}) = CRITICAL (fn () =>
-    let val seed0 = ! seedref
-        fun h 0 seed res = (seedref := seed; res)
-	  | h i seed res = h (i-1) (nextrand seed) (seed / m :: res)
-    in h n seed0 [] end);
-
-fun range (min, max) = 
-    if min > max then raise Fail "Random.range: empty range" 
-    else 
-	fn {seedref} => CRITICAL (fn () =>
-	(seedref := nextrand (! seedref); min + (floor(real(max-min) * ! seedref / m))));
-
-fun rangelist (min, max) =
-    if min > max then raise Fail "Random.rangelist: empty range" 
-    else 
-	fn (n, {seedref}) => CRITICAL (fn () => 
-	let val seed0 = ! seedref
-            fun h 0 seed res = (seedref := seed; res)
-	      | h i seed res = h (i-1) (nextrand seed) 
-		               (min + floor(real(max-min) * seed / m) :: res)
-	in h n seed0 [] end)
-
-end
-end;
-
 (**** Original file: Useful.sig ****)
 
 (* ========================================================================= *)
@@ -1071,14 +1109,6 @@ val can : ('a -> 'b) -> 'a -> bool
 (* ------------------------------------------------------------------------- *)
 
 val tracePrint : (string -> unit) ref
-
-val maxTraceLevel : int ref
-
-val traceLevel : int ref  (* in the set {0, ..., maxTraceLevel} *)
-
-val traceAlign : {module : string, alignment : int -> int option} list ref
-
-val tracing : {module : string, level : int} -> bool
 
 val trace : string -> unit
 
@@ -1211,6 +1241,8 @@ val prodCompare :
 
 val lexCompare : ('a * 'a -> order) -> 'a list * 'a list -> order
 
+val optionCompare : ('a * 'a -> order) -> 'a option * 'a option -> order
+
 val boolCompare : bool * bool -> order  (* true < false *)
 
 (* ------------------------------------------------------------------------- *)
@@ -1309,13 +1341,9 @@ val newInt : unit -> int
 
 val newInts : int -> int list
 
-val random : int -> int
-
-val uniform : unit -> real
-
-val coinFlip : unit -> bool
-
 val withRef : 'r ref * 'r -> ('a -> 'b) -> 'a -> 'b
+
+val cloneArray : 'a Metis.Array.array -> 'a Metis.Array.array
 
 (* ------------------------------------------------------------------------- *)
 (* The environment.                                                          *)
@@ -1365,8 +1393,6 @@ val print = TextIO.print;
 structure Useful :> Useful =
 struct
 
-infixr 0 oo ## |->
-
 (* ------------------------------------------------------------------------- *)
 (* Exceptions                                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -1393,29 +1419,6 @@ fun partial (e as Error _) f x = (case f x of SOME y => y | NONE => raise e)
 (* ------------------------------------------------------------------------- *)
 
 val tracePrint = ref print;
-
-val maxTraceLevel = ref 10;
-
-val traceLevel = ref 1;
-
-val traceAlign : {module : string, alignment : int -> int option} list ref
-  = ref [];
-
-local
-  fun query m l t =
-      case List.find (fn {module, ...} => module = m) (!traceAlign) of
-        NONE => l <= t
-      | SOME {alignment,...} =>
-        case alignment l of NONE => false | SOME l => l <= t;
-in
-  fun tracing {module,level} =
-    let
-      val ref T = maxTraceLevel
-      and ref t = traceLevel
-    in
-      0 < t andalso (T <= t orelse query module level t)
-    end;
-end;
 
 fun trace message = !tracePrint message;
 
@@ -1622,6 +1625,11 @@ fun lexCompare cmp =
     in
       lex
     end;
+
+fun optionCompare _ (NONE,NONE) = EQUAL
+  | optionCompare _ (NONE,_) = LESS
+  | optionCompare _ (_,NONE) = GREATER
+  | optionCompare cmp (SOME x, SOME y) = cmp (x,y);
 
 fun boolCompare (true,false) = LESS
   | boolCompare (false,true) = GREATER
@@ -1904,7 +1912,11 @@ fun percentToString x = Int.toString (Real.round (100.0 * x)) ^ "%";
 
 fun pos r = Real.max (r,0.0);
 
-local val ln2 = Math.ln 2.0 in fun log2 x = Math.ln x / ln2 end;
+local
+  val invLn2 = 1.0 / Math.ln 2.0;
+in
+  fun log2 x = invLn2 * Math.ln x;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Sums.                                                                     *)
@@ -1949,16 +1961,6 @@ in
       end);
 end;
 
-local
-  val gen = Random.newgenseed 1.0;
-in
-  fun random max = Random.range (0,max) gen;
-
-  fun uniform () = Random.random gen;
-
-  fun coinFlip () = Random.range (0,2) gen = 0;
-end;
-
 fun withRef (r,new) f x =
   let
     val old = !r
@@ -1968,6 +1970,13 @@ fun withRef (r,new) f x =
   in
     y
   end;
+
+fun cloneArray a =
+    let
+      fun index i = Array.sub (a,i)
+    in
+      Array.tabulate (Array.length a, index)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Environment.                                                              *)
@@ -2311,24 +2320,28 @@ val K = Useful.K;
 
 val snd = Useful.snd;
 
-val randomInt = Useful.random;
+val randomInt = Portable.randomInt;
+
+val randomWord = Portable.randomWord;
 
 (* ------------------------------------------------------------------------- *)
 (* Random search trees.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
+type priority = Word.word;
+
 datatype 'a tree =
     E
   | T of
     {size : int,
-     priority : real,
+     priority : priority,
      left : 'a tree,
      key : 'a,
      right : 'a tree};
     
 type 'a node =
      {size : int,
-      priority : real,
+      priority : priority,
       left : 'a tree,
       key : 'a,
       right : 'a tree};
@@ -2340,14 +2353,9 @@ datatype 'a set = Set of ('a * 'a -> order) * 'a tree;
 (* ------------------------------------------------------------------------- *)
 
 local
-  val randomPriority =
-      let
-        val gen = Random.newgenseed 2.0
-      in
-        fn () => Random.random gen
-      end;
+  val randomPriority = randomWord;
 
-  val priorityOrder = Real.compare;
+  val priorityOrder = Word.compare;
 in
   fun treeSingleton key =
       T {size = 1, priority = randomPriority (),
@@ -2762,8 +2770,6 @@ fun null s = size s = 0;
 
 fun member x s = Option.isSome (peek s x);
 
-(* add must be primitive to get hold of the comparison function *)
-
 fun add s x = union s (singleton (comparison s) x);
 
 (*DEBUG
@@ -2777,7 +2783,7 @@ local
     | unionPairs ys (xs as [_]) = List.revAppend (ys,xs)
     | unionPairs ys (x1 :: x2 :: xs) = unionPairs (union x1 x2 :: ys) xs;
 in
-  fun unionList [] = raise Error "Set.unionList: no sets"
+  fun unionList [] = raise Error "RandomSet.unionList: no sets"
     | unionList [s] = s
     | unionList l = unionList (unionPairs [] l);
 end;
@@ -2788,7 +2794,7 @@ local
     | intersectPairs ys (x1 :: x2 :: xs) =
       intersectPairs (intersect x1 x2 :: ys) xs;
 in
-  fun intersectList [] = raise Error "Set.intersectList: no sets"
+  fun intersectList [] = raise Error "RandomSet.intersectList: no sets"
     | intersectList [s] = s
     | intersectList l = intersectList (intersectPairs [] l);
 end;
@@ -2889,7 +2895,10 @@ fun pick s =
       SOME p => p
     | NONE => raise Error "RandomSet.pick: empty";
 
-fun random s = case size s of 0 => raise Empty | n => nth s (randomInt n);
+fun random s =
+    case size s of
+      0 => raise Error "RandomSet.random: empty"
+    | n => nth s (randomInt n);
 
 fun deletePick s = let val x = pick s in (x, delete s x) end;
 
@@ -3292,17 +3301,21 @@ val K = Useful.K;
 
 val snd = Useful.snd;
 
-val randomInt = Useful.random;
+val randomInt = Portable.randomInt;
+
+val randomWord = Portable.randomWord;
 
 (* ------------------------------------------------------------------------- *)
 (* Random search trees.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
+type priority = Word.word;
+
 datatype ('a,'b) tree =
     E
   | T of
     {size : int,
-     priority : real,
+     priority : priority,
      left : ('a,'b) tree,
      key : 'a,
      value : 'b,
@@ -3310,7 +3323,7 @@ datatype ('a,'b) tree =
 
 type ('a,'b) node =
      {size : int,
-      priority : real,
+      priority : priority,
       left : ('a,'b) tree,
       key : 'a,
       value : 'b,
@@ -3323,14 +3336,9 @@ datatype ('a,'b) map = Map of ('a * 'a -> order) * ('a,'b) tree;
 (* ------------------------------------------------------------------------- *)
 
 local
-  val randomPriority =
-      let
-        val gen = Random.newgenseed 2.0
-      in
-        fn () => Random.random gen
-      end;
+  val randomPriority = randomWord;
 
-  val priorityOrder = Real.compare;
+  val priorityOrder = Word.compare;
 in
   fun treeSingleton (key,value) =
       T {size = 1, priority = randomPriority (),
@@ -3860,7 +3868,10 @@ fun exists p m = Option.isSome (findl p m);
 
 fun all p m = not (exists (not o p) m);
 
-fun random m = case size m of 0 => raise Empty | n => nth m (randomInt n);
+fun random m =
+    case size m of
+      0 => raise Error "RandomMap.random: empty"
+    | n => nth m (randomInt n);
 
 local
   fun iterCompare _ _ NONE NONE = EQUAL
@@ -4355,6 +4366,10 @@ val toList : 'a stream -> 'a list
 
 val fromList : 'a list -> 'a stream
 
+val toString : char stream -> string
+
+val fromString : string -> char stream
+
 val toTextFile : {filename : string} -> string stream -> unit
 
 val fromTextFile : {filename : string} -> string stream  (* line by line *)
@@ -4541,6 +4556,10 @@ end;
 
 fun fromList [] = NIL
   | fromList (x :: xs) = CONS (x, fn () => fromList xs);
+
+fun toString s = implode (toList s);
+
+fun fromString s = fromList (explode s);
 
 fun toTextFile {filename = f} s =
     let
@@ -4980,6 +4999,7 @@ fun ppPair ppA ppB = ppBracket "(" ")" (ppBinop "," ppA ppB);
 
 fun ppTriple ppA ppB ppC = ppBracket "(" ")" (ppTrinop "," "," ppA ppB ppC);
 
+(* Keep eta expanded to evaluate lineLength when supplied with a *)
 fun toString ppA a = PP.pp_to_string (!lineLength) ppA a;
 
 fun fromString toS = ppMap toS ppString;
@@ -5400,7 +5420,7 @@ local
     | range NONE (SOME j) = "{n IN Z | n <= " ^ Int.toString j ^ "}"
     | range (SOME i) (SOME j) =
     "{n IN Z | " ^ Int.toString i ^ " <= n <= " ^ Int.toString j ^ "}";
-  fun oLeq (SOME (x: int)) (SOME y) = x <= y | oLeq _ _ = true;
+  fun oLeq (SOME x) (SOME y) = x <= y | oLeq _ _ = true;
   fun argToInt arg omin omax x =
     (case Int.fromString x of
        SOME i =>
@@ -5468,12 +5488,6 @@ val basicOptions : opt list =
   [{switches = ["--"], arguments = [],
     description = "no more options",
     processor = fn _ => raise Fail "basicOptions: --"},
-   {switches = ["--verbose"], arguments = ["0..10"],
-    description = "the degree of verbosity",
-    processor = intOpt (SOME 0, SOME 10) endOpt (fn i => traceLevel := i)},
-   {switches = ["--secret"], arguments = [],
-    description = "process then hide the next option",
-    processor = fn _ => raise Fail "basicOptions: --secret"},
    {switches = ["-?","-h","--help"], arguments = [],
     description = "display all options and exit",
     processor = fn _ => raise OptionExit
@@ -5497,10 +5511,6 @@ fun versionInformation ({version, ...} : allOptions) = version;
 
 fun usageInformation ({name,version,header,footer,options} : allOptions) =
   let
-    fun filt ["--verbose"] = false
-      | filt ["--secret"] = false
-      | filt _ = true
-
     fun listOpts {switches = n, arguments = r, description = s,
                   processor = _} =
         let
@@ -5511,8 +5521,6 @@ fun usageInformation ({name,version,header,footer,options} : allOptions) =
         in
           [res ^ " ...", " " ^ s]
         end
-
-    val options = List.filter (filt o #switches) options
 
     val alignment =
         [{leftAlign = true, padChar = #"."},
@@ -5580,7 +5588,6 @@ fun processOptions (allopts : allOptions) =
 
     fun process [] = ([], [])
       | process ("--" :: xs) = ([("--",[])], xs)
-      | process ("--secret" :: xs) = (tl ## I) (process xs)
       | process ("-v" :: _) = version allopts
       | process ("--version" :: _) = version allopts
       | process (x :: xs) =
@@ -6021,10 +6028,14 @@ fun isBinop f = can (destBinop f);
 (* The size of a term in symbols.                                            *)
 (* ------------------------------------------------------------------------- *)
 
+val VAR_SYMBOLS = 1;
+
+val FN_SYMBOLS = 1;
+
 local
   fun sz n [] = n
-    | sz n (Var _ :: tms) = sz (n + 1) tms
-    | sz n (Fn (_,args) :: tms) = sz (n + 1) (args @ tms);
+    | sz n (Var _ :: tms) = sz (n + VAR_SYMBOLS) tms
+    | sz n (Fn (func,args) :: tms) = sz (n + FN_SYMBOLS) (args @ tms);
 in
   fun symbols tm = sz 0 [tm];
 end;
@@ -8853,6 +8864,10 @@ type proof = (Metis.Thm.thm * inference) list
 (* Reconstructing single inferences.                                         *)
 (* ------------------------------------------------------------------------- *)
 
+val inferenceType : inference -> Metis.Thm.inferenceType
+
+val parents : inference -> Metis.Thm.thm list
+
 val inferenceToThm : inference -> Metis.Thm.thm
 
 val thmToInference : Metis.Thm.thm -> inference
@@ -8921,52 +8936,55 @@ fun inferenceType (Axiom _) = Thm.Axiom
   | inferenceType (Equality _) = Thm.Equality;
 
 local
-  open Parser;
-
-  fun ppAssume pp atm = (addBreak pp (1,0); Atom.pp pp atm);
+  fun ppAssume pp atm = (Parser.addBreak pp (1,0); Atom.pp pp atm);
 
   fun ppSubst ppThm pp (sub,thm) =
-      (addBreak pp (1,0);
-       beginBlock pp Inconsistent 1;
-       addString pp "{";
-       ppBinop " =" ppString Subst.pp pp ("sub",sub);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString ppThm pp ("thm",thm);
-       addString pp "}";
-       endBlock pp);
+      (Parser.addBreak pp (1,0);
+       Parser.beginBlock pp Parser.Inconsistent 1;
+       Parser.addString pp "{";
+       Parser.ppBinop " =" Parser.ppString Subst.pp pp ("sub",sub);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString ppThm pp ("thm",thm);
+       Parser.addString pp "}";
+       Parser.endBlock pp);
 
   fun ppResolve ppThm pp (res,pos,neg) =
-      (addBreak pp (1,0);
-       beginBlock pp Inconsistent 1;
-       addString pp "{";
-       ppBinop " =" ppString Atom.pp pp ("res",res);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString ppThm pp ("pos",pos);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString ppThm pp ("neg",neg);
-       addString pp "}";
-       endBlock pp);
+      (Parser.addBreak pp (1,0);
+       Parser.beginBlock pp Parser.Inconsistent 1;
+       Parser.addString pp "{";
+       Parser.ppBinop " =" Parser.ppString Atom.pp pp ("res",res);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString ppThm pp ("pos",pos);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString ppThm pp ("neg",neg);
+       Parser.addString pp "}";
+       Parser.endBlock pp);
 
-  fun ppRefl pp tm = (addBreak pp (1,0); Term.pp pp tm);
+  fun ppRefl pp tm = (Parser.addBreak pp (1,0); Term.pp pp tm);
 
   fun ppEquality pp (lit,path,res) =
-      (addBreak pp (1,0);
-       beginBlock pp Inconsistent 1;
-       addString pp "{";
-       ppBinop " =" ppString Literal.pp pp ("lit",lit);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString (ppList ppInt) pp ("path",path);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString Term.pp pp ("res",res);
-       addString pp "}";
-       endBlock pp);
+      (Parser.addBreak pp (1,0);
+       Parser.beginBlock pp Parser.Inconsistent 1;
+       Parser.addString pp "{";
+       Parser.ppBinop " =" Parser.ppString Literal.pp pp ("lit",lit);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString Term.ppPath pp ("path",path);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString Term.pp pp ("res",res);
+       Parser.addString pp "}";
+       Parser.endBlock pp);
 
   fun ppInf ppAxiom ppThm pp inf =
       let
         val infString = Thm.inferenceTypeToString (inferenceType inf)
       in
-        beginBlock pp Inconsistent (size infString + 1);
-        ppString pp infString;
+        Parser.beginBlock pp Parser.Inconsistent (size infString + 1);
+        Parser.ppString pp infString;
         case inf of
           Axiom cl => ppAxiom pp cl
         | Assume x => ppAssume pp x
@@ -8974,14 +8992,14 @@ local
         | Resolve x => ppResolve ppThm pp x
         | Refl x => ppRefl pp x
         | Equality x => ppEquality pp x;
-        endBlock pp
+        Parser.endBlock pp
       end;
 
   fun ppAxiom pp cl =
-      (addBreak pp (1,0);
-       ppMap
+      (Parser.addBreak pp (1,0);
+       Parser.ppMap
          LiteralSet.toList
-         (ppBracket "{" "}" (ppSequence "," Literal.pp)) pp cl);
+         (Parser.ppBracket "{" "}" (Parser.ppSequence "," Literal.pp)) pp cl);
 in
   val ppInference = ppInf ppAxiom Thm.pp;
 
@@ -8998,30 +9016,30 @@ in
               fun pred (_,(th',_)) = LiteralSet.equal (Thm.clause th') cl
             in
               case List.find pred prf of
-                NONE => addString p "(???)"
-              | SOME (n,_) => addString p (thmString n)
+                NONE => Parser.addString p "(?)"
+              | SOME (n,_) => Parser.addString p (thmString n)
             end
 
         fun ppStep (n,(th,inf)) =
             let
               val s = thmString n
             in
-              beginBlock p Consistent (1 + size s);
-              addString p (s ^ " ");
+              Parser.beginBlock p Parser.Consistent (1 + size s);
+              Parser.addString p (s ^ " ");
               Thm.pp p th;
-              addBreak p (2,0);
-              ppBracket "[" "]" (ppInf (K (K ())) ppThm) p inf;
-              endBlock p;
-              addNewline p
+              Parser.addBreak p (2,0);
+              Parser.ppBracket "[" "]" (ppInf (K (K ())) ppThm) p inf;
+              Parser.endBlock p;
+              Parser.addNewline p
             end
       in
-        beginBlock p Consistent 0;
-        addString p "START OF PROOF";
-        addNewline p;
+        Parser.beginBlock p Parser.Consistent 0;
+        Parser.addString p "START OF PROOF";
+        Parser.addNewline p;
         app ppStep prf;
-        addString p "END OF PROOF";
-        addNewline p;
-        endBlock p
+        Parser.addString p "END OF PROOF";
+        Parser.addNewline p;
+        Parser.endBlock p
       end
 (*DEBUG
       handle Error err => raise Bug ("Proof.pp: shouldn't fail:\n" ^ err);
@@ -9036,6 +9054,13 @@ val toString = Parser.toString pp;
 (* ------------------------------------------------------------------------- *)
 (* Reconstructing single inferences.                                         *)
 (* ------------------------------------------------------------------------- *)
+
+fun parents (Axiom _) = []
+  | parents (Assume _) = []
+  | parents (Subst (_,th)) = [th]
+  | parents (Resolve (_,th,th')) = [th,th']
+  | parents (Refl _) = []
+  | parents (Equality _) = [];
 
 fun inferenceToThm (Axiom cl) = Thm.axiom cl
   | inferenceToThm (Assume atm) = Thm.assume (true,atm)
@@ -11524,14 +11549,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Chatting.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val module = "Model";
-fun chatting l = tracing {module = module, level = l};
-fun chat s = (trace s; true);
-
-(* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -11946,7 +11963,7 @@ val valuationEmpty : valuation = NameMap.new ();
 
 fun valuationRandom {size = N} vs =
     let
-      fun f (v,V) = NameMap.insert V (v, random N)
+      fun f (v,V) = NameMap.insert V (v, Portable.randomInt N)
     in
       NameSet.foldl f valuationEmpty vs
     end;
@@ -12010,7 +12027,7 @@ fun interpretTerm M V =
                 val k =
                     case fixed_functions f_elts of
                       SOME k => k
-                    | NONE => random N
+                    | NONE => Portable.randomInt N
 
                 val () = functions := Map.insert funcs (f_elts,k)
               in
@@ -12037,7 +12054,7 @@ fun interpretAtom M V (r,tms) =
           val b =
               case fixed_relations r_elts of
                 SOME b => b
-              | NONE => coinFlip ()
+              | NONE => Portable.randomBool ()
 
           val () = relations := Map.insert rels (r_elts,b)
         in
@@ -12209,7 +12226,7 @@ fun checkFormula {models,checks} exp fm =
       fun check 0 = true
         | check n =
           let
-            val N = 3 + random 3
+            val N = 3 + Portable.randomInt 3
             val M = Model.new {size = N, fixed = Model.fixedPure}
             val {T,F} = Model.checkFormula {maxChecks = checks} M fm
           in
@@ -13467,7 +13484,7 @@ val strictlySubsumes = fn pred => fn subsume => fn cl =>
       val ppCl = LiteralSet.pp
       val ppSub = Subst.pp
       val () = Parser.ppTrace ppCl "Subsume.strictlySubsumes: cl" cl
-      val result = strictlySubsumes subsume cl
+      val result = strictlySubsumes pred subsume cl
       val () =
           case result of
             NONE => trace "Subsume.subsumes: not subsumed\n"
@@ -14924,8 +14941,9 @@ fun isLargerTerm ({ordering,orderTerms,...} : parameters) l_r =
 
 local
   fun atomToTerms atm =
-      Term.Fn atm ::
-      (case total Atom.sym atm of NONE => [] | SOME atm => [Term.Fn atm]);
+      case total Atom.destEq atm of
+        NONE => [Term.Fn atm]
+      | SOME (l,r) => [l,r];
 
   fun notStrictlyLess ordering (xs,ys) =
       let
@@ -15695,18 +15713,18 @@ fun addFactorClause active cl =
 (* Derive (unfactored) consequences of a clause.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun deduceResolution literals cl (lit,acc) =
+fun deduceResolution literals cl (lit as (_,atm), acc) =
     let
       fun resolve (cl_lit,acc) =
           case total (Clause.resolve cl_lit) (cl,lit) of
             SOME cl' => cl' :: acc
           | NONE => acc
-
 (*TRACE4
       val () = Parser.ppTrace Literal.pp "Active.deduceResolution: lit" lit
 *)
     in
-      foldl resolve acc (LiteralNet.unify literals (Literal.negate lit))
+      if Atom.isEq atm then acc
+      else foldl resolve acc (LiteralNet.unify literals (Literal.negate lit))
     end;
 
 fun deduceParamodulationWith subterms cl ((lit,ort,tm),acc) =
@@ -16115,16 +16133,26 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Chatting.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val module = "Waiting";
-fun chatting l = tracing {module = module, level = l};
-fun chat s = (trace s; true);
-
-(* ------------------------------------------------------------------------- *)
 (* A type of waiting sets of clauses.                                        *)
 (* ------------------------------------------------------------------------- *)
+
+(* The parameter type controls the heuristics for clause selection.          *)
+(* Increasing any of the *Weight parameters will favour clauses with low     *)
+(* values of that field.                                                     *)
+
+(* Note that there is an extra parameter of inference distance from the      *)
+(* starting axioms (a.k.a. time) which has a fixed weight of 1, so all       *)
+(* the other parameters should be set relative to this baseline.             *)
+
+(* The first two parameters, symbolsWeight and literalsWeight, control the   *)
+(* time:weight ratio, i.e., whether to favour clauses derived in a few       *)
+(* steps from the axioms (time) or whether to favour small clauses (weight). *)
+(* Small can be a combination of low number of symbols (the symbolWeight     *)
+(* parameter) or literals (the literalsWeight parameter).                    *)
+
+(* modelsWeight controls the semantic guidance. Increasing this parameter    *)
+(* favours clauses that return false more often when interpreted             *)
+(* modelChecks times over the given list of models.                          *)
 
 type parameters =
      {symbolsWeight : real,
@@ -16446,7 +16474,7 @@ end;
 (**** Original file: Tptp.sig ****)
 
 (* ========================================================================= *)
-(* INTERFACE TO TPTP PROBLEM FILES                                           *)
+(* THE TPTP PROBLEM FILE FORMAT (TPTP v2)                                    *)
 (* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
@@ -16523,6 +16551,14 @@ val fromProblem : Metis.Problem.problem -> problem
 
 val prove : {filename : string} -> bool
 
+(* ------------------------------------------------------------------------- *)
+(* TSTP proofs.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val ppProof : Metis.Proof.proof Metis.Parser.pp
+
+val proofToString : Metis.Proof.proof -> string
+
 end
 
 (**** Original file: Tptp.sml ****)
@@ -16534,7 +16570,7 @@ val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
 (* ========================================================================= *)
-(* INTERFACE TO TPTP PROBLEM FILES                                           *)
+(* THE TPTP PROBLEM FILE FORMAT (TPTP v2)                                    *)
 (* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
@@ -16549,6 +16585,20 @@ open Useful;
 
 val ROLE_NEGATED_CONJECTURE = "negated_conjecture"
 and ROLE_CONJECTURE = "conjecture";
+
+(* ------------------------------------------------------------------------- *)
+(* Helper functions.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun isHdTlString hp tp s =
+    let
+      fun ct 0 = true
+        | ct i = tp (String.sub (s,i)) andalso ct (i - 1)
+
+      val n = size s
+    in
+      n > 0 andalso hp (String.sub (s,0)) andalso ct (n - 1)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping TPTP functions and relations to different names.                  *)
@@ -16687,16 +16737,27 @@ fun destLiteral (Literal l) = l
 (* Printing formulas using TPTP syntax.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun term pp (Term.Var v) = PP.add_string pp v
-    | term pp (Term.Fn (c,[])) = PP.add_string pp c
-    | term pp (Term.Fn (f,tms)) =
-      (PP.begin_block pp PP.INCONSISTENT 2;
-       PP.add_string pp (f ^ "(");
-       Parser.ppSequence "," term pp tms;
-       PP.add_string pp ")";
-       PP.end_block pp);
+val ppVar = Parser.ppString;
 
+local
+  fun term pp (Term.Var v) = ppVar pp v
+    | term pp (Term.Fn (c,[])) = Parser.addString pp c
+    | term pp (Term.Fn (f,tms)) =
+      (Parser.beginBlock pp Parser.Inconsistent 2;
+       Parser.addString pp (f ^ "(");
+       Parser.ppSequence "," term pp tms;
+       Parser.addString pp ")";
+       Parser.endBlock pp);
+in
+  fun ppTerm pp tm =
+      (Parser.beginBlock pp Parser.Inconsistent 0;
+       term pp tm;
+       Parser.endBlock pp);
+end;
+
+fun ppAtom pp atm = ppTerm pp (Term.Fn atm);
+
+local
   open Formula;
 
   fun fof pp (fm as And _) = assoc_binary pp ("&", stripConj fm)
@@ -16716,50 +16777,47 @@ local
       else if atom pp fm then ()
       else if isNeg fm then
         let
-          fun pr () = (PP.add_string pp "~"; PP.add_break pp (1,0))
+          fun pr () = (Parser.addString pp "~"; Parser.addBreak pp (1,0))
           val (n,fm) = Formula.stripNeg fm
         in
-          PP.begin_block pp PP.INCONSISTENT 2;
+          Parser.beginBlock pp Parser.Inconsistent 2;
           funpow n pr ();
           unitary pp fm;
-          PP.end_block pp
+          Parser.endBlock pp
         end
       else
-        (PP.begin_block pp PP.INCONSISTENT 1;
-         PP.add_string pp "(";
+        (Parser.beginBlock pp Parser.Inconsistent 1;
+         Parser.addString pp "(";
          fof pp fm;
-         PP.add_string pp ")";
-         PP.end_block pp)
+         Parser.addString pp ")";
+         Parser.endBlock pp)
 
   and quantified pp (q,(vs,fm)) =
-      (PP.begin_block pp PP.INCONSISTENT 2;
-       PP.add_string pp (q ^ " ");
-       PP.begin_block pp PP.INCONSISTENT (String.size q);
-       PP.add_string pp "[";
-       Parser.ppSequence "," Parser.ppString pp vs;
-       PP.add_string pp "] :";
-       PP.end_block pp;
-       PP.add_break pp (1,0);
+      (Parser.beginBlock pp Parser.Inconsistent 2;
+       Parser.addString pp (q ^ " ");
+       Parser.beginBlock pp Parser.Inconsistent (String.size q);
+       Parser.addString pp "[";
+       Parser.ppSequence "," ppVar pp vs;
+       Parser.addString pp "] :";
+       Parser.endBlock pp;
+       Parser.addBreak pp (1,0);
        unitary pp fm;
-       PP.end_block pp)
+       Parser.endBlock pp)
       
-  and atom pp True = (PP.add_string pp "$true"; true)
-    | atom pp False = (PP.add_string pp "$false"; true)
+  and atom pp True = (Parser.addString pp "$true"; true)
+    | atom pp False = (Parser.addString pp "$false"; true)
     | atom pp fm =
       case total destEq fm of
-        SOME a_b => (Parser.ppBinop " =" term term pp a_b; true)
+        SOME a_b => (Parser.ppBinop " =" ppTerm ppTerm pp a_b; true)
       | NONE =>
         case total destNeq fm of
-          SOME a_b => (Parser.ppBinop " !=" term term pp a_b; true)
-        | NONE =>
-          case fm of
-            Atom atm => (term pp (Term.Fn atm); true)
-          | _ => false;
+          SOME a_b => (Parser.ppBinop " !=" ppTerm ppTerm pp a_b; true)
+        | NONE => case fm of Atom atm => (ppAtom pp atm; true) | _ => false;
 in
   fun ppFof pp fm =
-      (PP.begin_block pp PP.INCONSISTENT 0;
+      (Parser.beginBlock pp Parser.Inconsistent 0;
        fof pp fm;
-       PP.end_block pp);
+       Parser.endBlock pp);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -16799,6 +16857,12 @@ fun mapClause maps lits = map (mapLiteral maps) lits;
 fun clauseToFormula lits = Formula.listMkDisj (map literalToFormula lits);
 
 fun clauseFromFormula fm = map literalFromFormula (Formula.stripDisj fm);
+
+fun clauseFromLiteralSet cl =
+    clauseFromFormula
+      (Formula.listMkDisj (LiteralSet.transform Literal.toFormula cl));
+
+fun clauseFromThm th = clauseFromLiteralSet (Thm.clause th);
 
 val ppClause = Parser.ppMap clauseToFormula ppFof;
 
@@ -16852,200 +16916,53 @@ fun formulaIsConjecture (CnfFormula {role,...}) = role = ROLE_NEGATED_CONJECTURE
   | formulaIsConjecture (FofFormula {role,...}) = role = ROLE_CONJECTURE;
 
 local
-  val mkTptpString =
-      let
-        fun tr #"'" = ""
-          | tr c =
-            if c = #"_" orelse Char.isAlphaNum c then str c
-            else raise Error "bad character"
-      in
-        String.translate tr
-      end;
-
-  fun mkTptpName a n =
-      let
-        val n' = mkTptpString n
-
-        val n' =
-            case explode n' of
-              [] => raise Error "empty"
-            | c :: cs =>
-              if Char.isLower c then n'
-              else if Char.isDigit c andalso List.all Char.isDigit cs then n'
-              else if Char.isUpper c then implode (Char.toLower c :: cs)
-              else raise Error "bad initial character"
-      in
-        if n = n' then n else Term.variantNum a n'
-      end
-      handle Error err => raise Error ("bad name \"" ^ n ^ "\": " ^ err);
-
-  fun mkMap set mapping =
-      let
-        val mapping = mappingToTptp mapping
-
-        fun mk ((n,r),(a,m)) =
-            case NameArityMap.peek mapping (n,r) of
-              SOME t => (a, NameArityMap.insert m ((n,r),t))
-            | NONE =>
-              let
-                val t = mkTptpName a n
-              in
-                (NameSet.add a t, NameArityMap.insert m ((n,r),t))
-              end
-
-        val avoid =
-            let
-              fun mk ((n,r),s) =
-                  let
-                    val n = Option.getOpt (NameArityMap.peek mapping (n,r), n)
-                  in
-                    NameSet.add s n
-                  end
-            in
-              NameAritySet.foldl mk NameSet.empty set
-            end
-      in
-        snd (NameAritySet.foldl mk (avoid, NameArityMap.new ()) set)
-      end;
-
-  fun mkTptpVar a v =
-      let
-        val v' = mkTptpString v
-
-        val v' =
-            case explode v' of
-              [] => raise Error "empty"
-            | c :: cs =>
-              if c = #"_" orelse Char.isUpper c then v'
-              else if Char.isLower c then implode (Char.toUpper c :: cs)
-              else raise Error "bad initial character"
-      in
-        Term.variantNum a v'
-      end
-      handle Error err => raise Error ("bad var \"" ^ v ^ "\": " ^ err);
-
-  fun isTptpVar v = mkTptpVar NameSet.empty v = v;
-
-  fun alphaFormula fm =
-      let
-        fun addVar v a s =
-            let
-              val v' = mkTptpVar a v
-              val a = NameSet.add a v'
-              and s = if v = v' then s else Subst.insert s (v, Term.Var v')
-            in
-              (v',(a,s))
-            end
-
-        fun initVar (v,(a,s)) = snd (addVar v a s)
-
-        open Formula
-
-        fun alpha _ _ True = True
-          | alpha _ _ False = False
-          | alpha _ s (Atom atm) = Atom (Atom.subst s atm)
-          | alpha a s (Not p) = Not (alpha a s p)
-          | alpha a s (And (p,q)) = And (alpha a s p, alpha a s q)
-          | alpha a s (Or (p,q)) = Or (alpha a s p, alpha a s q)
-          | alpha a s (Imp (p,q)) = Imp (alpha a s p, alpha a s q)
-          | alpha a s (Iff (p,q)) = Iff (alpha a s p, alpha a s q)
-          | alpha a s (Forall (v,p)) =
-            let val (v,(a,s)) = addVar v a s in Forall (v, alpha a s p) end
-          | alpha a s (Exists (v,p)) =
-            let val (v,(a,s)) = addVar v a s in Exists (v, alpha a s p) end
-
-        val fvs = formulaFreeVars fm
-        val (avoid,fvs) = NameSet.partition isTptpVar fvs
-        val (avoid,sub) = NameSet.foldl initVar (avoid,Subst.empty) fvs
-(*TRACE5
-        val () = Parser.ppTrace Subst.pp "Tptp.alpha: sub" sub
-*)
-      in
-        case fm of
-          CnfFormula {name,role,clause} =>
-          CnfFormula {name = name, role = role, clause = clauseSubst sub clause}
-        | FofFormula {name,role,formula} =>
-          FofFormula {name = name, role = role, formula = alpha avoid sub formula}
-      end;
-
-  fun formulaToTptp maps fm = alphaFormula (mapFormula maps fm);
-in
-  fun formulasToTptp formulas =
-      let
-        val funcs = formulasFunctions formulas
-        and rels = formulasRelations formulas
-                   
-        val functionMap = mkMap funcs (!functionMapping)
-        and relationMap = mkMap rels (!relationMapping)
-                          
-        val maps = {functionMap = functionMap, relationMap = relationMap}
-      in
-        map (formulaToTptp maps) formulas
-      end;
-end;
-
-fun formulasFromTptp formulas =
-    let
-      val functionMap = mappingFromTptp (!functionMapping)
-      and relationMap = mappingFromTptp (!relationMapping)
-                        
-      val maps = {functionMap = functionMap, relationMap = relationMap}
-    in
-      map (mapFormula maps) formulas
-    end;
-
-local
-  fun ppGen ppX pp (gen,name,role,x) =
-      (PP.begin_block pp PP.INCONSISTENT (size gen + 1);
-       PP.add_string pp (gen ^ "(" ^ name ^ ",");
-       PP.add_break pp (1,0);
-       PP.add_string pp (role ^ ",");
-       PP.add_break pp (1,0);
-       PP.begin_block pp PP.CONSISTENT 1;
-       PP.add_string pp "(";
-       ppX pp x;
-       PP.add_string pp ")";
-       PP.end_block pp;
-       PP.add_string pp ").";
-       PP.end_block pp);
-in
-  fun ppFormula pp (CnfFormula {name,role,clause}) =
-      ppGen ppClause pp ("cnf",name,role,clause)
-    | ppFormula pp (FofFormula {name,role,formula}) =
-      ppGen ppFof pp ("fof",name,role,formula);
-end;
-
-val formulaToString = Parser.toString ppFormula;
-
-local
   open Parser;
 
   infixr 8 ++
   infixr 7 >>
   infixr 6 ||
 
-  datatype token = AlphaNum of string | Punct of char;
+  datatype token =
+      AlphaNum of string
+    | Punct of char
+    | Quote of string;
+
+  fun isAlphaNum #"_" = true
+    | isAlphaNum c = Char.isAlphaNum c;
 
   local
-    fun isAlphaNum #"_" = true
-      | isAlphaNum c = Char.isAlphaNum c;
-
     val alphaNumToken = atLeastOne (some isAlphaNum) >> (AlphaNum o implode);
 
     val punctToken =
         let
-          val punctChars = explode "<>=-*+/\\?@|!$%&#^:;~()[]{}.,"
-
-          fun isPunctChar c = mem c punctChars
+          val punctChars = "<>=-*+/\\?@|!$%&#^:;~()[]{}.,"
         in
-          some isPunctChar >> Punct
+          some (Char.contains punctChars) >> Punct
         end;
 
-    val lexToken = alphaNumToken || punctToken;
+    val quoteToken =
+        let
+          val escapeParser =
+              exact #"'" >> singleton ||
+              exact #"\\" >> singleton
 
-    val space = many (some Char.isSpace);
+          fun stopOn #"'" = true
+            | stopOn #"\n" = true
+            | stopOn _ = false
+
+          val quotedParser =
+              exact #"\\" ++ escapeParser >> op:: ||
+              some (not o stopOn) >> singleton
+        in
+          exact #"'" ++ many quotedParser ++ exact #"'" >>
+          (fn (_,(l,_)) => Quote (implode (List.concat l)))
+        end;
+
+    val lexToken = alphaNumToken || punctToken || quoteToken;
+
+    val space = many (some Char.isSpace) >> K ();
   in
-    val lexer = (space ++ lexToken ++ space) >> (fn (_,(tok,_)) => tok);
+    val lexer = (space ++ lexToken ++ space) >> (fn ((),(tok,())) => tok);
   end;
 
   fun someAlphaNum p =
@@ -17053,7 +16970,9 @@ local
 
   fun alphaNumParser s = someAlphaNum (equal s) >> K ();
 
-  val lowerParser = someAlphaNum (fn s => Char.isLower (String.sub (s,0)));
+  fun isLower s = Char.isLower (String.sub (s,0));
+
+  val lowerParser = someAlphaNum isLower;
 
   val upperParser = someAlphaNum (fn s => Char.isUpper (String.sub (s,0)));
 
@@ -17066,12 +16985,56 @@ local
 
   fun punctParser c = somePunct (equal c) >> K ();
 
+  fun quoteParser p =
+      let
+        fun q s = if p s then s else "'" ^ s ^ "'"
+      in
+        maybe (fn Quote s => SOME (q s) | _ => NONE)
+      end;
+
   local
     fun f [] = raise Bug "symbolParser"
       | f [x] = x
       | f (h :: t) = (h ++ f t) >> K ();
   in
     fun symbolParser s = f (map punctParser (explode s));
+  end;
+
+  val definedParser =
+      punctParser #"$" ++ someAlphaNum (K true) >> (fn ((),s) => "$" ^ s);
+
+  val systemParser =
+      punctParser #"$" ++ punctParser #"$" ++ someAlphaNum (K true) >>
+      (fn ((),((),s)) => "$$" ^ s);
+
+  val nameParser = stringParser || numberParser || quoteParser (K false);
+
+  val roleParser = lowerParser;
+
+  local
+    fun isProposition s = isHdTlString Char.isLower isAlphaNum s;
+  in
+    val propositionParser =
+        someAlphaNum isProposition ||
+        definedParser || systemParser || quoteParser isProposition;
+  end;
+
+  local
+    fun isFunction s = isHdTlString Char.isLower isAlphaNum s;
+  in
+    val functionParser =
+        someAlphaNum isFunction ||
+        definedParser || systemParser || quoteParser isFunction;
+  end;
+
+  local
+    fun isConstant s =
+        isHdTlString Char.isLower isAlphaNum s orelse
+        isHdTlString Char.isDigit Char.isDigit s;
+  in
+    val constantParser =
+        someAlphaNum isConstant ||
+        definedParser || systemParser || quoteParser isConstant;
   end;
 
   val varParser = upperParser;
@@ -17081,17 +17044,6 @@ local
        many ((punctParser #"," ++ varParser) >> snd) ++
        punctParser #"]") >>
       (fn ((),(h,(t,()))) => h :: t);
-
-  val functionParser = lowerParser;
-
-  val constantParser = lowerParser || numberParser;
-
-  val propositionParser = lowerParser;
-
-  val booleanParser =
-      (punctParser #"$" ++
-       ((alphaNumParser "true" >> K true) ||
-        (alphaNumParser "false" >> K false))) >> snd;
 
   fun termParser input =
       ((functionArgumentsParser >> Term.Fn) ||
@@ -17127,8 +17079,11 @@ local
        (fn n => (true,(n,[]))));
 
   val atomParser =
-      (booleanParser >> Boolean) ||
-      (literalAtomParser >> Literal);
+      literalAtomParser >>
+      (fn (pol,("$true",[])) => Boolean pol
+        | (pol,("$false",[])) => Boolean (not pol)
+        | (pol,("$equal",[a,b])) => Literal (pol, Atom.mkEq (a,b))
+        | lit => Literal lit);
 
   val literalParser =
       ((punctParser #"~" ++ atomParser) >> (negate o snd)) ||
@@ -17268,8 +17223,8 @@ local
 
   val cnfParser =
       (alphaNumParser "cnf" ++ punctParser #"(" ++
-       stringParser ++ punctParser #"," ++
-       stringParser ++ punctParser #"," ++
+       nameParser ++ punctParser #"," ++
+       roleParser ++ punctParser #"," ++
        clauseParser ++ punctParser #")" ++
        punctParser #".") >>
       (fn ((),((),(n,((),(r,((),(c,((),())))))))) =>
@@ -17277,29 +17232,191 @@ local
 
   val fofParser =
       (alphaNumParser "fof" ++ punctParser #"(" ++
-       stringParser ++ punctParser #"," ++
-       stringParser ++ punctParser #"," ++
+       nameParser ++ punctParser #"," ++
+       roleParser ++ punctParser #"," ++
        fofFormulaParser ++ punctParser #")" ++
        punctParser #".") >>
       (fn ((),((),(n,((),(r,((),(f,((),())))))))) =>
           FofFormula {name = n, role = r, formula = f});
 
   val formulaParser = cnfParser || fofParser;
-in
-  fun parseFormula chars =
+
+  fun parseChars parser chars =
       let
         val tokens = Parser.everything (lexer >> singleton) chars
-                     
-        val formulas = Parser.everything (formulaParser >> singleton) tokens
       in
-        formulas
+        Parser.everything (parser >> singleton) tokens
       end;
+
+  fun canParseString parser s =
+      let
+        val chars = Stream.fromString s
+      in
+        case Stream.toList (parseChars parser chars) of
+          [_] => true
+        | _ => false
+      end
+      handle NoParse => false;
+in
+  val parseFormula = parseChars formulaParser;
+
+  val isTptpRelation = canParseString functionParser
+  and isTptpProposition = canParseString propositionParser
+  and isTptpFunction = canParseString functionParser
+  and isTptpConstant = canParseString constantParser;
 end;
 
 fun formulaFromString s =
     case Stream.toList (parseFormula (Stream.fromList (explode s))) of
       [fm] => fm
     | _ => raise Parser.NoParse;
+
+local
+  local
+    fun explodeAlpha s = List.filter Char.isAlpha (explode s);
+  in
+    fun normTptpName s n =
+        case explodeAlpha n of
+          [] => s
+        | c :: cs => implode (Char.toLower c :: cs);
+
+    fun normTptpVar s n =
+        case explodeAlpha n of
+          [] => s
+        | c :: cs => implode (Char.toUpper c :: cs);
+  end;
+
+  fun normTptpFunc (n,0) = if isTptpConstant n then n else normTptpName "c" n
+    | normTptpFunc (n,_) = if isTptpFunction n then n else normTptpName "f" n;
+
+  fun normTptpRel (n,0) = if isTptpProposition n then n else normTptpName "p" n
+    | normTptpRel (n,_) = if isTptpRelation n then n else normTptpName "r" n;
+
+  fun mkMap set norm mapping =
+      let
+        val mapping = mappingToTptp mapping
+
+        fun mk (n_r,(a,m)) =
+            case NameArityMap.peek mapping n_r of
+              SOME t => (a, NameArityMap.insert m (n_r,t))
+            | NONE =>
+              let
+                val t = norm n_r
+                val (n,_) = n_r
+                val t = if t = n then n else Term.variantNum a t
+              in
+                (NameSet.add a t, NameArityMap.insert m (n_r,t))
+              end
+
+        val avoid =
+            let
+              fun mk ((n,r),s) =
+                  let
+                    val n = Option.getOpt (NameArityMap.peek mapping (n,r), n)
+                  in
+                    NameSet.add s n
+                  end
+            in
+              NameAritySet.foldl mk NameSet.empty set
+            end
+      in
+        snd (NameAritySet.foldl mk (avoid, NameArityMap.new ()) set)
+      end;
+
+  fun mkTptpVar a v = Term.variantNum a (normTptpVar "V" v);
+
+  fun isTptpVar v = mkTptpVar NameSet.empty v = v;
+
+  fun alphaFormula fm =
+      let
+        fun addVar v a s =
+            let
+              val v' = mkTptpVar a v
+              val a = NameSet.add a v'
+              and s = if v = v' then s else Subst.insert s (v, Term.Var v')
+            in
+              (v',(a,s))
+            end
+
+        fun initVar (v,(a,s)) = snd (addVar v a s)
+
+        open Formula
+
+        fun alpha _ _ True = True
+          | alpha _ _ False = False
+          | alpha _ s (Atom atm) = Atom (Atom.subst s atm)
+          | alpha a s (Not p) = Not (alpha a s p)
+          | alpha a s (And (p,q)) = And (alpha a s p, alpha a s q)
+          | alpha a s (Or (p,q)) = Or (alpha a s p, alpha a s q)
+          | alpha a s (Imp (p,q)) = Imp (alpha a s p, alpha a s q)
+          | alpha a s (Iff (p,q)) = Iff (alpha a s p, alpha a s q)
+          | alpha a s (Forall (v,p)) =
+            let val (v,(a,s)) = addVar v a s in Forall (v, alpha a s p) end
+          | alpha a s (Exists (v,p)) =
+            let val (v,(a,s)) = addVar v a s in Exists (v, alpha a s p) end
+
+        val fvs = formulaFreeVars fm
+        val (avoid,fvs) = NameSet.partition isTptpVar fvs
+        val (avoid,sub) = NameSet.foldl initVar (avoid,Subst.empty) fvs
+(*TRACE5
+        val () = Parser.ppTrace Subst.pp "Tptp.alpha: sub" sub
+*)
+      in
+        case fm of
+          CnfFormula {name,role,clause} =>
+          CnfFormula {name = name, role = role, clause = clauseSubst sub clause}
+        | FofFormula {name,role,formula} =>
+          FofFormula {name = name, role = role, formula = alpha avoid sub formula}
+      end;
+
+  fun formulaToTptp maps fm = alphaFormula (mapFormula maps fm);
+in
+  fun formulasToTptp formulas =
+      let
+        val funcs = formulasFunctions formulas
+        and rels = formulasRelations formulas
+                   
+        val functionMap = mkMap funcs normTptpFunc (!functionMapping)
+        and relationMap = mkMap rels normTptpRel (!relationMapping)
+
+        val maps = {functionMap = functionMap, relationMap = relationMap}
+      in
+        map (formulaToTptp maps) formulas
+      end;
+end;
+
+fun formulasFromTptp formulas =
+    let
+      val functionMap = mappingFromTptp (!functionMapping)
+      and relationMap = mappingFromTptp (!relationMapping)
+                        
+      val maps = {functionMap = functionMap, relationMap = relationMap}
+    in
+      map (mapFormula maps) formulas
+    end;
+
+local
+  fun ppGen ppX pp (gen,name,role,x) =
+      (Parser.beginBlock pp Parser.Inconsistent (size gen + 1);
+       Parser.addString pp (gen ^ "(" ^ name ^ ",");
+       Parser.addBreak pp (1,0);
+       Parser.addString pp (role ^ ",");
+       Parser.addBreak pp (1,0);
+       Parser.beginBlock pp Parser.Consistent 1;
+       Parser.addString pp "(";
+       ppX pp x;
+       Parser.addString pp ")";
+       Parser.endBlock pp;
+       Parser.addString pp ").";
+       Parser.endBlock pp);
+in
+  fun ppFormula pp (CnfFormula {name,role,clause}) =
+      ppGen ppClause pp ("cnf",name,role,clause)
+    | ppFormula pp (FofFormula {name,role,formula}) =
+      ppGen ppFof pp ("fof",name,role,formula);
+end;
+
+val formulaToString = Parser.toString ppFormula;
 
 (* ------------------------------------------------------------------------- *)
 (* TPTP problems.                                                            *)
@@ -17328,12 +17445,7 @@ in
 
         val (comments,lines) = stripComments [] lines
 
-        val chars =
-            let
-              fun f line = Stream.fromList (explode line)
-            in
-              Stream.concat (Stream.map f lines)
-            end
+        val chars = Stream.concat (Stream.map Stream.fromString lines)
 
         val formulas = Stream.toList (parseFormula chars)
 
@@ -17430,11 +17542,9 @@ end;
 local
   fun fromClause cl n =
       let
-        val name = "clause" ^ Int.toString n
+        val name = "clause_" ^ Int.toString n
         val role = ROLE_NEGATED_CONJECTURE
-        val clause =
-            clauseFromFormula
-              (Formula.listMkDisj (LiteralSet.transform Literal.toFormula cl))
+        val clause = clauseFromLiteralSet cl
       in
         (CnfFormula {name = name, role = role, clause = clause}, n + 1)
       end;
@@ -17469,6 +17579,139 @@ in
         List.all refute problems
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* TSTP proofs.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun ppAtomInfo pp atm =
+      case total Atom.destEq atm of
+        SOME (a,b) => ppAtom pp ("$equal",[a,b])
+      | NONE => ppAtom pp atm;
+
+  fun ppLiteralInfo pp (pol,atm) =
+      if pol then ppAtomInfo pp atm
+      else
+        (Parser.beginBlock pp Parser.Inconsistent 2;
+         Parser.addString pp "~";
+         Parser.addBreak pp (1,0);
+         ppAtomInfo pp atm;
+         Parser.endBlock pp);
+
+  val ppAssumeInfo = Parser.ppBracket "(" ")" ppAtomInfo;
+
+  val ppSubstInfo =
+      Parser.ppMap
+        Subst.toList
+        (Parser.ppSequence ","
+           (Parser.ppBracket "[" "]"
+              (Parser.ppBinop "," ppVar (Parser.ppBracket "(" ")" ppTerm))));
+
+  val ppResolveInfo = Parser.ppBracket "(" ")" ppAtomInfo;
+
+  val ppReflInfo = Parser.ppBracket "(" ")" ppTerm;
+        
+  fun ppEqualityInfo pp (lit,path,res) =
+      (Parser.ppBracket "(" ")" ppLiteralInfo pp lit;
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Term.ppPath pp path;
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBracket "(" ")" ppTerm pp res);
+
+  fun ppInfInfo pp inf =
+      case inf of
+        Proof.Axiom _ => raise Bug "ppInfInfo"
+      | Proof.Assume atm => ppAssumeInfo pp atm
+      | Proof.Subst (sub,_) => ppSubstInfo pp sub
+      | Proof.Resolve (res,_,_) => ppResolveInfo pp res
+      | Proof.Refl tm => ppReflInfo pp tm
+      | Proof.Equality x => ppEqualityInfo pp x;
+in
+  fun ppProof p prf =
+      let
+        fun thmString n = Int.toString n
+                          
+        val prf = enumerate prf
+
+        fun ppThm p th =
+            let
+              val cl = Thm.clause th
+
+              fun pred (_,(th',_)) = LiteralSet.equal (Thm.clause th') cl
+            in
+              case List.find pred prf of
+                NONE => Parser.addString p "(?)"
+              | SOME (n,_) => Parser.addString p (thmString n)
+            end
+
+        fun ppInf p inf =
+            let
+              val name = Thm.inferenceTypeToString (Proof.inferenceType inf)
+              val name = String.map Char.toLower name
+            in
+              Parser.addString p (name ^ ",");
+              Parser.addBreak p (1,0);
+              Parser.ppBracket "[" "]" ppInfInfo p inf;
+              case Proof.parents inf of
+                [] => ()
+              | ths =>
+                (Parser.addString p ",";
+                 Parser.addBreak p (1,0);
+                 Parser.ppList ppThm p ths)
+            end
+              
+        fun ppTaut p inf =
+            (Parser.addString p "tautology,";
+             Parser.addBreak p (1,0);
+             Parser.ppBracket "[" "]" ppInf p inf)
+             
+        fun ppStepInfo p (n,(th,inf)) =
+            let
+              val is_axiom = case inf of Proof.Axiom _ => true | _ => false
+              val name = thmString n
+              val role =
+                  if is_axiom then "axiom"
+                  else if Thm.isContradiction th then "theorem"
+                  else "plain"
+              val cl = clauseFromThm th
+            in
+              Parser.addString p (name ^ ",");
+              Parser.addBreak p (1,0);
+              Parser.addString p (role ^ ",");
+              Parser.addBreak p (1,0);
+              Parser.ppBracket "(" ")" ppClause p cl;
+              if is_axiom then ()
+              else
+                let
+                  val is_tautology = null (Proof.parents inf)
+                in
+                  Parser.addString p ",";
+                  Parser.addBreak p (1,0);
+                  if is_tautology then
+                    Parser.ppBracket "introduced(" ")" ppTaut p inf
+                  else
+                    Parser.ppBracket "inference(" ")" ppInf p inf
+                end
+            end
+
+        fun ppStep p step =
+            (Parser.ppBracket "cnf(" ")" ppStepInfo p step;
+             Parser.addString p ".";
+             Parser.addNewline p)
+      in
+        Parser.beginBlock p Parser.Consistent 0;
+        app (ppStep p) prf;
+        Parser.endBlock p
+      end
+(*DEBUG
+      handle Error err => raise Bug ("Tptp.ppProof: shouldn't fail:\n" ^ err);
+*)
+end;
+
+val proofToString = Parser.toString ppProof;
 
 end
 end;

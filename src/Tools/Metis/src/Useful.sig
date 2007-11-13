@@ -26,14 +26,6 @@ val can : ('a -> 'b) -> 'a -> bool
 
 val tracePrint : (string -> unit) ref
 
-val maxTraceLevel : int ref
-
-val traceLevel : int ref  (* in the set {0, ..., maxTraceLevel} *)
-
-val traceAlign : {module : string, alignment : int -> int option} list ref
-
-val tracing : {module : string, level : int} -> bool
-
 val trace : string -> unit
 
 (* ------------------------------------------------------------------------- *)
@@ -165,6 +157,8 @@ val prodCompare :
 
 val lexCompare : ('a * 'a -> order) -> 'a list * 'a list -> order
 
+val optionCompare : ('a * 'a -> order) -> 'a option * 'a option -> order
+
 val boolCompare : bool * bool -> order  (* true < false *)
 
 (* ------------------------------------------------------------------------- *)
@@ -263,13 +257,9 @@ val newInt : unit -> int
 
 val newInts : int -> int list
 
-val random : int -> int
-
-val uniform : unit -> real
-
-val coinFlip : unit -> bool
-
 val withRef : 'r ref * 'r -> ('a -> 'b) -> 'a -> 'b
+
+val cloneArray : 'a Array.array -> 'a Array.array
 
 (* ------------------------------------------------------------------------- *)
 (* The environment.                                                          *)

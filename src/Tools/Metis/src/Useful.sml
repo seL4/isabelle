@@ -6,8 +6,6 @@
 structure Useful :> Useful =
 struct
 
-infixr 0 oo ## |->
-
 (* ------------------------------------------------------------------------- *)
 (* Exceptions                                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -34,29 +32,6 @@ fun partial (e as Error _) f x = (case f x of SOME y => y | NONE => raise e)
 (* ------------------------------------------------------------------------- *)
 
 val tracePrint = ref print;
-
-val maxTraceLevel = ref 10;
-
-val traceLevel = ref 1;
-
-val traceAlign : {module : string, alignment : int -> int option} list ref
-  = ref [];
-
-local
-  fun query m l t =
-      case List.find (fn {module, ...} => module = m) (!traceAlign) of
-        NONE => l <= t
-      | SOME {alignment,...} =>
-        case alignment l of NONE => false | SOME l => l <= t;
-in
-  fun tracing {module,level} =
-    let
-      val ref T = maxTraceLevel
-      and ref t = traceLevel
-    in
-      0 < t andalso (T <= t orelse query module level t)
-    end;
-end;
 
 fun trace message = !tracePrint message;
 
@@ -263,6 +238,11 @@ fun lexCompare cmp =
     in
       lex
     end;
+
+fun optionCompare _ (NONE,NONE) = EQUAL
+  | optionCompare _ (NONE,_) = LESS
+  | optionCompare _ (_,NONE) = GREATER
+  | optionCompare cmp (SOME x, SOME y) = cmp (x,y);
 
 fun boolCompare (true,false) = LESS
   | boolCompare (false,true) = GREATER
@@ -545,7 +525,11 @@ fun percentToString x = Int.toString (Real.round (100.0 * x)) ^ "%";
 
 fun pos r = Real.max (r,0.0);
 
-local val ln2 = Math.ln 2.0 in fun log2 x = Math.ln x / ln2 end;
+local
+  val invLn2 = 1.0 / Math.ln 2.0;
+in
+  fun log2 x = invLn2 * Math.ln x;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Sums.                                                                     *)
@@ -590,16 +574,6 @@ in
       end);
 end;
 
-local
-  val gen = Random.newgenseed 1.0;
-in
-  fun random max = Random.range (0,max) gen;
-
-  fun uniform () = Random.random gen;
-
-  fun coinFlip () = Random.range (0,2) gen = 0;
-end;
-
 fun withRef (r,new) f x =
   let
     val old = !r
@@ -609,6 +583,13 @@ fun withRef (r,new) f x =
   in
     y
   end;
+
+fun cloneArray a =
+    let
+      fun index i = Array.sub (a,i)
+    in
+      Array.tabulate (Array.length a, index)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Environment.                                                              *)

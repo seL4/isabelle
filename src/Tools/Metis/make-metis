@@ -22,7 +22,7 @@ THIS=$(cd "$(dirname "$0")"; echo $PWD)
 
 print_depth 0;
 
-structure Metis = struct end;
+structure Metis = struct structure Word = Word structure Array = Array end;
 EOF
 
   for FILE in $(cat "$THIS/src/FILES")

@@ -171,6 +171,10 @@ end;
 fun fromList [] = NIL
   | fromList (x :: xs) = CONS (x, fn () => fromList xs);
 
+fun toString s = implode (toList s);
+
+fun fromString s = fromList (explode s);
+
 fun toTextFile {filename = f} s =
     let
       val (h,close) =

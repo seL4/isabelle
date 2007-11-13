@@ -9,14 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Chatting.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val module = "Model";
-fun chatting l = tracing {module = module, level = l};
-fun chat s = (trace s; true);
-
-(* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -431,7 +423,7 @@ val valuationEmpty : valuation = NameMap.new ();
 
 fun valuationRandom {size = N} vs =
     let
-      fun f (v,V) = NameMap.insert V (v, random N)
+      fun f (v,V) = NameMap.insert V (v, Portable.randomInt N)
     in
       NameSet.foldl f valuationEmpty vs
     end;
@@ -495,7 +487,7 @@ fun interpretTerm M V =
                 val k =
                     case fixed_functions f_elts of
                       SOME k => k
-                    | NONE => random N
+                    | NONE => Portable.randomInt N
 
                 val () = functions := Map.insert funcs (f_elts,k)
               in
@@ -522,7 +514,7 @@ fun interpretAtom M V (r,tms) =
           val b =
               case fixed_relations r_elts of
                 SOME b => b
-              | NONE => coinFlip ()
+              | NONE => Portable.randomBool ()
 
           val () = relations := Map.insert rels (r_elts,b)
         in

@@ -24,6 +24,10 @@ type proof = (Thm.thm * inference) list
 (* Reconstructing single inferences.                                         *)
 (* ------------------------------------------------------------------------- *)
 
+val inferenceType : inference -> Thm.inferenceType
+
+val parents : inference -> Thm.thm list
+
 val inferenceToThm : inference -> Thm.thm
 
 val thmToInference : Thm.thm -> inference

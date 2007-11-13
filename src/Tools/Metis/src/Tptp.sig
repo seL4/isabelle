@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* INTERFACE TO TPTP PROBLEM FILES                                           *)
+(* THE TPTP PROBLEM FILE FORMAT (TPTP v2)                                    *)
 (* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
 (* ========================================================================= *)
 
@@ -75,5 +75,13 @@ val toGoal : problem -> goal
 val fromProblem : Problem.problem -> problem
 
 val prove : {filename : string} -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* TSTP proofs.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val ppProof : Proof.proof Parser.pp
+
+val proofToString : Proof.proof -> string
 
 end

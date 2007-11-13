@@ -296,7 +296,7 @@ val strictlySubsumes = fn pred => fn subsume => fn cl =>
       val ppCl = LiteralSet.pp
       val ppSub = Subst.pp
       val () = Parser.ppTrace ppCl "Subsume.strictlySubsumes: cl" cl
-      val result = strictlySubsumes subsume cl
+      val result = strictlySubsumes pred subsume cl
       val () =
           case result of
             NONE => trace "Subsume.subsumes: not subsumed\n"

@@ -9,16 +9,26 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Chatting.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val module = "Waiting";
-fun chatting l = tracing {module = module, level = l};
-fun chat s = (trace s; true);
-
-(* ------------------------------------------------------------------------- *)
 (* A type of waiting sets of clauses.                                        *)
 (* ------------------------------------------------------------------------- *)
+
+(* The parameter type controls the heuristics for clause selection.          *)
+(* Increasing any of the *Weight parameters will favour clauses with low     *)
+(* values of that field.                                                     *)
+
+(* Note that there is an extra parameter of inference distance from the      *)
+(* starting axioms (a.k.a. time) which has a fixed weight of 1, so all       *)
+(* the other parameters should be set relative to this baseline.             *)
+
+(* The first two parameters, symbolsWeight and literalsWeight, control the   *)
+(* time:weight ratio, i.e., whether to favour clauses derived in a few       *)
+(* steps from the axioms (time) or whether to favour small clauses (weight). *)
+(* Small can be a combination of low number of symbols (the symbolWeight     *)
+(* parameter) or literals (the literalsWeight parameter).                    *)
+
+(* modelsWeight controls the semantic guidance. Increasing this parameter    *)
+(* favours clauses that return false more often when interpreted             *)
+(* modelChecks times over the given list of models.                          *)
 
 type parameters =
      {symbolsWeight : real,

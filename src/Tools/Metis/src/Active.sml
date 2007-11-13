@@ -453,18 +453,18 @@ fun addFactorClause active cl =
 (* Derive (unfactored) consequences of a clause.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun deduceResolution literals cl (lit,acc) =
+fun deduceResolution literals cl (lit as (_,atm), acc) =
     let
       fun resolve (cl_lit,acc) =
           case total (Clause.resolve cl_lit) (cl,lit) of
             SOME cl' => cl' :: acc
           | NONE => acc
-
 (*TRACE4
       val () = Parser.ppTrace Literal.pp "Active.deduceResolution: lit" lit
 *)
     in
-      foldl resolve acc (LiteralNet.unify literals (Literal.negate lit))
+      if Atom.isEq atm then acc
+      else foldl resolve acc (LiteralNet.unify literals (Literal.negate lit))
     end;
 
 fun deduceParamodulationWith subterms cl ((lit,ort,tm),acc) =

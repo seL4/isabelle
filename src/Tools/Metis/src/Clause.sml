@@ -95,8 +95,9 @@ fun isLargerTerm ({ordering,orderTerms,...} : parameters) l_r =
 
 local
   fun atomToTerms atm =
-      Term.Fn atm ::
-      (case total Atom.sym atm of NONE => [] | SOME atm => [Term.Fn atm]);
+      case total Atom.destEq atm of
+        NONE => [Term.Fn atm]
+      | SOME (l,r) => [l,r];
 
   fun notStrictlyLess ordering (xs,ys) =
       let

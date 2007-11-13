@@ -111,10 +111,14 @@ fun isBinop f = can (destBinop f);
 (* The size of a term in symbols.                                            *)
 (* ------------------------------------------------------------------------- *)
 
+val VAR_SYMBOLS = 1;
+
+val FN_SYMBOLS = 1;
+
 local
   fun sz n [] = n
-    | sz n (Var _ :: tms) = sz (n + 1) tms
-    | sz n (Fn (_,args) :: tms) = sz (n + 1) (args @ tms);
+    | sz n (Var _ :: tms) = sz (n + VAR_SYMBOLS) tms
+    | sz n (Fn (func,args) :: tms) = sz (n + FN_SYMBOLS) (args @ tms);
 in
   fun symbols tm = sz 0 [tm];
 end;

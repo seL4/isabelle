@@ -34,52 +34,55 @@ fun inferenceType (Axiom _) = Thm.Axiom
   | inferenceType (Equality _) = Thm.Equality;
 
 local
-  open Parser;
-
-  fun ppAssume pp atm = (addBreak pp (1,0); Atom.pp pp atm);
+  fun ppAssume pp atm = (Parser.addBreak pp (1,0); Atom.pp pp atm);
 
   fun ppSubst ppThm pp (sub,thm) =
-      (addBreak pp (1,0);
-       beginBlock pp Inconsistent 1;
-       addString pp "{";
-       ppBinop " =" ppString Subst.pp pp ("sub",sub);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString ppThm pp ("thm",thm);
-       addString pp "}";
-       endBlock pp);
+      (Parser.addBreak pp (1,0);
+       Parser.beginBlock pp Parser.Inconsistent 1;
+       Parser.addString pp "{";
+       Parser.ppBinop " =" Parser.ppString Subst.pp pp ("sub",sub);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString ppThm pp ("thm",thm);
+       Parser.addString pp "}";
+       Parser.endBlock pp);
 
   fun ppResolve ppThm pp (res,pos,neg) =
-      (addBreak pp (1,0);
-       beginBlock pp Inconsistent 1;
-       addString pp "{";
-       ppBinop " =" ppString Atom.pp pp ("res",res);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString ppThm pp ("pos",pos);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString ppThm pp ("neg",neg);
-       addString pp "}";
-       endBlock pp);
+      (Parser.addBreak pp (1,0);
+       Parser.beginBlock pp Parser.Inconsistent 1;
+       Parser.addString pp "{";
+       Parser.ppBinop " =" Parser.ppString Atom.pp pp ("res",res);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString ppThm pp ("pos",pos);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString ppThm pp ("neg",neg);
+       Parser.addString pp "}";
+       Parser.endBlock pp);
 
-  fun ppRefl pp tm = (addBreak pp (1,0); Term.pp pp tm);
+  fun ppRefl pp tm = (Parser.addBreak pp (1,0); Term.pp pp tm);
 
   fun ppEquality pp (lit,path,res) =
-      (addBreak pp (1,0);
-       beginBlock pp Inconsistent 1;
-       addString pp "{";
-       ppBinop " =" ppString Literal.pp pp ("lit",lit);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString (ppList ppInt) pp ("path",path);
-       addString pp ","; addBreak pp (1,0);
-       ppBinop " =" ppString Term.pp pp ("res",res);
-       addString pp "}";
-       endBlock pp);
+      (Parser.addBreak pp (1,0);
+       Parser.beginBlock pp Parser.Inconsistent 1;
+       Parser.addString pp "{";
+       Parser.ppBinop " =" Parser.ppString Literal.pp pp ("lit",lit);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString Term.ppPath pp ("path",path);
+       Parser.addString pp ",";
+       Parser.addBreak pp (1,0);
+       Parser.ppBinop " =" Parser.ppString Term.pp pp ("res",res);
+       Parser.addString pp "}";
+       Parser.endBlock pp);
 
   fun ppInf ppAxiom ppThm pp inf =
       let
         val infString = Thm.inferenceTypeToString (inferenceType inf)
       in
-        beginBlock pp Inconsistent (size infString + 1);
-        ppString pp infString;
+        Parser.beginBlock pp Parser.Inconsistent (size infString + 1);
+        Parser.ppString pp infString;
         case inf of
           Axiom cl => ppAxiom pp cl
         | Assume x => ppAssume pp x
@@ -87,14 +90,14 @@ local
         | Resolve x => ppResolve ppThm pp x
         | Refl x => ppRefl pp x
         | Equality x => ppEquality pp x;
-        endBlock pp
+        Parser.endBlock pp
       end;
 
   fun ppAxiom pp cl =
-      (addBreak pp (1,0);
-       ppMap
+      (Parser.addBreak pp (1,0);
+       Parser.ppMap
          LiteralSet.toList
-         (ppBracket "{" "}" (ppSequence "," Literal.pp)) pp cl);
+         (Parser.ppBracket "{" "}" (Parser.ppSequence "," Literal.pp)) pp cl);
 in
   val ppInference = ppInf ppAxiom Thm.pp;
 
@@ -111,30 +114,30 @@ in
               fun pred (_,(th',_)) = LiteralSet.equal (Thm.clause th') cl
             in
               case List.find pred prf of
-                NONE => addString p "(???)"
-              | SOME (n,_) => addString p (thmString n)
+                NONE => Parser.addString p "(?)"
+              | SOME (n,_) => Parser.addString p (thmString n)
             end
 
         fun ppStep (n,(th,inf)) =
             let
               val s = thmString n
             in
-              beginBlock p Consistent (1 + size s);
-              addString p (s ^ " ");
+              Parser.beginBlock p Parser.Consistent (1 + size s);
+              Parser.addString p (s ^ " ");
               Thm.pp p th;
-              addBreak p (2,0);
-              ppBracket "[" "]" (ppInf (K (K ())) ppThm) p inf;
-              endBlock p;
-              addNewline p
+              Parser.addBreak p (2,0);
+              Parser.ppBracket "[" "]" (ppInf (K (K ())) ppThm) p inf;
+              Parser.endBlock p;
+              Parser.addNewline p
             end
       in
-        beginBlock p Consistent 0;
-        addString p "START OF PROOF";
-        addNewline p;
+        Parser.beginBlock p Parser.Consistent 0;
+        Parser.addString p "START OF PROOF";
+        Parser.addNewline p;
         app ppStep prf;
-        addString p "END OF PROOF";
-        addNewline p;
-        endBlock p
+        Parser.addString p "END OF PROOF";
+        Parser.addNewline p;
+        Parser.endBlock p
       end
 (*DEBUG
       handle Error err => raise Bug ("Proof.pp: shouldn't fail:\n" ^ err);
@@ -149,6 +152,13 @@ val toString = Parser.toString pp;
 (* ------------------------------------------------------------------------- *)
 (* Reconstructing single inferences.                                         *)
 (* ------------------------------------------------------------------------- *)
+
+fun parents (Axiom _) = []
+  | parents (Assume _) = []
+  | parents (Subst (_,th)) = [th]
+  | parents (Resolve (_,th,th')) = [th,th']
+  | parents (Refl _) = []
+  | parents (Equality _) = [];
 
 fun inferenceToThm (Axiom cl) = Thm.axiom cl
   | inferenceToThm (Assume atm) = Thm.assume (true,atm)

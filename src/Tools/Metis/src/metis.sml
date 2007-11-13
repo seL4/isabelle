@@ -77,16 +77,16 @@ end;
 
 val VERSION = "2.0";
 
-val versionString = PROGRAM^" version "^VERSION^" (release 20070609)"^"\n";
+val versionString = "Metis "^VERSION^" (release 20071110)"^"\n";
 
 val programOptions =
-    {name    = PROGRAM,
+    {name = PROGRAM,
      version = versionString,
-     header  = "usage: "^PROGRAM^" [option ...] problem.tptp ...\n" ^
-               "Proves the input TPTP problem files.\n",
-     footer  = "Possible ITEMs are {" ^ join "," ITEMS ^ "}.\n" ^
-               "Problems can be read from standard input using the " ^
-               "special - filename.\n",
+     header = "usage: "^PROGRAM^" [option ...] problem.tptp ...\n" ^
+              "Proves the input TPTP problem files.\n",
+     footer = "Possible ITEMs are {" ^ join "," ITEMS ^ "}.\n" ^
+              "Problems can be read from standard input using the " ^
+              "special - filename.\n",
      options = specialOptions @ Options.basicOptions};
 
 fun exit x : unit = Options.exit programOptions x;
@@ -150,15 +150,23 @@ local
       if notshowing "proof" then ()
       else
         (print ("SZS output start CNFRefutation for " ^ filename ^ "\n");
-         print (Proof.toString (Proof.proof th));
+         print (Tptp.proofToString (Proof.proof th));
          print ("SZS output end CNFRefutation for " ^ filename ^ "\n\n"));
 
   fun display_saturated filename ths =
       if notshowing "saturated" then ()
       else
-        (print ("SZS output start Saturated for " ^ filename ^ "\n");
-         app (fn th => print (Thm.toString th ^ "\n")) ths;
-         print ("SZS output end Saturated for " ^ filename ^ "\n\n"));
+        let
+(*DEBUG
+          val () = Tptp.write {filename = "saturated.tptp"}
+                     (Tptp.fromProblem (map Thm.clause ths))
+*)
+          val () = print ("SZS output start Saturated for " ^ filename ^ "\n")
+          val () = app (fn th => print (Thm.toString th ^ "\n")) ths
+          val () = print ("SZS output end Saturated for " ^ filename ^ "\n\n")
+        in
+          ()
+        end;
 
   fun display_result filename result =
       case result of

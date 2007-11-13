@@ -638,6 +638,15 @@ p a /\ p b /\ ~(a = b) /\ ~p c /\ (!x. x = a \/ x = d) ==> F`},
  goal = `
 f (g (h c)) = h c /\ g (h c) = b /\ f b = a /\ (!x. ~(a = h x)) ==> F`},
 
+{name = "EQUALITY_ORDERING",
+ comments =
+["Positive resolution saturates if equality literals are ordered like other",
+ "literals, instead of considering their left and right sides."],
+ goal = `
+p a /\ q a /\ q b /\ r b /\ (~p c \/ c = a) /\ (~r c \/ c = b) /\
+(!x. ~q x \/ p x \/ r x) /\ (~p c \/ ~q c) /\ (~q c \/ ~r c) /\
+(c = b \/ p c \/ q c) /\ (~p b \/ c = a \/ q c) ==> F`},
+
 (* ------------------------------------------------------------------------- *)
 (* Simple equality problems.                                                 *)
 (* ------------------------------------------------------------------------- *)

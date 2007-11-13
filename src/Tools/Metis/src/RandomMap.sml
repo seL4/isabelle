@@ -16,17 +16,21 @@ val K = Useful.K;
 
 val snd = Useful.snd;
 
-val randomInt = Useful.random;
+val randomInt = Portable.randomInt;
+
+val randomWord = Portable.randomWord;
 
 (* ------------------------------------------------------------------------- *)
 (* Random search trees.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
+type priority = Word.word;
+
 datatype ('a,'b) tree =
     E
   | T of
     {size : int,
-     priority : real,
+     priority : priority,
      left : ('a,'b) tree,
      key : 'a,
      value : 'b,
@@ -34,7 +38,7 @@ datatype ('a,'b) tree =
 
 type ('a,'b) node =
      {size : int,
-      priority : real,
+      priority : priority,
       left : ('a,'b) tree,
       key : 'a,
       value : 'b,
@@ -47,14 +51,9 @@ datatype ('a,'b) map = Map of ('a * 'a -> order) * ('a,'b) tree;
 (* ------------------------------------------------------------------------- *)
 
 local
-  val randomPriority =
-      let
-        val gen = Random.newgenseed 2.0
-      in
-        fn () => Random.random gen
-      end;
+  val randomPriority = randomWord;
 
-  val priorityOrder = Real.compare;
+  val priorityOrder = Word.compare;
 in
   fun treeSingleton (key,value) =
       T {size = 1, priority = randomPriority (),
@@ -584,7 +583,10 @@ fun exists p m = Option.isSome (findl p m);
 
 fun all p m = not (exists (not o p) m);
 
-fun random m = case size m of 0 => raise Empty | n => nth m (randomInt n);
+fun random m =
+    case size m of
+      0 => raise Error "RandomMap.random: empty"
+    | n => nth m (randomInt n);
 
 local
   fun iterCompare _ _ NONE NONE = EQUAL

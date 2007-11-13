@@ -85,6 +85,10 @@ val toList : 'a stream -> 'a list
 
 val fromList : 'a list -> 'a stream
 
+val toString : char stream -> string
+
+val fromString : string -> char stream
+
 val toTextFile : {filename : string} -> string stream -> unit
 
 val fromTextFile : {filename : string} -> string stream  (* line by line *)

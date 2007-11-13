@@ -16,24 +16,28 @@ val K = Useful.K;
 
 val snd = Useful.snd;
 
-val randomInt = Useful.random;
+val randomInt = Portable.randomInt;
+
+val randomWord = Portable.randomWord;
 
 (* ------------------------------------------------------------------------- *)
 (* Random search trees.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
+type priority = Word.word;
+
 datatype 'a tree =
     E
   | T of
     {size : int,
-     priority : real,
+     priority : priority,
      left : 'a tree,
      key : 'a,
      right : 'a tree};
     
 type 'a node =
      {size : int,
-      priority : real,
+      priority : priority,
       left : 'a tree,
       key : 'a,
       right : 'a tree};
@@ -45,14 +49,9 @@ datatype 'a set = Set of ('a * 'a -> order) * 'a tree;
 (* ------------------------------------------------------------------------- *)
 
 local
-  val randomPriority =
-      let
-        val gen = Random.newgenseed 2.0
-      in
-        fn () => Random.random gen
-      end;
+  val randomPriority = randomWord;
 
-  val priorityOrder = Real.compare;
+  val priorityOrder = Word.compare;
 in
   fun treeSingleton key =
       T {size = 1, priority = randomPriority (),
@@ -467,8 +466,6 @@ fun null s = size s = 0;
 
 fun member x s = Option.isSome (peek s x);
 
-(* add must be primitive to get hold of the comparison function *)
-
 fun add s x = union s (singleton (comparison s) x);
 
 (*DEBUG
@@ -482,7 +479,7 @@ local
     | unionPairs ys (xs as [_]) = List.revAppend (ys,xs)
     | unionPairs ys (x1 :: x2 :: xs) = unionPairs (union x1 x2 :: ys) xs;
 in
-  fun unionList [] = raise Error "Set.unionList: no sets"
+  fun unionList [] = raise Error "RandomSet.unionList: no sets"
     | unionList [s] = s
     | unionList l = unionList (unionPairs [] l);
 end;
@@ -493,7 +490,7 @@ local
     | intersectPairs ys (x1 :: x2 :: xs) =
       intersectPairs (intersect x1 x2 :: ys) xs;
 in
-  fun intersectList [] = raise Error "Set.intersectList: no sets"
+  fun intersectList [] = raise Error "RandomSet.intersectList: no sets"
     | intersectList [s] = s
     | intersectList l = intersectList (intersectPairs [] l);
 end;
@@ -594,7 +591,10 @@ fun pick s =
       SOME p => p
     | NONE => raise Error "RandomSet.pick: empty";
 
-fun random s = case size s of 0 => raise Empty | n => nth s (randomInt n);
+fun random s =
+    case size s of
+      0 => raise Error "RandomSet.random: empty"
+    | n => nth s (randomInt n);
 
 fun deletePick s = let val x = pick s in (x, delete s x) end;
 
