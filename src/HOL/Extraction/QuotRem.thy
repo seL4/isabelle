@@ -5,15 +5,8 @@
 
 header {* Quotient and remainder *}
 
-theory QuotRem imports Main begin
+theory QuotRem imports Util begin
 text {* Derivation of quotient and remainder using program extraction. *}
-
-lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
-  apply (induct m)
-  apply (case_tac n)
-  apply (case_tac [3] n)
-  apply (simp only: nat.simps, iprover?)+
-  done
 
 theorem division: "\<exists>r q. a = Suc b * q + r \<and> r \<le> b"
 proof (induct a)
