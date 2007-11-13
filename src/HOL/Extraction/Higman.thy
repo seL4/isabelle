@@ -7,7 +7,7 @@
 header {* Higman's lemma *}
 
 theory Higman
-imports Main (*"~~/src/HOL/ex/Random"*)
+imports Main
 begin
 
 text {*
