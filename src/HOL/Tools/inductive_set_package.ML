@@ -340,7 +340,8 @@ fun to_pred thms ctxt thm =
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (HOL_basic_ss addsimprocs
       [to_pred_simproc (mem_Collect_eq :: split_conv :: to_pred_simps)]) |>
-    eta_contract_thm (is_pred pred_arities)
+    eta_contract_thm (is_pred pred_arities) |>
+    RuleCases.save thm
   end;
 
 val to_pred_att = Thm.rule_attribute o to_pred;
@@ -367,9 +368,11 @@ fun to_set thms ctxt thm =
            (HOLogic.mk_tuple' ps T (map Bound (length ps downto 0)), x'))))
       end) fs
   in
+    thm |>
+    Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (HOL_basic_ss addsimps to_set_simps
-        addsimprocs [strong_ind_simproc pred_arities])
-      (Thm.instantiate ([], insts) thm)
+        addsimprocs [strong_ind_simproc pred_arities]) |>
+    RuleCases.save thm
   end;
 
 val to_set_att = Thm.rule_attribute o to_set;
