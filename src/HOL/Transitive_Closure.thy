@@ -97,7 +97,7 @@ proof -
   thus ?thesis by iprover
 qed
 
-lemmas rtrancl_induct [consumes 1, induct set: rtrancl] = rtranclp_induct [to_set]
+lemmas rtrancl_induct [induct set: rtrancl] = rtranclp_induct [to_set]
 
 lemmas rtranclp_induct2 =
   rtranclp_induct[of _ "(ax,ay)" "(bx,by)", split_rule,
@@ -241,7 +241,7 @@ proof -
     by induct (iprover intro: cases dest!: conversepD rtranclp_converseD)+
 qed
 
-lemmas converse_rtrancl_induct[consumes 1] = converse_rtranclp_induct [to_set]
+lemmas converse_rtrancl_induct = converse_rtranclp_induct [to_set]
 
 lemmas converse_rtranclp_induct2 =
   converse_rtranclp_induct[of _ "(ax,ay)" "(bx,by)", split_rule,
@@ -324,7 +324,7 @@ proof -
   thus ?thesis by iprover
 qed
 
-lemmas trancl_induct [consumes 1, induct set: trancl] = tranclp_induct [to_set]
+lemmas trancl_induct [induct set: trancl] = tranclp_induct [to_set]
 
 lemmas tranclp_induct2 =
   tranclp_induct[of _ "(ax,ay)" "(bx,by)", split_rule,

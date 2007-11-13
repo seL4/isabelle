@@ -71,8 +71,7 @@ lemmas wfP_induct = wf_induct [to_pred]
 
 lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, induct set: wf]
 
-lemmas wfP_induct_rule =
-  wf_induct_rule [to_pred, consumes 1, case_names less, induct set: wfP]
+lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
 
 lemma wf_not_sym [rule_format]: "wf(r) ==> ALL x. (a,x):r --> (x,a)~:r"
 by (erule_tac a=a in wf_induct, blast)
