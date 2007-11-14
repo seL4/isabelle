@@ -9,7 +9,7 @@ sources as follows:
   make
   make install
 
-Now /tmp/polyml/bin/* and /tmp/polyml/lib/* can be moved to the
+Now /tmp/polyml/bin/* and /tmp/polyml/lib/* are moved to the
 platform-specific target directory (e.g. polyml-5.1/x86-linux).
 
 	Makarius
