@@ -166,7 +166,7 @@ end;
 
 (* get informed about files *)
 
-val thy_name = Path.implode o #1 o Path.split_ext o Path.base o Path.explode;
+val thy_name = perhaps (try (unsuffix ".thy")) o List.last o space_explode "/";
 
 val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
