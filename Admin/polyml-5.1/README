@@ -10,9 +10,11 @@ sources as follows:
   make install
 
 Now /tmp/polyml/bin/* and /tmp/polyml/lib/* are moved to the
-platform-specific target directory (e.g. polyml-5.1/x86-linux).
+platform-specific target directory (e.g. polyml-5.1/x86-linux).  Run
+Isabelle/lib/scripts/polyml-platform to identify your platform.
+
 
 	Makarius
-	24-Oct-2007
+	15-Nov-2007
 
 $Id$
