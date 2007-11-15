@@ -146,7 +146,8 @@ val tracing_preferences =
                 "Whether to enable quickcheck automatically.",
      nat_pref Codegen.auto_quickcheck_time_limit
                 "auto-quickcheck-time-limit"
-                "Time limit for automatic quickcheck (in milliseconds)."]
+                "Time limit for automatic quickcheck (in milliseconds).",
+     thm_deps_pref]
 
 val proof_preferences =
     [bool_pref quick_and_dirty
