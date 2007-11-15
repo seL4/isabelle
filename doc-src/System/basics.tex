@@ -106,8 +106,9 @@ particular, external environment references should be kept at a minimum.
   absolute path names of the \texttt{isabelle-process} and \texttt{isatool}
   executables, respectively.
   
-\item \settdx{ISABELLE_OUTPUT} will have the {\ML} system and Isabelle version
-  identifier (according to \texttt{ML_IDENTIFIER}) appended automatically to
+\item \settdx{ISABELLE_OUTPUT} will have the identifiers of the
+  Isabelle distribution (cf.\ \texttt{ISABELLE_IDENTIFIER}) and the
+  {\ML} system (cf.\ \texttt{ML_IDENTIFIER}) appended automatically to
   its value.
 \end{itemize}
 
@@ -141,6 +142,9 @@ selection. Variables that are special in some sense are marked with *.
   that the Isabelle \texttt{bin} directory is on the current search path of
   the shell.
   
+\item[\settdx{ISABELLE_IDENTIFIER}*] refers to the name of this
+  Isabelle distribution, e.g.\ ``\texttt{Isabelle2007}''.
+
 \item[\settdx{ML_SYSTEM}, \settdx{ML_HOME}, \settdx{ML_OPTIONS},
   \settdx{ML_PLATFORM}, \settdx{ML_IDENTIFIER}*] specify the underlying {\ML}
   system to be used for Isabelle.  There is only a fixed set of admissable

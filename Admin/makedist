@@ -194,6 +194,7 @@ if [ -n "$UNOFFICIAL" ]; then
   } >ANNOUNCE
 fi
 
+perl -pi -e "s/ISABELLE_IDENTIFIER=\"\"/ISABELLE_IDENTIFIER=\"$DISTNAME\"/g;" lib/scripts/getsettings
 perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/library_index_header.template
 perl -pi -e "s/Isabelle repository version/$DISTVERSION/" src/Pure/ROOT.ML lib/Tools/version
 perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README
