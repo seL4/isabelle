@@ -166,24 +166,30 @@ end;
 
 (* get informed about files *)
 
-val thy_name = perhaps (try (unsuffix ".thy")) o List.last o space_explode "/";
+local
 
-val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
-val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
+(*liberal low-level version*)
+val thy_name = perhaps (try (unsuffix ".thy")) o List.last o space_explode "/";
+val thy_path = ThyLoad.thy_path o thy_name;
+
+in
+
+val check_thy = ThyInfo.check_known_thy o thy_name;
 
 fun proper_inform_file_processed file () =
-  let val name = thy_name file in
-    if ThyInfo.known_thy name then
-     (ThyInfo.touch_child_thys name;
-      ThyInfo.register_thy name handle ERROR msg =>
-       (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
-        tell_file_retracted (Path.base (Path.explode file))))
-    else raise Toplevel.UNDEF
-  end;
+  let
+    val name = thy_name file;
+    val _ = ThyInfo.touch_child_thys name;
+    val _ = ThyInfo.register_thy name handle ERROR msg =>
+      (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
+        tell_file_retracted (thy_path file));
+  in () end;
 
-fun vacuous_inform_file_processed file () =
- (warning ("No theory " ^ quote (thy_name file));
-  tell_file_retracted (Path.base (Path.explode file)));
+fun vacuous_inform_file_processed file () = tell_file_retracted (thy_path file);
+
+val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
+
+end;
 
 
 (* restart top-level loop (keeps most state information) *)
@@ -246,9 +252,9 @@ fun kill_proofP () =
 fun inform_file_processedP () =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
     (P.name >> (fn file => Toplevel.no_timing o
-      Toplevel.init_empty (vacuous_inform_file_processed file) o
+      Toplevel.init_empty (K true) (vacuous_inform_file_processed file) o
       Toplevel.kill o
-      Toplevel.init_empty (proper_inform_file_processed file)));
+      Toplevel.init_empty (fn _ => check_thy file) (proper_inform_file_processed file)));
 
 fun inform_file_retractedP () =
   OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
