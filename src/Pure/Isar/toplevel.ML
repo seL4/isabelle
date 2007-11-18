@@ -57,7 +57,7 @@ sig
   val no_timing: transition -> transition
   val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit) ->
     transition -> transition
-  val init_empty: (unit -> unit) -> transition -> transition
+  val init_empty: (state -> bool) -> (unit -> unit) -> transition -> transition
   val exit: transition -> transition
   val undo_exit: transition -> transition
   val kill: transition -> transition
@@ -389,7 +389,7 @@ end;
 datatype trans =
   Init of (bool -> theory) * ((theory -> unit) * (theory -> unit)) |
                                                     (*init node; with exit/kill operation*)
-  InitEmpty of unit -> unit |                       (*init empty toplevel*)
+  InitEmpty of (state -> bool) * (unit -> unit) |   (*init empty toplevel*)
   Exit |                                            (*conclude node -- deferred until init*)
   UndoExit |                                        (*continue after conclusion*)
   Kill |                                            (*abort node*)
@@ -412,8 +412,9 @@ fun keep_state int f = controlled_execution (fn x => tap (f int) x);
 fun apply_tr int _ (Init (f, term)) (state as Toplevel _) =
       let val node = Theory (Context.Theory (f int), NONE)
       in safe_exit state; State (History.init (undo_limit int) node, term) end
-  | apply_tr int _ (InitEmpty f) (state as Toplevel _) =
-      (safe_exit state; keep_state int (fn _ => fn _ => f ()) toplevel)
+  | apply_tr int _ (InitEmpty (check, f)) (state as Toplevel _) =
+      if check state then (safe_exit state; keep_state int (fn _ => fn _ => f ()) toplevel)
+      else raise UNDEF
   | apply_tr _ _ Exit (State (node, term)) =
       (the_global_theory (History.current node); Toplevel (SOME (node, term)))
   | apply_tr _ _ UndoExit (Toplevel (SOME state_info)) = State state_info
@@ -508,7 +509,7 @@ val print3 = print' three_buffersN;
 (* basic transitions *)
 
 fun init_theory f exit kill = add_trans (Init (f, (exit, kill)));
-val init_empty = add_trans o InitEmpty;
+fun init_empty check f = add_trans (InitEmpty (check, f));
 val exit = add_trans Exit;
 val undo_exit = add_trans UndoExit;
 val kill = add_trans Kill;
@@ -741,7 +742,7 @@ fun >> tr =
 fun >>> [] = ()
   | >>> (tr :: trs) = if >> tr then >>> trs else ();
 
-fun init_state () = (>> (init_empty (K ()) empty); ());
+fun init_state () = (>> (init_empty (K true) (K ()) empty); ());
 
 
 (* the Isar source of transitions *)
