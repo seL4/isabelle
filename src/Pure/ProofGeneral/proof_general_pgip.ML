@@ -1139,15 +1139,15 @@ val initialized = ref false;
 fun init_pgip false = panic "No Proof General interface support for Isabelle/classic mode."
   | init_pgip true =
       (! initialized orelse
-        (Output.no_warnings init_outer_syntax ();
-          setup_preferences_tweak ();
-          setup_proofgeneral_output ();
-          setup_messages ();
-          setup_thy_loader ();
-          setup_present_hook ();
-          init_pgip_session_id ();
-          welcome ();
-          set initialized);
+        (setup_preferences_tweak ();
+         setup_proofgeneral_output ();
+         setup_messages ();
+         Output.no_warnings init_outer_syntax ();
+         setup_thy_loader ();
+         setup_present_hook ();
+         init_pgip_session_id ();
+         welcome ();
+         set initialized);
         sync_thy_loader ();
        change print_mode (cons proof_generalN o remove (op =) proof_generalN);
        pgip_toplevel tty_src);
