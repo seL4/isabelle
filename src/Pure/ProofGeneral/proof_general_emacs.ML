@@ -174,7 +174,8 @@ val thy_path = ThyLoad.thy_path o thy_name;
 
 in
 
-val check_thy = ThyInfo.check_known_thy o thy_name;
+fun check_thy "" = false
+  | check_thy file = ThyInfo.check_known_thy (thy_name file);
 
 fun proper_inform_file_processed file () =
   let
@@ -252,7 +253,8 @@ fun kill_proofP () =
 fun inform_file_processedP () =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
     (P.name >> (fn file => Toplevel.no_timing o
-      Toplevel.init_empty (K true) (vacuous_inform_file_processed file) o
+      Toplevel.imperative (fn () => error "Bad file name") o
+      Toplevel.init_empty (fn _ => file <> "") (vacuous_inform_file_processed file) o
       Toplevel.kill o
       Toplevel.init_empty (fn _ => check_thy file) (proper_inform_file_processed file)));
 
