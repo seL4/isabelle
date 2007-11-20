@@ -22,7 +22,7 @@ Contributions to Isabelle 2007
 
 * June 2007: Amine Chaieb, TUM
   Semiring normalization and Groebner Bases.
-  Support for dens linear orders.
+  Support for dense linear orders.
 
 * June 2007: Joe Hurd, Oxford
   Metis theorem-prover.
@@ -31,7 +31,7 @@ Contributions to Isabelle 2007
   HOL: Metis prover integration.
 
 * 2007: Stefan Berghofer, TUM
-  HOL: inductive predicates.
+  HOL: inductive predicates and sets.
 
 * 2007: Norbert Schirmer, TUM
   HOL/record: misc improvements.
@@ -44,8 +44,8 @@ Contributions to Isabelle 2007
   Pure: class package.
   HOL: theory reorganization, code generator setup.
 
-* 2006/2007: Christian Urban, TUM and Stefan Berghofer, TUM and Julien
-  Narboux, TUM
+* 2006/2007: Christian Urban, TUM and Stefan Berghofer, TUM and
+    Julien Narboux, TUM
   HOL/Nominal package and related tools.
 
 * November 2006: Lukas Bulwahn, TUM
