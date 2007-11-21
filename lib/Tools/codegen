@@ -35,6 +35,6 @@ SERI="$1"
 ## main
 
 SERI=$(echo $SERI | sed -e 's/\\/\\\\"/g; s/"/\\\"/g')
-CMD="Isar.toplevel (fn _ => (use_thy \"$THY\"; CodePackage.codegen_command (theory \"$THY\") \"$SERI\"))"
+CMD="Isar.toplevel (fn _ => (use_thy \"$THY\"; CodePackage.codegen_command (theory \"$THY\") \"$SERI\"));"
 
 "$ISABELLE" -q -e "$CMD" "$IMAGE"
