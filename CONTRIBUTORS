@@ -4,8 +4,8 @@ who is listed as an author in one of the source files of this Isabelle
 distribution.
 
 
-Contributions to Isabelle 2007
-------------------------------
+Contributions to Isabelle2007
+-----------------------------
 
 * October 2007: Norbert Schirmer, TUM / Uni Saarbruecken
   State Spaces: The Locale Way (in HOL).
@@ -76,8 +76,8 @@ Contributions to Isabelle 2007
   Sketch for Isar 'guess' element.
 
 
-Contributions to Isabelle 2005
-------------------------------
+Contributions to Isabelle2005
+-----------------------------
 
 * September 2005: Lukas Bulwahn and Bernhard Haeupler, TUM
   HOL-Complex: Formalization of Taylor series.
