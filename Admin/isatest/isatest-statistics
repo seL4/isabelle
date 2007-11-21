@@ -51,6 +51,15 @@ PLATFORM="$1"; shift
 TIMESPAN="$1"; shift
 SESSIONS="$@"
 
+case "$PLATFORM" in
+  *para*)
+    PARALLEL=true
+    ;;
+  *)
+    PARALLEL=false
+    ;;
+esac
+
 if [ "$PLATFORM" = afp ]; then
   LOG_DIR=~isatest/afp-log
   LOG_NAME="afp-test-devel*"
@@ -70,20 +79,25 @@ $ZGREP "^Finished .*elapsed" \
   $(find "$LOG_DIR" -name "$LOG_NAME" -ctime "-${TIMESPAN}") | \
 perl -e '
   while (<>) {
-    if (m/(\d\d\d\d)-(\d\d)-(\d\d).*:Finished (\S+) \(.*, (\d+):(\d+):(\d+) cpu time\)/) {
+    if (m/(\d\d\d\d)-(\d\d)-(\d\d).*:Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time\)/) {
         my $year = $1;
         my $month = $2;
         my $day = $3;
         my $name = $4;
-        my $time = ($5 * 3600 + $6 * 60 + $7) / 60;
+        my $elapsed_time = ($5 * 3600 + $6 * 60 + $7) / 60;
+        my $cpu_time = ($8 * 3600 + $9 * 60 + $10) / 60;
 
-        printf "$name $year-$month-$day %.2f\n", $time;
+        printf "$name $year-$month-$day %.2f %.2f\n", $cpu_time, $elapsed_time;
     }
   }' > "$ALL_DATA"
 
 for SESSION in $SESSIONS
 do
   fgrep "$SESSION " "$ALL_DATA" > "$SESSION_DATA"
+  PLOT="plot [] [0:] \"$SESSION_DATA\" using 2:3 smooth sbezier notitle, \"$SESSION_DATA\" using 2:3 smooth csplines notitle"
+  if [ "$PARALLEL" = true ]; then
+    PLOT="${PLOT}, \"$SESSION_DATA\" using 2:4 smooth sbezier title \"elapsed\", \"$SESSION_DATA\" using 2:4 smooth csplines title \"elapsed\""
+  fi
   gnuplot <<EOF
 set terminal $TE
 set output "$DIR/${SESSION}.png"
@@ -91,7 +105,7 @@ set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%d-%b"
 set xlabel "$SESSION"
-plot [] [0:] "$SESSION_DATA" using 2:3 smooth sbezier notitle, "$SESSION_DATA" using 2:3 smooth csplines notitle
+$PLOT
 EOF
 done
 
