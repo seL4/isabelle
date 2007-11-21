@@ -1930,8 +1930,6 @@ lemma frac_le: "(0::'a::ordered_field) <= x ==>
   apply simp
   apply (subst times_divide_eq_left)
   apply (rule mult_imp_le_div_pos, assumption)
-  thm mult_mono
-  thm mult_mono'
   apply (rule mult_mono)
   apply simp_all
 done
