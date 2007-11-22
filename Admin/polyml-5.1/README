@@ -1,6 +1,7 @@
 
 This distribution of Poly/ML 5.1 has been compiled from the original
-sources (as available from http://sourceforge.net/projects/polyml/):
+sources (available from http://sourceforge.net/projects/polyml/) as
+follows:
 
   tar xvzf polyml.5.1.tar.gz
   cd polyml.5.1
