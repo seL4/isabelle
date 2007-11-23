@@ -74,6 +74,7 @@ use "meta_simplifier.ML";
 use "conjunction.ML";
 use "assumption.ML";
 use "goal.ML";
+use "typedecl.ML";
 use "axclass.ML";
 
 (*proof term operations*)

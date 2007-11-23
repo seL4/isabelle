@@ -11,7 +11,6 @@ sig
   val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
   val add_types: (bstring * int * mixfix) list -> theory -> theory
-  val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val add_nonterminals: bstring list -> theory -> theory
   val add_tyabbrs: (bstring * string list * string * mixfix) list -> theory -> theory
   val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> theory -> theory
@@ -590,13 +589,6 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
     val decls = map (fn (a, n, mx) => (Syntax.type_name a mx, n)) types;
     val tsig' = Type.add_types naming decls tsig;
   in (naming, syn', tsig', consts) end);
-
-fun add_typedecls decls thy =
-  let
-    fun type_of (a, vs: string list, mx) =
-      if not (has_duplicates (op =) vs) then (a, length vs, mx)
-      else error ("Duplicate parameters in type declaration: " ^ quote a);
-  in add_types (map type_of decls) thy end;
 
 
 (* add nonterminals *)

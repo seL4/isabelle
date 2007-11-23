@@ -9,7 +9,6 @@ represented by a non-empty subset.
 signature TYPEDEF_PACKAGE =
 sig
   val quiet_mode: bool ref
-  val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   type info =
    {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
     type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
@@ -42,20 +41,6 @@ val Rep_cases = thm "type_definition.Rep_cases";
 val Abs_cases = thm "type_definition.Abs_cases";
 val Rep_induct = thm "type_definition.Rep_induct";
 val Abs_induct = thm "type_definition.Abs_induct";
-
-
-
-(** type declarations **)
-
-fun HOL_arity (raw_name, args, mx) thy =
-  thy |> AxClass.axiomatize_arity
-    (Sign.full_name thy (Syntax.type_name raw_name mx),
-      replicate (length args) HOLogic.typeS, HOLogic.typeS);
-
-fun add_typedecls decls thy =
-  if can (Theory.assert_super HOL.thy) thy then
-    thy |> Sign.add_typedecls decls |> fold HOL_arity decls
-  else thy |> Sign.add_typedecls decls;
 
 
 
@@ -150,7 +135,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       else (NONE, thy);
 
     fun typedef_result nonempty =
-      add_typedecls [(t, vs, mx)]
+      Typedecl.add (t, vs, mx)
+      #> snd
       #> Sign.add_consts_i
        ((if def then [(name, setT', NoSyn)] else []) @
         [(Rep_name, newT --> oldT, NoSyn),
@@ -274,12 +260,6 @@ end;
 local structure P = OuterParse and K = OuterKeyword in
 
 val _ = OuterSyntax.keywords ["morphisms"];
-
-val _ =
-  OuterSyntax.command "typedecl" "type declaration (HOL)" K.thy_decl
-    (P.type_args -- P.name -- P.opt_infix >> (fn ((vs, t), mx) =>
-      Toplevel.theory (add_typedecls [(t, vs, mx)])));
-
 
 val typedef_decl =
   Scan.optional (P.$$$ "(" |--
