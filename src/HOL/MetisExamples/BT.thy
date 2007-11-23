@@ -171,7 +171,7 @@ ML {*ResAtp.problem_name := "BT__n_leaves_bt_map"*}
 lemma n_leaves_bt_map [simp]: "n_leaves (bt_map f t) = n_leaves t"
   apply (induct t)
   apply (metis One_nat_def Suc_eq_add_numeral_1 bt_map.simps(1) less_add_one less_antisym linorder_neq_iff n_leaves.simps(1))
-  apply (metis add_commute bt_map.simps(2) n_leaves.simps(2))
+  apply (metis bt_map.simps(2) n_leaves.simps(2))
   done
 
 
@@ -179,7 +179,7 @@ ML {*ResAtp.problem_name := "BT__preorder_reflect"*}
 lemma preorder_reflect: "preorder (reflect t) = rev (postorder t)"
   apply (induct t)
   apply (metis postorder.simps(1) preorder.simps(1) reflect.simps(1) rev_is_Nil_conv)
-  apply (metis append_eq_append_conv2 inorder.simps(1) postorder.simps(2) preorder.simps(2) reflect.simps(2) rev_append rev_is_rev_conv rev_singleton_conv rev_swap rotate_simps)
+  apply (metis Cons_eq_append_conv monoid_append.add_0_left postorder.simps(2) preorder.simps(2) reflect.simps(2) rev.simps(2) rev_append rev_rev_ident)
   done
 
 ML {*ResAtp.problem_name := "BT__inorder_reflect"*}
@@ -193,7 +193,7 @@ ML {*ResAtp.problem_name := "BT__postorder_reflect"*}
 lemma postorder_reflect: "postorder (reflect t) = rev (preorder t)"
   apply (induct t)
   apply (metis postorder.simps(1) preorder.simps(1) reflect.simps(1) rev.simps(1))
-  apply (metis Cons_eq_appendI postorder.simps(2) preorder.simps(2) reflect.simps(2) rev.simps(2) rev_append rotate1_def self_append_conv2)
+  apply (metis Cons_eq_appendI postorder.simps(2) preorder.simps(2) reflect.simps(2) rev.simps(2) rev_append self_append_conv2)
   done
 
 text {*

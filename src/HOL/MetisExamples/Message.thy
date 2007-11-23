@@ -253,7 +253,7 @@ by (blast dest: parts_mono);
 
 ML{*ResAtp.problem_name := "Message__parts_cut"*}
 lemma parts_cut: "[|Y\<in> parts(insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
-by (metis Un_subset_iff Un_upper1 Un_upper2 insert_subset parts_Un parts_increasing parts_trans) 
+by (metis Un_subset_iff insert_subset parts_increasing parts_trans) 
 
 
 
