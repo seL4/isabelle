@@ -24,6 +24,7 @@ sig
   val del_post: thm -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
+  val type_interpretation: (string * string list -> theory -> theory) -> theory -> theory
   val add_case: thm -> theory -> theory
   val add_undefined: string -> theory -> theory
 
@@ -537,18 +538,15 @@ fun aggr_neutr f y [] = y
 fun aggregate f [] = NONE
   | aggregate f (x::xs) = SOME (aggr_neutr f x xs);
 
-fun inter_sorts thy =
-  let
-    val algebra = Sign.classes_of thy;
-    val inters = curry (Sorts.inter_sort algebra);
-  in aggregate (map2 inters) end;
+fun inter_sorts algebra =
+  aggregate (map2 (curry (Sorts.inter_sort algebra)));
 
 fun specific_constraints thy (class, tyco) =
   let
     val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
     val classparams = (map fst o these o try (#params o AxClass.get_info thy)) class;
     val funcs = classparams
-      |> map (fn c => Class.inst_const thy (c, tyco))
+      |> map_filter (fn c => try (Class.inst_const thy) (c, tyco))
       |> map (Symtab.lookup ((the_funcs o the_exec) thy))
       |> (map o Option.map) (Susp.force o fst o snd)
       |> maps these
@@ -558,37 +556,53 @@ fun specific_constraints thy (class, tyco) =
     val sorts = map (sorts_of o Sign.const_typargs thy o CodeUnit.head_func) funcs;
   in sorts end;
 
-fun weakest_constraints thy (class, tyco) =
+fun weakest_constraints thy algebra (class, tyco) =
   let
-    val all_superclasses = Sign.complete_sort thy [class];
-  in case inter_sorts thy (maps (fn class => specific_constraints thy (class, tyco)) all_superclasses)
+    val all_superclasses = Sorts.complete_sort algebra [class];
+  in case inter_sorts algebra (maps (fn class => specific_constraints thy (class, tyco)) all_superclasses)
    of SOME sorts => sorts
-    | NONE => Sign.arity_sorts thy tyco [class]
+    | NONE => Sorts.mg_domain algebra tyco [class]
   end;
 
-fun strongest_constraints thy (class, tyco) =
+fun strongest_constraints thy algebra (class, tyco) =
   let
-    val algebra = Sign.classes_of thy;
     val all_subclasses = class :: Graph.all_preds ((#classes o Sorts.rep_algebra) algebra) [class];
     val inst_subclasses = filter (can (Sorts.mg_domain algebra tyco) o single) all_subclasses;
-  in case inter_sorts thy (maps (fn class => specific_constraints thy (class, tyco)) inst_subclasses)
+  in case inter_sorts algebra (maps (fn class => specific_constraints thy (class, tyco)) inst_subclasses)
    of SOME sorts => sorts
     | NONE => replicate
-        (Sign.arity_number thy tyco) (Sign.minimize_sort thy (Sign.all_classes thy))
+        (Sign.arity_number thy tyco) (Sorts.minimize_sort algebra (Sorts.all_classes algebra))
+  end;
+
+fun get_algebra thy (class, tyco) =
+  let
+    val base_algebra = Sign.classes_of thy;
+  in if can (Sorts.mg_domain base_algebra tyco) [class]
+    then base_algebra
+    else let
+      val superclasses = Sorts.super_classes base_algebra class;
+      val sorts = inter_sorts base_algebra
+          (map_filter (fn class => try (Sorts.mg_domain base_algebra tyco) [class]) superclasses)
+        |> the_default (replicate (Sign.arity_number thy tyco) [])
+    in
+      base_algebra
+      |> Sorts.add_arities (Sign.pp thy) (tyco, [(class, sorts)])
+    end
   end;
 
 fun gen_classparam_typ constr thy class (c, tyco) = 
   let
+    val algebra = get_algebra thy (class, tyco);
     val cs = these (try (#params o AxClass.get_info thy) class);
-    val ty = (the o AList.lookup (op =) cs) c;
+    val SOME ty = AList.lookup (op =) cs c;
     val sort_args = Name.names (Name.declare Name.aT Name.context) Name.aT
-      (constr thy (class, tyco));
+      (constr thy algebra (class, tyco));
     val ty_inst = Type (tyco, map TFree sort_args);
   in Logic.varifyT (map_type_tfree (K ty_inst) ty) end;
 
 fun retrieve_algebra thy operational =
   Sorts.subalgebra (Sign.pp thy) operational
-    (weakest_constraints thy)
+    (weakest_constraints thy (Sign.classes_of thy))
     (Sign.classes_of thy);
 
 in
@@ -763,18 +777,22 @@ fun add_funcl (const, lthms) thy =
 val add_default_func_attr = Attrib.internal (fn _ => Thm.declaration_attribute
   (fn thm => Context.mapping (add_default_func thm) I));
 
+structure TypeInterpretation = InterpretationFun(type T = string * string list val eq = op =);
+val type_interpretation = TypeInterpretation.interpretation;
+
 fun add_datatype raw_cs thy =
   let
     val cs = map (fn c_ty as (_, ty) => (Class.unoverload_const thy c_ty, ty)) raw_cs;
     val (tyco, vs_cos) = CodeUnit.constrset_of_consts thy cs;
-    val purge_cs = map fst (snd vs_cos);
-    val purge_cs' = case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
-     of SOME (vs, cos) => if null cos then NONE else SOME (purge_cs @ map fst cos)
+    val cs' = map fst (snd vs_cos);
+    val purge_cs = case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
+     of SOME (vs, cos) => if null cos then NONE else SOME (cs' @ map fst cos)
       | NONE => NONE;
   in
     thy
-    |> map_exec_purge purge_cs' (map_dtyps (Symtab.update (tyco, vs_cos))
+    |> map_exec_purge purge_cs (map_dtyps (Symtab.update (tyco, vs_cos))
         #> map_funcs (fold (Symtab.delete_safe o fst) cs))
+    |> TypeInterpretation.data (tyco, cs')
   end;
 
 fun add_datatype_cmd raw_cs thy =
@@ -837,7 +855,8 @@ val _ = Context.add_setup
       add_attribute (name, Args.del |-- Scan.succeed (mk_attribute del)
         || Scan.succeed (mk_attribute add))
   in
-    add_del_attribute ("func", (add_func, del_func))
+    TypeInterpretation.init
+    #> add_del_attribute ("func", (add_func, del_func))
     #> add_del_attribute ("inline", (add_inline, del_inline))
     #> add_del_attribute ("post", (add_post, del_post))
   end);

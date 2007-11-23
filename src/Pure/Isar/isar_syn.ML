@@ -113,7 +113,7 @@ val _ =
 val _ =
   OuterSyntax.command "typedecl" "type declaration" K.thy_decl
     (P.type_args -- P.name -- P.opt_infix >> (fn ((args, a), mx) =>
-      Toplevel.theory (Sign.add_typedecls [(a, args, mx)])));
+      Toplevel.theory (Typedecl.add (a, args, mx) #> snd)));
 
 val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
@@ -448,18 +448,18 @@ val _ =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
   ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> Class.classrel_cmd ||
     P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-      >> (fn (arities, defs) => Class.instance_cmd arities defs (fold Code.add_default_func (* FIXME ? *))))
+      >> (fn (arities, defs) => Class.instance_cmd arities defs (fold Code.add_default_func)))
     >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ =
   OuterSyntax.command "instantiation" "prove type arity" K.thy_decl
-   (P.and_list1 P.arity -- P.opt_begin
-     >> (fn (arities, begin) => (begin ? Toplevel.print) o
-         Toplevel.begin_local_theory begin (Instance.begin_instantiation_cmd arities)));
+   (P.and_list1 P.arity --| P.begin
+     >> (fn arities => Toplevel.print o
+         Toplevel.begin_local_theory true (Instance.instantiation_cmd arities)));
 
 val _ =  (* FIXME incorporate into "instance" *)
   OuterSyntax.command "instance_proof" "prove type arity relation" K.thy_goal
-    (Scan.succeed (Toplevel.print o Toplevel.local_theory_to_proof NONE Instance.proof_instantiation));
+    (Scan.succeed (Toplevel.print o Toplevel.local_theory_to_proof NONE (Class.proof_instantiation I)));
 
 
 (* code generation *)

@@ -2,79 +2,74 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-User-level instantiation interface for classes.
-FIXME not operative for the moment
+A primitive instance command, based on instantiation target.
 *)
 
 signature INSTANCE =
 sig
-  val begin_instantiation: arity list -> theory -> local_theory
-  val begin_instantiation_cmd: (xstring * string list * string) list
+  val instantiate: arity list -> (local_theory -> local_theory)
+    -> (Proof.context -> tactic) -> theory -> theory
+  val instance: arity list -> ((bstring * Attrib.src list) * term) list
+    -> (thm list -> theory -> theory)
+    -> theory -> Proof.state
+  val prove_instance: tactic -> arity list -> ((bstring * Attrib.src list) * term) list
+    -> theory -> thm list * theory
+
+  val instantiation_cmd: (xstring * sort * xstring) list
     -> theory -> local_theory
-  val proof_instantiation: local_theory -> Proof.state
+  val instance_cmd: (xstring * sort * xstring) list -> ((bstring * Attrib.src list) * xstring) list
+    -> (thm list -> theory -> theory)
+    -> theory -> Proof.state
 end;
 
 structure Instance : INSTANCE =
 struct
 
-structure Instantiation = ProofDataFun
-(
-  type T = ((string * (string * sort) list) * sort) list * ((string * typ) * string) list;
-  fun init _ = ([], []);
-);
+fun instantiation_cmd raw_arities thy =
+  TheoryTarget.instantiation (map (Sign.read_arity thy) raw_arities) thy;
 
-local
+fun instantiate arities f tac =
+  TheoryTarget.instantiation arities
+  #> f
+  #> Class.prove_instantiation tac
+  #> LocalTheory.exit
+  #> ProofContext.theory_of;
 
-fun gen_begin_instantiation prep_arity raw_arities thy =
+fun gen_instance prep_arity prep_attr prep_term do_proof raw_arities defs after_qed thy =
   let
-    fun prep_arity' raw_arity names =
+    fun export_defs ctxt = 
       let
-        val arity as (tyco, sorts, sort) = prep_arity thy raw_arity;
-        val vs = Name.invents names Name.aT (length sorts);
-        val names' = fold Name.declare vs names;
-      in (((tyco, vs ~~ sorts), sort), names') end;
-    val (arities, _) = fold_map prep_arity' raw_arities Name.context;
-    fun get_param tyco ty_subst (param, (c, ty)) =
-      ((param ^ "_" ^ NameSpace.base tyco, map_atyps (K ty_subst) ty),
-        Class.unoverload_const thy (c, ty));
-    fun get_params ((tyco, vs), sort) =
-      Class.these_params thy sort
-      |> map (get_param tyco (Type (tyco, map TFree vs)));
-    val params = maps get_params arities;
-    val ctxt =
-      ProofContext.init thy
-      |> Instantiation.put (arities, params);
-    val thy_target = TheoryTarget.begin "" ctxt;
-    val operations = {
-        pretty = LocalTheory.pretty,
-        axioms = LocalTheory.axioms,
-        abbrev = LocalTheory.abbrev,
-        define = LocalTheory.define,
-        notes = LocalTheory.notes,
-        type_syntax = LocalTheory.type_syntax,
-        term_syntax = LocalTheory.term_syntax,
-        declaration = LocalTheory.pretty,
-        reinit = LocalTheory.reinit,
-        exit = LocalTheory.exit
-      };
-  in TheoryTarget.begin "" ctxt end;
+        val ctxt_thy = ProofContext.init (ProofContext.theory_of ctxt);
+      in
+        map (snd o snd)
+        #> map (Assumption.export false ctxt ctxt_thy)
+        #> Variable.export ctxt ctxt_thy
+      end;
+    fun mk_def ctxt ((name, raw_attr), raw_t) =
+      let
+        val attr = map (prep_attr thy) raw_attr;
+        val t = prep_term ctxt raw_t;
+      in (NONE, ((name, attr), t)) end;
+    val arities = map (prep_arity thy) raw_arities;
+  in
+    thy
+    |> TheoryTarget.instantiation arities
+    |> `(fn ctxt => map (mk_def ctxt) defs)
+    |-> (fn defs => fold_map Specification.definition defs)
+    |-> (fn defs => `(fn ctxt => export_defs ctxt defs))
+    ||> LocalTheory.exit
+    ||> ProofContext.theory_of
+    ||> TheoryTarget.instantiation arities
+    |-> (fn defs => do_proof defs (LocalTheory.theory (after_qed defs)))
+  end;
 
-in
-
-val begin_instantiation = gen_begin_instantiation Sign.cert_arity;
-val begin_instantiation_cmd = gen_begin_instantiation Sign.read_arity;
-
-end;
-
-fun gen_proof_instantiation do_proof after_qed lthy =
-  let
-    val ctxt = LocalTheory.target_of lthy;
-    val arities = case Instantiation.get ctxt
-     of ([], _) => error "no instantiation target"
-      | (arities, _) => map (fn ((tyco, vs), sort) => (tyco, map snd vs, sort)) arities;
-    val thy = ProofContext.theory_of ctxt;
-  in (do_proof after_qed arities) thy end;
-
-val proof_instantiation = gen_proof_instantiation Class.instance_arity I;
+val instance = gen_instance Sign.cert_arity (K I) (K I)
+  (fn _ => fn after_qed => Class.proof_instantiation (after_qed #> Class.conclude_instantiation));
+val instance_cmd = gen_instance Sign.read_arity Attrib.intern_src
+  (fn ctxt => Syntax.parse_prop ctxt #> Syntax.check_prop ctxt)
+  (fn _ => fn after_qed => Class.proof_instantiation (after_qed #> Class.conclude_instantiation));
+fun prove_instance tac arities defs = gen_instance Sign.cert_arity (K I) (K I)
+  (fn defs => fn after_qed => Class.prove_instantiation (K tac)
+    #> after_qed #> Class.conclude_instantiation #> ProofContext.theory_of #> pair defs) arities defs (K I);
 
 end;

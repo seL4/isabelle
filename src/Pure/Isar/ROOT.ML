@@ -44,6 +44,9 @@ use "net_rules.ML";
 (*derived theory and proof elements*)
 use "calculation.ML";
 use "obtain.ML";
+
+(*local theories and target primitives*)
+use "local_theory.ML";
 use "locale.ML";
 use "class.ML";
 
@@ -52,12 +55,11 @@ use "code_unit.ML";
 use "code.ML";
 
 (*local theories and specifications*)
-use "local_theory.ML";
 use "theory_target.ML";
 use "subclass.ML";
-use "instance.ML";
 use "spec_parse.ML";
 use "specification.ML";
+use "instance.ML";
 use "constdefs.ML";
 
 (*toplevel environment*)
