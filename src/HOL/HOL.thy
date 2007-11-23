@@ -38,15 +38,18 @@ subsubsection {* Core syntax *}
 classes type
 defaultsort type
 
+setup {*
+  Typedecl.interpretation (fn a => fn thy => AxClass.axiomatize_arity
+    (a, replicate (Sign.arity_number thy a) @{sort type}, @{sort type}) thy)
+*}
+
+arities
+  "fun" :: (type, type) type
+  itself :: (type) type
+
 global
 
 typedecl bool
-
-arities
-  bool :: type
-  "fun" :: (type, type) type
-
-  itself :: (type) type
 
 judgment
   Trueprop      :: "bool => prop"                   ("(_)" 5)

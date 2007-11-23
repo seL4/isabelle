@@ -17,7 +17,6 @@ subsection {* Basic syntax *}
 global
 
 typedecl 'a set
-arities set :: (type) type
 
 consts
   "{}"          :: "'a set"                             ("{}")
