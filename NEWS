@@ -548,6 +548,8 @@ default; use '!' option for full details.
 
 *** HOL ***
 
+* Constant "card" now with authentic syntax.
+
 * Method "metis" proves goals by applying the Metis general-purpose
 resolution prover (see also http://gilith.com/software/metis/).
 Examples are in the directory MetisExamples.  WARNING: the

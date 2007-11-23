@@ -52,7 +52,7 @@ subsection {* Cardinalities of types *}
 
 syntax "_type_card" :: "type => nat" ("(1CARD/(1'(_')))")
 
-translations "CARD(t)" => "card (UNIV::t set)"
+translations "CARD(t)" => "CONST card (UNIV \<Colon> t set)"
 
 typed_print_translation {*
 let
@@ -238,8 +238,6 @@ instance bit1 :: (finite) card2
   by intro_classes (simp add: one_le_card_finite)
 
 subsection {* Examples *}
-
-term "TYPE(10)"
 
 lemma "CARD(0) = 0" by simp
 lemma "CARD(17) = 17" by simp

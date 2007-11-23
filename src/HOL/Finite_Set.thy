@@ -1500,9 +1500,10 @@ text {* This definition, although traditional, is ugly to work with:
 But now that we have @{text setsum} things are easy:
 *}
 
-constdefs
-  card :: "'a set => nat"
-  "card A == setsum (%x. 1::nat) A"
+definition
+  card :: "'a set \<Rightarrow> nat"
+where
+  [code func del]: "card A = setsum (\<lambda>x. 1) A"
 
 lemma card_empty [simp]: "card {} = 0"
 by (simp add: card_def)
