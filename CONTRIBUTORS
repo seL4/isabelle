@@ -3,6 +3,12 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 who is listed as an author in one of the source files of this Isabelle
 distribution.
 
+Contributions to this Isabelle version
+--------------------------------------
+
+* November 2007: Peter Lammich, Uni Muenster
+  HOL-Lattice: some more lemmas.
+
 
 Contributions to Isabelle2007
 -----------------------------
