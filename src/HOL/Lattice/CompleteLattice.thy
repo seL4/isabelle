@@ -117,24 +117,70 @@ text {*
 *}
 
 theorem Knaster_Tarski:
-  "(\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y) \<Longrightarrow> \<exists>a::'a::complete_lattice. f a = a"
-proof
-  assume mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-  let ?H = "{u. f u \<sqsubseteq> u}" let ?a = "\<Sqinter>?H"
-  have ge: "f ?a \<sqsubseteq> ?a"
-  proof
-    fix x assume x: "x \<in> ?H"
-    then have "?a \<sqsubseteq> x" ..
-    then have "f ?a \<sqsubseteq> f x" by (rule mono)
-    also from x have "... \<sqsubseteq> x" ..
-    finally show "f ?a \<sqsubseteq> x" .
+  assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+  shows "\<exists>a::'a::complete_lattice. f a = a \<and> (\<forall>a'. f a' = a' \<longrightarrow> a \<sqsubseteq> a')"
+proof -
+  let ?H = "{u. f u \<sqsubseteq> u}"
+  let ?a = "\<Sqinter>?H"
+  have "f ?a = ?a"
+  proof -
+    have ge: "f ?a \<sqsubseteq> ?a"
+    proof
+      fix x assume x: "x \<in> ?H"
+      then have "?a \<sqsubseteq> x" ..
+      then have "f ?a \<sqsubseteq> f x" by (rule mono)
+      also from x have "... \<sqsubseteq> x" ..
+      finally show "f ?a \<sqsubseteq> x" .
+    qed
+    also have "?a \<sqsubseteq> f ?a"
+    proof
+      from ge have "f (f ?a) \<sqsubseteq> f ?a" by (rule mono)
+      then show "f ?a \<in> ?H" ..
+    qed
+    finally show ?thesis .
   qed
-  also have "?a \<sqsubseteq> f ?a"
-  proof
-    from ge have "f (f ?a) \<sqsubseteq> f ?a" by (rule mono)
-    then show "f ?a \<in> ?H" ..
+  moreover {
+    fix a'
+    assume "f a' = a'"
+    then have "f a' \<sqsubseteq> a'" by (simp only: leq_refl)
+    then have "a' \<in> ?H" ..
+    then have "?a \<sqsubseteq> a'" ..
+  }
+  ultimately show ?thesis by blast
+qed
+
+
+theorem Knaster_Tarski_dual:
+  assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+  shows "\<exists>a::'a::complete_lattice. f a = a \<and> (\<forall>a'. f a' = a' \<longrightarrow> a' \<sqsubseteq> a)"
+proof -
+  let ?H = "{u. u \<sqsubseteq> f u}"
+  let ?a = "\<Squnion>?H"
+  have "f ?a = ?a"
+  proof -
+    have le: "?a \<sqsubseteq> f ?a"
+    proof
+      fix x assume x: "x \<in> ?H"
+      then have "x \<sqsubseteq> f x" ..
+      also from x have "x \<sqsubseteq> ?a" ..
+      then have "f x \<sqsubseteq> f ?a" by (rule mono)
+      finally show "x \<sqsubseteq> f ?a" .
+    qed
+    have "f ?a \<sqsubseteq> ?a"
+    proof
+      from le have "f ?a \<sqsubseteq> f (f ?a)" by (rule mono)
+      then show "f ?a \<in> ?H" ..
+    qed
+    from this and le show ?thesis by (rule leq_antisym)
   qed
-  finally show "f ?a = ?a" .
+  moreover {
+    fix a'
+    assume "f a' = a'"
+    then have "a' \<sqsubseteq> f a'" by (simp only: leq_refl)
+    then have "a' \<in> ?H" ..
+    then have "a' \<sqsubseteq> ?a" ..
+  }
+  ultimately show ?thesis by blast
 qed
 
 
@@ -146,10 +192,11 @@ text {*
 *}
 
 definition
-  bottom :: "'a::complete_lattice"    ("\<bottom>") where
+  bottom :: "'a::complete_lattice"  ("\<bottom>") where
   "\<bottom> = \<Sqinter>UNIV"
+
 definition
-  top :: "'a::complete_lattice"    ("\<top>") where
+  top :: "'a::complete_lattice"  ("\<top>") where
   "\<top> = \<Squnion>UNIV"
 
 lemma bottom_least [intro?]: "\<bottom> \<sqsubseteq> x"

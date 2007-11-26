@@ -582,18 +582,19 @@ proof -
 qed
 
 text {*
-  \medskip A semi-morphisms is a function $f$ that preserves the
+  \medskip A semi-morphisms is a function @{text f} that preserves the
   lattice operations in the following manner: @{term "f (x \<sqinter> y) \<sqsubseteq> f x
   \<sqinter> f y"} and @{term "f x \<squnion> f y \<sqsubseteq> f (x \<squnion> y)"}, respectively.  Any of
   these properties is equivalent with monotonicity.
-*}  (* FIXME dual version !? *)
+*}
 
 theorem meet_semimorph:
   "(\<And>x y. f (x \<sqinter> y) \<sqsubseteq> f x \<sqinter> f y) \<equiv> (\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y)"
 proof
   assume morph: "\<And>x y. f (x \<sqinter> y) \<sqsubseteq> f x \<sqinter> f y"
   fix x y :: "'a::lattice"
-  assume "x \<sqsubseteq> y" then have "x \<sqinter> y = x" ..
+  assume "x \<sqsubseteq> y"
+  then have "x \<sqinter> y = x" ..
   then have "x = x \<sqinter> y" ..
   also have "f \<dots> \<sqsubseteq> f x \<sqinter> f y" by (rule morph)
   also have "\<dots> \<sqsubseteq> f y" ..
@@ -607,6 +608,29 @@ next
     proof
       have "x \<sqinter> y \<sqsubseteq> x" .. then show "f (x \<sqinter> y) \<sqsubseteq> f x" by (rule mono)
       have "x \<sqinter> y \<sqsubseteq> y" .. then show "f (x \<sqinter> y) \<sqsubseteq> f y" by (rule mono)
+    qed
+  qed
+qed
+
+lemma join_semimorph:
+  "(\<And>x y. f x \<squnion> f y \<sqsubseteq> f (x \<squnion> y)) \<equiv> (\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y)"
+proof
+  assume morph: "\<And>x y. f x \<squnion> f y \<sqsubseteq> f (x \<squnion> y)"
+  fix x y :: "'a::lattice"
+  assume "x \<sqsubseteq> y" then have "x \<squnion> y = y" ..
+  have "f x \<sqsubseteq> f x \<squnion> f y" ..
+  also have "\<dots> \<sqsubseteq> f (x \<squnion> y)" by (rule morph)
+  also from `x \<sqsubseteq> y` have "x \<squnion> y = y" ..
+  finally show "f x \<sqsubseteq> f y" .
+next
+  assume mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+  show "\<And>x y. f x \<squnion> f y \<sqsubseteq> f (x \<squnion> y)"
+  proof -
+    fix x y
+    show "f x \<squnion> f y \<sqsubseteq> f (x \<squnion> y)"
+    proof
+      have "x \<sqsubseteq> x \<squnion> y" .. then show "f x \<sqsubseteq> f (x \<squnion> y)" by (rule mono)
+      have "y \<sqsubseteq> x \<squnion> y" .. then show "f y \<sqsubseteq> f (x \<squnion> y)" by (rule mono)
     qed
   qed
 qed
