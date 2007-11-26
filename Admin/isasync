@@ -17,7 +17,7 @@ usage()
   echo "  Options are:"
   echo "    -h    print help message"
   echo "    -n    dry run, don't do anything, just report what would happen"
-  echo "    -w    mirror whole Isabelle website"
+  echo "    -w    (ignored for backward compatibility)"
   echo "    -d    delete files that are not on the server (BEWARE!)"
   echo
   exit 1
@@ -36,7 +36,7 @@ fail()
 
 HELP=""
 ARGS=""
-SRC="isabelle-distribution"
+SRC="isabelle-website"
 
 while getopts "hnwd" OPT
 do
@@ -48,7 +48,7 @@ do
       ARGS="$ARGS -n"
       ;;
     w)
-      SRC="isabelle-website"
+      echo "option -w ignored"
       ;;
     d)
       ARGS="$ARGS --delete"
