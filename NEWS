@@ -1,6 +1,15 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+New in this Isabelle version
+----------------------------
+
+*** HOL ***
+
+* Constant "card" now with authentic syntax.
+
+
+
 New in Isabelle2007 (November 2007)
 -----------------------------------
 
@@ -547,8 +556,6 @@ default; use '!' option for full details.
 
 
 *** HOL ***
-
-* Constant "card" now with authentic syntax.
 
 * Method "metis" proves goals by applying the Metis general-purpose
 resolution prover (see also http://gilith.com/software/metis/).
