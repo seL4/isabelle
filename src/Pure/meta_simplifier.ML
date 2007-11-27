@@ -828,8 +828,9 @@ fun merge_ss (ss1, ss2) =
 
 fun check_conv msg ss thm thm' =
   let
-    val thm'' = transitive thm (transitive
-      (symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
+    val thm'' = transitive thm thm' handle THM _ =>
+     transitive thm (transitive
+       (symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
   in if msg then trace_thm (fn () => "SUCCEEDED") ss thm' else (); SOME thm'' end
   handle THM _ =>
     let val {thy, prop = _ $ _ $ prop0, ...} = Thm.rep_thm thm in
