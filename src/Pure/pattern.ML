@@ -328,9 +328,9 @@ fun typ_match thy TU tyenv = Sign.typ_match thy TU tyenv
   Types are matched on the fly*)
 fun first_order_match thy =
   let
-    fun mtch (instsp as (tyinsts,insts)) = fn
+    fun mtch k (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
-          if loose_bvar(t,0) then raise MATCH
+          if k > 0 andalso loose_bvar(t,0) then raise MATCH
           else (case Envir.lookup' (insts, (ixn, T)) of
                   NONE => (typ_match thy (T, fastype_of t) tyinsts,
                            Vartab.update_new (ixn, (T, t)) insts)
@@ -341,11 +341,11 @@ fun first_order_match thy =
           if a=b then (typ_match thy (T,U) tyinsts, insts) else raise MATCH
       | (Bound i, Bound j)  =>  if  i=j  then  instsp  else raise MATCH
       | (Abs(_,T,t), Abs(_,U,u))  =>
-          mtch (typ_match thy (T,U) tyinsts, insts) (t,u)
-      | (f$t, g$u) => mtch (mtch instsp (f,g)) (t, u)
-      | (t, Abs(_,U,u))  =>  mtch instsp ((incr t)$(Bound 0), u)
+          mtch (k + 1) (typ_match thy (T,U) tyinsts, insts) (t,u)
+      | (f$t, g$u) => mtch k (mtch k instsp (f,g)) (t, u)
+      | (t, Abs(_,U,u))  =>  mtch (k + 1) instsp ((incr t)$(Bound 0), u)
       | _ => raise MATCH
-  in fn tu => fn env => mtch env tu end;
+  in fn tu => fn env => mtch 0 env tu end;
 
 
 (* Matching of higher-order patterns *)
