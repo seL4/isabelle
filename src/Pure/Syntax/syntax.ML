@@ -64,7 +64,7 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
-  val standard_parse_term: Pretty.pp -> (term -> term Exn.result) ->
+  val standard_parse_term: Pretty.pp -> (term -> string option) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> string option) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> Proof.context ->
@@ -473,9 +473,8 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty str =
 fun disambig _ _ [t] = t
   | disambig pp check ts =
       let
-        val err_results = map check ts;
-        val errs = map_filter (fn Exn.Exn (ERROR msg) => SOME msg | _ => NONE) err_results;
-        val results = map_filter Exn.get_result err_results;
+        val errs = map check ts;
+        val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
 
         val ambiguity = length ts;
         fun ambig_msg () =
@@ -484,7 +483,7 @@ fun disambig _ _ [t] = t
             \Retry with smaller ambiguity_level for more information."
           else "";
       in
-        if null results then cat_error (ambig_msg ()) (cat_lines errs)
+        if null results then cat_error (ambig_msg ()) (cat_lines (map_filter I errs))
         else if length results = 1 then
           (if ambiguity > ! ambiguity_level then
             warning "Fortunately, only one parse tree is type correct.\n\

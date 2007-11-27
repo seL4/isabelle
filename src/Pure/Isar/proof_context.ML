@@ -622,8 +622,8 @@ fun parse_term T ctxt str =
   let
     val thy = theory_of ctxt;
     val (T', _) = TypeInfer.paramify_dummies T 0;
-    fun check t = Exn.Result (Syntax.check_term ctxt (TypeInfer.constrain T' t))
-      handle ERROR msg => Exn.Exn (ERROR msg);
+    fun check t = (Syntax.check_term ctxt (TypeInfer.constrain T' t); NONE)
+      handle ERROR msg => SOME msg;
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
     val read = Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort
       map_const map_free map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) T';

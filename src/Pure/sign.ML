@@ -537,8 +537,7 @@ fun read_def_terms'
         (try (Consts.the_constraint consts)) def_type used ~1 (SOME freeze) args |>> map fst
       handle TYPE (msg, _, _) => error msg;
 
-    fun check T t = Exn.Result (singleton (fst o infer) (t, T))
-      handle ERROR msg => Exn.Exn (ERROR msg);
+    fun check T t = (singleton (fst o infer) (t, T); NONE) handle ERROR msg => SOME msg;
     val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
     fun read T = Syntax.standard_parse_term pp (check T) (get_sort thy def_sort) map_const map_free
         (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn T;
