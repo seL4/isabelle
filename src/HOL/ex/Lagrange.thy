@@ -38,7 +38,7 @@ lemma Lagrange_lemma: fixes x1 :: "'a::comm_ring" shows
 by (simp add: sq_def ring_simps)
 
 
-text {* A challenge by John Harrison. Takes about 17s on a 1.6GHz machine. *}
+text {* A challenge by John Harrison. Takes about 12s on a 1.6GHz machine. *}
 
 lemma fixes p1 :: "'a::comm_ring" shows
   "(sq p1 + sq q1 + sq r1 + sq s1 + sq t1 + sq u1 + sq v1 + sq w1) * 
