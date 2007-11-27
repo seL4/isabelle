@@ -186,7 +186,7 @@ fun gen_norm_term same (env as Envir{asol,iTs,...}) t : term =
 val norm_term = gen_norm_term false;
 val norm_term_same = gen_norm_term true;
 
-val beta_norm = norm_term (empty 0);
+fun beta_norm t = if Term.has_abs t then norm_term (empty 0) t else t;
 
 fun norm_type iTs = normTh iTs;
 fun norm_type_same iTs =
