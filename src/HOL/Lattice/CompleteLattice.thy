@@ -118,11 +118,12 @@ text {*
 
 theorem Knaster_Tarski:
   assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-  shows "\<exists>a::'a::complete_lattice. f a = a \<and> (\<forall>a'. f a' = a' \<longrightarrow> a \<sqsubseteq> a')"
-proof -
+  obtains a :: "'a::complete_lattice" where
+    "f a = a" and "\<And>a'. f a' = a' \<Longrightarrow> a \<sqsubseteq> a'"
+proof
   let ?H = "{u. f u \<sqsubseteq> u}"
   let ?a = "\<Sqinter>?H"
-  have "f ?a = ?a"
+  show "f ?a = ?a"
   proof -
     have ge: "f ?a \<sqsubseteq> ?a"
     proof
@@ -139,24 +140,22 @@ proof -
     qed
     finally show ?thesis .
   qed
-  moreover {
-    fix a'
-    assume "f a' = a'"
-    then have "f a' \<sqsubseteq> a'" by (simp only: leq_refl)
-    then have "a' \<in> ?H" ..
-    then have "?a \<sqsubseteq> a'" ..
-  }
-  ultimately show ?thesis by blast
-qed
 
+  fix a'
+  assume "f a' = a'"
+  then have "f a' \<sqsubseteq> a'" by (simp only: leq_refl)
+  then have "a' \<in> ?H" ..
+  then show "?a \<sqsubseteq> a'" ..
+qed
 
 theorem Knaster_Tarski_dual:
   assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-  shows "\<exists>a::'a::complete_lattice. f a = a \<and> (\<forall>a'. f a' = a' \<longrightarrow> a' \<sqsubseteq> a)"
-proof -
+  obtains a :: "'a::complete_lattice" where
+    "f a = a" and "\<And>a'. f a' = a' \<Longrightarrow> a' \<sqsubseteq> a"
+proof
   let ?H = "{u. u \<sqsubseteq> f u}"
   let ?a = "\<Squnion>?H"
-  have "f ?a = ?a"
+  show "f ?a = ?a"
   proof -
     have le: "?a \<sqsubseteq> f ?a"
     proof
@@ -173,14 +172,12 @@ proof -
     qed
     from this and le show ?thesis by (rule leq_antisym)
   qed
-  moreover {
-    fix a'
-    assume "f a' = a'"
-    then have "a' \<sqsubseteq> f a'" by (simp only: leq_refl)
-    then have "a' \<in> ?H" ..
-    then have "a' \<sqsubseteq> ?a" ..
-  }
-  ultimately show ?thesis by blast
+
+  fix a'
+  assume "f a' = a'"
+  then have "a' \<sqsubseteq> f a'" by (simp only: leq_refl)
+  then have "a' \<in> ?H" ..
+  then show "a' \<sqsubseteq> ?a" ..
 qed
 
 
