@@ -105,6 +105,7 @@ set xdata time
 set timefmt "%Y-%m-%d"
 set format x "%d-%b"
 set xlabel "$SESSION"
+set key left top
 $PLOT
 EOF
 done
