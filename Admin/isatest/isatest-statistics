@@ -94,9 +94,9 @@ perl -e '
 for SESSION in $SESSIONS
 do
   fgrep "$SESSION " "$ALL_DATA" > "$SESSION_DATA"
-  PLOT="plot [] [0:] \"$SESSION_DATA\" using 2:3 smooth sbezier title \"cpu time\", \"$SESSION_DATA\" using 2:3 smooth csplines title \"cpu time\""
+  PLOT="plot [] [0:] \"$SESSION_DATA\" using 2:3 smooth sbezier title \"interpolated cpu time\", \"$SESSION_DATA\" using 2:3 smooth csplines title \"cpu time\""
   if [ "$PARALLEL" = true ]; then
-    PLOT="${PLOT}, \"$SESSION_DATA\" using 2:4 smooth sbezier title \"elapsed time\", \"$SESSION_DATA\" using 2:4 smooth csplines title \"elapsed time\""
+    PLOT="${PLOT}, \"$SESSION_DATA\" using 2:4 smooth sbezier title \"interpolated elapsed time\", \"$SESSION_DATA\" using 2:4 smooth csplines title \"elapsed time\""
   fi
   gnuplot <<EOF
 set terminal $TE
