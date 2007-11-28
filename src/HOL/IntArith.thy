@@ -419,12 +419,4 @@ proof
     by (simp add:inj_on_def surj_def) (blast intro:sym)
 qed
 
-subsection {* Legacy ML bindings *}
-
-ML {*
-val of_int_number_of_eq = @{thm of_int_number_of_eq};
-val nat_0 = @{thm nat_0};
-val nat_1 = @{thm nat_1};
-*}
-
 end

@@ -46,9 +46,9 @@ val dest_numeral = term_of #> HOLogic.dest_number #> snd;
 val is_numeral = can dest_numeral;
 
 val numeral01_conv = Simplifier.rewrite
-                         (HOL_basic_ss addsimps [numeral_1_eq_1, numeral_0_eq_0]);
+                         (HOL_basic_ss addsimps [@{thm numeral_1_eq_1}, @{thm numeral_0_eq_0}]);
 val zero1_numeral_conv = 
- Simplifier.rewrite (HOL_basic_ss addsimps [numeral_1_eq_1 RS sym, numeral_0_eq_0 RS sym]);
+ Simplifier.rewrite (HOL_basic_ss addsimps [@{thm numeral_1_eq_1} RS sym, @{thm numeral_0_eq_0} RS sym]);
 fun zerone_conv cv = zero1_numeral_conv then_conv cv then_conv numeral01_conv;
 val natarith = [@{thm "add_nat_number_of"}, @{thm "diff_nat_number_of"},
                 @{thm "mult_nat_number_of"}, @{thm "eq_nat_number_of"}, 
@@ -57,9 +57,10 @@ val nat_add_conv =
  zerone_conv 
   (Simplifier.rewrite 
     (HOL_basic_ss 
-       addsimps arith_simps @ natarith @ rel_simps
-             @ [if_False, if_True, @{thm add_0}, @{thm add_Suc}, add_number_of_left, Suc_eq_add_numeral_1]
-             @ map (fn th => th RS sym) numerals));
+       addsimps @{thms arith_simps} @ natarith @ @{thms rel_simps}
+             @ [if_False, if_True, @{thm add_0}, @{thm add_Suc},
+                 @{thm add_number_of_left}, @{thm Suc_eq_add_numeral_1}]
+             @ map (fn th => th RS sym) @{thms numerals}));
 
 val nat_mul_conv = nat_add_conv;
 val zeron_tm = @{cterm "0::nat"};
@@ -608,7 +609,7 @@ fun polynomial_conv tm =
 end;
 
 val nat_arith = @{thms "nat_arith"};
-val nat_exp_ss = HOL_basic_ss addsimps (nat_number @ nat_arith @ arith_simps @ rel_simps)
+val nat_exp_ss = HOL_basic_ss addsimps (@{thms nat_number} @ nat_arith @ @{thms arith_simps} @ @{thms rel_simps})
                               addsimps [Let_def, if_False, if_True, @{thm add_0}, @{thm add_Suc}];
 
 fun simple_cterm_ord t u = Term.term_ord (term_of t, term_of u) = LESS;

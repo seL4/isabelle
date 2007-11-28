@@ -5,91 +5,6 @@
 Simprocs and decision procedure for linear arithmetic.
 *)
 
-(** Misc ML bindings **)
-
-val succ_Pls = thm "succ_Pls";
-val succ_Min = thm "succ_Min";
-val succ_1 = thm "succ_1";
-val succ_0 = thm "succ_0";
-
-val pred_Pls = thm "pred_Pls";
-val pred_Min = thm "pred_Min";
-val pred_1 = thm "pred_1";
-val pred_0 = thm "pred_0";
-
-val minus_Pls = thm "minus_Pls";
-val minus_Min = thm "minus_Min";
-val minus_1 = thm "minus_1";
-val minus_0 = thm "minus_0";
-
-val add_Pls = thm "add_Pls";
-val add_Min = thm "add_Min";
-val add_BIT_11 = thm "add_BIT_11";
-val add_BIT_10 = thm "add_BIT_10";
-val add_BIT_0 = thm "add_BIT_0";
-val add_Pls_right = thm "add_Pls_right";
-val add_Min_right = thm "add_Min_right";
-
-val mult_Pls = thm "mult_Pls";
-val mult_Min = thm "mult_Min";
-val mult_num1 = thm "mult_num1";
-val mult_num0 = thm "mult_num0";
-
-val neg_def = thm "neg_def";
-val iszero_def = thm "iszero_def";
-
-val number_of_succ = thm "number_of_succ";
-val number_of_pred = thm "number_of_pred";
-val number_of_minus = thm "number_of_minus";
-val number_of_add = thm "number_of_add";
-val diff_number_of_eq = thm "diff_number_of_eq";
-val number_of_mult = thm "number_of_mult";
-val double_number_of_BIT = thm "double_number_of_BIT";
-val numeral_0_eq_0 = thm "numeral_0_eq_0";
-val numeral_1_eq_1 = thm "numeral_1_eq_1";
-val numeral_m1_eq_minus_1 = thm "numeral_m1_eq_minus_1";
-val mult_minus1 = thm "mult_minus1";
-val mult_minus1_right = thm "mult_minus1_right";
-val minus_number_of_mult = thm "minus_number_of_mult";
-val zero_less_nat_eq = thm "zero_less_nat_eq";
-val eq_number_of_eq = thm "eq_number_of_eq";
-val iszero_number_of_Pls = thm "iszero_number_of_Pls";
-val nonzero_number_of_Min = thm "nonzero_number_of_Min";
-val iszero_number_of_BIT = thm "iszero_number_of_BIT";
-val iszero_number_of_0 = thm "iszero_number_of_0";
-val iszero_number_of_1 = thm "iszero_number_of_1";
-val less_number_of_eq_neg = thm "less_number_of_eq_neg";
-val le_number_of_eq = thm "le_number_of_eq";
-val not_neg_number_of_Pls = thm "not_neg_number_of_Pls";
-val neg_number_of_Min = thm "neg_number_of_Min";
-val neg_number_of_BIT = thm "neg_number_of_BIT";
-val le_number_of_eq_not_less = thm "le_number_of_eq_not_less";
-val abs_number_of = thm "abs_number_of";
-val number_of_reorient = thm "number_of_reorient";
-val add_number_of_left = thm "add_number_of_left";
-val mult_number_of_left = thm "mult_number_of_left";
-val add_number_of_diff1 = thm "add_number_of_diff1";
-val add_number_of_diff2 = thm "add_number_of_diff2";
-val less_iff_diff_less_0 = thm "less_iff_diff_less_0";
-val eq_iff_diff_eq_0 = thm "eq_iff_diff_eq_0";
-val le_iff_diff_le_0 = thm "le_iff_diff_le_0";
-
-val arith_extra_simps = thms "arith_extra_simps";
-val arith_simps = thms "arith_simps";
-val rel_simps = thms "rel_simps";
-
-val zless_imp_add1_zle = thm "zless_imp_add1_zle";
-
-val combine_common_factor = thm "combine_common_factor";
-val eq_add_iff1 = thm "eq_add_iff1";
-val eq_add_iff2 = thm "eq_add_iff2";
-val less_add_iff1 = thm "less_add_iff1";
-val less_add_iff2 = thm "less_add_iff2";
-val le_add_iff1 = thm "le_add_iff1";
-val le_add_iff2 = thm "le_add_iff2";
-
-val arith_special = thms "arith_special";
-
 structure Int_Numeral_Base_Simprocs =
   struct
   fun prove_conv tacs ctxt (_: thm list) (t, u) =
@@ -112,19 +27,19 @@ structure Int_Numeral_Base_Simprocs =
   (*reorientation simprules using ==, for the following simproc*)
   val meta_zero_reorient = @{thm zero_reorient} RS eq_reflection
   val meta_one_reorient = @{thm one_reorient} RS eq_reflection
-  val meta_number_of_reorient = number_of_reorient RS eq_reflection
+  val meta_number_of_reorient = @{thm number_of_reorient} RS eq_reflection
 
   (*reorientation simplification procedure: reorients (polymorphic) 
     0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
   fun reorient_proc sg _ (_ $ t $ u) =
     case u of
-	Const(@{const_name HOL.zero}, _) => NONE
+        Const(@{const_name HOL.zero}, _) => NONE
       | Const(@{const_name HOL.one}, _) => NONE
       | Const(@{const_name Numeral.number_of}, _) $ _ => NONE
       | _ => SOME (case t of
-		  Const(@{const_name HOL.zero}, _) => meta_zero_reorient
-		| Const(@{const_name HOL.one}, _) => meta_one_reorient
-		| Const(@{const_name Numeral.number_of}, _) $ _ => meta_number_of_reorient)
+          Const(@{const_name HOL.zero}, _) => meta_zero_reorient
+        | Const(@{const_name HOL.one}, _) => meta_one_reorient
+        | Const(@{const_name Numeral.number_of}, _) $ _ => meta_number_of_reorient)
 
   val reorient_simproc = 
       prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc)
@@ -140,7 +55,7 @@ struct
 
 (*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic in Int_Numeral_Base_Simprocs
   isn't complicated by the abstract 0 and 1.*)
-val numeral_syms = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym];
+val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];
 
 (** New term ordering so that AC-rewriting brings numerals to the front **)
 
@@ -300,19 +215,19 @@ val divide_1s = [@{thm divide_numeral_1}];
 
 (*To perform binary arithmetic.  The "left" rewriting handles patterns
   created by the Int_Numeral_Base_Simprocs, such as 3 * (5 * x). *)
-val simps = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym,
-                 add_number_of_left, mult_number_of_left] @
-                arith_simps @ rel_simps;
+val simps = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym,
+                 @{thm add_number_of_left}, @{thm mult_number_of_left}] @
+                @{thms arith_simps} @ @{thms rel_simps};
 
 (*Binary arithmetic BUT NOT ADDITION since it may collapse adjacent terms
   during re-arrangement*)
 val non_add_simps =
-  subtract Thm.eq_thm [add_number_of_left, number_of_add RS sym] simps;
+  subtract Thm.eq_thm [@{thm add_number_of_left}, @{thm number_of_add} RS sym] simps;
 
 (*To evaluate binary negations of coefficients*)
-val minus_simps = [numeral_m1_eq_minus_1 RS sym, number_of_minus RS sym,
-                   minus_1, minus_0, minus_Pls, minus_Min,
-                   pred_1, pred_0, pred_Pls, pred_Min];
+val minus_simps = [@{thm numeral_m1_eq_minus_1} RS sym, @{thm number_of_minus} RS sym,
+                   @{thm minus_1}, @{thm minus_0}, @{thm minus_Pls}, @{thm minus_Min},
+                   @{thm pred_1}, @{thm pred_0}, @{thm pred_Pls}, @{thm pred_Min}];
 
 (*To let us treat subtraction as addition*)
 val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus}];
@@ -369,8 +284,8 @@ structure EqCancelNumerals = CancelNumeralsFun
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
-  val bal_add1 = eq_add_iff1 RS trans
-  val bal_add2 = eq_add_iff2 RS trans
+  val bal_add1 = @{thm eq_add_iff1} RS trans
+  val bal_add2 = @{thm eq_add_iff2} RS trans
 );
 
 structure LessCancelNumerals = CancelNumeralsFun
@@ -378,8 +293,8 @@ structure LessCancelNumerals = CancelNumeralsFun
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.less} Term.dummyT
-  val bal_add1 = less_add_iff1 RS trans
-  val bal_add2 = less_add_iff2 RS trans
+  val bal_add1 = @{thm less_add_iff1} RS trans
+  val bal_add2 = @{thm less_add_iff2} RS trans
 );
 
 structure LeCancelNumerals = CancelNumeralsFun
@@ -387,8 +302,8 @@ structure LeCancelNumerals = CancelNumeralsFun
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} Term.dummyT
-  val bal_add1 = le_add_iff1 RS trans
-  val bal_add2 = le_add_iff2 RS trans
+  val bal_add1 = @{thm le_add_iff1} RS trans
+  val bal_add2 = @{thm le_add_iff2} RS trans
 );
 
 val cancel_numerals =
@@ -428,7 +343,7 @@ structure CombineNumeralsData =
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
-  val left_distrib      = combine_common_factor RS trans
+  val left_distrib      = @{thm combine_common_factor} RS trans
   val prove_conv        = Int_Numeral_Base_Simprocs.prove_conv_nohyps
   val trans_tac         = fn _ => trans_tac
 
@@ -458,7 +373,7 @@ structure FieldCombineNumeralsData =
   val dest_sum          = dest_sum
   val mk_coeff          = mk_fcoeff
   val dest_coeff        = dest_fcoeff 1
-  val left_distrib      = combine_common_factor RS trans
+  val left_distrib      = @{thm combine_common_factor} RS trans
   val prove_conv        = Int_Numeral_Base_Simprocs.prove_conv_nohyps
   val trans_tac         = fn _ => trans_tac
 
@@ -631,7 +546,7 @@ val zero_one_idom_simproc =
 end;
 
 val add_rules =
-    simp_thms @ arith_simps @ rel_simps @ arith_special @
+    simp_thms @ @{thms arith_simps} @ @{thms rel_simps} @ @{thms arith_special} @
     [@{thm neg_le_iff_le}, @{thm numeral_0_eq_0}, @{thm numeral_1_eq_1},
      @{thm minus_zero}, @{thm diff_minus}, @{thm left_minus}, @{thm right_minus},
      @{thm mult_zero_left}, @{thm mult_zero_right}, @{thm mult_num1}, @{thm mult_1_right},
@@ -654,7 +569,7 @@ val int_arith_setup =
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} :: mult_mono_thms,
     inj_thms = nat_inj_thms @ inj_thms,
-    lessD = lessD @ [zless_imp_add1_zle],
+    lessD = lessD @ [@{thm zless_imp_add1_zle}],
     neqE = neqE,
     simpset = simpset addsimps add_rules
                       addsimprocs Int_Numeral_Base_Simprocs

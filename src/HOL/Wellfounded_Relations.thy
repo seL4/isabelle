@@ -266,33 +266,4 @@ apply (simp add: pred_nat_trancl_eq_le)
 apply (intro wf_trancl wf_pred_nat)
 done
 
-
-ML
-{*
-val less_than_def = thm "less_than_def";
-val measure_def = thm "measure_def";
-val lex_prod_def = thm "lex_prod_def";
-val finite_psubset_def = thm "finite_psubset_def";
-
-val wf_less_than = thm "wf_less_than";
-val trans_less_than = thm "trans_less_than";
-val less_than_iff = thm "less_than_iff";
-val full_nat_induct = thm "full_nat_induct";
-val wf_inv_image = thm "wf_inv_image";
-val wf_measure = thm "wf_measure";
-val measure_induct = thm "measure_induct";
-val wf_lex_prod = thm "wf_lex_prod";
-val trans_lex_prod = thm "trans_lex_prod";
-val wf_finite_psubset = thm "wf_finite_psubset";
-val trans_finite_psubset = thm "trans_finite_psubset";
-val finite_acyclic_wf = thm "finite_acyclic_wf";
-val finite_acyclic_wf_converse = thm "finite_acyclic_wf_converse";
-val wf_iff_acyclic_if_finite = thm "wf_iff_acyclic_if_finite";
-val wf_weak_decr_stable = thm "wf_weak_decr_stable";
-val weak_decr_stable = thm "weak_decr_stable";
-val same_fstI = thm "same_fstI";
-val wf_same_fst = thm "wf_same_fst";
-*}
-
-
 end

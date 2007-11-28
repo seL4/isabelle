@@ -22,7 +22,7 @@ val nT = HOLogic.natT;
                  "add_Suc", "add_number_of_left", "mult_number_of_left", 
                  "Suc_eq_add_numeral_1"])@
                  (map (fn s => thm s RS sym) ["numeral_1_eq_1", "numeral_0_eq_0"])
-                 @ arith_simps@ nat_arith @ rel_simps 
+                 @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps} 
   val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"}, 
              @{thm "real_of_nat_number_of"},
              @{thm "real_of_nat_Suc"}, @{thm "real_of_nat_one"}, @{thm "real_of_one"},

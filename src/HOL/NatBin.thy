@@ -652,8 +652,7 @@ lemmas power_number_of_odd_number_of [simp] =
 
 ML
 {*
-val numerals = thms"numerals";
-val numeral_ss = simpset() addsimps numerals;
+val numeral_ss = simpset() addsimps @{thms numerals};
 
 val nat_bin_arith_setup =
  LinArith.map_data
@@ -662,8 +661,8 @@ val nat_bin_arith_setup =
       inj_thms = inj_thms,
       lessD = lessD, neqE = neqE,
       simpset = simpset addsimps [Suc_nat_number_of, int_nat_number_of,
-                                  not_neg_number_of_Pls,
-                                  neg_number_of_Min,neg_number_of_BIT]})
+        @{thm not_neg_number_of_Pls}, @{thm neg_number_of_Min},
+        @{thm neg_number_of_BIT}]})
 *}
 
 declaration {* K nat_bin_arith_setup *}
@@ -833,80 +832,5 @@ by auto
 lemma nat_mult_div_cancel_disj[simp]:
      "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
 by (simp add: nat_mult_div_cancel1)
-
-
-subsection {* legacy ML bindings *}
-
-ML
-{*
-val eq_nat_nat_iff = thm"eq_nat_nat_iff";
-val eq_nat_number_of = thm"eq_nat_number_of";
-val less_nat_number_of = thm"less_nat_number_of";
-val power2_eq_square = thm "power2_eq_square";
-val zero_le_power2 = thm "zero_le_power2";
-val zero_less_power2 = thm "zero_less_power2";
-val zero_eq_power2 = thm "zero_eq_power2";
-val abs_power2 = thm "abs_power2";
-val power2_abs = thm "power2_abs";
-val power2_minus = thm "power2_minus";
-val power_minus1_even = thm "power_minus1_even";
-val power_minus_even = thm "power_minus_even";
-val odd_power_less_zero = thm "odd_power_less_zero";
-val odd_0_le_power_imp_0_le = thm "odd_0_le_power_imp_0_le";
-
-val Suc_pred' = thm"Suc_pred'";
-val expand_Suc = thm"expand_Suc";
-val Suc_eq_add_numeral_1 = thm"Suc_eq_add_numeral_1";
-val Suc_eq_add_numeral_1_left = thm"Suc_eq_add_numeral_1_left";
-val add_eq_if = thm"add_eq_if";
-val mult_eq_if = thm"mult_eq_if";
-val power_eq_if = thm"power_eq_if";
-val eq_number_of_0 = thm"eq_number_of_0";
-val eq_0_number_of = thm"eq_0_number_of";
-val less_0_number_of = thm"less_0_number_of";
-val neg_imp_number_of_eq_0 = thm"neg_imp_number_of_eq_0";
-val eq_number_of_Suc = thm"eq_number_of_Suc";
-val Suc_eq_number_of = thm"Suc_eq_number_of";
-val less_number_of_Suc = thm"less_number_of_Suc";
-val less_Suc_number_of = thm"less_Suc_number_of";
-val le_number_of_Suc = thm"le_number_of_Suc";
-val le_Suc_number_of = thm"le_Suc_number_of";
-val eq_number_of_BIT_BIT = thm"eq_number_of_BIT_BIT";
-val eq_number_of_BIT_Pls = thm"eq_number_of_BIT_Pls";
-val eq_number_of_BIT_Min = thm"eq_number_of_BIT_Min";
-val eq_number_of_Pls_Min = thm"eq_number_of_Pls_Min";
-val of_nat_number_of_eq = thm"of_nat_number_of_eq";
-val nat_power_eq = thm"nat_power_eq";
-val power_nat_number_of = thm"power_nat_number_of";
-val zpower_number_of_even = thm"zpower_number_of_even";
-val zpower_number_of_odd = thm"zpower_number_of_odd";
-val nat_number_of_Pls = thm"nat_number_of_Pls";
-val nat_number_of_Min = thm"nat_number_of_Min";
-val Let_Suc = thm"Let_Suc";
-
-val nat_number = thms"nat_number";
-
-val nat_number_of_add_left = thm"nat_number_of_add_left";
-val nat_number_of_mult_left = thm"nat_number_of_mult_left";
-val left_add_mult_distrib = thm"left_add_mult_distrib";
-val nat_diff_add_eq1 = thm"nat_diff_add_eq1";
-val nat_diff_add_eq2 = thm"nat_diff_add_eq2";
-val nat_eq_add_iff1 = thm"nat_eq_add_iff1";
-val nat_eq_add_iff2 = thm"nat_eq_add_iff2";
-val nat_less_add_iff1 = thm"nat_less_add_iff1";
-val nat_less_add_iff2 = thm"nat_less_add_iff2";
-val nat_le_add_iff1 = thm"nat_le_add_iff1";
-val nat_le_add_iff2 = thm"nat_le_add_iff2";
-val nat_mult_le_cancel1 = thm"nat_mult_le_cancel1";
-val nat_mult_less_cancel1 = thm"nat_mult_less_cancel1";
-val nat_mult_eq_cancel1 = thm"nat_mult_eq_cancel1";
-val nat_mult_div_cancel1 = thm"nat_mult_div_cancel1";
-val nat_mult_le_cancel_disj = thm"nat_mult_le_cancel_disj";
-val nat_mult_less_cancel_disj = thm"nat_mult_less_cancel_disj";
-val nat_mult_eq_cancel_disj = thm"nat_mult_eq_cancel_disj";
-val nat_mult_div_cancel_disj = thm"nat_mult_div_cancel_disj";
-
-val power_minus_even = thm"power_minus_even";
-*}
 
 end

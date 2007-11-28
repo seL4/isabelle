@@ -19,7 +19,7 @@ where ~~ is an appropriate balancing operation (e.g. =, <=, <, div, /)
 and d = gcd(m,m') and n=m/d and n'=m'/d.
 *)
 
-val rel_number_of = [eq_number_of_eq, less_number_of_eq_neg, le_number_of_eq];
+val rel_number_of = [@{thm eq_number_of_eq}, @{thm less_number_of_eq_neg}, @{thm le_number_of_eq}];
 
 local
   open Int_Numeral_Simprocs
@@ -216,7 +216,7 @@ fun find_first_t past u []         = raise TERM ("find_first_t", [])
 
 (** Final simplification for the CancelFactor simprocs **)
 val simplify_one = Int_Numeral_Simprocs.simplify_meta_eq  
-  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm zdiv_1}, numeral_1_eq_1];
+  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm zdiv_1}, @{thm numeral_1_eq_1}];
 
 fun cancel_simplify_meta_eq cancel_th ss th =
     simplify_one ss (([th, cancel_th]) MRS trans);

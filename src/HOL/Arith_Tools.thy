@@ -550,7 +550,7 @@ val comp_arith = (map thm ["Let_def", "if_False", "if_True", "add_0",
                  "add_Suc", "add_number_of_left", "mult_number_of_left",
                  "Suc_eq_add_numeral_1"])@
                  (map (fn s => thm s RS sym) ["numeral_1_eq_1", "numeral_0_eq_0"])
-                 @ arith_simps@ nat_arith @ rel_simps
+                 @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps}
 val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "divide_Numeral1"},
            @{thm "Ring_and_Field.divide_zero"}, @{thm "divide_Numeral0"},
