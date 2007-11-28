@@ -19,7 +19,7 @@ sig
     -> theory -> (string * info) * theory
   val get_typecopies: theory -> string list
   val get_typecopy_info: theory -> string -> info option
-  val interpretation: (string * info -> theory -> theory) -> theory -> theory
+  val interpretation: (string -> theory -> theory) -> theory -> theory
   val get_spec: theory -> string -> (string * sort) list * (string * typ list) list
   val get_eq: theory -> string -> thm
   val print_typecopies: theory -> unit
@@ -68,12 +68,10 @@ val get_typecopies = Symtab.keys o TypecopyData.get;
 val get_typecopy_info = Symtab.lookup o TypecopyData.get;
 
 
-(* interpretation *)
+(* interpretation of type copies *)
 
 structure TypecopyInterpretation = InterpretationFun(type T = string val eq = op =);
-
-fun interpretation interp = TypecopyInterpretation.interpretation
-  (fn tyco => fn thy => interp (tyco, (the o get_typecopy_info thy) tyco) thy);
+val interpretation = TypecopyInterpretation.interpretation;
 
 
 (* add a type copy *)
@@ -123,21 +121,30 @@ val add_typecopy = gen_add_typecopy Sign.certify_typ;
 end;
 
 
-(* equality function equation and datatype specification *)
-
-fun get_eq thy tyco =
-  (#inject o the o get_typecopy_info thy) tyco;
+(* code generator setup *)
 
 fun get_spec thy tyco =
   let
     val SOME { vs, constr, typ, ... } = get_typecopy_info thy tyco
   in (vs, [(constr, [typ])]) end;
 
+fun get_eq thy tyco =
+  (#inject o the o get_typecopy_info thy) tyco;
 
-(* interpretation for projection function code *)
+fun add_typecopy_spec tyco thy =
+  let
+    val c = (#constr o the o get_typecopy_info thy) tyco;
+    val ty = Logic.unvarifyT (Sign.the_const_type thy c);
+  in
+    thy |> Code.add_datatype [(c, ty)]
+  end;
 
-fun add_project (_, {proj_def, ...} : info) = Code.add_default_func proj_def;
+fun add_project tyco thy = thy |> Code.add_default_func
+  ((#proj_def o the o get_typecopy_info thy) tyco);
 
-val setup = TypecopyInterpretation.init #> interpretation add_project;
+val setup =
+  TypecopyInterpretation.init
+  #> interpretation add_typecopy_spec
+  #> interpretation add_project
 
 end;

@@ -15,11 +15,7 @@ sig
 
   type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
     -> theory -> theory
-  val codetype_hook: hook
-  val eq_hook: hook
   val add_codetypes_hook: hook -> theory -> theory
-  val the_codetypes_mut_specs: theory -> (string * bool) list
-    -> ((string * sort) list * (string * (bool * (string * typ list) list)) list)
   val get_codetypes_arities: theory -> (string * bool) list -> sort
     -> (string * (arity * term list)) list
   val prove_codetypes_arities: tactic -> (string * bool) list -> sort
@@ -482,7 +478,7 @@ fun add_codetypes_hook hook thy =
       (tyco, (is_dt, get_spec thy (tyco, is_dt)));
     fun datatype_hook dtcos thy =
       hook (map (add_spec thy) (map (rpair true) dtcos)) thy;
-    fun typecopy_hook ((tyco, _)) thy =
+    fun typecopy_hook tyco thy =
       hook ([(tyco, (false, TypecopyPackage.get_spec thy tyco))]) thy;
   in
     thy
@@ -502,17 +498,6 @@ fun the_codetypes_mut_specs thy ([(tyco, is_dt)]) =
           error ("type constructors are not mutually recursive: " ^ (commas o map quote) tycos);
         val (vs::_, css) = split_list (map (the o DatatypePackage.get_datatype_spec thy) tycos);
       in (vs, map2 (fn (tyco, is_dt) => fn cs => (tyco, (is_dt, cs))) tycos' css) end;
-
-
-(* registering code types in code generator *)
-
-fun add_datatype_spec (tyco, (vs, cos)) thy =
-  let
-    val cs = map (fn (c, tys) => (c, tys ---> Type (tyco, map TFree vs))) cos;
-  in try (Code.add_datatype cs) thy |> the_default thy end;
-
-val codetype_hook =
-  fold (fn (dtco, (_ : bool, spec)) => add_datatype_spec (dtco, spec));
 
 
 (* instrumentalizing the sort algebra *)
@@ -587,22 +572,28 @@ fun eq_hook specs =
 
 (** theory setup **)
 
-fun add_datatype_case_defs dtco thy =
+fun add_datatype_spec dtco thy =
   let
-    val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco
-  in
-    fold_rev Code.add_default_func case_rewrites thy
-  end;
+    val SOME (vs, cos) = DatatypePackage.get_datatype_spec thy dtco;
+    val cs = map (fn (c, tys) => (c, tys ---> Type (dtco, map TFree vs))) cos;
+  in try (Code.add_datatype cs) thy |> the_default thy end;
 
 fun add_datatype_case_certs dtco thy =
   Code.add_case (get_case_cert thy dtco) thy;
 
+fun add_datatype_case_defs dtco thy =
+  let
+    val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco;
+  in
+    fold_rev Code.add_default_func case_rewrites thy
+  end;
+
 val setup = 
   add_codegen "datatype" datatype_codegen
   #> add_tycodegen "datatype" datatype_tycodegen
+  #> DatatypePackage.interpretation (fold add_datatype_spec)
   #> DatatypePackage.interpretation (fold add_datatype_case_certs)
   #> DatatypePackage.interpretation (fold add_datatype_case_defs)
-  #> add_codetypes_hook codetype_hook
   #> add_codetypes_hook eq_hook
 
 end;
