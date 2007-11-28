@@ -461,7 +461,7 @@ and ensure_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
     fun exprgen_classparam_inst (c, ty) =
       let
         val c_inst = Const (c, map_type_tfree (K arity_typ') ty);
-        val thm = Class.unoverload thy (Thm.cterm_of thy c_inst);
+        val thm = Class.unoverload_conv thy (Thm.cterm_of thy c_inst);
         val c_ty = (apsnd Logic.unvarifyT o dest_Const o snd
           o Logic.dest_equals o Thm.prop_of) thm;
       in

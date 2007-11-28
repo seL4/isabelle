@@ -3,7 +3,7 @@
     Author:     Florian Haftmann, TU Muenchen
 
 Abstract executable content of theory.  Management of data dependent on
-executable content.  Cache assumes non-concurrent processing of a singly theory.
+executable content.  Cache assumes non-concurrent processing of a single theory.
 *)
 
 signature CODE =
@@ -24,7 +24,9 @@ sig
   val del_post: thm -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
-  val type_interpretation: (string * string list -> theory -> theory) -> theory -> theory
+  val type_interpretation:
+    (string * ((string * sort) list * (string * typ list) list)
+      -> theory -> theory) -> theory -> theory
   val add_case: thm -> theory -> theory
   val add_undefined: string -> theory -> theory
 
@@ -546,7 +548,7 @@ fun specific_constraints thy (class, tyco) =
     val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
     val classparams = (map fst o these o try (#params o AxClass.get_info thy)) class;
     val funcs = classparams
-      |> map_filter (fn c => try (Class.inst_const thy) (c, tyco))
+      |> map_filter (fn c => try (Class.param_of_inst thy) (c, tyco))
       |> map (Symtab.lookup ((the_funcs o the_exec) thy))
       |> (map o Option.map) (Susp.force o fst o snd)
       |> maps these
@@ -664,7 +666,7 @@ fun assert_func_typ thm =
            ^ CodeUnit.string_of_typ thy ty_decl)
       end;
     fun check_typ (c, thm) =
-      case Class.param_const thy c
+      case Class.inst_of_param thy c
        of SOME (c, tyco) => check_typ_classparam tyco (c, thm)
         | NONE => check_typ_fun (c, thm);
   in check_typ (const_of_func thy thm, thm) end;
@@ -777,8 +779,7 @@ fun add_funcl (const, lthms) thy =
 val add_default_func_attr = Attrib.internal (fn _ => Thm.declaration_attribute
   (fn thm => Context.mapping (add_default_func thm) I));
 
-structure TypeInterpretation = InterpretationFun(type T = string * string list val eq = op =);
-val type_interpretation = TypeInterpretation.interpretation;
+structure TypeInterpretation = InterpretationFun(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
 
 fun add_datatype raw_cs thy =
   let
@@ -792,8 +793,11 @@ fun add_datatype raw_cs thy =
     thy
     |> map_exec_purge purge_cs (map_dtyps (Symtab.update (tyco, vs_cos))
         #> map_funcs (fold (Symtab.delete_safe o fst) cs))
-    |> TypeInterpretation.data (tyco, cs')
+    |> TypeInterpretation.data (tyco, serial ())
   end;
+
+fun type_interpretation f =  TypeInterpretation.interpretation
+  (fn (tyco, _) => fn thy => f (tyco, get_datatype thy tyco) thy);
 
 fun add_datatype_cmd raw_cs thy =
   let
@@ -906,7 +910,7 @@ fun preprocess thy thms =
   |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o the_exec) thy)
 (*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
   |> common_typ_funcs
-  |> map (Conv.fconv_rule (Class.unoverload thy));
+  |> map (Class.unoverload thy);
 
 fun preprocess_conv ct =
   let
@@ -916,7 +920,7 @@ fun preprocess_conv ct =
     |> MetaSimplifier.rewrite false ((#inlines o the_thmproc o the_exec) thy)
     |> fold (fn (_, (_, f)) => rhs_conv (apply_inline_proc_cterm thy f))
         ((#inline_procs o the_thmproc o the_exec) thy)
-    |> rhs_conv (Class.unoverload thy)
+    |> rhs_conv (Class.unoverload_conv thy)
   end;
 
 fun preprocess_term thy = term_of_conv thy preprocess_conv;
@@ -926,7 +930,7 @@ fun postprocess_conv ct =
     val thy = Thm.theory_of_cterm ct;
   in
     ct
-    |> Class.overload thy
+    |> Class.overload_conv thy
     |> rhs_conv (MetaSimplifier.rewrite false ((#posts o the_thmproc o the_exec) thy))
   end;
 
@@ -934,7 +938,7 @@ fun postprocess_term thy = term_of_conv thy postprocess_conv;
 
 end; (*local*)
 
-fun default_typ_proto thy c = case Class.param_const thy c
+fun default_typ_proto thy c = case Class.inst_of_param thy c
  of SOME (c, tyco) => classparam_weakest_typ thy ((the o AxClass.class_of_param thy) c)
       (c, tyco) |> SOME
   | NONE => (case AxClass.class_of_param thy c
@@ -965,7 +969,7 @@ fun these_funcs thy const =
 fun default_typ thy c = case default_typ_proto thy c
  of SOME ty => ty
   | NONE => (case get_funcs thy c
-     of thm :: _ => snd (CodeUnit.head_func (Conv.fconv_rule (Class.unoverload thy) thm))
+     of thm :: _ => snd (CodeUnit.head_func (Class.unoverload thy thm))
       | [] => Sign.the_const_type thy c);
 
 end; (*local*)

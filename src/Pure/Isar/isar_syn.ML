@@ -445,21 +445,20 @@ val _ =
       Toplevel.print o Toplevel.local_theory_to_proof loc (Subclass.subclass_cmd class)));
 
 val _ =
-  OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
-  ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> Class.classrel_cmd ||
-    P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-      >> (fn (arities, defs) => Class.instance_cmd arities defs (fold Code.add_default_func)))
-    >> (Toplevel.print oo Toplevel.theory_to_proof));
-
-val _ =
   OuterSyntax.command "instantiation" "prove type arity" K.thy_decl
    (P.and_list1 P.arity --| P.begin
      >> (fn arities => Toplevel.print o
          Toplevel.begin_local_theory true (Instance.instantiation_cmd arities)));
 
-val _ =  (* FIXME incorporate into "instance" *)
-  OuterSyntax.command "instance_proof" "prove type arity relation" K.thy_goal
-    (Scan.succeed (Toplevel.print o Toplevel.local_theory_to_proof NONE (Class.proof_instantiation I)));
+val _ =
+  OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
+  ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> Class.classrel_cmd ||
+    P.$$$ "advanced" |-- P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
+      >> (fn (arities, defs) => Instance.instance_cmd arities defs (K I)) ||
+    P.and_list1 P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
+      >> (fn (arities, defs) => Class.instance_cmd arities defs (fold Code.add_default_func)))
+    >> (Toplevel.print oo Toplevel.theory_to_proof)
+  || Scan.succeed (Toplevel.print o Toplevel.local_theory_to_proof NONE (Class.instantiation_instance I)));
 
 
 (* code generation *)

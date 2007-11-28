@@ -33,7 +33,7 @@ fun code_depgr thy [] = CodeFuncgr.make thy []
       in
         gr
         |> Graph.subgraph (member (op =) select) 
-        |> Graph.map_nodes ((apsnd o map) (Conv.fconv_rule (Class.overload thy)))
+        |> Graph.map_nodes ((apsnd o map) (Class.overload thy))
       end;
 
 fun code_thms thy =

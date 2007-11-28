@@ -31,11 +31,11 @@ fun instantiation_cmd raw_arities thy =
 fun instantiate arities f tac =
   TheoryTarget.instantiation arities
   #> f
-  #> Class.prove_instantiation tac
+  #> Class.prove_instantiation_instance tac
   #> LocalTheory.exit
   #> ProofContext.theory_of;
 
-fun gen_instance prep_arity prep_attr prep_term do_proof raw_arities defs after_qed thy =
+fun gen_instance prep_arity prep_attr parse_term do_proof raw_arities defs after_qed thy =
   let
     fun export_defs ctxt = 
       let
@@ -48,8 +48,12 @@ fun gen_instance prep_arity prep_attr prep_term do_proof raw_arities defs after_
     fun mk_def ctxt ((name, raw_attr), raw_t) =
       let
         val attr = map (prep_attr thy) raw_attr;
-        val t = prep_term ctxt raw_t;
+        val t = parse_term ctxt raw_t;
       in (NONE, ((name, attr), t)) end;
+    fun define def ctxt =
+      let
+        val def' = (apsnd o apsnd) (Syntax.check_prop ctxt) def;
+      in Specification.definition def' ctxt end;
     val arities = map (prep_arity thy) raw_arities;
   in
     thy
@@ -64,12 +68,11 @@ fun gen_instance prep_arity prep_attr prep_term do_proof raw_arities defs after_
   end;
 
 val instance = gen_instance Sign.cert_arity (K I) (K I)
-  (fn _ => fn after_qed => Class.proof_instantiation (after_qed #> Class.conclude_instantiation));
-val instance_cmd = gen_instance Sign.read_arity Attrib.intern_src
-  (fn ctxt => Syntax.parse_prop ctxt #> Syntax.check_prop ctxt)
-  (fn _ => fn after_qed => Class.proof_instantiation (after_qed #> Class.conclude_instantiation));
+  (fn _ => fn after_qed => Class.instantiation_instance (after_qed #> Class.conclude_instantiation));
+val instance_cmd = gen_instance Sign.read_arity Attrib.intern_src Syntax.parse_prop
+  (fn _ => fn after_qed => Class.instantiation_instance (after_qed #> Class.conclude_instantiation));
 fun prove_instance tac arities defs = gen_instance Sign.cert_arity (K I) (K I)
-  (fn defs => fn after_qed => Class.prove_instantiation (K tac)
+  (fn defs => fn after_qed => Class.prove_instantiation_instance (K tac)
     #> after_qed #> Class.conclude_instantiation #> ProofContext.theory_of #> pair defs) arities defs (K I);
 
 end;

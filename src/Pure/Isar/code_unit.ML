@@ -59,7 +59,7 @@ fun warning_thm f thm = SOME (f thm) handle BAD_THM msg
 fun try_thm f thm = SOME (f thm) handle BAD_THM _ => NONE;
 
 fun string_of_typ thy = setmp show_sorts true (Sign.string_of_typ thy);
-fun string_of_const thy c = case Class.param_const thy c
+fun string_of_const thy c = case Class.inst_of_param thy c
  of SOME (c, tyco) => Sign.extern_const thy c ^ " " ^ enclose "[" "]" (Sign.extern_type thy tyco)
   | NONE => Sign.extern_const thy c;
 

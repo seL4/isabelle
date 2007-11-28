@@ -157,7 +157,7 @@ fun instances_of thy algebra insts =
     val thy_classes = (#classes o Sorts.rep_algebra o Sign.classes_of) thy;
     fun all_classparams tyco class =
       these (try (#params o AxClass.get_info thy) class)
-      |> map (fn (c, _) => Class.inst_const thy (c, tyco))
+      |> map (fn (c, _) => Class.param_of_inst thy (c, tyco))
   in
     Symtab.empty
     |> fold (fn (tyco, class) =>
@@ -211,7 +211,7 @@ fun merge_funcss thy algebra raw_funcss funcgr =
       |> resort_funcss thy algebra funcgr
       |> filter_out (can (Graph.get_node funcgr) o fst);
     fun typ_func c [] = Code.default_typ thy c
-      | typ_func c (thms as thm :: _) = case Class.param_const thy c
+      | typ_func c (thms as thm :: _) = case Class.inst_of_param thy c
          of SOME (c', tyco) => 
               let
                 val (_, ty) = CodeUnit.head_func thm;

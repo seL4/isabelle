@@ -12,35 +12,42 @@ sig
     -> string list -> theory -> string * Proof.context
   val class_cmd: bstring -> xstring list -> Element.context Locale.element list
     -> xstring list -> theory -> string * Proof.context
-  val is_class: theory -> class -> bool
-  val these_params: theory -> sort -> (string * (string * typ)) list
+
   val init: class -> theory -> Proof.context
-  val add_logical_const: string -> Markup.property list
+  val logical_const: string -> Markup.property list
     -> (string * mixfix) * term -> theory -> theory
-  val add_syntactic_const: string -> Syntax.mode -> Markup.property list
+  val syntactic_const: string -> Syntax.mode -> Markup.property list
     -> (string * mixfix) * term -> theory -> theory
   val refresh_syntax: class -> Proof.context -> Proof.context
+
   val intro_classes_tac: thm list -> tactic
   val default_intro_classes_tac: thm list -> tactic
   val prove_subclass: class * class -> thm list -> Proof.context
     -> theory -> theory
-  val print_classes: theory -> unit
+
   val class_prefix: string -> string
+  val is_class: theory -> class -> bool
+  val these_params: theory -> sort -> (string * (string * typ)) list
+  val print_classes: theory -> unit
 
   (*instances*)
-  val declare_overloaded: string * typ * mixfix -> theory -> term * theory
-  val define_overloaded: string -> string * term -> theory -> thm * theory
-  val unoverload: theory -> conv
-  val overload: theory -> conv
-  val unoverload_const: theory -> string * typ -> string
-  val inst_const: theory -> string * string -> string
-  val param_const: theory -> string -> (string * string) option
-  val instantiation: arity list -> theory -> local_theory
-  val proof_instantiation: (local_theory -> local_theory) -> local_theory -> Proof.state
-  val prove_instantiation: (Proof.context -> tactic) -> local_theory -> local_theory
+  val init_instantiation: arity list -> theory -> local_theory
+  val instantiation_instance: (local_theory -> local_theory) -> local_theory -> Proof.state
+  val prove_instantiation_instance: (Proof.context -> tactic) -> local_theory -> local_theory
   val conclude_instantiation: local_theory -> local_theory
-  val end_instantiation: local_theory -> Proof.context
-  val instantiation_const: Proof.context -> string -> string option
+
+  val overloaded_const: string * typ * mixfix -> theory -> term * theory
+  val overloaded_def: string -> string * term -> theory -> thm * theory
+  val instantiation_param: Proof.context -> string -> string option
+  val confirm_declaration: string -> local_theory -> local_theory
+
+  val unoverload: theory -> thm -> thm
+  val overload: theory -> thm -> thm
+  val unoverload_conv: theory -> conv
+  val overload_conv: theory -> conv
+  val unoverload_const: theory -> string * typ -> string
+  val param_of_inst: theory -> string * string -> string
+  val inst_of_param: theory -> string -> (string * string) option
 
   (*old axclass layer*)
   val axclass_cmd: bstring * xstring list
@@ -109,7 +116,7 @@ fun get_remove_global_constraint c thy =
   end;
 
 
-(** axclass command **)
+(** primitive axclass and instance commands **)
 
 fun axclass_cmd (class, raw_superclasses) raw_specs thy =
   let
@@ -175,26 +182,27 @@ val inst_tyco = Option.map fst o try (dest_Type o the_single) oo Sign.const_typa
 fun inst thy (c, tyco) =
   (the o Symtab.lookup ((the o Symtab.lookup (fst (InstData.get thy))) c)) tyco;
 
-val inst_const = fst oo inst;
+val param_of_inst = fst oo inst;
 
 fun inst_thms thy = (Symtab.fold (Symtab.fold (cons o snd o snd) o snd) o fst)
   (InstData.get thy) [];
 
-val param_const = Symtab.lookup o snd o InstData.get;
+val inst_of_param = Symtab.lookup o snd o InstData.get;
 
 fun add_inst (c, tyco) inst = (InstData.map o apfst
       o Symtab.map_default (c, Symtab.empty)) (Symtab.update_new (tyco, inst))
   #> (InstData.map o apsnd) (Symtab.update_new (fst inst, (c, tyco)));
 
-fun unoverload thy = MetaSimplifier.rewrite true (inst_thms thy);
-fun overload thy = MetaSimplifier.rewrite true (map Thm.symmetric (inst_thms thy));
+fun unoverload thy = MetaSimplifier.simplify true (inst_thms thy);
+fun overload thy = MetaSimplifier.simplify true (map Thm.symmetric (inst_thms thy));
+
+fun unoverload_conv thy = MetaSimplifier.rewrite true (inst_thms thy);
+fun overload_conv thy = MetaSimplifier.rewrite true (map Thm.symmetric (inst_thms thy));
 
 fun unoverload_const thy (c_ty as (c, _)) =
   case AxClass.class_of_param thy c
    of SOME class => (case inst_tyco thy c_ty
-       of SOME tyco => (case try (inst thy) (c, tyco)
-             of SOME (c, _) => c
-              | NONE => c)
+       of SOME tyco => try (param_of_inst thy) (c, tyco) |> the_default c
         | NONE => c)
     | NONE => c;
 
@@ -205,18 +213,20 @@ fun primitive_note kind (name, thm) =
   PureThy.note_thmss_i kind [((name, []), [([thm], [])])]
   #>> (fn [(_, [thm])] => thm);
 
-fun declare_overloaded (c, ty, mx) thy =
+fun overloaded_const (c, ty, mx) thy =
   let
+    val _ = if mx <> NoSyn then
+      error ("Illegal mixfix syntax for constant to be instantiated " ^ quote c)
+      else ()
     val SOME class = AxClass.class_of_param thy c;
     val SOME tyco = inst_tyco thy (c, ty);
-    val name_inst = NameSpace.base class ^ "_" ^ NameSpace.base tyco ^ "_inst";
+    val name_inst = AxClass.instance_name (tyco, class) ^ "_inst";
     val c' = NameSpace.base c;
     val ty' = Type.strip_sorts ty;
   in
     thy
     |> Sign.sticky_prefix name_inst
     |> Sign.no_base_names
-    |> Sign.notation true Syntax.mode_default [(Const (c, ty), mx)]
     |> Sign.declare_const [] (c', ty', NoSyn)
     |-> (fn const' as Const (c'', _) => Thm.add_def true
           (Thm.def_name c', Logic.mk_equals (Const (c, ty'), const'))
@@ -228,22 +238,18 @@ fun declare_overloaded (c, ty, mx) thy =
     #> pair (Const (c, ty))))
   end;
 
-fun define_overloaded name (c, t) thy =
+fun overloaded_def name (c, t) thy =
   let
     val ty = Term.fastype_of t;
     val SOME tyco = inst_tyco thy (c, ty);
     val (c', eq) = inst thy (c, tyco);
-    val [Type (_, tys)] = Sign.const_typargs thy (c, ty);
-    val eq' = eq
-      |> Drule.instantiate' (map (SOME o Thm.ctyp_of thy) tys) [];
-          (*FIXME proper recover_sort mechanism*)
     val prop = Logic.mk_equals (Const (c', ty), t);
-    val name' = if name = "" then
-      Thm.def_name (NameSpace.base c ^ "_" ^ NameSpace.base tyco) else name;
+    val name' = Thm.def_name_optional
+      (NameSpace.base c ^ "_" ^ NameSpace.base tyco) name;
   in
     thy
     |> Thm.add_def false (name', prop)
-    |>> (fn thm => Thm.transitive eq' thm)
+    |>> (fn thm =>  Drule.transitive_thm OF [eq, thm])
   end;
 
 
@@ -911,9 +917,9 @@ val class = gen_class check_class_spec (K I);
 end; (*local*)
 
 
-(* definition in class target *)
+(* class target *)
 
-fun add_logical_const class pos ((c, mx), dict) thy =
+fun logical_const class pos ((c, mx), dict) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
@@ -928,7 +934,7 @@ fun add_logical_const class pos ((c, mx), dict) thy =
   in
     thy'
     |> Sign.declare_const pos (c, ty'', mx) |> snd
-    |> Thm.add_def false (c, def_eq)    (* FIXME PureThy.add_defs_i *)
+    |> Thm.add_def false (c, def_eq)
     |>> Thm.symmetric
     |-> (fn def => class_interpretation class [def] [Thm.prop_of def]
           #> register_operation class (c', (dict', SOME (Thm.varifyT def))))
@@ -936,10 +942,7 @@ fun add_logical_const class pos ((c, mx), dict) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-
-(* abbreviation in class target *)
-
-fun add_syntactic_const class prmode pos ((c, mx), rhs) thy =
+fun syntactic_const class prmode pos ((c, mx), rhs) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
@@ -974,50 +977,25 @@ structure Instantiation = ProofDataFun
   fun init _ = Instantiation { arities = [], params = [] };
 );
 
-fun mk_instantiation (arities, params) = Instantiation {
-    arities = arities, params = params
-  };
+fun mk_instantiation (arities, params) =
+  Instantiation { arities = arities, params = params };
+fun get_instantiation ctxt = case Instantiation.get ctxt
+ of Instantiation data => data;
 fun map_instantiation f (Instantiation { arities, params }) =
   mk_instantiation (f (arities, params));
 
-fun the_instantiation ctxt = case Instantiation.get ctxt
- of Instantiation { arities = [], ... } => error "No instantiation target"
-  | Instantiation data => data;
+fun the_instantiation ctxt = case get_instantiation ctxt
+ of { arities = [], ... } => error "No instantiation target"
+  | data => data;
 
-fun init_instantiation arities ctxt =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val _ = if null arities then error "At least one arity must be given" else ();
-    val _ = case (duplicates (op =) o map #1) arities
-     of [] => ()
-      | dupl_tycos => error ("Type constructors occur more than once in arities: "
-          ^ commas_quote dupl_tycos);
-    val ty_insts = map (fn (tyco, sorts, _) =>
-        (tyco, Type (tyco, map TFree (Name.names Name.context Name.aT sorts))))
-      arities;
-    val ty_inst = the o AList.lookup (op =) ty_insts;
-    fun type_name "*" = "prod"
-      | type_name "+" = "sum"
-      | type_name s = NameSpace.base s; (*FIXME*)
-    fun get_param tyco sorts (param, (c, ty)) =
-      ((unoverload_const thy (c, ty), tyco),
-        (param ^ "_" ^ type_name tyco,
-          map_atyps (K (ty_inst tyco)) ty));
-    fun get_params (tyco, sorts, sort) =
-      map (get_param tyco sorts) (these_params thy sort)
-    val params = maps get_params arities;
-  in
-    ctxt
-    |> Instantiation.put (mk_instantiation (arities, params))
-    |> fold (Variable.declare_term o Logic.mk_type o snd) ty_insts
-    |> fold (Variable.declare_term o Free o snd) params
-  end;
+val instantiation_params = #params o get_instantiation;
 
-val instantiation_params = #params o the_instantiation;
-
-fun instantiation_const ctxt v = instantiation_params ctxt
+fun instantiation_param ctxt v = instantiation_params ctxt
   |> find_first (fn (_, (v', _)) => v = v')
   |> Option.map (fst o fst);
+
+fun confirm_declaration c = (Instantiation.map o map_instantiation o apsnd)
+  (filter_out (fn (_, (c', _)) => c' = c));
 
 
 (* syntax *)
@@ -1057,21 +1035,58 @@ fun inst_term_uncheck ts ctxt =
 
 (* target *)
 
-fun instantiation arities =
-  ProofContext.init
-  #> init_instantiation arities
-  #> fold ProofContext.add_arity arities
-  #> Context.proof_map (
-      Syntax.add_term_check 0 "instance" inst_term_check
-      #> Syntax.add_term_uncheck 0 "instance" inst_term_uncheck);
-
-fun gen_proof_instantiation do_proof after_qed lthy =
+val sanatize_name = (*FIXME*)
   let
-    (*FIXME should work on fresh context but continue local theory afterwards*)
+    fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
+    val is_junk = not o is_valid andf Symbol.is_regular;
+    val junk = Scan.many is_junk;
+    val scan_valids = Symbol.scanner "Malformed input"
+      ((junk |--
+        (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
+        --| junk))
+      -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
+  in
+    explode #> scan_valids #> implode
+  end;
+
+
+fun init_instantiation arities thy =
+  let
+    val _ = if null arities then error "At least one arity must be given" else ();
+    val _ = case (duplicates (op =) o map #1) arities
+     of [] => ()
+      | dupl_tycos => error ("Type constructors occur more than once in arities: "
+          ^ commas_quote dupl_tycos);
+    val ty_insts = map (fn (tyco, sorts, _) =>
+        (tyco, Type (tyco, map TFree (Name.names Name.context Name.aT sorts))))
+      arities;
+    val ty_inst = the o AList.lookup (op =) ty_insts;
+    fun type_name "*" = "prod"
+      | type_name "+" = "sum"
+      | type_name s = sanatize_name (NameSpace.base s); (*FIXME*)
+    fun get_param tyco sorts (param, (c, ty)) =
+      ((unoverload_const thy (c, ty), tyco),
+        (param ^ "_" ^ type_name tyco,
+          map_atyps (K (ty_inst tyco)) ty));
+    fun get_params (tyco, sorts, sort) =
+      map (get_param tyco sorts) (these_params thy sort)
+    val params = maps get_params arities;
+  in
+    thy
+    |> ProofContext.init
+    |> Instantiation.put (mk_instantiation (arities, params))
+    |> fold (Variable.declare_term o Logic.mk_type o snd) ty_insts
+    |> fold ProofContext.add_arity arities
+    |> Context.proof_map (
+        Syntax.add_term_check 0 "instance" inst_term_check
+        #> Syntax.add_term_uncheck 0 "instance" inst_term_uncheck)
+  end;
+
+fun gen_instantiation_instance do_proof after_qed lthy =
+  let
     val ctxt = LocalTheory.target_of lthy;
     val arities = (#arities o the_instantiation) ctxt;
-    val arities_proof = maps
-      (Logic.mk_arities o Sign.cert_arity (ProofContext.theory_of ctxt)) arities;
+    val arities_proof = maps Logic.mk_arities arities;
     fun after_qed' results =
       LocalTheory.theory (fold (AxClass.add_arity o Thm.varifyT) results)
       #> after_qed;
@@ -1080,16 +1095,16 @@ fun gen_proof_instantiation do_proof after_qed lthy =
     |> do_proof after_qed' arities_proof
   end;
 
-val proof_instantiation = gen_proof_instantiation (fn after_qed => fn ts =>
+val instantiation_instance = gen_instantiation_instance (fn after_qed => fn ts =>
   Proof.theorem_i NONE (after_qed o map the_single) (map (fn t => [(t, [])]) ts));
 
-fun prove_instantiation tac = gen_proof_instantiation (fn after_qed =>
+fun prove_instantiation_instance tac = gen_instantiation_instance (fn after_qed =>
   fn ts => fn lthy => after_qed (Goal.prove_multi lthy [] [] ts
     (fn {context, ...} => tac context)) lthy) I;
 
 fun conclude_instantiation lthy =
   let
-    val arities = (#arities o the_instantiation) lthy;
+    val { arities, params } = the_instantiation lthy;
     val thy = ProofContext.theory_of lthy;
     (*val _ = map (fn (tyco, sorts, sort) =>
       if Sign.of_sort thy
@@ -1101,20 +1116,21 @@ fun conclude_instantiation lthy =
     val missing_params = arities
       |> maps (fn (tyco, _, sort) => params_of sort |> map (rpair tyco))
       |> filter_out (can (inst thy) o apfst fst);
-    fun declare_missing ((c, ty), tyco) thy =
+    fun declare_missing ((c, ty0), tyco) thy =
+    (*fun declare_missing ((c, tyco), (_, ty)) thy =*)
       let
         val SOME class = AxClass.class_of_param thy c;
-        val name_inst = NameSpace.base class ^ "_" ^ NameSpace.base tyco ^ "_inst";
-        val vs = Name.names Name.context Name.aT (replicate (Sign.arity_number thy tyco) []);
-        val ty' = map_atyps (fn _ => Type (tyco, map TFree vs)) ty;
+        val name_inst = AxClass.instance_name (tyco, class) ^ "_inst";
         val c' = NameSpace.base c;
+        val vs = Name.names Name.context Name.aT (replicate (Sign.arity_number thy tyco) []);
+        val ty = map_atyps (fn _ => Type (tyco, map TFree vs)) ty0;
       in
         thy
         |> Sign.sticky_prefix name_inst
         |> Sign.no_base_names
-        |> Sign.declare_const [] (c', ty', NoSyn)
+        |> Sign.declare_const [] (c', ty, NoSyn)
         |-> (fn const' as Const (c'', _) => Thm.add_def true
-              (Thm.def_name c', Logic.mk_equals (const', Const (c, ty')))
+              (Thm.def_name c', Logic.mk_equals (const', Const (c, ty)))
         #>> Thm.varifyT
         #-> (fn thm => add_inst (c, tyco) (c'', Thm.symmetric thm)
         #> primitive_note Thm.internalK (c', thm)
@@ -1125,7 +1141,5 @@ fun conclude_instantiation lthy =
     lthy
     |> LocalTheory.theory (fold declare_missing missing_params)
   end;
-
-val end_instantiation = conclude_instantiation #> LocalTheory.target_of;
 
 end;

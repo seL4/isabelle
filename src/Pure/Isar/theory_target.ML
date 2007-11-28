@@ -190,30 +190,29 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c,
              Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
   end;
 
-fun declare_const (ta as Target {target, is_locale, is_class, instantiation}) depends ((c, T), mx) lthy =
+fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c, T), mx) lthy =
   let
     val pos = ContextPosition.properties_of lthy;
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
-    val declare_const = if null instantiation
-      then Sign.declare_const pos (c, U, mx3)
-      else case Class.instantiation_const lthy c
-       of SOME c' => Class.declare_overloaded (c', U, mx3)
-        | NONE => Sign.declare_const pos (c, U, mx3);
-    val (const, lthy') = lthy |> LocalTheory.theory_result declare_const;
+    val declare_const = case Class.instantiation_param lthy c
+       of SOME c' => LocalTheory.theory_result (Class.overloaded_const (c', U, mx3))
+            ##> Class.confirm_declaration c
+        | NONE => LocalTheory.theory_result (Sign.declare_const pos (c, U, mx3));
+    val (const, lthy') = lthy |> declare_const;
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
     |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default pos ((c, mx2), t))
-    |> is_class ? class_target ta (Class.add_logical_const target pos ((c, mx1), t))
+    |> is_class ? class_target ta (Class.logical_const target pos ((c, mx1), t))
     |> LocalDefs.add_def ((c, NoSyn), t)
   end;
 
 
 (* abbrev *)
 
-fun abbrev (ta as Target {target, is_locale, is_class, instantiation}) prmode ((c, mx), t) lthy =
+fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t) lthy =
   let
     val pos = ContextPosition.properties_of lthy;
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
@@ -232,7 +231,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, instantiation}) prmode ((
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const ta prmode pos ((c, mx2), lhs')) #>
-            is_class ? class_target ta (Class.add_syntactic_const target prmode pos ((c, mx1), t'))
+            is_class ? class_target ta (Class.syntactic_const target prmode pos ((c, mx1), t'))
           end)
       else
         LocalTheory.theory
@@ -245,7 +244,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, instantiation}) prmode ((
 
 (* define *)
 
-fun define (ta as Target {target, is_locale, is_class, instantiation})
+fun define (ta as Target {target, is_locale, is_class, ...})
     kind ((c, mx), ((name, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -262,18 +261,15 @@ fun define (ta as Target {target, is_locale, is_class, instantiation})
     val (_, lhs') = Logic.dest_equals (Thm.prop_of local_def);
 
     (*def*)
-    val is_instantiation = not (null instantiation)
-      andalso is_some (Class.instantiation_const lthy c);
-    val define_const = if not is_instantiation
+    val define_const = if is_none (Class.instantiation_param lthy c)
       then (fn name => fn eq => Thm.add_def false (name, Logic.mk_equals eq))
-      else (fn name => fn (Const (c, _), rhs) => Class.define_overloaded name (c, rhs));
+      else (fn name => fn (Const (c, _), rhs) => Class.overloaded_def name (c, rhs));
     val (global_def, lthy3) = lthy2
       |> LocalTheory.theory_result (define_const name' (lhs', rhs'));
-    val def = if not is_instantiation then LocalDefs.trans_terms lthy3
+    val def = LocalDefs.trans_terms lthy3
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,
-       (*rhs' == rhs*)          Thm.symmetric rhs_conv]
-      else Thm.transitive local_def global_def;
+       (*rhs' == rhs*)          Thm.symmetric rhs_conv];
 
     (*note*)
     val ([(res_name, [res])], lthy4) = lthy3
@@ -294,7 +290,12 @@ fun axioms ta kind (vars, specs) lthy =
     val global_consts = map (Term.dest_Const o Term.head_of o Thm.term_of o Thm.rhs_of o #2) consts;
 
     (*axioms*)
-    val hyps = map Thm.term_of (Assumption.assms_of lthy');
+    val resubst_instparams = map_aterms (fn t as Free (v, T) =>
+      (case Class.instantiation_param lthy' v
+       of NONE => t
+        | SOME c => Const (c, T)) | t => t)
+    val hyps = map Thm.term_of (Assumption.assms_of lthy')
+      |> map resubst_instparams;
     fun axiom ((name, atts), props) thy = thy
       |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi name props)
       |-> (fn ths => pair ((name, atts), [(ths, [])]));
@@ -318,11 +319,10 @@ fun init_target _ NONE = global_target
 fun init_instantiaton arities = make_target "" false false arities
 
 fun init_ctxt (Target {target, is_locale, is_class, instantiation}) =
-  if null instantiation then
-    if not is_locale then ProofContext.init
-    else if not is_class then Locale.init target
-    else Class.init target
-  else Class.instantiation instantiation;
+  if not (null instantiation) then Class.init_instantiation instantiation
+  else if not is_locale then ProofContext.init
+  else if not is_class then Locale.init target
+  else Class.init target;
 
 fun init_lthy (ta as Target {target, instantiation, ...}) =
   Data.put ta #>
@@ -336,7 +336,8 @@ fun init_lthy (ta as Target {target, instantiation, ...}) =
     term_syntax = term_syntax ta,
     declaration = declaration ta,
     reinit = fn lthy => init_lthy_ctxt ta (ProofContext.theory_of lthy),
-    exit = if null instantiation then LocalTheory.target_of else Class.end_instantiation}
+    exit = if null instantiation then LocalTheory.target_of
+      else Class.conclude_instantiation #> LocalTheory.target_of}
 and init_lthy_ctxt ta = init_lthy ta o init_ctxt ta;
 
 in
@@ -347,8 +348,8 @@ fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SO
 fun context "-" thy = init NONE thy
   | context target thy = init (SOME (Locale.intern thy target)) thy;
 
-fun instantiation raw_arities thy =
-  init_lthy_ctxt (init_instantiaton (map (Sign.cert_arity thy) raw_arities)) thy;
+fun instantiation arities thy =
+  init_lthy_ctxt (init_instantiaton arities) thy;
 
 end;
 

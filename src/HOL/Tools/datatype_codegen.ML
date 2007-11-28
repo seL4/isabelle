@@ -432,7 +432,7 @@ fun get_case_cert thy tyco =
     |> MetaSimplifier.rewrite_rule [(Thm.symmetric o Thm.assume) asm]
     |> Thm.implies_intr asm
     |> Thm.generalize ([], params) 0
-    |> Conv.fconv_rule (Class.unoverload thy)
+    |> Class.unoverload thy
     |> Thm.varifyT
   end;
 
@@ -572,7 +572,7 @@ fun eq_hook specs =
     fun add_eq_thms (dtco, (_, (vs, cs))) thy =
       let
         val thy_ref = Theory.check_thy thy;
-        val const = Class.inst_const thy ("op =", dtco);
+        val const = Class.param_of_inst thy ("op =", dtco);
         val get_thms = (fn () => get_eq (Theory.deref thy_ref) dtco |> rev);
       in
         Code.add_funcl (const, Susp.delay get_thms) thy
