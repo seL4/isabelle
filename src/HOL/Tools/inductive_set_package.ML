@@ -371,7 +371,7 @@ fun to_set thms ctxt thm =
     thm |>
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (HOL_basic_ss addsimps to_set_simps
-        addsimprocs [strong_ind_simproc pred_arities]) |>
+        addsimprocs [strong_ind_simproc pred_arities, collect_mem_simproc]) |>
     RuleCases.save thm
   end;
 
