@@ -26,6 +26,7 @@ sig
   val axiomatize_classrel_cmd: (xstring * xstring) list -> theory -> theory
   val axiomatize_arity: arity -> theory -> theory
   val axiomatize_arity_cmd: xstring * string list * string -> theory -> theory
+  val instance_name: string * class -> string
   type cache
   val of_sort: theory -> typ * sort -> cache -> thm list * cache  (*exception Sorts.CLASS_ERROR*)
   val cache: cache
@@ -131,6 +132,8 @@ fun class_of_param thy = AList.lookup (op =) (#2 (get_axclasses thy));
 
 
 (* maintain instances *)
+
+fun instance_name (a, c) = NameSpace.base c ^ "_" ^ NameSpace.base a;
 
 val get_instances = #2 o AxClassData.get;
 fun map_instances f = AxClassData.map (apsnd f);
