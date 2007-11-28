@@ -823,8 +823,11 @@ val isar_atp_writeonly = PrintMode.setmp []
 
 fun sledgehammer state =
   let
-    val (ctxt, (chain_ths, goal)) = Proof.get_goal (Toplevel.proof_of state);
-    val thy = ProofContext.theory_of ctxt;
+    val (ctxt, (chain_ths, goal)) = Proof.get_goal (Toplevel.proof_of state)
+    val chain_ths = map (PureThy.put_name_hint Recon.chained_hint) chain_ths
+                    (*Mark the chained theorems to keep them out of metis calls;
+                      their original "name hints" may be bad anyway.*)
+    val thy = ProofContext.theory_of ctxt
   in
     Output.debug (fn () => "subgoals in isar_atp:\n" ^
                   Syntax.string_of_term ctxt (Logic.mk_conjunction_list (Thm.prems_of goal)));

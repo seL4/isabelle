@@ -11,6 +11,7 @@ sig
   datatype atp = E | SPASS | Vampire
   val modulus:     int ref
   val recon_sorts: bool ref
+  val chained_hint: string
   val checkEProofFound:
 	TextIO.instream * TextIO.outstream * Posix.Process.pid *
 	string * Proof.context * thm * int * string Vector.vector -> bool
@@ -447,7 +448,8 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   in
     app (fn th => Output.debug (fn () => string_of_thm th)) ccls;
     isar_header (map #1 fixes) ^
-    String.concat (isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines))
+    String.concat (isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)) ^
+    "qed\n"
   end
   handle e => (*FIXME: exn handler is too general!*)
     "Translation of TSTP raised an exception: " ^ Toplevel.exn_message e;
@@ -540,17 +542,24 @@ fun get_axiom_names_for E       = get_axiom_names_tstp
 fun metis_line [] = "apply metis"
   | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
 
+(*Used to label theorems chained into the sledgehammer call*)
+val chained_hint = "CHAINED";
+
+val nochained = filter_out (fn y => y = chained_hint);
+
 (*The signal handler in watcher.ML must be able to read the output of this.*)
 fun lemma_list atp proofextract thm_names probfile toParent ppid =
   signal_success probfile toParent ppid 
-                 (metis_line (get_axiom_names_for atp proofextract thm_names));
+                 (metis_line (nochained (get_axiom_names_for atp proofextract thm_names)));
 
 fun tstp_extract proofextract thm_names probfile toParent ppid ctxt th sgno =
   let val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-      val line1 = metis_line (get_axiom_names_tstp proofextract thm_names)
+      val names = get_axiom_names_tstp proofextract thm_names
+      val line1 = metis_line (nochained names)
+      val line2 = if chained_hint mem_string names then ""
+                  else decode_tstp_file cnfs ctxt th sgno thm_names
   in
-    signal_success probfile toParent ppid
-      (line1 ^ "\n" ^ decode_tstp_file cnfs ctxt th sgno thm_names)
+    signal_success probfile toParent ppid (line1 ^ "\n" ^ line2)
   end;
 
 (**** Extracting proofs from an ATP's output ****)
