@@ -7,6 +7,9 @@ Specifics about common object-logics.
 
 signature OBJECT_LOGIC =
 sig
+  val get_base_sort: theory -> sort option
+  val add_base_sort: sort -> theory -> theory
+  val typedecl: bstring * string list * mixfix -> theory -> typ * theory
   val add_judgment: bstring * string * mixfix -> theory -> theory
   val add_judgment_i: bstring * typ * mixfix -> theory -> theory
   val judgment_name: theory -> string
@@ -35,42 +38,82 @@ end;
 structure ObjectLogic: OBJECT_LOGIC =
 struct
 
-
 (** theory data **)
+
+datatype data = Data of
+ {base_sort: sort option,
+  judgment: string option,
+  atomize_rulify: thm list * thm list};
+
+fun make_data (base_sort, judgment, atomize_rulify) =
+  Data {base_sort = base_sort, judgment = judgment, atomize_rulify = atomize_rulify};
 
 structure ObjectLogicData = TheoryDataFun
 (
-  type T = string option * (thm list * thm list);
-  val empty = (NONE, ([], []));
+  type T = data;
+  val empty = make_data (NONE, NONE, ([], []));
   val copy = I;
   val extend = I;
 
-  fun merge_judgment (SOME x, SOME y) =
-        if (x: string) = y then SOME x else error "Attempt to merge different object-logics"
-    | merge_judgment (j1, j2) = if is_some j1 then j1 else j2;
+  fun merge_opt eq (SOME x, SOME y) =
+        if eq (x, y) then SOME x else error "Attempt to merge different object-logics"
+    | merge_opt _ (x, y) = if is_some x then x else y;
 
-  fun merge _ ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
-    (merge_judgment (judgment1, judgment2),
+  fun merge _
+     (Data {base_sort = base_sort1, judgment = judgment1, atomize_rulify = (atomize1, rulify1)},
+      Data {base_sort = base_sort2, judgment = judgment2, atomize_rulify = (atomize2, rulify2)}) =
+    make_data (merge_opt (op =) (base_sort1, base_sort2), merge_opt (op =) (judgment1, judgment2),
       (Thm.merge_thms (atomize1, atomize2), Thm.merge_thms (rulify1, rulify2)));
 );
+
+fun map_data f = ObjectLogicData.map (fn (Data {base_sort, judgment, atomize_rulify}) =>
+  make_data (f (base_sort, judgment, atomize_rulify)));
+
+fun get_data thy = ObjectLogicData.get thy |> (fn Data args => args);
 
 
 
 (** generic treatment of judgments -- with a single argument only **)
 
+(* base_sort *)
+
+val get_base_sort = #base_sort o get_data;
+
+fun add_base_sort S = map_data (fn (base_sort, judgment, atomize_rulify) =>
+  if is_some base_sort then error "Attempt to redeclare object-logic base sort"
+  else (SOME S, judgment, atomize_rulify));
+
+
+(* typedecl *)
+
+fun typedecl (raw_name, vs, mx) thy =
+  let
+    val base_sort = get_base_sort thy;
+    val name = Sign.full_name thy (Syntax.type_name raw_name mx);
+    val _ = has_duplicates (op =) vs andalso
+      error ("Duplicate parameters in type declaration: " ^ quote name);
+    val n = length vs;
+    val T = Type (name, map (fn v => TFree (v, [])) vs);
+  in
+    thy
+    |> Sign.add_types [(raw_name, n, mx)]
+    |> (case base_sort of NONE => I | SOME S => AxClass.axiomatize_arity (name, replicate n S, S))
+    |> pair T
+  end;
+
+
 (* add judgment *)
 
 local
-
-fun new_judgment name (NONE, rules) = (SOME name, rules)
-  | new_judgment _ (SOME _, _) = error "Attempt to redeclare object-logic judgment";
 
 fun gen_add_judgment add_consts (bname, T, mx) thy =
   let val c = Sign.full_name thy (Syntax.const_name bname mx) in
     thy
     |> add_consts [(bname, T, mx)]
     |> (fn thy' => Theory.add_deps c (c, Sign.the_const_type thy' c) [] thy')
-    |> ObjectLogicData.map (new_judgment c)
+    |> map_data (fn (base_sort, judgment, atomize_rulify) =>
+        if is_some judgment then error "Attempt to redeclare object-logic judgment"
+        else (base_sort, SOME c, atomize_rulify))
   end;
 
 in
@@ -84,8 +127,8 @@ end;
 (* judgments *)
 
 fun judgment_name thy =
-  (case ObjectLogicData.get thy of
-    (SOME name, _) => name
+  (case #judgment (get_data thy) of
+    SOME name => name
   | _ => raise TERM ("Unknown object-logic judgment", []));
 
 fun is_judgment thy (Const (c, _) $ _) = c = judgment_name thy
@@ -138,11 +181,14 @@ fun is_elim rule =
 
 (* maintain rules *)
 
-val get_atomize = #1 o #2 o ObjectLogicData.get;
-val get_rulify = #2 o #2 o ObjectLogicData.get;
+val get_atomize = #1 o #atomize_rulify o get_data;
+val get_rulify = #2 o #atomize_rulify o get_data;
 
-val add_atomize = ObjectLogicData.map o apsnd o apfst o Thm.add_thm;
-val add_rulify = ObjectLogicData.map o apsnd o apsnd o Thm.add_thm;
+fun add_atomize th = map_data (fn (base_sort, judgment, (atomize, rulify)) =>
+  (base_sort, judgment, (Thm.add_thm th atomize, rulify)));
+
+fun add_rulify th = map_data (fn (base_sort, judgment, (atomize, rulify)) =>
+  (base_sort, judgment, (atomize, Thm.add_thm th rulify)));
 
 val declare_atomize = Thm.declaration_attribute (fn th => Context.mapping (add_atomize th) I);
 val declare_rulify = Thm.declaration_attribute (fn th => Context.mapping (add_rulify th) I);
