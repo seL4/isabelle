@@ -25,6 +25,11 @@ text {*
   even if m is negative;
   For instance, @{text "-5 div 2 = -3"} and @{text "-5 mod 2 = 1"}; thus
   @{text "-5 = (-3)*2 + 1"}.
+  
+  This two's complement binary representation derives from the paper 
+  "An Efficient Representation of Arithmetic for Term Rewriting" by
+  Dave Cohen and Phil Watson, Rewriting Techniques and Applications,
+  Springer LNCS 488 (240-251), 1991.
 *}
 
 datatype bit = B0 | B1
