@@ -39,7 +39,8 @@ lemma le_infI1[intro]:
   assumes "a \<sqsubseteq> x"
   shows "a \<sqinter> b \<sqsubseteq> x"
 proof (rule order_trans)
-  show "a \<sqinter> b \<sqsubseteq> a" and "a \<sqsubseteq> x" using assms by simp
+  from assms show "a \<sqsubseteq> x" .
+  show "a \<sqinter> b \<sqsubseteq> a" by simp 
 qed
 lemmas (in -) [rule del] = le_infI1
 
@@ -47,7 +48,8 @@ lemma le_infI2[intro]:
   assumes "b \<sqsubseteq> x"
   shows "a \<sqinter> b \<sqsubseteq> x"
 proof (rule order_trans)
-  show "a \<sqinter> b \<sqsubseteq> b" and "b \<sqsubseteq> x" using assms by simp
+  from assms show "b \<sqsubseteq> x" .
+  show "a \<sqinter> b \<sqsubseteq> b" by simp
 qed
 lemmas (in -) [rule del] = le_infI2
 

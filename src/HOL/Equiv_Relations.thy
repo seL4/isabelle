@@ -288,7 +288,7 @@ lemma congruent2_commuteI:
    apply (rule commute [THEN trans])
      apply (rule_tac [3] commute [THEN trans, symmetric])
        apply (rule_tac [5] sym)
-       apply (assumption | rule congt |
+       apply (rule congt | assumption |
          erule equivA [THEN equiv_type, THEN subsetD, THEN SigmaE2])+
   done
 
