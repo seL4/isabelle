@@ -320,32 +320,16 @@ lemma factor_unique [rule_format]:
   apply assumption
   apply (rule perm.Cons)
   apply (case_tac "x = []")
-   apply (simp add: perm_sing_eq primel_hd_tl)
-   apply (rule_tac p = a in prod_one_empty)
-     apply simp_all
-  apply (erule uniq_ex_aux)
-     apply (auto intro: primel_tl perm_primel simp add: primel_hd_tl)
-   apply (rule_tac k = a and n = "prod list" and m = "prod x" in mult_left_cancel)
-    apply (rule_tac [3] x = a in primel_prod_less)
-      apply (rule_tac [2] prod_xy_prod)
-      apply (rule_tac [2] s = "prod ys" in HOL.trans)
-       apply (erule_tac [3] perm_prod)
-      apply (erule_tac [5] perm_prod [symmetric])
-     apply (auto intro: perm_primel prime_g_zero)
+   apply (metis perm_prod perm_refl prime_primel primel_hd_tl primel_tl prod_one_empty)
+  apply (metis nat_0_less_mult_iff nat_mult_eq_cancel1 perm_primel perm_prod primel_prod_gz primel_prod_less primel_tl prod.simps(2))
   done
 
 lemma perm_nondec_unique:
     "xs <~~> ys ==> nondec xs ==> nondec ys ==> xs = ys"
   by (metis nondec_sort_eq perm_sort_eq)
 
-
-lemma unique_prime_factorization [rule_format]:
+theorem unique_prime_factorization [rule_format]:
     "\<forall>n. Suc 0 < n --> (\<exists>!l. primel l \<and> nondec l \<and> prod l = n)"
-  apply safe
-   apply (erule nondec_factor_exists)
-  apply (rule perm_nondec_unique)
-    apply (rule factor_unique)
-    apply simp_all
-  done
+  by (metis factor_unique nondec_factor_exists perm_nondec_unique)
 
 end
