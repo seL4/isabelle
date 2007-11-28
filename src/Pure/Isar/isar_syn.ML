@@ -113,7 +113,7 @@ val _ =
 val _ =
   OuterSyntax.command "typedecl" "type declaration" K.thy_decl
     (P.type_args -- P.name -- P.opt_infix >> (fn ((args, a), mx) =>
-      Toplevel.theory (Typedecl.add (a, args, mx) #> snd)));
+      Toplevel.theory (ObjectLogic.typedecl (a, args, mx) #> snd)));
 
 val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl

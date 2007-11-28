@@ -557,7 +557,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val thy2' = thy
 
       (** new types **)
-      |> fold2 (fn (name, mx) => fn tvs => Typedecl.add (name, tvs, mx) #> snd)
+      |> fold2 (fn (name, mx) => fn tvs => ObjectLogic.typedecl (name, tvs, mx) #> snd)
            types_syntax tyvars
       |> add_path flat_names (space_implode "_" new_type_names)
 

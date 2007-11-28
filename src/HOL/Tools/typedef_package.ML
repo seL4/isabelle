@@ -135,7 +135,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       else (NONE, thy);
 
     fun typedef_result nonempty =
-      Typedecl.add (t, vs, mx)
+      ObjectLogic.typedecl (t, vs, mx)
       #> snd
       #> Sign.add_consts_i
        ((if def then [(name, setT', NoSyn)] else []) @
