@@ -12,11 +12,11 @@ theory Map
 imports List
 begin
 
-types ('a,'b) map = "'a => 'b option"  (infixr "~=>" 0)
+types ('a,'b) "~=>" = "'a => 'b option"  (infixr 0)
 translations (type) "a ~=> b " <= (type) "a => b option"
 
 syntax (xsymbols)
-  map :: "type \<Rightarrow> type \<Rightarrow> type"  (infixr "\<rightharpoonup>" 0)
+  "~=>" :: "[type, type] => type"  (infixr "\<rightharpoonup>" 0)
 
 abbreviation
   empty :: "'a ~=> 'b" where
