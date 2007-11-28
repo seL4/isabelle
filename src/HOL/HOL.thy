@@ -37,11 +37,7 @@ subsubsection {* Core syntax *}
 
 classes type
 defaultsort type
-
-setup {*
-  Typedecl.interpretation (fn a => fn thy => AxClass.axiomatize_arity
-    (a, replicate (Sign.arity_number thy a) @{sort type}, @{sort type}) thy)
-*}
+setup {* ObjectLogic.add_base_sort @{sort type} *}
 
 arities
   "fun" :: (type, type) type
