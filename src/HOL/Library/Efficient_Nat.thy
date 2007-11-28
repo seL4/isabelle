@@ -33,7 +33,7 @@ definition
 
 definition
   int_of_nat :: "nat \<Rightarrow> int" where
-  "int_of_nat n = of_nat n"
+  [code func del]: "int_of_nat n = of_nat n"
 
 lemma int_of_nat_Suc [simp]:
   "int_of_nat (Suc n) = 1 + int_of_nat n"
