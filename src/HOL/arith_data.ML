@@ -163,52 +163,6 @@ val nat_cancel_sums = nat_cancel_sums_add @
 val arith_data_setup =
   Simplifier.map_ss (fn ss => ss addsimprocs nat_cancel_sums);
 
-
-(* FIXME dead code *)
-(* antisymmetry:
-   combines x <= y (or ~(y < x)) and y <= x (or ~(x < y)) into x = y
-
-local
-val antisym = mk_meta_eq order_antisym
-val not_lessD = @{thm linorder_not_less} RS iffD1
-fun prp t thm = (#prop(rep_thm thm) = t)
-in
-fun antisym_eq prems thm =
-  let
-    val r = #prop(rep_thm thm);
-  in
-    case r of
-      Tr $ ((c as Const(@{const_name HOL.less_eq},T)) $ s $ t) =>
-        let val r' = Tr $ (c $ t $ s)
-        in
-          case Library.find_first (prp r') prems of
-            NONE =>
-              let val r' = Tr $ (HOLogic.Not $ (Const(@{const_name HOL.less},T) $ s $ t))
-              in case Library.find_first (prp r') prems of
-                   NONE => []
-                 | SOME thm' => [(thm' RS not_lessD) RS (thm RS antisym)]
-              end
-          | SOME thm' => [thm' RS (thm RS antisym)]
-        end
-    | Tr $ (Const("Not",_) $ (Const(@{const_name HOL.less},T) $ s $ t)) =>
-        let val r' = Tr $ (Const(@{const_name HOL.less_eq},T) $ s $ t)
-        in
-          case Library.find_first (prp r') prems of
-            NONE =>
-              let val r' = Tr $ (HOLogic.Not $ (Const(@{const_name HOL.less},T) $ t $ s))
-              in case Library.find_first (prp r') prems of
-                   NONE => []
-                 | SOME thm' =>
-                     [(thm' RS not_lessD) RS ((thm RS not_lessD) RS antisym)]
-              end
-          | SOME thm' => [thm' RS ((thm RS not_lessD) RS antisym)]
-        end
-    | _ => []
-  end
-  handle THM _ => []
-end;
-*)
-
 end;
 
 open ArithData;
