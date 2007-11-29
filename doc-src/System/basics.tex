@@ -286,6 +286,7 @@ Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
     -e MLTEXT    pass MLTEXT to the ML session
     -f           pass 'Session.finish();' to the ML session
     -m MODE      add print mode for output
+    -p           echo ISABELLE_PID on startup
     -q           non-interactive session
     -r           open heap file read-only
     -u           pass 'use"ROOT.ML";' to the ML session
@@ -361,6 +362,12 @@ XML-based PGIP communication.
 \medskip The \texttt{-S} option makes the Isabelle process more secure
 by disabling some critical operations, notably runtime compilation and
 evaluation of ML source code.
+
+\medskip The \texttt{-p} option echos the \texttt{ISABELLE_PID}
+variable on startup, which is the operating system identifier of the
+Isabelle process group.  This enables to control the process later on,
+e.g.\ sending an interrupt signal like this: \verb,kill -INT -,$pid$
+(the $pid$ is negated here to address the whole process group).
 
 
 \subsection*{Examples}

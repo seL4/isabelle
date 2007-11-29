@@ -36,6 +36,7 @@ function usage()
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -f           pass 'Session.finish();' to the ML session"
   echo "    -m MODE      add print mode for output"
+  echo "    -p           echo ISABELLE_PID on startup"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
   echo "    -u           pass 'use\"ROOT.ML\";' to the ML session"
@@ -67,11 +68,12 @@ SECURE=""
 COMPRESS=""
 MLTEXT=""
 MODES=""
+ECHOPID=""
 TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "XCIPSce:fm:qruw" OPT
+while getopts "XCIPSce:fm:pqruw" OPT
 do
   case "$OPT" in
     C)
@@ -104,6 +106,9 @@ do
       else
         MODES="\"$OPTARG\", $MODES"
       fi
+      ;;
+    p)
+      ECHOPID=true
       ;;
     q)
       TERMINATE=true
@@ -226,6 +231,8 @@ fi
 
 export INFILE OUTFILE COPYDB COMPRESS MLTEXT TERMINATE NOWRITE \
   ISABELLE_PID ISABELLE_TMP
+
+[ -n "$ECHOPID" ] && echo "ISABELLE_PID=$ISABELLE_PID"
 
 if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
   "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
