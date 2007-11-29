@@ -383,7 +383,6 @@ structure CodeData = TheoryDataFun
 
 val _ = Context.add_setup CodeData.init;
 
-fun ch r f = let val x = f (! r) in (r := x; x) end;
 fun thy_data f thy = f ((snd o CodeData.get) thy);
 
 fun get_ensure_init kind data_ref =
