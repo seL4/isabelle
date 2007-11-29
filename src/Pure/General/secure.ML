@@ -52,7 +52,7 @@ fun use_noncritical name =
   (secure_mltext (); orig_use_file Output.ml_output true name);
 
 (*commit is dynamically bound!*)
-fun commit () = CRITICAL (fn () => orig_use_text "" Output.ml_output false "commit();");
+fun commit () = orig_use_text "" Output.ml_output false "commit();";
 
 
 (* shell commands *)
