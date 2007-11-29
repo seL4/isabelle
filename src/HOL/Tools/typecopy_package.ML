@@ -18,9 +18,8 @@ sig
   val add_typecopy: bstring * string list -> typ -> (bstring * bstring) option
     -> theory -> (string * info) * theory
   val get_typecopies: theory -> string list
-  val get_typecopy_info: theory -> string -> info option
+  val get_info: theory -> string -> info option
   val interpretation: (string -> theory -> theory) -> theory -> theory
-  val get_spec: theory -> string -> (string * sort) list * (string * typ list) list
   val get_eq: theory -> string -> thm
   val print_typecopies: theory -> unit
   val setup: theory -> theory
@@ -65,7 +64,7 @@ fun print_typecopies thy =
     end;
 
 val get_typecopies = Symtab.keys o TypecopyData.get;
-val get_typecopy_info = Symtab.lookup o TypecopyData.get;
+val get_info = Symtab.lookup o TypecopyData.get;
 
 
 (* interpretation of type copies *)
@@ -123,28 +122,20 @@ end;
 
 (* code generator setup *)
 
-fun get_spec thy tyco =
-  let
-    val SOME { vs, constr, typ, ... } = get_typecopy_info thy tyco
-  in (vs, [(constr, [typ])]) end;
-
-fun get_eq thy tyco =
-  (#inject o the o get_typecopy_info thy) tyco;
+fun get_eq thy = #inject o the o get_info thy;
 
 fun add_typecopy_spec tyco thy =
   let
-    val c = (#constr o the o get_typecopy_info thy) tyco;
-    val ty = Logic.unvarifyT (Sign.the_const_type thy c);
+    val SOME { constr, proj_def, inject, ... } = get_info thy tyco;
+    val ty = Logic.unvarifyT (Sign.the_const_type thy constr);
   in
-    thy |> Code.add_datatype [(c, ty)]
+    thy
+    |> Code.add_datatype [(constr, ty)]
+    |> Code.add_func proj_def
   end;
-
-fun add_project tyco thy = thy |> Code.add_default_func
-  ((#proj_def o the o get_typecopy_info thy) tyco);
 
 val setup =
   TypecopyInterpretation.init
   #> interpretation add_typecopy_spec
-  #> interpretation add_project
 
 end;
