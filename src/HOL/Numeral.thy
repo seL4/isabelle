@@ -203,16 +203,15 @@ lemma mult_num0 [simp]:
   unfolding numeral_simps int_distrib by simp 
 
 
-
 subsection {* Converting Numerals to Rings: @{term number_of} *}
 
-axclass number_ring \<subseteq> number, comm_ring_1
-  number_of_eq: "number_of k = of_int k"
+class number_ring = number + comm_ring_1 +
+  assumes number_of_eq: "number_of k = of_int k"
 
 text {* self-embedding of the integers *}
 
 instance int :: number_ring
-  int_number_of_def: "number_of w \<equiv> of_int w"
+  int_number_of_def: "number_of w \<equiv> of_int w \<Colon> int"
   by intro_classes (simp only: int_number_of_def)
 
 lemmas [code func del] = int_number_of_def

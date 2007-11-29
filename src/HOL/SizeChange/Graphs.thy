@@ -79,7 +79,7 @@ instance graph :: (type, type) "{distrib_lattice, complete_lattice}"
   graph_leq_def: "G \<le> H \<equiv> dest_graph G \<subseteq> dest_graph H"
   graph_less_def: "G < H \<equiv> dest_graph G \<subset> dest_graph H"
   "inf G H \<equiv> Graph (dest_graph G \<inter> dest_graph H)"
-  "sup G H \<equiv> G + H"
+  "sup (G \<Colon> ('a, 'b) graph)  H \<equiv> G + H"
   Inf_graph_def: "Inf \<equiv> \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
   Sup_graph_def: "Sup \<equiv> \<lambda>Gs. Graph (\<Union>(dest_graph ` Gs))"
 proof
@@ -195,10 +195,10 @@ where
   "grpow 0 A = 1"
 | "grpow (Suc n) A = A * (grpow n A)"
 
-instance graph :: (type, monoid_mult) 
+instance graph :: (type, monoid_mult)
   "{semiring_1,idem_add,recpower,star}"
   graph_pow_def: "A ^ n == grpow n A"
-  graph_star_def: "star G == (SUP n. G ^ n)" 
+  graph_star_def: "star (G \<Colon> ('a, 'b) graph) == (SUP n. G ^ n)" 
 proof
   fix a b c :: "('a, 'b) graph"
   

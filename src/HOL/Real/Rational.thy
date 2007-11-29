@@ -362,8 +362,8 @@ proof
 qed
 
 instance rat :: distrib_lattice
-  "inf r s \<equiv> min r s"
-  "sup r s \<equiv> max r s"
+  "inf \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat \<equiv> min"
+  "sup \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat \<equiv> max"
   by default (auto simp add: min_max.sup_inf_distrib1 inf_rat_def sup_rat_def)
 
 instance rat :: ordered_field

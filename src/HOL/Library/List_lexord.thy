@@ -10,13 +10,11 @@ imports Main
 begin
 
 instance list :: (ord) ord
-  list_le_def:  "(xs::('a::ord) list) \<le> ys \<equiv> (xs < ys \<or> xs = ys)"
-  list_less_def: "(xs::('a::ord) list) < ys \<equiv> (xs, ys) \<in> lexord {(u,v). u < v}" ..
-
-lemmas list_ord_defs [code func del] = list_less_def list_le_def
+  list_less_def [code func del]: "(xs::('a::ord) list) < ys \<longleftrightarrow> (xs, ys) \<in> lexord {(u,v). u < v}"
+  list_le_def [code func del]: "(xs::('a::ord) list) \<le> ys \<longleftrightarrow> (xs < ys \<or> xs = ys)" ..
 
 instance list :: (order) order
-  apply (intro_classes, unfold list_ord_defs)
+  apply (intro_classes, unfold list_less_def list_le_def)
   apply safe
   apply (rule_tac r1 = "{(a::'a,b). a < b}" in lexord_irreflexive [THEN notE])
   apply simp
@@ -35,12 +33,10 @@ instance list :: (linorder) linorder
   done
 
 instance list :: (linorder) distrib_lattice
-  "inf \<equiv> min"
-  "sup \<equiv> max"
+  [code func del]: "(inf \<Colon> 'a list \<Rightarrow> _) = min"
+  [code func del]: "(sup \<Colon> 'a list \<Rightarrow> _) = max"
   by intro_classes
     (auto simp add: inf_list_def sup_list_def min_max.sup_inf_distrib1)
-
-lemmas [code func del] = inf_list_def sup_list_def
 
 lemma not_less_Nil [simp]: "\<not> (x < [])"
   by (unfold list_less_def) simp
@@ -52,13 +48,13 @@ lemma Cons_less_Cons [simp]: "a # x < b # y \<longleftrightarrow> a < b \<or> a 
   by (unfold list_less_def) simp
 
 lemma le_Nil [simp]: "x \<le> [] \<longleftrightarrow> x = []"
-  by (unfold list_ord_defs, cases x) auto
+  by (unfold list_le_def, cases x) auto
 
 lemma Nil_le_Cons [simp]: "[] \<le> x"
-  by (unfold list_ord_defs, cases x) auto
+  by (unfold list_le_def, cases x) auto
 
 lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> a < b \<or> a = b \<and> x \<le> y"
-  by (unfold list_ord_defs) auto
+  by (unfold list_le_def) auto
 
 lemma less_code [code func]:
   "xs < ([]\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> False"

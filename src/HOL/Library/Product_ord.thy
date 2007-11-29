@@ -10,30 +10,28 @@ imports Main
 begin
 
 instance "*" :: (ord, ord) ord
-  prod_le_def: "(x \<le> y) \<equiv> (fst x < fst y) \<or> (fst x = fst y \<and> snd x \<le> snd y)"
-  prod_less_def: "(x < y) \<equiv> (fst x < fst y) \<or> (fst x = fst y \<and> snd x < snd y)" ..
-
-lemmas prod_ord_defs [code func del] = prod_less_def prod_le_def
+  prod_le_def [code func del]: "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x \<le> snd y"
+  prod_less_def [code func del]: "x < y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x < snd y" ..
 
 lemma [code func]:
   "(x1\<Colon>'a\<Colon>{ord, eq}, y1) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
   "(x1\<Colon>'a\<Colon>{ord, eq}, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
-  unfolding prod_ord_defs by simp_all
+  unfolding prod_le_def prod_less_def by simp_all
 
 lemma [code]:
   "(x1, y1) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
   "(x1, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
-  unfolding prod_ord_defs by simp_all
+  unfolding prod_le_def prod_less_def by simp_all
 
 instance * :: (order, order) order
-  by default (auto simp: prod_ord_defs intro: order_less_trans)
+  by default (auto simp: prod_le_def prod_less_def intro: order_less_trans)
 
 instance * :: (linorder, linorder) linorder
   by default (auto simp: prod_le_def)
 
 instance * :: (linorder, linorder) distrib_lattice
-  inf_prod_def: "inf \<equiv> min"
-  sup_prod_def: "sup \<equiv> max"
+  inf_prod_def: "(inf \<Colon> 'a \<times> 'b \<Rightarrow> _ \<Rightarrow> _) = min"
+  sup_prod_def: "(sup \<Colon> 'a \<times> 'b \<Rightarrow> _ \<Rightarrow> _) = max"
   by intro_classes
     (auto simp add: inf_prod_def sup_prod_def min_max.sup_inf_distrib1)
 

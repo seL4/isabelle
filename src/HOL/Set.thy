@@ -145,7 +145,7 @@ text{*
 
 instance set :: (type) ord
   subset_def:  "A \<le> B \<equiv> \<forall>x\<in>A. x \<in> B"
-  psubset_def: "A < B \<equiv> A \<le> B \<and> A \<noteq> B" ..
+  psubset_def: "(A\<Colon>'a set) < B \<equiv> A \<le> B \<and> A \<noteq> B" ..
 lemmas [code func del] = subset_def psubset_def
 
 abbreviation

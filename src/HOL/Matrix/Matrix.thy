@@ -23,7 +23,7 @@ instance matrix :: ("{plus, times, zero}") times
   times_matrix_def: "A * B \<equiv> mult_matrix (op *) (op +) A B" ..
 
 instance matrix :: (lordered_ab_group_add) abs
-  abs_matrix_def: "abs A \<equiv> sup A (- A)" ..
+  abs_matrix_def: "abs (A \<Colon> 'a matrix) \<equiv> sup A (- A)" ..
 
 instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_meet
 proof 

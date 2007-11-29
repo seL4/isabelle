@@ -4,6 +4,14 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Pure ***
+
+* Command "instance" now takes list of definitions in the same
+manner as the "definition" command.  Most notably, object equality is now
+possible.  Type inference is more canonical than it used to be.
+INCOMPATIBILITY: in some cases explicit type annotations are required.
+
+
 *** HOL ***
 
 * Constant "card" now with authentic syntax.

@@ -66,7 +66,7 @@ instance real :: abs
   real_abs_def:  "abs (r::real) == (if r < 0 then - r else r)" ..
 
 instance real :: sgn
-  real_sgn_def: "sgn x == (if x=0 then 0 else if 0<x then 1 else - 1)" ..
+  real_sgn_def: "sgn (x::real) == (if x=0 then 0 else if 0<x then 1 else - 1)" ..
 
 subsection {* Equivalence relation over positive reals *}
 
@@ -401,8 +401,8 @@ apply (simp add: right_distrib)
 done
 
 instance real :: distrib_lattice
-  "inf x y \<equiv> min x y"
-  "sup x y \<equiv> max x y"
+  "inf \<Colon> real \<Rightarrow> real \<Rightarrow> real \<equiv> min"
+  "sup \<Colon> real \<Rightarrow> real \<Rightarrow> real \<equiv> max"
   by default (auto simp add: inf_real_def sup_real_def min_max.sup_inf_distrib1)
 
 

@@ -1281,7 +1281,7 @@ by simp
 
 instance matrix :: ("{ord, zero}") ord
   le_matrix_def: "A \<le> B \<equiv> \<forall>j i. Rep_matrix A j i \<le> Rep_matrix B j i"
-  less_def: "A < B \<equiv> A \<le> B \<and> A \<noteq> B" ..
+  less_def: "A < (B\<Colon>'a matrix) \<equiv> A \<le> B \<and> A \<noteq> B" ..
 
 instance matrix :: ("{order, zero}") order
 apply intro_classes

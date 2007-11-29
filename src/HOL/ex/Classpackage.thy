@@ -13,14 +13,14 @@ class semigroup = type +
   assumes assoc: "x \<otimes> y \<otimes> z = x \<otimes> (y \<otimes> z)"
 
 instance nat :: semigroup
-  "m \<otimes> n \<equiv> m + n"
+  "m \<otimes> n \<equiv> (m\<Colon>nat) + n"
 proof
   fix m n q :: nat 
   from mult_nat_def show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)" by simp
 qed
 
 instance int :: semigroup
-  "k \<otimes> l \<equiv> k + l"
+  "k \<otimes> l \<equiv> (k\<Colon>int) + l"
 proof
   fix k l j :: int
   from mult_int_def show "k \<otimes> l \<otimes> j = k \<otimes> (l \<otimes> j)" by simp
@@ -47,8 +47,8 @@ class monoidl = semigroup +
   assumes neutl: "\<one> \<otimes> x = x"
 
 instance nat :: monoidl and int :: monoidl
-  "\<one> \<equiv> 0"
-  "\<one> \<equiv> 0"
+  "\<one> \<equiv> (0\<Colon>nat)"
+  "\<one> \<equiv> (0\<Colon>int)"
 proof
   fix n :: nat
   from mult_nat_def one_nat_def show "\<one> \<otimes> n = n" by simp

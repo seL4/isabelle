@@ -930,7 +930,7 @@ subsection {* Order on bool *}
 
 instance bool :: order 
   le_bool_def: "P \<le> Q \<equiv> P \<longrightarrow> Q"
-  less_bool_def: "P < Q \<equiv> P \<le> Q \<and> P \<noteq> Q"
+  less_bool_def: "(P\<Colon>bool) < Q \<equiv> P \<le> Q \<and> P \<noteq> Q"
   by intro_classes (auto simp add: le_bool_def less_bool_def)
 lemmas [code func del] = le_bool_def less_bool_def
 
@@ -968,7 +968,7 @@ subsection {* Order on functions *}
 
 instance "fun" :: (type, ord) ord
   le_fun_def: "f \<le> g \<equiv> \<forall>x. f x \<le> g x"
-  less_fun_def: "f < g \<equiv> f \<le> g \<and> f \<noteq> g" ..
+  less_fun_def: "(f\<Colon>'a \<Rightarrow> 'b) < g \<equiv> f \<le> g \<and> f \<noteq> g" ..
 
 lemmas [code func del] = le_fun_def less_fun_def
 

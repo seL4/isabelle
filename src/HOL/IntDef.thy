@@ -36,7 +36,7 @@ instance int :: plus
 instance int :: minus
   minus_int_def:
     "- z \<equiv> Abs_Integ (\<Union>(x, y) \<in> Rep_Integ z. intrel `` {(y, x)})"
-  diff_int_def:  "z - w \<equiv> z + (-w)" ..
+  diff_int_def:  "z - w \<equiv> z + (-w \<Colon> int)" ..
 
 instance int :: times
   mult_int_def: "z * w \<equiv>  Abs_Integ
@@ -46,7 +46,7 @@ instance int :: times
 instance int :: ord
   le_int_def:
    "z \<le> w \<equiv> \<exists>x y u v. x+v \<le> u+y \<and> (x, y) \<in> Rep_Integ z \<and> (u, v) \<in> Rep_Integ w"
-  less_int_def: "z < w \<equiv> z \<le> w \<and> z \<noteq> w" ..
+  less_int_def: "(z\<Colon>int) < w \<equiv> z \<le> w \<and> z \<noteq> w" ..
 
 lemmas [code func del] = Zero_int_def One_int_def add_int_def
   minus_int_def mult_int_def le_int_def less_int_def
@@ -218,8 +218,8 @@ instance int :: sgn
   zsgn_def: "sgn(i\<Colon>int) \<equiv> (if i=0 then 0 else if 0<i then 1 else - 1)" ..
 
 instance int :: distrib_lattice
-  "inf \<equiv> min"
-  "sup \<equiv> max"
+  "inf \<Colon> int \<Rightarrow> int \<Rightarrow> int \<equiv> min"
+  "sup \<Colon> int \<Rightarrow> int \<Rightarrow> int \<equiv> max"
   by intro_classes
     (auto simp add: inf_int_def sup_int_def min_max.sup_inf_distrib1)
 

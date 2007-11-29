@@ -143,7 +143,7 @@ lemma one_index_code [code inline, code func]:
   by simp
 
 instance index :: abs
-  "\<bar>k\<bar> \<equiv> if k < 0 then -k else k" ..
+  "\<bar>k\<Colon>index\<bar> \<equiv> if k < 0 then -k else k" ..
 
 lemma index_of_int [code func]:
   "index_of_int k = (if k = 0 then 0

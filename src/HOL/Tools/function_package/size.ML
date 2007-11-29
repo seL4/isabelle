@@ -38,7 +38,7 @@ fun instance_size_class tyco thy =
     val n = Sign.arity_number thy tyco;
   in
     thy
-    |> Class.prove_instance (Class.intro_classes_tac [])
+    |> Instance.prove_instance (Class.intro_classes_tac [])
         [(tyco, replicate n HOLogic.typeS, [HOLogic.class_size])] []
     |> snd
   end

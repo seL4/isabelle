@@ -17,7 +17,7 @@ abbreviation
   "odd x \<equiv> \<not> even x"
 
 instance int :: even_odd
-  even_def[presburger]: "even x \<equiv> x mod 2 = 0" ..
+  even_def[presburger]: "even x \<equiv> (x\<Colon>int) mod 2 = 0" ..
 
 instance nat :: even_odd
   even_nat_def[presburger]: "even x \<equiv> even (int x)" ..

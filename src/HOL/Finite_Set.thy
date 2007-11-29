@@ -2689,7 +2689,7 @@ qed
 lemmas [code func] = univ_bool
 
 instance * :: (finite, finite) finite
-  "itself \<equiv> TYPE('a\<Colon>finite)"
+  "itself \<equiv> TYPE('a \<times> 'b)"
 proof
   show "finite (UNIV :: ('a \<times> 'b) set)"
   proof (rule finite_Prod_UNIV)
@@ -2703,7 +2703,7 @@ lemma univ_prod [noatp, code func]:
   unfolding UNIV_Times_UNIV ..
 
 instance "+" :: (finite, finite) finite
-  "itself \<equiv> TYPE('a\<Colon>finite + 'b\<Colon>finite)"
+  "itself \<equiv> TYPE('a + 'b)"
 proof
   have a: "finite (UNIV :: 'a set)" by (rule finite)
   have b: "finite (UNIV :: 'b set)" by (rule finite)
@@ -2717,7 +2717,7 @@ lemma univ_sum [noatp, code func]:
   unfolding UNIV_Plus_UNIV ..
 
 instance set :: (finite) finite
-  "itself \<equiv> TYPE('a\<Colon>finite set)"
+  "itself \<equiv> TYPE('a set)"
 proof
   have "finite (UNIV :: 'a set)" by (rule finite)
   hence "finite (Pow (UNIV :: 'a set))"
@@ -2732,7 +2732,7 @@ lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
 
 instance "fun" :: (finite, finite) finite
-  "itself \<equiv> TYPE('a\<Colon>finite \<Rightarrow> 'b\<Colon>finite)"
+  "itself \<equiv> TYPE('a \<Rightarrow> 'b)"
 proof
   show "finite (UNIV :: ('a => 'b) set)"
   proof (rule finite_imageD)

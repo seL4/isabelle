@@ -1488,8 +1488,8 @@ end
 text {* the lattice order on @{typ nat} *}
 
 instance nat :: distrib_lattice
-  "inf \<equiv> min"
-  "sup \<equiv> max"
+  "inf \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat \<equiv> min"
+  "sup \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat \<equiv> max"
   by intro_classes
     (simp_all add: inf_nat_def sup_nat_def)
 

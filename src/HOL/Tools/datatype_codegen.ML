@@ -544,7 +544,7 @@ fun prove_codetypes_arities tac tycos sort f after_qed thy =
         |> not (null arities) ? (
             f arities css
             #-> (fn defs =>
-              Class.prove_instance tac arities defs
+              Instance.prove_instance tac arities defs
             #-> (fn defs =>
               after_qed arities css defs)))
       end;

@@ -39,8 +39,8 @@ next
 qed
 
 instance nibble :: distrib_lattice
-    "inf \<equiv> min"
-    "sup \<equiv> max"
+  "(inf \<Colon> nibble \<Rightarrow> _) = min"
+  "(sup \<Colon> nibble \<Rightarrow> _) = max"
   by default (auto simp add:
     inf_nibble_def sup_nibble_def min_max.sup_inf_distrib1)
 
@@ -54,8 +54,8 @@ instance char :: linorder
 lemmas [code func del] = char_less_eq_def char_less_def
 
 instance char :: distrib_lattice
-    "inf \<equiv> min"
-    "sup \<equiv> max"
+  "(inf \<Colon> char \<Rightarrow> _) = min"
+  "(sup \<Colon> char \<Rightarrow> _) = max"
   by default (auto simp add:
     inf_char_def sup_char_def min_max.sup_inf_distrib1)
 

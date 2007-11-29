@@ -57,16 +57,7 @@ sig
 
   (*old instance layer*)
   val instance_arity: (theory -> theory) -> arity list -> theory -> Proof.state
-  val instance: arity list -> ((bstring * Attrib.src list) * term) list
-    -> (thm list -> theory -> theory)
-    -> theory -> Proof.state
-  val instance_cmd: (bstring * xstring list * xstring) list
-    -> ((bstring * Attrib.src list) * xstring) list
-    -> (thm list -> theory -> theory)
-    -> theory -> Proof.state
-  val prove_instance: tactic -> arity list
-    -> ((bstring * Attrib.src list) * term) list
-    -> theory -> thm list * theory
+  val instance_arity_cmd: (bstring * xstring list * xstring) list -> theory -> Proof.state
 end;
 
 structure Class : CLASS =
@@ -150,6 +141,8 @@ in
 
 val instance_arity =
   gen_instance (Logic.mk_arities oo Sign.cert_arity) AxClass.add_arity;
+val instance_arity_cmd =
+  gen_instance (Logic.mk_arities oo Sign.read_arity) AxClass.add_arity I;
 val classrel =
   gen_instance (single oo (Logic.mk_classrel oo AxClass.cert_classrel))
     AxClass.add_classrel I o single;
@@ -221,7 +214,7 @@ fun overloaded_const (c, ty, mx) thy =
     val SOME class = AxClass.class_of_param thy c;
     val SOME tyco = inst_tyco thy (c, ty);
     val name_inst = AxClass.instance_name (tyco, class) ^ "_inst";
-    val c' = NameSpace.base c;
+    val c' = NameSpace.base c ^ "_" ^ NameSpace.base tyco;
     val ty' = Type.strip_sorts ty;
   in
     thy
@@ -251,137 +244,6 @@ fun overloaded_def name (c, t) thy =
     |> Thm.add_def false (name', prop)
     |>> (fn thm =>  Drule.transitive_thm OF [eq, thm])
   end;
-
-
-(* legacy *)
-
-fun add_inst_def (class, tyco) (c, ty) thy =
-  let
-    val tyco_base = Sign.base_name tyco;
-    val name_inst = Sign.base_name class ^ "_" ^ tyco_base ^ "_inst";
-    val c_inst_base = Sign.base_name c ^ "_" ^ tyco_base;
-  in
-    thy
-    |> Sign.sticky_prefix name_inst
-    |> Sign.declare_const [] (c_inst_base, ty, NoSyn)
-    |-> (fn const as Const (c_inst, _) =>
-      PureThy.add_defs_i false
-        [((Thm.def_name c_inst_base, Logic.mk_equals (const, Const (c, ty))), [])]
-      #-> (fn [thm] => add_inst (c, tyco) (c_inst, Thm.symmetric thm)))
-    |> Sign.restore_naming thy
-  end;
-
-fun add_inst_def' (class, tyco) (c, ty) thy =
-  if case Symtab.lookup (fst (InstData.get thy)) c
-   of NONE => true
-    | SOME tab => is_none (Symtab.lookup tab tyco)
-  then add_inst_def (class, tyco) (c, Logic.unvarifyT ty) thy
-  else thy;
-
-fun add_def ((class, tyco), ((name, prop), atts)) thy =
-  let
-    val ((lhs as Const (c, ty), args), rhs) =
-      (apfst Term.strip_comb o Logic.dest_equals) prop;
-  in
-    thy
-    |> PureThy.add_defs_i true [((name, prop), map (Attrib.attribute_i thy) atts)]
-    |-> (fn [def] => add_inst_def (class, tyco) (c, ty) #> pair def)
-  end;
-
-
-(** instances with implicit parameter handling **)
-
-local
-
-fun gen_read_def thy prep_att parse_prop ((raw_name, raw_atts), raw_t) =
-  let
-    val ctxt = ProofContext.init thy;
-    val t = parse_prop ctxt raw_t |> Syntax.check_prop ctxt;
-    val ((c, ty), _) = Sign.cert_def ctxt t;
-    val atts = map (prep_att thy) raw_atts;
-    val insts = Consts.typargs (Sign.consts_of thy) (c, ty);
-    val name = case raw_name
-     of "" => NONE
-      | _ => SOME raw_name;
-  in (c, (insts, ((name, t), atts))) end;
-
-fun read_def_cmd thy = gen_read_def thy Attrib.intern_src Syntax.parse_prop;
-fun read_def thy = gen_read_def thy (K I) (K I);
-
-fun gen_instance prep_arity read_def do_proof raw_arities raw_defs after_qed theory =
-  let
-    val arities = map (prep_arity theory) raw_arities;
-    val _ = if null arities then error "At least one arity must be given" else ();
-    val _ = case (duplicates (op =) o map #1) arities
-     of [] => ()
-      | dupl_tycos => error ("Type constructors occur more than once in arities: "
-          ^ commas_quote dupl_tycos);
-    fun get_consts_class tyco ty class =
-      let
-        val cs = (these o try (#params o AxClass.get_info theory)) class;
-        val subst_ty = map_type_tfree (K ty);
-      in
-        map (fn (c, ty) => (c, ((class, tyco), subst_ty ty))) cs
-      end;
-    fun get_consts_sort (tyco, asorts, sort) =
-      let
-        val ty = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort))
-          (Name.names Name.context Name.aT asorts))
-      in maps (get_consts_class tyco ty) (Sign.complete_sort theory sort) end;
-    val cs = maps get_consts_sort arities;
-    fun mk_typnorm thy (ty, ty_sc) =
-      case try (Sign.typ_match thy (Logic.varifyT ty_sc, ty)) Vartab.empty
-       of SOME env => SOME (Logic.varifyT #> Envir.typ_subst_TVars env #> Logic.unvarifyT)
-        | NONE => NONE;
-    fun read_defs defs cs thy_read =
-      let
-        fun read raw_def cs =
-          let
-            val (c, (inst, ((name_opt, t), atts))) = read_def thy_read raw_def;
-            val ty = Consts.instance (Sign.consts_of thy_read) (c, inst);
-            val ((class, tyco), ty') = case AList.lookup (op =) cs c
-             of NONE => error ("Illegal definition for constant " ^ quote c)
-              | SOME class_ty => class_ty;
-            val name = case name_opt
-             of NONE => Thm.def_name (Logic.name_arity (tyco, [], c))
-              | SOME name => name;
-            val t' = case mk_typnorm thy_read (ty', ty)
-             of NONE => error ("Illegal definition for constant " ^
-                  quote (c ^ "::" ^ setmp show_sorts true
-                    (Sign.string_of_typ thy_read) ty))
-              | SOME norm => map_types norm t
-          in (((class, tyco), ((name, t'), atts)), AList.delete (op =) c cs) end;
-      in fold_map read defs cs end;
-    val (defs, other_cs) = read_defs raw_defs cs
-      (fold Sign.primitive_arity arities (Theory.copy theory));
-    fun after_qed' cs defs =
-      fold Sign.add_const_constraint (map (apsnd SOME) cs)
-      #> after_qed defs;
-  in
-    theory
-    |> fold_map get_remove_global_constraint (map fst cs |> distinct (op =))
-    ||>> fold_map add_def defs
-    ||> fold (fn (c, ((class, tyco), ty)) => add_inst_def' (class, tyco) (c, ty)) other_cs
-    |-> (fn (cs, defs) => do_proof (after_qed' cs defs) arities defs)
-  end;
-
-fun tactic_proof tac f arities defs =
-  fold (fn arity => AxClass.prove_arity arity tac) arities
-  #> f
-  #> pair defs;
-
-in
-
-val instance = gen_instance Sign.cert_arity read_def
-  (fn f => fn arities => fn defs => instance_arity f arities);
-val instance_cmd = gen_instance Sign.read_arity read_def_cmd
-  (fn f => fn arities => fn defs => instance_arity f arities);
-fun prove_instance tac arities defs =
-  gen_instance Sign.cert_arity read_def
-    (tactic_proof tac) arities defs (K I);
-
-end; (*local*)
-
 
 
 (** class data **)
@@ -1008,7 +870,7 @@ fun inst_term_check ts ctxt =
 
     fun check_improve (Const (c, ty)) = (case inst_tyco thy (c, ty)
          of SOME tyco => (case AList.lookup (op =) params (c, tyco)
-             of SOME (_, ty') => Type.typ_match tsig (ty, ty')
+             of SOME (_, ty') => perhaps (try (Type.typ_match tsig (ty, ty')))
               | NONE => I)
           | NONE => I)
       | check_improve _ = I;
@@ -1057,6 +919,7 @@ fun init_instantiation arities thy =
      of [] => ()
       | dupl_tycos => error ("Type constructors occur more than once in arities: "
           ^ commas_quote dupl_tycos);
+    val _ = map (map (the_class_data thy) o #3) arities;
     val ty_insts = map (fn (tyco, sorts, _) =>
         (tyco, Type (tyco, map TFree (Name.names Name.context Name.aT sorts))))
       arities;
@@ -1064,12 +927,11 @@ fun init_instantiation arities thy =
     fun type_name "*" = "prod"
       | type_name "+" = "sum"
       | type_name s = sanatize_name (NameSpace.base s); (*FIXME*)
-    fun get_param tyco sorts (param, (c, ty)) =
-      ((unoverload_const thy (c, ty), tyco),
-        (param ^ "_" ^ type_name tyco,
-          map_atyps (K (ty_inst tyco)) ty));
+    fun get_param tyco sorts (param, (c, ty)) = if can (inst thy) (c, tyco)
+      then NONE else SOME ((unoverload_const thy (c, ty), tyco),
+        (param ^ "_" ^ type_name tyco, map_atyps (K (ty_inst tyco)) ty));
     fun get_params (tyco, sorts, sort) =
-      map (get_param tyco sorts) (these_params thy sort)
+      map_filter (get_param tyco sorts) (these_params thy sort)
     val params = maps get_params arities;
   in
     thy
@@ -1099,8 +961,8 @@ val instantiation_instance = gen_instantiation_instance (fn after_qed => fn ts =
   Proof.theorem_i NONE (after_qed o map the_single) (map (fn t => [(t, [])]) ts));
 
 fun prove_instantiation_instance tac = gen_instantiation_instance (fn after_qed =>
-  fn ts => fn lthy => after_qed (Goal.prove_multi lthy [] [] ts
-    (fn {context, ...} => tac context)) lthy) I;
+  fn ts => fn lthy => after_qed (map (fn t => Goal.prove lthy [] [] t
+    (fn {context, ...} => tac context)) ts) lthy) I;
 
 fun conclude_instantiation lthy =
   let
@@ -1121,7 +983,7 @@ fun conclude_instantiation lthy =
       let
         val SOME class = AxClass.class_of_param thy c;
         val name_inst = AxClass.instance_name (tyco, class) ^ "_inst";
-        val c' = NameSpace.base c;
+        val c' = NameSpace.base c ^ "_" ^ NameSpace.base tyco;
         val vs = Name.names Name.context Name.aT (replicate (Sign.arity_number thy tyco) []);
         val ty = map_atyps (fn _ => Type (tyco, map TFree vs)) ty0;
       in

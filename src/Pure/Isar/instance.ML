@@ -10,7 +10,6 @@ sig
   val instantiate: arity list -> (local_theory -> local_theory)
     -> (Proof.context -> tactic) -> theory -> theory
   val instance: arity list -> ((bstring * Attrib.src list) * term) list
-    -> (thm list -> theory -> theory)
     -> theory -> Proof.state
   val prove_instance: tactic -> arity list -> ((bstring * Attrib.src list) * term) list
     -> theory -> thm list * theory
@@ -18,7 +17,6 @@ sig
   val instantiation_cmd: (xstring * sort * xstring) list
     -> theory -> local_theory
   val instance_cmd: (xstring * sort * xstring) list -> ((bstring * Attrib.src list) * xstring) list
-    -> (thm list -> theory -> theory)
     -> theory -> Proof.state
 end;
 
@@ -35,8 +33,9 @@ fun instantiate arities f tac =
   #> LocalTheory.exit
   #> ProofContext.theory_of;
 
-fun gen_instance prep_arity prep_attr parse_term do_proof raw_arities defs after_qed thy =
+fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities defs thy =
   let
+    val arities = map (prep_arity thy) raw_arities;
     fun export_defs ctxt = 
       let
         val ctxt_thy = ProofContext.init (ProofContext.theory_of ctxt);
@@ -54,8 +53,9 @@ fun gen_instance prep_arity prep_attr parse_term do_proof raw_arities defs after
       let
         val def' = (apsnd o apsnd) (Syntax.check_prop ctxt) def;
       in Specification.definition def' ctxt end;
-    val arities = map (prep_arity thy) raw_arities;
-  in
+  in if not (null defs) orelse forall (fn (_, _, sort) =>
+      forall (Class.is_class thy) sort) arities
+  then
     thy
     |> TheoryTarget.instantiation arities
     |> `(fn ctxt => map (mk_def ctxt) defs)
@@ -64,15 +64,21 @@ fun gen_instance prep_arity prep_attr parse_term do_proof raw_arities defs after
     ||> LocalTheory.exit
     ||> ProofContext.theory_of
     ||> TheoryTarget.instantiation arities
-    |-> (fn defs => do_proof defs (LocalTheory.theory (after_qed defs)))
+    |-> (fn defs => do_proof defs)
+  else
+    thy
+    |> do_proof' arities
   end;
 
 val instance = gen_instance Sign.cert_arity (K I) (K I)
-  (fn _ => fn after_qed => Class.instantiation_instance (after_qed #> Class.conclude_instantiation));
+  (fn _ => Class.instantiation_instance Class.conclude_instantiation) (Class.instance_arity I);
 val instance_cmd = gen_instance Sign.read_arity Attrib.intern_src Syntax.parse_prop
-  (fn _ => fn after_qed => Class.instantiation_instance (after_qed #> Class.conclude_instantiation));
+  (fn _ => Class.instantiation_instance Class.conclude_instantiation) (Class.instance_arity I);
 fun prove_instance tac arities defs = gen_instance Sign.cert_arity (K I) (K I)
-  (fn defs => fn after_qed => Class.prove_instantiation_instance (K tac)
-    #> after_qed #> Class.conclude_instantiation #> ProofContext.theory_of #> pair defs) arities defs (K I);
+  (fn defs => Class.prove_instantiation_instance (K tac)
+    #> Class.conclude_instantiation #> ProofContext.theory_of #> pair defs)
+   (pair [] o ProofContext.theory_of o Proof.global_terminal_proof
+      (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
+      oo Class.instance_arity I) arities defs;
 
 end;

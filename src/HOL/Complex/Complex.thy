@@ -45,7 +45,7 @@ instance complex :: minus
   complex_minus_def:
     "- x \<equiv> Complex (- Re x) (- Im x)"
   complex_diff_def:
-    "x - y \<equiv> x + - y" ..
+    "x - (y\<Colon>complex) \<equiv> x + - y" ..
 
 lemma Complex_eq_0 [simp]: "(Complex a b = 0) = (a = 0 \<and> b = 0)"
 by (simp add: complex_zero_def)
@@ -116,7 +116,7 @@ instance complex :: inverse
     "inverse x \<equiv>
      Complex (Re x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>)) (- Im x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>))"
   complex_divide_def:
-    "x / y \<equiv> x * inverse y" ..
+    "x / (y\<Colon>complex) \<equiv> x * inverse y" ..
 
 lemma Complex_eq_1 [simp]: "(Complex a b = 1) = (a = 1 \<and> b = 0)"
 by (simp add: complex_one_def)
@@ -195,7 +195,7 @@ subsection {* Numerals and Arithmetic *}
 
 instance complex :: number
   complex_number_of_def:
-    "number_of w \<equiv> of_int w" ..
+    "number_of w \<equiv> of_int w \<Colon> complex" ..
 
 instance complex :: number_ring
 by (intro_classes, simp only: complex_number_of_def)
@@ -213,10 +213,10 @@ lemma complex_Im_of_int [simp]: "Im (of_int z) = 0"
 by (cases z rule: int_diff_cases) simp
 
 lemma complex_Re_number_of [simp]: "Re (number_of v) = number_of v"
-unfolding number_ring_class.axioms by (rule complex_Re_of_int)
+unfolding number_of_eq by (rule complex_Re_of_int)
 
 lemma complex_Im_number_of [simp]: "Im (number_of v) = 0"
-unfolding number_ring_class.axioms by (rule complex_Im_of_int)
+unfolding number_of_eq by (rule complex_Im_of_int)
 
 lemma Complex_eq_number_of [simp]:
   "(Complex a b = number_of w) = (a = number_of w \<and> b = 0)"

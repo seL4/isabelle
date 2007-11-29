@@ -35,16 +35,16 @@ end;
 *}
 
 instance "prop" :: typ_of
-  "typ_of T \<equiv> STR ''prop'' {\<struct>} []" ..
+  "typ_of (T\<Colon>prop itself) \<equiv> STR ''prop'' {\<struct>} []" ..
 
 instance itself :: (typ_of) typ_of
-  "typ_of T \<equiv> STR ''itself'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
+  "typ_of (T\<Colon>'a itself itself) \<equiv> STR ''itself'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
 
 instance set :: (typ_of) typ_of
-  "typ_of T \<equiv> STR ''set'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
+  "typ_of (T\<Colon>'a set itself) \<equiv> STR ''set'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
 
 instance int :: typ_of
-  "typ_of T \<equiv> STR ''IntDef.int'' {\<struct>} []" ..
+  "typ_of (T\<Colon>int itself) \<equiv> STR ''IntDef.int'' {\<struct>} []" ..
 
 setup {*
 let
