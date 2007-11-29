@@ -9,8 +9,6 @@ signature DATATYPE_CODEGEN =
 sig
   val get_eq: theory -> string -> thm list
   val get_eq_datatype: theory -> string -> thm list
-  val dest_case_expr: theory -> term
-    -> ((string * typ) list * ((term * typ) * (term * term) list)) option
   val get_case_cert: theory -> string -> thm
 
   type hook = (string * (bool * ((string * sort) list * (string * typ list) list))) list
@@ -314,35 +312,12 @@ fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
 
 (** datatypes for code 2nd generation **)
 
-fun dtyp_of_case_const thy c =
-  Option.map (fn {descr, index, ...} => #1 (the (AList.lookup op = descr index)))
-    (DatatypePackage.datatype_of_case thy c);
+local
 
-fun dest_case_app cs ts tys =
-  let
-    val names = (Name.make_context o map fst) (fold Term.add_tfrees ts []);
-    val abs = Name.names names "a" (Library.drop (length ts, tys));
-    val (ts', t) = split_last (ts @ map Free abs);
-    val (tys', sty) = split_last tys;
-    fun dest_case ((c, tys_decl), ty) t =
-      let
-        val (vs, t') = Term.strip_abs_eta (length tys_decl) t;
-        val c' = list_comb (Const (c, map snd vs ---> sty), map Free vs);
-      in case t'
-       of Const ("HOL.undefined", _) => NONE
-        | _ => SOME (c', t')
-      end;
-  in (abs, ((t, sty), map2 dest_case (cs ~~ tys') ts' |> map_filter I)) end;
-
-fun dest_case_expr thy t =
-  case strip_comb t
-   of (Const (c, ty), ts) =>
-        (case dtyp_of_case_const thy c
-         of SOME dtco =>
-              let val (vs, cs) = (the o DatatypePackage.get_datatype_spec thy) dtco;
-              in SOME (dest_case_app cs ts (Library.take (length cs + 1, (fst o strip_type) ty))) end
-          | _ => NONE)
-    | _ => NONE;
+val not_sym = thm "HOL.not_sym";
+val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
+val refl = thm "refl";
+val eqTrueI = thm "eqTrueI";
 
 fun mk_distinct cos =
   let
@@ -365,11 +340,6 @@ fun mk_distinct cos =
       in HOLogic.mk_Trueprop t end;
   in map mk_dist (sym_product cos) end;
 
-local
-  val not_sym = thm "HOL.not_sym";
-  val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
-  val refl = thm "refl";
-  val eqTrueI = thm "eqTrueI";
 in
 
 fun get_eq_datatype thy dtco =
@@ -438,10 +408,16 @@ fun get_case_cert thy tyco =
 
 (* abstraction over datatypes vs. type copies *)
 
+fun get_typecopy_spec thy tyco =
+  let
+    val SOME { vs, constr, typ, ... } = TypecopyPackage.get_info thy tyco
+  in (vs, [(constr, [typ])]) end;
+
+
 fun get_spec thy (dtco, true) =
       (the o DatatypePackage.get_datatype_spec thy) dtco
   | get_spec thy (tyco, false) =
-      TypecopyPackage.get_spec thy tyco;
+      get_typecopy_spec thy tyco;
 
 local
   fun get_eq_thms thy tyco = case DatatypePackage.get_datatype thy tyco
@@ -479,7 +455,7 @@ fun add_codetypes_hook hook thy =
     fun datatype_hook dtcos thy =
       hook (map (add_spec thy) (map (rpair true) dtcos)) thy;
     fun typecopy_hook tyco thy =
-      hook ([(tyco, (false, TypecopyPackage.get_spec thy tyco))]) thy;
+      hook ([(tyco, (false, get_typecopy_spec thy tyco))]) thy;
   in
     thy
     |> DatatypePackage.interpretation datatype_hook
@@ -576,24 +552,20 @@ fun add_datatype_spec dtco thy =
   let
     val SOME (vs, cos) = DatatypePackage.get_datatype_spec thy dtco;
     val cs = map (fn (c, tys) => (c, tys ---> Type (dtco, map TFree vs))) cos;
-  in try (Code.add_datatype cs) thy |> the_default thy end;
-
-fun add_datatype_case_certs dtco thy =
-  Code.add_case (get_case_cert thy dtco) thy;
-
-fun add_datatype_case_defs dtco thy =
-  let
     val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco;
+    val certs = get_case_cert thy dtco;
   in
-    fold_rev Code.add_default_func case_rewrites thy
+    thy
+    |> try (Code.add_datatype cs)
+    |> the_default thy
+    |> Code.add_case certs
+    |> fold_rev Code.add_default_func case_rewrites
   end;
 
 val setup = 
   add_codegen "datatype" datatype_codegen
   #> add_tycodegen "datatype" datatype_tycodegen
   #> DatatypePackage.interpretation (fold add_datatype_spec)
-  #> DatatypePackage.interpretation (fold add_datatype_case_certs)
-  #> DatatypePackage.interpretation (fold add_datatype_case_defs)
   #> add_codetypes_hook eq_hook
 
 end;
