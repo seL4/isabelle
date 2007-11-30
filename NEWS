@@ -14,6 +14,8 @@ INCOMPATIBILITY: in some cases explicit type annotations are required.
 
 *** HOL ***
 
+* Library/Multiset: {#a, b, c#} is new short syntax for {#a#} + {#b#} + {#c#}.
+
 * Constant "card" now with authentic syntax.
 
 
