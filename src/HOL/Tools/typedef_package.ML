@@ -23,6 +23,7 @@ sig
     * (string * string) option -> theory -> Proof.state
   val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
+  val interpretation: (string -> theory -> theory) -> theory -> theory
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -214,6 +215,9 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
 (* add_typedef interfaces *)
 
+structure TypedefInterpretation = InterpretationFun(type T = string val eq = op =);
+val interpretation = TypedefInterpretation.interpretation;
+
 local
 
 fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
@@ -225,7 +229,11 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
     val _ = message ("Proving non-emptiness of set " ^ quote (string_of_term set) ^ " ...");
     val non_empty = Goal.prove_global thy [] [] goal (K tac) handle ERROR msg =>
       cat_error msg ("Failed to prove non-emptiness of " ^ quote (string_of_term set));
-  in typedef_result non_empty thy end;
+  in
+    thy
+    |> typedef_result non_empty
+    |-> (fn (a, info) => TypedefInterpretation.data a #> pair (a, info))
+  end;
 
 in
 
