@@ -143,10 +143,18 @@ text{*
   union/intersection symbol because this leads to problems with nested
   subscripts in Proof General. *}
 
-instance set :: (type) ord
-  subset_def:  "A \<le> B \<equiv> \<forall>x\<in>A. x \<in> B"
-  psubset_def: "(A\<Colon>'a set) < B \<equiv> A \<le> B \<and> A \<noteq> B" ..
-lemmas [code func del] = subset_def psubset_def
+instantiation set :: (type) ord
+begin
+
+definition
+  subset_def [code func del]: "A \<le> B \<equiv> \<forall>x\<in>A. x \<in> B"
+
+definition
+  psubset_def [code func del]: "(A\<Colon>'a set) < B \<equiv> A \<le> B \<and> A \<noteq> B"
+
+instance ..
+
+end
 
 abbreviation
   subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -340,11 +348,18 @@ defs
   Bex_def:      "Bex A P        == EX x. x:A & P(x)"
   Bex1_def:     "Bex1 A P       == EX! x. x:A & P(x)"
 
-instance set :: (type) minus
-  Compl_def:    "- A            == {x. ~x:A}"
-  set_diff_def: "A - B          == {x. x:A & ~x:B}" ..
+instantiation set :: (type) minus
+begin
 
-lemmas [code func del] = Compl_def set_diff_def
+definition
+  Compl_def [code func del]:    "- A   = {x. ~x:A}"
+
+definition
+  set_diff_def [code func del]: "A - B = {x. x:A & ~x:B}"
+
+instance ..
+
+end
 
 defs
   Un_def:       "A Un B         == {x. x:A | x:B}"

@@ -479,15 +479,33 @@ end
 
 subsection {* Bool as lattice *}
 
-instance bool :: distrib_lattice
-  inf_bool_eq: "P \<sqinter> Q \<equiv> P \<and> Q"
-  sup_bool_eq: "P \<squnion> Q \<equiv> P \<or> Q"
+instantiation bool :: distrib_lattice
+begin
+
+definition
+  inf_bool_eq: "P \<sqinter> Q \<longleftrightarrow> P \<and> Q"
+
+definition
+  sup_bool_eq: "P \<squnion> Q \<longleftrightarrow> P \<or> Q"
+
+instance
   by intro_classes (auto simp add: inf_bool_eq sup_bool_eq le_bool_def)
 
-instance bool :: complete_lattice
-  Inf_bool_def: "\<Sqinter>A \<equiv> \<forall>x\<in>A. x"
-  Sup_bool_def: "\<Squnion>A \<equiv> \<exists>x\<in>A. x"
+end
+
+instantiation bool :: complete_lattice
+begin
+
+definition
+  Inf_bool_def: "\<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x)"
+
+definition
+  Sup_bool_def: "\<Squnion>A \<longleftrightarrow> (\<exists>x\<in>A. x)"
+
+instance
   by intro_classes (auto simp add: Inf_bool_def Sup_bool_def le_bool_def)
+
+end
 
 lemma Inf_empty_bool [simp]:
   "\<Sqinter>{}"
@@ -506,12 +524,19 @@ lemma bot_bool_eq: "bot = False"
 
 subsection {* Set as lattice *}
 
-instance set :: (type) distrib_lattice
-  inf_set_eq: "A \<sqinter> B \<equiv> A \<inter> B"
-  sup_set_eq: "A \<squnion> B \<equiv> A \<union> B"
+instantiation set :: (type) distrib_lattice
+begin
+
+definition
+  inf_set_eq [code func del]: "A \<sqinter> B = A \<inter> B"
+
+definition
+  sup_set_eq [code func del]: "A \<squnion> B = A \<union> B"
+
+instance
   by intro_classes (auto simp add: inf_set_eq sup_set_eq)
 
-lemmas [code func del] = inf_set_eq sup_set_eq
+end
 
 lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
   apply (fold inf_set_eq sup_set_eq)
@@ -523,12 +548,19 @@ lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<uni
   apply (erule mono_sup)
   done
 
-instance set :: (type) complete_lattice
-  Inf_set_def: "\<Sqinter>S \<equiv> \<Inter>S"
-  Sup_set_def: "\<Squnion>S \<equiv> \<Union>S"
+instantiation set :: (type) complete_lattice
+begin
+
+definition
+  Inf_set_def [code func del]: "\<Sqinter>S \<equiv> \<Inter>S"
+
+definition
+  Sup_set_def [code func del]: "\<Squnion>S \<equiv> \<Union>S"
+
+instance
   by intro_classes (auto simp add: Inf_set_def Sup_set_def)
 
-lemmas [code func del] = Inf_set_def Sup_set_def
+end
 
 lemma top_set_eq: "top = UNIV"
   by (iprover intro!: subset_antisym subset_UNIV top_greatest)
@@ -539,9 +571,16 @@ lemma bot_set_eq: "bot = {}"
 
 subsection {* Fun as lattice *}
 
-instance "fun" :: (type, lattice) lattice
-  inf_fun_eq: "f \<sqinter> g \<equiv> (\<lambda>x. f x \<sqinter> g x)"
-  sup_fun_eq: "f \<squnion> g \<equiv> (\<lambda>x. f x \<squnion> g x)"
+instantiation "fun" :: (type, lattice) lattice
+begin
+
+definition
+  inf_fun_eq [code func del]: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
+
+definition
+  sup_fun_eq [code func del]: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
+
+instance
 apply intro_classes
 unfolding inf_fun_eq sup_fun_eq
 apply (auto intro: le_funI)
@@ -551,19 +590,26 @@ apply (rule le_funI)
 apply (auto dest: le_funD)
 done
 
-lemmas [code func del] = inf_fun_eq sup_fun_eq
+end
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice
   by default (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
 
-instance "fun" :: (type, complete_lattice) complete_lattice
-  Inf_fun_def: "\<Sqinter>A \<equiv> (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
-  Sup_fun_def: "\<Squnion>A \<equiv> (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
+instantiation "fun" :: (type, complete_lattice) complete_lattice
+begin
+
+definition
+  Inf_fun_def [code func del]: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
+
+definition
+  Sup_fun_def [code func del]: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
+
+instance
   by intro_classes
     (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
       intro: Inf_lower Sup_upper Inf_greatest Sup_least)
 
-lemmas [code func del] = Inf_fun_def Sup_fun_def
+end
 
 lemma Inf_empty_fun:
   "\<Sqinter>{} = (\<lambda>_. \<Sqinter>{})"

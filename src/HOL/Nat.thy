@@ -54,9 +54,15 @@ consts
 
 local
 
-instance nat :: zero
-  Zero_nat_def: "0 == Abs_Nat Zero_Rep" ..
-lemmas [code func del] = Zero_nat_def
+instantiation nat :: zero
+begin
+
+definition Zero_nat_def [code func del]:
+  "0 = Abs_Nat Zero_Rep"
+
+instance ..
+
+end
 
 defs
   Suc_def:      "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
@@ -155,11 +161,18 @@ definition
   pred_nat :: "(nat * nat) set" where
   "pred_nat = {(m, n). n = Suc m}"
 
-instance nat :: ord
-  less_def: "m < n == (m, n) : pred_nat^+"
-  le_def:   "m \<le> (n::nat) == ~ (n < m)" ..
+instantiation nat :: ord
+begin
 
-lemmas [code func del] = less_def le_def
+definition
+  less_def [code func del]: "m < n \<longleftrightarrow> (m, n) : pred_nat^+"
+
+definition
+  le_def [code func del]:   "m \<le> (n\<Colon>nat) \<longleftrightarrow> \<not> n < m"
+
+instance ..
+
+end
 
 lemma wf_pred_nat: "wf pred_nat"
   apply (unfold wf_def pred_nat_def, clarify)
@@ -1488,8 +1501,8 @@ end
 text {* the lattice order on @{typ nat} *}
 
 instance nat :: distrib_lattice
-  "inf \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat \<equiv> min"
-  "sup \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat \<equiv> max"
+  "(inf \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat) = min"
+  "(sup \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat) = max"
   by intro_classes
     (simp_all add: inf_nat_def sup_nat_def)
 

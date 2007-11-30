@@ -746,7 +746,7 @@ fun add_ind_def {verbose, kind, alt_name, coind, no_elim, no_ind}
          singleton (ProofContext.export
            (snd (Variable.add_fixes (map (fst o dest_Free) params) ctxt1)) ctxt1)
            (rotate_prems ~1 (ObjectLogic.rulify (rule_by_tactic
-             (rewrite_tac [le_fun_def, le_bool_def, @{thm sup_fun_eq}, @{thm sup_bool_eq}] THEN
+             (rewrite_tac [le_fun_def, le_bool_def, sup_fun_eq, sup_bool_eq] THEN
                fold_tac rec_preds_defs) (mono RS (fp_def RS def_coinduct)))))
        else
          prove_indrule cs argTs bs xs rec_const params intr_ts mono fp_def

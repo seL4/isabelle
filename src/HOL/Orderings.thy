@@ -928,11 +928,19 @@ qed
 
 subsection {* Order on bool *}
 
-instance bool :: order 
-  le_bool_def: "P \<le> Q \<equiv> P \<longrightarrow> Q"
-  less_bool_def: "(P\<Colon>bool) < Q \<equiv> P \<le> Q \<and> P \<noteq> Q"
+instantiation bool :: order 
+begin
+
+definition
+  le_bool_def [code func del]: "P \<le> Q \<longleftrightarrow> P \<longrightarrow> Q"
+
+definition
+  less_bool_def [code func del]: "(P\<Colon>bool) < Q \<longleftrightarrow> P \<le> Q \<and> P \<noteq> Q"
+
+instance
   by intro_classes (auto simp add: le_bool_def less_bool_def)
-lemmas [code func del] = le_bool_def less_bool_def
+
+end
 
 lemma le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<le> Q"
 by (simp add: le_bool_def)
@@ -966,11 +974,18 @@ lemmas basic_trans_rules [trans] =
 
 subsection {* Order on functions *}
 
-instance "fun" :: (type, ord) ord
-  le_fun_def: "f \<le> g \<equiv> \<forall>x. f x \<le> g x"
-  less_fun_def: "(f\<Colon>'a \<Rightarrow> 'b) < g \<equiv> f \<le> g \<and> f \<noteq> g" ..
+instantiation "fun" :: (type, ord) ord
+begin
 
-lemmas [code func del] = le_fun_def less_fun_def
+definition
+  le_fun_def [code func del]: "f \<le> g \<longleftrightarrow> (\<forall>x. f x \<le> g x)"
+
+definition
+  less_fun_def [code func del]: "(f\<Colon>'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> f \<noteq> g"
+
+instance ..
+
+end
 
 instance "fun" :: (type, order) order
   by default
