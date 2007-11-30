@@ -80,14 +80,14 @@ end
 class comm_semiring_0 = comm_semiring + comm_monoid_add + mult_zero
 begin
 
-subclass semiring_0 by unfold_locales
+subclass semiring_0 by intro_locales
 
 end
 
 class comm_semiring_0_cancel = comm_semiring + comm_monoid_add + cancel_ab_semigroup_add
 begin
 
-subclass semiring_0_cancel by unfold_locales
+subclass semiring_0_cancel by intro_locales
 
 end
 
@@ -100,7 +100,7 @@ class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult
   (*previously almost_semiring*)
 begin
 
-subclass semiring_1 by unfold_locales
+subclass semiring_1 by intro_locales
 
 end
 
@@ -111,9 +111,9 @@ class semiring_1_cancel = semiring + comm_monoid_add + zero_neq_one
   + cancel_ab_semigroup_add + monoid_mult
 begin
 
-subclass semiring_0_cancel by unfold_locales
+subclass semiring_0_cancel by intro_locales
 
-subclass semiring_1 by unfold_locales
+subclass semiring_1 by intro_locales
 
 end
 
@@ -121,16 +121,16 @@ class comm_semiring_1_cancel = comm_semiring + comm_monoid_add + comm_monoid_mul
   + zero_neq_one + cancel_ab_semigroup_add
 begin
 
-subclass semiring_1_cancel by unfold_locales
-subclass comm_semiring_0_cancel by unfold_locales
-subclass comm_semiring_1 by unfold_locales
+subclass semiring_1_cancel by intro_locales
+subclass comm_semiring_0_cancel by intro_locales
+subclass comm_semiring_1 by intro_locales
 
 end
 
 class ring = semiring + ab_group_add
 begin
 
-subclass semiring_0_cancel by unfold_locales
+subclass semiring_0_cancel by intro_locales
 
 text {* Distribution rules *}
 
@@ -179,15 +179,15 @@ lemmas ring_distribs =
 class comm_ring = comm_semiring + ab_group_add
 begin
 
-subclass ring by unfold_locales
-subclass comm_semiring_0 by unfold_locales
+subclass ring by intro_locales
+subclass comm_semiring_0 by intro_locales
 
 end
 
 class ring_1 = ring + zero_neq_one + monoid_mult
 begin
 
-subclass semiring_1_cancel by unfold_locales
+subclass semiring_1_cancel by intro_locales
 
 end
 
@@ -195,8 +195,8 @@ class comm_ring_1 = comm_ring + zero_neq_one + comm_monoid_mult
   (*previously ring*)
 begin
 
-subclass ring_1 by unfold_locales
-subclass comm_semiring_1_cancel by unfold_locales
+subclass ring_1 by intro_locales
+subclass comm_semiring_1_cancel by intro_locales
 
 end
 
@@ -219,7 +219,7 @@ class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors
 class idom = comm_ring_1 + no_zero_divisors
 begin
 
-subclass ring_1_no_zero_divisors by unfold_locales
+subclass ring_1_no_zero_divisors by intro_locales
 
 end
 
@@ -261,7 +261,7 @@ proof unfold_locales
   thus "a * inverse a = 1" by (simp only: mult_commute)
 qed
 
-subclass idom by unfold_locales
+subclass idom by intro_locales
 
 lemma right_inverse_eq: "b \<noteq> 0 \<Longrightarrow> a / b = 1 \<longleftrightarrow> a = b"
 proof
@@ -331,8 +331,8 @@ class pordered_cancel_semiring = mult_mono + pordered_ab_semigroup_add
   + semiring + comm_monoid_add + cancel_ab_semigroup_add
 begin
 
-subclass semiring_0_cancel by unfold_locales
-subclass pordered_semiring by unfold_locales
+subclass semiring_0_cancel by intro_locales
+subclass pordered_semiring by intro_locales
 
 lemma mult_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * b"
   by (drule mult_left_mono [of zero b], auto)
@@ -351,9 +351,9 @@ end
 class ordered_semiring = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add + mult_mono
 begin
 
-subclass pordered_cancel_semiring by unfold_locales
+subclass pordered_cancel_semiring by intro_locales
 
-subclass pordered_comm_monoid_add by unfold_locales
+subclass pordered_comm_monoid_add by intro_locales
 
 lemma mult_left_less_imp_less:
   "c * a < c * b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
@@ -370,7 +370,7 @@ class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_s
   assumes mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
 begin
 
-subclass semiring_0_cancel by unfold_locales
+subclass semiring_0_cancel by intro_locales
 
 subclass ordered_semiring
 proof unfold_locales
@@ -443,8 +443,8 @@ class pordered_cancel_comm_semiring = comm_semiring_0_cancel
   + pordered_ab_semigroup_add + mult_mono1
 begin
 
-subclass pordered_comm_semiring by unfold_locales
-subclass pordered_cancel_semiring by unfold_locales
+subclass pordered_comm_semiring by intro_locales
+subclass pordered_cancel_semiring by intro_locales
 
 end
 
@@ -474,7 +474,7 @@ end
 class pordered_ring = ring + pordered_cancel_semiring 
 begin
 
-subclass pordered_ab_group_add by unfold_locales
+subclass pordered_ab_group_add by intro_locales
 
 lemmas ring_simps = ring_simps group_simps
 
@@ -526,7 +526,7 @@ class ordered_ring = ring + ordered_semiring
   + ordered_ab_group_add + abs_if
 begin
 
-subclass pordered_ring by unfold_locales
+subclass pordered_ring by intro_locales
 
 subclass pordered_ab_group_add_abs
 proof unfold_locales
@@ -547,7 +547,7 @@ class ordered_ring_strict = ring + ordered_semiring_strict
   + ordered_ab_group_add + abs_if
 begin
 
-subclass ordered_ring by unfold_locales
+subclass ordered_ring by intro_locales
 
 lemma mult_strict_left_mono_neg:
   "b < a \<Longrightarrow> c < 0 \<Longrightarrow> c * a < c * b"
@@ -614,8 +614,8 @@ lemmas ring_simps = group_simps ring_distribs
 class pordered_comm_ring = comm_ring + pordered_comm_semiring
 begin
 
-subclass pordered_ring by unfold_locales
-subclass pordered_cancel_comm_semiring by unfold_locales
+subclass pordered_ring by intro_locales
+subclass pordered_cancel_comm_semiring by intro_locales
 
 end
 
@@ -2017,8 +2017,8 @@ class pordered_ring_abs = pordered_ring + pordered_ab_group_add_abs +
 class lordered_ring = pordered_ring + lordered_ab_group_add_abs
 begin
 
-subclass lordered_ab_group_add_meet by unfold_locales
-subclass lordered_ab_group_add_join by unfold_locales
+subclass lordered_ab_group_add_meet by intro_locales
+subclass lordered_ab_group_add_join by intro_locales
 
 end
 
