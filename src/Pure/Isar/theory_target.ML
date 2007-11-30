@@ -290,12 +290,7 @@ fun axioms ta kind (vars, specs) lthy =
     val global_consts = map (Term.dest_Const o Term.head_of o Thm.term_of o Thm.rhs_of o #2) consts;
 
     (*axioms*)
-    val resubst_instparams = map_aterms (fn t as Free (v, T) =>
-      (case Class.instantiation_param lthy' v
-       of NONE => t
-        | SOME c => Const (c, T)) | t => t)
-    val hyps = map Thm.term_of (Assumption.assms_of lthy')
-      |> map resubst_instparams;
+    val hyps = map Thm.term_of (Assumption.assms_of lthy');
     fun axiom ((name, atts), props) thy = thy
       |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi name props)
       |-> (fn ths => pair ((name, atts), [(ths, [])]));

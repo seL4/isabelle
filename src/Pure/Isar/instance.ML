@@ -61,9 +61,9 @@ fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities 
     |> `(fn ctxt => map (mk_def ctxt) defs)
     |-> (fn defs => fold_map Specification.definition defs)
     |-> (fn defs => `(fn ctxt => export_defs ctxt defs))
-    ||> LocalTheory.exit
-    ||> ProofContext.theory_of
-    ||> TheoryTarget.instantiation arities
+    ||> LocalTheory.reinit
+    (*||> ProofContext.theory_of
+    ||> TheoryTarget.instantiation arities*)
     |-> (fn defs => do_proof defs)
   else
     thy

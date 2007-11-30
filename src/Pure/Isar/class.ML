@@ -210,7 +210,7 @@ fun overloaded_const (c, ty, mx) thy =
   let
     val _ = if mx <> NoSyn then
       error ("Illegal mixfix syntax for constant to be instantiated " ^ quote c)
-      else ()
+      else ();
     val SOME class = AxClass.class_of_param thy c;
     val SOME tyco = inst_tyco thy (c, ty);
     val name_inst = AxClass.instance_name (tyco, class) ^ "_inst";
@@ -841,32 +841,32 @@ structure Instantiation = ProofDataFun
 
 fun mk_instantiation (arities, params) =
   Instantiation { arities = arities, params = params };
-fun get_instantiation ctxt = case Instantiation.get ctxt
+fun get_instantiation lthy = case Instantiation.get (LocalTheory.target_of lthy)
  of Instantiation data => data;
-fun map_instantiation f (Instantiation { arities, params }) =
-  mk_instantiation (f (arities, params));
+fun map_instantiation f = (LocalTheory.target o Instantiation.map)
+  (fn Instantiation { arities, params } => mk_instantiation (f (arities, params)));
 
-fun the_instantiation ctxt = case get_instantiation ctxt
+fun the_instantiation lthy = case get_instantiation lthy
  of { arities = [], ... } => error "No instantiation target"
   | data => data;
 
 val instantiation_params = #params o get_instantiation;
 
-fun instantiation_param ctxt v = instantiation_params ctxt
+fun instantiation_param lthy v = instantiation_params lthy
   |> find_first (fn (_, (v', _)) => v = v')
   |> Option.map (fst o fst);
 
-fun confirm_declaration c = (Instantiation.map o map_instantiation o apsnd)
+fun confirm_declaration c = (map_instantiation o apsnd)
   (filter_out (fn (_, (c', _)) => c' = c));
 
 
 (* syntax *)
 
-fun inst_term_check ts ctxt =
+fun inst_term_check ts lthy =
   let
-    val params = instantiation_params ctxt;
-    val tsig = ProofContext.tsig_of ctxt;
-    val thy = ProofContext.theory_of ctxt;
+    val params = instantiation_params lthy;
+    val tsig = ProofContext.tsig_of lthy;
+    val thy = ProofContext.theory_of lthy;
 
     fun check_improve (Const (c, ty)) = (case inst_tyco thy (c, ty)
          of SOME tyco => (case AList.lookup (op =) params (c, tyco)
@@ -882,17 +882,17 @@ fun inst_term_check ts ctxt =
               | NONE => t)
           | NONE => t)
       | t => t) ts';
-  in if eq_list (op aconv) (ts, ts'') then NONE else SOME (ts'', ctxt) end;
+  in if eq_list (op aconv) (ts, ts'') then NONE else SOME (ts'', lthy) end;
 
-fun inst_term_uncheck ts ctxt =
+fun inst_term_uncheck ts lthy =
   let
-    val params = instantiation_params ctxt;
+    val params = instantiation_params lthy;
     val ts' = (map o map_aterms) (fn t as Free (v, ty) =>
        (case get_first (fn ((c, _), (v', _)) => if v = v' then SOME c else NONE) params
          of SOME c => Const (c, ty)
           | NONE => t)
       | t => t) ts;
-  in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', ctxt) end;
+  in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', lthy) end;
 
 
 (* target *)
@@ -946,8 +946,7 @@ fun init_instantiation arities thy =
 
 fun gen_instantiation_instance do_proof after_qed lthy =
   let
-    val ctxt = LocalTheory.target_of lthy;
-    val arities = (#arities o the_instantiation) ctxt;
+    val arities = (#arities o the_instantiation) lthy;
     val arities_proof = maps Logic.mk_arities arities;
     fun after_qed' results =
       LocalTheory.theory (fold (AxClass.add_arity o Thm.varifyT) results)
