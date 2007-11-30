@@ -771,11 +771,10 @@ text {*
   Setup of internal @{text split_rule}.
 *}
 
-constdefs
-  internal_split :: "('a => 'b => 'c) => 'a * 'b => 'c"
+definition
+  internal_split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"
+where
   "internal_split == split"
-
-lemmas [code func del] = internal_split_def
 
 lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)

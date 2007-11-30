@@ -652,11 +652,10 @@ lemma elem_o2s [iff]: "(x : o2s xo) = (xo = Some x)"
 lemma o2s_empty_eq [simp]: "(o2s xo = {}) = (xo = None)"
   by (cases xo) auto
 
-constdefs
-  option_map :: "('a => 'b) => ('a option => 'b option)"
-  "option_map == %f y. case y of None => None | Some x => Some (f x)"
-
-lemmas [code func del] = option_map_def
+definition
+  option_map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a option \<Rightarrow> 'b option"
+where
+  [code func del]: "option_map = (%f y. case y of None => None | Some x => Some (f x))"
 
 lemma option_map_None [simp, code]: "option_map f None = None"
   by (simp add: option_map_def)

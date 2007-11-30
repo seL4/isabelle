@@ -290,7 +290,7 @@ syntax
   init_vals     :: "('a, ty) table \<Rightarrow> ('a, val) table"
 
 translations
- "init_vals vs"    == "option_map default_val \<circ> vs"
+ "init_vals vs"    == "CONST option_map default_val \<circ> vs"
 
 lemma init_arr_comps_base [simp]: "init_vals (arr_comps T 0) = empty"
 apply (unfold arr_comps_def in_bounds_def)
