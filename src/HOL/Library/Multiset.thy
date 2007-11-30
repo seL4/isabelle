@@ -25,8 +25,8 @@ definition
   "{#} = Abs_multiset (\<lambda>a. 0)"
 
 definition
-  single :: "'a => 'a multiset"  ("{#_#}") where
-  "{#a#} = Abs_multiset (\<lambda>b. if b = a then 1 else 0)"
+  single :: "'a => 'a multiset" where
+  "single a = Abs_multiset (\<lambda>b. if b = a then 1 else 0)"
 
 definition
   count :: "'a multiset => 'a => nat" where
@@ -58,6 +58,13 @@ instance multiset :: (type) "{plus, minus, zero, size}"
 definition
   multiset_inter :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"  (infixl "#\<inter>" 70) where
   "multiset_inter A B = A - (A - B)"
+
+syntax -- "Multiset Enumeration"
+  "@multiset" :: "args => 'a multiset"    ("{#(_)#}")
+
+translations
+  "{#x, xs#}" == "{#x#} + {#xs#}"
+  "{#x#}" == "CONST single x"
 
 
 text {*
