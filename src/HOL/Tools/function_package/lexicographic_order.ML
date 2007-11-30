@@ -19,6 +19,29 @@ end
 structure LexicographicOrder : LEXICOGRAPHIC_ORDER =
 struct
 
+(** User-declared size functions **)
+
+structure SizeFunsData = GenericDataFun
+(
+  type T = term NetRules.T;
+  val empty = NetRules.init (op aconv) I
+  val copy = I
+  val extend = I
+  fun merge _ (tab1, tab2) = NetRules.merge (tab1, tab2)
+);
+
+fun add_sfun f ctxt = 
+  SizeFunsData.map (NetRules.insert (singleton (Variable.polymorphic (Context.proof_of ctxt)) f)) ctxt
+val add_sfun_attr = Attrib.syntax (Args.term >> (fn f => Thm.declaration_attribute (K (add_sfun f))))
+
+fun get_sfuns T thy =
+    map_filter (fn f => SOME (Envir.subst_TVars (Type.typ_match (Sign.tsig_of thy)
+                                                                (domain_type (fastype_of f), T)
+                                                                Vartab.empty) 
+                                                f)
+                   handle Type.TYPE_MATCH => NONE)
+               (NetRules.rules (SizeFunsData.get (Context.Theory thy)))
+
 (** General stuff **)
 
 fun mk_measures domT mfuns =
@@ -77,8 +100,8 @@ fun mk_base_funs thy (T as Type("*", [fT, sT])) = (* products *)
 
   | mk_base_funs thy T = (* default: size function, if available *)
     if Sorts.of_sort (Sign.classes_of thy) (T, [HOLogic.class_size])
-    then [HOLogic.size_const T]
-    else []
+    then (HOLogic.size_const T) :: get_sfuns T thy
+    else get_sfuns T thy
 
 fun mk_sum_case f1 f2 =
     let
@@ -306,5 +329,6 @@ fun lexicographic_order thms ctxt = Method.SIMPLE_METHOD (FundefCommon.apply_ter
 
 val setup = Method.add_methods [("lexicographic_order", Method.bang_sectioned_args clasimp_modifiers lexicographic_order,
                                  "termination prover for lexicographic orderings")]
+    #> Attrib.add_attributes [("measure_function", add_sfun_attr, "declare custom measure function")]
 
 end
