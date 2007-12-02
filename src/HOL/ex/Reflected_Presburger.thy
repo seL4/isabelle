@@ -1338,35 +1338,6 @@ next
     qed
 qed (auto simp add: gr0_conv_Suc numbound0_I[where bs="bs" and b="x - k*d" and b'="x"])
 
-    (* Is'nt this beautiful?*)
-lemma minusinf_ex:
-  assumes lin: "iszlfm p" and u: "d\<beta> p 1"
-  and exmi: "\<exists> (x::int). Ifm bbs (x#bs) (minusinf p)" (is "\<exists> x. ?P1 x")
-  shows "\<exists> (x::int). Ifm bbs (x#bs) p" (is "\<exists> x. ?P x")
-proof-
-  let ?d = "\<delta> p"
-  from \<delta> [OF lin] have dpos: "?d >0" by simp
-  from \<delta> [OF lin] have alld: "d\<delta> p ?d" by simp
-  from minusinf_repeats[OF alld lin] have th1:"\<forall> x k. ?P1 x = ?P1 (x - (k * ?d))" by simp
-  from minusinf_inf[OF lin u] have th2:"\<exists> z. \<forall> x. x<z \<longrightarrow> (?P x = ?P1 x)" by blast
-  from minusinfinity [OF dpos th1 th2] exmi show ?thesis by blast
-qed
-
-    (*	And This ???*)
-lemma minusinf_bex:
-  assumes lin: "iszlfm p"
-  shows "(\<exists> (x::int). Ifm bbs (x#bs) (minusinf p)) = 
-         (\<exists> (x::int)\<in> {1..\<delta> p}. Ifm bbs (x#bs) (minusinf p))"
-  (is "(\<exists> x. ?P x) = _")
-proof-
-  let ?d = "\<delta> p"
-  from \<delta> [OF lin] have dpos: "?d >0" by simp
-  from \<delta> [OF lin] have alld: "d\<delta> p ?d" by simp
-  from minusinf_repeats[OF alld lin] have th1:"\<forall> x k. ?P x = ?P (x - (k * ?d))" by simp
-  from periodic_finite_ex[OF dpos th1] show ?thesis by blast
-qed
-
-
 lemma mirror\<alpha>\<beta>:
   assumes lp: "iszlfm p"
   shows "(Inum (i#bs)) ` set (\<alpha> p) = (Inum (i#bs)) ` set (\<beta> (mirror p))"
