@@ -445,7 +445,7 @@ val _ =
       Toplevel.print o Toplevel.local_theory_to_proof loc (Subclass.subclass_cmd class)));
 
 val _ =
-  OuterSyntax.command "instantiation" "prove type arity" K.thy_decl
+  OuterSyntax.command "instantiation" "instantiate and prove type arity" K.thy_decl
    (P.and_list1 P.arity --| P.begin
      >> (fn arities => Toplevel.print o
          Toplevel.begin_local_theory true (Instance.instantiation_cmd arities)));
@@ -457,6 +457,17 @@ val _ =
       >> (fn (arities, defs) => Instance.instance_cmd arities defs))
     >> (Toplevel.print oo Toplevel.theory_to_proof)
   || Scan.succeed (Toplevel.print o Toplevel.local_theory_to_proof NONE (Class.instantiation_instance I)));
+
+
+(* arbitrary overloading *)
+
+val _ =
+  OuterSyntax.command "overloading" "overloaded definitions" K.thy_decl
+   (Scan.repeat1 (P.xname --| P.$$$ "::" -- P.typ --| P.$$$ "is" -- P.name --
+      Scan.optional (P.$$$ "(" |-- (P.$$$ "unchecked" >> K false) --| P.$$$ ")") true)
+        --| P.begin
+   >> (fn operations => Toplevel.print o
+         Toplevel.begin_local_theory true (TheoryTarget.overloading_cmd operations)));
 
 
 (* code generation *)

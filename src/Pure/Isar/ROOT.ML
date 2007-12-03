@@ -47,6 +47,7 @@ use "obtain.ML";
 
 (*local theories and target primitives*)
 use "local_theory.ML";
+use "overloading.ML";
 use "locale.ML";
 use "class.ML";
 
