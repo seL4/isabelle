@@ -192,7 +192,7 @@ fun load_rules sname name prog =
 	  | SOME r => (compiled_rewriter := NONE; r)
     end	
 
-fun compile eqs = 
+fun compile cache_patterns const_arity eqs = 
     let
 	val _ = if exists (fn (a,b,c) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
 	val eqs = map (fn (a,b,c) => (b,c)) eqs

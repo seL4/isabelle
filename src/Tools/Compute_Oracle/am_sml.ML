@@ -13,11 +13,14 @@ sig
   val save_result : (string * term) -> unit
   val set_compiled_rewriter : (term -> term) -> unit				       
   val list_nth : 'a list * int -> 'a
+  val dump_output : (string option) ref 
 end
 
 structure AM_SML : AM_SML = struct
 
 open AbstractMachine;
+
+val dump_output = ref NONE
 
 type program = string * string * (int Inttab.table) * (int Inttab.table) * (term Inttab.table) * (term -> term)
 
@@ -155,8 +158,8 @@ fun adjust_rules rules =
 	val toplevel_arity = fold (fn (_, p, t) => fn arity => collect_pattern_toplevel_arity p arity) rules Inttab.empty
 	fun arity_of c = the (Inttab.lookup arity c)
 	fun toplevel_arity_of c = the (Inttab.lookup toplevel_arity c)
-	fun adjust_pattern PVar = PVar
-	  | adjust_pattern (C as PConst (c, args)) = if (length args <> arity_of c) then raise Compile ("Constant inside pattern must have maximal arity") else C
+	fun test_pattern PVar = ()
+	  | test_pattern (C as PConst (c, args)) = if (length args <> arity_of c) then raise Compile ("Constant inside pattern must have maximal arity") else (map test_pattern args; ())
 	fun adjust_rule (_, PVar, _) = raise Compile ("pattern may not be a variable")
 	  | adjust_rule (_, PConst (_, []), _) = raise Compile ("cannot deal with rewrites that take no parameters")
 	  | adjust_rule (rule as (prems, p as PConst (c, args),t)) = 
@@ -165,13 +168,13 @@ fun adjust_rules rules =
 		fun check_fv t = check_freevars patternvars_counted t
 		val _ = if not (check_fv t) then raise Compile ("unbound variables on right hand side of rule") else () 
 		val _ = if not (forall (fn (Guard (a,b)) => check_fv a andalso check_fv b) prems) then raise Compile ("unbound variables in guards") else () 
-		val args = map adjust_pattern args	        
+		val _ = map test_pattern args	        
 		val len = length args
 		val arity = arity_of c
 		val lift = nlift 0
-		fun adjust_tm n t = if n=0 then t else adjust_tm (n-1) (App (t, Var (n-1)))
-		fun adjust_term n t = adjust_tm n (lift n t)
-		fun adjust_guard n (Guard (a,b)) = Guard (adjust_term n a, adjust_term n b)
+		fun addapps_tm n t = if n=0 then t else addapps_tm (n-1) (App (t, Var (n-1)))
+		fun adjust_term n t = addapps_tm n (lift n t)
+		fun adjust_guard n (Guard (a,b)) = Guard (lift n a, lift n b)
 	    in
 		if len = arity then
 		    rule
@@ -179,8 +182,7 @@ fun adjust_rules rules =
 		    (map (adjust_guard (arity-len)) prems, PConst (c, args @ (rep (arity-len) PVar)), adjust_term (arity-len) t)
 		else (raise Compile "internal error in adjust_rule")
 	    end
-	fun beta_guard (Guard (a,b)) = Guard (beta a, beta b)
-	fun beta_rule (prems, p, t) = ((map beta_guard prems, p, beta t) handle Match => raise Compile "beta_rule")
+	fun beta_rule (prems, p, t) = ((prems, p, beta t) handle Match => raise Compile "beta_rule")
     in
 	(arity, toplevel_arity, map (beta_rule o adjust_rule) rules)
     end		    
@@ -493,13 +495,13 @@ fun writeTextFile name s = File.write (Path.explode name) s
 
 fun use_source src = use_text "" Output.ml_output false src
     
-fun compile eqs = 
+fun compile cache_patterns const_arity eqs = 
     let
 	val guid = get_guid ()
 	val code = Real.toString (random ())
 	val module = "AMSML_"^guid
 	val (arity, toplevel_arity, inlinetab, source) = sml_prog module code eqs
-	(*val _ = writeTextFile "Gencode.ML" source*)
+	val _ = case !dump_output of NONE => () | SOME p => writeTextFile p source
 	val _ = compiled_rewriter := NONE
 	val _ = use_source source
     in

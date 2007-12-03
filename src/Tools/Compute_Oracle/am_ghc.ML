@@ -219,7 +219,7 @@ val ghc = ref (case getenv "GHC_PATH" of "" => "ghc" | s => s)
 
 fun fileExists name = ((OS.FileSys.fileSize name; true) handle OS.SysErr _ => false)
 
-fun compile eqs = 
+fun compile cache_patterns const_arity eqs = 
     let
 	val _ = if exists (fn (a,b,c) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
 	val eqs = map (fn (a,b,c) => (b,c)) eqs

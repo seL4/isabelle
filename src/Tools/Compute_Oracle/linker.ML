@@ -218,6 +218,7 @@ sig
     type pcomputer
 
     val make : Compute.machine -> theory -> thm list -> Linker.constant list -> pcomputer
+    val make_with_cache : Compute.machine -> theory -> term list -> thm list -> Linker.constant list -> pcomputer
     
     val add_instances : pcomputer -> Linker.constant list -> bool 
     val add_instances' : pcomputer -> term list -> bool
@@ -237,8 +238,9 @@ structure PCompute : PCOMPUTE = struct
 exception PCompute of string
 
 datatype theorem = MonoThm of thm | PolyThm of thm * Linker.instances * thm list
+datatype pattern = MonoPattern of term | PolyPattern of term * Linker.instances * term list
 
-datatype pcomputer = PComputer of theory_ref * Compute.computer * theorem list ref
+datatype pcomputer = PComputer of theory_ref * Compute.computer * theorem list ref * pattern list ref 
 
 (*fun collect_consts (Var x) = []
   | collect_consts (Bound _) = []
@@ -246,7 +248,7 @@ datatype pcomputer = PComputer of theory_ref * Compute.computer * theorem list r
   | collect_consts (Abs (_, _, body)) = collect_consts body
   | collect_consts t = [Linker.constant_of t]*)
 
-fun computer_of (PComputer (_,computer,_)) = computer
+fun computer_of (PComputer (_,computer,_,_)) = computer
 
 fun collect_consts_of_thm th = 
     let
@@ -283,28 +285,45 @@ in
         (monocs, PolyThm (th, Linker.empty polycs, []))
 end
 
-fun create_computer machine thy ths =
+fun create_pattern pat = 
+let
+    val cs = Linker.collect_consts [pat]
+    val polycs = filter Linker.is_polymorphic cs
+in
+    if null (polycs) then
+	MonoPattern pat
+    else
+	PolyPattern (pat, Linker.empty polycs, [])
+end
+	     
+fun create_computer machine thy pats ths =
     let
         fun add (MonoThm th) ths = th::ths
           | add (PolyThm (_, _, ths')) ths = ths'@ths
+	fun addpat (MonoPattern p) pats = p::pats
+	  | addpat (PolyPattern (_, _, ps)) pats = ps@pats
         val ths = fold_rev add ths []
+	val pats = fold_rev addpat pats []
     in
-        Compute.make machine thy ths
+        Compute.make_with_cache machine thy pats ths
     end
 
-fun update_computer computer ths = 
+fun update_computer computer pats ths = 
     let
 	fun add (MonoThm th) ths = th::ths
 	  | add (PolyThm (_, _, ths')) ths = ths'@ths
+	fun addpat (MonoPattern p) pats = p::pats
+	  | addpat (PolyPattern (_, _, ps)) pats = ps@pats
 	val ths = fold_rev add ths []
+	val pats = fold_rev addpat pats []
     in
-	Compute.update computer ths
+	Compute.update_with_cache computer pats ths
     end
 
 fun conv_subst thy (subst : Type.tyenv) =
     map (fn (iname, (sort, ty)) => (ctyp_of thy (TVar (iname, sort)), ctyp_of thy ty)) (Vartab.dest subst)
 
-fun add_monos thy monocs ths =
+fun add_monos thy monocs pats ths =
     let
         val changed = ref false
         fun add monocs (th as (MonoThm _)) = ([], th)
@@ -318,21 +337,35 @@ fun add_monos thy monocs ths =
             in
                 (newmonos, PolyThm (th, instances, instanceths@newths))
             end
+	fun addpats monocs (pat as (MonoPattern _)) = pat
+	  | addpats monocs (PolyPattern (p, instances, instancepats)) =
+	    let
+		val (newsubsts, instances) = Linker.add_instances thy instances monocs
+		val _ = if not (null newsubsts) then changed := true else ()
+		val newpats = map (fn subst => Envir.subst_TVars subst p) newsubsts
+	    in
+		PolyPattern (p, instances, instancepats@newpats)
+	    end 
         fun step monocs ths =
             fold_rev (fn th =>
                       fn (newmonos, ths) =>
-                         let val (newmonos', th') = add monocs th in
+                         let 
+			     val (newmonos', th') = add monocs th 
+			 in
                              (newmonos'@newmonos, th'::ths)
                          end)
                      ths ([], [])
-        fun loop monocs ths =
-            let val (monocs', ths') = step monocs ths in
+        fun loop monocs pats ths =
+            let 
+		val (monocs', ths') = step monocs ths 
+		val pats' = map (addpats monocs) pats
+	    in
                 if null (monocs') then
-                    ths'
+                    (pats', ths')
                 else
-                    loop monocs' ths'
+                    loop monocs' pats' ths'
             end
-        val result = loop monocs ths
+        val result = loop monocs pats ths
     in
         (!changed, result)
     end
@@ -370,7 +403,7 @@ fun remove_duplicates ths =
         map snd (Inttab.dest (!thstab))
     end
 
-fun make machine thy ths cs =
+fun make_with_cache machine thy pats ths cs =
     let
 	val ths = remove_duplicates ths
 	val (monocs, ths) = fold_rev (fn th => 
@@ -379,20 +412,24 @@ fun make machine thy ths cs =
 					     (m@monocs, t::ths)
 					 end)
 				     ths (cs, [])
-	val (_, ths) = add_monos thy monocs ths
-	val computer = create_computer machine thy ths
+	val pats = map create_pattern pats
+	val (_, (pats, ths)) = add_monos thy monocs pats ths
+	val computer = create_computer machine thy pats ths
     in
-	PComputer (Theory.check_thy thy, computer, ref ths)
+	PComputer (Theory.check_thy thy, computer, ref ths, ref pats)
     end
 
-fun add_instances (PComputer (thyref, computer, rths)) cs = 
+fun make machine thy ths cs = make_with_cache machine thy [] ths cs
+
+fun add_instances (PComputer (thyref, computer, rths, rpats)) cs = 
     let
         val thy = Theory.deref thyref
-        val (changed, ths) = add_monos thy cs (!rths)
+        val (changed, (pats, ths)) = add_monos thy cs (!rpats) (!rths)
     in
 	if changed then
-	    (update_computer computer ths;
+	    (update_computer computer pats ths;
 	     rths := ths;
+	     rpats := pats;
 	     true)
 	else
 	    false

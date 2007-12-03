@@ -19,7 +19,7 @@ datatype closure = CDummy | CVar of int | CConst of int
 
 structure prog_struct = TableFun(type key = int*int val ord = prod_ord int_ord int_ord);
 
-datatype program = Program of ((pattern * closure) list) prog_struct.table
+datatype program = Program of ((pattern * closure * (closure*closure) list) list) prog_struct.table
 
 datatype stack = SEmpty | SAppL of closure * stack | SAppR of closure * stack | SAbs of stack
 
@@ -101,31 +101,18 @@ fun check_freevars free (Var x) = x < free
   | check_freevars free (Abs m) = check_freevars (free+1) m
   | check_freevars free (Computed t) = check_freevars free t
 
-fun compile eqs =
+fun compile cache_patterns const_arity eqs =
     let
-	val _ = if exists (fn (a,b,c) => not (null a)) eqs then raise Compile ("cannot deal with guards") else ()
-	val eqs = map (fn (a,b,c) => (b,c)) eqs
-	fun check (p, r) = if check_freevars (count_patternvars p) r then () else raise Compile ("unbound variables in rule") 
-        val eqs = map (fn (p, r) => (check (p,r); (pattern_key p, (p, clos_of_term r)))) eqs
+	fun check p r = if check_freevars p r then () else raise Compile ("unbound variables in rule") 
+	fun check_guard p (Guard (a,b)) = (check p a; check p b) 
+        fun clos_of_guard (Guard (a,b)) = (clos_of_term a, clos_of_term b)
+        val eqs = map (fn (guards, p, r) => let val pcount = count_patternvars p val _ = map (check_guard pcount) (guards) val _ = check pcount r in 
+                                              (pattern_key p, (p, clos_of_term r, map clos_of_guard guards)) end) eqs
 	fun merge (k, a) table = prog_struct.update (k, case prog_struct.lookup table k of NONE => [a] | SOME l => a::l) table
 	val p = fold merge eqs prog_struct.empty 
     in
         Program p
     end
-
-fun match_rules n [] clos = NONE
-  | match_rules n ((p,eq)::rs) clos =
-    case pattern_match [] p clos of
-        NONE => match_rules (n+1) rs clos
-      | SOME args => SOME (Closure (args, eq))
-
-fun match_closure (Program prog) clos =
-    case len_head_of_closure 0 clos of
-        (len, CConst c) =>
-        (case prog_struct.lookup prog (c, len) of
-            NONE => NONE
-          | SOME rules => match_rules 0 rules clos)
-      | _ => NONE
 
 
 type state = bool * program * stack * closure
@@ -158,7 +145,21 @@ fun do_reduction reduce p =
 	  | NONE => proj_S (!s)
     end
 
-fun weak_reduce (false, prog, stack, Closure (e, CApp (a, b))) = Continue (false, prog, SAppL (Closure (e, b), stack), Closure (e, a))
+fun match_rules prog n [] clos = NONE
+  | match_rules prog n ((p,eq,guards)::rs) clos =
+    case pattern_match [] p clos of
+        NONE => match_rules prog (n+1) rs clos
+      | SOME args => if forall (guard_checks prog args) guards then SOME (Closure (args, eq)) else match_rules prog (n+1) rs clos
+and guard_checks prog args (a,b) = (simp prog (Closure (args, a)) = simp prog (Closure (args, b)))
+and match_closure (p as (Program prog)) clos =
+    case len_head_of_closure 0 clos of
+        (len, CConst c) =>
+        (case prog_struct.lookup prog (c, len) of
+            NONE => NONE
+          | SOME rules => match_rules p 0 rules clos)
+      | _ => NONE
+
+and weak_reduce (false, prog, stack, Closure (e, CApp (a, b))) = Continue (false, prog, SAppL (Closure (e, b), stack), Closure (e, a))
   | weak_reduce (false, prog, SAppL (b, stack), Closure (e, CAbs m)) = Continue (false, prog, stack, Closure (b::e, m))
   | weak_reduce (false, prog, stack, Closure (e, CVar n)) = Continue (false, prog, stack, case List.nth (e, n) of CDummy => CVar n | r => r)
   | weak_reduce (false, prog, stack, Closure (e, c as CConst _)) = Continue (false, prog, stack, c)
@@ -170,7 +171,7 @@ fun weak_reduce (false, prog, stack, Closure (e, CApp (a, b))) = Continue (false
   | weak_reduce (true, prog, s as (SAppL (b, stack)), a) = Continue (false, prog, SAppR (a, stack), b)
   | weak_reduce (true, prog, stack, c) = Stop (stack, c)
 
-fun strong_reduce (false, prog, stack, Closure (e, CAbs m)) =
+and strong_reduce (false, prog, stack, Closure (e, CAbs m)) =
     (let
          val (stack', wnf) = do_reduction weak_reduce (false, prog, SEmpty, Closure (CDummy::e, m))
      in
@@ -184,6 +185,18 @@ fun strong_reduce (false, prog, stack, Closure (e, CAbs m)) =
   | strong_reduce (true, prog, SAppL (b, stack), a) = Continue (false, prog, SAppR (a, stack), b)
   | strong_reduce (true, prog, SAppR (a, stack), b) = Continue (true, prog, stack, CApp (a, b))
   | strong_reduce (true, prog, stack, clos) = Stop (stack, clos)
+
+and simp prog t =
+    (let
+         val (stack, wnf) = do_reduction weak_reduce (false, prog, SEmpty, t)
+     in
+         case stack of
+             SEmpty => (case do_reduction strong_reduce (false, prog, SEmpty, wnf) of
+                            (SEmpty, snf) => snf
+                          | _ => raise (Run "internal error in run: strong failed"))
+           | _ => raise (Run "internal error in run: weak failed")
+     end handle InterruptedExecution state => resolve state)
+
 
 fun run prog t =
     (let

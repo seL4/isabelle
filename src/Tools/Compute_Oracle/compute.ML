@@ -15,10 +15,12 @@ signature COMPUTE = sig
 
     exception Make of string
     val make : machine -> theory -> thm list -> computer
+    val make_with_cache : machine -> theory -> term list -> thm list -> computer
     val theory_of : computer -> theory
     val hyps_of : computer -> term list
     val shyps_of : computer -> sort list
     (* ! *) val update : computer -> thm list -> unit
+    (* ! *) val update_with_cache : computer -> term list -> thm list -> unit
     (* ! *) val discard : computer -> unit
     
     (* ! *) val set_naming : computer -> naming -> unit
@@ -35,15 +37,11 @@ signature COMPUTE = sig
 
     val setup_compute : theory -> theory
 
-    val print_encoding : bool ref
-
 end
 
 structure Compute :> COMPUTE = struct
 
 open Report;
-
-val print_encoding = ref false
 
 datatype machine = BARRAS | BARRAS_COMPILED | HASKELL | SML	 
 
@@ -57,7 +55,7 @@ sig
     val lookup_term : int -> encoding -> term option					
     val remove_code : int -> encoding -> encoding
     val remove_term : term -> encoding -> encoding
-    val fold : ((term * int) -> 'a -> 'a) -> encoding -> 'a -> 'a    
+    val fold : ((term * int) -> 'a -> 'a) -> encoding -> 'a -> 'a  						       
 end 
 = 
 struct
@@ -81,7 +79,7 @@ fun remove_code c (e as (count, term2int, int2term)) =
 fun remove_term t (e as (count, term2int, int2term)) = 
     (case lookup_code t e of NONE => e | SOME c => (count, Termtab.delete t term2int, Inttab.delete c int2term))
 
-fun fold f (_, term2int, _) = Termtab.fold f term2int 
+fun fold f (_, term2int, _) = Termtab.fold f term2int
 
 end
 
@@ -206,10 +204,31 @@ fun thm2cthm th =
 	ComputeThm (hyps, shyps, prop)
     end
 
-fun make_internal machine thy stamp encoding raw_ths =
+fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
     let
 	fun transfer (x:thm) = Thm.transfer thy x
 	val ths = map (thm2cthm o Thm.strip_shyps o transfer) raw_ths
+
+        fun make_pattern encoding n vars (var as AbstractMachine.Abs _) =
+	    raise (Make "no lambda abstractions allowed in pattern")
+	  | make_pattern encoding n vars (var as AbstractMachine.Var _) =
+	    raise (Make "no bound variables allowed in pattern")
+	  | make_pattern encoding n vars (AbstractMachine.Const code) =
+	    (case the (Encode.lookup_term code encoding) of
+		 Var _ => ((n+1, Inttab.update_new (code, n) vars, AbstractMachine.PVar)
+			   handle Inttab.DUP _ => raise (Make "no duplicate variable in pattern allowed"))
+	       | _ => (n, vars, AbstractMachine.PConst (code, [])))
+          | make_pattern encoding n vars (AbstractMachine.App (a, b)) =
+            let
+                val (n, vars, pa) = make_pattern encoding n vars a
+                val (n, vars, pb) = make_pattern encoding n vars b
+            in
+                case pa of
+                    AbstractMachine.PVar =>
+                    raise (Make "patterns may not start with a variable")
+                  | AbstractMachine.PConst (c, args) =>
+                    (n, vars, AbstractMachine.PConst (c, args@[pb]))
+            end
 
         fun thm2rule (encoding, hyptable, shyptable) th =
             let
@@ -234,27 +253,6 @@ fun make_internal machine thy stamp encoding raw_ths =
 			 (encoding, AbstractMachine.Guard (t1, t2))
 		     end handle TERM _ => raise (Make "guards must be meta-level equations"))
                 val (encoding, prems) = fold_rev (fn p => fn (encoding, ps) => let val (e, p) = remove_types_of_guard encoding p in (e, p::ps) end) prems (encoding, [])
-                
-                fun make_pattern encoding n vars (var as AbstractMachine.Abs _) =
-		    raise (Make "no lambda abstractions allowed in pattern")
-		  | make_pattern encoding n vars (var as AbstractMachine.Var _) =
-		    raise (Make "no bound variables allowed in pattern")
-		  | make_pattern encoding n vars (AbstractMachine.Const code) =
-		    (case the (Encode.lookup_term code encoding) of
-			 Var _ => ((n+1, Inttab.update_new (code, n) vars, AbstractMachine.PVar)
-				   handle Inttab.DUP _ => raise (Make "no duplicate variable in pattern allowed"))
-		       | _ => (n, vars, AbstractMachine.PConst (code, [])))
-                  | make_pattern encoding n vars (AbstractMachine.App (a, b)) =
-                    let
-                        val (n, vars, pa) = make_pattern encoding n vars a
-                        val (n, vars, pb) = make_pattern encoding n vars b
-                    in
-                        case pa of
-                            AbstractMachine.PVar =>
-                              raise (Make "patterns may not start with a variable")
-                          | AbstractMachine.PConst (c, args) =>
-                              (n, vars, AbstractMachine.PConst (c, args@[pb]))
-                    end
 
                 (* Principally, a check should be made here to see if the (meta-) hyps contain any of the variables of the rule.
                    As it is, all variables of the rule are schematic, and there are no schematic variables in meta-hyps, therefore
@@ -294,12 +292,32 @@ fun make_internal machine thy stamp encoding raw_ths =
             in (encoding_hyptable, rule::rules) end)
           ths ((encoding, Termtab.empty, Sorttab.empty), [])
 
+        fun make_cache_pattern t (encoding, cache_patterns) =
+	    let
+		val (encoding, a) = remove_types encoding t
+		val (_,_,p) = make_pattern encoding 0 Inttab.empty a
+	    in
+		(encoding, p::cache_patterns)
+	    end
+	
+	val (encoding, cache_patterns) = fold_rev make_cache_pattern cache_pattern_terms (encoding, [])
+
+	fun arity (Type ("fun", [a,b])) = 1 + arity b
+	  | arity _ = 0
+
+	fun make_arity (Const (s, _), i) tab = 
+	    (Inttab.update (i, arity (Sign.the_const_type thy s)) tab handle TYPE _ => tab)
+	  | make_arity _ tab = tab
+
+	val const_arity_tab = Encode.fold make_arity encoding Inttab.empty
+	fun const_arity x = Inttab.lookup const_arity_tab x 
+
         val prog = 
 	    case machine of 
-		BARRAS => ProgBarras (AM_Interpreter.compile rules)
-	      | BARRAS_COMPILED => ProgBarrasC (AM_Compiler.compile rules)
-	      | HASKELL => ProgHaskell (AM_GHC.compile rules)
-	      | SML => ProgSML (AM_SML.compile rules)
+		BARRAS => ProgBarras (AM_Interpreter.compile cache_patterns const_arity rules)
+	      | BARRAS_COMPILED => ProgBarrasC (AM_Compiler.compile cache_patterns const_arity rules)
+	      | HASKELL => ProgHaskell (AM_GHC.compile cache_patterns const_arity rules)
+	      | SML => ProgSML (AM_SML.compile cache_patterns const_arity rules)
 
         fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
 
@@ -307,16 +325,20 @@ fun make_internal machine thy stamp encoding raw_ths =
 
     in (Theory.check_thy thy, encoding, Termtab.keys hyptable, shyptable, prog, stamp, default_naming) end
 
-fun make machine thy raw_thms = Computer (ref (SOME (make_internal machine thy (ref ()) Encode.empty raw_thms)))
+fun make_with_cache machine thy cache_patterns raw_thms = Computer (ref (SOME (make_internal machine thy (ref ()) Encode.empty cache_patterns raw_thms)))
 
-fun update computer raw_thms =
+fun make machine thy raw_thms = make_with_cache machine thy [] raw_thms
+
+fun update_with_cache computer cache_patterns raw_thms =
     let 
 	val c = make_internal (machine_of_prog (prog_of computer)) (theory_of computer) (stamp_of computer) 
-			      (encoding_of computer) raw_thms
+			      (encoding_of computer) cache_patterns raw_thms
 	val _ = (ref_of computer) := SOME c	
     in
 	()
     end
+
+fun update computer raw_thms = update_with_cache computer [] raw_thms
 
 fun discard computer =
     let
