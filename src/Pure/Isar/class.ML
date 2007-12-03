@@ -36,7 +36,7 @@ sig
   val prove_instantiation_instance: (Proof.context -> tactic) -> local_theory -> local_theory
   val conclude_instantiation: local_theory -> local_theory
 
-  val overloaded_const: string * typ * mixfix -> theory -> term * theory
+  val overloaded_const: string * typ -> theory -> term * theory
   val overloaded_def: string -> string * term -> theory -> thm * theory
   val instantiation_param: Proof.context -> string -> string option
   val confirm_declaration: string -> local_theory -> local_theory
@@ -206,11 +206,8 @@ fun primitive_note kind (name, thm) =
   PureThy.note_thmss_i kind [((name, []), [([thm], [])])]
   #>> (fn [(_, [thm])] => thm);
 
-fun overloaded_const (c, ty, mx) thy =
+fun overloaded_const (c, ty) thy =
   let
-    val _ = if mx <> NoSyn then
-      error ("Illegal mixfix syntax for constant to be instantiated " ^ quote c)
-      else ();
     val SOME class = AxClass.class_of_param thy c;
     val SOME tyco = inst_tyco thy (c, ty);
     val name_inst = AxClass.instance_name (tyco, class) ^ "_inst";
@@ -221,7 +218,7 @@ fun overloaded_const (c, ty, mx) thy =
     |> Sign.sticky_prefix name_inst
     |> Sign.no_base_names
     |> Sign.declare_const [] (c', ty', NoSyn)
-    |-> (fn const' as Const (c'', _) => Thm.add_def true
+    |-> (fn const' as Const (c'', _) => Thm.add_def false true
           (Thm.def_name c', Logic.mk_equals (Const (c, ty'), const'))
     #>> Thm.varifyT
     #-> (fn thm => add_inst (c, tyco) (c'', thm)
@@ -241,7 +238,7 @@ fun overloaded_def name (c, t) thy =
       (NameSpace.base c ^ "_" ^ NameSpace.base tyco) name;
   in
     thy
-    |> Thm.add_def false (name', prop)
+    |> Thm.add_def false false (name', prop)
     |>> (fn thm =>  Drule.transitive_thm OF [eq, thm])
   end;
 
@@ -796,7 +793,7 @@ fun logical_const class pos ((c, mx), dict) thy =
   in
     thy'
     |> Sign.declare_const pos (c, ty'', mx) |> snd
-    |> Thm.add_def false (c, def_eq)
+    |> Thm.add_def false false (c, def_eq)
     |>> Thm.symmetric
     |-> (fn def => class_interpretation class [def] [Thm.prop_of def]
           #> register_operation class (c', (dict', SOME (Thm.varifyT def))))
@@ -911,7 +908,6 @@ val sanatize_name = (*FIXME*)
     explode #> scan_valids #> implode
   end;
 
-
 fun init_instantiation arities thy =
   let
     val _ = if null arities then error "At least one arity must be given" else ();
@@ -990,7 +986,7 @@ fun conclude_instantiation lthy =
         |> Sign.sticky_prefix name_inst
         |> Sign.no_base_names
         |> Sign.declare_const [] (c', ty, NoSyn)
-        |-> (fn const' as Const (c'', _) => Thm.add_def true
+        |-> (fn const' as Const (c'', _) => Thm.add_def false true
               (Thm.def_name c', Logic.mk_equals (const', Const (c, ty)))
         #>> Thm.varifyT
         #-> (fn thm => add_inst (c, tyco) (c'', Thm.symmetric thm)

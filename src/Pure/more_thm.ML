@@ -54,7 +54,7 @@ sig
   val elim_implies: thm -> thm -> thm
   val unvarify: thm -> thm
   val add_axiom: term list -> bstring * term -> theory -> thm * theory
-  val add_def: bool -> bstring * term -> theory -> thm * theory
+  val add_def: bool -> bool -> bstring * term -> theory -> thm * theory
 end;
 
 structure Thm: THM =
@@ -264,7 +264,7 @@ fun add_axiom hyps (name, prop) thy =
     val thm = fold elim_implies prems axm;
   in (thm, thy') end;
 
-fun add_def overloaded (name, prop) thy =
+fun add_def unchecked overloaded (name, prop) thy =
   let
     val tfrees = rev (map TFree (Term.add_tfrees prop []));
     val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
@@ -272,7 +272,7 @@ fun add_def overloaded (name, prop) thy =
     val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
 
     val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
-    val thy' = Theory.add_defs_i false overloaded [(name, prop')] thy;
+    val thy' = Theory.add_defs_i unchecked overloaded [(name, prop')] thy;
     val axm' = Thm.get_axiom_i thy' (Sign.full_name thy' name);
     val thm = unvarify (Thm.instantiate (recover_sorts, []) axm');
   in (thm, thy') end;
