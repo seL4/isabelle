@@ -6,7 +6,10 @@
 header {*Well-founded Relations*}
 
 theory Wellfounded_Relations
-imports Finite_Set
+imports Finite_Set FunDef
+uses
+  ("Tools/function_package/lexicographic_order.ML")
+  ("Tools/function_package/fundef_datatype.ML")
 begin
 
 text{*Derived WF relations such as inverse image, lexicographic product and
@@ -265,5 +268,16 @@ apply (rule_tac r = pred_nat in wf_weak_decr_stable)
 apply (simp add: pred_nat_trancl_eq_le)
 apply (intro wf_trancl wf_pred_nat)
 done
+
+
+text {*
+  Setup of @{text lexicographic_order} method
+  and @{text fun} command
+*}
+
+use "Tools/function_package/lexicographic_order.ML"
+use "Tools/function_package/fundef_datatype.ML"
+
+setup "LexicographicOrder.setup #> FundefDatatype.setup"
 
 end

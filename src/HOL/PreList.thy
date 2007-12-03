@@ -8,17 +8,11 @@ header {* A Basis for Building the Theory of Lists *}
 
 theory PreList
 imports ATP_Linkup
-uses "Tools/function_package/lexicographic_order.ML"
-     "Tools/function_package/fundef_datatype.ML"
 begin
 
 text {*
   This is defined separately to serve as a basis for
   theory ToyList in the documentation.
 *}
-
-(* The lexicographic_order method and the "fun" command *)
-setup LexicographicOrder.setup
-setup FundefDatatype.setup
 
 end
