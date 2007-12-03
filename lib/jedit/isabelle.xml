@@ -163,7 +163,6 @@
       <KEYWORD4>inject</KEYWORD4>
       <KEYWORD4>inputs</KEYWORD4>
       <OPERATOR>instance</OPERATOR>
-      <OPERATOR>instance_proof</OPERATOR>
       <OPERATOR>instantiation</OPERATOR>
       <KEYWORD4>internals</KEYWORD4>
       <OPERATOR>interpret</OPERATOR>
@@ -206,6 +205,7 @@
       <KEYWORD4>output</KEYWORD4>
       <KEYWORD4>outputs</KEYWORD4>
       <KEYWORD4>overloaded</KEYWORD4>
+      <OPERATOR>overloading</OPERATOR>
       <OPERATOR>parse_ast_translation</OPERATOR>
       <OPERATOR>parse_translation</OPERATOR>
       <OPERATOR>pcpodef</OPERATOR>
