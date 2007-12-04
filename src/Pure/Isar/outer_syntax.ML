@@ -19,6 +19,7 @@ sig
       val loop: unit -> unit
       val sync_main: unit -> unit
       val sync_loop: unit -> unit
+      val secure_main: unit -> unit
       val toplevel: (unit -> 'a) -> 'a
     end;
 end;
@@ -319,14 +320,14 @@ end;
 
 (* main loop *)
 
-fun gen_loop term =
+fun gen_loop secure terminated =
  (CRITICAL (fn () => ML_Context.set_context NONE);
-  Toplevel.loop (isar term));
+  Toplevel.loop secure (isar terminated));
 
-fun gen_main term =
+fun gen_main secure terminated =
  (Toplevel.init_state ();
   writeln (Session.welcome ());
-  gen_loop term);
+  gen_loop secure terminated);
 
 structure Isar =
 struct
@@ -341,10 +342,11 @@ struct
     #2 (Proof.get_goal (Toplevel.proof_of (state ())))
       handle Toplevel.UNDEF => error "No goal present";
 
-  fun main () = gen_main false;
-  fun loop () = gen_loop false;
-  fun sync_main () = gen_main true;
-  fun sync_loop () = gen_loop true;
+  fun main () = gen_main (Secure.is_secure ()) false;
+  fun loop () = gen_loop (Secure.is_secure ()) false;
+  fun sync_main () = gen_main (Secure.is_secure ()) true;
+  fun sync_loop () = gen_loop (Secure.is_secure ()) true;
+  fun secure_main () = gen_main true false;
   val toplevel = Toplevel.program;
 end;
 
