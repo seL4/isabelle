@@ -341,6 +341,7 @@ local
     ("\\<tau>", Letter),
     ("\\<upsilon>", Letter),
     ("\\<phi>", Letter),
+    ("\\<chi>", Letter),
     ("\\<psi>", Letter),
     ("\\<omega>", Letter),
     ("\\<Gamma>", Letter),
