@@ -98,7 +98,7 @@ sig
   val >>> : transition list -> unit
   val init_state: unit -> unit
   type 'a isar
-  val loop: 'a isar -> unit
+  val loop: bool -> 'a isar -> unit
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -753,23 +753,27 @@ type 'a isar =
       Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
           Source.source) Source.source) Source.source) Source.source) Source.source) Source.source;
 
+local
+
 (*Spurious interrupts ahead!  Race condition?*)
 fun get_interrupt src = SOME (Source.get_single src) handle Interrupt => NONE;
 
-fun warn_secure () =
-  let val secure = Secure.is_secure ()
-  in if secure then warning "Cannot exit to ML in secure mode" else (); secure end;
-
-fun raw_loop src =
-  let val prompt = Output.escape (Markup.enclose Markup.prompt Source.default_prompt) in
+fun raw_loop secure src =
+  let
+    fun check_secure () =
+      (if secure then warning "Secure loop -- cannot exit to ML" else (); secure);
+    val prompt = Output.escape (Markup.enclose Markup.prompt Source.default_prompt);
+  in
     (case get_interrupt (Source.set_prompt prompt src) of
-      NONE => (writeln "\nInterrupt."; raw_loop src)
-    | SOME NONE => if warn_secure () then quit () else ()
-    | SOME (SOME (tr, src')) =>
-        if >> tr orelse warn_secure () then raw_loop src'
-        else ())
+      NONE => (writeln "\nInterrupt."; raw_loop secure src)
+    | SOME NONE => if secure then quit () else ()
+    | SOME (SOME (tr, src')) => if >> tr orelse check_secure () then raw_loop secure src' else ())
   end;
 
-fun loop src = ignore_interrupt raw_loop src;
+in
+
+fun loop secure src = ignore_interrupt (raw_loop secure) src;
+
+end;
 
 end;
