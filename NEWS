@@ -4,25 +4,33 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Symbol \<chi> is now considered a letter.  Potential INCOMPATIBILITY
+in identifier syntax etc.
+
+
 *** Pure ***
 
-* Command "instance" now takes list of definitions in the same
-manner as the "definition" command.  Most notably, object equality is now
+* Command "instance" now takes list of definitions in the same manner
+as the "definition" command.  Most notably, object equality is now
 possible.  Type inference is more canonical than it used to be.
 INCOMPATIBILITY: in some cases explicit type annotations are required.
 
 
 *** HOL ***
 
-* Library/Multiset: {#a, b, c#} is new short syntax for {#a#} + {#b#} + {#c#}.
+* Library/Multiset: {#a, b, c#} abbreviates {#a#} + {#b#} + {#c#}.
 
-* Constants "card", "internal_split",  "option_map" now with authentic syntax.
+* Constants "card", "internal_split", "option_map" now with authentic
+syntax.
 
-* Definitions subset_def, psubset_def, set_diff_def, Compl_def, le_bool_def,
-less_bool_def, le_fun_def, less_fun_def, inf_bool_def, sup_bool_def,
-Inf_bool_def, Sup_bool_def, inf_fun_def, sup_fun_def, Inf_fun_def, Sup_fun_def,
-inf_set_def, sup_set_def, Inf_set_def, Sup_set_def, le_def, less_def,
-option_map_def now with object equality.
+* Definitions subset_def, psubset_def, set_diff_def, Compl_def,
+le_bool_def, less_bool_def, le_fun_def, less_fun_def, inf_bool_def,
+sup_bool_def, Inf_bool_def, Sup_bool_def, inf_fun_def, sup_fun_def,
+Inf_fun_def, Sup_fun_def, inf_set_def, sup_set_def, Inf_set_def,
+Sup_set_def, le_def, less_def, option_map_def now with object
+equality.
 
 
 
