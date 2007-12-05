@@ -97,21 +97,21 @@ rm -f $RUNNING/*
 $SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
 # give test some time to copy settings and start
 sleep 5
-$SSH atbroy51 "$MAKEALL $HOME/settings/at-poly $HOME/settings/at-poly-e"
+$SSH atbroy51 "$MAKEALL $HOME/settings/at-poly"
 sleep 5
 $SSH atbroy9 "$MAKEALL $HOME/settings/at-poly-5.1-para-e"
 sleep 5
 $SSH atbroy100 "$MAKEALL -l HOL proofterms $HOME/settings/at-sml-dev-p"
 sleep 5
-$SSH atbroy99 "$MAKEALL $HOME/settings/at64-poly-5.1-para-e"
+$SSH atbroy99 "$MAKEALL $HOME/settings/at64-poly-5.1-para"
 sleep 5
 $SSH atbroy98 "$MAKEALL $HOME/settings/at-sml-dev"
 sleep 5
-$SSH atbroy101 "$MAKEALL $HOME/settings/at64-poly-e"
+$SSH atbroy101 "$MAKEALL $HOME/settings/at64-poly"
 sleep 5
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly $HOME/settings/mac-sml-dev"
 sleep 5
-$SSH macbroy6 "/usr/stud/isatest/bin/isatest-makeall $HOME/settings/at-mac-poly-5.1-para-e"
+$SSH macbroy6 "/usr/stud/isatest/bin/isatest-makeall $HOME/settings/at-mac-poly-5.1-para"
 sleep 5
 $SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
 
