@@ -26,7 +26,7 @@ fun inst_thm ctxt rel st =
     end
 
 fun relation_tac ctxt rel i = 
-    FundefCommon.apply_termination_rule ctxt i 
+    TRY (FundefCommon.apply_termination_rule ctxt i)
     THEN PRIMITIVE (inst_thm ctxt rel)
 
 val setup = Method.add_methods
