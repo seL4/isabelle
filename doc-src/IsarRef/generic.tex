@@ -510,28 +510,34 @@ contexts ($\isarcmd{interpret}$).
 \end{warn}
 
 
-\subsection{Type classes}\label{sec:class}
+\subsection{Classes}\label{sec:class}
 
-A type class is a special case of a locale, with some additional
-infrastructure (notably a link to type-inference).  Type classes
-consist of a locale with \emph{exactly one} type variable and an
-corresponding axclass.  \cite{isabelle-classes} gives a substantial
-introduction on type classes.
+A class is a peculiarity of a locale with \emph{exactly one} type variable.
+Beyond the underlying locale, a corresponding type class is established which
+is interpreted logically as axiomatic type class \cite{Wenzel:1997:TPHOL}
+whose logical content are the assumptions of the locale.  Thus, classes provide
+the full generality of locales combined with the commodity of type classes
+(notably type-inference).  See \cite{isabelle-classes} for a short tutorial.
 
 \indexisarcmd{instance}\indexisarcmd{class}\indexisarcmd{print-classes}
 \begin{matharray}{rcl}
   \isarcmd{class} & : & \isartrans{theory}{local{\dsh}theory} \\
+  \isarcmd{instantiation} & : & \isartrans{theory}{local{\dsh}theory} \\
+  \isarcmd{instance} & : & \isartrans{local{\dsh}theory}{local{\dsh}theory} \\
   \isarcmd{subclass} & : & \isartrans{local{\dsh}theory}{local{\dsh}theory} \\
-  \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
   \isarcmd{print_classes}^* & : & \isarkeep{theory~|~proof} \\
+  intro_classes & : & \isarmeth
 \end{matharray}
 
 \begin{rail}
-  'class' name '=' ((superclassexpr '+' (contextelem+)) | superclassexpr | (contextelem+)) 'begin'?
+  'class' name '=' ((superclassexpr '+' (contextelem+)) | superclassexpr | (contextelem+)) \\
+    'begin'?
+  ;
+  'instantiation' (nameref + 'and') '::' arity 'begin'
+  ;
+  'instance'
   ;
   'subclass' target? nameref
-  ;
-  'instance' (nameref '::' arity + 'and') (axmdecl prop +)?
   ;
   'print\_classes'
   ;
@@ -543,30 +549,34 @@ introduction on type classes.
 \begin{descr}
 
 \item [$\CLASS~c = superclasses~+~body$] defines a new class $c$,
-  inheriting from $superclasses$. Simultaneously, a locale
-  named $c$ is introduced, inheriting from the locales
-  corresponding to $superclasses$; also, an axclass
-  named $c$, inheriting from the axclasses corresponding to
-  $superclasses$. $\FIXESNAME$ in $body$ are lifted
-  to the theory toplevel, constraining
-  the free type variable to sort $c$ and stripping local syntax.
-  $\ASSUMESNAME$ in $body$ are also lifted, 
-  constraining
-  the free type variable to sort $c$.
+  inheriting from $superclasses$.  This introduces a locale $c$
+  inheriting from all the locales $superclasses$.  Correspondingly,
+  a type class $c$, inheriting from type classes $superclasses$.
+  $\FIXESNAME$ in $body$ are lifted to the global theory level
+  (\emph{class operations} $\vec f$ of class $c$),
+  mapping the local type parameter $\alpha$ to a schematic
+  type variable $?\alpha::c$
+  $\ASSUMESNAME$ in $body$ are also lifted, mapping each local parameter
+  $f::\tau [\alpha]$ to its corresponding global constant
+  $f::\tau [?\alpha::c]$.
 
-\item [$\INSTANCE~~t :: (\vec s)s \vec{defs}$]
-  sets up a goal stating type arities.  The proof would usually
-  proceed by $intro_classes$, and then establish the characteristic theorems
-  of the type classes involved.
-  The $defs$, if given, must correspond to the class parameters
-  involved in the $arities$ and are introduced in the theory
-  before proof.
-  After finishing the proof, the theory will be
-  augmented by a type signature declaration corresponding to the
-  resulting theorems.
-  This $\isarcmd{instance}$ command is actually an extension
-  of primitive axclass $\isarcmd{instance}$ (see \ref{sec:axclass}).
-  
+\item [$\INSTANTIATION~\vec t~::~(\vec s)~s~\isarkeyword{begin}$]
+  opens a theory target (cf.\S\ref{sec:target}) which allows to specify
+  class operations $\vec f$ corresponding to sort $s$ at particular
+  type instances $\vec{\alpha::s}~t$ for each $t$ in $\vec t$.
+  An $\INSTANCE$ command in the target body sets up a goal stating
+  the type arities given after the $\INSTANTIATION$ keyword.
+  The possibility to give a list of type constructors with same arity
+  nicely corresponds to mutual recursive type definitions in Isabelle/HOL.
+  The target is concluded by an $\isarkeyword{end}$ keyword.
+
+\item [$\INSTANCE$] in an instantiation target body sets up a goal stating
+  the type arities claimed at the opening $\INSTANTIATION$ keyword.
+  The proof would usually proceed by $intro_classes$, and then establish the
+  characteristic theorems of the type classes involved.
+  After finishing the proof, the background theory will be
+  augmented by the proven type arities.
+
 \item [$\SUBCLASS~c$] in a class context for class $d$
   sets up a goal stating that class $c$ is logically
   contained in class $d$.  After finishing the proof, class $d$ is proven
@@ -575,7 +585,28 @@ introduction on type classes.
 \item [$\isarkeyword{print_classes}$] prints all classes
   in the current theory.
 
+\item [$intro_classes$] repeatedly expands all class introduction rules of
+  this theory.  Note that this method usually needs not be named explicitly,
+  as it is already included in the default proof step (of $\PROOFNAME$ etc.).
+  In particular, instantiation of trivial (syntactic) classes may be performed
+  by a single ``$\DDOT$'' proof step.
+
 \end{descr}
+
+
+\subsubsection{Class target}
+
+A named context may refer to a locale (cf.~\S\ref{sec:target}).  If this
+locale is also a class $c$, beside the common locale target behaviour
+the following occurs:
+
+\begin{itemize}
+  \item Local constant declarations $g [\alpha]$ referring to the local type
+    parameter $\alpha$ and local parameters $\vec f [\alpha]$ are accompagnied
+    by theory-level constants $g [?\alpha::c]$ referring to theory-level
+    class operations $\vec f [?\alpha::c]$
+  \item Local theorem bindings are lifted as are assumptions.
+\end{itemize}
 
 
 \subsection{Axiomatic type classes}\label{sec:axclass}
@@ -584,15 +615,11 @@ introduction on type classes.
 \begin{matharray}{rcl}
   \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
   \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
-  intro_classes & : & \isarmeth \\
 \end{matharray}
 
-Axiomatic type classes are provided by Isabelle/Pure as a \emph{definitional}
-interface to type classes (cf.~\S\ref{sec:classes}).  Thus any object logic
-may make use of this light-weight mechanism of abstract theories
-\cite{Wenzel:1997:TPHOL}.  There is also a tutorial on using axiomatic type
-classes in Isabelle \cite{isabelle-axclass} that is part of the standard
-Isabelle documentation.
+Axiomatic type classes are Isabelle/Pure's primitive \emph{definitional} interface
+to type classes.  For practical applications, you should consider using classes
+(cf.~\S\ref{sec:classes}) which provide a convenient user interface.
 
 \begin{rail}
   'axclass' classdecl (axmdecl prop +)
@@ -621,12 +648,6 @@ Isabelle documentation.
   of the type classes involved.  After finishing the proof, the theory will be
   augmented by a type signature declaration corresponding to the resulting
   theorem.
-
-\item [$intro_classes$] repeatedly expands all class introduction rules of
-  this theory.  Note that this method usually needs not be named explicitly,
-  as it is already included in the default proof step (of $\PROOFNAME$ etc.).
-  In particular, instantiation of trivial (syntactic) classes may be performed
-  by a single ``$\DDOT$'' proof step.
 
 \end{descr}
 
