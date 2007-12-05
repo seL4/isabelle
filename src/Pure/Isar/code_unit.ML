@@ -17,6 +17,7 @@ sig
   val typ_sort_inst: Sorts.algebra -> typ * sort
     -> sort Vartab.table -> sort Vartab.table
   val inst_thm: sort Vartab.table -> thm -> thm
+  val constrain_thm: sort -> thm -> thm
 
   (*constants*)
   val string_of_typ: theory -> typ -> string
@@ -251,6 +252,16 @@ fun inst_thm tvars' thm =
      of SOME sort => SOME (pairself (Thm.ctyp_of thy o TVar) (tvar, (v, sort)))
       | NONE => NONE;
     val insts = map_filter mk_inst tvars;
+  in Thm.instantiate (insts, []) thm end;
+
+fun constrain_thm sort thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val constrain = curry (Sorts.inter_sort (Sign.classes_of thy)) sort
+    val tvars = (Term.add_tvars o Thm.prop_of) thm [];
+    fun mk_inst (tvar as (v, sort)) = pairself (Thm.ctyp_of thy o TVar o pair v)
+      (sort, constrain sort)
+    val insts = map mk_inst tvars;
   in Thm.instantiate (insts, []) thm end;
 
 fun expand_eta k thm =
