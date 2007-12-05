@@ -61,9 +61,9 @@ sig
   val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
   val get_datatype : theory -> string -> DatatypeAux.datatype_info option
   val the_datatype : theory -> string -> DatatypeAux.datatype_info
+  val the_datatype_spec : theory -> string -> (string * sort) list * (string * typ list) list
   val datatype_of_constr : theory -> string -> DatatypeAux.datatype_info option
   val datatype_of_case : theory -> string -> DatatypeAux.datatype_info option
-  val get_datatype_spec : theory -> string -> ((string * sort) list * (string * typ list) list) option
   val get_datatype_constrs : theory -> string -> (string * typ) list option
   val interpretation: (string list -> theory -> theory) -> theory -> theory
   val print_datatypes : theory -> unit
@@ -137,10 +137,9 @@ fun get_datatype_descr thy dtco =
   |> Option.map (fn info as { descr, index, ... } =>
        (info, (((fn SOME (_, dtys, cos) => (dtys, cos)) o AList.lookup (op =) descr) index)));
 
-fun get_datatype_spec thy dtco =
+fun the_datatype_spec thy dtco =
   let
-    fun mk_cons typ_of_dtyp (co, tys) =
-      (co, map typ_of_dtyp tys);
+    fun mk_cons typ_of_dtyp (co, tys) = (co, map typ_of_dtyp tys);
     fun mk_dtyp ({ sorts = raw_sorts, descr, ... } : DatatypeAux.datatype_info, (dtys, cos)) =
       let
         val sorts = map ((fn v => (v, (the o AList.lookup (op =) raw_sorts) v))
@@ -148,10 +147,10 @@ fun get_datatype_spec thy dtco =
         val typ_of_dtyp = DatatypeAux.typ_of_dtyp descr sorts;
         val tys = map typ_of_dtyp dtys;
       in (sorts, map (mk_cons typ_of_dtyp) cos) end;
-  in Option.map mk_dtyp (get_datatype_descr thy dtco) end;
+  in mk_dtyp (the (get_datatype_descr thy dtco)) end;
 
 fun get_datatype_constrs thy dtco =
-  case get_datatype_spec thy dtco
+  case try (the_datatype_spec thy) dtco
    of SOME (sorts, cos) =>
         let
           fun subst (v, sort) = TVar ((v, 0), sort);
@@ -365,6 +364,26 @@ val distinctN = "constr_distinct";
 
 exception ConstrDistinct of term;
 
+fun distinct_rule thy ss tname eq_t = case #distinct (the_datatype thy tname) of
+    QuickAndDirty => Thm.invoke_oracle
+      (ThyInfo.the_theory "Datatype" thy) distinctN (thy, ConstrDistinct eq_t)
+  | FewConstrs thms => Goal.prove (Simplifier.the_context ss) [] [] eq_t (K
+      (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
+        atac 2, resolve_tac thms 1, etac FalseE 1]))
+  | ManyConstrs (thm, simpset) =>
+      let
+        val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
+          map (get_thm (ThyInfo.the_theory "Datatype" thy) o Name)
+            ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"];
+      in
+        Goal.prove (Simplifier.the_context ss) [] [] eq_t (K
+        (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
+          full_simp_tac (Simplifier.inherit_context ss simpset) 1,
+          REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
+          eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
+          etac FalseE 1]))
+      end;
+
 fun distinct_proc thy ss (t as Const ("op =", _) $ t1 $ t2) =
   (case (stripC (0, t1), stripC (0, t2)) of
      ((i, Const (cname1, T1)), (j, Const (cname2, T2))) =>
@@ -374,27 +393,8 @@ fun distinct_proc thy ss (t as Const ("op =", _) $ t1 $ t2) =
                    (case (get_datatype_descr thy) tname1 of
                       SOME (_, (_, constrs)) => let val cnames = map fst constrs
                         in if cname1 mem cnames andalso cname2 mem cnames then
-                             let val eq_t = Logic.mk_equals (t, Const ("False", HOLogic.boolT));
-                                 val eq_ct = cterm_of thy eq_t;
-                                 val Datatype_thy = ThyInfo.the_theory "Datatype" thy;
-                                 val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
-                                   map (get_thm Datatype_thy o Name)
-                                     ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"]
-                             in (case (#distinct (the_datatype thy tname1)) of
-                                 QuickAndDirty => SOME (Thm.invoke_oracle
-                                   Datatype_thy distinctN (thy, ConstrDistinct eq_t))
-                               | FewConstrs thms =>
-                                   SOME (Goal.prove (Simplifier.the_context ss) [] [] eq_t (K
-                                     (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
-                                       atac 2, resolve_tac thms 1, etac FalseE 1])))
-                               | ManyConstrs (thm, simpset) =>
-                                   SOME (Goal.prove (Simplifier.the_context ss) [] [] eq_t (K
-                                     (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
-                                      full_simp_tac (Simplifier.inherit_context ss simpset) 1,
-                                      REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
-                                      eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
-                                      etac FalseE 1]))))
-                             end
+                             SOME (distinct_rule thy ss tname1
+                               (Logic.mk_equals (t, Const ("False", HOLogic.boolT))))
                            else NONE
                         end
                     | NONE => NONE)
