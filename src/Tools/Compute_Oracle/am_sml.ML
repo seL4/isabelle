@@ -20,7 +20,7 @@ structure AM_SML : AM_SML = struct
 
 open AbstractMachine;
 
-val dump_output = ref NONE
+val dump_output = ref (NONE: string option)
 
 type program = string * string * (int Inttab.table) * (int Inttab.table) * (term Inttab.table) * (term -> term)
 
