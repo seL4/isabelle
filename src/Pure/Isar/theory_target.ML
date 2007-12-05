@@ -2,18 +2,18 @@
     ID:         $Id$
     Author:     Makarius
 
-Common theory/locale/class/instantiation targets.
+Common theory/locale/class/instantiation/overloading targets.
 *)
 
 signature THEORY_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool,
-    is_class: bool, instantiation: arity list,
+    is_class: bool, instantiation: string list * sort list * sort,
     overloading: ((string * typ) * (string * bool)) list}
   val init: string option -> theory -> local_theory
   val begin: string -> Proof.context -> local_theory
   val context: xstring -> theory -> local_theory
-  val instantiation: arity list -> theory -> local_theory
+  val instantiation: string list * sort list * sort -> theory -> local_theory
   val overloading: ((string * typ) * (string * bool)) list -> theory -> local_theory
   val overloading_cmd: (((xstring * xstring) * string) * bool) list -> theory -> local_theory
 end;
@@ -24,13 +24,14 @@ struct
 (* context data *)
 
 datatype target = Target of {target: string, is_locale: bool,
-  is_class: bool, instantiation: arity list, overloading: ((string * typ) * (string * bool)) list};
+  is_class: bool, instantiation: string list * sort list * sort,
+  overloading: ((string * typ) * (string * bool)) list};
 
 fun make_target target is_locale is_class instantiation overloading =
   Target {target = target, is_locale = is_locale,
     is_class = is_class, instantiation = instantiation, overloading = overloading};
 
-val global_target = make_target "" false false [] [];
+val global_target = make_target "" false false ([], [], []) [];
 
 structure Data = ProofDataFun
 (
@@ -43,7 +44,7 @@ val peek = (fn Target args => args) o Data.get;
 
 (* pretty *)
 
-fun pretty (Target {target, is_locale, is_class, instantiation, overloading}) ctxt =
+fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name = (if is_class then "class " else "locale ") ^ Locale.extern thy target;
@@ -321,20 +322,21 @@ fun axioms ta kind (vars, specs) lthy =
 local
 
 fun init_target _ NONE = global_target
-  | init_target thy (SOME target) = make_target target true (Class.is_class thy target) [] [];
+  | init_target thy (SOME target) = make_target target true (Class.is_class thy target)
+      ([], [], []) [];
 
 fun init_instantiation arities = make_target "" false false arities [];
 
-fun init_overloading operations = make_target "" false false [] operations;
+fun init_overloading operations = make_target "" false false ([], [], []) operations;
 
 fun init_ctxt (Target {target, is_locale, is_class, instantiation, overloading}) =
-  if not (null instantiation) then Class.init_instantiation instantiation
+  if (not o null o #1) instantiation then Class.init_instantiation instantiation
   else if not (null overloading) then Overloading.init overloading
   else if not is_locale then ProofContext.init
   else if not is_class then Locale.init target
   else Class.init target;
 
-fun init_lthy (ta as Target {target, instantiation, ...}) =
+fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
   Data.put ta #>
   LocalTheory.init (NameSpace.base target)
    {pretty = pretty ta,
@@ -346,8 +348,9 @@ fun init_lthy (ta as Target {target, instantiation, ...}) =
     term_syntax = term_syntax ta,
     declaration = declaration ta,
     reinit = fn lthy => init_lthy_ctxt ta (ProofContext.theory_of lthy),
-    exit = if null instantiation then LocalTheory.target_of
-      else Class.conclude_instantiation #> LocalTheory.target_of}
+    exit = (if (not o null o #1) instantiation then Class.conclude_instantiation
+      else if not (null overloading) then Overloading.conclude
+      else I) #> LocalTheory.target_of}
 and init_lthy_ctxt ta = init_lthy ta o init_ctxt ta;
 
 in
