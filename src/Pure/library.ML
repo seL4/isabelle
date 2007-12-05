@@ -100,13 +100,14 @@ sig
   val eq_list: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
+  val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+  val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val zip_options: 'a list -> 'b option list -> ('a * 'b) list
   val ~~ : 'a list * 'b list -> ('a * 'b) list
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val separate: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
   val multiply: 'a list -> 'a list list -> 'a list list
-  val product: 'a list -> 'b list -> ('a * 'b) list
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
   val map_filter: ('a -> 'b option) -> 'a list -> 'b list
@@ -429,6 +430,11 @@ fun eq_list eq (list1, list2) =
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
 
+(*copy the list preserving elements that satisfy the predicate*)
+val filter = List.filter;
+fun filter_out f = filter (not o f);
+val map_filter = List.mapPartial;
+
 fun chop (0: int) xs = ([], xs)
   | chop _ [] = ([], [])
   | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
@@ -540,20 +546,15 @@ fun multiply [] _ = []
   | multiply (x :: xs) yss = map (cons x) yss @ multiply xs yss;
 
 (*direct product*)
-fun product _ [] = []
-  | product [] _ = []
-  | product (x :: xs) ys = map (pair x) ys @ product xs ys;
+fun map_product f _ [] = []
+  | map_product f [] _ = []
+  | map_product f (x :: xs) ys = map (f x) ys @ map_product f xs ys;
 
+fun fold_product f _ [] z = z
+  | fold_product f [] _ z = z
+  | fold_product f (x :: xs) ys z = z |> fold (f x) ys |> fold_product f xs ys;
 
-(* filter *)
-
-(*copy the list preserving elements that satisfy the predicate*)
-val filter = List.filter;
-fun filter_out f = filter (not o f);
-val map_filter = List.mapPartial;
-
-
-(* lists of pairs *)
+(*lists of pairs*)
 
 exception UnequalLengths;
 

@@ -48,7 +48,7 @@ fun inst_constrs_of thy (T as Type (name, _)) =
                             
 
 fun join ((vs1,sub1), (vs2,sub2)) = (merge (op aconv) (vs1,vs2), sub1 @ sub2)
-fun join_product (xs, ys) = map join (product xs ys)
+fun join_product (xs, ys) = map_product (curry join) xs ys
 
 fun join_list [] = []
   | join_list xs = foldr1 (join_product) xs

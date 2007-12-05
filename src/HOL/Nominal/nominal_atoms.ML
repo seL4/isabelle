@@ -817,20 +817,20 @@ fun create_nom_typedecls ak_names thy =
 		in map (fn aki => (List.mapPartial I (map (cps'_fun aki) ak_names))) ak_names end;
              (* list of all dj_inst-theorems *)
              val djs = 
-	       let fun djs_fun (ak1,ak2) = 
+	       let fun djs_fun ak1 ak2 = 
 		     if ak1=ak2 then NONE else SOME(PureThy.get_thm thy32 (Name ("dj_"^ak2^"_"^ak1)))
-	       in List.mapPartial I (map djs_fun (Library.product ak_names ak_names)) end;
+	       in map_filter I (map_product djs_fun ak_names ak_names) end;
              (* list of all fs_inst-theorems *)
              val fss = map (fn ak => PureThy.get_thm thy32 (Name ("fs_"^ak^"_inst"))) ak_names
              (* list of all at_inst-theorems *)
              val fs_axs = map (fn ak => PureThy.get_thm thy32 (Name ("fs_"^ak^"1"))) ak_names
 
-             fun inst_pt thms = Library.flat (map (fn ti => instR ti pts) thms);
-             fun inst_at thms = Library.flat (map (fn ti => instR ti ats) thms);
-             fun inst_fs thms = Library.flat (map (fn ti => instR ti fss) thms);
-             fun inst_cp thms cps = Library.flat (inst_mult thms cps);
+             fun inst_pt thms = maps (fn ti => instR ti pts) thms;
+             fun inst_at thms = maps (fn ti => instR ti ats) thms;
+             fun inst_fs thms = maps (fn ti => instR ti fss) thms;
+             fun inst_cp thms cps = flat (inst_mult thms cps);
 	     fun inst_pt_at thms = inst_zip ats (inst_pt thms);
-             fun inst_dj thms = Library.flat (map (fn ti => instR ti djs) thms);
+             fun inst_dj thms = maps (fn ti => instR ti djs) thms;
 	     fun inst_pt_pt_at_cp thms = inst_cp (inst_zip ats (inst_zip pts (inst_pt thms))) cps;
              fun inst_pt_at_fs thms = inst_zip (inst_fs [fs1]) (inst_zip ats (inst_pt thms));
 	     fun inst_pt_pt_at_cp thms =

@@ -120,8 +120,7 @@ fun mk_funorder_funs (Type ("+", [fT, sT])) =
   | mk_funorder_funs T = [ constant_1 T ]
 
 fun mk_ext_base_funs thy (Type("+", [fT, sT])) =
-    product (mk_ext_base_funs thy fT) (mk_ext_base_funs thy sT)
-       |> map (uncurry mk_sum_case)
+      map_product mk_sum_case (mk_ext_base_funs thy fT) (mk_ext_base_funs thy sT)
   | mk_ext_base_funs thy T = mk_base_funs thy T
 
 fun mk_all_measure_funs thy (T as Type ("+", _)) =

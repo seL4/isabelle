@@ -1037,7 +1037,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms includes ra
               #> fold2 (fn name' => fn base' =>
                    Graph.new_node (name', (Def (base', NONE)))) names' bases')))
         |> apsnd (fold (fn name => fold (add_dep name) deps) names)
-        |> apsnd (fold (map_node modl_explode o Graph.add_edge) (product names names))
+        |> apsnd (fold_product (curry (map_node modl_explode o Graph.add_edge)) names names)
       end;
     fun group_defs [(_, CodeThingol.Bot)] =
           I

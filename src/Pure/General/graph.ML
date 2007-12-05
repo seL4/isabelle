@@ -257,7 +257,7 @@ fun topological_order G = minimals G |> all_succs G;
 
 fun add_edge_trans_acyclic (x, y) G =
   add_edge_acyclic (x, y) G
-  |> fold add_edge (Library.product (all_preds G [x]) (all_succs G [y]));
+  |> fold_product (curry add_edge) (all_preds G [x]) (all_succs G [y]);
 
 fun merge_trans_acyclic eq (G1, G2) =
   merge_acyclic eq (G1, G2)

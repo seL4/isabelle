@@ -316,7 +316,7 @@ fun grobner pols =
     let val npols = map2 (fn p => fn n => (p,Start n)) pols (0 upto (length pols - 1))
         val phists = filter (fn (p,_) => not (null p)) npols
         val bas = grobner_interreduce [] (map monic phists)
-        val prs0 = product bas bas
+        val prs0 = map_product pair bas bas
         val prs1 = filter (fn ((x,_),(y,_)) => poly_lt x y) prs0
         val prs2 = map (fn (p,q) => (mlcm (hd(fst p)) (hd(fst q)),(p,q))) prs1
         val prs3 =

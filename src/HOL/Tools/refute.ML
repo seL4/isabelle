@@ -2181,7 +2181,7 @@ struct
                   (* C_i x_1 ... x_n < C_i y_1 ... y_n if *)
                   (* (x_1, ..., x_n) < (y_1, ..., y_n)    *)
                   constructor_terms
-                    (map (op $) (Library.product terms d_terms)) ds
+                    (map_product (curry op $) terms d_terms) ds
                 end
             in
               (* C_i ... < C_j ... if i < j *)

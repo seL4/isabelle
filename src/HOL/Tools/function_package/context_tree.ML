@@ -97,8 +97,8 @@ fun cong_deps crule =
     in
       IntGraph.empty
         |> fold (fn (i,_)=> IntGraph.new_node (i,i)) num_branches
-        |> fold (fn ((i,(c1,_)),(j,(_, t2))) => if i = j orelse null (c1 inter t2) then I else IntGraph.add_edge_acyclic (i,j))
-        (product num_branches num_branches)
+        |> fold_product (fn (i,(c1,_)) => fn (j,(_, t2)) => if i = j orelse null (c1 inter t2) then I else IntGraph.add_edge_acyclic (i,j))
+             num_branches num_branches
     end
     
 val add_congs = map (fn c => c RS eq_reflection) [cong, ext] 
