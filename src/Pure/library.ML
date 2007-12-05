@@ -83,6 +83,9 @@ sig
   val burrow_options: ('a list -> 'b list) -> 'a option list -> 'b option list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
   val maps: ('a -> 'b list) -> 'a list -> 'b list
+  val filter: ('a -> bool) -> 'a list -> 'a list
+  val filter_out: ('a -> bool) -> 'a list -> 'a list
+  val map_filter: ('a -> 'b option) -> 'a list -> 'b list
   val chop: int -> 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth: 'a list -> int -> 'a
@@ -100,17 +103,11 @@ sig
   val eq_list: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
-  val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
-  val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val zip_options: 'a list -> 'b option list -> ('a * 'b) list
   val ~~ : 'a list * 'b list -> ('a * 'b) list
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val separate: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
-  val multiply: 'a list -> 'a list list -> 'a list list
-  val filter: ('a -> bool) -> 'a list -> 'a list
-  val filter_out: ('a -> bool) -> 'a list -> 'a list
-  val map_filter: ('a -> 'b option) -> 'a list -> 'b list
   val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val chop_prefix: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list * ('a list * 'b list)
@@ -156,6 +153,9 @@ sig
   val unsuffix: string -> string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
+  val multiply: 'a list -> 'a list list -> 'a list list
+  val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+  val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
@@ -430,7 +430,6 @@ fun eq_list eq (list1, list2) =
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
 
-(*copy the list preserving elements that satisfy the predicate*)
 val filter = List.filter;
 fun filter_out f = filter (not o f);
 val map_filter = List.mapPartial;
@@ -545,7 +544,9 @@ fun translate_string f = String.translate (f o String.str);
 fun multiply [] _ = []
   | multiply (x :: xs) yss = map (cons x) yss @ multiply xs yss;
 
-(*direct product*)
+
+(* direct product *)
+
 fun map_product f _ [] = []
   | map_product f [] _ = []
   | map_product f (x :: xs) ys = map (f x) ys @ map_product f xs ys;
@@ -554,7 +555,8 @@ fun fold_product f _ [] z = z
   | fold_product f [] _ z = z
   | fold_product f (x :: xs) ys z = z |> fold (f x) ys |> fold_product f xs ys;
 
-(*lists of pairs*)
+
+(* lists of pairs *)
 
 exception UnequalLengths;
 
