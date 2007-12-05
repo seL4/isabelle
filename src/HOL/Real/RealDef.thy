@@ -993,6 +993,20 @@ lemma real_inv_code [code]: "inverse (Ratreal x) = Ratreal (Ninv x)"
 lemma real_div_code [code]: "Ratreal x / Ratreal y = Ratreal (x \<div>\<^sub>N y)"
   unfolding Ratreal_def by simp
 
+instance int :: lordered_ring
+proof  
+  fix a::int
+  show "abs a = sup a (- a)"
+    by (auto simp add: zabs_def sup_int_def)
+qed
+
+instance real :: lordered_ring
+proof
+  fix a::real
+  show "abs a = sup a (-a)"
+    by (auto simp add: real_abs_def sup_real_def)
+qed
+
 text {* Setup for SML code generator *}
 
 types_code
