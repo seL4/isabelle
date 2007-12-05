@@ -9,6 +9,8 @@ Checklist for official releases
 
 - check CTRL-C, SIGINT in tty;
 
+- check persistent sessions with PG and Poly/ML 5.1/5.0;
+
 - Admin/update-keywords;
 
 - check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, ~isabelle/website;
