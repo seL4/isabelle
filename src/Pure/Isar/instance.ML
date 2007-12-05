@@ -7,35 +7,38 @@ A primitive instance command, based on instantiation target.
 
 signature INSTANCE =
 sig
-  val instantiate: arity list -> (local_theory -> local_theory)
-    -> (Proof.context -> tactic) -> theory -> theory
-  val instance: arity list -> ((bstring * Attrib.src list) * term) list
-    -> theory -> Proof.state
-  val prove_instance: tactic -> arity list -> ((bstring * Attrib.src list) * term) list
-    -> theory -> thm list * theory
+  val instantiate: string list * sort list * sort -> (local_theory -> 'a * local_theory)
+    -> (Proof.context -> 'a -> tactic) -> theory -> theory
 
-  val instantiation_cmd: (xstring * sort * xstring) list
-    -> theory -> local_theory
-  val instance_cmd: (xstring * sort * xstring) list -> ((bstring * Attrib.src list) * xstring) list
+  val instantiation_cmd: xstring list * sort * xstring -> theory -> local_theory
+  val instance_cmd: xstring * sort * xstring -> ((bstring * Attrib.src list) * xstring) list
     -> theory -> Proof.state
 end;
 
 structure Instance : INSTANCE =
 struct
 
+fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
+  let
+    val all_arities = map (fn raw_tyco => Sign.read_arity thy
+      (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
+    val tycos = map #1 all_arities;
+    val (_, sorts, sort) = hd all_arities;
+  in (tycos, sorts, sort) end;
+
 fun instantiation_cmd raw_arities thy =
-  TheoryTarget.instantiation (map (Sign.read_arity thy) raw_arities) thy;
+  TheoryTarget.instantiation (read_multi_arity thy raw_arities) thy;
 
 fun instantiate arities f tac =
   TheoryTarget.instantiation arities
   #> f
-  #> Class.prove_instantiation_instance tac
+  #-> (fn result => Class.prove_instantiation_instance (fn ctxt => tac ctxt result))
   #> LocalTheory.exit
   #> ProofContext.theory_of;
 
 fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities defs thy =
   let
-    val arities = map (prep_arity thy) raw_arities;
+    val (tyco, sorts, sort) = prep_arity thy raw_arities;
     fun export_defs ctxt = 
       let
         val ctxt_thy = ProofContext.init (ProofContext.theory_of ctxt);
@@ -53,32 +56,21 @@ fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities 
       let
         val def' = (apsnd o apsnd) (Syntax.check_prop ctxt) def;
       in Specification.definition def' ctxt end;
-  in if not (null defs) orelse forall (fn (_, _, sort) =>
-      forall (Class.is_class thy) sort) arities
+  in if not (null defs) orelse forall (Class.is_class thy) sort
   then
     thy
-    |> TheoryTarget.instantiation arities
+    |> TheoryTarget.instantiation ([tyco], sorts, sort)
     |> `(fn ctxt => map (mk_def ctxt) defs)
     |-> (fn defs => fold_map Specification.definition defs)
     |-> (fn defs => `(fn ctxt => export_defs ctxt defs))
     ||> LocalTheory.reinit
-    (*||> ProofContext.theory_of
-    ||> TheoryTarget.instantiation arities*)
     |-> (fn defs => do_proof defs)
   else
     thy
-    |> do_proof' arities
+    |> do_proof' (tyco, sorts, sort)
   end;
 
-val instance = gen_instance Sign.cert_arity (K I) (K I)
-  (fn _ => Class.instantiation_instance Class.conclude_instantiation) (Class.instance_arity I);
 val instance_cmd = gen_instance Sign.read_arity Attrib.intern_src Syntax.parse_prop
   (fn _ => Class.instantiation_instance Class.conclude_instantiation) (Class.instance_arity I);
-fun prove_instance tac arities defs = gen_instance Sign.cert_arity (K I) (K I)
-  (fn defs => Class.prove_instantiation_instance (K tac)
-    #> Class.conclude_instantiation #> ProofContext.theory_of #> pair defs)
-   (pair [] o ProofContext.theory_of o Proof.global_terminal_proof
-      (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
-      oo Class.instance_arity I) arities defs;
 
 end;

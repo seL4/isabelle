@@ -8,6 +8,7 @@ Overloaded definitions without any discipline.
 signature OVERLOADING =
 sig
   val init: ((string * typ) * (string * bool)) list -> theory -> local_theory
+  val prep_spec: local_theory -> term -> term
   val conclude: local_theory -> local_theory
   val declare: string * typ -> theory -> term * theory
   val confirm: string -> local_theory -> local_theory
@@ -45,14 +46,21 @@ fun define checked name (c, t) =
 
 (* syntax *)
 
+fun subst_operation overloading = map_aterms (fn t as Const (c, ty) =>
+    (case AList.lookup (op =) overloading (c, ty)
+     of SOME (v, _) => Free (v, ty)
+      | NONE => t)
+  | t => t);
+
+fun prep_spec lthy =
+  let
+    val overloading = get_overloading lthy;
+  in subst_operation overloading end;
+
 fun term_check ts lthy =
   let
     val overloading = get_overloading lthy;
-    fun subst (t as Const (c, ty)) = (case AList.lookup (op =) overloading (c, ty)
-         of SOME (v, _) => Free (v, ty)
-          | NONE => t)
-      | subst t = t;
-    val ts' = (map o map_aterms) subst ts;
+    val ts' = map (subst_operation overloading) ts;
   in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', lthy) end;
 
 fun term_uncheck ts lthy =

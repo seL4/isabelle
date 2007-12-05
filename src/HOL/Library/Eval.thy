@@ -18,46 +18,63 @@ ML {*
 structure TypOf =
 struct
 
-val class_typ_of = Sign.intern_class @{theory} "typ_of";
-
-fun term_typ_of_type ty =
+fun mk ty =
   Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
     $ Logic.mk_type ty;
 
-fun mk_typ_of_def ty =
-  let
-    val lhs = Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
-      $ Free ("x", Term.itselfT ty)
-    val rhs = Pure_term.mk_typ (fn v => term_typ_of_type (TFree v)) ty
-  in Logic.mk_equals (lhs, rhs) end;
-
-end;
+end
 *}
-
-instance "prop" :: typ_of
-  "typ_of (T\<Colon>prop itself) \<equiv> STR ''prop'' {\<struct>} []" ..
-
-instance itself :: (typ_of) typ_of
-  "typ_of (T\<Colon>'a itself itself) \<equiv> STR ''itself'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
-
-instance set :: (typ_of) typ_of
-  "typ_of (T\<Colon>'a set itself) \<equiv> STR ''set'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]" ..
-
-instance int :: typ_of
-  "typ_of (T\<Colon>int itself) \<equiv> STR ''IntDef.int'' {\<struct>} []" ..
 
 setup {*
 let
-  fun mk arities _ thy =
-    (maps (fn (tyco, asorts, _) => [(("", []), TypOf.mk_typ_of_def
-      (Type (tyco,
-        map TFree (Name.names Name.context "'a" asorts))))]) arities, thy);
-  fun hook specs =
-    DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
-      (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [TypOf.class_typ_of] mk ((K o K) (fold Code.add_default_func))
-in DatatypeCodegen.add_codetypes_hook hook end
+  fun define_typ_of ty lthy =
+    let
+      val lhs = Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
+        $ Free ("T", Term.itselfT ty);
+      val rhs = Pure_term.mk_typ (fn v => TypOf.mk (TFree v)) ty;
+      val eq = Class.prep_spec lthy (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
+    in lthy |> Specification.definition (NONE, (("", []), eq)) end;
+  fun interpretator tyco thy =
+    let
+      val sorts = replicate (Sign.arity_number thy tyco) @{sort typ_of};
+      val ty = Type (tyco, map TFree (Name.names Name.context "'a" sorts));
+    in
+      thy
+      |> Instance.instantiate ([tyco], sorts, @{sort typ_of})
+           (define_typ_of ty) ((K o K) (Class.intro_classes_tac []))
+    end;
+in TypedefPackage.interpretation interpretator end
 *}
+
+instantiation "prop" :: typ_of
+begin
+
+definition
+  "typ_of (T\<Colon>prop itself) = STR ''prop'' {\<struct>} []"
+
+instance ..
+
+end
+
+instantiation itself :: (typ_of) typ_of
+begin
+
+definition
+  "typ_of (T\<Colon>'a itself itself) = STR ''itself'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]"
+
+instance ..
+
+end
+
+instantiation set :: (typ_of) typ_of
+begin
+ 
+definition
+  "typ_of (T\<Colon>'a set itself) = STR ''set'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]"
+
+instance ..
+
+end
 
 
 subsection {* @{text term_of} class *}
@@ -83,7 +100,7 @@ in
           val lhs : term = term_term_of dty $ c;
           val rhs : term = Pure_term.mk_term
             (fn (v, ty) => term_term_of ty $ Free (v, ty))
-            (Pure_term.mk_typ (fn (v, sort) => TypOf.term_typ_of_type (TFree (v, sort)))) c
+            (Pure_term.mk_typ (fn (v, sort) => TypOf.mk (TFree (v, sort)))) c
         in
           HOLogic.mk_eq (lhs, rhs)
         end;
@@ -101,24 +118,43 @@ let
     PureThy.add_thmss [((name, thms), atts)] #-> (fn [thms] => pair (name, thms));
   fun thy_def ((name, atts), t) =
     PureThy.add_defs_i false [((name, t), atts)] #-> (fn [thm] => pair (name, thm));
-  fun mk arities css _ thy =
+  fun prep_dtyp thy vs tyco =
     let
-      val (_, asorts, _) :: _ = arities;
-      val vs = Name.names Name.context "'a" asorts;
+      val (_, cs) = DatatypePackage.the_datatype_spec thy tyco;
+      val prep_typ = map_atyps (fn TFree (v, sort) =>
+        TFree (v, (the o AList.lookup (op =) vs) v));
+      fun prep_c (c, tys) = list_comb (Const (c, tys ---> Type (tyco, map TFree vs)),
+        map Free (Name.names Name.context "a" tys));
+    in (tyco, map (prep_c o (apsnd o map) prep_typ) cs) end;
+  fun prep thy tycos =
+    let
+      val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
+      val tyco = hd tycos;
+      val (vs_proto, _) = DatatypePackage.the_datatype_spec thy tyco;
+      val all_typs = maps (maps snd o snd o DatatypePackage.the_datatype_spec thy) tycos;
+      fun add_tycos (Type (tyco, tys)) = insert (op =) tyco #>
+            fold add_tycos tys
+        | add_tycos _ = I;
+      val dep_tycos = [] |> fold add_tycos all_typs |> subtract (op =) tycos;
+      val sorts = map (inter_sort o snd) vs_proto;
+      val vs = map fst vs_proto ~~ sorts;
+      val css = map (prep_dtyp thy vs) tycos;
       val defs = map (TermOf.mk_terms_of_defs vs) css;
       val defs' = (map (pair ("", []) o ObjectLogic.ensure_propT thy) o flat) defs;
-    in
-      thy
-      |> PrimrecPackage.gen_primrec thy_note thy_def "" defs'
-      |> snd
+    in if forall (fn tyco => can (Sign.arity_sorts thy tyco) @{sort term_of}) dep_tycos
+        andalso not (tycos = [@{type_name typ}])
+      then SOME (sorts, defs')
+      else NONE
     end;
-  fun hook specs =
-    if null specs orelse (fst o hd) specs = (fst o dest_Type) @{typ typ} then I
-    else
-      DatatypeCodegen.prove_codetypes_arities (Class.intro_classes_tac [])
-      (map (fn (tyco, (is_dt, _)) => (tyco, is_dt)) specs)
-      [TermOf.class_term_of] ((K o K o pair) []) mk
-in DatatypeCodegen.add_codetypes_hook hook end
+  fun interpretator tycos thy = case prep thy tycos
+   of SOME (sorts, defs) =>
+      thy
+      |> Instance.instantiate (tycos, sorts, @{sort term_of})
+           (pair ()) ((K o K) (Class.intro_classes_tac []))
+      |> PrimrecPackage.gen_primrec thy_note thy_def "" defs
+      |> snd
+    | NONE => thy;
+  in DatatypePackage.interpretation interpretator end
 *}
 
 abbreviation

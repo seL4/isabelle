@@ -31,7 +31,8 @@ sig
   val print_classes: theory -> unit
 
   (*instances*)
-  val init_instantiation: arity list -> theory -> local_theory
+  val init_instantiation: string list * sort list * sort -> theory -> local_theory
+  val prep_spec: local_theory -> term -> term
   val instantiation_instance: (local_theory -> local_theory) -> local_theory -> Proof.state
   val prove_instantiation_instance: (Proof.context -> tactic) -> local_theory -> local_theory
   val conclude_instantiation: local_theory -> local_theory
@@ -56,8 +57,8 @@ sig
   val classrel_cmd: xstring * xstring -> theory -> Proof.state
 
   (*old instance layer*)
-  val instance_arity: (theory -> theory) -> arity list -> theory -> Proof.state
-  val instance_arity_cmd: (bstring * xstring list * xstring) list -> theory -> Proof.state
+  val instance_arity: (theory -> theory) -> arity -> theory -> Proof.state
+  val instance_arity_cmd: bstring * xstring list * xstring -> theory -> Proof.state
 end;
 
 structure Class : CLASS =
@@ -134,7 +135,7 @@ fun gen_instance mk_prop add_thm after_qed insts thy =
     thy
     |> ProofContext.init
     |> Proof.theorem_i NONE after_qed' ((map (fn t => [(t, [])])
-        o maps (mk_prop thy)) insts)
+        o mk_prop thy) insts)
   end;
 
 in
@@ -144,11 +145,9 @@ val instance_arity =
 val instance_arity_cmd =
   gen_instance (Logic.mk_arities oo Sign.read_arity) AxClass.add_arity I;
 val classrel =
-  gen_instance (single oo (Logic.mk_classrel oo AxClass.cert_classrel))
-    AxClass.add_classrel I o single;
+  gen_instance (single oo (Logic.mk_classrel oo AxClass.cert_classrel)) AxClass.add_classrel I;
 val classrel_cmd =
-  gen_instance (single oo (Logic.mk_classrel oo AxClass.read_classrel))
-    AxClass.add_classrel I o single;
+  gen_instance (single oo (Logic.mk_classrel oo AxClass.read_classrel)) AxClass.add_classrel I;
 
 end; (*local*)
 
@@ -826,14 +825,14 @@ fun syntactic_const class prmode pos ((c, mx), rhs) thy =
 (* bookkeeping *)
 
 datatype instantiation = Instantiation of {
-  arities: arity list,
+  arities: string list * sort list * sort,
   params: ((string * string) * (string * typ)) list
 }
 
 structure Instantiation = ProofDataFun
 (
   type T = instantiation
-  fun init _ = Instantiation { arities = [], params = [] };
+  fun init _ = Instantiation { arities = ([], [], []), params = [] };
 );
 
 fun mk_instantiation (arities, params) =
@@ -844,7 +843,7 @@ fun map_instantiation f = (LocalTheory.target o Instantiation.map)
   (fn Instantiation { arities, params } => mk_instantiation (f (arities, params)));
 
 fun the_instantiation lthy = case get_instantiation lthy
- of { arities = [], ... } => error "No instantiation target"
+ of { arities = ([], [], []), ... } => error "No instantiation target"
   | data => data;
 
 val instantiation_params = #params o get_instantiation;
@@ -858,6 +857,19 @@ fun confirm_declaration c = (map_instantiation o apsnd)
 
 
 (* syntax *)
+
+fun subst_param thy params = map_aterms (fn t as Const (c, ty) => (case inst_tyco thy (c, ty)
+     of SOME tyco => (case AList.lookup (op =) params (c, tyco)
+         of SOME v_ty => Free v_ty
+          | NONE => t)
+      | NONE => t)
+  | t => t);
+
+fun prep_spec lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val params = instantiation_params lthy;
+  in subst_param thy params end;
 
 fun inst_term_check ts lthy =
   let
@@ -873,12 +885,7 @@ fun inst_term_check ts lthy =
       | check_improve _ = I;
     val improvement = (fold o fold_aterms) check_improve ts Vartab.empty;
     val ts' = (map o map_types) (Envir.typ_subst_TVars improvement) ts;
-    val ts'' = (map o map_aterms) (fn t as Const (c, ty) => (case inst_tyco thy (c, ty)
-         of SOME tyco => (case AList.lookup (op =) params (c, tyco)
-             of SOME v_ty => Free v_ty
-              | NONE => t)
-          | NONE => t)
-      | t => t) ts';
+    val ts'' = map (subst_param thy params) ts';
   in if eq_list (op aconv) (ts, ts'') then NONE else SOME (ts'', lthy) end;
 
 fun inst_term_uncheck ts lthy =
@@ -908,33 +915,24 @@ val sanatize_name = (*FIXME*)
     explode #> scan_valids #> implode
   end;
 
-fun init_instantiation arities thy =
+fun init_instantiation (tycos, sorts, sort) thy =
   let
-    val _ = if null arities then error "At least one arity must be given" else ();
-    val _ = case (duplicates (op =) o map #1) arities
-     of [] => ()
-      | dupl_tycos => error ("Type constructors occur more than once in arities: "
-          ^ commas_quote dupl_tycos);
-    val _ = map (map (the_class_data thy) o #3) arities;
-    val ty_insts = map (fn (tyco, sorts, _) =>
-        (tyco, Type (tyco, map TFree (Name.names Name.context Name.aT sorts))))
-      arities;
-    val ty_inst = the o AList.lookup (op =) ty_insts;
+    val _ = if null tycos then error "At least one arity must be given" else ();
+    val _ = map (the_class_data thy) sort;
+    val vs = map TFree (Name.names Name.context Name.aT sorts);
     fun type_name "*" = "prod"
       | type_name "+" = "sum"
       | type_name s = sanatize_name (NameSpace.base s); (*FIXME*)
-    fun get_param tyco sorts (param, (c, ty)) = if can (inst thy) (c, tyco)
+    fun get_param tyco (param, (c, ty)) = if can (inst thy) (c, tyco)
       then NONE else SOME ((unoverload_const thy (c, ty), tyco),
-        (param ^ "_" ^ type_name tyco, map_atyps (K (ty_inst tyco)) ty));
-    fun get_params (tyco, sorts, sort) =
-      map_filter (get_param tyco sorts) (these_params thy sort)
-    val params = maps get_params arities;
+        (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, vs))) ty));
+    val params = map_product get_param tycos (these_params thy sort) |> map_filter I;
   in
     thy
     |> ProofContext.init
-    |> Instantiation.put (mk_instantiation (arities, params))
-    |> fold (Variable.declare_term o Logic.mk_type o snd) ty_insts
-    |> fold ProofContext.add_arity arities
+    |> Instantiation.put (mk_instantiation ((tycos, sorts, sort), params))
+    |> fold (Variable.declare_term o Logic.mk_type) vs
+    |> fold (fn tyco => ProofContext.add_arity (tyco, sorts, sort)) tycos
     |> Context.proof_map (
         Syntax.add_term_check 0 "instance" inst_term_check
         #> Syntax.add_term_uncheck 0 "instance" inst_term_uncheck)
@@ -942,8 +940,8 @@ fun init_instantiation arities thy =
 
 fun gen_instantiation_instance do_proof after_qed lthy =
   let
-    val arities = (#arities o the_instantiation) lthy;
-    val arities_proof = maps Logic.mk_arities arities;
+    val (tycos, sorts, sort) = (#arities o the_instantiation) lthy;
+    val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
     fun after_qed' results =
       LocalTheory.theory (fold (AxClass.add_arity o Thm.varifyT) results)
       #> after_qed;
@@ -962,6 +960,7 @@ fun prove_instantiation_instance tac = gen_instantiation_instance (fn after_qed 
 fun conclude_instantiation lthy =
   let
     val { arities, params } = the_instantiation lthy;
+    val (tycos, sorts, sort) = arities;
     val thy = ProofContext.theory_of lthy;
     (*val _ = map (fn (tyco, sorts, sort) =>
       if Sign.of_sort thy
@@ -970,8 +969,8 @@ fun conclude_instantiation lthy =
         arities; FIXME activate when old instance command is gone*)
     val params_of = maps (these o try (#params o AxClass.get_info thy))
       o Sign.complete_sort thy;
-    val missing_params = arities
-      |> maps (fn (tyco, _, sort) => params_of sort |> map (rpair tyco))
+    val missing_params = tycos
+      |> maps (fn tyco => params_of sort |> map (rpair tyco))
       |> filter_out (can (inst thy) o apfst fst);
     fun declare_missing ((c, ty0), tyco) thy =
     (*fun declare_missing ((c, tyco), (_, ty)) thy =*)

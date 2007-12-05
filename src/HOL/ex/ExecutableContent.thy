@@ -7,7 +7,7 @@ header {* A huge set of executable constants *}
 theory ExecutableContent
 imports
   Main
-  (*Eval*)
+  Eval
   "~~/src/HOL/ex/Records"
   AssocList
   Binomial
