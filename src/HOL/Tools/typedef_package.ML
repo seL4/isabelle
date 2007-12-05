@@ -24,6 +24,7 @@ sig
   val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
   val interpretation: (string -> theory -> theory) -> theory -> theory
+  val setup: theory -> theory
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -80,6 +81,9 @@ fun err_in_typedef msg name =
   cat_error msg ("The error(s) above occurred in typedef " ^ quote name);
 
 fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
+
+structure TypedefInterpretation = InterpretationFun(type T = string val eq = op =);
+val interpretation = TypedefInterpretation.interpretation;
 
 fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   let
@@ -177,8 +181,12 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
               Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
               Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
             Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct};
-          val thy3 = thy2 |> put_info full_tname info;
-        in ((full_tname, info), thy3) end);
+        in
+          thy2
+          |> put_info full_tname info
+          |> TypedefInterpretation.data full_tname
+          |> pair (full_tname, info)
+        end);
 
 
     (* errors *)
@@ -215,9 +223,6 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
 (* add_typedef interfaces *)
 
-structure TypedefInterpretation = InterpretationFun(type T = string val eq = op =);
-val interpretation = TypedefInterpretation.interpretation;
-
 local
 
 fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
@@ -232,7 +237,6 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
   in
     thy
     |> typedef_result non_empty
-    |-> (fn (a, info) => TypedefInterpretation.data a #> pair (a, info))
   end;
 
 in
@@ -282,6 +286,8 @@ fun mk_typedef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
 val _ =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal
     (typedef_decl >> (Toplevel.print oo (Toplevel.theory_to_proof o mk_typedef)));
+
+val setup = TypedefInterpretation.init;
 
 end;
 

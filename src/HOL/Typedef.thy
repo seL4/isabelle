@@ -109,7 +109,8 @@ use "Tools/typecopy_package.ML"
 use "Tools/typedef_codegen.ML"
 
 setup {*
-  TypecopyPackage.setup
+  TypedefPackage.setup
+  #> TypecopyPackage.setup
   #> TypedefCodegen.setup
 *}
 
