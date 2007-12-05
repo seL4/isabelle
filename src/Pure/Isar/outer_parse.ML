@@ -56,6 +56,7 @@ sig
   val parname: token list -> string * token list
   val sort: token list -> string * token list
   val arity: token list -> (string * string list * string) * token list
+  val multi_arity: token list -> (string list * string list * string) * token list
   val type_args: token list -> string list * token list
   val typ: token list -> string * token list
   val mixfix: token list -> mixfix * token list
@@ -206,6 +207,9 @@ val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
 val sort = group "sort" xname;
 
 val arity = xname -- ($$$ "::" |-- !!!
+  (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> triple2;
+
+val multi_arity = and_list1 xname -- ($$$ "::" |-- !!!
   (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> triple2;
 
 
