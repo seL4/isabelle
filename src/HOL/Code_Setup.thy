@@ -91,12 +91,6 @@ code_type bool
   (OCaml "bool")
   (Haskell "Bool")
 
-code_instance bool :: eq
-  (Haskell -)
-
-code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
-
 code_const True and False and Not and "op &" and "op |" and If
   (SML "true" and "false" and "not"
     and infixl 1 "andalso" and infixl 0 "orelse"

@@ -18,6 +18,7 @@ uses
   ("Tools/datatype_case.ML")
   ("Tools/datatype_package.ML")
   ("Tools/primrec_package.ML")
+  ("Tools/datatype_codegen.ML")
 begin
 
 subsection {* Least and greatest fixed points *}
@@ -328,6 +329,9 @@ use "Tools/datatype_case.ML"
 use "Tools/datatype_package.ML"
 setup DatatypePackage.setup
 use "Tools/primrec_package.ML"
+
+use "Tools/datatype_codegen.ML"
+setup DatatypeCodegen.setup
 
 use "Tools/inductive_codegen.ML"
 setup InductiveCodegen.setup

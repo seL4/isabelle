@@ -24,6 +24,17 @@ rep_datatype bool
 declare case_split [cases type: bool]
   -- "prefer plain propositional version"
 
+lemma [code func]:
+  shows "False = P \<longleftrightarrow> \<not> P"
+    and "True = P \<longleftrightarrow> P" 
+    and "P = False \<longleftrightarrow> \<not> P" 
+    and "P = True \<longleftrightarrow> P" by simp_all
+
+code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_instance bool :: eq
+  (Haskell -)
 
 subsection {* Unit *}
 

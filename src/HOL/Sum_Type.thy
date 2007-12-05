@@ -215,26 +215,6 @@ lemma Part_Collect: "Part (A Int {x. P x}) h = (Part A h) Int {x. P x}"
 by blast
 
 
-subsection {* Code generator setup *}
-
-instance "+" :: (eq, eq) eq ..
-
-lemma [code func]:
-  "(Inl x \<Colon> 'a\<Colon>eq + 'b\<Colon>eq) = Inl y \<longleftrightarrow> x = y"
-  unfolding Inl_eq ..
-
-lemma [code func]:
-  "(Inr x \<Colon> 'a\<Colon>eq + 'b\<Colon>eq) = Inr y \<longleftrightarrow> x = y"
-  unfolding Inr_eq ..
-
-lemma [code func]:
-  "Inl (x\<Colon>'a\<Colon>eq) = Inr (y\<Colon>'b\<Colon>eq) \<longleftrightarrow> False"
-  using Inl_not_Inr by auto
-
-lemma [code func]:
-  "Inr (x\<Colon>'b\<Colon>eq) = Inl (y\<Colon>'a\<Colon>eq) \<longleftrightarrow> False"
-  using Inr_not_Inl by auto
-
 ML
 {*
 val Inl_RepI = thm "Inl_RepI";

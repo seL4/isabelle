@@ -20,7 +20,6 @@ sig
   val get_typecopies: theory -> string list
   val get_info: theory -> string -> info option
   val interpretation: (string -> theory -> theory) -> theory -> theory
-  val get_eq: theory -> string -> thm
   val print_typecopies: theory -> unit
   val setup: theory -> theory
 end;
@@ -122,16 +121,19 @@ end;
 
 (* code generator setup *)
 
-fun get_eq thy = #inject o the o get_info thy;
-
 fun add_typecopy_spec tyco thy =
   let
-    val SOME { constr, proj_def, inject, ... } = get_info thy tyco;
+    val SOME { constr, proj_def, inject, vs, ... } = get_info thy tyco;
+    val sorts_eq =
+      map (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq] o snd) vs;
     val ty = Logic.unvarifyT (Sign.the_const_type thy constr);
   in
     thy
     |> Code.add_datatype [(constr, ty)]
     |> Code.add_func proj_def
+    |> Instance.instantiate ([tyco], sorts_eq, [HOLogic.class_eq]) (pair ())
+         ((K o K) (Class.intro_classes_tac []))
+    |> Code.add_func (CodeUnit.constrain_thm [HOLogic.class_eq] inject)
   end;
 
 val setup =

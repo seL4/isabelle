@@ -10,7 +10,6 @@ header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
 imports Finite_Set
-uses "Tools/datatype_codegen.ML"
 begin
 
 typedef (Node)
@@ -681,8 +680,6 @@ lemma option_map_o_sum_case [simp]:
 
 
 subsubsection {* Code generator setup *}
-
-setup DatatypeCodegen.setup
 
 definition
   is_none :: "'a option \<Rightarrow> bool" where

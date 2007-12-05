@@ -1143,15 +1143,6 @@ declare "*.size" [noatp]
 
 subsection {* Code generator setup *}
 
-instance nat :: eq ..
-
-lemma [code func]:
-  "(0\<Colon>nat) = 0 \<longleftrightarrow> True"
-  "Suc n = Suc m \<longleftrightarrow> n = m"
-  "Suc n = 0 \<longleftrightarrow> False"
-  "0 = Suc m \<longleftrightarrow> False"
-by auto
-
 lemma [code func]:
   "(0\<Colon>nat) \<le> m \<longleftrightarrow> True"
   "Suc (n\<Colon>nat) \<le> m \<longleftrightarrow> n < m"

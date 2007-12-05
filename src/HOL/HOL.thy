@@ -1636,8 +1636,6 @@ setup "CodeName.setup #> CodeTarget.setup #> Nbe.setup"
 
 class eq (attach "op =") = type
 
-code_datatype True False
-
 lemma [code func]:
   shows "False \<and> x \<longleftrightarrow> False"
     and "True \<and> x \<longleftrightarrow> x"
@@ -1654,17 +1652,9 @@ lemma [code func]:
   shows "\<not> True \<longleftrightarrow> False"
     and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
 
-instance bool :: eq ..
-
-lemma [code func]:
-  shows "False = P \<longleftrightarrow> \<not> P"
-    and "True = P \<longleftrightarrow> P" 
-    and "P = False \<longleftrightarrow> \<not> P" 
-    and "P = True \<longleftrightarrow> P" by simp_all
-
 code_datatype Trueprop "prop"
 
-code_datatype "TYPE('a)"
+code_datatype "TYPE('a\<Colon>{})"
 
 lemma Let_case_cert:
   assumes "CASE \<equiv> (\<lambda>x. Let x f)"
