@@ -60,10 +60,17 @@ sig
   val subgoalN: string val subgoal: T
   val sendbackN: string val sendback: T
   val hiliteN: string val hilite: T
+  val writelnN: string val writeln: T
+  val priorityN: string val priority: T
+  val tracingN: string val tracing: T
+  val warningN: string val warning: T
+  val errorN: string val error: T
+  val debugN: string val debug: T
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
   val output: T -> output * output
   val enclose: T -> output -> output
+  val markup: T -> string -> string
 end;
 
 structure Markup: MARKUP =
@@ -83,7 +90,7 @@ fun properties more_props ((elem, props): T) =
 fun get_string ((_, props): T) prop = AList.lookup (op =) props prop;
 fun get_int m prop = (case get_string m prop of NONE => NONE | SOME s => Int.fromString s);
 
-fun markup elem = (elem, (elem, []): T);
+fun markup_elem elem = (elem, (elem, []): T);
 fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
 fun markup_int elem prop = (elem, fn i => (elem, [(prop, Int.toString i)]): T);
 
@@ -103,7 +110,7 @@ val property_internal = (kindN, internalK);
 val lineN = "line";
 val fileN = "file";
 
-val (positionN, position) = markup "position";
+val (positionN, position) = markup_elem "position";
 
 
 (* pretty printing *)
@@ -114,7 +121,7 @@ val (blockN, block) = markup_int "block" indentN;
 val widthN = "width";
 val (breakN, break) = markup_int "break" widthN;
 
-val (fbreakN, fbreak) = markup "fbreak";
+val (fbreakN, fbreak) = markup_elem "fbreak";
 
 
 (* logical entities *)
@@ -127,19 +134,19 @@ val (axiomN, axiom) = markup_string "axiom" nameN;
 
 (* inner syntax *)
 
-val (tfreeN, tfree) = markup "tfree";
-val (tvarN, tvar) = markup "tvar";
-val (freeN, free) = markup "free";
-val (skolemN, skolem) = markup "skolem";
-val (boundN, bound) = markup "bound";
-val (varN, var) = markup "var";
-val (numN, num) = markup "num";
-val (xnumN, xnum) = markup "xnum";
-val (xstrN, xstr) = markup "xstr";
+val (tfreeN, tfree) = markup_elem "tfree";
+val (tvarN, tvar) = markup_elem "tvar";
+val (freeN, free) = markup_elem "free";
+val (skolemN, skolem) = markup_elem "skolem";
+val (boundN, bound) = markup_elem "bound";
+val (varN, var) = markup_elem "var";
+val (numN, num) = markup_elem "num";
+val (xnumN, xnum) = markup_elem "xnum";
+val (xstrN, xstr) = markup_elem "xstr";
 
-val (sortN, sort) = markup "sort";
-val (typN, typ) = markup "typ";
-val (termN, term) = markup "term";
+val (sortN, sort) = markup_elem "sort";
+val (typN, typ) = markup_elem "typ";
+val (termN, term) = markup_elem "term";
 
 
 (* outer syntax *)
@@ -152,27 +159,37 @@ val (keyword_declN, keyword_decl) = markup_string "keyword_decl" nameN;
 val command_declN = "command_decl";
 fun command_decl name kind : T = (command_declN, [(nameN, name), (kindN, kind)]);
 
-val (stringN, string) = markup "string";
-val (altstringN, altstring) = markup "altstring";
-val (verbatimN, verbatim) = markup "verbatim";
-val (commentN, comment) = markup "comment";
-val (controlN, control) = markup "control";
-val (malformedN, malformed) = markup "malformed";
+val (stringN, string) = markup_elem "string";
+val (altstringN, altstring) = markup_elem "altstring";
+val (verbatimN, verbatim) = markup_elem "verbatim";
+val (commentN, comment) = markup_elem "comment";
+val (controlN, control) = markup_elem "control";
+val (malformedN, malformed) = markup_elem "malformed";
 
-val (antiqN, antiq) = markup "antiq";
+val (antiqN, antiq) = markup_elem "antiq";
 
-val (whitespaceN, whitespace) = markup "whitespace";
-val (junkN, junk) = markup "junk";
+val (whitespaceN, whitespace) = markup_elem "whitespace";
+val (junkN, junk) = markup_elem "junk";
 val (commandspanN, commandspan) = markup_string "commandspan" nameN;
 
 
 (* toplevel *)
 
-val (promptN, prompt) = markup "prompt";
-val (stateN, state) = markup "state";
-val (subgoalN, subgoal) = markup "subgoal";
-val (sendbackN, sendback) = markup "sendback";
-val (hiliteN, hilite) = markup "hilite";
+val (promptN, prompt) = markup_elem "prompt";
+val (stateN, state) = markup_elem "state";
+val (subgoalN, subgoal) = markup_elem "subgoal";
+val (sendbackN, sendback) = markup_elem "sendback";
+val (hiliteN, hilite) = markup_elem "hilite";
+
+
+(* channels *)
+
+val (writelnN, writeln) = markup_elem "writeln";
+val (priorityN, priority) = markup_elem "priority";
+val (tracingN, tracing) = markup_elem "tracing";
+val (warningN, warning) = markup_elem "warning";
+val (errorN, error) = markup_elem "error";
+val (debugN, debug) = markup_elem "debug";
 
 
 (* print mode operations *)
@@ -193,5 +210,9 @@ fun output ("", _) = ("", "")
   | output m = #output (get_mode ()) m;
 
 val enclose = output #-> Library.enclose;
+
+fun markup m =
+  let val (bg, en) = output m
+  in Library.enclose (Output.escape bg) (Output.escape en) end;
 
 end;
