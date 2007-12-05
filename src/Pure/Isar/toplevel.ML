@@ -762,7 +762,7 @@ fun raw_loop secure src =
   let
     fun check_secure () =
       (if secure then warning "Secure loop -- cannot exit to ML" else (); secure);
-    val prompt = Output.escape (Markup.enclose Markup.prompt Source.default_prompt);
+    val prompt = Markup.markup Markup.prompt Source.default_prompt;
   in
     (case get_interrupt (Source.set_prompt prompt src) of
       NONE => (writeln "\nInterrupt."; raw_loop secure src)

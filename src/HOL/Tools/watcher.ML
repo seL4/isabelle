@@ -364,7 +364,7 @@ fun report_success i s sgtx =
       val outlines = 
 	case split_lines s of
 	    [] => ["Received bad string: " ^ s]
-	  | line::lines => ["  Try this command:", (*Markup.enclose Markup.sendback*) line, ""]
+	  | line::lines => ["  Try this command:", (*Markup.markup Markup.sendback*) line, ""]
 	                   @ lines
   in priority (cat_lines (sgline::sgtx::outlines)) end;
   

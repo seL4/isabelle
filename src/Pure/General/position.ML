@@ -66,6 +66,6 @@ fun print (Pos (SOME n, NONE)) = "(line " ^ string_of_int n ^ ")"
 
 fun str_of (Pos (NONE, NONE)) = ""
   | str_of pos =
-      " " ^ Markup.enclose (Markup.properties (properties_of pos) Markup.position) (print pos);
+      " " ^ Markup.markup (Markup.properties (properties_of pos) Markup.position) (print pos);
 
 end;
