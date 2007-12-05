@@ -464,9 +464,20 @@ Type classes enter the game via the Isar class package.
 We provide some instances for our \isa{null}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
+\isacommand{instantiation}\isamarkupfalse%
+\ option\ \isakeyword{and}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}\ null\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ {\isachardoublequoteopen}null\ {\isacharequal}\ None{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ {\isachardoublequoteopen}null\ {\isasymequiv}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\isanewline
 \isacommand{instance}\isamarkupfalse%
-\ option\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}\ null\isanewline
-\ \ {\isachardoublequoteopen}null\ {\isasymequiv}\ None{\isachardoublequoteclose}%
+%
 \isadelimproof
 \ %
 \endisadelimproof
@@ -482,22 +493,7 @@ We provide some instances for our \isa{null}:%
 \endisadelimproof
 \isanewline
 \isanewline
-\isacommand{instance}\isamarkupfalse%
-\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}\ null\isanewline
-\ \ {\isachardoublequoteopen}null\ {\isasymequiv}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Constructing a dummy example:%

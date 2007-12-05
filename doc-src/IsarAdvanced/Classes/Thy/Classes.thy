@@ -12,6 +12,8 @@ CodeTarget.code_width := 74;
 syntax
   "_alpha" :: "type"  ("\<alpha>")
   "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>()\<Colon>_" [0] 1000)
+  "_beta" :: "type"  ("\<beta>")
+  "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>()\<Colon>_" [0] 1000)
 
 parse_ast_translation {*
   let
@@ -20,8 +22,14 @@ parse_ast_translation {*
     fun alpha_ofsort_ast_tr [ast] =
       Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'a", ast]
       | alpha_ofsort_ast_tr asts = raise Syntax.AST ("alpha_ast_tr", asts);
+    fun beta_ast_tr [] = Syntax.Variable "'b"
+      | beta_ast_tr asts = raise Syntax.AST ("beta_ast_tr", asts);
+    fun beta_ofsort_ast_tr [ast] =
+      Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'b", ast]
+      | beta_ofsort_ast_tr asts = raise Syntax.AST ("beta_ast_tr", asts);
   in [
-    ("_alpha", alpha_ast_tr), ("_alpha_ofsort", alpha_ofsort_ast_tr)
+    ("_alpha", alpha_ast_tr), ("_alpha_ofsort", alpha_ofsort_ast_tr),
+    ("_beta", beta_ast_tr), ("_beta_ofsort", beta_ofsort_ast_tr)
   ] end
 *}
 (*>*)
@@ -145,38 +153,54 @@ text {*
   The concrete type @{text "int"} is made a @{text "semigroup"}
   instance by providing a suitable definition for the class parameter
   @{text "mult"} and a proof for the specification of @{text "assoc"}.
+  This is accomplished by the @{text "\<INSTANTIATION>"} target:
 *}
 
-    instance int :: semigroup
-      mult_int_def: "i \<otimes> j \<equiv> i + j"
-    proof
+    instantiation int :: semigroup
+    begin
+
+    definition
+      mult_int_def: "i \<otimes> j = i + (j\<Colon>int)"
+
+    instance proof
       fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
       then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
 	unfolding mult_int_def .
     qed
 
-text {*
-  \noindent From now on, the type-checker will consider @{text "int"}
-  as a @{text "semigroup"} automatically, i.e.\ any general results
-  are immediately available on concrete instances.
+    end
 
-  Note that the first proof step is the @{text default} method,
-  which for instantiation proofs maps to the @{text intro_classes} method.
-  This boils down an instantiation judgement to the relevant primitive
+text {*
+  \noindent @{text "\<INSTANTIATION>"} allows to define class parameters
+  at a particular instance using common specification tools (here,
+  @{text "\<DEFINITION>"}).  The concluding @{text "\<INSTANCE>"}
+  opens a proof that the given parameters actually conform
+  to the class specification.  Note that the first proof step
+  is the @{text default} method,
+  which for such instance proofs maps to the @{text intro_classes} method.
+  This boils down an instance judgement to the relevant primitive
   proof goals and should conveniently always be the first method applied
   in an instantiation proof.
 
+  From now on, the type-checker will consider @{text "int"}
+  as a @{text "semigroup"} automatically, i.e.\ any general results
+  are immediately available on concrete instances.
   \medskip Another instance of @{text "semigroup"} are the natural numbers:
 *}
 
-    instance nat :: semigroup
-      mult_nat_def: "m \<otimes> n \<equiv> m + n"
-    proof
+    instantiation nat :: semigroup
+    begin
+
+    definition
+      mult_nat_def: "m \<otimes> n = m + (n\<Colon>nat)"
+
+    instance proof
       fix m n q :: nat 
       show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
 	unfolding mult_nat_def by simp
     qed
 
+    end
 
 subsection {* Lifting and parametric types *}
 
@@ -187,13 +211,19 @@ text {*
   using our simple algebra:
 *}
 
-    instance * :: (semigroup, semigroup) semigroup
-      mult_prod_def: "p\<^isub>1 \<otimes> p\<^isub>2 \<equiv> (fst p\<^isub>1 \<otimes> fst p\<^isub>2, snd p\<^isub>1 \<otimes> snd p\<^isub>2)"
-    proof
-      fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "'a\<Colon>semigroup \<times> 'b\<Colon>semigroup"
+    instantiation * :: (semigroup, semigroup) semigroup
+    begin
+
+    definition
+      mult_prod_def: "p\<^isub>1 \<otimes> p\<^isub>2 = (fst p\<^isub>1 \<otimes> fst p\<^isub>2, snd p\<^isub>1 \<otimes> snd p\<^isub>2)"
+
+    instance proof
+      fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "\<alpha>\<Colon>semigroup \<times> \<beta>\<Colon>semigroup"
       show "p\<^isub>1 \<otimes> p\<^isub>2 \<otimes> p\<^isub>3 = p\<^isub>1 \<otimes> (p\<^isub>2 \<otimes> p\<^isub>3)"
 	unfolding mult_prod_def by (simp add: assoc)
     qed      
+
+    end
 
 text {*
   \noindent Associativity from product semigroups is
@@ -223,32 +253,44 @@ text {*
 text {*
   \noindent Again, we prove some instances, by
   providing suitable parameter definitions and proofs for the
-  additional specifications:
+  additional specifications.  Obverve that instantiations
+  for types with the same arity may be simultaneous:
 *}
 
-    instance nat :: monoidl
-      neutral_nat_def: "\<one> \<equiv> 0"
-    proof
+    instantiation nat and int :: monoidl
+    begin
+
+    definition
+      neutral_nat_def: "\<one> = (0\<Colon>nat)"
+
+    definition
+      neutral_int_def: "\<one> = (0\<Colon>int)"
+
+    instance proof
       fix n :: nat
       show "\<one> \<otimes> n = n"
 	unfolding neutral_nat_def mult_nat_def by simp
-    qed
-
-    instance int :: monoidl
-      neutral_int_def: "\<one> \<equiv> 0"
-    proof
+    next
       fix k :: int
       show "\<one> \<otimes> k = k"
 	unfolding neutral_int_def mult_int_def by simp
     qed
 
-    instance * :: (monoidl, monoidl) monoidl
-      neutral_prod_def: "\<one> \<equiv> (\<one>, \<one>)"
-    proof
-      fix p :: "'a\<Colon>monoidl \<times> 'b\<Colon>monoidl"
+    end
+
+    instantiation * :: (monoidl, monoidl) monoidl
+    begin
+
+    definition
+      neutral_prod_def: "\<one> = (\<one>, \<one>)"
+
+    instance proof
+      fix p :: "\<alpha>\<Colon>monoidl \<times> \<beta>\<Colon>monoidl"
       show "\<one> \<otimes> p = p"
 	unfolding neutral_prod_def mult_prod_def by (simp add: neutl)
     qed
+
+   end
 
 text {*
   \noindent Fully-fledged monoids are modelled by another subclass
@@ -258,26 +300,31 @@ text {*
     class monoid = monoidl +
       assumes neutr: "x \<otimes> \<one> = x"
 
-    instance nat :: monoid 
-    proof
+    instantiation nat and int :: monoid 
+    begin
+
+    instance proof
       fix n :: nat
       show "n \<otimes> \<one> = n"
 	unfolding neutral_nat_def mult_nat_def by simp
-    qed
-
-    instance int :: monoid
-    proof
+    next
       fix k :: int
       show "k \<otimes> \<one> = k"
 	unfolding neutral_int_def mult_int_def by simp
     qed
 
-    instance * :: (monoid, monoid) monoid
-    proof 
-      fix p :: "'a\<Colon>monoid \<times> 'b\<Colon>monoid"
+    end
+
+    instantiation * :: (monoid, monoid) monoid
+    begin
+
+    instance proof 
+      fix p :: "\<alpha>\<Colon>monoid \<times> \<beta>\<Colon>monoid"
       show "p \<otimes> \<one> = p"
 	unfolding neutral_prod_def mult_prod_def by (simp add: neutr)
     qed
+
+    end
 
 text {*
   \noindent To finish our small algebra example, we add a @{text "group"} class
@@ -288,14 +335,20 @@ text {*
       fixes inverse :: "\<alpha> \<Rightarrow> \<alpha>"    ("(_\<div>)" [1000] 999)
       assumes invl: "x\<div> \<otimes> x = \<one>"
 
-    instance int :: group
-      inverse_int_def: "i\<div> \<equiv> - i"
-    proof
+    instantiation int :: group
+    begin
+
+    definition
+      inverse_int_def: "i\<div> = - (i\<Colon>int)"
+
+    instance proof
       fix i :: int
       have "-i + i = 0" by simp
       then show "i\<div> \<otimes> i = \<one>"
 	unfolding mult_int_def neutral_int_def inverse_int_def .
     qed
+
+    end
 
 section {* Type classes as locales *}
 
@@ -335,7 +388,7 @@ axclass idem < type
 text {* \noindent together with a corresponding interpretation: *}
 
 interpretation idem_class:
-  idem ["f \<Colon> ('a\<Colon>idem) \<Rightarrow> \<alpha>"]
+  idem ["f \<Colon> (\<alpha>\<Colon>idem) \<Rightarrow> \<alpha>"]
 by unfold_locales (rule idem)
 (*<*) setup {* Sign.parent_path *} (*>*)
 text {*
@@ -431,7 +484,7 @@ text {*
 *}
 
     fun
-      replicate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+      replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alpha> list"
     where
       "replicate 0 _ = []"
       | "replicate (Suc n) xs = xs @ replicate n xs"
@@ -524,25 +577,15 @@ section {* Type classes and code generation *}
 text {*
   Turning back to the first motivation for type classes,
   namely overloading, it is obvious that overloading
-  stemming from @{text "\<CLASS>"} and @{text "\<INSTANCE>"}
-  statements naturally maps to Haskell type classes.
+  stemming from @{text "\<CLASS>"} statements and
+  @{text "\<INSTANTIATION>"}
+  targets naturally maps to Haskell type classes.
   The code generator framework \cite{isabelle-codegen} 
   takes this into account.  Concerning target languages
   lacking type classes (e.g.~SML), type classes
   are implemented by explicit dictionary construction.
   For example, lets go back to the power function:
 *}
-
-(*    fun
-      pow_nat :: "nat \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group" where
-      "pow_nat 0 x = \<one>"
-      | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
-
-    definition
-      pow_int :: "int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group" where
-      "pow_int k x = (if k >= 0
-        then pow_nat (nat k) x
-        else (pow_nat (nat (- k)) x)\<div>)"*)
 
     definition
       example :: int where

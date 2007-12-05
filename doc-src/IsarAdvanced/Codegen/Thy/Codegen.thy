@@ -372,17 +372,24 @@ where
   | "head (x#xs) = x"
 
 text {*
-  We provide some instances for our @{text null}:
+ \noindent  We provide some instances for our @{text null}:
 *}
 
-instance option :: (type) null
-  "null \<equiv> None" ..
+instantiation option and list :: (type) null
+begin
 
-instance list :: (type) null
-  "null \<equiv> []" ..
+definition
+  "null = None"
+
+definition
+  "null = []"
+
+instance ..
+
+end
 
 text {*
-  Constructing a dummy example:
+  \noindent Constructing a dummy example:
 *}
 
 definition
