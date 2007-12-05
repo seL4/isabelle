@@ -105,10 +105,10 @@ fun proof_general_markup (name, props) =
     else if name = Markup.sendbackN then (special "376", special "377")
     else if name = Markup.hiliteN then (special "327", special "330")
     else ("", ""))
-  |> (name <> Markup.promptN andalso print_mode_active "test_markup") ?
-    (fn (bg, en) =>
-      (bg ^ enclose "<" ">" (space_implode " " (name :: map XML.attribute props)),
-        enclose "</" ">" name ^ en));
+  |> (name <> Markup.promptN andalso print_mode_active IsabelleProcess.test_markupN) ?
+      (fn (bg1, en1) =>
+        let val (bg2, en2) = IsabelleProcess.test_markup (name, props)
+        in (bg1 ^ bg2, en2 ^ en1) end);
 
 val _ = Markup.add_mode proof_generalN proof_general_markup;
 
