@@ -52,7 +52,7 @@ end;
 (* init *)
 
 fun init () =
- (Output.writeln_default ("ML_PID=" ^ string_of_pid (Posix.ProcEnv.getpid ()));
+ (Output.writeln_default ("PID=" ^ string_of_pid (Posix.ProcEnv.getpid ()));
   setup_channels ();
   Isar.secure_main ());
 
