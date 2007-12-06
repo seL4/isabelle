@@ -63,6 +63,8 @@ proof
   assume "xs \<le> ys @ [y]"
   then obtain zs where zs: "ys @ [y] = xs @ zs" ..
   show "xs = ys @ [y] \<or> xs \<le> ys"
+    by (metis append_Nil2 butlast_append butlast_snoc prefixI zs)
+(*
   proof (cases zs rule: rev_cases)
     assume "zs = []"
     with zs have "xs = ys @ [y]" by simp
@@ -73,9 +75,12 @@ proof
     then have "xs \<le> ys" ..
     then show ?thesis ..
   qed
+*)
 next
   assume "xs = ys @ [y] \<or> xs \<le> ys"
   then show "xs \<le> ys @ [y]"
+    by (metis order_eq_iff strict_prefixE strict_prefixI' xt1(7))
+(*
   proof
     assume "xs = ys @ [y]"
     then show ?thesis by simp
@@ -85,6 +90,7 @@ next
     then have "ys @ [y] = xs @ (zs @ [y])" by simp
     then show ?thesis ..
   qed
+*)
 qed
 
 lemma Cons_prefix_Cons [simp]: "(x # xs \<le> y # ys) = (x = y \<and> xs \<le> ys)"
@@ -94,19 +100,23 @@ lemma same_prefix_prefix [simp]: "(xs @ ys \<le> xs @ zs) = (ys \<le> zs)"
   by (induct xs) simp_all
 
 lemma same_prefix_nil [iff]: "(xs @ ys \<le> xs) = (ys = [])"
+by (metis append_Nil2 append_self_conv order_eq_iff prefixI)
+(*
 proof -
   have "(xs @ ys \<le> xs @ []) = (ys \<le> [])" by (rule same_prefix_prefix)
   then show ?thesis by simp
 qed
-
+*)
 lemma prefix_prefix [simp]: "xs \<le> ys ==> xs \<le> ys @ zs"
+by (metis order_le_less_trans prefixI strict_prefixE strict_prefixI)
+(*
 proof -
   assume "xs \<le> ys"
   then obtain us where "ys = xs @ us" ..
   then have "ys @ zs = xs @ (us @ zs)" by simp
   then show ?thesis ..
 qed
-
+*)
 lemma append_prefixD: "xs @ ys \<le> zs \<Longrightarrow> xs \<le> zs"
   by (auto simp add: prefix_def)
 
@@ -114,28 +124,34 @@ theorem prefix_Cons: "(xs \<le> y # ys) = (xs = [] \<or> (\<exists>zs. xs = y # 
   by (cases xs) (auto simp add: prefix_def)
 
 theorem prefix_append:
-    "(xs \<le> ys @ zs) = (xs \<le> ys \<or> (\<exists>us. xs = ys @ us \<and> us \<le> zs))"
+  "(xs \<le> ys @ zs) = (xs \<le> ys \<or> (\<exists>us. xs = ys @ us \<and> us \<le> zs))"
   apply (induct zs rule: rev_induct)
    apply force
   apply (simp del: append_assoc add: append_assoc [symmetric])
+  apply (metis append_eq_appendI)
+(*
   apply simp
   apply blast
+*)
   done
 
 lemma append_one_prefix:
-    "xs \<le> ys ==> length xs < length ys ==> xs @ [ys ! length xs] \<le> ys"
-  apply (unfold prefix_def)
+  "xs \<le> ys ==> length xs < length ys ==> xs @ [ys ! length xs] \<le> ys"
+by (unfold prefix_def)
+   (metis Cons_eq_appendI append_eq_appendI append_eq_conv_conj eq_Nil_appendI nth_drop')
+(*
   apply (auto simp add: nth_append)
   apply (case_tac zs)
    apply auto
   done
-
+*)
 theorem prefix_length_le: "xs \<le> ys ==> length xs \<le> length ys"
   by (auto simp add: prefix_def)
 
 lemma prefix_same_cases:
-    "(xs\<^isub>1::'a list) \<le> ys \<Longrightarrow> xs\<^isub>2 \<le> ys \<Longrightarrow> xs\<^isub>1 \<le> xs\<^isub>2 \<or> xs\<^isub>2 \<le> xs\<^isub>1"
-  apply (simp add: prefix_def)
+  "(xs\<^isub>1::'a list) \<le> ys \<Longrightarrow> xs\<^isub>2 \<le> ys \<Longrightarrow> xs\<^isub>1 \<le> xs\<^isub>2 \<or> xs\<^isub>2 \<le> xs\<^isub>1"
+by (unfold prefix_def) (metis append_eq_append_conv2)
+(*
   apply (erule exE)+
   apply (simp add: append_eq_append_conv_if split: if_splits)
    apply (rule disjI2)
@@ -150,43 +166,45 @@ lemma prefix_same_cases:
   apply (insert append_take_drop_id [of "length xs\<^isub>1" xs\<^isub>2])
   apply simp
   done
+*)
+lemma set_mono_prefix: "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
+by (auto simp add: prefix_def)
 
-lemma set_mono_prefix:
-    "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
-  by (auto simp add: prefix_def)
-
-lemma take_is_prefix:
-  "take n xs \<le> xs"
-  apply (simp add: prefix_def)
+lemma take_is_prefix: "take n xs \<le> xs"
+by (unfold prefix_def) (metis append_take_drop_id)
+(*
   apply (rule_tac x="drop n xs" in exI)
   apply simp
   done
-
+*)
 lemma map_prefixI:
   "xs \<le> ys \<Longrightarrow> map f xs \<le> map f ys"
-  by (clarsimp simp: prefix_def)
+by (clarsimp simp: prefix_def)
 
 lemma prefix_length_less:
   "xs < ys \<Longrightarrow> length xs < length ys"
-  apply (clarsimp simp: strict_prefix_def)
+by (clarsimp simp: strict_prefix_def prefix_def)
+(*
   apply (frule prefix_length_le)
   apply (rule ccontr, simp)
   apply (clarsimp simp: prefix_def)
   done
-
+*)
 lemma strict_prefix_simps [simp]:
   "xs < [] = False"
   "[] < (x # xs) = True"
   "(x # xs) < (y # ys) = (x = y \<and> xs < ys)"
-  by (simp_all add: strict_prefix_def cong: conj_cong)
+by (simp_all add: strict_prefix_def cong: conj_cong)
 
-lemma take_strict_prefix:
-  "xs < ys \<Longrightarrow> take n xs < ys"
-  apply (induct n arbitrary: xs ys)
-   apply (case_tac ys, simp_all)[1]
+lemma take_strict_prefix: "xs < ys \<Longrightarrow> take n xs < ys"
+apply (induct n arbitrary: xs ys)
+ apply (case_tac ys, simp_all)[1]
+apply (metis order_less_trans strict_prefixI take_is_prefix)
+(*
   apply (case_tac xs, simp)
   apply (case_tac ys, simp_all)
-  done
+*)
+done
 
 lemma not_prefix_cases:
   assumes pfx: "\<not> ps \<le> ls"
@@ -195,17 +213,17 @@ lemma not_prefix_cases:
   | (c2) a as x xs where "ps = a#as" and "ls = x#xs" and "x = a" and "\<not> as \<le> xs"
   | (c3) a as x xs where "ps = a#as" and "ls = x#xs" and "x \<noteq> a"
 proof (cases ps)
-  case Nil
-  then show ?thesis using pfx by simp
+  case Nil thus ?thesis using pfx by simp
 next
   case (Cons a as)
-  then have c: "ps = a#as" .
-
+  hence c: "ps = a#as" .
   show ?thesis
   proof (cases ls)
-    case Nil
+    case Nil thus ?thesis by (metis append_Nil2 pfx c1 same_prefix_nil)
+(*
     have "ps \<noteq> []" by (simp add: Nil Cons)
     from this and Nil show ?thesis by (rule c1)
+*)
   next
     case (Cons x xs)
     show ?thesis
@@ -234,12 +252,14 @@ next
   then have npfx: "\<not> ps \<le> (y # ys)" by simp
   then obtain x xs where pv: "ps = x # xs"
     by (rule not_prefix_cases) auto
-
+  show ?case by (metis Cons.hyps Cons_prefix_Cons npfx pv r1 r2)
+(*
   from Cons
   have ih: "\<And>ps. \<not>ps \<le> ys \<Longrightarrow> P ps ys" by simp
 
   show ?case using npfx
     by (simp only: pv) (erule not_prefix_cases, auto intro: r1 r2 ih)
+*)
 qed
 
 
@@ -250,16 +270,16 @@ definition
   "(xs \<parallel> ys) = (\<not> xs \<le> ys \<and> \<not> ys \<le> xs)"
 
 lemma parallelI [intro]: "\<not> xs \<le> ys ==> \<not> ys \<le> xs ==> xs \<parallel> ys"
-  unfolding parallel_def by blast
+unfolding parallel_def by blast
 
 lemma parallelE [elim]:
-  assumes "xs \<parallel> ys"
-  obtains "\<not> xs \<le> ys \<and> \<not> ys \<le> xs"
-  using assms unfolding parallel_def by blast
+assumes "xs \<parallel> ys"
+obtains "\<not> xs \<le> ys \<and> \<not> ys \<le> xs"
+using assms unfolding parallel_def by blast
 
 theorem prefix_cases:
-  obtains "xs \<le> ys" | "ys < xs" | "xs \<parallel> ys"
-  unfolding parallel_def strict_prefix_def by blast
+obtains "xs \<le> ys" | "ys < xs" | "xs \<parallel> ys"
+unfolding parallel_def strict_prefix_def by blast
 
 theorem parallel_decomp:
   "xs \<parallel> ys ==> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"
@@ -275,17 +295,25 @@ next
     then obtain ys' where ys: "ys = xs @ ys'" ..
     show ?thesis
     proof (cases ys')
-      assume "ys' = []" with ys have "xs = ys" by simp
+      assume "ys' = []"
+      thus ?thesis by (metis append_Nil2 parallelE prefixI snoc.prems ys)
+(*
+      with ys have "xs = ys" by simp
       with snoc have "[x] \<parallel> []" by auto
       then have False by blast
       then show ?thesis ..
+*)
     next
       fix c cs assume ys': "ys' = c # cs"
+      thus ?thesis
+	by (metis Cons_eq_appendI eq_Nil_appendI parallelE prefixI same_prefix_prefix snoc.prems ys)
+(*
       with snoc ys have "xs @ [x] \<parallel> xs @ c # cs" by (simp only:)
       then have "x \<noteq> c" by auto
       moreover have "xs @ [x] = xs @ x # []" by simp
       moreover from ys ys' have "ys = xs @ c # cs" by (simp only:)
       ultimately show ?thesis by blast
+*)
     qed
   next
     assume "ys < xs" then have "ys \<le> xs @ [x]" by (simp add: strict_prefix_def)
@@ -301,18 +329,16 @@ next
   qed
 qed
 
-lemma parallel_append:
-  "a \<parallel> b \<Longrightarrow> a @ c \<parallel> b @ d"
-  by (rule parallelI)
-     (erule parallelE, erule conjE,
-            induct rule: not_prefix_induct, simp+)+
+lemma parallel_append: "a \<parallel> b \<Longrightarrow> a @ c \<parallel> b @ d"
+by (rule parallelI)
+   (erule parallelE, erule conjE,
+          induct rule: not_prefix_induct, simp+)+
 
-lemma parallel_appendI:
-  "\<lbrakk> xs \<parallel> ys; x = xs @ xs' ; y = ys @ ys' \<rbrakk> \<Longrightarrow> x \<parallel> y"
-  by simp (rule parallel_append)
+lemma parallel_appendI: "\<lbrakk> xs \<parallel> ys; x = xs @ xs' ; y = ys @ ys' \<rbrakk> \<Longrightarrow> x \<parallel> y"
+by simp (rule parallel_append)
 
 lemma parallel_commute: "(a \<parallel> b) = (b \<parallel> a)"
-  unfolding parallel_def by auto
+unfolding parallel_def by auto
 
 
 subsection {* Postfix order on lists *}
@@ -322,12 +348,12 @@ definition
   "(xs >>= ys) = (\<exists>zs. xs = zs @ ys)"
 
 lemma postfixI [intro?]: "xs = zs @ ys ==> xs >>= ys"
-  unfolding postfix_def by blast
+unfolding postfix_def by blast
 
 lemma postfixE [elim?]:
-  assumes "xs >>= ys"
-  obtains zs where "xs = zs @ ys"
-  using assms unfolding postfix_def by blast
+assumes "xs >>= ys"
+obtains zs where "xs = zs @ ys"
+using assms unfolding postfix_def by blast
 
 lemma postfix_refl [iff]: "xs >>= xs"
   by (auto simp add: postfix_def)
@@ -380,42 +406,37 @@ next
   then show "xs >>= ys" ..
 qed
 
-lemma distinct_postfix:
-  assumes "distinct xs"
-    and "xs >>= ys"
-  shows "distinct ys"
-  using assms by (clarsimp elim!: postfixE)
+lemma distinct_postfix: "distinct xs \<Longrightarrow> xs >>= ys \<Longrightarrow> distinct ys"
+by (clarsimp elim!: postfixE)
 
-lemma postfix_map:
-  assumes "xs >>= ys"
-  shows "map f xs >>= map f ys"
-  using assms by (auto elim!: postfixE intro: postfixI)
+lemma postfix_map: "xs >>= ys \<Longrightarrow> map f xs >>= map f ys"
+by (auto elim!: postfixE intro: postfixI)
 
 lemma postfix_drop: "as >>= drop n as"
-  unfolding postfix_def
-  by (rule exI [where x = "take n as"]) simp
+unfolding postfix_def
+by (rule exI [where x = "take n as"]) simp
 
-lemma postfix_take:
-    "xs >>= ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
-  by (clarsimp elim!: postfixE)
+lemma postfix_take: "xs >>= ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
+by (clarsimp elim!: postfixE)
 
 lemma parallelD1: "x \<parallel> y \<Longrightarrow> \<not> x \<le> y"
-  by blast
+by blast
 
 lemma parallelD2: "x \<parallel> y \<Longrightarrow> \<not> y \<le> x"
-  by blast
+by blast
 
 lemma parallel_Nil1 [simp]: "\<not> x \<parallel> []"
-  unfolding parallel_def by simp
+unfolding parallel_def by simp
 
 lemma parallel_Nil2 [simp]: "\<not> [] \<parallel> x"
-  unfolding parallel_def by simp
+unfolding parallel_def by simp
 
-lemma Cons_parallelI1:
-  "a \<noteq> b \<Longrightarrow> a # as \<parallel> b # bs" by auto
+lemma Cons_parallelI1: "a \<noteq> b \<Longrightarrow> a # as \<parallel> b # bs"
+by auto
 
-lemma Cons_parallelI2:
-  "\<lbrakk> a = b; as \<parallel> bs \<rbrakk> \<Longrightarrow> a # as \<parallel> b # bs"
+lemma Cons_parallelI2: "\<lbrakk> a = b; as \<parallel> bs \<rbrakk> \<Longrightarrow> a # as \<parallel> b # bs"
+by (metis Cons_prefix_Cons parallelE parallelI)
+(*
   apply simp
   apply (rule parallelI)
    apply simp
@@ -423,7 +444,7 @@ lemma Cons_parallelI2:
   apply simp
   apply (erule parallelD2)
  done
-
+*)
 lemma not_equal_is_parallel:
   assumes neq: "xs \<noteq> ys"
     and len: "length xs = length ys"
@@ -435,7 +456,6 @@ proof (induct rule: list_induct2)
 next
   case (2 a as b bs)
   have ih: "as \<noteq> bs \<Longrightarrow> as \<parallel> bs" by fact
-
   show ?case
   proof (cases "a = b")
     case True
