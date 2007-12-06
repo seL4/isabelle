@@ -104,11 +104,11 @@ primrec
   "map f [] = []"
   "map f (x#xs) = f(x)#map f xs"
 
-setup {* snd o Sign.declare_const [] (*authentic syntax*)
-  ("append", @{typ "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"}, InfixrName ("@", 65)) *}
 primrec
-  append_Nil:"[]@ys = ys"
-  append_Cons: "(x#xs)@ys = x#(xs@ys)"
+  append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65)
+where
+  append_Nil:"[] @ ys = ys"
+  | append_Cons: "(x#xs) @ ys = x # xs @ ys"
 
 primrec
   "rev([]) = []"
@@ -222,11 +222,11 @@ fun sorted :: "'a list \<Rightarrow> bool" where
 "sorted [x] \<longleftrightarrow> True" |
 "sorted (x#y#zs) \<longleftrightarrow> x <= y \<and> sorted (y#zs)"
 
-fun insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+primrec insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "insort x [] = [x]" |
 "insort x (y#ys) = (if x <= y then (x#y#ys) else y#(insort x ys))"
 
-fun sort :: "'a list \<Rightarrow> 'a list" where
+primrec sort :: "'a list \<Rightarrow> 'a list" where
 "sort [] = []" |
 "sort (x#xs) = insort x (sort xs)"
 
@@ -3172,11 +3172,11 @@ consts
   filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
   map_filter :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list"
 
-setup {* snd o Sign.declare_const [] (*authentic syntax*)
-  ("member", @{typ "'a \<Rightarrow> 'a list \<Rightarrow> bool"}, InfixlName ("mem", 55)) *}
 primrec
-  "x mem [] = False"
-  "x mem (y#ys) = (if y=x then True else x mem ys)"
+  member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
+where 
+  "x mem [] \<longleftrightarrow> False"
+  | "x mem (y#ys) \<longleftrightarrow> (if y = x then True else x mem ys)"
 
 primrec
   "null [] = True"

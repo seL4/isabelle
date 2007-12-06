@@ -1157,13 +1157,11 @@ subsection {* Embedding of the Naturals into any
 context semiring_1
 begin
 
-definition
-  of_nat_def: "of_nat = nat_rec 0 (\<lambda>_. (op +) 1)"
-
-lemma of_nat_simps [simp, code]:
-  shows of_nat_0:   "of_nat 0 = 0"
-    and of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
-  unfolding of_nat_def by simp_all
+primrec
+  of_nat :: "nat \<Rightarrow> 'a"
+where
+  of_nat_0:     "of_nat 0 = 0"
+  | of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
 
 lemma of_nat_1 [simp]: "of_nat 1 = 1"
   by simp
@@ -1454,11 +1452,6 @@ definition
 notation (xsymbols)
   Nats  ("\<nat>")
 
-end
-
-context semiring_1
-begin
-
 lemma of_nat_in_Nats [simp]: "of_nat n \<in> \<nat>"
   by (simp add: Nats_def)
 
@@ -1491,11 +1484,19 @@ end
 
 text {* the lattice order on @{typ nat} *}
 
-instance nat :: distrib_lattice
+instantiation nat :: distrib_lattice
+begin
+
+definition
   "(inf \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat) = min"
+
+definition
   "(sup \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat) = max"
-  by intro_classes
-    (simp_all add: inf_nat_def sup_nat_def)
+
+instance by intro_classes
+  (simp_all add: inf_nat_def sup_nat_def)
+
+end
 
 
 subsection {* legacy bindings *}

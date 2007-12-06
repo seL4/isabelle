@@ -102,7 +102,7 @@ in
             (fn (v, ty) => term_term_of ty $ Free (v, ty))
             (Pure_term.mk_typ (fn (v, sort) => TypOf.mk (TFree (v, sort)))) c
         in
-          HOLogic.mk_eq (lhs, rhs)
+          HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
         end;
     in map mk_eq cs end;
   fun mk_term_of t =
@@ -140,19 +140,26 @@ let
       val vs = map fst vs_proto ~~ sorts;
       val css = map (prep_dtyp thy vs) tycos;
       val defs = map (TermOf.mk_terms_of_defs vs) css;
-      val defs' = (map (pair ("", []) o ObjectLogic.ensure_propT thy) o flat) defs;
     in if forall (fn tyco => can (Sign.arity_sorts thy tyco) @{sort term_of}) dep_tycos
         andalso not (tycos = [@{type_name typ}])
-      then SOME (sorts, defs')
+      then SOME (sorts, defs)
       else NONE
     end;
+  fun prep' ctxt proto_eqs =
+    let
+      val eqs as eq :: _ = map (Class.prep_spec ctxt) proto_eqs;
+      val (Free (v, ty), _) =
+        (strip_comb o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
+    in ((v, SOME ty, NoSyn), map (pair ("", [])) eqs) end;
+  fun primrec primrecs ctxt =
+    let
+      val (fixes, eqnss) = split_list (map (prep' ctxt) primrecs);
+    in PrimrecPackage.add_primrec fixes (flat eqnss) ctxt end;
   fun interpretator tycos thy = case prep thy tycos
    of SOME (sorts, defs) =>
       thy
       |> Instance.instantiate (tycos, sorts, @{sort term_of})
-           (pair ()) ((K o K) (Class.intro_classes_tac []))
-      |> OldPrimrecPackage.gen_primrec thy_note thy_def "" defs
-      |> snd
+           (primrec defs) ((K o K) (Class.intro_classes_tac []))
     | NONE => thy;
   in DatatypePackage.interpretation interpretator end
 *}
@@ -184,7 +191,7 @@ instance int :: term_of
 
 text {* Adaption for @{typ message_string}s *}
 
-lemmas [code func, code func del] = term_of_message_string_def
+lemmas [code func del] = term_of_messagestring.simps
 
 
 subsection {* Evaluation infrastructure *}

@@ -27,10 +27,11 @@ fun message s = if ! Toplevel.debug then () else writeln s;
 
 (* preprocessing of equations *)
 
-fun process_eqn is_fixed is_const spec rec_fns =
+fun process_eqn is_fixed spec rec_fns =
   let
     val vars = strip_qnt_vars "all" spec;
     val body = strip_qnt_body "all" spec;
+    (*FIXME not necessarily correct*)
     val eqn = curry subst_bounds (map Free (rev vars)) body;
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eqn)
       handle TERM _ => primrec_error "not a proper equation";
@@ -64,7 +65,7 @@ fun process_eqn is_fixed is_const spec rec_fns =
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
         (map dest_Free (term_frees rhs) |> subtract (op =) lfrees
-          |> filter_out (is_const o fst) |> filter_out (is_fixed o fst));
+          |> filter_out (is_fixed o fst));
       case AList.lookup (op =) rec_fns fname of
         NONE =>
           (fname, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eqn))]))::rec_fns
@@ -222,8 +223,9 @@ local
 
 fun prepare_spec prep_spec ctxt raw_fixes raw_spec =
   let
-    val ((fixes, spec), _) = prep_spec raw_fixes [(map o apsnd) single raw_spec] ctxt
-  in (fixes, (map o apsnd) the_single spec) end;
+    val ((fixes, spec), _) = prep_spec
+      raw_fixes (map (single o apsnd single) raw_spec) ctxt
+  in (fixes, map (apsnd the_single) spec) end;
 
 fun prove_spec ctxt rec_rewrites defs =
   let
@@ -235,8 +237,8 @@ fun prove_spec ctxt rec_rewrites defs =
 fun gen_primrec prep_spec raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = prepare_spec prep_spec lthy raw_fixes raw_spec;
-    val eqns = fold_rev (process_eqn (member (op =) (map (fst o fst) fixes))
-      (Variable.is_const lthy) o snd) spec [];
+    val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
+      orelse exists (fn ((w, _), _) => v = w) fixes) o snd) spec [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
     val dts = find_dts (DatatypePackage.get_datatypes
       (ProofContext.theory_of lthy)) tnames tnames;
@@ -255,8 +257,7 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
         "\nare not mutually recursive");
     val qualify = NameSpace.qualified
       (space_implode "_" (map (Sign.base_name o #1) defs));
-    val simp_atts = [Attrib.internal (K Simplifier.simp_add),
-      Code.add_default_func_attr (*FIXME*)];
+    val simp_atts = map (Attrib.internal o K) [Simplifier.simp_add, RecfunCodegen.add NONE];
   in
     lthy
     |> fold_map (LocalTheory.define Thm.definitionK o make_def lthy fixes fs) defs
