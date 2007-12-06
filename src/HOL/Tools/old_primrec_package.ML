@@ -17,11 +17,6 @@ sig
     -> theory -> thm list * theory
   val add_primrec_unchecked_i: string -> ((bstring * term) * attribute list) list
     -> theory -> thm list * theory
-  (* FIXME !? *)
-  val gen_primrec: ((bstring * attribute list) * thm list -> theory -> (bstring * thm list) * theory)
-    -> ((bstring * attribute list) * term -> theory -> (bstring * thm) * theory)
-    -> string -> ((bstring * attribute list) * term) list
-    -> theory -> thm list * theory;
 end;
 
 structure OldPrimrecPackage : OLD_PRIMREC_PACKAGE =
