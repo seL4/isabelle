@@ -231,7 +231,7 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
     val eqn_ts = map (prep_prop thy) strings;
     val rec_ts = map (fn eq => chead_of (fst (dest_eqs (Logic.strip_imp_concl eq)))
       handle TERM _ => fixrec_eq_err thy "not a proper equation" eq) eqn_ts;
-    val (_, eqn_ts') = PrimrecPackage.unify_consts thy rec_ts eqn_ts;
+    val (_, eqn_ts') = OldPrimrecPackage.unify_consts thy rec_ts eqn_ts;
     
     fun unconcat [] _ = []
       | unconcat (n::ns) xs = List.take (xs,n) :: unconcat ns (List.drop (xs,n));

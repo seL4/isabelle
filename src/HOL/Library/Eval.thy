@@ -151,7 +151,7 @@ let
       thy
       |> Instance.instantiate (tycos, sorts, @{sort term_of})
            (pair ()) ((K o K) (Class.intro_classes_tac []))
-      |> PrimrecPackage.gen_primrec thy_note thy_def "" defs
+      |> OldPrimrecPackage.gen_primrec thy_note thy_def "" defs
       |> snd
     | NONE => thy;
   in DatatypePackage.interpretation interpretator end
