@@ -13,6 +13,7 @@ uses
   ("Tools/function_package/inductive_wrap.ML")
   ("Tools/function_package/context_tree.ML")
   ("Tools/function_package/fundef_core.ML")
+  ("Tools/function_package/sum_tree.ML")
   ("Tools/function_package/mutual.ML")
   ("Tools/function_package/pattern_split.ML")
   ("Tools/function_package/fundef_package.ML")
@@ -98,6 +99,7 @@ use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/inductive_wrap.ML"
 use "Tools/function_package/context_tree.ML"
 use "Tools/function_package/fundef_core.ML"
+use "Tools/function_package/sum_tree.ML"
 use "Tools/function_package/mutual.ML"
 use "Tools/function_package/pattern_split.ML"
 use "Tools/function_package/auto_term.ML"
