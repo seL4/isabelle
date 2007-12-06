@@ -302,7 +302,7 @@ val set_preproc = Preprocessor.map o K
 
 
 local 
-  structure P = OuterParse and K = OuterKeyword 
+  structure P = OuterParse and K = OuterKeyword
 
   val option_parser = (P.reserved "sequential" >> K Sequential)
                    || ((P.reserved "default" |-- P.term) >> Default)
