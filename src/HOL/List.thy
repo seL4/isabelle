@@ -109,6 +109,7 @@ primrec
 where
   append_Nil:"[] @ ys = ys"
   | append_Cons: "(x#xs) @ ys = x # xs @ ys"
+declare append.simps [code]
 
 primrec
   "rev([]) = []"
@@ -3177,6 +3178,7 @@ primrec
 where 
   "x mem [] \<longleftrightarrow> False"
   | "x mem (y#ys) \<longleftrightarrow> (if y = x then True else x mem ys)"
+declare member.simps [code]
 
 primrec
   "null [] = True"

@@ -1162,6 +1162,7 @@ primrec
 where
   of_nat_0:     "of_nat 0 = 0"
   | of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
+declare of_nat.simps [code]
 
 lemma of_nat_1 [simp]: "of_nat 1 = 1"
   by simp
