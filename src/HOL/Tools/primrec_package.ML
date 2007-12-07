@@ -29,10 +29,11 @@ fun message s = if ! Toplevel.debug then () else writeln s;
 
 fun process_eqn is_fixed spec rec_fns =
   let
-    val vars = strip_qnt_vars "all" spec;
+    val (vs, Ts) = split_list (strip_qnt_vars "all" spec);
     val body = strip_qnt_body "all" spec;
-    (*FIXME not necessarily correct*)
-    val eqn = curry subst_bounds (map Free (rev vars)) body;
+    val (vs', _) = Name.variants vs (Name.make_context (fold_aterms
+      (fn Free (v, _) => insert (op =) v | _ => I) body []));
+    val eqn = curry subst_bounds (map2 (curry Free) vs' Ts |> rev) body;
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eqn)
       handle TERM _ => primrec_error "not a proper equation";
     val (recfun, args) = strip_comb lhs;
@@ -227,11 +228,11 @@ fun prepare_spec prep_spec ctxt raw_fixes raw_spec =
       raw_fixes (map (single o apsnd single) raw_spec) ctxt
   in (fixes, map (apsnd the_single) spec) end;
 
-fun prove_spec ctxt rec_rewrites defs =
+fun prove_spec ctxt names rec_rewrites defs =
   let
     val rewrites = map mk_meta_eq rec_rewrites @ map (snd o snd) defs;
     fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
-    val _ = message "Proving equations for primrec function";
+    val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names);
   in map (fn (name_attr, t) => (name_attr, [Goal.prove ctxt [] [] t tac])) end;
 
 fun gen_primrec prep_spec raw_fixes raw_spec lthy =
@@ -250,10 +251,10 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
       else snd (hd dts);
     val (fnames, fnss) = fold_rev (process_fun descr eqns) main_fns ([], []);
     val (fs, defs) = fold_rev (get_fns fnss) (descr ~~ rec_names) ([], []);
-    val nameTs1 = map snd fnames;
-    val nameTs2 = map fst eqns;
-    val _ = if gen_eq_set (op =) (nameTs1, nameTs2) then ()
-      else primrec_error ("functions " ^ commas_quote nameTs2 ^
+    val names1 = map snd fnames;
+    val names2 = map fst eqns;
+    val _ = if gen_eq_set (op =) (names1, names2) then ()
+      else primrec_error ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
     val qualify = NameSpace.qualified
       (space_implode "_" (map (Sign.base_name o #1) defs));
@@ -262,7 +263,7 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
   in
     lthy
     |> fold_map (LocalTheory.define Thm.definitionK o make_def lthy fixes fs) defs
-    |-> (fn defs => `(fn ctxt => prove_spec ctxt rec_rewrites defs spec))
+    |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec))
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
     |-> (fn simps' => LocalTheory.note Thm.theoremK
           ((qualify "simps", simp_atts), maps snd simps'))
