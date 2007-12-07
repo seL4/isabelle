@@ -23,6 +23,7 @@ sig
   val def_type: Proof.context -> bool -> indexname -> typ option
   val def_sort: Proof.context -> indexname -> sort option
   val declare_constraints: term -> Proof.context -> Proof.context
+  val declare_names: term -> Proof.context -> Proof.context
   val declare_internal: term -> Proof.context -> Proof.context
   val declare_term: term -> Proof.context -> Proof.context
   val declare_prf: Proofterm.proof -> Proof.context -> Proof.context
