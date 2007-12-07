@@ -39,15 +39,14 @@ definition
 datatype mut1 = Tip | Top mut2
   and mut2 = Tip | Top mut1
 
-consts
-  mut1 :: "mut1 \<Rightarrow> mut1"
-  mut2 :: "mut2 \<Rightarrow> mut2"
-
 primrec
+  mut1 :: "mut1 \<Rightarrow> mut1"
+  and mut2 :: "mut2 \<Rightarrow> mut2"
+where
   "mut1 mut1.Tip = mut1.Tip"
-  "mut1 (mut1.Top x) = mut1.Top (mut2 x)"
-  "mut2 mut2.Tip = mut2.Tip"
-  "mut2 (mut2.Top x) = mut2.Top (mut1 x)"
+  | "mut1 (mut1.Top x) = mut1.Top (mut2 x)"
+  | "mut2 mut2.Tip = mut2.Tip"
+  | "mut2 (mut2.Top x) = mut2.Top (mut1 x)"
 
 definition
   "mystring = ''my home is my castle''"
