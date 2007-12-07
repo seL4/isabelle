@@ -18,6 +18,7 @@ uses
   ("Tools/function_package/pattern_split.ML")
   ("Tools/function_package/fundef_package.ML")
   ("Tools/function_package/auto_term.ML")
+  ("Tools/function_package/induction_scheme.ML")
 begin
 
 text {* Definitions with default value. *}
@@ -104,8 +105,12 @@ use "Tools/function_package/mutual.ML"
 use "Tools/function_package/pattern_split.ML"
 use "Tools/function_package/auto_term.ML"
 use "Tools/function_package/fundef_package.ML"
+use "Tools/function_package/induction_scheme.ML"
 
-setup {* FundefPackage.setup *}
+setup {* 
+  FundefPackage.setup 
+  #> InductionScheme.setup
+*}
 
 lemma let_cong [fundef_cong]:
   "M = N \<Longrightarrow> (\<And>x. x = N \<Longrightarrow> f x = g x) \<Longrightarrow> Let M f = Let N g"
