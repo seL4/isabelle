@@ -746,6 +746,17 @@ val _ =
     (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.kill));
 
 
+(* nested command *)
+
+val _ =
+  OuterSyntax.improper_command "Isabelle.command" "nested Isabelle command" K.control
+    (P.position P.string :|-- (fn (str, pos) =>
+      (case OuterSyntax.parse pos str of
+        [transition] => Scan.succeed (K transition)
+      | _ => Scan.fail_with (K "exactly one nested Isabelle command expected"))
+      handle ERROR msg => Scan.fail_with (K ("malformed nested command\n" ^ msg))));
+
+
 
 (** diagnostic commands (for interactive mode only) **)
 
