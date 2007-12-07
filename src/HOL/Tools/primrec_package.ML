@@ -258,8 +258,8 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
         "\nare not mutually recursive");
     val qualify = NameSpace.qualified
       (space_implode "_" (map (Sign.base_name o #1) defs));
-    val simp_atts = map (Attrib.internal o K) [Simplifier.simp_add]
-      @ [Code.add_default_func_attr (*FIXME*)] (*RecfunCodegen.add NONE*);
+    val simp_atts = map (Attrib.internal o K)
+      [Simplifier.simp_add, RecfunCodegen.add NONE];
   in
     lthy
     |> fold_map (LocalTheory.define Thm.definitionK o make_def lthy fixes fs) defs
