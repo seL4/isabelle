@@ -31,7 +31,7 @@ val _ = Markup.add_mode test_markupN test_markup;
 local
 
 fun special c = chr 2 ^ c;
-val special_end = special "Z";
+val special_end = special ".";
 
 fun output c m s =
   Output.writeln_default (special c ^ Markup.enclose m s ^ special_end);
