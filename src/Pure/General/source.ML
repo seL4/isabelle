@@ -122,15 +122,16 @@ fun slurp_input instream =
   in maps explode (slurp ()) end;
 
 fun drain_stream instream outstream prompt () =
-  let val input = slurp_input instream in
+  let
+    val input = slurp_input instream;
+    fun output_prompt () = NAMED_CRITICAL "IO" (fn () =>
+      (TextIO.output (outstream, Output.output prompt); TextIO.flushOut outstream));
+  in
     if exists (fn c => c = "\n") input then (input, ())
     else
-      (case
-          (TextIO.output (outstream, Output.output prompt);
-            TextIO.flushOut outstream;
-            TextIO.inputLine instream) of
-          SOME line => (input @ explode line, ())
-        | NONE => (input, ()))
+      (case (output_prompt (); TextIO.inputLine instream) of
+        SOME line => (input @ explode line, ())
+      | NONE => (input, ()))
   end;
 
 fun of_stream instream outstream =
