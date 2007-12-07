@@ -827,6 +827,7 @@ fun syntactic_const class prmode pos ((c, mx), rhs) thy =
 datatype instantiation = Instantiation of {
   arities: string list * sort list * sort,
   params: ((string * string) * (string * typ)) list
+    (*(instantiation const, type constructor), (local instantiation parameter, typ)*)
 }
 
 structure Instantiation = ProofDataFun
@@ -903,7 +904,8 @@ fun inst_term_uncheck ts lthy =
 
 val sanatize_name = (*FIXME*)
   let
-    fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
+    fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s
+      orelse s = "'" orelse s = "_";
     val is_junk = not o is_valid andf Symbol.is_regular;
     val junk = Scan.many is_junk;
     val scan_valids = Symbol.scanner "Malformed input"
@@ -932,6 +934,7 @@ fun init_instantiation (tycos, sorts, sort) thy =
     |> ProofContext.init
     |> Instantiation.put (mk_instantiation ((tycos, sorts, sort), params))
     |> fold (Variable.declare_term o Logic.mk_type) vs
+    |> fold (Variable.declare_names o Free o snd) params
     |> fold (fn tyco => ProofContext.add_arity (tyco, sorts, sort)) tycos
     |> Context.proof_map (
         Syntax.add_term_check 0 "instance" inst_term_check
