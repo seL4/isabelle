@@ -676,6 +676,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy \
   ex/Commutative_Ring_Complete.thy ex/ExecutableContent.thy \
   ex/Fundefs.thy ex/Guess.thy ex/Hebrew.thy ex/Binary.thy \
   ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy \
+	ex/Induction_Scheme.thy \
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy \
   ex/Intuitionistic.thy ex/Lagrange.thy ex/Locales.thy ex/LocaleTest2.thy \
   ex/MT.thy ex/MergeSort.thy ex/MonoidGroup.thy ex/Multiquote.thy \
