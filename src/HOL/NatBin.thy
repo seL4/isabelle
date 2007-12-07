@@ -14,8 +14,15 @@ text {*
   Arithmetic for naturals is reduced to that for the non-negative integers.
 *}
 
-instance nat :: number
-  nat_number_of_def [code inline]: "number_of v == nat (number_of (v\<Colon>int))" ..
+instantiation nat :: number
+begin
+
+definition
+  nat_number_of_def [code inline]: "number_of v = nat (number_of (v\<Colon>int))"
+
+instance ..
+
+end
 
 abbreviation (xsymbols)
   square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where

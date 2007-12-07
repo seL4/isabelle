@@ -33,19 +33,24 @@ lemmas complex_Re_Im_cancel_iff = expand_complex_eq
 
 subsection {* Addition and Subtraction *}
 
-instance complex :: zero
-  complex_zero_def:
-    "0 \<equiv> Complex 0 0" ..
+instantiation complex :: "{zero, plus, minus}"
+begin
 
-instance complex :: plus
-  complex_add_def:
-    "x + y \<equiv> Complex (Re x + Re y) (Im x + Im y)" ..
+definition
+  complex_zero_def: "0 = Complex 0 0"
 
-instance complex :: minus
-  complex_minus_def:
-    "- x \<equiv> Complex (- Re x) (- Im x)"
-  complex_diff_def:
-    "x - (y\<Colon>complex) \<equiv> x + - y" ..
+definition
+  complex_add_def: "x + y = Complex (Re x + Re y) (Im x + Im y)"
+
+definition
+  complex_minus_def: "- x = Complex (- Re x) (- Im x)"
+
+definition
+  complex_diff_def: "x - (y\<Colon>complex) = x + - y"
+
+instance ..
+
+end
 
 lemma Complex_eq_0 [simp]: "(Complex a b = 0) = (a = 0 \<and> b = 0)"
 by (simp add: complex_zero_def)
@@ -103,20 +108,26 @@ qed
 
 subsection {* Multiplication and Division *}
 
-instance complex :: one
-  complex_one_def:
-    "1 \<equiv> Complex 1 0" ..
+instantiation complex :: "{one, times, inverse}"
+begin
 
-instance complex :: times
-  complex_mult_def:
-    "x * y \<equiv> Complex (Re x * Re y - Im x * Im y) (Re x * Im y + Im x * Re y)" ..
+definition
+  complex_one_def: "1 = Complex 1 0"
 
-instance complex :: inverse
-  complex_inverse_def:
-    "inverse x \<equiv>
-     Complex (Re x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>)) (- Im x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>))"
-  complex_divide_def:
-    "x / (y\<Colon>complex) \<equiv> x * inverse y" ..
+definition
+  complex_mult_def: "x * y =
+    Complex (Re x * Re y - Im x * Im y) (Re x * Im y + Im x * Re y)"
+
+definition
+  complex_inverse_def: "inverse x =
+    Complex (Re x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>)) (- Im x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>))"
+
+definition
+  complex_divide_def: "x / (y\<Colon>complex) = x * inverse y"
+
+instance ..
+
+end
 
 lemma Complex_eq_1 [simp]: "(Complex a b = 1) = (a = 1 \<and> b = 0)"
 by (simp add: complex_one_def)
@@ -193,12 +204,16 @@ qed
 
 subsection {* Numerals and Arithmetic *}
 
-instance complex :: number
-  complex_number_of_def:
-    "number_of w \<equiv> of_int w \<Colon> complex" ..
+instantiation complex :: number_ring
+begin
 
-instance complex :: number_ring
-by (intro_classes, simp only: complex_number_of_def)
+definition
+  complex_number_of_def: "number_of w = (of_int w \<Colon> complex)"
+
+instance
+  by (intro_classes, simp only: complex_number_of_def)
+
+end
 
 lemma complex_Re_of_nat [simp]: "Re (of_nat n) = of_nat n"
 by (induct n) simp_all
@@ -225,9 +240,15 @@ by (simp add: expand_complex_eq)
 
 subsection {* Scalar Multiplication *}
 
-instance complex :: scaleR
-  complex_scaleR_def:
-    "scaleR r x \<equiv> Complex (r * Re x) (r * Im x)" ..
+instantiation complex :: scaleR
+begin
+
+definition
+  complex_scaleR_def: "scaleR r x = Complex (r * Re x) (r * Im x)"
+
+instance ..
+
+end
 
 lemma complex_scaleR [simp]:
   "scaleR r (Complex a b) = Complex (r * a) (r * b)"
@@ -291,16 +312,29 @@ by (simp add: complex_of_real_def)
 
 subsection {* Vector Norm *}
 
-instance complex :: norm
-  complex_norm_def:
-    "norm z \<equiv> sqrt ((Re z)\<twosuperior> + (Im z)\<twosuperior>)" ..
+instantiation complex :: norm
+begin
+
+definition
+  complex_norm_def: "norm z = sqrt ((Re z)\<twosuperior> + (Im z)\<twosuperior>)"
+
+instance ..
+
+end
 
 abbreviation
   cmod :: "complex \<Rightarrow> real" where
     "cmod \<equiv> norm"
 
-instance complex :: sgn
-  complex_sgn_def: "sgn x == x /\<^sub>R cmod x" ..
+instantiation complex :: sgn
+begin
+
+definition
+  complex_sgn_def: "sgn x = x /\<^sub>R cmod x"
+
+instance ..
+
+end
 
 lemmas cmod_def = complex_norm_def
 

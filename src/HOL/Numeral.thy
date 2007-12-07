@@ -210,11 +210,16 @@ class number_ring = number + comm_ring_1 +
 
 text {* self-embedding of the integers *}
 
-instance int :: number_ring
-  int_number_of_def: "number_of w \<equiv> of_int w \<Colon> int"
+instantiation int :: number_ring
+begin
+
+definition
+  int_number_of_def [code func del]: "number_of w = (of_int w \<Colon> int)"
+
+instance
   by intro_classes (simp only: int_number_of_def)
 
-lemmas [code func del] = int_number_of_def
+end
 
 lemma number_of_is_id:
   "number_of (k::int) = k"

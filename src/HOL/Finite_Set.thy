@@ -2665,32 +2665,48 @@ lemma finite [simp]: "finite (A \<Colon> 'a\<Colon>finite set)"
 lemma univ_unit [noatp]:
   "UNIV = {()}" by auto
 
-instance unit :: finite
-  "Finite_Set.itself \<equiv> TYPE(unit)"
-proof
+instantiation unit :: finite
+begin
+
+definition
+  "itself = TYPE(unit)"
+
+instance proof
   have "finite {()}" by simp
   also note univ_unit [symmetric]
   finally show "finite (UNIV :: unit set)" .
 qed
+
+end
 
 lemmas [code func] = univ_unit
 
 lemma univ_bool [noatp]:
   "UNIV = {False, True}" by auto
 
-instance bool :: finite
-  "itself \<equiv> TYPE(bool)"
-proof
+instantiation bool :: finite
+begin
+
+definition
+  "itself = TYPE(bool)"
+
+instance proof
   have "finite {False, True}" by simp
   also note univ_bool [symmetric]
   finally show "finite (UNIV :: bool set)" .
 qed
 
+end
+
 lemmas [code func] = univ_bool
 
-instance * :: (finite, finite) finite
-  "itself \<equiv> TYPE('a \<times> 'b)"
-proof
+instantiation * :: (finite, finite) finite
+begin
+
+definition
+  "itself = TYPE('a \<times> 'b)"
+
+instance proof
   show "finite (UNIV :: ('a \<times> 'b) set)"
   proof (rule finite_Prod_UNIV)
     show "finite (UNIV :: 'a set)" by (rule finite)
@@ -2698,13 +2714,19 @@ proof
   qed
 qed
 
+end
+
 lemma univ_prod [noatp, code func]:
   "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) \<times> (UNIV \<Colon> 'b\<Colon>finite set)"
   unfolding UNIV_Times_UNIV ..
 
-instance "+" :: (finite, finite) finite
-  "itself \<equiv> TYPE('a + 'b)"
-proof
+instantiation "+" :: (finite, finite) finite
+begin
+
+definition
+  "itself = TYPE('a + 'b)"
+
+instance proof
   have a: "finite (UNIV :: 'a set)" by (rule finite)
   have b: "finite (UNIV :: 'b set)" by (rule finite)
   from a b have "finite ((UNIV :: 'a set) <+> (UNIV :: 'b set))"
@@ -2712,18 +2734,26 @@ proof
   thus "finite (UNIV :: ('a + 'b) set)" by simp
 qed
 
+end
+
 lemma univ_sum [noatp, code func]:
   "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) <+> (UNIV \<Colon> 'b\<Colon>finite set)"
   unfolding UNIV_Plus_UNIV ..
 
-instance set :: (finite) finite
-  "itself \<equiv> TYPE('a set)"
-proof
+instantiation set :: (finite) finite
+begin
+
+definition
+  "itself = TYPE('a set)"
+
+instance proof
   have "finite (UNIV :: 'a set)" by (rule finite)
   hence "finite (Pow (UNIV :: 'a set))"
     by (rule finite_Pow_iff [THEN iffD2])
   thus "finite (UNIV :: 'a set set)" by simp
 qed
+
+end
 
 lemma univ_set [noatp, code func]:
   "UNIV = Pow (UNIV \<Colon> 'a\<Colon>finite set)" unfolding Pow_UNIV ..
@@ -2731,9 +2761,13 @@ lemma univ_set [noatp, code func]:
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
 
-instance "fun" :: (finite, finite) finite
+instantiation "fun" :: (finite, finite) finite
+begin
+
+definition
   "itself \<equiv> TYPE('a \<Rightarrow> 'b)"
-proof
+
+instance proof
   show "finite (UNIV :: ('a => 'b) set)"
   proof (rule finite_imageD)
     let ?graph = "%f::'a => 'b. {(x, y). y = f x}"
@@ -2741,6 +2775,8 @@ proof
     show "inj ?graph" by (rule inj_graph)
   qed
 qed
+
+end
 
 hide (open) const itself
 

@@ -54,8 +54,15 @@ where
 
 end
 
-instance real :: scaleR
-  real_scaleR_def [simp]: "scaleR a x \<equiv> a * x" ..
+instantiation real :: scaleR
+begin
+
+definition
+  real_scaleR_def [simp]: "scaleR a x = a * x"
+
+instance ..
+
+end
 
 class real_vector = scaleR + ab_group_add +
   assumes scaleR_right_distrib: "scaleR a (x + y) = scaleR a x + scaleR a y"
@@ -371,8 +378,15 @@ subsection {* Real normed vector spaces *}
 class norm = type +
   fixes norm :: "'a \<Rightarrow> real"
 
-instance real :: norm
-  real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>" ..
+instantiation real :: norm
+begin
+
+definition
+  real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>"
+
+instance ..
+
+end
 
 class sgn_div_norm = scaleR + norm + sgn +
   assumes sgn_div_norm: "sgn x = x /\<^sub>R norm x"

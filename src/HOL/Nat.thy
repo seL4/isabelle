@@ -139,20 +139,30 @@ theorem diff_induct: "(!!x. P x 0) ==> (!!y. P 0 (Suc y)) ==>
 
 subsection {* Arithmetic operators *}
 
-instance nat :: "{one, plus, minus, times}"
-  One_nat_def [simp]: "1 == Suc 0" ..
+instantiation nat :: "{one, plus, minus, times}"
+begin
 
-primrec
-  add_0:    "0 + n = n"
-  add_Suc:  "Suc m + n = Suc (m + n)"
+definition
+  One_nat_def [simp]: "1 = Suc 0"
 
-primrec
-  diff_0:   "m - 0 = m"
-  diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
+primrec plus_nat
+where
+  add_0:      "0 + n = (n\<Colon>nat)"
+  | add_Suc:  "Suc m + n = Suc (m + n)"
 
-primrec
-  mult_0:   "0 * n = 0"
-  mult_Suc: "Suc m * n = n + (m * n)"
+primrec minus_nat
+where
+  diff_0:     "m - 0 = (m\<Colon>nat)"
+  | diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
+
+primrec times_nat
+where
+  mult_0:     "0 * n = (0\<Colon>nat)"
+  | mult_Suc: "Suc m * n = n + (m * n)"
+
+instance ..
+
+end
 
 
 subsection {* Orders on @{typ nat} *}
@@ -340,9 +350,6 @@ lemma less_trans_Suc:
   apply (simp add: less_Suc_eq)
   apply (blast dest: Suc_lessD)
   done
-
-lemma [code]: "((n::nat) < 0) = False" by simp
-lemma [code]: "(0 < Suc n) = True" by simp
 
 text {* Can be used with @{text less_Suc_eq} to get @{term "n = m | n < m"} *}
 lemma not_less_eq: "(~ m < n) = (n < Suc m)"
@@ -620,6 +627,13 @@ lemma Suc_pred [simp]: "n>0 ==> Suc (n - Suc 0) = n"
 by (simp split add: nat.split)
 
 declare diff_Suc [simp del, code del]
+
+lemma [code]:
+  "(0\<Colon>nat) \<le> m \<longleftrightarrow> True"
+  "Suc (n\<Colon>nat) \<le> m \<longleftrightarrow> n < m"
+  "(n\<Colon>nat) < 0 \<longleftrightarrow> False"
+  "(n\<Colon>nat) < Suc m \<longleftrightarrow> n \<le> m"
+  using Suc_le_eq less_Suc_eq_le by simp_all
 
 
 subsection {* Addition *}
@@ -1141,16 +1155,6 @@ lemma size_bool [code func]:
 declare "*.size" [noatp]
 
 
-subsection {* Code generator setup *}
-
-lemma [code func]:
-  "(0\<Colon>nat) \<le> m \<longleftrightarrow> True"
-  "Suc (n\<Colon>nat) \<le> m \<longleftrightarrow> n < m"
-  "(n\<Colon>nat) < 0 \<longleftrightarrow> False"
-  "(n\<Colon>nat) < Suc m \<longleftrightarrow> n \<le> m"
-  using Suc_le_eq less_Suc_eq_le by simp_all
-
-
 subsection {* Embedding of the Naturals into any
   @{text semiring_1}: @{term of_nat} *}
 
@@ -1162,7 +1166,6 @@ primrec
 where
   of_nat_0:     "of_nat 0 = 0"
   | of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
-declare of_nat.simps [code]
 
 lemma of_nat_1 [simp]: "of_nat 1 = 1"
   by simp

@@ -15,11 +15,20 @@ class div = times +
   fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "div" 70)
   fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "mod" 70)
 
-instance nat :: Divides.div
+instantiation nat :: Divides.div
+begin
+
+definition
   div_def: "m div n == wfrec (pred_nat^+)
                           (%f j. if j<n | n=0 then 0 else Suc (f (j-n))) m"
+
+definition
   mod_def: "m mod n == wfrec (pred_nat^+)
-                          (%f j. if j<n | n=0 then j else f (j-n)) m" ..
+                          (%f j. if j<n | n=0 then j else f (j-n)) m"
+
+instance ..
+
+end
 
 definition (in div)
   dvd  :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50)

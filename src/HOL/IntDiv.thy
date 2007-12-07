@@ -62,9 +62,18 @@ where
                   if 0<b then negDivAlg a b
                   else negateSnd (posDivAlg (-a) (-b))))"
 
-instance int :: Divides.div
-  div_def: "a div b == fst (divAlg (a, b))"
-  mod_def: "a mod b == snd (divAlg (a, b))" ..
+instantiation int :: Divides.div
+begin
+
+definition
+  div_def: "a div b = fst (divAlg (a, b))"
+
+definition
+  mod_def: "a mod b = snd (divAlg (a, b))"
+
+instance ..
+
+end
 
 lemma divAlg_mod_div:
   "divAlg (p, q) = (p div q, p mod q)"

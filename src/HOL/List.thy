@@ -109,7 +109,6 @@ primrec
 where
   append_Nil:"[] @ ys = ys"
   | append_Cons: "(x#xs) @ ys = x # xs @ ys"
-declare append.simps [code]
 
 primrec
   "rev([]) = []"
@@ -2691,9 +2690,16 @@ end
 
 text{* The integers are an instance of the above class: *}
 
-instance int:: finite_intvl_succ
-  successor_int_def: "successor == (%i\<Colon>int. i+1)"
-by intro_classes (simp_all add: successor_int_def)
+instantiation int:: finite_intvl_succ
+begin
+
+definition
+  successor_int_def: "successor = (%i\<Colon>int. i+1)"
+
+instance
+  by intro_classes (simp_all add: successor_int_def)
+
+end
 
 text{* Now @{term"[i..j::int]"} is defined for integers. *}
 
@@ -3178,7 +3184,6 @@ primrec
 where 
   "x mem [] \<longleftrightarrow> False"
   | "x mem (y#ys) \<longleftrightarrow> (if y = x then True else x mem ys)"
-declare member.simps [code]
 
 primrec
   "null [] = True"

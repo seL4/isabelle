@@ -11,45 +11,137 @@ begin
 
 subsection {* Syntactic classes *}
 
-instance star :: (zero) zero
-  star_zero_def:    "0 \<equiv> star_of 0" ..
+instantiation star :: (zero) zero
+begin
 
-instance star :: (one) one
-  star_one_def:     "1 \<equiv> star_of 1" ..
+definition
+  star_zero_def:    "0 \<equiv> star_of 0"
 
-instance star :: (plus) plus
-  star_add_def:     "(op +) \<equiv> *f2* (op +)" ..
+instance ..
 
-instance star :: (times) times
-  star_mult_def:    "(op *) \<equiv> *f2* (op *)" ..
+end
 
-instance star :: (minus) minus
+instantiation star :: (one) one
+begin
+
+definition
+  star_one_def:     "1 \<equiv> star_of 1"
+
+instance ..
+
+end
+
+instantiation star :: (plus) plus
+begin
+
+definition
+  star_add_def:     "(op +) \<equiv> *f2* (op +)"
+
+instance ..
+
+end
+
+instantiation star :: (times) times
+begin
+
+definition
+  star_mult_def:    "(op *) \<equiv> *f2* (op *)"
+
+instance ..
+
+end
+
+instantiation star :: (minus) minus
+begin
+
+definition
   star_minus_def:   "uminus \<equiv> *f* uminus"
-  star_diff_def:    "(op -) \<equiv> *f2* (op -)" ..
 
-instance star :: (abs) abs
-  star_abs_def:     "abs \<equiv> *f* abs" ..
+definition
+  star_diff_def:    "(op -) \<equiv> *f2* (op -)"
 
-instance star :: (sgn) sgn
-  star_sgn_def:     "sgn \<equiv> *f* sgn" ..
+instance ..
 
-instance star :: (inverse) inverse
+end
+
+instantiation star :: (abs) abs
+begin
+
+definition
+  star_abs_def:     "abs \<equiv> *f* abs"
+
+instance ..
+
+end
+
+instantiation star :: (sgn) sgn
+begin
+
+definition
+  star_sgn_def:     "sgn \<equiv> *f* sgn"
+
+instance ..
+
+end
+
+instantiation star :: (inverse) inverse
+begin
+
+definition
   star_divide_def:  "(op /) \<equiv> *f2* (op /)"
-  star_inverse_def: "inverse \<equiv> *f* inverse" ..
 
-instance star :: (number) number
-  star_number_def:  "number_of b \<equiv> star_of (number_of b)" ..
+definition
+  star_inverse_def: "inverse \<equiv> *f* inverse"
 
-instance star :: (Divides.div) Divides.div
+instance ..
+
+end
+
+instantiation star :: (number) number
+begin
+
+definition
+  star_number_def:  "number_of b \<equiv> star_of (number_of b)"
+
+instance ..
+
+end
+
+instantiation star :: (Divides.div) Divides.div
+begin
+
+definition
   star_div_def:     "(op div) \<equiv> *f2* (op div)"
-  star_mod_def:     "(op mod) \<equiv> *f2* (op mod)" ..
 
-instance star :: (power) power
-  star_power_def:   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x" ..
+definition
+  star_mod_def:     "(op mod) \<equiv> *f2* (op mod)"
 
-instance star :: (ord) ord
+instance ..
+
+end
+
+instantiation star :: (power) power
+begin
+
+definition
+  star_power_def:   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
+
+instance ..
+
+end
+
+instantiation star :: (ord) ord
+begin
+
+definition
   star_le_def:      "(op \<le>) \<equiv> *p2* (op \<le>)"
-  star_less_def:    "(op <) \<equiv> *p2* (op <)" ..
+
+definition
+  star_less_def:    "(op <) \<equiv> *p2* (op <)"
+
+instance ..
+
+end
 
 lemmas star_class_defs [transfer_unfold] =
   star_zero_def     star_one_def      star_number_def
@@ -220,13 +312,27 @@ apply (transfer, erule (1) order_trans)
 apply (transfer, erule (1) order_antisym)
 done
 
-instance star :: (lower_semilattice) lower_semilattice
+instantiation star :: (lower_semilattice) lower_semilattice
+begin
+
+definition
   star_inf_def [transfer_unfold]: "inf \<equiv> *f2* inf"
+
+instance
   by default (transfer star_inf_def, auto)+
 
-instance star :: (upper_semilattice) upper_semilattice
+end
+
+instantiation star :: (upper_semilattice) upper_semilattice
+begin
+
+definition
   star_sup_def [transfer_unfold]: "sup \<equiv> *f2* sup"
+
+instance
   by default (transfer star_sup_def, auto)+
+
+end
 
 instance star :: (lattice) lattice ..
 

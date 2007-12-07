@@ -22,34 +22,48 @@ typedef (Integ)
   int = "UNIV//intrel"
   by (auto simp add: quotient_def)
 
-instance int :: zero
-  Zero_int_def: "0 \<equiv> Abs_Integ (intrel `` {(0, 0)})" ..
+instantiation int :: "{zero, one, plus, minus, times, ord, abs, sgn}"
+begin
 
-instance int :: one
-  One_int_def: "1 \<equiv> Abs_Integ (intrel `` {(1, 0)})" ..
+definition
+  Zero_int_def [code func del]: "0 = Abs_Integ (intrel `` {(0, 0)})"
 
-instance int :: plus
-  add_int_def: "z + w \<equiv> Abs_Integ
+definition
+  One_int_def [code func del]: "1 = Abs_Integ (intrel `` {(1, 0)})"
+
+definition
+  add_int_def [code func del]: "z + w = Abs_Integ
     (\<Union>(x, y) \<in> Rep_Integ z. \<Union>(u, v) \<in> Rep_Integ w.
-      intrel `` {(x + u, y + v)})" ..
+      intrel `` {(x + u, y + v)})"
 
-instance int :: minus
-  minus_int_def:
-    "- z \<equiv> Abs_Integ (\<Union>(x, y) \<in> Rep_Integ z. intrel `` {(y, x)})"
-  diff_int_def:  "z - w \<equiv> z + (-w \<Colon> int)" ..
+definition
+  minus_int_def [code func del]:
+    "- z = Abs_Integ (\<Union>(x, y) \<in> Rep_Integ z. intrel `` {(y, x)})"
 
-instance int :: times
-  mult_int_def: "z * w \<equiv>  Abs_Integ
+definition
+  diff_int_def [code func del]:  "z - w = z + (-w \<Colon> int)"
+
+definition
+  mult_int_def [code func del]: "z * w = Abs_Integ
     (\<Union>(x, y) \<in> Rep_Integ z. \<Union>(u,v ) \<in> Rep_Integ w.
-      intrel `` {(x*u + y*v, x*v + y*u)})" ..
+      intrel `` {(x*u + y*v, x*v + y*u)})"
 
-instance int :: ord
-  le_int_def:
-   "z \<le> w \<equiv> \<exists>x y u v. x+v \<le> u+y \<and> (x, y) \<in> Rep_Integ z \<and> (u, v) \<in> Rep_Integ w"
-  less_int_def: "(z\<Colon>int) < w \<equiv> z \<le> w \<and> z \<noteq> w" ..
+definition
+  le_int_def [code func del]:
+   "z \<le> w \<longleftrightarrow> (\<exists>x y u v. x+v \<le> u+y \<and> (x, y) \<in> Rep_Integ z \<and> (u, v) \<in> Rep_Integ w)"
 
-lemmas [code func del] = Zero_int_def One_int_def add_int_def
-  minus_int_def mult_int_def le_int_def less_int_def
+definition
+  less_int_def [code func del]: "(z\<Colon>int) < w \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
+
+definition
+  zabs_def: "\<bar>i\<Colon>int\<bar> = (if i < 0 then - i else i)"
+
+definition
+  zsgn_def: "sgn (i\<Colon>int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
+
+instance ..
+
+end
 
 
 subsection{*Construction of the Integers*}
@@ -212,16 +226,20 @@ apply (drule zero_less_imp_eq_int)
 apply (auto simp add: zmult_zless_mono2_lemma)
 done
 
-instance int :: abs
-  zabs_def: "\<bar>i\<Colon>int\<bar> \<equiv> if i < 0 then - i else i" ..
-instance int :: sgn
-  zsgn_def: "sgn(i\<Colon>int) \<equiv> (if i=0 then 0 else if 0<i then 1 else - 1)" ..
+instantiation int :: distrib_lattice
+begin
 
-instance int :: distrib_lattice
-  "inf \<Colon> int \<Rightarrow> int \<Rightarrow> int \<equiv> min"
-  "sup \<Colon> int \<Rightarrow> int \<Rightarrow> int \<equiv> max"
+definition
+  "(inf \<Colon> int \<Rightarrow> int \<Rightarrow> int) = min"
+
+definition
+  "(sup \<Colon> int \<Rightarrow> int \<Rightarrow> int) = max"
+
+instance
   by intro_classes
     (auto simp add: inf_int_def sup_int_def min_max.sup_inf_distrib1)
+
+end
 
 text{*The integers form an ordered integral domain*}
 instance int :: ordered_idom
@@ -744,7 +762,7 @@ lemmas int_Suc = of_nat_Suc [where 'a=int]
 lemmas abs_int_eq = abs_of_nat [where 'a=int and n="m", standard]
 lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
-lemmas zless_le = less_int_def [THEN meta_eq_to_obj_eq]
+lemmas zless_le = less_int_def
 lemmas int_eq_of_nat = TrueI
 
 abbreviation

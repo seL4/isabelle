@@ -16,11 +16,18 @@ abbreviation
   odd :: "'a\<Colon>even_odd \<Rightarrow> bool" where
   "odd x \<equiv> \<not> even x"
 
-instance int :: even_odd
-  even_def[presburger]: "even x \<equiv> (x\<Colon>int) mod 2 = 0" ..
+instantiation int and nat :: even_odd
+begin
 
-instance nat :: even_odd
-  even_nat_def[presburger]: "even x \<equiv> even (int x)" ..
+definition
+  even_def [presburger]: "even x \<longleftrightarrow> (x\<Colon>int) mod 2 = 0"
+
+definition
+  even_nat_def [presburger]: "even x \<longleftrightarrow> even (int x)"
+
+instance ..
+
+end
 
 
 subsection {* Even and odd are mutually exclusive *}

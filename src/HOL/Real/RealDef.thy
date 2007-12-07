@@ -25,48 +25,54 @@ definition
   real_of_preal :: "preal => real" where
   "real_of_preal m = Abs_Real(realrel``{(m + 1, 1)})"
 
-instance real :: zero
-  real_zero_def: "0 == Abs_Real(realrel``{(1, 1)})" ..
-lemmas [code func del] = real_zero_def
+instantiation real :: "{zero, one, plus, minus, times, inverse, ord, abs, sgn}"
+begin
 
-instance real :: one
-  real_one_def: "1 == Abs_Real(realrel``{(1 + 1, 1)})" ..
-lemmas [code func del] = real_one_def
+definition
+  real_zero_def [code func del]: "0 = Abs_Real(realrel``{(1, 1)})"
 
-instance real :: plus
-  real_add_def: "z + w ==
+definition
+  real_one_def [code func del]: "1 = Abs_Real(realrel``{(1 + 1, 1)})"
+
+definition
+  real_add_def [code func del]: "z + w =
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
-		 { Abs_Real(realrel``{(x+u, y+v)}) })" ..
-lemmas [code func del] = real_add_def
+		 { Abs_Real(realrel``{(x+u, y+v)}) })"
 
-instance real :: minus
-  real_minus_def: "- r ==  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
-  real_diff_def: "r - (s::real) == r + - s" ..
-lemmas [code func del] = real_minus_def real_diff_def
+definition
+  real_minus_def [code func del]: "- r =  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
 
-instance real :: times
-  real_mult_def:
-    "z * w ==
+definition
+  real_diff_def [code func del]: "r - (s::real) = r + - s"
+
+definition
+  real_mult_def [code func del]:
+    "z * w =
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
-		 { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })" ..
-lemmas [code func del] = real_mult_def
+		 { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })"
 
-instance real :: inverse
-  real_inverse_def: "inverse (R::real) == (THE S. (R = 0 & S = 0) | S * R = 1)"
-  real_divide_def: "R / (S::real) == R * inverse S" ..
-lemmas [code func del] = real_inverse_def real_divide_def
+definition
+  real_inverse_def [code func del]: "inverse (R::real) = (THE S. (R = 0 & S = 0) | S * R = 1)"
 
-instance real :: ord
-  real_le_def: "z \<le> (w::real) == 
-    \<exists>x y u v. x+v \<le> u+y & (x,y) \<in> Rep_Real z & (u,v) \<in> Rep_Real w"
-  real_less_def: "(x < (y::real)) == (x \<le> y & x \<noteq> y)" ..
-lemmas [code func del] = real_le_def real_less_def
+definition
+  real_divide_def [code func del]: "R / (S::real) = R * inverse S"
 
-instance real :: abs
-  real_abs_def:  "abs (r::real) == (if r < 0 then - r else r)" ..
+definition
+  real_le_def [code func del]: "z \<le> (w::real) \<longleftrightarrow>
+    (\<exists>x y u v. x+v \<le> u+y & (x,y) \<in> Rep_Real z & (u,v) \<in> Rep_Real w)"
 
-instance real :: sgn
-  real_sgn_def: "sgn (x::real) == (if x=0 then 0 else if 0<x then 1 else - 1)" ..
+definition
+  real_less_def [code func del]: "x < (y\<Colon>real) \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
+
+definition
+  real_abs_def:  "abs (r::real) = (if r < 0 then - r else r)"
+
+definition
+  real_sgn_def: "sgn (x::real) = (if x=0 then 0 else if 0<x then 1 else - 1)"
+
+instance ..
+
+end
 
 subsection {* Equivalence relation over positive reals *}
 
@@ -400,10 +406,19 @@ apply (drule real_mult_order, assumption)
 apply (simp add: right_distrib)
 done
 
-instance real :: distrib_lattice
-  "inf \<Colon> real \<Rightarrow> real \<Rightarrow> real \<equiv> min"
-  "sup \<Colon> real \<Rightarrow> real \<Rightarrow> real \<equiv> max"
+instantiation real :: distrib_lattice
+begin
+
+definition
+  "(inf \<Colon> real \<Rightarrow> real \<Rightarrow> real) = min"
+
+definition
+  "(sup \<Colon> real \<Rightarrow> real \<Rightarrow> real) = max"
+
+instance
   by default (auto simp add: inf_real_def sup_real_def min_max.sup_inf_distrib1)
+
+end
 
 
 subsection{*The Reals Form an Ordered Field*}
@@ -833,9 +848,16 @@ done
 
 subsection{*Numerals and Arithmetic*}
 
-instance real :: number_ring
-  real_number_of_def: "number_of w \<equiv> real_of_int w"
+instantiation real :: number_ring
+begin
+
+definition
+  real_number_of_def: "number_of w = real_of_int w"
+
+instance
   by intro_classes (simp add: real_number_of_def)
+
+end
 
 lemma [code, code unfold]:
   "number_of k = real_of_int (number_of k)"

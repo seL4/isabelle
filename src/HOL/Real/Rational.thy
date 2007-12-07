@@ -163,60 +163,72 @@ lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
 
 subsubsection {* Standard operations on rational numbers *}
 
-instance rat :: zero
-  Zero_rat_def: "0 == Fract 0 1" ..
-lemmas [code func del] = Zero_rat_def
+instantiation rat :: "{zero, one, plus, minus, times, inverse, ord, abs, sgn}"
+begin
 
-instance rat :: one
-  One_rat_def: "1 == Fract 1 1" ..
-lemmas [code func del] = One_rat_def
+definition
+  Zero_rat_def [code func del]: "0 = Fract 0 1"
 
-instance rat :: plus
-  add_rat_def:
-   "q + r ==
+definition
+  One_rat_def [code func del]: "1 = Fract 1 1"
+
+definition
+  add_rat_def [code func del]:
+   "q + r =
        Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
-           ratrel``{(fst x * snd y + fst y * snd x, snd x * snd y)})" ..
-lemmas [code func del] = add_rat_def
+           ratrel``{(fst x * snd y + fst y * snd x, snd x * snd y)})"
 
-instance rat :: minus
-  minus_rat_def:
-    "- q == Abs_Rat (\<Union>x \<in> Rep_Rat q. ratrel``{(- fst x, snd x)})"
-  diff_rat_def:  "q - r == q + - (r::rat)" ..
-lemmas [code func del] = minus_rat_def diff_rat_def
+definition
+  minus_rat_def [code func del]:
+    "- q = Abs_Rat (\<Union>x \<in> Rep_Rat q. ratrel``{(- fst x, snd x)})"
 
-instance rat :: times
-  mult_rat_def:
-   "q * r ==
+definition
+  diff_rat_def [code func del]: "q - r = q + - (r::rat)"
+
+definition
+  mult_rat_def [code func del]:
+   "q * r =
        Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
-           ratrel``{(fst x * fst y, snd x * snd y)})" ..
-lemmas [code func del] = mult_rat_def
+           ratrel``{(fst x * fst y, snd x * snd y)})"
 
-instance rat :: inverse
-  inverse_rat_def:
-    "inverse q ==
+definition
+  inverse_rat_def [code func del]:
+    "inverse q =
         Abs_Rat (\<Union>x \<in> Rep_Rat q.
             ratrel``{if fst x=0 then (0,1) else (snd x, fst x)})"
-  divide_rat_def:  "q / r == q * inverse (r::rat)" ..
-lemmas [code func del] = inverse_rat_def divide_rat_def
 
-instance rat :: ord
-  le_rat_def:
-   "q \<le> r == contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
+definition
+  divide_rat_def [code func del]: "q / r = q * inverse (r::rat)"
+
+definition
+  le_rat_def [code func del]:
+   "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
       {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
-  less_rat_def: "(z < (w::rat)) == (z \<le> w & z \<noteq> w)" ..
-lemmas [code func del] = le_rat_def less_rat_def
 
-instance rat :: abs
-  abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)" ..
+definition
+  less_rat_def [code func del]: "z < (w::rat) \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
 
-instance rat :: sgn
-  sgn_rat_def: "sgn(q::rat) == (if q=0 then 0 else if 0<q then 1 else - 1)" ..
+definition
+  abs_rat_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
 
-instance rat :: power ..
+definition
+  sgn_rat_def: "sgn (q::rat) = (if q=0 then 0 else if 0<q then 1 else - 1)"
 
-primrec (rat)
-  rat_power_0:   "q ^ 0       = 1"
-  rat_power_Suc: "q ^ (Suc n) = (q::rat) * (q ^ n)"
+instance ..
+
+end
+
+instantiation rat :: power
+begin
+
+primrec power_rat
+where
+  rat_power_0:     "q ^ 0       = (1\<Colon>rat)"
+  | rat_power_Suc: "q ^ (Suc n) = (q\<Colon>rat) * (q ^ n)"
+
+instance ..
+
+end
 
 theorem eq_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
   (Fract a b = Fract c d) = (a * d = c * b)"
@@ -361,10 +373,19 @@ proof
   }
 qed
 
-instance rat :: distrib_lattice
-  "inf \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat \<equiv> min"
-  "sup \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat \<equiv> max"
+instantiation rat :: distrib_lattice
+begin
+
+definition
+  "(inf \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat) = min"
+
+definition
+  "(sup \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat) = max"
+
+instance
   by default (auto simp add: min_max.sup_inf_distrib1 inf_rat_def sup_rat_def)
+
+end
 
 instance rat :: ordered_field
 proof
@@ -474,11 +495,16 @@ by (auto simp add: Fract_zero Fract_of_int_eq [symmetric] divide_rat)
 
 subsection {* Numerals and Arithmetic *}
 
-instance rat :: number
-  rat_number_of_def: "(number_of w :: rat) \<equiv> of_int w" ..
+instantiation rat :: number_ring
+begin
 
-instance rat :: number_ring
-  by default (simp add: rat_number_of_def) 
+definition
+  rat_number_of_def: "number_of w = (of_int w \<Colon> rat)"
+
+instance
+  by default (simp add: rat_number_of_def)
+
+end 
 
 use "rat_arith.ML"
 declaration {* K rat_arith_setup *}
@@ -488,7 +514,7 @@ subsection {* Embedding from Rationals to other Fields *}
 
 class field_char_0 = field + ring_char_0
 
-instance ordered_field < field_char_0 ..
+instance ordered_field < field_char_0 .. 
 
 definition
   of_rat :: "rat \<Rightarrow> 'a::field_char_0"
