@@ -43,6 +43,7 @@ sig
   val check_text: string * Position.T -> Toplevel.node option -> unit
   val scan: string -> OuterLex.token list
   val read: OuterLex.token list -> (string * OuterLex.token list * Toplevel.transition) list
+  val parse: Position.T -> string -> Toplevel.transition list
   val isar: bool -> unit Toplevel.isar
 end;
 
@@ -231,22 +232,29 @@ fun toplevel_source term do_trace do_recover cmd src =
   end;
 
 
-(* scan text *)
+(* off-line scanning/parsing *)
 
+(*tokens*)
 fun scan str =
   Source.of_string str
   |> Symbol.source false
   |> T.source (SOME false) get_lexicons Position.none
   |> Source.exhaust;
 
-
-(* read tokens with trace *)
-
+(*commands from tokens, with trace*)
 fun read toks =
   Source.of_list toks
-  |> toplevel_source false true (SOME false) get_parser
+  |> toplevel_source false true NONE get_parser
   |> Source.exhaust
   |> map (fn tr => (Toplevel.name_of tr, the (Toplevel.source_of tr), tr));
+
+(*commands from string, without trace*)
+fun parse pos str =
+  Source.of_string str
+  |> Symbol.source false
+  |> T.source (SOME false) get_lexicons pos
+  |> toplevel_source false false NONE get_parser
+  |> Source.exhaust;
 
 
 (* interactive source of toplevel transformers *)
