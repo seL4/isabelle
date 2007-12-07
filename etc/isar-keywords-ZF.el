@@ -9,6 +9,7 @@
 (defconst isar-keywords-major
   '("\\."
     "\\.\\."
+    "Isabelle\\.command"
     "ML"
     "ML_command"
     "ML_setup"
@@ -246,7 +247,8 @@
     "where"))
 
 (defconst isar-keywords-control
-  '("ProofGeneral\\.inform_file_processed"
+  '("Isabelle\\.command"
+    "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
     "ProofGeneral\\.kill_proof"
     "ProofGeneral\\.process_pgip"

@@ -35,6 +35,7 @@
     <KEYWORDS>
       <OPERATOR>.</OPERATOR>
       <OPERATOR>..</OPERATOR>
+      <INVALID>Isabelle.command</INVALID>
       <LABEL>ML</LABEL>
       <LABEL>ML_command</LABEL>
       <OPERATOR>ML_setup</OPERATOR>
