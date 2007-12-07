@@ -7,9 +7,6 @@ A primitive instance command, based on instantiation target.
 
 signature INSTANCE =
 sig
-  val instantiate: string list * sort list * sort -> (local_theory -> 'a * local_theory)
-    -> (Proof.context -> 'a -> tactic) -> theory -> theory
-
   val instantiation_cmd: xstring list * sort * xstring -> theory -> local_theory
   val instance_cmd: xstring * sort * xstring -> ((bstring * Attrib.src list) * xstring) list
     -> theory -> Proof.state
@@ -28,13 +25,6 @@ fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
 
 fun instantiation_cmd raw_arities thy =
   TheoryTarget.instantiation (read_multi_arity thy raw_arities) thy;
-
-fun instantiate arities f tac =
-  TheoryTarget.instantiation arities
-  #> f
-  #-> (fn result => Class.prove_instantiation_instance (fn ctxt => tac ctxt result))
-  #> LocalTheory.exit
-  #> ProofContext.theory_of;
 
 fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities defs thy =
   let
@@ -56,6 +46,8 @@ fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities 
       let
         val def' = (apsnd o apsnd) (Syntax.check_prop ctxt) def;
       in Specification.definition def' ctxt end;
+    val _ = if not (null defs) then Output.legacy_feature
+      "Instance command with attached attached definitions; use instantiation instead." else ();
   in if not (null defs) orelse forall (Class.is_class thy) sort
   then
     thy

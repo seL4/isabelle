@@ -33,9 +33,13 @@ val Const (size_name, _) = HOLogic.size_const dummyT;
 val size_name_base = NameSpace.base size_name;
 val size_suffix = "_" ^ size_name_base;
 
-fun instance_size_class tyco thy = thy |> Instance.instantiate
-  ([tyco], replicate (Sign.arity_number thy tyco) HOLogic.typeS, [HOLogic.class_size])
-    (pair ()) ((K o K) (Class.intro_classes_tac []));
+fun instance_size_class tyco thy =
+  thy
+  |> TheoryTarget.instantiation
+       ([tyco], replicate (Sign.arity_number thy tyco) HOLogic.typeS, [HOLogic.class_size])
+  |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+  |> LocalTheory.exit
+  |> ProofContext.theory_of;
 
 fun plus (t1, t2) = Const ("HOL.plus_class.plus",
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;

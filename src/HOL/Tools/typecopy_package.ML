@@ -131,8 +131,10 @@ fun add_typecopy_spec tyco thy =
     thy
     |> Code.add_datatype [(constr, ty)]
     |> Code.add_func proj_def
-    |> Instance.instantiate ([tyco], sorts_eq, [HOLogic.class_eq]) (pair ())
-         ((K o K) (Class.intro_classes_tac []))
+    |> TheoryTarget.instantiation ([tyco], sorts_eq, [HOLogic.class_eq])
+    |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+    |> LocalTheory.exit
+    |> ProofContext.theory_of
     |> Code.add_func (CodeUnit.constrain_thm [HOLogic.class_eq] inject)
   end;
 

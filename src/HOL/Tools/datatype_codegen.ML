@@ -435,8 +435,10 @@ fun add_datatypes_equality vs dtcos thy =
       map (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq] o snd) vs;
   in
     thy
-    |> Instance.instantiate (dtcos, sorts_eq, [HOLogic.class_eq]) (pair ())
-         ((K o K) (Class.intro_classes_tac []))
+    |> TheoryTarget.instantiation (dtcos, sorts_eq, [HOLogic.class_eq])
+    |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+    |> LocalTheory.exit
+    |> ProofContext.theory_of
     |> fold add_eq_thms dtcos
   end;
 

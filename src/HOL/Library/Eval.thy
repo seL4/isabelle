@@ -40,8 +40,12 @@ let
       val ty = Type (tyco, map TFree (Name.names Name.context "'a" sorts));
     in
       thy
-      |> Instance.instantiate ([tyco], sorts, @{sort typ_of})
-           (define_typ_of ty) ((K o K) (Class.intro_classes_tac []))
+      |> TheoryTarget.instantiation ([tyco], sorts, @{sort typ_of})
+      |> define_typ_of ty
+      |> snd
+      |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+      |> LocalTheory.exit
+      |> ProofContext.theory_of
     end;
 in TypedefPackage.interpretation interpretator end
 *}
@@ -158,8 +162,12 @@ let
   fun interpretator tycos thy = case prep thy tycos
    of SOME (sorts, defs) =>
       thy
-      |> Instance.instantiate (tycos, sorts, @{sort term_of})
-           (primrec defs) ((K o K) (Class.intro_classes_tac []))
+      |> TheoryTarget.instantiation (tycos, sorts, @{sort term_of})
+      |> primrec defs
+      |> snd
+      |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+      |> LocalTheory.exit
+      |> ProofContext.theory_of
     | NONE => thy;
   in DatatypePackage.interpretation interpretator end
 *}
@@ -185,13 +193,20 @@ where
 by pat_completeness auto
 termination by (relation "measure (nat o abs)") (auto simp add: divAlg_mod_div)
 
-instance int :: term_of
-  "term_of k \<equiv> STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k" ..
+instantiation int :: term_of
+begin
+
+definition
+  "term_of k = STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k"
+
+instance ..
+
+end
 
 
 text {* Adaption for @{typ message_string}s *}
 
-lemmas [code func del] = term_of_messagestring.simps
+lemmas [code func del] = term_of_message_string.simps
 
 
 subsection {* Evaluation infrastructure *}
