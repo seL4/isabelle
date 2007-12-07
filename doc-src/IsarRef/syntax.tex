@@ -102,13 +102,16 @@ greek & = & \verb,\<alpha>, ~|~ \verb,\<beta>, ~|~ \verb,\<gamma>, ~|~ \verb,\<d
       &   & \verb,\<Upsilon>, ~|~ \verb,\<Phi>, ~|~ \verb,\<Psi>, ~|~ \verb,\<Omega>, \\
 \end{matharray}
 
-The syntax of $string$ admits any characters, including newlines; ``\verb|"|''
-(double-quote) and ``\verb|\|'' (backslash) need to be escaped by a backslash.
-Alternative strings according to $altstring$ are analogous, using single
-back-quotes instead.  The body of $verbatim$ may consist of any text not
-containing ``\verb|*}|''; this allows convenient inclusion of quotes without
-further escapes.  The greek letters do \emph{not} include \verb,\<lambda>,,
-which is already used differently in the meta-logic.
+The syntax of $string$ admits any characters, including newlines;
+``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash) need to be
+escaped by a backslash; arbitrary character codes may be specified as
+``\verb|\|$ddd$'', with 3 decimal digits as in SML.  Alternative
+strings according to $altstring$ are analogous, using single
+back-quotes instead.  The body of $verbatim$ may consist of any text
+not containing ``\verb|*}|''; this allows convenient inclusion of
+quotes without further escapes.  The greek letters do \emph{not}
+include \verb,\<lambda>,, which is already used differently in the
+meta-logic.
 
 Common mathematical symbols such as $\forall$ are represented in Isabelle as
 \verb,\<forall>,.  There are infinitely many legal symbols like this, although

@@ -6,8 +6,12 @@ New in this Isabelle version
 
 *** General ***
 
-* Symbol \<chi> is now considered a letter.  Potential INCOMPATIBILITY
-in identifier syntax etc.
+* Syntax: symbol \<chi> is now considered a letter.  Potential
+INCOMPATIBILITY in identifier syntax etc.
+
+* Outer syntax: string tokens may contain arbitrary character codes
+specified via 3 decimal digits (as in SML).  E.g. "foo\095bar" for
+"foo_bar".
 
 
 *** Pure ***

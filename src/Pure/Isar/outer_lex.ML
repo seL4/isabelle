@@ -220,10 +220,17 @@ fun is_sid "begin" = false
 
 local
 
+val char_code =
+  Scan.one Symbol.is_ascii_digit --
+  Scan.one Symbol.is_ascii_digit --
+  Scan.one Symbol.is_ascii_digit :|-- (fn ((a, b), c) =>
+    let val (n, _) = Library.read_int [a, b, c]
+    in if n <= 255 then Scan.succeed (chr n) else Scan.fail end);
+
 fun scan_str q =
   scan_blank ||
   keep_line ($$ "\\") |-- !!! "bad escape character in string"
-      (scan_blank || keep_line ($$ q || $$ "\\")) ||
+      (scan_blank || keep_line ($$ q || $$ "\\" || char_code)) ||
   keep_line (Scan.one (fn s => s <> q andalso s <> "\\" andalso Symbol.is_regular s));
 
 fun scan_strs q =
