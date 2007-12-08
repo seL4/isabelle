@@ -328,14 +328,14 @@ end;
 
 (* main loop *)
 
-fun gen_loop secure terminated =
+fun gen_loop secure do_terminate =
  (CRITICAL (fn () => ML_Context.set_context NONE);
-  Toplevel.loop secure (isar terminated));
+  Toplevel.loop secure (isar do_terminate));
 
-fun gen_main secure terminated =
+fun gen_main secure do_terminate =
  (Toplevel.init_state ();
   writeln (Session.welcome ());
-  gen_loop secure terminated);
+  gen_loop secure do_terminate);
 
 structure Isar =
 struct
@@ -354,7 +354,7 @@ struct
   fun loop () = gen_loop (Secure.is_secure ()) false;
   fun sync_main () = gen_main (Secure.is_secure ()) true;
   fun sync_loop () = gen_loop (Secure.is_secure ()) true;
-  fun secure_main () = gen_main true false;
+  fun secure_main () = gen_main true true;
   val toplevel = Toplevel.program;
 end;
 
