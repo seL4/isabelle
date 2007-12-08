@@ -15,6 +15,7 @@ public class IsabelleProcess {
     private volatile boolean closing = false;
     private LinkedBlockingQueue<String> output;
 
+
     /* exceptions */
     
     public static class IsabelleProcessException extends Exception {
@@ -27,13 +28,32 @@ public class IsabelleProcess {
     };
 
 
-    /* main result queue */
-    
-    public LinkedBlockingQueue<IsabelleResult> results;
+    /* results from the process */
 
-    private synchronized void putResult(IsabelleResult.Kind kind, String result) {
+    public static class Result {
+        public enum Kind {
+            STDOUT, STDERR, EXIT,                               // Posix results
+            WRITELN, PRIORITY, TRACING, WARNING, ERROR, DEBUG,  // Isabelle results
+            FAILURE                                             // process wrapper problem
+        };
+        public Kind kind;
+        public String result;
+    
+        public Result(Kind kind, String result) {
+            this.kind = kind;
+            this.result = result;
+        }
+    
+        public String toString() {
+            return this.kind.toString() + " [[" + this.result + "]]";
+        }
+    }
+
+    public LinkedBlockingQueue<Result> results;
+
+    private synchronized void putResult(Result.Kind kind, String result) {
         try {
-            results.put(new IsabelleResult(kind, result));
+            results.put(new Result(kind, result));
         } catch (InterruptedException exn) {  }
     }
 
@@ -103,14 +123,13 @@ public class IsabelleProcess {
                         outputWriter.close();    // FIXME timeout
                         outputWriter = null;
                     } else {
-                        System.err.println(s);
                         outputWriter.write(s);
                         outputWriter.flush();
                     }
                 } catch (InterruptedException exn) {
-                    putResult(IsabelleResult.Kind.FAILURE, "Cannot output: aborted");
+                    putResult(Result.Kind.FAILURE, "Cannot output: aborted");
                 } catch (IOException exn) {
-                    putResult(IsabelleResult.Kind.FAILURE, exn.getMessage());
+                    putResult(Result.Kind.FAILURE, exn.getMessage());
                 }
             }
         }
@@ -171,12 +190,12 @@ public class IsabelleProcess {
     {
         public void run()
         {
-            IsabelleResult.Kind kind = IsabelleResult.Kind.STDOUT;
+            Result.Kind kind = Result.Kind.STDOUT;
             StringBuffer buf = new StringBuffer(100);
 
             try {
                 while (inputReader != null) {
-                    if (kind == IsabelleResult.Kind.STDOUT && pid != null) {
+                    if (kind == Result.Kind.STDOUT && pid != null) {
                         // char mode
                         int c = 0;
                         while ((buf.length() == 0 || inputReader.ready()) &&
@@ -190,22 +209,22 @@ public class IsabelleProcess {
                         if (c == 2) {
                             c = inputReader.read();
                             switch (c) {
-                                case 'A': kind = IsabelleResult.Kind.WRITELN; break;
-                                case 'B': kind = IsabelleResult.Kind.PRIORITY; break;
-                                case 'C': kind = IsabelleResult.Kind.TRACING; break;
-                                case 'D': kind = IsabelleResult.Kind.WARNING; break;
-                                case 'E': kind = IsabelleResult.Kind.ERROR; break;
-                                case 'F': kind = IsabelleResult.Kind.DEBUG; break;
-                                default: kind = IsabelleResult.Kind.STDOUT; break;
+                                case 'A': kind = Result.Kind.WRITELN; break;
+                                case 'B': kind = Result.Kind.PRIORITY; break;
+                                case 'C': kind = Result.Kind.TRACING; break;
+                                case 'D': kind = Result.Kind.WARNING; break;
+                                case 'E': kind = Result.Kind.ERROR; break;
+                                case 'F': kind = Result.Kind.DEBUG; break;
+                                default: kind = Result.Kind.STDOUT; break;
                             }
                         }
                     } else {
                         // line mode
                         String line = null;
                         if ((line = inputReader.readLine()) != null) {
-                            if (pid == null && kind == IsabelleResult.Kind.STDOUT && line.startsWith("PID=")) {
+                            if (pid == null && kind == Result.Kind.STDOUT && line.startsWith("PID=")) {
                                 pid = line.substring("PID=".length());
-                            } else if (kind == IsabelleResult.Kind.STDOUT) {
+                            } else if (kind == Result.Kind.STDOUT) {
                                 buf.append(line);
                                 buf.append("\n");
                                 putResult(kind, buf.toString());
@@ -216,7 +235,7 @@ public class IsabelleProcess {
                                     buf.append(line.substring(0, len - 2));
                                     putResult(kind, buf.toString());
                                     buf = new StringBuffer(100);
-                                    kind = IsabelleResult.Kind.STDOUT;
+                                    kind = Result.Kind.STDOUT;
                                 } else {
                                     buf.append(line);
                                     buf.append("\n");
@@ -230,7 +249,7 @@ public class IsabelleProcess {
                     }
                 }
             } catch (IOException exn) {
-                putResult(IsabelleResult.Kind.FAILURE, exn.getMessage());
+                putResult(Result.Kind.FAILURE, exn.getMessage());
             }
             System.err.println("Input thread terminated");
         }
@@ -249,7 +268,7 @@ public class IsabelleProcess {
                         buf.append((char) c);
                     }
                     if (buf.length() > 0) {
-                        putResult(IsabelleResult.Kind.STDERR, buf.toString());
+                        putResult(Result.Kind.STDERR, buf.toString());
                     } else {
                         errorReader.close();
                         errorReader = null;
@@ -257,7 +276,7 @@ public class IsabelleProcess {
                     }
                 }
             } catch (IOException exn) {
-                putResult(IsabelleResult.Kind.FAILURE, exn.getMessage());
+                putResult(Result.Kind.FAILURE, exn.getMessage());
             }
             System.err.println("Error thread terminated");
         }
@@ -271,13 +290,13 @@ public class IsabelleProcess {
     {
         public void run()
         {
-            IsabelleResult result = null;
-            while (result == null || result.kind != IsabelleResult.Kind.EXIT) {
+            Result result = null;
+            while (result == null || result.kind != Result.Kind.EXIT) {
                 try {
                     result = results.take();
                     System.err.println(result.toString());
                 } catch (InterruptedException ex) {
-                    putResult(IsabelleResult.Kind.FAILURE, "Cannot interrupt: aborted");
+                    putResult(Result.Kind.FAILURE, "Cannot interrupt: aborted");
                 }
             }
             System.err.println("Console thread terminated");
@@ -300,7 +319,7 @@ public class IsabelleProcess {
             outputWriter = new BufferedWriter(new OutputStreamWriter(proc.getOutputStream(), charset));
             outputThread = new OutputThread();
 
-            results = new LinkedBlockingQueue<IsabelleResult>();
+            results = new LinkedBlockingQueue<Result>();
             inputReader = new BufferedReader(new InputStreamReader(proc.getInputStream(), charset));
             errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream(), charset));
             inputThread = new InputThread();
