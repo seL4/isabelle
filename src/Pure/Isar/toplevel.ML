@@ -36,6 +36,7 @@ sig
   val timing: bool ref
   val profiling: int ref
   val skip_proofs: bool ref
+  val crashes: exn list ref
   exception TERMINATE
   exception RESTART
   exception TOPLEVEL_ERROR
@@ -237,6 +238,7 @@ val interact = ref false;
 val timing = Output.timing;
 val profiling = ref 0;
 val skip_proofs = ref false;
+val crashes = ref ([]: exn list);
 
 exception TERMINATE;
 exception RESTART;
@@ -768,6 +770,9 @@ fun raw_loop secure src =
       NONE => (writeln "\nInterrupt."; raw_loop secure src)
     | SOME NONE => if secure then quit () else ()
     | SOME (SOME (tr, src')) => if >> tr orelse check_secure () then raw_loop secure src' else ())
+    handle exn => (CRITICAL (fn () => change crashes (cons exn));
+      warning "Recovering after Isar toplevel crash -- see also Toplevel.crashes";
+      raw_loop secure src)
   end;
 
 in
