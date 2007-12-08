@@ -162,7 +162,10 @@ fun text_of tok =
   else
     let
       val k = str_of_kind (kind_of tok);
-      val s = unparse tok;
+      val txt = unparse tok;
+      val s =
+        if can Symbol.explode txt
+        then txt else Output.escape_malformed txt;
     in
       if s = "" then (k, "")
       else if size s < 40 andalso not (exists_string (fn c => c = "\n") s) then (k ^ " " ^ s, "")
