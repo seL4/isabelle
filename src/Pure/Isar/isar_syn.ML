@@ -753,8 +753,8 @@ val _ =
     (P.position P.string :|-- (fn (str, pos) =>
       (case OuterSyntax.parse pos str of
         [transition] => Scan.succeed (K transition)
-      | _ => Scan.fail_with (K "exactly one nested Isabelle command expected"))
-      handle ERROR msg => Scan.fail_with (K ("malformed nested command\n" ^ msg))));
+      | _ => Scan.fail_with (K "exactly one nested command expected"))
+      handle ERROR msg => Scan.fail_with (K ("malformed command\n" ^ msg))));
 
 
 
