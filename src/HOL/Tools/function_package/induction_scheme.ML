@@ -1,3 +1,9 @@
+(*  Title:      HOL/Tools/function_package/induction_scheme.ML
+    ID:         $Id$
+    Author:     Alexander Krauss, TU Muenchen
+
+A method to prove induction schemes.
+*)
 
 signature INDUCTION_SCHEME =
 sig
@@ -219,8 +225,6 @@ fun mk_ind_tac ctxt facts = (ALLGOALS (Method.insert_tac facts)) THEN HEADGOAL
                  
     val scheme = mk_scheme' ctxt' cases' Psum
 
-(*    val _ = sys_error (PolyML.makestring scheme)*)
-                 
     val cert = cterm_of thy
 
     val R = Free ("R", mk_relT ST)
@@ -240,12 +244,7 @@ fun mk_ind_tac ctxt facts = (ALLGOALS (Method.insert_tac facts)) THEN HEADGOAL
         end
           
     val case_exp = cert (SumTree.mk_sumcases HOLogic.boolT (map mk_P PTss))
- 
     val acases = map (assume o cert) cases
-  (*
-    val _ = sys_error (ProofContext.string_of_thm ctxt indthm)
-    val _ = sys_error (cat_lines (map (ProofContext.string_of_thm ctxt) acases))
-   *)
     val indthm' = indthm |> forall_elim case_exp
                          |> full_simplify SumTree.sumcase_split_ss
                          |> fold Thm.elim_implies acases
