@@ -7,7 +7,7 @@
 header {* A Basis for Building the Theory of Lists *}
 
 theory PreList
-imports ATP_Linkup
+imports Record Presburger SAT Recdef Extraction Relation_Power
 begin
 
 text {*

@@ -7,7 +7,7 @@
 header{* The Isabelle-ATP Linkup *}
 
 theory ATP_Linkup
-imports Divides Record Hilbert_Choice Presburger Relation_Power SAT Recdef Extraction 
+imports PreList Hilbert_Choice
    (*It must be a parent or a child of every other theory, to prevent theory-merge errors.*)
 uses
   "Tools/polyhash.ML"
