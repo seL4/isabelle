@@ -8,7 +8,7 @@
 header {* Boolean Algebras *}
 
 theory Boolean_Algebra
-imports Main
+imports PreList
 begin
 
 locale boolean =

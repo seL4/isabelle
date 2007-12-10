@@ -6,7 +6,7 @@
 header {* Infinite Sets and Related Concepts *}
 
 theory Infinite_Set
-imports Main
+imports PreList Hilbert_Choice
 begin
 
 subsection "Infinite Sets"

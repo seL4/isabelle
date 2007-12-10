@@ -6,7 +6,7 @@
 header {* Operations on sets and functions *}
 
 theory SetsAndFunctions
-imports Main
+imports PreList
 begin
 
 text {*
@@ -17,39 +17,98 @@ calculations. See the comments at the top of theory @{text BigO}.
 
 subsection {* Basic definitions *}
 
-instance set :: (plus) plus ..
-instance "fun" :: (type, plus) plus ..
+instantiation set :: (plus) plus
+begin
 
-defs (overloaded)
-  func_plus: "f + g == (%x. f x + g x)"
+definition
   set_plus: "A + B == {c. EX a:A. EX b:B. c = a + b}"
 
-instance set :: (times) times ..
-instance "fun" :: (type, times) times ..
+instance ..
 
-defs (overloaded)
-  func_times: "f * g == (%x. f x * g x)"
+end
+
+instantiation "fun" :: (type, plus) plus
+begin
+
+definition
+  func_plus: "f + g == (%x. f x + g x)"
+
+instance ..
+
+end
+
+instantiation set :: (times) times
+begin
+
+definition
   set_times:"A * B == {c. EX a:A. EX b:B. c = a * b}"
 
-instance "fun" :: (type, minus) minus ..
+instance ..
 
-defs (overloaded)
+end
+
+instantiation "fun" :: (type, times) times
+begin
+
+definition
+  func_times: "f * g == (%x. f x * g x)"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, minus) minus
+begin
+
+definition
   func_minus: "- f == (%x. - f x)"
+
+definition
   func_diff: "f - g == %x. f x - g x"
 
-instance "fun" :: (type, zero) zero ..
-instance set :: (zero) zero ..
+instance ..
 
-defs (overloaded)
-  func_zero: "0::(('a::type) => ('b::zero)) == %x. 0"
+end
+
+instantiation set :: (zero) zero
+begin
+
+definition
   set_zero: "0::('a::zero)set == {0}"
 
-instance "fun" :: (type, one) one ..
-instance set :: (one) one ..
+instance ..
 
-defs (overloaded)
-  func_one: "1::(('a::type) => ('b::one)) == %x. 1"
+end
+
+instantiation "fun" :: (type, zero) zero
+begin
+
+definition
+  func_zero: "0::(('a::type) => ('b::zero)) == %x. 0"
+
+instance ..
+
+end
+
+instantiation set :: (one) one
+begin
+
+definition
   set_one: "1::('a::one)set == {1}"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, one) one
+begin
+
+definition
+  func_one: "1::(('a::type) => ('b::one)) == %x. 1"
+
+instance ..
+
+end
 
 definition
   elt_set_plus :: "'a::plus => 'a set => 'a set"  (infixl "+o" 70) where

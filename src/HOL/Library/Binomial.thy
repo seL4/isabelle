@@ -7,7 +7,7 @@
 header {* Binomial Coefficients *}
 
 theory Binomial
-imports Main
+imports PreList
 begin
 
 text {* This development is based on the work of Andy Gordon and

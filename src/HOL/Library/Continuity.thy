@@ -6,7 +6,7 @@
 header {* Continuity and iterations (of set transformers) *}
 
 theory Continuity
-imports Main
+imports PreList
 begin
 
 subsection {* Continuity for complete lattices *}

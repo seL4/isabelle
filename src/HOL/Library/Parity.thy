@@ -6,7 +6,7 @@
 header {* Even and Odd for int and nat *}
 
 theory Parity
-imports Main
+imports PreList
 begin
 
 class even_odd = type + 

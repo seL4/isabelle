@@ -7,7 +7,7 @@
 header {* Zorn's Lemma *}
 
 theory Zorn
-imports Main
+imports PreList Hilbert_Choice
 begin
 
 text{*

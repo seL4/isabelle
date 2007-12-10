@@ -6,7 +6,7 @@
 header {* A simple term evaluation mechanism *}
 
 theory Eval
-imports Main Pure_term
+imports PreList Pure_term
 begin
 
 subsection {* @{text typ_of} class *}

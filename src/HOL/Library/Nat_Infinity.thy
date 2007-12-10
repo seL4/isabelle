@@ -6,7 +6,7 @@
 header {* Natural numbers with infinity *}
 
 theory Nat_Infinity
-imports Main
+imports PreList
 begin
 
 subsection "Definitions"
@@ -25,18 +25,27 @@ notation (xsymbols)
 notation (HTML output)
   Infty  ("\<infinity>")
 
-instance inat :: "{ord, zero}" ..
-
 definition
   iSuc :: "inat => inat" where
   "iSuc i = (case i of Fin n => Fin (Suc n) | \<infinity> => \<infinity>)"
 
-defs (overloaded)
+instantiation inat :: "{ord, zero}"
+begin
+
+definition
   Zero_inat_def: "0 == Fin 0"
+
+definition
   iless_def: "m < n ==
     case m of Fin m1 => (case n of Fin n1 => m1 < n1 | \<infinity> => True)
     | \<infinity>  => False"
+
+definition
   ile_def: "(m::inat) \<le> n == \<not> (n < m)"
+
+instance ..
+
+end
 
 lemmas inat_defs = Zero_inat_def iSuc_def iless_def ile_def
 lemmas inat_splits = inat.split inat.split_asm

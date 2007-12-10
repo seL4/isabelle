@@ -7,7 +7,7 @@
 header {* The Greatest Common Divisor *}
 
 theory GCD
-imports Main
+imports PreList
 begin
 
 text {*

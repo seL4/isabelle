@@ -5,7 +5,9 @@
 
 header "Ramsey's Theorem"
 
-theory Ramsey imports Main Infinite_Set begin
+theory Ramsey
+imports PreList Infinite_Set
+begin
 
 subsection {* Preliminaries *}
 

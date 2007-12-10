@@ -6,7 +6,7 @@
 header {* Order on product types *}
 
 theory Product_ord
-imports Main
+imports PreList
 begin
 
 instantiation "*" :: (ord, ord) ord
