@@ -12,7 +12,7 @@ which is FOL/ex/LocaleTest.thy
 header {* Test of Locale Interpretation *}
 
 theory LocaleTest2
-imports GCD
+imports Main GCD
 begin
 
 section {* Interpretation of Defined Concepts *}

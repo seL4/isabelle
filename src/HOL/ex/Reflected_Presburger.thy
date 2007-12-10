@@ -1,5 +1,5 @@
 theory Reflected_Presburger
-imports GCD Efficient_Nat
+imports Main GCD Efficient_Nat
 uses ("coopereif.ML") ("coopertac.ML")
 begin
 

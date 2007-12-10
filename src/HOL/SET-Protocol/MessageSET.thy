@@ -5,7 +5,9 @@
 
 header{*The Message Theory, Modified for SET*}
 
-theory MessageSET imports NatPair begin
+theory MessageSET
+imports Main NatPair
+begin
 
 subsection{*General Lemmas*}
 

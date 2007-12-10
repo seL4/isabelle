@@ -6,7 +6,7 @@
 header {* Big O notation *}
 
 theory BigO
-imports SetsAndFunctions
+imports Main SetsAndFunctions
 begin
 
 text {*

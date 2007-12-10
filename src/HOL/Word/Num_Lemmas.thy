@@ -5,7 +5,9 @@
 
 header {* Useful Numerical Lemmas *}
 
-theory Num_Lemmas imports Parity begin
+theory Num_Lemmas
+imports Main Parity
+begin
 
 lemma contentsI: "y = {x} ==> contents y = x" 
   unfolding contents_def by auto
