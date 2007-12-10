@@ -7,7 +7,7 @@
 header {* Evaluation Oracle with ML witnesses *}
 
 theory Eval_Witness
-imports Main
+imports List
 begin
 
 text {* 
