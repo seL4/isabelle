@@ -33,7 +33,7 @@ fun code_depgr thy [] = CodeFuncgr.make thy []
       in
         gr
         |> Graph.subgraph (member (op =) select) 
-        |> Graph.map_nodes ((apsnd o map) (Class.overload thy))
+        |> Graph.map_nodes ((apsnd o map) (AxClass.overload thy))
       end;
 
 fun code_thms thy =
@@ -162,7 +162,7 @@ fun mk_codeprops thy all_cs sel_cs =
       | SOME thm => let
           val t = (ObjectLogic.drop_judgment thy o Thm.prop_of) thm;
           val cs = fold_aterms (fn Const (c, ty) =>
-            cons (Class.unoverload_const thy (c, ty)) | _ => I) t [];
+            cons (AxClass.unoverload_const thy (c, ty)) | _ => I) t [];
         in if exists (member (op =) sel_cs) cs
           andalso forall (member (op =) all_cs) cs
           then SOME (thmref, thm) else NONE end;

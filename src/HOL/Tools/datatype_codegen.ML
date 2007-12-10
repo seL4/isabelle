@@ -342,7 +342,7 @@ fun get_case_cert thy tyco =
     |> MetaSimplifier.rewrite_rule [(Thm.symmetric o Thm.assume) asm]
     |> Thm.implies_intr asm
     |> Thm.generalize ([], params) 0
-    |> Class.unoverload thy
+    |> AxClass.unoverload thy
     |> Thm.varifyT
   end;
 
@@ -426,7 +426,7 @@ fun add_datatypes_equality vs dtcos thy =
     fun add_eq_thms dtco thy =
       let
         val thy_ref = Theory.check_thy thy;
-        val const = Class.param_of_inst thy ("op =", dtco);
+        val const = AxClass.param_of_inst thy ("op =", dtco);
         val get_thms = (fn () => get_eq' (Theory.deref thy_ref) dtco |> rev);
       in
         Code.add_funcl (const, Susp.delay get_thms) thy

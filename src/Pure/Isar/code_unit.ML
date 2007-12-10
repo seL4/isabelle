@@ -60,7 +60,7 @@ fun warning_thm f thm = SOME (f thm) handle BAD_THM msg
 fun try_thm f thm = SOME (f thm) handle BAD_THM _ => NONE;
 
 fun string_of_typ thy = setmp show_sorts true (Sign.string_of_typ thy);
-fun string_of_const thy c = case Class.inst_of_param thy c
+fun string_of_const thy c = case AxClass.inst_of_param thy c
  of SOME (c, tyco) => Sign.extern_const thy c ^ " " ^ enclose "[" "]" (Sign.extern_type thy tyco)
   | NONE => Sign.extern_const thy c;
 
@@ -76,7 +76,7 @@ fun read_bare_const thy raw_t =
     | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
   end;
 
-fun read_const thy = Class.unoverload_const thy o read_bare_const thy;
+fun read_const thy = AxClass.unoverload_const thy o read_bare_const thy;
 
 local
 

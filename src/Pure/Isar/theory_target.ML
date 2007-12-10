@@ -203,7 +203,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c,
     fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
     val declare_const = case Class.instantiation_param lthy c
        of SOME c' => if mx3 <> NoSyn then syntax_error c'
-          else LocalTheory.theory_result (Class.overloaded_const (c', U))
+          else LocalTheory.theory_result (AxClass.declare_overloaded (c', U))
             ##> Class.confirm_declaration c
         | NONE => (case Overloading.operation lthy c
            of SOME (c', _) => if mx3 <> NoSyn then syntax_error c'
@@ -276,7 +276,7 @@ fun define (ta as Target {target, is_locale, is_class, ...})
           (fn name => fn (Const (c, _), rhs) => Overloading.define checked name (c, rhs))
       | NONE => if is_none (Class.instantiation_param lthy c)
           then (fn name => fn eq => Thm.add_def false false (name, Logic.mk_equals eq))
-          else (fn name => fn (Const (c, _), rhs) => Class.overloaded_def name (c, rhs));
+          else (fn name => fn (Const (c, _), rhs) => AxClass.define_overloaded name (c, rhs));
     val (global_def, lthy3) = lthy2
       |> LocalTheory.theory_result (define_const name' (lhs', rhs'));
     val def = LocalDefs.trans_terms lthy3

@@ -518,7 +518,7 @@ fun common_typ_funcs [] = []
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
       in map (Thm.instantiate (instT, [])) thms' end;
 
-fun const_of_func thy = Class.unoverload_const thy o CodeUnit.head_func;
+fun const_of_func thy = AxClass.unoverload_const thy o CodeUnit.head_func;
 
 fun certify_const thy const thms =
   let
@@ -547,7 +547,7 @@ fun specific_constraints thy (class, tyco) =
     val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
     val classparams = (map fst o these o try (#params o AxClass.get_info thy)) class;
     val funcs = classparams
-      |> map_filter (fn c => try (Class.param_of_inst thy) (c, tyco))
+      |> map_filter (fn c => try (AxClass.param_of_inst thy) (c, tyco))
       |> map (Symtab.lookup ((the_funcs o the_exec) thy))
       |> (map o Option.map) (Susp.force o fst o snd)
       |> maps these
@@ -665,7 +665,7 @@ fun assert_func_typ thm =
            ^ CodeUnit.string_of_typ thy ty_decl)
       end;
     fun check_typ (c, thm) =
-      case Class.inst_of_param thy c
+      case AxClass.inst_of_param thy c
        of SOME (c, tyco) => check_typ_classparam tyco (c, thm)
         | NONE => check_typ_fun (c, thm);
   in check_typ (const_of_func thy thm, thm) end;
@@ -782,7 +782,7 @@ structure TypeInterpretation = InterpretationFun(type T = string * serial val eq
 
 fun add_datatype raw_cs thy =
   let
-    val cs = map (fn c_ty as (_, ty) => (Class.unoverload_const thy c_ty, ty)) raw_cs;
+    val cs = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) raw_cs;
     val (tyco, vs_cos) = CodeUnit.constrset_of_consts thy cs;
     val cs' = map fst (snd vs_cos);
     val purge_cs = case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
@@ -909,7 +909,7 @@ fun preprocess thy thms =
   |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o the_exec) thy)
 (*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
   |> common_typ_funcs
-  |> map (Class.unoverload thy);
+  |> map (AxClass.unoverload thy);
 
 fun preprocess_conv ct =
   let
@@ -919,7 +919,7 @@ fun preprocess_conv ct =
     |> MetaSimplifier.rewrite false ((#inlines o the_thmproc o the_exec) thy)
     |> fold (fn (_, (_, f)) => rhs_conv (apply_inline_proc_cterm thy f))
         ((#inline_procs o the_thmproc o the_exec) thy)
-    |> rhs_conv (Class.unoverload_conv thy)
+    |> rhs_conv (AxClass.unoverload_conv thy)
   end;
 
 fun preprocess_term thy = term_of_conv thy preprocess_conv;
@@ -929,7 +929,7 @@ fun postprocess_conv ct =
     val thy = Thm.theory_of_cterm ct;
   in
     ct
-    |> Class.overload_conv thy
+    |> AxClass.overload_conv thy
     |> rhs_conv (MetaSimplifier.rewrite false ((#posts o the_thmproc o the_exec) thy))
   end;
 
@@ -937,7 +937,7 @@ fun postprocess_term thy = term_of_conv thy postprocess_conv;
 
 end; (*local*)
 
-fun default_typ_proto thy c = case Class.inst_of_param thy c
+fun default_typ_proto thy c = case AxClass.inst_of_param thy c
  of SOME (c, tyco) => classparam_weakest_typ thy ((the o AxClass.class_of_param thy) c)
       (c, tyco) |> SOME
   | NONE => (case AxClass.class_of_param thy c
@@ -968,7 +968,7 @@ fun these_funcs thy const =
 fun default_typ thy c = case default_typ_proto thy c
  of SOME ty => ty
   | NONE => (case get_funcs thy c
-     of thm :: _ => snd (CodeUnit.head_func (Class.unoverload thy thm))
+     of thm :: _ => snd (CodeUnit.head_func (AxClass.unoverload thy thm))
       | [] => Sign.the_const_type thy c);
 
 end; (*local*)

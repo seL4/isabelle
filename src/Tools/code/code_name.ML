@@ -216,7 +216,7 @@ fun force_thyname thy c = case Code.get_datatype_of_constr thy c
  of SOME dtco => SOME (thyname_of_tyco thy dtco)
   | NONE => (case AxClass.class_of_param thy c
      of SOME class => SOME (thyname_of_class thy class)
-      | NONE => (case Class.inst_of_param thy c
+      | NONE => (case AxClass.inst_of_param thy c
          of SOME (c, tyco) => SOME (thyname_of_instance thy
               ((the o AxClass.class_of_param thy) c, tyco))
           | NONE => NONE));
