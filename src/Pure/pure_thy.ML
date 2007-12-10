@@ -72,6 +72,7 @@ sig
   val forall_elim_vars: int -> thm -> thm
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
+  val note: string -> string * thm -> theory -> thm * theory
   val note_thmss: string -> ((bstring * attribute list) *
     (thmref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_i: string -> ((bstring * attribute list) *
@@ -397,6 +398,10 @@ val note_thmss = gen_note_thmss get_thms;
 val note_thmss_i = gen_note_thmss (K I);
 
 end;
+
+fun note kind (name, thm) =
+  note_thmss_i kind [((name, []), [([thm], [])])]
+  #>> (fn [(_, [thm])] => thm);
 
 fun note_thmss_qualified k path facts thy =
   thy
