@@ -5,7 +5,9 @@
 
 header {* Bounds *}
 
-theory Bounds imports Main Real begin
+theory Bounds
+imports Main Real
+begin
 
 locale lub =
   fixes A and x

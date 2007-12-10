@@ -6,7 +6,9 @@
 
 header {* Divisibility and prime numbers (on integers) *}
 
-theory IntPrimes imports Primes begin
+theory IntPrimes
+imports Primes
+begin
 
 text {*
   The @{text dvd} relation, GCD, Euclid's extended algorithm, primes,
