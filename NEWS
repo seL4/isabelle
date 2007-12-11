@@ -25,9 +25,9 @@ INCOMPATIBILITY: in some cases explicit type annotations are required.
 *** HOL ***
 
 * New primrec package.  Specification syntax conforms in style to
-  definition/function/....  The "primrec" command distinguished old-style
-  and new-style specifications by syntax.  The old primrec package is
-  now named OldPrimrecPackage.
+definition/function/....  No separate induction rule is provided.
+The "primrec" command distinguishes old-style and new-style specifications
+by syntax.  The former primrec package is now named OldPrimrecPackage.
 
 * Library/Multiset: {#a, b, c#} abbreviates {#a#} + {#b#} + {#c#}.
 

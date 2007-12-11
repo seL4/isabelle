@@ -8,7 +8,7 @@
 header {* Complex Numbers: Rectangular and Polar Representations *}
 
 theory Complex
-imports "../Hyperreal/Transcendental"
+imports "../Real/Real" "../Hyperreal/Transcendental"
 begin
 
 datatype complex = Complex real real
@@ -25,7 +25,7 @@ lemma complex_surj [simp]: "Complex (Re z) (Im z) = z"
 lemma complex_equality [intro?]: "\<lbrakk>Re x = Re y; Im x = Im y\<rbrakk> \<Longrightarrow> x = y"
 by (induct x, induct y) simp
 
-lemma expand_complex_eq: "(x = y) = (Re x = Re y \<and> Im x = Im y)"
+lemma expand_complex_eq: "x = y \<longleftrightarrow> Re x = Re y \<and> Im x = Im y"
 by (induct x, induct y) simp
 
 lemmas complex_Re_Im_cancel_iff = expand_complex_eq
@@ -33,7 +33,7 @@ lemmas complex_Re_Im_cancel_iff = expand_complex_eq
 
 subsection {* Addition and Subtraction *}
 
-instantiation complex :: "{zero, plus, minus}"
+instantiation complex :: ab_group_add
 begin
 
 definition
@@ -48,62 +48,59 @@ definition
 definition
   complex_diff_def: "x - (y\<Colon>complex) = x + - y"
 
-instance ..
+instance proof
+  fix x y z :: complex
+  show "(x + y) + z = x + (y + z)"
+    by (simp add: expand_complex_eq complex_add_def add_assoc)
+  show "x + y = y + x"
+    by (simp add: expand_complex_eq complex_add_def add_commute)
+  show "0 + x = x"
+    by (simp add: expand_complex_eq complex_add_def complex_zero_def)
+  show "- x + x = 0"
+    by (simp add: expand_complex_eq complex_add_def complex_zero_def complex_minus_def)
+  show "x - y = x + - y"
+    by (simp add: expand_complex_eq complex_add_def complex_zero_def complex_diff_def)
+qed
 
 end
 
-lemma Complex_eq_0 [simp]: "(Complex a b = 0) = (a = 0 \<and> b = 0)"
-by (simp add: complex_zero_def)
+lemma Complex_eq_0 [simp]: "Complex a b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
+  by (simp add: complex_zero_def)
 
 lemma complex_Re_zero [simp]: "Re 0 = 0"
-by (simp add: complex_zero_def)
+  by (simp add: complex_zero_def)
 
 lemma complex_Im_zero [simp]: "Im 0 = 0"
-by (simp add: complex_zero_def)
+  by (simp add: complex_zero_def)
+
+lemma complex_Re_add [simp]: "Re (x + y) = Re x + Re y"
+  by (simp add: complex_add_def)
+
+lemma complex_Im_add [simp]: "Im (x + y) = Im x + Im y"
+  by (simp add: complex_add_def)
 
 lemma complex_add [simp]:
   "Complex a b + Complex c d = Complex (a + c) (b + d)"
-by (simp add: complex_add_def)
-
-lemma complex_Re_add [simp]: "Re (x + y) = Re x + Re y"
-by (simp add: complex_add_def)
-
-lemma complex_Im_add [simp]: "Im (x + y) = Im x + Im y"
-by (simp add: complex_add_def)
+  by (simp add: complex_add_def)
 
 lemma complex_minus [simp]: "- (Complex a b) = Complex (- a) (- b)"
-by (simp add: complex_minus_def)
+  by (simp add: complex_minus_def)
 
 lemma complex_Re_minus [simp]: "Re (- x) = - Re x"
-by (simp add: complex_minus_def)
+  by (simp add: complex_minus_def)
 
 lemma complex_Im_minus [simp]: "Im (- x) = - Im x"
-by (simp add: complex_minus_def)
+  by (simp add: complex_minus_def)
 
 lemma complex_diff [simp]:
   "Complex a b - Complex c d = Complex (a - c) (b - d)"
-by (simp add: complex_diff_def)
+  by (simp add: complex_diff_def)
 
 lemma complex_Re_diff [simp]: "Re (x - y) = Re x - Re y"
-by (simp add: complex_diff_def)
+  by (simp add: complex_diff_def)
 
 lemma complex_Im_diff [simp]: "Im (x - y) = Im x - Im y"
-by (simp add: complex_diff_def)
-
-instance complex :: ab_group_add
-proof
-  fix x y z :: complex
-  show "(x + y) + z = x + (y + z)"
-    by (simp add: expand_complex_eq add_assoc)
-  show "x + y = y + x"
-    by (simp add: expand_complex_eq add_commute)
-  show "0 + x = x"
-    by (simp add: expand_complex_eq)
-  show "- x + x = 0"
-    by (simp add: expand_complex_eq)
-  show "x - y = x + - y"
-    by (simp add: expand_complex_eq)
-qed
+  by (simp add: complex_diff_def)
 
 
 subsection {* Multiplication and Division *}
@@ -757,38 +754,5 @@ done
 
 lemma expi_two_pi_i [simp]: "expi((2::complex) * complex_of_real pi * ii) = 1"
 by (simp add: expi_def cis_def)
-
-(*examples:
-print_depth 22
-set timing;
-set trace_simp;
-fun test s = (Goal s, by (Simp_tac 1)); 
-
-test "23 * ii + 45 * ii= (x::complex)";
-
-test "5 * ii + 12 - 45 * ii= (x::complex)";
-test "5 * ii + 40 - 12 * ii + 9 = (x::complex) + 89 * ii";
-test "5 * ii + 40 - 12 * ii + 9 - 78 = (x::complex) + 89 * ii";
-
-test "l + 10 * ii + 90 + 3*l +  9 + 45 * ii= (x::complex)";
-test "87 + 10 * ii + 90 + 3*7 +  9 + 45 * ii= (x::complex)";
-
-
-fun test s = (Goal s; by (Asm_simp_tac 1)); 
-
-test "x*k = k*(y::complex)";
-test "k = k*(y::complex)"; 
-test "a*(b*c) = (b::complex)";
-test "a*(b*c) = d*(b::complex)*(x*a)";
-
-
-test "(x*k) / (k*(y::complex)) = (uu::complex)";
-test "(k) / (k*(y::complex)) = (uu::complex)"; 
-test "(a*(b*c)) / ((b::complex)) = (uu::complex)";
-test "(a*(b*c)) / (d*(b::complex)*(x*a)) = (uu::complex)";
-
-FIXME: what do we do about this?
-test "a*(b*c)/(y*z) = d*(b::complex)*(x*a)/z";
-*)
 
 end
