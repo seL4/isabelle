@@ -8,12 +8,12 @@ Overloaded definitions without any discipline.
 signature OVERLOADING =
 sig
   val init: ((string * typ) * (string * bool)) list -> theory -> local_theory
-  val prep_spec: local_theory -> term -> term
   val conclude: local_theory -> local_theory
   val declare: string * typ -> theory -> term * theory
   val confirm: string -> local_theory -> local_theory
   val define: bool -> string -> string * term -> theory -> thm * theory
   val operation: Proof.context -> string -> (string * bool) option
+  val pretty: Proof.context -> Pretty.T
 end;
 
 structure Overloading: OVERLOADING =
@@ -52,11 +52,6 @@ fun subst_operation overloading = map_aterms (fn t as Const (c, ty) =>
       | NONE => t)
   | t => t);
 
-fun prep_spec lthy =
-  let
-    val overloading = get_overloading lthy;
-  in subst_operation overloading end;
-
 fun term_check ts lthy =
   let
     val overloading = get_overloading lthy;
@@ -66,7 +61,8 @@ fun term_check ts lthy =
 fun term_uncheck ts lthy =
   let
     val overloading = get_overloading lthy;
-    fun subst (t as Free (v, ty)) = (case get_first (fn ((c, _), (v', _)) => if v = v' then SOME c else NONE) overloading
+    fun subst (t as Free (v, ty)) = (case get_first (fn ((c, _), (v', _)) =>
+        if v = v' then SOME c else NONE) overloading
          of SOME c => Const (c, ty)
           | NONE => t)
       | subst t = t;
@@ -79,11 +75,12 @@ fun term_uncheck ts lthy =
 fun init overloading thy =
   let
     val _ = if null overloading then error "At least one parameter must be given" else ();
+    fun declare ((_, ty), (v, _ )) = Variable.declare_term (Free (v, ty));
   in
     thy
     |> ProofContext.init
     |> OverloadingData.put overloading
-    |> fold (Variable.declare_term o Logic.mk_type o snd o fst) overloading
+    |> fold declare overloading
     |> Context.proof_map (
         Syntax.add_term_check 0 "overloading" term_check
         #> Syntax.add_term_uncheck 0 "overloading" term_uncheck)
@@ -97,6 +94,18 @@ fun conclude lthy =
         o Syntax.string_of_term lthy o Const o fst) overloading));
   in
     lthy
+  end;
+
+fun pretty lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val overloading = get_overloading lthy;
+    fun pr_operation ((c, ty), (v, _)) =
+      (Pretty.block o Pretty.breaks) [Pretty.str (Sign.extern_const thy c), Pretty.str "::",
+        Sign.pretty_typ thy ty, Pretty.str "as", Pretty.str v];
+  in
+    (Pretty.block o Pretty.fbreaks)
+      (Pretty.str "overloading" :: map pr_operation overloading)
   end;
 
 end;
