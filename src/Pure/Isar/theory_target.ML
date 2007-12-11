@@ -44,7 +44,7 @@ val peek = (fn Target args => args) o Data.get;
 
 (* pretty *)
 
-fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
+fun pretty_thy ctxt target is_locale is_class =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name = (if is_class then "class " else "locale ") ^ Locale.extern thy target;
@@ -53,13 +53,18 @@ fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
-  in
-    Pretty.block [Pretty.str "theory", Pretty.brk 1, Pretty.str (Context.theory_name thy)] ::
-     (if target = "" then []
-      else if null elems then [Pretty.str target_name]
-      else [Pretty.big_list (target_name ^ " =")
-        (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)])
+  in if target = "" then []
+    else if null elems then [Pretty.str target_name]
+    else [Pretty.big_list (target_name ^ " =")
+      (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)]
   end;
+
+fun pretty (Target {target, is_locale, is_class, instantiation, overloading}) ctxt =
+  Pretty.block [Pretty.str "theory", Pretty.brk 1,
+      Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
+    (if not (null overloading) then [Overloading.pretty ctxt]
+    else if not (null (#1 instantiation)) then [Class.pretty_instantiation ctxt]
+    else pretty_thy ctxt target is_locale is_class);
 
 
 (* target declarations *)
@@ -215,7 +220,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c,
   in
     lthy'
     |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default pos ((c, mx2), t))
-    |> is_class ? class_target ta (Class.logical_const target pos ((c, mx1), t))
+    |> is_class ? class_target ta (Class.declare target pos ((c, mx1), t))
     |> LocalDefs.add_def ((c, NoSyn), t)
   end;
 
@@ -241,7 +246,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t)
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const ta prmode pos ((c, mx2), lhs')) #>
-            is_class ? class_target ta (Class.syntactic_const target prmode pos ((c, mx1), t'))
+            is_class ? class_target ta (Class.abbrev target prmode pos ((c, mx1), t'))
           end)
       else
         LocalTheory.theory
@@ -363,9 +368,16 @@ fun context "-" thy = init NONE thy
 
 val instantiation = init_lthy_ctxt o init_instantiation;
 
-fun gen_overloading prep_operation operations thy =
-  thy
-  |> init_lthy_ctxt (init_overloading (map (prep_operation thy) operations));
+fun gen_overloading prep_operation raw_operations thy =
+  let
+    val check_const = dest_Const o Syntax.check_term (ProofContext.init thy) o Const;
+    val operations = raw_operations
+      |> map (prep_operation thy)
+      |> (map o apfst) check_const;
+  in
+    thy
+    |> init_lthy_ctxt (init_overloading operations)
+  end;
 
 val overloading = gen_overloading (K I);
 val overloading_cmd = gen_overloading (fn thy => fn (((raw_c, rawT), v), checked) =>
