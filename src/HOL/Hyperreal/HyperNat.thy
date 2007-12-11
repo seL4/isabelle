@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 header{*Hypernatural numbers*}
 
 theory HyperNat
-imports StarClasses
+imports StarDef
 begin
 
 types hypnat = "nat star"
