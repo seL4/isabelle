@@ -175,8 +175,8 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML $(SRC)/Tools/float.ML \
   Real/Lubs.thy Real/PReal.thy Real/RComplete.thy 			\
   Real/Rational.thy Real/Real.thy Real/RealDef.thy Real/RealPow.thy	\
   Real/RealVector.thy Real/rat_arith.ML Real/real_arith.ML		\
-  Hyperreal/StarDef.thy Hyperreal/StarClasses.thy			\
-  Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy		\
+  Hyperreal/StarDef.thy			\
+  Hyperreal/Fact.thy Hyperreal/HLog.thy		\
   Hyperreal/Filter.thy Hyperreal/HSeries.thy Hyperreal/transfer.ML	\
   Hyperreal/HLim.thy Hyperreal/HSEQ.thy Hyperreal/HTranscendental.thy	\
   Hyperreal/HDeriv.thy Hyperreal/HyperDef.thy Hyperreal/HyperNat.thy	\

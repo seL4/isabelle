@@ -1,6 +1,6 @@
 (*  Title:      HOL/Library/Parity.thy
     ID:         $Id$
-    Author:     Jeremy Avigad
+    Author:     Jeremy Avigad, Jacques D. Fleuriot
 *)
 
 header {* Even and Odd for int and nat *}
@@ -38,6 +38,7 @@ lemma int_pos_lt_two_imp_zero_or_one:
 
 lemma neq_one_mod_two [simp, presburger]: 
   "((x::int) mod 2 ~= 0) = (x mod 2 = 1)" by presburger
+
 
 subsection {* Behavior under integer arithmetic operations *}
 
@@ -168,6 +169,7 @@ lemma even_nat_equiv_def2: "even (x::nat) = (EX y. x = Suc (Suc 0) * y)"
 
 lemma odd_nat_equiv_def2: "odd (x::nat) = (EX y. x = Suc(Suc (Suc 0) * y))"
   by presburger
+
 
 subsection {* Parity and powers *}
 
@@ -312,6 +314,90 @@ lemma power_minus_odd [simp]: "odd n ==>
   done
 
 
+subsection {* General Lemmas About Division *}
+
+lemma Suc_times_mod_eq: "1<k ==> Suc (k * m) mod k = 1" 
+apply (induct "m")
+apply (simp_all add: mod_Suc)
+done
+
+declare Suc_times_mod_eq [of "number_of w", standard, simp]
+
+lemma [simp]: "n div k \<le> (Suc n) div k"
+by (simp add: div_le_mono) 
+
+lemma Suc_n_div_2_gt_zero [simp]: "(0::nat) < n ==> 0 < (n + 1) div 2"
+by arith
+
+lemma div_2_gt_zero [simp]: "(1::nat) < n ==> 0 < n div 2" 
+by arith
+
+lemma mod_mult_self3 [simp]: "(k*n + m) mod n = m mod (n::nat)"
+by (simp add: mult_ac add_ac)
+
+lemma mod_mult_self4 [simp]: "Suc (k*n + m) mod n = Suc m mod n"
+proof -
+  have "Suc (k * n + m) mod n = (k * n + Suc m) mod n" by simp
+  also have "... = Suc m mod n" by (rule mod_mult_self3) 
+  finally show ?thesis .
+qed
+
+lemma mod_Suc_eq_Suc_mod: "Suc m mod n = Suc (m mod n) mod n"
+apply (subst mod_Suc [of m]) 
+apply (subst mod_Suc [of "m mod n"], simp) 
+done
+
+
+subsection {* More Even/Odd Results *}
+ 
+lemma even_mult_two_ex: "even(n) = (\<exists>m::nat. n = 2*m)"
+by (simp add: even_nat_equiv_def2 numeral_2_eq_2)
+
+lemma odd_Suc_mult_two_ex: "odd(n) = (\<exists>m. n = Suc (2*m))"
+by (simp add: odd_nat_equiv_def2 numeral_2_eq_2)
+
+lemma even_add [simp]: "even(m + n::nat) = (even m = even n)" 
+by auto
+
+lemma odd_add [simp]: "odd(m + n::nat) = (odd m \<noteq> odd n)"
+by auto
+
+lemma div_Suc: "Suc a div c = a div c + Suc 0 div c +
+    (a mod c + Suc 0 mod c) div c" 
+  apply (subgoal_tac "Suc a = a + Suc 0")
+  apply (erule ssubst)
+  apply (rule div_add1_eq, simp)
+  done
+
+lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2"
+apply (simp add: numeral_2_eq_2) 
+apply (subst div_Suc)  
+apply (simp add: even_nat_mod_two_eq_zero) 
+done
+
+lemma lemma_not_even_div2 [simp]: "~even n ==> (n + 1) div 2 = Suc (n div 2)"
+apply (simp add: numeral_2_eq_2) 
+apply (subst div_Suc)  
+apply (simp add: odd_nat_mod_two_eq_one) 
+done
+
+lemma even_num_iff: "0 < n ==> even n = (~ even(n - 1 :: nat))" 
+by (case_tac "n", auto)
+
+lemma even_even_mod_4_iff: "even (n::nat) = even (n mod 4)"
+apply (induct n, simp)
+apply (subst mod_Suc, simp) 
+done
+
+lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)"
+apply (rule_tac t = n and n1 = 4 in mod_div_equality [THEN subst])
+apply (simp add: even_num_iff)
+done
+
+lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
+by (rule_tac t = n and n1 = 4 in mod_div_equality [THEN subst], simp)
+
+
 text {* Simplify, when the exponent is a numeral *}
 
 lemmas power_0_left_number_of = power_0_left [of "number_of w", standard]
@@ -362,17 +448,13 @@ qed
 
 subsection {* Miscellaneous *}
 
+lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n"
+  by (cases n, simp_all)
+
 lemma [presburger]:"(x + 1) div 2 = x div 2 \<longleftrightarrow> even (x::int)" by presburger
 lemma [presburger]: "(x + 1) div 2 = x div 2 + 1 \<longleftrightarrow> odd (x::int)" by presburger
 lemma even_plus_one_div_two: "even (x::int) ==> (x + 1) div 2 = x div 2"  by presburger
 lemma odd_plus_one_div_two: "odd (x::int) ==> (x + 1) div 2 = x div 2 + 1" by presburger
-
-lemma div_Suc: "Suc a div c = a div c + Suc 0 div c +
-    (a mod c + Suc 0 mod c) div c" 
-  apply (subgoal_tac "Suc a = a + Suc 0")
-  apply (erule ssubst)
-  apply (rule div_add1_eq, simp)
-  done
 
 lemma [presburger]: "(Suc x) div Suc (Suc 0) = x div Suc (Suc 0) \<longleftrightarrow> even x" by presburger
 lemma [presburger]: "(Suc x) div Suc (Suc 0) = x div Suc (Suc 0) \<longleftrightarrow> even x" by presburger
