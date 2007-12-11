@@ -14,9 +14,9 @@ sig
     -> xstring list -> theory -> string * Proof.context
 
   val init: class -> theory -> Proof.context
-  val logical_const: string -> Markup.property list
+  val declare: string -> Markup.property list
     -> (string * mixfix) * term -> theory -> theory
-  val syntactic_const: string -> Syntax.mode -> Markup.property list
+  val abbrev: string -> Syntax.mode -> Markup.property list
     -> (string * mixfix) * term -> theory -> theory
   val refresh_syntax: class -> Proof.context -> Proof.context
 
@@ -32,12 +32,12 @@ sig
 
   (*instances*)
   val init_instantiation: string list * sort list * sort -> theory -> local_theory
-  val prep_spec: local_theory -> term -> term
   val instantiation_instance: (local_theory -> local_theory) -> local_theory -> Proof.state
   val prove_instantiation_instance: (Proof.context -> tactic) -> local_theory -> local_theory
   val conclude_instantiation: local_theory -> local_theory
-  val instantiation_param: Proof.context -> string -> string option
+  val instantiation_param: local_theory -> string -> string option
   val confirm_declaration: string -> local_theory -> local_theory
+  val pretty_instantiation: local_theory -> Pretty.T
 
   (*old axclass layer*)
   val axclass_cmd: bstring * xstring list
@@ -676,7 +676,7 @@ end; (*local*)
 
 (* class target *)
 
-fun logical_const class pos ((c, mx), dict) thy =
+fun declare class pos ((c, mx), dict) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
@@ -699,7 +699,7 @@ fun logical_const class pos ((c, mx), dict) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun syntactic_const class prmode pos ((c, mx), rhs) thy =
+fun abbrev class prmode pos ((c, mx), rhs) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
@@ -726,7 +726,7 @@ fun syntactic_const class prmode pos ((c, mx), rhs) thy =
 datatype instantiation = Instantiation of {
   arities: string list * sort list * sort,
   params: ((string * string) * (string * typ)) list
-    (*(instantiation const, type constructor), (local instantiation parameter, typ)*)
+    (*(instantiation parameter, type constructor), (local instantiation parameter, typ)*)
 }
 
 structure Instantiation = ProofDataFun
@@ -765,12 +765,6 @@ fun subst_param thy params = map_aterms (fn t as Const (c, ty) =>
           | NONE => t)
       | NONE => t)
   | t => t);
-
-fun prep_spec lthy =
-  let
-    val thy = ProofContext.theory_of lthy;
-    val params = instantiation_params lthy;
-  in subst_param thy params end;
 
 fun inst_term_check ts lthy =
   let
@@ -826,7 +820,7 @@ fun init_instantiation (tycos, sorts, sort) thy =
       | type_name "+" = "sum"
       | type_name s = sanatize_name (NameSpace.base s); (*FIXME*)
     fun get_param tyco (param, (c, ty)) = if can (AxClass.param_of_inst thy) (c, tyco)
-      then NONE else SOME ((AxClass.unoverload_const thy (c, ty), tyco),
+      then NONE else SOME ((c, tyco),
         (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, vs))) ty));
     val params = map_product get_param tycos (these_params thy sort) |> map_filter I;
   in
@@ -870,5 +864,19 @@ fun conclude_instantiation lthy =
       then () else error ("Missing instance proof for type " ^ quote (Sign.extern_type thy tyco)))
         tycos;
   in lthy end;
+
+fun pretty_instantiation lthy =
+  let
+    val { arities, params } = the_instantiation lthy;
+    val (tycos, sorts, sort) = arities;
+    val thy = ProofContext.theory_of lthy;
+    fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, sorts, sort);
+    fun pr_param ((c, _), (v, ty)) =
+      (Pretty.block o Pretty.breaks) [(Pretty.str o Sign.extern_const thy) c, Pretty.str "::",
+        Sign.pretty_typ thy ty, Pretty.str "as", Pretty.str v];
+  in
+    (Pretty.block o Pretty.fbreaks)
+      (Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params)
+  end;
 
 end;

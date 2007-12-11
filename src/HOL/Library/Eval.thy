@@ -32,7 +32,7 @@ let
       val lhs = Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
         $ Free ("T", Term.itselfT ty);
       val rhs = Pure_term.mk_typ (fn v => TypOf.mk (TFree v)) ty;
-      val eq = Class.prep_spec lthy (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
+      val eq = Syntax.check_term lthy (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
     in lthy |> Specification.definition (NONE, (("", []), eq)) end;
   fun interpretator tyco thy =
     let
@@ -151,7 +151,7 @@ let
     end;
   fun prep' ctxt proto_eqs =
     let
-      val eqs as eq :: _ = map (Class.prep_spec ctxt) proto_eqs;
+      val eqs as eq :: _ = map (Syntax.check_term ctxt) proto_eqs;
       val (Free (v, ty), _) =
         (strip_comb o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
     in ((v, SOME ty, NoSyn), map (pair ("", [])) eqs) end;
