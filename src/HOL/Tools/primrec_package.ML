@@ -204,20 +204,6 @@ fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
             else find_dts dt_info tnames' tnames);
 
 
-(* adapted induction rule *)
-
-fun prepare_induct ({descr, induction, ...}: datatype_info) eqns =
-  let
-    fun constrs_of (_, (_, _, cs)) =
-      map (fn (cname:string, (_, cargs, _, _, _)) => (cname, map fst cargs)) cs;
-    val params_of = these o AList.lookup (op =) (List.concat (map constrs_of eqns));
-  in
-    induction
-    |> RuleCases.rename_params (map params_of (maps (map #1 o #3 o #2) descr))
-    |> RuleCases.save induction
-  end;
-
-
 (* primrec definition *)
 
 local
@@ -267,9 +253,7 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
     |-> (fn simps' => LocalTheory.note Thm.theoremK
           ((qualify "simps", simp_atts), maps snd simps'))
-    ||>> LocalTheory.note Thm.theoremK
-          ((qualify "induct", []), [prepare_induct (#2 (hd dts)) eqns])
-    |>> (snd o fst)
+    |>> snd
   end handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn
      of SOME eqn => "\nin\n" ^ quote (Syntax.string_of_term lthy eqn)
