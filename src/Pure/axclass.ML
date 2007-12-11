@@ -327,8 +327,13 @@ fun prove_arity raw_arity tac thy =
 
 fun declare_overloaded (c, T) thy =
   let
-    val SOME class = class_of_param thy c;
-    val SOME tyco = inst_tyco_of thy (c, T);
+    val class = case class_of_param thy c
+     of SOME class => class
+      | NONE => error ("Not a class parameter: " ^ quote c);
+    val tyco = case inst_tyco_of thy (c, T)
+     of SOME tyco => tyco
+      | NONE => error ("Illegal type for instantiation of class parameter: "
+        ^ quote (c ^ " :: " ^ Sign.string_of_typ thy T));
     val name_inst = instance_name (tyco, class) ^ "_inst";
     val c' = NameSpace.base c ^ "_" ^ NameSpace.base tyco;
     val T' = Type.strip_sorts T;
