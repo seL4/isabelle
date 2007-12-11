@@ -7,7 +7,7 @@
 header {* Nth Roots of Real Numbers *}
 
 theory NthRoot
-imports SEQ Parity Deriv
+imports Parity "../Hyperreal/Deriv"
 begin
 
 subsection {* Existence of Nth Root *}
@@ -82,9 +82,6 @@ done
 lemma real_root_pow_pos2 [simp]: (* TODO: rename *)
   "\<lbrakk>0 < n; 0 \<le> x\<rbrakk> \<Longrightarrow> root n x ^ n = x"
 by (auto simp add: order_le_less real_root_pow_pos)
-
-lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n"
-by (cases n, simp_all)
 
 lemma odd_real_root_pow: "odd n \<Longrightarrow> root n x ^ n = x"
 apply (rule_tac x=0 and y=x in linorder_le_cases)
