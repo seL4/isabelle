@@ -28,6 +28,8 @@ INCOMPATIBILITY: in some cases explicit type annotations are required.
 definition/function/....  No separate induction rule is provided.
 The "primrec" command distinguishes old-style and new-style specifications
 by syntax.  The former primrec package is now named OldPrimrecPackage.
+When adjusting theories, beware: constants stemming for new-style
+primrec specifications have authentic syntax.
 
 * Library/Multiset: {#a, b, c#} abbreviates {#a#} + {#b#} + {#c#}.
 
