@@ -376,7 +376,7 @@ Many problems in functional programming can be thought of
     \verb|Sign.declare_const: Markup.property list -> bstring * typ * mixfix|\isasep\isanewline%
 \verb|       -> theory -> term * theory|
 
-    \verb|Thm.add_def: bool -> bstring * term -> theory -> thm * theory|
+    \verb|Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory|
   \end{quotation}
 
   Written with naive application, an addition of constant
@@ -384,7 +384,7 @@ Many problems in functional programming can be thought of
   a corresponding definition \isa{bar\ {\isasymequiv}\ {\isasymlambda}x{\isachardot}\ x} would look like:
 
   \begin{quotation}
-   \verb|(fn (t, thy) => Thm.add_def false|\isasep\isanewline%
+   \verb|(fn (t, thy) => Thm.add_def false false|\isasep\isanewline%
 \verb|  ("bar_def", Logic.mk_equals (t, @{term "%x. x"})) thy)|\isasep\isanewline%
 \verb|    (Sign.declare_const []|\isasep\isanewline%
 \verb|      ("bar", @{typ "foo => foo"}, NoSyn) thy)|
@@ -403,7 +403,7 @@ Many problems in functional programming can be thought of
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|> (fn (t, thy) => thy|\isasep\isanewline%
-\verb||\verb,|,\verb|> Thm.add_def false|\isasep\isanewline%
+\verb||\verb,|,\verb|> Thm.add_def false false|\isasep\isanewline%
 \verb|     ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|
   \end{quotation}%
 \end{isamarkuptext}%
@@ -440,7 +440,7 @@ Many problems in functional programming can be thought of
   \begin{quotation}
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
-\verb||\verb,|,\verb|-> (fn t => Thm.add_def false|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn t => Thm.add_def false false|\isasep\isanewline%
 \verb|      ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
 
   \end{quotation}
@@ -450,7 +450,7 @@ Many problems in functional programming can be thought of
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|>> (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
-\verb||\verb,|,\verb|-> (fn def => Thm.add_def false ("bar_def", def))|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn def => Thm.add_def false false ("bar_def", def))|\isasep\isanewline%
 
   \end{quotation}
 
@@ -460,7 +460,7 @@ Many problems in functional programming can be thought of
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|> Sign.add_path "foobar"|\isasep\isanewline%
-\verb||\verb,|,\verb|-> (fn t => Thm.add_def false|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn t => Thm.add_def false false|\isasep\isanewline%
 \verb|      ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|> Sign.restore_naming thy|\isasep\isanewline%
 
@@ -471,7 +471,7 @@ Many problems in functional programming can be thought of
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|>> Sign.declare_const [] ("foobar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
-\verb||\verb,|,\verb|-> (fn (t1, t2) => Thm.add_def false|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn (t1, t2) => Thm.add_def false false|\isasep\isanewline%
 \verb|      ("bar_def", Logic.mk_equals (t1, t2)))|\isasep\isanewline%
 
   \end{quotation}%
@@ -531,7 +531,7 @@ Many problems in functional programming can be thought of
 \verb|       (const, @{typ "foo => foo"}, NoSyn)) consts|\isasep\isanewline%
 \verb|  |\verb,|,\verb|>> map (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
 \verb|  |\verb,|,\verb|-> (fn defs => fold_map (fn def =>|\isasep\isanewline%
-\verb|       Thm.add_def false ("", def)) defs)|\isasep\isanewline%
+\verb|       Thm.add_def false false ("", def)) defs)|\isasep\isanewline%
 \verb|end|\isasep\isanewline%
 
   \end{quotation}%

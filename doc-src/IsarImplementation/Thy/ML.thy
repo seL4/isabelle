@@ -320,7 +320,7 @@ text {*
     @{ML "Sign.declare_const: Markup.property list -> bstring * typ * mixfix
        -> theory -> term * theory"}
 
-    @{ML "Thm.add_def: bool -> bstring * term -> theory -> thm * theory"}
+    @{ML "Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory"}
   \end{quotation}
 
   Written with naive application, an addition of constant
@@ -328,7 +328,7 @@ text {*
   a corresponding definition @{term "bar \<equiv> \<lambda>x. x"} would look like:
 
   \begin{quotation}
-   @{ML "(fn (t, thy) => Thm.add_def false
+   @{ML "(fn (t, thy) => Thm.add_def false false
   (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})) thy)
     (Sign.declare_const []
       (\"bar\", @{typ \"foo => foo\"}, NoSyn) thy)"}
@@ -346,7 +346,7 @@ text {*
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 |> (fn (t, thy) => thy
-|> Thm.add_def false
+|> Thm.add_def false false
      (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))"}
   \end{quotation}
 *}
@@ -368,7 +368,7 @@ text {*
   \begin{quotation}
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
-|-> (fn t => Thm.add_def false
+|-> (fn t => Thm.add_def false false
       (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
 "}
   \end{quotation}
@@ -378,7 +378,7 @@ text {*
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 |>> (fn t => Logic.mk_equals (t, @{term \"%x. x\"}))
-|-> (fn def => Thm.add_def false (\"bar_def\", def))
+|-> (fn def => Thm.add_def false false (\"bar_def\", def))
 "}
   \end{quotation}
 
@@ -388,7 +388,7 @@ text {*
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 ||> Sign.add_path \"foobar\"
-|-> (fn t => Thm.add_def false
+|-> (fn t => Thm.add_def false false
       (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
 ||> Sign.restore_naming thy
 "}
@@ -399,7 +399,7 @@ text {*
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 ||>> Sign.declare_const [] (\"foobar\", @{typ \"foo => foo\"}, NoSyn)
-|-> (fn (t1, t2) => Thm.add_def false
+|-> (fn (t1, t2) => Thm.add_def false false
       (\"bar_def\", Logic.mk_equals (t1, t2)))
 "}
   \end{quotation}
@@ -444,7 +444,7 @@ in
        (const, @{typ \"foo => foo\"}, NoSyn)) consts
   |>> map (fn t => Logic.mk_equals (t, @{term \"%x. x\"}))
   |-> (fn defs => fold_map (fn def =>
-       Thm.add_def false (\"\", def)) defs)
+       Thm.add_def false false (\"\", def)) defs)
 end
 "}
   \end{quotation}
