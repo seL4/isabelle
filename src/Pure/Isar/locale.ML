@@ -58,8 +58,8 @@ sig
     ((string * Attrib.src list) * term list) list
   val global_asms_of: theory -> string ->
     ((string * Attrib.src list) * term list) list
-  val intros: theory -> string ->
-    thm list * thm list
+  val intros: theory -> string -> thm list * thm list
+  val dests: theory -> string -> thm list
 
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
@@ -177,8 +177,10 @@ type locale =
   decls: decl list * decl list,                    (*type/term_syntax declarations*)
   regs: ((string * string list) * Element.witness list) list,
     (* Registrations: indentifiers and witnesses of locales interpreted in the locale. *)
-  intros: thm list * thm list}
+  intros: thm list * thm list,
     (* Introduction rules: of delta predicate and locale predicate. *)
+  dests: thm list}
+    (* Destruction rules relative to canonical order in locale context. *)
 
 (* CB: an internal (Int) locale element was either imported or included,
    an external (Ext) element appears directly in the locale text. *)
@@ -363,7 +365,7 @@ structure LocalesData = TheoryDataFun
   val extend = I;
 
   fun join_locales _
-    ({axiom, imports, elems, params, lparams, decls = (decls1, decls2), regs, intros}: locale,
+    ({axiom, imports, elems, params, lparams, decls = (decls1, decls2), regs, intros, dests}: locale,
       {elems = elems', decls = (decls1', decls2'), regs = regs', ...}: locale) =
      {axiom = axiom,
       imports = imports,
@@ -374,7 +376,8 @@ structure LocalesData = TheoryDataFun
        (Library.merge (eq_snd (op =)) (decls1, decls1'),
         Library.merge (eq_snd (op =)) (decls2, decls2')),
       regs = merge_alists regs regs',
-      intros = intros};
+      intros = intros,
+      dests = dests};
   fun merge _ ((space1, locs1), (space2, locs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join_locales (locs1, locs2));
 );
@@ -420,14 +423,14 @@ fun the_locale thy name =
 
 fun change_locale name f thy =
   let
-    val {axiom, imports, elems, params, lparams, decls, regs, intros} =
+    val {axiom, imports, elems, params, lparams, decls, regs, intros, dests} =
         the_locale thy name;
-    val (axiom', imports', elems', params', lparams', decls', regs', intros') =
-      f (axiom, imports, elems, params, lparams, decls, regs, intros);
+    val (axiom', imports', elems', params', lparams', decls', regs', intros', dests') =
+      f (axiom, imports, elems, params, lparams, decls, regs, intros, dests);
   in
     put_locale name {axiom = axiom', imports = imports', elems = elems',
       params = params', lparams = lparams', decls = decls', regs = regs',
-      intros = intros'} thy
+      intros = intros', dests = dests'} thy
   end;
 
 
@@ -485,8 +488,8 @@ fun put_local_registration id attn morphs =
 
 
 fun put_registration_in_locale name id =
-  change_locale name (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
-    (axiom, imports, elems, params, lparams, decls, regs @ [(id, [])], intros));
+  change_locale name (fn (axiom, imports, elems, params, lparams, decls, regs, intros, dests) =>
+    (axiom, imports, elems, params, lparams, decls, regs @ [(id, [])], intros, dests));
 
 
 (* add witness theorem to registration, ignored if registration not present *)
@@ -499,11 +502,11 @@ fun add_local_witness id thm = Context.proof_map (add_witness id thm);
 
 
 fun add_witness_in_locale name id thm =
-  change_locale name (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
+  change_locale name (fn (axiom, imports, elems, params, lparams, decls, regs, intros, dests) =>
     let
       fun add (id', thms) =
         if id = id' then (id', thm :: thms) else (id', thms);
-    in (axiom, imports, elems, params, lparams, decls, map add regs, intros) end);
+    in (axiom, imports, elems, params, lparams, decls, map add regs, intros, dests) end);
 
 
 (* add equation to registration, ignored if registration not present *)
@@ -1426,8 +1429,14 @@ fun gen_asms_of get thy name =
 
 in
 
-fun parameters_of thy name =
-  the_locale thy name |> #params;
+fun parameters_of thy = #params o the_locale thy;
+
+fun intros thy = #intros o the_locale thy;
+  (*returns introduction rule for delta predicate and locale predicate
+    as a pair of singleton lists*)
+
+fun dests thy = #dests o the_locale thy;
+
 
 fun parameters_of_expr thy expr =
   let
@@ -1448,11 +1457,6 @@ fun global_asms_of thy name =
   gen_asms_of I thy name;
 
 end;
-
-fun intros thy =
-  #intros o the o Symtab.lookup (#2 (LocalesData.get thy));
-    (*returns introduction rule for delta predicate and locale predicate
-      as a pair of singleton lists*)
 
 
 (* full context statements: imports + elements + conclusion *)
@@ -1699,9 +1703,9 @@ fun add_thmss loc kind args ctxt =
         (ctxt, [((("", []), Assumed []), [Ext (Notes (kind, args))])]);
     val ctxt'' = ctxt' |> ProofContext.theory
       (change_locale loc
-        (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
+        (fn (axiom, imports, elems, params, lparams, decls, regs, intros, dests) =>
           (axiom, imports, elems @ [(Notes args', stamp ())],
-            params, lparams, decls, regs, intros))
+            params, lparams, decls, regs, intros, dests))
       #> note_thmss_registrations loc args');
   in ctxt'' end;
 
@@ -1714,8 +1718,8 @@ fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
 
 fun add_decls add loc decl =
   ProofContext.theory (change_locale loc
-    (fn (axiom, imports, elems, params, lparams, decls, regs, intros) =>
-      (axiom, imports, elems, params, lparams, add (decl, stamp ()) decls, regs, intros))) #>
+    (fn (axiom, imports, elems, params, lparams, decls, regs, intros, dests) =>
+      (axiom, imports, elems, params, lparams, add (decl, stamp ()) decls, regs, intros, dests))) #>
   add_thmss loc Thm.internalK
     [(("", [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
 
@@ -1978,7 +1982,8 @@ fun gen_add_locale prep_ctxt prep_expr
         lparams = map #1 (params_of' body_elemss),
         decls = ([], []),
         regs = regs,
-        intros = intros}
+        intros = intros,
+        dests = map Element.conclude_witness predicate_axioms}
       |> init name;
   in (name, loc_ctxt) end;
 
