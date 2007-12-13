@@ -19,9 +19,7 @@ local
 
 fun gen_subclass prep_class do_proof raw_sup lthy =
   let
-    (*FIXME make more use of local context; drop redundancies*)
-    val ctxt = LocalTheory.target_of lthy;
-    val thy = ProofContext.theory_of ctxt;
+    val thy = ProofContext.theory_of lthy;
     val sup = prep_class thy raw_sup;
     val sub = case TheoryTarget.peek lthy
      of {is_class = false, ...} => error "No class context"
@@ -31,23 +29,24 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val err_params = subtract (op =) sub_params sup_params;
     val _ = if null err_params then [] else
       error ("Class " ^ Sign.string_of_sort thy [sub] ^ " lacks parameter(s) " ^
-          commas_quote err_params ^ " of " ^ Sign.string_of_sort thy [sup]);
+        commas_quote err_params ^ " of " ^ Sign.string_of_sort thy [sup]);
     val sublocale_prop =
       Locale.global_asms_of thy sup
       |> maps snd
-      |> map (ObjectLogic.ensure_propT thy);
-    fun after_qed thms =
-      LocalTheory.theory (Class.prove_subclass (sub, sup) thms ctxt)
+      |> the_single
+      |> ObjectLogic.ensure_propT thy;
+    fun after_qed thm =
+      LocalTheory.theory (Class.prove_subclass (sub, sup) thm)
       #> LocalTheory.reinit;
   in
     do_proof after_qed sublocale_prop lthy
   end;
 
-fun user_proof after_qed props =
-  Proof.theorem_i NONE (after_qed o the_single) [map (rpair []) props];
+fun user_proof after_qed prop =
+  Proof.theorem_i NONE (after_qed o the_single o the_single) [[(prop, [])]];
 
-fun tactic_proof tac after_qed props lthy =
-  after_qed (Goal.prove_multi (LocalTheory.target_of lthy) [] [] props
+fun tactic_proof tac after_qed prop lthy =
+  after_qed (Goal.prove (LocalTheory.target_of lthy) [] [] prop
     (K tac)) lthy;
 
 in
