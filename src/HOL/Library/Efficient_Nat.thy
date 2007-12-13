@@ -74,7 +74,7 @@ text {*
 *}
 
 lemma [code unfold, code inline del]:
-  "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
+  "nat_case = (\<lambda>f g n. if n = 0 then f else g (n - 1))"
 proof -
   have rewrite: "\<And>f g n. nat_case f g n = (if n = 0 then f else g (n - 1))"
   proof -
@@ -82,7 +82,7 @@ proof -
     show "nat_case f g n = (if n = 0 then f else g (n - 1))"
       by (cases n) simp_all
   qed
-  show "nat_case \<equiv> (\<lambda>f g n. if n = 0 then f else g (n - 1))"
+  show "nat_case = (\<lambda>f g n. if n = 0 then f else g (n - 1))"
     by (rule eq_reflection ext rewrite)+ 
 qed
 
@@ -140,10 +140,10 @@ lemma mod_nat_code [code func]:
   unfolding mod_def [symmetric] int_of_nat_def zmod_int [symmetric]
   unfolding int_of_nat_def [symmetric] nat_of_int_int ..
 
-lemma [code, code inline]: "(m < n) \<longleftrightarrow> (int_of_nat m < int_of_nat n)"
+lemma [code, code inline]: "m < n \<longleftrightarrow> int_of_nat m < int_of_nat n"
   unfolding int_of_nat_def by simp
 
-lemma [code func, code inline]: "(m \<le> n) \<longleftrightarrow> (int_of_nat m \<le> int_of_nat n)"
+lemma [code func, code inline]: "m \<le> n \<longleftrightarrow> int_of_nat m \<le> int_of_nat n"
   unfolding int_of_nat_def by simp
 
 lemma [code func, code inline]: "m = n \<longleftrightarrow> int_of_nat m = int_of_nat n"
@@ -225,6 +225,18 @@ code_const nat_of_int
   (SML "_")
   (OCaml "_")
   (Haskell "_")
+
+text {* Using target language div and mod *}
+
+code_const "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
+  (SML "IntInf.div ((_), (_))")
+  (OCaml "Big'_int.div'_big'_int")
+  (Haskell "div")
+
+code_const "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
+  (SML "IntInf.mod ((_), (_))")
+  (OCaml "Big'_int.mod'_big'_int")
+  (Haskell "mod")
 
 
 subsection {* Preprocessors *}
