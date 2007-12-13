@@ -1443,6 +1443,13 @@ declare diff_diff_left [simp]  add_diff_assoc [simp]  add_diff_assoc2[simp]
 text{*At present we prove no analogue of @{text not_less_Least} or @{text
 Least_Suc}, since there appears to be no need.*}
 
+text {* a nice rewrite for bounded subtraction *}
+
+lemma nat_minus_add_max:
+  fixes n m :: nat
+  shows "n - m + m = max n m"
+  by (simp add: max_def)
+
 
 subsection {*The Set of Natural Numbers*}
 
