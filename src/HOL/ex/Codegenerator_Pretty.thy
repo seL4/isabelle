@@ -49,9 +49,12 @@ definition
 definition
   "foobar' = (foo' R1' 1 R3', bar' R2' 0 R3', foo' R1' R3' R2')"
 
-export_code foobar foobar' in SML module_name Foo
+definition
+  "(doodle :: nat) = 1705 div 42 * 42 + 1705 mod 42"
+
+export_code foobar foobar' doodle in SML module_name Foo
   in OCaml file -
   in Haskell file -
-ML {* (Foo.foobar, Foo.foobar') *}
+ML {* (Foo.foobar, Foo.foobar', Foo.doodle) *}
 
 end
