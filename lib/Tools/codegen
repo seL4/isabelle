@@ -13,11 +13,11 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG IMAGE THY SERI"
+  echo "Usage: $PRG IMAGE THY CMD"
   echo
   echo "  Issues code generation using image IMAGE,"
   echo "  theory THY,"
-  echo "  with Isar command 'export_code SERI'"
+  echo "  with Isar command 'export_code CMD'"
   echo
   exit 1
 }
@@ -29,12 +29,12 @@ function usage()
 
 IMAGE="$1"; shift
 THY="$1"; shift
-SERI="$1"
+CMD="$1"
 
 
 ## main
 
-SERI=$(echo $SERI | sed -e 's/\\/\\\\"/g; s/"/\\\"/g')
-CMD="Isar.toplevel (fn _ => (use_thy \"$THY\"; CodePackage.codegen_command (theory \"$THY\") \"$SERI\"));"
+CMD=$(echo $CMD | sed -e 's/\\/\\\\"/g; s/"/\\\"/g')
+FULL_CMD="CodePackage.codegen_shell_command \"$THY\" \"$CMD\";"
 
-"$ISABELLE" -q -e "$CMD" "$IMAGE"
+"$ISABELLE" -q -e "$FULL_CMD" "$IMAGE" || exit 1

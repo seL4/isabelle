@@ -17,7 +17,7 @@ sig
     -> term -> 'a;
   val satisfies_ref: (unit -> bool) option ref;
   val satisfies: theory -> term -> string list -> bool;
-  val codegen_command: theory -> string -> unit;
+  val codegen_shell_command: string (*theory name*) -> string (*cg expr*) -> unit;
 end;
 
 structure CodePackage : CODE_PACKAGE =
@@ -265,10 +265,11 @@ val _ =
   OuterSyntax.command codeK "generate executable code for constants"
     K.diag (P.!!! (code_exprP code_cmd) >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
-fun codegen_command thy cmd =
-  case Scan.read OuterLex.stopper (P.!!! (code_exprP code_cmd)) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
-   of SOME f => (writeln "Now generating code..."; f thy)
-    | NONE => error ("Bad directive " ^ quote cmd);
+fun codegen_shell_command thyname cmd = Isar.toplevel (fn _ =>
+  (use_thy thyname; case Scan.read OuterLex.stopper (P.!!! (code_exprP code_cmd)) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
+   of SOME f => (writeln "Now generating code..."; f (theory thyname))
+    | NONE => error ("Bad directive " ^ quote cmd)))
+  handle TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
 
 val _ =
   OuterSyntax.improper_command code_thmsK "print system of defining equations for code" OuterKeyword.diag
