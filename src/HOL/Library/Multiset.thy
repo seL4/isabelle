@@ -1159,15 +1159,15 @@ lemma foldM_empty[simp]: "foldM f z {#} = z"
   by (unfold foldM_def, blast)
 
 locale left_commutative = 
-  fixes f :: "'a => 'b => 'b"    (infixl "\<cdot>" 70)
-  assumes left_commute: "x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
+  fixes f :: "'a => 'b => 'b"
+  assumes left_commute: "f x (f y z) = f y (f x z)"
 
 lemma (in left_commutative) foldMG_determ:
   "\<lbrakk>foldMG f z A x; foldMG f z A y\<rbrakk> \<Longrightarrow> y = x"
 proof (induct arbitrary: x y z rule: full_multiset_induct)
   case (less M x\<^isub>1 x\<^isub>2 Z)
   have IH: "\<forall>A. A \<subset># M \<longrightarrow> 
-    (\<forall>x x' x''. foldMG op \<cdot> x'' A x \<longrightarrow> foldMG op \<cdot> x'' A x'
+    (\<forall>x x' x''. foldMG f x'' A x \<longrightarrow> foldMG f x'' A x'
                \<longrightarrow> x' = x)" by fact
   have Mfoldx\<^isub>1: "foldMG f Z M x\<^isub>1" and Mfoldx\<^isub>2: "foldMG f Z M x\<^isub>2" by fact+
   show ?case
@@ -1176,16 +1176,16 @@ proof (induct arbitrary: x y z rule: full_multiset_induct)
     thus ?case using Mfoldx\<^isub>2 by auto 
   next
     fix B b u
-    assume "M = B + {#b#}" and "x\<^isub>1 = b \<cdot> u" and Bu: "foldMG op \<cdot> Z B u"
-    hence MBb: "M = B + {#b#}" and x\<^isub>1: "x\<^isub>1 = b \<cdot> u" by auto
+    assume "M = B + {#b#}" and "x\<^isub>1 = f b u" and Bu: "foldMG f Z B u"
+    hence MBb: "M = B + {#b#}" and x\<^isub>1: "x\<^isub>1 = f b u" by auto
     show ?case
     proof (rule foldMG.cases [OF Mfoldx\<^isub>2])
       assume "M = {#}" "x\<^isub>2 = Z"
       thus ?case using Mfoldx\<^isub>1 by auto
     next
       fix C c v
-      assume "M = C + {#c#}" and "x\<^isub>2 = c \<cdot> v" and Cv: "foldMG op \<cdot> Z C v"
-      hence MCc: "M = C + {#c#}" and x\<^isub>2: "x\<^isub>2 = c \<cdot> v" by auto
+      assume "M = C + {#c#}" and "x\<^isub>2 = f c v" and Cv: "foldMG f Z C v"
+      hence MCc: "M = C + {#c#}" and x\<^isub>2: "x\<^isub>2 = f c v" by auto
       hence CsubM: "C \<subset># M" by simp
       from MBb have BsubM: "B \<subset># M" by simp
       show ?case
@@ -1208,14 +1208,14 @@ proof (induct arbitrary: x y z rule: full_multiset_induct)
           by (auto simp: multiset_add_sub_el_shuffle)
         then obtain d where Dfoldd: "foldMG f Z ?D d"
           using foldMG_nonempty by iprover
-        hence "foldMG f Z B (c \<cdot> d)" using cinB
+        hence "foldMG f Z B (f c d)" using cinB
           by (rule Diff1_foldMG)
-        hence "c \<cdot> d = u" using IH BsubM Bu by blast
+        hence "f c d = u" using IH BsubM Bu by blast
         moreover 
-        have "foldMG f Z C (b \<cdot> d)" using binC cinB diff Dfoldd
+        have "foldMG f Z C (f b d)" using binC cinB diff Dfoldd
           by (auto simp: multiset_add_sub_el_shuffle 
             dest: foldMG.insertI [where x=b])
-        hence "b \<cdot> d = v" using IH CsubM Cv by blast
+        hence "f b d = v" using IH CsubM Cv by blast
         ultimately show ?thesis using x\<^isub>1 x\<^isub>2
           by (auto simp: left_commute)
       qed
@@ -1245,7 +1245,7 @@ lemma (in left_commutative) foldM_insert[simp]:
   done
 
 lemma (in left_commutative) foldM_insert_idem:
-  shows "foldM f z (A + {#a#}) = a \<cdot> foldM f z A"
+  shows "foldM f z (A + {#a#}) = f a (foldM f z A)"
   apply (simp add: foldM_def foldM_insert_aux)
   apply (rule the_equality)
   apply (auto cong add: conj_cong 
