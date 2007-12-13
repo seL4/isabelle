@@ -38,7 +38,9 @@ definition
 
 abbreviation
   Melem :: "'a => 'a multiset => bool"  ("(_/ :# _)" [50, 51] 50) where
-  "a :# M == count M a > 0"
+  "a :# M == 0 < count M a"
+
+notation (xsymbols) Melem (infix "\<in>#" 50)
 
 syntax
   "_MCollect" :: "pttrn => 'a multiset => bool => 'a multiset"    ("(1{# _ : _./ _#})")
@@ -221,7 +223,6 @@ lemma size_eq_Suc_imp_elem: "size M = Suc n ==> \<exists>a. a :# M"
   apply (drule setsum_SucD, auto)
   done
 
-
 subsubsection {* Equality of multisets *}
 
 lemma multiset_eq_conv_count_eq: "(M = N) = (\<forall>a. count M a = count N a)"
@@ -275,6 +276,43 @@ proof
   fix a b c :: "'a multiset"
   show "a + b = a + c \<Longrightarrow> b = c" by simp
 qed
+
+lemma insert_DiffM:
+  "x \<in># M \<Longrightarrow> {#x#} + (M - {#x#}) = M"
+  by (clarsimp simp: multiset_eq_conv_count_eq)
+
+lemma insert_DiffM2[simp]:
+  "x \<in># M \<Longrightarrow> M - {#x#} + {#x#} = M"
+  by (clarsimp simp: multiset_eq_conv_count_eq)
+
+lemma multi_union_self_other_eq: 
+  "(A::'a multiset) + X = A + Y \<Longrightarrow> X = Y"
+  by (induct A arbitrary: X Y, auto)
+
+lemma multi_self_add_other_not_self[simp]: "(A = A + {#x#}) = False"
+proof -
+  {
+    assume a: "A = A + {#x#}"
+    have "A = A + {#}" by simp
+    hence "A + {#} = A + {#x#}" using a by auto 
+    hence "{#} = {#x#}"
+      by - (drule multi_union_self_other_eq)
+    hence False by auto
+  }
+  thus ?thesis by blast
+qed
+
+lemma insert_noteq_member: 
+  assumes BC: "B + {#b#} = C + {#c#}"
+   and bnotc: "b \<noteq> c"
+  shows "c \<in># B"
+proof -
+  have "c \<in># C + {#c#}" by simp
+  have nc: "\<not> c \<in># {#b#}" using bnotc by simp
+  hence "c \<in># B + {#b#}" using BC by simp
+  thus "c \<in># B" using nc by simp
+qed
+
 
 subsubsection {* Intersection *}
 
@@ -376,6 +414,37 @@ proof -
     done
 qed
 
+lemma empty_multiset_count:
+  "(\<forall>x. count A x = 0) = (A = {#})"
+  apply (rule iffI)
+   apply (induct A, simp)
+   apply (erule_tac x=x in allE)
+   apply auto
+  done
+
+subsection {* Case splits *}
+
+lemma multi_nonempty_split: "M \<noteq> {#} \<Longrightarrow> \<exists>A a. M = A + {#a#}"
+  by (induct M, auto)
+
+lemma multiset_cases [cases type, case_names empty add]:
+  assumes em:  "M = {#} \<Longrightarrow> P"
+  assumes add: "\<And>N x. M = N + {#x#} \<Longrightarrow> P"
+  shows "P"
+proof (cases "M = {#}")
+  assume "M = {#}" thus ?thesis using em by simp
+next
+  assume "M \<noteq> {#}"
+  then obtain M' m where "M = M' + {#m#}" 
+    by (blast dest: multi_nonempty_split)
+  thus ?thesis using add by simp
+qed
+
+lemma multi_member_split: "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#}"
+  apply (cases M, simp)
+  apply (rule_tac x="M - {#x#}" in exI, simp)
+  done
+
 lemma MCollect_preserves_multiset:
     "M \<in> multiset ==> (\<lambda>x. if P x then M x else 0) \<in> multiset"
   apply (simp add: multiset_def)
@@ -399,6 +468,16 @@ lemma add_eq_conv_ex:
 
 declare multiset_typedef [simp del]
 
+lemma nonempty_has_size: "(S \<noteq> {#}) = (0 < size S)"
+  apply (rule iffI)
+   apply (case_tac "size S = 0")
+    apply clarsimp
+   apply (subst (asm) neq0_conv)
+   apply auto
+  done
+
+lemma multi_drop_mem_not_eq: "c \<in># B \<Longrightarrow> B - {#c#} \<noteq> B"
+  by (cases "B={#}", auto dest: multi_member_split)
 
 subsection {* Multiset orderings *}
 
@@ -821,11 +900,14 @@ lemma count_filter:
 subsection {* Pointwise ordering induced by count *}
 
 definition
-mset_le :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<le>#" 50) where
-"(A \<le># B) = (\<forall>a. count A a \<le> count B a)"
+  mset_le :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<le>#" 50) where
+  "(A \<le># B) = (\<forall>a. count A a \<le> count B a)"
 definition
-mset_less :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "<#" 50) where
-"(A <# B) = (A \<le># B \<and> A \<noteq> B)"
+  mset_less :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "<#" 50) where
+  "(A <# B) = (A \<le># B \<and> A \<noteq> B)"
+
+notation mset_le (infix "\<subseteq>#" 50)
+notation mset_less (infix "\<subset>#" 50)
 
 lemma mset_le_refl[simp]: "A \<le># A"
   unfolding mset_le_def by auto
@@ -883,5 +965,309 @@ interpretation mset_order_cancel_semigroup:
 interpretation mset_order_semigroup_cancel:
   pordered_ab_semigroup_add_imp_le ["op \<le>#" "op <#" "op +"]
   by (unfold_locales) simp
+
+
+lemma mset_lessD:
+  "\<lbrakk> A \<subset># B ; x \<in># A \<rbrakk> \<Longrightarrow> x \<in># B"
+  apply (clarsimp simp: mset_le_def mset_less_def)
+  apply (erule_tac x=x in allE)
+  apply auto
+  done
+
+lemma mset_leD:
+  "\<lbrakk> A \<subseteq># B ; x \<in># A \<rbrakk> \<Longrightarrow> x \<in># B"
+  apply (clarsimp simp: mset_le_def mset_less_def)
+  apply (erule_tac x=x in allE)
+  apply auto
+  done
+  
+lemma mset_less_insertD:
+  "(A + {#x#} \<subset># B) \<Longrightarrow> (x \<in># B \<and> A \<subset># B)"
+  apply (rule conjI)
+   apply (simp add: mset_lessD)
+  apply (clarsimp simp: mset_le_def mset_less_def)
+  apply safe
+   apply (erule_tac x=a in allE)
+   apply (auto split: split_if_asm)
+  done
+
+lemma mset_le_insertD:
+  "(A + {#x#} \<subseteq># B) \<Longrightarrow> (x \<in># B \<and> A \<subseteq># B)"
+  apply (rule conjI)
+   apply (simp add: mset_leD)
+  apply (force simp: mset_le_def mset_less_def split: split_if_asm)
+  done
+
+lemma mset_less_of_empty[simp]: "A \<subset># {#} = False" 
+  by (induct A, auto simp: mset_le_def mset_less_def)
+
+lemma multi_psub_of_add_self[simp]: "A \<subset># A + {#x#}"
+  by (clarsimp simp: mset_le_def mset_less_def)
+
+lemma multi_psub_self[simp]: "A \<subset># A = False"
+  by (clarsimp simp: mset_le_def mset_less_def)
+
+lemma mset_less_add_bothsides:
+  "T + {#x#} \<subset># S + {#x#} \<Longrightarrow> T \<subset># S"
+  by (clarsimp simp: mset_le_def mset_less_def)
+
+lemma mset_less_empty_nonempty: "({#} \<subset># S) = (S \<noteq> {#})"
+  by (auto simp: mset_le_def mset_less_def)
+
+lemma mset_less_size: "A \<subset># B \<Longrightarrow> size A < size B"
+proof (induct A arbitrary: B)
+  case (empty M)
+  hence "M \<noteq> {#}" by (simp add: mset_less_empty_nonempty)
+  then obtain M' x where "M = M' + {#x#}" 
+    by (blast dest: multi_nonempty_split)
+  thus ?case by simp
+next
+  case (add S x T)
+  have IH: "\<And>B. S \<subset># B \<Longrightarrow> size S < size B" by fact
+  have SxsubT: "S + {#x#} \<subset># T" by fact
+  hence "x \<in># T" and "S \<subset># T" by (auto dest: mset_less_insertD)
+  then obtain T' where T: "T = T' + {#x#}" 
+    by (blast dest: multi_member_split)
+  hence "S \<subset># T'" using SxsubT 
+    by (blast intro: mset_less_add_bothsides)
+  hence "size S < size T'" using IH by simp
+  thus ?case using T by simp
+qed
+
+lemmas mset_less_trans = mset_order.less_eq_less.less_trans
+
+lemma mset_less_diff_self: "c \<in># B \<Longrightarrow> B - {#c#} \<subset># B"
+  by (auto simp: mset_le_def mset_less_def multi_drop_mem_not_eq)
+
+subsection {* Strong induction and subset induction for multisets *}
+
+subsubsection {* Well-foundedness of proper subset operator *}
+
+definition
+  mset_less_rel  :: "('a multiset * 'a multiset) set" 
+  where
+  --{* proper multiset subset *}
+  "mset_less_rel \<equiv> {(A,B). A \<subset># B}"
+
+lemma multiset_add_sub_el_shuffle: 
+  assumes cinB: "c \<in># B" and bnotc: "b \<noteq> c" 
+  shows "B - {#c#} + {#b#} = B + {#b#} - {#c#}"
+proof -
+  from cinB obtain A where B: "B = A + {#c#}" 
+    by (blast dest: multi_member_split)
+  have "A + {#b#} = A + {#b#} + {#c#} - {#c#}" by simp
+  hence "A + {#b#} = A + {#c#} + {#b#} - {#c#}" 
+    by (simp add: union_ac)
+  thus ?thesis using B by simp
+qed
+
+lemma wf_mset_less_rel: "wf mset_less_rel"
+  apply (unfold mset_less_rel_def)
+  apply (rule wf_measure [THEN wf_subset, where f1=size])
+  apply (clarsimp simp: measure_def inv_image_def mset_less_size)
+  done
+
+subsubsection {* The induction rules *}
+
+lemma full_multiset_induct [case_names less]:
+  assumes ih: "\<And>B. \<forall>A. A \<subset># B \<longrightarrow> P A \<Longrightarrow> P B"
+  shows "P B"
+  apply (rule wf_mset_less_rel [THEN wf_induct])
+  apply (rule ih, auto simp: mset_less_rel_def)
+  done
+
+lemma multi_subset_induct [consumes 2, case_names empty add]:
+  assumes "F \<subseteq># A"
+    and empty: "P {#}"
+    and insert: "\<And>a F. a \<in># A \<Longrightarrow> P F \<Longrightarrow> P (F + {#a#})"
+  shows "P F"
+proof -
+  from `F \<subseteq># A`
+  show ?thesis
+  proof (induct F)
+    show "P {#}" by fact
+  next
+    fix x F
+    assume P: "F \<subseteq># A \<Longrightarrow> P F" and i: "F + {#x#} \<subseteq># A"
+    show "P (F + {#x#})"
+    proof (rule insert)
+      from i show "x \<in># A" by (auto dest: mset_le_insertD)
+      from i have "F \<subseteq># A" by (auto simp: mset_le_insertD)
+      with P show "P F" .
+    qed
+  qed
+qed 
+
+subsection {* Multiset extensionality *}
+
+lemma multi_count_eq: 
+  "(\<forall>x. count A x = count B x) = (A = B)"
+  apply (rule iffI)
+   prefer 2
+   apply clarsimp 
+  apply (induct A arbitrary: B rule: full_multiset_induct)
+  apply (rename_tac C)
+  apply (case_tac B rule: multiset_cases)
+   apply (simp add: empty_multiset_count)
+  apply simp
+  apply (case_tac "x \<in># C")
+   apply (force dest: multi_member_split)
+  apply (erule_tac x=x in allE)
+  apply simp
+  done
+
+lemmas multi_count_ext = multi_count_eq [THEN iffD1, rule_format]
+
+subsection {* The fold combinator *}
+
+text {* The intended behaviour is
+@{text "foldM f z {#x\<^isub>1, ..., x\<^isub>n#} = f x\<^isub>1 (\<dots> (f x\<^isub>n z)\<dots>)"}
+if @{text f} is associative-commutative. 
+*}
+
+(* the graph of foldM, z = the start element, f = folding function, 
+   A the multiset, y the result *)
+inductive 
+  foldMG :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b \<Rightarrow> bool" 
+  for f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" 
+  and z :: 'b
+where
+  emptyI [intro]:  "foldMG f z {#} z"
+| insertI [intro]: "foldMG f z A y \<Longrightarrow> foldMG f z (A + {#x#}) (f x y)"
+
+inductive_cases empty_foldMGE [elim!]: "foldMG f z {#} x"
+inductive_cases insert_foldMGE: "foldMG f z (A + {#}) y" 
+
+definition
+  foldM :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b"
+where
+  "foldM f z A \<equiv> THE x. foldMG f z A x"
+
+lemma Diff1_foldMG:
+  "\<lbrakk> foldMG f z (A - {#x#}) y; x \<in># A \<rbrakk> \<Longrightarrow> foldMG f z A (f x y)"
+  by (frule_tac x=x in foldMG.insertI, auto)
+
+lemma foldMG_nonempty: "\<exists>x. foldMG f z A x"
+  apply (induct A)
+   apply blast
+  apply clarsimp
+  apply (drule_tac x=x in foldMG.insertI)
+  apply auto
+  done
+
+lemma foldM_empty[simp]: "foldM f z {#} = z"
+  by (unfold foldM_def, blast)
+
+locale left_commutative = 
+  fixes f :: "'a => 'b => 'b"    (infixl "\<cdot>" 70)
+  assumes left_commute: "x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
+
+lemma (in left_commutative) foldMG_determ:
+  "\<lbrakk>foldMG f z A x; foldMG f z A y\<rbrakk> \<Longrightarrow> y = x"
+proof (induct arbitrary: x y z rule: full_multiset_induct)
+  case (less M x\<^isub>1 x\<^isub>2 Z)
+  have IH: "\<forall>A. A \<subset># M \<longrightarrow> 
+    (\<forall>x x' x''. foldMG op \<cdot> x'' A x \<longrightarrow> foldMG op \<cdot> x'' A x'
+               \<longrightarrow> x' = x)" by fact
+  have Mfoldx\<^isub>1: "foldMG f Z M x\<^isub>1" and Mfoldx\<^isub>2: "foldMG f Z M x\<^isub>2" by fact+
+  show ?case
+  proof (rule foldMG.cases [OF Mfoldx\<^isub>1])
+    assume "M = {#}" and "x\<^isub>1 = Z"
+    thus ?case using Mfoldx\<^isub>2 by auto 
+  next
+    fix B b u
+    assume "M = B + {#b#}" and "x\<^isub>1 = b \<cdot> u" and Bu: "foldMG op \<cdot> Z B u"
+    hence MBb: "M = B + {#b#}" and x\<^isub>1: "x\<^isub>1 = b \<cdot> u" by auto
+    show ?case
+    proof (rule foldMG.cases [OF Mfoldx\<^isub>2])
+      assume "M = {#}" "x\<^isub>2 = Z"
+      thus ?case using Mfoldx\<^isub>1 by auto
+    next
+      fix C c v
+      assume "M = C + {#c#}" and "x\<^isub>2 = c \<cdot> v" and Cv: "foldMG op \<cdot> Z C v"
+      hence MCc: "M = C + {#c#}" and x\<^isub>2: "x\<^isub>2 = c \<cdot> v" by auto
+      hence CsubM: "C \<subset># M" by simp
+      from MBb have BsubM: "B \<subset># M" by simp
+      show ?case
+      proof cases
+        assume "b=c"
+        then moreover have "B = C" using MBb MCc by auto
+        ultimately show ?thesis using Bu Cv x\<^isub>1 x\<^isub>2 CsubM IH by auto
+      next
+        assume diff: "b \<noteq> c"
+        let ?D = "B - {#c#}"
+        have cinB: "c \<in># B" and binC: "b \<in># C" using MBb MCc diff
+          by (auto intro: insert_noteq_member dest: sym)
+        have "B - {#c#} \<subset># B" using cinB by (rule mset_less_diff_self)
+        hence DsubM: "?D \<subset># M" using BsubM by (blast intro: mset_less_trans)
+        from MBb MCc have "B + {#b#} = C + {#c#}" by blast
+        hence [simp]: "B + {#b#} - {#c#} = C"
+          using MBb MCc binC cinB by auto
+        have B: "B = ?D + {#c#}" and C: "C = ?D + {#b#}"
+          using MBb MCc diff binC cinB
+          by (auto simp: multiset_add_sub_el_shuffle)
+        then obtain d where Dfoldd: "foldMG f Z ?D d"
+          using foldMG_nonempty by iprover
+        hence "foldMG f Z B (c \<cdot> d)" using cinB
+          by (rule Diff1_foldMG)
+        hence "c \<cdot> d = u" using IH BsubM Bu by blast
+        moreover 
+        have "foldMG f Z C (b \<cdot> d)" using binC cinB diff Dfoldd
+          by (auto simp: multiset_add_sub_el_shuffle 
+            dest: foldMG.insertI [where x=b])
+        hence "b \<cdot> d = v" using IH CsubM Cv by blast
+        ultimately show ?thesis using x\<^isub>1 x\<^isub>2
+          by (auto simp: left_commute)
+      qed
+    qed
+  qed
+qed
+        
+lemma (in left_commutative) foldM_insert_aux: "
+    (foldMG f z (A + {#x#}) v) =
+    (\<exists>y. foldMG f z A y \<and> v = f x y)"
+  apply (rule iffI)
+   prefer 2
+   apply blast
+  apply (rule_tac A=A and f=f in foldMG_nonempty [THEN exE, standard])
+  apply (blast intro: foldMG_determ)
+  done
+
+lemma (in left_commutative) foldM_equality: "foldMG f z A y \<Longrightarrow> foldM f z A = y"
+  by (unfold foldM_def) (blast intro: foldMG_determ)
+
+lemma (in left_commutative) foldM_insert[simp]:
+  "foldM f z (A + {#x#}) = f x (foldM f z A)"
+  apply (simp add: foldM_def foldM_insert_aux union_commute)  
+  apply (rule the_equality)
+  apply (auto cong add: conj_cong 
+              simp add: foldM_def [symmetric] foldM_equality foldMG_nonempty)
+  done
+
+lemma (in left_commutative) foldM_insert_idem:
+  shows "foldM f z (A + {#a#}) = a \<cdot> foldM f z A"
+  apply (simp add: foldM_def foldM_insert_aux)
+  apply (rule the_equality)
+  apply (auto cong add: conj_cong 
+              simp add: foldM_def [symmetric] foldM_equality foldMG_nonempty)
+  done
+
+lemma (in left_commutative) foldM_fusion:
+  includes left_commutative g
+  shows "\<lbrakk>\<And>x y. h (g x y) = f x (h y) \<rbrakk> \<Longrightarrow> h (foldM g w A) = foldM f (h w) A"
+  by (induct A, auto)
+
+lemma (in left_commutative) foldM_commute:
+  "f x (foldM f z A) = foldM f (f x z) A"
+  by (induct A, auto simp: left_commute [of x])
+  
+lemma (in left_commutative) foldM_rec:
+  assumes a: "a \<in># A" 
+  shows "foldM f z A = f a (foldM f z (A - {#a#}))"
+proof -
+  from a obtain A' where "A = A' + {#a#}" by (blast dest: multi_member_split)
+  thus ?thesis by simp
+qed
+
 
 end
