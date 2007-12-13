@@ -55,6 +55,7 @@ sig
     -> (iterm * itype) * (iterm * iterm) list;
   val eta_expand: (string * (dict list list * itype list)) * iterm list -> int -> iterm;
   val contains_dictvar: iterm -> bool;
+  val locally_monomorphic: iterm -> bool;
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
   val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
@@ -78,6 +79,7 @@ sig
     -> code -> code;
   val empty_funs: code -> string list;
   val is_cons: code -> string -> bool;
+  val contr_classparam_typs: code -> string -> itype option list;
 
   type transact;
   val ensure_const: theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
@@ -244,6 +246,13 @@ fun contains_dictvar t =
       (fn IConst (_, (dss, _)) => (fold o fold) contains dss | _ => I) t false
   end;
   
+fun locally_monomorphic (IConst _) = false
+  | locally_monomorphic (IVar _) = true
+  | locally_monomorphic (t `$ _) = locally_monomorphic t
+  | locally_monomorphic (_ `|-> t) = locally_monomorphic t
+  | locally_monomorphic (ICase ((_, ds), _)) = exists (locally_monomorphic o snd) ds;
+
+
 
 (** definitions, transactions **)
 
@@ -312,6 +321,19 @@ fun empty_funs code =
 fun is_cons code name = case Graph.get_node code name
  of Datatypecons _ => true
   | _ => false;
+
+fun contr_classparam_typs code name = case Graph.get_node code name
+ of Classparam class => let
+        val Class (_, (_, params)) = Graph.get_node code class;
+        val SOME ty = AList.lookup (op =) params name;
+        val (tys, res_ty) = unfold_fun ty;
+        fun no_tyvar (_ `%% tys) = forall no_tyvar tys
+          | no_tyvar (ITyVar _) = false;
+      in if no_tyvar res_ty
+        then map (fn ty => if no_tyvar ty then NONE else SOME ty) tys
+        else []
+      end
+  | _ => [];
 
 
 (* transaction protocol *)
@@ -486,10 +508,10 @@ and ensure_const thy (algbr as (_, consts)) funcgr c =
     val c' = CodeName.const thy c;
     fun stmt_datatypecons tyco =
       ensure_tyco thy algbr funcgr tyco
-      #>> K (Datatypecons c');
+      #>> Datatypecons;
     fun stmt_classparam class =
       ensure_class thy algbr funcgr class
-      #>> K (Classparam c');
+      #>> Classparam;
     fun stmt_fun trns =
       let
         val raw_thms = CodeFuncgr.funcs funcgr c;
