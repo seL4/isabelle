@@ -80,7 +80,7 @@ class comm_monoid_mult = one + ab_semigroup_mult +
 begin
 
 subclass monoid_mult
-  by unfold_locales (insert mult_1, simp_all add: mult_commute) 
+  by unfold_locales (insert mult_1, simp_all add: mult_commute)
 
 end
 
