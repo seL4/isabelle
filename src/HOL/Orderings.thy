@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
 *)
 
-header {* Syntactic and abstract orders *}
+header {* Abstract orderings *}
 
 theory Orderings
 imports Set Fun
