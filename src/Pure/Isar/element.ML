@@ -45,6 +45,7 @@ sig
   val witness_hyps: witness -> term list
   val assume_witness: theory -> term -> witness
   val prove_witness: Proof.context -> term -> tactic -> witness
+  val close_witness: witness -> witness
   val conclude_witness: witness -> thm
   val mark_witness: term -> term
   val make_witness: term -> thm -> witness
@@ -292,6 +293,8 @@ fun assume_witness thy t =
 fun prove_witness ctxt t tac =
   Witness (t, Goal.close_result (Goal.prove ctxt [] [] (Logic.protect t) (fn _ =>
     Tactic.rtac Drule.protectI 1 THEN tac)));
+
+val close_witness = map_witness (fn (t, th) => (t, Goal.close_result th));
 
 fun conclude_witness (Witness (_, th)) =
   Goal.close_result (MetaSimplifier.norm_hhf_protect (Goal.conclude th));
