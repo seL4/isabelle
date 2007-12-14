@@ -113,7 +113,9 @@ fun cut kind scan =
       | get_pos (tok :: _) = T.pos_of tok;
 
     fun err (toks, NONE) = kind ^ get_pos toks
-      | err (toks, SOME msg) = kind ^ get_pos toks ^ ": " ^ msg;
+      | err (toks, SOME msg) =
+          if String.isPrefix kind msg then msg
+          else kind ^ get_pos toks ^ ": " ^ msg;
   in Scan.!! err scan end;
 
 fun !!! scan = cut "Outer syntax error" scan;
