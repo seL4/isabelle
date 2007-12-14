@@ -100,15 +100,18 @@ end;
 (* common markup *)
 
 fun proof_general_markup (name, props) =
-  (if name = Markup.promptN then ("", special "372")
-    else if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
-    else if name = Markup.sendbackN then (special "376", special "377")
-    else if name = Markup.hiliteN then (special "327", special "330")
-    else ("", ""))
-  |> (name <> Markup.promptN andalso print_mode_active IsabelleProcess.test_markupN) ?
-      (fn (bg1, en1) =>
-        let val (bg2, en2) = IsabelleProcess.test_markup (name, props)
-        in (bg1 ^ bg2, en2 ^ en1) end);
+  let
+    val (bg1, en1) =
+      if name = Markup.promptN then ("", special "372")
+      else if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
+      else if name = Markup.sendbackN then (special "376", special "377")
+      else if name = Markup.hiliteN then (special "327", special "330")
+      else ("", "");
+    val (bg2, en2) =
+      if name <> Markup.promptN andalso print_mode_active IsabelleProcess.test_markupN
+      then IsabelleProcess.test_markup (name, props)
+      else ("", "");
+  in (bg1 ^ bg2, en2 ^ en1) end;
 
 val _ = Markup.add_mode proof_generalN proof_general_markup;
 
