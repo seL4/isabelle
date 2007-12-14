@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Markus Wenzel, TU Muenchen
+#
+# DESCRIPTION: run Isabelle process with plain tty interaction
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [OPTIONS]"
+  echo
+  echo "  Options are:"
+  echo "    -l NAME      logic image name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
+  echo "    -m MODE      add print mode for output"
+  echo "    -p NAME      line editor program name"
+  echo "                 (default ISABELLE_LINE_EDITOR=$ISABELLE_LINE_EDITOR)"
+  echo
+  echo "  Run Isabelle process with plain tty interaction, and optional line editor."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+ISABELLE_OPTIONS="-I"
+LOGIC=""
+LINE_EDITOR="$ISABELLE_LINE_EDITOR"
+
+while getopts "l:m:p:" OPT
+do
+  case "$OPT" in
+    l)
+      LOGIC="$OPTARG"
+      ;;
+    m)
+      ISABELLE_OPTIONS="$ISABELLE_OPTIONS -m \"$OPTARG\""
+      ;;
+    p)
+      LINE_EDITOR="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 0 ] && { echo "Bad args: $*"; usage; }
+
+
+## main
+
+if [ -n "$LINE_EDITOR" ]; then
+  exec "$LINE_EDITOR" "$ISABELLE" $ISABELLE_OPTIONS "$LOGIC"
+else
+  exec "$ISABELLE" $ISABELLE_OPTIONS "$LOGIC"
+fi
