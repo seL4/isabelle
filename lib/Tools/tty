@@ -45,7 +45,7 @@ do
       LOGIC="$OPTARG"
       ;;
     m)
-      ISABELLE_OPTIONS="$ISABELLE_OPTIONS -m \"$OPTARG\""
+      ISABELLE_OPTIONS="$ISABELLE_OPTIONS -m $OPTARG"
       ;;
     p)
       LINE_EDITOR="$OPTARG"
