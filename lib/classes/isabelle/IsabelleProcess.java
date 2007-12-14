@@ -1,8 +1,20 @@
 /*
- * IsabelleProcess.java
- *
  * $Id$
  *
+ * Posix process wrapper for Isabelle (see also src/Pure/Tools/isabelle_process.ML).
+ *
+ * The process model:
+ * 
+ *  (1) input
+ *    - stdin stream
+ *    - signals (interrupt, destroy)
+ * 
+ *  (2) output/results
+ *    - stdout stream, interspersed with marked Isabelle messages
+ *    - stderr stream
+ *    - process exit (return code)
+ *
+ * I/O is fully asynchronous, with unrestricted buffers.  Text is encoded as UTF-8.
  */
 
 import java.io.*;
@@ -19,12 +31,12 @@ public class IsabelleProcess {
     /* exceptions */
     
     public static class IsabelleProcessException extends Exception {
-	public IsabelleProcessException() {
+    	public IsabelleProcessException() {
             super();
-	}
-	public IsabelleProcessException(String msg) {
+        }
+        public IsabelleProcessException(String msg) {
             super(msg);
-	}
+        }
     };
 
 
@@ -58,28 +70,6 @@ public class IsabelleProcess {
     }
 
     
-    /* encode arbitrary strings */
-    
-    public static String encodeString(String str) {
-        Locale locale = null;
-        StringBuffer buf = new StringBuffer(100);
-        int i;
-        char c;
-
-        buf.append("\"");
-        for (i = 0; i < str.length(); i++) {
-            c = str.charAt(i);
-            if (c < 32 || c == '\\' || c == '\"') {
-                buf.append(String.format(locale, "\\%03d", (int) c));
-            } else {
-                buf.append(c);
-            }
-        }
-        buf.append("\"");
-        return buf.toString();
-    }
-
-
     /* interrupt process */
 
     public synchronized void interrupt() throws IsabelleProcessException
@@ -101,11 +91,45 @@ public class IsabelleProcess {
     }
 
 
+    /* destroy process */
+
+    public synchronized void destroy() throws IsabelleProcessException
+    {
+        if (proc != null) {
+            proc.destroy();
+        } else {
+            throw new IsabelleProcessException("Cannot destroy: no process");
+        }
+    }
+
+    
     /* terminate process */
 
     public synchronized void terminate()
     {
-        // FIXME
+        // FIXME timeout?
+    }
+
+
+    /* encode arbitrary strings */
+    
+    public static String encodeString(String str) {
+        Locale locale = null;
+        StringBuffer buf = new StringBuffer(100);
+        int i;
+        char c;
+
+        buf.append("\"");
+        for (i = 0; i < str.length(); i++) {
+            c = str.charAt(i);
+            if (c < 32 || c == '\\' || c == '\"') {
+                buf.append(String.format(locale, "\\%03d", (int) c));
+            } else {
+                buf.append(c);
+            }
+        }
+        buf.append("\"");
+        return buf.toString();
     }
 
 
@@ -152,6 +176,12 @@ public class IsabelleProcess {
         }
     }
 
+    public synchronized void close() throws IsabelleProcessException
+    {
+        output("\u0000");
+        closing = true;
+    }
+    
     private synchronized void commandWrapping(String cmd, String text) throws IsabelleProcessException
     {
         output(" \\<^sync> " + cmd + " " + encodeString(text) + " \\<^sync>;\n");
@@ -167,14 +197,8 @@ public class IsabelleProcess {
         commandWrapping("ML", text);
     }
 
-    public synchronized void close() throws IsabelleProcessException
-    {
-        output("\u0000");
-        closing = true;
-    }
     
-    
-    /* input being read from the process (stdout/stderr) */
+    /* input from the process (stdout/stderr) */
 
     private volatile BufferedReader inputReader;
     private volatile BufferedReader errorReader;
@@ -282,7 +306,25 @@ public class IsabelleProcess {
         }
     }
     private ErrorThread errorThread;
+
     
+    /* exit thread */
+    
+    private class ExitThread extends Thread
+    {
+        public void run()
+        {
+            try {
+                int rc = proc.waitFor();
+                putResult(Result.Kind.EXIT, new Integer(rc).toString());
+            } catch (InterruptedException exn) {
+                putResult(Result.Kind.FAILURE, "Exit thread: interrupted");
+            }
+            System.err.println("Exit thread terminated");
+        }
+    }
+    private ExitThread exitThread;
+
     
     /* console thread -- demo */
 
@@ -296,7 +338,7 @@ public class IsabelleProcess {
                     result = results.take();
                     System.err.println(result.toString());
                 } catch (InterruptedException ex) {
-                    putResult(Result.Kind.FAILURE, "Cannot interrupt: aborted");
+                    putResult(Result.Kind.FAILURE, "Cannot get result: aborted");
                 }
             }
             System.err.println("Console thread terminated");
@@ -324,6 +366,7 @@ public class IsabelleProcess {
             errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream(), charset));
             inputThread = new InputThread();
             errorThread = new ErrorThread();
+            exitThread = new ExitThread();
             
             consoleThread = new ConsoleThread();
         } catch (IOException exn) {
@@ -334,6 +377,8 @@ public class IsabelleProcess {
         outputThread.start();
         inputThread.start();
         errorThread.start();
+        exitThread.start();
+
         consoleThread.start();
     }
 }
