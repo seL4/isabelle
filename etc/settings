@@ -76,7 +76,16 @@ ML_DBASE=""
 
 
 ###
-### Compilation options (cf. isatool usedir)
+### Interactive sessions (cf. isatool tty)
+###
+
+ISABELLE_LINE_EDITOR=""
+[ -z "$ISABELLE_LINE_EDITOR" ] && ISABELLE_LINE_EDITOR="$(type -p ledit)"
+[ -z "$ISABELLE_LINE_EDITOR" ] && ISABELLE_LINE_EDITOR="$(type -p rlwrap)"
+
+
+###
+### Batch sessions (cf. isatool usedir)
 ###
 
 ISABELLE_USEDIR_OPTIONS="-p 1 -v true -V outline=/proof,/ML"
