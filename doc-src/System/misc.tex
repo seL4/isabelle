@@ -259,6 +259,27 @@ The \texttt{-c} option causes the input file to be removed after use.  The
 printer spool command is determined by the \texttt{PRINT_COMMAND} setting.
 
 
+\section{Run Isabelle with plain tty interaction --- \texttt{isatool tty}} \label{sec:tool-tty}
+
+The \tooldx{tty} utility runs the Isabelle process interactively
+within a plain terminal session:
+\begin{ttbox}
+Usage: tty [OPTIONS]
+
+  Options are:
+    -l NAME      logic image name (default ISABELLE_LOGIC)
+    -m MODE      add print mode for output
+    -p NAME      line editor program name (default ISABELLE_LINE_EDITOR)
+
+  Run Isabelle process with plain tty interaction, and optional line editor.
+\end{ttbox}
+
+The \texttt{-l} option specifies the logic image.  The \texttt{-m}
+option specifies additional print modes.  The The \texttt{-p} option
+specifies an alternative line editor (such as the \texttt{rlwrap}
+wrapper for GNU readline); the fall-back is to use raw standard input.
+
+
 \section{Remove awkward symbol names from theory sources --- \texttt{isatool unsymbolize}}
 
 The \tooldx{unsymbolize} utility tunes Isabelle theory sources to improve
@@ -281,6 +302,7 @@ Usage: unsymbolize [FILES|DIRS...]
 The \tooldx{version} utility outputs the full version string of the
 Isabelle distribution being used, e.g.\ ``\texttt{Isabelle2007:
   November 2007}''.  There are no options nor arguments.
+
 
 %%% Local Variables: 
 %%% mode: latex
