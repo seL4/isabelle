@@ -4,11 +4,11 @@
  * Posix process wrapper for Isabelle (see also src/Pure/Tools/isabelle_process.ML).
  *
  * The process model:
- * 
+ *
  *  (1) input
  *    - stdin stream
  *    - signals (interrupt, destroy)
- * 
+ *
  *  (2) output/results
  *    - stdout stream, interspersed with marked Isabelle messages
  *    - stderr stream
@@ -29,9 +29,9 @@ public class IsabelleProcess {
 
 
     /* exceptions */
-    
+
     public static class IsabelleProcessException extends Exception {
-    	public IsabelleProcessException() {
+        public IsabelleProcessException() {
             super();
         }
         public IsabelleProcessException(String msg) {
@@ -50,12 +50,12 @@ public class IsabelleProcess {
         };
         public Kind kind;
         public String result;
-    
+
         public Result(Kind kind, String result) {
             this.kind = kind;
             this.result = result;
         }
-    
+
         public String toString() {
             return this.kind.toString() + " [[" + this.result + "]]";
         }
@@ -69,7 +69,7 @@ public class IsabelleProcess {
         } catch (InterruptedException exn) {  }
     }
 
-    
+
     /* interrupt process */
 
     public synchronized void interrupt() throws IsabelleProcessException
@@ -102,10 +102,10 @@ public class IsabelleProcess {
             throw new IsabelleProcessException("Cannot destroy: no process");
         }
     }
-    
-    
+
+
     /* encode text as string token */
-    
+
     public static String encodeString(String str) {
         Locale locale = null;
         StringBuffer buf = new StringBuffer(100);
@@ -153,16 +153,16 @@ public class IsabelleProcess {
     }
     private OutputThread outputThread;
 
-    
+
     // public operations
-    
+
     public synchronized void output(String text) throws IsabelleProcessException
     {
         if (proc != null && !closing) {
             try {
                 output.put(text);
             } catch (InterruptedException ex) {
-               throw new IsabelleProcessException("Cannot output: aborted"); 
+               throw new IsabelleProcessException("Cannot output: aborted");
             }
         } else if (proc == null) {
             throw new IsabelleProcessException("Cannot output: no process");
@@ -177,7 +177,7 @@ public class IsabelleProcess {
         closing = true;
         // FIXME start watchdog
     }
-    
+
     public synchronized void tryClose()
     {
         if (proc != null && !closing) {
@@ -202,7 +202,7 @@ public class IsabelleProcess {
         outputWrapped("ML", text);
     }
 
-    
+
     /* input from the process (stdout/stderr) */
 
     private volatile BufferedReader inputReader;
@@ -309,9 +309,9 @@ public class IsabelleProcess {
     }
     private ErrorThread errorThread;
 
-    
+
     /* exit thread */
-    
+
     private class ExitThread extends Thread
     {
         public void run()
@@ -328,7 +328,7 @@ public class IsabelleProcess {
     }
     private ExitThread exitThread;
 
-    
+
     /* console thread -- demo */
 
     private class ConsoleThread extends Thread
@@ -378,7 +378,7 @@ public class IsabelleProcess {
         inputThread = new InputThread();
         errorThread = new ErrorThread();
         exitThread = new ExitThread();
-            
+
         consoleThread = new ConsoleThread();
 
         outputThread.start();
