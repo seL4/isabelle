@@ -3,6 +3,18 @@
     Author:     Makarius
 
 Isabelle process wrapper -- interaction via external program.
+
+General format of process output:
+
+  (a) unmarked stdout/stderr, no line structure (output should be
+  processed immediately as it arrives)
+
+  (b) echo of my pid on stdout, appears *relatively* early after
+  startup on a separate line, e.g. "\nPID=4711\n"
+
+  (c) properly marked-up messages, e.g. for writeln channel
+  "\002A" ^ text ^ "\002.\n" where the body text may consist of several
+  lines (output should be processed in one piece).
 *)
 
 signature ISABELLE_PROCESS =
@@ -52,7 +64,7 @@ end;
 (* init *)
 
 fun init () =
- (Output.writeln_default ("PID=" ^ string_of_pid (Posix.ProcEnv.getpid ()));
+ (Output.writeln_default ("\nPID=" ^ string_of_pid (Posix.ProcEnv.getpid ()));
   setup_channels ();
   Isar.secure_main ());
 
