@@ -44,6 +44,13 @@ Sup_set_def, le_def, less_def, option_map_def now with object
 equality.
 
 
+*** System ***
+
+* isatool tty runs Isabelle process with plain tty interaction;
+optional line editor may be specified via ISABELLE_LINE_EDITOR
+setting, the default settings attempt to locate "ledit" and "rlwrap".
+
+
 
 New in Isabelle2007 (November 2007)
 -----------------------------------
