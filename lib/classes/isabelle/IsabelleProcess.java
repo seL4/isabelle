@@ -22,10 +22,10 @@ import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class IsabelleProcess {
-    private volatile Process proc;
-    private volatile String pid;
+    private volatile Process proc = null;
+    private volatile String pid = null;
     private volatile boolean closing = false;
-    private LinkedBlockingQueue<String> output;
+    private LinkedBlockingQueue<String> output = null;
 
 
     /* exceptions */
@@ -97,21 +97,14 @@ public class IsabelleProcess {
     {
         if (proc != null) {
             proc.destroy();
+            proc = null;
         } else {
             throw new IsabelleProcessException("Cannot destroy: no process");
         }
     }
-
     
-    /* terminate process */
-
-    public synchronized void terminate()
-    {
-        // FIXME timeout?
-    }
-
-
-    /* encode arbitrary strings */
+    
+    /* encode text as string token */
     
     public static String encodeString(String str) {
         Locale locale = null;
@@ -144,7 +137,7 @@ public class IsabelleProcess {
                 try {
                     String s = output.take();
                     if (s.equals("\u0000")) {
-                        outputWriter.close();    // FIXME timeout
+                        outputWriter.close();
                         outputWriter = null;
                     } else {
                         outputWriter.write(s);
@@ -165,12 +158,14 @@ public class IsabelleProcess {
     
     public synchronized void output(String text) throws IsabelleProcessException
     {
-        if (!closing) {
+        if (proc != null && !closing) {
             try {
                 output.put(text);
             } catch (InterruptedException ex) {
                throw new IsabelleProcessException("Cannot output: aborted"); 
             }
+        } else if (proc == null) {
+            throw new IsabelleProcessException("Cannot output: no process");
         } else {
             throw new IsabelleProcessException("Cannot output: already closing");
         }
@@ -180,36 +175,37 @@ public class IsabelleProcess {
     {
         output("\u0000");
         closing = true;
+        // FIXME start watchdog
     }
     
-    private synchronized void commandWrapping(String cmd, String text) throws IsabelleProcessException
+    public synchronized void tryClose()
+    {
+        if (proc != null && !closing) {
+            try {
+                close();
+            } catch (IsabelleProcessException ex) {  }
+        }
+    }
+
+    private synchronized void outputWrapped(String cmd, String text) throws IsabelleProcessException
     {
         output(" \\<^sync> " + cmd + " " + encodeString(text) + " \\<^sync>;\n");
     }
 
     public synchronized void command(String text) throws IsabelleProcessException
     {
-        commandWrapping("Isabelle.command", text);
+        outputWrapped("Isabelle.command", text);
     }
 
     public synchronized void ML(String text) throws IsabelleProcessException
     {
-        commandWrapping("ML", text);
+        outputWrapped("ML", text);
     }
 
     
     /* input from the process (stdout/stderr) */
 
     private volatile BufferedReader inputReader;
-    private volatile BufferedReader errorReader;
-
-    private synchronized void checkTermination()
-    {
-        if (inputReader == null && errorReader == null) {
-            terminate();
-        }
-    }
-
     private class InputThread extends Thread
     {
         public void run()
@@ -221,7 +217,7 @@ public class IsabelleProcess {
                 while (inputReader != null) {
                     if (kind == Result.Kind.STDOUT && pid != null) {
                         // char mode
-                        int c = 0;
+                        int c = -1;
                         while ((buf.length() == 0 || inputReader.ready()) &&
                                   (c = inputReader.read()) > 0 && c != 2) {
                             buf.append((char) c);
@@ -241,6 +237,11 @@ public class IsabelleProcess {
                                 case 'F': kind = Result.Kind.DEBUG; break;
                                 default: kind = Result.Kind.STDOUT; break;
                             }
+                        }
+                        if (c == -1) {
+                            inputReader.close();
+                            inputReader = null;
+                            tryClose();
                         }
                     } else {
                         // line mode
@@ -268,7 +269,7 @@ public class IsabelleProcess {
                         } else {
                             inputReader.close();
                             inputReader = null;
-                            checkTermination();
+                            tryClose();
                         }
                     }
                 }
@@ -280,6 +281,7 @@ public class IsabelleProcess {
     }
     private InputThread inputThread;
 
+    private volatile BufferedReader errorReader;
     private class ErrorThread extends Thread
     {
         public void run()
@@ -296,7 +298,7 @@ public class IsabelleProcess {
                     } else {
                         errorReader.close();
                         errorReader = null;
-                        checkTermination();
+                        tryClose();
                     }
                 }
             } catch (IOException exn) {
@@ -316,7 +318,8 @@ public class IsabelleProcess {
         {
             try {
                 int rc = proc.waitFor();
-                putResult(Result.Kind.EXIT, new Integer(rc).toString());
+                putResult(Result.Kind.EXIT, Integer.toString(rc));
+                proc = null;
             } catch (InterruptedException exn) {
                 putResult(Result.Kind.FAILURE, "Exit thread: interrupted");
             }
@@ -355,30 +358,33 @@ public class IsabelleProcess {
         String charset = "UTF-8";
         try {
             proc = Runtime.getRuntime().exec(cmdline);
-            pid = null;
-
-            output = new LinkedBlockingQueue<String>();
-            outputWriter = new BufferedWriter(new OutputStreamWriter(proc.getOutputStream(), charset));
-            outputThread = new OutputThread();
-
-            results = new LinkedBlockingQueue<Result>();
-            inputReader = new BufferedReader(new InputStreamReader(proc.getInputStream(), charset));
-            errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream(), charset));
-            inputThread = new InputThread();
-            errorThread = new ErrorThread();
-            exitThread = new ExitThread();
-            
-            consoleThread = new ConsoleThread();
         } catch (IOException exn) {
-            terminate();
             throw new IsabelleProcessException(exn.getMessage());
         }
+
+        try {
+            outputWriter = new BufferedWriter(new OutputStreamWriter(proc.getOutputStream(), charset));
+            inputReader = new BufferedReader(new InputStreamReader(proc.getInputStream(), charset));
+            errorReader = new BufferedReader(new InputStreamReader(proc.getErrorStream(), charset));
+        } catch (UnsupportedEncodingException exn) {
+            proc.destroy();
+            throw new Error(exn.getMessage());
+        }
+
+        output = new LinkedBlockingQueue<String>();
+        outputThread = new OutputThread();
+
+        results = new LinkedBlockingQueue<Result>();
+        inputThread = new InputThread();
+        errorThread = new ErrorThread();
+        exitThread = new ExitThread();
+            
+        consoleThread = new ConsoleThread();
 
         outputThread.start();
         inputThread.start();
         errorThread.start();
         exitThread.start();
-
         consoleThread.start();
     }
 }
