@@ -349,14 +349,14 @@ public class IsabelleProcess {
         String shell = null;
         String home = null;
         String charset = "UTF-8";
-        
+
         shell = System.getProperty("isabelle.shell");
         home = System.getProperty("isabelle.home");
         if (shell != null && home != null) {
             cmdline.add(shell);
             cmdline.add(home +  "/bin/isabelle-process");
         } else if (home != null) {
-            cmdline.add(home +  "/bin/isabelle-process");            
+            cmdline.add(home +  "/bin/isabelle-process");
         } else if (shell != null) {
             throw new IsabelleProcessException("Cannot start process: isabelle.shell property requires isabelle.home");
         } else {
