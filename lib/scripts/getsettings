@@ -44,6 +44,13 @@ function choosefrom ()
   echo "$RESULT"
 }
 
+#Java path wrapper
+if [ "$OSTYPE" = cygwin ]; then
+  function javapath() { cygpath -w "$@"; }
+else
+  function javapath() { echo "$@"; }
+fi
+
 #get actual settings
 source "$ISABELLE_HOME/etc/settings" || exit 2
 ISABELLE_SITE_SETTINGS_PRESENT=true

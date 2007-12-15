@@ -61,7 +61,8 @@ GRAPHFILE=""
 
 ## main
 
-export CLASSPATH="$ISABELLE_HOME/lib/browser/GraphBrowser.jar"
+export CLASSPATH="$(javapath "$ISABELLE_HOME/lib/browser/GraphBrowser.jar")"
+
 if [ -z "$GRAPHFILE" ]; then
   cd "$ISABELLE_BROWSER_INFO"
   exec java GraphBrowser.GraphBrowser
@@ -82,9 +83,9 @@ else
   esac
 
   if [ -z "$OUTFILE" ]; then
-    java GraphBrowser.GraphBrowser "$PRIVATE_FILE"
+    java GraphBrowser.GraphBrowser "$(javapath "$PRIVATE_FILE")"
   else
-    java GraphBrowser.Console "$PRIVATE_FILE" "$OUTFILE"
+    java GraphBrowser.Console "$(javapath "$PRIVATE_FILE")" "$(javapath "$OUTFILE")"
   fi
   RC="$?"
 
