@@ -28,9 +28,9 @@ sig
   val is_end_ignore: token -> bool
   val is_blank: token -> bool
   val is_newline: token -> bool
+  val val_of: token -> string
   val unparse: token -> string
   val text_of: token -> string * string
-  val val_of: token -> string
   val is_sid: string -> bool
   val !!! : string -> (Position.T * 'a -> 'b) -> Position.T * 'a -> 'b
   val incr_line: ('a -> 'b * 'c) -> Position.T * 'a -> 'b * (Position.T * 'c)
@@ -143,6 +143,9 @@ fun is_newline (Token (_, (Space, x))) = String.isSuffix "\n" x
 
 (* token content *)
 
+fun val_of (Token (_, (_, x))) = x;
+fun token_leq (tok1, tok2) = val_of tok1 <= val_of tok2;
+
 fun escape q =
   implode o map (fn s => if s = q orelse s = "\\" then "\\" ^ s else s) o Symbol.explode;
 
@@ -152,7 +155,7 @@ fun unparse (Token (_, (kind, x))) =
   | AltString => x |> enclose "`" "`" o escape "`"
   | Verbatim => x |> enclose "{*" "*}"
   | Comment => x |> enclose "(*" "*)"
-  | Malformed => Output.escape_malformed x
+  | Malformed => Output.escape (translate_string Output.output x)
   | Sync => ""
   | EOF => ""
   | _ => x);
@@ -162,19 +165,13 @@ fun text_of tok =
   else
     let
       val k = str_of_kind (kind_of tok);
-      val txt = unparse tok;
-      val s =
-        if can Symbol.explode txt
-        then txt else Output.escape_malformed txt;
+      val s = unparse tok
+        handle ERROR _ => Symbol.separate_chars (val_of tok);
     in
       if s = "" then (k, "")
       else if size s < 40 andalso not (exists_string (fn c => c = "\n") s) then (k ^ " " ^ s, "")
       else (k, s)
     end;
-
-fun val_of (Token (_, (_, x))) = x;
-
-fun token_leq (Token (_, (_, x)), Token (_, (_, x'))) = x <= x';
 
 
 
