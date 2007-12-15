@@ -50,6 +50,17 @@ equality.
 optional line editor may be specified via ISABELLE_LINE_EDITOR
 setting, the default settings attempt to locate "ledit" and "rlwrap".
 
+* isatool browser now works with Cygwin as well, using general
+"javapath" function defined in Isabelle process environment.
+
+* isabelle-process: non-ML sessions are run with "nice", to prevent
+Isabelle from flooding interactive front-ends (notably ProofGeneral /
+XEmacs).
+
+* JVM class isabelle.IsabelleProcess (in Isabelle/lib/classes)
+provides general wrapper for managing an Isabelle process in a robust
+fashion, with ``cooked'' output from stdin/stderr.
+
 
 
 New in Isabelle2007 (November 2007)
