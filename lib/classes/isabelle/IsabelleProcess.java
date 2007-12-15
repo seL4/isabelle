@@ -328,6 +328,7 @@ public class IsabelleProcess {
         {
             try {
                 int rc = proc.waitFor();
+                Thread.sleep(300);
                 putResult(Result.Kind.EXIT, Integer.toString(rc));
                 proc = null;
             } catch (InterruptedException exn) {
