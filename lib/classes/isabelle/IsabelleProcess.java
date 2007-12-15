@@ -329,12 +329,12 @@ public class IsabelleProcess {
             try {
                 int rc = proc.waitFor();
                 Thread.sleep(300);
+                putResult(Result.Kind.SYSTEM, "Exit thread terminated");
                 putResult(Result.Kind.EXIT, Integer.toString(rc));
                 proc = null;
             } catch (InterruptedException exn) {
                 putResult(Result.Kind.SYSTEM, "Exit thread interrupted");
             }
-            putResult(Result.Kind.SYSTEM, "Exit thread terminated");
         }
     }
     private ExitThread exitThread;
