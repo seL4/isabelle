@@ -20,6 +20,7 @@ sig
   val is_sync: symbol -> bool
   val malformed: symbol
   val end_malformed: symbol
+  val separate_chars: string -> string
   val is_regular: symbol -> bool
   val is_ascii: symbol -> bool
   val is_ascii_letter: symbol -> bool
@@ -112,7 +113,9 @@ fun is_sync s = s = sync;
 
 val malformed = "[[";
 val end_malformed = "]]";
-fun malformed_msg s = "Malformed symbolic character: " ^ quote (Output.escape_malformed s);
+
+val separate_chars = explode #> space_implode space;
+fun malformed_msg s = "Malformed symbolic character: " ^ quote (separate_chars s);
 
 fun is_regular s =
   not_eof s andalso s <> sync andalso s <> malformed andalso s <> end_malformed;
