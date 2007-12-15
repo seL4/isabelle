@@ -197,7 +197,7 @@ public class IsabelleProcess {
 
     private synchronized void outputWrapped(String cmd, String text) throws IsabelleProcessException
     {
-        output(" \\<^sync> " + cmd + " " + encodeString(text) + " \\<^sync>;\n");
+        output(" \\<^sync>\n; " + cmd + " " + encodeString(text) + " \\<^sync>;\n");
     }
 
     public synchronized void command(String text) throws IsabelleProcessException
