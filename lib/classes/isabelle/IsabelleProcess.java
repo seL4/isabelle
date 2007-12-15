@@ -7,7 +7,7 @@
  *
  *  (1) input
  *    - stdin stream
- *    - signals (interrupt, destroy)
+ *    - signals (interrupt, kill)
  *
  *  (2) output/results
  *    - stdout stream, interspersed with marked Isabelle messages
@@ -44,8 +44,8 @@ public class IsabelleProcess {
 
     public static class Result {
         public enum Kind {
-            STDOUT, STDERR, EXIT,                               // Posix results
-            WRITELN, PRIORITY, TRACING, WARNING, ERROR, DEBUG,  // Isabelle results
+            STDIN, STDOUT, STDERR, SIGNAL, EXIT,                // Posix channels/events
+            WRITELN, PRIORITY, TRACING, WARNING, ERROR, DEBUG,  // Isabelle messages
             FAILURE                                             // process wrapper problem
         };
         public Kind kind;
@@ -76,9 +76,10 @@ public class IsabelleProcess {
     {
         if (proc != null && pid != null) {
             try {
+                putResult(Result.Kind.SIGNAL, "INT");
                 int rc = Runtime.getRuntime().exec("kill -INT " + pid).waitFor();
                 if (rc != 0) {
-                    throw new IsabelleProcessException("Cannot interrupt: kill failed");
+                    throw new IsabelleProcessException("Cannot interrupt: kill command failed");
                 }
             } catch (IOException exn) {
                 throw new IsabelleProcessException(exn.getMessage());
@@ -91,15 +92,20 @@ public class IsabelleProcess {
     }
 
 
-    /* destroy process */
+    /* kill process */
 
-    public synchronized void destroy() throws IsabelleProcessException
+    public synchronized void kill() throws IsabelleProcessException
     {
         if (proc != null) {
+            tryClose();
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException exn) { }
+            putResult(Result.Kind.SIGNAL, "KILL");
             proc.destroy();
             proc = null;
         } else {
-            throw new IsabelleProcessException("Cannot destroy: no process");
+            throw new IsabelleProcessException("Cannot kill: no process");
         }
     }
 
@@ -140,6 +146,7 @@ public class IsabelleProcess {
                         outputWriter.close();
                         outputWriter = null;
                     } else {
+                        putResult(Result.Kind.STDIN, s);
                         outputWriter.write(s);
                         outputWriter.flush();
                     }
@@ -149,6 +156,7 @@ public class IsabelleProcess {
                     putResult(Result.Kind.FAILURE, exn.getMessage());
                 }
             }
+            System.err.println("Output thread terminated");
         }
     }
     private OutputThread outputThread;
@@ -175,7 +183,7 @@ public class IsabelleProcess {
     {
         output("\u0000");
         closing = true;
-        // FIXME start watchdog
+        // FIXME watchdog/timeout
     }
 
     public synchronized void tryClose()
