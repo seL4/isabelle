@@ -426,7 +426,7 @@ val scan =
   Scan.one not_eof;
 
 val recover =
-  Scan.many (fn s => not (is_blank s) andalso s <> "\"" andalso not_eof s)
+  Scan.many (fn s => not (is_blank s) andalso s <> "\"" andalso s <> "`" andalso not_eof s)
     >> (fn ss => malformed :: ss @ [end_malformed]);
 
 in
