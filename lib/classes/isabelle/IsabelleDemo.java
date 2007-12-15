@@ -7,8 +7,12 @@
  *
  *    $ cd [ISABELLE_HOME]/lib/classes
  *    $ javac isabelle/*.java
+ *
  *    $ bsh
+ * or
+ *    $ java -Disabelle.home=[ISABELLE_HOME] -jar bsh.jar
  *    % addClassPath(".");
+ *
  *    % import isabelle.*;
  *    % isabelle = new IsabelleDemo("HOL");
  *    % isabelle.command("theory Test imports Main begin");
