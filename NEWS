@@ -57,7 +57,7 @@ setting, the default settings attempt to locate "ledit" and "rlwrap".
 Isabelle from flooding interactive front-ends (notably ProofGeneral /
 XEmacs).
 
-* JVM class isabelle.IsabelleProcess (in Isabelle/lib/classes)
+* JVM class isabelle.IsabelleProcess (located in Isabelle/lib/classes)
 provides general wrapper for managing an Isabelle process in a robust
 fashion, with ``cooked'' output from stdin/stderr.
 
