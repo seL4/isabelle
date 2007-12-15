@@ -3,6 +3,19 @@
  *
  * Simple demo for IsabelleProcess wrapper.
  *
+ * Example session with Beanshell:
+ *
+ *    $ cd [ISABELLE_HOME]/lib/classes
+ *    $ javac isabelle/*.java
+ *    $ bsh
+ *    % import isabelle.*;
+ *    % isabelle = new IsabelleDemo("HOL");
+ *    % isabelle.command("theory Test imports Main begin");
+ *    % isabelle.command("lemma \"A --> A\"");
+ *    % isabelle.command("..");
+ *    % isabelle.command("end");
+ *    % isabelle.close();
+ *
  */
 
 package isabelle;
