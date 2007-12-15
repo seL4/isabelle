@@ -48,7 +48,7 @@ public class IsabelleProcess {
         public enum Kind {
             STDIN, STDOUT, STDERR, SIGNAL, EXIT,                // Posix channels/events
             WRITELN, PRIORITY, TRACING, WARNING, ERROR, DEBUG,  // Isabelle messages
-            FAILURE                                             // process wrapper problem
+            SYSTEM                                              // internal system notification
         };
         public Kind kind;
         public String result;
@@ -153,12 +153,12 @@ public class IsabelleProcess {
                         outputWriter.flush();
                     }
                 } catch (InterruptedException exn) {
-                    putResult(Result.Kind.FAILURE, "Cannot output: aborted");
+                    putResult(Result.Kind.SYSTEM, "Output thread interrupted");
                 } catch (IOException exn) {
-                    putResult(Result.Kind.FAILURE, exn.getMessage());
+                    putResult(Result.Kind.SYSTEM, exn.getMessage());
                 }
             }
-            System.err.println("Output thread terminated");
+            putResult(Result.Kind.SYSTEM, "Output thread terminated");
         }
     }
     private OutputThread outputThread;
@@ -284,9 +284,9 @@ public class IsabelleProcess {
                     }
                 }
             } catch (IOException exn) {
-                putResult(Result.Kind.FAILURE, exn.getMessage());
+                putResult(Result.Kind.SYSTEM, exn.getMessage());
             }
-            System.err.println("Input thread terminated");
+            putResult(Result.Kind.SYSTEM, "Input thread terminated");
         }
     }
     private InputThread inputThread;
@@ -312,9 +312,9 @@ public class IsabelleProcess {
                     }
                 }
             } catch (IOException exn) {
-                putResult(Result.Kind.FAILURE, exn.getMessage());
+                putResult(Result.Kind.SYSTEM, exn.getMessage());
             }
-            System.err.println("Error thread terminated");
+            putResult(Result.Kind.SYSTEM, "Error thread terminated");
         }
     }
     private ErrorThread errorThread;
@@ -331,9 +331,9 @@ public class IsabelleProcess {
                 putResult(Result.Kind.EXIT, Integer.toString(rc));
                 proc = null;
             } catch (InterruptedException exn) {
-                putResult(Result.Kind.FAILURE, "Exit thread: interrupted");
+                putResult(Result.Kind.SYSTEM, "Exit thread interrupted");
             }
-            System.err.println("Exit thread terminated");
+            putResult(Result.Kind.SYSTEM, "Exit thread terminated");
         }
     }
     private ExitThread exitThread;
@@ -351,10 +351,10 @@ public class IsabelleProcess {
                     result = results.take();
                     System.err.println(result.toString());
                 } catch (InterruptedException ex) {
-                    putResult(Result.Kind.FAILURE, "Cannot get result: aborted");
+                    putResult(Result.Kind.SYSTEM, "Console thread interrupted");
                 }
             }
-            System.err.println("Console thread terminated");
+            putResult(Result.Kind.SYSTEM, "Console thread terminated");
         }
     }
     private ConsoleThread consoleThread;
@@ -364,7 +364,7 @@ public class IsabelleProcess {
 
     public IsabelleProcess(String logic) throws IsabelleProcessException
     {
-        String [] cmdline = {"isabelle", "-W", logic};
+        String [] cmdline = {"bash", "isabelle-process", "-W", logic};
         String charset = "UTF-8";
         try {
             proc = Runtime.getRuntime().exec(cmdline);
