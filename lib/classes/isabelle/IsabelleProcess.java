@@ -17,6 +17,8 @@
  * I/O is fully asynchronous, with unrestricted buffers.  Text is encoded as UTF-8.
  */
 
+package isabelle;
+
 import java.io.*;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -195,19 +197,19 @@ public class IsabelleProcess {
         }
     }
 
-    private synchronized void outputWrapped(String cmd, String text) throws IsabelleProcessException
+    private synchronized void outputSync(String text) throws IsabelleProcessException
     {
-        output(" \\<^sync>\n; " + cmd + " " + encodeString(text) + " \\<^sync>;\n");
+        output(" \\<^sync>\n; " + text + " \\<^sync>;\n");
     }
 
     public synchronized void command(String text) throws IsabelleProcessException
     {
-        outputWrapped("Isabelle.command", text);
+        outputSync("Isabelle.command " + encodeString(text));
     }
 
     public synchronized void ML(String text) throws IsabelleProcessException
     {
-        outputWrapped("ML", text);
+        outputSync("ML " + encodeString(text));
     }
 
 
