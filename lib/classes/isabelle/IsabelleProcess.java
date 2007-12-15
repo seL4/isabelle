@@ -20,6 +20,7 @@
 package isabelle;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -344,10 +345,30 @@ public class IsabelleProcess {
 
     public IsabelleProcess(String logic) throws IsabelleProcessException
     {
-        String [] cmdline = {"bash", "isabelle-process", "-W", logic};
+        ArrayList<String> cmdline = new ArrayList<String> ();
+        String shell = null;
+        String home = null;
         String charset = "UTF-8";
+        
+        shell = System.getProperty("isabelle.shell");
+        home = System.getProperty("isabelle.home");
+        if (shell != null && home != null) {
+            cmdline.add(shell);
+            cmdline.add(home +  "/bin/isabelle-process");
+        } else if (home != null) {
+            cmdline.add(home +  "/bin/isabelle-process");            
+        } else if (shell != null) {
+            throw new IsabelleProcessException("Cannot start process: isabelle.shell property requires isabelle.home");
+        } else {
+            cmdline.add("isabelle-process");
+        }
+        cmdline.add("-W");
+        cmdline.add(logic);
+
         try {
-            proc = Runtime.getRuntime().exec(cmdline);
+            String [] cmd = new String[cmdline.size()];
+            cmdline.toArray(cmd);
+            proc = Runtime.getRuntime().exec(cmd);
         } catch (IOException exn) {
             throw new IsabelleProcessException(exn.getMessage());
         }
