@@ -222,6 +222,7 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 [ -n "$SECURE" ] && MLTEXT="$MLTEXT Secure.set_secure ();"
 
+NICE="nice"
 if [ -n "$WRAPPER" ]; then
   MLTEXT="$MLTEXT; IsabelleProcess.init();"
 elif [ -n "$PGIP" ]; then
@@ -230,15 +231,17 @@ elif [ -n "$PROOFGENERAL" ]; then
   MLTEXT="$MLTEXT; ProofGeneral.init $ISAR;"
 elif [ "$ISAR" = true ]; then
   MLTEXT="$MLTEXT; Isar.main();"
+else
+  NICE=""
 fi
 
 export INFILE OUTFILE COPYDB COMPRESS MLTEXT TERMINATE NOWRITE \
   ISABELLE_PID ISABELLE_TMP
 
 if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
-  "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
+  $NICE "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
 else
-  "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE"
+  $NICE "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE"
 fi
 RC="$?"
 
