@@ -78,9 +78,11 @@ public class IsabelleProcess {
     public synchronized void interrupt() throws IsabelleProcessException
     {
         if (proc != null && pid != null) {
+            String kill = System.getProperty("isabelle.kill", "kill");
+            String [] cmdline = {kill, "-INT", pid};
             try {
                 putResult(Result.Kind.SIGNAL, "INT");
-                int rc = Runtime.getRuntime().exec("kill -INT " + pid).waitFor();
+                int rc = Runtime.getRuntime().exec(cmdline).waitFor();
                 if (rc != 0) {
                     throw new IsabelleProcessException("Cannot interrupt: kill command failed");
                 }
@@ -363,7 +365,7 @@ public class IsabelleProcess {
             cmdline.add("isabelle-process");
         }
         cmdline.add("-W");
-        cmdline.add(logic);
+        if (logic != null) cmdline.add(logic);
 
         try {
             String [] cmd = new String[cmdline.size()];
@@ -394,5 +396,9 @@ public class IsabelleProcess {
         inputThread.start();
         errorThread.start();
         exitThread.start();
+    }
+    
+    public IsabelleProcess() throws IsabelleProcessException {
+        this(null);
     }
 }
