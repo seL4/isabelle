@@ -43,4 +43,8 @@ public class IsabelleDemo extends IsabelleProcess {
             }
         }).start();
     }
+    
+    public IsabelleDemo() throws IsabelleProcessException {
+        this(null);
+    }
 }
