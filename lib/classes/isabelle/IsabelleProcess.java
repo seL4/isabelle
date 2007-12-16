@@ -15,6 +15,13 @@
  *    - process exit (return code)
  *
  * I/O is fully asynchronous, with unrestricted buffers.  Text is encoded as UTF-8.
+ * 
+ * System properties:
+ * 
+ *   isabelle.home      ISABELLE_HOME of Isabelle installation
+ *                      (default determined from isabelle-process via PATH)
+ *   isabelle.shell     optional shell command for isabelle-process (also requires isabelle.home)
+ *   isabelle.kill      optional kill command (default "kill")
  */
 
 package isabelle;
