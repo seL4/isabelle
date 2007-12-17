@@ -124,13 +124,7 @@ lemma zcong_zmult_prop3: "[| zprime p; ~[x = 0] (mod p);
 
 lemma zcong_less_eq: "[| 0 < x; 0 < y; 0 < m; [x = y] (mod m);
     x < m; y < m |] ==> x = y"
-  apply (simp add: zcong_zmod_eq)
-  apply (subgoal_tac "(x mod m) = x")
-  apply (subgoal_tac "(y mod m) = y")
-  apply simp
-  apply (rule_tac [1-2] mod_pos_pos_trivial)
-  apply auto
-  done
+  by (metis zcong_not zcong_sym zless_linear)
 
 lemma zcong_neg_1_impl_ne_1: "[| 2 < p; [x = -1] (mod p) |] ==>
     ~([x = 1] (mod p))"

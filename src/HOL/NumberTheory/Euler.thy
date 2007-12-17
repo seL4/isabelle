@@ -91,9 +91,7 @@ lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   apply (auto simp add: MultInvPair_def)
   apply (subgoal_tac "~ (StandardRes p j = StandardRes p (a * MultInv p j))")
   apply auto
-  apply (simp only: StandardRes_prop2)
-  apply (drule MultInvPair_distinct)
-  apply auto back
+  apply (metis MultInvPair_distinct Pls_def StandardRes_prop2 int_0_less_1 less_Pls_Bit0 number_of_is_id one_is_num_one order_less_trans)
   done
 
 
@@ -297,15 +295,14 @@ lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==>
                       [x^(nat (((p) - 1) div 2)) = 1](mod p)"
   apply (subgoal_tac "p \<in> zOdd")
   apply (auto simp add: QuadRes_def)
+   prefer 2 
+   apply (metis number_of_is_id numeral_1_eq_1 zprime_zOdd_eq_grt_2)
   apply (frule aux__1, auto)
   apply (drule_tac z = "nat ((p - 1) div 2)" in zcong_zpower)
-  apply (auto simp add: zpower_zpower)
+  apply (auto simp add: zpower_zpower) 
   apply (rule zcong_trans)
   apply (auto simp add: zcong_sym [of "x ^ nat ((p - 1) div 2)"])
-  apply (simp add: aux__2)
-  apply (frule odd_minus_one_even)
-  apply (frule even_div_2_prop2)
-  apply (auto intro: Little_Fermat simp add: zprime_zOdd_eq_grt_2)
+  apply (metis Little_Fermat even_div_2_prop2 mult_num0 number_of_is_id odd_minus_one_even one_is_num_one zmult_1 aux__2)
   done
 
 
