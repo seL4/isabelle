@@ -228,7 +228,7 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
           (case Seq.pull (tac st0) of
                SOME(st,_) => st
              | _ => error ("prove_goal: tactic failed"))
-  in  mkresult (check, cond_timeit (!Output.timing) statef)  end
+  in  mkresult (check, cond_timeit (!Output.timing) "" statef)  end
   handle e => (print_sign_exn_unit (#thy (rep_cterm chorn)) e;
                writeln ("The exception above was raised for\n" ^
                       Display.string_of_cterm chorn); raise e);
@@ -402,7 +402,7 @@ fun by_com tac ((th,ths), pairs) : gstack =
                        thy_error (Thm.theory_of_thm th, Thm.theory_of_thm th2));
        ((th2,ths2)::(th,ths)::pairs)));
 
-fun by tac = cond_timeit (!Output.timing)
+fun by tac = cond_timeit (!Output.timing) ""
     (fn() => make_command (by_com tac));
 
 (* byev[tac1,...,tacn] applies tac1 THEN ... THEN tacn.

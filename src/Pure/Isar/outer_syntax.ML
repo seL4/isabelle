@@ -304,7 +304,7 @@ fun run_thy dir name pos text time =
       |> Source.exhaust;
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val _ = cond_timeit time (fn () =>
+    val _ = cond_timeit time "" (fn () =>
       ThyOutput.process_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
       |> Buffer.content
       |> Present.theory_output name);
