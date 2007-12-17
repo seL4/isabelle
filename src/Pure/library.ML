@@ -75,6 +75,7 @@ sig
   val apply: ('a -> 'a) list -> 'a -> 'a
   val perhaps_apply: ('a -> 'a option) list -> 'a -> 'a option
   val perhaps_loop: ('a -> 'a option) -> 'a -> 'a option
+  val foldl1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val flat: 'a list list -> 'a list
@@ -399,6 +400,11 @@ fun foldr f (l, e) =
   let fun itr [] = e
         | itr (a::l) = f(a, itr l)
   in  itr l  end;
+
+(*  (op @) [x1, ..., xn]  ===>  ((x1 @ x2) @ x3) ... @ xn
+    for operators that associate to the left (TAIL RECURSIVE)*)
+fun foldl1 f [] = raise Empty
+  | foldl1 f (x :: xs) = foldl f (x, xs);
 
 (*  (op @) [x1, ..., xn]  ===>   x1 @ (x2 ... @ (x[n-1] @ xn))
     for n > 0, operators that associate to the right (not tail recursive)*)
