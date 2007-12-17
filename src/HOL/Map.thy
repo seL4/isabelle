@@ -23,7 +23,7 @@ abbreviation
   "empty == %x. None"
 
 definition
-  map_comp :: "('b ~=> 'c)  => ('a ~=> 'b) => ('a ~=> 'c)"  (infixl "o'_m" 55) where
+  map_comp :: "('b ~=> 'c) => ('a ~=> 'b) => ('a ~=> 'c)"  (infixl "o'_m" 55) where
   "f o_m g = (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
 
 notation (xsymbols)
