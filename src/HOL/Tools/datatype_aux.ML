@@ -27,7 +27,7 @@ sig
   val app_bnds : term -> int -> term
 
   val cong_tac : int -> tactic
-  val indtac : thm -> int -> tactic
+  val indtac : thm -> string list -> int -> tactic
   val exh_tac : (string -> thm) -> int -> tactic
 
   datatype simproc_dist = QuickAndDirty
@@ -123,21 +123,25 @@ fun cong_tac i st = (case Logic.strip_assums_concl
 
 (* instantiate induction rule *)
 
-fun indtac indrule i st =
+fun indtac indrule indnames i st =
   let
     val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule));
     val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop
       (Logic.strip_imp_concl (List.nth (prems_of st, i - 1))));
     val getP = if can HOLogic.dest_imp (hd ts) then
       (apfst SOME) o HOLogic.dest_imp else pair NONE;
+    val flt = if null indnames then I else
+      filter (fn Free (s, _) => s mem indnames | _ => false);
     fun abstr (t1, t2) = (case t1 of
-        NONE => let val [Free (s, T)] = add_term_frees (t2, [])
-          in absfree (s, T, t2) end
-      | SOME (_ $ t') => Abs ("x", fastype_of t', abstract_over (t', t2)))
+        NONE => (case flt (term_frees t2) of
+            [Free (s, T)] => SOME (absfree (s, T, t2))
+          | _ => NONE)
+      | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))))
     val cert = cterm_of (Thm.theory_of_thm st);
-    val Ps = map (cert o head_of o snd o getP) ts;
-    val indrule' = cterm_instantiate (Ps ~~
-      (map (cert o abstr o getP) ts')) indrule
+    val insts = List.mapPartial (fn (t, u) => case abstr (getP u) of
+        NONE => NONE
+      | SOME u' => SOME (t |> getP |> snd |> head_of |> cert, cert u')) (ts ~~ ts');
+    val indrule' = cterm_instantiate insts indrule
   in
     rtac indrule' i st
   end;
@@ -179,7 +183,7 @@ type descr = (int * (string * dtyp list * (string * dtyp list) list)) list;
 
 type datatype_info =
   {index : int,
-   head_len : int,
+   alt_names : string list option,
    descr : descr,
    sorts : (string * sort) list,
    rec_names : string list,
