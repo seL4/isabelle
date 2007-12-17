@@ -14,11 +14,11 @@ sig
   val warning: string -> unit
   val tolerate_legacy_features: bool ref
   val legacy_feature: string -> unit
-  val timing: bool ref
-  val cond_timeit: bool -> (unit -> 'a) -> 'a
+  val cond_timeit: bool -> string -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
   val timeap: ('a -> 'b) -> 'a -> 'b
   val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
+  val timing: bool ref
   val time_accumulator: string -> ('a -> 'b) -> 'a -> 'b
 end;
 
@@ -121,31 +121,27 @@ val ml_output = (writeln, error);
 
 (** timing **)
 
-(*global timing mode*)
-val timing = ref false;
-
-(*generic timing combinator*)
-fun gen_timeit flag msg f =
+(*conditional timing with message*)
+fun cond_timeit flag msg e =
   if flag then
     let
       val start = start_timing ();
-      val result = f ();
+      val result = Exn.capture e ();
       val end_msg = end_timing start;
-      val output_msg = if msg = "" then end_msg
-        else msg ^ " - " ^ end_msg;
-      val _ = warning output_msg;
-    in result end
-  else f ();
-
-(*conditional timing*)
-fun cond_timeit flag = gen_timeit flag "";
+      val _ = warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg);
+    in Exn.release result end
+  else e ();
 
 (*unconditional timing*)
-fun timeit x = cond_timeit true x;
+fun timeit e = cond_timeit true "" e;
 
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
-fun timeap_msg s f x = gen_timeit true s (fn () => f x);
+fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
+
+
+(*global timing mode*)
+val timing = ref false;
 
 
 (* accumulated timing *)
