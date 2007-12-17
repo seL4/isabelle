@@ -97,19 +97,6 @@ proof -
   qed
 qed
 
-text {*
-Unfortunately, the proof in the @{text Factorization} theory using @{text metis}
-is non-constructive.
-*}
-
-lemma split_primel':
-  "primel xs \<Longrightarrow> primel ys \<Longrightarrow> \<exists>l. primel l \<and> prod l = prod xs * prod ys"
-  apply (rule exI)
-  apply safe
-   apply (rule_tac [2] prod_append)
-  apply (simp add: primel_append)
-  done
-
 lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>l. primel l \<and> prod l = n)"
 proof (induct n rule: nat_wf_ind)
   case (1 n)
@@ -129,7 +116,7 @@ proof (induct n rule: nat_wf_ind)
       by iprover
     from primel_l1 primel_l2
     have "\<exists>l. primel l \<and> prod l = prod l1 * prod l2"
-      by (rule split_primel')
+      by (rule split_primel)
     with prod_l1_m prod_l2_k nmk show ?thesis by simp
   next
     assume "prime n"

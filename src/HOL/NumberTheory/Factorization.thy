@@ -229,8 +229,12 @@ lemma not_prime_ex_mk:
   done
 
 lemma split_primel:
-    "primel xs ==> primel ys ==> \<exists>l. primel l \<and> prod l = prod xs * prod ys" 
-  by (metis primel_append prod.simps(2) prod_append)
+  "primel xs \<Longrightarrow> primel ys \<Longrightarrow> \<exists>l. primel l \<and> prod l = prod xs * prod ys"
+  apply (rule exI)
+  apply safe
+   apply (rule_tac [2] prod_append)
+  apply (simp add: primel_append)
+  done
 
 lemma factor_exists [rule_format]: "Suc 0 < n --> (\<exists>l. primel l \<and> prod l = n)"
   apply (induct n rule: nat_less_induct)
