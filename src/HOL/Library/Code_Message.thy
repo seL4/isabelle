@@ -17,6 +17,9 @@ lemmas [code func del] = message_string.recs message_string.cases
 lemma [code func]: "size (s\<Colon>message_string) = 0"
   by (cases s) simp_all
 
+lemma [code func]: "message_string_size (s\<Colon>message_string) = 0"
+  by (cases s) simp_all
+
 subsection {* ML interface *}
 
 ML {*
