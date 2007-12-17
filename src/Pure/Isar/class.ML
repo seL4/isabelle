@@ -304,7 +304,8 @@ fun calculate_rules thy sups base_sort assm_axiom param_map class =
       |> Option.map (Thm.instantiate ([],
            map (fn ((v, _), (c, ty)) => pairself (Thm.cterm_of thy)
              (Var ((v, 0), inst_ty ty), Const (c, inst_ty ty))) param_map))
-      |> Option.map (MetaSimplifier.rewrite_rule (these_defs thy sups));
+      |> Option.map (MetaSimplifier.rewrite_rule (these_defs thy sups))
+      |> Option.map Goal.close_result;
     val axiom_premises = map_filter (#axiom o the_class_data thy) sups
       @ the_list assm_axiom;
     val axiom = case locale_intro
@@ -321,7 +322,8 @@ fun calculate_rules thy sups base_sort assm_axiom param_map class =
     val pred_trivs = case length locale_dests
      of 0 => if is_none locale_intro then [] else [mk_pred_triv ()]
       | n => replicate n (mk_pred_triv ());
-    val of_class = class_intro OF of_class_sups OF locale_dests OF pred_trivs;
+    val of_class = (class_intro OF of_class_sups OF locale_dests OF pred_trivs)
+      |> Goal.close_result;
   in (assm_intro, of_class, axiom) end;
 
 fun class_interpretation class facts defs thy =
