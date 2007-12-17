@@ -124,21 +124,26 @@ val ml_output = (writeln, error);
 (*global timing mode*)
 val timing = ref false;
 
-(*conditional timing*)
-fun cond_timeit flag f =
+(*generic timing combinator*)
+fun gen_timeit flag some_msg f =
   if flag then
     let
       val start = start_timing ();
       val result = f ();
-    in warning (end_timing start); result end
+      val _ = Option.map warning some_msg;
+      val _ = warning (end_timing start);
+    in result end
   else f ();
+
+(*conditional timing*)
+fun cond_timeit flag = gen_timeit flag NONE;
 
 (*unconditional timing*)
 fun timeit x = cond_timeit true x;
 
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
-fun timeap_msg s f x = (warning s; timeap f x);
+fun timeap_msg s f x = gen_timeit true (SOME s) (fn () => f x);
 
 
 (* accumulated timing *)
