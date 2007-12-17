@@ -144,6 +144,12 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
+fun note_local kind facts ctxt =
+  ctxt
+  |> ProofContext.qualified_names
+  |> ProofContext.note_thmss_i kind facts
+  ||> ProofContext.restore_naming ctxt;
+
 fun notes (Target {target, is_locale, ...}) kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -164,11 +170,10 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
         #> PureThy.note_thmss_i kind global_facts #> snd
         #> Sign.restore_naming thy)
 
+    |> not is_locale ? LocalTheory.target (note_local kind global_facts #> snd)
     |> is_locale ? LocalTheory.target (Locale.add_thmss target kind target_facts)
 
-    |> ProofContext.qualified_names
-    |> ProofContext.note_thmss_i kind local_facts
-    ||> ProofContext.restore_naming lthy
+    |> note_local kind local_facts
   end;
 
 
