@@ -7,7 +7,7 @@
 header {* The Greatest Common Divisor *}
 
 theory GCD
-imports PreList
+imports ATP_Linkup
 begin
 
 text {*
