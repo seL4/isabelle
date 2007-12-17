@@ -64,33 +64,10 @@ proof
   then obtain zs where zs: "ys @ [y] = xs @ zs" ..
   show "xs = ys @ [y] \<or> xs \<le> ys"
     by (metis append_Nil2 butlast_append butlast_snoc prefixI zs)
-(*
-  proof (cases zs rule: rev_cases)
-    assume "zs = []"
-    with zs have "xs = ys @ [y]" by simp
-    then show ?thesis ..
-  next
-    fix z zs' assume "zs = zs' @ [z]"
-    with zs have "ys = xs @ zs'" by simp
-    then have "xs \<le> ys" ..
-    then show ?thesis ..
-  qed
-*)
 next
   assume "xs = ys @ [y] \<or> xs \<le> ys"
   then show "xs \<le> ys @ [y]"
     by (metis order_eq_iff strict_prefixE strict_prefixI' xt1(7))
-(*
-  proof
-    assume "xs = ys @ [y]"
-    then show ?thesis by simp
-  next
-    assume "xs \<le> ys"
-    then obtain zs where "ys = xs @ zs" ..
-    then have "ys @ [y] = xs @ (zs @ [y])" by simp
-    then show ?thesis ..
-  qed
-*)
 qed
 
 lemma Cons_prefix_Cons [simp]: "(x # xs \<le> y # ys) = (x = y \<and> xs \<le> ys)"
@@ -101,22 +78,10 @@ lemma same_prefix_prefix [simp]: "(xs @ ys \<le> xs @ zs) = (ys \<le> zs)"
 
 lemma same_prefix_nil [iff]: "(xs @ ys \<le> xs) = (ys = [])"
 by (metis append_Nil2 append_self_conv order_eq_iff prefixI)
-(*
-proof -
-  have "(xs @ ys \<le> xs @ []) = (ys \<le> [])" by (rule same_prefix_prefix)
-  then show ?thesis by simp
-qed
-*)
+
 lemma prefix_prefix [simp]: "xs \<le> ys ==> xs \<le> ys @ zs"
 by (metis order_le_less_trans prefixI strict_prefixE strict_prefixI)
-(*
-proof -
-  assume "xs \<le> ys"
-  then obtain us where "ys = xs @ us" ..
-  then have "ys @ zs = xs @ (us @ zs)" by simp
-  then show ?thesis ..
-qed
-*)
+
 lemma append_prefixD: "xs @ ys \<le> zs \<Longrightarrow> xs \<le> zs"
   by (auto simp add: prefix_def)
 
@@ -129,54 +94,26 @@ theorem prefix_append:
    apply force
   apply (simp del: append_assoc add: append_assoc [symmetric])
   apply (metis append_eq_appendI)
-(*
-  apply simp
-  apply blast
-*)
   done
 
 lemma append_one_prefix:
   "xs \<le> ys ==> length xs < length ys ==> xs @ [ys ! length xs] \<le> ys"
 by (unfold prefix_def)
    (metis Cons_eq_appendI append_eq_appendI append_eq_conv_conj eq_Nil_appendI nth_drop')
-(*
-  apply (auto simp add: nth_append)
-  apply (case_tac zs)
-   apply auto
-  done
-*)
+
 theorem prefix_length_le: "xs \<le> ys ==> length xs \<le> length ys"
   by (auto simp add: prefix_def)
 
 lemma prefix_same_cases:
   "(xs\<^isub>1::'a list) \<le> ys \<Longrightarrow> xs\<^isub>2 \<le> ys \<Longrightarrow> xs\<^isub>1 \<le> xs\<^isub>2 \<or> xs\<^isub>2 \<le> xs\<^isub>1"
 by (unfold prefix_def) (metis append_eq_append_conv2)
-(*
-  apply (erule exE)+
-  apply (simp add: append_eq_append_conv_if split: if_splits)
-   apply (rule disjI2)
-   apply (rule_tac x = "drop (size xs\<^isub>2) xs\<^isub>1" in exI)
-   apply clarify
-   apply (drule sym)
-   apply (insert append_take_drop_id [of "length xs\<^isub>2" xs\<^isub>1])
-   apply simp
-  apply (rule disjI1)
-  apply (rule_tac x = "drop (size xs\<^isub>1) xs\<^isub>2" in exI)
-  apply clarify
-  apply (insert append_take_drop_id [of "length xs\<^isub>1" xs\<^isub>2])
-  apply simp
-  done
-*)
+
 lemma set_mono_prefix: "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
 by (auto simp add: prefix_def)
 
 lemma take_is_prefix: "take n xs \<le> xs"
 by (unfold prefix_def) (metis append_take_drop_id)
-(*
-  apply (rule_tac x="drop n xs" in exI)
-  apply simp
-  done
-*)
+
 lemma map_prefixI:
   "xs \<le> ys \<Longrightarrow> map f xs \<le> map f ys"
 by (clarsimp simp: prefix_def)
@@ -184,12 +121,7 @@ by (clarsimp simp: prefix_def)
 lemma prefix_length_less:
   "xs < ys \<Longrightarrow> length xs < length ys"
 by (clarsimp simp: strict_prefix_def prefix_def)
-(*
-  apply (frule prefix_length_le)
-  apply (rule ccontr, simp)
-  apply (clarsimp simp: prefix_def)
-  done
-*)
+
 lemma strict_prefix_simps [simp]:
   "xs < [] = False"
   "[] < (x # xs) = True"
@@ -200,10 +132,6 @@ lemma take_strict_prefix: "xs < ys \<Longrightarrow> take n xs < ys"
 apply (induct n arbitrary: xs ys)
  apply (case_tac ys, simp_all)[1]
 apply (metis order_less_trans strict_prefixI take_is_prefix)
-(*
-  apply (case_tac xs, simp)
-  apply (case_tac ys, simp_all)
-*)
 done
 
 lemma not_prefix_cases:
@@ -220,10 +148,6 @@ next
   show ?thesis
   proof (cases ls)
     case Nil thus ?thesis by (metis append_Nil2 pfx c1 same_prefix_nil)
-(*
-    have "ps \<noteq> []" by (simp add: Nil Cons)
-    from this and Nil show ?thesis by (rule c1)
-*)
   next
     case (Cons x xs)
     show ?thesis
@@ -253,13 +177,6 @@ next
   then obtain x xs where pv: "ps = x # xs"
     by (rule not_prefix_cases) auto
   show ?case by (metis Cons.hyps Cons_prefix_Cons npfx pv r1 r2)
-(*
-  from Cons
-  have ih: "\<And>ps. \<not>ps \<le> ys \<Longrightarrow> P ps ys" by simp
-
-  show ?case using npfx
-    by (simp only: pv) (erule not_prefix_cases, auto intro: r1 r2 ih)
-*)
 qed
 
 
@@ -297,23 +214,10 @@ next
     proof (cases ys')
       assume "ys' = []"
       thus ?thesis by (metis append_Nil2 parallelE prefixI snoc.prems ys)
-(*
-      with ys have "xs = ys" by simp
-      with snoc have "[x] \<parallel> []" by auto
-      then have False by blast
-      then show ?thesis ..
-*)
     next
       fix c cs assume ys': "ys' = c # cs"
       thus ?thesis
 	by (metis Cons_eq_appendI eq_Nil_appendI parallelE prefixI same_prefix_prefix snoc.prems ys)
-(*
-      with snoc ys have "xs @ [x] \<parallel> xs @ c # cs" by (simp only:)
-      then have "x \<noteq> c" by auto
-      moreover have "xs @ [x] = xs @ x # []" by simp
-      moreover from ys ys' have "ys = xs @ c # cs" by (simp only:)
-      ultimately show ?thesis by blast
-*)
     qed
   next
     assume "ys < xs" then have "ys \<le> xs @ [x]" by (simp add: strict_prefix_def)
@@ -436,15 +340,7 @@ by auto
 
 lemma Cons_parallelI2: "\<lbrakk> a = b; as \<parallel> bs \<rbrakk> \<Longrightarrow> a # as \<parallel> b # bs"
 by (metis Cons_prefix_Cons parallelE parallelI)
-(*
-  apply simp
-  apply (rule parallelI)
-   apply simp
-   apply (erule parallelD1)
-  apply simp
-  apply (erule parallelD2)
- done
-*)
+
 lemma not_equal_is_parallel:
   assumes neq: "xs \<noteq> ys"
     and len: "length xs = length ys"
