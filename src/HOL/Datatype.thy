@@ -541,9 +541,6 @@ rep_datatype sum
   inject Inl_eq Inr_eq
   induction sum_induct
 
-lemma size_sum [code func]:
-  "size (x \<Colon> 'a + 'b) = 0" by (cases x) auto
-
 lemma sum_case_KK[simp]: "sum_case (%x. a) (%x. a) = (%x. a)"
   by (rule ext) (simp split: sum.split)
 
