@@ -26,13 +26,9 @@ and ml = (* rep of universal datatype *)
         | V_ML ml_var_name | A_ML ml "ml list" | Lam_ML ml
         | CC const_name (* ref to compiled code *)
 
-lemma [simp]: "x \<in> set vs \<Longrightarrow> size x < Suc (ml_list_size1 vs)"
+lemma [simp]: "x \<in> set vs \<Longrightarrow> size x < Suc (list_size size vs)"
 by (induct vs) auto
-lemma [simp]: "x \<in> set vs \<Longrightarrow> size x < Suc (ml_list_size2 vs)"
-by (induct vs) auto
-lemma [simp]:"x \<in> set vs \<Longrightarrow> size x < Suc (size v + ml_list_size3 vs)"
-by (induct vs) auto
-lemma [simp]: "x \<in> set vs \<Longrightarrow> size x < Suc (size v + ml_list_size4 vs)"
+lemma [simp]:"x \<in> set vs \<Longrightarrow> size x < Suc (size v + list_size size vs)"
 by (induct vs) auto
 
 locale Vars =
@@ -115,23 +111,20 @@ primrec
 "subst f (Lam t) = Lam (subst (Vt 0 ## f) t)"
 "subst f (At s t) = At (subst f s) (subst f t)"
 
+lemma list_size_map [simp]: "list_size f (map g xs) = list_size (f o g) xs"
+  by (induct xs) simp_all
+
+lemma list_size_cong [cong]:
+  "\<lbrakk>xs = ys; \<And>x. x \<in> set ys \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> list_size f xs = list_size g ys"
+  by (induct xs arbitrary: ys) auto
+
 lemma size_lift[simp]: shows
  "size(lift i t) = size(t::tm)" and "size(lift i (v::ml)) = size v"
-and "ml_list_size1 (map (lift i) vs) = ml_list_size1 vs"
-and "ml_list_size2 (map (lift i) vs) = ml_list_size2 vs"
-and "ml_list_size3 (map (lift i) vs) = ml_list_size3 vs"
-and "ml_list_size4 (map (lift i) vs) = ml_list_size4 vs"
-by (induct arbitrary: i and i and i and i and i and i rule: tm_ml.inducts)
-   simp_all
+  by (induct i t and i v rule: lift_tm_lift_ml.induct) simp_all
 
 lemma size_lift_ML[simp]: shows
  "size(lift\<^bsub>ML\<^esub> i t) = size(t::tm)" and "size(lift\<^bsub>ML\<^esub> i (v::ml)) = size v"
-and "ml_list_size1 (map (lift\<^bsub>ML\<^esub> i) vs) = ml_list_size1 vs"
-and "ml_list_size2 (map (lift\<^bsub>ML\<^esub> i) vs) = ml_list_size2 vs"
-and "ml_list_size3 (map (lift\<^bsub>ML\<^esub> i) vs) = ml_list_size3 vs"
-and "ml_list_size4 (map (lift\<^bsub>ML\<^esub> i) vs) = ml_list_size4 vs"
-by (induct arbitrary: i and i and i and i and i and i rule: tm_ml.inducts)
-   simp_all
+  by (induct i t and i v rule: lift_tm_ML_lift_ml_ML.induct) simp_all
 
 fun
   subst_ml_ML :: "(nat \<Rightarrow> ml) \<Rightarrow> ml \<Rightarrow> ml" ("subst\<^bsub>ML\<^esub>") and
@@ -172,15 +165,10 @@ abbreviation
 
 
 lemma size_subst_ML[simp]: shows 
- "(!x. size(f x) = 0) \<longrightarrow> size(subst\<^bsub>ML\<^esub> f t) = size(t::tm)" and
-"(!x. size(f x) = 0) \<longrightarrow> size(subst\<^bsub>ML\<^esub> f (v::ml)) = size v"
-and "(!x. size(f x) = 0) \<longrightarrow> ml_list_size1 (map (subst\<^bsub>ML\<^esub> f) vs) = ml_list_size1 vs"
-and "(!x. size(f x) = 0) \<longrightarrow> ml_list_size2 (map (subst\<^bsub>ML\<^esub> f) vs) = ml_list_size2 vs"
-and "(!x. size(f x) = 0) \<longrightarrow> ml_list_size3 (map (subst\<^bsub>ML\<^esub> f) vs) = ml_list_size3 vs"
-and "(!x. size(f x) = 0) \<longrightarrow> ml_list_size4 (map (subst\<^bsub>ML\<^esub> f) vs) = ml_list_size4 vs"
-apply (induct arbitrary: f and f and f and f and f and f rule: tm_ml.inducts)
-apply (simp_all add:cons_ML_def split:nat.split)
-done
+  "(!x. size(f x) = 0) \<longrightarrow> size(subst\<^bsub>ML\<^esub> f (v::ml)) = size v" and
+  "(!x. size(f x) = 0) \<longrightarrow> size(subst\<^bsub>ML\<^esub> f t) = size(t::tm)"
+  by (induct f v and f t rule: subst_ml_ML_subst_tm_ML.induct)
+    (simp_all add: o_def cons_ML_def split: nat.split)
 
 lemma lift_lift: includes Vars shows
     "i < k+1 \<Longrightarrow> lift (Suc k) (lift i t) = lift i (lift k t)"
@@ -350,13 +338,11 @@ using listsum_size'[of v vs] by arith
 
 lemma
 size_subst_ML[simp]: includes Vars assumes A: "!i. size(f i) = 0"
-shows "size(subst\<^bsub>ML\<^esub> f t) = size(t)"
-and "size(subst\<^bsub>ML\<^esub> f v) = size(v)"
-and "ml_list_size1 (map (subst\<^bsub>ML\<^esub> f) vs) = ml_list_size1 vs"
-and "ml_list_size2 (map (subst\<^bsub>ML\<^esub> f) vs) = ml_list_size2 vs"
-and "ml_list_size3 (map (subst\<^bsub>ML\<^esub> f) vs) = ml_list_size3 vs"
-and "ml_list_size4 (map (subst\<^bsub>ML\<^esub> f) vs) = ml_list_size4 vs"
-by (induct rule: tm_ml.inducts) (simp_all add: A cons_ML_def split:nat.split)
+  shows "size(subst\<^bsub>ML\<^esub> f v) = size(v)"
+  and "size(subst\<^bsub>ML\<^esub> f t) = size(t)"
+  using A
+  by (induct f v and f t rule: subst_ml_ML_subst_tm_ML.induct)
+    (simp_all add: o_def cons_ML_def split: nat.split)
 
 lemma [simp]:
  "\<forall>i j. size'(f i) = size'(V_ML j) \<Longrightarrow> size' (subst\<^bsub>ML\<^esub> f v) = size' v"

@@ -279,7 +279,7 @@ datatype 'a tree =
   Leaf 'a 
   | Branch "'a tree list"
 
-lemma lem:"x \<in> set l \<Longrightarrow> size x < Suc (tree_list_size l)"
+lemma lem:"x \<in> set l \<Longrightarrow> size x < Suc (list_size size l)"
 by (induct l, auto)
 
 function treemap :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a tree \<Rightarrow> 'a tree"
