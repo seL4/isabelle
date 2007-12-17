@@ -3,28 +3,52 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Embedding (a subset of) the Pure term algebra in HOL *}
+header {* Partial reflection of the Pure term algebra in HOL *}
 
 theory Pure_term
 imports Code_Message
 begin
 
-subsection {* Definitions *}
+subsection {* Definitions and syntax *}
 
 types vname = message_string;
 types "class" = message_string;
 types sort = "class list"
 
 datatype "typ" =
-    Type message_string "typ list" (infix "{\<struct>}" 120)
-  | TFix vname sort (infix "\<Colon>\<epsilon>" 117)
+    Type message_string "typ list"
+  | TFree vname sort  
 
 abbreviation
-  Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" (infixr "\<rightarrow>" 115) where
-  "ty1 \<rightarrow> ty2 \<equiv> Type (STR ''fun'') [ty1, ty2]"
-abbreviation
-  Funs :: "typ list \<Rightarrow> typ \<Rightarrow> typ" (infixr "{\<rightarrow>}" 115) where
-  "tys {\<rightarrow>} ty \<equiv> foldr (op \<rightarrow>) tys ty"
+  Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" where
+  "Fun ty1 ty2 \<equiv> Type (STR ''fun'') [ty1, ty2]"
+
+locale (open) pure_term_syntax =
+  fixes pure_term_Type :: "message_string \<Rightarrow> typ list \<Rightarrow> typ" (infixl "{\<struct>}" 120)
+    and pure_term_TFree :: "vname \<Rightarrow> sort \<Rightarrow> typ" ("\<lbrace>_\<Colon>_\<rbrace>" [118, 118] 117)
+    and pure_term_Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" (infixr "\<rightarrow>" 114)
+
+parse_translation {*
+let
+  fun Type_tr [tyco, tys] = Lexicon.const @{const_syntax Type} $ tyco $ tys
+    | Type_tr ts = raise TERM ("Type_tr", ts);
+  fun TFree_tr [v, sort] = Lexicon.const @{const_syntax TFree} $ v $ sort
+    | TFree_tr ts = raise TERM ("TFree_tr", ts);
+  fun Fun_tr [ty1, ty2] = Lexicon.const @{const_syntax Fun} $ ty1 $ ty2
+    | Fun_tr ts = raise TERM("Fun_tr", ts);
+in [
+  ("\\<^fixed>pure_term_Type", Type_tr),
+  ("\\<^fixed>pure_term_TFree", TFree_tr),
+  ("\\<^fixed>pure_term_Fun", Fun_tr)
+] end
+*}
+
+notation (output)
+  Type (infixl "{\<struct>}" 120)
+and
+  TFree ("\<lbrace>_\<Colon>_\<rbrace>" [118, 118] 117)
+and
+  Fun (infixr "\<rightarrow>" 114)
 
 datatype "term" =
     Const message_string "typ" (infix "\<Colon>\<subseteq>" 112)
@@ -68,7 +92,8 @@ end;
 subsection {* Code generator setup *}
 
 lemma [code func]:
-  "tyco1 {\<struct>} tys1 = tyco2 {\<struct>} tys2 \<longleftrightarrow> tyco1 = tyco2
+  includes pure_term_syntax
+  shows "tyco1 {\<struct>} tys1 = tyco2 {\<struct>} tys2 \<longleftrightarrow> tyco1 = tyco2
      \<and> list_all2 (op =) tys1 tys2"
   by (auto simp add: list_all2_eq [symmetric])
 
@@ -80,7 +105,7 @@ lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t
 code_type "typ" and "term"
   (SML "Term.typ" and "Term.term")
 
-code_const Type and TFix
+code_const Type and TFree
   (SML "Term.Type/ (_, _)" and "Term.TFree/ (_, _)")
 
 code_const Const and App and Fix

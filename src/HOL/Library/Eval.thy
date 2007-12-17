@@ -53,8 +53,8 @@ in TypedefPackage.interpretation interpretator end
 instantiation "prop" :: typ_of
 begin
 
-definition
-  "typ_of (T\<Colon>prop itself) = STR ''prop'' {\<struct>} []"
+definition 
+  "typ_of (T\<Colon>prop itself) = Type (STR ''prop'') []"
 
 instance ..
 
@@ -64,7 +64,7 @@ instantiation itself :: (typ_of) typ_of
 begin
 
 definition
-  "typ_of (T\<Colon>'a itself itself) = STR ''itself'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]"
+  "typ_of (T\<Colon>'a itself itself) = Type (STR ''itself'') [typ_of TYPE('a\<Colon>typ_of)]"
 
 instance ..
 
@@ -74,7 +74,7 @@ instantiation set :: (typ_of) typ_of
 begin
  
 definition
-  "typ_of (T\<Colon>'a set itself) = STR ''set'' {\<struct>} [typ_of TYPE('a\<Colon>typ_of)]"
+  "typ_of (T\<Colon>'a set itself) = Type (STR ''set'') [typ_of TYPE('a\<Colon>typ_of)]"
 
 instance ..
 
@@ -172,17 +172,17 @@ let
   in DatatypePackage.interpretation interpretator end
 *}
 
-abbreviation
+abbreviation (in pure_term_syntax) (input)
   intT :: "typ"
 where
-  "intT \<equiv> STR ''IntDef.int'' {\<struct>} []"
+  "intT \<equiv> Type (STR ''IntDef.int'') []"
 
-abbreviation
+abbreviation (in pure_term_syntax) (input)
   bitT :: "typ"
 where
-  "bitT \<equiv> STR ''Numeral.bit'' {\<struct>} []"
+  "bitT \<equiv> Type (STR ''Numeral.bit'') []"
 
-function
+function (in pure_term_syntax)
   mk_int :: "int \<Rightarrow> term"
 where
   "mk_int k = (if k = 0 then STR ''Numeral.Pls'' \<Colon>\<subseteq> intT
@@ -191,13 +191,21 @@ where
   in STR ''Numeral.Bit'' \<Colon>\<subseteq> intT \<rightarrow> bitT \<rightarrow> intT \<bullet> mk_int l \<bullet>
     (if m = 0 then STR ''Numeral.bit.B0'' \<Colon>\<subseteq> bitT else STR ''Numeral.bit.B1'' \<Colon>\<subseteq> bitT))"
 by pat_completeness auto
-termination by (relation "measure (nat o abs)") (auto simp add: divAlg_mod_div)
+termination (in pure_term_syntax)
+by (relation "measure (nat o abs)") (auto simp add: divAlg_mod_div)
+
+declare pure_term_syntax.mk_int.simps [code func]
+
+definition (in pure_term_syntax)
+  "term_of_int_aux k = STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k"
+
+declare pure_term_syntax.term_of_int_aux_def [code func]
 
 instantiation int :: term_of
 begin
 
 definition
-  "term_of k = STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k"
+  "term_of = pure_term_syntax.term_of_int_aux"
 
 instance ..
 
