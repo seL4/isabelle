@@ -121,29 +121,6 @@ fun read_typ sign ((Ts, sorts), str) =
       (map (apfst (rpair ~1)) sorts)) str) handle TYPE (msg, _, _) => error msg
   in (Ts @ [T], add_typ_tfrees (T, sorts)) end;
 
-(** taken from HOL/Tools/datatype_aux.ML **)
-
-fun indtac indrule indnames i st =
-  let
-    val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule));
-    val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop
-      (Logic.strip_imp_concl (List.nth (prems_of st, i - 1))));
-    val getP = if can HOLogic.dest_imp (hd ts) then
-      (apfst SOME) o HOLogic.dest_imp else pair NONE;
-    fun abstr (t1, t2) = (case t1 of
-        NONE => (case filter (fn Free (s, _) => s mem indnames | _ => false)
-              (term_frees t2) of
-            [Free (s, T)] => absfree (s, T, t2)
-          | _ => sys_error "indtac")
-      | SOME (_ $ t') => Abs ("x", fastype_of t', abstract_over (t', t2)))
-    val cert = cterm_of (Thm.theory_of_thm st);
-    val Ps = map (cert o head_of o snd o getP) ts;
-    val indrule' = cterm_instantiate (Ps ~~
-      (map (cert o abstr o getP) ts')) indrule
-  in
-    rtac indrule' i st
-  end;
-
 fun mk_subgoal i f st =
   let
     val cg = List.nth (cprems_of st, i - 1);
@@ -1087,7 +1064,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn prems => EVERY
         [rtac indrule_lemma' 1,
-         (DatatypeAux.indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+         (indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms' 1),
             simp_tac (HOL_basic_ss addsimps [symmetric r]) 1,
