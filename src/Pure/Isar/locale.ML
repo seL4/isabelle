@@ -330,25 +330,26 @@ struct
       | _ => (regs, []))
     end;
 
-  fun gen_add f ts thm regs =
+  fun gen_add f ts regs =
     let
       val t = termify ts;
     in
-      Termtab.update (t, f thm (the (Termtab.lookup regs t))) regs
+      Termtab.update (t, f (the (Termtab.lookup regs t))) regs
     end;
 
   (* add witness theorem to registration,
      only if instantiation is exact, otherwise exception Option raised *)
-  fun add_witness ts thm regs =
-    gen_add (fn thm => fn (x, m, thms, eqns) => (x, m, thm::thms, eqns)) ts thm regs;
+  fun add_witness ts wit regs =
+    gen_add (fn (x, m, wits, eqns) => (x, m, Element.close_witness wit :: wits, eqns))
+      ts regs;
 
   (* add equation to registration, replaces previous equation with same lhs;
      only if instantiation is exact, otherwise exception Option raised;
      exception TERM raised if not a meta equality *)
   fun add_equation ts thm regs =
-    gen_add (fn thm => fn (x, m, thms, eqns) =>
-      (x, m, thms, Termtab.update (thm |> prop_of |> Logic.dest_equals |> fst, thm) eqns))
-      ts thm regs;
+    gen_add (fn (x, m, thms, eqns) =>
+      (x, m, thms, Termtab.update (thm |> prop_of |> Logic.dest_equals |> fst, Goal.close_result thm) eqns))
+      ts regs;
 end;
 
 
@@ -856,7 +857,8 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
               (Element.morph_witness
                 (Element.instT_morphism thy env $>
                   Element.rename_morphism ren $>
-                  Element.satisfy_morphism wits)));
+                  Element.satisfy_morphism wits)
+                #> Element.close_witness));
             val new_ids' = map (fn (id, wits) =>
                 (id, ([], Derived wits))) (new_ids ~~ new_wits);
             val new_idTs' = map (fn ((n, pTs), (_, ([], mode))) =>
@@ -1017,7 +1019,8 @@ fun activate_elems ax_in_ctxt (((name, ps), mode), elems) ctxt =
                     Assumed axs =>
                       fold (add_local_witness (name, ps') o
                         Element.assume_witness thy o Element.witness_prop) axs ctxt''
-                  | Derived ths => fold (add_local_witness (name, ps')) ths ctxt''
+                  | Derived ths =>
+                     fold (add_local_witness (name, ps')) ths ctxt''
                 end
             end
   in (ProofContext.restore_naming ctxt ctxt'', res) end;
@@ -1557,7 +1560,7 @@ end;
 
 fun init loc =
   ProofContext.init
-  #> (#2 o cert_context_statement (SOME loc) [] []);
+  #> #2 o cert_context_statement (SOME loc) [] [];
 
 
 (* print locale *)
