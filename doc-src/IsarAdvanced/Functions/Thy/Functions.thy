@@ -1151,16 +1151,20 @@ datatype 'a tree =
 
 text {* \noindent We can define a function which swaps the left and right subtrees recursively, using the 
   list functions @{const rev} and @{const map}: *}
-  
-function mirror :: "'a tree \<Rightarrow> 'a tree"
+
+lemma [simp]: "x \<in> set l \<Longrightarrow> f x < Suc (list_size f l)"
+by (induct l) auto
+
+
+fun mirror :: "'a tree \<Rightarrow> 'a tree"
 where
   "mirror (Leaf n) = Leaf n"
 | "mirror (Branch l) = Branch (rev (map mirror l))"
-by pat_completeness auto
+
 
 text {*
-  We do the termination proof manually, to point out what happens
-  here: 
+  \emph{Note: The handling of size functions is currently changing 
+  in the developers version of Isabelle. So this documentation is outdated.}
 *}
 
 termination proof
@@ -1188,18 +1192,14 @@ next
     txt {*
       Simplification returns the following subgoal: 
 
-      @{text[display] "1. x \<in> set l \<Longrightarrow> size x < Suc (tree_list_size l)"} 
+      @{text[display] "1. x \<in> set l \<Longrightarrow> size x < Suc (list_size size l)"} 
 
-      We are lacking a property about the function @{const
+      We are lacking a property about the function @{term
       tree_list_size}, which was generated automatically at the
       definition of the @{text tree} type. We should go back and prove
       it, by induction.
       *}
     (*<*)oops(*>*)
-
-lemma tree_list_size[simp]: 
-  "x \<in> set l \<Longrightarrow> size x < Suc (tree_list_size l)"
-by (induct l) auto
 
 text {* 
     Now the whole termination proof is automatic:
@@ -1208,16 +1208,6 @@ text {*
 termination 
   by lexicographic_order
 
-(*
-lemma "mirror (mirror t) = t"
-proof (induct t rule:mirror.induct)
-  case 1 show ?case by simp
-next
-  case (2 l)
-  thus "mirror (mirror (Branch l)) = Branch l"
-    by (induct l) (auto simp: rev_map)
-qed
-*)
 subsection {* Congruence Rules *}
 
 text {*
