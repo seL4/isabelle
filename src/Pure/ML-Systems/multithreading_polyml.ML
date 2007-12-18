@@ -2,17 +2,28 @@
     ID:         $Id$
     Author:     Makarius
 
-Multithreading in Poly/ML 5.1 or later (cf. polyml/basis/Thread.sml).
+Multithreading in Poly/ML 5.1 (cf. polyml/basis/Thread.sml).
 *)
 
 open Thread;
 
-signature MULTITHREADING =
+signature MULTITHREADING_POLYML =
 sig
-  include MULTITHREADING
   val ignore_interrupt: ('a -> 'b) -> 'a -> 'b
   val raise_interrupt: ('a -> 'b) -> 'a -> 'b
   structure TimeLimit: TIME_LIMIT
+end;
+
+signature BASIC_MULTITHREADING =
+sig
+  include BASIC_MULTITHREADING
+  include MULTITHREADING_POLYML
+end;
+
+signature MULTITHREADING =
+sig
+  include MULTITHREADING
+  include MULTITHREADING_POLYML
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -227,13 +238,26 @@ fun schedule n next_task = uninterruptible (fn _ => fn tasks =>
 
   in ! status end);
 
+
+(* serial numbers *)
+
+local
+
+val serial_lock = Mutex.mutex ();
+val serial_count = ref 0;
+
+in
+
+val serial = uninterruptible (fn _ => fn () =>
+  let
+    val _ = Mutex.lock serial_lock;
+    val res = inc serial_count;
+    val _ = Mutex.unlock serial_lock;
+  in res end);
+
 end;
 
-val NAMED_CRITICAL = Multithreading.NAMED_CRITICAL;
-val CRITICAL = Multithreading.CRITICAL;
+end;
 
-val ignore_interrupt = Multithreading.ignore_interrupt;
-val raise_interrupt = Multithreading.raise_interrupt;
-
-structure TimeLimit = Multithreading.TimeLimit;
-
+structure BasicMultithreading: BASIC_MULTITHREADING = Multithreading;
+open BasicMultithreading;

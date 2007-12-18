@@ -5,18 +5,24 @@
 Dummy implementation of multithreading interface.
 *)
 
+signature BASIC_MULTITHREADING =
+sig
+  val NAMED_CRITICAL: string -> (unit -> 'a) -> 'a
+  val CRITICAL: (unit -> 'a) -> 'a
+end;
+
 signature MULTITHREADING =
 sig
+  include BASIC_MULTITHREADING
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
   val available: bool
   val max_threads: int ref
   val self_critical: unit -> bool
-  val NAMED_CRITICAL: string -> (unit -> 'a) -> 'a
-  val CRITICAL: (unit -> 'a) -> 'a
   datatype 'a task =
     Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
   val schedule: int -> ('a -> 'a task * 'a) -> 'a -> exn list
+  val serial: unit -> int
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -37,7 +43,11 @@ datatype 'a task =
 
 fun schedule _ _ _ = raise Fail "No multithreading support";
 
+local val count = ref (0: int)
+in fun serial () = (count := ! count + 1; ! count) end;
+
 end;
 
-val NAMED_CRITICAL = Multithreading.NAMED_CRITICAL;
-val CRITICAL = Multithreading.CRITICAL;
+structure BasicMultithreading: BASIC_MULTITHREADING = Multithreading;
+open BasicMultithreading;
+
