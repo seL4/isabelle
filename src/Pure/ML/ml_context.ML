@@ -71,9 +71,9 @@ fun pass_context context f x =
     (y, SOME context') => (y, context')
   | (_, NONE) => error "Lost context in ML");
 
-fun save f x = CRITICAL (fn () => setmp (get_context ()) f x);
+fun save f x = NAMED_CRITICAL "ML" (fn () => setmp (get_context ()) f x);
 
-fun change_theory f = CRITICAL (fn () =>
+fun change_theory f = NAMED_CRITICAL "ML" (fn () =>
   set_context (SOME (Context.map_theory f (the_generic_context ()))));
 
 
@@ -141,7 +141,7 @@ local
 val isabelle_struct = enclose "structure Isabelle =\nstruct\n" "end;";
 val isabelle_struct0 = isabelle_struct "";
 
-fun eval_antiquotes txt = CRITICAL (fn () =>
+fun eval_antiquotes txt =
   let
     val ants = Antiquote.scan_antiquotes (txt, Position.line 1);
 
@@ -160,9 +160,9 @@ fun eval_antiquotes txt = CRITICAL (fn () =>
               in ((binding, value), names') end);
 
     val (decls, body) =
-      fold_map expand ants ML_Syntax.reserved
+      NAMED_CRITICAL "ML" (fn () => fold_map expand ants ML_Syntax.reserved)
       |> #1 |> split_list |> pairself implode;
-  in (isabelle_struct decls, body) end);
+  in (isabelle_struct decls, body) end;
 
 in
 
@@ -198,7 +198,7 @@ fun use_let bind body txt =
 
 fun use path = eval_wrapper (Path.implode path) Output.ml_output true (File.read path);
 
-fun evaluate pr verbose (ref_name, r) txt = CRITICAL (fn () =>
+fun evaluate pr verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
   let
     val _ = r := NONE;
     val _ = ML_wrapper pr verbose ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))");
