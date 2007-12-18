@@ -1081,9 +1081,7 @@ type stamp = unit ref;
 val stamp: unit -> stamp = ref;
 
 type serial = int;
-local val count = ref (0: int)
-in fun serial () = NAMED_CRITICAL "serial" (fn () => inc count) end;
-
+val serial = Multithreading.serial;
 val serial_string = string_of_int o serial;
 
 
