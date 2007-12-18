@@ -77,10 +77,10 @@ lemma same_prefix_prefix [simp]: "(xs @ ys \<le> xs @ zs) = (ys \<le> zs)"
   by (induct xs) simp_all
 
 lemma same_prefix_nil [iff]: "(xs @ ys \<le> xs) = (ys = [])"
-by (metis append_Nil2 append_self_conv order_eq_iff prefixI)
+  by (metis append_Nil2 append_self_conv order_eq_iff prefixI)
 
 lemma prefix_prefix [simp]: "xs \<le> ys ==> xs \<le> ys @ zs"
-by (metis order_le_less_trans prefixI strict_prefixE strict_prefixI)
+  by (metis order_le_less_trans prefixI strict_prefixE strict_prefixI)
 
 lemma append_prefixD: "xs @ ys \<le> zs \<Longrightarrow> xs \<le> zs"
   by (auto simp add: prefix_def)
@@ -98,41 +98,40 @@ theorem prefix_append:
 
 lemma append_one_prefix:
   "xs \<le> ys ==> length xs < length ys ==> xs @ [ys ! length xs] \<le> ys"
-by (unfold prefix_def)
-   (metis Cons_eq_appendI append_eq_appendI append_eq_conv_conj eq_Nil_appendI nth_drop')
+  unfolding prefix_def
+  by (metis Cons_eq_appendI append_eq_appendI append_eq_conv_conj
+    eq_Nil_appendI nth_drop')
 
 theorem prefix_length_le: "xs \<le> ys ==> length xs \<le> length ys"
   by (auto simp add: prefix_def)
 
 lemma prefix_same_cases:
   "(xs\<^isub>1::'a list) \<le> ys \<Longrightarrow> xs\<^isub>2 \<le> ys \<Longrightarrow> xs\<^isub>1 \<le> xs\<^isub>2 \<or> xs\<^isub>2 \<le> xs\<^isub>1"
-by (unfold prefix_def) (metis append_eq_append_conv2)
+  unfolding prefix_def by (metis append_eq_append_conv2)
 
 lemma set_mono_prefix: "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
-by (auto simp add: prefix_def)
+  by (auto simp add: prefix_def)
 
 lemma take_is_prefix: "take n xs \<le> xs"
-by (unfold prefix_def) (metis append_take_drop_id)
+  unfolding prefix_def by (metis append_take_drop_id)
 
-lemma map_prefixI:
-  "xs \<le> ys \<Longrightarrow> map f xs \<le> map f ys"
-by (clarsimp simp: prefix_def)
+lemma map_prefixI: "xs \<le> ys \<Longrightarrow> map f xs \<le> map f ys"
+  by (auto simp: prefix_def)
 
-lemma prefix_length_less:
-  "xs < ys \<Longrightarrow> length xs < length ys"
-by (clarsimp simp: strict_prefix_def prefix_def)
+lemma prefix_length_less: "xs < ys \<Longrightarrow> length xs < length ys"
+  by (auto simp: strict_prefix_def prefix_def)
 
 lemma strict_prefix_simps [simp]:
-  "xs < [] = False"
-  "[] < (x # xs) = True"
-  "(x # xs) < (y # ys) = (x = y \<and> xs < ys)"
-by (simp_all add: strict_prefix_def cong: conj_cong)
+    "xs < [] = False"
+    "[] < (x # xs) = True"
+    "(x # xs) < (y # ys) = (x = y \<and> xs < ys)"
+  by (simp_all add: strict_prefix_def cong: conj_cong)
 
 lemma take_strict_prefix: "xs < ys \<Longrightarrow> take n xs < ys"
-apply (induct n arbitrary: xs ys)
- apply (case_tac ys, simp_all)[1]
-apply (metis order_less_trans strict_prefixI take_is_prefix)
-done
+  apply (induct n arbitrary: xs ys)
+   apply (case_tac ys, simp_all)[1]
+  apply (metis order_less_trans strict_prefixI take_is_prefix)
+  done
 
 lemma not_prefix_cases:
   assumes pfx: "\<not> ps \<le> ls"
@@ -141,13 +140,13 @@ lemma not_prefix_cases:
   | (c2) a as x xs where "ps = a#as" and "ls = x#xs" and "x = a" and "\<not> as \<le> xs"
   | (c3) a as x xs where "ps = a#as" and "ls = x#xs" and "x \<noteq> a"
 proof (cases ps)
-  case Nil thus ?thesis using pfx by simp
+  case Nil then show ?thesis using pfx by simp
 next
   case (Cons a as)
-  hence c: "ps = a#as" .
+  note c = `ps = a#as`
   show ?thesis
   proof (cases ls)
-    case Nil thus ?thesis by (metis append_Nil2 pfx c1 same_prefix_nil)
+    case Nil then show ?thesis by (metis append_Nil2 pfx c1 same_prefix_nil)
   next
     case (Cons x xs)
     show ?thesis
@@ -187,16 +186,16 @@ definition
   "(xs \<parallel> ys) = (\<not> xs \<le> ys \<and> \<not> ys \<le> xs)"
 
 lemma parallelI [intro]: "\<not> xs \<le> ys ==> \<not> ys \<le> xs ==> xs \<parallel> ys"
-unfolding parallel_def by blast
+  unfolding parallel_def by blast
 
 lemma parallelE [elim]:
-assumes "xs \<parallel> ys"
-obtains "\<not> xs \<le> ys \<and> \<not> ys \<le> xs"
-using assms unfolding parallel_def by blast
+  assumes "xs \<parallel> ys"
+  obtains "\<not> xs \<le> ys \<and> \<not> ys \<le> xs"
+  using assms unfolding parallel_def by blast
 
 theorem prefix_cases:
-obtains "xs \<le> ys" | "ys < xs" | "xs \<parallel> ys"
-unfolding parallel_def strict_prefix_def by blast
+  obtains "xs \<le> ys" | "ys < xs" | "xs \<parallel> ys"
+  unfolding parallel_def strict_prefix_def by blast
 
 theorem parallel_decomp:
   "xs \<parallel> ys ==> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"
@@ -213,11 +212,12 @@ next
     show ?thesis
     proof (cases ys')
       assume "ys' = []"
-      thus ?thesis by (metis append_Nil2 parallelE prefixI snoc.prems ys)
+      then show ?thesis by (metis append_Nil2 parallelE prefixI snoc.prems ys)
     next
       fix c cs assume ys': "ys' = c # cs"
-      thus ?thesis
-	by (metis Cons_eq_appendI eq_Nil_appendI parallelE prefixI same_prefix_prefix snoc.prems ys)
+      then show ?thesis
+        by (metis Cons_eq_appendI eq_Nil_appendI parallelE prefixI
+          same_prefix_prefix snoc.prems ys)
     qed
   next
     assume "ys < xs" then have "ys \<le> xs @ [x]" by (simp add: strict_prefix_def)
@@ -234,15 +234,16 @@ next
 qed
 
 lemma parallel_append: "a \<parallel> b \<Longrightarrow> a @ c \<parallel> b @ d"
-by (rule parallelI)
-   (erule parallelE, erule conjE,
-          induct rule: not_prefix_induct, simp+)+
+  apply (rule parallelI)
+    apply (erule parallelE, erule conjE,
+      induct rule: not_prefix_induct, simp+)+
+  done
 
-lemma parallel_appendI: "\<lbrakk> xs \<parallel> ys; x = xs @ xs' ; y = ys @ ys' \<rbrakk> \<Longrightarrow> x \<parallel> y"
-by simp (rule parallel_append)
+lemma parallel_appendI: "xs \<parallel> ys \<Longrightarrow> x = xs @ xs' \<Longrightarrow> y = ys @ ys' \<Longrightarrow> x \<parallel> y"
+  by (simp add: parallel_append)
 
-lemma parallel_commute: "(a \<parallel> b) = (b \<parallel> a)"
-unfolding parallel_def by auto
+lemma parallel_commute: "a \<parallel> b \<longleftrightarrow> b \<parallel> a"
+  unfolding parallel_def by auto
 
 
 subsection {* Postfix order on lists *}
@@ -252,12 +253,12 @@ definition
   "(xs >>= ys) = (\<exists>zs. xs = zs @ ys)"
 
 lemma postfixI [intro?]: "xs = zs @ ys ==> xs >>= ys"
-unfolding postfix_def by blast
+  unfolding postfix_def by blast
 
 lemma postfixE [elim?]:
-assumes "xs >>= ys"
-obtains zs where "xs = zs @ ys"
-using assms unfolding postfix_def by blast
+  assumes "xs >>= ys"
+  obtains zs where "xs = zs @ ys"
+  using assms unfolding postfix_def by blast
 
 lemma postfix_refl [iff]: "xs >>= xs"
   by (auto simp add: postfix_def)
@@ -311,35 +312,37 @@ next
 qed
 
 lemma distinct_postfix: "distinct xs \<Longrightarrow> xs >>= ys \<Longrightarrow> distinct ys"
-by (clarsimp elim!: postfixE)
+  by (clarsimp elim!: postfixE)
 
 lemma postfix_map: "xs >>= ys \<Longrightarrow> map f xs >>= map f ys"
-by (auto elim!: postfixE intro: postfixI)
+  by (auto elim!: postfixE intro: postfixI)
 
 lemma postfix_drop: "as >>= drop n as"
-unfolding postfix_def
-by (rule exI [where x = "take n as"]) simp
+  unfolding postfix_def
+  apply (rule exI [where x = "take n as"])
+  apply simp
+  done
 
 lemma postfix_take: "xs >>= ys \<Longrightarrow> xs = take (length xs - length ys) xs @ ys"
-by (clarsimp elim!: postfixE)
+  by (clarsimp elim!: postfixE)
 
 lemma parallelD1: "x \<parallel> y \<Longrightarrow> \<not> x \<le> y"
-by blast
+  by blast
 
 lemma parallelD2: "x \<parallel> y \<Longrightarrow> \<not> y \<le> x"
-by blast
+  by blast
 
 lemma parallel_Nil1 [simp]: "\<not> x \<parallel> []"
-unfolding parallel_def by simp
+  unfolding parallel_def by simp
 
 lemma parallel_Nil2 [simp]: "\<not> [] \<parallel> x"
-unfolding parallel_def by simp
+  unfolding parallel_def by simp
 
 lemma Cons_parallelI1: "a \<noteq> b \<Longrightarrow> a # as \<parallel> b # bs"
-by auto
+  by auto
 
 lemma Cons_parallelI2: "\<lbrakk> a = b; as \<parallel> bs \<rbrakk> \<Longrightarrow> a # as \<parallel> b # bs"
-by (metis Cons_prefix_Cons parallelE parallelI)
+  by (metis Cons_prefix_Cons parallelE parallelI)
 
 lemma not_equal_is_parallel:
   assumes neq: "xs \<noteq> ys"
