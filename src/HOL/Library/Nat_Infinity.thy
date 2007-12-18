@@ -6,7 +6,7 @@
 header {* Natural numbers with infinity *}
 
 theory Nat_Infinity
-imports PreList
+imports ATP_Linkup
 begin
 
 subsection "Definitions"

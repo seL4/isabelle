@@ -7,7 +7,7 @@
 header {* Binomial Coefficients *}
 
 theory Binomial
-imports PreList
+imports ATP_Linkup
 begin
 
 text {* This development is based on the work of Andy Gordon and

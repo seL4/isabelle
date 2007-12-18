@@ -7,7 +7,7 @@
 header {* Pairs of Natural Numbers *}
 
 theory NatPair
-imports PreList
+imports ATP_Linkup
 begin
 
 text{*

@@ -5,7 +5,7 @@
 header {* Type of indices *}
 
 theory Code_Index
-imports PreList
+imports ATP_Linkup
 begin
 
 text {*

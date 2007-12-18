@@ -6,7 +6,7 @@
 header {* A simple term evaluation mechanism *}
 
 theory Eval
-imports PreList Pure_term
+imports ATP_Linkup Pure_term
 begin
 
 subsection {* @{text typ_of} class *}

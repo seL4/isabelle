@@ -6,7 +6,7 @@
 header {* Continuity and iterations (of set transformers) *}
 
 theory Continuity
-imports PreList
+imports ATP_Linkup
 begin
 
 subsection {* Continuity for complete lattices *}

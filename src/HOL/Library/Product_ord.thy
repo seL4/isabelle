@@ -6,7 +6,7 @@
 header {* Order on product types *}
 
 theory Product_ord
-imports PreList
+imports ATP_Linkup
 begin
 
 instantiation "*" :: (ord, ord) ord

@@ -6,7 +6,7 @@
 header {* Quotient types *}
 
 theory Quotient
-imports PreList Hilbert_Choice
+imports ATP_Linkup Hilbert_Choice
 begin
 
 text {*
