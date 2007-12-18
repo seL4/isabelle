@@ -465,7 +465,7 @@ fun statespace_definition state_type args name parents parent_comps components t
 
    fun string_of_typ T = 
       setmp show_sorts true 
-       (setmp print_mode [] (Syntax.string_of_typ (ProofContext.init thy))) T;
+       (PrintMode.setmp [] (Syntax.string_of_typ (ProofContext.init thy))) T;
    val fixestate = (case state_type of
          NONE => []
        | SOME s => 
