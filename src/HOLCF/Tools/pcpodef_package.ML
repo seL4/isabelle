@@ -72,7 +72,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
       HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A));
     fun mk_admissible A =
       mk_adm ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A));
-    fun mk_UU_mem A = HOLogic.mk_mem (Const ("Pcpo.UU", oldT), A);
+    fun mk_UU_mem A = HOLogic.mk_mem (Const ("Porder.UU", oldT), A);
     val goal = if pcpo
       then HOLogic.mk_Trueprop (HOLogic.mk_conj (mk_UU_mem set, mk_admissible set))
       else HOLogic.mk_Trueprop (HOLogic.mk_conj (mk_nonempty set, mk_admissible set));

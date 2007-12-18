@@ -133,7 +133,7 @@ apply simp
 apply (rule cont_id [THEN cont2cont_fun])
 done
 
-lemma cont_lift_case2: "cont (\<lambda>x. lift_case \<bottom> f x)"
+lemma cont_lift_case2: "cont (\<lambda>x. lift_case (\<bottom>::'a::pcpo) f x)"
 apply (rule flatdom_strict2cont)
 apply simp
 done
@@ -152,7 +152,8 @@ apply (simp add: cont2cont_lambda)
 done
 
 lemma cont2cont_lift_case:
-  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. lift_case UU (f x) (g x))"
+  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow>
+    cont (\<lambda>x. lift_case (UU::'a::pcpo) (f x) (g x))"
 apply (subgoal_tac "cont (\<lambda>x. (FLIFT y. f x y)\<cdot>(g x))")
 apply (simp add: flift1_def cont_lift_case2)
 apply (simp add: cont2cont_flift1)
