@@ -215,9 +215,9 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
 
 fun add_size_thms (new_type_names as name :: _) thy =
   let
-    val info as {descr, ...} = DatatypePackage.the_datatype thy name;
-    val prefix = NameSpace.map_base
-      (K (space_implode "_" (map Sign.base_name new_type_names))) name;
+    val info as {descr, alt_names, ...} = DatatypePackage.the_datatype thy name;
+    val prefix = NameSpace.map_base (K (space_implode "_"
+      (the_default (map Sign.base_name new_type_names) alt_names))) name;
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
       is_rec_type dt andalso not (null (fst (strip_dtyp dt)))) cargs) constrs) descr
   in if no_size then thy
