@@ -525,6 +525,13 @@ fun skolemize th =
                    (tryres (th, [conj_forward, disj_forward, all_forward])))
     handle THM _ => forward_res skolemize (rename_bvs_RS th ex_forward);
 
+fun skolemize_nnf_list [] = []
+  | skolemize_nnf_list (th::ths) = 
+      skolemize (make_nnf th) :: skolemize_nnf_list ths
+      handle THM _ =>
+       (warning ("Failed to Skolemize " ^ string_of_thm th);
+        skolemize_nnf_list ths);
+
 fun add_clauses (th,cls) =
   let val ctxt0 = Variable.thm_context th
       val (cnfs,ctxt) = make_cnf [] th ctxt0
@@ -552,7 +559,7 @@ fun depth_prolog_tac horns =
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 fun skolemize_prems_tac prems =
-    cut_facts_tac (map (skolemize o make_nnf) prems)  THEN'
+    cut_facts_tac (skolemize_nnf_list prems) THEN'
     REPEAT o (etac exE);
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
@@ -674,7 +681,7 @@ fun skolemize_tac i st =
   let val ts = Logic.strip_assums_hyp (List.nth (prems_of st, i-1))
   in
      EVERY' [METAHYPS
-            (fn hyps => (cut_facts_tac (map (skolemize o make_nnf) hyps) 1
+            (fn hyps => (cut_facts_tac (skolemize_nnf_list hyps) 1
                          THEN REPEAT (etac exE 1))),
             REPEAT_DETERM_N (length ts) o (etac thin_rl)] i st
   end
