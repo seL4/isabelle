@@ -40,15 +40,15 @@ fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 fun orig_use_text x = use_text ML_Parse.fix_ints x;
 fun orig_use_file x = use_file ML_Parse.fix_ints x;
 
-fun use_text name pr verbose txt = NAMED_CRITICAL "ML" (fn () =>
-  (secure_mltext (); orig_use_text name pr verbose txt));
+fun use_text name pr verbose txt =
+  (secure_mltext (); orig_use_text name pr verbose txt);
 
-fun use_file pr verbose name = NAMED_CRITICAL "ML" (fn () =>
-  (secure_mltext (); orig_use_file pr verbose name));
+fun use_file pr verbose name =
+  (secure_mltext (); orig_use_file pr verbose name);
 
 fun use name = use_file Output.ml_output true name;
 
-fun use_noncritical name =
+fun use_noncritical name =  (* FIXME obsolete *)
   (secure_mltext (); orig_use_file Output.ml_output true name);
 
 (*commit is dynamically bound!*)
