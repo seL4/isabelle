@@ -56,9 +56,7 @@ lemmas HOLCF_trans_rules [trans] =
   sq_ord_less_eq_trans
   sq_ord_eq_less_trans
 
-subsection {* Chains and least upper bounds *}
-
-text {* class definitions *}
+subsection {* Least upper bounds *}
 
 definition
   is_ub :: "['a set, 'a::po] \<Rightarrow> bool"  (infixl "<|" 55)  where
@@ -67,25 +65,6 @@ definition
 definition
   is_lub :: "['a set, 'a::po] \<Rightarrow> bool"  (infixl "<<|" 55)  where
   "(S <<| x) = (S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u))"
-
-definition
-  -- {* Arbitrary chains are total orders *}
-  tord :: "'a::po set \<Rightarrow> bool" where
-  "tord S = (\<forall>x y. x \<in> S \<and> y \<in> S \<longrightarrow> (x \<sqsubseteq> y \<or> y \<sqsubseteq> x))"
-
-definition
-  -- {* Here we use countable chains and I prefer to code them as functions! *}
-  chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
-  "chain F = (\<forall>i. F i \<sqsubseteq> F (Suc i))"
-
-definition
-  -- {* finite chains, needed for monotony of continuous functions *}
-  max_in_chain :: "[nat, nat \<Rightarrow> 'a::po] \<Rightarrow> bool" where
-  "max_in_chain i C = (\<forall>j. i \<le> j \<longrightarrow> C i = C j)"
-
-definition
-  finite_chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
-  "finite_chain C = (chain C \<and> (\<exists>i. max_in_chain i C))"
 
 definition
   lub :: "'a set \<Rightarrow> 'a::po" where
@@ -104,28 +83,6 @@ text {* lubs are unique *}
 lemma unique_lub: "\<lbrakk>S <<| x; S <<| y\<rbrakk> \<Longrightarrow> x = y"
 apply (unfold is_lub_def is_ub_def)
 apply (blast intro: antisym_less)
-done
-
-text {* chains are monotone functions *}
-
-lemma chain_mono [rule_format]: "chain F \<Longrightarrow> x < y \<longrightarrow> F x \<sqsubseteq> F y"
-apply (unfold chain_def)
-apply (induct_tac y)
-apply simp
-apply (blast elim: less_SucE intro: trans_less)
-done
-
-lemma chain_mono3: "\<lbrakk>chain F; x \<le> y\<rbrakk> \<Longrightarrow> F x \<sqsubseteq> F y"
-apply (drule le_imp_less_or_eq)
-apply (blast intro: chain_mono)
-done
-
-text {* The range of a chain is a totally ordered *}
-
-lemma chain_tord: "chain F \<Longrightarrow> tord (range F)"
-apply (unfold tord_def, clarify)
-apply (rule nat_less_cases)
-apply (fast intro: chain_mono)+
 done
 
 text {* technical lemmas about @{term lub} and @{term is_lub} *}
@@ -153,6 +110,27 @@ by (unfold is_lub_def, simp)
 
 lemma is_lubI: "\<lbrakk>S <| x; \<And>u. S <| u \<Longrightarrow> x \<sqsubseteq> u\<rbrakk> \<Longrightarrow> S <<| x"
 by (unfold is_lub_def, fast)
+
+subsection {* Countable chains *}
+
+definition
+  -- {* Here we use countable chains and I prefer to code them as functions! *}
+  chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
+  "chain F = (\<forall>i. F i \<sqsubseteq> F (Suc i))"
+
+text {* chains are monotone functions *}
+
+lemma chain_mono [rule_format]: "chain F \<Longrightarrow> x < y \<longrightarrow> F x \<sqsubseteq> F y"
+apply (unfold chain_def)
+apply (induct_tac y)
+apply simp
+apply (blast elim: less_SucE intro: trans_less)
+done
+
+lemma chain_mono3: "\<lbrakk>chain F; x \<le> y\<rbrakk> \<Longrightarrow> F x \<sqsubseteq> F y"
+apply (drule le_imp_less_or_eq)
+apply (blast intro: chain_mono)
+done
 
 lemma chainE: "chain F \<Longrightarrow> F i \<sqsubseteq> F (Suc i)"
 by (unfold chain_def, simp)
@@ -193,6 +171,60 @@ lemma is_lub_range_shift:
   "chain S \<Longrightarrow> range (\<lambda>i. S (i + j)) <<| x = range S <<| x"
 by (simp add: is_lub_def is_ub_range_shift)
 
+text {* the lub of a constant chain is the constant *}
+
+lemma chain_const [simp]: "chain (\<lambda>i. c)"
+by (simp add: chainI)
+
+lemma lub_const: "range (\<lambda>x. c) <<| c"
+by (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
+
+lemma thelub_const [simp]: "(\<Squnion>i. c) = c"
+by (rule lub_const [THEN thelubI])
+
+subsection {* Totally ordered sets *}
+
+definition
+  -- {* Arbitrary chains are total orders *}
+  tord :: "'a::po set \<Rightarrow> bool" where
+  "tord S = (\<forall>x y. x \<in> S \<and> y \<in> S \<longrightarrow> (x \<sqsubseteq> y \<or> y \<sqsubseteq> x))"
+
+text {* The range of a chain is a totally ordered *}
+
+lemma chain_tord: "chain F \<Longrightarrow> tord (range F)"
+apply (unfold tord_def, clarify)
+apply (rule nat_less_cases)
+apply (fast intro: chain_mono)+
+done
+
+lemma finite_tord_has_max [rule_format]:
+  "finite S \<Longrightarrow> S \<noteq> {} \<longrightarrow> tord S \<longrightarrow> (\<exists>y\<in>S. \<forall>x\<in>S. x \<sqsubseteq> y)"
+ apply (erule finite_induct, simp)
+ apply (rename_tac a S, clarify)
+ apply (case_tac "S = {}", simp)
+ apply (drule (1) mp)
+ apply (drule mp, simp add: tord_def)
+ apply (erule bexE, rename_tac z)
+ apply (subgoal_tac "a \<sqsubseteq> z \<or> z \<sqsubseteq> a")
+  apply (erule disjE)
+   apply (rule_tac x="z" in bexI, simp, simp)
+  apply (rule_tac x="a" in bexI)
+   apply (clarsimp elim!: rev_trans_less)
+  apply simp
+ apply (simp add: tord_def)
+done
+
+subsection {* Finite chains *}
+
+definition
+  -- {* finite chains, needed for monotony of continuous functions *}
+  max_in_chain :: "[nat, nat \<Rightarrow> 'a::po] \<Rightarrow> bool" where
+  "max_in_chain i C = (\<forall>j. i \<le> j \<longrightarrow> C i = C j)"
+
+definition
+  finite_chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
+  "finite_chain C = (chain C \<and> (\<exists>i. max_in_chain i C))"
+
 text {* results about finite chains *}
 
 lemma lub_finch1: "\<lbrakk>chain C; max_in_chain i C\<rbrakk> \<Longrightarrow> range C <<| C i"
@@ -226,23 +258,6 @@ lemma finch_imp_finite_range: "finite_chain Y \<Longrightarrow> finite (range Y)
  apply fast
 done
 
-lemma finite_tord_has_max [rule_format]:
-  "finite S \<Longrightarrow> S \<noteq> {} \<longrightarrow> tord S \<longrightarrow> (\<exists>y\<in>S. \<forall>x\<in>S. x \<sqsubseteq> y)"
- apply (erule finite_induct, simp)
- apply (rename_tac a S, clarify)
- apply (case_tac "S = {}", simp)
- apply (drule (1) mp)
- apply (drule mp, simp add: tord_def)
- apply (erule bexE, rename_tac z)
- apply (subgoal_tac "a \<sqsubseteq> z \<or> z \<sqsubseteq> a")
-  apply (erule disjE)
-   apply (rule_tac x="z" in bexI, simp, simp)
-  apply (rule_tac x="a" in bexI)
-   apply (clarsimp elim!: rev_trans_less)
-  apply simp
- apply (simp add: tord_def)
-done
-
 lemma finite_range_imp_finch:
   "\<lbrakk>chain Y; finite (range Y)\<rbrakk> \<Longrightarrow> finite_chain Y"
  apply (subgoal_tac "\<exists>y\<in>range Y. \<forall>x\<in>range Y. x \<sqsubseteq> y")
@@ -273,16 +288,5 @@ text {* the maximal element in a chain is its lub *}
 
 lemma lub_chain_maxelem: "\<lbrakk>Y i = c; \<forall>i. Y i \<sqsubseteq> c\<rbrakk> \<Longrightarrow> lub (range Y) = c"
 by (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
-
-text {* the lub of a constant chain is the constant *}
-
-lemma chain_const [simp]: "chain (\<lambda>i. c)"
-by (simp add: chainI)
-
-lemma lub_const: "range (\<lambda>x. c) <<| c"
-by (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
-
-lemma thelub_const [simp]: "(\<Squnion>i. c) = c"
-by (rule lub_const [THEN thelubI])
 
 end
