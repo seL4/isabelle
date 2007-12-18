@@ -1152,7 +1152,7 @@ by (induct n) simp_all
 lemma size_bool [code func]:
   "size (b\<Colon>bool) = 0" by (cases b) auto
 
-declare "*.size" [noatp]
+declare "prod.size" [noatp]
 
 
 subsection {* Embedding of the Naturals into any
