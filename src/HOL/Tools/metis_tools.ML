@@ -621,10 +621,7 @@ fun infer_types ctxt =
   val metisH_tac = metis_general_tac ResAtp.Hol;
 
   fun method mode = Method.thms_ctxt_args (fn ths => fn ctxt =>
-    Method.SIMPLE_METHOD'
-      (setmp ResHolClause.typ_level ResHolClause.T_CONST  (*constant-typed*)
-        (setmp ResHolClause.minimize_applies false        (*avoid this optimization*)
-          (CHANGED_PROP o metis_general_tac mode ctxt ths))));
+    Method.SIMPLE_METHOD' (CHANGED_PROP o metis_general_tac mode ctxt ths));
 
   val setup =
     type_lits_setup #>
