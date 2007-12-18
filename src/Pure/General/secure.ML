@@ -11,7 +11,6 @@ sig
   val is_secure: unit -> bool
   val use_text: string -> (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use_file: (string -> unit) * (string -> 'a) -> bool -> string -> unit
-  val use_noncritical: string -> unit
   val use: string -> unit
   val commit: unit -> unit
   val execute: string -> string
@@ -47,9 +46,6 @@ fun use_file pr verbose name =
   (secure_mltext (); orig_use_file pr verbose name);
 
 fun use name = use_file Output.ml_output true name;
-
-fun use_noncritical name =  (* FIXME obsolete *)
-  (secure_mltext (); orig_use_file Output.ml_output true name);
 
 (*commit is dynamically bound!*)
 fun commit () = orig_use_text "" Output.ml_output false "commit();";
