@@ -13,20 +13,24 @@ begin
 
 datatype complex = Complex real real
 
-consts Re :: "complex \<Rightarrow> real"
-primrec Re: "Re (Complex x y) = x"
+primrec
+  Re :: "complex \<Rightarrow> real"
+where
+  Re: "Re (Complex x y) = x"
 
-consts Im :: "complex \<Rightarrow> real"
-primrec Im: "Im (Complex x y) = y"
+primrec
+  Im :: "complex \<Rightarrow> real"
+where
+  Im: "Im (Complex x y) = y"
 
 lemma complex_surj [simp]: "Complex (Re z) (Im z) = z"
   by (induct z) simp
 
 lemma complex_equality [intro?]: "\<lbrakk>Re x = Re y; Im x = Im y\<rbrakk> \<Longrightarrow> x = y"
-by (induct x, induct y) simp
+  by (induct x, induct y) simp
 
 lemma expand_complex_eq: "x = y \<longleftrightarrow> Re x = Re y \<and> Im x = Im y"
-by (induct x, induct y) simp
+  by (induct x, induct y) simp
 
 lemmas complex_Re_Im_cancel_iff = expand_complex_eq
 
@@ -48,22 +52,6 @@ definition
 definition
   complex_diff_def: "x - (y\<Colon>complex) = x + - y"
 
-instance proof
-  fix x y z :: complex
-  show "(x + y) + z = x + (y + z)"
-    by (simp add: expand_complex_eq complex_add_def add_assoc)
-  show "x + y = y + x"
-    by (simp add: expand_complex_eq complex_add_def add_commute)
-  show "0 + x = x"
-    by (simp add: expand_complex_eq complex_add_def complex_zero_def)
-  show "- x + x = 0"
-    by (simp add: expand_complex_eq complex_add_def complex_zero_def complex_minus_def)
-  show "x - y = x + - y"
-    by (simp add: expand_complex_eq complex_add_def complex_zero_def complex_diff_def)
-qed
-
-end
-
 lemma Complex_eq_0 [simp]: "Complex a b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
   by (simp add: complex_zero_def)
 
@@ -73,17 +61,18 @@ lemma complex_Re_zero [simp]: "Re 0 = 0"
 lemma complex_Im_zero [simp]: "Im 0 = 0"
   by (simp add: complex_zero_def)
 
+lemma complex_add [simp]:
+  "Complex a b + Complex c d = Complex (a + c) (b + d)"
+  by (simp add: complex_add_def)
+
 lemma complex_Re_add [simp]: "Re (x + y) = Re x + Re y"
   by (simp add: complex_add_def)
 
 lemma complex_Im_add [simp]: "Im (x + y) = Im x + Im y"
   by (simp add: complex_add_def)
 
-lemma complex_add [simp]:
-  "Complex a b + Complex c d = Complex (a + c) (b + d)"
-  by (simp add: complex_add_def)
-
-lemma complex_minus [simp]: "- (Complex a b) = Complex (- a) (- b)"
+lemma complex_minus [simp]:
+  "- (Complex a b) = Complex (- a) (- b)"
   by (simp add: complex_minus_def)
 
 lemma complex_Re_minus [simp]: "Re (- x) = - Re x"
@@ -102,10 +91,16 @@ lemma complex_Re_diff [simp]: "Re (x - y) = Re x - Re y"
 lemma complex_Im_diff [simp]: "Im (x - y) = Im x - Im y"
   by (simp add: complex_diff_def)
 
+instance
+  by intro_classes (simp_all add: complex_add_def complex_diff_def)
+
+end
+
+
 
 subsection {* Multiplication and Division *}
 
-instantiation complex :: "{one, times, inverse}"
+instantiation complex :: "{field, division_by_zero}"
 begin
 
 definition
@@ -122,81 +117,59 @@ definition
 definition
   complex_divide_def: "x / (y\<Colon>complex) = x * inverse y"
 
-instance ..
-
-end
-
 lemma Complex_eq_1 [simp]: "(Complex a b = 1) = (a = 1 \<and> b = 0)"
-by (simp add: complex_one_def)
+  by (simp add: complex_one_def)
 
 lemma complex_Re_one [simp]: "Re 1 = 1"
-by (simp add: complex_one_def)
+  by (simp add: complex_one_def)
 
 lemma complex_Im_one [simp]: "Im 1 = 0"
-by (simp add: complex_one_def)
+  by (simp add: complex_one_def)
 
 lemma complex_mult [simp]:
   "Complex a b * Complex c d = Complex (a * c - b * d) (a * d + b * c)"
-by (simp add: complex_mult_def)
+  by (simp add: complex_mult_def)
 
 lemma complex_Re_mult [simp]: "Re (x * y) = Re x * Re y - Im x * Im y"
-by (simp add: complex_mult_def)
+  by (simp add: complex_mult_def)
 
 lemma complex_Im_mult [simp]: "Im (x * y) = Re x * Im y + Im x * Re y"
-by (simp add: complex_mult_def)
+  by (simp add: complex_mult_def)
 
 lemma complex_inverse [simp]:
   "inverse (Complex a b) = Complex (a / (a\<twosuperior> + b\<twosuperior>)) (- b / (a\<twosuperior> + b\<twosuperior>))"
-by (simp add: complex_inverse_def)
+  by (simp add: complex_inverse_def)
 
 lemma complex_Re_inverse:
   "Re (inverse x) = Re x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>)"
-by (simp add: complex_inverse_def)
+  by (simp add: complex_inverse_def)
 
 lemma complex_Im_inverse:
   "Im (inverse x) = - Im x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>)"
-by (simp add: complex_inverse_def)
+  by (simp add: complex_inverse_def)
 
-instance complex :: field
-proof
-  fix x y z :: complex
-  show "(x * y) * z = x * (y * z)"
-    by (simp add: expand_complex_eq ring_simps)
-  show "x * y = y * x"
-    by (simp add: expand_complex_eq mult_commute add_commute)
-  show "1 * x = x"
-    by (simp add: expand_complex_eq)
-  show "0 \<noteq> (1::complex)"
-    by (simp add: expand_complex_eq)
-  show "(x + y) * z = x * z + y * z"
-    by (simp add: expand_complex_eq ring_simps)
-  show "x / y = x * inverse y"
-    by (simp only: complex_divide_def)
-  show "x \<noteq> 0 \<Longrightarrow> inverse x * x = 1"
-    by (induct x, simp add: power2_eq_square add_divide_distrib [symmetric])
-qed
+instance
+  by intro_classes (simp_all add: complex_mult_def
+  right_distrib left_distrib right_diff_distrib left_diff_distrib
+  complex_inverse_def complex_divide_def
+  power2_eq_square add_divide_distrib [symmetric]
+  expand_complex_eq)
 
-instance complex :: division_by_zero
-proof
-  show "inverse 0 = (0::complex)"
-    by (simp add: complex_inverse_def)
-qed
+end
 
 
 subsection {* Exponentiation *}
 
-instance complex :: power ..
+instantiation complex :: recpower
+begin
 
-primrec
-     complexpow_0:   "z ^ 0       = 1"
-     complexpow_Suc: "z ^ (Suc n) = (z::complex) * (z ^ n)"
+primrec power_complex where
+  complexpow_0:     "z ^ 0     = (1\<Colon>complex)"
+  | complexpow_Suc: "z ^ Suc n = (z\<Colon>complex) * z ^ n"
 
-instance complex :: recpower
-proof
-  fix x :: complex and n :: nat
-  show "x ^ 0 = 1" by simp
-  show "x ^ Suc n = x * x ^ n" by simp
-qed
+instance by intro_classes simp_all
+
+end
 
 
 subsection {* Numerals and Arithmetic *}
@@ -204,11 +177,11 @@ subsection {* Numerals and Arithmetic *}
 instantiation complex :: number_ring
 begin
 
-definition
+definition number_of_complex where
   complex_number_of_def: "number_of w = (of_int w \<Colon> complex)"
 
 instance
-  by (intro_classes, simp only: complex_number_of_def)
+  by intro_classes (simp only: complex_number_of_def)
 
 end
 
@@ -237,27 +210,23 @@ by (simp add: expand_complex_eq)
 
 subsection {* Scalar Multiplication *}
 
-instantiation complex :: scaleR
+instantiation complex :: real_field
 begin
 
 definition
   complex_scaleR_def: "scaleR r x = Complex (r * Re x) (r * Im x)"
 
-instance ..
-
-end
-
 lemma complex_scaleR [simp]:
   "scaleR r (Complex a b) = Complex (r * a) (r * b)"
-unfolding complex_scaleR_def by simp
+  unfolding complex_scaleR_def by simp
 
 lemma complex_Re_scaleR [simp]: "Re (scaleR r x) = r * Re x"
-unfolding complex_scaleR_def by simp
+  unfolding complex_scaleR_def by simp
 
 lemma complex_Im_scaleR [simp]: "Im (scaleR r x) = r * Im x"
-unfolding complex_scaleR_def by simp
+  unfolding complex_scaleR_def by simp
 
-instance complex :: real_field
+instance
 proof
   fix a b :: real and x y :: complex
   show "scaleR a (x + y) = scaleR a x + scaleR a y"
@@ -273,6 +242,8 @@ proof
   show "x * scaleR a y = scaleR a (x * y)"
     by (simp add: expand_complex_eq ring_simps)
 qed
+
+end
 
 
 subsection{* Properties of Embedding from Reals *}
@@ -309,36 +280,25 @@ by (simp add: complex_of_real_def)
 
 subsection {* Vector Norm *}
 
-instantiation complex :: norm
+instantiation complex :: real_normed_field
 begin
 
 definition
   complex_norm_def: "norm z = sqrt ((Re z)\<twosuperior> + (Im z)\<twosuperior>)"
 
-instance ..
-
-end
-
 abbreviation
   cmod :: "complex \<Rightarrow> real" where
-    "cmod \<equiv> norm"
-
-instantiation complex :: sgn
-begin
+  "cmod \<equiv> norm"
 
 definition
   complex_sgn_def: "sgn x = x /\<^sub>R cmod x"
 
-instance ..
-
-end
-
 lemmas cmod_def = complex_norm_def
 
 lemma complex_norm [simp]: "cmod (Complex x y) = sqrt (x\<twosuperior> + y\<twosuperior>)"
-by (simp add: complex_norm_def)
+  by (simp add: complex_norm_def)
 
-instance complex :: real_normed_field
+instance
 proof
   fix r :: real and x y :: complex
   show "0 \<le> norm x"
@@ -356,6 +316,8 @@ proof
        (simp add: real_sqrt_mult [symmetric] power2_eq_square ring_simps)
   show "sgn x = x /\<^sub>R cmod x" by(simp add: complex_sgn_def)
 qed
+
+end
 
 lemma cmod_unit_one [simp]: "cmod (Complex (cos a) (sin a)) = 1"
 by simp

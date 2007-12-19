@@ -16,10 +16,11 @@ specified via 3 decimal digits (as in SML).  E.g. "foo\095bar" for
 
 *** Pure ***
 
-* Command "instance" now takes list of definitions in the same manner
-as the "definition" command.  Most notably, object equality is now
-possible.  Type inference is more canonical than it used to be.
-INCOMPATIBILITY: in some cases explicit type annotations are required.
+* Instantiation target allows for simultaneous specification of class instance
+operations together with an instantiation proof.  Type check phase allows to
+refer to class operations uniformly.  See HOL/Complex/Complex.thy for an Isar
+example and HOL/Library/Eval.thy for an ML example.
+Superseedes some immature attempts.
 
 
 *** HOL ***
