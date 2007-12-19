@@ -16,6 +16,7 @@ use "../ML/ml_lex.ML";
 use "../ML/ml_parse.ML";
 use "secure.ML";
 
+use "random_word.ML";
 use "integer.ML";
 use "stack.ML";
 use "heap.ML";
