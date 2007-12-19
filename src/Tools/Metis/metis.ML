@@ -195,27 +195,13 @@ fun CRITICAL e = NAMED_CRITICAL "metis" e;
 (* Generating random values.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-(* ------------------------------------------------------------------------- *)
-(* Generating random values.                                                 *)
-(* ------------------------------------------------------------------------- *)
+val randomWord = RandomWord.next;
+val randomBool = RandomWord.next_bit;
+fun randomInt n = Word.toInt (Word.mod (randomWord (), Word.fromInt n));
 
-local
-  val gen = Random.newgenseed 1.0;
-in
-  fun randomInt max = Random.range (0,max) gen;
-
-  fun randomReal () = Random.random gen;
-end;
-
-fun randomBool () = randomInt 2 = 0;
-
-fun randomWord () =
-    let
-      val h = Word.fromInt (randomInt 65536)
-      and l = Word.fromInt (randomInt 65536)
-    in
-      Word.orb (Word.<< (h,0w16), l)
-    end;
+val real_word = real o Word.toInt;
+val normalizer = 1.0 / real_word RandomWord.range;
+fun randomReal () = real_word (RandomWord.next ()) * normalizer;
 
 end
 
