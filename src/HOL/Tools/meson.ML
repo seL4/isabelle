@@ -528,7 +528,7 @@ fun skolemize th =
 fun skolemize_nnf_list [] = []
   | skolemize_nnf_list (th::ths) = 
       skolemize (make_nnf th) :: skolemize_nnf_list ths
-      handle THM _ =>
+      handle THM _ => (*RS can fail if Unify.search_bound is too small*)
        (warning ("Failed to Skolemize " ^ string_of_thm th);
         skolemize_nnf_list ths);
 

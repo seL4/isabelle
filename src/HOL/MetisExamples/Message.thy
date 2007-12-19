@@ -206,7 +206,7 @@ done
 ML{*ResAtp.problem_name := "Message__parts_insert_two"*}
 lemma parts_insert2:
      "parts (insert X (insert Y H)) = parts {X} \<union> parts {Y} \<union> parts H"
-by (metis Un_commute Un_empty_left Un_empty_right Un_insert_left Un_insert_right insert_commute parts_Un)
+by (metis Un_commute Un_empty_left Un_empty_right Un_insert_left Un_insert_right parts_Un)
 
 
 lemma parts_UN_subset1: "(\<Union>x\<in>A. parts(H x)) \<subseteq> parts(\<Union>x\<in>A. H x)"
@@ -244,7 +244,7 @@ ML{*ResAtp.problem_name := "Message__parts_subset_iff"*}
 lemma parts_subset_iff [simp]: "(parts G \<subseteq> parts H) = (G \<subseteq> parts H)"
 apply (rule iffI) 
 apply (metis Un_absorb1 Un_subset_iff parts_Un parts_increasing)
-apply (metis parts_Un parts_idem parts_increasing parts_mono)
+apply (metis parts_idem parts_mono)
 done
 
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"

@@ -109,6 +109,7 @@ oracle spass_oracle ("string * int") = {* ResAtpProvers.spass_o *}
 
 use "Tools/res_atp_methods.ML"
 setup ResAtpMethods.setup      --{*Oracle ATP methods: still useful?*}
+setup ResReconstruct.setup     --{*Config parameters*}
 setup ResAxioms.setup          --{*Sledgehammer*}
 
 subsection {* The Metis prover *}

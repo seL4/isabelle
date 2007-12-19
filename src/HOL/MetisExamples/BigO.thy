@@ -31,7 +31,7 @@ lemma bigo_pos_const: "(EX (c::'a::ordered_idom).
 
 (*** Now various verions with an increasing modulus ***)
 
-ML{*ResReconstruct.modulus := 1*}
+declare [[reconstruction_modulus = 1]]
 
 lemma bigo_pos_const: "(EX (c::'a::ordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -100,6 +100,8 @@ show "False"
   by (metis abs_le_iff 5 18 14)
 qed
 
+declare [[reconstruction_modulus = 2]]
+
 lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
       = (EX c. 0 < c & (ALL x. (abs(h x)) <= (c * (abs (f x)))))"
@@ -107,7 +109,6 @@ lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom).
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
   apply (rule_tac x = "abs c" in exI, auto);
-ML{*ResReconstruct.modulus:=2*}
 proof (neg_clausify)
 fix c x
 have 0: "\<And>(X1\<Colon>'a\<Colon>ordered_idom) X2\<Colon>'a\<Colon>ordered_idom. \<bar>X1 * X2\<bar> = \<bar>X2 * X1\<bar>"
@@ -140,6 +141,8 @@ show "False"
   by (metis 8 abs_ge_zero abs_mult_pos abs_mult 1 9 3 abs_le_iff)
 qed
 
+declare [[reconstruction_modulus = 3]]
+
 lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
       = (EX c. 0 < c & (ALL x. (abs(h x)) <= (c * (abs (f x)))))"
@@ -147,7 +150,6 @@ lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom).
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
   apply (rule_tac x = "abs c" in exI, auto);
-ML{*ResReconstruct.modulus:=3*}
 proof (neg_clausify)
 fix c x
 assume 0: "\<And>x\<Colon>'b\<Colon>type.
@@ -171,7 +173,7 @@ show "False"
 qed
 
 
-ML{*ResReconstruct.modulus:=1*}
+declare [[reconstruction_modulus = 1]]
 
 lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
@@ -207,8 +209,7 @@ show "False"
 qed
 
 
-ML{*ResReconstruct.recon_sorts:=true*}
-
+declare [[reconstruction_sorts = true]]
 
 lemma bigo_alt_def: "O(f) = 
     {h. EX c. (0 < c & (ALL x. abs (h x) <= c * abs (f x)))}"
@@ -361,8 +362,8 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (rule add_mono)
 ML{*ResAtp.problem_name := "BigO__bigo_plus_eq_simpler"*} 
 (*Found by SPASS; SLOW*)
-apply (metis le_maxI2 linorder_linear linorder_not_le min_max.less_eq_less_sup.sup_absorb1 mult_le_cancel_right xt1(6))
-apply (metis le_maxI2 linorder_not_le mult_le_cancel_right xt1(6))
+apply (metis le_maxI2 linorder_linear linorder_not_le min_max.less_eq_less_sup.sup_absorb1 mult_le_cancel_right order_trans)
+apply (metis le_maxI2 linorder_not_le mult_le_cancel_right order_trans)
 done
 
 ML{*ResAtp.problem_name := "BigO__bigo_bounded_alt"*}
@@ -429,7 +430,7 @@ ML{*ResAtp.problem_name := "BigO__bigo_bounded_alt_trans"*}
 lemma "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> f : O(g)" 
   apply (auto simp add: bigo_def)
   (*Version 1: one-shot proof*) 
-apply (metis Orderings.leD Orderings.leI abs_ge_self abs_le_D1 abs_mult abs_of_nonneg order_le_less xt1(12));
+  apply (metis Orderings.leD Orderings.leI abs_ge_self abs_le_D1 abs_mult abs_of_nonneg order_le_less)
   done
 
 text{*So here is the easier (and more natural) problem using transitivity*}

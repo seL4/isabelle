@@ -574,7 +574,7 @@ next --{*apparently the way to insert a second structured proof*}
   qed
 qed
 
-lemma (in CLF) lubH_is_fixp:
+lemma (in CLF) (*lubH_is_fixp:*)
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> lub H cl \<in> fix f A"
 apply (simp add: fix_def)
 apply (rule conjI)

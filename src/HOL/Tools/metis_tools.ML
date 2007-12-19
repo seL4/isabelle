@@ -586,7 +586,7 @@ fun infer_types ctxt =
                 else Output.debug (fn () => "goal is higher-order")
         val _ = Output.debug (fn () => "START METIS PROVE PROCESS")
     in
-        case refute thms of
+        case NAMED_CRITICAL "refute" (fn () => refute thms) of
             Metis.Resolution.Contradiction mth =>
               let val _ = Output.debug (fn () => "METIS RECONSTRUCTION START: " ^
                             Metis.Thm.toString mth)

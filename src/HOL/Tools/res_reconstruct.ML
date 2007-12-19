@@ -9,8 +9,6 @@
 signature RES_RECONSTRUCT =
 sig
   datatype atp = E | SPASS | Vampire
-  val modulus:     int ref
-  val recon_sorts: bool ref
   val chained_hint: string
   val checkEProofFound:
 	TextIO.instream * TextIO.outstream * Posix.Process.pid *
@@ -29,6 +27,7 @@ sig
   val num_typargs: Context.theory -> string -> int
   val make_tvar: string -> typ
   val strip_prefix: string -> string -> string option
+  val setup: Context.theory -> Context.theory
 end;
 
 structure ResReconstruct : RES_RECONSTRUCT =
@@ -39,11 +38,15 @@ val trace_path = Path.basic "atp_trace";
 fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s
               else ();
 
+(*For generating structured proofs: keep every nth proof line*)
+val (modulus, modulus_setup) = Attrib.config_int "reconstruction_modulus" 1;
+
+(*Indicates whether to include sort information in generated proofs*)
+val (recon_sorts, recon_sorts_setup) = Attrib.config_bool "reconstruction_sorts" true;
+
+val setup = modulus_setup #> recon_sorts_setup;
+
 datatype atp = E | SPASS | Vampire;
-
-val recon_sorts = ref true;
-
-val modulus = ref 1;    (*keep every nth proof line*)
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -358,7 +361,7 @@ fun isar_lines ctxt ctms =
             "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
       fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
         | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
-  in setmp show_sorts (!recon_sorts) dolines end;
+  in setmp show_sorts (Config.get ctxt recon_sorts) dolines end;
 
 fun notequal t (_,t',_) = not (t aconv t');
 
@@ -408,13 +411,13 @@ fun bad_free (Free (a,_)) = String.isPrefix "sko_" a
   counts the number of proof lines processed so far.
   Deleted lines are replaced by their own dependencies. Note that the "add_nonnull_prfline"
   phase may delete some dependencies, hence this phase comes later.*)
-fun add_wanted_prfline ((lno, t, []), (nlines, lines)) =
+fun add_wanted_prfline ctxt ((lno, t, []), (nlines, lines)) =
       (nlines, (lno, t, []) :: lines)   (*conjecture clauses must be kept*)
-  | add_wanted_prfline ((lno, t, deps), (nlines, lines)) =
+  | add_wanted_prfline ctxt ((lno, t, deps), (nlines, lines)) =
       if eq_types t orelse not (null (term_tvars t)) orelse
          exists bad_free (term_frees t) orelse
          (not (null lines) andalso   (*final line can't be deleted for these reasons*)
-          (length deps < 2 orelse nlines mod !modulus <> 0))   
+          (length deps < 2 orelse nlines mod (Config.get ctxt modulus) <> 0))   
       then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)
       else (nlines+1, (lno, t, deps) :: lines);
 
@@ -442,7 +445,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val nonnull_lines =
               foldr add_nonnull_prfline []
                     (foldr add_prfline [] (decode_tstp_list ctxt tuples))
-      val (_,lines) = foldr add_wanted_prfline (0,[]) nonnull_lines
+      val (_,lines) = foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
       val ccls = map forall_intr_vars ccls
   in
