@@ -198,9 +198,7 @@ fun CRITICAL e = NAMED_CRITICAL "metis" e;
 val randomWord = RandomWord.next;
 val randomBool = RandomWord.next_bit;
 fun randomInt n = Word.toInt (Word.mod (randomWord (), Word.fromInt n));
-
-val normalizer = 1.0 / real RandomWord.range;
-fun randomReal () = real (Word.toInt (RandomWord.next ())) * normalizer;
+fun randomReal () = real (Word.toInt (RandomWord.next ())) / RandomWord.range_real;
 
 end
 

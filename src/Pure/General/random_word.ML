@@ -10,6 +10,7 @@ randomness.
 signature RANDOM_WORD =
 sig
   val range: int
+  val range_real: real
   val next: unit -> word
   val next_bit: unit -> bool
 end;
@@ -21,6 +22,7 @@ struct
 val _ = Word.wordSize >= 30 orelse raise Fail ("Bad platform word size");
 
 val range = 0x40000000;
+val range_real = 1073741824.0;
 val mask = Word.fromInt (range - 1);
 val max_bit = Word.fromInt (range div 2);
 
