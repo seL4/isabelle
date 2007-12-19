@@ -9,7 +9,7 @@ randomness.
 
 signature RANDOM_WORD =
 sig
-  val range: word
+  val range: int
   val next: unit -> word
   val next_bit: unit -> bool
 end;
@@ -18,12 +18,11 @@ structure RandomWord: RANDOM_WORD =
 struct
 
 (*minimal length of unboxed words on all known platforms*)
-val bits = 30;
-val _ = Word.wordSize >= bits orelse raise Fail ("Bad platform word size");
+val _ = Word.wordSize >= 30 orelse raise Fail ("Bad platform word size");
 
-val range = 0wx40000000;
-val mask = range - 0w1;
-val max_bit = Word.>> (range, 0w1);
+val range = 0x40000000;
+val mask = Word.fromInt (range - 1);
+val max_bit = Word.fromInt (range div 2);
 
 (*multiplier according to Borosh and Niederreiter (for m = 2^30),
   cf. http://random.mat.sbg.ac.at/~charly/server/server.html*)

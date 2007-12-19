@@ -37,9 +37,8 @@ val randomWord = RandomWord.next;
 val randomBool = RandomWord.next_bit;
 fun randomInt n = Word.toInt (Word.mod (randomWord (), Word.fromInt n));
 
-val real_word = real o Word.toInt;
-val normalizer = 1.0 / real_word RandomWord.range;
-fun randomReal () = real_word (RandomWord.next ()) * normalizer;
+val normalizer = 1.0 / real RandomWord.range;
+fun randomReal () = real (Word.toInt (RandomWord.next ())) * normalizer;
 
 end
 
