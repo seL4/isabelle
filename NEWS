@@ -49,6 +49,10 @@ out some operations that are done internally by the function package
 and makes them available separately. See "HOL/ex/Induction_Scheme.thy"
 for examples,
 
+* Records. Removed K_record, and replaced it by pure lambda term
+%x. c. The simplifier setup is now more robust against eta
+expansion. 
+INCOMPATIBILITY: in cases explicitly referring to K_record.
 
 *** System ***
 
