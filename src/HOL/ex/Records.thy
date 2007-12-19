@@ -236,4 +236,101 @@ record 'a point'' = point +
 
 types cpoint'' = "colour point''"
 
+
+
+text {* Updating a record field with an identical value is simplified.*}
+lemma "r (| xpos := xpos r |) = r"
+  by simp
+
+text {* Only the most recent update to a component survives simplification. *}
+lemma "r (| xpos := x, ypos := y, xpos := x' |) = r (| ypos := y, xpos := x' |)"
+  by simp
+
+text {* In some cases its convenient to automatically split
+(quantified) records. For this purpose there is the simproc @{ML [source]
+"RecordPackage.record_split_simproc"} and the tactic @{ML [source]
+"RecordPackage.record_split_simp_tac"}.  The simplification procedure
+only splits the records, whereas the tactic also simplifies the
+resulting goal with the standard record simplification rules. A
+(generalized) predicate on the record is passed as parameter that
+decides whether or how `deep' to split the record. It can peek on the
+subterm starting at the quantified occurrence of the record (including
+the quantifier). The value @{ML "0"} indicates no split, a value
+greater @{ML "0"} splits up to the given bound of record extension and
+finally the value @{ML "~1"} completely splits the record.
+@{ML [source] "RecordPackage.record_split_simp_tac"} additionally takes a list of
+equations for simplification and can also split fixed record variables.
+
+*}
+
+lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
+  apply (tactic {* simp_tac
+          (HOL_basic_ss addsimprocs [RecordPackage.record_split_simproc (K ~1)]) 1*})
+  apply simp
+  done
+
+lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
+  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply simp
+  done
+
+lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
+  apply (tactic {* simp_tac
+          (HOL_basic_ss addsimprocs [RecordPackage.record_split_simproc (K ~1)]) 1*})
+  apply simp
+  done
+
+lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
+  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply simp
+  done
+
+lemma "\<And>r. P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
+  apply (tactic {* simp_tac
+          (HOL_basic_ss addsimprocs [RecordPackage.record_split_simproc (K ~1)]) 1*})
+  apply auto
+  done
+
+lemma "\<And>r. P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
+  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply auto
+  done
+
+lemma "P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
+  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply auto
+  done
+
+lemma fixes r shows "P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
+  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply auto
+  done
+
+
+lemma True
+proof -
+  {
+    fix r
+    assume pre: "P (xpos r)"
+    have "\<exists>x. P x"
+      using pre
+      apply -
+      apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+      apply auto 
+      done
+  }
+  show ?thesis ..
+qed
+
+text {* The effect of simproc @{ML [source]
+"RecordPackage.record_ex_sel_eq_simproc"} is illustrated by the
+following lemma.  
+*}
+
+lemma "\<exists>r. xpos r = x"
+  apply (tactic {*simp_tac 
+           (HOL_basic_ss addsimprocs [RecordPackage.record_ex_sel_eq_simproc]) 1*})
+  done
+
+
 end
