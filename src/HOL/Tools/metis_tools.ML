@@ -557,8 +557,8 @@ fun infer_types ctxt =
         add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap'
     end;
 
-  fun refute cls =
-      Metis.Resolution.loop (Metis.Resolution.new Metis.Resolution.default cls);
+  fun refute cls = NAMED_CRITICAL "metis" (fn () =>
+      Metis.Resolution.loop (Metis.Resolution.new Metis.Resolution.default cls));
 
   fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 
