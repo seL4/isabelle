@@ -95,7 +95,7 @@ val clause = $$"(" |-- literals --| $$")" || Scan.single literal;
 
 val annotations = $$"," |-- term -- Scan.option ($$"," |-- termlist);
 
-(*<cnf_annotated> ::=Êcnf(<name>,<formula_role>,<cnf_formula><annotations>).
+(*<cnf_annotated> ::= cnf(<name>,<formula_role>,<cnf_formula><annotations>).
   The <name> could be an identifier, but we assume integers.*)
 val tstp_line = (Scan.this_string "cnf" -- $$"(") |--
                 integer --| $$"," -- Symbol.scan_id --| $$"," --
