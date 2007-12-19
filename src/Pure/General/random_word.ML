@@ -17,7 +17,7 @@ end;
 structure RandomWord: RANDOM_WORD =
 struct
 
-(*minimal length of unboxed words on all known platforms*)
+(*minimum length of unboxed words on all supported ML platforms*)
 val _ = Word.wordSize >= 30 orelse raise Fail ("Bad platform word size");
 
 val range = 0x40000000;
