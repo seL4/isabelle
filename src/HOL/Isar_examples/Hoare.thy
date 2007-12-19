@@ -228,8 +228,8 @@ syntax (xsymbols)
 
 translations
   ".{b}."                   => "Collect .(b)."
-  "B [a/\<acute>x]"                => ".{\<acute>(_update_name x (K_record a)) \<in> B}."
-  "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x (K_record a)))."
+  "B [a/\<acute>x]"                => ".{\<acute>(_update_name x (\<lambda>_. a)) \<in> B}."
+  "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x (\<lambda>_. a)))."
   "IF b THEN c1 ELSE c2 FI" => "Cond .{b}. c1 c2"
   "WHILE b INV i DO c OD"   => "While .{b}. i c"
   "WHILE b DO c OD"         == "WHILE b INV arbitrary DO c OD"
@@ -270,9 +270,13 @@ print_translation {*
       | update_name_tr' (Const x) = Const (upd_tr' x)
       | update_name_tr' _ = raise Match;
 
-    fun assign_tr' (Abs (x, _, f $ (Const (@{const_syntax "K_record"},_)$t) $ Bound 0) :: ts) =
+    fun K_tr' (Abs (_,_,t)) = if null (loose_bnos t) then t else raise Match
+      | K_tr' (Abs (_,_,Abs (_,_,t)$Bound 0)) = if null (loose_bnos t) then t else raise Match
+      | K_tr' _ = raise Match;
+
+    fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
           quote_tr' (Syntax.const "_Assign" $ update_name_tr' f)
-            (Abs (x, dummyT, t) :: ts)
+            (Abs (x, dummyT, K_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
     [("Collect", assert_tr'), ("Basic", assign_tr'),
@@ -447,7 +451,7 @@ use "~~/src/HOL/Hoare/hoare_tac.ML"
 method_setup hoare = {*
   Method.no_args
     (Method.SIMPLE_METHOD'
-       (hoare_tac (simp_tac (HOL_basic_ss addsimps [@{thm "Record.K_record_apply"}] )))) *}
+       (hoare_tac (simp_tac (HOL_basic_ss addsimps [@{thm "Record.K_record_comp"}] )))) *}
   "verification condition generator for Hoare logic"
 
 end

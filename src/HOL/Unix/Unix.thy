@@ -366,7 +366,7 @@ where
     "access root path uid {} = Some file \<Longrightarrow>
       uid = 0 \<or> uid = owner (attributes file) \<Longrightarrow>
       root \<midarrow>(Chmod uid perms path)\<rightarrow> update path
-        (Some (map_attributes (others_update (K_record perms)) file)) root" |
+        (Some (map_attributes (others_update (\<lambda>_. perms)) file)) root" |
 
   creat:
     "path = parent_path @ [name] \<Longrightarrow>

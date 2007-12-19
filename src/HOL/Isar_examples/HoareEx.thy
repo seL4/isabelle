@@ -39,7 +39,7 @@ text {*
 *}
 
 lemma
-  "|- .{\<acute>(N_update (K_record (2 * \<acute>N))) : .{\<acute>N = 10}.}. \<acute>N := 2 * \<acute>N .{\<acute>N = 10}."
+  "|- .{\<acute>(N_update (\<lambda>_. (2 * \<acute>N))) : .{\<acute>N = 10}.}. \<acute>N := 2 * \<acute>N .{\<acute>N = 10}."
   by (rule assign)
 
 text {*
