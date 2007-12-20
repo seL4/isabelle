@@ -6,11 +6,11 @@ class Null a where {
   nulla :: a;
 };
 
-heada :: (Codegen.Null a) => [a] -> a;
+heada :: forall a. (Codegen.Null a) => [a] -> a;
 heada (x : xs) = x;
 heada [] = Codegen.nulla;
 
-null_option :: Maybe a;
+null_option :: forall a. Maybe a;
 null_option = Nothing;
 
 instance Codegen.Null (Maybe a) where {

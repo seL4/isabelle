@@ -3,10 +3,10 @@ struct
 
 datatype nat = Suc of nat | Zero_nat;
 
-fun eqop_nat Zero_nat (Suc m) = false
-  | eqop_nat (Suc n) Zero_nat = false
-  | eqop_nat (Suc n) (Suc m) = eqop_nat n m
-  | eqop_nat Zero_nat Zero_nat = true;
+fun eqop_nat Zero_nat Zero_nat = true
+  | eqop_nat (Suc m) (Suc n) = eqop_nat m n
+  | eqop_nat Zero_nat (Suc a) = false
+  | eqop_nat (Suc a) Zero_nat = false;
 
 fun plus_nat (Suc m) n = plus_nat m (Suc n)
   | plus_nat Zero_nat n = n;

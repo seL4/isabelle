@@ -1792,11 +1792,8 @@ Higher-order recursion occurs when recursive calls
   list functions \isa{rev} and \isa{map}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{function}\isamarkupfalse%
-\ mirror\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Leaf\ n{\isacharparenright}\ {\isacharequal}\ Leaf\ n{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}rev\ {\isacharparenleft}map\ mirror\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ f\ x\ {\isacharless}\ Suc\ {\isacharparenleft}list{\isacharunderscore}size\ f\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -1804,17 +1801,24 @@ Higher-order recursion occurs when recursive calls
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
+\ {\isacharparenleft}induct\ l{\isacharparenright}\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
+\isanewline
 %
 \endisadelimproof
-%
+\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ mirror\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Leaf\ n{\isacharparenright}\ {\isacharequal}\ Leaf\ n{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}rev\ {\isacharparenleft}map\ mirror\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-We do the termination proof manually, to point out what happens
-  here:%
+\emph{Note: The handling of size functions is currently changing 
+  in the developers version of Isabelle. So this documentation is outdated.}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{termination}\isamarkupfalse%
@@ -1860,7 +1864,7 @@ As usual, we have to give a wellfounded relation, such that the
 Simplification returns the following subgoal: 
 
       \begin{isabelle}%
-{\isadigit{1}}{\isachardot}\ x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ size\ x\ {\isacharless}\ Suc\ {\isacharparenleft}tree{\isacharunderscore}list{\isacharunderscore}size\ l{\isacharparenright}%
+{\isadigit{1}}{\isachardot}\ x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ size\ x\ {\isacharless}\ Suc\ {\isacharparenleft}list{\isacharunderscore}size\ size\ l{\isacharparenright}%
 \end{isabelle} 
 
       We are lacking a property about the function \isa{tree{\isacharunderscore}list{\isacharunderscore}size}, which was generated automatically at the
@@ -1869,24 +1873,6 @@ Simplification returns the following subgoal:
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ %
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ tree{\isacharunderscore}list{\isacharunderscore}size{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ \isanewline
-\ \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ size\ x\ {\isacharless}\ Suc\ {\isacharparenleft}tree{\isacharunderscore}list{\isacharunderscore}size\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ l{\isacharparenright}\ auto%
 \endisatagproof
 {\isafoldproof}%
 %

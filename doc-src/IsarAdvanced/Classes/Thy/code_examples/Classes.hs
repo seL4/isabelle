@@ -50,11 +50,11 @@ instance Group Integer where {
   inverse = inverse_int;
 };
 
-pow_nat :: (Monoid a) => Nat -> a -> a;
+pow_nat :: forall a. (Monoid a) => Nat -> a -> a;
 pow_nat (Suc n) x = mult x (pow_nat n x);
 pow_nat Zero_nat x = neutral;
 
-pow_int :: (Group a) => Integer -> a -> a;
+pow_int :: forall a. (Group a) => Integer -> a -> a;
 pow_int k x =
   (if 0 <= k then pow_nat (nat k) x
     else inverse (pow_nat (nat (negate k)) x));
