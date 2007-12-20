@@ -51,9 +51,12 @@ and makes them available separately. See "HOL/ex/Induction_Scheme.thy"
 for examples,
 
 * Records. Removed K_record, and replaced it by pure lambda term
-%x. c. The simplifier setup is now more robust against eta
-expansion. 
+%x. c. The simplifier setup is now more robust against eta expansion.
 INCOMPATIBILITY: in cases explicitly referring to K_record.
+
+* Metis prover is now an order of magnitude faster, and also works
+with multithreading.
+
 
 *** System ***
 
