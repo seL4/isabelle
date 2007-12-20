@@ -496,9 +496,7 @@ apply (auto simp add: monofun_cfun_arg eq_UU_iff [symmetric])
 done
 
 (*FIXME: long proof*)
-lemma contlub_strictify2:
-  fixes f :: "'a::pcpo \<rightarrow> 'b::pcpo"
-  shows "contlub (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
+lemma contlub_strictify2: "contlub (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 apply (rule contlubI)
 apply (case_tac "lub (range Y) = \<bottom>")
 apply (drule (1) chain_UU_I)

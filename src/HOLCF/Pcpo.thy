@@ -168,9 +168,65 @@ subsection {* Pointed cpos *}
 
 text {* The class pcpo of pointed cpos *}
 
-axclass pcpo < cpo, ppo
+axclass pcpo < cpo
+  least: "\<exists>x. \<forall>y. x \<sqsubseteq> y"
 
-lemma chain_UU_I: "\<lbrakk>chain Y; (\<Squnion>i. Y i) = \<bottom>\<rbrakk> \<Longrightarrow> \<forall>i. Y i = (\<bottom>::'a::pcpo)"
+definition
+  UU :: "'a::pcpo" where
+  "UU = (THE x. \<forall>y. x \<sqsubseteq> y)"
+
+notation (xsymbols)
+  UU  ("\<bottom>")
+
+text {* derive the old rule minimal *}
+ 
+lemma UU_least: "\<forall>z. \<bottom> \<sqsubseteq> z"
+apply (unfold UU_def)
+apply (rule theI')
+apply (rule ex_ex1I)
+apply (rule least)
+apply (blast intro: antisym_less)
+done
+
+lemma minimal [iff]: "\<bottom> \<sqsubseteq> x"
+by (rule UU_least [THEN spec])
+
+lemma UU_reorient: "(\<bottom> = x) = (x = \<bottom>)"
+by auto
+
+ML_setup {*
+local
+  val meta_UU_reorient = thm "UU_reorient" RS eq_reflection;
+  fun reorient_proc sg _ (_ $ t $ u) =
+    case u of
+        Const("Pcpo.UU",_) => NONE
+      | Const("HOL.zero", _) => NONE
+      | Const("HOL.one", _) => NONE
+      | Const("Numeral.number_of", _) $ _ => NONE
+      | _ => SOME meta_UU_reorient;
+in
+  val UU_reorient_simproc = 
+    Simplifier.simproc @{theory} "UU_reorient_simproc" ["UU=x"] reorient_proc
+end;
+
+Addsimprocs [UU_reorient_simproc];
+*}
+
+text {* useful lemmas about @{term \<bottom>} *}
+
+lemma less_UU_iff [simp]: "(x \<sqsubseteq> \<bottom>) = (x = \<bottom>)"
+by (simp add: po_eq_conv)
+
+lemma eq_UU_iff: "(x = \<bottom>) = (x \<sqsubseteq> \<bottom>)"
+by simp
+
+lemma UU_I: "x \<sqsubseteq> \<bottom> \<Longrightarrow> x = \<bottom>"
+by (subst eq_UU_iff)
+
+lemma not_less2not_eq: "\<not> (x::'a::po) \<sqsubseteq> y \<Longrightarrow> x \<noteq> y"
+by auto
+
+lemma chain_UU_I: "\<lbrakk>chain Y; (\<Squnion>i. Y i) = \<bottom>\<rbrakk> \<Longrightarrow> \<forall>i. Y i = \<bottom>"
 apply (rule allI)
 apply (rule UU_I)
 apply (erule subst)
@@ -199,7 +255,7 @@ text {* further useful classes for HOLCF domains *}
 axclass chfin < po
   chfin: "\<forall>Y. chain Y \<longrightarrow> (\<exists>n. max_in_chain n Y)"
 
-axclass flat < ppo
+axclass flat < pcpo
   ax_flat: "\<forall>x y. x \<sqsubseteq> y \<longrightarrow> (x = \<bottom>) \<or> (x = y)"
 
 text {* some properties for chfin and flat *}
@@ -232,8 +288,6 @@ done
 
 instance flat < chfin
 by intro_classes (rule flat_imp_chfin)
-
-instance flat < pcpo ..
 
 text {* flat subclass of chfin; @{text adm_flat} not needed *}
 
