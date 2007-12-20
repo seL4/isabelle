@@ -7,6 +7,7 @@ Compatibility file for Standard ML of New Jersey 110 or later.
 use "ML-Systems/proper_int.ML";
 use "ML-Systems/overloading_smlnj.ML";
 use "ML-Systems/exn.ML";
+use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
 
 

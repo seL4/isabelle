@@ -35,6 +35,7 @@ load "FileSys";
 load "IO";
 
 use "ML-Systems/exn.ML";
+use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 

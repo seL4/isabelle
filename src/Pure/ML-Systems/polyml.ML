@@ -1,10 +1,12 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
     ID:         $Id$
 
-Compatibility file for Poly/ML (version 4.1.3, 4.1.4 and 4.2.0).
+Compatibility file for Poly/ML (version 4.1.3, 4.1.4, 4.2.0, also shared by 5.x).
 *)
 
 use "ML-Systems/exn.ML";
+if List.exists (fn s => s = "Universal") (PolyML.Compiler.structureNames ()) then ()
+else use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 
@@ -194,7 +196,7 @@ fun system cmd =
 
 
 (*Convert a process ID to a decimal string (chiefly for tracing)*)
-fun string_of_pid pid = 
+fun string_of_pid pid =
   Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
 
 
