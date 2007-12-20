@@ -806,21 +806,23 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
 HOL-Nominal-Examples: HOL-Nominal $(LOG)/HOL-Nominal-Examples.gz
 
 $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
-  Nominal/Examples/ROOT.ML \
   Nominal/Examples/CR.thy \
   Nominal/Examples/CR_Takahashi.thy \
   Nominal/Examples/Class.thy \
   Nominal/Examples/Compile.thy \
-  Nominal/Examples/Fsub.thy \
-  Nominal/Examples/Lambda_mu.thy \
-  Nominal/Examples/Lam_Funs.thy	\
-  Nominal/Examples/SN.thy \
-  Nominal/Examples/Weakening.thy \
+  Nominal/Examples/Contexts.thy \
   Nominal/Examples/Crary.thy \
-  Nominal/Examples/SOS.thy \
+  Nominal/Examples/Fsub.thy \
+  Nominal/Examples/Height.thy \
+  Nominal/Examples/Lam_Funs.thy \
+  Nominal/Examples/Lambda_mu.thy \
   Nominal/Examples/LocalWeakening.thy \
+  Nominal/Examples/ROOT.ML \
+  Nominal/Examples/SN.thy \
+  Nominal/Examples/SOS.thy \
   Nominal/Examples/Support.thy \
-  Nominal/Examples/VC_Compatible.thy
+  Nominal/Examples/VC_Condition.thy \
+  Nominal/Examples/Weakening.thy
 	@cd Nominal; $(ISATOOL) usedir $(OUT)/HOL-Nominal Examples
 
 
