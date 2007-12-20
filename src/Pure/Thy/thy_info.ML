@@ -365,7 +365,8 @@ fun next_task G =
       (case fold max_task tasks NONE of
         NONE => (Multithreading.Wait, G)
       | SOME (name, (body, _)) =>
-         (Multithreading.Task {body = body, cont = Graph.del_nodes [name], fail = K Graph.empty},
+         (Multithreading.Task {body = PrintMode.closure body,
+           cont = Graph.del_nodes [name], fail = K Graph.empty},
           Graph.map_node name (K Running) G))
   end;
 
