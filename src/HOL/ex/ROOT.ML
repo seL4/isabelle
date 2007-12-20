@@ -53,15 +53,14 @@ use_thys [
   "Random",
   "Primrec",
   "Tarski",
-  "Adder"
+  "Adder",
+  "Classical",
+  "set",
+  "Meson_Test"
 ];
 
 setmp Proofterm.proofs 2 time_use_thy "Hilbert_Classical";
 
-time_use_thy "Classical";
-time_use_thy "set";
-
-time_use_thy "Meson_Test";
 time_use_thy "Dense_Linear_Order_Ex";
 time_use_thy "PresburgerEx";
 time_use_thy "Reflected_Presburger";
