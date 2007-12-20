@@ -257,6 +257,12 @@ val serial = uninterruptible (fn _ => fn () =>
 
 end;
 
+
+(* thread data *)
+
+val get_data = Thread.getLocal;
+val put_data = Thread.setLocal;
+
 end;
 
 structure BasicMultithreading: BASIC_MULTITHREADING = Multithreading;

@@ -23,10 +23,14 @@ sig
     Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
   val schedule: int -> ('a -> 'a task * 'a) -> 'a -> exn list
   val serial: unit -> int
+  val get_data: 'a Universal.tag -> 'a option
+  val put_data: 'a Universal.tag * 'a -> unit
 end;
 
 structure Multithreading: MULTITHREADING =
 struct
+
+(* options *)
 
 val trace = ref (0: int);
 fun tracing _ _ = ();
@@ -34,17 +38,50 @@ fun tracing _ _ = ();
 val available = false;
 val max_threads = ref (1: int);
 
+
+(* critical section *)
+
 fun self_critical () = false;
 fun NAMED_CRITICAL _ e = e ();
 fun CRITICAL e = e ();
+
+
+(* scheduling *)
 
 datatype 'a task =
   Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
 
 fun schedule _ _ _ = raise Fail "No multithreading support";
 
+
+(* serial numbers *)
+
 local val count = ref (0: int)
 in fun serial () = (count := ! count + 1; ! count) end;
+
+
+(* thread data *)
+
+local
+
+val data = ref ([]: Universal.universal ref list);
+
+fun find_data tag =
+  let
+    fun find (r :: rs) = if Universal.tagIs tag (! r) then SOME r else find rs
+      | find [] = NONE;
+  in find (! data) end;
+
+in
+
+fun get_data tag = Option.map (Universal.tagProject tag o !) (find_data tag);
+
+fun put_data (tag, x) =
+  (case find_data tag of
+    SOME r => r := Universal.tagInject tag x
+  | NONE => data := ref (Universal.tagInject tag x) :: ! data);
+
+end;
 
 end;
 
