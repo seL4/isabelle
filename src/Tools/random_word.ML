@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/random_word.ML
+(*  Title:      Tools/random_word.ML
     ID:         $Id$
     Author:     Makarius
 

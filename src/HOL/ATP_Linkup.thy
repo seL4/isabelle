@@ -8,7 +8,7 @@ header{* The Isabelle-ATP Linkup *}
 
 theory ATP_Linkup
 imports PreList Hilbert_Choice
-   (*It must be a parent or a child of every other theory, to prevent theory-merge errors.*)
+   (*FIXME It must be a parent or a child of every other theory, to prevent theory-merge errors. FIXME*)
 uses
   "Tools/polyhash.ML"
   "Tools/res_clause.ML"
@@ -19,6 +19,7 @@ uses
   ("Tools/res_atp.ML")
   ("Tools/res_atp_provers.ML")
   ("Tools/res_atp_methods.ML")
+  "~~/src/Tools/random_word.ML"
   "~~/src/Tools/Metis/metis.ML"
   ("Tools/metis_tools.ML")
 begin
