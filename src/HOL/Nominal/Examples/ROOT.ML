@@ -18,7 +18,8 @@ use_thys [
   "Crary",
   "SOS",
   "LocalWeakening",
-  "Support"
+  "Support",
+  "Contexts" 
 ];
 
-setmp quick_and_dirty true use_thy "VC_Compatible";
+setmp quick_and_dirty true use_thy "VC_Condition";

@@ -1,4 +1,4 @@
-(* $Id: *)
+(* $Id$ *)
 
 theory Contexts
 imports "../Nominal"
@@ -19,20 +19,18 @@ text {*
 
 atom_decl name
 
-text {* terms *}
-
+text {* Terms *}
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* contexts - the context-lambda does not bind anything *}
-
+text {* Contexts - the lambda case in contexts does not bind a name *}
 nominal_datatype ctx = 
     Hole
   | CAppL "ctx" "lam"
   | CAppR "lam" "ctx" 
-  | CLam "name" "ctx"  ("CLam [_]._" [100,100] 100)
+  | CLam "name" "ctx"  ("CLam [_]._" [100,100] 100) 
 
 text {* Capture-avoiding substitution and three lemmas *}
 
@@ -61,17 +59,10 @@ lemma subst_fresh:
 by (nominal_induct t avoiding: x y t' rule: lam.inducts)
    (auto simp add: abs_fresh fresh_prod fresh_atm)
 
-lemma subst_swap: 
-  fixes x y::"name"
-  and   t t'::"lam"
-  shows   "y\<sharp>t \<Longrightarrow> ([(y,x)]\<bullet>t)[y::=t'] = t[x::=t']"
-by (nominal_induct t avoiding: x y t' rule: lam.inducts)
-   (auto simp add: lam.inject calc_atm fresh_atm abs_fresh)
-
 text {* 
-  The operation that fills one term into a hole. While
-  contexts are not alpha-equivalence classes, the filling
-  operation produces an alpha-equivalent lambda-term. 
+  Replace is the operation that fills a term into a hole. While
+  contexts themselves are not alpha-equivalence classes, the 
+  filling operation produces an alpha-equivalent lambda-term. 
 *}
 
 consts 
@@ -81,12 +72,14 @@ nominal_primrec
   "Hole<t> = t"
   "(CAppL E t')<t> = App (E<t>) t'"
   "(CAppR t' E)<t> = App t' (E<t>)"
-  "(CLam [x].E)<t> = Lam [x].(E<t>)"
+  "(CLam [x].E)<t> = Lam [x].(E<t>)" 
 by (rule TrueI)+
+
 
 lemma alpha_test: 
   shows "(CLam [x].Hole)<Var x> = (CLam [y].Hole)<Var y>"
 by (auto simp add: alpha lam.inject calc_atm fresh_atm) 
+
 
 lemma replace_eqvt[eqvt]:
   fixes pi:: "name prm"
@@ -101,7 +94,8 @@ lemma replace_fresh:
 by (induct E rule: ctx.weak_induct)
    (auto simp add: fresh_prod abs_fresh)
 
-text {* composition of two contexts *}
+
+text {* Composition of two contexts *}
 
 consts 
  ctx_replace :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _" [100,100] 100)
@@ -124,7 +118,7 @@ lemma ctx_compose_fresh:
 by (induct E1 rule: ctx.weak_induct)
    (auto simp add: fresh_prod)
 
-text {* beta-reduction via contexts *}
+text {* Beta-reduction via contexts *}
 
 inductive
   ctx_red :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>x _" [80,80] 80) 
@@ -136,7 +130,7 @@ equivariance ctx_red
 nominal_inductive ctx_red
   by (simp_all add: replace_fresh subst_fresh abs_fresh)
 
-text {* beta-reduction via congruence rules *}
+text {* Beta-reduction via congruence rules *}
 
 inductive
   cong_red :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>o _" [80,80] 80) 
@@ -151,7 +145,7 @@ equivariance cong_red
 nominal_inductive cong_red
   by (simp_all add: subst_fresh abs_fresh)
 
-text {* the proof that shows both relations are equal *}
+text {* The proof that shows both relations are equal *}
 
 lemma cong_red_ctx:
   assumes a: "t \<longrightarrow>o t'"

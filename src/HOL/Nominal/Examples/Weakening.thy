@@ -1,11 +1,10 @@
 (* $Id$ *)
 
 theory Weakening 
-imports "../Nominal" 
+  imports "../Nominal" 
 begin
 
 section {* Weakening Example for the Simply-Typed Lambda-Calculus *}
-(*================================================================*)
 
 atom_decl name 
 
@@ -28,7 +27,8 @@ by (nominal_induct T rule: ty.induct)
 
 text {* 
   Valid contexts (at the moment we have no type for finite 
-  sets yet; therefore typing-contexts are lists). *}
+  sets yet; therefore typing-contexts are lists). 
+  *}
 inductive
   valid :: "(name\<times>ty) list \<Rightarrow> bool"
 where
@@ -46,9 +46,10 @@ where
   | t_Lam[intro]: "\<lbrakk>x\<sharp>\<Gamma>;(x,T1)#\<Gamma> \<turnstile> t : T2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T1\<rightarrow>T2"
 
 text {* 
-  We automatically derive the strong induction principle 
-  for the typing relation (this induction principle has the 
-  variable convention already built in). *}
+  We derive the strong induction principle for the typing 
+  relation (this induction principle has the variable convention 
+  already built in). 
+  *}
 equivariance typing
 nominal_inductive typing
   by (simp_all add: abs_fresh ty_fresh)
@@ -60,11 +61,11 @@ where
   "\<Gamma>1 \<subseteq> \<Gamma>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>1 \<longrightarrow> (x,T)\<in>set \<Gamma>2"
 
 text {* Now it comes: The Weakening Lemma *}
-(*========================================*)
 
 text {* 
   The first version is, after setting up the induction, 
-  quite automatic except for use of atomize. *}
+  completely automatic except for use of atomize. 
+  *}
 lemma weakening_version1: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
   assumes a: "\<Gamma>1 \<turnstile> t : T" 
@@ -77,7 +78,8 @@ by (nominal_induct \<Gamma>1 t T avoiding: \<Gamma>2 rule: typing.strong_induct)
 
 text {* 
   The second version gives all details for the variable
-  and lambda case. *}
+  and lambda case. 
+  *}
 lemma weakening_version2: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
   and   t ::"lam"
@@ -111,7 +113,8 @@ qed (auto) (* app case *)
 text{* 
   The original induction principle for the typing relation
   is not strong enough - even this simple lemma fails to be 
-  simple ;o) *}
+  simple ;o) 
+  *}
 lemma weakening_not_straigh_forward: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
   assumes a: "\<Gamma>1 \<turnstile> t : T"
@@ -140,8 +143,7 @@ next
   have "valid ((x,T1)#\<Gamma>2)" using v2 (* fails *) 
     oops
   
-text{* 
-  The complete proof without using the variable convention. *}
+text{* The complete proof without using the variable convention. *}
 lemma weakening_with_explicit_renaming: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
   assumes a: "\<Gamma>1 \<turnstile> t : T"
@@ -189,6 +191,7 @@ qed (auto)
 text {*
   Compare the proof with explicit renamings to version1 and version2,
   and imagine you are proving something more substantial than the
-  weakening lemma. *}
+  weakening lemma. 
+  *}
 
 end
