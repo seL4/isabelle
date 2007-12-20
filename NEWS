@@ -58,6 +58,15 @@ INCOMPATIBILITY: in cases explicitly referring to K_record.
 with multithreading.
 
 
+*** ML ***
+
+* The ``print mode'' is now a thread-local value derived from a global
+template (the former print_mode reference), thus access becomes
+non-critical.  The global print_mode reference is for session
+management only; user-code should use print_mode_value,
+print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
+
+
 *** System ***
 
 * isatool tty runs Isabelle process with plain tty interaction;
