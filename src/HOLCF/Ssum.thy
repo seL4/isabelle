@@ -8,7 +8,7 @@ Strict sum with typedef.
 header {* The type of strict sums *}
 
 theory Ssum
-imports Cprod
+imports Cprod Tr
 begin
 
 defaultsort pcpo
@@ -16,7 +16,9 @@ defaultsort pcpo
 subsection {* Definition of strict sum type *}
 
 pcpodef (Ssum)  ('a, 'b) "++" (infixr "++" 10) = 
-        "{p::'a \<times> 'b. cfst\<cdot>p = \<bottom> \<or> csnd\<cdot>p = \<bottom>}"
+  "{p :: tr \<times> ('a \<times> 'b).
+    (cfst\<cdot>p \<sqsubseteq> TT \<longleftrightarrow> csnd\<cdot>(csnd\<cdot>p) = \<bottom>) \<and>
+    (cfst\<cdot>p \<sqsubseteq> FF \<longleftrightarrow> cfst\<cdot>(csnd\<cdot>p) = \<bottom>)}"
 by simp
 
 syntax (xsymbols)
@@ -29,49 +31,81 @@ subsection {* Definitions of constructors *}
 
 definition
   sinl :: "'a \<rightarrow> ('a ++ 'b)" where
-  "sinl = (\<Lambda> a. Abs_Ssum <a, \<bottom>>)"
+  "sinl = (\<Lambda> a. Abs_Ssum <strictify\<cdot>(\<Lambda> _. TT)\<cdot>a, a, \<bottom>>)"
 
 definition
   sinr :: "'b \<rightarrow> ('a ++ 'b)" where
-  "sinr = (\<Lambda> b. Abs_Ssum <\<bottom>, b>)"
+  "sinr = (\<Lambda> b. Abs_Ssum <strictify\<cdot>(\<Lambda> _. FF)\<cdot>b, \<bottom>, b>)"
+
+lemma sinl_Ssum: "<strictify\<cdot>(\<Lambda> _. TT)\<cdot>a, a, \<bottom>> \<in> Ssum"
+by (simp add: Ssum_def strictify_conv_if)
+
+lemma sinr_Ssum: "<strictify\<cdot>(\<Lambda> _. FF)\<cdot>b, \<bottom>, b> \<in> Ssum"
+by (simp add: Ssum_def strictify_conv_if)
+
+lemma sinl_Abs_Ssum: "sinl\<cdot>a = Abs_Ssum <strictify\<cdot>(\<Lambda> _. TT)\<cdot>a, a, \<bottom>>"
+by (unfold sinl_def, simp add: cont_Abs_Ssum sinl_Ssum)
+
+lemma sinr_Abs_Ssum: "sinr\<cdot>b = Abs_Ssum <strictify\<cdot>(\<Lambda> _. FF)\<cdot>b, \<bottom>, b>"
+by (unfold sinr_def, simp add: cont_Abs_Ssum sinr_Ssum)
+
+lemma Rep_Ssum_sinl: "Rep_Ssum (sinl\<cdot>a) = <strictify\<cdot>(\<Lambda> _. TT)\<cdot>a, a, \<bottom>>"
+by (simp add: sinl_Abs_Ssum Abs_Ssum_inverse sinl_Ssum)
+
+lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = <strictify\<cdot>(\<Lambda> _. FF)\<cdot>b, \<bottom>, b>"
+by (simp add: sinr_Abs_Ssum Abs_Ssum_inverse sinr_Ssum)
 
 subsection {* Properties of @{term sinl} and @{term sinr} *}
 
-lemma sinl_Abs_Ssum: "sinl\<cdot>a = Abs_Ssum <a, \<bottom>>"
-by (unfold sinl_def, simp add: cont_Abs_Ssum Ssum_def)
-
-lemma sinr_Abs_Ssum: "sinr\<cdot>b = Abs_Ssum <\<bottom>, b>"
-by (unfold sinr_def, simp add: cont_Abs_Ssum Ssum_def)
-
-lemma Rep_Ssum_sinl: "Rep_Ssum (sinl\<cdot>a) = <a, \<bottom>>"
-by (unfold sinl_def, simp add: cont_Abs_Ssum Abs_Ssum_inverse Ssum_def)
-
-lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = <\<bottom>, b>"
-by (unfold sinr_def, simp add: cont_Abs_Ssum Abs_Ssum_inverse Ssum_def)
+text {* Compactness *}
 
 lemma compact_sinl [simp]: "compact x \<Longrightarrow> compact (sinl\<cdot>x)"
-by (rule compact_Ssum, simp add: Rep_Ssum_sinl)
+by (rule compact_Ssum, simp add: Rep_Ssum_sinl strictify_conv_if)
 
 lemma compact_sinr [simp]: "compact x \<Longrightarrow> compact (sinr\<cdot>x)"
-by (rule compact_Ssum, simp add: Rep_Ssum_sinr)
+by (rule compact_Ssum, simp add: Rep_Ssum_sinr strictify_conv_if)
 
-lemma sinl_strict [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
-by (simp add: sinl_Abs_Ssum Abs_Ssum_strict cpair_strict)
+text {* Ordering *}
 
-lemma sinr_strict [simp]: "sinr\<cdot>\<bottom> = \<bottom>"
-by (simp add: sinr_Abs_Ssum Abs_Ssum_strict cpair_strict)
+lemma sinl_less [simp]: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
+by (simp add: less_Ssum_def Rep_Ssum_sinl strictify_conv_if)
+
+lemma sinr_less [simp]: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
+by (simp add: less_Ssum_def Rep_Ssum_sinr strictify_conv_if)
+
+lemma sinl_less_sinr [simp]: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
+by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr strictify_conv_if)
+
+lemma sinr_less_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
+by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr strictify_conv_if)
+
+text {* Equality *}
 
 lemma sinl_eq [simp]: "(sinl\<cdot>x = sinl\<cdot>y) = (x = y)"
-by (simp add: sinl_Abs_Ssum Abs_Ssum_inject Ssum_def)
+by (simp add: po_eq_conv)
 
 lemma sinr_eq [simp]: "(sinr\<cdot>x = sinr\<cdot>y) = (x = y)"
-by (simp add: sinr_Abs_Ssum Abs_Ssum_inject Ssum_def)
+by (simp add: po_eq_conv)
+
+lemma sinl_eq_sinr [simp]: "(sinl\<cdot>x = sinr\<cdot>y) = (x = \<bottom> \<and> y = \<bottom>)"
+by (subst po_eq_conv, simp)
+
+lemma sinr_eq_sinl [simp]: "(sinr\<cdot>x = sinl\<cdot>y) = (x = \<bottom> \<and> y = \<bottom>)"
+by (subst po_eq_conv, simp)
 
 lemma sinl_inject: "sinl\<cdot>x = sinl\<cdot>y \<Longrightarrow> x = y"
 by (rule sinl_eq [THEN iffD1])
 
 lemma sinr_inject: "sinr\<cdot>x = sinr\<cdot>y \<Longrightarrow> x = y"
 by (rule sinr_eq [THEN iffD1])
+
+text {* Strictness *}
+
+lemma sinl_strict [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
+by (simp add: sinl_Abs_Ssum Abs_Ssum_strict cpair_strict)
+
+lemma sinr_strict [simp]: "sinr\<cdot>\<bottom> = \<bottom>"
+by (simp add: sinr_Abs_Ssum Abs_Ssum_strict cpair_strict)
 
 lemma sinl_defined_iff [simp]: "(sinl\<cdot>x = \<bottom>) = (x = \<bottom>)"
 by (cut_tac sinl_eq [of "x" "\<bottom>"], simp)
@@ -90,13 +124,18 @@ subsection {* Case analysis *}
 lemma Exh_Ssum: 
   "z = \<bottom> \<or> (\<exists>a. z = sinl\<cdot>a \<and> a \<noteq> \<bottom>) \<or> (\<exists>b. z = sinr\<cdot>b \<and> b \<noteq> \<bottom>)"
 apply (rule_tac x=z in Abs_Ssum_induct)
-apply (rule_tac p=y in cprodE)
-apply (simp add: sinl_Abs_Ssum sinr_Abs_Ssum)
-apply (simp add: Abs_Ssum_inject Ssum_def)
-apply (auto simp add: cpair_strict Abs_Ssum_strict)
+apply (rule_tac p=y in cprodE, rename_tac t x)
+apply (rule_tac p=x in cprodE, rename_tac a b)
+apply (rule_tac p=t in trE)
+apply (rule disjI1)
+apply (simp add: Ssum_def cpair_strict Abs_Ssum_strict)
+apply (rule disjI2, rule disjI1, rule_tac x=a in exI)
+apply (simp add: sinl_Abs_Ssum Ssum_def)
+apply (rule disjI2, rule disjI2, rule_tac x=b in exI)
+apply (simp add: sinr_Abs_Ssum Ssum_def)
 done
 
-lemma ssumE:
+lemma ssumE [cases type: ++]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q;
    \<And>x. \<lbrakk>p = sinl\<cdot>x; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q;
    \<And>y. \<lbrakk>p = sinr\<cdot>y; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
@@ -104,119 +143,19 @@ by (cut_tac z=p in Exh_Ssum, auto)
 
 lemma ssumE2:
   "\<lbrakk>\<And>x. p = sinl\<cdot>x \<Longrightarrow> Q; \<And>y. p = sinr\<cdot>y \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-apply (rule_tac p=p in ssumE)
-apply (simp only: sinl_strict [symmetric])
-apply simp
-apply simp
-done
-
-subsection {* Ordering properties of @{term sinl} and @{term sinr} *}
-
-lemma sinl_less [simp]: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: less_Ssum_def Rep_Ssum_sinl)
-
-lemma sinr_less [simp]: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: less_Ssum_def Rep_Ssum_sinr)
-
-lemma sinl_less_sinr [simp]: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
-by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr)
-
-lemma sinr_less_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
-by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr)
-
-lemma sinl_eq_sinr [simp]: "(sinl\<cdot>x = sinr\<cdot>y) = (x = \<bottom> \<and> y = \<bottom>)"
-by (subst po_eq_conv, simp)
-
-lemma sinr_eq_sinl [simp]: "(sinr\<cdot>x = sinl\<cdot>y) = (x = \<bottom> \<and> y = \<bottom>)"
-by (subst po_eq_conv, simp)
-
-subsection {* Chains of strict sums *}
+by (cases p, simp only: sinl_strict [symmetric], simp, simp)
 
 lemma less_sinlD: "p \<sqsubseteq> sinl\<cdot>x \<Longrightarrow> \<exists>y. p = sinl\<cdot>y \<and> y \<sqsubseteq> x"
-apply (rule_tac p=p in ssumE)
-apply (rule_tac x="\<bottom>" in exI, simp)
-apply simp
-apply simp
-done
+by (cases p, rule_tac x="\<bottom>" in exI, simp_all)
 
 lemma less_sinrD: "p \<sqsubseteq> sinr\<cdot>x \<Longrightarrow> \<exists>y. p = sinr\<cdot>y \<and> y \<sqsubseteq> x"
-apply (rule_tac p=p in ssumE)
-apply (rule_tac x="\<bottom>" in exI, simp)
-apply simp
-apply simp
-done
+by (cases p, rule_tac x="\<bottom>" in exI, simp_all)
 
-lemma ssum_chain_lemma:
-"chain Y \<Longrightarrow> (\<exists>A. chain A \<and> Y = (\<lambda>i. sinl\<cdot>(A i))) \<or>
-             (\<exists>B. chain B \<and> Y = (\<lambda>i. sinr\<cdot>(B i)))"
- apply (rule_tac p="lub (range Y)" in ssumE2)
-  apply (rule disjI1)
-  apply (rule_tac x="\<lambda>i. cfst\<cdot>(Rep_Ssum (Y i))" in exI)
-  apply (rule conjI)
-   apply (rule chain_monofun)
-   apply (erule cont_Rep_Ssum [THEN ch2ch_cont])
-  apply (rule ext, drule_tac x=i in is_ub_thelub, simp)
-  apply (drule less_sinlD, clarify)
-  apply (simp add: Rep_Ssum_sinl)
- apply (rule disjI2)
- apply (rule_tac x="\<lambda>i. csnd\<cdot>(Rep_Ssum (Y i))" in exI)
- apply (rule conjI)
-  apply (rule chain_monofun)
-  apply (erule cont_Rep_Ssum [THEN ch2ch_cont])
- apply (rule ext, drule_tac x=i in is_ub_thelub, simp)
- apply (drule less_sinrD, clarify)
- apply (simp add: Rep_Ssum_sinr)
-done
-
-subsection {* Definitions of constants *}
-
-definition
-  Iwhen :: "['a \<rightarrow> 'c, 'b \<rightarrow> 'c, 'a ++ 'b] \<Rightarrow> 'c" where
-  "Iwhen = (\<lambda>f g s.
-    if cfst\<cdot>(Rep_Ssum s) \<noteq> \<bottom> then f\<cdot>(cfst\<cdot>(Rep_Ssum s)) else
-    if csnd\<cdot>(Rep_Ssum s) \<noteq> \<bottom> then g\<cdot>(csnd\<cdot>(Rep_Ssum s)) else \<bottom>)"
-
-text {* rewrites for @{term Iwhen} *}
-
-lemma Iwhen1 [simp]: "Iwhen f g \<bottom> = \<bottom>"
-by (simp add: Iwhen_def Rep_Ssum_strict)
-
-lemma Iwhen2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> Iwhen f g (sinl\<cdot>x) = f\<cdot>x"
-by (simp add: Iwhen_def Rep_Ssum_sinl)
-
-lemma Iwhen3 [simp]: "y \<noteq> \<bottom> \<Longrightarrow> Iwhen f g (sinr\<cdot>y) = g\<cdot>y"
-by (simp add: Iwhen_def Rep_Ssum_sinr)
-
-lemma Iwhen4: "Iwhen f g (sinl\<cdot>x) = strictify\<cdot>f\<cdot>x"
-by (simp add: strictify_conv_if)
-
-lemma Iwhen5: "Iwhen f g (sinr\<cdot>y) = strictify\<cdot>g\<cdot>y"
-by (simp add: strictify_conv_if)
-
-subsection {* Continuity of @{term Iwhen} *}
-
-text {* @{term Iwhen} is continuous in all arguments *}
-
-lemma cont_Iwhen1: "cont (\<lambda>f. Iwhen f g s)"
-by (rule_tac p=s in ssumE, simp_all)
-
-lemma cont_Iwhen2: "cont (\<lambda>g. Iwhen f g s)"
-by (rule_tac p=s in ssumE, simp_all)
-
-lemma cont_Iwhen3: "cont (\<lambda>s. Iwhen f g s)"
-apply (rule contI)
-apply (drule ssum_chain_lemma, safe)
-apply (simp add: contlub_cfun_arg [symmetric])
-apply (simp add: Iwhen4 cont_cfun_arg)
-apply (simp add: contlub_cfun_arg [symmetric])
-apply (simp add: Iwhen5 cont_cfun_arg)
-done
-
-subsection {* Continuous versions of constants *}
+subsection {* Case analysis combinator *}
 
 definition
   sscase :: "('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a ++ 'b) \<rightarrow> 'c" where
-  "sscase = (\<Lambda> f g s. Iwhen f g s)"
+  "sscase = (\<Lambda> f g s. (\<Lambda><t, x, y>. If t then f\<cdot>x else g\<cdot>y fi)\<cdot>(Rep_Ssum s))"
 
 translations
   "case s of CONST sinl\<cdot>x \<Rightarrow> t1 | CONST sinr\<cdot>y \<Rightarrow> t2" == "CONST sscase\<cdot>(\<Lambda> x. t1)\<cdot>(\<Lambda> y. t2)\<cdot>s"
@@ -225,19 +164,18 @@ translations
   "\<Lambda>(CONST sinl\<cdot>x). t" == "CONST sscase\<cdot>(\<Lambda> x. t)\<cdot>\<bottom>"
   "\<Lambda>(CONST sinr\<cdot>y). t" == "CONST sscase\<cdot>\<bottom>\<cdot>(\<Lambda> y. t)"
 
-text {* continuous versions of lemmas for @{term sscase} *}
-
-lemma beta_sscase: "sscase\<cdot>f\<cdot>g\<cdot>s = Iwhen f g s"
-by (simp add: sscase_def cont_Iwhen1 cont_Iwhen2 cont_Iwhen3)
+lemma beta_sscase:
+  "sscase\<cdot>f\<cdot>g\<cdot>s = (\<Lambda><t, x, y>. If t then f\<cdot>x else g\<cdot>y fi)\<cdot>(Rep_Ssum s)"
+unfolding sscase_def by (simp add: cont_Rep_Ssum)
 
 lemma sscase1 [simp]: "sscase\<cdot>f\<cdot>g\<cdot>\<bottom> = \<bottom>"
-by (simp add: beta_sscase)
+unfolding beta_sscase by (simp add: Rep_Ssum_strict)
 
 lemma sscase2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> sscase\<cdot>f\<cdot>g\<cdot>(sinl\<cdot>x) = f\<cdot>x"
-by (simp add: beta_sscase)
+unfolding beta_sscase by (simp add: Rep_Ssum_sinl)
 
 lemma sscase3 [simp]: "y \<noteq> \<bottom> \<Longrightarrow> sscase\<cdot>f\<cdot>g\<cdot>(sinr\<cdot>y) = g\<cdot>y"
-by (simp add: beta_sscase)
+unfolding beta_sscase by (simp add: Rep_Ssum_sinr)
 
 lemma sscase4 [simp]: "sscase\<cdot>sinl\<cdot>sinr\<cdot>z = z"
 by (rule_tac p=z in ssumE, simp_all)
