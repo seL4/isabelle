@@ -303,7 +303,12 @@ fun compose_witness (Witness (_, th)) r =
   let
     val th' = Goal.conclude th;
     val A = Thm.cprem_of r 1;
-  in Thm.implies_elim r (Thm.instantiate (Thm.match (Thm.cprop_of th', A)) th') end;
+  in
+    Thm.implies_elim
+      (Conv.gconv_rule Drule.beta_eta_conversion 1 r)
+      (Conv.fconv_rule Drule.beta_eta_conversion
+        (Thm.instantiate (Thm.match (Thm.cprop_of th', A)) th'))
+  end;
 
 val mark_witness = Logic.protect;
 
