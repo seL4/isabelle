@@ -22,6 +22,7 @@ uses
   "~~/src/Provers/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
   ("simpdata.ML")
+  "~~/src/Tools/random_word.ML"
   "~~/src/Tools/induct.ML"
   "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_funcgr.ML"

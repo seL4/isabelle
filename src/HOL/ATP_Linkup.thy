@@ -19,7 +19,6 @@ uses
   ("Tools/res_atp.ML")
   ("Tools/res_atp_provers.ML")
   ("Tools/res_atp_methods.ML")
-  "~~/src/Tools/random_word.ML"
   "~~/src/Tools/Metis/metis.ML"
   ("Tools/metis_tools.ML")
 begin
