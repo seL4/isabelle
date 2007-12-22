@@ -100,12 +100,12 @@ fun CRITICAL e = NAMED_CRITICAL "metis" e;
 (* Generating random values.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val randomWord = RandomWord.next;
-val randomBool = RandomWord.next_bit;
-fun randomInt n = Word.toInt (Word.mod (randomWord (), Word.fromInt n));
-fun randomReal () = real (Word.toInt (RandomWord.next ())) / RandomWord.range_real;
+val randomWord = RandomWord.next_word;
+val randomBool = RandomWord.next_bool;
+fun randomInt n = RandomWord.next_int 0 (n - 1);
+val randomReal = RandomWord.next_real;
 
-end
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Quotations a la Moscow ML.                                                *)
