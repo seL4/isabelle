@@ -1,27 +1,5 @@
 /*
  * $Id$
- *
- * Posix process wrapper for Isabelle (see also src/Pure/Tools/isabelle_process.ML).
- *
- * The process model:
- *
- *  (1) input
- *    - stdin stream
- *    - signals (interrupt, kill)
- *
- *  (2) output/results
- *    - stdout stream, interspersed with marked Isabelle messages
- *    - stderr stream
- *    - process exit (return code)
- *
- * I/O is fully asynchronous, with unrestricted buffers.  Text is encoded as UTF-8.
- * 
- * System properties:
- * 
- *   isabelle.home      ISABELLE_HOME of Isabelle installation
- *                      (default determined from isabelle-process via PATH)
- *   isabelle.shell     optional shell command for isabelle-process (also requires isabelle.home)
- *   isabelle.kill      optional kill command (default "kill")
  */
 
 package isabelle;
@@ -31,6 +9,41 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * Posix process wrapper for Isabelle (see also <code>src/Pure/Tools/isabelle_process.ML</code>).
+ * <p>
+ * 
+ * The process model:
+ * <p>
+ *
+ * <ol>
+ * <li> input
+ * <ul>
+ * <li> stdin stream
+ * <li> signals (interrupt, kill)
+ * </ul>
+ *
+ * <li> output/results
+ * <ul>
+ * <li> stdout stream, interspersed with marked Isabelle messages
+ * <li> stderr stream
+ * <li> process exit (return code)
+ * </ul>
+ * </ol>
+ * 
+ * I/O is fully asynchronous, with unrestricted buffers.  Text is encoded as UTF-8.
+ * <p>
+ * 
+ * System properties:
+ * <p>
+ * 
+ * <dl>
+ * <dt> <code>isabelle.home</code>  <di> <code>ISABELLE_HOME</code> of Isabelle installation
+ *                      (default determined from isabelle-process via <code>PATH</code>)
+ * <dt> <code>isabelle.shell</code> <di> optional shell command for <code>isabelle-process</code> (also requires isabelle.home)
+ * <dt> <code>isabelle.kill</code>  <di> optional kill command (default <code>kill</code>)
+ */
+
 public class IsabelleProcess {
     private volatile Process proc = null;
     private volatile String pid = null;
@@ -38,8 +51,9 @@ public class IsabelleProcess {
     private LinkedBlockingQueue<String> output = null;
 
 
-    /* exceptions */
-
+    /**
+     * Models failures in process management.
+     */
     public static class IsabelleProcessException extends Exception {
         public IsabelleProcessException() {
             super();
@@ -50,8 +64,9 @@ public class IsabelleProcess {
     };
 
 
-    /* results from the process */
-
+    /**
+     * Models cooked results from the process.
+     */
     public static class Result {
         public enum Kind {
             STDIN, STDOUT, STDERR, SIGNAL, EXIT,                // Posix channels/events
@@ -71,6 +86,10 @@ public class IsabelleProcess {
         }
     }
 
+
+    /**
+     * Main result queue -- accumulates cooked messages asynchronously.
+     */
     public LinkedBlockingQueue<Result> results;
 
     private synchronized void putResult(Result.Kind kind, String result) {
@@ -80,8 +99,10 @@ public class IsabelleProcess {
     }
 
 
-    /* interrupt process */
-
+    /**
+     * Interrupts Isabelle process via Posix signal.
+     * @throws isabelle.IsabelleProcess.IsabelleProcessException
+     */
     public synchronized void interrupt() throws IsabelleProcessException
     {
         if (proc != null && pid != null) {
@@ -104,8 +125,9 @@ public class IsabelleProcess {
     }
 
 
-    /* kill process */
-
+    /**
+     * Kills Isabelle process: try close -- sleep -- destroy.
+     */
     public synchronized void kill() throws IsabelleProcessException
     {
         if (proc != null) {
@@ -122,8 +144,9 @@ public class IsabelleProcess {
     }
 
 
-    /* encode text as string token */
-
+    /**
+     * Auxiliary operation to encode text as Isabelle string token.
+     */
     public static String encodeString(String str) {
         Locale locale = null;
         StringBuffer buf = new StringBuffer(100);
@@ -176,6 +199,9 @@ public class IsabelleProcess {
 
     // public operations
 
+    /**
+     * Feeds arbitrary text into the process.
+     */
     public synchronized void output(String text) throws IsabelleProcessException
     {
         if (proc != null && !closing) {
@@ -191,6 +217,9 @@ public class IsabelleProcess {
         }
     }
 
+    /**
+     * Closes Isabelle process input, causing termination eventually.
+     */
     public synchronized void close() throws IsabelleProcessException
     {
         output("\u0000");
@@ -198,6 +227,9 @@ public class IsabelleProcess {
         // FIXME watchdog/timeout
     }
 
+    /**
+     * Closes Isabelle process input, causing termination eventually -- unless process already terminated.
+     */
     public synchronized void tryClose()
     {
         if (proc != null && !closing) {
@@ -212,11 +244,17 @@ public class IsabelleProcess {
         output(" \\<^sync>\n; " + text + " \\<^sync>;\n");
     }
 
+    /**
+     * Feeds exactly one Isabelle command into the process. 
+     */
     public synchronized void command(String text) throws IsabelleProcessException
     {
         outputSync("Isabelle.command " + encodeString(text));
     }
 
+    /**
+     * Feeds ML toplevel declarations into the process.
+     */
     public synchronized void ML(String text) throws IsabelleProcessException
     {
         outputSync("ML " + encodeString(text));
@@ -350,8 +388,9 @@ public class IsabelleProcess {
     private ExitThread exitThread;
 
 
-    /* create process */
-
+    /**
+     * Creates Isabelle process with specified logic image.
+     */
     public IsabelleProcess(String logic) throws IsabelleProcessException
     {
         ArrayList<String> cmdline = new ArrayList<String> ();
@@ -405,6 +444,9 @@ public class IsabelleProcess {
         exitThread.start();
     }
     
+    /**
+     * Creates Isabelle process with default logic image.
+     */
     public IsabelleProcess() throws IsabelleProcessException {
         this(null);
     }
