@@ -81,6 +81,20 @@ public class IsabelleProcess {
             this.result = result;
         }
 
+        public boolean isRaw() {
+            return
+              this.kind == Kind.STDOUT ||
+              this.kind == Kind.STDERR;
+        }
+
+        public boolean isSystem() {
+            return
+              this.kind == Kind.STDIN ||
+              this.kind == Kind.SIGNAL ||
+              this.kind == Kind.EXIT ||
+              this.kind == Kind.SYSTEM;
+        }
+
         public String toString() {
             return this.kind.toString() + " [[" + this.result + "]]";
         }
