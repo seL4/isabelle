@@ -69,9 +69,9 @@ public class IsabelleProcess {
      */
     public static class Result {
         public enum Kind {
-            STDIN, STDOUT, STDERR, SIGNAL, EXIT,                // Posix channels/events
-            WRITELN, PRIORITY, TRACING, WARNING, ERROR, DEBUG,  // Isabelle messages
-            SYSTEM                                              // internal system notification
+            STDIN, STDOUT, STDERR, SIGNAL, EXIT,                        // Posix channels/events
+            WRITELN, PRIORITY, TRACING, WARNING, ERROR, DEBUG, PROMPT,  // Isabelle messages
+            SYSTEM                                                      // internal system notification
         };
         public Kind kind;
         public String result;
@@ -92,6 +92,7 @@ public class IsabelleProcess {
               this.kind == Kind.STDIN ||
               this.kind == Kind.SIGNAL ||
               this.kind == Kind.EXIT ||
+              this.kind == Kind.PROMPT ||
               this.kind == Kind.SYSTEM;
         }
 
@@ -307,6 +308,7 @@ public class IsabelleProcess {
                                 case 'D': kind = Result.Kind.WARNING; break;
                                 case 'E': kind = Result.Kind.ERROR; break;
                                 case 'F': kind = Result.Kind.DEBUG; break;
+                                case 'G': kind = Result.Kind.PROMPT; break;
                                 default: kind = Result.Kind.STDOUT; break;
                             }
                         }

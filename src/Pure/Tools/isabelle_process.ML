@@ -21,13 +21,14 @@ signature ISABELLE_PROCESS =
 sig
   val test_markupN: string
   val test_markup: Markup.T -> output * output
+  val isabelle_processN: string
   val init: unit -> unit
 end;
 
 structure IsabelleProcess: ISABELLE_PROCESS =
 struct
 
-(* test markup *)
+(* test_markup *)
 
 val test_markupN = "test_markup";
 
@@ -39,6 +40,8 @@ val _ = Markup.add_mode test_markupN test_markup;
 
 
 (* channels *)
+
+val isabelle_processN = "isabelle_process";
 
 local
 
@@ -58,6 +61,10 @@ fun setup_channels () =
   Output.error_fn    := output "E" Markup.error;
   Output.debug_fn    := output "F" Markup.debug);
 
+val _ = Markup.add_mode isabelle_processN (fn (name, _) =>
+  if name = Markup.promptN then (special "G", special_end ^ "\n")
+  else ("", ""));
+
 end;
 
 
@@ -66,6 +73,7 @@ end;
 fun init () =
  (Output.writeln_default ("\nPID=" ^ string_of_pid (Posix.ProcEnv.getpid ()));
   setup_channels ();
+  change print_mode (update (op =) isabelle_processN);
   Isar.secure_main ());
 
 end;
