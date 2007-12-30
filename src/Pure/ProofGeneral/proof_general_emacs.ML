@@ -292,7 +292,7 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           setup_present_hook ();
           set initialized);
         sync_thy_loader ();
-       change print_mode (cons proof_generalN o remove (op =) proof_generalN);
+       change print_mode (update (op =) proof_generalN);
        Isar.sync_main ());
 
 end;
