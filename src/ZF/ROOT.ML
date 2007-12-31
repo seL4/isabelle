@@ -8,7 +8,5 @@ This theory is the work of Martin Coen, Philippe Noel and Lawrence
 Paulson.
 *)
 
-val banner = "ZF Set Theory (in FOL)";
-writeln banner;
-
 use_thy "Main_ZFC";
+

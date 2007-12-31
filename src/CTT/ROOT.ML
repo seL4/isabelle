@@ -4,7 +4,5 @@
     Copyright   1991  University of Cambridge
 *)
 
-val banner = "Constructive Type Theory";
-writeln banner;
-
 use_thy "Main";
+

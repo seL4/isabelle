@@ -4,7 +4,6 @@
 Pure Isabelle.
 *)
 
-val banner = "Pure Isabelle";
 val version = "Isabelle repository version";    (*filled in automatically!*)
 
 (*if true then some tools will OMIT some proofs*)
