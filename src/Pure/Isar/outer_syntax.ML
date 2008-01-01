@@ -284,7 +284,9 @@ fun try_ml_file dir name time =
     else
       let
         val _ = legacy_feature ("loading attached ML script " ^ quote (Path.implode path));
-        val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
+        val tr = Toplevel.imperative (fn () =>
+          ML_Context.setmp (SOME (Context.Theory (ThyInfo.get_theory name)))
+            (fn () => ThyInfo.load_file time path) ());
         val tr_name = if time then "time_use" else "use";
       in Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr] end
   end;
@@ -313,7 +315,6 @@ fun run_thy dir name pos text time =
 
 fun load_thy dir name pos text time =
  (run_thy dir name pos text time;
-  CRITICAL (fn () => ML_Context.set_context (SOME (Context.Theory (ThyInfo.get_theory name))));
   try_ml_file dir name time);
 
 in
