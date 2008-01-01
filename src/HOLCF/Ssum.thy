@@ -141,6 +141,12 @@ lemma ssumE [cases type: ++]:
    \<And>y. \<lbrakk>p = sinr\<cdot>y; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (cut_tac z=p in Exh_Ssum, auto)
 
+lemma ssum_induct [induct type: ++]:
+  "\<lbrakk>P \<bottom>;
+   \<And>x. x \<noteq> \<bottom> \<Longrightarrow> P (sinl\<cdot>x);
+   \<And>y. y \<noteq> \<bottom> \<Longrightarrow> P (sinr\<cdot>y)\<rbrakk> \<Longrightarrow> P x"
+by (cases x, simp_all)
+
 lemma ssumE2:
   "\<lbrakk>\<And>x. p = sinl\<cdot>x \<Longrightarrow> Q; \<And>y. p = sinr\<cdot>y \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (cases p, simp only: sinl_strict [symmetric], simp, simp)
@@ -178,6 +184,6 @@ lemma sscase3 [simp]: "y \<noteq> \<bottom> \<Longrightarrow> sscase\<cdot>f\<cd
 unfolding beta_sscase by (simp add: Rep_Ssum_sinr)
 
 lemma sscase4 [simp]: "sscase\<cdot>sinl\<cdot>sinr\<cdot>z = z"
-by (rule_tac p=z in ssumE, simp_all)
+by (cases z, simp_all)
 
 end
