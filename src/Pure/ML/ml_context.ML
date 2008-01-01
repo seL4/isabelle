@@ -175,7 +175,10 @@ fun eval_wrapper name pr verbose txt =
     val (txt1, txt2) = ! eval_antiquotes_fn txt;  (* FIXME tmp hook *)
     val _ = if ! trace then tracing (cat_lines [txt1, txt2]) else ();
     fun eval nm = use_text nm pr;
-  in eval "" false txt1; eval name verbose txt2; eval "" false isabelle_struct0 end;
+  in
+    NAMED_CRITICAL "ML" (fn () =>
+      (eval "" false txt1; eval name verbose txt2; eval "" false isabelle_struct0))
+  end;
 
 fun ML_wrapper pr = eval_wrapper "ML" pr;
 
@@ -188,7 +191,7 @@ fun use_mltext txt verbose opt_context =
   setmp opt_context (fn () => ML_wrapper Output.ml_output verbose txt) ();
 
 fun use_mltext_update txt verbose context =
-  #2 (pass_context context (ML_wrapper Output.ml_output verbose) txt);
+  #2 (pass_context context (fn () => ML_wrapper Output.ml_output verbose txt) ());
 
 fun use_context txt = use_mltext_update
   ("ML_Context.set_context (SOME ((" ^ txt ^ ") (ML_Context.the_generic_context ())));") false;
