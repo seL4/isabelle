@@ -9,11 +9,10 @@ text {*
   convention carelessly in rule inductions, we might end 
   up with faulty lemmas. The point is that the examples
   are not variable-convention compatible and therefore in the 
-  nominal package one is protected from such bogus reasoning.
+  nominal data package one is protected from such bogus reasoning.
 *}
 
-text {* 
-  We define alpha-equated lambda-terms as usual. *}
+text {* We define alpha-equated lambda-terms as usual. *}
 atom_decl name 
 
 nominal_datatype lam = 
@@ -60,21 +59,20 @@ equivariance unbind
 
 text {*
   ... but it is not variable-convention compatible (see Urban, 
-  Berghofer, Norrish [2007] for more details). This condition 
-  requires for rule u_lam to have the binder x being not a free variable 
-  in the rule's conclusion. Because this condition is not satisfied, 
-  Isabelle will not derive a strong induction principle for 'unbind' 
-  - that means Isabelle does not allow us to use the variable 
-  convention in induction proofs over 'unbind'. We can, however,  
-  force Isabelle to derive the strengthening induction principle
-  and see what happens. *}
+  Berghofer, Norrish [2007]). This condition requires for rule u_lam to 
+  have the binder x not being a free variable in this rule's conclusion. 
+  Because this condition is not satisfied, Isabelle will not derive a 
+  strong induction principle for 'unbind' - that means Isabelle does not 
+  allow us to use the variable convention in induction proofs over 'unbind'. 
+  We can, however, force Isabelle to derive the strengthening induction 
+  principle and see what happens. *}
 
 nominal_inductive unbind
   sorry
 
 text {*
   To obtain a faulty lemma, we introduce the function 'bind'
-  which takes a list of names and abstracts away these names in 
+  which takes a list of names and abstracts them away in 
   a given lambda-term. *}
 fun 
   bind :: "name list \<Rightarrow> lam \<Rightarrow> lam"
@@ -104,7 +102,7 @@ by (induct xs)
    (auto simp add: fresh_list_cons abs_fresh fresh_atm)
 
 text {*
-  Now comes the faulty lemma. It is derived using the     
+  Now comes the first faulty lemma. It is derived using the     
   variable convention (i.e. our strong induction principle). 
   This faulty lemma states that if t unbinds to x::xs and t', 
   and x is a free variable in t', then it is also a free 
@@ -119,10 +117,10 @@ by (nominal_induct t xs'\<equiv>"x#xs" t' avoiding: xs rule: unbind.strong_induc
    (simp_all add: free_variable)
 
 text {*
-  Obviously the faulty lemma does not hold, for example, in 
-  case Lam [x].Lam [x].(Var x) \<mapsto> [x,x],(Var x). Therefore,
-  we can prove False. *}
-
+  Obviously this lemma is bogus. For example, in 
+  case Lam [x].Lam [x].(Var x) \<mapsto> [x,x],(Var x). 
+  As a result, we can prove False. 
+*}
 lemma false1:
   shows "False"
 proof -
@@ -137,7 +135,7 @@ qed
    
 text {* 
   The next example is slightly simpler, but looks more
-  contrived than 'unbind'. This example, caled 'strip' just 
+  contrived than 'unbind'. This example, called 'strip' just 
   strips off the top-most binders from lambdas. *}
 
 inductive
@@ -149,17 +147,17 @@ where
 
 text {* 
   The relation is equivariant but we have to use again 
-  sorry to derive a strong induction principle. *}
-
+  sorry to derive a strong induction principle. 
+*}
 equivariance strip
 
 nominal_inductive strip
   sorry
 
 text {*
-  The faulty lemma shows that a variable that is fresh
-  for a term is also fresh for the term after striping. *}
-
+  The second faulty lemma shows that a variable being fresh
+  for a term is also fresh for this term after striping. 
+*}
 lemma faulty2:
   fixes x::"name"
   assumes a: "t \<rightarrow> t'"
@@ -168,9 +166,7 @@ using a
 by (nominal_induct t t'\<equiv>t' avoiding: t' rule: strip.strong_induct)
    (auto simp add: abs_fresh)
 
-text {*
-  Obviously Lam [x].Var x is a counter example to this lemma. *}
-
+text {* Obviously Lam [x].Var x is a counter example to this lemma. *}
 lemma false2:
   shows "False"
 proof -

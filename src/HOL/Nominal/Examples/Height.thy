@@ -1,10 +1,13 @@
 (* $Id$ *)
 
-(*  Simple problem suggested by D. Wang *)
-
 theory Height
-imports "../Nominal"
+  imports "../Nominal"
 begin
+
+text {*  
+  A trivial problem suggested by D. Wang. It shows how
+  the height of a lambda-terms behaves under substitution.
+*}
 
 atom_decl name
 
@@ -13,7 +16,7 @@ nominal_datatype lam =
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* definition of the height-function on lambda-terms *} 
+text {* Definition of the height-function on lambda-terms. *} 
 
 consts 
   height :: "lam \<Rightarrow> int"
@@ -28,7 +31,7 @@ nominal_primrec
   apply(fresh_guess add: perm_int_def)+
   done
 
-text {* definition of capture-avoiding substitution *}
+text {* Definition of capture-avoiding substitution. *}
 
 consts
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
@@ -43,16 +46,16 @@ apply(simp add: abs_fresh)
 apply(fresh_guess)+
 done
 
-text{* the next lemma is needed in the Var-case of the theorem *}
+text{* The next lemma is needed in the Var-case of the theorem. *}
 
 lemma height_ge_one: 
   shows "1 \<le> (height e)"
-apply (nominal_induct e rule: lam.induct) 
-by simp_all
+by (nominal_induct e rule: lam.induct) (simp_all)
 
-text {* unlike the proplem suggested by Wang, however, the 
-        theorem is here formulated  entirely by using 
-        functions *}
+text {* 
+  Unlike the proplem suggested by Wang, however, the 
+  theorem is here formulated  entirely by using functions. 
+*}
 
 theorem height_subst:
   shows "height (e[x::=e']) \<le> (((height e) - 1) + (height e'))"

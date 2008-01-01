@@ -7,12 +7,12 @@ begin
 text {* 
   
   We show here that the Plotkin-style of defining
-  reductions relation based on congruence rules is
+  reduction relations (based on congruence rules) is
   equivalent to the Felleisen-Hieb-style representation 
-  based on contexts. 
+  (based on contexts). 
   
-  The interesting point is that contexts do not bind 
-  anything. On the other hand the operation of replacing 
+  The interesting point is that contexts do not contain 
+  any binders. On the other hand the operation of filling 
   a term into a context produces an alpha-equivalent term. 
 
 *}
@@ -25,14 +25,17 @@ nominal_datatype lam =
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* Contexts - the lambda case in contexts does not bind a name *}
+text {* 
+  Contexts - the lambda case in contexts does not bind a name 
+  even if we introduce the nomtation [_]._ fro CLam.
+*}
 nominal_datatype ctx = 
     Hole
   | CAppL "ctx" "lam"
   | CAppR "lam" "ctx" 
   | CLam "name" "ctx"  ("CLam [_]._" [100,100] 100) 
 
-text {* Capture-avoiding substitution and three lemmas *}
+text {* Capture-avoiding substitution and two lemmas *}
 
 consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
 
@@ -60,13 +63,13 @@ by (nominal_induct t avoiding: x y t' rule: lam.inducts)
    (auto simp add: abs_fresh fresh_prod fresh_atm)
 
 text {* 
-  Replace is the operation that fills a term into a hole. While
+  Filling is the operation that fills a term into a hole. While
   contexts themselves are not alpha-equivalence classes, the 
   filling operation produces an alpha-equivalent lambda-term. 
 *}
 
 consts 
-  replace :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_<_>" [100,100] 100)
+  filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_<_>" [100,100] 100)
 
 nominal_primrec
   "Hole<t> = t"
@@ -75,11 +78,9 @@ nominal_primrec
   "(CLam [x].E)<t> = Lam [x].(E<t>)" 
 by (rule TrueI)+
 
-
 lemma alpha_test: 
   shows "(CLam [x].Hole)<Var x> = (CLam [y].Hole)<Var y>"
 by (auto simp add: alpha lam.inject calc_atm fresh_atm) 
-
 
 lemma replace_eqvt[eqvt]:
   fixes pi:: "name prm"
@@ -95,7 +96,7 @@ by (induct E rule: ctx.weak_induct)
    (auto simp add: fresh_prod abs_fresh)
 
 
-text {* Composition of two contexts *}
+text {* The composition of two contexts *}
 
 consts 
  ctx_replace :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _" [100,100] 100)
@@ -118,7 +119,7 @@ lemma ctx_compose_fresh:
 by (induct E1 rule: ctx.weak_induct)
    (auto simp add: fresh_prod)
 
-text {* Beta-reduction via contexts *}
+text {* Beta-reduction via contexts in the Felleisen-Hieb style. *}
 
 inductive
   ctx_red :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>x _" [80,80] 80) 
@@ -130,7 +131,7 @@ equivariance ctx_red
 nominal_inductive ctx_red
   by (simp_all add: replace_fresh subst_fresh abs_fresh)
 
-text {* Beta-reduction via congruence rules *}
+text {* Beta-reduction via congruence rules in the Plotkin style. *}
 
 inductive
   cong_red :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>o _" [80,80] 80) 
@@ -145,7 +146,7 @@ equivariance cong_red
 nominal_inductive cong_red
   by (simp_all add: subst_fresh abs_fresh)
 
-text {* The proof that shows both relations are equal *}
+text {* The proof that shows both relations are equal. *}
 
 lemma cong_red_ctx:
   assumes a: "t \<longrightarrow>o t'"
@@ -179,7 +180,7 @@ apply(induct)
 apply(rule ctx_red_hole)
 apply(rule xbeta)
 apply(simp)
-apply(metis ctx_red_ctx replace.simps)+ (* found by SledgeHammer *)
+apply(metis ctx_red_ctx filling.simps)+ (* found by SledgeHammer *)
 done
 
 end

@@ -1,8 +1,10 @@
 (* $Id$ *)
 
 theory Lam_Funs
-imports "../Nominal"
+  imports "../Nominal"
 begin
+
+text {* Defines some functions over lambda-terms *}
 
 atom_decl name
 
@@ -11,7 +13,7 @@ nominal_datatype lam =
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* depth of a lambda-term *}
+text {* Depth of a lambda-term *}
 
 consts 
   depth :: "lam \<Rightarrow> nat"
@@ -26,7 +28,13 @@ nominal_primrec
   apply(fresh_guess)+
   done
 
-text {* free variables of a lambda-term *}
+text {* 
+  Free variables of a lambda-term. The complication of this
+  function is the fact that it returns a name set, which is
+  not automatically a finitely supported type. So we have to
+  prove the invariant that frees always returns a finite set
+  of names. 
+*}
 
 consts 
   frees :: "lam \<Rightarrow> name set"
@@ -49,8 +57,7 @@ lemma frees_equals_support:
 by (nominal_induct t rule: lam.induct)
    (simp_all add: lam.supp supp_atm abs_supp)
 
-text {* capture-avoiding substitution *}
-
+text {* Capture-avoiding substitution *}
 
 consts
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
@@ -79,7 +86,7 @@ apply(auto simp add: lam.supp supp_atm fresh_prod abs_supp)
 apply(blast)+
 done
 
-text{* parallel substitution *}
+text{* Parallel substitution *}
 
 consts
  psubst :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam" ("_<_>" [100,100] 900)

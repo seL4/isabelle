@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory Support 
-imports "../Nominal" 
+  imports "../Nominal" 
 begin
 
 text {* 
@@ -9,30 +9,33 @@ text {*
 
   x\<sharp>(A \<union> B) does not imply  x\<sharp>A and  x\<sharp>B
 
-  For this we set A to the set of even atoms 
-  and B to the set of odd even atoms. Then A \<union> B, 
-  that is the set of all atoms, has empty support. 
-  The sets A, respectively B, have the set of all atoms 
-  as support. 
+  For this we set A to the set of even atoms and B to the 
+  set of odd atoms. Then A \<union> B, that is the set of all atoms,
+  has empty support. The sets A, respectively B, however
+  have the set of all atoms as their support. 
 *}
 
 atom_decl atom
 
+text {* The set of even atoms. *}
 abbreviation
   EVEN :: "atom set"
 where
   "EVEN \<equiv> {atom n | n. \<exists>i. n=2*i}"
 
+text {* The set of odd atoms: *}
 abbreviation  
   ODD :: "atom set"
 where
   "ODD \<equiv> {atom n | n. \<exists>i. n=2*i+1}"
 
+text {* An atom is either even or odd. *}
 lemma even_or_odd:
   fixes n::"nat"
   shows "\<exists>i. (n = 2*i) \<or> (n=2*i+1)"
   by (induct n) (presburger)+
 
+text {* The union of even and odd atoms is the set of all atoms. *}
 lemma EVEN_union_ODD:
   shows "EVEN \<union> ODD = UNIV"
   using even_or_odd
@@ -46,31 +49,41 @@ proof -
   finally show "EVEN \<union> ODD = UNIV" by simp
 qed
 
+text {* The sets of even and odd atoms are disjunct. *}
 lemma EVEN_intersect_ODD:
   shows "EVEN \<inter> ODD = {}"
   using even_or_odd
   by (auto) (presburger)
 
+text {* 
+  The preceeding two lemmas help us to prove 
+  the following two useful equalities: 
+*}
 lemma UNIV_subtract:
   shows "UNIV - EVEN = ODD"
   and   "UNIV - ODD  = EVEN"
   using EVEN_union_ODD EVEN_intersect_ODD
   by (blast)+
 
+text {* The sets EVEN and ODD are infinite. *}
 lemma EVEN_ODD_infinite:
   shows "infinite EVEN"
   and   "infinite ODD"
-apply(simp add: infinite_iff_countable_subset)
-apply(rule_tac x="\<lambda>n. atom (2*n)" in exI)
-apply(auto simp add: inj_on_def)[1]
-apply(simp add: infinite_iff_countable_subset)
-apply(rule_tac x="\<lambda>n. atom (2*n+1)" in exI)
-apply(auto simp add: inj_on_def)
-done
+unfolding infinite_iff_countable_subset
+proof -
+  let ?f = "\<lambda>n. atom (2*n)"
+  have "inj ?f \<and> range ?f \<subseteq> EVEN" by (auto simp add: inj_on_def)
+  then show "\<exists>f::nat\<Rightarrow>atom. inj f \<and> range f \<subseteq> EVEN" by (rule_tac exI)
+next
+  let ?f = "\<lambda>n. atom (2*n+1)"
+  have "inj ?f \<and> range ?f \<subseteq> ODD" by (auto simp add: inj_on_def)
+  then show "\<exists>f::nat\<Rightarrow>atom. inj f \<and> range f \<subseteq> ODD" by (rule_tac exI)
+qed
 
 text {* 
-  A set S that is infinite and coinfinite 
-  has all atoms as its support. *}
+  A general fact: a set S that is both infinite and coinfinite 
+  has all atoms as its support. 
+*}
 lemma supp_infinite_coinfinite:
   fixes S::"atom set"
   assumes a: "infinite S"
@@ -100,21 +113,26 @@ proof -
   then show "(supp S) = (UNIV::atom set)" by auto
 qed
 
+text {* As a corollary we get that EVEN and ODD have infinite support. *}
 lemma EVEN_ODD_supp:
   shows "supp EVEN = (UNIV::atom set)"
   and   "supp ODD  = (UNIV::atom set)"
   using supp_infinite_coinfinite UNIV_subtract EVEN_ODD_infinite
   by simp_all
 
+text {* 
+  The set of all atoms has empty support, since any swappings leaves 
+  this set unchanged. 
+*}
 lemma UNIV_supp:
   shows "supp (UNIV::atom set) = ({}::atom set)"
 proof -
   have "\<forall>(x::atom) (y::atom). [(x,y)]\<bullet>UNIV = (UNIV::atom set)"
     by (auto simp add: perm_set_def calc_atm)
-  then show "supp (UNIV::atom set) = ({}::atom set)"
-    by (simp add: supp_def)
+  then show "supp (UNIV::atom set) = ({}::atom set)" by (simp add: supp_def)
 qed
 
+text {* Putting everything together. *}
 theorem EVEN_ODD_freshness:
   fixes x::"atom"
   shows "x\<sharp>(EVEN \<union> ODD)"

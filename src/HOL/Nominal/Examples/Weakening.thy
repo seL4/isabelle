@@ -4,11 +4,11 @@ theory Weakening
   imports "../Nominal" 
 begin
 
-section {* Weakening Example for the Simply-Typed Lambda-Calculus *}
+section {* Weakening Property in the Simply-Typed Lambda-Calculus *}
 
 atom_decl name 
 
-text {* Terms and types *}
+text {* Terms and Types *}
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
@@ -48,7 +48,7 @@ where
 text {* 
   We derive the strong induction principle for the typing 
   relation (this induction principle has the variable convention 
-  already built in). 
+  already built-in). 
   *}
 equivariance typing
 nominal_inductive typing
@@ -144,6 +144,7 @@ next
     oops
   
 text{* The complete proof without using the variable convention. *}
+
 lemma weakening_with_explicit_renaming: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
   assumes a: "\<Gamma>1 \<turnstile> t : T"
@@ -189,9 +190,9 @@ proof (induct arbitrary: \<Gamma>2)
 qed (auto)
 
 text {*
-  Compare the proof with explicit renamings to version1 and version2,
-  and imagine you are proving something more substantial than the
-  weakening lemma. 
+  Moral: compare the proof with explicit renamings to version1 and version2,
+  and imagine you are proving something more substantial than the weakening 
+  lemma. 
   *}
 
 end
