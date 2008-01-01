@@ -67,7 +67,7 @@ done
 
 lemma Exh_Sprod2:
   "z = \<bottom> \<or> (\<exists>a b. z = (:a, b:) \<and> a \<noteq> \<bottom> \<and> b \<noteq> \<bottom>)"
-apply (rule_tac x=z in Abs_Sprod_cases)
+apply (cases z rule: Abs_Sprod_cases)
 apply (simp add: Sprod_def)
 apply (erule disjE)
 apply (simp add: Abs_Sprod_strict)
@@ -78,9 +78,13 @@ apply (simp add: spair_Abs_Sprod Abs_Sprod_inject spair_lemma)
 apply (simp add: surjective_pairing_Cprod2)
 done
 
-lemma sprodE:
+lemma sprodE [cases type: **]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x y. \<lbrakk>p = (:x, y:); x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (cut_tac z=p in Exh_Sprod2, auto)
+
+lemma sprod_induct [induct type: **]:
+  "\<lbrakk>P \<bottom>; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> P (:x, y:)\<rbrakk> \<Longrightarrow> P x"
+by (cases x, simp_all)
 
 subsection {* Properties of @{term spair} *}
 
@@ -141,10 +145,10 @@ lemma ssnd_spair [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssnd\<cdot>(:x,
 by (simp add: ssnd_def cont_Rep_Sprod Rep_Sprod_spair)
 
 lemma sfst_defined_iff [simp]: "(sfst\<cdot>p = \<bottom>) = (p = \<bottom>)"
-by (rule_tac p=p in sprodE, simp_all)
+by (cases p, simp_all)
 
 lemma ssnd_defined_iff [simp]: "(ssnd\<cdot>p = \<bottom>) = (p = \<bottom>)"
-by (rule_tac p=p in sprodE, simp_all)
+by (cases p, simp_all)
 
 lemma sfst_defined: "p \<noteq> \<bottom> \<Longrightarrow> sfst\<cdot>p \<noteq> \<bottom>"
 by simp
@@ -153,7 +157,7 @@ lemma ssnd_defined: "p \<noteq> \<bottom> \<Longrightarrow> ssnd\<cdot>p \<noteq
 by simp
 
 lemma surjective_pairing_Sprod2: "(:sfst\<cdot>p, ssnd\<cdot>p:) = p"
-by (rule_tac p=p in sprodE, simp_all)
+by (cases p, simp_all)
 
 lemma less_sprod: "x \<sqsubseteq> y = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
 apply (simp add: less_Sprod_def sfst_def ssnd_def cont_Rep_Sprod)
@@ -165,10 +169,8 @@ by (auto simp add: po_eq_conv less_sprod)
 
 lemma spair_less:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<sqsubseteq> (:a, b:) = (x \<sqsubseteq> a \<and> y \<sqsubseteq> b)"
-apply (case_tac "a = \<bottom>")
-apply (simp add: eq_UU_iff [symmetric])
-apply (case_tac "b = \<bottom>")
-apply (simp add: eq_UU_iff [symmetric])
+apply (cases "a = \<bottom>", simp)
+apply (cases "b = \<bottom>", simp)
 apply (simp add: less_sprod)
 done
 
@@ -182,6 +184,6 @@ lemma ssplit2 [simp]: "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbra
 by (simp add: ssplit_def)
 
 lemma ssplit3 [simp]: "ssplit\<cdot>spair\<cdot>z = z"
-by (rule_tac p=z in sprodE, simp_all)
+by (cases z, simp_all)
 
 end
