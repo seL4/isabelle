@@ -315,17 +315,8 @@ fun not_equal x y = x <> y;
 fun p orf q = fn x => p x orelse q x;
 fun p andf q = fn x => p x andalso q x;
 
-(*exists pred [x1, ..., xn] ===> pred x1 orelse ... orelse pred xn*)
-fun exists (pred: 'a -> bool) : 'a list -> bool =
-  let fun boolf [] = false
-        | boolf (x :: xs) = pred x orelse boolf xs
-  in boolf end;
-
-(*forall pred [x1, ..., xn] ===> pred x1 andalso ... andalso pred xn*)
-fun forall (pred: 'a -> bool) : 'a list -> bool =
-  let fun boolf [] = true
-        | boolf (x :: xs) = pred x andalso boolf xs
-  in boolf end;
+val exists = List.exists;
+val forall = List.all;
 
 
 (* flags *)
