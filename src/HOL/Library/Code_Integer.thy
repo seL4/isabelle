@@ -88,10 +88,10 @@ code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
 
-code_const index_of_int and int_of_index
+(*code_const index_of_int and int_of_index
   (SML "IntInf.toInt" and "IntInf.fromInt")
   (OCaml "Big'_int.int'_of'_big'_int" and "Big'_int.big'_int'_of'_int")
-  (Haskell "_" and "_")
+  (Haskell "_" and "_") FIXME perhaps recover this if neccessary *)
 
 code_reserved SML IntInf
 code_reserved OCaml Big_int

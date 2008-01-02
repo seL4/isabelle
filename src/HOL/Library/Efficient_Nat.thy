@@ -165,14 +165,6 @@ proof -
   then show ?thesis unfolding int_aux_def int_of_nat_def by auto
 qed
 
-lemma index_of_nat_code [code func, code inline]:
-  "index_of_nat n = index_of_int (int_of_nat n)"
-  unfolding index_of_nat_def int_of_nat_def by simp
-
-lemma nat_of_index_code [code func, code inline]:
-  "nat_of_index k = nat (int_of_index k)"
-  unfolding nat_of_index_def by simp
-
 
 subsection {* Code generator setup for basic functions *}
 
@@ -221,10 +213,21 @@ code_const int_of_nat
   (OCaml "_")
   (Haskell "_")
 
+code_const index_of_nat
+  (SML "_")
+  (OCaml "_")
+  (Haskell "_")
+
 code_const nat_of_int
   (SML "_")
   (OCaml "_")
   (Haskell "_")
+
+code_const nat_of_index
+  (SML "_")
+  (OCaml "_")
+  (Haskell "_")
+
 
 text {* Using target language div and mod *}
 
