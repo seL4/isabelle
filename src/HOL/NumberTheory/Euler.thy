@@ -77,10 +77,7 @@ proof
         by (auto simp add: zcong_zmult_prop2)
     qed
   then have "[j^2 = a] (mod p)"
-    apply(subgoal_tac "2 = Suc(Suc(0))")
-    apply (erule ssubst)
-    apply (auto simp only: power_Suc power_0)
-    by auto
+    by (metis  number_of_is_id power2_eq_square succ_1 succ_Pls)
   with prems show False
     by (simp add: QuadRes_def)
 qed
@@ -155,7 +152,7 @@ lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
                    b = "x * (a * MultInv p x)" and
                    c = "a * (x * MultInv p x)" in  zcong_trans, force)
   apply (frule_tac p = p and x = x in MultInv_prop2, auto)
-  apply (drule_tac a = "x * MultInv p x" and b = 1 in zcong_zmult_prop2)
+apply (metis StandardRes_SRStar_prop3 mult_1_right mult_commute zcong_sym zcong_zmult_prop1)
   apply (auto simp add: zmult_ac)
   done
 
@@ -212,10 +209,7 @@ proof -
   also have "... = zfact(p - 1)"
   proof -
     have "~(1 \<in> d22set (p - 1)) & finite( d22set (p - 1))"
-      apply (insert prems, auto)
-      apply (drule d22set_g_1)
-      apply (auto simp add: d22set_fin)
-      done
+      by (metis d22set_fin d22set_g_1 linorder_neq_iff)
     then have "\<Prod>({1} \<union> (d22set (p - 1))) = \<Prod>(d22set (p - 1))"
       by auto
     then show ?thesis
@@ -235,11 +229,7 @@ text {* \medskip Prove the first part of Euler's Criterion: *}
 lemma Euler_part1: "[| 2 < p; zprime p; ~([x = 0](mod p)); 
     ~(QuadRes p x) |] ==> 
       [x^(nat (((p) - 1) div 2)) = -1](mod p)"
-  apply (frule zfact_prop, auto)
-  apply (frule Wilson_Russ)
-  apply (auto simp add: zcong_sym)
-  apply (rule zcong_trans, auto)
-  done
+  by (metis Wilson_Russ number_of_is_id zcong_sym zcong_trans zfact_prop)
 
 text {* \medskip Prove another part of Euler Criterion: *}
 
@@ -282,11 +272,7 @@ lemma Euler_part2:
 text {* \medskip Prove the final part of Euler's Criterion: *}
 
 lemma aux__1: "[| ~([x = 0] (mod p)); [y ^ 2 = x] (mod p)|] ==> ~(p dvd y)"
-  apply (subgoal_tac "[| ~([x = 0] (mod p)); [y ^ 2 = x] (mod p)|] ==> 
-    ~([y ^ 2 = 0] (mod p))")
-  apply (auto simp add: zcong_sym [of "y^2" x p] intro: zcong_trans)
-  apply (auto simp add: zcong_eq_zdvd_prop intro: zpower_zdvd_prop1)
-  done
+  by (metis dvdI power2_eq_square zcong_sym zcong_trans zcong_zero_equiv_div zdvd_trans)
 
 lemma aux__2: "2 * nat((p - 1) div 2) =  nat (2 * ((p - 1) div 2))"
   by (auto simp add: nat_mult_distrib)
