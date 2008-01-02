@@ -1121,70 +1121,70 @@ lemmas multi_count_ext = multi_count_eq [THEN iffD1, rule_format]
 subsection {* The fold combinator *}
 
 text {* The intended behaviour is
-@{text "foldM f z {#x\<^isub>1, ..., x\<^isub>n#} = f x\<^isub>1 (\<dots> (f x\<^isub>n z)\<dots>)"}
+@{text "fold_mset f z {#x\<^isub>1, ..., x\<^isub>n#} = f x\<^isub>1 (\<dots> (f x\<^isub>n z)\<dots>)"}
 if @{text f} is associative-commutative. 
 *}
 
-(* the graph of foldM, z = the start element, f = folding function, 
+(* the graph of fold_mset, z = the start element, f = folding function, 
    A the multiset, y the result *)
 inductive 
-  foldMG :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b \<Rightarrow> bool" 
+  fold_msetG :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b \<Rightarrow> bool" 
   for f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" 
   and z :: 'b
 where
-  emptyI [intro]:  "foldMG f z {#} z"
-| insertI [intro]: "foldMG f z A y \<Longrightarrow> foldMG f z (A + {#x#}) (f x y)"
+  emptyI [intro]:  "fold_msetG f z {#} z"
+| insertI [intro]: "fold_msetG f z A y \<Longrightarrow> fold_msetG f z (A + {#x#}) (f x y)"
 
-inductive_cases empty_foldMGE [elim!]: "foldMG f z {#} x"
-inductive_cases insert_foldMGE: "foldMG f z (A + {#}) y" 
+inductive_cases empty_fold_msetGE [elim!]: "fold_msetG f z {#} x"
+inductive_cases insert_fold_msetGE: "fold_msetG f z (A + {#}) y" 
 
 definition
-  foldM :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b"
+  fold_mset :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b"
 where
-  "foldM f z A \<equiv> THE x. foldMG f z A x"
+  "fold_mset f z A \<equiv> THE x. fold_msetG f z A x"
 
-lemma Diff1_foldMG:
-  "\<lbrakk> foldMG f z (A - {#x#}) y; x \<in># A \<rbrakk> \<Longrightarrow> foldMG f z A (f x y)"
-  by (frule_tac x=x in foldMG.insertI, auto)
+lemma Diff1_fold_msetG:
+  "\<lbrakk> fold_msetG f z (A - {#x#}) y; x \<in># A \<rbrakk> \<Longrightarrow> fold_msetG f z A (f x y)"
+  by (frule_tac x=x in fold_msetG.insertI, auto)
 
-lemma foldMG_nonempty: "\<exists>x. foldMG f z A x"
+lemma fold_msetG_nonempty: "\<exists>x. fold_msetG f z A x"
   apply (induct A)
    apply blast
   apply clarsimp
-  apply (drule_tac x=x in foldMG.insertI)
+  apply (drule_tac x=x in fold_msetG.insertI)
   apply auto
   done
 
-lemma foldM_empty[simp]: "foldM f z {#} = z"
-  by (unfold foldM_def, blast)
+lemma fold_mset_empty[simp]: "fold_mset f z {#} = z"
+  by (unfold fold_mset_def, blast)
 
 locale left_commutative = 
   fixes f :: "'a => 'b => 'b"
   assumes left_commute: "f x (f y z) = f y (f x z)"
 
-lemma (in left_commutative) foldMG_determ:
-  "\<lbrakk>foldMG f z A x; foldMG f z A y\<rbrakk> \<Longrightarrow> y = x"
+lemma (in left_commutative) fold_msetG_determ:
+  "\<lbrakk>fold_msetG f z A x; fold_msetG f z A y\<rbrakk> \<Longrightarrow> y = x"
 proof (induct arbitrary: x y z rule: full_multiset_induct)
   case (less M x\<^isub>1 x\<^isub>2 Z)
   have IH: "\<forall>A. A \<subset># M \<longrightarrow> 
-    (\<forall>x x' x''. foldMG f x'' A x \<longrightarrow> foldMG f x'' A x'
+    (\<forall>x x' x''. fold_msetG f x'' A x \<longrightarrow> fold_msetG f x'' A x'
                \<longrightarrow> x' = x)" by fact
-  have Mfoldx\<^isub>1: "foldMG f Z M x\<^isub>1" and Mfoldx\<^isub>2: "foldMG f Z M x\<^isub>2" by fact+
+  have Mfoldx\<^isub>1: "fold_msetG f Z M x\<^isub>1" and Mfoldx\<^isub>2: "fold_msetG f Z M x\<^isub>2" by fact+
   show ?case
-  proof (rule foldMG.cases [OF Mfoldx\<^isub>1])
+  proof (rule fold_msetG.cases [OF Mfoldx\<^isub>1])
     assume "M = {#}" and "x\<^isub>1 = Z"
     thus ?case using Mfoldx\<^isub>2 by auto 
   next
     fix B b u
-    assume "M = B + {#b#}" and "x\<^isub>1 = f b u" and Bu: "foldMG f Z B u"
+    assume "M = B + {#b#}" and "x\<^isub>1 = f b u" and Bu: "fold_msetG f Z B u"
     hence MBb: "M = B + {#b#}" and x\<^isub>1: "x\<^isub>1 = f b u" by auto
     show ?case
-    proof (rule foldMG.cases [OF Mfoldx\<^isub>2])
+    proof (rule fold_msetG.cases [OF Mfoldx\<^isub>2])
       assume "M = {#}" "x\<^isub>2 = Z"
       thus ?case using Mfoldx\<^isub>1 by auto
     next
       fix C c v
-      assume "M = C + {#c#}" and "x\<^isub>2 = f c v" and Cv: "foldMG f Z C v"
+      assume "M = C + {#c#}" and "x\<^isub>2 = f c v" and Cv: "fold_msetG f Z C v"
       hence MCc: "M = C + {#c#}" and x\<^isub>2: "x\<^isub>2 = f c v" by auto
       hence CsubM: "C \<subset># M" by simp
       from MBb have BsubM: "B \<subset># M" by simp
@@ -1206,15 +1206,15 @@ proof (induct arbitrary: x y z rule: full_multiset_induct)
         have B: "B = ?D + {#c#}" and C: "C = ?D + {#b#}"
           using MBb MCc diff binC cinB
           by (auto simp: multiset_add_sub_el_shuffle)
-        then obtain d where Dfoldd: "foldMG f Z ?D d"
-          using foldMG_nonempty by iprover
-        hence "foldMG f Z B (f c d)" using cinB
-          by (rule Diff1_foldMG)
+        then obtain d where Dfoldd: "fold_msetG f Z ?D d"
+          using fold_msetG_nonempty by iprover
+        hence "fold_msetG f Z B (f c d)" using cinB
+          by (rule Diff1_fold_msetG)
         hence "f c d = u" using IH BsubM Bu by blast
         moreover 
-        have "foldMG f Z C (f b d)" using binC cinB diff Dfoldd
+        have "fold_msetG f Z C (f b d)" using binC cinB diff Dfoldd
           by (auto simp: multiset_add_sub_el_shuffle 
-            dest: foldMG.insertI [where x=b])
+            dest: fold_msetG.insertI [where x=b])
         hence "f b d = v" using IH CsubM Cv by blast
         ultimately show ?thesis using x\<^isub>1 x\<^isub>2
           by (auto simp: left_commute)
@@ -1223,51 +1223,68 @@ proof (induct arbitrary: x y z rule: full_multiset_induct)
   qed
 qed
         
-lemma (in left_commutative) foldM_insert_aux: "
-    (foldMG f z (A + {#x#}) v) =
-    (\<exists>y. foldMG f z A y \<and> v = f x y)"
+lemma (in left_commutative) fold_mset_insert_aux: "
+    (fold_msetG f z (A + {#x#}) v) =
+    (\<exists>y. fold_msetG f z A y \<and> v = f x y)"
   apply (rule iffI)
    prefer 2
    apply blast
-  apply (rule_tac A=A and f=f in foldMG_nonempty [THEN exE, standard])
-  apply (blast intro: foldMG_determ)
+  apply (rule_tac A=A and f=f in fold_msetG_nonempty [THEN exE, standard])
+  apply (blast intro: fold_msetG_determ)
   done
 
-lemma (in left_commutative) foldM_equality: "foldMG f z A y \<Longrightarrow> foldM f z A = y"
-  by (unfold foldM_def) (blast intro: foldMG_determ)
+lemma (in left_commutative) fold_mset_equality: "fold_msetG f z A y \<Longrightarrow> fold_mset f z A = y"
+  by (unfold fold_mset_def) (blast intro: fold_msetG_determ)
 
-lemma (in left_commutative) foldM_insert[simp]:
-  "foldM f z (A + {#x#}) = f x (foldM f z A)"
-  apply (simp add: foldM_def foldM_insert_aux union_commute)  
+lemma (in left_commutative) fold_mset_insert:
+  "fold_mset f z (A + {#x#}) = f x (fold_mset f z A)"
+  apply (simp add: fold_mset_def fold_mset_insert_aux union_commute)  
   apply (rule the_equality)
   apply (auto cong add: conj_cong 
-              simp add: foldM_def [symmetric] foldM_equality foldMG_nonempty)
+              simp add: fold_mset_def [symmetric] fold_mset_equality fold_msetG_nonempty)
   done
 
-lemma (in left_commutative) foldM_insert_idem:
-  shows "foldM f z (A + {#a#}) = f a (foldM f z A)"
-  apply (simp add: foldM_def foldM_insert_aux)
+lemma (in left_commutative) fold_mset_insert_idem:
+  shows "fold_mset f z (A + {#a#}) = f a (fold_mset f z A)"
+  apply (simp add: fold_mset_def fold_mset_insert_aux)
   apply (rule the_equality)
   apply (auto cong add: conj_cong 
-              simp add: foldM_def [symmetric] foldM_equality foldMG_nonempty)
+              simp add: fold_mset_def [symmetric] fold_mset_equality fold_msetG_nonempty)
   done
 
-lemma (in left_commutative) foldM_fusion:
+lemma (in left_commutative) fold_mset_commute:
+  "f x (fold_mset f z A) = fold_mset f (f x z) A"
+  by (induct A, auto simp: fold_mset_insert left_commute [of x])
+  
+lemma (in left_commutative) fold_mset_single [simp]:
+   "fold_mset f z {#x#} = f x z"
+using fold_mset_insert[of z "{#}"] by simp
+
+lemma (in left_commutative) fold_mset_union [simp]:
+   "fold_mset f z (A+B) = fold_mset f (fold_mset f z A) B"
+proof (induct A)
+   case empty thus ?case by simp
+next
+   case (add A x)
+   have "A + {#x#} + B = (A+B) + {#x#}" by(simp add:union_ac)
+   hence "fold_mset f z (A + {#x#} + B) = f x (fold_mset f z (A + B))" 
+     by (simp add: fold_mset_insert)
+   also have "\<dots> = fold_mset f (fold_mset f z (A + {#x#})) B"
+     by (simp add: fold_mset_commute[of x,symmetric] add fold_mset_insert)
+   finally show ?case .
+qed
+
+lemma (in left_commutative) fold_mset_fusion:
   includes left_commutative g
-  shows "\<lbrakk>\<And>x y. h (g x y) = f x (h y) \<rbrakk> \<Longrightarrow> h (foldM g w A) = foldM f (h w) A"
+  shows "\<lbrakk>\<And>x y. h (g x y) = f x (h y) \<rbrakk> \<Longrightarrow> h (fold_mset g w A) = fold_mset f (h w) A"
   by (induct A, auto)
 
-lemma (in left_commutative) foldM_commute:
-  "f x (foldM f z A) = foldM f (f x z) A"
-  by (induct A, auto simp: left_commute [of x])
-  
-lemma (in left_commutative) foldM_rec:
+lemma (in left_commutative) fold_mset_rec:
   assumes a: "a \<in># A" 
-  shows "foldM f z A = f a (foldM f z (A - {#a#}))"
+  shows "fold_mset f z A = f a (fold_mset f z (A - {#a#}))"
 proof -
   from a obtain A' where "A = A' + {#a#}" by (blast dest: multi_member_split)
   thus ?thesis by simp
 qed
-
 
 end
