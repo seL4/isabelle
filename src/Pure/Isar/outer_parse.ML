@@ -49,6 +49,7 @@ sig
   val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
   val and_list: (token list -> 'a * token list) -> token list -> 'a list * token list
   val and_list1: (token list -> 'a * token list) -> token list -> 'a list * token list
+  val properties: token list -> Markup.property list * token list
   val name: token list -> bstring * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
@@ -192,6 +193,8 @@ fun list scan = enum "," scan;
 
 fun and_list1 scan = enum1 "and" scan;
 fun and_list scan = enum "and" scan;
+
+val properties = $$$ "(" |-- !!! (list1 (string -- ($$$ "=" |-- string)) --| $$$ ")");
 
 
 (* names and text *)
