@@ -60,6 +60,8 @@ val str = PrintMode.setmp [] Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
 val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
+fun enum_default default sep opn cls [] = str default
+  | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
 
 
 (** syntax **)
@@ -863,7 +865,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
               str ("type '" ^ v),
               (str o deresolv) class,
               str "=",
-              Pretty.enum ";" "{" "};;" (
+              enum_default "();;" ";" "{" "};;" (
                 map pr_superclass_field superclasses
                 @ map pr_classparam_field classparams
               )
@@ -891,7 +893,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
               :: pr_tyvars arity
               @ str "="
               @@ (Pretty.enclose "(" ");;" o Pretty.breaks) [
-                Pretty.enum ";" "{" "}" (map pr_superclass superarities
+                enum_default "()" ";" "{" "}" (map pr_superclass superarities
                   @ map pr_classparam_inst classparam_insts),
                 str ":",
                 pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
