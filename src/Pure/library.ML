@@ -65,6 +65,7 @@ sig
   val change: 'a ref -> ('a -> 'a) -> unit
   val setmp_noncritical: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+  val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
   exception UnequalLengths
@@ -337,6 +338,13 @@ fun setmp_noncritical flag value f x =
   in Exn.release result end;
 
 fun setmp flag value f x = NAMED_CRITICAL "setmp" (fn () => setmp_noncritical flag value f x);
+
+fun setmp_thread_data tag orig_data data f x =
+  let
+    val _ = Multithreading.put_data (tag, data);
+    val result = Exn.capture f x;
+    val _ = Multithreading.put_data (tag, orig_data);
+  in Exn.release result end;
 
 
 
