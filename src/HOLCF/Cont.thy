@@ -89,6 +89,13 @@ apply (erule monofunE)
 apply (erule ub_rangeD)
 done
 
+lemma ub2ub_monofun':
+  "\<lbrakk>monofun f; S <| u\<rbrakk> \<Longrightarrow> f ` S <| f u"
+apply (rule ub_imageI)
+apply (erule monofunE)
+apply (erule (1) is_ubD)
+done
+
 text {* monotone functions map directed sets to directed sets *}
 
 lemma dir2dir_monofun:
