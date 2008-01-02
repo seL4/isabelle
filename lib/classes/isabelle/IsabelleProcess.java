@@ -5,14 +5,16 @@
 package isabelle;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Properties;
+import java.util.Enumeration;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Posix process wrapper for Isabelle (see also <code>src/Pure/Tools/isabelle_process.ML</code>).
  * <p>
- * 
+ *
  * The process model:
  * <p>
  *
@@ -30,13 +32,13 @@ import java.util.concurrent.LinkedBlockingQueue;
  * <li> process exit (return code)
  * </ul>
  * </ol>
- * 
+ *
  * I/O is fully asynchronous, with unrestricted buffers.  Text is encoded as UTF-8.
  * <p>
- * 
+ *
  * System properties:
  * <p>
- * 
+ *
  * <dl>
  * <dt> <code>isabelle.home</code>  <di> <code>ISABELLE_HOME</code> of Isabelle installation
  *                      (default determined from isabelle-process via <code>PATH</code>)
@@ -181,6 +183,25 @@ public class IsabelleProcess {
         return buf.toString();
     }
 
+    /**
+     * Auxiliary operation to encode properties as Isabelle outer syntax.
+     */
+    public static String encodeProperties(Properties props) {
+        StringBuffer buf = new StringBuffer(100);
+        buf.append("(");
+        for (Enumeration<String> e = (Enumeration<String>) props.propertyNames(); e.hasMoreElements(); ) {
+          String x = e.nextElement();
+          buf.append(encodeString(x));
+          buf.append(" = ");
+          buf.append(encodeString(props.getProperty(x)));
+          if (e.hasMoreElements()) {
+              buf.append(", ");
+          }
+        }
+        buf.append(")");
+        return buf.toString();
+    }
+
 
     /* output being piped into the process (stdin) */
 
@@ -203,7 +224,7 @@ public class IsabelleProcess {
                 } catch (InterruptedException exn) {
                     putResult(Result.Kind.SYSTEM, "Output thread interrupted");
                 } catch (IOException exn) {
-                    putResult(Result.Kind.SYSTEM, exn.getMessage());
+                    putResult(Result.Kind.SYSTEM, exn.getMessage() + " (output thread)");
                 }
             }
             putResult(Result.Kind.SYSTEM, "Output thread terminated");
@@ -260,11 +281,19 @@ public class IsabelleProcess {
     }
 
     /**
-     * Feeds exactly one Isabelle command into the process. 
+     * Feeds exactly one Isabelle command into the process.
      */
     public synchronized void command(String text) throws IsabelleProcessException
     {
         outputSync("Isabelle.command " + encodeString(text));
+    }
+
+    /**
+     * Isabelle command with properties.
+     */
+    public synchronized void command(Properties props, String text) throws IsabelleProcessException
+    {
+        outputSync("Isabelle.command " + encodeProperties(props) + " " + encodeString(text));
     }
 
     /**
@@ -275,7 +304,15 @@ public class IsabelleProcess {
         outputSync("ML " + encodeString(text));
     }
 
+    /**
+     * ML command with properties.
+     */
+    public synchronized void ML(Properties props, String text) throws IsabelleProcessException
+    {
+        command(props, "ML " + encodeString(text));
+    }
 
+    
     /* input from the process (stdout/stderr) */
 
     private volatile BufferedReader inputReader;
@@ -348,7 +385,7 @@ public class IsabelleProcess {
                     }
                 }
             } catch (IOException exn) {
-                putResult(Result.Kind.SYSTEM, exn.getMessage());
+                putResult(Result.Kind.SYSTEM, exn.getMessage() + " (input thread)");
             }
             putResult(Result.Kind.SYSTEM, "Input thread terminated");
         }
@@ -376,7 +413,7 @@ public class IsabelleProcess {
                     }
                 }
             } catch (IOException exn) {
-                putResult(Result.Kind.SYSTEM, exn.getMessage());
+                putResult(Result.Kind.SYSTEM, exn.getMessage() + " (error thread)");
             }
             putResult(Result.Kind.SYSTEM, "Error thread terminated");
         }
@@ -459,7 +496,7 @@ public class IsabelleProcess {
         errorThread.start();
         exitThread.start();
     }
-    
+
     /**
      * Creates Isabelle process with default logic image.
      */
