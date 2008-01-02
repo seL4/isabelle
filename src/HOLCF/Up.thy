@@ -236,11 +236,14 @@ by simp
 lemma up_less [simp]: "(up\<cdot>x \<sqsubseteq> up\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: up_def cont_Iup)
 
-lemma upE: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x. p = up\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-apply (case_tac p)
+lemma upE [cases type: u]: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x. p = up\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
+apply (cases p)
 apply (simp add: inst_up_pcpo)
 apply (simp add: up_def cont_Iup)
 done
+
+lemma up_induct [induct type: u]: "\<lbrakk>P \<bottom>; \<And>x. P (up\<cdot>x)\<rbrakk> \<Longrightarrow> P x"
+by (cases x, simp_all)
 
 lemma up_chain_cases:
   "chain Y \<Longrightarrow>
@@ -269,6 +272,6 @@ lemma fup2 [simp]: "fup\<cdot>f\<cdot>(up\<cdot>x) = f\<cdot>x"
 by (simp add: up_def fup_def cont_Iup cont_Ifup1 cont_Ifup2)
 
 lemma fup3 [simp]: "fup\<cdot>up\<cdot>x = x"
-by (rule_tac p=x in upE, simp_all)
+by (cases x, simp_all)
 
 end
