@@ -6,19 +6,80 @@
 header {* A simple term evaluation mechanism *}
 
 theory Eval
-imports ATP_Linkup Pure_term
+imports ATP_Linkup Code_Message
 begin
 
-subsection {* @{text typ_of} class *}
+subsection {* Type reflection *}
+
+subsubsection {* Definition *}
+
+types vname = message_string;
+types "class" = message_string;
+types sort = "class list"
+
+datatype "typ" =
+    Type message_string "typ list"
+  | TFree vname sort  
+
+abbreviation
+  Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" where
+  "Fun ty1 ty2 \<equiv> Type (STR ''fun'') [ty1, ty2]"
+
+locale (open) pure_term_syntax = -- {* FIXME drop this *}
+  fixes pure_term_Type :: "message_string \<Rightarrow> typ list \<Rightarrow> typ" (infixl "{\<struct>}" 120)
+    and pure_term_TFree :: "vname \<Rightarrow> sort \<Rightarrow> typ" ("\<lbrace>_\<Colon>_\<rbrace>" [118, 118] 117)
+    and pure_term_Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" (infixr "\<rightarrow>" 114)
+
+parse_translation {*
+let
+  fun Type_tr [tyco, tys] = Lexicon.const @{const_syntax Type} $ tyco $ tys
+    | Type_tr ts = raise TERM ("Type_tr", ts);
+  fun TFree_tr [v, sort] = Lexicon.const @{const_syntax TFree} $ v $ sort
+    | TFree_tr ts = raise TERM ("TFree_tr", ts);
+  fun Fun_tr [ty1, ty2] = Lexicon.const @{const_syntax Fun} $ ty1 $ ty2
+    | Fun_tr ts = raise TERM("Fun_tr", ts);
+in [
+  ("\\<^fixed>pure_term_Type", Type_tr),
+  ("\\<^fixed>pure_term_TFree", TFree_tr),
+  ("\\<^fixed>pure_term_Fun", Fun_tr)
+] end
+*}
+
+notation (output)
+  Type (infixl "{\<struct>}" 120)
+and
+  TFree ("\<lbrace>_\<Colon>_\<rbrace>" [118, 118] 117)
+and
+  Fun (infixr "\<rightarrow>" 114)
+
+ML {*
+structure Eval_Aux =
+struct
+
+val mk_sort = HOLogic.mk_list @{typ class} o map Message_String.mk;
+
+fun mk_typ f (Type (tyco, tys)) =
+      @{term Type} $ Message_String.mk tyco
+        $ HOLogic.mk_list @{typ typ} (map (mk_typ f) tys)
+  | mk_typ f (TFree v) =
+      f v;
+
+end;
+*}
+
+
+subsubsection {* Class @{text typ_of} *}
 
 class typ_of =
   fixes typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
 
 ML {*
-structure TypOf =
+structure Eval_Aux =
 struct
 
-fun mk ty =
+open Eval_Aux;
+
+fun mk_typ_of ty =
   Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
     $ Logic.mk_type ty;
 
@@ -27,11 +88,12 @@ end
 
 setup {*
 let
+  open Eval_Aux;
   fun define_typ_of ty lthy =
     let
       val lhs = Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
         $ Free ("T", Term.itselfT ty);
-      val rhs = Pure_term.mk_typ (fn v => TypOf.mk (TFree v)) ty;
+      val rhs = mk_typ (fn v => mk_typ_of (TFree v)) ty;
       val eq = Syntax.check_term lthy (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
     in lthy |> Specification.definition (NONE, (("", []), eq)) end;
   fun interpretator tyco thy =
@@ -81,15 +143,71 @@ instance ..
 end
 
 
-subsection {* @{text term_of} class *}
+subsubsection {* Code generator setup *}
+
+lemma [code func]:
+  includes pure_term_syntax
+  shows "tyco1 {\<struct>} tys1 = tyco2 {\<struct>} tys2 \<longleftrightarrow> tyco1 = tyco2
+     \<and> list_all2 (op =) tys1 tys2"
+  by (auto simp add: list_all2_eq [symmetric])
+
+code_type "typ"
+  (SML "Term.typ")
+
+code_const Type and TFree
+  (SML "Term.Type/ (_, _)" and "Term.TFree/ (_, _)")
+
+code_reserved SML Term
+
+
+
+subsection {* Term representation *}
+
+subsubsection {* Definition *}
+
+datatype "term" =
+    Const message_string "typ" (infix "\<Colon>\<subseteq>" 112)
+  | Fix   vname "typ" (infix ":\<epsilon>" 112)
+  | App   "term" "term" (infixl "\<bullet>" 110)
+  | Abs   "vname \<times> typ" "term" (infixr "\<mapsto>" 111)
+  | Bnd   nat
+
+code_datatype Const App Fix
+
+abbreviation
+  Apps :: "term \<Rightarrow> term list \<Rightarrow> term" (infixl "{\<bullet>}" 110) where
+  "t {\<bullet>} ts \<equiv> foldl (op \<bullet>) t ts"
+abbreviation
+  Abss :: "(vname \<times> typ) list \<Rightarrow> term \<Rightarrow> term" (infixr "{\<mapsto>}" 111) where
+  "vs {\<mapsto>} t \<equiv> foldr (op \<mapsto>) vs t"
+
+ML {*
+structure Eval_Aux =
+struct
+
+open Eval_Aux;
+
+fun mk_term f g (Const (c, ty)) =
+      @{term Const} $ Message_String.mk c $ g ty
+  | mk_term f g (t1 $ t2) =
+      @{term App} $ mk_term f g t1 $ mk_term f g t2
+  | mk_term f g (Free v) = f v;
+
+end;
+*}
+
+
+subsubsection {* Class @{text term_of} *}
 
 class term_of = typ_of +
   constrains typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
   fixes term_of :: "'a \<Rightarrow> term"
 
 ML {*
-structure TermOf =
+structure Eval_Aux =
 struct
+
+open Eval_Aux;
 
 local
   fun term_term_of ty =
@@ -102,9 +220,9 @@ in
       fun mk_eq c =
         let
           val lhs : term = term_term_of dty $ c;
-          val rhs : term = Pure_term.mk_term
+          val rhs : term = mk_term
             (fn (v, ty) => term_term_of ty $ Free (v, ty))
-            (Pure_term.mk_typ (fn (v, sort) => TypOf.mk (TFree (v, sort)))) c
+            (mk_typ (fn (v, sort) => mk_typ_of (TFree (v, sort)))) c
         in
           HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
         end;
@@ -118,6 +236,7 @@ end;
 
 setup {*
 let
+  open Eval_Aux;
   fun thy_note ((name, atts), thms) =
     PureThy.add_thmss [((name, thms), atts)] #-> (fn [thms] => pair (name, thms));
   fun thy_def ((name, atts), t) =
@@ -143,7 +262,7 @@ let
       val sorts = map (inter_sort o snd) vs_proto;
       val vs = map fst vs_proto ~~ sorts;
       val css = map (prep_dtyp thy vs) tycos;
-      val defs = map (TermOf.mk_terms_of_defs vs) css;
+      val defs = map (mk_terms_of_defs vs) css;
     in if forall (fn tyco => can (Sign.arity_sorts thy tyco) @{sort term_of}) dep_tycos
         andalso not (tycos = [@{type_name typ}])
       then SOME (sorts, defs)
@@ -212,12 +331,20 @@ instance ..
 end
 
 
-text {* Adaption for @{typ message_string}s *}
+subsubsection {* Code generator setup *}
 
+lemmas [code func del] = term.recs term.cases term.size
 lemmas [code func del] = term_of_message_string.simps
+lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
+
+code_type "term"
+  (SML "Term.term")
+
+code_const Const and App and Fix
+  (SML "Term.Const/ (_, _)" and "Term.$/ (_, _)" and "Term.Free/ (_, _)")
 
 
-subsection {* Evaluation infrastructure *}
+subsection {* Evaluation setup *}
 
 ML {*
 signature EVAL =
@@ -238,7 +365,7 @@ fun eval_invoke thy code ((_, ty), t) deps _ =
   CodeTarget.eval_invoke thy ("Eval.eval_ref", eval_ref) code (t, ty) [];
 
 fun eval_term thy =
-  TermOf.mk_term_of
+  Eval_Aux.mk_term_of
   #> CodePackage.eval_term thy (eval_invoke thy)
   #> Code.postprocess_term thy;
 
