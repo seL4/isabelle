@@ -86,6 +86,22 @@ apply (drule_tac i=i in ub_rangeD)
 apply simp
 done
 
+lemma is_lub_Iup': "\<lbrakk>directed S; S <<| x\<rbrakk> \<Longrightarrow> (Iup ` S) <<| Iup x"
+apply (rule is_lubI)
+apply (rule ub_imageI)
+apply (subst Iup_less)
+apply (erule (1) is_ubD [OF is_lubD1])
+apply (case_tac u)
+apply (drule directedD1, erule exE)
+apply (drule (1) ub_imageD)
+apply simp
+apply simp
+apply (erule is_lub_lub)
+apply (rule is_ubI)
+apply (drule (1) ub_imageD)
+apply simp
+done
+
 text {* Now some lemmas about chains of @{typ "'a u"} elements *}
 
 lemma up_lemma1: "z \<noteq> Ibottom \<Longrightarrow> Iup (THE a. Iup a = z) = z"
@@ -153,6 +169,55 @@ done
 
 instance u :: (cpo) cpo
 by intro_classes (rule cpo_up)
+
+lemma up_directed_lemma:
+  "directed (S::'a::dcpo u set) \<Longrightarrow>
+    (directed (Iup -` S) \<and> S <<| Iup (lub (Iup -` S))) \<or>
+    S = {Ibottom}"
+apply (case_tac "\<exists>x. Iup x \<in> S")
+apply (rule disjI1)
+apply (subgoal_tac "directed (Iup -` S)")
+apply (rule conjI, assumption)
+apply (rule is_lubI)
+apply (rule is_ubI)
+apply (case_tac x, simp, simp)
+apply (erule is_ub_thelub', simp)
+apply (case_tac u)
+apply (erule exE)
+apply (drule (1) is_ubD)
+apply simp
+apply simp
+apply (erule is_lub_thelub')
+apply (rule is_ubI, simp)
+apply (drule (1) is_ubD, simp)
+apply (rule directedI)
+apply (erule exE)
+apply (rule exI)
+apply (erule vimageI2)
+apply simp
+apply (drule_tac x="Iup x" and y="Iup y" in directedD2, assumption+)
+apply (erule bexE, rename_tac z)
+apply (case_tac z)
+apply simp
+apply (rule_tac x=a in bexI)
+apply simp
+apply simp
+apply (rule disjI2)
+apply (simp, safe)
+apply (case_tac x, simp, simp)
+apply (drule directedD1)
+apply (clarify, rename_tac x)
+apply (case_tac x, simp, simp)
+done
+
+lemma dcpo_up: "directed (S::'a::dcpo u set) \<Longrightarrow> \<exists>x. S <<| x"
+apply (frule up_directed_lemma, safe)
+apply (erule exI)
+apply (rule exI, rule is_lub_singleton)
+done
+
+instance u :: (dcpo) dcpo
+by intro_classes (rule dcpo_up)
 
 subsection {* Lifted cpo is pointed *}
 
