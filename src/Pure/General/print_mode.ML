@@ -42,15 +42,8 @@ fun print_mode_value () =
 fun print_mode_active mode = member (op =) (print_mode_value ()) mode;
 
 fun setmp modes f x =
-  let
-    val orig_data =
-      (case Multithreading.get_data tag of
-        SOME (SOME orig_modes) => SOME orig_modes
-      | _ => NONE);
-    val _ = Multithreading.put_data (tag, SOME modes);
-    val result = Exn.capture f x;
-    val _ = Multithreading.put_data (tag, orig_data);
-  in Exn.release result end;
+  let val orig_modes = (case Multithreading.get_data tag of SOME (SOME ms) => SOME ms | _ => NONE)
+  in setmp_thread_data tag orig_modes (SOME modes) f x end;
 
 fun with_modes modes f x = setmp (modes @ print_mode_value ()) f x;
 fun closure f = with_modes [] f;
