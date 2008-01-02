@@ -29,12 +29,16 @@ primrec
 
 subsection {* Ordering on lifted cpo *}
 
-instance u :: (sq_ord) sq_ord ..
+instantiation u :: (cpo) sq_ord
+begin
 
-defs (overloaded)
+definition
   less_up_def:
     "(op \<sqsubseteq>) \<equiv> (\<lambda>x y. case x of Ibottom \<Rightarrow> True | Iup a \<Rightarrow>
       (case y of Ibottom \<Rightarrow> False | Iup b \<Rightarrow> a \<sqsubseteq> b))"
+
+instance ..
+end
 
 lemma minimal_up [iff]: "Ibottom \<sqsubseteq> z"
 by (simp add: less_up_def)
@@ -47,22 +51,22 @@ by (simp add: less_up_def)
 
 subsection {* Lifted cpo is a partial order *}
 
-lemma refl_less_up: "(x::'a u) \<sqsubseteq> x"
-by (simp add: less_up_def split: u.split)
-
-lemma antisym_less_up: "\<lbrakk>(x::'a u) \<sqsubseteq> y; y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> x = y"
-apply (simp add: less_up_def split: u.split_asm)
-apply (erule (1) antisym_less)
-done
-
-lemma trans_less_up: "\<lbrakk>(x::'a u) \<sqsubseteq> y; y \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
-apply (simp add: less_up_def split: u.split_asm)
-apply (erule (1) trans_less)
-done
-
 instance u :: (cpo) po
-by intro_classes
-  (assumption | rule refl_less_up antisym_less_up trans_less_up)+
+proof
+  fix x :: "'a u"
+  show "x \<sqsubseteq> x"
+    unfolding less_up_def by (simp split: u.split)
+next
+  fix x y :: "'a u"
+  assume "x \<sqsubseteq> y" "y \<sqsubseteq> x" thus "x = y"
+    unfolding less_up_def
+    by (auto split: u.split_asm intro: antisym_less)
+next
+  fix x y z :: "'a u"
+  assume "x \<sqsubseteq> y" "y \<sqsubseteq> z" thus "x \<sqsubseteq> z"
+    unfolding less_up_def
+    by (auto split: u.split_asm intro: trans_less)
+qed
 
 subsection {* Lifted cpo is a cpo *}
 
