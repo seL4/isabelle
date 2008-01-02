@@ -92,6 +92,7 @@ sig
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
+  val thread_properties: unit -> Markup.property list
   val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
   val excursion: transition list -> unit
   val set_state: state -> unit
@@ -669,27 +670,43 @@ fun skip_proof_to_theory p = map_current (fn _ =>
 
 (** toplevel transactions **)
 
+(* thread transition properties *)
+
+local
+  val tag = Universal.tag () : Markup.property list Universal.tag;
+in
+
+fun thread_properties () = these (Multithreading.get_data tag);
+
+fun setmp_thread_properties (Transition {name, props, pos, ...}) f x =
+  setmp_thread_data tag (thread_properties ())
+    (fold (AList.update (op =)) ((Markup.nameN, name) :: Position.properties_of pos) props) f x;
+
+end;
+
+
 (* apply transitions *)
 
 local
 
-fun app int (tr as Transition {trans, pos, int_only, print, no_timing, ...}) state =
-  let
-    val _ =
-      if not int andalso int_only then warning (command_msg "Interactive-only " tr)
-      else ();
+fun app int (tr as Transition {trans, pos, int_only, print, no_timing, ...}) =
+  setmp_thread_properties tr (fn state =>
+    let
+      val _ =
+        if not int andalso int_only then warning (command_msg "Interactive-only " tr)
+        else ();
 
-    fun do_timing f x = (warning (command_msg "" tr); timeap f x);
-    fun do_profiling f x = profile (! profiling) f x;
+      fun do_timing f x = (warning (command_msg "" tr); timeap f x);
+      fun do_profiling f x = profile (! profiling) f x;
 
-    val (result, opt_exn) =
-       state |> (apply_trans int pos trans
-        |> (if ! profiling > 0 andalso not no_timing then do_profiling else I)
-        |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
-    val _ =
-      if int andalso not (! quiet) andalso exists (member (op =) print) ("" :: print_mode_value ())
-      then print_state false result else ();
-  in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
+      val (result, opt_exn) =
+         state |> (apply_trans int pos trans
+          |> (if ! profiling > 0 andalso not no_timing then do_profiling else I)
+          |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
+      val _ =
+        if int andalso not (! quiet) andalso exists (member (op =) print) ("" :: print_mode_value ())
+        then print_state false result else ();
+    in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_exn) end);
 
 in
 
