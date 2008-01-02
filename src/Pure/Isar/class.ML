@@ -820,6 +820,11 @@ fun conclude_instantiation lthy =
         (Type (tyco, map TFree (Name.names Name.context Name.aT sorts)), sort)
       then () else error ("Missing instance proof for type " ^ quote (Sign.extern_type thy tyco)))
         tycos;
+    (*this checkpoint should move to AxClass as soon as "attach" has disappeared*)
+    val _ = case map (fst o snd) params
+     of [] => ()
+      | cs => Output.legacy_feature
+          ("Missing definitions for overloaded parameters " ^ commas_quote cs)
   in lthy end;
 
 fun pretty_instantiation lthy =
