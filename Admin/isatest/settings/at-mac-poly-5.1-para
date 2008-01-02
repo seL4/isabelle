@@ -4,7 +4,7 @@
   ML_SYSTEM="polyml-5.1"
   ML_PLATFORM="x86-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="-H 500"
+  ML_OPTIONS="-H 2000"
 
 
 ISABELLE_HOME_USER=~/isabelle-at-mac-poly-e
@@ -29,6 +29,6 @@ else
   ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 fi
 
-ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true -g false -M 4"
+ISABELLE_USEDIR_OPTIONS="-v true -M 4"
 
 HOL_USEDIR_OPTIONS="-p 2"
