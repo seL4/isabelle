@@ -125,8 +125,17 @@ done
 lemma thelubI: "M <<| l \<Longrightarrow> lub M = l"
 by (rule unique_lub [OF lubI])
 
+lemma is_lub_singleton: "{x} <<| x"
+by (simp add: is_lub_def is_ub_def)
+
 lemma lub_singleton [simp]: "lub {x} = x"
-by (simp add: thelubI is_lub_def is_ub_def)
+by (rule thelubI [OF is_lub_singleton])
+
+lemma is_lub_bin: "x \<sqsubseteq> y \<Longrightarrow> {x, y} <<| y"
+by (simp add: is_lub_def is_ub_def)
+
+lemma lub_bin: "x \<sqsubseteq> y \<Longrightarrow> lub {x, y} = y"
+by (rule is_lub_bin [THEN thelubI])
 
 text {* access to some definition as inference rule *}
 
@@ -328,6 +337,17 @@ unfolding directed_def by fast
 
 lemma directedD2: "\<lbrakk>directed S; x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
 unfolding directed_def by fast
+
+lemma directedE1:
+  assumes S: "directed S"
+  obtains z where "z \<in> S"
+by (insert directedD1 [OF S], fast)
+
+lemma directedE2:
+  assumes S: "directed S"
+  assumes x: "x \<in> S" and y: "y \<in> S"
+  obtains z where "z \<in> S" "x \<sqsubseteq> z" "y \<sqsubseteq> z"
+by (insert directedD2 [OF S x y], fast)
 
 lemma directed_finiteI:
   assumes U: "\<And>U. \<lbrakk>finite U; U \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. \<forall>x\<in>U. x \<sqsubseteq> z"
