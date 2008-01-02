@@ -65,6 +65,7 @@ sig
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext: bool -> string -> Toplevel.transition -> Toplevel.transition
   val use_commit: Toplevel.transition -> Toplevel.transition
+  val nested_command: Markup.property list -> string * Position.T -> Toplevel.transition
   val cd: Path.T -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
   val use_thy: string -> Toplevel.transition -> Toplevel.transition
@@ -386,6 +387,16 @@ fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
   (ML_Context.use_mltext txt (v andalso verb) (try Toplevel.generic_theory_of state)));
 
 val use_commit = Toplevel.imperative Secure.commit;
+
+
+(* nested commands *)
+
+fun nested_command props (str, pos) =
+  let val (pos', props') = Position.of_properties (props @ Position.properties_of pos) in
+    (case OuterSyntax.parse pos' str of
+      [transition] => Toplevel.properties props' transition
+    | _ => error "exactly one command expected")
+  end;
 
 
 (* current working directory *)
