@@ -15,15 +15,19 @@ defaultsort cpo
 
 subsection {* Type @{typ unit} is a pcpo *}
 
-instance unit :: sq_ord ..
+instantiation unit :: sq_ord
+begin
 
-defs (overloaded)
+definition
   less_unit_def [simp]: "x \<sqsubseteq> (y::unit) \<equiv> True"
+
+instance ..
+end
 
 instance unit :: po
 by intro_classes simp_all
 
-instance unit :: cpo
+instance unit :: dcpo
 by intro_classes (simp add: is_lub_def is_ub_def)
 
 instance unit :: pcpo
@@ -42,29 +46,31 @@ by (simp add: unit_when_def)
 
 subsection {* Product type is a partial order *}
 
-instance "*" :: (sq_ord, sq_ord) sq_ord ..
+instantiation "*" :: (sq_ord, sq_ord) sq_ord
+begin
 
-defs (overloaded)
+definition
   less_cprod_def: "(op \<sqsubseteq>) \<equiv> \<lambda>p1 p2. (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
 
-lemma refl_less_cprod: "(p::'a * 'b) \<sqsubseteq> p"
-by (simp add: less_cprod_def)
+instance ..
+end
 
-lemma antisym_less_cprod: "\<lbrakk>(p1::'a * 'b) \<sqsubseteq> p2; p2 \<sqsubseteq> p1\<rbrakk> \<Longrightarrow> p1 = p2"
-apply (unfold less_cprod_def)
-apply (rule injective_fst_snd)
-apply (fast intro: antisym_less)
-apply (fast intro: antisym_less)
-done
-
-lemma trans_less_cprod: "\<lbrakk>(p1::'a*'b) \<sqsubseteq> p2; p2 \<sqsubseteq> p3\<rbrakk> \<Longrightarrow> p1 \<sqsubseteq> p3"
-apply (unfold less_cprod_def)
-apply (fast intro: trans_less)
-done
-
-instance "*" :: (cpo, cpo) po
-by intro_classes
-  (assumption | rule refl_less_cprod antisym_less_cprod trans_less_cprod)+
+instance "*" :: (po, po) po
+proof
+  fix x :: "'a \<times> 'b"
+  show "x \<sqsubseteq> x"
+    unfolding less_cprod_def by simp
+next
+  fix x y :: "'a \<times> 'b"
+  assume "x \<sqsubseteq> y" "y \<sqsubseteq> x" thus "x = y"
+    unfolding less_cprod_def Pair_fst_snd_eq
+    by (fast intro: antisym_less)
+next
+  fix x y z :: "'a \<times> 'b"
+  assume "x \<sqsubseteq> y" "y \<sqsubseteq> z" thus "x \<sqsubseteq> z"
+    unfolding less_cprod_def
+    by (fast intro: trans_less)
+qed
 
 
 subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
@@ -91,36 +97,70 @@ by (simp add: monofun_def less_cprod_def)
 
 subsection {* Product type is a cpo *}
 
-lemma lub_cprod: 
-  "chain S \<Longrightarrow> range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
+lemma lub_cprod:
+  fixes S :: "nat \<Rightarrow> ('a::cpo \<times> 'b::cpo)"
+  assumes S: "chain S"
+  shows "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
 apply (rule is_lubI)
 apply (rule ub_rangeI)
 apply (rule_tac t = "S i" in surjective_pairing [THEN ssubst])
 apply (rule monofun_pair)
 apply (rule is_ub_thelub)
-apply (erule monofun_fst [THEN ch2ch_monofun])
+apply (rule ch2ch_monofun [OF monofun_fst S])
 apply (rule is_ub_thelub)
-apply (erule monofun_snd [THEN ch2ch_monofun])
+apply (rule ch2ch_monofun [OF monofun_snd S])
 apply (rule_tac t = "u" in surjective_pairing [THEN ssubst])
 apply (rule monofun_pair)
 apply (rule is_lub_thelub)
-apply (erule monofun_fst [THEN ch2ch_monofun])
+apply (rule ch2ch_monofun [OF monofun_fst S])
 apply (erule monofun_fst [THEN ub2ub_monofun])
 apply (rule is_lub_thelub)
-apply (erule monofun_snd [THEN ch2ch_monofun])
+apply (rule ch2ch_monofun [OF monofun_snd S])
 apply (erule monofun_snd [THEN ub2ub_monofun])
 done
 
+lemma directed_lub_cprod:
+  fixes S :: "('a::dcpo \<times> 'b::dcpo) set"
+  assumes S: "directed S"
+  shows "S <<| (\<Squnion>x\<in>S. fst x, \<Squnion>x\<in>S. snd x)"
+apply (rule is_lubI)
+apply (rule is_ubI)
+apply (rule_tac t=x in surjective_pairing [THEN ssubst])
+apply (rule monofun_pair)
+apply (erule is_ub_thelub' [OF dir2dir_monofun [OF monofun_fst S] imageI])
+apply (erule is_ub_thelub' [OF dir2dir_monofun [OF monofun_snd S] imageI])
+apply (rule_tac t=u in surjective_pairing [THEN ssubst])
+apply (rule monofun_pair)
+apply (rule is_lub_thelub')
+apply (rule dir2dir_monofun [OF monofun_fst S])
+apply (erule ub2ub_monofun' [OF monofun_fst])
+apply (rule is_lub_thelub')
+apply (rule dir2dir_monofun [OF monofun_snd S])
+apply (erule ub2ub_monofun' [OF monofun_snd])
+done
+
 lemma thelub_cprod:
-  "chain S \<Longrightarrow> lub (range S) = (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
+  "chain (S::nat \<Rightarrow> 'a::cpo \<times> 'b::cpo)
+    \<Longrightarrow> lub (range S) = (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
 by (rule lub_cprod [THEN thelubI])
 
-lemma cpo_cprod:
-  "chain (S::nat \<Rightarrow> 'a::cpo * 'b::cpo) \<Longrightarrow> \<exists>x. range S <<| x"
-by (rule exI, erule lub_cprod)
-
 instance "*" :: (cpo, cpo) cpo
-by intro_classes (rule cpo_cprod)
+proof
+  fix S :: "nat \<Rightarrow> ('a \<times> 'b)"
+  assume "chain S"
+  hence "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
+    by (rule lub_cprod)
+  thus "\<exists>x. range S <<| x" ..
+qed
+
+instance "*" :: (dcpo, dcpo) dcpo
+proof
+  fix S :: "('a \<times> 'b) set"
+  assume "directed S"
+  hence "S <<| (\<Squnion>x\<in>S. fst x, \<Squnion>x\<in>S. snd x)"
+    by (rule directed_lub_cprod)
+  thus "\<exists>x. S <<| x" ..
+qed
 
 subsection {* Product type is pointed *}
 
