@@ -750,11 +750,9 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "Isabelle.command" "nested Isabelle command" K.control
-    (P.position P.string :|-- (fn (str, pos) =>
-      (case OuterSyntax.parse pos str of
-        [transition] => Scan.succeed (K transition)
-      | _ => Scan.fail_with (K "exactly one command expected"))
-      handle ERROR msg => Scan.fail_with (K msg)));
+    ((Scan.optional P.properties [] -- P.position P.string) :|-- (fn (props, arg) =>
+      Scan.succeed (K (IsarCmd.nested_command props arg))
+        handle ERROR msg => Scan.fail_with (K msg)));
 
 
 
