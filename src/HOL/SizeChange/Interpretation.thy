@@ -64,7 +64,7 @@ fun in_cdesc :: "('a, 'q) cdesc \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 
 where
   "in_cdesc (\<Gamma>, r, l) x y = (\<exists>q. x = r q \<and> y = l q \<and> \<Gamma> q)"
 
-fun mk_rel :: "('a, 'q) cdesc list \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+primrec mk_rel :: "('a, 'q) cdesc list \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
 where
   "mk_rel [] x y = False"
 | "mk_rel (c#cs) x y =

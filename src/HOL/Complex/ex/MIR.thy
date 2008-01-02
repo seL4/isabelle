@@ -11,7 +11,7 @@ theory MIR
 
 declare real_of_int_floor_cancel [simp del]
 
-fun alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list" where 
+primrec alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list" where 
   "alluopairs [] = []"
 | "alluopairs (x#xs) = (map (Pair x) (x#xs))@(alluopairs xs)"
 
@@ -173,7 +173,7 @@ datatype num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub n
   | Mul int num | Floor num| CF int num num
 
   (* A size for num to make inductive proofs simpler*)
-fun num_size :: "num \<Rightarrow> nat" where
+primrec num_size :: "num \<Rightarrow> nat" where
  "num_size (C c) = 1"
 | "num_size (Bound n) = 1"
 | "num_size (Neg a) = 1 + num_size a"
@@ -185,7 +185,7 @@ fun num_size :: "num \<Rightarrow> nat" where
 | "num_size (Floor a) = 1 + num_size a"
 
   (* Semantics of numeral terms (num) *)
-fun Inum :: "real list \<Rightarrow> num \<Rightarrow> real" where
+primrec Inum :: "real list \<Rightarrow> num \<Rightarrow> real" where
   "Inum bs (C c) = (real c)"
 | "Inum bs (Bound n) = bs!n"
 | "Inum bs (CN n c a) = (real c) * (bs!n) + (Inum bs a)"
@@ -272,7 +272,7 @@ lemma fmsize_pos: "fmsize p > 0"
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-fun Ifm ::"real list \<Rightarrow> fm \<Rightarrow> bool" where
+primrec Ifm ::"real list \<Rightarrow> fm \<Rightarrow> bool" where
   "Ifm bs T = True"
 | "Ifm bs F = False"
 | "Ifm bs (Lt a) = (Inum bs a < 0)"
@@ -322,39 +322,32 @@ by (induct p rule: prep.induct, auto)
 
 
   (* Quantifier freeness *)
-consts qfree:: "fm \<Rightarrow> bool"
-recdef qfree "measure size"
+fun qfree:: "fm \<Rightarrow> bool" where
   "qfree (E p) = False"
-  "qfree (A p) = False"
-  "qfree (NOT p) = qfree p" 
-  "qfree (And p q) = (qfree p \<and> qfree q)" 
-  "qfree (Or  p q) = (qfree p \<and> qfree q)" 
-  "qfree (Imp p q) = (qfree p \<and> qfree q)" 
-  "qfree (Iff p q) = (qfree p \<and> qfree q)"
-  "qfree p = True"
+  | "qfree (A p) = False"
+  | "qfree (NOT p) = qfree p" 
+  | "qfree (And p q) = (qfree p \<and> qfree q)" 
+  | "qfree (Or  p q) = (qfree p \<and> qfree q)" 
+  | "qfree (Imp p q) = (qfree p \<and> qfree q)" 
+  | "qfree (Iff p q) = (qfree p \<and> qfree q)"
+  | "qfree p = True"
 
   (* Boundedness and substitution *)
-consts 
-  numbound0:: "num \<Rightarrow> bool" (* a num is INDEPENDENT of Bound 0 *)
-  bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *)
-  numsubst0:: "num \<Rightarrow> num \<Rightarrow> num" (* substitute a num into a num for Bound 0 *)
-  subst0:: "num \<Rightarrow> fm \<Rightarrow> fm" (* substitue a num into a formula for Bound 0 *)
-primrec
+primrec numbound0 :: "num \<Rightarrow> bool" (* a num is INDEPENDENT of Bound 0 *) where
   "numbound0 (C c) = True"
-  "numbound0 (Bound n) = (n>0)"
-  "numbound0 (CN n i a) = (n > 0 \<and> numbound0 a)"
-  "numbound0 (Neg a) = numbound0 a"
-  "numbound0 (Add a b) = (numbound0 a \<and> numbound0 b)"
-  "numbound0 (Sub a b) = (numbound0 a \<and> numbound0 b)" 
-  "numbound0 (Mul i a) = numbound0 a"
-  "numbound0 (Floor a) = numbound0 a"
-  "numbound0 (CF c a b) = (numbound0 a \<and> numbound0 b)" 
+  | "numbound0 (Bound n) = (n>0)"
+  | "numbound0 (CN n i a) = (n > 0 \<and> numbound0 a)"
+  | "numbound0 (Neg a) = numbound0 a"
+  | "numbound0 (Add a b) = (numbound0 a \<and> numbound0 b)"
+  | "numbound0 (Sub a b) = (numbound0 a \<and> numbound0 b)" 
+  | "numbound0 (Mul i a) = numbound0 a"
+  | "numbound0 (Floor a) = numbound0 a"
+  | "numbound0 (CF c a b) = (numbound0 a \<and> numbound0 b)" 
+
 lemma numbound0_I:
   assumes nb: "numbound0 a"
   shows "Inum (b#bs) a = Inum (b'#bs) a"
-using nb
-by (induct a rule: numbound0.induct) (auto simp add: nth_pos2)
-
+  using nb by (induct a) (auto simp add: nth_pos2)
 
 lemma numbound0_gen: 
   assumes nb: "numbound0 t" and ti: "isint t (x#bs)"
@@ -367,41 +360,41 @@ proof(clarify)
     by (simp add: isint_def)
 qed
 
-primrec
+primrec bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *) where
   "bound0 T = True"
-  "bound0 F = True"
-  "bound0 (Lt a) = numbound0 a"
-  "bound0 (Le a) = numbound0 a"
-  "bound0 (Gt a) = numbound0 a"
-  "bound0 (Ge a) = numbound0 a"
-  "bound0 (Eq a) = numbound0 a"
-  "bound0 (NEq a) = numbound0 a"
-  "bound0 (Dvd i a) = numbound0 a"
-  "bound0 (NDvd i a) = numbound0 a"
-  "bound0 (NOT p) = bound0 p"
-  "bound0 (And p q) = (bound0 p \<and> bound0 q)"
-  "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
-  "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
-  "bound0 (Iff p q) = (bound0 p \<and> bound0 q)"
-  "bound0 (E p) = False"
-  "bound0 (A p) = False"
+  | "bound0 F = True"
+  | "bound0 (Lt a) = numbound0 a"
+  | "bound0 (Le a) = numbound0 a"
+  | "bound0 (Gt a) = numbound0 a"
+  | "bound0 (Ge a) = numbound0 a"
+  | "bound0 (Eq a) = numbound0 a"
+  | "bound0 (NEq a) = numbound0 a"
+  | "bound0 (Dvd i a) = numbound0 a"
+  | "bound0 (NDvd i a) = numbound0 a"
+  | "bound0 (NOT p) = bound0 p"
+  | "bound0 (And p q) = (bound0 p \<and> bound0 q)"
+  | "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
+  | "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
+  | "bound0 (Iff p q) = (bound0 p \<and> bound0 q)"
+  | "bound0 (E p) = False"
+  | "bound0 (A p) = False"
 
 lemma bound0_I:
   assumes bp: "bound0 p"
   shows "Ifm (b#bs) p = Ifm (b'#bs) p"
-using bp numbound0_I[where b="b" and bs="bs" and b'="b'"]
-by (induct p rule: bound0.induct) (auto simp add: nth_pos2)
+ using bp numbound0_I [where b="b" and bs="bs" and b'="b'"]
+  by (induct p) (auto simp add: nth_pos2)
 
-primrec
+primrec numsubst0:: "num \<Rightarrow> num \<Rightarrow> num" (* substitute a num into a num for Bound 0 *) where
   "numsubst0 t (C c) = (C c)"
-  "numsubst0 t (Bound n) = (if n=0 then t else Bound n)"
-  "numsubst0 t (CN n i a) = (if n=0 then Add (Mul i t) (numsubst0 t a) else CN n i (numsubst0 t a))"
-  "numsubst0 t (CF i a b) = CF i (numsubst0 t a) (numsubst0 t b)"
-  "numsubst0 t (Neg a) = Neg (numsubst0 t a)"
-  "numsubst0 t (Add a b) = Add (numsubst0 t a) (numsubst0 t b)"
-  "numsubst0 t (Sub a b) = Sub (numsubst0 t a) (numsubst0 t b)" 
-  "numsubst0 t (Mul i a) = Mul i (numsubst0 t a)"
-  "numsubst0 t (Floor a) = Floor (numsubst0 t a)"
+  | "numsubst0 t (Bound n) = (if n=0 then t else Bound n)"
+  | "numsubst0 t (CN n i a) = (if n=0 then Add (Mul i t) (numsubst0 t a) else CN n i (numsubst0 t a))"
+  | "numsubst0 t (CF i a b) = CF i (numsubst0 t a) (numsubst0 t b)"
+  | "numsubst0 t (Neg a) = Neg (numsubst0 t a)"
+  | "numsubst0 t (Add a b) = Add (numsubst0 t a) (numsubst0 t b)"
+  | "numsubst0 t (Sub a b) = Sub (numsubst0 t a) (numsubst0 t b)" 
+  | "numsubst0 t (Mul i a) = Mul i (numsubst0 t a)"
+  | "numsubst0 t (Floor a) = Floor (numsubst0 t a)"
 
 lemma numsubst0_I:
   shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b#bs) a)#bs) t"
@@ -412,30 +405,29 @@ lemma numsubst0_I':
   shows "Inum (b#bs) (numsubst0 a t) = Inum ((Inum (b'#bs) a)#bs) t"
   by (induct t) (simp_all add: nth_pos2 numbound0_I[OF nb, where b="b" and b'="b'"])
 
-
-primrec
+primrec subst0:: "num \<Rightarrow> fm \<Rightarrow> fm" (* substitue a num into a formula for Bound 0 *) where
   "subst0 t T = T"
-  "subst0 t F = F"
-  "subst0 t (Lt a) = Lt (numsubst0 t a)"
-  "subst0 t (Le a) = Le (numsubst0 t a)"
-  "subst0 t (Gt a) = Gt (numsubst0 t a)"
-  "subst0 t (Ge a) = Ge (numsubst0 t a)"
-  "subst0 t (Eq a) = Eq (numsubst0 t a)"
-  "subst0 t (NEq a) = NEq (numsubst0 t a)"
-  "subst0 t (Dvd i a) = Dvd i (numsubst0 t a)"
-  "subst0 t (NDvd i a) = NDvd i (numsubst0 t a)"
-  "subst0 t (NOT p) = NOT (subst0 t p)"
-  "subst0 t (And p q) = And (subst0 t p) (subst0 t q)"
-  "subst0 t (Or p q) = Or (subst0 t p) (subst0 t q)"
-  "subst0 t (Imp p q) = Imp (subst0 t p) (subst0 t q)"
-  "subst0 t (Iff p q) = Iff (subst0 t p) (subst0 t q)"
+  | "subst0 t F = F"
+  | "subst0 t (Lt a) = Lt (numsubst0 t a)"
+  | "subst0 t (Le a) = Le (numsubst0 t a)"
+  | "subst0 t (Gt a) = Gt (numsubst0 t a)"
+  | "subst0 t (Ge a) = Ge (numsubst0 t a)"
+  | "subst0 t (Eq a) = Eq (numsubst0 t a)"
+  | "subst0 t (NEq a) = NEq (numsubst0 t a)"
+  | "subst0 t (Dvd i a) = Dvd i (numsubst0 t a)"
+  | "subst0 t (NDvd i a) = NDvd i (numsubst0 t a)"
+  | "subst0 t (NOT p) = NOT (subst0 t p)"
+  | "subst0 t (And p q) = And (subst0 t p) (subst0 t q)"
+  | "subst0 t (Or p q) = Or (subst0 t p) (subst0 t q)"
+  | "subst0 t (Imp p q) = Imp (subst0 t p) (subst0 t q)"
+  | "subst0 t (Iff p q) = Iff (subst0 t p) (subst0 t q)"
 
 lemma subst0_I: assumes qfp: "qfree p"
   shows "Ifm (b#bs) (subst0 a p) = Ifm ((Inum (b#bs) a)#bs) p"
   using qfp numsubst0_I[where b="b" and bs="bs" and a="a"]
   by (induct p) (simp_all add: nth_pos2 )
 
-consts 
+consts
   decrnum:: "num \<Rightarrow> num" 
   decr :: "fm \<Rightarrow> fm"
 
@@ -495,21 +487,22 @@ recdef isatom "measure size"
 
 lemma numsubst0_numbound0: assumes nb: "numbound0 t"
   shows "numbound0 (numsubst0 t a)"
-using nb by (induct a rule: numsubst0.induct, auto)
+using nb by (induct a, auto)
 
 lemma subst0_bound0: assumes qf: "qfree p" and nb: "numbound0 t"
   shows "bound0 (subst0 t p)"
-using qf numsubst0_numbound0[OF nb] by (induct p  rule: subst0.induct, auto)
+using qf numsubst0_numbound0[OF nb] by (induct p, auto)
 
 lemma bound0_qf: "bound0 p \<Longrightarrow> qfree p"
 by (induct p, simp_all)
 
 
-constdefs djf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm"
-  "djf f p q \<equiv> (if q=T then T else if q=F then f p else 
+definition djf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm" where
+  "djf f p q = (if q=T then T else if q=F then f p else 
   (let fp = f p in case fp of T \<Rightarrow> T | F \<Rightarrow> q | _ \<Rightarrow> Or fp q))"
-constdefs evaldjf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm"
-  "evaldjf f ps \<equiv> foldr (djf f) ps F"
+
+definition evaldjf:: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm" where
+  "evaldjf f ps = foldr (djf f) ps F"
 
 lemma djf_Or: "Ifm bs (djf f p q) = Ifm bs (Or (f p) q)"
 by (cases "q=T", simp add: djf_def,cases "q=F",simp add: djf_def) 

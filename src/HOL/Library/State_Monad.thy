@@ -259,12 +259,13 @@ definition
   lift :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c \<Rightarrow> 'b \<times> 'c" where
   "lift f x = return (f x)"
 
-fun
+primrec
   list :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
   "list f [] = id"
 | "list f (x#xs) = (do f x; list f xs done)"
 
-fun list_yield :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<times> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'c list \<times> 'b" where
+primrec
+  list_yield :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<times> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'c list \<times> 'b" where
   "list_yield f [] = return []"
 | "list_yield f (x#xs) = (do y \<leftarrow> f x; ys \<leftarrow> list_yield f xs; return (y#ys) done)"
   
@@ -277,29 +278,29 @@ lemma list_append [simp]:
 lemma list_cong [fundef_cong, recdef_cong]:
   "\<lbrakk> \<And>x. x \<in> set xs \<Longrightarrow> f x = g x; xs = ys \<rbrakk>
     \<Longrightarrow> list f xs = list g ys"
-proof (induct f xs arbitrary: g ys rule: list.induct)
-  case 1 then show ?case by simp
+proof (induct xs arbitrary: ys)
+  case Nil then show ?case by simp
 next
-  case (2 f x xs g)
-  from 2 have "\<And>y. y \<in> set (x # xs) \<Longrightarrow> f y = g y" by auto
+  case (Cons x xs)
+  from Cons have "\<And>y. y \<in> set (x # xs) \<Longrightarrow> f y = g y" by auto
   then have "\<And>y. y \<in> set xs \<Longrightarrow> f y = g y" by auto
-  with 2 have "list f xs = list g xs" by auto
-  with 2 have "list f (x # xs) = list g (x # xs)" by auto
-  with 2 show "list f (x # xs) = list g ys" by auto
+  with Cons have "list f xs = list g xs" by auto
+  with Cons have "list f (x # xs) = list g (x # xs)" by auto
+  with Cons show "list f (x # xs) = list g ys" by auto
 qed
 
 lemma list_yield_cong [fundef_cong, recdef_cong]:
   "\<lbrakk> \<And>x. x \<in> set xs \<Longrightarrow> f x = g x; xs = ys \<rbrakk>
     \<Longrightarrow> list_yield f xs = list_yield g ys"
-proof (induct f xs arbitrary: g ys rule: list_yield.induct)
-  case 1 then show ?case by simp
+proof (induct xs arbitrary: ys)
+  case Nil then show ?case by simp
 next
-  case (2 f x xs g)
-  from 2 have "\<And>y. y \<in> set (x # xs) \<Longrightarrow> f y = g y" by auto
+  case (Cons x xs)
+  from Cons have "\<And>y. y \<in> set (x # xs) \<Longrightarrow> f y = g y" by auto
   then have "\<And>y. y \<in> set xs \<Longrightarrow> f y = g y" by auto
-  with 2 have "list_yield f xs = list_yield g xs" by auto
-  with 2 have "list_yield f (x # xs) = list_yield g (x # xs)" by auto
-  with 2 show "list_yield f (x # xs) = list_yield g ys" by auto
+  with Cons have "list_yield f xs = list_yield g xs" by auto
+  with Cons have "list_yield f (x # xs) = list_yield g (x # xs)" by auto
+  with Cons show "list_yield f (x # xs) = list_yield g ys" by auto
 qed
 
 text {*
