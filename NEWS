@@ -25,6 +25,9 @@ Superseedes some immature attempts.
 
 *** HOL ***
 
+* New class "uminus" with operation "uminus" (split of from class "minus"
+which now only has operation "minus", binary).
+
 * New primrec package.  Specification syntax conforms in style to
 definition/function/....  No separate induction rule is provided.
 The "primrec" command distinguishes old-style and new-style specifications
