@@ -104,7 +104,7 @@ text {*
 
 definition
   norm_pres_extensions ::
-    "'a::{plus, minus, zero} set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> real)
+    "'a::{plus, minus, uminus, zero} set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> real)
       \<Rightarrow> 'a graph set" where
     "norm_pres_extensions E p F f
       = {g. \<exists>H h. g = graph H h

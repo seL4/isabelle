@@ -352,10 +352,17 @@ instantiation set :: (type) minus
 begin
 
 definition
-  Compl_def [code func del]:    "- A   = {x. ~x:A}"
+  set_diff_def [code func del]: "A - B = {x. x:A & ~x:B}"
+
+instance ..
+
+end
+
+instantiation set :: (type) uminus
+begin
 
 definition
-  set_diff_def [code func del]: "A - B = {x. x:A & ~x:B}"
+  Compl_def [code func del]:    "- A   = {x. ~x:A}"
 
 instance ..
 

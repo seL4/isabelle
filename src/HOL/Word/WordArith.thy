@@ -25,7 +25,7 @@ lemma signed_linorder: "linorder word_sle word_sless"
 interpretation signed: linorder ["word_sle" "word_sless"] 
   by (rule signed_linorder)
 
-lemmas word_arith_wis [THEN meta_eq_to_obj_eq] = 
+lemmas word_arith_wis = 
   word_add_def word_mult_def word_minus_def 
   word_succ_def word_pred_def word_0_wi word_1_wi
 
@@ -207,7 +207,7 @@ lemmas word_of_int_1_hom = word_of_int_homs (8)
 (* now, to get the weaker results analogous to word_div/mod_def *)
 
 lemmas word_arith_alts = 
-  word_sub_wi [unfolded succ_def pred_def, THEN meta_eq_to_obj_eq, standard]
+  word_sub_wi [unfolded succ_def pred_def, standard]
   word_arith_wis [unfolded succ_def pred_def, standard]
 
 lemmas word_sub_alt = word_arith_alts (1)
@@ -247,9 +247,9 @@ lemmas sint_word_ariths = uint_word_arith_bintrs
     len_gt_0 [THEN bin_sbin_eq_iff'] word_sbin.norm_Rep, standard]
 
 lemmas uint_div_alt = word_div_def
-  [THEN meta_eq_to_obj_eq [THEN trans [OF uint_cong int_word_uint]], standard]
+  [THEN trans [OF uint_cong int_word_uint], standard]
 lemmas uint_mod_alt = word_mod_def
-  [THEN meta_eq_to_obj_eq [THEN trans [OF uint_cong int_word_uint]], standard]
+  [THEN trans [OF uint_cong int_word_uint], standard]
 
 lemma word_pred_0_n1: "word_pred 0 = word_of_int -1"
   unfolding word_pred_def number_of_eq
@@ -791,7 +791,7 @@ instance word :: (len0) comm_semiring_0 ..
 instance word :: (len0) order ..
 
 instance word :: (len) recpower
-  by (intro_classes) (simp_all add: word_pow)
+  by (intro_classes) simp_all
 
 (* note that iszero_def is only for class comm_semiring_1_cancel,
    which requires word length >= 1, ie 'a :: len word *) 
@@ -990,7 +990,7 @@ lemma le_no_overflow:
 
 lemmas un_ui_le = trans 
   [OF word_le_nat_alt [symmetric] 
-      word_le_def [THEN meta_eq_to_obj_eq], 
+      word_le_def, 
    standard]
 
 lemma unat_sub_if_size:

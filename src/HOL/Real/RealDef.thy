@@ -25,7 +25,7 @@ definition
   real_of_preal :: "preal => real" where
   "real_of_preal m = Abs_Real(realrel``{(m + 1, 1)})"
 
-instantiation real :: "{zero, one, plus, minus, times, inverse, ord, abs, sgn}"
+instantiation real :: "{zero, one, plus, minus, uminus, times, inverse, ord, abs, sgn}"
 begin
 
 definition

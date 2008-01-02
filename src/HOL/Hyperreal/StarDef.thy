@@ -469,11 +469,18 @@ instance ..
 
 end
 
-instantiation star :: (minus) minus
+instantiation star :: (uminus) uminus
 begin
 
 definition
   star_minus_def:   "uminus \<equiv> *f* uminus"
+
+instance ..
+
+end
+
+instantiation star :: (minus) minus
+begin
 
 definition
   star_diff_def:    "(op -) \<equiv> *f2* (op -)"

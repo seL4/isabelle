@@ -17,16 +17,28 @@ subsection {* Logical operations *}
 
 text "bit-wise logical operations on the int type"
 
-instance int :: bit
-  int_not_def: "bitNOT \<equiv> bin_rec Numeral.Min Numeral.Pls 
+instantiation int :: bit
+begin
+
+definition
+  int_not_def: "bitNOT = bin_rec Numeral.Min Numeral.Pls 
     (\<lambda>w b s. s BIT (NOT b))"
-  int_and_def: "bitAND \<equiv> bin_rec (\<lambda>x. Numeral.Pls) (\<lambda>y. y) 
+
+definition
+  int_and_def: "bitAND = bin_rec (\<lambda>x. Numeral.Pls) (\<lambda>y. y) 
     (\<lambda>w b s y. s (bin_rest y) BIT (b AND bin_last y))"
-  int_or_def: "bitOR \<equiv> bin_rec (\<lambda>x. x) (\<lambda>y. Numeral.Min) 
+
+definition
+  int_or_def: "bitOR = bin_rec (\<lambda>x. x) (\<lambda>y. Numeral.Min) 
     (\<lambda>w b s y. s (bin_rest y) BIT (b OR bin_last y))"
-  int_xor_def: "bitXOR \<equiv> bin_rec (\<lambda>x. x) bitNOT 
+
+definition
+  int_xor_def: "bitXOR = bin_rec (\<lambda>x. x) bitNOT 
     (\<lambda>w b s y. s (bin_rest y) BIT (b XOR bin_last y))"
-  ..
+
+instance ..
+
+end
 
 lemma int_not_simps [simp]:
   "NOT Numeral.Pls = Numeral.Min"

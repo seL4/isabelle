@@ -23,7 +23,7 @@ section {* Axioms *}
 
 subsection {* Ring axioms *}
 
-axclass ring < zero, one, plus, minus, times, inverse, power, Divides.div
+axclass ring < zero, one, plus, minus, uminus, times, inverse, power, Divides.div
 
   a_assoc:      "(a + b) + c = a + (b + c)"
   l_zero:       "0 + a = a"

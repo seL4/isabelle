@@ -13,28 +13,27 @@ theory WordDefinition imports Size BinBoolList TdThs begin
 typedef (open word) 'a word
   = "{(0::int) ..< 2^len_of TYPE('a::len0)}" by auto
 
-instance word :: (len0) number ..
-instance word :: (type) minus ..
-instance word :: (type) plus ..
-instance word :: (type) one ..
-instance word :: (type) zero ..
-instance word :: (type) times ..
-instance word :: (type) Divides.div ..
-instance word :: (type) power ..
-instance word :: (type) ord ..
-instance word :: (type) size ..
-instance word :: (type) inverse ..
-instance word :: (type) bit ..
+instantiation word :: (len0) size
+begin
+
+definition
+  word_size: "size (w :: 'a word) = len_of TYPE('a)"
+
+instance ..
+
+end
+
+definition
+  -- {* representation of words using unsigned or signed bins, 
+        only difference in these is the type class *}
+  word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word"
+where
+  "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
 
 
 subsection "Type conversions and casting"
 
 constdefs
-  -- {* representation of words using unsigned or signed bins, 
-        only difference in these is the type class *}
-  word_of_int :: "int => 'a :: len0 word"
-  "word_of_int w == Abs_word (bintrunc (len_of TYPE ('a)) w)" 
-
   -- {* uint and sint cast a word to an integer,
         uint treats the word as unsigned,
         sint treats the most-significant-bit as a sign bit *}
@@ -81,10 +80,6 @@ constdefs
   word_reverse :: "'a :: len0 word => 'a word"
   "word_reverse w == of_bl (rev (to_bl w))"
 
-defs (overloaded)
-  word_size: "size (w :: 'a :: len0 word) == len_of TYPE('a)"
-  word_number_of_def: "number_of w == word_of_int w"
-
 constdefs
   word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b"
   "word_int_case f w == f (uint w)"
@@ -97,20 +92,82 @@ translations
 
 subsection  "Arithmetic operations"
 
-defs (overloaded)
-  word_1_wi: "(1 :: ('a :: len0) word) == word_of_int 1"
-  word_0_wi: "(0 :: ('a :: len0) word) == word_of_int 0"
+instantiation word :: (len0) "{number, uminus, minus, plus, one, zero, times, Divides.div, power, ord, bit}"
+begin
 
-  word_le_def: "a <= b == uint a <= uint b"
-  word_less_def: "x < y == x <= y & x ~= (y :: 'a :: len0 word)"
+definition
+  word_0_wi: "0 = word_of_int 0"
+
+definition
+  word_1_wi: "1 = word_of_int 1"
+
+definition
+  word_add_def: "a + b = word_of_int (uint a + uint b)"
+
+definition
+  word_sub_wi: "a - b = word_of_int (uint a - uint b)"
+
+definition
+  word_minus_def: "- a = word_of_int (- uint a)"
+
+definition
+  word_mult_def: "a * b = word_of_int (uint a * uint b)"
+
+definition
+  word_div_def: "a div b = word_of_int (uint a div uint b)"
+
+definition
+  word_mod_def: "a mod b = word_of_int (uint a mod uint b)"
+
+primrec power_word where
+  "(a\<Colon>'a word) ^ 0 = 1"
+  | "(a\<Colon>'a word) ^ Suc n = a * a ^ n"
+
+definition
+  word_number_of_def: "number_of w = word_of_int w"
+
+definition
+  word_le_def: "a \<le> b \<longleftrightarrow> uint a \<le> uint b"
+
+definition
+  word_less_def: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> (y \<Colon> 'a word)"
+
+definition
+  word_and_def: 
+  "(a::'a word) AND b = word_of_int (uint a AND uint b)"
+
+definition
+  word_or_def:  
+  "(a::'a word) OR b = word_of_int (uint a OR uint b)"
+
+definition
+  word_xor_def: 
+  "(a::'a word) XOR b = word_of_int (uint a XOR uint b)"
+
+definition
+  word_not_def: 
+  "NOT (a::'a word) = word_of_int (NOT (uint a))"
+
+instance ..
+
+end 
+
+abbreviation
+  word_power :: "'a\<Colon>len0 word \<Rightarrow> nat \<Rightarrow> 'a word"
+where
+  "word_power == op ^"
+
+definition
+  word_succ :: "'a :: len0 word => 'a word"
+where
+  "word_succ a = word_of_int (Numeral.succ (uint a))"
+
+definition
+  word_pred :: "'a :: len0 word => 'a word"
+where
+  "word_pred a = word_of_int (Numeral.pred (uint a))"
 
 constdefs
-  word_succ :: "'a :: len0 word => 'a word"
-  "word_succ a == word_of_int (Numeral.succ (uint a))"
-
-  word_pred :: "'a :: len0 word => 'a word"
-  "word_pred a == word_of_int (Numeral.pred (uint a))"
-
   udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50)
   "a udvd b == EX n>=0. uint b = n * uint a"
 
@@ -120,37 +177,10 @@ constdefs
   word_sless :: "'a :: len word => 'a word => bool" ("(_/ <s _)" [50, 51] 50)
   "(x <s y) == (x <=s y & x ~= y)"
 
-consts
-  word_power :: "'a :: len0 word => nat => 'a word"
-primrec
-  "word_power a 0 = 1"
-  "word_power a (Suc n) = a * word_power a n"
-
-defs (overloaded)
-  word_pow: "power == word_power"
-  word_add_def: "a + b == word_of_int (uint a + uint b)"
-  word_sub_wi: "a - b == word_of_int (uint a - uint b)"
-  word_minus_def: "- a == word_of_int (- uint a)"
-  word_mult_def: "a * b == word_of_int (uint a * uint b)"
-  word_div_def: "a div b == word_of_int (uint a div uint b)"
-  word_mod_def: "a mod b == word_of_int (uint a mod uint b)"
-
 
 subsection "Bit-wise operations"
 
 defs (overloaded)
-  word_and_def: 
-  "(a::'a::len0 word) AND b == word_of_int (uint a AND uint b)"
-
-  word_or_def:  
-  "(a::'a::len0 word) OR b == word_of_int (uint a OR uint b)"
-
-  word_xor_def: 
-  "(a::'a::len0 word) XOR b == word_of_int (uint a XOR uint b)"
-
-  word_not_def: 
-  "NOT (a::'a::len0 word) == word_of_int (NOT (uint a))"
-
   word_test_bit_def: 
   "test_bit (a::'a::len0 word) == bin_nth (uint a)"
 
@@ -269,7 +299,7 @@ primrec
 lemmas of_nth_def = word_set_bits_def
 
 lemmas word_size_gt_0 [iff] = 
-  xtr1 [OF word_size [THEN meta_eq_to_obj_eq] len_gt_0, standard]
+  xtr1 [OF word_size len_gt_0, standard]
 lemmas lens_gt_0 = word_size_gt_0 len_gt_0
 lemmas lens_not_0 [iff] = lens_gt_0 [THEN gr_implies_not0, standard]
 
@@ -701,9 +731,9 @@ lemma num_of_sbintr':
   done
 
 lemmas num_abs_bintr = sym [THEN trans,
-  OF num_of_bintr word_number_of_def [THEN meta_eq_to_obj_eq], standard]
+  OF num_of_bintr word_number_of_def, standard]
 lemmas num_abs_sbintr = sym [THEN trans,
-  OF num_of_sbintr word_number_of_def [THEN meta_eq_to_obj_eq], standard]
+  OF num_of_sbintr word_number_of_def, standard]
   
 (** cast - note, no arg for new length, as it's determined by type of result,
   thus in "cast w = w, the type means cast to length of w! **)

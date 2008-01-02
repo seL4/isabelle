@@ -77,32 +77,95 @@ qed
 
 text {* Ring operations *}
 
-instance up :: (zero) zero ..
-instance up :: (one) one ..
-instance up :: (plus) plus ..
-instance up :: (minus) minus ..
-instance up :: (times) times ..
-instance up :: (Divides.div) Divides.div ..
-instance up :: (inverse) inverse ..
-instance up :: (power) power ..
+instantiation up :: (zero) zero
+begin
 
-defs
-  up_add_def:	"p + q == Abs_UP (%n. Rep_UP p n + Rep_UP q n)"
-  up_mult_def:  "p * q == Abs_UP (%n::nat. setsum
+definition
+  up_zero_def: "0 = monom 0 0"
+
+instance ..
+
+end
+
+instantiation up :: ("{one, zero}") one
+begin
+
+definition
+  up_one_def: "1 = monom 1 0"
+
+instance ..
+
+end
+
+instantiation up :: ("{plus, zero}") plus
+begin
+
+definition
+  up_add_def:	"p + q = Abs_UP (%n. Rep_UP p n + Rep_UP q n)"
+
+instance ..
+
+end
+
+instantiation up :: ("{one, times, uminus, zero}") uminus
+begin
+
+definition
+  (* note: - 1 is different from -1; latter is of class number *)
+  up_uminus_def:"- p = (- 1) *s p"
+  (* easier to use than "Abs_UP (%i. - Rep_UP p i)" *)
+
+instance ..
+
+end
+
+instantiation up :: ("{one, plus, times, minus, uminus, zero}") minus
+begin
+
+definition
+  up_minus_def: "(a :: 'a up) - b = a + (-b)"
+
+instance ..
+
+end
+
+instantiation up :: ("{times, comm_monoid_add}") times
+begin
+
+definition
+  up_mult_def:  "p * q = Abs_UP (%n::nat. setsum
 		     (%i. Rep_UP p i * Rep_UP q (n-i)) {..n})"
-  up_zero_def:  "0 == monom 0 0"
-  up_one_def:   "1 == monom 1 0"
-  up_uminus_def:"- p == (- 1) *s p"
-                (* easier to use than "Abs_UP (%i. - Rep_UP p i)" *)
-                (* note: - 1 is different from -1; latter is of class number *)
 
-  up_minus_def:   "(a::'a::{plus, minus} up) - b == a + (-b)"
-  up_inverse_def: "inverse (a::'a::{zero, one, Divides.div, inverse} up) == 
-                     (if a dvd 1 then THE x. a*x = 1 else 0)"
-  up_divide_def:  "(a::'a::{times, inverse} up) / b == a * inverse b"
-  up_power_def:   "(a::'a::{one, times, power} up) ^ n ==
-                     nat_rec 1 (%u b. b * a) n"
+instance ..
 
+end
+
+instance up :: (type) Divides.div ..
+
+instantiation up :: ("{times, one, comm_monoid_add}") inverse
+begin
+
+definition
+  up_inverse_def: "inverse (a :: 'a up) = (if a dvd 1 then
+                     THE x. a * x = 1 else 0)"
+
+definition
+  up_divide_def:  "(a :: 'a up) / b = a * inverse b"
+
+instance ..
+
+end
+
+instantiation up :: ("{times, one, comm_monoid_add}") power
+begin
+
+primrec power_up where
+  "(a \<Colon> 'a up) ^ 0 = 1"
+  | "(a \<Colon> 'a up) ^ Suc n = a ^ n * a"
+
+instance ..
+
+end
 
 subsection {* Effect of operations on coefficients *}
 
@@ -294,7 +357,7 @@ proof
     by (simp add: up_divide_def)
   fix n
   show "p ^ n = nat_rec 1 (%u b. b * p) n"
-    by (simp add: up_power_def)
+    by (induct n) simp_all
   qed
 
 (* Further properties of monom *)

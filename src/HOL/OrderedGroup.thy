@@ -121,7 +121,7 @@ end
 
 subsection {* Groups *}
 
-class group_add = minus + monoid_add +
+class group_add = minus + uminus + monoid_add +
   assumes left_minus [simp]: "- a + a = 0"
   assumes diff_minus: "a - b = a + (- b)"
 begin
@@ -219,7 +219,7 @@ qed
 
 end
 
-class ab_group_add = minus + comm_monoid_add +
+class ab_group_add = minus + uminus + comm_monoid_add +
   assumes ab_left_minus: "- a + a = 0"
   assumes ab_diff_minus: "a - b = a + (- b)"
 begin

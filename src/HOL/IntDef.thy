@@ -22,7 +22,7 @@ typedef (Integ)
   int = "UNIV//intrel"
   by (auto simp add: quotient_def)
 
-instantiation int :: "{zero, one, plus, minus, times, ord, abs, sgn}"
+instantiation int :: "{zero, one, plus, minus, uminus, times, ord, abs, sgn}"
 begin
 
 definition

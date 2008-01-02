@@ -181,6 +181,6 @@ lemma
   "EVAL (y::'a::domain)
     (EVAL (monom x 0) (monom 1 1 + monom (a*X^2 + b*X^1 + c*X^0) 0)) =
    x ^ 1 + (a * y ^ 2 + b * y ^ 1 + c)"
-  by (simp del: power_Suc add: EVAL_homo EVAL_monom EVAL_monom_n EVAL_const)
+  by (simp del: add: EVAL_homo EVAL_monom EVAL_monom_n EVAL_const)
 
 end

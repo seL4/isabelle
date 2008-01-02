@@ -45,12 +45,24 @@ consts
 
 subsection {* Bitwise operations on type @{typ bit} *}
 
-instance bit :: bit
-  NOT_bit_def: "NOT x \<equiv> case x of bit.B0 \<Rightarrow> bit.B1 | bit.B1 \<Rightarrow> bit.B0"
-  AND_bit_def: "x AND y \<equiv> case x of bit.B0 \<Rightarrow> bit.B0 | bit.B1 \<Rightarrow> y"
-  OR_bit_def: "x OR y :: bit \<equiv> NOT (NOT x AND NOT y)"
-  XOR_bit_def: "x XOR y :: bit \<equiv> (x AND NOT y) OR (NOT x AND y)"
-  ..
+instantiation bit :: bit
+begin
+
+definition
+  NOT_bit_def: "NOT x = (case x of bit.B0 \<Rightarrow> bit.B1 | bit.B1 \<Rightarrow> bit.B0)"
+
+definition
+  AND_bit_def: "x AND y = (case x of bit.B0 \<Rightarrow> bit.B0 | bit.B1 \<Rightarrow> y)"
+
+definition
+  OR_bit_def: "(x OR y \<Colon> bit) = NOT (NOT x AND NOT y)"
+
+definition
+  XOR_bit_def: "(x XOR y \<Colon> bit) = (x AND NOT y) OR (NOT x AND y)"
+
+instance  ..
+
+end
 
 lemma bit_simps [simp]:
   "NOT bit.B0 = bit.B1"

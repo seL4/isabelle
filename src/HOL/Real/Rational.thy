@@ -6,7 +6,7 @@
 header {* Rational numbers *}
 
 theory Rational
-imports Abstract_Rat
+imports "~~/src/HOL/Library/Abstract_Rat"
 uses ("rat_arith.ML")
 begin
 
@@ -163,7 +163,7 @@ lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
 
 subsubsection {* Standard operations on rational numbers *}
 
-instantiation rat :: "{zero, one, plus, minus, times, inverse, ord, abs, sgn}"
+instantiation rat :: "{zero, one, plus, minus, uminus, times, inverse, ord, abs, sgn}"
 begin
 
 definition

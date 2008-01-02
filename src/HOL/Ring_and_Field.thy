@@ -516,10 +516,10 @@ lemma split_mult_pos_le:
 
 end
 
-class abs_if = minus + ord + zero + abs +
-  assumes abs_if: "\<bar>a\<bar> = (if a < 0 then (- a) else a)"
+class abs_if = minus + uminus + ord + zero + abs +
+  assumes abs_if: "\<bar>a\<bar> = (if a < 0 then - a else a)"
 
-class sgn_if = sgn + zero + one + minus + ord +
+class sgn_if = minus + uminus + zero + one + ord + sgn +
   assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
 
 lemma (in sgn_if) sgn0[simp]: "sgn 0 = 0"

@@ -221,8 +221,10 @@ class plus = type +
   fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
 
 class minus = type +
+  fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
+
+class uminus = type +
   fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
-    and minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
 
 class times = type +
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)

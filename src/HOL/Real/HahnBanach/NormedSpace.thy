@@ -19,6 +19,7 @@ locale norm_syntax =
   fixes norm :: "'a \<Rightarrow> real"    ("\<parallel>_\<parallel>")
 
 locale seminorm = var V + norm_syntax +
+  constrains V :: "'a\<Colon>{minus, plus, zero, uminus} set"
   assumes ge_zero [iff?]: "x \<in> V \<Longrightarrow> 0 \<le> \<parallel>x\<parallel>"
     and abs_homogenous [iff?]: "x \<in> V \<Longrightarrow> \<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"
     and subadditive [iff?]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"

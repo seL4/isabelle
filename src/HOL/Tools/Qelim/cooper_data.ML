@@ -19,28 +19,28 @@ type entry = simpset * (term list);
 val start_ss = HOL_ss (* addsimps @{thms "Groebner_Basis.comp_arith"}
                addcongs [if_weak_cong, @{thm "let_weak_cong"}];*)
 val allowed_consts = 
-  [@{term "op + :: int => _"}, @{term "op + :: nat => _"}, 
-   @{term "op - :: int => _"}, @{term "op - :: nat => _"}, 
-   @{term "op * :: int => _"}, @{term "op * :: nat => _"}, 
-   @{term "op div :: int => _"}, @{term "op div :: nat => _"}, 
-   @{term "op mod :: int => _"}, @{term "op mod :: nat => _"}, 
+  [@{term "op + :: int => _"}, @{term "op + :: nat => _"},
+   @{term "op - :: int => _"}, @{term "op - :: nat => _"},
+   @{term "op * :: int => _"}, @{term "op * :: nat => _"},
+   @{term "op div :: int => _"}, @{term "op div :: nat => _"},
+   @{term "op mod :: int => _"}, @{term "op mod :: nat => _"},
    @{term "Numeral.Bit"},
    @{term "op &"}, @{term "op |"}, @{term "op -->"}, 
-   @{term "op = :: int => _"}, @{term "op = :: nat => _"}, @{term "op = :: bool => _"}, 
+   @{term "op = :: int => _"}, @{term "op = :: nat => _"}, @{term "op = :: bool => _"},
    @{term "op < :: int => _"}, @{term "op < :: nat => _"},
    @{term "op <= :: int => _"}, @{term "op <= :: nat => _"},
-   @{term "op dvd :: int => _"}, @{term "op dvd :: nat => _"}, 
-   @{term "abs :: int => _"},  (*@ {term "abs :: nat => _"}, *)
-   @{term "max :: int => _"},  @{term "max :: nat => _"}, 
-   @{term "min :: int => _"},  @{term "min :: nat => _"}, 
-   @{term "HOL.uminus :: int => _"}, @{term "HOL.uminus :: nat => _"}, 
-   @{term "Not"}, @{term "Suc"}, 
-   @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"}, 
-   @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"}, 
+   @{term "op dvd :: int => _"}, @{term "op dvd :: nat => _"},
+   @{term "abs :: int => _"},
+   @{term "max :: int => _"}, @{term "max :: nat => _"},
+   @{term "min :: int => _"}, @{term "min :: nat => _"},
+   @{term "HOL.uminus :: int => _"}, (*@ {term "HOL.uminus :: nat => _"},*)
+   @{term "Not"}, @{term "Suc"},
+   @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"},
+   @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"},
    @{term "nat"}, @{term "int"},
    @{term "Numeral.bit.B0"},@{term "Numeral.bit.B1"}, 
    @{term "Numeral.Bit"}, @{term "Numeral.Pls"}, @{term "Numeral.Min"},
-   @{term "Numeral.number_of :: int => int"}, @{term "Numeral.number_of :: int => nat"}, 
+   @{term "Numeral.number_of :: int => int"}, @{term "Numeral.number_of :: int => nat"},
    @{term "0::int"}, @{term "1::int"}, @{term "0::nat"}, @{term "1::nat"},
    @{term "True"}, @{term "False"}];
 
