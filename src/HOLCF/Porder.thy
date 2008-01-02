@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/Porder.thy
     ID:         $Id$
-    Author:     Franz Regensburger
+    Author:     Franz Regensburger and Brian Huffman
 *)
 
 header {* Partial orders *}
@@ -288,5 +288,82 @@ text {* the maximal element in a chain is its lub *}
 
 lemma lub_chain_maxelem: "\<lbrakk>Y i = c; \<forall>i. Y i \<sqsubseteq> c\<rbrakk> \<Longrightarrow> lub (range Y) = c"
 by (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
+
+subsection {* Directed sets *}
+
+definition
+  directed :: "'a::po set \<Rightarrow> bool" where
+  "directed S = ((\<exists>x. x \<in> S) \<and> (\<forall>x\<in>S. \<forall>y\<in>S. \<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z))"
+
+lemma directedI:
+  assumes 1: "\<exists>z. z \<in> S"
+  assumes 2: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
+  shows "directed S"
+unfolding directed_def using prems by fast
+
+lemma directedD1: "directed S \<Longrightarrow> \<exists>z. z \<in> S"
+unfolding directed_def by fast
+
+lemma directedD2: "\<lbrakk>directed S; x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
+unfolding directed_def by fast
+
+lemma directed_finiteI:
+  assumes U: "\<And>U. \<lbrakk>finite U; U \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. \<forall>x\<in>U. x \<sqsubseteq> z"
+  shows "directed S"
+proof (rule directedI)
+  have "finite {}" and "{} \<subseteq> S" by simp_all
+  hence "\<exists>z\<in>S. \<forall>x\<in>{}. x \<sqsubseteq> z" by (rule U)
+  thus "\<exists>z. z \<in> S" by simp
+next
+  fix x y
+  assume "x \<in> S" and "y \<in> S"
+  hence "finite {x, y}" and "{x, y} \<subseteq> S" by simp_all
+  hence "\<exists>z\<in>S. \<forall>x\<in>{x, y}. x \<sqsubseteq> z" by (rule U)
+  thus "\<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z" by simp
+qed
+
+lemma directed_finiteD:
+  assumes S: "directed S"
+  assumes U: "finite U"
+  assumes "U \<subseteq> S"
+  shows "\<exists>z\<in>S. \<forall>x\<in>U. x \<sqsubseteq> z"
+proof -
+  from U have "U \<subseteq> S \<Longrightarrow> \<exists>z\<in>S. \<forall>x\<in>U. x \<sqsubseteq> z"
+  proof (induct set: finite)
+    case empty
+    from S have "\<exists>z. z \<in> S" by (rule directedD1)
+    thus "\<exists>z\<in>S. \<forall>x\<in>{}. x \<sqsubseteq> z" by simp
+  next
+    case (insert x F)
+    from `insert x F \<subseteq> S`
+    have xS: "x \<in> S" and FS: "F \<subseteq> S" by simp_all
+    from FS have "\<exists>y\<in>S. \<forall>a\<in>F. a \<sqsubseteq> y" by fact
+    then obtain y where yS: "y \<in> S" and Fy: "\<forall>a\<in>F. a \<sqsubseteq> y" ..
+    from directedD2 [OF S xS yS]
+    obtain z where zS: "z \<in> S" and xz: "x \<sqsubseteq> z" and yz: "y \<sqsubseteq> z" by fast
+    from Fy yz have "\<forall>a\<in>F. a \<sqsubseteq> z" by (fast elim: trans_less)
+    with xz have "\<forall>a\<in>insert x F. a \<sqsubseteq> z" by simp
+    with zS show "\<exists>z\<in>S. \<forall>a\<in>insert x F. a \<sqsubseteq> z" ..
+  qed
+  thus ?thesis using prems by fast
+qed
+
+lemma not_directed_empty: "\<not> directed {}"
+by (rule notI, drule directedD1, simp)
+
+lemma directed_singleton: "directed {x}"
+by (rule directedI, auto)
+
+lemma directed_bin: "x \<sqsubseteq> y \<Longrightarrow> directed {x, y}"
+by (rule directedI, auto)
+
+lemma directed_chain: "chain S \<Longrightarrow> directed (range S)"
+apply (rule directedI)
+apply (rule_tac x="S 0" in exI, simp)
+apply (clarify, rename_tac m n)
+apply (rule_tac x="S (max m n)" in bexI)
+apply (simp add: chain_mono3)
+apply simp
+done
 
 end
