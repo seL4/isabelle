@@ -226,8 +226,8 @@ by simp
 lemma up_defined [simp]: "up\<cdot>x \<noteq> \<bottom>"
 by (simp add: up_def cont_Iup inst_up_pcpo)
 
-lemma not_up_less_UU [simp]: "\<not> up\<cdot>x \<sqsubseteq> \<bottom>"
-by (simp add: eq_UU_iff [symmetric])
+lemma not_up_less_UU: "\<not> up\<cdot>x \<sqsubseteq> \<bottom>"
+by simp
 
 lemma up_less [simp]: "(up\<cdot>x \<sqsubseteq> up\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: up_def cont_Iup)
