@@ -15,7 +15,7 @@ sig
   val line: int -> T
   val file: string -> T
   val path: Path.T -> T
-  val of_properties: Markup.property list -> T
+  val of_properties: Markup.property list -> T * Markup.property list
   val properties_of: T -> Markup.property list
   val str_of: T -> string
 end;
@@ -51,7 +51,8 @@ fun of_properties ps =
         SOME s => Int.fromString s
       | NONE => NONE);
     val opt_s = lookup Markup.fileN;
-  in Pos (opt_n, opt_s) end;
+    val ps' = filter_out (fn (x, _) => x = Markup.lineN orelse x = Markup.fileN) ps;
+  in (Pos (opt_n, opt_s), ps') end;
 
 fun properties_of (Pos (opt_n, opt_s)) =
   (case opt_n of SOME n => [(Markup.lineN, string_of_int n)] | NONE => []) @
