@@ -140,6 +140,8 @@ by (simp add: adm_imp)
 
 text {* admissibility and continuity *}
 
+declare range_composition [simp del]
+
 lemma adm_less: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
 apply (rule admI)
 apply (simp add: cont2contlubE)
@@ -165,7 +167,7 @@ apply (rule admI)
 apply (drule_tac x=0 in spec)
 apply (erule contrapos_nn)
 apply (erule rev_trans_less)
-apply (erule cont2mono [THEN monofun_fun_arg])
+apply (erule cont2mono [THEN monofunE])
 apply (erule is_ub_thelub)
 done
 

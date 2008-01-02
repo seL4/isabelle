@@ -10,7 +10,7 @@ Class instance of  => (fun) for class pcpo.
 header {* Class instances for the full function space *}
 
 theory Ffun
-imports Pcpo
+imports Cont
 begin
 
 subsection {* Full function space is a partial order *}
@@ -49,6 +49,11 @@ by (simp add: less_fun_def)
 
 subsection {* Full function space is chain complete *}
 
+text {* function application is monotone *}
+
+lemma monofun_app: "monofun (\<lambda>f. f x)"
+by (rule monofunI, simp add: less_fun_def)
+
 text {* chains of functions yield chains in the po range *}
 
 lemma ch2ch_fun: "chain S \<Longrightarrow> chain (\<lambda>i. S i x)"
@@ -61,7 +66,7 @@ by (simp add: chain_def less_fun_def)
 text {* upper bounds of function chains yield upper bound in the po range *}
 
 lemma ub2ub_fun:
-  "range (S::nat \<Rightarrow> 'a \<Rightarrow> 'b::po) <| u \<Longrightarrow> range (\<lambda>i. S i x) <| u x"
+  "range (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::po) <| u \<Longrightarrow> range (\<lambda>i. S i x) <| u x"
 by (auto simp add: is_ub_def less_fun_def)
 
 text {* Type @{typ "'a::type => 'b::cpo"} is chain complete *}
@@ -80,10 +85,31 @@ apply (erule ch2ch_fun)
 apply (erule ub2ub_fun)
 done
 
+lemma lub_fun':
+  fixes S :: "('a::type \<Rightarrow> 'b::dcpo) set"
+  assumes S: "directed S"
+  shows "S <<| (\<lambda>x. \<Squnion>f\<in>S. f x)"
+apply (rule is_lubI)
+apply (rule is_ubI)
+apply (rule less_fun_ext)
+apply (rule is_ub_thelub')
+apply (rule dir2dir_monofun [OF monofun_app S])
+apply (erule imageI)
+apply (rule less_fun_ext)
+apply (rule is_lub_thelub')
+apply (rule dir2dir_monofun [OF monofun_app S])
+apply (erule ub2ub_monofun' [OF monofun_app])
+done
+
 lemma thelub_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
     \<Longrightarrow> lub (range S) = (\<lambda>x. \<Squnion>i. S i x)"
 by (rule lub_fun [THEN thelubI])
+
+lemma thelub_fun':
+  "directed (S::('a::type \<Rightarrow> 'b::dcpo) set)
+    \<Longrightarrow> lub S = (\<lambda>x. \<Squnion>f\<in>S. f x)"
+by (rule lub_fun' [THEN thelubI])
 
 lemma cpo_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo) \<Longrightarrow> \<exists>x. range S <<| x"
@@ -92,12 +118,19 @@ by (rule exI, erule lub_fun)
 instance "fun"  :: (type, cpo) cpo
 by intro_classes (rule cpo_fun)
 
+lemma dcpo_fun:
+  "directed (S::('a::type \<Rightarrow> 'b::dcpo) set) \<Longrightarrow> \<exists>x. S <<| x"
+by (rule exI, erule lub_fun')
+
+instance "fun" :: (type, dcpo) dcpo
+by intro_classes (rule dcpo_fun)
+
 subsection {* Full function space is pointed *}
 
 lemma minimal_fun: "(\<lambda>x. \<bottom>) \<sqsubseteq> f"
 by (simp add: less_fun_def)
 
-lemma least_fun: "\<exists>x::'a \<Rightarrow> 'b::pcpo. \<forall>y. x \<sqsubseteq> y"
+lemma least_fun: "\<exists>x::'a::type \<Rightarrow> 'b::pcpo. \<forall>y. x \<sqsubseteq> y"
 apply (rule_tac x = "\<lambda>x. \<bottom>" in exI)
 apply (rule minimal_fun [THEN allI])
 done
@@ -112,6 +145,137 @@ by (rule minimal_fun [THEN UU_I, symmetric])
 text {* function application is strict in the left argument *}
 lemma app_strict [simp]: "\<bottom> x = \<bottom>"
 by (simp add: inst_fun_pcpo)
+
+text {*
+  The following results are about application for functions in @{typ "'a=>'b"}
+*}
+
+lemma monofun_fun_fun: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
+by (simp add: less_fun_def)
+
+lemma monofun_fun_arg: "\<lbrakk>monofun f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
+by (rule monofunE)
+
+lemma monofun_fun: "\<lbrakk>monofun f; monofun g; f \<sqsubseteq> g; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> g y"
+by (rule trans_less [OF monofun_fun_arg monofun_fun_fun])
+
+subsection {* Propagation of monotonicity and continuity *}
+
+text {* the lub of a chain of monotone functions is monotone *}
+
+lemma monofun_lub_fun:
+  "\<lbrakk>chain (F::nat \<Rightarrow> 'a \<Rightarrow> 'b::cpo); \<forall>i. monofun (F i)\<rbrakk>
+    \<Longrightarrow> monofun (\<Squnion>i. F i)"
+apply (rule monofunI)
+apply (simp add: thelub_fun)
+apply (rule lub_mono [rule_format])
+apply (erule ch2ch_fun)
+apply (erule ch2ch_fun)
+apply (simp add: monofunE)
+done
+
+text {* the lub of a chain of continuous functions is continuous *}
+
+declare range_composition [simp del]
+
+lemma contlub_lub_fun:
+  "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> contlub (\<Squnion>i. F i)"
+apply (rule contlubI)
+apply (simp add: thelub_fun)
+apply (simp add: cont2contlubE)
+apply (rule ex_lub)
+apply (erule ch2ch_fun)
+apply (simp add: ch2ch_cont)
+done
+
+lemma cont_lub_fun:
+  "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<Squnion>i. F i)"
+apply (rule monocontlub2cont)
+apply (erule monofun_lub_fun)
+apply (simp add: cont2mono)
+apply (erule (1) contlub_lub_fun)
+done
+
+lemma cont2cont_lub:
+  "\<lbrakk>chain F; \<And>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. \<Squnion>i. F i x)"
+by (simp add: thelub_fun [symmetric] cont_lub_fun)
+
+lemma mono2mono_fun: "monofun f \<Longrightarrow> monofun (\<lambda>x. f x y)"
+apply (rule monofunI)
+apply (erule (1) monofun_fun_arg [THEN monofun_fun_fun])
+done
+
+lemma cont2cont_fun: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
+apply (rule monocontlub2cont)
+apply (erule cont2mono [THEN mono2mono_fun])
+apply (rule contlubI)
+apply (simp add: cont2contlubE)
+apply (simp add: thelub_fun ch2ch_cont)
+done
+
+text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
+
+lemma mono2mono_lambda: "(\<And>y. monofun (\<lambda>x. f x y)) \<Longrightarrow> monofun f"
+apply (rule monofunI)
+apply (rule less_fun_ext)
+apply (blast dest: monofunE)
+done
+
+lemma cont2cont_lambda: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont f"
+apply (subgoal_tac "monofun f")
+apply (rule monocontlub2cont)
+apply assumption
+apply (rule contlubI)
+apply (rule ext)
+apply (simp add: thelub_fun ch2ch_monofun)
+apply (blast dest: cont2contlubE)
+apply (simp add: mono2mono_lambda cont2mono)
+done
+
+text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
+
+lemma contlub_lambda:
+  "(\<And>x::'a::type. chain (\<lambda>i. S i x::'b::cpo))
+    \<Longrightarrow> (\<lambda>x. \<Squnion>i. S i x) = (\<Squnion>i. (\<lambda>x. S i x))"
+by (simp add: thelub_fun ch2ch_lambda)
+
+lemma contlub_abstraction:
+  "\<lbrakk>chain Y; \<forall>y. cont (\<lambda>x.(c::'a::cpo\<Rightarrow>'b::type\<Rightarrow>'c::cpo) x y)\<rbrakk> \<Longrightarrow>
+    (\<lambda>y. \<Squnion>i. c (Y i) y) = (\<Squnion>i. (\<lambda>y. c (Y i) y))"
+apply (rule thelub_fun [symmetric])
+apply (rule ch2ch_cont)
+apply (simp add: cont2cont_lambda)
+apply assumption
+done
+
+lemma mono2mono_app:
+  "\<lbrakk>monofun f; \<forall>x. monofun (f x); monofun t\<rbrakk> \<Longrightarrow> monofun (\<lambda>x. (f x) (t x))"
+apply (rule monofunI)
+apply (simp add: monofun_fun monofunE)
+done
+
+lemma cont2contlub_app:
+  "\<lbrakk>cont f; \<forall>x. cont (f x); cont t\<rbrakk> \<Longrightarrow> contlub (\<lambda>x. (f x) (t x))"
+apply (rule contlubI)
+apply (subgoal_tac "chain (\<lambda>i. f (Y i))")
+apply (subgoal_tac "chain (\<lambda>i. t (Y i))")
+apply (simp add: cont2contlubE thelub_fun)
+apply (rule diag_lub)
+apply (erule ch2ch_fun)
+apply (drule spec)
+apply (erule (1) ch2ch_cont)
+apply (erule (1) ch2ch_cont)
+apply (erule (1) ch2ch_cont)
+done
+
+lemma cont2cont_app:
+  "\<lbrakk>cont f; \<forall>x. cont (f x); cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. (f x) (t x))"
+by (blast intro: monocontlub2cont mono2mono_app cont2mono cont2contlub_app)
+
+lemmas cont2cont_app2 = cont2cont_app [rule_format]
+
+lemma cont2cont_app3: "\<lbrakk>cont f; cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. f (t x))"
+by (rule cont2cont_app2 [OF cont_const])
 
 end
 

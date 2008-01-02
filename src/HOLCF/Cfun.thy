@@ -8,7 +8,7 @@ Definition of the type ->  of continuous functions.
 header {* The type of continuous functions *}
 
 theory Cfun
-imports Pcpodef
+imports Pcpodef Ffun
 uses ("Tools/cont_proc.ML")
 begin
 
@@ -492,7 +492,7 @@ by (simp add: cont_if)
 
 lemma monofun_strictify2: "monofun (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 apply (rule monofunI)
-apply (auto simp add: monofun_cfun_arg eq_UU_iff [symmetric])
+apply (auto simp add: monofun_cfun_arg)
 done
 
 (*FIXME: long proof*)
