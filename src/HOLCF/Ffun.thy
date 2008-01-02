@@ -15,30 +15,29 @@ begin
 
 subsection {* Full function space is a partial order *}
 
-instance "fun"  :: (type, sq_ord) sq_ord ..
+instantiation "fun"  :: (type, sq_ord) sq_ord
+begin
 
-defs (overloaded)
+definition
   less_fun_def: "(op \<sqsubseteq>) \<equiv> (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x)"  
 
-lemma refl_less_fun: "(f::'a::type \<Rightarrow> 'b::po) \<sqsubseteq> f"
-by (simp add: less_fun_def)
+instance ..
+end
 
-lemma antisym_less_fun:
-  "\<lbrakk>(f1::'a::type \<Rightarrow> 'b::po) \<sqsubseteq> f2; f2 \<sqsubseteq> f1\<rbrakk> \<Longrightarrow> f1 = f2"
-by (simp add: less_fun_def expand_fun_eq antisym_less)
-
-lemma trans_less_fun:
-  "\<lbrakk>(f1::'a::type \<Rightarrow> 'b::po) \<sqsubseteq> f2; f2 \<sqsubseteq> f3\<rbrakk> \<Longrightarrow> f1 \<sqsubseteq> f3"
-apply (unfold less_fun_def)
-apply clarify
-apply (rule trans_less)
-apply (erule spec)
-apply (erule spec)
-done
-
-instance "fun"  :: (type, po) po
-by intro_classes
-  (assumption | rule refl_less_fun antisym_less_fun trans_less_fun)+
+instance "fun" :: (type, po) po
+proof
+  fix f :: "'a \<Rightarrow> 'b"
+  show "f \<sqsubseteq> f"
+    by (simp add: less_fun_def)
+next
+  fix f g :: "'a \<Rightarrow> 'b"
+  assume "f \<sqsubseteq> g" and "g \<sqsubseteq> f" thus "f = g"
+    by (simp add: less_fun_def expand_fun_eq antisym_less)
+next
+  fix f g h :: "'a \<Rightarrow> 'b"
+  assume "f \<sqsubseteq> g" and "g \<sqsubseteq> h" thus "f \<sqsubseteq> h"
+    unfolding less_fun_def by (fast elim: trans_less)
+qed
 
 text {* make the symbol @{text "<<"} accessible for type fun *}
 
